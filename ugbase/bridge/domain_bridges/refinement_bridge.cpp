@@ -953,18 +953,28 @@ LinearProjectorFactory(TDomain* dom)
 			new TRefProj(*dom->grid(), dom->position_attachment()));
 }
 
+template <class vector_t>
+static
+vector_t StdVecToMathVec(const std::vector<number>& v)
+{
+	vector_t mv;
+	VecSet(mv, 0);
+	for(size_t i = 0; (i < vector_t::Size) && (i < v.size()); ++i)
+		mv[i] = v[i];
+	return mv;
+}
+
 ///	Creates a refinement projector which projects new vertices onto a sphere
 /** Specify a domain, the center of the sphere (cx, cy, cz), and the sphere's radius.
  */
 template <class TDomain>
 SmartPtr<IRefinementCallback>
-SphereProjectorFactory(TDomain* dom, number x, number y, number z)
+SphereProjectorFactory(TDomain* dom, std::vector<number> center)
 {
 	typedef SphereProjector<typename TDomain::position_attachment_type>	TRefProj;
-	typename TDomain::position_type v;
-	VecCopy(v, vector3(x, y, z), 0);
 	return SmartPtr<TRefProj>(
-			new TRefProj(*dom->grid(), dom->position_attachment(), v));
+			new TRefProj(*dom->grid(), dom->position_attachment(),
+						 StdVecToMathVec<typename TDomain::position_type>(center)));
 }
 
 ///	Creates a refinement projector which projects new vertices onto a sphere
@@ -974,46 +984,43 @@ SphereProjectorFactory(TDomain* dom, number x, number y, number z)
  */
 template <class TDomain>
 SmartPtr<IRefinementCallback>
-SphericalFalloffProjectorFactory(TDomain* dom, number x, number y, number z,
+SphericalFalloffProjectorFactory(TDomain* dom, std::vector<number> center,
 						  number innerRadius, number outerRadius)
 {
 	typedef SphericalFalloffProjector<typename TDomain::position_attachment_type>	TRefProj;
-	typename TDomain::position_type v;
-	VecCopy(v, vector3(x, y, z), 0);
 	return SmartPtr<TRefProj>(
-			new TRefProj(*dom->grid(), dom->position_attachment(), v, innerRadius, outerRadius));
+			new TRefProj(*dom->grid(), dom->position_attachment(),
+						 StdVecToMathVec<typename TDomain::position_type>(center),
+						 innerRadius, outerRadius));
 }
 
 ///	Creates a refinement projector which projects new vertices onto a cylinder
-/** Specify a domain, a point on the cylinder's axis (cx, cy, cz), the direction
- * of the axis (ax, ay, az)
+/** Specify a domain, a point on the cylinder's axis c, the direction
+ * of the axis
  */
 template <class TDomain>
 SmartPtr<IRefinementCallback>
-CylinderProjectorFactory(TDomain* dom, number cx, number cy, number cz,
-				  number ax, number ay, number az)
+CylinderProjectorFactory(TDomain* dom, std::vector<number> c, std::vector<number> axis)
 {
 	typedef CylinderProjector<typename TDomain::position_attachment_type>	TRefProj;
-	typename TDomain::position_type c, a;
-	VecCopy(c, vector3(cx, cy, cz), 0);
-	VecCopy(a, vector3(ax, ay, az), 0);
 	return SmartPtr<TRefProj>(
-			new TRefProj(*dom->grid(), dom->position_attachment(), c, a));
+			new TRefProj(*dom->grid(), dom->position_attachment(),
+						StdVecToMathVec<typename TDomain::position_type>(c),
+						StdVecToMathVec<typename TDomain::position_type>(axis)));
 }
 
 template <class TDomain>
 SmartPtr<IRefinementCallback>
-CylindricalFalloffProjectorFactory(TDomain* dom, number cx, number cy, number cz,
-				  	  	  	  	   number ax, number ay, number az,
+CylindricalFalloffProjectorFactory(TDomain* dom, std::vector<number> c,
+				  	  	  	  	   std::vector<number> a,
 				  	  	  	  	   number innerRadius, number outerRadius)
 {
 	typedef CylindricalFalloffProjector<typename TDomain::position_attachment_type>	TRefProj;
-	typename TDomain::position_type c, a;
-	VecCopy(c, vector3(cx, cy, cz), 0);
-	VecCopy(a, vector3(ax, ay, az), 0);
 	return SmartPtr<TRefProj>(
-			new TRefProj(*dom->grid(), dom->position_attachment(), c, a,
-						 innerRadius, outerRadius));
+			new TRefProj(*dom->grid(), dom->position_attachment(),
+						StdVecToMathVec<typename TDomain::position_type>(c),
+						StdVecToMathVec<typename TDomain::position_type>(a),
+						innerRadius, outerRadius));
 }
 
 template <class TDomain>
