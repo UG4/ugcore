@@ -94,24 +94,28 @@ perform_projection(Vertex* vrt, TElem* parent)
 	typename TElem::ConstVertexArray vrts = parent->vertices();
 	size_t numVrts = parent->num_vertices();
 	number avDist = 0;
-	pos_type v;
-	VecSet(v, 0);
+	pos_type parentCenter;
+	VecSet(parentCenter, 0);
 
 	for(size_t i = 0; i < numVrts; ++i){
 		const pos_type& p = m_aaPos[vrts[i]];
 		avDist += DistancePointToRay(p, m_center, m_axis);
-		VecAdd(v, v, p);
+		VecAdd(parentCenter, parentCenter, p);
 	}
 
 	avDist /= (number)numVrts;
-	VecScale(v, v, 1. / (number)numVrts);
+	VecScale(parentCenter, parentCenter, 1. / (number)numVrts);
 
-	pos_type proj;
-	ProjectPointToRay(proj, v, m_center, m_axis);
-	VecSubtract(v, v, proj);
-	VecNormalize(v, v);
-	VecScale(v, v, avDist);
-	VecAdd(m_aaPos[vrt], proj, v);
+	pos_type proj, v;
+	ProjectPointToRay(proj, parentCenter, m_center, m_axis);
+	VecSubtract(v, parentCenter, proj);
+	number len = VecLength(v);
+	if(len > SMALL * avDist){	// if avDist is very small, len may be small, too
+		VecScale(v, v, avDist/len);
+		VecAdd(m_aaPos[vrt], proj, v);
+	}
+	else
+		m_aaPos[vrt] = parentCenter;
 }
 
 }// end of namespace

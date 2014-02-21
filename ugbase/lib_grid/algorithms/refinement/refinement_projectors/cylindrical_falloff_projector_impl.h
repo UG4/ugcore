@@ -120,14 +120,18 @@ perform_projection(Vertex* vrt, TElem* parent)
 		pos_type proj, v;
 		ProjectPointToRay(proj, parentCenter, m_center, m_axis);
 		VecSubtract(v, parentCenter, proj);
-		VecNormalize(v, v);
-		VecScale(v, v, avDist);
-		VecAdd(v, proj, v);
+		number len = VecLength(v);
+		if(len > SMALL * avDist){	// if avDist is very small, len may be small, too
+			VecScale(v, v, avDist / len);
+			VecAdd(v, proj, v);
 
-		if(ia <= 0)
-			m_aaPos[vrt] = v;
+			if(ia <= 0)
+				m_aaPos[vrt] = v;
+			else
+				VecScaleAdd(m_aaPos[vrt], 1.-ia, v, ia, parentCenter);
+		}
 		else
-			VecScaleAdd(m_aaPos[vrt], 1.-ia, v, ia, parentCenter);
+			m_aaPos[vrt] = parentCenter;
 	}
 }
 

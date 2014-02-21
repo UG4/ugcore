@@ -108,14 +108,18 @@ perform_projection(Vertex* vrt, TElem* parent)
 	//	calculate cylindrical projection
 		pos_type sphereProj;
 		VecSubtract(sphereProj, parentCenter, m_center);
-		VecNormalize(sphereProj, sphereProj);
-		VecScale(sphereProj, sphereProj, avDist);
-		VecAdd(sphereProj, sphereProj, m_center);
+		number len = VecLength(sphereProj);
+		if(len > SMALL * avDist){	// if avDist is very small, len may be small, too
+			VecScale(sphereProj, sphereProj, avDist / len);
+			VecAdd(sphereProj, sphereProj, m_center);
 
-		if(ia <= 0)
-			m_aaPos[vrt] = sphereProj;
+			if(ia <= 0)
+				m_aaPos[vrt] = sphereProj;
+			else
+				VecScaleAdd(m_aaPos[vrt], 1.-ia, sphereProj, ia, parentCenter);
+		}
 		else
-			VecScaleAdd(m_aaPos[vrt], 1.-ia, sphereProj, ia, parentCenter);
+			m_aaPos[vrt] = parentCenter;
 	}
 }
 

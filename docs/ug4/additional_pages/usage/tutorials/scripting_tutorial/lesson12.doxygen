@@ -1,0 +1,19 @@
+
+/** \page pageSTLesson12 Lesson 12 - RefinementProjectors
+
+This tutorial demonstrates the usage of different refinement projectors.
+Refinement projectors are important if calculations are to be performed on
+spherical or cylindrical domains or if domains contain spherical or cylindrical
+parts.
+
+ATTENTION: When applying a spherical projector to the whole geometry, one should
+make sure that the center of the projection aligns with a vertex or is located
+in a cutout.
+The same holds true for a cylinder. Here either the axis of the cylinder should
+pass through a set of edges or should also be located in a cutout.
+
+Below you'll find the scripts sources.
+They are the same as in
+<tt>apps/tutorials/tut12_refinement_projectors.lua</tt>
+\include tut12_refinement_projectors.lua
+*/

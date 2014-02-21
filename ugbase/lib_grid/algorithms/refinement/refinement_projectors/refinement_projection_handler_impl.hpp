@@ -33,8 +33,8 @@ template<class TAPosition>
 inline void RefinementProjectionHandler<TAPosition>::
 set_callback(int subsetIndex, SmartPtr<IRefinementCallback> callback)
 {
-	if(subsetIndex < 0)
-		return;
+	UG_COND_THROW(subsetIndex < 0,
+			"Invalid subset specified during refinement projector registration");
 
 	if(subsetIndex >= (int)m_callbacks.size())
 		m_callbacks.resize(subsetIndex + 1);

@@ -98,9 +98,13 @@ perform_projection(Vertex* vrt, TElem* parent)
 //	calculate projection
 	pos_type cylProj;
 	VecSubtract(cylProj, parentCenter, m_center);
-	VecNormalize(cylProj, cylProj);
-	VecScale(cylProj, cylProj, avDist);
-	VecAdd(m_aaPos[vrt], cylProj, m_center);
+	number len = VecLength(cylProj);
+	if(len > SMALL * avDist){	// if avDist is very small, len may be small, too
+		VecScale(cylProj, cylProj, avDist / len);
+		VecAdd(m_aaPos[vrt], cylProj, m_center);
+	}
+	else
+		m_aaPos[vrt] = parentCenter;
 }
 
 }// end of namespace

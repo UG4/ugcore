@@ -22,6 +22,8 @@ scripting facility.
 - \subpage pageSTLesson8
 - \subpage pageSTLesson9
 - \subpage pageSTLesson10
+- \subpage pageSTLesson11
+- \subpage pageSTLesson12
 
 More about scripting:
 - \ref pageLuaScript
