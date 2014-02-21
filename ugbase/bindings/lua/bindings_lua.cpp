@@ -43,7 +43,7 @@ static const char* errSymb = " % ";
 			ug::LogAssistant& la = ug::GetLogAssistant();\
 			la.set_output_process(la.get_process_rank());\
 			la.flush();\
-			UG_LOG(errSymb << "EXCEPTION on Proc "<<la.get_process_rank()<<":" \
+			UG_LOG("\n" << errSymb << "EXCEPTION on Proc "<<la.get_process_rank()<<":" \
 				<< " UGError thrown\n" \
 				<< UGErrorTraceback(err) \
 				<< errSymb << msg << "\n" \
@@ -57,8 +57,8 @@ static const char* errSymb = " % ";
 			ug::LogAssistant& la = ug::GetLogAssistant();\
 			la.set_output_process(la.get_process_rank());\
 			la.flush();\
-			UG_LOG(errSymb << "EXCEPTION on Proc "<<la.get_process_rank()<<":" \
-				<< " std::exception (" << ex.what() << ") thrown\n" \
+			UG_LOG("\n" << errSymb << "EXCEPTION on Proc "<<la.get_process_rank()<<":\n" \
+				<< ErrorStringFromStdException(&ex) << "\n" \
 				<< errSymb << msg << "\n" \
 				<< errSymb <<"   ARGS: ("<< args << ")\n"); \
 			PrintCallStack();\
@@ -70,7 +70,7 @@ static const char* errSymb = " % ";
 			ug::LogAssistant& la = ug::GetLogAssistant();\
 			la.set_output_process(la.get_process_rank());\
 			la.flush();\
-			UG_LOG(errSymb << "EXCEPTION on Proc "<<la.get_process_rank()<<":" \
+			UG_LOG("\n" << errSymb << "EXCEPTION on Proc "<<la.get_process_rank()<<":" \
 				<< " Unknown Exception thrown\n" \
 				<< errSymb << msg << "\n" \
 				<< errSymb <<"With ARGUMENTS: ("<< args << ")\n"); \
