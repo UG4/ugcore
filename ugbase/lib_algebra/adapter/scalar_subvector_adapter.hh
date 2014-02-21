@@ -14,6 +14,10 @@
 #include "lib_algebra/lib_algebra_impl.h"
 #include "lib_algebra/cpu_algebra_types.h"
 
+#ifdef UG_PARALLEL
+#include "lib_algebra/parallelization/parallel_vector.h"
+#endif
+
 #include "lib_algebra/small_algebra/blocks.h"
 namespace ug{
 
@@ -43,7 +47,7 @@ private:
 	const size_t m_alpha;
 };
 
-template<class InVT, class ST>
+template<class InVT, class ST=CPUAlgebra::vector_type>
 class ScalarSubVectorAdapter{
 
 public:
@@ -73,6 +77,12 @@ public:
 		m_src.print(text);
 	}
 
+	void set_random(double from, double to)
+	{
+		for(size_t i=0; i<size(); i++)
+			BlockRef(m_src[i], m_alpha) = urand(from, to);
+	}
+
 	size_t size() const {return (m_src.size());}
 private:
 	encapsulated_vector_type &m_src;
@@ -82,9 +92,16 @@ private:
 
 // partielle Spezialisierung fuer CPUAlgebra
 template<>
-ScalarSubVectorAdapter<CPUAlgebra::vector_type, CPUAlgebra>::value_type&
+inline ScalarSubVectorAdapter<CPUAlgebra::vector_type, CPUAlgebra>::value_type&
 ScalarSubVectorAdapter<CPUAlgebra::vector_type, CPUAlgebra>::operator [] (size_t i)
 { return m_src[i]; }
+
+#ifdef UG_PARALLEL
+template<>
+inline ScalarSubVectorAdapter<ParallelVector<CPUAlgebra::vector_type>, CPUAlgebra>::value_type&
+ScalarSubVectorAdapter<ParallelVector<CPUAlgebra::vector_type> , CPUAlgebra>::operator [] (size_t i)
+{ return m_src[i]; }
+#endif
 
 } // namespace ug
 

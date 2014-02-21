@@ -58,9 +58,10 @@ private:
 
 // partielle Spezialisierung fuer Block Algebra 1,2,3
 template<>
-ScalarVectorAdapter<CPUAlgebra, CPUAlgebra>::value_type&
+inline ScalarVectorAdapter<CPUAlgebra, CPUAlgebra>::value_type&
 ScalarVectorAdapter<CPUAlgebra, CPUAlgebra>::operator [] (size_t i)
 { return m_src[i]; }
+
 
 
 #endif /* SPARSEMATRIXPROXY_HH_ */

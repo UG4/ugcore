@@ -23,7 +23,35 @@ using namespace ug;
 // provides an interface for matrix of algebra type B for matrices originally of algebra type A
 // allows to access a CPUBlockAlgebra (AT) as a scalar CPUAlgebra (ST)
 
-template<class AT, class ST>
+
+template<class MT>
+inline void TruncateOffDiag(MT &A, size_t ncmp)
+{ UG_ASSERT(0, "Implement!"); }
+
+template<>
+inline void TruncateOffDiag(CPUAlgebra::matrix_type &A, size_t ncmp)
+{
+	typedef CPUAlgebra::matrix_type matrix_type;
+
+	// for each row
+	for (size_t i=0; i<A.num_rows(); ++i)
+	{
+		// for each column
+		for (matrix_type::row_iterator matij = A.begin_row(i);
+				matij != A.end_row(i); ++matij)
+		{
+			size_t j = matij.index();
+			if ((i%ncmp) != (j%ncmp))
+			{
+			//	std::cerr << "Eliminating " << i << ", " << j<< std::endl;
+				matij.value() = 0.0;
+			}
+		}
+	}
+
+}
+
+template<class AT, class ST=CPUAlgebra>
 class ScalarMatrixAdapter{
 
 public:
@@ -133,7 +161,7 @@ protected:
 
 // partielle Spezialisierung fuer CPUAlgebra
 template<>
-ScalarMatrixAdapter<CPUAlgebra, CPUAlgebra>::value_type&
+inline ScalarMatrixAdapter<CPUAlgebra, CPUAlgebra>::value_type&
 ScalarMatrixAdapter<CPUAlgebra, CPUAlgebra>::operator () (size_t r, size_t c)
 { return m_src(r,c); };
 
