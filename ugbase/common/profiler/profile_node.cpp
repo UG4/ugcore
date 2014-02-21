@@ -213,6 +213,12 @@ void UGProfileNode::PDXML_rec_write(ostream &s) const
 	s << "<hits>" << floor(get_avg_entry_count()) << "</hits>\n"
 	  << "<self>" << get_avg_self_time_ms() * 1000.0 << "</self>\n"
 	  << "<total>" << get_avg_total_time_ms() * 1000.0 << "</total>\n";
+
+	if(HasMemTracking())
+	{
+		s << "<totalMemory>" << get_total_mem() << "</totalMemory>\n";
+		s << "<selfMemory>" << get_self_mem() << "</selfMemory>\n";
+	}
 			
 	for(const UGProfileNode *p=get_first_child(); p != NULL; p=p->get_next_sibling())
 	{
