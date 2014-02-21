@@ -9,6 +9,8 @@
 #include "common/profiler/profiler.h"
 #include "common/profiler/profile_node.h"
 
+#include "common/profiler/memtracker.h"
+
 #ifdef UG_PARALLEL
 	#include "pcl/pcl.h"
 #endif
@@ -149,13 +151,9 @@ int UGInit(int *argcp, char ***argvp, int parallelOutputProcRank)
 	return !success;
 }
 
-////////////////////////////////////////////////////////////////////////
-///	finalizes ug
-/**	If ug has been compiled for parallel use (UG_PARALLEL is defined)
- *	then this method will internally call pcl::Finalize.
- */
-int UGFinalize()
+int UGFinalizeNoPCLFinalize()
 {
+	EnableMemTracker(false);
 	ug::GetLogAssistant().flush_error_log();
 	
 	if (outputProfileStats) {
@@ -176,6 +174,15 @@ int UGFinalize()
 		//Shiny::ProfileManager::instance.destroy();
 #endif
 	}
+}
+////////////////////////////////////////////////////////////////////////
+///	finalizes ug
+/**	If ug has been compiled for parallel use (UG_PARALLEL is defined)
+ *	then this method will internally call pcl::Finalize.
+ */
+int UGFinalize()
+{
+	UGFinalizeNoPCLFinalize();
 
 #ifdef UG_PARALLEL
 	pcl::Finalize();
@@ -187,13 +194,19 @@ int UGFinalize()
 void UGForceExit()
 {
 	UG_LOG("--- ABORTING UG EXECUTION ---\n");
+
 	#ifdef UG_PLUGINS
 		// ? UnloadPlugins();
 	#endif
+
+	UGFinalizeNoPCLFinalize();
+
 	#ifdef UG_PARALLEL
+		// pcl::Abort will terminate execution
 		pcl::Abort();
+		// !!! this point is not reached !!!
 	#endif
-	UGFinalize();
+
 	exit(0);
 }
 
