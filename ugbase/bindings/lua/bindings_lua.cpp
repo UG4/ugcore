@@ -95,7 +95,6 @@ std::string ParameterStackString(ParameterStack &s)
 	for(int i=0; i<s.size(); i++)
 	{
 		if(i != 0) ss << ", ";
-		const bool bIsVector = s.is_vector(i);
 		if(s.is_vector(i)){
 			// todo: more specific output for vectors
 			ss << "std::vector";
