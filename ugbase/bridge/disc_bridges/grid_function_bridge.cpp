@@ -76,6 +76,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 						"Success", "Vector")
 			.add_method("clone", &TFct::clone)
 			.add_method("grid_level", &TFct::grid_level)
+			.add_method("num_dofs", static_cast<size_t (TFct::*)() const>(&TFct::num_dofs))
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GridFunction", tag);
 	}

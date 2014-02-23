@@ -258,11 +258,18 @@ class GridFunction
 		}
 
 	public:
-	/// return the number of dofs distributed
+	/// return the number of indices distributed (proc local)
 		size_t num_indices() const {return m_spDD->num_indices();}
 
-	/// return the number of dofs distributed on subset si
+	/// return the number of indices distributed on subset si (proc local)
 		size_t num_indices(int si) const {return m_spDD->num_indices(si);}
+
+	/// return the number of dofs distributed (global)
+	/// \{
+		size_t num_dofs() const {return num_dofs(DoFCount::ALL_FCT);}
+		size_t num_dofs(int fct) const {return num_dofs(fct, DoFCount::ALL_SUBSET);}
+		size_t num_dofs(int fct, int si) const;
+	/// \}
 
 	/// get all indices of the element
 		template <typename TElem>

@@ -263,6 +263,13 @@ number MaxElementDiameter(Grid& grid, TAAPos& aaPos,
 	number max = 0.0;
 	for(; iter != iterEnd; ++iter)
 		max = std::max(max, ElementDiameterSq(grid, aaPos, *iter));
+
+#ifdef UG_PARALLEL
+	// share value between all procs
+	pcl::ProcessCommunicator com;
+	max = com.allreduce(max, PCL_RO_MAX);
+#endif
+
 	return std::sqrt(max);
 }
 

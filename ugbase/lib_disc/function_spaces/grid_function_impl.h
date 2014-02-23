@@ -122,6 +122,17 @@ GridFunction<TDomain, TAlgebra>::check_algebra()
 	}
 }
 
+template <typename TDomain, typename TAlgebra>
+size_t
+GridFunction<TDomain, TAlgebra>::
+num_dofs(int fct, int si) const
+{
+	DoFCount dc = m_spDD->dof_count();
+	dc.sum_values_over_procs();
+
+	return dc.num(fct, si, DoFCount::UNIQUE_SS, DoFCount::UNIQUE_ES);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // GridFunction : cloning
 ////////////////////////////////////////////////////////////////////////////////
