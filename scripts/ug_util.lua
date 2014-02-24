@@ -87,6 +87,8 @@ end
 --! the normal pairs(table) function returns elements unsorted
 --! this function goes through elements sorted.
 --! see http://www.lua.org/pil/19.3.html
+--! use it like e.g. 
+--! for name,arg in pairsSortedByKeys(util.args) do
 function pairsSortedByKeys (t, f)
     local a = {}
     for n in pairs(t) do 
