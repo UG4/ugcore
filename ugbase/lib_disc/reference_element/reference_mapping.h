@@ -211,7 +211,9 @@ class BaseReferenceMapping
 			}
 
 			UG_THROW("ReferenceMapping::global_to_local: Newton method did not"
-					" reach a tolerance "<<tol<<" after "<<maxIter<<" steps.");
+					" reach a tolerance "<<tol<<" after "<<maxIter<<" steps. "
+					"Global Pos: "<<globPos<<", dim: "<<dim<<", worldDim: "<<
+					worldDim<<", last newton defect: "<<fabs(VecTwoNorm(dist)));
 		}
 
 	///	map global coordinate to local coordinate for n local positions

@@ -137,6 +137,51 @@ assemble_prolongation_p1(matrix_type& P,
 		}
 	}
 }
+/*
+template <typename TDomain>
+void ProjectGlobalPositionToElem(std::vector<MathVector<TDomain::dim> >& vGlobPos,
+                                 GridObject* parent, const TDomain& domain)
+{
+	const int parentDim = parent->base_object_id();
+
+	// vertex and full dim parent must match
+	if(parentDim == 0 || parentDim == TDomain::dim)
+		return;
+
+//	get the vertices
+	std::vector<MathVector<TDomain::dim> > vCornerCoord;
+	switch(parentDim)
+	{
+		case EDGE:
+		{
+			CollectCornerCoordinates(vCornerCoord, *static_cast<Edge*>(parent), domain, true);
+			MathVector<TDomain::dim> dir;
+			VecSubtract(dir, vCornerCoord[1], vCornerCoord[0]);
+			for(size_t p = 0; p < vGlobPos.size(); ++p){
+				ProjectPointToRay(vGlobPos[p], vGlobPos[p], vCornerCoord[0], dir);
+			}
+		}
+		break;
+		case FACE:
+		{
+			CollectCornerCoordinates(vCornerCoord, *static_cast<Face*>(parent), domain, true);
+			MathVector<TDomain::dim> normal;
+			MathVector<TDomain::dim> a, b;
+			VecSubtract(a, vCornerCoord[1], vCornerCoord[0]);
+			VecSubtract(b, vCornerCoord[2], vCornerCoord[0]);
+			VecCross(normal, a,b);
+
+			for(size_t p = 0; p < vGlobPos.size(); ++p){
+				ProjectPointToPlane(vGlobPos[p], vGlobPos[p], vCornerCoord[0], normal);
+			}
+		}
+		break;
+		default: UG_THROW( "Base Object type not found.");
+	}
+}
+*/
+
+
 template <typename TDomain, typename TAlgebra>
 template <typename TChild>
 void StdTransfer<TDomain, TAlgebra>::
@@ -287,6 +332,9 @@ assemble_prolongation(matrix_type& P,
 					//	global positions of child dofs
 						std::vector<MathVector<TDomain::dim> > vDoFPos;
 						InnerDoFPosition(vDoFPos, child, *spDomain, lfeID);
+
+					//	project
+					//	ProjectGlobalPositionToElem(vDoFPos, parent, *spDomain);
 
 					//	get shapes at global positions
 						std::vector<std::vector<number> > vvShape;
