@@ -89,6 +89,7 @@ end
 --! see http://www.lua.org/pil/19.3.html
 --! use it like e.g. 
 --! for name,arg in pairsSortedByKeys(util.args) do
+--! f can be nil (= std sort)
 function pairsSortedByKeys (t, f)
     local a = {}
     for n in pairs(t) do 
