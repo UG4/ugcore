@@ -60,7 +60,7 @@ bool LUA2C::createC(const char *functionName)
 	m_iOut = parser.num_out();
     out.close();
     
- 	string c1s=string("gcc -O3 -c ") + p + "lua2c_output.c -o " + p + "lua2c_output.o";
+ 	string c1s=string("gcc -fpic -O3 -c ") + p + "lua2c_output.c -o " + p + "lua2c_output.o";
 	UG_DLOG(DID_LUA2C, 2, "compiling line: " << c1s << "\n");
 	system(c1s.c_str());
 
