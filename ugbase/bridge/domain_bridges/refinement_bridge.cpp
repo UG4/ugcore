@@ -381,6 +381,44 @@ void MarkForRefinement_VerticesInCube(TDomain& dom, SmartPtr<IRefiner> refiner,
 	MarkForAdaption_VerticesInCube(dom, refiner, min, max, "refine");
 }
 
+
+///	Marks all elements for anisotropic refienment and also marks all edges > minLen.
+template <class TDomain>
+void MarkAnisotropic_LongEdges(TDomain& dom, IRefiner& refiner, number minLen)
+{
+	UG_ASSERT(dom.grid().get() == refiner.get_associated_grid(),
+			  "Grids in domain and in refiner have to match!");
+
+	typedef typename domain_traits<TDomain::dim>::element_type	elem_t;
+	typedef typename MultiGrid::traits<elem_t>::iterator iter_t;
+
+	typename TDomain::position_accessor_type aaPos = dom.position_accessor();
+	MultiGrid& mg = *dom.grid();
+	MultiGrid::edge_traits::secure_container	edges;
+	MultiGrid::face_traits::secure_container	faces;
+
+	number minLenSq = sq(minLen);
+
+	for(iter_t e_iter = mg.begin<elem_t>(); e_iter != mg.end<elem_t>(); ++e_iter){
+		elem_t* elem = *e_iter;
+		if(mg.has_children(elem))
+			continue;
+
+	//	we'll mark all volumes as anisotropic, since we currently have to use
+	//	copy elements during anisotropic refinement.
+		refiner.mark(elem, RM_ANISOTROPIC);
+
+		mg.associated_elements(edges, elem);
+
+		for(size_t i = 0; i < edges.size(); ++i){
+			if(EdgeLengthSq(edges[i], aaPos) >= minLenSq){
+				refiner.mark(edges[i]);
+			}
+		}
+	}
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 ///	Marks the long edges in anisotropic faces and faces with a big area in anisotropic volumes.
 /**
@@ -1116,6 +1154,9 @@ static void Domain(Registry& reg, string grp)
 		.add_function("MarkForAdaption_VerticesInCube",
 				&MarkForAdaption_VerticesInCube<domain_type>, grp,
 				"", "dom#refiner#min#max#adaption_type")
+		.add_function("MarkAnisotropic_LongEdges",
+					&MarkAnisotropic_LongEdges<domain_type>, grp,
+					"", "dom#refiner#maxEdgeLen")
 		.add_function("MarkForRefinement_AnisotropicElements",
 				&MarkForRefinement_AnisotropicElements<domain_type>, grp,
 				"", "dom#refiner#sizeRatio")

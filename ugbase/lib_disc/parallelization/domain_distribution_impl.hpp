@@ -27,6 +27,8 @@ static bool PartitionDomain_Bisection(TDomain& domain, PartitionMap& partitionMa
 	PROFILE_FUNC_GROUP("parallelization");
 	SmartPtr<MultiGrid> pMG = domain.grid();
 	partitionMap.assign_grid(*pMG);
+	SubsetHandler& partitionHandler = *partitionMap.get_partition_handler();
+
 	#ifdef UG_PARALLEL
 	//	we need a process to which elements which are not considered will be send.
 	//	Those elements should stay on the current process.
@@ -38,44 +40,44 @@ static bool PartitionDomain_Bisection(TDomain& domain, PartitionMap& partitionMa
 			bucketSubset = (int)partitionMap.num_target_procs();
 
 		if(pMG->num<Volume>() > 0){
-			partitionMap.get_partition_handler().assign_subset(
+			partitionHandler.assign_subset(
 							pMG->begin<Volume>(), pMG->end<Volume>(), bucketSubset);
 
 			PartitionElementsByRepeatedIntersection<Volume, TDomain::dim>(
-												partitionMap.get_partition_handler(),
+												partitionHandler,
 												*pMG, pMG->num_levels() - 1,
 												partitionMap.num_target_procs(),
 												domain.position_attachment(),
 												firstAxisToCut);
 		}
 		else if(pMG->num<Face>() > 0){
-			partitionMap.get_partition_handler().assign_subset(
+			partitionHandler.assign_subset(
 							pMG->begin<Face>(), pMG->end<Face>(), bucketSubset);
 
 			PartitionElementsByRepeatedIntersection<Face, TDomain::dim>(
-												partitionMap.get_partition_handler(),
+												partitionHandler,
 												*pMG, pMG->num_levels() - 1,
 												partitionMap.num_target_procs(),
 												domain.position_attachment(),
 												firstAxisToCut);
 		}
 		else if(pMG->num<Edge>() > 0){
-			partitionMap.get_partition_handler().assign_subset(
+			partitionHandler.assign_subset(
 							pMG->begin<Edge>(), pMG->end<Edge>(), bucketSubset);
 
 			PartitionElementsByRepeatedIntersection<Edge, TDomain::dim>(
-												partitionMap.get_partition_handler(),
+												partitionHandler,
 												*pMG, pMG->num_levels() - 1,
 												partitionMap.num_target_procs(),
 												domain.position_attachment(),
 												firstAxisToCut);
 		}
 		else if(pMG->num<Vertex>() > 0){
-			partitionMap.get_partition_handler().assign_subset(
+			partitionHandler.assign_subset(
 							pMG->begin<Vertex>(), pMG->end<Vertex>(), bucketSubset);
 
 			PartitionElementsByRepeatedIntersection<Vertex, TDomain::dim>(
-												partitionMap.get_partition_handler(),
+												partitionHandler,
 												*pMG, pMG->num_levels() - 1,
 												partitionMap.num_target_procs(),
 												domain.position_attachment(),
@@ -92,13 +94,13 @@ static bool PartitionDomain_Bisection(TDomain& domain, PartitionMap& partitionMa
 
 //	Assign all elements to partition 0
 	UG_LOG("WARNING: Serial fallback implementation of PartitionDomain_Bisection is used.\n");
-	partitionMap.get_partition_handler().assign_subset(pMG->begin<Vertex>(),
+	partitionHandler.assign_subset(pMG->begin<Vertex>(),
 													   pMG->end<Vertex>(), 0);
-	partitionMap.get_partition_handler().assign_subset(pMG->begin<Edge>(),
+	partitionHandler.assign_subset(pMG->begin<Edge>(),
 													   pMG->end<Edge>(), 0);
-	partitionMap.get_partition_handler().assign_subset(pMG->begin<Face>(),
+	partitionHandler.assign_subset(pMG->begin<Face>(),
 													   pMG->end<Face>(), 0);
-	partitionMap.get_partition_handler().assign_subset(pMG->begin<Volume>(),
+	partitionHandler.assign_subset(pMG->begin<Volume>(),
 													   pMG->end<Volume>(), 0);
 	return true;
 }
@@ -113,6 +115,7 @@ static bool PartitionDomain_RegularGrid(TDomain& domain, PartitionMap& partition
 //	prepare the partition map and a vertex position attachment accessor
 	SmartPtr<MultiGrid> pMG = domain.grid();
 	partitionMap.assign_grid(*pMG);
+	SubsetHandler& partitionHandler = *partitionMap.get_partition_handler();
 
 	#ifdef UG_PARALLEL
 	//	a distributed grid manager is required
@@ -141,13 +144,13 @@ static bool PartitionDomain_RegularGrid(TDomain& domain, PartitionMap& partition
 		if(pMG->num<Volume>() > 0){
 			if(!surfaceOnly)
 				PartitionElements_RegularGrid<Volume>(
-											partitionMap.get_partition_handler(),
+											partitionHandler,
 											pMG->begin<Volume>(), pMG->end<Volume>(),
 											numCellsX, numCellsY, numCellsZ, aaPos,
 											Grid::volume_traits::cb_consider_all, bucketSubset);
 			else
 				PartitionElements_RegularGrid<Volume>(
-											partitionMap.get_partition_handler(),
+											partitionHandler,
 											pMG->begin<Volume>(), pMG->end<Volume>(),
 											numCellsX, numCellsY, numCellsZ, aaPos,
 											cbConsiderElem, bucketSubset);
@@ -155,13 +158,13 @@ static bool PartitionDomain_RegularGrid(TDomain& domain, PartitionMap& partition
 		else if(pMG->num<Face>() > 0){
 			if(!surfaceOnly)
 				PartitionElements_RegularGrid<Face>(
-											partitionMap.get_partition_handler(),
+											partitionHandler,
 											pMG->begin<Face>(), pMG->end<Face>(),
 											numCellsX, numCellsY, numCellsZ, aaPos,
 											Grid::face_traits::cb_consider_all, bucketSubset);
 			else
 				PartitionElements_RegularGrid<Face>(
-											partitionMap.get_partition_handler(),
+											partitionHandler,
 											pMG->begin<Face>(), pMG->end<Face>(),
 											numCellsX, numCellsY, numCellsZ, aaPos,
 											cbConsiderElem, bucketSubset);
@@ -169,13 +172,13 @@ static bool PartitionDomain_RegularGrid(TDomain& domain, PartitionMap& partition
 		else if(pMG->num<Edge>() > 0){
 			if(!surfaceOnly)
 				PartitionElements_RegularGrid<Edge>(
-											partitionMap.get_partition_handler(),
+											partitionHandler,
 											pMG->begin<Edge>(), pMG->end<Edge>(),
 											numCellsX, numCellsY, numCellsZ, aaPos,
 											Grid::edge_traits::cb_consider_all, bucketSubset);
 			else
 				PartitionElements_RegularGrid<Edge>(
-											partitionMap.get_partition_handler(),
+											partitionHandler,
 											pMG->begin<Edge>(), pMG->end<Edge>(),
 											numCellsX, numCellsY, numCellsZ, aaPos,
 											cbConsiderElem, bucketSubset);
@@ -183,13 +186,13 @@ static bool PartitionDomain_RegularGrid(TDomain& domain, PartitionMap& partition
 		else if(pMG->num<Vertex>() > 0){
 			if(!surfaceOnly)
 				PartitionElements_RegularGrid<Vertex>(
-											partitionMap.get_partition_handler(),
+											partitionHandler,
 											pMG->begin<Vertex>(), pMG->end<Vertex>(),
 											numCellsX, numCellsY, numCellsZ, aaPos,
 											Grid::vertex_traits::cb_consider_all, bucketSubset);
 			else
 				PartitionElements_RegularGrid<Vertex>(
-											partitionMap.get_partition_handler(),
+											partitionHandler,
 											pMG->begin<Vertex>(), pMG->end<Vertex>(),
 											numCellsX, numCellsY, numCellsZ, aaPos,
 											cbConsiderElem, bucketSubset);
@@ -202,7 +205,7 @@ static bool PartitionDomain_RegularGrid(TDomain& domain, PartitionMap& partition
 
 	//	if elements have been assigned to bucketProc, then we have to make sure,
 	//	that it is also present in the process-map
-		if(!partitionMap.get_partition_handler().empty(bucketSubset)){
+		if(!partitionHandler.empty(bucketSubset)){
 			if(bucketSubset >= (int)partitionMap.num_target_procs())
 				partitionMap.add_target_proc(localProc);
 		}
@@ -225,6 +228,7 @@ PartitionDomain_MetisKWay(TDomain& domain, PartitionMap& partitionMap,
 //	prepare the partition map
 	SmartPtr<MultiGrid> pMG = domain.grid();
 	partitionMap.assign_grid(*pMG);
+	SubsetHandler& partitionHandler = *partitionMap.get_partition_handler();
 
 #ifdef UG_PARALLEL
 //	we need a process to which elements which are not considered will be send.
@@ -236,34 +240,33 @@ PartitionDomain_MetisKWay(TDomain& domain, PartitionMap& partitionMap,
 	if(bucketSubset == -1)
 		bucketSubset = (int)partitionMap.num_target_procs();
 
-	SubsetHandler& shPart = partitionMap.get_partition_handler();
 //	call the actual partitioning routine
 	if(pMG->num<Volume>() > 0){
-		PartitionMultiGrid_MetisKway<Volume>(shPart, *pMG, numPartitions,
+		PartitionMultiGrid_MetisKway<Volume>(partitionHandler, *pMG, numPartitions,
 											baseLevel, hWeight, vWeight);
 	//	assign all elements below baseLevel to bucketSubset
 		for(size_t lvl = 0; lvl < baseLevel; ++lvl)
-			shPart.assign_subset(pMG->begin<Volume>(lvl), pMG->end<Volume>(lvl),
+			partitionHandler.assign_subset(pMG->begin<Volume>(lvl), pMG->end<Volume>(lvl),
 								 bucketSubset);
 	}
 	else if(pMG->num<Face>() > 0){
-		PartitionMultiGrid_MetisKway<Face>(shPart, *pMG, numPartitions,
+		PartitionMultiGrid_MetisKway<Face>(partitionHandler, *pMG, numPartitions,
 											baseLevel, hWeight, vWeight);
 	//	assign all elements below baseLevel to bucketSubset
 		for(size_t lvl = 0; lvl < baseLevel; ++lvl)
-			shPart.assign_subset(pMG->begin<Face>(lvl), pMG->end<Face>(lvl),
+			partitionHandler.assign_subset(pMG->begin<Face>(lvl), pMG->end<Face>(lvl),
 								 bucketSubset);
 	}
 	else if(pMG->num<Edge>() > 0){
-		PartitionMultiGrid_MetisKway<Edge>(shPart, *pMG, numPartitions,
+		PartitionMultiGrid_MetisKway<Edge>(partitionHandler, *pMG, numPartitions,
 												baseLevel, hWeight, vWeight);
 	//	assign all elements below baseLevel to bucketSubset
 		for(size_t lvl = 0; lvl < baseLevel; ++lvl)
-			shPart.assign_subset(pMG->begin<Edge>(lvl), pMG->end<Edge>(lvl),
+			partitionHandler.assign_subset(pMG->begin<Edge>(lvl), pMG->end<Edge>(lvl),
 								 bucketSubset);
 	}
 
-	if(!partitionMap.get_partition_handler().empty(bucketSubset)){
+	if(!partitionHandler.empty(bucketSubset)){
 		if(bucketSubset >= (int)partitionMap.num_target_procs())
 			partitionMap.add_target_proc(localProc);
 	}
@@ -285,6 +288,7 @@ PartitionDomain_MetisKWay(TDomain& domain, PartitionMap& partitionMap,
 //	prepare the partition map
 	SmartPtr<MultiGrid> pMG = domain.grid();
 	partitionMap.assign_grid(*pMG);
+	SubsetHandler& partitionHandler = *partitionMap.get_partition_handler();
 
 	PartitionWeighting& wFct = *weightFct;
 	wFct.set_subset_handler(domain.subset_handler().operator->());
@@ -299,36 +303,35 @@ PartitionDomain_MetisKWay(TDomain& domain, PartitionMap& partitionMap,
 	if(bucketSubset == -1)
 		bucketSubset = (int)partitionMap.num_target_procs();
 
-	SubsetHandler& shPart = partitionMap.get_partition_handler();
 //	call the actual partitioning routine
 	if(pMG->num<Volume>() > 0){
 		// do not use boost::function<...> f = wFct, since this leads to slicing
 		// of wFct and losing properties of derived objects
 		boost::function<int (Volume*, Volume*)> f = boost::ref(wFct);
-		PartitionMultiGrid_MetisKway<Volume>(shPart, *pMG, numPartitions, baseLevel, f);
+		PartitionMultiGrid_MetisKway<Volume>(partitionHandler, *pMG, numPartitions, baseLevel, f);
 	//	assign all elements below baseLevel to bucketSubset
 		for(size_t lvl = 0; lvl < baseLevel; ++lvl)
-			shPart.assign_subset(pMG->begin<Volume>(lvl), pMG->end<Volume>(lvl),
+			partitionHandler.assign_subset(pMG->begin<Volume>(lvl), pMG->end<Volume>(lvl),
 								 bucketSubset);
 	}
 	else if(pMG->num<Face>() > 0){
 		boost::function<int (Face*, Face*)> f = boost::ref(wFct);
-		PartitionMultiGrid_MetisKway<Face>(shPart, *pMG, numPartitions, baseLevel, f);
+		PartitionMultiGrid_MetisKway<Face>(partitionHandler, *pMG, numPartitions, baseLevel, f);
 	//	assign all elements below baseLevel to bucketSubset
 		for(size_t lvl = 0; lvl < baseLevel; ++lvl)
-			shPart.assign_subset(pMG->begin<Face>(lvl), pMG->end<Face>(lvl),
+			partitionHandler.assign_subset(pMG->begin<Face>(lvl), pMG->end<Face>(lvl),
 								 bucketSubset);
 	}
 	else if(pMG->num<Edge>() > 0){
 		boost::function<int (Edge*, Edge*)> f = boost::ref(wFct);
-		PartitionMultiGrid_MetisKway<Edge>(shPart, *pMG, numPartitions, baseLevel, f);
+		PartitionMultiGrid_MetisKway<Edge>(partitionHandler, *pMG, numPartitions, baseLevel, f);
 	//	assign all elements below baseLevel to bucketSubset
 		for(size_t lvl = 0; lvl < baseLevel; ++lvl)
-			shPart.assign_subset(pMG->begin<Edge>(lvl), pMG->end<Edge>(lvl),
+			partitionHandler.assign_subset(pMG->begin<Edge>(lvl), pMG->end<Edge>(lvl),
 								 bucketSubset);
 	}
 
-	if(!partitionMap.get_partition_handler().empty(bucketSubset)){
+	if(!partitionHandler.empty(bucketSubset)){
 		if(bucketSubset >= (int)partitionMap.num_target_procs())
 			partitionMap.add_target_proc(localProc);
 	}
@@ -350,19 +353,20 @@ PartitionDomain_LevelBased(TDomain& domain, PartitionMap& partitionMap,
 	//	prepare the partition map
 	SmartPtr<MultiGrid> pMG = domain.grid();
 	partitionMap.assign_grid(*pMG);
-	SubsetHandler& shPart = partitionMap.get_partition_handler();
+	SubsetHandler& partitionHandler = *partitionMap.get_partition_handler();
+
 //	call the actual partitioning routine
 	switch(domain.domain_info().element_type()){
 		case VOLUME:
-			PartitionMultiGridLevel_MetisKway<Volume>(shPart, *pMG, numPartitions, level);
+			PartitionMultiGridLevel_MetisKway<Volume>(partitionHandler, *pMG, numPartitions, level);
 			break;
 
 		case FACE:
-			PartitionMultiGridLevel_MetisKway<Face>(shPart, *pMG, numPartitions, level);
+			PartitionMultiGridLevel_MetisKway<Face>(partitionHandler, *pMG, numPartitions, level);
 			break;
 
 		case EDGE:
-			PartitionMultiGridLevel_MetisKway<Edge>(shPart, *pMG, numPartitions, level);
+			PartitionMultiGridLevel_MetisKway<Edge>(partitionHandler, *pMG, numPartitions, level);
 			break;
 
 		default:
@@ -383,20 +387,20 @@ PartitionDistributedDomain_LevelBased(TDomain& domain, PartitionMap& partitionMa
 	//	prepare the partition map
 	SmartPtr<MultiGrid> pMG = domain.grid();
 	partitionMap.assign_grid(*pMG);
-	SubsetHandler& shPart = partitionMap.get_partition_handler();
+	SubsetHandler& partitionHandler = *partitionMap.get_partition_handler();
 
 //	call the actual partitioning routine
 	switch(domain.domain_info().element_type()){
 		case VOLUME:
-			PartitionMultiGridLevel_ParmetisKway<Volume>(shPart, *pMG, numPartitions, level);
+			PartitionMultiGridLevel_ParmetisKway<Volume>(partitionHandler, *pMG, numPartitions, level);
 			break;
 
 		case FACE:
-			PartitionMultiGridLevel_ParmetisKway<Face>(shPart, *pMG, numPartitions, level);
+			PartitionMultiGridLevel_ParmetisKway<Face>(partitionHandler, *pMG, numPartitions, level);
 			break;
 
 		case EDGE:
-			PartitionMultiGridLevel_ParmetisKway<Edge>(shPart, *pMG, numPartitions, level);
+			PartitionMultiGridLevel_ParmetisKway<Edge>(partitionHandler, *pMG, numPartitions, level);
 			break;
 
 		default:
@@ -420,9 +424,9 @@ static bool DistributeDomain(TDomain& domainOut,
 //	make sure that the input is fine
 	typedef typename TDomain::grid_type GridType;
 	SmartPtr<GridType> pGrid = domainOut.grid();
-	SubsetHandler& shPart = partitionMap.get_partition_handler();
+	SubsetHandler& partitionHandler = *partitionMap.get_partition_handler();
 
-	if(shPart.grid() != pGrid.get()){
+	if(partitionHandler.grid() != pGrid.get()){
 		partitionMap.assign_grid(*pGrid);
 	}
 
@@ -433,7 +437,7 @@ static bool DistributeDomain(TDomain& domainOut,
 //	make sure that the number of subsets and target processes match
 //	THIS MAKES NO SENSE FOR PARALLEL REDISTRIBUTION - IT IS CLEAR THAT SOME
 //	PROCS WON'T DELIVER TO ALL PROCS IN THE MAP.
-/*	const int numSubs = partitionMap.get_partition_handler().num_subsets();
+/*	const int numSubs = partitionHandler.num_subsets();
 	const int numTargetProcs = (int)partitionMap.num_target_procs();
 	if(numSubs > numTargetProcs){
 		UG_LOG("ERROR in RedistributeDomain: More partitions than target processes.\n");
@@ -477,7 +481,7 @@ static bool DistributeDomain(TDomain& domainOut,
 	}
 
 //	now call redistribution
-	DistributeGrid(*pGrid, shPart, serializer, createVerticalInterfaces,
+	DistributeGrid(*pGrid, partitionHandler, serializer, createVerticalInterfaces,
 				   &partitionMap.get_target_proc_vec());
 
 	PCL_PROFILE_END();

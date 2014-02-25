@@ -10,19 +10,24 @@ namespace ug{
 
 ////////////////////////////////////////////////////////////////////////////////
 //	IMPLEMENTATION OF PartitionMap
+PartitionMap::PartitionMap()
+{
+	m_shPartitions = make_sp(new SubsetHandler());
+}
+
 void PartitionMap::clear()
 {
 	m_targetProcs.clear();
-	m_shPartitions.clear();
+	m_shPartitions->clear();
 }
 
 void PartitionMap::assign_grid(Grid& grid)
 {
-	if(&grid != m_shPartitions.grid())
-		m_shPartitions.assign_grid(grid);
+	if(&grid != m_shPartitions->grid())
+		m_shPartitions->assign_grid(grid);
 }
 
-SubsetHandler& PartitionMap::get_partition_handler()
+SmartPtr<SubsetHandler> PartitionMap::get_partition_handler()
 {return m_shPartitions;}
 
 void PartitionMap::add_target_proc(int tarProcRank)

@@ -26,8 +26,6 @@ Partitioner_Parmetis() :
 {
 	m_processHierarchy = SPProcessHierarchy(new ProcessHierarchy);
 	m_processHierarchy->add_hierarchy_level(0, 1);
-	m_balanceWeights = SPBalanceWeights(new StdBalanceWeights<dim>);
-	m_connectionWeights = SPConnectionWeights(new StdConnectionWeights<dim>);
 }
 
 template<int dim>
@@ -67,17 +65,17 @@ set_next_process_hierarchy(SPProcessHierarchy procHierarchy)
 
 template<int dim>
 void Partitioner_Parmetis<dim>::
-set_balance_weights(SmartPtr<BalanceWeights<dim> > balanceWeights)
+set_balance_weights(SPBalanceWeights balanceWeights)
 {
 	m_balanceWeights = balanceWeights;
 }
 
-template<int dim>
-void Partitioner_Parmetis<dim>::
-set_connection_weights(SmartPtr<ConnectionWeights<dim> > conWeights)
-{
-	m_connectionWeights = conWeights;
-}
+//template<int dim>
+//void Partitioner_Parmetis<dim>::
+//set_connection_weights(SmartPtr<ConnectionWeights<dim> > conWeights)
+//{
+//	m_connectionWeights = conWeights;
+//}
 
 
 template<int dim>

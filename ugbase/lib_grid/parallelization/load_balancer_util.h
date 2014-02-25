@@ -6,6 +6,7 @@
 #define __H__UG__load_balancer_util__
 
 #include "load_balancer.h"
+#include "lib_grid/algorithms/volume_calculation.h"
 
 namespace ug{
 
@@ -16,26 +17,26 @@ CreateProcessHierarchy(size_t* numElemsOnLvl, size_t numLvls,
 					   size_t maxNumProcs, int minDistLvl,
 					   int maxLvlsWithoutRedist);
 
-
-template <int dim>
-class StdConnectionWeights : public ConnectionWeights<dim>{
-	public:
-		typedef ConnectionWeights<dim>			base_class;
-		typedef typename base_class::elem_type	elem_type;
-
-		StdConnectionWeights() : m_wgt(1.0)					{}
-		StdConnectionWeights(number wgt) : m_wgt(wgt)		{}
-		virtual ~StdConnectionWeights()						{}
-
-		virtual void set_weight(number wgt)					{m_wgt = wgt;}
-
-		virtual void set_grid(MultiGrid*, Attachment<MathVector<dim> >)	{}
-		virtual void refresh_weights(int)					{}
-		virtual number get_weight(elem_type*, elem_type*)	{return m_wgt;}
-
-	private:
-		number m_wgt;
-};
+//
+//template <int dim>
+//class StdConnectionWeights : public ConnectionWeights<dim>{
+//	public:
+//		typedef ConnectionWeights<dim>			base_class;
+//		typedef typename base_class::elem_type	elem_type;
+//
+//		StdConnectionWeights() : m_wgt(1.0)					{}
+//		StdConnectionWeights(number wgt) : m_wgt(wgt)		{}
+//		virtual ~StdConnectionWeights()						{}
+//
+//		virtual void set_weight(number wgt)					{m_wgt = wgt;}
+//
+//		virtual void set_grid(MultiGrid*, Attachment<MathVector<dim> >)	{}
+//		virtual void refresh_weights(int)					{}
+//		virtual number get_weight(elem_type*, elem_type*)	{return m_wgt;}
+//
+//	private:
+//		number m_wgt;
+//};
 
 
 /**	If a level-factor > 0 is specified, then the get_weight method returns
@@ -46,41 +47,67 @@ class StdConnectionWeights : public ConnectionWeights<dim>{
  * If level-factor <= 0, then m_wgt is simply returned.
  * The default level-factor is 0, the default weight is 1.
  */
-template <int dim>
-class StdBalanceWeights : public BalanceWeights<dim>{
+class StdBalanceWeights : public IBalanceWeights{
 	public:
-		typedef BalanceWeights<dim>				base_class;
-		typedef typename base_class::elem_type	elem_type;
-
 		StdBalanceWeights() :
-			m_mg(NULL), m_wgt(1.0), m_lvlFac(0)				{}
-		StdBalanceWeights(number wgt, number lvlFac) :
-			m_mg(NULL), m_wgt(wgt), m_lvlFac(lvlFac)		{}
+			m_wgt(1.0)				{}
 
 		virtual ~StdBalanceWeights()						{}
 
 		virtual void set_weight(number wgt)					{m_wgt = wgt;}
-		virtual void set_level_fac(number fac)				{m_lvlFac = fac;}
-
-		virtual void set_grid(MultiGrid* mg, Attachment<MathVector<dim> >)	{m_mg = mg;}
 		virtual void refresh_weights(int)					{}
-		virtual number get_weight(elem_type* e)
-		{
-			if(m_lvlFac > 0){
-				UG_ASSERT(m_mg, "A mult-grid has to be set before get_weight is called!");
-				return number(m_mg->get_level(e) + 1) * m_lvlFac * m_wgt;
-			}
-			else
-				return m_wgt;
-		}
+
+		virtual number get_weight(Vertex* e)	{return m_wgt;}
+		virtual number get_weight(Edge* e)		{return m_wgt;}
+		virtual number get_weight(Face* e)		{return m_wgt;}
+		virtual number get_weight(Volume* e)	{return m_wgt;}
 
 	private:
-		MultiGrid*	m_mg;
 		number		m_wgt;
-		number		m_lvlFac;
 };
 
 
+///	The higher the volume, the higher the weight when anisotropic refinement is used...
+template <int dim>
+class AnisotropicBalanceWeights : public IBalanceWeights{
+	public:
+		typedef Attachment<MathVector<dim> >	position_attachment_t;
+		typedef typename GeomObjBaseTypeByDim<dim>::base_obj_type elem_t;
+		AnisotropicBalanceWeights() : m_weightFactor(1)	{}
+		virtual ~AnisotropicBalanceWeights()	{}
+
+		virtual void set_weight_factor(number weightFactor)
+		{
+			m_weightFactor = weightFactor;
+		}
+
+		virtual number weight_factor() const	{return m_weightFactor;}
+
+		virtual void set_grid(MultiGrid* mg, Attachment<MathVector<dim> > aPos)
+		{
+			m_aaPos.access(*mg, aPos);
+		}
+
+		virtual void refresh_weights(int baseLevel)	{}
+
+		virtual number get_weight(Vertex* e)	{return 1;}
+		virtual number get_weight(Edge* e)		{return get_weight_impl(e);}
+		virtual number get_weight(Face* e)		{return get_weight_impl(e);}
+		virtual number get_weight(Volume* e)	{return get_weight_impl(e);}
+
+	private:
+		number get_weight_impl(elem_t* e){
+			return CalculateVolume(e, m_aaPos) * m_weightFactor;
+		}
+
+		number get_weight_impl(GridObject* e){
+			return 1;
+		}
+
+		number m_weightFactor;
+		Grid::VertexAttachmentAccessor<position_attachment_t>	m_aaPos;
+
+};
 }// end of namespace
 
 #endif

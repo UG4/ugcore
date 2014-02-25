@@ -129,7 +129,7 @@ function balancer.CreateLoadBalancer(domain)
 		if(balancer.partitioner == "parmetis") then
 			if(ParmetisIsAvailable() == true) then
 				print("Creating ParmetisPartitioner")
-				local partitioner = Partitioner_Parmetis()
+				local partitioner = Partitioner_Parmetis(domain)
 				partitioner:set_child_weight(balancer.childWeight)
 				partitioner:set_sibling_weight(balancer.siblingWeight)
 				partitioner:set_itr_factor(balancer.itrFactor)
@@ -140,15 +140,12 @@ function balancer.CreateLoadBalancer(domain)
 				exit()
 			end
 		elseif(balancer.partitioner == "bisection") then
-			--local partitioner = Partitioner_Bisection()
-			--partitioner:set_verbose(false)
-			--loadBalancer:set_partitioner(partitioner)
-			local partitioner = Partitioner_DynamicBisection()
+			local partitioner = Partitioner_DynamicBisection(domain)
 			partitioner:set_verbose(false)
 			partitioner:enable_static_partitioning(true)
 			loadBalancer:set_partitioner(partitioner)
 		elseif(balancer.partitioner == "dynBisection") then
-			local partitioner = Partitioner_DynamicBisection()
+			local partitioner = Partitioner_DynamicBisection(domain)
 			partitioner:set_verbose(false)
 			loadBalancer:set_partitioner(partitioner)
 		else

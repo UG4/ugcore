@@ -12,11 +12,11 @@
 
 namespace ug{
 
-template <int dim>
-class Partitioner_DynamicBisection : public IPartitioner<dim>{
+template <class TElem, int dim>
+class Partitioner_DynamicBisection : public IPartitioner{
 	public:
-		typedef IPartitioner<dim> 			base_class;
-		typedef typename base_class::elem_t	elem_t;
+		typedef IPartitioner	 			base_class;
+		typedef TElem						elem_t;
 		typedef MathVector<dim>				vector_t;
 		typedef Attachment<vector_t>		apos_t;
 		typedef Grid::VertexAttachmentAccessor<apos_t>	aapos_t;
@@ -25,10 +25,14 @@ class Partitioner_DynamicBisection : public IPartitioner<dim>{
 		Partitioner_DynamicBisection();
 		virtual ~Partitioner_DynamicBisection();
 
-		virtual void set_grid(MultiGrid* mg, Attachment<MathVector<dim> > aPos);
+		void set_grid(MultiGrid* mg, Attachment<MathVector<dim> > aPos);
+
+	///	allows to optionally specify a subset-handler on which the balancer shall operate
+		void set_subset_handler(SmartPtr<SubsetHandler> sh);
+
 		virtual void set_next_process_hierarchy(SPProcessHierarchy procHierarchy);
-		virtual void set_balance_weights(SmartPtr<BalanceWeights<dim> >);
-		virtual void set_connection_weights(SmartPtr<ConnectionWeights<dim> >);
+		virtual void set_balance_weights(SPBalanceWeights balanceWeights);
+//		virtual void set_connection_weights(SmartPtr<ConnectionWeights<dim> >);
 
 		virtual ConstSPProcessHierarchy current_process_hierarchy() const;
 		virtual ConstSPProcessHierarchy next_process_hierarchy() const;
@@ -178,13 +182,13 @@ class Partitioner_DynamicBisection : public IPartitioner<dim>{
 		MultiGrid*								m_mg;
 		apos_t									m_aPos;
 		aapos_t									m_aaPos;
-		SubsetHandler 							m_sh;
+		SmartPtr<SubsetHandler>					m_sh;
 		SPProcessHierarchy						m_processHierarchy;
 		SPProcessHierarchy						m_nextProcessHierarchy;
 		pcl::InterfaceCommunicator<layout_t>	m_intfcCom;
 		std::vector<Entry>						m_entries;
 
-		SmartPtr<BalanceWeights<dim> >			m_balanceWeights;
+		SPBalanceWeights						m_balanceWeights;
 
 		bool	m_staticPartitioning;
 

@@ -32,12 +32,11 @@ CreateProcessHierarchy(TDomain& dom, size_t minNumElemsPerProcPerLvl,
 								  maxNumProcs, minDistLvl, maxLevelsWithoutRedist);
 }
 
-
 ///	A small wrapper for LoadBalancer which adds comfort methods to balance and distribute domains.
 template <class TDomain>
-class DomainLoadBalancer : public LoadBalancer<TDomain::dim>
+class DomainLoadBalancer : public LoadBalancer
 {
-	typedef LoadBalancer<TDomain::dim> base_class;
+	typedef LoadBalancer	base_class;
 
 	public:
 		using base_class::add_serializer;
@@ -45,7 +44,7 @@ class DomainLoadBalancer : public LoadBalancer<TDomain::dim>
 	/**	Adds serializers for the domains position attachment and for its subset handler.*/
 		DomainLoadBalancer(SmartPtr<TDomain> dom) : m_dom(dom)
 		{
-			base_class::set_grid(dom->grid().get(), dom->position_attachment());
+			base_class::set_grid(dom->grid().get());
 
 			base_class::add_serializer(
 				GeomObjAttachmentSerializer<Vertex, typename TDomain::position_attachment_type>::
@@ -65,6 +64,23 @@ class DomainLoadBalancer : public LoadBalancer<TDomain::dim>
 
 	private:
 		SmartPtr<TDomain>	m_dom;
+};
+
+
+template <class TDomain, class TPartitioner>
+class DomainPartitioner : public TPartitioner{
+	public:
+		DomainPartitioner(TDomain& dom){
+			TPartitioner::set_grid(dom.grid().get(), dom.position_attachment());
+		}
+};
+
+template <class TDomain, class TBalanceWeights>
+class DomainBalanceWeights : public TBalanceWeights{
+	public:
+		DomainBalanceWeights(TDomain& dom){
+			TBalanceWeights::set_grid(dom.grid().get(), dom.position_attachment());
+		}
 };
 
 }// end of namespace

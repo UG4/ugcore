@@ -15,7 +15,6 @@
 #ifdef UG_PARALLEL
 	#include "lib_grid/parallelization/load_balancer.h"
 	#include "lib_grid/parallelization/load_balancer_util.h"
-	#include "lib_grid/parallelization/partitioner_bisection.h"
 	#include "lib_grid/parallelization/partitioner_dynamic_bisection.h"
 	#include "lib_disc/parallelization/domain_load_balancer.h"
 	#ifdef UG_PARMETIS
@@ -84,6 +83,120 @@ static void Common(Registry& reg, string grp) {
 			.add_method("to_string", &T::to_string)
 			.set_construct_as_smart_pointer(true);
 	}
+
+	{
+		reg.add_class_<IBalanceWeights>("IBalanceWeights", grp);
+	}
+
+	{
+		typedef IPartitioner T;
+		reg.add_class_<T>("IPartitioner", grp)
+			.add_method("set_verbose", &T::set_verbose)
+			.add_method("partition", &T::partition)
+			.add_method("set_next_process_hierarchy", &T::set_next_process_hierarchy);
+	}
+
+	{
+	//	Note that this class does not feature a constructor.
+	//	One normally uses the derived class DomainLoadBalancer
+		typedef LoadBalancer T;
+		reg.add_class_<T>("LoadBalancer", grp)
+				//.add_method("add_distribution_level", &T::add_distribution_level)
+				.add_method("set_next_process_hierarchy", &T::set_next_process_hierarchy)
+				.add_method("rebalance", &T::rebalance)
+				.add_method("set_balance_threshold", &T::set_balance_threshold)
+				.add_method("set_element_threshold", &T::set_element_threshold)
+				.add_method("set_partitioner", &T::set_partitioner)
+				.add_method("create_quality_record", &T::create_quality_record)
+				.add_method("print_quality_records", &T::print_quality_records)
+				.add_method("set_balance_weights", &T::set_balance_weights);
+	}
+
+	#ifdef UG_DIM_1
+	{
+		typedef ug::Domain<1>	TDomain;
+		string tag = GetDomainTag<TDomain>();
+		typedef DomainPartitioner<TDomain, Partitioner_DynamicBisection<Edge, 1> > T;
+		string name = string("EdgePartitioner_DynamicBisection1d");
+		reg.add_class_<T, IPartitioner>(name, grp)
+			.add_constructor<void (*)(TDomain&)>()
+			.add_method("enable_static_partitioning", &T::enable_static_partitioning)
+			.add_method("static_partitioning_enabled", &T::static_partitioning_enabled)
+			.add_method("set_subset_handler", &T::set_subset_handler)
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "EdgePartitioner_DynamicBisection", tag);
+		reg.add_class_to_group(name, "Partitioner_DynamicBisection", tag);
+	}
+	#endif
+	#ifdef UG_DIM_2
+	{
+		typedef ug::Domain<2>	TDomain;
+		string tag = GetDomainTag<TDomain>();
+		{
+			typedef DomainPartitioner<TDomain, Partitioner_DynamicBisection<Edge, 2> >T;
+			string name = string("EdgePartitioner_DynamicBisection2d");
+			reg.add_class_<T, IPartitioner>(name, grp)
+				.add_constructor<void (*)(TDomain&)>()
+				.add_method("enable_static_partitioning", &T::enable_static_partitioning)
+				.add_method("static_partitioning_enabled", &T::static_partitioning_enabled)
+				.add_method("set_subset_handler", &T::set_subset_handler)
+				.set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, "EdgePartitioner_DynamicBisection", tag);
+		}
+		{
+			typedef DomainPartitioner<TDomain, Partitioner_DynamicBisection<Face, 2> > T;
+			string name = string("FacePartitioner_DynamicBisection2d");
+			reg.add_class_<T, IPartitioner>(name, grp)
+				.add_constructor<void (*)(TDomain&)>()
+				.add_method("enable_static_partitioning", &T::enable_static_partitioning)
+				.add_method("static_partitioning_enabled", &T::static_partitioning_enabled)
+				.add_method("set_subset_handler", &T::set_subset_handler)
+				.set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, "FacePartitioner_DynamicBisection", tag);
+			reg.add_class_to_group(name, "Partitioner_DynamicBisection", tag);
+		}
+	}
+	#endif
+	#ifdef UG_DIM_3
+	{
+		typedef ug::Domain<3>	TDomain;
+		string tag = GetDomainTag<TDomain>();
+		{
+			typedef DomainPartitioner<TDomain, Partitioner_DynamicBisection<Edge, 3> > T;
+			string name = string("EdgePartitioner_DynamicBisection3d");
+			reg.add_class_<T, IPartitioner>(name, grp)
+				.add_constructor<void (*)(TDomain&)>()
+				.add_method("enable_static_partitioning", &T::enable_static_partitioning)
+				.add_method("static_partitioning_enabled", &T::static_partitioning_enabled)
+				.add_method("set_subset_handler", &T::set_subset_handler)
+				.set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, "EdgePartitioner_DynamicBisection", tag);
+		}
+		{
+			typedef DomainPartitioner<TDomain, Partitioner_DynamicBisection<Face, 3> > T;
+			string name = string("FacePartitioner_DynamicBisection3d");
+			reg.add_class_<T, IPartitioner>(name, grp)
+				.add_constructor<void (*)(TDomain&)>()
+				.add_method("enable_static_partitioning", &T::enable_static_partitioning)
+				.add_method("static_partitioning_enabled", &T::static_partitioning_enabled)
+				.add_method("set_subset_handler", &T::set_subset_handler)
+				.set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, "FacePartitioner_DynamicBisection", tag);
+		}
+		{
+			typedef DomainPartitioner<TDomain, Partitioner_DynamicBisection<Volume, 3> > T;
+			string name = string("VolumePartitioner_DynamicBisection3d");
+			reg.add_class_<T, IPartitioner>(name, grp)
+				.add_constructor<void (*)(TDomain&)>()
+				.add_method("enable_static_partitioning", &T::enable_static_partitioning)
+				.add_method("static_partitioning_enabled", &T::static_partitioning_enabled)
+				.add_method("set_subset_handler", &T::set_subset_handler)
+				.set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, "VolumePartitioner_DynamicBisection", tag);
+			reg.add_class_to_group(name, "Partitioner_DynamicBisection", tag);
+		}
+	}
+	#endif
 	#endif
 }
 
@@ -103,43 +216,13 @@ static void Domain(Registry& reg, string grp)
 	string tag = GetDomainTag<TDomain>();
 
 	#ifdef UG_PARALLEL
-		{
-			typedef IPartitioner<TDomain::dim> T;
-			string name = string("IPartitioner").append(suffix);
-			reg.add_class_<T>(name, grp)
-				.add_method("set_verbose", &T::set_verbose);
-			reg.add_class_to_group(name, "IPartitioner", tag);
-		}
-
-		{
-			typedef IPartitioner<TDomain::dim> TBase;
-			typedef Partitioner_Bisection<TDomain::dim> T;
-			string name = string("Partitioner_Bisection").append(suffix);
-			reg.add_class_<T, TBase>(name, grp)
-				.add_constructor()
-				.set_construct_as_smart_pointer(true);
-			reg.add_class_to_group(name, "Partitioner_Bisection", tag);
-		}
-
-		{
-			typedef IPartitioner<TDomain::dim> TBase;
-			typedef Partitioner_DynamicBisection<TDomain::dim> T;
-			string name = string("Partitioner_DynamicBisection").append(suffix);
-			reg.add_class_<T, TBase>(name, grp)
-				.add_constructor()
-				.add_method("enable_static_partitioning", &T::enable_static_partitioning)
-				.add_method("static_partitioning_enabled", &T::static_partitioning_enabled)
-				.set_construct_as_smart_pointer(true);
-			reg.add_class_to_group(name, "Partitioner_DynamicBisection", tag);
-		}
 
 		#ifdef UG_PARMETIS
 		{
-			typedef IPartitioner<TDomain::dim> TBase;
-			typedef Partitioner_Parmetis<TDomain::dim> T;
+			typedef DomainPartitioner<TDomain, Partitioner_Parmetis<TDomain::dim> > T;
 			string name = string("Partitioner_Parmetis").append(suffix);
-			reg.add_class_<T, TBase>(name, grp)
-				.add_constructor()
+			reg.add_class_<T, IPartitioner>(name, grp)
+				.template add_constructor<void (*)(TDomain&)>()
 				.add_method("set_child_weight", &T::set_child_weight)
 				.add_method("set_sibling_weight", &T::set_sibling_weight)
 				.add_method("set_itr_factor", &T::set_itr_factor)
@@ -149,35 +232,20 @@ static void Domain(Registry& reg, string grp)
 		#endif
 
 		{
-			string name = string("BalanceWeights").append(suffix);
-			typedef BalanceWeights<TDomain::dim> T;
-			reg.add_class_<T>(name, grp);
-			reg.add_class_to_group(name, "BalanceWeights", tag);
-		}
-
-		{
-		//	Note that this class does not feature a constructor.
-		//	One normally uses the derived class DomainLoadBalancer
-			typedef LoadBalancer<TDomain::dim> T;
-			string name = string("LoadBalancer").append(suffix);
-			reg.add_class_<T>(name, grp)
-					//.add_method("add_distribution_level", &T::add_distribution_level)
-					.add_method("set_next_process_hierarchy", &T::set_next_process_hierarchy)
-					.add_method("rebalance", &T::rebalance)
-					.add_method("set_balance_threshold", &T::set_balance_threshold)
-					.add_method("set_element_threshold", &T::set_element_threshold)
-					.add_method("set_partitioner", &T::set_partitioner)
-					.add_method("create_quality_record", &T::create_quality_record)
-					.add_method("print_quality_records", &T::print_quality_records)
-					.add_method("set_balance_weights", &T::set_balance_weights);
-
-			reg.add_class_to_group(name, "LoadBalancer", tag);
+			typedef DomainBalanceWeights<TDomain, AnisotropicBalanceWeights<TDomain::dim> > T;
+			string name = string("AnisotropicBalanceWeights").append(suffix);
+			reg.add_class_<T, IBalanceWeights>(name, grp)
+				.template add_constructor<void (*)(TDomain&)>()
+				.add_method("set_weight_factor", &T::set_weight_factor)
+				.add_method("weight_factor", &T::weight_factor)
+				.set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, "AnisotropicBalanceWeights", tag);
 		}
 
 		{
 			string name = string("DomainLoadBalancer").append(suffix);
 			typedef DomainLoadBalancer<TDomain> T;
-			typedef LoadBalancer<TDomain::dim> TBase;
+			typedef LoadBalancer TBase;
 			reg.add_class_<T, TBase>(name, grp)
 				.template add_constructor<void (*)(SmartPtr<TDomain>)>("Domain")
 				.set_construct_as_smart_pointer(true);

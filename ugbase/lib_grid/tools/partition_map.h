@@ -25,11 +25,13 @@ namespace ug
  */
 class PartitionMap{
 	public:
+		PartitionMap();
+
 		void clear();
 
 		void assign_grid(Grid& grid);
 
-		SubsetHandler& get_partition_handler();
+		SmartPtr<SubsetHandler> get_partition_handler();
 
 		void add_target_proc(int tarProcRank);
 
@@ -53,8 +55,8 @@ class PartitionMap{
 		void shift_target_procs(int offset);
 
 	private:
-		SubsetHandler		m_shPartitions;
-		std::vector<int>	m_targetProcs;
+		SmartPtr<SubsetHandler>	m_shPartitions;
+		std::vector<int>		m_targetProcs;
 };
 
 typedef SmartPtr<PartitionMap>	SPPartitionMap;
@@ -72,7 +74,7 @@ template <class TAPos>
 bool SavePartitionMapToFile(PartitionMap& pm, const char* filename,
 							TAPos& aPos)
 {
-	SubsetHandler& partsh = pm.get_partition_handler();
+	SubsetHandler& partsh = *pm.get_partition_handler();
 
 //	make sure that a grid exists
 	if(!partsh.grid()){

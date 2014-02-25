@@ -15,8 +15,8 @@ using namespace std;
 
 namespace ug{
 
-template <int dim>
-Partitioner_DynamicBisection<dim>::
+template <class TElem, int dim>
+Partitioner_DynamicBisection<TElem, dim>::
 Partitioner_DynamicBisection() :
 	m_mg(NULL),
 	m_staticPartitioning(false),
@@ -26,82 +26,98 @@ Partitioner_DynamicBisection() :
 	m_processHierarchy->add_hierarchy_level(0, 1);
 }
 
-template<int dim>
-Partitioner_DynamicBisection<dim>::
+template <class TElem, int dim>
+Partitioner_DynamicBisection<TElem, dim>::
 ~Partitioner_DynamicBisection()
 {
 }
 
-template<int dim>
-void Partitioner_DynamicBisection<dim>::
+template <class TElem, int dim>
+void Partitioner_DynamicBisection<TElem, dim>::
 set_grid(MultiGrid* mg, Attachment<MathVector<dim> > aPos)
 {
 	m_mg = mg;
-	m_sh.assign_grid(m_mg);
+	if(m_sh.valid())
+		m_sh->assign_grid(m_mg);
 	m_aPos = aPos;
 	m_aaPos.access(*m_mg, m_aPos);
 }
 
-template<int dim>
-void Partitioner_DynamicBisection<dim>::
+template <class TElem, int dim>
+void Partitioner_DynamicBisection<TElem, dim>::
+set_subset_handler(SmartPtr<SubsetHandler> sh)
+{
+	m_sh = sh;
+	if(m_mg)
+		m_sh->assign_grid(m_mg);
+}
+
+template <class TElem, int dim>
+void Partitioner_DynamicBisection<TElem, dim>::
 set_next_process_hierarchy(SPProcessHierarchy procHierarchy)
 {
 	m_nextProcessHierarchy = procHierarchy;
 }
 
-template<int dim>
-void Partitioner_DynamicBisection<dim>::
-set_balance_weights(SmartPtr<BalanceWeights<dim> > balanceWeights)
+template <class TElem, int dim>
+void Partitioner_DynamicBisection<TElem, dim>::
+set_balance_weights(SPBalanceWeights balanceWeights)
 {
 	m_balanceWeights = balanceWeights;
 }
+//
+//template <class TElem, int dim>
+//void Partitioner_DynamicBisection<TElem, dim>::
+//set_connection_weights(SmartPtr<ConnectionWeights<dim> >)
+//{
+//}
 
-template<int dim>
-void Partitioner_DynamicBisection<dim>::
-set_connection_weights(SmartPtr<ConnectionWeights<dim> >)
-{
-}
 
-
-template<int dim>
-ConstSPProcessHierarchy Partitioner_DynamicBisection<dim>::
+template <class TElem, int dim>
+ConstSPProcessHierarchy Partitioner_DynamicBisection<TElem, dim>::
 current_process_hierarchy() const
 {
 	return m_processHierarchy;
 }
 
 
-template<int dim>
-ConstSPProcessHierarchy Partitioner_DynamicBisection<dim>::
+template <class TElem, int dim>
+ConstSPProcessHierarchy Partitioner_DynamicBisection<TElem, dim>::
 next_process_hierarchy() const
 {
 	return m_nextProcessHierarchy;
 }
 
 
-template<int dim>
-bool Partitioner_DynamicBisection<dim>::
+template <class TElem, int dim>
+bool Partitioner_DynamicBisection<TElem, dim>::
 supports_balance_weights() const
 {
 	return false;
 }
 
-template<int dim>
-bool Partitioner_DynamicBisection<dim>::
+template <class TElem, int dim>
+bool Partitioner_DynamicBisection<TElem, dim>::
 supports_connection_weights() const
 {
 	return false;
 }
 
-template<int dim>
-SubsetHandler& Partitioner_DynamicBisection<dim>::
+template <class TElem, int dim>
+SubsetHandler& Partitioner_DynamicBisection<TElem, dim>::
 get_partitions()
 {
-	return m_sh;
+	if(m_sh.invalid()){
+		if(m_mg)
+			m_sh = make_sp(new SubsetHandler(*m_mg));
+		else
+			m_sh = make_sp(new SubsetHandler());
+	}
+	return *m_sh;
 }
 
-template<int dim>
-const std::vector<int>* Partitioner_DynamicBisection<dim>::
+template <class TElem, int dim>
+const std::vector<int>* Partitioner_DynamicBisection<TElem, dim>::
 get_process_map() const
 {
 	if(static_partitioning_enabled())
@@ -110,8 +126,8 @@ get_process_map() const
 		return NULL;
 }
 
-template<int dim>
-number Partitioner_DynamicBisection<dim>::
+template <class TElem, int dim>
+number Partitioner_DynamicBisection<TElem, dim>::
 estimate_distribution_quality(std::vector<number>* pLvlQualitiesOut)
 {
 //todo	Consider connection weights in the final quality!
@@ -176,24 +192,30 @@ estimate_distribution_quality(std::vector<number>* pLvlQualitiesOut)
 	return comGlobal.allreduce(minQuality, PCL_RO_MIN);
 }
 
-template<int dim>
-bool Partitioner_DynamicBisection<dim>::
+template <class TElem, int dim>
+bool Partitioner_DynamicBisection<TElem, dim>::
 partition(size_t baseLvl, size_t elementThreshold)
 {
 	GDIST_PROFILE_FUNC();
 	typedef typename Grid::traits<elem_t>::iterator ElemIter;
 
-	assert(m_mg);
+	UG_COND_THROW(m_mg == NULL,
+			"No grid was specified for Partitioner_DynamicBisection. "
+			"partitioning can't be executed without a specified grid.");
+
 	MultiGrid& mg = *m_mg;
-	m_sh.clear();
-//	int localProc = pcl::ProcRank();
+	if(m_sh.invalid())
+		m_sh = make_sp(new SubsetHandler(mg));
+	SubsetHandler& sh = *m_sh;
+	sh.clear();
+	//	int localProc = pcl::ProcRank();
 
 	ANumber aWeight;
 	mg.attach_to<elem_t>(aWeight);
 
 //	assign all elements below baseLvl to the local process
 	for(int i = 0; i < (int)baseLvl; ++i)
-		m_sh.assign_subset(mg.begin<elem_t>(i), mg.end<elem_t>(i), 0);
+		sh.assign_subset(mg.begin<elem_t>(i), mg.end<elem_t>(i), 0);
 
 	const ProcessHierarchy* procH;
 	if(m_nextProcessHierarchy.valid())
@@ -228,13 +250,13 @@ partition(size_t baseLvl, size_t elementThreshold)
 
 		if((numProcs <= 1) || (numPartitions == 1)){
 			for(int i = minLvl; i <= maxLvl; ++i)
-				m_sh.assign_subset(mg.begin<elem_t>(i), mg.end<elem_t>(i), 0);
+				sh.assign_subset(mg.begin<elem_t>(i), mg.end<elem_t>(i), 0);
 			continue;
 		}
 
 		if(static_partitioning_enabled() && ((int)hlevel <= m_highestRedistLevel)){
 			for(int i = minLvl; i <= maxLvl; ++i)
-				m_sh.assign_subset( mg.begin<elem_t>(i), mg.end<elem_t>(i), 0);
+				sh.assign_subset( mg.begin<elem_t>(i), mg.end<elem_t>(i), 0);
 			continue;
 		}
 
@@ -257,7 +279,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 		perform_bisection_new(numPartitions, minLvl, maxLvl, partitionLvl, aWeight, com);
 
 		for(int i = minLvl; i < maxLvl; ++i){
-			copy_partitions_to_children(m_sh, i);
+			copy_partitions_to_children(sh, i);
 		}
 
 		if(static_partitioning_enabled()){
@@ -278,8 +300,8 @@ partition(size_t baseLvl, size_t elementThreshold)
 	mg.detach_from<elem_t>(aWeight);
 
 	if(static_partitioning_enabled()){
-		if(m_procMap.empty() && (m_sh.num_subsets() > 0)){
-			if(m_sh.num_subsets() != 1){
+		if(m_procMap.empty() && (sh.num_subsets() > 0)){
+			if(sh.num_subsets() != 1){
 				UG_THROW("Something went wrong during partitioning. At this point"
 						" either exactly one subset or a filled process map should exist.");
 			}
@@ -291,8 +313,8 @@ partition(size_t baseLvl, size_t elementThreshold)
 //	static int execCounter = 0;
 //	stringstream ss;
 //	ss << "partition-map-" << execCounter << "-p" << pcl::ProcRank() << ".ugx";
-//	AssignSubsetColors(m_sh);
-//	SaveGridHierarchyTransformed(mg, m_sh, ss.str().c_str(), 20);
+//	AssignSubsetColors(sh);
+//	SaveGridHierarchyTransformed(mg, sh, ss.str().c_str(), 20);
 //	++execCounter;
 
 	if(static_partitioning_enabled())
@@ -302,8 +324,8 @@ partition(size_t baseLvl, size_t elementThreshold)
 }
 
 
-template <int dim>
-void Partitioner_DynamicBisection<dim>::
+template <class TElem, int dim>
+void Partitioner_DynamicBisection<TElem, dim>::
 copy_partitions_to_children(ISubsetHandler& partitionSH, int lvl)
 {
 	GDIST_PROFILE_FUNC();
@@ -337,8 +359,8 @@ copy_partitions_to_children(ISubsetHandler& partitionSH, int lvl)
 }
 
 
-template <int dim>
-void Partitioner_DynamicBisection<dim>::
+template <class TElem, int dim>
+void Partitioner_DynamicBisection<TElem, dim>::
 gather_weights_from_level(int baseLvl, int childLvl, ANumber aWeight,
 							   bool copyToVMastersOnBaseLvl)
 {
@@ -360,7 +382,7 @@ gather_weights_from_level(int baseLvl, int childLvl, ANumber aWeight,
 	}
 	else if(childLvl == baseLvl){
 		if(m_balanceWeights.valid()){
-			BalanceWeights<dim>& bw = *m_balanceWeights;
+			IBalanceWeights& bw = *m_balanceWeights;
 			for(ElemIter iter = mg.begin<elem_t>(baseLvl);
 				iter != mg.end<elem_t>(baseLvl); ++iter)
 			{
@@ -380,7 +402,7 @@ gather_weights_from_level(int baseLvl, int childLvl, ANumber aWeight,
 	//	we don't fill the weights on childLvl but on the level below.
 		if(m_balanceWeights.valid()){
 		//	we have to write a balance-weight into all elements of childLvl
-			BalanceWeights<dim>& bw = *m_balanceWeights;
+			IBalanceWeights& bw = *m_balanceWeights;
 			for(ElemIter iter = mg.begin<elem_t>(childLvl - 1);
 				iter != mg.end<elem_t>(childLvl - 1); ++iter)
 			{
@@ -439,8 +461,8 @@ gather_weights_from_level(int baseLvl, int childLvl, ANumber aWeight,
 }
 
 
-template<int dim>
-int Partitioner_DynamicBisection<dim>::
+template <class TElem, int dim>
+int Partitioner_DynamicBisection<TElem, dim>::
 classify_elem(elem_t* e, int splitDim, number splitValue)
 {
 	typename elem_t::ConstVertexArray vrts = e->vertices();
@@ -463,13 +485,15 @@ classify_elem(elem_t* e, int splitDim, number splitValue)
 }
 
 
-template <int dim>
-void Partitioner_DynamicBisection<dim>::
+template <class TElem, int dim>
+void Partitioner_DynamicBisection<TElem, dim>::
 perform_bisection_new(int numTargetProcs, int minLvl, int maxLvl, int partitionLvl,
 				  ANumber aWeight, pcl::ProcessCommunicator com)
 {
 //	UG_LOG("Performing bisection for " << numTargetProcs << " procs on level "
 //			<< partitionLvl << " for levels " << minLvl << " to " << maxLvl << "\n");
+
+	SubsetHandler& sh = *m_sh;
 
 	GDIST_PROFILE_FUNC();
 	typedef typename MultiGrid::traits<elem_t>::iterator iter_t;
@@ -493,12 +517,12 @@ perform_bisection_new(int numTargetProcs, int minLvl, int maxLvl, int partitionL
 		for(iter_t eiter = mg.begin<elem_t>(partitionLvl);
 			eiter != mg.end<elem_t>(partitionLvl); ++eiter)
 		{
-			origSubsetIndices.push_back(m_sh.get_subset_index(*eiter));
+			origSubsetIndices.push_back(sh.get_subset_index(*eiter));
 		}
 	}
 
 //	invalidate target partitions of all elements in partitionLvl
-	m_sh.assign_subset(mg.begin<elem_t>(partitionLvl),
+	sh.assign_subset(mg.begin<elem_t>(partitionLvl),
 					   mg.end<elem_t>(partitionLvl), -1);
 
 //	iterate over all levels and gather child-counts in the partitionLvl
@@ -518,7 +542,7 @@ perform_bisection_new(int numTargetProcs, int minLvl, int maxLvl, int partitionL
 			eiter != mg.end<elem_t>(partitionLvl); ++eiter)
 		{
 			elem_t* elem = *eiter;
-			if((aaWeight[elem] > 0) && (m_sh.get_subset_index(elem) == -1)
+			if((aaWeight[elem] > 0) && (sh.get_subset_index(elem) == -1)
 				&& ((!pdgm) || (!pdgm->is_ghost(elem))))
 			{
 				m_entries.push_back(Entry(elem));
@@ -536,7 +560,7 @@ perform_bisection_new(int numTargetProcs, int minLvl, int maxLvl, int partitionL
 			root.firstProc = 0;
 			root.numTargetProcs = numTargetProcs;
 
-			control_bisection(m_sh, treeNodes, aWeight, maxChildWeight, com);
+			control_bisection(sh, treeNodes, aWeight, maxChildWeight, com);
 		}
 	}
 
@@ -546,7 +570,7 @@ perform_bisection_new(int numTargetProcs, int minLvl, int maxLvl, int partitionL
 
 	//	copy subset indices from partition-level to minLvl
 		for(int i = partitionLvl; i < minLvl; ++i){
-			copy_partitions_to_children(m_sh, i);
+			copy_partitions_to_children(sh, i);
 		}
 
 	//	reset partitions in the specified partition-level
@@ -554,14 +578,14 @@ perform_bisection_new(int numTargetProcs, int minLvl, int maxLvl, int partitionL
 		for(iter_t eiter = mg.begin<elem_t>(partitionLvl);
 			eiter != mg.end<elem_t>(partitionLvl); ++eiter, ++counter)
 		{
-			m_sh.assign_subset(*eiter, origSubsetIndices[counter]);
+			sh.assign_subset(*eiter, origSubsetIndices[counter]);
 		}
 	}
 	else if(pdgm){
 	//	copy subset indices from vertical slaves to vertical masters,
 	//	since partitioning was only performed on vslaves
 		GridLayoutMap& glm = pdgm->grid_layout_map();
-		ComPol_Subset<layout_t>	compolSHCopy(m_sh, true);
+		ComPol_Subset<layout_t>	compolSHCopy(sh, true);
 
 		if(glm.has_layout<elem_t>(INT_V_SLAVE))
 			m_intfcCom.send_data(glm.get_layout<elem_t>(INT_V_SLAVE).layout_on_level(partitionLvl),
@@ -574,8 +598,8 @@ perform_bisection_new(int numTargetProcs, int minLvl, int maxLvl, int partitionL
 }
 
 
-template <int dim>
-void Partitioner_DynamicBisection<dim>::
+template <class TElem, int dim>
+void Partitioner_DynamicBisection<TElem, dim>::
 control_bisection(ISubsetHandler& partitionSH, std::vector<TreeNode>& treeNodes,
 				  ANumber aWeight, number maxChildWeight, pcl::ProcessCommunicator& com)
 {
@@ -644,8 +668,8 @@ control_bisection(ISubsetHandler& partitionSH, std::vector<TreeNode>& treeNodes,
 }
 
 
-template <int dim>
-void Partitioner_DynamicBisection<dim>::
+template <class TElem, int dim>
+void Partitioner_DynamicBisection<TElem, dim>::
 calculate_global_dimensions(vector<TreeNode>& treeNodes,
 							number maxChildWeight, ANumber aWeight,
 							pcl::ProcessCommunicator& com)
@@ -714,8 +738,8 @@ calculate_global_dimensions(vector<TreeNode>& treeNodes,
 	}
 }
 
-template<int dim>
-void Partitioner_DynamicBisection<dim>::
+template <class TElem, int dim>
+void Partitioner_DynamicBisection<TElem, dim>::
 improve_split_values(vector<TreeNode>& treeNodes,
 					 size_t maxIterations, ANumber aWeight,
 					 pcl::ProcessCommunicator& com)
@@ -775,6 +799,7 @@ improve_split_values(vector<TreeNode>& treeNodes,
 				continue;
 
 			TreeNode& tn = treeNodes[iNode];
+//			UG_LOG("Node ratio left: " << tn.ratioLeft << endl);
 
 			size_t firstWgt = iNode * NUM_CONSTANTS;
 			if(gWeights[firstWgt + TOTAL] > 0){
@@ -783,14 +808,12 @@ improve_split_values(vector<TreeNode>& treeNodes,
 
 				if(!(leftOk && rightOk)){
 				//	check if the ratio would be good if we also considered those with CENTER_LEFT and CENTER_RIGHT
-					number wLeft = gWeights[firstWgt + LEFT] + gWeights[firstWgt + CUTTING_CENTER_LEFT];
-					number wRight = gWeights[firstWgt + RIGHT] + gWeights[firstWgt + CUTTING_CENTER_RIGHT];
-					number ratio;
-					if(wLeft < wRight)	ratio = wLeft / wRight;
-					else				ratio = wRight / wLeft;
+					number ratioLeft = (gWeights[firstWgt + LEFT] + gWeights[firstWgt + CUTTING_CENTER_LEFT]) / tn.ratioLeft;
+					number ratioRight = (gWeights[firstWgt + RIGHT] + gWeights[firstWgt + CUTTING_CENTER_RIGHT]) / (1. - tn.ratioLeft);
 
-					if(ratio > 0.99){
+					if((ratioLeft > 0.95) && (ratioRight > 0.95)){
 //						UG_LOG(" ratio-for-center-split: " << ratio << endl);
+//						UG_LOG(" center split\n");
 					//	the split-value is fine!
 						gotSplitValue[iNode] = true;
 						continue;
@@ -819,8 +842,8 @@ improve_split_values(vector<TreeNode>& treeNodes,
 	}
 }
 
-template<int dim>
-void Partitioner_DynamicBisection<dim>::
+template <class TElem, int dim>
+void Partitioner_DynamicBisection<TElem, dim>::
 bisect_elements(vector<TreeNode>& childNodesOut, vector<TreeNode>& parentNodes,
 				ANumber aWeight, number maxChildWeight, pcl::ProcessCommunicator& com,
 				int cutRecursion)
@@ -932,7 +955,7 @@ bisect_elements(vector<TreeNode>& childNodesOut, vector<TreeNode>& parentNodes,
 
 			//	bisect the cutting elements
 				if(gMissingLeft <= 0){
-				//	UG_LOG("Adding all to right\n");
+					UG_LOG("Adding all to right\n");
 				//	add all cut-elements to the right side
 					for(size_t i = elemsCut.first(); i != s_invalidIndex;){
 						size_t iNext = elemsCut.next(i);
@@ -943,7 +966,7 @@ bisect_elements(vector<TreeNode>& childNodesOut, vector<TreeNode>& parentNodes,
 					tn.bisectionComplete = true;
 				}
 				else if(gMissingRight <= 0){
-				//	UG_LOG("Adding all to left\n");
+					UG_LOG("Adding all to left\n");
 				//	add all cut-elements to the left side
 					for(size_t i = elemsCut.first(); i != s_invalidIndex;){
 						size_t iNext = elemsCut.next(i);
@@ -956,14 +979,18 @@ bisect_elements(vector<TreeNode>& childNodesOut, vector<TreeNode>& parentNodes,
 				}
 				else{
 				//	if the ratios would be fine if one simply bisected by midpoints, we'll do that
-					number wLeft = gWeights[0] + gWeights[3];
-					number wRight = gWeights[1] + gWeights[4];
-					number ratio;
-					if(wLeft < wRight)	ratio = wLeft / wRight;
-					else				ratio = wRight / wLeft;
+//					number wLeft = gWeights[0] + gWeights[3];
+//					number wRight = gWeights[1] + gWeights[4];
+//					number ratio;
+//					if(wLeft < wRight)	ratio = wLeft / wRight;
+//					else				ratio = wRight / wLeft;
+//
+//					if(ratio > 0.99){
+					number ratioLeft = (gWeights[0] + gWeights[3]) / tn.ratioLeft;
+					number ratioRight = (gWeights[1] + gWeights[4]) / (1. - tn.ratioLeft);
 
-					if(ratio > 0.99){
-						//UG_LOG("direct cut bisection\n");
+					if((ratioLeft > 0.95) && (ratioRight > 0.95)){
+						UG_LOG("direct cut bisection\n");
 						for(size_t i = elemsCut.first(); i != s_invalidIndex;){
 							elem_t* e = elemsCut.elem(i);
 							size_t iNext = elemsCut.next(i);
@@ -1013,23 +1040,26 @@ bisect_elements(vector<TreeNode>& childNodesOut, vector<TreeNode>& parentNodes,
 	}
 }
 
-template<int dim>
-void Partitioner_DynamicBisection<dim>::
+template <class TElem, int dim>
+void Partitioner_DynamicBisection<TElem, dim>::
 enable_static_partitioning(bool enable)
 {
 	m_staticPartitioning = true;
 }
 
-template<int dim>
-bool Partitioner_DynamicBisection<dim>::
+template <class TElem, int dim>
+bool Partitioner_DynamicBisection<TElem, dim>::
 static_partitioning_enabled() const
 {
 	return m_staticPartitioning;
 }
 
 
-template class Partitioner_DynamicBisection<1>;
-template class Partitioner_DynamicBisection<2>;
-template class Partitioner_DynamicBisection<3>;
+template class Partitioner_DynamicBisection<Edge, 1>;
+template class Partitioner_DynamicBisection<Edge, 2>;
+template class Partitioner_DynamicBisection<Face, 2>;
+template class Partitioner_DynamicBisection<Edge, 3>;
+template class Partitioner_DynamicBisection<Face, 3>;
+template class Partitioner_DynamicBisection<Volume, 3>;
 
 }// end of namespace

@@ -70,53 +70,49 @@ class ProcessHierarchy{
 };
 
 
-template <int dim>
-class ConnectionWeights{
-	public:
-		typedef typename GeomObjBaseTypeByDim<dim>::base_obj_type	elem_type;
+//template <int dim>
+//class ConnectionWeights{
+//	public:
+//		virtual ~ConnectionWeights()	{}
+//		virtual void refresh_weights(int baseLevel) = 0;
+//		virtual number get_weight(Vertex*) = 0;
+//		virtual number get_weight(Edge*) = 0;
+//		virtual number get_weight(Face*) = 0;
+//};
 
-		virtual ~ConnectionWeights()	{}
-		virtual void set_grid(MultiGrid* mg, Attachment<MathVector<dim> > aPos) = 0;
+
+class IBalanceWeights{
+	public:
+
+		virtual ~IBalanceWeights()	{}
 		virtual void refresh_weights(int baseLevel) = 0;
-		virtual number get_weight(elem_type* e1, elem_type* e2) = 0;
-	//todo: a get_weight method for parallel environments is required. e.g.
-	//		through get_weight(elem_type* e, int side)
+
+		virtual number get_weight(Vertex*) = 0;
+		virtual number get_weight(Edge*) = 0;
+		virtual number get_weight(Face*) = 0;
+		virtual number get_weight(Volume*) = 0;
 };
 
-
-template <int dim>
-class BalanceWeights{
-	public:
-		typedef typename GeomObjBaseTypeByDim<dim>::base_obj_type	elem_type;
-
-		virtual ~BalanceWeights()	{}
-		virtual void set_grid(MultiGrid* mg, Attachment<MathVector<dim> > aPos) = 0;
-		virtual void refresh_weights(int baseLevel) = 0;
-		virtual number get_weight(elem_type* e) = 0;
-};
+typedef SmartPtr<IBalanceWeights>		SPBalanceWeights;
 
 
-template <int dim>
 class IPartitioner{
 	public:
-		typedef typename GeomObjBaseTypeByDim<dim>::base_obj_type	elem_t;
-
 		IPartitioner() :
 			m_verbose(true),
 			m_clusteredSiblings(true)	{}
 
 		virtual ~IPartitioner()	{}
 
-		virtual void set_grid(MultiGrid* mg, Attachment<MathVector<dim> > aPos) = 0;
 		virtual void set_next_process_hierarchy(SPProcessHierarchy procHierarchy) = 0;
-		virtual void set_balance_weights(SmartPtr<BalanceWeights<dim> > balanceWeights) = 0;
-		virtual void set_connection_weights(SmartPtr<ConnectionWeights<dim> > conWeights) = 0;
+		virtual void set_balance_weights(SPBalanceWeights balanceWeights) = 0;
+//		virtual void set_connection_weights(SmartPtr<ConnectionWeights<dim> > conWeights) = 0;
 
 		virtual ConstSPProcessHierarchy current_process_hierarchy() const = 0;
 		virtual ConstSPProcessHierarchy next_process_hierarchy() const = 0;
 
 		virtual bool supports_balance_weights() const = 0;
-		virtual bool supports_connection_weights() const = 0;
+//		virtual bool supports_connection_weights() const = 0;
 		virtual bool supports_repartitioning() const = 0;
 
 	/**	clustered siblings help to ensure that all vertices which are connected to
@@ -162,34 +158,33 @@ class IPartitioner{
 		bool m_clusteredSiblings;
 };
 
+typedef SmartPtr<IPartitioner>		SPPartitioner;
 
-template <int dim>
+
 class LoadBalancer{
 	public:
-		typedef typename GeomObjBaseTypeByDim<dim>::base_obj_type	elem_t;
-
 		LoadBalancer();
 
 		virtual ~LoadBalancer();
 
-		virtual void set_grid(MultiGrid* mg, Attachment<MathVector<dim> > aPos);
+		virtual void set_grid(MultiGrid* mg);
 
 		virtual void enable_vertical_interface_creation(bool enable);
 
 	///	Sets the partitioner which is used to partition the grid into balanced parts.
-		virtual void set_partitioner(SmartPtr<IPartitioner<dim> > partitioner);
+		virtual void set_partitioner(SPPartitioner partitioner);
 
 	///	Sets a callback class which provides the balance weight for a given element
 	/**	Balance weights are used to calculate the current balance and to specify
 	 * the weight of an element during redistribution.
 	 * \note balance weights are only used if the given partitioner supports them.*/
-	 	virtual void set_balance_weights(SmartPtr<BalanceWeights<dim> > balanceWeights);
+	 	virtual void set_balance_weights(SPBalanceWeights balanceWeights);
 
 	///	Sets a callback class which provides connection weights between two neighbor elements
 	/**	The higher the weight, the higher the likelyhood that the two elements
 	 * will reside on the same process after redistribution.
 	 * \note connection weights are only used if the given partitioner supports them.*/
-	 	virtual void set_connection_weights(SmartPtr<ConnectionWeights<dim> > conWeights);
+//	 	virtual void set_connection_weights(SmartPtr<IConnectionWeights> conWeights);
 
 //	///	Inserts a new distribution level on which the grid may be redistributed
 //	/** Use this method to map a region of levels to a subset of the active processes.
@@ -247,19 +242,13 @@ class LoadBalancer{
 		void print_quality_records() const;
 
 	private:
-		typedef Attachment<MathVector<dim> >		APos;
-		typedef SmartPtr<IPartitioner<dim> >		SPPartitioner;
-		typedef SmartPtr<BalanceWeights<dim> >		SPBalanceWeights;
-		typedef SmartPtr<ConnectionWeights<dim> >	SPConnectionWeights;
-
 		MultiGrid*			m_mg;
-		APos				m_aPos;
 		number				m_balanceThreshold;
 		size_t				m_elementThreshold;
 		SPProcessHierarchy	m_processHierarchy;
 		SPPartitioner		m_partitioner;
 		SPBalanceWeights	m_balanceWeights;
-		SPConnectionWeights	m_connectionWeights;
+//		SPConnectionWeights	m_connectionWeights;
 		GridDataSerializationHandler	m_serializer;
 		StringStreamTable	m_qualityRecords;
 		bool m_createVerticalInterfaces;

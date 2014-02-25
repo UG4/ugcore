@@ -18,10 +18,10 @@ extern "C" {
 namespace ug{
 
 template <int dim>
-class Partitioner_Parmetis : public IPartitioner<dim>{
+class Partitioner_Parmetis : public IPartitioner{
 	public:
-		typedef IPartitioner<dim> base_class;
-		typedef typename base_class::elem_t	elem_t;
+		typedef IPartitioner base_class;
+		typedef typename GeomObjBaseTypeByDim<dim>::base_obj_type	elem_t;
 		typedef typename elem_t::side		side_t;
 
 		using base_class::verbose;
@@ -31,8 +31,8 @@ class Partitioner_Parmetis : public IPartitioner<dim>{
 
 		virtual void set_grid(MultiGrid* mg, Attachment<MathVector<dim> > aPos);
 		virtual void set_next_process_hierarchy(SPProcessHierarchy procHierarchy);
-		virtual void set_balance_weights(SmartPtr<BalanceWeights<dim> > balanceWeights);
-		virtual void set_connection_weights(SmartPtr<ConnectionWeights<dim> > conWeights);
+		virtual void set_balance_weights(SPBalanceWeights balanceWeights);
+//		virtual void set_connection_weights(SmartPtr<ConnectionWeights<dim> > conWeights);
 
 		virtual ConstSPProcessHierarchy current_process_hierarchy() const;
 		virtual ConstSPProcessHierarchy next_process_hierarchy() const;
@@ -91,8 +91,6 @@ class Partitioner_Parmetis : public IPartitioner<dim>{
 									  const pcl::ProcessCommunicator& procComAll,
 									  ParallelDualGraph<elem_t, idx_t>& pdg);
 
-		typedef SmartPtr<BalanceWeights<dim> >		SPBalanceWeights;
-		typedef SmartPtr<ConnectionWeights<dim> >	SPConnectionWeights;
 		typedef typename GridLayoutMap::Types<elem_t>::Layout::LevelLayout	layout_t;
 
 		MultiGrid* m_mg;
@@ -100,7 +98,7 @@ class Partitioner_Parmetis : public IPartitioner<dim>{
 		AInt m_aNumChildren;
 		Grid::AttachmentAccessor<elem_t, AInt>	m_aaNumChildren;
 		SPBalanceWeights	m_balanceWeights;
-		SPConnectionWeights	m_connectionWeights;
+//		SPConnectionWeights	m_connectionWeights;
 		SPProcessHierarchy	m_processHierarchy;
 		SPProcessHierarchy	m_nextProcessHierarchy;
 		pcl::InterfaceCommunicator<layout_t>	m_intfcCom;

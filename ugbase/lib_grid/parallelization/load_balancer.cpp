@@ -6,7 +6,6 @@
 #include "load_balancer.h"
 #include "load_balancer_util.h"
 #include "distribution.h"
-#include "partitioner_bisection.h"
 #include "distributed_grid.h"
 #include "lib_grid/parallelization/parallelization_util.h"
 #include "common/util/table.h"
@@ -198,8 +197,7 @@ to_string() const
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-template<int dim>
-LoadBalancer<dim>::
+LoadBalancer::
 LoadBalancer() :
 	m_mg(NULL),
 	m_balanceThreshold(0.9),
@@ -207,89 +205,72 @@ LoadBalancer() :
 	m_createVerticalInterfaces(true)
 {
 	m_processHierarchy = ProcessHierarchy::create();
-	m_balanceWeights = SPBalanceWeights(new StdBalanceWeights<dim>);
-	m_connectionWeights = SPConnectionWeights(new StdConnectionWeights<dim>);
-
-
-	#ifdef UG_PARMETIS
-		m_partitioner = SPPartitioner(new Partitioner_Parmetis<dim>);
-	#else
-		m_partitioner = SPPartitioner(new Partitioner_Bisection<dim>);
-	#endif
+	m_balanceWeights = make_sp(new StdBalanceWeights());
 }
 
-template<int dim>
-LoadBalancer<dim>::
+LoadBalancer::
 ~LoadBalancer()
 {
 }
 
-template<int dim>
-void LoadBalancer<dim>::
-set_grid(MultiGrid* mg, Attachment<MathVector<dim> > aPos)
+void LoadBalancer::
+set_grid(MultiGrid* mg)
 {
 	m_mg = mg;
-	m_aPos = aPos;
 }
 
-template<int dim>
-void LoadBalancer<dim>::
+void LoadBalancer::
 enable_vertical_interface_creation(bool enable)
 {
 	m_createVerticalInterfaces = enable;
 }
 
-template<int dim>
-void LoadBalancer<dim>::
-set_partitioner(SmartPtr<IPartitioner<dim> > partitioner)
+void LoadBalancer::
+set_partitioner(SmartPtr<IPartitioner> partitioner)
 {
 	m_partitioner = partitioner;
 }
 
-template<int dim>
-void LoadBalancer<dim>::
-set_balance_weights(SmartPtr<BalanceWeights<dim> > balanceWeights)
+void LoadBalancer::
+set_balance_weights(SmartPtr<IBalanceWeights> balanceWeights)
 {
 	m_balanceWeights = balanceWeights;
 }
-
-template<int dim>
-void LoadBalancer<dim>::
-set_connection_weights(SmartPtr<ConnectionWeights<dim> > conWeights)
-{
-	m_connectionWeights = conWeights;
-}
+//
+//template<int dim>
+//void LoadBalancer::
+//set_connection_weights(SmartPtr<ConnectionWeights<dim> > conWeights)
+//{
+//	m_connectionWeights = conWeights;
+//}
 
 //template<int dim>
-//void LoadBalancer<dim>::
+//void LoadBalancer::
 //add_distribution_level(size_t lvl, size_t numProcsPerProc)
 //{
 //	m_processHierarchy->add_hierarchy_level(lvl, numProcsPerProc);
 //}
 
-template<int dim>
-void LoadBalancer<dim>::
+void LoadBalancer::
 set_next_process_hierarchy(SPProcessHierarchy procHierarchy)
 {
 	m_processHierarchy = procHierarchy;
 }
 
-template<int dim>
-void LoadBalancer<dim>::
+void LoadBalancer::
 set_balance_threshold(number threshold)
 {
 	m_balanceThreshold = threshold;
 }
 
-template<int dim>
-void LoadBalancer<dim>::
+void LoadBalancer::
 set_element_threshold(size_t threshold)
 {
 	m_elementThreshold = threshold;
 }
 
 //template<int dim>
-//number LoadBalancer<dim>::
+//number LoadBalancer::
 //distribution_quality()
 //{
 ////todo	Consider connection weights in the final quality!
@@ -335,8 +316,7 @@ set_element_threshold(size_t threshold)
 //}
 
 
-template<int dim>
-void LoadBalancer<dim>::
+void LoadBalancer::
 rebalance()
 {
 	GDIST_PROFILE_FUNC();
@@ -348,16 +328,13 @@ rebalance()
 	UG_COND_THROW(m_processHierarchy->empty(),
 				  "A Process-Hierarchy has to be specifed for rebalancing");
 
-	m_balanceWeights->set_grid(m_mg, m_aPos);
-	m_connectionWeights->set_grid(m_mg, m_aPos);
-	m_partitioner->set_grid(m_mg, m_aPos);
 	m_partitioner->set_next_process_hierarchy(m_processHierarchy);
-	m_partitioner->set_connection_weights(m_connectionWeights);
+	//m_partitioner->set_connection_weights(m_connectionWeights);
 	m_partitioner->set_balance_weights(m_balanceWeights);
 
 //todo:	check imbalance and find base-level on which to partition!
 	m_balanceWeights->refresh_weights(0);
-	m_connectionWeights->refresh_weights(0);
+	//m_connectionWeights->refresh_weights(0);
 
 //	distribution quality is only interesting if repartitioning is supported.
 //	If it is not we'll set it to -1, thus calling partition anyways
@@ -375,10 +352,10 @@ rebalance()
 		if(m_partitioner->partition(0, m_elementThreshold)){
 			UG_LOG("Redistributing...\n");
 			SubsetHandler& sh = m_partitioner->get_partitions();
-			if(sh.num<elem_t>() != m_mg->num<elem_t>()){
-				UG_THROW("All elements have to be assigned to subsets during partitioning! "
-						 << "Please check your partitioner!");
-			}
+//			if(sh.num<elem_t>() != m_mg->num<elem_t>()){
+//				UG_THROW("All elements have to be assigned to subsets during partitioning! "
+//						 << "Please check your partitioner!");
+//			}
 
 			const std::vector<int>* procMap = m_partitioner->get_process_map();
 
@@ -401,8 +378,7 @@ rebalance()
 	UG_DLOG(LIB_GRID, 1, "LoadBalancer-stop rebalance\n");
 }
 
-template<int dim>
-void LoadBalancer<dim>::
+void LoadBalancer::
 create_quality_record(const char* label)
 {
 	std::vector<number>	lvlQualities;
@@ -438,15 +414,10 @@ create_quality_record(const char* label)
 	}
 }
 
-template<int dim>
-void LoadBalancer<dim>::
+void LoadBalancer::
 print_quality_records() const
 {
 	UG_LOG(m_qualityRecords << "\n");
 }
-
-template class LoadBalancer<1>;
-template class LoadBalancer<2>;
-template class LoadBalancer<3>;
 
 } // end of namespace
