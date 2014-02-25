@@ -10,6 +10,7 @@
 #include "common/util/string_util.h"
 #include "lib_grid/file_io/file_io.h"
 #include "lib_grid/algorithms/geom_obj_util/misc_util.h"
+#include "common/profiler/profiler.h"
 
 using namespace std;
 
@@ -25,6 +26,7 @@ void LoadDomain(TDomain& domain, const char* filename)
 template <typename TDomain>
 void LoadDomain(TDomain& domain, const char* filename, int procId)
 {
+	PROFILE_FUNC_GROUP("grid");
 	if(GetFilenameExtension(string(filename)) == string("ugx")){
 		domain.grid()->message_hub()->post_message(GridMessage_Creation(GMCT_CREATION_STARTS, procId));
 
@@ -78,6 +80,7 @@ void LoadDomain(TDomain& domain, const char* filename, int procId)
 template <typename TDomain>
 void SaveDomain(TDomain& domain, const char* filename)
 {
+	PROFILE_FUNC_GROUP("grid");
 	if(GetFilenameExtension(string(filename)) == string("ugx")){
 		GridWriterUGX ugxWriter;
 		ugxWriter.add_grid(*domain.grid(), "defGrid", domain.position_attachment());
