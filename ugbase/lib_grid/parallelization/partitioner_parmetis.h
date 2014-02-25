@@ -17,6 +17,16 @@ extern "C" {
 
 namespace ug{
 
+/// \addtogroup lib_grid_parallelization_distribution
+///	\{
+
+///	Parallel bisection partitioner
+/**	The partitioner can be used inside a LoadBalancer or separately. It can
+ * operate on serial and parallel multigrids. It is based on METIS and PARMETIS.
+ * Please see ug's licensing page for more information on the licenses for METIS
+ * and PARMETIS. Note that a special license is required to use PARMETIS for
+ * commercial simulations and products.
+ */
 template <int dim>
 class Partitioner_Parmetis : public IPartitioner{
 	public:
@@ -108,6 +118,7 @@ class Partitioner_Parmetis : public IPartitioner{
 		float m_comVsRedistRatio;
 };
 
+///	\}
 
 } // end of namespace
 

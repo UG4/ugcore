@@ -15,39 +15,6 @@
 namespace ug
 {
 
-////////////////////////////////////////////////////////////////////////
-//	PartitionElementsByRepeatedIntersection
-///	partitions a grid into subsets that contain the same number of elements (as far as possible).
-/**
- * assigns elements to subsets.
- * Tries to construct subsets that all have the same size.
- * Runs with something like O(n*log(n)).
- * It can not be guaranteed, that subsets are connected.
- */
-template <class TElem, int IDimension, class TAPosition>
-bool PartitionElementsByRepeatedIntersection(SubsetHandler& shOut,
-										Grid& grid,
-										int numSubsets,
-										TAPosition& aVrtPos,
-										int startDim = 0);
-
-////////////////////////////////////////////////////////////////////////
-//	PartitionElementsByRepeatedIntersection
-///	partitions a grid into subsets that contain the same number of elements (as far as possible).
-/**
- * assigns elements to subsets.
- * Tries to construct subsets that all have the same size.
- * Runs with something like O(n*log(n)).
- * It can not be guaranteed, that subsets are connected.
- */
-template <class TElem, int IDimension, class TAPosition>
-bool PartitionElementsByRepeatedIntersection(SubsetHandler& shOut,
-										MultiGrid& mg,
-										int level,
-										int numSubsets,
-										TAPosition& aVrtPos,
-										int startDim = 0);
-
 ////////////////////////////////////////////////////////////////////////////////
 ///	Partitions the elements in the grid by sorting them into a regular grid.
 /**	This method uses Grid::mark.

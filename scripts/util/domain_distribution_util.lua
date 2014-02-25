@@ -100,12 +100,11 @@ end
 
 
 --! create a partition map by performing repeated bisection
---! This method automatically adds target procs 0, ..., numProcs - 1.
---! It is thus not suited for hierarchical redistribution.
---! Use PartitionDomain_Bisection directly in this case.
 function util.PartitionMapBisection(dom, partitionMapOut, numProcs)
-	partitionMapOut:clear()
-	partitionMapOut:add_target_procs(0, numProcs)
+	if(partitionMapOut:num_target_procs() ~= numProcs) then
+		partitionMapOut:clear()
+		partitionMapOut:add_target_procs(0, numProcs)
+	end
 
 	procH = ProcessHierarchy()
 	if(dom:grid():num_levels() > 0) then
@@ -135,24 +134,24 @@ end
 
 --! create a partition map by using metis graph partitioning.
 --! This only works if Metis is available in the current build.
---! This method automatically adds target procs 0, ..., numProcs - 1.
---! It is thus not suited for hierarchical redistribution.
 --! Use PartitionDomain_MetisKWay directly in this case.
 function util.PartitionMapMetis(dom, partitionMapOut, numProcs, baseLevel)
-	partitionMapOut:clear()
-	partitionMapOut:add_target_procs(0, numProcs)
+	if(partitionMapOut:num_target_procs() ~= numProcs) then
+		partitionMapOut:clear()
+		partitionMapOut:add_target_procs(0, numProcs)
+	end
 	PartitionDomain_MetisKWay(dom, partitionMapOut, numProcs, baseLevel, 1, 1)
 end
 
 --! create a partition map by using metis graph partitioning anf correct
 --! weights of dual graph edges by weighting function.
 --! This only works if Metis is available in the current build.
---! This method automatically adds target procs 0, ..., numProcs - 1.
---! It is thus not suited for hierarchical redistribution.
 --! Use PartitionDomain_MetisKWay directly in this case.
 function util.PartitionMapMetisReweigh(dom, partitionMapOut, numProcs, baseLevel, wFct)
-	partitionMapOut:clear()
-	partitionMapOut:add_target_procs(0, numProcs)
+	if(partitionMapOut:num_target_procs() ~= numProcs) then
+		partitionMapOut:clear()
+		partitionMapOut:add_target_procs(0, numProcs)
+	end
 	PartitionDomain_MetisKWay(dom, partitionMapOut, numProcs, baseLevel, wFct)
 end
 
@@ -213,8 +212,10 @@ function util.PartitionMapRegularGrid(dom, partitionMapOut, numNodesX, numNodesY
 		print("Not enough processes allocated. At least " .. numProcsRequired .. " processes are required!")
 		exit()
 	end
-	partitionMapOut:clear()
-	partitionMapOut:add_target_procs(0, numProcsRequired)
+	if(partitionMapOut:num_target_procs() ~= numProcsRequired) then
+		partitionMapOut:clear()
+		partitionMapOut:add_target_procs(0, numProcsRequired)
+	end
 	PartitionDomain_RegularGrid(dom, partitionMapOut, numNodesX, numNodesY, numNodesZ, true)
 end
 

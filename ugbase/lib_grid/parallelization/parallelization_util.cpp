@@ -27,35 +27,6 @@ int GetAssociatedInterfaceType(int interfaceType)
 	}
 }
 
-////////////////////////////////////////////////////////////////////////
-bool PartitionGrid_Bisection(SubsetHandler& partitionOut,
-							  MultiGrid& mg, ISubsetHandler& sh,
-							  size_t numProcs)
-{
-	if(mg.num<Volume>() > 0)
-		PartitionElementsByRepeatedIntersection<Volume, 3>(
-									partitionOut, mg,
-									mg.num_levels() - 1,
-									numProcs, aPosition);
-	else if(mg.num<Face>() > 0)
-		PartitionElementsByRepeatedIntersection<Face, 2>(
-											partitionOut, mg,
-											mg.num_levels() - 1,
-											numProcs, aPosition);
-	else if(mg.num<Edge>() > 0)
-		PartitionElementsByRepeatedIntersection<Edge, 1>(
-											partitionOut, mg,
-											mg.num_levels() - 1,
-											numProcs, aPosition);
-	else{
-		LOG("partitioning could not be performed - "
-			<< "grid neither containes edges nor faces nor volumes. aborting...\n");
-		return false;
-	}
-
-	return true;
-}
-
 template <class TElem, class TAVrtPos>
 class ToElementPosition
 {

@@ -22,6 +22,11 @@ class ProcessHierarchy;
 typedef SmartPtr<ProcessHierarchy> SPProcessHierarchy;
 typedef ConstSmartPtr<ProcessHierarchy> ConstSPProcessHierarchy;
 
+/// \addtogroup lib_grid_parallelization_distribution
+///	\{
+
+///	Defines how the different levels of a grid shall be distributed across the available processes
+/**	Used by LoadBalancer and by different partitioners.*/
 class ProcessHierarchy{
 	public:
 		static SPProcessHierarchy create()	{return SPProcessHierarchy(new ProcessHierarchy);}
@@ -96,6 +101,8 @@ class IBalanceWeights{
 typedef SmartPtr<IBalanceWeights>		SPBalanceWeights;
 
 
+///	Partitioners can be used inside a LoadBalancer or separately to create partition maps
+/**	This is the abstract base class for partitioners.*/
 class IPartitioner{
 	public:
 		IPartitioner() :
@@ -121,6 +128,9 @@ class IPartitioner{
 	 * constrained siblings. However, coarsening would be rather complicated in that
 	 * case, since it is rather complicated to introduce constrained sibling elements if a
 	 * previously unconstrained sibling is not located on the same process...
+	 *
+	 * If you only perform global refinement, you may safely disable clustered siblings.
+	 * The distribution quality is most likely better in this case.
 	 * \note	enabled by default
 	 * \{ */
 		virtual void enable_clustered_siblings(bool bEnable)	{m_clusteredSiblings = bEnable;}
@@ -161,6 +171,7 @@ class IPartitioner{
 typedef SmartPtr<IPartitioner>		SPPartitioner;
 
 
+///	A load-balancer redistributes grids using the specified partitioner and process-hierarchy
 class LoadBalancer{
 	public:
 		LoadBalancer();
@@ -254,6 +265,7 @@ class LoadBalancer{
 		bool m_createVerticalInterfaces;
 };
 
+///	\}
 }	// end of namespace
 
 #endif

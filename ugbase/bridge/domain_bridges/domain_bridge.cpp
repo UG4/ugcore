@@ -320,10 +320,6 @@ static void Domain(Registry& reg, string grp)
 		grp);
 
 //	PartitionDomain
-	reg.add_function("PartitionDomain_Bisection",
-					 &PartitionDomain_Bisection<TDomain>, grp, "",
-					 "dom#partitionMap#firstAxisToCut", "partitions a domain by repeatedly cutting it along the different axis");
-
 	reg.add_function("PartitionDomain_MetisKWay",
 					 static_cast<bool (*)(TDomain&, PartitionMap&, int, size_t, int, int)>(&PartitionDomain_MetisKWay<TDomain>), grp);
 	reg.add_function("PartitionDomain_MetisKWay",

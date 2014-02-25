@@ -12,6 +12,13 @@
 
 namespace ug{
 
+/// \addtogroup lib_grid_parallelization_distribution
+///	\{
+
+///	Parallel bisection partitioner
+/**	The partitioner can be used inside a LoadBalancer or separately. It can
+ * operate on serial and parallel multigrids.
+ */
 template <class TElem, int dim>
 class Partitioner_DynamicBisection : public IPartitioner{
 	public:
@@ -204,6 +211,9 @@ class Partitioner_DynamicBisection : public IPartitioner{
 		std::vector<int>	m_procMap;
 		int 				m_highestRedistLevel;
 };
+
+///	\}
+
 }// end of namespace
 
 #endif

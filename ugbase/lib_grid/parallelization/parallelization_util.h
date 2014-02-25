@@ -46,18 +46,6 @@ void CreateAndDistributeGlobalIDs(Grid& g, GridLayoutMap& glm,
 ///	Checks whether the grid-layout-map on this proc is consistent with connected ones.
 bool TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm);
 
-
-////////////////////////////////////////////////////////////////////////
-//	default implementations of grid-partitioning methods
-///	partitions the grid by repeated bisection
-/**	Volume grids are partitioned in 3 dimensions, face grids are
- *	partitioned in 2 dimensions and edge grids are partitioned in
- *	one dimension.
- */
-bool PartitionGrid_Bisection(SubsetHandler& partitionOut,
-							  MultiGrid& mg, ISubsetHandler& sh,
-							  size_t numProcs);
-
 ///	@}
 }//	end of namespace
 
