@@ -30,6 +30,10 @@ class Partitioner_DynamicBisection : public IPartitioner{
 	///	allows to optionally specify a subset-handler on which the balancer shall operate
 		void set_subset_handler(SmartPtr<SubsetHandler> sh);
 
+	///	sets the tolerance threshold. 1: no tolerance, 0: full tolerance.
+	/**	the tolerance is defaulted to 0.99*/
+		void set_tolerance(number tol)	{m_tolerance = tol;}
+
 		virtual void set_next_process_hierarchy(SPProcessHierarchy procHierarchy);
 		virtual void set_balance_weights(SPBalanceWeights balanceWeights);
 //		virtual void set_connection_weights(SmartPtr<ConnectionWeights<dim> >);
@@ -191,6 +195,9 @@ class Partitioner_DynamicBisection : public IPartitioner{
 		SPBalanceWeights						m_balanceWeights;
 
 		bool	m_staticPartitioning;
+
+		number m_tolerance;
+		size_t m_splitImproveIterations;
 
 	//	the following parameters are only used if the partitioner operates in
 	//	static mode

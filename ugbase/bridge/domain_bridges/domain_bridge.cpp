@@ -374,6 +374,7 @@ static void Common(Registry& reg, string grp)
 	{
 		reg.add_class_<DomainInfo>("DomainInfo", grp)
 			.add_constructor()
+			.add_method("element_type", &DomainInfo::element_type)
 			.add_method("num_levels", &DomainInfo::num_levels)
 			.add_method("num_elements_on_level", &DomainInfo::num_elements_on_level)
 			.add_method("num_local_elements_on_level", &DomainInfo::num_local_elements_on_level)

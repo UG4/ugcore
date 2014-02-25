@@ -106,7 +106,31 @@ end
 function util.PartitionMapBisection(dom, partitionMapOut, numProcs)
 	partitionMapOut:clear()
 	partitionMapOut:add_target_procs(0, numProcs)
-	PartitionDomain_Bisection(dom, partitionMapOut, 0)
+
+	procH = ProcessHierarchy()
+	if(dom:grid():num_levels() > 0) then
+		procH:add_hierarchy_level(dom:grid():num_levels() - 1, numProcs)
+	else
+		procH:add_hierarchy_level(0, numProcs)
+	end
+	
+	local partitioner = nil
+	if dom:domain_info():element_type() == 1 then
+		partitioner = EdgePartitioner_DynamicBisection(dom)
+	elseif dom:domain_info():element_type() == 2 then
+		partitioner = FacePartitioner_DynamicBisection(dom)
+	elseif dom:domain_info():element_type() == 3 then
+		partitioner = VolumePartitioner_DynamicBisection(dom)
+	end
+	
+	if(partitioner == nil) then return; end
+	
+	partitioner:enable_clustered_siblings(false)
+	partitioner:set_verbose(false)
+	partitioner:enable_static_partitioning(true)
+	partitioner:set_subset_handler(partitionMapOut:get_partition_handler())
+	partitioner:set_next_process_hierarchy(procH)
+	partitioner:partition(0, 0)
 end
 
 --! create a partition map by using metis graph partitioning.

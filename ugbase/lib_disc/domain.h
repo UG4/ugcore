@@ -31,7 +31,7 @@ namespace ug{
 class DomainInfo
 {
 	public:
-		inline GridBaseObjectId element_type()	const			{return m_elementType;}
+		inline int element_type()	const							{return m_elementType;}
 		inline size_t num_levels() const							{return m_numElems.size();}
 	///	returns the global number of elements on the given level (excluding ghosts...)
 		inline int num_elements_on_level(size_t lvl) const			{return m_numElems[lvl];}

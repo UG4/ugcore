@@ -20,6 +20,8 @@ Partitioner_DynamicBisection<TElem, dim>::
 Partitioner_DynamicBisection() :
 	m_mg(NULL),
 	m_staticPartitioning(false),
+	m_tolerance(0.99),
+	m_splitImproveIterations(10),
 	m_highestRedistLevel(-1)
 {
 	m_processHierarchy = SPProcessHierarchy(new ProcessHierarchy);
@@ -608,7 +610,7 @@ control_bisection(ISubsetHandler& partitionSH, std::vector<TreeNode>& treeNodes,
 //				<< ", firstProc " << treeNodes[i].firstProc << "\n");
 //	}
 
-//	UG_LOG("CONTROL-BISECTION-STARTS\n");
+//	UG_LOG("\nCONTROL-BISECTION-STARTS\n");
 //	at the beginning of this function, each node in treeNodes has to have
 //	valid 'elem', 'firstProc', 'numTargetProcs' and members.
 //	numTargetProcs has to be at least 2.
@@ -704,7 +706,7 @@ calculate_global_dimensions(vector<TreeNode>& treeNodes,
 				for(int i_dim = 0; i_dim < dim; ++i_dim){
 					if(p[i_dim] < tn.boxMin[i_dim])
 						tn.boxMin[i_dim] = p[i_dim];
-					else if(p[i_dim] > tn.boxMax[i_dim])
+					if(p[i_dim] > tn.boxMax[i_dim])
 						tn.boxMax[i_dim] = p[i_dim];
 				}
 			}
@@ -798,6 +800,7 @@ improve_split_values(vector<TreeNode>& treeNodes,
 			if(gotSplitValue[iNode])
 				continue;
 
+//			UG_LOG("improving split value of node " << iNode << endl);
 			TreeNode& tn = treeNodes[iNode];
 //			UG_LOG("Node ratio left: " << tn.ratioLeft << endl);
 
@@ -808,10 +811,12 @@ improve_split_values(vector<TreeNode>& treeNodes,
 
 				if(!(leftOk && rightOk)){
 				//	check if the ratio would be good if we also considered those with CENTER_LEFT and CENTER_RIGHT
-					number ratioLeft = (gWeights[firstWgt + LEFT] + gWeights[firstWgt + CUTTING_CENTER_LEFT]) / tn.ratioLeft;
-					number ratioRight = (gWeights[firstWgt + RIGHT] + gWeights[firstWgt + CUTTING_CENTER_RIGHT]) / (1. - tn.ratioLeft);
+					number ratioLeft = (gWeights[firstWgt + LEFT] + gWeights[firstWgt + CUTTING_CENTER_LEFT])
+										/ (gWeights[firstWgt + TOTAL] * tn.ratioLeft);
+					number ratioRight = (gWeights[firstWgt + RIGHT] + gWeights[firstWgt + CUTTING_CENTER_RIGHT])
+										/ (gWeights[firstWgt + TOTAL] * (1. - tn.ratioLeft));
 
-					if((ratioLeft > 0.95) && (ratioRight > 0.95)){
+					if((ratioLeft > m_tolerance) && (ratioRight > m_tolerance)){
 //						UG_LOG(" ratio-for-center-split: " << ratio << endl);
 //						UG_LOG(" center split\n");
 					//	the split-value is fine!
@@ -848,7 +853,6 @@ bisect_elements(vector<TreeNode>& childNodesOut, vector<TreeNode>& parentNodes,
 				ANumber aWeight, number maxChildWeight, pcl::ProcessCommunicator& com,
 				int cutRecursion)
 {
-//	UG_LOG("Performing bisection with ratio: " << ratioLeft << endl);
 	GDIST_PROFILE_FUNC();
 	MultiGrid& mg = *m_mg;
 
@@ -858,22 +862,26 @@ bisect_elements(vector<TreeNode>& childNodesOut, vector<TreeNode>& parentNodes,
 //	we will now calculate the split-dim and split-value for each tree-node
 	for(size_t iNode = 0; iNode < parentNodes.size(); ++iNode){
 		TreeNode& tn = parentNodes[iNode];
-		tn.splitDim = 0;
-		for(int i = 1; i < dim; ++i){
-			if((tn.boxMax[i] - tn.boxMin[i]) > (tn.boxMax[tn.splitDim] - tn.boxMin[tn.splitDim]))
-				tn.splitDim = i;
-		}
+		if(!tn.bisectionComplete){
+			tn.splitDim = 0;
+			for(int i = 1; i < dim; ++i){
+				if((tn.boxMax[i] - tn.boxMin[i]) > (tn.boxMax[tn.splitDim] - tn.boxMin[tn.splitDim]))
+					tn.splitDim = i;
+			}
 
-	//	this is an initial guess
-		tn.splitValue = tn.center[tn.splitDim];
-		tn.minSplitValue = tn.boxMin[tn.splitDim];
-		tn.maxSplitValue = tn.boxMax[tn.splitDim];
-//		UG_LOG("node " << iNode << ":\n");
-//		UG_LOG("  center: " << tn.center << ", boxMin: " << tn.boxMin << ", boxMax: " << tn.boxMax << endl);
-//		UG_LOG("  splitDim: " << tn.splitDim << ", splitValue: " << tn.splitValue << endl);
+		//	this is an initial guess
+			tn.minSplitValue = tn.boxMin[tn.splitDim];
+			tn.maxSplitValue = tn.boxMax[tn.splitDim];
+			tn.splitValue = (1. - 2. * tn.ratioLeft) * tn.minSplitValue
+							+ 2. * tn.ratioLeft * tn.center[tn.splitDim];
+
+//			UG_LOG("node " << iNode << ":\n");
+//			UG_LOG("  center: " << tn.center << ", boxMin: " << tn.boxMin << ", boxMax: " << tn.boxMax << endl);
+//			UG_LOG("  splitDim: " << tn.splitDim << ", splitValue: " << tn.splitValue << endl);
+		}
 	}
 
-	improve_split_values(parentNodes, 5, aWeight, com);
+	improve_split_values(parentNodes, m_splitImproveIterations, aWeight, com);
 
 
 	Grid::AttachmentAccessor<elem_t, ANumber> aaWeight(mg, aWeight);
@@ -939,6 +947,8 @@ bisect_elements(vector<TreeNode>& childNodesOut, vector<TreeNode>& parentNodes,
 		for(size_t iNode = 0; iNode < parentNodes.size(); ++iNode){
 			TreeNode& tn = parentNodes[iNode];
 			if(!tn.bisectionComplete){
+//				UG_LOG("Performing bisection with ratio: " << tn.ratioLeft << endl);
+
 				size_t firstWgtInd = iNode * numWgtsPerNode;
 				ElemList& elemsCut = elemsCutVec[iNode];
 				ElemList& elemsLeftOut = childNodesOut[tn.firstChildNode].elems;
@@ -955,7 +965,7 @@ bisect_elements(vector<TreeNode>& childNodesOut, vector<TreeNode>& parentNodes,
 
 			//	bisect the cutting elements
 				if(gMissingLeft <= 0){
-					UG_LOG("Adding all to right\n");
+//					UG_LOG("Adding all to right\n");
 				//	add all cut-elements to the right side
 					for(size_t i = elemsCut.first(); i != s_invalidIndex;){
 						size_t iNext = elemsCut.next(i);
@@ -966,7 +976,7 @@ bisect_elements(vector<TreeNode>& childNodesOut, vector<TreeNode>& parentNodes,
 					tn.bisectionComplete = true;
 				}
 				else if(gMissingRight <= 0){
-					UG_LOG("Adding all to left\n");
+//					UG_LOG("Adding all to left\n");
 				//	add all cut-elements to the left side
 					for(size_t i = elemsCut.first(); i != s_invalidIndex;){
 						size_t iNext = elemsCut.next(i);
@@ -986,11 +996,14 @@ bisect_elements(vector<TreeNode>& childNodesOut, vector<TreeNode>& parentNodes,
 //					else				ratio = wRight / wLeft;
 //
 //					if(ratio > 0.99){
-					number ratioLeft = (gWeights[0] + gWeights[3]) / tn.ratioLeft;
-					number ratioRight = (gWeights[1] + gWeights[4]) / (1. - tn.ratioLeft);
+					number ratioLeft = (gWeights[0] + gWeights[3]) / (gWTotal * tn.ratioLeft);
+					number ratioRight = (gWeights[1] + gWeights[4]) / (gWTotal * (1. - tn.ratioLeft));
 
-					if((ratioLeft > 0.95) && (ratioRight > 0.95)){
-						UG_LOG("direct cut bisection\n");
+					if((ratioLeft > m_tolerance) && (ratioRight > m_tolerance)){
+//						UG_LOG("direct cut bisection on node " << iNode
+//								<< " with ratioLeft = " << ratioLeft
+//								<< " and ratioRight = " << ratioRight << "\n");
+
 						for(size_t i = elemsCut.first(); i != s_invalidIndex;){
 							elem_t* e = elemsCut.elem(i);
 							size_t iNext = elemsCut.next(i);
@@ -1006,6 +1019,9 @@ bisect_elements(vector<TreeNode>& childNodesOut, vector<TreeNode>& parentNodes,
 				}
 			//	prepare for recursion
 				if(!tn.bisectionComplete){
+//					UG_LOG("Preparing for recursion in node " << iNode << endl);
+//					UG_LOG("elemsLeftOut.size(): " << elemsLeftOut.size() <<
+//							", elemsRightOut.size(): " << elemsRightOut.size() << "\n");
 					number newRatioLeft = (number)gMissingLeft / (number)(gMissingLeft + gMissingRight);
 					tn.ratioLeft = newRatioLeft;
 					tn.elems = elemsCut;
@@ -1017,11 +1033,12 @@ bisect_elements(vector<TreeNode>& childNodesOut, vector<TreeNode>& parentNodes,
 						maxChildWeight, com, cutRecursion + 1);
 	}
 	else{
-//		UG_LOG("performing simple bisection\n");
 	//	perform a simple bisection
 		for(size_t iNode = 0; iNode < parentNodes.size(); ++iNode){
 			TreeNode& tn = parentNodes[iNode];
 			if(!tn.bisectionComplete){
+//				UG_LOG("performing simple bisection on node " << iNode
+//						<< " with ratio " << tn.ratioLeft << "\n");
 				ElemList& elems = tn.elems;
 				ElemList& elemsLeftOut = childNodesOut[tn.firstChildNode].elems;
 				ElemList& elemsRightOut = childNodesOut[tn.firstChildNode + 1].elems;
