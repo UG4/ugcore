@@ -152,7 +152,7 @@ class GlobalGridFunctionNumberData
 
 			// check correctness
 			if(bFound)
-				if( fabs(value) > 1e-20 && fabs((globValue - value) / value) > 1e-8)
+				if( fabs(value) > 1e-10 && fabs((globValue - value) / value) > 1e-8)
 					UG_THROW("Global mean "<<globValue<<" != local value "<<value);
 
 			// set as global value
