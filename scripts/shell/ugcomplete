@@ -401,7 +401,6 @@ UGCMAKE_INTERNAL="-DBUILTIN_BLAS= -DBUILTIN_LAPACK= -DDEBUG_FORMAT="
 COMPLETIONS_UG4_PLUGINS="\
 -Dd3f= \
 -DConvectionDiffusion= \
--DLinearElastoPlasticity= \
 -Damg= \
 -DSHTopology= \
 -DBiogas= \
@@ -430,6 +429,7 @@ COMPLETIONS_UG4_PLUGINS="\
 -DTKDGenerator= \
 -DVesicleDynamics= \
 -DSG= \
+-DSmallStrainMechanics= \
 -DSuperLU= \
 -DElectricCircuit= "
 
