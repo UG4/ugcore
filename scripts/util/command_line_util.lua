@@ -185,16 +185,22 @@ function util.PrintArguments()
 	end
 end
 
+function StrOrNil(s)
+	if s == nil then return "nil" end
+	return s
+end
+
 --! prints out the description to each GetParam-parameter so far called
 function util.PrintHelp()
 	local length=0
 	for name,arg in pairsSortedByKeys(util.args) do
 		length = math.max(string.len(name), length)
 	end	
+	local defaultStr
 	for name,arg in pairsSortedByKeys(util.args) do
 		sOpt = util.ConcatOptions(arg.options)
-		print(arg.type..util.adjuststring(name, length, "l").." = "..arg.value..
-			  " : "..arg.description..sOpt.." (default = "..arg.default..")")
+		print(arg.type..util.adjuststring(name, length, "l").." = "..StrOrNil(arg.value)..
+			  " : "..arg.description..sOpt.." (default = "..StrOrNil(arg.default)..")")
 	end
 end
 
