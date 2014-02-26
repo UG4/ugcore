@@ -150,7 +150,7 @@ void WriteAlgebraIndices(std::string name, ConstSmartPtr<TDomain> domain,  Const
 
 	for(size_t i=0; i<fctIndex.size(); i++)
 		file << fctIndex[i] << "\n";
-	//*/
+*/
 }
 
 template<class TFunction>
