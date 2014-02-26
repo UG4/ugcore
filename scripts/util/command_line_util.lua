@@ -83,8 +83,11 @@ function util.GetParam(name, default, description, options, atype)
 			iFound=iFound+1			
 		end
 	end
-	if iFound > 1 then
+	if iFound > 1 then		
 		print("--- WARNING: Parameter "..name.." found multiple times ---")
+		if util.bFailOnMultipleParameters == true then
+			exit()
+		end
 	end
 	util.args[name].value = value
 	
