@@ -349,7 +349,22 @@ extract_blocks(const matrix_type& A, const GF& c)
 					BlockInv(j,k) = DoFRef(A, vDoFIndex[j], vDoFIndex[k]);
 
 		//	get inverse
-			Invert(BlockInv);
+			if(!Invert(BlockInv)){
+				std::stringstream ss;
+				ss << d <<"dim - Elem-Mat "<<b<<" singular. size: "<<numIndex<<"\n";
+				for (size_t j = 0; j < numIndex; j++)
+					ss << vDoFIndex[j][0] << ", ";
+				ss << "\n";
+
+				BlockInv = 0.0;
+				for (size_t j = 0; j < numIndex; j++)
+					for (size_t k = 0; k < numIndex; k++)
+						BlockInv(j,k) = DoFRef(A, vDoFIndex[j], vDoFIndex[k]);
+
+				ss << BlockInv;
+
+				UG_THROW(ss.str());
+			}
 		}
 	}
 
