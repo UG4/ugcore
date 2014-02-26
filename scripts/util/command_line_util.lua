@@ -48,7 +48,6 @@ util.argsUsed = util.argsUsed or {}
 --! @param atype type of the parameter, e.g. "number", "string", "boolean". default "string"
 --! @return parameter in ugargv after ugargv[i] == name or default if 'name' was not present
 function util.GetParam(name, default, description, options, atype)
-
 	-- check options
     if options ~= nil then
 	    ug_assert(type(options) == "table",
@@ -76,6 +75,16 @@ function util.GetParam(name, default, description, options, atype)
 			value = ugargv[i+1]
 			bFound=true
 		end
+	end
+	
+	local iFound=0
+	for i = 1, ugargc-1 do
+		if ugargv[i] == name then
+			iFound=iFound+1			
+		end
+	end
+	if iFound > 1 then
+		print("--- WARNING: Parameter "..name.." found multiple times ---")
 	end
 	util.args[name].value = value
 	
