@@ -19,15 +19,15 @@
 #
 #  The machine (platform) identifier to append to the library names
 #
-PLAT = _mac_x
+PLAT = 
 
 #
 #  The name of the libraries to be created/linked to
 #
 SuperLUroot	= $(HOME)/local/SuperLU/4.3
-SUPERLULIB   	= $(SuperLUroot)/lib/libsuperlu_4.3.a
+SUPERLULIB  = $(SuperLUroot)/lib/libsuperlu_4.3.a
 BLASLIB   	= "../lib/blas$(PLAT).a"
-TMGLIB       	= libtmglib.a
+TMGLIB      = libtmglib.a
 LIBS		= $(SUPERLULIB) $(BLASLIB)
 
 #
