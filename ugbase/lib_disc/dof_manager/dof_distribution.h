@@ -150,11 +150,11 @@ class DoFDistribution : public DoFDistributionInfoProvider
 		template <typename TElem, typename TBaseElem>
 		void collect_associated(std::vector<TBaseElem*>& vAssElem,
 								TElem* elem, bool clearContainer = true) const{
-			if(grid_level().is_level())
-				CollectAssociated(vAssElem, *m_pMG, elem, clearContainer);
-			else{
+//			if(grid_level().is_level())
+//				CollectAssociated(vAssElem, *m_pMG, elem, clearContainer);
+//			else{
 				m_spSurfView->collect_associated(vAssElem, elem, grid_level(), clearContainer);
-			}
+//			}
 		}
 
 		/// returns if the grid object is part of the dof distribution
