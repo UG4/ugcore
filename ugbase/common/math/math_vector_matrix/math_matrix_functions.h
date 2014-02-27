@@ -43,14 +43,14 @@ MatSubtract(matrix_t& mOut, const matrix_t& m1, const matrix_t& m2);
 // mOut = m1 * m2
 template <size_t N, size_t M, size_t L, typename T>
 inline void
-MatMult(MathMatrix<N, M, T>& mOut,
+MatMultiply(MathMatrix<N, M, T>& mOut,
         const MathMatrix<N, L, T>& m1, const MathMatrix<L, M, T>& m2);
 
 ///	multiply three matrices and stores the result in a fourth one
 // mOut = m1 * m2 * m3
 template <size_t N, size_t M, size_t L, size_t P, typename T>
 inline void
-MatMult(MathMatrix<N, M, T>& mOut, const MathMatrix<N, L, T>& m1,
+MatMultiply(MathMatrix<N, M, T>& mOut, const MathMatrix<N, L, T>& m1,
         const MathMatrix<L, P, T>& m2, const MathMatrix<P, M, T>& m3);
 
 ///	multiply two transposed matrices and stores the result in a third one
@@ -71,6 +71,36 @@ MatMultiplyMTM(MathMatrix<N, N, T>& mOut, const MathMatrix<M, N, T>& m);
 template <size_t N, size_t M, typename T>
 inline void
 MatMultiplyMMT(MathMatrix<M, M, T>& mOut, const MathMatrix<M, N, T>& m);
+
+///	multiply a matrix with the transposed of a second one and stores the result in mOut
+// mOut = m1 * m2^T
+template <size_t N, size_t M, size_t L, typename T>
+inline void
+MatMultiplyMBT(MathMatrix<N, M, T>& mOut, const MathMatrix<N, L, T>& m1,
+        const MathMatrix<M, L, T>& m2);
+
+///	multiply the transposed of a matrix with a matrix and stores the result in mOut
+// mOut = m1^T * m2
+template <size_t N, size_t M, size_t L, typename T>
+inline void
+MatMultiplyMTB(MathMatrix<N, M, T>& mOut, const MathMatrix<L, N, T>& m1,
+        const MathMatrix<L, M, T>& m2);
+
+///	multiply a matrix m2 with a matrix m1 from left and its transpose m1^T from right
+///	and stores the result in mOut
+// mOut = m1 * m2 * m1^T
+template <size_t N, size_t M, typename T>
+inline void
+MatMultiplyMBMT(MathMatrix<N, N, T>& mOut, const MathMatrix<N, M, T>& m1,
+        const MathMatrix<M, M, T>& m2);
+
+///	multiply a matrix m2 with a matrix m1 from right and its transpose m1^T from left
+///	and stores the result in mOut
+// mOut = m1^T * m2 * m1
+template <size_t N, size_t M, typename T>
+inline void
+MatMultiplyMTBM(MathMatrix<N, N, T>& mOut, const MathMatrix<M, N, T>& m1,
+        const MathMatrix<M, M, T>& m2);
 
 ////////////////////////////////////////////////////////////////////////////////
 // "Contraction" for Matrices (note: contraction is only known regarding tensors!)
@@ -95,6 +125,20 @@ MatScale(matrix_t& mOut, typename matrix_t::value_type s, const matrix_t& m);
 template <typename matrix_t>
 inline void
 MatScaleAppend(matrix_t& mOut, typename matrix_t::value_type s, const matrix_t& m);
+
+////////////////////////////////////////////////////////////////////////////////
+// Transposed of Matrix
+////////////////////////////////////////////////////////////////////////////////
+
+/// transpose a matrix
+template <size_t N, size_t M, typename T>
+inline void
+Transpose(MathMatrix<N,M,T>& mOut, const MathMatrix<M,N,T>& m);
+
+/// transpose a matrix_t, override original matrix_t
+template <typename matrix_t>
+inline void
+Transpose(matrix_t& m);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Determinant of Matrix
@@ -181,20 +225,6 @@ template <typename T>
 inline typename MathMatrix<3,3,T>::value_type
 SqrtGramDeterminant(const MathMatrix<3,3,T>& m);
 /// \}
-
-////////////////////////////////////////////////////////////////////////////////
-// Transposed of Matrix
-////////////////////////////////////////////////////////////////////////////////
-
-/// transpose a matrix
-template <size_t N, size_t M, typename T>
-inline void
-Transpose(MathMatrix<N,M,T>& mOut, const MathMatrix<M,N,T>& m);
-
-/// transpose a matrix_t, override original matrix_t
-template <typename matrix_t>
-inline void
-Transpose(matrix_t& m);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Inverse of Matrix
@@ -471,7 +501,7 @@ MaxAbsEigenvalue(const MathMatrix<M,N,T>& m);
 /// Computes minimum eigenvalue of a (symmetric) matrix
 template <size_t N, size_t M, typename T>
 inline typename MathMatrix<N,M,T>::value_type
-MaxAbsEigenvalue(const MathMatrix<M,N,T>& m);
+MinAbsEigenvalue(const MathMatrix<M,N,T>& m);
 
 
 // end group math_matrix

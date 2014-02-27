@@ -157,6 +157,90 @@ MatMultiplyMMT(MathMatrix<M, M, T>& mOut, const MathMatrix<M, N, T>& m)
 	}
 }
 
+template <size_t N, size_t M, size_t L, typename T>
+inline void
+MatMultiplyMBT(MathMatrix<N, M, T>& mOut, const MathMatrix<N, L, T>& m1,
+        const MathMatrix<M, L, T>& m2)
+{
+	for(size_t i = 0; i < N; ++i)
+	{
+		for(size_t j = 0; j < M; ++j)
+		{
+			mOut(i,j) = 0;
+			for(size_t k = 0; k < L; ++k)
+			{
+				mOut(i,j) += m1(i,k) * m2(j,k);
+			}
+		}
+	}
+}
+
+template <size_t N, size_t M, size_t L, typename T>
+inline void
+MatMultiplyMTB(MathMatrix<N, M, T>& mOut, const MathMatrix<L, N, T>& m1,
+        const MathMatrix<L, M, T>& m2)
+{
+	for(size_t i = 0; i < N; ++i)
+	{
+		for(size_t j = 0; j < M; ++j)
+		{
+			mOut(i,j) = 0;
+			for(size_t k = 0; k < L; ++k)
+			{
+				mOut(i,j) += m1(k,i) * m2(k,j);
+			}
+		}
+	}
+}
+
+template <size_t N, size_t M, typename T>
+inline void
+MatMultiplyMBMT(MathMatrix<N, N, T>& mOut, const MathMatrix<N, M, T>& m1,
+            const MathMatrix<M, M, T>& m2)
+{
+	MathMatrix<M, N, T> help;
+
+	for(size_t i = 0; i < N; ++i)
+		for(size_t j = 0; j < N; ++j)
+		{
+			mOut(i,j) = 0;
+			for(size_t k = 0; k < M; ++k)
+			{
+				help(k,j) = 0;
+				for(size_t l = 0; l < M; ++l)
+				{
+					help(k,j) += m2(k,l) * m1(j,l);
+				}
+
+				mOut(i,j) += m1(i,k) * help(k,j);
+			}
+		}
+}
+
+template <size_t N, size_t M, typename T>
+inline void
+MatMultiplyMTBM(MathMatrix<N, N, T>& mOut, const MathMatrix<M, N, T>& m1,
+            const MathMatrix<M, M, T>& m2)
+{
+	MathMatrix<M, N, T> help;
+
+	for(size_t i = 0; i < N; ++i)
+		for(size_t j = 0; j < N; ++j)
+		{
+			mOut(i,j) = 0;
+			for(size_t k = 0; k < M; ++k)
+			{
+				help(k,j) = 0;
+				for(size_t l = 0; l < M; ++l)
+				{
+					help(k,j) += m2(k,l) * m1(l,j);
+				}
+
+				mOut(i,j) += m1(k,i) * help(k,j);
+			}
+		}
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // "Contraction" for Matrices (note: contraction is only known regarding tensors!)
 ////////////////////////////////////////////////////////////////////////////////
