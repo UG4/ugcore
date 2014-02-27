@@ -50,53 +50,55 @@ static bool ParmetisIsAvailable()
 	return false;
 }
 
-template <class TDomain>
-class BalanceWeightsLuaCallback : public IBalanceWeights
-{
-	public:
-		BalanceWeightsLuaCallback(SmartPtr<TDomain> spDom, const char* luaCallbackName) :
-			m_spDom(spDom),
-			m_time(0)
-		{
-			m_pmg = spDom->grid().get();
-			m_aaPos = spDom->position_accessor();
-		//	we'll pass the following arguments: x, y, z, lvl, t
-			m_callback.set_lua_callback(luaCallbackName, 5);
-		}
+#ifdef UG_PARALLEL
+	template <class TDomain>
+	class BalanceWeightsLuaCallback : public IBalanceWeights
+	{
+		public:
+			BalanceWeightsLuaCallback(SmartPtr<TDomain> spDom, const char* luaCallbackName) :
+				m_spDom(spDom),
+				m_time(0)
+			{
+				m_pmg = spDom->grid().get();
+				m_aaPos = spDom->position_accessor();
+			//	we'll pass the following arguments: x, y, z, lvl, t
+				m_callback.set_lua_callback(luaCallbackName, 5);
+			}
 
-		virtual ~BalanceWeightsLuaCallback()	{}
+			virtual ~BalanceWeightsLuaCallback()	{}
 
 
-		void set_time(number time)	{m_time = time;}
-		number time() const			{return m_time;}
+			void set_time(number time)	{m_time = time;}
+			number time() const			{return m_time;}
 
-		virtual number get_weight(Vertex* e)	{return	get_weight_impl(e);}
-		virtual number get_weight(Edge* e)		{return	get_weight_impl(e);}
-		virtual number get_weight(Face* e)		{return	get_weight_impl(e);}
-		virtual number get_weight(Volume* e)	{return	get_weight_impl(e);}
+			virtual number get_weight(Vertex* e)	{return	get_weight_impl(e);}
+			virtual number get_weight(Edge* e)		{return	get_weight_impl(e);}
+			virtual number get_weight(Face* e)		{return	get_weight_impl(e);}
+			virtual number get_weight(Volume* e)	{return	get_weight_impl(e);}
 
-	private:
-		typedef typename TDomain::grid_type grid_t;
-		typedef typename TDomain::position_type pos_t;
-		typedef typename TDomain::position_accessor_type aapos_t;
+		private:
+			typedef typename TDomain::grid_type grid_t;
+			typedef typename TDomain::position_type pos_t;
+			typedef typename TDomain::position_accessor_type aapos_t;
 
-		template <class TElem>
-		number get_weight_impl(TElem* e)
-		{
-			pos_t c = CalculateCenter(e, m_aaPos);
-			vector3 p;
-			VecCopy(p, c, 0);
-			number weight;
-			m_callback(weight, 5, p.x(), p.y(), p.z(), (number)m_pmg->get_level(e), m_time);
-			return weight;
-		}
+			template <class TElem>
+			number get_weight_impl(TElem* e)
+			{
+				pos_t c = CalculateCenter(e, m_aaPos);
+				vector3 p;
+				VecCopy(p, c, 0);
+				number weight;
+				m_callback(weight, 5, p.x(), p.y(), p.z(), (number)m_pmg->get_level(e), m_time);
+				return weight;
+			}
 
-		SmartPtr<TDomain>			m_spDom;
-		MultiGrid*					m_pmg;
-		aapos_t						m_aaPos;
-		number						m_time;
-		LuaFunction<number, number>	m_callback;
-};
+			SmartPtr<TDomain>			m_spDom;
+			MultiGrid*					m_pmg;
+			aapos_t						m_aaPos;
+			number						m_time;
+			LuaFunction<number, number>	m_callback;
+	};
+#endif
 
 // end group loadbalance_bridge
 /// \}
