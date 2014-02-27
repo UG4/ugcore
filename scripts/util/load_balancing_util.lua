@@ -246,7 +246,7 @@ end
 function balancer.RefineAndRebalanceDomain(domain, numRefs, loadBalancer)
 	balancer.Rebalance(domain, loadBalancer)
 	if numRefs > 0 then
-		refiner = GlobalDomainRefiner(dom)
+		refiner = GlobalDomainRefiner(domain)
 		
 		for i = 1, numRefs do
 			refiner:refine()
