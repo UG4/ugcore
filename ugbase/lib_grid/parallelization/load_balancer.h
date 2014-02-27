@@ -90,7 +90,7 @@ class IBalanceWeights{
 	public:
 
 		virtual ~IBalanceWeights()	{}
-		virtual void refresh_weights(int baseLevel) = 0;
+		virtual void refresh_weights(int baseLevel)	{};
 
 		virtual number get_weight(Vertex*) = 0;
 		virtual number get_weight(Edge*) = 0;
