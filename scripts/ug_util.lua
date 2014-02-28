@@ -270,7 +270,7 @@ util._original_io_open = io.open
 --! to remove this warning
 --! 1. check if you want to open the file on ALL cores
 --!  if not, use   if ProcRank()==0    open, write,close    end
---! 2. if you're really sure you want to do that, use io.open_all. 
+--! 2. if you're really sure you want to do that, use io.open_ALL. 
 function util.safe_io_open(filename, model)	
 	if ProcRank() == 1 then
 		print_all("--- WARNING: opening a file not from proc 0 may harm performance (see util.IOOpen) ! "..util.GetLUAFileAndLine(1).." ---")
@@ -278,8 +278,23 @@ function util.safe_io_open(filename, model)
 	return util._original_io_open(filename, model)
 end
 
-function io.open_all(filename, model)
+function io.open_ALL(filename, model)
 	return util._original_io_open(filename, model)
+end
+
+util.FileDummy = {}
+function util.FileDummy.write(...) end
+function util.FileDummy.read(...) error("io.open_0 does not support read.") end
+function util.FileDummy.close() end
+--! io.open_ONE opens the file on exactly one core
+--! all other cores get dummy file objects (FileDummy)
+function io.open_ONE(filename, model, rootNode)
+	if rootNode == nil then rootNode = 0 end
+	if ProcRank() == rootNode then
+		return util._original_io_open(filename, model)
+	else
+		return util.FileDummy
+	end
 end
 
 io.open = util.safe_io_open
