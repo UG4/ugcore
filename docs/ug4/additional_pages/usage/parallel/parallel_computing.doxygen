@@ -96,6 +96,7 @@ Because of this, you have to keep some things in mind when you want your applica
 - i/o on a cluster can be slower than on your laptop
 - i/o gets REALLY slow if a lot of cores (or all) are accessing the file system. Avoid all-core-i/o.
 - This is not going to change in the next years since some parts of i/o are <em>inherently</em> sequential.
+- especial <b>opening of files is <em>inherently</em> sequential </b>.
 - A job that accesses too much i/o may scale well on 64 nodes but fail to do so on 16k+ cores.
 - this is true for all i/o access, even C or LUA
 - i/o is EVERYTHING file related: open, close, write, read, check existence, scan.
@@ -107,15 +108,24 @@ This will \em not scale on clusters.
 
 \note When you need to do i/o, think about if you \em really need all cores to do the i/o. If you only need one core to perform a task:
 \code
-if(pcl::GetProcessRank() == 0) { .. some i/o ... }
+if(pcl::ProcRank() == 0) { open file, write file, close file }
 \endcode
 and in LUA
 \code
-if GetProcessRank() == 0 then
- -- some i/o
+if ProcRank() == 0 then
+ -- open file
+ -- write to file
+ -- close file
 end
 \endcode
-In the future we might add some MPI-IO capability but even then all-core-IO needs to be prevented whenever possible.
+
+Remember:
+\note I will again stress out that even just <b>opening files</b> is bad, so make sure also the opening of your files is inside that ProcRank()==0.
+
+If you really want to do i/o on all cores (like writing a solution), refer to Martin Rupp, he has written a construct named ParallelArchive which
+ uses MPI i/o and is much faster than naiv i/o.
+
+
 
 <hr> 
 \section secParallelComputingInputOutput Input and Output
