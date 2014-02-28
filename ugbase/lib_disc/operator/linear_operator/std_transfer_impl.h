@@ -290,8 +290,8 @@ assemble_prolongation(matrix_type& P,
 						} else if(parentDim == lfeID.dim() - 1){
 							// case: parent is Side. --> Get neighbor elems
 							typedef typename TChild::sideof TElem;
-							typename Grid::traits<TElem>::secure_container vElem;
-							mg.associated_elements(vElem, parent);
+							std::vector<TElem*> vElem;
+							coarseDD.collect_associated(vElem, parent);
 							for(size_t p = 0; p < vElem.size(); ++p)
 								vParent.push_back(vElem[p]);
 
@@ -483,8 +483,8 @@ assemble_restriction(matrix_type& R,
 						} else if(parentDim == lfeID.dim() - 1){
 							// case: parent is Side. --> Get neighbor elems
 							typedef typename TChild::sideof TElem;
-							typename Grid::traits<TElem>::secure_container vElem;
-							mg.associated_elements(vElem, parent);
+							std::vector<TElem*> vElem;
+							coarseDD.collect_associated(vElem, parent);
 							for(size_t p = 0; p < vElem.size(); ++p){
 							//	NOTE: This is not the transposed of the prolongation
 							//		  in adaptive case, since we only restrict to
