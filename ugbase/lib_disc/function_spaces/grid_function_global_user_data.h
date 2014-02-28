@@ -150,10 +150,15 @@ class GlobalGridFunctionNumberData
 			if(numFound == 0)
 				UG_THROW("Point "<<x<<" not found on all "<<pcl::NumProcs()<<" procs.");
 
-			// check correctness
+			// check correctness for continuous spaces
+			// note: if the point is found more than one it is located on the
+			// boundary of some element. thus, if the space is continuous, those
+			// values should match on all procs.
 			if(bFound)
-				if( fabs(value) > 1e-10 && fabs((globValue - value) / value) > 1e-8)
-					UG_THROW("Global mean "<<globValue<<" != local value "<<value);
+				if(LocalFiniteElementProvider::continuous(m_lfeID)){
+					if( fabs(value) > 1e-10 && fabs((globValue - value) / value) > 1e-8)
+						UG_THROW("Global mean "<<globValue<<" != local value "<<value);
+				}
 
 			// set as global value
 			value = globValue;
