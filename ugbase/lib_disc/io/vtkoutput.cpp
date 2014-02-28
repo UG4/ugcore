@@ -93,7 +93,11 @@ print(const char* filename, Domain<TDim>& domain)
 	grid.detach_from_vertices(aVrtIndex);
 
 	}
+
 	UG_CATCH_THROW("VTK::print: Can not open Output File: "<< filename);
+	#ifdef UG_PARALLEL
+		PCL_DEBUG_BARRIER_ALL();
+	#endif
 }
 
 template <int TDim>
@@ -305,6 +309,9 @@ write_subset_pvd(int numSubset, const std::string& filename, int step, number ti
 		fprintf(file, "</VTKFile>\n");
 		fclose(file);
 	}
+	#ifdef UG_PARALLEL
+		PCL_DEBUG_BARRIER_ALL();
+	#endif
 }
 
 template <int TDim>

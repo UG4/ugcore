@@ -142,6 +142,9 @@ print(const char* filename, TFunction& u, int step, number time, bool makeConsis
 		}
 		UG_CATCH_THROW("VTK::print: Can not write pvd file.");
 	}
+	#ifdef UG_PARALLEL
+		PCL_DEBUG_BARRIER_ALL();
+	#endif
 }
 
 
@@ -150,6 +153,8 @@ template <typename TFunction>
 void VTKOutput<TDim>::
 print_subset(const char* filename, TFunction& u, int si, int step, number time, bool makeConsistent)
 {
+	PROFILE_FUNC();
+
 #ifdef UG_PARALLEL
 	if(makeConsistent)
 		if(!u.change_storage_type(PST_CONSISTENT))
@@ -266,6 +271,9 @@ print_subset(const char* filename, TFunction& u, int si, int step, number time, 
 
 	}
 	UG_CATCH_THROW("VTK::print_subset: Can not open Output File: "<< filename);
+	#ifdef UG_PARALLEL
+		PCL_DEBUG_BARRIER_ALL();
+	#endif
 }
 
 
@@ -1747,6 +1755,8 @@ write_pvtu(TFunction& u, const std::string& filename,
 		fprintf(file, "</VTKFile>\n");
 		fclose(file);
 	}
+
+	PCL_DEBUG_BARRIER_ALL();
 #endif
 }
 
@@ -1864,6 +1874,10 @@ write_time_pvd(const char* filename, TFunction& u)
 		fprintf(file, "</VTKFile>\n");
 		fclose(file);
 	}
+
+	#ifdef UG_PARALLEL
+		PCL_DEBUG_BARRIER_ALL();
+	#endif
 }
 
 }
