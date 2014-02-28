@@ -262,7 +262,7 @@ end
 end    
     
 
-util.SaveIOOpen = io.open
+util._original_io_open = io.open
 
 --! WARNING: Parallel File open is REALLY slow on clusters
 --! this function overwrite io.open and prints a warning
@@ -271,18 +271,18 @@ util.SaveIOOpen = io.open
 --! 1. check if you want to open the file on ALL cores
 --!  if not, use   if ProcRank()==0    open, write,close    end
 --! 2. if you're really sure you want to do that, use io.open_all. 
-function util.IOOpen(filename, model)	
+function util.safe_io_open(filename, model)	
 	if ProcRank() == 1 then
-		print_all("WARNING: opening a file not from proc 0 may harm performance (see util.IOOpen) ! "..util.GetLUAFileAndLine(1))
+		print_all("--- WARNING: opening a file not from proc 0 may harm performance (see util.IOOpen) ! "..util.GetLUAFileAndLine(1).." ---")
 	end
-	return util.SaveIOOpen(filename, model)
+	return util._original_io_open(filename, model)
 end
 
 function io.open_all(filename, model)
-	return util.SaveIOOpen(filename, model)
+	return util._original_io_open(filename, model)
 end
 
-io.open = util.IOOpen
+io.open = util.safe_io_open
 
 
 -- end group scripts_util
