@@ -284,6 +284,7 @@ int main(int argc, char* argv[])
 
 		// replace LUAs print function with our own, to use UG_LOG
 		lua_register(L, "print", UGLuaPrint );
+		lua_register(L, "print_all", UGLuaPrintAllProcs );
 		lua_register(L, "write", UGLuaWrite );
 	
 		ug::bridge::InitShell();
