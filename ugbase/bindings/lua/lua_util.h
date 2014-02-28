@@ -89,6 +89,9 @@ UG_API bool ParseFile(const char* filename);
 /// UGLuaPrint. Redirects LUA prints to UG_LOG
 UG_API int UGLuaPrint(lua_State *L);
 
+/// UGLuaPrintAllProcs. Redirects LUA prints to UG_LOG_ALL_PROCS
+int UGLuaPrintAllProcs(lua_State *L);
+
 /// UGLuaWrite. prints LUA output to UG_LOG without adding std::endl automatically
 UG_API int UGLuaWrite(lua_State *L);
 
