@@ -236,7 +236,53 @@ function AssertPluginsLoaded(pluginNamesList)
 	RequiredPlugins(pluginNamesList)
 end
 
+--! @param backtraceLevel the number of levels to go up
+--! for backtraceLevel = 0, it returns file and line of the
+--! calling function. for  backtraceLevel = 1 the
+--! file and line of the caller of the calling function and so on.
+function util.GetLUAFileAndLine (backtraceLevel)
+	local level = 2+backtraceLevel
+	local info = debug.getinfo(level, "Sl")
+	if not info then return "" end
+	if info.what == "C" then   -- is a C function?
+		return "C function"
+	else
+		return string.format("[%s]:%d", info.short_src, info.currentline)
+	end
+end
 
+if print_all == nil then
+function print_all(...)
+	local la = GetLogAssistant()
+	local opp = la:get_output_process()
+	la:set_output_process(-1)
+	print(unpack(arg))
+	la:set_output_process(opp) 
+end
+end    
+    
+
+util.SaveIOOpen = io.open
+
+--! WARNING: Parallel File open is REALLY slow on clusters
+--! this function overwrite io.open and prints a warning
+--! if you use it on a core which is not 0
+--! to remove this warning
+--! 1. check if you want to open the file on ALL cores
+--!  if not, use   if ProcRank()==0    open, write,close    end
+--! 2. if you're really sure you want to do that, use io.open_all. 
+function util.IOOpen(filename, model)	
+	if ProcRank() == 1 then
+		print_all("WARNING: opening a file not from proc 0 may harm performance (see util.IOOpen) ! "..util.GetLUAFileAndLine(1))
+	end
+	return util.SaveIOOpen(filename, model)
+end
+
+function io.open_all(filename, model)
+	return util.SaveIOOpen(filename, model)
+end
+
+io.open = util.IOOpen
 
 
 -- end group scripts_util
