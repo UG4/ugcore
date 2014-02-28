@@ -244,6 +244,14 @@ static void Common(Registry& reg, string grp)
 		.add_constructor<void (*)(int, std::string)>("Level#Type")
 		.set_construct_as_smart_pointer(true);
 
+//	LFEID
+	{
+		typedef LFEID T;
+		reg.add_class_<T>("LFEID", grp)
+			.add_method("order", &T::order)
+			.add_method("dim", &T::dim);
+	}
+
 //	DoFDistributionInfoProvider
 	{
 	typedef DoFDistributionInfoProvider T;
@@ -253,7 +261,8 @@ static void Common(Registry& reg, string grp)
 		.add_method("num_fct", static_cast<size_t (T::*)() const>(&T::num_fct))
 		.add_method("name", &T::name)
 		.add_method("names", &T::names)
-		.add_method("dim", &T::dim);
+		.add_method("dim", &T::dim)
+		.add_method("lfeid", &T::lfeid);
 	}
 
 //	IApproximationSpace
