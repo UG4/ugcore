@@ -334,7 +334,7 @@ int UGLuaPrintAllProcs(lua_State *L)
 		if(s) UG_LOG_ALL_PROCS(s);
 		lua_pop(L, 1);
 	}
-	UG_LOG(endl);
+	UG_LOG_ALL_PROCS("\n");
 	lua_pop(L,1);
 	return 0;
 }
