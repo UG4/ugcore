@@ -3,6 +3,9 @@
  *
  *  Created on: 08.05.2013
  *      Author: mrupp
+ *
+ * This file is compiled if
+ * cmake -DINTERNAL_MEMTRACKER=ON ..
  */
 
 #include "memtracker.h"

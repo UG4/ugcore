@@ -3,6 +3,10 @@
  *
  *  Created on: 30.04.2013
  *      Author: mrupp
+ *
+ *
+ * This file is compiled if
+ * cmake -DINTERNAL_MEMTRACKER=ON ..
  */
 
 
