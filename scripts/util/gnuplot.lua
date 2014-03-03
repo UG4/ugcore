@@ -42,7 +42,7 @@ function gnuplot.write_data(filename, data, passRows)
 
 	-- check data
 	if type(data) ~= "table" then
-		io.stderr:write("Gnuplot Error: Expect table as data.\n");
+		write("Gnuplot Error: Expect table as data.\n");
 		return 1	
 	end
 	if data[1]==nil then return 0; end
@@ -50,11 +50,14 @@ function gnuplot.write_data(filename, data, passRows)
 	-- pure data is rowwise
 	if type(data[1]) == "number" then passRows = true end
 
+	-- only root proc writes data
+	if ProcRank() ~= 0 then return 0 end
+
 	-- open file
 	local file = io.open(filename, "w+")
 	if (not file) then
-		io.stderr:write("Gnuplot Error: cannot open output file: '")
-		io.stderr:write(filename .. " '\n");
+		write("Gnuplot Error: cannot open output file: '")
+		write(filename .. " '\n");
 		return 1
 	end
 	
@@ -69,7 +72,7 @@ function gnuplot.write_data(filename, data, passRows)
 
 			-- check that tables passed as coulumns
 			if not(type(column) == "table") then
-				io.stderr:write("Gnuplot Error: Data array must contain only tables.\n");
+				write("Gnuplot Error: Data array must contain only tables.\n");
 				return 1						
 			end
 	
@@ -95,12 +98,12 @@ function gnuplot.write_data(filename, data, passRows)
 			end		
 		else
 			if type(data[1][1]) == "table" or type(data[2][1]) == "table" then
-				io.stderr:write("Gnuplot: Format for matrix data: x, y, data");
+				write("Gnuplot: Format for matrix data: x, y, data");
 				return 1						
 			end			
 			for i = 3,#data do
 				if type(data[i][1]) ~= "table" then
-					io.stderr:write("Gnuplot: Format for matrix data: x, y, data");
+					write("Gnuplot: Format for matrix data: x, y, data");
 					return 1						
 				end			
 			end
@@ -126,14 +129,14 @@ function gnuplot.write_data(filename, data, passRows)
 				-- check for pure tables
 				if plainArray == nil then plainArray = false 
 				elseif plainArray == true then
-					io.stderr:write("Gnuplot Error: Data array mixes tables and numbers.\n");
+					write("Gnuplot Error: Data array mixes tables and numbers.\n");
 					return 1	
 				end		
 	
 				-- check number data items in Row
 				if rowSize == nil then rowSize = #item 
 				elseif not (rowSize == #item) then
-					io.stderr:write("Gnuplot Error: Data array of mixed sized rows.\n");
+					write("Gnuplot Error: Data array of mixed sized rows.\n");
 					return 1	
 				end		
 				
@@ -146,13 +149,13 @@ function gnuplot.write_data(filename, data, passRows)
 				-- check for pure numbers
 				if plainArray == nil then plainArray = true 
 				elseif plainArray == false then
-					io.stderr:write("Gnuplot Error: Data array mixes tables and numbers.\n");
+					write("Gnuplot Error: Data array mixes tables and numbers.\n");
 					return 1	
 				end		
 				
 				file:write(i, " ", item, "\n");
 			else
-				io.stderr:write("Gnuplot Error: Data array must contain only tables or only numbers.\n");
+				write("Gnuplot Error: Data array must contain only tables or only numbers.\n");
 				return 1				
 			end
 		end
@@ -227,6 +230,9 @@ gnuplot.plot(nil, plots, options)
 -- plots	table of data to be plotted
 -- options		table of options
 function gnuplot.plot(filename, data, options)
+
+	-- only root proc writes data
+	if ProcRank() ~= 0 then return 0 end
 
 	local options = options or {}
 
@@ -334,12 +340,12 @@ function gnuplot.plot(filename, data, options)
 	end
 
 	if not plots then
-		io.stderr:write("Gnuplot Error: data source not correctly specifiec. Valid formats are:\n");
-		io.stderr:write(" a) single data: data = {file = \"f1.dat\", 1, 2}\n");
-		io.stderr:write(" b) multi-data:  data = {{file = \"f1.dat\", 1, 2}, {file = \"f1.dat\", 1, 2}, ...}	\n");
-		io.stderr:write(" c) multiplot-multi-data: \n");		
-		io.stderr:write("    data = { { {file = \"f1.dat\", 1, 2}, {file = \"f1.dat\", 1, 2}, ...}, \n");		
-		io.stderr:write("             { {file = \"f3.dat\", 1, 2}, {file = \"f3.dat\", 1, 2}, ...}, ...} \n");		
+		write("Gnuplot Error: data source not correctly specifiec. Valid formats are:\n");
+		write(" a) single data: data = {file = \"f1.dat\", 1, 2}\n");
+		write(" b) multi-data:  data = {{file = \"f1.dat\", 1, 2}, {file = \"f1.dat\", 1, 2}, ...}	\n");
+		write(" c) multiplot-multi-data: \n");		
+		write("    data = { { {file = \"f1.dat\", 1, 2}, {file = \"f1.dat\", 1, 2}, ...}, \n");		
+		write("             { {file = \"f3.dat\", 1, 2}, {file = \"f3.dat\", 1, 2}, ...}, ...} \n");		
 		exit();
 	end
 	
@@ -416,7 +422,7 @@ function gnuplot.plot(filename, data, options)
 				add_term_opt = add_term_opt.." persist raise"
 				size = nil
 			else
-				io.stderr:write("Gnuplot: no terminal for interactive found.\n")
+				write("Gnuplot: no terminal for interactive found.\n")
 				return 2			
 			end		
 		else
@@ -456,18 +462,18 @@ function gnuplot.plot(filename, data, options)
 		
 		-- if still nil, error
 		if terminal == nil then
-			io.stderr:write("Gnuplot Error: cannot deduce terminal for: '"..filename.."'\n")
-			io.stderr:write("Gnuplot: Supported endings: pdf, eps, png, svg, tex.\n")
-			io.stderr:write("Gnuplot: Supported Terminals: "..table.concat(supportedTerms, ", ").."\n")
-			io.stderr:write("Gnuplot: Available Terminals: "..table.concat(availTerms, ", ").."\n")
+			write("Gnuplot Error: cannot deduce terminal for: '"..filename.."'\n")
+			write("Gnuplot: Supported endings: pdf, eps, png, svg, tex.\n")
+			write("Gnuplot: Supported Terminals: "..table.concat(supportedTerms, ", ").."\n")
+			write("Gnuplot: Available Terminals: "..table.concat(availTerms, ", ").."\n")
 			return 2			
 		end		
 	end
 		
 	-- check valid term
 	if not table.contains(supportedTerms, terminal) then
-		io.stderr:write("Gnuplot Error: unsupprted terminal: '"..terminal.."'\n")
-		io.stderr:write("Gnuplot Error: supported are: "..table.concat(supportedTerms, ", ").."\n")
+		write("Gnuplot Error: unsupprted terminal: '"..terminal.."'\n")
+		write("Gnuplot Error: supported are: "..table.concat(supportedTerms, ", ").."\n")
 		return 2				
 	end	
 
@@ -484,7 +490,7 @@ function gnuplot.plot(filename, data, options)
 	term.size = "" -- on support: x11
 	if terminal ~= "x11" then
 		if type(size) ~= "table" or #size ~= 2 then
-			io.stderr:write("Gnuplot: specify size with table of {<x>,<y>}\n")
+			write("Gnuplot: specify size with table of {<x>,<y>}\n")
 			return 2				
 		end
 	
@@ -505,7 +511,7 @@ function gnuplot.plot(filename, data, options)
 				s[1] = s[1] * (inchINcm/dpi)			
 				s[2] = s[2] * (inchINcm/dpi)			
 			else
-				io.stderr:write("Gnuplot: sizeunit invalid. use: cm, mm, in, inch, pt, pixel\n")
+				write("Gnuplot: sizeunit invalid. use: cm, mm, in, inch, pt, pixel\n")
 				return 2				
 			end	
 				
@@ -528,7 +534,7 @@ function gnuplot.plot(filename, data, options)
 				s[1] = s[1] * (dpi/inchINcm) * 0.1
 				s[2] = s[2] * (dpi/inchINcm) * 0.1
 			else
-				io.stderr:write("Gnuplot: sizeunit invalid. use: cm, mm, in, inch, pt, pixel\n")
+				write("Gnuplot: sizeunit invalid. use: cm, mm, in, inch, pt, pixel\n")
 				return 2				
 			end		
 			
@@ -625,8 +631,8 @@ function gnuplot.plot(filename, data, options)
 	local scriptName = tmpPath.."tmp_gnuplot_script_"..string.gsub(filename, "[./]", "_")..".gnu"
 	local script = io.open(scriptName, "w+")
 	if not script then
-		io.stderr:write("Gnuplot Error: cannot open output file: '")
-		io.stderr:write(scriptName .. " '\n");
+		write("Gnuplot Error: cannot open output file: '")
+		write(scriptName .. " '\n");
 		return 2
 	end
 
@@ -675,23 +681,23 @@ function gnuplot.plot(filename, data, options)
 		for _, dataset in ipairs(plot) do
 			if #dataset == 2 then
 				if plotDim and plotDim ~= 2 then
-					io.stderr:write("Gnuplot Error: Mixed 2d/3d data.\n"); exit();
+					write("Gnuplot Error: Mixed 2d/3d data.\n"); exit();
 				end
 				plotDim = 2 
 			elseif #dataset == 3 then  
 				if plotDim and plotDim ~= 3 then
-					io.stderr:write("Gnuplot Error: Mixed 2d/3d data.\n"); exit();
+					write("Gnuplot Error: Mixed 2d/3d data.\n"); exit();
 				end
 				plotDim = 3 
 			elseif #dataset == 0 then
 				-- function  
 			else 
-				io.stderr:write("Gnuplot Error: pass 0, 2 or 3 columns as data selection.\n"); exit();
+				write("Gnuplot Error: pass 0, 2 or 3 columns as data selection.\n"); exit();
 			end		
 		end
 	end
 	if (plotDim ~= 2 and plotDim ~= 3) then 
-		io.stderr:write("Gnuplot Error: Cannot detect plot dimension (only 2d or 3d).\n"); exit();		
+		write("Gnuplot Error: Cannot detect plot dimension (only 2d or 3d).\n"); exit();		
 	end
 	
 	-- dim fields
@@ -1157,7 +1163,7 @@ function gnuplot.plot(filename, data, options)
 			
 			-- check style		
 			if not table.contains({"lines","points","linespoints","boxes","dots","vectors","yerrorbars"}, style) then
-				io.stderr:write("Gnuplot Error: style=\""..style.."\" not supported.\n");
+				write("Gnuplot Error: style=\""..style.."\" not supported.\n");
 				exit()
 			end
 			
