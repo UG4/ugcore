@@ -6,6 +6,10 @@
 #include "lib_grid/lib_grid_messages.h"
 #include "common/catch_std.h"
 
+#ifdef UG_PARALLEL
+	#include "pcl/pcl_process_communicator.h"
+#endif
+
 namespace ug{
 
 bool IRefiner::mark(GridObject* o, RefinementMark refMark)
@@ -155,6 +159,42 @@ void IRefiner::set_adjusted_marks_debug_filename(const char* filename)
 		m_adjustedMarksDebugFilename = "";
 	else
 		m_adjustedMarksDebugFilename = filename;
+}
+
+void IRefiner::num_marked_edges(std::vector<int>& numMarkedEdgesOut)
+{
+	#ifdef UG_PARALLEL
+		std::vector<int> numLocal;
+		num_marked_edges_local(numLocal);
+		pcl::ProcessCommunicator com;
+		com.allreduce(numLocal, numMarkedEdgesOut, PCL_RO_SUM);
+	#else
+		num_marked_edges_local(numMarkedEdgesOut);
+	#endif
+}
+
+void IRefiner::num_marked_faces(std::vector<int>& numMarkedFacesOut)
+{
+	#ifdef UG_PARALLEL
+		std::vector<int> numLocal;
+		num_marked_faces_local(numLocal);
+		pcl::ProcessCommunicator com;
+		com.allreduce(numLocal, numMarkedFacesOut, PCL_RO_SUM);
+	#else
+		num_marked_faces_local(numMarkedFacesOut);
+	#endif
+}
+
+void IRefiner::num_marked_volumes(std::vector<int>& numMarkedVolsOut)
+{
+	#ifdef UG_PARALLEL
+		std::vector<int> numLocal;
+		num_marked_volumes_local(numLocal);
+		pcl::ProcessCommunicator com;
+		com.allreduce(numLocal, numMarkedVolsOut, PCL_RO_SUM);
+	#else
+		num_marked_volumes_local(numMarkedVolsOut);
+	#endif
 }
 
 }// end of namespace

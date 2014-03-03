@@ -165,11 +165,22 @@ estimate_distribution_quality(std::vector<number>* pLvlQualitiesOut)
 		pcl::ProcessCommunicator procComAll = procH->global_proc_com(hlvl);
 		if(!procComAll.empty()){
 			int localWeight = 0;
-			for(ElemIter iter = mg.begin<elem_t>(lvl);
-				iter != mg.end<elem_t>(lvl); ++iter)
-			{
-				if(!distGridMgr.is_ghost(*iter))
-					localWeight += 1;
+			if(m_balanceWeights.valid()){
+				IBalanceWeights& wgts = *m_balanceWeights;
+				for(ElemIter iter = mg.begin<elem_t>(lvl);
+					iter != mg.end<elem_t>(lvl); ++iter)
+				{
+					if(!distGridMgr.is_ghost(*iter))
+						localWeight += wgts.get_weight(*iter);
+				}
+			}
+			else{
+				for(ElemIter iter = mg.begin<elem_t>(lvl);
+					iter != mg.end<elem_t>(lvl); ++iter)
+				{
+					if(!distGridMgr.is_ghost(*iter))
+						localWeight += 1;
+				}
 			}
 
 			int maxWeight = procComAll.allreduce(localWeight, PCL_RO_MAX);
@@ -377,56 +388,27 @@ gather_weights_from_level(int baseLvl, int childLvl, ANumber aWeight,
 	MultiGrid& mg = *m_mg;
 	Grid::AttachmentAccessor<elem_t, ANumber> aaWeight(mg, aWeight);
 
-
 	if(childLvl < baseLvl){
 		SetAttachmentValues(aaWeight, mg.begin<elem_t>(baseLvl), mg.end<elem_t>(baseLvl), 0);
 		return;
 	}
-	else if(childLvl == baseLvl){
+	else{
 		if(m_balanceWeights.valid()){
 			IBalanceWeights& bw = *m_balanceWeights;
-			for(ElemIter iter = mg.begin<elem_t>(baseLvl);
-				iter != mg.end<elem_t>(baseLvl); ++iter)
+			for(ElemIter iter = mg.begin<elem_t>(childLvl);
+				iter != mg.end<elem_t>(childLvl); ++iter)
 			{
 				elem_t* e = *iter;
 				aaWeight[e] = bw.get_weight(*iter);
 			}
 		}
 		else
-			SetAttachmentValues(aaWeight, mg.begin<elem_t>(baseLvl), mg.end<elem_t>(baseLvl), 1);
-		return;
-	}
-	else{
+			SetAttachmentValues(aaWeight, mg.begin<elem_t>(childLvl), mg.end<elem_t>(childLvl), 1);
+
 		GridLayoutMap& glm = mg.distributed_grid_manager()->grid_layout_map();
 		ComPol_CopyAttachment<layout_t, ANumber> compolCopy(mg, aWeight);
 
-	//	initialize weights.
-	//	we don't fill the weights on childLvl but on the level below.
-		if(m_balanceWeights.valid()){
-		//	we have to write a balance-weight into all elements of childLvl
-			IBalanceWeights& bw = *m_balanceWeights;
-			for(ElemIter iter = mg.begin<elem_t>(childLvl - 1);
-				iter != mg.end<elem_t>(childLvl - 1); ++iter)
-			{
-				elem_t* parent = *iter;
-				aaWeight[parent] = 0;
-				size_t numChildren = mg.num_children<elem_t>(parent);
-				for(size_t ichild = 0; ichild < numChildren; ++ichild)
-				{
-					aaWeight[parent] += bw.get_weight(mg.get_child<elem_t>(parent, ichild));
-				}
-			}
-		}
-		else{
-			for(ElemIter iter = mg.begin<elem_t>(childLvl - 1);
-				iter != mg.end<elem_t>(childLvl - 1); ++iter)
-			{
-				elem_t* e = *iter;
-				aaWeight[e] = mg.num_children<elem_t>(e);
-			}
-		}
-
-		for(int lvl = childLvl - 2; lvl >= baseLvl; --lvl){
+		for(int lvl = childLvl - 1; lvl >= baseLvl; --lvl){
 		//	copy from v-slaves to vmasters
 			if(glm.has_layout<elem_t>(INT_V_SLAVE))
 				m_intfcCom.send_data(glm.get_layout<elem_t>(INT_V_SLAVE).layout_on_level(lvl + 1),

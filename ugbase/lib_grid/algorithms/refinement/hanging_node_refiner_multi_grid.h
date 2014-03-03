@@ -71,6 +71,16 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase<MGSelector>
 		virtual bool coarsening_supported() const	{return true;}
 
 	protected:
+	///	returns the number of (globally) marked edges on this level of the hierarchy
+		virtual void num_marked_edges_local(std::vector<int>& numMarkedEdgesOut);
+	///	returns the number of (globally) marked faces on this level of the hierarchy
+		virtual void num_marked_faces_local(std::vector<int>& numMarkedFacesOut);
+	///	returns the number of (globally) marked volumes on this level of the hierarchy
+		virtual void num_marked_volumes_local(std::vector<int>& numMarkedVolsOut);
+		
+		template <class TElem>
+		void num_marked_elems(std::vector<int>& numMarkedElemsOut);
+		
 	///	performs coarsening on the elements marked with RM_COARSEN.
 	/**
 	 * The grid's message hub is informed using a "GridAdaption" message,

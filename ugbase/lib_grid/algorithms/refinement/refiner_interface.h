@@ -133,6 +133,13 @@ class IRefiner
 		bool coarsen();
 
 
+	///	returns the number of (globally) marked edges on all levels of the hierarchy
+		void num_marked_edges(std::vector<int>& numMarkedEdgesOut);
+	///	returns the number of (globally) marked faces on all levels of the hierarchy
+		void num_marked_faces(std::vector<int>& numMarkedFacesOut);
+	///	returns the number of (globally) marked volumes on all levels of the hierarchy
+		void num_marked_volumes(std::vector<int>& numMarkedVolsOut);
+
 	///	Writes the associated grid and marks to a file. Pure virtual.
 	/**	Elements should be assigned to subsets depending on their current
 	 * refinement-mark.*/
@@ -158,6 +165,13 @@ class IRefiner
 	///	Called by coarsen(). Derived classes sould implement their coarsen algorithm here.
 	/** Since the default implementation does not perform coarsening, it returns false.*/
 		virtual bool perform_coarsening()		{return false;}
+
+	///	returns the number of locally marked edges on all levels of the hierarchy
+		virtual void num_marked_edges_local(std::vector<int>& numMarkedEdgesOut) = 0;
+	///	returns the number of locally marked faces on all levels of the hierarchy
+		virtual void num_marked_faces_local(std::vector<int>& numMarkedFacesOut) = 0;
+	///	returns the number of locally marked volumes on all levels of the hierarchy
+		virtual void num_marked_volumes_local(std::vector<int>& numMarkedVolsOut) = 0;
 
 	protected:
 		SPMessageHub			m_messageHub;

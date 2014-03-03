@@ -41,6 +41,16 @@ class GlobalMultiGridRefiner : public IRefiner, public GridObserver
 		virtual bool save_marks_to_file(const char* filename);
 
 	protected:
+	///	returns the number of (globally) marked edges on this level of the hierarchy
+		virtual void num_marked_edges_local(std::vector<int>& numMarkedEdgesOut);
+	///	returns the number of (globally) marked faces on this level of the hierarchy
+		virtual void num_marked_faces_local(std::vector<int>& numMarkedFacesOut);
+	///	returns the number of (globally) marked volumes on this level of the hierarchy
+		virtual void num_marked_volumes_local(std::vector<int>& numMarkedVolsOut);
+
+		template <class TElem>
+		void num_marked_elems(std::vector<int>& numMarkedElemsOut);
+
 	////////////////////////////////
 	///	performs refinement on the marked elements.
 		virtual void perform_refinement();

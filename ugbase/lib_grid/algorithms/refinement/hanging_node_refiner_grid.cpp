@@ -101,6 +101,35 @@ bool HangingNodeRefiner_Grid::mark(Volume* v, RefinementMark refMark)
 	return false;
 }
 
+void HangingNodeRefiner_Grid::
+num_marked_edges_local(std::vector<int>& numMarkedEdgesOut)
+{
+	num_marked_elems<Edge>(numMarkedEdgesOut);
+}
+
+void HangingNodeRefiner_Grid::
+num_marked_faces_local(std::vector<int>& numMarkedFacesOut)
+{
+	num_marked_elems<Face>(numMarkedFacesOut);
+}
+
+void HangingNodeRefiner_Grid::
+num_marked_volumes_local(std::vector<int>& numMarkedVolsOut)
+{
+	num_marked_elems<Volume>(numMarkedVolsOut);
+}
+
+
+template <class TElem>
+void HangingNodeRefiner_Grid::
+num_marked_elems(std::vector<int>& numMarkedElemsOut)
+{
+	numMarkedElemsOut.clear();
+	numMarkedElemsOut.resize(1, 0);
+	if(m_pGrid)
+		numMarkedElemsOut[0] = get_refmark_selector().num<TElem>();
+}
+
 /* pre-refine
 //	Resize the attachment containers
 	{

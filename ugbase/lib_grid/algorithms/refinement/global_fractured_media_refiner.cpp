@@ -126,6 +126,37 @@ is_fracture(int subInd)
 	return m_subsetIsFracture[subInd];
 }
 
+void GlobalFracturedMediaRefiner::
+num_marked_edges_local(std::vector<int>& numMarkedEdgesOut)
+{
+	num_marked_elems<Edge>(numMarkedEdgesOut);
+}
+
+void GlobalFracturedMediaRefiner::
+num_marked_faces_local(std::vector<int>& numMarkedFacesOut)
+{
+	num_marked_elems<Face>(numMarkedFacesOut);
+}
+
+void GlobalFracturedMediaRefiner::
+num_marked_volumes_local(std::vector<int>& numMarkedVolsOut)
+{
+	num_marked_elems<Volume>(numMarkedVolsOut);
+}
+
+
+template <class TElem>
+void GlobalFracturedMediaRefiner::
+num_marked_elems(std::vector<int>& numMarkedElemsOut)
+{
+	numMarkedElemsOut.clear();
+	if(!m_pMG)
+		return;
+	numMarkedElemsOut.resize(m_pMG->num_levels(), 0);
+	if(m_pMG->num_levels() > 0)
+		numMarkedElemsOut.back() = m_pMG->num<TElem>(m_pMG->top_level());
+}
+
 //template <class TAPosition>
 //void GlobalFracturedMediaRefiner<TAPosition>::
 void GlobalFracturedMediaRefiner::

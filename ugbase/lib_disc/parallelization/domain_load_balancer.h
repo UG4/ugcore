@@ -17,6 +17,18 @@ CreateProcessHierarchy(TDomain& dom, size_t minNumElemsPerProcPerLvl,
 					   size_t maxNumRedistProcs, size_t maxNumProcs,
 					   int minDistLvl, int maxLevelsWithoutRedist)
 {
+	return CreateProcessHierarchy(dom, minNumElemsPerProcPerLvl,
+						maxNumRedistProcs, maxNumProcs, minDistLvl,
+						maxLevelsWithoutRedist, NULL);
+}
+
+template <class TDomain>
+SPProcessHierarchy
+CreateProcessHierarchy(TDomain& dom, size_t minNumElemsPerProcPerLvl,
+					   size_t maxNumRedistProcs, size_t maxNumProcs,
+					   int minDistLvl, int maxLevelsWithoutRedist,
+					   IRefiner* refiner)
+{
 	const DomainInfo& domInf = dom.domain_info();
 	std::vector<size_t> numElemsOnLvl;
 	numElemsOnLvl.reserve(domInf.num_levels());
@@ -27,6 +39,40 @@ CreateProcessHierarchy(TDomain& dom, size_t minNumElemsPerProcPerLvl,
 		return ProcessHierarchy::create();
 	}
 
+	if(refiner){
+		std::vector<int>	numMarked;
+		int elemFactor = 1;
+		if(dom.get_dim() == 1){
+			refiner->num_marked_edges(numMarked);
+			elemFactor = 2;
+		}
+		else if(dom.get_dim() == 2){
+			refiner->num_marked_faces(numMarked);
+			elemFactor = 4;
+		}
+		else if(dom.get_dim() == 3){
+			refiner->num_marked_volumes(numMarked);
+			elemFactor = 8;
+		}
+
+		if(numMarked.size() < numElemsOnLvl.size())
+			numMarked.resize(numElemsOnLvl.size(), 0);
+
+		if(numMarked[numElemsOnLvl.size() - 1] > 0)
+			numElemsOnLvl.resize(numElemsOnLvl.size() + 1, 0);
+
+		for(size_t i = 0; i < numElemsOnLvl.size(); ++i){
+			if(numMarked[i] > 0){
+				numElemsOnLvl[i+1] += numMarked[i] * elemFactor;
+			}
+		}
+	}
+
+	UG_LOG("#elems:");
+	for(size_t i = 0; i < numElemsOnLvl.size(); ++i){
+		UG_LOG("\t" << numElemsOnLvl[i]);
+	}
+	UG_LOG("\n");
 	return CreateProcessHierarchy(&numElemsOnLvl.front(), numElemsOnLvl.size(),
 								  minNumElemsPerProcPerLvl, maxNumRedistProcs,
 								  maxNumProcs, minDistLvl, maxLevelsWithoutRedist);

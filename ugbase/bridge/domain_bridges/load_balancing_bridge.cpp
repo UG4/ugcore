@@ -18,6 +18,7 @@
 	#include "lib_grid/parallelization/load_balancer.h"
 	#include "lib_grid/parallelization/load_balancer_util.h"
 	#include "lib_grid/parallelization/partitioner_dynamic_bisection.h"
+	#include "lib_grid/parallelization/balance_weights_ref_marks.h"
 	#include "lib_disc/parallelization/domain_load_balancer.h"
 	#ifdef UG_PARMETIS
 		#include "lib_grid/parallelization/partitioner_parmetis.h"
@@ -139,6 +140,15 @@ static void Common(Registry& reg, string grp) {
 	{
 		reg.add_class_<IBalanceWeights>("IBalanceWeights", grp);
 	}
+
+	{
+		string name("BalanceWeightsRefMarks");
+		typedef BalanceWeightsRefMarks	T;
+		reg.add_class_<T, IBalanceWeights>(name, grp)
+			.add_constructor<void (*)(IRefiner*)>()
+			.set_construct_as_smart_pointer(true);
+	}
+
 
 	{
 		typedef IPartitioner T;
@@ -318,10 +328,22 @@ static void Domain(Registry& reg, string grp)
 			reg.add_class_to_group(name, "DomainLoadBalancer", tag);
 		}
 
-		reg.add_function("CreateProcessHierarchy", &CreateProcessHierarchy<TDomain>, grp,
-						 "ProcessHierarchy", "Domain, minNumElemsPerProcPerLvl, "
+		reg.add_function("CreateProcessHierarchy",
+						 static_cast<SPProcessHierarchy (*)(TDomain&, size_t,
+						 									size_t, size_t, int,
+						 									int)>
+						 	(&CreateProcessHierarchy<TDomain>),
+						 grp, "ProcessHierarchy", "Domain, minNumElemsPerProcPerLvl, "
 						 "maxNumRedistProcs, maxNumProcs, minDistLvl, "
 						 "maxLvlsWithoutRedist");
+		reg.add_function("CreateProcessHierarchy",
+						 static_cast<SPProcessHierarchy (*)(TDomain&, size_t,
+						 									size_t, size_t, int,
+						 									int, IRefiner*)>
+						 	(&CreateProcessHierarchy<TDomain>),
+						 grp, "ProcessHierarchy", "Domain, minNumElemsPerProcPerLvl, "
+						 "maxNumRedistProcs, maxNumProcs, minDistLvl, "
+						 "maxLvlsWithoutRedist, refiner");
 
 	#endif
 }

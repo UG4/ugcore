@@ -72,6 +72,37 @@ assign_grid(MultiGrid& mg)
 }
 
 void HangingNodeRefiner_MultiGrid::
+num_marked_edges_local(std::vector<int>& numMarkedEdgesOut)
+{
+	num_marked_elems<Edge>(numMarkedEdgesOut);
+}
+
+void HangingNodeRefiner_MultiGrid::
+num_marked_faces_local(std::vector<int>& numMarkedFacesOut)
+{
+	num_marked_elems<Face>(numMarkedFacesOut);
+}
+
+void HangingNodeRefiner_MultiGrid::
+num_marked_volumes_local(std::vector<int>& numMarkedVolsOut)
+{
+	num_marked_elems<Volume>(numMarkedVolsOut);
+}
+
+
+template <class TElem>
+void HangingNodeRefiner_MultiGrid::
+num_marked_elems(std::vector<int>& numMarkedElemsOut)
+{
+	MGSelector& sel = get_refmark_selector();
+	numMarkedElemsOut.clear();
+	numMarkedElemsOut.resize(sel.num_levels(), 0);
+	for(size_t i = 0; i < sel.num_levels(); ++i){
+		numMarkedElemsOut[i] = sel.num<TElem>(i);
+	}
+}
+
+void HangingNodeRefiner_MultiGrid::
 set_grid(MultiGrid* mg)
 {
 //	call base class implementation

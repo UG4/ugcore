@@ -221,11 +221,22 @@ estimate_distribution_quality(std::vector<number>* pLvlQualitiesOut)
 			processParticipates = true;
 			if(numProcs > 1){
 				int localWeight = 0;
-				for(ElemIter iter = mg.begin<elem_t>(lvl);
-					iter != mg.end<elem_t>(lvl); ++iter)
-				{
-					if(!distGridMgr.is_ghost(*iter))
-						localWeight++;
+				if(m_balanceWeights.valid()){
+					IBalanceWeights& wgts = *m_balanceWeights;
+					for(ElemIter iter = mg.begin<elem_t>(lvl);
+						iter != mg.end<elem_t>(lvl); ++iter)
+					{
+						if(!distGridMgr.is_ghost(*iter))
+							localWeight += wgts.get_weight(*iter);
+					}
+				}
+				else{
+					for(ElemIter iter = mg.begin<elem_t>(lvl);
+						iter != mg.end<elem_t>(lvl); ++iter)
+					{
+						if(!distGridMgr.is_ghost(*iter))
+							localWeight += 1;
+					}
 				}
 
 				int minWeight = procComAll.allreduce(localWeight, PCL_RO_MIN);
