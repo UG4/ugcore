@@ -262,7 +262,7 @@ end
 end    
     
 
-util._original_io_open = io.open
+util._original_io_open = util._original_io_open or io.open
 
 --! WARNING: Parallel File open is REALLY slow on clusters
 --! this function overwrite io.open and prints a warning
