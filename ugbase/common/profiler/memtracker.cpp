@@ -6,7 +6,7 @@
  *
  *
  * This file is compiled if
- * cmake -DINTERNAL_MEMTRACKER=ON ..
+ * cmake -DPROFILE_MEMORY=ON ..
  */
 
 

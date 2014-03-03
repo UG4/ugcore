@@ -5,9 +5,9 @@
  *      Author: mrupp
  *
  * You can enable the internal memtrack with
- * cmake -DINTERNAL_MEMTRACKER=ON ..
+ * cmake -DPROFILE_MEMORY=ON ..
  *
- * If INTERNAL_MEMTRACKER=ON, global new and delete
+ * If PROFILE_MEMORY=ON, global new and delete
  * operators are overwritten.
  * If INTERNAL_MEMTRACKER=OFF, global new and delete are untouched
  * and all other functions defined here lead to dummy functions.

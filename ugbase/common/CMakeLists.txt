@@ -37,11 +37,12 @@ set(srcCommon	log.cpp
 				math/misc/eigenvalues.cpp
 				math/misc/math_util.cpp)
 				
-if(INTERNAL_MEMTRACKER)
+if(PROFILE_MEMORY)
+    message(STATUS "Info: Using Memory Profiler (disable with -DPROFILE_MEMORY=OFF).")
     set(srcCommon ${srcCommon} profiler/memtracker.cpp)
-else(INTERNAL_MEMTRACKER)
+else(PROFILE_MEMORY)
     set(srcCommon ${srcCommon} profiler/memtracker_disabled.cpp)
-endif(INTERNAL_MEMTRACKER)
+endif(PROFILE_MEMORY)
 
 set(sources ${srcCommon})
 
