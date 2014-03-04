@@ -166,6 +166,8 @@ partition(size_t baseLvl, size_t elementThreshold)
 
 	m_procMap.clear();
 
+	m_problemsOccurred = false;
+
 //	iteprocHierarchy levels and perform rebalancing for all
 //	hierarchy-sections which contain levels higher than baseLvl
 	int oldHighestRedistLvl = m_highestRedistLevel;	// only used if static_partitioning is enabled
@@ -173,6 +175,17 @@ partition(size_t baseLvl, size_t elementThreshold)
 	{
 		int minLvl = procH->grid_base_level(hlevel);
 		int maxLvl = (int)mg.top_level();
+		if(m_balanceWeights->has_level_offsets()){
+			if(mg.top_level() < procH->grid_base_level(hlevel)){
+				UG_LOG("Partitioner_DynamicBisection: Ignoring hierarchy level "
+					<< hlevel << " since it doesn't contain any elements yet\n");
+				m_problemsOccurred = true;
+				continue;
+			}
+
+			++maxLvl;
+		}
+
 		if(hlevel + 1 < procH->num_hierarchy_levels()){
 			maxLvl = min<int>(maxLvl,
 						(int)procH->grid_base_level(hlevel + 1) - 1);
@@ -184,19 +197,21 @@ partition(size_t baseLvl, size_t elementThreshold)
 		if(maxLvl < minLvl)
 			continue;
 
+		int maxValidLvl = min<int>(maxLvl, mg.top_level());
+
 		int numProcs = procH->num_global_procs_involved(hlevel);
 		int numPartitions = numProcs;
 		if(static_partitioning_enabled())
 			numPartitions = (int)procH->cluster_procs(hlevel).size();
 
 		if((numProcs <= 1) || (numPartitions == 1)){
-			for(int i = minLvl; i <= maxLvl; ++i)
+			for(int i = minLvl; i <= maxValidLvl; ++i)
 				sh.assign_subset(mg.begin<elem_t>(i), mg.end<elem_t>(i), 0);
 			continue;
 		}
 
 		if(static_partitioning_enabled() && ((int)hlevel <= m_highestRedistLevel)){
-			for(int i = minLvl; i <= maxLvl; ++i)
+			for(int i = minLvl; i <= maxValidLvl; ++i)
 				sh.assign_subset( mg.begin<elem_t>(i), mg.end<elem_t>(i), 0);
 			continue;
 		}
@@ -219,7 +234,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 
 		perform_bisection_new(numPartitions, minLvl, maxLvl, partitionLvl, aWeight, com);
 
-		for(int i = minLvl; i < maxLvl; ++i){
+		for(int i = minLvl; i < maxValidLvl; ++i){
 			copy_partitions_to_children(sh, i);
 		}
 
@@ -313,16 +328,23 @@ gather_weights_from_level(int baseLvl, int childLvl, ANumber aWeight,
 	assert(m_mg->is_parallel());
 	assert(m_mg->has_attachment<elem_t>(aWeight));
 
+	IBalanceWeights& bw = *m_balanceWeights;
 	MultiGrid& mg = *m_mg;
 	Grid::AttachmentAccessor<elem_t, ANumber> aaWeight(mg, aWeight);
 
-	if(childLvl < baseLvl){
+//	childLvl may be at most one level above the highest level of the grid hierarchy.
+//	This is allowed to consider elements which are to be considered one level
+//	above their actual level...
+	if(childLvl < baseLvl || childLvl > (int)mg.num_levels()){
 		SetAttachmentValues(aaWeight, mg.begin<elem_t>(baseLvl), mg.end<elem_t>(baseLvl), 0);
 		return;
 	}
 	else{
-		if(m_balanceWeights.valid()){
-			IBalanceWeights& bw = *m_balanceWeights;
+		DistributedGridManager& dgm = *mg.distributed_grid_manager();
+		GridLayoutMap& glm = mg.distributed_grid_manager()->grid_layout_map();
+		ComPol_CopyAttachment<layout_t, ANumber> compolCopy(mg, aWeight);
+
+		if(childLvl < (int)mg.num_levels()){
 			for(ElemIter iter = mg.begin<elem_t>(childLvl);
 				iter != mg.end<elem_t>(childLvl); ++iter)
 			{
@@ -330,30 +352,49 @@ gather_weights_from_level(int baseLvl, int childLvl, ANumber aWeight,
 				aaWeight[e] = bw.get_weight(*iter);
 			}
 		}
-		else
-			SetAttachmentValues(aaWeight, mg.begin<elem_t>(childLvl), mg.end<elem_t>(childLvl), 1);
-
-		GridLayoutMap& glm = mg.distributed_grid_manager()->grid_layout_map();
-		ComPol_CopyAttachment<layout_t, ANumber> compolCopy(mg, aWeight);
 
 		for(int lvl = childLvl - 1; lvl >= baseLvl; --lvl){
 		//	copy from v-slaves to vmasters
-			if(glm.has_layout<elem_t>(INT_V_SLAVE))
-				m_intfcCom.send_data(glm.get_layout<elem_t>(INT_V_SLAVE).layout_on_level(lvl + 1),
-									 compolCopy);
-			if(glm.has_layout<elem_t>(INT_V_MASTER))
-				m_intfcCom.receive_data(glm.get_layout<elem_t>(INT_V_MASTER).layout_on_level(lvl + 1),
-										compolCopy);
-			m_intfcCom.communicate();
+			if(lvl + 1 < (int)mg.num_levels()){
+				if(glm.has_layout<elem_t>(INT_V_SLAVE))
+					m_intfcCom.send_data(glm.get_layout<elem_t>(INT_V_SLAVE).layout_on_level(lvl + 1),
+										 compolCopy);
+				if(glm.has_layout<elem_t>(INT_V_MASTER))
+					m_intfcCom.receive_data(glm.get_layout<elem_t>(INT_V_MASTER).layout_on_level(lvl + 1),
+											compolCopy);
+				m_intfcCom.communicate();
+			}
 
 		//	accumulate child counts in parent elements on lvl
-			for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter)
-			{
-				elem_t* e = *iter;
-				aaWeight[e] = 0;
-				size_t numChildren = mg.num_children<elem_t>(e);
-				for(size_t i = 0; i < numChildren; ++i)
-					aaWeight[e] += aaWeight[mg.get_child<elem_t>(e, i)];
+			if(bw.has_level_offsets()){
+				for(ElemIter iter = mg.begin<elem_t>(lvl);
+					iter != mg.end<elem_t>(lvl); ++iter)
+				{
+					elem_t* e = *iter;
+					size_t numChildren = mg.num_children<elem_t>(e);
+					if((lvl == childLvl - 1) && (numChildren == 0) && (!dgm.is_ghost(e))
+						&& (bw.consider_in_level_above(e)))
+					{
+						aaWeight[e] = bw.get_weight(e);
+					}
+					else{
+					//	gather weights from children
+						aaWeight[e] = 0;
+						for(size_t i = 0; i < numChildren; ++i)
+							aaWeight[e] += aaWeight[mg.get_child<elem_t>(e, i)];
+					}
+				}
+			}
+			else{
+				for(ElemIter iter = mg.begin<elem_t>(lvl);
+					iter != mg.end<elem_t>(lvl); ++iter)
+				{
+					elem_t* e = *iter;
+					aaWeight[e] = 0;
+					size_t numChildren = mg.num_children<elem_t>(e);
+					for(size_t i = 0; i < numChildren; ++i)
+						aaWeight[e] += aaWeight[mg.get_child<elem_t>(e, i)];
+				}
 			}
 		}
 
@@ -402,8 +443,8 @@ void Partitioner_DynamicBisection<TElem, dim>::
 perform_bisection_new(int numTargetProcs, int minLvl, int maxLvl, int partitionLvl,
 				  ANumber aWeight, pcl::ProcessCommunicator com)
 {
-//	UG_LOG("Performing bisection for " << numTargetProcs << " procs on level "
-//			<< partitionLvl << " for levels " << minLvl << " to " << maxLvl << "\n");
+	// UG_LOG("Performing bisection for " << numTargetProcs << " procs on level "
+	// 		<< partitionLvl << " for levels " << minLvl << " to " << maxLvl << "\n");
 
 	SubsetHandler& sh = *m_sh;
 
@@ -438,6 +479,7 @@ perform_bisection_new(int numTargetProcs, int minLvl, int maxLvl, int partitionL
 					   mg.end<elem_t>(partitionLvl), -1);
 
 //	iterate over all levels and gather child-counts in the partitionLvl
+//TODO:	if partitionLvl == minLvl, we currently ignore level-offsets of some elements.
 	for(int i_lvl = maxLvl; i_lvl >= minLvl; --i_lvl){
 		gather_weights_from_level(partitionLvl, i_lvl, aWeight, false);
 

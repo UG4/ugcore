@@ -68,11 +68,6 @@ CreateProcessHierarchy(TDomain& dom, size_t minNumElemsPerProcPerLvl,
 		}
 	}
 
-	UG_LOG("#elems:");
-	for(size_t i = 0; i < numElemsOnLvl.size(); ++i){
-		UG_LOG("\t" << numElemsOnLvl[i]);
-	}
-	UG_LOG("\n");
 	return CreateProcessHierarchy(&numElemsOnLvl.front(), numElemsOnLvl.size(),
 								  minNumElemsPerProcPerLvl, maxNumRedistProcs,
 								  maxNumProcs, minDistLvl, maxLevelsWithoutRedist);

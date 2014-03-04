@@ -173,7 +173,8 @@ static void Common(Registry& reg, string grp) {
 				.add_method("set_partitioner", &T::set_partitioner)
 				.add_method("create_quality_record", &T::create_quality_record)
 				.add_method("print_quality_records", &T::print_quality_records)
-				.add_method("set_balance_weights", &T::set_balance_weights);
+				.add_method("set_balance_weights", &T::set_balance_weights)
+				.add_method("problems_occurred", &T::problems_occurred);
 	}
 
 	#ifdef UG_DIM_1

@@ -269,51 +269,13 @@ set_element_threshold(size_t threshold)
 	m_elementThreshold = threshold;
 }
 
-//template<int dim>
-//number LoadBalancer::
-//distribution_quality()
-//{
-////todo	Consider connection weights in the final quality!
-//	typedef typename Grid::traits<elem_t>::iterator ElemIter;
-//	using std::min;
-//
-//	MultiGrid& mg = *m_mg;
-//	DistributedGridManager& distGridMgr = *mg.distributed_grid_manager();
-//
-//	number minQuality = 1;
-//
-////	calculate the quality estimate.
-////todo The quality of a level could be weighted by the total amount of elements
-////		in each level.
-//	for(size_t lvl = mg.top_level(); lvl < mg.num_levels(); ++lvl){
-//		size_t hlvl = m_processHierarchy->hierarchy_level_from_grid_level(lvl);
-//		int numProcs = m_processHierarchy->num_global_procs_involved(hlvl);
-//		if(numProcs <= 1)
-//			continue;
-//
-//		pcl::ProcessCommunicator procComAll = m_processHierarchy->global_proc_com(hlvl);
-//
-//		int localWeight = 0;
-//		for(ElemIter iter = mg.begin<elem_t>(lvl);
-//			iter != mg.end<elem_t>(lvl); ++iter)
-//		{
-//			if(!distGridMgr.is_ghost(*iter))
-//				localWeight += 1;//todo: use balance weights
-//		}
-//
-//		int minWeight = procComAll.allreduce(localWeight, PCL_RO_MIN);
-//		int maxWeight = procComAll.allreduce(localWeight, PCL_RO_MAX);
-//
-//		if(maxWeight <= 0)
-//			continue;
-//
-//		number quality = (number)minWeight / (number)maxWeight;
-//
-//		minQuality = min(minQuality, quality);
-//	}
-//
-//	return minQuality;
-//}
+bool LoadBalancer::
+problems_occurred()
+{
+	if(m_partitioner.valid())
+		return m_partitioner->problems_occurred();
+	return false;
+}
 
 number LoadBalancer::
 estimate_distribution_quality(std::vector<number>* pLvlQualitiesOut)
@@ -341,7 +303,7 @@ estimate_distribution_quality(std::vector<number>* pLvlQualitiesOut)
 
 	if(pLvlQualitiesOut)
 		pLvlQualitiesOut->clear();
-	
+
 	return 0;
 }
 
@@ -413,7 +375,7 @@ estimate_distribution_quality_impl(std::vector<number>* pLvlQualitiesOut)
 }
 
 
-void LoadBalancer::
+bool LoadBalancer::
 rebalance()
 {
 	GDIST_PROFILE_FUNC();
@@ -463,16 +425,18 @@ rebalance()
 			}
 
 			UG_LOG("Redistribution done\n");
-			number newDistQuality = estimate_distribution_quality();
-			if(!m_partitioner->verbose()){
-				UG_LOG("Estimated distribution quality after redistribution: " << newDistQuality << "\n");
-			}
+			UG_DLOG(LIB_GRID, 1, "LoadBalancer-stop rebalance\n");
+			return true;
 		}
 	}
 	else{
 		UG_LOG("No redistribution necessary.\n");
+		UG_DLOG(LIB_GRID, 1, "LoadBalancer-stop rebalance\n");
+		return true;
 	}
-	UG_DLOG(LIB_GRID, 1, "LoadBalancer-stop rebalance\n");
+
+	UG_DLOG(LIB_GRID, 1, "LoadBalancer-stop rebalance (FAILED)\n");
+	return false;
 }
 
 void LoadBalancer::

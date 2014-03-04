@@ -98,14 +98,14 @@ class IBalanceWeights{
 		virtual number get_weight(Volume*)	{return 1;}
 
 		
-		virtual int max_level_offset()		{return 0;}
+		virtual bool has_level_offsets()		{return false;}
 
-	///	Indicator in which level the specifed elements should be partitioned.
+	///	Relativeindicator in which level the specifed elements should be partitioned.
 	/** \{ */
-		virtual int level_offset(Vertex*)	{return 0;}
-		virtual int level_offset(Edge*) 	{return 0;}
-		virtual int level_offset(Face*) 	{return 0;}
-		virtual int level_offset(Volume*)	{return 0;}		
+		virtual bool consider_in_level_above(Vertex*)	{return false;}
+		virtual bool consider_in_level_above(Edge*) 	{return false;}
+		virtual bool consider_in_level_above(Face*) 	{return false;}
+		virtual bool consider_in_level_above(Volume*)	{return false;}		
 	/** \} */
 };
 
@@ -117,6 +117,7 @@ typedef SmartPtr<IBalanceWeights>		SPBalanceWeights;
 class IPartitioner{
 	public:
 		IPartitioner() :
+			m_problemsOccurred(false),
 			m_verbose(true),
 			m_clusteredSiblings(true)	{}
 
@@ -163,8 +164,16 @@ class IPartitioner{
 	 * global proc-rank.*/
 		virtual const std::vector<int>* get_process_map() const = 0;
 
+	///	indicates whether problems occurred during the last partitioning
+	/**	\note	if partition(...) returns true, the partition map is valid,
+	 *			even if problems occured. It may however not be optimal.*/
+		virtual bool problems_occurred()	{return m_problemsOccurred;}
+
 		void set_verbose(bool verbose)	{m_verbose = verbose;}
 		bool verbose() const			{return m_verbose;}
+
+	protected:
+		bool m_problemsOccurred;
 
 	private:
 		bool m_verbose;
@@ -237,8 +246,10 @@ class LoadBalancer{
 	 * During redistribution the LoadBalancer tries to distribute elements such that
 	 * the sum of balance weights of elements on each process is the same on a
 	 * given level. Furthermore it tries to minimize the connection-weights of
-	 * edges which connect elements on different processes.*/
-		virtual void rebalance();
+	 * edges which connect elements on different processes.
+	 *
+	 * The method returns false if e.g. problems during partitioning occurred.*/
+		virtual bool rebalance();
 
 
 	/** The returned distribution quality represents the global quality of the elements
@@ -260,6 +271,14 @@ class LoadBalancer{
 		virtual void add_serializer(SPVolumeDataSerializer cb)	{m_serializer.add(cb);}
 		virtual void add_serializer(SPGridDataSerializer cb)	{m_serializer.add(cb);}
 	/**	\} */
+
+	///	indicates whether problems occurred during the last rebalancing.
+	/**	This can e.g. happen if the partitioner has problems to create a
+	 * partition-map which fullfills the given specifications.
+	 * \note	if rebalance returns true, still performed rebalancing, even
+	 *			if problems occurred. However, the new partition may not
+	 *			fullfill all given specifications.*/
+		bool problems_occurred();
 
 		void create_quality_record(const char* label);
 		void print_quality_records() const;
