@@ -26,6 +26,8 @@ Partitioner_DynamicBisection() :
 {
 	m_processHierarchy = SPProcessHierarchy(new ProcessHierarchy);
 	m_processHierarchy->add_hierarchy_level(0, 1);
+
+	m_balanceWeights = make_sp(new IBalanceWeights());
 }
 
 template <class TElem, int dim>
@@ -129,83 +131,6 @@ get_process_map() const
 }
 
 template <class TElem, int dim>
-number Partitioner_DynamicBisection<TElem, dim>::
-estimate_distribution_quality(std::vector<number>* pLvlQualitiesOut)
-{
-//todo	Consider connection weights in the final quality!
-	typedef typename Grid::traits<elem_t>::iterator ElemIter;
-	using std::min;
-
-	MultiGrid& mg = *m_mg;
-	DistributedGridManager& distGridMgr = *mg.distributed_grid_manager();
-
-	number minQuality = 1;
-
-	if(pLvlQualitiesOut)
-		pLvlQualitiesOut->clear();
-
-//	calculate the quality estimate.
-//todo The quality of a level could be weighted by the total amount of elements
-//		in each level.
-	const ProcessHierarchy* procH;
-	if(m_nextProcessHierarchy.valid())
-		procH = m_nextProcessHierarchy.get();
-	else
-		procH = m_processHierarchy.get();
-
-	for(size_t lvl = 0; lvl < mg.num_levels(); ++lvl){
-		size_t hlvl = procH->hierarchy_level_from_grid_level(lvl);
-		int numProcs = procH->num_global_procs_involved(hlvl);
-		if(numProcs <= 1){
-			if(pLvlQualitiesOut)
-				pLvlQualitiesOut->push_back(1.0);
-			continue;
-		}
-
-		pcl::ProcessCommunicator procComAll = procH->global_proc_com(hlvl);
-		if(!procComAll.empty()){
-			int localWeight = 0;
-			if(m_balanceWeights.valid()){
-				IBalanceWeights& wgts = *m_balanceWeights;
-				for(ElemIter iter = mg.begin<elem_t>(lvl);
-					iter != mg.end<elem_t>(lvl); ++iter)
-				{
-					if(!distGridMgr.is_ghost(*iter))
-						localWeight += wgts.get_weight(*iter);
-				}
-			}
-			else{
-				for(ElemIter iter = mg.begin<elem_t>(lvl);
-					iter != mg.end<elem_t>(lvl); ++iter)
-				{
-					if(!distGridMgr.is_ghost(*iter))
-						localWeight += 1;
-				}
-			}
-
-			int maxWeight = procComAll.allreduce(localWeight, PCL_RO_MAX);
-			int minWeight = procComAll.allreduce(localWeight, PCL_RO_MIN);
-			//int totalWeight = procComAll.allreduce(localWeight, PCL_RO_SUM);
-			//number averageWeight = totalWeight / procComAll.size();
-
-			if(maxWeight > 0){
-				number quality = (number)minWeight / (number)maxWeight;
-				minQuality = min(minQuality, quality);
-				if(pLvlQualitiesOut)
-					pLvlQualitiesOut->push_back(quality);
-			}
-			else if(pLvlQualitiesOut)
-				pLvlQualitiesOut->push_back(-1);
-		}
-		else if(pLvlQualitiesOut)
-			pLvlQualitiesOut->push_back(-1);
-	}
-
-	pcl::ProcessCommunicator comGlobal;
-	return comGlobal.allreduce(minQuality, PCL_RO_MIN);
-}
-
-template <class TElem, int dim>
 bool Partitioner_DynamicBisection<TElem, dim>::
 partition(size_t baseLvl, size_t elementThreshold)
 {
@@ -215,6 +140,9 @@ partition(size_t baseLvl, size_t elementThreshold)
 	UG_COND_THROW(m_mg == NULL,
 			"No grid was specified for Partitioner_DynamicBisection. "
 			"partitioning can't be executed without a specified grid.");
+
+	if(m_balanceWeights.invalid())
+		m_balanceWeights = make_sp(new IBalanceWeights());
 
 	MultiGrid& mg = *m_mg;
 	if(m_sh.invalid())

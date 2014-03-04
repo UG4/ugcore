@@ -51,8 +51,6 @@ class Partitioner_Parmetis : public IPartitioner{
 		virtual bool supports_connection_weights() const;
 		virtual bool supports_repartitioning() const			{return true;}
 
-		virtual number estimate_distribution_quality(std::vector<number>* pLvlQualitiesOut = NULL);
-
 		virtual bool partition(size_t baseLvl, size_t elementThreshold);
 
 		virtual SubsetHandler& get_partitions();

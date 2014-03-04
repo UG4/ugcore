@@ -315,6 +315,103 @@ set_element_threshold(size_t threshold)
 //	return minQuality;
 //}
 
+number LoadBalancer::
+estimate_distribution_quality(std::vector<number>* pLvlQualitiesOut)
+{
+	if(m_mg){
+		int highestElem = VERTEX;
+		if(m_mg->num<Volume>() > 0)		highestElem = VOLUME;
+		else if(m_mg->num<Face>() > 0)	highestElem = FACE;
+		else if(m_mg->num<Edge>() > 0)	highestElem = EDGE;
+
+		pcl::ProcessCommunicator procCom;
+		highestElem = procCom.allreduce(highestElem, PCL_RO_MAX);
+
+		switch(highestElem){
+		case VERTEX:
+			return estimate_distribution_quality_impl<Vertex>(pLvlQualitiesOut);
+		case EDGE:
+			return estimate_distribution_quality_impl<Edge>(pLvlQualitiesOut);
+		case FACE:
+			return estimate_distribution_quality_impl<Face>(pLvlQualitiesOut);
+		case VOLUME:
+			return estimate_distribution_quality_impl<Volume>(pLvlQualitiesOut);
+		}
+	}
+
+	if(pLvlQualitiesOut)
+		pLvlQualitiesOut->clear();
+	
+	return 0;
+}
+
+template <class TElem>
+number LoadBalancer::
+estimate_distribution_quality_impl(std::vector<number>* pLvlQualitiesOut)
+{
+//todo	Consider connection weights in the final quality!
+	typedef TElem elem_t;
+	typedef typename Grid::traits<elem_t>::iterator ElemIter;
+	using std::min;
+
+	if(m_balanceWeights.invalid())
+		m_balanceWeights = make_sp(new IBalanceWeights());
+
+	MultiGrid& mg = *m_mg;
+	DistributedGridManager& distGridMgr = *mg.distributed_grid_manager();
+
+	number minQuality = 1;
+
+	if(pLvlQualitiesOut)
+		pLvlQualitiesOut->clear();
+
+//	calculate the quality estimate.
+//todo The quality of a level could be weighted by the total amount of elements
+//		in each level.
+	const ProcessHierarchy* procH = m_processHierarchy.get();
+
+	for(size_t lvl = 0; lvl < mg.num_levels(); ++lvl){
+		size_t hlvl = procH->hierarchy_level_from_grid_level(lvl);
+		int numProcs = procH->num_global_procs_involved(hlvl);
+		if(numProcs <= 1){
+			if(pLvlQualitiesOut)
+				pLvlQualitiesOut->push_back(1.0);
+			continue;
+		}
+
+		pcl::ProcessCommunicator procComAll = procH->global_proc_com(hlvl);
+		if(!procComAll.empty()){
+			int localWeight = 0;
+			IBalanceWeights& wgts = *m_balanceWeights;
+			for(ElemIter iter = mg.begin<elem_t>(lvl);
+				iter != mg.end<elem_t>(lvl); ++iter)
+			{
+				if(!distGridMgr.is_ghost(*iter))
+					localWeight += wgts.get_weight(*iter);
+			}
+
+			int maxWeight = procComAll.allreduce(localWeight, PCL_RO_MAX);
+			int minWeight = procComAll.allreduce(localWeight, PCL_RO_MIN);
+			//int totalWeight = procComAll.allreduce(localWeight, PCL_RO_SUM);
+			//number averageWeight = totalWeight / procComAll.size();
+
+			if(maxWeight > 0){
+				number quality = (number)minWeight / (number)maxWeight;
+				minQuality = min(minQuality, quality);
+				if(pLvlQualitiesOut)
+					pLvlQualitiesOut->push_back(quality);
+			}
+			else if(pLvlQualitiesOut)
+				pLvlQualitiesOut->push_back(-1);
+		}
+		else if(pLvlQualitiesOut)
+			pLvlQualitiesOut->push_back(-1);
+	}
+
+	pcl::ProcessCommunicator comGlobal;
+	return comGlobal.allreduce(minQuality, PCL_RO_MIN);
+}
+
 
 void LoadBalancer::
 rebalance()
@@ -340,7 +437,7 @@ rebalance()
 //	If it is not we'll set it to -1, thus calling partition anyways
 	number distQuality = -1;
 	if(m_partitioner->supports_repartitioning()){
-		distQuality = m_partitioner->estimate_distribution_quality();
+		distQuality = estimate_distribution_quality();
 		if(!m_partitioner->verbose()){
 			UG_LOG("Current estimated distribution quality: " << distQuality << "\n");
 		}
@@ -366,7 +463,7 @@ rebalance()
 			}
 
 			UG_LOG("Redistribution done\n");
-			number newDistQuality = m_partitioner->estimate_distribution_quality();
+			number newDistQuality = estimate_distribution_quality();
 			if(!m_partitioner->verbose()){
 				UG_LOG("Estimated distribution quality after redistribution: " << newDistQuality << "\n");
 			}
@@ -382,11 +479,8 @@ void LoadBalancer::
 create_quality_record(const char* label)
 {
 	std::vector<number>	lvlQualities;
-	bool isVerbose = m_partitioner->verbose();
-	m_partitioner->set_verbose(false);
-	m_partitioner->estimate_distribution_quality(&lvlQualities);
-	m_partitioner->set_verbose(isVerbose);
-	ConstSPProcessHierarchy procH = m_partitioner->current_process_hierarchy();
+	estimate_distribution_quality(&lvlQualities);
+	ConstSPProcessHierarchy procH = m_processHierarchy;
 
 //	fill header first
 	if(m_qualityRecords(0, 0).str().empty()){

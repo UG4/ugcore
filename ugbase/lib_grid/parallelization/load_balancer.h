@@ -92,10 +92,21 @@ class IBalanceWeights{
 		virtual ~IBalanceWeights()	{}
 		virtual void refresh_weights(int baseLevel)	{};
 
-		virtual number get_weight(Vertex*) = 0;
-		virtual number get_weight(Edge*) = 0;
-		virtual number get_weight(Face*) = 0;
-		virtual number get_weight(Volume*) = 0;
+		virtual number get_weight(Vertex*)	{return 1;}
+		virtual number get_weight(Edge*) 	{return 1;}
+		virtual number get_weight(Face*) 	{return 1;}
+		virtual number get_weight(Volume*)	{return 1;}
+
+		
+		virtual int max_level_offset()		{return 0;}
+
+	///	Indicator in which level the specifed elements should be partitioned.
+	/** \{ */
+		virtual int level_offset(Vertex*)	{return 0;}
+		virtual int level_offset(Edge*) 	{return 0;}
+		virtual int level_offset(Face*) 	{return 0;}
+		virtual int level_offset(Volume*)	{return 0;}		
+	/** \} */
 };
 
 typedef SmartPtr<IBalanceWeights>		SPBalanceWeights;
@@ -137,14 +148,6 @@ class IPartitioner{
 		virtual bool clustered_siblings_enabled()				{return m_clusteredSiblings;}
 	/**	\} */
 
-	/** The returned distribution quality represents the global quality and thus
-	 * is the same for all processes.
-	 * You may optionally specify the pointer to a std::vector which will be filled
-	 * with the distribution-qualities for each level. By default the pointer is
-	 * set to NULL and no level-qualities are thus returned.
-	 * If a process doesn't participate on a given level and process, it will write -1
-	 * to the corresponding entry in pLvlQualitiesOut.*/
-		virtual number estimate_distribution_quality(std::vector<number>* pLvlQualitiesOut = NULL) = 0;
 
 	/**	If the partitioner returns false, no partition-map has been created and
 	 * no redistribution should be performed.
@@ -238,6 +241,15 @@ class LoadBalancer{
 		virtual void rebalance();
 
 
+	/** The returned distribution quality represents the global quality of the elements
+	 * of highest dimension and is the same on all processes.
+	 * You may optionally specify a pointer to a std::vector which will be filled
+	 * with the distribution-qualities for each level. By default the pointer is
+	 * set to NULL and no level-qualities are thus returned.
+	 * If a process doesn't participate on a given level, it will write -1
+	 * to the corresponding entry in pLvlQualitiesOut.*/
+		virtual number estimate_distribution_quality(std::vector<number>* pLvlQualitiesOut = NULL);
+
 	///	add serialization callbacks.
 	/** Used when the grid is being distributed to pack data associated with grid
 	 * objects or associated classes like subset-handlers.
@@ -253,6 +265,9 @@ class LoadBalancer{
 		void print_quality_records() const;
 
 	private:
+		template <class TElem>
+		number estimate_distribution_quality_impl(std::vector<number>* pLvlQualitiesOut);
+
 		MultiGrid*			m_mg;
 		number				m_balanceThreshold;
 		size_t				m_elementThreshold;
