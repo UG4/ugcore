@@ -173,13 +173,23 @@ partition(size_t baseLvl, size_t elementThreshold)
 	int oldHighestRedistLvl = m_highestRedistLevel;	// only used if static_partitioning is enabled
 	for(size_t hlevel = 0; hlevel < procH->num_hierarchy_levels(); ++ hlevel)
 	{
+		int numProcs = procH->num_global_procs_involved(hlevel);
 		int minLvl = procH->grid_base_level(hlevel);
 		int maxLvl = (int)mg.top_level();
 		if(m_balanceWeights->has_level_offsets()){
 			if(mg.top_level() < procH->grid_base_level(hlevel)){
-				UG_LOG("Partitioner_DynamicBisection: Ignoring hierarchy level "
-					<< hlevel << " since it doesn't contain any elements yet\n");
-				m_problemsOccurred = true;
+			//	if the previous process-hierarchy had the same number of processes,
+			//	we will silently ignore this hierarchy level. Only if it had
+			//	a different amount of processes, m_problemsOccurred will be set
+			//	to true, to indicate that another redistribution is necessary
+			//	in order to distribute the grid over all involved processes.
+				if((hlevel == 0) ||
+					((int)procH->num_global_procs_involved(hlevel - 1) != numProcs))
+				{
+					UG_LOG("Partitioner_DynamicBisection: Ignoring hierarchy level "
+						<< hlevel << " since it doesn't contain any elements yet\n");
+					m_problemsOccurred = true;
+				}
 				continue;
 			}
 
@@ -199,7 +209,6 @@ partition(size_t baseLvl, size_t elementThreshold)
 
 		int maxValidLvl = min<int>(maxLvl, mg.top_level());
 
-		int numProcs = procH->num_global_procs_involved(hlevel);
 		int numPartitions = numProcs;
 		if(static_partitioning_enabled())
 			numPartitions = (int)procH->cluster_procs(hlevel).size();
