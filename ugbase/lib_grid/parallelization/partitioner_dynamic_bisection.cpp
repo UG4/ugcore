@@ -174,9 +174,13 @@ partition(size_t baseLvl, size_t elementThreshold)
 	for(size_t hlevel = 0; hlevel < procH->num_hierarchy_levels(); ++ hlevel)
 	{
 		int numProcs = procH->num_global_procs_involved(hlevel);
+
 		int minLvl = procH->grid_base_level(hlevel);
 		int maxLvl = (int)mg.top_level();
+
 		if(m_balanceWeights->has_level_offsets()){
+			++maxLvl;
+
 			if(mg.top_level() < procH->grid_base_level(hlevel)){
 			//	if the previous process-hierarchy had the same number of processes,
 			//	we will silently ignore this hierarchy level. Only if it had
@@ -192,13 +196,22 @@ partition(size_t baseLvl, size_t elementThreshold)
 				}
 				continue;
 			}
-
-			++maxLvl;
 		}
 
 		if(hlevel + 1 < procH->num_hierarchy_levels()){
-			maxLvl = min<int>(maxLvl,
-						(int)procH->grid_base_level(hlevel + 1) - 1);
+		//	TODO:	currently elements which shall be considered in a level above
+		//			and which do lie directly below a new hierarchy level are
+		//			partitioned separately
+			if(m_balanceWeights->has_level_offsets() &&
+				(mg.top_level() < procH->grid_base_level(hlevel+1)))
+			{
+				maxLvl = min<int>(maxLvl,
+							(int)procH->grid_base_level(hlevel + 1));
+			}
+			else{
+				maxLvl = min<int>(maxLvl,
+							(int)procH->grid_base_level(hlevel + 1) - 1);
+			}
 		}
 
 		if(minLvl < (int)baseLvl)
@@ -353,12 +366,27 @@ gather_weights_from_level(int baseLvl, int childLvl, ANumber aWeight,
 		GridLayoutMap& glm = mg.distributed_grid_manager()->grid_layout_map();
 		ComPol_CopyAttachment<layout_t, ANumber> compolCopy(mg, aWeight);
 
-		if(childLvl < (int)mg.num_levels()){
-			for(ElemIter iter = mg.begin<elem_t>(childLvl);
-				iter != mg.end<elem_t>(childLvl); ++iter)
-			{
-				elem_t* e = *iter;
-				aaWeight[e] = bw.get_weight(*iter);
+		if(bw.has_level_offsets()){
+			if(childLvl < (int)mg.num_levels()){
+				for(ElemIter iter = mg.begin<elem_t>(childLvl);
+					iter != mg.end<elem_t>(childLvl); ++iter)
+				{
+					elem_t* e = *iter;
+					if(bw.consider_in_level_above(e))
+						aaWeight[e] = 1;
+					else
+						aaWeight[e] = bw.get_weight(*iter);
+				}
+			}
+		}
+		else{
+			if(childLvl < (int)mg.num_levels()){
+				for(ElemIter iter = mg.begin<elem_t>(childLvl);
+					iter != mg.end<elem_t>(childLvl); ++iter)
+				{
+					elem_t* e = *iter;
+					aaWeight[e] = bw.get_weight(*iter);
+				}
 			}
 		}
 
