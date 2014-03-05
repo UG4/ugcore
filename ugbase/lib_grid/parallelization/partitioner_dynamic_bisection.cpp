@@ -178,6 +178,8 @@ partition(size_t baseLvl, size_t elementThreshold)
 		int maxLvl = (int)mg.top_level();
 		if(m_balanceWeights->has_level_offsets()){
 			if(mg.top_level() < procH->grid_base_level(hlevel)){
+			//TODO: If procs are equal, consider this level during
+			//		partitioning of the previous hlevel!
 			//	if the previous process-hierarchy had the same number of processes,
 			//	we will silently ignore this hierarchy level. Only if it had
 			//	a different amount of processes, m_problemsOccurred will be set
@@ -357,6 +359,10 @@ gather_weights_from_level(int baseLvl, int childLvl, ANumber aWeight,
 			for(ElemIter iter = mg.begin<elem_t>(childLvl);
 				iter != mg.end<elem_t>(childLvl); ++iter)
 			{
+			//TODO: If bw.consider_in_level_above(e), one should only
+			//		use a weight of 1 here, since the weights
+			//		are to be considered during partitioning of the
+			//		level above!
 				elem_t* e = *iter;
 				aaWeight[e] = bw.get_weight(*iter);
 			}
