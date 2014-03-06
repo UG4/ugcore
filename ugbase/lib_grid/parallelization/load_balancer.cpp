@@ -362,10 +362,9 @@ estimate_distribution_quality_impl(std::vector<number>* pLvlQualitiesOut)
 			//number minW = procComAll.allreduce(localWeight, PCL_RO_MIN);
 			number totalW = procComAll.allreduce(localWeight, PCL_RO_SUM);
 			size_t numProcs = procComAll.size();
-			number avW = totalW / numProcs;
 
 			if(maxW > 0){
-				number quality = 1 + (avW / maxW - 1) * number(numProcs) / number(numProcs - 1);
+				number quality = (totalW - maxW) / (maxW * number(numProcs - 1));
 				minQuality = min(minQuality, quality);
 				if(pLvlQualitiesOut)
 					pLvlQualitiesOut->push_back(quality);
