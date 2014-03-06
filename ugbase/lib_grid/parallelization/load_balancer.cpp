@@ -342,8 +342,14 @@ estimate_distribution_quality_impl(std::vector<number>* pLvlQualitiesOut)
 		}
 
 		pcl::ProcessCommunicator procComAll = procH->global_proc_com(hlvl);
-		if(!procComAll.empty()){
-			int localWeight = 0;
+		if(procComAll.size() == 0){
+			pLvlQualitiesOut->push_back(-1);
+		}
+		else if(procComAll.size() == 1){
+			pLvlQualitiesOut->push_back(1);
+		}
+		else{
+			number localWeight = 0;
 			IBalanceWeights& wgts = *m_balanceWeights;
 			for(ElemIter iter = mg.begin<elem_t>(lvl);
 				iter != mg.end<elem_t>(lvl); ++iter)
@@ -352,13 +358,13 @@ estimate_distribution_quality_impl(std::vector<number>* pLvlQualitiesOut)
 					localWeight += wgts.get_weight(*iter);
 			}
 
-			int maxWeight = procComAll.allreduce(localWeight, PCL_RO_MAX);
-			int minWeight = procComAll.allreduce(localWeight, PCL_RO_MIN);
-			//int totalWeight = procComAll.allreduce(localWeight, PCL_RO_SUM);
-			//number averageWeight = totalWeight / procComAll.size();
+			number maxW = procComAll.allreduce(localWeight, PCL_RO_MAX);
+			//number minW = procComAll.allreduce(localWeight, PCL_RO_MIN);
+			number totalW = procComAll.allreduce(localWeight, PCL_RO_SUM);
+			number avW = totalW / procComAll.size();
 
-			if(maxWeight > 0){
-				number quality = (number)minWeight / (number)maxWeight;
+			if(totalW > 0){
+				number quality = 1. - (maxW - avW) / (totalW - avW);
 				minQuality = min(minQuality, quality);
 				if(pLvlQualitiesOut)
 					pLvlQualitiesOut->push_back(quality);
@@ -366,8 +372,6 @@ estimate_distribution_quality_impl(std::vector<number>* pLvlQualitiesOut)
 			else if(pLvlQualitiesOut)
 				pLvlQualitiesOut->push_back(-1);
 		}
-		else if(pLvlQualitiesOut)
-			pLvlQualitiesOut->push_back(-1);
 	}
 
 	pcl::ProcessCommunicator comGlobal;
