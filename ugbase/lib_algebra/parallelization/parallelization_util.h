@@ -679,8 +679,46 @@ typename TLayout::iterator find_pid(TLayout &layout, int pid)
 SmartPtr<AlgebraLayouts> CreateLocalAlgebraLayouts();
 
 
+///	Generates a set of unique global algebra ids.
+/**	Horizontal slaves have the same algebra-id as their associated
+ * horizontal masters.
+ * Make sure that masterLayout and slaveLayout do not reference
+ * indices >= numIDs.
+ */
+template <class TLayout>
+void GenerateGlobalAlgebraIDs(pcl::InterfaceCommunicator<TLayout>& communicator,
+		std::vector<AlgebraID>& idsOut,
+		size_t numIDs,
+		const TLayout& masterLayout,
+		const TLayout& slaveLayout)
+{
+	PROFILE_FUNC_GROUP("algebra parallelization");
+//	generate an id for each entry.
+	idsOut.resize(numIDs);
+	int localProc = pcl::ProcRank();
+	for(size_t i = 0; i < numIDs; ++i)
+		idsOut[i] = AlgebraID(localProc, i);
+
+//	copy all ids from master to slave interfaces
+	ComPol_VecCopy<std::vector<AlgebraID> >	copyPol(&idsOut);
+
+	communicator.send_data(masterLayout, copyPol);
+	communicator.receive_data(slaveLayout, copyPol);
+	communicator.communicate();
+
+//	a set of global ids has now been generated.
+}
+
+
+///	Generates a set of global consecutive indices
+/**	TIndVec has to be an std::vector compatible type, e.g. std::vector<size_t>.*/
+template <class TIndVec>
+void GenerateGlobalConsecutiveIndices(TIndVec& indsOut, size_t numLocalInds,
+									  const AlgebraLayouts& layouts);
 }//	end of namespace
 
 
+///	include implementation
+#include "parallelization_util_impl.h"
 
 #endif /* __H__LIB_ALGEBRA__PARALLELIZATION__PARALLELIZATION_UTIL__ */

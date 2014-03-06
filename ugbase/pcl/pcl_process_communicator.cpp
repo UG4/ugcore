@@ -302,6 +302,19 @@ gather(const void* sendBuf, int sendCount, DataType sendType,
 			   recCount, recType, root, m_comm->m_mpiComm);
 }
 
+void ProcessCommunicator::
+scatter(const void* sendBuf, int sendCount, DataType sendType,
+		 void* recBuf, int recCount, DataType recType, int root) const
+{
+	PCL_PROFILE(pcl_ProcCom_scatter);
+	if(is_local()) {memcpy(recBuf, sendBuf, recCount*GetSize(recType)); return;}
+
+	UG_COND_THROW(empty(),	"ERROR in ProcessCommunicator::scatter: empty communicator.");
+	
+	MPI_Scatter(const_cast<void*>(sendBuf), sendCount, sendType, recBuf,
+			   recCount, recType, root, m_comm->m_mpiComm);
+}
+
 void
 ProcessCommunicator::
 gatherv(const void* sendBuf, int sendCount, DataType sendType,

@@ -96,6 +96,17 @@ class ProcessCommunicator
 		void gather(const void* sendBuf, int sendCount, DataType sendType,
 					void* recBuf, int recCount, DataType recType, int root) const;
 
+	///	performs MPI_Scatter on the processes of the communicator
+	/** \param sendBuf starting address of send buffer (choice)
+	 * \param sendCount number of elements in send buffer (integer)
+	 * \param sendType data type of send buffer elements (handle)
+	 * \param recBuf only significant for root process. All gathered data is written here.
+	 * \param recCount number of elements received from each process (integer)
+	 * \param recType data type of receive buffer elements (handle)
+	 * \param root The rank of the process that receives all the data.*/
+		void scatter(const void* sendBuf, int sendCount, DataType sendType,
+					 void* recBuf, int recCount, DataType recType, int root) const;
+
 	///	performs MPI_Gatherv on the processes of the communicator.
 	/**	This method synchronises involved processes.
 	 * \param sendBuf 	starting address of send buffer (choice)
