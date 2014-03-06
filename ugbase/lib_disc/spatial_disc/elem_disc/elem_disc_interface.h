@@ -374,7 +374,7 @@ class IElemDisc
 	///	virtual function to release data structures for the error estimator
 		virtual void release_error_estimator() {};
 		
-	///	function dispatching call to implementation (fast or virtual)
+	///	function dispatching call to implementation
 	/// \{
 		void do_prep_timestep_elem(const number time, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 		void do_prep_elem_loop(const ReferenceObjectID roid, const int si);
@@ -443,17 +443,37 @@ class IElemDisc
 		template <typename TAssFunc> void set_compute_err_est_elem(ReferenceObjectID id, TAssFunc func);
 		template <typename TAssFunc> void set_get_err_est_elem(ReferenceObjectID id, TAssFunc func);
 		template <typename TAssFunc> void set_fsh_err_est_elem_loop(ReferenceObjectID id, TAssFunc func);
+		
+	//	unregister functions
+		void remove_prep_timestep_elem_fct(ReferenceObjectID id);
+		void remove_fsh_timestep_elem_fct(ReferenceObjectID id);
 
-	///	sets usage of fast assemble functions
-		void enable_fast_add_elem(bool bEnable) {m_bFastAssembleEnabled = bEnable;}
+		void remove_prep_elem_loop_fct(ReferenceObjectID id);
+		void remove_prep_elem_fct(ReferenceObjectID id);
+		void remove_fsh_elem_loop_fct(ReferenceObjectID id);
 
-	///	sets all assemble functions to NULL
+		void remove_add_jac_A_elem_fct(ReferenceObjectID id);
+		void remove_add_jac_M_elem_fct(ReferenceObjectID id);
+		void remove_add_def_A_elem_fct(ReferenceObjectID id);
+		void remove_add_def_A_expl_elem_fct(ReferenceObjectID id);
+		void remove_add_def_M_elem_fct(ReferenceObjectID id);
+		void remove_add_rhs_elem_fct(ReferenceObjectID id);
+		
+		void remove_prep_err_est_elem_loop(ReferenceObjectID id);
+		void remove_compute_err_est_elem(ReferenceObjectID id);
+		void remove_get_err_est_elem(ReferenceObjectID id);
+		void remove_fsh_err_est_elem_loop(ReferenceObjectID id);
+
+	///	sets all assemble functions to NULL for a given ReferenceObjectID
+		void clear_add_fct(ReferenceObjectID id);
+
+	///	sets all assemble functions to NULL (for all ReferenceObjectID's)
 		void clear_add_fct();
 
-	public:
-	///	returns if fast assembling for elememts is used
-		bool fast_add_elem_enabled() const {return m_bFastAssembleEnabled;}
+	///	sets all assemble functions to the corresponding virtual ones
+		void set_default_add_fct();
 
+	public:
 	/// sets the geometric object type
 	/**
 	 * This functions set the geometric object type of the object, that is
@@ -464,9 +484,6 @@ class IElemDisc
 		void set_roid(ReferenceObjectID id, int discType);
 
 	private:
-	///	flag if fast assemble is used
-		bool m_bFastAssembleEnabled;
-
 	// 	timestep function pointers
 		PrepareTimestepElemFct 		m_vPrepareTimestepElemFct[NUM_REFERENCE_OBJECTS];
 		FinishTimestepElemFct 		m_vFinishTimestepElemFct[NUM_REFERENCE_OBJECTS];

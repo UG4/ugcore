@@ -14,13 +14,13 @@ template <typename TDomain>
 IElemDisc<TDomain>::IElemDisc(const char* functions, const char* subsets)
 	: 	m_spApproxSpace(NULL), m_spFctPattern(0),
 	  	m_timePoint(0), m_pLocalVectorTimeSeries(NULL), m_bStationaryForced(false),
-	  	m_bFastAssembleEnabled(false), m_id(ROID_UNKNOWN)
+	  	m_id(ROID_UNKNOWN)
 {
 	if(functions == NULL) functions = "";
 	if(subsets == NULL) subsets = "";
 	set_functions(functions);
 	set_subsets(subsets);
-	clear_add_fct();
+	set_default_add_fct();
 }
 
 template <typename TDomain>
@@ -28,11 +28,11 @@ IElemDisc<TDomain>::IElemDisc(const std::vector<std::string>& vFct,
                               const std::vector<std::string>& vSubset)
 	: 	m_spApproxSpace(NULL), m_spFctPattern(0),
 		m_timePoint(0), m_pLocalVectorTimeSeries(NULL), m_bStationaryForced(false),
-		m_bFastAssembleEnabled(false), m_id(ROID_UNKNOWN)
+		m_id(ROID_UNKNOWN)
 {
 	set_functions(vFct);
 	set_subsets(vSubset);
-	clear_add_fct();
+	set_default_add_fct();
 }
 
 template <typename TDomain>
@@ -54,25 +54,64 @@ set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace)
 }
 
 template <typename TDomain>
+void IElemDisc<TDomain>::clear_add_fct(ReferenceObjectID id)
+{
+	m_vPrepareTimestepElemFct[id] = NULL;
+	m_vFinishTimestepElemFct[id] = NULL;
+
+	m_vPrepareElemLoopFct[id] = NULL;
+	m_vPrepareElemFct[id] = NULL;
+	m_vFinishElemLoopFct[id] = NULL;
+
+	m_vElemJAFct[id] = NULL;
+	m_vElemJMFct[id] = NULL;
+
+	m_vElemdAFct[id] = NULL;
+	m_vElemdAExplFct[id] = NULL;
+	m_vElemdMFct[id] = NULL;
+
+	m_vElemRHSFct[id] = NULL;
+	
+	m_vPrepareErrEstElemLoopFct[id] = NULL;
+	m_vElemComputeErrEstFct[id] = NULL;
+	m_vElemGetErrEstFct[id] = NULL;
+	m_vFinishErrEstElemLoopFct[id] = NULL;
+}
+
+
+template <typename TDomain>
 void IElemDisc<TDomain>::clear_add_fct()
 {
 	for(size_t i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
+		clear_add_fct((ReferenceObjectID) i);
+}
+
+
+template <typename TDomain>
+void IElemDisc<TDomain>::set_default_add_fct()
+{
+	for(size_t i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
 	{
-		m_vPrepareTimestepElemFct[i] = NULL;
-		m_vFinishTimestepElemFct[i] = NULL;
+		m_vPrepareTimestepElemFct[i] = &T::prep_timestep_elem;
+		m_vFinishTimestepElemFct[i] = &T::fsh_timestep_elem;
 
-		m_vPrepareElemLoopFct[i] = NULL;
-		m_vPrepareElemFct[i] = NULL;
-		m_vFinishElemLoopFct[i] = NULL;
+		m_vPrepareElemLoopFct[i] = &T::prep_elem_loop;
+		m_vPrepareElemFct[i] = &T::prep_elem;
+		m_vFinishElemLoopFct[i] = &T::fsh_elem_loop;
 
-		m_vElemJAFct[i] = NULL;
-		m_vElemJMFct[i] = NULL;
+		m_vElemJAFct[i] = &T::add_jac_A_elem;
+		m_vElemJMFct[i] = &T::add_jac_M_elem;
 
-		m_vElemdAFct[i] = NULL;
-		m_vElemdAExplFct[i] = NULL;
-		m_vElemdMFct[i] = NULL;
+		m_vElemdAFct[i] = &T::add_def_A_elem;
+		m_vElemdAExplFct[i] = &T::add_def_A_expl_elem;
+		m_vElemdMFct[i] = &T::add_def_M_elem;
 
-		m_vElemRHSFct[i] = NULL;
+		m_vElemRHSFct[i] = &T::add_rhs_elem;
+		
+		m_vPrepareErrEstElemLoopFct[i] = &T::prep_err_est_elem_loop;
+		m_vElemComputeErrEstFct[i] = &T::compute_err_est_elem;
+		m_vElemGetErrEstFct[i] = &T::get_err_est_elem;
+		m_vFinishErrEstElemLoopFct[i] = &T::fsh_err_est_elem_loop;
 	}
 }
 
@@ -218,30 +257,28 @@ void IElemDisc<TDomain>::set_roid(ReferenceObjectID roid, int discType)
 		UG_THROW("ElemDisc: Reference element type has not been set correctly.");
 	}
 
-	if(fast_add_elem_enabled()){
-		if(m_vPrepareElemLoopFct[m_id]==NULL)
-			UG_THROW("ElemDisc: Missing evaluation method 'prepare_elem_loop' for "<<roid<<"(world dim: "<<dim<<")");
-		if(m_vPrepareElemFct[m_id]==NULL)
-			UG_THROW("ElemDisc: Missing evaluation method 'prepare_elem' for "<<roid<<"(world dim: "<<dim<<")");
-		if(m_vFinishElemLoopFct[m_id]==NULL)
-			UG_THROW("ElemDisc: Missing evaluation method 'finish_elem_loop' for "<<roid<<"(world dim: "<<dim<<")");
+	if(m_vPrepareElemLoopFct[m_id]==NULL)
+		UG_THROW("ElemDisc: Missing evaluation method 'prepare_elem_loop' for "<<roid<<"(world dim: "<<dim<<")");
+	if(m_vPrepareElemFct[m_id]==NULL)
+		UG_THROW("ElemDisc: Missing evaluation method 'prepare_elem' for "<<roid<<"(world dim: "<<dim<<")");
+	if(m_vFinishElemLoopFct[m_id]==NULL)
+		UG_THROW("ElemDisc: Missing evaluation method 'finish_elem_loop' for "<<roid<<"(world dim: "<<dim<<")");
 
-		if(discType & MASS){
-			if(m_vElemJMFct[m_id]==NULL)
-				UG_THROW("ElemDisc: Missing evaluation method 'add_jac_M_elem' for "<<roid<<"(world dim: "<<dim<<")");
-			if(m_vElemdMFct[m_id]==NULL)
-				UG_THROW("ElemDisc: Missing evaluation method 'add_def_M_elem' for "<<roid<<"(world dim: "<<dim<<")");
-		}
-		if(discType & STIFF){
-			if(m_vElemJAFct[m_id]==NULL)
-				UG_THROW("ElemDisc: Missing evaluation method 'add_jac_A_elem' for "<<roid<<"(world dim: "<<dim<<")");
-			if(m_vElemdAFct[m_id]==NULL)
-				UG_THROW("ElemDisc: Missing evaluation method 'add_def_A_elem for' "<<roid<<"(world dim: "<<dim<<")");
-		}
-		if(discType & RHS){
-			if(m_vElemRHSFct[m_id]==NULL)
-				UG_THROW("ElemDisc: Missing evaluation method 'add_rhs_elem' for "<<roid<<"(world dim: "<<dim<<")");
-		}
+	if(discType & MASS){
+		if(m_vElemJMFct[m_id]==NULL)
+			UG_THROW("ElemDisc: Missing evaluation method 'add_jac_M_elem' for "<<roid<<"(world dim: "<<dim<<")");
+		if(m_vElemdMFct[m_id]==NULL)
+			UG_THROW("ElemDisc: Missing evaluation method 'add_def_M_elem' for "<<roid<<"(world dim: "<<dim<<")");
+	}
+	if(discType & STIFF){
+		if(m_vElemJAFct[m_id]==NULL)
+			UG_THROW("ElemDisc: Missing evaluation method 'add_jac_A_elem' for "<<roid<<"(world dim: "<<dim<<")");
+		if(m_vElemdAFct[m_id]==NULL)
+			UG_THROW("ElemDisc: Missing evaluation method 'add_def_A_elem for' "<<roid<<"(world dim: "<<dim<<")");
+	}
+	if(discType & RHS){
+		if(m_vElemRHSFct[m_id]==NULL)
+			UG_THROW("ElemDisc: Missing evaluation method 'add_rhs_elem' for "<<roid<<"(world dim: "<<dim<<")");
 	}
 };
 
@@ -278,12 +315,8 @@ do_prep_timestep_elem(const number time, LocalVector& u, GridObject* elem, const
 		m_pLocalVectorTimeSeries->access_by_map(map());
 
 	//	call assembling routine
-	if(fast_add_elem_enabled()){
-		if (this->m_vPrepareTimestepElemFct[m_id] != NULL)
-			(this->*(m_vPrepareTimestepElemFct[m_id]))(time, u, elem, vCornerCoords);
-	} else {
-		prep_timestep_elem(time, u, elem, vCornerCoords);
-	}
+	if (this->m_vPrepareTimestepElemFct[m_id] != NULL)
+		(this->*(m_vPrepareTimestepElemFct[m_id]))(time, u, elem, vCornerCoords);
 }
 
 template <typename TDomain>
@@ -296,12 +329,8 @@ do_prep_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoor
 		m_pLocalVectorTimeSeries->access_by_map(map());
 
 	//	call assembling routine
-	if(fast_add_elem_enabled()){
-		UG_ASSERT(m_vPrepareElemFct[m_id]!=NULL, "Fast-Assemble Method missing.");
-		(this->*(m_vPrepareElemFct[m_id]))(u, elem, vCornerCoords);
-	} else {
-		prep_elem(u, elem, vCornerCoords);
-	}
+	UG_ASSERT(m_vPrepareElemFct[m_id]!=NULL, "ElemDisc method prepare_elem missing.");
+	(this->*(m_vPrepareElemFct[m_id]))(u, elem, vCornerCoords);
 }
 
 template <typename TDomain>
@@ -314,19 +343,15 @@ do_fsh_timestep_elem(const number time, LocalVector& u, GridObject* elem, const 
 		m_pLocalVectorTimeSeries->access_by_map(map());
 
 	//	call assembling routine
-	if(fast_add_elem_enabled()){
-		if (this->m_vFinishTimestepElemFct[m_id] != NULL)
-			(this->*(m_vFinishTimestepElemFct[m_id]))(time, u, elem, vCornerCoords);
-	} else {
-		fsh_timestep_elem(time, u, elem, vCornerCoords);
-	}
+	if (this->m_vFinishTimestepElemFct[m_id] != NULL)
+		(this->*(m_vFinishTimestepElemFct[m_id]))(time, u, elem, vCornerCoords);
 }
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
 do_prep_elem_loop(const ReferenceObjectID roid, const int si)
 {
-//	set id and disc part (this checks and inits fast-assemble functions)
+//	set id and disc part (this checks the assemble functions)
 	this->set_roid(roid, si);
 
 //	remove positions in currently registered imports
@@ -335,11 +360,8 @@ do_prep_elem_loop(const ReferenceObjectID roid, const int si)
 
 //	call prep_elem_loop (this may set ip-series to imports)
 	//	call assembling routine
-	if(fast_add_elem_enabled()){
-		(this->*m_vPrepareElemLoopFct[m_id])(roid, si);
-	} else {
-		prep_elem_loop(roid, si);
-	}
+	UG_ASSERT(m_vPrepareElemLoopFct[m_id]!=NULL, "ElemDisc method prepare_elem_loop missing.");
+	(this->*m_vPrepareElemLoopFct[m_id])(roid, si);
 
 //	set roid in imports (for evaluation function)
 	for(size_t i = 0; i < m_vIImport.size(); ++i)
@@ -350,14 +372,9 @@ template <typename TDomain>
 void IElemDisc<TDomain>::
 do_fsh_elem_loop()
 {
-	UG_ASSERT(m_vFinishElemLoopFct[m_id]!=NULL, "Fast-Assemble Method missing.");
-
 //	call finish
-	if(fast_add_elem_enabled()){
-		(this->*m_vFinishElemLoopFct[m_id])();
-	} else {
-		fsh_elem_loop();
-	}
+	UG_ASSERT(m_vFinishElemLoopFct[m_id]!=NULL, "ElemDisc method finish_elem_loop missing.");
+	(this->*m_vFinishElemLoopFct[m_id])();
 
 //	remove positions in currently registered imports
 	for(size_t i = 0; i < m_vIImport.size(); ++i)
@@ -375,12 +392,8 @@ do_add_jac_A_elem(LocalMatrix& J, LocalVector& u, GridObject* elem, const MathVe
 		m_pLocalVectorTimeSeries->access_by_map(map());
 
 	//	call assembling routine
-	if(fast_add_elem_enabled()){
-		UG_ASSERT(m_vElemJAFct[m_id]!=NULL, "Fast-Assemble Method missing.");
-		(this->*m_vElemJAFct[m_id])(J, u, elem, vCornerCoords);
-	} else {
-		add_jac_A_elem(J, u, elem, vCornerCoords);
-	}
+	UG_ASSERT(m_vElemJAFct[m_id]!=NULL, "ElemDisc method add_jac_A missing.");
+	(this->*m_vElemJAFct[m_id])(J, u, elem, vCornerCoords);
 }
 
 template <typename TDomain>
@@ -397,12 +410,8 @@ do_add_jac_M_elem(LocalMatrix& J, LocalVector& u, GridObject* elem, const MathVe
 		m_pLocalVectorTimeSeries->access_by_map(map());
 
 	//	call assembling routine
-	if(fast_add_elem_enabled()){
-		UG_ASSERT(m_vElemJMFct[m_id]!=NULL, "Fast-Assemble Method missing.");
-		(this->*m_vElemJMFct[m_id])(J, u, elem, vCornerCoords);
-	} else {
-		add_jac_M_elem(J, u, elem, vCornerCoords);
-	}
+	UG_ASSERT(m_vElemJMFct[m_id]!=NULL, "ElemDisc method add_jac_M missing.");
+	(this->*m_vElemJMFct[m_id])(J, u, elem, vCornerCoords);
 }
 
 template <typename TDomain>
@@ -416,12 +425,8 @@ do_add_def_A_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVe
 		m_pLocalVectorTimeSeries->access_by_map(map());
 
 	//	call assembling routine
-	if(fast_add_elem_enabled()){
-		UG_ASSERT(m_vElemdAFct[m_id]!=NULL, "Fast-Assemble Method missing.");
-		(this->*m_vElemdAFct[m_id])(d, u, elem, vCornerCoords);
-	} else {
-		add_def_A_elem(d, u, elem, vCornerCoords);
-	}
+	UG_ASSERT(m_vElemdAFct[m_id]!=NULL, "ElemDisc method add_def_A missing.");
+	(this->*m_vElemdAFct[m_id])(d, u, elem, vCornerCoords);
 }
 
 template <typename TDomain>
@@ -435,12 +440,8 @@ do_add_def_A_expl_elem(LocalVector& d, LocalVector& u, GridObject* elem, const M
 		m_pLocalVectorTimeSeries->access_by_map(map());
 
 	//	call assembling routine
-	if(fast_add_elem_enabled()){
-		if(this->m_vElemdAExplFct[m_id] != NULL)
-			(this->*m_vElemdAExplFct[m_id])(d, u, elem, vCornerCoords);
-	} else {
-		add_def_A_expl_elem(d, u, elem, vCornerCoords);
-	}
+	if(this->m_vElemdAExplFct[m_id] != NULL)
+		(this->*m_vElemdAExplFct[m_id])(d, u, elem, vCornerCoords);
 }
 
 template <typename TDomain>
@@ -457,12 +458,8 @@ do_add_def_M_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVe
 		m_pLocalVectorTimeSeries->access_by_map(map());
 
 	//	call assembling routine
-	if(fast_add_elem_enabled()){
-		UG_ASSERT(m_vElemdMFct[m_id]!=NULL, "Fast-Assemble Method missing.");
-		(this->*m_vElemdMFct[m_id])(d, u, elem, vCornerCoords);
-	} else {
-		add_def_M_elem(d, u, elem, vCornerCoords);
-	}
+	UG_ASSERT(m_vElemdMFct[m_id]!=NULL, "ElemDisc method add_def_M missing.");
+	(this->*m_vElemdMFct[m_id])(d, u, elem, vCornerCoords);
 }
 
 template <typename TDomain>
@@ -475,19 +472,15 @@ do_add_rhs_elem(LocalVector& rhs, GridObject* elem, const MathVector<dim> vCorne
 		m_pLocalVectorTimeSeries->access_by_map(map());
 
 	//	call assembling routine
-	if(fast_add_elem_enabled()){
-		UG_ASSERT(m_vElemRHSFct[m_id]!=NULL, "Fast-Assemble Method missing.");
-		(this->*m_vElemRHSFct[m_id])(rhs, elem, vCornerCoords);
-	} else {
-		add_rhs_elem(rhs, elem, vCornerCoords);
-	}
+	UG_ASSERT(m_vElemRHSFct[m_id]!=NULL, "ElemDisc method add_rhs missing.");
+	(this->*m_vElemRHSFct[m_id])(rhs, elem, vCornerCoords);
 }
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
 do_prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
 {
-//	set id and disc part (this checks and inits fast-assemble functions)
+//	set id and disc part (this checks the assemble functions)
 	this->set_roid(roid, si);
 
 //	remove positions in currently registered imports
@@ -496,12 +489,8 @@ do_prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
 
 //	call prep_elem_loop (this may set ip-series to imports)
 	//	call assembling routine
-	if(fast_add_elem_enabled()){
-		if (this->m_vPrepareErrEstElemLoopFct[m_id] != NULL)
-			(this->*m_vPrepareErrEstElemLoopFct[m_id])(roid, si);
-	} else {
-		prep_err_est_elem_loop(roid, si);
-	}
+	if (this->m_vPrepareErrEstElemLoopFct[m_id] != NULL)
+		(this->*m_vPrepareErrEstElemLoopFct[m_id])(roid, si);
 
 //	set roid in imports (for evaluation function)
 	for(size_t i = 0; i < m_vIImport.size(); ++i)
@@ -518,12 +507,8 @@ do_compute_err_est_elem(LocalVector& u, GridObject* elem, const MathVector<dim> 
 		m_pLocalVectorTimeSeries->access_by_map(map());
 
 	//	call assembling routine
-	if(fast_add_elem_enabled()){
-		if(this->m_vElemComputeErrEstFct[m_id] != NULL)
-			(this->*(m_vElemComputeErrEstFct[m_id]))(u, elem, vCornerCoords);
-	} else {
-		compute_err_est_elem(u, elem, vCornerCoords);
-	}
+	if(this->m_vElemComputeErrEstFct[m_id] != NULL)
+		(this->*(m_vElemComputeErrEstFct[m_id]))(u, elem, vCornerCoords);
 }
 
 template <typename TDomain>
@@ -536,13 +521,9 @@ do_get_err_est_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCor
 		m_pLocalVectorTimeSeries->access_by_map(map());
 
 	//	call assembling routine
-	if(fast_add_elem_enabled()){
-		if(this->m_vElemGetErrEstFct[m_id] != NULL)
-			return (this->*(m_vElemGetErrEstFct[m_id]))(u, elem, vCornerCoords);
-		return 0;
-	} else {
-		return get_err_est_elem(u, elem, vCornerCoords);
-	}
+	if(this->m_vElemGetErrEstFct[m_id] != NULL)
+		return (this->*(m_vElemGetErrEstFct[m_id]))(u, elem, vCornerCoords);
+	return 0;
 }
 
 template <typename TDomain>
@@ -550,12 +531,8 @@ void IElemDisc<TDomain>::
 do_fsh_err_est_elem_loop()
 {
 //	call finish
-	if(fast_add_elem_enabled()){
-		if (this->m_vFinishErrEstElemLoopFct[m_id] != NULL)
-			(this->*m_vFinishErrEstElemLoopFct[m_id])();
-	} else {
-		fsh_err_est_elem_loop();
-	}
+	if (this->m_vFinishErrEstElemLoopFct[m_id] != NULL)
+		(this->*m_vFinishErrEstElemLoopFct[m_id])();
 
 //	remove positions in currently registered imports
 	for(size_t i = 0; i < m_vIImport.size(); ++i)
@@ -568,37 +545,41 @@ do_fsh_err_est_elem_loop()
 //	virtual assembling functions default
 ////////////////////////////////////////////////////////////////////////////////
 
-static void ThrowMissingVirtualMethod(const char* method){
-	UG_THROW("ElemDisc: using virtual assembling functions, but no override "
-			 "for '"<<method<<"' implemented (although called).");
+inline void ThrowMissingVirtualMethod(const char* method, const ReferenceObjectID roid){
+	UG_THROW("ElemDisc: No override for the essential assembling function "
+			 "'"<<method<<"' for " << roid << " implemented!");
+}
+inline void ThrowMissingVirtualMethod(const char* method){
+	UG_THROW("ElemDisc: No override for the essential assembling function "
+			 "'"<<method<<"' implemented!");
 }
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
 prep_timestep_elem(const number time, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
-	ThrowMissingVirtualMethod("prep_timestep_elem");
+	// ThrowMissingVirtualMethod("prep_timestep_elem", elem->reference_object_id ());
 }
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
 prep_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
-	ThrowMissingVirtualMethod("prep_elem");
+	ThrowMissingVirtualMethod("prep_elem", elem->reference_object_id ());
 }
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
 fsh_timestep_elem(const number time, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
-	ThrowMissingVirtualMethod("fsh_timestep_elem");
+	// ThrowMissingVirtualMethod("fsh_timestep_elem", elem->reference_object_id ());
 }
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
 prep_elem_loop(const ReferenceObjectID roid, const int si)
 {
-	ThrowMissingVirtualMethod("prep_elem_loop");
+	ThrowMissingVirtualMethod("prep_elem_loop", roid);
 }
 
 template <typename TDomain>
@@ -612,63 +593,63 @@ template <typename TDomain>
 void IElemDisc<TDomain>::
 add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
-	ThrowMissingVirtualMethod("add_jac_A_elem");
+	ThrowMissingVirtualMethod("add_jac_A_elem", elem->reference_object_id ());
 }
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
 add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
-	ThrowMissingVirtualMethod("add_jac_M_elem");
+	ThrowMissingVirtualMethod("add_jac_M_elem", elem->reference_object_id ());
 }
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
 add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
-	ThrowMissingVirtualMethod("add_def_A_elem");
+	ThrowMissingVirtualMethod("add_def_A_elem", elem->reference_object_id ());
 }
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
 add_def_A_expl_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
-	ThrowMissingVirtualMethod("add_def_A_expl_elem");
+	// ThrowMissingVirtualMethod("add_def_A_expl_elem", elem->reference_object_id ());
 }
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
 add_def_M_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
-	ThrowMissingVirtualMethod("add_def_M_elem");
+	ThrowMissingVirtualMethod("add_def_M_elem", elem->reference_object_id ());
 }
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
 add_rhs_elem(LocalVector& rhs, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
-	ThrowMissingVirtualMethod("add_rhs_elem");
+	ThrowMissingVirtualMethod("add_rhs_elem", elem->reference_object_id ());
 }
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
 prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
 {
-	ThrowMissingVirtualMethod("prep_err_est_elem_loop");
+	// ThrowMissingVirtualMethod("prep_err_est_elem_loop", roi);
 }
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
 compute_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
-	ThrowMissingVirtualMethod("compute_err_est_elem");
+	// ThrowMissingVirtualMethod("compute_err_est_elem", elem->reference_object_id ());
 }
 
 template <typename TDomain>
 number IElemDisc<TDomain>::
 get_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
-	ThrowMissingVirtualMethod("get_err_est_elem");
+	// ThrowMissingVirtualMethod("get_err_est_elem", elem->reference_object_id ());
 	return 0;
 }
 
@@ -676,7 +657,7 @@ template <typename TDomain>
 void IElemDisc<TDomain>::
 fsh_err_est_elem_loop()
 {
-	ThrowMissingVirtualMethod("fsh_err_est_elem_loop");
+	// ThrowMissingVirtualMethod("fsh_err_est_elem_loop");
 }
 
 
