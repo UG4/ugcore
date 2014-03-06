@@ -230,6 +230,8 @@ std::string jPointerGetName(JNIEnv *env, jobject obj) {
 	std::string name = stringJ2C(env,
 			(jstring) env->CallObjectMethod(obj, methodID));
 
+	//checkException(env,"ugbase/bindings/vrl/type_converter.cpp : jPointerGetName()",true);
+
 	return name;
 }
 

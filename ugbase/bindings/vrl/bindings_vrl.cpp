@@ -188,6 +188,7 @@ void RegisterVRLFunctionality(ug::bridge::Registry& reg, std::string grp) {
 } // end vrl::
 } // end ug::
 
+
 //*********************************************************
 //* JNI METHODS
 //*********************************************************
@@ -437,13 +438,40 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeFunction(JNIEnv *env,
 				<< " Java_edu_gcsc_vrl_ug_UG__1invokeFunction() " << std::endl;
 
 		std::cout << "UG__1invokeFunction(): name = " << name << std::endl;
+
+		std::cout << "function-parameters are: " << std::endl;
+		jsize size = env->GetArrayLength(params);
+
+		std::cout << "paramCount = " << size << std::endl;
+
+		/*for (int i = 0; i < size; ++i) {
+			jobject param = env->GetObjectArrayElement(params,i);
+
+			//std::cout << "paramName = " << ug::vrl::jPointerGetName(env, param) << std::endl;
+
+			    jclass argClass = env->GetObjectClass(param);
+
+			    std::cout << "argClass = " << argClass << std::endl;
+
+				jmethodID methodID = env->GetMethodID(argClass, "getName",
+						"()Ljava/lang/String;");
+
+				std::cout << "methodID = " << methodID << std::endl;
+
+				std::string paramName = ug::vrl::stringJ2C(env,
+						(jstring) env->CallObjectMethod(param, methodID));
+
+				std::cout << "paramName = " << paramName << std::endl;
+		}*/
 	}
 
 	const ug::bridge::ExportedFunction* func =
 			ug::vrl::invocation::getFunctionBySignature(env,
 					ug::vrl::vrlRegistry, name, params);
 
-	if (DEBUG) {
+	if(func == NULL){
+		std::cout << "func is null "<< std::endl;
+	}else if (DEBUG) {
 		std::cout << "UG__1invokeFunction(): func->m_name = " << func->name()
 				<< std::endl;
 	}
@@ -711,6 +739,7 @@ jobject bool_array(JNIEnv *env, jobject obj, jstring jName,
 //after debugging is finished this method should be commented out
 jobject array_of_bool_arrays(JNIEnv *env, jobject obj, jstring jName,
 		jobjectArray params) {
+ jobject result = NULL;
 
 	std::cout
 			<< "trunk/ugbase/bindings/vrl/bindings_vrl.cpp : array_of_bool_arrays() "
@@ -759,6 +788,9 @@ jobject array_of_bool_arrays(JNIEnv *env, jobject obj, jstring jName,
 
 		jbooleanArray jBoolArray = ug::vrl::jObject2BooleanArray(env, value);
 
+		// SETTING RESULT
+		result = jBoolArray;
+
 		jsize jBoolArrayLenght = env->GetArrayLength(jBoolArray);
 		//cout << "jBoolArrayLenght = " << jBoolArrayLenght << endl;
 
@@ -784,7 +816,7 @@ jobject array_of_bool_arrays(JNIEnv *env, jobject obj, jstring jName,
 	}					//for (int i = 0; i < arraySize; ++i)
 	//RICHTIG ?? END
 
-//	return //???
+	return result;
 }
 
 /*

@@ -222,7 +222,13 @@ void invalidateJConstSmartPointer(JNIEnv *env, jobject obj);
  */
 void* jObject2Pointer(JNIEnv *env, jobject obj);
 
-
+/**
+ * Pondon of javas getName().
+ * @param env JVM environment to operate on
+ * @param obj object which class name we want to know
+ * @return the class name of the jobject
+ */
+std::string jPointerGetName(JNIEnv *env, jobject obj);
 
 
 

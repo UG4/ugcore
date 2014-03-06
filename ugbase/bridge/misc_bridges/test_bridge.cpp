@@ -561,88 +561,7 @@ const std::vector<T>& ReturnConstStdVectorRefOfClassSP(){
 
 void NotAllowedParamPerValue(Piece P){}
 
-//cpoliwoda start playground
 
-//for debug / understand how to call a c++ function from java
-//the 1st method
-void ChrisPoliTest(){
-	//std::cout   << "trunk/ugbase/bindings/vrl/bindings_vrl.cpp : ChrisPoliTest() "
-	std::cout   << "trunk/ugbase/bridge/misc_bridges/test_bridge.cpp : ChrisPoliTest() "
-				<< std::endl
-				<< "THANK YOU  :-)"
-				<< std::endl;
-}
-
-//the 2nd method
-void ChrisPoliTest(int i){
-	//std::cout   << "trunk/ugbase/bindings/vrl/bindings_vrl.cpp : ChrisPoliTest() "
-	std::cout   << "trunk/ugbase/bridge/misc_bridges/test_bridge.cpp : ChrisPoliTest() "
-				<< std::endl
-				<< "THANK YOU "<< i<<"-times  :-)"
-				<< std::endl;
-}
-
-
-
-//the 3th method
-void ChrisPoliTest(bool array[]){
-	// need to be the same size as on java side the size of the array
-	// set manually because do not know how to get size automatically
-	int arraySize = 2;
-
-	std::cout << "cpp true = " << true << std::endl;
-	std::cout << "cpp false = " << false << std::endl;
-
-	for (int i = 0; i < arraySize; ++i) {
-		std::cout   << "array[ "<< i <<" ] = "<< array[i] << std::endl;
-	}
-
-}
-
-//the 4th method
-void ChrisPoliTest(std::vector<bool> vec){
-
-	std::cout << "cpp : trunk/ugbase/bridge/misc_bridges/test_bridge.cpp ."<<
-			" ChrisPoliTest(std::vector<bool> vec)"  << std::endl;
-
-
-	std::cout << "cpp true = " << true << std::endl;
-	std::cout << "cpp false = " << false << std::endl;
-
-	for (size_t i = 0; i < vec.size(); ++i) {
-		std::cout   << "vec[ "<< i <<" ] = "<< vec[i] << std::endl;
-	}
-
-}
-
-//the 5th method
-// methods with same name and parameters can NOT be differed by their
-// return type therefore we have to change the functionname too
-// after changing the return type !!!
-std::vector<bool> ChrisPoliTestReturn(std::vector<bool> vec){
-
-	std::cout << "cpp : trunk/ugbase/bridge/misc_bridges/test_bridge.cpp ."<<
-			" std::vector<bool> ChrisPoliTestReturn(std::vector<bool> vec)"
-			<< std::endl;
-
-	/*std::cout << std::boolalpha()<< std::endl;
-	std::cout << "cpp true = " << true << std::endl;
-	std::cout << "cpp false = " << false << std::endl;
-	std::cout << std::noboolalpha()<< std::endl;
-	*/
-	std::cout << "cpp true = " << true << std::endl;
-	std::cout << "cpp false = " << false << std::endl;
-
-	for (size_t i = 0; i < vec.size(); ++i) {
-		std::cout   << "vec[ "<< i <<" ] = "<< vec[i] << std::endl;
-	}
-
-	std::cout << "cpp : ChrisPoliTestReturn( ) BEFORE return" << std::endl;
-
-	return vec;
-}
-
-//cpoliwoda end playground
 
 void RegisterBridge_Test(Registry& reg, string parentGroup)
 {
@@ -655,43 +574,6 @@ void RegisterBridge_Test(Registry& reg, string parentGroup)
 	//	registering hello world
 		reg.add_function("PrintHelloWorld", &PrintHelloWorldToScreen, grp);
 
-		//
-		//  register cpoliwoda start playground
-		//
-
-		//reg.add_function("ChrisPoliTest",
-		//		&ChrisPoliTest,
-		//		grp);//before 2nd method with same name but with other params
-
-		reg.add_function("ChrisPoliTest",
-				static_cast<void (*)(void)>(&ChrisPoliTest),
-				grp);//the 1st method changed to this after 2nd method added
-
-		/*
-		 reg.add_function("ChrisPoliTest",
-				static_cast<void (*)(int)>(&ChrisPoliTest),
-				grp,"i");//the 2nd method
-
-		reg.add_function("ChrisPoliTest",
-						static_cast<void (*)(bool[])>(&ChrisPoliTest),
-						grp,"bool-array");//the 3th method
-		*/
-
-		/*
-		reg.add_function("ChrisPoliTest",
-						static_cast<void (*)(std::vector<bool>)>(&ChrisPoliTest),
-						grp,"bool-vec");//the 4th method
-		*/
-
-
-		reg.add_function("ChrisPoliTestReturn",
-						( std::vector<bool> (*)(std::vector<bool>) )(
-						&ChrisPoliTestReturn),grp,"bool-vec-return");//the 5th method
-
-
-		//
-        //  register cpoliwoda end playground
-		//
 
 	//	registering add
 		reg.add_function("add", static_cast<int (*)(int, int)>(

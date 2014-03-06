@@ -120,6 +120,201 @@ SmartPtrCls::~SmartPtrCls() {
 	}
 }
 
+
+
+
+
+//cpoliwoda start playground
+
+	//for debug / understand how to call a c++ function from java
+	//the 1st method
+	void ChrisPoliTest(){
+		//std::cout   << "trunk/ugbase/bindings/vrl/bindings_vrl.cpp : ChrisPoliTest() "
+		std::cout   << "trunk/ugbase/bridge/misc_bridges/test_bridge.cpp : ChrisPoliTest() "
+					<< std::endl
+					<< "THANK YOU  :-)"
+					<< std::endl;
+	}
+
+	//the 2nd method
+	void ChrisPoliTest(int i){
+		//std::cout   << "trunk/ugbase/bindings/vrl/bindings_vrl.cpp : ChrisPoliTest() "
+		std::cout   << "trunk/ugbase/bridge/misc_bridges/test_bridge.cpp : ChrisPoliTest() "
+					<< std::endl
+					<< "THANK YOU "<< i<<"-times  :-)"
+					<< std::endl;
+	}
+
+
+
+	//the 3th method
+	void ChrisPoliTest(bool array[]){
+		// need to be the same size as on java side the size of the array
+		// set manually because do not know how to get size automatically
+		int arraySize = 2;
+
+		std::cout << "cpp true = " << true << std::endl;
+		std::cout << "cpp false = " << false << std::endl;
+
+		for (int i = 0; i < arraySize; ++i) {
+			std::cout   << "array[ "<< i <<" ] = "<< array[i] << std::endl;
+		}
+
+	}
+
+	//the 4th method
+	void ChrisPoliTest(std::vector<bool> vec){
+
+		std::cout << "cpp : trunk/ugbase/bridge/misc_bridges/test_bridge.cpp ."<<
+				" ChrisPoliTest(std::vector<bool> vec)"  << std::endl;
+
+
+		std::cout << "cpp true = " << true << std::endl;
+		std::cout << "cpp false = " << false << std::endl;
+
+		for (size_t i = 0; i < vec.size(); ++i) {
+			std::cout   << "vec[ "<< i <<" ] = "<< vec[i] << std::endl;
+		}
+
+	}
+
+	//the 5th method
+	// methods with same name and parameters can NOT be differed by their
+	// return type therefore we have to change the functionname too
+	// after changing the return type !!!
+	std::vector<bool> ChrisPoliTestReturn(std::vector<bool> vec){
+
+		std::cout << "cpp : trunk/ugbase/bridge/misc_bridges/test_bridge.cpp ."<<
+				" std::vector<bool> ChrisPoliTestReturn(std::vector<bool> vec)"
+				<< std::endl;
+
+		/*std::cout << std::boolalpha()<< std::endl;
+		std::cout << "cpp true = " << true << std::endl;
+		std::cout << "cpp false = " << false << std::endl;
+		std::cout << std::noboolalpha()<< std::endl;
+		*/
+		std::cout << "cpp true = " << true << std::endl;
+		std::cout << "cpp false = " << false << std::endl;
+
+		for (size_t i = 0; i < vec.size(); ++i) {
+			std::cout   << "vec[ "<< i <<" ] = "<< vec[i] << std::endl;
+		}
+
+		std::cout << "cpp : ChrisPoliTestReturn( ) BEFORE return" << std::endl;
+
+		return vec;
+	}
+
+
+	// this methode is for testing data transfer / communication via file
+	// in vrl-ug remote modus
+	// the void method with const paths to input & output file
+	void ChrisPoliTestCreateFile(){
+
+		std::cout << "cpp : trunk/ugbase/bridge/misc_bridges/test_bridge.cpp ."<<
+				" void ChrisPoliTestCreateFile( )"
+				<< std::endl;
+
+		std::ifstream infile;
+		std::ofstream outfile;
+
+		std::string inputPath = "/Users/christianpoliwoda/Desktop/output/input.txt";
+		std::string outputPath = "/Users/christianpoliwoda/Desktop/output/output.txt";
+
+		std::string tmpReadLine;
+
+		    infile.open(inputPath.c_str());
+		    outfile.open(outputPath.c_str());
+
+		    if (infile.is_open())
+		        while (!infile.eof()) {// To get you all the lines.
+		            {
+		                getline(infile, tmpReadLine); // Saves the line in STRING.
+		                std::cout << tmpReadLine << std::endl; // Prints our STRING. and begin new line for next string
+		                outfile << "COPY " << tmpReadLine << std::endl;
+		            }
+		        }
+
+		    infile.close();
+		    outfile.close();
+	}
+
+	// this methode is for testing data transfer / communication via file
+	// in vrl-ug remote modus
+	std::string ChrisPoliTestCreateFile(std::string path){
+
+		std::cout << "cpp : trunk/ugbase/bridge/misc_bridges/test_bridge.cpp ."<<
+				" std::string ChrisPoliTestCreateFile(std::string path)"
+				<< std::endl;
+
+
+
+		std::ifstream infile;
+		std::ofstream outfile;
+
+		std::string outputPath = "/Users/christianpoliwoda/Desktop/output/example-output.txt";
+
+		std::string tmpReadLine;
+
+		    infile.open(path.c_str());
+		    outfile.open(outputPath.c_str());
+
+		    if (infile.is_open())
+		        while (!infile.eof()) {// To get you all the lines.
+		            {
+		                getline(infile, tmpReadLine); // Saves the line in STRING.
+		                std::cout << tmpReadLine << std::endl; // Prints our STRING. and begin new line for next string
+		                outfile << "COPY " << tmpReadLine << std::endl;
+		            }
+		        }
+
+		    infile.close();
+		    outfile.close();
+
+		return outputPath;
+	}
+
+
+	// this methode is for testing data transfer / communication via file
+	// in vrl-ug remote modus
+	std::string ChrisPoliTestCreateFile(std::string inPath, std::string outPath){
+
+		std::cout << "cpp : trunk/ugbase/bindings/vrl/playground.cpp ."<<
+				" std::string ChrisPoliTestCreateFile(std::string path)"
+				<< std::endl;
+
+		std::ifstream infile;
+		std::ofstream outfile;
+
+		std::cout << "cpp: inPath "<< inPath << std::endl;
+		std::cout << "cpp: outPath "<< outPath << std::endl;
+
+		std::string tmpReadLine;
+
+		    infile.open(inPath.c_str());
+		    outfile.open(outPath.c_str());
+
+		    if (infile.is_open())
+		        while (!infile.eof()) {// To get you all the lines.
+		            {
+		                getline(infile, tmpReadLine); // Saves the line in STRING.
+		                std::cout << tmpReadLine << std::endl; // Prints our STRING. and begin new line for next string
+		                outfile << "COPY " << tmpReadLine << std::endl;
+		            }
+		        }
+
+		    infile.close();
+		    outfile.close();
+
+		return outPath;
+	}
+
+
+	//cpoliwoda end playground
+
+
+
+
 void registerPlayground(ug::bridge::Registry& reg) {
 	reg.add_class_<TestClass > ("TestClass", "ug4/testing")
 			.add_constructor()
@@ -143,6 +338,81 @@ void registerPlayground(ug::bridge::Registry& reg) {
 			.add_method("print_name", &SmartPtrCls::print_name)
 			.add_method("create_data", &SmartPtrCls::create_data)
 			.set_construct_as_smart_pointer(true);
+
+
+
+
+
+	        //
+			//  register cpoliwoda start playground
+			//
+
+			//reg.add_function("ChrisPoliTest",
+			//		&ChrisPoliTest,
+			//		grp);//before 2nd method with same name but with other params
+
+			reg.add_function("ChrisPoliTest",
+					static_cast<void (*)(void)>(&ChrisPoliTest));
+					//,grp);//the 1st method changed to this after 2nd method added
+
+			/*
+			 reg.add_function("ChrisPoliTest",
+					static_cast<void (*)(int)>(&ChrisPoliTest),
+					grp,"i");//the 2nd method
+
+			reg.add_function("ChrisPoliTest",
+							static_cast<void (*)(bool[])>(&ChrisPoliTest),
+							grp,"bool-array");//the 3th method
+			*/
+
+			/*
+			reg.add_function("ChrisPoliTest",
+							static_cast<void (*)(std::vector<bool>)>(&ChrisPoliTest),
+							grp,"bool-vec");//the 4th method
+			*/
+
+
+			reg.add_function("ChrisPoliTestReturn",
+							( std::vector<bool> (*)(std::vector<bool>) )(
+							&ChrisPoliTestReturn),"bool-vec-return");//the 5th method
+							//,grp,"bool-vec-return");//the 5th method
+
+
+
+
+			/*reg.add_function("ChrisPoliTestCreateFile",
+							static_cast<void (*)(void)>
+							(&ChrisPoliTest),grp);//the void method with const paths to input & output file
+			*/
+			reg.add_function("ChrisPoliTestCreateFile",
+							(void (*)(void))
+							(&ChrisPoliTestCreateFile));//,grp);//the void method with const paths to input & output file
+
+
+
+			/*reg.add_function("ChrisPoliTestCreateFile",
+							static_cast<std::string (*)(std::string)>
+							(&ChrisPoliTestCreateFile),grp,"path");//an other method
+			*/
+			reg.add_function("ChrisPoliTestCreateFile",
+							(std::string (*)(std::string))
+							(&ChrisPoliTestCreateFile),"path");//an other method
+							//,grp,"path");//an other method
+
+
+			reg.add_function("ChrisPoliTestCreateFile",
+										(std::string (*)(std::string, std::string))
+										(&ChrisPoliTestCreateFile),"outpath","inPath#outPath");//an other method
+										//,grp,"path");//an other method
+
+
+			//
+	        //  register cpoliwoda end playground
+			//
+
+
+
+
 }
 
 } // end vrl::
