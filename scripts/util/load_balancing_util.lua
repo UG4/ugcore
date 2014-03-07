@@ -40,6 +40,7 @@ balancer.qualityThreshold	= 0.8
 balancer.childWeight		= 2
 balancer.siblingWeight		= 2
 balancer.itrFactor			= 1000
+balancer.noSiblingClustering = false
 
 balancer.staticProcHierarchy = false
 
@@ -81,6 +82,8 @@ function balancer.ParseParameters()
 									"Values in the range from 0.000001 to 1000000. A low value means that "..
 									"communication time is considered low compared to redistribution time while "..
 									"a high value means the contrary. Default is 1000.")
+
+	balancer.noSiblingClustering = util.HasParamOption("-noSiblingClustering", "siblings should always be clustered if adaptive refinement is performed. Better distribution qualities if disabled.")
 
 	balancer.staticProcHierarchy = balancer.staticProcHierarchy or util.HasParamOption("-staticProcHierarchy")
 	
@@ -125,34 +128,34 @@ function balancer.CreateLoadBalancer(domain)
 	
 	if numComputeProcs > 1 then
 		loadBalancer = DomainLoadBalancer(domain)
-		
+		local partitioner = nil
 		if(balancer.partitioner == "parmetis") then
 			if(ParmetisIsAvailable() == true) then
 				print("Creating ParmetisPartitioner")
-				local partitioner = Partitioner_Parmetis(domain)
+				partitioner = Partitioner_Parmetis(domain)
 				partitioner:set_child_weight(balancer.childWeight)
 				partitioner:set_sibling_weight(balancer.siblingWeight)
 				partitioner:set_itr_factor(balancer.itrFactor)
 				partitioner:set_verbose(false)
-				loadBalancer:set_partitioner(partitioner)
 			else
 				print("ERROR: partitioner 'parmetis' specified in balancer.CreateLoadBalancer but ParMETIS isn't available.")
 				exit()
 			end
 		elseif(balancer.partitioner == "bisection") then
-			local partitioner = Partitioner_DynamicBisection(domain)
+			partitioner = Partitioner_DynamicBisection(domain)
 			partitioner:set_verbose(false)
 			partitioner:enable_static_partitioning(true)
-			loadBalancer:set_partitioner(partitioner)
 		elseif(balancer.partitioner == "dynBisection") then
-			local partitioner = Partitioner_DynamicBisection(domain)
+			partitioner = Partitioner_DynamicBisection(domain)
 			partitioner:set_verbose(false)
-			loadBalancer:set_partitioner(partitioner)
 		else
 			print("ERROR: Unknown partitioner specified in balancer.CreateLoadBalancer")
 			exit()
 		end
+
+		partitioner:enable_clustered_siblings(not balancer.noSiblingClustering)
 		
+		loadBalancer:set_partitioner(partitioner)
 		loadBalancer:set_balance_threshold(balancer.qualityThreshold)
 		loadBalancer:set_element_threshold(balancer.parallelElementThreshold)
 		
