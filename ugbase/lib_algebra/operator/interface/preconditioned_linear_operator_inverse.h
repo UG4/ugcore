@@ -16,6 +16,8 @@
 #include "common/log.h"
 #include "linear_solver_profiling.h"
 
+#undef DEBUG_FOR_AMG
+
 namespace ug{
 ///////////////////////////////////////////////////////////////////////////////
 // Inverse of a Linear Operator using a ILinearIterator as preconditioner
@@ -57,11 +59,17 @@ class IPreconditionedLinearOperatorInverse
 	///	Empty constructor
 		IPreconditionedLinearOperatorInverse()
 			: m_bRecompute(false), m_spPrecond(NULL)
+#ifdef DEBUG_FOR_AMG
+, m_amgDebug(0)
+#endif
 		{}
 
 	///	constructor setting the preconditioner
 		IPreconditionedLinearOperatorInverse(SmartPtr<ILinearIterator<X,X> > spPrecond)
 			: m_bRecompute(false), m_spPrecond(spPrecond)
+#ifdef DEBUG_FOR_AMG
+, m_amgDebug(0)
+#endif
 		{}
 
 	///	constructor setting the preconditioner
@@ -69,6 +77,9 @@ class IPreconditionedLinearOperatorInverse
 		                                     SmartPtr<IConvergenceCheck<X> > spConvCheck)
 			: 	base_type(spConvCheck),
 				m_bRecompute(false), m_spPrecond(spPrecond)
+#ifdef DEBUG_FOR_AMG
+, m_amgDebug(0)
+#endif
 		{}
 
 	///	sets the preconditioner
@@ -140,6 +151,22 @@ class IPreconditionedLinearOperatorInverse
 				write_debug(bTmp, "LS_TrueDefectEnd.vec");
 			}
 
+#ifdef DEBUG_FOR_AMG
+			if (m_amgDebug>0)
+			{
+			// convergence post-check
+			X myError(x.size());
+			myError.set_random(-1.0, 1.0);
+
+			bTmp.set(0.0);
+
+			this->write_debug(myError, "AMGDebugPre");
+			apply_return_defect(myError, bTmp);
+			this->write_debug(myError, "AMGDebugPost");
+			}
+#endif
+
+
 		//	return
 			return bRes;
 		}
@@ -174,10 +201,14 @@ class IPreconditionedLinearOperatorInverse
 	protected:
 	///	flag if fresh defect should be computed when finish for debug purpose
 		bool m_bRecompute;
-
 	///	Iterator used in the iterative scheme to compute the correction and update the defect
 		SmartPtr<ILinearIterator<X,X> > m_spPrecond;
 
+#ifdef DEBUG_FOR_AMG
+	public:
+		void set_debug_amg(int b) {m_amgDebug = b;}
+		int m_amgDebug;
+#endif
 };
 
 }
