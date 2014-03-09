@@ -88,6 +88,29 @@ inline double matTrace(const DenseMatrix<T1> &mat)
 	return tr;
 }
 
+inline double matDiagMax(const double d)
+{
+	return d;
+}
+
+template<typename T1>
+inline double matDiagMax(const DenseMatrix<T1> &mat)
+{
+	double val=0.0;
+	double max=0.0;
+	const size_t rk = (mat.num_rows() < mat.num_cols()) ? mat.num_rows() : mat.num_cols();
+	for (size_t k = 0; k<rk; k++)
+	{
+		double abs=fabs(mat(k, k));
+		if (abs>max) {
+			val = mat(k, k);
+			max = abs;
+		}
+	}
+	return val;
+}
+
+
 inline double Sum1Mat1(double d)
 {
 	return d;

@@ -886,6 +886,127 @@ class ComPol_VecSubtractOnlyOneSlave : public pcl::ICommunicationPolicy<IndexLay
 };
 
 
+
+/// Communication Policy sending fractions to
+/**
+ * This Communication policy assumes that the matrix is stored additively with
+ * no overlap. It then copies the row entries of the slaves indices to the
+ * corresponding master rows. Only those values are copied that have if the index
+ * the slave couples to has also a representation on the other process. This means
+ * that couplings to inner indices or to other slave/master, that have only
+ * connections to other processes, are not taken into account.
+ *
+ * \tparam TMatrix	matrix type
+ */
+template <class TAlgebra>
+class ComPol_MatDistributeDiag
+	: public pcl::ICommunicationPolicy<IndexLayout>
+{
+	public:
+
+	typedef typename TAlgebra::matrix_type TMatrix;
+	typedef typename TAlgebra::vector_type TVector;
+
+	///	Constructor setting the vector
+	/**
+	 * vGlobalID must have size >= mat.num_rows()
+	 */
+	ComPol_MatDistributeDiag(TMatrix& rMat, TVector &rWeight, double theta=1.0)
+			: m_rMat(rMat), m_rWeight(rWeight), m_dTheta(theta)
+		{
+			UG_ASSERT( m_rMat.num_rows()==m_rWeight.size(), "sizes should match");
+		}
+
+	/// returns the buffer size
+		/**
+		 * This function returns the size of the buffer needed for the communication
+		 * of passed interface. If the vector has fixed size entries this is just
+		 * the number of interface entries times the size of the entry. In case
+		 * of a variable size entry type a negative value is returned to indicate
+		 * that no buffer size can be determined in advanced.
+		 *
+		 * \param[in]	interface	Interface that will communicate
+		 */
+		virtual int
+		get_required_buffer_size(const Interface& interface)
+			{
+				if(block_traits<typename TMatrix::value_type>::is_static)
+					return interface.size() * sizeof(typename TMatrix::value_type);
+				else
+					return -1;
+			}
+
+
+	///	writes the interface values into a buffer that will be sent
+		virtual bool collect(ug::BinaryBuffer& buff, const Interface& interface)
+		{
+			PROFILE_BEGIN_GROUP(CMatDistributeDiag_collect, "algebra parallelization");
+			typedef typename TMatrix::row_iterator row_iterator;
+			typedef typename TMatrix::value_type block_type;
+
+		//	loop interface
+			for(typename Interface::const_iterator iter = interface.begin();
+				iter != interface.end(); ++iter)
+			{
+			//	get index
+				const size_t index = interface.get_element(iter);
+				block_type& a_ii = m_rMat(index, index);
+
+				block_type out_ii = a_ii;
+				out_ii = out_ii * (1.0/BlockRef(m_rWeight[index], 0));
+				//	write diagonal entry to stream
+				Serialize(buff, out_ii);
+
+			//	std::cerr << "Sending(" << index << ")=" << out_ii <<  " "<< BlockRef(m_rWeight[index], 0) << std::endl;
+				// store average
+				a_ii = out_ii;
+			}
+
+		///	done
+			return true;
+		}
+
+		virtual bool
+		begin_layout_extraction(const Layout* pLayout)
+		{ return true; }
+
+	///	writes values from a buffer into the interface
+		virtual bool extract(ug::BinaryBuffer& buff, const Interface& interface)
+		{
+			PROFILE_BEGIN_GROUP(MatDistributeDiag_extract, "algebra parallelization");
+		//	block type of associated matrix
+			typedef typename TMatrix::value_type block_type;
+
+			block_type in_ii;
+
+		//	loop interface
+			for(typename Interface::const_iterator iter = interface.begin();
+				iter != interface.end(); ++iter)
+			{
+				//	get index
+				const size_t index = interface.get_element(iter);
+
+				//	read incoming diagonal
+				Deserialize(buff, in_ii);
+
+				// set matrix entry
+			//	std::cerr << "Recv'd(" << index << ")=" << in_ii << std::endl;
+				m_rMat(index, index) += in_ii;
+			}
+
+		///	done
+			return true;
+		}
+
+	private:
+	//	pointer to current vector
+		TMatrix& m_rMat;
+		TVector& m_rWeight;
+		double m_dTheta;
+
+
+};
+
 /// Communication Policy to copy slave couplings to master row
 /**
  * This Communication policy assumes that the matrix is stored additively with
