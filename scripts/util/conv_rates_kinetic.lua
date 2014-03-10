@@ -79,96 +79,96 @@ function util.rates.kinetic.computeForSpace(dom, maxLev, minLev, discType, p,
 													CreateApproxSpace, CreateDomainDisc, CreateSolver,
 									 				plotPath, solPath, dataPath, bLinear)
 
-print("\n")
-print("---------------------------")
-print(" General parameters chosen:")
-print("---------------------------")
-print("    dim        = " .. dim)
-print("    grid       = " .. gridName)
-print("    maxLev     = " .. maxLev)
-print("    minLev     = " .. minLev)
-print("    dtmin      = " .. dtmin)
-print("    dtmax      = " .. dtmax)
-print("    dtred      = " .. dtred)
-print("    timeScheme = " .. timeScheme)
-print("    order      = " .. orderOrTheta)
-print("    startTime  = " .. startTime)
-print("    endTime    = " .. endTime)
-print("    type       = " .. discType)
-print("    order      = " .. p)
-print("\n")
-
--- create Approximation Space
-print(">> Create ApproximationSpace: "..discType..", "..p)
-local approxSpace = CreateApproxSpace(dom, discType, p)
-
-print(">> Create Domain Disc: "..discType..", "..p)
-local domainDisc = CreateDomainDisc(approxSpace, discType, p)
-
-print(">> Create Solver")
-local solver = CreateSolver(approxSpace)
-
---------------------------------------------------------------------------------
---  Apply Solver
---------------------------------------------------------------------------------
-
-local l2exact = {}
-local l2diff = {}
-local h1exact = {}
-local h1diff = {}
-local numDoFs = {}
-local dts = {}
-
-local kmax = 0
-local dt = dtmax
-while dt >= dtmin do
-	kmax = kmax + 1
-	dt = dt*dtred
-end
-
-local uMostAccurate = nil;
-for lev = maxLev, minLev, -1 do
-	l2exact[lev] = {}
-	l2diff[lev] = {}
-	h1exact[lev] = {}
-	h1diff[lev] = {}
-
-	for k = kmax, 1, -1 do
-		local dt = dtmax * (dtred^(k-1))
-		dts[k] = dt
-
-		u = GridFunction(approxSpace, lev)
-		Interpolate(exactSol, u, "c", startTime)
-		write("\n>> Algebra created.\n")
-		
-		if bLinear == true then
-			util.SolveLinearTimeProblem(u, domainDisc, solver, nil, nil,
-										timeScheme, orderOrTheta, startTime, endTime, dt);
-		else
-			util.SolveNonlinearTimeProblem(u, domainDisc, solver, nil, nil,
+	print("\n")
+	print("---------------------------")
+	print(" General parameters chosen:")
+	print("---------------------------")
+	print("    dim        = " .. dim)
+	print("    grid       = " .. gridName)
+	print("    maxLev     = " .. maxLev)
+	print("    minLev     = " .. minLev)
+	print("    dtmin      = " .. dtmin)
+	print("    dtmax      = " .. dtmax)
+	print("    dtred      = " .. dtred)
+	print("    timeScheme = " .. timeScheme)
+	print("    order      = " .. orderOrTheta)
+	print("    startTime  = " .. startTime)
+	print("    endTime    = " .. endTime)
+	print("    type       = " .. discType)
+	print("    order      = " .. p)
+	print("\n")
+	
+	-- create Approximation Space
+	print(">> Create ApproximationSpace: "..discType..", "..p)
+	local approxSpace = CreateApproxSpace(dom, discType, p)
+	
+	print(">> Create Domain Disc: "..discType..", "..p)
+	local domainDisc = CreateDomainDisc(approxSpace, discType, p)
+	
+	print(">> Create Solver")
+	local solver = CreateSolver(approxSpace)
+	
+	--------------------------------------------------------------------------------
+	--  Apply Solver
+	--------------------------------------------------------------------------------
+	
+	local l2exact = {}
+	local l2diff = {}
+	local h1exact = {}
+	local h1diff = {}
+	local numDoFs = {}
+	local dts = {}
+	
+	local kmax = 0
+	local dt = dtmax
+	while dt >= dtmin do
+		kmax = kmax + 1
+		dt = dt*dtred
+	end
+	
+	local uMostAccurate = nil;
+	for lev = maxLev, minLev, -1 do
+		l2exact[lev] = {}
+		l2diff[lev] = {}
+		h1exact[lev] = {}
+		h1diff[lev] = {}
+	
+		for k = kmax, 1, -1 do
+			local dt = dtmax * (dtred^(k-1))
+			dts[k] = dt
+	
+			u = GridFunction(approxSpace, lev)
+			Interpolate(exactSol, u, "c", startTime)
+			write("\n>> Algebra created.\n")
+			
+			if bLinear == true then
+				util.SolveLinearTimeProblem(u, domainDisc, solver, nil, nil,
 											timeScheme, orderOrTheta, startTime, endTime, dt);
-		end
-		
-		if lev == maxLev and k == kmax then
-			uMostAccurate = u:clone();
-		end			
-		
-		-- compute error
-		quadOrder = p+3
-		l2exact[lev][k] = L2Error(exactSol, u, "c", endTime, quadOrder)
-		l2diff[lev][k] = L2Error(uMostAccurate, "c", u, "c", quadOrder)
-		h1exact[lev][k] = H1Error(exactSol, exactGrad, u, "c", endTime, quadOrder)
-		h1diff[lev][k] = H1Error(uMostAccurate, "c", u, "c", quadOrder)
-		numDoFs[lev] = u:size()
-		write(">> L2-Error on Level "..lev..", dt: "..dt.." is "..string.format("%.3e", l2exact[lev][k]) .."\n");
-		write(">> L2-Diff  on Level "..lev..", dt: "..dt.." is "..string.format("%.3e", l2diff[lev][k]) .."\n");
-		write(">> H1-Error on Level "..lev..", dt: "..dt.." is "..string.format("%.3e", h1exact[lev][k]) .."\n");
-		write(">> H1-Diff  on Level "..lev..", dt: "..dt.." is "..string.format("%.3e", h1diff[lev][k]) .."\n");
-		write(">> #DoF     on Level "..lev.." is "..numDoFs[lev] .."\n");
-	end	
-end
-
-return l2exact, l2diff, h1exact, h1diff, numDoFs, dts
+			else
+				util.SolveNonlinearTimeProblem(u, domainDisc, solver, nil, nil,
+												timeScheme, orderOrTheta, startTime, endTime, dt);
+			end
+			
+			if lev == maxLev and k == kmax then
+				uMostAccurate = u:clone();
+			end			
+			
+			-- compute error
+			quadOrder = p+3
+			l2exact[lev][k] = L2Error(exactSol, u, "c", endTime, quadOrder)
+			l2diff[lev][k] = L2Error(uMostAccurate, "c", u, "c", quadOrder)
+			h1exact[lev][k] = H1Error(exactSol, exactGrad, u, "c", endTime, quadOrder)
+			h1diff[lev][k] = H1Error(uMostAccurate, "c", u, "c", quadOrder)
+			numDoFs[lev] = u:size()
+			write(">> L2-Error on Level "..lev..", dt: "..dt.." is "..string.format("%.3e", l2exact[lev][k]) .."\n");
+			write(">> L2-Diff  on Level "..lev..", dt: "..dt.." is "..string.format("%.3e", l2diff[lev][k]) .."\n");
+			write(">> H1-Error on Level "..lev..", dt: "..dt.." is "..string.format("%.3e", h1exact[lev][k]) .."\n");
+			write(">> H1-Diff  on Level "..lev..", dt: "..dt.." is "..string.format("%.3e", h1diff[lev][k]) .."\n");
+			write(">> #DoF     on Level "..lev.." is "..numDoFs[lev] .."\n");
+		end	
+	end
+	
+	return l2exact, l2diff, h1exact, h1diff, numDoFs, dts
 end
 
 
@@ -207,20 +207,72 @@ function util.rates.kinetic.computeRate(data, min, max, base, style, levOrK)
 	return cpyData, rate
 end
 
-function util.rates.kinetic.compute(dom, CreateApproxSpace, CreateDomainDisc, CreateSolver, DiscTypes, bLinear)
+function util.rates.kinetic.compute(ConvRateSetup)
+
+	-- check passed param
+	local CRS
+	if ConvRateSetup == nil then print("No setup passed."); exit()		
+	else CRS = ConvRateSetup end
 	
 	-- create directories
-	plotPath = "plots/"
-	solPath  = "sol/"
-	dataPath = "data/"
-	os.execute("mkdir " .. dataPath)
-	os.execute("mkdir " .. plotPath)
-	os.execute("mkdir " .. solPath)
+	local plotPath = CRS.plotPath or "plots/"
+	local solPath  = CRS.solPath  or "sol/"
+	local dataPath = CRS.dataPath or "data/"
+
+	local gpOptions = CRS.gpOptions or
+	{	
+		grid = true, 
+		logscale = true,
+		mtics = true
+	 }
+
+	-- check for methods
+	local CreateApproxSpace = 	CRS.CreateApproxSpace
+	local CreateDomainDisc = 	CRS.CreateDomainDisc
+	local CreateSolver = 		CRS.CreateSolver
+	local CreateDomain = 		CRS.CreateDomain
+	
+	if 	CreateApproxSpace == nil or CreateDomainDisc == nil or 
+		CreateSolver == nil or CreateDomain == nil then
+		print("You must pass: CreateApproxSpace, CreateDomainDisc, CreateSolver, CreateDomain")
+		exit()
+	end
+	
+	local DiscTypes = CRS.DiscTypes
+
+	local maxlevel = CRS.maxlevel; 		if maxlevel == nil then maxlevel = true end
+	local prevlevel = CRS.prevlevel; 	if prevlevel == nil then prevlevel = true end
+	local exact = CRS.exact; 			if exact == nil then exact = true end
+	local interpol = CRS.interpol; 		if interpol == nil then interpol = true end
+	local plotSol = CRS.plotSol; 		if plotSol == nil then plotSol = false end
+
+	local exactSol = CRS.ExactSol 
+ 	local exactGrad = CRS.ExactGrad 
+	local PlotCmps = CRS.PlotCmps
+	
+	local MeasLabel = CRS.MeasLabel or util.rates.kinetic.StdLabel.MeasLatexP
+	local XLabel = 	  CRS.XLabel 	or util.rates.kinetic.StdLabel.XLatex
+	local YLabel = 	  CRS.YLabel 	or util.rates.kinetic.StdLabel.YLatex
+	
+	local bLinear = CRS.bLinear or true
+	
+	--------------------------------------------------------------------
+	--  Loop Discs
+	--------------------------------------------------------------------
+
+	local function ensureDir(name)
+		if not(DirectoryExists(name)) then CreateDirectory(name) end
+	end
+	
+	if plotSol then ensureDir(solPath) end
 
 	-- compute element size	
+	local dom = CreateDomain()
 	local numRefs = dom:grid():num_levels() - 1;
-	local exactSol		= DiscTypes.ExactSol
-	local exactGrad		= DiscTypes.ExactGrad
+	
+	-- to store measurement
+	local gpData = {};
+	local errors = {};
 
 	-- compute problem
 	for type = 1,#DiscTypes do
