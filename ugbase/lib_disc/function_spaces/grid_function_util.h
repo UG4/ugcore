@@ -129,6 +129,7 @@ void AdjustMeanValue(SmartPtr<TGridFunction> spGF, const std::string& fcts, numb
 template<typename TDomain>
 void WriteAlgebraIndices(std::string name, ConstSmartPtr<TDomain> domain,  ConstSmartPtr<DoFDistribution> dd)
 {
+	PROFILE_FUNC_GROUP("debug");
 /*
 	std::vector<size_t> fctIndex;
 	std::vector<std::string> fctNames;
@@ -158,7 +159,7 @@ void WriteMatrixToConnectionViewer(const char *filename,
 		const typename TFunction::algebra_type::matrix_type &A,
 		const TFunction &u) {
 
-	PROFILE_FUNC();
+	PROFILE_FUNC_GROUP("debug");
 //	check name
 	if ( !FileTypeIs( filename, ".mat") ) {
 		UG_THROW( "Only '.mat' format supported for matrices, but"
@@ -186,7 +187,7 @@ void SaveMatrixForConnectionViewer(
 		MatrixOperator<typename TGridFunction::algebra_type::matrix_type,
 				typename TGridFunction::vector_type>& A,
 		const char* filename) {
-	PROFILE_FUNC();
+	PROFILE_FUNC_GROUP("debug");
 //	forward
 	WriteMatrixToConnectionViewer(filename, A.get_matrix(), u);
 }
@@ -204,7 +205,7 @@ void SaveMatrixForConnectionViewer(
 inline void SaveMatrixToMTX( const char *filename,
 		MatrixOperator< CPUAlgebra::matrix_type, CPUAlgebra::vector_type >& A,
 		std::string comment="%Generated with ug4." ) {
-	PROFILE_FUNC();
+	PROFILE_FUNC_GROUP("debug");
 
 	// check name
 	if ( !FileTypeIs( filename, ".mtx" ) ) {
@@ -225,7 +226,7 @@ void WriteVectorToConnectionViewer(const char *filename,
 		const typename TFunction::algebra_type::vector_type &b,
 		const TFunction &u,
 		const typename TFunction::algebra_type::vector_type *pCompareVec = NULL) {
-	PROFILE_FUNC();
+	PROFILE_FUNC_GROUP("debug");
 //	check name
 	if ( !FileTypeIs( filename, ".vec") ) {
 		UG_THROW( "Only '.vec' format supported for vectors, but"
@@ -248,7 +249,7 @@ void WriteVectorToConnectionViewer(
 		const typename TFunction::algebra_type::vector_type &b,
 		const TFunction &u,
 		const typename TFunction::algebra_type::vector_type *pCompareVec = NULL) {
-	PROFILE_FUNC();
+	PROFILE_FUNC_GROUP("debug");
 //	get dimension
 	const static int dim = TFunction::domain_type::dim;
 
@@ -267,13 +268,11 @@ void WriteVectorToConnectionViewer(
 
 template<typename TGridFunction>
 void SaveVectorForConnectionViewer(TGridFunction& b, const char* filename) {
-	PROFILE_FUNC();
 	WriteVectorToConnectionViewer(filename, b, b);
 }
 
 template<typename TGridFunction>
 void SaveVectorDiffForConnectionViewer(TGridFunction& b, TGridFunction& bCompare, const char* filename) {
-	PROFILE_FUNC();
 	WriteVectorToConnectionViewer(filename, b, b, &bCompare);
 }
 
@@ -283,7 +282,6 @@ void SaveVectorForConnectionViewer(
 		MatrixOperator<typename TGridFunction::algebra_type::matrix_type,
 				typename TGridFunction::vector_type>& A,
 		const char* filename) {
-	PROFILE_FUNC();
 	WriteVectorToConnectionViewer(filename, A.get_matrix(), u, u);
 }
 
@@ -295,7 +293,6 @@ void SaveVectorDiffForConnectionViewer(
 				typename TGridFunction::vector_type>& A,
 		const char* filename) {
 //	forward
-	PROFILE_FUNC();
 	WriteVectorToConnectionViewer(filename, A.get_matrix(), u, u, &compareVec);
 }
 
@@ -373,7 +370,7 @@ template<class TFunction>
 void WriteVectorCSV(const char *filename,
 		const typename TFunction::algebra_type::vector_type &b,
 		const TFunction &u) {
-	PROFILE_FUNC();
+	PROFILE_FUNC_GROUP("debug");
 //	get dimension
 	const static int dim = TFunction::domain_type::dim;
 
@@ -427,6 +424,7 @@ number AverageFunctionDifference(
 		SmartPtr< GridFunction<TDomain, TAlgebra> > spGridFct,
 		std::string subset, std::string fct1, std::string fct2 )
 {
+	PROFILE_FUNC();
 	// get subset index
 	size_t subSetID = spGridFct->subset_id_by_name( subset.c_str() );
 
@@ -540,6 +538,7 @@ public:
 
 	///	write matrix
 	virtual void write_matrix(const matrix_type& mat, const char* filename) {
+		PROFILE_FUNC_GROUP("debug");
 		//	something to do ?
 		if (!bConnViewerOut)
 			return;
@@ -619,6 +618,7 @@ protected:
 	virtual void write_vector_to_conn_viewer(const vector_type& vec,
 			const char* filename)
 	{
+		PROFILE_FUNC_GROUP("debug");
 		update_positions();
 
 		std::string name(m_baseDir); name.append("/").append(filename);
@@ -646,6 +646,7 @@ protected:
 	}
 
 	void write_vector_to_vtk(const vector_type& vec, const char* filename) {
+		PROFILE_FUNC_GROUP("debug");
 		//	check name
 		std::string name(m_baseDir); name.append("/").append(filename);
 
@@ -745,6 +746,7 @@ public:
 	 }*/
 
 	virtual bool update(vector_type &vec) {
+		PROFILE_FUNC_GROUP("debug");
 		UG_ASSERT(m_pGridFunc != NULL,
 				"provide a grid function with set_reference_grid_function");
 		UG_ASSERT(m_userData.valid(), "provide user data with set_user_data");
@@ -838,6 +840,7 @@ public:
 	 }*/
 
 	virtual bool update(vector_type &vec) {
+		PROFILE_FUNC_GROUP("debug");
 		UG_ASSERT(m_spPostProcess.valid(), "provide a post process with init");
 		UG_ASSERT(m_pApproxSpace != NULL, "provide approximation space init");
 
