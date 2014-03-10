@@ -1,4 +1,79 @@
-function util.computeKineticConvRatesForSpace(dom, maxLev, minLev, discType, p, 
+util = util or {}
+util.rates = util.rates or {}
+util.rates.kinetic = util.rates.kinetic or {}
+
+ug_load_script("util/persistence.lua")
+
+--------------------------------------------------------------------------------
+-- Std Functions (used as defaults)
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- Label names
+--------------------------------------------------------------------------------
+	
+util.rates.kinetic.StdLabel = util.rates.kinetic.StdLabel or {}
+	
+function util.rates.kinetic.StdLabel.MeasLatexP(disc, p)
+	return disc.." $\\mathbb{P}_{"..p.."}$"
+end
+
+function util.rates.kinetic.StdLabel.MeasLatexQ(disc, p)
+	return disc.." $\\mathbb{Q}_{"..p.."}$"
+end
+
+function util.rates.kinetic.StdLabel.XLatex(x)
+	local gpXLabel ={ DoFs = "Anzahl Unbekannte",	h = "h (Gitterweite)"}
+	return gpXLabel[x]
+end
+
+function util.rates.kinetic.StdLabel.YLatex(f, t, n)
+	local gpType = {	["l-exact"] = 	"{}",		
+						["l-lmax"] = 	"h_{\text{min}}",
+						["l-prev"] = 	"{h/2}",
+					}
+	local gpNorm = 	{ l2 = "L_2",	h1 = "H^1"}
+	
+	if t == "interpol" then
+		return "$\\norm{\\mathcal{I}_h("..f..") - "..f.."}_{"..gpNorm[n].."}$"
+	else
+		return "$\\norm{"..f.."_h - "..f.."_{"..gpType[t].."} }_{ "..gpNorm[n].."}$"
+	end
+end
+
+function util.rates.kinetic.StdLabel.MeasPdfP(disc, p)
+	return disc.." $P_"..p.."$"
+end
+
+function util.rates.kinetic.StdLabel.MeasPdfQ(disc, p)
+	return disc.." $Q_"..p.."$"
+end
+
+function util.rates.kinetic.StdLabel.XPdf(x)
+	local gpXLabel ={ DoFs = "Anzahl Unbekannte",	h = "h (Gitterweite)"}
+	return gpXLabel[x]
+end
+
+function util.rates.kinetic.StdLabel.YPdf(f, t, n)
+	local gpType = {	["l-exact"] = 	"{}",		
+						["l-lmax"] = 	"h_{\text{min}}",
+						["l-prev"] = 	"{h/2}",
+					}
+	local gpNorm = 	{ l2 = "L_2",	h1 = "H^1"}
+	
+	if t == "interpol" then
+		return "$|| I_h("..f..") - "..f.." ||_{"..gpNorm[n].."}$"
+	else
+		return "$|| "..f.."_h - "..f.."_{"..gpType[t].."} ||_{"..gpNorm[n].."}$"
+	end
+end
+
+--------------------------------------------------------------------------------
+-- util.rates.kinetic.compute (main-function)
+--------------------------------------------------------------------------------
+
+
+function util.rates.kinetic.computeForSpace(dom, maxLev, minLev, discType, p, 
 													timeScheme, orderOrTheta, startTime, endTime,
 													dtmin, dtmax, dtred, exactSol, exactGrad,
 													CreateApproxSpace, CreateDomainDisc, CreateSolver,
@@ -97,7 +172,7 @@ return l2exact, l2diff, h1exact, h1diff, numDoFs, dts
 end
 
 
-function util.computeRate(data, min, max, base, style, levOrK)
+function util.rates.kinetic.computeRate(data, min, max, base, style, levOrK)
 
 	local fac = {}
 	local rate = {}
@@ -132,7 +207,7 @@ function util.computeRate(data, min, max, base, style, levOrK)
 	return cpyData, rate
 end
 
-function util.computeKineticConvRates(dom, CreateApproxSpace, CreateDomainDisc, CreateSolver, DiscTypes, bLinear)
+function util.rates.kinetic.compute(dom, CreateApproxSpace, CreateDomainDisc, CreateSolver, DiscTypes, bLinear)
 	
 	-- create directories
 	plotPath = "plots/"
@@ -210,7 +285,7 @@ function util.computeKineticConvRates(dom, CreateApproxSpace, CreateDomainDisc, 
 			end
 			
 			local l2exact, l2diff, h1exact, h1diff, numDoFs, dts
-				 = util.computeKineticConvRatesForSpace(
+				 = util.rates.kinetic.computeForSpace(
 				 		dom, maxLev, minLev, discType, p, 
 				 		timeScheme, orderOrTheta, startTime, endTime,
 				 		dtmin, dtmax, dtred, exactSol, exactGrad,
@@ -219,10 +294,10 @@ function util.computeKineticConvRates(dom, CreateApproxSpace, CreateDomainDisc, 
 				 		
 			-- write: for each time step size show convergence in space, keeping time step constant
 			for k = 1, #dts do
-				local l2ex, l2exactrate = util.computeRate(l2exact, minLev, maxLev, 2, "L", k)
-				local h1ex, h1exactrate = util.computeRate(h1exact, minLev, maxLev, 2, "L", k)
-				local l2di, l2diffrate =  util.computeRate(l2diff,  minLev, maxLev, 2, "L", k)
-				local h1di, h1diffrate =  util.computeRate(h1diff,  minLev, maxLev, 2, "L", k)
+				local l2ex, l2exactrate = util.rates.kinetic.computeRate(l2exact, minLev, maxLev, 2, "L", k)
+				local h1ex, h1exactrate = util.rates.kinetic.computeRate(h1exact, minLev, maxLev, 2, "L", k)
+				local l2di, l2diffrate =  util.rates.kinetic.computeRate(l2diff,  minLev, maxLev, 2, "L", k)
+				local h1di, h1diffrate =  util.rates.kinetic.computeRate(h1diff,  minLev, maxLev, 2, "L", k)
 				local level = {}; for lev = minLev, maxLev do level[lev] = lev end
 				local dtout = {}; for lev = minLev, maxLev do dtout[lev] = dts[k] end
 				
@@ -247,10 +322,10 @@ function util.computeKineticConvRates(dom, CreateApproxSpace, CreateDomainDisc, 
 
 			-- write: for each grid size show convergence in time, keeping grid size constant
 			for lev = minLev, maxLev do
-				local l2ex, l2exactrate = util.computeRate(l2exact, 1, #dts, 1/dtred, "dt", lev)
-				local h1ex, h1exactrate = util.computeRate(h1exact, 1, #dts, 1/dtred, "dt", lev)
-				local l2di, l2diffrate =  util.computeRate(l2diff,  1, #dts, 1/dtred, "dt", lev)
-				local h1di, h1diffrate =  util.computeRate(h1diff,  1, #dts, 1/dtred, "dt", lev)
+				local l2ex, l2exactrate = util.rates.kinetic.computeRate(l2exact, 1, #dts, 1/dtred, "dt", lev)
+				local h1ex, h1exactrate = util.rates.kinetic.computeRate(h1exact, 1, #dts, 1/dtred, "dt", lev)
+				local l2di, l2diffrate =  util.rates.kinetic.computeRate(l2diff,  1, #dts, 1/dtred, "dt", lev)
+				local h1di, h1diffrate =  util.rates.kinetic.computeRate(h1diff,  1, #dts, 1/dtred, "dt", lev)
 				local numDoFsout = {}; for k = 1, #dts do numDoFsout[k] = numDoFs[lev] end
 				local level = {}; for k = 1, #dts do level[k] = lev end
 				local hout  = {}; for k = 1, #dts do hout[k] = h[lev] end
@@ -298,12 +373,4 @@ function util.computeKineticConvRates(dom, CreateApproxSpace, CreateDomainDisc, 
 		gnuplot.plot(plotPath..discType.."_h1.pdf", h1_plotdata, {grid = true, logscale = true, label = {x = "#DoF", y = "dt"}})
 		
 	end
-end
-
-function util.computeLinearKineticConvRates(dom, CreateApproxSpace, CreateDomainDisc, CreateSolver, DiscTypes)
-	util.computeKineticConvRates(dom, CreateApproxSpace, CreateDomainDisc, CreateSolver, DiscTypes, true)
-end
-
-function util.computeNonlinearKineticConvRates(dom, CreateApproxSpace, CreateDomainDisc, CreateSolver, DiscTypes)
-	util.computeKineticConvRates(dom, CreateApproxSpace, CreateDomainDisc, CreateSolver, DiscTypes, false)
 end
