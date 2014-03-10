@@ -7,6 +7,7 @@
 
 #include <cassert>
 #include <algorithm>
+#include <limits>
 #include "common/error.h"
 #include "hash.h"
 
@@ -16,7 +17,7 @@ template <class TKey, class TValue>
 Hash<TKey, TValue>::
 Hash() :
 	m_numEntries(0),
-	m_firstUnusedEntry(s_invalidIndex)
+	m_firstUnusedEntry(invalid_index())
 {
 	resize_hash(1);
 }
@@ -26,7 +27,7 @@ template <class TKey, class TValue>
 Hash<TKey, TValue>::
 Hash(size_t hashSize) :
 	m_numEntries(0),
-	m_firstUnusedEntry(s_invalidIndex)
+	m_firstUnusedEntry(invalid_index())
 {
 	resize_hash(hashSize);
 }
@@ -45,16 +46,16 @@ resize_hash(size_t size)
 	using namespace std;
 	vector<pair<size_t, size_t> > newHashList;
 	newHashList.resize(max<size_t>(1, size),
-					   pair<size_t, size_t>(s_invalidIndex, s_invalidIndex));
+					   pair<size_t, size_t>(invalid_index(), invalid_index()));
 
 	if(m_numEntries > 0){
 		for(size_t i = 0; i < m_hashList.size(); ++i){
 			size_t curInd = m_hashList[i].first;
-			while(curInd != s_invalidIndex){
+			while(curInd != invalid_index()){
 				Entry& e = m_entries[curInd];
 				size_t hi = hash_key(e.key) % size;
 
-				if(newHashList[hi].first == s_invalidIndex)
+				if(newHashList[hi].first == invalid_index())
 					newHashList[hi].first = newHashList[hi].second = curInd;
 				else{
 					m_entries[newHashList[hi].second].next = curInd;
@@ -62,7 +63,7 @@ resize_hash(size_t size)
 				}
 
 				curInd = e.next;
-				e.next = s_invalidIndex;
+				e.next = invalid_index();
 			}
 		}
 	}
@@ -102,9 +103,9 @@ clear()
 	using namespace std;
 	m_entries.clear();
 	m_numEntries = 0;
-	m_firstUnusedEntry = s_invalidIndex;
+	m_firstUnusedEntry = invalid_index();
 	m_hashList.assign(m_hashList.size(),
-					  make_pair<size_t, size_t>(s_invalidIndex, s_invalidIndex));
+					  make_pair<size_t, size_t>(invalid_index(), invalid_index()));
 }
 
 
@@ -120,7 +121,7 @@ template <class TKey, class TValue>
 bool Hash<TKey, TValue>::
 has_entry(const key_t& key) const
 {
-	return find_entry(key) != s_invalidIndex;
+	return find_entry(key) != invalid_index();
 }
 
 
@@ -129,9 +130,9 @@ TValue& Hash<TKey, TValue>::
 get_entry(const key_t& key)
 {
 	size_t eind = find_entry(key);
-	assert((eind != s_invalidIndex) && "No such entry. Check existance with has_entry first!");
+	assert((eind != invalid_index()) && "No such entry. Check existance with has_entry first!");
 
-	if(eind == s_invalidIndex){
+	if(eind == invalid_index()){
 		UG_THROW("No entry exists for the specified key. Please call 'has_entry' first"
 				" or use the alternate version of 'get_entry', which returns a bool.");
 	}
@@ -144,9 +145,9 @@ const TValue& Hash<TKey, TValue>::
 get_entry(const key_t& key) const
 {
 	size_t eind = find_entry(key);
-	assert((eind != s_invalidIndex) && "No such entry. Check existance with has_entry first!");
+	assert((eind != invalid_index()) && "No such entry. Check existance with has_entry first!");
 
-	if(eind == s_invalidIndex){
+	if(eind == invalid_index()){
 		UG_THROW("No entry exists for the specified key. Please call 'has_entry' first"
 				" or use the alternate version of 'get_entry', which returns a bool.");
 	}
@@ -159,7 +160,7 @@ get_entry(TValue& valOut, const key_t& key) const
 {
 	size_t eind = find_entry(key);
 
-	if(eind == s_invalidIndex)
+	if(eind == invalid_index())
 		return false;
 
 	valOut = m_entries[eind].value;
@@ -172,7 +173,7 @@ void Hash<TKey, TValue>::
 insert(const key_t& key, const value_t& val)
 {
 	size_t eind = m_firstUnusedEntry;
-	if(eind == s_invalidIndex){
+	if(eind == invalid_index()){
 		eind = m_entries.size();
 		m_entries.push_back(Entry(key, val));
 	}
@@ -183,7 +184,7 @@ insert(const key_t& key, const value_t& val)
 
 	size_t hi = hash_index(key);
 
-	if(m_hashList[hi].first == s_invalidIndex){
+	if(m_hashList[hi].first == invalid_index()){
 		m_hashList[hi].first = m_hashList[hi].second = eind;
 	}
 	else{
@@ -200,27 +201,27 @@ void Hash<TKey, TValue>::
 erase(const key_t& key)
 {
 	size_t hi = hash_index(key);
-	size_t prevInd = s_invalidIndex;
+	size_t prevInd = invalid_index();
 	size_t curInd = m_hashList[hi].first;
-	while(curInd != s_invalidIndex){
+	while(curInd != invalid_index()){
 		if(m_entries[curInd].key == key)
 			break;
 		prevInd = curInd;
 		curInd = m_entries[curInd].next;
 	}
 
-	if(curInd != s_invalidIndex){
+	if(curInd != invalid_index()){
 	//	if curInd was the first entry for this hash-index, we have to adjust
 	//	the beginning of the sequence. If not, we have to adjust the next pointer
 	//	of the previous entry.
-		if(prevInd == s_invalidIndex)
+		if(prevInd == invalid_index())
 			m_hashList[hi].first = m_entries[curInd].next;
 		else
 			m_entries[prevInd].next = m_entries[curInd].next;
 
 	//	if curInd was the last entry for this hash-index, we have to adjust
 	//	the end of the sequence.
-		if(m_entries[curInd].next == s_invalidIndex)
+		if(m_entries[curInd].next == invalid_index())
 			m_hashList[hi].second = prevInd;
 	}
 
@@ -245,7 +246,7 @@ template <class TKey, class TValue>
 typename Hash<TKey, TValue>::iterator Hash<TKey, TValue>::
 end(const key_t& key)
 {
-	return iterator(key, NULL, s_invalidIndex);
+	return iterator(key, NULL, invalid_index());
 }
 
 template <class TKey, class TValue>
@@ -261,12 +262,12 @@ find_entry(const key_t& key) const
 {
 	size_t hi = hash_index(key);
 	size_t curInd = m_hashList[hi].first;
-	while(curInd != s_invalidIndex){
+	while(curInd != invalid_index()){
 		if(m_entries[curInd].key == key)
 			return curInd;
 		curInd = m_entries[curInd].next;
 	}
-	return s_invalidIndex;
+	return invalid_index();
 }
 
 }// end of namespace

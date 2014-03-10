@@ -73,6 +73,7 @@ class Hash
 	private:
 		size_t hash_index(const key_t& key) const;
 		size_t find_entry(const key_t& key) const;
+		inline size_t invalid_index() const	{return -1;}
 
 		struct Entry{
 			key_t	key;
@@ -81,12 +82,9 @@ class Hash
 
 			Entry()	{}
 			Entry(const key_t& k, const value_t& v) :
-				key(k), value(v), next(s_invalidIndex)
+				key(k), value(v), next(-1)
 			{}
 		};
-
-	///	marks an index as invalid
-		static const size_t s_invalidIndex = -1;
 
 		std::vector<Entry>	m_entries;
 		size_t				m_numEntries;
