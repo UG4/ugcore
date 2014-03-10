@@ -103,6 +103,10 @@ static void Algebra(Registry& reg, string grp)
 		.add_method("set_random|hide=true", (void (vector_type::*)(number, number))&vector_type::set_random,
 								"Success", "Number")
 		.add_method("print|hide=true", &vector_type::p)
+#ifdef UG_PARALLEL
+		.add_method("check_storage_type", &vector_type::check_storage_type)
+		.add_method("enforce_consistent_type", &vector_type::enforce_consistent_type)
+#endif
 		.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "Vector", tag);
 

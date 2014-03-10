@@ -97,6 +97,12 @@ class ParallelVector : public TVector
 		uint get_storage_mask() const { return m_type; }
 		ParallelStorageType get_storage_type() const { return (ParallelStorageType) m_type; }
 
+	///	checks correctness of storage type
+		void check_storage_type() const;
+
+	///	sets storage type to consistent
+		void enforce_consistent_type();
+
 		//////////////////////////////////////////////////
 		// overwritten functions of sequential vector
 		//////////////////////////////////////////////////

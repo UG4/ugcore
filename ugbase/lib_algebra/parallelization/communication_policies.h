@@ -752,6 +752,95 @@ class ComPol_VecSubtract : public pcl::ICommunicationPolicy<IndexLayout>
 		TVector* m_pVec;
 };
 
+/// Communication Policy to check consistency of a vector
+template <class TVector>
+class ComPol_CheckConsistency : public pcl::ICommunicationPolicy<IndexLayout>
+{
+	public:
+	///	Default constructor
+		ComPol_CheckConsistency() : m_pVec(NULL)	{}
+
+	///	Constructor setting the values
+		ComPol_CheckConsistency(const TVector* pVec) : m_pVec(pVec)	{}
+
+	///	sets the vector used in communication
+		void set_vector(const TVector* pVec)	{m_pVec = pVec;}
+
+	/// returns the buffer size
+		virtual int
+		get_required_buffer_size(const Interface& interface)
+		{
+			if(block_traits<typename TVector::value_type>::is_static)
+				return interface.size() * sizeof(typename TVector::value_type);
+			else
+				return -1;
+		}
+
+	///	writes the interface values into a buffer that will be sent
+		virtual bool
+		collect(ug::BinaryBuffer& buff, const Interface& interface)
+		{
+			PROFILE_BEGIN_GROUP(ComPol_CheckConsistency_collect, "algebra parallelization");
+		//	check that vector has been set
+			if(m_pVec == NULL) return false;
+
+		//	rename for convenience
+			const TVector& v = *m_pVec;
+
+		//	loop interface
+			for(typename Interface::const_iterator iter = interface.begin();
+				iter != interface.end(); ++iter)
+			{
+			// get index
+				const size_t index = interface.get_element(iter);
+
+			// copy value
+				Serialize(buff, v[index]);
+			}
+			return true;
+		}
+
+	///	checks if recieved values are equal to process local values
+		virtual bool
+		extract(ug::BinaryBuffer& buff, const Interface& interface)
+		{
+			PROFILE_BEGIN_GROUP(ComPol_CheckConsistency_extract, "algebra parallelization");
+		//	check that vector has been set
+			if(m_pVec == NULL) return false;
+
+		//	rename for convenience
+			const TVector& v = *m_pVec;
+
+		// entry
+			typename TVector::value_type entry, diff;
+
+		//	loop interface
+			for(typename Interface::const_iterator iter = interface.begin();
+				iter != interface.end(); ++iter)
+			{
+			//	get index
+				const size_t index = interface.get_element(iter);
+
+			//	copy vector
+				Deserialize(buff, entry);
+
+				diff = v[index];
+				diff -= entry;
+
+			//	check
+				if(VecNormSquared(diff) > 1e-20 * VecNormSquared(entry)){
+					UG_LOG_ALL_PROCS("Slave and master value at index "<<index<<
+					                 " differ by: "<<VecNormSquared(diff)<<"\n");
+				}
+			}
+
+			return true;
+		}
+
+	private:
+		const TVector* m_pVec;
+};
+
 /// Communication Policy to subtract only one slave value per master of a vector
 /**
  * This class is used as a policy to subtract values on the interfaces of a

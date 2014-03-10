@@ -301,8 +301,75 @@ number ParallelVector<TVector>::dotprod(const this_type& v)
 	return tSumGlobal;
 }
 
+template <typename TVector>
+void ParallelVector<TVector>::check_storage_type() const
+{
 
+//	a) for unique: all slaves must be zero
+	if(this->has_storage_type(PST_UNIQUE)){
+	//	get slave layout
+		const IndexLayout& layout = layouts()->slave();
 
+	//	interface iterators
+		typename IndexLayout::const_iterator iter = layout.begin();
+		typename IndexLayout::const_iterator end = layout.end();
+
+	//	iterate over interfaces
+		for(; iter != end; ++iter)
+		{
+		//	get interface
+			const typename IndexLayout::Interface& interface = layout.interface(iter);
+
+		//	loop over indices
+			for(typename IndexLayout::Interface::const_iterator iter = interface.begin();
+					iter != interface.end(); ++iter)
+			{
+			//  get index
+				const size_t index = interface.get_element(iter);
+
+			//	set value of vector to zero
+				if(BlockNorm2((*this)[index]) != 0.0){
+					UG_LOG_ALL_PROCS("Unique vector at slave index "<<index<<
+					                 " has block norm: "<<BlockNorm2((*this)[index])<<"\n");
+				}
+			}
+		}
+	}
+
+//	c) for consistent: slave values must be equal to master values
+	if(this->has_storage_type(PST_CONSISTENT)){
+	//	create a new communicator if required.
+		pcl::InterfaceCommunicator<IndexLayout> com;
+
+	//	step 1: copy master values to slaves
+	//	create the required communication policies
+		ComPol_CheckConsistency<TVector> cpVecCheckConsistency(this);
+
+	//	perform communication
+		com.send_data(layouts()->slave(), cpVecCheckConsistency);
+		com.receive_data(layouts()->master(), cpVecCheckConsistency);
+		com.communicate();
+	}
+}
+
+template <typename TVector>
+void ParallelVector<TVector>::enforce_consistent_type()
+{
+	// try to change to unique
+	if(this->has_storage_type(PST_ADDITIVE)){
+		this->change_storage_type(PST_UNIQUE);
+	}
+
+	// if not unique -> make it unique
+	// at this point one may change the vector
+	if(!this->has_storage_type(PST_UNIQUE)){
+		SetLayoutValues(this, layouts()->slave(), 0.0);
+		this->set_storage_type(PST_UNIQUE);
+	}
+
+	// change to consistent
+	this->change_storage_type(PST_CONSISTENT);
+}
 
 // for template expressions
 // d = alpha*v1
@@ -335,7 +402,7 @@ inline void VecScaleAdd(ParallelVector<T>  &dest,
 {
 	PROFILE_FUNC_GROUP("algebra");
 	uint mask = v1.get_storage_mask() & v2.get_storage_mask();
-	UG_ASSERT(mask != 0, "VecScaleAdd: cannot add vectors v1 and v2");
+	UG_COND_THROW(mask == 0, "VecScaleAdd: cannot add vectors v1 and v2");
 	dest.set_storage_type(mask);
 
 	VecScaleAdd(*dynamic_cast<T*>(&dest), 	alpha1, *dynamic_cast<const T*>(&v1),
@@ -353,7 +420,7 @@ inline void VecScaleAdd(ParallelVector<T> &dest,
 	uint mask = 	v1.get_storage_mask() &
 			v2.get_storage_mask() &
 			v3.get_storage_mask();
-	UG_ASSERT(mask != 0, "VecScaleAdd: cannot add vectors v1 and v2");
+	UG_COND_THROW(mask == 0, "VecScaleAdd: cannot add vectors v1 and v2");
 	dest.set_storage_type(mask);
 
 	VecScaleAdd((T&)dest, alpha1, (const T&)v1, alpha2, (const T&)v2, alpha3, (const T&)v3);
