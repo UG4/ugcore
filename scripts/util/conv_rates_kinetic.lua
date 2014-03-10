@@ -144,8 +144,8 @@ function util.computeKineticConvRates(dom, CreateApproxSpace, CreateDomainDisc, 
 
 	-- compute element size	
 	local numRefs = dom:grid():num_levels() - 1;
-	local exactSol		= DiscTypes.exactSol
-	local exactGrad		= DiscTypes.exactGrad
+	local exactSol		= DiscTypes.ExactSol
+	local exactGrad		= DiscTypes.ExactGrad
 
 	-- compute problem
 	for type = 1,#DiscTypes do
@@ -288,14 +288,14 @@ function util.computeKineticConvRates(dom, CreateApproxSpace, CreateDomainDisc, 
 		end
 		
 		-- create plots
-		gnuplot.plot(plotPath..discType.."_h_l2.pdf", l2_h_plotdata, {grid = true, logscale = true, xlabel = "#DoF"})
-		gnuplot.plot(plotPath..discType.."_h_h1.pdf", h1_h_plotdata, {grid = true, logscale = true, xlabel = "#DoF"})
+		gnuplot.plot(plotPath..discType.."_h_l2.pdf", l2_h_plotdata, {grid = true, logscale = true, label = {x = "#DoF"}})
+		gnuplot.plot(plotPath..discType.."_h_h1.pdf", h1_h_plotdata, {grid = true, logscale = true, label = {x = "#DoF"}})
 
-		gnuplot.plot(plotPath..discType.."_dt_l2.pdf", l2_dt_plotdata, {grid = true, logscale = true, xlabel = "dt"})
-		gnuplot.plot(plotPath..discType.."_dt_h1.pdf", h1_dt_plotdata, {grid = true, logscale = true, xlabel = "dt"})
+		gnuplot.plot(plotPath..discType.."_dt_l2.pdf", l2_dt_plotdata, {grid = true, logscale = true, label = {x = "dt"}})
+		gnuplot.plot(plotPath..discType.."_dt_h1.pdf", h1_dt_plotdata, {grid = true, logscale = true, label = {x = "dt"}})
 		
-		gnuplot.plot(plotPath..discType.."_l2.pdf", l2_plotdata, {grid = true, logscale = true, xlabel = "#DoF", ylabel = "dt"})
-		gnuplot.plot(plotPath..discType.."_h1.pdf", h1_plotdata, {grid = true, logscale = true, xlabel = "#DoF", ylabel = "dt"})
+		gnuplot.plot(plotPath..discType.."_l2.pdf", l2_plotdata, {grid = true, logscale = true, label = {x = "#DoF", y = "dt"}})
+		gnuplot.plot(plotPath..discType.."_h1.pdf", h1_plotdata, {grid = true, logscale = true, label = {x = "#DoF", y = "dt"}})
 		
 	end
 end
