@@ -12,9 +12,9 @@ if(DEBUG)
 			message(STATUS "Info: Debug Information is ${DEBUG_FORMAT}") 
 		endif(DEBUG_FORMAT)
 	elseif("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-		message(WARNING "Build type set to Release, but DEBUG build wanted.")
+		message(WARNING "CMAKE_BUILD_TYPE type set to Release, but DEBUG build wanted.")
 	elseif("${CMAKE_BUILD_TYPE}" STREQUAL "MinSizeRel")
-		message(WARNING "Build type set to MinSizeRel, but DEBUG build wanted.")
+		message(WARNING "CMAKE_BUILD_TYPE type set to MinSizeRel, but DEBUG build wanted.")
 	endif()
 	
 	# This code would enable strict bounds checking for STL objects like in vector::operator[]. 
