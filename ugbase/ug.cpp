@@ -174,6 +174,7 @@ int UGFinalizeNoPCLFinalize()
 		//Shiny::ProfileManager::instance.destroy();
 #endif
 	}
+	return 0;
 }
 ////////////////////////////////////////////////////////////////////////
 ///	finalizes ug

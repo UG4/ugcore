@@ -1355,7 +1355,7 @@ GetParent(BinaryBuffer& in, const vector<Vertex*>& vVrts,
 		}
 	}
 	
-	return make_pair<GridObject*, char>(NULL, type);
+	return pair<GridObject*, char>(NULL, type);
 }
 
 ////////////////////////////////////////////////////////////////////////

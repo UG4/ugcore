@@ -13,6 +13,7 @@
 #include "lib_disc/domain.h"
 #include "lib_grid/algorithms/debug_util.h"
 #include "common/assert.h"
+#include "common/error.h"
 #include "pcl/pcl_base.h"
 
 #include <boost/mpl/map.hpp>
@@ -325,7 +326,7 @@ void PeriodicBoundaryManager::handle_deletion(TElem* e, TElem* replacedBy) {
 	if (is_master(e)) {
 		// if e is master, set its replacing element as new master
 		if (replacedBy) {
-			UG_ASSERT(not group(replacedBy),
+			UG_ASSERT(!group(replacedBy),
 					"replacing element is already in group")
 			make_master(group(e), replacedBy);
 		} else {
@@ -336,7 +337,7 @@ void PeriodicBoundaryManager::handle_deletion(TElem* e, TElem* replacedBy) {
 	} else { // slave
 		UG_ASSERT(is_slave(e), "e should be a slave")
 		Group<TElem>* g = group(e);
-		if(not remove_slave(e))
+		if(!remove_slave(e))
 			UG_THROW("old slave not removed.")
 
 		if (replacedBy) {
@@ -357,7 +358,7 @@ void PeriodicBoundaryManager::make_slave(Group<TElem>* g, TElem* slave) {
 	// if slave is already engrouped, remove it first
 	if(group(slave)) {
 		UG_LOG("slave already engrouped. removing it from former group\n")
-		if(not remove_slave(slave)) {
+		if(!remove_slave(slave)) {
 			UG_THROW("slave could not be removed")
 		}
 	}

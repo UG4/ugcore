@@ -45,7 +45,7 @@ resize_hash(size_t size)
 	using namespace std;
 	vector<pair<size_t, size_t> > newHashList;
 	newHashList.resize(max<size_t>(1, size),
-					   make_pair<size_t, size_t>(s_invalidIndex, s_invalidIndex));
+					   pair<size_t, size_t>(s_invalidIndex, s_invalidIndex));
 
 	if(m_numEntries > 0){
 		for(size_t i = 0; i < m_hashList.size(); ++i){

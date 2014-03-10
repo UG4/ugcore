@@ -16,7 +16,8 @@ namespace ug
 	const number SMALL = 1.0e-12;
 	const number SMALL_SQ = SMALL * SMALL;
 
-	const number PI = M_PI;
+//	80 digits of PI...
+	const number PI = 3.14159265358979323846264338327950288419716939937510582097494459230781640628620899;
 
 }//	end of namespace
 

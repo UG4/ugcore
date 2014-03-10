@@ -19,24 +19,26 @@
 #include <ctime>
 #endif
 
-#include <sys/time.h>
+#ifdef UG_POSIX
+  #include <sys/time.h>
+#endif
 
 namespace ug
 {
 
 
-#ifdef _WIN32
+#ifdef UG_POSIX
 	inline double get_clock_s()
-	{
-		return clock() / ((double)CLOCKS_PER_SEC);
-	}
+  {
+    timeval time;
+    gettimeofday(&time, NULL);
+    return time.tv_sec + time.tv_usec/1000000.0;
+  }
 #else
-	inline double get_clock_s()
-	{
-		timeval time;
-		gettimeofday(&time, NULL);
-		return time.tv_sec + time.tv_usec/1000000.0;
-	}
+  inline double get_clock_s()
+  {
+    return clock() / ((double)CLOCKS_PER_SEC);
+  }
 #endif
 
 /// \addtogroup ugbase_common

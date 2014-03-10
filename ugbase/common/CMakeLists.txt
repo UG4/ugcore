@@ -96,7 +96,7 @@ elseif(WIN32 OR CYGWIN)
 	set(sources ${sources}	util/os_dependent_impl/os_info_win.cpp)
 	
 	if(NOT STATIC)
-		set(sources ${sources}	util/os_dependent_impl/dynamic_library_util_unix.cpp)
+		set(sources ${sources}	util/os_dependent_impl/dynamic_library_util_win.cpp)
 	endif(NOT STATIC)
 	
 	#if(MINGW)
