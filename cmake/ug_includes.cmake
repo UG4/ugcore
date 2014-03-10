@@ -326,7 +326,11 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Cray")
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "XL")
     # currently no flags for IBM xl compiler
     # however, the -Wall option is not supported
-else()
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+	add_definitions("/EHsc")
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+	add_cxx_flag("-Wall")
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	add_cxx_flag("-Wall")
     # for some reason -Wsign-compare is not in -Wall for Clang 
 	add_cxx_flag("-Wsign-compare")

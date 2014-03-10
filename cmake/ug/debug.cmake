@@ -45,7 +45,7 @@ else(DEBUG)
 		# if DEBUG=OFF also add standard cmake release flags (-O3 -DNDEBUG)
 		add_cxx_flag(${CMAKE_CXX_FLAGS_RELEASE})
 	elseif("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-		message(WARNING "Build type set to Debug, but DEBUG=OFF. Leads to strange cflags!")
+		message(WARNING "CMAKE_BUILD_TYPE type is set to Debug, but DEBUG=OFF. Leads to strange cflags!")
 	endif()
 
 	# compiler specific release flags
