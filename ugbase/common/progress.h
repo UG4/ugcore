@@ -26,7 +26,7 @@ class Progress
 	int m_minSecondsUntilProgress;
 	double startS;
 public:
-	Progress(int minSecondsUntilProgress=1);
+	Progress(int minSecondsUntilProgress=-1);
 
 	~Progress()
 	{

@@ -13,6 +13,8 @@ int Progress::lastUpdateDepth = -1;
 
 Progress::Progress(int minSecondsUntilProgress)
 {
+	if(minSecondsUntilProgress == -1)
+		minSecondsUntilProgress = 3;
 	m_minSecondsUntilProgress = minSecondsUntilProgress;
 	m_length=100;
 	bStarted=false;
@@ -119,6 +121,13 @@ void Progress::stop()
 		UG_LOG(" took " << reset_floats << get_clock_s()-startS << " s.\n");
 		lastUpdateDepth = myDepth;
 		bStarted = false;
+		posNow = -1;
+	}
+	if(!bStarted && posNow != -1 && get_clock_s() - startS > m_minSecondsUntilProgress*2)
+	{
+		UG_LOG(m_msg << ". took " << reset_floats << get_clock_s()-startS << " s.\n");
+		bStarted = false;
+		posNow = -1;
 	}
 }
 void Progress::start(double total, std::string msg)
