@@ -461,13 +461,6 @@ bool PeriodicBoundaryManager::is_master(TElem* e) const {
 }
 
 template <class TElem>
-Grid::AttachmentAccessor<TElem,
-		Attachment<PeriodicBoundaryManager::Group<TElem>*> >&
-PeriodicBoundaryManager::get_group_accessor() {
-	UG_THROW("not impled");
-}
-
-template <class TElem>
 PeriodicBoundaryManager::Group<TElem>* PeriodicBoundaryManager::group(
 		TElem* e) const {
 	UG_ASSERT(e, "element not valid.")

@@ -150,9 +150,11 @@ class LocalShapeFunctionSetWrapper
 /**
  * Intersection of local dofs
  */
-template <int dim>
-class SubLocalDoFSet : public DimLocalDoFSet<dim>
+template <int TDim>
+class SubLocalDoFSet : public DimLocalDoFSet<TDim>
 {
+	static const int dim = TDim;
+
 	public:
 		template <int setDim>
 		SubLocalDoFSet(const ReferenceObjectID roid,
@@ -260,7 +262,7 @@ class SubLocalDoFSet : public DimLocalDoFSet<dim>
 		virtual size_t num_dof(ReferenceObjectID roid) const {return m_vNumDoF[roid];}
 		virtual const LocalDoF& local_dof(size_t dof) const {return m_vLocalDoF[dof];}
 		virtual bool exact_position_available() const {return m_bExactPos;}
-		virtual bool position(size_t i, MathVector<dim>& pos) const
+		virtual bool position(size_t i, MathVector<TDim>& pos) const
 		{
 			pos = m_vLocalPos[i];
 			return exact_position_available();
@@ -269,7 +271,7 @@ class SubLocalDoFSet : public DimLocalDoFSet<dim>
 	protected:
 		void set(const std::vector<size_t>& vNumDoF,
 				 const std::vector<LocalDoF>& vLocalDoF,
-				 const std::vector<MathVector<dim> >& vLocalPos)
+				 const std::vector<MathVector<TDim> >& vLocalPos)
 		{
 			if(m_bInit){
 				if(vNumDoF != m_vNumDoF) UG_THROW("NumDoF mismatch");
@@ -291,7 +293,7 @@ class SubLocalDoFSet : public DimLocalDoFSet<dim>
 		bool m_bInit;
 		std::vector<size_t> m_vNumDoF;
 		std::vector<LocalDoF> m_vLocalDoF; ///< Local DoFs of this set
-		std::vector<MathVector<dim> > m_vLocalPos; ///< Local Positions of DoFs
+		std::vector<MathVector<TDim> > m_vLocalPos; ///< Local Positions of DoFs
 };
 
 ////////////////////////////////////////////////////////////////////////////////

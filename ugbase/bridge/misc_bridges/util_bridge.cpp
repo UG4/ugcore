@@ -99,7 +99,7 @@ void RegisterBridge_Util(Registry& reg, string parentGroup)
 		.add_function("quit", &UGForceExit, grp,
 	                  "", "", "Immediatly terminates the application.");
 
-	reg.add_function("CreateDirectory", static_cast<bool (*)(const char *) > (&CreateDirectory) );
+	reg.add_function("CreateDirectory", static_cast<bool (*)(const char *) > (&CreateDirectoryTMP) );
 	reg.add_function("DirectoryExists", static_cast<bool (*)(const char *) > (&DirectoryExists) );
 	reg.add_function("GetTmpPath", GetTmpPath);
 	reg.add_function("FileCompare", FileCompare);

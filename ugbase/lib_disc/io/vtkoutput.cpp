@@ -333,7 +333,7 @@ select(const std::vector<std::string>& vFct, const char* name)
 			ss << vFct[i];
 		}
 		ss <<"'. Please select 1 or "<<TDim<<" components in world dimension "<<TDim;
-		UG_THROW(ss);
+		UG_THROW(ss.str());
 	}
 
 //	check if name is not in use
@@ -398,7 +398,7 @@ select_nodal(const std::vector<std::string>& vFct, const char* name)
 			ss << vFct[i];
 		}
 		ss <<"'. Please select 1 or "<<TDim<<" components in world dimension "<<TDim;
-		UG_THROW(ss);
+		UG_THROW(ss.str());
 	}
 
 //	check if name is not in use
@@ -474,7 +474,7 @@ select_element(const std::vector<std::string>& vFct, const char* name)
 			ss << vFct[i];
 		}
 		ss <<"'. Please select 1 or "<<TDim<<" components in world dimension "<<TDim;
-		UG_THROW(ss);
+		UG_THROW(ss.str());
 	}
 
 //	check if name is not in use

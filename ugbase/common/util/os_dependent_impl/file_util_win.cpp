@@ -81,6 +81,11 @@ bool GetFilesInDirectory(std::vector<std::string>& filesOut, const char* dir)
 	return true;
 }
 
+bool CreateDirectoryTMP(const char *directory)
+{
+	return _mkdir(directory) == 0;
+}
+
 bool CreateDirectory(const char *directory)
 {
 	return _mkdir(directory) == 0;

@@ -38,10 +38,15 @@ message(STATUS "Info: SHELLTYPE: ${SHELLTYPE} (options are: ${shelltypeOptions})
 
 # set the main sources
 set(srcUGShell	    ugshell_main.cpp
-                    completion.cpp
                     shell.cpp)
                     #algebra_test.cpp)
                     #signal_handler.cpp)
+
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+	set(srcUGShell	    ${srcUGShell} completion_dummy.cpp)
+else()
+	set(srcUGShell	    ${srcUGShell} completion.cpp)
+endif()
 
 if(CLOCK_FIX)
     set(srcUGShell	    ${srcUGShell} clock_fix.cpp)
