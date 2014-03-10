@@ -132,6 +132,51 @@ static void TranslateDomain(TDomain& dom, number tx, number ty, number tz)
 }
 
 /**
+ * Moves all vertices in an eps-environment of a sphere to the sphere.
+ *
+ * @param dom		domain
+ * @param center	center of sphere
+ * @param radius	radius of sphere
+ * @param eps		size of eps-environment
+ */
+template <typename TDomain>
+static void ProjectVerticesToSphere(TDomain& dom, std::vector<number> center,
+                                    number radius, number eps)
+{
+	static const int dim = TDomain::dim;
+	typename TDomain::position_accessor_type& aaPos = dom.position_accessor();
+	typename TDomain::grid_type& g = *dom.grid();
+
+	if((int)center.size() != dim)
+		UG_THROW("Expect center to be of dimension "<<dim);
+
+	MathVector<dim> Center;
+	for(int d = 0; d < dim; d++) Center[d] = center[d];
+
+	for(VertexIterator iter = g.vertices_begin();
+		iter != g.vertices_end(); ++iter)
+	{
+		MathVector<dim>& pos = aaPos[*iter];
+
+		// move only vertices in eps-environment of sphere
+		if(	VecDistance(pos, Center) < radius - eps ||
+			VecDistance(pos, Center) > radius + eps) continue;
+
+		// get closest point on sphere
+		MathVector<dim> dir;
+		VecSubtract(dir, pos, Center);
+		number s, s1Out, s2Out;
+		if(RaySphereIntersection(s1Out,s2Out, Center, dir, Center, radius) < 1)
+			UG_THROW("No intersection found for pos "<<pos);
+		if(s1Out > s2Out) s = s1Out; else s = s2Out;
+		if(s <= 0) UG_THROW("Invalid scale "<<s);
+
+		// set new pos
+		VecScaleAdd(pos, 1.0, Center, s, dir);
+	}
+}
+
+/**
  * Calculates the area sum of faces in given domain and subset handler sh.
  * Please note that the sum is returned for faces in subset with index si and
  * on grid level lvl in the domain dom.
@@ -334,6 +379,7 @@ static void Domain(Registry& reg, string grp)
 //	transform the domain
 	reg.add_function("ScaleDomain", &ScaleDomain<TDomain>, grp, "", "dom#sx#sy#sz");
 	reg.add_function("TranslateDomain", &TranslateDomain<TDomain>, grp, "", "dom#tx#ty#tz");
+	reg.add_function("ProjectVerticesToSphere", &ProjectVerticesToSphere<TDomain>, grp, "", "dom#center#radius#eps");
 
 //  calculate area covered by faces
 	reg.add_function("FaceArea", static_cast<number (*)(TDomain&, ISubsetHandler&, int, size_t)>(&FaceArea<TDomain>), grp, "Area sum", "Domain#Subset handler#Subset index#Grid level");
