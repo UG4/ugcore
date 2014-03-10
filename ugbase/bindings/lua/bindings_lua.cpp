@@ -108,11 +108,11 @@ std::string ParameterStackString(ParameterStack &s)
 				case Variant::VT_FLOAT: ss << "float " << s.to<float>(i); break;
 				case Variant::VT_DOUBLE: ss << "double " << s.to<double>(i); break;
 				case Variant::VT_CSTRING: ss << "cstring \"" << s.to<const char*>(i) << "\""; break;
-				case Variant::VT_STDSTRING: ss << "stdstring " << s.to<std::string>(i) << "\""; break;
+				case Variant::VT_STDSTRING: ss << "std::string \"" << s.to<std::string>(i) << "\""; break;
 				case Variant::VT_POINTER: ss << "pointer " << s.to<void*>(i); break;
-				case Variant::VT_CONST_POINTER: ss << "constPointer " << s.to<const void*>(i); break;
-				case Variant::VT_SMART_POINTER: ss << "smartPointer " << s.to<SmartPtr<void> >(i).get(); break;
-				case Variant::VT_CONST_SMART_POINTER: ss << "constSmartPointer " << s.to<ConstSmartPtr<void> >(i).get(); break;
+				case Variant::VT_CONST_POINTER: ss << "ConstPointer " << s.class_name(i) << " " << s.to<const void*>(i); break;
+				case Variant::VT_SMART_POINTER: ss << "SmartPtr<" << s.class_name(i) << "> " << s.to<SmartPtr<void> >(i).get(); break;
+				case Variant::VT_CONST_SMART_POINTER: ss << "ConstSmartPtr<" << s.class_name(i) << "> " << s.to<ConstSmartPtr<void> >(i).get(); break;
 				default: ss << "unknown"; break;
 			}
 		}
@@ -970,7 +970,15 @@ static int LuaToStringDefault(lua_State *L)
 	IExportedClass* c = (IExportedClass*)lua_touserdata(L, lua_upvalueindex(1));
 	ParameterStack out;
 	char buf[255];
-	sprintf(buf, "%s: %p", c->name().c_str(), c);
+	try{
+		sprintf(buf, "%s: %p", c->name().c_str(), c);
+
+	}
+	catch(...)
+	{
+		sprintf(buf, "%p", c);
+
+	}
 	string b = buf;
 	out.push(b);
 	return ParamsToLuaStack(out, L);
