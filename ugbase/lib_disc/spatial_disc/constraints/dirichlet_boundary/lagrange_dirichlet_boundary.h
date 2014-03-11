@@ -49,8 +49,14 @@ class DirichletBoundary
 		typedef typename algebra_type::vector_type vector_type;
 
 	public:
+	/// If you want to have Dirichlet columns than use the constructer with the flag
+	/// The default ist without Dirichlet columns.
+
 	///	constructor
-		DirichletBoundary() {clear();}
+		DirichletBoundary() {m_DirichletColumns = false; clear();}
+
+	/// constructor with flag for Dirichlet-Columns.
+		DirichletBoundary(bool DirichletColumns){m_DirichletColumns = DirichletColumns; clear();}
 
 	///	destructor
 		~DirichletBoundary() {}
@@ -340,6 +346,13 @@ class DirichletBoundary
 		std::map<int, std::vector<VectorData*> > m_mVectorBndSegment;
 
 	protected:
+	/// flag for setting dirichlet columns
+		bool m_DirichletColumns;
+
+	/// maps a column dirichlet index to the
+	/// row and its corresponding matrix entry.
+		std::map<int, std::map<int, double> > m_dirichletMap;
+
 	///	current ApproxSpace
 		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
 

@@ -596,6 +596,10 @@ adjust_jacobian(const std::vector<TUserData*>& vUserData, int si,
 //	position of dofs
 	std::vector<position_type> vPos;
 
+// 	save all dirichlet degree of freedom indices.
+	std::vector<size_t> dirichletDoFIndices;
+
+
 //	iterators
 	typename DoFDistribution::traits<TBaseElem>::const_iterator iter, iterEnd;
 	iter = dd->begin<TBaseElem>(si);
@@ -636,10 +640,59 @@ adjust_jacobian(const std::vector<TUserData*>& vUserData, int si,
 					}
 
 					this->m_spAssTuner->set_dirichlet_row(J, multInd[j]);
+					dirichletDoFIndices.push_back(multInd[j][0]);
 				}
 			}
 		}
 	}
+
+
+	if(m_DirichletColumns){
+	//	UG_LOG("adjust jacobian\n")
+
+		CPUAlgebra::matrix_type &myJ = J;
+
+		// number of rows
+		size_t nr = myJ.num_rows();
+
+		// tag for dirichlet index
+		bool dirichletIndexTag = false;
+
+		// type for the row iterator
+		typedef CPUAlgebra::matrix_type::row_iterator row_it;
+
+		// run over all rows of the local matrix J and save the colums
+		// entries for the Dirichlet indices in the map
+
+		for(size_t i = 0; i<nr; i++)
+		{
+			for(row_it it = myJ.begin_row(i); it!=myJ.end_row(i); ++it){
+
+				// look if the current index is a dirichlet index
+				for(size_t j = 0; j<dirichletDoFIndices.size(); j++){
+					if(it.index() == dirichletDoFIndices[j])
+						dirichletIndexTag = true;
+				}
+
+				// fill dirichletMap & set corresponding entry to zero
+				if(dirichletIndexTag == true){
+
+					// the dirichlet-dof-index it.index is assigned
+					// the row i and the matrix entry it.value().
+					m_dirichletMap[it.index()][i] = it.value();
+					dirichletIndexTag = false;
+
+					// the corresponding entry at column it.index() is set zero
+					// this corresponds to a dirichlet column.
+					// diagonal stays unchanged
+					if(i!=it.index())
+						it.value() = 0.0;
+				}
+
+			}
+		}
+	}
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -937,6 +990,9 @@ adjust_linear(const std::vector<TUserData*>& vUserData, int si,
 //	readin value
 	typename TUserData::value_type val;
 
+// 	save all dirichlet degree of freedom indices.
+	std::vector<size_t> dirichletDoFIndices;
+
 //	position of dofs
 	std::vector<position_type> vPos;
 
@@ -979,7 +1035,78 @@ adjust_linear(const std::vector<TUserData*>& vUserData, int si,
 					if(!(*vUserData[i])(val, vPos[j], time, si)) continue;
 
 					this->m_spAssTuner->set_dirichlet_row(A, multInd[j]);
+					dirichletDoFIndices.push_back(multInd[j][0]);
+
 					this->m_spAssTuner->set_dirichlet_val(b, multInd[j], val[f]);
+				}
+			}
+		}
+
+
+		if(m_DirichletColumns){
+		//	UG_LOG("adjust linear\n")
+
+			CPUAlgebra::matrix_type &myA = A;
+
+			// number of rows
+			size_t nr = myA.num_rows();
+
+			// tag for dirichlet index
+			bool dirichletIndexTag = false;
+
+			// type for the row iterator
+			typedef CPUAlgebra::matrix_type::row_iterator row_it;
+
+			// run over all rows of the local matrix J and save the colums
+			// entries for the Dirichlet indices in the map
+
+			for(size_t i = 0; i<nr; i++)
+			{
+				for(row_it it = myA.begin_row(i); it!=myA.end_row(i); ++it){
+
+					// look if the current index is a dirichlet index
+					for(size_t j = 0; j<dirichletDoFIndices.size(); j++){
+						if(it.index() == dirichletDoFIndices[j])
+							dirichletIndexTag = true;
+					}
+
+					// fill dirichletMap & set corresponding entry to zero
+					if(dirichletIndexTag == true){
+
+						// the dirichlet-dof-index it.index is assigned
+						// the row i and the matrix entry it.value().
+						m_dirichletMap[it.index()][i] = it.value();
+						dirichletIndexTag = false;
+
+						// the corresponding entry at column it.index() is set zero
+						// this corresponds to a dirichlet column.
+						if(i!=it.index())
+							it.value() = 0.0;
+					}
+
+				}
+			}
+
+			// adjust the right hand side
+
+			std::map<int, std::map<int, double> >::iterator itdirichletMap;
+
+			for(size_t i = 0; i<nr; i++)
+			{
+				for(row_it it = A.begin_row(i); it!=A.end_row(i); ++it){
+
+					itdirichletMap = m_dirichletMap.find(it.index());
+
+					// current column index is a dirichlet index
+					if(itdirichletMap != m_dirichletMap.end()){
+
+						// just non-diagonal entries need do be considered
+						// by this the dirichlet entries of b remain unchanged.
+						if(i!=it.index()){
+							b[i] -= itdirichletMap->second[i]*b[it.index()];
+						}
+					}
+
 				}
 			}
 		}
