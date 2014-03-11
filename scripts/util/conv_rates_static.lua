@@ -218,26 +218,16 @@ function util.rates.static.compute(ConvRateSetup)
 	
 	for _, DiscType in ipairs(DiscTypes) do
 	
-		local disc 	= DiscType.type
-		local pmin 	= DiscType.pmin
-		local pmax 	= DiscType.pmax
-		local lmin 	= DiscType.lmin
-		local lmax 	= DiscType.lmax		
+		local disc 			= DiscType.type
+		if disc == nil then print("type required."); exit(); end
+
+		local pmin 			= DiscType.pmin or 1
+		local pmax 			= DiscType.pmax or 1
+		local lmin 			= DiscType.lmin or 0
+		local lmax 			= DiscType.lmax or numRefs
 		
-		if pmin == nil then pmin = 1 end
-		if pmax == nil then pmax = 1 end
-		if lmin == nil then lmin = 0 end
-		if lmax == nil then lmax = numRefs end
-		
-		if lmin > lmax then
-			print("lmin: "..lmin.." must be less or equal lmax: "..lmax)
-			exit()
-		end
-		
-		if lmax > numRefs then
-			print("lmax: "..lmax.." must be less or equal numRefs: "..numRefs)
-			exit()
-		end
+		if lmin > lmax then print("lmin: "..lmin.." must be less or equal lmax: "..lmax); exit(); end
+		if lmax > numRefs then print("lmax: "..lmax.." must be less or equal numRefs: "..numRefs); exit(); end
 	
 		errors[disc] = errors[disc] or {}
 		
