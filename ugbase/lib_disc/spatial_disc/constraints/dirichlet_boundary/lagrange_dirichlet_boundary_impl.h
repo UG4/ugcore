@@ -1041,74 +1041,74 @@ adjust_linear(const std::vector<TUserData*>& vUserData, int si,
 				}
 			}
 		}
+	}
 
+	if(m_DirichletColumns){
+		UG_LOG("adjust linear\n")
 
-		if(m_DirichletColumns){
-		//	UG_LOG("adjust linear\n")
+		// number of rows
+		size_t nr = A.num_rows();
 
-			// number of rows
-			size_t nr = A.num_rows();
+		// tag for dirichlet index
+		bool dirichletIndexTag = false;
 
-			// tag for dirichlet index
-			bool dirichletIndexTag = false;
+		// type for the row iterator
+		typedef CPUAlgebra::matrix_type::row_iterator row_it;
 
-			// type for the row iterator
-			typedef CPUAlgebra::matrix_type::row_iterator row_it;
+		// run over all rows of the local matrix J and save the colums
+		// entries for the Dirichlet indices in the map
 
-			// run over all rows of the local matrix J and save the colums
-			// entries for the Dirichlet indices in the map
+		for(size_t i = 0; i<nr; i++)
+		{
+			for(row_it it = A.begin_row(i); it!=A.end_row(i); ++it){
 
-			for(size_t i = 0; i<nr; i++)
-			{
-				for(row_it it = A.begin_row(i); it!=A.end_row(i); ++it){
-
-					// look if the current index is a dirichlet index
-					for(size_t j = 0; j<dirichletDoFIndices.size(); j++){
-						if(it.index() == dirichletDoFIndices[j])
-							dirichletIndexTag = true;
-					}
-
-					// fill dirichletMap & set corresponding entry to zero
-					if(dirichletIndexTag == true){
-
-						// the dirichlet-dof-index it.index is assigned
-						// the row i and the matrix entry it.value().
-						m_dirichletMap[it.index()][i] = it.value();
-						dirichletIndexTag = false;
-
-						// the corresponding entry at column it.index() is set zero
-						// this corresponds to a dirichlet column.
-						if(i!=it.index())
-							it.value() = 0.0;
-					}
-
+				// look if the current index is a dirichlet index
+				for(size_t j = 0; j<dirichletDoFIndices.size(); j++){
+					if(it.index() == dirichletDoFIndices[j])
+						dirichletIndexTag = true;
 				}
+
+				// fill dirichletMap & set corresponding entry to zero
+				if(dirichletIndexTag == true){
+
+					// the dirichlet-dof-index it.index is assigned
+					// the row i and the matrix entry it.value().
+					m_dirichletMap[it.index()][i] = it.value();
+					dirichletIndexTag = false;
+
+					// the corresponding entry at column it.index() is set zero
+					// this corresponds to a dirichlet column.
+					if(i!=it.index())
+						it.value() = 0.0;
+				}
+
 			}
+		}
 
-			// adjust the right hand side
+		// adjust the right hand side
 
-			std::map<int, std::map<int, double> >::iterator itdirichletMap;
+		std::map<int, std::map<int, double> >::iterator itdirichletMap;
 
-			for(size_t i = 0; i<nr; i++)
-			{
-				for(row_it it = A.begin_row(i); it!=A.end_row(i); ++it){
+		for(size_t i = 0; i<nr; i++)
+		{
+			for(row_it it = A.begin_row(i); it!=A.end_row(i); ++it){
 
-					itdirichletMap = m_dirichletMap.find(it.index());
+				itdirichletMap = m_dirichletMap.find(it.index());
 
-					// current column index is a dirichlet index
-					if(itdirichletMap != m_dirichletMap.end()){
+				// current column index is a dirichlet index
+				if(itdirichletMap != m_dirichletMap.end()){
 
-						// just non-diagonal entries need do be considered
-						// by this the dirichlet entries of b remain unchanged.
-						if(i!=it.index()){
-							b[i] -= itdirichletMap->second[i]*b[it.index()];
-						}
+					// just non-diagonal entries need do be considered
+					// by this the dirichlet entries of b remain unchanged.
+					if(i!=it.index()){
+						b[i] -= itdirichletMap->second[i]*b[it.index()];
 					}
-
 				}
+
 			}
 		}
 	}
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////
