@@ -650,10 +650,10 @@ adjust_jacobian(const std::vector<TUserData*>& vUserData, int si,
 	if(m_DirichletColumns){
 	//	UG_LOG("adjust jacobian\n")
 
-		CPUAlgebra::matrix_type &myJ = J;
+
 
 		// number of rows
-		size_t nr = myJ.num_rows();
+		size_t nr = J.num_rows();
 
 		// tag for dirichlet index
 		bool dirichletIndexTag = false;
@@ -666,7 +666,7 @@ adjust_jacobian(const std::vector<TUserData*>& vUserData, int si,
 
 		for(size_t i = 0; i<nr; i++)
 		{
-			for(row_it it = myJ.begin_row(i); it!=myJ.end_row(i); ++it){
+			for(row_it it = J.begin_row(i); it!=J.end_row(i); ++it){
 
 				// look if the current index is a dirichlet index
 				for(size_t j = 0; j<dirichletDoFIndices.size(); j++){
@@ -1046,10 +1046,8 @@ adjust_linear(const std::vector<TUserData*>& vUserData, int si,
 		if(m_DirichletColumns){
 		//	UG_LOG("adjust linear\n")
 
-			CPUAlgebra::matrix_type &myA = A;
-
 			// number of rows
-			size_t nr = myA.num_rows();
+			size_t nr = A.num_rows();
 
 			// tag for dirichlet index
 			bool dirichletIndexTag = false;
@@ -1062,7 +1060,7 @@ adjust_linear(const std::vector<TUserData*>& vUserData, int si,
 
 			for(size_t i = 0; i<nr; i++)
 			{
-				for(row_it it = myA.begin_row(i); it!=myA.end_row(i); ++it){
+				for(row_it it = A.begin_row(i); it!=A.end_row(i); ++it){
 
 					// look if the current index is a dirichlet index
 					for(size_t j = 0; j<dirichletDoFIndices.size(); j++){
