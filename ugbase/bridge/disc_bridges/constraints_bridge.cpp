@@ -100,7 +100,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef IDomainConstraint<TDomain, TAlgebra> TBase;
 		string name = string("DirichletBoundary").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
-			.add_constructor()
+			.template add_constructor<void (*)()>()
+			.template add_constructor<void (*)(bool)>()
 			.add_method("add", static_cast<void (T::*)(SmartPtr<UserData<number, dim, bool> >, const char*, const char*)>(&T::add),
 						"", "Value#Function#Subsets")
 			.add_method("add", static_cast<void (T::*)(SmartPtr<UserData<number, dim> >, const char*, const char*)>(&T::add),
