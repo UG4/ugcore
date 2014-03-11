@@ -141,7 +141,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 	-- compute element size	
 	local dom = CreateDomain()
 	local numRefs = dom:grid():num_levels() - 1;
-	
+
 	-- to store measurement
 	local gpData = {};
 	local errors = {};
@@ -221,10 +221,47 @@ function util.rates.kinetic.compute(ConvRateSetup)
 			
 			print(">> Create Solver")
 			local solver = CreateSolver(approxSpace)
+
+			-- get names in approx space
+			local SpaceCmp = approxSpace:names()
 			
+			-- per default compute each Space-cmp
+			if PlotCmps == nil then
+				PlotCmps = {}
+				for f = 1,#SpaceCmp do
+					PlotCmps[SpaceCmp[f]] = {SpaceCmp[f]}
+				end
+			end
+
+			-- check functions to measure
+			for _,Cmps in pairs(PlotCmps) do
+				for _, cmp in pairs(Cmps) do
+					if not table.contains(SpaceCmp, cmp) then
+						print("Cmp: '"..cmp.."' not contained in ApproxSpace.");
+						exit()
+					end
+				end
+			end
+
+			--------------------------------------------------------------------
+			--  Create Solutions on each level
+			--------------------------------------------------------------------
+			
+			write(">> Allocating storage for solution vectors.\n")
+			local u = {}
+			for lev = minLev, maxLev do
+				u[lev] = GridFunction(approxSpace, lev)
+				Interpolate(ExactSol, u[lev], "c", startTime)
+			end
+									
 			--------------------------------------------------------------------------------
 			--  Apply Solver
 			--------------------------------------------------------------------------------
+	
+			local h = {}
+			for lev = minLev, maxLev do
+				h[lev] = MaxElementDiameter(dom, lev)
+			end	
 			
 			local l2exact = {}
 			local l2diff = {}
@@ -251,29 +288,25 @@ function util.rates.kinetic.compute(ConvRateSetup)
 					local dt = dtmax * (dtred^(k-1))
 					dts[k] = dt
 			
-					u = GridFunction(approxSpace, lev)
-					Interpolate(ExactSol, u, "c", startTime)
-					write("\n>> Algebra created.\n")
-					
 					if bLinear == true then
-						util.SolveLinearTimeProblem(u, domainDisc, solver, nil, nil,
+						util.SolveLinearTimeProblem(u[lev], domainDisc, solver, nil, nil,
 													timeScheme, orderOrTheta, startTime, endTime, dt);
 					else
-						util.SolveNonlinearTimeProblem(u, domainDisc, solver, nil, nil,
+						util.SolveNonlinearTimeProblem(u[lev], domainDisc, solver, nil, nil,
 														timeScheme, orderOrTheta, startTime, endTime, dt);
 					end
 					
 					if lev == maxLev and k == kmax then
-						uMostAccurate = u:clone();
+						uMostAccurate = u[lev]:clone();
 					end			
 					
 					-- compute error
 					quadOrder = p+3
-					l2exact[lev][k] = L2Error(ExactSol, u, "c", endTime, quadOrder)
-					l2diff[lev][k] = L2Error(uMostAccurate, "c", u, "c", quadOrder)
-					h1exact[lev][k] = H1Error(ExactSol, ExactGrad, u, "c", endTime, quadOrder)
-					h1diff[lev][k] = H1Error(uMostAccurate, "c", u, "c", quadOrder)
-					numDoFs[lev] = u:size()
+					l2exact[lev][k] = L2Error(ExactSol, u[lev], "c", endTime, quadOrder)
+					l2diff[lev][k] = L2Error(uMostAccurate, "c", u[lev], "c", quadOrder)
+					h1exact[lev][k] = H1Error(ExactSol, ExactGrad, u[lev], "c", endTime, quadOrder)
+					h1diff[lev][k] = H1Error(uMostAccurate, "c", u[lev], "c", quadOrder)
+					numDoFs[lev] = u[lev]:size()
 					write(">> L2-Error on Level "..lev..", dt: "..dt.." is "..string.format("%.3e", l2exact[lev][k]) .."\n");
 					write(">> L2-Diff  on Level "..lev..", dt: "..dt.." is "..string.format("%.3e", l2diff[lev][k]) .."\n");
 					write(">> H1-Error on Level "..lev..", dt: "..dt.." is "..string.format("%.3e", h1exact[lev][k]) .."\n");
@@ -296,15 +329,8 @@ function util.rates.kinetic.compute(ConvRateSetup)
 					for k = min, max do
 						cpyData[k] = data[levOrK][k]
 					end
-				elseif style == "diag" then
-					local size = math.min(max-min, #data[min])
-					for k = 1, size do
-						cpyData[k] = data[min+k-1][k]
-					end
-					min = 1
-					max = size
 				else
-					print("Style not foung. Use 'L', 'dt' or 'diag'."); exit();
+					print("Style not foung. Use 'L', 'dt'."); exit();
 				end
 			
 				rate[min] = "--"
@@ -315,11 +341,6 @@ function util.rates.kinetic.compute(ConvRateSetup)
 				end
 						
 				return cpyData, rate
-			end
-
-			local h = {}
-			for lev = minLev, maxLev do
-				h[lev] = MaxElementDiameter(dom, lev)
 			end
 							 		
 			-- write: for each time step size show convergence in space, keeping time step constant
