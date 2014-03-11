@@ -659,14 +659,15 @@ adjust_jacobian(const std::vector<TUserData*>& vUserData, int si,
 		bool dirichletIndexTag = false;
 
 		// type for the row iterator
-		typedef CPUAlgebra::matrix_type::row_iterator row_it;
+		typedef typename matrix_type::const_row_iterator row_it;
+
 
 		// run over all rows of the local matrix J and save the colums
 		// entries for the Dirichlet indices in the map
 
 		for(size_t i = 0; i<nr; i++)
 		{
-			for(row_it it = J.begin_row(i); it!=J.end_row(i); ++it){
+			for(typename matrix_type::row_iterator it = J.begin_row(i); it!=J.end_row(i); ++it){
 
 				// look if the current index is a dirichlet index
 				for(size_t j = 0; j<dirichletDoFIndices.size(); j++){
@@ -1053,14 +1054,14 @@ adjust_linear(const std::vector<TUserData*>& vUserData, int si,
 		bool dirichletIndexTag = false;
 
 		// type for the row iterator
-		typedef CPUAlgebra::matrix_type::row_iterator row_it;
+		typedef typename matrix_type::const_row_iterator row_it;
 
 		// run over all rows of the local matrix J and save the colums
 		// entries for the Dirichlet indices in the map
 
 		for(size_t i = 0; i<nr; i++)
 		{
-			for(row_it it = A.begin_row(i); it!=A.end_row(i); ++it){
+			for(typename matrix_type::row_iterator it = A.begin_row(i); it!=A.end_row(i); ++it){
 
 				// look if the current index is a dirichlet index
 				for(size_t j = 0; j<dirichletDoFIndices.size(); j++){
@@ -1087,11 +1088,11 @@ adjust_linear(const std::vector<TUserData*>& vUserData, int si,
 
 		// adjust the right hand side
 
-		std::map<int, std::map<int, double> >::iterator itdirichletMap;
+		typename std::map<int, std::map<int, value_type> >::iterator itdirichletMap;
 
 		for(size_t i = 0; i<nr; i++)
 		{
-			for(row_it it = A.begin_row(i); it!=A.end_row(i); ++it){
+			for(typename matrix_type::row_iterator it = A.begin_row(i); it!=A.end_row(i); ++it){
 
 				itdirichletMap = m_dirichletMap.find(it.index());
 

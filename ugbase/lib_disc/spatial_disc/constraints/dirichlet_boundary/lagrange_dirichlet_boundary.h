@@ -48,6 +48,10 @@ class DirichletBoundary
 	///	Type of algebra vector
 		typedef typename algebra_type::vector_type vector_type;
 
+	/// Type of value type
+		typedef typename matrix_type::value_type value_type;
+
+
 	public:
 	/// If you want to have Dirichlet columns than use the constructer with the flag
 	/// The default ist without Dirichlet columns.
@@ -351,7 +355,7 @@ class DirichletBoundary
 
 	/// maps a column dirichlet index to the
 	/// row and its corresponding matrix entry.
-		std::map<int, std::map<int, double> > m_dirichletMap;
+		std::map<int, std::map<int, value_type> > m_dirichletMap;
 
 	///	current ApproxSpace
 		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
