@@ -108,7 +108,8 @@ function util.rates.kinetic.compute(ConvRateSetup)
 		exit()
 	end
 	
-	local DiscTypes = CRS.DiscTypes
+	local SpaceDiscs = CRS.SpaceDiscs
+	local TimeDiscs = CRS.TimeDiscs
 
 	local maxlevel = CRS.maxlevel; 		if maxlevel == nil then maxlevel = true end
 	local prevlevel = CRS.prevlevel; 	if prevlevel == nil then prevlevel = true end
@@ -147,39 +148,24 @@ function util.rates.kinetic.compute(ConvRateSetup)
 	local errors = {};
 
 	local ts = nil
+	
+	local StartTime 	= CRS.StartTime or 0.0
+	local EndTime		= CRS.EndTime	or 1.0
 
 	-- compute problem
-	for _, DiscType in ipairs(DiscTypes) do
+	for _, SpaceDisc in ipairs(SpaceDiscs) do
 
-		local disc 			= DiscType.type
+		local disc 			= SpaceDisc.type
 		if disc == nil then print("type required."); exit(); end
 
-		local pmin 			= DiscType.pmin or 1
-		local pmax 			= DiscType.pmax or 1
-		local lmin 			= DiscType.lmin or 0
-		local lmax 			= DiscType.lmax or numRefs
+		local pmin 			= SpaceDisc.pmin or 1
+		local pmax 			= SpaceDisc.pmax or 1
+		local lmin 			= SpaceDisc.lmin or 0
+		local lmax 			= SpaceDisc.lmax or numRefs
 		
 		if lmin > lmax then print("lmin: "..lmin.." must be less or equal lmax: "..lmax); exit(); end
 		if lmax > numRefs then print("lmax: "..lmax.." must be less or equal numRefs: "..numRefs); exit(); end
-		
-		local dtmin 		= DiscType.dtmin		
-		local dtmax 		= DiscType.dtmax		
-		local dtred 		= DiscType.dtred or 0.5
-		local timeScheme	= DiscType.timeScheme
-		local orderOrTheta 	= DiscType.orderOrTheta or 1
-		local startTime 	= DiscType.startTime
-		local endTime		= DiscType.endTime
-		ts = timeScheme
 				
-		if dtmin == nil then print("dtmin required."); exit(); end
-		if dtmax == nil then print("dtmax required."); exit(); end
-		if dtmin > dtmax then print("dtmin: "..dtmin.." must be less or equal dtmax: "..dtmax); exit(); end
-		if dtred >= 1 then print("dtred: "..dtred.." must be less than 1"); exit(); end
-		if timeScheme == nil then print("timeScheme required."); exit(); end
-		if startTime == nil then print("startTime required."); exit(); end
-		if endTime == nil then print("endTime required."); exit(); end
-		if ExactSol == nil then print("ExactSol required."); exit(); end
-		
 		errors[disc] = errors[disc] or {}
 		
 		for p = pmin, pmax do
@@ -189,350 +175,367 @@ function util.rates.kinetic.compute(ConvRateSetup)
 			local maxLev = lmax - MaxLevelPadding(p)
 			local minLev = lmin
 			
-			--------------------------------------------------------------------
-			--  Print Setup
-			--------------------------------------------------------------------
-			
-			print("\n")
-			print("---------------------------")
-			print(" General parameters chosen:")
-			print("---------------------------")
-			print("    dim        = " .. dim)
-			print("    grid       = " .. gridName)
-			print("    maxLev     = " .. maxLev)
-			print("    minLev     = " .. minLev)
-			print("    dtmin      = " .. dtmin)
-			print("    dtmax      = " .. dtmax)
-			print("    dtred      = " .. dtred)
-			print("    timeScheme = " .. timeScheme)
-			print("    order      = " .. orderOrTheta)
-			print("    startTime  = " .. startTime)
-			print("    endTime    = " .. endTime)
-			print("    type       = " .. disc)
-			print("    order      = " .. p)
-			print("\n")
+			for _, TimeDisc in ipairs(TimeDiscs) do
 
-			--------------------------------------------------------------------
-			--  Create ApproxSpace, Disc and Solver
-			--------------------------------------------------------------------
+				local ts 			= TimeDisc.type
+				local dtmin 		= TimeDisc.dtmin		
+				local dtmax 		= TimeDisc.dtmax		
+				local dtred 		= TimeDisc.dtred or 0.5
+				local orderOrTheta 	= TimeDisc.orderOrTheta or 1
+						
+				if dtmin == nil then print("dtmin required."); exit(); end
+				if dtmax == nil then print("dtmax required."); exit(); end
+				if dtmin > dtmax then print("dtmin: "..dtmin.." must be less or equal dtmax: "..dtmax); exit(); end
+				if dtred >= 1 then print("dtred: "..dtred.." must be less than 1"); exit(); end
+				if ts == nil then print("type required."); exit(); end
+				if StartTime == nil then print("StartTime required."); exit(); end
+				if EndTime == nil then print("EndTime required."); exit(); end
+				if ExactSol == nil then print("ExactSol required."); exit(); end
 				
-			print(">> Create ApproximationSpace: "..disc..", "..p)
-			local approxSpace = CreateApproxSpace(dom, disc, p)
-			
-			print(">> Create Domain Disc: "..disc..", "..p)
-			local domainDisc = CreateDomainDisc(approxSpace, disc, p)
+				--------------------------------------------------------------------
+				--  Print Setup
+				--------------------------------------------------------------------
+				
+				print("\n")
+				print("---------------------------")
+				print(" General parameters chosen:")
+				print("---------------------------")
+				print("    dim        = " .. dim)
+				print("    grid       = " .. gridName)
+				print("    maxLev     = " .. maxLev)
+				print("    minLev     = " .. minLev)
+				print("    dtmin      = " .. dtmin)
+				print("    dtmax      = " .. dtmax)
+				print("    dtred      = " .. dtred)
+				print("    timeScheme = " .. ts)
+				print("    order      = " .. orderOrTheta)
+				print("    StartTime  = " .. StartTime)
+				print("    EndTime    = " .. EndTime)
+				print("    type       = " .. disc)
+				print("    order      = " .. p)
+				print("\n")
 	
-			print(">> Create Time Disc: "..timeScheme..", "..orderOrTheta)
-			local timeDisc = util.CreateTimeDisc(domainDisc, ts, orderOrTheta)
-			
-			print(">> Create Solver")
-			local newtonSolver = CreateSolver(approxSpace)
-
-			-- get names in approx space
-			local SpaceCmp = approxSpace:names()
-			
-			-- per default compute each Space-cmp
-			if PlotCmps == nil then
-				PlotCmps = {}
-				for f = 1,#SpaceCmp do
-					PlotCmps[SpaceCmp[f]] = {SpaceCmp[f]}
-				end
-			end
-
-			-- check functions to measure
-			for _,Cmps in pairs(PlotCmps) do
-				for _, cmp in pairs(Cmps) do
-					if not table.contains(SpaceCmp, cmp) then
-						print("Cmp: '"..cmp.."' not contained in ApproxSpace.");
-						exit()
+				--------------------------------------------------------------------
+				--  Create ApproxSpace, Disc and Solver
+				--------------------------------------------------------------------
+					
+				print(">> Create ApproximationSpace: "..disc..", "..p)
+				local approxSpace = CreateApproxSpace(dom, disc, p)
+				
+				print(">> Create Domain Disc: "..disc..", "..p)
+				local domainDisc = CreateDomainDisc(approxSpace, disc, p)
+		
+				print(">> Create Time Disc: "..ts..", "..orderOrTheta)
+				local timeDisc = util.CreateTimeDisc(domainDisc, ts, orderOrTheta)
+				
+				print(">> Create Solver")
+				local newtonSolver = CreateSolver(approxSpace)
+	
+				-- get names in approx space
+				local SpaceCmp = approxSpace:names()
+				
+				-- per default compute each Space-cmp
+				if PlotCmps == nil then
+					PlotCmps = {}
+					for f = 1,#SpaceCmp do
+						PlotCmps[SpaceCmp[f]] = {SpaceCmp[f]}
 					end
 				end
-			end
-
-			--------------------------------------------------------------------
-			--  Create Solutions on each level
-			--------------------------------------------------------------------
-			
-			write(">> Allocating storage for solution vectors.\n")
-			local dts = {}
-			local _dt = dtmax
-			while _dt >= dtmin do
-				dts[#dts+1] = _dt
-				_dt = _dt * dtred
-			end
-			
-			local u, uOld, TimeSeries, time, step = {}, {}, {}, {}, {}
-			for lev = minLev, maxLev do
-				u[lev], uOld[lev], TimeSeries[lev], time[lev], step[lev] = {}, {}, {}, {}, {}
-				for k = 1, #dts do
-					time[lev][k] = startTime
-					step[lev][k] = 0
-					u[lev][k] = GridFunction(approxSpace, lev)
-					Interpolate(ExactSol["c"], u[lev][k], "c", time[lev][k])				
-					TimeSeries[lev][k] = SolutionTimeSeries()
-					TimeSeries[lev][k]:push(u[lev][k]:clone(), time[lev][k])
-					
-					if timeDisc:num_stages() > 1 then uOld[lev][k] = u[lev][k]:clone() end			
+	
+				-- check functions to measure
+				for _,Cmps in pairs(PlotCmps) do
+					for _, cmp in pairs(Cmps) do
+						if not table.contains(SpaceCmp, cmp) then
+							print("Cmp: '"..cmp.."' not contained in ApproxSpace.");
+							exit()
+						end
+					end
 				end
-			end
-									
-			--------------------------------------------------------------------------------
-			--  Apply Solver
-			--------------------------------------------------------------------------------
 	
-			-- prepare error measurement		
-			errors[disc][p][ts] = errors[disc][p][ts] or {}	
-			local err = errors[disc][p][ts]
-			err.h, err.DoFs, err.level = {}, {}, {}	
-			for lev = minLev, maxLev do	
-				err.h[lev] = MaxElementDiameter(dom, lev) 
-				err.level[lev] = lev
-				err.DoFs[lev] = u[lev][1]:num_dofs()
-			end	
-			
-			err.dts, err.time = {}, {}
-			for k = 1, #dts do
-				err.dts[k] = dts[k]
-			end			
-
-			for lev = maxLev, minLev, -1 do
-				for k = 1, #dts do
-
-					-- set order for bdf to 1 (initially)
-					if timeScheme:lower() == "bdf" then timeDisc:set_order(1) end			
-	
-					while time[lev][k] < endTime do
-			
-						-- update step count
-						step[lev][k] = step[lev][k] + 1
-															
-						-- time step size
-						local dt = dts[k]
-						local _dt = dt
-												
-						if time[lev][k] + dt > endTime then _dt = endTime - time[lev][k] end
-						if ((endTime - (time[lev][k]+dt))/dt) < 1e-8 then _dt = endTime - time[lev][k] end
+				--------------------------------------------------------------------
+				--  Create Solutions on each level
+				--------------------------------------------------------------------
 				
-						-- get old solution if multistage
-						if timeDisc:num_stages() > 1 then
-							VecScaleAssign(u[lev][k], 1.0, uOld[lev][k])
-						end			
+				write(">> Allocating storage for solution vectors.\n")
+				local dts = {}
+				local _dt = dtmax
+				while _dt >= dtmin do
+					dts[#dts+1] = _dt
+					_dt = _dt * dtred
+				end
+				
+				local u, uOld, TimeSeries, time, step = {}, {}, {}, {}, {}
+				for lev = minLev, maxLev do
+					u[lev], uOld[lev], TimeSeries[lev], time[lev], step[lev] = {}, {}, {}, {}, {}
+					for k = 1, #dts do
+						time[lev][k] = StartTime
+						step[lev][k] = 0
+						u[lev][k] = GridFunction(approxSpace, lev)
+						Interpolate(ExactSol["c"], u[lev][k], "c", time[lev][k])				
+						TimeSeries[lev][k] = SolutionTimeSeries()
+						TimeSeries[lev][k]:push(u[lev][k]:clone(), time[lev][k])
+						
+						if timeDisc:num_stages() > 1 then uOld[lev][k] = u[lev][k]:clone() end			
+					end
+				end
+										
+				--------------------------------------------------------------------------------
+				--  Apply Solver
+				--------------------------------------------------------------------------------
+		
+				-- prepare error measurement		
+				errors[disc][p][ts] = errors[disc][p][ts] or {}	
+				local err = errors[disc][p][ts]
+				err.h, err.DoFs, err.level = {}, {}, {}	
+				for lev = minLev, maxLev do	
+					err.h[lev] = MaxElementDiameter(dom, lev) 
+					err.level[lev] = lev
+					err.DoFs[lev] = u[lev][1]:num_dofs()
+				end	
+				
+				err.dts, err.time = {}, {}
+				for k = 1, #dts do
+					err.dts[k] = dts[k]
+				end			
 	
-						for stage = 1, timeDisc:num_stages() do
-							timeDisc:set_stage(stage)
-							timeDisc:prepare_step(TimeSeries[lev][k], _dt)
+				for lev = maxLev, minLev, -1 do
+					for k = 1, #dts do
 	
-							-- solve step						
-							newtonSolver:init(AssembledOperator(timeDisc, u[lev][k]:grid_level()))
-							if newtonSolver:prepare(u[lev][k]) == false then print (">> Newton init failed."); exit(); end 
-							if newtonSolver:apply(u[lev][k]) == false then print (">> Newton solver failed."); exit(); end 
-											
-							-- update new time
-							time[lev][k] = timeDisc:future_time()
-							if math.abs(endTime - time[lev][k]) < 1e-8*dt then time[lev][k] = endTime end
-							
-							-- push oldest solutions with new values to front, oldest sol pointer is poped from end	
-							if timeScheme:lower() == "bdf" and step[lev][k] < orderOrTheta then
-								print("++++++ BDF: Increasing order to "..step[lev][k]+1)
-								timeDisc:set_order(step[lev][k]+1)
-								solTimeSeries:push(u[lev][k]:clone(), time[lev][k])
-							else 
-								local oldestSol = TimeSeries[lev][k]:oldest()
-								VecScaleAssign(oldestSol, 1.0, u[lev][k])
-								TimeSeries[lev][k]:push_discard_oldest(oldestSol, time[lev][k])
-							end
-						end
-			
-						-- save this solution if multistage
-						if timeDisc:num_stages() > 1 then
-							uOld[lev][k] = u[lev][k]
-						end			
+						-- set order for bdf to 1 (initially)
+						if ts:lower() == "bdf" then timeDisc:set_order(1) end			
+		
+						while time[lev][k] < EndTime do
+				
+							-- update step count
+							step[lev][k] = step[lev][k] + 1
+																
+							-- time step size
+							local dt = dts[k]
+							local _dt = dt
+													
+							if time[lev][k] + dt > EndTime then _dt = EndTime - time[lev][k] end
+							if ((EndTime - (time[lev][k]+dt))/dt) < 1e-8 then _dt = EndTime - time[lev][k] end
 					
-						if plotSol then
-							vtk = VTKOutput()
-							vtk:print("Sol"..step[lev][k], u[lev][k])
-						end
-						
-						-- compute for each component
-						local quadOrder = p+3
-						local tp = time[lev][k]
-						
-						err.time[step[lev][k]] = tp
-						
-						for f, Cmps in pairs(PlotCmps) do
+							-- get old solution if multistage
+							if timeDisc:num_stages() > 1 then
+								VecScaleAssign(u[lev][k], 1.0, uOld[lev][k])
+							end			
 		
-							-- create component
-							err[f] = err[f] or {}
-									
-							-- help fct to create an measurement
-							local function createMeas(f, t, n, lev)
-								err[f][t] = err[f][t] or {}
-								err[f][t][n] = err[f][t][n] or {}
-								err[f][t][n][tp] = err[f][t][n][tp] or {}
-								err[f][t][n][tp].value = err[f][t][n][tp].value or {}						
-								err[f][t][n][tp].value[lev] = err[f][t][n][tp].value[lev] or {}						
-								return err[f][t][n][tp].value[lev]
-							end
+							for stage = 1, timeDisc:num_stages() do
+								timeDisc:set_stage(stage)
+								timeDisc:prepare_step(TimeSeries[lev][k], _dt)
+		
+								-- solve step						
+								newtonSolver:init(AssembledOperator(timeDisc, u[lev][k]:grid_level()))
+								if newtonSolver:prepare(u[lev][k]) == false then print (">> Newton init failed."); exit(); end 
+								if newtonSolver:apply(u[lev][k]) == false then print (">> Newton solver failed."); exit(); end 
 												
-							-- check for exact solution and grad
-							local solAvail, gradAvail = true, true
-							for _,cmp in pairs(Cmps) do
-								if ExactSol  == nil or ExactSol[cmp]  == nil then solAvail  = false end
-								if ExactGrad == nil or ExactGrad[cmp] == nil then gradAvail = false end
-							end
-																	
-							-- w.r.t exact solution		
-							if exact and solAvail then 					
-								local value = createMeas(f, "l-exact", "l2", lev)
-								value[k] = 0.0
-								for _,cmp in pairs(Cmps) do
-									value[k] = value[k] + math.pow(L2Error(ExactSol[cmp], u[lev][k], cmp, tp, quadOrder), 2)
+								-- update new time
+								time[lev][k] = timeDisc:future_time()
+								if math.abs(EndTime - time[lev][k]) < 1e-8*dt then time[lev][k] = EndTime end
+								
+								-- push oldest solutions with new values to front, oldest sol pointer is poped from end	
+								if ts:lower() == "bdf" and step[lev][k] < orderOrTheta then
+									print("++++++ BDF: Increasing order to "..step[lev][k]+1)
+									timeDisc:set_order(step[lev][k]+1)
+									solTimeSeries:push(u[lev][k]:clone(), time[lev][k])
+								else 
+									local oldestSol = TimeSeries[lev][k]:oldest()
+									VecScaleAssign(oldestSol, 1.0, u[lev][k])
+									TimeSeries[lev][k]:push_discard_oldest(oldestSol, time[lev][k])
 								end
-								value[k] = math.sqrt(value[k])
-								write(">> L2 l-exact for "..f.." on Level "..lev..", dt: "
-										..dt..": "..string.format("%.3e", value[k]) ..", at time "..tp.."\n");
-		
-								if gradAvail then 					
-									local value = createMeas(f, "l-exact", "h1", lev)
+							end
+				
+							-- save this solution if multistage
+							if timeDisc:num_stages() > 1 then
+								uOld[lev][k] = u[lev][k]
+							end			
+						
+							if plotSol then
+								vtk = VTKOutput()
+								vtk:print("Sol"..step[lev][k], u[lev][k])
+							end
+							
+							-- compute for each component
+							local quadOrder = p+3
+							local tp = time[lev][k]
+							
+							err.time[step[lev][k]] = tp
+							
+							for f, Cmps in pairs(PlotCmps) do
+			
+								-- create component
+								err[f] = err[f] or {}
+										
+								-- help fct to create an measurement
+								local function createMeas(f, t, n, lev)
+									err[f][t] = err[f][t] or {}
+									err[f][t][n] = err[f][t][n] or {}
+									err[f][t][n][tp] = err[f][t][n][tp] or {}
+									err[f][t][n][tp].value = err[f][t][n][tp].value or {}						
+									err[f][t][n][tp].value[lev] = err[f][t][n][tp].value[lev] or {}						
+									return err[f][t][n][tp].value[lev]
+								end
+													
+								-- check for exact solution and grad
+								local solAvail, gradAvail = true, true
+								for _,cmp in pairs(Cmps) do
+									if ExactSol  == nil or ExactSol[cmp]  == nil then solAvail  = false end
+									if ExactGrad == nil or ExactGrad[cmp] == nil then gradAvail = false end
+								end
+																		
+								-- w.r.t exact solution		
+								if exact and solAvail then 					
+									local value = createMeas(f, "l-exact", "l2", lev)
 									value[k] = 0.0
 									for _,cmp in pairs(Cmps) do
-										value[k] = value[k] + math.pow(H1Error(ExactSol[cmp], ExactGrad[cmp], u[lev][k], cmp, tp, quadOrder), 2)
+										value[k] = value[k] + math.pow(L2Error(ExactSol[cmp], u[lev][k], cmp, tp, quadOrder), 2)
 									end
 									value[k] = math.sqrt(value[k])
-									write(">> H1 l-exact for "..f.." on Level "..lev..", dt: "
+									write(">> L2 l-exact for "..f.." on Level "..lev..", dt: "
 											..dt..": "..string.format("%.3e", value[k]) ..", at time "..tp.."\n");
+			
+									if gradAvail then 					
+										local value = createMeas(f, "l-exact", "h1", lev)
+										value[k] = 0.0
+										for _,cmp in pairs(Cmps) do
+											value[k] = value[k] + math.pow(H1Error(ExactSol[cmp], ExactGrad[cmp], u[lev][k], cmp, tp, quadOrder), 2)
+										end
+										value[k] = math.sqrt(value[k])
+										write(">> H1 l-exact for "..f.." on Level "..lev..", dt: "
+												..dt..": "..string.format("%.3e", value[k]) ..", at time "..tp.."\n");
+									end
 								end
 							end
-						end
-					end	-- end time interval
-					
-				end -- end timestep size
-			end -- end level
-
-			--------------------------------------------------------------------
-			--  Compute Factors and Rates
-			--------------------------------------------------------------------
+						end	-- end time interval
+						
+					end -- end timestep size
+				end -- end level
 	
-			local err = errors[disc][p][ts]
-			for f, _ in pairs(PlotCmps) do
-				for t, _ in pairs(err[f]) do
-					for n, _ in pairs(err[f][t]) do
-						for tp, _ in pairs(err[f][t][n]) do
-	
-				local meas = err[f][t][n][tp]
-	
-				meas.fac = meas.fac or {}
-				meas.rate = meas.rate or {}
-				
-				local value = meas.value
-				local fac = meas.fac
-				local rate = meas.rate
-				value.h, value.dt = {}, {}
-				fac.h, fac.dt = {}, {}
-				rate.h, rate.dt = {}, {}
-				
-				-- rate in time
-				for lev = minLev, maxLev do
-					value.dt[lev], fac.dt[lev], rate.dt[lev] = {}, {}, {}
-					for k, _ in ipairs(dts) do
-						value.dt[lev][k] = value[lev][k]
-					end
-
-					for k, _ in ipairs(dts) do
-						if value.dt[lev][k] ~= nil and value.dt[lev][k-1] ~= nil then
-							fac.dt[lev][k] = value.dt[lev][k-1]/value.dt[lev][k]
-							rate.dt[lev][k] = math.log(fac.dt[lev][k]) / math.log(1/dtred)
-						end
-					end
-				end
-
-				-- rate in space
-				for k, _ in ipairs(dts) do
-					value.h[k], fac.h[k], rate.h[k] = {}, {}, {}
-					
-					for lev = minLev, maxLev do
-						value.h[k][lev] = value[lev][k]
-						value.h[k].dt = dts[k]
-					end
-					
-					for lev = minLev, maxLev do
-						if value.h[k][lev] ~= nil and value.h[k][lev-1] ~= nil then
-							fac.h[k][lev] = value.h[k][lev-1]/value.h[k][lev]
-							rate.h[k][lev] = math.log(fac.h[k][lev]) / math.log(2)
-						end
-					end
-				end
-								
-						end						
-					end
-				end
-			end	
-
-			--------------------------------------------------------------------
-			--  Write Data to Screen
-			--------------------------------------------------------------------
-			
-			local err = errors[disc][p][ts]
-			local tp = endTime
-			for f, Cmps in pairs(PlotCmps) do
-			
-				write("\n>> Statistic for type: "..disc..", order: "..p..", comp: "..f.." [ ")			
-				for _, cmp in pairs(Cmps) do write(cmp.." ") end
-				print("]")
-				
-				for k, dt in ipairs(err.dts) do
-					
-					-- write data to screen
-					print("\n>> Convergence in space: fixed dt = "..dt)
-
-					local values = {err.level, err.h, err.DoFs}
-					local heading = {"L", "h", "#DoFs"}
-					local format = {"%d", "%.2e", "%d"}
-
+				--------------------------------------------------------------------
+				--  Compute Factors and Rates
+				--------------------------------------------------------------------
+		
+				local err = errors[disc][p][ts]
+				for f, _ in pairs(PlotCmps) do
 					for t, _ in pairs(err[f]) do
 						for n, _ in pairs(err[f][t]) do
-							local meas = err[f][t][n][tp]
-							table.append(values, {meas.value.h[k], meas.rate.h[k]}) 
-							table.append(heading,{n.." "..t, "rate"})
-							table.append(format, {"%.2e", "%.3f"})
-						end
-					end
-											
-					table.print(values, {heading = heading, format = format, 
-										 hline = true, vline = true, forNil = "--"})										 										 
-				end
-				
-				write("\n>> Statistic for type: "..disc..", order: "..p..", comp: "..f.." [ ")			
-				for _, cmp in pairs(Cmps) do write(cmp.." ") end
-				print("]")
-				
-				for lev = minLev, maxLev do
+							for tp, _ in pairs(err[f][t][n]) do
+		
+					local meas = err[f][t][n][tp]
+		
+					meas.fac = meas.fac or {}
+					meas.rate = meas.rate or {}
 					
-					-- write data to screen
-					print("\nConvergence in time: fixed level "..lev..", h = "
-							..string.format("%.3e", err.h[lev])..", #DoF = "..err.DoFs[lev])
-
-					local values = {dts}
-					local heading = {"dt"}
-					local format = {"%.2e"}
-
-					for t, _ in pairs(err[f]) do
-						for n, _ in pairs(err[f][t]) do
-							local meas = err[f][t][n][tp]
-							table.append(values, {meas.value.dt[lev], meas.rate.dt[lev]}) 
-							table.append(heading,{n.." "..t, "rate"})
-							table.append(format, {"%.2e", "%.3f"})
+					local value = meas.value
+					local fac = meas.fac
+					local rate = meas.rate
+					value.h, value.dt = {}, {}
+					fac.h, fac.dt = {}, {}
+					rate.h, rate.dt = {}, {}
+					
+					-- rate in time
+					for lev = minLev, maxLev do
+						value.dt[lev], fac.dt[lev], rate.dt[lev] = {}, {}, {}
+						for k, _ in ipairs(dts) do
+							value.dt[lev][k] = value[lev][k]
+						end
+	
+						for k, _ in ipairs(dts) do
+							if value.dt[lev][k] ~= nil and value.dt[lev][k-1] ~= nil then
+								fac.dt[lev][k] = value.dt[lev][k-1]/value.dt[lev][k]
+								rate.dt[lev][k] = math.log(fac.dt[lev][k]) / math.log(1/dtred)
+							end
 						end
 					end
-											
-					table.print(values, {heading = heading, format = format, 
-										 hline = true, vline = true, forNil = "--"})
-				end
+	
+					-- rate in space
+					for k, _ in ipairs(dts) do
+						value.h[k], fac.h[k], rate.h[k] = {}, {}, {}
+						
+						for lev = minLev, maxLev do
+							value.h[k][lev] = value[lev][k]
+							value.h[k].dt = dts[k]
+						end
+						
+						for lev = minLev, maxLev do
+							if value.h[k][lev] ~= nil and value.h[k][lev-1] ~= nil then
+								fac.h[k][lev] = value.h[k][lev-1]/value.h[k][lev]
+								rate.h[k][lev] = math.log(fac.h[k][lev]) / math.log(2)
+							end
+						end
+					end
+									
+							end						
+						end
+					end
+				end	
+	
+				--------------------------------------------------------------------
+				--  Write Data to Screen
+				--------------------------------------------------------------------
 				
-			end
-			
+				local err = errors[disc][p][ts]
+				local tp = EndTime
+				for f, Cmps in pairs(PlotCmps) do
+				
+					write("\n>> Statistic for type: "..disc..", order: "..p..", comp: "..f.." [ ")			
+					for _, cmp in pairs(Cmps) do write(cmp.." ") end
+					print("]")
+					
+					for k, dt in ipairs(err.dts) do
+						
+						-- write data to screen
+						print("\n>> Convergence in space: fixed dt = "..dt)
+	
+						local values = {err.level, err.h, err.DoFs}
+						local heading = {"L", "h", "#DoFs"}
+						local format = {"%d", "%.2e", "%d"}
+	
+						for t, _ in pairs(err[f]) do
+							for n, _ in pairs(err[f][t]) do
+								local meas = err[f][t][n][tp]
+								table.append(values, {meas.value.h[k], meas.rate.h[k]}) 
+								table.append(heading,{n.." "..t, "rate"})
+								table.append(format, {"%.2e", "%.3f"})
+							end
+						end
+												
+						table.print(values, {heading = heading, format = format, 
+											 hline = true, vline = true, forNil = "--"})										 										 
+					end
+					
+					write("\n>> Statistic for type: "..disc..", order: "..p..", comp: "..f.." [ ")			
+					for _, cmp in pairs(Cmps) do write(cmp.." ") end
+					print("]")
+					
+					for lev = minLev, maxLev do
+						
+						-- write data to screen
+						print("\nConvergence in time: fixed level "..lev..", h = "
+								..string.format("%.3e", err.h[lev])..", #DoF = "..err.DoFs[lev])
+	
+						local values = {dts}
+						local heading = {"dt"}
+						local format = {"%.2e"}
+	
+						for t, _ in pairs(err[f]) do
+							for n, _ in pairs(err[f][t]) do
+								local meas = err[f][t][n][tp]
+								table.append(values, {meas.value.dt[lev], meas.rate.dt[lev]}) 
+								table.append(heading,{n.." "..t, "rate"})
+								table.append(format, {"%.2e", "%.3f"})
+							end
+						end
+												
+						table.print(values, {heading = heading, format = format, 
+											 hline = true, vline = true, forNil = "--"})
+					end
+					
+				end
+			end -- end time disc type 
 		end -- end p
-	end -- end disc type
+	end -- end space disc type
 	
 	--------------------------------------------------------------------
 	--  Write gnuplot data
@@ -569,9 +572,10 @@ function util.rates.kinetic.compute(ConvRateSetup)
 
 	for disc, _ in pairs(errors) do
 		for p, _ in pairs(errors[disc]) do
-			for f, _ in pairs(PlotCmps) do
-				for t, _ in pairs(errors[disc][p][ts][f]) do
-					for n, _ in pairs(errors[disc][p][ts][f][t]) do
+			for ts, _ in pairs(errors[disc][p]) do
+				for f, _ in pairs(PlotCmps) do
+					for t, _ in pairs(errors[disc][p][ts][f]) do
+						for n, _ in pairs(errors[disc][p][ts][f][t]) do
 
 		-- values for each time step
 		for tp, _ in pairs(errors[disc][p][ts][f][t][n]) do
@@ -621,7 +625,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 		end
 		
 		-- values for the time series
-		local value = errors[disc][p][ts][f][t][n][endTime].value
+		local value = errors[disc][p][ts][f][t][n][EndTime].value
 		for lev, _ in ipairs(value) do		
 			for k, _ in pairs(value[lev]) do						
 				local file = dataPath..table.concat({"error",disc,p,ts,f,t,n,"lev",lev,"dt",k},"_")..".dat"
@@ -653,6 +657,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 			end
 		end
 					
+						end
 					end
 				end
 			end	
@@ -664,12 +669,13 @@ function util.rates.kinetic.compute(ConvRateSetup)
 	--------------------------------------------------------------------
 	for disc, _ in pairs(errors) do
 		for p, _ in pairs(errors[disc]) do
-			for f, _ in pairs(PlotCmps) do
-				for t, _ in pairs(errors[disc][p][ts][f]) do
-					for n, _ in pairs(errors[disc][p][ts][f][t]) do
-						for _, x in ipairs({"DoFs", "h"}) do
+			for ts, _ in pairs(errors[disc][p]) do
+				for f, _ in pairs(PlotCmps) do
+					for t, _ in pairs(errors[disc][p][ts][f]) do
+						for n, _ in pairs(errors[disc][p][ts][f][t]) do
+							for _, x in ipairs({"DoFs", "h"}) do
 
-		local tp = endTime
+		local tp = EndTime
 
 		local dir = plotPath..tp.."/"
 		ensureDir(dir)				
@@ -690,6 +696,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 		local file = dir.."disc/"..table.concat({f,"all",ts,t,n,x}, "_")	
 		--gpData[file] = getPlot("all", ts, tp, f, t, n, x)	
 
+							end
 						end
 					end
 				end
