@@ -146,6 +146,8 @@ function util.rates.kinetic.compute(ConvRateSetup)
 	local gpData = {};
 	local errors = {};
 
+	local ts = nil
+
 	-- compute problem
 	for _, DiscType in ipairs(DiscTypes) do
 
@@ -167,6 +169,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 		local orderOrTheta 	= DiscType.orderOrTheta or 1
 		local startTime 	= DiscType.startTime
 		local endTime		= DiscType.endTime
+		ts = timeScheme
 				
 		if dtmin == nil then print("dtmin required."); exit(); end
 		if dtmax == nil then print("dtmax required."); exit(); end
@@ -220,7 +223,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 			local domainDisc = CreateDomainDisc(approxSpace, disc, p)
 	
 			print(">> Create Time Disc: "..timeScheme..", "..orderOrTheta)
-			local timeDisc = util.CreateTimeDisc(domainDisc, timeScheme, orderOrTheta)
+			local timeDisc = util.CreateTimeDisc(domainDisc, ts, orderOrTheta)
 			
 			print(">> Create Solver")
 			local newtonSolver = CreateSolver(approxSpace)
@@ -277,17 +280,18 @@ function util.rates.kinetic.compute(ConvRateSetup)
 			--  Apply Solver
 			--------------------------------------------------------------------------------
 	
-			local h, level, DoFs = {}, {}, {}
-			for lev = minLev, maxLev do
-				h[lev] = MaxElementDiameter(dom, lev)
-				level[lev] = lev
+			-- prepare error measurement			
+			local err = errors[disc][p]
+			err.h, err.DoFs, err.level = {}, {}, {}	
+			for lev = minLev, maxLev do	
+				err.h[lev] = MaxElementDiameter(dom, lev) 
+				err.level[lev] = lev
+				err.DoFs[lev] = u[lev][1]:num_dofs()
 			end	
 	
 			for lev = maxLev, minLev, -1 do
 				for k = 1, #dts do
 
-					DoFs[lev] = u[lev][k]:num_dofs()
-	
 					-- set order for bdf to 1 (initially)
 					if timeScheme:lower() == "bdf" then timeDisc:set_order(1) end			
 	
@@ -338,15 +342,16 @@ function util.rates.kinetic.compute(ConvRateSetup)
 							uOld[lev][k] = u[lev][k]
 						end			
 					
-						vtk = VTKOutput()
-						vtk:print("Sol"..step[lev][k], u[lev][k])
-					
+						if plotSol then
+							vtk = VTKOutput()
+							vtk:print("Sol"..step[lev][k], u[lev][k])
+						end
+						
 						-- compute for each component
 						local quadOrder = p+3
 						local tp = time[lev][k]
-						errors[disc][p][timeScheme] = errors[disc][p][timeScheme] or {}
-						errors[disc][p][timeScheme][tp] = errors[disc][p][timeScheme][tp] or {}
-						local err = errors[disc][p][timeScheme][tp]
+						errors[disc][p][ts] = errors[disc][p][ts] or {}
+						local err = errors[disc][p][ts]
 						for f, Cmps in pairs(PlotCmps) do
 		
 							-- create component
@@ -356,9 +361,10 @@ function util.rates.kinetic.compute(ConvRateSetup)
 							local function createMeas(f, t, n, lev)
 								err[f][t] = err[f][t] or {}
 								err[f][t][n] = err[f][t][n] or {}
-								err[f][t][n].value = err[f][t][n].value or {}						
-								err[f][t][n].value[lev] = err[f][t][n].value[lev] or {}						
-								return err[f][t][n].value[lev]
+								err[f][t][n][tp] = err[f][t][n][tp] or {}
+								err[f][t][n][tp].value = err[f][t][n][tp].value or {}						
+								err[f][t][n][tp].value[lev] = err[f][t][n][tp].value[lev] or {}						
+								return err[f][t][n][tp].value[lev]
 							end
 												
 							-- check for exact solution and grad
@@ -400,13 +406,13 @@ function util.rates.kinetic.compute(ConvRateSetup)
 			--  Compute Factors and Rates
 			--------------------------------------------------------------------
 	
-			local err = errors[disc][p][timeScheme]
-			for tp, _ in pairs(err) do
-				for f, _ in pairs(PlotCmps) do
-					for t, _ in pairs(err[tp][f]) do
-						for n, _ in pairs(err[tp][f][t]) do
+			local err = errors[disc][p][ts]
+			for f, _ in pairs(PlotCmps) do
+				for t, _ in pairs(err[f]) do
+					for n, _ in pairs(err[f][t]) do
+						for tp, _ in pairs(err[f][t][n]) do
 	
-				local meas = err[tp][f][t][n]
+				local meas = err[f][t][n][tp]
 	
 				meas.fac = meas.fac or {}
 				meas.rate = meas.rate or {}
@@ -439,6 +445,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 					
 					for lev = minLev, maxLev do
 						value.h[k][lev] = value[lev][dt]
+						value.h[k].dt = dt
 					end
 					
 					for lev = minLev, maxLev do
@@ -458,7 +465,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 			--  Write Data to Screen
 			--------------------------------------------------------------------
 			
-			local err = errors[disc][p][timeScheme]
+			local err = errors[disc][p]
 			local tp = endTime
 			for f, Cmps in pairs(PlotCmps) do
 			
@@ -471,13 +478,13 @@ function util.rates.kinetic.compute(ConvRateSetup)
 					-- write data to screen
 					print("\n>> Convergence in space: fixed dt = "..dt)
 
-					local values = {level, h, DoFs}
+					local values = {err.level, err.h, err.DoFs}
 					local heading = {"L", "h", "#DoFs"}
 					local format = {"%d", "%.2e", "%d"}
 
-					for t, _ in pairs(err[tp][f]) do
-						for n, _ in pairs(err[tp][f][t]) do
-							local meas = err[tp][f][t][n]
+					for t, _ in pairs(err[ts][f]) do
+						for n, _ in pairs(err[ts][f][t]) do
+							local meas = err[ts][f][t][n][tp]
 							table.append(values, {meas.value.h[k], meas.rate.h[k]}) 
 							table.append(heading,{n.." "..t, "rate"})
 							table.append(format, {"%.2e", "%.3f"})
@@ -496,15 +503,15 @@ function util.rates.kinetic.compute(ConvRateSetup)
 					
 					-- write data to screen
 					print("\nConvergence in time: fixed level "..lev..", h = "
-							..string.format("%.3e", h[lev])..", #DoF = "..DoFs[lev])
+							..string.format("%.3e", err.h[lev])..", #DoF = "..err.DoFs[lev])
 
 					local values = {dts}
 					local heading = {"dt"}
 					local format = {"%.2e"}
 
-					for t, _ in pairs(err[tp][f]) do
-						for n, _ in pairs(err[tp][f][t]) do
-							local meas = err[tp][f][t][n]
+					for t, _ in pairs(err[ts][f]) do
+						for n, _ in pairs(err[ts][f][t]) do
+							local meas = err[ts][f][t][n][tp]
 							table.append(values, {meas.value.dt[lev], meas.rate.dt[lev]}) 
 							table.append(heading,{n.." "..t, "rate"})
 							table.append(format, {"%.2e", "%.3f"})
@@ -519,4 +526,143 @@ function util.rates.kinetic.compute(ConvRateSetup)
 			
 		end -- end p
 	end -- end disc type
+	
+	--------------------------------------------------------------------
+	--  Write gnuplot data
+	--------------------------------------------------------------------
+
+	-- the following is serial and one proc doing it is sufficient
+	if ProcRank() ~= 0 then return end
+	ensureDir(dataPath)
+	ensureDir(plotPath)
+
+	-- help fct to create a plot
+	local plots = {}
+	local function accessPlot(...)
+		local keys = arg
+		local plot = plots
+		for _, key in ipairs(keys) do
+			plot[key] = plot[key] or {}
+			plot = plot[key]
+		end
+		return plot
+	end
+	
+	local function getPlot(...)
+		local plot = accessPlot(...)
+		local pl = table.ideepcopy( plot )
+		pl.label = plot.label
+		return pl
+	end
+	
+	local function addSet(plot, dataset, label)
+		table.insert( plot, dataset)			
+		plot.label = label
+	end
+
+	for disc, _ in pairs(errors) do
+		for p, _ in pairs(errors[disc]) do
+			for f, _ in pairs(PlotCmps) do
+				for t, _ in pairs(errors[disc][p][ts][f]) do
+					for n, _ in pairs(errors[disc][p][ts][f][t]) do
+						for tp, _ in pairs(errors[disc][p][ts][f][t][n]) do
+
+		local dir = dataPath..tp.."/"
+		ensureDir(dir)				
+						
+		local value = errors[disc][p][ts][f][t][n][tp].value
+
+		-- convergence in time
+		for lev, _ in ipairs(value.dt) do		
+			local file = dir..table.concat({"error",disc,p,ts,f,t,n,"lev",lev},"_")..".dat"
+			local cols = {errors[disc][p].DoFs, errors[disc][p].h, value.dt[lev]}
+			gnuplot.write_data(file, cols)
+		end
+				
+		-- convergence in space
+		for k, _ in ipairs(value.h) do						
+			local file = dir..table.concat({"error",disc,p,ts,f,t,n,"dt",k},"_")..".dat"
+			local cols = {errors[disc][p].DoFs, errors[disc][p].h, value.h[k]}
+			gnuplot.write_data(file, cols)
+		end
+
+		-- convergence in space-time
+		local file = dir..table.concat({"error",disc,p,ts,f,t,n},"_")..".dat"
+		local fio = io.open(file, "w+")
+		fio:close()
+		for k, _ in pairs(value.h) do						
+			local dt = value.h[k].dt
+			local dts = {}; for i,_ in pairs(value.h[k]) do dts[i] = dt end
+			local cols = {errors[disc][p].DoFs, errors[disc][p].h, dts, value.h[k]}
+			gnuplot.write_data(file, cols, false, "a+")
+			local fio = io.open(file, "a+")
+			fio:write("\n")
+			fio:close()
+		end
+		
+		for xCol, x in ipairs({"DoFs", "h"}) do
+			local dataset = {label=MeasLabel(disc, p), file=file, style="linespoints", xCol, 3, 4}
+			local label = { x = XLabel(x), y = "dt", z = YLabel(f,t,n)}
+							
+			addSet( accessPlot(disc, p, ts, tp, f, t, n, x), dataset, label)
+			addSet( accessPlot(disc,    ts, tp, f, t, n, x), dataset, label)
+			addSet( accessPlot("all",   ts, tp, f, t, n, x), dataset, label)
+		end
+			
+						end
+					end
+				end
+			end	
+		end
+	end
+
+	--------------------------------------------------------------------
+	--  Execute Plot of gnuplot
+	--------------------------------------------------------------------
+	for disc, _ in pairs(errors) do
+		for p, _ in pairs(errors[disc]) do
+			for f, _ in pairs(PlotCmps) do
+				for t, _ in pairs(errors[disc][p][ts][f]) do
+					for n, _ in pairs(errors[disc][p][ts][f][t]) do
+						for _, x in ipairs({"DoFs", "h"}) do
+
+		local tp = 0.01
+
+		local dir = plotPath..tp.."/"
+		ensureDir(dir)				
+		
+		ensureDir(dir.."dataset/")
+		ensureDir(dir.."disc/")
+		ensureDir(dir.."multi/")
+		
+		-- single dataset			
+		local file = dir.."dataset/"..table.concat({disc,p,ts,f,t,n,x},"_")
+		gpData[file] = getPlot(disc, p, ts, tp, f, t, n, x)
+
+		-- grouping by (disc+p)								
+		local file = dir.."disc/"..table.concat({f,disc,ts,t,n,x}, "_")	
+		--gpData[file] = getPlot(disc, ts, tp, f, t, n, x)		
+
+		-- grouping (all discs+p)
+		local file = dir.."disc/"..table.concat({f,"all",ts,t,n,x}, "_")	
+		--gpData[file] = getPlot("all", ts, tp, f, t, n, x)	
+
+						end
+					end
+				end
+			end
+		end
+	end
+	
+		-- create scheduled plots
+	if CRS.noplot == nil or CRS.noplot == false then
+		for plotFile, data in pairs(gpData) do 
+			local opt = table.deepcopy(gpOptions)
+			if data.multiplot then opt.multiplot = data.multiplot end
+			--gnuplot.plot(plotFile..".tex", data, opt)
+			print(">> plotting: "..plotFile..".pdf")
+			gnuplot.plot(plotFile..".pdf", data, opt)
+		end	
+	end
+	
 end
