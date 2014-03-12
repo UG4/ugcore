@@ -597,7 +597,7 @@ adjust_jacobian(const std::vector<TUserData*>& vUserData, int si,
 	std::vector<position_type> vPos;
 
 // 	save all dirichlet degree of freedom indices.
-	std::vector<size_t> dirichletDoFIndices;
+	std::set<size_t> dirichletDoFIndices;
 
 
 //	iterators
@@ -640,48 +640,41 @@ adjust_jacobian(const std::vector<TUserData*>& vUserData, int si,
 					}
 
 					this->m_spAssTuner->set_dirichlet_row(J, multInd[j]);
-					dirichletDoFIndices.push_back(multInd[j][0]);
+					if(m_bDirichletColumns)
+						dirichletDoFIndices.insert(multInd[j][0]);
 				}
 			}
 		}
 	}
 
 
-	if(m_DirichletColumns){
+	if(m_bDirichletColumns){
 	//	UG_LOG("adjust jacobian\n")
-
-
 
 		// number of rows
 		size_t nr = J.num_rows();
 
-		// tag for dirichlet index
-		bool dirichletIndexTag = false;
-
-		// type for the row iterator
-		typedef typename matrix_type::const_row_iterator row_it;
-
-
 		// run over all rows of the local matrix J and save the colums
 		// entries for the Dirichlet indices in the map
+
+		typename std::set<size_t>::iterator currentDIndex;
 
 		for(size_t i = 0; i<nr; i++)
 		{
 			for(typename matrix_type::row_iterator it = J.begin_row(i); it!=J.end_row(i); ++it){
 
 				// look if the current index is a dirichlet index
-				for(size_t j = 0; j<dirichletDoFIndices.size(); j++){
-					if(it.index() == dirichletDoFIndices[j])
-						dirichletIndexTag = true;
-				}
+				// if it.index is a dirichlet index
+				// the iterator currentDIndex is delivered otherwise set::end()
+				currentDIndex = dirichletDoFIndices.find(it.index());
 
 				// fill dirichletMap & set corresponding entry to zero
-				if(dirichletIndexTag == true){
-
+				if(currentDIndex != dirichletDoFIndices.end()){
 					// the dirichlet-dof-index it.index is assigned
 					// the row i and the matrix entry it.value().
-					m_dirichletMap[it.index()][i] = it.value();
-					dirichletIndexTag = false;
+					// if necessary for defect remove comment
+
+						//	m_dirichletMap[it.index()][i] = it.value();
 
 					// the corresponding entry at column it.index() is set zero
 					// this corresponds to a dirichlet column.
@@ -992,7 +985,7 @@ adjust_linear(const std::vector<TUserData*>& vUserData, int si,
 	typename TUserData::value_type val;
 
 // 	save all dirichlet degree of freedom indices.
-	std::vector<size_t> dirichletDoFIndices;
+	std::set<size_t> dirichletDoFIndices;
 
 //	position of dofs
 	std::vector<position_type> vPos;
@@ -1036,7 +1029,8 @@ adjust_linear(const std::vector<TUserData*>& vUserData, int si,
 					if(!(*vUserData[i])(val, vPos[j], time, si)) continue;
 
 					this->m_spAssTuner->set_dirichlet_row(A, multInd[j]);
-					dirichletDoFIndices.push_back(multInd[j][0]);
+					if(m_bDirichletColumns)
+						dirichletDoFIndices.insert(multInd[j][0]);
 
 					this->m_spAssTuner->set_dirichlet_val(b, multInd[j], val[f]);
 				}
@@ -1044,17 +1038,13 @@ adjust_linear(const std::vector<TUserData*>& vUserData, int si,
 		}
 	}
 
-	if(m_DirichletColumns){
-		UG_LOG("adjust linear\n")
+	if(m_bDirichletColumns){
+	//	UG_LOG("adjust linear\n")
 
 		// number of rows
 		size_t nr = A.num_rows();
 
-		// tag for dirichlet index
-		bool dirichletIndexTag = false;
-
-		// type for the row iterator
-		typedef typename matrix_type::const_row_iterator row_it;
+		typename std::set<size_t>::iterator currentDIndex;
 
 		// run over all rows of the local matrix J and save the colums
 		// entries for the Dirichlet indices in the map
@@ -1063,19 +1053,15 @@ adjust_linear(const std::vector<TUserData*>& vUserData, int si,
 		{
 			for(typename matrix_type::row_iterator it = A.begin_row(i); it!=A.end_row(i); ++it){
 
-				// look if the current index is a dirichlet index
-				for(size_t j = 0; j<dirichletDoFIndices.size(); j++){
-					if(it.index() == dirichletDoFIndices[j])
-						dirichletIndexTag = true;
-				}
+
+				currentDIndex = dirichletDoFIndices.find(it.index());
 
 				// fill dirichletMap & set corresponding entry to zero
-				if(dirichletIndexTag == true){
+				if(currentDIndex != dirichletDoFIndices.end()){
 
 					// the dirichlet-dof-index it.index is assigned
 					// the row i and the matrix entry it.value().
 					m_dirichletMap[it.index()][i] = it.value();
-					dirichletIndexTag = false;
 
 					// the corresponding entry at column it.index() is set zero
 					// this corresponds to a dirichlet column.

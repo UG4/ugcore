@@ -57,10 +57,10 @@ class DirichletBoundary
 	/// The default ist without Dirichlet columns.
 
 	///	constructor
-		DirichletBoundary() {m_DirichletColumns = false; clear();}
+		DirichletBoundary() {m_bDirichletColumns = false; clear();}
 
 	/// constructor with flag for Dirichlet-Columns.
-		DirichletBoundary(bool DirichletColumns){m_DirichletColumns = DirichletColumns; clear();}
+		DirichletBoundary(bool DirichletColumns){m_bDirichletColumns = DirichletColumns; clear();}
 
 	///	destructor
 		~DirichletBoundary() {}
@@ -351,7 +351,7 @@ class DirichletBoundary
 
 	protected:
 	/// flag for setting dirichlet columns
-		bool m_DirichletColumns;
+		bool m_bDirichletColumns;
 
 	/// maps a column dirichlet index to the
 	/// row and its corresponding matrix entry.
