@@ -34,10 +34,11 @@ filename			the output file
 data				table containing the data
 passRows		    flag indication if data array stores rows (default = false)
 --]]
-function gnuplot.write_data(filename, data, passRows)
+function gnuplot.write_data(filename, data, passRows, mode)
 
 	-- default is table data by row
 	passRows = passRows or false
+	mode = mode or "w+"
 	forNil = "--"
 
 	-- check data
@@ -54,7 +55,7 @@ function gnuplot.write_data(filename, data, passRows)
 	if ProcRank() ~= 0 then return 0 end
 
 	-- open file
-	local file = io.open(filename, "w+")
+	local file = io.open(filename, mode)
 	if (not file) then
 		write("Gnuplot Error: cannot open output file: '")
 		write(filename .. " '\n");
@@ -1162,7 +1163,7 @@ function gnuplot.plot(filename, data, options)
 			end
 			
 			-- check style		
-			if not table.contains({"lines","points","linespoints","boxes","dots","vectors","yerrorbars"}, style) then
+			if not table.contains({"lines","points","linespoints","boxes","dots","vectors","yerrorbars","pm3d"}, style) then
 				write("Gnuplot Error: style=\""..style.."\" not supported.\n");
 				exit()
 			end
