@@ -54,7 +54,7 @@ h=$(((h*10)/charHeightFactor10))
 
 if [[ `uname` == 'Darwin' ]]; then
 	[[ $PID == 0 ]] && echo "On Apple, using xterm without hold"
-	xterm -geometry ${w}x$h+$x+$y -e $2
+	xterm  -e $2
 else
 	[[ $PID == 0 ]] && echo "Not on Apple, using xterm -hold"
 	xterm -hold -geometry ${w}x$h+$x+$y -e $2
