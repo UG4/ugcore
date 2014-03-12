@@ -280,15 +280,21 @@ function util.rates.kinetic.compute(ConvRateSetup)
 			--  Apply Solver
 			--------------------------------------------------------------------------------
 	
-			-- prepare error measurement			
-			local err = errors[disc][p]
+			-- prepare error measurement		
+			errors[disc][p][ts] = errors[disc][p][ts] or {}	
+			local err = errors[disc][p][ts]
 			err.h, err.DoFs, err.level = {}, {}, {}	
 			for lev = minLev, maxLev do	
 				err.h[lev] = MaxElementDiameter(dom, lev) 
 				err.level[lev] = lev
 				err.DoFs[lev] = u[lev][1]:num_dofs()
 			end	
-	
+			
+			err.dts, err.time = {}, {}
+			for k = 1, #dts do
+				err.dts[k] = dts[k]
+			end			
+
 			for lev = maxLev, minLev, -1 do
 				for k = 1, #dts do
 
@@ -350,8 +356,9 @@ function util.rates.kinetic.compute(ConvRateSetup)
 						-- compute for each component
 						local quadOrder = p+3
 						local tp = time[lev][k]
-						errors[disc][p][ts] = errors[disc][p][ts] or {}
-						local err = errors[disc][p][ts]
+						
+						err.time[step[lev][k]] = tp
+						
 						for f, Cmps in pairs(PlotCmps) do
 		
 							-- create component
@@ -377,23 +384,23 @@ function util.rates.kinetic.compute(ConvRateSetup)
 							-- w.r.t exact solution		
 							if exact and solAvail then 					
 								local value = createMeas(f, "l-exact", "l2", lev)
-								value[dt] = 0.0
+								value[k] = 0.0
 								for _,cmp in pairs(Cmps) do
-									value[dt] = value[dt] + math.pow(L2Error(ExactSol[cmp], u[lev][k], cmp, tp, quadOrder), 2)
+									value[k] = value[k] + math.pow(L2Error(ExactSol[cmp], u[lev][k], cmp, tp, quadOrder), 2)
 								end
-								value[dt] = math.sqrt(value[dt])
+								value[k] = math.sqrt(value[k])
 								write(">> L2 l-exact for "..f.." on Level "..lev..", dt: "
-										..dt..": "..string.format("%.3e", value[dt]) ..", at time "..tp.."\n");
+										..dt..": "..string.format("%.3e", value[k]) ..", at time "..tp.."\n");
 		
 								if gradAvail then 					
 									local value = createMeas(f, "l-exact", "h1", lev)
-									value[dt] = 0.0
+									value[k] = 0.0
 									for _,cmp in pairs(Cmps) do
-										value[dt] = value[dt] + math.pow(H1Error(ExactSol[cmp], ExactGrad[cmp], u[lev][k], cmp, tp, quadOrder), 2)
+										value[k] = value[k] + math.pow(H1Error(ExactSol[cmp], ExactGrad[cmp], u[lev][k], cmp, tp, quadOrder), 2)
 									end
-									value[dt] = math.sqrt(value[dt])
+									value[k] = math.sqrt(value[k])
 									write(">> H1 l-exact for "..f.." on Level "..lev..", dt: "
-											..dt..": "..string.format("%.3e", value[dt]) ..", at time "..tp.."\n");
+											..dt..": "..string.format("%.3e", value[k]) ..", at time "..tp.."\n");
 								end
 							end
 						end
@@ -427,11 +434,11 @@ function util.rates.kinetic.compute(ConvRateSetup)
 				-- rate in time
 				for lev = minLev, maxLev do
 					value.dt[lev], fac.dt[lev], rate.dt[lev] = {}, {}, {}
-					for k, dt in ipairs(dts) do
-						value.dt[lev][k] = value[lev][dt]
+					for k, _ in ipairs(dts) do
+						value.dt[lev][k] = value[lev][k]
 					end
 
-					for k, dt in ipairs(dts) do
+					for k, _ in ipairs(dts) do
 						if value.dt[lev][k] ~= nil and value.dt[lev][k-1] ~= nil then
 							fac.dt[lev][k] = value.dt[lev][k-1]/value.dt[lev][k]
 							rate.dt[lev][k] = math.log(fac.dt[lev][k]) / math.log(1/dtred)
@@ -440,12 +447,12 @@ function util.rates.kinetic.compute(ConvRateSetup)
 				end
 
 				-- rate in space
-				for k, dt in ipairs(dts) do
+				for k, _ in ipairs(dts) do
 					value.h[k], fac.h[k], rate.h[k] = {}, {}, {}
 					
 					for lev = minLev, maxLev do
-						value.h[k][lev] = value[lev][dt]
-						value.h[k].dt = dt
+						value.h[k][lev] = value[lev][k]
+						value.h[k].dt = dts[k]
 					end
 					
 					for lev = minLev, maxLev do
@@ -465,7 +472,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 			--  Write Data to Screen
 			--------------------------------------------------------------------
 			
-			local err = errors[disc][p]
+			local err = errors[disc][p][ts]
 			local tp = endTime
 			for f, Cmps in pairs(PlotCmps) do
 			
@@ -473,7 +480,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 				for _, cmp in pairs(Cmps) do write(cmp.." ") end
 				print("]")
 				
-				for k, dt in ipairs(dts) do
+				for k, dt in ipairs(err.dts) do
 					
 					-- write data to screen
 					print("\n>> Convergence in space: fixed dt = "..dt)
@@ -482,9 +489,9 @@ function util.rates.kinetic.compute(ConvRateSetup)
 					local heading = {"L", "h", "#DoFs"}
 					local format = {"%d", "%.2e", "%d"}
 
-					for t, _ in pairs(err[ts][f]) do
-						for n, _ in pairs(err[ts][f][t]) do
-							local meas = err[ts][f][t][n][tp]
+					for t, _ in pairs(err[f]) do
+						for n, _ in pairs(err[f][t]) do
+							local meas = err[f][t][n][tp]
 							table.append(values, {meas.value.h[k], meas.rate.h[k]}) 
 							table.append(heading,{n.." "..t, "rate"})
 							table.append(format, {"%.2e", "%.3f"})
@@ -509,9 +516,9 @@ function util.rates.kinetic.compute(ConvRateSetup)
 					local heading = {"dt"}
 					local format = {"%.2e"}
 
-					for t, _ in pairs(err[ts][f]) do
-						for n, _ in pairs(err[ts][f][t]) do
-							local meas = err[ts][f][t][n][tp]
+					for t, _ in pairs(err[f]) do
+						for n, _ in pairs(err[f][t]) do
+							local meas = err[f][t][n][tp]
 							table.append(values, {meas.value.dt[lev], meas.rate.dt[lev]}) 
 							table.append(heading,{n.." "..t, "rate"})
 							table.append(format, {"%.2e", "%.3f"})
@@ -565,51 +572,87 @@ function util.rates.kinetic.compute(ConvRateSetup)
 			for f, _ in pairs(PlotCmps) do
 				for t, _ in pairs(errors[disc][p][ts][f]) do
 					for n, _ in pairs(errors[disc][p][ts][f][t]) do
-						for tp, _ in pairs(errors[disc][p][ts][f][t][n]) do
 
-		local dir = dataPath..tp.."/"
-		ensureDir(dir)				
-						
-		local value = errors[disc][p][ts][f][t][n][tp].value
-
-		-- convergence in time
-		for lev, _ in ipairs(value.dt) do		
-			local file = dir..table.concat({"error",disc,p,ts,f,t,n,"lev",lev},"_")..".dat"
-			local cols = {errors[disc][p].DoFs, errors[disc][p].h, value.dt[lev]}
-			gnuplot.write_data(file, cols)
-		end
-				
-		-- convergence in space
-		for k, _ in ipairs(value.h) do						
-			local file = dir..table.concat({"error",disc,p,ts,f,t,n,"dt",k},"_")..".dat"
-			local cols = {errors[disc][p].DoFs, errors[disc][p].h, value.h[k]}
-			gnuplot.write_data(file, cols)
-		end
-
-		-- convergence in space-time
-		local file = dir..table.concat({"error",disc,p,ts,f,t,n},"_")..".dat"
-		local fio = io.open(file, "w+")
-		fio:close()
-		for k, _ in pairs(value.h) do						
-			local dt = value.h[k].dt
-			local dts = {}; for i,_ in pairs(value.h[k]) do dts[i] = dt end
-			local cols = {errors[disc][p].DoFs, errors[disc][p].h, dts, value.h[k]}
-			gnuplot.write_data(file, cols, false, "a+")
-			local fio = io.open(file, "a+")
-			fio:write("\n")
+		-- values for each time step
+		for tp, _ in pairs(errors[disc][p][ts][f][t][n]) do
+	
+			local dir = dataPath..tp.."/"
+			ensureDir(dir)				
+							
+			local value = errors[disc][p][ts][f][t][n][tp].value
+			local err = errors[disc][p][ts]
+	
+			-- convergence in time
+			for lev, _ in iipairs(value.dt) do		
+				local file = dir..table.concat({"error",disc,p,ts,f,t,n,"lev",lev},"_")..".dat"
+				local cols = {err.DoFs, err.h, value.dt[lev]}
+				gnuplot.write_data(file, cols)
+			end
+					
+			-- convergence in space
+			for k, _ in iipairs(value.h) do						
+				local file = dir..table.concat({"error",disc,p,ts,f,t,n,"dt",k},"_")..".dat"
+				local cols = {err.DoFs, err.h, value.h[k]}
+				gnuplot.write_data(file, cols)
+			end
+	
+			-- convergence in space-time
+			local file = dir..table.concat({"error",disc,p,ts,f,t,n},"_")..".dat"
+			local fio = io.open(file, "w+")
 			fio:close()
+			for k, _ in pairs(value.h) do						
+				local dt = value.h[k].dt
+				local dts = {}; for i,_ in pairs(value.h[k]) do dts[i] = dt end
+				local cols = {err.DoFs, err.h, dts, value.h[k]}
+				gnuplot.write_data(file, cols, false, "a+")
+				local fio = io.open(file, "a+")
+				fio:write("\n")
+				fio:close()
+			end
+			
+			for xCol, x in ipairs({"DoFs", "h"}) do
+				local dataset = {label=MeasLabel(disc, p), file=file, style="linespoints", xCol, 3, 4}
+				local label = { x = XLabel(x), y = "dt", z = YLabel(f,t,n)}
+								
+				addSet( accessPlot(disc, p, ts, tp, f, t, n, x), dataset, label)
+				addSet( accessPlot(disc,    ts, tp, f, t, n, x), dataset, label)
+				addSet( accessPlot("all",   ts, tp, f, t, n, x), dataset, label)
+			end
 		end
 		
-		for xCol, x in ipairs({"DoFs", "h"}) do
-			local dataset = {label=MeasLabel(disc, p), file=file, style="linespoints", xCol, 3, 4}
-			local label = { x = XLabel(x), y = "dt", z = YLabel(f,t,n)}
-							
-			addSet( accessPlot(disc, p, ts, tp, f, t, n, x), dataset, label)
-			addSet( accessPlot(disc,    ts, tp, f, t, n, x), dataset, label)
-			addSet( accessPlot("all",   ts, tp, f, t, n, x), dataset, label)
-		end
+		-- values for the time series
+		local value = errors[disc][p][ts][f][t][n][endTime].value
+		for lev, _ in ipairs(value) do		
+			for k, _ in pairs(value[lev]) do						
+				local file = dataPath..table.concat({"error",disc,p,ts,f,t,n,"lev",lev,"dt",k},"_")..".dat"
+
+				local fio = io.open(file, "w+")
+				for tp, _ in pairs(errors[disc][p][ts][f][t][n]) do
 			
-						end
+					local value = errors[disc][p][ts][f][t][n][tp].value
+					local err = errors[disc][p][ts]
+
+					if value[lev][k] then
+						fio:write(tp)
+						fio:write(" "..value[lev][k])	
+						fio:write("\n")					
+					end
+				end				
+				fio:close()
+	
+				ensureDir(plotPath.."dataset/")
+	
+				local dataset = {label=MeasLabel(disc, p), file=file, style="points", 1, 2}
+				local label = { x = "time", y = YLabel(f,t,n)}
+				local gpFile = plotPath.."dataset/"..table.concat({disc,p,ts,f,t,n,"lev",lev,"dt",k},"_")
+				local plot = {}
+				table.insert( plot, dataset)			
+				plot.label = label
+				
+				gpData[gpFile] = plot
+			end
+		end
+					
 					end
 				end
 			end	
@@ -626,7 +669,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 					for n, _ in pairs(errors[disc][p][ts][f][t]) do
 						for _, x in ipairs({"DoFs", "h"}) do
 
-		local tp = 0.01
+		local tp = endTime
 
 		local dir = plotPath..tp.."/"
 		ensureDir(dir)				
