@@ -296,69 +296,82 @@ function util.rates.kinetic.compute(ConvRateSetup)
 				----------------------------------------------------------------
 				--  Compute solution for all level and time step sizes
 				----------------------------------------------------------------
-				for lev = maxLev, minLev, -1 do
-					for k = 0, refs do
-	
-						local mem = memory[lev][k]
-	
-						err.dt[k] = mem.dt
-	
-						-- set order for bdf to 1 (initially)
-						if ts:lower() == "bdf" then timeDisc:set_order(1) end			
-		
-						while mem.time < EndTime do
 				
-							-- update step count
-							mem.step = mem.step + 1
-																
-							-- time step size
-							local dt = mem.dt
-							local dodt = dt
-													
-							if mem.time + dt > EndTime then dodt = EndTime - mem.time end
-							if ((EndTime - (mem.time+dt))/dt) < 1e-8 then dodt = EndTime - mem.time end
+				-- loop time interval
+				local sliceTime = StartTime
+				while sliceTime < EndTime do
+				
+					sliceTime = sliceTime + dt
+					if sliceTime > EndTime then sliceTime = EndTime end
 					
-							-- get old solution if multistage
-							if timeDisc:num_stages() > 1 then
-								VecScaleAssign(mem.u, 1.0, mem.uOld)
-							end			
+					-- advance all discs to end of global time step
+					for lev = maxLev, minLev, -1 do
+						for k = 0, refs do
 		
-							for stage = 1, timeDisc:num_stages() do
-								timeDisc:set_stage(stage)
-								timeDisc:prepare_step(mem.TimeSeries, dodt)
+							local mem = memory[lev][k]
 		
-								-- solve step						
-								newtonSolver:init(AssembledOperator(timeDisc, mem.u:grid_level()))
-								if newtonSolver:prepare(mem.u) == false then print (">> Newton init failed."); exit(); end 
-								if newtonSolver:apply(mem.u) == false then print (">> Newton solver failed."); exit(); end 
-												
-								-- update new time
-								mem.time = timeDisc:future_time()
-								if math.abs(EndTime - mem.time) < 1e-8*dt then mem.time = EndTime end
-								
-								-- push oldest solutions with new values to front, oldest sol pointer is poped from end	
-								if ts:lower() == "bdf" and mem.step < orderOrTheta then
-									print("++++++ BDF: Increasing order to "..mem.step+1)
-									timeDisc:set_order(mem.step+1)
-									solTimeSeries:push(mem.u:clone(), mem.time)
-								else 
-									local oldestSol = mem.TimeSeries:oldest()
-									VecScaleAssign(oldestSol, 1.0, mem.u)
-									mem.TimeSeries:push_discard_oldest(oldestSol, mem.time)
-								end
-							end
-				
-							-- save this solution if multistage
-							if timeDisc:num_stages() > 1 then
-								mem.uOld = mem.u
-							end			
+							err.dt[k] = mem.dt
+							print(">> >>>>> Advancing lev "..lev..", dt: "..mem.dt)
+		
+							-- set order for bdf to 1 (initially)
+							if ts:lower() == "bdf" then timeDisc:set_order(1) end			
+			
+							while mem.time < sliceTime do
+					
+								-- update step count
+								mem.step = mem.step + 1
+																	
+								-- time step size
+								local dt = mem.dt
+								local dodt = dt
+														
+								if mem.time + dt > sliceTime then dodt = sliceTime - mem.time end
+								if ((sliceTime - (mem.time+dt))/dt) < 1e-8 then dodt = sliceTime - mem.time end
 						
+								-- get old solution if multistage
+								if timeDisc:num_stages() > 1 then
+									VecScaleAssign(mem.u, 1.0, mem.uOld)
+								end			
+			
+								for stage = 1, timeDisc:num_stages() do
+									timeDisc:set_stage(stage)
+									timeDisc:prepare_step(mem.TimeSeries, dodt)
+			
+									-- solve step						
+									newtonSolver:init(AssembledOperator(timeDisc, mem.u:grid_level()))
+									if newtonSolver:prepare(mem.u) == false then print (">> Newton init failed."); exit(); end 
+									if newtonSolver:apply(mem.u) == false then print (">> Newton solver failed."); exit(); end 
+													
+									-- update new time
+									mem.time = timeDisc:future_time()
+									if math.abs(sliceTime - mem.time) < 1e-8*dt then mem.time = sliceTime end
+									
+									-- push oldest solutions with new values to front, oldest sol pointer is poped from end	
+									if ts:lower() == "bdf" and mem.step < orderOrTheta then
+										print("++++++ BDF: Increasing order to "..mem.step+1)
+										timeDisc:set_order(mem.step+1)
+										solTimeSeries:push(mem.u:clone(), mem.time)
+									else 
+										local oldestSol = mem.TimeSeries:oldest()
+										VecScaleAssign(oldestSol, 1.0, mem.u)
+										mem.TimeSeries:push_discard_oldest(oldestSol, mem.time)
+									end
+								end
+					
+								-- save this solution if multistage
+								if timeDisc:num_stages() > 1 then
+									mem.uOld = mem.u
+								end			
+							end	-- end slice interval
+							
 							if plotSol then
 								vtk = VTKOutput()
 								vtk:print("Sol"..mem.step, mem.u)
 							end
-							
-							-- compute for each component
+						
+							---------------------------------------------------- 
+							-- compute norms at slice point (start)
+							---------------------------------------------------- 
 							local quadOrder = p+3
 							local tp = mem.time
 							
@@ -407,11 +420,14 @@ function util.rates.kinetic.compute(ConvRateSetup)
 									end
 								end
 							end
-						end	-- end time interval
-						
-					end -- end timestep size
-				end -- end level
-	
+							---------------------------------------------------- 
+							-- compute norms at slice point (end)
+							---------------------------------------------------- 
+							
+						end -- end timestep size
+					end -- end level
+					
+				end -- end slice time	
 				--------------------------------------------------------------------
 				--  Compute Factors and Rates
 				--------------------------------------------------------------------
@@ -674,27 +690,26 @@ function util.rates.kinetic.compute(ConvRateSetup)
 						for n, _ in pairs(errors[disc][p][ts][f][t]) do
 							for _, x in ipairs({"DoFs", "h"}) do
 
-		local tp = EndTime
-
-		local dir = plotPath..tp.."/"
-		ensureDir(dir)				
-		
-		ensureDir(dir.."dataset/")
-		ensureDir(dir.."disc/")
-		ensureDir(dir.."multi/")
-		
-		-- single dataset			
-		local file = dir.."dataset/"..table.concat({disc,p,ts,f,t,n,x},"_")
-		gpData[file] = getPlot(disc, p, ts, tp, f, t, n, x)
-
-		-- grouping by (disc+p)								
-		local file = dir.."disc/"..table.concat({f,disc,ts,t,n,x}, "_")	
-		--gpData[file] = getPlot(disc, ts, tp, f, t, n, x)		
-
-		-- grouping (all discs+p)
-		local file = dir.."disc/"..table.concat({f,"all",ts,t,n,x}, "_")	
-		--gpData[file] = getPlot("all", ts, tp, f, t, n, x)	
-
+		for tp, _ in pairs(errors[disc][p][ts][f][t][n]) do
+			local dir = plotPath..tp.."/"
+			ensureDir(dir)				
+			
+			ensureDir(dir.."dataset/")
+			ensureDir(dir.."disc/")
+			ensureDir(dir.."multi/")
+			
+			-- single dataset			
+			local file = dir.."dataset/"..table.concat({disc,p,ts,f,t,n,x},"_")
+			gpData[file] = getPlot(disc, p, ts, tp, f, t, n, x)
+	
+			-- grouping by (disc+p)								
+			local file = dir.."disc/"..table.concat({f,disc,ts,t,n,x}, "_")	
+			--gpData[file] = getPlot(disc, ts, tp, f, t, n, x)		
+	
+			-- grouping (all discs+p)
+			local file = dir.."disc/"..table.concat({f,"all",ts,t,n,x}, "_")	
+			--gpData[file] = getPlot("all", ts, tp, f, t, n, x)	
+		end
 							end
 						end
 					end
