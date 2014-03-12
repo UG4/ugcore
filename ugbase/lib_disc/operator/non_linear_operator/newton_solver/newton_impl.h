@@ -282,7 +282,7 @@ void NewtonSolver<TAlgebra>::print_average_convergence() const
 		UG_LOG(std::setw(13) << std::setprecision(2) << std::fixed << m_vTotalLinSolverSteps[call] / (double)m_vLinSolverCalls[call] << " | ");
 		allNonLinRatesProduct *= pow((number)m_vNonLinSolverRates[call]/(double)m_vLinSolverCalls[call],(double)m_vLinSolverCalls[call]);
 		UG_LOG(std::setw(16) << std::setprecision(6) << std::scientific << m_vNonLinSolverRates[call] / (double)m_vLinSolverCalls[call] << " | ");
-		allLinRatesProduct *= (number)std::pow((number)m_vLinSolverRates[call]/(number)m_vTotalLinSolverSteps[call],(number)m_vTotalLinSolverSteps[call]);
+		allLinRatesProduct *= (number)std::pow((number)m_vLinSolverRates[call]/(double)m_vLinSolverCalls[call],(number)m_vTotalLinSolverSteps[call]);
 		UG_LOG(std::setw(13) << std::setprecision(6) << std::scientific << m_vLinSolverRates[call] / (double)m_vLinSolverCalls[call]);
 		UG_LOG("\n");
 	}
