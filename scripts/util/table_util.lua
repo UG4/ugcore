@@ -102,6 +102,22 @@ function table.imax(t)
 	return max
 end
 
+--! returns iterator function iterating through first consecutive integer-key range (even starting at negative or null)
+function iipairs(tab)
+	local n = table.imin(tab)-1
+	local t = tab
+	return function (i)
+      	 n = n + 1
+      	 local v = t[n]
+     	 if v then
+        	return n, v
+      	else
+      		return nil
+    	end
+    end
+end
+
+
 --! checks if a value is contained in a table
 function table.contains(t, value)
 	for _,v in pairs(t) do
