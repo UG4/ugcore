@@ -776,6 +776,7 @@ void MarkForRefinement_ElementsByLuaCallback(TDomain& dom, SmartPtr<IRefiner> re
 //	we'll pass the following arguments: x, y, z, lvl, si, time
 	callback.set_lua_callback(luaCallbackName, 6);
 
+	Grid::vertex_traits::secure_container	vrts;
 	for(TIter iter = g.template begin<TElem>(); iter != g.template end<TElem>(); ++iter)
 	{
 		TElem* e = *iter;
@@ -784,14 +785,20 @@ void MarkForRefinement_ElementsByLuaCallback(TDomain& dom, SmartPtr<IRefiner> re
 			continue;
 
 		if(!g.has_children(e)){
+		//	evaluate all corners. if true is returned for one of the corners,
+		//	the whole element has to be refined
 			int refine = 0;
-			TPos tpos = CalculateCenter(e, aaPos);
-			vector3 pos;
-			VecCopy(pos, tpos, 0);
-			callback(refine, 6, pos.x(), pos.y(), pos.z(), (number)lvl,
-					 (number)sh.get_subset_index(e), (number)time);
-			if(refine){
-				refiner->mark(e);
+			//TPos tpos = CalculateCenter(e, aaPos);
+			g.associated_elements(vrts, e);
+			for(size_t i = 0; i < vrts.size(); ++i){
+				vector3 pos;
+				VecCopy(pos, aaPos[vrts[i]], 0);
+				callback(refine, 6, pos.x(), pos.y(), pos.z(), (number)lvl,
+						 (number)sh.get_subset_index(e), (number)time);
+				if(refine){
+					refiner->mark(e);
+					break;
+				}
 			}
 		}
 	}

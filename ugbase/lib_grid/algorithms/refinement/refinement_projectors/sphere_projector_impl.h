@@ -95,6 +95,11 @@ perform_projection(Vertex* vrt, TElem* parent)
 	avDist /= (number)numVrts;
 	VecScale(parentCenter, parentCenter, 1. / (number)numVrts);
 
+	if(vrt->is_constrained()){
+		m_aaPos[vrt] = parentCenter;
+		return;
+	}
+
 //	calculate projection
 	pos_type cylProj;
 	VecSubtract(cylProj, parentCenter, m_center);
