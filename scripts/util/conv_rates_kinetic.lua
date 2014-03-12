@@ -303,15 +303,15 @@ function util.rates.kinetic.compute(ConvRateSetup)
 				
 					sliceTime = sliceTime + dt
 					if sliceTime > EndTime then sliceTime = EndTime end
+					print(">> >>>>> Advancing to time "..sliceTime)
 					
 					-- advance all discs to end of global time step
 					for lev = maxLev, minLev, -1 do
-						for k = 0, refs do
+						for k = refs, 0, -1 do
 		
 							local mem = memory[lev][k]
 		
 							err.dt[k] = mem.dt
-							print(">> >>>>> Advancing lev "..lev..", dt: "..mem.dt)
 		
 							-- set order for bdf to 1 (initially)
 							if ts:lower() == "bdf" then timeDisc:set_order(1) end			
@@ -406,7 +406,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 									end
 									value[k] = math.sqrt(value[k])
 									write(">> L2 l-exact for "..f.." on Level "..lev..", dt: "
-											..dt..": "..string.format("%.3e", value[k]) ..", at time "..tp.."\n");
+											..mem.dt..": "..string.format("%.3e", value[k]) ..", at time "..tp.."\n");
 			
 									if gradAvail then 					
 										local value = createMeas(f, "l-exact", "h1", lev)
@@ -416,7 +416,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 										end
 										value[k] = math.sqrt(value[k])
 										write(">> H1 l-exact for "..f.." on Level "..lev..", dt: "
-												..dt..": "..string.format("%.3e", value[k]) ..", at time "..tp.."\n");
+												..mem.dt..": "..string.format("%.3e", value[k]) ..", at time "..tp.."\n");
 									end
 								end
 							end
