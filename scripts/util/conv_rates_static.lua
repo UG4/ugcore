@@ -332,6 +332,7 @@ function util.rates.static.compute(ConvRateSetup)
 			for lev = minLev, maxLev do	
 				err.h[lev] = MaxElementDiameter(dom, lev) 
 				err.level[lev] = lev
+				err.DoFs[lev] = u[lev]:num_dofs()
 			end	
 
 			-- loop levels and compute error
@@ -339,7 +340,6 @@ function util.rates.static.compute(ConvRateSetup)
 				write("\n>> Error Norm values on Level "..lev..".\n")
 				
 				local quadOrder = p+3
-				err.DoFs[lev] = u[lev]:num_dofs()
 				write(">> #DoF       on Level "..lev.." is "..err.DoFs[lev] .."\n");
 			
 				-- compute for each component
