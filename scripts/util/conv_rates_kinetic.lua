@@ -88,12 +88,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 	local solPath  = CRS.solPath  or "sol/"
 	local dataPath = CRS.dataPath or "data/"
 
-	local gpOptions = CRS.gpOptions or
-	{	
-		grid = true, 
-		logscale = true,
-		mtics = true
-	 }
+	local gpOptions = CRS.gpOptions or {}
 
 	-- check for methods
 	local CreateApproxSpace = 	CRS.CreateApproxSpace
@@ -286,7 +281,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 				errors[disc][p][ts] = errors[disc][p][ts] or {}	
 				local err = errors[disc][p][ts]
 				
-				err.h, err.DoFs, err.level, err.dt = {}, {}, {}, {}
+				err.h, err.DoFs, err.level, err.dt, err.time = {}, {}, {}, {}, {}
 				for lev = minLev, maxLev do	
 					err.h[lev] = MaxElementDiameter(dom, lev) 
 					err.level[lev] = lev
@@ -299,11 +294,15 @@ function util.rates.kinetic.compute(ConvRateSetup)
 				
 				-- loop time interval
 				local sliceTime = StartTime
+				local measPt = 0
 				while sliceTime < EndTime do
 				
 					sliceTime = sliceTime + dt
 					if sliceTime > EndTime then sliceTime = EndTime end
+					if (EndTime-sliceTime)/sliceTime < 1e-8 then sliceTime = EndTime end
 					print(">> >>>>> Advancing to time "..sliceTime)
+					measPt = measPt +1
+					err.time[measPt] = sliceTime
 					
 					-- advance all discs to end of global time step
 					for lev = maxLev, minLev, -1 do
@@ -373,7 +372,6 @@ function util.rates.kinetic.compute(ConvRateSetup)
 							-- compute norms at slice point (start)
 							---------------------------------------------------- 
 							local quadOrder = p+3
-							local tp = mem.time
 							
 							for f, Cmps in pairs(PlotCmps) do
 			
@@ -384,10 +382,10 @@ function util.rates.kinetic.compute(ConvRateSetup)
 								local function createMeas(f, t, n, lev)
 									err[f][t] = err[f][t] or {}
 									err[f][t][n] = err[f][t][n] or {}
-									err[f][t][n][tp] = err[f][t][n][tp] or {}
-									err[f][t][n][tp].value = err[f][t][n][tp].value or {}						
-									err[f][t][n][tp].value[lev] = err[f][t][n][tp].value[lev] or {}						
-									return err[f][t][n][tp].value[lev]
+									err[f][t][n][measPt] = err[f][t][n][measPt] or {}
+									err[f][t][n][measPt].value = err[f][t][n][measPt].value or {}						
+									err[f][t][n][measPt].value[lev] = err[f][t][n][measPt].value[lev] or {}						
+									return err[f][t][n][measPt].value[lev]
 								end
 													
 								-- check for exact solution and grad
@@ -402,21 +400,21 @@ function util.rates.kinetic.compute(ConvRateSetup)
 									local value = createMeas(f, "l-exact", "l2", lev)
 									value[k] = 0.0
 									for _,cmp in pairs(Cmps) do
-										value[k] = value[k] + math.pow(L2Error(ExactSol[cmp], mem.u, cmp, tp, quadOrder), 2)
+										value[k] = value[k] + math.pow(L2Error(ExactSol[cmp], mem.u, cmp, mem.time, quadOrder), 2)
 									end
 									value[k] = math.sqrt(value[k])
 									write(">> L2 l-exact for "..f.." on Level "..lev..", dt: "
-											..mem.dt..": "..string.format("%.3e", value[k]) ..", at time "..tp.."\n");
+											..mem.dt..": "..string.format("%.3e", value[k]) ..", at time "..mem.time.."\n");
 			
 									if gradAvail then 					
 										local value = createMeas(f, "l-exact", "h1", lev)
 										value[k] = 0.0
 										for _,cmp in pairs(Cmps) do
-											value[k] = value[k] + math.pow(H1Error(ExactSol[cmp], ExactGrad[cmp], mem.u, cmp, tp, quadOrder), 2)
+											value[k] = value[k] + math.pow(H1Error(ExactSol[cmp], ExactGrad[cmp], mem.u, cmp, mem.time, quadOrder), 2)
 										end
 										value[k] = math.sqrt(value[k])
 										write(">> H1 l-exact for "..f.." on Level "..lev..", dt: "
-												..mem.dt..": "..string.format("%.3e", value[k]) ..", at time "..tp.."\n");
+												..mem.dt..": "..string.format("%.3e", value[k]) ..", at time "..mem.time.."\n");
 									end
 								end
 							end
@@ -493,10 +491,10 @@ function util.rates.kinetic.compute(ConvRateSetup)
 				local err = errors[disc][p][ts]
 				for f, Cmps in pairs(PlotCmps) do
 				
-					local tp = EndTime
+					local tp = #err.time
 					write("\n>> Statistic for type: "..disc..", order: "..p..", comp: "..f.." [ ")			
 					for _, cmp in pairs(Cmps) do write(cmp.." ") end
-					print("] at time "..tp)
+					print("] at time "..err.time[tp])
 					
 					for k, dt in iipairs(err.dt) do
 						
@@ -522,7 +520,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 					
 					write("\n>> Statistic for type: "..disc..", order: "..p..", comp: "..f.." [ ")			
 					for _, cmp in pairs(Cmps) do write(cmp.." ") end
-					print("] at time "..tp)
+					print("] at time "..err.time[tp])
 					
 					for lev, _ in iipairs(err.h) do
 						
@@ -640,7 +638,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 		end
 		
 		-- values for the time series
-		local value = errors[disc][p][ts][f][t][n][EndTime].value
+		local value = errors[disc][p][ts][f][t][n][1].value
 		for lev, _ in ipairs(value) do		
 			for k, _ in pairs(value[lev]) do						
 				local file = dataPath..table.concat({"error",disc,p,ts,f,t,n,"lev",lev,"dt",k},"_")..".dat"
@@ -652,23 +650,22 @@ function util.rates.kinetic.compute(ConvRateSetup)
 					local err = errors[disc][p][ts]
 
 					if value[lev][k] then
-						fio:write(tp)
+						fio:write(err.time[tp])
 						fio:write(" "..value[lev][k])	
 						fio:write("\n")					
 					end
 				end				
 				fio:close()
 	
-				ensureDir(plotPath.."dataset/")
-	
-				local dataset = {label=MeasLabel(disc, p), file=file, style="points", 1, 2}
+				local dataset = {label=MeasLabel(disc, p), file=file, style="linespoints", 1, 2}
 				local label = { x = "time", y = YLabel(f,t,n)}
-				local gpFile = plotPath.."dataset/"..table.concat({disc,p,ts,f,t,n,"lev",lev,"dt",k},"_")
+				local gpFile = plotPath..table.concat({disc,p,ts,f,t,n,"lev",lev,"dt",k},"_")
 				local plot = {}
 				table.insert( plot, dataset)			
 				plot.label = label
 				
 				gpData[gpFile] = plot
+				gpData[gpFile].gpOptions = {logscale = false}
 			end
 		end
 					
@@ -693,21 +690,18 @@ function util.rates.kinetic.compute(ConvRateSetup)
 		for tp, _ in pairs(errors[disc][p][ts][f][t][n]) do
 			local dir = plotPath..tp.."/"
 			ensureDir(dir)				
-			
-			ensureDir(dir.."dataset/")
-			ensureDir(dir.."disc/")
-			ensureDir(dir.."multi/")
-			
+						
 			-- single dataset			
-			local file = dir.."dataset/"..table.concat({disc,p,ts,f,t,n,x},"_")
+			local file = dir..table.concat({disc,p,ts,f,t,n,x},"_")
 			gpData[file] = getPlot(disc, p, ts, tp, f, t, n, x)
+			gpData[file].gpOptions = {logscale = true}
 	
 			-- grouping by (disc+p)								
-			local file = dir.."disc/"..table.concat({f,disc,ts,t,n,x}, "_")	
+			local file = dir..table.concat({f,disc,ts,t,n,x}, "_")	
 			--gpData[file] = getPlot(disc, ts, tp, f, t, n, x)		
 	
 			-- grouping (all discs+p)
-			local file = dir.."disc/"..table.concat({f,"all",ts,t,n,x}, "_")	
+			local file = dir..table.concat({f,"all",ts,t,n,x}, "_")	
 			--gpData[file] = getPlot("all", ts, tp, f, t, n, x)	
 		end
 							end
@@ -722,9 +716,14 @@ function util.rates.kinetic.compute(ConvRateSetup)
 	if CRS.noplot == nil or CRS.noplot == false then
 		for plotFile, data in pairs(gpData) do 
 			local opt = table.deepcopy(gpOptions)
-			if data.multiplot then opt.multiplot = data.multiplot end
+			if data.gpOptions then 
+				local plotOpt = table.deepcopy(data.gpOptions)
+				for k,v in pairs(plotOpt) do
+					opt[k] = v
+				end
+			end
 			--gnuplot.plot(plotFile..".tex", data, opt)
-			print(">> plotting: "..plotFile..".pdf")
+			--print(">> plotting: "..plotFile..".pdf")
 			gnuplot.plot(plotFile..".pdf", data, opt)
 		end	
 	end
