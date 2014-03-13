@@ -16,7 +16,7 @@
 #ifdef UG_PARALLEL
 #include "pcl/pcl_base.h"
 #endif
-
+#include "bridge/bridge.h"
 //#define __UG__BINDINGS_LUA__CATCH_UNKNOWN_EXCEPTIONS__
 
 using namespace std;
@@ -1045,6 +1045,50 @@ static int LuaProxyMethod(lua_State* L)
 	return 0;
 }
 
+void GetBestMatchingMember(const IExportedClass *c, const char *name, std::string &minname, int &mind)
+{
+	const char *funcname;
+	bridge::Registry &reg = ug::bridge::GetUGRegistry();
+	for(size_t i=0; i<c->num_const_methods(); i++)
+	{
+		funcname = c->get_const_method(i).name().c_str();
+		int d = LevenshteinDistance(funcname, name );
+		if(d < mind)
+		{
+			minname = funcname;
+			mind = d;
+		}
+	}
+	for(size_t i=0; i<c->num_methods(); i++)
+	{
+		funcname = c->get_method(i).name().c_str();
+
+		int d = LevenshteinDistance(funcname, name );
+		if(d < mind)
+		{
+			minname = funcname;
+			mind = d;
+		}
+	}
+}
+
+void GetBestMatchingMember(const char *classname, const char *name, std::string &minname, int &mind)
+{
+	bridge::Registry &reg = ug::bridge::GetUGRegistry();
+	const IExportedClass *c = reg.get_class(classname);
+	minname = "";
+	mind = 10;
+	GetBestMatchingMember(c, name, minname, mind);
+
+	const vector<const char *> *pNames = c->class_names();
+	if(pNames)
+	{
+
+		for(size_t i=1; i<pNames->size(); i++)
+			GetBestMatchingMember(reg.get_class(pNames->at(i)), name, minname, mind);
+	}
+
+}
 
 //TODO:	The metatable indexer could probably be integrated into ExecuteMethod,
 //		(called by LuaProxyMethod) and thus be avoided completely.
@@ -1112,8 +1156,22 @@ static int MetatableIndexer(lua_State*L)
 	//	check if some base class left; if not, return nil
 		if(qClassNameNodes.empty())
 		{
-			UG_LOG("LUA ERROR! Could not find member function \"" << lua_tostring(L, -1) << "\".\n");
+			lua_getmetatable(L, 1);
+			lua_pushstring(L, "class_name_node");
+			lua_rawget(L, -2);
+			const ClassNameNode* pClassNameNode = (const ClassNameNode*) lua_touserdata(L, -1);
+			lua_pop(L, 2);
+			const char *classname = pClassNameNode->name().c_str();
+			const char *funcname = lua_tostring(L, -1);
+			UG_LOG("LUA ERROR! Could not find member function \"" << funcname << "\" of class " << classname << ". ");
 			lua_pushnil(L);
+
+			std::string minname;
+			int mind =0;
+			GetBestMatchingMember(classname, funcname, minname, mind);
+			if(mind < (int)strlen(funcname)/2)
+			{ UG_LOG("Did you mean " << minname << " ?\n"); }
+			else { UG_LOG("\n"); }
 			return 1;
 		}
 
