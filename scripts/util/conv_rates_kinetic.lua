@@ -13,7 +13,7 @@ function util.rates.kinetic.StdMaxLevelPadding(p)
 end
 
 function util.rates.kinetic.NoMaxLevelPadding(p)
-	return math.floor(p/2)
+	return 0
 end
 
 --------------------------------------------------------------------------------
@@ -715,36 +715,95 @@ function util.rates.kinetic.compute(ConvRateSetup)
 					end
 				end				
 				fio:close()
-	
-				local function addSet(gpFile, dataset, label)
-					gpData[gpFile] = gpData[gpFile] or {}
-					table.insert( gpData[gpFile], dataset)
-					gpData[gpFile].label = label
-					gpData[gpFile].gpOptions = {logscale = false}
-				end
 				
 				local levID = "lev"..lev
 				local dtID = "dt"..k.."["..err.dt[k].."]"
+
+				local dataset = {label = MeasLabel(disc, p), file=file, style="linespoints", 1, 2}
+				local label = { x = TimeLabel(), y = NormLabel(f,t,n)}
+				addSet( accessPlot(disc, p, ts, f, t, n, "time", levID, dtID), dataset, label)
+				addSet( accessPlot(disc,    ts, f, t, n, "time", levID, dtID), dataset, label)
+				addSet( accessPlot("all",   ts, f, t, n, "time", levID, dtID), dataset, label)
+
+				local dataset = {label = MeasLabel(disc, p)..", dt: "..err.dt[k], file=file, style="linespoints", 1, 2}
+				local label = { x = TimeLabel(), y = NormLabel(f,t,n)}
+				addSet( accessPlot(disc, p, ts, f, t, n, "time", levID), dataset, label)
+				addSet( accessPlot(disc,    ts, f, t, n, "time", levID), dataset, label)
+				addSet( accessPlot("all",   ts, f, t, n, "time", levID), dataset, label)
 				
+				local dataset = {label = MeasLabel(disc, p)..", lev "..lev, file=file, style="linespoints", 1, 2}
+				local label = { x = TimeLabel(), y = NormLabel(f,t,n)}
+				addSet( accessPlot(disc, p, ts, f, t, n, "time", dtID), dataset, label)
+				addSet( accessPlot(disc,    ts, f, t, n, "time", dtID), dataset, label)
+				addSet( accessPlot("all",   ts, f, t, n, "time", dtID), dataset, label)
+
+				local dataset = {label = MeasLabel(disc, p)..", lev "..lev..", dt: "..err.dt[k], file=file, style="linespoints", 1, 2}
+				local label = { x = TimeLabel(), y = NormLabel(f,t,n)}
+				addSet( accessPlot(disc, p, ts, f, t, n, "time"), dataset, label)
+				addSet( accessPlot(disc,    ts, f, t, n, "time"), dataset, label)
+				addSet( accessPlot("all",   ts, f, t, n, "time"), dataset, label)
+
 				-- single
-				addSet(plotPath..table.concat({disc,p,ts,f,"__",t,n,"time","__",levID,dtID},"_"), 
-					  {label = MeasLabel(disc, p), file=file, style="linespoints", 1, 2}, 
-					  { x = TimeLabel(), y = NormLabel(f,t,n)})
+				local file = plotPath..table.concat({disc,p,ts,f,"__",t,n,"time","__",levID,dtID},"_")
+				gpData[file] = getPlot(disc, p, ts, f, t, n, "time", levID, dtID)
+				gpData[file].gpOptions = {logscale = false}
 								
-				-- grouping dts
-				addSet(plotPath..table.concat({disc,p,ts,f,"__",t,n,"time","__",levID},"_"), 
-					  {label = MeasLabel(disc, p)..", dt: "..err.dt[k], file=file, style="linespoints", 1, 2}, 
-					  { x = TimeLabel(), y = NormLabel(f,t,n)})
-				
-				-- grouping lev
-				addSet(plotPath..table.concat({disc,p,ts,f,"__",t,n,"time","__",dtID},"_"), 
-				  {label = MeasLabel(disc, p)..", lev "..lev, file=file, style="linespoints", 1, 2}, 
-				  { x = TimeLabel(), y = NormLabel(f,t,n)})
-				
-				-- grouping all
-				addSet(plotPath..table.concat({disc,p,ts,f,"__",t,n,"time"},"_"), 
-				  {label = MeasLabel(disc, p)..", lev "..lev..", dt: "..err.dt[k], file=file, style="linespoints", 1, 2}, 
-				  { x = TimeLabel(), y = NormLabel(f,t,n)})
+				-- single (grouping dts)
+				local file = plotPath..table.concat({disc,p,ts,f,"__",t,n,"time","__",levID},"_")
+				gpData[file] = getPlot(disc, p, ts, f, t, n, "time", levID)
+				gpData[file].gpOptions = {logscale = false}
+
+				-- single (grouping lev)
+				local file = plotPath..table.concat({disc,p,ts,f,"__",t,n,"time","__",dtID},"_")
+				gpData[file] = getPlot(disc, p, ts, f, t, n, "time", dtID)
+				gpData[file].gpOptions = {logscale = false}
+
+				-- single (grouping dts+lev)
+				local file = plotPath..table.concat({disc,p,ts,f,"__",t,n,"time"},"_")
+				gpData[file] = getPlot(disc, p, ts, f, t, n, "time")
+				gpData[file].gpOptions = {logscale = false}
+
+
+				-- grouping by (disc+p)
+				local file = plotPath..table.concat({disc,  ts,f,"__",t,n,"time","__",levID,dtID},"_")
+				gpData[file] = getPlot(disc,    ts, f, t, n, "time", levID, dtID)
+				gpData[file].gpOptions = {logscale = false}
+								
+				-- grouping by (disc+p) (grouping dts)
+				local file = plotPath..table.concat({disc,  ts,f,"__",t,n,"time","__",levID},"_")
+				gpData[file] = getPlot(disc,    ts, f, t, n, "time", levID)
+				gpData[file].gpOptions = {logscale = false}
+
+				-- grouping by (disc+p) (grouping lev)
+				local file = plotPath..table.concat({disc,  ts,f,"__",t,n,"time","__",dtID},"_")
+				gpData[file] = getPlot(disc,    ts, f, t, n, "time", dtID)
+				gpData[file].gpOptions = {logscale = false}
+
+				-- grouping by (disc+p) (grouping dts+lev)
+				local file = plotPath..table.concat({disc,  ts,f,"__",t,n,"time"},"_")
+				gpData[file] = getPlot(disc,    ts, f, t, n, "time")
+				gpData[file].gpOptions = {logscale = false}
+
+
+				-- grouping (all discs+p)
+				local file = plotPath..table.concat({"all",  ts,f,"__",t,n,"time","__",levID,dtID},"_")
+				gpData[file] = getPlot("all",    ts, f, t, n, "time", levID, dtID)
+				gpData[file].gpOptions = {logscale = false}
+								
+				-- grouping (all discs+p) (grouping dts)
+				local file = plotPath..table.concat({"all",  ts,f,"__",t,n,"time","__",levID},"_")
+				gpData[file] = getPlot("all",    ts, f, t, n, "time", levID)
+				gpData[file].gpOptions = {logscale = false}
+
+				-- grouping (all discs+p) (grouping lev)
+				local file = plotPath..table.concat({"all",  ts,f,"__",t,n,"time","__",dtID},"_")
+				gpData[file] = getPlot("all",    ts, f, t, n, "time", dtID)
+				gpData[file].gpOptions = {logscale = false}
+
+				-- grouping (all discs+p) (grouping dts+lev)
+				local file = plotPath..table.concat({"all",  ts,f,"__",t,n,"time"},"_")
+				gpData[file] = getPlot("all",    ts, f, t, n, "time")
+				gpData[file].gpOptions = {logscale = false}
 			end
 		end
 
@@ -771,24 +830,50 @@ function util.rates.kinetic.compute(ConvRateSetup)
 				fio:write("\n")
 			end
 			fio:close()
-					
-			local function addSet(gpFile, dataset, label)
-				gpData[gpFile] = gpData[gpFile] or {}
-				table.insert( gpData[gpFile], dataset)
-				gpData[gpFile].label = label
-				gpData[gpFile].gpOptions = {logscale = {x = true, y = false, z = true}}
-			end
-			
+							
 			for xCol, x in ipairs({"DoFs", "h"}) do
+				local dataset = {label = MeasLabel(disc, p), file=file, style="linespoints", xCol, 3, 4}
+				local label = { x = SpaceLabel(x), y = TimeLabel(), z = NormLabel(f,t,n)}
+				addSet( accessPlot(disc, p, ts, f, t, n, "time", x, dtID), dataset, label)
+				addSet( accessPlot(disc,    ts, f, t, n, "time", x, dtID), dataset, label)
+				addSet( accessPlot("all",   ts, f, t, n, "time", x, dtID), dataset, label)
+				
+				local dataset = {label = MeasLabel(disc, p)..", dt: "..err.dt[k], file=file, style="linespoints", xCol, 3, 4}
+				local label = { x = SpaceLabel(x), y = TimeLabel(), z = NormLabel(f,t,n)}
+				addSet( accessPlot(disc, p, ts, f, t, n, "time", x), dataset, label)
+				addSet( accessPlot(disc,    ts, f, t, n, "time", x), dataset, label)
+				addSet( accessPlot("all",   ts, f, t, n, "time", x), dataset, label)
+				
 				-- single
-				addSet(plotPath..table.concat({disc,p,ts,f,"__",t,n,"time",x,"__",dtID},"_"), 
-					  {label = MeasLabel(disc, p), file=file, style="linespoints", xCol, 3, 4}, 
-					  { x = SpaceLabel(x), y = TimeLabel(), z = NormLabel(f,t,n)})
+				local file = plotPath..table.concat({disc,p,ts,f,"__",t,n,"time",x,"__",dtID},"_")
+				gpData[file] = getPlot(disc, p, ts, f, t, n, "time", x, dtID)
+				gpData[file].gpOptions = {logscale = {x = true, y = false, z = true}}
 								
-				-- grouping dts
-				addSet(plotPath..table.concat({disc,p,ts,f,"__",t,n,"time",x,"__"},"_"), 
-					  {label = MeasLabel(disc, p)..", dt: "..err.dt[k], file=file, style="linespoints", xCol, 3, 4}, 
-					  { x = SpaceLabel(x), y = TimeLabel(), z = NormLabel(f,t,n)})
+				-- single (grouping dts)
+				local file = plotPath..table.concat({disc,p,ts,f,"__",t,n,"time",x},"_")
+				gpData[file] = getPlot(disc, p, ts, f, t, n, "time", x)
+				gpData[file].gpOptions = {logscale = {x = true, y = false, z = true}}
+				
+				-- grouping by (disc+p)								
+				local file = plotPath..table.concat({disc,  ts,f,"__",t,n,"time",x,"__",dtID},"_")	
+				gpData[file] = getPlot(disc,    ts, f, t, n, "time", x, dtID)	
+				gpData[file].gpOptions = {logscale = {x = true, y = false, z = true}}
+
+				-- grouping by (disc+p)	(grouping dts)	 						
+				local file = plotPath..table.concat({disc,  ts,f,"__",t,n,"time",x},"_")	
+				gpData[file] = getPlot(disc,    ts, f, t, n, "time", x)	
+				gpData[file].gpOptions = {logscale = {x = true, y = false, z = true}}
+		
+				-- grouping (all discs+p)
+				local file = plotPath..table.concat({"all",  ts,f,"__",t,n,"time",x,"__",dtID},"_")		
+				gpData[file] = getPlot("all",    ts, f, t, n, "time", x, dtID)	
+				gpData[file].gpOptions = {logscale = {x = true, y = false, z = true}}					
+
+				-- grouping (all discs+p) (grouping dts)	 
+				local file = plotPath..table.concat({"all",  ts,f,"__",t,n,"time",x},"_")		
+				gpData[file] = getPlot("all",    ts, f, t, n, "time", x)	
+				gpData[file].gpOptions = {logscale = {x = true, y = false, z = true}}					
+				
 			end
 		end
 
@@ -816,23 +901,48 @@ function util.rates.kinetic.compute(ConvRateSetup)
 				fio:write("\n")
 			end
 			fio:close()
-					
-			local function addSet(gpFile, dataset, label)
-				gpData[gpFile] = gpData[gpFile] or {}
-				table.insert( gpData[gpFile], dataset)
-				gpData[gpFile].label = label
-				gpData[gpFile].gpOptions = {logscale = {x = true, y = false, z = true}}
-			end
-			
+
+			local dataset = {label = MeasLabel(disc, p), file=file, style="linespoints", 1, 2, 3}
+			local label = { x = TimestepLabel(), y = TimeLabel(), z = NormLabel(f,t,n)}
+			addSet( accessPlot(disc, p, ts, f, t, n, "time", "dt",levID), dataset, label)
+			addSet( accessPlot(disc,    ts, f, t, n, "time", "dt",levID), dataset, label)
+			addSet( accessPlot("all",   ts, f, t, n, "time", "dt",levID), dataset, label)
+
+			local dataset = {label = MeasLabel(disc, p)..", lev "..lev, file=file, style="linespoints", 1, 2, 3}
+			local label = { x = TimestepLabel(), y = TimeLabel(), z = NormLabel(f,t,n)}
+			addSet( accessPlot(disc, p, ts, f, t, n, "time", "dt"), dataset, label)
+			addSet( accessPlot(disc,    ts, f, t, n, "time", "dt"), dataset, label)
+			addSet( accessPlot("all",   ts, f, t, n, "time", "dt"), dataset, label)
+
 			-- single
-			addSet(plotPath..table.concat({disc,p,ts,f,"__",t,n,"time","dt","__",levID},"_"), 
-				  {label = MeasLabel(disc, p), file=file, style="linespoints", 1, 2, 3}, 
-				  { x = TimestepLabel(), y = TimeLabel(), z = NormLabel(f,t,n)})
+			local file = plotPath..table.concat({disc,p,ts,f,"__",t,n,"time","dt","__",levID},"_")
+			gpData[file] = getPlot(disc, p, ts, f, t, n, "time", "dt", levID)
+			gpData[file].gpOptions = {logscale = {x = true, y = false, z = true}}
 							
-			-- grouping dts
-			addSet(plotPath..table.concat({disc,p,ts,f,"__",t,n,"time","dt"},"_"), 
-				  {label = MeasLabel(disc, p)..", lev "..lev, file=file, style="linespoints", 1, 2, 3}, 
-				  { x = TimestepLabel(), y = TimeLabel(), z = NormLabel(f,t,n)})
+			-- single (grouping lev)
+			local file = plotPath..table.concat({disc,p,ts,f,"__",t,n,"time","dt"},"_")
+			gpData[file] = getPlot(disc, p, ts, f, t, n, "time", "dt")
+			gpData[file].gpOptions = {logscale = {x = true, y = false, z = true}}
+			
+			-- grouping by (disc+p)								
+			local file = plotPath..table.concat({disc,p,ts,f,"__",t,n,"time","dt","__",levID},"_")
+			gpData[file] = getPlot(disc,    ts, f, t, n, "time", "dt", levID)
+			gpData[file].gpOptions = {logscale = {x = true, y = false, z = true}}
+
+			-- grouping by (disc+p)	(grouping lev)	 						
+			local file = plotPath..table.concat({disc,p,ts,f,"__",t,n,"time","dt"},"_")
+			gpData[file] = getPlot(disc,    ts, f, t, n, "time", "dt")
+			gpData[file].gpOptions = {logscale = {x = true, y = false, z = true}}
+	
+			-- grouping (all discs+p)
+			local file = plotPath..table.concat({disc,p,ts,f,"__",t,n,"time","dt","__",levID},"_")
+			gpData[file] = getPlot("all",   ts, f, t, n, "time", "dt", levID)
+			gpData[file].gpOptions = {logscale = {x = true, y = false, z = true}}					
+
+			-- grouping (all discs+p) (grouping lev)	 
+			local file = plotPath..table.concat({disc,p,ts,f,"__",t,n,"time","dt"},"_")
+			gpData[file] = getPlot("all",   ts, f, t, n, "time", "dt")
+			gpData[file].gpOptions = {logscale = {x = true, y = false, z = true}}					
 		end
 				
 						end
