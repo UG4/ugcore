@@ -26,23 +26,26 @@ function util.rates.kinetic.StdLabel.MeasLatexQ(disc, p)
 	return disc.." $\\mathbb{Q}_{"..p.."}$"
 end
 
-function util.rates.kinetic.StdLabel.XLatex(x)
-	local gpXLabel ={ DoFs = "Anzahl Unbekannte",	h = "h (Gitterweite)"}
-	return gpXLabel[x]
+function util.rates.kinetic.StdLabel.SpaceLatex(x)
+	local gpSpaceLabel ={ DoFs = "Anzahl Unbekannte",	h = "h (Gitterweite)"}
+	return gpSpaceLabel[x]
 end
 
-function util.rates.kinetic.StdLabel.YLatex(f, t, n)
-	local gpType = {	["l-exact"] = 	"{}",		
-						["l-lmax"] = 	"h_{\text{min}}",
-						["l-prev"] = 	"{h/2}",
+function util.rates.kinetic.StdLabel.TimestepLatex()
+	return "$\\Delta t$ (Zeitschrittweite)"
+end
+
+function util.rates.kinetic.StdLabel.TimeLatex()
+	return "Zeit"
+end
+
+function util.rates.kinetic.StdLabel.NormLatex(f, t, n)
+	local gpType = {	["exact"] = 	"{}",		
+						["best"] = 		"h_{\text{min}}",
 					}
 	local gpNorm = 	{ l2 = "L_2",	h1 = "H^1"}
 	
-	if t == "interpol" then
-		return "$\\norm{\\mathcal{I}_h("..f..") - "..f.."}_{"..gpNorm[n].."}$"
-	else
-		return "$\\norm{"..f.."_h - "..f.."_{"..gpType[t].."} }_{ "..gpNorm[n].."}$"
-	end
+	return "$\\norm{"..f.."_h - "..f.."_{"..gpType[t].."} }_{ "..gpNorm[n].."}$"
 end
 
 function util.rates.kinetic.StdLabel.MeasPdfP(disc, p)
@@ -53,23 +56,26 @@ function util.rates.kinetic.StdLabel.MeasPdfQ(disc, p)
 	return disc.." $Q_"..p.."$"
 end
 
-function util.rates.kinetic.StdLabel.XPdf(x)
-	local gpXLabel ={ DoFs = "Anzahl Unbekannte",	h = "h (Gitterweite)"}
-	return gpXLabel[x]
+function util.rates.kinetic.StdLabel.SpacePdf(x)
+	local gpSpaceLabel ={ DoFs = "Anzahl Unbekannte",	h = "h (Gitterweite)"}
+	return gpSpaceLabel[x]
 end
 
-function util.rates.kinetic.StdLabel.YPdf(f, t, n)
-	local gpType = {	["l-exact"] = 	"{}",		
-						["l-lmax"] = 	"h_{\text{min}}",
-						["l-prev"] = 	"{h/2}",
+function util.rates.kinetic.StdLabel.TimestepPdf()
+	return "dt (Zeitschrittweite)"
+end
+
+function util.rates.kinetic.StdLabel.TimePdf()
+	return "Zeit"
+end
+
+function util.rates.kinetic.StdLabel.NormPdf(f, t, n)
+	local gpType = {	["exact"] = 	"{}",		
+						["best"] = 		"h_{\text{min}}",
 					}
 	local gpNorm = 	{ l2 = "L_2",	h1 = "H^1"}
 	
-	if t == "interpol" then
-		return "$|| I_h("..f..") - "..f.." ||_{"..gpNorm[n].."}$"
-	else
-		return "$|| "..f.."_h - "..f.."_{"..gpType[t].."} ||_{"..gpNorm[n].."}$"
-	end
+	return "$|| "..f.."_h - "..f.."_{"..gpType[t].."} ||_{"..gpNorm[n].."}$"
 end
 
 --------------------------------------------------------------------------------
@@ -115,9 +121,11 @@ function util.rates.kinetic.compute(ConvRateSetup)
  	local ExactGrad = CRS.ExactGrad 
 	local PlotCmps = CRS.PlotCmps
 	
-	local MeasLabel = CRS.MeasLabel or util.rates.kinetic.StdLabel.MeasLatexP
-	local XLabel = 	  CRS.XLabel 	or util.rates.kinetic.StdLabel.XLatex
-	local YLabel = 	  CRS.YLabel 	or util.rates.kinetic.StdLabel.YLatex
+	local MeasLabel = 	CRS.MeasLabel or util.rates.kinetic.StdLabel.MeasLatexP
+	local SpaceLabel = 	CRS.SpaceLabel 	or util.rates.kinetic.StdLabel.SpaceLatex
+	local TimeLabel = 	CRS.TimeLabel 	or util.rates.kinetic.StdLabel.TimeLatex
+	local TimestepLabel = 	CRS.TimestepLabel 	or util.rates.kinetic.StdLabel.TimestepLatex
+	local NormLabel = 	CRS.NormLabel 	or util.rates.kinetic.StdLabel.NormLatex
 	
 	local bLinear = CRS.bLinear or true
 	
@@ -396,7 +404,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 																		
 								-- w.r.t exact solution		
 								if exact and solAvail then 					
-									local value = createMeas(f, "l-exact", "l2", lev)
+									local value = createMeas(f, "exact", "l2", lev)
 									value[k] = 0.0
 									for _,cmp in pairs(Cmps) do
 										value[k] = value[k] + math.pow(L2Error(ExactSol[cmp], mem.u, cmp, mem.time, quadOrder), 2)
@@ -406,7 +414,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 											..mem.dt..": "..string.format("%.3e", value[k]) ..", at time "..mem.time.."\n");
 			
 									if gradAvail then 					
-										local value = createMeas(f, "l-exact", "h1", lev)
+										local value = createMeas(f, "exact", "h1", lev)
 										value[k] = 0.0
 										for _,cmp in pairs(Cmps) do
 											value[k] = value[k] + math.pow(H1Error(ExactSol[cmp], ExactGrad[cmp], mem.u, cmp, mem.time, quadOrder), 2)
@@ -419,7 +427,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 								
 								-- w.r.t max level solution
 								if maxlevel and lev < maxLev and k < refs then
-									local value = createMeas(f, "l-lmax", "l2", lev)
+									local value = createMeas(f, "best", "l2", lev)
 									value[k] = 0.0
 									for _,cmp in pairs(Cmps) do
 										value[k] = value[k] + math.pow(L2Error(memory[maxLev][refs].u, cmp, mem.u, cmp, quadOrder), 2)
@@ -428,7 +436,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 									write(">> L2 l-lmax  for "..f.." on Level "..lev..", dt: "
 											..mem.dt..": "..string.format("%.3e", value[k]) ..", at time "..mem.time.."\n");
 			
-									local value = createMeas(f, "l-lmax", "h1", lev)
+									local value = createMeas(f, "best", "h1", lev)
 									value[k] = 0.0
 									for _,cmp in pairs(Cmps) do
 										value[k] = value[k] + math.pow(H1Error(memory[maxLev][refs].u, cmp, mem.u, cmp, quadOrder), 2)
@@ -607,6 +615,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 						for n, _ in pairs(errors[disc][p][ts][f][t]) do
 
 		-- values for each time step
+		local err = errors[disc][p][ts]
 		for tp, _ in pairs(errors[disc][p][ts][f][t][n]) do
 	
 			if onlyLast then tp = #errors[disc][p][ts][f][t][n] end
@@ -615,18 +624,17 @@ function util.rates.kinetic.compute(ConvRateSetup)
 			ensureDir(dir)				
 							
 			local value = errors[disc][p][ts][f][t][n][tp].value
-			local err = errors[disc][p][ts]
 	
 			-- convergence in time
 			for lev, _ in iipairs(value.dt) do		
-				local file = dir..table.concat({"error",disc,p,ts,f,t,n,"lev",lev},"_")..".dat"
+				local file = dir..table.concat({"error",disc,p,ts,f,t,n,"lev"..lev},"_")..".dat"
 				local cols = {err.DoFs, err.h, value.dt[lev]}
 				gnuplot.write_data(file, cols)
 			end
 					
 			-- convergence in space
 			for k, _ in iipairs(value.h) do						
-				local file = dir..table.concat({"error",disc,p,ts,f,t,n,"dt",k},"_")..".dat"
+				local file = dir..table.concat({"error",disc,p,ts,f,t,n,"dt"..k.."["..err.dt[k].."]"},"_")..".dat"
 				local cols = {err.DoFs, err.h, value.h[k]}
 				gnuplot.write_data(file, cols)
 			end
@@ -647,7 +655,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 			
 			for xCol, x in ipairs({"DoFs", "h"}) do
 				local dataset = {label=MeasLabel(disc, p), file=file, style="linespoints", xCol, 3, 4}
-				local label = { x = XLabel(x), y = "dt", z = YLabel(f,t,n)}
+				local label = { x = SpaceLabel(x), y = TimestepLabel(), z = NormLabel(f,t,n)}
 								
 				addSet( accessPlot(disc, p, ts, tp, f, t, n, x), dataset, label)
 				addSet( accessPlot(disc,    ts, tp, f, t, n, x), dataset, label)
@@ -660,14 +668,14 @@ function util.rates.kinetic.compute(ConvRateSetup)
 		-- values for the time series
 		local value = errors[disc][p][ts][f][t][n][1].value
 		for lev, _ in ipairs(value) do		
-			for k, _ in pairs(value[lev]) do						
-				local file = dataPath..table.concat({"error",disc,p,ts,f,t,n,"lev",lev,"dt",k},"_")..".dat"
+			for k, _ in pairs(value[lev]) do		
+				local name = table.concat({disc,p,ts,f,t,n,"lev"..lev,"dt"..k.."["..err.dt[k].."]"},"_")
+				local file = dataPath.."error"..name..".dat"
 
 				local fio = io.open(file, "w+")
 				for tp, _ in pairs(errors[disc][p][ts][f][t][n]) do
 			
 					local value = errors[disc][p][ts][f][t][n][tp].value
-					local err = errors[disc][p][ts]
 
 					if value[lev][k] then
 						fio:write(err.time[tp])
@@ -677,9 +685,9 @@ function util.rates.kinetic.compute(ConvRateSetup)
 				end				
 				fio:close()
 	
-				local dataset = {label=MeasLabel(disc, p), file=file, style="linespoints", 1, 2}
-				local label = { x = "time", y = YLabel(f,t,n)}
-				local gpFile = plotPath..table.concat({disc,p,ts,f,t,n,"lev",lev,"dt",k},"_")
+				local dataset = {label = MeasLabel(disc, p), file=file, style="linespoints", 1, 2}
+				local label = { x = TimeLabel(), y = NormLabel(f,t,n)}
+				local gpFile = plotPath..name
 				local plot = {}
 				table.insert( plot, dataset)			
 				plot.label = label
