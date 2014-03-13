@@ -643,7 +643,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 			local file = dir..table.concat({"error",disc,p,ts,f,t,n},"_")..".dat"
 			local fio = io.open(file, "w+")
 			fio:close()
-			for k, _ in pairs(value.h) do						
+			for k, _ in iipairs(value.h) do						
 				local dt = err.dt[k]
 				local dts = {}; for i,_ in pairs(value.h[k]) do dts[i] = dt end
 				local cols = {err.DoFs, err.h, dts, value.h[k]}
@@ -684,10 +684,10 @@ function util.rates.kinetic.compute(ConvRateSetup)
 		
 		-- values for the time series
 		local value = errors[disc][p][ts][f][t][n][1].value
-		for lev, _ in ipairs(value) do		
-			for k, _ in pairs(value[lev]) do		
-				local name = table.concat({disc,p,ts,f,t,n,"lev"..lev,"dt"..k.."["..err.dt[k].."]"},"_")
-				local file = dataPath.."error"..name..".dat"
+		for lev, _ in iipairs(value) do		
+			for k, _ in iipairs(value[lev]) do		
+				local name = table.concat({disc,p,ts,f,t,n,"time","lev"..lev,"dt"..k.."["..err.dt[k].."]"},"_")
+				local file = dataPath.."error_"..name..".dat"
 
 				local fio = io.open(file, "w+")
 				for tp, _ in pairs(errors[disc][p][ts][f][t][n]) do
@@ -730,7 +730,92 @@ function util.rates.kinetic.compute(ConvRateSetup)
 				  { x = TimeLabel(), y = NormLabel(f,t,n)})
 			end
 		end
+
+		-- values for the time series (x space resolution)
+		local value = errors[disc][p][ts][f][t][n][1].value
+		for k, _ in iipairs(value[#value]) do		
+			local name = table.concat({disc,p,ts,f,t,n,"time","space","dt"..k.."["..err.dt[k].."]"},"_")
+			local file = dataPath.."error_"..name..".dat"
+
+			local fio = io.open(file, "w+")
+			for lev, _ in iipairs(value) do		
+				for tp, _ in pairs(errors[disc][p][ts][f][t][n]) do
+			
+					local value = errors[disc][p][ts][f][t][n][tp].value
+		
+					if value[lev][k] then
+						fio:write(err.DoFs[lev].." "..err.h[lev])
+						fio:write(" "..err.time[tp])
+						fio:write(" "..value[lev][k])	
+						fio:write("\n")					
+					end
+				end			
+				fio:write("\n")
+			end
+			fio:close()
 					
+			local function addSet(gpFile, dataset, label)
+				gpData[gpFile] = gpData[gpFile] or {}
+				table.insert( gpData[gpFile], dataset)
+				gpData[gpFile].label = label
+				gpData[gpFile].gpOptions = {logscale = {x = true, y = false, z = true}}
+			end
+			
+			for xCol, x in ipairs({"DoFs", "h"}) do
+				-- single
+				addSet(plotPath..table.concat({disc,p,ts,f,"__",t,n,"time",x,"__","dt"..k.."["..err.dt[k].."]"},"_"), 
+					  {label = MeasLabel(disc, p), file=file, style="linespoints", xCol, 3, 4}, 
+					  { x = SpaceLabel(x), y = TimeLabel(), z = NormLabel(f,t,n)})
+								
+				-- grouping dts
+				addSet(plotPath..table.concat({disc,p,ts,f,"__",t,n,"time",x,"__"},"_"), 
+					  {label = MeasLabel(disc, p)..", dt: "..err.dt[k], file=file, style="linespoints", xCol, 3, 4}, 
+					  { x = SpaceLabel(x), y = TimeLabel(), z = NormLabel(f,t,n)})
+			end
+		end
+
+
+		-- values for the time series (x time resolution)
+		local value = errors[disc][p][ts][f][t][n][1].value
+		for lev, _ in iipairs(value) do		
+			local name = table.concat({disc,p,ts,f,t,n,"time","dt","lev"..lev},"_")
+			local file = dataPath.."error_"..name..".dat"
+
+			local fio = io.open(file, "w+")
+			for k, _ in iipairs(value[#value]) do		
+				for tp, _ in pairs(errors[disc][p][ts][f][t][n]) do
+			
+					local value = errors[disc][p][ts][f][t][n][tp].value
+		
+					if value[lev][k] then
+						fio:write(" "..err.dt[k])
+						fio:write(" "..err.time[tp])
+						fio:write(" "..value[lev][k])	
+						fio:write("\n")					
+					end
+				end			
+				fio:write("\n")
+			end
+			fio:close()
+					
+			local function addSet(gpFile, dataset, label)
+				gpData[gpFile] = gpData[gpFile] or {}
+				table.insert( gpData[gpFile], dataset)
+				gpData[gpFile].label = label
+				gpData[gpFile].gpOptions = {logscale = {x = true, y = false, z = true}}
+			end
+			
+			-- single
+			addSet(plotPath..table.concat({disc,p,ts,f,"__",t,n,"time","dt","__","lev"..lev},"_"), 
+				  {label = MeasLabel(disc, p), file=file, style="linespoints", 1, 2, 3}, 
+				  { x = TimestepLabel(), y = TimeLabel(), z = NormLabel(f,t,n)})
+							
+			-- grouping dts
+			addSet(plotPath..table.concat({disc,p,ts,f,"__",t,n,"time","dt","__"},"_"), 
+				  {label = MeasLabel(disc, p)..", lev "..lev, file=file, style="linespoints", 1, 2, 3}, 
+				  { x = TimestepLabel(), y = TimeLabel(), z = NormLabel(f,t,n)})
+		end
+				
 						end
 					end
 				end
