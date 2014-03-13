@@ -417,6 +417,29 @@ function util.rates.kinetic.compute(ConvRateSetup)
 												..mem.dt..": "..string.format("%.3e", value[k]) ..", at time "..mem.time.."\n");
 									end
 								end
+								
+								-- w.r.t max level solution
+								if maxlevel and lev < maxLev and k < refs then
+									local value = createMeas(f, "l-lmax", "l2", lev)
+									value[k] = 0.0
+									for _,cmp in pairs(Cmps) do
+										value[k] = value[k] + math.pow(L2Error(memory[maxLev][refs].u, cmp, mem.u, cmp, quadOrder), 2)
+									end
+									value[k] = math.sqrt(value[k])
+									write(">> L2 l-lmax  for "..f.." on Level "..lev..", dt: "
+											..mem.dt..": "..string.format("%.3e", value[k]) ..", at time "..mem.time.."\n");
+			
+									local value = createMeas(f, "l-lmax", "h1", lev)
+									value[k] = 0.0
+									for _,cmp in pairs(Cmps) do
+										value[k] = value[k] + math.pow(H1Error(memory[maxLev][refs].u, cmp, mem.u, cmp, quadOrder), 2)
+									end
+									value[k] = math.sqrt(value[k])
+									write(">> H1 l-lmax  for "..f.." on Level "..lev..", dt: "
+											..mem.dt..": "..string.format("%.3e", value[k]) ..", at time "..mem.time.."\n");
+								end
+				
+								
 							end
 							---------------------------------------------------- 
 							-- compute norms at slice point (end)
@@ -452,10 +475,16 @@ function util.rates.kinetic.compute(ConvRateSetup)
 					for lev, _ in iipairs(value) do
 						value.dt[lev], fac.dt[lev], rate.dt[lev] = {}, {}, {}
 						for k, _ in iipairs(value[lev]) do
+							value.h[k] = value.h[k] or {}
+							fac.h[k] = fac.h[k] or {} 
+							rate.h[k] = rate.h[k] or {}
 							value.dt[lev][k] = value[lev][k]
+							value.h[k][lev] = value[lev][k]
 						end
+					end
 	
-						for k, _ in iipairs(value[lev]) do
+					for lev, _ in iipairs(value.dt) do
+						for k, _ in iipairs(value.dt[lev]) do
 							if value.dt[lev][k] ~= nil and value.dt[lev][k-1] ~= nil then
 								fac.dt[lev][k] = value.dt[lev][k-1]/value.dt[lev][k]
 								rate.dt[lev][k] = math.log(fac.dt[lev][k]) / math.log(sub)
@@ -464,14 +493,8 @@ function util.rates.kinetic.compute(ConvRateSetup)
 					end
 	
 					-- rate in space
-					for k, _ in iipairs(err.dt) do
-						value.h[k], fac.h[k], rate.h[k] = {}, {}, {}
-						
-						for lev, _ in iipairs(err.h) do
-							value.h[k][lev] = value[lev][k]
-						end
-						
-						for lev = minLev, maxLev do
+					for k, _ in iipairs(value.h) do
+						for lev, _ in iipairs(value.h[k]) do
 							if value.h[k][lev] ~= nil and value.h[k][lev-1] ~= nil then
 								fac.h[k][lev] = value.h[k][lev-1]/value.h[k][lev]
 								rate.h[k][lev] = math.log(fac.h[k][lev]) / math.log(2)
