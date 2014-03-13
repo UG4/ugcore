@@ -660,6 +660,23 @@ function util.rates.kinetic.compute(ConvRateSetup)
 				addSet( accessPlot(disc, p, ts, tp, f, t, n, x), dataset, label)
 				addSet( accessPlot(disc,    ts, tp, f, t, n, x), dataset, label)
 				addSet( accessPlot("all",   ts, tp, f, t, n, x), dataset, label)
+				
+				local dir = plotPath..tp.."/"
+				ensureDir(dir)				
+							
+				-- single dataset			
+				local file = dir..table.concat({disc,p,ts,f,"__",t,n,"dt",x},"_")
+				gpData[file] = getPlot(disc, p, ts, tp, f, t, n, x)
+				gpData[file].gpOptions = {logscale = true}
+		
+				-- grouping by (disc+p)								
+				local file = dir..table.concat({f,disc,ts,"__",t,n,"dt",x}, "_")	
+				gpData[file] = getPlot(disc, ts, tp, f, t, n, x)		
+		
+				-- grouping (all discs+p)
+				local file = dir..table.concat({f,"all",ts,"__",t,n,"dt",x}, "_")	
+				gpData[file] = getPlot("all", ts, tp, f, t, n, x)	
+					
 			end
 			
 			if onlyLast then break end
@@ -693,22 +710,22 @@ function util.rates.kinetic.compute(ConvRateSetup)
 				end
 				
 				-- single
-				addSet(plotPath..table.concat({disc,p,ts,f,t,n,"lev"..lev,"dt"..k.."["..err.dt[k].."]"},"_"), 
+				addSet(plotPath..table.concat({disc,p,ts,f,"__",t,n,"time__","lev"..lev,"dt"..k.."["..err.dt[k].."]"},"_"), 
 					  {label = MeasLabel(disc, p), file=file, style="linespoints", 1, 2}, 
 					  { x = TimeLabel(), y = NormLabel(f,t,n)})
 								
 				-- grouping dts
-				addSet(plotPath..table.concat({disc,p,ts,f,t,n,"lev"..lev},"_"), 
+				addSet(plotPath..table.concat({disc,p,ts,f,"__",t,n,"time__","lev"..lev},"_"), 
 					  {label = MeasLabel(disc, p)..", dt: "..err.dt[k], file=file, style="linespoints", 1, 2}, 
 					  { x = TimeLabel(), y = NormLabel(f,t,n)})
 				
 				-- grouping lev
-				addSet(plotPath..table.concat({disc,p,ts,f,t,n,"dt"..k.."["..err.dt[k].."]"},"_"), 
+				addSet(plotPath..table.concat({disc,p,ts,f,"__",t,n,"time__","dt"..k.."["..err.dt[k].."]"},"_"), 
 				  {label = MeasLabel(disc, p)..", lev "..lev, file=file, style="linespoints", 1, 2}, 
 				  { x = TimeLabel(), y = NormLabel(f,t,n)})
 				
 				-- grouping all
-				addSet(plotPath..table.concat({disc,p,ts,f,t,n},"_"), 
+				addSet(plotPath..table.concat({disc,p,ts,f,"__",t,n,"time"},"_"), 
 				  {label = MeasLabel(disc, p)..", lev "..lev..", dt: "..err.dt[k], file=file, style="linespoints", 1, 2}, 
 				  { x = TimeLabel(), y = NormLabel(f,t,n)})
 			end
@@ -725,42 +742,6 @@ function util.rates.kinetic.compute(ConvRateSetup)
 	--------------------------------------------------------------------
 	--  Execute Plot of gnuplot
 	--------------------------------------------------------------------
-	for disc, _ in pairs(errors) do
-		for p, _ in pairs(errors[disc]) do
-			for ts, _ in pairs(errors[disc][p]) do
-				for f, _ in pairs(PlotCmps) do
-					for t, _ in pairs(errors[disc][p][ts][f]) do
-						for n, _ in pairs(errors[disc][p][ts][f][t]) do
-							for _, x in ipairs({"DoFs", "h"}) do
-
-		for tp, _ in pairs(errors[disc][p][ts][f][t][n]) do
-			if onlyLast then tp = #errors[disc][p][ts][f][t][n] end
-		
-			local dir = plotPath..tp.."/"
-			ensureDir(dir)				
-						
-			-- single dataset			
-			local file = dir..table.concat({disc,p,ts,f,t,n,x},"_")
-			gpData[file] = getPlot(disc, p, ts, tp, f, t, n, x)
-			gpData[file].gpOptions = {logscale = true}
-	
-			-- grouping by (disc+p)								
-			local file = dir..table.concat({f,disc,ts,t,n,x}, "_")	
-			--gpData[file] = getPlot(disc, ts, tp, f, t, n, x)		
-	
-			-- grouping (all discs+p)
-			local file = dir..table.concat({f,"all",ts,t,n,x}, "_")	
-			--gpData[file] = getPlot("all", ts, tp, f, t, n, x)	
-
-			if onlyLast then break end
-		end
-							end
-						end
-					end
-				end
-			end
-		end
-	end
 	
 	-- create scheduled plots
 	if CRS.noplot == nil or CRS.noplot == false then
