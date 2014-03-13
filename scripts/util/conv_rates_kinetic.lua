@@ -107,10 +107,9 @@ function util.rates.kinetic.compute(ConvRateSetup)
 	local TimeDiscs = CRS.TimeDiscs
 
 	local maxlevel = CRS.maxlevel; 		if maxlevel == nil then maxlevel = true end
-	local prevlevel = CRS.prevlevel; 	if prevlevel == nil then prevlevel = true end
 	local exact = CRS.exact; 			if exact == nil then exact = true end
-	local interpol = CRS.interpol; 		if interpol == nil then interpol = true end
 	local plotSol = CRS.plotSol; 		if plotSol == nil then plotSol = false end
+	local onlyLast = CRS.onlyLast; 		if onlyLast == nil then onlyLast = true end
 
 	local ExactSol = CRS.ExactSol 
  	local ExactGrad = CRS.ExactGrad 
@@ -447,128 +446,121 @@ function util.rates.kinetic.compute(ConvRateSetup)
 							
 						end -- end timestep size
 					end -- end level
+
+					--------------------------------------------------------------------
+					--  Compute Factors and Rates
+					--------------------------------------------------------------------
+					for f, _ in pairs(PlotCmps) do
+						for t, _ in pairs(err[f]) do
+							for n, _ in pairs(err[f][t]) do
+			
+						local meas = err[f][t][n][measPt]
+			
+						meas.fac = meas.fac or {}
+						meas.rate = meas.rate or {}
+						
+						local value = meas.value
+						local fac = meas.fac
+						local rate = meas.rate
+						value.h, value.dt = {}, {}
+						fac.h, fac.dt = {}, {}
+						rate.h, rate.dt = {}, {}
+						
+						-- rate in time
+						for lev, _ in iipairs(value) do
+							value.dt[lev], fac.dt[lev], rate.dt[lev] = {}, {}, {}
+							for k, _ in iipairs(value[lev]) do
+								value.h[k] = value.h[k] or {}
+								fac.h[k] = fac.h[k] or {} 
+								rate.h[k] = rate.h[k] or {}
+								value.dt[lev][k] = value[lev][k]
+								value.h[k][lev] = value[lev][k]
+							end
+						end
+		
+						for lev, _ in iipairs(value.dt) do
+							for k, _ in iipairs(value.dt[lev]) do
+								if value.dt[lev][k] ~= nil and value.dt[lev][k-1] ~= nil then
+									fac.dt[lev][k] = value.dt[lev][k-1]/value.dt[lev][k]
+									rate.dt[lev][k] = math.log(fac.dt[lev][k]) / math.log(sub)
+								end
+							end
+						end
+		
+						-- rate in space
+						for k, _ in iipairs(value.h) do
+							for lev, _ in iipairs(value.h[k]) do
+								if value.h[k][lev] ~= nil and value.h[k][lev-1] ~= nil then
+									fac.h[k][lev] = value.h[k][lev-1]/value.h[k][lev]
+									rate.h[k][lev] = math.log(fac.h[k][lev]) / math.log(2)
+								end
+							end
+						end
+										
+							end
+						end
+					end	
+		
+					--------------------------------------------------------------------
+					--  Write Data to Screen
+					--------------------------------------------------------------------
+					for f, Cmps in pairs(PlotCmps) do
+					
+						write("\n>> Statistic for type: "..disc..", order: "..p..", comp: "..f.." [ ")			
+						for _, cmp in pairs(Cmps) do write(cmp.." ") end
+						print("] at time "..err.time[measPt])
+						
+						for k, dt in iipairs(err.dt) do
+							
+							-- write data to screen
+							print("\n>> Convergence in space: fixed dt = "..dt)
+		
+							local values = {err.level, err.h, err.DoFs}
+							local heading = {"L", "h", "#DoFs"}
+							local format = {"%d", "%.2e", "%d"}
+		
+							for t, _ in pairs(err[f]) do
+								for n, _ in pairs(err[f][t]) do
+									local meas = err[f][t][n][measPt]
+									table.append(values, {meas.value.h[k], meas.rate.h[k]}) 
+									table.append(heading,{n.." "..t, "rate"})
+									table.append(format, {"%.2e", "%.3f"})
+								end
+							end
+													
+							table.print(values, {heading = heading, format = format, 
+												 hline = true, vline = true, forNil = "--"})										 										 
+						end
+						
+						write("\n>> Statistic for type: "..disc..", order: "..p..", comp: "..f.." [ ")			
+						for _, cmp in pairs(Cmps) do write(cmp.." ") end
+						print("] at time "..err.time[measPt])
+						
+						for lev, _ in iipairs(err.h) do
+							
+							-- write data to screen
+							print("\nConvergence in time: fixed level "..lev..", h = "
+									..string.format("%.3e", err.h[lev])..", #DoF = "..err.DoFs[lev])
+		
+							local values = {err.dt}
+							local heading = {"dt"}
+							local format = {"%.2e"}
+		
+							for t, _ in pairs(err[f]) do
+								for n, _ in pairs(err[f][t]) do
+									local meas = err[f][t][n][measPt]
+									table.append(values, {meas.value.dt[lev], meas.rate.dt[lev]}) 
+									table.append(heading,{n.." "..t, "rate"})
+									table.append(format, {"%.2e", "%.3f"})
+								end
+							end
+													
+							table.print(values, {heading = heading, format = format, 
+												 hline = true, vline = true, forNil = "--"})
+						end
+					end
 					
 				end -- end slice time	
-				--------------------------------------------------------------------
-				--  Compute Factors and Rates
-				--------------------------------------------------------------------
-		
-				local err = errors[disc][p][ts]
-				for f, _ in pairs(PlotCmps) do
-					for t, _ in pairs(err[f]) do
-						for n, _ in pairs(err[f][t]) do
-							for tp, _ in pairs(err[f][t][n]) do
-		
-					local meas = err[f][t][n][tp]
-		
-					meas.fac = meas.fac or {}
-					meas.rate = meas.rate or {}
-					
-					local value = meas.value
-					local fac = meas.fac
-					local rate = meas.rate
-					value.h, value.dt = {}, {}
-					fac.h, fac.dt = {}, {}
-					rate.h, rate.dt = {}, {}
-					
-					-- rate in time
-					for lev, _ in iipairs(value) do
-						value.dt[lev], fac.dt[lev], rate.dt[lev] = {}, {}, {}
-						for k, _ in iipairs(value[lev]) do
-							value.h[k] = value.h[k] or {}
-							fac.h[k] = fac.h[k] or {} 
-							rate.h[k] = rate.h[k] or {}
-							value.dt[lev][k] = value[lev][k]
-							value.h[k][lev] = value[lev][k]
-						end
-					end
-	
-					for lev, _ in iipairs(value.dt) do
-						for k, _ in iipairs(value.dt[lev]) do
-							if value.dt[lev][k] ~= nil and value.dt[lev][k-1] ~= nil then
-								fac.dt[lev][k] = value.dt[lev][k-1]/value.dt[lev][k]
-								rate.dt[lev][k] = math.log(fac.dt[lev][k]) / math.log(sub)
-							end
-						end
-					end
-	
-					-- rate in space
-					for k, _ in iipairs(value.h) do
-						for lev, _ in iipairs(value.h[k]) do
-							if value.h[k][lev] ~= nil and value.h[k][lev-1] ~= nil then
-								fac.h[k][lev] = value.h[k][lev-1]/value.h[k][lev]
-								rate.h[k][lev] = math.log(fac.h[k][lev]) / math.log(2)
-							end
-						end
-					end
-									
-							end						
-						end
-					end
-				end	
-	
-				--------------------------------------------------------------------
-				--  Write Data to Screen
-				--------------------------------------------------------------------
-				
-				local err = errors[disc][p][ts]
-				for f, Cmps in pairs(PlotCmps) do
-				
-					local tp = #err.time
-					write("\n>> Statistic for type: "..disc..", order: "..p..", comp: "..f.." [ ")			
-					for _, cmp in pairs(Cmps) do write(cmp.." ") end
-					print("] at time "..err.time[tp])
-					
-					for k, dt in iipairs(err.dt) do
-						
-						-- write data to screen
-						print("\n>> Convergence in space: fixed dt = "..dt)
-	
-						local values = {err.level, err.h, err.DoFs}
-						local heading = {"L", "h", "#DoFs"}
-						local format = {"%d", "%.2e", "%d"}
-	
-						for t, _ in pairs(err[f]) do
-							for n, _ in pairs(err[f][t]) do
-								local meas = err[f][t][n][tp]
-								table.append(values, {meas.value.h[k], meas.rate.h[k]}) 
-								table.append(heading,{n.." "..t, "rate"})
-								table.append(format, {"%.2e", "%.3f"})
-							end
-						end
-												
-						table.print(values, {heading = heading, format = format, 
-											 hline = true, vline = true, forNil = "--"})										 										 
-					end
-					
-					write("\n>> Statistic for type: "..disc..", order: "..p..", comp: "..f.." [ ")			
-					for _, cmp in pairs(Cmps) do write(cmp.." ") end
-					print("] at time "..err.time[tp])
-					
-					for lev, _ in iipairs(err.h) do
-						
-						-- write data to screen
-						print("\nConvergence in time: fixed level "..lev..", h = "
-								..string.format("%.3e", err.h[lev])..", #DoF = "..err.DoFs[lev])
-	
-						local values = {err.dt}
-						local heading = {"dt"}
-						local format = {"%.2e"}
-	
-						for t, _ in pairs(err[f]) do
-							for n, _ in pairs(err[f][t]) do
-								local meas = err[f][t][n][tp]
-								table.append(values, {meas.value.dt[lev], meas.rate.dt[lev]}) 
-								table.append(heading,{n.." "..t, "rate"})
-								table.append(format, {"%.2e", "%.3f"})
-							end
-						end
-												
-						table.print(values, {heading = heading, format = format, 
-											 hline = true, vline = true, forNil = "--"})
-					end
-					
-				end
 			end -- end time disc type 
 		end -- end p
 	end -- end space disc type
@@ -616,6 +608,8 @@ function util.rates.kinetic.compute(ConvRateSetup)
 		-- values for each time step
 		for tp, _ in pairs(errors[disc][p][ts][f][t][n]) do
 	
+			if onlyLast then tp = #errors[disc][p][ts][f][t][n] end
+			
 			local dir = dataPath..tp.."/"
 			ensureDir(dir)				
 							
@@ -658,6 +652,8 @@ function util.rates.kinetic.compute(ConvRateSetup)
 				addSet( accessPlot(disc,    ts, tp, f, t, n, x), dataset, label)
 				addSet( accessPlot("all",   ts, tp, f, t, n, x), dataset, label)
 			end
+			
+			if onlyLast then break end
 		end
 		
 		-- values for the time series
@@ -711,6 +707,8 @@ function util.rates.kinetic.compute(ConvRateSetup)
 							for _, x in ipairs({"DoFs", "h"}) do
 
 		for tp, _ in pairs(errors[disc][p][ts][f][t][n]) do
+			if onlyLast then tp = #errors[disc][p][ts][f][t][n] end
+		
 			local dir = plotPath..tp.."/"
 			ensureDir(dir)				
 						
@@ -726,6 +724,8 @@ function util.rates.kinetic.compute(ConvRateSetup)
 			-- grouping (all discs+p)
 			local file = dir..table.concat({f,"all",ts,t,n,x}, "_")	
 			--gpData[file] = getPlot("all", ts, tp, f, t, n, x)	
+
+			if onlyLast then break end
 		end
 							end
 						end
