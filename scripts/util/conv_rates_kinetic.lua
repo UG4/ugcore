@@ -633,14 +633,16 @@ function util.rates.kinetic.compute(ConvRateSetup)
 	
 			-- convergence in time
 			for lev, _ in iipairs(value.dt) do		
-				local file = dir..table.concat({"error",disc,p,ts,f,t,n,"lev"..lev},"_")..".dat"
+				local levID = "lev"..lev
+				local file = dir..table.concat({"error",disc,p,ts,f,t,n,levID},"_")..".dat"
 				local cols = {err.DoFs, err.h, value.dt[lev]}
 				gnuplot.write_data(file, cols)
 			end
 					
 			-- convergence in space
 			for k, _ in iipairs(value.h) do						
-				local file = dir..table.concat({"error",disc,p,ts,f,t,n,"dt"..k.."["..err.dt[k].."]"},"_")..".dat"
+				local dtID = "dt"..k.."["..err.dt[k].."]"
+				local file = dir..table.concat({"error",disc,p,ts,f,t,n,dtID},"_")..".dat"
 				local cols = {err.DoFs, err.h, value.h[k]}
 				gnuplot.write_data(file, cols)
 			end
