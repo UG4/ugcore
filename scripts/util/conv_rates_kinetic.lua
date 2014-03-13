@@ -685,15 +685,32 @@ function util.rates.kinetic.compute(ConvRateSetup)
 				end				
 				fio:close()
 	
-				local dataset = {label = MeasLabel(disc, p), file=file, style="linespoints", 1, 2}
-				local label = { x = TimeLabel(), y = NormLabel(f,t,n)}
-				local gpFile = plotPath..name
-				local plot = {}
-				table.insert( plot, dataset)			
-				plot.label = label
+				local function addSet(gpFile, dataset, label)
+					gpData[gpFile] = gpData[gpFile] or {}
+					table.insert( gpData[gpFile], dataset)
+					gpData[gpFile].label = label
+					gpData[gpFile].gpOptions = {logscale = false}
+				end
 				
-				gpData[gpFile] = plot
-				gpData[gpFile].gpOptions = {logscale = false}
+				-- single
+				addSet(plotPath..table.concat({disc,p,ts,f,t,n,"lev"..lev,"dt"..k.."["..err.dt[k].."]"},"_"), 
+					  {label = MeasLabel(disc, p), file=file, style="linespoints", 1, 2}, 
+					  { x = TimeLabel(), y = NormLabel(f,t,n)})
+								
+				-- grouping dts
+				addSet(plotPath..table.concat({disc,p,ts,f,t,n,"lev"..lev},"_"), 
+					  {label = MeasLabel(disc, p)..", dt: "..err.dt[k], file=file, style="linespoints", 1, 2}, 
+					  { x = TimeLabel(), y = NormLabel(f,t,n)})
+				
+				-- grouping lev
+				addSet(plotPath..table.concat({disc,p,ts,f,t,n,"dt"..k.."["..err.dt[k].."]"},"_"), 
+				  {label = MeasLabel(disc, p)..", lev "..lev, file=file, style="linespoints", 1, 2}, 
+				  { x = TimeLabel(), y = NormLabel(f,t,n)})
+				
+				-- grouping all
+				addSet(plotPath..table.concat({disc,p,ts,f,t,n},"_"), 
+				  {label = MeasLabel(disc, p)..", lev "..lev..", dt: "..err.dt[k], file=file, style="linespoints", 1, 2}, 
+				  { x = TimeLabel(), y = NormLabel(f,t,n)})
 			end
 		end
 					
