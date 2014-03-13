@@ -116,7 +116,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 	local SpaceDiscs = CRS.SpaceDiscs
 	local TimeDiscs = CRS.TimeDiscs
 
-	local maxlevel = CRS.maxlevel; 		if maxlevel == nil then maxlevel = true end
+	local best = CRS.best; 				if best == nil then best = true end
 	local exact = CRS.exact; 			if exact == nil then exact = true end
 	local plotSol = CRS.plotSol; 		if plotSol == nil then plotSol = false end
 	local onlyLast = CRS.onlyLast; 		if onlyLast == nil then onlyLast = true end
@@ -430,7 +430,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 								end
 								
 								-- w.r.t max level solution
-								if maxlevel and lev < maxLev and k < refs then
+								if best and lev < maxLev and k < refs then
 									local value = createMeas(f, "best", "l2", lev)
 									value[k] = 0.0
 									for _,cmp in pairs(Cmps) do
