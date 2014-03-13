@@ -12,6 +12,10 @@ function util.rates.kinetic.StdMaxLevelPadding(p)
 	return math.floor(p/2)
 end
 
+function util.rates.kinetic.NoMaxLevelPadding(p)
+	return math.floor(p/2)
+end
+
 --------------------------------------------------------------------------------
 -- Label names
 --------------------------------------------------------------------------------
@@ -614,7 +618,9 @@ function util.rates.kinetic.compute(ConvRateSetup)
 					for t, _ in pairs(errors[disc][p][ts][f]) do
 						for n, _ in pairs(errors[disc][p][ts][f][t]) do
 
-		-- values for each time step
+		---------------------------------------------
+		-- plots for single timestep
+		---------------------------------------------
 		local err = errors[disc][p][ts]
 		for tp, _ in pairs(errors[disc][p][ts][f][t][n]) do
 	
@@ -667,26 +673,34 @@ function util.rates.kinetic.compute(ConvRateSetup)
 				-- single dataset			
 				local file = dir..table.concat({disc,p,ts,f,"__",t,n,"dt",x},"_")
 				gpData[file] = getPlot(disc, p, ts, tp, f, t, n, x)
-				gpData[file].gpOptions = {logscale = true}
+				gpData[file].gpOptions = {logscale = {x = true, y = true, z = true}}
 		
 				-- grouping by (disc+p)								
 				local file = dir..table.concat({f,disc,ts,"__",t,n,"dt",x}, "_")	
 				gpData[file] = getPlot(disc, ts, tp, f, t, n, x)		
+				gpData[file].gpOptions = {logscale = {x = true, y = true, z = true}}
 		
 				-- grouping (all discs+p)
 				local file = dir..table.concat({f,"all",ts,"__",t,n,"dt",x}, "_")	
 				gpData[file] = getPlot("all", ts, tp, f, t, n, x)	
-					
+				gpData[file].gpOptions = {logscale = {x = true, y = true, z = true}}					
 			end
 			
 			if onlyLast then break end
 		end
 		
-		-- values for the time series
+		---------------------------------------------
+		-- plots for time series
+		---------------------------------------------
+		
+		-- 2d: error over time
 		local value = errors[disc][p][ts][f][t][n][1].value
 		for lev, _ in iipairs(value) do		
 			for k, _ in iipairs(value[lev]) do		
-				local name = table.concat({disc,p,ts,f,t,n,"time","lev"..lev,"dt"..k.."["..err.dt[k].."]"},"_")
+				local levID = "lev"..lev
+				local dtID = "dt"..k.."["..err.dt[k].."]"
+			
+				local name = table.concat({disc,p,ts,f,t,n,"time",levID,dtID},"_")
 				local file = dataPath.."error_"..name..".dat"
 
 				local fio = io.open(file, "w+")
@@ -709,18 +723,21 @@ function util.rates.kinetic.compute(ConvRateSetup)
 					gpData[gpFile].gpOptions = {logscale = false}
 				end
 				
+				local levID = "lev"..lev
+				local dtID = "dt"..k.."["..err.dt[k].."]"
+				
 				-- single
-				addSet(plotPath..table.concat({disc,p,ts,f,"__",t,n,"time__","lev"..lev,"dt"..k.."["..err.dt[k].."]"},"_"), 
+				addSet(plotPath..table.concat({disc,p,ts,f,"__",t,n,"time","__",levID,dtID},"_"), 
 					  {label = MeasLabel(disc, p), file=file, style="linespoints", 1, 2}, 
 					  { x = TimeLabel(), y = NormLabel(f,t,n)})
 								
 				-- grouping dts
-				addSet(plotPath..table.concat({disc,p,ts,f,"__",t,n,"time__","lev"..lev},"_"), 
+				addSet(plotPath..table.concat({disc,p,ts,f,"__",t,n,"time","__",levID},"_"), 
 					  {label = MeasLabel(disc, p)..", dt: "..err.dt[k], file=file, style="linespoints", 1, 2}, 
 					  { x = TimeLabel(), y = NormLabel(f,t,n)})
 				
 				-- grouping lev
-				addSet(plotPath..table.concat({disc,p,ts,f,"__",t,n,"time__","dt"..k.."["..err.dt[k].."]"},"_"), 
+				addSet(plotPath..table.concat({disc,p,ts,f,"__",t,n,"time","__",dtID},"_"), 
 				  {label = MeasLabel(disc, p)..", lev "..lev, file=file, style="linespoints", 1, 2}, 
 				  { x = TimeLabel(), y = NormLabel(f,t,n)})
 				
@@ -731,10 +748,11 @@ function util.rates.kinetic.compute(ConvRateSetup)
 			end
 		end
 
-		-- values for the time series (x space resolution)
+		-- 3d: error over time and space
 		local value = errors[disc][p][ts][f][t][n][1].value
 		for k, _ in iipairs(value[#value]) do		
-			local name = table.concat({disc,p,ts,f,t,n,"time","space","dt"..k.."["..err.dt[k].."]"},"_")
+			local dtID = "dt"..k.."["..err.dt[k].."]"
+			local name = table.concat({disc,p,ts,f,t,n,"time","space",dtID},"_")
 			local file = dataPath.."error_"..name..".dat"
 
 			local fio = io.open(file, "w+")
@@ -763,7 +781,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 			
 			for xCol, x in ipairs({"DoFs", "h"}) do
 				-- single
-				addSet(plotPath..table.concat({disc,p,ts,f,"__",t,n,"time",x,"__","dt"..k.."["..err.dt[k].."]"},"_"), 
+				addSet(plotPath..table.concat({disc,p,ts,f,"__",t,n,"time",x,"__",dtID},"_"), 
 					  {label = MeasLabel(disc, p), file=file, style="linespoints", xCol, 3, 4}, 
 					  { x = SpaceLabel(x), y = TimeLabel(), z = NormLabel(f,t,n)})
 								
@@ -775,10 +793,11 @@ function util.rates.kinetic.compute(ConvRateSetup)
 		end
 
 
-		-- values for the time series (x time resolution)
+		-- 3d: error over time and dt
 		local value = errors[disc][p][ts][f][t][n][1].value
 		for lev, _ in iipairs(value) do		
-			local name = table.concat({disc,p,ts,f,t,n,"time","dt","lev"..lev},"_")
+			local levID = "lev"..lev
+			local name = table.concat({disc,p,ts,f,t,n,"time","dt",levID},"_")
 			local file = dataPath.."error_"..name..".dat"
 
 			local fio = io.open(file, "w+")
@@ -806,12 +825,12 @@ function util.rates.kinetic.compute(ConvRateSetup)
 			end
 			
 			-- single
-			addSet(plotPath..table.concat({disc,p,ts,f,"__",t,n,"time","dt","__","lev"..lev},"_"), 
+			addSet(plotPath..table.concat({disc,p,ts,f,"__",t,n,"time","dt","__",levID},"_"), 
 				  {label = MeasLabel(disc, p), file=file, style="linespoints", 1, 2, 3}, 
 				  { x = TimestepLabel(), y = TimeLabel(), z = NormLabel(f,t,n)})
 							
 			-- grouping dts
-			addSet(plotPath..table.concat({disc,p,ts,f,"__",t,n,"time","dt","__"},"_"), 
+			addSet(plotPath..table.concat({disc,p,ts,f,"__",t,n,"time","dt"},"_"), 
 				  {label = MeasLabel(disc, p)..", lev "..lev, file=file, style="linespoints", 1, 2, 3}, 
 				  { x = TimestepLabel(), y = TimeLabel(), z = NormLabel(f,t,n)})
 		end
