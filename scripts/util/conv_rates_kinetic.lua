@@ -293,15 +293,15 @@ function util.rates.kinetic.compute(ConvRateSetup)
 				
 				-- loop time interval
 				local sliceTime = StartTime
-				local measPt = 0
+				local tp = 0
 				while sliceTime < EndTime do
 				
 					sliceTime = sliceTime + dt
 					if sliceTime > EndTime then sliceTime = EndTime end
 					if (EndTime-sliceTime)/sliceTime < 1e-8 then sliceTime = EndTime end
 					print(">> >>>>> Advancing to time "..sliceTime)
-					measPt = measPt +1
-					err.time[measPt] = sliceTime
+					tp = tp +1
+					err.time[tp] = sliceTime
 					
 					-- advance all discs to end of global time step
 					for lev = maxLev, minLev, -1 do
@@ -381,10 +381,10 @@ function util.rates.kinetic.compute(ConvRateSetup)
 								local function createMeas(f, t, n, lev)
 									err[f][t] = err[f][t] or {}
 									err[f][t][n] = err[f][t][n] or {}
-									err[f][t][n][measPt] = err[f][t][n][measPt] or {}
-									err[f][t][n][measPt].value = err[f][t][n][measPt].value or {}						
-									err[f][t][n][measPt].value[lev] = err[f][t][n][measPt].value[lev] or {}						
-									return err[f][t][n][measPt].value[lev]
+									err[f][t][n][tp] = err[f][t][n][tp] or {}
+									err[f][t][n][tp].value = err[f][t][n][tp].value or {}						
+									err[f][t][n][tp].value[lev] = err[f][t][n][tp].value[lev] or {}						
+									return err[f][t][n][tp].value[lev]
 								end
 													
 								-- check for exact solution and grad
@@ -454,7 +454,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 						for t, _ in pairs(err[f]) do
 							for n, _ in pairs(err[f][t]) do
 			
-						local meas = err[f][t][n][measPt]
+						local meas = err[f][t][n][tp]
 			
 						meas.fac = meas.fac or {}
 						meas.rate = meas.rate or {}
@@ -508,7 +508,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 					
 						write("\n>> Statistic for type: "..disc..", order: "..p..", comp: "..f.." [ ")			
 						for _, cmp in pairs(Cmps) do write(cmp.." ") end
-						print("] at time "..err.time[measPt])
+						print("] at time "..err.time[tp])
 						
 						for k, dt in iipairs(err.dt) do
 							
@@ -521,7 +521,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 		
 							for t, _ in pairs(err[f]) do
 								for n, _ in pairs(err[f][t]) do
-									local meas = err[f][t][n][measPt]
+									local meas = err[f][t][n][tp]
 									table.append(values, {meas.value.h[k], meas.rate.h[k]}) 
 									table.append(heading,{n.." "..t, "rate"})
 									table.append(format, {"%.2e", "%.3f"})
@@ -534,7 +534,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 						
 						write("\n>> Statistic for type: "..disc..", order: "..p..", comp: "..f.." [ ")			
 						for _, cmp in pairs(Cmps) do write(cmp.." ") end
-						print("] at time "..err.time[measPt])
+						print("] at time "..err.time[tp])
 						
 						for lev, _ in iipairs(err.h) do
 							
@@ -548,7 +548,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 		
 							for t, _ in pairs(err[f]) do
 								for n, _ in pairs(err[f][t]) do
-									local meas = err[f][t][n][measPt]
+									local meas = err[f][t][n][tp]
 									table.append(values, {meas.value.dt[lev], meas.rate.dt[lev]}) 
 									table.append(heading,{n.." "..t, "rate"})
 									table.append(format, {"%.2e", "%.3f"})
@@ -598,6 +598,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 		plot.label = label
 	end
 
+	write(">> Writing measured rates to data files ...")
 	for disc, _ in pairs(errors) do
 		for p, _ in pairs(errors[disc]) do
 			for ts, _ in pairs(errors[disc][p]) do
@@ -694,7 +695,8 @@ function util.rates.kinetic.compute(ConvRateSetup)
 			end	
 		end
 	end
-
+	print("done.")
+	
 	--------------------------------------------------------------------
 	--  Execute Plot of gnuplot
 	--------------------------------------------------------------------
@@ -735,8 +737,9 @@ function util.rates.kinetic.compute(ConvRateSetup)
 		end
 	end
 	
-		-- create scheduled plots
+	-- create scheduled plots
 	if CRS.noplot == nil or CRS.noplot == false then
+		write(">> Creating gnuplot plots ... ")
 		for plotFile, data in pairs(gpData) do 
 			local opt = table.deepcopy(gpOptions)
 			if data.gpOptions then 
@@ -749,6 +752,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 			--print(">> plotting: "..plotFile..".pdf")
 			gnuplot.plot(plotFile..".pdf", data, opt)
 		end	
+		print("done.")
 	end
 	
 end
