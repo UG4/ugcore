@@ -479,6 +479,74 @@ void AssignAssociatedLowerDimElemsToSubsets(TSubsetHandlerDest& sh,
 											srcIndHandler, TElem());
 }
 
+////////////////////////////////////////////////////////////////////////
+template <typename TBaseObj>
+void FindSubsetGroups
+(
+	std::vector<int> & minCondInd,
+	const std::vector<bool> & isMarked,
+	const ISubsetHandler & sh,
+	const NeighborhoodType nbhType
+)
+{
+	typedef typename geometry_traits<TBaseObj>::const_iterator elem_iterator;
+	
+	UG_ASSERT (((int) isMarked.size ()) == sh.num_subsets (), "FindSubsetGroups: array size mismatch");
+	
+	std::vector<TBaseObj*> neighbours;
+	
+//	Prepare minCondInd
+	minCondInd.resize (sh.num_subsets ());
+	for (size_t si = 0; si < minCondInd.size (); si++)
+		minCondInd [si] = (isMarked [si])? si : -1;
+	
+//	Loop over the subsets:
+	for (size_t si = 0; si < minCondInd.size (); si++)
+	{
+		int min_si;
+		
+	//	Marked subset?
+		if ((min_si = minCondInd [si]) < 0)
+			continue; // no, we do not treat this subset
+		
+	//	Yes, loop over the elements in the subdomain (in the grid level 0):
+		GridObjectCollection goc = sh.get_grid_objects_in_subset (si);
+		elem_iterator e_end = goc.end<TBaseObj> (0);
+		bool is_empty = true;
+		for (elem_iterator e_iter = goc.begin<TBaseObj> (0); e_iter != e_end; ++e_iter)
+		{
+			is_empty = false;
+		//	Loop over the neighbours:
+			CollectNeighbors (neighbours, *e_iter, *sh.grid(), nbhType);
+			for (size_t k = 0; k < neighbours.size (); k++)
+			{
+				int min_nbr_si;
+				int nbr_si = sh.get_subset_index (neighbours [k]);
+				
+				if (nbr_si < 0 || nbr_si >= (int) minCondInd.size ())
+					UG_THROW ("FindSubsetGroups: Illegal neighbour subset index.");
+				if ((min_nbr_si = minCondInd [nbr_si]) < 0)
+					continue; // we do not treat this subset
+				
+			//	Set the same smallest index to both groups of the subsets:
+				if (min_nbr_si < min_si)
+				{
+					for (size_t l = 0; l < minCondInd.size (); l++)
+						if (minCondInd [l] == min_si)
+							minCondInd [l] = min_nbr_si;
+				}
+				else if (min_nbr_si > min_si)
+				{
+					for (size_t l = 0; l < minCondInd.size (); l++)
+						if (minCondInd [l] == min_nbr_si)
+							minCondInd [l] = min_si;
+				}
+			}
+		}
+		if (is_empty) minCondInd [si] = -2;
+	}
+}
+
 }//	end of namespace
 
 #endif

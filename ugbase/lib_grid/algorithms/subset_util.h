@@ -451,6 +451,38 @@ template <class TElem, class TSubsetHandlerDest, class TSubsetHandlerSrc>
 void AssignAssociatedLowerDimElemsToSubsets(TSubsetHandlerDest& sh,
 									const TSubsetHandlerSrc& srcIndHandler);
 
+////////////////////////////////////////////////////////////////////////
+/// FindSubsetGroups
+/// Finds out the topology of the domain
+/**
+ * Computes the connectivity of subsets basing on the elements in the
+ * coarsest grid (grid level 0). For every subset, this function computes
+ * the smallest subset index such that this subset and the subset with that
+ * smallest index are connected (i.e. either have a common boundary or via
+ * further subsets with common boundaries).
+ *
+ * \tparam		TBaseObj	the base element type (for ex. 'Volume'): only elements
+ *							of this type are considered in the subsets
+ *
+ * \param[out] 	minCondInd	an array indexed by the subset indices, so that
+ *							every entry of a marked subset is initialized with
+ *							the smallest subset id connected to it;
+ *							for subsets that are not marked, the entry is set to -1;
+ *							for marked subsets that contain no elements of type TBaseObj,
+ *							the entry is set to -2
+ * \param[in]	isMarked	'true' for subsets that should be considered, 'false' for other subsets
+ * \param[in]	sh			the subset handler of the domain
+ * \param[in]	nbhType		type of the connectivity (for ex. via vertices, or only full edges, ...)
+ */
+template <typename TBaseObj>
+void FindSubsetGroups
+(
+	std::vector<int> & minCondInd,
+	const std::vector<bool> & isMarked,
+	const ISubsetHandler & sh,
+	const NeighborhoodType nbhType = NHT_VERTEX_NEIGHBORS
+);
+
 /**@}*/ // end of doxygen defgroup command
 }//	end of namespace
 
