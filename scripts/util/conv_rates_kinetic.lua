@@ -326,8 +326,9 @@ function util.rates.kinetic.compute(ConvRateSetup)
 							-- set order for bdf to 1 (initially)
 							if ts:lower() == "bdf" then timeDisc:set_order(1) end			
 			
+							write(">> dt "..mem.dt..": ")
 							while mem.time < sliceTime do
-					
+								write(".")
 								-- update step count
 								mem.step = mem.step + 1
 																	
@@ -373,6 +374,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 									mem.uOld = mem.u
 								end			
 							end	-- end slice interval
+							write("\n")
 							
 							if plotSol then
 								vtk = VTKOutput()
