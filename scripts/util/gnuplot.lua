@@ -859,6 +859,8 @@ function gnuplot.plot(filename, data, options)
 		
 		local label = plot.label or options.label or false
 		for _, dim in ipairs(DimNames) do label[dim] = label[dim] or "" end
+		local labeloffset = options.labeloffset or {}
+		for _, dim in ipairs(DimNames) do labeloffset[dim] = labeloffset[dim] or "" end
 		
 		local range = plot.range or options.range or {}
 		local padrange = plot.padrange or options.padrange or {}
@@ -887,25 +889,41 @@ function gnuplot.plot(filename, data, options)
 		-- labels
 		script:write("unset label\n")
 		for _, dim in ipairs(DimNames) do
-			script:write("set "..dim.."label '"..label[dim].."'\n")
+			script:write("set "..dim.."label '"..label[dim].."' "..labeloffset[dim].." \n")
 		end
 		
-		-- logscale
+		-- detect logscale
 		script:write("unset logscale\n");
 		if logscale then
 			if type(logscale) == "boolean" then
 				logscale = {}
 				for _, dim in ipairs(DimNames) do logscale[dim] = true end			
 			end
-			
-			for _, dim in ipairs(DimNames) do
-				if logscale[dim] then
-					script:write("set logscale "..dim.."\n");
-				end
-			end
 		else
 			logscale = {}
 			for _, dim in ipairs(DimNames) do logscale[dim] = false end					
+		end
+
+		-- padrange
+		for d, dim in ipairs(DimNames) do	
+			if padrange[dim] then
+				local datarange = stats.range[d]
+				local min = stats.min[d]
+				local max = stats.max[d]
+				
+				range[dim] = range[dim] or {}
+				if logscale[dim] then 
+					 range[dim][1] = min * math.pow((max/min), -padrange[dim][1])
+				else range[dim][1] = min - datarange*padrange[dim][1] end
+
+				if logscale[dim] then 
+					 range[dim][2] = max * math.pow((max/min), padrange[dim][2])
+				else range[dim][2] = max + datarange*padrange[dim][2] end
+
+				if d == 3 then
+					script:write("set xyplane at "..range[dim][1].."\n")
+				end	
+			end
 		end
 
 		-- range
@@ -914,30 +932,7 @@ function gnuplot.plot(filename, data, options)
 			if range[dim] then
 				script:write ("set "..dim.."range [",range[dim][1],":",range[dim][2],"]\n")
 			end
-		end
-		
-		-- padrange
-		for d, dim in ipairs(DimNames) do	
-			if padrange[dim] then
-				local range = stats.range[d]
-				local min = stats.min[d]
-				local max = stats.max[d]
-				
-				script:write("set "..dim.."range [")
-				if logscale[dim] then
-					script:write(min * math.pow((max/min), -padrange[dim][1]))
-				else
-					script:write(min - range*padrange[dim][1])
-				end
-				script:write(":")
-				if logscale[dim] then
-					script:write(max * math.pow((max/min), padrange[dim][2]))
-				else
-					script:write(max + range*padrange[dim][2])
-				end
-				script:write("]\n")
-			end
-		end
+		end	
 	
 		-- tics
 		local sTic = {}
@@ -1004,6 +999,13 @@ function gnuplot.plot(filename, data, options)
 			script:write(" back\n"); 
 		else
 			script:write("unset grid \n")
+		end
+
+		--set logscale			
+		for _, dim in ipairs(DimNames) do
+			if logscale[dim] then
+				script:write("set logscale "..dim.."\n");
+			end
 		end
 
 		-- values for pm3d		
@@ -1105,7 +1107,7 @@ function gnuplot.plot(filename, data, options)
 				
 				-- left bnd
 				if col == 1 then 
-					script:write("set ylabel '"..label["y"].."'\n")
+					script:write("set ylabel '"..label["y"].."' "..labeloffset["y"].." \n")
 					script:write(sTic["y"])
 				else 
 					script:write("unset ylabel\n")
@@ -1120,7 +1122,7 @@ function gnuplot.plot(filename, data, options)
 
 				-- bottom bnd
 				if row == MultiPlotRows then 
-					script:write("set xlabel '"..label["x"].."'\n")
+					script:write("set xlabel '"..label["x"].."' "..labeloffset["x"].." \n")
 					script:write(sTic["x"])
 				else 
 					script:write("unset xlabel\n")
