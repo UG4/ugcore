@@ -397,6 +397,8 @@ function gnuplot.plot(filename, data, options)
 	local fontscale = options.fontscale or 1
 	local linewidth = options.linewidth or 1
 	local linestyle = options.linestyle
+	local pm3d = options.pm3d
+	local datastyle = options.datastyle
 	local dashlength = options.dashlength or 1
 	local add_term_opt = options.add_term_opt or ""
 
@@ -888,25 +890,6 @@ function gnuplot.plot(filename, data, options)
 			script:write("set "..dim.."label '"..label[dim].."'\n")
 		end
 		
-		-- range
-		script:write ("set autoscale\n")
-		for _, dim in ipairs(DimNames) do	
-			if range[dim] then
-				script:write ("set "..dim.."range [",range[dim][1],":",range[dim][2],"]\n")
-			end
-		end
-		
-		-- padrange
-		for d, dim in ipairs(DimNames) do	
-			if padrange[dim] then
-				script:write("set "..dim.."range [")
-				script:write(stats.min[d]*padrange[dim][1])
-				script:write(":")
-				script:write(stats.max[d]*padrange[dim][2])
-				script:write("]\n")
-			end
-		end
-
 		-- logscale
 		script:write("unset logscale\n");
 		if logscale then
@@ -919,6 +902,36 @@ function gnuplot.plot(filename, data, options)
 				if logscale[dim] then
 					script:write("set logscale "..dim.."\n");
 				end
+			end
+		else
+			logscale = {}
+			for _, dim in ipairs(DimNames) do logscale[dim] = false end					
+		end
+
+		-- range
+		script:write ("set autoscale\n")
+		for _, dim in ipairs(DimNames) do	
+			if range[dim] then
+				script:write ("set "..dim.."range [",range[dim][1],":",range[dim][2],"]\n")
+			end
+		end
+		
+		-- padrange
+		for d, dim in ipairs(DimNames) do	
+			if padrange[dim] then
+				script:write("set "..dim.."range [")
+				if logscale[dim] then
+					script:write(stats.min[d]*padrange[dim][1])
+				else
+					script:write(stats.min[d]+padrange[dim][1])
+				end
+				script:write(":")
+				if logscale[dim] then
+					script:write(stats.max[d]*padrange[dim][2])
+				else
+					script:write(stats.max[d]+padrange[dim][2])
+				end
+				script:write("]\n")
 			end
 		end
 	
@@ -988,10 +1001,29 @@ function gnuplot.plot(filename, data, options)
 		else
 			script:write("unset grid \n")
 		end
+
+		-- values for pm3d		
+		if pm3d then
+			script:write("set pm3d depthorder hidden3d\n")
+			script:write("set pm3d implicit\n")
+			script:write("set style fill transparent solid 0.65\n")
+			script:write("unset colorbox\n")
+		end
 	
 		-- default linetypes
 		if linestyle then
 			local colors = linestyle.colors or {}
+
+			if plotDim == 3 then
+				script:write("set cbrange [1:"..(#colors).."]\n")
+				script:write("set palette defined (")
+				for i=1,#colors do
+					if i > 1 then script:write(", ") end
+				 	script:write(i.." \""..colors[i].."\"")
+				end		
+				script:write(")\n")
+			end					
+
 			local linewidth = linestyle.linewidth or 1
 			local pointsize = linestyle.pointsize or 1
 			for i=1,#colors do
@@ -1000,7 +1032,7 @@ function gnuplot.plot(filename, data, options)
 			end		
 			script:write("set linetype cycle "..#colors.."\n")		
 		end
-	
+		
 		-- border
 		script:write("set border 31\n")
 		if border then			
@@ -1154,12 +1186,19 @@ function gnuplot.plot(filename, data, options)
 		
 			-- get the data column mapping
 			local map = table.concat(dataset.map, ":")
+			if plotDim == 3 then
+				map = map..":("..s..")"
+			end
 				
 			-- determine the plot style - data source table has priority
 			local style = dataset.style
 			if not style then
 				if plotDim == 3 then style = "points"
 				else				 style = "linespoints" end
+			end
+			-- if overruled by options
+			if datastyle then
+				style = datastyle
 			end
 			
 			-- check style		

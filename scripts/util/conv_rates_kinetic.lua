@@ -610,6 +610,8 @@ function util.rates.kinetic.compute(ConvRateSetup)
 		plot.label = label
 	end
 
+	local style3d = "lines"
+
 	write(">> Writing measured rates to data files ...")
 	for disc, _ in pairs(errors) do
 		for p, _ in pairs(errors[disc]) do
@@ -627,7 +629,9 @@ function util.rates.kinetic.compute(ConvRateSetup)
 			if onlyLast then tp = #errors[disc][p][ts][f][t][n] end
 			
 			local dir = dataPath..tp.."/"
-			ensureDir(dir)				
+			ensureDir(dir)		
+			gpData["dirs"] = gpData["dirs"] or {}
+			table.insert(gpData["dirs"], dir)
 							
 			local value = errors[disc][p][ts][f][t][n][tp].value
 	
@@ -662,7 +666,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 			end
 			
 			for xCol, x in ipairs({"DoFs", "h"}) do
-				local dataset = {label=MeasLabel(disc, p), file=file, style="linespoints", xCol, 3, 4}
+				local dataset = {label=MeasLabel(disc, p), file=file, style=style3d, xCol, 3, 4}
 				local label = { x = SpaceLabel(x), y = TimestepLabel(), z = NormLabel(f,t,n)}
 								
 				addSet( accessPlot(disc, p, ts, tp, f, t, n, x), dataset, label)
@@ -834,7 +838,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 			fio:close()
 							
 			for xCol, x in ipairs({"DoFs", "h"}) do
-				local dataset = {label = MeasLabel(disc, p), file=file, style="linespoints", xCol, 3, 4}
+				local dataset = {label = MeasLabel(disc, p), file=file, style=style3d, xCol, 3, 4}
 				local label = { x = SpaceLabel(x), y = TimeLabel(), z = NormLabel(f,t,n)}
 				addSet( accessPlot(disc, p, ts, f, t, n, "time", x, dtID), dataset, label)
 				addSet( accessPlot(disc,    ts, f, t, n, "time", x, dtID), dataset, label)
@@ -904,7 +908,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 			end
 			fio:close()
 
-			local dataset = {label = MeasLabel(disc, p), file=file, style="linespoints", 1, 2, 3}
+			local dataset = {label = MeasLabel(disc, p), file=file, style=style3d, 1, 2, 3}
 			local label = { x = TimestepLabel(), y = TimeLabel(), z = NormLabel(f,t,n)}
 			addSet( accessPlot(disc, p, ts, f, t, n, "time", "dt",levID), dataset, label)
 			addSet( accessPlot(disc,    ts, f, t, n, "time", "dt",levID), dataset, label)
@@ -959,10 +963,52 @@ function util.rates.kinetic.compute(ConvRateSetup)
 	--  Execute Plot of gnuplot
 	--------------------------------------------------------------------
 	
+	-- save for reuse
+	persistence.store(dataPath.."gp-data-files.lua", gpData);	
+	
 	-- create scheduled plots
 	if CRS.noplot == nil or CRS.noplot == false then
 		write(">> Creating gnuplot plots ... ")
 		for plotFile, data in pairs(gpData) do 
+			if plotFile ~= "dirs" then
+				local opt = table.deepcopy(gpOptions)
+				if data.gpOptions then 
+					local plotOpt = table.deepcopy(data.gpOptions)
+					for k,v in pairs(plotOpt) do
+						opt[k] = v
+					end
+				end
+				--gnuplot.plot(plotFile..".tex", data, opt)
+				gnuplot.plot(plotFile..".pdf", data, opt)
+			end	
+		end
+		print("done.")
+	end
+	
+end
+
+function util.rates.kinetic.replot(gpOptions, file)
+	if ProcRank() ~= 0 then return end
+	
+	local dataPath = "data/"
+	local plotPath = "plots/"
+	
+	local function ensureDir(name)
+		if not(DirectoryExists(name)) then CreateDirectory(name) end
+	end
+		
+	local file = file or dataPath.."gp-data-files.lua"
+	local gpData = persistence.load(file);
+	
+	ensureDir(dataPath)
+	ensureDir(plotPath)
+	for _, dir in pairs(gpData["dirs"]) do
+		ensureDir(dir)
+	end
+	
+	-- create scheduled plots
+	for plotFile, data in pairs(gpData) do 
+		if plotFile ~= "dirs" then
 			local opt = table.deepcopy(gpOptions)
 			if data.gpOptions then 
 				local plotOpt = table.deepcopy(data.gpOptions)
@@ -971,10 +1017,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 				end
 			end
 			--gnuplot.plot(plotFile..".tex", data, opt)
-			--print(">> plotting: "..plotFile..".pdf")
 			gnuplot.plot(plotFile..".pdf", data, opt)
-		end	
-		print("done.")
-	end
-	
+		end
+	end	
 end
