@@ -18,6 +18,7 @@ class SparseVector
 	typedef std::map<size_t, T> container;
 	container data;
 public:
+	typedef T value_type;
 	class const_iterator : public container::const_iterator
 	{
 		using container::const_iterator::operator *;
