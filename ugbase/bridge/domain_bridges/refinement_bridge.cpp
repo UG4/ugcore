@@ -771,12 +771,12 @@ void MarkForRefinement_ElementsByLuaCallback(TDomain& dom, SmartPtr<IRefiner> re
 	TGrid& g = *dom.grid();
 	TSubsetHandler& sh = *dom.subset_handler();
 	TAAPos aaPos = dom.position_accessor();
+	Grid::edge_traits::secure_container	edges;
 
 	LuaFunction<int, number>	callback;
-//	we'll pass the following arguments: x, y, z, lvl, si, time
+//	we'll pass the following arguments: x, y, z, h, lvl, si, time
 	callback.set_lua_callback(luaCallbackName, 6);
 
-	Grid::vertex_traits::secure_container	vrts;
 	for(TIter iter = g.template begin<TElem>(); iter != g.template end<TElem>(); ++iter)
 	{
 		TElem* e = *iter;
@@ -785,21 +785,26 @@ void MarkForRefinement_ElementsByLuaCallback(TDomain& dom, SmartPtr<IRefiner> re
 			continue;
 
 		if(!g.has_children(e)){
-		//	evaluate all corners. if true is returned for one of the corners,
-		//	the whole element has to be refined
-			int refine = 0;
-			//TPos tpos = CalculateCenter(e, aaPos);
-			g.associated_elements(vrts, e);
-			for(size_t i = 0; i < vrts.size(); ++i){
-				vector3 pos;
-				VecCopy(pos, aaPos[vrts[i]], 0);
-				callback(refine, 6, pos.x(), pos.y(), pos.z(), (number)lvl,
-						 (number)sh.get_subset_index(e), (number)time);
-				if(refine){
-					refiner->mark(e);
-					break;
+		//	calculate the element center and the length of the longest edge
+			TPos tpos = CalculateCenter(e, aaPos);
+			vector3 pos;
+			VecCopy(pos, tpos, 0);
+		//	the longest edge defines h for this element
+			number h = numeric_limits<number>::max();
+			g.associated_elements(edges, e);
+			for(size_t i = 0; i < edges.size(); ++i){
+				number l = EdgeLengthSq(edges[i], aaPos);
+				if(l < h){
+					h = l;
 				}
 			}
+			h = sqrt(h);
+
+			int refine = 0;
+			callback(refine, 7, pos.x(), pos.y(), pos.z(), h, (number)lvl,
+					 (number)sh.get_subset_index(e), (number)time);
+			if(refine)
+				refiner->mark(e);
 		}
 	}
 }
