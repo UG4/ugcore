@@ -982,6 +982,8 @@ function gnuplot.plot(filename, data, options)
 					 	end
 					elseif type(dimTic) == "number" then 
 						script:write("set m"..dim.."tics "..dimTic.."\n"); 		
+					elseif type(dimTic) == "string" then 
+						script:write("set m"..dim.."tics "..dimTic.."\n"); 		
 					end
 				end
 			end
@@ -1012,7 +1014,7 @@ function gnuplot.plot(filename, data, options)
 		if pm3d then
 			script:write("set pm3d depthorder hidden3d\n")
 			script:write("set pm3d implicit\n")
-			script:write("set style fill transparent solid 0.65\n")
+			script:write("set style fill transparent solid 0.85\n")
 			script:write("unset colorbox\n")
 		end
 	
