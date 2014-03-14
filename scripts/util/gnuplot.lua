@@ -919,17 +919,21 @@ function gnuplot.plot(filename, data, options)
 		-- padrange
 		for d, dim in ipairs(DimNames) do	
 			if padrange[dim] then
+				local range = stats.range[d]
+				local min = stats.min[d]
+				local max = stats.max[d]
+				
 				script:write("set "..dim.."range [")
 				if logscale[dim] then
-					script:write(stats.min[d]*padrange[dim][1])
+					script:write(min * math.pow((max/min), -padrange[dim][1]))
 				else
-					script:write(stats.min[d]+padrange[dim][1])
+					script:write(min - range*padrange[dim][1])
 				end
 				script:write(":")
 				if logscale[dim] then
-					script:write(stats.max[d]*padrange[dim][2])
+					script:write(max * math.pow((max/min), padrange[dim][2]))
 				else
-					script:write(stats.max[d]+padrange[dim][2])
+					script:write(max + range*padrange[dim][2])
 				end
 				script:write("]\n")
 			end

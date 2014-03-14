@@ -360,7 +360,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 									if ts:lower() == "bdf" and mem.step < orderOrTheta then
 										print("++++++ BDF: Increasing order to "..mem.step+1)
 										timeDisc:set_order(mem.step+1)
-										solTimeSeries:push(mem.u:clone(), mem.time)
+										mem.TimeSeries:push(mem.u:clone(), mem.time)
 									else 
 										local oldestSol = mem.TimeSeries:oldest()
 										VecScaleAssign(oldestSol, 1.0, mem.u)
@@ -630,8 +630,6 @@ function util.rates.kinetic.compute(ConvRateSetup)
 			
 			local dir = dataPath..tp.."/"
 			ensureDir(dir)		
-			gpData["dirs"] = gpData["dirs"] or {}
-			table.insert(gpData["dirs"], dir)
 							
 			local value = errors[disc][p][ts][f][t][n][tp].value
 	
@@ -675,6 +673,8 @@ function util.rates.kinetic.compute(ConvRateSetup)
 				
 				local dir = plotPath..tp.."/"
 				ensureDir(dir)				
+				gpData["dirs"] = gpData["dirs"] or {}
+				table.insert(gpData["dirs"], dir)
 							
 				-- single dataset			
 				local file = dir..table.concat({disc,p,ts,f,"__",t,n,"dt",x},"_")
