@@ -213,6 +213,26 @@ void CheckMultiGridConsistency(MultiGrid& mg)
 	}//continue;}
 
 
+template<typename T>
+void CheckHangingNodeConstrainingFace(bool isConsistent, Grid &g, T iter, T end)
+{
+	Grid::edge_traits::secure_container	edges;
+
+	for(; iter != end; ++iter)
+	{
+		ConstrainingFace* cf = *iter;
+
+	//	make sure that all associated edges are constraining, too
+		g.associated_elements(edges, cf);
+		for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
+			if(!edges[i_edge]->is_constraining()){
+				FAILED_CHECK(edges[i_edge], "Non constraining side of constraining face detected!");
+			}
+		}
+	}
+}
+
+
 bool CheckHangingNodeConsistency(Grid& g)
 {
 	bool isConsistent = true;
@@ -293,26 +313,9 @@ bool CheckHangingNodeConsistency(Grid& g)
 	}
 
 //	CHECK FACES
-//	for convenience, we'll add all constraining faces to a vector, first
-	vector<ConstrainingFace*> constrainingFaces;
-	constrainingFaces.assign(g.begin<ConstrainingTriangle>(), g.end<ConstrainingTriangle>());
-	constrainingFaces.assign(g.begin<ConstrainingQuadrilateral>(), g.end<ConstrainingQuadrilateral>());
-	
-	Grid::edge_traits::secure_container	edges;
-
-	for(vector<ConstrainingFace*>::iterator iter = constrainingFaces.begin();
-		iter != constrainingFaces.end(); ++iter)
-	{
-		ConstrainingFace* cf = *iter;
-		
-	//	make sure that all associated edges are constraining, too
-		g.associated_elements(edges, cf);
-		for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
-			if(!edges[i_edge]->is_constraining()){
-				FAILED_CHECK(edges[i_edge], "Non constraining side of constraining face detected!");
-			}
-		}
-	}
+	// fix since assign does not seem to work on some machines.
+	CheckHangingNodeConstrainingFace(isConsistent, g, g.begin<ConstrainingTriangle>(), g.end<ConstrainingTriangle>());
+	CheckHangingNodeConstrainingFace(isConsistent, g, g.begin<ConstrainingQuadrilateral>(), g.end<ConstrainingQuadrilateral>());
 
 	return isConsistent;
 }
