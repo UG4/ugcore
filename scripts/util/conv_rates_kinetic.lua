@@ -31,12 +31,12 @@ function util.rates.kinetic.StdLabel.MeasLatexQ(disc, p)
 end
 
 function util.rates.kinetic.StdLabel.SpaceLatex(x)
-	local gpSpaceLabel ={ DoFs = "Anzahl Unbekannte",	h = "h (Gitterweite)"}
+	local gpSpaceLabel ={ DoFs = "Anzahl Unbekannte",	h = "h"}
 	return gpSpaceLabel[x]
 end
 
 function util.rates.kinetic.StdLabel.TimestepLatex()
-	return "$\\Delta t$ (Zeitschrittweite)"
+	return "$\\Delta t$"
 end
 
 function util.rates.kinetic.StdLabel.TimeLatex()
@@ -61,12 +61,12 @@ function util.rates.kinetic.StdLabel.MeasPdfQ(disc, p)
 end
 
 function util.rates.kinetic.StdLabel.SpacePdf(x)
-	local gpSpaceLabel ={ DoFs = "Anzahl Unbekannte",	h = "h (Gitterweite)"}
+	local gpSpaceLabel ={ DoFs = "Unbekannte",	h = "h"}
 	return gpSpaceLabel[x]
 end
 
 function util.rates.kinetic.StdLabel.TimestepPdf()
-	return "dt (Zeitschrittweite)"
+	return "dt"
 end
 
 function util.rates.kinetic.StdLabel.TimePdf()
@@ -1016,7 +1016,7 @@ function util.rates.kinetic.replot(gpOptions, file)
 					opt[k] = v
 				end
 			end
-			--gnuplot.plot(plotFile..".tex", data, opt)
+			gnuplot.plot(plotFile..".tex", data, opt)
 			gnuplot.plot(plotFile..".pdf", data, opt)
 		end
 	end	
