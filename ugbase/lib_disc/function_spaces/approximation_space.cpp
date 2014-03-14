@@ -779,7 +779,7 @@ void IApproximationSpace::print_statistic(std::string flags) const
 	const int blockSize = DefaultAlgebra::get().blocksize();
 	stringstream ssAlgebra; ssAlgebra << " Algebra: ";
 	if(blockSize != AlgebraType::VariableBlockSize)
-		ssAlgebra<<"Block "<<blockSize<<" (devide by "<<blockSize<<" for #Index)";
+		ssAlgebra<<"Block "<<blockSize<<" (divide by "<<blockSize<<" for #Index)";
 	else ssAlgebra <<"Flex";
 
 //	Print infos
