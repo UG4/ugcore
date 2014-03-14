@@ -223,7 +223,7 @@ inline number ElementSize<ReferencePyramid, 3>(const MathVector<3>* vCornerCoord
 /// Volume of a Prism in 3d
 /**
  * This function returns the volume of a prism in 3d. Therefore, the
- * element is devided into pyramid {x0, x_1, x_4, x_3; x_5} and  a
+ * element is divided into pyramid {x0, x_1, x_4, x_3; x_5} and  a
  * tetrahedron {x_0, x_1, x_2; x_5}, whose volumes are computed and added.
  *
  * The corner coordinates must be given as prescribed by the reference element
@@ -257,7 +257,7 @@ inline number ElementSize<ReferencePrism, 3>(const MathVector<3>* vCornerCoords)
 /// Volume of a Hexahedron in 3d
 /**
  * This function returns the volume of a hexahedron in 3d. Therefore, the
- * element is devided into two prisms:
+ * element is divided into two prisms:
  *  1) {x0, x_1, x_2, x_4; x_5, x_6} and
  *  2) {x0, x_2, x_3, x_4; x_6, x_7}
  *
