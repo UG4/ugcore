@@ -28,9 +28,6 @@
 #include "lib_algebra/operator/linear_solver/agglomerating_solver.h"
 #ifdef UG_PARALLEL
 #include "lib_algebra/operator/linear_solver/feti.h"
-	#ifdef UG_HLIBPRO
-	#include "lib_algebra/operator/linear_solver/hlibpro.h"
-	#endif
 #endif
 
 using namespace std;
@@ -247,33 +244,6 @@ static void Algebra(Registry& reg, string grp)
 	}
 #endif
 
-	// 	HLIBSolver
-#ifdef UG_HLIBPRO
-	{
-		typedef HLIBSolver<TAlgebra> T;
-		typedef ILinearOperatorInverse<vector_type> TBase;
-		typedef DebugWritingObject<TAlgebra> TBase2;
-		string name = string("HLIBSolver").append(suffix);
-		reg.add_class_<	T, TBase, TBase2>(name, grp)
-		.add_constructor()
-		.add_method("set_hlib_nmin",         &T::set_hlib_nmin,
-					"", "HLIB nmin")
-		.add_method("set_hlib_accuracy_H",   &T::set_hlib_accuracy_H,
-					"", "HLIB accuracy_H")
-		.add_method("set_hlib_accuracy_LU",  &T::set_hlib_accuracy_LU,
-					"", "HLIB accuracy_LU")
-		.add_method("set_hlib_verbosity",    &T::set_hlib_verbosity,
-					"", "HLIB verbosity")
-		.add_method("set_clustering_method", &T::set_clustering_method,
-					"", "Clustering")
-		.add_method("set_ps_basename",       &T::set_ps_basename,
-					"", "PostScript basename")
-		.add_method("check_crs_matrix",      &T::check_crs_matrix,
-					"", "Check CRS matrix")
-		.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "HLIBSolver", tag);
-	}
-#endif
 
 }
 
