@@ -340,8 +340,14 @@ install_ParaView()
 }
 
 
-
-
+install_scons()
+{
+	my_install \
+	scons 2.3.1 \
+	"http://sourceforge.net/projects/scons/files/scons/2.3.1/scons-2.3.1.tar.gz/download?use_mirror=garr" \
+	scons-2.3.1.tar.gz scons-2.3.1 \
+	"pwd" "python setup.py install --prefix=$HOME/local/scons/2.3.1/"
+}
 
 install_clang()
 {
@@ -524,6 +530,8 @@ print_usage()
 	# last checked 01/2014	
 	echo "	SuperLU     4.3                   " `[[ -e SuperLU/used/installed ]] && echo "(installed)"`
 	echo "	HYPRE       2.9.0b                " `[[ -e HYPRE/used/installed ]] && echo "(installed)"`
+	# last checked 3/2014
+	echo "	SCons       2.3.1                 " `[[ -e scons/used/installed ]] && echo "(installed)"`
 }
 
 
@@ -544,6 +552,7 @@ case $1 in
 	SuperLU) install_SuperLU ;;
 	UGIDE) install_UGIDE $2 ;;
 	HYPRE) install_HYPRE ;;
+	scons) install_scons ;;
 	all) install_all ;;
 	*) print_usage ;;
 esac
