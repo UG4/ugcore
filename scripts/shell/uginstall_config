@@ -61,6 +61,28 @@ add_lib()
 	fi
 }
 
+add_include()
+{
+	path=$1
+	if [ -e $path ]; then
+		if [ -z $C_INCLUDE_PATH ]; then
+				C_INCLUDE_PATH=$path
+		else
+			echo $C_INCLUDE_PATH | grep -q $dir/include
+			if [ $? -ne 0 ] ; then
+				C_INCLUDE_PATH=$path:$C_INCLUDE_PATH
+			fi
+		fi
+		if [ -z $CPLUS_INCLUDE_PATH ]; then
+			CPLUS_INCLUDE_PATH=$path
+		else
+			echo $CPLUS_INCLUDE_PATH | grep -q $dir/include
+			if [ $? -ne 0 ] ; then
+				CPLUS_INCLUDE_PATH=$path:$CPLUS_INCLUDE_PATH
+			fi
+		fi
+	fi
+}
 
 my_setup()
 {
@@ -68,31 +90,9 @@ my_setup()
 	if [ -e $dir ]; then
 		
 		#echo $dir found!
-		if [ -e $dir/lib ]; then
-			add_lib $dir/lib
-		fi
-		if [ -e $dir/lib64 ]; then
-			add_lib $dir/lib64
-		fi
-
-		if [ -e $dir/include ]; then
-			if [ -z $C_INCLUDE_PATH ]; then
-				C_INCLUDE_PATH=$dir/include/
-			else
-				echo $C_INCLUDE_PATH | grep -q $dir/include
-				if [ $? -ne 0 ] ; then
-					C_INCLUDE_PATH=$dir/include:$C_INCLUDE_PATH
-				fi
-			fi
-			if [ -z $CPLUS_INCLUDE_PATH ]; then
-				CPLUS_INCLUDE_PATH=$dir/include
-			else
-				echo $CPLUS_INCLUDE_PATH | grep -q $dir/include
-				if [ $? -ne 0 ] ; then
-					CPLUS_INCLUDE_PATH=$dir/include:$CPLUS_INCLUDE_PATH
-				fi
-			fi	
-		fi
+		add_lib $dir/lib
+		add_lib $dir/lib64
+		add_include $dir/include
 		
 		if [ -e $dir/bin ]; then
 			echo $PATH | grep -q $dir/bin
@@ -125,15 +125,22 @@ my_setup2 ParaView
 my_setup2 metis
 my_setup2 parmetis
 my_setup2 scons
+my_setup2 hlibpro
 
-add_lib $HOME/local/tbb/lib/intel64/gcc4.4/
-add_lib $HOME/local/tbb/lib/
+
+# tbb
+add_lib $HOME/local/tbb/used/lib/intel64/gcc4.4/
+add_lib $HOME/local/tbb/used/lib/
+add_include $HOME/local/tbb/used/include/
+
+# boost
 add_lib $HOME/local/boost/used/stage/lib/
+
 
 # completion for bash (for bash only)
 SHELLTYPE=`ps -o comm="" -p $$`
 case "$SHELLTYPE" in
-	*bash*) complete -W "all cmake doxygen gcc gmp gnuplot GotoBLAS2 Metis mpfr mpc OpenMPI ParaView ParMetis" -o default -o nospace uginstall
+	*bash*) complete -W "all cmake doxygen gcc gmp gnuplot GotoBLAS2 Metis mpfr mpc OpenMPI ParaView ParMetis scons hlibpro tbb" -o default -o nospace uginstall
 	;;
 esac
 
