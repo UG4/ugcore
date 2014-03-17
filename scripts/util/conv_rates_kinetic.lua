@@ -120,6 +120,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 	local exact = CRS.exact; 			if exact == nil then exact = true end
 	local plotSol = CRS.plotSol; 		if plotSol == nil then plotSol = false end
 	local onlyLast = CRS.onlyLast; 		if onlyLast == nil then onlyLast = true end
+	local plotOnlyTime = CRS.plotOnlyTime; if plotOnlyTime == nil then plotOnlyTime = false end
 
 	local ExactSol = CRS.ExactSol 
  	local ExactGrad = CRS.ExactGrad 
@@ -314,7 +315,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 					print(">> >>>>> Advancing to time "..sliceTime)
 					tp = tp +1
 					err.time[tp] = sliceTime
-					
+
 					-- advance all discs to end of global time step
 					for lev = maxLev, minLev, -1 do
 						for k = refs, 0, -1 do
@@ -322,10 +323,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 							local mem = memory[lev][k]
 		
 							err.dt[k] = mem.dt
-		
-							-- set order for bdf to 1 (initially)
-							if ts:lower() == "bdf" then timeDisc:set_order(1) end			
-			
+					
 							write(">> dt "..mem.dt..": ")
 							while mem.time < sliceTime do
 								write(".")
@@ -335,9 +333,17 @@ function util.rates.kinetic.compute(ConvRateSetup)
 								-- time step size
 								local dt = mem.dt
 								local dodt = dt
+
+								if ts:sub(1,3):lower() == "bdf" then
+									timeDisc:set_order(mem.TimeSeries:size())
+									if mem.TimeSeries:size() < orderOrTheta then
+										dodt =  dodt * math.pow(1/10, (orderOrTheta-mem.TimeSeries:size()))
+										print(" BDF using small dt: "..dodt)
+									end
+								end
 														
-								if mem.time + dt > sliceTime then dodt = sliceTime - mem.time end
-								if ((sliceTime - (mem.time+dt))/dt) < 1e-8 then dodt = sliceTime - mem.time end
+								if mem.time + dodt > sliceTime then dodt = sliceTime - mem.time end
+								if ((sliceTime - (mem.time+dodt))/dodt) < 1e-8 then dodt = sliceTime - mem.time end
 						
 								-- get old solution if multistage
 								if timeDisc:num_stages() > 1 then
@@ -352,15 +358,16 @@ function util.rates.kinetic.compute(ConvRateSetup)
 									newtonSolver:init(AssembledOperator(timeDisc, mem.u:grid_level()))
 									if newtonSolver:prepare(mem.u) == false then print (">> Newton init failed."); exit(); end 
 									if newtonSolver:apply(mem.u) == false then print (">> Newton solver failed."); exit(); end 
-													
+																										
 									-- update new time
 									mem.time = timeDisc:future_time()
 									if math.abs(sliceTime - mem.time) < 1e-8*dt then mem.time = sliceTime end
 									
 									-- push oldest solutions with new values to front, oldest sol pointer is poped from end	
-									if ts:lower() == "bdf" and mem.step < orderOrTheta then
+									if ts:sub(1,3):lower() == "bdf" and mem.step < orderOrTheta then
+										--Interpolate(ExactSol["c"], mem.u, "c", mem.time)				
+									
 										print("++++++ BDF: Increasing order to "..mem.step+1)
-										timeDisc:set_order(mem.step+1)
 										mem.TimeSeries:push(mem.u:clone(), mem.time)
 									else 
 										local oldestSol = mem.TimeSeries:oldest()
@@ -524,6 +531,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 						for _, cmp in pairs(Cmps) do write(cmp.." ") end
 						print("] at time "..err.time[tp])
 						
+						if not plotOnlyTime then
 						for k, dt in iipairs(err.dt) do
 							
 							-- write data to screen
@@ -544,6 +552,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 													
 							table.print(values, {heading = heading, format = format, 
 												 hline = true, vline = true, forNil = "--"})										 										 
+						end
 						end
 						
 						write("\n>> Statistic for type: "..disc..", order: "..p..", comp: "..f.." [ ")			
@@ -632,23 +641,44 @@ function util.rates.kinetic.compute(ConvRateSetup)
 			
 			local dir = dataPath..tp.."/"
 			ensureDir(dir)		
-							
+	
+			local plotDir = plotPath..tp.."/"
+			ensureDir(plotDir)				
+			gpData["dirs"] = gpData["dirs"] or {}
+			table.insert(gpData["dirs"], plotDir)
+						
 			local value = errors[disc][p][ts][f][t][n][tp].value
 	
 			-- convergence in time
 			for lev, _ in iipairs(value.dt) do		
 				local levID = "lev"..lev
 				local file = dir..table.concat({"error",disc,p,ts,f,t,n,levID},"_")..".dat"
-				local cols = {err.DoFs, err.h, value.dt[lev]}
+				local cols = {err.dt, value.dt[lev]}
 				gnuplot.write_data(file, cols)
+				
+				local dataset = {label=ts, file=file, style="linespoints", 1, 2}
+				local label = { x = TimestepLabel(), y = NormLabel(f,t,n)}
+				addSet( accessPlot(disc, p, ts, tp, f, t, n), dataset, label)
+				addSet( accessPlot(disc, p, "all", tp, f, t, n), dataset, label)
+
+				-- single dataset			
+				local file = plotDir..table.concat({disc,p,ts,f,"__",t,n,"dt"},"_")
+				gpData[file] = getPlot(disc, p, ts, tp, f, t, n)
+				gpData[file].gpOptions = {logscale = {x = true, y = true}}
+				
+				-- grouping timediscs			
+				local file = plotDir..table.concat({disc,p,"all",f,"__",t,n,"dt"},"_")
+				gpData[file] = getPlot(disc, p, "all", tp, f, t, n)
+				gpData[file].gpOptions = {logscale = {x = true, y = true}}
 			end
 					
 			-- convergence in space
+			if not plotOnlyTime then
 			for k, _ in iipairs(value.h) do						
 				local dtID = "dt"..k.."["..err.dt[k].."]"
 				local file = dir..table.concat({"error",disc,p,ts,f,t,n,dtID},"_")..".dat"
 				local cols = {err.DoFs, err.h, value.h[k]}
-				gnuplot.write_data(file, cols)
+				gnuplot.write_data(file, cols)				
 			end
 	
 			-- convergence in space-time
@@ -672,26 +702,22 @@ function util.rates.kinetic.compute(ConvRateSetup)
 				addSet( accessPlot(disc, p, ts, tp, f, t, n, x), dataset, label)
 				addSet( accessPlot(disc,    ts, tp, f, t, n, x), dataset, label)
 				addSet( accessPlot("all",   ts, tp, f, t, n, x), dataset, label)
-				
-				local dir = plotPath..tp.."/"
-				ensureDir(dir)				
-				gpData["dirs"] = gpData["dirs"] or {}
-				table.insert(gpData["dirs"], dir)
 							
 				-- single dataset			
-				local file = dir..table.concat({disc,p,ts,f,"__",t,n,"dt",x},"_")
+				local file = plotDir..table.concat({disc,p,ts,f,"__",t,n,"dt",x},"_")
 				gpData[file] = getPlot(disc, p, ts, tp, f, t, n, x)
 				gpData[file].gpOptions = {logscale = {x = true, y = true, z = true}}
 		
 				-- grouping by (disc+p)								
-				local file = dir..table.concat({f,disc,ts,"__",t,n,"dt",x}, "_")	
+				local file = plotDir..table.concat({f,disc,ts,"__",t,n,"dt",x}, "_")	
 				gpData[file] = getPlot(disc, ts, tp, f, t, n, x)		
 				gpData[file].gpOptions = {logscale = {x = true, y = true, z = true}}
 		
 				-- grouping (all discs+p)
-				local file = dir..table.concat({f,"all",ts,"__",t,n,"dt",x}, "_")	
+				local file = plotDir..table.concat({f,"all",ts,"__",t,n,"dt",x}, "_")	
 				gpData[file] = getPlot("all", ts, tp, f, t, n, x)	
 				gpData[file].gpOptions = {logscale = {x = true, y = true, z = true}}					
+			end
 			end
 			
 			if onlyLast then break end
@@ -700,6 +726,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 		---------------------------------------------
 		-- plots for time series
 		---------------------------------------------
+		if not plotOnlyTime then
 		
 		-- 2d: error over time
 		local value = errors[disc][p][ts][f][t][n][1].value
@@ -952,7 +979,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 			gpData[file] = getPlot("all",   ts, f, t, n, "time", "dt")
 			gpData[file].gpOptions = {logscale = {x = true, y = false, z = true}}					
 		end
-				
+		end
 						end
 					end
 				end

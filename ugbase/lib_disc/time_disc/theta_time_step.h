@@ -315,17 +315,28 @@ class BDF
 			for(size_t i = 1; i <= m_order; ++i)
 				vTimePoint[i] = prevSol->time(i-1);
 
-		//	create Lagrange Polynoms with given time steps
+		//	evaluate derivative of Lagrange Polynoms at future time
 			for(size_t i = 0; i <= m_order; ++i)
 			{
-			//	create polynom
-				Lagrange1D polynom(i, vTimePoint);
+				vSM[i] = 0;
 
-			//	get derivative
-				Polynomial1D deriv = polynom.derivative();
+				for(size_t j = 0; j < vTimePoint.size(); ++j)
+				{
+					if(j == i) continue;
 
-			//	evaluate at future time point
-				vSM[i] = deriv.value(vTimePoint[0]);
+					number prod = 1;
+					for(size_t k = 0; k < vTimePoint.size(); ++k)
+					{
+						if(k == i) continue;
+						if(k == j) continue;
+
+						prod *= (vTimePoint[0]-vTimePoint[k])/
+								(vTimePoint[i]-vTimePoint[k]);
+					}
+					prod *= 1./(vTimePoint[i]-vTimePoint[j]);
+
+					vSM[i] += prod;
+				}
 			}
 
 		//	only first value of vSA != 0
@@ -334,7 +345,7 @@ class BDF
 			for(size_t i = 1; i <= m_order; ++i) vSA[i] = 0;
 
 		//	scale first s_m to 1.0
-			for(size_t i = 0; i <= m_order; ++i) vSM[i] *= scale;
+			for(int i = m_order; i >= 0; --i) vSM[i] *= scale;
 
 			return futureTime;
 		}
