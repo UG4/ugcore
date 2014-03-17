@@ -25,6 +25,7 @@ LOCAL_INSTALLDIR=$HOME/local
 add_lib()
 {
 	lib=$1
+	if [ -e $lib ]; then
 
 	if [ -z $LIBRARY_PATH ]; then
 		LIBRARY_PATH=$lib
@@ -56,6 +57,7 @@ add_lib()
 	echo $LDFLAGS | grep -q $lib
 	if [ $? -ne 0 ] ; then
 		LDFLAGS="-L$lib $LDFLAGS"
+	fi
 	fi
 }
 
@@ -123,6 +125,10 @@ my_setup2 ParaView
 my_setup2 metis
 my_setup2 parmetis
 my_setup2 scons
+
+add_lib $HOME/local/tbb/lib/intel64/gcc4.4/
+add_lib $HOME/local/tbb/lib/
+add_lib $HOME/local/boost/used/stage/lib/
 
 # completion for bash (for bash only)
 SHELLTYPE=`ps -o comm="" -p $$`
