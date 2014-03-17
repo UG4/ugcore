@@ -63,18 +63,18 @@ add_lib()
 
 add_include()
 {
-	path=$1
-	if [ -e $path ]; then
+	the_path=$1
+	if [ -e $the_path ]; then
 		if [ -z $C_INCLUDE_PATH ]; then
-				C_INCLUDE_PATH=$path
+				C_INCLUDE_PATH=$the_path
 		else
 			echo $C_INCLUDE_PATH | grep -q $dir/include
 			if [ $? -ne 0 ] ; then
-				C_INCLUDE_PATH=$path:$C_INCLUDE_PATH
+				C_INCLUDE_PATH=$the_path:$C_INCLUDE_PATH
 			fi
 		fi
 		if [ -z $CPLUS_INCLUDE_PATH ]; then
-			CPLUS_INCLUDE_PATH=$path
+			CPLUS_INCLUDE_PATH=$the_path
 		else
 			echo $CPLUS_INCLUDE_PATH | grep -q $dir/include
 			if [ $? -ne 0 ] ; then
