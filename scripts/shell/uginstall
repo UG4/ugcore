@@ -443,10 +443,10 @@ install_tbb()
 {
 	unamestr=`uname`
 	if [[ "$unamestr" == 'Darwin' ]]; then
-		tbbPath="https://www.threadingbuildingblocks.org/sites/default/files/software_releases/mac/tbb42_20140122oss_osx_0.tgz"
+		tbbPath="http://www.threadingbuildingblocks.org/sites/default/files/software_releases/mac/tbb42_20140122oss_osx_0.tgz"
 		tbbFile=tbb42_20140122oss_osx_0.tgz
 	else
-		tbbPath="https://www.threadingbuildingblocks.org/sites/default/files/software_releases/linux/tbb42_20140122oss_lin.tgz"
+		tbbPath="http://www.threadingbuildingblocks.org/sites/default/files/software_releases/linux/tbb42_20140122oss_lin.tgz"
 		tbbFile=tbb42_20140122oss_lin.tgz
 	fi
 	
