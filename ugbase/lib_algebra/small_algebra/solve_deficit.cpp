@@ -72,7 +72,7 @@ xxxxxxxx
 
  */
 bool Decomp(DenseMatrix< VariableArray2<double> > &A, DenseVector<VariableArray1<double> > &rhs,
-		size_t &iNonNullRows, std::vector<size_t> &xinterchange)
+		size_t &iNonNullRows, std::vector<size_t> &xinterchange, double deficitTolerance)
 {
 	// LU Decomposition, IKJ Variant
 	size_t rows = A.num_rows();
@@ -144,8 +144,11 @@ bool Decomp(DenseMatrix< VariableArray2<double> > &A, DenseVector<VariableArray1
 	// every row below iNonNullRows is zero.
 	// equation system is solveable if every rhs[k] = 0 for k>=iNonNullRows
 	for(; k<rows; k++)
-		if(dabs(rhs[k]) > 1e-7 )
+		if(dabs(rhs[k]) > deficitTolerance )
+		{
+//			UG_LOG("row " << k << " > 1e-7" << "\n")
 			return false;
+		}
 		else
 			rhs[k] = 0.0;
 //	UG_LOGN("iNonNullRows = " << iNonNullRows << " abort");
@@ -154,7 +157,7 @@ bool Decomp(DenseMatrix< VariableArray2<double> > &A, DenseVector<VariableArray1
 
 
 bool SolveDeficit(DenseMatrix< VariableArray2<double> > &A,
-		DenseVector<VariableArray1<double> > &x, DenseVector<VariableArray1<double> > &rhs)
+		DenseVector<VariableArray1<double> > &x, DenseVector<VariableArray1<double> > &rhs, double deficitTolerance)
 {
 	DenseMatrix< VariableArray2<double> > A2=A;
 	DenseVector<VariableArray1<double> > rhs2=rhs;
@@ -167,7 +170,7 @@ bool SolveDeficit(DenseMatrix< VariableArray2<double> > &A,
 	for(size_t i=0; i<x.size(); i++)
 		x[i] = 0.0;
 	std::vector<size_t> interchange;
-	if(Decomp(A, rhs, iNonNullRows, interchange) == false) return false;
+	if(Decomp(A, rhs, iNonNullRows, interchange, deficitTolerance) == false) return false;
 
 //	A.maple_print("Adecomp");
 //	rhs.maple_print("rhs decomp");
@@ -182,7 +185,7 @@ bool SolveDeficit(DenseMatrix< VariableArray2<double> > &A,
 	}
 	DenseVector<VariableArray1<double> > f;
 	f = A2*x - rhs2;
-	if(VecNormSquared(f) > 1e-5)
+	if(VecNormSquared(f) > 1e-2)
 	{
 		UG_LOGN("iNonNullRows = " << iNonNullRows);
 		UG_LOG("solving was wrong:");

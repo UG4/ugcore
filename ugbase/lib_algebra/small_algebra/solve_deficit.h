@@ -15,10 +15,10 @@ namespace ug{
 
 
 bool SolveDeficit(DenseMatrix< VariableArray2<double> > &A,
-		DenseVector<VariableArray1<double> > &x, DenseVector<VariableArray1<double> > &rhs);
+		DenseVector<VariableArray1<double> > &x, DenseVector<VariableArray1<double> > &rhs, double deficitTolerance);
 
 bool Decomp(DenseMatrix< VariableArray2<double> > &A, DenseVector<VariableArray1<double> > &rhs,
-		size_t &iNonNullRows);
+		size_t &iNonNullRows, double deficitTolerance);
 }
 
 #endif /* SOLVE_DEFICIT_H_ */
