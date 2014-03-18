@@ -4,12 +4,16 @@
 
 #include <dlfcn.h>
 #include "../dynamic_library_util.h"
+#include <string>
 
 namespace ug{
 
 DynLibHandle OpenLibrary(const char* fileName)
 {
-	return dlopen(fileName, RTLD_LAZY);
+	DynLibHandle dlh = dlopen(fileName, RTLD_LAZY);
+	if(dlh == NULL)
+		throw std::string(dlerror());
+	return dlh;
 }
 
 bool CloseLibrary(DynLibHandle h)

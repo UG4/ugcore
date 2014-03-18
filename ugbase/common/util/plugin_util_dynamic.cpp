@@ -87,10 +87,14 @@ bool LoadPlugins(const char* pluginPath, string parentGroup, bridge::Registry& r
 		string fullPluginName(pluginPath);
 		fullPluginName.append("/").append(files[i]);
 
-		DynLibHandle libHandle = OpenLibrary(fullPluginName.c_str());
-
-		if(!libHandle){
+		DynLibHandle libHandle;
+		try{
+			libHandle = OpenLibrary(fullPluginName.c_str());
+		}
+		catch(std::string errMsg)
+		{
 			UG_ERR_LOG("PLUGIN-ERROR: Couldn't open plugin " << files[i] << endl);
+			UG_ERR_LOG("Error Message: " << errMsg << "\n");
 			UG_ERR_LOG("NOTE: This could be due to incompatible build settings in ugshell and the plugin.\n");
 			bSuccess = false;
 			continue;

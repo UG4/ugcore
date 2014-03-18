@@ -21,7 +21,8 @@ namespace ug{
 #endif
 
 ///	Loads a library and returns a handle
-/**	The function returns 0 if no library with the specified name was found.
+/**	The function throws an std::string as error if the library could not be found
+ * or if the library could not be opened (e.g. dependent shared libraries not found)
  * \sa CloseLibrary, GetLibraryProcedure*/
 DynLibHandle OpenLibrary(const char* fileName);
 
