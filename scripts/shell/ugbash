@@ -78,17 +78,20 @@ ugcmakegrep()
 
 ugappsgrep()
 {
-	fgrep --include="*\.lua" --exclude="ug4CompletionList.txt" --exclude="myUg4CompletionList.txt" --include="*\.c" --include="*\.cpp" --include="*\.txt" --include="*\.h" -rI "$1" $UG4_ROOT/apps
+	fgrep --include="*\.lua" --exclude="ug4CompletionList.txt" --exclude="myUg4CompletionList.txt" \
+		--include="*\.c" --include="*\.cpp" --include="*\.txt" --include="*\.h" -rI "$1" $UG4_ROOT/apps
 }
 
 ugscriptsgrep()
 {
-	fgrep --include="*\.lua" --include="*\.c" --include="*\.cpp" --include="*\.txt"--include="*\.h" -rI "$1" $UG4_ROOT/scripts
+	fgrep --include="*\.lua" --include="*\.c" --include="*\.cpp" --include="*\.txt"--include="*\.h" \
+		-rI "$1" $UG4_ROOT/scripts
 }
 
 uggrep()
 {
-	fgrep --include="*\.lua" --include="*\.c*" --include="*\.h" --include="*\.txt" --exclude-dir=".svn" -rI "$1" $UG4_ROOT
+	fgrep --include="*\.lua" --include="*\.c*" --include="*\.h" --include="*\.txt" --exclude-dir=".svn" \
+		--exclude="ug4CompletionList.txt" --exclude="myUg4CompletionList.txt" -rI "$1" $UG4_ROOT
 }
 
 ugdocsgrep()
