@@ -650,7 +650,7 @@ protected:
 
 		if (!FileExists(get_base_dir())) {
 			UG_WARNING("GridFunctionDebugWriter::write_vector_to_vtk: directory "
-						<< m_baseDir << "does not exist.");
+						<< get_base_dir() << "does not exist.");
 			UG_WARNING("GridFunctionDebugWriter::write_vector_to_vtk: using cwd "
 						"as basedir.");
 			name = "./"; name.append(filename);
