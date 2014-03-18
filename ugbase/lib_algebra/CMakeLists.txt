@@ -38,6 +38,7 @@ if(PARALLEL)
 						operator/preconditioner/schur/schur.cpp
 						operator/preconditioner/schur/schur_precond.cpp
 						operator/preconditioner/schur/schur_complement_operator.cpp
+						operator/preconditioner/schur/parallel_progress.cpp
 	    				operator/linear_solver/feti.cpp
 						parallelization/parallelization_util.cpp
 						parallelization/parallel_coloring.cpp						
