@@ -27,11 +27,11 @@
 #ifdef PROFILE_FETI
 	#define FETI_PROFILE_FUNC()			PROFILE_FUNC_GROUP("algebra feti")
 	#define FETI_PROFILE_BEGIN(name)	PROFILE_BEGIN_GROUP(name, "algebra feti")
-	#define FETI_PROFILE_END()			PROFILE_END()
+	#define FETI_PROFILE_END(name)			PROFILE_END_(name)
 #else
 	#define FETI_PROFILE_FUNC()
 	#define FETI_PROFILE_BEGIN(name)
-	#define FETI_PROFILE_END()
+	#define FETI_PROFILE_END(name)
 #endif
 // additions for profiling - end
 
@@ -447,7 +447,7 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 						 m_pFetiLayouts->get_primal_master_layout(),
 						 m_pFetiLayouts->get_primal_slave_layout(),
 						 m_allToOneProcessComm, &vPrimalRootIDLUT);
-	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(PrimalSubassMatInvInit_BuildOneToManyLayout)' - Messpunkt ok
+	FETI_PROFILE_END(PrimalSubassMatInvInit_BuildOneToManyLayout);
 	UG_LOG("done.\n");
 
 	if (m_bTestOneToManyLayouts == true) {
@@ -651,7 +651,7 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 
 				return false;
 			}
-			FETI_PROFILE_END(); // end 'FETI_PROFILE_BEGIN(PSMIInit_NeumannSolve_SC)'
+			FETI_PROFILE_END(PSMIInit_NeumannSolve_SC);
 
 		//	remember for statistic
 			StepConv stepConv;
@@ -740,7 +740,7 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 	std::vector<PrimalConnection> vPrimalConnections;//	only filled on root
 	pcl::ProcessCommunicator commWorld;
 	commWorld.gatherv(vPrimalConnections, vLocalPrimalConnections, m_primalRootProc);
-	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(PrimalSubassMatInvInit_Assemble_S_PiPi)' - Messpunkt ok
+	FETI_PROFILE_END(PrimalSubassMatInvInit_Assemble_S_PiPi);
 
 //	build matrix on primalRoot
 	if(pcl::ProcRank() == m_primalRootProc)
@@ -948,7 +948,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 						" after " << m_spNeumannSolver->step() << " steps.\n");
 		bSuccess = false;
 	}
-	FETI_PROFILE_END(); // end 'FETI_PROFILE_BEGIN(PSMIApply_NeumannSolve_2a)'
+	FETI_PROFILE_END(PSMIApply_NeumannSolve_2a);
 
 //	remember for statistic
 	StepConv stepConv;
@@ -991,7 +991,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 	//pcl::SynchronizeProcesses();			// TMP
 	FETI_PROFILE_BEGIN(PSMIApply_VecGather);
 	VecGather(&rootF, &h, m_masterAllToOneLayout, m_slaveAllToOneLayout);
-	FETI_PROFILE_END(); // end 'FETI_PROFILE_BEGIN(PSMIApply_VecGather)'
+	FETI_PROFILE_END(PSMIApply_VecGather);
 
 //	4. Solve \f$S_{\Pi \Pi} u_{\Pi} = \tilde{f}_{\Pi}\f$ on root
 //     Toselli, p.~165, below eq.~(6.64): this is a ``local problem with Neumann bnd cnds at edges, zero Dirichlet bnd vrts''
@@ -1020,7 +1020,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 						   " after " << m_pCoarseProblemSolver->step() << " steps.\n");
 			}*/
 
-			FETI_PROFILE_END();	// end 'FETI_PROFILE_BEGIN(PSMIApply_SolveCoarseProblem)' - Messpunkt ok, da nur auf einem Proc
+			FETI_PROFILE_END(PSMIApply_SolveCoarseProblem);
 		}
 	}
 
@@ -1070,7 +1070,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 						" after " << m_spNeumannSolver->step() << " steps.\n");
 		bSuccess = false;
 	}
-	FETI_PROFILE_END(); // end 'FETI_PROFILE_BEGIN(PSMIApply_NeumannSolve_7)'
+	FETI_PROFILE_END(PSMIApply_NeumannSolve_7);
 
 //	remember for statistic
 	if(!m_statType.empty())
@@ -1370,7 +1370,7 @@ init(SmartPtr<MatrixOperator<matrix_type, vector_type> > A)
 	                             m_pMatrix->num_rows(),
 	                             *m_pDDInfo,
 	                             debugLayouts);
-	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolverInit_Create_Layouts)' - Messpunkt ok
+	FETI_PROFILE_END(FETISolverInit_Create_Layouts);
 	UG_LOG("done.\n");
 
 //  ----- 2. CONFIGURE LOCAL SCHUR COMPLEMENT  ----- //
@@ -1406,7 +1406,7 @@ init(SmartPtr<MatrixOperator<matrix_type, vector_type> > A)
 				" local Schur complement.\n");
 		return false;
 	}
-	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolverInit_InitLocalSchurComplement)' - Messpunkt ok!
+	FETI_PROFILE_END(FETISolverInit_InitLocalSchurComplement);
 
 //  ----- 3. CONFIGURE SCHUR COMPLEMENT INVERSE  ----- //
 
@@ -1456,7 +1456,7 @@ init(SmartPtr<MatrixOperator<matrix_type, vector_type> > A)
 				" Schur complement inverse.\n");
 		return false;
 	}
-	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolverInit_InitPrimalSubassMatInv)' - Messpunkt ok!
+	FETI_PROFILE_END(FETISolverInit_InitPrimalSubassMatInv);
 
 //	status
 	UG_LOG("\n% 'FETISolver::init()' done!\n");
@@ -1546,7 +1546,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 			   "Cannot compute rhs 'd'. Aborting.\n");
 		return false;
 	}
-	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolverApply_Compute_D)' - Messpunkt ok, wenn 'ComputeDifferenceOnDelta()' als letzte Op. nicht stoert
+	FETI_PROFILE_END(FETISolverApply_Compute_D); // - Messpunkt ok, wenn 'ComputeDifferenceOnDelta()' als letzte Op. nicht stoert
 
 	if (!isLambdaStartZero) {
 // 	(b) Build t = F*lambda (t is additive afterwards)
@@ -1558,7 +1558,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 				   "to build t = F*p. Aborting.\n");
 			return false;
 		}
-		FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolverApply_Apply_F)' - Messpunkt ok, wenn 'ComputeDifferenceOnDelta()' als letzte Op. nicht stoert
+		FETI_PROFILE_END(FETISolverApply_Apply_F); //' - Messpunkt ok, wenn 'ComputeDifferenceOnDelta()' als letzte Op. nicht stoert
 
 // (c) Subtract values on \Delta, r0 = r0 - t
 		m_fetiLayouts.vec_scale_append_on_dual(r, t, -1.0);
@@ -1579,7 +1579,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 			   "Cannot apply preconditioner. Aborting.\n");
 		return false;
 	}
-	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolverApply_Apply_M_inverse)' - Messpunkt ok, wenn 'ComputeDifferenceOnDelta()' + 'apply_scaling_matrix()' nicht stoeren
+	FETI_PROFILE_END(FETISolverApply_Apply_M_inverse); // - Messpunkt ok, wenn 'ComputeDifferenceOnDelta()' + 'apply_scaling_matrix()' nicht stoeren
 
 //	start values
 	number rho, rho_new, beta, alpha, alpha_denominator;
@@ -1595,9 +1595,10 @@ apply_return_defect(vector_type& u, vector_type& f)
 	number small = 1e-20;
 
 // 	"lambda iteration" loop
-	FETI_PROFILE_BEGIN(FETISolverApply_Lambda_iter_loop);
+
 	while(!convergence_check()->iteration_ended())
 	{
+		FETI_PROFILE_BEGIN(FETISolverApply_Lambda_iter_loop);
 	//	increase iteration count
 		m_iterCnt++;
 
@@ -1632,10 +1633,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 	// 	Compute new defect
 		convergence_check()->update_defect(m_fetiLayouts.vec_norm_on_identified_dual(r));
 		if(convergence_check()->iteration_ended())
-		{
 			break;
-			FETI_PROFILE_END();	// additional end 'FETI_PROFILE_BEGIN(FETISolverApply_Lambda_iter_loop)' - Messpunkt ok, da Konvergenz-Check ausgefuehrt
-		}
 
 	// 	Preconditioning: apply z = M^-1 * r
 		m_LocalSchurComplement.set_statistic_type("apply_M_inv_iter ");
@@ -1657,7 +1655,6 @@ apply_return_defect(vector_type& u, vector_type& f)
 	// 	update rho
 		rho = rho_new;
 	} /* end iteration loop */
-	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolverApply_Lambda_iter_loop)' - Messpunkt ok, da Konvergenz-Check ausgefuehrt
 
 //	"back solve" (cf. A. Toselli, O. Widlund: "Domain Decomposition Methods -
 //	Algorithms and Theory", chap. 6.4, p.164, l. 2) (03022011av)
@@ -1692,7 +1689,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 		UG_LOG("ERROR in FETISolver::apply: Cannot back solve.\n");
 		bSuccess = false;
 	}
-	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolverApply_ApplyPrimalSubassMatInv)' - Messpunkt ok, da 'AllProcsTrue()' am Ende von 'apply()' ausgefuehrt wurde
+	FETI_PROFILE_END(FETISolverApply_ApplyPrimalSubassMatInv); //' - Messpunkt ok, da 'AllProcsTrue()' am Ende von 'apply()' ausgefuehrt wurde
 
 //	check all procs
 	if(!pcl::AllProcsTrue(bSuccess))
@@ -1700,10 +1697,9 @@ apply_return_defect(vector_type& u, vector_type& f)
 		UG_LOG("ERROR in FETISolver::apply: Some processes could not back solve.\n");
 		return false;
 	}
-	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolver_Backsolve)' - Messpunkt ok!
+	FETI_PROFILE_END(FETISolverApply_Backsolve); //' - Messpunkt ok!
 
 	return convergence_check()->post();
-	//FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolverApplyReturnDefect)' - complete method
 
 //	call this for output.
 //	PROFILER_UPDATE();
@@ -1738,7 +1734,7 @@ apply_F(vector_type& f, const vector_type& v)
 
 	FETI_PROFILE_BEGIN(FETISolverApply_F_ApplyPrimalSubassMatInv);
 	m_PrimalSubassembledMatrixInverse.apply(fTmp, f);
-	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolverApply_F_ApplyPrimalSubassMatInv)' - Messpunkt ok, da 'AllProcsTrue()' am Ende von 'apply()' ausgefuehrt wurde
+	FETI_PROFILE_END(FETISolverApply_F_ApplyPrimalSubassMatInv);//- Messpunkt ok, da 'AllProcsTrue()' am Ende von 'apply()' ausgefuehrt wurde
 
 //	3. Apply jump operator to get the final 'f'
 	ComputeDifferenceOnDelta(f, fTmp, m_fetiLayouts.get_dual_master_layout(),
@@ -1776,7 +1772,7 @@ compute_d(vector_type& d, const vector_type& f)
 				" complement inverse.\n");
 		return false;
 	}
-	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolverCompute_d_ApplyPrimalSubassMatInv)' - Messpunkt ok, da 'AllProcsTrue()' am Ende von 'apply()' ausgefuehrt wurde
+	FETI_PROFILE_END(FETISolverCompute_d_ApplyPrimalSubassMatInv); //' - Messpunkt ok, da 'AllProcsTrue()' am Ende von 'apply()' ausgefuehrt wurde
 
 //	2. Apply jump operator to get the final 'd'
 	ComputeDifferenceOnDelta(d, dTmp, m_fetiLayouts.get_dual_master_layout(),
@@ -1827,7 +1823,7 @@ apply_M_inverse(vector_type& z, const vector_type& r)
 //	3.3. solve
 	FETI_PROFILE_BEGIN(FETISolverApply_M_inv_ApplyLocalSchurComplement);
 	m_LocalSchurComplement.apply(z, zTmp);
-	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolverApply_M_inv_ApplyLocalSchurComplement)' - Messpunkt ok, da 'AllProcsTrue()' am Ende von 'apply()' aufgerufen wird.
+	FETI_PROFILE_END(FETISolverApply_M_inv_ApplyLocalSchurComplement); //' - Messpunkt ok, da 'AllProcsTrue()' am Ende von 'apply()' aufgerufen wird.
 								// ('m_pOperator->apply' allein synchronisiert *nicht*!)
 //  4. Apply jump operator:  zTmp :=  B_{\Delta} * z
 	ComputeDifferenceOnDelta(zTmp, z, m_fetiLayouts.get_dual_master_layout(),
