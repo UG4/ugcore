@@ -23,8 +23,6 @@
 
 namespace ug{
 
-
-
 template <typename TAlgebra>
 class ILUTScalarPreconditioner : public IPreconditioner<TAlgebra>
 {
@@ -89,13 +87,23 @@ class ILUTScalarPreconditioner : public IPreconditioner<TAlgebra>
 		}
 
 	public:
-		void preprocess(const matrix_type &A)
+		void preprocess(const matrix_type &M)
 		{
-			STATIC_ASSERT(matrix_type::rows_sorted, Matrix_has_to_have_sorted_rows);
+#ifdef 	UG_PARALLEL
+			matrix_type A;
+			A = M;
 
-			const size_t nrOfRows = block_traits<typename matrix_type::value_type>::static_num_rows;
-			UG_ASSERT(nrOfRows == block_traits<typename matrix_type::value_type>::static_num_cols, "only square matrices supported");
-			m_size = A.num_rows() * nrOfRows;
+			MatAddSlaveRowsToMasterRowOverlap0(A);
+
+		//	set zero on slaves
+			std::vector<IndexLayout::Element> vIndex;
+			CollectUniqueElements(vIndex, M.layouts()->slave());
+			SetDirichletRow(A, vIndex);
+#else
+			const matrix_type &A = M;
+#endif
+
+			STATIC_ASSERT(matrix_type::rows_sorted, Matrix_has_to_have_sorted_rows);
 
 			ilut = make_sp(new ILUTPreconditioner<CPUAlgebra>(m_eps));
 			ilut->set_info(m_info);
@@ -103,22 +111,13 @@ class ILUTScalarPreconditioner : public IPreconditioner<TAlgebra>
 
 			mo = make_sp(new MatrixOperator<CPUAlgebra::matrix_type, CPUAlgebra::vector_type>);
 			CPUAlgebra::matrix_type &mat = mo->get_matrix();
-			mat.resize_and_clear(m_size, m_size);
+
 			#ifdef UG_PARALLEL
 				mat.set_storage_type(PST_ADDITIVE);
 				mat.set_layouts(CreateLocalAlgebraLayouts());
 			#endif
 
-			for(size_t r=0; r<A.num_rows(); r++)
-				for(typename matrix_type::const_row_iterator it = A.begin_row(r); it != A.end_row(r); ++it)
-				{
-					size_t rr = r*nrOfRows;
-					size_t cc = it.index()*nrOfRows;
-					for(size_t r2=0; r2<nrOfRows; r2++)
-						for(size_t c2=0; c2<nrOfRows; c2++)
-							mat(rr + r2, cc + c2) = BlockRef(it.value(), r2, c2);
-				}
-			mat.defragment();
+			m_size = GetDoubleSparseFromBlockSparse(mat, A);
 
 			SmartPtr<StdConvCheck<CPUAlgebra::vector_type> > convCheck(new StdConvCheck<CPUAlgebra::vector_type>);
 			convCheck->set_maximum_steps(100);
@@ -165,27 +164,43 @@ class ILUTScalarPreconditioner : public IPreconditioner<TAlgebra>
 	//	Stepping routine
 		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
 		{
+#ifdef UG_PARALLEL
+			SmartPtr<vector_type> spDtmp = d.clone();
+			spDtmp->change_storage_type(PST_UNIQUE);
+			bool b = apply_double(c, *spDtmp);
+
+			c.set_storage_type(PST_ADDITIVE);
+			c.change_storage_type(PST_CONSISTENT);
+			return b;
+#else
+			return apply_double(c, d);
+#endif
+			return true;
+		}
+
+		bool apply_double(vector_type &c, const vector_type &d)
+		{
 			m_c.resize(m_size);
 			m_d.resize(m_size);
 
 #ifdef UG_PARALLEL
 			m_d.set_storage_type(PST_ADDITIVE);
 			m_c.set_storage_type(PST_CONSISTENT);
+			m_c.set_layouts(CreateLocalAlgebraLayouts());
+			m_d.set_layouts(CreateLocalAlgebraLayouts());
 #endif
 			get_vector(m_d, d);
 			m_c.set(0.0);
 
+			//ApplyLinearSolver(mo, m_u, m_b, linearSolver);
 			ilut->apply(m_c, m_d);
+			//ilut->apply(m_c, m_d);
 
 			set_vector(m_c, c);
-
-#ifdef 	UG_PARALLEL
-		//	Correction is always consistent
-		//	todo: We set here correction to consistent, but it is not. Think about how to use ilu in parallel.
-			c.set_storage_type(PST_CONSISTENT);
-#endif
 			return true;
 		}
+
+
 
 	public:
 		bool solve(vector_type &c, const vector_type &d)
@@ -207,6 +222,35 @@ class ILUTScalarPreconditioner : public IPreconditioner<TAlgebra>
 			//ilut->apply(m_c, m_d);
 
 			set_vector(m_c, c);
+			return true;
+		}
+
+	public:
+		virtual std::string config_string() const
+		{
+			std::stringstream ss ; ss << "ILUTScalar(threshold = " << m_eps << ", sort = " << (m_sort?"true":"false") << ")";
+			if(m_eps == 0.0) ss << " = Sparse LU";
+			return ss.str();
+		}
+
+		std::vector<CPUAlgebra::vector_type> m_vc, m_vd;
+		virtual bool multi_apply(std::vector<vector_type> &c, const std::vector<vector_type> &d)
+		{
+			m_vc.resize(c.size());
+			m_vd.resize(c.size());
+
+			for(size_t i=0; i<c.size(); i++)
+			{
+				get_vector(m_vd[i], d[i]);
+				m_vc[i].set(0.0);
+			}
+			ilut->multi_apply(m_vc, m_vd);
+
+			for(size_t i=0; i<c.size(); i++)
+			{
+				set_vector(m_vc[i], c[i]);
+				c[i].set_storage_type(PST_CONSISTENT);
+			}
 			return true;
 		}
 
