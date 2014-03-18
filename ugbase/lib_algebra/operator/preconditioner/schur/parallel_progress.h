@@ -25,7 +25,7 @@ namespace ug
 
 class ParallelProgress
 {
-	int m_minSecondsUntilProgress;
+//	int m_minSecondsUntilProgress;
 	double startS;
 public:
 	ParallelProgress();
