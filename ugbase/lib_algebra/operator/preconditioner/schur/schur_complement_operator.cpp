@@ -377,11 +377,23 @@ set_debug_dim()
 	m_slicing.get_vector_slice(positions, SD_SKELETON, skeletonPos);
 	m_slicing.get_vector_slice(positions, SD_INNER, innerPos);
 
-	m_spDebugWriterInner = make_sp(new AlgebraDebugWriter<algebra_type>);
-	m_spDebugWriterSkeleton = make_sp(new AlgebraDebugWriter<algebra_type>);
+	std::string basePath = m_spDebugWriter->get_base_dir();
+	std::string innerBasePath = basePath + "/inner/";
+	std::string skeletonBasePath = basePath + "/skeleton/";
+	if(pcl::ProcRank() == 0)
+	{
+		CreateDirectory(innerBasePath);
+		CreateDirectory(skeletonBasePath);
+	}
 
-	m_spDebugWriterSkeleton->template set_positions<dim>(skeletonPos);
+	m_spDebugWriterInner = make_sp(new AlgebraDebugWriter<algebra_type>);
+	m_spDebugWriterInner->set_base_dir(innerBasePath.c_str());
 	m_spDebugWriterInner->template set_positions<dim>(innerPos);
+
+	m_spDebugWriterSkeleton = make_sp(new AlgebraDebugWriter<algebra_type>);
+	m_spDebugWriterSkeleton->set_base_dir(skeletonBasePath.c_str());
+	m_spDebugWriterSkeleton->template set_positions<dim>(skeletonPos);
+
 }
 
 

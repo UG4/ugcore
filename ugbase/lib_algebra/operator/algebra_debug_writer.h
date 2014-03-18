@@ -31,6 +31,7 @@ class AlgebraDebugWriter : public IDebugWriter<TAlgebra>
 
 	/// type of base
 		typedef IDebugWriter<TAlgebra> base_type;
+		using base_type::get_base_dir;
 
 	public:
 	///	Constructor
@@ -73,6 +74,7 @@ class AlgebraDebugWriter : public IDebugWriter<TAlgebra>
 		template <int dim>
 		void write_vector_dim(const vector_type& vec, const char* filename)
 		{
+			std::string name = get_base_dir() + "/" + filename;
 			const std::vector<MathVector<dim> > &posvec = base_type::template get_positions<dim>();
 			// check size
 			if(vec.size() > posvec.size())
@@ -80,7 +82,7 @@ class AlgebraDebugWriter : public IDebugWriter<TAlgebra>
 						 " Number of positions does not match.\n");
 
 			// write connection viewer output to file
-			ConnectionViewer::WriteVectorPar<vector_type, MathVector<dim> >(filename, vec, &posvec[0], dim);
+			ConnectionViewer::WriteVectorPar<vector_type, MathVector<dim> >(name, vec, &posvec[0], dim);
 
 		}
 
@@ -89,6 +91,7 @@ class AlgebraDebugWriter : public IDebugWriter<TAlgebra>
 		void write_matrix_dim(const matrix_type& mat,
 				                          const char* filename)
 		{
+			std::string name = get_base_dir() + "/" + filename;
 			const std::vector<MathVector<dim> > &posvec = base_type::template get_positions<dim>();
 		// check size
 			if(mat.num_rows() > posvec.size() || mat.num_cols() > posvec.size())
@@ -96,7 +99,7 @@ class AlgebraDebugWriter : public IDebugWriter<TAlgebra>
 									" Number of positions does not match.\n");
 			// write to connection viewer
 			ConnectionViewer::WriteMatrixPar<matrix_type, MathVector<dim> >
-								( filename, mat, &base_type::template get_positions<dim>()[0], dim);
+								( name, mat, &base_type::template get_positions<dim>()[0], dim);
 
 		}
 
