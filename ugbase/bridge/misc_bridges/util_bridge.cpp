@@ -6,6 +6,7 @@
 #include "registry/registry.h"
 #include "bridge/bridge.h"
 #include "common/util/file_util.h"
+#include "../util_overloaded.h"
 #include "ug.h"
 
 #include <cstdlib>
@@ -92,7 +93,7 @@ void RegisterBridge_Util(Registry& reg, string parentGroup)
 
 	reg.add_function("srand", int_srand, grp, 
 	                 "", "seed", "The pseudo-random number generator is initialized using the argument passed as seed.")
-		.add_function("ug_file_exists", &FileExists, grp,
+		.add_function("ug_file_exists", OVERLOADED_FUNCTION_PTR(bool, FileExists, (const char*)), grp,
 	                  "exists", "", "Returns true if a path exists, false if not.")
 		.add_function("exit", &UGForceExit, grp,
 	                  "", "", "Immediatly terminates the application.")
