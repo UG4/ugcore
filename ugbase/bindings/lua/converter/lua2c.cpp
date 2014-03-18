@@ -38,59 +38,74 @@ bool LUA2C::createC(const char *functionName)
 {
 	UG_LOG("parsing " << functionName << "... ");
 	try{
-	m_f=NULL;
-	LUAParserClass parser;
-	if(parser.parse_luaFunction(functionName) == false)
-		return 0;
-	//parser.reduce();
-
-	string p = PathProvider::get_path(ROOT_PATH) + "/bin/lua2c_tmp/";
-    
-    if(!DirectoryExists(p.c_str()))
-        CreateDirectory(p.c_str());
-    
-	fstream out((p + "lua2c_output.c").c_str(), fstream::out);		
-
-	out << "#include <math.h>\n";
-	out << "#define true 1\n";
-	out << "#define false 0\n";
-	parser.createC(out);
-    
-    m_iIn = parser.num_in();
-	m_iOut = parser.num_out();
-    out.close();
-    
- 	string c1s=string("gcc -fpic -O3 -c ") + p + "lua2c_output.c -o " + p + "lua2c_output.o";
-	UG_DLOG(DID_LUA2C, 2, "compiling line: " << c1s << "\n");
-	system(c1s.c_str());
-
-	bool bTmpFileSuccess=false;
-	m_name = functionName;
+		m_f=NULL;
+		LUAParserClass parser;
+		if(parser.parse_luaFunction(functionName) == false)
+			return 0;
+		//parser.reduce();
 	
-	m_pDyn = MakeTmpFile(p+string(functionName), ".dylib", bTmpFileSuccess);
-	
-	string c2s=string("gcc -dynamiclib ") + p+"lua2c_output.o -o " + m_pDyn.c_str();
-	UG_DLOG(DID_LUA2C, 2, "linking line: " << c2s << "\n");
-	system(c2s.c_str());	
+		string p = PathProvider::get_path(ROOT_PATH) + "/bin/lua2c_tmp/";
 
-	m_libHandle = OpenLibrary(m_pDyn.c_str());
+		if(!DirectoryExists(p))
+			CreateDirectory(p);
 
-	if(m_libHandle!=NULL)
-        m_f = (LUA2C_Function) GetLibraryProcedure(m_libHandle, functionName);
-	if(m_f == NULL)
-	{    
-		UG_LOG("Error when compiling and linkin " << functionName << "\n")
-        UG_LOG("--[LUA2C]-----------------------------------------------\n");
-        UG_LOG("created C function from LUA function " << functionName << ":\n");
-        UG_LOG(GetFileLines((p+"lua2c_output.c").c_str(), 1, -1, true) << "\n");        
-		UG_LOG("--[LUA2C]-----------------------------------------------\n");
-    }
+		fstream out((p + "lua2c_output.c").c_str(), fstream::out);
 	
-	if(m_f !=NULL) { UG_LOG("OK\n"); }
-	else { UG_LOG("FAILED.\n"); }
-	if(m_f !=NULL)
-		bInitialized = true;
-	return m_f != NULL;
+		out << "#include <math.h>\n";
+		out << "#define true 1\n";
+		out << "#define false 0\n";
+		parser.createC(out);
+
+		m_iIn = parser.num_in();
+		m_iOut = parser.num_out();
+		out.close();
+
+		string c1s=string("gcc -fpic -O3 -c ") + p + "lua2c_output.c -o " + p + "lua2c_output.o";
+		UG_DLOG(DID_LUA2C, 2, "compiling line: " << c1s << "\n");
+		if(system(c1s.c_str()) != 0)
+		{
+			UG_LOG("Error when compiling " << functionName << "\n");
+			UG_LOG("compiling line: " << c1s << "\n");
+			UG_LOG("--[LUA2C]-----------------------------------------------\n");
+			UG_LOG("created C function from LUA function " << functionName << ":\n");
+			UG_LOG(GetFileLines((p+"lua2c_output.c").c_str(), 1, -1, true) << "\n");
+			UG_LOG("--[LUA2C]-----------------------------------------------\n");
+			return false;
+		}
+	
+		bool bTmpFileSuccess=false;
+		m_name = functionName;
+
+		m_pDyn = MakeTmpFile(p+string(functionName), ".dylib", bTmpFileSuccess);
+
+		string c2s=string("gcc -dynamiclib ") + p+"lua2c_output.o -o " + m_pDyn.c_str();
+		UG_DLOG(DID_LUA2C, 2, "linking line: " << c2s << "\n");
+		if(system(c2s.c_str()) != 0)
+		{
+			UG_LOG("Error when linking " << functionName << "\n");
+			UG_LOG("linking line: " << c2s << "\n");
+			UG_LOG("--[LUA2C]-----------------------------------------------\n");
+			UG_LOG("created C function from LUA function " << functionName << ":\n");
+			UG_LOG(GetFileLines((p+"lua2c_output.c").c_str(), 1, -1, true) << "\n");
+			UG_LOG("--[LUA2C]-----------------------------------------------\n");
+			return false;
+		}
+		try{
+		m_libHandle = OpenLibrary(m_pDyn.c_str());
+		}
+		catch(std::string error)
+		{
+			UG_LOG("Error when opening library for function " << functionName << "\n");
+			UG_LOG("Error is " << error << "\n");
+			return false;
+		}
+		m_f = (LUA2C_Function) GetLibraryProcedure(m_libHandle, functionName);
+
+		if(m_f !=NULL) { UG_LOG("OK\n"); }
+		else { UG_LOG("FAILED.\n"); }
+		if(m_f !=NULL)
+			bInitialized = true;
+		return m_f != NULL;
 	}
 	catch(...)
 	{
