@@ -321,6 +321,7 @@ int UGLuaPrint(lua_State *L)
 /// UGLuaPrint. Redirects LUA prints to UG_LOG
 int UGLuaPrintAllProcs(lua_State *L)
 {
+	std::stringstream ss;
 	int nArgs = lua_gettop(L);
 	int i;
 	lua_getglobal(L, "tostring");
@@ -331,10 +332,11 @@ int UGLuaPrintAllProcs(lua_State *L)
 		lua_pushvalue(L, i);
 		lua_call(L, 1, 1);
 		const char *s = lua_tostring(L, -1);
-		if(s) UG_LOG_ALL_PROCS(s);
+		if(s) ss << s;
 		lua_pop(L, 1);
 	}
-	UG_LOG_ALL_PROCS("\n");
+	ss << "\n";
+	UG_LOG_ALL_PROCS(ss.str());
 	lua_pop(L,1);
 	return 0;
 }
