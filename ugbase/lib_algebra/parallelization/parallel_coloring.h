@@ -19,6 +19,7 @@
 
 namespace ug
 {
+extern DebugID DBG_COLORING;
 
 class ParallelColoring
 {
