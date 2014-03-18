@@ -29,12 +29,6 @@
 #include "lib_algebra/algebra_common/vector_util.h"
 
 #include "smart_ptr_vector.h"
-#define UG_ASSERT_EQUAL(a, b, txt) UG_ASSERT(a == b, txt << " [" << UG_TO_STRING(a) << " = " << a << "] == [" << UG_TO_STRING(b) << " = " << b << "] ")
-#define UG_ASSERT_SMALLER_EQUAL(a, b, txt) UG_ASSERT(a <= b, txt << " [" << UG_TO_STRING(a) << " = " << a << "] <= [" << UG_TO_STRING(b) << " = " << b << "] ")
-#define UG_ASSERT_SMALLER(a, b, txt) UG_ASSERT(a < b, txt << " [" << UG_TO_STRING(a) << " = " << a << "] < [" << UG_TO_STRING(b) << " = " << b << "] ")
-#define UG_ASSERT_GREATER_EQUAL(a, b, txt) UG_ASSERT(a >= b, txt << " [" << UG_TO_STRING(a) << " = " << a << "] >= [" << UG_TO_STRING(b) << " = " << b << "] ")
-#define UG_ASSERT_GREATER(a, b, txt) UG_ASSERT(a > b, txt << " [" << UG_TO_STRING(a) << " = " << a << "] > [" << UG_TO_STRING(b) << " = " << b << "] ")
-
 
 // constructors
 namespace ug{
@@ -609,7 +603,7 @@ public:
 			// assume r_lambda is sorted
 
 			size_t size = px[0]->size();
-			UG_ASSERT_EQUAL(pTestVectors.size(), r_ev.num_rows(), "");
+			THROW_IF_NOT_EQUAL(pTestVectors.size(), r_ev.num_rows());
 
 			size_t numCalc = std::min(px.size()+m_additionalEigenvectorsToKeep, r_ev.num_cols()); //px.size()
 			m_currentAdditionalEigenvectors = numCalc-px.size();
