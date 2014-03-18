@@ -11,6 +11,7 @@
 #include <cctype>
 #include "hash_function.h"
 #include "common/ug_config.h"
+#include "stringify.h"
 
 namespace ug{
 
