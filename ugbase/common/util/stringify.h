@@ -11,24 +11,35 @@
 #include "smart_pointer.h"
 #include <sstream>
 
+/**
+ * use this class like this
+ * std::string myTmpString = Stringify() << "My_" << iInteger << "_SuperString" << ".txt";
+ * also in functions
+ * CallStdStringFunction(Stringify() << "My_" << iInteger << "_SuperString" << ".txt");
+ * Note that this can NOT work for const char * functions, since you need an
+ * temporary object which is valid for the whol call of the function.
+ * Then you'd do
+ * std::string myTmpString = Stringify() << "My_" << iInteger << "_SuperString" << ".txt";
+ * CallConstCharFunction(myTmpString.c_str());
+ */
 class Stringify
 {
 public:
-	SmartPtr<std::stringstream> ss;
+	std::stringstream ss;
 	Stringify()
 	{
-		ss = make_sp(new std::stringstream);
+
 	}
 	template<typename T>
 	Stringify &operator << (T t)
 	{
-		*ss << t;
+		ss << t;
 		return *this;
 	}
 
 	std::string str() const
 	{
-		return ss->str();
+		return ss.str();
 	}
 
 	operator std::string() const
