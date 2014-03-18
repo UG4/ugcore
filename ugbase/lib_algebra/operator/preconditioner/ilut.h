@@ -186,7 +186,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 					con.resize(0);
 					size_t u_part=0;
 
-					UG_COND_THROW(!A->num_connections(i) != 0, "row " << i << " has no connections");
+					UG_COND_THROW(A->num_connections(i) == 0, "row " << i << " has no connections");
 
 					// get the row A(i, .) into con
 					double dmax=0;
