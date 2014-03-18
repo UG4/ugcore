@@ -312,8 +312,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 			SmartPtr<vector_type> spDtmp = d.clone();
 			spDtmp->change_storage_type(PST_UNIQUE);
 			bool b = solve(c, *spDtmp);
-		//	Correction is always consistent
-		//	todo: We set here correction to consistent, but it is not. Think about how to use ilu in parallel.
+
 			c.set_storage_type(PST_ADDITIVE);
 			c.change_storage_type(PST_CONSISTENT);
 			return b;
