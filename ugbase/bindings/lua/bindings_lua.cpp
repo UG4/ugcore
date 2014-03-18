@@ -1048,7 +1048,6 @@ static int LuaProxyMethod(lua_State* L)
 void GetBestMatchingMember(const IExportedClass *c, const char *name, std::string &minname, int &mind)
 {
 	const char *funcname;
-	bridge::Registry &reg = ug::bridge::GetUGRegistry();
 	for(size_t i=0; i<c->num_const_methods(); i++)
 	{
 		funcname = c->get_const_method(i).name().c_str();
