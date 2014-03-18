@@ -34,7 +34,7 @@
 
 // own header
 #include "schur.h"
-#include "common/progress.h"
+#include "parallel_progress.h"
 
 namespace ug{
 
@@ -321,7 +321,9 @@ compute_matrix(matrix_type &schur_matrix, double threshold)
 
 	UG_DLOG(SchurDebug, 2, "SchurMatrix Layouts: " << *schur_matrix.layouts());
 
-	PROGRESS_START(prog, n_skeleton, "computing explicit Schur Matrix ( " << n_skeleton << " )");
+	PARALLEL_PROGRESS_START(prog, n_skeleton, "computing explicit Schur Matrix ( " << n_skeleton << " )",
+			mat.layouts()->proc_comm().size());
+
 	// compute columns s_k = S e_k
 	size_t blockSize = GetSize(rhs[0]);
 
@@ -348,17 +350,15 @@ compute_matrix(matrix_type &schur_matrix, double threshold)
 		}
 	}
 
-	PROGRESS_FINISH(prog);
+	PROGRESS_UPDATE(prog, n_skeleton);
+	{
+		SCHUR_PROFILE_BEGIN(SCHUR_Op_compute_matrix_wait);
+		mat.layouts()->proc_comm().barrier();
+	}
+	PARALLEL_PROGRESS_FINISH(prog);
 	IF_DEBUG(SchurDebug, 2)
 	{ schur_matrix.print("Schur"); }
 
-
-	{
-		SCHUR_PROFILE_BEGIN(SCHUR_Op_compute_matrix_wait);
-		PROGRESS_START(prog2, 1, "Computing explicit Schur Matrix: Waiting for other processes..");
-		mat.layouts()->proc_comm().barrier();
-
-	}
 
 
 	if(m_spDebugWriterSkeleton.valid())
