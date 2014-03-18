@@ -52,7 +52,10 @@ UG_API bool GetFilesInDirectory(std::vector<std::string>& filesOut, const char* 
  * \return \c true if the specified directory exists, \c false otherwise
  */
 UG_API bool DirectoryExists(const char* dirname);
- 
+static inline bool DirectoryExists( std::string filename)
+{
+	return DirectoryExists(filename.c_str());
+}
 /**
  * \brief Checks the existence of a given file
  *
@@ -60,6 +63,10 @@ UG_API bool DirectoryExists(const char* dirname);
  * \return \c true if the specified file exists, \c false otherwise
  */
 UG_API bool FileExists( const char *filename );
+static inline bool FileExists( std::string filename)
+{
+	return FileExists(filename.c_str());
+}
 
 /**
  * \brief Returns size of the specified file in bytes
@@ -70,6 +77,10 @@ UG_API bool FileExists( const char *filename );
  *                            be opened for reading.
  */
 UG_API size_t FileSize( const char *filename );
+static inline size_t FileSize( std::string filename)
+{
+	return FileSize(filename.c_str());
+}
 
 /**
  * \brief Check filename extension
