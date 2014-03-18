@@ -37,7 +37,8 @@ public:
 template <typename TAlgebra>
 class IExternalSolver
 		: public IMatrixOperatorInverse<typename TAlgebra::matrix_type,
-			  	  	  	  	  	  	  	    typename TAlgebra::vector_type>
+			  	  	  	  	  	  	  	    typename TAlgebra::vector_type>,
+			  	  	  	  	  	  public VectorDebugWritingObject<typename TAlgebra::vector_type>
 {
 	public:
 		virtual const char *double_name() const = 0;
@@ -60,6 +61,8 @@ class IExternalSolver
 	//	Constructor
 		IExternalSolver()
 		{
+			m_size = 0;
+			m_blockSize = 0;
 		};
 
 	// 	Clone
@@ -91,6 +94,7 @@ class IExternalSolver
 			#endif
 
 			m_size = GetDoubleSparseFromBlockSparse(mat, A);
+			m_blockSize = mat.num_rows()/A.num_rows();
 
 			double_init(mat);
 		}
@@ -183,6 +187,71 @@ class IExternalSolver
 			return true;
 		}
 
+public:
+		using VectorDebugWritingObject<typename TAlgebra::vector_type>::vector_debug_writer;
+
+		int get_dim()
+		{
+			if(vector_debug_writer().valid() == false) return -1;
+			vector_debug_writer()->update_positions();
+			return vector_debug_writer()->get_dim();
+		}
+
+		template<int Tdim>
+		bool get_positions(std::vector<MathVector<Tdim> > &coord)
+		{
+			UG_COND_THROW(vector_debug_writer().valid() == false, "no debug writer set.");
+			int dim = get_dim();
+			UG_COND_THROW(dim != Tdim, "wrong dimension");
+
+			return copy_pos<Tdim, Tdim>(coord, get_positions<Tdim>());
+		}
+
+		bool get_positions3(std::vector<MathVector<3> > &coord)
+		{
+			UG_COND_THROW(vector_debug_writer().valid() == false, "no debug writer set.");
+			int dim = get_dim();
+			switch(dim)
+			{
+			case 1:
+				return copy_pos(coord, get_positions<1>());
+			case 2:
+				return copy_pos(coord, get_positions<2>());
+			case 3:
+				return copy_pos(coord, get_positions<3>());
+			case -1:
+				return false;
+			}
+		}
+
+
+		template<int dim>
+		const std::vector<MathVector<dim> > &get_positions()
+		{
+			if(vector_debug_writer().valid())
+			{
+				vector_debug_writer()->update_positions();
+				return vector_debug_writer()->template get_positions<dim>();
+			}
+			else UG_THROW("no debug_writer!");
+		}
+		template<int dim1, int dim2>
+		bool copy_pos(std::vector<MathVector<dim1> > &dest, const std::vector<MathVector<dim2> > &src)
+		{
+			UG_COND_THROW(m_size == 0 || m_blockSize == 0, "not initialized");
+			UG_COND_THROW(dim1 < dim2, "loss of data");
+
+			dest.resize(m_size);
+			for(size_t i=0; i<src.size(); i++)
+			{
+				for(size_t k=0; k<m_blockSize; k++)
+				{
+					dest[i*m_blockSize + k]=0;
+					for(size_t j=0; j<dim2; j++)
+						dest[i*m_blockSize + k][j] = src[i][j];
+				}
+			}
+		}
 
 
 	protected:
@@ -191,6 +260,7 @@ class IExternalSolver
 
 	CPUAlgebra::vector_type m_c, m_d;
 	size_t m_size;
+	size_t m_blockSize;
 };
 
 } // namespace ug
