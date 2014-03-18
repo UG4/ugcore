@@ -379,6 +379,16 @@ inline std::string OstreamShift(const T &t)
  */
 std::string GetBytesSizeString(size_t s, int length=0);
 
+inline const char *TrueFalseString(bool b)
+{
+	return b ? "TRUE" : "FALSE";
+}
+
+inline const char *OnOffString(bool b)
+{
+	return b ? "ON" : "OFF";
+}
+
 } // end namespace ug
 
 #endif /*__H__COMMON_STRING_UTIL__*/
