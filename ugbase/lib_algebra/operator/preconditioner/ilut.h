@@ -71,7 +71,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 		};
 
 	///	returns if parallel solving is supported
-		virtual bool supports_parallel() const {return false;}
+		virtual bool supports_parallel() const {return true;}
 
 	///	sets threshold for incomplete LU factorisation (added 01122010ih)
 		void set_threshold(number thresh)
@@ -87,7 +87,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 		
 		virtual std::string config_string() const
 		{
-			std::stringstream ss ; ss << "ILUT(threshold = " << m_eps << ")";
+			std::stringstream ss ; ss << "ILUT(threshold = " << m_eps << ", sort = " << (m_bSort?"true":"false") << ")";
 			if(m_eps == 0.0) ss << " = Sparse LU";
 			return ss.str();
 		}
@@ -120,6 +120,24 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 
 	public:
 		virtual bool preprocess_mat(matrix_type &mat)
+		{
+#ifdef 	UG_PARALLEL
+			matrix_type m2;
+			m2 = mat;
+
+			MatAddSlaveRowsToMasterRowOverlap0(m2);
+
+		//	set zero on slaves
+			std::vector<IndexLayout::Element> vIndex;
+			CollectUniqueElements(vIndex,  mat.layouts()->slave());
+			SetDirichletRow(m2, vIndex);
+			return preprocess_mat2(m2);
+#else
+			return preprocess_mat2(mat);
+#endif
+		}
+
+		virtual bool preprocess_mat2(matrix_type &mat)
 		{
 			PROFILE_BEGIN_GROUP(ILUT_preprocess, "ilut algebra");
 			//matrix_type &mat = *pOp;
@@ -168,7 +186,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 					con.resize(0);
 					size_t u_part=0;
 
-					UG_ASSERT(A->num_connections(i) != 0, "row " << i << " has no connections");
+					UG_COND_THROW(!A->num_connections(i) != 0, "row " << i << " has no connections");
 
 					// get the row A(i, .) into con
 					double dmax=0;
@@ -190,7 +208,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 							break;
 						}
 						if(con[i_it].dValue == 0.0) continue;
-						UG_ASSERT(m_U.num_connections(k) != 0 && m_U.begin_row(k).index() == k, "");
+						UG_COND_THROW(!(m_U.num_connections(k) != 0 && m_U.begin_row(k).index() == k), "");
 						block_type &ukk = m_U.begin_row(k).value();
 
 						// add row k to row i by A(i, .) -= U(k,.)  A(i,k) / U(k,k)
@@ -198,7 +216,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 						// safe A(i,k)/U(k,k) in con, (later L(i,k) )
 						con[i_it].dValue = con[i_it].dValue / ukk;
 						block_type d = con[i_it].dValue;
-						UG_ASSERT(BlockMatrixFiniteAndNotTooBig(d, 1e40), "i = " << i << " " << d);
+						UG_COND_THROW(!BlockMatrixFiniteAndNotTooBig(d, 1e40), "i = " << i << " " << d);
 
 						matrix_row_iterator k_it = m_U.begin_row(k); // upper row iterator
 						++k_it; // skip diag
@@ -219,7 +237,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 
 								matrix_connection c(k_it.index(), k_it.value() * d * -1.0);
 
-								UG_ASSERT(BlockMatrixFiniteAndNotTooBig(c.dValue, 1e40), "i = " << i << " " << c.dValue);
+								UG_COND_THROW(!BlockMatrixFiniteAndNotTooBig(c.dValue, 1e40), "i = " << i << " " << c.dValue);
 								if(BlockNorm(c.dValue) > dmax * m_eps)
 								{
 									// insert sorted
@@ -262,7 +280,10 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 				m_U.defragment();
 			}
 
-			if (m_info==true){
+			if (m_info==true)
+			{
+				m_L.print("L");
+				m_U.print("U");
 				UG_LOG("\n	ILUT storage information:\n");
 				UG_LOG("	A is " << A->num_rows() << " x " << A->num_cols() << " matrix.\n");
 				UG_LOG("	A nr of connections: " << A->total_num_connections()  << "\n");
@@ -287,7 +308,19 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 	//	Stepping routine
 		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
 		{
+#ifdef UG_PARALLEL
+			SmartPtr<vector_type> spDtmp = d.clone();
+			spDtmp->change_storage_type(PST_UNIQUE);
+			bool b = solve(c, *spDtmp);
+		//	Correction is always consistent
+		//	todo: We set here correction to consistent, but it is not. Think about how to use ilu in parallel.
+			c.set_storage_type(PST_ADDITIVE);
+			c.change_storage_type(PST_CONSISTENT);
+			return b;
+#else
 			return solve(c, d);
+#endif
+			return true;
 		}
 
 		virtual bool solve(vector_type& c, const vector_type& d)
@@ -305,12 +338,6 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 				if(applyLU(c2, c) == false) return false;
 				SetVectorAsPermutation(c, c2, oldIndex);
 			}
-
-#ifdef 	UG_PARALLEL
-		//	Correction is always consistent
-		//	todo: We set here correction to consistent, but it is not. Think about how to use ilu in parallel.
-			c.set_storage_type(PST_CONSISTENT);
-#endif
 			return true;
 		}
 
@@ -347,7 +374,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 				// nearly zero due to round-off errors. In order to allow ill-
 				// scaled matrices (i.e. small matrix entries row-wise) this
 				// is compared to the rhs, that is small in this case as well.
-				if (BlockNorm(uii) <= m_small * m_eps * BlockNorm(s)){
+				if (false && BlockNorm(uii) <= m_small * m_eps * BlockNorm(s)){
 					UG_LOG("ILUT("<<m_eps<<") Warning: Near-zero diagonal entry "
 							"with norm "<<BlockNorm(uii)<<" in last row of U "
 							" with corresponding non-near-zero rhs with norm "
@@ -379,6 +406,89 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 						InverseMatMult(c[i], 1.0, uii, s);
 
 						if(i==0) break;
+				}
+			}
+			return true;
+		}
+
+		virtual bool multi_apply(std::vector<vector_type> &vc, const std::vector<vector_type> &vd)
+		{
+			PROFILE_BEGIN_GROUP(ILUT_step, "ilut algebra");
+			// apply iterator: c = LU^{-1}*d (damp is not used)
+			// L
+			for(size_t i=0; i < m_L.num_rows(); i++)
+			{
+
+				for(size_t e=0; e<vc.size(); e++)
+				{
+					vector_type &c = vc[e];
+					const vector_type &d = vd[e];
+					// c[i] = d[i] - m_L[i]*c;
+					c[i] = d[i];
+					for(matrix_row_iterator it = m_L.begin_row(i); it != m_L.end_row(i); ++it)
+						MatMultAdd(c[i], 1.0, c[i], -1.0, it.value(), c[it.index()] );
+					// lii = 1.0.
+				}
+			}
+
+			// U
+			//
+			// last row diagonal U entry might be close to zero with corresponding zero rhs
+			// when solving Navier Stokes system, therefore handle separately
+			if(m_U.num_rows() > 0)
+			{
+				for(size_t e=0; e<vc.size(); e++)
+				{
+					vector_type &c = vc[e];
+					size_t i=m_U.num_rows()-1;
+					matrix_row_iterator it = m_U.begin_row(i);
+					UG_ASSERT(it != m_U.end_row(i), i);
+					UG_ASSERT(it.index() == i, i);
+					block_type &uii = it.value();
+					vector_value s = c[i];
+					// check if diag part is significantly smaller than rhs
+					// This may happen when matrix is indefinite with one eigenvalue
+					// zero. In that case, the factorization on the last row is
+					// nearly zero due to round-off errors. In order to allow ill-
+					// scaled matrices (i.e. small matrix entries row-wise) this
+					// is compared to the rhs, that is small in this case as well.
+					if (false && BlockNorm(uii) <= m_small * m_eps * BlockNorm(s)){
+						UG_LOG("ILUT("<<m_eps<<") Warning: Near-zero diagonal entry "
+								"with norm "<<BlockNorm(uii)<<" in last row of U "
+								" with corresponding non-near-zero rhs with norm "
+								<< BlockNorm(s) << ". Setting rhs to zero.\n");
+						// set correction to zero
+						c[i] = 0;
+					} else {
+						// c[i] = s/uii;
+						InverseMatMult(c[i], 1.0, uii, s);
+					}
+				}
+			}
+
+			// handle all other rows
+			if(m_U.num_rows() > 1){
+				for(size_t i=m_U.num_rows()-2; ; i--)
+				{
+					for(size_t e=0; e<vc.size(); e++)
+					{
+						vector_type &c = vc[e];
+						matrix_row_iterator it = m_U.begin_row(i);
+						UG_ASSERT(it != m_U.end_row(i), i);
+						UG_ASSERT(it.index() == i, i);
+						block_type &uii = it.value();
+
+						vector_value s = c[i];
+						++it; // skip diag
+						for(; it != m_U.end_row(i); ++it)
+							// s -= it.value() * c[it.index()];
+							MatMultAdd(s, 1.0, s, -1.0, it.value(), c[it.index()] );
+
+							// c[i] = s/uii;
+							InverseMatMult(c[i], 1.0, uii, s);
+
+							if(i==0) break;
+					}
 				}
 			}
 			return true;
