@@ -41,7 +41,7 @@ class IVectorDebugWriter
 
 	public:
 	///	Constructor
-		IVectorDebugWriter() : m_currentDim(-1) {}
+		IVectorDebugWriter() : m_baseDir("."), m_currentDim(-1) {}
 
 	///	write vector
 		virtual void write_vector(const vector_type& vec, const char* name) = 0;
@@ -86,7 +86,14 @@ class IVectorDebugWriter
 			return m_currentDim;
 		}
 
+		/// set the base directory for output files (.vec and .mat)
+		inline void set_base_dir(const char* const baseDir) {m_baseDir = std::string(baseDir);}
+		std::string get_base_dir() { return m_baseDir; }
+
 	protected:
+		///  base directory for output
+		std::string m_baseDir;
+
 	///	returns the positions and sets the current dim
 		template <int dim>
 		std::vector<MathVector<dim> >& positions()

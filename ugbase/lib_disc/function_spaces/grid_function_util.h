@@ -465,9 +465,6 @@ class GridFunctionDebugWriter: public IDebugWriter<TAlgebra>
 	///	dimension
 	static const int dim = TDomain::dim;
 
-	///  base directory for output
-	std::string m_baseDir;
-
 public:
 	///	type of matrix
 	typedef TAlgebra algebra_type;
@@ -481,11 +478,14 @@ public:
 	///	type of approximation space
 	typedef ApproximationSpace<TDomain> approximation_space_type;
 
+	typedef IDebugWriter<TAlgebra> super;
+	using super::get_base_dir;
+
 public:
 	///	Constructor
 	GridFunctionDebugWriter(
 			SmartPtr<ApproximationSpace<TDomain> > spApproxSpace) :
-			m_baseDir("."), m_spApproxSpace(spApproxSpace), bConnViewerOut(
+			m_spApproxSpace(spApproxSpace), bConnViewerOut(
 					true), bVTKOut(true), m_printConsistent(true) {
 		reset();
 	}
@@ -508,8 +508,6 @@ public:
 		set_grid_level(GridLevel(GridLevel::TOP, GridLevel::SURFACE));
 	}
 
-	/// set the base directory for output files (.vec and .mat)
-	inline void set_base_dir(const char* const baseDir) {m_baseDir = std::string(baseDir);}
 
 	///	sets if writing to vtk
 	void set_vtk_output(bool b) {bVTKOut = b;}
@@ -545,11 +543,11 @@ public:
 
 		update_positions();
 
-		std::string name(m_baseDir); name.append("/").append(filename);
+		std::string name = get_base_dir() + "/" + filename;
 
-		if (!FileExists(m_baseDir.c_str())) {
+		if (!FileExists(get_base_dir())) {
 			UG_WARNING("GridFunctionDebugWriter::write_matrix: directory "
-						<< m_baseDir << "does not exist.");
+						<< get_base_dir() << "does not exist.");
 			UG_WARNING("GridFunctionDebugWriter::write_matrix: using cwd "
 						"as basedir.");
 			name = "./"; name.append(filename);
@@ -621,11 +619,11 @@ protected:
 		PROFILE_FUNC_GROUP("debug");
 		update_positions();
 
-		std::string name(m_baseDir); name.append("/").append(filename);
+		std::string name = get_base_dir() + "/" + filename;
 
-		if (!FileExists(m_baseDir.c_str())) {
+		if (!FileExists(get_base_dir())) {
 			UG_WARNING("GridFunctionDebugWriter::write_vector_to_conn_viewer: directory "
-						<< m_baseDir << "does not exist.");
+						<< get_base_dir() << "does not exist.");
 			UG_WARNING("GridFunctionDebugWriter::write_vector_to_conn_viewer: using cwd "
 						"as basedir.");
 			name = "./"; name.append(filename);
@@ -648,9 +646,9 @@ protected:
 	void write_vector_to_vtk(const vector_type& vec, const char* filename) {
 		PROFILE_FUNC_GROUP("debug");
 		//	check name
-		std::string name(m_baseDir); name.append("/").append(filename);
+		std::string name = get_base_dir() + "/" + filename;
 
-		if (!FileExists(m_baseDir.c_str())) {
+		if (!FileExists(get_base_dir())) {
 			UG_WARNING("GridFunctionDebugWriter::write_vector_to_vtk: directory "
 						<< m_baseDir << "does not exist.");
 			UG_WARNING("GridFunctionDebugWriter::write_vector_to_vtk: using cwd "
