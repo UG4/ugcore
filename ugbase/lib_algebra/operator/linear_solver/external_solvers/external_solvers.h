@@ -84,6 +84,7 @@ class IExternalSolver
 
 		void mat_preprocess(const matrix_type &A)
 		{
+			if( A.num_rows() == 0 || A.num_cols() == 0) { m_size = 0; return; }
 			STATIC_ASSERT(matrix_type::rows_sorted, Matrix_has_to_have_sorted_rows);
 
 			CPUAlgebra::matrix_type mat;
@@ -96,7 +97,8 @@ class IExternalSolver
 			m_size = GetDoubleSparseFromBlockSparse(mat, A);
 			m_blockSize = mat.num_rows()/A.num_rows();
 
-			double_init(mat);
+			if(m_size != 0)
+				double_init(mat);
 		}
 
 		SmartPtr<MatrixOperator<matrix_type, vector_type> > m_spOperator;
@@ -147,6 +149,7 @@ class IExternalSolver
 	//	Stepping routine
 		virtual bool apply(vector_type& c, const vector_type& d)
 		{
+			if(m_size == 0) return true;
 			m_c.resize(m_size);
 			m_d.resize(m_size);
 
@@ -251,6 +254,7 @@ public:
 						dest[i*m_blockSize + k][j] = src[i][j];
 				}
 			}
+			return true;
 		}
 
 
