@@ -98,18 +98,7 @@ class LU
 				UG_LOG("\n	DenseLU needs " << GetBytesSizeString(m_size*m_size*sizeof(double)) << " of memory.\n");
 			}
 
-			const size_t nrOfRows = block_traits<typename matrix_type::value_type>::static_num_rows;
-			m_mat.resize(m_size);
-			for(size_t r=0; r<A.num_rows(); r++)
-				for(typename matrix_type::const_row_iterator it = A.begin_row(r); it != A.end_row(r); ++it)
-				{
-					size_t rr = r*nrOfRows;
-					size_t cc = it.index()*nrOfRows;
-					for(size_t r2=0; r2<nrOfRows; r2++)
-							for(size_t c2=0; c2<nrOfRows; c2++)
-							  m_mat(rr + r2, cc + c2) = BlockRef(it.value(), r2, c2);
-				}
-
+			m_size = GetDenseDoubleFromSparse(m_mat, A);
 
 			if(m_mat.invert() == false)
 			{
