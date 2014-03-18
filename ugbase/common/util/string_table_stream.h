@@ -11,10 +11,10 @@
 #include <vector>
 #include "table.h"
 #include "string_util.h"
+#include "stringify.h"
 
 /// \addtogroup ugbase_common_types
 /// \{
-
 ///	Useful for printing a table like a stream to the terminal or into a file.
 /**
  * Here's an example on how to use the class:
@@ -177,7 +177,7 @@ public:
 	}
 };
 
-std::ostream& operator << (std::ostream& os, const StringTableStream &sts)
+inline std::ostream& operator << (std::ostream& os, const StringTableStream &sts)
 {
 	os << sts.to_string();
 	return os;
