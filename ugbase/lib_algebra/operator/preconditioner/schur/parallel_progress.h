@@ -69,13 +69,10 @@ private:
 	double dNextValueToUpdate;
 	size_t iNextValueToUpdate;
 	int posNow;
-	bool bStarted;
 	double m_total;
 	double m_now;
 	int m_length;
 	std::string m_msg;
-
-	int myDepth;
 };
 
 }
