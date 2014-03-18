@@ -192,6 +192,11 @@ public:
 		return densemat.num_rows();
 	}
 
+	inline void resize(size_t k, size_t k2)
+	{
+		UG_COND_THROW(k!=k2, "only square matrices supported");
+		resize(k);
+	}
 	inline void resize(size_t k)
 	{
 		densemat.resize(k,k);

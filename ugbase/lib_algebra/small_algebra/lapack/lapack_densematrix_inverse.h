@@ -37,6 +37,11 @@ public:
 		densemat.resize(k,k);
 		densemat = 0.0;
 	}
+	inline void resize(size_t k, size_t k2)
+	{
+		UG_COND_THROW(k!=k2, "only square matrices supported");
+		resize(k);
+	}
 
 	double &operator()(int r, int c)
 	{
