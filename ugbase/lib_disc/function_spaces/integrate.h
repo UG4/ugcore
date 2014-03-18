@@ -168,6 +168,10 @@ class StdIntegrand : public IIntegrand<TData, TWorldDim>
  * \param[in]		iterBegin	iterator to last geometric object to integrate
  * \param[in]		integrand	Integrand
  * \param[in]		quadOrder	order of quadrature rule
+ * \param[in]		quadType
+ * \param[in]		paaElemContribs	(optional). If != NULL, the method will store
+ *									the contribution of each element in the
+ *									associated attachment entry.
  * \returns			value of the integral
  */
 template <int WorldDim, int dim, typename TConstIterator>
@@ -175,8 +179,14 @@ number Integrate(TConstIterator iterBegin,
                  TConstIterator iterEnd,
                  typename domain_traits<WorldDim>::position_accessor_type& aaPos,
                  IIntegrand<number, WorldDim>& integrand,
-                 int quadOrder, std::string quadType)
+                 int quadOrder, std::string quadType,
+                 Grid::AttachmentAccessor<
+                 	typename domain_traits<dim>::grid_base_object, ANumber>
+                 	*paaElemContribs = NULL
+                 )
 {
+	PROFILE_FUNC();
+
 //	reset the result
 	number integral = 0;
 
@@ -191,6 +201,17 @@ number Integrate(TConstIterator iterBegin,
 //	get quad type
 	if(quadType.empty()) quadType = "best";
 	QuadType type = GetQuadratureType(quadType);
+
+//	accessing without dereferencing a pointer first is simpler...
+	Grid::AttachmentAccessor<grid_base_object, ANumber> aaElemContribs;
+	if(paaElemContribs)
+		aaElemContribs = *paaElemContribs;
+
+//	We'll reuse containers to avoid reallocations
+	std::vector<MathVector<WorldDim> > vCorner;
+	std::vector<MathVector<WorldDim> > vGlobIP;
+	std::vector<MathMatrix<dim, WorldDim> > vJT;
+	std::vector<number> vValue;
 
 // 	iterate over all elements
 	for(; iter != iterEnd; ++iter)
@@ -214,22 +235,21 @@ number Integrate(TConstIterator iterBegin,
 		const size_t numIP = rQuadRule.size();
 
 	//	get all corner coordinates
-		std::vector<MathVector<WorldDim> > vCorner;
 		CollectCornerCoordinates(vCorner, *pElem, aaPos, true);
 
 	//	update the reference mapping for the corners
 		mapping.update(&vCorner[0]);
 
 	//	compute global integration points
-		std::vector<MathVector<WorldDim> > vGlobIP(numIP);
+		vGlobIP.resize(numIP);
 		mapping.local_to_global(&(vGlobIP[0]), rQuadRule.points(), numIP);
 
 	//	compute transformation matrices
-		std::vector<MathMatrix<dim, WorldDim> > vJT(numIP);
+		vJT.resize(numIP);
 		mapping.jacobian_transposed(&(vJT[0]), rQuadRule.points(), numIP);
 
 	//	compute integrand values at integration points
-		std::vector<number> vValue(numIP);
+		vValue.resize(numIP);
 		try
 		{
 			integrand.values(&(vValue[0]), &(vGlobIP[0]),
@@ -257,6 +277,8 @@ number Integrate(TConstIterator iterBegin,
 
 	//	add to global sum
 		integral += intValElem;
+		if(aaElemContribs.valid())
+			aaElemContribs[pElem] = intValElem;
 
 		}UG_CATCH_THROW("SumValuesOnElems failed.");
 	} // end elem

@@ -17,6 +17,7 @@
 #include "lib_disc/reference_element/reference_element_util.h"
 #include "lib_disc/reference_element/reference_mapping_provider.h"
 #include "lib_disc/spatial_disc/disc_util/fvcr_geom.h"
+#include "integrate.h"
 
 namespace ug{
 
@@ -752,6 +753,100 @@ void MarkForAdaption_AbsoluteGradientJumpIndicator(IRefiner& refiner,
 // 	detach error field
 	pMG->template detach_from<element_type>(aError);
 };
+
+
+template <typename TDomain, typename TAlgebra>
+void MarkForAdaption_L2ErrorExact(IRefiner& refiner,
+                                   SmartPtr<GridFunction<TDomain, TAlgebra> > u,
+                                   SmartPtr<UserData<number, TDomain::dim> > spExactSol,
+                                   const char* cmp,
+                                   number minL2Error,
+                                   number maxL2Error,
+                                   int minLvl, int maxLvl,
+                                   number time, int quadOrder)
+{
+//	types
+	typedef GridFunction<TDomain, TAlgebra> TFunction;
+	typedef typename TFunction::domain_type::grid_type grid_t;
+	typedef typename TFunction::element_type elem_t;
+	const int dim = TFunction::dim;
+
+//	function id
+	const size_t fct = u->fct_id_by_name(cmp);
+	UG_COND_THROW(fct >= u->num_fct(),
+				  "Function space does not contain a function with name " << cmp);
+
+//	get multigrid and position accessor
+	SmartPtr<grid_t> pMG = u->domain()->grid();
+	typename TFunction::domain_type::position_accessor_type&
+		aaPos = u->domain()->position_accessor();
+
+// 	attach error field
+	typedef Attachment<number> ANumber;
+	ANumber aError;
+	pMG->template attach_to<elem_t>(aError);
+	MultiGrid::AttachmentAccessor<elem_t, ANumber> aaError(*pMG, aError);
+
+//	create integrand and perform integration
+	SmartPtr<IIntegrand<number, dim> > spIntegrand
+		= make_sp(new L2ErrorIntegrand<TFunction>(spExactSol, u, fct, time));
+
+	number l2Error = sqrt(
+		Integrate<dim, dim>(u->template begin<elem_t>(), u->template end<elem_t>(),
+				  			aaPos, *spIntegrand, quadOrder, "best", &aaError));
+
+// 	Mark elements for refinement.
+//	distribute maxL2Error and minL2Error equally on all elements.
+//	Please check L2Error to see why the given splitting was used.
+	typedef typename TFunction::template traits<elem_t>::const_iterator	ElemIter;
+	size_t numElems = 0;
+	for(ElemIter iter = u->template begin<elem_t>(); iter != u->template end<elem_t>(); ++iter)
+		++numElems;
+
+	number maxElemError = -1;
+	if(maxL2Error > 0)
+		maxElemError = maxL2Error * maxL2Error / (number)numElems;
+
+	number minElemError = -1;
+	if(minL2Error > 0)
+		minElemError = minL2Error * minL2Error / (number)numElems;
+
+	UG_LOG("l2Error: " << l2Error << std::endl);
+	UG_LOG("minElemError" << minElemError << std::endl);
+	UG_LOG("maxElemError" << maxElemError << std::endl);
+
+	/*MarkElementsAbsolute<elem_t> (aaError, refiner, u->dof_distribution(),
+								  maxL2Error, minL2Error, minLvl, maxLvl);*/
+	MarkElementsAbsolute<elem_t> (aaError, refiner, u->dof_distribution(),
+								  maxElemError, minElemError, minLvl, maxLvl);
+/*	MarkElements<elem_t>(aaError, refiner, u->dof_distribution(),
+						 0.1 * maxL2Error, 0.25, 0.25, maxLvl);*/
+
+// 	detach error field
+	pMG->template detach_from<elem_t>(aError);
+};
+// template <typename TElem>
+// void MarkElements(MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >& aaError,
+//                   IRefiner& refiner,
+//                   ConstSmartPtr<DoFDistribution> dd,
+//                   number TOL,
+//                   number refineFrac, number coarseFrac,
+// 				  int maxLevel)
+template <typename TDomain, typename TAlgebra>
+void MarkForAdaption_L2ErrorExact(IRefiner& refiner,
+                                   SmartPtr<GridFunction<TDomain, TAlgebra> > u,
+                                   const char* exactSolCallbackName,
+                                   const char* cmp,
+                                   number minL2Error,
+                                   number maxL2Error,
+                                   int minLvl, int maxLvl,
+                                   number time, int quadOrder)
+{
+	SmartPtr<UserData<number, TDomain::dim> > spCallback
+	 = make_sp(new LuaUserData<number, TDomain::dim>(exactSolCallbackName));
+	MarkForAdaption_L2ErrorExact(refiner, u, spCallback, cmp, minL2Error,
+								 maxL2Error, minLvl, maxLvl, time, quadOrder);
+}
 
 } // end namespace ug
 

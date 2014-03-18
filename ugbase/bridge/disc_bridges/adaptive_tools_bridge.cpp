@@ -71,9 +71,28 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_function("MarkForAdaption_GradientJumpIndicator",
 						 &MarkForAdaption_GradientJumpIndicator<TDomain, TAlgebra>, grp);
 						 
-	 //	MarkForAdaption_AbsoluteGradientJumpIndicator
+	//	MarkForAdaption_AbsoluteGradientJumpIndicator
 		reg.add_function("MarkForAdaption_AbsoluteGradientJumpIndicator",
 						 &MarkForAdaption_AbsoluteGradientJumpIndicator<TDomain, TAlgebra>, grp);
+
+	//	MarkForAdaption_L2ErrorExact
+		reg.add_function("MarkForAdaption_L2ErrorExact",
+						 static_cast<void (*)(IRefiner&,
+												SmartPtr<GridFunction<TDomain, TAlgebra> >,
+												SmartPtr<UserData<number, TDomain::dim> >,
+												const char*, number, number,
+												int, int, number, int)>
+						 	(&MarkForAdaption_L2ErrorExact<TDomain, TAlgebra>),
+						 grp);
+
+		reg.add_function("MarkForAdaption_L2ErrorExact",
+						 static_cast<void (*)(IRefiner&,
+												SmartPtr<GridFunction<TDomain, TAlgebra> >,
+												const char*,
+												const char*, number, number,
+												int, int, number, int)>
+						 	(&MarkForAdaption_L2ErrorExact),
+					 	 grp);
 	}
 
 //	Prolongate
