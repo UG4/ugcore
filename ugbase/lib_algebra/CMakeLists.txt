@@ -21,6 +21,7 @@ set(src_Algebra)
 ##########################
 
 set(src_Algebra	 ${src_Algebra}
+    debug_ids.cpp
 	algebra_type.cpp
 	common/connection_viewer_output.cpp
 	common/connection_viewer_input.cpp

@@ -25,6 +25,8 @@
 namespace ug
 {
 
+extern DebugID DBG_MATRIX_OVERLAP;
+
 // neuer algorithmus:
 // overlap 0
 // 1. slave-knoten verschicken ihre Zeile an den Master.
@@ -100,8 +102,8 @@ private:
 	{
 		PROFILE_FUNC_GROUP("algebra");
 
-		UG_DLOG(LIB_ALG_MATRIX, 4, "\n\n*** GenerateOverlapClass::communicate ***\n\n")
-		IF_DEBUG(LIB_ALG_MATRIX, 4)
+		UG_DLOG(DBG_MATRIX_OVERLAP, 4, "\n\n*** GenerateOverlapClass::communicate ***\n\n")
+		IF_DEBUG(DBG_MATRIX_OVERLAP, 4)
 		{
 			UG_LOG("\n\nnew sending Layout:\n")
 			PrintLayout(sendingLayout);
@@ -128,7 +130,7 @@ private:
 			AddLayout(m_totalMasterLayout, newMastersLayout);
 			AddLayout(m_totalSlaveLayout, newSlavesLayout);
 
-			IF_DEBUG(LIB_ALG_MATRIX, 4)
+			IF_DEBUG(DBG_MATRIX_OVERLAP, 4)
 			{
 				UG_LOG("\n\nnew Master Layout:\n")
 				PrintLayout(newMastersLayout);
@@ -182,11 +184,11 @@ public:
 	bool calculate()
 	{
 		PROFILE_FUNC_GROUP("algebra");
-		IF_DEBUG(LIB_ALG_MATRIX, 4)
+		IF_DEBUG(DBG_MATRIX_OVERLAP, 4)
 		{
-			UG_DLOG(LIB_ALG_MATRIX, 4, "GENERATE OVERLAP START\n");
+			UG_DLOG(DBG_MATRIX_OVERLAP, 4, "GENERATE OVERLAP START\n");
 
-			UG_DLOG(LIB_ALG_MATRIX, 4, "\n\nmatrix is " << m_mat.num_rows() << " x " << m_mat.num_cols() << "\n");
+			UG_DLOG(DBG_MATRIX_OVERLAP, 4, "\n\nmatrix is " << m_mat.num_rows() << " x " << m_mat.num_cols() << "\n");
 			m_mat.print();
 
 			UG_LOG("\nmaster layout:\n");
@@ -201,7 +203,7 @@ public:
 		const IndexLayout &masterLayout = m_mat.layouts()->master();
 		const IndexLayout &slaveLayout = m_mat.layouts()->slave();
 
-		IF_DEBUG(LIB_ALG_MATRIX, 1)
+		IF_DEBUG(DBG_MATRIX_OVERLAP, 1)
 		{
 			PROFILE_BEGIN(calculate_TestLayout);
 			UG_ASSERT(TestLayout(m_pc, m_com, masterLayout, slaveLayout), "layout corrupted");
@@ -209,14 +211,14 @@ public:
 
 
 		// generate global algebra indices
-		UG_DLOG(LIB_ALG_MATRIX, 4, "generate " << m_mat.num_rows() << " m_globalIDs\n");
+		UG_DLOG(DBG_MATRIX_OVERLAP, 4, "generate " << m_mat.num_rows() << " m_globalIDs\n");
 		//GenerateGlobalAlgebraIDs(m_globalIDs, m_mat.num_rows(), masterLayout, slaveLayout);
 
 
-		IF_DEBUG(LIB_ALG_MATRIX, 4)
+		IF_DEBUG(DBG_MATRIX_OVERLAP, 4)
 		{
 			for(size_t i=0; i<PN.local_size(); i++)
-				UG_DLOG(LIB_ALG_MATRIX, 4, "  " << i << ": global id " << PN.local_to_global(i) << "\n")
+				UG_DLOG(DBG_MATRIX_OVERLAP, 4, "  " << i << ": global id " << PN.local_to_global(i) << "\n")
 		}
 
 
@@ -260,15 +262,15 @@ public:
 			PROFILE_BEGIN(overlap_inner_loop);
 			m_overlapSize.push_back(m_newMat.num_rows());
 
-			IF_DEBUG(LIB_ALG_MATRIX, 4)
+			IF_DEBUG(DBG_MATRIX_OVERLAP, 4)
 			{
-				UG_DLOG(LIB_ALG_MATRIX, 4, "\n---------------------\ncurrentOL: " << current_overlap << "\n");
-				UG_DLOG(LIB_ALG_MATRIX, 4, "---------------------\n\n");
+				UG_DLOG(DBG_MATRIX_OVERLAP, 4, "\n---------------------\ncurrentOL: " << current_overlap << "\n");
+				UG_DLOG(DBG_MATRIX_OVERLAP, 4, "---------------------\n\n");
 			}
 
 			if(current_overlap <= m_overlapDepthMaster)
 			{
-				UG_DLOG(LIB_ALG_MATRIX, 4, "\n--FORWARDS--\n\n");
+				UG_DLOG(DBG_MATRIX_OVERLAP, 4, "\n--FORWARDS--\n\n");
 				const IndexLayout *send_layout;
 				if(current_overlap == 0)
 					send_layout = &slaveLayout;
@@ -300,7 +302,7 @@ public:
 			// backwards
 			if(current_overlap <= m_overlapDepthSlave)
 			{
-				UG_DLOG(LIB_ALG_MATRIX, 4, "\n--BACKWARDS--\n\n");
+				UG_DLOG(DBG_MATRIX_OVERLAP, 4, "\n--BACKWARDS--\n\n");
 				const IndexLayout *backward_send_layout;
 				if(current_overlap == 0)
 					backward_send_layout = &masterLayout;
@@ -344,17 +346,17 @@ public:
 		m_newMat.set_layouts(spLayouts);
 		m_newMat.set_storage_type(m_mat.get_storage_mask());
 
-		IF_DEBUG(LIB_ALG_MATRIX, 4)
+		IF_DEBUG(DBG_MATRIX_OVERLAP, 4)
 		{
-			UG_DLOG(LIB_ALG_MATRIX, 4, "new matrix\n\n");
+			UG_DLOG(DBG_MATRIX_OVERLAP, 4, "new matrix\n\n");
 			m_newMat.print();
 
-			UG_DLOG(LIB_ALG_MATRIX, 4, "master OL Layout:\n");
+			UG_DLOG(DBG_MATRIX_OVERLAP, 4, "master OL Layout:\n");
 			PrintLayout(m_totalMasterLayout);
-			UG_DLOG(LIB_ALG_MATRIX, 4, "slave OL Layout:\n");
+			UG_DLOG(DBG_MATRIX_OVERLAP, 4, "slave OL Layout:\n");
 			PrintLayout(m_totalSlaveLayout);
 
-			UG_DLOG(LIB_ALG_MATRIX, 4, "OL Layout:\n");
+			UG_DLOG(DBG_MATRIX_OVERLAP, 4, "OL Layout:\n");
 			PrintLayout(m_pc, m_com, m_totalMasterLayout, m_totalSlaveLayout);
 		}
 
