@@ -46,8 +46,41 @@ namespace Preconditioner{
 struct Functionality
 {
 
+template<typename TAlgebra, typename TGSType>
+static void RegisterBlockGaussSeidel(Registry& reg, string grp, string name)
+{
+	string suffix = GetAlgebraSuffix<TAlgebra>();
+	string tag = GetAlgebraTag<TAlgebra>();
 
+	typedef TGSType T;
+	typedef IPreconditioner<TAlgebra> TBase;
+	string namesuffix = name+suffix;
+	reg.add_class_<T,TBase>(namesuffix, grp, name)
+		.add_constructor()
+		. ADD_CONSTRUCTOR( (int) )("depth")
+		.add_method("set_depth", &T::set_depth)
+		.set_construct_as_smart_pointer(true);
 
+	reg.add_class_to_group(namesuffix, name, tag);
+}
+
+template<typename TAlgebra, bool forward, bool backward>
+static void RegisterBlockGaussSeidelIterative(Registry& reg, string grp, string name)
+{
+	string suffix = GetAlgebraSuffix<TAlgebra>();
+	string tag = GetAlgebraTag<TAlgebra>();
+
+	typedef BlockGaussSeidelIterative<TAlgebra, forward, backward> T;
+	typedef IPreconditioner<TAlgebra> TBase;
+	string namesuffix = name+suffix;
+	reg.add_class_<T,TBase>(namesuffix, grp, name)
+		.add_constructor()
+		. ADD_CONSTRUCTOR( (int, int) )("depth#steps")
+		.add_method("set_depth", &T::set_depth)
+		.add_method("set_iterative_steps", &T::set_iterative_steps)
+		.set_construct_as_smart_pointer(true);
+	reg.add_class_to_group(namesuffix, name, tag);
+}
 
 /**
  * Function called for the registration of Algebra dependent parts.
@@ -126,32 +159,15 @@ static void Algebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "BackwardGaussSeidel", tag);
 	}
 
-	//	BlockGaussSeidel2
-	{
-		typedef BlockGaussSeidel2<TAlgebra> T;
-		typedef IPreconditioner<TAlgebra> TBase;
-		string name = string("BlockGaussSeidel2").append(suffix);
-		reg.add_class_<T,TBase>(name, grp, "Block Gauss Preconditioner2")
-			.add_constructor()
-			. ADD_CONSTRUCTOR( (int) )("depth")
-			.add_method("set_depth", &T::set_depth)
-			.set_construct_as_smart_pointer(true);
-
-		reg.add_class_to_group(name, "BlockGaussSeidel2", tag);
-	}
-
 	//	BlockGaussSeidel
 	{
-		typedef BlockGaussSeidel<TAlgebra> T;
-		typedef IPreconditioner<TAlgebra> TBase;
-		string name = string("BlockGaussSeidel").append(suffix);
-		reg.add_class_<T,TBase>(name, grp, "Block Gauss Preconditioner")
-			.add_constructor()
-			. ADD_CONSTRUCTOR( (int) )("depth")
-			.add_method("set_depth", &T::set_depth)
-			.set_construct_as_smart_pointer(true);
+		RegisterBlockGaussSeidel<TAlgebra, BlockGaussSeidel<TAlgebra, true, false> >(reg, grp, "BlockGaussSeidel");
+		RegisterBlockGaussSeidel<TAlgebra, BlockGaussSeidel<TAlgebra, false, true> >(reg, grp, "BackwardBlockGaussSeidel");
+		RegisterBlockGaussSeidel<TAlgebra, BlockGaussSeidel<TAlgebra, true, true> >(reg, grp, "SymmetricBlockGaussSeidel");
 
-		reg.add_class_to_group(name, "BlockGaussSeidel", tag);
+		RegisterBlockGaussSeidelIterative<TAlgebra, true, false>(reg, grp, "BlockGaussSeidelIterative");
+		RegisterBlockGaussSeidelIterative<TAlgebra, false, true>(reg, grp, "BackwardBlockGaussSeidelIterative");
+		RegisterBlockGaussSeidelIterative<TAlgebra, true, true>(reg, grp, "SymmetricBlockGaussSeidelIterative");
 	}
 
 //	ILU

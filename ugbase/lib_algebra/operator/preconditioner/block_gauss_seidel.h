@@ -17,6 +17,8 @@
 #endif
 
 
+#include "../plugins/experimental/amg/src/rsamg/strong_connections.h"
+
 #include "lib_algebra/algebra_common/sparsematrix_util.h"
 #include "lib_algebra/algebra_common/local_helper.h"
 #include "lib_algebra/small_algebra/small_matrix/print.h"
@@ -24,7 +26,6 @@
 #include "common/debug_print.h"
 #include "common/progress.h"
 #include "lib_algebra/small_algebra/additional_math.h"
-
 
 namespace ug{
 
@@ -43,7 +44,7 @@ namespace ug{
 template<typename TSparseMatrixType, typename TVectorType>
 void GetBlockGSCorrection(const TSparseMatrixType &A, TVectorType &x, TVectorType &b,
 		DenseMatrix<VariableArray2<double> > &AlocInv,
-		std::vector<size_t> &indices, DenseVector<VariableArray1<double> > &tmp)
+		std::vector<size_t> &indices, DenseVector<VariableArray1<double> > &tmp, DenseVector<VariableArray1<double> > &tmp2)
 {
 	// assume tmp is big enough
 	size_t k;
@@ -53,6 +54,7 @@ void GetBlockGSCorrection(const TSparseMatrixType &A, TVectorType &x, TVectorTyp
 
 	k = 0;
 	tmp.resize(indices.size()*GetSize(b[0]));
+	tmp2.resize(indices.size()*GetSize(b[0]));
 	for(size_t i=0; i<indices.size(); i++)
 	{
 		int j = indices[i];
@@ -63,14 +65,14 @@ void GetBlockGSCorrection(const TSparseMatrixType &A, TVectorType &x, TVectorTyp
 		for(size_t u=0; u<GetSize(s); u++)
 			tmp[k++] = BlockRef(s, u);
 	}
-	tmp = AlocInv*tmp;
+	MatMult(tmp2, 1.0, AlocInv, tmp);
 
 	k=0;
 	for(size_t i=0; i<indices.size(); i++)
 	{
 		smallvec_type &xi = x[indices[i]];
 		for(size_t j=0; j<GetSize(xi); j++)
-			BlockRef(xi, j) += tmp[k++];
+			BlockRef(xi, j) += tmp2[k++];
 	}
 }
 template<typename TSparseMatrixType, typename TVectorType>
@@ -79,7 +81,8 @@ void GetBlockGSCorrection(const TSparseMatrixType &A, TVectorType &x, TVectorTyp
 		std::vector<size_t> &indices)
 {
 	DenseVector<VariableArray1<double> > tmp;
-	GetBlockGSCorrection(A, x, b, AlocInv, indices);
+	DenseVector<VariableArray1<double> > tmp2;
+	GetBlockGSCorrection(A, x, b, AlocInv, indices, tmp, tmp2);
 }
 
 /**
@@ -184,8 +187,6 @@ void GetSliceSparse(const TSparseMatrixType &A, const std::vector<size_t> &indic
 	R.defragment();
 }
 
-
-
 /**
  * BlockGaussSeidel
  * use the constructor or set_depth to set the depth
@@ -194,7 +195,7 @@ void GetSliceSparse(const TSparseMatrixType &A, const std::vector<size_t> &indic
  * depth = 2 -> Block i and neighbors of i and their neighbors
  * depth = 3 ...
  */
-template <typename TAlgebra>
+template <typename TAlgebra, bool backward, bool forward>
 class BlockGaussSeidel : public IPreconditioner<TAlgebra>
 {
 	public:
@@ -212,6 +213,8 @@ class BlockGaussSeidel : public IPreconditioner<TAlgebra>
 
 	///	Base type
 		typedef IPreconditioner<TAlgebra> base_type;
+
+		typedef BlockGaussSeidel<algebra_type, forward, backward> this_type;
 
 	protected:
 		typedef typename matrix_type::value_type block_type;
@@ -233,8 +236,8 @@ class BlockGaussSeidel : public IPreconditioner<TAlgebra>
 	// 	Clone
 		virtual SmartPtr<ILinearIterator<vector_type> > clone()
 		{
-			SmartPtr<BlockGaussSeidel<algebra_type> > newInst(new BlockGaussSeidel<algebra_type>());
-			newInst->set_debug(debug_writer());
+			SmartPtr<this_type> newInst(new this_type());
+//			newInst->set_debug(debug_writer());
 			newInst->set_damp(this->damping());
 			newInst->set_depth(m_depth);
 			return newInst;
@@ -307,6 +310,7 @@ class BlockGaussSeidel : public IPreconditioner<TAlgebra>
 		//	Stepping routine
 		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
 		{
+			PROFILE_BEGIN(BlockGaussSeidel_step);
 			matrix_type &A = *pOp;
 			vector_type &x = c;
 			x.set(0.0);
@@ -314,16 +318,25 @@ class BlockGaussSeidel : public IPreconditioner<TAlgebra>
 			b = d;
 
 			DenseVector<VariableArray1<double> > tmp;
-			PROGRESS_START(prog, x.size(), "BlockGaussSeidel: step");
-			for(size_t i=0; i<x.size(); i++)
-			{
-				PROGRESS_UPDATE(prog, i);
-				// c = D^{-1}(b-Ax)
-				// x = x + c
-				GetBlockGSCorrection(A, x, b, AlocInv[i], indices[i], tmp);
-//				do_correction_implicit(A, x, b, indices[i]);
-			}
-			PROGRESS_FINISH(prog);
+			DenseVector<VariableArray1<double> > tmp2;
+
+			if(forward)
+				for(size_t i=0; i<x.size(); i++)
+				{
+					// c = D^{-1}(b-Ax)
+					// x = x + c
+					GetBlockGSCorrection(A, x, b, AlocInv[i], indices[i], tmp, tmp2);
+	//				do_correction_implicit(A, x, b, indices[i]);
+				}
+			if(backward)
+				for(size_t i=x.size()-1; ; i--)
+				{
+					// c = D^{-1}(b-Ax)
+					// x = x + c
+					GetBlockGSCorrection(A, x, b, AlocInv[i], indices[i], tmp, tmp2);
+					if(i==0) break;
+	//				do_correction_implicit(A, x, b, indices[i]);
+				}
 
 		//	Correction is always consistent
 			#ifdef 	UG_PARALLEL
@@ -341,14 +354,195 @@ class BlockGaussSeidel : public IPreconditioner<TAlgebra>
 };
 
 
+template <typename TAlgebra, bool backward, bool forward>
+class BlockGaussSeidelIterative : public IPreconditioner<TAlgebra>
+{
+	public:
+	//	Algebra type
+		typedef TAlgebra algebra_type;
+
+	//	Vector type
+		typedef typename TAlgebra::vector_type vector_type;
+
+	//	Matrix type
+		typedef typename TAlgebra::matrix_type matrix_type;
+
+	///	Matrix Operator type
+		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
+
+	///	Base type
+		typedef IPreconditioner<TAlgebra> base_type;
+
+		typedef BlockGaussSeidelIterative<algebra_type, forward, backward> this_type;
+
+	protected:
+		typedef typename matrix_type::value_type block_type;
+
+		using base_type::set_debug;
+		using base_type::debug_writer;
+		using base_type::write_debug;
+
+	public:
+	//	Constructor
+		BlockGaussSeidelIterative() {
+			m_depth = 1;
+			m_nu = 2;
+		};
+
+		BlockGaussSeidelIterative(int depth, int nu) {
+			m_depth = depth;
+			m_nu = nu;
+		};
+
+	// 	Clone
+		virtual SmartPtr<ILinearIterator<vector_type> > clone()
+		{
+			SmartPtr<this_type> newInst(new this_type());
+//			newInst->set_debug(debug_writer());
+			newInst->set_damp(this->damping());
+			newInst->set_depth(m_depth);
+			newInst->set_iterative_steps(m_nu);
+			return newInst;
+		}
+
+		typedef typename matrix_type::value_type smallmat_type;
+		typedef typename vector_type::value_type smallvec_type;
+		typedef typename matrix_type::const_row_iterator const_row_iterator;
+
+		std::vector< DenseMatrix<VariableArray2<double> > > AlocInv;
+		size_t m_depth;
+		std::vector<std::vector<size_t> > indices;
+
+
+		void set_depth(size_t d)
+		{
+			m_depth = d;
+		}
+
+
+	protected:
+	//	Name of preconditioner
+		virtual const char* name() const
+		{
+			if(backward&&forward) return "SymmetricBlockGaussSeidelIterative";
+			else if(backward) return "BackwardBlockGaussSeidelIterative";
+			return "BlockGaussSeidelIterative";
+		}
+
+
+		//	Preprocess routine
+		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
+		{
+			matrix_type &A = *pOp;
+
+			size_t N = A.num_rows();
+			indices.resize(N);
+
+			size_t maxSize = 0;
+			for(size_t i=0; i<N; i++)
+			{
+				std::vector<bool> bVisited(N, false);
+				indices[i].clear();
+				GetNeighborhood(A, i, m_depth, indices[i], bVisited);
+				maxSize = std::max(indices[i].size(), maxSize);
+			}
+			UG_LOG("Max Size = " << maxSize << "\n");
+			return true;
+		}
+
+		typedef typename matrix_type::const_row_iterator matrix_const_row_iterator;
+		typedef typename matrix_type::row_iterator matrix_row_iterator;
+
+	//	Postprocess routine
+		virtual bool postprocess() {return true;}
+		virtual bool supports_parallel() const { return true; }
+
+
+		void correct(size_t i, const matrix_type &A, vector_type& x, const vector_type& b)
+		{
+
+			smallvec_type s = b[i];
+			// calc b-Ax
+			for(const_row_iterator it = A.begin_row(i); it != A.end_row(i); ++it)
+				s -= it.value() * x[it.index()];
+			smallvec_type c;
+			InverseMatMult(c, 1.0, A(i,i), s);
+			x[i] += c;
+
+		}
+
+		void correct_forward(size_t i, matrix_type &A, vector_type& x, const vector_type& b)
+		{
+			for(size_t k=0; k<m_nu; k++)
+				for(size_t j=0; j<indices[i].size(); j++)
+					correct(indices[i][j], A, x, b);
+		}
+
+		void correct_backward(size_t i, matrix_type &A, vector_type& x, const vector_type& b)
+		{
+			for(size_t k=0; k<m_nu; k++)
+				for(int j=(int)(indices[i].size())-1; j>=0 ; j--)
+					correct(indices[i][j], A, x, b);
+		}
+
+		size_t m_nu;
+
+		//	Stepping routine
+		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
+		{
+			PROFILE_BEGIN(BlockGaussSeidelIterative_step);
+			matrix_type &A = *pOp;
+			vector_type &x = c;
+			x.set(0.0);
+			vector_type b;
+			b = d;
+
+			if(forward)
+				for(size_t i=0; i<x.size(); i++)
+				{
+					correct_forward(i, A, x, b);
+				}
+			if(backward)
+				for(size_t i=x.size()-1; ; i--)
+				{
+					correct_backward(i, A, x, b);
+					if(i==0) break;
+				}
+
+		//	Correction is always consistent
+			#ifdef 	UG_PARALLEL
+			c.set_storage_type(PST_CONSISTENT);
+			#endif
+			return true;
+		}
+
+	public:
+			void set_iterative_steps(size_t nu)
+			{
+				m_nu=nu;
+			}
+
+
+		virtual std::string config_string() const
+		{
+			std::stringstream ss ;
+			if(backward&&forward) ss << "Symmetric";
+			else if(backward) ss << "Backward";
+			ss << "BlockGaussSeidelIterative(depth = " << m_depth << ")";
+			return ss.str();
+		}
+
+};
+
+
 /**
- * BlockGaussSeidel2
+ * SparseBlockGaussSeidel
  * experimental version
  * a) can use bigger stencils since it uses SparseLU for solving blocks
  * b) tries to use some overlapping blocks (BlockGaussSeidel always uses N blocks)
  */
 template <typename TAlgebra>
-class BlockGaussSeidel2 : public IPreconditioner<TAlgebra>
+class SparseBlockGaussSeidel : public IPreconditioner<TAlgebra>
 {
 	public:
 	//	Algebra type
@@ -375,18 +569,18 @@ class BlockGaussSeidel2 : public IPreconditioner<TAlgebra>
 
 	public:
 	//	Constructor
-		BlockGaussSeidel2() {
+		SparseBlockGaussSeidel() {
 			m_depth = 1;
 		};
 
-		BlockGaussSeidel2(int depth) {
+		SparseBlockGaussSeidel(int depth) {
 			m_depth = depth;
 		};
 
 	// 	Clone
 		virtual SmartPtr<ILinearIterator<vector_type> > clone()
 		{
-			SmartPtr<BlockGaussSeidel2<algebra_type> > newInst(new BlockGaussSeidel2<algebra_type>());
+			SmartPtr<SparseBlockGaussSeidel<algebra_type> > newInst(new SparseBlockGaussSeidel<algebra_type>());
 			newInst->set_debug(debug_writer());
 			newInst->set_damp(this->damping());
 			newInst->set_depth(m_depth);
@@ -412,7 +606,7 @@ class BlockGaussSeidel2 : public IPreconditioner<TAlgebra>
 
 	protected:
 	//	Name of preconditioner
-		virtual const char* name() const {return "BlockGaussSeidel2";}
+		virtual const char* name() const {return "SparseBlockGaussSeidel";}
 
 
 		template<typename TMatrix>
@@ -492,7 +686,7 @@ class BlockGaussSeidel2 : public IPreconditioner<TAlgebra>
 			indices.resize(N);
 
 			size_t maxSize = 0;
-			PROGRESS_START(prog, N, "BlockGaussSeidel2: compute blocks");
+			PROGRESS_START(prog, N, "SparseBlockGaussSeidel: compute blocks");
 
 
 			std::vector<bool> bVisited(N, false);
@@ -512,12 +706,12 @@ class BlockGaussSeidel2 : public IPreconditioner<TAlgebra>
 				//for(size_t j=0; j<levels[m_depth-1]; j++)
 					//bVisited2[indices[j]]=true;
 
-				Aloc[i] = make_sp(new CPUAlgebra::matrix_type);
+				Aloc[i] = new CPUAlgebra::matrix_type;
 
 				GetSliceSparse(A, indices[i], *Aloc[i]);
 
 
-				m_ilut[i] = make_sp(new ILUTPreconditioner<CPUAlgebra> (0.0));
+				m_ilut[i] = new ILUTPreconditioner<CPUAlgebra> (0.0);
 				m_ilut[i]->preprocess_mat(*Aloc[i]);
 
 
@@ -549,7 +743,7 @@ class BlockGaussSeidel2 : public IPreconditioner<TAlgebra>
 			DenseMatrix<VariableArray2<double> > Adense;
 			DenseMatrix<VariableArray2<smallmat_type> > Atmp;
 			CPUAlgebra::vector_type tmp, tmp2;
-			PROGRESS_START(prog, x.size(), "BlockGaussSeidel2: step");
+			PROGRESS_START(prog, x.size(), "SparseBlockGaussSeidel: step");
 			for(size_t i=0; i<x.size(); i++)
 			{
 				PROGRESS_UPDATE(prog, i);
@@ -557,6 +751,16 @@ class BlockGaussSeidel2 : public IPreconditioner<TAlgebra>
 				// x = x + c
 				if(indices[i].size() != 0)
 					GetBlockGSCorrectionILUT(A, x, b, m_ilut[i], indices[i], tmp, tmp2);
+
+			}
+			for(size_t i=x.size()-1; ; i--)
+			{
+				PROGRESS_UPDATE(prog, i);
+				// c = D^{-1}(b-Ax)
+				// x = x + c
+				if(indices[i].size() != 0)
+					GetBlockGSCorrectionILUT(A, x, b, m_ilut[i], indices[i], tmp, tmp2);
+				if(i==0) break;
 
 			}
 			PROGRESS_FINISH(prog);
