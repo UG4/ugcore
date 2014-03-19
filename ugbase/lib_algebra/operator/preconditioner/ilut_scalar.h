@@ -233,27 +233,6 @@ class ILUTScalarPreconditioner : public IPreconditioner<TAlgebra>
 			return ss.str();
 		}
 
-		std::vector<CPUAlgebra::vector_type> m_vc, m_vd;
-		virtual bool multi_apply(std::vector<vector_type> &c, const std::vector<vector_type> &d)
-		{
-			m_vc.resize(c.size());
-			m_vd.resize(c.size());
-
-			for(size_t i=0; i<c.size(); i++)
-			{
-				get_vector(m_vd[i], d[i]);
-				m_vc[i].set(0.0);
-			}
-			ilut->multi_apply(m_vc, m_vd);
-
-			for(size_t i=0; i<c.size(); i++)
-			{
-				set_vector(m_vc[i], c[i]);
-				c[i].set_storage_type(PST_CONSISTENT);
-			}
-			return true;
-		}
-
 	protected:
 	//	Postprocess routine
 		virtual bool postprocess() {return true;}
