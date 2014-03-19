@@ -7,12 +7,8 @@
 
 function UJS_Submit
 {
-	echo "Cluster: cekon. Scheduler: SLURM."
-	if [ $nppn -ne 1 ]; then
-		echo "cekon does not support nppn > 1. Aborting."
-		exit
-	fi
-
+	echo "Cluster: cesari. Scheduler: SLURM."
+	
 	SlurmMail=""
 	if [ $mail == true ]; then 
 		if [ -z "$UGSUBMIT_EMAIL" ]; then
@@ -80,7 +76,7 @@ function UJS_GetOptions
 
 function UJS_Info
 {
-	echo "UGSUBMIT Info for CEKON:"
+	echo "UGSUBMIT Info for cesari:"
 	echo "Max Cores Total: 520 (26 Nodes with 10 Dualcores Per Node)"
 	echo "Using SLURM on cesari"
 	echo "squeue -u $USER"
