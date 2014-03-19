@@ -796,9 +796,16 @@ void MarkForAdaption_L2ErrorExact_IMPL(IRefiner& refiner,
 	SmartPtr<IIntegrand<number, dim> > spIntegrand
 		= make_sp(new L2ErrorIntegrand<TFunction>(spExactSol, u, fct, time));
 
-	number l2Error = sqrt(
+	number l2Error =
 		Integrate<dim, dim>(u->template begin<elem_t>(), u->template end<elem_t>(),
-				  			aaPos, *spIntegrand, quadOrder, "best", &aaError));
+				  			aaPos, *spIntegrand, quadOrder, "best", &aaError);
+
+	#ifdef UG_PARALLEL
+		pcl::ProcessCommunicator com;
+		l2Error = com.allreduce(l2Error, PCL_RO_SUM);
+	#endif
+
+	l2Error = sqrt(l2Error);
 
 	UG_LOG("maxError " << maxL2Error << ", l2Error " << l2Error << std::endl);
 
@@ -812,6 +819,12 @@ void MarkForAdaption_L2ErrorExact_IMPL(IRefiner& refiner,
 				maxElemError = max(maxElemError, aaError[*iter]);
 			}
 		}
+
+		#ifdef UG_PARALLEL
+			pcl::ProcessCommunicator com;
+			maxElemError = com.allreduce(maxElemError, PCL_RO_MAX);
+		#endif
+
 	//	note that aaError contains error-squares
 		maxElemError = maxElemError * sq(refFrac);
 
