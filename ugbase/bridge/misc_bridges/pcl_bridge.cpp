@@ -85,8 +85,8 @@ void RegisterBridge_PCL(Registry& reg, string parentGroup)
 	reg.add_function("AllProcsTrue", &PclAllProcsTrue, grp,
 					 "boolean", "boolean", "Returns true if all processes call the method with true.");
 
-	reg.add_function("ParallelMin", &ParallelMin<double>, grp, "tmax", "t", "returns the maximum of t over all processes. note: you have to assure that all processes call this function.");
-	reg.add_function("ParallelMax", &ParallelMax<double>, grp, "tmin", "t", "returns the minimum of t over all processes. note: you have to assure that all processes call this function.");
+	reg.add_function("ParallelMin", &ParallelMin<double>, grp, "tmax", "t", "returns the minimum of t over all processes. note: you have to assure that all processes call this function.");
+	reg.add_function("ParallelMax", &ParallelMax<double>, grp, "tmin", "t", "returns the maximum of t over all processes. note: you have to assure that all processes call this function.");
 	reg.add_function("ParallelSum", &ParallelSum<double>, grp, "tsum", "t", "returns the sum of t over all processes. note: you have to assure that all processes call this function.");
 }
 
