@@ -280,8 +280,6 @@ function util.rates.kinetic.compute(ConvRateSetup)
 						mem.TimeSeries = SolutionTimeSeries()
 						Interpolate(ExactSol["c"], mem.u, "c", mem.time)				
 						mem.TimeSeries:push(mem.u:clone(), mem.time)
-						
-						if timeDisc:num_stages() > 1 then mem.uOld = mem.u:clone() end			
 					end
 				end
 										
@@ -336,22 +334,18 @@ function util.rates.kinetic.compute(ConvRateSetup)
 
 								local usedTimeDisc = timeDisc
 								if ts:sub(1,3):lower() == "bdf" then
-									usedTimeDisc:set_order(mem.TimeSeries:size())
+									timeDisc:set_order(mem.TimeSeries:size())
 									if mem.TimeSeries:size() < orderOrTheta then
-										useTimeDisc = util.CreateTimeDisc(domainDisc, "sdirk", orderOrTheta)
-										--dodt =  dodt * math.pow(1/10, (orderOrTheta-mem.TimeSeries:size()))
-										print(" BDF using small dt: "..dodt)
+										usedTimeDisc = util.CreateTimeDisc(domainDisc, "sdirk", orderOrTheta)
+										dodt =  dodt
+										print(" BDF("..orderOrTheta.."): using  SDIRK("..
+												orderOrTheta..") for step "..mem.TimeSeries:size())
 									end
 								end
 														
 								if mem.time + dodt > sliceTime then dodt = sliceTime - mem.time end
 								if ((sliceTime - (mem.time+dodt))/dodt) < 1e-8 then dodt = sliceTime - mem.time end
 						
-								-- get old solution if multistage
-								if usedTimeDisc:num_stages() > 1 then
-									VecScaleAssign(mem.u, 1.0, mem.uOld)
-								end			
-			
 								for stage = 1, usedTimeDisc:num_stages() do
 									usedTimeDisc:set_stage(stage)
 									usedTimeDisc:prepare_step(mem.TimeSeries, dodt)
@@ -366,22 +360,20 @@ function util.rates.kinetic.compute(ConvRateSetup)
 									if math.abs(sliceTime - mem.time) < 1e-8*dt then mem.time = sliceTime end
 									
 									-- push oldest solutions with new values to front, oldest sol pointer is poped from end	
-									if ts:sub(1,3):lower() == "bdf" and mem.step < orderOrTheta then
+									if ts:sub(1,3):lower() == "bdf" and mem.TimeSeries:size() < orderOrTheta and stage == usedTimeDisc:num_stages() then
 										--Interpolate(ExactSol["c"], mem.u, "c", mem.time)				
 									
 										print("++++++ BDF: Increasing order to "..mem.step+1)
 										mem.TimeSeries:push(mem.u:clone(), mem.time)
 									else 
-										local oldestSol = mem.TimeSeries:oldest()
-										VecScaleAssign(oldestSol, 1.0, mem.u)
-										mem.TimeSeries:push_discard_oldest(oldestSol, mem.time)
+										if not (ts:sub(1,3):lower() == "bdf" and stage ~= usedTimeDisc:num_stages()) then
+											local oldestSol = mem.TimeSeries:oldest()
+											VecScaleAssign(oldestSol, 1.0, mem.u)
+											mem.TimeSeries:push_discard_oldest(oldestSol, mem.time)
+										end
 									end
 								end
 					
-								-- save this solution if multistage
-								if usedTimeDisc:num_stages() > 1 then
-									mem.uOld = mem.u
-								end			
 							end	-- end slice interval
 							write("\n")
 							
