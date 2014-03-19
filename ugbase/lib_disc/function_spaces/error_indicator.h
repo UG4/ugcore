@@ -754,17 +754,21 @@ void MarkForAdaption_AbsoluteGradientJumpIndicator(IRefiner& refiner,
 	pMG->template detach_from<element_type>(aError);
 };
 
-
+/**
+ * \param[in]	maxL2Error	errors below maxL2Error are considered fine.
+ */
 template <typename TDomain, typename TAlgebra>
-void MarkForAdaption_L2ErrorExact(IRefiner& refiner,
+void MarkForAdaption_L2ErrorExact_IMPL(IRefiner& refiner,
                                    SmartPtr<GridFunction<TDomain, TAlgebra> > u,
                                    SmartPtr<UserData<number, TDomain::dim> > spExactSol,
                                    const char* cmp,
                                    number minL2Error,
                                    number maxL2Error,
+                                   number refFrac,
                                    int minLvl, int maxLvl,
                                    number time, int quadOrder)
 {
+	using namespace std;
 //	types
 	typedef GridFunction<TDomain, TAlgebra> TFunction;
 	typedef typename TFunction::domain_type::grid_type grid_t;
@@ -777,15 +781,16 @@ void MarkForAdaption_L2ErrorExact(IRefiner& refiner,
 				  "Function space does not contain a function with name " << cmp);
 
 //	get multigrid and position accessor
-	SmartPtr<grid_t> pMG = u->domain()->grid();
+	grid_t& mg = *u->domain()->grid();
+
 	typename TFunction::domain_type::position_accessor_type&
 		aaPos = u->domain()->position_accessor();
 
 // 	attach error field
 	typedef Attachment<number> ANumber;
 	ANumber aError;
-	pMG->template attach_to<elem_t>(aError);
-	MultiGrid::AttachmentAccessor<elem_t, ANumber> aaError(*pMG, aError);
+	mg.template attach_to<elem_t>(aError);
+	MultiGrid::AttachmentAccessor<elem_t, ANumber> aaError(mg, aError);
 
 //	create integrand and perform integration
 	SmartPtr<IIntegrand<number, dim> > spIntegrand
@@ -795,43 +800,39 @@ void MarkForAdaption_L2ErrorExact(IRefiner& refiner,
 		Integrate<dim, dim>(u->template begin<elem_t>(), u->template end<elem_t>(),
 				  			aaPos, *spIntegrand, quadOrder, "best", &aaError));
 
-// 	Mark elements for refinement.
-//	distribute maxL2Error and minL2Error equally on all elements.
-//	Please check L2Error to see why the given splitting was used.
-	typedef typename TFunction::template traits<elem_t>::const_iterator	ElemIter;
-	size_t numElems = 0;
-	for(ElemIter iter = u->template begin<elem_t>(); iter != u->template end<elem_t>(); ++iter)
-		++numElems;
+	UG_LOG("maxError " << maxL2Error << ", l2Error " << l2Error << std::endl);
 
-	number maxElemError = -1;
-	if(maxL2Error > 0)
-		maxElemError = maxL2Error * maxL2Error / (number)numElems;
+	if(l2Error > maxL2Error){
+		typedef typename TFunction::template traits<elem_t>::const_iterator	ElemIter;
+		size_t numElems = 0;
+		number maxElemError = 0;
+		for(ElemIter iter = u->template begin<elem_t>(); iter != u->template end<elem_t>(); ++iter){
+			++numElems;
+			if(mg.get_level(*iter) < maxLvl){
+				maxElemError = max(maxElemError, aaError[*iter]);
+			}
+		}
+	//	note that aaError contains error-squares
+		maxElemError = maxElemError * sq(refFrac);
 
-	number minElemError = -1;
-	if(minL2Error > 0)
-		minElemError = minL2Error * minL2Error / (number)numElems;
+		number refThreshold = maxElemError;
+		/*if(maxL2Error > 0)
+			refThreshold = max(maxElemError, maxL2Error * maxL2Error / (number)numElems);*/
 
-	UG_LOG("l2Error: " << l2Error << std::endl);
-	UG_LOG("minElemError" << minElemError << std::endl);
-	UG_LOG("maxElemError" << maxElemError << std::endl);
+		MarkElementsAbsolute(aaError, refiner, u->dof_distribution(), refThreshold, -1,
+						 minLvl, maxLvl);
+	}
 
-	/*MarkElementsAbsolute<elem_t> (aaError, refiner, u->dof_distribution(),
-								  maxL2Error, minL2Error, minLvl, maxLvl);*/
-	MarkElementsAbsolute<elem_t> (aaError, refiner, u->dof_distribution(),
-								  maxElemError, minElemError, minLvl, maxLvl);
-/*	MarkElements<elem_t>(aaError, refiner, u->dof_distribution(),
-						 0.1 * maxL2Error, 0.25, 0.25, maxLvl);*/
+//	coarsening
+	// number coarsenThreshold = -1;
+	// if(minL2Error > 0)
+	// 	coarsenThreshold = minL2Error * minL2Error / (number)numElems;
 
 // 	detach error field
-	pMG->template detach_from<elem_t>(aError);
+	mg.template detach_from<elem_t>(aError);
 };
-// template <typename TElem>
-// void MarkElements(MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >& aaError,
-//                   IRefiner& refiner,
-//                   ConstSmartPtr<DoFDistribution> dd,
-//                   number TOL,
-//                   number refineFrac, number coarseFrac,
-// 				  int maxLevel)
+
+
 template <typename TDomain, typename TAlgebra>
 void MarkForAdaption_L2ErrorExact(IRefiner& refiner,
                                    SmartPtr<GridFunction<TDomain, TAlgebra> > u,
@@ -839,13 +840,14 @@ void MarkForAdaption_L2ErrorExact(IRefiner& refiner,
                                    const char* cmp,
                                    number minL2Error,
                                    number maxL2Error,
+                                   number refFrac,
                                    int minLvl, int maxLvl,
                                    number time, int quadOrder)
 {
 	SmartPtr<UserData<number, TDomain::dim> > spCallback
 	 = make_sp(new LuaUserData<number, TDomain::dim>(exactSolCallbackName));
-	MarkForAdaption_L2ErrorExact(refiner, u, spCallback, cmp, minL2Error,
-								 maxL2Error, minLvl, maxLvl, time, quadOrder);
+	MarkForAdaption_L2ErrorExact_IMPL(refiner, u, spCallback, cmp, minL2Error,
+								 maxL2Error, refFrac, minLvl, maxLvl, time, quadOrder);
 }
 
 } // end namespace ug
