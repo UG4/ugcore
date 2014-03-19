@@ -12,6 +12,11 @@ function UJS_Submit
 		echo "cekon does not support nppn > 1. Aborting."
 		exit
 	fi
+	if [ $((npe%nppn)) -ne 0 ]; then
+		echo "npe=$npe is not dividable by nppn=$nppn"
+		exit
+	fi
+		
 
 	SlurmMail=""
 	if [ $mail == true ]; then 

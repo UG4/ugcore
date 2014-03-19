@@ -7,6 +7,10 @@
 
 function UJS_Submit
 {
+	if [ $((npe%nppn)) -ne 0 ]; then
+		echo "npe=$npe is not dividable by nppn=$nppn"
+		exit
+	fi
 	if [ $UGSUBMIT_TYPE == "NecNehalem" ]; then
 		echo "Cluster: NecNehalem / NEC Nehalem Cluster / HLRS. Scheduler: qsub."
 		PBSnodes="-l nodes=$nnodes:nehalem:ppn=$nppn"

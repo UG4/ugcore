@@ -6,6 +6,10 @@
 
 function UJS_Submit
 {
+	if [ $((npe%nppn)) -ne 0 ]; then
+		echo "npe=$npe is not dividable by nppn=$nppn"
+		exit
+	fi
 	echo "Cluster: Juqueen. Scheduler: LoadLeveler (ll)."
 	echo "Create: $outdir/job.sh"
 	

@@ -63,7 +63,7 @@ function UJS_Submit
 		echo "Submit: $commandline"
 		nohup $commandline > $outdir/job.output &
 		sleep 1
-		jobid=`cat job.output | sed -n 1p | sed 's/srun: job \([0-9]*\).*/\1/'`
+		jobid="?" #`cat job.output | sed -n 1p | sed 's/srun: job \([0-9]*\).*/\1/'`
 	fi
 }
 
