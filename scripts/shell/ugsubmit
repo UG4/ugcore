@@ -277,14 +277,11 @@ binary=$1
 shift
 args=$*
 
-# UGSUBMIT_TYPE
-if [ -z "$UGSUBMIT_TYPE" ]; then
-   	echo "please set UGSUBMIT_TYPE or specify cluster with -cluster".
-   	exit
-fi	 
-
 #### Get Options from actual cluster implementation ####
+#### (default clusters also set there)
 source $scriptpath/clusters
+
+
 UJS_GetOptions
 
 if [ $nppn == "max" ]; then
