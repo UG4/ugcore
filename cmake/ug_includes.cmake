@@ -239,7 +239,6 @@ message(STATUS "Info: COMPILE_INFO       ${COMPILE_INFO} (options are: ON, OFF)"
 message(STATUS "")
 message(STATUS "Info: External libraries (path which contains the library or ON if you used uginstall):")
 message(STATUS "Info: TETGEN:   ${TETGEN}")
-message(STATUS "Info: HYPRE:    ${HYPRE}")
 message(STATUS "Info: HLIBPRO:  ${HLIBPRO}")
 message(STATUS "")
 message(STATUS "Info: C Compiler ID: ${CMAKE_C_COMPILER_ID}, C++ Compiler ID: ${CMAKE_CXX_COMPILER_ID}") 
@@ -386,8 +385,6 @@ include(${UG_ROOT_PATH}/cmake/ug/metis.cmake)
 include(${UG_ROOT_PATH}/cmake/ug/parmetis.cmake)    
 # TETGEN
 include(${UG_ROOT_PATH}/cmake/ug/tetgen.cmake)
-# HYPRE
-include(${UG_ROOT_PATH}/cmake/ug/hypre.cmake)
 # HLIBPRO
 include(${UG_ROOT_PATH}/cmake/ug/hlibpro.cmake)
 # OpenCL
@@ -526,7 +523,6 @@ set(PROFILER ${PROFILER} CACHE STRING "Set the a profiler. Valid options are: ${
 # the following options too are pseudo cmake-options. However, they should
 # contains pathes, if set.
 set(TETGEN ${TETGEN} CACHE PATH "Sets the path in which tetgen shall be searched.")
-set(HYPRE ${HYPRE} CACHE PATH "Sets the path in which hypre shall be searched.")
 set(HLIBPRO ${HLIBPRO} CACHE PATH "Sets the path in which hlibpro shall be searched.")
 
 set(DEBUG_FORMAT ${DEBUG_FORMAT} CACHE STRING "Debug format options like -g, -gstabs, -ggbd. If not set, debug format is -g.")
