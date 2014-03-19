@@ -358,6 +358,11 @@ function util.rates.kinetic.compute(ConvRateSetup)
 									-- update new time
 									mem.time = usedTimeDisc:future_time()
 									if math.abs(sliceTime - mem.time) < 1e-8*dt then mem.time = sliceTime end
+
+									if plotSol then
+										vtk = VTKOutput()
+										vtk:print(solPath.."Sol_"..ts.."_stage"..stage.."_s"..mem.step, mem.u)
+									end
 									
 									-- push oldest solutions with new values to front, oldest sol pointer is poped from end	
 									if ts:sub(1,3):lower() == "bdf" and mem.TimeSeries:size() < orderOrTheta and stage == usedTimeDisc:num_stages() then

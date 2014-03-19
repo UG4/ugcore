@@ -247,29 +247,6 @@ finish_step_elem(SmartPtr<VectorTimeSeries<vector_type> > currSol,
 //////////////////////////////////////////////////////////////////////////////
 
 template <typename TAlgebra>
-void SDIRK<TAlgebra>::
-prepare_step(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
-             number dt)
-{
-//	remember old values
-	if(m_stage == 1){
-		this->m_pPrevSol = SmartPtr<VectorTimeSeries<vector_type> >(
-							new VectorTimeSeries<vector_type>);
-		m_Time0 = prevSol->time(0);
-		this->m_futureTime = m_Time0;
-	}
-
-//	remember time step size
-	this->m_dt = dt;
-
-//	update scalings
-	m_lastTime = this->m_futureTime;
-
-	this->m_futureTime = update_scaling(this->m_vScaleMass, this->m_vScaleStiff,
-	                                    this->m_dt);
-}
-
-template <typename TAlgebra>
 void SDIRK<TAlgebra>::set_stage(size_t stage)
 {
 	m_stage = stage;
@@ -443,14 +420,37 @@ number SDIRK<TAlgebra>::update_scaling(std::vector<number>& vSM,
 
 }
 
+template <typename TAlgebra>
+void SDIRK<TAlgebra>::
+prepare_step(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
+             number dt)
+{
+//	remember old values
+	if(m_stage == 1){
+		this->m_pPrevSol = SmartPtr<VectorTimeSeries<vector_type> >(
+							new VectorTimeSeries<vector_type>);
+		m_Time0 = prevSol->time(0);
+		this->m_futureTime = m_Time0;
+	}
+	this->m_pPrevSol->push(prevSol->solution(0)->clone(), prevSol->time(0));
+
+//	remember time step size
+	this->m_dt = dt;
+
+//	update scalings
+	m_lastTime = this->m_futureTime;
+
+	this->m_futureTime = update_scaling(this->m_vScaleMass, this->m_vScaleStiff,
+	                                    this->m_dt);
+}
 
 template <typename TAlgebra>
 void SDIRK<TAlgebra>::
 assemble_jacobian(matrix_type& J, const vector_type& u, const GridLevel& gl)
 {
-	if(this->m_pPrevSol->size() < m_stage /*&& m_stage != num_stages()*/){
-		this->m_pPrevSol->push(u.clone(), m_lastTime);
-	}
+//	if(this->m_pPrevSol->size() < m_stage /*&& m_stage != num_stages()*/){
+//		this->m_pPrevSol->push(u.clone(), m_lastTime);
+//	}
 
 //	push unknown solution to solution time series
 //	ATTENTION: Here, we must cast away the constness of the solution, but note,
@@ -475,9 +475,9 @@ template <typename TAlgebra>
 void SDIRK<TAlgebra>::
 assemble_defect(vector_type& d, const vector_type& u, const GridLevel& gl)
 {
-	if(this->m_pPrevSol->size() < m_stage /*&& m_stage != num_stages()*/){
-		this->m_pPrevSol->push(u.clone(), m_lastTime);
-	}
+//	if(this->m_pPrevSol->size() < m_stage /*&& m_stage != num_stages()*/){
+//		this->m_pPrevSol->push(u.clone(), m_lastTime);
+//	}
 
 //	push unknown solution to solution time series
 //	ATTENTION: Here, we must cast away the constness of the solution, but note,
