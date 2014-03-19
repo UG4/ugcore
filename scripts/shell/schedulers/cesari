@@ -1,6 +1,6 @@
 #!/bin/bash
 ######################################################################
-#                           cekon
+#                           cesari
 #-------------------------------------------------------------------
 # using SLURM
 ######################################################################
@@ -74,22 +74,21 @@ function UJS_Submit
 
 function UJS_GetOptions
 {
-	nppnmax=1
-	pemax=92	
+	nppnmax=20
+	pemax=300	
 }
 
 function UJS_Info
 {
 	echo "UGSUBMIT Info for CEKON:"
-	echo "Max Cores Total: 92 (23 Nodes with 4 Cores Per Node)"
-	echo "Memory on each node: 4 GB"
-	echo "Using SLURM on cekon"
+	echo "Max Cores Total: 520 (26 Nodes with 10 Dualcores Per Node)"
+	echo "Using SLURM on cesari"
 	echo "squeue -u $USER"
 	squeue -u $USER	
 }
 
 function UJS_Cancel
 {
-	echo "Using SLURM on cekon"
+	echo "Using SLURM on cesari"
 	scancel $1
 }

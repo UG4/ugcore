@@ -16,6 +16,8 @@
 if [ -z "$UGSUBMIT_TYPE" ]; then
 	if [ $HOSTNAME == "cekon.gcsc.uni-frankfurt.de" ]; then
 		UGSUBMIT_TYPE=cekon
+	elif [ $HOSTNAME == "cesari.gcsc.uni-frankfurt.de" ]; then
+		UGSUBMIT_TYPE=cesari
 	else
    		echo "please set UGSUBMIT_TYPE or specify cluster with -cluster".
    		exit
@@ -39,7 +41,11 @@ elif [ $UGSUBMIT_TYPE == "mpi" ]; then
 elif [ $UGSUBMIT_TYPE == "cekon" ]; then
 
 	source $scriptpath/schedulers/cekon
+	
+elif [ $UGSUBMIT_TYPE == "cesari" ]; then
 
+	source $scriptpath/schedulers/cesari
+	
 elif [ $UGSUBMIT_TYPE == "moab" ]; then
 	source $scriptpath/schedulers/moab
 ############################################################

@@ -88,8 +88,8 @@ function UJS_GetOptions
 
 
 function UJS_Info
-{
-	echo "Using llq on Juqueen for user $USER"
+{	
+	echo "Using llq on Juqueen for user $USER"	
 	llq -u $USER
 }
 
