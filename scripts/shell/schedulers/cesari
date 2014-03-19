@@ -37,7 +37,7 @@ function UJS_Submit
 		SlurmMail="--mail-user=$UGSUBMIT_EMAIL --mail-type=$SlurmNotification"
 	fi
 
-	commandline="salloc -n $npe $SlurmMail --job-name=$jobname mpirun $executable $args"
+	commandline="salloc -n $npe $SlurmMail --job-name=$jobname $executable $args"
 	echo " command:      "$commandline >> info.txt
 
 	if [ $test == true ]; then
