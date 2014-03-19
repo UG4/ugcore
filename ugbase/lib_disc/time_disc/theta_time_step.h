@@ -201,7 +201,7 @@ class ThetaTimeStep
 				switch(m_stage)
 				{
 					case 1:
-						vSA[0] = 1 * gamma * dt;
+						vSA[0] = gamma * dt;
 						vSA[1] = 0;
 						return currentTime + gamma * dt;
 					case 2:
@@ -354,7 +354,106 @@ class BDF
 };
 
 
+/// Singly Diagonal Implicit Runge Kutta Method
+template <typename TAlgebra>
+class SDIRK
+	: public MultiStepTimeDiscretization<TAlgebra>
+{
+	public:
+	///	Domain Discretization type
+		typedef IDomainDiscretization<TAlgebra> domain_discretization_type;
+
+	/// Type of algebra
+		typedef TAlgebra algebra_type;
+
+	/// Type of algebra matrix
+		typedef typename algebra_type::matrix_type matrix_type;
+
+	/// Type of algebra vector
+		typedef typename algebra_type::vector_type vector_type;
+
+	public:
+	/// default constructor (implicit Euler)
+		SDIRK(SmartPtr<IDomainDiscretization<TAlgebra> > spDD)
+			: MultiStepTimeDiscretization<TAlgebra>(spDD),
+			  m_stage(1), m_order(1)
+		{
+			this->m_prevSteps = 1;
+		}
+
+	/// theta = 1.0 -> Implicit Euler, 0.0 -> Explicit Euler
+		SDIRK(SmartPtr<IDomainDiscretization<TAlgebra> > spDD, int order)
+			: MultiStepTimeDiscretization<TAlgebra>(spDD),
+			  m_order(order)
+		{
+			set_order(m_order);
+			this->m_prevSteps = 1;
+		}
+
+		virtual ~SDIRK() {};
+
+	///	sets the scheme
+		void set_order(int order) {
+			if(order > 4) UG_THROW("DIRK: Only up to order 4.");
+			m_order = order;
+		}
+
+	///	returns number of stages
+		virtual size_t num_stages() const {
+			switch(m_order){
+				case 1: return 2;
+				case 2: return 3;
+				case 3: return 3;
+				case 4: return 4;
+				default: UG_THROW("DIRK: Only up to order 4.")
+			}
+		}
+
+	///	sets the stage
+		virtual void set_stage(size_t stage);
+
+	public:
+		virtual void prepare_step(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
+								  number dt);
+		virtual void prepare_step_elem(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
+									   number dt, const GridLevel& gl);
+		virtual void finish_step_elem(SmartPtr<VectorTimeSeries<vector_type> > currSol,
+									  const GridLevel& gl);
+
+	public:
+		void assemble_jacobian(matrix_type& J, const vector_type& u, const GridLevel& gl);
+
+		void assemble_defect(vector_type& d, const vector_type& u, const GridLevel& gl);
+
+		void assemble_linear(matrix_type& A, vector_type& b, const GridLevel& gl);
+
+		void assemble_rhs(vector_type& b, const vector_type& u, const GridLevel& gl);
+
+		void assemble_rhs(vector_type& b, const GridLevel& gl);
+
+		void adjust_solution(vector_type& u, const GridLevel& gl);
+
+	protected:
+		virtual number update_scaling(std::vector<number>& vSM,
+									  std::vector<number>& vSA,
+									  number dt);
+
+		virtual number update_scaling(std::vector<number>& vSM,
+		                              std::vector<number>& vSA,
+		                              number dt, number currentTime,
+		                              ConstSmartPtr<VectorTimeSeries<vector_type> > prevSol) {
+			UG_THROW("Not used.");
+		}
+
+		size_t m_stage;
+		int m_order;
+		number m_Time0;
+		number m_lastTime;
+};
+
+
 } // end namespace ug
+
 
 /// }
 

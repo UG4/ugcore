@@ -168,6 +168,21 @@ static void Algebra(Registry& reg, string parentGroup)
 		reg.add_class_to_group(name, "BDF", tag);
 	}
 
+//	SDIRK
+	{
+		std::string grp = parentGroup; grp.append("/Discretization/TimeDisc");
+		typedef ITimeDiscretization<TAlgebra> TBase;
+		typedef SDIRK<TAlgebra> T;
+		string name = string("SDIRK").append(suffix);
+		reg.add_class_<T, TBase>(name, grp)
+				.template add_constructor<void (*)(SmartPtr<IDomainDiscretization<TAlgebra> >)>("Domain Discretization")
+				.template add_constructor<void (*)(SmartPtr<IDomainDiscretization<TAlgebra> >,int)>("Domain Discretization#Order")
+				.add_method("set_order", &T::set_order, "", "Order")
+				.add_method("set_stage", &T::set_stage, "", "Stage")
+				.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "SDIRK", tag);
+	}
+
 //	AssembledLinearOperator
 	{
 		std::string grp = parentGroup; grp.append("/Discretization");

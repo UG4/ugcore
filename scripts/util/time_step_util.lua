@@ -37,10 +37,13 @@ function util.CreateTimeDisc(domainDisc, timeScheme, orderOrTheta)
 	
 	elseif timeScheme:lower() == "bdf" then
 	timeDisc = BDF(domainDisc)
+
+	elseif timeScheme:lower() == "sdirk" then
+	timeDisc = SDIRK(domainDisc, orderOrTheta)
 	
 	else
 		print("Time scheme '"..timeScheme.."' not found. Supported Schemes:")
-		print("Theta, ImplEuler, ExplEuler, Crank-Nicolson, Alexander, FracStep, BDF")
+		print("Theta, ImplEuler, ExplEuler, Crank-Nicolson, Alexander, FracStep, BDF, SDIRK")
 		print("Aborting")
 		exit();
 	end

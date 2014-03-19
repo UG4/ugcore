@@ -334,10 +334,12 @@ function util.rates.kinetic.compute(ConvRateSetup)
 								local dt = mem.dt
 								local dodt = dt
 
+								local usedTimeDisc = timeDisc
 								if ts:sub(1,3):lower() == "bdf" then
-									timeDisc:set_order(mem.TimeSeries:size())
+									usedTimeDisc:set_order(mem.TimeSeries:size())
 									if mem.TimeSeries:size() < orderOrTheta then
-										dodt =  dodt * math.pow(1/10, (orderOrTheta-mem.TimeSeries:size()))
+										useTimeDisc = util.CreateTimeDisc(domainDisc, "sdirk", orderOrTheta)
+										--dodt =  dodt * math.pow(1/10, (orderOrTheta-mem.TimeSeries:size()))
 										print(" BDF using small dt: "..dodt)
 									end
 								end
@@ -346,21 +348,21 @@ function util.rates.kinetic.compute(ConvRateSetup)
 								if ((sliceTime - (mem.time+dodt))/dodt) < 1e-8 then dodt = sliceTime - mem.time end
 						
 								-- get old solution if multistage
-								if timeDisc:num_stages() > 1 then
+								if usedTimeDisc:num_stages() > 1 then
 									VecScaleAssign(mem.u, 1.0, mem.uOld)
 								end			
 			
-								for stage = 1, timeDisc:num_stages() do
-									timeDisc:set_stage(stage)
-									timeDisc:prepare_step(mem.TimeSeries, dodt)
+								for stage = 1, usedTimeDisc:num_stages() do
+									usedTimeDisc:set_stage(stage)
+									usedTimeDisc:prepare_step(mem.TimeSeries, dodt)
 			
 									-- solve step						
-									newtonSolver:init(AssembledOperator(timeDisc, mem.u:grid_level()))
+									newtonSolver:init(AssembledOperator(usedTimeDisc, mem.u:grid_level()))
 									if newtonSolver:prepare(mem.u) == false then print (">> Newton init failed."); exit(); end 
 									if newtonSolver:apply(mem.u) == false then print (">> Newton solver failed."); exit(); end 
 																										
 									-- update new time
-									mem.time = timeDisc:future_time()
+									mem.time = usedTimeDisc:future_time()
 									if math.abs(sliceTime - mem.time) < 1e-8*dt then mem.time = sliceTime end
 									
 									-- push oldest solutions with new values to front, oldest sol pointer is poped from end	
@@ -377,7 +379,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 								end
 					
 								-- save this solution if multistage
-								if timeDisc:num_stages() > 1 then
+								if usedTimeDisc:num_stages() > 1 then
 									mem.uOld = mem.u
 								end			
 							end	-- end slice interval
@@ -385,7 +387,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 							
 							if plotSol then
 								vtk = VTKOutput()
-								vtk:print("Sol"..mem.step, mem.u)
+								vtk:print(solPath.."Sol_"..ts.."_s"..mem.step, mem.u)
 							end
 						
 							---------------------------------------------------- 

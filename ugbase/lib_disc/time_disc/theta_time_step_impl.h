@@ -243,6 +243,309 @@ finish_step_elem(SmartPtr<VectorTimeSeries<vector_type> > currSol,
 	}UG_CATCH_THROW("ThetaTimeStep: Cannot finish timestep.");
 }
 
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+
+template <typename TAlgebra>
+void SDIRK<TAlgebra>::
+prepare_step(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
+             number dt)
+{
+//	remember old values
+	if(m_stage == 1){
+		this->m_pPrevSol = SmartPtr<VectorTimeSeries<vector_type> >(
+							new VectorTimeSeries<vector_type>);
+		m_Time0 = prevSol->time(0);
+		this->m_futureTime = m_Time0;
+	}
+
+//	remember time step size
+	this->m_dt = dt;
+
+//	update scalings
+	m_lastTime = this->m_futureTime;
+
+	this->m_futureTime = update_scaling(this->m_vScaleMass, this->m_vScaleStiff,
+	                                    this->m_dt);
+}
+
+template <typename TAlgebra>
+void SDIRK<TAlgebra>::set_stage(size_t stage)
+{
+	m_stage = stage;
+}
+
+template <typename TAlgebra>
+number SDIRK<TAlgebra>::update_scaling(std::vector<number>& vSM,
+                                       std::vector<number>& vSA,
+                                       number dt)
+{
+	if(m_order == 1) // Mittelpunkt
+	{
+		switch(m_stage)
+		{
+			case 1:
+				vSM.resize(2);
+				vSA.resize(2);
+				vSM[0] = 1.;
+				vSM[1] = -1.;
+				vSA[0] = dt * 1./2.;
+				vSA[1] = 0;
+				return m_Time0 + 1./2. * dt;
+			case 2:
+				vSM.resize(3);
+				vSA.resize(3);
+				vSM[0] = 1.;
+				vSM[1] = 0;
+				vSM[2] = -1.;
+				vSA[0] = 0;
+				vSA[1] = dt;
+				vSA[2] = 0;
+				return m_Time0 + dt;
+			default:
+				UG_THROW("Alexander scheme has only 3 stages")
+		}
+	}
+	else if(m_order == 2) // Alexander
+	{
+		const number gamma = 1 - 1. / sqrt(2.);
+		switch(m_stage)
+		{
+			case 1:
+				vSM.resize(2);
+				vSA.resize(2);
+				vSM[0] = 1.;
+				vSM[1] = -1.;
+				vSA[0] = dt * gamma;
+				vSA[1] = 0;
+				return m_Time0 + gamma * dt;
+			case 2:
+				vSM.resize(3);
+				vSA.resize(3);
+				vSM[0] = 1.;
+				vSM[1] = 0;
+				vSM[2] = -1;
+				vSA[0] = dt * gamma;
+				vSA[1] = dt * (1. - gamma);
+				vSA[2] = 0;
+				return m_Time0 + dt;
+			case 3:
+				vSM.resize(4);
+				vSA.resize(4);
+				vSM[0] = 1.;
+				vSM[1] = 0;
+				vSM[2] = 0;
+				vSM[3] = -1;
+				vSA[0] = 0;
+				vSA[1] = dt * gamma;
+				vSA[2] = dt * (1. - gamma);
+				vSA[3] = 0;
+				return m_Time0 + dt;
+			default:
+				UG_THROW("Alexander scheme has only 3 stages")
+		}
+	}
+	else if(m_order == 3) // Crouzeix, order 3
+	{
+		const number gamma = (3. + sqrt(3.))/6.;
+		switch(m_stage)
+		{
+			case 1:
+				vSM.resize(2);
+				vSA.resize(2);
+				vSM[0] = 1.;
+				vSM[1] = -1.;
+				vSA[0] = dt * gamma;
+				vSA[1] = 0;
+				return m_Time0 + gamma * dt;
+			case 2:
+				vSM.resize(3);
+				vSA.resize(3);
+				vSM[0] = 1.;
+				vSM[1] = 0;
+				vSM[2] = -1.;
+				vSA[0] = dt * gamma;
+				vSA[1] = dt * (1. - 2*gamma);
+				vSA[2] = 0;
+				return m_Time0 + (1-gamma)*dt;
+			case 3:
+				vSM.resize(4);
+				vSA.resize(4);
+				vSM[0] = 1.;
+				vSM[1] = 0;
+				vSM[2] = 0;
+				vSM[3] = -1.;
+				vSA[0] = 0;
+				vSA[1] = dt * 1./2.;
+				vSA[2] = dt * 1./2.;
+				vSA[3] = 0;
+				return m_Time0 + dt;
+			default:
+				UG_THROW("Crouzeix 3 scheme has only 3 stages")
+		}
+	}
+	else if(m_order == 4) // Crouzeix, order 4
+	{
+		const number gamma = 1./2. + cos(M_PI/18.) / sqrt(3.);
+		const number delta = 1./(6. * (2*gamma-1) * (2*gamma-1));
+		switch(m_stage)
+		{
+			case 1:
+				vSM.resize(2);
+				vSA.resize(2);
+				vSM[0] = 1.;
+				vSM[1] = -1.;
+				vSA[0] = dt * gamma;
+				vSA[1] = 0;
+				return m_Time0 + gamma * dt;
+			case 2:
+				vSM.resize(3);
+				vSA.resize(3);
+				vSM[0] = 1.;
+				vSM[1] = 0;
+				vSM[2] = -1.;
+				vSA[0] = dt * gamma;
+				vSA[1] = dt * (1./2. - gamma);
+				vSA[2] = 0;
+				return m_Time0 + 1./2.*dt;
+			case 3:
+				vSM.resize(4);
+				vSA.resize(4);
+				vSM[0] = 1.;
+				vSM[1] = 0;
+				vSM[2] = 0;
+				vSM[3] = -1.;
+				vSA[0] = dt * gamma;
+				vSA[1] = dt * (1-4*gamma);
+				vSA[2] = dt * 2*gamma;
+				vSA[3] = 0;
+				return m_Time0 + (1-gamma)* dt;
+			case 4:
+				vSM.resize(5);
+				vSA.resize(5);
+				vSM[0] = 1.;
+				vSM[1] = 0;
+				vSM[2] = 0;
+				vSM[3] = 0;
+				vSM[4] = -1.;
+				vSA[0] = 0;
+				vSA[1] = dt * delta;
+				vSA[2] = dt * (1-2*delta);
+				vSA[3] = dt * delta;
+				vSA[4] = 0;
+				return m_Time0 + dt;
+			default:
+				UG_THROW("Crouzeix 4 scheme has only 4 stages")
+		}
+	}
+	else
+		UG_THROW("SDIRK: "<< m_order <<" missing.");
+
+}
+
+
+template <typename TAlgebra>
+void SDIRK<TAlgebra>::
+assemble_jacobian(matrix_type& J, const vector_type& u, const GridLevel& gl)
+{
+	if(this->m_pPrevSol->size() < m_stage /*&& m_stage != num_stages()*/){
+		this->m_pPrevSol->push(u.clone(), m_lastTime);
+	}
+
+//	push unknown solution to solution time series
+//	ATTENTION: Here, we must cast away the constness of the solution, but note,
+//			   that we pass pPrevSol as a const object in assemble_... Thus,
+//			   the solution will not be changed there and we pop it from the
+//			   Solution list afterwards, such that nothing happens to u
+	// \todo: avoid this hack, use smart ptr properly
+	int DummyRefCount = 2;
+	SmartPtr<vector_type> pU(const_cast<vector_type*>(&u), &DummyRefCount);
+	this->m_pPrevSol->push(pU, this->m_futureTime);
+
+//	assemble jacobian using current iterate
+	try{
+		this->m_spDomDisc->assemble_jacobian(J, this->m_pPrevSol, this->m_vScaleStiff[0], gl);
+	}UG_CATCH_THROW("SDIRK: Cannot assemble jacobian.");
+
+//	pop unknown solution to solution time series
+	this->m_pPrevSol->remove_latest();
+}
+
+template <typename TAlgebra>
+void SDIRK<TAlgebra>::
+assemble_defect(vector_type& d, const vector_type& u, const GridLevel& gl)
+{
+	if(this->m_pPrevSol->size() < m_stage /*&& m_stage != num_stages()*/){
+		this->m_pPrevSol->push(u.clone(), m_lastTime);
+	}
+
+//	push unknown solution to solution time series
+//	ATTENTION: Here, we must cast away the constness of the solution, but note,
+//			   that we pass pPrevSol as a const object in assemble_... Thus,
+//			   the solution will not be changed there and we pop it from the
+//			   Solution list afterwards, such that nothing happens to u
+	// \todo: avoid this hack, use smart ptr properly
+	int DummyRefCount = 2;
+	SmartPtr<vector_type> pU(const_cast<vector_type*>(&u), &DummyRefCount);
+	this->m_pPrevSol->push(pU, this->m_futureTime);
+
+// 	future solution part
+	try{
+		this->m_spDomDisc->assemble_defect(d,  this->m_pPrevSol,  this->m_vScaleMass,  this->m_vScaleStiff, gl);
+	}UG_CATCH_THROW("SDIRK: Cannot assemble defect.");
+
+//	pop unknown solution to solution time series
+	this->m_pPrevSol->remove_latest();
+}
+
+template <typename TAlgebra>
+void SDIRK<TAlgebra>::
+adjust_solution(vector_type& u, const GridLevel& gl)
+{
+	PROFILE_BEGIN_GROUP(MultiStepTimeDiscretization_adjust_solution, "discretization MultiStepTimeDiscretization");
+//	adjust solution
+	try{
+		this->m_spDomDisc->adjust_solution(u, this->m_futureTime, gl);
+	}UG_CATCH_THROW("ThetaTimeStep: Cannot adjust solution.");
+}
+
+template <typename TAlgebra>
+void SDIRK<TAlgebra>::
+assemble_linear(matrix_type& A, vector_type& b, const GridLevel& gl)
+{
+	UG_THROW("Not implemented")
+}
+
+template <typename TAlgebra>
+void SDIRK<TAlgebra>::
+assemble_rhs(vector_type& b, const GridLevel& gl)
+{
+	UG_THROW("Not implemented")
+}
+
+template <typename TAlgebra>
+void SDIRK<TAlgebra>::
+assemble_rhs(vector_type& b, const vector_type& u, const GridLevel& gl)
+{
+	UG_THROW("Not implemented")
+}
+
+template <typename TAlgebra>
+void SDIRK<TAlgebra>::
+prepare_step_elem(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
+                  number dt, const GridLevel& gl)
+{
+	UG_THROW("Not implemented")
+}
+
+template <typename TAlgebra>
+void SDIRK<TAlgebra>::
+finish_step_elem(SmartPtr<VectorTimeSeries<vector_type> > currSol,
+                 const GridLevel& gl)
+{
+	UG_THROW("Not implemented")
+}
+
 } // end namespace ug
 
 #endif /* __H__UG__LIB_DISC__TIME_DISC__THETA_TIME_STEP_IMPL__ */
