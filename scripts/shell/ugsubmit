@@ -247,7 +247,7 @@ do
 		shift 2
 	elif [ $1 == "-queue" ]; then
 		queue=$2
-		shift 2
+		shift 2	
 	elif [ $1 == "-scan" ]; then
 		profilePrefix="scalasca -analyze \\"
 		shift 1
@@ -300,9 +300,8 @@ if [ $nppn -gt $nppnmax ]; then
 	exit
 fi
 
-if [ $((npe%nppn)) -ne 0 ]; then
-	echo "npe=$npe is not dividable by nppn=$nppn"
-	exit
+if [ $pemax -gt $npe ]; then
+	echo "WARNING: pemax for $UGSUBMIT_TYPE is $pemax, and this is greater than requested PEs ($npe)"
 fi
 
 nnodes=$((npe/nppn))
