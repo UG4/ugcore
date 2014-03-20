@@ -1,0 +1,56 @@
+//  created by Martin Rupp
+//  martin.rupp@gcsc.uni-frankfurt.de
+//  y14 m03 d20
+
+/** \page pageUG4ParallelCesari Cesari
+
+\section secCesari_Architecture Architecture
+- \em Cesari is the bigger in-house cluster of the \em G-CSC.
+- It consists of 26 nodes with 2 10-core processors each, resulting in 20 cores/node and <b>520 cores total</b>.
+- Each Compute node has 32 GB RAM, which means when running one mpi threads per core (=20 per node), you get <b>1.6 GB RAM per thread</b>.
+- You can also use hyperthreading (=2 mpi threads per core), resulting in 40 threads/node an 0.8 GB RAM per thread.<br>
+- The log-in node is configured like a normal node (2x 10 cores), but has 64 GB of RAM.
+- Job scheduling is done via \ref pageugsubmit  (auto-detect)
+
+\section secCesari_Module Module System
+- <tt>module avail</tt>: displays all modules available.  
+- <tt>module list</tt>: displays all modules currently loaded.
+- <tt>module load MODULENAME</tt>: Loads the module MODULENAME
+- <tt>module unload MODULENAME</tt>: Unloads the module MODULENAME
+
+\note Please note that you have to use that <tt>module load</tt> each time you log in, so it makes sense to put them into your .bashrc.
+
+\section secCesari_Compiling Compiling ug4
+
+
+\subsection secCesari_CompilingGCC GCC
+  First you have to select a MPI version to run jobs in parallel:
+    \verbatim
+    module load openmpi-gcc
+    \endverbatim
+    then you can use the normal <tt>cmake ..</tt>.    
+    
+\subsection secCesari_CompilingLLVM LLVM
+  LLVM/clang (recommended):
+    \verbatim
+    module load llvm
+    module load openmpi-clang    
+    \endverbatim
+    To compile with the clang-compiler, use  
+	\verbatim
+	cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang ..
+	\endverbatim
+
+
+\section secCesari_Jobs Running parallel Jobs
+To start <b>Jobs on Cesari</b>, use \c ugsubmit /   \c uginfo / \c ugcancel . <br>
+\ref pageugsubmit .<br> 
+ugsubmit supports cesari without any configuration (auto-detect). By default it uses 20 threads/node (no hyperthreading). You can override that behaviour with the parameter -nppn.
+
+
+\section secCesari_Debugging Debugging
+Debugging : DDT can be used via <tt>module load ddt</tt>
+
+
+
+*/

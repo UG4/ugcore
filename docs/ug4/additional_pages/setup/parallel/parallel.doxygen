@@ -10,6 +10,7 @@
 
 Special instructions for the different parallel computers are on separate pages:
 - \subpage pageUG4ParallelCekon
+- \subpage pageUG4ParallelCesari
 - \subpage pageUG4ParallelJuGene &mdash; R.I.P. &mdash; please use \em JuQueen!
 - \subpage pageUG4ParallelJuQueen
 - \subpage pageUG4ParallelHermit
