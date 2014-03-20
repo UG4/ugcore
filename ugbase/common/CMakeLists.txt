@@ -29,6 +29,7 @@ set(srcCommon	log.cpp
         		util/string_util.cpp
 				util/variant.cpp
 				util/histogramm.cpp
+				util/number_util.cpp
 				math/math_vector_matrix/math_matrix.cpp
 				math/math_vector_matrix/math_vector.cpp
 				math/misc/tri_box.cpp

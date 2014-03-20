@@ -11,6 +11,7 @@
 
 #include "common/math/ugmath.h"
 namespace ug{
+extern bool g_bNoNANCheck;
 inline bool IsFiniteAndNotTooBig(double d)
 {
 	const double tooBigValue = 1e30;
@@ -81,7 +82,61 @@ inline bool IsFiniteAndNotTooBig(const std::vector<TData> &t)
 	return true;
 }
 
+template<typename T>
+inline bool IsVectorFiniteAndNotTooBig(const T &t)
+{
+	for(size_t i=0; i<t.size(); i++)
+		if(IsFiniteAndNotTooBig(t[i]) == false) return false;
 
+	return true;
+}
+
+
+template<typename T>
+inline bool WarnIfIsVectorNanOrTooBig(const T &t, const char *callerName)
+{
+	if(g_bNoNANCheck) return true;
+	size_t iFirst, iCount=0;
+	for(size_t i=0; i<t.size(); i++)
+		if(IsFiniteAndNotTooBig(t[i]) == false)
+		{
+			if(iCount == 0) iFirst = i;
+			iCount++;
+		}
+
+	if(iCount > 0)
+	{
+		UG_LOG("WARNING in " << callerName << ": " << iFirst << " nan or too big (" << t[iFirst] << "). ");
+		if(iCount > 1)
+		{ UG_LOG(iCount-1 << " more.");}
+		UG_LOG("\n");
+		return false;
+	}
+	return true;
+}
+
+
+template<typename T>
+inline bool ThrowIfIsVectorNanOrTooBig(const T &t, const char *callerName)
+{
+	if(g_bNoNANCheck) return true;
+	size_t iFirst, iCount=0;
+	for(size_t i=0; i<t.size(); i++)
+		if(IsFiniteAndNotTooBig(t[i]) == false)
+		{
+			if(iCount == 0) iFirst = i;
+			iCount++;
+		}
+
+	if(iCount > 0)
+	{
+		UG_THROW("In " << callerName << ": " << iFirst << " nan or too big (" << t[iFirst] << "). "
+				<< iCount-1 << " more.");
+		return false;
+	}
+
+	return true;
+}
 
 }
 
