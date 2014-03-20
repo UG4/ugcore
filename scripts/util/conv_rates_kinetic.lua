@@ -357,7 +357,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 									newtonSolver:init(AssembledOperator(usedTimeDisc, mem.u:grid_level()))
 									if newtonSolver:prepare(mem.u) == false then print (">> Newton init failed."); exit(); end 
 									if newtonSolver:apply(mem.u) == false then print (">> Newton solver failed."); exit(); end 
-									--AdjustMeanValue(mem.u, "p")
+									AdjustMeanValue(mem.u, "p")
 
 									if plotSol then
 										vtk = VTKOutput()
