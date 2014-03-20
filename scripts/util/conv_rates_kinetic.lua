@@ -105,11 +105,14 @@ function util.rates.kinetic.compute(ConvRateSetup)
 	local CreateDomainDisc = 	CRS.CreateDomainDisc
 	local CreateSolver = 		CRS.CreateSolver
 	local CreateDomain = 		CRS.CreateDomain
+	local SetStartSolution = 	CRS.SetStartSolution
 	local MaxLevelPadding = 	CRS.MaxLevelPadding 	or util.rates.kinetic.StdMaxLevelPadding
 	
 	if 	CreateApproxSpace == nil or CreateDomainDisc == nil or 
-		CreateSolver == nil or CreateDomain == nil then
-		print("You must pass: CreateApproxSpace, CreateDomainDisc, CreateSolver, CreateDomain")
+		CreateSolver == nil or CreateDomain == nil or 
+		SetStartSolution == nil then
+		print("You must pass: CreateApproxSpace, CreateDomainDisc, CreateSolver, "
+				.."CreateDomain, SetStartSolution")
 		exit()
 	end
 	
@@ -278,7 +281,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 						mem.step = 0
 						mem.u = GridFunction(approxSpace, lev)
 						mem.TimeSeries = SolutionTimeSeries()
-						Interpolate(ExactSol["c"], mem.u, "c", mem.time)				
+						SetStartSolution(mem.u, mem.time)				
 						mem.TimeSeries:push(mem.u:clone(), mem.time)
 					end
 				end
@@ -322,7 +325,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 		
 							err.dt[k] = mem.dt
 					
-							write(">> dt "..mem.dt..": ")
+							write(">> dt "..mem.dt.." on lev "..lev..": ")
 							while mem.time < sliceTime do
 								write(".")
 								-- update step count
@@ -354,6 +357,12 @@ function util.rates.kinetic.compute(ConvRateSetup)
 									newtonSolver:init(AssembledOperator(usedTimeDisc, mem.u:grid_level()))
 									if newtonSolver:prepare(mem.u) == false then print (">> Newton init failed."); exit(); end 
 									if newtonSolver:apply(mem.u) == false then print (">> Newton solver failed."); exit(); end 
+									--AdjustMeanValue(mem.u, "p")
+
+									if plotSol then
+										vtk = VTKOutput()
+										vtk:print(solPath.."Sol_"..ts.."stage_"..stage.."_s"..mem.step, mem.u)
+									end
 																										
 									-- update new time
 									mem.time = usedTimeDisc:future_time()
