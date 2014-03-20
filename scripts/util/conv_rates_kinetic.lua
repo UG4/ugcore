@@ -679,16 +679,39 @@ function util.rates.kinetic.compute(ConvRateSetup)
 				gpData[file] = getPlot(disc, p, "all", tp, f, t, n)
 				gpData[file].gpOptions = {logscale = {x = true, y = true}}
 			end
-					
+				
 			-- convergence in space
 			if not plotOnlyTime then
 			for k, _ in iipairs(value.h) do						
 				local dtID = "dt"..k.."["..err.dt[k].."]"
 				local file = dir..table.concat({"error",disc,p,ts,f,t,n,dtID},"_")..".dat"
 				local cols = {err.DoFs, err.h, value.h[k]}
-				gnuplot.write_data(file, cols)				
-			end
+				gnuplot.write_data(file, cols)		
+				
+				for xCol, x in ipairs({"DoFs", "h"}) do
+					local dataset = {label=MeasLabel(disc, p), file=file, style="linespoints", xCol, 3}
+					local label = { x = SpaceLabel(x), y = NormLabel(f,t,n)}
+					addSet( accessPlot(disc, p, "all", tp, f, t, n, x), dataset, label)
+					addSet( accessPlot(disc,    "all", tp, f, t, n, x), dataset, label)
+					addSet( accessPlot("all",   "all", tp, f, t, n, x), dataset, label)
+
+					-- single dataset			
+					local file = plotDir..table.concat({disc,p,"all",f,"__",t,n,x},"_")
+					gpData[file] = getPlot(disc, p, "all", tp, f, t, n, x)
+					gpData[file].gpOptions = {logscale = {x = true, y = true}}
+					
+					-- grouping space disc			
+					local file = plotDir..table.concat({disc,"all",f,"__",t,n,x},"_")
+					gpData[file] = getPlot(disc,    "all", tp, f, t, n, x)
+					gpData[file].gpOptions = {logscale = {x = true, y = true}}
 	
+					-- grouping space disc	+ p		
+					local file = plotDir..table.concat({"all","all",f,"__",t,n,x},"_")
+					gpData[file] = getPlot("all",   "all", tp, f, t, n, x)
+					gpData[file].gpOptions = {logscale = {x = true, y = true}}
+				end
+			end
+
 			-- convergence in space-time
 			local file = dir..table.concat({"error",disc,p,ts,f,t,n},"_")..".dat"
 			local fio = io.open(file, "w+")
@@ -735,7 +758,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 		-- plots for time series
 		---------------------------------------------
 		if not plotOnlyTime then
-		
+
 		-- 2d: error over time
 		local value = errors[disc][p][ts][f][t][n][1].value
 		for lev, _ in iipairs(value) do		
@@ -852,7 +875,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 
 		-- 3d: error over time and space
 		local value = errors[disc][p][ts][f][t][n][1].value
-		for k, _ in iipairs(value[#value]) do		
+		for k, _ in iipairs(value[table.imin(value)]) do		
 			local dtID = "dt"..k.."["..err.dt[k].."]"
 			local name = table.concat({disc,p,ts,f,t,n,"time","space",dtID},"_")
 			local file = dataPath.."error_"..name..".dat"
@@ -873,7 +896,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 				fio:write("\n")
 			end
 			fio:close()
-							
+
 			for xCol, x in ipairs({"DoFs", "h"}) do
 				local dataset = {label = MeasLabel(disc, p), file=file, style=style3d, xCol, 3, 4}
 				local label = { x = SpaceLabel(x), y = TimeLabel(), z = NormLabel(f,t,n)}
@@ -920,7 +943,6 @@ function util.rates.kinetic.compute(ConvRateSetup)
 			end
 		end
 
-
 		-- 3d: error over time and dt
 		local value = errors[disc][p][ts][f][t][n][1].value
 		for lev, _ in iipairs(value) do		
@@ -929,7 +951,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 			local file = dataPath.."error_"..name..".dat"
 
 			local fio = io.open(file, "w+")
-			for k, _ in iipairs(value[#value]) do		
+			for k, _ in iipairs(value[table.imin(value)]) do		
 				for tp, _ in pairs(errors[disc][p][ts][f][t][n]) do
 			
 					local value = errors[disc][p][ts][f][t][n][tp].value
