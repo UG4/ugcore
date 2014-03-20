@@ -14,17 +14,28 @@ template <class TAAPos>
 bool
 ContainsPoint(Volume* vol, const vector3& p, TAAPos aaPos)
 {
+	using std::max;
 //	iterate over face descriptors of the sides and check whether the point
 //	lies inside or outside
 	FaceDescriptor fd;
 	vector3 n, dir;
+
+//	to minimize rouding errors we'll compare against a small-constant which is
+//	relative to the longest edge of the examined volume.
+	number lenSq = 0;
+	EdgeDescriptor ed;
+	for(size_t i = 0; i < vol->num_edges(); ++i){
+		vol->edge_desc(i, ed);
+		lenSq = max(lenSq, EdgeLengthSq(&ed, aaPos));
+	}
+	const number small = sqrt(lenSq) * SMALL;
 
 	for(size_t i = 0; i < vol->num_faces(); ++i){
 		vol->face_desc(i, fd);
 		CalculateNormalNoNormalize(n, &fd, aaPos);
 		VecSubtract(dir, aaPos[fd.vertex(0)], p);
 
-		if(VecDot(dir, n) < 0)
+		if(VecDot(dir, n) < -small)
 			return false;
 	}
 	return true;
