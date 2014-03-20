@@ -16,6 +16,9 @@ function util.rates.kinetic.NoMaxLevelPadding(p)
 	return 0
 end
 
+function util.rates.kinetic.StdAutoStepSize(lev, h) 
+	return h 
+end
 --------------------------------------------------------------------------------
 -- Label names
 --------------------------------------------------------------------------------
@@ -107,6 +110,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 	local CreateDomain = 		CRS.CreateDomain
 	local SetStartSolution = 	CRS.SetStartSolution
 	local MaxLevelPadding = 	CRS.MaxLevelPadding 	or util.rates.kinetic.StdMaxLevelPadding
+	local AutoStepSize = 		CRS.AutoStepSize or util.rates.kinetic.StdAutoStepSize
 	
 	if 	CreateApproxSpace == nil or CreateDomainDisc == nil or 
 		CreateSolver == nil or CreateDomain == nil or 
@@ -221,10 +225,14 @@ function util.rates.kinetic.compute(ConvRateSetup)
 				end
 			end
 			
+			local AutoTimeScheme = false
+			if not TimeDiscs then AutoTimeScheme = true end
+			local UsedTimeDiscs = TimeDiscs or {{type = "alexander", orderOrTheta = p, dt = 1, sub = 2, refs = 0}}
+			
 			--------------------------------------------------------------------
 			--  Loop Time discs
 			--------------------------------------------------------------------
-			for _, TimeDisc in ipairs(TimeDiscs) do
+			for _, TimeDisc in ipairs(UsedTimeDiscs) do
 
 				local timeScheme	= TimeDisc.type
 				local orderOrTheta 	= TimeDisc.orderOrTheta or 1
@@ -300,6 +308,12 @@ function util.rates.kinetic.compute(ConvRateSetup)
 					err.level[lev] = lev
 					err.DoFs[lev] = memory[lev][0].u:num_dofs()
 				end	
+					
+				if AutoTimeScheme then
+					for lev = minLev, maxLev do	
+						memory[lev][0].dt = AutoStepSize(lev, err.h[lev])
+					end
+				end
 					
 				----------------------------------------------------------------
 				--  Compute solution for all level and time step sizes
