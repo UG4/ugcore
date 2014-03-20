@@ -29,8 +29,9 @@ public:
 	DebugID(uint32 hash) { m_hash = hash; }
 /// returns the debug level via GetDebugIDManager.
 	inline int get_debug_level() const;
+
 /// sets the debug level via GetDebugIDManager.
-	inline bool set_debug_level(int level) const;
+	inline bool set_debug_level(int level);
 
 	friend class DebugIDManager;
 private:
@@ -91,7 +92,7 @@ public:
 			return m_dbgLevels.find(crc32(debugIDname)) != m_dbgLevels.end();
 		}
 	/// returns the debug level of debugID, -1 if not found
-		inline int get_debug_level(DebugID &debugID) const
+		inline int get_debug_level(const DebugID &debugID) const
 		{
 			return get_debug_level(debugID.m_hash);
 		}
@@ -154,6 +155,15 @@ private:
 inline DebugIDManager& GetDebugIDManager()
 {
 	return DebugIDManager::instance();
+}
+
+inline int DebugID::get_debug_level() const
+{
+	return GetDebugIDManager().get_debug_level(*this);
+}
+inline bool DebugID::set_debug_level(int level)
+{
+	return GetDebugIDManager().set_debug_level(*this, level);
 }
 
 // end group ugbase_common
