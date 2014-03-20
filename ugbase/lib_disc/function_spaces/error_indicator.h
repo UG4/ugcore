@@ -811,26 +811,37 @@ void MarkForAdaption_L2ErrorExact_IMPL(IRefiner& refiner,
 
 	if(l2Error > maxL2Error){
 		typedef typename TFunction::template traits<elem_t>::const_iterator	ElemIter;
-		size_t numElems = 0;
-		number maxElemError = 0;
+		size_t numElemsActive = 0;	// number of elements which may be refined
+		size_t numElemsTotal = 0;	// total number of elements
+		number maxElemError = 0;	// error in elements which may be refined
+		number fixedError = 0;		// error in elements which can't be refined any further
 		for(ElemIter iter = u->template begin<elem_t>(); iter != u->template end<elem_t>(); ++iter){
-			++numElems;
+			++numElemsTotal;
 			if(mg.get_level(*iter) < maxLvl){
+				++numElemsActive;
 				maxElemError = max(maxElemError, aaError[*iter]);
+			}
+			else{
+				fixedError += aaError[*iter];
 			}
 		}
 
 		#ifdef UG_PARALLEL
 			pcl::ProcessCommunicator com;
 			maxElemError = com.allreduce(maxElemError, PCL_RO_MAX);
+			fixedError = com.allreduce(fixedError, PCL_RO_MAX);
 		#endif
 
 	//	note that aaError contains error-squares
 		maxElemError = maxElemError * sq(refFrac);
 
 		number refThreshold = maxElemError;
-		/*if(maxL2Error > 0)
-			refThreshold = max(maxElemError, maxL2Error * maxL2Error / (number)numElems);*/
+		if(maxL2Error > 0){
+		//	here we try to reduce the number of elements marked in the last steps.
+		//	note that each element stores error-squares...
+			//refThreshold = max(maxElemError, (sq(maxL2Error) - fixedError) / (number)numElemsActive);
+			//refThreshold = max(maxElemError, sq(maxL2Error)/ (number)numElemsTotal);
+		}
 
 		MarkElementsAbsolute(aaError, refiner, u->dof_distribution(), refThreshold, -1,
 						 minLvl, maxLvl);
@@ -839,7 +850,7 @@ void MarkForAdaption_L2ErrorExact_IMPL(IRefiner& refiner,
 //	coarsening
 	// number coarsenThreshold = -1;
 	// if(minL2Error > 0)
-	// 	coarsenThreshold = minL2Error * minL2Error / (number)numElems;
+	// 	coarsenThreshold = minL2Error * minL2Error / (number)numElemsActive;
 
 // 	detach error field
 	mg.template detach_from<elem_t>(aError);
