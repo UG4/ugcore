@@ -338,6 +338,11 @@ function util.rates.kinetic.compute(ConvRateSetup)
 						for k = refs, 0, -1 do
 		
 							local mem = memory[lev][k]
+							
+							if plotSol and mem.step == 0 then
+								vtk = VTKOutput()
+								vtk:print(solPath.."Sol_"..disc..p.."_"..ts.."_lev"..lev.."_k"..k.."_s"..mem.step, mem.u)
+							end
 		
 							err.dt[k] = mem.dt
 					
