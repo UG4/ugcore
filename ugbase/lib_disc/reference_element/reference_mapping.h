@@ -192,6 +192,7 @@ class BaseReferenceMapping
 			MathMatrix<worldDim, dim> J;
 			MathMatrix<dim, worldDim> JInv;
 			MathVector<worldDim> dist, compGlobPos;
+			number tolSq = sq(tol);
 
 			for (size_t i = 0; i < maxIter; ++i) {
 
@@ -200,7 +201,7 @@ class BaseReferenceMapping
 				VecSubtract(dist, compGlobPos, globPos);
 
 			//	check if tol reached
-				if(fabs(VecTwoNorm(dist)) < sq(tol) ) return;
+				if(VecTwoNormSq(dist) < tolSq) return;
 
 			//	compute jacobian df/dx = d \phi(x) / dx =: J
 				getImpl().jacobian(J, locPos);
