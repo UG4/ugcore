@@ -352,6 +352,74 @@ number SDIRK<TAlgebra>::update_scaling(std::vector<number>& vSM,
 				UG_THROW("Alexander(3) scheme has only 3 stages")
 		}
 	}
+	else if(m_order == 4) // Hairer,Wanner, order 4, L-stable DIRK
+	{
+		switch(m_stage)
+		{
+			case 1:
+				vSM.resize(2);
+				vSA.resize(2);
+				vSM[0] = 1.;
+				vSM[1] = -1.;
+				vSA[0] = dt * 1./4.;
+				vSA[1] = 0;
+				return m_Time0 + 1./4. * dt;
+			case 2:
+				vSM.resize(3);
+				vSA.resize(3);
+				vSM[0] = 1.;
+				vSM[1] = 0;
+				vSM[2] = -1;
+				vSA[0] = dt * 1./4.;
+				vSA[1] = dt * 1./2.;
+				vSA[2] = 0;
+				return m_Time0 + 3./4. * dt;
+			case 3:
+				vSM.resize(4);
+				vSA.resize(4);
+				vSM[0] = 1.;
+				vSM[1] = 0;
+				vSM[2] = 0;
+				vSM[3] = -1;
+				vSA[0] = dt * 1./4.;
+				vSA[1] = dt * (-1./25.);
+				vSA[2] = dt * 17./50.;
+				vSA[3] = 0;
+				return m_Time0 + 11./20. * dt;
+			case 4:
+				vSM.resize(5);
+				vSA.resize(5);
+				vSM[0] = 1.;
+				vSM[1] = 0;
+				vSM[2] = 0;
+				vSM[3] = 0;
+				vSM[4] = -1;
+				vSA[0] = dt * 1./4.;
+				vSA[1] = dt * (15./544.);
+				vSA[2] = dt * (-137./2720.);
+				vSA[3] = dt * (371./1360.);
+				vSA[4] = 0;
+				return m_Time0 + 1./2. * dt;
+			case 5:
+				vSM.resize(6);
+				vSA.resize(6);
+				vSM[0] = 1.;
+				vSM[1] = 0;
+				vSM[2] = 0;
+				vSM[3] = 0;
+				vSM[4] = 0;
+				vSM[5] = -1;
+				vSA[0] = dt * 1./4.;
+				vSA[1] = dt * (-85./12.);
+				vSA[2] = dt * (125./16.);
+				vSA[3] = dt * (-49./48.);
+				vSA[4] = dt * (25./24.);
+				vSA[5] = 0;
+				return m_Time0 + 1. * dt;
+			default:
+				UG_THROW("HairerWanner(4) scheme has only 5 stages")
+		}
+	}
 	else if(m_order == 3) // Crouzeix, order 3
 	{
 		const number gamma = (3. + sqrt(3.))/6.;

@@ -404,7 +404,7 @@ class SDIRK
 				case 1: return 2; // Midpoint
 				case 2: return 2; // Alexander(2)
 				case 3: return 3; // Alexander(3)
-				case 4: return 4; // Crouxeiz(4)
+				case 4: return 5; // HairerWanner(4)
 				default: UG_THROW("DIRK: Only up to order 4.")
 			}
 		}
