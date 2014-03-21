@@ -89,8 +89,8 @@ class GlobalGridFunctionNumberData
 		inline bool evaluate(number& value, const MathVector<dim>& x) const
 		{
 
+			element_t* elem;
 			try{
-				element_t* elem;
 				if(!FindContainingElement(elem, m_tree, x))
 					return false;
 
@@ -106,11 +106,7 @@ class GlobalGridFunctionNumberData
 					= ReferenceMappingProvider::get<dim, dim>(roid, vCornerCoords);
 				MathVector<dim> locPos;
 				VecSet(locPos, 0.5);
-				try{
-					map.global_to_local(locPos, x);
-				}
-				UG_CATCH_THROW("Point: " << x << ", Element: " << ElementDebugInfo(*m_spGridFct->domain()->grid(), elem));
-
+				map.global_to_local(locPos, x);
 
 			//	evaluate at shapes at ip
 				const LocalShapeFunctionSet<dim>& rTrialSpace =
@@ -133,7 +129,9 @@ class GlobalGridFunctionNumberData
 			//	point is found
 				return true;
 			}
-			UG_CATCH_THROW("GlobalGridFunctionNumberData: Evaluation failed.");
+			UG_CATCH_THROW("GlobalGridFunctionNumberData: Evaluation failed."
+						   << "Point: " << x << ", Element: "
+						   << ElementDebugInfo(*m_spGridFct->domain()->grid(), elem));
 		}
 
 		/// evaluate value on all procs
