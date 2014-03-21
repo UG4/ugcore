@@ -111,6 +111,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 	local SetStartSolution = 	CRS.SetStartSolution
 	local MaxLevelPadding = 	CRS.MaxLevelPadding 	or util.rates.kinetic.StdMaxLevelPadding
 	local AutoStepSize = 		CRS.AutoStepSize or util.rates.kinetic.StdAutoStepSize
+	local AutoTimeDisc = 		CRS.AutoTimeDisc or "sdirk"
 	
 	if 	CreateApproxSpace == nil or CreateDomainDisc == nil or 
 		CreateSolver == nil or CreateDomain == nil or 
@@ -227,7 +228,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 			
 			local AutoTimeScheme = false
 			if not TimeDiscs then AutoTimeScheme = true end
-			local UsedTimeDiscs = TimeDiscs or {{type = "alexander", orderOrTheta = p, dt = (EndTime-StartTime)/10, sub = 2, refs = 0}}
+			local UsedTimeDiscs = TimeDiscs or {{type = AutoTimeDisc, orderOrTheta = p, dt = (EndTime-StartTime)/10, sub = 2, refs = 0}}
 			
 			--------------------------------------------------------------------
 			--  Loop Time discs
@@ -374,18 +375,13 @@ function util.rates.kinetic.compute(ConvRateSetup)
 									if newtonSolver:apply(mem.u) == false then print (">> Newton solver failed."); exit(); end 
 									AdjustMeanValue(mem.u, "p")
 
-									if plotSol then
-										vtk = VTKOutput()
-										vtk:print(solPath.."Sol_"..ts.."stage_"..stage.."_s"..mem.step, mem.u)
-									end
-																										
 									-- update new time
 									mem.time = usedTimeDisc:future_time()
 									if math.abs(sliceTime - mem.time) < 1e-8*dt then mem.time = sliceTime end
 
 									if plotSol then
 										vtk = VTKOutput()
-										vtk:print(solPath.."Sol_"..ts.."_stage"..stage.."_s"..mem.step, mem.u)
+										vtk:print(solPath.."Sol_"..disc..p.."_"..ts.."_lev"..lev.."_k"..k.."_stage_"..stage.."_s"..mem.step, mem.u)
 									end
 									
 									-- push oldest solutions with new values to front, oldest sol pointer is poped from end	
@@ -408,7 +404,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 							
 							if plotSol then
 								vtk = VTKOutput()
-								vtk:print(solPath.."Sol_"..ts.."_s"..mem.step, mem.u)
+								vtk:print(solPath.."Sol_"..disc..p.."_"..ts.."_lev"..lev.."_k"..k.."_s"..mem.step, mem.u)
 							end
 						
 							---------------------------------------------------- 
