@@ -758,7 +758,7 @@ void MarkForAdaption_AbsoluteGradientJumpIndicator(IRefiner& refiner,
  * \param[in]	maxL2Error	errors below maxL2Error are considered fine.
  */
 template <typename TDomain, typename TAlgebra>
-void MarkForAdaption_L2ErrorExact_IMPL(IRefiner& refiner,
+void MarkForAdaption_L2ErrorExact(IRefiner& refiner,
                                    SmartPtr<GridFunction<TDomain, TAlgebra> > u,
                                    SmartPtr<UserData<number, TDomain::dim> > spExactSol,
                                    const char* cmp,
@@ -855,24 +855,6 @@ void MarkForAdaption_L2ErrorExact_IMPL(IRefiner& refiner,
 // 	detach error field
 	mg.template detach_from<elem_t>(aError);
 };
-
-
-template <typename TDomain, typename TAlgebra>
-void MarkForAdaption_L2ErrorExact(IRefiner& refiner,
-                                   SmartPtr<GridFunction<TDomain, TAlgebra> > u,
-                                   const char* exactSolCallbackName,
-                                   const char* cmp,
-                                   number minL2Error,
-                                   number maxL2Error,
-                                   number refFrac,
-                                   int minLvl, int maxLvl,
-                                   number time, int quadOrder)
-{
-	SmartPtr<UserData<number, TDomain::dim> > spCallback
-	 = make_sp(new LuaUserData<number, TDomain::dim>(exactSolCallbackName));
-	MarkForAdaption_L2ErrorExact_IMPL(refiner, u, spCallback, cmp, minL2Error,
-								 maxL2Error, refFrac, minLvl, maxLvl, time, quadOrder);
-}
 
 } // end namespace ug
 

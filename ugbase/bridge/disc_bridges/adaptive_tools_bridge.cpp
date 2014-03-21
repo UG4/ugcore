@@ -25,6 +25,26 @@
 using namespace std;
 
 namespace ug{
+
+#ifdef UG_FOR_LUA
+	template <typename TDomain, typename TAlgebra>
+	static void MarkForAdaption_L2ErrorExactLUA(IRefiner& refiner,
+	                                   SmartPtr<GridFunction<TDomain, TAlgebra> > u,
+	                                   const char* exactSolCallbackName,
+	                                   const char* cmp,
+	                                   number minL2Error,
+	                                   number maxL2Error,
+	                                   number refFrac,
+	                                   int minLvl, int maxLvl,
+	                                   number time, int quadOrder)
+	{
+		SmartPtr<UserData<number, TDomain::dim> > spCallback
+			= make_sp(new LuaUserData<number, TDomain::dim>(exactSolCallbackName));
+		MarkForAdaption_L2ErrorExact(refiner, u, spCallback, cmp, minL2Error,
+									 maxL2Error, refFrac, minLvl, maxLvl, time, quadOrder);
+	}
+#endif
+
 namespace bridge{
 namespace AdaptiveTools{
 
@@ -79,6 +99,10 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_function("MarkForAdaption_L2ErrorExact",
 						 &MarkForAdaption_L2ErrorExact<TDomain, TAlgebra>, grp);
 		
+		#ifdef UG_FOR_LUA
+			reg.add_function("MarkForAdaption_L2ErrorExact",
+						 	 &MarkForAdaption_L2ErrorExactLUA<TDomain, TAlgebra>, grp);
+		#endif
 		// reg.add_function("MarkForAdaption_L2ErrorExact",
 		// 				 static_cast<void (*)(IRefiner&,
 		// 										SmartPtr<GridFunction<TDomain, TAlgebra> >,
