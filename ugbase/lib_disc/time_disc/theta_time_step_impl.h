@@ -280,10 +280,10 @@ number SDIRK<TAlgebra>::update_scaling(std::vector<number>& vSM,
 				vSA[2] = 0;
 				return m_Time0 + dt;
 			default:
-				UG_THROW("Alexander scheme has only 3 stages")
+				UG_THROW("Midpoint scheme has only 2 stages")
 		}
 	}
-	else if(m_order == 2) // Alexander
+	else if(m_order == 2) // Alexander, order 2
 	{
 		const number gamma = 1 - 1. / sqrt(2.);
 		switch(m_stage)
@@ -306,6 +306,36 @@ number SDIRK<TAlgebra>::update_scaling(std::vector<number>& vSM,
 				vSA[1] = dt * (1. - gamma);
 				vSA[2] = 0;
 				return m_Time0 + dt;
+			default:
+				UG_THROW("Alexander(2) scheme has only 2 stages")
+		}
+	}
+	else if(m_order == 3) // Alexander, order 3
+	{
+		const number alpha = 0.4358665215;// root of x^3-3x^2+3/2x-1/6 = 0
+		const number tau = (1. + alpha)/2.;
+		const number b1 = -(6*alpha*alpha-16*alpha+1.)/4.;
+		const number b2 = (6*alpha*alpha-20*alpha+5.)/4.;
+		switch(m_stage)
+		{
+			case 1:
+				vSM.resize(2);
+				vSA.resize(2);
+				vSM[0] = 1.;
+				vSM[1] = -1.;
+				vSA[0] = dt * alpha;
+				vSA[1] = 0;
+				return m_Time0 + alpha * dt;
+			case 2:
+				vSM.resize(3);
+				vSA.resize(3);
+				vSM[0] = 1.;
+				vSM[1] = 0;
+				vSM[2] = -1;
+				vSA[0] = dt * alpha;
+				vSA[1] = dt * (tau-alpha);
+				vSA[2] = 0;
+				return m_Time0 + tau * dt;
 			case 3:
 				vSM.resize(4);
 				vSA.resize(4);
@@ -313,13 +343,13 @@ number SDIRK<TAlgebra>::update_scaling(std::vector<number>& vSM,
 				vSM[1] = 0;
 				vSM[2] = 0;
 				vSM[3] = -1;
-				vSA[0] = 0;
-				vSA[1] = dt * gamma;
-				vSA[2] = dt * (1. - gamma);
+				vSA[0] = dt * alpha;
+				vSA[1] = dt * b1;
+				vSA[2] = dt * b2;
 				vSA[3] = 0;
 				return m_Time0 + dt;
 			default:
-				UG_THROW("Alexander scheme has only 3 stages")
+				UG_THROW("Alexander(3) scheme has only 3 stages")
 		}
 	}
 	else if(m_order == 3) // Crouzeix, order 3
