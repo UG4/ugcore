@@ -200,7 +200,7 @@ class BaseReferenceMapping
 				VecSubtract(dist, compGlobPos, globPos);
 
 			//	check if tol reached
-				if(fabs(VecTwoNorm(dist)) < tol) return;
+				if(fabs(VecTwoNorm(dist)) < sq(tol) ) return;
 
 			//	compute jacobian df/dx = d \phi(x) / dx =: J
 				getImpl().jacobian(J, locPos);

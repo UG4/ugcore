@@ -105,7 +105,12 @@ class GlobalGridFunctionNumberData
 				DimReferenceMapping<dim, dim>& map
 					= ReferenceMappingProvider::get<dim, dim>(roid, vCornerCoords);
 				MathVector<dim> locPos;
-				map.global_to_local(locPos, x);
+				VecSet(locPos, 0.5);
+				try{
+					map.global_to_local(locPos, x);
+				}
+				UG_CATCH_THROW("Point: " << x << ", Element: " << ElementDebugInfo(*m_spGridFct->domain()->grid(), elem));
+
 
 			//	evaluate at shapes at ip
 				const LocalShapeFunctionSet<dim>& rTrialSpace =
