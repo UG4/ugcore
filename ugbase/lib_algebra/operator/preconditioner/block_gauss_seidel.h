@@ -16,9 +16,6 @@
 	#include "lib_algebra/parallelization/parallel_matrix_overlap_impl.h"
 #endif
 
-
-#include "../plugins/experimental/amg/src/rsamg/strong_connections.h"
-
 #include "lib_algebra/algebra_common/sparsematrix_util.h"
 #include "lib_algebra/algebra_common/local_helper.h"
 #include "lib_algebra/small_algebra/small_matrix/print.h"
