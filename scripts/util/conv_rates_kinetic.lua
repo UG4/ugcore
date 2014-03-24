@@ -417,6 +417,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 							---------------------------------------------------- 
 							local quadOrder = p+3
 							
+							write(">> Stats for: dt "..mem.dt.." on lev "..lev.." ("..ts.."; "..disc..", "..p.."): ")
 							for f, Cmps in pairs(PlotCmps) do
 			
 								-- create component
