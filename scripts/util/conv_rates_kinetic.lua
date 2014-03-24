@@ -404,6 +404,11 @@ function util.rates.kinetic.compute(ConvRateSetup)
 									end
 								end
 					
+								if plotSol then
+									vtk = VTKOutput()
+									vtk:print(solPath.."Sol_"..disc..p.."_"..ts.."_lev"..lev.."_k"..k.."_s"..mem.step, mem.u)
+								end
+					
 							end	-- end slice interval
 							write("\n")
 							
