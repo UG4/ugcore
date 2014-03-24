@@ -346,7 +346,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 		
 							err.dt[k] = mem.dt
 					
-							write(">> dt "..mem.dt.." on lev "..lev..": ")
+							write(">> dt "..mem.dt.." on lev "..lev.."("..ts.."; "..disc..", "..p.."): ")
 							while mem.time < sliceTime do
 								write(".")
 								-- update step count
