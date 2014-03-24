@@ -313,7 +313,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 					
 				if AutoTimeScheme then
 					for lev = minLev, maxLev do	
-						memory[lev][0].dt = AutoStepSize(lev, err.h[lev])
+						memory[lev][0].dt = AutoStepSize(lev, err.h[lev], p, StartTime)
 					end
 				end
 					
@@ -355,6 +355,9 @@ function util.rates.kinetic.compute(ConvRateSetup)
 								-- time step size
 								local dt = mem.dt
 								local dodt = dt
+								if AutoTimeScheme then
+									dodt = AutoStepSize(lev, err.h[lev], p, mem.time)
+								end
 
 								local usedTimeDisc = timeDisc
 								if ts:sub(1,3):lower() == "bdf" then
@@ -375,10 +378,11 @@ function util.rates.kinetic.compute(ConvRateSetup)
 									usedTimeDisc:prepare_step(mem.TimeSeries, dodt)
 			
 									-- solve step						
+									--SetStartSolution(mem.u, usedTimeDisc:future_time())				
 									newtonSolver:init(AssembledOperator(usedTimeDisc, mem.u:grid_level()))
 									if newtonSolver:prepare(mem.u) == false then print (">> Newton init failed."); exit(); end 
 									if newtonSolver:apply(mem.u) == false then print (">> Newton solver failed."); exit(); end 
-									AdjustMeanValue(mem.u, "p")
+									--AdjustMeanValue(mem.u, "p")
 
 									-- update new time
 									mem.time = usedTimeDisc:future_time()
