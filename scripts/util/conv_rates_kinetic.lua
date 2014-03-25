@@ -373,11 +373,11 @@ function util.rates.kinetic.compute(ConvRateSetup)
 														
 								if mem.time + dodt > sliceTime then 
 									dodt = sliceTime - mem.time 
-									write(">> End of Slice: dt "..dodt.." on lev "..lev.." ("..ts.."; "..disc..", "..p.."): at "..mem.time)
+									print(">> End of Slice: dt "..dodt.." on lev "..lev.." ("..ts.."; "..disc..", "..p.."): at "..mem.time)
 								end
 								if (sliceTime - (mem.time+dodt)) < 1e-8*dodt then 
 									dodt = sliceTime - mem.time 
-									write(">> Roundoff Fix: dt "..dodt.." on lev "..lev.." ("..ts.."; "..disc..", "..p.."): at "..mem.time)
+									print(">> Roundoff Fix: dt "..dodt.." on lev "..lev.." ("..ts.."; "..disc..", "..p.."): at "..mem.time)
 								end
 						
 								for stage = 1, usedTimeDisc:num_stages() do
