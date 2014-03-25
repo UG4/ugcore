@@ -228,7 +228,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 			
 			local AutoTimeScheme = false
 			if not TimeDiscs then AutoTimeScheme = true end
-			local UsedTimeDiscs = TimeDiscs or {{type = AutoTimeDisc, orderOrTheta = p, dt = (EndTime-StartTime)/10, sub = 2, refs = 0}}
+			local UsedTimeDiscs = TimeDiscs or {{type = AutoTimeDisc, orderOrTheta = p, dt = (EndTime-StartTime)/20, sub = 2, refs = 0}}
 			
 			--------------------------------------------------------------------
 			--  Loop Time discs
