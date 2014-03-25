@@ -376,7 +376,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 									print(">> End of Slice: dt "..dodt.." on lev "..lev.." ("..ts.."; "..disc..", "..p.."): at "..mem.time)
 								end
 								if (sliceTime - (mem.time+dodt)) < 1e-8*dodt then 
-									dodt = sliceTime - mem.time 
+--									dodt = sliceTime - mem.time 
 									print(">> Roundoff Fix: dt "..dodt.." on lev "..lev.." ("..ts.."; "..disc..", "..p.."): at "..mem.time)
 								end
 						
