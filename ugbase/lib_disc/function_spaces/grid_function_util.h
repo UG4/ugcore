@@ -27,6 +27,7 @@
 #include "lib_disc/common/groups_util.h"
 #include "lib_disc/common/geometry_util.h"
 #include "lib_disc/function_spaces/integrate.h"
+#include "lib_grid/tools/periodic_boundary_manager.h"
 
 #include "grid_function.h"
 #include "dof_position_util.h"
@@ -50,12 +51,17 @@ void SubtractValueFromComponent(SmartPtr<TGridFunction> spGF, size_t fct, number
 	iter_type iter = spGF->template begin<TBaseElem>();
 	iter_type iterEnd = spGF->template end<TBaseElem>();
 
+	PeriodicBoundaryManager* pbm = spGF->domain()->grid()->periodic_boundary_manager();
+
 //  loop elems
 	std::vector<DoFIndex> vMultInd;
 	for(; iter != iterEnd; ++iter)
 	{
 	//	get element
 		TBaseElem* elem = *iter;
+
+	//	skip periodic ghosts
+		if (pbm && pbm->is_slave(elem)) continue;
 
 	//  get global indices
 		spGF->inner_dof_indices(elem, fct, vMultInd);
