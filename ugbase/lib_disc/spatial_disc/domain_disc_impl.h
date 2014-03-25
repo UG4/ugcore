@@ -1443,10 +1443,22 @@ mark_error
 		CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler());
 	}UG_CATCH_THROW("'DomainDiscretization': Can not create Subset Groups and Union.");
 	
-//	preprocess the error estimators in the discretizations
+//	get the error estimator data for all the discretizations
+	std::vector<IErrEstData*> vErrEstData;
+	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
+	{
+		SmartPtr<IErrEstData> sp_err_est_data = m_vElemDisc[i]->err_est_data();
+		IErrEstData* err_est_data = sp_err_est_data.get();
+		if (err_est_data == NULL) continue; // no data specified
+		if (std::find (vErrEstData.begin(), vErrEstData.end(), err_est_data) != vErrEstData.end())
+			continue; // this one is already in the array
+		vErrEstData.push_back(err_est_data);
+	}
+	
+//	preprocess the error estimator data in the discretizations
 	try{
-		for(size_t i = 0; i < m_vElemDisc.size(); ++i)
-			m_vElemDisc[i]->prepare_error_estimator(dd->subset_handler());
+		for(size_t i = 0; i < vErrEstData.size(); ++i)
+			vErrEstData[i]->alloc_err_est_data(dd->surface_view(), dd->grid_level());
 	}
 	UG_CATCH_THROW("DomainDiscretization::mark_error: Cannot prepare the error estimator");	
 
@@ -1502,6 +1514,13 @@ mark_error
 						" Assembling of elements of Dimension " << dim << " in "
 						" subset "<<si<< " failed.");
 	}
+
+//	summarize the error estimator data in the discretizations
+	try{
+		for(size_t i = 0; i < vErrEstData.size(); ++i)
+			vErrEstData[i]->summarize_err_est_data();
+	}
+	UG_CATCH_THROW("DomainDiscretization::mark_error: Cannot summarize the error estimator");	
 
 //	loop subsets to compute the estimators
 	for(size_t i = 0; i < unionSubsets.size(); ++i)
@@ -1585,10 +1604,10 @@ mark_error
 	
 //	postprocess the error estimators in the discretizations
 	try{
-		for(size_t i = 0; i < m_vElemDisc.size(); ++i)
-			m_vElemDisc[i]->release_error_estimator();
+		for(size_t i = 0; i < vErrEstData.size(); ++i)
+			vErrEstData[i]->release_err_est_data();
 	}
-	UG_CATCH_THROW("DomainDiscretization::mark_error: Cannot finish the error estimator");	
+	UG_CATCH_THROW("DomainDiscretization::mark_error: Cannot release the error estimator");	
 }
 
 } // end namespace ug

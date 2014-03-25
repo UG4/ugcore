@@ -22,6 +22,7 @@
 #include "common/util/provider.h"
 #include "lib_disc/domain_util.h"
 #include "lib_disc/domain_traits.h"
+#include "lib_disc/spatial_disc/elem_disc/err_est_data.h"
 
 namespace ug{
 
@@ -293,6 +294,23 @@ class IElemDisc
 		bool m_bStationaryForced;
 
 	////////////////////////////
+	// Error estimator
+	////////////////////////////
+	public:
+	///	sets the pointer to an error estimator data object (or NULL)
+	/**
+	 * This function sets the pointer to an error estimator data object
+	 * that should be used for this discretization. Note that the ElemDisc
+	 * object must ust RTTI to try to convert this pointer to the type
+	 * of the objects accepted by it for this purpose. If the conversion
+	 * fails than an exception must be thrown since this situation is not
+	 * allowed. But this function can be always used with the SPNULL argument:
+	 * This means that no error estimators are assembled for this discretization.
+	 */
+	///	returns the pointer to the error estimator data object (or NULL)
+		virtual SmartPtr<IErrEstData> err_est_data () {return SPNULL;}
+	
+	////////////////////////////
 	// general info
 	////////////////////////////
 	public:
@@ -368,11 +386,6 @@ class IElemDisc
 
 	///	virtual postprocesses the loop over all elements of one type in the computation of the error estimator
 		virtual void fsh_err_est_elem_loop();
-		
-	///	virtual function to allocate data structures for the error estimator
-		virtual void prepare_error_estimator(ConstSmartPtr<ISubsetHandler>) {};
-	///	virtual function to release data structures for the error estimator
-		virtual void release_error_estimator() {};
 		
 	///	function dispatching call to implementation
 	/// \{
