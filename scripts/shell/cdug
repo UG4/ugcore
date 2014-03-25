@@ -11,6 +11,12 @@ function cdug() {
    
 }
 
+function ugupdate() {
+  cdug
+  svn update
+  cd -   
+}
+
 cdug_complete() {
   local word="${COMP_WORDS[COMP_CWORD]}"
   local i=0
