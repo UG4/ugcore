@@ -393,7 +393,6 @@ function util.rates.kinetic.compute(ConvRateSetup)
 
 									-- update new time
 									mem.time = usedTimeDisc:future_time()
-									if math.abs(sliceTime - mem.time) < 1e-8*dodt then mem.time = sliceTime end
 
 									if plotSol then
 										vtk = VTKOutput()
@@ -414,6 +413,8 @@ function util.rates.kinetic.compute(ConvRateSetup)
 										end
 									end
 								end
+
+								if math.abs(sliceTime - mem.time) < 1e-8*dodt then mem.time = sliceTime end
 					
 								if plotSol then
 									vtk = VTKOutput()
