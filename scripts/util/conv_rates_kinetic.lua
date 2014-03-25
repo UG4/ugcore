@@ -357,6 +357,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 								local dodt = dt
 								if AutoTimeScheme then
 									dodt = AutoStepSize(lev, err.h[lev], p, mem.time)
+									print(">> AutoStepSize: dt "..mem.dt.." on lev "..lev.." ("..ts.."; "..disc..", "..p.."): at "..mem.time)
 								end
 
 								local usedTimeDisc = timeDisc
@@ -370,8 +371,14 @@ function util.rates.kinetic.compute(ConvRateSetup)
 									end
 								end
 														
-								if mem.time + dodt > sliceTime then dodt = sliceTime - mem.time end
-								if ((sliceTime - (mem.time+dodt))/dodt) < 1e-8 then dodt = sliceTime - mem.time end
+								if mem.time + dodt > sliceTime then 
+									dodt = sliceTime - mem.time 
+									write(">> End of Slice: dt "..mem.dt.." on lev "..lev.." ("..ts.."; "..disc..", "..p.."): at "..mem.time)
+								end
+								if (sliceTime - (mem.time+dodt)) < 1e-8*dodt then 
+									dodt = sliceTime - mem.time 
+									write(">> Roundoff Fix: dt "..mem.dt.." on lev "..lev.." ("..ts.."; "..disc..", "..p.."): at "..mem.time)
+								end
 						
 								for stage = 1, usedTimeDisc:num_stages() do
 									usedTimeDisc:set_stage(stage)
@@ -386,7 +393,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 
 									-- update new time
 									mem.time = usedTimeDisc:future_time()
-									if math.abs(sliceTime - mem.time) < 1e-8*dt then mem.time = sliceTime end
+									if math.abs(sliceTime - mem.time) < 1e-8*dodt then mem.time = sliceTime end
 
 									if plotSol then
 										vtk = VTKOutput()
