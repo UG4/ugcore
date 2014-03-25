@@ -9,7 +9,7 @@ ug_load_script("util/persistence.lua")
 --------------------------------------------------------------------------------
 
 function util.rates.kinetic.StdMaxLevelPadding(p)
-	return math.floor(p/2)
+	return math.floor((p-1)/2)
 end
 
 function util.rates.kinetic.NoMaxLevelPadding(p)
