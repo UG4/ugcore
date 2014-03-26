@@ -391,6 +391,8 @@ function util.rates.kinetic.compute(ConvRateSetup)
 									if newtonSolver:prepare(mem.u) == false then print (">> Newton init failed."); exit(); end 
 									if newtonSolver:apply(mem.u) == false then print (">> Newton solver failed."); exit(); end 
 									AdjustMeanValue(mem.u, "p")
+									newtonSolver = nil
+									collectgarbage()
 
 									-- update new time
 									mem.time = usedTimeDisc:future_time()
