@@ -203,7 +203,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 			local domainDisc = CreateDomainDisc(approxSpace, disc, p)
 			
 			print(">> Create Solver")
-			local newtonSolver = CreateSolver(approxSpace)
+			--local newtonSolver = CreateSolver(approxSpace)
 
 			-- get names in approx space
 			local SpaceCmp = approxSpace:names()
@@ -386,6 +386,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 			
 									-- solve step						
 									--SetStartSolution(mem.u, usedTimeDisc:future_time())				
+									local newtonSolver = CreateSolver(approxSpace)									
 									newtonSolver:init(AssembledOperator(usedTimeDisc, mem.u:grid_level()))
 									if newtonSolver:prepare(mem.u) == false then print (">> Newton init failed."); exit(); end 
 									if newtonSolver:apply(mem.u) == false then print (">> Newton solver failed."); exit(); end 
