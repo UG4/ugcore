@@ -76,18 +76,23 @@ number CalculateVolume(Hexahedron* elem, TAAPos aaPos)
 
 
 template <class TAAPos>
-number CalculateVolume(Face* elem, TAAPos aaPos)
+number CalculateVolume(FaceVertices* elem, TAAPos aaPos)
 {
 	return FaceArea(elem, aaPos);
 }
 
 
 template <class TAAPos>
-number CalculateVolume(Edge* elem, TAAPos aaPos)
+number CalculateVolume(EdgeVertices* elem, TAAPos aaPos)
 {
 	return EdgeLength(elem, aaPos);
 }
 
+template <class TAAPos>
+number CalculateVolume(Vertex*, TAAPos)
+{
+	return 0;
+}
 
 template <class TIterator, class TAAPos>
 number CalculateVolume(TIterator begin, TIterator end, TAAPos aaPos)

@@ -263,6 +263,7 @@ update_loose_bounding_box(Node& node)
 		traits::merge_boxes(node.looseBox, node.looseBox, nbox);
 		entryInd = entry.nextEntryInd;
 	}
+	
 }
 
 

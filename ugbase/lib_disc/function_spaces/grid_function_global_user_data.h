@@ -89,7 +89,7 @@ class GlobalGridFunctionNumberData
 		inline bool evaluate(number& value, const MathVector<dim>& x) const
 		{
 
-			element_t* elem;
+			element_t* elem = NULL;
 			try{
 				if(!FindContainingElement(elem, m_tree, x))
 					return false;

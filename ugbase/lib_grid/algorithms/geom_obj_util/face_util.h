@@ -131,7 +131,7 @@ bool LiesOnBoundary(Grid& grid, TFace* f)
 ///	Returns the area of a convex face
 template <class TAAPosVRT>
 UG_API 
-number FaceArea(Face* f, TAAPosVRT& aaPos);
+number FaceArea(FaceVertices* f, TAAPosVRT& aaPos);
 
 ////////////////////////////////////////////////////////////////////////
 //  FaceArea

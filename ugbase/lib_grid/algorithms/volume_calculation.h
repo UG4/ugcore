@@ -45,12 +45,16 @@ number CalculateVolume(Hexahedron* elem, TAAPos aaPos);
 //	FACES
 template <class TAAPos>
 inline
-number CalculateVolume(Face* elem, TAAPos aaPos);
+number CalculateVolume(FaceVertices* elem, TAAPos aaPos);
 
 //	EDGES
 template <class TAAPos>
 inline
-number CalculateVolume(Edge* elem, TAAPos aaPos);
+number CalculateVolume(EdgeVertices* elem, TAAPos aaPos);
+
+template <class TAAPos>
+inline
+number CalculateVolume(Vertex* elem, TAAPos aaPos);
 
 template <class TIterator, class TAAPos>
 inline

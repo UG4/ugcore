@@ -122,6 +122,8 @@ template <class TElem>
 std::string ElementDebugInfo(const Grid& grid, TElem* e)
 {
 	std::stringstream ss;
+	if(!e)
+		return std::string("invalid element");
 
 	if(e->is_constrained())
 		ss << "constrained ";

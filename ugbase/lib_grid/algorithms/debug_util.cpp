@@ -8,7 +8,7 @@
 #ifdef UG_PARALLEL
 #include "lib_grid/parallelization/distributed_grid.h"
 #include "lib_grid/parallelization/util/compol_copy_attachment.h"
-#include "lib_grid/parallelization/util/compol_binary_or_attachment.h"
+#include "lib_grid/parallelization/util/compol_attachment_reduce.h"
 #include "pcl/pcl.h"
 #endif
 
@@ -564,7 +564,7 @@ static bool CheckDistributedObjectConstraintTypes(MultiGrid& mg)
 		DistributedGridManager& distGridMgr = *mg.distributed_grid_manager();
 		GridLayoutMap& glm = distGridMgr.grid_layout_map();
 
-		ComPol_BinaryOrAttachment<Layout, AInt> compolOr(mg, aState);
+		ComPol_AttachmentReduce<Layout, AInt>  compolOr(mg, aState, PCL_RO_BOR);
 		com.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, compolOr);
 		com.communicate();
 

@@ -22,6 +22,11 @@
 #include "lib_disc/function_spaces/level_transfer.h"
 #include "lib_disc/function_spaces/local_transfer.h"
 
+// error-indicator implementation
+#include "lib_grid/grid_objects/constraint_traits.h"
+#include "lib_grid/algorithms/normal_calculation.h"
+#include "lib_grid/algorithms/volume_calculation.h"
+
 using namespace std;
 
 namespace ug{
@@ -44,6 +49,7 @@ namespace ug{
 									 maxL2Error, refFrac, minLvl, maxLvl, time, quadOrder);
 	}
 #endif
+	
 
 namespace bridge{
 namespace AdaptiveTools{
@@ -103,23 +109,9 @@ static void DomainAlgebra(Registry& reg, string grp)
 			reg.add_function("MarkForAdaption_L2ErrorExact",
 						 	 &MarkForAdaption_L2ErrorExactLUA<TDomain, TAlgebra>, grp);
 		#endif
-		// reg.add_function("MarkForAdaption_L2ErrorExact",
-		// 				 static_cast<void (*)(IRefiner&,
-		// 										SmartPtr<GridFunction<TDomain, TAlgebra> >,
-		// 										SmartPtr<UserData<number, TDomain::dim> >,
-		// 										const char*, number, number,
-		// 										int, int, number, int)>
-		// 				 	(&MarkForAdaption_L2ErrorExact<TDomain, TAlgebra>),
-		// 				 grp);
 
-		// reg.add_function("MarkForAdaption_L2ErrorExact",
-		// 				 static_cast<void (*)(IRefiner&,
-		// 										SmartPtr<GridFunction<TDomain, TAlgebra> >,
-		// 										const char*,
-		// 										const char*, number, number,
-		// 										int, int, number, int)>
-		// 				 	(&MarkForAdaption_L2ErrorExact),
-		// 			 	 grp);
+		reg.add_function("MarkForAdaption_GradientJump",
+				 &MarkForAdaption_GradientJump<TDomain, TAlgebra>, grp);
 	}
 
 //	Prolongate

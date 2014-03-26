@@ -5,11 +5,13 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__UG__LIB_DISC__FUNCTION_SPACE__ERROR_INDICATOR__
+#ifndef __H__UG__LIB_DISC__FUNCTION_SPACE__ERROR_INDAssembleErrorEstimatorICATOR__
 #define __H__UG__LIB_DISC__FUNCTION_SPACE__ERROR_INDICATOR__
 
 #include <vector>
 
+#include "error_indicator_util.h"
+#include "gradient_evaluators.h"
 #include "common/common.h"
 #include "common/util/provider.h"
 #include "lib_grid/algorithms/refinement/refiner_interface.h"
@@ -19,204 +21,11 @@
 #include "lib_disc/spatial_disc/disc_util/fvcr_geom.h"
 #include "integrate.h"
 
+#ifdef UG_PARALLEL
+ 	#include "lib_grid/parallelization/util/compol_attachment_reduce.h"
+#endif
+
 namespace ug{
-
-/// marks elements according to an attached error value field
-/**
- * This function marks elements for refinement. The passed error attachment
- * is used as a weight for the amount of the error an each element. All elements
- * that have an indicated error with s* max <= err <= max are marked for refinement.
- * Here, max is the maximum error measured, s is a scaling quantity chosen by
- * the user. In addition, all elements with an error smaller than TOL
- * (user defined) are not refined.
- *
- * \param[in, out]	refiner		Refiner, elements marked on exit
- * \param[in]		dd			dof distribution
- * \param[in]		TOL			Minimum error, such that an element is marked
- * \param[in]		scale		scaling factor indicating lower bound for marking
- * \param[in]		aaError		Error value attachment to elements
- */
-template <typename TElem>
-void MarkElements(MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >& aaError,
-                  IRefiner& refiner,
-                  ConstSmartPtr<DoFDistribution> dd,
-                  number TOL,
-                  number refineFrac, number coarseFrac,
-				  int maxLevel)
-{
-	typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
-
-//	reset maximum of error
-	number max = 0.0, min = std::numeric_limits<number>::max();
-	number totalErr = 0.0;
-	int numElem = 0;
-
-//	get element iterator
-	const_iterator iter = dd->template begin<TElem>();
-	const_iterator iterEnd = dd->template end<TElem>();
-
-//	loop all elements to find the maximum of the error
-	for( ;iter != iterEnd; ++iter)
-	{
-	//	get element
-		TElem* elem = *iter;
-
-	//	search for maximum and minimum
-		if(aaError[elem] > max)	max = aaError[elem];
-		if(aaError[elem] < min)	min = aaError[elem];
-
-	//	sum up total error
-		totalErr += aaError[elem];
-		numElem += 1;
-	}
-
-#ifdef UG_PARALLEL
-	number maxLocal = max, minLocal = min, totalErrLocal = totalErr;
-	int numElemLocal = numElem;
-	if(pcl::NumProcs() > 1){
-		pcl::ProcessCommunicator com;
-		max = com.allreduce(maxLocal, PCL_RO_MAX);
-		min = com.allreduce(minLocal, PCL_RO_MIN);
-		totalErr = com.allreduce(totalErrLocal, PCL_RO_SUM);
-		numElem = com.allreduce(numElemLocal, PCL_RO_SUM);
-	}
-#endif
-	UG_LOG("  +++++  Gradient Error Indicator on "<<numElem<<" Elements +++++\n");
-#ifdef UG_PARALLEL
-	if(pcl::NumProcs() > 1){
-		UG_LOG("  +++ Element Errors on Proc " << pcl::ProcRank() <<
-			   ": maximum=" << max << ", minimum="<<min<<", sum="<<totalErr<<".\n");
-	}
-#endif
-
-	UG_LOG("  +++ Element Errors: maximum=" << max << ", minimum="<<min<<
-	       ", sum="<<totalErr<<".\n");
-
-//	check if total error is smaller than tolerance. If that is the case we're done
-	if(totalErr < TOL)
-	{
-		UG_LOG("  +++ Total error "<<totalErr<<" smaller than TOL ("<<TOL<<"). done.");
-		return;
-	}
-
-//	Compute minimum
-	number minErrToRefine = max * refineFrac;
-	UG_LOG("  +++ Refining elements if error greater " << refineFrac << "*" <<max<<
-			" = "<< minErrToRefine << ".\n");
-	number maxErrToCoarse = min * (1+coarseFrac);
-	if(maxErrToCoarse < TOL/numElem) maxErrToCoarse = TOL/numElem;
-	UG_LOG("  +++ Coarsening elements if error smaller "<< maxErrToCoarse << ".\n");
-
-//	reset counter
-	int numMarkedRefine = 0, numMarkedCoarse = 0;
-
-	iter = dd->template begin<TElem>();
-	iterEnd = dd->template end<TElem>();
-
-//	loop elements for marking
-	for(; iter != iterEnd; ++iter)
-	{
-	//	get element
-		TElem* elem = *iter;
-
-	//	marks for refinement
-		if(aaError[elem] >= minErrToRefine)
-			if(dd->multi_grid()->get_level(elem) <= maxLevel)
-			{
-				refiner.mark(elem, RM_REFINE);
-				numMarkedRefine++;
-			}
-
-	//	marks for coarsening
-		if(aaError[elem] <= maxErrToCoarse)
-		{
-			refiner.mark(elem, RM_COARSEN);
-			numMarkedCoarse++;
-		}
-	}
-
-#ifdef UG_PARALLEL
-	if(pcl::NumProcs() > 1){
-		UG_LOG("  +++ Marked for refinement on Proc "<<pcl::ProcRank()<<": " << numMarkedRefine << " Elements.\n");
-		UG_LOG("  +++ Marked for coarsening on Proc "<<pcl::ProcRank()<<": " << numMarkedCoarse << " Elements.\n");
-		pcl::ProcessCommunicator com;
-		int numMarkedRefineLocal = numMarkedRefine, numMarkedCoarseLocal = numMarkedCoarse;
-		numMarkedRefine = com.allreduce(numMarkedRefineLocal, PCL_RO_SUM);
-		numMarkedCoarse = com.allreduce(numMarkedCoarseLocal, PCL_RO_SUM);
-	}
-#endif
-
-	UG_LOG("  +++ Marked for refinement: " << numMarkedRefine << " Elements.\n");
-	UG_LOG("  +++ Marked for coarsening: " << numMarkedCoarse << " Elements.\n");
-}
-
-/// marks elements according to an attached error value field
-/**
- * This function marks elements for refinement. The passed error attachment
- * is used as a weight for the amount of the error an each element. All elements
- * that have an indicated error > refineTol are marked for refinement and
- * elements with an error < coarsenTol are marked for coarsening
- *
- * \param[in, out]	refiner		Refiner, elements marked on exit
- * \param[in]		dd			dof distribution
- * \param[in]		refTol		all elements with error > refTol are marked for refinement.
- * 								If refTol is negative, no element will be marked for refinement.
- * \param[in]		coarsenTol	all elements with error < coarsenTol are marked for coarsening.
- * 								If coarsenTol is negative, no element will be marked for coarsening.
- * \param[in]		aaError		Error value attachment to elements
- */
-template <typename TElem>
-void MarkElementsAbsolute(MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >& aaError,
-						  IRefiner& refiner,
-						  ConstSmartPtr<DoFDistribution> dd,
-						  number refTol,
-						  number coarsenTol,
-						  int minLevel,
-						  int maxLevel)
-{
-	typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
-
-	int numMarkedRefine = 0, numMarkedCoarse = 0;
-	const_iterator iter = dd->template begin<TElem>();
-	const_iterator iterEnd = dd->template end<TElem>();
-
-//	loop elements for marking
-	for(; iter != iterEnd; ++iter){
-		TElem* elem = *iter;
-
-	//	marks for refinement
-		if((refTol >= 0)
-			&& (aaError[elem] > refTol)
-			&& (dd->multi_grid()->get_level(elem) < maxLevel))
-		{
-			refiner.mark(elem, RM_REFINE);
-			numMarkedRefine++;
-		}
-
-	//	marks for coarsening
-		if((coarsenTol >= 0)
-			&& (aaError[elem] < coarsenTol)
-			&& (dd->multi_grid()->get_level(elem) > minLevel))
-		{
-			refiner.mark(elem, RM_COARSEN);
-			numMarkedCoarse++;
-		}
-	}
-
-#ifdef UG_PARALLEL
-	if(pcl::NumProcs() > 1){
-		UG_LOG("  +++ Marked for refinement on Proc "<<pcl::ProcRank()<<": " << numMarkedRefine << " Elements.\n");
-		UG_LOG("  +++ Marked for coarsening on Proc "<<pcl::ProcRank()<<": " << numMarkedCoarse << " Elements.\n");
-		pcl::ProcessCommunicator com;
-		int numMarkedRefineLocal = numMarkedRefine, numMarkedCoarseLocal = numMarkedCoarse;
-		numMarkedRefine = com.allreduce(numMarkedRefineLocal, PCL_RO_SUM);
-		numMarkedCoarse = com.allreduce(numMarkedCoarseLocal, PCL_RO_SUM);
-	}
-#endif
-
-	UG_LOG("  +++ Marked for refinement: " << numMarkedRefine << " Elements.\n");
-	UG_LOG("  +++ Marked for coarsening: " << numMarkedCoarse << " Elements.\n");
-}
 
 
 template <typename TFunction>
@@ -814,12 +623,14 @@ void MarkForAdaption_L2ErrorExact(IRefiner& refiner,
 		size_t numElemsActive = 0;	// number of elements which may be refined
 		size_t numElemsTotal = 0;	// total number of elements
 		number maxElemError = 0;	// error in elements which may be refined
+		number minElemError = numeric_limits<number>::max();
 		number fixedError = 0;		// error in elements which can't be refined any further
 		for(ElemIter iter = u->template begin<elem_t>(); iter != u->template end<elem_t>(); ++iter){
 			++numElemsTotal;
 			if(mg.get_level(*iter) < maxLvl){
 				++numElemsActive;
 				maxElemError = max(maxElemError, aaError[*iter]);
+				minElemError = min(minElemError, aaError[*iter]);
 			}
 			else{
 				fixedError += aaError[*iter];
@@ -828,13 +639,13 @@ void MarkForAdaption_L2ErrorExact(IRefiner& refiner,
 
 		#ifdef UG_PARALLEL
 			pcl::ProcessCommunicator com;
+			minElemError = com.allreduce(minElemError, PCL_RO_MIN);
 			maxElemError = com.allreduce(maxElemError, PCL_RO_MAX);
 			fixedError = com.allreduce(fixedError, PCL_RO_MAX);
 		#endif
 
 	//	note that aaError contains error-squares
-		maxElemError = maxElemError * sq(refFrac);
-
+		maxElemError = minElemError + (maxElemError - minElemError) * sq(refFrac);
 		number refThreshold = maxElemError;
 		if(maxL2Error > 0){
 		//	here we try to reduce the number of elements marked in the last steps.
@@ -851,6 +662,320 @@ void MarkForAdaption_L2ErrorExact(IRefiner& refiner,
 	// number coarsenThreshold = -1;
 	// if(minL2Error > 0)
 	// 	coarsenThreshold = minL2Error * minL2Error / (number)numElemsActive;
+
+// 	detach error field
+	mg.template detach_from<elem_t>(aError);
+};
+
+
+/**	Exchages error-values and nbr-element-numbers between distributed sides and
+ * adjusts those values in rim-shadows and rim-shadowing elements on the fly
+ * (e.g. constrained and constraining elements).*/
+template <class side_t, class TFunction>
+void ExchangeAndAdjustSideErrors(TFunction& u, ANumber aSideError, ANumber aNumElems)
+{
+	typedef typename TFunction::template traits<side_t>::const_iterator side_iter_t;
+	typedef typename TFunction::domain_type::grid_type	grid_t;
+
+	grid_t& g = *u.domain()->grid();
+	Grid::AttachmentAccessor<side_t, ANumber> aaSideError(g, aSideError);
+	Grid::AttachmentAccessor<side_t, ANumber> aaNumElems(g, aNumElems);
+
+//	in a parallel environment we now have to sum the gradients over parallel
+//	interfaces
+//	since there may be constrained sides which locally do not have a constraining
+//	side we do this before adding the constrained values to their constraining objects.
+	#ifdef UG_PARALLEL
+		typedef typename GridLayoutMap::Types<side_t>::Layout layout_t;
+		DistributedGridManager& dgm = *g.distributed_grid_manager();
+		GridLayoutMap& glm = dgm.grid_layout_map();
+		pcl::InterfaceCommunicator<layout_t > icom;
+
+	//	sum all copies at the h-master attachment
+		ComPol_AttachmentReduce<layout_t, ANumber> compolSumErr(g, aSideError, PCL_RO_SUM);
+		ComPol_AttachmentReduce<layout_t, ANumber> compolSumNum(g, aNumElems, PCL_RO_SUM);
+		icom.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, compolSumErr);
+		icom.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, compolSumNum);
+		icom.communicate();
+
+	//	copy the sum to all from the master to all of its slave-copies
+		ComPol_CopyAttachment<layout_t, ANumber> compolCopyErr(g, aSideError);
+		ComPol_CopyAttachment<layout_t, ANumber> compolCopyNum(g, aNumElems);
+		icom.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, compolCopyErr);
+		icom.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, compolCopyNum);
+		icom.communicate();
+	#endif
+
+//	if we're currently operating on a surface function, we have to adjust
+//	errors between shadowed and shadowing sides (constraining and constrained sides).
+	if(u.grid_level().type() == GridLevel::SURFACE){
+		for(side_iter_t iter = u.template begin<side_t>(SurfaceView::SHADOW_RIM);
+			iter != u.template end<side_t>(SurfaceView::SHADOW_RIM); ++iter)
+		{
+			side_t* s = *iter;
+			number oldErr = aaSideError[s];
+			number oldNum = aaNumElems[s];
+			const size_t numChildren = g.template num_children<side_t>(s);
+			if(numChildren > 0){
+				number w = 1. / number(numChildren);
+				for(size_t i_child = 0; i_child < numChildren; ++i_child){
+					side_t* c = g.template get_child<side_t>(s, i_child);
+					aaSideError[s] += w * aaSideError[c];
+					aaNumElems[s] += w * aaNumElems[c];
+
+					aaSideError[c] += oldErr;
+					aaNumElems[c] += oldNum;
+				}
+			}
+		}
+	}
+
+	#ifdef UG_PARALLEL
+	//	copy from v-masters to v-slaves, since there may be constrained
+	//	sides which locally do not have a constraining element. Note that
+	//	constrained V-Masters always have a local constraining element and thus
+	//	contain the correct value.
+		icom.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, compolCopyErr);
+		icom.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, compolCopyNum);
+		icom.communicate();
+	#endif
+}
+
+/** Calculates the jump between normal components of element-gradients on element sides,
+ * then calculates the integral over those jumps on each side and finally sums those
+ * integrals into aaError.*/
+template <typename TGradientEvaluator, typename TFunction>
+void EvaluateGradientJump_SideIntegral(TFunction& u, size_t fct,
+					                     MultiGrid::AttachmentAccessor<
+					                     typename TFunction::element_type,
+					                     ug::Attachment<number> >& aaError)
+{
+	using std::max;
+
+	static const int dim = TFunction::dim;
+	typedef typename TFunction::domain_type::grid_type	grid_t;
+	typedef typename TFunction::const_element_iterator const_iterator;
+	typedef typename TFunction::element_type elem_t;
+	typedef typename elem_t::side side_t;
+	typedef MathVector<dim>	vector_t;
+
+//	get position accessor
+	typename TFunction::domain_type::position_accessor_type& aaPos
+			= u.domain()->position_accessor();
+
+//	we need an attachment on the sides to gather gradient-jumps in parallel.
+//	Note that a serial version could be created without this additional attachment.
+	grid_t& g = *u.domain()->grid();
+	ANumber aSideError;
+	ANumber aNumElems;
+	g.template attach_to_dv<side_t>(aSideError, 0);
+	g.template attach_to_dv<side_t>(aNumElems, 0);
+	Grid::AttachmentAccessor<side_t, ANumber> aaSideError(g, aSideError);
+	Grid::AttachmentAccessor<side_t, ANumber> aaNumElems(g, aNumElems);
+
+//	loop elements
+	TGradientEvaluator gradEvaluator(&u, fct);
+	const_iterator iterEnd = u.template end<elem_t>();
+	for(const_iterator iter = u.template begin<elem_t>();
+		iter != iterEnd; ++iter)
+	{
+	//	get the element
+		elem_t* elem = *iter;
+		vector_t elemGrad = gradEvaluator.evaluate(elem);
+
+	//	iterate over all sides and add the normal component of the vector
+	//	to the sides normGrad attachment
+		for(size_t i = 0; i < elem->num_sides(); ++i){
+			vector_t outerNorm = CalculateOuterNormal(elem, i, aaPos);
+			number ng = VecDot(elemGrad, outerNorm);
+			side_t* s = g.get_side(elem, i);
+			aaSideError[s] += ng;
+			++aaNumElems[s];
+		}
+	}
+
+	ExchangeAndAdjustSideErrors<side_t>(u, aSideError, aNumElems);
+
+//	now let's iterate over all elements again, this time integrating the jump
+//	over the side and summing everything in aaError. Note that each element receives
+//	50% of a sides error
+	typename Grid::traits<side_t>::secure_container	sides;
+	Grid::edge_traits::secure_container edges;
+	for(const_iterator iter = u.template begin<elem_t>();
+		iter != iterEnd; ++iter)
+	{
+		elem_t* elem = *iter;
+		number err = 0;
+		g.associated_elements(sides, elem);
+		for(size_t i = 0; i < sides.size(); ++i){
+			side_t* s = sides[i];
+			if(aaNumElems[s] > 1){
+				g.associated_elements(edges, s);
+				number hSq = 0;
+				for(size_t j = 0; j < edges.size(); ++j)
+					hSq = max(hSq, EdgeLengthSq(edges[j], aaPos));
+
+				number a = CalculateVolume(s, aaPos);
+				err += (sqrt(hSq) * sq(a * aaSideError[s]));
+			}
+		}
+
+		aaError[elem] = sqrt(0.5 * err);
+	}
+
+	g.template detach_from<side_t>(aSideError);
+	g.template detach_from<side_t>(aNumElems);
+}
+
+
+/**	calculates the length of the gradient in each element and then
+ * fills aaError depending on the difference in length between neighbored elements.*/
+template <typename TGradientEvaluator, typename TFunction>
+void EvaluateGradientJump_Norm(TFunction& u, size_t fct,
+			                     MultiGrid::AttachmentAccessor<
+			                     typename TFunction::element_type,
+			                     ug::Attachment<number> >& aaError)
+{
+	using std::max;
+
+	static const int dim = TFunction::dim;
+	typedef typename TFunction::domain_type::grid_type	grid_t;
+	typedef typename TFunction::const_element_iterator const_iterator;
+	typedef typename TFunction::element_type elem_t;
+	typedef typename elem_t::side side_t;
+	typedef MathVector<dim>	vector_t;
+
+//	get position accessor
+	typename TFunction::domain_type::position_accessor_type& aaPos
+			= u.domain()->position_accessor();
+
+//	some storage
+	typename Grid::traits<side_t>::secure_container sides;
+
+//	we need attachments on the sides to gather gradient-jumps in parallel.
+//	Note that a serial version could be created without this additional attachment.
+	grid_t& g = *u.domain()->grid();
+	ANumber aSideError;
+	ANumber aNumElems;
+	g.template attach_to_dv<side_t>(aSideError, 0);
+	g.template attach_to_dv<side_t>(aNumElems, 0);
+	Grid::AttachmentAccessor<side_t, ANumber> aaSideError(g, aSideError);
+	Grid::AttachmentAccessor<side_t, ANumber> aaNumElems(g, aNumElems);
+
+//	loop elements and evaluate gradient
+	TGradientEvaluator gradEvaluator(&u, fct);
+	const_iterator iterEnd = u.template end<elem_t>();
+	for(const_iterator iter = u.template begin<elem_t>();
+		iter != iterEnd; ++iter)
+	{
+	//	get the element
+		elem_t* elem = *iter;
+		vector_t elemGrad = gradEvaluator.evaluate(elem);
+
+		number elemContrib = VecTwoNorm(elemGrad);
+		aaError[elem] = elemContrib;
+		g.associated_elements(sides, elem);
+		for(size_t i = 0; i < sides.size(); ++i){
+			side_t* s = sides[i];
+			aaSideError[s] += elemContrib;
+			++aaNumElems[s];
+		}
+	}
+
+	ExchangeAndAdjustSideErrors<side_t>(u, aSideError, aNumElems);
+
+//	finally store the highest difference between an element-error and
+//	averaged errors in associated sides in each element-error.
+	for(const_iterator iter = u.template begin<elem_t>();
+		iter != iterEnd; ++iter)
+	{
+		elem_t* elem = *iter;
+		const number elemErr = aaError[elem];
+		number err = 0;
+		g.associated_elements(sides, elem);
+		for(size_t i = 0; i < sides.size(); ++i){
+			side_t* s = sides[i];
+			if(aaNumElems[s] > 0)
+				err = max(err, fabs(elemErr - aaSideError[s] / aaNumElems[s]));
+		}
+		aaError[elem] = 2. * err * CalculateVolume(elem, aaPos);
+	}
+
+	g.template detach_from<side_t>(aSideError);
+	g.template detach_from<side_t>(aNumElems);
+}
+
+/** This gradient jump error indicator runs in parallel environments and
+ * works with h-nodes.
+ *
+ * \param[in]	maxL2Error	errors below maxL2Error are considered fine.
+ * \param[in]	jumpType	defines the type of jump that shall be evaluated:
+ *								- norm: the difference between gradient norms on
+ *										neighboring elements is regarded.
+ *								- sideInt:	The integral over the normal component
+ *											of the gradient on each side is regarded.
+ */
+template <typename TDomain, typename TAlgebra>
+void MarkForAdaption_GradientJump(IRefiner& refiner,
+                                   SmartPtr<GridFunction<TDomain, TAlgebra> > u,
+                                   const char* cmp,
+                                   number maxL2Error,
+                                   number refFrac,
+                                   int minLvl, int maxLvl,
+                                   std::string jumpType)
+{
+	using namespace std;
+//	types
+	typedef GridFunction<TDomain, TAlgebra> TFunction;
+	typedef typename TFunction::domain_type::grid_type grid_t;
+	typedef typename TFunction::element_type elem_t;
+	typedef typename TFunction::template traits<elem_t>::const_iterator	ElemIter;
+
+//	function id
+	const size_t fct = u->fct_id_by_name(cmp);
+	UG_COND_THROW(fct >= u->num_fct(),
+				  "Function space does not contain a function with name " << cmp);
+
+//	get multigrid and position accessor
+	grid_t& mg = *u->domain()->grid();
+
+// 	attach error field
+	typedef Attachment<number> ANumber;
+	ANumber aError;
+	mg.template attach_to<elem_t>(aError);
+	MultiGrid::AttachmentAccessor<elem_t, ANumber> aaError(mg, aError);
+	
+//todo:	the type of the used gradient evaluator should depend on the used grid function.
+	typedef GradientEvaluator_LagrangeP1<TFunction>	LagrangeP1Evaluator;
+	if(jumpType == std::string("norm"))
+		EvaluateGradientJump_Norm<LagrangeP1Evaluator>(*u, fct, aaError);
+	else if(jumpType == std::string("sideInt"))
+		EvaluateGradientJump_SideIntegral<LagrangeP1Evaluator>(*u, fct, aaError);
+	else{
+		UG_THROW("Unsupported jumpType in MarkForAdaption_GradientJump: "
+				 "Valid values are: norm, sideInt");
+	}
+
+
+	number maxElemError = 0;	// error in elements which may be refined
+	number minElemError = numeric_limits<number>::max();
+	for(ElemIter iter = u->template begin<elem_t>(); iter != u->template end<elem_t>(); ++iter){
+		if(mg.get_level(*iter) < maxLvl){
+			maxElemError = max(maxElemError, aaError[*iter]);
+			minElemError = min(minElemError, aaError[*iter]);
+		}
+	}
+
+	#ifdef UG_PARALLEL
+		pcl::ProcessCommunicator com;
+		minElemError = com.allreduce(minElemError, PCL_RO_MIN);
+		maxElemError = com.allreduce(maxElemError, PCL_RO_MAX);
+	#endif
+
+//	note that aaError contains error-squares
+	number refTol = minElemError + (maxElemError - minElemError) * refFrac;
+	MarkElementsAbsolute(aaError, refiner, u->dof_distribution(), refTol, -1,
+					 	 minLvl, maxLvl);
 
 // 	detach error field
 	mg.template detach_from<elem_t>(aError);

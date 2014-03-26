@@ -292,7 +292,7 @@ bool IsDegenerated(Face* f, TAAPosVRT& aaPos, number threshold)
 
 ////////////////////////////////////////////////////////////////////////
 template <class TAAPosVRT>
-number FaceArea(Face* f, TAAPosVRT& aaPos)
+number FaceArea(FaceVertices* f, TAAPosVRT& aaPos)
 {
 	number area = 0;
 	for(size_t i = 2; i < f->num_vertices(); ++i){
