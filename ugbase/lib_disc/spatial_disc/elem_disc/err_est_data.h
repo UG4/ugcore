@@ -1,6 +1,8 @@
 /*
  * err_est_data.h
  *
+ *	Data shared by element discretizations for a-posteriori error estimation
+ *
  *  Created on: 25.02.2014
  *      Author: Dmitriy Logashenko
  */
@@ -40,7 +42,51 @@ class IErrEstData
 		virtual void release_err_est_data () = 0;
 };
 
+/// Error estimator data class storing one scalar number per side
+/**
+ * This class allocates an attachment keeping one number per full-dimensional
+ * element side. Furthermore, the data are collected at the boundaries of the
+ * patches (in the case of the adaptive refinement).
+ *
+ * \tparam TDomain	domain type
+ */
+template <typename TDomain>
+class SideFluxErrEstData : public IErrEstData
+{
+public:
+	///	Domain type
+		typedef TDomain domain_type;
+		
+	/// World dimension
+		static const int dim = TDomain::dim;
+	
+public:
+	/// Constructor
+		SideFluxErrEstData() {};
+
+	///	virtual function to allocate data structures for the error estimator
+		void alloc_err_est_data (ConstSmartPtr<SurfaceView> spSV, const GridLevel& gl);
+		
+	///	virtual function called after the computation of the error estimator data in all the elements
+		void summarize_err_est_data ();
+		
+	///	virtual function to release data structures of the error estimator
+		void release_err_est_data ();
+	
+private:
+	///	Flux jumps for the error estimator
+		Attachment<number> m_aFluxJumpOverSide;
+		
+	///	Grid for the attachment
+		ConstSmartPtr<SurfaceView> m_spSV;
+		
+	///	Finest grid level
+		GridLevel m_errEstGL;
+};
+
 } // end of namespace ug
+
+#include "err_est_data_impl.h"
 
 #endif /* __H__UG__LIB_DISC__SPATIAL_DISC__ELEM_DISC__ERR_EST_DATA__ */
 
