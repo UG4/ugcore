@@ -31,6 +31,12 @@ namespace ug{
 class IErrEstData
 {
 	public:
+	
+	///	class constructor
+		IErrEstData () {};
+		
+	///	virtual class destructor
+		virtual ~IErrEstData () {};
 
 	///	virtual function to allocate data structures for the error estimator
 		virtual void alloc_err_est_data (ConstSmartPtr<SurfaceView> spSV, const GridLevel& gl) = 0;
