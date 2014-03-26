@@ -265,7 +265,7 @@ function util.rates.static.compute(ConvRateSetup)
 			local domainDisc = CreateDomainDisc(approxSpace, disc, p)
 			
 			print(">> Create Solver")
-			local solver = CreateSolver(approxSpace, disc, p)
+			--local solver = CreateSolver(approxSpace, disc, p)
 	
 			-- get names in approx space
 			local SpaceCmp = approxSpace:names()
@@ -304,11 +304,13 @@ function util.rates.static.compute(ConvRateSetup)
 			if exact or maxlevel or prevlevel then
 				for lev = minLev, maxLev do
 					write("\n>> Computing Level "..lev..", "..disc..", "..p..".\n")
-				
+					
 					write(">> Preparing inital guess on level "..lev..".\n")
+					local solver = CreateSolver(approxSpace, disc, p)
 					PrepareInitialGuess(u, lev, minLev, maxLev, domainDisc, solver)
 					
 					write(">> Start: Computing solution on level "..lev..".\n")
+					solver = CreateSolver(approxSpace, disc, p)
 					ComputeSolution(u[lev], domainDisc, solver)
 					write(">> End: Solver done.\n")
 					
