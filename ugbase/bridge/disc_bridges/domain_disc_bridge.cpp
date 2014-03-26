@@ -102,6 +102,19 @@ static void Domain(Registry& reg, string grp)
 {
 	string suffix = GetDomainSuffix<TDomain>();
 	string tag = GetDomainTag<TDomain>();
+	
+//	group string
+	string domDiscGrp = grp; domDiscGrp.append("/SpatialDisc");
+	
+//	SideFluxErrEstData
+	{
+		typedef SideFluxErrEstData<TDomain> T;
+		string name = string("SideFluxErrEstData").append(suffix);
+		reg.add_class_<T> (name, domDiscGrp)
+			.template add_constructor<void (*) ()>()
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "SideFluxErrEstData", tag);
+	}
 }
 
 /**
@@ -148,7 +161,15 @@ static void Algebra(Registry& reg, string grp)
  */
 static void Common(Registry& reg, string grp)
 {
+//	group string
+	string domDiscGrp = grp; domDiscGrp.append("/SpatialDisc");
 
+//	IErrEstData
+	{
+		string name = string("IErrEstData");
+		reg.add_class_<IErrEstData>(name, domDiscGrp);
+		reg.add_class_to_group(name, "IErrEstData");
+	}
 }
 
 }; // end Functionality
