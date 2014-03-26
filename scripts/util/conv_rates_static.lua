@@ -80,7 +80,7 @@ end
 
 function util.rates.static.StdLabel.YLatex(f, t, n)
 	local gpType = {	["l-exact"] = 	"{}",		
-						["l-lmax"] = 	"h_{\text{min}}",
+						["l-lmax"] = 	"h_{\\text{min}}",
 						["l-prev"] = 	"{h/2}",
 					}
 	local gpNorm = 	{ l2 = "L_2",	h1 = "H^1"}
@@ -107,7 +107,7 @@ end
 
 function util.rates.static.StdLabel.YPdf(f, t, n)
 	local gpType = {	["l-exact"] = 	"{}",		
-						["l-lmax"] = 	"h_{\text{min}}",
+						["l-lmax"] = 	"h_{\\text{min}}",
 						["l-prev"] = 	"{h/2}",
 					}
 	local gpNorm = 	{ l2 = "L_2",	h1 = "H^1"}
