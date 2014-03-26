@@ -29,9 +29,11 @@ static bool PartitionDomain_RegularGrid(TDomain& domain, PartitionMap& partition
 //	prepare the partition map and a vertex position attachment accessor
 	SmartPtr<MultiGrid> pMG = domain.grid();
 	partitionMap.assign_grid(*pMG);
-	SubsetHandler& partitionHandler = *partitionMap.get_partition_handler();
 
 	#ifdef UG_PARALLEL
+	
+	SubsetHandler& partitionHandler = *partitionMap.get_partition_handler();
+	
 	//	a distributed grid manager is required
 		if(!domain.distributed_grid_manager()){
 			UG_LOG("A distributed grid manager is required in the given domain.\n");
@@ -142,9 +144,11 @@ PartitionDomain_MetisKWay(TDomain& domain, PartitionMap& partitionMap,
 //	prepare the partition map
 	SmartPtr<MultiGrid> pMG = domain.grid();
 	partitionMap.assign_grid(*pMG);
-	SubsetHandler& partitionHandler = *partitionMap.get_partition_handler();
 
 #ifdef UG_PARALLEL
+	
+	SubsetHandler& partitionHandler = *partitionMap.get_partition_handler();
+	
 //	we need a process to which elements which are not considered will be send.
 //	Those elements should stay on the current process.
 	int localProc = 0;
@@ -202,12 +206,13 @@ PartitionDomain_MetisKWay(TDomain& domain, PartitionMap& partitionMap,
 //	prepare the partition map
 	SmartPtr<MultiGrid> pMG = domain.grid();
 	partitionMap.assign_grid(*pMG);
+
+#ifdef UG_PARALLEL
+
 	SubsetHandler& partitionHandler = *partitionMap.get_partition_handler();
 
 	PartitionWeighting& wFct = *weightFct;
 	wFct.set_subset_handler(domain.subset_handler().operator->());
-
-#ifdef UG_PARALLEL
 //	we need a process to which elements which are not considered will be send.
 //	Those elements should stay on the current process.
 	int localProc = 0;
