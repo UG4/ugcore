@@ -1,4 +1,4 @@
-################################################################################
+###############################################################################
 # created by Sebastian Reiter, Andreas Vogel, Martin Rupp, Michael Hoffer, ...
 # s.b.reiter@googlemail.com
 #
@@ -418,9 +418,13 @@ if(UNIX)
     else(STATIC_BUILD)
         set(linkLibraries ${linkLibraries} dl)
     endif(STATIC_BUILD)
+# for cekon pthread bug
+#    set(linkLibraries ${linkLibraries} pthread)
 elseif(WIN32)
 	set(linkLibraries ${linkLibraries} Kernel32)
 endif(UNIX)
+
+
 
 
 ########################################
