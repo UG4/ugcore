@@ -913,7 +913,7 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 			   }
 			   UG_CATCH_THROW("(instationary) AssembleDefect explizit: Cannot compute Defect (A).");
 
-			   UG_ASSERT(vScaleStiff.size() == 2, "Only one step method supported.");
+//			   UG_ASSERT(vScaleStiff.size() == 2, "Only one step method supported.");
 			   const number dt = vSol->time(0)-vSol->time(1);
 			   locD.scale_append(dt, tmpLocD);
 			}
