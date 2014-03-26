@@ -339,7 +339,7 @@ function util.rates.static.compute(ConvRateSetup)
 			for lev = maxLev, minLev, -1 do
 				write("\n>> Error Norm values on Level "..lev..".\n")
 				
-				local quadOrder = p+3
+				local quadOrder = p*p+3
 				write(">> #DoF       on Level "..lev.." is "..err.DoFs[lev] .."\n");
 			
 				-- compute for each component
