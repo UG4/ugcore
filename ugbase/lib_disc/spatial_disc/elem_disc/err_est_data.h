@@ -83,6 +83,9 @@ public:
 		{
 			return m_aaFluxJump[pSide];
 		};
+		
+	///	get the surface view
+		ConstSmartPtr<SurfaceView>& surface_view () {return m_spSV;};
 
 //	Interface virtual functions from the base class
 
