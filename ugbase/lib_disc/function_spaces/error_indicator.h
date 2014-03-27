@@ -911,7 +911,7 @@ void EvaluateGradientJump_Norm(TFunction& u, size_t fct,
 			if(aaNumElems[s] > 0)
 				err = max(err, fabs(elemErr - aaSideError[s] / aaNumElems[s]));
 		}
-		aaError[elem] = 2. * err * CalculateVolume(elem, aaPos);
+		aaError[elem] = 2. * err * pow(CalculateVolume(elem, aaPos), 2./number(dim));
 	}
 
 	g.template detach_from<side_t>(aSideError);
