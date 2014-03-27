@@ -698,11 +698,17 @@ void ExchangeAndAdjustSideErrors(TFunction& u, ANumber aSideError, ANumber aNumE
 		icom.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, compolSumNum);
 		icom.communicate();
 
-	//	copy the sum to all from the master to all of its slave-copies
+	//	copy the sum from the master to all of its slave-copies
 		ComPol_CopyAttachment<layout_t, ANumber> compolCopyErr(g, aSideError);
 		ComPol_CopyAttachment<layout_t, ANumber> compolCopyNum(g, aNumElems);
 		icom.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, compolCopyErr);
 		icom.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, compolCopyNum);
+		icom.communicate();
+		
+	//	since we're copying from vmasters to vslaves later on, we have to make
+	//	sure, that also all v-masters contain the correct values.
+		icom.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, compolCopyErr);
+		icom.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, compolCopyNum);
 		icom.communicate();
 	#endif
 
