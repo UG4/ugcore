@@ -670,7 +670,14 @@ void MarkForAdaption_L2ErrorExact(IRefiner& refiner,
 
 /**	Exchages error-values and nbr-element-numbers between distributed sides and
  * adjusts those values in rim-shadows and rim-shadowing elements on the fly
- * (e.g. constrained and constraining elements).*/
+ * (e.g. constrained and constraining elements).
+ *
+ * \param[in] u				The grid-function on which error-indication is based
+ * \param[in] aSideError	ANumber attachment on side_t:
+ *							The total error accumulated in element-sides.
+ * \param[in] aNumElems		ANumber attachment on side_t:
+ *							The number of elements which have contributed to aSideError.
+ */
 template <class side_t, class TFunction>
 void ExchangeAndAdjustSideErrors(TFunction& u, ANumber aSideError, ANumber aNumElems)
 {
@@ -704,7 +711,7 @@ void ExchangeAndAdjustSideErrors(TFunction& u, ANumber aSideError, ANumber aNumE
 		icom.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, compolCopyErr);
 		icom.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, compolCopyNum);
 		icom.communicate();
-		
+
 	//	since we're copying from vmasters to vslaves later on, we have to make
 	//	sure, that also all v-masters contain the correct values.
 		icom.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, compolCopyErr);
@@ -914,18 +921,21 @@ void EvaluateGradientJump_Norm(TFunction& u, size_t fct,
 /** This gradient jump error indicator runs in parallel environments and
  * works with h-nodes.
  *
- * \param[in]	maxL2Error	errors below maxL2Error are considered fine.
+ * \param[in]	refFrac		given minElemError and maxElemError, all elements with
+ *							an error > minElemError+refFrac*(maxElemError-minElemError)
+ *							will be refined.
  * \param[in]	jumpType	defines the type of jump that shall be evaluated:
  *								- norm: the difference between gradient norms on
  *										neighboring elements is regarded.
  *								- sideInt:	The integral over the normal component
  *											of the gradient on each side is regarded.
+ *
+ * \todo: Add coarsenFrac and apply coarsen-marks, too.
  */
 template <typename TDomain, typename TAlgebra>
 void MarkForAdaption_GradientJump(IRefiner& refiner,
                                    SmartPtr<GridFunction<TDomain, TAlgebra> > u,
                                    const char* cmp,
-                                   number maxL2Error,
                                    number refFrac,
                                    int minLvl, int maxLvl,
                                    std::string jumpType)
