@@ -45,8 +45,7 @@ inline std::string svnRevision()
 	if(v.size() > 0)
 		return v[0]; //
 	else
-		UGSvnRevision();
-	return ""; // never reached, only silences -Wreturn-type
+		return UGSvnRevision();
 }
 } // end vrl::
 }// end ug::
