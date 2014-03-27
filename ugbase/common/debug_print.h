@@ -26,6 +26,7 @@ void PrintVector(const T &v, std::string desc="")
 
 #define PRINT_VECTOR(v, msg) {std::stringstream ss; ss << msg; PrintVector(v, ss.str()); }
 
+#define UG_LINE_LOG() UG_LOG("-------LINE " << __LINE__ << "-----------\n");
 }
 
 #endif /* __H__UG__DEBUG_PRINT_H_ */
