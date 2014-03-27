@@ -65,10 +65,26 @@ public:
 		
 	/// World dimension
 		static const int dim = TDomain::dim;
+		
+	///	Type of the sides (Edge, Face)
+		typedef typename domain_traits<dim>::side_type side_type;
 	
 public:
 	/// Constructor
 		SideFluxErrEstData() {};
+		
+//	Functions to access data
+
+	///	get the data reference for a given side
+		number& operator ()
+		(
+			side_type* pSide ///< pointer to the side
+		)
+		{
+			return m_aaFluxJump[pSide];
+		};
+
+//	Interface virtual functions from the base class
 
 	///	virtual function to allocate data structures for the error estimator
 		void alloc_err_est_data (ConstSmartPtr<SurfaceView> spSV, const GridLevel& gl);
@@ -81,7 +97,10 @@ public:
 	
 private:
 	///	Flux jumps for the error estimator
-		Attachment<number> m_aFluxJumpOverSide;
+		ANumber m_aFluxJumpOverSide;
+		
+	///	Attachment accessor
+		MultiGrid::AttachmentAccessor<side_type, ANumber> m_aaFluxJump;
 		
 	///	Grid for the attachment
 		ConstSmartPtr<SurfaceView> m_spSV;

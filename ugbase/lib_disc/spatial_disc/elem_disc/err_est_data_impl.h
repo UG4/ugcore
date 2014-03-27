@@ -32,6 +32,7 @@ void SideFluxErrEstData<TDomain>::alloc_err_est_data
 	typedef typename domain_traits<dim>::side_type side_type;
 	MultiGrid * pMG = (MultiGrid *) (spSV->subset_handler()->multi_grid());
 	pMG->template attach_to_dv<side_type>(m_aFluxJumpOverSide, 0);
+	m_aaFluxJump.access (*pMG, m_aFluxJumpOverSide);
 };
 
 /// Called after the computation of the error estimator data in all the elements
@@ -41,10 +42,6 @@ void SideFluxErrEstData<TDomain>::summarize_err_est_data ()
 	typedef typename domain_traits<dim>::side_type side_type;
 	
 	const MultiGrid * pMG = m_spSV->subset_handler()->multi_grid();
-	
-//	Get the access to the flux jumps
-	MultiGrid::AttachmentAccessor<side_type, Attachment<number> > aaFluxJump
-									(* (MultiGrid *) pMG, m_aFluxJumpOverSide);
 	
 //	Loop the rim sides and add the jumps
 	typedef typename SurfaceView::traits<side_type>::const_iterator t_iterator;
@@ -60,7 +57,8 @@ void SideFluxErrEstData<TDomain>::summarize_err_est_data ()
 		side_type * f_rim_side = pMG->template get_child<side_type> (c_rim_side, 0);
 		
 	//	Compute the total jump and save it for both the sides:
-		number & c_rim_flux = aaFluxJump[c_rim_side], & f_rim_flux = aaFluxJump[f_rim_side];
+		number & c_rim_flux = m_aaFluxJump[c_rim_side];
+		number & f_rim_flux = m_aaFluxJump[f_rim_side];
 		number flux_jump = f_rim_flux - c_rim_flux;
 		c_rim_flux = - (f_rim_flux = flux_jump);
 	}
@@ -73,7 +71,8 @@ void SideFluxErrEstData<TDomain>::release_err_est_data ()
 //	Release the attachment
 	typedef typename domain_traits<dim>::side_type side_type;
 	MultiGrid * pMG = (MultiGrid *) (m_spSV->subset_handler()->multi_grid());
-	pMG->template detach_from<side_type>(m_aFluxJumpOverSide);
+	m_aaFluxJump.invalidate ();
+	pMG->template detach_from<side_type> (m_aFluxJumpOverSide);
 	m_spSV = ConstSmartPtr<SurfaceView> (NULL);
 };
 
