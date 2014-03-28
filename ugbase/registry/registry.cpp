@@ -354,13 +354,6 @@ void Registry::add_class_to_group(std::string className, std::string groupName,
 		"A class with the given group name '"<<groupName<<"' already exists.");
 	}
 
-//	Search if class name starts with group name. The requirement is, that a class
-//	that is added to a class group starts with the group name plus some suffix
-	if(className.find(groupName) == std::string::npos){
-		UG_THROW_REGISTRY_ERROR(groupName,
-		"The classname  must contain the group name, when adding to a group. Given:"
-				" Groupname='"<<groupName<<"',  Classname='"<<className<<"'.");
-	}
 	ClassGroupDesc* groupDesc = get_class_group(groupName);
 //todo:	make sure that groupDesc does not already contain className.
 	IExportedClass* expClass = get_class(className);
