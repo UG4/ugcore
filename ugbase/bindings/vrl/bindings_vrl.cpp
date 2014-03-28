@@ -249,6 +249,12 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug_UG__1ugInit(JNIEnv *env, jclass cls,
 
 	ug::vrl::invocation::initClasses(*ug::vrl::vrlRegistry);
 
+	if (!ug::vrl::vrlRegistry->check_consistency()) {
+		ug::GetLogAssistant().flush_error_log();
+		UG_LOG("UG-VRL: cannot compile code due to registration error after initClasses.\n");
+		return 1;
+	}
+
 	return (jint) retVal;
 }
 

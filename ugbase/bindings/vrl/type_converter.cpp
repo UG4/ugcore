@@ -2551,6 +2551,12 @@ jobject registry2NativeAPI(JNIEnv * env, ug::bridge::Registry * reg) {
 	env->CallVoidMethod(obj, setClasses, classes2NativeClasses(env, reg));
 	env->CallVoidMethod(obj, setFunctions, functions2NativeGroups(env, reg));
 
+	if (!reg->check_consistency()) {
+	ug::GetLogAssistant().flush_error_log();
+	UG_LOG("trunk/ugbase/bindings/vrl/type_converter.cpp : registry2NativeAPI() calling check_consistency() \n");
+	//return 1;
+	}
+
 	return obj;
 }
 
