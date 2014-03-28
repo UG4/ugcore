@@ -182,7 +182,7 @@ static void Common(Registry& reg, string grp) {
 		typedef ug::Domain<1>	TDomain;
 		string tag = GetDomainTag<TDomain>();
 		typedef DomainPartitioner<TDomain, Partitioner_DynamicBisection<Edge, 1> > T;
-		string name = string("EdgePartitioner_DynamicBisection1d");
+		string name = string("Partitioner_DynamicBisection1d");
 		reg.add_class_<T, IPartitioner>(name, grp)
 			.add_constructor<void (*)(TDomain&)>()
 			.add_method("enable_static_partitioning", &T::enable_static_partitioning)
@@ -198,18 +198,18 @@ static void Common(Registry& reg, string grp) {
 		string tag = GetDomainTag<TDomain>();
 		{
 			typedef DomainPartitioner<TDomain, Partitioner_DynamicBisection<Edge, 2> >T;
-			string name = string("EdgePartitioner_DynamicBisection2d");
+			string name = string("ManifoldPartitioner_DynamicBisection2d");
 			reg.add_class_<T, IPartitioner>(name, grp)
 				.add_constructor<void (*)(TDomain&)>()
 				.add_method("enable_static_partitioning", &T::enable_static_partitioning)
 				.add_method("static_partitioning_enabled", &T::static_partitioning_enabled)
 				.add_method("set_subset_handler", &T::set_subset_handler)
 				.set_construct_as_smart_pointer(true);
-			//reg.add_class_to_group(name, "ManifoldPartitioner_DynamicBisection", tag);
+			reg.add_class_to_group(name, "ManifoldPartitioner_DynamicBisection", tag);
 		}
 		{
 			typedef DomainPartitioner<TDomain, Partitioner_DynamicBisection<Face, 2> > T;
-			string name = string("FacePartitioner_DynamicBisection2d");
+			string name = string("Partitioner_DynamicBisection2d");
 			reg.add_class_<T, IPartitioner>(name, grp)
 				.add_constructor<void (*)(TDomain&)>()
 				.add_method("enable_static_partitioning", &T::enable_static_partitioning)
@@ -226,29 +226,29 @@ static void Common(Registry& reg, string grp) {
 		string tag = GetDomainTag<TDomain>();
 		{
 			typedef DomainPartitioner<TDomain, Partitioner_DynamicBisection<Edge, 3> > T;
-			string name = string("EdgePartitioner_DynamicBisection3d");
+			string name = string("HyperManifoldPartitioner_DynamicBisection3d");
 			reg.add_class_<T, IPartitioner>(name, grp)
 				.add_constructor<void (*)(TDomain&)>()
 				.add_method("enable_static_partitioning", &T::enable_static_partitioning)
 				.add_method("static_partitioning_enabled", &T::static_partitioning_enabled)
 				.add_method("set_subset_handler", &T::set_subset_handler)
 				.set_construct_as_smart_pointer(true);
-			//reg.add_class_to_group(name, "HyperManifoldPartitioner_DynamicBisection", tag);
+			reg.add_class_to_group(name, "HyperManifoldPartitioner_DynamicBisection", tag);
 		}
 		{
 			typedef DomainPartitioner<TDomain, Partitioner_DynamicBisection<Face, 3> > T;
-			string name = string("FacePartitioner_DynamicBisection3d");
+			string name = string("ManifoldPartitioner_DynamicBisection3d");
 			reg.add_class_<T, IPartitioner>(name, grp)
 				.add_constructor<void (*)(TDomain&)>()
 				.add_method("enable_static_partitioning", &T::enable_static_partitioning)
 				.add_method("static_partitioning_enabled", &T::static_partitioning_enabled)
 				.add_method("set_subset_handler", &T::set_subset_handler)
 				.set_construct_as_smart_pointer(true);
-			//reg.add_class_to_group(name, "ManifoldPartitioner_DynamicBisection", tag);
+			reg.add_class_to_group(name, "ManifoldPartitioner_DynamicBisection", tag);
 		}
 		{
 			typedef DomainPartitioner<TDomain, Partitioner_DynamicBisection<Volume, 3> > T;
-			string name = string("VolumePartitioner_DynamicBisection3d");
+			string name = string("Partitioner_DynamicBisection3d");
 			reg.add_class_<T, IPartitioner>(name, grp)
 				.add_constructor<void (*)(TDomain&)>()
 				.add_method("enable_static_partitioning", &T::enable_static_partitioning)
