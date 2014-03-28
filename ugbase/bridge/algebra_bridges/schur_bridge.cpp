@@ -71,6 +71,7 @@ static void Algebra(Registry& reg, string grp)
 	{
 		string name = string("ISchurComplementInverse").append(suffix);
 		reg.add_class_< ISchurComplementInverse<TAlgebra> >(name, grp) ;
+		reg.add_class_to_group(name, "ISchurComplementInverse", tag);
 	}
 
 	// 	Schur complement preconditioner

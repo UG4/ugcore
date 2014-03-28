@@ -739,6 +739,8 @@ jobject bool_array(JNIEnv *env, jobject obj, jstring jName,
 
 	env->ReleaseBooleanArrayElements(jBoolArray, arrayBoolElements, JNI_ABORT);
 
+	return jBoolArray;
+
 }
 
 //method needed only for debug
