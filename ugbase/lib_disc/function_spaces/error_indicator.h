@@ -5,7 +5,7 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__UG__LIB_DISC__FUNCTION_SPACE__ERROR_INDAssembleErrorEstimatorICATOR__
+#ifndef __H__UG__LIB_DISC__FUNCTION_SPACE__ERROR_INDICATOR__
 #define __H__UG__LIB_DISC__FUNCTION_SPACE__ERROR_INDICATOR__
 
 #include <vector>
