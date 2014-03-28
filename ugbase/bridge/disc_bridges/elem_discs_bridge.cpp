@@ -87,7 +87,16 @@ static void Domain(Registry& reg, string grp)
 #ifdef UG_FOR_LUA
 			.add_method("add", static_cast<void (T::*)(const char*, const char*, const char*)>(&T::add))
 #endif
+			.add_method("add", static_cast<void (T::*)(SmartPtr<CplUserData<MathMatrix<dim, dim>, dim> > ,SmartPtr<CplUserData<MathVector<dim>, dim> > , const char* , const char* )>(&T::add))
+#ifdef UG_FOR_LUA
+			.add_method("add", static_cast<void (T::*)(const char*, const char*, const char*, const char*)>(&T::add))
+			.add_method("add", static_cast<void (T::*)(const char*, SmartPtr<CplUserData<MathVector<dim>, dim> > , const char*, const char*)>(&T::add))
+#endif
 			.add_method("add", static_cast<void (T::*)(const vector<number>&, const char*, const char*)>(&T::add));
+
+
+
+
 		reg.add_class_to_group(name, "NeumannBoundaryBase", tag);
 	}
 

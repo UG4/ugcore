@@ -73,6 +73,17 @@ add(SmartPtr<CplUserData<MathVector<dim>, dim> > user, const char* BndSubsets, c
 }
 
 template<typename TDomain>
+void NeumannBoundaryFV<TDomain>::
+add(SmartPtr<CplUserData<MathMatrix<dim, dim>, dim> > user1,SmartPtr<CplUserData<MathVector<dim>, dim> > user2, const char* BndSubsets, const char* InnerSubsets)
+{
+	this->m_bDiffusion = true;
+	m_vMatrixData.push_back(MatrixData(user1, BndSubsets, InnerSubsets));
+	m_vVectorData.push_back(VectorData(user2, BndSubsets, InnerSubsets));
+	this->add_inner_subsets(InnerSubsets);
+}
+
+
+template<typename TDomain>
 void NeumannBoundaryFV<TDomain>::update_subset_groups()
 {
 	for(size_t i = 0; i < m_vNumberData.size(); ++i)
@@ -81,6 +92,9 @@ void NeumannBoundaryFV<TDomain>::update_subset_groups()
 		base_type::update_subset_groups(m_vBNDNumberData[i]);
 	for(size_t i = 0; i < m_vVectorData.size(); ++i)
 		base_type::update_subset_groups(m_vVectorData[i]);
+	if(this->m_bDiffusion)
+		for(size_t i = 0; i < m_vMatrixData.size(); ++i)
+			base_type::update_subset_groups(m_vMatrixData[i]);
 }
 
 
@@ -227,8 +241,16 @@ add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoor
 
 				for(size_t i = 0; i < vBF[b].num_ip(); ++i){
 					(*m_vVectorData[data].functor)(val, vBF[b].global_ip(i), this->time(), si);
+					if(this->m_bDiffusion){
+						MathMatrix<dim, dim> mat;
+						(*m_vMatrixData[data].functor)(mat, vBF[b].global_ip(i), this->time(), si);
+						MathVector<dim> Dval;
 
-					d(_C_, co) -= vBF[b].weight(i) * VecDot(val, vBF[b].normal());
+						TransposedMatVecMult(Dval, mat, val);
+						d(_C_, co) -= vBF[b].weight(i) * VecDot(Dval, vBF[b].normal());
+					}
+					else
+						d(_C_, co) -= vBF[b].weight(i) * VecDot(val, vBF[b].normal());
 				}
 			}
 		}

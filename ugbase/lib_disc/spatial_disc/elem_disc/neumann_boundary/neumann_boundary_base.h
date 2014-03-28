@@ -31,6 +31,8 @@ class NeumannBoundaryBase
 	///	World dimension
 		static const int dim = base_type::dim;
 
+
+
 	public:
 	///	default constructor
 		NeumannBoundaryBase(const char* function);
@@ -40,12 +42,21 @@ class NeumannBoundaryBase
 		virtual void add(SmartPtr<CplUserData<number, dim> > data, const char* BndSubsets, const char* InnerSubsets) = 0;
 		virtual void add(SmartPtr<CplUserData<number, dim, bool> > user, const char* BndSubsets, const char* InnerSubsets) = 0;
 		virtual void add(SmartPtr<CplUserData<MathVector<dim>, dim> > user, const char* BndSubsets, const char* InnerSubsets) = 0;
+		virtual void add(SmartPtr<CplUserData<MathMatrix<dim, dim>, dim> > user1,SmartPtr<CplUserData<MathVector<dim>, dim> > user2, const char* BndSubsets, const char* InnerSubsets) = 0;
+#ifdef UG_FOR_LUA
+		void add(const char* nameMatrix, const char* nameVector, const char* BndSubsets, const char* InnerSubsets);
+		void add(const char* nameMatrix, SmartPtr<CplUserData<MathVector<dim>, dim> > user, const char* BndSubsets, const char* InnerSubsets);
+#endif
 		void add(number val, const char* BndSubsets, const char* InnerSubsets);
 		void add(const std::vector<number>& val, const char* BndSubsets, const char* InnerSubsets);
 #ifdef UG_FOR_LUA
 		void add(const char* name, const char* BndSubsets, const char* InnerSubsets);
 #endif
 	/// \}
+
+	/// set a Diffusion matrix
+
+
 
 	protected:
 	///	base class for user data
@@ -64,6 +75,8 @@ class NeumannBoundaryBase
 
 	///	adds subsets to the looped inner subsets
 		void add_inner_subsets(const char* InnerSubsets);
+
+		bool m_bDiffusion;
 
 	public:
 	///	 returns the type of elem disc

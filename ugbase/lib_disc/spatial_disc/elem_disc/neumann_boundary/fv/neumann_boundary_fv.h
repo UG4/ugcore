@@ -40,6 +40,7 @@ class NeumannBoundaryFV
 		void add(SmartPtr<CplUserData<number, dim> > data, 			const char* BndSubsets, const char* InnerSubsets);
 		void add(SmartPtr<CplUserData<number, dim, bool> > user, 		const char* BndSubsets, const char* InnerSubsets);
 		void add(SmartPtr<CplUserData<MathVector<dim>, dim> > user, 	const char* BndSubsets, const char* InnerSubsets);
+		void add(SmartPtr<CplUserData<MathMatrix<dim, dim>, dim> > user1,SmartPtr<CplUserData<MathVector<dim>, dim> > user2, const char* BndSubsets, const char* InnerSubsets);
 	/// \}
 
 	protected:
@@ -91,9 +92,23 @@ class NeumannBoundaryFV
 			SmartPtr<CplUserData<MathVector<dim>, dim> > functor;
 		};
 
+		///	Unconditional vector user data
+		struct MatrixData : public base_type::Data
+		{
+			MatrixData(SmartPtr<CplUserData<MathMatrix<dim,dim>, dim> > functor_,
+					   std::string BndSubsets, std::string InnerSubsets)
+			: base_type::Data(BndSubsets, InnerSubsets), functor(functor_) {}
+
+			SmartPtr<CplUserData<MathMatrix<dim,dim>, dim> > functor;
+		};
+
+
 		std::vector<NumberData> m_vNumberData;
 		std::vector<BNDNumberData> m_vBNDNumberData;
 		std::vector<VectorData> m_vVectorData;
+
+		std::vector<MatrixData> m_vMatrixData;
+
 
 		void update_subset_groups();
 

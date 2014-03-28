@@ -61,6 +61,18 @@ add(SmartPtr<CplUserData<MathVector<dim>, dim> > user, const char* BndSubsets, c
 	this->add_inner_subsets(InnerSubsets);
 }
 
+
+template<typename TDomain>
+void NeumannBoundaryFV1<TDomain>::
+add(SmartPtr<CplUserData<MathMatrix<dim, dim>, dim> > user1, SmartPtr<CplUserData<MathVector<dim>, dim> > user2, const char* BndSubsets, const char* InnerSubsets)
+{
+	m_vVectorData.push_back(VectorData(user2, BndSubsets, InnerSubsets));
+	m_vMatrixData.push_back(MatrixData(user1, BndSubsets, InnerSubsets));
+	this->m_bDiffusion = true;
+	this->add_inner_subsets(InnerSubsets);
+}
+
+
 template<typename TDomain>
 void NeumannBoundaryFV1<TDomain>::update_subset_groups()
 {
@@ -70,6 +82,11 @@ void NeumannBoundaryFV1<TDomain>::update_subset_groups()
 		update_subset_groups(m_vBNDNumberData[i]);
 	for(size_t i = 0; i < m_vVectorData.size(); ++i)
 		update_subset_groups(m_vVectorData[i]);
+
+	if(this->m_bDiffusion)
+		for(size_t i = 0; i < m_vMatrixData.size(); ++i)
+			update_subset_groups(m_vMatrixData[i]);
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -112,6 +129,7 @@ prep_elem_loop(const ReferenceObjectID roid, const int si)
 		}
 	}
 
+
 //	clear imports, since we will set them afterwards
 	this->clear_imports();
 
@@ -143,6 +161,8 @@ prep_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerC
 	}
 	UG_CATCH_THROW("NeumannBoundaryFV1::prep_elem: "
 						"Cannot update Finite Volume Geometry.");
+
+
 
 	for(size_t i = 0; i < m_vNumberData.size(); ++i)
 		if(m_vNumberData[i].InnerSSGrp.contains(m_si))
@@ -201,9 +221,19 @@ add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoor
 			for(size_t i = 0; i < vBF.size(); ++i){
 				MathVector<dim> val;
 				(*m_vVectorData[data].functor)(val, vBF[i].global_ip(), this->time(), si);
-
 				const int co = vBF[i].node_id();
-				d(_C_, co) -= VecDot(val, vBF[i].normal());
+
+				if(this->m_bDiffusion){
+					MathMatrix<dim, dim> mat;
+					(*m_vMatrixData[data].functor)(mat, vBF[i].global_ip(), this->time(), si);
+					MathVector<dim> Dval;
+
+					TransposedMatVecMult(Dval, mat, val);
+					d(_C_, co) -= VecDot(Dval, vBF[i].normal());
+				}
+				else
+					d(_C_, co) -= VecDot(val, vBF[i].normal());
+
 			}
 		}
 	}
