@@ -22,7 +22,6 @@ template<typename TDomain>
 NeumannBoundaryBase<TDomain>::NeumannBoundaryBase(const char* function)
  :IElemDisc<TDomain>(function, "")
 {
-	m_bDiffusion = false;
 	if(this->num_fct() != 1)
 		UG_THROW("NeumannBoundaryBase: needed exactly one function.");
 }
@@ -30,8 +29,6 @@ NeumannBoundaryBase<TDomain>::NeumannBoundaryBase(const char* function)
 ////////////////////////////////////////////////////////////////////////////////
 // User Data
 ////////////////////////////////////////////////////////////////////////////////
-
-
 
 template<typename TDomain>
 void NeumannBoundaryBase<TDomain>::
@@ -82,10 +79,6 @@ add(const std::vector<number>& val, const char* function, const char* subsets)
 	add(sp, function, subsets);
 }
 
-
-
-
-
 #ifdef UG_FOR_LUA
 template <typename TDomain>
 void NeumannBoundaryBase<TDomain>::
@@ -126,80 +119,6 @@ add(const char* name, const char* function, const char* subsets)
 					<< (LuaUserData<MathVector<dim>, dim>::signature()));
 }
 #endif
-
-
-
-#ifdef UG_FOR_LUA
-template <typename TDomain>
-void NeumannBoundaryBase<TDomain>::
-add(const char* nameMatrix, const char* nameVector, const char* function, const char* subsets)
-{
-	if(LuaUserData<MathVector<dim>, dim>::check_callback_returns(nameVector)){
-		SmartPtr<CplUserData<MathVector<dim>, dim> > sp =
-			LuaUserDataFactory<MathVector<dim>, dim>::create(nameVector);
-
-		if(LuaUserData<MathMatrix<dim, dim>, dim>::check_callback_returns(nameMatrix)){
-			SmartPtr<CplUserData<MathMatrix<dim, dim>, dim> > spM =
-				LuaUserDataFactory<MathMatrix<dim, dim>, dim>::create(nameMatrix);
-
-			m_bDiffusion = true;
-			add(spM, sp, function, subsets);
-			return;
-		}
-	}
-
-//	no match found
-	if(!CheckLuaCallbackName(nameVector))
-		UG_THROW("NeumannBoundaryBase: Lua-Callback with name '"<<nameVector<<
-		               "' does not exist.");
-
-	if(!CheckLuaCallbackName(nameMatrix))
-		UG_THROW("NeumannBoundaryBase: Lua-Callback with name '"<<nameMatrix<<
-		               "' does not exist.");
-
-
-//	name exists but wrong signature
-	UG_THROW("NeumannBoundaryBase: Cannot find matching callback "
-					"signature. Use one of:\n"
-					"a) Number - Callback\n"
-					<< (LuaUserData<number, dim>::signature()) << "\n" <<
-					"b) Conditional Number - Callback\n"
-					<< (LuaUserData<number, dim, bool>::signature()) << "\n" <<
-					"c) "<<dim<<"d Vector - Callback\n"
-					<< (LuaUserData<MathVector<dim>, dim>::signature()));
-}
-
-template <typename TDomain>
-void NeumannBoundaryBase<TDomain>::
-add(const char* nameMatrix, SmartPtr<CplUserData<MathVector<dim>, dim> > user, const char* function, const char* subsets)
-{
-	if(LuaUserData<MathMatrix<dim, dim>, dim>::check_callback_returns(nameMatrix)){
-		SmartPtr<CplUserData<MathMatrix<dim, dim>, dim> > spM =
-			LuaUserDataFactory<MathMatrix<dim, dim>, dim>::create(nameMatrix);
-
-		m_bDiffusion = true;
-		add(spM, user, function, subsets);
-		return;
-	}
-
-
-	if(!CheckLuaCallbackName(nameMatrix))
-		UG_THROW("NeumannBoundaryBase: Lua-Callback with name '"<<nameMatrix<<
-		               "' does not exist.");
-
-}
-
-
-
-
-
-
-
-#endif
-
-
-
-
 
 ////////////////////////////////////////////////////////////////////////////////
 //	explicit template instantiations
