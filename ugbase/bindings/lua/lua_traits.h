@@ -257,7 +257,7 @@ struct lua_traits< MathMatrix<dim, dim> >
 	{
 		for(size_t i = 0; i < dim; ++i){
 			for(size_t j = 0; j < dim; ++j){
-				D[dim-1-j][dim-1-i] = ReturnValueToNumber(L, index--);
+				D[dim-1-i][dim-1-j] = ReturnValueToNumber(L, index--);
 			}
 		}
 	}
