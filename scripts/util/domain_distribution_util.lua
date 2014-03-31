@@ -114,11 +114,11 @@ function util.PartitionMapBisection(dom, partitionMapOut, numProcs)
 	end
 	
 	local partitioner = nil
-	if(dom:domain_info():element_type() == dom:get_dim() - 2)
+	if(dom:domain_info():element_type() == dom:get_dim() - 2) then
 		partitioner = HyperManifoldPartitioner_DynamicBisection(dom)
-	elseif(dom:domain_info():element_type() == dom:get_dim() - 1)
+	elseif(dom:domain_info():element_type() == dom:get_dim() - 1) then
 		partitioner = ManifoldPartitioner_DynamicBisection(dom)
-	elseif(dom:domain_info():element_type() == dom:get_dim())
+	elseif(dom:domain_info():element_type() == dom:get_dim()) then
 		partitioner = Partitioner_DynamicBisection(dom)
 	end
 	
