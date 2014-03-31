@@ -135,8 +135,13 @@ void AdjustMeanValue(SmartPtr<TGridFunction> spGF, const std::string& fcts, numb
 template<typename TDomain>
 void WriteAlgebraIndices(std::string name, ConstSmartPtr<TDomain> domain,  ConstSmartPtr<DoFDistribution> dd)
 {
+	/*
 	PROFILE_FUNC_GROUP("debug");
-/*
+
+#ifdef UG_PARALLEL
+	name = ConnectionViewer::GetParallelName(name, dd->layouts()->proc_comm());
+#endif
+
 	std::vector<size_t> fctIndex;
 	std::vector<std::string> fctNames;
 
@@ -157,7 +162,7 @@ void WriteAlgebraIndices(std::string name, ConstSmartPtr<TDomain> domain,  Const
 
 	for(size_t i=0; i<fctIndex.size(); i++)
 		file << fctIndex[i] << "\n";
-*/
+		*/
 }
 
 template<class TFunction>
@@ -183,7 +188,7 @@ void WriteMatrixToConnectionViewer(const char *filename,
 	else
 		ConnectionViewer::WriteMatrixPar( filename, A, &vPos[0], dim );
 
-	WriteAlgebraIndices(ConnectionViewer::GetParallelName(A, filename), u.domain(),u.dof_distribution());
+	WriteAlgebraIndices(filename, u.domain(),u.dof_distribution());
 
 }
 
