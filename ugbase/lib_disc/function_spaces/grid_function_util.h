@@ -183,7 +183,7 @@ void WriteMatrixToConnectionViewer(const char *filename,
 	else
 		ConnectionViewer::WriteMatrixPar( filename, A, &vPos[0], dim );
 
-	WriteAlgebraIndices(filename, u.domain(),u.dof_distribution());
+	WriteAlgebraIndices(ConnectionViewer::GetParallelName(A, filename), u.domain(),u.dof_distribution());
 
 }
 
