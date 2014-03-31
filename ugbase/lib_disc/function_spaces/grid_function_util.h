@@ -135,7 +135,6 @@ void AdjustMeanValue(SmartPtr<TGridFunction> spGF, const std::string& fcts, numb
 template<typename TDomain>
 void WriteAlgebraIndices(std::string name, ConstSmartPtr<TDomain> domain,  ConstSmartPtr<DoFDistribution> dd)
 {
-	/*
 	PROFILE_FUNC_GROUP("debug");
 
 #ifdef UG_PARALLEL
@@ -148,6 +147,8 @@ void WriteAlgebraIndices(std::string name, ConstSmartPtr<TDomain> domain,  Const
 	ExtractAlgebraIndices<TDomain>(domain, dd, fctIndex);
 
 	size_t numFct = dd->num_fct();
+	if(numFct <= 1) return;
+
 	fctNames.resize(numFct);
 	for(size_t i=0; i<numFct; i++)
 		fctNames[i] = dd->name(i);
@@ -162,7 +163,6 @@ void WriteAlgebraIndices(std::string name, ConstSmartPtr<TDomain> domain,  Const
 
 	for(size_t i=0; i<fctIndex.size(); i++)
 		file << fctIndex[i] << "\n";
-		*/
 }
 
 template<class TFunction>
@@ -497,7 +497,7 @@ public:
 	GridFunctionDebugWriter(
 			SmartPtr<ApproximationSpace<TDomain> > spApproxSpace) :
 			m_spApproxSpace(spApproxSpace), bConnViewerOut(
-					true), bVTKOut(true), m_printConsistent(true) {
+					true), bConnViewerIndices(false), bVTKOut(true), m_printConsistent(true) {
 		reset();
 	}
 
@@ -525,6 +525,9 @@ public:
 
 	///	sets if writing to conn viewer
 	void set_conn_viewer_output(bool b) {bConnViewerOut = b;}
+
+	/// sets if .indices file is written or conn viewer
+	void set_conn_viewer_indices(bool b) { bConnViewerIndices = b; }
 
 	///	sets if data shall be made consistent before printing
 	void set_print_consistent(bool b) {m_printConsistent = b;}
@@ -570,7 +573,7 @@ public:
 		}
 
 		//	write to file
-		extract_algebra_indices(name);
+		write_algebra_indices_CV(name);
 		if(m_glFrom == m_glTo){
 			if(mat.num_rows() != mat.num_cols())
 				UG_THROW("DebugWriter: grid level the same, but non-square matrix.");
@@ -605,9 +608,10 @@ public:
 
 protected:
 
-	void extract_algebra_indices(std::string name)
+	void write_algebra_indices_CV(std::string name)
 	{
-		WriteAlgebraIndices<TDomain>(name, m_spApproxSpace->domain(), m_spApproxSpace->dof_distribution(m_glFrom));
+		if(bConnViewerIndices)
+			WriteAlgebraIndices<TDomain>(name, m_spApproxSpace->domain(), m_spApproxSpace->dof_distribution(m_glFrom));
 	}
 
 	///	reads the positions
@@ -646,6 +650,7 @@ protected:
 		}
 
 		//	write
+		write_algebra_indices_CV(filename);
 		const std::vector<MathVector<dim> >& vPos =
 				this->template get_positions<dim>();
 		if(vPos.empty())
@@ -683,6 +688,7 @@ protected:
 
 	//	flag if write to conn viewer
 	bool bConnViewerOut;
+	bool bConnViewerIndices;
 
 	//	flag if write to vtk
 	bool bVTKOut;

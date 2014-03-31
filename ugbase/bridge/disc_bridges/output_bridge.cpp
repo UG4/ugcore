@@ -23,6 +23,8 @@
 #include "lib_disc/io/vtkoutput.h"
 #include "common/profiler/profiler.h"
 
+#include "../util_overloaded.h"
+
 using namespace std;
 
 namespace ug{
@@ -101,6 +103,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("reset", &T::reset, "", "")
 			.add_method("set_vtk_output", &T::set_vtk_output, "", "bVtkOutput")
 			.add_method("set_conn_viewer_output", &T::set_conn_viewer_output, "", "bCVOutput")
+			.add_method("set_conn_viewer_indices", &T::set_conn_viewer_indices, "", "bIndicesOutput")
 			.add_method("set_print_consistent",  &T::set_print_consistent, "", "printConsistent")
 		    .add_method("set_base_dir", &T::set_base_dir, "", "")
 		    .add_method("set_grid_level", &T::set_grid_level, "Sets the grid level", "GridLevel")
@@ -115,6 +118,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		string name = string("GridFunctionPositionProvider").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
+			. ADD_CONSTRUCTOR( (const function_type&) )("gridFunction")
 			.add_method("set_reference_grid_function", &T::set_reference_grid_function, "", "gridFunction")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GridFunctionPositionProvider", tag);
@@ -165,15 +169,20 @@ static void DomainAlgebra(Registry& reg, string grp)
 	{
 		typedef MatrixOperator<matrix_type,	vector_type> matOp;
 
-		reg.add_function("SaveVectorForConnectionViewer", static_cast<void (*)(function_type& ,const char*)>(&SaveVectorForConnectionViewer<function_type>),
+		reg.add_function("SaveVectorForConnectionViewer",OVERLOADED_FUNCTION_PTR
+				(void, SaveVectorForConnectionViewer<function_type>, (function_type& ,const char*) ) ,
 				grp, "", "vec#Filename|save-dialog|endings=[\"vec\"]", "save vector as .vec for ConnectionViewer");
-		reg.add_function("SaveVectorDiffForConnectionViewer", static_cast<void (*)(function_type& ,function_type&, const char*)>(&SaveVectorDiffForConnectionViewer<function_type>),
-						grp, "", "vecA#vecB#Filename|save-dialog|endings=[\"vec\"]", "compare two vectors a and b and save difference in .vec for ConnectionViewer");
-		reg.add_function("SaveVectorForConnectionViewer", static_cast<void (*)(function_type& , matOp&, const char*)>(&SaveVectorForConnectionViewer<function_type>),
+		reg.add_function("SaveVectorDiffForConnectionViewer", OVERLOADED_FUNCTION_PTR
+				(void, SaveVectorDiffForConnectionViewer<function_type>, (function_type& ,function_type&, const char*) ),
+				grp, "", "vecA#vecB#Filename|save-dialog|endings=[\"vec\"]", "compare two vectors a and b and save difference in .vec for ConnectionViewer");
+		reg.add_function("SaveVectorForConnectionViewer", OVERLOADED_FUNCTION_PTR
+				(void, SaveVectorForConnectionViewer<function_type>, (function_type& , matOp&, const char*) ),
 				grp, "", "vec#matrix#Filename|save-dialog|endings=[\"vec\"]", "save vector as .vec for ConnectionViewer, use matrix connections as a \"grid\"");
-		reg.add_function("SaveVectorDiffForConnectionViewer", static_cast<void (*)(function_type& , function_type& , matOp&, const char*)>(&SaveVectorDiffForConnectionViewer<function_type>), grp,
+		reg.add_function("SaveVectorDiffForConnectionViewer", OVERLOADED_FUNCTION_PTR
+				(void, SaveVectorDiffForConnectionViewer<function_type>, (function_type& , function_type& , matOp&, const char*) ),
 				grp, "", "vecA#veccB#matrix#Filename|save-dialog|endings=[\"vec\"]", "compare two vectors a and b and save difference in .vec for ConnectionViewer, use matrix connections as a \"grid\"");
-		reg.add_function("LoadVector", static_cast<void (*)(function_type& ,const char*)>(&LoadVector<function_type>),
+		reg.add_function("LoadVector", OVERLOADED_FUNCTION_PTR
+				(void, LoadVector<function_type>, (function_type& ,const char*) ),
 				grp, "", "vec#Filename|save-dialog|endings=[\"vec\"]", "save vector as .vec for ConnectionViewer");
 	}
 
