@@ -67,8 +67,41 @@ class GlobalGridFunctionNumberData
 			//	local finite element id
 			m_lfeID = spGridFct->local_finite_element_id(m_fct);
 
-			m_tree.create_tree(spGridFct->template begin<element_t>(),
-							 spGridFct->template end<element_t>());
+
+
+//			const MGSubsetHandler& ssh = *m_spGridFct->domain()->subset_handler();
+
+			SubsetGroup ssGrp(m_spGridFct->domain()->subset_handler());
+			ssGrp.add_all();
+
+			std::vector<size_t> subsetsOfGridFunction;
+			std::vector<element_t*> elemsWithGridFunctions;
+
+			typename TGridFunction::const_element_iterator iterEnd, iter;
+
+
+			for(size_t si = 0; si < ssGrp.size(); si++){
+				if( spGridFct->is_def_in_subset(m_fct, si) )
+					subsetsOfGridFunction.push_back(si);
+			}
+
+
+			for(size_t i = 0; i<subsetsOfGridFunction.size(); i++){
+				size_t si = subsetsOfGridFunction[i];
+				iter = spGridFct->template begin<element_t>(si);
+				iterEnd = spGridFct->template end<element_t>(si);
+
+				for(;iter!=iterEnd; ++iter){
+					element_t *elem = *iter;
+					elemsWithGridFunctions.push_back(elem);
+				}
+			}
+
+//			m_tree.create_tree(spGridFct->template begin<element_t>(si),
+//														spGridFct->template end<element_t>(si));
+
+			m_tree.create_tree(elemsWithGridFunctions.begin(), elemsWithGridFunctions.end());
+
 		};
 
 		virtual ~GlobalGridFunctionNumberData() {}
@@ -82,7 +115,7 @@ class GlobalGridFunctionNumberData
 		inline void evaluate(number& value, const MathVector<dim>& x, number time, int si) const
 		{
 			if(!evaluate(value, x))
-				UG_THROW("Couldn't find an element containing the specified point: " << x);
+				UG_THROW("For function "<<m_fct<<" couldn't find an element containing the specified point: " << x);
 		}
 
 		///	evaluates the data at a given point, returns false if point not found
@@ -91,8 +124,10 @@ class GlobalGridFunctionNumberData
 
 			element_t* elem = NULL;
 			try{
-				if(!FindContainingElement(elem, m_tree, x))
+
+				if(!FindContainingElement(elem, m_tree, x)){
 					return false;
+				}
 
 			//	get corners of element
 				std::vector<MathVector<dim> > vCornerCoords;
