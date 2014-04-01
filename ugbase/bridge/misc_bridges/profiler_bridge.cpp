@@ -17,6 +17,11 @@ using namespace std;
 
 namespace ug
 {
+
+static void UpdateProfiler_BridgeImpl(number damping){
+	PROFILER_UPDATE(damping);
+}
+
   //void PrintLUA();
 namespace bridge
 {
@@ -119,6 +124,7 @@ void RegisterBridge_Profiler(Registry &reg, string parentGroup)
 					OVERLOADED_FUNCTION_PTR(void, WriteProfileDataXML, (const char*, int)),
 					 grp,
 	                 "", "filename|save-dialog|endings=[\"pdxml\"]", "writes a XML-file with profile data viewable with the ShinyProfileViewer. Pick a filename ending with .pdxml");
+	reg.add_function("UpdateProfiler", &UpdateProfiler_BridgeImpl, grp);
 }
 
 

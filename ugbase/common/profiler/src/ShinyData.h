@@ -21,6 +21,17 @@ restrictions:
     3. This notice may not be removed or altered from any source distribution.
 */
 
+/* CHANGES!
+ * This file contains changes concerning ProfileData::computeAverages. The old
+ * damping (avg = a_damping * (avg - cur) + cur) was replaced by a new damping:
+ * (avg = a_damping * avg + cur). The new daming allows to perform intermediate
+ * updates while still conserving all gathered profile-times (choose a_damping==1). 
+ * To only consider new profile-times (thus clearing the profile-history on update)
+ * you may choose a_damping==0.
+ * Please contact sreiter@gcsc.uni-frankfurt.de or mrupp@gcsc.uni-frankfurt.de
+ * for more information and discussion on this subject.*/
+
+
 #ifndef SHINY_DATA_H
 #define SHINY_DATA_H
 
@@ -46,7 +57,11 @@ namespace Shiny {
 			T cur;
 			float avg;
 
-			void computeAverage(float a_damping) { avg = a_damping * (avg - cur) + cur; }
+		// CHANGE:	changed the damping performed in the computeAverage method.
+		//			See the documentation at the beginning of the file for a motivation.
+			void computeAverage(float a_damping) { avg = a_damping * avg + cur; }
+			//void computeAverage(float a_damping) { avg = a_damping * (avg - cur) + cur; }
+
 			void clear(void) { cur = 0; avg = 0; }
 		};
 

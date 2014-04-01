@@ -70,6 +70,7 @@ void IRefiner::adaption_ends()
 
 void IRefiner::refine()
 {
+	PROFILE_BEGIN_GROUP(IRefiner_refine, "grid");
 	try
 	{
 		if(!m_messageHub.valid()){
@@ -111,6 +112,7 @@ void IRefiner::refine()
 
 bool IRefiner::coarsen()
 {
+	PROFILE_BEGIN_GROUP(IRefiner_coarsen, "grid");
 //	if coarsen isn't supported, we'll leave right away
 	if(!coarsening_supported())
 		return false;

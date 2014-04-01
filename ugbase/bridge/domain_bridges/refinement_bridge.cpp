@@ -775,7 +775,7 @@ void MarkForRefinement_ElementsByLuaCallback(TDomain& dom, SmartPtr<IRefiner> re
 
 	LuaFunction<int, number>	callback;
 //	we'll pass the following arguments: x, y, z, h, lvl, si, time
-	callback.set_lua_callback(luaCallbackName, 6);
+	callback.set_lua_callback(luaCallbackName, 7);
 
 	for(TIter iter = g.template begin<TElem>(); iter != g.template end<TElem>(); ++iter)
 	{
