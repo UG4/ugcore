@@ -57,10 +57,10 @@ class DirichletBoundary
 	/// The default ist without Dirichlet columns.
 
 	///	constructor
-		DirichletBoundary() {m_bDirichletColumns = false; clear();}
+		DirichletBoundary() {m_bDirichletColumns = false; m_A = NULL; clear();}
 
 	/// constructor with flag for Dirichlet-Columns.
-		DirichletBoundary(bool DirichletColumns){m_bDirichletColumns = DirichletColumns; clear();}
+		DirichletBoundary(bool DirichletColumns){m_bDirichletColumns = DirichletColumns; m_A = NULL; clear();}
 
 	///	destructor
 		~DirichletBoundary() {}
@@ -356,6 +356,8 @@ class DirichletBoundary
 	/// maps a column dirichlet index to the
 	/// row and its corresponding matrix entry.
 		std::map<int, std::map<int, value_type> > m_dirichletMap;
+	///
+		matrix_type* m_A;
 
 	///	current ApproxSpace
 		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;

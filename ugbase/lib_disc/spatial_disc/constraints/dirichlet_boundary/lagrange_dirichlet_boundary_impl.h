@@ -1040,7 +1040,7 @@ adjust_linear(const std::vector<TUserData*>& vUserData, int si,
 
 	if(m_bDirichletColumns){
 	//	UG_LOG("adjust linear\n")
-
+		m_A = &A;
 		// number of rows
 		size_t nr = A.num_rows();
 
@@ -1067,29 +1067,6 @@ adjust_linear(const std::vector<TUserData*>& vUserData, int si,
 					// this corresponds to a dirichlet column.
 					if(i!=it.index())
 						it.value() = 0.0;
-				}
-
-			}
-		}
-
-		// adjust the right hand side
-
-		typename std::map<int, std::map<int, value_type> >::iterator itdirichletMap;
-
-		for(size_t i = 0; i<nr; i++)
-		{
-			for(typename matrix_type::row_iterator it = A.begin_row(i); it!=A.end_row(i); ++it){
-
-				itdirichletMap = m_dirichletMap.find(it.index());
-
-				// current column index is a dirichlet index
-				if(itdirichletMap != m_dirichletMap.end()){
-
-					// just non-diagonal entries need do be considered
-					// by this the dirichlet entries of b remain unchanged.
-					if(i!=it.index()){
-						b[i] -= itdirichletMap->second[i]*b[it.index()];
-					}
 				}
 
 			}
@@ -1206,6 +1183,30 @@ adjust_rhs(const std::vector<TUserData*>& vUserData, int si,
 					this->m_spAssTuner->set_dirichlet_val(b, multInd[j], val[f]);
 
 				}
+			}
+		}
+
+	}
+	// adjust the right hand side
+	if(m_bDirichletColumns){
+		typename std::map<int, std::map<int, value_type> >::iterator itdirichletMap;
+		size_t nr = m_A->num_rows();
+		for(size_t i = 0; i<nr; i++)
+		{
+			for(typename matrix_type::row_iterator it = m_A->begin_row(i); it!=m_A->end_row(i); ++it){
+
+				itdirichletMap = m_dirichletMap.find(it.index());
+
+				// current column index is a dirichlet index
+				if(itdirichletMap != m_dirichletMap.end()){
+
+					// just non-diagonal entries need do be considered
+					// by this the dirichlet entries of b remain unchanged.
+					if(i!=it.index()){
+						b[i] -= itdirichletMap->second[i]*b[it.index()];
+					}
+				}
+
 			}
 		}
 	}
