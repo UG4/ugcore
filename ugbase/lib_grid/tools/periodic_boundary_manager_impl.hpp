@@ -353,8 +353,13 @@ void PeriodicBoundaryManager::handle_deletion(TElem* e, TElem* replacedBy) {
 
 	if (is_master(e)) {
 		// delete a master completely...
-		set_group<TElem>(NULL, e);
-		UG_THROW("headless group condition")
+		if (replacedBy) {
+			UG_ASSERT(!group(replacedBy),
+			"replacing element is already in group")
+			make_master(group(e), replacedBy);
+		} else {
+			remove_group(group(e));
+		}
 	} else { // slave
 		UG_ASSERT(is_slave(e), "e should be a slave")
 		if(!remove_slave(e))
