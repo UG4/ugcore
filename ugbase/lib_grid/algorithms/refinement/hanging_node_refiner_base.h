@@ -292,18 +292,10 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 		inline bool marked_to_constraining(TElem* elem)		{return (m_selMarkedElements.get_selection_status(elem) & HNRM_TO_CONSTRAINING) == HNRM_TO_CONSTRAINING;}
 
 		template <class TElem>
-		inline void add_hmark(TElem* elem, HNodeRefMarks mark)
-		{
-			m_selMarkedElements.select(elem,
-						m_selMarkedElements.get_selection_status(elem) | mark);
-		}
+		void add_hmark(TElem* elem, HNodeRefMarks mark);
 
 		template <class TElem>
-		inline void remove_hmark(TElem* elem, uint mark)
-		{
-			m_selMarkedElements.select(elem,
-						m_selMarkedElements.get_selection_status(elem) & (~mark));
-		}
+		void remove_hmark(TElem* elem, uint mark);
 
 	///	removes coarsen marks from the selection
 	/**	Note that derived classes are not informed about those deselections!*/

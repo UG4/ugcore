@@ -77,26 +77,28 @@ public:
 	/**
 	 * A Group instance holds a master of type TElem and several children.
 	 */
-	template <class TElem, class Container = std::vector<TElem*> > class Group {
-	public:
-		typedef Container SlaveContainer;
-		typedef typename Container::iterator SlaveIterator;
-		// the set typedefs are used to check for periodicity after identification
-		typedef typename std::pair<TElem*, TElem*> master_slave_pair;
-		typedef typename std::set<master_slave_pair> unique_pairs;
+	template <class TElem, class Container = std::vector<TElem*> >
+	class Group
+	{
+		public:
+			typedef Container SlaveContainer;
+			typedef typename Container::iterator SlaveIterator;
+			// the set typedefs are used to check for periodicity after identification
+			typedef typename std::pair<TElem*, TElem*> master_slave_pair;
+			typedef typename std::set<master_slave_pair> unique_pairs;
 
-		Group(TElem* m = NULL) : m_master(m) {}
+			Group(TElem* m = NULL) : m_master(m) {}
 
-		void add_slave(TElem* e) {
-			UG_ASSERT(e, "add_slave: slave not valid");
-			UG_ASSERT(e != m_master, "element already master!");
-			m_slaves.push_back(e); }
+			void add_slave(TElem* e) {
+				UG_ASSERT(e, "add_slave: slave not valid");
+				UG_ASSERT(e != m_master, "element already master!");
+				m_slaves.push_back(e); }
 
-		Container& get_slaves() { return m_slaves; }
-		TElem* m_master;
+			Container& get_slaves() { return m_slaves; }
+			TElem* m_master;
 
-	protected:
-		Container m_slaves;
+		protected:
+			Container m_slaves;
 	};
 
 	enum PeriodicStatus {
@@ -160,6 +162,11 @@ public:
 	bool check_periodicity(const GridObjectCollection& goc1,
 							  const GridObjectCollection& goc2,
 							  ISubsetHandler* sh = NULL);
+
+	/**	makes sure that all master/slave identifications are correct and that
+	 * no unconnected masters or slaves exist.
+	 * This method iterates over all elements of the grid and is thus rather expensive.*/
+	void validity_check();
 
 	/**
 	 * sets the identifier instance to use for subset index si
@@ -228,9 +235,13 @@ protected:
 	template <class TElem> void set_group(Group<TElem>* g, TElem* e);
 	template <class TElem> void remove_group(Group<TElem>* g);
 
+	///	replaces all group occurrances of pParent by the specified elem
+	template <class TElem>
+	void replace_parent(TElem* e, TElem* pParent);
+
 	/// handles creation of element type
 	template <class TElem, class TParent>
-	void handle_creation(TElem* e, TParent* pParent, bool replacesParent);
+	void handle_creation(TElem* e, TParent* pParent);
 
 	/// handles deletion of element type
 	template <class TElem>
@@ -246,6 +257,9 @@ protected:
 			TIterator end,
 			typename Group<TElem>::unique_pairs& s,
 			ISubsetHandler* sh);
+
+	template <class TElem>
+	void validity_check();
 
 };
 

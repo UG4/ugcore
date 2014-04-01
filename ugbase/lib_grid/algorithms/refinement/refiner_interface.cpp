@@ -6,6 +6,9 @@
 #include "lib_grid/lib_grid_messages.h"
 #include "common/catch_std.h"
 
+//	FOR DEBUGGING ONLY:
+#include "lib_grid/tools/periodic_boundary_manager.h"
+
 #ifdef UG_PARALLEL
 	#include "pcl/pcl_process_communicator.h"
 #endif
@@ -98,8 +101,9 @@ void IRefiner::refine()
 
 	//	and finally - if we posted an adaption-begins message, then we'll post
 	//	an adaption ends message, too.
-		if(locallyActivatedAdaption)
+		if(locallyActivatedAdaption){
 			adaption_ends();
+		}
 	}
 	CATCH_STD_EXCEPTIONS();
 }

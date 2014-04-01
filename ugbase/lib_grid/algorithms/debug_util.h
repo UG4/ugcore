@@ -113,10 +113,9 @@ bool CheckElementConsistency(MultiGrid& mg, Face* f);
  * This method is intended for use in UG_ASSERT or UG_THROW to print additional
  * information on an element for which a problem occurred.
  * \return	string containing gathered information on the given element
- */
-template <class TElem>
-std::string ElementDebugInfo(const Grid& grid, TElem* e);
-
+ * \{ */
+std::string ElementDebugInfo(const Grid& grid, GridObject* e);
+/** \} */
 
 ///	Performs some tests on a surface-view (checks iterators vs surface-states)
 //void CheckSurfaceViewConsistency(SurfaceView& sv);

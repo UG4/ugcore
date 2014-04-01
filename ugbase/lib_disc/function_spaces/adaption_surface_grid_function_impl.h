@@ -104,6 +104,9 @@ copy_to_surface(GridFunction<TDomain,TAlgebra>& rSurfaceFct, TElem* elem)
 		          elem->reference_object_id())
 
 		for(size_t i = 0; i < vInd.size(); ++i){
+			 UG_ASSERT(vInd[i][0] != size_t(-1),
+			 		   "Bad dof-index encountered on: "
+			 		   << ElementDebugInfo(*rSurfaceFct.domain()->grid(), elem));
 			 DoFRef(rSurfaceFct, vInd[i]) = vVal[i];
 		}
 	}

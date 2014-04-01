@@ -262,6 +262,113 @@ bool PeriodicBoundaryManager::check_periodicity(
 	return true;
 }
 
+
+template <class elem_t>
+void PeriodicBoundaryManager::validity_check()
+{
+	typedef typename Grid::traits<elem_t>::iterator	iter_t;
+	typedef typename Group<elem_t>::SlaveContainer	slave_container_t;
+	typedef typename slave_container_t::iterator	slave_iter_t;
+
+	Grid::AttachmentAccessor<elem_t, Attachment<PeriodicStatus> >
+		aaPS = get_periodic_status_accessor<elem_t>();
+
+	Grid::AttachmentAccessor<elem_t, Attachment<Group<elem_t>* > >
+		aaGroup = get_group_accessor<elem_t>();
+
+	Grid& g = *m_pGrid;
+
+	for(iter_t i_elem = g.begin<elem_t>(); i_elem != g.end<elem_t>(); ++ i_elem)
+	{
+		elem_t* e = *i_elem;
+		if(aaGroup[e]){
+			bool isMaster = (aaGroup[e]->m_master == e);
+			int elemSlaveCount = 0;
+			int totalSlaveCount = 0;
+			slave_container_t* slaveCon = &aaGroup[e]->get_slaves();
+			for(slave_iter_t i = slaveCon->begin(); i != slaveCon->end(); ++i)
+			{
+				++totalSlaveCount;
+				if(*i == e)
+					++elemSlaveCount;
+			}
+
+			if(aaGroup[e]->m_master == NULL){
+				UG_THROW("Group doesn't contain a master!\n"
+						 << "  elem-info: " << ElementDebugInfo(g, e));
+			}
+			if(totalSlaveCount == 0){
+				UG_THROW("Group doesn't contain slaves!\n"
+						 << "  elem-info: " << ElementDebugInfo(g, e));
+			}
+
+			if(isMaster && (elemSlaveCount > 0)){
+				UG_THROW("An element is contained both in the master list and in the"
+						 " slave list of its group!\n"
+						 << "  elem-info: " << ElementDebugInfo(g, e));
+			}
+			if(elemSlaveCount > 1){
+				UG_THROW("Multi-occurance of an element in a groups slave list!\n"
+						 << "  elem-info: " << ElementDebugInfo(g, e));
+			}
+			if((!isMaster) && (elemSlaveCount == 0)){
+				UG_THROW("An element points to a group but is not contained in that group!\n"
+						 << "  elem-info: " << ElementDebugInfo(g, e));
+			}
+			
+		//	the element is either master or slave. now check whether the states are correct
+			if(isMaster){
+				if(aaPS[e] != P_MASTER){
+					UG_THROW("An element is a groups master, but its state does not say so!\n"
+						 	 << "  state: " << aaPS[e] << "\n"
+					 		 << "  elem-info: " << ElementDebugInfo(g, e));
+				}
+			//	make sure that all slaves have their group assigned
+				for(slave_iter_t i = slaveCon->begin(); i != slaveCon->end(); ++i)
+				{
+					if(aaGroup[*i] != aaGroup[e]){
+						UG_THROW("A slave element was encountered, which does not"
+								 << " point to the same group as it's master!\n"
+								 << "  master: " << ElementDebugInfo(g, e) << "\n"
+								 << "  slave: " << ElementDebugInfo(g, *i) << "\n");
+					}
+				}
+			}
+			else{
+				if((aaPS[e] == P_SLAVE_MASTER_UNKNOWN)){
+					UG_THROW("P_SLAVE_MASTER_UNKNOWN is not a valid state!\n"
+					 		 << "  elem-info: " << ElementDebugInfo(g, e));
+				}
+				else if(aaPS[e] != P_SLAVE)
+				{
+					UG_THROW("An element is a slave, but its state does not say so!\n"
+						 	 << "  state: " << aaPS[e] << "\n"
+					 		 << "  elem-info: " << ElementDebugInfo(g, e));
+				}
+
+				if(aaGroup[e] != aaGroup[aaGroup[e]->m_master]){
+					UG_THROW("A master element was encountered, which does not"
+							 << " point to the same group as it's slave!\n"
+							 << "  master: " << ElementDebugInfo(g, aaGroup[e]->m_master) << "\n"
+							 << "  slave: " << ElementDebugInfo(g, e) << "\n");
+				}
+			}
+		}
+		else if(aaPS[e] != P_NOT_PERIODIC){
+			UG_THROW("An element is marked as periodic but not contained in a group!\n"
+					 << "  state: " << aaPS[e] << "\n"
+					 << "  elem-info: " << ElementDebugInfo(g, e));
+		}
+	}
+}
+
+void PeriodicBoundaryManager::validity_check()
+{
+	validity_check<Vertex>();
+	validity_check<Edge>();
+	validity_check<Face>();
+}
+
 //void PeriodicBoundaryManager::set_identifier(SmartPtr<IIdentifier> i, size_t si) {
 //	UG_ASSERT(m_vIdentifier.capacity() >= si, "identifier vector not big enough")
 //	m_vIdentifier[si] = i;

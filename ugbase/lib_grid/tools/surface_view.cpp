@@ -170,10 +170,15 @@ template <class TElem, class TSide>
 void SurfaceView::
 mark_sides_as_surface_or_shadow(TElem* elem, byte surfaceState)
 {
+	typedef typename PeriodicBoundaryManager::Group<TSide>::SlaveContainer
+		periodic_slave_container_t;
+	typedef typename periodic_slave_container_t::iterator periodic_slave_iterator_t;
+
 	if(!TElem::HAS_SIDES)
 		return;
 
 	typename Grid::traits<TSide>::secure_container	sides;
+	PeriodicBoundaryManager* pdm = m_pMG->periodic_boundary_manager();
 
 	m_pMG->associated_elements(sides, elem);
 	for(size_t i = 0; i < sides.size(); ++i){
@@ -186,6 +191,19 @@ mark_sides_as_surface_or_shadow(TElem* elem, byte surfaceState)
 				surface_state(s).set(MG_SHADOW_RIM_COPY);
 			else
 				surface_state(s).set(MG_SHADOW_RIM_NONCOPY);
+
+		//	if a periodic boundary manager exists, we have to copy this state
+		//	to all linked elements
+			if(pdm && pdm->is_periodic(s)){
+				TSide* master = pdm->master(s);
+				surface_state(master) = surface_state(s);
+				periodic_slave_container_t* slaves = pdm->slaves(master);
+				for(periodic_slave_iterator_t i = slaves->begin();
+					i != slaves->end(); ++i)
+				{
+					surface_state(*i) = surface_state(master);
+				}
+			}
 		}
 	}
 

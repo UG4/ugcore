@@ -158,9 +158,29 @@ void PeriodicBoundaryManager::print_identification() const {
  *
  * If replacesParent is true, e is meant to replace pParent
  */
+template <class TElem>
+void PeriodicBoundaryManager::replace_parent(TElem* e, TElem* pParent) {
+
+	if (is_master(pParent)) {
+		// if parent is master, set newly created item as new master
+		Group<TElem>* g = group(pParent);
+		g->m_master = e;
+		set_group(g, e);
+	} else if(is_slave(pParent)) { // slave
+	//	iterate over parent-groups slave list and replace pointer to parent
+		typename Group<TElem>::SlaveContainer* slaveCon = slaves(pParent);
+		for(typename Group<TElem>::SlaveContainer::iterator i = slaveCon->begin();
+			i != slaveCon->end(); ++i)
+		{
+			if(*i == pParent)
+				*i = e;
+		}
+		set_group(group(pParent), e);
+	}
+}
+
 template <class TElem, class TParent>
-void PeriodicBoundaryManager::handle_creation(TElem* e, TParent* pParent,
-		bool replacesParent) {
+void PeriodicBoundaryManager::handle_creation(TElem* e, TParent* pParent) {
 
 	typedef typename Group<TParent>::SlaveContainer ParentSlaveContainer;
 
@@ -173,28 +193,6 @@ void PeriodicBoundaryManager::handle_creation(TElem* e, TParent* pParent,
 	UG_ASSERT(m_pGrid,
 			"PeriodicBoundaryManager has to operate on a grid. No grid assigned.");
 	MultiGrid& mg = *m_pGrid;
-
-	// if replacesParent == true, TParent == TElem
-	if (replacesParent) {
-		//	we only have to replace the parent entry.
-		TElem* parent = dynamic_cast<TElem*>(pParent);
-		if (parent) {
-			if (is_periodic(parent)) {
-				if (is_master(parent)) {
-					// if parent is master, set newly created item as new master
-					make_master(group(parent), e);
-				} else { // slave
-					// make newly created item a slave, since its parent is slave
-					make_slave<TElem>(group(parent), e);
-					// remove parent from its group (and reset its status)
-					remove_slave(parent);
-				}
-			}
-		} else
-			UG_THROW("Can't replace an element with an element of another type.");
-		// finished here
-		return;
-	}
 
 	mg.begin_marking();
 	if(TElem::BASE_OBJECT_ID != VERTEX){
@@ -317,33 +315,50 @@ void PeriodicBoundaryManager::handle_creation(TElem* e, TParent* pParent,
 	mg.end_marking();
 }
 
+template <class TElem>
+void PeriodicBoundaryManager::handle_creation_cast_wrapper(TElem* e,
+		GridObject* pParent, bool replacesParent) {
+	// we can only identify periodic elements, which have a periodic parent
+	if(!pParent)
+		return;
+
+	if(replacesParent){
+		replace_parent(e, static_cast<TElem*>(pParent));
+	}
+	else{
+		switch (pParent->base_object_id()) {
+		case VERTEX:
+			handle_creation(e, static_cast<Vertex*>(pParent));
+			break;
+		case EDGE:
+			handle_creation(e, static_cast<Edge*>(pParent));
+			break;
+		case FACE:
+			handle_creation(e, static_cast<Face*>(pParent));
+			break;
+		// ignore volumes, as these are not meant to be periodic
+		case VOLUME:
+			break;
+		default:
+			UG_THROW("no handling for parent type: " << pParent->base_object_id())
+		}
+	}
+}
+
 /// handles deletion of element type
 template <class TElem>
 void PeriodicBoundaryManager::handle_deletion(TElem* e, TElem* replacedBy) {
-	if (!is_periodic(e))
+	if((!is_periodic(e)) || replacedBy)
 		return;
 
 	if (is_master(e)) {
-		// if e is master, set its replacing element as new master
-		if (replacedBy) {
-			UG_ASSERT(!group(replacedBy),
-					"replacing element is already in group")
-			make_master(group(e), replacedBy);
-		} else {
-			// delete a master completely...
-			set_group<TElem>(NULL, e);
-			UG_THROW("headless group condition")
-		}
+		// delete a master completely...
+		set_group<TElem>(NULL, e);
+		UG_THROW("headless group condition")
 	} else { // slave
 		UG_ASSERT(is_slave(e), "e should be a slave")
-		Group<TElem>* g = group(e);
 		if(!remove_slave(e))
 			UG_THROW("old slave not removed.")
-
-		if (replacedBy) {
-			// then add replacing element to group
-			make_slave(g, replacedBy);
-		}
 	}
 }
 
@@ -481,31 +496,6 @@ void PeriodicBoundaryManager::set_group(Group<TElem>* g, TElem* e) {
 			get_periodic_status_accessor<TElem>()[e] = P_MASTER;
 		else
 			get_periodic_status_accessor<TElem>()[e] = P_SLAVE;
-	}
-}
-
-template <class TElem>
-void PeriodicBoundaryManager::handle_creation_cast_wrapper(TElem* e,
-		GridObject* pParent, bool replacesParent) {
-	// we can only identify periodic elements, which have a periodic parent
-	if(!pParent)
-		return;
-
-	switch (pParent->base_object_id()) {
-	case VERTEX:
-		handle_creation(e, static_cast<Vertex*>(pParent), replacesParent);
-		break;
-	case EDGE:
-		handle_creation(e, static_cast<Edge*>(pParent), replacesParent);
-		break;
-	case FACE:
-		handle_creation(e, static_cast<Face*>(pParent), replacesParent);
-		break;
-	// ignore volumes, as these are not meant to be periodic
-	case VOLUME:
-		break;
-	default:
-		UG_THROW("no handling for parent type: " << pParent->base_object_id())
 	}
 }
 

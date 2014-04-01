@@ -10,6 +10,7 @@
 #include "lib_grid/lg_base.h"
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 #include "common/util/table.h"
+#include "lib_grid/tools/periodic_boundary_manager.h"
 
 namespace ug
 {
@@ -115,39 +116,6 @@ void WriteDebugValuesToFile(const char* filename, Grid& grid,
 
 	out << table;
 	out.close();
-}
-
-
-template <class TElem>
-std::string ElementDebugInfo(const Grid& grid, TElem* e)
-{
-	std::stringstream ss;
-	if(!e)
-		return std::string("invalid element");
-
-	if(e->is_constrained())
-		ss << "constrained ";
-	else if(e->is_constraining())
-		ss << "constraining ";
-	else
-		ss << "normal ";
-
-	switch(e->base_object_id()){
-		case VERTEX: ss << "vertex "; break;
-		case EDGE: ss << "edge "; break;
-		case FACE: ss << "face "; break;
-		case VOLUME: ss << "volume "; break;
-		default: ss << "UNKNOWN ELEMENT TYPE"; return ss.str();
-	}
-
-	ss << "at " << GetGridObjectCenter(*const_cast<Grid*>(&grid), e) << " ";
-
-	if(const MultiGrid* mg = dynamic_cast<const MultiGrid*>(&grid)){
-		ss << "on level " << mg->get_level(e);
-		ss << " with assigned parent type " << (int)mg->parent_type(e) << " ";
-	}
-
-	return ss.str();
 }
 
 }//	end of namespace

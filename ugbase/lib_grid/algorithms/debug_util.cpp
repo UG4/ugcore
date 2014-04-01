@@ -899,4 +899,76 @@ bool CheckElementConsistency(MultiGrid& mg, Face* f)
 	return success;
 }
 
+
+template <class TElem>
+static
+std::string ElementDebugInfo_IMPL(const Grid& grid, TElem* e)
+{
+	std::stringstream ss;
+	if(!e)
+		return std::string("invalid element");
+
+	if(e->is_constrained())
+		ss << "constrained ";
+	else if(e->is_constraining())
+		ss << "constraining ";
+	else
+		ss << "normal ";
+
+	switch(e->base_object_id()){
+		case VERTEX: ss << "vertex "; break;
+		case EDGE: ss << "edge "; break;
+		case FACE: ss << "face "; break;
+		case VOLUME: ss << "volume "; break;
+		default: ss << "UNKNOWN ELEMENT TYPE"; return ss.str();
+	}
+
+	ss << "at " << GetGridObjectCenter(*const_cast<Grid*>(&grid), e) << " ";
+
+	if(const MultiGrid* mg = dynamic_cast<const MultiGrid*>(&grid)){
+		ss << "on level " << mg->get_level(e);
+		ss << " with assigned parent type " << (int)mg->parent_type(e) << " ";
+	}
+
+	if(grid.periodic_boundary_manager()){
+		typedef typename TElem::grid_base_object	base_t;
+		base_t* b = e;
+		const PeriodicBoundaryManager* pdm = grid.periodic_boundary_manager();
+		if(pdm->is_slave(b)){
+			ss << "-- periodic slave ";
+			if(pdm->master(b)){
+				ss << "with master at "
+				   << GetGridObjectCenter(*const_cast<Grid*>(&grid), pdm->master(b))
+				   << " ";
+			}
+		}
+		else if(pdm->is_master(b)){
+			typedef typename PeriodicBoundaryManager::Group<base_t>::SlaveContainer
+				slave_container_t;
+			ss << "-- periodic master ";
+			slave_container_t* slaves = pdm->slaves(b);
+			if(!slaves->empty()){
+				ss << "with slaves at ";
+				for(typename slave_container_t::iterator i = slaves->begin();
+					i != slaves->end(); ++i)
+				{
+					ss << GetGridObjectCenter(*const_cast<Grid*>(&grid), *i) << " ";
+				}
+			}
+		}
+	}
+	return ss.str();
+}
+
+std::string ElementDebugInfo(const Grid& grid, GridObject* e)
+{
+	switch(e->base_object_id()){
+		case VERTEX: return ElementDebugInfo_IMPL(grid, static_cast<Vertex*>(e));
+		case EDGE: return ElementDebugInfo_IMPL(grid, static_cast<Edge*>(e));
+		case FACE: return ElementDebugInfo_IMPL(grid, static_cast<Face*>(e));
+		case VOLUME: return ElementDebugInfo_IMPL(grid, static_cast<Volume*>(e));
+		default: return string("UNKNOWN ELEMENT TYPE");
+	}
+}
+
 }// end of namespace

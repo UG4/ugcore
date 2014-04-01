@@ -10,6 +10,7 @@
 #include "lib_grid/file_io/file_io.h"
 #include "ref_mark_adjusters/std_hnode_adjuster.h"
 #include "lib_grid/tools/selector_multi_grid.h"
+#include "lib_grid/tools/periodic_boundary_manager.h"
 
 //define PROFILE_HANGING_NODE_REFINER if you want to profile
 //the refinement code.
@@ -690,14 +691,14 @@ void HangingNodeRefinerBase<TSelector>::perform_refinement()
 			m_selMarkedElements.deselect(e);
 	}
 
-//	{
-//		UG_LOG("DEBUG SAVE...\n");
-//		static int refselCount = 0;
-//		stringstream ss;
-//		ss << "refselafter_" << refselCount << ".ugx";
-//		save_marks_to_file(ss.str().c_str());
-//		++refselCount;
-//	}
+	// {
+	// 	UG_LOG("DEBUG SAVE...\n");
+	// 	static int refselCount = 0;
+	// 	stringstream ss;
+	// 	ss << "refselafter_" << refselCount << ".ugx";
+	// 	save_marks_to_file(ss.str().c_str());
+	// 	++refselCount;
+	// }
 
 //	notify the grid's message hub that refinement ends
 	HNODE_PROFILE_BEGIN(href_AdaptionEndsMessage);
@@ -715,6 +716,18 @@ void HangingNodeRefinerBase<TSelector>::perform_refinement()
 	}
 	clear_marks();
 	HNODE_PROFILE_END();
+
+//	debugging utilities for the periodic boundary manager
+	// if(m_pGrid->periodic_boundary_manager()){
+	// 	m_pGrid->periodic_boundary_manager()->print_identification<Vertex>();
+	// 	m_pGrid->periodic_boundary_manager()->print_identification<Edge>();
+	// 	m_pGrid->periodic_boundary_manager()->print_identification<Face>();
+
+	// 	UG_LOG("DEBUGGING: Checking validity of PeriodicBoundaryManager:\n");
+	// 	if(m_pGrid->periodic_boundary_manager())
+	// 		m_pGrid->periodic_boundary_manager()->validity_check();
+	// }
+
 	UG_DLOG(LIB_GRID, 1, "  done.\n");
 }
 
@@ -943,6 +956,66 @@ assign_hnode_marks()
 				}
 			}
 		}
+	}
+}
+
+template <class TSelector>
+template <class TElem>
+void HangingNodeRefinerBase<TSelector>::
+add_hmark(TElem* elem, HNodeRefMarks mark)
+{
+//	we have to consider periodic boundaries
+	PeriodicBoundaryManager* pbm = m_pGrid->periodic_boundary_manager();
+	typedef typename TElem::grid_base_object	base_elem_t;
+	base_elem_t* e = elem;
+	if(pbm && pbm->is_periodic(e)){
+		base_elem_t* master = pbm->master(e);
+		m_selMarkedElements.select(master,
+					m_selMarkedElements.get_selection_status(master) | mark);
+
+		typedef typename PeriodicBoundaryManager::Group<base_elem_t>::SlaveContainer
+						 slave_container_t;
+		slave_container_t* slaves = pbm->slaves(master);
+		for(typename slave_container_t::iterator i = slaves->begin();
+			i != slaves->end(); ++i)
+		{
+			m_selMarkedElements.select(*i,
+					m_selMarkedElements.get_selection_status(*i) | mark);
+		}
+	}
+	else{
+		m_selMarkedElements.select(elem,
+					m_selMarkedElements.get_selection_status(elem) | mark);
+	}
+}
+
+template <class TSelector>
+template <class TElem>
+void HangingNodeRefinerBase<TSelector>::
+remove_hmark(TElem* elem, uint mark)
+{
+	//	we have to consider periodic boundaries
+	PeriodicBoundaryManager* pbm = m_pGrid->periodic_boundary_manager();
+	typedef typename TElem::grid_base_object	base_elem_t;
+	base_elem_t* e = elem;
+	if(pbm && pbm->is_periodic(e)){
+		base_elem_t* master = pbm->master(e);
+		m_selMarkedElements.select(master,
+					m_selMarkedElements.get_selection_status(master) & (~mark));
+
+		typedef typename PeriodicBoundaryManager::Group<base_elem_t>::SlaveContainer
+						 slave_container_t;
+		slave_container_t* slaves = pbm->slaves(master);
+		for(typename slave_container_t::iterator i = slaves->begin();
+			i != slaves->end(); ++i)
+		{
+			m_selMarkedElements.select(*i,
+					m_selMarkedElements.get_selection_status(*i) & (~mark));
+		}
+	}
+	else{
+		m_selMarkedElements.select(elem,
+					m_selMarkedElements.get_selection_status(elem) & (~mark));
 	}
 }
 
@@ -1587,6 +1660,15 @@ refine_volume_with_normal_vertex(Volume* v, Vertex** newCornerVrts)
 }
 
 template class HangingNodeRefinerBase<Selector>;
+template void HangingNodeRefinerBase<Selector>::add_hmark(Vertex*, HNodeRefMarks);
+template void HangingNodeRefinerBase<Selector>::add_hmark(Edge*, HNodeRefMarks);
+template void HangingNodeRefinerBase<Selector>::add_hmark(Face*, HNodeRefMarks);
+template void HangingNodeRefinerBase<Selector>::add_hmark(Volume*, HNodeRefMarks);
+
 template class HangingNodeRefinerBase<MGSelector>;
+template void HangingNodeRefinerBase<MGSelector>::add_hmark(Vertex*, HNodeRefMarks);
+template void HangingNodeRefinerBase<MGSelector>::add_hmark(Edge*, HNodeRefMarks);
+template void HangingNodeRefinerBase<MGSelector>::add_hmark(Face*, HNodeRefMarks);
+template void HangingNodeRefinerBase<MGSelector>::add_hmark(Volume*, HNodeRefMarks);
 
 }// end of namespace
