@@ -40,7 +40,7 @@ namespace ug
 
 void ProfilerUpdate()
 {
-	Shiny::ProfileManager::instance.update(1.0); // WE call with damping = 1.0
+	Shiny::ProfileManager::instance.update(0.0);
 	UpdateTotalMem();
 }
 
