@@ -1013,7 +1013,7 @@ YY_RULE_SETUP
 #line 93 "lexer.l"
 {
                     char buf[255];
-                    sprintf(buf, "Unknown character '%s' at line %d", yytext, yyget_lineno());
+                    sprintf(buf, "Unknown character '%s' at %s:%d", yytext, globalP->filename.c_str(), yyget_lineno()+globalP->iLineAdd);
                     yyerror(buf);
                 }
 	YY_BREAK

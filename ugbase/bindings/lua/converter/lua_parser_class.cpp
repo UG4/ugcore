@@ -11,6 +11,7 @@
 #include "bindings/lua/lua_stack_check.h"
 #include "bindings/lua/info_commands.h"
 #include "common/util/string_util.h"
+#include "lua2c_debug.h"
 
 using namespace std;
 
@@ -88,6 +89,7 @@ void LUAParserClass::reduce()
 		nodes[i] = reduce(nodes[i]);
 }
 
+
 int LUAParserClass::parse_luaFunction(const char *functionName)
 {
     lua_State* L = script::GetDefaultLuaState();
@@ -99,9 +101,8 @@ int LUAParserClass::parse_luaFunction(const char *functionName)
 
 	if(!lua_isfunction(L, -1))
 	{
-		UG_LOG("LUA Script function " << functionName << " not found\n");
+		UG_DLOG(DID_LUA2C, 1, "LUA Script function " << functionName << " not found\n");
 		lua_pop(L, 1);
-		UG_ASSERT(0, "LUA Script function " << functionName << " not found\n");
 		return false;			
 	}
 
@@ -111,7 +112,7 @@ int LUAParserClass::parse_luaFunction(const char *functionName)
 	lua_getinfo(L, ">Snlu", &ar);
 	if(!ar.source)
 	{
-		UG_LOG("no source found\n")
+		UG_DLOG(DID_LUA2C, 1, "no source found\n")
 		lua_pop(L, 1);
 		//UG_ASSERT(0, "no source found");
 		return false;			
@@ -122,15 +123,20 @@ int LUAParserClass::parse_luaFunction(const char *functionName)
 	//UG_DLOG("The function:\n"<<str<<"\n");
 
     lua_pop(L, 1);
+    iLineAdd = ar.linedefined;
+    filename = src;
+    filename = FilenameWithoutPath(filename);
     
 	parse(str.c_str());
     
     if(has_errors())
 	{
-		UG_LOG("-- Parsing function " << functionName << ":\n");
-		UG_LOG(GetFileLines(src, ar.linedefined, ar.lastlinedefined, true));
-		UG_LOG("\nReturned errors:\n");
-		UG_LOG(err.str() << "\n");
+    	UG_DLOG(DID_LUA2C, 1, "-----[ Parsing error for function " << functionName << ": -----\n");
+    	UG_DLOG(DID_LUA2C, 1, src << " " << ar.linedefined << " - " << ar.lastlinedefined << " : \n");
+    	UG_DLOG(DID_LUA2C, 1, GetFileLines(src, ar.linedefined, ar.lastlinedefined, true));
+    	UG_DLOG(DID_LUA2C, 1, "\n----- Parsing errors:\n");
+    	UG_DLOG(DID_LUA2C, 1, err.str());
+    	UG_DLOG(DID_LUA2C, 1, "-----]\n")
 		//UG_ASSERT(0, parser.err.str());
 		return false;
 	}

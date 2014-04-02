@@ -6,6 +6,7 @@
  */
 #include "lua_parser_class.h"
 #include "common/assert.h"
+#include "lua2c_debug.h"
 
 using namespace std;
 
@@ -25,7 +26,7 @@ int LUAParserClass::createJITSG(ostream &out, eReturnType r, set<string> &subfun
     }
     if(num_out() != numRet)
     {
-        UG_LOG("ERROR in LUA2C for LUA function " << name << ": number of return values must be " << numRet << ", not " << num_out() << "\n");
+    	UG_DLOG(DID_LUA2C, 1, "ERROR in LUA2C for LUA function " << name << ": number of return values must be " << numRet << ", not " << num_out() << "\n");
         return false;
     }
     out << "// INSERTED CODE:";

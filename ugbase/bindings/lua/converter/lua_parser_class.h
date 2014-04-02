@@ -43,7 +43,11 @@ class LUAParserClass
 	int numOut;
 	nodeType *args;
 
+
 public:    
+	int iLineAdd;
+	std::string filename;
+
     enum eReturnType
     {
         RT_SUBFUNCTION, RT_DIFFUSION, RT_VELOCITY, RT_CALLBACK, RT_DIRICHLET, 
@@ -53,6 +57,9 @@ public:
 public:
 	LUAParserClass()
 	{
+		iLineAdd = 0;
+		filename = "";
+
         numOut = -1;
         returnType = RT_CALLBACK;
 		args = NULL;
