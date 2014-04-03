@@ -16,6 +16,7 @@ namespace ug{
 
 template <int dim>
 inline bool PrepareConsistentGravity(	MathVector<dim>* vConsGravity,
+										int* standard_gravity,
 										const int coe,
 										const MathVector<dim>* vCorners,
 										const number* vDensity,
@@ -27,11 +28,14 @@ inline bool PrepareConsistentGravity(	MathVector<dim>* vConsGravity,
 
 template <>
 inline bool PrepareConsistentGravity<2>(	MathVector<2>* vConsGravity,
+											int* standard_gravity,
 											const int coe,
 											const MathVector<2>* vCorners,
 											const number* vDensity,
 											const MathVector<2>& PhysicalGravity)
 {
+
+
 //	static constants
 	static const size_t _X_ = 0;
 	static const size_t _Y_ = 1;
@@ -43,61 +47,103 @@ inline bool PrepareConsistentGravity<2>(	MathVector<2>* vConsGravity,
 //	Number of corners
 //	const int coe = vCorners.size();
 
-	MathVector<2> LocalPoint;
+	MathVector<2> LocalPoint,ShiftedGlobalPoint;
 	MathVector<2> LocalGravityAt000, LocalGravityAt110;
 	MathMatrix<2,2> JT;
 
-	switch(coe)
+	double DensityIP, Diff;
+	double gradient;
+
+	if(PhysicalGravity.x()==0.0)
+		*standard_gravity = 1;
+	else
+		*standard_gravity = 0;
+
+	if(coe==3 && *standard_gravity==1)
 	{
-    case 4:
-    	/* QUADRILATERAL */
-		QuadMapping.update(&vCorners[0]);
+		//new consistent gravity for TRIANGLE (cf. Frolkovic98)
 
-   	/* compute the local gravity at local corner (0,0) */
-		LocalPoint.x() = 0.0; LocalPoint.y() = 0.0;
-		QuadMapping.jacobian_transposed(JT, LocalPoint);
-		MatVecMult(LocalGravityAt000, JT, PhysicalGravity);
-
-	/* compute the local gravity at local corner (1,1) */
-		LocalPoint.x() = 1.0; LocalPoint.y() = 1.0;
-   		QuadMapping.jacobian_transposed(JT, LocalPoint);
-   		MatVecMult(LocalGravityAt110, JT, PhysicalGravity);
-
-		vConsGravity[0][_X_] = 0.0; vConsGravity[3][_X_] = 0.0;
-		vConsGravity[1][_X_] = LocalGravityAt000[_X_]*(vDensity[0] + vDensity[1])*0.5;
-		vConsGravity[2][_X_] = LocalGravityAt110[_X_]*(vDensity[2] + vDensity[3])*0.5;
-
-		vConsGravity[0][_Y_] = 0.0; vConsGravity[1][_Y_] = 0.0;
-		vConsGravity[2][_Y_] = LocalGravityAt110[_Y_]*(vDensity[1] + vDensity[2])*0.5;
-		vConsGravity[3][_Y_] = LocalGravityAt000[_Y_]*(vDensity[0] + vDensity[3])*0.5;
-		break;
-
-    case 3:
-		/* TRIANGLE */
 		TriangleMapping.update(&vCorners[0]);
+		TriangleMapping.jacobian_transposed_inverse(JT,vCorners[0]);
 
-		/* compute the local gravity at local corner (0,0) */
-		LocalPoint.x() = 0.0; LocalPoint.y() = 0.0;
-		TriangleMapping.jacobian_transposed(JT, LocalPoint);
-		MatVecMult(LocalGravityAt000, JT, PhysicalGravity);
+		for(int i = 1; i < coe; ++i)
+		{
+			VecSubtract(ShiftedGlobalPoint,vCorners[i],vCorners[0]);
+			Diff = ShiftedGlobalPoint.y();
 
-		vConsGravity[0][_X_] = 0.0; vConsGravity[2][_X_] = 0.0;
-		vConsGravity[1][_X_] = LocalGravityAt000[_X_]*(vDensity[0] + vDensity[1])*0.5;
+			ShiftedGlobalPoint.y() = 0.0;
+			TransposedMatVecMult(LocalPoint,JT,ShiftedGlobalPoint);
 
-		vConsGravity[0][_Y_] = 0.0; vConsGravity[1][_Y_] = 0.0;
-		vConsGravity[2][_Y_] = LocalGravityAt000[_Y_]*(vDensity[0] + vDensity[2])*0.5;
+			DensityIP = vDensity[0] * (1 - LocalPoint.x() - LocalPoint.y()); //GN(0)=1-local(0)-local(1)
+
+			for(int j = 1; j < coe; ++j)
+			{
+				DensityIP += vDensity[j] * LocalPoint[j-1];//GN(j)=local(j-1) for j=1,2
+			}
+
+			gradient = (JT[0][0]*(vDensity[1]-vDensity[0]) + JT[0][1]*(vDensity[2]-vDensity[0]));
+			vConsGravity[i][0] = Diff * PhysicalGravity.y() * gradient;
+			vConsGravity[i][1] = Diff * PhysicalGravity.y() * (vDensity[i] + DensityIP)*0.5;
+		}
+	}
+	else
+	{
+		//generalizied consistent gravity of Voss & Souza for local elements
+		switch(coe)
+		{
+		case 4:
+			/* QUADRILATERAL */
+			QuadMapping.update(&vCorners[0]);
+
+			/* compute the local gravity at local corner (0,0) */
+			LocalPoint.x() = 0.0; LocalPoint.y() = 0.0;
+			QuadMapping.jacobian_transposed(JT, LocalPoint);
+			MatVecMult(LocalGravityAt000, JT, PhysicalGravity);
+
+			/* compute the local gravity at local corner (1,1) */
+			LocalPoint.x() = 1.0; LocalPoint.y() = 1.0;
+			QuadMapping.jacobian_transposed(JT, LocalPoint);
+			MatVecMult(LocalGravityAt110, JT, PhysicalGravity);
+
+			vConsGravity[0][_X_] = 0.0; vConsGravity[3][_X_] = 0.0;
+			vConsGravity[1][_X_] = LocalGravityAt000[_X_]*(vDensity[0] + vDensity[1])*0.5;
+			vConsGravity[2][_X_] = LocalGravityAt110[_X_]*(vDensity[2] + vDensity[3])*0.5;
+
+			vConsGravity[0][_Y_] = 0.0; vConsGravity[1][_Y_] = 0.0;
+			vConsGravity[2][_Y_] = LocalGravityAt110[_Y_]*(vDensity[1] + vDensity[2])*0.5;
+			vConsGravity[3][_Y_] = LocalGravityAt000[_Y_]*(vDensity[0] + vDensity[3])*0.5;
+
 			break;
 
-    default:
-       	UG_LOG("In 'PrepareConsistentGravity': Element type not found.\n");
- 		return false;
- 	}
+		case 3:
+			/* TRIANGLE */
+			TriangleMapping.update(&vCorners[0]);
+
+			/* compute the local gravity at local corner (0,0) */
+			LocalPoint.x() = 0.0; LocalPoint.y() = 0.0;
+			TriangleMapping.jacobian_transposed(JT, LocalPoint);  //Transposed hier falsch?
+			MatVecMult(LocalGravityAt000, JT, PhysicalGravity);
+
+			vConsGravity[0][_X_] = 0.0; vConsGravity[2][_X_] = 0.0;
+			vConsGravity[1][_X_] = LocalGravityAt000[_X_]*(vDensity[0] + vDensity[1])*0.5;
+
+			vConsGravity[0][_Y_] = 0.0; vConsGravity[1][_Y_] = 0.0;
+			vConsGravity[2][_Y_] = LocalGravityAt000[_Y_]*(vDensity[0] + vDensity[2])*0.5;
+
+			break;
+
+		default:
+			UG_LOG("In 'PrepareConsistentGravity': Element type not found.\n");
+			return false;
+		}
+	}
 
  	return true;
 }
 
 template <>
 inline bool PrepareConsistentGravity<3>(	MathVector<3>* vConsGravity,
+											int* standard_gravity,
 											const int coe,
 											const MathVector<3>* vCorners,
 											const number* vDensity,
@@ -117,13 +163,48 @@ inline bool PrepareConsistentGravity<3>(	MathVector<3>* vConsGravity,
 //	Number of corners
 //	const int coe = vCorners.size();
 
-	MathVector<3> LocalPoint;
+	MathVector<3> LocalPoint,ShiftedGlobalPoint;
 	MathVector<3> 	LocalGravityAt000, LocalGravityAt110,
 					LocalGravityAt101, LocalGravityAt011;
 	MathMatrix<3,3> JT;
 
-	switch(coe)
+	double DensityIP, Diff;
+	double gradient;
+
+	if(coe==3 && *standard_gravity==1)
 	{
+		//new consistent gravity for TETRAHEDRON (cf. Frolkovic98)
+		//TODO new consistent gravity for TETRAHEDRON
+
+		TetMapping.update(&vCorners[0]);
+		TetMapping.jacobian_transposed_inverse(JT,vCorners[0]);
+
+		for(int i = 1; i < coe; ++i)
+		{
+			VecSubtract(ShiftedGlobalPoint,vCorners[i],vCorners[0]);
+			Diff = ShiftedGlobalPoint.z();
+
+			ShiftedGlobalPoint.z() = 0.0;
+			TransposedMatVecMult(LocalPoint,JT,ShiftedGlobalPoint);
+
+			DensityIP = vDensity[0] * (1 - LocalPoint.x() - LocalPoint.y() - LocalPoint.z()); //GN(0)=1-local(0)-local(1)-local(2)
+
+			for(int j = 1; j < coe; ++j)
+			{
+				DensityIP += vDensity[j] * LocalPoint[j-1];//GN(j)=local(j-1) for j=1,2,3
+			}
+			for(int j = 0; j < 2; ++j)
+			{
+				gradient = JT[j][0]*(vDensity[1]-vDensity[0]) + JT[j][1]*(vDensity[2]-vDensity[0]) + JT[j][2]*(vDensity[3]-vDensity[0]);
+				vConsGravity[i][j] = Diff * PhysicalGravity.z() * gradient;
+			}
+			vConsGravity[i][2] = Diff * PhysicalGravity.z() * (vDensity[i] + DensityIP)*0.5;
+		}
+	}
+	else
+	{
+		switch(coe)
+		{
 		case 8:
 			/*  HEXAHEDRON  */
 			/****************/
@@ -260,6 +341,7 @@ inline bool PrepareConsistentGravity<3>(	MathVector<3>* vConsGravity,
         	UG_LOG("In 'PrepareConsistentGravity': Element type not found.\n");
 			return false;
 		}
+	}
 
 	return true;
 }
@@ -267,28 +349,63 @@ inline bool PrepareConsistentGravity<3>(	MathVector<3>* vConsGravity,
 template <int dim>
 bool ComputeConsistentGravity(	MathVector<dim>& ConsistentGravity,
 								const size_t coe,
+								const MathVector<dim>& LocalCoord,
 								const MathMatrix<dim, dim>& JTInv,
 								const MathVector<dim>* vLocalGrad,
-								const MathVector<dim>* vConsGravity)
+								const MathVector<dim>* vConsGravity,
+								const int standard_gravity)
 {
+	//TODO: Überprüfe für Pyramiden!!!!!! siehe UG3
+
+
 //	Clear ConsistentGravity
 	MathVector<dim> LocalGravity;
 	VecSet(LocalGravity, 0.0);
 
-//	Loop shape functions
-	for(size_t sh = 0; sh < coe; ++sh)
+	int dm1;
+	dm1 = dim - 1;
+
+	if(coe==dim+1 && standard_gravity==1)
 	{
+		//new consistent gravity for TRIANGLE and TETRAHEDRON (cf. Frolkovic98)
+
 		for(size_t d = 0; d < dim; ++d)
 		{
-			LocalGravity[d] += vConsGravity[sh][d] * vLocalGrad[sh][d];
+			LocalGravity[d] = vConsGravity[d+1][dm1];
+		}
+
+	//	Multiply by JacobianTransposedInverse
+		MatVecMult(ConsistentGravity, JTInv, LocalGravity);
+
+		ConsistentGravity.x() -= vConsGravity[1][0]*LocalCoord[0];  //GN(j)=local(j-1) for j=1,2
+		ConsistentGravity.x() -= vConsGravity[2][0]*LocalCoord[1];
+		if(dim==3)
+		{
+			ConsistentGravity.x() -= vConsGravity[3][0]*LocalCoord[2];	//GN(j)=local(j-1) for j=1,2,3!
+			ConsistentGravity.y() -= vConsGravity[1][1]*LocalCoord[0];
+			ConsistentGravity.y() -= vConsGravity[1][2]*LocalCoord[1];
+			ConsistentGravity.y() -= vConsGravity[1][3]*LocalCoord[2];
 		}
 	}
+	else
+	{
+		//generalized consistent gravity of Voss & Souza for local elements
 
-//	Multiply by JacobianTransposedInverse
-	MatVecMult(ConsistentGravity, JTInv, LocalGravity);
+		//	Loop shape functions
+		for(size_t sh = 0; sh < coe; ++sh)
+		{
+			for(size_t d = 0; d < dim; ++d)
+			{
+				LocalGravity[d] += vConsGravity[sh][d] * vLocalGrad[sh][d];
+			}
+		}
 
-	return true;
-}
+		//	Multiply by JacobianTransposedInverse
+		MatVecMult(ConsistentGravity, JTInv, LocalGravity);
+	}
+
+		return true;
+	}
 
 } // end namespace ug
 
