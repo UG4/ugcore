@@ -174,7 +174,7 @@ inline bool PrepareConsistentGravity<3>(	MathVector<3>* vConsGravity,
 	if(coe==3 && *standard_gravity==1)
 	{
 		//new consistent gravity for TETRAHEDRON (cf. Frolkovic98)
-		//TODO new consistent gravity for TETRAHEDRON
+		//TODO new consistent gravity for TETRAHEDRON needs to be tested (compared to UG3 results)
 
 		TetMapping.update(&vCorners[0]);
 		TetMapping.jacobian_transposed_inverse(JT,vCorners[0]);
@@ -377,14 +377,14 @@ bool ComputeConsistentGravity(	MathVector<dim>& ConsistentGravity,
 	//	Multiply by JacobianTransposedInverse
 		MatVecMult(ConsistentGravity, JTInv, LocalGravity);
 
-		ConsistentGravity.x() -= vConsGravity[1][0]*LocalCoord[0];  //GN(j)=local(j-1) for j=1,2
-		ConsistentGravity.x() -= vConsGravity[2][0]*LocalCoord[1];
+		ConsistentGravity[0] -= vConsGravity[1][0]*LocalCoord[0];  //GN(j)=local(j-1) for j=1,2
+		ConsistentGravity[0] -= vConsGravity[2][0]*LocalCoord[1];
 		if(dim==3)
 		{
-			ConsistentGravity.x() -= vConsGravity[3][0]*LocalCoord[2];	//GN(j)=local(j-1) for j=1,2,3!
-			ConsistentGravity.y() -= vConsGravity[1][1]*LocalCoord[0];
-			ConsistentGravity.y() -= vConsGravity[1][2]*LocalCoord[1];
-			ConsistentGravity.y() -= vConsGravity[1][3]*LocalCoord[2];
+			ConsistentGravity[0] -= vConsGravity[3][0]*LocalCoord[2];	//GN(j)=local(j-1) for j=1,2,3!
+			ConsistentGravity[1] -= vConsGravity[1][1]*LocalCoord[0];
+			ConsistentGravity[1] -= vConsGravity[2][1]*LocalCoord[1];
+			ConsistentGravity[1] -= vConsGravity[3][1]*LocalCoord[2];
 		}
 	}
 	else
