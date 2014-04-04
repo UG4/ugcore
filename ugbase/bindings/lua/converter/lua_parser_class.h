@@ -43,8 +43,12 @@ class LUAParserClass
 	int numOut;
 	nodeType *args;
 
+public:
+	enum
+	{
+		LUAParserError, LUAParserIgnore, LUAParserOK
+	};
 
-public:    
 	int iLineAdd;
 	std::string filename;
 
@@ -178,7 +182,7 @@ public:
 		return numOut;
 	}
 
-
+	void print_variable_names();
 
 	int add_subfunctions(std::map<std::string, SmartPtr<LUAParserClass> > &subfunctions);
 	int add_subfunction(std::string name, std::map<std::string, SmartPtr<LUAParserClass> > &subfunctions);

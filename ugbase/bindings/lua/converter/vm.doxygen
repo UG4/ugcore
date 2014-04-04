@@ -1,0 +1,185 @@
+
+/**
+ *
+ * this is a super-easy virtual machine. it is stack based.
+ *
+ * VM Instructions are
+ *
+instructions with 1 parameter
+  	PUSH_CONSTANT (double Const)
+  		pushes a constant onto the stack
+	PUSH_VAR (int iVarIndex)
+		pushes a value from the variables onto the stack
+	JMP_IF_FALSE (int toPos)
+		pop stack, jump to a position if popped stack item is 0.0
+	JMP (int toPos)
+		jump to a position
+	OP_UNARY (int opId1)
+		pop stack, perform a unary operation on popped item and push result
+	OP_BINARY (int opId2)
+		pop stack two times, perform a binary operation on popped items and push result
+	OP_CALL (int subFunctionId)
+		call a subFunction.
+	ASSIGN (int iVarIndex)
+		pop stack, assign variable with popped stack item
+
+instructions with 0 parameters
+	OP_RETURN
+		return. all items remaining on stack a return values.
+
+
+     STACK LAYOUT
+------------------------
+stack is ALL DOUBLES and will look the following
+
+[ last ...  first]
+(this is interally, you can also imagine it to be other way round)
+
+so
+PUSH_CONSTANT 1
+PUSH_CONSTANT 2
+PUSH_CONSTANT 3
+will result in
+[ 2 3 4 ]   ( = stack[0] = 2, stack[1] = 3, stack[2]= 4, SP=2 = stack pointer)
+
+    BINARY OPERATORS
+------------------------
+
+now we can add the two top items with
+OP_BINARY +  --> ( sp--; stack[sp-1] = stack[sp-1] + stack[sp]; )  --> [ 2 12 ]
+now divide 12/2
+OP_BINARY /
+[ 6 ]
+
+
+in general, this is the way binary operators work:
+if stack is [ .... a b ] then it looks like [ .... (b X a) ] afterwards.
+more technical:
+BINARY_OP X
+	double &a = stack[sp-2]; double &b = stack[sp-1]; sp--;
+	a = b X a;
+where X is +, -, *, /, cos, sin, exp, ...
+see execute_binary.
+
+ COMPARISON OPERATORS
+------------------------
+are also executed via OP_BINARY:
+a < b
+will be parsed to
+PUSH_VAR 1
+PUSH_VAR 2
+OP_BINARY <
+and this will be executed as
+	double &a = stack[sp-2]; double &b = stack[sp-1]; sp--;
+	a = (b < a) ? 1.0 : 0.0;
+
+comparison operators are
+<, >, <=, >=, ==, ~=, and, or
+
+    UNARY OPERATORS
+------------------------
+say you want to calculate sin(3)
+PUSH_CONSTANT 3		[ 3 ]
+OP_UNARY sin		[ sin(3) ]
+
+unary operators are
+sin, cos, exp, abs, log, log10, sqrt, floor, ceil
+note that -a is not an unary operator, it will be performed as (-1)*a.
+
+        JUMPS
+------------------------
+unconditional jumps are like this
+JMP newIP
+where newIP is there the new instruction adress we should jump to .
+
+conditional jumps
+JMP_IF_FALSE newIP
+removes the top item from the stack. if it is 0.0, perform the jump. Otherwise not.
+
+with this you can do comparisons (see example myMin )
+
+INPUTS, VARIABLES, RETURN VALUES
+-----------------------------------
+inputs are stored in variables. variables is an std::vector<double> variables. the first
+variables there are the inputs, next come the local variables.
+Note that all GLOBAL variables are passed as CONSTANTS and are not allowed to be changed.
+This is checked by the parser.
+Variables can be accessed by
+PUSH_VAR 2    // pushes variable[2] onto the stack
+ASSIGN	3		// pop top stack item and assign to variable[3] (variable[3] = stack[--SP]; )
+
+Data is returned by leaving them on the stack an calling RETURN,
+so a function like this
+function diffusion(x, y, t) return 1, 0, 0, 4 end
+will result in
+PUSH_CONSTANT 1		[ ]
+PUSH_CONSTANT 0		[ 1 ]
+PUSH_CONSTANT 0		[ 1 0 0 ]
+PUSH_CONSTANT 4		[ 1 0 0 4 ]
+RETURN
+
+	CALLING SUBFUNCTIONS
+-----------------------------
+Subfunctions are called with
+OP_CALL iSubfunctionIndex
+
+The subfunction will use our stack as the stack.
+It will fill its variables with the top stack items, and remove them from the stack.
+so for calling a two-parameter method like myMin below, you need
+say you wanto get the min from var2 and var3
+PUSH_VAR 2		[ var2 ]
+PUSH_VAR 3		[ var2 var 3]
+OP_CALL 1 		[ min(var2, var3) ]  (say 1 is the subfunctionIndex for myMin)
+...
+
+
+    EXAMPLES
+------------------------
+
+a function like this
+function myFunction(a, b)
+	local c = a*a
+	return c+b
+end
+
+with LUA2C_convertVM("myFunction")
+we can see the created VM
+
+function myFunction, 2 inputs, 2 outputs, 4 variables, 0 subfunctions
+variables: 1=a, 2=b, 3=c
+0	PUSH_VAR 1		-- push a on the stack						[ a ]
+8	PUSH_VAR 1		- push a on the stack						[ a a ]
+16	OP_BINARY *		-- multiplies the last 2 items on stack,
+					   removes them and pushes result  			[ (a*a) ]
+24	ASSIGN 3		-- pops top stack element,
+					   assigns it to variable 3 = c  			[ ]
+32	PUSH_VAR 2				[ b ]
+40	PUSH_VAR 3				[ b c ]
+48	OP_BINARY +				[ (b+c) ]
+56	PUSH_CONSTANT 1 		[ (b+c)  1 ]
+68	RETURN
+
+
+
+function myMin(a, b)
+	if a < b then
+		return a
+	else
+		return b
+	end
+end
+
+function myMin, 2 inputs, 1 outputs, 3 variables, 0 subfunctions
+variables: 1=a, 2=b
+0	PUSH_VAR 2			[ b ]
+8	PUSH_VAR 1			[ b a ]
+16	BINARY_OP <			[ 1.0 ] if (a < b), else 0.0
+24	JMP_IF_FALSE 52
+32	PUSH_VAR 1
+40	RETURN				[ a ]
+44	JMP 64
+52	PUSH_VAR 2
+60	RETURN				[ b ]
+
+
+ */

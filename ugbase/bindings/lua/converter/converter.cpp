@@ -20,9 +20,23 @@ namespace bridge {
 int convert(const char *functionName)
 {
     LUAParserClass parser;
-    if(parser.parse_luaFunction(functionName) == false) return 0;
+    int ret = parser.parse_luaFunction(functionName);
+    if(ret == LUAParserClass::LUAParserError)
+	{
+		UG_LOG("parsing " << functionName << " failed: reduced LUA parser failed.\n");
+		return false;
+	}
+	if(ret == LUAParserClass::LUAParserIgnore)
+	{
+		UG_LOG("parsing " << functionName << " : Found --lua2c:ignore.\n");
+		return false;
+	}
     
-    parser.createC(cout);
+    if(ret== LUAParserClass::LUAParserOK)
+    {
+    	UG_LOG("Created C code:\n")
+    	parser.createC(cout);
+    }
 
 	return 0;	
 }
@@ -30,17 +44,26 @@ int convert(const char *functionName)
 int convertVM(const char *functionName)
 {
 	LUAParserClass parser;
-    if(parser.parse_luaFunction(functionName) == false) return 0;
-    VMAdd vm;
-    parser.createVM(vm);
-    vm.print();
-    UG_LOG("\nCALLING ...\n")
-    double in[3] = {1,20,30};
-    double out[8];
-    vm(out, in);
-    UG_LOG("\n\nRETURNED ");
-    for(size_t i=0; i<vm.num_out(); i++)
-    {	UG_LOG(out[i] << "\n"); }
+	int ret = parser.parse_luaFunction(functionName);
+	if(ret == LUAParserClass::LUAParserError)
+	{
+		UG_LOG("parsing " << functionName << " failed: reduced LUA parser failed.\n");
+		return false;
+	}
+	if(ret == LUAParserClass::LUAParserIgnore)
+	{
+		UG_LOG("parsing " << functionName << " : Found --lua2c:ignore.\n");
+		return false;
+	}
+
+	if(ret== LUAParserClass::LUAParserOK)
+	{
+		VMAdd vm;
+		UG_LOG("Created VM code:\n")
+		parser.createVM(vm);
+		parser.print_variable_names();
+		vm.print();
+	}
 
 	return 0;
 }

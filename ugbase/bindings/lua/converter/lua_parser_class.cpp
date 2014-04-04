@@ -12,6 +12,7 @@
 #include "bindings/lua/info_commands.h"
 #include "common/util/string_util.h"
 #include "lua2c_debug.h"
+#include "common/profiler/profiler.h"
 
 using namespace std;
 
@@ -44,9 +45,17 @@ int LUAParserClass::get_id_for_name(const char*name)
 	return v;
 }
 
+void LUAParserClass::print_variable_names()
+{
+	for(std::map<size_t, std::string>::iterator it = id2variable.begin(); it != id2variable.end(); ++it)
+	{
+		UG_LOG((*it).first << ": " << (*it).second);
+	}
+}
 
 void LUAParserClass::getVar(int i, ostream &out)
 {
+	PROFILE_BEGIN_GROUP(LUAParserClass_getVar, "LUA2C");
     if(is_local(i) || is_arg(i))
         out << id2variable[i].c_str();
     else
@@ -65,6 +74,7 @@ void LUAParserClass::getVar(int i, ostream &out)
 
 int LUAParserClass::createRT(nodeType *a, ostream &out, const char **rt, int nr, int indent)
 {
+	PROFILE_BEGIN_GROUP(LUAParserClass_createRT, "LUA2C");
     int i=0;
     while(a->type == typeOpr && a->opr.oper == ',')
     {
@@ -85,6 +95,8 @@ int LUAParserClass::createRT(nodeType *a, ostream &out, const char **rt, int nr,
 
 void LUAParserClass::reduce()
 {
+	PROFILE_BEGIN_GROUP(LUAParserClass_reduce, "LUA2C");
+	PROFILE_FUNC();
 	for(size_t i=0; i<nodes.size(); i++)
 		nodes[i] = reduce(nodes[i]);
 }
@@ -92,6 +104,8 @@ void LUAParserClass::reduce()
 
 int LUAParserClass::parse_luaFunction(const char *functionName)
 {
+	PROFILE_BEGIN_GROUP(LUAParserClass_parse_luaFunction, "LUA2C");
+	PROFILE_FUNC();
     lua_State* L = script::GetDefaultLuaState();
 	LUA_STACK_CHECK(L, 0);
 
@@ -120,6 +134,9 @@ int LUAParserClass::parse_luaFunction(const char *functionName)
 	const char *src = ar.source[0]=='@' ? ar.source+1 : ar.source;
 
 	string str = GetFileLines(src, ar.linedefined, ar.lastlinedefined, false);
+
+	if(str.find("--lua2c:ignore") != std::string::npos)
+		return LUAParserIgnore;
 	//UG_DLOG("The function:\n"<<str<<"\n");
 
     lua_pop(L, 1);
@@ -131,16 +148,18 @@ int LUAParserClass::parse_luaFunction(const char *functionName)
     
     if(has_errors())
 	{
-    	UG_DLOG(DID_LUA2C, 1, "-----[ Parsing error for function " << functionName << ": -----\n");
-    	UG_DLOG(DID_LUA2C, 1, src << " " << ar.linedefined << " - " << ar.lastlinedefined << " : \n");
-    	UG_DLOG(DID_LUA2C, 1, GetFileLines(src, ar.linedefined, ar.lastlinedefined, true));
-    	UG_DLOG(DID_LUA2C, 1, "\n----- Parsing errors:\n");
-    	UG_DLOG(DID_LUA2C, 1, err.str());
-    	UG_DLOG(DID_LUA2C, 1, "-----]\n")
+    	UG_LOG("-----[ lua2c parsing error for function " << functionName << ":  -----\n");
+    	UG_LOG("-- by adding --lua2c:ignore to " << functionName << ", lua2c will ignore this function --\n");
+    	UG_LOG(src << " " << ar.linedefined << " - " << ar.lastlinedefined << " : \n");
+    	UG_LOG(GetFileLines(src, ar.linedefined, ar.lastlinedefined, true));
+    	UG_LOG("\n----- Parsing errors:\n");
+    	UG_LOG(err.str());
+    	UG_LOG("-----]\n");
+
 		//UG_ASSERT(0, parser.err.str());
-		return false;
+		return LUAParserError;
 	}
-    return true;
+    return LUAParserOK;
 }
 
 int LUAParserClass::add_subfunctions(set<string> &knownFunctions, stringstream &declarations, stringstream &definitions)

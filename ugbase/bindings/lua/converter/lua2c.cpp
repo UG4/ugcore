@@ -17,6 +17,7 @@
 #include <unistd.h>
 #include "lua2c.h"
 #include "lua2c_debug.h"
+#include "common/profiler/profiler.h"
 using namespace std;
 
 namespace ug{
@@ -39,12 +40,22 @@ bool LUA2C::create(const char *functionName)
 
 bool LUA2C::createC(const char *functionName)
 {
+	PROFILE_BEGIN_GROUP(LUA2C_createVM, "LUA2C");
 	UG_DLOG(DID_LUA2C, 2, "parsing " << functionName << "... ");
 	try{
 		m_f=NULL;
 		LUAParserClass parser;
-		if(parser.parse_luaFunction(functionName) == false)
-			return 0;
+		int ret = parser.parse_luaFunction(functionName);
+		if(ret == LUAParserClass::LUAParserError)
+		{
+			UG_LOG("parsing " << functionName << " failed: reduced LUA parser failed.\n");
+			return false;
+		}
+		if(ret == LUAParserClass::LUAParserIgnore)
+		{
+			UG_DLOG(DID_LUA2C, 3, "parsing " << functionName << " : Found --lua2c:ignore.\n");
+			return false;
+		}
 		//parser.reduce();
 	
 		string p = PathProvider::get_path(ROOT_PATH) + "/bin/lua2c_tmp/";
@@ -67,7 +78,7 @@ bool LUA2C::createC(const char *functionName)
 		UG_DLOG(DID_LUA2C, 2, "compiling line: " << c1s << "\n");
 		if(system(c1s.c_str()) != 0)
 		{
-			IF_DEBUG(DID_LUA2C, 1)
+//			IF_DEBUG(DID_LUA2C, 1)
 			{
 				UG_LOG("Error when compiling " << functionName << "\n");
 				UG_LOG("compiling line: " << c1s << "\n");
@@ -88,7 +99,7 @@ bool LUA2C::createC(const char *functionName)
 		UG_DLOG(DID_LUA2C, 2, "linking line: " << c2s << "\n");
 		if(system(c2s.c_str()) != 0)
 		{
-			IF_DEBUG(DID_LUA2C, 1)
+//			IF_DEBUG(DID_LUA2C, 1)
 			{
 				UG_LOG("Error when linking " << functionName << "\n");
 				UG_LOG("linking line: " << c2s << "\n");
@@ -126,19 +137,26 @@ bool LUA2C::createC(const char *functionName)
 
 bool LUA2C::createVM(const char *functionName)
 {
+	PROFILE_BEGIN_GROUP(LUA2C_createVM, "LUA2C");
 	m_name = functionName;
 
 	LUAParserClass parser;
 	try{
-		if(parser.parse_luaFunction(functionName) == false)
+		int ret = parser.parse_luaFunction(functionName);
+		if(ret == LUAParserClass::LUAParserError)
 		{
-			UG_DLOG(DID_LUA2C, 1, "parsing " << functionName << " failed: reduced LUA parser failed.\n");
+			UG_LOG("parsing " << functionName << " failed: reduced LUA parser failed.\n");
+			return false;
+		}
+		if(ret == LUAParserClass::LUAParserIgnore)
+		{
+			UG_DLOG(DID_LUA2C, 3, "parsing " << functionName << " : Found --lua2c:ignore.\n");
 			return false;
 		}
 
 		if(parser.createVM(vm) == false)
 		{
-			UG_DLOG(DID_LUA2C, 1, "parsing " << functionName << " failed: create VM failed.\n");
+			UG_LOG("parsing " << functionName << " failed: create VM failed.\n");
 			return false;
 		}
 		UG_DLOG(DID_LUA2C, 2, "parsing " << functionName << " OK.\n");

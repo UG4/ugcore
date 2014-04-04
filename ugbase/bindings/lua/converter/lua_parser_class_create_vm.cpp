@@ -141,7 +141,7 @@ int LUAParserClass::createVM(nodeType *p, VMAdd &vm,  std::map<std::string, Smar
 					break;
 
                 case LUAPARSER_MATH_PI:
-                    vm.push(3.141);
+                    vm.push(3.1415926535897932384626433832795028841971693);
                     break;
 
 				case LUAPARSER_MATH_COS:
@@ -268,8 +268,9 @@ int LUAParserClass::add_subfunction(std::string name, std::map<std::string, Smar
 
     SmartPtr<LUAParserClass> parser (new LUAParserClass);
 
-    if(parser->parse_luaFunction(name.c_str()) == false)
-        return false;
+    int ret = parser->parse_luaFunction(name.c_str());
+        if(ret != LUAParserOK)
+            return ret;
 
     if(parser->num_out() != 1)
     {
@@ -281,7 +282,7 @@ int LUAParserClass::add_subfunction(std::string name, std::map<std::string, Smar
     subfunctions[name] = parser;
 
     parser->add_subfunctions(subfunctions);
-	return true;
+	return LUAParserOK;
 }
 
 

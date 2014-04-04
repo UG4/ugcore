@@ -349,13 +349,14 @@ int LUAParserClass::addfunctionC(string name, set<string> &knownFunctions, strin
     knownFunctions.insert(name);
 
     LUAParserClass parser;
-    if(parser.parse_luaFunction(name.c_str()) == false)
-        return false;
+    int ret = parser.parse_luaFunction(name.c_str());
+    if(ret != LUAParserOK)
+        return ret;
 
     if(parser.num_out() != 1)
     {
     	UG_DLOG(DID_LUA2C, 1, "ERROR in LUA2C for LUA function " << name << ":  subfunction must have exactly one return value (not " << parser.num_out() << ")\n");
-        return false;
+        return LUAParserError;
     }
 
     parser.returnType = RT_SUBFUNCTION;
@@ -366,7 +367,7 @@ int LUAParserClass::addfunctionC(string name, set<string> &knownFunctions, strin
 
     parser.add_subfunctions(knownFunctions, declarations, definitions);
 
-    return true;
+    return LUAParserOK;
 }
 
 

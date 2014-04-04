@@ -13,9 +13,13 @@
 #include "parser_node.h"
 #include "common/assert.h"
 #include "parser.hpp"
+#include "common/error.h"
 
 namespace ug{
 
+//////////////////////////////////////////
+/// --> documentation in vm.doxygen <--///
+//////////////////////////////////////////
 class VMAdd
 {
 	std::vector<char> vmBuf;
@@ -38,64 +42,69 @@ class VMAdd
 
 
 
-	void serialize(VMInstruction inst)
+	void serializeVMInstr(VMInstruction inst)
 	{
 		int i=inst;
-		serialize(i);
+		serializeInt(i);
 	}
 
 
-	void deserialize(size_t &p, VMInstruction &instr)
+	inline void deserializeVMInstr(size_t &p, VMInstruction &instr)
 	{
 		int i = *((int*)&vmBuf[p]);
 		instr = (VMInstruction) i;
 		p += sizeof(int);
 	}
 
-	void serialize(char c)
+	inline void serializeChar(char c)
 	{
 		vmBuf.push_back(c);
 	}
 
-	void serialize(int d)
+	inline void serializeInt(int d)
 	{
 		char *tmp = (char*)&d;
 		for(size_t i=0; i<sizeof(d); i++)
-			serialize(tmp[i]);
+			serializeChar(tmp[i]);
 	}
 
-	void deserialize(size_t &p, int &i)
+	inline void deserializeInt(size_t &p, int &i)
 	{
 		i = *((int*)&vmBuf[p]);
 		p += sizeof(int);
 	}
 
-	void serialize(double d)
+	inline void serializeDouble(double d)
 	{
 		char *tmp = (char*)&d;
 		for(size_t i=0; i<sizeof(d); i++)
-			serialize(tmp[i]);
+			serializeChar(tmp[i]);
 	}
 
-	void deserialize(size_t &p, double &d)
+	inline void deserializeDouble(size_t &p, double &d)
 	{
 		d = *((double*)&vmBuf[p]);
 		p += sizeof(double);
 	}
 
 
-	template<typename T>
-	void print_unary(const char *desc, size_t &i)
+	void print_unaryDouble(const char *desc, size_t &i)
 	{
-		T t;
-		deserialize(i, t);
+		double t;
+		deserializeDouble(i, t);
+		UG_LOG(desc << " " << t << "\n");
+	}
+	void print_unaryInt(const char *desc, size_t &i)
+	{
+		int t;
+		deserializeInt(i, t);
 		UG_LOG(desc << " " << t << "\n");
 	}
 
 	void print_op(size_t &i)
 	{
 		int op;
-		deserialize(i, op);
+		deserializeInt(i, op);
 		switch(op)
 		{
 		case LUAPARSER_MATH_COS: 		UG_LOG("cos\n"); break;
@@ -113,10 +122,10 @@ class VMAdd
 		case '/': 		UG_LOG("/\n"); break;
 		case '<': 		UG_LOG("<\n"); break;
 		case '>': 		UG_LOG(">\n"); break;
-		case LUAPARSER_GE: 		UG_LOG("GE\n"); break;
-		case LUAPARSER_LE: 		UG_LOG("LE\n"); break;
-		case LUAPARSER_NE: 		UG_LOG("NE\n"); break;
-		case LUAPARSER_EQ: 		UG_LOG("EQ\n"); break;
+		case LUAPARSER_GE: 		UG_LOG("GE >=\n"); break;
+		case LUAPARSER_LE: 		UG_LOG("LE <=\n"); break;
+		case LUAPARSER_NE: 		UG_LOG("NE ~=\n"); break;
+		case LUAPARSER_EQ: 		UG_LOG("EQ ==\n"); break;
 		case LUAPARSER_AND: 		UG_LOG("AND\n"); break;
 		case LUAPARSER_OR: 		UG_LOG("OR\n"); break;
 		case LUAPARSER_MATH_POW: 		UG_LOG("pow\n"); break;
@@ -139,15 +148,15 @@ public:
 	{
 //		UG_LOG("POS " << get_pos() << "\n");
 //		UG_LOG("PUSH_CONSTANT " << constant << "\n");
-		serialize((int)PUSH_CONSTANT);
-		serialize(constant);
+		serializeInt(PUSH_CONSTANT);
+		serializeDouble(constant);
 	}
 
 	void push_var(int i)
 	{
 //		UG_LOG("PUSH_VAR " << i << "\n");
-		serialize((int)PUSH_VAR);
-		serialize(i);
+		serializeInt(PUSH_VAR);
+		serializeInt(i);
 //		UG_LOG("POS " << get_pos() << "\n");
 	}
 
@@ -171,24 +180,24 @@ public:
 	void unary(int oper)
 	{
 //		UG_LOG("UNARY OP " << oper << "\n");
-		serialize((int)OP_UNARY);
-		serialize(oper);
+		serializeInt(OP_UNARY);
+		serializeInt(oper);
 //		UG_LOG("POS " << get_pos() << "\n");
 	}
 
 	void binary(int oper)
 	{
 //		UG_LOG("BINARY OP " << oper << "\n");
-		serialize((int)OP_BINARY);
-		serialize(oper);
+		serializeInt(OP_BINARY);
+		serializeInt(oper);
 //		UG_LOG("POS " << get_pos() << "\n");
 	}
 
 	void assign(int v)
 	{
 //		UG_LOG("ASSIGN " << v << "\n");
-		serialize((int)ASSIGN);
-		serialize(v);
+		serializeInt(ASSIGN);
+		serializeInt(v);
 //		UG_LOG("POS " << get_pos() << "\n");
 	}
 
@@ -201,8 +210,8 @@ public:
 				break;
 		if(i == subfunctions.size())
 			subfunctions.push_back(subfunction);
-		serialize((int)OP_CALL);
-		serialize((int)i);
+		serializeInt(OP_CALL);
+		serializeInt(i);
 	}
 
 	void adjust_jmp_pos(int iPos, int jmpPos)
@@ -214,12 +223,13 @@ public:
 
 	void ret()
 	{
-		serialize((int)OP_RETURN);
+		serializeInt(OP_RETURN);
 	}
 
 	void print_short()
 	{
-		UG_LOG("function " << m_name << ", " << m_nrIn << " Parameters, " << variables.size() << " variables, " << subfunctions.size() << " subfunctions");
+		UG_LOG("function " << m_name << ", " << m_nrIn << " inputs, " << m_nrOut <<
+				" outputs, "<< variables.size() << " variables, " << subfunctions.size() << " subfunctions");
 	}
 
 	void print()
@@ -231,31 +241,33 @@ public:
 			UG_ASSERT(i<vmBuf.size(), i);
 			UG_LOG(i << "	");
 			VMInstruction instr;
-			deserialize(i, instr);
+			deserializeVMInstr(i, instr);
 
 			switch(instr)
 			{
 				case PUSH_CONSTANT:
-					print_unary<double>("PUSH_CONSTANT", i);
+					print_unaryDouble("PUSH_CONSTANT", i);
 					break;
 
 				case PUSH_VAR:
-					print_unary<int>("PUSH_VAR", i);
+					print_unaryInt("PUSH_VAR", i);
 					break;
 
 				case JMP_IF_FALSE:
-					print_unary<int>("JMP_IF_FALSE", i);
+					print_unaryInt("JMP_IF_FALSE", i);
 					break;
 				case JMP:
-					print_unary<int>("JMP", i);
+					print_unaryInt("JMP", i);
 					break;
 
 				case OP_UNARY:
+					UG_LOG("OP_UNARY "); print_op(i);
+					break;
 				case OP_BINARY:
-					print_op(i);
+					UG_LOG("OP_BINARY "); print_op(i);
 					break;
 				case ASSIGN:
-					print_unary<int>("ASSIGN", i);
+					print_unaryInt("ASSIGN", i);
 					break;
 				case OP_RETURN:
 					UG_LOG("RETURN\n");
@@ -264,9 +276,9 @@ public:
 				case OP_CALL:
 				{
 					int varI;
-					deserialize(i, varI);
+					deserializeInt(i, varI);
 
-					UG_ASSERT(varI < (int)subfunctions.size(), i);
+					UG_COND_THROW(varI >= (int)subfunctions.size(), i);
 					UG_LOG("CALL to subfunction " << varI << ": ");
 					subfunctions[varI]->print_short();
 					UG_LOG("\n");
@@ -281,9 +293,9 @@ public:
 
 	int jump(VMInstruction instr)
 	{
-		serialize(instr);
+		serializeVMInstr(instr);
 		int jmpPos = get_pos();
-		serialize(jmpPos);
+		serializeInt(jmpPos);
 //		UG_LOG("jump pos is " << jmpPos << "\n");
 		return jmpPos;
 	}
@@ -300,11 +312,11 @@ public:
 		variables.resize(nr);
 	}
 
-	void execute_unary(size_t &i, double &v)
+	inline void execute_unary(size_t &i, double &v)
 	{
 		int op;
 //		UG_LOG("unary op " << v << "\n");
-		deserialize(i, op);
+		deserializeInt(i, op);
 		switch(op)
 		{
 			case LUAPARSER_MATH_COS: v = cos(v);	break;
@@ -319,14 +331,14 @@ public:
 		}
 	}
 
-	void execute_binary(size_t &i, double *stack, int SP)
+	inline void execute_binary(size_t &i, double *stack, int SP)
 	{
 		double &a = stack[SP-2];
 		double &b = stack[SP-1];
 //		UG_LOG("binary op " << a << " op " << b << "\n");
 
 		int op;
-		deserialize(i, op);
+		deserializeInt(i, op);
 		switch(op)
 		{
 			case '+': 	a = b+a;	break;
@@ -359,7 +371,7 @@ public:
 		while(1)
 		{
 //			UG_LOG("IP =  " << i << ", SP = " << SP);
-			deserialize(i, instr);
+			deserializeVMInstr(i, instr);
 //			UG_LOG("OP =  " << (int)instr << "\n");
 //			for(int j=0; j<SP; j++)
 //				{UG_LOG("SP[" << j << "] = " << stack[j] << ", ");}
@@ -369,26 +381,26 @@ public:
 			{
 				case PUSH_CONSTANT:
 
-					deserialize(i, varD);
+					deserializeDouble(i, varD);
 //					UG_LOG("PUSH CONSTANT " << varD << "\n");
 					stack[SP++] = varD;
 					break;
 
 				case PUSH_VAR:
-					deserialize(i, varI);
+					deserializeInt(i, varI);
 					stack[SP++] = variables[varI-1];
 //					UG_LOG("PUSH VAR " << varI << "\n");
 					break;
 
 				case JMP_IF_FALSE:
-					deserialize(i, varI);
+					deserializeInt(i, varI);
 //					UG_LOG("JMP IF FALSE " << varI << "\n");
 					SP--;
 					if(stack[SP] == 0.0)
 						i = varI;
 					break;
 				case JMP:
-					deserialize(i, varI);
+					deserializeInt(i, varI);
 //					UG_LOG("JMP " << varI << "\n");
 					i = varI;
 					break;
@@ -405,7 +417,7 @@ public:
 					break;
 
 				case ASSIGN:
-					deserialize(i, varI);
+					deserializeInt(i, varI);
 					SP--;
 //					UG_LOG("ASSIGN " << varI << " = " << stack[SP] << "\n");
 					variables[varI-1] = stack[SP];
@@ -419,7 +431,7 @@ public:
 
 				case OP_CALL:
 				{
-					deserialize(i, varI);
+					deserializeInt(i, varI);
 //					UG_LOG("call IP =  " << i << ", SP = " << SP << "\n");
 					SmartPtr<VMAdd> sub = subfunctions[varI];
 					sub->call_sub(stack, SP);
@@ -492,7 +504,7 @@ public:
 	}
 	size_t num_in()
 	{
-		return m_nrOut;
+		return m_nrIn;
 	}
 };
 

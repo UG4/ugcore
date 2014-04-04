@@ -7,6 +7,7 @@
 #include "lua_parser_class.h"
 #include "common/assert.h"
 #include "lua2c_debug.h"
+#include "common/profiler/profiler.h"
 
 using namespace std;
 
@@ -14,6 +15,7 @@ namespace ug{
 
 int LUAParserClass::createJITSG(ostream &out, eReturnType r, set<string> &subfunctions)
 {
+	PROFILE_BEGIN_GROUP(LUAParserClass_createJITSG, "LUA2C");
     int numRet=0;
     switch(r)
     {
