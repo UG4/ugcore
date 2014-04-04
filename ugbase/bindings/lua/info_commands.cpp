@@ -882,17 +882,46 @@ void LuaList_classInstantiations()
 	for(size_t i=0; i<instantiations.size(); i++)
 	{
 		lua_getglobal(L, instantiations[i].c_str());
+
+		const char * type;
+		int ref = 0;
+		void* ptr = lua_touserdata(L, 1);
+		//	we perform delete if the user-data is a raw pointer
+			if(((lua::UserDataWrapper*)ptr)->is_raw_ptr()){
+				type = "raw ptr ";
+			}
+			else if(((lua::UserDataWrapper*)ptr)->is_smart_ptr()){
+
+			//	invalidate the associated smart-pointer
+				if(((lua::UserDataWrapper*)ptr)->is_const())
+				{
+					type = "ConstSmartPtr ";
+					ref = ((lua::ConstSmartUserDataWrapper*)ptr)->smartPtr.refcount();
+				}
+				else
+				{
+					type = "SmartPtr ";
+					ref =  ((lua::SmartUserDataWrapper*)ptr)->smartPtr.refcount();
+				}
+			}
+
 		if(!lua_isuserdata(L, -1)) continue;
 		const std::vector<const char*> *n  = GetClassNames(L, -1);
 		if(n && !n->empty())
 		{
-			UG_LOG(left << setw(maxLength) << instantiations[i] << ": class ");
-			for(size_t j = 0; j < n->size(); j++)
-			{
-				if(j > 0) UG_LOG(", ");
-				UG_LOG(n->at(j));
-			}
-			UG_LOG(endl);
+			UG_LOG(left << setw(maxLength) << instantiations[i]);
+			if(ref != 0)
+			{	UG_LOG(" refcount = " << ref << "\t"); }
+			UG_LOG(type);
+//			for(size_t j = 0; j < n->size(); j++)
+//			{
+//				if(j > 0) UG_LOG(", ");
+//				UG_LOG(n->at(j));
+//			}
+//			UG_LOG(endl);
+			UG_LOG(n->at(0));
+
+			UG_LOG("\n");
 		}
 		lua_pop(L, 1);
 	}
@@ -1124,6 +1153,9 @@ bool RegisterInfoCommands(Registry &reg, const char* parentGroup)
 		                 "", "", "list all created LUA objects");
 		reg.add_function("list_scriptFunctions", LuaList_scriptFunctions, grp.c_str(), 
 		                 "", "", "list all LUA script functions");
+		reg.add_function("list_objects", LuaList_classInstantiations, grp.c_str(),
+				                 "", "", "list all LUA class objects");
+
 		reg.add_function("TypeInfo", &UGTypeInfo, grp.c_str(), 
 		                 "", "typeName", "print information about a type");
 		reg.add_function("ClassUsage", &ScriptPrintClassUsage, grp.c_str(),
