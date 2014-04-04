@@ -71,9 +71,16 @@ void GenerateGlobalConsecutiveIndices(TIndVec& indsOut, size_t numLocalInds,
 	icom.receive_data(layouts.slave(), compolCopy);
 	icom.communicate();
 
-	icom.send_data(layouts.vertical_slave(), compolCopy);
-	icom.receive_data(layouts.vertical_master(), compolCopy);
-	icom.communicate();
+//	Todo:	This method is mainly used on surface-layouts.
+//			Currently a bug in those layouts prevents the execution of the following code
+//			which would be required for level-matrices.
+//			Since ghosts (pure v-masters) are ignored in surface-vectors and matrices,
+//			but pure v-slaves are considered, v-master and v-slave interfaces do not
+//			match. Fortunately they are not required for surface-index-generation.
+//			The following block should however be used as soon as those layouts are fixed.
+	// icom.send_data(layouts.vertical_slave(), compolCopy);
+	// icom.receive_data(layouts.vertical_master(), compolCopy);
+	// icom.communicate();
 }
 
 }//	end of namespace
