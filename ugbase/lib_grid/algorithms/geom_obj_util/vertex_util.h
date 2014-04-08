@@ -346,6 +346,12 @@ void TransformVertices(TIterator vrtsBegin, TIterator vrtsEnd,
 					   matrix33& m, TAAPos& aaPos);
 
 ////////////////////////////////////////////////////////////////////////
+///	moves vertices by the specified offset
+template<class TIterator, class TAAPos> inline
+void MoveVertices(TIterator vrtsBegin, TIterator vrtsEnd, TAAPos aaPos,
+				  const typename TAAPos::ValueType& offset);
+
+////////////////////////////////////////////////////////////////////////
 ///	Returns true if the given point lies on the given vertex.
 /**	The method simply checks, whether coordinates are identical. This method
  * is of no particular use, except for completeness regarding the use

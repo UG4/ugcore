@@ -414,6 +414,15 @@ void TransformVertices(TIterator vrtsBegin, TIterator vrtsEnd,
 }
 
 ////////////////////////////////////////////////////////////////////////
+template<class TIterator, class TAAPos> inline
+void MoveVertices(TIterator vrtsBegin, TIterator vrtsEnd, TAAPos aaPos,
+				  const typename TAAPos::ValueType& offset)
+{
+	for(TIterator iter = vrtsBegin; iter != vrtsEnd; ++iter)
+		aaPos[*iter] += offset;
+}
+
+////////////////////////////////////////////////////////////////////////
 template <class vector_t, class TAAPos>
 UG_API bool
 ContainsPoint(const Vertex* v, const vector_t& p, TAAPos aaPos)
