@@ -498,6 +498,25 @@ install_SuperLU()
 }
 
 
+install_LUA()
+{
+	local platform
+	local unamestr=`uname`
+	if [[ "$unamestr" == 'Darwin' ]]; then
+		platform="macosx"
+	else
+		platform="linux"
+	fi
+	
+	my_install \
+	LUA "5.1.4"\
+	"http://www.lua.org/ftp/lua-5.1.4.tar.gz"\
+	lua-5.1.4.tar.gz lua-5.1.4 \
+	"make $platform" \
+	"make local"	
+}
+
+
 install_hlibpro()
 {
 	unamestr=`uname`
@@ -604,6 +623,7 @@ print_usage()
 	echo "	tbb         4.2                   " `[[ -e tbb/used/installed ]] && echo "(installed)"`
 	# last checked 04/2014
 	echo "	ANN         1.1.2                 " `[[ -e ANN/used/installed ]] && echo "(installed)"`
+	echo "	LUA         5.1.4                 " `[[ -e LUA/used/installed ]] && echo "(installed)"`
 }
 
 
@@ -629,6 +649,7 @@ case $1 in
 	hlibpro) install_hlibpro ;;
 	tbb) install_tbb ;;
 	ANN) install_ANN ;;
+	LUA) install_LUA ;;
 	all) install_all ;;
 	*) print_usage ;;
 esac

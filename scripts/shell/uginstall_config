@@ -136,6 +136,7 @@ my_setup2 parmetis
 my_setup2 scons
 my_setup2 hlibpro
 my_setup2 ANN
+my_setup2 LUA
 
 add_lib $HOME/local/hlibpro/used/
 
