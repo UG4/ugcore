@@ -65,6 +65,7 @@ void RegisterBridge_UserData(Registry& reg, std::string grp = UG4_GRP);
 ///	registers LoadBalancer, partitioners, etc
 void RegisterBridge_LoadBalancing(Registry& reg, std::string grp = UG4_GRP);
 
+
 #ifdef UG_ALGEBRA
 ///	registers lib-algebra interface methods at the registry.
 void RegisterBridge_AlgebraCommon(Registry& reg, std::string grp = UG4_GRP);
@@ -93,6 +94,8 @@ void RegisterBridge_Interpolate(Registry& reg, std::string grp = UG4_GRP);
 void RegisterBridge_Evaluate(Registry& reg, std::string grp = UG4_GRP);
 void RegisterBridge_MaxError(Registry& reg, std::string grp = UG4_GRP);
 void RegisterBridge_Ordering(Registry& reg, std::string grp = UG4_GRP);
+
+void RegisterBridge_ManifoldUtil(Registry& reg, std::string grp = UG4_GRP);
 #endif
 
 // end group bridge

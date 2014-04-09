@@ -213,6 +213,7 @@ void RegisterStandardBridges(Registry& reg, string parentGroup)
 		RegisterBridge_AdaptiveTools(reg, parentGroup);
 		RegisterBridge_FiniteVolume(reg, parentGroup);
 		RegisterBridge_Integrate(reg, parentGroup);
+		RegisterBridge_ManifoldUtil(reg, parentGroup);
 
 		#endif
 

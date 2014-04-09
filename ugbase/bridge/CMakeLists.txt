@@ -55,7 +55,8 @@ if(buildAlgebra)
 					disc_bridges/multigrid_bridge.cpp
 					disc_bridges/output_bridge.cpp
 					disc_bridges/finite_volume_bridge.cpp
-					disc_bridges/user_data_bridge.cpp)
+					disc_bridges/user_data_bridge.cpp
+					disc_bridges/manifold_util_bridge.cpp)
 else(buildAlgebra)
 
 endif(buildAlgebra)
