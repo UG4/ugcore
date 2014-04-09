@@ -555,7 +555,7 @@ print_usage()
 	echo " uginstall 0.2"
 	echo ""
 	echo " uginstall will download and install a number of programs:"
-	echo " cmake, doxygen, gcc, gmp, gnuplot, GotoBLAS2, Metis, mpfr, mpc, OpenMPI, ParaView, ParMetis, SuperLU"
+	echo " cmake, doxygen, gcc, gmp, gnuplot, GotoBLAS2, Metis, mpfr, mpc, OpenMPI, ParaView, ParMetis, SuperLU, ..."
 	echo " Following steps are made for each installation of programm APP:"
 	echo " - create folder ~/local"
 	echo " - create folder ~/local/APP"
@@ -602,7 +602,8 @@ print_usage()
 	echo "	boost       1.55.0                " `[[ -e boost/used/installed ]] && echo "(installed)"`
 	echo "	hlibpro     2.0.1                 " `[[ -e hlibpro/used/installed ]] && echo "(installed)"`
 	echo "	tbb         4.2                   " `[[ -e tbb/used/installed ]] && echo "(installed)"`
-	echo "  ANN         1.1.2                 " `[[ -e ANN/used/installed ]] && echo "(installed)"`
+	# last checked 04/2014
+	echo "	ANN         1.1.2                 " `[[ -e ANN/used/installed ]] && echo "(installed)"`
 }
 
 
