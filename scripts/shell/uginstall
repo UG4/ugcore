@@ -406,9 +406,26 @@ install_parmetis()
 	"make install"
 }
 
+install_ANN()
+{
+	local unamestr=`uname`
+	local make_command
+	if [[ "$unamestr" == 'Darwin' ]]; then
+		make_command="macosx-g++"
+	else
+		make_command="linux-g++"
+	fi
+	
+	my_install \
+	ANN "1.1.2"\
+	"http://www.cs.umd.edu/~mount/ANN/Files/1.1.2/ann_1.1.2.tar.gz"\
+	ann_1.1.2.tar.gz ann_1.1.2 \
+	"make $make_command"
+}
+
 make_SuperLU()
 {
-	unamestr=`uname`
+	local unamestr=`uname`
 	echo
 	echo "UGINSTALL: make_SuperLU"
 	echo
@@ -483,10 +500,20 @@ install_SuperLU()
 
 install_hlibpro()
 {
+	unamestr=`uname`
+	if [[ "$unamestr" == 'Darwin' ]]; then
+		
+		hlibPath="http://www.hlibpro.com/naimahb8airaiNg7hohp4bai2noot3/hlibpro-2.0.1-MacOSX.tgz"
+		hlibFile=hlibpro-2.0.1-MacOSX.tgz
+	else
+		hlibPath="http://www.hlibpro.com/naimahb8airaiNg7hohp4bai2noot3/hlibpro-2.0.1-Linux.tgz"
+		hlibFile=hlibpro-2.0.1-Linux.tgz
+	fi
+	
 	my_install \
 	hlibpro "2.0.1"\
-	"http://www.hlibpro.com/naimahb8airaiNg7hohp4bai2noot3/hlibpro-2.0.1-Linux.tgz"\
-	hlibpro-2.0.1-Linux.tar hlibpro-2.0.1 \
+	$hlibPath \
+	$hlibFile hlibpro-2.0.1 \
 	""	
 }
 
@@ -575,6 +602,7 @@ print_usage()
 	echo "	boost       1.55.0                " `[[ -e boost/used/installed ]] && echo "(installed)"`
 	echo "	hlibpro     2.0.1                 " `[[ -e hlibpro/used/installed ]] && echo "(installed)"`
 	echo "	tbb         4.2                   " `[[ -e tbb/used/installed ]] && echo "(installed)"`
+	echo "  ANN         1.1.2                 " `[[ -e ANN/used/installed ]] && echo "(installed)"`
 }
 
 
@@ -599,6 +627,7 @@ case $1 in
 	boost) install_boost ;;
 	hlibpro) install_hlibpro ;;
 	tbb) install_tbb ;;
+	ANN) install_ANN ;;
 	all) install_all ;;
 	*) print_usage ;;
 esac

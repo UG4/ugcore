@@ -53,6 +53,15 @@ add_lib()
 			LD_RUN_PATH=$LD_RUN_PATH:$lib
 		fi
 	fi
+	
+	if [ -z $DYLD_LIBRARY_PATH ]; then
+		DYLD_LIBRARY_PATH=$lib
+	else
+		echo $DYLD_LIBRARY_PATH | grep -q $lib
+		if [ $? -ne 0 ] ; then
+			DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$lib
+		fi
+	fi
 
 	echo $LDFLAGS | grep -q $lib
 	if [ $? -ne 0 ] ; then
@@ -78,7 +87,7 @@ add_include()
 		else
 			echo $CPLUS_INCLUDE_PATH | grep -q $dir/include
 			if [ $? -ne 0 ] ; then
-				CPLUS_INCLUDE_PATH=$path:$CPLUS_INCLUDE_PATH
+				CPLUS_INCLUDE_PATH=$the_path:$CPLUS_INCLUDE_PATH
 			fi
 		fi
 	fi
@@ -126,7 +135,9 @@ my_setup2 metis
 my_setup2 parmetis
 my_setup2 scons
 my_setup2 hlibpro
+my_setup2 ANN
 
+add_lib $HOME/local/hlibpro/used/
 
 # tbb
 add_lib $HOME/local/tbb/used/lib/intel64/gcc4.4/
@@ -151,3 +162,4 @@ export LD_RUN_PATH
 export LD_LIBRARY_PATH
 export LIBRARY_PATH
 export LDFLAGS
+export DYLD_LIBRARY_PATH
