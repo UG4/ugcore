@@ -36,6 +36,9 @@ NewtonSolver(SmartPtr<ILinearOperatorInverse<vector_type> > LinearSolver,
 			m_spLinearSolver(LinearSolver),
 			m_spConvCheck(spConvCheck),
 			m_spLineSearch(spLineSearch),
+			m_N(NULL),
+			m_J(NULL),
+			m_spAss(NULL),
 			m_dgbCall(0)
 {};
 
@@ -45,6 +48,9 @@ NewtonSolver() :
 	m_spLinearSolver(NULL),
 	m_spConvCheck(new StdConvCheck<vector_type>(10, 1e-8, 1e-10, true)),
 	m_spLineSearch(NULL),
+	m_N(NULL),
+	m_J(NULL),
+	m_spAss(NULL),
 	m_dgbCall(0)
 {};
 
@@ -54,6 +60,9 @@ NewtonSolver(SmartPtr<IOperator<vector_type> > N) :
 	m_spLinearSolver(NULL),
 	m_spConvCheck(new StdConvCheck<vector_type>(10, 1e-8, 1e-10, true)),
 	m_spLineSearch(NULL),
+	m_N(NULL),
+	m_J(NULL),
+	m_spAss(NULL),
 	m_dgbCall(0)
 {
 	init(N);
@@ -65,6 +74,9 @@ NewtonSolver(SmartPtr<IAssemble<TAlgebra> > spAss) :
 	m_spLinearSolver(NULL),
 	m_spConvCheck(new StdConvCheck<vector_type>(10, 1e-8, 1e-10, true)),
 	m_spLineSearch(NULL),
+	m_N(NULL),
+	m_J(NULL),
+	m_spAss(NULL),
 	m_dgbCall(0)
 {
 	m_spAss = spAss;
