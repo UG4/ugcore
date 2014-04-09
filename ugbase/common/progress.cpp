@@ -11,10 +11,12 @@ namespace ug{
 int Progress::totalDepth = 0;
 int Progress::lastUpdateDepth = -1;
 
+size_t g_minSecondUntilProgress = 3;
+
 Progress::Progress(int minSecondsUntilProgress)
 {
 	if(minSecondsUntilProgress == -1)
-		minSecondsUntilProgress = 3;
+		minSecondsUntilProgress = g_minSecondUntilProgress;
 	m_minSecondsUntilProgress = minSecondsUntilProgress;
 	m_length=100;
 	bStarted=false;
