@@ -33,6 +33,13 @@ curl -O http://www.cmake.org/files/v2.8/cmake-2.8.6.tar.gz
 <hr>
 \section secInstallCMake Installation of CMake (required)
 
+CMake can be installed with
+\verbatim
+uginstall cmake
+\endverbatim
+see \ref pageUginstall.
+
+If that fails:
 You may install CMake through a pre-built installer, which can be obtained here:
 http://www.cmake.org/cmake/resources/software.html (min Release 2.6).
 Be sure to install the command line tools, when prompted during installation.
