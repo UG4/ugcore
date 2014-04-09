@@ -66,9 +66,9 @@ bool ProjectVerticesToCloseFaces(Grid& grid,
 /**THIS METHOD USES Grid::mark.
  * Intersects all edges in elems which are closer to each other
  * than snapThreshold.*/
-template <class TAAPosVRT>
+template <class TObjectCollection, class TAAPosVRT>
 bool IntersectCloseEdges(Grid& grid,
-						 GridObjectCollection elems,
+						 TObjectCollection& elems,
 						 TAAPosVRT& aaPos,
 						 number snapThreshold);
 

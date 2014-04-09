@@ -357,43 +357,69 @@ bool ProjectVerticesToCloseFaces(Grid& grid,
 
 /**THIS METHOD USES Grid::mark.
  * Intersects all edges in elems which are closer to each other
- * than snapThreshold.*/
-template <class TAAPosVRT>
+ * than snapThreshold.
+ *
+ * TObjectCollection has to fulfill the interface of a GridObjectCollection.
+ *
+ * \note:	It is recommended to use a Grid ore a Selector as TObjectCollection,
+ *			since a GridObjectCollection is static and it would thus not be
+ *			possible to resolve all intersections.*/
+template <class TObjectCollection, class TAAPosVRT>
 bool IntersectCloseEdges(Grid& grid,
-						 GridObjectCollection elems,
+						 TObjectCollection& elems,
 						 TAAPosVRT& aaPos,
 						 number snapThreshold)
 {
 //	we'll first mark all elements in elems to make sure that
 //	only edges which were initially marked are intersected.
 	grid.begin_marking();
-	for(EdgeIterator iter = elems.begin<Edge>();
-		iter != elems.end<Edge>(); ++iter)
+	for(EdgeIterator iter = elems.template begin<Edge>();
+		iter != elems.template end<Edge>(); ++iter)
 	{
 		grid.mark(*iter);
 	}
 
 //	perform edge/edge and edge/face intersections
-	for(EdgeIterator mainIter = elems.begin<Edge>();
-		mainIter != elems.end<Edge>();)
+	Grid::edge_traits::secure_container	edges;
+//	if faces exist, more intersections may be necessary...
+	const size_t maxIntersections = sq(elems.template num<Edge>());
+	size_t numIntersections = 0;
+
+	for(EdgeIterator mainIter = elems.template begin<Edge>();
+		mainIter != elems.template end<Edge>();)
 	{
+		if(numIntersections > maxIntersections){
+			UG_LOG("Intersection threshold reached in IntersectCloseEdges. "
+				   " Not all intersections may have been resolved.\n");
+			grid.end_marking();
+			return false;
+		}
+
 		Edge* e = *mainIter;
 		++mainIter;
 
-	//	if e is not marked, we can exit right away, since all succeeding
-	//	edges won't be marked, too.
+	//	only consider marked edges
 		if(!grid.is_marked(e))
-			break;
+			continue;
 
 	//	check all other edges up to e.
-		for(EdgeIterator iter = elems.begin<Edge>(); *iter != e;)
+		for(EdgeIterator iter = elems.template begin<Edge>(); *iter != e;)
 		{
 			Edge* e2 = *iter;
 			++iter;
+			if(!grid.is_marked(e2))
+				continue;
 
 		//	if an intersection occured, we have to move on to the next edge in the queue,
 		//	since the old edge no longer exists.
-			if(ResolveEdgeEdgeIntersection(grid, e, e2, aaPos, snapThreshold)){
+			Vertex* nVrt = ResolveEdgeEdgeIntersection(grid, e, e2, aaPos, snapThreshold);
+			if(nVrt){
+				++numIntersections;
+			//	all edges connected to nVrt have to be marked, since they are new candidates!
+				grid.associated_elements(edges, nVrt);
+				for(size_t i = 0; i < edges.size(); ++i){
+					grid.mark(edges[i]);
+				}
 				break;
 			}
 		}
@@ -621,8 +647,7 @@ bool ResolveGridIntersections(Grid& grid, TriangleIterator trisBegin,
 										taaPos, SMALL);
 
 		//	now resolve edge/edge intersections
-			IntersectCloseEdges(tgrid, tgrid.get_grid_objects(),
-								taaPos, SMALL);
+			IntersectCloseEdges(tgrid, tgrid, taaPos, SMALL);
 
 		//	make sure that all vertices have an associated aaVrt
 			for(VertexIterator viter = tgrid.vertices_begin();
