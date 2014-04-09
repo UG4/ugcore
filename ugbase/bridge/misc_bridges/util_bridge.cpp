@@ -15,6 +15,10 @@
 using namespace std;
 
 namespace ug{
+
+// determines when to show the progress bar
+extern size_t g_minSecondUntilProgress;
+
 namespace bridge{
 
 /// \defgroup util_bridge Utility Bridge
@@ -62,6 +66,11 @@ void int_srand(int seed)
 	srand((unsigned int)seed);
 }
 
+void SetMinSecondsUntilProgress(size_t s)
+{
+	g_minSecondUntilProgress=s;
+}
+
 void RegisterBridge_Util(Registry& reg, string parentGroup)
 {
 	string grp(parentGroup);
@@ -104,6 +113,7 @@ void RegisterBridge_Util(Registry& reg, string parentGroup)
 	reg.add_function("DirectoryExists", static_cast<bool (*)(const char *) > (&DirectoryExists) );
 	reg.add_function("GetTmpPath", GetTmpPath);
 	reg.add_function("FileCompare", FileCompare);
+	reg.add_function("SetMinSecondsUntilProgress", SetMinSecondsUntilProgress, grp, "", "seconds", "determines after which time a progress bar can show up");
 }
 
 // end group util_bridge
