@@ -496,7 +496,14 @@ install_SuperLU()
 	"make_SuperLU"	
 }
 
-
+install_PT()
+{
+	my_install \
+	PT "src"\
+	"http://sourceforge.net/projects/paralleltoolbox/files/latest/download"\
+	parallel-toolbox-all.tar parallel-toolbox-all \
+	"pwd"	
+}
 install_LUA()
 {
 	local platform
@@ -651,6 +658,7 @@ case $1 in
 	tbb) install_tbb ;;
 	ANN) install_ANN ;;
 	LUA) install_LUA ;;
+	PT) install_PT ;;
 	all) install_all ;;
 	*) print_usage ;;
 esac
