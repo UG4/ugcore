@@ -21,7 +21,7 @@ PLAT =
 #
 #  The name of the libraries to be created/linked to
 #
-SuperLUroot	= $(HOME)/local/SuperLU/4.3
+SuperLUroot	= $(UG4_LOCAL_INSTALL_DIR)/SuperLU/4.3
 SUPERLULIB 	= $(SuperLUroot)/lib/libsuperlu_4.3.a
 BLASDEF 	= -DUSE_VENDOR_BLAS
 BLASLIB   	= /System/Library/Frameworks/Accelerate.framework/Frameworks/vecLib.framework/Versions/Current/libBLAS.dylib
