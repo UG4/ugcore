@@ -31,8 +31,8 @@ void SideFluxErrEstData<TDomain>::alloc_err_est_data
 //	Prepare the attachment for the jumps of the fluxes over the sides:
 	typedef typename domain_traits<dim>::side_type side_type;
 	MultiGrid * pMG = (MultiGrid *) (spSV->subset_handler()->multi_grid());
-	pMG->template attach_to_dv<side_type>(m_aFluxJumpOverSide, 0);
-	m_aaFluxJump.access (*pMG, m_aFluxJumpOverSide);
+	pMG->template attach_to_dv<side_type,ANumber>(m_aFluxJumpOverSide, 0);
+	m_aaFluxJump.access(*pMG, m_aFluxJumpOverSide);
 };
 
 /// Called after the computation of the error estimator data in all the elements
@@ -52,15 +52,15 @@ void SideFluxErrEstData<TDomain>::summarize_err_est_data ()
 	//	Get the sides on both the levels
 		side_type * c_rim_side = *rim_side_iter;
 		if (pMG->template num_children<side_type>(c_rim_side) != 1) // we consider _NONCOPY only, no hanging nodes
-			UG_THROW ("ConvectionDiffusionFE::summarize_error_estimator:"
+			UG_THROW ("SideFluxErrEstData::summarize_error_estimator:"
 					" The error estimator does not accept hanging nodes");
 		side_type * f_rim_side = pMG->template get_child<side_type> (c_rim_side, 0);
 		
 	//	Compute the total jump and save it for both the sides:
 		number & c_rim_flux = m_aaFluxJump[c_rim_side];
 		number & f_rim_flux = m_aaFluxJump[f_rim_side];
-		number flux_jump = f_rim_flux - c_rim_flux;
-		c_rim_flux = - (f_rim_flux = flux_jump);
+		number flux_jump = f_rim_flux + c_rim_flux;
+		c_rim_flux = f_rim_flux = flux_jump;
 	}
 };
 
@@ -73,7 +73,7 @@ void SideFluxErrEstData<TDomain>::release_err_est_data ()
 	MultiGrid * pMG = (MultiGrid *) (m_spSV->subset_handler()->multi_grid());
 	m_aaFluxJump.invalidate ();
 	pMG->template detach_from<side_type> (m_aFluxJumpOverSide);
-	m_spSV = ConstSmartPtr<SurfaceView> (NULL);
+	//m_spSV = ConstSmartPtr<SurfaceView> (NULL);	// this raises a rte
 };
 
 } // end of namespace ug
