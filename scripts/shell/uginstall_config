@@ -15,8 +15,10 @@
 # - CPLUS_INCLUDE_PATH
 # without this file, uginstall won't work!
 
-LOCAL_INSTALLDIR=$HOME/local
+scriptname=${BASH_SOURCE[0]};		  # name of script
+scriptpath=`dirname $scriptname`
 
+source $scriptpath/uginstall_path
 
 # LIBRARY_PATH is used by gcc before compilation to search for directories
 #              containing libraries that need to be linked to your program.
@@ -115,12 +117,12 @@ my_setup()
 my_setup2 () 
 {
 	local name=$1
-	local dir=$LOCAL_INSTALLDIR/$name/used
+	local dir=$UG4_LOCAL_INSTALL_DIR/$name/used
 	my_setup $dir
 	
 }
 
-my_setup $LOCAL_INSTALLDIR/openmpi/1.6
+my_setup $UG4_LOCAL_INSTALL_DIR/openmpi/1.6
 my_setup llvm
 my_setup2 cmake
 my_setup2 doxygen
@@ -138,21 +140,22 @@ my_setup2 hlibpro
 my_setup2 ANN
 my_setup2 LUA
 
-add_lib $HOME/local/hlibpro/used/
+add_lib $UG4_LOCAL_INSTALL_DIR/hlibpro/used/
 
 # tbb
-add_lib $HOME/local/tbb/used/lib/intel64/gcc4.4/
-add_lib $HOME/local/tbb/used/lib/
-add_include $HOME/local/tbb/used/include/
+add_lib $UG4_LOCAL_INSTALL_DIR/tbb/used/lib/intel64/gcc4.4/
+add_lib $UG4_LOCAL_INSTALL_DIR/tbb/used/lib/
+add_include $UG4_LOCAL_INSTALL_DIR/tbb/used/include/
 
 # boost
-add_lib $HOME/local/boost/used/stage/lib/
+add_lib $UG4_LOCAL_INSTALL_DIR/boost/used/stage/lib/
 
 
 # completion for bash (for bash only)
 SHELLTYPE=`ps -o comm="" -p $$`
 case "$SHELLTYPE" in
-	*bash*) complete -W "all cmake doxygen gcc gmp gnuplot GotoBLAS2 Metis mpfr mpc OpenMPI ParaView ParMetis scons hlibpro tbb" -o default -o nospace uginstall
+	*bash*) complete -W "all cmake doxygen gcc gmp gnuplot GotoBLAS2 Metis mpfr mpc OpenMPI ParaView ParMetis scons hlibpro tbb\
+	HYPRE ANN LUA" -o default -o nospace uginstall
 	;;
 esac
 
@@ -164,3 +167,4 @@ export LD_LIBRARY_PATH
 export LIBRARY_PATH
 export LDFLAGS
 export DYLD_LIBRARY_PATH
+

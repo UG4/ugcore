@@ -33,10 +33,9 @@ scriptpath=`dirname $scriptname`
 
 source $scriptpath/uginstall_config
 
-cd 
-if [ ! -e local ]; then mkdir local; fi
-cd local
-LOCAL_DIR=`pwd`
+if [ ! -e $UG4_LOCAL_INSTALL_DIR ]; then mkdir $UG4_LOCAL_INSTALL_DIR; fi
+cd $UG4_LOCAL_INSTALL_DIR
+LOCAL_DIR=$UG4_LOCAL_INSTALL_DIR
 
 my_download_file()
 {
@@ -125,7 +124,7 @@ my_download ()
 # downloads file from $location, saves is as $subdir/$version/$filename
 # extracts it to $subdir/$version/src
 # and runs there to rest of the commands 
-# (mostly ../src/configure --prefix=$HOME/local/$subdir/$version ; make ; make install )
+# (mostly ../src/configure --prefix=$UG4_LOCAL_INSTALL_DIR/$subdir/$version ; make ; make install )
 my_install_external_build()
 {
 	local subdir=$1
@@ -184,7 +183,7 @@ my_install_external_build()
 # downloads file from $location, saves is as $subdir/$filename
 # extracts it to $subdir/$version
 # and runs there to rest of the commands 
-# (mostly ../src/configure --prefix=$HOME/local/$subdir/$version ; make ; make install )
+# (mostly ../src/configure --prefix=$UG4_LOCAL_INSTALL_DIR/$subdir/$version ; make ; make install )
 # note: if the file can not be downloaded (some clusters prevent http) then
 # my_download searches automatically on the software server on /Software/uginstall/$filename
 my_install()
@@ -235,7 +234,7 @@ install_gmp()
 	gmp 4.3.2 \
 	"http://gcc.petsads.us/infrastructure/gmp-4.3.2.tar.bz2" \
 	gmp-4.3.2.tar.bz2 gmp-4.3.2 \
-	"../src/configure --prefix=$HOME/local/gmp/4.3.2/" make "make install"
+	"../src/configure --prefix=$UG4_LOCAL_INSTALL_DIR/gmp/4.3.2/" make "make install"
 }
 
 install_mpfr()
@@ -244,7 +243,7 @@ install_mpfr()
 	mpfr 2.4.2 \
 	"http://gcc.petsads.us/infrastructure/mpfr-2.4.2.tar.bz2" \
 	mpfr-2.4.2.tar.bz2 mpfr-2.4.2 \
-	"../src/configure --prefix=$HOME/local/mpfr/2.4.2" make "make install"
+	"../src/configure --prefix=$UG4_LOCAL_INSTALL_DIR/mpfr/2.4.2" make "make install"
 }
 
 install_mpc()
@@ -256,16 +255,16 @@ install_mpc()
 	mpc 0.8.1 \
 	"http://gcc.petsads.us/infrastructure/mpc-0.8.1.tar.gz" \
 	mpc-0.8.1.tar.gz mpc-0.8.1 \
-	"../src/configure --prefix=$HOME/local/mpc/0.8.1" make "make install"
+	"../src/configure --prefix=$UG4_LOCAL_INSTALL_DIR/mpc/0.8.1" make "make install"
 }
 
 install_doxygen()
 {
 	my_install \
 	doxygen 1.8.1 \
-	"http://.ftp.stack.nl/pub/users/dimitri/doxygen-1.8.1.src.tar.gz" \
+	"http://ftp.stack.nl/pub/users/dimitri/doxygen-1.8.1.src.tar.gz" \
 	doxygen-1.8.1.src.tar.gz doxygen-1.8.1 \
-	"./configure --prefix $HOME/local/doxygen/1.8.1" make 
+	"./configure --prefix $UG4_LOCAL_INSTALL_DIR/doxygen/1.8.1" make 
 }
 
 install_gcc()
@@ -286,7 +285,7 @@ install_gcc()
 	gcc 4.4.7 \
 	"http://gcc.petsads.us/releases/gcc-4.4.7/gcc-4.4.7.tar.gz" \
 	gcc-4.4.7.tar.gz gcc-4.4.7 \
-	 "../src/configure --prefix=$HOME/local/gcc/4.4.7" make "make install"
+	 "../src/configure --prefix=$UG4_LOCAL_INSTALL_DIR/gcc/4.4.7" make "make install"
 }
 
 install_cmake()
@@ -295,7 +294,7 @@ install_cmake()
 	cmake 2.8.6 \
 	"http://www.cmake.org/files/v2.8/cmake-2.8.6.tar.gz" \
 	cmake-2.8.6.tar.gz cmake-2.8.6 \
-	"../src/bootstrap --prefix=$HOME/local/cmake/2.8.6" make "make install"
+	"../src/bootstrap --prefix=$UG4_LOCAL_INSTALL_DIR/cmake/2.8.6" make "make install"
 }
 
 install_openmpi()
@@ -304,7 +303,7 @@ install_openmpi()
 	openmpi 1.6 \
 	"http://www.open-mpi.org/software/ompi/v1.6/downloads/openmpi-1.6.tar.gz" \
 	openmpi-1.6.tar.gz openmpi-1.6 \
-	"../src/configure --prefix=$HOME/local/openmpi/1.6" make "make install"
+	"../src/configure --prefix=$UG4_LOCAL_INSTALL_DIR/openmpi/1.6" make "make install"
 }
 
 install_gnuplot()
@@ -313,7 +312,7 @@ install_gnuplot()
 	"gnuplot" "4.6.0"\
 	"http://sourceforge.net/projects/gnuplot/files/gnuplot/4.6.0/gnuplot-4.6.0.tar.gz"\
  	gnuplot-4.6.0.tar gnuplot-4.6.0 \
- 	"../src/configure --prefix=$HOME/local/gnuplot/4.6.0" make "make install"
+ 	"../src/configure --prefix=$UG4_LOCAL_INSTALL_DIR/gnuplot/4.6.0" make "make install"
 }
 
 install_GotoBLAS2()
@@ -346,7 +345,7 @@ install_scons()
 	scons 2.3.1 \
 	"http://sourceforge.net/projects/scons/files/scons/2.3.1/scons-2.3.1.tar.gz/download?use_mirror=garr" \
 	scons-2.3.1.tar.gz scons-2.3.1 \
-	"python setup.py install --prefix=$HOME/local/scons/2.3.1/"
+	"python setup.py install --prefix=$UG4_LOCAL_INSTALL_DIR/scons/2.3.1/"
 }
 
 
@@ -357,7 +356,7 @@ install_boost()
 	boost 1.55.0 \
 	"http://sourceforge.net/projects/boost/files/boost/1.55.0/boost_1_55_0.tar.gz/download" \
 	boost_1_55_0.tar.gz boost_1_55_0 \
-	"./bootstrap.sh --prefix=$HOME/local/boost/1.55.0/" "./b2"
+	"./bootstrap.sh --prefix=$UG4_LOCAL_INSTALL_DIR/boost/1.55.0/" "./b2"
 }
 
 install_clang()
@@ -370,7 +369,7 @@ install_clang()
 	cd ..
 	mkdir build
 	cd build
-	../configure --prefix=$HOME/local/llvm --enable-optimized
+	../configure --prefix=$UG4_LOCAL_INSTALL_DIR/llvm --enable-optimized
 	make
 }
 
@@ -386,7 +385,7 @@ install_metis()
 	metis "5.0.2"\
 	"http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/metis-5.0.2.tar.gz"\
 	metis-5.0.2.tar metis-5.0.2 \
-	"make config prefix=$HOME/local/metis/5.0.2" \
+	"make config prefix=$UG4_LOCAL_INSTALL_DIR/metis/5.0.2" \
 	"make install"
 }
 
@@ -402,7 +401,7 @@ install_parmetis()
 	parmetis "4.0.2"\
 	"http://glaros.dtc.umn.edu/gkhome/fetch/sw/parmetis/parmetis-4.0.2.tar.gz"\
 	parmetis-4.0.2.tar parmetis-4.0.2 \
-	"make config prefix=$HOME/local/parmetis/4.0.2" \
+	"make config prefix=$UG4_LOCAL_INSTALL_DIR/parmetis/4.0.2" \
 	"make install"
 }
 
@@ -571,15 +570,17 @@ install_all()
 
 print_usage()
 {
-	echo " uginstall 0.2"
+	echo " uginstall 0.3"
 	echo ""
+	echo " using install path $UG4_LOCAL_INSTALL_DIR (change in uginstall_path)"
+	echo ""  
 	echo " uginstall will download and install a number of programs:"
 	echo " cmake, doxygen, gcc, gmp, gnuplot, GotoBLAS2, Metis, mpfr, mpc, OpenMPI, ParaView, ParMetis, SuperLU, ..."
 	echo " Following steps are made for each installation of programm APP:"
-	echo " - create folder ~/local"
-	echo " - create folder ~/local/APP"
-	echo " - download file, save in ~/local/APP"
-	echo " - extract file, store in ~/local/APP/version"
+	echo " - create folder $UG4_LOCAL_INSTALL_DIR"
+	echo " - create folder $UG4_LOCAL_INSTALL_DIR/APP"
+	echo " - download file, save in $UG4_LOCAL_INSTALL_DIR/APP"
+	echo " - extract file, store in $UG4_LOCAL_INSTALL_DIR/APP/version"
 	echo " - configure the program (depending on the program)"
 	echo " - install libraries in ~/local/APP/lib and lib64, binaries in ~/local/APP/bin"
 	echo "   includes in ~/local/APP/include ..."
