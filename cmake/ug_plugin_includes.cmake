@@ -24,7 +24,7 @@ function(UGInstall name returned_path)
 	 if(NOT EXISTS "$ENV{UG4_LOCAL_INSTALL_DIR}/${name}/used/installed")
         message(STATUS "Info: ${name} is not provided, but we need ${name}.")
         message(STATUS "Info: Trying to install ${name} with uginstall ${name}.")
-        if(NOT defined $ENV{UG4_LOCAL_INSTALL_DIR})
+        if(NOT DEFINED ENV{UG4_LOCAL_INSTALL_DIR})
             message(FATAL_ERROR "can't run uginstall. UG4_LOCAL_INSTALL_DIR not available. you need to add 'source YOURUG4DIR/scripts/shell/ugbash' to your .bashrc / .bash_profile."
             " if you already added it, try source .bashrc")
         endif()
