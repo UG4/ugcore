@@ -59,6 +59,10 @@ function util.rates.static.StdMaxLevelPadding(p)
 	return math.floor(p/2)
 end
 
+function util.rates.static.StdMinLevelPadding(p)
+	return 0
+end
+
 --------------------------------------------------------------------------------
 -- Label names
 --------------------------------------------------------------------------------
@@ -175,6 +179,7 @@ function util.rates.static.compute(ConvRateSetup)
 	local CreateSolver = 		CRS.CreateSolver
 	local CreateDomain = 		CRS.CreateDomain
 	local MaxLevelPadding = 	CRS.MaxLevelPadding 	or util.rates.static.StdMaxLevelPadding
+	local MinLevelPadding = 	CRS.MinLevelPadding 	or util.rates.static.StdMinLevelPadding
 	
 	if 	CreateApproxSpace == nil or CreateDomainDisc == nil or 
 		CreateSolver == nil or CreateDomain == nil then
@@ -236,7 +241,7 @@ function util.rates.static.compute(ConvRateSetup)
 			errors[disc][p] = errors[disc][p] or {}
 			
 			local maxLev = lmax - MaxLevelPadding(p)
-			local minLev = lmin
+			local minLev = lmin + MinLevelPadding(p)
 	
 			--------------------------------------------------------------------
 			--  Print Setup
@@ -265,7 +270,7 @@ function util.rates.static.compute(ConvRateSetup)
 			local domainDisc = CreateDomainDisc(approxSpace, disc, p)
 			
 			print(">> Create Solver")
-			--local solver = CreateSolver(approxSpace, disc, p)
+			local solver = CreateSolver(approxSpace, disc, p)
 	
 			-- get names in approx space
 			local SpaceCmp = approxSpace:names()
@@ -301,16 +306,17 @@ function util.rates.static.compute(ConvRateSetup)
 			--------------------------------------------------------------------
 			--  Compute Solution on each level
 			--------------------------------------------------------------------
+			--local solver = nil
 			if exact or maxlevel or prevlevel then
 				for lev = minLev, maxLev do
 					write("\n>> Computing Level "..lev..", "..disc..", "..p..".\n")
 					
 					write(">> Preparing inital guess on level "..lev..".\n")
-					local solver = CreateSolver(approxSpace, disc, p)
+					--solver = CreateSolver(approxSpace, disc, p)
 					PrepareInitialGuess(u, lev, minLev, maxLev, domainDisc, solver)
 					
 					write(">> Start: Computing solution on level "..lev..".\n")
-					solver = CreateSolver(approxSpace, disc, p)
+					--solver = CreateSolver(approxSpace, disc, p)
 					ComputeSolution(u[lev], domainDisc, solver)
 					write(">> End: Solver done.\n")
 					
@@ -418,7 +424,7 @@ function util.rates.static.compute(ConvRateSetup)
 						local value = createMeas(f, "l-lmax", "l2")
 						value[lev] = 0.0
 						for _,cmp in pairs(Cmps) do
-							value[lev] = value[lev] + math.pow(L2Error(u[maxLev], cmp, u[lev], cmp, quadOrder), 2)
+							value[lev] = value[lev] + math.pow(L2Error(u[maxLev], cmp, u[lev], cmp, quadOrder, "Inner, Outer"), 2)
 						end
 						value[lev] = math.sqrt(value[lev])
 						write(">> L2 l-lmax  for "..f.." on Level "..lev.." is "..string.format("%.3e", value[lev]) .."\n");
@@ -426,7 +432,7 @@ function util.rates.static.compute(ConvRateSetup)
 						local value = createMeas(f, "l-lmax", "h1")
 						value[lev] = 0.0
 						for _,cmp in pairs(Cmps) do
-							value[lev] = value[lev] + math.pow(H1Error(u[maxLev], cmp, u[lev], cmp, quadOrder), 2)
+							value[lev] = value[lev] + math.pow(H1Error(u[maxLev], cmp, u[lev], cmp, quadOrder, "Inner, Outer"), 2)
 						end
 						value[lev] = math.sqrt(value[lev])
 						write(">> H1 l-lmax  for "..f.." on Level "..lev.." is "..string.format("%.3e", value[lev]) .."\n");
@@ -437,7 +443,7 @@ function util.rates.static.compute(ConvRateSetup)
 						local value = createMeas(f, "l-prev", "l2")
 						value[lev] = 0.0
 						for _,cmp in pairs(Cmps) do
-							value[lev] = value[lev] + math.pow(L2Error(u[lev+1], cmp, u[lev], cmp, quadOrder), 2)
+							value[lev] = value[lev] + math.pow(L2Error(u[lev+1], cmp, u[lev], cmp, quadOrder, "Inner, Outer"), 2)
 						end
 						value[lev] = math.sqrt(value[lev])
 						write(">> L2 l-(l-1) for "..f.." on Level "..lev.." is "..string.format("%.3e", value[lev]) .."\n");
@@ -445,7 +451,7 @@ function util.rates.static.compute(ConvRateSetup)
 						local value = createMeas(f, "l-prev", "h1")
 						value[lev] = 0.0
 						for _,cmp in pairs(Cmps) do
-							value[lev] = value[lev] + math.pow(H1Error(u[lev+1], cmp, u[lev], cmp, quadOrder), 2)
+							value[lev] = value[lev] + math.pow(H1Error(u[lev+1], cmp, u[lev], cmp, quadOrder, "Inner, Outer"), 2)
 						end
 						value[lev] = math.sqrt(value[lev])
 						write(">> H1 l-(l-1) for "..f.." on Level "..lev.." is "..string.format("%.3e", value[lev]) .."\n");
