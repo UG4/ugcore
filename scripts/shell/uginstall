@@ -419,6 +419,9 @@ install_ANN()
 	ANN "1.1.2"\
 	"http://www.cs.umd.edu/~mount/ANN/Files/1.1.2/ann_1.1.2.tar.gz"\
 	ann_1.1.2.tar.gz ann_1.1.2 \
+	"cd ann2fig" \
+	patch < $scriptpath/install_scripts/ann2fig.patch \
+	"cd .." \
 	"make $make_command"
 }
 

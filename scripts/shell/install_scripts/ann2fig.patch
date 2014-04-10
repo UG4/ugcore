@@ -1,0 +1,13 @@
+--- ann2fig.cpp	2014-04-09 17:35:54.000000000 +0200
++++ ann2fig_new.cpp	2014-04-09 17:36:02.000000000 +0200
+@@ -580,8 +580,9 @@
+ // procedure.
+ //----------------------------------------------------------------------
+ 
+-main(int argc, char **argv)
++int main(int argc, char **argv)
+ {
+ 	getArgs(argc, argv);						// get input arguments
+ 	readANN();									// read the dump file
++    return 0;
+ }
