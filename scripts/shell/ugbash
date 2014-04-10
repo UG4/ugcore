@@ -121,6 +121,6 @@ ugclearoutput()
 
 alias ugrelib="rm $UG4_ROOT/lib/*; rm $UG4_ROOT/bin/ugshell; rm $UG4_ROOT/bin/plugins/*"
 
-
-source uginstall_config
+scriptpath=`dirname ${BASH_SOURCE:-$0}`
+source $scriptpath/uginstall_config
 
