@@ -424,7 +424,7 @@ function util.rates.static.compute(ConvRateSetup)
 						local value = createMeas(f, "l-lmax", "l2")
 						value[lev] = 0.0
 						for _,cmp in pairs(Cmps) do
-							value[lev] = value[lev] + math.pow(L2Error(u[maxLev], cmp, u[lev], cmp, quadOrder, "Inner, Outer"), 2)
+							value[lev] = value[lev] + math.pow(L2Error(u[maxLev], cmp, u[lev], cmp, quadOrder), 2)
 						end
 						value[lev] = math.sqrt(value[lev])
 						write(">> L2 l-lmax  for "..f.." on Level "..lev.." is "..string.format("%.3e", value[lev]) .."\n");
@@ -432,7 +432,7 @@ function util.rates.static.compute(ConvRateSetup)
 						local value = createMeas(f, "l-lmax", "h1")
 						value[lev] = 0.0
 						for _,cmp in pairs(Cmps) do
-							value[lev] = value[lev] + math.pow(H1Error(u[maxLev], cmp, u[lev], cmp, quadOrder, "Inner, Outer"), 2)
+							value[lev] = value[lev] + math.pow(H1Error(u[maxLev], cmp, u[lev], cmp, quadOrder), 2)
 						end
 						value[lev] = math.sqrt(value[lev])
 						write(">> H1 l-lmax  for "..f.." on Level "..lev.." is "..string.format("%.3e", value[lev]) .."\n");
@@ -443,7 +443,7 @@ function util.rates.static.compute(ConvRateSetup)
 						local value = createMeas(f, "l-prev", "l2")
 						value[lev] = 0.0
 						for _,cmp in pairs(Cmps) do
-							value[lev] = value[lev] + math.pow(L2Error(u[lev+1], cmp, u[lev], cmp, quadOrder, "Inner, Outer"), 2)
+							value[lev] = value[lev] + math.pow(L2Error(u[lev+1], cmp, u[lev], cmp, quadOrder), 2)
 						end
 						value[lev] = math.sqrt(value[lev])
 						write(">> L2 l-(l-1) for "..f.." on Level "..lev.." is "..string.format("%.3e", value[lev]) .."\n");
@@ -451,7 +451,7 @@ function util.rates.static.compute(ConvRateSetup)
 						local value = createMeas(f, "l-prev", "h1")
 						value[lev] = 0.0
 						for _,cmp in pairs(Cmps) do
-							value[lev] = value[lev] + math.pow(H1Error(u[lev+1], cmp, u[lev], cmp, quadOrder, "Inner, Outer"), 2)
+							value[lev] = value[lev] + math.pow(H1Error(u[lev+1], cmp, u[lev], cmp, quadOrder), 2)
 						end
 						value[lev] = math.sqrt(value[lev])
 						write(">> H1 l-(l-1) for "..f.." on Level "..lev.." is "..string.format("%.3e", value[lev]) .."\n");

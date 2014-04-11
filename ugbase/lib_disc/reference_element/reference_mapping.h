@@ -423,6 +423,72 @@ class BaseReferenceMapping
 // Reference Mapping RegularVertex
 ///////////////////////////////////////////////////////////////////////////////
 
+template <int TWorldDim>
+class ReferenceMapping<ReferenceVertex, TWorldDim>
+	: public BaseReferenceMapping<ReferenceVertex::dim, TWorldDim, true,
+	  	  	  	  	  	  	  	  ReferenceMapping<ReferenceVertex, TWorldDim> >
+{
+	public:
+	///	world dimension
+		static const int worldDim = TWorldDim;
+
+	///	reference dimension
+		static const int dim = ReferenceVertex::dim;
+
+	///	flag if mapping is linear (i.e. Jacobian does not depend on x)
+		static const bool isLinear = true;
+
+	public:
+		typedef BaseReferenceMapping<ReferenceVertex::dim, TWorldDim, true,
+	  	  	  	  	  ReferenceMapping<ReferenceVertex, TWorldDim> > base_type;
+		using base_type::local_to_global;
+		using base_type::jacobian;
+		using base_type::jacobian_transposed;
+		using base_type::jacobian_transposed_inverse;
+		using base_type::sqrt_gram_det;
+
+	public:
+	///	Default Constructor
+		ReferenceMapping() {}
+
+	///	Constructor setting the corners
+	/// \{
+		ReferenceMapping(const MathVector<worldDim>* vCornerCoord) {update(vCornerCoord);}
+		ReferenceMapping(const std::vector<MathVector<worldDim> >& vCornerCoord) {update(vCornerCoord);}
+	/// \}
+
+	///	refresh mapping for new set of corners
+		void update(const std::vector<MathVector<worldDim> >& vCornerCoord)
+		{
+			UG_ASSERT((int)vCornerCoord.size() >= ReferenceEdge::numCorners,
+			          "ReferenceMapping: to few Corner Coordinates.");
+			update(&vCornerCoord[0]);
+		}
+
+	///	update the mapping for a new set of corners
+		void update(const MathVector<worldDim>* vCornerCoord)
+		{
+			co0 = vCornerCoord[0];
+		}
+
+	///	map local coordinate to global coordinate
+		void local_to_global(MathVector<worldDim>& globPos,
+							 const MathVector<dim>& locPos) const
+		{
+			globPos = co0;
+		}
+
+	///	returns transposed of jacobian
+		void jacobian_transposed(MathMatrix<dim, worldDim>& JT,
+								 const MathVector<dim>& locPos) const
+		{
+			//for(int i = 0; i < worldDim; ++i) JT(0,i) = 1;
+		}
+
+	private:
+		MathVector<worldDim> co0;
+};
+
 ///////////////////////////////////////////////////////////////////////////////
 // Reference Mapping Edge
 ///////////////////////////////////////////////////////////////////////////////

@@ -1640,6 +1640,7 @@ update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords,
 
 		for(size_t ip = 0; ip < rSCVFQuadRule.size(); ++ip){
 			m_vSCVF[i].vDetJMap[ip] = map.sqrt_gram_det(rSCVFQuadRule.point(ip));
+			if(dim == 1) m_vSCVF[i].vDetJMap[ip] = 1.0;
 			map.local_to_global(m_vSCVF[i].vGlobalIP[ip], rSCVFQuadRule.point(ip));
 		}
 
@@ -1870,7 +1871,7 @@ update_boundary_faces(GridObject* pElem, const MathVector<worldDim>* vCornerCoor
 //////////////////////
 // FVGeometry
 #ifdef UG_DIM_1
-//template class DimFVGeometry<1, 1>;
+template class DimFVGeometry<1, 1>;
 //template class DimFVGeometry<2, 1>;
 //template class DimFVGeometry<3, 1>;
 #endif
