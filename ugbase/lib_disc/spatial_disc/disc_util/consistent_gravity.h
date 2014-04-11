@@ -231,7 +231,7 @@ inline bool PrepareConsistentGravity<3>(	MathVector<3>* vConsGravity,
 
 	standard_gravity = (PhysicalGravity.x()==0.0 && PhysicalGravity.y()==0.0);
 
-	if(coe==3 && standard_gravity)
+	if(coe==4 && standard_gravity)
 	{
 		//new consistent gravity for TETRAHEDRON (cf. Frolkovic98)
 		//TODO new consistent gravity for TETRAHEDRON needs to be tested (compared to UG3 results)
