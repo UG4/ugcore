@@ -857,7 +857,7 @@ function gnuplot.plot(filename, data, options)
 		
 		local title = plot.title or options.title or "" 
 		
-		local label = plot.label or options.label or false
+		local label = plot.label or options.label or {}
 		for _, dim in ipairs(DimNames) do label[dim] = label[dim] or "" end
 		local labeloffset = options.labeloffset or {}
 		for _, dim in ipairs(DimNames) do labeloffset[dim] = labeloffset[dim] or "" end
