@@ -14,21 +14,87 @@
 
 namespace ug{
 
+/// Implementation of the computation of the consistent gravity by P. Frolkovic.
+/**
+ * Density driven flow models involve the convection velocity depending on the
+ * gradient of the pressure and the density-dependent gravity force, typically
+ * of the form \f$\mathbf{v} = \mathbf{K} (- \nabla p + \rho \mathbf{g}) / \mu\f$,
+ * where \f$\mathbf{K}\f$ is a matrix, \f$\mu\f$ a scalar, \f$\mathbf{g}\f$
+ * gravity vector (all independent of \f$p\f$ or \f$\rho\f$), \f$p\f$ is
+ * pressure, \f$rho\f$ is density (depending on the concentration, ...). (Both
+ * the pressure and the concentration are unknown grid functions in the PDEs.)
+ * Treating \f$p\f$ and \f$\rho\f$ as grid functions of the same class (like
+ * the piecewise linear/bilinear interpolations of nodal values) leads to oscillatory
+ * solutions because \f$\nabla p\f$ and \f$\rho \mathbf{g}\f$ belong to different
+ * classes of grid functions. In particular, if \f$p\f$ is a piecewise linear
+ * function, \f$\nabla p\f$ can never cancel the of the gravitaty force if 
+ * \f$\rho\f$ increases linearly from the top down, although this happens in the
+ * analytical solution. The idea of the consistent gravity is to consider a
+ * vector function \f$\mathbf{h} = (h_x, h_y, \dots)\f$ that is in some sence a
+ * primitive function for \f$\rho \mathbf{g}\f$ so that the velocity can be
+ * written as \f$\mathbf{v} = - \mathbf{K} (p_x - h_x, p_y - h_y, \dots) / \mu\f$.
+ * In the discretization, the function \f$\mathbf{h}\f$ should belong to the
+ * same class of the grid functions as \f$p\f$. In the present implementation,
+ * \f$\mathbf{h}\f$ is a piecewise linear/bilinear grid function.
+ *
+ * Function 'PrepareConsistentGravity' computes the values of \f$h\f$ at the corners
+ * of an element. Using these values, 'ComputeConsistentGravity' computes the
+ * consistent gravity force \f$\rho \mathbf{g}\f$ (not \f$\mathbf{h}\f$!) at any
+ * given point.
+ *
+ * REMARK (Consistent gravity in the computation of the Jacobian):
+ * The consistent gravity computed by the implemented methods depends linearly
+ * on the density. Thus, to compute the derivative of the consistent gravity
+ * w.r.t. the density at one of the corners of the element, set the density to
+ * 1 at that corner and to 0 at all other corners, then call the functions. Then
+ * 'PrepareConsistentGravity' prepares the nodal values of the derivatives
+ * and 'ComputeConsistentGravity' computes the derivative itself.
+ *
+ * Alternatively, you can set the density at that corner to the derivative
+ * of the density w.r.t. the concentration (instead of 1). Then you get
+ * directly the derivative of the consistent gravity w.r.t. the concentration
+ * at that node.
+ *
+ * References:
+ * <ul>
+ *  <li> P. Frolkovic, Consistent velocity approximation for density driven
+ *       flow and transport, In: Advanced Computational Methods in Engineering,
+ *       Part 2: Contributed papers; (R. Van Keer at al., eds.), Shaker Publishing,
+ *       Maastricht, 1998, p. 603-611
+ *  </li>
+ *  <li> P. Frolkovic, P. Knabner, Consistent Velocity Approximations in Finite
+ *       Element or Volume Discretizations of Density Driven Flow, In: Computational
+ *       Methods in WaterResources XI, Vol. 1 (A.A. Aldama et al., eds.),
+ *       Computational Mechanics Publication, Southhampten, 1996, p. 93-100
+ *  </li>
+ * </ul>
+ *
+ * \tparam	dim					dimensionality of the element
+ *
+ * \param	vConsGravity		[out] computed consistent gravity at corners
+ * \param	standard_gravity	[out] whether the gravity is \f$(0, \dots, 0, g)\f$
+ * \param	coe					[in] number of corners
+ * \param	vCorners			[in] global coordinates of the corners
+ * \param	vDensity			[in] density at the corners
+ * \param	PhysicalGravity		[in] the gravity vector
+ */
 template <int dim>
 inline bool PrepareConsistentGravity(	MathVector<dim>* vConsGravity,
-										int* standard_gravity,
+										bool& standard_gravity,
 										const int coe,
 										const MathVector<dim>* vCorners,
 										const number* vDensity,
 										const MathVector<dim>& PhysicalGravity)
 {
+//	No implementation for a general dimension: Cf. the particular implementations below.
 	UG_ASSERT(0, "Not implemented.");
 	return false;
 }
 
+/// \copydoc PrepareConsistentGravity
 template <>
 inline bool PrepareConsistentGravity<2>(	MathVector<2>* vConsGravity,
-											int* standard_gravity,
+											bool& standard_gravity,
 											const int coe,
 											const MathVector<2>* vCorners,
 											const number* vDensity,
@@ -44,24 +110,18 @@ inline bool PrepareConsistentGravity<2>(	MathVector<2>* vConsGravity,
 	static ReferenceMapping<ReferenceQuadrilateral, 2> QuadMapping;
 	static ReferenceMapping<ReferenceTriangle, 2> TriangleMapping;
 
-//	Number of corners
-//	const int coe = vCorners.size();
-
 	MathVector<2> LocalPoint,ShiftedGlobalPoint;
 	MathVector<2> LocalGravityAt000, LocalGravityAt110;
 	MathMatrix<2,2> JT;
 
 	double DensityIP, Diff;
 	double gradient;
+	
+	standard_gravity = (PhysicalGravity.x()==0.0);
 
-	if(PhysicalGravity.x()==0.0)
-		*standard_gravity = 1;
-	else
-		*standard_gravity = 0;
-
-	if(coe==3 && *standard_gravity==1)
+	if(coe==3 && standard_gravity)
 	{
-		//new consistent gravity for TRIANGLE (cf. Frolkovic98)
+		//	New consistent gravity for TRIANGLE (cf. Frolkovic98)
 
 		TriangleMapping.update(&vCorners[0]);
 		TriangleMapping.jacobian_transposed_inverse(JT,vCorners[0]);
@@ -88,7 +148,7 @@ inline bool PrepareConsistentGravity<2>(	MathVector<2>* vConsGravity,
 	}
 	else
 	{
-		//generalizied consistent gravity of Voss & Souza for local elements
+		//	Generalizied consistent gravity of Voss & Souza type for local elements
 		switch(coe)
 		{
 		case 4:
@@ -141,9 +201,10 @@ inline bool PrepareConsistentGravity<2>(	MathVector<2>* vConsGravity,
  	return true;
 }
 
+/// \copydoc PrepareConsistentGravity
 template <>
 inline bool PrepareConsistentGravity<3>(	MathVector<3>* vConsGravity,
-											int* standard_gravity,
+											bool& standard_gravity,
 											const int coe,
 											const MathVector<3>* vCorners,
 											const number* vDensity,
@@ -160,9 +221,6 @@ inline bool PrepareConsistentGravity<3>(	MathVector<3>* vConsGravity,
 	static ReferenceMapping<ReferencePrism, 3> PrismMapping;
 	static ReferenceMapping<ReferencePyramid, 3> PyramidMapping;
 
-//	Number of corners
-//	const int coe = vCorners.size();
-
 	MathVector<3> LocalPoint,ShiftedGlobalPoint;
 	MathVector<3> 	LocalGravityAt000, LocalGravityAt110,
 					LocalGravityAt101, LocalGravityAt011;
@@ -171,7 +229,9 @@ inline bool PrepareConsistentGravity<3>(	MathVector<3>* vConsGravity,
 	double DensityIP, Diff;
 	double gradient;
 
-	if(coe==3 && *standard_gravity==1)
+	standard_gravity = (PhysicalGravity.x()==0.0 && PhysicalGravity.y()==0.0);
+
+	if(coe==3 && standard_gravity)
 	{
 		//new consistent gravity for TETRAHEDRON (cf. Frolkovic98)
 		//TODO new consistent gravity for TETRAHEDRON needs to be tested (compared to UG3 results)
@@ -346,6 +406,7 @@ inline bool PrepareConsistentGravity<3>(	MathVector<3>* vConsGravity,
 	return true;
 }
 
+/// Computes the consistent gravity at a given point. \see{PrepareConsistentGravity}
 template <int dim>
 bool ComputeConsistentGravity(	MathVector<dim>& ConsistentGravity,
 								const size_t coe,
@@ -353,7 +414,7 @@ bool ComputeConsistentGravity(	MathVector<dim>& ConsistentGravity,
 								const MathMatrix<dim, dim>& JTInv,
 								const MathVector<dim>* vLocalGrad,
 								const MathVector<dim>* vConsGravity,
-								const int standard_gravity)
+								const bool standard_gravity)
 {
 	//TODO: Überprüfe für Pyramiden!!!!!! siehe UG3
 
@@ -362,19 +423,16 @@ bool ComputeConsistentGravity(	MathVector<dim>& ConsistentGravity,
 	MathVector<dim> LocalGravity;
 	VecSet(LocalGravity, 0.0);
 
-	int dm1;
-	dm1 = dim - 1;
-
-	if(coe==dim+1 && standard_gravity==1)
+	if(coe==dim+1 && standard_gravity)
 	{
-		//new consistent gravity for TRIANGLE and TETRAHEDRON (cf. Frolkovic98)
+		//	New consistent gravity for TRIANGLE and TETRAHEDRON (cf. Frolkovic98)
 
 		for(size_t d = 0; d < dim; ++d)
 		{
-			LocalGravity[d] = vConsGravity[d+1][dm1];
+			LocalGravity[d] = vConsGravity[d+1][dim-1];
 		}
 
-	//	Multiply by JacobianTransposedInverse
+		//	Multiply by JacobianTransposedInverse
 		MatVecMult(ConsistentGravity, JTInv, LocalGravity);
 
 		ConsistentGravity[0] -= vConsGravity[1][0]*LocalCoord[0];  //GN(j)=local(j-1) for j=1,2
@@ -389,7 +447,7 @@ bool ComputeConsistentGravity(	MathVector<dim>& ConsistentGravity,
 	}
 	else
 	{
-		//generalized consistent gravity of Voss & Souza for local elements
+		//	Generalized consistent gravity of Voss & Souza type for local elements
 
 		//	Loop shape functions
 		for(size_t sh = 0; sh < coe; ++sh)
@@ -404,8 +462,8 @@ bool ComputeConsistentGravity(	MathVector<dim>& ConsistentGravity,
 		MatVecMult(ConsistentGravity, JTInv, LocalGravity);
 	}
 
-		return true;
-	}
+	return true;
+}
 
 } // end namespace ug
 
