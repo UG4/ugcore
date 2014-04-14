@@ -172,7 +172,7 @@ bool FindNormal(vector3& normOut, const vector3& v)
 		vector3 e(0, 0, 0);
 		e[i] = 1;
 		number d = VecDot(e, n);
-		if(d < dotThreshold){
+		if(fabs(d) < dotThreshold){
 		//	the projection will be sufficient to calculate a normal.
 			VecScale(n, n, d);
 			VecSubtract(normOut, e, n);

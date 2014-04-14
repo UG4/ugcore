@@ -22,7 +22,8 @@ Vertex* ResolveVertexEdgeIntersection(Grid& grid, Vertex* v,
 template <class TAAPosVRT>
 bool ResolveVertexFaceIntersection(Grid& grid, Vertex* v,
 								   Face* f, TAAPosVRT& aaPos,
-								   number snapThreshold);
+								   number snapThreshold,
+								   std::vector<Face*>* pNewFacesOut);
 
 /**
  * This method does not resolve intersections between close, parallel edges or
@@ -57,10 +58,10 @@ bool ProjectVerticesToCloseEdges(Grid& grid,
 /**
  *	Projects vertices in elems onto close faces in elems.
  */
-template <class TAAPosVRT>
+template <class TObjectCollection, class TAPos>
 bool ProjectVerticesToCloseFaces(Grid& grid,
-								 GridObjectCollection elems,
-								 TAAPosVRT& aaPos,
+								 TObjectCollection& elems,
+								 TAPos& aPos,
 								 number snapThreshold);
 
 /**THIS METHOD USES Grid::mark.
@@ -83,10 +84,10 @@ int FindCloseVertexInArray(std::vector<Vertex*>& array,
 ////////////////////////////////////////////////////////////////////////
 /**	This method uses Grid::mark
  */
-template <class TAAPosVRT>
-bool ResolveGridIntersections(Grid& grid, TriangleIterator trisBegin,
+template <class TAPos>
+bool ResolveTriangleIntersections(Grid& grid, TriangleIterator trisBegin,
 							  TriangleIterator trisEnd, number snapThreshold,
-							  TAAPosVRT& aaPos);
+							  TAPos& aPos);
 
 }// end of namespace
 

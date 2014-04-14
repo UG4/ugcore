@@ -31,6 +31,9 @@ struct ntree_traits
 
 	static bool box_contains_point(const box_t& box, const vector_t& point);
 
+///	returns true if the given boxes intersect
+	static bool box_box_intersection(const box_t& box1, const box_t& box2);
+
 ///	returns the smallest box that contains both box1 and box2
 	static void merge_boxes(box_t& boxOut, const box_t& box1, const box_t& box2);
 

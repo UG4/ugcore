@@ -88,6 +88,16 @@ struct lg_ntree_traits_base
 		return box.contains_point(point);
 	}
 
+///	returns true if the given boxes intersect
+	static bool box_box_intersection(const box_t& box1, const box_t& box2)
+	{
+		for(int i = 0; i < world_dim; ++i){
+			if(box1.min[i] > box2.max[i] || box1.max[i] < box2.min[i])
+				return false;
+		}
+		return true;
+	}
+
 ///	returns the smallest box that contains both box1 and box2
 	static void merge_boxes(box_t& boxOut, const box_t& box1, const box_t& box2)
 	{

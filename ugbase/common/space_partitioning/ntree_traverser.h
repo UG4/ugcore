@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <utility>
+#include <vector>
 #include "ntree_traversal.h"
 
 namespace ug{
@@ -190,6 +191,67 @@ bool FindContainingElement(typename tree_t::elem_t& elemOut, const tree_t& tree,
 		return true;
 	}
 	return false;
+}
+
+
+template <class tree_t>
+class Traverser_FindElementsInIntersectingNodes
+{
+	public:
+		typedef typename tree_t::elem_t		elem_t;
+		typedef typename tree_t::vector_t	vector_t;
+		typedef typename tree_t::box_t		box_t;
+
+		Traverser_FindElementsInIntersectingNodes(const box_t& bbox) :
+			m_bbox(bbox)
+		{}
+
+		void begin_traversal(const tree_t& tree)
+		{
+			m_foundElems.clear();
+		}
+
+		int visit_up(const tree_t& tree, size_t node)
+		{
+		//	if our bounding box doesn't intersect the nodes bounding box,
+		//	then there's nothing to do
+			if(!tree_t::traits::box_box_intersection(tree.bounding_box(node), m_bbox))
+				return DONT_TRAVERSE_CHILDREN;
+
+		//	first check whether the nodes box contains the given point
+			if(tree.num_child_nodes(node) == 0){
+			//	iterate over all elements. If an element contains the given point,
+			//	we're done and we may return.
+				for(typename tree_t::elem_iterator_t iter = tree.elems_begin(node);
+					iter != tree.elems_end(node); ++iter)
+				{
+					m_foundElems.push_back(*iter);
+				}
+			}
+			return TRAVERSE_CHILDREN;
+		}
+
+		void visit_down(const tree_t&, size_t)	{}
+
+		void end_traversal(const tree_t&)	{}
+
+		const std::vector<elem_t>& result() const	{return m_foundElems;}
+
+	private:
+		box_t					m_bbox;
+		std::vector<elem_t>		m_foundElems;
+};
+
+template <class tree_t>
+bool FindElementsInIntersectingNodes(std::vector<typename tree_t::elem_t>& elemsOut,
+									 const tree_t& tree,
+									 const typename tree_t::box_t& bbox)
+{
+	Traverser_FindElementsInIntersectingNodes<tree_t> trav(bbox);
+	TraverseDepthFirst(tree, trav);
+	//UG_LOG("num elems checked for one pick: " << trav.num_elems_checked() << "\n");
+	elemsOut = trav.result();
+	return !elemsOut.empty();
 }
 
 }// end of namespace
