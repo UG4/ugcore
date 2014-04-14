@@ -1992,9 +1992,9 @@ jobjectArray params2NativeParams(JNIEnv *env,
 				|| params.type(i) == ug::Variant::VT_CONST_SMART_POINTER;
 
 		if (pointerType && strlen(params.class_name(i)) == 0) {
-			std::cerr << func.name() << ", param(" << i << ")==EMPTY"
-					<< std::endl;
-			exit(1);
+			std::cerr << "ERROR: empty classname in "
+                                  << func.name() << ", param(" << i << ")"
+				  << std::endl;
 		}
 
 		using namespace ug::bridge;
