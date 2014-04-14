@@ -171,6 +171,18 @@ template <class vector_t>
 number ProjectPointToRay(vector_t& vOut, const vector_t& v,
 							const vector_t& from, const vector_t& dir);
 
+
+////////////////////////////////////////////////////////////////////////
+///	finds the projection of v onto the line defined by from and to
+/** projects v onto the line defined by from and to.
+ * The projected point is returned in vOut.
+ *
+ * returns s so that vOut = from + s * (to-from)*/
+template <class vector_t>
+number ProjectPointToLine(vector_t& vOut, const vector_t& v,
+						  const vector_t& from, const vector_t& to);
+
+
 ////////////////////////////////////////////////////////////////////////
 ///	calculates the distance of a point to a line segment
 /*

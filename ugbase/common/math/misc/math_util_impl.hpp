@@ -144,6 +144,16 @@ number ProjectPointToRay(vector_t& vOut, const vector_t& v,
 
 ////////////////////////////////////////////////////////////////////////
 template <class vector_t>
+number ProjectPointToLine(vector_t& vOut, const vector_t& v,
+						  const vector_t& from, const vector_t& to)
+{
+	vector_t dir;
+	VecSubtract(dir, to, from);
+	return ProjectPointToRay(vOut, v, from, dir);
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class vector_t>
 inline
 number DistancePointToLine(const vector_t& v, const vector_t& v1,
 						  const vector_t& v2)

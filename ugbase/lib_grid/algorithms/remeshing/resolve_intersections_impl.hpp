@@ -13,22 +13,6 @@
 
 namespace ug{
 
-////////////////////////////////////////////////////////////////////////
-///	finds the projection of v onto the line defined by from and to
-/** projects v onto the line defined by from and to.
- * The projected point is returned in vOut.
- *
- * returns s so that vOut = from + s * (to-from)*/
-template <class vector_t>
-number ProjectPointToLine(vector_t& vOut, const vector_t& v,
-						  const vector_t& from, const vector_t& to)
-{
-	vector_t dir;
-	VecSubtract(dir, to, from);
-	return ProjectPointToRay(vOut, v, from, dir);
-}
-
-
 template <class TAAPosVRT>
 Vertex* ResolveVertexEdgeIntersection(Grid& grid, Vertex* v,
 										   Edge* e, TAAPosVRT& aaPos,
@@ -1532,33 +1516,33 @@ bool ResolveTriangleIntersections(Grid& grid, TriangleIterator trisBegin,
 				}
 			}
 			else{
-				static int fileCounter = 1;
-				string filenamePrefix = "/home/sreiter/Desktop/failed_sweeplines/failed_sweepline_";
-				stringstream ss2d, ss3d;
-				ss2d << filenamePrefix << "2d_" << fileCounter << ".lgb";
-				ss3d << filenamePrefix << "3d_" << fileCounter << ".lgb";
-				++fileCounter;
-				UG_LOG("TriangleFill_SweepLine failed!\n");
-				SaveGridToFile(tgrid, ss3d.str().c_str(), aPos);
-			//	perform transformation to 2d and save that too.
-				std::vector<vector3> vrts;
-				for(VertexIterator iter = tgrid.vertices_begin();
-					iter != tgrid.vertices_end(); ++iter)
-				{
-					vrts.push_back(taaPos[*iter]);
-				}
-				std::vector<vector2> vrts2d(vrts.size());
-				TransformPointSetTo2D(&vrts2d.front(), &vrts.front(),
-									  vrts.size());
+			// 	static int fileCounter = 1;
+			// 	string filenamePrefix = "/home/sreiter/Desktop/failed_sweeplines/failed_sweepline_";
+			// 	stringstream ss2d, ss3d;
+			// 	ss2d << filenamePrefix << "2d_" << fileCounter << ".lgb";
+			// 	ss3d << filenamePrefix << "3d_" << fileCounter << ".lgb";
+			// 	++fileCounter;
+			// 	UG_LOG("TriangleFill_SweepLine failed!\n");
+			// 	SaveGridToFile(tgrid, ss3d.str().c_str(), aPos);
+			// //	perform transformation to 2d and save that too.
+			// 	std::vector<vector3> vrts;
+			// 	for(VertexIterator iter = tgrid.vertices_begin();
+			// 		iter != tgrid.vertices_end(); ++iter)
+			// 	{
+			// 		vrts.push_back(taaPos[*iter]);
+			// 	}
+			// 	std::vector<vector2> vrts2d(vrts.size());
+			// 	TransformPointSetTo2D(&vrts2d.front(), &vrts.front(),
+			// 						  vrts.size());
 
-				size_t counter = 0;
-				for(VertexIterator iter = tgrid.vertices_begin();
-					iter != tgrid.vertices_end(); ++iter, ++counter)
-				{
-					taaPos[*iter] = vector3(vrts2d[counter].x(), vrts2d[counter].y(), 0);
-				}
+			// 	size_t counter = 0;
+			// 	for(VertexIterator iter = tgrid.vertices_begin();
+			// 		iter != tgrid.vertices_end(); ++iter, ++counter)
+			// 	{
+			// 		taaPos[*iter] = vector3(vrts2d[counter].x(), vrts2d[counter].y(), 0);
+			// 	}
 
-				SaveGridToFile(tgrid, ss2d.str().c_str(), aPos);
+			// 	SaveGridToFile(tgrid, ss2d.str().c_str(), aPos);
 			}
 		}
 	}
