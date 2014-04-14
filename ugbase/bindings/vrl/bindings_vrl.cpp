@@ -262,11 +262,11 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeMethod(JNIEnv *env,
 		jobject obj, jstring exportedClassName, jlong objPtr, jboolean readOnly,
 		jstring methodName, jobjectArray params) {
 
-	bool DEBUG = true;
-	if (DEBUG) {
-		std::cout << "trunk/ugbase/bindings/vrl/bindings_vrl.cpp :"
-				<< " Java_edu_gcsc_vrl_ug_UG__1invokeMethod() " << std::endl;
-	}
+//	bool DEBUG = true;
+//	if (DEBUG) {
+//		std::cout << "trunk/ugbase/bindings/vrl/bindings_vrl.cpp :"
+//				<< " Java_edu_gcsc_vrl_ug_UG__1invokeMethod() " << std::endl;
+//	}
 
 	std::string className = ug::vrl::stringJ2C(env, exportedClassName);
 
@@ -354,11 +354,9 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeMethod(JNIEnv *env,
 JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1newInstance(JNIEnv *env,
 		jobject obj, jlong exportedClassPointer, jobjectArray params) {
 
-	bool DEBUG = true;
-	if (DEBUG) {
-		std::cout << "trunk/ugbase/bindings/vrl/bindings_vrl.cpp :"
-				<< " Java_edu_gcsc_vrl_ug_UG__1newInstance() " << std::endl;
-	}
+//	UG_LOG( "trunk/ugbase/bindings/vrl/bindings_vrl.cpp :"
+//				<< " Java_edu_gcsc_vrl_ug_UG__1newInstance() " << std::endl);
+
 
 	ug::bridge::IExportedClass* clazz =
 			(ug::bridge::IExportedClass*) exportedClassPointer;
@@ -429,58 +427,59 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1newInstance(JNIEnv *env,
 JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeFunction(JNIEnv *env,
 		jobject obj, jstring fName, jboolean readOnly, jobjectArray params) {
 
-	bool DEBUG = true;
-	if (DEBUG) {
-		std::cout << "trunk/ugbase/bindings/vrl/bindings_vrl.cpp :"
-				<< " Java_edu_gcsc_vrl_ug_UG__1invokeFunction() " << std::endl;
-		std::cout << "Java_edu_gcsc_vrl_ug_UG__1invokeFunction() : fName = "
-				<< fName << std::endl;
-	}
+//	bool DEBUG = true;
+//	if (DEBUG) {
+//		std::cout << "trunk/ugbase/bindings/vrl/bindings_vrl.cpp :"
+//				<< " Java_edu_gcsc_vrl_ug_UG__1invokeFunction() " << std::endl;
+//		std::cout << "Java_edu_gcsc_vrl_ug_UG__1invokeFunction() : fName = "
+//				<< fName << std::endl;
+//	}
 
 	std::string name = ug::vrl::stringJ2C(env, fName);
 
-	if (DEBUG) {
-		std::cout << "trunk/ugbase/bindings/vrl/bindings_vrl.cpp :"
-				<< " Java_edu_gcsc_vrl_ug_UG__1invokeFunction() " << std::endl;
-
-		std::cout << "UG__1invokeFunction(): name = " << name << std::endl;
-
-		std::cout << "function-parameters are: " << std::endl;
-		jsize size = env->GetArrayLength(params);
-
-		std::cout << "paramCount = " << size << std::endl;
-
-		/*for (int i = 0; i < size; ++i) {
-			jobject param = env->GetObjectArrayElement(params,i);
-
-			//std::cout << "paramName = " << ug::vrl::jPointerGetName(env, param) << std::endl;
-
-			    jclass argClass = env->GetObjectClass(param);
-
-			    std::cout << "argClass = " << argClass << std::endl;
-
-				jmethodID methodID = env->GetMethodID(argClass, "getName",
-						"()Ljava/lang/String;");
-
-				std::cout << "methodID = " << methodID << std::endl;
-
-				std::string paramName = ug::vrl::stringJ2C(env,
-						(jstring) env->CallObjectMethod(param, methodID));
-
-				std::cout << "paramName = " << paramName << std::endl;
-		}*/
-	}
+//	if (DEBUG) {
+//		std::cout << "trunk/ugbase/bindings/vrl/bindings_vrl.cpp :"
+//				<< " Java_edu_gcsc_vrl_ug_UG__1invokeFunction() " << std::endl;
+//
+//		std::cout << "UG__1invokeFunction(): name = " << name << std::endl;
+//
+//		std::cout << "function-parameters are: " << std::endl;
+//		jsize size = env->GetArrayLength(params);
+//
+//		std::cout << "paramCount = " << size << std::endl;
+//
+//		/*for (int i = 0; i < size; ++i) {
+//			jobject param = env->GetObjectArrayElement(params,i);
+//
+//			//std::cout << "paramName = " << ug::vrl::jPointerGetName(env, param) << std::endl;
+//
+//			    jclass argClass = env->GetObjectClass(param);
+//
+//			    std::cout << "argClass = " << argClass << std::endl;
+//
+//				jmethodID methodID = env->GetMethodID(argClass, "getName",
+//						"()Ljava/lang/String;");
+//
+//				std::cout << "methodID = " << methodID << std::endl;
+//
+//				std::string paramName = ug::vrl::stringJ2C(env,
+//						(jstring) env->CallObjectMethod(param, methodID));
+//
+//				std::cout << "paramName = " << paramName << std::endl;
+//		}*/
+//	}
 
 	const ug::bridge::ExportedFunction* func =
 			ug::vrl::invocation::getFunctionBySignature(env,
 					ug::vrl::vrlRegistry, name, params);
 
-	if(func == NULL){
-		std::cout << "func is null "<< std::endl;
-	}else if (DEBUG) {
-		std::cout << "UG__1invokeFunction(): func->m_name = " << func->name()
-				<< std::endl;
-	}
+//	if(func == NULL){
+//		std::cout << "func is null "<< std::endl;
+//	}
+//                else if (DEBUG) {
+//		std::cout << "UG__1invokeFunction(): func->m_name = " << func->name()
+//				<< std::endl;
+//	}
 
 	ug::bridge::ParameterStack paramsIn;
 	ug::bridge::ParameterStack paramsOut;
@@ -508,16 +507,16 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeFunction(JNIEnv *env,
 
 		 //UG_LOG("UG__1invokeFunction(): paramsIn = "<< paramsIn<<std::endl);
 
-		 for (int i = 0; i < paramsIn.size(); ++i) {
-		 UG_LOG("UG__1invokeFunction(): paramsIn.class_name( "<<i<<" ) = "<< paramsIn.class_name(i)<<std::endl);
-		 UG_LOG("UG__1invokeFunction(): paramsIn.class_name_node( "<<i<<" ) = "<< paramsIn.class_name_node(i)<<std::endl);
-		 }
-
-		 //UG_LOG(" func->params_in() = "<< func->params_in() <<std::endl);
-		 for (int i = 0; i < func->params_in().size(); ++i) {
-		 UG_LOG("UG__1invokeFunction(): func->params_in().class_name( "<<i<<" ) = "<< func->params_in().class_name(i)<<std::endl);
-		 UG_LOG("UG__1invokeFunction(): func->params_in().class_name_node( "<<i<<" ) = "<< func->params_in().class_name_node(i)<<std::endl);
-		 }
+//		 for (int i = 0; i < paramsIn.size(); ++i) {
+//		 UG_LOG("UG__1invokeFunction(): paramsIn.class_name( "<<i<<" ) = "<< paramsIn.class_name(i)<<std::endl);
+//		 UG_LOG("UG__1invokeFunction(): paramsIn.class_name_node( "<<i<<" ) = "<< paramsIn.class_name_node(i)<<std::endl);
+//		 }
+//
+//		 //UG_LOG(" func->params_in() = "<< func->params_in() <<std::endl);
+//		 for (int i = 0; i < func->params_in().size(); ++i) {
+//		 UG_LOG("UG__1invokeFunction(): func->params_in().class_name( "<<i<<" ) = "<< func->params_in().class_name(i)<<std::endl);
+//		 UG_LOG("UG__1invokeFunction(): func->params_in().class_name_node( "<<i<<" ) = "<< func->params_in().class_name_node(i)<<std::endl);
+//		 }
 
 		ug::vrl::jobjectArray2ParamStack(env, ug::vrl::vrlRegistry, paramsIn,
 				func->params_in(), params);
@@ -525,9 +524,9 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeFunction(JNIEnv *env,
 		func->execute(paramsIn, paramsOut);
 
 		if (paramsOut.size() > 0) {
-			//christian poliwoda
-			//question: need here to distinct between Jobject and JobjectARRAY ?!??
-			UG_LOG("UG__1invokeFunction(): result = ug::vrl::param2JObject("<<std::endl);
+//			//christian poliwoda
+//			//question: need here to distinct between Jobject and JobjectARRAY ?!??
+//			UG_LOG("UG__1invokeFunction(): result = ug::vrl::param2JObject("<<std::endl);
 
 			result = ug::vrl::param2JObject(env, paramsOut, 0);
 		}
@@ -682,10 +681,9 @@ JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getBinaryLicense(
 jobject bool_array(JNIEnv *env, jobject obj, jstring jName,
 		jobjectArray params) {
 
-	std::cout << "trunk/ugbase/bindings/vrl/bindings_vrl.cpp : bool_array() "
-			<< std::endl;
+	//std::cout << "trunk/ugbase/bindings/vrl/bindings_vrl.cpp : bool_array() "			<< std::endl;
 
-	std::cout << " jName = " << ug::vrl::stringJ2C(env, jName) << std::endl;
+	//std::cout << " jName = " << ug::vrl::stringJ2C(env, jName) << std::endl;
 
 	/*
 	 jobject firstElement = env->GetObjectArrayElement(params, 0);
@@ -717,10 +715,10 @@ jobject bool_array(JNIEnv *env, jobject obj, jstring jName,
 	//
 	jbooleanArray jBoolArray = ug::vrl::jObject2BooleanArray(env, obj);
 
-	std::cout << "CPP: jBoolArray: " << jBoolArray << std::endl;
+	//std::cout << "CPP: jBoolArray: " << jBoolArray << std::endl;
 
 	jsize arrayLenght = env->GetArrayLength(jBoolArray);
-	std::cout << "arrayLenght = " << arrayLenght << std::endl;
+	//std::cout << "arrayLenght = " << arrayLenght << std::endl;
 
 	jboolean *arrayBoolElements = env->GetBooleanArrayElements(jBoolArray,
 			NULL);
@@ -749,16 +747,13 @@ jobject array_of_bool_arrays(JNIEnv *env, jobject obj, jstring jName,
 		jobjectArray params) {
  jobject result = NULL;
 
-	std::cout
-			<< "trunk/ugbase/bindings/vrl/bindings_vrl.cpp : array_of_bool_arrays() "
-			<< std::endl;
+	std::cout	<< "trunk/ugbase/bindings/vrl/bindings_vrl.cpp : array_of_bool_arrays() " << std::endl;
 
 	std::cout << " array_of_bool_arrays().jName = "
-			<< ug::vrl::stringJ2C(env, jName) << std::endl;
+		<< ug::vrl::stringJ2C(env, jName) << std::endl;
 
-	std::cout
-			<< " array_of_bool_arrays() calling  ug::vrl::jObject2BooleanArray(env, PARAMS)"
-			<< std::endl;
+	std::cout  << " array_of_bool_arrays() calling  ug::vrl::jObject2BooleanArray(env, PARAMS)"
+		<< std::endl;
 
 	//
 	// here i need to know too that there are arrays in "params"

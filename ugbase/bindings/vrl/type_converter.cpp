@@ -238,8 +238,7 @@ std::string jPointerGetName(JNIEnv *env, jobject obj) {
 SmartPtr<void> jObject2SmartPointer(JNIEnv *env, jobject obj) {
 
 	// christian poliwoda ug-log for debug
-	UG_LOG(
-			"trunk/ugbase/bindings/vrl/type_converter.cpp : jObject2SmartPointer(JNIEnv *env, jobject obj)"<<std::endl);
+//	UG_LOG("trunk/ugbase/bindings/vrl/type_converter.cpp : jObject2SmartPointer(JNIEnv *env, jobject obj)"<<std::endl);
 
 	jclass argClass = env->GetObjectClass(obj);
 
@@ -650,30 +649,31 @@ TypeAndArray paramClass2ParamType(JNIEnv *env, jobject obj) {
 
 	int tmpResultType = ug::Variant::VT_INVALID;
 
-	bool DEBUG = true;
-
-	if (DEBUG) {
-		std::cout << "trunk/ugbase/bindings/vrl/type_converter.cpp :"
-				<< " paramClass2ParamType() " << std::endl;
-		//std::cout << "true = " << true << std::endl;
-		//std::cout << "false = " << false << std::endl;
-	}
+//	bool DEBUG = true;
+//
+//	if (DEBUG) {
+//		std::cout << "trunk/ugbase/bindings/vrl/type_converter.cpp :"
+//				<< " paramClass2ParamType() " << std::endl;
+//		//std::cout << "true = " << true << std::endl;
+//		//std::cout << "false = " << false << std::endl;
+//	}
 
 	std::string className = getClassName(env, obj);
 
-	if (DEBUG) {
-		std::cout << " paramClass2ParamType : className = " << className
-				<< std::endl;
-
-	}
+//	if (DEBUG) {
+//		std::cout << " paramClass2ParamType : className = " << className
+//				<< std::endl;
+//
+//	}
 
 	bool isArrayList = isJObjectAnArrayList(env, obj);
 
 	//UG_LOG("paramClass2ParamType : isArrayList = " << std::boolalpha << isArrayList << std::endl);
 
 	if (isArrayList) {
-		UG_THROW(
-				"Parameter is a java ArrayList, but we support only arrays." << "MSG from: trunk/ugbase/bindings/vrl/type_converter.cpp :" << " paramClass2ParamType() ");
+		UG_THROW("Parameter is a java ArrayList, but we support only arrays." 
+                        << "MSG from: trunk/ugbase/bindings/vrl/type_converter.cpp :" 
+                        << " paramClass2ParamType() ");
 		typeAndArray.isArray = false;
 	}
 
@@ -696,7 +696,7 @@ TypeAndArray paramClass2ParamType(JNIEnv *env, jobject obj) {
 		 }*/
 		className = cutLastStringPart(className, ";");
 
-		UG_LOG("paramClass2ParamType : isArray cutted className = "<< className << std::endl);
+//		UG_LOG("paramClass2ParamType : isArray cutted className = "<< className << std::endl);
 	}
 
 	//bool tmp = className.compare("java.lang.Boolean");
@@ -745,20 +745,20 @@ TypeAndArray paramClass2ParamType(JNIEnv *env, jobject obj) {
 	// bit of the pointer instance (Java wrapper).
 	typeAndArray.type = tmpResultType;
 
-	if (DEBUG) {
-		std::cout << "ug::Variant::VT_INVALID = " << ug::Variant::VT_INVALID
-				<< std::endl;
-		std::cout << "paramClass2ParamType().tmpResultType = " << tmpResultType
-				<< std::endl;
-		std::cout << "VT_BOOL = " << ug::Variant::VT_BOOL << std::endl;
-		std::cout << "VT_INT = " << ug::Variant::VT_INT << std::endl;
-		std::cout << "VT_DOUBLE = " << ug::Variant::VT_DOUBLE << std::endl;
-		std::cout << "VT_STDSTRING = " << ug::Variant::VT_STDSTRING
-				<< std::endl;
-		std::cout << "VT_POINTER = " << ug::Variant::VT_POINTER << std::endl;
-		std::cout << "VT_SMART_POINTER = " << ug::Variant::VT_SMART_POINTER
-				<< std::endl;
-	}
+//	if (DEBUG) {
+//		std::cout << "ug::Variant::VT_INVALID = " << ug::Variant::VT_INVALID
+//				<< std::endl;
+//		std::cout << "paramClass2ParamType().tmpResultType = " << tmpResultType
+//				<< std::endl;
+//		std::cout << "VT_BOOL = " << ug::Variant::VT_BOOL << std::endl;
+//		std::cout << "VT_INT = " << ug::Variant::VT_INT << std::endl;
+//		std::cout << "VT_DOUBLE = " << ug::Variant::VT_DOUBLE << std::endl;
+//		std::cout << "VT_STDSTRING = " << ug::Variant::VT_STDSTRING
+//				<< std::endl;
+//		std::cout << "VT_POINTER = " << ug::Variant::VT_POINTER << std::endl;
+//		std::cout << "VT_SMART_POINTER = " << ug::Variant::VT_SMART_POINTER
+//				<< std::endl;
+//	}
 
 	return typeAndArray;
 }
@@ -767,9 +767,8 @@ bool compareParamTypes(JNIEnv *env, jobjectArray params,
 		ug::bridge::Registry *reg,
 		ug::bridge::ParameterInfo const& paramStack) {
 
-	// christian poliwoda ug-log for debug
-	UG_LOG(
-			"trunk/ugbase/bindings/vrl/type_converter.cpp :: compareParamTypes(...)"<<std::endl);
+//	// christian poliwoda ug-log for debug
+//	UG_LOG("trunk/ugbase/bindings/vrl/type_converter.cpp :: compareParamTypes(...)"<<std::endl);
 
 	//#ifdef UG_DEBUG
 	//	UG_LOG("\n -- BEGIN COMPARE --\n")
@@ -779,12 +778,12 @@ bool compareParamTypes(JNIEnv *env, jobjectArray params,
 	jsize len = env->GetArrayLength(params);
 
 	if (len != paramStack.size()) {
-		// christian poliwoda ug-log for debug start
-		UG_LOG("type_converter.cpp :: if (len != paramStack.size())" << std::endl);
-		UG_LOG("type_converter.cpp :: len  = "<< len << std::endl);
-		UG_LOG("type_converter.cpp :: paramStack.size()  = "<< paramStack.size() << std::endl);
-
-		// christian poliwoda ug-log for debug end
+//		// christian poliwoda ug-log for debug start
+//		UG_LOG("type_converter.cpp :: if (len != paramStack.size())" << std::endl);
+//		UG_LOG("type_converter.cpp :: len  = "<< len << std::endl);
+//		UG_LOG("type_converter.cpp :: paramStack.size()  = "<< paramStack.size() << std::endl);
+//
+//		// christian poliwoda ug-log for debug end
 
 		return false;
 	}
@@ -805,17 +804,17 @@ bool compareParamTypes(JNIEnv *env, jobjectArray params,
 
 		TypeAndArray paramType = paramClass2ParamType(env, param);
 
-		// christian poliwoda ug-log for debug
-		UG_LOG("type_converter.cpp :: compareParamTypes(...) : param = "<< param <<std::endl);
-		UG_LOG("type_converter.cpp :: compareParamTypes(...) : uint paramType = paramClass2ParamType(env, param) = "<< paramType.type <<std::endl);
-		UG_LOG("type_converter.cpp :: compareParamTypes(...) : paramStack.type(i) = "<< paramStack.type(i) <<std::endl);
+//		// christian poliwoda ug-log for debug
+//		UG_LOG("type_converter.cpp :: compareParamTypes(...) : param = "<< param <<std::endl);
+//		UG_LOG("type_converter.cpp :: compareParamTypes(...) : uint paramType = paramClass2ParamType(env, param) = "<< paramType.type <<std::endl);
+//		UG_LOG("type_converter.cpp :: compareParamTypes(...) : paramStack.type(i) = "<< paramStack.type(i) <<std::endl);
 
 		// allow non-const * to const *
 		if (paramType.type == ug::Variant::VT_POINTER
 				&& paramStack.type(i) == ug::Variant::VT_CONST_POINTER) {
 
-			// christian poliwoda ug-log for debug
-			UG_LOG(" compareParamTypes(...) if()1 => paramType == ug::Variant::VT_POINTER && paramStack.type(i) == ug::Variant::VT_CONST_POINTER" <<std::endl);
+//			// christian poliwoda ug-log for debug
+//			UG_LOG(" compareParamTypes(...) if()1 => paramType == ug::Variant::VT_POINTER && paramStack.type(i) == ug::Variant::VT_CONST_POINTER" <<std::endl);
 
 			paramType.type = ug::Variant::VT_CONST_POINTER;
 		}
@@ -824,9 +823,8 @@ bool compareParamTypes(JNIEnv *env, jobjectArray params,
 		if (paramType.type == ug::Variant::VT_SMART_POINTER
 				&& paramStack.type(i) == ug::Variant::VT_CONST_SMART_POINTER) {
 
-			// christian poliwoda ug-log for debug
-			UG_LOG(
-					" compareParamTypes(...) if()2 => paramType == ug::Variant::VT_SMART_POINTER && paramStack.type(i) == ug::Variant::VT_CONST_SMART_POINTER" <<std::endl);
+//			// christian poliwoda ug-log for debug
+//			UG_LOG(	" compareParamTypes(...) if()2 => paramType == ug::Variant::VT_SMART_POINTER && paramStack.type(i) == ug::Variant::VT_CONST_SMART_POINTER" <<std::endl);
 
 			paramType.type = ug::Variant::VT_CONST_SMART_POINTER;
 		}
@@ -835,9 +833,8 @@ bool compareParamTypes(JNIEnv *env, jobjectArray params,
 		if (paramType.type == ug::Variant::VT_STDSTRING
 				&& paramStack.type(i) == ug::Variant::VT_CSTRING) {
 
-			// christian poliwoda ug-log for debug
-			UG_LOG(
-					" compareParamTypes(...) if()3 => paramType == ug::Variant::VT_STDSTRING && paramStack.type(i) == ug::Variant::VT_CSTRING" <<std::endl);
+//			// christian poliwoda ug-log for debug
+//			UG_LOG(	" compareParamTypes(...) if()3 => paramType == ug::Variant::VT_STDSTRING && paramStack.type(i) == ug::Variant::VT_CSTRING" <<std::endl);
 
 			paramType.type = ug::Variant::VT_CSTRING;
 		}
@@ -847,9 +844,8 @@ bool compareParamTypes(JNIEnv *env, jobjectArray params,
 		if (paramType.type == ug::Variant::VT_SMART_POINTER
 				&& paramStack.type(i) == ug::Variant::VT_POINTER) {
 
-			// christian poliwoda ug-log for debug
-			UG_LOG(
-					" compareParamTypes(...) if()4 = paramType == ug::Variant::VT_SMART_POINTER && paramStack.type(i) == ug::Variant::VT_POINTER" <<std::endl);
+//			// christian poliwoda ug-log for debug
+//			UG_LOG(	" compareParamTypes(...) if()4 = paramType == ug::Variant::VT_SMART_POINTER && paramStack.type(i) == ug::Variant::VT_POINTER" <<std::endl);
 
 			paramType.type = ug::Variant::VT_POINTER;
 		}
@@ -858,9 +854,8 @@ bool compareParamTypes(JNIEnv *env, jobjectArray params,
 		if (paramType.type == ug::Variant::VT_SMART_POINTER
 				&& paramStack.type(i) == ug::Variant::VT_CONST_POINTER) {
 
-			// christian poliwoda ug-log for debug
-			UG_LOG(
-					" compareParamTypes(...) if()5 => paramType == ug::Variant::VT_SMART_POINTER paramStack.type(i) == ug::Variant::VT_CONST_POINTER" <<std::endl);
+//			// christian poliwoda ug-log for debug
+//			UG_LOG(	" compareParamTypes(...) if()5 => paramType == ug::Variant::VT_SMART_POINTER paramStack.type(i) == ug::Variant::VT_CONST_POINTER" <<std::endl);
 
 			paramType.type = ug::Variant::VT_CONST_POINTER;
 		}
@@ -869,9 +864,8 @@ bool compareParamTypes(JNIEnv *env, jobjectArray params,
 		if (paramType.type == ug::Variant::VT_CONST_SMART_POINTER
 				&& paramStack.type(i) == ug::Variant::VT_CONST_POINTER) {
 
-			// christian poliwoda ug-log for debug
-			UG_LOG(
-					" compareParamTypes(...) if()6 => (paramType == ug::Variant::VT_CONST_SMART_POINTER && paramStack.type(i) == ug::Variant::VT_CONST_POINTER" <<std::endl);
+//			// christian poliwoda ug-log for debug
+//			UG_LOG(	" compareParamTypes(...) if()6 => (paramType == ug::Variant::VT_CONST_SMART_POINTER && paramStack.type(i) == ug::Variant::VT_CONST_POINTER" <<std::endl);
 
 			paramType.type = ug::Variant::VT_CONST_POINTER;
 		}
@@ -881,20 +875,20 @@ bool compareParamTypes(JNIEnv *env, jobjectArray params,
 				if (paramType.type == ug::Variant::VT_INT
 						&& paramStack.type(i) == ug::Variant::VT_SIZE_T) {
 
-					// christian poliwoda ug-log for debug
-					UG_LOG(" compareParamTypes(...) if()8 => (paramType.type == ug::Variant::VT_INT && paramStack.type(i) == ug::Variant::VT_SIZE_T" <<std::endl);
+//					// christian poliwoda ug-log for debug
+//					UG_LOG(" compareParamTypes(...) if()8 => (paramType.type == ug::Variant::VT_INT && paramStack.type(i) == ug::Variant::VT_SIZE_T" <<std::endl);
 
 					paramType.type = ug::Variant::VT_SIZE_T;
 				}
 
 		if (paramType.type != (uint) paramStack.type(i)) {
 
-			// christian poliwoda ug-log for debug
-			UG_LOG(" compareParamTypes(...) if()7 => paramType != (uint) paramStack.type(i)" <<std::endl);
-
-			// christian poliwoda ug-log for debug
-			UG_LOG("compareParamTypes(...) if()7 : paramType = "<< paramType.type <<std::endl);
-			UG_LOG("compareParamTypes(...) if()7 : (uint) paramStack.type(i) = "<< (uint) paramStack.type(i) <<std::endl);
+//			// christian poliwoda ug-log for debug
+//			UG_LOG(" compareParamTypes(...) if()7 => paramType != (uint) paramStack.type(i)" <<std::endl);
+//
+//			// christian poliwoda ug-log for debug
+//			UG_LOG("compareParamTypes(...) if()7 : paramType = "<< paramType.type <<std::endl);
+//			UG_LOG("compareParamTypes(...) if()7 : (uint) paramStack.type(i) = "<< (uint) paramStack.type(i) <<std::endl);
 
 			//#ifdef UG_DEBUG
 			//			UG_LOG("requested by method:\n")
@@ -905,7 +899,7 @@ bool compareParamTypes(JNIEnv *env, jobjectArray params,
 			return false;
 		}
 
-		UG_LOG("after if()s "<<std::endl);
+//		UG_LOG("after if()s "<<std::endl);
 
 		//christian poliwoda debug
 		//jclass paramClass = env->GetObjectClass(param);
@@ -913,8 +907,7 @@ bool compareParamTypes(JNIEnv *env, jobjectArray params,
 		//BOOM //jstring paramClassName = (jstring) env->CallObjectMethod(paramClass, mid_getName);
 		//UG_LOG("paramClassName = "<< stringJ2C(env, paramClassName )<<std::endl);
 
-		UG_LOG(
-				"getParamClassName(env, param) = "<< getParamClassName(env, param) <<std::endl);
+//		UG_LOG("getParamClassName(env, param) = "<< getParamClassName(env, param) <<std::endl);
 
 		// check if param is assignable
 		const ug::bridge::ClassNameNode* classNameNode =
@@ -925,29 +918,27 @@ bool compareParamTypes(JNIEnv *env, jobjectArray params,
 		//UG_LOG(	" compareParamTypes(...) classNameNode->name() = "<< classNameNode->name() <<std::endl);
 
 		if (classNameNode != NULL) {
-			UG_LOG("if (classNameNode != NULL) "<<std::endl);
-			UG_LOG(
-					" compareParamTypes(...) classNameNode->name() = "<< classNameNode->name() <<std::endl);
+//			UG_LOG("if (classNameNode != NULL) "<<std::endl);
+//			UG_LOG(	" compareParamTypes(...) classNameNode->name() = "<< classNameNode->name() <<std::endl);
 
 			if (paramStack.class_name(i) != NULL) {
-				UG_LOG("if (paramStack.class_name(i) != NULL) "<<std::endl);
-				UG_LOG(
-						" paramStack.class_name(i) = "<< paramStack.class_name(i) <<std::endl);
+//				UG_LOG("if (paramStack.class_name(i) != NULL) "<<std::endl);
+//				UG_LOG(	" paramStack.class_name(i) = "<< paramStack.class_name(i) <<std::endl);
 
 				if (!ug::bridge::ClassNameTreeContains(*classNameNode,
 						paramStack.class_name(i))) {
-					UG_LOG(
-							"if (!ug::bridge::ClassNameTreeContains(*classNameNode, paramStack.class_name(i))) "<<std::endl);
-					UG_LOG(" return false "<<std::endl);
+//					UG_LOG(	"if (!ug::bridge::ClassNameTreeContains(*classNameNode, paramStack.class_name(i))) "<<std::endl);
+//					UG_LOG(" return false "<<std::endl);
 
 					return false;
 				}
 			}
-		}		//if (classNameNode != NULL)
-				// else for debug by christian poliwoda
-		else {
-			UG_LOG(" compareParamTypes(...) classNameNode == NULL "<<std::endl);
-		}
+		}	
+//                              //if (classNameNode != NULL)
+//		// else for debug by christian poliwoda
+//		else {
+//			UG_LOG(" compareParamTypes(...) classNameNode == NULL "<<std::endl);
+//		}
 	}
 
 	//#ifdef UG_DEBUG
@@ -998,7 +989,7 @@ void jobjectArray2ParamStack(JNIEnv *env, ug::bridge::Registry* reg,
 		jobjectArray const& array) {
 	using namespace ug::bridge;
 
-	UG_LOG("trunk/ugbase/bindings/vrl/type_converter.cpp ::  jobjectArray2ParamStack( )"<<std::endl);
+//	UG_LOG("trunk/ugbase/bindings/vrl/type_converter.cpp ::  jobjectArray2ParamStack( )"<<std::endl);
 
 	//	iterate through the parameter list and copy the value in the
 	//  associated stack entry.
@@ -1022,8 +1013,8 @@ void jobjectArray2ParamStack(JNIEnv *env, ug::bridge::Registry* reg,
 			env->ThrowNew(Exception, ss.str().c_str());
 		}
 
-		//debug
-		UG_LOG("template_value_Type = "<< template_value_Type <<std::endl);
+//		//debug
+//		UG_LOG("template_value_Type = "<< template_value_Type <<std::endl);
 
 		switch (template_value_Type) {
 		case ug::Variant::VT_BOOL: {
@@ -1108,8 +1099,8 @@ void jobjectArray2ParamStack(JNIEnv *env, ug::bridge::Registry* reg,
 jobject param2JObject(JNIEnv *env, ug::bridge::ParameterStack& params,
 		size_t index) {
 
-	// christian poliwoda ug-log for debug
-	UG_LOG("trunk/ugbase/bindings/vrl/type_converter.cpp : param2JObject(...)"<<std::endl);
+//	// christian poliwoda ug-log for debug
+//	UG_LOG("trunk/ugbase/bindings/vrl/type_converter.cpp : param2JObject(...)"<<std::endl);
 
 	using namespace ug::bridge;
 	//	iterate through the parameter list and copy the value in the
@@ -1118,15 +1109,14 @@ jobject param2JObject(JNIEnv *env, ug::bridge::ParameterStack& params,
 
 	switch (type) {
 	case ug::Variant::VT_BOOL: {
-		//christian poliwoda
-		//QUESTION: params is Vector check ??
-		UG_LOG("param2JObject(...) : = switch case VT_BOOL"<<std::endl);
+//		//christian poliwoda
+//		//QUESTION: params is Vector check ??
+//		UG_LOG("param2JObject(...) : = switch case VT_BOOL"<<std::endl);
 
 		bool isVector = params.is_vector(index);
-		UG_LOG(" params.is_vector( "<< index << ") = "<< isVector <<std::endl);
+//		UG_LOG(" params.is_vector( "<< index << ") = "<< isVector <<std::endl);
 		if (isVector) {
-			UG_LOG(
-					" param is vector -> calling smartPointer2JObject( env, params.to<SmartPtr<void> >(index) )" << std::endl);
+//			UG_LOG(	" param is vector -> calling smartPointer2JObject( env, params.to<SmartPtr<void> >(index) )" << std::endl);
 			return smartPointer2JObject(env, params.to<SmartPtr<void> >(index));
 		}
 
@@ -1134,12 +1124,12 @@ jobject param2JObject(JNIEnv *env, ug::bridge::ParameterStack& params,
 	}
 		break;
 	case ug::Variant::VT_INT: {
-		UG_LOG("param2JObject(...) : = switch case VT_INT"<<std::endl);
+//		UG_LOG("param2JObject(...) : = switch case VT_INT"<<std::endl);
 		return int2JObject(env, params.to<int>(index));
 	}
 		break;
 	case ug::Variant::VT_SIZE_T: {
-		UG_LOG("param2JObject(...) : = switch case VT_SIZE_T"<<std::endl);
+//		UG_LOG("param2JObject(...) : = switch case VT_SIZE_T"<<std::endl);
 		return int2JObject(env, (int) params.to<size_t>(index));
 	}
 		break;
@@ -1357,11 +1347,11 @@ std::string cutLastStringPart(std::string original, std::string toCut) {
 //	y 13 m 05 d 28
 jbooleanArray jObject2BooleanArray(JNIEnv *env, jobject object) {
 
-	bool DEBUG = true;
-	if (DEBUG) {
-		std::cout << "trunk/ugbase/bindings/vrl/type_converter.cpp :"
-				<< " jObject2BooleanArray() " << std::endl;
-	}
+//	bool DEBUG = true;
+//	if (DEBUG) {
+//		std::cout << "trunk/ugbase/bindings/vrl/type_converter.cpp :"
+//				<< " jObject2BooleanArray() " << std::endl;
+//	}
 
 	jbooleanArray newJBoolArray = NULL;
 
@@ -1380,27 +1370,26 @@ jbooleanArray jObject2BooleanArray(JNIEnv *env, jobject object) {
 	 std::string stdStringClassName = stringJ2C(env, jStringClassName);
 	 */
 
-	if (DEBUG) {
-
-		std::cout << " stdStringClassName = " << stdStringClassName
-				<< std::endl;
-	}
+//	if (DEBUG) {
+//
+//		std::cout << " stdStringClassName = " << stdStringClassName
+//				<< std::endl;
+//	}
 
 	std::string stdObjectArrayBeginsWith = "[L";
 
-	if (DEBUG) {
-		std::cout << " stdObjectArrayBeginsWith = " << stdObjectArrayBeginsWith
-				<< std::endl;
-	}
+//	if (DEBUG) {
+//		std::cout << " stdObjectArrayBeginsWith = " << stdObjectArrayBeginsWith
+//				<< std::endl;
+//	}
 
 	if (startsWithSymbolOrderMin(env, stdStringClassName,
 			stdObjectArrayBeginsWith)) {
 
-		if (DEBUG) {
-			std::cout
-					<< " if (startsWithSymbolOrderMin(env, stdStringClassName, stdObjectArrayBeginsWith)) {"
-					<< std::endl;
-		}
+//		if (DEBUG) {
+//			std::cout	<< " if (startsWithSymbolOrderMin(env, stdStringClassName, stdObjectArrayBeginsWith)) {"
+//					<< std::endl;
+//		}
 
 		size_t stdStringClassNameLenght = stdStringClassName.size();
 		size_t objectArrayLenght = stdObjectArrayBeginsWith.size();
@@ -1410,10 +1399,10 @@ jbooleanArray jObject2BooleanArray(JNIEnv *env, jobject object) {
 
 		arrayElementClassName = cutLastStringPart(arrayElementClassName, ";");
 
-		if (DEBUG) {
-			std::cout << "  object is an array of  (arrayElementClassName =) "
-					<< arrayElementClassName << std::endl;
-		}
+//		if (DEBUG) {
+//			std::cout << "  object is an array of  (arrayElementClassName =) "
+//					<< arrayElementClassName << std::endl;
+//		}
 
 		//cast to object array because we now know that it is an array
 
@@ -1421,34 +1410,34 @@ jbooleanArray jObject2BooleanArray(JNIEnv *env, jobject object) {
 
 		jsize arrayLenght = env->GetArrayLength(objectArray);
 
-		if (DEBUG) {
-			std::cout << "  arrayLenght = " << arrayLenght << std::endl;
-		}
+//		if (DEBUG) {
+//			std::cout << "  arrayLenght = " << arrayLenght << std::endl;
+//		}
 
 		// create / set a new array for return
 		newJBoolArray = env->NewBooleanArray(arrayLenght);
-		if (DEBUG) {
-			std::cout << "  newJBoolArray = " << newJBoolArray << std::endl;
-		}
+//		if (DEBUG) {
+//			std::cout << "  newJBoolArray = " << newJBoolArray << std::endl;
+//		}
 
 		// COPY VALUES INTO newJBoolArray
-		if (DEBUG) {
-			std::cout << "SETting / COPYing VALUES INTO newJBoolArray "
-					<< std::endl;
-		}
+//		if (DEBUG) {
+//			std::cout << "SETting / COPYing VALUES INTO newJBoolArray "
+//					<< std::endl;
+//		}
 
 		jboolean *elementsOfNewJBoolArray = env->GetBooleanArrayElements(
 				newJBoolArray, false);
 
-		if (DEBUG) {
-			std::cout << "  empty booleanArray:" << std::endl;
-			for (int i = 0; i < arrayLenght; i++) {
-				std::cout << "(bool) elementsOfNewJBoolArray[ " << i << " ] = "
-						<< (bool) elementsOfNewJBoolArray[i] << std::endl;
-			}
-
-			std::cout << "setting values:" << std::endl;
-		}
+//		if (DEBUG) {
+//			std::cout << "  empty booleanArray:" << std::endl;
+//			for (int i = 0; i < arrayLenght; i++) {
+//				std::cout << "(bool) elementsOfNewJBoolArray[ " << i << " ] = "
+//						<< (bool) elementsOfNewJBoolArray[i] << std::endl;
+//			}
+//
+//			std::cout << "setting values:" << std::endl;
+//		}
 
 		/*
 		 // howto set a const value
@@ -1467,23 +1456,24 @@ jbooleanArray jObject2BooleanArray(JNIEnv *env, jobject object) {
 			elementsOfNewJBoolArray[i] = jObject2Boolean(env, tmpObject);
 		}
 
-		if (DEBUG) {
-			std::cout << "  filled booleanArray:" << std::endl;
-
-			for (int i = 0; i < arrayLenght; i++) {
-				std::cout << "(bool) elements[ " << i << " ] = "
-						<< (bool) elementsOfNewJBoolArray[i] << std::endl;
-			}
-		}
+//		if (DEBUG) {
+//			std::cout << "  filled booleanArray:" << std::endl;
+//
+//			for (int i = 0; i < arrayLenght; i++) {
+//				std::cout << "(bool) elements[ " << i << " ] = "
+//						<< (bool) elementsOfNewJBoolArray[i] << std::endl;
+//			}
+//		}
 
 		env->ReleaseBooleanArrayElements(newJBoolArray, elementsOfNewJBoolArray,
 				0);
 
-	} else {
-		std::cout << "trunk/ugbase/bindings/vrl/type_converter.cpp :"
-				<< " jObject2BooleanArray()" << std::endl;
-		std::cout << "object is NOT an array " << std::endl;
 	}
+//                else {
+//		std::cout << "trunk/ugbase/bindings/vrl/type_converter.cpp :"
+//				<< " jObject2BooleanArray()" << std::endl;
+//		std::cout << "object is NOT an array " << std::endl;
+//	}
 
 	return newJBoolArray;
 }

@@ -351,9 +351,9 @@ void registerPlayground(ug::bridge::Registry& reg) {
 			//		&ChrisPoliTest,
 			//		grp);//before 2nd method with same name but with other params
 
-			reg.add_function("ChrisPoliTest",
-					static_cast<void (*)(void)>(&ChrisPoliTest));
-					//,grp);//the 1st method changed to this after 2nd method added
+			//reg.add_function("ChrisPoliTest",
+			//		static_cast<void (*)(void)>(&ChrisPoliTest));
+			//		//,grp);//the 1st method changed to this after 2nd method added
 
 			/*
 			 reg.add_function("ChrisPoliTest",
@@ -372,10 +372,10 @@ void registerPlayground(ug::bridge::Registry& reg) {
 			*/
 
 
-			reg.add_function("ChrisPoliTestReturn",
-							( std::vector<bool> (*)(std::vector<bool>) )(
-							&ChrisPoliTestReturn),"bool-vec-return");//the 5th method
-							//,grp,"bool-vec-return");//the 5th method
+			//reg.add_function("ChrisPoliTestReturn",
+			//				( std::vector<bool> (*)(std::vector<bool>) )(
+			//				&ChrisPoliTestReturn),"bool-vec-return");//the 5th method
+			//				//,grp,"bool-vec-return");//the 5th method
 
 
 
@@ -384,9 +384,9 @@ void registerPlayground(ug::bridge::Registry& reg) {
 							static_cast<void (*)(void)>
 							(&ChrisPoliTest),grp);//the void method with const paths to input & output file
 			*/
-			reg.add_function("ChrisPoliTestCreateFile",
-							(void (*)(void))
-							(&ChrisPoliTestCreateFile));//,grp);//the void method with const paths to input & output file
+			//reg.add_function("ChrisPoliTestCreateFile",
+			//				(void (*)(void))
+			//				(&ChrisPoliTestCreateFile));//,grp);//the void method with const paths to input & output file
 
 
 
@@ -394,16 +394,16 @@ void registerPlayground(ug::bridge::Registry& reg) {
 							static_cast<std::string (*)(std::string)>
 							(&ChrisPoliTestCreateFile),grp,"path");//an other method
 			*/
-			reg.add_function("ChrisPoliTestCreateFile",
-							(std::string (*)(std::string))
-							(&ChrisPoliTestCreateFile),"path");//an other method
-							//,grp,"path");//an other method
+			//reg.add_function("ChrisPoliTestCreateFile",
+			//				(std::string (*)(std::string))
+			//				(&ChrisPoliTestCreateFile),"path");//an other method
+			//				//,grp,"path");//an other method
 
 
-			reg.add_function("ChrisPoliTestCreateFile",
-										(std::string (*)(std::string, std::string))
-										(&ChrisPoliTestCreateFile),"outpath","inPath#outPath");//an other method
-										//,grp,"path");//an other method
+			//reg.add_function("ChrisPoliTestCreateFile",
+			//							(std::string (*)(std::string, std::string))
+			//							(&ChrisPoliTestCreateFile),"outpath","inPath#outPath");//an other method
+			//							//,grp,"path");//an other method
 
 
 			//
