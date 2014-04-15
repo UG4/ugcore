@@ -28,14 +28,14 @@ ContainsPoint(Volume* vol, const vector3& p, TAAPos aaPos)
 		vol->edge_desc(i, ed);
 		lenSq = max(lenSq, EdgeLengthSq(&ed, aaPos));
 	}
-	const number small = sqrt(lenSq) * SMALL;
+	const number locSmall = sqrt(lenSq) * SMALL;
 
 	for(size_t i = 0; i < vol->num_faces(); ++i){
 		vol->face_desc(i, fd);
 		CalculateNormalNoNormalize(n, &fd, aaPos);
 		VecSubtract(dir, aaPos[fd.vertex(0)], p);
 
-		if(VecDot(dir, n) < -small)
+		if(VecDot(dir, n) < -locSmall)
 			return false;
 	}
 	return true;
