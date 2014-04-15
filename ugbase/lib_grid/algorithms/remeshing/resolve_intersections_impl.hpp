@@ -1516,6 +1516,17 @@ bool ResolveTriangleIntersections(Grid& grid, TriangleIterator trisBegin,
 				}
 			}
 			else{
+
+					UG_LOG("at:")
+					size_t cnt = 0;
+					for(VertexIterator iter = tgrid.begin<Vertex>();
+						iter != tgrid.end<Vertex>(); ++iter, ++cnt)
+					{
+						if(cnt > 2)
+							break;
+						UG_LOG(" " << taaPos[*iter]);
+					}
+					UG_LOG(std::endl);
 			// 	static int fileCounter = 1;
 			// 	string filenamePrefix = "/home/sreiter/Desktop/failed_sweeplines/failed_sweepline_";
 			// 	stringstream ss2d, ss3d;
