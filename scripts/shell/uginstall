@@ -209,7 +209,7 @@ my_install()
 		cd $version
 		
 		while (( "$#" )); do
-			$1
+			eval $1
 			if [ ! $? == 0 ]; then echo "Error $1 in `pwd`"; exit; fi					
 			shift
 		done
@@ -420,8 +420,9 @@ install_ANN()
 	"http://www.cs.umd.edu/~mount/ANN/Files/1.1.2/ann_1.1.2.tar.gz"\
 	ann_1.1.2.tar.gz ann_1.1.2 \
 	"cd ann2fig" \
-	patch < $scriptpath/install_scripts/ann2fig.patch \
+	"patch < $scriptpath/install_scripts/ann2fig.patch" \
 	"cd .." \
+	"patch < $scriptpath/install_scripts/ANN_Make-config.patch" \
 	"make $make_command"
 }
 
