@@ -1038,8 +1038,10 @@ adjust_linear(const std::vector<TUserData*>& vUserData, int si,
 		}
 	}
 
+
+
 	if(m_bDirichletColumns){
-	//	UG_LOG("adjust linear\n")
+//		UG_LOG("adjust linear\n")
 		m_A = &A;
 		// number of rows
 		size_t nr = A.num_rows();
@@ -1071,6 +1073,28 @@ adjust_linear(const std::vector<TUserData*>& vUserData, int si,
 
 			}
 		}
+
+		typename std::map<int, std::map<int, value_type> >::iterator itdirichletMap;
+		for(size_t i = 0; i<nr; i++)
+		{
+			for(typename matrix_type::row_iterator it = m_A->begin_row(i); it!=m_A->end_row(i); ++it){
+
+				itdirichletMap = m_dirichletMap.find(it.index());
+
+				// current column index is a dirichlet index
+				if(itdirichletMap != m_dirichletMap.end()){
+
+					// just non-diagonal entries need do be considered
+					// by this the dirichlet entries of b remain unchanged.
+					if(i!=it.index()){
+					//	UG_LOG("Hallo\n");
+						b[i] -= itdirichletMap->second[i]*b[it.index()];
+					}
+				}
+
+			}
+		}
+
 	}
 
 }
@@ -1135,6 +1159,9 @@ adjust_rhs(const std::vector<TUserData*>& vUserData, int si,
            vector_type& b, const vector_type& u,
            ConstSmartPtr<DoFDistribution> dd, number time)
 {
+
+	UG_LOG("Entered dirichlet adjust right hand side\n");
+
 //	create Multiindex
 	std::vector<DoFIndex> multInd;
 
@@ -1187,6 +1214,8 @@ adjust_rhs(const std::vector<TUserData*>& vUserData, int si,
 		}
 
 	}
+
+
 	// adjust the right hand side
 	if(m_bDirichletColumns){
 		typename std::map<int, std::map<int, value_type> >::iterator itdirichletMap;
@@ -1203,6 +1232,7 @@ adjust_rhs(const std::vector<TUserData*>& vUserData, int si,
 					// just non-diagonal entries need do be considered
 					// by this the dirichlet entries of b remain unchanged.
 					if(i!=it.index()){
+						//UG_LOG("Hallo\n");
 						b[i] -= itdirichletMap->second[i]*b[it.index()];
 					}
 				}
