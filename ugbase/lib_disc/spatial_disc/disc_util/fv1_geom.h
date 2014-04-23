@@ -893,9 +893,6 @@ class DimFV1Geometry : public FVGeometryBase
 	/// construct object and initialize local values and sizes
 		DimFV1Geometry() : m_pElem(NULL), m_roid(ROID_UNKNOWN) {};
 
-	///	update local data
-		void update_local_data();
-
 	/// update data for given element
 		void update(GridObject* elem, const MathVector<worldDim>* vCornerCoords,
 		            const ISubsetHandler* ish = NULL);
@@ -946,6 +943,9 @@ class DimFV1Geometry : public FVGeometryBase
 	/// returns all ips of scv as they appear in scv loop
 		const MathVector<worldDim>* scv_global_ips() const {return &(m_vvGloMid[0][0]);}
 
+	protected:
+	///	update local data
+		void update_local(ReferenceObjectID roid);
 
 	protected:
 	//	global and local ips on SCVF

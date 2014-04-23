@@ -729,99 +729,102 @@ update_boundary_faces(GridObject* elem, const MathVector<worldDim>* vCornerCoord
 
 template <int TDim, int TWorldDim>
 void DimFV1Geometry<TDim, TWorldDim>::
-update_local_data()
+update_local(ReferenceObjectID roid)
 {
+	m_roid = roid;
+	
 //	get reference element
-	try{
-	const DimReferenceElement<dim>& rRefElem
-		= ReferenceElementProvider::get<dim>(m_roid);
-
-// 	set corners of element as local centers of nodes
-	for(size_t i = 0; i < rRefElem.num(0); ++i)
-		m_vvLocMid[0][i] = rRefElem.corner(i);
-
-//	compute local midpoints
-	ComputeMidPoints<dim, DimReferenceElement<dim>, maxMid>
-										(rRefElem, m_vvLocMid[0], m_vvLocMid);
-
-//	set number of scvf / scv of this roid
-	m_numSCV = (m_roid != ROID_PYRAMID) ? rRefElem.num(0) : 8; // number of corners
-	m_numSCVF = (m_roid != ROID_PYRAMID) ? rRefElem.num(1) : 12; // number of edges
-
-// 	set up local informations for SubControlVolumeFaces (scvf)
-// 	each scvf is associated to one edge of the element
-	for(size_t i = 0; i < num_scvf(); ++i)
+	try
 	{
-	//	this scvf separates the given nodes
-		if (m_roid != ROID_PYRAMID)
+		const DimReferenceElement<dim>& rRefElem
+			= ReferenceElementProvider::get<dim>(m_roid);
+	
+	// 	set corners of element as local centers of nodes
+		for(size_t i = 0; i < rRefElem.num(0); ++i)
+			m_vvLocMid[0][i] = rRefElem.corner(i);
+	
+	//	compute local midpoints
+		ComputeMidPoints<dim, DimReferenceElement<dim>, maxMid>
+											(rRefElem, m_vvLocMid[0], m_vvLocMid);
+	
+	//	set number of scvf / scv of this roid
+		m_numSCV = (m_roid != ROID_PYRAMID) ? rRefElem.num(0) : 8; // number of corners
+		m_numSCVF = (m_roid != ROID_PYRAMID) ? rRefElem.num(1) : 12; // number of edges
+	
+	// 	set up local informations for SubControlVolumeFaces (scvf)
+	// 	each scvf is associated to one edge of the element
+		for(size_t i = 0; i < num_scvf(); ++i)
 		{
-			m_vSCVF[i].From = rRefElem.id(1, i, 0, 0);
-			m_vSCVF[i].To = rRefElem.id(1, i, 0, 1);
+		//	this scvf separates the given nodes
+			if (m_roid != ROID_PYRAMID)
+			{
+				m_vSCVF[i].From = rRefElem.id(1, i, 0, 0);
+				m_vSCVF[i].To = rRefElem.id(1, i, 0, 1);
+			}
+			// special case pyramid (scvf not mappable by edges)
+			else
+			{
+				// map according to order defined in ComputeSCVFMidID
+				m_vSCVF[i].From = ((i>6 && i%3) ? (i%3)+1 : i%3);
+				m_vSCVF[i].To = i%6 > 2 ? 4 : ((i+1)%3 + (i>5 && i<8 ? 1 : 0));
+			}
+	
+	
+		//	compute mid ids of the scvf
+			ComputeSCVFMidID(rRefElem, m_vSCVF[i].vMidID, i);
+	
+		// 	copy local corners of scvf
+			CopyCornerByMidID<dim, maxMid>(m_vSCVF[i].vLocPos, m_vSCVF[i].vMidID, m_vvLocMid, SCVF::numCo);
+	
+		// 	integration point
+			AveragePositions(m_vSCVF[i].localIP, m_vSCVF[i].vLocPos, SCVF::numCo);
 		}
-		// special case pyramid (scvf not mappable by edges)
-		else
+	
+	// 	set up local informations for SubControlVolumes (scv)
+	// 	each scv is associated to one corner of the element
+		for(size_t i = 0; i < num_scv(); ++i)
 		{
-			// map according to order defined in ComputeSCVFMidID
-			m_vSCVF[i].From = ((i>6 && i%3) ? (i%3)+1 : i%3);
-			m_vSCVF[i].To = i%6 > 2 ? 4 : ((i+1)%3 + (i>5 && i<8 ? 1 : 0));
+		//	store associated node
+			if (m_roid != ROID_PYRAMID)
+			{
+				m_vSCV[i].nodeId = i;
+			}
+			// special case pyramid (scv not mappable by corners)
+			else
+			{
+				// map according to order defined in ComputeSCVMidID
+				m_vSCV[i].nodeId = i<3 ? i : (i<5 ? (i+1)%5 : i-3);
+			}
+	
+		//	compute mid ids scv
+			ComputeSCVMidID(rRefElem, m_vSCV[i].vMidID, i);
+	
+		// 	copy local corners of scv
+			CopyCornerByMidID<dim, maxMid>(m_vSCV[i].vLocPos, m_vSCV[i].vMidID, m_vvLocMid, m_vSCV[i].num_corners());
 		}
-
-
-	//	compute mid ids of the scvf
-		ComputeSCVFMidID(rRefElem, m_vSCVF[i].vMidID, i);
-
-	// 	copy local corners of scvf
-		CopyCornerByMidID<dim, maxMid>(m_vSCVF[i].vLocPos, m_vSCVF[i].vMidID, m_vvLocMid, SCVF::numCo);
-
-	// 	integration point
-		AveragePositions(m_vSCVF[i].localIP, m_vSCVF[i].vLocPos, SCVF::numCo);
-	}
-
-// 	set up local informations for SubControlVolumes (scv)
-// 	each scv is associated to one corner of the element
-	for(size_t i = 0; i < num_scv(); ++i)
-	{
-	//	store associated node
-		if (m_roid != ROID_PYRAMID)
+	
+		/////////////////////////
+		// Shapes and Derivatives
+		/////////////////////////
+	
+		const LocalShapeFunctionSet<dim>& TrialSpace =
+			LocalFiniteElementProvider::get<dim>(m_roid, LFEID(LFEID::LAGRANGE, dim, 1));
+	
+		m_nsh = TrialSpace.num_sh();
+	
+		for(size_t i = 0; i < num_scvf(); ++i)
 		{
-			m_vSCV[i].nodeId = i;
+			m_vSCVF[i].numSH = TrialSpace.num_sh();
+			TrialSpace.shapes(&(m_vSCVF[i].vShape[0]), m_vSCVF[i].localIP);
+			TrialSpace.grads(&(m_vSCVF[i].vLocalGrad[0]), m_vSCVF[i].localIP);
 		}
-		// special case pyramid (scv not mappable by corners)
-		else
+	
+		for(size_t i = 0; i < num_scv(); ++i)
 		{
-			// map according to order defined in ComputeSCVMidID
-			m_vSCV[i].nodeId = i<3 ? i : (i<5 ? (i+1)%5 : i-3);
+			m_vSCV[i].numSH = TrialSpace.num_sh();
+			TrialSpace.shapes(&(m_vSCV[i].vShape[0]), m_vSCV[i].vLocPos[0]);
+			TrialSpace.grads(&(m_vSCV[i].vLocalGrad[0]), m_vSCV[i].vLocPos[0]);
 		}
-
-	//	compute mid ids scv
-		ComputeSCVMidID(rRefElem, m_vSCV[i].vMidID, i);
-
-	// 	copy local corners of scv
-		CopyCornerByMidID<dim, maxMid>(m_vSCV[i].vLocPos, m_vSCV[i].vMidID, m_vvLocMid, m_vSCV[i].num_corners());
-	}
-
-	/////////////////////////
-	// Shapes and Derivatives
-	/////////////////////////
-
-	const LocalShapeFunctionSet<dim>& TrialSpace =
-		LocalFiniteElementProvider::get<dim>(m_roid, LFEID(LFEID::LAGRANGE, dim, 1));
-
-	m_nsh = TrialSpace.num_sh();
-
-	for(size_t i = 0; i < num_scvf(); ++i)
-	{
-		m_vSCVF[i].numSH = TrialSpace.num_sh();
-		TrialSpace.shapes(&(m_vSCVF[i].vShape[0]), m_vSCVF[i].localIP);
-		TrialSpace.grads(&(m_vSCVF[i].vLocalGrad[0]), m_vSCVF[i].localIP);
-	}
-
-	for(size_t i = 0; i < num_scv(); ++i)
-	{
-		m_vSCV[i].numSH = TrialSpace.num_sh();
-		TrialSpace.shapes(&(m_vSCV[i].vShape[0]), m_vSCV[i].vLocPos[0]);
-		TrialSpace.grads(&(m_vSCV[i].vLocalGrad[0]), m_vSCV[i].vLocPos[0]);
-	}
 
 	}
 	UG_CATCH_THROW("DimFV1Geometry: update failed.");
@@ -841,14 +844,8 @@ update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubs
 	if(m_pElem == pElem) return; else m_pElem = pElem;
 
 //	refresh local data, if different roid given
-	if(m_roid != pElem->reference_object_id())
-	{
-	//	remember new roid
-		m_roid = (ReferenceObjectID) pElem->reference_object_id();
-
-	//	update local data
-		update_local_data();
-	}
+	if(m_roid != pElem->reference_object_id()) // remember new roid and update local data
+		update_local ((ReferenceObjectID) pElem->reference_object_id());
 
 //	get reference element
 	try{
