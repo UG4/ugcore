@@ -42,10 +42,9 @@ namespace ug{
 //	SchurSolver implementation
 template <typename TAlgebra>
 SchurPrecond<TAlgebra>::SchurPrecond() :
-	//m_spOperator(NULL),
-	m_spSchurComplementOp(NULL),
-	m_spDirichletSolver(NULL),
-	m_spSkeletonSolver(NULL)
+	m_spDirichletSolver(SPNULL),
+	m_spSkeletonSolver(SPNULL),
+	m_spSchurComplementOp(SPNULL)
 {
 	// clear aux vector smart ptrs
 	// (will be initialized in first step)
@@ -74,6 +73,10 @@ create_and_init_local_schur_complement(SmartPtr<MatrixOperator<matrix_type, vect
 	SCHUR_PROFILE_BEGIN(SchurPrecondInit_CreateInitLocalSchurComplement);
 
 	m_spSchurComplementOp = make_sp(new SchurComplementOperator<TAlgebra>(A, skeletonMark));
+	if (m_spSchurComplementOp.invalid())
+	{
+		UG_ASSERT(m_spSchurComplementOp.invalid(), "Failed creating operator!")
+	}
 
 //	set dirichlet solver for local Schur complement
 	m_spSchurComplementOp->set_dirichlet_solver(m_spDirichletSolver);

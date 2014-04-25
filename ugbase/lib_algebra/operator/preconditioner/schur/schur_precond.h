@@ -115,8 +115,6 @@ class SchurPrecond: public IPreconditioner<TAlgebra>
 		}
 
 public:
-		void set_schur_complement_operator(SmartPtr<SchurComplementOperator<algebra_type> > scop)
-		{ m_spSchurComplementOp = scop; }
 
 	///	sets the Dirichlet solver (forward to Schur complement)
 		void set_dirichlet_solver(SmartPtr<ILinearOperatorInverse<vector_type> > dirichletSolver)
@@ -125,6 +123,10 @@ public:
 	///	sets the coarse problem solver
 		void set_skeleton_solver(SmartPtr<ISchurComplementInverse<algebra_type> > skeletonSolver)
 		{ m_spSkeletonSolver = skeletonSolver; }
+
+		void set_schur_complement_operator(SmartPtr<SchurComplementOperator<algebra_type> > scop)
+		{ m_spSchurComplementOp = scop; }
+
 
 	//	set debug output
 		void set_debug(SmartPtr<IDebugWriter<algebra_type> > spDebugWriter)
@@ -160,34 +162,6 @@ private:
 		void schur_solve_skeleton(vector_type &u_skeleton, const vector_type &f_skeleton);
 		void schur_solver_backward(vector_type &u_inner, vector_type &f_inner, vector_type &u_skeleton);
 
-	/*///	initializes the solver for operator A
-		virtual bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > A);
-
-	///	solves the reduced system \f$F \lambda = d\f$ with preconditioned cg method
-		virtual bool apply_return_defect(vector_type& x, vector_type& d);
-
-	///	solves the system
-		virtual bool apply(vector_type& x, const vector_type& b)
-		{
-		//	copy defect
-			vector_type d; d.resize(b.size());
-			d = b;
-
-		//	solve on copy of defect
-			return apply_return_defect(x, d);
-		}*/
-
-		// destructor
-//		virtual ~SchurPrecond() {};
-
-
-			/*void set_domain_decomp_info(pcl::IDomainDecompositionInfo& ddInfo)
-			{
-				m_pDDInfo = &ddInfo;
-			}*/
-
-
-
 
 	protected:
 	// 	Reference to operator that is inverted by this Inverse Operator
@@ -196,11 +170,13 @@ private:
 	///	Local Schur complement for each subdomain
 	SmartPtr<SchurComplementOperator<algebra_type> > m_spSchurComplementOp;
 
+
 	/// Solver Dirichlet problems \f$A_{II}\f$ (also used in Schur complement)
 	SmartPtr<ILinearOperatorInverse<vector_type> > m_spDirichletSolver;
 
 	///	Solver for coarse (skeleton) problem
 	SmartPtr< ISchurComplementInverse<TAlgebra> > m_spSkeletonSolver;
+
 
 	// temporary vectors for correction/defect
 	SmartPtr<vector_type> m_aux_rhs[2];

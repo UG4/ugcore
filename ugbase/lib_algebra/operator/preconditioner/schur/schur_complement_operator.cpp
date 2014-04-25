@@ -306,6 +306,7 @@ compute_matrix(matrix_type &schur_matrix, double threshold)
 
 	const int n_skeleton = sub_size(SD_SKELETON);
 
+	if (n_skeleton == 0) return;
 	schur_matrix.resize_and_clear(n_skeleton, n_skeleton);
 
 	// create temporary vectors
