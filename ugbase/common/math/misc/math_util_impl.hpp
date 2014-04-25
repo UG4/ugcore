@@ -338,62 +338,6 @@ bool RayPlaneIntersection(vector_t& vOut, number& tOut,
 	return true;
 }
 
-////////////////////////////////////////////////////////////////////////
-template <class vector_t>
-bool LineLineIntersection2d(vector_t &vOut, number& t0Out, number& t1Out,
-						   const vector_t &p0, const vector_t &p00,
-						   const vector_t &p1, const vector_t &p11)
-{
-	// we search for the intersection of the ray vFrom + tOut*vDir with the
-	// Line p0 + bcOut*(p1-p0). Intersection is true, if c0 in [0,1].
-	// We set up the system
-	//   | dir0[0] , - dir1[0] | ( t0Out ) = ( (p1 - p0)[0] )
-	//   | dir0[1] , - dir1[1] | ( t1Out ) = ( (p1 - p0)[1] )
-
-
-	vector_t v, b;
-	MathMatrix<2,2> m, mInv;
-
-	vector_t dir0, dir1;
-	VecSubtract(dir0, p00, p0);
-	VecSubtract(dir1, p11, p1);
-
-	// set up matrix
-	m[0][0] = dir0[0]; 	m[0][1] = -1 * dir1[0];
-	m[1][0] = dir0[1]; 	m[1][1] = -1 * dir1[1];
-
-	// invert matrix
-	number det = Determinant(m);
-
-	// if det == 0.0 lines are parallel
-	if(det == 0.0) return false;
-
-	// compute inverse
-	Inverse(mInv, m);
-
-	// compute rhs of system
-	VecSubtract(b, p1, p0);
-
-	// solve system
-	MatVecMult(v, mInv, b);
-
-	// parameters of the intersection
-	t0Out = v[0];
-	t1Out = v[1];
-
-	// compute intersection point
-	vOut = p0;
-	VecScaleAppend(vOut, t0Out, dir0);
-
-	if (  ( (t0Out <= 1) && (t0Out >= 0) ) && ( (t1Out <= 1)  && (t1Out >= 0) ) ) {
-		return true;
-	} else {
-		return false;
-	}
-}
-
-
-
 
 ////////////////////////////////////////////////////////////////////////
 template <class vector_t>
@@ -459,7 +403,7 @@ template <class vector_t>
 bool LineLineIntersection2d(vector_t &vOut, number& t0Out, number& t1Out,
 						   const vector_t &from0, const vector_t &to0,
 						   const vector_t &from1, const vector_t &to1,
-						   const number threshold = 0)
+						   const number threshold)
 {
 	vector_t dir0, dir1;
 	VecSubtract(dir0, to0, from0);
