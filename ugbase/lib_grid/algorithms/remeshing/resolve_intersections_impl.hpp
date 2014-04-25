@@ -846,38 +846,6 @@ int FindCloseVertexInArray(std::vector<Vertex*>& array,
 }
 
 ////////////////////////////////////////////////////////////////////////
-//	LineLineIntersection2d
-///	calculates the intersection of a two lines in 2d
-/**
- * The lines are specified through their endpoints:
- * (from0, to0) describes the first line, (from1, to1) the second line.
- *
- * If the method succeeds (the lines intersects)
- * the methods returns true and writes the position of
- * the intersection to vOut.
- * t0Out and t1Out will contain the local coordinate of the intersection
- * regarding the lines parameter form.
- */
-template <class vector_t>
-bool LineLineIntersection2d(vector_t &vOut, number& t0Out, number& t1Out,
-						   const vector_t &from0, const vector_t &to0,
-						   const vector_t &from1, const vector_t &to1,
-						   const number threshold = 0)
-{
-	vector_t dir0, dir1;
-	VecSubtract(dir0, to0, from0);
-	VecSubtract(dir1, to1, from1);
-	if(RayRayIntersection2d(vOut, t0Out, t1Out, from0, dir0, from1, dir1)){
-		if((t0Out >= -threshold) && (t0Out <= (1. + threshold))
-			&& (t1Out >= -threshold) && (t1Out <= (1. + threshold)))
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-////////////////////////////////////////////////////////////////////////
 ///	Intersects Coplanar Triangles
 /**	fills a vector with the intersections on tri 1. Each pair of points
  * corresponds to an intersection-edge.

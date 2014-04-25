@@ -400,6 +400,25 @@ bool RayLineIntersection2d(vector_t &vOut, number& bcOut, number& tOut,
 }
 
 template <class vector_t>
+bool LineLineIntersection2d(vector_t &vOut, number& t0Out, number& t1Out,
+						   const vector_t &from0, const vector_t &to0,
+						   const vector_t &from1, const vector_t &to1,
+						   const number threshold = 0)
+{
+	vector_t dir0, dir1;
+	VecSubtract(dir0, to0, from0);
+	VecSubtract(dir1, to1, from1);
+	if(RayRayIntersection2d(vOut, t0Out, t1Out, from0, dir0, from1, dir1)){
+		if((t0Out >= -threshold) && (t0Out <= (1. + threshold))
+			&& (t1Out >= -threshold) && (t1Out <= (1. + threshold)))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+template <class vector_t>
 bool RayRayProjection(number& t1Out, number& t2Out,
 						const vector_t& from1, const vector_t& dir1,
 						const vector_t& from2, const vector_t& dir2)

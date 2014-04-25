@@ -260,14 +260,14 @@ bool RayPlaneIntersection(vector_t& vOut, number& tOut,
 						  const vector_t& p, const vector_t& n);
 
 ////////////////////////////////////////////////////////////////////////
-//	LineLineIntersection2d
-///	calculates the intersection of two Lines in 2d
-/** If the two lines intersect (are not parallel), the method returns true.
+//	RayRayIntersection2d
+///	calculates the intersection of two Rays in 2d
+/** If the two rays intersect (are not parallel), the method returns true.
  * It writes its results to the parameters vOut (intersection point),
  * t0Out (vOut = p0 + t0Out * dir0) and t1Out (vOut = p1 + t1Out * dir1).
  *
- * You have to specify a point of each line (p0 and p1) and the directions of
- * each line (dir0 and dir1).
+ * You have to specify a point of each ray (p0 and p1) and the directions of
+ * each ray (dir0 and dir1).
  */
 template <class vector_t>
 bool RayRayIntersection2d(vector_t &vOut, number& t0Out, number& t1Out,
@@ -294,6 +294,27 @@ template <class vector_t>
 bool RayLineIntersection2d(vector_t &vOut, number& bcOut, number& tOut,
 						   const vector_t &p0, const vector_t &p1,
 						   const vector_t &vFrom, const vector_t &vDir);
+
+
+////////////////////////////////////////////////////////////////////////
+//	LineLineIntersection2d
+///	calculates the intersection of a two lines in 2d
+/**
+ * The lines are specified through their endpoints:
+ * (from0, to0) describes the first line, (from1, to1) the second line.
+ *
+ * If the method succeeds (the lines intersects)
+ * the methods returns true and writes the position of
+ * the intersection to vOut.
+ * t0Out and t1Out will contain the local coordinate of the intersection
+ * regarding the lines parameter form.
+ */
+template <class vector_t>
+bool LineLineIntersection2d(vector_t &vOut, number& t0Out, number& t1Out,
+						   const vector_t &from0, const vector_t &to0,
+						   const vector_t &from1, const vector_t &to1,
+						   const number threshold = 0);
+
 
 ////////////////////////////////////////////////////////////////////////
 ///	intersects two 3d rays
