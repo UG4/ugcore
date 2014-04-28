@@ -335,7 +335,7 @@ void PeriodicBoundaryManager::validity_check()
 				}
 			}
 			else{
-				if((aaPS[e] == P_SLAVE_MASTER_UNKNOWN)){
+				if(aaPS[e] == P_SLAVE_MASTER_UNKNOWN){
 					UG_THROW("P_SLAVE_MASTER_UNKNOWN is not a valid state!\n"
 					 		 << "  elem-info: " << ElementDebugInfo(g, e));
 				}
