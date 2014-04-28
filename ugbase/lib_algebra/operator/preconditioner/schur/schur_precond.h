@@ -167,16 +167,14 @@ private:
 	// 	Reference to operator that is inverted by this Inverse Operator
 	//	SmartPtr<MatrixOperator<matrix_type,vector_type> > m_spOperator;
 
-	///	Local Schur complement for each subdomain
-	SmartPtr<SchurComplementOperator<algebra_type> > m_spSchurComplementOp;
-
-
 	/// Solver Dirichlet problems \f$A_{II}\f$ (also used in Schur complement)
 	SmartPtr<ILinearOperatorInverse<vector_type> > m_spDirichletSolver;
 
 	///	Solver for coarse (skeleton) problem
 	SmartPtr< ISchurComplementInverse<TAlgebra> > m_spSkeletonSolver;
 
+	///	Local Schur complement for each subdomain
+	SmartPtr<SchurComplementOperator<algebra_type> > m_spSchurComplementOp;
 
 	// temporary vectors for correction/defect
 	SmartPtr<vector_type> m_aux_rhs[2];
