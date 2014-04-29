@@ -27,12 +27,12 @@ class TransferValueAccessor
 		virtual ~TransferValueAccessor() {}
 
 		const number& operator[](size_t i) const {
-			UG_ASSERT(i < m_Val.size(), "Wront index "<<i<<" (size: "<<m_Val.size()<<")");
+			UG_ASSERT(i < m_Val.size(), "Wrong index "<<i<<" (size: "<<m_Val.size()<<")");
 			return *m_Val[i];
 		}
 
 		number& operator[](size_t i) {
-			UG_ASSERT(i < m_Val.size(), "Wront index "<<i<<" (size: "<<m_Val.size()<<")");
+			UG_ASSERT(i < m_Val.size(), "Wrong index "<<i<<" (size: "<<m_Val.size()<<")");
 			return *m_Val[i];
 		}
 

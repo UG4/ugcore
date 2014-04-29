@@ -106,8 +106,11 @@ class P1LagrangeElemTransfer
 			vValueChild.access_inner(child);
 			vValueParent.access_closure(parent);
 
+			if (vValueChild.size() == 0)
+				return;	// current fct not defined on child
+
 			const int numVrt = vValueParent.size();
-			UG_ASSERT(numVrt > 0, "Element without Vertex?!");
+			UG_ASSERT(numVrt > 0, "No function value found on parent vertices.");
 
 			vValueChild[0] = vValueParent[0];
 			for(int i = 1; i < numVrt; ++i)
@@ -141,6 +144,11 @@ class P1LagrangeElemTransfer
 
 			vValueChild.access_inner(child);
 			vValueParent.access_closure(parent);
+
+			if (vValueParent.size() == 0)
+				return; // current fct not defined on parent
+
+			UG_ASSERT(vValueChild.size() > 0, "No function value found on child vertex.");
 
 			vValueParent[0] = vValueChild[0];
 		}
