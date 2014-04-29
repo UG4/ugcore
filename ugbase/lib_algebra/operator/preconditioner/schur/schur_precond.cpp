@@ -201,17 +201,18 @@ template <typename TAlgebra>
 void SchurPrecond<TAlgebra>::
 create_aux_vectors(const vector_type& d)
 {
-	const SlicingData sd =m_spSchurComplementOp->slicing();
-	const size_t n_inner=m_spSchurComplementOp->sub_size(SD_INNER);
-	const size_t n_skeleton=m_spSchurComplementOp->sub_size(SD_SKELETON);
-	(void)n_skeleton; // warning fix
+	const SlicingData sd    = m_spSchurComplementOp->slicing();
+	const size_t n_inner    = m_spSchurComplementOp->sub_size(SD_INNER);
+	const size_t n_skeleton = m_spSchurComplementOp->sub_size(SD_SKELETON);
+	(void) n_skeleton; // warning fix
+
+	// create vectors
 	if (m_aux_rhs[SD_SKELETON].invalid())
 	{
 		UG_DLOG(SchurDebug, 1, "% Creating skeleton defect vector of size " << n_skeleton << std::endl);
 		//m_aux_rhs[SD_SKELETON] = new vector_type(n_skeleton);
 		m_aux_rhs[SD_SKELETON] = sd.slice_clone_without_values(d, SD_SKELETON);
 		m_aux_rhs[SD_SKELETON]->set_storage_type(PST_ADDITIVE);
-
 		//std::cerr<< "Skeleton f:\n" <<*m_aux_rhs[SD_SKELETON]->layouts();
 	}
 
@@ -221,7 +222,6 @@ create_aux_vectors(const vector_type& d)
 		//m_aux_sol[SD_SKELETON] = new vector_type(n_skeleton);
 		m_aux_sol[SD_SKELETON] = sd.slice_clone_without_values(d, SD_SKELETON);
 		m_aux_sol[SD_SKELETON]->set_storage_type(PST_CONSISTENT);
-
 		//std::cerr<< "Skeleton u:\n" << *m_aux_sol[SD_SKELETON]->layouts();
 	}
 

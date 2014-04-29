@@ -73,11 +73,12 @@ public:
 			set.push_back(i);
 		}
 
-		UG_DLOG(SchurDebug, 5,"SlicingData::auto_fill_sets:" << ntypes << " "<< slice(SD_INNER).size() << " "<< slice(SD_SKELETON).size() << std::endl);
+		//UG_DLOG(SchurDebug, 5,"SlicingData::auto_fill_sets:" << ntypes << " "<< slice(SD_INNER).size() << " "<< slice(SD_SKELETON).size() << std::endl);
+		UG_LOG("SlicingData::auto_fill_sets:" << ntypes << " "<< slice(SD_INNER).size() << " "<< slice(SD_SKELETON).size() << std::endl);
 
 		slice_desc_set::const_iterator it;
 
-		UG_DEBUG_BEGIN(SchurDebug, 5)
+		//UG_DEBUG_BEGIN(SchurDebug, 5)
 
 		{
 			UG_LOG("Skeleton:");
@@ -90,7 +91,7 @@ public:
 	    	const slice_desc_set &myset=slice(SD_INNER);
 	    	for (it=myset.begin(); it!=myset.end(); ++it) UG_LOG(*it << " ");
 		}
-		UG_DEBUG_END(SchurDebug, 5)
+		//UG_DEBUG_END(SchurDebug, 5)
 
 	}
 
@@ -103,7 +104,7 @@ public:
 		replace_indices_in_layout(type, slice_layouts->slave());
 
 
-		//UG_LOG(*slice_layouts);
+		std::cerr << "get_slice_layouts: " << *slice_layouts << std::endl;
 		return slice_layouts;
 	}
 
@@ -143,29 +144,29 @@ public:
 		const slice_desc_set &slice_desc = slice(desc);
 		slice_desc_set::const_iterator elem = slice_desc.begin();
 		for (size_t i=0; i<slice_desc.size(); ++i, ++elem)
-				full_dst[*elem] = small_src[i];
+			{ full_dst[*elem] = small_src[i]; }
 	}
 
 	 /// copy: slice of vector -> small vector
-		template<class VT>
-		void subtract_vector_slice(const VT &full_src, slice_desc_type desc, VT &small_dst) const
-		{
-				const slice_desc_set &slice_desc = slice(desc);
-				small_dst.resize(slice_desc.size());
-				slice_desc_set::const_iterator elem = slice_desc.begin();
-				for (size_t i=0; i<slice_desc.size(); ++i, ++elem)
-					small_dst[i] -= full_src[*elem];
-		}
+	template<class VT>
+	void subtract_vector_slice(const VT &full_src, slice_desc_type desc, VT &small_dst) const
+	{
+		const slice_desc_set &slice_desc = slice(desc);
+		small_dst.resize(slice_desc.size());
+		slice_desc_set::const_iterator elem = slice_desc.begin();
+		for (size_t i=0; i<slice_desc.size(); ++i, ++elem)
+			{ small_dst[i] -= full_src[*elem]; }
+	}
 
-		/// copy: small vector -> slice of a vector
-			template<class VT>
-			void subtract_vector_slice(const VT &small_src, VT &full_dst, slice_desc_type desc) const
-			{
-				const slice_desc_set &slice_desc = slice(desc);
-				slice_desc_set::const_iterator elem = slice_desc.begin();
-				for (size_t i=0; i<slice_desc.size(); ++i, ++elem)
-						full_dst[*elem] -= small_src[i];
-			}
+	/// copy: small vector -> slice of a vector
+	template<class VT>
+	void subtract_vector_slice(const VT &small_src, VT &full_dst, slice_desc_type desc) const
+	{
+		const slice_desc_set &slice_desc = slice(desc);
+		slice_desc_set::const_iterator elem = slice_desc.begin();
+		for (size_t i=0; i<slice_desc.size(); ++i, ++elem)
+			{ full_dst[*elem] -= small_src[i]; }
+	}
 
 
 	// Extracts a slice from a (full) matrix
@@ -179,9 +180,11 @@ public:
 
 		int ii=0;
 		for (slice_desc_set::const_iterator elem = row_slice.begin();
-			elem!=row_slice.end(); ++elem, ++ii)
+			elem!=row_slice.end(); ++elem , ++ii)
 		{
-			const int i = *elem; // global index
+			const int i = *elem; // global row index
+			// if (!find_index(row_type, i, ii)) continue;
+
 			for(typename MT::const_row_iterator it = A.begin_row(i);
 				it != A.end_row(i); ++it)
 

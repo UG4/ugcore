@@ -70,74 +70,77 @@ template <typename TAlgebra>
 void SchurComplementOperator<TAlgebra>::
 init()
 {
-	try{
-	SCHUR_PROFILE_BEGIN(SCHUR_Op_init);
-	PROGRESS_START(prog, 0, "SchurComplementOperator::init");
-
-	UG_DLOG(SchurDebug, 5, "\n% 'SchurComplementOperator::init()':");
-//	check that operator has been set
-	if(m_spOperator.invalid())
-		UG_THROW("SchurComplementOperator::init: No Operator A set.");
-
-
-//	save matrix from which we build the Schur complement
-	typename TAlgebra::matrix_type &mat = m_spOperator->get_matrix();
-
-	UG_DLOG(SchurDebug, 1, "SchurComplement with " << mat.num_rows() << " unknowns on this core, " <<
-			m_slicing.get_num_elems(SD_INNER) << " inner, " << m_slicing.get_num_elems(SD_SKELETON) << " skeleton.\n" );
-
-	//	get matrix from dirichlet operator
-
-	UG_DLOG(SchurDebug, 2, "SchurComplementOperator::m_spOperator.layouts():\n" << *mat.layouts() << "\n")
-	// init sub matrices
-	m_slicing.get_matrix(mat, SD_INNER, SD_INNER, sub_matrix(SD_INNER, SD_INNER));
-	m_slicing.get_matrix(mat, SD_INNER, SD_SKELETON, sub_matrix(SD_INNER, SD_SKELETON));
-	m_slicing.get_matrix(mat, SD_SKELETON, SD_INNER, sub_matrix(SD_SKELETON, SD_INNER));
-	m_slicing.get_matrix(mat, SD_SKELETON, SD_SKELETON, sub_matrix(SD_SKELETON, SD_SKELETON));
-
-	sub_matrix(SD_SKELETON, SD_SKELETON).set_layouts(m_slicing.get_slice_layouts(mat.layouts(), SD_SKELETON));
-	sub_matrix(SD_SKELETON, SD_SKELETON).set_storage_type(PST_ADDITIVE);
-
-	IF_DEBUG(SchurDebug, 5)
+	try
 	{
+		SCHUR_PROFILE_BEGIN(SCHUR_Op_init);
+		PROGRESS_START(prog, 0, "SchurComplementOperator::init");
+
+		UG_DLOG(SchurDebug, 5, "\n% 'SchurComplementOperator::init()':");
+		//	check that operator has been set
+		if(m_spOperator.invalid())
+			UG_THROW("SchurComplementOperator::init: No Operator A set.");
+
+
+		//	save matrix from which we build the Schur complement
+		typename TAlgebra::matrix_type &mat = m_spOperator->get_matrix();
+
+		UG_DLOG(SchurDebug, 1, "SchurComplement with " << mat.num_rows() << " unknowns on this core, " <<
+				m_slicing.get_num_elems(SD_INNER) << " inner, " << m_slicing.get_num_elems(SD_SKELETON) << " skeleton.\n" );
+
+		//	get matrix from dirichlet operator
+		UG_DLOG(SchurDebug, 2, "SchurComplementOperator::m_spOperator.layouts():\n" << *mat.layouts() << "\n")
+
+		// init sub matrices
+		m_slicing.get_matrix(mat, SD_INNER, SD_INNER, sub_matrix(SD_INNER, SD_INNER));
+		m_slicing.get_matrix(mat, SD_INNER, SD_SKELETON, sub_matrix(SD_INNER, SD_SKELETON));
+		m_slicing.get_matrix(mat, SD_SKELETON, SD_INNER, sub_matrix(SD_SKELETON, SD_INNER));
+		m_slicing.get_matrix(mat, SD_SKELETON, SD_SKELETON, sub_matrix(SD_SKELETON, SD_SKELETON));
+
+		sub_matrix(SD_SKELETON, SD_SKELETON).set_layouts(m_slicing.get_slice_layouts(mat.layouts(), SD_SKELETON));
+		sub_matrix(SD_SKELETON, SD_SKELETON).set_storage_type(PST_ADDITIVE);
+
+		IF_DEBUG(SchurDebug, 5)
+		{
 		// debug screen
 		/*UG_LOG("A             ="); UG_LOG_Matrix(mat); UG_LOG(std::endl);
 		UG_LOG("A_I,I         ="); UG_LOG_Matrix(sub_matrix(SD_INNER, SD_INNER)); UG_LOG(std::endl);
 		UG_LOG("A_I,Gamma     ="); UG_LOG_Matrix(sub_matrix(SD_INNER, SD_SKELETON)); UG_LOG(std::endl);
 		UG_LOG("A_Gamma,I     ="); UG_LOG_Matrix(sub_matrix(SD_SKELETON, SD_INNER)); UG_LOG(std::endl);
 		UG_LOG("A_Gamma,Gamma ="); UG_LOG_Matrix(sub_matrix(SD_SKELETON, SD_SKELETON)); UG_LOG(std::endl);*/
-	}
+		}
 
-	//	debug output of matrices
-	if(m_spDebugWriterInner.valid())
-		m_spDebugWriterInner->write_matrix(sub_matrix(SD_INNER, SD_INNER), "Schur_II.mat");
-	if(m_spDebugWriterSkeleton.valid())
-		m_spDebugWriterSkeleton->write_matrix(sub_matrix(SD_SKELETON, SD_SKELETON), "Schur_BB.mat");
+		//	debug output of matrices
+		if(m_spDebugWriterInner.valid())
+			m_spDebugWriterInner->write_matrix(sub_matrix(SD_INNER, SD_INNER), "Schur_II.mat");
+		if(m_spDebugWriterSkeleton.valid())
+			m_spDebugWriterSkeleton->write_matrix(sub_matrix(SD_SKELETON, SD_SKELETON), "Schur_BB.mat");
 //		write_debug(sub_matrix(SD_INNER, SD_SKELETON), "Schur_IB.mat");
 //		write_debug(sub_matrix(SD_SKELETON, SD_INNER), "Schur_BI.mat");
 
-	sub_matrix(SD_INNER, SD_INNER).set_storage_type(PST_ADDITIVE);
-	sub_matrix(SD_INNER, SD_SKELETON).set_storage_type(PST_ADDITIVE);
-	sub_matrix(SD_SKELETON, SD_INNER).set_storage_type(PST_ADDITIVE);
-	sub_matrix(SD_SKELETON, SD_SKELETON).set_storage_type(PST_ADDITIVE);
+		sub_matrix(SD_INNER, SD_INNER).set_storage_type(PST_ADDITIVE);
+		sub_matrix(SD_INNER, SD_SKELETON).set_storage_type(PST_ADDITIVE);
+		sub_matrix(SD_SKELETON, SD_INNER).set_storage_type(PST_ADDITIVE);
+		sub_matrix(SD_SKELETON, SD_SKELETON).set_storage_type(PST_ADDITIVE);
 
-	try
-	{
-		SCHUR_PROFILE_BEGIN(SchurComplementOperator_init_DirSolver);
-	//	init solver for Dirichlet problem
-		if(m_spDirichletSolver.valid())
+		// create solver
+		try
 		{
-			set_inner_debug(m_spDirichletSolver);
-			if(!m_spDirichletSolver->init(sub_operator(SD_INNER, SD_INNER)))
-				UG_THROW("SchurComplementOperator::init: Cannot init "
-						"Dirichlet solver for operator A.");
+			SCHUR_PROFILE_BEGIN(SchurComplementOperator_init_DirSolver);
+			//	init solver for Dirichlet problem
+			if(m_spDirichletSolver.valid())
+			{
+				set_inner_debug(m_spDirichletSolver);
+				if(!m_spDirichletSolver->init(sub_operator(SD_INNER, SD_INNER)))
+					UG_THROW("SchurComplementOperator::init: Cannot init "
+							"Dirichlet solver for operator A.");
+			}
 		}
-	}UG_CATCH_THROW("SchurComplementOperator::" << __FUNCTION__ << " Init Dir Solver failed")
+		UG_CATCH_THROW("SchurComplementOperator::" << __FUNCTION__ << " Init Dir Solver failed")
 
-
-//	reset apply counter
-	m_applyCnt = 0;
-	}UG_CATCH_THROW("SchurComplementOperator::" << __FUNCTION__ << " failed")
+		//	reset apply counter
+		m_applyCnt = 0;
+	}
+	UG_CATCH_THROW("SchurComplementOperator::" << __FUNCTION__ << " failed")
 
 } /* end 'SchurComplementOperator::init()' */
 
@@ -180,7 +183,6 @@ apply(vector_type& fskeleton, const vector_type& uskeleton)
 	const int n_inner = sub_size(SD_INNER);
 	vector_type uinner; uinner.create(n_inner);
 	vector_type finner; finner.create(n_inner);
-
 
 
 	// A. compute first contribution
