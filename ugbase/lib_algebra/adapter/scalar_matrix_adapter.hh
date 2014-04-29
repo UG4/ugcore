@@ -102,6 +102,10 @@ public:
 	//! print (block) row of (underlying) matrix
 	void printrow(size_t row) const {m_src.printrow(row/blockSize);}
 
+	//! operator overloading for streams
+	friend std::ostream& operator<<(std::ostream& os, ScalarMatrixAdapter<AT,ST> const &a)
+	{ a.outputToStream(os);}
+
 	/**
 	 *  row_iterator
 	 *  iterator over a row
@@ -154,6 +158,9 @@ public:
 	{ return const_row_iterator(m_const.end_row(r)); }
 
 protected:
+	std::ostream& outputToStream(std::ostream& os) const
+	{ os << m_src;}
+
 	encapsulated_matrix_type &m_src;
 	const encapsulated_matrix_type &m_const;
 };
