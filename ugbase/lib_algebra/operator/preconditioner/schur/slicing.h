@@ -26,19 +26,14 @@ namespace ug{
 
 extern DebugID SchurDebug;
 
-class SlicingOp
-{
-
-};
-
 enum slice_desc_type {SD_INNER=0, SD_SKELETON, SLICE_DESC_SIZE};
 
 class SlicingData{
 
 public:
 	typedef std::vector<slice_desc_type> slice_desc_type_vector;
-	//typedef std::set<int> slice_desc_set;
 	typedef std::vector<int> slice_desc_set;
+	//typedef std::set<int> slice_desc_set;
 
 protected:
 	slice_desc_type_vector m_slice_types;
@@ -68,17 +63,16 @@ public:
 			slice_desc_type tt = get_type(i);
 			slice_desc_set &set =slice(tt);
 
-			// if sd is ordered, then this is constant
-			//set.insert(set.end(), i);
 			set.push_back(i);
 		}
 
 		UG_DLOG(SchurDebug, 5,"SlicingData::auto_fill_sets:" << ntypes << " "<< slice(SD_INNER).size() << " "<< slice(SD_SKELETON).size() << std::endl);
 
-		slice_desc_set::const_iterator it;
+
+		/*
 
 		UG_DEBUG_BEGIN(SchurDebug, 5)
-
+		slice_desc_set::const_iterator it;
 		{
 			UG_LOG("Skeleton:");
 			const slice_desc_set &myset=slice(SD_SKELETON);
@@ -91,6 +85,8 @@ public:
 	    	for (it=myset.begin(); it!=myset.end(); ++it) UG_LOG(*it << " ");
 		}
 		UG_DEBUG_END(SchurDebug, 5)
+
+		*/
 
 	}
 
@@ -131,7 +127,7 @@ public:
 		small_dst.resize(slice_desc.size());
 		slice_desc_set::const_iterator elem = slice_desc.begin();
 		for (size_t i=0; i<slice_desc.size(); ++i, ++elem)
-			small_dst[i] = full_src[*elem];
+			{ small_dst[i] = full_src[*elem]; }
 	}
 
 
