@@ -73,12 +73,11 @@ public:
 			set.push_back(i);
 		}
 
-		//UG_DLOG(SchurDebug, 5,"SlicingData::auto_fill_sets:" << ntypes << " "<< slice(SD_INNER).size() << " "<< slice(SD_SKELETON).size() << std::endl);
-		UG_LOG("SlicingData::auto_fill_sets:" << ntypes << " "<< slice(SD_INNER).size() << " "<< slice(SD_SKELETON).size() << std::endl);
+		UG_DLOG(SchurDebug, 5,"SlicingData::auto_fill_sets:" << ntypes << " "<< slice(SD_INNER).size() << " "<< slice(SD_SKELETON).size() << std::endl);
 
 		slice_desc_set::const_iterator it;
 
-		//UG_DEBUG_BEGIN(SchurDebug, 5)
+		UG_DEBUG_BEGIN(SchurDebug, 5)
 
 		{
 			UG_LOG("Skeleton:");
@@ -91,7 +90,7 @@ public:
 	    	const slice_desc_set &myset=slice(SD_INNER);
 	    	for (it=myset.begin(); it!=myset.end(); ++it) UG_LOG(*it << " ");
 		}
-		//UG_DEBUG_END(SchurDebug, 5)
+		UG_DEBUG_END(SchurDebug, 5)
 
 	}
 
@@ -104,7 +103,7 @@ public:
 		replace_indices_in_layout(type, slice_layouts->slave());
 
 
-		std::cerr << "get_slice_layouts: " << *slice_layouts << std::endl;
+		//UG_LOG(*slice_layouts);
 		return slice_layouts;
 	}
 
@@ -180,11 +179,9 @@ public:
 
 		int ii=0;
 		for (slice_desc_set::const_iterator elem = row_slice.begin();
-			elem!=row_slice.end(); ++elem , ++ii)
+			elem!=row_slice.end(); ++elem, ++ii)
 		{
-			const int i = *elem; // global row index
-			// if (!find_index(row_type, i, ii)) continue;
-
+			const int i = *elem; // global index
 			for(typename MT::const_row_iterator it = A.begin_row(i);
 				it != A.end_row(i); ++it)
 
