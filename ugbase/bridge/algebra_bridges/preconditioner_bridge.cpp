@@ -165,10 +165,16 @@ static void Algebra(Registry& reg, string grp)
 		RegisterBlockGaussSeidel<TAlgebra, BlockGaussSeidel<TAlgebra, false, true> >(reg, grp, "BackwardBlockGaussSeidel");
 		RegisterBlockGaussSeidel<TAlgebra, BlockGaussSeidel<TAlgebra, true, true> >(reg, grp, "SymmetricBlockGaussSeidel");
 
+		RegisterBlockGaussSeidel<TAlgebra, SparseBlockGaussSeidel<TAlgebra, true, false> >(reg, grp, "SparseBlockGaussSeidel");
+		RegisterBlockGaussSeidel<TAlgebra, SparseBlockGaussSeidel2<TAlgebra, true, false> >(reg, grp, "SparseBlockGaussSeidel2");
+		RegisterBlockGaussSeidel<TAlgebra, SparseBlockGaussSeidel<TAlgebra, false, true> >(reg, grp, "SparseBackwardBlockGaussSeidel");
+		RegisterBlockGaussSeidel<TAlgebra, SparseBlockGaussSeidel<TAlgebra, true, true> >(reg, grp, "SparseSymmetricBlockGaussSeidel");
+
 		RegisterBlockGaussSeidelIterative<TAlgebra, true, false>(reg, grp, "BlockGaussSeidelIterative");
 		RegisterBlockGaussSeidelIterative<TAlgebra, false, true>(reg, grp, "BackwardBlockGaussSeidelIterative");
-		RegisterBlockGaussSeidelIterative<TAlgebra, true, true>(reg, grp, "SymmetricBlockGaussSeidelIterative");
-	}
+		RegisterBlockGaussSeidelIterative<TAlgebra, true, true>(reg, grp, "SymmetricBlockGaussSeidelIterative");	}
+
+
 
 //	ILU
 	{

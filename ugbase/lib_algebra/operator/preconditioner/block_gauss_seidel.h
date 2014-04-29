@@ -24,8 +24,82 @@
 #include "common/progress.h"
 #include "lib_algebra/small_algebra/additional_math.h"
 
+#include "lib_algebra/common/graph/graph.h"
+#include "lib_algebra/algebra_common/sparse_vector.h"
+
+
+
 namespace ug{
 
+//////////////////// FROM AMG //////////////////////////////
+
+template<typename TMatrixType, typename TRowType>
+void CopyOffDiagEntries(const TMatrixType &A, size_t i, TRowType &row, bool enforceNew=false)
+{
+	// copy matrix entries selected by rule
+	for(typename TMatrixType::const_row_iterator connij = A.begin_row(i); connij != A.end_row(i); ++connij)
+	{
+		const size_t j=connij.index();
+		row(connij.index()) = (i==j) ? 0.0 : connij.value();
+	}
+}
+
+//! Adds 'strong negative connections' to graph.
+/*! Criterion: $$-a_{ij} \ge \epsilon \max_{a_{ik}<0} |a_{ik}|$$ */
+class StrongNegativeConnectionsByBlockNorm
+{
+protected:
+	double m_theta;
+public:
+	StrongNegativeConnectionsByBlockNorm(double theta) : m_theta(theta){}
+
+	template<typename TRowType>
+	void find(const TRowType &Ci, size_t i, cgraph &graph)
+	{
+		double dmax = 0.0;
+		typedef typename TRowType::const_iterator const_iterator;
+
+		for(const_iterator conn = Ci.begin(); conn != Ci.end(); ++conn)
+		{
+			if(conn.index() == i) continue; // skip diag
+			double d = BlockNorm(conn.value());
+//			std::cout << d << std::endl;
+			if(d > dmax) dmax = BlockNorm(conn.value());
+		}
+
+		for(const_iterator conn = Ci.begin(); conn != Ci.end(); ++conn)
+		{
+			if(conn.index() == i) continue; // skip diag
+			if( BlockNorm(conn.value()) >= m_theta * dmax)
+				graph.set_connection(i, conn.index());
+		}
+	}
+};
+
+
+template<typename matrix_type>
+void CreateStrongConnectionGraphForSystems(const matrix_type &A, cgraph &graph, double theta)
+{
+	PROFILE_FUNC();
+	graph.resize(A.num_rows());
+
+	for(size_t i=0; i< A.num_rows(); i++)
+	{
+		// Skip isolated node
+		if(A.is_isolated(i)) continue;
+
+		// copy all off-diag entries
+		SparseVector<typename matrix_type::value_type> Ri(A.num_cols());
+		CopyOffDiagEntries(A, i, Ri);
+
+		// Find strong connections
+		StrongNegativeConnectionsByBlockNorm strong(theta);
+		strong.find(Ri, i, graph);
+	}
+}
+
+
+/////////////////////////////////
 
 /**
  * Calculates the gs correction by updating all unknowns in 'indices' at once
@@ -525,7 +599,7 @@ class BlockGaussSeidelIterative : public IPreconditioner<TAlgebra>
 			std::stringstream ss ;
 			if(backward&&forward) ss << "Symmetric";
 			else if(backward) ss << "Backward";
-			ss << "BlockGaussSeidelIterative(depth = " << m_depth << ")";
+			ss << "BlockGaussSeidelIterative(depth = " << m_depth << ", nu = " << m_nu << ")";
 			return ss.str();
 		}
 
@@ -538,7 +612,7 @@ class BlockGaussSeidelIterative : public IPreconditioner<TAlgebra>
  * a) can use bigger stencils since it uses SparseLU for solving blocks
  * b) tries to use some overlapping blocks (BlockGaussSeidel always uses N blocks)
  */
-template <typename TAlgebra>
+template <typename TAlgebra, bool backward, bool forward>
 class SparseBlockGaussSeidel : public IPreconditioner<TAlgebra>
 {
 	public:
@@ -577,7 +651,7 @@ class SparseBlockGaussSeidel : public IPreconditioner<TAlgebra>
 	// 	Clone
 		virtual SmartPtr<ILinearIterator<vector_type> > clone()
 		{
-			SmartPtr<SparseBlockGaussSeidel<algebra_type> > newInst(new SparseBlockGaussSeidel<algebra_type>());
+			SmartPtr<SparseBlockGaussSeidel<algebra_type, backward, forward> > newInst(new SparseBlockGaussSeidel<algebra_type, backward, forward>());
 			newInst->set_debug(debug_writer());
 			newInst->set_damp(this->damping());
 			newInst->set_depth(m_depth);
@@ -605,70 +679,6 @@ class SparseBlockGaussSeidel : public IPreconditioner<TAlgebra>
 	//	Name of preconditioner
 		virtual const char* name() const {return "SparseBlockGaussSeidel";}
 
-
-		template<typename TMatrix>
-		void GetNeighborhood_worker(const TMatrix &A, size_t node, size_t depth, std::vector<size_t> &indices, std::vector<bool> &bVisited)
-		{
-			if(depth==0) return;
-			size_t iSizeBefore = indices.size();
-			for(typename TMatrix::const_row_iterator it = A.begin_row(node); it != A.end_row(node); ++it)
-			{
-				if(it.value() == 0) continue;
-				if(bVisited[it.index()] == false)
-				{
-
-					bVisited[it.index()] = true;
-					indices.push_back(it.index());
-				}
-			}
-
-			if(depth==1) return;
-			size_t iSizeAfter = indices.size();
-			for(size_t i=iSizeBefore; i<iSizeAfter; i++)
-				GetNeighborhood_worker(A, indices[i], depth-1, indices, bVisited);
-		}
-
-		template<typename TMatrix>
-		void GetNeighborhood2(const TMatrix &A, size_t node, size_t depth,
-				std::vector<size_t> &indices,
-				std::vector<size_t> &levels,
-				std::vector<bool> &bVisited,
-				bool bResetVisitedFlags=true)
-		{
-			PROFILE_FUNC_GROUP("algebra");
-			levels.clear();
-			levels.push_back(0);
-
-			indices.clear();
-
-			bVisited[node] = true;
-			indices.push_back(node);
-			levels.push_back(indices.size());
-
-			for(size_t d = 1; d < depth ; d++)
-			{
-				for(size_t ind = levels[d-1]; ind < levels[d]; ind++)
-				{
-					size_t i = indices[i];
-					for(typename TMatrix::const_row_iterator it = A.begin_row(i); it != A.end_row(i); ++it)
-					{
-						if(it.value() == 0) continue;
-						if(bVisited[it.index()] == false)
-						{
-
-							bVisited[it.index()] = true;
-							indices.push_back(it.index());
-						}
-					}
-				}
-				levels.push_back(indices.size());
-			}
-
-			if(bResetVisitedFlags)
-				for(size_t i=0; i<indices.size(); i++)
-					bVisited[indices[i]] = false;
-		}
-
 		//	Preprocess routine
 		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
 		{
@@ -686,29 +696,31 @@ class SparseBlockGaussSeidel : public IPreconditioner<TAlgebra>
 			PROGRESS_START(prog, N, "SparseBlockGaussSeidel: compute blocks");
 
 
-			std::vector<bool> bVisited(N, false);
+
+			std::vector<size_t> bVisited(N, 0);
 			std::vector<bool> bVisited2(N, false);
 
 			std::vector<size_t> levels;
+
 			for(size_t i=0; i<N; i++)
 			{
-				if(bVisited[i]) continue;
+//				if(bVisited[i]>5) continue;
 				PROGRESS_UPDATE(prog, i);
 
 				indices[i].clear();
 
 				GetNeighborhood(A, i, m_depth, indices[i], bVisited2);
 				for(size_t j=0; j<indices[i].size(); j++)
-					bVisited[indices[i][j]]=true;
+					bVisited[indices[i][j]] ++;
 				//for(size_t j=0; j<levels[m_depth-1]; j++)
 					//bVisited2[indices[j]]=true;
 
-				Aloc[i] = new CPUAlgebra::matrix_type;
+				Aloc[i] = make_sp(new CPUAlgebra::matrix_type);
 
 				GetSliceSparse(A, indices[i], *Aloc[i]);
 
 
-				m_ilut[i] = new ILUTPreconditioner<CPUAlgebra> (0.0);
+				m_ilut[i] = make_sp(new ILUTPreconditioner<CPUAlgebra> (0.0));
 				m_ilut[i]->preprocess_mat(*Aloc[i]);
 
 
@@ -741,25 +753,25 @@ class SparseBlockGaussSeidel : public IPreconditioner<TAlgebra>
 			DenseMatrix<VariableArray2<smallmat_type> > Atmp;
 			CPUAlgebra::vector_type tmp, tmp2;
 			PROGRESS_START(prog, x.size(), "SparseBlockGaussSeidel: step");
-			for(size_t i=0; i<x.size(); i++)
-			{
-				PROGRESS_UPDATE(prog, i);
-				// c = D^{-1}(b-Ax)
-				// x = x + c
-				if(indices[i].size() != 0)
-					GetBlockGSCorrectionILUT(A, x, b, m_ilut[i], indices[i], tmp, tmp2);
-
-			}
-			for(size_t i=x.size()-1; ; i--)
-			{
-				PROGRESS_UPDATE(prog, i);
-				// c = D^{-1}(b-Ax)
-				// x = x + c
-				if(indices[i].size() != 0)
-					GetBlockGSCorrectionILUT(A, x, b, m_ilut[i], indices[i], tmp, tmp2);
-				if(i==0) break;
-
-			}
+			if(forward)
+				for(size_t i=0; i<x.size(); i++)
+				{
+					PROGRESS_UPDATE(prog, i);
+					// c = D^{-1}(b-Ax)
+					// x = x + c
+					if(indices[i].size() != 0)
+						GetBlockGSCorrectionILUT(A, x, b, m_ilut[i], indices[i], tmp, tmp2);
+				}
+			if(backward)
+				for(size_t i=x.size()-1; ; i--)
+				{
+					PROGRESS_UPDATE(prog, i);
+					// c = D^{-1}(b-Ax)
+					// x = x + c
+					if(indices[i].size() != 0)
+						GetBlockGSCorrectionILUT(A, x, b, m_ilut[i], indices[i], tmp, tmp2);
+					if(i==0) break;
+				}
 			PROGRESS_FINISH(prog);
 
 		//	Correction is always consistent
@@ -771,7 +783,212 @@ class SparseBlockGaussSeidel : public IPreconditioner<TAlgebra>
 
 		virtual std::string config_string() const
 		{
-			std::stringstream ss ; ss << "BlockGaussSeidel2(depth = " << m_depth << ")";
+			std::stringstream ss ;
+			if(backward&&forward) ss << "Symmetric";
+			else if(backward) ss << "Backward";
+			ss << "SparseBlockGaussSeidel(depth = " << m_depth << ")";
+			return ss.str();
+		}
+
+};
+
+
+/**
+ * SparseBlockGaussSeidel
+ * experimental version
+ * a) can use bigger stencils since it uses SparseLU for solving blocks
+ * b) tries to use some overlapping blocks (BlockGaussSeidel always uses N blocks)
+ */
+template <typename TAlgebra, bool backward, bool forward>
+class SparseBlockGaussSeidel2 : public IPreconditioner<TAlgebra>
+{
+	public:
+	//	Algebra type
+		typedef TAlgebra algebra_type;
+
+	//	Vector type
+		typedef typename TAlgebra::vector_type vector_type;
+
+	//	Matrix type
+		typedef typename TAlgebra::matrix_type matrix_type;
+
+	///	Matrix Operator type
+		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
+
+	///	Base type
+		typedef IPreconditioner<TAlgebra> base_type;
+
+	protected:
+		typedef typename matrix_type::value_type block_type;
+
+		using base_type::set_debug;
+		using base_type::debug_writer;
+		using base_type::write_debug;
+
+	public:
+	//	Constructor
+		SparseBlockGaussSeidel2() {
+			m_depth = 1;
+		};
+
+		SparseBlockGaussSeidel2(int depth) {
+			m_depth = depth;
+		};
+
+	// 	Clone
+		virtual SmartPtr<ILinearIterator<vector_type> > clone()
+		{
+			SmartPtr<SparseBlockGaussSeidel2<algebra_type, backward, forward> > newInst(new SparseBlockGaussSeidel2<algebra_type, backward, forward>());
+			newInst->set_debug(debug_writer());
+			newInst->set_damp(this->damping());
+			newInst->set_depth(m_depth);
+			return newInst;
+		}
+
+		typedef typename matrix_type::value_type smallmat_type;
+		typedef typename vector_type::value_type smallvec_type;
+		typedef typename matrix_type::const_row_iterator const_row_iterator;
+
+		std::map<size_t, SmartPtr<ILUTPreconditioner<CPUAlgebra> > > m_ilut;
+
+		size_t m_depth;
+		std::vector<std::vector<size_t> > indices;
+		std::map<size_t, SmartPtr<CPUAlgebra::matrix_type> > Aloc;
+
+
+		void set_depth(size_t d)
+		{
+			m_depth = d;
+		}
+
+
+	protected:
+	//	Name of preconditioner
+		virtual const char* name() const {return "SparseBlockGaussSeidel2";}
+
+		//	Preprocess routine
+		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
+		{
+			matrix_type &A = *pOp;
+
+			size_t N = A.num_rows();
+			DenseMatrix<VariableArray2<smallmat_type> > tmpMat;
+			m_ilut.clear();
+
+			indices.resize(N);
+
+			size_t maxSize = 0;
+			PROGRESS_START(prog, N, "SparseBlockGaussSeidel: compute blocks");
+
+			cgraph G;
+			{
+				cgraph graph;
+				CreateStrongConnectionGraphForSystems(A, graph, 0.3);
+				G.resize(N);
+				for(size_t i=0; i<graph.size(); i++)
+					for(cgraph::row_iterator it = graph.begin_row(i); it != graph.end_row(i); ++it)
+					{
+						G.set_connection(*it, i);
+						G.set_connection(i, *it);
+					}
+			}
+			std::vector<int> iComponent(N, -1);
+			std::vector<std::vector<int> > components;
+//			G.print();
+			for(size_t i=0; i<G.size(); i++)
+			{
+				if(iComponent[i] != -1) continue;
+				int myComponent = iComponent[i] = components.size();
+				components.resize(components.size()+1);
+				std::vector<int> &myComponents = components[myComponent];
+				myComponents.push_back(i);
+				for(size_t c=0; c<myComponents.size(); c++)
+				{
+					int j = myComponents[c];
+					for(cgraph::row_iterator it = G.begin_row(j); it != G.end_row(j); ++it)
+					{
+						if(iComponent[*it] == myComponent) continue;
+						myComponents.push_back(*it);
+						UG_COND_THROW(iComponent[*it] != -1, i );
+						iComponent[*it] = myComponent;
+					}
+				}
+			}
+			for(size_t i=0; i<N; i++)
+				indices[i].clear();
+			for(size_t c=0; c<components.size(); c++)
+			{
+				int i=components[c][0];
+				indices[i].insert(indices[i].begin(), components[c].begin(), components[c].end());
+//				PRINT_VECTOR(indices[i], i);
+
+				Aloc[i] = make_sp(new CPUAlgebra::matrix_type);
+				GetSliceSparse(A, indices[i], *Aloc[i]);
+
+				m_ilut[i] = make_sp(new ILUTPreconditioner<CPUAlgebra> (0.0));
+				m_ilut[i]->preprocess_mat(*Aloc[i]);
+				if(Aloc[i]->num_rows() > maxSize) maxSize = Aloc[i]->num_rows();
+			}
+			PROGRESS_FINISH(prog);
+
+			UG_LOG("Max Size = " << maxSize << "\n");
+			return true;
+		}
+
+		typedef typename matrix_type::const_row_iterator matrix_const_row_iterator;
+		typedef typename matrix_type::row_iterator matrix_row_iterator;
+
+	//	Postprocess routine
+		virtual bool postprocess() {return true;}
+		virtual bool supports_parallel() const { return true; }
+
+		//	Stepping routine
+		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
+		{
+			matrix_type &A = *pOp;
+			vector_type &x = c;
+			x.set(0.0);
+			vector_type b;
+			b = d;
+
+			DenseMatrix<VariableArray2<double> > Adense;
+			DenseMatrix<VariableArray2<smallmat_type> > Atmp;
+			CPUAlgebra::vector_type tmp, tmp2;
+			PROGRESS_START(prog, x.size(), "SparseBlockGaussSeidel: step");
+			if(forward)
+				for(size_t i=0; i<x.size(); i++)
+				{
+					PROGRESS_UPDATE(prog, i);
+					// c = D^{-1}(b-Ax)
+					// x = x + c
+					if(indices[i].size() != 0)
+						GetBlockGSCorrectionILUT(A, x, b, m_ilut[i], indices[i], tmp, tmp2);
+				}
+			if(backward)
+				for(size_t i=x.size()-1; ; i--)
+				{
+					PROGRESS_UPDATE(prog, i);
+					// c = D^{-1}(b-Ax)
+					// x = x + c
+					if(indices[i].size() != 0)
+						GetBlockGSCorrectionILUT(A, x, b, m_ilut[i], indices[i], tmp, tmp2);
+					if(i==0) break;
+				}
+			PROGRESS_FINISH(prog);
+
+		//	Correction is always consistent
+			#ifdef 	UG_PARALLEL
+			c.set_storage_type(PST_CONSISTENT);
+			#endif
+			return true;
+		}
+
+		virtual std::string config_string() const
+		{
+			std::stringstream ss ;
+			if(backward&&forward) ss << "Symmetric";
+			else if(backward) ss << "Backward";
+			ss << "SparseBlockGaussSeidel(depth = " << m_depth << ")";
 			return ss.str();
 		}
 
