@@ -10,7 +10,7 @@
 
 #include "parallel_nodes.h"
 #include "serialize_interfaces.h"
-
+#include "common/debug_print.h"
 
 namespace ug{
 
@@ -19,7 +19,7 @@ void SerializeRow(BinaryBuffer &stream, const matrix_type &mat, size_t localRowI
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 	const AlgebraID &globalRowIndex = PN.local_to_global(localRowIndex);
-
+	UG_COND_THROW(globalRowIndex.master_proc() > pcl::NumProcs() || globalRowIndex.master_proc() < 0, globalRowIndex);
 	// serialize global row index
 	Serialize(stream, globalRowIndex);
 
@@ -34,6 +34,8 @@ void SerializeRow(BinaryBuffer &stream, const matrix_type &mat, size_t localRowI
 	{
 		size_t localColIndex = conn.index();
 		const AlgebraID &globalColIndex = PN.local_to_global(localColIndex);
+		UG_COND_THROW(globalColIndex.master_proc() > pcl::NumProcs() || globalColIndex.master_proc() < 0, globalColIndex);
+
 		UG_DLOG(LIB_ALG_AMG, 4, localColIndex << " (" << globalColIndex << ") -> " << conn.value() << " ");
 
 		// serialize connection
@@ -120,6 +122,7 @@ void ReceiveMatrix(const matrix_type &A, matrix_type &M, IndexLayout &verticalMa
 	pcl::InterfaceCommunicator<IndexLayout> &communicator = A.layouts()->comm();
 
 	M = A;
+	//M.print();
 	M.set_layouts(SmartPtr<AlgebraLayouts>(new AlgebraLayouts));
 	typedef std::map<int, BinaryBuffer> BufferMap;
 	BufferMap streams;
@@ -152,6 +155,7 @@ void ReceiveMatrix(const matrix_type &A, matrix_type &M, IndexLayout &verticalMa
 			// serialize global row index, number of connections
 			Deserialize(stream, globalRowIndex);
 			Deserialize(stream, num_connections);
+			UG_COND_THROW(globalRowIndex.master_proc() > pcl::NumProcs() || globalRowIndex.master_proc() < 0, i << " " << globalRowIndex << " " << pid);
 
 			size_t localRowIndex = PN.get_local_index_or_create_new(globalRowIndex, 0);
 			verticalInterface.push_back(localRowIndex);
@@ -171,6 +175,7 @@ void ReceiveMatrix(const matrix_type &A, matrix_type &M, IndexLayout &verticalMa
 	}
 
 	M.resize_and_keep_values(PN.local_size(), PN.local_size());
+	//M.print();
 
 	for(size_t i=0; i<srcprocs.size(); i++)
 	{
@@ -223,13 +228,13 @@ void CollectMatrixOnOneProc(const matrix_type &A, matrix_type &collectedA, Index
 	slaveLayout.clear();
 
 	const pcl::ProcessCommunicator &pc = A.layouts()->proc_comm();
-
 	ParallelNodes PN(A.layouts(), A.num_rows());
 
 	if(pcl::ProcRank() == pc.get_proc_id(0))
 	{
 		srcprocs.resize(pc.size()-1);
-		for(size_t i=1; i<pc.size(); i++) srcprocs[i-1] = pc.get_proc_id(i);
+		for(size_t i=1; i<pc.size(); i++)
+			srcprocs[i-1] = pc.get_proc_id(i);
 		ReceiveMatrix(A, collectedA, masterLayout, srcprocs, PN);
 	}
 	else
