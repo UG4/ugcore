@@ -26,9 +26,12 @@
 #include "lib_algebra/operator/linear_solver/gmres.h"
 #include "lib_algebra/operator/linear_solver/lu.h"
 #include "lib_algebra/operator/linear_solver/agglomerating_solver.h"
+#include "lib_algebra/operator/linear_solver/debug_iterator.h"
 #ifdef UG_PARALLEL
 #include "lib_algebra/operator/linear_solver/feti.h"
 #endif
+#include "../util_overloaded.h"
+
 
 using namespace std;
 
@@ -118,7 +121,7 @@ static void Algebra(Registry& reg, string grp)
 		string name = string("AutoLinearSolver").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "Auto Linear Solver")
 			.add_constructor()
-			.template add_constructor<void (*)(double, double)>("reductionAlwaysAccept#worseThenAverage")
+			.ADD_CONSTRUCTOR( (double, double) )("reductionAlwaysAccept#worseThenAverage")
 			.add_method("set_reduction_always_accept", &T::set_reduction_always_accept)
 			.add_method("set_reinit_when_worse_then_average", &T::set_reinit_when_worse_then_average)
 			.add_method("print_information", &T::print_information)
@@ -133,10 +136,29 @@ static void Algebra(Registry& reg, string grp)
 		typedef  ILinearOperatorInverse<vector_type> TBase;
 		string name = string("AnalyzingSolver").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "AnalyzingSolver")
-			.template add_constructor<void (*)(SmartPtr<ILinearOperatorInverse<vector_type> >)>("solver")
+			.ADD_CONSTRUCTOR( (SmartPtr<ILinearOperatorInverse<vector_type> >) )("solver")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "AnalyzingSolver", tag);
 	}
+
+	//	Debug iteration
+	{
+		typedef DebugIterator<TAlgebra> T;
+		typedef ILinearIterator<typename TAlgebra::vector_type> TBase;
+
+		typedef ILinearIterator<typename TAlgebra::vector_type> base_type;
+		typedef IPreconditionedLinearOperatorInverse<vector_type> solver_type;
+
+		string name = string("DebugIterator").append(suffix);
+		reg.add_class_<T,TBase>(name, grp, "DebugIterator")
+		.add_constructor()
+		. ADD_CONSTRUCTOR( (SmartPtr<base_type> pprecond, SmartPtr<solver_type> psolver) ) ("precond#solver")
+		.add_method("set_preconditioner", &T::set_preconditioner)
+		.add_method("set_solver", &T::set_solver)
+		.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "DebugIterator", tag);
+	}
+
 
 	// 	CG Solver
 	{
@@ -168,7 +190,7 @@ static void Algebra(Registry& reg, string grp)
 		typedef IPreconditionedLinearOperatorInverse<vector_type> TBase;
 		string name = string("GMRES").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "GMRES Solver")
-			.template add_constructor<void (*)(size_t)>("restart")
+			.ADD_CONSTRUCTOR( (size_t restar) )("restart")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GMRES", tag);
 	}
@@ -193,7 +215,7 @@ static void Algebra(Registry& reg, string grp)
 		typedef ILinearOperatorInverse<vector_type> TBase;
 		string name = string("AgglomeratingSolver").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "AgglomeratingSolver")
-			.template add_constructor<void (*)(SmartPtr<ILinearOperatorInverse<vector_type, vector_type> > )>("pLinOp")
+			.ADD_CONSTRUCTOR( (SmartPtr<ILinearOperatorInverse<vector_type, vector_type> > ) )("pLinOp")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "AgglomeratingSolver", tag);
 	}
