@@ -11,6 +11,7 @@
 #include <fstream>
 #include "common/common.h"
 #include "common/assert.h"
+#include "common/profiler/profiler.h"
 
 namespace ug{
 
@@ -305,6 +306,7 @@ bool IsLonger(const string &a, const string &b)
 
 string GetFileLines(const char *filename, size_t fromline, size_t toline, bool includeLineNumbers)
 {
+	PROFILE_FUNC(); // since this is an i/o function
 	if(filename[0] == '@') filename++;
 	char buf[512];
 	fstream file(filename, std::ios::in);
