@@ -14,6 +14,13 @@
 
 namespace ug{
 
+/**
+ * register the debug id.
+ * NOTE: this function is called in the initialization of variables
+ * of type DebugID, which are mostly global variables.
+ * Be absolutely sure we are safe here, i.e.
+ * we are not using other things which might not be initialized (like Log).
+ */
 DebugID::DebugID(const char *str)
 {
 	m_hash = crc32(str);
@@ -60,6 +67,12 @@ set_debug_level(const char *debugID, int level)
 	return true;
 }
 
+/**
+ * register the debug id.
+ * NOTE: this function is called in the initialization of global variables
+ * of type DebugID. Be absolutely sure we are safe here, i.e.
+ * we are not using other things which might not be initialized (like Log).
+ */
 bool DebugIDManager::
 register_debug_id(const char *debugID)
 {

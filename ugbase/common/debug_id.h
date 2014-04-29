@@ -19,6 +19,52 @@ namespace ug{
 /// \{
 
 class DebugIDManager;
+
+
+
+// DebugID
+/**
+ * A DebugID is an object to control the debug level of parts of the code.
+ * It can be used in
+ * - UG_SET_DEBUG_LEVEL
+ * - UG_DEBUG_BEGIN/END (debugID, level)
+ * - IF_DEBUG
+ * - UG_DLOG(debugID, level, msg)
+ *
+ * ug4's standard DebugIDs are
+ * APP, LIB_GRID, LIB_GRID_REFINER, LIB_DISC, LIB_DISC_ASSEMBLE, LIB_DISC_D3F,
+ *		LIB_DISC_MULTIGRID, LIB_DISC_NEWTON, LIB_DISC_LINKER, LIB_DISC_TRANSFER,
+ *		LIB_DISC_DISCRETE_FUNCTION, LIB_DISC_OUTPUT, LIB_DISC_OPERATOR_INVERSE,
+ *		LIB_ALG_LINEAR_OPERATOR, LIB_ALG_LINEAR_SOLVER, LIB_ALG_VECTOR,
+ *		LIB_ALG_MATRIX, LIB_ALG_AMG, LIB_PCL
+ *
+ * They are managed with \sa DebugIDManager.
+ * You can define your own DebugID the following way:
+ * In a cpp file:
+ *
+ \code{.cpp}
+ DebugID DID_MYAPP("MyApp")
+ DebugID DID_MYAPP_PARALLELIZATION("MyApp.Parallelization")
+ \endcode{.cpp}
+ *
+ * Now to use it in other files you need to add there
+ *
+ \code{.cpp}
+ extern DebugID DID_MYAPP, DID_MYAPP_PARALLELIZATION;
+ ...
+ UG_DLOG(DID_MYAPP, 3, "bla");
+ \endcode{.cpp}
+ *
+ * Note that the DebugID OBJECT is called DID_MYAPP, but its string identifier
+ * is "MyApp" (this is used in the script system). In LUA script you can do
+ *
+ * GetLogAssistant():set_debug_level("MyApp", 3)
+ * or, with completion (UGIDE)
+ * SetDebugLevel(debugID.MyApp, 3)
+ *
+ * \note The actual DebugID level is stored in DebugIDManager.
+ *
+ */
 class DebugID
 {
 public:
@@ -38,6 +84,7 @@ private:
 	uint32 m_hash;
 };
 
+// the list of ug4's standard DebugIDs.
 extern DebugID MAIN,
 		APP,
 		LIB_GRID,
@@ -60,6 +107,10 @@ extern DebugID MAIN,
 		LIB_PCL;
 
 
+/**
+ * The DebugIDManager.
+ * get, set debug level, get a list of available DebugIDs etc.
+ */
 class DebugIDManager
 {
 private:
@@ -165,6 +216,79 @@ inline bool DebugID::set_debug_level(int level)
 {
 	return GetDebugIDManager().set_debug_level(*this, level);
 }
+
+// TemporaryDebugLevel
+/// a helper object to temporary set debug levels in a given scope
+/**
+ * A object of this class can be used to change a DebugID. The DebugID will
+ * be re-set to the value before at destruction of the object.
+ * This is especially useful if algorithms are calling other functions which
+ * also have special DebugIDs levels. And you want to do a "debug debug".
+ * example:
+\code{.cpp}
+  UG_SET_DEBUG_LEVEL(LIB_GRID, 1);
+
+  // DebugID LIB_GRID is now at level 1
+  {
+  	  TemporaryDebugLevel tdl(LIB_GRID, 5);
+
+  	  // DebugID LIB_GRID is now at level 5
+  	  MyFunction();
+  }
+
+  // DebugID LIB_GRID is now again at 1.
+\endcode
+ * You can also specify differences:
+ *
+ \code{.cpp}
+  TemporaryDebugLevel tdl(LIB_GRID, MY_DEBUG_ID, +1);
+  // now LIB_GRID has the temporary debug level of MY_DEBUG_ID +1.
+ */
+class TemporaryDebugLevel
+{
+	DebugID &did;
+	int m_prevDebugLevel;
+public:
+	TemporaryDebugLevel(DebugID &debugID) : did(debugID)
+	{
+#ifdef UG_ENABLE_DEBUG_LOGS
+		m_prevDebugLevel = did.get_debug_level();
+#endif
+	}
+
+	/// change the debugID level in this scope
+	TemporaryDebugLevel(DebugID &debugID, int temporaryDebugLevel) : did(debugID)
+	{
+#ifdef UG_ENABLE_DEBUG_LOGS
+		m_prevDebugLevel = did.get_debug_level();
+		did.set_debug_level(temporaryDebugLevel);
+#endif
+	}
+
+	/// change the debugID level in this scope to another debugID plus some diff.
+	TemporaryDebugLevel(DebugID &debugID, DebugID &debugSrc, int diff=0) : did(debugID)
+	{
+#ifdef UG_ENABLE_DEBUG_LOGS
+		m_prevDebugLevel = did.get_debug_level();
+		did.set_debug_level(debugSrc.get_debug_level()+diff);
+#endif
+	}
+
+	/// resets the debugID to the previous value.
+	~TemporaryDebugLevel()
+	{
+#ifdef UG_ENABLE_DEBUG_LOGS
+		did.set_debug_level(m_prevDebugLevel);
+#endif
+	}
+
+	void set(int temporaryDebugLevel)
+	{
+#ifdef UG_ENABLE_DEBUG_LOGS
+		did.set_debug_level(temporaryDebugLevel);
+#endif
+	}
+};
 
 // end group ugbase_common
 /// \}

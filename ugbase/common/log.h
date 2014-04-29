@@ -231,11 +231,13 @@ inline std::string ConvertNumberSI (uint64_t size, unsigned int width,
 /* The following macros can be used to control debug messages.
  * To use them the define 'UG_ENABLE_DEBUG_LOGS' must be set. Otherwise nothing will be done (no runtime overhead).
  *
+ * UG_SET_DEBUG_LEVEL(__debugID__, level)  	- sets the debug levels of DebugID __debugID__ to level 'level'
+ * UG_RESET_DEBUG_LEVELS()					- sets the debug level of all Tags to -1
+ * UG_SET_DEBUG_LEVELS(level)				- sets the debug levels of all DebugIDs to level 'level'
+ * UG_DLOG(__debugID__, level, msg)			- prints the message "msg" to the debug log stream, if current level of DebugID __debugID__ is >= level
  *
- * UG_SET_DEBUG_LEVEL(tag, level)  	- sets the debug levels of Tag 'tag' to level 'level'
- * UG_RESET_DEBUG_LEVELS()			- sets the debug level of all Tags to -1
- * UG_SET_DEBUG_LEVELS(level)		- sets the debug levels of all Tags to level 'level'
- * UG_DLOG(tag, level, msg)			- prints the message "msg" to the debug log stream, if current level of Tag 'tag' is >= level
+ * __debugID__ has to be of type DebugID.
+ * For a list of standard DebugIDs and how to define your own, see debug_id.h .
  *
  *	Example:
  *
@@ -245,33 +247,35 @@ inline std::string ConvertNumberSI (uint64_t size, unsigned int width,
 	UG_DLOG(MAIN, 0, "DLOG on lebel 0.\n");		// message printed
 	UG_DLOG(MAIN, 1, "DLOG on level 1.\n");		// no message printed
  */
-
-
 #ifdef UG_ENABLE_DEBUG_LOGS
-	#define UG_SET_DEBUG_LEVEL(tag, level)		{ug::GetDebugIDManager().set_debug_level(tag, level);}
-	#define UG_RESET_DEBUG_LEVELS()				{ug::GetDebugIDManager().set_debug_levels(-1);}
-	#define UG_SET_DEBUG_LEVELS(level)			{ug::GetDebugIDManager().set_debug_levels(level);}
-	#define UG_DEBUG_BEGIN(tag, level)			{ if(ug::GetDebugIDManager().get_debug_level(tag) >= level) {
-	#define UG_DEBUG_END(tag, level)			}; }
-	#define IF_DEBUG(tag, level) 				if(ug::GetDebugIDManager().get_debug_level(tag) >= level)
+	#define UG_SET_DEBUG_LEVEL(__debugID__, level)		{ug::GetDebugIDManager().set_debug_level(__debugID__, level);}
+	#define UG_RESET_DEBUG_LEVELS()						{ug::GetDebugIDManager().set_debug_levels(-1);}
+	#define UG_SET_DEBUG_LEVELS(level)					{ug::GetDebugIDManager().set_debug_levels(level);}
+	#define UG_DEBUG_BEGIN(__debugID__, level)			{ if(ug::GetDebugIDManager().get_debug_level(__debugID__) >= level) {
+	#define UG_DEBUG_END(__debugID__, level)			}; }
+	#define IF_DEBUG(__debugID__, level) 				if(ug::GetDebugIDManager().get_debug_level(__debugID__) >= level)
 
-	#define UG_DLOG(tag, level, msg)			{if(ug::GetDebugIDManager().get_debug_level(tag) >= level)\
-													{ug::GetLogAssistant().debug_logger() << msg; ug::GetLogAssistant().debug_logger().flush();}}
-	#define UG_DLOGN(tag, level, msg)			UG_DLOG(tag, level, msg << "\n");
-	#define UG_DLOG_ALL_PROCS(tag, level, msg)	{if(ug::GetDebugIDManager().get_debug_level(tag) >= level)\
-													{ug::LogAssistant& la = ug::GetLogAssistant(); int op = la.get_output_process();\
-													la.set_output_process(-1); la.debug_logger() << "[Proc " << la.get_process_rank() << "]: "\
-													<< msg << std::flush; la.set_output_process(op);}}
+	#define UG_DLOG(__debugID__, level, msg) \
+			{if(ug::GetDebugIDManager().get_debug_level(__debugID__) >= level)\
+			{ug::GetLogAssistant().debug_logger() << msg; ug::GetLogAssistant().debug_logger().flush();}}
+
+	#define UG_DLOGN(__debugID__, level, msg)			UG_DLOG(__debugID__, level, msg << "\n");
+
+	#define UG_DLOG_ALL_PROCS(__debugID__, level, msg)	\
+			{if(ug::GetDebugIDManager().get_debug_level(__debugID__) >= level)\
+			{ug::LogAssistant& la = ug::GetLogAssistant(); int op = la.get_output_process();\
+			la.set_output_process(-1); la.debug_logger() << "[Proc " << la.get_process_rank() << "]: "\
+			<< msg << std::flush; la.set_output_process(op);}}
 #else
-	#define UG_SET_DEBUG_LEVEL(tag, level)		{}
-	#define UG_RESET_DEBUG_LEVELS()				{}
-	#define UG_SET_DEBUG_LEVELS(level)			{}
-	#define UG_DLOG(tag, level, msg)			{}
-	#define UG_DLOGN(tag, level, msg)			{}
-	#define UG_DLOG_ALL_PROCS(tag, level, msg)	{}
-	#define UG_DEBUG_BEGIN(tag, level)			{ if(1==0) {
-	#define UG_DEBUG_END(tag, level)			}; }
-	#define IF_DEBUG(tag, level)				if(1==0)
+	#define UG_SET_DEBUG_LEVEL(__debugID__, level)		{}
+	#define UG_RESET_DEBUG_LEVELS()						{}
+	#define UG_SET_DEBUG_LEVELS(level)					{}
+	#define UG_DLOG(__debugID__, level, msg)			{}
+	#define UG_DLOGN(__debugID__, level, msg)			{}
+	#define UG_DLOG_ALL_PROCS(__debugID__, level, msg)	{}
+	#define UG_DEBUG_BEGIN(__debugID__, level)			{ if(1==0) {
+	#define UG_DEBUG_END(__debugID__, level)			}; }
+	#define IF_DEBUG(__debugID__, level)				if(1==0)
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
