@@ -943,6 +943,12 @@ class DimFV1Geometry : public FVGeometryBase
 	/// returns all ips of scv as they appear in scv loop
 		const MathVector<worldDim>* scv_global_ips() const {return &(m_vvGloMid[0][0]);}
 
+	///	returns the local coordinates of the center of mass of the element
+		const MathVector<dim>* coe_local() const {return &(m_vvLocMid[dim][0]);}
+		
+	///	returns the global coordinates of the center of mass of the element
+		const MathVector<worldDim>* coe_global() const {return &(m_vvGloMid[dim][0]);}
+
 	protected:
 	///	update local data
 		void update_local(ReferenceObjectID roid);
