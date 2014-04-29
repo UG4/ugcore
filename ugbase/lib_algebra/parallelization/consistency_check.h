@@ -64,9 +64,9 @@ public:
 		if(vec[index] != v)
 		{
 			if(bOK)
-			{ UG_LOG(name << " not consistent:\n"); bOK = false; }
+			{ UG_LOG("\n\n----------------------\n" << name << " not consistent:\n"); bOK = false; }
 			UG_LOG("index " << index << " is " << vec[index] << " on this proc (" << pcl::ProcRank() <<
-					", but " << v << " on master (proc " << pid << ".\n");
+					"), but " << v << " on master (proc " << pid << ").\n");
 		}
 	}
 
@@ -105,7 +105,7 @@ void ConsistencyCheck(const TVec &vec, pcl::InterfaceCommunicator<IndexLayout> &
 	ConsistencyCheckClass<TVec, typename TVec::value_type> scheme(vec, name);
 	CommunicateOnInterfaces(com, masterLayout, slaveLayout, scheme);
 
-	UG_ASSERT(AllProcsTrue(scheme.isOK(), pc), name << " not consistent!");
+	UG_COND_THROW(!AllProcsTrue(scheme.isOK(), pc), name << " not consistent!");
 }
 
 template<typename TVec>
@@ -115,7 +115,7 @@ void ConsistencyCheck(const TVec &vec, const HorizontalAlgebraLayouts &layout, s
 	ConsistencyCheckClass<TVec, typename TVec::value_type> scheme(vec, name);
 	CommunicateOnInterfaces(layout.comm(), layout.master(), layout.slave(), scheme);
 
-	UG_ASSERT(AllProcsTrue(scheme.isOK(), layout.proc_comm()), name << " not consistent!");
+	UG_COND_THROW(!AllProcsTrue(scheme.isOK(), layout.proc_comm()), name << " not consistent!");
 }
 
 // end group lib_algebra_parallel_consistencycheck
