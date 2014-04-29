@@ -112,6 +112,36 @@ static void ScaleDomain(TDomain& dom, number sx, number sy, number sz)
 	}
 }
 
+/**
+ *
+ * @param dom the domain
+ * @param dx  amount of wiggle in x-direction
+ * @param dy  amount of wiggle in y-direction
+ * @param dz  amount of wiggle in z-direction
+ * iterates through all vertices and adds a random number between -d[] and d[]
+ * to the position. note that this is absolute, so one has to be careful that
+ * elements are not intersecting after this.
+ * this function is used in some AMG tests to get 'unstructured' grids
+ * of different sizes
+ */
+template <typename TDomain>
+static void RandomizeDomain(TDomain& dom, number dx, number dy, number dz)
+{
+	typename TDomain::position_accessor_type& aaPos = dom.position_accessor();
+	typename TDomain::grid_type& g = *dom.grid();
+	vector3 d(dx, dy, dz);
+
+	const int numCoords = TDomain::position_type::Size;
+	UG_ASSERT(numCoords <= 3, "too many coordinates.");
+
+	for(VertexIterator iter = g.vertices_begin();
+		iter != g.vertices_end(); ++iter)
+	{
+		for(int i = 0; i < numCoords; ++i)
+			aaPos[*iter][i] += urand(-d[i], d[i]);
+	}
+}
+
 
 template <typename TDomain>
 static void TranslateDomain(TDomain& dom, number tx, number ty, number tz)
@@ -378,6 +408,7 @@ static void Domain(Registry& reg, string grp)
 
 //	transform the domain
 	reg.add_function("ScaleDomain", &ScaleDomain<TDomain>, grp, "", "dom#sx#sy#sz");
+	reg.add_function("RandomizeDomain", &RandomizeDomain<TDomain>, grp, "", "dom#dx#dy#dz");
 	reg.add_function("TranslateDomain", &TranslateDomain<TDomain>, grp, "", "dom#tx#ty#tz");
 	reg.add_function("ProjectVerticesToSphere", &ProjectVerticesToSphere<TDomain>, grp, "", "dom#center#radius#eps");
 
