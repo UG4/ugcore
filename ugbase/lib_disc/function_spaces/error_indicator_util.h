@@ -21,7 +21,7 @@ namespace ug{
  * \param[in]		dd			dof distribution
  * \param[in]		TOL			Minimum error, such that an element is marked
  * \param[in]		scale		scaling factor indicating lower bound for marking
- * \param[in]		aaError		Error value attachment to elements
+ * \param[in]		aaError		Error value attachment to elements (\eta_i^2)
  */
 template <typename TElem>
 void MarkElements(MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >& aaError,
@@ -68,7 +68,7 @@ void MarkElements(MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >&
 		numElem = com.allreduce(numElemLocal, PCL_RO_SUM);
 	}
 #endif
-	UG_LOG("  +++++  Gradient Error Indicator on "<<numElem<<" Elements +++++\n");
+	UG_LOG("  +++++  Error Indicator on "<<numElem<<" Elements +++++\n");
 #ifdef UG_PARALLEL
 	if(pcl::NumProcs() > 1){
 		UG_LOG("  +++ Element Errors on Proc " << pcl::ProcRank() <<
