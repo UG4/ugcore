@@ -244,51 +244,58 @@ inline bool DebugID::set_debug_level(int level)
   TemporaryDebugLevel tdl(LIB_GRID, MY_DEBUG_ID, +1);
   // now LIB_GRID has the temporary debug level of MY_DEBUG_ID +1.
  */
+#ifdef UG_ENABLE_DEBUG_LOGS
 class TemporaryDebugLevel
 {
 	DebugID &did;
+
 	int m_prevDebugLevel;
 public:
 	TemporaryDebugLevel(DebugID &debugID) : did(debugID)
 	{
-#ifdef UG_ENABLE_DEBUG_LOGS
 		m_prevDebugLevel = did.get_debug_level();
-#endif
 	}
 
 	/// change the debugID level in this scope
 	TemporaryDebugLevel(DebugID &debugID, int temporaryDebugLevel) : did(debugID)
 	{
-#ifdef UG_ENABLE_DEBUG_LOGS
 		m_prevDebugLevel = did.get_debug_level();
 		did.set_debug_level(temporaryDebugLevel);
-#endif
 	}
 
 	/// change the debugID level in this scope to another debugID plus some diff.
 	TemporaryDebugLevel(DebugID &debugID, DebugID &debugSrc, int diff=0) : did(debugID)
 	{
-#ifdef UG_ENABLE_DEBUG_LOGS
 		m_prevDebugLevel = did.get_debug_level();
 		did.set_debug_level(debugSrc.get_debug_level()+diff);
-#endif
 	}
 
 	/// resets the debugID to the previous value.
 	~TemporaryDebugLevel()
 	{
-#ifdef UG_ENABLE_DEBUG_LOGS
 		did.set_debug_level(m_prevDebugLevel);
-#endif
 	}
 
 	void set(int temporaryDebugLevel)
 	{
-#ifdef UG_ENABLE_DEBUG_LOGS
 		did.set_debug_level(temporaryDebugLevel);
-#endif
 	}
 };
+#else
+class TemporaryDebugLevel
+{
+
+public:
+	TemporaryDebugLevel(DebugID &debugID){}
+	/// change the debugID level in this scope
+	TemporaryDebugLevel(DebugID &debugID, int temporaryDebugLevel){}
+	/// change the debugID level in this scope to another debugID plus some diff.
+	TemporaryDebugLevel(DebugID &debugID, DebugID &debugSrc, int diff=0){}
+	/// resets the debugID to the previous value.
+	~TemporaryDebugLevel(){}}
+	void set(int temporaryDebugLevel){}
+};
+#endif
 
 // end group ugbase_common
 /// \}
