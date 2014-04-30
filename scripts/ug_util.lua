@@ -299,6 +299,11 @@ end
 
 io.open = util.safe_io_open
 
+--! ParallelMaxMinAvg prints "min: (minimum), max: (maximum), avg: (average)"
+--! for parallel different integers s
+function util.ParallelMaxMinAvg(s)
+	return "min: "..ParallelMin(s)..", max: "..ParallelMax(s)..", avg: ".. ParallelSum(s)/NumProcs()
+end
 
 -- end group scripts_util
 --[[!  
