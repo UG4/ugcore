@@ -377,13 +377,13 @@ class UG_API Grid
 		VertexIterator create_by_cloning(Vertex* pCloneMe, GridObject* pParent = NULL);
 
 	///	this method creates a new edge, which has the same type as pCloneMe.
-		EdgeIterator create_by_cloning(Edge* pCloneMe, const EdgeVertices& ev, GridObject* pParent = NULL);
+		EdgeIterator create_by_cloning(Edge* pCloneMe, const IVertexGroup& ev, GridObject* pParent = NULL);
 
 	///	this method creates a new face, which has the same type as pCloneMe.
-		FaceIterator create_by_cloning(Face* pCloneMe, const FaceVertices& fv, GridObject* pParent = NULL);
+		FaceIterator create_by_cloning(Face* pCloneMe, const IVertexGroup& fv, GridObject* pParent = NULL);
 
 	///	this method creates a new volume, which has the same type as pCloneMe.
-		VolumeIterator create_by_cloning(Volume* pCloneMe, const VolumeVertices& vv, GridObject* pParent = NULL);
+		VolumeIterator create_by_cloning(Volume* pCloneMe, const IVertexGroup& vv, GridObject* pParent = NULL);
 
 	///	Reserves memory for the creation of the given object type
 	/**	Calls to this method are optional, but can improve runtime.

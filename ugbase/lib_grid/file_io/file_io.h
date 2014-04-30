@@ -15,6 +15,7 @@
 #include "file_io_ugx.h"
 #include "file_io_msh.h"
 #include "file_io_stl.h"
+#include "file_io_tikz.h"
 
 #ifndef __H__LIB_GRID__FILE_IO__
 #define __H__LIB_GRID__FILE_IO__

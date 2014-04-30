@@ -242,6 +242,11 @@ static bool SaveGrid3d_IMPL(Grid& grid, ISubsetHandler* pSH,
 		return SaveGridToNCDF(grid, filename, pSH, aPos);
 	else if(strName.find(".stl") != string::npos)
 		return SaveGridToSTL(grid, filename, pSH, aPos);
+	else if((strName.find(".tikz") != string::npos)
+			|| (strName.find(".tex") != string::npos))
+	{
+		return ExportGridToTIKZ(grid, filename, pSH, aPos);
+	}
 
 	return false;
 }

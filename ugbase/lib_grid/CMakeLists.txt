@@ -65,6 +65,7 @@ set(srcFileIO	file_io/file_io_art.cpp
 				file_io/file_io_ng.cpp
 				file_io/file_io_obj.cpp
 				file_io/file_io_tetgen.cpp
+				file_io/file_io_tikz.cpp
 				file_io/file_io_txt.cpp
 				file_io/file_io_ug.cpp
 				file_io/file_io_ugx.cpp

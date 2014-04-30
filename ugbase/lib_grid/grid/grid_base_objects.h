@@ -236,26 +236,66 @@ class UG_API Vertex : public GridObject
 };
 
 
+///	Base class for all classes which consist of a group of vertices
+class UG_API IVertexGroup
+{
+	public:
+		typedef Vertex* const* ConstVertexArray;
+
+		virtual ~IVertexGroup()	{};
+		virtual Vertex* vertex(uint index) const = 0;
+		virtual ConstVertexArray vertices() const = 0;
+		virtual size_t num_vertices() const = 0;
+
+	//	compatibility with std::vector for some template routines
+	///	returns the number of vertices.
+		inline size_t size() const	{return num_vertices();}
+	///	returns the i-th vertex.
+		inline Vertex* operator[](size_t index) const {return vertex(index);}
+};
+
+
+///	this class can be used if one wants to create a custom element from a set of vertices.
+class UG_API CustomVertexGroup : public IVertexGroup
+{
+	public:
+		CustomVertexGroup()							{}
+		CustomVertexGroup(size_t numVrts)			{m_vrts.resize(numVrts);}
+		virtual ~CustomVertexGroup()				{}
+
+		virtual Vertex* vertex(uint index) const	{return m_vrts[index];}
+		virtual ConstVertexArray vertices() const	{return &m_vrts.front();}
+		virtual size_t num_vertices() const			{return m_vrts.size();}
+
+		void set_num_vertices(size_t newSize)		{m_vrts.resize(newSize);}
+		void resize(size_t newSize)					{m_vrts.resize(newSize);}
+		void clear()								{m_vrts.clear();}
+		void push_back(Vertex* vrt)					{m_vrts.push_back(vrt);}
+		void set_vertex(size_t index, Vertex* vrt)	{m_vrts[index] = vrt;}
+
+	private:
+		std::vector<Vertex*>	m_vrts;
+};
+
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	EdgeVertices
 ///	holds the vertices of an Edge or an EdgeDescriptor.
-/**	Please note that this class does not have a virtual destructor.*/
-class UG_API EdgeVertices
+class UG_API EdgeVertices : public IVertexGroup
 {
 	friend class Grid;
 	public:
-		typedef Vertex* const* ConstVertexArray;
-
-		inline Vertex* vertex(uint index) const	{return m_vertices[index];}
-		inline ConstVertexArray vertices() const	{return m_vertices;}
-		inline uint num_vertices() const			{return 2;}	// this method is supplied to allow the use of Edge in template-methods that require a num_vertices() method.
+		virtual ~EdgeVertices()						{}
+		virtual Vertex* vertex(uint index) const	{return m_vertices[index];}
+		virtual ConstVertexArray vertices() const	{return m_vertices;}
+		virtual size_t num_vertices() const			{return 2;}
 
 	//	compatibility with std::vector for some template routines
 	///	returns the number of vertices.
-		inline size_t size() const	{return 2;}
+		inline size_t size() const					{return 2;}
 	///	returns the i-th vertex.
-		Vertex* operator[](uint index) const {return m_vertices[index];}
+		Vertex* operator[](size_t index) const 		{return m_vertices[index];}
 
 	protected:
 		inline void assign_edge_vertices(const EdgeVertices& ev)
@@ -281,8 +321,6 @@ class UG_API Edge : public GridObject, public EdgeVertices
 {
 	friend class Grid;
 	public:
-		typedef Vertex* const* ConstVertexArray;
-
 		typedef Edge grid_base_object;
 
 	//	lower dimensional Base Object
@@ -362,14 +400,12 @@ class UG_API EdgeDescriptor : public EdgeVertices
 };
 
 
-/**	Please note that this class does not have a virtual destructor.*/
-class UG_API FaceVertices
+
+class UG_API FaceVertices : public IVertexGroup
 {
 	public:
-		typedef Vertex* const* ConstVertexArray;
-
 		virtual ~FaceVertices()							{}
-		virtual Vertex* vertex(uint index) const	{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return NULL;}
+		virtual Vertex* vertex(uint index) const		{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return NULL;}
 		virtual ConstVertexArray vertices() const		{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return NULL;}
 		virtual size_t num_vertices() const				{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return 0;}
 
@@ -396,8 +432,6 @@ class UG_API Face : public GridObject, public FaceVertices
 {
 	friend class Grid;
 	public:
-		typedef Vertex* const* ConstVertexArray;
-
 		typedef Face grid_base_object;
 
 	//	lower dimensional Base Object
@@ -579,12 +613,9 @@ class UG_API FaceDescriptor : public FaceVertices
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	VolumeVertices
 ///	holds the vertices of a Volume or a VolumeDescriptor
-/**	Please note that this class does not have a virtual destructor.*/
-class UG_API VolumeVertices
+class UG_API VolumeVertices : public IVertexGroup
 {
 	public:
-		typedef Vertex* const* ConstVertexArray;
-
 		virtual ~VolumeVertices()						{}
 
 		virtual Vertex* vertex(uint index) const	{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return NULL;}
@@ -617,8 +648,6 @@ class UG_API Volume : public GridObject, public VolumeVertices
 {
 	friend class Grid;
 	public:
-		typedef Vertex* const* ConstVertexArray;
-
 		typedef Volume grid_base_object;
 
 	//	lower dimensional Base Object

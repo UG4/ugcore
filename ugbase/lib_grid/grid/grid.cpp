@@ -375,7 +375,7 @@ VertexIterator Grid::create_by_cloning(Vertex* pCloneMe, GridObject* pParent)
 	return iterator_cast<VertexIterator>(get_iterator(pNew));
 }
 
-EdgeIterator Grid::create_by_cloning(Edge* pCloneMe, const EdgeVertices& ev, GridObject* pParent)
+EdgeIterator Grid::create_by_cloning(Edge* pCloneMe, const IVertexGroup& ev, GridObject* pParent)
 {
 	Edge* pNew = reinterpret_cast<Edge*>(pCloneMe->create_empty_instance());
 	pNew->set_vertex(0, ev.vertex(0));
@@ -384,7 +384,7 @@ EdgeIterator Grid::create_by_cloning(Edge* pCloneMe, const EdgeVertices& ev, Gri
 	return iterator_cast<EdgeIterator>(get_iterator(pNew));
 }
 
-FaceIterator Grid::create_by_cloning(Face* pCloneMe, const FaceVertices& fv, GridObject* pParent)
+FaceIterator Grid::create_by_cloning(Face* pCloneMe, const IVertexGroup& fv, GridObject* pParent)
 {
 	Face* pNew = reinterpret_cast<Face*>(pCloneMe->create_empty_instance());
 	uint numVrts = fv.num_vertices();
@@ -395,7 +395,7 @@ FaceIterator Grid::create_by_cloning(Face* pCloneMe, const FaceVertices& fv, Gri
 	return iterator_cast<FaceIterator>(get_iterator(pNew));
 }
 
-VolumeIterator Grid::create_by_cloning(Volume* pCloneMe, const VolumeVertices& vv, GridObject* pParent)
+VolumeIterator Grid::create_by_cloning(Volume* pCloneMe, const IVertexGroup& vv, GridObject* pParent)
 {
 	Volume* pNew = reinterpret_cast<Volume*>(pCloneMe->create_empty_instance());
 	uint numVrts = vv.num_vertices();
