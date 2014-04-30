@@ -83,6 +83,8 @@ static void Algebra(Registry& reg, string grp)
 			.add_constructor()
 			.add_method("set_dirichlet_solver", &T::set_dirichlet_solver, "","Dirichlet solver")
 			.add_method("set_skeleton_solver", &T::set_skeleton_solver, "","Skeleton solver")
+			.add_method("num_global_skeleton", &T::num_global_skeleton)
+			.add_method("num_local_skeleton", &T::num_local_skeleton)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "SchurComplement", tag);
 	}
