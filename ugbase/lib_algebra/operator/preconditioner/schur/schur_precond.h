@@ -148,6 +148,24 @@ public:
 			return ss.str();
 		}
 
+public:
+		/// returns the size of the skeleton problem
+		/// note that this is the global size, i.e. without counting slaves
+		size_t num_global_skeleton()
+		{
+			matrix_type &Amat = m_pA->get_matrix();
+			ConstSmartPtr<AlgebraLayouts> layouts = Amat.layouts();
+			return layouts->proc_comm().allreduce(m_myMasterSkeleton, PCL_RO_SUM);
+		}
+		/// returns the local skeleton size.
+		/// note that the sum over these is bigger than num_global_skeleton,
+		/// since this function includes also slaves
+		size_t num_local_skeleton()
+		{
+			return m_myTotalSkeleton;
+		}
+
+
 private:
 		bool create_and_init_local_schur_complement(SmartPtr<MatrixOperator<matrix_type, vector_type> > A,
 				std::vector<slice_desc_type> &skeletonMark);
@@ -180,6 +198,8 @@ private:
 	SmartPtr<vector_type> m_aux_rhs[2];
 	SmartPtr<vector_type> m_aux_sol[2];
 
+	size_t m_myMasterSkeleton, m_myTotalSkeleton;
+	SmartPtr<MatrixOperator<matrix_type, vector_type> > m_pA;
 	//	pointer to Domain decomposition info object
 	//	pcl::IDomainDecompositionInfo* m_pDDInfo;
 };

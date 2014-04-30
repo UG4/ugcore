@@ -157,10 +157,17 @@ get_skeleton_slicing(SmartPtr<MatrixOperator<matrix_type, vector_type> > A,
 	matrix_type &Amat = A->get_matrix();
 	const int N = Amat.num_rows();
 	ConstSmartPtr<AlgebraLayouts> layouts = Amat.layouts();
+
 	skeletonMark.clear();
 	skeletonMark.resize(N, SD_INNER);
 	MarkAllFromLayout<slice_desc_type> (skeletonMark, layouts->master(), SD_SKELETON);
+	m_myMasterSkeleton = 0;
+	for(size_t i=0; i<skeletonMark.size(); i++) if(skeletonMark[i]==SD_SKELETON)
+		m_myMasterSkeleton++;
 	MarkAllFromLayout(skeletonMark, layouts->slave(), SD_SKELETON);
+	m_myTotalSkeleton = m_myMasterSkeleton;
+	for(size_t i=0; i<skeletonMark.size(); i++) if(skeletonMark[i]==SD_SKELETON)
+		m_myTotalSkeleton++;
 }
 
 template <typename TAlgebra>
@@ -171,6 +178,7 @@ preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > A)
 //	status
 	UG_DLOG(SchurDebug, 2, "\n% Initializing SCHUR precond: \n");
 
+	m_pA = A;
 	if(check_requirements() == false)
 		return false;
 
