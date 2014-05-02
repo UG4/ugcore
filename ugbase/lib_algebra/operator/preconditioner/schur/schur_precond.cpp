@@ -307,6 +307,7 @@ template <typename TAlgebra>
 bool SchurPrecond<TAlgebra>::
 step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
 {
+	PROFILE_BEGIN(SchurPrecond_step)
 	try{
 	bool bSuccess = true;	//	status
 
