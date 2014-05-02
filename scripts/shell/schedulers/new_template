@@ -51,7 +51,8 @@ function UJS_Submit
 	
 	# you should write the job id in the variable jobid, for example	
 	# sleep 1
-	# jobid=`cat job.output | sed -n 1p | sed 's/salloc: Granted job allocation \([0-9]*\).*/\1/'`
+	# jobid=`cat job.output | sed -n 1p | sed 's/.* \([0-9]*\).*/\1/'`
+	# this will return the last number in the first string e.g. 'salloc: Granted job 25182' -> 25182
 	# otherwise, set jobid to ?
 }
 

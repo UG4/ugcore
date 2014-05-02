@@ -28,5 +28,5 @@ done
 
 source $scriptpath/clusters
 
-UJS_Info
+UJS_Info $*
 

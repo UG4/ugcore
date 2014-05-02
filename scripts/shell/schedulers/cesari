@@ -42,7 +42,7 @@ function UJS_Submit
 		SlurmMail="--mail-user=$UGSUBMIT_EMAIL --mail-type=$SlurmNotification"
 	fi
 
-	commandline="srun -N $nnodes -n $npe $SlurmMail $SlurmWalltime --job-name=$jobname $executable $args"
+	commandline="salloc -N $nnodes -n $npe $SlurmMail $SlurmWalltime --job-name=$jobname mpirun $executable $args"
 	echo " command:      "$commandline >> info.txt
 
 	if [ $test == true ]; then
@@ -68,7 +68,7 @@ function UJS_Submit
 		echo "Submit: $commandline"
 		nohup $commandline > $outdir/job.output &
 		sleep 1
-		jobid=`cat job.output | sed -n 1p | sed 's/srun: job \([0-9]*\).*/\1/'`
+		jobid=`cat job.output | sed -n 1p | sed 's/.* \([0-9]*\).*/\1/'`
 		
 		echo " ------------" >> info.txt
 		echo "  scontrol show jobid $jobid" >> info.txt
@@ -88,9 +88,14 @@ function UJS_Info
 {
 	echo "UGSUBMIT Info for cesari:"
 	echo "Max Cores Total: 520 (26 Nodes with 10 Dualcores Per Node)"
-	echo "Using SLURM on cesari"
-	echo "squeue -u $USER"
-	squeue -u $USER	
+	echo "Using SLURM on cesari"	
+	if [ ! -z $1 ] && [ $1 == "all" ]; then
+		echo "squeue -o \"%.7i %6C %6D %.50j %.10u %.8T %.10M %.10l %.6D %19R\""
+		squeue -o "%.7i %6C %6D %.50j %.10u %.8T %.10M %.10l %.6D %19R"
+	else
+		echo "squeue -u $USER -o \"%.7i %6C %6D %.50j %.10u %.8T %.10M %.10l %.6D %19R\""
+		squeue -u $USER -o "%.7i %6C %6D %.50j %.10u %.8T %.10M %.10l %.6D %19R"
+	fi	
 }
 
 function UJS_Cancel

@@ -76,7 +76,7 @@ function UJS_Submit
 		echo "Submit: $commandline"
 		nohup $commandline > $outdir/job.output &
 		sleep 1
-		jobid=`cat job.output | sed -n 1p | sed 's/salloc: Granted job allocation \([0-9]*\).*/\1/'`
+		jobid=`cat job.output | sed -n 1p | sed 's/.* \([0-9]*\).*/\1/'`
 		
 		echo " ------------" >> info.txt
 		echo "  scontrol show jobid $jobid" >> info.txt
@@ -98,8 +98,13 @@ function UJS_Info
 	echo "Max Cores Total: 92 (23 Nodes with 4 Cores Per Node)"
 	echo "Memory on each node: 4 GB"
 	echo "Using SLURM on cekon"
-	echo "squeue -u $USER"
-	squeue -u $USER	
+	if [ ! -z $1 ] && [ $1 == "all" ]; then
+		echo "squeue -o \"%.7i %6C %6D %.50j %.10u %.8T %.10M %.10l %.6D %19R\""
+		squeue -o "%.7i %6C %6D %.50j %.10u %.8T %.10M %.10l %.6D %19R"
+	else
+		echo "squeue -u $USER -o \"%.7i %6C %6D %.50j %.10u %.8T %.10M %.10l %.6D %19R\""
+		squeue -u $USER -o "%.7i %6C %6D %.50j %.10u %.8T %.10M %.10l %.6D %19R"
+	fi	
 }
 
 function UJS_Cancel
