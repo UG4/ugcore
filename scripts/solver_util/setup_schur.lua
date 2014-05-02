@@ -41,9 +41,12 @@ util.schur = util.schur or {}
 --! linSolver:set_convergence_check(ConvCheck(40, 1e-16, 1e-9))
 --! -- use linSolver
 --! \endcode
-function util.schur.GetPreconditioner(schurType, skeletonSolverType)
+function util.schur.GetPreconditioner(schurType, skeletonSolverType, schur_dirichlet_solver)
 	if schurType == nil then schurType = "Full" end
 	if skeletonSolverType == nil then skeletonSolverType = "ILU" end
+	if schur_dirichlet_solver == nil then
+		schur_dirichlet_solver = LU()
+	end	
 	
 	if schurType == "Full" or schurType == "AGG" then
 		if 	skeletonSolverType == "SparseLU" then
@@ -54,7 +57,9 @@ function util.schur.GetPreconditioner(schurType, skeletonSolverType)
 			schurLU = LU()
 			schurLU:set_minimum_for_sparse(-1) -- no sparse
 			schurLU:set_info(true)
-			skeletonSolver = AgglomeratingSolver(schurLU)		
+			skeletonSolver = AgglomeratingSolver(schurLU)
+		elseif 	skeletonSolverType == "SuperLU" then
+			skeletonSolver = AgglomeratingSolver(SuperLU())
 		elseif skeletonSolverType == "Jacobi" then
 			skeletonSolver = BiCGStab()
 			skeletonSolver:set_preconditioner(Jacobi())
@@ -80,13 +85,22 @@ function util.schur.GetPreconditioner(schurType, skeletonSolverType)
 		else
 			schur_skeleton_solver = SchurInverseWithFullMatrix(skeletonSolver)
 		end	
+	elseif schurType == "auto" then	
+		skeletonSolver = AutoLinearSolver(1e-8, 1e-8)
+		skeletonSolver:set_convergence_check(ConvCheck(200, 1e-12, 1e-12, true))
+		if 	skeletonSolverType == "SparseLU" then
+			skeletonSolver:set_preconditioner(AgglomeratingPreconditioner(ILUT(0.0)))		
+		elseif skeletonSolverType == "ILU" then			
+			skeletonSolver:set_preconditioner(ILU())	
+		end			
+		schur_skeleton_solver = SchurInverseWithAutoFullMatrix(skeletonSolver)
 	elseif schurType == "BiCGStab" then
 		schur_skeleton_solver = SchurInverseWithOperator(BiCGStab())
 	else
 		error("unknown schurType "..schurType..". known types are [Full | AGG | BiCGStab ]")
 	end
-	
-	local schur_dirichlet_solver = LU()
+
+
 	local schur = SchurComplement()
 	schur:set_dirichlet_solver(schur_dirichlet_solver)
 	schur:set_skeleton_solver(schur_skeleton_solver)
@@ -105,9 +119,9 @@ end
 --! solver = util.schur.GetSolver()
 --! \endcode
 --! \sa util.schur.GetPreconditioner
-function util.schur.GetSolver(schurType, skeletonSolverType)
+function util.schur.GetSolver(schurType, skeletonSolverType, schur_dirichlet_solver)
 	local linSolver = LinearSolver()
-	linSolver.set_preconditioner(util.schur.GetPreconditioner(schurType, skeletonSolverType))
+	linSolver.set_preconditioner(util.schur.GetPreconditioner(schurType, skeletonSolverType, schur_dirichlet_solver))
 	return linSolver
 end
 
