@@ -8,6 +8,7 @@
 function UJS_Submit
 {
 	echo "Cluster: local. Scheduler: MPI."
+	jobid="?"
 		
 	commandline="mpirun -np $npe $executable $args"
 	echo " command:      "$commandline >> info.txt

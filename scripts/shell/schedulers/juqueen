@@ -6,6 +6,10 @@
 
 function UJS_Submit
 {
+	if [ $walltime == "unlimited" ]; then
+		$walltime=01:00:00
+	fi
+	
 	if [ $((npe%nppn)) -ne 0 ]; then
 		echo "npe=$npe is not dividable by nppn=$nppn"
 		exit

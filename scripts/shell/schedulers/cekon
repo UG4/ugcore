@@ -17,8 +17,12 @@ function UJS_Submit
 		exit
 	fi
 		
+	local SlurmWalltime=""
+	if [ $walltime != "unlimited" ]; then
+		SlurmWalltime=--time=$walltime
+	fi
 
-	SlurmMail=""
+	local SlurmMail=""
 	if [ $mail == true ]; then 
 		if [ -z "$UGSUBMIT_EMAIL" ]; then
 			echo "please set UGSUBMIT_EMAIL or specify email with -email. Aborting."
@@ -46,7 +50,7 @@ function UJS_Submit
 		SlurmMail="--mail-user=$UGSUBMIT_EMAIL --mail-type=$SlurmNotification"
 	fi
 
-	commandline="salloc -n $npe $SlurmMail --job-name=$jobname mpirun $executable $args"
+	commandline="salloc -n $npe $SlurmMail $SlurmWalltime --job-name=$jobname mpirun $executable $args"
 	echo " command:      "$commandline >> info.txt
 
 	if [ $test == true ]; then
@@ -73,6 +77,11 @@ function UJS_Submit
 		nohup $commandline > $outdir/job.output &
 		sleep 1
 		jobid=`cat job.output | sed -n 1p | sed 's/salloc: Granted job allocation \([0-9]*\).*/\1/'`
+		
+		echo " ------------" >> info.txt
+		echo "  scontrol show jobid $jobid" >> info.txt
+		echo " ------------" >> info.txt
+		scontrol show jobid $jobid >> info.txt
 	fi
 }
 

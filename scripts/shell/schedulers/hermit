@@ -7,6 +7,10 @@
 
 function UJS_Submit
 {
+	if [ $walltime == "unlimited" ]; then
+		$walltime=01:00:00
+	fi
+	
 	if [ $((npe%nppn)) -ne 0 ]; then
 		echo "npe=$npe is not dividable by nppn=$nppn"
 		exit
@@ -42,7 +46,7 @@ function UJS_Submit
 	fi
 
 	# interactive: qsub -IX -l walltime=00:50:00 -l mppwidth=4 -l mppnppn=4
-	
+			
 	qsubargs="$qsubqueue -V -N $jobname -o job.output -e job.error -j oe -S /bin/bash -l walltime=$walltime $PBSnodes $pbsMail"
 
 	echo "echo \"cd $outdir; $qsubrun\" | qsub $qsubargs" >> info.txt

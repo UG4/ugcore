@@ -33,6 +33,11 @@ function UJS_Submit
 	if [ $verbose == true ]; then
 		# display more information, and also the actual call to the scheduler
 	fi
+	
+	# use this if you don't want to support unlimited walltimes.
+	if [ $walltime == "unlimited" ]; then
+		$walltime=01:00:00
+	fi
 
 	# call your scheduler command
 
@@ -47,6 +52,7 @@ function UJS_Submit
 	# you should write the job id in the variable jobid, for example	
 	# sleep 1
 	# jobid=`cat job.output | sed -n 1p | sed 's/salloc: Granted job allocation \([0-9]*\).*/\1/'`
+	# otherwise, set jobid to ?
 }
 
 

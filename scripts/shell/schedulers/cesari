@@ -8,8 +8,13 @@
 function UJS_Submit
 {
 	echo "Cluster: cesari. Scheduler: SLURM."
+		
+	local SlurmWalltime=""
+	if [ $walltime != "unlimited" ]; then
+		SlurmWalltime=--time=$walltime
+	fi
 	
-	SlurmMail=""
+	local SlurmMail=""
 	if [ $mail == true ]; then 
 		if [ -z "$UGSUBMIT_EMAIL" ]; then
 			echo "please set UGSUBMIT_EMAIL or specify email with -email. Aborting."
@@ -37,7 +42,7 @@ function UJS_Submit
 		SlurmMail="--mail-user=$UGSUBMIT_EMAIL --mail-type=$SlurmNotification"
 	fi
 
-	commandline="srun -N $nnodes -n $npe $SlurmMail --job-name=$jobname $executable $args"
+	commandline="srun -N $nnodes -n $npe $SlurmMail $SlurmWalltime --job-name=$jobname $executable $args"
 	echo " command:      "$commandline >> info.txt
 
 	if [ $test == true ]; then
@@ -63,7 +68,12 @@ function UJS_Submit
 		echo "Submit: $commandline"
 		nohup $commandline > $outdir/job.output &
 		sleep 1
-		jobid="?" #`cat job.output | sed -n 1p | sed 's/srun: job \([0-9]*\).*/\1/'`
+		jobid=`cat job.output | sed -n 1p | sed 's/srun: job \([0-9]*\).*/\1/'`
+		
+		echo " ------------" >> info.txt
+		echo "  scontrol show jobid $jobid" >> info.txt
+		echo " ------------" >> info.txt
+		scontrol show jobid $jobid >> info.txt
 	fi
 }
 

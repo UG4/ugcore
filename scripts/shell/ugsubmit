@@ -35,7 +35,7 @@
 # set default values
 test=false;
 nppn="max";
-walltime="00:10:00";  # walltime
+walltime="unlimited";  # walltime
 jobname="job";
 scriptname=$0;		  # name of script
 execpath=`pwd`;       # execution path of script
@@ -395,6 +395,7 @@ echo "" >> info.txt
 
 
 if [ $interactive == false ]; then
+	
 	if [ ! -e $execpath/ugjobs ]; then
 		echo "JOBID     EXECDATE      DIRECTORY" > $execpath/ugjobs
 	fi	
@@ -406,6 +407,11 @@ if [ $interactive == false ]; then
 		touch job.output
 		sleep 1; tail -f job.output
 	fi
+	
+	if [ $jobid != "?" ]; then
+		cd $execpath
+		ln -s $outdir jobid.$jobid
+	fi	
 fi
 
 if [ $verbose == true ]; then

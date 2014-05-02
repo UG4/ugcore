@@ -19,6 +19,7 @@ if [ -z "$UGSUBMIT_TYPE" ]; then
 	elif [ $HOSTNAME == "cesari.gcsc.uni-frankfurt.de" ]; then
 		UGSUBMIT_TYPE=cesari
 	else
+	    #echo $HOSTNAME
    		echo "please set UGSUBMIT_TYPE or specify cluster with -cluster".
    		exit
    	fi   	
