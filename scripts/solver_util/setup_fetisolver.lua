@@ -166,7 +166,6 @@ end
 --! \param linMaxIterations
 --! \param numProcs total number of processes
 --! \param u for testvector writer for FAMG (created by 'CreateAMGTestvector()')
---! \param dirichletBND for testvector writer for FAMG (created by 'CreateAMGTestvectorDirichlet0()');
 --! \param approxSpace for 'GridFunctionDebugWriter()'
 --! \param activateDbgWriter
 --! \param verbosity 0/1/2.
@@ -177,7 +176,7 @@ function SetupFETISolver(str_problem,
 			 linMaxIterations,
 			 numProcs,
 			 u,                         -- 
-			 dirichletBND, approxSpace, -- 
+			 approxSpace, -- 
 			 activateDbgWriter,
 			 verbosity, logfileName)
 
@@ -355,7 +354,7 @@ function SetupFETISolver(str_problem,
 	elseif coarseProblemSolverType == "hlib" then
 	
 		coarseproblemSolver = HLIB() -- create HLIB Solver
-		coarseproblemSolver:set_hlib_accuracy_H(1.e-4)
+		coarseproblemSolver:set_hlib_accuracy_H(1.0e-4)
 	
 	else
 		print ("ERROR: coarse problem solver not specified ==> exit")
