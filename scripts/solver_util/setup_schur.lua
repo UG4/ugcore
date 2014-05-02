@@ -75,7 +75,7 @@ function util.schur.GetPreconditioner(schurType, skeletonSolverType, schur_diric
 		elseif skeletonSolverType == "ILU" then
 			skeletonSolver = BiCGStab()
 			skeletonSolver:set_preconditioner(ILUT())
-			skeletonSolver:set_convergence_check(ConvCheck(1000, 1e-12, 1e-10, false))	
+			skeletonSolver:set_convergence_check(ConvCheck(10000, 1e-12, 1e-10, false))	
 		else
 			error("unknown skeletonSolver "..skeletonSolverType)
 		end
