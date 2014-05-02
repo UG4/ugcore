@@ -80,19 +80,29 @@ public:
 
 	virtual bool init(SmartPtr<SchurComplementOperator<TAlgebra> > op)
 	{
+		PROFILE_BEGIN(SchurInverseWithFullMatrix_init)
+
 		m_exactSchurOp = make_sp(new MatrixOperator<matrix_type, vector_type>);
-		op->compute_matrix(m_exactSchurOp->get_matrix());
+
+		PROFILE_BEGIN(SchurInverseWithFullMatrix_compute_matrix)
+			op->compute_matrix(m_exactSchurOp->get_matrix());
+		PROFILE_END();
+
 		op->set_skeleton_debug(m_linOpInv);
+
+		PROFILE_BEGIN(SchurInverseWithFullMatrix_init_solver)
 		return m_linOpInv->init(m_exactSchurOp);
 	}
 
 	virtual bool apply(vector_type& u, const vector_type& f)
 	{
+		PROFILE_BEGIN(SchurInverseWithFullMatrix_apply)
 		return m_linOpInv->apply(u, f);
 	}
 
 	virtual bool apply_return_defect(vector_type& u, vector_type& f)
 	{
+		PROFILE_BEGIN(SchurInverseWithFullMatrix_apply_return_defect)
 		return m_linOpInv->apply_return_defect(u, f);
 	}
 
@@ -130,6 +140,8 @@ public:
 
 	virtual bool init(SmartPtr<SchurComplementOperator<TAlgebra> > op)
 	{
+		PROFILE_BEGIN(SchurInverseWithAGammaGamma_init)
+
 		op->set_skeleton_debug(m_linSolver);
 		SmartPtr<IPreconditioner<TAlgebra> > precond =
 				m_linSolver->preconditioner().template cast_dynamic< IPreconditioner<TAlgebra> > ();
@@ -142,11 +154,13 @@ public:
 	}
 	virtual bool apply(vector_type& u, const vector_type& f)
 	{
+		PROFILE_BEGIN(SchurInverseWithAGammaGamma_apply)
 		return m_linSolver->apply(u, f);
 	}
 
 	virtual bool apply_return_defect(vector_type& u, vector_type& f)
 	{
+		PROFILE_BEGIN(SchurInverseWithAGammaGamma_apply_return_defect)
 		return m_linSolver->apply_return_defect(u, f);
 	}
 	virtual std::string config_string() const
