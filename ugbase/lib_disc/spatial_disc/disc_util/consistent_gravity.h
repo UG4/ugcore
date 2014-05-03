@@ -14,6 +14,516 @@
 
 namespace ug{
 
+/// Class for the computation of the standard version ('Voss-Souza-type') of the consistent gravity
+template <int refDim>
+class StdLinConsistentGravity
+{
+private:
+//	static constants
+	static const size_t _X_ = 0;
+	static const size_t _Y_ = 1;
+	static const size_t _Z_ = 2;
+	
+public:
+
+///	constructor (sets the 'not init.' flag)
+	StdLinConsistentGravity () : m_nCo (0) {};
+
+///	computation of the primary function for the consistent gravity at corners
+	template <int dim>
+	inline void prepare
+	(
+		MathVector<refDim>* vConsGravity, ///< where to save the values (n_co vectors)
+		const int n_co, ///< number of corners of the element
+		const MathVector<dim>* vCorners, ///< (global) coordinates of the corners (n_co vectors)
+		const number* vDensity, ///< corner density (n_co scalar values)
+		const MathVector<dim>& PhysicalGravity ///< the gravity vector
+	)
+	{
+		UG_THROW ("StdLinConsistentGravity: Combination of the world dim " << dim <<
+			"and the reference element dim " << refDim << " is not implemented.");
+	}
+	
+///	computation of the consistent gravity at a given point
+	template <int dim>
+	inline void compute
+	(
+		MathVector<dim>& ConsistentGravity, ///< where to save the vector
+		const MathVector<refDim>& LocalCoord, ///< local coordinates of the point
+		const MathMatrix<dim, refDim>& JTInv, ///< inverse transposed Jacobian
+		const MathVector<refDim>* vLocalGrad, ///< gradients of the shape functions at the given point
+		const MathVector<refDim>* vConsGravity ///< primary function of the consistent gravity at corners
+	)
+	{
+		UG_ASSERT (m_nCo > 0, "StdLinConsistentGravity: Object not initialized.");
+		
+		MathVector<dim> LocalGravity;
+		VecSet(LocalGravity, 0.0);
+		
+	//	Loop shape functions
+		for(size_t sh = 0; sh < (size_t) m_nCo; sh++)
+			for(size_t d = 0; d < refDim; d++)
+				LocalGravity[d] += vConsGravity[sh][d] * vLocalGrad[sh][d];
+
+	//	Multiply by JacobianTransposedInverse
+		MatVecMult(ConsistentGravity, JTInv, LocalGravity);
+	}
+	
+protected:
+	
+	int m_nCo; ///< number of corners of the element for which the object is init. (0 if not init)
+
+///	computation of the primary function for the consistent gravity at corners of a triangle
+	template <int dim>
+	inline void prepare_triangle
+	(
+		MathVector<2>* vConsGravity, ///< where to save the values (3 vectors)
+		const MathVector<dim>* vCorners, ///< (global) coordinates of the corners (3 vectors)
+		const number* vDensity, ///< corner density (3 scalar values)
+		const MathVector<dim>& PhysicalGravity ///< the gravity vector
+	)
+	{
+		MathVector<2> LocalPoint;
+		MathVector<2> LocalGravity;
+		MathMatrix<2,dim> JT;
+		static ReferenceMapping<ReferenceTriangle, dim> TriangleMapping;
+		TriangleMapping.update (vCorners);
+
+		/* compute the local gravity */
+		VecSet (LocalPoint, 0.0);
+		TriangleMapping.jacobian_transposed (JT, LocalPoint);
+		MatVecMult (LocalGravity, JT, PhysicalGravity);
+
+		vConsGravity[0][_X_] = 0.0; vConsGravity[2][_X_] = 0.0;
+		vConsGravity[1][_X_] = LocalGravity[_X_]*(vDensity[0] + vDensity[1])*0.5;
+
+		vConsGravity[0][_Y_] = 0.0; vConsGravity[1][_Y_] = 0.0;
+		vConsGravity[2][_Y_] = LocalGravity[_Y_]*(vDensity[0] + vDensity[2])*0.5;
+	}
+
+///	computation of the primary function for the consistent gravity at corners of a quadrilateral
+	template <int dim>
+	inline void prepare_quadrilateral
+	(
+		MathVector<2>* vConsGravity, ///< where to save the values (4 vectors)
+		const MathVector<dim>* vCorners, ///< (global) coordinates of the corners (4 vectors)
+		const number* vDensity, ///< corner density (4 scalar values)
+		const MathVector<dim>& PhysicalGravity ///< the gravity vector
+	)
+	{
+		MathVector<2> LocalPoint;
+		MathVector<2> LocalGravityAt000, LocalGravityAt110;
+		MathMatrix<2,dim> JT;
+		static ReferenceMapping<ReferenceQuadrilateral, dim> QuadMapping;
+		QuadMapping.update (vCorners);
+
+		/* compute the local gravity at local corner (0,0) */
+		VecSet (LocalPoint, 0.0);
+		QuadMapping.jacobian_transposed (JT, LocalPoint);
+		MatVecMult (LocalGravityAt000, JT, PhysicalGravity);
+
+		/* compute the local gravity at local corner (1,1) */
+		VecSet (LocalPoint, 1.0);
+		QuadMapping.jacobian_transposed (JT, LocalPoint);
+		MatVecMult (LocalGravityAt110, JT, PhysicalGravity);
+
+		vConsGravity[0][_X_] = 0.0; vConsGravity[3][_X_] = 0.0;
+		vConsGravity[1][_X_] = LocalGravityAt000[_X_]*(vDensity[0] + vDensity[1])*0.5;
+		vConsGravity[2][_X_] = LocalGravityAt110[_X_]*(vDensity[2] + vDensity[3])*0.5;
+
+		vConsGravity[0][_Y_] = 0.0; vConsGravity[1][_Y_] = 0.0;
+		vConsGravity[2][_Y_] = LocalGravityAt110[_Y_]*(vDensity[1] + vDensity[2])*0.5;
+		vConsGravity[3][_Y_] = LocalGravityAt000[_Y_]*(vDensity[0] + vDensity[3])*0.5;
+	}
+	
+///	computation of the primary function for the consistent gravity at corners of a tetrahedron
+	template <int dim>
+	inline void prepare_tetrahedron
+	(
+		MathVector<3>* vConsGravity, ///< where to save the values (4 vectors)
+		const MathVector<dim>* vCorners, ///< (global) coordinates of the corners (4 vectors)
+		const number* vDensity, ///< corner density (4 scalar values)
+		const MathVector<dim>& PhysicalGravity ///< the gravity vector
+	)
+	{
+		MathVector<3> LocalPoint;
+		MathVector<3> LocalGravity;
+		MathMatrix<3,dim> JT;
+		static ReferenceMapping<ReferenceTetrahedron, dim> TetMapping;
+		TetMapping.update (vCorners);
+
+		/* compute the local gravity */
+		LocalPoint.x() = 0.0; LocalPoint.y() = 0.0; LocalPoint.z() = 0.0;
+		TetMapping.jacobian_transposed (JT, LocalPoint);
+		MatVecMult (LocalGravity, JT, PhysicalGravity);
+
+		vConsGravity[0][_X_] = 0.0; vConsGravity[2][_X_] = 0.0; vConsGravity[3][_X_] = 0.0;
+		vConsGravity[1][_X_] = LocalGravity[_X_]*(vDensity[0] + vDensity[1])*0.5;
+
+		vConsGravity[0][_Y_] = 0.0; vConsGravity[1][_Y_] = 0.0; vConsGravity[3][_Y_] = 0.0;
+		vConsGravity[2][_Y_] = LocalGravity[_Y_]*(vDensity[0] + vDensity[2])*0.5;
+
+		vConsGravity[0][_Z_] = 0.0; vConsGravity[1][_Z_] = 0.0; vConsGravity[2][_Z_] = 0.0;
+		vConsGravity[3][_Z_] = LocalGravity[_Z_]*(vDensity[0] + vDensity[3])*0.5;
+	}
+	
+///	computation of the primary function for the consistent gravity at corners of a pyramid
+/**
+ * TODO: Verify this implementation! Cf. UG3.
+ */
+	template <int dim>
+	inline void prepare_pyramid
+	(
+		MathVector<3>* vConsGravity, ///< where to save the values (5 vectors)
+		const MathVector<dim>* vCorners, ///< (global) coordinates of the corners (5 vectors)
+		const number* vDensity, ///< corner density (5 scalar values)
+		const MathVector<dim>& PhysicalGravity ///< the gravity vector
+	)
+	{
+		MathVector<3> LocalPoint;
+		MathVector<3> LocalGravityAt000, LocalGravityAt110;
+		MathMatrix<3,dim> JT;
+		static ReferenceMapping<ReferencePyramid, dim> PyramidMapping;
+		PyramidMapping.update (vCorners);
+
+		/* compute the local gravity at local corner (0,0,0) */
+		LocalPoint.x() = 0.0; LocalPoint.y() = 0.0; LocalPoint.z() = 0.0;
+		PyramidMapping.jacobian_transposed (JT, LocalPoint);
+		MatVecMult (LocalGravityAt000, JT, PhysicalGravity);
+
+		/* compute the local gravity at local corner (1,1,0) */
+		LocalPoint.x() = 1.0; LocalPoint.y() = 1.0; LocalPoint.z() = 0.0;
+		PyramidMapping.jacobian_transposed (JT, LocalPoint);
+		MatVecMult (LocalGravityAt110, JT, PhysicalGravity);
+
+		vConsGravity[0][_X_] = 0.0; vConsGravity[3][_X_] = 0.0; vConsGravity[4][_X_] = 0.0;
+		vConsGravity[1][_X_] = LocalGravityAt000[_X_]*(vDensity[0] + vDensity[1])*0.5;
+		vConsGravity[2][_X_] = LocalGravityAt110[_X_]*(vDensity[2] + vDensity[3])*0.5;
+
+		vConsGravity[0][_Y_] = 0.0; vConsGravity[1][_Y_] = 0.0; vConsGravity[4][_Y_] = 0.0;
+		vConsGravity[2][_Y_] = LocalGravityAt110[_Y_]*(vDensity[1] + vDensity[2])*0.5;
+		vConsGravity[3][_Y_] = LocalGravityAt000[_Y_]*(vDensity[0] + vDensity[3])*0.5;
+
+		vConsGravity[0][_Z_] = 0.0; vConsGravity[1][_Z_] = 0.0;
+		vConsGravity[2][_Z_] = 0.0; vConsGravity[3][_Z_] = 0.0;
+		vConsGravity[4][_Z_] = LocalGravityAt000[_Z_]*(vDensity[0] + vDensity[4])*0.5;
+	}
+	
+///	computation of the primary function for the consistent gravity at corners of a prism
+	template <int dim>
+	inline void prepare_prism
+	(
+		MathVector<3>* vConsGravity, ///< where to save the values (6 vectors)
+		const MathVector<dim>* vCorners, ///< (global) coordinates of the corners (6 vectors)
+		const number* vDensity, ///< corner density (6 scalar values)
+		const MathVector<dim>& PhysicalGravity ///< the gravity vector
+	)
+	{
+		MathVector<3> LocalPoint;
+		MathVector<3> LocalGravityAt000, LocalGravityAt101, LocalGravityAt011;
+		MathMatrix<3,dim> JT;
+		static ReferenceMapping<ReferencePrism, dim> PrismMapping;
+		PrismMapping.update (vCorners);
+
+		/* compute the local gravity at local corner (0,0,0) */
+		LocalPoint.x() = 0.0; LocalPoint.y() = 0.0; LocalPoint.z() = 0.0;
+		PrismMapping.jacobian_transposed (JT, LocalPoint);
+		MatVecMult (LocalGravityAt000, JT, PhysicalGravity);
+
+		/* compute the local gravity at local corner (1,0,1) */
+		LocalPoint.x() = 1.0; LocalPoint.y() = 0.0; LocalPoint.z() = 1.0;
+		PrismMapping.jacobian_transposed (JT, LocalPoint);
+		MatVecMult (LocalGravityAt101, JT, PhysicalGravity);
+
+		/* compute the local gravity at local corner (0,1,1) */
+		LocalPoint.x() = 0.0; LocalPoint.y() = 1.0; LocalPoint.z() = 1.0;
+		PrismMapping.jacobian_transposed (JT, LocalPoint);
+		MatVecMult (LocalGravityAt011, JT, PhysicalGravity);
+
+		vConsGravity[0][_X_] = 0.0; vConsGravity[2][_X_] = 0.0;
+		vConsGravity[3][_X_] = 0.0; vConsGravity[5][_X_] = 0.0;
+		vConsGravity[1][_X_] = LocalGravityAt000[_X_]*(vDensity[0] + vDensity[1])*0.5;
+		vConsGravity[4][_X_] = LocalGravityAt011[_X_]*(vDensity[3] + vDensity[4])*0.5;
+
+		vConsGravity[0][_Y_] = 0.0; vConsGravity[1][_Y_] = 0.0;
+		vConsGravity[3][_Y_] = 0.0; vConsGravity[4][_Y_] = 0.0;
+		vConsGravity[2][_Y_] = LocalGravityAt000[_Y_]*(vDensity[0] + vDensity[2])*0.5;
+		vConsGravity[5][_Y_] = LocalGravityAt011[_Y_]*(vDensity[3] + vDensity[5])*0.5;
+
+		vConsGravity[0][_Z_] = 0.0; vConsGravity[1][_Z_] = 0.0; vConsGravity[2][_Z_] = 0.0;
+		vConsGravity[3][_Z_] = LocalGravityAt000[_Z_]*(vDensity[0] + vDensity[3])*0.5;
+		vConsGravity[4][_Z_] = LocalGravityAt101[_Z_]*(vDensity[1] + vDensity[4])*0.5;
+		vConsGravity[5][_Z_] = LocalGravityAt011[_Z_]*(vDensity[2] + vDensity[5])*0.5;
+	}
+	
+///	computation of the primary function for the consistent gravity at corners of a hexahedron
+	template <int dim>
+	inline void prepare_hexahedron
+	(
+		MathVector<3>* vConsGravity, ///< where to save the values (8 vectors)
+		const MathVector<dim>* vCorners, ///< (global) coordinates of the corners (8 vectors)
+		const number* vDensity, ///< corner density (8 scalar values)
+		const MathVector<dim>& PhysicalGravity ///< the gravity vector
+	)
+	{
+		MathVector<3> LocalPoint;
+		MathVector<3> LocalGravityAt000, LocalGravityAt110, LocalGravityAt101, LocalGravityAt011;
+		MathMatrix<3,dim> JT;
+		static ReferenceMapping<ReferenceHexahedron, dim> HexMapping;
+		HexMapping.update (vCorners);
+
+		/* compute the local gravity at local corner (0,0,0) */
+		LocalPoint.x() = 0.0; LocalPoint.y() = 0.0; LocalPoint.z() = 0.0;
+		HexMapping.jacobian_transposed (JT, LocalPoint);
+		MatVecMult (LocalGravityAt000, JT, PhysicalGravity);
+
+		/* compute the local gravity at local corner (1,1,0) */
+		LocalPoint.x() = 1.0; LocalPoint.y() = 1.0; LocalPoint.z() = 0.0;
+		HexMapping.jacobian_transposed (JT, LocalPoint);
+		MatVecMult (LocalGravityAt110, JT, PhysicalGravity);
+
+		/* compute the local gravity at local corner (1,0,1) */
+		LocalPoint.x() = 1.0; LocalPoint.y() = 0.0; LocalPoint.z() = 1.0;
+		HexMapping.jacobian_transposed (JT, LocalPoint);
+		MatVecMult (LocalGravityAt101, JT, PhysicalGravity);
+
+		/* compute the local gravity at local corner (0,1,1) */
+		LocalPoint.x() = 0.0; LocalPoint.y() = 1.0; LocalPoint.z() = 1.0;
+		HexMapping.jacobian_transposed (JT, LocalPoint);
+		MatVecMult (LocalGravityAt011, JT, PhysicalGravity);
+
+		vConsGravity[0][_X_] = 0.0; vConsGravity[3][_X_] = 0.0;
+		vConsGravity[4][_X_] = 0.0; vConsGravity[7][_X_] = 0.0;
+		vConsGravity[1][_X_] = LocalGravityAt000[_X_]*(vDensity[0] + vDensity[1])*0.5;
+		vConsGravity[2][_X_] = LocalGravityAt110[_X_]*(vDensity[2] + vDensity[3])*0.5;
+		vConsGravity[5][_X_] = LocalGravityAt101[_X_]*(vDensity[4] + vDensity[5])*0.5;
+		vConsGravity[6][_X_] = LocalGravityAt011[_X_]*(vDensity[6] + vDensity[7])*0.5;
+
+		vConsGravity[0][_Y_] = 0.0; vConsGravity[1][_Y_] = 0.0;
+		vConsGravity[4][_Y_] = 0.0; vConsGravity[5][_Y_] = 0.0;
+		vConsGravity[2][_Y_] = LocalGravityAt110[_Y_]*(vDensity[1] + vDensity[2])*0.5;
+		vConsGravity[3][_Y_] = LocalGravityAt000[_Y_]*(vDensity[0] + vDensity[3])*0.5;
+		vConsGravity[6][_Y_] = LocalGravityAt101[_Y_]*(vDensity[5] + vDensity[6])*0.5;
+		vConsGravity[7][_Y_] = LocalGravityAt011[_Y_]*(vDensity[4] + vDensity[7])*0.5;
+
+		vConsGravity[0][_Z_] = 0.0; vConsGravity[1][_Z_] = 0.0;
+		vConsGravity[2][_Z_] = 0.0; vConsGravity[3][_Z_] = 0.0;
+		vConsGravity[4][_Z_] = LocalGravityAt000[_Z_]*(vDensity[0] + vDensity[4])*0.5;
+		vConsGravity[5][_Z_] = LocalGravityAt101[_Z_]*(vDensity[1] + vDensity[5])*0.5;
+		vConsGravity[6][_Z_] = LocalGravityAt110[_Z_]*(vDensity[2] + vDensity[6])*0.5;
+		vConsGravity[7][_Z_] = LocalGravityAt011[_Z_]*(vDensity[3] + vDensity[7])*0.5;
+	}
+};
+
+/// faces (reference dimension 2)
+template <>
+template <int dim>
+void StdLinConsistentGravity<2>::prepare
+(
+	MathVector<2>* vConsGravity, ///< where to save the values (n_co vectors)
+	const int n_co, ///< number of corners of the element
+	const MathVector<dim>* vCorners, ///< (global) coordinates of the corners (n_co vectors)
+	const number* vDensity, ///< corner density (n_co scalar values)
+	const MathVector<dim>& PhysicalGravity ///< the gravity vector
+)
+{
+	switch (m_nCo = n_co)
+	{
+		case 3:
+			this->template prepare_triangle<dim> (vConsGravity, vCorners, vDensity, PhysicalGravity);
+			break;
+		case 4:
+			this->template prepare_quadrilateral<dim> (vConsGravity, vCorners, vDensity, PhysicalGravity);
+			break;
+		default:
+			UG_THROW ("StdLinConsistentGravity: Illegal number of corners ("
+				<< n_co << ") of an element with reference dimension 2.");
+	}
+}
+
+/// volumes (reference dimension 3)
+template <>
+template <int dim>
+void StdLinConsistentGravity<3>::prepare
+(
+	MathVector<3>* vConsGravity, ///< where to save the values (n_co vectors)
+	const int n_co, ///< number of corners of the element
+	const MathVector<dim>* vCorners, ///< (global) coordinates of the corners (n_co vectors)
+	const number* vDensity, ///< corner density (n_co scalar values)
+	const MathVector<dim>& PhysicalGravity ///< the gravity vector
+)
+{
+	switch (m_nCo = n_co)
+	{
+		case 4:
+			this->template prepare_tetrahedron<dim> (vConsGravity, vCorners, vDensity, PhysicalGravity);
+			break;
+		case 5:
+			this->template prepare_pyramid<dim> (vConsGravity, vCorners, vDensity, PhysicalGravity);
+			break;
+		case 6:
+			this->template prepare_prism<dim> (vConsGravity, vCorners, vDensity, PhysicalGravity);
+			break;
+		case 8:
+			this->template prepare_hexahedron<dim> (vConsGravity, vCorners, vDensity, PhysicalGravity);
+			break;
+		default:
+			UG_THROW ("StdLinConsistentGravity: Illegal number of corners ("
+				<< n_co << ") of an element with reference dimension 3.");
+	}
+}
+
+/// Class for the computation of the enhanced version ('Frolkovic-type') of the consistent gravity
+template <int refDim>
+class StdLinConsistentGravityX : public StdLinConsistentGravity<refDim>
+{
+	typedef StdLinConsistentGravity<refDim> base_type;
+	
+public:
+
+///	constructor
+	StdLinConsistentGravityX () {}
+	
+///	computation of the primary function for the consistent gravity at corners
+	template <int dim>
+	inline void prepare
+	(
+		MathVector<refDim>* vConsGravity, ///< where to save the values (n_co vectors)
+		const int n_co, ///< number of corners of the element
+		const MathVector<dim>* vCorners, ///< (global) coordinates of the corners (n_co vectors)
+		const number* vDensity, ///< corner density (n_co scalar values)
+		const MathVector<dim>& PhysicalGravity ///< the gravity vector
+	)
+	{
+		base_type::template prepare<dim>
+			(vConsGravity, n_co, vCorners, vDensity, PhysicalGravity);
+		// C.f. the specializations below for the enhanced version
+	}
+	
+///	computation of the consistent gravity at a given point
+	template <int dim>
+	inline void compute
+	(
+		MathVector<dim>& ConsistentGravity, ///< where to save the vector
+		const MathVector<refDim>& LocalCoord, ///< local coordinates of the point
+		const MathMatrix<dim, refDim>& JTInv, ///< inverse transposed Jacobian
+		const MathVector<refDim>* vLocalGrad, ///< gradients of the shape functions at the given point
+		const MathVector<refDim>* vConsGravity ///< primary function of the consistent gravity at corners
+	)
+	{
+		if (base_type::m_nCo > 0) // use the standard version
+			base_type::template compute<dim> (ConsistentGravity, LocalCoord, JTInv, vLocalGrad, vConsGravity);
+		else
+		{
+		//	special method for triangles and tetrahedra, currently only in the full dimension
+			UG_ASSERT (dim == refDim && base_type::m_nCo == -(refDim+1), "StdLinConsistentGravityX: Illegal initialization of the object.");
+		
+			MathVector<refDim> LocalGravity;
+			VecSet (LocalGravity, 0.0);
+			
+			for (size_t d = 0; d < refDim; d++)
+				LocalGravity[d] = vConsGravity[d+1][dim-1];
+	
+			//	multiply by JacobianTransposedInverse
+			MatVecMult(ConsistentGravity, JTInv, LocalGravity);
+			
+			//	correct the first coordinates
+			for (size_t d = 0; d < dim-1; d++)
+				for (size_t sh = 1; sh <= refDim; sh++)
+					ConsistentGravity[d] -= vConsGravity[sh][d] * LocalCoord[sh-1];
+		}
+	}
+	
+protected:
+	
+///	computation of the extended version of the corner consistent gravity for simplices (only in full dimension!)
+	template <typename refElem, int dim>
+	inline void prepare_simplex
+	(
+		MathVector<refDim>* vConsGravity, ///< where to save the values (dim+1 vectors)
+		const MathVector<dim>* vCorners, ///< (global) coordinates of the corners (dim+1 vectors)
+		const number* vDensity, ///< corner density (dim+1 scalar values)
+		const MathVector<dim>& PhysicalGravity ///< the gravity vector (MUST BE (0, ..., 0, g))
+	)
+	{
+		number DensityIP, Diff, gradient;
+		MathVector<refDim> LocalPoint;
+		MathVector<dim> ShiftedGlobalPoint;
+		MathMatrix<refDim,dim> JT;
+		static ReferenceMapping<refElem, dim> Mapping;
+		Mapping.update (vCorners);
+		Mapping.jacobian_transposed_inverse (JT, vCorners[0]); // the 2. argument is dummy
+
+		for (size_t i = 1; i < dim+1; i++)
+		{
+			VecSubtract (ShiftedGlobalPoint, vCorners[i], vCorners[0]);
+			Diff = ShiftedGlobalPoint [dim-1];
+
+			ShiftedGlobalPoint [dim-1] = 0.0;
+			TransposedMatVecMult (LocalPoint, JT, ShiftedGlobalPoint);
+			
+			DensityIP = 1;
+			for (size_t j = 0; j < dim; j++) DensityIP -= LocalPoint[j]; //GN(0)=1-local(0)-local(1)-...
+			DensityIP *= vDensity[0];
+			for (size_t j = 1; j < dim+1; j++)
+				DensityIP += vDensity[j] * LocalPoint[j-1]; //GN(j)=local(j-1) for j=1,2,...
+			
+			for(size_t j = 0; j < dim-1; ++j)
+			{
+				for (size_t k = 0; k < dim; k++) gradient = JT[j][k] * (vDensity[k] - vDensity[0]);
+				vConsGravity[i][j] = Diff * PhysicalGravity[dim-1] * gradient;
+			}
+			vConsGravity[i][dim-1] = Diff * PhysicalGravity[dim-1] * (vDensity[i] + DensityIP)*0.5;
+		}
+	}
+};
+
+/// faces (reference dimension 2)
+template <>
+template <int dim>
+void StdLinConsistentGravityX<2>::prepare
+(
+	MathVector<2>* vConsGravity, ///< where to save the values (n_co vectors)
+	const int n_co, ///< number of corners of the element
+	const MathVector<dim>* vCorners, ///< (global) coordinates of the corners (n_co vectors)
+	const number* vDensity, ///< corner density (n_co scalar values)
+	const MathVector<dim>& PhysicalGravity ///< the gravity vector
+)
+{
+	if (dim == 2 && n_co == 3 && PhysicalGravity[0] == 0.0) // use the enhanced version
+	{
+		m_nCo = -3;
+		this->template prepare_simplex<ReferenceTriangle, dim>
+			(vConsGravity, vCorners, vDensity, PhysicalGravity);
+	}
+	else // use the standard version
+		base_type::template prepare<dim>
+			(vConsGravity, n_co, vCorners, vDensity, PhysicalGravity);
+}
+
+/// volumes (reference dimension 3)
+template <>
+template <int dim>
+void StdLinConsistentGravityX<3>::prepare
+(
+	MathVector<3>* vConsGravity, ///< where to save the values (n_co vectors)
+	const int n_co, ///< number of corners of the element
+	const MathVector<dim>* vCorners, ///< (global) coordinates of the corners (n_co vectors)
+	const number* vDensity, ///< corner density (n_co scalar values)
+	const MathVector<dim>& PhysicalGravity ///< the gravity vector
+)
+{
+	if (dim == 3 && n_co == 4 && PhysicalGravity[0] == 0.0 && PhysicalGravity[1] == 0.0) // use the enhanced version
+	{
+		m_nCo = -4;
+		this->template prepare_simplex<ReferenceTetrahedron, dim>
+			(vConsGravity, vCorners, vDensity, PhysicalGravity);
+	}
+	else // use the standard version
+		base_type::template prepare<dim>
+			(vConsGravity, n_co, vCorners, vDensity, PhysicalGravity);
+}
+
 /// Implementation of the computation of the consistent gravity by P. Frolkovic.
 /**
  * Density driven flow models involve the convection velocity depending on the
@@ -356,12 +866,12 @@ inline bool PrepareConsistentGravity<3>(	MathVector<3>* vConsGravity,
 
  			/* compute the local gravity at local corner (0,0,0) */
 			LocalPoint.x() = 0.0; LocalPoint.y() = 0.0; LocalPoint.z() = 0.0;
-			TetMapping.jacobian_transposed(JT, LocalPoint);
+			PyramidMapping.jacobian_transposed(JT, LocalPoint);
 			MatVecMult(LocalGravityAt000, JT, PhysicalGravity);
 
 			/* compute the local gravity at local corner (1,1,0) */
 			LocalPoint.x() = 1.0; LocalPoint.y() = 1.0; LocalPoint.z() = 0.0;
-			TetMapping.jacobian_transposed(JT, LocalPoint);
+			PyramidMapping.jacobian_transposed(JT, LocalPoint);
 			MatVecMult(LocalGravityAt110, JT, PhysicalGravity);
 
 			vConsGravity[0][_X_] = 0.0; vConsGravity[3][_X_] = 0.0; vConsGravity[4][_X_] = 0.0;
