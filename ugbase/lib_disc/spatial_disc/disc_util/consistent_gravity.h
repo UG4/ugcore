@@ -15,6 +15,59 @@
 namespace ug{
 
 /// Class for the computation of the standard version ('Voss-Souza-type') of the consistent gravity
+/**
+ * Density driven flow models involve the convection velocity depending on the
+ * gradient of the pressure and the density-dependent gravity force, typically
+ * of the form \f$\mathbf{v} = \mathbf{K} (- \nabla p + \rho \mathbf{g}) / \mu\f$,
+ * where \f$\mathbf{K}\f$ is a matrix, \f$\mu\f$ a scalar, \f$\mathbf{g}\f$
+ * gravity vector (all independent of \f$p\f$ or \f$\rho\f$), \f$p\f$ is
+ * pressure, \f$rho\f$ is density (depending on the concentration, ...). (Both
+ * the pressure and the concentration are unknown grid functions in the PDEs.)
+ * Treating \f$p\f$ and \f$\rho\f$ as grid functions of the same class (like
+ * the piecewise linear/bilinear interpolations of nodal values) leads to oscillatory
+ * solutions because \f$\nabla p\f$ and \f$\rho \mathbf{g}\f$ belong to different
+ * classes of grid functions. In particular, if \f$p\f$ is a piecewise linear
+ * function, \f$\nabla p\f$ can never cancel the of the gravitaty force if 
+ * \f$\rho\f$ increases linearly from the top down, although this happens in the
+ * analytical solution. The idea of the consistent gravity is to consider a
+ * vector function \f$\mathbf{h} = (h_x, h_y, \dots)\f$ that is in some sence a
+ * primitive function for \f$\rho \mathbf{g}\f$ so that the velocity can be
+ * written as \f$\mathbf{v} = - \mathbf{K} (p_x - h_x, p_y - h_y, \dots) / \mu\f$.
+ * In the discretization, the function \f$\mathbf{h}\f$ should belong to the
+ * same class of the grid functions as \f$p\f$. In the present implementation,
+ * \f$\mathbf{h}\f$ is a piecewise linear/bilinear grid function.
+ *
+ * Class method 'prepare' computes the values of \f$h\f$ at the corners
+ * of an element. Using these values, method 'compute' computes the
+ * consistent gravity force \f$\rho \mathbf{g}\f$ (not \f$\mathbf{h}\f$!) at any
+ * given point.
+ *
+ * \remark (Consistent gravity in the computation of the Jacobian)
+ * The consistent gravity computed by the implemented methods depends linearly
+ * on the density. Thus, to compute the derivative of the consistent gravity
+ * w.r.t. the density at one of the corners of the element, set the density to
+ * 1 at that corner and to 0 at all other corners, then call the functions. Then
+ * 'prepare' prepares the nodal values of the derivatives and 'compute' computes
+ * the derivative itself.
+ *
+ * Alternatively, you can set the density at that corner to the derivative
+ * of the density w.r.t. the concentration (instead of 1). Then you get
+ * directly the derivative of the consistent gravity w.r.t. the concentration
+ * at that node.
+ *
+ * \remark There is an enhanced version of the consistent gravity. \see StdLinConsistentGravityX
+ *
+ * References:
+ * <ul>
+ *  <li> P. Frolkovic, P. Knabner, Consistent Velocity Approximations in Finite
+ *       Element or Volume Discretizations of Density Driven Flow, In: Computational
+ *       Methods in WaterResources XI, Vol. 1 (A.A. Aldama et al., eds.),
+ *       Computational Mechanics Publication, Southhampten, 1996, p. 93-100
+ *  </li>
+ * </ul>
+ *
+ * \tparam refDim	dimensionality of the reference element (e.g. 2 for triangles, 3 for tetrahedra)
+ */
 template <int refDim>
 class StdLinConsistentGravity
 {
@@ -29,7 +82,7 @@ public:
 ///	constructor (sets the 'not init.' flag)
 	StdLinConsistentGravity () : m_nCo (0) {};
 
-///	computation of the primary function for the consistent gravity at corners
+///	computation of the primary function for the consistent gravity at corners, cf. the specializations
 	template <int dim>
 	inline void prepare
 	(
@@ -73,6 +126,31 @@ protected:
 	
 	int m_nCo; ///< number of corners of the element for which the object is init. (0 if not init)
 
+///	computation of the primary function for the consistent gravity at corners of an edge
+	template <int dim>
+	inline void prepare_edge
+	(
+		MathVector<1>* vConsGravity, ///< where to save the values (2 vectors)
+		const MathVector<dim>* vCorners, ///< (global) coordinates of the corners (2 vectors)
+		const number* vDensity, ///< corner density (2 scalar values)
+		const MathVector<dim>& PhysicalGravity ///< the gravity vector
+	)
+	{
+		MathVector<1> LocalPoint;
+		MathVector<1> LocalGravity;
+		MathMatrix<1,dim> JT;
+		static ReferenceMapping<ReferenceEdge, dim> EdgeMapping;
+		EdgeMapping.update (vCorners);
+
+		/* compute the local gravity */
+		VecSet (LocalPoint, 0.0);
+		EdgeMapping.jacobian_transposed (JT, LocalPoint);
+		MatVecMult (LocalGravity, JT, PhysicalGravity);
+
+		vConsGravity[0][_X_] = 0.0;
+		vConsGravity[1][_X_] = LocalGravity[_X_]*(vDensity[0] + vDensity[1])*0.5;
+	}
+	
 ///	computation of the primary function for the consistent gravity at corners of a triangle
 	template <int dim>
 	inline void prepare_triangle
@@ -315,7 +393,24 @@ protected:
 	}
 };
 
-/// faces (reference dimension 2)
+/// spacialization of the method for edges (reference dimension 1)
+template <>
+template <int dim>
+void StdLinConsistentGravity<1>::prepare
+(
+	MathVector<1>* vConsGravity, ///< where to save the values (n_co vectors)
+	const int n_co, ///< number of corners of the element (should be 2)
+	const MathVector<dim>* vCorners, ///< (global) coordinates of the corners (n_co vectors)
+	const number* vDensity, ///< corner density (n_co scalar values)
+	const MathVector<dim>& PhysicalGravity ///< the gravity vector
+)
+{
+	UG_ASSERT (n_co == 2, "StdLinConsistentGravity: Illegal number of corners of an edge.");
+	m_nCo = n_co;
+	this->template prepare_edge<dim> (vConsGravity, vCorners, vDensity, PhysicalGravity);
+}
+
+/// spacialization of the method for faces (reference dimension 2)
 template <>
 template <int dim>
 void StdLinConsistentGravity<2>::prepare
@@ -341,7 +436,7 @@ void StdLinConsistentGravity<2>::prepare
 	}
 }
 
-/// volumes (reference dimension 3)
+/// spacialization of the method for volumes (reference dimension 3)
 template <>
 template <int dim>
 void StdLinConsistentGravity<3>::prepare
@@ -374,6 +469,24 @@ void StdLinConsistentGravity<3>::prepare
 }
 
 /// Class for the computation of the enhanced version ('Frolkovic-type') of the consistent gravity
+/**
+ * Implementation of the enhanced ('Frolkovic-type') version of the consistent
+ * gravity for simplices (triangles and tetrahedra) in the case of the gravity
+ * force parallel to the z-axis. For all other elements and other gravities,
+ * the same method as in StdLinConsistentGravity is used.
+ * \see StdLinConsistentGravity
+ *
+ * References:
+ * <ul>
+ *  <li> P. Frolkovic, Consistent velocity approximation for density driven
+ *       flow and transport, In: Advanced Computational Methods in Engineering,
+ *       Part 2: Contributed papers; (R. Van Keer at al., eds.), Shaker Publishing,
+ *       Maastricht, 1998, p. 603-611
+ *  </li>
+ * </ul>
+ *
+ * \tparam refDim	dimensionality of the reference element (e.g. 2 for triangles, 3 for tetrahedra)
+ */
 template <int refDim>
 class StdLinConsistentGravityX : public StdLinConsistentGravity<refDim>
 {
@@ -384,7 +497,7 @@ public:
 ///	constructor
 	StdLinConsistentGravityX () {}
 	
-///	computation of the primary function for the consistent gravity at corners
+///	computation of the primary function for the consistent gravity at corners, cf. the specializations
 	template <int dim>
 	inline void prepare
 	(
@@ -478,7 +591,7 @@ protected:
 	}
 };
 
-/// faces (reference dimension 2)
+/// spacialization of the method for faces (reference dimension 2)
 template <>
 template <int dim>
 void StdLinConsistentGravityX<2>::prepare
@@ -501,7 +614,7 @@ void StdLinConsistentGravityX<2>::prepare
 			(vConsGravity, n_co, vCorners, vDensity, PhysicalGravity);
 }
 
-/// volumes (reference dimension 3)
+/// spacialization of the method for volumes (reference dimension 3)
 template <>
 template <int dim>
 void StdLinConsistentGravityX<3>::prepare
@@ -916,7 +1029,7 @@ inline bool PrepareConsistentGravity<3>(	MathVector<3>* vConsGravity,
 	return true;
 }
 
-/// Computes the consistent gravity at a given point. \see{PrepareConsistentGravity}
+/// Computes the consistent gravity at a given point. \see PrepareConsistentGravity
 template <int dim>
 bool ComputeConsistentGravity(	MathVector<dim>& ConsistentGravity,
 								const size_t coe,
