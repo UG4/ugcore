@@ -78,13 +78,19 @@ UG_API lua_State* GetDefaultLuaState();
 /**	This method is useful, if you want to restart scripting from scratch.*/
 UG_API void ReleaseDefaultLuaState();
 
-///	parses and executes a buffer
-/**	Throws an instance of LuaError, if a parse error occurs.*/
-UG_API bool ParseBuffer(const char* buffer, const char *bufferName="buffer");
+/**
+ * Parses the content of buffer and executes it in the default lua state
+ * @param buffer		the buffer to be executed
+ * @param bufferName	name of the buffer (for error messages)
+ * @return				true on success, otherwise throw(LuaError)
+ * Throws an instance of LuaError, if a parse error occurs.
+ */
+UG_API bool ParseAndExecuteBuffer(const char* buffer, const char *bufferName="buffer");
 
 ///	parses and executes a file
 /**	Throws an instance of LuaError, if a parse error occurs.*/
-UG_API bool ParseFile(const char* filename);
+// deprecated ... use LoadScript instead
+// UG_API bool ParseAndExecuteFile(const char* filename);
 
 /// UGLuaPrint. Redirects LUA prints to UG_LOG
 UG_API int UGLuaPrint(lua_State *L);

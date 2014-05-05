@@ -329,9 +329,9 @@ int main(int argc, char* argv[])
 			CATCH_STD_EXCEPTIONS();
 
 //#ifdef UG_DEBUG
-			script::ParseBuffer("if util ~= nil and util.CheckAndPrintHelp ~= nil then util.CheckAndPrintHelp(\"\\n-help: Available Command Line Arguments:\") end\n"
+			script::ParseAndExecuteBuffer("if util ~= nil and util.CheckAndPrintHelp ~= nil then util.CheckAndPrintHelp(\"\\n-help: Available Command Line Arguments:\") end\n"
 						"if util ~= nil and util.PrintIgnoredArguments ~= nil then print(\"\") util.PrintIgnoredArguments() end\n"
-								, "");
+								, "ugshell_main");
 //#endif
 			if(FindParam("-noquit", argc, argv))
 				runInteractiveShell = true;

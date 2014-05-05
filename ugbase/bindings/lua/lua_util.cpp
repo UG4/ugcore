@@ -50,28 +50,51 @@ namespace script
 #define PL_COULDNT_READ -1
 
 
-
-bool GetAbsoluteFilename(const string &relativeFilename, string &absoluteFilename)
+/**
+ *
+ * @param filename
+ * @param returnedFilename
+ * @return true if a file can be found at filename
+ */
+bool GetNormalFilename(const string &filename, string &returnedFilename)
 {
-	if(FileExists(relativeFilename.c_str())==false) return false;
-	absoluteFilename = relativeFilename;
+	if(FileExists(filename.c_str())==false) return false;
+	returnedFilename = filename;
 	return true;
 }
 
 
+/**
+ * say UG4ROOT is the root path of ug4 (containing ugbase, apps, scripts and so on)
+ * This function will search a file (in this order)
+ * 1.) relative to the current script path.
+ * 2.) as a normal, i.e. absolute or relative to the working directory, filename
+ * 3.) relative to SCRIPT_PATH (normally UG4ROOT/scripts)
+ * 4.) relative to APPS_PATH (normally UG4ROOT/apps)
+ * 5.) relative to UG4ROOT
+ * @param filename
+ * @param absoluteFilename
+ * @return true if a file could be found at one of the locations
+ */
 bool GetAbsoluteUGScriptFilename(const string &filename, string &absoluteFilename)
 {
 	PROFILE_FUNC();
 	return PathProvider::get_filename_relative_to_current_path(filename, absoluteFilename)
-			|| GetAbsoluteFilename(filename, absoluteFilename)
+			|| GetNormalFilename(filename, absoluteFilename)
 			|| PathProvider::get_filename_relative_to_path(SCRIPT_PATH, filename, absoluteFilename)
 			|| PathProvider::get_filename_relative_to_path(APPS_PATH, filename, absoluteFilename)
 			|| PathProvider::get_filename_relative_to_path(ROOT_PATH, filename, absoluteFilename);
 }
 
 
-
-bool LoadUGScript(const char *_filename, bool bDistributedLoad)
+/**
+ *
+ * @param _filename			the 'relative' script name. \sa GetAbsoluteUGScriptFilename
+ * @param bDistributedLoad	true if loading should be done in parallel
+ * @param bThrowOnError		true if errors should be thrown as UGError, else as return false
+ * @return true if script could be found and read, false (or UGError) if not
+ */
+bool LoadUGScript(const char *_filename, bool bDistributedLoad, bool bThrowOnError)
 {
 	PROFILE_FUNC();
 	string filename=_filename;
@@ -91,7 +114,7 @@ bool LoadUGScript(const char *_filename, bool bDistributedLoad)
 #endif
 	if(bSuccess == false)
 	{
-		UG_LOG("Couldn't find script " << _filename << endl);
+		if(bThrowOnError) { UG_THROW("Couldn't find script " << _filename << endl); }
 		return false;
 	}
 #ifdef UG_PARALLEL
@@ -100,17 +123,20 @@ bool LoadUGScript(const char *_filename, bool bDistributedLoad)
 	if(ReadFile(absoluteFilename.c_str(), file, true) == false)
 #endif
 	{
-		UG_LOG("Couldn't read script " << absoluteFilename << endl);
+		if(bThrowOnError) { UG_THROW("Couldn't read script " << absoluteFilename << endl); }
 		return false;
 	}
 
+
+	// the current script working path is the path of the script
 	std::string curPath = PathFromFilename(absoluteFilename);
 	PathProvider::push_current_path(curPath);
-	bool success = ParseBuffer(&file[0], (string("@")+absoluteFilename).c_str());
-	//bool success = ParseFile(absoluteFilename.c_str());
+	{
+		// parse and execute the script.
+		bSuccess = ParseAndExecuteBuffer(&file[0], (string("@")+absoluteFilename).c_str());
+	}
 	PathProvider::pop_current_path();
-
-	return success;
+	return bSuccess;
 }
 
 
@@ -118,11 +144,11 @@ bool LoadUGScript(const char *_filename, bool bDistributedLoad)
 
 bool LoadUGScript_Parallel(const char* filename)
 {
-	return LoadUGScript(filename, true);
+	return LoadUGScript(filename, true, true);
 }
 bool LoadUGScript_Single(const char* filename)
 {
-	return LoadUGScript(filename, false);
+	return LoadUGScript(filename, false, true);
 }
 
 static ug::bridge::Registry* g_pRegistry = NULL;
@@ -137,8 +163,6 @@ static void UpdateScriptAfterRegistryChange(ug::bridge::Registry* pReg)
 	ug::bridge::lua::CreateBindings_LUA(GetDefaultLuaState(),
 										*pReg);
 }
-
-
 
 void RegisterDefaultLuaBridge(ug::bridge::Registry* reg, std::string grp)
 {
@@ -226,13 +250,8 @@ int luaCallStackError( lua_State *L )
     return 1;
 }
 
-/**
- * Parses the content of buffer and executes it in the default lua state
- * @param buffer		the buffer to be executed
- * @param bufferName	name of the buffer (for error messages)
- * @return				true on success, otherwise throw(LuaError)
- */
-bool ParseBuffer(const char* buffer, const char *bufferName)
+
+bool ParseAndExecuteBuffer(const char* buffer, const char *bufferName)
 {
 	PROFILE_FUNC();
 	lua_State* L = GetDefaultLuaState();
@@ -269,33 +288,8 @@ bool ParseBuffer(const char* buffer, const char *bufferName)
  * @param filename		the buffer to be executed
  * @return				true on success, otherwise throw(LuaError)
  */
-bool ParseFile(const char* filename)
-{
-	lua_State* L = GetDefaultLuaState();
+// bool ParseFile(const char* filename) deprecated ... use LoadScript instead
 
-	lua_pushcfunction(L, luaCallStackError);
-
-	PROFILE_BEGIN(luaL_loadfile);
-	int error = luaL_loadfile(L, filename);
-	PROFILE_END_(luaL_loadfile);
-
-	if(error == 0)
-	{
-		PROFILE_BEGIN(lua_pcall);
-		error = lua_pcall(L, 0, 0, -2);
-	}
-
-	if(error)
-	{
-		string msg = lua_tostring(L, -1);
-		lua_pop(L, 1);
-		if(msg.find("__UG__LUA__EMPTY__MSG__") == string::npos)
-			throw(LuaError(msg.c_str()));
-		else
-			throw(LuaError());
-	}
-	return true;
-}
 
 /// UGLuaPrint. Redirects LUA prints to UG_LOG
 int UGLuaPrint(lua_State *L)
@@ -434,14 +428,21 @@ int UGIsBaseClass(lua_State *L)
 
 	return 0;
 }
-
+/**
+ * create ugargc and ugargv in lua
+ * we want to forward argc and argv to the lua-environment.
+ * we'll create a table for that.
+ * Please note that ugargv will neither contain the name of the program, nor
+ * the script, if one was specified.
+ * @param L					the LUA state
+ * @param argc				the commandline argc
+ * @param argv				the commandline argv
+ * @param firstParamIndex	first argv to consider
+ * @param iNoQuit			index where to skip -noquit
+ */
 void SetLuaUGArgs(lua_State* L, int argc, char* argv[], int firstParamIndex, int iNoQuit)
 {
-//	create ugargc and ugargv in lua
-	//	we want to forward argc and argv to the lua-environment.
-	//	we'll create a table for that.
-	//	Please note that ugargv will neither contain the name of the program, nor
-	//	the script, if one was specified.
+
 	lua_newtable(L);
 	int ugargc=0;
 	for(int i = firstParamIndex; i < argc; ++i){

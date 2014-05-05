@@ -634,7 +634,7 @@ void SetLuaDebug(lua_State* L, string id)
 		//string p = std::string("") + "debugID." + pre+sub + " = " + "debugID." + pre+sub + " or {}\n" + "function debugID." + pre+sub + ".set_group_level(level) GetLogAssistant():set_debug_level(\"" + pre+sub + ".*\", level) end\n";
 		string p = std::string("") + "debugID." + pre+sub + " = " + "debugID." + pre+sub + " or {}\n" + "debugID." + pre+sub + ".id = \"" + pre+sub + "\"\n";
 		//UG_LOGN(p);
-		script::ParseBuffer(p.c_str(), "");
+		script::ParseAndExecuteBuffer(p.c_str(), "SetLuaDebug");
 		pre = pre+sub+".";
 
 	}
@@ -643,19 +643,19 @@ void SetLuaDebug(lua_State* L, string id)
 //	string p = std::string("") + "debugID." + name + " = " + "debugID." + name + " or {}\n" + "function debugID." + name + ".set_level(level) GetLogAssistant():set_debug_level(\"" + name + "\", level) end\n";
 	string p = std::string("") + "debugID." + name + " = " + "debugID." + name + " or {}\n" + "debugID." + name + ".id = \"" + name + "\"\n";
 	//UG_LOGN(p);
-	script::ParseBuffer(p.c_str(), "");
+	script::ParseAndExecuteBuffer(p.c_str(), "SetLuaDebug");
 }
 
 void SetLuaDebugIDs(lua_State* L)
 {
-	script::ParseBuffer(
+	script::ParseAndExecuteBuffer(
 			"debugID = {}\n"
 			"function SetDebugLevel(did, level)\n"
 			"if(did == nil) then\n"
 			"print(\"ERROR: Debug Node not existing. Perhaps you did not include the plugin?\")\n"
 			"DebugBacktrace()"
 			"else GetLogAssistant():set_debug_level((did.id) ..\"*\", level) end end",
-			"");
+			"SetLuaDebugIDs");
 	const vector<string> &s = DebugIDManager::instance().get_registered_debug_IDs_arr();
 	for(size_t i=0; i<s.size(); i++)
 		SetLuaDebug(L, s[i]);

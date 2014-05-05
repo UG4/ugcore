@@ -41,6 +41,7 @@ using namespace std;
 
 namespace ug{
 
+
 using namespace script;
 namespace bridge
 {
@@ -114,7 +115,7 @@ int RunShell(const char *prompt)
 
 		PROFILE_BEGIN(ug_readline);
 			string buf = ug_readline(prompt);
-		PROFILE_END();
+		PROFILE_END_(ug_readline);
 
 #if defined(UG_USE_LINENOISE)
 		SetOtherCompletions(NULL, 0);
@@ -135,14 +136,14 @@ int RunShell(const char *prompt)
 			}
 			if(len > 6 && strncmp(buf.c_str(), "print ", 6)==0 && buf[6] != '(')
 			{
-				script::ParseBuffer((std::string("PrintTemporaryObject=")+buf.substr(6)).c_str(), "debug shell");
+				script::ParseAndExecuteBuffer((std::string("PrintTemporaryObject=")+buf.substr(6)).c_str(), "debug shell");
 				bridge::UGTypeInfo("PrintTemporaryObject");
 				continue;
 			}
 
 			try
 			{
-				script::ParseBuffer(buf.c_str(), "interactive shell");
+				script::ParseAndExecuteBuffer(buf.c_str(), "interactive shell");
 			}
 			catch(LuaError& err)
 			{
@@ -173,7 +174,9 @@ int RunShell(const char *prompt)
 // debug shell
 debug_return DebugShell()
 {
+
 	static string last="";
+
 	ug::bridge::LuaStackTrace();
 	//ug::bridge::LuaPrintCurrentLine(GetDefaultLuaState());
 
@@ -195,7 +198,7 @@ debug_return DebugShell()
 #endif
 		PROFILE_BEGIN(ug_readline);
 			string buf = ug_readline("debug:> ");
-		PROFILE_END();
+		PROFILE_END_(ug_readline);
 
 #if defined(UG_USE_LINENOISE)
 		SetOtherCompletions(NULL, 0);
@@ -247,7 +250,7 @@ debug_return DebugShell()
 		}
 		else if(len > 6 && strncmp(buf.c_str(), "print ", 6)==0 && buf[6] != '(')
 		{
-			script::ParseBuffer((std::string("PrintTemporaryObject=")+buf.substr(6)).c_str(), "debug shell");
+			script::ParseAndExecuteBuffer((std::string("PrintTemporaryObject=")+buf.substr(6)).c_str(), "debug shell");
 			bridge::UGTypeInfo("PrintTemporaryObject");
 			continue;
 		}
@@ -263,7 +266,7 @@ debug_return DebugShell()
 
 			try
 			{
-				script::ParseBuffer(buf.c_str(), "debug shell");
+				script::ParseAndExecuteBuffer(buf.c_str(), "debug shell");
 			}
 			catch(LuaError& err)
 			{
