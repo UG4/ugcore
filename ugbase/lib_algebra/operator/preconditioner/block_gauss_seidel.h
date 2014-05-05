@@ -258,6 +258,80 @@ void GetSliceSparse(const TSparseMatrixType &A, const std::vector<size_t> &indic
 	R.defragment();
 }
 
+
+template<typename TAlgebra>
+class IBlockJacobiPreconditioner : public IPreconditioner<TAlgebra>
+{
+	public:
+	//	Algebra type
+		typedef TAlgebra algebra_type;
+
+	//	Vector type
+		typedef typename TAlgebra::vector_type vector_type;
+
+	//	Matrix type
+		typedef typename TAlgebra::matrix_type matrix_type;
+
+	///	Matrix Operator type
+		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
+
+
+
+	protected:
+#ifdef 	UG_PARALLEL
+		matrix_type A;
+#endif
+		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
+		{
+
+			matrix_type &mat = *pOp;
+
+#ifdef 	UG_PARALLEL
+			A = mat;
+			MatAddSlaveRowsToMasterRowOverlap0(A);
+
+		//	set zero on slaves
+			std::vector<IndexLayout::Element> vIndex;
+			CollectUniqueElements(vIndex,  mat.layouts()->slave());
+			SetDirichletRow(A, vIndex);
+			return block_preprocess(A);
+#else
+			return block_preprocess(A);
+#endif
+		}
+
+		//	Preprocess routine
+		virtual bool block_preprocess(matrix_type &A) = 0;
+
+	//	Postprocess routine
+		virtual bool postprocess() {return true;}
+		virtual bool supports_parallel() const { return true; }
+
+		SmartPtr<vector_type> m_spDtmp;
+
+	//	Stepping routine
+		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
+		{
+#ifdef UG_PARALLEL
+			if(!m_spDtmp.valid() || m_spDtmp->size() != d.size())
+				m_spDtmp = d.clone();
+			else
+				(*m_spDtmp) = d;
+			m_spDtmp->change_storage_type(PST_UNIQUE);
+			bool b = block_step(A, c, *m_spDtmp);
+			c.set_storage_type(PST_ADDITIVE);
+			c.change_storage_type(PST_CONSISTENT);
+			return b;
+#else
+			return block_step(*pOp, c, d);
+#endif
+			return true;
+		}
+
+		//	Stepping routine
+		virtual bool block_step(matrix_type &A, vector_type& c, const vector_type& d) = 0;
+};
+
 /**
  * BlockGaussSeidel
  * use the constructor or set_depth to set the depth
@@ -267,7 +341,7 @@ void GetSliceSparse(const TSparseMatrixType &A, const std::vector<size_t> &indic
  * depth = 3 ...
  */
 template <typename TAlgebra, bool backward, bool forward>
-class BlockGaussSeidel : public IPreconditioner<TAlgebra>
+class BlockGaussSeidel : public IBlockJacobiPreconditioner<TAlgebra>
 {
 	public:
 	//	Algebra type
@@ -328,17 +402,13 @@ class BlockGaussSeidel : public IPreconditioner<TAlgebra>
 			m_depth = d;
 		}
 
-
 	protected:
 	//	Name of preconditioner
 		virtual const char* name() const {return "BlockGaussSeidel";}
 
-
 		//	Preprocess routine
-		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
+		virtual bool block_preprocess(matrix_type &A)
 		{
-			matrix_type &A = *pOp;
-
 			size_t N = A.num_rows();
 			DenseMatrix<VariableArray2<smallmat_type> > tmpMat;
 
@@ -379,10 +449,9 @@ class BlockGaussSeidel : public IPreconditioner<TAlgebra>
 		virtual bool supports_parallel() const { return true; }
 
 		//	Stepping routine
-		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
+		virtual bool block_step(matrix_type &A, vector_type& c, const vector_type& d)
 		{
 			PROFILE_BEGIN(BlockGaussSeidel_step);
-			matrix_type &A = *pOp;
 			vector_type &x = c;
 			x.set(0.0);
 			vector_type b;
@@ -426,7 +495,7 @@ class BlockGaussSeidel : public IPreconditioner<TAlgebra>
 
 
 template <typename TAlgebra, bool backward, bool forward>
-class BlockGaussSeidelIterative : public IPreconditioner<TAlgebra>
+class BlockGaussSeidelIterative : public IBlockJacobiPreconditioner<TAlgebra>
 {
 	public:
 	//	Algebra type
@@ -501,11 +570,10 @@ class BlockGaussSeidelIterative : public IPreconditioner<TAlgebra>
 		}
 
 
-		//	Preprocess routine
-		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
-		{
-			matrix_type &A = *pOp;
 
+		//	Preprocess routine
+		virtual bool block_preprocess(matrix_type &A)
+		{
 			size_t N = A.num_rows();
 			indices.resize(N);
 
@@ -559,10 +627,9 @@ class BlockGaussSeidelIterative : public IPreconditioner<TAlgebra>
 		size_t m_nu;
 
 		//	Stepping routine
-		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
+		virtual bool block_step(matrix_type &A, vector_type& c, const vector_type& d)
 		{
 			PROFILE_BEGIN(BlockGaussSeidelIterative_step);
-			matrix_type &A = *pOp;
 			vector_type &x = c;
 			x.set(0.0);
 			vector_type b;
@@ -613,7 +680,7 @@ class BlockGaussSeidelIterative : public IPreconditioner<TAlgebra>
  * b) tries to use some overlapping blocks (BlockGaussSeidel always uses N blocks)
  */
 template <typename TAlgebra, bool backward, bool forward>
-class SparseBlockGaussSeidel : public IPreconditioner<TAlgebra>
+class SparseBlockGaussSeidel : public IBlockJacobiPreconditioner<TAlgebra>
 {
 	public:
 	//	Algebra type
@@ -680,10 +747,8 @@ class SparseBlockGaussSeidel : public IPreconditioner<TAlgebra>
 		virtual const char* name() const {return "SparseBlockGaussSeidel";}
 
 		//	Preprocess routine
-		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
+		virtual bool block_preprocess(matrix_type &A)
 		{
-			matrix_type &A = *pOp;
-
 			size_t N = A.num_rows();
 			DenseMatrix<VariableArray2<smallmat_type> > tmpMat;
 
@@ -741,9 +806,8 @@ class SparseBlockGaussSeidel : public IPreconditioner<TAlgebra>
 		virtual bool supports_parallel() const { return true; }
 
 		//	Stepping routine
-		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
+		virtual bool block_step(matrix_type &A, vector_type& c, const vector_type& d)
 		{
-			matrix_type &A = *pOp;
 			vector_type &x = c;
 			x.set(0.0);
 			vector_type b;
@@ -800,7 +864,7 @@ class SparseBlockGaussSeidel : public IPreconditioner<TAlgebra>
  * b) tries to use some overlapping blocks (BlockGaussSeidel always uses N blocks)
  */
 template <typename TAlgebra, bool backward, bool forward>
-class SparseBlockGaussSeidel2 : public IPreconditioner<TAlgebra>
+class SparseBlockGaussSeidel2 : public IBlockJacobiPreconditioner<TAlgebra>
 {
 	public:
 	//	Algebra type
@@ -867,10 +931,8 @@ class SparseBlockGaussSeidel2 : public IPreconditioner<TAlgebra>
 		virtual const char* name() const {return "SparseBlockGaussSeidel2";}
 
 		//	Preprocess routine
-		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
+		virtual bool block_preprocess(matrix_type &A)
 		{
-			matrix_type &A = *pOp;
-
 			size_t N = A.num_rows();
 			DenseMatrix<VariableArray2<smallmat_type> > tmpMat;
 			m_ilut.clear();
@@ -943,9 +1005,8 @@ class SparseBlockGaussSeidel2 : public IPreconditioner<TAlgebra>
 		virtual bool supports_parallel() const { return true; }
 
 		//	Stepping routine
-		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
+		virtual bool block_step(matrix_type &A, vector_type& c, const vector_type& d)
 		{
-			matrix_type &A = *pOp;
 			vector_type &x = c;
 			x.set(0.0);
 			vector_type b;
