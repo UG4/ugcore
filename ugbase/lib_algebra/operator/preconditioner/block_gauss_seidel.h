@@ -296,7 +296,7 @@ class IBlockJacobiPreconditioner : public IPreconditioner<TAlgebra>
 			SetDirichletRow(A, vIndex);
 			return block_preprocess(A);
 #else
-			return block_preprocess(A);
+			return block_preprocess(mat);
 #endif
 		}
 
