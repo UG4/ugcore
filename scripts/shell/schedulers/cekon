@@ -110,5 +110,18 @@ function UJS_Info
 function UJS_Cancel
 {
 	echo "Using SLURM on cekon"
-	scancel $1
-}
+	if [ ! -z $1 ] && [ $1 == "all" ]; then
+		echo "your jobs:"
+		squeue -u $USER -o "%.7i %6C %6D %.50j %.10u %.8T %.10M %.10l %.6D %19R"
+		echo " "
+		read -p "Are you sure you want to cancel all your jobs (yes=j,J,y or Y) ? " -n 1 -r
+		echo " "		
+		if [[ $REPLY =~ ^[JjYy]$ ]]
+		then			
+		    scancel --user=$USER
+		fi
+		
+	else
+		scancel $1
+	fi
+}	
