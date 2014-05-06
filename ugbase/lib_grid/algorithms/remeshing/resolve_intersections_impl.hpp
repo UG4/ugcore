@@ -857,10 +857,30 @@ bool IntersectCoplanarTriangles(std::vector<vector2>& edgesOut,
 						const vector2& p00, const vector2& p01, const vector2& p02,
 						const vector2& p10, const vector2& p11, const vector2& p12)
 {
+	// UG_LOG("intersecting...\n");
+
 	edgesOut.clear();
 
 	vector2 t0[] = {p00, p01, p02};
 	vector2 t1[] = {p10, p11, p12};
+
+//	to avoid rounding issues we search for the largest node-value and scale SMALL by that value
+	number maxLenSq = 0;
+	for(size_t i = 0; i < 3; ++i){
+		maxLenSq = std::max(maxLenSq, VecLengthSq(t0[i]));
+		maxLenSq = std::max(maxLenSq, VecLengthSq(t1[i]));
+	}
+	const number sml	 = SMALL * sqrt(maxLenSq);
+	const number smlSq = sq(sml);
+	// UG_LOG("sml: " << sml << ", smlSq: " << smlSq << "\n");
+
+	// UG_LOG(" 2d-coords-t1: " << p00 << ", " << p01 << ", " << p02 << std::endl);
+	// UG_LOG(" 2d-coords-t2: " << p10 << ", " << p11 << ", " << p12 << std::endl);
+	// for(size_t i = 0; i < 3; ++i){
+	// 	for(size_t j = 0; j < 3; ++j){
+	// 		UG_LOG("VertexDistance " << i << "-" << j << ": " << VecDistance(t0[i], t1[j]) << std::endl);
+	// 	}
+	// }
 
 //	first we check whether the two triangles are separable
 //	note that t0 and t1 are switched twice, so that both are checked
@@ -870,15 +890,26 @@ bool IntersectCoplanarTriangles(std::vector<vector2>& edgesOut,
 			int i2 = (i0+2)%3;
 			vector2 d;
 			VecSubtract(d, t0[i1], t0[i0]);
+			number refLen = VecLength(d);
+			if(refLen < SMALL)
+				continue;
+			//vector2 n(d.y() / refLen, -d.x() / refLen);
 			vector2 n(d.y(), -d.x());
+			VecScale(n, n, (number) 1 / refLen);
 			vector2 v;
 			VecSubtract(v, t0[i2], t0[i0]);
 			number refDot = VecDot(v, n);
-
+			// UG_LOG("refDot: " << refDot << std::endl);
 			bool separable = true;
 			for(int j = 0; j < 3; ++j){
 				VecSubtract(v, t1[j], t0[i0]);
-				if(VecDot(v, n) * refDot > 0){
+				// UG_LOG(" first-pass:\n");
+				// UG_LOG("  checkedDot: " << VecDot(v, n) << std::endl);
+				// UG_LOG("  product: " << VecDot(v, n) * refDot << std::endl);
+				// UG_LOG("  refLen*SMALL: " << refLen * SMALL << std::endl);
+				//if(VecDot(v, n) * refDot > refLen * SMALL){
+				if(VecDot(v, n) * refDot > sml){
+					// UG_LOG("not separable\n");
 				//	not separable along this edge
 					separable = false;
 					break;
@@ -896,14 +927,16 @@ bool IntersectCoplanarTriangles(std::vector<vector2>& edgesOut,
 
 	for(int i = 0; i < 3; ++i){
 		isInside[i] = PointIsInsideTriangle(t1[i], p00, p01, p02);
-		if(isInside[i]){
+		//if(isInside[i]){
 			for(int j = 0; j < 3; ++j){
-				if(VecDistanceSq(t0[j], t1[i]) < SMALL_SQ){
+				if(VecDistanceSq(t0[j], t1[i]) < smlSq){
 					matchingCorner[i] = j;
+					isInside[i] = true;
+					// UG_LOG("matching corners: " << i << ", " << j << "\n");
 					break;
 				}
 			}
-		}
+		//}
 	}
 
 	for(int i0 = 0; i0 < 3; ++i0){
@@ -924,10 +957,10 @@ bool IntersectCoplanarTriangles(std::vector<vector2>& edgesOut,
 					vector2 vi;
 					number s0, s1;
 					if(LineLineIntersection2d(vi, s0, s1, t1[i0], t1[i1],
-											  t0[j0], t0[j1], SMALL))
+											  t0[j0], t0[j1], sml))
 					{
 					//	got our two points
-						if(VecDistanceSq(t1[i0], vi) > SMALL_SQ){
+						if(VecDistanceSq(t1[i0], vi) > smlSq){
 							edgesOut.push_back(t1[i0]);
 							edgesOut.push_back(vi);
 							gotOne = true;
@@ -950,10 +983,10 @@ bool IntersectCoplanarTriangles(std::vector<vector2>& edgesOut,
 					vector2 vi;
 					number s0, s1;
 					if(LineLineIntersection2d(vi, s0, s1, t1[i0], t1[i1],
-											  t0[j0], t0[j1], SMALL))
+											  t0[j0], t0[j1], sml))
 					{
 					//	got our two points
-						if(VecDistanceSq(vi, t1[i1]) > SMALL_SQ){
+						if(VecDistanceSq(vi, t1[i1]) > smlSq){
 							edgesOut.push_back(vi);
 							edgesOut.push_back(t1[i1]);
 							gotOne = true;
@@ -976,7 +1009,7 @@ bool IntersectCoplanarTriangles(std::vector<vector2>& edgesOut,
 				int j1 = (j0+1)%3;
 				number s0, s1;
 				if(LineLineIntersection2d(ints[numInts], s0, s1, t1[i0], t1[i1],
-										  t0[j0], t0[j1], SMALL))
+										  t0[j0], t0[j1], sml))
 				{
 					++numInts;
 					if(numInts > 1)
@@ -1022,13 +1055,17 @@ bool IntersectCoplanarTriangles(std::vector<vector3>& edgesOut,
 		UG_LOG("Construction of local orthonormal system failed...\n");
 		return false;
 	}
-
+	
 //	in order to make the transformation more robust, we'll rotate the triangles
 //	around the center of tri-0
 	vector3 c = p00;
 	c += p01;
 	c += p02;
 	c *= (1./3.);
+	
+	// UG_LOG(" 3d-coords-t1: " << p00 << ", " << p01 << ", " << p02 << std::endl);
+	// UG_LOG(" 3d-coords-t2: " << p10 << ", " << p11 << ", " << p12 << std::endl);
+	// UG_LOG(" n: " << n << ", c: " << c << std::endl);
 
 	vector3 v, vp0, vp1, vp2, vp3, vp4, vp5;
 	VecSubtract(v, p00, c);
@@ -1044,7 +1081,6 @@ bool IntersectCoplanarTriangles(std::vector<vector3>& edgesOut,
 	VecSubtract(v, p12, c);
 	TransposedMatVecMult(vp5, m, v);
 
-//	todo: project the triangles into the plane of tri0
 	std::vector<vector2> edges2d;
 	if(IntersectCoplanarTriangles(edges2d,
 				vector2(vp0.x(), vp0.y()), vector2(vp1.x(), vp1.y()), vector2(vp2.x(), vp2.y()),
@@ -1071,12 +1107,23 @@ bool IntersectCoplanarTriangles(std::vector<typename TAAPos::ValueType>& edgesOu
 								FaceVertices* tri1, FaceVertices* tri2,
 								TAAPos aaPos)
 {
-	if((tri1->num_vertices() == 3) && (tri2->num_vertices() == 3)){
+	try{
+		// UG_LOG("checking tris: " << CalculateCenter(tri1, aaPos)
+		// 			<< ", " << CalculateCenter(tri2, aaPos) << std::endl);
+		if((tri1->num_vertices() == 3) && (tri2->num_vertices() == 3)){
 
-		return IntersectCoplanarTriangles(edgesOut,
-				aaPos[tri1->vertex(0)], aaPos[tri1->vertex(1)], aaPos[tri1->vertex(2)],
-				aaPos[tri2->vertex(0)], aaPos[tri2->vertex(1)], aaPos[tri2->vertex(2)]);
+			return IntersectCoplanarTriangles(edgesOut,
+					aaPos[tri1->vertex(0)], aaPos[tri1->vertex(1)], aaPos[tri1->vertex(2)],
+					aaPos[tri2->vertex(0)], aaPos[tri2->vertex(1)], aaPos[tri2->vertex(2)]);
+		}
 	}
+	catch(UGError& err){
+		UG_THROW(err.get_msg() << "\n"
+				 << "centers of involved triangles: " << CalculateCenter(tri1, aaPos)
+		 		 << ", " << CalculateCenter(tri2, aaPos));
+	}
+	// UG_CATCH_THROW("centers of involved triangles: " << CalculateCenter(tri1, aaPos)
+	// 				<< ", " << CalculateCenter(tri2, aaPos));
 	return false;
 }
 
@@ -1189,6 +1236,8 @@ bool ResolveTriangleIntersections(Grid& grid, TriangleIterator trisBegin,
 				continue;
 			}
 
+		//todo:	Move both triangles closer to the origin to minimize rounding issues...
+			
 		//	perform normal comparision to handle coplanar triangles
 			vector3 n1, n2;
 			CalculateNormal(n1, t1, aaPos);
@@ -1260,7 +1309,7 @@ bool ResolveTriangleIntersections(Grid& grid, TriangleIterator trisBegin,
 			if(TriangleTriangleIntersection(aaPos[t1->vertex(0)], aaPos[t1->vertex(1)],
 											aaPos[t1->vertex(2)], aaPos[t2->vertex(0)],
 											aaPos[t2->vertex(1)], aaPos[t2->vertex(2)],
-											&ip[0], &ip[1]) == 1)
+											&ip[0], &ip[1], snapThreshold) == 1)
 			{
 			//	add an edge between the two points
 			//	to avoid insertion of double points, we first check whether the point
@@ -1288,7 +1337,6 @@ bool ResolveTriangleIntersections(Grid& grid, TriangleIterator trisBegin,
 													   aaPos, snapThreshold);
 					int tind2 = FindCloseVertexInArray(aaVrtVec[t[1]], ip[i],
 													   aaPos, snapThreshold);
-
 					if(tind1 == -1){
 						if(tind2 == -1){
 						//	we have to create a new vertex
@@ -1316,7 +1364,6 @@ bool ResolveTriangleIntersections(Grid& grid, TriangleIterator trisBegin,
 					inds1[i] = tind1;
 					inds2[i] = tind2;
 				}
-
 			//	we found the indices of both endpoints and can now add an edge
 			//	connecting both to the edgeDesc arrays of t[0] and t[1].
 				if(inds1[0] != inds1[1])
@@ -1355,7 +1402,7 @@ bool ResolveTriangleIntersections(Grid& grid, TriangleIterator trisBegin,
 	{
 		Triangle* t = *triIter;
 	//	we only proceed if there are intersecion-edges at all
-		if(!aaEdgeDescVec[t].empty()){
+		if(aaVrtVec[t].size() > 3){
 			tgrid.clear_geometry();
 			tgridVrts.clear();
 
@@ -1418,7 +1465,6 @@ bool ResolveTriangleIntersections(Grid& grid, TriangleIterator trisBegin,
 		//	if there are only 3 vertices left, there's nothing to do...
 			if(tgrid.num_vertices() <= 3)
 				continue;
-
 		//	now resolve edge/edge intersections
 			//IntersectCloseEdges(tgrid, tgrid, taaPos, SMALL);
 			if(!IntersectCloseEdges(tgrid, tgrid, taaPos, snapThreshold)){

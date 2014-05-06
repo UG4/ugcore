@@ -23,6 +23,8 @@ using namespace ug;
          if |dv|<EPSILON then dv=0.0;
    else no check is done (which is less robust)
 */
+//  change by sreiter: Note that a new variable snapThreshold was added to
+//  tri_tri_intersect. EPSILON is now only used for the coplanarity check...
 #define USE_EPSILON_TEST TRUE  
 #define EPSILON 1.e-20
 
@@ -244,7 +246,7 @@ int coplanar_tri_tri(number N[3],number V0[3],number V1[3],number V2[3],
 
 int tri_tri_intersect(number V0[3],number V1[3],number V2[3],
                       number U0[3],number U1[3],number U2[3],
-					  number* ip1Out, number* ip2Out)
+					            number* ip1Out, number* ip2Out, const number snapThreshold)
 {
   number E1[3],E2[3];
   number N1[3],N2[3],d1,d2;
@@ -277,7 +279,6 @@ int tri_tri_intersect(number V0[3],number V1[3],number V2[3],
 #endif
   du0du1=du0*du1;
   du0du2=du0*du2;
-
   if(du0du1>0.0f && du0du2>0.0f) /* same sign on all of them + not equal 0 ? */
     return 0;                    /* no intersection occurs */
 
@@ -293,15 +294,14 @@ int tri_tri_intersect(number V0[3],number V1[3],number V2[3],
   dv1=DOT(N2,V1)+d2;
   dv2=DOT(N2,V2)+d2;
 
-#if USE_EPSILON_TEST==TRUE
-  if(fabs(dv0)<EPSILON) dv0=0.0;
-  if(fabs(dv1)<EPSILON) dv1=0.0;
-  if(fabs(dv2)<EPSILON) dv2=0.0;
-#endif
+//#if USE_EPSILON_TEST==TRUE
+  if(fabs(dv0)<snapThreshold) dv0=0.0;
+  if(fabs(dv1)<snapThreshold) dv1=0.0;
+  if(fabs(dv2)<snapThreshold) dv2=0.0;
+//#endif
 
   dv0dv1=dv0*dv1;
   dv0dv2=dv0*dv2;
-        
   if(dv0dv1>0.0f && dv0dv2>0.0f) /* same sign on all of them + not equal 0 ? */
     return 0;                    /* no intersection occurs */
 
@@ -347,7 +347,6 @@ int tri_tri_intersect(number V0[3],number V1[3],number V2[3],
   }  
  // SORT(isect1[0],isect1[1]);
  // SORT(isect2[0],isect2[1]);
-
   if(isect1[1]<isect2[0] || isect2[1]<isect1[0]) return 0;
 
   if(ip1Out && ip2Out){
@@ -391,11 +390,12 @@ namespace ug{
 bool TriangleTriangleIntersection(const MathVector<3>& p0, const MathVector<3>& p1,
 								  const MathVector<3>& p2, const MathVector<3>& q0,
 								  const MathVector<3>& q1, const MathVector<3>& q2,
-								  MathVector<3>* ip1Out, MathVector<3>* ip2Out)
+								  MathVector<3>* ip1Out, MathVector<3>* ip2Out,
+                  number snapThreshold)
 {
 	return tri_tri_intersect((number*)&p0, (number*)&p1, (number*)&p2,
 							 (number*)&q0, (number*)&q1, (number*)&q2,
-							 (number*)ip1Out, (number*)ip2Out) == 1;
+							 (number*)ip1Out, (number*)ip2Out, snapThreshold) == 1;
 }
 
 }//	end of namespace

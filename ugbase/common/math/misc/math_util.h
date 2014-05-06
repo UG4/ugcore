@@ -490,7 +490,8 @@ bool TriangleTriangleIntersection(const MathVector<3>& p0, const MathVector<3>& 
 								  const MathVector<3>& p2, const MathVector<3>& q0,
 								  const MathVector<3>& q1, const MathVector<3>& q2,
 								  MathVector<3>* ip1Out = NULL,
-								  MathVector<3>* ip2Out = NULL);
+								  MathVector<3>* ip2Out = NULL,
+								  number snapThreshold = SMALL);
 
 ////////////////////////////////////////////////////////////////////////
 //	TriBoxIntersection
