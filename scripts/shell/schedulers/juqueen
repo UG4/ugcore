@@ -17,6 +17,10 @@ function UJS_Submit
 	echo "Cluster: Juqueen. Scheduler: LoadLeveler (ll)."
 	echo "Create: $outdir/job.sh"
 	
+	if [ $exclusive == true ]; then
+		echo "WARNING: Exclusive not yet supported on this machine."
+	fi	
+	
 	MYLDLPATH=/bgsys/drivers/ppcfloor/comm/lib/
 	
 	cat > $outdir/job.sh << EOF

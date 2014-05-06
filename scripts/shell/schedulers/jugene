@@ -21,6 +21,10 @@ function UJS_Submit
 	if [ $interactive == true ]; then
 		echo "interactive mode is not supported at the moment"
 	fi
+	
+	if [ $exclusive == true ]; then
+		echo "WARNING: Exclusive not yet supported on this machine."
+	fi	
 
 	cat > $outdir/job.sh << EOF
 # @ job_name = $jobname

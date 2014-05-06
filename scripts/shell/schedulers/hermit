@@ -35,6 +35,10 @@ function UJS_Submit
 			qsubqueue="-q $queue"
 		fi			
 	fi
+	
+	if [ $exclusive == true ]; then
+		echo "WARNING: Exclusive not yet supported on this machine."
+	fi	
 
 	pbsMail=""
 	if [ $mail == true ]; then 

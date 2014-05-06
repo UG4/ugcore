@@ -34,6 +34,11 @@ function UJS_Submit
 		# display more information, and also the actual call to the scheduler
 	fi
 	
+	if [ $exclusive == true ]; then
+		echo "WARNING: Exclusive not yet supported on this machine."
+		# exclusive mode means no "sharing" of half nodes with other jobs.
+	fi	
+	
 	# use this if you don't want to support unlimited walltimes.
 	if [ $walltime == "unlimited" ]; then
 		$walltime=01:00:00

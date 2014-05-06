@@ -17,6 +17,10 @@ function UJS_Submit
 	echo "Cluster: MOAB. Scheduler: msub."
 	echo "Create: $outdir/job.sh"
 	
+	if [ $exclusive == true ]; then
+		echo "WARNING: Exclusive not yet supported on this machine."
+	fi	
+	
 	cat > $outdir/job.sh << EOF
 #MSUB -N $jobname
 #MSUB -e $outdir/job.error

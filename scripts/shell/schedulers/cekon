@@ -8,6 +8,9 @@
 function UJS_Submit
 {
 	echo "Cluster: cekon. Scheduler: SLURM."
+	jobid=?
+	
+	# well hm this might be wrong
 	if [ $nppn -ne 1 ]; then
 		echo "cekon does not support nppn > 1. Aborting."
 		exit
@@ -17,9 +20,10 @@ function UJS_Submit
 		exit
 	fi
 		
+	
 	local SlurmWalltime=""
 	if [ $walltime != "unlimited" ]; then
-		SlurmWalltime=--time=$walltime
+		SlurmWalltime="--time=$walltime "
 	fi
 
 	local SlurmMail=""
@@ -47,12 +51,18 @@ function UJS_Submit
 				SlurmNotification="ALL"
 			fi
 		fi	 
-		SlurmMail="--mail-user=$UGSUBMIT_EMAIL --mail-type=$SlurmNotification"
+		SlurmMail="--mail-user=$UGSUBMIT_EMAIL --mail-type=$SlurmNotification "
 	fi
+	
+	local SlurmExclusive=""
+	if [ $exclusive == true ]; then
+		SlurmExclusive="--exclusive"
+	fi	
+	local additionalSlurm="$SlurmWalltime$SlurmMail$SlurmExclusive"
 
-	commandline="salloc -n $npe $SlurmMail $SlurmWalltime --job-name=$jobname mpirun $executable $args"
+	commandline="salloc -n $npe $additionalSlurm --job-name=$jobname mpirun $executable $args"
 	echo " command:      "$commandline >> info.txt
-
+	
 	if [ $test == true ]; then
 		echo "ONLY testing - NOT executing."
 		echo "Submit/Start: $commandline"

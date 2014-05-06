@@ -42,7 +42,13 @@ function UJS_Submit
 		SlurmMail="--mail-user=$UGSUBMIT_EMAIL --mail-type=$SlurmNotification"
 	fi
 
-	commandline="salloc -N $nnodes -n $npe $SlurmMail $SlurmWalltime --job-name=$jobname mpirun $executable $args"
+	local SlurmExclusive=""
+	if [ $exclusive == true ]; then
+		SlurmExclusive="--exclusive"
+	fi	
+	local additionalSlurm="$SlurmWalltime$SlurmMail$SlurmExclusive
+	
+	commandline="salloc -N $nnodes -n $npe $additionalSlurm --job-name=$jobname mpirun $executable $args"
 	echo " command:      "$commandline >> info.txt
 
 	if [ $test == true ]; then
@@ -81,7 +87,7 @@ function UJS_Submit
 function UJS_GetOptions
 {
 	nppnmax=20
-	pemax=300	
+	pemax=520	
 }
 
 function UJS_Info

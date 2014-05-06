@@ -42,6 +42,7 @@ execpath=`pwd`;       # execution path of script
 runDir=$execPath
 execdate=`date`;      # date of execution
 verbose=false;
+exclusive=false;
 scriptpath=`dirname $scriptname`
 
 mailStart=false
@@ -97,6 +98,7 @@ function usage
 	echo "        -mail-end              : mail when job ends"
 	echo "        -mail-error            : mail on error"
 	echo "        -mail-all              : "
+	echo "        -exclusive             : exclusive allocation of nodes (no sharing)"
 	echo "        -verbose, -v           : enable verbose mode"
 	echo "        -tail                  : display the output (as tail -f. job runs even if you hit Ctrl-C)"
 	echo "        -i                     : interactive (not fully supported)"
@@ -227,6 +229,9 @@ do
 		mail=true
 		pbsMailtype="abe"
 		shift
+	elif [ $1 == "-exclusive" ]; then
+		exclusive=true
+		shift
 	elif [ $1 == "-i" ]; then
 		interactive=true
 		shift 1
@@ -298,7 +303,8 @@ if [ $nppn -gt $nppnmax ]; then
 fi
 
 if [ $npe -gt $pemax ]; then
-	echo "WARNING: pemax for $UGSUBMIT_TYPE is $pemax, and this is greater than requested PEs ($npe)"
+	echo "ERROR: pemax for $UGSUBMIT_TYPE is $pemax, and this is greater than requested PEs ($npe)"
+	exit
 fi
 
 nnodes=$((npe/nppn))

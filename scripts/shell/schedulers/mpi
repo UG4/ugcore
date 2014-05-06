@@ -13,6 +13,10 @@ function UJS_Submit
 	commandline="mpirun -np $npe $executable $args"
 	echo " command:      "$commandline >> info.txt
 	
+	if [ $exclusive == true ]; then
+		echo "WARNING: Exclusive not supported for MPI."
+	fi	
+	
 	if [ $test == true ]; then
 		echo "ONLY testing - NOT executing."
 		echo "Submit/Start: $commandline"
