@@ -11,7 +11,7 @@ function UJS_Submit
 		
 	local SlurmWalltime=""
 	if [ $walltime != "unlimited" ]; then
-		SlurmWalltime=--time=$walltime
+		SlurmWalltime="--time=$walltime "
 	fi
 	
 	local SlurmMail=""
@@ -39,12 +39,12 @@ function UJS_Submit
 				SlurmNotification="ALL"
 			fi
 		fi	 
-		SlurmMail="--mail-user=$UGSUBMIT_EMAIL --mail-type=$SlurmNotification"
+		SlurmMail="--mail-user=$UGSUBMIT_EMAIL --mail-type=$SlurmNotification "
 	fi
 
 	local SlurmExclusive=""
 	if [ $exclusive == true ]; then
-		SlurmExclusive="--exclusive"
+		SlurmExclusive="--exclusive "
 	fi	
 	local additionalSlurm="$SlurmWalltime$SlurmMail$SlurmExclusive"
 	
