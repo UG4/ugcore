@@ -46,7 +46,7 @@ function UJS_Submit
 	if [ $exclusive == true ]; then
 		SlurmExclusive="--exclusive"
 	fi	
-	local additionalSlurm="$SlurmWalltime$SlurmMail$SlurmExclusive
+	local additionalSlurm="$SlurmWalltime$SlurmMail$SlurmExclusive"
 	
 	commandline="salloc -N $nnodes -n $npe $additionalSlurm --job-name=$jobname mpirun $executable $args"
 	echo " command:      "$commandline >> info.txt
