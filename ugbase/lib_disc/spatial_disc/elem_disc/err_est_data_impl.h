@@ -562,8 +562,13 @@ number SideAndElemErrEstData<TDomain>::get_elem_error_indicator(GridObject* pEle
 		// scale by diam(side)
 		// c* vol(side) >= diam^2(side) >= vol(side)
 		// therefore, up to a constant, error estimator can calculate diam as sqrt(vol(side))
-		diam = std::pow(ElementSize<dim>(side_roid, &vSideCornerCoords[0]), 1./(dim-1));
-
+		if (dim == 1)
+			diam = 1.0;
+		else
+		{
+			number exponent = dim-1;
+			diam = std::pow(ElementSize<dim>(side_roid, &vSideCornerCoords[0]), 1.0/exponent);
+		}
 		// add to error indicator
 		etaSq += diam * sum;
 	}
