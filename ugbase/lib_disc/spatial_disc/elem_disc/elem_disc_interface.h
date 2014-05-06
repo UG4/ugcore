@@ -307,9 +307,18 @@ class IElemDisc
 	 * allowed. But this function can be always used with the SPNULL argument:
 	 * This means that no error estimators are assembled for this discretization.
 	 */
+		void set_error_estimator(SmartPtr<IErrEstData<TDomain> > ee) {m_spErrEstData = ee; m_bDoErrEst = true;}
+
+	/// find out whether or not a posteriori error estimation is to be performed for this disc
+		bool err_est_enabled() const {return m_bDoErrEst;}
+
 	///	returns the pointer to the error estimator data object (or NULL)
-		virtual SmartPtr<IErrEstData> err_est_data () {return SPNULL;}
+		virtual SmartPtr<IErrEstData<TDomain> > err_est_data() {return m_spErrEstData;}
 	
+	private:
+	/// flag indicating whether or not a posteriori error estimation is to be performed for this disc
+		bool m_bDoErrEst;
+
 	////////////////////////////
 	// general info
 	////////////////////////////
@@ -378,12 +387,18 @@ class IElemDisc
 	///	virtual prepares the loop over all elements of one type for the computation of the error estimator
 		virtual void prep_err_est_elem_loop(const ReferenceObjectID roid, const int si);
 
-	///	virtual compute the error estimator contribution for one element
-		virtual void compute_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-		
-	///	virtual summarize the contributions of the error estimator in one element
-		virtual number get_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+	///	virtual prepares the loop over all elements of one type for the computation of the error estimator
+		virtual void prep_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
+	///	virtual compute the error estimator (stiffness part) contribution for one element
+		virtual void compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale);
+
+	///	virtual compute the error estimator (mass part) contribution for one element
+		virtual void compute_err_est_M_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale);
+
+	///	virtual compute the error estimator (rhs part) contribution for one element
+		virtual void compute_err_est_rhs_elem(GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale);
+		
 	///	virtual postprocesses the loop over all elements of one type in the computation of the error estimator
 		virtual void fsh_err_est_elem_loop();
 		
@@ -401,8 +416,10 @@ class IElemDisc
 		void do_add_def_M_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 		void do_add_rhs_elem(LocalVector& rhs, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 		void do_prep_err_est_elem_loop(const ReferenceObjectID roid, const int si);
-		void do_compute_err_est_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-		number do_get_err_est_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+		void do_prep_err_est_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+		void do_compute_err_est_A_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale);
+		void do_compute_err_est_M_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale);
+		void do_compute_err_est_rhs_elem(GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale);
 		void do_fsh_err_est_elem_loop();
 	/// \}
 
@@ -432,8 +449,10 @@ class IElemDisc
 	
 	//	types of the error estimator assembler
 		typedef void (T::*PrepareErrEstElemLoopFct)(ReferenceObjectID roid, int si);
-		typedef void (T::*ElemComputeErrEstFct)(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-		typedef number (T::*ElemGetErrEstFct)(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+		typedef void (T::*PrepareErrEstElemFct)(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+		typedef void (T::*ElemComputeErrEstAFct)(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number&);
+		typedef void (T::*ElemComputeErrEstMFct)(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number&);
+		typedef void (T::*ElemComputeErrEstRhsFct)(GridObject* elem, const MathVector<dim> vCornerCoords[], const number&);
 		typedef void (T::*FinishErrEstElemLoopFct)();
 
 	protected:
@@ -451,10 +470,12 @@ class IElemDisc
 		template <typename TAssFunc> void set_add_def_A_expl_elem_fct(ReferenceObjectID id, TAssFunc func);
 		template <typename TAssFunc> void set_add_def_M_elem_fct(ReferenceObjectID id, TAssFunc func);
 		template <typename TAssFunc> void set_add_rhs_elem_fct(ReferenceObjectID id, TAssFunc func);
-		
+
 		template <typename TAssFunc> void set_prep_err_est_elem_loop(ReferenceObjectID id, TAssFunc func);
-		template <typename TAssFunc> void set_compute_err_est_elem(ReferenceObjectID id, TAssFunc func);
-		template <typename TAssFunc> void set_get_err_est_elem(ReferenceObjectID id, TAssFunc func);
+		template <typename TAssFunc> void set_prep_err_est_elem(ReferenceObjectID id, TAssFunc func);
+		template <typename TAssFunc> void set_compute_err_est_A_elem(ReferenceObjectID id, TAssFunc func);
+		template <typename TAssFunc> void set_compute_err_est_M_elem(ReferenceObjectID id, TAssFunc func);
+		template <typename TAssFunc> void set_compute_err_est_rhs_elem(ReferenceObjectID id, TAssFunc func);
 		template <typename TAssFunc> void set_fsh_err_est_elem_loop(ReferenceObjectID id, TAssFunc func);
 		
 	//	unregister functions
@@ -471,10 +492,12 @@ class IElemDisc
 		void remove_add_def_A_expl_elem_fct(ReferenceObjectID id);
 		void remove_add_def_M_elem_fct(ReferenceObjectID id);
 		void remove_add_rhs_elem_fct(ReferenceObjectID id);
-		
+
 		void remove_prep_err_est_elem_loop(ReferenceObjectID id);
-		void remove_compute_err_est_elem(ReferenceObjectID id);
-		void remove_get_err_est_elem(ReferenceObjectID id);
+		void remove_prep_err_est_elem(ReferenceObjectID id);
+		void remove_compute_err_est_A_elem(ReferenceObjectID id);
+		void remove_compute_err_est_M_elem(ReferenceObjectID id);
+		void remove_compute_err_est_rhs_elem(ReferenceObjectID id);
 		void remove_fsh_err_est_elem_loop(ReferenceObjectID id);
 
 	///	sets all assemble functions to NULL for a given ReferenceObjectID
@@ -520,13 +543,18 @@ class IElemDisc
 		
 	//	Error estimator functions
 		PrepareErrEstElemLoopFct	m_vPrepareErrEstElemLoopFct[NUM_REFERENCE_OBJECTS];
-		ElemComputeErrEstFct		m_vElemComputeErrEstFct[NUM_REFERENCE_OBJECTS];
-		ElemGetErrEstFct			m_vElemGetErrEstFct[NUM_REFERENCE_OBJECTS];
+		PrepareErrEstElemFct		m_vPrepareErrEstElemFct[NUM_REFERENCE_OBJECTS];
+		ElemComputeErrEstAFct		m_vElemComputeErrEstAFct[NUM_REFERENCE_OBJECTS];
+		ElemComputeErrEstMFct		m_vElemComputeErrEstMFct[NUM_REFERENCE_OBJECTS];
+		ElemComputeErrEstRhsFct		m_vElemComputeErrEstRhsFct[NUM_REFERENCE_OBJECTS];
 		FinishErrEstElemLoopFct		m_vFinishErrEstElemLoopFct[NUM_REFERENCE_OBJECTS];
 
 	protected:
 	/// current Geometric Object
 		ReferenceObjectID m_id;
+
+	/// error estimation object associated to the element discretization
+		SmartPtr<IErrEstData<TDomain> > m_spErrEstData;
 };
 /// @}
 

@@ -643,7 +643,7 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                	const typename TAlgebra::vector_type& u,
                	ConstSmartPtr<AssemblingTuner<TAlgebra> > spAssTuner)
 {
-// 	check if at least on element exist, else return
+// 	check if at least one element exists, else return
 	if(iterBegin == iterEnd) return;
 
 //	reference object id
@@ -1971,7 +1971,7 @@ FinishTimestep(const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Error estimator
+// Error estimator (stationary)
 ////////////////////////////////////////////////////////////////////////////////
 
 /**
@@ -2000,7 +2000,7 @@ AssembleErrorEstimator
 	const typename TAlgebra::vector_type& u
 )
 {
-// 	check if at least on element exist, else return
+// 	check if at least one element exists, else return
 	if(iterBegin == iterEnd) return;
 
 //	reference object id
@@ -2012,7 +2012,7 @@ AssembleErrorEstimator
 //	prepare for given elem discs
 	try
 	{
-	DataEvaluator<TDomain> Eval(MASS | STIFF | RHS,
+	DataEvaluator<TDomain> Eval(STIFF | RHS,
 	                   vElemDisc, dd->function_pattern(), bNonRegularGrid);
 
 //	prepare element loop
@@ -2039,12 +2039,27 @@ AssembleErrorEstimator
 	// 	read local values of u
 		GetLocalVector(locU, u);
 
-	// 	Assemble the estimator
+	// 	prepare element
 		try
 		{
-			Eval.compute_elem_err_est(locU, elem, vCornerCoords, ind);
+			Eval.prepare_err_est_elem(locU, elem, vCornerCoords, ind, false);
 		}
-		UG_CATCH_THROW("AssembleErrorEstimator: Cannot assemble the error estimator.");
+		UG_CATCH_THROW("(stationary) AssembleRhs: Cannot prepare element.");
+
+	// 	assemble stiffness part
+		try
+		{
+			Eval.compute_err_est_A_elem(locU, elem, vCornerCoords, ind);
+		}
+		UG_CATCH_THROW("AssembleErrorEstimator: Cannot assemble the error estimator for stiffness part.");
+
+	// 	assemble rhs part
+		try
+		{
+			Eval.compute_err_est_rhs_elem(elem, vCornerCoords, ind);
+		}
+		UG_CATCH_THROW("AssembleErrorEstimator: Cannot assemble the error estimator for stiffness part.");
+
 	}
 
 // 	finish element loop
@@ -2076,8 +2091,12 @@ AssembleErrorEstimator
 			si, bNonRegularGrid, u);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Error estimator (instationary)
+////////////////////////////////////////////////////////////////////////////////
+
 /**
- * This function summarizes the error estimator associated with all the
+ * This function assembles the error estimator associated with all the
  * element discs in the internal data structure.
  *
  * \param[in]		vElemDisc		element discretizations
@@ -2086,12 +2105,13 @@ AssembleErrorEstimator
  * \param[in]		iterEnd			element iterator
  * \param[in]		si				subset index
  * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
- * \param[in]		u				solution
- * \param[out]		err_est			array of the error indicators
+ * \param[in]		vScaleMass		scaling factors for mass part
+ * \param[in]		vScaleStiff		scaling factors for stiffness part
+ * \param[in]		vSol				solution
  */
-template <typename TElem, typename TDomain, typename TAlgebra, typename TErrEstField, typename TIterator>
+template <typename TElem, typename TDomain, typename TAlgebra, typename TIterator>
 void
-GetErrorEstimator
+AssembleErrorEstimator
 (
 	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	ConstSmartPtr<TDomain> spDomain,
@@ -2100,72 +2120,127 @@ GetErrorEstimator
 	TIterator iterEnd,
 	int si,
 	bool bNonRegularGrid,
-	const typename TAlgebra::vector_type& u,
-	TErrEstField err_est
+	std::vector<number> vScaleMass,
+	std::vector<number> vScaleStiff,
+	ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol
 )
 {
-// 	check if at least on element exist, else return
-	if(iterBegin == iterEnd) return;
+// 	check if at least one element exists, else return
+	if (iterBegin == iterEnd) return;
+
+//	reference object id
+	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 //	storage for corner coordinates
 	MathVector<TDomain::dim> vCornerCoords[TElem::NUM_VERTICES];
 
+//	check time scheme
+	if(vScaleMass.size() != vScaleStiff.size())
+		UG_THROW("(instationary) AssembleErrorEstimator: s_a and s_m must have same size.");
+
+	if(vSol->size() < vScaleStiff.size())
+		UG_THROW("(instationary) AssembleE: Time stepping scheme needs at "
+				"least "<<vScaleStiff.size()<<" time steps, but only "<<
+				vSol->size() << " passed.");
+
+//	create local time series
+	LocalVectorTimeSeries locTimeSeries;
+	locTimeSeries.read_times(vSol);
+
 //	prepare for given elem discs
 	try
 	{
-	DataEvaluator<TDomain> Eval(MASS | STIFF | RHS,
-	                   vElemDisc, dd->function_pattern(), bNonRegularGrid);
+		DataEvaluator<TDomain> Eval(MASS | STIFF | RHS,
+						   vElemDisc, dd->function_pattern(), bNonRegularGrid,
+						   &locTimeSeries, &vScaleMass, &vScaleStiff);
 
-// 	local indices and local algebra
-	LocalIndices ind; LocalVector locU;
+	//	prepare element loop
+		Eval.prepare_err_est_elem_loop(id, si);
 
-// 	Loop over all elements
-	for(TIterator iter = iterBegin; iter != iterEnd; ++iter)
-	{
-	// 	get Element
-		TElem* elem = *iter;
+	// 	local indices and local algebra
+		LocalIndices ind;
 
-	//	get corner coordinates
-		FillCornerCoordinates(vCornerCoords, *elem, *spDomain);
+	// 	loop over all elements
+		for (TIterator iter = iterBegin; iter != iterEnd; ++iter)
+		{
+		// 	get Element
+			TElem* elem = *iter;
 
-	// 	get global indices
-		dd->indices(elem, ind, Eval.use_hanging());
+		//	get corner coordinates
+			FillCornerCoordinates(vCornerCoords, *elem, *spDomain);
 
-	// 	adapt local algebra
-		locU.resize(ind);
+		// 	get global indices
+			dd->indices(elem, ind, Eval.use_hanging());
 
-	// 	read local values of u
-		GetLocalVector(locU, u);
+		//	read local values of time series
+			locTimeSeries.read_values(vSol, ind);
 
-	// 	Assemble the estimator
+		//	loop all time points and assemble them
+			for (std::size_t t = 0; t < vScaleStiff.size(); ++t)
+			{
+			//	get local solution at timepoint
+				LocalVector& locU = locTimeSeries.solution(t);
+				Eval.set_time_point(t);
+
+			// 	prepare element
+				try
+				{
+					Eval.prepare_err_est_elem(locU, elem, vCornerCoords, ind, false);
+				}
+				UG_CATCH_THROW("(instationary) AssembleRhs: Cannot prepare element.");
+
+			// 	assemble stiffness part
+				try
+				{
+					Eval.compute_err_est_A_elem(locU, elem, vCornerCoords, ind, vScaleMass[t], vScaleStiff[t]);
+				}
+				UG_CATCH_THROW("AssembleErrorEstimator: Cannot assemble the error estimator for stiffness part.");
+
+			// 	assemble mass part
+				try
+				{
+					Eval.compute_err_est_M_elem(locU, elem, vCornerCoords, ind, vScaleMass[t], vScaleStiff[t]);
+				}
+				UG_CATCH_THROW("AssembleErrorEstimator: Cannot assemble the error estimator for stiffness part.");
+
+			// 	assemble rhs part
+				try
+				{
+					Eval.compute_err_est_rhs_elem(elem, vCornerCoords, ind, vScaleMass[t], vScaleStiff[t]);
+				}
+				UG_CATCH_THROW("AssembleErrorEstimator: Cannot assemble the error estimator for stiffness part.");
+			}
+		}
+
+		// 	finish element loop
 		try
 		{
-			err_est[elem] = Eval.get_elem_err_est(locU, elem, vCornerCoords, ind);
+			Eval.finish_err_est_elem_loop();
 		}
-		UG_CATCH_THROW("AssembleErrorEstimator: Cannot compute the error estimator.");
-	}
+		UG_CATCH_THROW("AssembleErrorEstimator: Cannot finish element loop.");
 
 	}
 	UG_CATCH_THROW("AssembleErrorEstimator: Cannot create Data Evaluator.");
 }
 
-template <typename TElem, typename TDomain, typename TAlgebra, typename TErrEstField>
+template <typename TElem, typename TDomain, typename TAlgebra>
 void
-GetErrorEstimator
+AssembleErrorEstimator
 (
 	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	ConstSmartPtr<TDomain> spDomain,
 	ConstSmartPtr<DoFDistribution> dd,
 	int si,
 	bool bNonRegularGrid,
-	const typename TAlgebra::vector_type& u,
-	TErrEstField err_est
+	std::vector<number> vScaleMass,
+	std::vector<number> vScaleStiff,
+	ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol
 )
 {
 	//	general case: assembling over all elements in subset si
-	GetErrorEstimator<TElem,TDomain,TAlgebra,TErrEstField>
+	AssembleErrorEstimator<TElem,TDomain,TAlgebra>
 		(vElemDisc, spDomain, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si),
-			si, bNonRegularGrid, u, err_est);
+			si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
 }
 
 } // end namespace ug

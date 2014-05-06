@@ -92,11 +92,21 @@ class DataEvaluator
 	///	prepares the element loop for all IElemDiscs for the computation of the error estimator
 		void prepare_err_est_elem_loop(const ReferenceObjectID id, int si);
 
-	///	compute contributions of the local error indicators in one element for all IElemDiscs
-		void compute_elem_err_est(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const LocalIndices& ind);
+	///	prepares the element for all IElemDiscs
+		void prepare_err_est_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[],
+						  	  	  const LocalIndices& ind, bool bDeriv = false);
 
-	///	summarize contributions of the local error indicators in one element for all IElemDiscs
-		number get_elem_err_est(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const LocalIndices& ind);
+	///	compute contributions of the local error indicators in one element for all IElemDiscs
+		void compute_err_est_A_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const LocalIndices& ind,
+								  const number scaleMass = (number) 1.0, const number scaleStiff = (number) 1.0);
+
+	///	compute contributions of the local error indicators in one element for all IElemDiscs
+		void compute_err_est_M_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const LocalIndices& ind,
+								  const number scaleMass = (number) 1.0, const number scaleStiff = (number) 1.0);
+
+	///	compute contributions of the local error indicators in one element for all IElemDiscs
+		void compute_err_est_rhs_elem(GridObject* elem, const MathVector<dim> vCornerCoords[], const LocalIndices& ind,
+								  const number scaleMass = (number) 1.0, const number scaleStiff = (number) 1.0);
 
 	///	finishes the error estimator element loop for all IElemDiscs
 		void finish_err_est_elem_loop();

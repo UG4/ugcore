@@ -1139,7 +1139,7 @@ FV1ManifoldBoundary() : m_pElem(NULL), m_rRefElem(Provider<ref_elem_type>::get()
 	// Shapes
 	/////////////
 	// A word of warning: This is only meaningful,
-	// if the trial space is piecewise linear on tetrahedrons/triangles!
+	// if the trial space is piecewise linear on tetrahedra/triangles!
 	for (size_t i = 0; i < num_bf(); ++i)
 	{
 		const LocalShapeFunctionSet<ref_elem_type::dim>& TrialSpace =
@@ -1191,14 +1191,14 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 	if (worldDim == 2)
 	{
 		std::vector<Edge*> vEdge;
-		CollectEdgesSorted(vEdge, grid, pElem);
+		CollectEdges(vEdge, grid, pElem);
 		UG_ASSERT(vEdge.size(),"No edge contained in 1D manifold element!");
 		m_ssi = ish->get_subset_index(vEdge[0]);
 	}
 	if (worldDim == 3)
 	{
 		std::vector<Face*> vFace;
-		CollectFacesSorted(vFace, grid, pElem);
+		CollectFaces(vFace, grid, pElem);
 		UG_ASSERT(vFace.size(),"No face contained in 2D manifold element!");
 		m_ssi = ish->get_subset_index(vFace[0]);
 	}

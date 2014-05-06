@@ -373,6 +373,54 @@ inline void ElementNormal<ReferenceVertex, 1>(MathVector<1>& normalOut, const Ma
 }
 
 ///////////////////////////////////////////////////////////////
+/// Normal to a Point in 2d
+/**
+ * This function returns the normal of a point in 2d.
+ * This can only be understood as the normal on a corner of an edge in 2d.
+ * Therefore, it will be assumed that vCornerCoords has exactly 2 entries
+ * defining the edge. Then the normal is the one-dim. normal on the first vertex
+ * embedded in the 1D subspace defined by the edge.
+ *
+ * \param[in]	vCornerCoords	Vector of corner coordinates
+ * \param[out]	normalOut		Normal
+ */
+template <>
+inline void ElementNormal<ReferenceVertex, 2>(MathVector<2>& normalOut, const MathVector<2>* vCornerCoords)
+{
+	try
+	{
+		normalOut = vCornerCoords[0];
+		normalOut -= vCornerCoords[1];
+		VecNormalize(normalOut, normalOut);
+	}
+	UG_CATCH_THROW("Element normal can not be computed. Maybe there are not enough vertices to work on.")
+}
+
+///////////////////////////////////////////////////////////////
+/// Normal to a Point in 3d
+/**
+ * This function returns the normal of a point in 3d.
+ * This can only be understood as the normal on a corner of an edge in 3d.
+ * Therefore, it will be assumed that vCornerCoords has exactly 2 entries
+ * defining the edge. Then the normal is the one-dim. normal on the first vertex
+ * embedded in the 1D subspace defined by the edge.
+ *
+ * \param[in]	vCornerCoords	Vector of corner coordinates
+ * \param[out]	normalOut		Normal
+ */
+template <>
+inline void ElementNormal<ReferenceVertex, 3>(MathVector<3>& normalOut, const MathVector<3>* vCornerCoords)
+{
+	try
+	{
+		normalOut = vCornerCoords[0];
+		normalOut -= vCornerCoords[1];
+		VecNormalize(normalOut, normalOut);
+	}
+	UG_CATCH_THROW("Element normal can not be computed. Maybe there are not enough vertices to work on.")
+}
+
+///////////////////////////////////////////////////////////////
 /// Normal to a Line in 2d
 /**
  * This function returns the normal of a line in 2d.
@@ -390,6 +438,39 @@ inline void ElementNormal<ReferenceEdge, 2>(MathVector<2>& normalOut, const Math
 
 	normalOut[0] = diff[1];
 	normalOut[1] = -diff[0];
+}
+
+///////////////////////////////////////////////////////////////
+/// Normal to a Line in 3d
+/**
+ * This function returns the normal of a line in 3d.
+ * This can only be understood as the normal on an edge in a 2d manifold
+ * defined by at least a triangle. Therefore, it is assumed that vCornerCoords
+ * contains at least three vertices.
+ * The normal is computed as the outer normal on the first edge (v2-v1) of the triangle
+ * and embedded in the 2d subspace defined by the triangle.
+ * The norm of the normal is the size of the line.
+ *
+ * \param[in]	vCornerCoords	Vector of corner coordinates
+ * \param[out]	normalOut		Normal
+ */
+template <>
+inline void ElementNormal<ReferenceEdge, 3>(MathVector<3>& normalOut, const MathVector<3>* vCornerCoords)
+{
+	try
+	{
+		// normal on triangle
+		MathVector<3> edge0, edge1;
+		VecSubtract(edge0, vCornerCoords[1], vCornerCoords[0]);
+		VecSubtract(edge1, vCornerCoords[2], vCornerCoords[1]);
+		VecCross(normalOut, edge0, edge1);
+		// normal an edge is edge x normal on triangle
+		VecCross(normalOut, edge0, normalOut);
+		// scale
+		VecNormalize(normalOut, normalOut);
+		VecScale(normalOut, normalOut, VecTwoNorm(edge0));
+	}
+	UG_CATCH_THROW("Element normal can not be computed. Maybe there are not enough vertices to work on.")
 }
 
 ///////////////////////////////////////////////////////////////
@@ -460,6 +541,7 @@ inline void ElementNormal<2>(ReferenceObjectID roid, MathVector<2>& normalOut, c
 {
 	switch(roid)
 	{
+		case ROID_VERTEX: ElementNormal<ReferenceVertex, 2>(normalOut, vCornerCoords); return;
 		case ROID_EDGE: ElementNormal<ReferenceEdge, 2>(normalOut, vCornerCoords); return;
 		default: UG_THROW("ReferenceObject "<<roid<<" not found in dim 2.");
 	}
@@ -470,6 +552,8 @@ inline void ElementNormal<3>(ReferenceObjectID roid, MathVector<3>& normalOut, c
 {
 	switch(roid)
 	{
+		case ROID_VERTEX: ElementNormal<ReferenceVertex, 3>(normalOut, vCornerCoords); return;
+		case ROID_EDGE: ElementNormal<ReferenceEdge, 3>(normalOut, vCornerCoords); return;
 		case ROID_TRIANGLE: ElementNormal<ReferenceTriangle, 3>(normalOut, vCornerCoords); return;
 		case ROID_QUADRILATERAL: ElementNormal<ReferenceQuadrilateral, 3>(normalOut, vCornerCoords); return;
 		default: UG_THROW("ReferenceObject "<<roid<<" not found in dim 3.");
@@ -480,7 +564,7 @@ inline void ElementNormal<3>(ReferenceObjectID roid, MathVector<3>& normalOut, c
 /// Normal to a side of an Element in a given Dimension
 /**
  * This function computes the outer normal to a given side
- * of an element. The Eucleadean norm of the normal is the
+ * of an element. The Euclidean norm of the normal is the
  * area of the side. Note that the normal is computed in
  * the same dimensionality as the reference element itself.
  *
@@ -488,8 +572,8 @@ inline void ElementNormal<3>(ReferenceObjectID roid, MathVector<3>& normalOut, c
  * \param[in] vCornerCoords	array of the global coordinates of the corners
  * \param[out] normalOut	the computed normal
  */
-template <typename TRefElem>
-inline void SideNormal(MathVector<TRefElem::dim>& normalOut, int side, const MathVector<TRefElem::dim>* vCornerCoords)
+template <typename TRefElem, int TWorldDim>
+inline void SideNormal(MathVector<TWorldDim>& normalOut, int side, const MathVector<TWorldDim>* vCornerCoords)
 {
 	static const int dim = (int) TRefElem::dim;
 	
@@ -497,14 +581,23 @@ inline void SideNormal(MathVector<TRefElem::dim>& normalOut, int side, const Mat
 	TRefElem & rRefElem = (TRefElem&) ReferenceElementProvider::get(TRefElem::REFERENCE_OBJECT_ID);
 	ReferenceObjectID sideRoid = rRefElem.roid(dim-1,side);
 	
-//	Get the coordinates of the verices:
-	MathVector<dim> vSideCorner [element_list_traits<typename domain_traits<dim-1>::DimElemList>::maxCorners];
-	size_t numSideCorners = rRefElem.num(dim-1, side, 0);
-	for(size_t co = 0; co < numSideCorners; ++co)
+//	Get the coordinates of the vertices:
+	MathVector<TWorldDim> vSideCorner [element_list_traits<typename domain_traits<TWorldDim-1>::DimElemList>::maxCorners];
+	std::size_t numSideCorners = rRefElem.num(dim-1, side, 0);
+	for (std::size_t co = 0; co < numSideCorners; ++co)
 		vSideCorner[co] = vCornerCoords[rRefElem.id(dim-1, side, 0, co)];
-	
+	// we need another point if dim != TWorldDim:
+	// take the highest-numbered corner of the next side, since
+	// it is always different from the other points (is it not?)
+	if (dim != TWorldDim)
+	{
+		vSideCorner[numSideCorners] =
+			vCornerCoords[rRefElem.id(dim-1, (side+1)%TWorldDim, 0,
+					  	  rRefElem.num(dim-1, (side+1)%TWorldDim, 0))];
+	}
+
 //	Get the normal:
-	ElementNormal<dim>(sideRoid, normalOut, vSideCorner);
+	ElementNormal<TWorldDim>(sideRoid, normalOut, vSideCorner);
 //	Note: We assume that the for the standard ordering, the last line computes
 //	the outer normal.
 }
@@ -518,7 +611,7 @@ inline void SideNormal<1>(ReferenceObjectID roid, MathVector<1>& normalOut, int 
 {
 	switch(roid)
 	{
-		case ROID_EDGE: SideNormal<ReferenceEdge>(normalOut, side, vCornerCoords); return;
+		case ROID_EDGE: SideNormal<ReferenceEdge,1>(normalOut, side, vCornerCoords); return;
 		default: UG_THROW("ReferenceObject "<<roid<<" not found in dim 1.");
 	}
 }
@@ -528,8 +621,9 @@ inline void SideNormal<2>(ReferenceObjectID roid, MathVector<2>& normalOut, int 
 {
 	switch(roid)
 	{
-		case ROID_TRIANGLE: SideNormal<ReferenceTriangle>(normalOut, side, vCornerCoords); return;
-		case ROID_QUADRILATERAL: SideNormal<ReferenceQuadrilateral>(normalOut, side, vCornerCoords); return;
+		case ROID_EDGE: SideNormal<ReferenceEdge,2>(normalOut, side, vCornerCoords); return;
+		case ROID_TRIANGLE: SideNormal<ReferenceTriangle,2>(normalOut, side, vCornerCoords); return;
+		case ROID_QUADRILATERAL: SideNormal<ReferenceQuadrilateral,2>(normalOut, side, vCornerCoords); return;
 		default: UG_THROW("ReferenceObject "<<roid<<" not found in dim 2.");
 	}
 }
@@ -539,10 +633,13 @@ inline void SideNormal<3>(ReferenceObjectID roid, MathVector<3>& normalOut, int 
 {
 	switch(roid)
 	{
-		case ROID_TETRAHEDRON: SideNormal<ReferenceTetrahedron>(normalOut, side, vCornerCoords); return;
-		case ROID_PYRAMID: SideNormal<ReferencePyramid>(normalOut, side, vCornerCoords); return;
-		case ROID_PRISM: SideNormal<ReferencePrism>(normalOut, side, vCornerCoords); return;
-		case ROID_HEXAHEDRON: SideNormal<ReferenceHexahedron>(normalOut, side, vCornerCoords); return;
+		case ROID_EDGE: SideNormal<ReferenceEdge,3>(normalOut, side, vCornerCoords); return;
+		case ROID_TRIANGLE: SideNormal<ReferenceTriangle,3>(normalOut, side, vCornerCoords); return;
+		case ROID_QUADRILATERAL: SideNormal<ReferenceQuadrilateral,3>(normalOut, side, vCornerCoords); return;
+		case ROID_TETRAHEDRON: SideNormal<ReferenceTetrahedron,3>(normalOut, side, vCornerCoords); return;
+		case ROID_PYRAMID: SideNormal<ReferencePyramid,3>(normalOut, side, vCornerCoords); return;
+		case ROID_PRISM: SideNormal<ReferencePrism,3>(normalOut, side, vCornerCoords); return;
+		case ROID_HEXAHEDRON: SideNormal<ReferenceHexahedron,3>(normalOut, side, vCornerCoords); return;
 		default: UG_THROW("ReferenceObject "<<roid<<" not found in dim 3.");
 	}
 }

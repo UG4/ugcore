@@ -74,7 +74,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("assemble_rhs", static_cast<void (T::*)(typename TAlgebra::vector_type&, GridFunction<TDomain, TAlgebra>&)>(&T::assemble_rhs))
 			.add_method("assemble_rhs", static_cast<void (T::*)(GridFunction<TDomain, TAlgebra>&)>(&T::assemble_rhs))
 			.add_method("adjust_solution", static_cast<void (T::*)(GridFunction<TDomain, TAlgebra>&)>(&T::adjust_solution))
-			.add_method("mark_error", static_cast<void (T::*)(const GridFunction<TDomain, TAlgebra>&, IRefiner&, number, number, number, int)>(&T::mark_error), "", "Mark elements for refinement according the error estimator")
+			.add_method("mark_error", static_cast<void (T::*)(const GridFunction<TDomain, TAlgebra>&, IRefiner&, number, number, number, int, typename TAlgebra::vector_type*)>(&T::mark_error), "", "Mark elements for refinement according the error estimator")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "DomainDiscretization", tag);
 	}
@@ -106,14 +106,53 @@ static void Domain(Registry& reg, string grp)
 //	group string
 	string domDiscGrp = grp; domDiscGrp.append("/SpatialDisc");
 	
+
+//	IErrEstData
+	{
+		typedef IErrEstData<TDomain> T;
+		string name = string("IErrEstData").append(suffix);
+		reg.add_class_<T>(name, domDiscGrp)
+			.add_method("set_consider_me", &T::set_consider_me, "", "", "", "");
+		reg.add_class_to_group(name, "ErrEstData", tag);
+	}
+
 //	SideFluxErrEstData
 	{
 		typedef SideFluxErrEstData<TDomain> T;
+		typedef IErrEstData<TDomain> TBase;
 		string name = string("SideFluxErrEstData").append(suffix);
-		reg.add_class_<T> (name, domDiscGrp)
+		reg.add_class_<T, TBase>(name, domDiscGrp)
 			.template add_constructor<void (*) ()>()
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "SideFluxErrEstData", tag);
+	}
+
+//	SideAndElemErrEstData
+	{
+		typedef SideAndElemErrEstData<TDomain> T;
+		typedef IErrEstData<TDomain> TBase;
+		string name = string("SideAndElemErrEstData").append(suffix);
+		reg.add_class_<T, TBase>(name, domDiscGrp)
+			.template add_constructor<void (*) (std::size_t, std::size_t)>
+				("integration order for sides#integration order for elements", "", "", "")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "SideAndElemErrEstData", tag);
+	}
+
+//	MultipleErrEstData
+	{
+		typedef MultipleSideAndElemErrEstData<TDomain> T;
+		typedef IErrEstData<TDomain> TBase;
+		string name = string("MultipleSideAndElemErrEstData").append(suffix);
+		reg.add_class_<T, TBase>(name, domDiscGrp)
+			.template add_constructor<void (*) ()> ()
+			.add_method("add", static_cast<void (T::*)(SmartPtr<SideAndElemErrEstData<TDomain> >)>(&T::add),
+						"ErrEstData object", "", "Add existing ErrEstData objects one at a time. "
+						"+++ TAKE CARE: The order matters! +++ "
+						"ElemDiscs given this object can access the underlying error estimator "
+						"data objects in the order of addition.", "")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "MultipleSideAndElemErrEstData", tag);
 	}
 }
 
@@ -163,13 +202,6 @@ static void Common(Registry& reg, string grp)
 {
 //	group string
 	string domDiscGrp = grp; domDiscGrp.append("/SpatialDisc");
-
-//	IErrEstData
-	{
-		string name = string("IErrEstData");
-		reg.add_class_<IErrEstData>(name, domDiscGrp);
-		reg.add_class_to_group(name, "IErrEstData");
-	}
 }
 
 }; // end Functionality
@@ -188,7 +220,7 @@ void RegisterBridge_DomainDisc(Registry& reg, string grp)
 	try{
 //		RegisterCommon<Functionality>(reg,grp);
 //		RegisterDimensionDependent<Functionality>(reg,grp);
-//		RegisterDomainDependent<Functionality>(reg,grp);
+		RegisterDomainDependent<Functionality>(reg,grp);
 //		RegisterAlgebraDependent<Functionality>(reg,grp);
 		RegisterDomainAlgebraDependent<Functionality>(reg,grp);
 	}

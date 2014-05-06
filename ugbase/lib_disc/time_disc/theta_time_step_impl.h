@@ -226,6 +226,41 @@ assemble_rhs(vector_type& b, const vector_type& u, const GridLevel& gl)
 	m_pPrevSol->remove_latest();
 }
 
+template<typename TAlgebra>
+void MultiStepTimeDiscretization<TAlgebra>::
+mark_error(const vector_type& u, IRefiner& refiner, number TOL, number refineFrac, number coarseFrac, int maxLevel, vector_type* u_vtk)
+{
+	PROFILE_BEGIN_GROUP(MultiStepTimeDiscretization_mark_error, "discretization MultiStepTimeDiscretization");
+//	perform checks
+	if(m_pPrevSol->size() < m_prevSteps)
+		UG_THROW("ThetaTimeStep::mark_error:"
+				" Number of previous solutions must be at least "<<
+				m_prevSteps <<", but only "<< m_pPrevSol->size() << " passed.");
+
+//	push unknown solution to solution time series
+//	ATTENTION: Here, we must cast away the constness of the solution, but note,
+//			   that we pass pPrevSol as a const object in assemble_... Thus,
+//			   the solution will not be changed there and we pop it from the
+//			   Solution list afterwards, such that nothing happens to u
+	// \todo: avoid this hack, use smart ptr properly
+	int DummyRefCount = 2;
+	SmartPtr<vector_type> pU(const_cast<vector_type*>(&u), &DummyRefCount);
+	m_pPrevSol->push(pU, m_futureTime);
+
+//	assemble error estimators using current iterate
+	try
+	{
+		GridLevel gl = GridLevel();	// new TOP-SURFACE grid level
+		this->m_spDomDisc->mark_error(m_pPrevSol, m_vScaleMass, m_vScaleStiff, gl,
+									  refiner, TOL, refineFrac, coarseFrac, maxLevel, u_vtk);
+	}
+	UG_CATCH_THROW("ThetaTimeStep: Cannot assemble error estimators.");
+
+//	pop unknown solution to solution time series
+	m_pPrevSol->remove_latest();
+}
+
+
 template <typename TAlgebra>
 void MultiStepTimeDiscretization<TAlgebra>::
 finish_step_elem(SmartPtr<VectorTimeSeries<vector_type> > currSol,

@@ -137,10 +137,26 @@ static void Algebra(Registry& reg, string parentGroup)
 		reg.add_class_to_group(name, "ITimeDiscretization", tag);
 	}
 
-//	ThetaTimeStep
+//	MultiStepTimeDiscretization
 	{
 		std::string grp = parentGroup; grp.append("/Discretization/TimeDisc");
 		typedef ITimeDiscretization<TAlgebra> TBase;
+		typedef MultiStepTimeDiscretization<TAlgebra> T;
+		string name = string("MultiStepTimeDiscretization").append(suffix);
+		reg.add_class_<T,TBase>(name, grp)
+			.add_method("mark_error", static_cast<void (T::*)(const vector_type&, IRefiner&, number,
+			   number, number, int)>(&T::mark_error), "", "",
+			   "marks elements for refining according to error estimators of the elemDiscs")
+			.add_method("mark_error", static_cast<void (T::*)(const vector_type&, IRefiner&, number,
+			   number, number, int, vector_type&)>(&T::mark_error), "", "",
+			   "marks elements for refining according to error estimators of the elemDiscs");
+		reg.add_class_to_group(name, "MultiStepTimeDiscretization", tag);
+	}
+
+//	ThetaTimeStep
+	{
+		std::string grp = parentGroup; grp.append("/Discretization/TimeDisc");
+		typedef MultiStepTimeDiscretization<TAlgebra> TBase;
 		typedef ThetaTimeStep<TAlgebra> T;
 		string name = string("ThetaTimeStep").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
@@ -157,7 +173,7 @@ static void Algebra(Registry& reg, string parentGroup)
 //	BDF
 	{
 		std::string grp = parentGroup; grp.append("/Discretization/TimeDisc");
-		typedef ITimeDiscretization<TAlgebra> TBase;
+		typedef MultiStepTimeDiscretization<TAlgebra> TBase;
 		typedef BDF<TAlgebra> T;
 		string name = string("BDF").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
@@ -171,7 +187,7 @@ static void Algebra(Registry& reg, string parentGroup)
 //	SDIRK
 	{
 		std::string grp = parentGroup; grp.append("/Discretization/TimeDisc");
-		typedef ITimeDiscretization<TAlgebra> TBase;
+		typedef MultiStepTimeDiscretization<TAlgebra> TBase;
 		typedef SDIRK<TAlgebra> T;
 		string name = string("SDIRK").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)

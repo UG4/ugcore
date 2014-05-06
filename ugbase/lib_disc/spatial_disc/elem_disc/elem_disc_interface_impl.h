@@ -164,26 +164,50 @@ void IElemDisc<TDomain>::remove_prep_err_est_elem_loop(ReferenceObjectID id)
 
 template <typename TDomain>
 template<typename TAssFunc>
-void IElemDisc<TDomain>::set_compute_err_est_elem(ReferenceObjectID id, TAssFunc func)
+void IElemDisc<TDomain>::set_prep_err_est_elem(ReferenceObjectID id, TAssFunc func)
 {
-	m_vElemComputeErrEstFct[id] = static_cast<ElemComputeErrEstFct>(func);
+	m_vPrepareErrEstElemFct[id] = static_cast<PrepareErrEstElemFct>(func);
 };
 template <typename TDomain>
-void IElemDisc<TDomain>::remove_compute_err_est_elem(ReferenceObjectID id)
+void IElemDisc<TDomain>::remove_prep_err_est_elem(ReferenceObjectID id)
 {
-	m_vElemComputeErrEstFct[id] = NULL;
+	m_vPrepareErrEstElemFct[id] = NULL;
 };
 
 template <typename TDomain>
 template<typename TAssFunc>
-void IElemDisc<TDomain>::set_get_err_est_elem(ReferenceObjectID id, TAssFunc func)
+void IElemDisc<TDomain>::set_compute_err_est_A_elem(ReferenceObjectID id, TAssFunc func)
 {
-	m_vElemGetErrEstFct[id] = static_cast<ElemGetErrEstFct>(func);
+	m_vElemComputeErrEstAFct[id] = static_cast<ElemComputeErrEstAFct>(func);
 };
 template <typename TDomain>
-void IElemDisc<TDomain>::remove_get_err_est_elem(ReferenceObjectID id)
+void IElemDisc<TDomain>::remove_compute_err_est_A_elem(ReferenceObjectID id)
 {
-	m_vElemGetErrEstFct[id] = NULL;
+	m_vElemComputeErrEstAFct[id] = NULL;
+};
+
+template <typename TDomain>
+template<typename TAssFunc>
+void IElemDisc<TDomain>::set_compute_err_est_M_elem(ReferenceObjectID id, TAssFunc func)
+{
+	m_vElemComputeErrEstMFct[id] = static_cast<ElemComputeErrEstMFct>(func);
+};
+template <typename TDomain>
+void IElemDisc<TDomain>::remove_compute_err_est_M_elem(ReferenceObjectID id)
+{
+	m_vElemComputeErrEstMFct[id] = NULL;
+};
+
+template <typename TDomain>
+template<typename TAssFunc>
+void IElemDisc<TDomain>::set_compute_err_est_rhs_elem(ReferenceObjectID id, TAssFunc func)
+{
+	m_vElemComputeErrEstRhsFct[id] = static_cast<ElemComputeErrEstRhsFct>(func);
+};
+template <typename TDomain>
+void IElemDisc<TDomain>::remove_compute_err_est_rhs_elem(ReferenceObjectID id)
+{
+	m_vElemComputeErrEstRhsFct[id] = NULL;
 };
 
 template <typename TDomain>

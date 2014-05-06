@@ -212,7 +212,7 @@ add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoor
 template<typename TDomain>
 template<typename TElem, typename TGeom>
 void NeumannBoundaryFV1<TDomain>::
-finish_elem_loop()
+fsh_elem_loop()
 {
 //	remove subsetIndex from Geometry
 	static TGeom& geo = GeomProvider<TGeom >::get();
@@ -245,6 +245,235 @@ finish_elem_loop()
 		}
 	}
 }
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+//   error estimation (begin)  																	 //
+
+//	prepares the loop over all elements of one type for the computation of the error estimator
+template<typename TDomain>
+template <typename TElem, typename TFVGeom>
+void NeumannBoundaryFV1<TDomain>::
+prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
+{
+	//	get the error estimator data object and check that it is of the right type
+	//	we check this at this point in order to be able to dispense with this check later on
+	//	(i.e. in prep_err_est_elem and compute_err_est_A_elem())
+	if (this->m_spErrEstData.get() == NULL)
+	{
+		UG_THROW("No ErrEstData object has been given to this ElemDisc!");
+	}
+
+	err_est_type* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
+
+	if (!err_est_data)
+	{
+		UG_THROW("Dynamic cast to SideAndElemErrEstData failed."
+				<< std::endl << "Make sure you handed the correct type of ErrEstData to this discretization.");
+	}
+
+	update_subset_groups();
+	m_si = si;
+
+//	clear imports, since we will set them now
+	this->clear_imports();
+
+	typedef typename NeumannBoundaryFV1<TDomain>::NumberData T;
+	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+
+//	set lin defect fct for imports
+	for (std::size_t data = 0; data < m_vNumberData.size(); ++data)
+	{
+		if (!m_vNumberData[data].InnerSSGrp.contains(m_si)) continue;
+		m_vNumberData[data].import.set_fct(id,
+										   &m_vNumberData[data],
+										   &NumberData::template lin_def<TElem, TFVGeom>);
+
+		this->register_import(m_vNumberData[data].import);
+		m_vNumberData[data].import.set_rhs_part();
+	}
+
+// get local IPs for imports
+	static const int refDim = TElem::dim;
+
+	std::size_t numSideIPs;
+	const MathVector<refDim>* sideIPs;
+	try
+	{
+		numSideIPs = err_est_data->num_all_side_ips(roid);
+		sideIPs = err_est_data->template side_local_ips<refDim>(roid);
+
+		if (!sideIPs) return;	// is NULL if TElem is not of the same dim as TDomain
+	}
+	UG_CATCH_THROW("Integration points for error estimator cannot be set.");
+
+	for (std::size_t i = 0; i < m_vNumberData.size(); ++i)
+	{
+		if (m_vNumberData[i].InnerSSGrp.contains(m_si))
+			m_vNumberData[i].template set_local_ips<refDim>(sideIPs, numSideIPs);
+	}
+};
+
+template<typename TDomain>
+template<typename TElem, typename TFVGeom>
+void NeumannBoundaryFV1<TDomain>::
+prep_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
+{
+// get global IPs for imports
+	std::size_t numSideIPs;
+	std::vector<MathVector<dim> > sideIPs;
+
+	try
+	{
+		err_est_type* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
+
+		numSideIPs = err_est_data->num_all_side_ips(elem->reference_object_id());
+		sideIPs = std::vector<MathVector<dim> >(numSideIPs);
+
+		err_est_data->all_side_global_ips(&sideIPs[0], elem, vCornerCoords);
+	}
+	UG_CATCH_THROW("Global integration points for error estimator cannot be set.");
+
+
+	for (std::size_t i = 0; i < m_vNumberData.size(); ++i)
+	{
+		if (m_vNumberData[i].InnerSSGrp.contains(m_si))
+			m_vNumberData[i].set_global_ips(&sideIPs[0], numSideIPs);
+	}
+}
+
+//	computes the error estimator contribution for one element
+template<typename TDomain>
+template <typename TElem, typename TFVGeom>
+void NeumannBoundaryFV1<TDomain>::
+compute_err_est_rhs_elem(GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale)
+{
+	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+
+	err_est_type* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
+
+	if (err_est_data->surface_view().get() == NULL) {UG_THROW("Error estimator has NULL surface view.");}
+	MultiGrid* pErrEstGrid = (MultiGrid*) (err_est_data->surface_view()->subset_handler()->multi_grid());
+
+//	get the sides of the element
+	typename MultiGrid::traits<typename SideAndElemErrEstData<TDomain>::side_type>::secure_container side_list;
+	pErrEstGrid->associated_elements_sorted(side_list, (TElem*) elem);
+	if (side_list.size() != ref_elem_type::numSides)
+		UG_THROW ("Mismatch of numbers of sides in 'ConvectionDiffusionFV1::compute_err_est_elem'");
+
+	//	Number Data
+	for (std::size_t data = 0; data < m_vNumberData.size(); ++data)
+	{
+		if (!m_vNumberData[data].InnerSSGrp.contains(m_si)) continue;
+
+		// loop sides
+		for (std::size_t side = 0; side < side_list.size(); side++)
+		{
+			for (std::size_t ss = 0; ss < m_vNumberData[data].BndSSGrp.size(); ss++)
+			{
+				// is the bnd cond subset index the same as the current side's?
+				if (err_est_data->surface_view()->subset_handler()->get_subset_index(side_list[side])
+					!= m_vNumberData[data].BndSSGrp[ss]) continue;
+
+				const std::size_t ipIndexStart = err_est_data->first_side_ips(elem->reference_object_id(), side);
+
+				for (std::size_t sip = 0; sip < err_est_data->num_side_ips(side_list[side]); sip++)
+				{
+					std::size_t ip = ipIndexStart + sip;
+					// sign must be negative, since the data represents efflux
+					(*err_est_data)(side_list[side],sip) -= scale * m_vNumberData[data].import[ip];
+				}
+			}
+		}
+	}
+
+	// store global side IPs
+	ReferenceObjectID roid = elem->reference_object_id();
+	std::size_t numSideIPs = err_est_data->num_all_side_ips(roid);
+	std::vector<MathVector<dim> > glob_ips = std::vector<MathVector<dim> >(numSideIPs);
+	err_est_data->all_side_global_ips(&glob_ips[0], elem, vCornerCoords);
+
+	//	conditional Number Data
+	for (std::size_t data = 0; data < m_vBNDNumberData.size(); ++data)
+	{
+		if (!m_vBNDNumberData[data].InnerSSGrp.contains(m_si)) continue;
+
+		// loop sides
+		for (std::size_t side = 0; side < side_list.size(); side++)
+		{
+			for (std::size_t ss = 0; ss < m_vBNDNumberData[data].BndSSGrp.size(); ss++)
+			{
+				// is the bnd cond subset index the same as the current side's?
+				if (err_est_data->surface_view()->subset_handler()->get_subset_index(side_list[side])
+					!= m_vBNDNumberData[data].BndSSGrp[ss]) continue;
+
+				int si = m_vBNDNumberData[data].BndSSGrp[ss];
+
+				const std::size_t ipIndexStart = err_est_data->first_side_ips(roid, side);
+
+				for (std::size_t sip = 0; sip < err_est_data->num_side_ips(side_list[side]); sip++)
+				{
+					std::size_t ip = ipIndexStart + sip;
+					number val = 0.0;
+					if (!(*m_vBNDNumberData[data].functor)(val, glob_ips[ip], this->time(), si)) continue;
+
+					// sign must be negative, since the data represents efflux
+					(*err_est_data)(side_list[side],sip) -= scale * val;
+				}
+			}
+		}
+	}
+
+	// 	vector data
+	for (std::size_t data = 0; data < m_vVectorData.size(); ++data)
+	{
+		if (!m_vVectorData[data].InnerSSGrp.contains(m_si)) continue;
+
+		// loop sides
+		for (std::size_t side = 0; side < side_list.size(); side++)
+		{
+			MathVector<dim> fd, normal;
+
+			// normal on side
+			SideNormal<ref_elem_type,dim>(normal, side, vCornerCoords);
+			VecNormalize(normal, normal);
+
+			for (std::size_t ss = 0; ss < m_vVectorData[data].BndSSGrp.size(); ss++)
+			{
+				// is the bnd cond subset index the same as the current side's?
+				if (err_est_data->surface_view()->subset_handler()->get_subset_index(side_list[side])
+					!= m_vVectorData[data].BndSSGrp[ss]) continue;
+
+				int si = m_vBNDNumberData[data].BndSSGrp[ss];
+
+				const std::size_t ipIndexStart = err_est_data->first_side_ips(roid, side);
+
+				for (std::size_t sip = 0; sip < err_est_data->num_side_ips(side_list[side]); sip++)
+				{
+					std::size_t ip = ipIndexStart + sip;
+					(*m_vVectorData[data].functor)(fd, glob_ips[ip], this->time(), si);
+
+					// sign must be negative, since the data represents efflux
+					(*err_est_data)(side_list[side],sip) -= scale * VecDot(fd, normal);
+				}
+			}
+		}
+	}
+}
+
+//	postprocesses the loop over all elements of one type in the computation of the error estimator
+template<typename TDomain>
+template <typename TElem, typename TFVGeom>
+void NeumannBoundaryFV1<TDomain>::
+fsh_err_est_elem_loop()
+{
+	// finish the element loop in the same way as the actual discretization
+	this->template fsh_elem_loop<TElem, TFVGeom> ();
+}
+
+//   error estimation (end)     																 //
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Number Data
@@ -354,12 +583,18 @@ void NeumannBoundaryFV1<TDomain>::register_func()
 	this->set_prep_elem_loop_fct(id, &T::template prep_elem_loop<TElem, TFVGeom>);
 	this->set_prep_elem_fct(	 id, &T::template prep_elem<TElem, TFVGeom>);
 	this->set_add_rhs_elem_fct(	 id, &T::template add_rhs_elem<TElem, TFVGeom>);
-	this->set_fsh_elem_loop_fct( id, &T::template finish_elem_loop<TElem, TFVGeom>);
+	this->set_fsh_elem_loop_fct( id, &T::template fsh_elem_loop<TElem, TFVGeom>);
 
 	this->set_add_jac_A_elem_fct(	 id, &T::template add_jac_A_elem<TElem, TFVGeom>);
 	this->set_add_jac_M_elem_fct(	 id, &T::template add_jac_M_elem<TElem, TFVGeom>);
 	this->set_add_def_A_elem_fct(	 id, &T::template add_def_A_elem<TElem, TFVGeom>);
 	this->set_add_def_M_elem_fct(	 id, &T::template add_def_M_elem<TElem, TFVGeom>);
+
+	// error estimator parts
+	this->set_prep_err_est_elem_loop(id, &T::template prep_err_est_elem_loop<TElem, TFVGeom>);
+	this->set_prep_err_est_elem(id, &T::template prep_err_est_elem<TElem, TFVGeom>);
+	this->set_compute_err_est_rhs_elem(id, &T::template compute_err_est_rhs_elem<TElem, TFVGeom>);
+	this->set_fsh_err_est_elem_loop(id, &T::template fsh_err_est_elem_loop<TElem, TFVGeom>);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -70,7 +70,8 @@ static void Domain(Registry& reg, string grp)
 		typedef IElemDisc<TDomain> T;
 		string name = string("IElemDisc").append(suffix);
 		reg.add_class_<T>(name, elemGrp)
-			.add_method("set_stationary", static_cast<void (T::*)()>(&T::set_stationary));
+			.add_method("set_stationary", static_cast<void (T::*)()>(&T::set_stationary))
+			.add_method("set_error_estimator", static_cast<void (T::*)(SmartPtr<IErrEstData<TDomain> >)>(&T::set_error_estimator));
 		reg.add_class_to_group(name, "IElemDisc", tag);
 	}
 

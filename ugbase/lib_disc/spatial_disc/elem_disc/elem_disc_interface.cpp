@@ -14,6 +14,7 @@ template <typename TDomain>
 IElemDisc<TDomain>::IElemDisc(const char* functions, const char* subsets)
 	: 	m_spApproxSpace(NULL), m_spFctPattern(0),
 	  	m_timePoint(0), m_pLocalVectorTimeSeries(NULL), m_bStationaryForced(false),
+	  	m_bDoErrEst(false),
 	  	m_id(ROID_UNKNOWN)
 {
 	if(functions == NULL) functions = "";
@@ -28,6 +29,7 @@ IElemDisc<TDomain>::IElemDisc(const std::vector<std::string>& vFct,
                               const std::vector<std::string>& vSubset)
 	: 	m_spApproxSpace(NULL), m_spFctPattern(0),
 		m_timePoint(0), m_pLocalVectorTimeSeries(NULL), m_bStationaryForced(false),
+	  	m_bDoErrEst(false),
 		m_id(ROID_UNKNOWN)
 {
 	set_functions(vFct);
@@ -71,10 +73,12 @@ void IElemDisc<TDomain>::clear_add_fct(ReferenceObjectID id)
 	m_vElemdMFct[id] = NULL;
 
 	m_vElemRHSFct[id] = NULL;
-	
+
 	m_vPrepareErrEstElemLoopFct[id] = NULL;
-	m_vElemComputeErrEstFct[id] = NULL;
-	m_vElemGetErrEstFct[id] = NULL;
+	m_vPrepareErrEstElemFct[id] = NULL;
+	m_vElemComputeErrEstAFct[id] = NULL;
+	m_vElemComputeErrEstMFct[id] = NULL;
+	m_vElemComputeErrEstRhsFct[id] = NULL;
 	m_vFinishErrEstElemLoopFct[id] = NULL;
 }
 
@@ -107,10 +111,12 @@ void IElemDisc<TDomain>::set_default_add_fct()
 		m_vElemdMFct[i] = &T::add_def_M_elem;
 
 		m_vElemRHSFct[i] = &T::add_rhs_elem;
-		
+
 		m_vPrepareErrEstElemLoopFct[i] = &T::prep_err_est_elem_loop;
-		m_vElemComputeErrEstFct[i] = &T::compute_err_est_elem;
-		m_vElemGetErrEstFct[i] = &T::get_err_est_elem;
+		m_vPrepareErrEstElemFct[i] = &T::prep_err_est_elem;
+		m_vElemComputeErrEstAFct[i] = &T::compute_err_est_A_elem;
+		m_vElemComputeErrEstMFct[i] = &T::compute_err_est_M_elem;
+		m_vElemComputeErrEstRhsFct[i] = &T::compute_err_est_rhs_elem;
 		m_vFinishErrEstElemLoopFct[i] = &T::fsh_err_est_elem_loop;
 	}
 }
@@ -480,56 +486,98 @@ template <typename TDomain>
 void IElemDisc<TDomain>::
 do_prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
 {
+// do nothing if error estimation is turned off
+	if (!err_est_enabled()) return;
+
 //	set id and disc part (this checks the assemble functions)
 	this->set_roid(roid, si);
 
 //	remove positions in currently registered imports
-	for(size_t i = 0; i < m_vIImport.size(); ++i)
+	for(std::size_t i = 0; i < m_vIImport.size(); ++i)
 		m_vIImport[i]->clear_ips();
 
 //	call prep_elem_loop (this may set ip-series to imports)
-	//	call assembling routine
-	if (this->m_vPrepareErrEstElemLoopFct[m_id] != NULL)
-		(this->*m_vPrepareErrEstElemLoopFct[m_id])(roid, si);
+	UG_ASSERT(m_vPrepareErrEstElemLoopFct[m_id]!=NULL, "ElemDisc method prep_err_est_elem_loop missing.");
+	(this->*m_vPrepareErrEstElemLoopFct[m_id])(roid, si);
 
 //	set roid in imports (for evaluation function)
-	for(size_t i = 0; i < m_vIImport.size(); ++i)
+	for(std::size_t i = 0; i < m_vIImport.size(); ++i)
 		m_vIImport[i]->set_roid(roid);
 }
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
-do_compute_err_est_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
+do_prep_err_est_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
+	// do nothing if error estimation is turned off
+	if (!err_est_enabled()) return;
+
 	//	access by map
 	u.access_by_map(map());
-	if(local_time_series_needed())
+	if (local_time_series_needed())
 		m_pLocalVectorTimeSeries->access_by_map(map());
 
 	//	call assembling routine
-	if(this->m_vElemComputeErrEstFct[m_id] != NULL)
-		(this->*(m_vElemComputeErrEstFct[m_id]))(u, elem, vCornerCoords);
+	UG_ASSERT(m_vPrepareErrEstElemFct[m_id]!=NULL, "ElemDisc method prepare_err_est_elem missing.");
+	(this->*(m_vPrepareErrEstElemFct[m_id]))(u, elem, vCornerCoords);
 }
 
 template <typename TDomain>
-number IElemDisc<TDomain>::
-do_get_err_est_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
+void IElemDisc<TDomain>::
+do_compute_err_est_A_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale)
 {
+	// do nothing if error estimation is turned off
+	if (!err_est_enabled()) return;
+
+	//	access by map
+	u.access_by_map(map());
+	if (local_time_series_needed())
+		m_pLocalVectorTimeSeries->access_by_map(map());
+
+	//	call assembling routine
+	if (this->m_vElemComputeErrEstAFct[m_id] != NULL)
+		(this->*(m_vElemComputeErrEstAFct[m_id]))(u, elem, vCornerCoords, scale);
+}
+
+template <typename TDomain>
+void IElemDisc<TDomain>::
+do_compute_err_est_M_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale)
+{
+	// do nothing if error estimation is turned off
+	if (!err_est_enabled()) return;
+
 	//	access by map
 	u.access_by_map(map());
 	if(local_time_series_needed())
 		m_pLocalVectorTimeSeries->access_by_map(map());
 
 	//	call assembling routine
-	if(this->m_vElemGetErrEstFct[m_id] != NULL)
-		return (this->*(m_vElemGetErrEstFct[m_id]))(u, elem, vCornerCoords);
-	return 0;
+	if(this->m_vElemComputeErrEstMFct[m_id] != NULL)
+		(this->*(m_vElemComputeErrEstMFct[m_id]))(u, elem, vCornerCoords, scale);
+}
+
+template <typename TDomain>
+void IElemDisc<TDomain>::
+do_compute_err_est_rhs_elem(GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale)
+{
+	// do nothing if error estimation is turned off
+	if (!err_est_enabled()) return;
+
+	if(local_time_series_needed())
+		m_pLocalVectorTimeSeries->access_by_map(map());
+
+	//	call assembling routine
+	if(this->m_vElemComputeErrEstRhsFct[m_id] != NULL)
+		(this->*(m_vElemComputeErrEstRhsFct[m_id]))(elem, vCornerCoords, scale);
 }
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
 do_fsh_err_est_elem_loop()
 {
+// do nothing if error estimation is turned off
+	if (!err_est_enabled()) return;
+
 //	call finish
 	if (this->m_vFinishErrEstElemLoopFct[m_id] != NULL)
 		(this->*m_vFinishErrEstElemLoopFct[m_id])();
@@ -640,17 +688,30 @@ prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
-compute_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
+prep_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
+{
+	//ThrowMissingVirtualMethod("prep_elem", elem->reference_object_id ());
+}
+
+template <typename TDomain>
+void IElemDisc<TDomain>::
+compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale)
 {
 	// ThrowMissingVirtualMethod("compute_err_est_elem", elem->reference_object_id ());
 }
 
 template <typename TDomain>
-number IElemDisc<TDomain>::
-get_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
+void IElemDisc<TDomain>::
+compute_err_est_M_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale)
 {
-	// ThrowMissingVirtualMethod("get_err_est_elem", elem->reference_object_id ());
-	return 0;
+	// ThrowMissingVirtualMethod("compute_err_est_elem", elem->reference_object_id ());
+}
+
+template <typename TDomain>
+void IElemDisc<TDomain>::
+compute_err_est_rhs_elem(GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale)
+{
+	// ThrowMissingVirtualMethod("compute_err_est_elem", elem->reference_object_id ());
 }
 
 template <typename TDomain>

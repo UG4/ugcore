@@ -53,6 +53,13 @@ enum ReferenceObjectID
 	NUM_REFERENCE_OBJECTS
 };
 
+inline
+ReferenceObjectID operator++(ReferenceObjectID& roid, int)
+{
+	int tmp = roid;
+	return roid = static_cast<ReferenceObjectID>(++tmp);
+};
+
 ////////////////////////////////////////////////////////////////////////
 inline
 std::ostream& operator<< (std::ostream& outStream, ReferenceObjectID type)

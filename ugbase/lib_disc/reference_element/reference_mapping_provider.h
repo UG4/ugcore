@@ -20,7 +20,7 @@ namespace ug{
  * This class is the base class for reference mappings in order to make them
  * selectable through a provider (on the price of virtual functions).
  *
- * \tparam	TDim		reference element dimensino
+ * \tparam	TDim		reference element dimension
  * \tparam	TWorldDim	(physical) world dimension
  */
 template <int TDim, int TWorldDim = TDim>

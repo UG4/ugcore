@@ -5,13 +5,14 @@
  *
  * This class implements the IElemDisc interface to provide element local
  * assemblings for the unknown-dependent Neumann-flux over an inner boundary.
- * The equation of this flux should be given in a concretization of this class.
+ * The equation of this flux and its derivative should be given
+ * in a concretization of this class.
  * 
  * \tparam	TDomain		Domain
  * \tparam	TAlgebra	Algebra
  * 
  *  Created on: 26.02.2010
- *      Author: markusbreit
+ *      Author: mbreit
  */
 
 #ifndef __H__UG__LIB_DISC__SPACIAL_DISCRETIZATION__ELEM_DISC__NEUMANN_BOUNDARY__FV1__INNER_BOUNDARY__
@@ -28,6 +29,7 @@
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
 #include "lib_disc/spatial_disc/user_data/data_export.h"
 #include "lib_disc/spatial_disc/user_data/data_import.h"
+#include "lib_disc/spatial_disc/disc_util/fv1_geom.h"
 
 
 
@@ -44,8 +46,8 @@ class FV1InnerBoundaryElemDisc
 		{
 			// vector of fluxFctValues
 			std::vector<number> flux;
-			std::vector<size_t> from;
-			std::vector<size_t> to;
+			std::vector<std::size_t> from;
+			std::vector<std::size_t> to;
 		};
 
 		/// struct that holds information about the derivatives of the flux densities
@@ -54,8 +56,8 @@ class FV1InnerBoundaryElemDisc
 		{
 			// vector of fluxFctDerivValues (wrt fct, flux number)
 			std::vector<std::vector<number> > fluxDeriv;
-			std::vector<size_t> from;
-			std::vector<size_t> to;
+			std::vector<std::size_t> from;
+			std::vector<std::size_t> to;
 		};
 
 	private:
@@ -74,6 +76,9 @@ class FV1InnerBoundaryElemDisc
 
 	///	Position type
 		typedef typename base_type::position_type position_type;
+
+	/// error estimator type
+		typedef MultipleSideAndElemErrEstData<TDomain> err_est_type;
 
 	public:
 	
@@ -95,7 +100,7 @@ class FV1InnerBoundaryElemDisc
 				UG_THROW("FV1InnerBoundary: only regular grid implemented.");
 
 		//	check that Lagrange 1st order
-			for(size_t i = 0; i < vLfeID.size(); ++i)
+			for(std::size_t i = 0; i < vLfeID.size(); ++i)
 				if(vLfeID[i].type() != LFEID::LAGRANGE || vLfeID[i].order() != 1)
 					UG_THROW("FV1InnerBoundary: 1st order lagrange expected.");
 		}
@@ -110,14 +115,14 @@ class FV1InnerBoundaryElemDisc
 	 *	depending on the unknowns on the boundary;
 	 *	shall be defined in a specialized class that is derived from FV1InnerBoundaryElemDisc.
 	 */
-		virtual bool fluxDensityFct(const LocalVector& u, size_t node_id, const MathVector<dim>& cc,
+		virtual bool fluxDensityFct(const std::vector<LocalVector::value_type>& u, const MathVector<dim>& cc,
 									int si, FluxCond& fc) = 0;
 	
 	/**	This is the flux derivative function defining the flux density derivatives over the boundary
 	 *	depending on the unknowns on the boundary;
 	 *	shall be defined in a specialized class that is derived from FV1InnerBoundaryElemDisc.
 	 */
-		virtual bool fluxDensityDerivFct(const LocalVector& u, size_t node_id, const MathVector<dim>& cc,
+		virtual bool fluxDensityDerivFct(const std::vector<LocalVector::value_type>& u, const MathVector<dim>& cc,
 										 int si, FluxDerivCond& fdc) = 0;
 	
 	///	prepares the loop over all elements
@@ -126,7 +131,7 @@ class FV1InnerBoundaryElemDisc
 	 * array for the corner coordinates and schedules the local ip positions
 	 * at the data imports.
 	 */
-		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
+		template<typename TElem, typename TFVGeom>
 		void prep_elem_loop(const ReferenceObjectID roid, const int si);
 
 	///	prepares the element for assembling
@@ -135,48 +140,81 @@ class FV1InnerBoundaryElemDisc
 	 * the Element Corners are read and the Finite Volume Geometry is updated.
 	 * The global ip positions are scheduled at the data imports.
 	 */
-		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
+		template<typename TElem, typename TFVGeom>
 		void prep_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	///	finishes the loop over all elements
-		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
+		template<typename TElem, typename TFVGeom>
 		void fsh_elem_loop();
 
 	///	assembles the local stiffness matrix using a finite volume scheme
-		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
+		template<typename TElem, typename TFVGeom>
 		void add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	///	assembles the local mass matrix using a finite volume scheme
-		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
+		template<typename TElem, typename TFVGeom>
 		void add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	///	assembles the stiffness part of the local defect
-		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
+		template<typename TElem, typename TFVGeom>
 		void add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	///	assembles the mass part of the local defect
-		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
+		template<typename TElem, typename TFVGeom>
 		void add_def_M_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	///	assembles the local right hand side
-		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
+		template<typename TElem, typename TFVGeom>
 		void add_rhs_elem(LocalVector& rhs, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+
+	///	prepares the loop over all elements of one type for the computation of the error estimator
+		template <typename TElem, typename TFVGeom>
+		void prep_err_est_elem_loop(const ReferenceObjectID roid, const int si);
+
+	///	prepares the element for assembling the error estimator
+		template <typename TElem, typename TFVGeom>
+		void prep_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+
+	///	computes the error estimator contribution for one element
+		template <typename TElem, typename TFVGeom>
+		void compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale);
+
+	///	postprocesses the loop over all elements of one type in the computation of the error estimator
+		template <typename TElem, typename TFVGeom>
+		void fsh_err_est_elem_loop();
 
 	private:
 		void register_all_fv1_funcs();
 
-		//template <template <class Elem, int WorldDim> class TFVGeom>
-		template <template <class Elem, int WorldDim> class TFVGeom>
-		struct RegisterFV1 {
+		struct RegisterFV1
+		{
 				RegisterFV1(this_type* pThis) : m_pThis(pThis){}
 				this_type* m_pThis;
 				template< typename TElem > void operator()(TElem&)
-				{m_pThis->register_fv1_func<TElem, TFVGeom>();}
+				{m_pThis->register_fv1_func<TElem, FV1ManifoldBoundary<TElem, dim> >();}
 		};
 
-		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
+		template <typename TElem, typename TFVGeom>
 		void register_fv1_func();
 
+
+		/// struct holding values of shape functions in IPs
+		struct ShapeValues
+		{
+			public:
+				void resize(std::size_t nSip, std::size_t _nSh)
+				{
+					nSh = _nSh;
+					sideVals.resize(nSip);
+					for (std::size_t i = 0; i < nSip; i++) sideVals[i].resize(nSh);
+				}
+				number& shapeAtSideIP(std::size_t sh, std::size_t ip) {return sideVals[ip][sh];}
+				number* shapesAtSideIP(std::size_t ip) {return &sideVals[ip][0];}
+				std::size_t num_sh() {return nSh;}
+			private:
+				std::size_t nSh;
+				std::vector<std::vector<number> > sideVals;
+		} m_shapeValues;
 };
 
 }

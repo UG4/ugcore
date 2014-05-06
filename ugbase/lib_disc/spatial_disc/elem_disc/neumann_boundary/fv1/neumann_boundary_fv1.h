@@ -27,6 +27,9 @@ class NeumannBoundaryFV1
 	///	Base class type
 		typedef NeumannBoundaryFV1<TDomain> this_type;
 
+	/// error estimator type
+		typedef SideAndElemErrEstData<TDomain> err_est_type;
+
 	public:
 	///	World dimension
 		static const int dim = base_type::dim;
@@ -62,6 +65,13 @@ class NeumannBoundaryFV1
 			void lin_def(const LocalVector& u,
 			             std::vector<std::vector<number> > vvvLinDef[],
 			             const size_t nip);
+
+			template <int refDim>
+			void set_local_ips(const MathVector<refDim>* ips, std::size_t nIPs)
+			{import.template set_local_ips<refDim>(ips, nIPs);}
+
+			void set_global_ips(const MathVector<dim>* ips, std::size_t nIPs)
+			{import.set_global_ips(ips, nIPs);}
 
 			DataImport<number, dim> import;
 			std::vector<MathVector<dim> > vLocIP;
@@ -110,9 +120,27 @@ class NeumannBoundaryFV1
 		template<typename TElem, typename TFVGeom>
 		void prep_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 		template<typename TElem, typename TFVGeom>
-		void finish_elem_loop();
+		void fsh_elem_loop();
 		template<typename TElem, typename TFVGeom>
 		void add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+
+	///	prepares the loop over all elements of one type for the computation of the error estimator
+		template <typename TElem, typename TFVGeom>
+		void prep_err_est_elem_loop(const ReferenceObjectID roid, const int si);
+
+	///	prepares the element for assembling the error estimator
+		template <typename TElem, typename TFVGeom>
+		void prep_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+
+	///	computes the error estimator contribution for one element
+		template <typename TElem, typename TFVGeom>
+		void compute_err_est_rhs_elem(GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale);
+
+	///	postprocesses the loop over all elements of one type in the computation of the error estimator
+		template <typename TElem, typename TFVGeom>
+		void fsh_err_est_elem_loop();
+
+
 	/// \}
 
 		static const int _C_ = 0;

@@ -81,6 +81,16 @@ class MultiStepTimeDiscretization
 
 		void adjust_solution(vector_type& u, const GridLevel& gl);
 
+	///	error estimator
+		void mark_error(const vector_type& u, IRefiner& refiner, number TOL,
+				   number refineFrac, number coarseFrac, int maxLevel, vector_type* u_vtk);
+		void mark_error(const vector_type& u, IRefiner& refiner, number TOL,
+				   number refineFrac, number coarseFrac, int maxLevel)
+		{mark_error(u, refiner, TOL, refineFrac, coarseFrac, maxLevel, NULL);}
+		void mark_error(const vector_type& u, IRefiner& refiner, number TOL,
+				   number refineFrac, number coarseFrac, int maxLevel, vector_type& u_vtk)
+		{mark_error(u, refiner, TOL, refineFrac, coarseFrac, maxLevel, &u_vtk);}
+
 	protected:
 	///	updates the scaling factors, returns the future time
 		virtual number update_scaling(std::vector<number>& vSM,
@@ -230,7 +240,7 @@ class ThetaTimeStep
 						vSA[1] = (1.- (2.-sqrt(2.)))* (1-1./sqrt(2.)) * dt;
 						return currentTime + (1-1./sqrt(2.)) * dt;
 					default:
-						UG_THROW("Alexander scheme has only 2 stages")
+						UG_THROW("FracStep scheme has only 3 stages")
 				}
 			}
 			else

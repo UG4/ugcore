@@ -610,19 +610,20 @@ void DataEvaluator<TDomain>::finish_err_est_elem_loop()
 }
 
 template <typename TDomain>
-void DataEvaluator<TDomain>::
-compute_elem_err_est(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const LocalIndices& ind)
+void DataEvaluator<TDomain>::prepare_err_est_elem
+(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[],
+const LocalIndices& ind, bool bDeriv)
 {
-// 	prepare element
-	try{
-		for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
-			m_vElemDisc[PT_ALL][i]->do_prep_elem(u, elem, vCornerCoords);
+	try
+	{
+		for (std::size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
+			m_vElemDisc[PT_ALL][i]->do_prep_err_est_elem(u, elem, vCornerCoords);
 	}
 	UG_CATCH_THROW("DataEvaluator::compute_elem_err_est: Cannot prepare element.");
 
 //	evaluate position data
-	for(size_t i = 0; i < m_vPosData.size(); ++i)
-		m_vPosData[i]->compute(&u, elem, NULL, false);
+	for (std::size_t i = 0; i < m_vPosData.size(); ++i)
+		m_vPosData[i]->compute(&u, elem, vCornerCoords, false);
 
 // 	process dependent data:
 //	We can not simply compute exports first, then Linker, because an export
@@ -632,34 +633,72 @@ compute_elem_err_est(LocalVector& u, GridObject* elem, const MathVector<dim> vCo
 //	needed data has previously computed).
 
 //	compute the data
-	try{
-		for(size_t i = 0; i < m_vDependentData.size(); ++i){
+	try
+	{
+		for (std::size_t i = 0; i < m_vDependentData.size(); ++i)
+		{
 			u.access_by_map(m_vDependentData[i]->map());
 			m_vDependentData[i]->compute(&u, elem, vCornerCoords, false);
 		}
 	}
 	UG_CATCH_THROW("DataEvaluator::compute_elem_err_est: Cannot compute data for Export or Linker.");
-	
-//	compute the error estimator
-	try{
-		for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
-			m_vElemDisc[PT_ALL][i]->do_compute_err_est_elem(u, elem, vCornerCoords);
+}
+
+
+template <typename TDomain>
+void DataEvaluator<TDomain>::
+compute_err_est_A_elem
+(	LocalVector& u,
+	GridObject* elem,
+	const MathVector<dim> vCornerCoords[],
+	const LocalIndices& ind,
+	const number scaleMass,
+	const number scaleStiff)
+{
+	UG_ASSERT(m_discPart & STIFF, "Using compute_err_est_A_elem, but not STIFF requested.");
+	try
+	{
+		for (std::size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
+			m_vElemDisc[PT_ALL][i]->do_compute_err_est_A_elem(u, elem, vCornerCoords, scaleStiff);
 	}
-	UG_CATCH_THROW("DataEvaluator::compute_elem_err_est: Cannot assemble error estimator");
+	UG_CATCH_THROW("DataEvaluator::compute_err_est_A_elem: Cannot assemble stiffness part of error estimator");
 }
 
 template <typename TDomain>
-number DataEvaluator<TDomain>::
-get_elem_err_est(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const LocalIndices& ind)
+void DataEvaluator<TDomain>::
+compute_err_est_M_elem
+(	LocalVector& u,
+	GridObject* elem,
+	const MathVector<dim> vCornerCoords[],
+	const LocalIndices& ind,
+	const number scaleMass,
+	const number scaleStiff)
 {
-	number err_est_val = 0;
-	try{
-		/// \todo Any other technique to sum up the local error estimators for several coupled discretizations?
-		for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
-			err_est_val += m_vElemDisc[PT_ALL][i]->do_get_err_est_elem(u, elem, vCornerCoords);
+	UG_ASSERT(m_discPart & MASS, "Using compute_err_est_M_elem, but not MASS requested.");
+	try
+	{
+		for (std::size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
+			m_vElemDisc[PT_ALL][i]->do_compute_err_est_M_elem(u, elem, vCornerCoords, scaleMass);
 	}
-	UG_CATCH_THROW("DataEvaluator::get_elem_err_est: Cannot compute error estimator");
-	return err_est_val;
+	UG_CATCH_THROW("DataEvaluator::compute_err_est_A_elem: Cannot assemble stiffness part of error estimator");
+}
+
+template <typename TDomain>
+void DataEvaluator<TDomain>::
+compute_err_est_rhs_elem
+(	GridObject* elem,
+	const MathVector<dim> vCornerCoords[],
+	const LocalIndices& ind,
+	const number scaleMass,
+	const number scaleStiff)
+{
+	UG_ASSERT(m_discPart & RHS, "Using compute_err_est_rhs_elem, but not RHS requested.");
+	try
+	{
+		for (std::size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
+			m_vElemDisc[PT_ALL][i]->do_compute_err_est_rhs_elem(elem, vCornerCoords, scaleStiff);
+	}
+	UG_CATCH_THROW("DataEvaluator::compute_err_est_rhs_elem: Cannot assemble rhs part of error estimator");
 }
 
 ////////////////////////////////////////////////////////////////////////////////

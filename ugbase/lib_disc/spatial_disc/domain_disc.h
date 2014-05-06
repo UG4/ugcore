@@ -210,14 +210,50 @@ class DomainDiscretization : public IDomainDiscretization<TAlgebra>
 	///////////////////////////
 
 	/// \copydoc IDomainDiscretization::mark_error()
+	// stationary
 		virtual void mark_error(const vector_type& u, ConstSmartPtr<DoFDistribution> dd,
-			IRefiner& refiner, number TOL, number refineFrac, number coarseFrac, int maxLevel);
-		virtual	void mark_error(const vector_type& u, const GridLevel& gl,
-			IRefiner& refiner, number TOL, number refineFrac, number coarseFrac, int maxLevel)
+			IRefiner& refiner, number TOL, number refineFrac, number coarseFrac, int maxLevel,
+			vector_type* u_vtk = NULL);
+		virtual	void mark_error(const vector_type& u, const GridLevel& gl, IRefiner& refiner,
+			number TOL, number refineFrac, number coarseFrac, int maxLevel, vector_type* u_vtk = NULL)
 		{mark_error(u, dd(gl), refiner, TOL, refineFrac, coarseFrac, maxLevel);}
 		virtual	void mark_error(const GridFunction<TDomain,TAlgebra>& u,
 			IRefiner& refiner, number TOL, number refineFrac, number coarseFrac, int maxLevel)
-		{mark_error(u, u.dd(), refiner, TOL, refineFrac, coarseFrac, maxLevel);}
+		{mark_error(u, u.dd(), refiner, TOL, refineFrac, coarseFrac, maxLevel, NULL);}
+		virtual	void mark_error(const GridFunction<TDomain,TAlgebra>& u,
+			IRefiner& refiner, number TOL, number refineFrac, number coarseFrac, int maxLevel,
+			vector_type* u_vtk)
+		{mark_error(u, u.dd(), refiner, TOL, refineFrac, coarseFrac, maxLevel, u_vtk);}
+
+	// instationary
+		virtual void mark_error
+		(	ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+			ConstSmartPtr<DoFDistribution> dd,
+			std::vector<number> vScaleMass,
+			std::vector<number> vScaleStiff,
+			IRefiner& refiner,
+			number TOL,
+			number refineFrac,
+			number coarseFrac,
+			int maxLevel,
+			vector_type* u_vtk
+		);
+		virtual void mark_error
+		(	ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+			std::vector<number> vScaleMass,
+			std::vector<number> vScaleStiff,
+			const GridLevel& gl,
+			IRefiner& refiner,
+			number TOL,
+			number refineFrac,
+			number coarseFrac,
+			int maxLevel,
+			vector_type* u_vtk
+		)
+		{
+			mark_error((ConstSmartPtr<VectorTimeSeries<vector_type> >) vSol, dd(gl),
+						vScaleMass, vScaleStiff, refiner, TOL, refineFrac, coarseFrac, maxLevel, u_vtk);
+		}
 
 	public:
 	/// \{

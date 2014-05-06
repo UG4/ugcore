@@ -271,9 +271,17 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 	 * \param[in]  dd 			DoF Distribution
 	 */
 		virtual	void mark_error(const vector_type& u, const GridLevel& gl,
-			IRefiner& refiner, number TOL, number refineFrac, number coarseFrac, int maxLevel) {};
+			IRefiner& refiner, number TOL, number refineFrac, number coarseFrac, int maxLevel, vector_type* u_vtk = NULL) = 0;
 		virtual void mark_error(const vector_type& u, ConstSmartPtr<DoFDistribution> dd,
-			IRefiner& refiner, number TOL, number refineFrac, number coarseFrac, int maxLevel) {};
+			IRefiner& refiner, number TOL, number refineFrac, number coarseFrac, int maxLevel, vector_type* u_vtk = NULL) = 0;
+		virtual void mark_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+			ConstSmartPtr<DoFDistribution> dd, std::vector<number> vScaleMass, std::vector<number> vScaleStiff,
+			IRefiner& refiner, number TOL, number refineFrac, number coarseFrac, int maxLevel,
+			vector_type* u_vtk) = 0;
+		virtual void mark_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+			std::vector<number> vScaleMass, std::vector<number> vScaleStiff, const GridLevel& gl,
+			IRefiner& refiner, number TOL, number refineFrac, number coarseFrac, int maxLevel,
+			vector_type* u_vtk) = 0;
 
 	///	returns the number of post processes
 		virtual size_t num_constraints() const = 0;
