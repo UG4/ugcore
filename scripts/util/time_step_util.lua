@@ -141,7 +141,8 @@ function util.SolveNonlinearTimeProblem(
 	
 	-- write start solution
 	print(">> Writing start values")
-	if not (out==nil) then out:print(filename, u, step, time) end
+	if type(out) == "function" then out(u, step, time) end
+	if type(out) == "userdata" then out:print(filename, u, step, time) end
 	
 	-- store grid function in vector of  old solutions
 	local solTimeSeries = SolutionTimeSeries()
@@ -241,12 +242,13 @@ function util.SolveNonlinearTimeProblem(
 		end			
 		
 		-- plot solution
-		if not (out==nil) then out:print(filename, u, step, time) end
+		if type(out) == "function" then out(u, step, time) end
+		if type(out) == "userdata" then out:print(filename, u, step, time) end
 	
 		print("++++++ TIMESTEP "..step.." END   (current time: " .. time .. ") ++++++");
 	end
 	
-	if not (out==nil) then out:write_time_pvd(filename, u) end
+	if type(out) == "userdata" then out:write_time_pvd(filename, u) end
 end
 
 
