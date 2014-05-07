@@ -592,8 +592,8 @@ inline void SideNormal(MathVector<TWorldDim>& normalOut, int side, const MathVec
 	if (dim != TWorldDim)
 	{
 		vSideCorner[numSideCorners] =
-			vCornerCoords[rRefElem.id(dim-1, (side+1)%TWorldDim, 0,
-					  	  rRefElem.num(dim-1, (side+1)%TWorldDim, 0))];
+			vCornerCoords[rRefElem.id(dim-1, (side+1)%rRefElem.num(dim-1), 0,
+					  	  rRefElem.num(dim-1, (side+1)%rRefElem.num(dim-1), 0)-1)];
 	}
 
 //	Get the normal:
