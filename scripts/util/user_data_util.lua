@@ -228,68 +228,54 @@ function __ug__UserNumber_div(l, r)
 	---------------------------------------------------------
 	-- Check match of types for operands
 	---------------------------------------------------------
-	
-	-- both operands are UserData
-	-- check for same data type
-	if rType ~= "" and lType ~= "" then
-		if rData ~= lData then
-			error("Error in '/': Data Type of UserData does not match")
-		end
-	-- one operand is scalar value from lua
-	else
-		if rType == "" then
-			if tonumber(r) then
-				if lData ~= "Number" then
-					error("Error in '/': Cannot divide Number and "..lData)
-				end
-			else
-				error("Error in '/': Divisor must be scalar number or UserData.")
-			end
-		end
-		if lType == "" then
-			if tonumber(l) then
-				if rData ~= "Number" then
-					error("Error in '/': Cannot divide Number and "..rData)
-				end
-			else
-				error("Error in '/': Dividend must be scalar number or UserData.")
-			end
-		end		
-	end	
 
-	-- All checks passed: Can create name for Class to return
+	-- check r is number	
+	if rType ~= "" and rData ~= "Number" then
+		error("Error in '/': Cannot divide by "..rData)
+	end
+
+	-- case: dividing by lua number	
+	if rType == "" then
+		if not(tonumber(r)) then
+			error("Error in '/': Cannot only divide by Number")
+		end
+		return __ug__UserNumber_mul(l, (1/r))
+	end
+
 	local InverseLinkerName = "InverseLinker"..Dim.."d"
-	
-	---------------------------------------------------------
-	-- a) Case: An operand is InverseLinker
-	---------------------------------------------------------
-	-- left operand is linker
-	if lType == InverseLinkerName then
-		-- copy linker and add also other operand
-		local linker =  _G[InverseLinkerName](l)
-		linker:divide(1.0, r)
-		return linker
-	end
-	-- right operand is linker 
-	
-	if rType == InverseLinkerName then
-	 		local linker =  _G[InverseLinkerName](r)
-			linker:divide(l, 1.0)
+	-- case: number by user-data-number
+	if lType == "" or lData == "Number" then
+		---------------------------------------------------------
+		-- a) Case: An operand is InverseLinker
+		---------------------------------------------------------
+		-- left operand is linker
+		if lType == InverseLinkerName then
+			-- copy linker and add also other operand
+			local linker =  _G[InverseLinkerName](l)
+			linker:divide(1.0, r)
 			return linker
+		end
+
+		-- right operand is linker 		
+		if rType == InverseLinkerName then
+		 		local linker =  _G[InverseLinkerName](r)
+				linker:divide(l, 1.0)
+				return linker
+		end
+		
+		---------------------------------------------------------
+		-- b) Case: No operand is InverseLinker
+		---------------------------------------------------------
+		local linker =  _G[InverseLinkerName]()
+		linker:divide(l, r)
+		return linker	
 	end
 	
-	---------------------------------------------------------
-	-- b) Case: No operand is InverseLinker
-	---------------------------------------------------------
-	local linker =  _G[InverseLinkerName]()
-	linker:divide(l, r)
-	return linker	
+	-- case: user-data by user-data-number
+	local linker = _G[InverseLinkerName]()
+	linker:divide(1, r)
+	return __ug__UserNumber_mul(l, linker)
 	
---	if not tonumber(r) then
---		error("Error in '/': Currently divisor must be plain lua number")
---	else
---		return __ug__UserNumber_mul(l, (1/r))
---	end
 end
 
 --------------------------------------------------------------------------------
