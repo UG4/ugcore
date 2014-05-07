@@ -204,6 +204,24 @@ static void Dimension(Registry& reg, string grp)
 		reg.add_class_to_group(name, string("ScaleAddLinkerVectorMatrix"), dimTag);
 	}
 
+//	ScaleAddLinkerVectorVector
+	{
+		typedef MathVector<dim> TData;
+		typedef MathVector<dim> TDataScale;
+		typedef ScaleAddLinker<TData, dim, TDataScale, number> T;
+		typedef DependentUserData<number, dim> TBase;
+		string name = string("ScaleAddLinkerVectorVector").append(dimSuffix);
+		reg.add_class_<T, TBase>(name, grp)
+			.add_method("add", static_cast<void (T::*)(SmartPtr<CplUserData<TDataScale,dim> > , SmartPtr<CplUserData<TData,dim> >)>(&T::add))
+			.add_method("add", static_cast<void (T::*)(number , SmartPtr<CplUserData<TData,dim> >)>(&T::add))
+			.add_method("add", static_cast<void (T::*)(SmartPtr<CplUserData<TDataScale,dim> > , number)>(&T::add))
+			.add_method("add", static_cast<void (T::*)(number,number)>(&T::add))
+			.add_constructor()
+			.template add_constructor<void (*)(const ScaleAddLinker<TData, dim, TDataScale,number>&)>()
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, string("ScaleAddLinkerVectorVector"), dimTag);
+	}
+
 //	DarcyVelocityLinker
 	{
 		typedef DarcyVelocityLinker<dim> T;

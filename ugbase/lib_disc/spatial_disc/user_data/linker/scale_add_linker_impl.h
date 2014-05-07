@@ -18,8 +18,8 @@ namespace ug{
 //	ScaleAddLinker
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename TData, int dim, typename TDataScale>
-ScaleAddLinker<TData,dim,TDataScale>::
+template <typename TData, int dim, typename TDataScale, typename TRet>
+ScaleAddLinker<TData,dim,TDataScale,TRet>::
 ScaleAddLinker(const ScaleAddLinker& linker)
 {
 	if(linker.m_vpUserData.size() != linker.m_vpScaleData.size())
@@ -32,8 +32,8 @@ ScaleAddLinker(const ScaleAddLinker& linker)
 }
 
 
-template <typename TData, int dim, typename TDataScale>
-void ScaleAddLinker<TData,dim,TDataScale>::
+template <typename TData, int dim, typename TDataScale, typename TRet>
+void ScaleAddLinker<TData,dim,TDataScale,TRet>::
 add(SmartPtr<CplUserData<TDataScale, dim> > scale, SmartPtr<CplUserData<TData, dim> > data)
 {
 //	current number of inputs
@@ -61,22 +61,22 @@ add(SmartPtr<CplUserData<TDataScale, dim> > scale, SmartPtr<CplUserData<TData, d
 	base_type::set_input(2*numInput+1, scale, scale);
 }
 
-template <typename TData, int dim, typename TDataScale>
-void ScaleAddLinker<TData,dim,TDataScale>::
+template <typename TData, int dim, typename TDataScale, typename TRet>
+void ScaleAddLinker<TData,dim,TDataScale,TRet>::
 add(number scale, SmartPtr<CplUserData<TData, dim> > data)
 {
 	add(CreateConstUserData<dim>(scale, TDataScale()), data);
 }
 
-template <typename TData, int dim, typename TDataScale>
-void ScaleAddLinker<TData,dim,TDataScale>::
+template <typename TData, int dim, typename TDataScale, typename TRet>
+void ScaleAddLinker<TData,dim,TDataScale,TRet>::
 add(SmartPtr<CplUserData<TDataScale, dim> > scale, number data)
 {
 	add(scale, CreateConstUserData<dim>(data, TData()));
 }
 
-template <typename TData, int dim, typename TDataScale>
-void ScaleAddLinker<TData,dim,TDataScale>::
+template <typename TData, int dim, typename TDataScale, typename TRet>
+void ScaleAddLinker<TData,dim,TDataScale,TRet>::
 add(number scale, number data)
 {
 	add(CreateConstUserData<dim>(scale, TDataScale()),
@@ -84,9 +84,9 @@ add(number scale, number data)
 }
 
 
-template <typename TData, int dim, typename TDataScale>
-void ScaleAddLinker<TData,dim,TDataScale>::
-evaluate (TData& value,
+template <typename TData, int dim, typename TDataScale, typename TRet>
+void ScaleAddLinker<TData,dim,TDataScale,TRet>::
+evaluate (TRet& value,
           const MathVector<dim>& globIP,
           number time, int si) const
 {
@@ -102,15 +102,15 @@ evaluate (TData& value,
 		(*m_vpUserData[c])(valData, globIP, time, si);
 		(*m_vpScaleData[c])(valScale, globIP, time, si);
 
-		linker_traits<TData, TDataScale>::
+		linker_traits<TData, TDataScale,TRet>::
 		mult_add(value, valData, valScale);
 	}
 }
 
-template <typename TData, int dim, typename TDataScale>
+template <typename TData, int dim, typename TDataScale, typename TRet>
 template <int refDim>
-void ScaleAddLinker<TData,dim,TDataScale>::
-evaluate(TData vValue[],
+void ScaleAddLinker<TData,dim,TDataScale,TRet>::
+evaluate(TRet vValue[],
          const MathVector<dim> vGlobIP[],
          number time, int si,
          GridObject* elem,
@@ -136,15 +136,15 @@ evaluate(TData vValue[],
 							elem, vCornerCoords, vLocIP, nip, u, vJT);
 
 		for(size_t ip = 0; ip < nip; ++ip)
-			linker_traits<TData, TDataScale>::
+			linker_traits<TData, TDataScale,TRet>::
 			mult_add(vValue[ip], vValData[ip], vValScale[ip]);
 	}
 }
 
-template <typename TData, int dim, typename TDataScale>
+template <typename TData, int dim, typename TDataScale, typename TRet>
 template <int refDim>
-void ScaleAddLinker<TData,dim,TDataScale>::
-eval_and_deriv(TData vValue[],
+void ScaleAddLinker<TData,dim,TDataScale,TRet>::
+eval_and_deriv(TRet vValue[],
                     const MathVector<dim> vGlobIP[],
                     number time, int si,
                     GridObject* elem,
@@ -154,7 +154,7 @@ eval_and_deriv(TData vValue[],
                     LocalVector* u,
                     bool bDeriv,
                     int s,
-                    std::vector<std::vector<TData> > vvvDeriv[],
+                    std::vector<std::vector<TRet> > vvvDeriv[],
                     const MathMatrix<refDim, dim>* vJT) const
 {
 //	check that size of Scalings and inputs is equal
@@ -169,7 +169,7 @@ eval_and_deriv(TData vValue[],
 	//	add contribution of each summand
 		for(size_t c = 0; c < m_vpUserData.size(); ++c)
 		{
-			linker_traits<TData, TDataScale>::
+			linker_traits<TData, TDataScale,TRet>::
 			mult_add(vValue[ip],
 					 input_value(c, s, ip),
 					 scale_value(c, s, ip));
@@ -203,7 +203,7 @@ eval_and_deriv(TData vValue[],
 				//	loop dofs
 					for(size_t sh = 0; sh < this->num_sh(fct); ++sh)
 					{
-						linker_traits<TData, TDataScale>::
+						linker_traits<TData, TDataScale,TRet>::
 						mult_add(vvvDeriv[ip][commonFct][sh],
 								 input_deriv(c, s, ip, fct, sh),
 								 scale_value(c, s, ip));
@@ -226,7 +226,7 @@ eval_and_deriv(TData vValue[],
 				//	loop dofs
 					for(size_t sh = 0; sh < this->num_sh(fct); ++sh)
 					{
-						linker_traits<TData, TDataScale>::
+						linker_traits<TData, TDataScale,TRet>::
 						mult_add(vvvDeriv[ip][commonFct][sh],
 								 input_value(c, s, ip),
 								 scale_deriv(c, s, ip, fct, sh));

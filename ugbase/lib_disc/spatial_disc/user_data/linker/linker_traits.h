@@ -17,7 +17,7 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////
 
 /// Linker Traits
-template <typename TData, typename TDataIn>
+template <typename TData, typename TDataIn, typename TRet = TData>
 struct linker_traits
 {
 ///	computes out += s * in1 (with appropriate '*')
@@ -52,6 +52,17 @@ struct linker_traits< MathVector<dim>, MathMatrix<dim,dim> >
 						 const MathMatrix<dim,dim>& s)
 	{
 		MatVecMultAppend(out, s, in1);
+	}
+};
+
+template <std::size_t dim>
+struct linker_traits< MathVector<dim>,  MathVector<dim>, number >
+{
+	static void mult_add(number& out,
+	                     const MathVector<dim>& in1,
+						 const MathVector<dim>& s)
+	{
+		out = VecDot(s, in1);
 	}
 };
 

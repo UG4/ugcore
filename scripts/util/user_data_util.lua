@@ -174,36 +174,47 @@ function __ug__UserNumber_mul(l, r)
 	-- Check match of types for operands
 	---------------------------------------------------------
 	
-	-- both operands are UserData
-	-- check for same data type
-	if rType ~= "" and lType ~= "" then
-		if rData ~= "Number" and lData ~= "Number" then
-			error("Error in '*': One Data Type of UserData must be number")
+	-- if operand is not UserData it must be a numer
+	if rType == "" then
+		if not tonumber(r) then
+			error("Error in '*': Operand must be scalar number or UserData.")
 		end
-	-- one operand is scalar value from lua
-	else
-		if rType == "" then
-			if not tonumber(r) then
-				error("Error in '*': Operand must be scalar number or UserData.")
-			end
+	end
+	if lType == "" then
+		if not tonumber(l) then
+			error("Error in '*': Operand must be scalar number or UserData.")
 		end
-		if lType == "" then
-			if not tonumber(l) then
-				error("Error in '*': Operand must be scalar number or UserData.")
-			end
-		end		
-	end	
+	end		
 
-	-- All checks passed: Can create name for Class to return
-	local ScaleAddLinkerName = "ScaleAddLinker"..Data..Dim.."d"
-	
-	---------------------------------------------------------
-	-- Multiply
-	---------------------------------------------------------
-	local linker =  _G[ScaleAddLinkerName]()
-	if rData == "" or rData == "Number" then linker:add(r, l)
-	else linker:add(l, r) end
-	return linker				
+	-- if plain lua-numbers, just multiply
+	if rType == "" and lType == "" then
+		return l*r
+	end
+
+	-- if one operand is a scalar or number
+	if rData == "Number" or lData == "Number" or rData == "" or lData == "" then
+		local ScaleAddLinkerName = "ScaleAddLinker"..Data..Dim.."d"
+		local linker =  _G[ScaleAddLinkerName]()
+		if rData == "" or rData == "Number" then linker:add(r, l)
+		else linker:add(l, r) end
+		return linker				
+	end
+
+	if lData == "Matrix" and rData == "Vector" then
+		local ScaleAddLinkerName = "ScaleAddLinkerVectorMatrix"..Dim.."d"
+		local linker =  _G[ScaleAddLinkerName]()
+		linker:add(l, r)
+		return linker				
+	end
+
+	if lData == "Vector" and rData == "Vector" then
+		local ScaleAddLinkerName = "ScaleAddLinkerVectorVector"..Dim.."d"
+		local linker =  _G[ScaleAddLinkerName]()
+		linker:add(l, r)
+		return linker				
+	end
+
+	error("Error in '*': Cannot multiply "..lData.."*"..rData)	
 end
 
 --! functions user when '/' is called on an UserData (or a derived implementation)
@@ -378,6 +389,13 @@ for k, class in ipairs({"GridFunctionGradientData", "GridFunctionNumberData"}) d
 				set_user_data_overloads(class..dim.."d"..algebra)
 			end
 		end
+	end
+end
+
+for dim =  1,3 do
+	-- only set if dimension is compiled (otherwise metatable does not exist)
+	if ug_dim_compiled(dim) then
+		set_user_data_overloads("DarcyVelocityLinker"..dim.."d")
 	end
 end
 

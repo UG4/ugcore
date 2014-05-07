@@ -30,13 +30,13 @@ namespace ug{
  * \tparam		dim			world dimension
  * \tparam		TDataScale 	type of scaling data
  */
-template <typename TData, int dim, typename TDataScale>
+template <typename TData, int dim, typename TDataScale, typename TRet = TData>
 class ScaleAddLinker
-	: public StdDataLinker<ScaleAddLinker<TData, dim, TDataScale>, TData, dim>
+	: public StdDataLinker<ScaleAddLinker<TData, dim, TDataScale, TRet>, TRet, dim>
 {
 	public:
 	//	type of base class
-		typedef StdDataLinker<ScaleAddLinker<TData, dim, TDataScale>, TData, dim> base_type;
+		typedef StdDataLinker<ScaleAddLinker<TData, dim, TDataScale, TRet>, TRet, dim> base_type;
 
 	public:
 	///	constructor
@@ -57,12 +57,12 @@ class ScaleAddLinker
 		         number data);
 	/// \}
 
-		inline void evaluate (TData& value,
+		inline void evaluate (TRet& value,
 		                      const MathVector<dim>& globIP,
 		                      number time, int si) const;
 
 		template <int refDim>
-		inline void evaluate(TData vValue[],
+		inline void evaluate(TRet vValue[],
 		                     const MathVector<dim> vGlobIP[],
 		                     number time, int si,
 		                     GridObject* elem,
@@ -73,7 +73,7 @@ class ScaleAddLinker
 		                     const MathMatrix<refDim, dim>* vJT = NULL) const;
 
 		template <int refDim>
-		void eval_and_deriv(TData vValue[],
+		void eval_and_deriv(TRet vValue[],
 		                    const MathVector<dim> vGlobIP[],
 		                    number time, int si,
 		                    GridObject* elem,
@@ -83,7 +83,7 @@ class ScaleAddLinker
 		                    LocalVector* u,
 		                    bool bDeriv,
 		                    int s,
-		                    std::vector<std::vector<TData> > vvvDeriv[],
+		                    std::vector<std::vector<TRet> > vvvDeriv[],
 		                    const MathMatrix<refDim, dim>* vJT = NULL) const;
 
 	protected:
