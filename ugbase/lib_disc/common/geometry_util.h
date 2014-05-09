@@ -576,13 +576,14 @@ template <typename TRefElem, int TWorldDim>
 inline void SideNormal(MathVector<TWorldDim>& normalOut, int side, const MathVector<TWorldDim>* vCornerCoords)
 {
 	static const int dim = (int) TRefElem::dim;
+	static const int maxSideCorners = element_list_traits<typename domain_traits<dim-1>::DimElemList>::maxCorners;
 	
 //	Get own reference element and the side roid:
 	TRefElem & rRefElem = (TRefElem&) ReferenceElementProvider::get(TRefElem::REFERENCE_OBJECT_ID);
 	ReferenceObjectID sideRoid = rRefElem.roid(dim-1,side);
 	
 //	Get the coordinates of the vertices:
-	MathVector<TWorldDim> vSideCorner [element_list_traits<typename domain_traits<TWorldDim-1>::DimElemList>::maxCorners];
+	MathVector<TWorldDim> vSideCorner [(dim == TWorldDim)? maxSideCorners : maxSideCorners + 1];
 	std::size_t numSideCorners = rRefElem.num(dim-1, side, 0);
 	for (std::size_t co = 0; co < numSideCorners; ++co)
 		vSideCorner[co] = vCornerCoords[rRefElem.id(dim-1, side, 0, co)];
