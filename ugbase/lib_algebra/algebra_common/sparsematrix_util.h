@@ -82,19 +82,22 @@ void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 	for(size_t i=0; i < A.num_rows(); i++)
 	{
 		row.clear();
-		for(cAiterator itAik = A.begin_row(i); itAik != A.end_row(i); ++itAik)
+		cAiterator itAikEnd = A.end_row(i);
+		for(cAiterator itAik = A.begin_row(i); itAik != itAikEnd; ++itAik)
 		{
 			if(itAik.value() == 0.0) continue;
 
 			size_t k = itAik.index();
-			for(cBiterator itBkl = B.begin_row(k); itBkl != B.end_row(k); ++itBkl)
+			cBiterator itBklEnd = B.end_row(k);
+			for(cBiterator itBkl = B.begin_row(k); itBkl != itBklEnd; ++itBkl)
 			{
 				if(itBkl.value() == 0.0) continue;
 				size_t l = itBkl.index();
 				// ab = A_{ik} * B_{kl}
 				AssignMult(ab, itAik.value(), itBkl.value());
 
-				for(cCiterator itClj = C.begin_row(l); itClj != C.end_row(l); ++itClj)
+				cCiterator itCljEnd = C.end_row(l);
+				for(cCiterator itClj = C.begin_row(l); itClj != itCljEnd; ++itClj)
 				{
 					if(itClj.value() == 0.0) continue;
 					AddMult( row (itClj.index() ), ab, itClj.value());
@@ -172,19 +175,22 @@ void AddMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_type &
 	for(size_t i=0; i < A.num_rows(); i++)
 	{
 		row.clear();
-		for(cAiterator itAik = A.begin_row(i); itAik != A.end_row(i); ++itAik)
+		cAiterator itAikEnd = A.end_row(i);
+		for(cAiterator itAik = A.begin_row(i); itAik != itAikEnd; ++itAik)
 		{
 			if(itAik.value() == 0.0) continue;
 
 			size_t k = itAik.index();
-			for(cBiterator itBkl = B.begin_row(k); itBkl != B.end_row(k); ++itBkl)
+			cBiterator itBklEnd = B.end_row(k);
+			for(cBiterator itBkl = B.begin_row(k); itBkl != itBklEnd; ++itBkl)
 			{
 				if(itBkl.value() == 0.0) continue;
 				size_t l = itBkl.index();
 				// ab = A_{ik} * B_{kl}
 				AssignMult(ab, itAik.value(), itBkl.value());
 
-				for(cCiterator itClj = C.begin_row(l); itClj != C.end_row(l); ++itClj)
+				cCiterator itCljEnd = C.end_row(l);
+				for(cCiterator itClj = C.begin_row(l); itClj != itCljEnd; ++itClj)
 				{
 					if(itClj.value() == 0.0) continue;
 					AddMult( row (itClj.index() ), ab, itClj.value());
@@ -245,12 +251,14 @@ void CreateAsMultiplyOf(AB_type &M, const A_type &A, const B_type &B)
 	for(size_t i=0; i < A.num_rows(); i++)
 	{
 		row.clear();
-		for(cAiterator itAik = A.begin_row(i); itAik != itAik.end_row(i); ++itAik)
+		cAiterator itAikEnd = A.end_row(i);
+		for(cAiterator itAik = A.begin_row(i); itAik != itAikEnd; ++itAik)
 		{
 			if(itAik.value() == 0.0) continue;
 			size_t k = itAik.index();
 
-			for(cBiterator itBkj = B.begin(k); itBkj != B.end_row(k); ++itBkj)
+			cBiterator itBklEnd = B.end_row(k);
+			for(cBiterator itBkj = B.begin(k); itBkj != itBklEnd; ++itBkj)
 			{
 				if(itBkj.value() == 0.0) continue;
 				size_t j = itBkj.index();
@@ -341,12 +349,13 @@ void MatAdd(matrix_type &M, number &alpha1, const matrix_type &A, number &alpha2
 	M.defragment();
 }
 
-template<typename TMatrix>
-void GetNeighborhood_worker(const TMatrix &A, size_t node, size_t depth, std::vector<size_t> &indices, std::vector<bool> &bVisited)
+template<typename TSparseMatrix>
+void GetNeighborhood_worker(const TSparseMatrix &A, size_t node, size_t depth, std::vector<size_t> &indices, std::vector<bool> &bVisited)
 {
 	if(depth==0) return;
 	size_t iSizeBefore = indices.size();
-	for(typename TMatrix::const_row_iterator it = A.begin_row(node); it != A.end_row(node); ++it)
+	typename TSparseMatrix::const_row_iterator itEnd = A.end_row(node);
+	for(typename TSparseMatrix::const_row_iterator it = A.begin_row(node); it != itEnd; ++it)
 	{
 		if(it.value() == 0) continue;
 		if(bVisited[it.index()] == false)
@@ -363,8 +372,8 @@ void GetNeighborhood_worker(const TMatrix &A, size_t node, size_t depth, std::ve
 		GetNeighborhood_worker(A, indices[i], depth-1, indices, bVisited);
 }
 
-template<typename TMatrix>
-void GetNeighborhood(const TMatrix &A, size_t node, size_t depth, std::vector<size_t> &indices, std::vector<bool> &bVisited, bool bResetVisitedFlags=true)
+template<typename TSparseMatrix>
+void GetNeighborhood(const TSparseMatrix &A, size_t node, size_t depth, std::vector<size_t> &indices, std::vector<bool> &bVisited, bool bResetVisitedFlags=true)
 {
 	PROFILE_FUNC_GROUP("algebra");
 	indices.clear();
@@ -381,8 +390,8 @@ void GetNeighborhood(const TMatrix &A, size_t node, size_t depth, std::vector<si
 			bVisited[indices[i]] = false;
 }
 
-template<typename TMatrix>
-void GetNeighborhood(const TMatrix &A, size_t node, size_t depth, std::vector<size_t> &indices)
+template<typename TSparseMatrix>
+void GetNeighborhood(const TSparseMatrix &A, size_t node, size_t depth, std::vector<size_t> &indices)
 {
 	PROFILE_FUNC_GROUP("algebra");
 	std::vector<bool> bVisited(max(A.num_cols(), A.num_rows()), false);
@@ -390,10 +399,11 @@ void GetNeighborhood(const TMatrix &A, size_t node, size_t depth, std::vector<si
 }
 
 
-template<typename TMatrix>
-void MarkNeighbors(const TMatrix &A, size_t node, size_t depth, std::vector<bool> &bVisited)
+template<typename TSparseMatrix>
+void MarkNeighbors(const TSparseMatrix &A, size_t node, size_t depth, std::vector<bool> &bVisited)
 {
-	for(typename TMatrix::const_row_iterator it = A.begin_row(node); it != A.end_row(node); ++it)
+	typename TSparseMatrix::const_row_iterator itEnd = A.end_row(node);
+	for(typename TSparseMatrix::const_row_iterator it = A.begin_row(node); it != itEnd; ++it)
 	{
 		if(it.value() == 0) continue;
 		bVisited[it.index()] = true;
@@ -401,11 +411,12 @@ void MarkNeighbors(const TMatrix &A, size_t node, size_t depth, std::vector<bool
 	}
 }
 
-template<typename TMatrix>
-void GetNeighborhoodHierachy_worker(const TMatrix &A, size_t node, size_t depth, size_t maxdepth, std::vector< std::vector<size_t> > &indices, std::vector<bool> &bVisited)
+template<typename TSparseMatrix>
+void GetNeighborhoodHierachy_worker(const TSparseMatrix &A, size_t node, size_t depth, size_t maxdepth, std::vector< std::vector<size_t> > &indices, std::vector<bool> &bVisited)
 {
 	size_t iSizeBefore = indices[depth].size();
-	for(typename TMatrix::const_row_iterator it = A.begin_row(node); it != A.end_row(node); ++it)
+	typename TSparseMatrix::const_row_iterator itEnd = A.end_row(node);
+	for(typename TSparseMatrix::const_row_iterator it = A.begin_row(node); it != itEnd; ++it)
 	{
 		if(it.value() == 0) continue;
 		if(bVisited[it.index()] == false)
@@ -421,8 +432,8 @@ void GetNeighborhoodHierachy_worker(const TMatrix &A, size_t node, size_t depth,
 		GetNeighborhoodHierachy_worker(A, indices[i], depth+1, maxdepth, indices, bVisited);
 }
 
-template<typename TMatrix>
-void GetNeighborhoodHierachy(const TMatrix &A, size_t node, size_t depth, std::vector< std::vector<size_t> > &indices, std::vector<bool> &bVisited,
+template<typename TSparseMatrix>
+void GetNeighborhoodHierachy(const TSparseMatrix &A, size_t node, size_t depth, std::vector< std::vector<size_t> > &indices, std::vector<bool> &bVisited,
 		bool bResetVisitedFlags=true)
 {
 	PROFILE_FUNC_GROUP("algebra");
@@ -441,7 +452,8 @@ void GetNeighborhoodHierachy(const TMatrix &A, size_t node, size_t depth, std::v
 		for(size_t i=0; i<indices[d].size(); i++)
 		{
 			size_t k = indices[d][i];
-			for(typename TMatrix::const_row_iterator it = A.begin_row(k); it != A.end_row(k); ++it)
+			typename TSparseMatrix::const_row_iterator itEnd = A.end_row(k);
+			for(typename TSparseMatrix::const_row_iterator it = A.begin_row(k); it != itEnd; ++it)
 			{
 				if(it.value() == 0) continue;
 				if(bVisited[it.index()] == false)
@@ -461,8 +473,8 @@ void GetNeighborhoodHierachy(const TMatrix &A, size_t node, size_t depth, std::v
 }
 
 
-template<typename TMatrix>
-void GetNeighborhoodHierachy(const TMatrix &A, size_t node, size_t depth, std::vector< std::vector<size_t> > &indices)
+template<typename TSparseMatrix>
+void GetNeighborhoodHierachy(const TSparseMatrix &A, size_t node, size_t depth, std::vector< std::vector<size_t> > &indices)
 {
 	std::vector<bool> bVisited(std::max(A.num_cols(), A.num_rows()), false);
 	GetNeighborhoodHierachy(A, node, depth, indices, bVisited, false);
@@ -554,12 +566,14 @@ void GetNeighborhood(SparseMatrix<T> &A, size_t node, size_t depth, std::vector<
  * \param distance (in) up to which distance "close" is.
  * \return if there is a distance long path in graph(A) to an unconnected node, true. otherwise false.
   */
-template<typename T>
-bool IsCloseToBoundary(const T &A, size_t node, size_t distance)
+template<typename TSparseMatrix>
+bool IsCloseToBoundary(const TSparseMatrix &A, size_t node, size_t distance)
 {
+	typedef typename TSparseMatrix::const_row_iterator iterator;
 	if(distance == 0) return A.is_isolated(node);
 	bool bFound = false;
-	for(typename T::const_row_iterator itA = A.begin_row(node); itA != A.end_row(node) && !bFound; ++itA)
+	iterator itEnd = A.end_row(node);
+	for(iterator itA = A.begin_row(node); itA != itEnd && !bFound; ++itA)
 		bFound = IsCloseToBoundary(A, itA.index(), distance-1);
 
 	return bFound;
@@ -573,12 +587,15 @@ bool IsCloseToBoundary(const T &A, size_t node, size_t distance)
  * \param alpha the alpha index
  * \param val the value to be set
  */
-template <typename T>
-void SetRow(T &A, size_t i, size_t alpha, number val = 0.0)
+template <typename TSparseMatrix>
+void SetRow(TSparseMatrix &A, size_t i, size_t alpha, number val = 0.0)
 {
-	for(typename T::row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
+	typedef typename TSparseMatrix::row_iterator iterator;
+	typedef typename TSparseMatrix::value_type value_type;
+	iterator itEnd = A.end_row(i);
+	for(iterator conn = A.begin_row(i); conn != itEnd; ++conn)
 	{
-		typename T::value_type& block = conn.value();
+		value_type& block = conn.value();
 		// block : 1x1 (CPU=1), 3x3 (CPU=3)
 		for(size_t beta = 0; beta < (size_t) GetCols(block); ++beta)
 		{
@@ -595,12 +612,13 @@ void SetRow(T &A, size_t i, size_t alpha, number val = 0.0)
  * \param alpha the alpha index
  * \param val the value to be set
  */
-template <typename T>
-void SetCol(T &A, size_t i, size_t alpha, number val = 0.0)
+template <typename TSparseMatrix>
+void SetCol(TSparseMatrix &A, size_t i, size_t alpha, number val = 0.0)
 {
+	typedef typename TSparseMatrix::value_type value_type;
 	for(size_t row = 0; row != A.num_rows(); ++row)
 	{
-		typename T::value_type& block = A(row, i);
+		value_type& block = A(row, i);
 		// block : 1x1 (CPU=1), 3x3 (CPU=3)
 		for(size_t beta = 0; beta < (size_t) GetRows(block); ++beta)
 		{
@@ -618,13 +636,13 @@ void SetCol(T &A, size_t i, size_t alpha, number val = 0.0)
  * \param i (in) row to scales
  * \param val (in) value to be set
  */
-template <typename T>
-void SetRow(T& A, size_t i, number val = 0.0)
+template <typename TSparseMatrix>
+void SetRow(TSparseMatrix& A, size_t i, number val = 0.0)
 {
-	for(typename T::row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
-	{
+	typedef typename TSparseMatrix::row_iterator iterator;
+	iterator itEnd = A.end_row(i);
+	for(iterator conn = A.begin_row(i); conn != itEnd; ++conn)
 		conn.value() = val;
-	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -636,13 +654,13 @@ void SetRow(T& A, size_t i, number val = 0.0)
  * \param i (in) row to scales
  * \param fac (in) Scaling factor
  */
-template <typename T>
-void ScaleRow(T& A, size_t i, number fac)
+template <typename TSparseMatrix>
+void ScaleRow(TSparseMatrix& A, size_t i, number fac)
 {
-	for(typename T::row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
-	{
+	typedef typename TSparseMatrix::row_iterator iterator;
+	iterator itEnd = A.end_row(i);
+	for(iterator conn = A.begin_row(i); conn != itEnd; ++conn)
 		conn.value() *= fac;
-	}
 }
 
 
@@ -655,13 +673,17 @@ void ScaleRow(T& A, size_t i, number fac)
  * \param i (in) row to set dirichlet, that is A(i,i)(alpha, alpha) = 1.0, A(i,k)(alpha, beta) = 0.0 for all (k, beta) != (i, alpha)$.
  * \param alpha the alpha index
  */
-template <typename T>
-void SetDirichletRow(T &A, size_t i, size_t alpha)
+template <typename TSparseMatrix>
+void SetDirichletRow(TSparseMatrix &A, size_t i, size_t alpha)
 {
+	typedef typename TSparseMatrix::row_iterator iterator;
+	typedef typename TSparseMatrix::value_type value_type;
 	BlockRef(A(i,i), alpha, alpha) = 1.0;
-	for(typename T::row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
+
+	iterator itEnd = A.end_row(i);
+	for(iterator conn = A.begin_row(i); conn != itEnd; ++conn)
 	{
-		typename T::value_type& block = conn.value();
+		value_type& block = conn.value();
 		// block : 1x1 (CPU=1), 3x3 (CPU=3)
 		for(size_t beta = 0; beta < (size_t) GetCols(block); ++beta)
 		{
@@ -680,13 +702,16 @@ void SetDirichletRow(T &A, size_t i, size_t alpha)
  * \param A (in) Matrix A
  * \param i (in) row to set dirichlet, that is A(i,i) = 1.0, A(i,k) = 0.0 for all k != i.
  */
-template <typename T>
-void SetDirichletRow(T& A, size_t i)
+template <typename TSparseMatrix>
+void SetDirichletRow(TSparseMatrix& A, size_t i)
 {
+	typedef typename TSparseMatrix::row_iterator iterator;
+	typedef typename TSparseMatrix::value_type value_type;
 	A(i,i) = 1.0;
-	for(typename T::row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
+	iterator itEnd = A.end_row(i);
+	for(iterator conn = A.begin_row(i); conn != itEnd; ++conn)
 	{
-		typename T::value_type& block = conn.value();
+		value_type& block = conn.value();
 		if(conn.index() != i) block = 0.0;
 	}
 }
@@ -699,9 +724,11 @@ void SetDirichletRow(T& A, size_t i)
  * \param[in/out] A Matrix A
  * \param[in] vIndex vector of row indices to set dirichlet, that is A(i,i) = 1.0, A(i,k) = 0.0 for all k != i.
  */
-template <typename T>
-void SetDirichletRow(T& A, const std::vector<size_t> vIndex)
+template <typename TSparseMatrix>
+void SetDirichletRow(TSparseMatrix& A, const std::vector<size_t> vIndex)
 {
+	typedef typename TSparseMatrix::row_iterator iterator;
+	typedef typename TSparseMatrix::value_type value_type;
 	std::vector<size_t>::const_iterator iter = vIndex.begin();
 	std::vector<size_t>::const_iterator iterEnd = vIndex.end();
 
@@ -711,17 +738,19 @@ void SetDirichletRow(T& A, const std::vector<size_t> vIndex)
 		UG_ASSERT(i < A.num_rows(), "Index to large in index set.");
 
 		A(i,i) = 1.0;
-		for(typename T::row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
+		iterator itEnd = A.end_row(i);
+		for(iterator conn = A.begin_row(i); conn != itEnd; ++conn)
 		{
-			typename T::value_type& block = conn.value();
+			value_type& block = conn.value();
 			if(conn.index() != i) block = 0.0;
 		}
 	}
 }
 
-template<typename T, class TOStream>
-void SerializeMatrix(TOStream &buf, const T &A)
+template<typename TSparseMatrix, class TOStream>
+void SerializeMatrix(TOStream &buf, const TSparseMatrix &A)
 {
+	typedef typename TSparseMatrix::const_row_iterator iterator;
 	Serialize(buf, A.num_rows());
 	Serialize(buf, A.num_cols());
 
@@ -732,7 +761,8 @@ void SerializeMatrix(TOStream &buf, const T &A)
 		// serialize number of connections
 		Serialize(buf, num_connections);
 
-		for(typename T::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
+		iterator itEnd = A.end_row(i);
+		for(iterator conn = A.begin_row(i); conn != itEnd; ++conn)
 		{
 			// serialize connection
 			Serialize(buf, conn.index());
@@ -741,8 +771,8 @@ void SerializeMatrix(TOStream &buf, const T &A)
 	}
 }
 
-template <typename T, class TIStream>
-void DeserializeMatrix(TIStream& buf, T &A)
+template <typename TSparseMatrix, class TIStream>
+void DeserializeMatrix(TIStream& buf, TSparseMatrix &A)
 {
 	size_t numRows, numCols, num_connections;
 
@@ -750,7 +780,7 @@ void DeserializeMatrix(TIStream& buf, T &A)
 	Deserialize(buf, numCols);
 	A.resize_and_clear(numRows, numCols);
 
-	std::vector<typename T::connection> con; con.reserve(16);
+	std::vector<typename TSparseMatrix::connection> con; con.reserve(16);
 
 	for(size_t i=0; i < A.num_rows; i++)
 	{
@@ -768,20 +798,25 @@ void DeserializeMatrix(TIStream& buf, T &A)
 	A.defragment();
 }
 
-template<typename T>
-void ScaleSparseMatrixCommon(T &A, double d)
+template<typename TSparseMatrix>
+void ScaleSparseMatrixCommon(TSparseMatrix &A, double d)
 {
+	typedef typename TSparseMatrix::row_iterator iterator;
 	for(size_t r=0; r < A.num_rows(); r++)
-		for(typename T::row_iterator it = A.begin_row(r); it != A.end_row(r); ++it)
+	{
+		iterator itEnd = A.end_row(r);
+		for(iterator it = A.begin_row(r); it != itEnd; ++it)
 			it.value() *= d;
+	}
 }
 
 
-template<typename T, typename vector_t>
-bool AxpyCommonSparseMatrix(const T &A, vector_t &dest,
+template<typename TSparseMatrix, typename vector_t>
+bool AxpyCommonSparseMatrix(const TSparseMatrix &A, vector_t &dest,
 		const number &alpha1, const vector_t &v1,
 		const number &beta1, const vector_t &w1)
 {
+	typedef typename TSparseMatrix::const_row_iterator iterator;
 //	UG_ASSERT(cols == x.size(), "x: " << x << " has wrong length (should be " << cols << "). A: " << *this);
 //	UG_ASSERT(rows == res.size(), "res: " << x << " has wrong length (should be " << rows << "). A: " << *this);
 
@@ -789,10 +824,11 @@ bool AxpyCommonSparseMatrix(const T &A, vector_t &dest,
 	{
 		for(size_t i=0; i < A.num_rows(); i++)
 		{
-			typename T::const_row_iterator conn = A.begin_row(i);
-			if(conn  == A.end_row(i)) continue;
+			iterator conn = A.begin_row(i);
+			iterator itEnd = A.end_row(i);
+			if(conn  == itEnd) continue;
 			MatMult(dest[i], beta1, conn.value(), w1[conn.index()]);
-			for(++conn; conn != A.end_row(i); ++conn)
+			for(++conn; conn != itEnd; ++conn)
 				// res[i] += conn.value() * x[conn.index()];
 				MatMultAdd(dest[i], 1.0, dest[i], beta1, conn.value(), w1[conn.index()]);
 		}
@@ -823,11 +859,12 @@ bool AxpyCommonSparseMatrix(const T &A, vector_t &dest,
 }
 	
 
-template<typename T, typename vector_t>
-bool Axpy_transposedCommonSparseMatrix(const T &A, vector_t &dest,
+template<typename TSparseMatrix, typename vector_t>
+bool Axpy_transposedCommonSparseMatrix(const TSparseMatrix &A, vector_t &dest,
 		const number &alpha1, const vector_t &v1,
 		const number &beta1, const vector_t &w1)
 {
+	typedef typename TSparseMatrix::const_row_iterator iterator;
 //	UG_ASSERT(rows == x.size(), "x: " << x << " has wrong length (should be " << rows << "). A: " << *this);
 //	UG_ASSERT(cols == res.size(), "res: " << x << " has wrong length (should be " << cols << "). A: " << *this);
 
@@ -844,7 +881,8 @@ bool Axpy_transposedCommonSparseMatrix(const T &A, vector_t &dest,
 
 	for(size_t i=0; i<A.num_rows(); i++)
 	{
-		for(typename T::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
+		iterator itEnd = A.end_row(i);
+		for(iterator conn = A.begin_row(i); conn != itEnd; ++conn)
 		{
 			if(conn.value() != 0.0)
 				// dest[conn.index()] += beta1 * conn.value() * w1[i];
@@ -856,29 +894,33 @@ bool Axpy_transposedCommonSparseMatrix(const T &A, vector_t &dest,
 
 
 /// returns the number of non-zeroes (!= number of connections)
-template<typename TMatrix>
-size_t GetNNZs(const TMatrix &A)
+template<typename TSparseMatrix>
+size_t GetNNZs(const TSparseMatrix &A)
 {
+	typedef typename TSparseMatrix::const_row_iterator iterator;
 	size_t m=0;
 	for(size_t i=0; i<A.num_rows(); i++)
 	{
-		for(typename TMatrix::const_row_iterator it = A.begin_row(i); it != A.end_row(i); ++it)
+		iterator itEnd = A.end_row(i);
+		for(iterator it = A.begin_row(i); it != itEnd; ++it)
 			if(it.value() != 0.0) m++;
 	}
 	return m;
 }
 
 /// returns max number of non-zero connections in rows
-template<typename TMatrix>
-size_t GetMaxConnections(const TMatrix &A)
+template<typename TSparseMatrix>
+size_t GetMaxConnections(const TSparseMatrix &A)
 {
+	typedef typename TSparseMatrix::const_row_iterator iterator;
 	size_t m=0;
 	for(size_t i=0; i<A.num_rows(); i++)
 	{
 		//if(m < A.num_connections(i)) m = A.num_connections(i);
 
 		size_t n=0;
-		for(typename TMatrix::const_row_iterator it = A.begin_row(i); it != A.end_row(i); ++it)
+		iterator itEnd = A.end_row(i);
+		for(iterator it = A.begin_row(i); it != itEnd; ++it)
 			if(it.value() != 0.0) n++;
 		if(m < n) m = n;
 	}
@@ -887,11 +929,11 @@ size_t GetMaxConnections(const TMatrix &A)
 }
 
 
-template<typename TMatrix>
-bool CheckDiagonalInvertible(const TMatrix &A)
+template<typename TSparseMatrix>
+bool CheckDiagonalInvertible(const TSparseMatrix &A)
 {
 #ifndef NDEBUG
-	typedef typename block_traits<typename TMatrix::value_type>::inverse_type inverse_type;
+	typedef typename block_traits<typename TSparseMatrix::value_type>::inverse_type inverse_type;
 	bool bsucc=true;
 	inverse_type inv;
 	for(size_t i=0; i<A.num_rows(); i++)
@@ -933,10 +975,10 @@ bool CheckVectorInvertible(const TVector &v)
 }
 
 #ifdef UG_PARALLEL
-template<typename TMatrix>
-bool CheckDiagonalInvertible(const ParallelMatrix<TMatrix> &m)
+template<typename TSparseMatrix>
+bool CheckDiagonalInvertible(const ParallelMatrix<TSparseMatrix> &m)
 {
-	return AllProcsTrue(CheckDiagonalInvertible((TMatrix&)m), m.layouts()->proc_comm());
+	return AllProcsTrue(CheckDiagonalInvertible((TSparseMatrix&)m), m.layouts()->proc_comm());
 }
 
 template<typename TVector>
@@ -969,7 +1011,8 @@ GetDenseFromSparse(typename DenseMatrixFromSparseMatrix<TSparseMatrix>::type &A,
 	for(size_t r=0; r<numRows; r++)
 	{
 //		PROGRESS_UPDATE(prog, r);
-		for(sparse_row_iterator it = S.begin_row(r); it != S.end_row(r); ++it)
+		sparse_row_iterator itEnd = S.end_row(r);
+		for(sparse_row_iterator it = S.begin_row(r); it != itEnd; ++it)
 			A(r, it.index()) = it.value();
 	}
 //	PROGRESS_FINISH(prog);
