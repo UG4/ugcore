@@ -21,6 +21,7 @@ ug_load_script("util/domain_disc_util.lua")
 ug_load_script("util/domain_util.lua")
 ug_load_script("util/math_util.lua")
 ug_load_script("util/command_line_util.lua")
+ug_load_script("util/output_util.lua")
 
 
 
