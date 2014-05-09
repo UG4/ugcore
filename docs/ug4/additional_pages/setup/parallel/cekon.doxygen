@@ -4,9 +4,8 @@
 
 /** \page pageUG4ParallelCekon Cekon
 
-\em Cekon is the in-house cluster of the \em G-CSC.
-By now it consists of 23 compute nodes with 4 cores per node, that is 92 
-computing cores.
+\em Cekon is the smaller in-house cluster of the \em G-CSC.
+It consists of 23 compute nodes with 4 cores per node, that is 92 computing cores.
 
 <ul>
   <li>Configuration:
