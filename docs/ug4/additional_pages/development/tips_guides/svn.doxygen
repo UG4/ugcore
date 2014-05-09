@@ -163,7 +163,7 @@ Change SVN format</a>.
 
 <hr>
 \subsection secSVNMore More
-\subsubsection secSVNMoreUsername SVN Revision number
+\subsubsection secSVNRevisionNumber SVN Revision number
 Getting the svn revision number of this directory and the subdirectories
 \code
 svnversion
@@ -188,6 +188,10 @@ If SVN has the wrong username, you might have your checkout line to
 svn co --username horst svn://fuji.gcsc.uni-frankfurt.de/ug4/trunk ug4svn
 \endcode
 
+\note SVN remembers your user names. This can lead to errors, since other updates might then also use that user. 
+Users are saved in <tt>~/.subversion/auth</tt>, so when you want to remove user 'otherUser' you could try to delete all files listed in a
+ <tt>fgrep -r otherUser ~/.subversion/auth/</tt> . 
+ 
 
 \subsubsection secSVNMoreHistory Log or History
 
