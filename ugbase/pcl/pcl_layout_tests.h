@@ -171,22 +171,30 @@ bool TestSizeOfInterfacesInLayoutsMatch(pcl::InterfaceCommunicator<TLayout> &com
 		int pid = masterLayout.proc_id(iter);
 		ug::BinaryBuffer &buffer = receiveMap[pid];
 		bool broken=false;
-		uint64_t numEntries = 0;
 		if(bPrint) { UG_LOG("      Interface processor " << pcl::ProcRank() << " <-> processor " << pid << " (Master <-> Slave):\n"); }
 		const typename TLayout::Interface &interface = masterLayout.interface(iter);
+		std::stringstream brokenInformation;
+		size_t onMaster=0, onSlave=0;
 		for(typename TLayout::Interface::const_iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
 		{
-			if(!buffer.eof() == false)
+			TValue val1 = cbToValue(interface.get_element(iter2));
+
+
+			bool bValid = true;
+			if(buffer.eof())
 			{
-				broken =true;
-				TValue value = cbToValue(interface.get_element(iter2));
-				UG_LOG("      " << std::setw(9) << value << " <-> " << "BROKEN!" << std::endl);
+				 bValid = false;
+				 broken =true;
+				 if(bPrint){
+					 UG_LOG("        " << onMaster << ": " << std::setw(9) << val1 << " <-> " << "-?-" << "\n");
+				 }
 			}
 			else
 			{
-				numEntries++;
-				TValue val1 = cbToValue(interface.get_element(iter2));
-				TValue val2; Deserialize(buffer, val2);
+				TValue val2;
+				Deserialize(buffer, val2);
+				onSlave++;
+
 				bool mismatch = false;
 				if(compareValues){
 					mismatch = (val1 != val2);
@@ -196,22 +204,37 @@ bool TestSizeOfInterfacesInLayoutsMatch(pcl::InterfaceCommunicator<TLayout> &com
 					UG_LOG("        " << std::setw(9) << val1 << " <-> " << val2 << "  --- MISMATCH! ---"
 							<< " (interface to proc " << pid << ")" << std::endl);
 				}
-				else if(bPrint){
-					UG_LOG("        " << std::setw(9) << val1 << " <-> " << val2 << "\n");
-				}
-
 				valueMismatch |= mismatch;
+				if(bPrint)
+				{
+					UG_LOG("        " << onMaster << ": " << std::setw(9) << val1 << " <-> " << val2 << "\n");
+				}
 			}
+			onMaster++;
 		}
                             
-		if(bPrint) { UG_LOG("      In total " << std::setw(9) << numEntries << " entries in this interface." << std::endl); }
-		while(!buffer.eof())
+		if(!buffer.eof())
 		{
-			broken = true;
-			TValue value; Deserialize(buffer, value);
-
-			UG_LOG(" BROKEN! -> " << std::setw(9) << value
-					<< " (interface to proc " << pid << ")" << std::endl);
+			while(!buffer.eof())
+			{
+				TValue val2;
+				Deserialize(buffer, val2);
+				if(bPrint)
+				{UG_LOG("        " << onSlave << ": " << std::setw(9) << "-?-" << " <-> " << val2 << "\n");}
+				onSlave++;
+			}
+			broken =true;
+		}
+		if(bPrint)
+		{
+			if(onMaster!=onSlave)
+			{
+				UG_LOG("   Interface sizes do not match:\n");
+				UG_LOG("   - Slave Interface " << pid << " -> " << pcl::ProcRank() << ", size = " << onSlave << "\n");
+				UG_LOG("   - Master Interface " << pcl::ProcRank() << " -> " << pid << ", size = " << onMaster << "\n");
+			}
+			else
+			{	UG_LOG("      In total " << std::setw(9) << onMaster << " entries in this interface." << std::endl);	}
 		}
 
 		if(broken)
@@ -220,6 +243,7 @@ bool TestSizeOfInterfacesInLayoutsMatch(pcl::InterfaceCommunicator<TLayout> &com
 			UG_LOG("      Interface from processor " << std::setw(4) << pcl::ProcRank() << " to processor " << std::setw(4) << pid << " is BROKEN!\n");
 
 		}
+
 	}
 
 	if(layoutBroken == true)
@@ -327,14 +351,17 @@ inline void PrintLayout(const TLayout &layout)
 	}
 }
 
+#define TESTLAYOUT(processCommunicator, com, master, slave) { if(TestLayout(processCommunicator,\
+		com, master, slave) == false) { PrintLayout(processCommunicator, com, master, slave); UG_COND_THROW(true, "layout broken"); } }
+
 #ifndef NDEBUG
-	#define TESTLAYOUT(processCommunicator, com, master, slave) { if(TestLayout(processCommunicator,\
-		com, master, slave) == false) { PrintLayout(processCommunicator, com, master, slave); UG_ASSERT(false, "layout broken"); } }
+#define DEBUG_TESTLAYOUT(processCommunicator, com, master, slave) TESTLAYOUT(processCommunicator, com, master, slave)
 #else
-	#define TESTLAYOUT(processCommunicator, com, master, slave)
+	#define DEBUG_TESTLAYOUT(processCommunicator, com, master, slave)
 #endif
 
-#define TESTLAYOUTS(layout) TESTLAYOUT(layout.proc_comm(), layout.comm(), layout.master(), layout.slave())
+#define DEBUG_TESTLAYOUTS(layout) DEBUG_TESTLAYOUT(layout->proc_comm(), layout->comm(), layout->master(), layout->slave())
+#define TESTLAYOUTS(layout) TESTLAYOUT(layout->proc_comm(), layout->comm(), layout->master(), layout->slave())
 
 // end group pcl
 /// \}
