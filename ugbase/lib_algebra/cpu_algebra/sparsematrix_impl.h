@@ -116,8 +116,11 @@ void SparseMatrix<T>::set_as_transpose_of(const SparseMatrix<value_type> &B, dou
 	}*/
 
 	for(size_t r=0; r<B.num_rows(); r++)
-		for(const_row_iterator it = B.begin_row(r); it != B.end_row(r); ++it)
+	{
+		const_row_iterator itEnd = B.end_row(r);
+		for(const_row_iterator it = B.begin_row(r); it != itEnd; ++it)
 			operator()(it.index(), r) = MatrixTranspose(scale*it.value());
+	}
 	// todo: sort rows
 }
 
@@ -125,8 +128,13 @@ template<typename T>
 template<typename vector_t>
 inline void SparseMatrix<T>::mat_mult_add_row(size_t row, typename vector_t::value_type &dest, double alpha, const vector_t &v) const
 {
-	for(const_row_iterator conn = begin_row(row); conn != end_row(row); ++conn)
-		MatMultAdd(dest, 1.0, dest, alpha, conn.value(), v[conn.index()]);
+
+	size_t itEnd=rowEnd[row];
+	for(size_t rowIt=rowStart[row]; rowIt != itEnd; ++rowIt)
+		MatMultAdd(dest, 1.0, dest, alpha, values[rowIt], v[cols[rowIt]]);
+
+	//for(const_row_iterator conn = begin_row(row); conn != end_row(row); ++conn)
+		//MatMultAdd(dest, 1.0, dest, alpha, conn.value(), v[conn.index()]);
 }
 
 
@@ -137,13 +145,15 @@ void SparseMatrix<T>::apply_ignore_zero_rows(vector_t &dest,
 {
 	for(size_t i=0; i < num_rows(); i++)
 	{
-		const_row_iterator conn = begin_row(i);
-		if(conn == end_row(i)) continue;
+		size_t rowIt=rowStart[i];
+		size_t itEnd=rowEnd[i];
+		if(rowIt == itEnd)
+			continue;
 
-		MatMult(dest[i], beta1, conn.value(), w1[conn.index()]);
-		for(++conn; conn != end_row(i); ++conn)
+		MatMult(dest[i], beta1, values[rowIt], w1[cols[rowIt]]);
+		for(++rowIt; rowIt != itEnd; ++rowIt)
 			// res[i] += conn.value() * x[conn.index()];
-			MatMultAdd(dest[i], 1.0, dest[i], beta1, conn.value(), w1[conn.index()]);
+			MatMultAdd(dest[i], 1.0, dest[i], beta1, values[rowIt], w1[cols[rowIt]]);
 	}
 }
 
@@ -161,16 +171,17 @@ void SparseMatrix<T>::axpy(vector_t &dest,
 	{
 		for(size_t i=0; i < num_rows(); i++)
 		{
-			const_row_iterator conn = begin_row(i);
-			if(conn == end_row(i))
+			size_t rowIt=rowStart[i];
+			size_t itEnd=rowEnd[i];
+			if(rowIt == itEnd)
 			{
 				dest[i] = 0.0;
 				continue;
 			}
-			MatMult(dest[i], beta1, conn.value(), w1[conn.index()]);
-			for(++conn; conn != end_row(i); ++conn)
+			MatMult(dest[i], beta1, values[rowIt], w1[cols[rowIt]]);
+			for(++rowIt; rowIt != itEnd; ++rowIt)
 				// res[i] += conn.value() * x[conn.index()];
-				MatMultAdd(dest[i], 1.0, dest[i], beta1, conn.value(), w1[conn.index()]);
+				MatMultAdd(dest[i], 1.0, dest[i], beta1, values[rowIt], w1[cols[rowIt]]);
 		}
 	}
 	else if(&dest == &v1)
@@ -219,12 +230,12 @@ void SparseMatrix<T>::axpy_transposed(vector_t &dest,
 
 	for(size_t i=0; i<num_rows(); i++)
 	{
-		for(const_row_iterator conn = begin_row(i); conn != end_row(i); ++conn)
-		{
-			if(conn.value() != 0.0)
-				// dest[conn.index()] += beta1 * conn.value() * w1[i];
-				MatMultTransposedAdd(dest[conn.index()], 1.0, dest[conn.index()], beta1, conn.value(), w1[i]);
-		}
+
+		size_t itEnd=rowEnd[i];
+		for(size_t rowIt=rowStart[i]; rowIt != itEnd; ++rowIt)
+			// dest[conn.index()] += beta1 * conn.value() * w1[i];
+			if(values[rowIt] != 0.0)
+				MatMultTransposedAdd(dest[cols[rowIt]], 1.0, dest[cols[rowIt]], beta1, values[rowIt], w1[i]);
 	}
 }
 
@@ -235,17 +246,19 @@ void SparseMatrix<T>::apply_transposed_ignore_zero_rows(vector_t &dest,
 		const number &beta1, const vector_t &w1) const
 {
 	for(size_t i=0; i<num_rows(); i++)
-		for(const_row_iterator conn = begin_row(i); conn != end_row(i); ++conn)
+	{
+		row_iterator itEnd = end_row(i);
+		for(const_row_iterator conn = begin_row(i); conn != itEnd; ++conn)
 			dest[conn.index()] = 0.0;
+	}
 
 	for(size_t i=0; i<num_rows(); i++)
 	{
-		for(const_row_iterator conn = begin_row(i); conn != end_row(i); ++conn)
-		{
-			if(conn.value() != 0.0)
-				// dest[conn.index()] += beta1 * conn.value() * w1[i];
-				MatMultTransposedAdd(dest[conn.index()], 1.0, dest[conn.index()], beta1, conn.value(), w1[i]);
-		}
+		size_t itEnd=rowEnd[i];
+		for(size_t rowIt=rowStart[i]; rowIt != itEnd; ++rowIt)
+			// dest[conn.index()] += beta1 * conn.value() * w1[i];
+			if(values[rowIt] != 0.0)
+				MatMultTransposedAdd(dest[cols[rowIt]], 1.0, dest[cols[rowIt]], beta1, values[rowIt], w1[i]);
 	}
 }
 
@@ -256,13 +269,16 @@ void SparseMatrix<T>::set(double a)
 	PROFILE_SPMATRIX(SparseMatrix_set);
 	check_fragmentation();
 	for(size_t row=0; row<num_rows(); row++)
-		for(row_iterator it = begin_row(row); it != end_row(row); ++it)
+	{
+		row_iterator itEnd = end_row(row);
+		for(row_iterator it = begin_row(row); it != itEnd; ++it)
 		{
 			if(it.index() == row)
 				it.value() = a;
 			else
 				it.value() = 0.0;
 		}
+	}
 }
 
 
@@ -271,7 +287,8 @@ inline bool SparseMatrix<T>::is_isolated(size_t i) const
 {
 	UG_ASSERT(i < num_rows() && i >= 0, *this << ": " << i << " out of bounds.");
 
-	for(const_row_iterator it = begin_row(i); it != end_row(i); ++it)
+	const_row_iterator itEnd = end_row(i);
+	for(const_row_iterator it = begin_row(i); it != itEnd; ++it)
 		if(it.index() != i && it.value() != 0.0)
 			return false;
 	return true;
@@ -327,8 +344,11 @@ void SparseMatrix<T>::set_as_copy_of(const SparseMatrix<T> &B, double scale)
 	//PROFILE_SPMATRIX(SparseMatrix_set_as_copy_of);
 	resize_and_clear(B.num_rows(), B.num_cols());
 	for(size_t i=0; i < B.num_rows(); i++)
-		for(const_row_iterator it = B.begin_row(i); it != B.end_row(i); ++it)
+	{
+		const_row_iterator itEnd = B.end_row(i);
+		for(const_row_iterator it = B.begin_row(i); it != itEnd; ++it)
 			operator()(i, it.index()) = scale*it.value();
+	}
 }
 
 
@@ -338,8 +358,11 @@ void SparseMatrix<T>::scale(double d)
 {
 	//PROFILE_SPMATRIX(SparseMatrix_scale);
 	for(size_t i=0; i < num_rows(); i++)
-		for(row_iterator it = begin_row(i); it != end_row(i); ++it)
+	{
+		row_iterator itEnd = end_row(i);
+		for(row_iterator it = begin_row(i); it != itEnd; ++it)
 			it.value() *= d;
+	}
 }
 
 
