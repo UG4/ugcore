@@ -282,7 +282,7 @@ prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 //	set lin defect fct for imports
-	for (std::size_t data = 0; data < m_vNumberData.size(); ++data)
+	for (size_t data = 0; data < m_vNumberData.size(); ++data)
 	{
 		if (!m_vNumberData[data].InnerSSGrp.contains(m_si)) continue;
 		m_vNumberData[data].import.set_fct(id,
@@ -296,7 +296,7 @@ prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
 // get local IPs for imports
 	static const int refDim = TElem::dim;
 
-	std::size_t numSideIPs;
+	size_t numSideIPs;
 	const MathVector<refDim>* sideIPs;
 	try
 	{
@@ -307,7 +307,7 @@ prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
 	}
 	UG_CATCH_THROW("Integration points for error estimator cannot be set.");
 
-	for (std::size_t i = 0; i < m_vNumberData.size(); ++i)
+	for (size_t i = 0; i < m_vNumberData.size(); ++i)
 	{
 		if (m_vNumberData[i].InnerSSGrp.contains(m_si))
 			m_vNumberData[i].template set_local_ips<refDim>(sideIPs, numSideIPs);
@@ -320,7 +320,7 @@ void NeumannBoundaryFV1<TDomain>::
 prep_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 // get global IPs for imports
-	std::size_t numSideIPs;
+	size_t numSideIPs;
 	std::vector<MathVector<dim> > sideIPs;
 
 	try
@@ -335,7 +335,7 @@ prep_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> 
 	UG_CATCH_THROW("Global integration points for error estimator cannot be set.");
 
 
-	for (std::size_t i = 0; i < m_vNumberData.size(); ++i)
+	for (size_t i = 0; i < m_vNumberData.size(); ++i)
 	{
 		if (m_vNumberData[i].InnerSSGrp.contains(m_si))
 			m_vNumberData[i].set_global_ips(&sideIPs[0], numSideIPs);
@@ -358,28 +358,28 @@ compute_err_est_rhs_elem(GridObject* elem, const MathVector<dim> vCornerCoords[]
 //	get the sides of the element
 	typename MultiGrid::traits<typename SideAndElemErrEstData<TDomain>::side_type>::secure_container side_list;
 	pErrEstGrid->associated_elements_sorted(side_list, (TElem*) elem);
-	if (side_list.size() != ref_elem_type::numSides)
+	if (side_list.size() != (size_t) ref_elem_type::numSides)
 		UG_THROW ("Mismatch of numbers of sides in 'ConvectionDiffusionFV1::compute_err_est_elem'");
 
 	//	Number Data
-	for (std::size_t data = 0; data < m_vNumberData.size(); ++data)
+	for (size_t data = 0; data < m_vNumberData.size(); ++data)
 	{
 		if (!m_vNumberData[data].InnerSSGrp.contains(m_si)) continue;
 
 		// loop sides
-		for (std::size_t side = 0; side < side_list.size(); side++)
+		for (size_t side = 0; side < side_list.size(); side++)
 		{
-			for (std::size_t ss = 0; ss < m_vNumberData[data].BndSSGrp.size(); ss++)
+			for (size_t ss = 0; ss < m_vNumberData[data].BndSSGrp.size(); ss++)
 			{
 				// is the bnd cond subset index the same as the current side's?
 				if (err_est_data->surface_view()->subset_handler()->get_subset_index(side_list[side])
 					!= m_vNumberData[data].BndSSGrp[ss]) continue;
 
-				const std::size_t ipIndexStart = err_est_data->first_side_ips(elem->reference_object_id(), side);
+				const size_t ipIndexStart = err_est_data->first_side_ips(elem->reference_object_id(), side);
 
-				for (std::size_t sip = 0; sip < err_est_data->num_side_ips(side_list[side]); sip++)
+				for (size_t sip = 0; sip < err_est_data->num_side_ips(side_list[side]); sip++)
 				{
-					std::size_t ip = ipIndexStart + sip;
+					size_t ip = ipIndexStart + sip;
 					// sign must be negative, since the data represents efflux
 					(*err_est_data)(side_list[side],sip) -= scale * m_vNumberData[data].import[ip];
 				}
@@ -389,19 +389,19 @@ compute_err_est_rhs_elem(GridObject* elem, const MathVector<dim> vCornerCoords[]
 
 	// store global side IPs
 	ReferenceObjectID roid = elem->reference_object_id();
-	std::size_t numSideIPs = err_est_data->num_all_side_ips(roid);
+	size_t numSideIPs = err_est_data->num_all_side_ips(roid);
 	std::vector<MathVector<dim> > glob_ips = std::vector<MathVector<dim> >(numSideIPs);
 	err_est_data->all_side_global_ips(&glob_ips[0], elem, vCornerCoords);
 
 	//	conditional Number Data
-	for (std::size_t data = 0; data < m_vBNDNumberData.size(); ++data)
+	for (size_t data = 0; data < m_vBNDNumberData.size(); ++data)
 	{
 		if (!m_vBNDNumberData[data].InnerSSGrp.contains(m_si)) continue;
 
 		// loop sides
-		for (std::size_t side = 0; side < side_list.size(); side++)
+		for (size_t side = 0; side < side_list.size(); side++)
 		{
-			for (std::size_t ss = 0; ss < m_vBNDNumberData[data].BndSSGrp.size(); ss++)
+			for (size_t ss = 0; ss < m_vBNDNumberData[data].BndSSGrp.size(); ss++)
 			{
 				// is the bnd cond subset index the same as the current side's?
 				if (err_est_data->surface_view()->subset_handler()->get_subset_index(side_list[side])
@@ -409,11 +409,11 @@ compute_err_est_rhs_elem(GridObject* elem, const MathVector<dim> vCornerCoords[]
 
 				int si = m_vBNDNumberData[data].BndSSGrp[ss];
 
-				const std::size_t ipIndexStart = err_est_data->first_side_ips(roid, side);
+				const size_t ipIndexStart = err_est_data->first_side_ips(roid, side);
 
-				for (std::size_t sip = 0; sip < err_est_data->num_side_ips(side_list[side]); sip++)
+				for (size_t sip = 0; sip < err_est_data->num_side_ips(side_list[side]); sip++)
 				{
-					std::size_t ip = ipIndexStart + sip;
+					size_t ip = ipIndexStart + sip;
 					number val = 0.0;
 					if (!(*m_vBNDNumberData[data].functor)(val, glob_ips[ip], this->time(), si)) continue;
 
@@ -425,12 +425,12 @@ compute_err_est_rhs_elem(GridObject* elem, const MathVector<dim> vCornerCoords[]
 	}
 
 	// 	vector data
-	for (std::size_t data = 0; data < m_vVectorData.size(); ++data)
+	for (size_t data = 0; data < m_vVectorData.size(); ++data)
 	{
 		if (!m_vVectorData[data].InnerSSGrp.contains(m_si)) continue;
 
 		// loop sides
-		for (std::size_t side = 0; side < side_list.size(); side++)
+		for (size_t side = 0; side < side_list.size(); side++)
 		{
 			MathVector<dim> fd, normal;
 
@@ -438,7 +438,7 @@ compute_err_est_rhs_elem(GridObject* elem, const MathVector<dim> vCornerCoords[]
 			SideNormal<ref_elem_type,dim>(normal, side, vCornerCoords);
 			VecNormalize(normal, normal);
 
-			for (std::size_t ss = 0; ss < m_vVectorData[data].BndSSGrp.size(); ss++)
+			for (size_t ss = 0; ss < m_vVectorData[data].BndSSGrp.size(); ss++)
 			{
 				// is the bnd cond subset index the same as the current side's?
 				if (err_est_data->surface_view()->subset_handler()->get_subset_index(side_list[side])
@@ -446,11 +446,11 @@ compute_err_est_rhs_elem(GridObject* elem, const MathVector<dim> vCornerCoords[]
 
 				int si = m_vBNDNumberData[data].BndSSGrp[ss];
 
-				const std::size_t ipIndexStart = err_est_data->first_side_ips(roid, side);
+				const size_t ipIndexStart = err_est_data->first_side_ips(roid, side);
 
-				for (std::size_t sip = 0; sip < err_est_data->num_side_ips(side_list[side]); sip++)
+				for (size_t sip = 0; sip < err_est_data->num_side_ips(side_list[side]); sip++)
 				{
-					std::size_t ip = ipIndexStart + sip;
+					size_t ip = ipIndexStart + sip;
 					(*m_vVectorData[data].functor)(fd, glob_ips[ip], this->time(), si);
 
 					// sign must be negative, since the data represents efflux
