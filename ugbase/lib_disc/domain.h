@@ -49,6 +49,15 @@ class DomainInfo
 		inline int subset_dim(int si) const
 			{return m_subsetDims[si];}
 
+		inline int num_elements() const
+			{
+				int total = 0;
+				for(size_t i = 0; i < m_numElems.size(); ++i){
+					total += m_numElems[i];
+				}
+				return total;
+			}
+
 		inline void set_info(GridBaseObjectId elemType,
 								const std::vector<int>& numElems,
 								const std::vector<int>& numLocalElems,

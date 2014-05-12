@@ -495,7 +495,11 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 			.add_method("mark_neighborhood", &IRefiner::mark_neighborhood, "", "numIterations")
 			.add_method("clear_marks", &IRefiner::clear_marks)
 			.add_method("set_refinement_callback", &IRefiner::set_refinement_callback)
-			.add_method("enable_debugging", &IRefiner::enable_debugging);
+			.add_method("enable_debugging", &IRefiner::enable_debugging)
+			.add_method("num_marked_edges", static_cast<size_t (IRefiner::*)()>(&IRefiner::num_marked_edges))
+			.add_method("num_marked_faces", static_cast<size_t (IRefiner::*)()>(&IRefiner::num_marked_faces))
+			.add_method("num_marked_volumes", static_cast<size_t (IRefiner::*)()>(&IRefiner::num_marked_volumes))
+			.add_method("num_marked_elements", static_cast<size_t (IRefiner::*)()>(&IRefiner::num_marked_elements));
 
 	//	HangingNodeRefiner
 		reg.add_class_<HangingNodeRefiner_Grid, IRefiner>("HangingNodeRefiner_Grid", grp)

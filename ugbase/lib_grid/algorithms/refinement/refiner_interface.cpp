@@ -167,7 +167,7 @@ void IRefiner::set_adjusted_marks_debug_filename(const char* filename)
 		m_adjustedMarksDebugFilename = filename;
 }
 
-void IRefiner::num_marked_edges(std::vector<int>& numMarkedEdgesOut)
+size_t IRefiner::num_marked_edges(std::vector<int>& numMarkedEdgesOut)
 {
 	#ifdef UG_PARALLEL
 		std::vector<int> numLocal;
@@ -177,9 +177,15 @@ void IRefiner::num_marked_edges(std::vector<int>& numMarkedEdgesOut)
 	#else
 		num_marked_edges_local(numMarkedEdgesOut);
 	#endif
+
+	size_t total = 0;
+	for(size_t i = 0; i < numMarkedEdgesOut.size(); ++i){
+		total += numMarkedEdgesOut[i];
+	}
+	return total;
 }
 
-void IRefiner::num_marked_faces(std::vector<int>& numMarkedFacesOut)
+size_t IRefiner::num_marked_faces(std::vector<int>& numMarkedFacesOut)
 {
 	#ifdef UG_PARALLEL
 		std::vector<int> numLocal;
@@ -189,9 +195,15 @@ void IRefiner::num_marked_faces(std::vector<int>& numMarkedFacesOut)
 	#else
 		num_marked_faces_local(numMarkedFacesOut);
 	#endif
+
+	size_t total = 0;
+	for(size_t i = 0; i < numMarkedFacesOut.size(); ++i){
+		total += numMarkedFacesOut[i];
+	}
+	return total;
 }
 
-void IRefiner::num_marked_volumes(std::vector<int>& numMarkedVolsOut)
+size_t IRefiner::num_marked_volumes(std::vector<int>& numMarkedVolsOut)
 {
 	#ifdef UG_PARALLEL
 		std::vector<int> numLocal;
@@ -201,6 +213,40 @@ void IRefiner::num_marked_volumes(std::vector<int>& numMarkedVolsOut)
 	#else
 		num_marked_volumes_local(numMarkedVolsOut);
 	#endif
+
+	size_t total = 0;
+	for(size_t i = 0; i < numMarkedVolsOut.size(); ++i){
+		total += numMarkedVolsOut[i];
+	}
+	return total;
+}
+
+size_t IRefiner::num_marked_elements(std::vector<int>& numMarkedElemsOut)
+{
+	if(grid()){
+		Grid& g = *grid();
+
+		size_t numVolumes = g.num<Volume>();
+		size_t numFaces = g.num<Face>();
+		size_t numEdges = g.num<Edge>();
+
+		#ifdef UG_PARALLEL
+			pcl::ProcessCommunicator com;
+			numVolumes = com.allreduce(numVolumes, PCL_RO_SUM);
+			numFaces = com.allreduce(numFaces, PCL_RO_SUM);
+			numEdges = com.allreduce(numEdges, PCL_RO_SUM);
+		#endif
+
+		if(numVolumes > 0)
+			return num_marked_volumes(numMarkedElemsOut);
+		else if(numFaces > 0)
+			return num_marked_faces(numMarkedElemsOut);
+		else if(numEdges > 0)
+			return num_marked_edges(numMarkedElemsOut);
+		else
+			return 0;
+	}
+	return 0;
 }
 
 }// end of namespace
