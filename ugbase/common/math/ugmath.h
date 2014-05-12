@@ -29,6 +29,6 @@
 #include "math_vector_matrix/math_vector_functions.h"
 #include "math_vector_matrix/math_matrix_functions.h"
 #include "math_vector_matrix/math_matrix_vector_functions.h"
-
+#include "math_vector_matrix/math_tensor_functions.h"
 
 #endif

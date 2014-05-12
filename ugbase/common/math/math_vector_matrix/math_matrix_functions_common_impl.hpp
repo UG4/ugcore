@@ -242,7 +242,7 @@ MatMultiplyMTBM(MathMatrix<N, N, T>& mOut, const MathMatrix<M, N, T>& m1,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// "Contraction" for Matrices (note: contraction is only known regarding tensors!)
+// "Contraction" for Matrices (note: contraction is usually known regarding tensors!)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename matrix_t>
@@ -254,10 +254,33 @@ MatContraction(const matrix_t& m1, const matrix_t& m2)
 	for(size_type i = 0; i < m1.num_rows(); ++i)
 		for(size_type j = 0; j < m1.num_cols(); ++j)
 		{
-			norm += m1(i,j)*m2(i,j);
+			norm += m1(i,j) * m2(i,j);
 		}
 
 	return norm;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// "Deviator" and trace for Matrices
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename matrix_t>
+inline typename matrix_t::value_type
+MatDeviatorTrace(const matrix_t& m, matrix_t& dev)
+{
+	typename matrix_t::value_type trace = Trace(m);
+
+	typedef typename matrix_t::size_type size_type;
+	for(size_type i = 0; i < m.num_rows(); ++i)
+	{
+		for(size_type j = 0; j < m.num_cols(); ++j)
+		{
+			dev(i,j) = m(i,j);
+		}
+		dev(i,i) -= 1.0 / 3.0 * trace;
+	}
+	return trace;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

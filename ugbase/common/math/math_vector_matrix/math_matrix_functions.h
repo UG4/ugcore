@@ -103,12 +103,20 @@ MatMultiplyMTBM(MathMatrix<N, N, T>& mOut, const MathMatrix<M, N, T>& m1,
         const MathMatrix<M, M, T>& m2);
 
 ////////////////////////////////////////////////////////////////////////////////
-// "Contraction" for Matrices (note: contraction is only known regarding tensors!)
+// "Contraction" for Matrices (note: contraction is usually known regarding tensors!)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename matrix_t>
 inline typename matrix_t::value_type
 MatContraction(const matrix_t& m1, const matrix_t& m2);
+
+////////////////////////////////////////////////////////////////////////////////
+// "Deviator" and trace for Matrices
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename matrix_t>
+inline typename matrix_t::value_type
+MatDeviatorTrace(const matrix_t& m, matrix_t& dev);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Scaling of Matrices
