@@ -425,7 +425,7 @@ MatSubtract(matrix_t& mOut, const matrix_t& m, typename matrix_t::value_type s);
 /// Devide a matrix by a scalar (componentwise)
 template <typename matrix_t>
 inline void
-MatDevide(matrix_t& mOut, const matrix_t& m, typename matrix_t::value_type s);
+MatDivide(matrix_t& mOut, const matrix_t& m, typename matrix_t::value_type s);
 
 /// Multiply a matrix by a scalar (componentwise)
 template <typename matrix_t>

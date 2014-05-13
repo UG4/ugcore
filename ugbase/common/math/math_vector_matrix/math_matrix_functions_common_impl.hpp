@@ -776,7 +776,7 @@ MatSubtract(matrix_t& mOut, const matrix_t& m, typename matrix_t::value_type s)
 
 template <typename matrix_t>
 inline void
-MatDevide(matrix_t& mOut, const matrix_t& m, typename matrix_t::value_type s)
+MatDivide(matrix_t& mOut, const matrix_t& m, typename matrix_t::value_type s)
 {
 	typedef typename matrix_t::size_type size_type;
 	for(size_type i = 0; i < mOut.num_rows(); ++i)
