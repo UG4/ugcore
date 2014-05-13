@@ -52,14 +52,14 @@ class CG
 		using base_type::write_debug;
 
 	public:
-	///	default constructor
-		CG() {}
+	///	constructors
+		CG() : base_type() {}
 
-	///	constructor setting preconditioner and convergence check
-		CG( SmartPtr<ILinearIterator<vector_type> > spPrecond,
-		    SmartPtr<IConvergenceCheck<vector_type> > spConvCheck) :
-		    base_type(spPrecond, spConvCheck)
-		{};
+		CG(SmartPtr<ILinearIterator<vector_type,vector_type> > spPrecond)
+			: base_type ( spPrecond )  {}
+
+		CG(SmartPtr<ILinearIterator<vector_type,vector_type> > spPrecond, SmartPtr<IConvergenceCheck<vector_type> > spConvCheck)
+			: base_type ( spPrecond, spConvCheck)  {}
 
 	///	name of solver
 		virtual const char* name() const {return "CG";}

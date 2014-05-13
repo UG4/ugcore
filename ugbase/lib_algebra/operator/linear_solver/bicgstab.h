@@ -53,17 +53,24 @@ class BiCGStab
 		using base_type::write_debug;
 
 	public:
-	///	default constructor
+	///	constructors
 		BiCGStab() :
 			m_numRestarts(0), m_minOrtho(0.0)
 		{};
 
-	///	constructor setting the preconditioner and the convergence check
+		BiCGStab(SmartPtr<ILinearIterator<vector_type,vector_type> > spPrecond)
+			: base_type ( spPrecond ),
+			  m_numRestarts(0), m_minOrtho(0.0)
+		{}
+
 		BiCGStab( SmartPtr<ILinearIterator<vector_type> > spPrecond,
 		          SmartPtr<IConvergenceCheck<vector_type> > spConvCheck)
 			: base_type(spPrecond, spConvCheck),
 			  m_numRestarts(0), m_minOrtho(0.0)
 		{};
+
+
+
 
 	///	name of solver
 		virtual const char* name() const {return "BiCGStab";}

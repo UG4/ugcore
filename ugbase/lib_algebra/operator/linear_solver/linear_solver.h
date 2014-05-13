@@ -36,6 +36,15 @@ class LinearSolver
 	///	Base type
 		typedef IPreconditionedLinearOperatorInverse<vector_type> base_type;
 
+	///	constructors
+		LinearSolver() : base_type() {}
+
+		LinearSolver(SmartPtr<ILinearIterator<vector_type,vector_type> > spPrecond)
+			: base_type ( spPrecond )  {}
+
+		LinearSolver(SmartPtr<ILinearIterator<vector_type,vector_type> > spPrecond, SmartPtr<IConvergenceCheck<vector_type> > spConvCheck)
+			: base_type ( spPrecond, spConvCheck)  {}
+
 	protected:
 		using base_type::convergence_check;
 		using base_type::linear_operator;
