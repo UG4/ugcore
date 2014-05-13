@@ -109,6 +109,8 @@ static void Algebra(Registry& reg, string grp)
 		string name = string("LinearSolver").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "Linear Solver")
 			.add_constructor()
+			. ADD_CONSTRUCTOR( (SmartPtr<ILinearIterator<vector_type,vector_type> > ) )("precond")
+			. ADD_CONSTRUCTOR( (SmartPtr<ILinearIterator<vector_type,vector_type> >, SmartPtr<IConvergenceCheck<vector_type> >) )("precond#convCheck")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "LinearSolver", tag);
 	}
@@ -167,6 +169,8 @@ static void Algebra(Registry& reg, string grp)
 		string name = string("CG").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "Conjugate Gradient Solver")
 			.add_constructor()
+			. ADD_CONSTRUCTOR( (SmartPtr<ILinearIterator<vector_type,vector_type> > ) )("precond")
+			. ADD_CONSTRUCTOR( (SmartPtr<ILinearIterator<vector_type,vector_type> >, SmartPtr<IConvergenceCheck<vector_type> >) )("precond#convCheck")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "CG", tag);
 	}
@@ -178,6 +182,8 @@ static void Algebra(Registry& reg, string grp)
 		string name = string("BiCGStab").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "BiCGStab Solver")
 			.add_constructor()
+			. ADD_CONSTRUCTOR( (SmartPtr<ILinearIterator<vector_type,vector_type> > ) )("precond")
+			. ADD_CONSTRUCTOR( (SmartPtr<ILinearIterator<vector_type,vector_type> >, SmartPtr<IConvergenceCheck<vector_type> >) )("precond#convCheck")
 			.add_method("set_restart", &T::set_restart)
 			.add_method("set_min_orthogonality", &T::set_min_orthogonality)
 			.set_construct_as_smart_pointer(true);
