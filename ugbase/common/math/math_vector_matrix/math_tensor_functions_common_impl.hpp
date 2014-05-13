@@ -110,7 +110,7 @@ Tens4Add(MathTensor4<TDim, TDim, TDim, TDim>& tens4_out,
 		const MathTensor4<TDim, TDim, TDim, TDim>& tens4a,
 		const MathTensor4<TDim, TDim, TDim, TDim>& tens4b)
 {
-	static const int dim = TDim;
+	static const size_t dim = TDim;
 
 	for (size_t i = 0; i < dim; ++i)
 		for (size_t j = 0; j < dim; ++j)
@@ -134,7 +134,7 @@ Tens4Subtract(MathTensor4<TDim, TDim, TDim, TDim>& tens4_out,
 		const MathTensor4<TDim, TDim, TDim, TDim>& tens4a,
 		const MathTensor4<TDim, TDim, TDim, TDim>& tens4b)
 {
-	static const int dim = TDim;
+	static const size_t dim = TDim;
 
 	for (size_t i = 0; i < dim; ++i)
 		for (size_t j = 0; j < dim; ++j)
@@ -158,7 +158,7 @@ void
 TransTens4(MathTensor4<TDim, TDim, TDim, TDim>& tens4_out,
 		const MathTensor4<TDim, TDim, TDim, TDim>& tens4)
 {
-	static const int dim = TDim;
+	static const size_t dim = TDim;
 
 	for (size_t i = 0; i < dim; ++i)
 		for (size_t j = 0; j < dim; ++j)
@@ -180,8 +180,8 @@ void
 InvertTensor4(MathTensor4<TDim, TDim, TDim, TDim>& tens4_out,
 		const MathTensor4<TDim, TDim, TDim, TDim>& tens4)
 {
-	static const int dim = TDim;
-	static const int dimSQ = dim * dim;
+	static const size_t dim = TDim;
+	static const size_t dimSQ = dim * dim;
 
 	DenseMatrix< FixedArray2<number, dimSQ, dimSQ> > mat;
 
@@ -219,8 +219,8 @@ SolveTensorMatrixEquation(MathMatrix<TDim, TDim>& X,
 		const MathTensor4<TDim, TDim, TDim, TDim>& A,
 		const MathMatrix<TDim, TDim>& rhs)
 {
-	static const int dim = TDim;
-	static const int dimSQ = dim * dim;
+	static const size_t dim = TDim;
+	static const size_t dimSQ = dim * dim;
 
 	DenseMatrix< FixedArray2<number, dimSQ, dimSQ> > A_mat;
 	DenseVector< FixedArray1<number, dimSQ> > rhs_vec, x_vec;
@@ -254,15 +254,15 @@ Tens4Contract(MathMatrix<TDim, TDim>& tens2_out,
 		const MathTensor4<TDim, TDim, TDim, TDim>& tens4,
 		const MathMatrix<TDim, TDim>& tens2)
 {
-	static const int dim = TDim;
+	static const size_t dim = TDim;
 
-	for(size_t i = 0; i < (size_t)dim; ++i)
-		for(size_t j = 0; j < (size_t)dim; ++j)
+	for(size_t i = 0; i < dim; ++i)
+		for(size_t j = 0; j < dim; ++j)
 		{
 			tens2_out[i][j] = 0.0;
 
-			for(size_t k = 0; k < (size_t)dim; ++k)
-				for(size_t l = 0; l < (size_t)dim; ++l)
+			for(size_t k = 0; k < dim; ++k)
+				for(size_t l = 0; l < dim; ++l)
 				{
 					tens2_out[i][j] += tens4[i][j][k][l] * tens2[k][l];
 				}
@@ -277,17 +277,17 @@ Tens4Contract(MathTensor4<TDim, TDim, TDim, TDim>& tens4_out,
 		const MathTensor4<TDim, TDim, TDim, TDim>& tens4a,
 		const MathTensor4<TDim, TDim, TDim, TDim>& tens4b)
 {
-	static const int dim = TDim;
+	static const size_t dim = TDim;
 
-	for(size_t i = 0; i < (size_t)dim; ++i)
-		for(size_t j = 0; j < (size_t)dim; ++j)
-			for(size_t k = 0; k < (size_t)dim; ++k)
-				for(size_t l = 0; l < (size_t)dim; ++l)
+	for(size_t i = 0; i < dim; ++i)
+		for(size_t j = 0; j < dim; ++j)
+			for(size_t k = 0; k < dim; ++k)
+				for(size_t l = 0; l < dim; ++l)
 				{
 					tens4_out[i][j][k][l] = 0.0;
 
-					for(size_t m = 0; m < (size_t)dim; ++m)
-						for(size_t n = 0; n < (size_t)dim; ++n)
+					for(size_t m = 0; m < dim; ++m)
+						for(size_t n = 0; n < dim; ++n)
 						{
 							tens4_out[i][j][k][l] += tens4a[i][j][m][n] * tens4b[m][n][k][l];
 						}
@@ -303,24 +303,24 @@ Tens4Contract(MathTensor4<TDim, TDim, TDim, TDim>& tens4_out,
 		const MathTensor4<TDim, TDim, TDim, TDim>& tens4b,
 		const MathTensor4<TDim, TDim, TDim, TDim>& tens4c)
 {
-	static const int dim = TDim;
+	static const size_t dim = TDim;
 
 	MathTensor4<dim, dim, dim, dim> help;
 
-	for(size_t i = 0; i < (size_t)dim; ++i)
-		for(size_t j = 0; j < (size_t)dim; ++j)
-			for(size_t k = 0; k < (size_t)dim; ++k)
-				for(size_t l = 0; l < (size_t)dim; ++l)
+	for(size_t i = 0; i < dim; ++i)
+		for(size_t j = 0; j < dim; ++j)
+			for(size_t k = 0; k < dim; ++k)
+				for(size_t l = 0; l < dim; ++l)
 				{
 					tens4_out[i][j][k][l] = 0.0;
 
-					for(size_t m = 0; m < (size_t)dim; ++m)
-						for(size_t n = 0; n < (size_t)dim; ++n)
+					for(size_t m = 0; m < dim; ++m)
+						for(size_t n = 0; n < dim; ++n)
 						{
 							help[m][n][k][l] = 0.0;
 
-							for(size_t r = 0; r < (size_t)dim; ++r)
-								for(size_t s = 0; s < (size_t)dim; ++s)
+							for(size_t r = 0; r < dim; ++r)
+								for(size_t s = 0; s < dim; ++s)
 								{
 									help[m][n][k][l] += tens4b[m][n][r][s] * tens4c[r][s][k][l];
 								}
@@ -338,12 +338,12 @@ template <std::size_t TDim>
 void
 Tens4Zero(MathTensor4<TDim, TDim, TDim, TDim>& tensOut)
 {
-	static const int dim = TDim;
+	static const size_t dim = TDim;
 
-	for(size_t i = 0; i < (size_t)dim; ++i)
-		for(size_t j = 0; j < (size_t)dim; ++j)
-			for(size_t k = 0; k < (size_t)dim; ++k)
-				for(size_t l = 0; l < (size_t)dim; ++l)
+	for(size_t i = 0; i < dim; ++i)
+		for(size_t j = 0; j < dim; ++j)
+			for(size_t k = 0; k < dim; ++k)
+				for(size_t l = 0; l < dim; ++l)
 					tensOut[i][j][k][l] = 0.0;
 
 }
@@ -353,12 +353,12 @@ template <std::size_t TDim>
 void
 Tens4Identity(MathTensor4<TDim, TDim, TDim, TDim>& Ident)
 {
-	static const int dim = TDim;
+	static const size_t dim = TDim;
 
-	for(size_t i = 0; i < (size_t)dim; ++i)
-		for(size_t j = 0; j < (size_t)dim; ++j)
-			for(size_t k = 0; k < (size_t)dim; ++k)
-				for(size_t l = 0; l < (size_t)dim; ++l)
+	for(size_t i = 0; i < dim; ++i)
+		for(size_t j = 0; j < dim; ++j)
+			for(size_t k = 0; k < dim; ++k)
+				for(size_t l = 0; l < dim; ++l)
 				{
 					Ident[i][j][k][l] = 0.0;
 					if ((i==k) && (j==l)) Ident[i][j][k][l] = 1.0;
@@ -370,12 +370,12 @@ template <std::size_t TDim>
 void
 Tens4IdentitySym(MathTensor4<TDim, TDim, TDim, TDim>& Ident)
 {
-	static const int dim = TDim;
+	static const size_t dim = TDim;
 
-	for(size_t i = 0; i < (size_t)dim; ++i)
-		for(size_t j = 0; j < (size_t)dim; ++j)
-			for(size_t k = 0; k < (size_t)dim; ++k)
-				for(size_t l = 0; l < (size_t)dim; ++l)
+	for(size_t i = 0; i < dim; ++i)
+		for(size_t j = 0; j < dim; ++j)
+			for(size_t k = 0; k < dim; ++k)
+				for(size_t l = 0; l < dim; ++l)
 				{
 					Ident[i][j][k][l] = 0.0;
 					if ((i==k) && (j==l)) Ident[i][j][k][l] += 0.5;
