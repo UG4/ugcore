@@ -40,6 +40,9 @@ template <class TType>
 size_t GetUniqueFVGeomID()
 {
 	static size_t typeID = UniqueFVGeomIDProvider::inst().new_id();
+	//** Unkomment the next line to see the correspondence of the id's and the types
+	//UG_LOG ("--> Assigning id " << typeID << " to type " << typeid(TType).name () << " <--\n");
+	//**
 	return typeID;
 }
 
