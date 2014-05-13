@@ -50,7 +50,7 @@ class IConvectionShapes
 	///	type of update function
 		typedef bool (this_type::*UpdateFunc)
 				(const FVGeometryBase* geo,
-				 const MathVector<dim>* DarcyVelocity,
+				 const MathVector<dim>* Velocity,
 				 const MathMatrix<dim, dim>* Diffusion,
 				 bool computeDeriv);
 
@@ -99,10 +99,10 @@ class IConvectionShapes
 		}
 
 		bool update(const FVGeometryBase* geo,
-					const MathVector<dim>* DarcyVelocity,
+					const MathVector<dim>* Velocity,
 					const MathMatrix<dim, dim>* DiffDisp,
 		            bool computeDeriv)
-			{return (this->*(m_vUpdateFunc[m_id]))(	geo, DarcyVelocity,DiffDisp, computeDeriv);}
+			{return (this->*(m_vUpdateFunc[m_id])) (geo, Velocity, DiffDisp, computeDeriv);}
 
 	//////////////////////////
 	// internal handling

@@ -52,63 +52,79 @@ class ConvectionShapesNoUpwind
 			register_func(Int2Type<dim>());
 		}
 
-	///	update of values for FV1Geometry
-		template <template <typename T, int dim> class TFVGeom, typename TElem>
-		bool update(const TFVGeom<TElem, dim>* geo,
-					const MathVector<dim>* DarcyVelocity,
+	///	update of values for FV geometry
+		template <typename TFVGeom>
+		bool update(const TFVGeom* geo,
+					const MathVector<dim>* Velocity,
 					const MathMatrix<dim, dim>* DiffDisp,
 		            bool computeDeriv);
 
 	private:
 		void register_func(Int2Type<1>)
-		{register_func<RegularEdge>();}
+		{	register_func_for_refDim<1>();
+			register_func_for_elem<RegularEdge>();}
 
 		void register_func(Int2Type<2>)
 		{	register_func(Int2Type<1>());
-			register_func<Triangle>();
-			register_func<Quadrilateral>();}
+			register_func_for_refDim<2>();
+			register_func_for_elem<Triangle>();
+			register_func_for_elem<Quadrilateral>();}
 
 		void register_func(Int2Type<3>)
 		{	register_func(Int2Type<2>());
-			register_func<Tetrahedron>();
-			register_func<Pyramid>();
-			register_func<Prism>();
-			register_func<Hexahedron>();}
+			register_func_for_refDim<3>();
+			register_func_for_elem<Tetrahedron>();
+			register_func_for_elem<Pyramid>();
+			register_func_for_elem<Prism>();
+			register_func_for_elem<Hexahedron>();}
 
 		template <typename TElem>
-		void register_func()
+		void register_func_for_elem()
 		{
 			typedef FV1Geometry<TElem, dim> TGeom;
 			typedef bool (this_type::*TFunc)
 					(  const TGeom* geo,
-					   const MathVector<dim>* DarcyVelocity,
+					   const MathVector<dim>* Velocity,
 					   const MathMatrix<dim, dim>* DiffDisp,
 					   bool computeDeriv);
 
-			base_type::template register_update_func<TGeom, TFunc>(&this_type::template update<FV1Geometry, TElem>); // <TGeom, TFunc>
+			base_type::template register_update_func<TGeom, TFunc>(&this_type::template update<TGeom>);
 
 			typedef HFV1Geometry<TElem, dim> THGeom;
 			typedef bool (this_type::*THFunc)
 					(  const THGeom* geo,
-					   const MathVector<dim>* DarcyVelocity,
+					   const MathVector<dim>* Velocity,
 					   const MathMatrix<dim, dim>* DiffDisp,
 					   bool computeDeriv);
 
-			base_type::template register_update_func<THGeom, THFunc>(&this_type::template update<HFV1Geometry, TElem>);
+			base_type::template register_update_func<THGeom, THFunc>(&this_type::template update<THGeom>);
+		}
+		
+		template <int refDim>
+		void register_func_for_refDim()
+		{
+			typedef DimFV1Geometry<refDim, dim> TGeom;
+			typedef bool (this_type::*TFunc)
+					(  const TGeom* geo,
+					   const MathVector<dim>* Velocity,
+					   const MathMatrix<dim, dim>* DiffDisp,
+					   bool computeDeriv);
+
+			base_type::template register_update_func<TGeom, TFunc>(&this_type::template update<TGeom>);
 		}
 };
 
 template <int TDim>
-template <template <typename T, int dim> class TFVGeom, typename TElem>
+template <typename TFVGeom>
 bool
 ConvectionShapesNoUpwind<TDim>::
-update(const TFVGeom<TElem, dim>* geo,
-       const MathVector<dim>* DarcyVelocity,
+update(const TFVGeom* geo,
+       const MathVector<dim>* Velocity,
        const MathMatrix<dim, dim>* DiffDisp,
        bool computeDeriv)
 {
 	UG_ASSERT(geo != NULL, "Null pointer");
-	UG_ASSERT(DarcyVelocity != NULL, "Null pointer");
+	UG_ASSERT(Velocity != NULL, "Null pointer");
 
 //	\todo: think about: this should be something like scvf.num_sh()
 	const size_t numSH = geo->num_sh();
@@ -117,10 +133,10 @@ update(const TFVGeom<TElem, dim>* geo,
 	for(size_t ip = 0; ip < geo->num_scvf(); ++ip)
 	{
 	//	get subcontrol volume face
-		const typename TFVGeom<TElem, dim>::SCVF& scvf = geo->scvf(ip);
+		const typename TFVGeom::SCVF& scvf = geo->scvf(ip);
 
 	//	Compute flux
-		const number flux = VecDot(scvf.normal(), DarcyVelocity[ip]);
+		const number flux = VecDot(scvf.normal(), Velocity[ip]);
 
 	//	Write Shapes
 		for(size_t sh = 0; sh < scvf.num_sh(); sh++)
@@ -191,61 +207,77 @@ class ConvectionShapesFullUpwind
 		}
 
 	///	update of values for FV1Geometry
-		template <template <typename T, int dim> class TFVGeom, typename TElem>
-		bool update(const TFVGeom<TElem, dim>* geo,
-					const MathVector<dim>* DarcyVelocity,
+		template <typename TFVGeom>
+		bool update(const TFVGeom* geo,
+					const MathVector<dim>* Velocity,
 					const MathMatrix<dim, dim>* DiffDisp,
 		            bool computeDeriv);
 
 	private:
 		void register_func(Int2Type<1>)
-		{register_func<RegularEdge>();}
+		{	register_func_for_refDim<1>();
+			register_func_for_elem<RegularEdge>();}
 
 		void register_func(Int2Type<2>)
 		{	register_func(Int2Type<1>());
-			register_func<Triangle>();
-			register_func<Quadrilateral>();}
+			register_func_for_refDim<2>();
+			register_func_for_elem<Triangle>();
+			register_func_for_elem<Quadrilateral>();}
 
 		void register_func(Int2Type<3>)
 		{	register_func(Int2Type<2>());
-			register_func<Tetrahedron>();
-			register_func<Pyramid>();
-			register_func<Prism>();
-			register_func<Hexahedron>();}
+			register_func_for_refDim<3>();
+			register_func_for_elem<Tetrahedron>();
+			register_func_for_elem<Pyramid>();
+			register_func_for_elem<Prism>();
+			register_func_for_elem<Hexahedron>();}
 
 		template <typename TElem>
-		void register_func()
+		void register_func_for_elem()
 		{
 			typedef FV1Geometry<TElem, dim> TGeom;
 			typedef bool (this_type::*TFunc)
 					(  const TGeom* geo,
-					   const MathVector<dim>* DarcyVelocity,
+					   const MathVector<dim>* Velocity,
 					   const MathMatrix<dim, dim>* DiffDisp,
 					   bool computeDeriv);
 
-			base_type::template register_update_func<TGeom, TFunc>(&this_type::template update<FV1Geometry, TElem>);
+			base_type::template register_update_func<TGeom, TFunc>(&this_type::template update<TGeom>);
 
 			typedef HFV1Geometry<TElem, dim> THGeom;
 			typedef bool (this_type::*THFunc)
 					(  const THGeom* geo,
-					   const MathVector<dim>* DarcyVelocity,
+					   const MathVector<dim>* Velocity,
 					   const MathMatrix<dim, dim>* DiffDisp,
 					   bool computeDeriv);
 
-			base_type::template register_update_func<THGeom, THFunc>(&this_type::template update<HFV1Geometry, TElem>);
+			base_type::template register_update_func<THGeom, THFunc>(&this_type::template update<THGeom>);
+		}
+		
+		template <int refDim>
+		void register_func_for_refDim()
+		{
+			typedef DimFV1Geometry<refDim, dim> TGeom;
+			typedef bool (this_type::*TFunc)
+					(  const TGeom* geo,
+					   const MathVector<dim>* Velocity,
+					   const MathMatrix<dim, dim>* DiffDisp,
+					   bool computeDeriv);
+
+			base_type::template register_update_func<TGeom, TFunc>(&this_type::template update<TGeom>);
 		}
 };
 
 template <int TDim>
-template <template <typename T, int dim> class TFVGeom, typename TElem>
+template <typename TFVGeom>
 bool ConvectionShapesFullUpwind<TDim>::
-update(const TFVGeom<TElem, dim>* geo,
-       const MathVector<dim>* DarcyVelocity,
+update(const TFVGeom* geo,
+       const MathVector<dim>* Velocity,
        const MathMatrix<dim, dim>* DiffDisp,
        bool computeDeriv)
 {
 	UG_ASSERT(geo != NULL, "Null pointer");
-	UG_ASSERT(DarcyVelocity != NULL, "Null pointer");
+	UG_ASSERT(Velocity != NULL, "Null pointer");
 
 //	\todo: think about: this should be something like scvf.num_sh()
 	const size_t numSH = geo->num_sh();
@@ -254,10 +286,10 @@ update(const TFVGeom<TElem, dim>* geo,
 	for(size_t ip = 0; ip < geo->num_scvf(); ++ip)
 	{
 	//	get subcontrol volume face
-		const typename TFVGeom<TElem, dim>::SCVF& scvf = geo->scvf(ip);
+		const typename TFVGeom::SCVF& scvf = geo->scvf(ip);
 
 	//	Compute flux
-		const number flux = VecDot(scvf.normal(), DarcyVelocity[ip]);
+		const number flux = VecDot(scvf.normal(), Velocity[ip]);
 
 		size_t from = scvf.from();
 		size_t to = scvf.to();
@@ -359,9 +391,9 @@ class ConvectionShapesWeightedUpwind
 		void set_weight(number weight) {m_weight = weight;}
 
 	///	update of values for FV1Geometry
-		template <template <typename T, int dim> class TFVGeom, typename TElem>
-		bool update(const TFVGeom<TElem, dim>* geo,
-					const MathVector<dim>* DarcyVelocity,
+		template <typename TFVGeom>
+		bool update(const TFVGeom* geo,
+					const MathVector<dim>* Velocity,
 					const MathMatrix<dim, dim>* DiffDisp,
 		            bool computeDeriv);
 
@@ -370,53 +402,69 @@ class ConvectionShapesWeightedUpwind
 		number m_weight;
 
 		void register_func(Int2Type<1>)
-		{register_func<RegularEdge>();}
+		{	register_func_for_refDim<1>();
+			register_func_for_elem<RegularEdge>();}
 
 		void register_func(Int2Type<2>)
 		{	register_func(Int2Type<1>());
-			register_func<Triangle>();
-			register_func<Quadrilateral>();}
+			register_func_for_refDim<2>();
+			register_func_for_elem<Triangle>();
+			register_func_for_elem<Quadrilateral>();}
 
 		void register_func(Int2Type<3>)
 		{	register_func(Int2Type<2>());
-			register_func<Tetrahedron>();
-			register_func<Pyramid>();
-			register_func<Prism>();
-			register_func<Hexahedron>();}
+			register_func_for_refDim<3>();
+			register_func_for_elem<Tetrahedron>();
+			register_func_for_elem<Pyramid>();
+			register_func_for_elem<Prism>();
+			register_func_for_elem<Hexahedron>();}
 
 		template <typename TElem>
-		void register_func()
+		void register_func_for_elem()
 		{
 			typedef FV1Geometry<TElem, dim> TGeom;
 			typedef bool (this_type::*TFunc)
 					(  const TGeom* geo,
-					   const MathVector<dim>* DarcyVelocity,
+					   const MathVector<dim>* Velocity,
 					   const MathMatrix<dim, dim>* DiffDisp,
 					   bool computeDeriv);
 
-			base_type::template register_update_func<TGeom, TFunc>(&this_type::template update<FV1Geometry, TElem>); // <TGeom, TFunc>
+			base_type::template register_update_func<TGeom, TFunc>(&this_type::template update<TGeom>);
 
 			typedef HFV1Geometry<TElem, dim> THGeom;
 			typedef bool (this_type::*THFunc)
 					(  const THGeom* geo,
-					   const MathVector<dim>* DarcyVelocity,
+					   const MathVector<dim>* Velocity,
 					   const MathMatrix<dim, dim>* DiffDisp,
 					   bool computeDeriv);
 
-			base_type::template register_update_func<THGeom, THFunc>(&this_type::template update<HFV1Geometry, TElem>);
+			base_type::template register_update_func<THGeom, THFunc>(&this_type::template update<THGeom>);
+		}
+		
+		template <int refDim>
+		void register_func_for_refDim()
+		{
+			typedef DimFV1Geometry<refDim, dim> TGeom;
+			typedef bool (this_type::*TFunc)
+					(  const TGeom* geo,
+					   const MathVector<dim>* Velocity,
+					   const MathMatrix<dim, dim>* DiffDisp,
+					   bool computeDeriv);
+
+			base_type::template register_update_func<TGeom, TFunc>(&this_type::template update<TGeom>);
 		}
 };
 
 template <int TDim>
-template <template <typename T, int dim> class TFVGeom, typename TElem>
+template <typename TFVGeom>
 bool ConvectionShapesWeightedUpwind<TDim>::
-update(const TFVGeom<TElem, dim>* geo,
-       const MathVector<dim>* DarcyVelocity,
+update(const TFVGeom* geo,
+       const MathVector<dim>* Velocity,
        const MathMatrix<dim, dim>* DiffDisp,
        bool computeDeriv)
 {
 	UG_ASSERT(geo != NULL, "Null pointer");
-	UG_ASSERT(DarcyVelocity != NULL, "Null pointer");
+	UG_ASSERT(Velocity != NULL, "Null pointer");
 
 //	\todo: think about: this should be something like scvf.num_sh()
 	const size_t numSH = geo->num_sh();
@@ -425,10 +473,10 @@ update(const TFVGeom<TElem, dim>* geo,
 	for(size_t ip = 0; ip < geo->num_scvf(); ++ip)
 	{
 	//	get subcontrol volume face
-		const typename TFVGeom<TElem, dim>::SCVF& scvf = geo->scvf(ip);
+		const typename TFVGeom::SCVF& scvf = geo->scvf(ip);
 
 	//	Compute flux
-		const number flux = VecDot(scvf.normal(), DarcyVelocity[ip]);
+		const number flux = VecDot(scvf.normal(), Velocity[ip]);
 
 		size_t from = scvf.from();
 		size_t to = scvf.to();
@@ -523,7 +571,7 @@ class ConvectionShapesPartialUpwind
 	///	update of values for FV1Geometry
 		template <typename TElem>
 		bool update(const FV1Geometry<TElem, dim>* geo,
-					const MathVector<dim>* DarcyVelocity,
+					const MathVector<dim>* Velocity,
 					const MathMatrix<dim, dim>* DiffDisp,
 		            bool computeDeriv);
 
@@ -549,7 +597,7 @@ class ConvectionShapesPartialUpwind
 			typedef FV1Geometry<TElem, dim> TGeom;
 			typedef bool (this_type::*TFunc)
 					(  const TGeom* geo,
-					   const MathVector<dim>* DarcyVelocity,
+					   const MathVector<dim>* Velocity,
 					   const MathMatrix<dim, dim>* DiffDisp,
 					   bool computeDeriv);
 
@@ -562,12 +610,12 @@ template <typename TElem>
 bool
 ConvectionShapesPartialUpwind<TDim>::
 update(const FV1Geometry<TElem, dim>* geo,
-       const MathVector<dim>* DarcyVelocity,
+       const MathVector<dim>* Velocity,
        const MathMatrix<dim, dim>* DiffDisp,
        bool computeDeriv)
 {
 	UG_ASSERT(geo != NULL, "Null pointer");
-	UG_ASSERT(DarcyVelocity != NULL, "Null pointer");
+	UG_ASSERT(Velocity != NULL, "Null pointer");
 	UG_ASSERT(DiffDisp != NULL, "Null pointer");
 
 //	Compute Volume of Element
@@ -608,7 +656,7 @@ update(const FV1Geometry<TElem, dim>* geo,
 		}
 
 	//	Compute flux
-		const number flux = VecDot(scvf.normal(), DarcyVelocity[i]);
+		const number flux = VecDot(scvf.normal(), Velocity[i]);
 
 	//	reset values
 		for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
