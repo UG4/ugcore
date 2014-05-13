@@ -744,10 +744,9 @@ MatDiagSet(matrix_t& mInOut, typename matrix_t::value_type s)
 {
 	typedef typename matrix_t::size_type size_type;
 	for(size_type i = 0; i < mInOut.num_rows(); ++i)
-		for(size_type j = 0; j < mInOut.num_cols(); ++j)
-		{
-			mInOut(i, i) = s;
-		}
+	{
+		mInOut(i, i) = s;
+	}
 }
 
 template <typename matrix_t>

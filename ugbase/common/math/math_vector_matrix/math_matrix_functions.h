@@ -407,7 +407,7 @@ template <typename matrix_t>
 inline void
 MatSet(matrix_t& mInOut, typename matrix_t::value_type s);
 
-/// Set each diagonal of a matrix to a scalar (componentwise)
+/// Set diagonal entries of a matrix to a scalar (other entries are not changed)
 template <typename matrix_t>
 inline void
 MatDiagSet(matrix_t& mInOut, typename matrix_t::value_type s);
