@@ -583,7 +583,9 @@ protected:
 			
 			for(size_t j = 0; j < dim-1; ++j)
 			{
-				for (size_t k = 0; k < dim; k++) gradient = JT[j][k] * (vDensity[k] - vDensity[0]);
+				gradient = 0.0;
+				for (size_t k = 0; k < dim; k++)
+					gradient += JT[j][k] * (vDensity[k+1] - vDensity[0]);
 				vConsGravity[i][j] = Diff * PhysicalGravity[dim-1] * gradient;
 			}
 			vConsGravity[i][dim-1] = Diff * PhysicalGravity[dim-1] * (vDensity[i] + DensityIP)*0.5;
@@ -761,7 +763,7 @@ inline bool PrepareConsistentGravity<2>(	MathVector<2>* vConsGravity,
 
 			for(int j = 1; j < coe; ++j)
 			{
-				DensityIP += vDensity[j] * LocalPoint[j-1];//GN(j)=local(j-1) for j=1,2
+				DensityIP += vDensity[j] * LocalPoint[j-1]; //GN(j)=local(j-1) for j=1,2
 			}
 
 			gradient = (JT[0][0]*(vDensity[1]-vDensity[0]) + JT[0][1]*(vDensity[2]-vDensity[0]));
