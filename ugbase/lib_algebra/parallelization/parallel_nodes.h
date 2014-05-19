@@ -252,7 +252,7 @@ public:
 
 	const AlgebraID &local_to_global(size_t i) const
 	{
-		UG_ASSERT(i < local_size(), i << " >= " << local_size());
+		UG_COND_THROW(i >= local_size(), i << " >= " << local_size());
 		return m_localToGlobal[i];
 	}
 
@@ -313,9 +313,14 @@ public:
 		return m_layout->slave();
 	}
 
-	pcl::InterfaceCommunicator<IndexLayout> &communicator()
+	pcl::InterfaceCommunicator<IndexLayout> &comm() const
 	{
 		return m_layout->comm();
+	}
+
+	const pcl::ProcessCommunicator &proc_comm() const
+	{
+		return m_layout->proc_comm();
 	}
 
 	bool is_master_or_inner(size_t i) const

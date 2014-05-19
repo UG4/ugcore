@@ -93,7 +93,7 @@ size_t ParallelNodes::get_local_index_or_create_new(const AlgebraID &globalIndex
 		pair<iterator, bool> ret = m_globalToLocal.insert(pair<AlgebraID, size_t> (globalIndex, m_localToGlobal.size()));
 		if(ret.second)
 		{
-			UG_DLOG(LIB_ALG_MATRIX, 4, "created new index " << m_localToGlobal.size() << "\n");
+			UG_DLOG(LIB_ALG_MATRIX, 4, "created new index " << m_localToGlobal.size() << " (global Index = " << globalIndex << "\n");
 			m_localToGlobal.push_back(globalIndex);
 			m_OLtype.push_back(OverlapType(distanceToMasterOrInner));
 			bCreated = true;
