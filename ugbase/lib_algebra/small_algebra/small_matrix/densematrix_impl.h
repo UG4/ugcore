@@ -401,6 +401,15 @@ Deserialize(std::istream &buff, const DenseMatrix<VariableArray2<T> > &mat)
 			BlockDeserialize(buff, mat(r, c));
 }
 
+template<typename T >
+inline bool IsFiniteAndNotTooBig(const DenseMatrix<T> &m)
+{
+	for(size_t r=0; r<m.num_rows(); r++)
+		for(size_t c=0; c<m.num_cols(); c++)
+			if(IsFiniteAndNotTooBig(m(r, c)) == false) return false;
+
+	return true;
+}
 } // namespace ug
 
 #endif // __H__UG__COMMON__DENSEMATRIX_IMPL_H__
