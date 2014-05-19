@@ -18,27 +18,56 @@ namespace ug{
 // Interface for Convection shapes
 /////////////////////////////////////////////////////////////////////////////
 
-
+/// Interface class for upwind methods
 /**
- * The idea of convection shapes is to generalize the upwinding, such that
- * the upwind may also depend on additional parameters.
+ * Upwind is a way of stabilization of discretizations of convection(-diffusion)
+ * PDEs. For a detailed description of the idea, cf.
+ * <ul>
+ *  <li> P. Frolkovic, H. De Schepper, Numerical Modelling of Convection Dominated
+ *       Transport Coupled with Density Driven Flow in Porous Media.
+ *       Advances in Water Resources 24 (1): 63–72, 2000, DOI: 10.1016/S0309-1708(00)00025-7 </li>
+ *  <li> K. W. Morton, D. F. Mayers, Numerical Solution of Partial Differential
+ *       Equations, Cambridge University Press, 1994 </li>
+ *  <li> R. J. Le Veque, Numerical Methods for Conservation Laws, Birkhäuser, 1990 </li>
+ * </ul>
+ * Convection shapes is one of possible implementations of upwind methods,
+ * in which the upwind is considered as a special kind of interpolation of degrees
+ * of freedom of the unknown function (for ex., concentration at the corners of
+ * the element) into integration points inside the grid element. E.g. the so-called
+ * 'full upwind' method for the vertex-centered FV discretizations sets the
+ * concentration in the whole grid element be equal to the concentration at a
+ * certain specially selected 'upwind corner' chosen according to the direction
+ * of the convection velocity. Like every interpolation, this one can be introduced
+ * by a set of shape functions associated with the degrees of freedom of the
+ * grid function. These shape functions for an upwind method are said to be
+ * its convection shapes.
  *
- * In the case of d3f for example, one is interested in the evaluation of
- * the convective flux at an integration point
+ * But in terms of this interface, the convection shapes are the values of the
+ * convection shape functions at the integration points premultiplied by the norm
+ * of the projection of the velocity to the normal to the corresponding
+ * subcontrol volume faces and by the area of these faces. Thus, for a convective
+ * term of the form
+ * \f[ \nabla \cdot (\mathbf{v} c) \f]
+ * (with \f$\mathbf{v}\f$ being the convective velocity) the convective flux
+ * through a subcontrol volume face with the integration point \f$ip\f$ is
+ * \f[ \sum_{s=1}^{n_s} \phi_s (ip) \, c_s, \f]
+ * where \f$\phi_s (ip)\f$ are the values of the \f$n_s\f$ ``convection shapes''
+ * at \f$ip\f$, whereas $c_s$ are the degrees of freedom of \f$c\f$ corresponding
+ * to the shapes.
  *
- * \f[ conv_flux_{ip} := (\omega \vec{q} \cdot \vec{n})|_{ip} \f]
+ * Although the convection shapes for every upwind method are based on the
+ * same idea, they depend on the geometry of the secondary grid (i.e., on the
+ * finite volume geometry). For this, for every FV geometry, an own object
+ * of the convection shapes class is registered.
  *
- * In order to do so, the flux is interpolated by shape functions as:
- * 
- * \f[ conv_flux_{ip} := \sum_{sh=1}^{n_sh} \phi_{sh}^{conv}|_{ip} \cdot \omega_{sh} \f]
+ * Note furthermore that the convection shapes may depend not only on the
+ * velocity but also on the diffusion. Such methods raise up the asymptotic
+ * convergence of the discretization of convection-diffusion problems. As
+ * the diffusion tensor may also depend on the unknowns (via its dispersion
+ * part), the derivatives of the shapes w.r.t. the components of the diffusion
+ * tensor are taken into account.
  *
- * The computation of the convective flux does not only depend on the geometry
- * but does also depend on the convection velocity and the Diffusion-Dispersion-
- * Tensor in order to allow a weighting between diffusive and convective flux.
- * Therefore, also the convection shape depend on those quantities and the
- * derivatives of the convection shapes w.r.t. the velocity and the Diff-Disp-Tensor
- * must be taken into account when computing an exact jacobian.
- *
+ * \tparam dim	the world dimension (in which the velocity is given)
  */
 template <int dim>
 class IConvectionShapes
