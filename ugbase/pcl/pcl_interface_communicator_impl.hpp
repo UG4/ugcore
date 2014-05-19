@@ -555,7 +555,6 @@ communicate_and_resume(int tag)
 	//		start copying the data to the local receive buffer. Afterwards on could continue
 	//		by waiting for the next one etc...
 		Waitall(m_vReceiveRequests, m_vSendRequests);
-//		PROFILE_END();
 	}
 
 //	we can now resize the receive buffers to their final sizes
@@ -650,9 +649,10 @@ wait()
 //		instead of waiting for all, one could wait until one has finished and directly
 //		start copying the data to the local receive buffer. Afterwards on could continue
 //		by waiting for the next one etc...
-	PCL_PROFILE(pcl_IntCom_MPIWait);
-	Waitall(m_vReceiveRequests, m_vSendRequests);
-	PCL_PROFILE_END();
+	{
+		PCL_PROFILE(pcl_IntCom_MPIWait);
+		Waitall(m_vReceiveRequests, m_vSendRequests);
+	}
 	
 
 //	call the extractors with the received data
