@@ -128,7 +128,7 @@ void WriteMatrixPar(std::string name, const Matrix_type &A, const postype *posit
 	else
 	{
 	#ifndef UG_PARALLEL
-		WriteMatrix(GetParallelName(A, filename), A, positions, dimensions);
+		WriteMatrix(GetParallelName(A, name), A, positions, dimensions);
 	#else
 		const pcl::ProcessCommunicator &pc = A.layouts()->proc_comm();
 		if(pcl::NumProcs() == 1)
