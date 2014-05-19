@@ -110,7 +110,7 @@ public:
 	{
 		UG_ASSERT (m_nCo > 0, "StdLinConsistentGravity: Object not initialized.");
 		
-		MathVector<dim> LocalGravity;
+		MathVector<refDim> LocalGravity;
 		VecSet(LocalGravity, 0.0);
 		
 	//	Loop shape functions
