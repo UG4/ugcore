@@ -13,7 +13,7 @@ using namespace ug;
 
 size_t Get512Padding(size_t s)
 {
-	return 512- (s%512);
+	return s%512 == 0 ? 0 : (512- (s%512));
 }
 
 void WriteParallelArchive(ProcessCommunicator &pc, std::string strFilename, const std::vector<FileBufferDescriptor> &files)
@@ -69,7 +69,7 @@ void WriteParallelArchive(ProcessCommunicator &pc, std::string strFilename, cons
 	{
 //		UG_LOG_ALL_PROCS("I am first, writing .ug4_tar_lookup_table of size " << ug4tarLookupSize <<"\n");
 		TarHeader t;
-		t.set_filename(".ug4_tar_lookup_table");
+		t.set_filename(".tar_lookup_table");
 		t.set_filesize(ug4tarLookupSize);
 		t.set_checksum();
 
