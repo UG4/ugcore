@@ -251,6 +251,7 @@ void WriteVectorToConnectionViewer(const char *filename,
 
 //	write vector
 	ConnectionViewer::WriteVectorPar( filename, b, &vPos[0], dim, pCompareVec);
+	WriteAlgebraIndices(filename, u.domain(),u.dof_distribution());
 }
 
 template<class TFunction>
@@ -497,7 +498,9 @@ public:
 	GridFunctionDebugWriter(
 			SmartPtr<ApproximationSpace<TDomain> > spApproxSpace) :
 			m_spApproxSpace(spApproxSpace), bConnViewerOut(
-					true), bConnViewerIndices(false), bVTKOut(true), m_printConsistent(true) {
+					true), bConnViewerIndices(false), bVTKOut(true), m_printConsistent(true)
+	{
+		IVectorDebugWriter<vector_type>::m_currentDim = dim;
 		reset();
 	}
 
