@@ -18,6 +18,7 @@ namespace ug
 {
 namespace ConnectionViewer
 {
+bool g_parallelConnectionViewer=false;
 
 #ifdef UG_PARALLEL
 string GetParallelName(string name, const pcl::ProcessCommunicator &pc, bool bWriteHeader)

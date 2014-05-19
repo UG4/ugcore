@@ -25,7 +25,7 @@ namespace ug
 {
 namespace ConnectionViewer
 {
-
+extern bool g_parallelConnectionViewer;
 #ifdef UG_PARALLEL
 /**
  * extends the filename (add p000X extension in parallel) and writes a parallel pvec/pmat "header" file
@@ -123,39 +123,41 @@ void WriteMatrix(std::string filename, const Matrix_type &A, postype *positions,
 template<typename Matrix_type, typename postype>
 void WriteMatrixPar(std::string name, const Matrix_type &A, const postype *positions, int dimensions)
 {
-	WriteMatrix(GetParallelName(A, name), A, positions, dimensions);
-/*// the new version using parallel archive
-#ifndef UG_PARALLEL
-	WriteMatrix(GetParallelName(A, filename), A, positions, dimensions);
-#else
-	const pcl::ProcessCommunicator &pc = A.layouts()->proc_comm();
-	if(pcl::NumProcs() == 1)
-		WriteMatrix(name, A, positions, dimensions);
-
-	char buf[20];
-	int rank = pcl::ProcRank();
-
-
-	std::string fname = FilenameWithoutExtension(name);
-	std::string ext = GetFilenameExtension(name);
-
-	pcl::ParallelArchive ar(name + ".tar", pc);
-	if(rank == pc.get_proc_id(0))
+	if(!g_parallelConnectionViewer)
+		WriteMatrix(GetParallelName(A, name), A, positions, dimensions);
+	else
 	{
-		// create the .pmat "header" file
-		std::stringstream &file = ar.create_stringstream_file(fname + ".p" + ext);
-		file << pc.size() << "\n";
-		for(size_t i=0; i<pc.size(); i++)
+	#ifndef UG_PARALLEL
+		WriteMatrix(GetParallelName(A, filename), A, positions, dimensions);
+	#else
+		const pcl::ProcessCommunicator &pc = A.layouts()->proc_comm();
+		if(pcl::NumProcs() == 1)
+			WriteMatrix(name, A, positions, dimensions);
+
+		char buf[20];
+		int rank = pcl::ProcRank();
+
+
+		std::string fname = FilenameWithoutExtension(name);
+		std::string ext = GetFilenameExtension(name);
+
+		pcl::ParallelArchive ar(name + ".tarmat", pc);
+		if(rank == pc.get_proc_id(0))
 		{
-			sprintf(buf, "_p%04d.%s", pc.get_proc_id(i), ext.c_str());
-			file << fname << buf << "\n";
+			// create the .pmat "header" file
+			std::stringstream &file = ar.create_stringstream_file(fname + ".p" + ext);
+			file << pc.size() << "\n";
+			for(size_t i=0; i<pc.size(); i++)
+			{
+				sprintf(buf, "_p%04d.%s", pc.get_proc_id(i), ext.c_str());
+				file << fname << buf << "\n";
+			}
 		}
+		// create the .mat file
+		sprintf(buf, "_p%04d.%s", rank, ext.c_str());
+		WriteMatrix(ar.create_stringstream_file(fname + buf), A, positions, dimensions);
+	#endif
 	}
-	// create the .mat file
-	sprintf(buf, "_p%04d.%s", rank, ext.c_str());
-	WriteMatrix(ar.create_stringstream_file(fname + buf), A, positions, dimensions);
-#endif
-*/
 }
 
 
