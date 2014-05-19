@@ -179,6 +179,17 @@ template<typename T> inline void Deserialize(std::istream &buff, DenseVector<Var
 		Deserialize(buff, vec[i]);
 }
 
+
+template<typename T >
+inline bool IsFiniteAndNotTooBig(const DenseVector<T> &v)
+{
+	for(size_t r=0; r<v.size(); r++)
+		if(IsFiniteAndNotTooBig(v[r]) == false) return false;
+
+	return true;
+}
+
+
 //MAKE_TEMPLATE_OPERATORS_VECTOR2(typename TStorage, DenseVector<TStorage>);
 
 }
