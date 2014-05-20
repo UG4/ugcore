@@ -714,20 +714,32 @@ void ExchangeAndAdjustSideErrors(TFunction& u, ANumber aSideError, ANumber aNumE
 
 	//	since we're copying from vmasters to vslaves later on, we have to make
 	//	sure, that also all v-masters contain the correct values.
+	//todo: communication to vmasters may not be necessary here...
+	//		it is performed to make sure that all surface-rim-children
+	//		contain their true value.
 		icom.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, compolCopyErr);
 		icom.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, compolCopyNum);
+
 		icom.communicate();
 	#endif
 
 //	if we're currently operating on a surface function, we have to adjust
 //	errors between shadowed and shadowing sides (constraining and constrained sides).
 	if(u.grid_level().type() == GridLevel::SURFACE){
-		for(side_iter_t iter = u.template begin<side_t>(SurfaceView::SHADOW_RIM);
-			iter != u.template end<side_t>(SurfaceView::SHADOW_RIM); ++iter)
+	//todo: avoid iteration over the whole grid!
+	//todo: reduce communication
+		const SurfaceView* surfView = u.approx_space()->surface_view().get();
+
+		// for(side_iter_t iter = u.template begin<side_t>(SurfaceView::SHADOW_RIM);
+		// 	iter != u.template end<side_t>(SurfaceView::SHADOW_RIM); ++iter)
+		typedef typename Grid::traits<side_t>::iterator grid_side_iter_t;
+		for(grid_side_iter_t iter = g.template begin<side_t>();
+			iter != g.template end<side_t>(); ++iter)
 		{
 			side_t* s = *iter;
-			number oldErr = aaSideError[s];
-			number oldNum = aaNumElems[s];
+			if(!surfView->surface_state(s).partially_contains(SurfaceView::SHADOW_RIM))
+				continue;
+
 			const size_t numChildren = g.template num_children<side_t>(s);
 			if(numChildren > 0){
 				number w = 1. / number(numChildren);
@@ -735,23 +747,45 @@ void ExchangeAndAdjustSideErrors(TFunction& u, ANumber aSideError, ANumber aNumE
 					side_t* c = g.template get_child<side_t>(s, i_child);
 					aaSideError[s] += w * aaSideError[c];
 					aaNumElems[s] += w * aaNumElems[c];
-
-					aaSideError[c] += oldErr;
-					aaNumElems[c] += oldNum;
 				}
 			}
 		}
-	}
+	//	those elems which have local children now contain their true value (vslaves...)
+		#ifdef UG_PARALLEL
+			icom.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, compolCopyErr);
+			icom.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, compolCopyNum);
+			icom.communicate();
+		#endif
 
-	#ifdef UG_PARALLEL
-	//	copy from v-masters to v-slaves, since there may be constrained
-	//	sides which locally do not have a constraining element. Note that
-	//	constrained V-Masters always have a local constraining element and thus
-	//	contain the correct value.
-		icom.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, compolCopyErr);
-		icom.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, compolCopyNum);
-		icom.communicate();
-	#endif
+		for(grid_side_iter_t iter = g.template begin<side_t>();
+			iter != g.template end<side_t>(); ++iter)
+		{
+			side_t* s = *iter;
+			if(!surfView->surface_state(s).partially_contains(SurfaceView::SHADOW_RIM))
+				continue;
+
+			const size_t numChildren = g.template num_children<side_t>(s);
+			if(numChildren > 0){
+				number w = 1. / number(numChildren);
+				for(size_t i_child = 0; i_child < numChildren; ++i_child){
+					side_t* c = g.template get_child<side_t>(s, i_child);
+					aaSideError[c] = w * aaSideError[s];
+					aaNumElems[c] = w * aaNumElems[s];
+				}
+			}
+		}
+
+	//	those elems which have a local parent now contain their true value (vmasters...)
+		#ifdef UG_PARALLEL
+		//	copy from v-masters to v-slaves, since there may be constrained
+		//	sides which locally do not have a constraining element. Note that
+		//	constrained V-Masters always have a local constraining element and thus
+		//	contain the correct value.
+			icom.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, compolCopyErr);
+			icom.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, compolCopyNum);
+			icom.communicate();
+		#endif
+	}
 }
 
 /** Calculates the jump between normal components of element-gradients on element sides,
