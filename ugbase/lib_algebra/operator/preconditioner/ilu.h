@@ -224,6 +224,7 @@ bool invert_U(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 	typename Vector_type::value_type s;
 	
 	static const number __eps = 1e-8;
+	size_t numNearZero=0;
 
 	// last row diagonal U entry might be close to zero with corresponding close to zero rhs
 	// when solving Navier Stokes system, therefore handle separately
@@ -238,11 +239,14 @@ bool invert_U(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 		// nearly zero due to round-off errors. In order to allow ill-
 		// scaled matrices (i.e. small matrix entries row-wise) this
 		// is compared to the rhs, that is small in this case as well.
-		if (BlockNorm(A(i,i)) <= __eps * BlockNorm(s)){
-			UG_LOG("ILU Warning: Near-zero diagonal entry "
+		if (BlockNorm(A(i,i)) <= __eps * BlockNorm(s))
+		{
+			if(numNearZero++<5)
+			{	UG_LOG("ILU Warning: Near-zero diagonal entry "
 					"with norm "<<BlockNorm(A(i,i))<<" in last row of U "
 					" with corresponding non-near-zero rhs with norm "
 					<< BlockNorm(s) << ". Setting rhs to zero.\n");
+			}
 			// set correction to zero
 			x[i] = 0;
 		} else {
@@ -267,6 +271,9 @@ bool invert_U(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 		InverseMatMult(x[i], 1.0, A(i,i), s);
 		if(i == 0) break;
 	}
+
+	if(numNearZero>=5)
+	{	UG_LOG("...\nILU Warning: " << numNearZero << " ( out of " << x.size() << ") near-zero diagonal entries in last row of U.\n");	}
 
 	return true;
 }
