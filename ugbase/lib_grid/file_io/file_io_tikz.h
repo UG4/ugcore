@@ -20,6 +20,7 @@ struct TikzExportDesc{
 	vector3	edgeColor;
 	number	faceRimWidth;
 	vector3	faceColor;
+	number	smallestVal;
 };
 
 bool ExportGridToTIKZ(Grid& grid, const char* filename, const ISubsetHandler* psh,

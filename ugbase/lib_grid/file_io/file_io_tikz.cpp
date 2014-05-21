@@ -2,6 +2,7 @@
 // s.b.reiter@gmail.com
 
 #include <fstream>
+#include <cmath>
 #include "file_io_tikz.h"
 
 using namespace std;
@@ -16,8 +17,17 @@ TikzExportDesc() :
 	edgeWidth(0.025),
 	edgeColor(0, 0, 0),
 	faceRimWidth(0.015),
-	faceColor(0.85, 0.85, 0.85)
+	faceColor(0.85, 0.85, 0.85),
+	smallestVal(0.001)
 {}
+
+static vector2 trunk(const vector2& v, number smallestVal)
+{
+	vector2 t;
+	t.x() = smallestVal * round(v.x() / smallestVal);
+	t.y() = smallestVal * round(v.y() / smallestVal);
+	return t;
+}
 
 bool ExportGridToTIKZ(Grid& grid, const char* filename, const ISubsetHandler* psh,
 					  APosition aPos, TikzExportDesc desc)	
@@ -32,6 +42,8 @@ bool ExportGridToTIKZ(Grid& grid, const char* filename, const ISubsetHandler* ps
 		UG_LOG("A subset handler is required to write a tikz file!\n");
 		return false;
 	}
+
+	number sml = max(SMALL, desc.smallestVal);
 
 	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPos);
 
@@ -76,7 +88,8 @@ bool ExportGridToTIKZ(Grid& grid, const char* filename, const ISubsetHandler* ps
 			out << "\\filldraw[face" << si << "]";
 			for(size_t i = 0; i < f->num_vertices(); ++i){
 				Vertex* vrt = f->vertex(i);
-				out << " (" << aaPos[vrt].x() << "cm, " << aaPos[vrt].y() << "cm) --";
+				vector2 p = trunk(vector2(aaPos[vrt].x(), aaPos[vrt].y()), sml);
+				out << " (" << p.x() << "cm, " << p.y() << "cm) --";
 			}
 			out << " cycle;" << endl;
 		}
@@ -93,7 +106,8 @@ bool ExportGridToTIKZ(Grid& grid, const char* filename, const ISubsetHandler* ps
 			out << "\\draw[edge" << si << "]";
 			for(size_t i = 0; i < e->num_vertices(); ++i){
 				Vertex* vrt = e->vertex(i);
-				out << " (" << aaPos[vrt].x() << "cm, " << aaPos[vrt].y() << "cm)";
+				vector2 p = trunk(vector2(aaPos[vrt].x(), aaPos[vrt].y()), sml);
+				out << " (" << p.x() << "cm, " << p.y() << "cm)";
 				if(i+1 != e->num_vertices())
 					out << " --";
 			}
@@ -109,7 +123,8 @@ bool ExportGridToTIKZ(Grid& grid, const char* filename, const ISubsetHandler* ps
 			Vertex* vrt = *iter;
 			if(psh->get_subset_index(vrt) != si)	// THIS IS NASTY! One should iterate over subset-elements directly instead
 				continue;
-			out << "\\node[vertex" << si << "] at (" << aaPos[vrt].x() << "cm, " << aaPos[vrt].y() << "cm) {};" << endl;
+			vector2 p = trunk(vector2(aaPos[vrt].x(), aaPos[vrt].y()), sml);
+			out << "\\node[vertex" << si << "] at (" << p.x() << "cm, " << p.y() << "cm) {};" << endl;
 		}
 	}
 	out << "\\end{scope}" << endl;
