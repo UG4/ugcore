@@ -73,7 +73,7 @@ namespace ug{
  */
 template <typename TAlgebra>
 class IPreconditioner :
-	public virtual ILinearIterator<typename TAlgebra::vector_type>,
+	public ILinearIterator<typename TAlgebra::vector_type>,
 	public DebugWritingObject<TAlgebra>
 {
 	public:
