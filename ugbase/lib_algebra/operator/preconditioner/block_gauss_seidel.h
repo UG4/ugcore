@@ -982,7 +982,7 @@ class SparseBlockGaussSeidel2 : public IBlockJacobiPreconditioner<TAlgebra>
 			{
 				int i=components[c][0];
 				indices[i].insert(indices[i].begin(), components[c].begin(), components[c].end());
-//				PRINT_VECTOR(indices[i], i);
+				PRINT_VECTOR(indices[i], i);
 
 				Aloc[i] = make_sp(new CPUAlgebra::matrix_type);
 				GetSliceSparse(A, indices[i], *Aloc[i]);

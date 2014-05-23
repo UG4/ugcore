@@ -59,6 +59,7 @@ namespace ug{
  * </ul>
  */
 
+
 ///	Jacobi Preconditioner
 template <typename TAlgebra>
 class Jacobi : public IPreconditioner<TAlgebra>
@@ -93,18 +94,23 @@ class Jacobi : public IPreconditioner<TAlgebra>
 	///	constructor setting the damping parameter
 		Jacobi(number damp) {this->set_damp(damp);};
 
-	///	returns if parallel solving is supported
-		virtual bool supports_parallel() const {return true;}
+	/// clone constructor
+		Jacobi( Jacobi<TAlgebra> *parent )
+			: base_type(parent)
+		{
+			set_block(parent->m_bBlock);
+		}
 
 	///	Clone
 		virtual SmartPtr<ILinearIterator<vector_type> > clone()
 		{
-			SmartPtr<Jacobi<algebra_type> > newInst(new Jacobi<algebra_type>());
-			newInst->set_debug(debug_writer());
-			newInst->set_damp(damping());
-			newInst->set_block(m_bBlock);
-			return newInst;
+			return make_sp(new Jacobi<algebra_type>(this));
 		}
+
+
+	///	returns if parallel solving is supported
+		virtual bool supports_parallel() const {return true;}
+
 
 	///	Destructor
 		virtual ~Jacobi()

@@ -46,17 +46,18 @@ class GaussSeidelBase : public IPreconditioner<TAlgebra>
 	//	Constructor
 		GaussSeidelBase() { m_relax = 1.0; };
 
+	/// clone constructor
+		GaussSeidelBase( GaussSeidelBase<TAlgebra> *parent )
+			: base_type(parent)
+		{
+			set_sor_relax(parent->m_relax);
+		}
+
 	//	set relaxation parameter to define a SOR-method
 		void set_sor_relax(number relaxFactor){ m_relax = relaxFactor;}
 
 		virtual const char* name() const = 0;
 	protected:
-		void copy_config(GaussSeidelBase &newInst)
-		{
-			newInst.set_debug(base_type::debug_writer());
-			newInst.set_damp(base_type::damping());
-			newInst.set_sor_relax(m_relax);
-		}
 
 		virtual bool supports_parallel() const {return true;}
 
@@ -153,18 +154,23 @@ class GaussSeidel : public GaussSeidelBase<TAlgebra>
 	typedef typename TAlgebra::matrix_type matrix_type;
 	typedef GaussSeidelBase<TAlgebra> base_type;
 
-	protected:
+public:
 	//	Name of preconditioner
 		virtual const char* name() const {return "Gauss-Seidel";}
 
-	// 	Clone
+	/// constructor
+		GaussSeidel() : base_type() {}
+
+	/// clone constructor
+		GaussSeidel( GaussSeidel<TAlgebra> *parent )
+			: base_type(parent)
+		{	}
+
+	///	Clone
 		virtual SmartPtr<ILinearIterator<vector_type> > clone()
 		{
-			SmartPtr<GaussSeidel<algebra_type> > newInst(new GaussSeidel<algebra_type>());
-			base_type::copy_config(*newInst);
-			return newInst;
+			return make_sp(new GaussSeidel<algebra_type>(this));
 		}
-
 
 	//	Stepping routine
 		virtual void step(const matrix_type &A, vector_type &c, const vector_type &d, const number relax)
@@ -193,16 +199,22 @@ class BackwardGaussSeidel : public GaussSeidelBase<TAlgebra>
 	typedef typename TAlgebra::matrix_type matrix_type;
 	typedef GaussSeidelBase<TAlgebra> base_type;
 
-	protected:
+public:
 	//	Name of preconditioner
 		virtual const char* name() const {return "Backward Gauss-Seidel";}
 
-	// 	Clone
+	/// constructor
+		BackwardGaussSeidel() : base_type() {}
+
+	/// clone constructor
+		BackwardGaussSeidel( BackwardGaussSeidel<TAlgebra> *parent )
+			: base_type(parent)
+		{	}
+
+	///	Clone
 		virtual SmartPtr<ILinearIterator<vector_type> > clone()
 		{
-			SmartPtr<BackwardGaussSeidel<algebra_type> > newInst(new BackwardGaussSeidel<algebra_type>());
-			base_type::copy_config(*newInst);
-			return newInst;
+			return make_sp(new BackwardGaussSeidel<algebra_type>(this));
 		}
 
 	//	Stepping routine
@@ -221,16 +233,22 @@ class SymmetricGaussSeidel : public GaussSeidelBase<TAlgebra>
 	typedef typename TAlgebra::matrix_type matrix_type;
 	typedef GaussSeidelBase<TAlgebra> base_type;
 
-	protected:
+public:
 	//	Name of preconditioner
 		virtual const char* name() const {return "Symmetric Gauss-Seidel";}
 
-	// 	Clone
+	/// constructor
+		SymmetricGaussSeidel() : base_type() {}
+
+	/// clone constructor
+		SymmetricGaussSeidel( SymmetricGaussSeidel<TAlgebra> *parent )
+			: base_type(parent)
+		{	}
+
+	///	Clone
 		virtual SmartPtr<ILinearIterator<vector_type> > clone()
 		{
-			SmartPtr<SymmetricGaussSeidel<algebra_type> > newInst(new SymmetricGaussSeidel<algebra_type>());
-			base_type::copy_config(*newInst);
-			return newInst;
+			return make_sp(new SymmetricGaussSeidel<algebra_type>(this));
 		}
 
 	//	Stepping routine

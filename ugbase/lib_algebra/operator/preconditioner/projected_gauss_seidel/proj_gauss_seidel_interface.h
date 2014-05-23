@@ -73,6 +73,15 @@ class IProjGaussSeidel:
 			m_bObsCons = false;
 		};
 
+
+	/// clone constructor
+		IProjGaussSeidel( IProjGaussSeidel<TDomain, TAlgebra> *parent )
+			: base_type(parent)
+		{
+			m_spvObsConstraint = parent->m_spvObsConstraint;
+			m_bObsCons = parent->m_bObsCons;
+		}
+
 	///	adds the obstacle constraint function c(u)
 		void add_obstacle_constraint(SmartPtr<IObstacleConstraint<TDomain,TAlgebra> > spObsCons)
 		{
@@ -85,14 +94,6 @@ class IProjGaussSeidel:
 
 	///	Destructor
 		~IProjGaussSeidel(){};
-
-	protected:
-		void copy_config(IProjGaussSeidel &newInst)
-		{
-			newInst.m_spvObsConstraint = m_spvObsConstraint;
-			newInst.m_bObsCons = m_bObsCons;
-			base_type::copy_config(newInst);
-		}
 
 	///	name
 		virtual const char* name() const = 0;

@@ -69,13 +69,17 @@ class ProjGaussSeidel:
 	///	name
 		virtual const char* name() const {return "Projected GaussSeidel";}
 
+	public:
+		ProjGaussSeidel() : base_type() {}
+	/// clone constructor
+		ProjGaussSeidel( ProjGaussSeidel<TDomain, TAlgebra> *parent )
+			: base_type(parent)
+		{	}
+
 	///	Clone
-		SmartPtr<ILinearIterator<vector_type> > clone()
+		virtual SmartPtr<ILinearIterator<vector_type> > clone()
 		{
-			SmartPtr<ProjGaussSeidel<TDomain,TAlgebra> > newInst(
-					new ProjGaussSeidel<TDomain,TAlgebra>());
-			base_type::copy_config(*newInst);
-			return newInst;
+			return make_sp(new ProjGaussSeidel<TDomain, algebra_type>(this));
 		}
 
 	///	computes a new correction c = B*d and projects on the underlying constraint
@@ -103,14 +107,19 @@ class ProjBackwardGaussSeidel:
 	///	name
 		virtual const char* name() const {return "Projected Backward GaussSeidel";}
 
+	public:
+		ProjBackwardGaussSeidel() : base_type() {}
+	/// clone constructor
+		ProjBackwardGaussSeidel( ProjBackwardGaussSeidel<TDomain, TAlgebra> *parent )
+			: base_type(parent)
+		{	}
+
 	///	Clone
-		SmartPtr<ILinearIterator<vector_type> > clone()
+		virtual SmartPtr<ILinearIterator<vector_type> > clone()
 		{
-			SmartPtr<ProjBackwardGaussSeidel<TDomain,TAlgebra> > newInst(
-					new ProjBackwardGaussSeidel<TDomain,TAlgebra>());
-			base_type::copy_config(*newInst);
-			return newInst;
+			return make_sp(new ProjBackwardGaussSeidel<TDomain, algebra_type>(this));
 		}
+
 
 	///	computes a new correction c = B*d and projects on the underlying constraint
 		virtual void step(const matrix_type& mat, vector_type& c, const vector_type& d, const number relax);
@@ -138,13 +147,18 @@ class ProjSymmetricGaussSeidel:
 	///	name
 		virtual const char* name() const {return "Projected Symmetric GaussSeidel";}
 
+	public:
+		ProjSymmetricGaussSeidel() : base_type() {}
+
+	/// clone constructor
+		ProjSymmetricGaussSeidel( ProjSymmetricGaussSeidel<TDomain, TAlgebra> *parent )
+			: base_type(parent)
+		{	}
+
 	///	Clone
-		SmartPtr<ILinearIterator<vector_type> > clone()
+		virtual SmartPtr<ILinearIterator<vector_type> > clone()
 		{
-			SmartPtr<ProjSymmetricGaussSeidel<TDomain,TAlgebra> > newInst(
-					new ProjSymmetricGaussSeidel<TDomain,TAlgebra>());
-			base_type::copy_config(*newInst);
-			return newInst;
+			return make_sp(new ProjSymmetricGaussSeidel<TDomain, algebra_type>(this));
 		}
 
 	///	computes a new correction c = B*d and projects on the underlying constraint

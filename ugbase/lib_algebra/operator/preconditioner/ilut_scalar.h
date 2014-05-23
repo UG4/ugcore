@@ -41,24 +41,26 @@ class ILUTScalarPreconditioner : public IPreconditioner<TAlgebra>
 
 	private:
 		typedef typename matrix_type::value_type block_type;
-		using IPreconditioner<TAlgebra>::debug_writer;
-		using IPreconditioner<TAlgebra>::set_debug;
+		typedef IPreconditioner<TAlgebra> base_type;
 
 	public:
 	//	Constructor
 		ILUTScalarPreconditioner(double eps=1e-6) :
-			m_eps(eps), m_info(false), m_sort(true)
+			m_eps(eps), m_info(false), m_bSort(true)
 		{};
 
-	// 	Clone
-
-		SmartPtr<ILinearIterator<vector_type> > clone()
+	/// clone constructor
+		ILUTScalarPreconditioner( ILUTScalarPreconditioner<TAlgebra> *parent )
+			: base_type(parent)
 		{
-			SmartPtr<ILUTScalarPreconditioner<algebra_type> > newInst(new ILUTScalarPreconditioner<algebra_type>(m_eps));
-			newInst->set_debug(debug_writer());
-			newInst->set_damp(this->damping());
-			newInst->set_info(m_info);
-			return newInst;
+			set_info(parent->m_info);
+			set_sort(parent->m_bSort);
+		}
+
+	///	Clone
+		virtual SmartPtr<ILinearIterator<vector_type> > clone()
+		{
+			return make_sp(new ILUTScalarPreconditioner<algebra_type>(this));
 		}
 
 	// 	Destructor
@@ -83,7 +85,7 @@ class ILUTScalarPreconditioner : public IPreconditioner<TAlgebra>
 		
 		void set_sort(bool b)
 		{
-			m_sort = b;
+			m_bSort = b;
 		}
 
 	public:
@@ -107,7 +109,7 @@ class ILUTScalarPreconditioner : public IPreconditioner<TAlgebra>
 
 			ilut = make_sp(new ILUTPreconditioner<CPUAlgebra>(m_eps));
 			ilut->set_info(m_info);
-			ilut->set_sort(m_sort);
+			ilut->set_sort(m_bSort);
 
 			mo = make_sp(new MatrixOperator<CPUAlgebra::matrix_type, CPUAlgebra::vector_type>);
 			CPUAlgebra::matrix_type &mat = mo->get_matrix();
@@ -228,7 +230,7 @@ class ILUTScalarPreconditioner : public IPreconditioner<TAlgebra>
 	public:
 		virtual std::string config_string() const
 		{
-			std::stringstream ss ; ss << "ILUTScalar(threshold = " << m_eps << ", sort = " << (m_sort?"true":"false") << ")";
+			std::stringstream ss ; ss << "ILUTScalar(threshold = " << m_eps << ", sort = " << (m_bSort?"true":"false") << ")";
 			if(m_eps == 0.0) ss << " = Sparse LU";
 			return ss.str();
 		}
@@ -243,7 +245,7 @@ protected:
 	LinearSolver<CPUAlgebra::vector_type> linearSolver;
 	CPUAlgebra::vector_type m_c, m_d;
 	double m_eps;
-	bool m_info, m_sort;
+	bool m_info, m_bSort;
 	size_t m_size;
 };
 

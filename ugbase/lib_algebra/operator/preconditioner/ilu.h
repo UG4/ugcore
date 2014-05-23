@@ -307,14 +307,16 @@ class ILU : public IPreconditioner<TAlgebra>
 	//	Constructor
 		ILU(double beta=0.0) : m_beta(beta), m_bSort(false) {};
 
+	/// clone constructor
+		ILU( ILU<TAlgebra> *parent )
+			: base_type(parent),
+			  m_beta(parent->m_beta), m_bSort(parent->m_bSort)
+		{	}
+
 	///	Clone
-		SmartPtr<ILinearIterator<vector_type> > clone()
+		virtual SmartPtr<ILinearIterator<vector_type> > clone()
 		{
-			SmartPtr<ILU<algebra_type> > newInst(new ILU<algebra_type>(m_beta));
-			newInst->set_debug(debug_writer());
-			newInst->set_damp(this->damping());
-			newInst->set_sort(m_bSort);
-			return newInst;
+			return make_sp(new ILU<algebra_type>(this));
 		}
 
 	///	Destructor
