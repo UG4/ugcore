@@ -107,6 +107,13 @@ class IPreconditioner :
 			m_spDefectOperator(NULL), m_spApproxOperator(NULL), m_bInit(false), m_bOtherApproxOperator(false)
 		{};
 
+	/// clone constructor
+		IPreconditioner( IPreconditioner<TAlgebra> *parent ) :
+			ILinearIterator<vector_type>(parent),
+			DebugWritingObject<TAlgebra>(parent),
+			m_spDefectOperator(NULL), m_spApproxOperator(NULL), m_bInit(false), m_bOtherApproxOperator(false)
+		{
+		}
 	protected:
 	///	returns the name of iterator
 	/**
