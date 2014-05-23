@@ -156,6 +156,12 @@ class ILinearIterator
 	///	constructor
 		ILinearIterator() {set_damp(1.0);};
 
+	///	clone constructor
+		ILinearIterator(ILinearIterator<X, Y> *parent)
+		{
+			set_damp(parent->m_spDamping);
+		};
+
 		virtual std::string config_string() const
 		{
 			std::stringstream ss; ss << name() << "( damping = " << m_spDamping->config_string() << ")"; return ss.str();
