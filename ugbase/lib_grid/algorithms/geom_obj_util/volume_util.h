@@ -72,6 +72,28 @@ PointIsInsideTetrahedron(const vector3& v, Tetrahedron* tet,
 
 
 ////////////////////////////////////////////////////////////////////////
+/// Returns the number of intersections and the intersection points in intsOut
+/**
+ * This method evaluates the intersection points of a tetrahedron with a
+ * plane. There are 3 or 4 points, the number of the points is returned.
+ * If there are 4 intersection points, there order in intsOut corresponds to
+ * either the clockwise or counterclockwise ordering of the corners of the
+ * quadrilateral.
+ *
+ * Note that the ordering of the corners of the tetrahedron is important and
+ * must correspond to the standard ordering!
+ *
+ * Proper return values: 0, 3 or 4.
+ */
+size_t IntersectPlaneWithTetrahedron
+(
+	vector3 intsOut[4], ///< intersection points
+	const vector3& planePoint, ///< a point on the plane
+	const vector3& planeNormal, ///< a normal to the plane
+	const vector3 t[4] ///< coordinates of the corners of the tetrahedron (order is important!)
+);
+
+////////////////////////////////////////////////////////////////////////
 ///	Checks whether a given point lies in the given volume element
 /** \note	This method assumes that the given volume element is convex and
  * 			has planar sides.

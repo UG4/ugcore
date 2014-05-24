@@ -5,6 +5,7 @@
 #include "volume_util.h"
 #include "lib_grid/lg_base.h"
 #include "edge_util.h"
+#include "lib_grid/grid_objects/tetrahedron_rules.h"
 
 using namespace std;
 
@@ -280,6 +281,49 @@ number CalculateTetrahedronAspectRatio(Grid& grid, Tetrahedron* tet,
 	return AspectRatio;
 }
 
+////////////////////////////////////////////////////////////////////////
+// IntersectPlaneWithTetrahedron
+size_t IntersectPlaneWithTetrahedron
+(
+	vector3 intsOut[4],
+	const vector3& planePoint,
+	const vector3& planeNormal,
+	const vector3 t[4]
+)
+{
+    using namespace tet_rules;
+    size_t numIntersections = 0;
+    int intersectingEdges[4];
+    for(size_t ie = 0; ie < (size_t) NUM_EDGES; ++ie)
+    {
+        vector3 v0 = t[EDGE_VRT_INDS[ie][0]];
+        vector3 v1 = t[EDGE_VRT_INDS[ie][1]];
+        vector3 dir;
+        VecSubtract(dir, v1, v0);
+
+        vector3 p;
+        number s;
+        if(RayPlaneIntersection(p, s, v0, dir, planePoint, planeNormal))
+        {
+            if(s > 0 && s < 1)
+            {
+                intsOut[numIntersections] = p;
+                intersectingEdges[numIntersections] = ie;
+                ++numIntersections;
+            }
+        }
+    }
+    
+    if(numIntersections == 4)
+    {
+        if(intersectingEdges[1] == OPPOSED_EDGE[intersectingEdges[0]])
+            swap(intsOut[1], intsOut[2]);
+        else if(intersectingEdges[2] == OPPOSED_EDGE[intersectingEdges[1]])
+            swap(intsOut[0], intsOut[1]);
+    }
+
+    return numIntersections;
+}
 
 void InsertCenterVertex(Grid& g, Volume* vol, Vertex* vrt, bool eraseOldVol)
 {
