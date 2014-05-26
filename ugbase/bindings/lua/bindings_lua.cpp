@@ -249,6 +249,23 @@ string GetNilWarning(lua_State* L, int offsetToFirstParam)
 	else return "";
 }
 
+
+/**
+ * users sometimes use the . operator (like in myObject.the_method(parameter) ), which sometimes print very weird error messages.
+ * this function tries to catch some of those errors.
+ * NOTE: this function can NOT catch errors like approxSpace.print_statistic() ( note the wrong . )
+ * @param name the name of the function. will be used to search "."+name in the code.
+ * @return error string or ""
+ */
+std::string GetColonWarning(std::string name)
+{
+	std::string line = GetLuaLine(GetDefaultLuaState());
+	if(line.find(std::string(".") + name) != std::string::npos)
+		return std::string(errSymb) + "WARNING: You seem to have used the point operator. Remember that for calling method b of an object A, you must use A:b(c), NOT A.b(c)\n";
+	else
+		return "";
+}
+
 /**
  *
  * \returns	String describing the reason why LuaStackToParams failed.
@@ -632,6 +649,7 @@ static int LuaProxyFunction(lua_State* L)
 		UG_LOG(errSymb<<"ERROR occured when trying to call '"
 			   << funcGrp->name() << "(" << GetLuaParametersString(L, 0) << "):'\n");
 		UG_LOG(GetNilWarning(L, 0));
+
 		UG_LOG(errSymb<<"No matching overload found! Candidates are:\n");
 		for(size_t i = 0; i < funcGrp->num_overloads(); ++i)
 		{
@@ -1030,6 +1048,7 @@ static int LuaProxyMethod(lua_State* L)
 		   GetLuaParametersString(L, 1) << ")':\n");
 
 	UG_LOG(GetNilWarning(L, 1));
+	UG_LOG(GetColonWarning(methodGrp->name()));
 	UG_LOG(errSymb<<"No matching overload found! Candidates in class "
 			<< classname << " are:\n");
 
