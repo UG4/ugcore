@@ -307,6 +307,9 @@ size_t IntersectPlaneWithTetrahedron
         {
             if(s > 0 && s < 1)
             {
+            	if (numIntersections >= 4) // to avoid numerical artefacts
+            		UG_THROW ("IntersectPlaneWithTetrahedron:"
+            			" Illegal number of intersections of a plane with a tetrahedron.");
                 intsOut[numIntersections] = p;
                 intersectingEdges[numIntersections] = ie;
                 ++numIntersections;
