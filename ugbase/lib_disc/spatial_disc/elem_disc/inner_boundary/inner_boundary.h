@@ -30,6 +30,7 @@
 #include "lib_disc/spatial_disc/user_data/data_export.h"
 #include "lib_disc/spatial_disc/user_data/data_import.h"
 #include "lib_disc/spatial_disc/disc_util/fv1_geom.h"
+#include "lib_disc/spatial_disc/disc_util/hfv1_geom.h"
 
 
 
@@ -84,7 +85,7 @@ class FV1InnerBoundaryElemDisc
 	
     /// Constructor
         FV1InnerBoundaryElemDisc(const char* functions, const char* subsets)
-        	: IElemDisc<TDomain>(functions, subsets)
+        	: IElemDisc<TDomain>(functions, subsets), m_bNonRegularGrid(false)
         {
         	register_all_fv1_funcs();
         }
@@ -94,19 +95,10 @@ class FV1InnerBoundaryElemDisc
 	
 	public:	// inherited from IElemDisc
 	///	type of trial space for each function used
-		virtual void prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid)
-		{
-			if(bNonRegularGrid)
-				UG_THROW("FV1InnerBoundary: only regular grid implemented.");
-
-		//	check that Lagrange 1st order
-			for(std::size_t i = 0; i < vLfeID.size(); ++i)
-				if(vLfeID[i].type() != LFEID::LAGRANGE || vLfeID[i].order() != 1)
-					UG_THROW("FV1InnerBoundary: 1st order lagrange expected.");
-		}
+		virtual void prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid);
 
 	///	returns if hanging nodes are used
-		virtual bool use_hanging() const {return false;}
+		virtual bool use_hanging() const;
 
 	private:
 	
@@ -188,10 +180,16 @@ class FV1InnerBoundaryElemDisc
 
 		struct RegisterFV1
 		{
+				// friend class this_type;
 				RegisterFV1(this_type* pThis) : m_pThis(pThis){}
 				this_type* m_pThis;
 				template< typename TElem > void operator()(TElem&)
-				{m_pThis->register_fv1_func<TElem, FV1ManifoldBoundary<TElem, dim> >();}
+				{
+					if (m_pThis->m_bNonRegularGrid)
+						m_pThis->register_fv1_func<TElem, HFV1ManifoldGeometry<TElem, dim> >();
+					else
+						m_pThis->register_fv1_func<TElem, FV1ManifoldGeometry<TElem, dim> >();
+				}
 		};
 
 		template <typename TElem, typename TFVGeom>
@@ -215,6 +213,9 @@ class FV1InnerBoundaryElemDisc
 				std::size_t nSh;
 				std::vector<std::vector<number> > sideVals;
 		} m_shapeValues;
+
+	private:
+		bool m_bNonRegularGrid;
 };
 
 }

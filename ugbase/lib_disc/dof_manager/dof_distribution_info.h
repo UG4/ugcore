@@ -185,7 +185,7 @@ class DoFDistributionInfoProvider{
 		FunctionGroup fct_grp_by_name(const char* names) const;
 
 
-		///	retruns if a function is defined on a subset
+		///	returns if a function is defined on a subset
 		bool is_def_in_subset(size_t fct, int si) const {return m_spDDI->is_def_in_subset(fct,si);}
 
 		/// returns true if the discrete function nr_fct is defined everywhere

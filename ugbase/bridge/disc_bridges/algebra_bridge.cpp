@@ -144,12 +144,16 @@ static void Algebra(Registry& reg, string parentGroup)
 		typedef MultiStepTimeDiscretization<TAlgebra> T;
 		string name = string("MultiStepTimeDiscretization").append(suffix);
 		reg.add_class_<T,TBase>(name, grp)
-			.add_method("mark_error", static_cast<void (T::*)(const vector_type&, IRefiner&, number,
-			   number, number, int)>(&T::mark_error), "", "",
-			   "marks elements for refining according to error estimators of the elemDiscs")
-			.add_method("mark_error", static_cast<void (T::*)(const vector_type&, IRefiner&, number,
-			   number, number, int, vector_type&)>(&T::mark_error), "", "",
-			   "marks elements for refining according to error estimators of the elemDiscs");
+			.add_method("calc_error", static_cast<void (T::*)(const vector_type&)>(&T::calc_error), "", "",
+				"calculate error indicators for elements from error estimators of the elemDiscs")
+			.add_method("calc_error", static_cast<void (T::*)(const vector_type&, vector_type&)>(&T::calc_error), "", "",
+				"calculate error indicators for elements from error estimators of the elemDiscs")
+			.add_method("mark_for_refinement", static_cast<void (T::*)(IRefiner&, number, number, int)>(&T::mark_for_refinement), "",
+				"mark elements for refinement according to calculated error indicators")
+			.add_method("mark_for_coarsening", static_cast<void (T::*)(IRefiner&, number, number, int)>(&T::mark_for_coarsening), "",
+				"mark elements for coarsening according to calculated error indicators")
+			.add_method("invalidate_error", &T::invalidate_error, "", "Marks error indicators as invalid, "
+				"which will prohibit refining and coarsening before a new call to calc_error.");
 		reg.add_class_to_group(name, "MultiStepTimeDiscretization", tag);
 	}
 
@@ -401,7 +405,9 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("set_level", (void (T::*)(int)) &T::set_level,
 			            "", "grid_level", "sets grid level where defect vectors come from")
 			.add_method("set_time_measurement", &T::set_time_measurement,
-			            "", "", "whether to perform a time measurement or not")
+						"", "", "whether to perform a time measurement or not")
+			.add_method("set_adaptive", &T::set_adaptive,
+						"", "", "whether adaptive meshing is used or not")
 			.add_method("set_maximum_steps", &T::set_maximum_steps, 
 			            "", "maximum steps|default|min=0;value=100")
 			.add_method("set_component_check", (void (T::*)(const std::string&,const std::vector<number>&,const std::vector<number>&)) &T::set_component_check,

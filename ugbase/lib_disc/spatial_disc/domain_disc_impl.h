@@ -762,14 +762,10 @@ adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd)
 ///////////////////////////////////////////////////////////////////////////////
 template <typename TDomain, typename TAlgebra>
 void DomainDiscretization<TDomain, TAlgebra>::
-mark_error
+calc_error
 (
 	const vector_type& u,
 	ConstSmartPtr<DoFDistribution> dd,
-	IRefiner& refiner,
-	number TOL,
-    number refineFrac, number coarseFrac,
-	int maxLevel,
 	vector_type* u_vtk
 )
 {
@@ -777,9 +773,6 @@ mark_error
 
 //	get multigrid
 	SmartPtr<MultiGrid> pMG = ((DoFDistribution *) dd.get())->multi_grid();
-
-//	attachment for the element error indicators
-	Attachment<number> aError;
 
 //	update the elem discs
 	update_disc_items();
@@ -810,7 +803,7 @@ mark_error
 		for(size_t i = 0; i < vErrEstData.size(); ++i)
 			vErrEstData[i]->alloc_err_est_data(dd->surface_view(), dd->grid_level());
 	}
-	UG_CATCH_THROW("DomainDiscretization::mark_error: Cannot prepare the error estimator");
+	UG_CATCH_THROW("DomainDiscretization::calc_error: Cannot prepare the error estimator");
 
 //	loop subsets to assemble the estimators
 	for(size_t i = 0; i < unionSubsets.size(); ++i)
@@ -856,11 +849,11 @@ mark_error
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, u);
 			break;
 		default:
-			UG_THROW("DomainDiscretization::mark_error:"
+			UG_THROW("DomainDiscretization::calc_error:"
 							" Dimension "<<dim<<" (subset="<<si<<") not supported.");
 		}
 		}
-		UG_CATCH_THROW("DomainDiscretization::mark_error:"
+		UG_CATCH_THROW("DomainDiscretization::calc_error:"
 						" Assembling of elements of Dimension " << dim << " in "
 						" subset "<<si<< " failed.");
 	}
@@ -869,17 +862,18 @@ mark_error
 	try
 	{
 		for (std::size_t i = 0; i < vErrEstData.size(); ++i)
-			vErrEstData[i]->summarize_err_est_data();
+			vErrEstData[i]->summarize_err_est_data(m_spApproxSpace->domain());
 	}
-	UG_CATCH_THROW("DomainDiscretization::mark_error: Cannot summarize the error estimator");
+	UG_CATCH_THROW("DomainDiscretization::calc_error: Cannot summarize the error estimator");
 
 // perform integrations for error estimators and mark elements
 	typedef typename domain_traits<dim>::element_type elem_type;
 	typedef typename SurfaceView::traits<elem_type>::const_iterator elem_iter_type;
-	typedef MultiGrid::AttachmentAccessor<elem_type, Attachment<number> > aa_type;
 
-	pMG->template attach_to<elem_type>(aError);
-	aa_type aaError(*pMG, aError);
+	// default value negative in order to distinguish between newly added elements (e.g. after refinement)
+	// and elements which an error indicator is known for
+	pMG->template attach_to_dv<elem_type>(m_aError, -1.0);
+	m_aaError = aa_type(*pMG, m_aError);
 
 	// loop surface elements
 	ConstSmartPtr<SurfaceView> sv = dd->surface_view();
@@ -888,7 +882,7 @@ mark_error
 	for (elem_iter_type elem = sv->template begin<elem_type> (gl, SurfaceView::ALL); elem != elem_iter_end; ++elem)
 	{
 		// clear attachment (to be on the safe side)
-		aaError[*elem] = 0.0;
+		m_aaError[*elem] = 0.0;
 
 		// get corner coordinates
 		std::vector<MathVector<dim> > vCornerCoords = std::vector<MathVector<dim> >(0);
@@ -896,7 +890,7 @@ mark_error
 
 		// integrate for all estimators, then add up
 		for (std::size_t ee = 0; ee < vErrEstData.size(); ++ee)
-			aaError[*elem] += vErrEstData[ee]->get_elem_error_indicator(*elem, &vCornerCoords[0]);
+			m_aaError[*elem] += vErrEstData[ee]->get_elem_error_indicator(*elem, &vCornerCoords[0]);
 	}
 
 //	write error estimator values to vtk
@@ -930,22 +924,19 @@ mark_error
 			GetLocalVector(locU, *uVTK);
 
 			// assign error value
-			locU(0,0) = aaError[*elem];
+			locU(0,0) = m_aaError[*elem];
 
 			// add to grid function
 			AddLocalVector(*uVTK, locU);
 		}
 	}
 
-	MarkElements<elem_type>(aaError, refiner, dd, TOL, refineFrac, coarseFrac, maxLevel);
-	pMG->template detach_from<elem_type>(aError);
-
 //	postprocess the error estimators in the discretizations
 	try{
 		for(std::size_t i = 0; i < vErrEstData.size(); ++i)
 			vErrEstData[i]->release_err_est_data();
 	}
-	UG_CATCH_THROW("DomainDiscretization::mark_error: Cannot release the error estimator");
+	UG_CATCH_THROW("DomainDiscretization::calc_error: Cannot release the error estimator");
 }
 
 
@@ -1530,24 +1521,16 @@ adjust_solution(vector_type& u, number time, ConstSmartPtr<DoFDistribution> dd)
 ///////////////////////////////////////////////////////////////////////////////
 template <typename TDomain, typename TAlgebra>
 void DomainDiscretization<TDomain, TAlgebra>::
-mark_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+calc_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		   ConstSmartPtr<DoFDistribution> dd,
 		   std::vector<number> vScaleMass,
 		   std::vector<number> vScaleStiff,
-		   IRefiner& refiner,
-		   number TOL,
-		   number refineFrac,
-		   number coarseFrac,
-		   int maxLevel,
 		   vector_type* u_vtk)
 {
 	PROFILE_FUNC_GROUP("error_estimator");
 
 //	get multigrid
 	SmartPtr<MultiGrid> pMG = ((DoFDistribution *) dd.get())->multi_grid();
-
-//	attachment for the element error indicators
-	Attachment<number> aError;
 
 //	update the elem discs
 	update_disc_items();
@@ -1581,7 +1564,7 @@ mark_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		for (std::size_t i = 0; i < vErrEstData.size(); ++i)
 			vErrEstData[i]->alloc_err_est_data(dd->surface_view(), dd->grid_level());
 	}
-	UG_CATCH_THROW("DomainDiscretization::mark_error: Cannot prepare the error estimator");
+	UG_CATCH_THROW("DomainDiscretization::calc_error: Cannot prepare the error estimator");
 
 //	loop subsets to assemble the estimators
 	for (std::size_t i = 0; i < unionSubsets.size(); ++i)
@@ -1627,11 +1610,11 @@ mark_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 					(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
 				break;
 			default:
-				UG_THROW("DomainDiscretization::mark_error:"
+				UG_THROW("DomainDiscretization::calc_error:"
 								" Dimension "<<dim<<" (subset="<<si<<") not supported.");
 			}
 		}
-		UG_CATCH_THROW("DomainDiscretization::mark_error:"
+		UG_CATCH_THROW("DomainDiscretization::calc_error:"
 						" Assembling of elements of Dimension " << dim << " in "
 						" subset "<<si<< " failed.");
 	}
@@ -1640,17 +1623,19 @@ mark_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 	try
 	{
 		for (std::size_t i = 0; i < vErrEstData.size(); ++i)
-			vErrEstData[i]->summarize_err_est_data();
+			vErrEstData[i]->summarize_err_est_data(m_spApproxSpace->domain());
 	}
-	UG_CATCH_THROW("DomainDiscretization::mark_error: Cannot summarize the error estimator");
+	UG_CATCH_THROW("DomainDiscretization::calc_error: Cannot summarize the error estimator");
 
 	// perform integrations for error estimators and mark elements
 	typedef typename domain_traits<dim>::element_type elem_type;
 	typedef typename SurfaceView::traits<elem_type>::const_iterator elem_iter_type;
-	typedef MultiGrid::AttachmentAccessor<elem_type, Attachment<number> > aa_type;
 
-	pMG->template attach_to<elem_type>(aError);
-	aa_type aaError(*pMG, aError);
+	// default value negative in order to distinguish between newly added elements (e.g. after refinement)
+	// and elements which an error indicator is known for
+	pMG->template attach_to_dv<elem_type>(m_aError, -1.0);
+	m_pMG = pMG;
+	m_aaError = aa_type(*pMG, m_aError);
 
 	// loop surface elements
 	ConstSmartPtr<SurfaceView> sv = dd->surface_view();
@@ -1658,8 +1643,8 @@ mark_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 	elem_iter_type elem_iter_end = sv->template end<elem_type> (gl, SurfaceView::ALL);
 	for (elem_iter_type elem = sv->template begin<elem_type> (gl, SurfaceView::ALL); elem != elem_iter_end; ++elem)
 	{
-		// clear attachment (to be on the safe side)
-		aaError[*elem] = 0.0;
+		// clear attachment
+		m_aaError[*elem] = 0.0;
 
 		// get corner coordinates
 		std::vector<MathVector<dim> > vCornerCoords = std::vector<MathVector<dim> >(0);
@@ -1667,7 +1652,7 @@ mark_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 
 		// integrate for all estimators, then add up
 		for (std::size_t ee = 0; ee < vErrEstData.size(); ++ee)
-			aaError[*elem] += vErrEstData[ee]->get_elem_error_indicator(*elem, &vCornerCoords[0]);
+			m_aaError[*elem] += vErrEstData[ee]->get_elem_error_indicator(*elem, &vCornerCoords[0]);
 	}
 
 //	write error estimator values to vtk
@@ -1701,24 +1686,77 @@ mark_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 			GetLocalVector(locU, *uVTK);
 
 			// assign error value
-			locU(0,0) = aaError[*elem];
+			locU(0,0) = m_aaError[*elem];
 
 			// add to grid function
 			AddLocalVector(*uVTK, locU);
 		}
 	}
 
-//	mark elements for refinement / coarsening
-	MarkElements<elem_type>(aaError, refiner, dd, TOL, refineFrac, coarseFrac, maxLevel);
-	pMG->template detach_from<elem_type>(aError);
+	m_bErrorCalculated = true;
 
 //	postprocess the error estimators in the discretizations
 	try{
 		for(std::size_t i = 0; i < vErrEstData.size(); ++i)
 			vErrEstData[i]->release_err_est_data();
 	}
-	UG_CATCH_THROW("DomainDiscretization::mark_error: Cannot release the error estimator");
+	UG_CATCH_THROW("DomainDiscretization::calc_error: Cannot release the error estimator");
 }
+
+template <typename TDomain, typename TAlgebra>
+void DomainDiscretization<TDomain, TAlgebra>::
+mark_for_refinement
+(	IRefiner& refiner,
+	number TOL,
+	number refineFrac,
+	int maxLevel
+)
+{
+	// check that error indicators have been calculated
+	if (!m_bErrorCalculated)
+	{
+		UG_THROW("Error indicators have to be calculated first by a call to 'calc_error'.");
+	}
+
+	// mark elements for refinement
+	MarkElementsForRefinement<elem_type>(m_aaError, refiner,
+		this->dd(GridLevel(GridLevel::TOP, GridLevel::SURFACE)),
+		TOL, refineFrac, maxLevel);
+}
+
+template <typename TDomain, typename TAlgebra>
+void DomainDiscretization<TDomain, TAlgebra>::
+mark_for_coarsening
+(	IRefiner& refiner,
+	number TOL,
+	number coarseFrac,
+	int maxLevel
+)
+{
+	// check that error indicators have been calculated
+	if (!m_bErrorCalculated)
+	{
+		UG_THROW("Error indicators have to be calculated first by a call to 'calc_error'.");
+	}
+
+	// mark elements for coarsening
+	MarkElementsForCoarsening<elem_type>(m_aaError, refiner,
+		this->dd(GridLevel(GridLevel::TOP, GridLevel::SURFACE)),
+		TOL, coarseFrac, maxLevel);
+}
+
+template <typename TDomain, typename TAlgebra>
+void DomainDiscretization<TDomain, TAlgebra>::
+invalidate_error()
+{
+	// check that error indicators have been calculated
+	if (m_bErrorCalculated)
+	{
+		m_bErrorCalculated = false;
+		m_pMG->template detach_from<elem_type>(m_aError);
+	}
+}
+
 
 
 

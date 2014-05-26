@@ -205,55 +205,76 @@ class DomainDiscretization : public IDomainDiscretization<TAlgebra>
 		                                       const GridLevel& gl)
 		{assemble_stiffness_matrix(A, u, dd(gl));}
 
-	///////////////////////////
-	// Error estimator
-	///////////////////////////
+	///////////////////////////////////////////////////////////
+	// Error estimator										///
 
 	/// \copydoc IDomainDiscretization::mark_error()
 	// stationary
-		virtual void mark_error(const vector_type& u, ConstSmartPtr<DoFDistribution> dd,
-			IRefiner& refiner, number TOL, number refineFrac, number coarseFrac, int maxLevel,
-			vector_type* u_vtk = NULL);
-		virtual	void mark_error(const vector_type& u, const GridLevel& gl, IRefiner& refiner,
-			number TOL, number refineFrac, number coarseFrac, int maxLevel, vector_type* u_vtk = NULL)
-		{mark_error(u, dd(gl), refiner, TOL, refineFrac, coarseFrac, maxLevel);}
-		virtual	void mark_error(const GridFunction<TDomain,TAlgebra>& u,
-			IRefiner& refiner, number TOL, number refineFrac, number coarseFrac, int maxLevel)
-		{mark_error(u, u.dd(), refiner, TOL, refineFrac, coarseFrac, maxLevel, NULL);}
-		virtual	void mark_error(const GridFunction<TDomain,TAlgebra>& u,
-			IRefiner& refiner, number TOL, number refineFrac, number coarseFrac, int maxLevel,
-			vector_type* u_vtk)
-		{mark_error(u, u.dd(), refiner, TOL, refineFrac, coarseFrac, maxLevel, u_vtk);}
+		virtual void calc_error
+		(	const vector_type& u,
+			ConstSmartPtr<DoFDistribution> dd,
+			vector_type* u_vtk = NULL
+		);
+		virtual	void calc_error
+		(	const vector_type& u,
+			const GridLevel& gl,
+			vector_type* u_vtk = NULL
+		)
+		{calc_error(u, dd(gl));}
+		virtual	void calc_error(const GridFunction<TDomain,TAlgebra>& u)
+		{calc_error(u, u.dd(), NULL);}
+		virtual	void calc_error(const GridFunction<TDomain,TAlgebra>& u, vector_type* u_vtk)
+		{calc_error(u, u.dd(), u_vtk);}
 
 	// instationary
-		virtual void mark_error
+		virtual void calc_error
 		(	ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 			ConstSmartPtr<DoFDistribution> dd,
 			std::vector<number> vScaleMass,
 			std::vector<number> vScaleStiff,
-			IRefiner& refiner,
-			number TOL,
-			number refineFrac,
-			number coarseFrac,
-			int maxLevel,
 			vector_type* u_vtk
 		);
-		virtual void mark_error
+		virtual void calc_error
 		(	ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 			std::vector<number> vScaleMass,
 			std::vector<number> vScaleStiff,
 			const GridLevel& gl,
-			IRefiner& refiner,
-			number TOL,
-			number refineFrac,
-			number coarseFrac,
-			int maxLevel,
 			vector_type* u_vtk
 		)
 		{
-			mark_error((ConstSmartPtr<VectorTimeSeries<vector_type> >) vSol, dd(gl),
-						vScaleMass, vScaleStiff, refiner, TOL, refineFrac, coarseFrac, maxLevel, u_vtk);
+			calc_error((ConstSmartPtr<VectorTimeSeries<vector_type> >) vSol, dd(gl),
+					   vScaleMass, vScaleStiff, u_vtk);
 		}
+
+		virtual void mark_for_refinement
+		(	IRefiner& refiner,
+			number TOL,
+			number refineFrac,
+			int maxLevel
+		);
+
+		virtual void mark_for_coarsening
+		(	IRefiner& refiner,
+			number TOL,
+			number coarseFrac,
+			int maxLevel
+		);
+
+	/// marks error indicators as invalid; in order to revalidate them,
+	/// they will have to be newly calculated by a call to calc_error
+		virtual void invalidate_error();
+
+	protected:
+		typedef typename domain_traits<dim>::element_type elem_type;
+		typedef MultiGrid::AttachmentAccessor<elem_type, Attachment<number> > aa_type;
+		Attachment<number> m_aError;
+		aa_type m_aaError;
+		SmartPtr<MultiGrid> m_pMG;
+
+		bool m_bErrorCalculated;
+
+	// Error estimator										 //
+	///////////////////////////////////////////////////////////
 
 	public:
 	/// \{

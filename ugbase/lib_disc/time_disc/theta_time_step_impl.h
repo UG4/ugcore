@@ -228,7 +228,7 @@ assemble_rhs(vector_type& b, const vector_type& u, const GridLevel& gl)
 
 template<typename TAlgebra>
 void MultiStepTimeDiscretization<TAlgebra>::
-mark_error(const vector_type& u, IRefiner& refiner, number TOL, number refineFrac, number coarseFrac, int maxLevel, vector_type* u_vtk)
+calc_error(const vector_type& u, vector_type* u_vtk)
 {
 	PROFILE_BEGIN_GROUP(MultiStepTimeDiscretization_mark_error, "discretization MultiStepTimeDiscretization");
 //	perform checks
@@ -251,8 +251,7 @@ mark_error(const vector_type& u, IRefiner& refiner, number TOL, number refineFra
 	try
 	{
 		GridLevel gl = GridLevel();	// new TOP-SURFACE grid level
-		this->m_spDomDisc->mark_error(m_pPrevSol, m_vScaleMass, m_vScaleStiff, gl,
-									  refiner, TOL, refineFrac, coarseFrac, maxLevel, u_vtk);
+		this->m_spDomDisc->calc_error(m_pPrevSol, m_vScaleMass, m_vScaleStiff, gl, u_vtk);
 	}
 	UG_CATCH_THROW("ThetaTimeStep: Cannot assemble error estimators.");
 

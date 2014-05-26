@@ -1069,12 +1069,12 @@ update_boundary_faces(GridObject* pElem, const MathVector<worldDim>* vCornerCoor
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// FV1ManifoldBoundary
+// FV1ManifoldGeometry
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TElem, int TWorldDim>
-FV1ManifoldBoundary<TElem, TWorldDim>::
-FV1ManifoldBoundary() : m_pElem(NULL), m_rRefElem(Provider<ref_elem_type>::get()), m_ssi(-1)
+FV1ManifoldGeometry<TElem, TWorldDim>::
+FV1ManifoldGeometry() : m_pElem(NULL), m_rRefElem(Provider<ref_elem_type>::get()), m_ssi(-1)
 {
 	// set corners of element as local centers of nodes
 	for (size_t i = 0; i < m_rRefElem.num(0); ++i)
@@ -1176,7 +1176,7 @@ FV1ManifoldBoundary() : m_pElem(NULL), m_rRefElem(Provider<ref_elem_type>::get()
 
 /// update data for given element
 template <typename TElem, int TWorldDim>
-void FV1ManifoldBoundary<TElem, TWorldDim>::
+void FV1ManifoldGeometry<TElem, TWorldDim>::
 update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 	UG_ASSERT(dynamic_cast<TElem*>(elem) != NULL, "Wrong element type.");
@@ -1302,8 +1302,8 @@ template class DimFV1Geometry<3, 3>;
 
 //////////////////////
 // Manifold
-template class FV1ManifoldBoundary<RegularEdge, 2>;
-template class FV1ManifoldBoundary<Triangle, 3>;
-template class FV1ManifoldBoundary<Quadrilateral, 3>;
+template class FV1ManifoldGeometry<RegularEdge, 2>;
+template class FV1ManifoldGeometry<Triangle, 3>;
+template class FV1ManifoldGeometry<Quadrilateral, 3>;
 
 } // end namespace ug

@@ -82,7 +82,7 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 		const size_t from = m_rRefElem.id(1, i, 0, 0);
 		const size_t to = m_rRefElem.id(1, i, 0, 1);
 
-		// choose weather to insert two or one new edge
+		// choose whether to insert two or one new edge
 		switch(vEdges[i]->container_section())
 		{
 		case CSEDGE_CONSTRAINED_EDGE:
@@ -1102,6 +1102,539 @@ update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubs
 	
 }
 
+
+
+////////////////////////////////////////////////////////////////////////////////
+// HFV1ManifoldGeometry
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename TElem, int TWorldDim>
+HFV1ManifoldGeometry<TElem, TWorldDim>::
+HFV1ManifoldGeometry() : m_pElem(NULL), m_rRefElem(Provider<ref_elem_type>::get()), m_ssi(-1)
+{
+	// set corners of element as local centers of nodes
+	m_vBF.resize(m_numNaturalBF);
+	m_locMid[0].resize(m_numNaturalBF);
+	for (size_t i = 0; i < m_rRefElem.num(0); ++i)
+		m_locMid[0][i] = m_rRefElem.corner(i);
+
+	// compute local elem center
+	m_locMid[dim].resize(1);
+	m_gloMid[dim].resize(1);
+	m_locMid[dim][0] = 0.0;
+	for (size_t i = 0; i < m_locMid[0].size(); ++i)
+	{
+		m_locMid[dim][0] += m_locMid[0][i];
+	}
+	m_locMid[dim][0] *= 1.0/(m_locMid[0].size());
+}
+
+
+/// update data for given element
+template <typename TElem, int TWorldDim>
+void HFV1ManifoldGeometry<TElem, TWorldDim>::
+update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
+{
+	UG_ASSERT(dynamic_cast<TElem*>(elem) != NULL, "Wrong element type.");
+	TElem* pElem = static_cast<TElem*>(elem);
+
+	// 	if already update for this element, do nothing
+	if (m_pElem == pElem) return;
+	else m_pElem = pElem;
+
+	//	store subset index for geometry
+	Grid& grid = *(ish->grid());
+	if (dim == 1)
+	{
+		std::vector<Edge*> vEdge;
+		CollectEdges(vEdge, grid, pElem);
+		UG_ASSERT(vEdge.size(),"No edge contained in 1D manifold element!");
+		m_ssi = ish->get_subset_index(vEdge[0]);
+	}
+	if (dim == 2)
+	{
+		std::vector<Face*> vFace;
+		CollectFaces(vFace, grid, pElem);
+		UG_ASSERT(vFace.size(),"No face contained in 2D manifold element!");
+		m_ssi = ish->get_subset_index(vFace[0]);
+	}
+
+	// reset to natural nodes
+	m_gloMid[0].resize(m_numNaturalBF);
+	m_locMid[0].resize(m_numNaturalBF);
+
+	// remember global position of nodes
+	for (size_t i = 0; i < m_numNaturalBF; i++)
+		m_gloMid[0][i] = vCornerCoords[i];
+
+	// compute global center
+	m_gloMid[dim][0] = 0.0;
+	for (size_t i = 0; i < m_gloMid[0].size(); i++)
+		m_gloMid[dim][0] += m_gloMid[0][i];
+
+	m_gloMid[dim][0] *= 1./(m_gloMid[0].size());
+
+	// get natural edges
+	std::vector<Edge*> vEdges;
+	CollectEdgesSorted(vEdges, grid, pElem);
+
+	// compute Nodes
+	m_vBF.clear();
+	m_vNewEdgeInfo.clear();
+	m_vNatEdgeInfo.clear(); m_vNatEdgeInfo.resize(m_numNaturalBFS);
+	UG_ASSERT(vEdges.size() == m_numNaturalBFS, "Incorrect number of edges found, only " << vEdges.size() << "Edges");
+
+	bool bAllConstraining = true;
+	for (size_t i = 0; i < vEdges.size(); i++)
+	{
+		// natural ids of end of edge
+		const size_t from = m_rRefElem.id(1, i, 0, 0);
+		const size_t to = m_rRefElem.id(1, i, 0, 1);
+
+		// choose whether to insert two or one new edge
+		switch (vEdges[i]->container_section())
+		{
+		case CSEDGE_CONSTRAINED_EDGE:
+		case CSEDGE_REGULAR_EDGE:
+			// classic case (no hanging node on edge)
+			if (dim == 1)
+			{
+				// set loc & glo corner coords
+				const size_t numBF = m_vBF.size();
+				m_vBF.resize(numBF + 2);
+				MathVector<dim> locMidPt;
+				MathVector<worldDim> gloMidPt;
+				VecInterpolateLinear(locMidPt, m_locMid[0][from], m_locMid[0][to], 0.5);
+				VecInterpolateLinear(gloMidPt, m_gloMid[0][from], m_gloMid[0][to], 0.5);
+
+				m_vBF[numBF].m_vLocPos[0] = m_locMid[0][from];
+				m_vBF[numBF].m_vLocPos[1] = locMidPt;
+				m_vBF[numBF].m_vGloPos[0] = m_gloMid[0][from];
+				m_vBF[numBF].m_vGloPos[1] = gloMidPt;
+				m_vBF[numBF].nodeId = from;
+
+				m_vBF[numBF+1].m_vLocPos[0] = m_locMid[0][to];
+				m_vBF[numBF+1].m_vLocPos[1] = locMidPt;
+				m_vBF[numBF+1].m_vGloPos[0] = m_gloMid[0][to];
+				m_vBF[numBF+1].m_vGloPos[1] = gloMidPt;
+				m_vBF[numBF+1].nodeId = to;
+			}
+			if (dim == 2)
+			{
+				// remember this edge (and that it is not constraining)
+				const size_t numNewEdgeInfo = m_vNewEdgeInfo.size();
+				m_vNatEdgeInfo[i].numChildEdges = 1;
+				m_vNatEdgeInfo[i].childEdge[0] = numNewEdgeInfo;
+
+				m_vNewEdgeInfo.resize(numNewEdgeInfo + 1);
+				m_vNewEdgeInfo[numNewEdgeInfo].m_from = from;
+				m_vNewEdgeInfo[numNewEdgeInfo].m_to = to;
+
+				bAllConstraining = false;
+			}
+			break;
+
+		case CSEDGE_CONSTRAINING_EDGE:
+			{
+				// insert hanging node in list of nodes
+				const size_t newNodeId = m_gloMid[0].size();
+				m_gloMid[0].resize(newNodeId + 1);
+				m_locMid[0].resize(newNodeId + 1);
+				VecInterpolateLinear(	m_gloMid[0].back(),
+										m_gloMid[0][from],
+										m_gloMid[0][to],
+										0.5);
+				VecInterpolateLinear(	m_locMid[0].back(),
+										m_locMid[0][from],
+										m_locMid[0][to],
+										0.5);
+
+				if (dim == 1)
+				{
+					// insert two edges with nodeIds and set loc & glo corner coords
+					const size_t numBF = m_vBF.size();
+					m_vBF.resize(numBF + 4);
+
+					MathVector<dim> locMidPt;
+					MathVector<worldDim> gloMidPt;
+					VecInterpolateLinear(locMidPt, m_locMid[0][from], m_locMid[0][newNodeId], 0.5);
+					VecInterpolateLinear(gloMidPt, m_gloMid[0][from], m_gloMid[0][newNodeId], 0.5);
+
+					m_vBF[numBF].m_vLocPos[0] = m_locMid[0][from];
+					m_vBF[numBF].m_vLocPos[1] = locMidPt;
+					m_vBF[numBF].m_vGloPos[0] = m_gloMid[0][from];
+					m_vBF[numBF].m_vGloPos[1] = gloMidPt;
+					m_vBF[numBF].nodeId = from;
+
+					m_vBF[numBF+1].m_vLocPos[0] = m_locMid[0][newNodeId];
+					m_vBF[numBF+1].m_vLocPos[1] = locMidPt;
+					m_vBF[numBF+1].m_vGloPos[0] = m_gloMid[0][newNodeId];
+					m_vBF[numBF+1].m_vGloPos[1] = gloMidPt;
+					m_vBF[numBF+1].nodeId = newNodeId;
+
+					VecInterpolateLinear(locMidPt, m_locMid[0][to], m_locMid[0][newNodeId], 0.5);
+					VecInterpolateLinear(gloMidPt, m_gloMid[0][to], m_gloMid[0][newNodeId], 0.5);
+
+					m_vBF[numBF+2].m_vLocPos[0] = m_locMid[0][to];
+					m_vBF[numBF+2].m_vLocPos[1] = locMidPt;
+					m_vBF[numBF+2].m_vGloPos[0] = m_gloMid[0][to];
+					m_vBF[numBF+2].m_vGloPos[1] = gloMidPt;
+					m_vBF[numBF+2].nodeId = to;
+
+					m_vBF[numBF+3].m_vLocPos[0] = m_locMid[0][newNodeId];
+					m_vBF[numBF+3].m_vLocPos[1] = locMidPt;
+					m_vBF[numBF+3].m_vGloPos[0] = m_gloMid[0][newNodeId];
+					m_vBF[numBF+3].m_vGloPos[1] = gloMidPt;
+					m_vBF[numBF+3].nodeId = newNodeId;
+				}
+
+				if (dim == 2)
+				{
+					// mapping naturalEdges -> new edges
+					const size_t numNewEdgeInfo = m_vNewEdgeInfo.size();
+					m_vNatEdgeInfo[i].nodeId = newNodeId;
+					m_vNatEdgeInfo[i].numChildEdges = 2;
+					m_vNatEdgeInfo[i].childEdge[0] = numNewEdgeInfo;
+					m_vNatEdgeInfo[i].childEdge[1] = numNewEdgeInfo + 1;
+
+					m_vNewEdgeInfo.resize(numNewEdgeInfo + 2);
+
+					m_vNewEdgeInfo[numNewEdgeInfo].m_from = from;
+					m_vNewEdgeInfo[numNewEdgeInfo].m_to = newNodeId;
+
+					m_vNewEdgeInfo[numNewEdgeInfo+1].m_from = newNodeId;
+					m_vNewEdgeInfo[numNewEdgeInfo+1].m_to = to;
+				}
+			}
+			break;
+
+		default: UG_THROW("Cannot detect type of edge.");
+		}
+	}
+
+	// for 3d case hanging fv1 manifold geometry depends on whether or not it is induced by the
+	// hanging fv1 geometry of a refined element or not
+	if (dim == 2)
+	{
+		std::vector<Face*> vFaces;
+		CollectFacesSorted(vFaces, grid, pElem);
+
+		if (vFaces.size() != 1)
+			UG_THROW("Expected number of faces to be exactly 1, but number is " << vFaces.size() << ".");
+
+		Face* face = vFaces[0];
+
+		// compute Nodes
+		MathVector<dim> locSideMid;
+		MathVector<worldDim> gloSideMid;
+
+		///////////
+		// case QUADRILATERAL with all edges hanging and hanging node in middle
+		///////////
+		if (face->container_section() == CSFACE_CONSTRAINING_QUADRILATERAL)
+		{
+			// insert hanging node in list of nodes
+			const size_t newNodeId = m_gloMid[0].size();
+			m_gloMid[0].resize(newNodeId + 1);
+			m_locMid[0].resize(newNodeId + 1);
+
+			// compute position of new (hanging) node
+			compute_side_midpoints(m_locMid[0][newNodeId], m_gloMid[0][newNodeId]);
+
+			// loop constrained edges
+			for (size_t j = 0; j < m_rRefElem.num(2, 0, 1); ++j)
+			{
+				const size_t jplus1 = (j+1)%4;
+
+				// natural edges
+				const size_t natEdId1 = m_rRefElem.id(2, 0, 1, j);
+				const size_t natEdId2 = m_rRefElem.id(2, 0, 1, jplus1);
+
+				// corner between the two edges
+				const size_t cornerId = m_rRefElem.id(2, 0, 0, jplus1);
+
+				// nodes of hanging edges
+				const size_t hangEdNodeId1 = m_vNatEdgeInfo[natEdId1].node_id();
+				const size_t hangEdNodeId2 = m_vNatEdgeInfo[natEdId2].node_id();
+
+				// mid point of hanging side
+				compute_side_midpoints(	cornerId, newNodeId,
+										hangEdNodeId1, hangEdNodeId2,
+										locSideMid, gloSideMid);
+
+				// create corresponding boundary faces
+				const size_t numBF = m_vBF.size();
+				m_vBF.resize(numBF + 4);
+
+				MathVector<dim> locEdgeMid0, locEdgeMid1, locEdgeMid2, locEdgeMid3;
+				MathVector<worldDim> gloEdgeMid0, gloEdgeMid1, gloEdgeMid2, gloEdgeMid3;
+				VecInterpolateLinear(locEdgeMid0, m_locMid[0][cornerId], m_locMid[0][hangEdNodeId2], 0.5);
+				VecInterpolateLinear(gloEdgeMid0, m_gloMid[0][cornerId], m_gloMid[0][hangEdNodeId2], 0.5);
+				VecInterpolateLinear(locEdgeMid1, m_locMid[0][hangEdNodeId2], m_locMid[0][newNodeId], 0.5);
+				VecInterpolateLinear(gloEdgeMid1, m_gloMid[0][hangEdNodeId2], m_gloMid[0][newNodeId], 0.5);
+				VecInterpolateLinear(locEdgeMid2, m_locMid[0][newNodeId], m_locMid[0][hangEdNodeId1], 0.5);
+				VecInterpolateLinear(gloEdgeMid2, m_gloMid[0][newNodeId], m_gloMid[0][hangEdNodeId1], 0.5);
+				VecInterpolateLinear(locEdgeMid3, m_locMid[0][hangEdNodeId1], m_locMid[0][cornerId], 0.5);
+				VecInterpolateLinear(gloEdgeMid3, m_gloMid[0][hangEdNodeId1], m_gloMid[0][cornerId], 0.5);
+
+				m_vBF[numBF].m_vLocPos[0] = m_locMid[0][cornerId];
+				m_vBF[numBF].m_vLocPos[1] = locEdgeMid0;
+				m_vBF[numBF].m_vLocPos[2] = locSideMid;
+				m_vBF[numBF].m_vLocPos[3] = locEdgeMid3;
+				m_vBF[numBF].m_vGloPos[0] = m_gloMid[0][cornerId];
+				m_vBF[numBF].m_vGloPos[1] = gloEdgeMid0;
+				m_vBF[numBF].m_vGloPos[2] = gloSideMid;
+				m_vBF[numBF].m_vGloPos[3] = gloEdgeMid3;
+				m_vBF[numBF].nodeId = cornerId;
+
+				m_vBF[numBF+1].m_vLocPos[0] = m_locMid[0][hangEdNodeId2];
+				m_vBF[numBF+1].m_vLocPos[1] = locEdgeMid1;
+				m_vBF[numBF+1].m_vLocPos[2] = locSideMid;
+				m_vBF[numBF+1].m_vLocPos[3] = locEdgeMid0;
+				m_vBF[numBF+1].m_vGloPos[0] = m_gloMid[0][hangEdNodeId2];
+				m_vBF[numBF+1].m_vGloPos[1] = gloEdgeMid1;
+				m_vBF[numBF+1].m_vGloPos[2] = gloSideMid;
+				m_vBF[numBF+1].m_vGloPos[3] = gloEdgeMid0;
+				m_vBF[numBF+1].nodeId = hangEdNodeId2;
+
+				m_vBF[numBF+2].m_vLocPos[0] = m_locMid[0][newNodeId];
+				m_vBF[numBF+2].m_vLocPos[1] = locEdgeMid2;
+				m_vBF[numBF+2].m_vLocPos[2] = locSideMid;
+				m_vBF[numBF+2].m_vLocPos[3] = locEdgeMid1;
+				m_vBF[numBF+2].m_vGloPos[0] = m_gloMid[0][newNodeId];
+				m_vBF[numBF+2].m_vGloPos[1] = gloEdgeMid2;
+				m_vBF[numBF+2].m_vGloPos[2] = gloSideMid;
+				m_vBF[numBF+2].m_vGloPos[3] = gloEdgeMid1;
+				m_vBF[numBF+2].nodeId = newNodeId;
+
+				m_vBF[numBF+3].m_vLocPos[0] = m_locMid[0][hangEdNodeId1];
+				m_vBF[numBF+3].m_vLocPos[1] = locEdgeMid3;
+				m_vBF[numBF+3].m_vLocPos[2] = locSideMid;
+				m_vBF[numBF+3].m_vLocPos[3] = locEdgeMid2;
+				m_vBF[numBF+3].m_vGloPos[0] = m_gloMid[0][hangEdNodeId1];
+				m_vBF[numBF+3].m_vGloPos[1] = gloEdgeMid3;
+				m_vBF[numBF+3].m_vGloPos[2] = gloSideMid;
+				m_vBF[numBF+3].m_vGloPos[3] = gloEdgeMid2;
+				m_vBF[numBF+3].nodeId = hangEdNodeId1;
+			}
+		}
+		///////////
+		// case TRIANGLE with all edges hanging, that matches a refined element on other side
+		///////////
+		else if (bAllConstraining && face->container_section() == CSFACE_CONSTRAINING_TRIANGLE)
+		{
+			// compute position of side mid
+			compute_side_midpoints(locSideMid, gloSideMid);
+
+			// loop constrained edges
+			for (size_t j = 0; j < m_rRefElem.num(2, 0, 1); ++j)
+			{
+				const size_t jplus1 = (j+1)%3;
+
+				// natural edges
+				const size_t natEdId1 = m_rRefElem.id(2, 0, 1, j);
+				const size_t natEdId2 = m_rRefElem.id(2, 0, 1, jplus1);
+
+				// corner between the two edges
+				const size_t cornerId = m_rRefElem.id(2, 0, 0, jplus1);
+
+				// nodes of hanging edges
+				const size_t hangEdNodeId1 = m_vNatEdgeInfo[natEdId1].node_id();
+				const size_t hangEdNodeId2 = m_vNatEdgeInfo[natEdId2].node_id();
+
+				MathVector<dim> locSmallSideMid;
+				MathVector<worldDim> gloSmallSideMid;
+
+				// mid point of hanging side
+				compute_side_midpoints(	cornerId, hangEdNodeId1, hangEdNodeId2,
+										locSmallSideMid, gloSmallSideMid);
+
+				MathVector<dim> locEdgeMid0, locEdgeMid1;
+				MathVector<worldDim> gloEdgeMid0, gloEdgeMid1;
+				VecInterpolateLinear(locEdgeMid0, m_locMid[0][cornerId], m_locMid[0][hangEdNodeId2], 0.5);
+				VecInterpolateLinear(gloEdgeMid0, m_gloMid[0][cornerId], m_gloMid[0][hangEdNodeId2], 0.5);
+				VecInterpolateLinear(locEdgeMid1, m_locMid[0][hangEdNodeId1], m_locMid[0][cornerId], 0.5);
+				VecInterpolateLinear(gloEdgeMid1, m_gloMid[0][hangEdNodeId1], m_gloMid[0][cornerId], 0.5);
+
+				// create corresponding boundary faces
+				const size_t numBF = m_vBF.size();
+				m_vBF.resize(numBF + 3);
+
+				m_vBF[numBF].m_vLocPos[0] = m_locMid[0][cornerId];
+				m_vBF[numBF].m_vLocPos[1] = locEdgeMid0;
+				m_vBF[numBF].m_vLocPos[2] = locSmallSideMid;
+				m_vBF[numBF].m_vLocPos[3] = locEdgeMid1;
+				m_vBF[numBF].m_vGloPos[0] = m_gloMid[0][cornerId];
+				m_vBF[numBF].m_vGloPos[1] = gloEdgeMid0;
+				m_vBF[numBF].m_vGloPos[2] = gloSmallSideMid;
+				m_vBF[numBF].m_vGloPos[3] = gloEdgeMid1;
+				m_vBF[numBF].nodeId = cornerId;
+
+				m_vBF[numBF+1].m_vLocPos[0] = m_locMid[0][hangEdNodeId2];
+				m_vBF[numBF+1].m_vLocPos[1] = locSideMid;
+				m_vBF[numBF+1].m_vLocPos[2] = locSmallSideMid;
+				m_vBF[numBF+1].m_vLocPos[3] = locEdgeMid0;
+				m_vBF[numBF+1].m_vGloPos[0] = m_gloMid[0][hangEdNodeId2];
+				m_vBF[numBF+1].m_vGloPos[1] = gloSideMid;
+				m_vBF[numBF+1].m_vGloPos[2] = gloSmallSideMid;
+				m_vBF[numBF+1].m_vGloPos[3] = gloEdgeMid0;
+				m_vBF[numBF+1].nodeId = hangEdNodeId2;
+
+				m_vBF[numBF+2].m_vLocPos[0] = m_locMid[0][hangEdNodeId1];
+				m_vBF[numBF+2].m_vLocPos[1] = locEdgeMid0;
+				m_vBF[numBF+2].m_vLocPos[2] = locSmallSideMid;
+				m_vBF[numBF+2].m_vLocPos[3] = locSideMid;
+				m_vBF[numBF+2].m_vGloPos[0] = m_gloMid[0][hangEdNodeId1];
+				m_vBF[numBF+2].m_vGloPos[1] = gloEdgeMid0;
+				m_vBF[numBF+2].m_vGloPos[2] = gloSmallSideMid;
+				m_vBF[numBF+2].m_vGloPos[3] = gloSideMid;
+				m_vBF[numBF+2].nodeId = hangEdNodeId1;
+			}
+		}
+		//////////
+		// other cases: Not all edges hanging (i.e. neighbor not refined)
+		///////////
+		else
+		{
+			// compute position of side mid
+			compute_side_midpoints(locSideMid, gloSideMid);
+
+			// loop edges
+			for (size_t j = 0; j < m_rRefElem.num(2, 0, 1); ++j)
+			{
+				const size_t jplus1 = (j+1) % m_rRefElem.num(2, 0, 1);
+				const size_t jplus2 = (j+2) % m_rRefElem.num(2, 0, 1);
+
+				// natural edges
+				const size_t natEdId1 = m_rRefElem.id(2, 0, 1, j);
+				const size_t natEdId2 = m_rRefElem.id(2, 0, 1, jplus1);
+
+				// corner between the two edges
+				const size_t cornerId = m_rRefElem.id(2, 0, 0, jplus1);
+				const size_t prevCornerId = m_rRefElem.id(2, 0, 0, j);
+				const size_t nextCornerId = m_rRefElem.id(2, 0, 0, jplus2);
+
+				// mid points of edges
+				MathVector<dim> locEdgeMidNext, locEdgeMidCurr;
+				MathVector<worldDim> gloEdgeMidNext, gloEdgeMidCurr;
+
+				// next side is hanging
+				if (m_vNatEdgeInfo[natEdId2].num_child_edges() == 2)
+				{
+					const size_t hangEdNodeId2 = m_vNatEdgeInfo[natEdId2].node_id();
+					VecInterpolateLinear(locEdgeMidNext, m_locMid[0][cornerId], m_locMid[0][hangEdNodeId2], 0.5);
+					VecInterpolateLinear(gloEdgeMidNext, m_gloMid[0][cornerId], m_gloMid[0][hangEdNodeId2], 0.5);
+				}
+				// next side is not hanging
+				else
+				{
+					VecInterpolateLinear(locEdgeMidNext, m_locMid[0][cornerId], m_locMid[0][nextCornerId], 0.5);
+					VecInterpolateLinear(gloEdgeMidNext, m_gloMid[0][cornerId], m_gloMid[0][nextCornerId], 0.5);
+				}
+
+				// current side is hanging
+				if (m_vNatEdgeInfo[natEdId1].num_child_edges() == 2)
+				{
+					const size_t hangEdNodeId1 = m_vNatEdgeInfo[natEdId1].node_id();
+
+					MathVector<dim> locEdgeMidHang;
+					MathVector<worldDim> gloEdgeMidHang;
+					VecInterpolateLinear(locEdgeMidCurr, m_locMid[0][cornerId], m_locMid[0][hangEdNodeId1], 0.5);
+					VecInterpolateLinear(gloEdgeMidCurr, m_gloMid[0][cornerId], m_gloMid[0][hangEdNodeId1], 0.5);
+					VecInterpolateLinear(locEdgeMidHang, m_locMid[0][prevCornerId], m_locMid[0][hangEdNodeId1], 0.5);
+					VecInterpolateLinear(gloEdgeMidHang, m_gloMid[0][prevCornerId], m_gloMid[0][hangEdNodeId1], 0.5);
+
+					const size_t numBF = m_vBF.size();
+					m_vBF.resize(numBF + 1);
+
+					// create BF for hanging node
+					m_vBF[numBF].m_vLocPos[0] = m_locMid[0][hangEdNodeId1];
+					m_vBF[numBF].m_vLocPos[1] = locEdgeMidCurr;
+					m_vBF[numBF].m_vLocPos[2] = locSideMid;
+					m_vBF[numBF].m_vLocPos[3] = locEdgeMidHang;
+					m_vBF[numBF].m_vGloPos[0] = m_gloMid[0][hangEdNodeId1];
+					m_vBF[numBF].m_vGloPos[1] = gloEdgeMidCurr;
+					m_vBF[numBF].m_vGloPos[2] = gloSideMid;
+					m_vBF[numBF].m_vGloPos[3] = gloEdgeMidHang;
+					m_vBF[numBF].nodeId = hangEdNodeId1;
+				}
+				// current side is not hanging
+				else
+				{
+					VecInterpolateLinear(locEdgeMidCurr, m_locMid[0][cornerId], m_locMid[0][prevCornerId], 0.5);
+					VecInterpolateLinear(gloEdgeMidCurr, m_gloMid[0][cornerId], m_gloMid[0][prevCornerId], 0.5);
+				}
+
+				const size_t numBF = m_vBF.size();
+				m_vBF.resize(numBF + 1);
+
+				// create BF for corner
+				m_vBF[numBF].m_vLocPos[0] = m_locMid[0][cornerId];
+				m_vBF[numBF].m_vLocPos[1] = locEdgeMidNext;
+				m_vBF[numBF].m_vLocPos[2] = locSideMid;
+				m_vBF[numBF].m_vLocPos[3] = locEdgeMidCurr;
+				m_vBF[numBF].m_vGloPos[0] = m_gloMid[0][cornerId];
+				m_vBF[numBF].m_vGloPos[1] = gloEdgeMidNext;
+				m_vBF[numBF].m_vGloPos[2] = gloSideMid;
+				m_vBF[numBF].m_vGloPos[3] = gloEdgeMidCurr;
+				m_vBF[numBF].nodeId = cornerId;
+			}
+		}
+	}
+
+	// compute size of bf
+	for (size_t i = 0; i < m_vBF.size(); ++i)
+		m_vBF[i].vol = ElementSize<bf_type, worldDim>(&(m_vBF[i].m_vGloPos[0]));
+
+	// set integration points
+	// TODO: The calculated IPs (in the bf midpoints) and shapes are never used
+	// as local_ip() and global_ip() always returns the corresponding node coords.
+	// Either change local_ip() and global_ip() or remove the members localIP and globalIP
+	// and calculate accordingly.
+	for (size_t i = 0; i < num_bf(); ++i)
+	{
+		if (dim == 1) // RegularEdge
+		{
+			AveragePositions(m_vBF[i].localIP, m_vBF[i].m_vLocPos, BF::numCorners);
+			AveragePositions(m_vBF[i].globalIP, m_vBF[i].m_vGloPos, BF::numCorners);
+		}
+		else if (dim == 2)	// Quadrilateral
+		{
+			AveragePositions(m_vBF[i].localIP, m_vBF[i].m_vLocPos, BF::numCorners);
+			AveragePositions(m_vBF[i].globalIP, m_vBF[i].m_vGloPos, BF::numCorners);
+		}
+		else {UG_ASSERT(0, "Dimension higher than 2 not implemented.");}
+	}
+
+	// shapes
+	// A word of warning: This is only meaningful,
+	// if the trial space is piecewise linear on tetrahedra/triangles!
+	for (size_t i = 0; i < num_bf(); ++i)
+	{
+		const LocalShapeFunctionSet<ref_elem_type::dim>& TrialSpace =
+				LocalFiniteElementProvider::
+					get<ref_elem_type::dim>
+					(ref_elem_type::REFERENCE_OBJECT_ID,
+					 LFEID(LFEID::LAGRANGE, ref_elem_type::dim, 1));
+
+		const size_t num_sh = num_bf();
+		m_vBF[i].vShape.resize(num_sh);
+
+		TrialSpace.shapes(&(m_vBF[i].vShape[0]), m_vBF[i].localIP);
+	}
+
+	// copy ip positions in list
+	m_vGlobBFIP.clear();
+	for (size_t i = 0; i < num_bf(); i++)
+	{
+		const BF& rBF = bf(i);
+
+		m_vLocBFIP.push_back(rBF.local_ip());
+		m_vGlobBFIP.push_back(rBF.global_ip());
+	}
+}
+
+
 template class HFV1Geometry<RegularEdge, 1>;
 template class HFV1Geometry<RegularEdge, 2>;
 template class HFV1Geometry<RegularEdge, 3>;
@@ -1128,6 +1661,13 @@ template class DimHFV1Geometry<2, 2>;
 template class DimHFV1Geometry<2, 3>;
 
 template class DimHFV1Geometry<3, 3>;
+
+//////////////////////
+// Manifold
+//////////////////////
+template class HFV1ManifoldGeometry<RegularEdge, 2>;
+template class HFV1ManifoldGeometry<Triangle, 3>;
+template class HFV1ManifoldGeometry<Quadrilateral, 3>;
 
 
 } // end namespace ug

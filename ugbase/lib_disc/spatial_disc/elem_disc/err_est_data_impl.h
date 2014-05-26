@@ -37,7 +37,7 @@ void SideFluxErrEstData<TDomain>::alloc_err_est_data
 
 /// Called after the computation of the error estimator data in all the elements
 template <typename TDomain>
-void SideFluxErrEstData<TDomain>::summarize_err_est_data ()
+void SideFluxErrEstData<TDomain>::summarize_err_est_data (ConstSmartPtr<TDomain> spDomain)
 {
 	typedef typename domain_traits<dim>::side_type side_type;
 	
@@ -451,7 +451,7 @@ void SideAndElemErrEstData<TDomain>::alloc_err_est_data
  * 	jump, we need to add up the resp. attachments on parent and child for that side.
  */
 template <typename TDomain>
-void SideAndElemErrEstData<TDomain>::summarize_err_est_data()
+void SideAndElemErrEstData<TDomain>::summarize_err_est_data(ConstSmartPtr<TDomain> spDomain)
 {
 	const MultiGrid* pMG = m_spSV->subset_handler()->multi_grid();
 
@@ -463,18 +463,113 @@ void SideAndElemErrEstData<TDomain>::summarize_err_est_data()
 	{
 	//	get the sides on both the levels (coarse and fine)
 		side_type* c_rim_side = *rim_side_iter;
-		if (pMG->template num_children<side_type>(c_rim_side) != 1) // we consider _NONCOPY only, no hanging nodes // isn't that COPY?
-			UG_THROW ("SideFluxErrEstData::summarize_error_estimator:"
-					" The error estimator does not accept hanging nodes");
-		side_type* f_rim_side = pMG->template get_child<side_type>(c_rim_side, 0);
 
-	//	compute the total jump and save it for both the sides
-		for (std::size_t i = 0; i < m_aaSide[c_rim_side].size(); i++)
+	// closure elements
+		if (pMG->template num_children<side_type>(c_rim_side) == 1)
 		{
-			number& c_rim_flux = m_aaSide[c_rim_side][i];
-			number& f_rim_flux = m_aaSide[f_rim_side][i];
-			number flux_jump = f_rim_flux + c_rim_flux;
-			c_rim_flux = f_rim_flux = flux_jump;
+			side_type* f_rim_side = pMG->template get_child<side_type>(c_rim_side, 0);
+
+		//	add up total jump and save it for both the sides
+			for (std::size_t i = 0; i < m_aaSide[c_rim_side].size(); i++)
+			{
+				number& c_rim_flux = m_aaSide[c_rim_side][i];
+				number& f_rim_flux = m_aaSide[f_rim_side][i];
+				number flux_jump = f_rim_flux + c_rim_flux;
+				c_rim_flux = f_rim_flux = flux_jump;
+			}
+		}
+	// hanging node
+		else if (pMG->template num_children<side_type>(c_rim_side) > 1)
+		{
+			// TODO: This is a somehow dirty hack (but will converge with h->0),
+			// a correct interpolation with all given points would be preferable.
+			// And even if it is not: Check whether it could be beneficial to use structures like k-d tree,
+			// since this is the most naive implementation possible. I guess, the number of IPs
+			// is likely to be very low in most of the applications.
+
+			// The IPs are not in the same locations on both sides:
+			// Interpolate values for both sides, then add up and distribute.
+			// Interpolation is piecewise constant (use value of nearest neighbour).
+
+			// map coarse side local IPs to global
+			std::vector<MathVector<dim> > c_coCo;
+			CollectCornerCoordinates(c_coCo, c_rim_side, spDomain->position_accessor(), false);
+			std::vector<MathVector<dim> > c_gloIPs(num_side_ips(c_rim_side));
+			side_global_ips(&c_gloIPs[0], c_rim_side, &c_coCo[0]);
+
+			// interpolate fine IPs on coarse side
+			for (std::size_t ch = 0; ch < pMG->template num_children<side_type>(c_rim_side); ch++)
+			{
+				// get fine side
+				side_type* f_rim_side = pMG->template get_child<side_type>(c_rim_side, ch);
+
+				// map fine side local IPs to global
+				std::vector<MathVector<dim> > f_coCo;
+				CollectCornerCoordinates(f_coCo, f_rim_side, spDomain->position_accessor(), false);
+				std::vector<MathVector<dim> > f_gloIPs(num_side_ips(f_rim_side));
+				side_global_ips(&f_gloIPs[0], f_rim_side, &f_coCo[0]);
+
+				// for each fine side IP, find nearest coarse side IP
+				for (std::size_t fip = 0; fip < m_aaSide[f_rim_side].size(); fip++)
+				{
+					if (m_aaSide[c_rim_side].size() < 1)
+						{UG_THROW("No IP defined for coarse side.");}
+
+					std::size_t nearest = 0;
+					MathVector<dim> diff;
+					VecSubtract(diff, f_gloIPs[fip], c_gloIPs[0]);
+					number dist = VecLengthSq(diff);
+
+					// loop coarse IPs
+					for (std::size_t cip = 1; cip < m_aaSide[c_rim_side].size(); cip++)
+					{
+						VecSubtract(diff, f_gloIPs[fip], c_gloIPs[cip]);
+						if (VecLengthSq(diff) < dist)
+						{
+							dist = VecLengthSq(diff);
+							nearest = cip;
+						}
+					}
+					m_aaSide[f_rim_side][fip] += m_aaSide[c_rim_side][nearest];
+				}
+			}
+
+			// interpolate coarse IPs on fine side:
+			for (std::size_t cip = 0; cip < m_aaSide[c_rim_side].size(); cip++)
+			{
+				std::size_t nearest = 0;
+				MathVector<dim> diff;
+				number dist = std::numeric_limits<number>::infinity();
+				number val = 0.0;
+
+				// we have to loop all child sides
+				for (std::size_t ch = 0; ch < pMG->template num_children<side_type>(c_rim_side); ch++)
+				{
+					// get fine side
+					side_type* f_rim_side = pMG->template get_child<side_type>(c_rim_side, ch);
+
+					// map fine side local IPs to global
+					std::vector<MathVector<dim> > f_coCo;
+					CollectCornerCoordinates(f_coCo, f_rim_side, spDomain->position_accessor(), false);
+					std::vector<MathVector<dim> > f_gloIPs(num_side_ips(f_rim_side));
+					side_global_ips(&f_gloIPs[0], f_rim_side, &f_coCo[0]);
+
+					// loop coarse IPs
+					for (std::size_t fip = 1; fip < m_aaSide[f_rim_side].size(); fip++)
+					{
+						VecSubtract(diff, f_gloIPs[fip], c_gloIPs[cip]);
+						if (VecLengthSq(diff) < dist)
+						{
+							dist = VecLengthSq(diff);
+							nearest = fip;
+							val = m_aaSide[f_rim_side][fip];
+						}
+					}
+				}
+
+				// the fine grid already contains the correct values
+				m_aaSide[c_rim_side][cip] = val;
+			}
 		}
 
 	// TODO: something similar for the parallel case!?
@@ -607,11 +702,11 @@ alloc_err_est_data(ConstSmartPtr<SurfaceView> spSV, const GridLevel& gl)
 
 template <typename TDomain, typename TErrEstData>
 void MultipleErrEstData<TDomain,TErrEstData>::
-summarize_err_est_data()
+summarize_err_est_data(ConstSmartPtr<TDomain> spDomain)
 {
 	// only called if consider_me()
 	for (std::size_t eed = 0; eed < num(); eed++)
-		m_vEed[eed]->summarize_err_est_data();
+		m_vEed[eed]->summarize_err_est_data(spDomain);
 }
 
 template <typename TDomain, typename TErrEstData>

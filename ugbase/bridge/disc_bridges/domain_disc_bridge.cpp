@@ -74,7 +74,14 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("assemble_rhs", static_cast<void (T::*)(typename TAlgebra::vector_type&, GridFunction<TDomain, TAlgebra>&)>(&T::assemble_rhs))
 			.add_method("assemble_rhs", static_cast<void (T::*)(GridFunction<TDomain, TAlgebra>&)>(&T::assemble_rhs))
 			.add_method("adjust_solution", static_cast<void (T::*)(GridFunction<TDomain, TAlgebra>&)>(&T::adjust_solution))
-			.add_method("mark_error", static_cast<void (T::*)(const GridFunction<TDomain, TAlgebra>&, IRefiner&, number, number, number, int, typename TAlgebra::vector_type*)>(&T::mark_error), "", "Mark elements for refinement according the error estimator")
+			.add_method("calc_error", static_cast<void (T::*)(const GridFunction<TDomain, TAlgebra>&)>(&T::calc_error), "", "Calculate element-wise error indicators from error estimator")
+			.add_method("calc_error", static_cast<void (T::*)(const GridFunction<TDomain, TAlgebra>&, typename TAlgebra::vector_type*)>(&T::calc_error), "", "Calculate element-wise error indicators from error estimator")
+			.add_method("mark_for_refinement", static_cast<void (T::*)(IRefiner&, number, number, int)>(&T::mark_for_refinement), "",
+				"mark elements for refinement according to calculated error indicators")
+			.add_method("mark_for_coarsening", static_cast<void (T::*)(IRefiner&, number, number, int)>(&T::mark_for_coarsening), "",
+				"mark elements for coarsening according to calculated error indicators")
+			.add_method("invalidate_error", &T::invalidate_error, "", "Marks error indicators as invalid, "
+				"which will prohibit refining and coarsening before a new call to calc_error.")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "DomainDiscretization", tag);
 	}

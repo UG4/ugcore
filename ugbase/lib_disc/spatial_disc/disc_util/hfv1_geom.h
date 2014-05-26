@@ -913,6 +913,280 @@ class DimHFV1Geometry : public FVGeometryBase{
 };
 
 
+////////////////////////////////////////////////////////////////////////////////
+// Hanging FV1 Manifold Geometry
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename TElem, int TWorldDim>
+class HFV1ManifoldGeometry
+{
+	public:
+	// 	type of element
+		typedef TElem elem_type;
+
+	// 	type of reference element
+		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+
+	public:
+	// 	order
+		static const int order = 1;
+
+	// number of natural bfs (eq. of SCV)
+		static const size_t m_numNaturalBF = ref_elem_type::numCorners;
+
+	// number of natural boundary face sides (eq. of SCVF)
+		static const size_t m_numNaturalBFS = ref_elem_type::numEdges;
+
+	// 	dimension of reference element
+		static const int dim = ref_elem_type::dim;
+
+	// 	dimension of world
+		static const int worldDim = TWorldDim;
+
+	// 	type of BoundaryFaces
+		typedef typename hfv1_traits<ref_elem_type, dim>::scv_type bf_type;
+
+	// 	Hanging node flag: this geometry supports hanging nodes
+		static const bool usesHangingNodes = true;
+
+	/// flag indicating if local data may change
+		static const bool staticLocalData = true;
+
+	protected:
+		struct MidID
+		{
+				MidID() : dim(0), id(0) {};
+				MidID(size_t dim_, size_t id_) : dim(dim_), id(id_) {};
+				size_t dim;
+				size_t id;
+		};
+
+	public:
+		class BF
+		{
+			private:
+			// 	let outer class access private members
+				friend class HFV1ManifoldGeometry<TElem, TWorldDim>;
+
+			// 	number of integration points
+				static const size_t m_numIP = 1;
+
+			// 	max number of corners of bf
+				static const size_t numCorners = hfv1_traits<ref_elem_type, dim>::MaxNumCornersOfSCV;
+
+			public:
+				BF() {};
+
+			/// node id that this bf is associated to
+				inline size_t node_id() const {return nodeId;}
+
+			/// number of integration points
+				inline size_t num_ip() const {return m_numIP;}
+
+			/// local integration point of scvf
+				inline const MathVector<dim>& local_ip() const {return localIP;}
+
+			/// global integration point of scvf
+				inline const MathVector<worldDim>& global_ip() const {return globalIP;}
+
+			/// volume of bf
+				inline number volume() const {return vol;}
+
+			/// number of corners, that bound the bf
+				inline size_t num_corners() const {return numCorners;}
+
+			/// return local position of corner number i
+				inline const MathVector<dim>& local_corner(size_t i) const
+					{UG_ASSERT(i < num_corners(), "Invalid index."); return m_vLocPos[i];}
+
+			/// return global position of corner number i
+				inline const MathVector<worldDim>& global_corner(size_t i) const
+					{UG_ASSERT(i < num_corners(), "Invalid index."); return m_vGloPos[i];}
+
+			/// number of shape functions
+				inline size_t num_sh() const {return vShape.size();}
+
+			/// value of shape function i in integration point
+				inline number shape(size_t i, size_t ip) const
+					{UG_ASSERT(ip < num_ip(), "Invalid index"); return vShape[i];}
+
+			private:
+				size_t nodeId;										// id of associated node
+
+				// CORNERS: ordering is:
+				// 1D: corner, centerOfElement
+				// 2D: corner, side one, centerOfElement, side two
+				MathVector<dim> m_vLocPos[numCorners];			// local position of node
+				MathVector<worldDim> m_vGloPos[numCorners];	// global position of node
+
+				//IPs & shapes
+				MathVector<dim> localIP; // local integration point
+				MathVector<worldDim> globalIP; // global integration point
+				std::vector<number> vShape; // shapes at ip
+
+				number vol;
+		};
+
+	protected:
+		std::vector<MathVector<dim> > m_vLocBFIP;
+		std::vector<MathVector<worldDim> > m_vGlobBFIP;
+
+	public:
+	/// constructor
+		HFV1ManifoldGeometry();
+
+	///	update data for given element
+		void update(GridObject* elem, const MathVector<worldDim>* vCornerCoords,
+		            const ISubsetHandler* ish = NULL);
+/*
+	/// get vector of corners for current element
+		const MathVector<worldDim>* corners() const {return m_gloMid[0];}
+*/
+	/// number of BoundaryFaces
+		inline size_t num_bf() const {return m_vBF.size();}
+
+	/// const access to Boundary Face number i
+		inline const BF& bf(size_t i) const
+			{UG_ASSERT(i < num_bf(), "Invalid Index."); return m_vBF[i];}
+
+	/// returns all ips of scvf as they appear in scv loop
+		const MathVector<worldDim>* bf_global_ips() const {return &m_vGlobBFIP[0];}
+
+	/// returns number of all scvf ips
+		size_t num_bf_global_ips() const {return m_vGlobBFIP.size();}
+
+	/// returns all ips of scvf as they appear in scv loop
+		const MathVector<dim>* bf_local_ips() const {return &m_vLocBFIP[0];}
+
+	/// returns number of all scvf ips
+		size_t num_bf_local_ips() const {return m_vLocBFIP.size();}
+
+	/// returns subset index
+		int subset_index() const
+		{
+			if (m_ssi != -1) return m_ssi;
+			UG_THROW("Subset index of geometry unknown.")
+		}
+
+	protected:
+		void compute_side_midpoints(MathVector<dim>& locSideMid,
+								   MathVector<worldDim>& gloSideMid)
+		{
+			if (worldDim > 1)
+			{
+				const size_t coID0 = m_rRefElem.id(2, 0, 0, 0);
+				locSideMid = m_locMid[0][coID0];
+				gloSideMid = m_gloMid[0][coID0];
+
+				// add corner coordinates of the corners of the geometric object
+				for (size_t j = 1; j < m_rRefElem.num(2, 0, 0); ++j)
+				{
+					const size_t coID = m_rRefElem.id(2, 0, 0, j);
+					locSideMid += m_locMid[0][coID];
+					gloSideMid += m_gloMid[0][coID];
+				}
+
+				// scale for correct averaging
+				locSideMid *= 1./(m_rRefElem.num(2, 0, 0));
+				gloSideMid *= 1./(m_rRefElem.num(2, 0, 0));
+			}
+		}
+
+		// i, j, k, l = number nodes
+		void compute_side_midpoints(size_t i, size_t j, size_t k, size_t l,
+									MathVector<dim>& locSideMid,
+									MathVector<worldDim>& gloSideMid)
+		{
+			VecAdd(locSideMid, m_locMid[0][i], m_locMid[0][j], m_locMid[0][k], m_locMid[0][l]);
+			VecAdd(gloSideMid, m_gloMid[0][i], m_gloMid[0][j], m_gloMid[0][k], m_gloMid[0][l]);
+
+			// scale for correct averaging
+			locSideMid *= 0.25;
+			gloSideMid *= 0.25;
+		}
+
+		// i, j, k = number nodes
+		void compute_side_midpoints(size_t i, size_t j, size_t k,
+									MathVector<dim>& locSideMid, MathVector<worldDim>& gloSideMid)
+		{
+			VecAdd(locSideMid, m_locMid[0][i], m_locMid[0][j], m_locMid[0][k]);
+			VecAdd(gloSideMid, m_gloMid[0][i], m_gloMid[0][j], m_gloMid[0][k]);
+
+			// scale for correct averaging
+			locSideMid *= 1./3.;
+			gloSideMid *= 1./3.;
+		}
+
+		// returns edgeID of child edge, that has corner co. i is the natural edge index
+		size_t get_child_edge_of_corner(size_t i, size_t co)
+		{
+			for (size_t e = 0; e < m_vNatEdgeInfo[i].num_child_edges(); ++e)
+			{
+				const size_t childId = m_vNatEdgeInfo[i].child_edge(e);
+				if (m_vNewEdgeInfo[childId].from() == co)
+					return childId;
+				if (m_vNewEdgeInfo[childId].to() == co)
+					return childId;
+			}
+			return -1;
+		}
+
+	private:
+		struct NewEdgeInfo
+		{
+			friend class HFV1ManifoldGeometry<TElem, TWorldDim>;
+
+			public:
+				NewEdgeInfo() : m_from(-1), m_to(-1){}
+				size_t from() const {return m_from;}
+				size_t to() const {return m_to;}
+			private:
+				size_t m_from;
+				size_t m_to;
+		};
+
+		struct NatEdgeInfo
+		{
+			friend class HFV1ManifoldGeometry<TElem, TWorldDim>;
+			public:
+				NatEdgeInfo() : nodeId(-1), numChildEdges(0) {for(size_t i=0; i<2; ++i) childEdge[i] = -1;}
+				bool is_hanging() const {return numChildEdges == 2;}
+				size_t node_id() const {UG_ASSERT(is_hanging(), "Should only be called, if edge is hanging."); return nodeId;}
+				size_t num_child_edges() const {return numChildEdges;}
+				size_t child_edge(size_t i) const {UG_ASSERT(i < num_child_edges(), "Wrong id."); return childEdge[i];}
+
+			private:
+				size_t nodeId;
+				size_t numChildEdges;
+				size_t childEdge[2];
+		};
+
+	//  help array: maps NaturalEdge -> NodeOnEdge (-1 if no node on edge)
+		std::vector<NatEdgeInfo> m_vNatEdgeInfo;
+		std::vector<NewEdgeInfo> m_vNewEdgeInfo;
+
+	private:
+	// 	pointer to current element
+		TElem* m_pElem;
+
+	// 	local and global geom object midpoints for each dimension
+		std::vector<MathVector<dim> > m_locMid[dim+1];
+		std::vector<MathVector<worldDim> > m_gloMid[dim+1];
+
+	// 	BndFaces
+		std::vector<BF> m_vBF;
+
+	// 	Reference Mapping
+		ReferenceMapping<ref_elem_type, worldDim> m_rMapping;
+
+	// 	Reference Element
+		const ref_elem_type& m_rRefElem;
+
+	//	subset index of the element represented
+		int m_ssi;
+};
+
+
 }
 
 #endif /* __H__UG__LIB_DISC__SPATIAL_DISC__DISC_HELPER__HANGING_FINITE_VOLUME_GEOMETRY__ */

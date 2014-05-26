@@ -1045,11 +1045,11 @@ class DimFV1Geometry : public FVGeometryBase
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// FV1 Manifold Boundary
+// FV1 Manifold Geometry
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TElem, int TWorldDim>
-class FV1ManifoldBoundary
+class FV1ManifoldGeometry
 {
 	public:
 	// 	type of element
@@ -1094,7 +1094,7 @@ class FV1ManifoldBoundary
 		{
 			private:
 			// 	let outer class access private members
-				friend class FV1ManifoldBoundary<TElem, TWorldDim>;
+				friend class FV1ManifoldGeometry<TElem, TWorldDim>;
 
 			// 	number of integration points
 				static const size_t m_numIP = 1;
@@ -1150,7 +1150,7 @@ class FV1ManifoldBoundary
 				MathVector<worldDim> vGloPos[numCorners];	// global position of node
 				MidID midId[numCorners];			// dimension and id of object, whose midpoint bounds the scv
 				
-				//IPs & shapes
+				// IPs & shapes
 				MathVector<dim> localIP; // local integration point
 				MathVector<worldDim> globalIP; // global integration point
 				std::vector<number> vShape; // shapes at ip
@@ -1185,7 +1185,7 @@ class FV1ManifoldBoundary
 		
 	public:
 	/// constructor
-		FV1ManifoldBoundary();
+		FV1ManifoldGeometry();
 		
 	///	update data for given element
 		void update(GridObject* elem, const MathVector<worldDim>* vCornerCoords,
@@ -1204,13 +1204,13 @@ class FV1ManifoldBoundary
 	/// returns all ips of scvf as they appear in scv loop
 		const MathVector<worldDim>* bf_global_ips() const {return &m_vGlobBFIP[0];}
 
-	/// returns number of all scvf ips
+	/// returns number of all BF ips
 		size_t num_bf_global_ips() const {return m_vGlobBFIP.size();}
 
-	/// returns all ips of scvf as they appear in scv loop
+	/// returns all ips of BF as they appear in scv loop
 		const MathVector<dim>* bf_local_ips() const {return &m_vLocBFIP[0];}
 
-	/// returns number of all scvf ips
+	/// returns number of all BF ips
 		size_t num_bf_local_ips() const {return m_vLocBFIP.size();}
 	
 	/// returns subset index

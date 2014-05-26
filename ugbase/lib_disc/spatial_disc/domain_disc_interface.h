@@ -263,25 +263,61 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 		void finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol)
 			{finish_timestep(vSol, GridLevel());}
 
-	/// computes the error estimator and marks elements for refinement
+	/// computes the error estimator
 	/**
-	 * Computes the error estimator and marks elements for refinement.
+	 * Computes the error estimator.
 	 *
 	 * \param[in]  u			vector of the solution to estimate the error for
 	 * \param[in]  dd 			DoF Distribution
 	 */
-		virtual	void mark_error(const vector_type& u, const GridLevel& gl,
-			IRefiner& refiner, number TOL, number refineFrac, number coarseFrac, int maxLevel, vector_type* u_vtk = NULL) = 0;
-		virtual void mark_error(const vector_type& u, ConstSmartPtr<DoFDistribution> dd,
-			IRefiner& refiner, number TOL, number refineFrac, number coarseFrac, int maxLevel, vector_type* u_vtk = NULL) = 0;
-		virtual void mark_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
-			ConstSmartPtr<DoFDistribution> dd, std::vector<number> vScaleMass, std::vector<number> vScaleStiff,
-			IRefiner& refiner, number TOL, number refineFrac, number coarseFrac, int maxLevel,
-			vector_type* u_vtk) = 0;
-		virtual void mark_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
-			std::vector<number> vScaleMass, std::vector<number> vScaleStiff, const GridLevel& gl,
-			IRefiner& refiner, number TOL, number refineFrac, number coarseFrac, int maxLevel,
-			vector_type* u_vtk) = 0;
+		virtual	void calc_error
+		(	const vector_type& u,
+			const GridLevel& gl,
+			vector_type* u_vtk = NULL
+		) = 0;
+		virtual void calc_error
+		(	const vector_type& u,
+			ConstSmartPtr<DoFDistribution> dd,
+			vector_type* u_vtk = NULL
+		) = 0;
+		virtual void calc_error
+		(	ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+			ConstSmartPtr<DoFDistribution> dd, std::vector<number> vScaleMass,
+			std::vector<number> vScaleStiff,
+			vector_type* u_vtk
+		) = 0;
+		virtual void calc_error
+		(	ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+			std::vector<number> vScaleMass,
+			std::vector<number> vScaleStiff,
+			const GridLevel& gl,
+			vector_type* u_vtk
+		) = 0;
+
+	/// marks elements for refinement
+		/**
+		 * Marks elements for refinement.
+		 *
+		 */
+		virtual void mark_for_refinement
+		(	IRefiner& refiner,
+			number TOL,
+			number refineFrac,
+			int maxLevel
+		) = 0;
+	/// marks elements for coarsening
+			/**
+			 * Marks elements for coarsening.
+			 *
+			 */
+		virtual void mark_for_coarsening
+		(	IRefiner& refiner,
+			number TOL,
+			number coarseFrac,
+			int maxLevel
+		) = 0;
+
+		virtual void invalidate_error() = 0;
 
 	///	returns the number of post processes
 		virtual size_t num_constraints() const = 0;

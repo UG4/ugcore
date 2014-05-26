@@ -17,6 +17,28 @@
 namespace ug
 {
 
+template<typename TDomain>
+void FV1InnerBoundaryElemDisc<TDomain>::
+prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid)
+{
+	// check that Lagrange 1st order
+	for(std::size_t i = 0; i < vLfeID.size(); ++i)
+		if(vLfeID[i].type() != LFEID::LAGRANGE || vLfeID[i].order() != 1)
+			UG_THROW("FV1InnerBoundary: 1st order lagrange expected.");
+
+	// update assemble functions
+	m_bNonRegularGrid = bNonRegularGrid;
+	register_all_fv1_funcs();
+}
+
+template<typename TDomain>
+bool FV1InnerBoundaryElemDisc<TDomain>::
+use_hanging() const
+{
+	return true;
+}
+
+
 
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>

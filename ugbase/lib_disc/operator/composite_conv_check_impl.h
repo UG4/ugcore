@@ -23,7 +23,7 @@ CompositeConvCheck(SmartPtr<ApproximationSpace<TDomain> > spApproxSpace)
   	m_bCheckRest(true), m_restMinDefect(1-12), m_restRelReduction(1-10),
 	m_currentStep(0), m_maxSteps(100),
 	m_verbose(true), m_offset(0), m_symbol('%'), m_name("Iteration"), m_info(""),
-	m_bTimeMeas(true)
+	m_bTimeMeas(true), m_bAdaptive(false)
 {
 	set_level(GridLevel::TOP);
 }
@@ -36,7 +36,7 @@ CompositeConvCheck(SmartPtr<ApproximationSpace<TDomain> > spApproxSpace,
   	m_bCheckRest(true), m_restMinDefect(minDefect), m_restRelReduction(relReduction),
 	m_currentStep(0), m_maxSteps(maxSteps),
 	m_verbose(true), m_offset(0), m_symbol('%'), m_name("Iteration"), m_info(""),
-	m_bTimeMeas(true)
+	m_bTimeMeas(true), m_bAdaptive(false)
 {
 	set_level(GridLevel::TOP);
 }
@@ -347,13 +347,17 @@ void CompositeConvCheck<TVector, TDomain>::start_defect(number initialDefect)
 template <class TVector, class TDomain>
 void CompositeConvCheck<TVector, TDomain>::start(const TVector& vec)
 {
+	// if meshing is adaptive, prepare convCheck for possibly new grid
+	if (m_bAdaptive)
+		set_level(GridLevel::TOP);
+
 	// assert correct number of dofs
 	if (vec.size() != m_numAllDoFs)
 	{
-		UG_THROW("Number of dofs in CompositeConvCheck does not match"
-				"number of dofs given in vector from algorithm (" << m_numAllDoFs
-				<< ", but " << vec.size() << " given). \nMake sure that you set "
-						"the right grid level via set_level().");
+		UG_THROW("Number of dofs in CompositeConvCheck does not match "
+				 "number of dofs given in vector from algorithm (" << m_numAllDoFs
+				 << ", but " << vec.size() << " given). \nMake sure that you set "
+				 "the right grid level via set_level().");
 	}
 
 	// start time measurement

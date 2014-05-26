@@ -1134,7 +1134,7 @@ static void Domain(Registry& reg, string grp)
 	string tag = GetDomainTag<TDomain>();
 
 //	refiner factory-method registration
-//	Note that the refiners themselfs have already been registered in lib_grid_bridge.
+//	Note that the refiners themselves have already been registered in lib_grid_bridge.
 	reg.add_function("GlobalDomainRefiner",
 					 &GlobalDomainRefiner<domain_type>, grp, "new GlobalDomainRefiner", "dom");
 	reg.add_function("HangingNodeDomainRefiner",

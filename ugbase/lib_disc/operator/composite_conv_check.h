@@ -47,6 +47,9 @@ class CompositeConvCheck : public IConvergenceCheck<TVector>
 		                   int maxSteps, number minDefect, number relReduction);
 	/// \}
 
+	/// destructor
+		virtual ~CompositeConvCheck() {};
+
 	/// set level of grid, where defect vectors come from
 		void set_level(int level);
 
@@ -124,6 +127,9 @@ class CompositeConvCheck : public IConvergenceCheck<TVector>
 
 	///	enables time measurement
 		void set_time_measurement(bool yesOrNo) {m_bTimeMeas = yesOrNo;};
+
+	/// whether or not the underlying approximatioon space is adaptive
+		void set_adaptive(bool adapt) {m_bAdaptive = adapt;}
 
 	///	clones this instance
 		virtual SmartPtr<IConvergenceCheck<TVector> > clone();
@@ -263,6 +269,9 @@ class CompositeConvCheck : public IConvergenceCheck<TVector>
 
 		/// a stopwatch
 		Stopwatch m_stopwatch;
+
+		/// adaptivity flag
+		bool m_bAdaptive;
 };
 
 } // end namespace ug

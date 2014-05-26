@@ -13,6 +13,7 @@
 // extern headers
 #include <vector>
 #include <string>
+#include <limits>
 
 // intern headers
 #include "lib_grid/tools/surface_view.h"
@@ -49,7 +50,7 @@ class IErrEstData
 		virtual void alloc_err_est_data (ConstSmartPtr<SurfaceView> spSV, const GridLevel& gl) = 0;
 		
 	///	virtual function called after the computation of the error estimator data in all the elements
-		virtual void summarize_err_est_data () = 0;
+		virtual void summarize_err_est_data (ConstSmartPtr<TDomain> spDomain) = 0;
 
 	/// calculate L2 integrals
 		virtual number get_elem_error_indicator(GridObject* elem, const MathVector<dim> vCornerCoords[]) = 0;
@@ -117,7 +118,7 @@ public:
 		virtual void alloc_err_est_data (ConstSmartPtr<SurfaceView> spSV, const GridLevel& gl);
 		
 	///	virtual function called after the computation of the error estimator data in all the elements
-		virtual void summarize_err_est_data ();
+		virtual void summarize_err_est_data (ConstSmartPtr<TDomain> spDomain);
 
 	/// calculate L2 integrals
 		virtual number get_elem_error_indicator(GridObject* elem, const MathVector<dim> vCornerCoords[]) {return 0;};
@@ -258,7 +259,7 @@ public:
 		virtual void alloc_err_est_data (ConstSmartPtr<SurfaceView> spSV, const GridLevel& gl);
 
 	///	virtual function called after the computation of the error estimator data in all the elements
-		virtual void summarize_err_est_data ();
+		virtual void summarize_err_est_data (ConstSmartPtr<TDomain> spDomain);
 
 	/// calculate L2 integrals
 		virtual number get_elem_error_indicator(GridObject* elem, const MathVector<dim> vCornerCoords[]);
@@ -366,7 +367,7 @@ class MultipleErrEstData : public IErrEstData<TDomain>
 		virtual void alloc_err_est_data(ConstSmartPtr<SurfaceView> spSV, const GridLevel& gl);
 
 	///	virtual function called after the computation of the error estimator data in all the elements
-		virtual void summarize_err_est_data();
+		virtual void summarize_err_est_data(ConstSmartPtr<TDomain> spDomain);
 
 	/// calculate L2 integrals
 		virtual number get_elem_error_indicator(GridObject* elem, const MathVector<dim> vCornerCoords[]);

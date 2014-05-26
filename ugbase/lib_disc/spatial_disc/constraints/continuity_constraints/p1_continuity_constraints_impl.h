@@ -233,7 +233,7 @@ void SplitAddRhs_Symmetric(TVector& rhs,
 		for(size_t j=0; j < vConstrainingIndex.size(); ++j)
 			rhs[vConstrainingIndex[j][i]] += val;
 
-	//	set rhs to zero for contrained index
+	//	set rhs to zero for constrained index
 		val = 0.0;
 	}
 }
@@ -259,6 +259,52 @@ void SplitAddRhs_OneSide(TVector& rhs,
 		block_type& val = rhs[constrainedIndex[i]];
 		rhs[addTo] += val;
 		val = 0.0;
+	}
+}
+
+
+inline void get_algebra_indices(ConstSmartPtr<DoFDistribution> dd,
+						 ConstrainedVertex* hgVrt,
+						 std::vector<Vertex*>& vConstrainingVrt,
+						 std::vector<size_t>& constrainedInd,
+						 std::vector<std::vector<size_t> >& vConstrainingInd)
+{
+// get subset index
+	const int si = dd->subset_handler()->get_subset_index(hgVrt);
+
+//	get constraining vertices
+	CollectConstraining(vConstrainingVrt, *dd->multi_grid(), hgVrt);
+
+// clear constrainedInd
+	constrainedInd.clear();
+
+//	resize constraining indices
+	vConstrainingInd.clear();
+	vConstrainingInd.resize(vConstrainingVrt.size());
+
+// 	get algebra indices for constrained and constraining vertices
+	for (size_t fct = 0; fct < dd->num_fct(si); fct++)
+	{
+	//	check that function is defined on subset
+		if (!dd->is_def_in_subset(fct, si)) continue;
+
+	//	get indices for constrained vertex
+		dd->inner_algebra_indices_for_fct(hgVrt, constrainedInd, false, fct);
+
+	//	get indices for constraining vertices
+		for (size_t i = 0; i < vConstrainingVrt.size(); ++i)
+		{
+			const int siC = dd->subset_handler()->get_subset_index(vConstrainingVrt[i]);
+
+		//	check that function is defined on subset
+			if (!dd->is_def_in_subset(fct, siC))
+			{
+				UG_THROW("Function " << fct << " is defined for a constrained vertex, "
+						 "but not for one of its constraining vertices!");
+			}
+
+			dd->inner_algebra_indices_for_fct(vConstrainingVrt[i], vConstrainingInd[i], false, fct);
+		}
 	}
 }
 
@@ -297,19 +343,8 @@ adjust_defect(vector_type& d, const vector_type& u,
 	//	get hanging vert
 		ConstrainedVertex* hgVrt = *iter;
 
-	//	get constraining vertices
-		CollectConstraining(vConstrainingVrt, *dd->multi_grid(), hgVrt);
-
-	//	resize constraining indices
-		vConstrainingInd.clear();
-		vConstrainingInd.resize(vConstrainingVrt.size());
-
-	// 	get algebra indices for constraining vertices
-		for(size_t i=0; i < vConstrainingVrt.size(); ++i)
-			dd->inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
-
-	// 	get algebra indices constrained vertices
-		dd->inner_algebra_indices(hgVrt, constrainedInd);
+	// get algebra indices for constrained and constraining vertices
+		get_algebra_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
 
 	//	adapt rhs
 		SplitAddRhs_Symmetric(d, constrainedInd, vConstrainingInd);
@@ -343,19 +378,8 @@ adjust_rhs(vector_type& rhs, const vector_type& u,
 	//	get hanging vert
 		ConstrainedVertex* hgVrt = *iter;
 
-	//	get constraining vertices
-		CollectConstraining(vConstrainingVrt, *dd->multi_grid(), hgVrt);
-
-	//	resize constraining indices
-		vConstrainingInd.clear();
-		vConstrainingInd.resize(vConstrainingVrt.size());
-
-	// 	get algebra indices for constraining vertices
-		for(size_t i=0; i < vConstrainingVrt.size(); ++i)
-			dd->inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
-
-	// 	get algebra indices constrained vertices
-		dd->inner_algebra_indices(hgVrt, constrainedInd);
+	// get algebra indices for constrained and constraining vertices
+		get_algebra_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
 
 	//	adapt rhs
 		SplitAddRhs_Symmetric(rhs, constrainedInd, vConstrainingInd);
@@ -390,19 +414,8 @@ adjust_jacobian(matrix_type& J, const vector_type& u,
 	//	get hanging vert
 		ConstrainedVertex* hgVrt = *iter;
 
-	//	get constraining vertices
-		CollectConstraining(vConstrainingVrt, *dd->multi_grid(), hgVrt);
-
-	//	resize constraining indices
-		vConstrainingInd.clear();
-		vConstrainingInd.resize(vConstrainingVrt.size());
-
-	// 	get algebra indices for constraining vertices
-		for(size_t i=0; i < vConstrainingVrt.size(); ++i)
-			dd->inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
-
-	// 	get algebra indices constrained vertices
-		dd->inner_algebra_indices(hgVrt, constrainedInd);
+	// get algebra indices for constrained and constraining vertices
+		get_algebra_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
 
 	// 	Split using indices
 		SplitAddRow_Symmetric(J, constrainedInd, vConstrainingInd);
@@ -438,19 +451,8 @@ adjust_linear(matrix_type& mat, vector_type& rhs,
 	//	get hanging vert
 		ConstrainedVertex* hgVrt = *iter;
 
-	//	get constraining vertices
-		CollectConstraining(vConstrainingVrt, *dd->multi_grid(), hgVrt);
-
-	//	resize constraining indices
-		vConstrainingInd.clear();
-		vConstrainingInd.resize(vConstrainingVrt.size());
-
-	// 	get algebra indices for constraining vertices
-		for(size_t i=0; i < vConstrainingVrt.size(); ++i)
-			dd->inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
-
-	// 	get algebra indices constrained vertices
-		dd->inner_algebra_indices(hgVrt, constrainedInd);
+	// get algebra indices for constrained and constraining vertices
+		get_algebra_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
 
 	// 	Split using indices
 		SplitAddRow_Symmetric(mat, constrainedInd, vConstrainingInd);
@@ -489,24 +491,16 @@ adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd,
 	//	get hanging vert
 		ConstrainedVertex* hgVrt = *iter;
 
-	//	get constraining vertices
-		CollectConstraining(vConstrainingVrt, *dd->multi_grid(), hgVrt);
-
-	//	resize constraining indices
-		vConstrainingInd.clear();
-		vConstrainingInd.resize(vConstrainingVrt.size());
-
-	// 	get algebra indices for constraining vertices
-		for(size_t i=0; i < vConstrainingVrt.size(); ++i)
-			dd->inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
-
-	// 	get algebra indices constrained vertices
-		dd->inner_algebra_indices(hgVrt, constrainedInd);
+	// get algebra indices for constrained and constraining vertices
+		get_algebra_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
 
 	// 	Interpolate values
 		InterpolateValues(u, constrainedInd, vConstrainingInd);
 	}
 }
+
+
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -571,6 +565,57 @@ inline bool SortVertexPos<3>::operator() (Vertex* vrt1, Vertex* vrt2)
 }
 
 
+template <typename TDomain>
+inline void get_algebra_indices(ConstSmartPtr<DoFDistribution> dd,
+						 ConstrainedVertex* hgVrt,
+						 std::vector<Vertex*>& vConstrainingVrt,
+						 std::vector<size_t>& constrainedInd,
+						 std::vector<std::vector<size_t> >& vConstrainingInd,
+						 const SortVertexPos<TDomain::dim>& sortVertexPos)
+{
+// get subset index
+	const int si = dd->subset_handler()->get_subset_index(hgVrt);
+
+//	get constraining vertices
+	CollectConstraining(vConstrainingVrt, *dd->multi_grid(), hgVrt);
+
+#ifdef UG_PARALLEL
+	std::sort(vConstrainingVrt.begin(), vConstrainingVrt.end(), sortVertexPos);
+#endif
+
+// clear constrainedInd
+	constrainedInd.clear();
+
+//	resize constraining indices
+	vConstrainingInd.clear();
+	vConstrainingInd.resize(vConstrainingVrt.size());
+
+// 	get algebra indices for constrained and constraining vertices
+	for (size_t fct = 0; fct < dd->num_fct(si); fct++)
+	{
+	//	check that function is defined on subset
+		if (!dd->is_def_in_subset(fct, si)) continue;
+
+	//	get indices for constrained vertex
+		dd->inner_algebra_indices_for_fct(hgVrt, constrainedInd, false, fct);
+
+	//	get indices for constraining vertices
+		for (size_t i = 0; i < vConstrainingVrt.size(); ++i)
+		{
+			const int siC = dd->subset_handler()->get_subset_index(vConstrainingVrt[i]);
+
+		//	check that function is defined on subset
+			if (!dd->is_def_in_subset(fct, siC))
+			{
+				UG_THROW("Function " << fct << " is defined for a constrained vertex, "
+						 "but not for one of its constraining vertices!");
+			}
+
+			dd->inner_algebra_indices_for_fct(vConstrainingVrt[i], vConstrainingInd[i], false, fct);
+		}
+	}
+}
+
 
 template <typename TDomain, typename TAlgebra>
 void
@@ -605,23 +650,12 @@ adjust_defect(vector_type& d, const vector_type& u,
 	//	get hanging vert
 		ConstrainedVertex* hgVrt = *iter;
 
-	//	get constraining vertices
-		CollectConstraining(vConstrainingVrt, *dd->multi_grid(), hgVrt);
-
+	// get algebra indices for constrained and constraining vertices
 #ifdef UG_PARALLEL
-		std::sort(vConstrainingVrt.begin(), vConstrainingVrt.end(), sortVertexPos);
+		get_algebra_indices<TDomain>(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd, sortVertexPos);
+#else
+		get_algebra_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
 #endif
-
-	//	resize constraining indices
-		vConstrainingInd.clear();
-		vConstrainingInd.resize(vConstrainingVrt.size());
-
-	// 	get algebra indices for constraining vertices
-		for(size_t i=0; i < vConstrainingVrt.size(); ++i)
-			dd->inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
-
-	// 	get algebra indices constrained vertices
-		dd->inner_algebra_indices(hgVrt, constrainedInd);
 
 	//	adapt rhs
 		SplitAddRhs_OneSide(d, constrainedInd, vConstrainingInd);
@@ -659,23 +693,12 @@ adjust_rhs(vector_type& rhs, const vector_type& u,
 	//	get hanging vert
 		ConstrainedVertex* hgVrt = *iter;
 
-	//	get constraining vertices
-		CollectConstraining(vConstrainingVrt, *dd->multi_grid(), hgVrt);
-
-	//	resize constraining indices
-		vConstrainingInd.clear();
-		vConstrainingInd.resize(vConstrainingVrt.size());
-
+	// get algebra indices for constrained and constraining vertices
 #ifdef UG_PARALLEL
-		std::sort(vConstrainingVrt.begin(), vConstrainingVrt.end(), sortVertexPos);
+		get_algebra_indices<TDomain>(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd, sortVertexPos);
+#else
+		get_algebra_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
 #endif
-
-	// 	get algebra indices for constraining vertices
-		for(size_t i=0; i < vConstrainingVrt.size(); ++i)
-			dd->inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
-
-	// 	get algebra indices constrained vertices
-		dd->inner_algebra_indices(hgVrt, constrainedInd);
 
 	//	adapt rhs
 		SplitAddRhs_OneSide(rhs, constrainedInd, vConstrainingInd);
@@ -714,23 +737,12 @@ adjust_jacobian(matrix_type& J, const vector_type& u,
 	//	get hanging vert
 		ConstrainedVertex* hgVrt = *iter;
 
-	//	get constraining vertices
-		CollectConstraining(vConstrainingVrt, *dd->multi_grid(), hgVrt);
-
-	//	resize constraining indices
-		vConstrainingInd.clear();
-		vConstrainingInd.resize(vConstrainingVrt.size());
-
+	// get algebra indices for constrained and constraining vertices
 #ifdef UG_PARALLEL
-		std::sort(vConstrainingVrt.begin(), vConstrainingVrt.end(), sortVertexPos);
+		get_algebra_indices<TDomain>(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd, sortVertexPos);
+#else
+		get_algebra_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
 #endif
-
-	// 	get algebra indices for constraining vertices
-		for(size_t i=0; i < vConstrainingVrt.size(); ++i)
-			dd->inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
-
-	// 	get algebra indices constrained vertices
-		dd->inner_algebra_indices(hgVrt, constrainedInd);
 
 	// 	Split using indices
 		SplitAddRow_OneSide(J, constrainedInd, vConstrainingInd);
@@ -770,23 +782,12 @@ adjust_linear(matrix_type& mat, vector_type& rhs,
 	//	get hanging vert
 		ConstrainedVertex* hgVrt = *iter;
 
-	//	get constraining vertices
-		CollectConstraining(vConstrainingVrt, *dd->multi_grid(), hgVrt);
-
-	//	resize constraining indices
-		vConstrainingInd.clear();
-		vConstrainingInd.resize(vConstrainingVrt.size());
-
+	// get algebra indices for constrained and constraining vertices
 #ifdef UG_PARALLEL
-		std::sort(vConstrainingVrt.begin(), vConstrainingVrt.end(), sortVertexPos);
+		get_algebra_indices<TDomain>(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd, sortVertexPos);
+#else
+		get_algebra_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
 #endif
-
-	// 	get algebra indices for constraining vertices
-		for(size_t i=0; i < vConstrainingVrt.size(); ++i)
-			dd->inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
-
-	// 	get algebra indices constrained vertices
-		dd->inner_algebra_indices(hgVrt, constrainedInd);
 
 	// 	Split using indices
 		SplitAddRow_OneSide(mat, constrainedInd, vConstrainingInd);
@@ -825,19 +826,8 @@ adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd,
 	//	get hanging vert
 		ConstrainedVertex* hgVrt = *iter;
 
-	//	get constraining vertices
-		CollectConstraining(vConstrainingVrt, *dd->multi_grid(), hgVrt);
-
-	//	resize constraining indices
-		vConstrainingInd.clear();
-		vConstrainingInd.resize(vConstrainingVrt.size());
-
-	// 	get algebra indices for constraining vertices
-		for(size_t i=0; i < vConstrainingVrt.size(); ++i)
-			dd->inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
-
-	// 	get algebra indices constrained vertices
-		dd->inner_algebra_indices(hgVrt, constrainedInd);
+	// get algebra indices for constrained and constraining vertices
+		get_algebra_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
 
 	// 	Interpolate values
 		InterpolateValues(u, constrainedInd, vConstrainingInd);
