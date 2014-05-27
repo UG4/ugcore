@@ -48,8 +48,42 @@ public:
 	}
 };
 
+
+class ConstCharify
+{
+public:
+	std::stringstream ss;
+	ConstCharify()
+	{
+
+	}
+	template<typename T>
+	ConstCharify &operator << (T t)
+	{
+		ss << t;
+		return *this;
+	}
+
+	std::string str() const
+	{
+		return ss.str();
+	}
+
+	operator const char*() const
+	{
+		return str().c_str();
+	}
+};
+
 template<typename T>
 inline T& operator << (T &t, const Stringify &s)
+{
+	t << s.str();
+	return t;
+}
+
+template<typename T>
+inline T& operator << (T &t, const ConstCharify &s)
 {
 	t << s.str();
 	return t;
