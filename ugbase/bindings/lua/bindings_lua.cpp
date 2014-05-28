@@ -1016,6 +1016,7 @@ static int LuaProxyMethod(lua_State* L)
 
 	if(!lua_isuserdata(L, 1))
 	{
+		UG_LOG(GetColonWarning(methodGrp->name()));
 		UG_LOG(errSymb<<"Error at "<<GetLuaFileAndLine(L) << ":\n")
 		UG_LOG(errSymb<<"Error in call to LuaProxyMethod: No object specified in call to '");
 		UG_LOG(LuaClassMethodInfo(L, 1, *methodGrp->get_overload(0)));
