@@ -5,14 +5,16 @@
 #include "lib_grid/algorithms/refinement/refiner_interface.h"
 #include "lib_disc/dof_manager/dof_distribution.h"
 
-namespace ug {
+namespace ug{
 
 /// helper function that computes min/max and total of error indicators
 template<typename TElem>
-void ComputeMinMaxTotal(
-		MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >& aaError,
-		ConstSmartPtr<DoFDistribution> dd, number& min, number& max,
-		number& totalErr, std::size_t& numElem) {
+void ComputeMinMaxTotal
+(	MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >& aaError,
+	ConstSmartPtr<DoFDistribution> dd,
+	number& min, number& max, number& totalErr, std::size_t& numElem
+)
+{
 	typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
 
 //	reset maximum of error
@@ -25,22 +27,20 @@ void ComputeMinMaxTotal(
 	const_iterator iterEnd = dd->template end<TElem>();
 
 //	loop all elements to find the maximum of the error
-	for (; iter != iterEnd; ++iter) {
-		//	get element
+	for (; iter != iterEnd; ++iter)
+	{
+	//	get element
 		TElem* elem = *iter;
 
-		//	if no error value exists: ignore (might be newly added by refinement);
-		//	newly added elements are supposed to have a negative error estimator
-		if (aaError[elem] < 0)
-			continue;
+	//	if no error value exists: ignore (might be newly added by refinement);
+	//	newly added elements are supposed to have a negative error estimator
+		if (aaError[elem] < 0) continue;
 
-		//	search for maximum and minimum
-		if (aaError[elem] > max)
-			max = aaError[elem];
-		if (aaError[elem] < min)
-			min = aaError[elem];
+	//	search for maximum and minimum
+		if (aaError[elem] > max) max = aaError[elem];
+		if (aaError[elem] < min) min = aaError[elem];
 
-		//	sum up total error
+	//	sum up total error
 		totalErr += aaError[elem];
 		numElem += 1;
 	}
@@ -66,8 +66,8 @@ void ComputeMinMaxTotal(
 	}
 #endif
 
-	UG_LOG(
-			"  +++ Element errors: maximum=" << max << ", minimum=" << min << ", sum=" << totalErr << ".\n");
+	UG_LOG("  +++ Element errors: maximum=" << max << ", minimum="
+			<< min << ", sum=" << totalErr << ".\n");
 }
 
 /// marks elements according to an attached error value field
@@ -86,10 +86,13 @@ void ComputeMinMaxTotal(
  * \param[in]		aaError		Error value attachment to elements (\eta_i^2)
  */
 template<typename TElem>
-void MarkElements(
-		MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >& aaError,
-		IRefiner& refiner, ConstSmartPtr<DoFDistribution> dd, number TOL,
-		number refineFrac, number coarseFrac, int maxLevel) {
+void MarkElements(MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >& aaError,
+		IRefiner& refiner,
+		ConstSmartPtr<DoFDistribution> dd,
+		number TOL,
+		number refineFrac, number coarseFrac,
+		int maxLevel)
+{
 	typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
 
 // compute minimal/maximal/ total error and number of elements
@@ -98,21 +101,19 @@ void MarkElements(
 	ComputeMinMaxTotal(aaError, dd, min, max, totalErr, numElem);
 
 //	check if total error is smaller than tolerance. If that is the case we're done
-	if (totalErr < TOL) {
-		UG_LOG(
-				"  +++ Total error "<<totalErr<<" smaller than TOL ("<<TOL<<"). done.");
+	if(totalErr < TOL)
+	{
+		UG_LOG("  +++ Total error "<<totalErr<<" smaller than TOL ("<<TOL<<"). done.");
 		return;
 	}
 
 //	Compute minimum
 	number minErrToRefine = max * refineFrac;
-	UG_LOG(
-			"  +++ Refining elements if error greater " << refineFrac << "*" <<max<< " = "<< minErrToRefine << ".\n");
+	UG_LOG("  +++ Refining elements if error greater " << refineFrac << "*" << max <<
+			" = " << minErrToRefine << ".\n");
 	number maxErrToCoarse = min * (1 + coarseFrac);
-	if (maxErrToCoarse < TOL / numElem)
-		maxErrToCoarse = TOL / numElem;
-	UG_LOG(
-			"  +++ Coarsening elements if error smaller "<< maxErrToCoarse << ".\n");
+	if(maxErrToCoarse < TOL/numElem) maxErrToCoarse = TOL/numElem;
+	UG_LOG("  +++ Coarsening elements if error smaller " << maxErrToCoarse << ".\n");
 
 //	reset counter
 	int numMarkedRefine = 0, numMarkedCoarse = 0;
@@ -121,26 +122,30 @@ void MarkElements(
 	const_iterator iterEnd = dd->template end<TElem>();
 
 //	loop elements for marking
-	for (; iter != iterEnd; ++iter) {
-		//	get element
+	for(; iter != iterEnd; ++iter)
+	{
+	//	get element
 		TElem* elem = *iter;
 
-		//	marks for refinement
-		if (aaError[elem] >= minErrToRefine)
-			if (dd->multi_grid()->get_level(elem) <= maxLevel) {
+	//	marks for refinement
+		if(aaError[elem] >= minErrToRefine)
+			if(dd->multi_grid()->get_level(elem) <= maxLevel)
+			{
 				refiner.mark(elem, RM_REFINE);
 				numMarkedRefine++;
 			}
 
-		//	marks for coarsening
-		if (aaError[elem] <= maxErrToCoarse) {
+	//	marks for coarsening
+		if(aaError[elem] <= maxErrToCoarse)
+		{
 			refiner.mark(elem, RM_COARSEN);
 			numMarkedCoarse++;
 		}
 	}
 
 #ifdef UG_PARALLEL
-	if(pcl::NumProcs() > 1) {
+	if(pcl::NumProcs() > 1)
+	{
 		UG_LOG("  +++ Marked for refinement on Proc "<<pcl::ProcRank()<<": " << numMarkedRefine << " Elements.\n");
 		UG_LOG("  +++ Marked for coarsening on Proc "<<pcl::ProcRank()<<": " << numMarkedCoarse << " Elements.\n");
 		pcl::ProcessCommunicator com;
@@ -171,10 +176,15 @@ void MarkElements(
  */
 
 template<typename TElem>
-void MarkElementsForRefinement(
-		MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >& aaError,
-		IRefiner& refiner, ConstSmartPtr<DoFDistribution> dd, number TOL,
-		number refineFrac, int maxLevel) {
+void MarkElementsForRefinement
+(	MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >& aaError,
+	IRefiner& refiner,
+	ConstSmartPtr<DoFDistribution> dd,
+	number TOL,
+	number refineFrac,
+	int maxLevel
+)
+{
 	typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
 
 // compute minimal/maximal/ total error and number of elements
@@ -183,17 +193,18 @@ void MarkElementsForRefinement(
 	ComputeMinMaxTotal(aaError, dd, min, max, totalErr, numElem);
 
 //	check if total error is smaller than tolerance; if that is the case we're done
-	if (totalErr < TOL) {
-		UG_LOG(
-				"  +++ Total error "<<totalErr<<" smaller than TOL (" << TOL << "). No refinement necessary." << std::endl);
+	if (totalErr < TOL)
+	{
+		UG_LOG("  +++ Total error "<<totalErr<<" smaller than TOL (" << TOL << "). "
+			   "No refinement necessary." << std::endl);
 		return;
 	}
 
 //	compute minimum
 	//number minErrToRefine = max * refineFrac;
 	number minErrToRefine = TOL / numElem;
-	UG_LOG(
-			"  +++ Refining elements if error greater " << TOL << "/" << numElem << " = " << minErrToRefine << ".\n");
+	UG_LOG("  +++ Refining elements if error greater " << TOL << "/" << numElem <<
+		   " = " << minErrToRefine << ".\n");
 
 //	reset counter
 	std::size_t numMarkedRefine = 0;
@@ -202,18 +213,19 @@ void MarkElementsForRefinement(
 	const_iterator iterEnd = dd->template end<TElem>();
 
 //	loop elements for marking
-	for (; iter != iterEnd; ++iter) {
-		//	get element
+	for (; iter != iterEnd; ++iter)
+	{
+	//	get element
 		TElem* elem = *iter;
 
-		//	if no error value exists: ignore (might be newly added by refinement);
-		//	newly added elements are supposed to have a negative error estimator
-		if (aaError[elem] < 0)
-			continue;
+	//	if no error value exists: ignore (might be newly added by refinement);
+	//	newly added elements are supposed to have a negative error estimator
+		if (aaError[elem] < 0) continue;
 
-		//	marks for refinement
+	//	marks for refinement
 		if (aaError[elem] >= minErrToRefine)
-			if (dd->multi_grid()->get_level(elem) <= maxLevel) {
+			if (dd->multi_grid()->get_level(elem) <= maxLevel)
+			{
 				refiner.mark(elem, RM_REFINE);
 				numMarkedRefine++;
 			}
@@ -222,7 +234,8 @@ void MarkElementsForRefinement(
 #ifdef UG_PARALLEL
 	if (pcl::NumProcs() > 1)
 	{
-		UG_LOG("  +++ Marked for refinement on proc " << pcl::ProcRank() << ": " << numMarkedRefine << " elements.\n");
+		UG_LOG("  +++ Marked for refinement on proc " << pcl::ProcRank() << ": " <<
+				numMarkedRefine << " elements.\n");
 		pcl::ProcessCommunicator com;
 		std::size_t numMarkedRefineLocal = numMarkedRefine;
 		numMarkedRefine = com.allreduce(numMarkedRefineLocal, PCL_RO_SUM);
@@ -249,10 +262,16 @@ void MarkElementsForRefinement(
  */
 
 template<typename TElem>
-void MarkElementsForCoarsening(
-		MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >& aaError,
-		IRefiner& refiner, ConstSmartPtr<DoFDistribution> dd, number TOL,
-		number coarseFrac, int maxLevel) {
+void MarkElementsForCoarsening
+(	MultiGrid::AttachmentAccessor<TElem,
+	ug::Attachment<number> >& aaError,
+		IRefiner& refiner,
+		ConstSmartPtr<DoFDistribution> dd,
+		number TOL,
+		number coarseFrac,
+		int maxLevel
+)
+{
 	typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
 
 // compute minimal/maximal/ total error and number of elements
@@ -264,8 +283,7 @@ void MarkElementsForCoarsening(
 	//number maxErrToCoarse = min * (1+coarseFrac);
 	//if (maxErrToCoarse < TOL/numElem) maxErrToCoarse = TOL/numElem;
 	number maxErrToCoarse = TOL / numElem / 64.0;// eigtl. / 2^(dim+2)*safetyfactor
-	UG_LOG(
-			"  +++ Coarsening elements if error smaller "<< maxErrToCoarse << ".\n");
+	UG_LOG("  +++ Coarsening elements if error smaller "<< maxErrToCoarse << ".\n");
 
 //	reset counter
 	std::size_t numMarkedCoarse = 0;
@@ -274,17 +292,18 @@ void MarkElementsForCoarsening(
 	const_iterator iterEnd = dd->template end<TElem>();
 
 //	loop elements for marking
-	for (; iter != iterEnd; ++iter) {
-		//	get element
+	for (; iter != iterEnd; ++iter)
+	{
+	//	get element
 		TElem* elem = *iter;
 
-		//	if no error value exists: ignore (might be newly added by refinement);
-		//	newly added elements are supposed to have a negative error estimator
-		if (aaError[elem] < 0)
-			continue;
+	//	if no error value exists: ignore (might be newly added by refinement);
+	//	newly added elements are supposed to have a negative error estimator
+		if (aaError[elem] < 0) continue;
 
-		//	marks for coarsening
-		if (aaError[elem] <= maxErrToCoarse) {
+	//	marks for coarsening
+		if (aaError[elem] <= maxErrToCoarse)
+		{
 			refiner.mark(elem, RM_COARSEN);
 			numMarkedCoarse++;
 		}
@@ -293,7 +312,8 @@ void MarkElementsForCoarsening(
 #ifdef UG_PARALLEL
 	if (pcl::NumProcs() > 1)
 	{
-		UG_LOG("  +++ Marked for coarsening on proc " << pcl::ProcRank() << ": " << numMarkedCoarse << " elements.\n");
+		UG_LOG("  +++ Marked for coarsening on proc " << pcl::ProcRank() << ": " <<
+				numMarkedCoarse << " elements.\n");
 		pcl::ProcessCommunicator com;
 		std::size_t numMarkedCoarseLocal = numMarkedCoarse;
 		numMarkedCoarse = com.allreduce(numMarkedCoarseLocal, PCL_RO_SUM);
@@ -319,10 +339,14 @@ void MarkElementsForCoarsening(
  * \param[in]		aaError		Error value attachment to elements
  */
 template<typename TElem>
-void MarkElementsAbsolute(
-		MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >& aaError,
-		IRefiner& refiner, ConstSmartPtr<DoFDistribution> dd, number refTol,
-		number coarsenTol, int minLevel, int maxLevel) {
+void MarkElementsAbsolute(MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >& aaError,
+						  IRefiner& refiner,
+						  ConstSmartPtr<DoFDistribution> dd,
+						  number refTol,
+						  number coarsenTol,
+						  int minLevel,
+						  int maxLevel)
+{
 	typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
 
 	int numMarkedRefine = 0, numMarkedCoarse = 0;
@@ -330,26 +354,32 @@ void MarkElementsAbsolute(
 	const_iterator iterEnd = dd->template end<TElem>();
 
 //	loop elements for marking
-	for (; iter != iterEnd; ++iter) {
+	for(; iter != iterEnd; ++iter)
+	{
 		TElem* elem = *iter;
 
-		//	marks for refinement
-		if ((refTol >= 0) && (aaError[elem] > refTol)
-				&& (dd->multi_grid()->get_level(elem) < maxLevel)) {
+	//	marks for refinement
+		if((refTol >= 0)
+			&& (aaError[elem] > refTol)
+			&& (dd->multi_grid()->get_level(elem) < maxLevel))
+		{
 			refiner.mark(elem, RM_REFINE);
 			numMarkedRefine++;
 		}
 
-		//	marks for coarsening
-		if ((coarsenTol >= 0) && (aaError[elem] < coarsenTol)
-				&& (dd->multi_grid()->get_level(elem) > minLevel)) {
+	//	marks for coarsening
+		if((coarsenTol >= 0)
+			&& (aaError[elem] < coarsenTol)
+			&& (dd->multi_grid()->get_level(elem) > minLevel))
+		{
 			refiner.mark(elem, RM_COARSEN);
 			numMarkedCoarse++;
 		}
 	}
 
 #ifdef UG_PARALLEL
-	if(pcl::NumProcs() > 1) {
+	if(pcl::NumProcs() > 1)
+	{
 		UG_LOG("  +++ Marked for refinement on Proc "<<pcl::ProcRank()<<": " << numMarkedRefine << " Elements.\n");
 		UG_LOG("  +++ Marked for coarsening on Proc "<<pcl::ProcRank()<<": " << numMarkedCoarse << " Elements.\n");
 		pcl::ProcessCommunicator com;
@@ -363,6 +393,6 @@ void MarkElementsAbsolute(
 	UG_LOG("  +++ Marked for coarsening: " << numMarkedCoarse << " Elements.\n");
 }
 
-}	//	end of namespace
+}//	end of namespace
 
 #endif
