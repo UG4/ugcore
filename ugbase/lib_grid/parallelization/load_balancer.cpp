@@ -378,6 +378,12 @@ estimate_distribution_quality_impl(std::vector<number>* pLvlQualitiesOut)
 	return comGlobal.allreduce(minQuality, PCL_RO_MIN);
 }
 
+number LoadBalancer::
+estimate_distribution_quality()
+{
+	std::vector<number> v;
+	return estimate_distribution_quality(&v);
+}
 
 bool LoadBalancer::
 rebalance()

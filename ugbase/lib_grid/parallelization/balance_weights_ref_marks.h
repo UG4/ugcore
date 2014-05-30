@@ -15,36 +15,39 @@ class BalanceWeightsRefMarks : public IBalanceWeights
 	public:
 		BalanceWeightsRefMarks(IRefiner* refiner) : m_refiner(refiner)	{};
 
-		virtual number get_weight(Vertex* e){
-			return 1;
+		virtual number get_refined_weight(Vertex* e){
+			RefinementMark m = m_refiner->get_mark(e);
+			if(m == RM_REFINE || m == RM_ANISOTROPIC)
+				return get_weight(e);
+			return 0;
 		}
 
-		virtual number get_weight(Edge* e)
+		virtual number get_refined_weight(Edge* e)
 		{
 			RefinementMark m = m_refiner->get_mark(e);
 			if(m == RM_REFINE || m == RM_ANISOTROPIC)
-				return 2;
-			return 1;
+				return 2. * get_weight(e);
+			return 0;
 		}
 
-		virtual number get_weight(Face* e)
+		virtual number get_refined_weight(Face* e)
 		{
 			RefinementMark m = m_refiner->get_mark(e);
 			if(m == RM_REFINE)
-				return 4;
+				return 4. * get_weight(e);
 			if(m == RM_ANISOTROPIC)
-				return 2;// ok - that isn't always true...
-			return 1;
+				return 2. * get_weight(e);// ok - that isn't always true...
+			return 0;
 		}
 
-		virtual number get_weight(Volume* e)
+		virtual number get_refined_weight(Volume* e)
 		{
 			RefinementMark m = m_refiner->get_mark(e);
 			if(m == RM_REFINE)
-				return 8;	// ok - that isn't always true...
+				return 8. * get_weight(e);	// ok - that isn't always true...
 			if(m == RM_ANISOTROPIC)
-				return 2;	// yep - that isn't always true...
-			return 1;
+				return 2. * get_weight(e);	// yep - that isn't always true...
+			return 0;
 		}
 
 		virtual bool has_level_offsets()		{return true;}
@@ -56,6 +59,7 @@ class BalanceWeightsRefMarks : public IBalanceWeights
 		virtual bool consider_in_level_above(Edge* e) 	{return consider_in_level_above_impl(e);}
 		virtual bool consider_in_level_above(Face* e) 	{return consider_in_level_above_impl(e);}
 		virtual bool consider_in_level_above(Volume* e)	{return consider_in_level_above_impl(e);}	
+	/** \} */
 
 	private:
 		template <class TElem>

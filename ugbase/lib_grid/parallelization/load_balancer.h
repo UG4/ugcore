@@ -97,11 +97,16 @@ class IBalanceWeights{
 		virtual number get_weight(Face*) 	{return 1;}
 		virtual number get_weight(Volume*)	{return 1;}
 
+		virtual number get_refined_weight(Vertex* e)	{return get_weight(e);}
+		virtual number get_refined_weight(Edge* e) 		{return 2. * get_weight(e);}
+		virtual number get_refined_weight(Face* e) 		{return 4. * get_weight(e);}///< todo: use a more sophisticated implementation
+		virtual number get_refined_weight(Volume* e)	{return 8. * get_weight(e);}///< todo: use a more sophisticated implementation
 		
 		virtual bool has_level_offsets()		{return false;}
 
-	///	Relativeindicator in which level the specifed elements should be partitioned.
-	/** \{ */
+	///	Relative indicator in which level the specifed elements should be partitioned.
+	/** If this method returns true, one should use get_refined_weight instead of get_weight.
+	 * \{ */
 		virtual bool consider_in_level_above(Vertex*)	{return false;}
 		virtual bool consider_in_level_above(Edge*) 	{return false;}
 		virtual bool consider_in_level_above(Face*) 	{return false;}
@@ -258,8 +263,11 @@ class LoadBalancer{
 	 * with the distribution-qualities for each level. By default the pointer is
 	 * set to NULL and no level-qualities are thus returned.
 	 * If a process doesn't participate on a given level, it will write -1
-	 * to the corresponding entry in pLvlQualitiesOut.*/
-		virtual number estimate_distribution_quality(std::vector<number>* pLvlQualitiesOut = NULL);
+	 * to the corresponding entry in pLvlQualitiesOut.
+	 * \{ */
+		virtual number estimate_distribution_quality(std::vector<number>* pLvlQualitiesOut);
+		number estimate_distribution_quality();
+	/** \} */
 
 	///	add serialization callbacks.
 	/** Used when the grid is being distributed to pack data associated with grid

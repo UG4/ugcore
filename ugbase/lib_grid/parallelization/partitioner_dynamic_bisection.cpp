@@ -200,8 +200,8 @@ partition(size_t baseLvl, size_t elementThreshold)
 
 		if(hlevel + 1 < procH->num_hierarchy_levels()){
 		//	TODO:	currently elements which shall be considered in a level above
-		//			and which do lie directly below a new hierarchy level are
-		//			partitioned separately
+		//			and which do lie directly below a new hierarchy level would have to
+		//			be partitioned separately
 			if(m_balanceWeights->has_level_offsets() &&
 				(mg.top_level() < procH->grid_base_level(hlevel+1)))
 			{
@@ -212,6 +212,12 @@ partition(size_t baseLvl, size_t elementThreshold)
 				maxLvl = min<int>(maxLvl,
 							(int)procH->grid_base_level(hlevel + 1) - 1);
 			}
+
+		//	this code always starts partitioning one level above the highest
+		//	hierarchy level to make sure that marked elements of the
+		//	highest hierarchy level are considered
+			// maxLvl = min<int>(maxLvl,
+			// 			(int)procH->grid_base_level(hlevel + 1));
 		}
 
 		if(minLvl < (int)baseLvl)
@@ -355,7 +361,7 @@ gather_weights_from_level(int baseLvl, int childLvl, ANumber aWeight,
 	Grid::AttachmentAccessor<elem_t, ANumber> aaWeight(mg, aWeight);
 
 //	childLvl may be at most one level above the highest level of the grid hierarchy.
-//	This is allowed to consider elements which are to be considered one level
+//	This is allowed to consider top-level elements which are to be considered one level
 //	above their actual level...
 	if(childLvl < baseLvl || childLvl > (int)mg.num_levels()){
 		SetAttachmentValues(aaWeight, mg.begin<elem_t>(baseLvl), mg.end<elem_t>(baseLvl), 0);
@@ -366,27 +372,12 @@ gather_weights_from_level(int baseLvl, int childLvl, ANumber aWeight,
 		GridLayoutMap& glm = mg.distributed_grid_manager()->grid_layout_map();
 		ComPol_CopyAttachment<layout_t, ANumber> compolCopy(mg, aWeight);
 
-		if(bw.has_level_offsets()){
-			if(childLvl < (int)mg.num_levels()){
-				for(ElemIter iter = mg.begin<elem_t>(childLvl);
-					iter != mg.end<elem_t>(childLvl); ++iter)
-				{
-					elem_t* e = *iter;
-					if(bw.consider_in_level_above(e))
-						aaWeight[e] = 1;
-					else
-						aaWeight[e] = bw.get_weight(*iter);
-				}
-			}
-		}
-		else{
-			if(childLvl < (int)mg.num_levels()){
-				for(ElemIter iter = mg.begin<elem_t>(childLvl);
-					iter != mg.end<elem_t>(childLvl); ++iter)
-				{
-					elem_t* e = *iter;
-					aaWeight[e] = bw.get_weight(*iter);
-				}
+		if(childLvl < (int)mg.num_levels()){
+			for(ElemIter iter = mg.begin<elem_t>(childLvl);
+				iter != mg.end<elem_t>(childLvl); ++iter)
+			{
+				elem_t* e = *iter;
+				aaWeight[e] = bw.get_weight(*iter);
 			}
 		}
 
@@ -412,7 +403,7 @@ gather_weights_from_level(int baseLvl, int childLvl, ANumber aWeight,
 					if((lvl == childLvl - 1) && (numChildren == 0) && (!dgm.is_ghost(e))
 						&& (bw.consider_in_level_above(e)))
 					{
-						aaWeight[e] = bw.get_weight(e);
+						aaWeight[e] = bw.get_refined_weight(e);
 					}
 					else{
 					//	gather weights from children
