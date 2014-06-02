@@ -861,8 +861,10 @@ bool IntersectCoplanarTriangles(std::vector<vector2>& edgesOut,
 
 	edgesOut.clear();
 
-	vector2 t0[] = {p00, p01, p02};
-	vector2 t1[] = {p10, p11, p12};
+	vector2 t0_ARR[] = {p00, p01, p02};
+	vector2 t1_ARR[] = {p10, p11, p12};
+	vector2* t0 = t0_ARR;
+	vector2* t1 = t1_ARR;
 
 //	to avoid rounding issues we search for the largest node-value and scale SMALL by that value
 	number maxLenSq = 0;

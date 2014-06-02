@@ -179,11 +179,8 @@ bool TestSizeOfInterfacesInLayoutsMatch(pcl::InterfaceCommunicator<TLayout> &com
 		{
 			TValue val1 = cbToValue(interface.get_element(iter2));
 
-
-			bool bValid = true;
 			if(buffer.eof())
 			{
-				 bValid = false;
 				 broken =true;
 				 if(bPrint){
 					 UG_LOG("        " << onMaster << ": " << std::setw(9) << val1 << " <-> " << "-?-" << "\n");
