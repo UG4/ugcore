@@ -11,7 +11,7 @@
 function UJS_Submit
 {
 	if [ $walltime == "unlimited" ]; then
-		$walltime=01:00:00
+		walltime=01:00:00
 	fi
 	
 	echo "Cluster: MOAB. Scheduler: msub."
