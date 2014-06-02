@@ -13,6 +13,7 @@ ug_load_script("util/test_utils.lua")
 ug_load_script("util/domain_distribution_util.lua")
 ug_load_script("util/stats_util.lua")
 ug_load_script("util/user_data_util.lua")
+ug_load_script("util/vec_util.lua")
 ug_load_script("util/gnuplot.lua")
 ug_load_script("util/table_util.lua")
 ug_load_script("util/time_step_util.lua")
@@ -20,7 +21,6 @@ ug_load_script("util/solver_util.lua")
 ug_load_script("util/domain_disc_util.lua")
 ug_load_script("util/domain_util.lua")
 ug_load_script("util/math_util.lua")
-ug_load_script("util/command_line_util.lua")
 ug_load_script("util/output_util.lua")
 
 
@@ -29,7 +29,7 @@ ug_load_script("util/output_util.lua")
 
 --! use it like ug_assert(numPreRefs <= numRefs, "It must be choosen: numPreRefs <= numRefs")
 --! @param condition the condition to assert
---! @param msg message to be printed if condition is not fulfilled
+--! @param msg (optional) message to be printed if condition is not fulfilled
 function ug_assert(condition, msg)
 	if condition then
 		return
@@ -40,10 +40,13 @@ function ug_assert(condition, msg)
 		local f, l = test.getSourceAndLine()
 		print("     File:      "..f)
 		print("     Line:      "..l)
-		print("     Message:   "..msg)
+		if msg ~= nil then print("     Message:   "..msg) end
 		assert(false)
 	end
 end
+
+
+ug_load_script("util/command_line_util.lua")
 
 --------------------------------------------------------------------------------
 
@@ -80,6 +83,32 @@ end
 function util.PrintTable(tablePar)
 	util.PrintTableHelperIntend = ""
 	util.PrintTableHelper("", tablePar)
+end
+
+function util.TableToText(var)
+	local out= ""
+	local i
+	local v
+	if type(var) == "table" then
+		out = out.." {"
+		
+		local count = 0
+		for _ in pairs(var) do count = count + 1 end
+		if count == #var then count = 0 else count = 1 end
+		
+		local bfirst = true		
+		for i,v in pairs(var) do
+			if bfirst then bfirst = false else out=out .. ", " end
+			if count == 1 then out=out .. "["..tostring(i).."] = " end 
+			out=out..util.TableToText(v)
+			 
+		end
+		
+		out = out.. "}"
+	else
+		out = out ..tostring(var)		
+	end
+	return out
 end
 
 
@@ -265,6 +294,10 @@ end
 
 util._original_io_open = util._original_io_open or io.open
 
+function io.open_ALL(filename, model)
+	ug_assert(filename ~= nil) 		
+	return util._original_io_open(filename, model)
+end
 --! WARNING: Parallel File open is REALLY slow on clusters
 --! this function overwrite io.open and prints a warning
 --! if you use it on a core which is not 0
@@ -276,12 +309,9 @@ function util.safe_io_open(filename, model)
 	if ProcRank() == 1 then
 		print_all("--- WARNING: opening a file not from proc 0 may harm performance (see util.IOOpen) ! "..util.GetLUAFileAndLine(1).." ---")
 	end
-	return util._original_io_open(filename, model)
+	return io.open_ALL(filename, model)
 end
 
-function io.open_ALL(filename, model)
-	return util._original_io_open(filename, model)
-end
 
 util.FileDummy = {}
 function util.FileDummy.write(...) end
