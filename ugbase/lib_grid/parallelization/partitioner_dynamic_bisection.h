@@ -160,7 +160,8 @@ class Partitioner_DynamicBisection : public IPartitioner{
 
 		void control_bisection(ISubsetHandler& partitionSH,
 							   std::vector<TreeNode>& treeNodes, ANumber aWeight,
-							   number maxChildWeight, pcl::ProcessCommunicator& com);
+							   number maxChildWeight, pcl::ProcessCommunicator& com,
+							   int splitDim);
 
 		void bisect_elements(ElemList& elemsLeftOut,
 							ElemList& elemsRightOut,
@@ -173,7 +174,7 @@ class Partitioner_DynamicBisection : public IPartitioner{
 										 pcl::ProcessCommunicator& com);
 
 		void gather_weights_from_level(int baseLvl, int childLvl, ANumber aWeight,
-											bool copyToVMastersOnBaseLvl);
+									   bool copyToVMastersOnBaseLvl, bool markedElemsOnly);
 
 		int classify_elem(elem_t* e, int splitDim, number splitValue);
 
@@ -185,7 +186,7 @@ class Partitioner_DynamicBisection : public IPartitioner{
 							 std::vector<TreeNode>& parentNodes,
 							 ANumber aWeight, number maxChildWeight,
 							 pcl::ProcessCommunicator& com,
-							 int cutRecursion);
+							 int cutRecursion, int splitDim);
 
 
 		MultiGrid*								m_mg;

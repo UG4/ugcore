@@ -179,8 +179,6 @@ partition(size_t baseLvl, size_t elementThreshold)
 		int maxLvl = (int)mg.top_level();
 
 		if(m_balanceWeights->has_level_offsets()){
-			++maxLvl;
-
 			if(mg.top_level() < procH->grid_base_level(hlevel)){
 			//	if the previous process-hierarchy had the same number of processes,
 			//	we will silently ignore this hierarchy level. Only if it had
@@ -199,25 +197,8 @@ partition(size_t baseLvl, size_t elementThreshold)
 		}
 
 		if(hlevel + 1 < procH->num_hierarchy_levels()){
-		//	TODO:	currently elements which shall be considered in a level above
-		//			and which do lie directly below a new hierarchy level would have to
-		//			be partitioned separately
-			if(m_balanceWeights->has_level_offsets() &&
-				(mg.top_level() < procH->grid_base_level(hlevel+1)))
-			{
-				maxLvl = min<int>(maxLvl,
-							(int)procH->grid_base_level(hlevel + 1));
-			}
-			else{
-				maxLvl = min<int>(maxLvl,
-							(int)procH->grid_base_level(hlevel + 1) - 1);
-			}
-
-		//	this code always starts partitioning one level above the highest
-		//	hierarchy level to make sure that marked elements of the
-		//	highest hierarchy level are considered
-			// maxLvl = min<int>(maxLvl,
-			// 			(int)procH->grid_base_level(hlevel + 1));
+			maxLvl = min<int>(maxLvl,
+						(int)procH->grid_base_level(hlevel + 1) - 1);
 		}
 
 		if(minLvl < (int)baseLvl)
@@ -226,20 +207,18 @@ partition(size_t baseLvl, size_t elementThreshold)
 		if(maxLvl < minLvl)
 			continue;
 
-		int maxValidLvl = min<int>(maxLvl, mg.top_level());
-
 		int numPartitions = numProcs;
 		if(static_partitioning_enabled())
 			numPartitions = (int)procH->cluster_procs(hlevel).size();
 
 		if((numProcs <= 1) || (numPartitions == 1)){
-			for(int i = minLvl; i <= maxValidLvl; ++i)
+			for(int i = minLvl; i <= maxLvl; ++i)
 				sh.assign_subset(mg.begin<elem_t>(i), mg.end<elem_t>(i), 0);
 			continue;
 		}
 
 		if(static_partitioning_enabled() && ((int)hlevel <= m_highestRedistLevel)){
-			for(int i = minLvl; i <= maxValidLvl; ++i)
+			for(int i = minLvl; i <= maxLvl; ++i)
 				sh.assign_subset( mg.begin<elem_t>(i), mg.end<elem_t>(i), 0);
 			continue;
 		}
@@ -262,7 +241,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 
 		perform_bisection_new(numPartitions, minLvl, maxLvl, partitionLvl, aWeight, com);
 
-		for(int i = minLvl; i < maxValidLvl; ++i){
+		for(int i = minLvl; i < maxLvl; ++i){
 			copy_partitions_to_children(sh, i);
 		}
 
@@ -346,7 +325,7 @@ copy_partitions_to_children(ISubsetHandler& partitionSH, int lvl)
 template <class TElem, int dim>
 void Partitioner_DynamicBisection<TElem, dim>::
 gather_weights_from_level(int baseLvl, int childLvl, ANumber aWeight,
-							   bool copyToVMastersOnBaseLvl)
+						  bool copyToVMastersOnBaseLvl, bool markedElemsOnly)
 {
 	GDIST_PROFILE_FUNC();
 	UG_DLOG(LIB_GRID, 1, "Partitioner_DynamicBisection-start gather_weights_from_level\n");
@@ -363,7 +342,7 @@ gather_weights_from_level(int baseLvl, int childLvl, ANumber aWeight,
 //	childLvl may be at most one level above the highest level of the grid hierarchy.
 //	This is allowed to consider top-level elements which are to be considered one level
 //	above their actual level...
-	if(childLvl < baseLvl || childLvl > (int)mg.num_levels()){
+	if(childLvl < baseLvl || childLvl >= (int)mg.num_levels()){
 		SetAttachmentValues(aaWeight, mg.begin<elem_t>(baseLvl), mg.end<elem_t>(baseLvl), 0);
 		return;
 	}
@@ -372,7 +351,21 @@ gather_weights_from_level(int baseLvl, int childLvl, ANumber aWeight,
 		GridLayoutMap& glm = mg.distributed_grid_manager()->grid_layout_map();
 		ComPol_CopyAttachment<layout_t, ANumber> compolCopy(mg, aWeight);
 
-		if(childLvl < (int)mg.num_levels()){
+		if(markedElemsOnly){
+			for(ElemIter iter = mg.begin<elem_t>(childLvl);
+				iter != mg.end<elem_t>(childLvl); ++iter)
+			{
+				elem_t* e = *iter;
+				if((mg.num_children<elem_t>(e) == 0) && (!dgm.is_ghost(e))
+					&& (bw.consider_in_level_above(e)))
+				{
+					aaWeight[e] = bw.get_refined_weight(*iter);
+				}
+				else
+					aaWeight[e] = 0;
+			}
+		}
+		else{
 			for(ElemIter iter = mg.begin<elem_t>(childLvl);
 				iter != mg.end<elem_t>(childLvl); ++iter)
 			{
@@ -383,15 +376,13 @@ gather_weights_from_level(int baseLvl, int childLvl, ANumber aWeight,
 
 		for(int lvl = childLvl - 1; lvl >= baseLvl; --lvl){
 		//	copy from v-slaves to vmasters
-			if(lvl + 1 < (int)mg.num_levels()){
-				if(glm.has_layout<elem_t>(INT_V_SLAVE))
-					m_intfcCom.send_data(glm.get_layout<elem_t>(INT_V_SLAVE).layout_on_level(lvl + 1),
-										 compolCopy);
-				if(glm.has_layout<elem_t>(INT_V_MASTER))
-					m_intfcCom.receive_data(glm.get_layout<elem_t>(INT_V_MASTER).layout_on_level(lvl + 1),
-											compolCopy);
-				m_intfcCom.communicate();
-			}
+			if(glm.has_layout<elem_t>(INT_V_SLAVE))
+				m_intfcCom.send_data(glm.get_layout<elem_t>(INT_V_SLAVE).layout_on_level(lvl + 1),
+									 compolCopy);
+			if(glm.has_layout<elem_t>(INT_V_MASTER))
+				m_intfcCom.receive_data(glm.get_layout<elem_t>(INT_V_MASTER).layout_on_level(lvl + 1),
+										compolCopy);
+			m_intfcCom.communicate();
 
 		//	accumulate child counts in parent elements on lvl
 			if(bw.has_level_offsets()){
@@ -507,9 +498,10 @@ perform_bisection_new(int numTargetProcs, int minLvl, int maxLvl, int partitionL
 					   mg.end<elem_t>(partitionLvl), -1);
 
 //	iterate over all levels and gather child-counts in the partitionLvl
-//TODO:	if partitionLvl == minLvl, we currently ignore level-offsets of some elements.
-	for(int i_lvl = maxLvl; i_lvl >= minLvl; --i_lvl){
-		gather_weights_from_level(partitionLvl, i_lvl, aWeight, false);
+	bool markedElemsOnly = m_balanceWeights->has_level_offsets();
+
+	for(int i_lvl = maxLvl; i_lvl >= minLvl;){
+		gather_weights_from_level(partitionLvl, i_lvl, aWeight, false, markedElemsOnly);
 
 	//	now collect elements on partitionLvl, which have children in i_lvl but
 	//	have not yet been partitioned.
@@ -542,8 +534,13 @@ perform_bisection_new(int numTargetProcs, int minLvl, int maxLvl, int partitionL
 			root.firstProc = 0;
 			root.numTargetProcs = numTargetProcs;
 
-			control_bisection(sh, treeNodes, aWeight, maxChildWeight, com);
+			control_bisection(sh, treeNodes, aWeight, maxChildWeight, com, 0);
 		}
+
+		if(markedElemsOnly)
+			markedElemsOnly = false;
+		else
+			--i_lvl;
 	}
 
 	if(partitionLvl < minLvl){
@@ -583,7 +580,8 @@ perform_bisection_new(int numTargetProcs, int minLvl, int maxLvl, int partitionL
 template <class TElem, int dim>
 void Partitioner_DynamicBisection<TElem, dim>::
 control_bisection(ISubsetHandler& partitionSH, std::vector<TreeNode>& treeNodes,
-				  ANumber aWeight, number maxChildWeight, pcl::ProcessCommunicator& com)
+				  ANumber aWeight, number maxChildWeight, pcl::ProcessCommunicator& com,
+				  int splitDim)
 {
 //	for(size_t i = 0; i < treeNodes.size(); ++i){
 //		UG_LOG("tree-node " << i << ": targetProc " << treeNodes[i].numTargetProcs
@@ -642,11 +640,13 @@ control_bisection(ISubsetHandler& partitionSH, std::vector<TreeNode>& treeNodes,
 		return;
 
 //	perform the actual bisection
-	bisect_elements(childNodes, treeNodes, aWeight, maxChildWeight, com, 0);
+	bisect_elements(childNodes, treeNodes, aWeight, maxChildWeight, com, 0, splitDim);
 
 //	perform the recursion
-	control_bisection(partitionSH, childNodes, aWeight, maxChildWeight, com);
-
+	int newSplitDim = -1;
+	if(splitDim >= 0)
+		newSplitDim = (splitDim + 1) % dim;
+	control_bisection(partitionSH, childNodes, aWeight, maxChildWeight, com, newSplitDim);
 }
 
 
@@ -831,7 +831,7 @@ template <class TElem, int dim>
 void Partitioner_DynamicBisection<TElem, dim>::
 bisect_elements(vector<TreeNode>& childNodesOut, vector<TreeNode>& parentNodes,
 				ANumber aWeight, number maxChildWeight, pcl::ProcessCommunicator& com,
-				int cutRecursion)
+				int cutRecursion, int splitDim)
 {
 	GDIST_PROFILE_FUNC();
 	MultiGrid& mg = *m_mg;
@@ -843,11 +843,15 @@ bisect_elements(vector<TreeNode>& childNodesOut, vector<TreeNode>& parentNodes,
 	for(size_t iNode = 0; iNode < parentNodes.size(); ++iNode){
 		TreeNode& tn = parentNodes[iNode];
 		if(!tn.bisectionComplete){
-			tn.splitDim = 0;
-			for(int i = 1; i < dim; ++i){
-				if((tn.boxMax[i] - tn.boxMin[i]) > (tn.boxMax[tn.splitDim] - tn.boxMin[tn.splitDim]))
-					tn.splitDim = i;
+			if(splitDim == -1){
+				tn.splitDim = 0;
+				for(int i = 1; i < dim; ++i){
+					if((tn.boxMax[i] - tn.boxMin[i]) > (tn.boxMax[tn.splitDim] - tn.boxMin[tn.splitDim]))
+						tn.splitDim = i;
+				}
 			}
+			else
+				tn.splitDim = splitDim;
 
 		//	this is an initial guess
 			tn.minSplitValue = tn.boxMin[tn.splitDim];
@@ -1009,8 +1013,11 @@ bisect_elements(vector<TreeNode>& childNodesOut, vector<TreeNode>& parentNodes,
 			}
 		}
 
+		int newSplitDim = -1;
+		if(splitDim >= 0)
+			newSplitDim = (splitDim + 1) % dim;
 		bisect_elements(childNodesOut, parentNodes, aWeight,
-						maxChildWeight, com, cutRecursion + 1);
+						maxChildWeight, com, cutRecursion + 1, newSplitDim);
 	}
 	else{
 	//	perform a simple bisection
