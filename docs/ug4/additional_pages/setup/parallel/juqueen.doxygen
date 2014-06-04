@@ -5,95 +5,50 @@
 /** \page pageUG4ParallelJuQueen JuQueen
 
 - \ref secJuQueen
+- \ref secJuQueenAccount
 - \ref secAccess_to_JuQueens_login_nodes
 - \ref secEnvironmentOnJuQueensLoginNodes
 - \ref secConfiguration_of_ug4_for_JuQueen
 - \ref secWorking_with_ug4_on_JuQueen
-- \ref secGettingStatusInfosOnJuQueen
-- \ref secVery_large_jobs_on_JuQueen
-- \ref secAvailableFileSystems
-- \ref secDebuggingAndCorefileAnalysisOnJuQueen
+
+- \subpage pageUG4ParallelJuQueenMore
 
 <hr>
-\section secJuQueen General Information about JuQueen
+\section secJuQueen Architecture
 
 <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUQUEEN/JUQUEEN_node.html">JuQueen</a>
-&mdash; the
-<a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUQUEEN/Configuration/Configuration_node.html">24 racks Blue Gene/Q</a>
-(BG/Q) system at <em>J&uuml;lich Supercomputing Centre (JSC)</em> (FZ J&uuml;lich)
-&mdash; is the successor of \em JuGene, the 72 racks BG/P system at FJZ
-(288 Ki cores; 144 Tbyte RAM; see page \ref pageUG4ParallelJuGene for some documentation),
-whose installation began in April 2012 with 8 racks.
+ currently provides 458.752 cores (448 Ki), with 1 GB RAM per core (total 448 Tbyte RAM)
 
-\em JuQueen currently provides 393.216 cores (384 Ki) and 375 Tbyte RAM in total
-(late October 2012), organized in 24 racks.
-It is intended to extend \em JuQueen to 28 racks (448~Ki cores; source:
-c't, 15/2012, S. 58).
+Juqueen consists of 28 racks: 1 Rack = 32 nodeboards, 1 Nodeboard = 16 Compute Nodes.
 
-\note (TMP)
-According to the output of \c llbgstatus command and the sketch provided by
-\em llview (see below) it looks like all 28 racks are installed in the last
-upgrade step, but only 24 racks are active in the moment (in \em llview the
-midplanes of those last four racks are labeled with "do", probably meaning
-"down", while the active ones are labeled with "ru" (i.e. "running"))!
+Each Compute Node (CN) has a 16-core IBM PowerPC A2 running at 1.6 GHz with 16 Gbyte SDRAM-DDR3 of RAM in total or 1 Gbyte per core.
 
+\note Every core can execute four processes/threads,leaving 256 MB of RAM. However, since our applications are memory bound, this is NOT recommended.
 
-Each rack contains 2<sup>5</sup> \b node \b cards,
-each consisting of 2<sup>5</sup> \b compute \b cards (or compute nodes - CN's).
+\note Keep in mind that in comparison to other clusters or current laptop processors, one PowerPC A2-core is slower.
 
-Each CN has a 16-core IBM PowerPC A2 running at 1.6 GHz
-(plus one additional core executing the operating system, plus one spare core),
-with 16 Gbyte SDRAM-DDR3 of RAM in total or 1 Gbyte per core.
-<!-- 24 \times 2^{10} CN's \times 2^{4} Gbyte/CN = 384 Ki Gbyte = 384 \cdot 1000/1024 Tbyte,
-     resp. 1~Gbyte per core and 256~byte per prozess/thread bei maximal 4 processes/threads per core.-->
+<hr>
+\section secJuQueenAccount Creating an account
 
-So, one rack provides 2<sup>5</sup> &times; 2<sup>5</sup> = 2<sup>10</sup> = 1 Ki CN's,
-or 16 Ki (16.384) cores.
-Half a rack (8192 cores) is called a \b midplane.
-
-<!--
-Every core can execute four processes/threads (fourfold Simultaneous MultiThreading, SMT)
-and has a quad floating point unit (FPU) which can execute four double-precision
-Single Instruction Multiple Data (SIMD) Fused Multipy-Add operation (FMA) or two
-complex SIMD FMA per cycle.
-The maximal performance of the processor (node) is 204.8 GFlop/s.
--->
-
-According to the <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUQUEEN/BGQatJSC.html">announcement of Blue Gene/Q at JSC</a>
-it should be necessary for efficiency to use a hybrid parallelization strategy (e.g. MPI/OpenMP or MPI/Pthreads)
-but our results so far indicate that pure MPI parallelization is ok.
-
-One of the four networks is a 5-D torus: Each CN is connected to its six direct neighbors,
-plus "loops" in all three space dimensions,
-plus further connections in "fourth" and "fiveth" dimension ...
-
-- 4D are cabled to other midplanes
-- 5th dimension: extent 2 (stays within nodecard)
-- 6th dimension: core number within a CN.
-
-For some explanation see the description given <a href="http://www.fz-juelich.de/SharedDocs/Downloads/IAS/JSC/EN/JUQUEEN/BGQJSCTorusHennecke.pdf">here</a> (p. 3).
-
-See more on the architecture of \em JuQueen 
-in this
-<a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUQUEEN/BGQatJSC.html">short description</a>
-or, in more detail, in these
-<a href="http://www.fz-juelich.de/SharedDocs/Downloads/IAS/JSC/EN/JUQUEEN/BGQJSCSystemOverviewStephan.pdf">system overview slides</a>.
-
-<!--
-TODO More information about \em JuQueen ... something like "best practice guide"?
--->
-
-\note Note that the login nodes are running under <em>Linux</em> (Red Hat
-Enterprise Linux Server (release 6.3 (Santiago), as of October 2012)),
-while the CNs are running a limited version of Linux called <em>Compute Node Kernel</em> (CNK).
-Therefore it is necessary to <strong>cross-compile</strong> for \em JuQueen (cf. 
-sec. \ref secCMake; sec. \ref secConfiguration_of_ug4_for_JuQueen).
+<ol>
+<li>get the project ID (note: not the project number) from someone like Sebastian, Andreas, Martin or Arne.</li>
+<li>goto here, enter email adress .
+<li>open email, enter the project id
+<li>enter name and stuff
+<li>generate ssh key in terminal by
+\code
+  ssh-keygen -b 2048 -t rsa
+  \endcode
+do NOT leave the passphrase empty!
+</li>
+<li>upload id_rsa.pub. check "no" at will processed personal data... , Leave the DN of the user certificate . check none of the software packages, therefore leave out licence.
+<li>get the mail, print out pdf, sign (2 places), hand over to your professor.
+</ol>
 
 <hr>
 \section secAccess_to_JuQueens_login_nodes Access to JuQueen's Login Nodes
-\em JuQueen is reached via two so called <strong>front-end</strong> or 
-<strong>login nodes</strong> (\c juqueen1 and \c juqueen2) for interactive access 
-and the submission of batch jobs.
+\em JuQueen is reached via so called <strong>front-end</strong> or 
+<strong>login nodes</strong>  for interactive access and the submission of batch jobs.
 
 These login nodes are reached via
 \code
@@ -103,9 +58,12 @@ i.e., for login there is only a generic hostname, <tt>juqueen.fz-juelich.de</tt>
 from which automatically a connection either to \c juqueen1 or \c juqueen2 will 
 be established.
 
-The front-end nodes have an identical environment, but multiple sessions of one 
+\note The front-end nodes have an identical environment, but multiple sessions of one 
 user may reside on different nodes which must be taken into account when 
 killing processes.
+
+\note The login nodes are running under Linux, while the computing nodes (CNs) are running a limited version of Linux called Compute Node Kernel (CNK). 
+Therefore it is necessary to cross-compile for JuQueen. A binary compiled for the compute nodes will not run on the login node and vice versa.
 
 It is necessary to <strong>upload the SSH key</strong> of the machine from 
 which to connect to one of JuQueens login nodes.
@@ -124,63 +82,6 @@ to this machine first, then to \em JuQueen), see \ref secSSHHopping.
 <hr>
 \section secEnvironmentOnJuQueensLoginNodes Working environment on JuQueen's login nodes 
 
-<ul>
-<li>To choose your preferred unix shell comment in the appropriate lines at the end
-of the provided <tt>~/.profile</tt> shell configuration file.
-<br>
-E.g. to activate
-the Bash shell it should look like:
-\code
-...
-# ------------------------------------------------------------------------------
-# Shell switch: for interactive session switch to bash, tcsh or C-Shell
-#               (must be the last action called !)
-# Uncomment preferred USERSHELL from the list and the following if-clause.
-# ------------------------------------------------------------------------------
-USERSHELL=/usr/bin/bash
-#USERSHELL=/usr/bin/tcsh
-#USERSHELL=/usr/bin/csh
-
-if [ -z "$LOADLBATCH" ]        
-then
-   if [ "$DTUSERSESSION" = "" -a "$XDM" = "" ]
-   then                           # ssh or telnet
-      SHELL=$USERSHELL ;  exec $USERSHELL
-   else                           # CDE or XDM 
-      SHELL=$USERSHELL ;  exec $USERSHELL &
-   fi
-fi
-\endcode
-\note Only if you do this your own shell configuration script <tt>~/.bashrc</tt>
-(in case you choose the Bash) will be automatically sourced.
-</li>
-
-<li>
-In your  <tt>~/.bashrc</tt> you can choose whatever setting you like. A useful
-example setting for ug4 usage is to add those lines:
-\code
-...
-#ug4
-export UG4_ROOT=~/ug4/trunk
-source $UG4_ROOT/scripts/shell/ugbash
-export UGSUBMIT_TYPE=Juqueen
-export UGSUBMIT_EMAIL=your.name@gcsc.uni-frankfurt.de
-
-#load some modules
-module load cmake
-module load lapack
-
-# prompt with username@host:path
-PS1="[\u@\h:"'\w]$ '
-...
-\endcode
-Read below to understand the lines.
-</li>
-</ul>
-
-<hr>
-\section secConfiguration_of_ug4_for_JuQueen Configuration of ug4 for JuQueen
-
 Some additional software is only available if the appropriate \em module was
 loaded for the current session via the <tt>module</tt> command.
 A short introduction to the \em module concept and the <tt>module</tt> command
@@ -198,6 +99,37 @@ You can e.g. add
 	module load cmake
 \endcode
 to your <tt>~/.bashrc</tt> file or simply execute it manually.
+
+
+<li>
+to your <tt>~/.bash_profile</tt> file or simply execute it manually. Necessary for ug4 are the modules \em lapack and \em cmake. 
+Together with some ug4 and ugsubmit settings a useful example setting is to add those lines to you <tt>~/.bash_profile</tt>:
+
+\code
+...
+#ug4
+export UG4_ROOT=~/ug4/trunk
+source $UG4_ROOT/scripts/shell/ugbash
+export UGSUBMIT_TYPE=Juqueen
+export UGSUBMIT_EMAIL=your.name@gcsc.uni-frankfurt.de
+
+#load some modules
+module load cmake
+module load lapack
+
+# get a nice prompt with host [full path]
+source $UG4_ROOT/scripts/shell/prompt
+...
+\endcode
+</li>
+</ul>
+
+\warning We suggest to use bash, we had some strange errors with other shells (no job output, $WORK set wrong).
+
+\note For this to work, you need to \ref secBuildUG4Checkout .
+
+<hr>
+\section secConfiguration_of_ug4_for_JuQueen Configuration of ug4 for JuQueen
 
 For \em JuQueen you have to "cross compile" and to do so use a specific 
 \ref secCMake_ToolchainFiles.
@@ -243,624 +175,7 @@ Read \ref pageugsubmit for further instructions on unified \c ugsubmit usage.
 
 \warning 	Make sure to execute all batch jobs on the $WORK partition of Juqueen.
 			Access to $HOME from the compute-nodes is not only slow but will likely
-			cause other troubles, too.
+			cause other troubles, too.			
 
-\subsection secBasic_manual_job_handling Manual Job Handling using LoadLeveler (not recommended)
-
-\note	\c ugsubmit (\ref pageugsubmit) does the job of submitting jobs for you.
-		It is strongly recommendet to use it!
-		The following section is thus only of concern to people who want to submit jobs manually.
-
-For some basic information see the
-<a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUQUEEN/UserInfo/QuickIntroductionJuqueen.html">Quick Introduction</a>
-to job handling and the references therein. Here we only provide some important
-details (everything else should become clear by examining the examples provided):
-
-Batch jobs are submitted with the <strong>\c llsubmit command</strong>.
-The command is typically executed in the directory where the ug4 executable resides ("ug4-bin"):
-\code
-llsubmit <jobscript>
-\endcode
-<a href="http://www2.fz-juelich.de/jsc/jugene/usage/loadl/llsubmit/"><tt>llsubmit</tt></a>
-invokes the <em>IBM Tivoli Workload Scheduler LoadLeveler</em> (TWS <strong>LoadLeveler</strong>),
-which is used as <strong>batch system</strong> on Blue Gene/Q.
-
-The <strong>script</strong> <tt>\<jobscript\></tt> &mdash; also called
-<strong>"LoadLeveler script"</strong> &mdash; is a (plain Unix) shell script file
-and contains the actual job definitions, specified by
-<strong>"LoadLeveler keywords"</strong> (some prominent examples are explained
-below) and a call of the \c runjob command (also introduced below). It can also
-contain standard Unix commands.
-
-
-If <tt>llsubmit</tt> was able to submit the job it outputs a <strong>job name</strong>
-(or <strong>job-id</strong>; e.g. <tt>juqueen1c1.40051.0</tt>) with which a
-specific job can be identified in further commands, e.g. to cancel it (see below).
-
-The <strong>output</strong> of the run (messages from Frontend end Backend  MPI
-&mdash; and the output of \ug4 &mdash; is written to a file in the directory where
-<tt>llsubmit</tt> was executed and whose name begins with the job name you have
-specified in the LoadLeveler script and ends with <tt>\<job-id\>.out</tt>
-(see below how to specify the job name).
-
-<strong>Some details concerning the definition of batch jobs</strong>:
-<ul>
-  <li><strong>Example LoadLeveler scripts</strong> used with \ug4 can be found in
-  \ug4's sub directory <tt>scripts/shell/</tt>:
-
-  - <tt>ll_scale_gmg_bgq.x</tt> contains job definitions for a scalability study
-    from 4 to 64 Ki PE (2-D Laplace, solved with geometric multigrid).
-<!--
-  - <tt>ll_template.x</tt> also contains some documentation of LoadLeveler and
-    \c runjob parameters. -- maybe!
--->
-  (All <tt>runjob</tt> commands therein are commented out &mdash; to perform a
-  specific run remove its comment sign.)
-
-  <strong>Hint</strong>:
-  It might be helpful for the understanding of the following details to open
-  an example LoadLeveler script in your favorite text editor!
-
-  If you want to use one of these scripts copy it to your "ug4-bin" directory.
-  Please change at least the value of the  <tt>notify_user</tt> keyword (see
-  below) before submitting a job ...
-  Furthermore it might be good to check (and possibly change) the values of
-  some keywords (especially \c bg_size; search for the string "TO CHECK")!
-
-<!--
-  There are also jobscript examples provided by JSC available in directory ... not in the moment (02112012; but there were some ...)!
--->
-
-  See also this 
-  <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUQUEEN/UserInfo/LoadLeveler.html">batch job documentation</a>,
-  and especially the
-  <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUQUEEN/UserInfo/LoadLevelerSamples.html">Job File Samples</a>
-  for more details.
-  </li>
-
-  <li><strong>LoadLeveler keywords</strong> are strings embedded in comments 
-    beginning with the characters <tt>"# @"</tt>.
-    <br>
-    These keywords inform the LoadLeveler of the resources required for the job
-    to run, the job environment, the name of output files, notification of the
-    user about job result etc.
-
-    \note Please note that keywords <strong>must not be followed by comments</strong>
-    in the same line! 
-
-    A few important keywords:
-    <ul>
-      <li><tt>job_type = bluegene</tt> specifies that the job is running on 
-        \em JuQueen's CNs.
-      </li>
-      <li><tt>job_name</tt> specifies the name of the job, which will become
-        part of the name of the output file (see above).
-      </li>
-      <li><tt>bg_size</tt> specifies the size of the BG/Q partition reserved 
-        for the job in <strong>number of compute nodes</strong>.
-
-        That is, for <tt>\<NP\></tt> MPI processes, <tt>bg_size</tt> must be
-        &ge; <tt>(\<NP\>)/16</tt> (since one CN has 16 cores).
-
-        From the documentation, section "Blue Gene specific keywords" in this
-        <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUQUEEN/UserInfo/LoadLeveler.html">batch job documentation</a>:
-
-        Blue Gene/Q only allows blocks including 32, 64, 128, 256 and multiples
-        of 512 compute nodes.
-        <br>
-        Thus e.g. \c bg_size of 1 specifies a block of size 32 and \c bg_size
-        of 129 requests a partition of size 256.
-
-        \note Please note that the actual number of MPI processes of a job is (as usual)
-        specified by a parameter of the \c runjob command described below.
-        <br>
-        But since the \c bg_size is relevant for charging of computing time it
-        is wise to keep its value as small as possible.
-
-        Alternatively the size of a job can be defined by the <tt>bg_shape</tt>
-        keyword (see same source for details).
-
-        See comments in the example LoadLeveler scripts for proper settings.
-      </li>
-
-      <li><tt>bg_connectivity</tt> specifies the "connection type", i.e. the 
-        <strong>network topology</strong> used by a job.
-
-        Connection type can be one in <tt>[TORUS| MESH | EITHER | \<Xa Xb Xc Xd\>]</tt>.
-
-        The specification for \c Xy is equal to Torus or Mesh, specified for the
-        \c y dimension. Default is \c MESH.
-<!--
-        <a href="http://www.fz-juelich.de/SharedDocs/Downloads/IAS/JSC/EN/JUQUEEN/BGQJSCAccessDocter.pdf">here</a> (p. 18):
-        <tt>Xa,Xb,Xc,Xd\></tt> &mdash; torus or Mesh for each dimension
--->
-
-        <tt>bg_connection = TORUS</tt> &mdash; utilising the 5-D torus network 
-        &mdash; is the preferred topology for our jobs.
-        <!--On JuGene: For TORUS <tt>bg_size</tt> (see above) must be >= 512. - is there also such a limit on JuQueen? -->
-
-        See also comments and usage in the example LoadLeveler scripts for proper
-        settings.
-
-        \note The connection type is on JuQueen described by the keyword
-        \c bg_connectivity instead of \c bg_connection as it was on JuGene!
-      </li>
-    </ul>
-
-    A nice introduction to LoadLeveler command file syntax is given e.g. 
-    <a href="https://docs.loni.org/wiki/LoadLeveler_Command_File_Syntax">here</a>
-    (please keep in mind that, to the authors knowledge, this documentation is
-    \em not (especially) about Blue Gene machines).
-  </li>
-
-  <li><strong>Jobs are actually started</strong> by the \c runjob command
-  (this replaces the \c mpirun command used on JuGene).
-
-<strong>Example</strong>:
-\code
-runjob --np 64 --ranks-per-node 16 --mapping ABCDET --verbose 3 : ./ugshell -ex ../apps/conv_diff/laplace.lua
-\endcode
-This starts a job with 64 MPI processes, running on 4 CN's, where on each CN one process per core is executed.
-
-  Some explanations to te \c runjob parameters used above:
-  <ul>
-  <li>The \c runjob parameter <tt>--np \<n\></tt> specifies the number <tt>\<n\></tt>
-      of MPI processes of the entire job.
-  </li>
-  <li>The \c runjob parameter <tt>--ranks-per-node \<r\></tt> specifies the
-      number of ranks per CN:
-      <tt>\<r\></tt> in <tt>{1, 2, 4, 8, 16, 32, 64}</tt> (default: <tt>\<r\> = 1</tt>).
-
-      Background: Each of the 16 cores of a CN is four-way hardware threaded
-      => 64 process/threads per CN possible.
-      <br>
-      Please note that in this case each process/thread has only 16 Gbyte/64 = 256 Mbyte
-      available.
-
-      There are three "execution modes":
-      - 64 MPI tasks -- 1 Thread per task.
-      - 2, 4, 8, 16, 32 MPI tasks &mdash; 32, 16, 8, 4, 2 Threads per task.
-      - 1 MPI task -- 64 Threads per task.
-
-      See e.g.
-      <a href="http://www.fz-juelich.de/SharedDocs/Downloads/IAS/JSC/EN/JUQUEEN/BGQJSCOverviewVezolle.pdf">here</a> (p. 10) and
-      <a href="http://www.fz-juelich.de/SharedDocs/Downloads/IAS/JSC/EN/JUQUEEN/BGQJSCSystemOverviewStephan.pdf">here</a> (p. 20).
-  </li>
-  </li>
-  <li>The \c runjob parameter <tt>--exe \<executable\></tt> specifies the
-      executable.
-  </li>
-  <li>The \c runjob parameter <tt>--args</tt> specifies the arguments of
-      the executable (and not of the \c runjob command!)
-
-NOTE: There is a different syntax for the command used in the example above,
-      where the executable and its arguments are separated by a colon (":"),
-      and where \em no <tt>--exe</tt> and \em no <tt>--args</tt> parameter has to be
-      specified! This seems to be the preferred way!
-
-  <li>The \c runjob parameter <tt>-mapping</tt> specifies an order in which the
-    MPI processes are mapped to the CNs / the cores of the BG/Q partition
-    reserved for the run.
-
-    This order can either be specified by a permutation of the letters
-    A, B, C, D, E and T \em or the name of a mapfile in which the distribution
-    of the tasks is specified, <tt>-mapping {&lt;mapping&gt;|&lt;mapfile&gt;}</tt>:
-    <ul>
-      <li><tt>\<mapping\></tt> is a permutation of A, B, C, D, E and T, where
-        A, B, C, D, E are the torus coordinates of the CN's in the partition and
-        T is the number of the cores within each node (T=0,1,2,...,15).
-        The standard mapping on \em JuQueen is to place the tasks in "ABCDET"
-        order &mdash; T increments first, then E (which can become maximal 2 on BG/Q) etc.
-      </li>
-      <li><tt>\<mapfile\></tt> is the name of a mapfile in which the 
-        distribution of the tasks is specified:
-
-        It contains a line of <tt>A B C D E T</tt> coordinates for each MPI process.
-      </li>
-    </ul>
-<!--
-TODO: Some notes about "topology aware placing of MPI processes" might become relevant in the future.
--->
-  </li>
-  <li>The \c runjob parameter <tt>--verbose \<level\></tt> specifies the
-    "verbosity level" of the job output.
-    The lowest level is 0 or "OFF" (or "O"), the highest level is 7 or "ALL (or "A").
-    Level 3 or "WARN" (or "W") seems to be a good compromise between "briefness"
-    and "ausschweifenden" system informations.
-
-    Please note that a verbosity level higher than 3 tends to mix up system output
-    and output produced by \ug4 itself which looks really messy (but might give
-    sometime helpful debug informations)
-<!--
-    In some more detail (from runjob's man page):
-        - OFF / O / 0
-        - FATAL / F / 1
-        - ERROR / E / 2
-        - WARN / W / 3
-        - INFO / I / 4
-        - DEBUG / D / 5
-        - TRACE / T / 6
-        - ALL / A / 7
--->
-  </li>
-</ul>
-
-
-\subsubsection secFurther_LoadLeveler_Commands Further LoadLeveler Commands
-<ul>
-  <li>To <strong>display the status of jobs</strong> in the queue you can use the \c llq command.
-    This prints the job names ("Id's"), owners of jobs, submission times etc. and where it is running (or not).
-
-    <ul>
-      <li> To display the status of jobs of a specified user use
-    \code
-llq [-u  <userid>]
-    \endcode
-
-    This displays all jobs in the queue submitted by the user with id <tt>\<userid\></tt>.
-    Example (only one job in the queue, not running):
-\code
-llq -u hfu023
-Id                       Owner      Submitted   ST PRI Class        Running On 
------------------------- ---------- ----------- -- --- ------------ -----------
-juqueen1c1.40051.0       hfu023     10/25 17:01 I  50  n004                    
-\endcode
-  </li>
-
-    <li> The <strong>estimated start time</strong> of a job can be determined by
-    <tt>llq -s \<jobid\></tt>
-    (cf. <a href="https://docs.loni.org/wiki/Useful_LoadLeveler_Commands">this intro</a>
-    (already cited above)), where <tt>\<job-id\></tt> was determined by the
-    previous command, e.g. for the job <tt>juqueen1c1.40051.0</tt>:
-    \code
-llq -s juqueen1c1.40051.0
-
-===== EVALUATIONS FOR JOB STEP juqueen1c1.zam.kfa-juelich.de.40051.0 =====
-
-Step state                       : Idle
-Considered for scheduling at     : Fri 02 Nov 2012 21:51:56 CET
-
-Minimum initiators needed: 1 per machine, 1 total.
-Machine juqueen1c1.zam.kfa-juelich.de does not support job class n004.
-3 machines do not support job class n004.
-No machine can be used to run this job step.
-    \endcode
-  </li>
-  </ul>
-
-  <li>To <strong>cancel a job</strong> you have to use the \c llcancel command.
-  The job to be cancelled has to be specified by its <tt>\<job-id\></tt>
-  (as displayed by <tt>llq</tt>):
-    \code
-llcancel <job-id>
-    \endcode
-  </li>
-
-  <li>Informations about running and queued jobs etc. can also be displayed by the graphical tool \em llview
-  (see \ref secGettingStatusInfosOnJuQueen).
-  </li>
-</ul>
-
-<hr>
-\subsection secGettingStatusInfosOnJuQueen Getting status information on JuQueen
-<ul>
-  <li><strong>Graphical monitoring tool \em llview</strong>:
-    <br>
-    \em llview has a graphical X11 based user interface and provides a
-    <strong>schematical sketch</strong> of the machine
-    It displays system status, running jobs,
-    scheduling and prediction of the start time of jobs.
-    The latter can also be achieved by the \c llq command, see above).
-<!--
-    \todo Get some experience with \c llview and maybe describe its features in a bit more detail!
--->
-    See the JuGene documentation <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/UserInfo/llview.html"><tt>llview</tt></a>
-  </li>
-
-  <li><strong>Status of the whole machine</strong> is displayed by the \c llbgstatus command:
-\code
-llbgstatus  
-Name         Midplanes       ComputeNodes    InQ Run
-BGQ          2x7x2x2         28672           975   0
-\endcode
-See <tt>man llbgstatus</tt> for more information.
-  </li>
-
-  <li><strong>Status information about your account</strong>: Querying <strong>Quota Status</strong>:
-    \code
-q_cpuquota <options>
-    \endcode
-
-    Useful options: 
-    \arg <tt>-?</tt>                   usage information and all options .
-    \arg <tt>-j &lt;jobstepid&gt;</tt> for a single job.
-    \arg <tt>-t &lt;time&gt;</tt>      for all jobs in the specified time, e.g.
-      <tt>q_cpuquota -t 23.11.2011 01.12.2011</tt>.
-    \arg <tt>-d &lt;number&gt;</tt> for last number of days (positive integer).
-  </li>
-</ul>
-
-
-<hr>
-\subsection secVery_large_jobs_on_JuQueen Very large Jobs on JuQueen
-<ul>
-  <li>Use \ref secStaticBuild . So, for <strong>very large jobs</strong> be sure to have \ug4 built as a 
-    <strong>completely static executable</strong> (c.f. 
-    \ref secConfiguration_of_ug4_for_JuQueen) since otherwise loading of the 
-    shared libraries consumes too much wall time!
-  </li>
-  <li><strong>Very large jobs</strong> (e.g. jobs larger than 32 racks) 
-    normally run on <b>Tuesday</b> only.
-
-    Exceptions to this rule are possible in urgent cases (please contact the SC 
-    Support under <a href="sc@fz-juelich.de">sc@fz-juelich.de</a>).
-  </li>
-</ul>
-
-<hr>
-\subsection secAvailableFileSystems Available file systems on JuQueen
-See
-<a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUDGE/Userinfo/Access_Environment.html">this</a>
-JSC documentation, section "Other filesystems", for some details.
-<!--
-echo $HOME
-/homec/hfu02/hfu023
-
-echo $ARCH
-
-echo $WORK
-/work/hfu02/hfu023
--->
-
-<hr>
-\subsection secDebuggingAndCorefileAnalysisOnJuQueen Debugging and corefile analysis on JuQueen
-
-As usual you need to compile \ug4 in "debug mode" (i.e. configured with
-<tt>cmake -DDEBUG=ON ..</tt>; cf. \ref secBuildUG4RunCmake) so that the
-necessary debugging information is available.
-
-\subsubsection secDebuggingOnJuQueen Debugging on JuQueen
-
-Since November 2012 a parallel debugger, \em TotalView, <!-- and \em DDT are -->
-is (eventually) available on \em JuQueen.
-
-
-<strong>Basic usage of \em TotalView</strong>:
-
-\em TotalView uses X11 for its graphical user interface. Be sure to log in with an X window
-forwarding enabled. This could mean using the <tt>-X</tt> or <tt>-Y</tt> option
-to <tt>ssh</tt> (on \em all ssh connections if you aren't connected directly
-(cf. ref secSSHHopping)).
-
-<ol>
-<li> Load the appropriate module:
-     \code
-module load UNITE totalview
-     \endcode
-</li>
-
-(UNITE &mdash; "UNIform Integrated Tool Environment" for debugging and performance analysis",
-see <a href="http://apps.fz-juelich.de/unite/index.php/Main_Page">here</a>.)
-
-<li>Use the \c lltv command to start \em TotalView (cf.\ output of  <tt>module help totalview</tt>):
-\code
-lltv -n <numNodes> : -default_parallel_attach_subset=<rank-range> runjob -a --exe <executable> -np <numProcs> --ranks-per-node <number>
-\endcode
-In the \em Totalview windows appearing as soon as the job has started specify/control
-your parameters, then run your job, as illustrated in the following example.
-
-<!-- parameters '-p' for specifying the number of processes as mentioned in the FZJ docu may not work - not yet tested! -->
-
-This will start the executable <tt>\<executable\></tt> to be debugged on <tt>\<numNodes\></tt> nodes
-utilising <tt>\<numProcs\></tt> processes, attaching \em TotalView to ranks <tt>\<rank-range\></tt>
-(a space separated list of ranks, see documentation).
-</ol>
-
-
-<strong>Example session</strong>:
-<ol>
-<li> Start the debugger:
-\code
-lltv -n 1 : -default_parallel_attach_subset=0-15 runjob -a --np 16 --ranks-per-node 16 --mapping ABCDET --verbose 3 : ./ugshell -ex scaling_tests/modular_scalability_test.lua -dim 2 -grid unit_square_01/unit_square_01_quads_8x8.ugx -lsMaxIter 100 -numPreRefs 3 -lsType feti -ds famg -ns famg -numPPSD 4 -numRefs 4
-\endcode
-
-I.e., to get the corresponding interactive debug job one can (to the authors
-experience so far) just add the \c runjob line of a batch job definition
-(as written in a LoadLeveler script; see above) after the colon of the \c lltv
-command <b>PLUS add the option \c -a to the \c runjob command</b>!
-<!-- \todo In der \c runjob man-page steht nix zu einem Parameter \c -a! -->
-
-The system answers with something like
-\code
-Creating LoadLeveler Job
-Submiting LoadLeveler Interactive Job for TotalView
- Wait for job juqueen1c1.49410.0 to be started:......
-\endcode
-
-Additionally \em TotalView displays three windows (and a few temporary windows)
-after the job has started:
-- a shell-like window titled "totalview" (with black background, which will later
-  display the output of the executable to be debugged),
-- the "root window", titled "TotalView <Version number>" (which will contain the
-  list of attached processes), and (typically a bit later)
-- the "process window", first titled "ProcessWindow", the TotalView GUI (which
-  title later changes to "runjob" and then to something like "runjob<ugshell>.3"
-  in our case), and
-  the (temporary) "startup-parameter" window, titled "Startup Parameters".
-
-Depending on system load / network traffic you will experience some waiting time.
-</li>
-
-<li>In the "startup-parameter" window enter at least your \ug4 arguments (or
-  control your arguments given on the command line) in the "Arguments" tag.
-
-  According to the message in the "Parallel" tag do not change anything here.
-  When finished with your input click "OK".
-</li>
-
-<li>In the TotalView GUI press the "GO" button first.
-
-  Another (dialog) window appears with the question
-  "Process runjob is a parallel job. Do you want to stop the job now?"
-  which one has to answer with "YES" (which is not really intuitive ...).
-
-  Another small window appears showing a progress bar while starting the job
-  ("Loading symbos from shell ...").
-</li>
-
-
-<li>In the TotalView GUI press the "GO" button again to run your executable.
-  Now you can begin your debugging work.
-
-</li>
-</ol>
-\todo Maybe some notes about available "Tools" like the "call graph" would be nice.
-For the moment try yourself and/or see the TotalView docu (links below).
-
-<strong>Additional hints</strong>
-<ul>
-<li>As for batch jobs it is possible to shorten a command line as the one in the example by using an environment variable,
-e.g.
-\code
-UGARGS2D="-ex scaling_tests/modular_scalability_test.lua -dim 2 -grid unit_square_01/unit_square_01_quads_8x8.ugx -lsMaxIter 100 -numPreRefs 3 -lsType feti -ds famg -ns famg -numPPSD 4"
-lltv -n 1 : -default_parallel_attach_subset=0-15 runjob -a --np 16 --ranks-per-node 16 --mapping ABCDET --verbose 3 : ./ugshell $UGARGS2D -numRefs 4
-\endcode
-</li>
-
-<li>The parameter <tt>-default_parallel_attach_subset=0-15</tt> is optional if one want to attach to all MPI processes.
-</li>
-
-<li>TotalView startup actions can be defined on a per user basis in <tt>~/.totalview</tt>.
-</li>
-</ul>
-
-Additional information for debugging with \em TotalView on JuQueen might be
-found in
-<a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUQUEEN/UserInfo/ParallelDebugging.html">this FZJ short introduction to parallel debugging</a>.
-
-For detailed information see
-- See <code>${TV_ROOT}/doc/pdf/</code> &mdash; this is something like
-  <code>/usr/local/UNITE/packages/totalview/toolworks/totalview.8.11.0-0/doc/pdf/</code>
-  (December 2012).
-- http://www.roguewave.com/products/totalview.aspx
-
-
-<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<strong>Basic usage of \em DDT</strong>:
-\note
-In the moment (December 2012) \em DDT is \em not available on JuQueen! So, in the
-moment the following instructions about \em DDT (tested on JuGene only!) is meant
-as a "placeholder".
-
-DDT uses X11 for its graphical user interface. Be sure to log in with an X window
-forwarding enabled. This could mean using the <tt>-X</tt> or <tt>-Y</tt> option
-to <tt>ssh</tt>.
-
-<ol>
-<li> Load the appropriate module:
-     \code
-module load UNITE ddt
-     \endcode
-</li>
-<li>Start DDT by typing <tt>ddt</tt>.</li>
-<li>A "DDT" logo appears, wait a bit (or click on the logo) to get the welcome dialog box.</li>
-<li>Click on "Run and Debug a Program" in the "Welcome" dialog box</li>
-<li>Enter your \ug4 parameters (don't forget to enclose them by quotation marks),
-    numbers of processes to run,
-    a (hopefully) appropriate wall time to do all your debugging work
-    (after "Queue submission Parameters"),
-    "MPIRun parameters" (e.g. <tt>-mode VN -mapfile TXYZ -verbose 2</tt>) in the
-    fields provided after clicking "Advanced\>\>" etc.,
-    then click the "Submit" button.
-
-    Wait until the job is launched (you might exercise some patience), DDT will
-    catch the focus automatically when resources are available.</li>
-
-The rest should be quite self-explaining.
-
-One can also immediately specify the application to debug and also its parameters
-by typing <tt>ddt [\<your app\> \<parameters\>]</tt>.
-
-<!--
-TODO: As the textfield "Number of nodes (1 procs per node)" says, choosing e.g. 4 nodes
-brings up a job with only 4 MPI processes - is it also possible to get 4 processes per
-node, as we otherwise get using execution mode "VN" (<tt>-mode VN</tt>)?
--->
-</ol>
-
-<strong>Example \em DDT session</strong> (directly specifying the executable to
-debug on the command line):
-\code
-ddt
-\endcode
-
-Specification of executable and parameters should also work &mdash;
-\code
-ddt ./ugshell_debug -ex ../apps/scaling_tests/modular_scalability_test.lua -numRefs  7
-\endcode
-
-The mpirun parameters, e.g. <tt>-mapfile TXYZ -verbose 2</tt> can be placed in
-the fields accessible after clicking on the "Advanced" button.
-
-
-<!--
-\todo Maybe add some infos about <tt>gdbserver</tt> etc.
--->
-
-\subsubsection secAnalysOfCorefiles Analysis of corefiles with the Coreprocessor tool
-If a job crashes normally one or more corefiles are created.
-Corefiles are plain text files (stored in the "Parallel Tools Consortium Lightweight Corefile Format")
-and named like <tt>core.0</tt>, <tt>core.1</tt>, <tt>core.2</tt>, ...
-
-You can analyze those corefiles so that you hopefully are able to find the cause
-of the crash. The appropriate way to accomplish this task on JuQueen is using a
-<strong>tool called <tt>coreprocessor.pl</tt></strong>. This is a perl script which provides a X11
-based GUI.
-
-<strong>Usage</strong>:
-<ol>
-<li> Go into your "ug4-bin" directory, then start \c coreprocessor:
-\code
-/bgsys/drivers/ppcfloor/coreprocessor/bin/coreprocessor.pl
-\endcode
-
-<li> Load corefiles: "Select File - Load Core".</li>
-<li> Specify the executable with which the corefile(s) was (were) produced.</li>
-<li> From the drop down list "Select Grouping Mode" select e.g. "Stack Traceback (detailed)".
-
-     As a result the call stack (or "(back) trace") which describes the call order
-     of all active methods/functions is listed in the main window.
-     Each line contains the name and parameters of the method called.
-     When clicking/marking a line (a frame) of this trace, the filename and the
-     line number of the call is shown at the bottom of the window.
-     </li>
-<li> Optional: Save the trace in a file for later analysis.</li>
-</ol>
-
-More convenient is to specify the location of the corefiles and the executable
-directly on the commandline (after loading proceed with step 3 from above):
-\code
-/bgsys/drivers/ppcfloor/coreprocessor/bin/coreprocessor.pl -c=. -b=ugshell
-\endcode
-<tt>-b=ugshell</tt> specifies the executable ("binary"), i.e. <tt>ugshell</tt>,
-and
-<tt>-c=.</tt> means load all corefiles in working directory.
-
-For more usage information execute
-\code
-/bgsys/drivers/ppcfloor/coreprocessor/bin/coreprocessor.pl -h
-\endcode
-
-Maybe you can find some additional information in this <a href="http://www.alcf.anl.gov/resource-guides/coreprocessor">ALCF documentation</a>.
-<!-- 
-
-Other tools:
-- \c addr2line. Standard Unix tool for translation of an address from a corefile into file names and line number. Debug mode necessary.
-\note: For an executable running on BlueQueen CN's you need the BGQ-Version!
-
-Example:
-\code
-/bgsys/drivers/ppcfloor/gnu-linux/bin/powerpc64-bgq-linux-addr2line -e ugshell  0x00000000042e35a4
-/homec/hfu02/hfu023/ug4/ugbase/lib_disc/spatial_disc/user_data/data_evaluator.cpp:232  
-\endcode
+For manual job handling (not recommended, please modify ugsubmit for special needs!) see \ref secBasic_manual_job_handling.
 */
