@@ -22,6 +22,7 @@ Partitioner_DynamicBisection() :
 	m_staticPartitioning(false),
 	m_tolerance(0.99),
 	m_splitImproveIterations(10),
+	m_lastSplitDim(-1),
 	m_highestRedistLevel(-1)
 {
 	m_processHierarchy = SPProcessHierarchy(new ProcessHierarchy);
@@ -533,8 +534,10 @@ perform_bisection_new(int numTargetProcs, int minLvl, int maxLvl, int partitionL
 
 			root.firstProc = 0;
 			root.numTargetProcs = numTargetProcs;
-
-			control_bisection(sh, treeNodes, aWeight, maxChildWeight, com, 0);
+			int splitDim = -1;
+			if(m_lastSplitDim > -2)
+				splitDim = (m_lastSplitDim + 1) % dim;
+			control_bisection(sh, treeNodes, aWeight, maxChildWeight, com, splitDim);
 		}
 
 		if(markedElemsOnly)
@@ -640,6 +643,8 @@ control_bisection(ISubsetHandler& partitionSH, std::vector<TreeNode>& treeNodes,
 		return;
 
 //	perform the actual bisection
+	if(splitDim >= 0)
+		m_lastSplitDim = splitDim;
 	bisect_elements(childNodes, treeNodes, aWeight, maxChildWeight, com, 0, splitDim);
 
 //	perform the recursion

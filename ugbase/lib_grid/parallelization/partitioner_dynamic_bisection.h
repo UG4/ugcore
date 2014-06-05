@@ -208,6 +208,7 @@ class Partitioner_DynamicBisection : public IPartitioner{
 
 		number m_tolerance;
 		size_t m_splitImproveIterations;
+		int	   m_lastSplitDim;// set to -2 to enable auto-split-dim based on largest bbox axis
 
 	//	the following parameters are only used if the partitioner operates in
 	//	static mode
