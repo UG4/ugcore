@@ -45,7 +45,6 @@ namespace ug
 namespace script
 {
 
-
 #define PL_COULDNT_FIND -2
 #define PL_COULDNT_READ -1
 
@@ -221,6 +220,7 @@ lua_State* GetDefaultLuaState()
 
 	//	make class name available in lua script
 		lua_register(theLuaState, "ug_class_name", UGGetClassName);
+		lua_register(theLuaState, "ug_class_group", UGGetClassGroup);
 
 	//	create lua bindings for registered functions and objects
 		ug::bridge::lua::CreateBindings_LUA(theLuaState, *g_pRegistry);
@@ -390,6 +390,30 @@ int UGGetClassName(lua_State *L)
 	return 1;
 }
 
+int UGGetClassGroup(lua_State *L)
+{
+	if(lua_getmetatable(L, -1) != 0)
+	{
+		lua_pushstring(L, "class_name_node");
+		lua_rawget(L, -2);
+		const ug::bridge::ClassNameNode* classNameNode = (const ug::bridge::ClassNameNode*) lua_touserdata(L, -1);
+		lua_pop(L, 2);
+
+		if(classNameNode)
+		{
+			const bridge::Registry &reg = bridge::GetUGRegistry();
+			const bridge::IExportedClass *c = reg.get_class(classNameNode->name());
+			lua_pushstring(L, c->group().c_str());
+			return 1;
+		}
+		else UG_THROW("In UGGetClassGroup: Something wrong with ClassNameNode.");
+	}
+
+	lua_pushstring(L, "");
+	return 1;
+}
+
+
 int UGIsBaseClass(lua_State *L)
 {
 	const char* derivClass = lua_tostring(L, -1);
@@ -445,8 +469,8 @@ void SetLuaUGArgs(lua_State* L, int argc, char* argv[], int firstParamIndex, int
 
 	lua_newtable(L);
 	int ugargc=0;
-	for(int i = firstParamIndex; i < argc; ++i){
-		if(i == iNoQuit) continue;
+	for(int i = 0; i < argc; ++i){
+		//if(i == iNoQuit) continue;
 	//	push the index to the table
 		lua_pushnumber(L, ++ugargc);
 	//	push the value to the table

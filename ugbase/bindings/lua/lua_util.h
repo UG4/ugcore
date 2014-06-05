@@ -116,6 +116,9 @@ UG_API int UGAlgebraCompiled(lua_State *L);
 /// Returns type of a userdata as string
 UG_API int UGGetClassName(lua_State *L);
 
+/// Returns classgroup of a userdata as string
+int UGGetClassGroup(lua_State *L);
+
 UG_API void SetLuaUGArgs(lua_State* L, int argc, char* argv[], int firstParamIndex, int iNoQuit);
 
 /**
