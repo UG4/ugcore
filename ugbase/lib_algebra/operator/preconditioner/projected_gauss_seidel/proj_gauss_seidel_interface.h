@@ -75,11 +75,11 @@ class IProjGaussSeidel:
 
 
 	/// clone constructor
-		IProjGaussSeidel( IProjGaussSeidel<TDomain, TAlgebra> *parent )
+		IProjGaussSeidel( const IProjGaussSeidel<TDomain, TAlgebra> &parent )
 			: base_type(parent)
 		{
-			m_spvObsConstraint = parent->m_spvObsConstraint;
-			m_bObsCons = parent->m_bObsCons;
+			m_spvObsConstraint = parent.m_spvObsConstraint;
+			m_bObsCons = parent.m_bObsCons;
 		}
 
 	///	adds the obstacle constraint function c(u)

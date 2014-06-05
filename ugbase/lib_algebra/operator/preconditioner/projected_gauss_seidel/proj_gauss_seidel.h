@@ -71,15 +71,15 @@ class ProjGaussSeidel:
 
 	public:
 		ProjGaussSeidel() : base_type() {}
-	/// clone constructor
-		ProjGaussSeidel( ProjGaussSeidel<TDomain, TAlgebra> *parent )
+	/// copy constructor
+		ProjGaussSeidel( const ProjGaussSeidel<TDomain, TAlgebra> &parent )
 			: base_type(parent)
 		{	}
 
 	///	Clone
 		virtual SmartPtr<ILinearIterator<vector_type> > clone()
 		{
-			return make_sp(new ProjGaussSeidel<TDomain, algebra_type>(this));
+			return make_sp(new ProjGaussSeidel<TDomain, algebra_type>(*this));
 		}
 
 	///	computes a new correction c = B*d and projects on the underlying constraint
@@ -110,14 +110,14 @@ class ProjBackwardGaussSeidel:
 	public:
 		ProjBackwardGaussSeidel() : base_type() {}
 	/// clone constructor
-		ProjBackwardGaussSeidel( ProjBackwardGaussSeidel<TDomain, TAlgebra> *parent )
+		ProjBackwardGaussSeidel( const ProjBackwardGaussSeidel<TDomain, TAlgebra> &parent )
 			: base_type(parent)
 		{	}
 
 	///	Clone
 		virtual SmartPtr<ILinearIterator<vector_type> > clone()
 		{
-			return make_sp(new ProjBackwardGaussSeidel<TDomain, algebra_type>(this));
+			return make_sp(new ProjBackwardGaussSeidel<TDomain, algebra_type>(*this));
 		}
 
 
@@ -150,15 +150,15 @@ class ProjSymmetricGaussSeidel:
 	public:
 		ProjSymmetricGaussSeidel() : base_type() {}
 
-	/// clone constructor
-		ProjSymmetricGaussSeidel( ProjSymmetricGaussSeidel<TDomain, TAlgebra> *parent )
+	/// copy constructor
+		ProjSymmetricGaussSeidel( const ProjSymmetricGaussSeidel<TDomain, TAlgebra> &parent )
 			: base_type(parent)
 		{	}
 
 	///	Clone
 		virtual SmartPtr<ILinearIterator<vector_type> > clone()
 		{
-			return make_sp(new ProjSymmetricGaussSeidel<TDomain, algebra_type>(this));
+			return make_sp(new ProjSymmetricGaussSeidel<TDomain, algebra_type>(*this));
 		}
 
 	///	computes a new correction c = B*d and projects on the underlying constraint
