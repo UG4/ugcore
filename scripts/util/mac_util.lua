@@ -6,6 +6,7 @@
 --! @param name a std filename (don't use special characters or whitespace)
 --! @param sizeMB the size of the RAM Disk in MB 
 function util.createMacRAMDisk(name, sizeMB)
+	ug_assert(GetOperatingSystem() == "apple", "only on apple systems")
 	if ProcRank() == 0 then
 		os.execute("if [ ! -e \"/Volumes/"..name.."\" ]; then\n"..
 			"echo \"Creating ug4 RAM Disk with "..sizeMB.." MB..\"\n".. 
