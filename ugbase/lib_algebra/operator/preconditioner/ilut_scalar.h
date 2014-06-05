@@ -50,17 +50,17 @@ class ILUTScalarPreconditioner : public IPreconditioner<TAlgebra>
 		{};
 
 	/// clone constructor
-		ILUTScalarPreconditioner( ILUTScalarPreconditioner<TAlgebra> *parent )
+		ILUTScalarPreconditioner( const ILUTScalarPreconditioner<TAlgebra> &parent )
 			: base_type(parent)
 		{
-			set_info(parent->m_info);
-			set_sort(parent->m_bSort);
+			set_info(parent.m_info);
+			set_sort(parent.m_bSort);
 		}
 
 	///	Clone
 		virtual SmartPtr<ILinearIterator<vector_type> > clone()
 		{
-			return make_sp(new ILUTScalarPreconditioner<algebra_type>(this));
+			return make_sp(new ILUTScalarPreconditioner<algebra_type>(*this));
 		}
 
 	// 	Destructor

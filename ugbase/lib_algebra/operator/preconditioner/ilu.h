@@ -308,15 +308,15 @@ class ILU : public IPreconditioner<TAlgebra>
 		ILU(double beta=0.0) : m_beta(beta), m_bSort(false) {};
 
 	/// clone constructor
-		ILU( ILU<TAlgebra> *parent )
+		ILU( const ILU<TAlgebra> &parent )
 			: base_type(parent),
-			  m_beta(parent->m_beta), m_bSort(parent->m_bSort)
+			  m_beta(parent.m_beta), m_bSort(parent.m_bSort)
 		{	}
 
 	///	Clone
 		virtual SmartPtr<ILinearIterator<vector_type> > clone()
 		{
-			return make_sp(new ILU<algebra_type>(this));
+			return make_sp(new ILU<algebra_type>(*this));
 		}
 
 	///	Destructor
