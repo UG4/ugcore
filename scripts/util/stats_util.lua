@@ -96,6 +96,23 @@ function util.printStats(stats)
 	end	
 end
 
+
+function util.statsUtilGetHeader(header, tab)
+	if header == nil then
+		local h = {}
+		header = {}		
+		for i, v in pairs(tab) do
+			for j, col in pairs(v) do
+				if h[j] == nil then
+					h[j] = j		
+					table.insert(header, j)
+				end		 
+			end
+		end
+	end
+	return header
+end
+
 --[[
 A={}
 A.col1 = 1
@@ -106,7 +123,7 @@ B={}
 B.col1 = 5
 B.col3 = 6
 C = {col1="hey", col4="ho"}
-util.printFormattedTable({A, B, C}, {"col1", "col3"}, "c", true)
+util.printFormattedTable({A, B, C}, true, "c", {"col1", "col3"})
 output:
 # | col1 | col3 |
 -----------------
@@ -118,15 +135,19 @@ output:
 --! util.printFormattedTable
 --! prints stats to the console
 --! @param tab		table in the form t={{["colA"
---! @param header	colums to be printed, like {"colA", "colB"}
+--! @param bNumbers	if true, print a colum with the key of the table (default false)
 --! @param type		type of column padding ("r", "l" or "c", default "l")
---! @param bNumbers	if true, print a colum with the number of the table (default false)
-function util.printFormattedTable(tab, header, type, bNumbers)
+--! @param header	colums to be printed, like {"colA", "colB"}. if nil, all.
+
+function util.printFormattedTable(tab, bNumbers, type, header)
 	local length = {}
 	local j, col, i, v
+
+	header = util.statsUtilGetHeader(header, tab)
+	
 	for j, col in ipairs(header) do
 		length[col] = string.len(tostring(col))
-		for i, v in ipairs(tab) do
+		for i, v in pairs(tab) do
 			if v[col] ~= nil then
 				length[col] = math.max(string.len(tostring(v[col])), length[col])				
 			end
@@ -139,7 +160,7 @@ function util.printFormattedTable(tab, header, type, bNumbers)
 	
 	local numberslen = 0
 	if bNumbers ~=nil and bNumbers == true then
-		for i, v in ipairs(tab) do
+		for i, v in pairs(tab) do
 			numberslen = math.max(numberslen, string.len(tostring(i)))
 		end
 		numberslen=numberslen+1
@@ -147,6 +168,7 @@ function util.printFormattedTable(tab, header, type, bNumbers)
 		
 	end
 	out=out.."|"
+	
 	for j, col in ipairs(header) do
 		if type ~=nil and string.len(type) >= j then
 			t[j] = string.sub(type, j, 1)
@@ -161,7 +183,7 @@ function util.printFormattedTable(tab, header, type, bNumbers)
 		out=out..util.fill(length[col]+1, "-")				
 	end
 	print(out)
-	for i, v in ipairs(tab) do
+	for i, v in pairs(tab) do
 		out=""
 		if bNumbers ~=nil and bNumbers == true then
 			out=out..util.adjuststring(tostring(i), numberslen, "l")
@@ -179,40 +201,39 @@ function util.printFormattedTable(tab, header, type, bNumbers)
 		
 	end
 end
-
 --[[
-util.printFormattedTable({A, B, C}, {"col1", "col3"}, "c", true)
+another example:
+jacResult = {}
+jacResult.avgConv = 0.2
+jacResult.last = 0.4
 
-  # : |  1  |  2  |   3   | 
-----------------------------
-col1: |  1  |  5  |  hey  | 
-col3: |  3  |  6  |       | 
+sgsResult = {}
+sgsResult.avgConv = 0.1
+sgsResult.last = 0.3
+tab = {}
+tab["jac"] = jacResult
+tab.sgs = sgsResult
 
-]]--
+util.printFormattedTable(tab, true, "c")
+]]-- 
 
---! util.printFormattedTable
+--! util.printFormattedTableSideways
 --! prints stats to the console, sideways
 --! @param tab		table in the form t={{["colA"
---! @param header	colums to be printed, like {"colA", "colB"}
 --! @param type		type of row padding ("r", "l" or "c", default "l")
 --! @param bNumbers	if true, print a colum with the number of the table (default false)
-function util.printFormattedTableSideways(tab, header, type, bNumbers)
+--! @param header	colums to be printed, like {"colA", "colB"}, if nil: all
+function util.printFormattedTableSideways(tab, bNumbers,  header)
 	local length = {}
 	local j, col, i, v
 	local t={}
 	local tcol = nil
-	if type ~= nil then
-		tcol = string.sub(type, 0, 1)
-	end
-	for i, v in ipairs(tab) do
+	
+	header = util.statsUtilGetHeader(header, tab)
+
+	for i, v in pairs(tab) do
 		length[i] = 0
-		
-		if type ~=nil and string.len(type) >= i+1 then
-			t[i] = string.sub(type, i+1, 1)
-		else
-			t[i] = type
-		end
-		
+				
 		for j, col in ipairs(header) do
 			if v[col] ~= nil then
 				length[i] = math.max(string.len(tostring(v[col])), length[i])				
@@ -228,12 +249,12 @@ function util.printFormattedTableSideways(tab, header, type, bNumbers)
 	
 	if bNumbers ~= nil and bNumbers == true then
 		out = util.adjuststring("#", headerlength, tcol)..": | "		
-		for i, v in ipairs(tab) do
-			out=out..util.adjuststring(tostring(i), length[i], t[i]).." | "
+		for i, v in pairs(tab) do
+			out=out..util.adjuststring(tostring(i), length[i], "c").." | "
 		end
 		print(out)
 		local totallen = headerlength+4
-		for i, v in ipairs(tab) do
+		for i, v in pairs(tab) do
 			totallen = totallen+length[i]+3
 		end
 		print(util.fill(totallen, "-"))
@@ -241,9 +262,9 @@ function util.printFormattedTableSideways(tab, header, type, bNumbers)
 	
 	for j, col in ipairs(header) do
 		out = util.adjuststring(tostring(col), headerlength, tcol)..": | "		
-		for i, v in ipairs(tab) do
+		for i, v in pairs(tab) do
 			if v[col] ~= nil then
-				out=out..util.adjuststring(tostring(v[col]), length[i], t[i])				
+				out=out..util.adjuststring(tostring(v[col]), length[i], "c")				
 			else
 				out=out..util.fill(length[i])
 			end
@@ -252,6 +273,43 @@ function util.printFormattedTableSideways(tab, header, type, bNumbers)
 		print(out)
 		
 	end
+end
+
+
+function util.StringTableFromTable(tab, header, s)
+	ug_assert(tab ~= nil)
+	local length = {}
+	local j, col, i, v
+	if s == nil then
+		s = StringTable()
+	end
+
+	header = util.statsUtilGetHeader(header, tab)	
+	local x=1
+	local y=0
+	for j, col in ipairs(header) do
+		s:set(0, x, col)
+		x = x+1		
+	end
+	
+	y =1
+	for j, col in pairs(tab) do
+		s:set(y, 0, j)
+		y = y +1
+	end
+	
+	y=1
+	for i, v in pairs(tab) do
+		x=1
+		for j, col in ipairs(header) do
+			if v[col] ~= nil then
+				s:set(y, x, tostring(v[col]))				
+			end				
+			x=x+1
+		end
+		y=y+1
+	end
+	return s
 end
 
 -- end group scripts_util_stats
