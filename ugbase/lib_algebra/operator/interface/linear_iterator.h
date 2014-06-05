@@ -156,10 +156,10 @@ class ILinearIterator
 	///	constructor
 		ILinearIterator() {set_damp(1.0);};
 
-	///	clone constructor
-		ILinearIterator(ILinearIterator<X, Y> *parent)
+	///	copy constructor
+		ILinearIterator(const ILinearIterator<X, Y> &parent)
 		{
-			set_damp(parent->m_spDamping);
+			set_damp(parent.m_spDamping);
 		};
 
 		virtual std::string config_string() const

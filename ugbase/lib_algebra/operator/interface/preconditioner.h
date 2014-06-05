@@ -108,7 +108,7 @@ class IPreconditioner :
 		{};
 
 	/// clone constructor
-		IPreconditioner( IPreconditioner<TAlgebra> *parent ) :
+		IPreconditioner( const IPreconditioner<TAlgebra> &parent ) :
 			ILinearIterator<vector_type>(parent),
 			DebugWritingObject<TAlgebra>(parent),
 			m_spDefectOperator(NULL), m_spApproxOperator(NULL), m_bInit(false), m_bOtherApproxOperator(false)
