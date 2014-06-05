@@ -1343,6 +1343,7 @@ bool CreateBindings_LUA(lua_State* L, Registry& reg)
 		lua_settable(L, -3);
 
 		bool bToStringFound =false;
+
 	//	register methods
 	//	NOTE: A C-Closure is registered (a function-pointer with default argument)
 		for(size_t j = 0; j < c->num_methods(); ++j){
@@ -1352,6 +1353,31 @@ bool CreateBindings_LUA(lua_State* L, Registry& reg)
 			lua_pushcclosure(L, LuaProxyMethod, 1);
 			lua_settable(L, -3);
 			if(m.name().compare("__tostring") == 0) bToStringFound = true;
+		}
+
+		if(bToStringFound==false)
+		{
+			// we did not find a __tostring function for lua
+			// for print(myObject) to use myObject:__tostring() it is necessary
+			// that __tostring is in the direct metatable of myObject, and not in __const
+			// (somehow lua does not use the metatable indexer provided here)
+			// so if there is a __tostring() const function, but none non-const,
+			// we also put the __tostring() const function in the non-const part,
+			// which should be no harm, since a const function could also
+			// be a non-const function (the reverse is not true)
+			for(size_t j = 0; j < c->num_const_methods(); ++j)
+			{
+				const ExportedMethodGroup& m = c->get_const_method_group(j);
+				if(m.name().compare("__tostring") == 0)
+				{
+					lua_pushstring(L, m.name().c_str());
+					lua_pushlightuserdata(L, (void*)&m);
+					lua_pushcclosure(L, LuaProxyMethod, 1);
+					lua_settable(L, -3);
+					bToStringFound = true;
+					break;
+				}
+			}
 		}
 
 	//	register const-methods
@@ -1366,7 +1392,6 @@ bool CreateBindings_LUA(lua_State* L, Registry& reg)
 				lua_pushlightuserdata(L, (void*)&m);
 				lua_pushcclosure(L, LuaProxyMethod, 1);
 				lua_settable(L, -3);
-				if(m.name().compare("__tostring") == 0) bToStringFound = true;
 			}
 			lua_setfield(L, -2, "__const");
 		}
@@ -1399,8 +1424,10 @@ bool CreateBindings_LUA(lua_State* L, Registry& reg)
 			lua_setfield(L, -2, "__const_method_grps");
 		}
 		
+		// if we did not find a __tostring function, we
 		// add a default __tostring method which shows 
-		// clasname: <adress>
+		// classname: <adress>
+		bToStringFound = true;
 		if(bToStringFound == false)
 		{
 			lua_pushstring(L, "__tostring");
