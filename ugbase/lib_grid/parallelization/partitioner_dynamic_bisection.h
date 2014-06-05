@@ -41,6 +41,10 @@ class Partitioner_DynamicBisection : public IPartitioner{
 	/**	the tolerance is defaulted to 0.99*/
 		void set_tolerance(number tol)	{m_tolerance = tol;}
 
+	///	the maximum number of iterations performed to find a good split plane
+		int num_split_improvement_iterations() const	{return m_splitImproveIterations;}
+		void set_num_split_improvement_iterations(int num)	{m_splitImproveIterations = num;}
+		
 		virtual void set_next_process_hierarchy(SPProcessHierarchy procHierarchy);
 		virtual void set_balance_weights(SPBalanceWeights balanceWeights);
 //		virtual void set_connection_weights(SmartPtr<ConnectionWeights<dim> >);

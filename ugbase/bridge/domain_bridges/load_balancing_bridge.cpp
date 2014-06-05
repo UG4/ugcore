@@ -189,6 +189,8 @@ static void Common(Registry& reg, string grp) {
 			.add_method("enable_static_partitioning", &T::enable_static_partitioning)
 			.add_method("static_partitioning_enabled", &T::static_partitioning_enabled)
 			.add_method("set_subset_handler", &T::set_subset_handler)
+			.add_method("num_split_improvement_iterations", &T::num_split_improvement_iterations)
+			.add_method("set_num_split_improvement_iterations", &T::set_num_split_improvement_iterations)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "Partitioner_DynamicBisection", tag);
 	}
@@ -205,6 +207,8 @@ static void Common(Registry& reg, string grp) {
 				.add_method("enable_static_partitioning", &T::enable_static_partitioning)
 				.add_method("static_partitioning_enabled", &T::static_partitioning_enabled)
 				.add_method("set_subset_handler", &T::set_subset_handler)
+				.add_method("num_split_improvement_iterations", &T::num_split_improvement_iterations)
+				.add_method("set_num_split_improvement_iterations", &T::set_num_split_improvement_iterations)
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "ManifoldPartitioner_DynamicBisection", tag);
 		}
@@ -216,6 +220,8 @@ static void Common(Registry& reg, string grp) {
 				.add_method("enable_static_partitioning", &T::enable_static_partitioning)
 				.add_method("static_partitioning_enabled", &T::static_partitioning_enabled)
 				.add_method("set_subset_handler", &T::set_subset_handler)
+				.add_method("num_split_improvement_iterations", &T::num_split_improvement_iterations)
+				.add_method("set_num_split_improvement_iterations", &T::set_num_split_improvement_iterations)
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "Partitioner_DynamicBisection", tag);
 		}
@@ -233,6 +239,8 @@ static void Common(Registry& reg, string grp) {
 				.add_method("enable_static_partitioning", &T::enable_static_partitioning)
 				.add_method("static_partitioning_enabled", &T::static_partitioning_enabled)
 				.add_method("set_subset_handler", &T::set_subset_handler)
+				.add_method("num_split_improvement_iterations", &T::num_split_improvement_iterations)
+				.add_method("set_num_split_improvement_iterations", &T::set_num_split_improvement_iterations)
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "HyperManifoldPartitioner_DynamicBisection", tag);
 		}
@@ -244,6 +252,8 @@ static void Common(Registry& reg, string grp) {
 				.add_method("enable_static_partitioning", &T::enable_static_partitioning)
 				.add_method("static_partitioning_enabled", &T::static_partitioning_enabled)
 				.add_method("set_subset_handler", &T::set_subset_handler)
+				.add_method("num_split_improvement_iterations", &T::num_split_improvement_iterations)
+				.add_method("set_num_split_improvement_iterations", &T::set_num_split_improvement_iterations)
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "ManifoldPartitioner_DynamicBisection", tag);
 		}
@@ -255,6 +265,8 @@ static void Common(Registry& reg, string grp) {
 				.add_method("enable_static_partitioning", &T::enable_static_partitioning)
 				.add_method("static_partitioning_enabled", &T::static_partitioning_enabled)
 				.add_method("set_subset_handler", &T::set_subset_handler)
+				.add_method("num_split_improvement_iterations", &T::num_split_improvement_iterations)
+				.add_method("set_num_split_improvement_iterations", &T::set_num_split_improvement_iterations)
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "Partitioner_DynamicBisection", tag);
 		}

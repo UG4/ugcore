@@ -905,6 +905,9 @@ static void AssignVerticalMasterAndSlaveStates(MGSelector& msel, bool partitionF
 			TElem* e = *iter;
 			++iter;
 
+		//TODO: Check this! if e is VSLAVE and is sent to another proc,
+		//		it's children have to be sent there too, since they will
+		//		be VMASTER on this new proc!
 			if((msel.get_selection_status(e) & IS_VMASTER)
 				|| (msel.get_selection_status(e) & IS_VSLAVE))
 			{

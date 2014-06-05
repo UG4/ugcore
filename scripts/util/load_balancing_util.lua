@@ -203,6 +203,9 @@ function balancer.CreateLoadBalancer(domain)
 		loadBalancer:set_next_process_hierarchy(processHierarchy);
 	end
 	
+	if balancer.defaultBalancer == nil then
+		balancer.defaultBalancer = loadBalancer
+	end
 	return loadBalancer
 end
 
