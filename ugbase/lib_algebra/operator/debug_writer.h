@@ -224,9 +224,9 @@ class DebugWritingObject : public VectorDebugWritingObject<typename TAlgebra::ve
 				m_spDebugWriter(spDebugWriter) {}
 
 	/// clone constructor
-		DebugWritingObject(DebugWritingObject<algebra_type> *parent)
-			: 	VectorDebugWritingObject<vector_type>(parent->m_spDebugWriter),
-				m_spDebugWriter(parent->m_spDebugWriter) {}
+		DebugWritingObject(const DebugWritingObject<algebra_type> &parent)
+			: 	VectorDebugWritingObject<vector_type>(parent.m_spDebugWriter),
+				m_spDebugWriter(parent.m_spDebugWriter) {}
 
 	///	virtual destructor
 		virtual ~DebugWritingObject() {}
