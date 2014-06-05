@@ -511,7 +511,7 @@ void RegisterBridge_Misc(Registry &reg, string parentGroup)
 		reg.add_function("GetSVNRevision", &GetSVNRevision, grp);
 		reg.add_function("GetCompileDate", &GetCompileDate, grp);
 		reg.add_function("GetBuildHostname", &GetBuildHostname, grp);
-		reg.add_function("GetOperatingSystem", &GetSystem, grp);
+		reg.add_function("GetOperatingSystem", &GetOperatingSystem, grp);
 
 		reg.add_function("LevenshteinDistance", &LevenshteinDistance, grp, "Levenshtein distance of s1 and s2", "s1#s2");
 		reg.add_function("WildcardMatch", &WildcardMatch, grp, "true if match", "str#pattern");
