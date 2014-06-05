@@ -47,10 +47,10 @@ class GaussSeidelBase : public IPreconditioner<TAlgebra>
 		GaussSeidelBase() { m_relax = 1.0; };
 
 	/// clone constructor
-		GaussSeidelBase( GaussSeidelBase<TAlgebra> *parent )
+		GaussSeidelBase( const GaussSeidelBase<TAlgebra> &parent )
 			: base_type(parent)
 		{
-			set_sor_relax(parent->m_relax);
+			set_sor_relax(parent.m_relax);
 		}
 
 	//	set relaxation parameter to define a SOR-method
@@ -162,14 +162,14 @@ public:
 		GaussSeidel() : base_type() {}
 
 	/// clone constructor
-		GaussSeidel( GaussSeidel<TAlgebra> *parent )
+		GaussSeidel( const GaussSeidel<TAlgebra> &parent )
 			: base_type(parent)
 		{	}
 
 	///	Clone
 		virtual SmartPtr<ILinearIterator<vector_type> > clone()
 		{
-			return make_sp(new GaussSeidel<algebra_type>(this));
+			return make_sp(new GaussSeidel<algebra_type>(*this));
 		}
 
 	//	Stepping routine
@@ -207,14 +207,14 @@ public:
 		BackwardGaussSeidel() : base_type() {}
 
 	/// clone constructor
-		BackwardGaussSeidel( BackwardGaussSeidel<TAlgebra> *parent )
+		BackwardGaussSeidel( const BackwardGaussSeidel<TAlgebra> &parent )
 			: base_type(parent)
 		{	}
 
 	///	Clone
 		virtual SmartPtr<ILinearIterator<vector_type> > clone()
 		{
-			return make_sp(new BackwardGaussSeidel<algebra_type>(this));
+			return make_sp(new BackwardGaussSeidel<algebra_type>(*this));
 		}
 
 	//	Stepping routine
@@ -241,14 +241,14 @@ public:
 		SymmetricGaussSeidel() : base_type() {}
 
 	/// clone constructor
-		SymmetricGaussSeidel( SymmetricGaussSeidel<TAlgebra> *parent )
+		SymmetricGaussSeidel( const SymmetricGaussSeidel<TAlgebra> &parent )
 			: base_type(parent)
 		{	}
 
 	///	Clone
 		virtual SmartPtr<ILinearIterator<vector_type> > clone()
 		{
-			return make_sp(new SymmetricGaussSeidel<algebra_type>(this));
+			return make_sp(new SymmetricGaussSeidel<algebra_type>(*this));
 		}
 
 	//	Stepping routine

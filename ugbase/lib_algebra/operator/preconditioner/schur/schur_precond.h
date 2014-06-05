@@ -80,11 +80,16 @@ class SchurPrecond: public IPreconditioner<TAlgebra>
 	///	constructor
 		SchurPrecond();
 
+		SchurPrecond(const SchurPrecond<TAlgebra> &parent) : base_type(parent)
+		{
+			m_spDirichletSolver = parent.m_spDirichletSolver;
+			m_spSkeletonSolver = parent.m_spSkeletonSolver;
+			m_spSchurComplementOp = parent.m_spSchurComplementOp;
+		}
+
 		virtual SmartPtr<ILinearIterator<vector_type> > clone()
 		{
-			SmartPtr<SchurPrecond<algebra_type> > newInst(new SchurPrecond<algebra_type>());
-			UG_THROW("Implement SchurPrecond::clone()!")
-			return newInst;
+			return make_sp(new SchurPrecond<algebra_type>(*this));
 		}
 
 	protected:

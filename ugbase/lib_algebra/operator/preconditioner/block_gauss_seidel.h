@@ -275,7 +275,9 @@ class IBlockJacobiPreconditioner : public IPreconditioner<TAlgebra>
 	///	Matrix Operator type
 		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
 
-
+		IBlockJacobiPreconditioner() {}
+		IBlockJacobiPreconditioner(const IBlockJacobiPreconditioner &parent) : IPreconditioner<TAlgebra>(parent)
+		{ }
 
 	protected:
 #ifdef 	UG_PARALLEL
@@ -357,16 +359,12 @@ class BlockGaussSeidel : public IBlockJacobiPreconditioner<TAlgebra>
 		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
 
 	///	Base type
-		typedef IPreconditioner<TAlgebra> base_type;
+		typedef IBlockJacobiPreconditioner<TAlgebra> base_type;
 
-		typedef BlockGaussSeidel<algebra_type, forward, backward> this_type;
+		typedef BlockGaussSeidel<algebra_type, backward, forward> this_type;
 
 	protected:
 		typedef typename matrix_type::value_type block_type;
-
-		using base_type::set_debug;
-		using base_type::debug_writer;
-		using base_type::write_debug;
 
 	public:
 	//	Constructor
@@ -378,14 +376,15 @@ class BlockGaussSeidel : public IBlockJacobiPreconditioner<TAlgebra>
 			m_depth = depth;
 		};
 
+		BlockGaussSeidel(const this_type &parent) : base_type(parent)
+		{
+			m_depth = parent.m_depth;
+		}
+
 	// 	Clone
 		virtual SmartPtr<ILinearIterator<vector_type> > clone()
 		{
-			SmartPtr<this_type> newInst(new this_type());
-//			newInst->set_debug(debug_writer());
-			newInst->set_damp(this->damping());
-			newInst->set_depth(m_depth);
-			return newInst;
+			return make_sp(new this_type(*this));
 		}
 
 		typedef typename matrix_type::value_type smallmat_type;
@@ -511,17 +510,12 @@ class BlockGaussSeidelIterative : public IBlockJacobiPreconditioner<TAlgebra>
 		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
 
 	///	Base type
-		typedef IPreconditioner<TAlgebra> base_type;
+		typedef IBlockJacobiPreconditioner<TAlgebra> base_type;
 
-		typedef BlockGaussSeidelIterative<algebra_type, forward, backward> this_type;
+		typedef BlockGaussSeidelIterative<algebra_type, backward, forward> this_type;
 
 	protected:
 		typedef typename matrix_type::value_type block_type;
-
-		using base_type::set_debug;
-		using base_type::debug_writer;
-		using base_type::write_debug;
-
 	public:
 	//	Constructor
 		BlockGaussSeidelIterative() {
@@ -534,15 +528,16 @@ class BlockGaussSeidelIterative : public IBlockJacobiPreconditioner<TAlgebra>
 			m_nu = nu;
 		};
 
+		BlockGaussSeidelIterative(const this_type &parent) : base_type(parent)
+		{
+			m_depth = parent.m_depth;
+			m_nu = parent.m_nu;
+		}
+
 	// 	Clone
 		virtual SmartPtr<ILinearIterator<vector_type> > clone()
 		{
-			SmartPtr<this_type> newInst(new this_type());
-//			newInst->set_debug(debug_writer());
-			newInst->set_damp(this->damping());
-			newInst->set_depth(m_depth);
-			newInst->set_iterative_steps(m_nu);
-			return newInst;
+			return make_sp(new this_type(*this));
 		}
 
 		typedef typename matrix_type::value_type smallmat_type;
@@ -696,14 +691,11 @@ class SparseBlockGaussSeidel : public IBlockJacobiPreconditioner<TAlgebra>
 		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
 
 	///	Base type
-		typedef IPreconditioner<TAlgebra> base_type;
+		typedef IBlockJacobiPreconditioner<TAlgebra> base_type;
 
 	protected:
 		typedef typename matrix_type::value_type block_type;
-
-		using base_type::set_debug;
-		using base_type::debug_writer;
-		using base_type::write_debug;
+		typedef SparseBlockGaussSeidel<TAlgebra, backward, forward> this_type;
 
 	public:
 	//	Constructor
@@ -715,15 +707,17 @@ class SparseBlockGaussSeidel : public IBlockJacobiPreconditioner<TAlgebra>
 			m_depth = depth;
 		};
 
+		SparseBlockGaussSeidel(const this_type &parent) : base_type(parent)
+		{
+			m_depth = parent.m_depth;
+		}
+
 	// 	Clone
 		virtual SmartPtr<ILinearIterator<vector_type> > clone()
 		{
-			SmartPtr<SparseBlockGaussSeidel<algebra_type, backward, forward> > newInst(new SparseBlockGaussSeidel<algebra_type, backward, forward>());
-			newInst->set_debug(debug_writer());
-			newInst->set_damp(this->damping());
-			newInst->set_depth(m_depth);
-			return newInst;
+			return make_sp(new this_type(*this));
 		}
+
 
 		typedef typename matrix_type::value_type smallmat_type;
 		typedef typename vector_type::value_type smallvec_type;
@@ -880,15 +874,11 @@ class SparseBlockGaussSeidel2 : public IBlockJacobiPreconditioner<TAlgebra>
 		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
 
 	///	Base type
-		typedef IPreconditioner<TAlgebra> base_type;
+		typedef IBlockJacobiPreconditioner<TAlgebra> base_type;
+		typedef SparseBlockGaussSeidel2<TAlgebra, backward, forward> this_type;
 
 	protected:
 		typedef typename matrix_type::value_type block_type;
-
-		using base_type::set_debug;
-		using base_type::debug_writer;
-		using base_type::write_debug;
-
 	public:
 	//	Constructor
 		SparseBlockGaussSeidel2() {
@@ -899,14 +889,15 @@ class SparseBlockGaussSeidel2 : public IBlockJacobiPreconditioner<TAlgebra>
 			m_depth = depth;
 		};
 
+		SparseBlockGaussSeidel2(const this_type &parent) : base_type(parent)
+		{
+			m_depth = parent.m_depth;
+		}
+
 	// 	Clone
 		virtual SmartPtr<ILinearIterator<vector_type> > clone()
 		{
-			SmartPtr<SparseBlockGaussSeidel2<algebra_type, backward, forward> > newInst(new SparseBlockGaussSeidel2<algebra_type, backward, forward>());
-			newInst->set_debug(debug_writer());
-			newInst->set_damp(this->damping());
-			newInst->set_depth(m_depth);
-			return newInst;
+			return make_sp(new this_type(*this));
 		}
 
 		typedef typename matrix_type::value_type smallmat_type;

@@ -95,16 +95,16 @@ class Jacobi : public IPreconditioner<TAlgebra>
 		Jacobi(number damp) {this->set_damp(damp);};
 
 	/// clone constructor
-		Jacobi( Jacobi<TAlgebra> *parent )
+		Jacobi( const Jacobi<TAlgebra> &parent )
 			: base_type(parent)
 		{
-			set_block(parent->m_bBlock);
+			set_block(parent.m_bBlock);
 		}
 
 	///	Clone
 		virtual SmartPtr<ILinearIterator<vector_type> > clone()
 		{
-			return make_sp(new Jacobi<algebra_type>(this));
+			return make_sp(new Jacobi<algebra_type>(*this));
 		}
 
 
