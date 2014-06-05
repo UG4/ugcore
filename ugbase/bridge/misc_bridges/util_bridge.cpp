@@ -8,6 +8,7 @@
 #include "common/util/file_util.h"
 #include "../util_overloaded.h"
 #include "ug.h"
+#include "common/util/table.h"
 
 #include <cstdlib>
 #include <string>
@@ -71,6 +72,7 @@ void SetMinSecondsUntilProgress(size_t s)
 	g_minSecondUntilProgress=s;
 }
 
+
 void RegisterBridge_Util(Registry& reg, string parentGroup)
 {
 	string grp(parentGroup);
@@ -114,6 +116,36 @@ void RegisterBridge_Util(Registry& reg, string parentGroup)
 	reg.add_function("GetTmpPath", GetTmpPath);
 	reg.add_function("FileCompare", FileCompare);
 	reg.add_function("SetMinSecondsUntilProgress", SetMinSecondsUntilProgress, grp, "", "seconds", "determines after which time a progress bar can show up");
+
+
+	{
+		typedef StringTable T;
+		reg.add_class_<T>("StringTable", grp)
+		.add_constructor()
+		.add_constructor< void (*) ( size_t numRows, size_t numCols) > ()
+		.add_method("set", &T::set)
+		.add_method("get", &T::get)
+		.add_method("add_rows", &T::add_rows)
+		.add_method("add_cols", &T::add_cols)
+		.add_method("num_rows", &T::num_rows)
+		.add_method("num_cols", &T::num_cols)
+		.add_method("set_col_alignment", &T::set_col_alignment)
+		.add_method("set_col_alignments", &T::set_col_alignments)
+		.add_method("set_default_col_alignment", &T::set_default_col_alignment)
+
+		.add_method("set_row_seperator", &T::set_row_seperator)
+		.add_method("set_row_seperators", &T::set_row_seperators)
+		.add_method("set_default_row_seperator", &T::set_default_row_seperator)
+
+		.add_method("set_col_seperator", &T::set_col_seperator)
+		.add_method("set_col_seperators", &T::set_col_seperators)
+		.add_method("set_default_col_seperator", &T::set_default_col_seperator)
+
+		.add_method("to_latex", &T::to_latex)
+		.add_method("to_csv", &T::to_csv)
+		.add_method("__tostring", &T::to_string);
+	}
+
 }
 
 // end group util_bridge

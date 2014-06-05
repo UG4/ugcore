@@ -49,41 +49,131 @@ namespace ug{
  * Note that several typedefs exist: StringTable, StringStreamTable
  * \todo	different alignments for different columns / rows / fields
  */
+
 template <class T>
 class Table
 {
 	public:
 		Table();
 		Table(size_t numRows, size_t numCols);
-		
+
 		~Table();
-		
+
 		void clear();
-		
+
 		void add_rows(size_t num);
 		void add_cols(size_t num);
-		
+
 	///	Returns a reference to the given entry.
 	/**	If an entry lies outside of the tables bounds, the table will
 	 * automatically be resized accordingly.*/
 		T& operator() (size_t rowInd, size_t colInd);
 
+		/// uses operator() to set an entry to a value
+		void set(size_t rowInd, size_t colInd, T value)
+		{
+			operator()(rowInd, colInd) = value;
+		}
+
 	///	Returns a reference to the given entry.
 		const T& operator() (size_t rowInd, size_t colInd) const;
-		
+
+	/// uses operator() to get a value
+		const T &get(size_t rowInd, size_t colInd) const
+		{
+			return operator()(rowInd, colInd);
+		}
+
 		size_t num_rows() const;
 		size_t num_cols() const;
 		
+
+
+
+		void set_default_row_seperator(const char *c)
+		{
+			m_defaultRowSeperator = *c;
+		}
+		void set_row_seperator(size_t i_row, const char *c)
+		{
+			if(m_rowSep.size() <= i_row) m_rowSep.resize(i_row+1, 0x00);
+			m_rowSep[i_row] = *c;
+		}
+		void set_row_seperators(std::string s)
+		{
+			if(m_rowSep.size() < s.size()) m_rowSep.resize(s.size(), 0x00);
+			for(size_t i=0; i<s.size(); i++)
+				m_rowSep[i] = s[i];
+		}
+		void set_default_col_seperator(const char *c)
+		{
+
+			m_defaultColSeperator = *c;
+		}
+		void set_col_seperator(size_t i_col, const char *c)
+		{
+			if(m_colSep.size() <= i_col) m_colSep.resize(i_col+1, 0x00);
+			m_colSep[i_col] = *c;
+		}
+		void set_col_seperators(std::string s)
+		{
+			if(m_colSep.size() < s.size()) m_colSep.resize(s.size(), 0x00);
+			for(size_t i=0; i<s.size(); i++)
+				m_colSep[i] = s[i];
+		}
+
+		void set_default_col_alignment(const char *c)
+		{
+			m_defaultColAlignment = *c;
+		}
+		void set_col_alignment(size_t i_col, const char *c)
+		{
+			if(m_colAlign.size() <= i_col) m_colAlign.resize(i_col+1, 0x00);
+			m_colAlign[i_col] = *c;
+		}
+		void set_col_alignments(std::string s)
+		{
+			if(m_colAlign.size() < s.size()) m_colAlign.resize(s.size(), 0x00);
+			for(size_t i=0; i<s.size(); i++)
+				m_colAlign[i] = s[i];
+		}
+
+		std::ostream& stream(std::ostream& os) const;
+		std::string to_latex() const;
 		std::string to_string() const;
+		std::string to_csv(const char *seperator) const;
+
+		char get_row_sep(size_t row) const
+		{
+			if(row >= m_rowSep.size()) return m_defaultRowSeperator;
+			return m_rowSep[row] != 0x00 ? m_rowSep[row] : m_defaultRowSeperator;
+		}
+
+		char get_col_sep(size_t col) const
+		{
+			if(col >= m_colSep.size()) return m_defaultColSeperator;
+			return m_colSep[col] != 0x00 ? m_colSep[col] : m_defaultColSeperator;
+		}
+
+		char get_col_alignment(size_t col) const
+		{
+			if(col >= m_colAlign.size()) return m_defaultColAlignment;
+			return m_colAlign[col] != 0x00 ? m_colAlign[col] : m_defaultColAlignment;
+		}
 
 	private:
 		size_t m_numRows;
 		size_t m_numCols;
-		
+
 		typedef std::vector<std::vector<T*> > DataVec;
 		DataVec	m_data;
-};
 
+		std::vector<char> m_colAlign;
+		std::vector<char> m_colSep;
+		std::vector<char> m_rowSep;
+		char m_defaultColSeperator, m_defaultRowSeperator, m_defaultColAlignment;
+
+};
 
 ///	prints a table to the specified ostream.
 /** Assumes that output begins at a new line.

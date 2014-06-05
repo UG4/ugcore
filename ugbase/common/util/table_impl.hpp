@@ -8,6 +8,7 @@
 #include <cassert>
 #include "common/error.h"
 #include "common/log.h"
+#include "string_util.h"
 
 namespace ug{
 
@@ -16,6 +17,9 @@ Table<T>::Table() :
 	m_numRows(0),
 	m_numCols(0)
 {
+	m_defaultColSeperator = ' ';
+	m_defaultRowSeperator = ' ';
+	m_defaultColAlignment = 'l';
 }
 
 template <class T>
@@ -23,6 +27,9 @@ Table<T>::Table(size_t numRows, size_t numCols) :
 	m_numRows(0),
 	m_numCols(0)
 {
+	m_defaultColSeperator = ' ';
+	m_defaultRowSeperator = ' ';
+	m_defaultColAlignment = 'l';
 	add_rows(numRows);
 	add_cols(numCols);
 }
@@ -59,7 +66,6 @@ void Table<T>::add_rows(size_t num)
 					m_data[i_row][i_col] = new T;
 			}
 		}
-		
 		m_numRows = newSize;
 	}
 }
@@ -74,7 +80,6 @@ void Table<T>::add_cols(size_t num)
 			for(size_t i_col = m_numCols; i_col < newSize; ++i_col)
 				m_data[i_row][i_col] = new T;
 		}
-		
 		m_numCols = newSize;
 	}
 }
@@ -111,6 +116,10 @@ size_t Table<T>::num_cols() const
 	return m_numCols;
 }
 
+
+
+
+
 template <class T>
 std::string Table<T>::to_string() const
 {
@@ -119,31 +128,115 @@ std::string Table<T>::to_string() const
 	return ssOut.str();
 }
 
+
+
+template<typename T>
+std::string Table<T>::to_latex() const
+{
+	Table<std::string>	strTable(num_rows(), num_cols());
+
+	std::stringstream os;
+	os << "\\begin{table}\n\\centering\n";
+	os << "\\begin{tabular}{";
+	for(size_t i=0; i < num_cols(); i++)
+		os << get_col_sep(i) << get_col_alignment(i);
+	os << get_col_sep(num_cols());
+	os << "}\n";
+
+
+	for(size_t i_row = 0; i_row < num_rows(); ++i_row)
+	{
+		if(get_row_sep(i_row) != ' ')
+			os << "\\hline \n";
+
+		for(size_t i_col = 0; i_col < num_cols(); ++i_col)
+		{
+			if(i_col != 0) os << " & ";
+			os << EntryToString(*this, i_row, i_col);
+		}
+
+		os << " \\\\\n";
+	}
+	if(get_row_sep(num_rows())  != ' ')
+		os << "\\hline \n";
+	os << "\\end{tabular}\n";
+	os << "\\end{table}\n";
+	return os.str();
+}
+
+
+template<typename T>
+std::string Table<T>::to_csv(const char *seperator) const
+{
+	std::stringstream os;
+	for(size_t i_row = 0; i_row < num_rows(); ++i_row)
+	{
+		for(size_t i_col = 0; i_col < num_cols(); ++i_col)
+		{
+			if(i_col != 0) os << " " << seperator << " ";
+			os << EntryToString(*this, i_row, i_col);
+		}
+
+		os << "\n";
+	}
+	return os.str();
+}
+
 template <class T>
 std::ostream& operator << (std::ostream& os, const Table<T>& table)
 {
+	return table.stream(os);
+}
+
+template <class T>
+std::ostream& Table<T>::stream(std::ostream& os) const
+{
+	const Table<T> &table = *this;
 //	we'll fill a fresh table with strings of the given table
 //	At the same time we'll find the max-width of each column
-	Table<std::string>	strTable(table.num_rows(), table.num_cols());
-	std::vector<size_t> colSizes(table.num_cols(), 0);
-	
-	for(size_t i_row = 0; i_row < table.num_rows(); ++i_row){
-		for(size_t i_col = 0; i_col < table.num_cols(); ++i_col){
+	Table<std::string>	strTable(num_rows(), num_cols());
+	std::vector<size_t> colSizes(num_cols(), 0);
+
+	for(size_t i_row = 0; i_row < num_rows(); ++i_row){
+		for(size_t i_col = 0; i_col < num_cols(); ++i_col){
 			strTable(i_row, i_col) = EntryToString(table, i_row, i_col);
 			colSizes[i_col] = std::max(colSizes[i_col], strTable(i_row, i_col).size());
 		}
 	}
-	
-//	now print each row
-	for(size_t i_row = 0; i_row < table.num_rows(); ++i_row){
-		for(size_t i_col = 0; i_col < table.num_cols(); ++i_col){
-			os << std::setw(colSizes[i_col] + 2) << std::right << strTable(i_row, i_col);
-		}
-		os << std::endl;
-	}
 
+	size_t totalRowLength=0;
+	for(size_t i_col = 0; i_col < num_cols(); ++i_col)
+	{
+		totalRowLength++;
+		totalRowLength += colSizes[i_col] + 2;
+	}
+	totalRowLength++;
+
+//	now print each row
+	for(size_t i_row = 0; i_row < num_rows(); ++i_row)
+	{
+		if(get_row_sep(i_row) != 0x00 && get_row_sep(i_row) != ' ')
+			os << repeat(get_row_sep(i_row), totalRowLength) << "\n";
+		for(size_t i_col = 0; i_col < num_cols(); ++i_col)
+		{
+			os << get_col_sep(i_col);
+			size_t l = colSizes[i_col] + 1;
+			size_t s = strTable(i_row, i_col).size();
+			os << " ";
+			if(get_col_alignment(i_col) == 'r')
+				os << std::setw(l) << std::right << strTable(i_row, i_col);
+			else if(get_col_alignment(i_col) == 'l')
+				os << std::setw(l) << std::left << strTable(i_row, i_col);
+			else
+				os << repeat(' ', (l-s)/2) << std::setw(l-(l-s)/2) << std::left << strTable(i_row, i_col);
+		}
+		os << get_col_sep(num_cols()) << std::endl;
+	}
+	if(get_row_sep(num_cols()) != 0x00 && get_row_sep(num_cols()) != ' ')
+		os << repeat(get_row_sep(num_cols()), totalRowLength) << "\n";
 	return os;
 }
+
 
 
 
