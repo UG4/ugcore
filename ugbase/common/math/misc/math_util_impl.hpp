@@ -800,11 +800,11 @@ bool BoxBoxIntersection(const vector_t& box1Min, const vector_t& box1Max,
 template <class vector_t>
 number TriangleArea(const vector_t& p1, const vector_t& p2, const vector_t& p3)
 {
-//	the projection of p3 onto the line defined by p1 and p2
-	vector_t v;
-	DropAPerpendicular(v, p3, p1, p2);
-//	calculate the area
-	return 0.5 * sqrt(VecDistanceSq(p1, p2) * VecDistanceSq(v, p3));
+	vector_t e[3];
+	VecSubtract(e[0], p2, p1);
+	VecSubtract(e[1], p3, p1);
+	GenVecCross(e[2], e[0], e[1]);
+	return 0.5 * VecLength(e[2]);
 }
 
 ////////////////////////////////////////////////////////////////////////
