@@ -275,6 +275,8 @@ class ApproximationSpace : public IApproximationSpace
 	///	Return the domain
 		SmartPtr<TDomain> domain() {return m_spDomain;}
 
+		int get_dim() const { return dim; }
+
 	protected:
 	///	Domain, where solution lives
 		SmartPtr<TDomain> m_spDomain;
