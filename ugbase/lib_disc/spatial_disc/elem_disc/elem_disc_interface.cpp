@@ -169,16 +169,16 @@ void IElemDisc<TDomain>::set_subsets(const std::vector<std::string>& subsets)
 		RemoveWhitespaceFromString(m_vSubset[i]);
 
 //	if no subset passed, clear subsets
-	if(m_vFct.size() == 1 && m_vFct[0].empty()) m_vFct.clear();
+	if(m_vSubset.size() == 1 && m_vSubset[0].empty()) m_vSubset.clear();
 
 //	if subsets passed with separator, but not all tokens filled, throw error
-	for(size_t i = 0; i < m_vFct.size(); ++i)
+	for(size_t i = 0; i < m_vSubset.size(); ++i)
 	{
-		if(m_vFct.empty())
+		if(m_vSubset.empty())
 			UG_THROW("Error while setting subsets in an ElemDisc: passed "
 							"subset string lacks a "
 							"subset specification at position "<<i<<"(of "
-							<<m_vFct.size()-1<<")");
+							<<m_vSubset.size()-1<<")");
 	}
 }
 
