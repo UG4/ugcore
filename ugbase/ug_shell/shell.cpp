@@ -47,8 +47,9 @@ namespace bridge
 {
 
 #if defined(UG_USE_READLINE)
-	string ug_readline(const char *prompt)
+	string ug_readline(const char *prompt, bool &quit)
 	{
+		quit=false;
 		string ret;
 		char *str=readline(prompt);
 		if(str==NULL)
@@ -63,12 +64,16 @@ namespace bridge
 	}
 #else
 	#if defined(UG_USE_LINENOISE)
-		string ug_readline(const char *prompt)
+		string ug_readline(const char *prompt, bool &quit)
 		{
+			quit=false;
 			string ret;
 			char *str=linenoise(prompt);
 			if(str==NULL)
+			{
+				quit=true;
 				ret="";
+			}
 			else ret=str;
 			free(str);
 			return ret;
@@ -78,8 +83,9 @@ namespace bridge
 			linenoiseHistoryAdd(str.c_str());
 		}
 	#else
-		string ug_readline(const char* prompt)
+		string ug_readline(const char* prompt, bool &quit)
 		{
+			quit=false;
 			cout << prompt;
 			string strBuffer;
 			getline(cin, strBuffer);
@@ -113,13 +119,18 @@ int RunShell(const char *prompt)
 		SetOtherCompletions(completitions, sizeof(completitions)/sizeof(completitions[0]));
 #endif
 
-		PROFILE_BEGIN(ug_readline);
-			string buf = ug_readline(prompt);
-		PROFILE_END_(ug_readline);
+		bool quit;
+		string buf;
+		{
+			PROFILE_BEGIN(ug_readline);
+			buf = ug_readline(prompt, quit);
+		}
+
 
 #if defined(UG_USE_LINENOISE)
 		SetOtherCompletions(NULL, 0);
 #endif
+		if(quit) break;
 		size_t len = buf.length();
 		if(len)
 		{
@@ -196,13 +207,18 @@ debug_return DebugShell()
 #if defined(UG_USE_LINENOISE)
 		SetOtherCompletions(completitions, sizeof(completitions)/sizeof(completitions[0]));
 #endif
-		PROFILE_BEGIN(ug_readline);
-			string buf = ug_readline("debug:> ");
-		PROFILE_END_(ug_readline);
+		bool quit;
+		string buf;
+		{
+			PROFILE_BEGIN(ug_readline);
+			buf = ug_readline("debug:>", quit);
+		}
+
 
 #if defined(UG_USE_LINENOISE)
 		SetOtherCompletions(NULL, 0);
 #endif
+		if(quit) return DEBUG_EXIT;
 		size_t len = buf.length();
 		if(len)
 		{
