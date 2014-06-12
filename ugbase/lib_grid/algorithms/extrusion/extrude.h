@@ -52,13 +52,14 @@ enum ExtrusionOptions
  * If you need to have access to all newly created elements you could use
  * a ug::Selector with enabled autoselection.
  */
+template <class vector_t>
 void Extrude(Grid& grid,
 			std::vector<Vertex*>* pvVerticesInOut,
 			std::vector<Edge*>* pvEdgesInOut,
 			std::vector<Face*>* pvFacesInOut,
-			const vector3& direction,
+			const vector_t& direction,
 			uint extrusionOptions = EO_DEFAULT,
-			APosition& aPos = aPosition);
+			Attachment<vector_t>& aPos = aPosition);
 
 
 /*

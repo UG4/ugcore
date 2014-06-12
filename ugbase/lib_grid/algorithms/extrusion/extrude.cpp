@@ -12,22 +12,40 @@ using namespace std;
 namespace ug
 {
 
+static bool ExtrusionHelper_CheckOrientation(Volume* v, Grid::VertexAttachmentAccessor<Attachment<vector1> >& aaPos)
+{
+    UG_THROW("Can't check orientation of a degenerated volume element!");
+    return false;
+}
+
+static bool ExtrusionHelper_CheckOrientation(Volume* v, Grid::VertexAttachmentAccessor<Attachment<vector2> >& aaPos)
+{
+    UG_THROW("Can't check orientation of a degenerated volume element!");
+    return false;
+}
+
+static bool ExtrusionHelper_CheckOrientation(Volume* v, Grid::VertexAttachmentAccessor<Attachment<vector3> >& aaPos)
+{
+    return CheckOrientation(v, aaPos);
+}
+
 ////////////////////////////////////////////////////////////////////////
 //	Extrude
+template <class vector_t>
 void Extrude(Grid& grid,
 			std::vector<Vertex*>* pvVerticesInOut,
 			std::vector<Edge*>* pvEdgesInOut,
 			std::vector<Face*>* pvFacesInOut,
-			const vector3& direction,
+			const vector_t& direction,
 			uint extrusionOptions,
-			APosition& aPos)
+			Attachment<vector_t>& aPos)
 {
 	UG_DLOG(LIB_GRID, 0, "extruding...\n");
 	
 	if(!grid.has_vertex_attachment(aPos))
 		grid.attach_to_vertices(aPos);
 
-	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPos);
+	Grid::VertexAttachmentAccessor<Attachment<vector_t> > aaPos(grid, aPos);
 
 //TODO: find a better guess.
 //	first we'll determine the rough size of the hash.
@@ -95,7 +113,7 @@ void Extrude(Grid& grid,
 		//	overwrite the vertex in pvVerticesInOut
 			vVertices[i] = v;
 		}
-		UG_DLOG(LIB_GRID, 1, "  extrunding vertices done.\n");
+		UG_DLOG(LIB_GRID, 1, "  extruding vertices done.\n");
 	}
 
 //	now extrude edges.
@@ -188,7 +206,7 @@ void Extrude(Grid& grid,
 								fNew->vertex(0), fNew->vertex(1), fNew->vertex(2));
 					
 				//	check the orientation and create the prism
-					if(!CheckOrientation(&prism, aaPos)){
+					if (!ExtrusionHelper_CheckOrientation(&prism, aaPos)){
 						VolumeDescriptor vd;
 						prism.get_flipped_orientation(vd);
 						grid.create_by_cloning(&prism, vd, f);	
@@ -210,7 +228,7 @@ void Extrude(Grid& grid,
 								   fNew->vertex(0), fNew->vertex(1), fNew->vertex(2), fNew->vertex(3));
 					
 				//	check the orientation and create the hexahedron
-					if(!CheckOrientation(&hex, aaPos)){
+					if(!ExtrusionHelper_CheckOrientation(&hex, aaPos)){
 						VolumeDescriptor vd;
 						hex.get_flipped_orientation(vd);
 						grid.create_by_cloning(&hex, vd, f);	
@@ -245,4 +263,27 @@ void Extrude(Grid& grid,
 	}
 }
 
+template void Extrude<vector1>(Grid&,
+								std::vector<Vertex*>*,
+								std::vector<Edge*>*,
+								std::vector<Face*>*,
+								const vector1&,
+								uint,
+								Attachment<vector1>&);
+
+template void Extrude<vector2>(Grid&,
+								std::vector<Vertex*>*,
+								std::vector<Edge*>*,
+								std::vector<Face*>*,
+								const vector2&,
+								uint,
+								Attachment<vector2>&);
+
+template void Extrude<vector3>(Grid&,
+								std::vector<Vertex*>*,
+								std::vector<Edge*>*,
+								std::vector<Face*>*,
+								const vector3&,
+								uint,
+								Attachment<vector3>&);
 }//	end of namespace
