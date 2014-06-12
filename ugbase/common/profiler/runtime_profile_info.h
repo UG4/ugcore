@@ -7,6 +7,7 @@
 
 #include "profiler.h"
 #include "common/log.h"
+#include "common/util/stringify.h"
 
 /**
  * Class storing Profile information, only known at runtime (e.g. strings build
@@ -22,46 +23,67 @@
  */
 class RuntimeProfileInfo
 {
-	public:
-		RuntimeProfileInfo(const char* name = NULL, bool bCopyName = false,
-		                   const char* groups = NULL, bool bCopyGroup = false,
-		                   const char* file = NULL, bool bCopyFile = false,
-		                   int line = 0);
+public:
+	RuntimeProfileInfo(const char* name = NULL, bool bCopyName = false,
+					   const char* groups = NULL, bool bCopyGroup = false,
+					   const char* file = NULL, bool bCopyFile = false,
+					   int line = 0);
 
-		~RuntimeProfileInfo();
+	~RuntimeProfileInfo();
 
-		inline void beginNode()
-		{
+	inline void beginNode()
+	{
 #ifdef UG_PROFILER_SHINY
-			Shiny::ProfileManager::instance._beginNode(&profilerCache, &profileInformation);
+		Shiny::ProfileManager::instance._beginNode(&profilerCache, &profileInformation);
 #endif
 #ifdef UG_PROFILER_SCALASCA
-			EPIK_USER_START(pName);
+		EPIK_USER_START(pName);
 #endif
 #ifdef UG_PROFILER_VAMPIR
-			VT_USER_START((char*)pName);
+		VT_USER_START((char*)pName);
 #endif
 #ifdef UG_PROFILER_SCOREP
-			SCOREP_USER_REGION_BEGIN( m_pHandle, pName,
-									  SCOREP_USER_REGION_TYPE_COMMON )
+		SCOREP_USER_REGION_BEGIN( m_pHandle, pName,
+								  SCOREP_USER_REGION_TYPE_COMMON )
 #endif
-		}
+	}
 
-		inline void endNode()
-		{
+	inline void endNode()
+	{
 #ifdef UG_PROFILER_SHINY
-			Shiny::ProfileManager::instance._endCurNode();
+		Shiny::ProfileManager::instance._endCurNode();
 #endif
 #ifdef UG_PROFILER_SCALASCA
-			EPIK_USER_END(pName);
+		EPIK_USER_END(pName);
 #endif
 #ifdef UG_PROFILER_VAMPIR
-			VT_USER_END((char*)pName);
+		VT_USER_END((char*)pName);
 #endif
 #ifdef UG_PROFILER_SCOREP
-			SCOREP_USER_REGION_END(m_pHandle);
+		SCOREP_USER_REGION_END(m_pHandle);
 #endif
-		}
+	}
+
+
+	const char *name() const
+	{
+		return pName;
+	}
+
+	const char *group() const
+	{
+		return pGroup;
+	}
+
+	const char *file() const
+	{
+		return pFile;
+	}
+
+	int line() const
+	{
+		return iLine;
+	}
 
 	private:
 		bool bNameCopied;
@@ -80,6 +102,12 @@ class RuntimeProfileInfo
 		SCOREP_User_RegionHandle m_pHandle;
 #endif
 };
+
+static inline std::ostream& operator << (std::ostream& os, const RuntimeProfileInfo &pi)
+{
+	os << "RuntimeProfileInfo name=" << pi.name() << " group=" << pi.group() << " @ " << pi.file() << ":" << pi.line();
+	return os;
+}
 
 typedef RuntimeProfileInfo* pRuntimeProfileInfo;
 #endif
