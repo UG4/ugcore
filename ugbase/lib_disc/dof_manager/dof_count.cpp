@@ -226,6 +226,7 @@ uint64 DoFCount::Cnt::PCnt::num(byte is) const
 	if(is == UNIQUE_ES){
 		return 	num(ES_NONE) 					// one-proc-only dofs
 				+ num(ES_V_SLAVE)				// pure vert. slaves
+				+ num(ES_V_SLAVE | ES_V_MASTER)	// pure vert.
 				+ num_contains(ES_H_MASTER); 	// all horiz. masters
 	}
 
@@ -244,6 +245,7 @@ uint64 DoFCount::Cnt::PCnt::num_contains(byte is) const
 	if(is == UNIQUE_ES){
 		return 	num(ES_NONE) 					// one-proc-only dofs
 				+ num(ES_V_SLAVE)				// pure vert. slaves
+				+ num(ES_V_SLAVE | ES_V_MASTER)	// pure vert.
 				+ num_contains(ES_H_MASTER); 	// all horiz. masters
 	}
 
@@ -264,7 +266,10 @@ void DoFCount::Cnt::PCnt::collect_values(std::vector<uint64>& vNum) const
 {
 	PROFILE_FUNC();
 	for(byte l = 0; l <= ES_MAX; ++l){
-		if((l & (ES_V_MASTER | ES_V_SLAVE)) == (ES_V_MASTER | ES_V_SLAVE)) continue;
+	//	I think one shouldn't continue for (ES_V_MASTER | ES_V_SLAVE) here, since those
+	//	guys may actually exist in a distributed grid. That's why I commented the line.
+	//	It should be completely removed somewhen soon...(sreiter)
+		//if((l & (ES_V_MASTER | ES_V_SLAVE)) == (ES_V_MASTER | ES_V_SLAVE)) continue;
 		if((l & (ES_H_MASTER | ES_H_SLAVE)) == (ES_H_MASTER | ES_H_SLAVE)) continue;
 
 		vNum.push_back(vNumIS[l]);
@@ -275,7 +280,10 @@ void DoFCount::Cnt::PCnt::set_values(const std::vector<uint64>& vNum, size_t& cn
 {
 	PROFILE_FUNC();
 	for(byte l = 0; l <= ES_MAX; ++l){
-		if((l & (ES_V_MASTER | ES_V_SLAVE)) == (ES_V_MASTER | ES_V_SLAVE)) continue;
+	//	I think one shouldn't continue for (ES_V_MASTER | ES_V_SLAVE) here, since those
+	//	guys may actually exist in a distributed grid. That's why I commented the line.
+	//	It should be completely removed somewhen soon...(sreiter)
+		//if((l & (ES_V_MASTER | ES_V_SLAVE)) == (ES_V_MASTER | ES_V_SLAVE)) continue;
 		if((l & (ES_H_MASTER | ES_H_SLAVE)) == (ES_H_MASTER | ES_H_SLAVE)) continue;
 
 		vNumIS[l] = vNum[cnt++];

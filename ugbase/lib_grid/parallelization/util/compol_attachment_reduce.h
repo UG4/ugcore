@@ -57,6 +57,70 @@ struct attachment_reduce_traits<double>
 	static inline value_t bor(value_t v1, value_t v2)	{UG_THROW("doubles do not support a binary or operation.");}
 };
 
+template <int dim>
+struct vector_attachment_reduce_traits
+{
+	typedef MathVector<dim> value_t;
+	static inline value_t min(value_t v1, value_t v2)
+	{
+		value_t v;
+		for(int i = 0; i < dim; ++i)
+			v[i] = std::min(v1[i], v2[i]);
+		return v;
+	}
+	static inline value_t max(value_t v1, value_t v2)
+	{
+		value_t v;
+		for(int i = 0; i < dim; ++i)
+			v[i] = std::max(v1[i], v2[i]);
+		return v;
+	}
+	static inline value_t sum(value_t v1, value_t v2)
+	{
+		value_t v = v1;
+		v += v2;
+		return v;
+	}
+	static inline value_t prod(value_t v1, value_t v2)
+	{
+		value_t v;
+		for(int i = 0; i < dim; ++i)
+			v[i] = v1[i] * v2[i];
+		return v;
+	}
+	static inline value_t land(value_t v1, value_t v2)
+	{
+		value_t v;
+		for(int i = 0; i < dim; ++i)
+			v[i] = v1[i] && v2[i];
+		return v;
+	}
+	static inline value_t band(value_t v1, value_t v2)	{UG_THROW("vectors do not support a binary and operation.");}
+	static inline value_t lor(value_t v1, value_t v2)
+	{
+		value_t v;
+		for(int i = 0; i < dim; ++i)
+			v[i] = v1[i] || v2[i];
+		return v;
+	}
+	static inline value_t bor(value_t v1, value_t v2)	{UG_THROW("vectors do not support a binary or operation.");}
+};
+
+template <>
+struct attachment_reduce_traits<MathVector<1> > :
+	public vector_attachment_reduce_traits<1>	{};
+
+template <>
+struct attachment_reduce_traits<MathVector<2> > :
+	public vector_attachment_reduce_traits<2>	{};
+
+template <>
+struct attachment_reduce_traits<MathVector<3> > :
+	public vector_attachment_reduce_traits<3>	{};
+
+template <>
+struct attachment_reduce_traits<MathVector<4> > :
+	public vector_attachment_reduce_traits<4>	{};
 
 ///	Performs reduce operations on the specified attachment
 /**	Currently the following reduce operations are supported:

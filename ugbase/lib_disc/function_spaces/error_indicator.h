@@ -1033,6 +1033,243 @@ void MarkForAdaption_GradientJump(IRefiner& refiner,
 	mg.template detach_from<elem_t>(aError);
 };
 
+
+template <typename TDomain, typename TAlgebra>
+void MarkForAdaption_GradientAverage(IRefiner& refiner,
+                                   SmartPtr<GridFunction<TDomain, TAlgebra> > u,
+                                   const char* cmp,
+                                   number refFrac,
+                                   int minLvl, int maxLvl)
+{
+	using namespace std;
+//	types
+	typedef GridFunction<TDomain, TAlgebra> TFunction;
+	static const int dim = TFunction::dim;
+	typedef typename TFunction::domain_type::grid_type grid_t;
+	typedef typename TFunction::element_type elem_t;
+	typedef typename TFunction::template traits<elem_t>::const_iterator	ElemIter;
+	typedef MathVector<dim>	vector_t;
+
+//	get position accessor
+	typename TFunction::domain_type::position_accessor_type& aaPos
+			= u->domain()->position_accessor();
+
+//	function id
+	const size_t fct = u->fct_id_by_name(cmp);
+	UG_COND_THROW(fct >= u->num_fct(),
+				  "Function space does not contain a function with name " << cmp);
+
+//	get multigrid and position accessor
+	grid_t& mg = *u->domain()->grid();
+
+// 	attach error field
+	typedef Attachment<number> ANumber;
+	ANumber aError;
+	mg.template attach_to<elem_t>(aError);
+	MultiGrid::AttachmentAccessor<elem_t, ANumber> aaErrorElem(mg, aError);
+	
+//	attach gradient to vertices and initialize it with zero
+	typedef Attachment<vector_t> AGrad;
+	AGrad aGrad;
+	mg.attach_to_vertices(aGrad);
+	MultiGrid::AttachmentAccessor<Vertex, AGrad> aaGradVrt(mg, aGrad);
+	vector_t zeroVec;
+	VecSet(zeroVec, 0);
+	SetAttachmentValues(aaGradVrt, mg.template begin<Vertex>(),
+						mg.template end<Vertex>(), zeroVec);
+
+//	attach contributor-counter to vertices. Required for parallel execution!
+	ANumber aNumContribs;
+	mg.attach_to_vertices(aNumContribs);
+	MultiGrid::AttachmentAccessor<Vertex, ANumber> aaNumContribsVrt(mg, aNumContribs);
+	SetAttachmentValues(aaNumContribsVrt, mg.template begin<Vertex>(),
+						mg.template end<Vertex>(), 0);
+
+//	average the gradients in the grids vertices
+//todo:	the type of the used gradient evaluator should depend on the used grid function.
+	typedef GradientEvaluator_LagrangeP1<TFunction>	LagrangeP1Evaluator;
+
+//	loop elements and evaluate gradient
+	LagrangeP1Evaluator gradEvaluator(u.get(), fct);
+	Grid::vertex_traits::secure_container	vrts;
+	
+	ElemIter iterElemEnd = u->template end<elem_t>();
+	for(ElemIter iter = u->template begin<elem_t>();
+		iter != iterElemEnd; ++iter)
+	{
+	//	get the element
+		elem_t* elem = *iter;
+		vector_t elemGrad = gradEvaluator.evaluate(elem);
+
+		mg.associated_elements(vrts, elem);
+		for(size_t i = 0; i < vrts.size(); ++i){
+			Vertex* v = vrts[i];
+			aaGradVrt[v] += elemGrad;
+			++aaNumContribsVrt[v];
+		}
+	}
+
+//	in a parallel environment we now have to sum the gradients over parallel
+//	interfaces
+	#ifdef UG_PARALLEL
+		typedef typename GridLayoutMap::Types<Vertex>::Layout layout_t;
+		DistributedGridManager& dgm = *mg.distributed_grid_manager();
+		GridLayoutMap& glm = dgm.grid_layout_map();
+		pcl::InterfaceCommunicator<layout_t> icom;
+
+	//	sum all copies at the h-master attachment
+		ComPol_AttachmentReduce<layout_t, AGrad> compolSumGrad(mg, aGrad, PCL_RO_SUM);
+		ComPol_AttachmentReduce<layout_t, ANumber> compolSumNum(mg, aNumContribs, PCL_RO_SUM);
+		icom.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, compolSumGrad);
+		icom.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, compolSumNum);
+		icom.communicate();
+
+	//	copy the sum from the master to all of its slave-copies
+		ComPol_CopyAttachment<layout_t, AGrad> compolCopyGrad(mg, aGrad);
+		ComPol_CopyAttachment<layout_t, ANumber> compolCopyNum(mg, aNumContribs);
+		icom.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, compolCopyGrad);
+		icom.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, compolCopyNum);
+		icom.communicate();
+
+	//todo: communication to vmasters may not be necessary here...
+	//		it is performed to make sure that all surface-rim-children
+	//		contain their true value.
+		icom.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, compolCopyGrad);
+		icom.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, compolCopyNum);
+
+		icom.communicate();
+	#endif
+
+//	if we're currently operating on a surface function, we have to adjust
+//	errors between shadowed and shadowing vertices
+	if(u->grid_level().type() == GridLevel::SURFACE){
+	//todo: avoid iteration over the whole grid!
+	//todo: reduce communication
+		const SurfaceView* surfView = u->approx_space()->surface_view().get();
+
+		// for(side_iter_t iter = u.template begin<side_t>(SurfaceView::SHADOW_RIM);
+		// 	iter != u.template end<side_t>(SurfaceView::SHADOW_RIM); ++iter)
+		typedef Grid::traits<Vertex>::iterator grid_side_iter_t;
+		for(grid_side_iter_t iter = mg.template begin<Vertex>();
+			iter != mg.template end<Vertex>(); ++iter)
+		{
+			Vertex* s = *iter;
+			if(!surfView->surface_state(s).partially_contains(SurfaceView::SHADOW_RIM))
+				continue;
+
+			Vertex* c = mg.get_child_vertex(s);
+			if(c){
+				aaGradVrt[s] += aaGradVrt[c];
+				aaNumContribsVrt[s] += aaNumContribsVrt[c];
+			}
+		}
+	//	those elems which have local children now contain their true value (vslaves...)
+		#ifdef UG_PARALLEL
+			icom.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, compolCopyGrad);
+			icom.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, compolCopyNum);
+			icom.communicate();
+		#endif
+
+	//	copy values up to children
+		for(grid_side_iter_t iter = mg.template begin<Vertex>();
+			iter != mg.template end<Vertex>(); ++iter)
+		{
+			Vertex* s = *iter;
+			if(!surfView->surface_state(s).partially_contains(SurfaceView::SHADOW_RIM))
+				continue;
+
+			Vertex* c = mg.get_child_vertex(s);
+			if(c){
+				aaGradVrt[c] = aaGradVrt[s];
+				aaNumContribsVrt[c] = aaNumContribsVrt[s];
+			}
+		}
+
+	//	we'll also average values in h-nodes now. If a parent is locally available,
+	//	it's associated values are correct at this point. Communication from vmaster
+	//	to vslaves is performed afterwards.
+		typedef MultiGrid::traits<ConstrainedVertex>::iterator constr_vrt_iter;
+		for(constr_vrt_iter iter = mg.template begin<ConstrainedVertex>();
+			iter != mg.template end<ConstrainedVertex>(); ++iter)
+		{
+			ConstrainedVertex* v = *iter;
+			GridObject* p = v->get_constraining_object();
+			if(p){
+				VecSet(aaGradVrt[v], 0);
+				aaNumContribsVrt[v] = 0;
+				mg.associated_elements(vrts, p);
+				for(size_t i = 0; i < vrts.size(); ++i){
+					aaGradVrt[v] += aaGradVrt[vrts[i]];
+					aaNumContribsVrt[v] += aaNumContribsVrt[vrts[i]];
+				}
+				aaGradVrt[v] /= (number)vrts.size();;
+				aaNumContribsVrt[v] /= (number)vrts.size();;
+			}
+		}
+
+	//	those elems which have a local parent now contain their true value (vmasters...)
+		#ifdef UG_PARALLEL
+		//	copy from v-masters to v-slaves, since there may be constrained
+		//	sides which locally do not have a constraining element. Note that
+		//	constrained V-Masters always have a local constraining element and thus
+		//	contain the correct value.
+			icom.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, compolCopyGrad);
+			icom.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, compolCopyNum);
+			icom.communicate();
+		#endif
+	}
+
+//	evaluate integral over difference of element gradients and averaged
+//	vertex gradients
+	for(ElemIter iter = u->template begin<elem_t>();
+		iter != iterElemEnd; ++iter)
+	{
+	//	get the element
+		elem_t* elem = *iter;
+		vector_t elemGrad = gradEvaluator.evaluate(elem);
+
+		vector_t vrtAvrgGrad;
+		VecSet(vrtAvrgGrad, 0);
+		mg.associated_elements(vrts, elem);
+		for(size_t i = 0; i < vrts.size(); ++i){
+			Vertex* v = vrts[i];
+			vector_t vg = aaGradVrt[v];
+			vg /= aaNumContribsVrt[v];
+			vrtAvrgGrad += vg;
+		}
+		vrtAvrgGrad /= (number)vrts.size();
+		aaErrorElem[elem] = CalculateVolume(elem, aaPos)
+					  * VecDistance(elemGrad, vrtAvrgGrad)
+					  / (number)(dim+1);
+	}
+
+//	mark for adaption
+	number maxElemError = 0;	// error in elements which may be refined
+	number minElemError = numeric_limits<number>::max();
+	for(ElemIter iter = u->template begin<elem_t>(); iter != u->template end<elem_t>(); ++iter){
+		if(mg.get_level(*iter) < maxLvl){
+			maxElemError = max(maxElemError, aaErrorElem[*iter]);
+			minElemError = min(minElemError, aaErrorElem[*iter]);
+		}
+	}
+
+	#ifdef UG_PARALLEL
+		pcl::ProcessCommunicator com;
+		minElemError = com.allreduce(minElemError, PCL_RO_MIN);
+		maxElemError = com.allreduce(maxElemError, PCL_RO_MAX);
+	#endif
+
+//	note that aaErrorElem contains error-squares
+	number refTol = minElemError + (maxElemError - minElemError) * refFrac;
+	MarkElementsAbsolute(aaErrorElem, refiner, u->dof_distribution(), refTol, -1,
+					 	 minLvl, maxLvl);
+
+// 	detach error field
+	mg.detach_from_vertices(aNumContribs);
+	mg.detach_from_vertices(aGrad);
+	mg.template detach_from<elem_t>(aError);
+};
+
 } // end namespace ug
 
 #endif /* __H__UG__LIB_DISC__FUNCTION_SPACE__ERROR_INDICATOR__ */

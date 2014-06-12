@@ -112,6 +112,9 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 		reg.add_function("MarkForAdaption_GradientJump",
 				 &MarkForAdaption_GradientJump<TDomain, TAlgebra>, grp);
+
+		reg.add_function("MarkForAdaption_GradientAverage",
+				&MarkForAdaption_GradientAverage<TDomain, TAlgebra>, grp);
 	}
 
 //	Prolongate
