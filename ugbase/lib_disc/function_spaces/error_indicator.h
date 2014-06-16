@@ -945,6 +945,7 @@ void EvaluateGradientJump_Norm(TFunction& u, size_t fct,
 			if(aaNumElems[s] > 0)
 				err = max(err, fabs(elemErr - aaSideError[s] / aaNumElems[s]));
 		}
+		//aaError[elem] = 2. * err * pow(CalculateVolume(elem, aaPos), number(dim-1)/number(dim));
 		aaError[elem] = 2. * err * pow(CalculateVolume(elem, aaPos), 2./number(dim));
 		//aaError[elem] = 2. * err * pow(CalculateVolume(elem, aaPos), 2./ (1. + 0.5*number(dim)));
 		//aaError[elem] = 2. * err * CalculateVolume(elem, aaPos);
@@ -1198,12 +1199,16 @@ void MarkForAdaption_GradientAverage(IRefiner& refiner,
 				VecSet(aaGradVrt[v], 0);
 				aaNumContribsVrt[v] = 0;
 				mg.associated_elements(vrts, p);
+				int numConstr = 0;
 				for(size_t i = 0; i < vrts.size(); ++i){
+					if(!surfView->surface_state(vrts[i]).partially_contains(SurfaceView::SURFACE_RIM))
+						continue;
 					aaGradVrt[v] += aaGradVrt[vrts[i]];
 					aaNumContribsVrt[v] += aaNumContribsVrt[vrts[i]];
+					++numConstr;
 				}
-				aaGradVrt[v] /= (number)vrts.size();;
-				aaNumContribsVrt[v] /= (number)vrts.size();;
+				aaGradVrt[v] /= (number)numConstr;
+				aaNumContribsVrt[v] /= (number)numConstr;
 			}
 		}
 
