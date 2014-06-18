@@ -21,6 +21,7 @@
 #include "lib_disc/reference_element/reference_mapping_provider.h"
 #include "lib_disc/spatial_disc/disc_util/fvcr_geom.h"
 #include "integrate.h"
+#include "common/profiler/profiler.h"
 
 #ifdef UG_PARALLEL
  	#include "lib_grid/parallelization/util/compol_attachment_reduce.h"
@@ -345,6 +346,7 @@ void MarkForAdaption_GradientIndicator(IRefiner& refiner,
                                        number refineFrac, number coarseFrac,
                                        int maxLevel)
 {
+	PROFILE_FUNC();
 //	types
 	typedef GridFunction<TDomain, TAlgebra> TFunction;
 	typedef typename TFunction::domain_type::grid_type grid_type;
@@ -391,6 +393,7 @@ void MarkForAdaption_AbsoluteGradientIndicator(IRefiner& refiner,
                                        int minLvl,
                                        int maxLevel)
 {
+	PROFILE_FUNC();
 //	types
 	typedef GridFunction<TDomain, TAlgebra> TFunction;
 	typedef typename TFunction::domain_type::grid_type grid_type;
@@ -473,6 +476,7 @@ void MarkForAdaption_GradientJumpIndicator(IRefiner& refiner,
                                        number refineFrac, number coarseFrac,
                                        int maxLevel)
 {
+	PROFILE_FUNC();
 //	types
 	typedef GridFunction<TDomain, TAlgebra> TFunction;
 	typedef typename TFunction::domain_type::grid_type grid_type;
@@ -523,6 +527,7 @@ void MarkForAdaption_AbsoluteGradientJumpIndicator(IRefiner& refiner,
                                        int minLvl,
                                        int maxLevel)
 {
+	PROFILE_FUNC();
 //	types
 	typedef GridFunction<TDomain, TAlgebra> TFunction;
 	typedef typename TFunction::domain_type::grid_type grid_type;
@@ -578,6 +583,7 @@ void MarkForAdaption_L2ErrorExact(IRefiner& refiner,
                                    int minLvl, int maxLvl,
                                    number time, int quadOrder)
 {
+	PROFILE_FUNC();
 	using namespace std;
 //	types
 	typedef GridFunction<TDomain, TAlgebra> TFunction;
@@ -882,8 +888,8 @@ void EvaluateGradientJump_SideIntegral(TFunction& u, size_t fct,
 template <typename TGradientEvaluator, typename TFunction>
 void EvaluateGradientJump_Norm(TFunction& u, size_t fct,
 			                     MultiGrid::AttachmentAccessor<
-			                     typename TFunction::element_type,
-			                     ug::Attachment<number> >& aaError)
+				                     typename TFunction::element_type,
+				                     ug::Attachment<number> >& aaError)
 {
 	using std::max;
 
@@ -979,6 +985,7 @@ void MarkForAdaption_GradientJump(IRefiner& refiner,
                                    int minLvl, int maxLvl,
                                    std::string jumpType)
 {
+	PROFILE_FUNC();
 	using namespace std;
 //	types
 	typedef GridFunction<TDomain, TAlgebra> TFunction;
@@ -1037,31 +1044,18 @@ void MarkForAdaption_GradientJump(IRefiner& refiner,
 };
 
 
-/** A classical residual error for the poisson problem on linear shape functions
- * works with h-nodes.
- *
- * Evaluates the element residual error sqrt{hT^2 * ||RT||^2 + 0.5*sum(hS*||RS||^2)}
- * where the sum contains all sides S of an element T. RT denotes the residuum
- * and RS the gradient-jump over sides of T.
- *
- * \param[in]	refFrac		given minElemError and maxElemError, all elements with
- *							an error > minElemError+refFrac*(maxElemError-minElemError)
- *							will be refined.
- * \todo: Add coarsenFrac and apply coarsen-marks, too.
- */
-template <typename TDomain, typename TAlgebra>
-void MarkForAdaption_ResidualErrorP1(IRefiner& refiner,
-                                   SmartPtr<GridFunction<TDomain, TAlgebra> > u,
-                                   SmartPtr<UserData<number, TDomain::dim> > f,
-                                   const char* cmp,
-                                   number time,
-                                   number refFrac,
-                                   int minLvl, int maxLvl,
-                                   int quadOrder, std::string quadType)
+template <typename TFunction>
+void EvaluateResidualErrorP1(SmartPtr<TFunction> u,
+	                           SmartPtr<UserData<number, TFunction::dim> > f,
+	                           const char* cmp,
+	                           number time,
+	                           int quadOrder, std::string quadType,
+	                           MultiGrid::AttachmentAccessor<
+				                     typename TFunction::element_type,
+				                     ug::Attachment<number> >& aaError)
 {
 	using namespace std;
 //	types
-	typedef GridFunction<TDomain, TAlgebra>	TFunction;
 	typedef typename TFunction::domain_type::grid_type grid_t;
 	typedef typename TFunction::element_type elem_t;
 	typedef typename TFunction::template traits<elem_t>::const_iterator	ElemIter;
@@ -1076,12 +1070,6 @@ void MarkForAdaption_ResidualErrorP1(IRefiner& refiner,
 	grid_t& mg = *u->domain()->grid();
 	typename TFunction::domain_type::position_accessor_type&
 		aaPos = u->domain()->position_accessor();
-
-// 	attach error field
-	typedef Attachment<number> ANumber;
-	ANumber aError;
-	mg.template attach_to<elem_t>(aError);
-	MultiGrid::AttachmentAccessor<elem_t, ANumber> aaError(mg, aError);
 	
 //	evaluate L2-Norm of f and store element contributions in aaError
 	SmartPtr<IIntegrand<number, dim> > spIntegrand
@@ -1104,26 +1092,121 @@ void MarkForAdaption_ResidualErrorP1(IRefiner& refiner,
 	typedef GradientEvaluator_LagrangeP1<TFunction>	LagrangeP1Evaluator;
 	EvaluateGradientJump_SideIntegral<LagrangeP1Evaluator>(*u, fct, aaError, true);
 
-//	finally take the square root of aaError and find min- and max-values
+//	finally take the square root of aaError
+	for(ElemIter iter = u->template begin<elem_t>();
+		iter != u->template end<elem_t>(); ++iter)
+	{
+		aaError[*iter] = sqrt(aaError[*iter]);
+	}
+};
+
+/** A classical residual error for the poisson problem on linear shape functions
+ * works with h-nodes.
+ *
+ * Evaluates the element residual error sqrt{hT^2 * ||RT||^2 + 0.5*sum(hS*||RS||^2)}
+ * where the sum contains all sides S of an element T. RT denotes the residuum
+ * and RS the gradient-jump over sides of T.
+ *
+ * \param[in]	refTol		Threshold value. Only elements with a higher residual
+ *							error than refTol are refined.
+ *
+ * \todo: Add coarsenFrac and apply coarsen-marks, too.
+ */
+template <typename TDomain, typename TAlgebra>
+void MarkForAdaption_ResidualErrorP1Absolute(IRefiner& refiner,
+                                   SmartPtr<GridFunction<TDomain, TAlgebra> > u,
+                                   SmartPtr<UserData<number, TDomain::dim> > f,
+                                   const char* cmp,
+                                   number time,
+                                   number refTol,
+                                   int minLvl, int maxLvl,
+                                   int quadOrder, std::string quadType)
+{
+	PROFILE_FUNC();
+	using namespace std;
+//	types
+	typedef GridFunction<TDomain, TAlgebra>	TFunction;
+	typedef typename TFunction::domain_type::grid_type grid_t;
+	typedef typename TFunction::element_type elem_t;
+	typedef typename TFunction::template traits<elem_t>::const_iterator	ElemIter;
+
+// 	attach error field
+	grid_t& mg = *u->domain()->grid();
+	typedef Attachment<number> ANumber;
+	ANumber aError;
+	mg.template attach_to<elem_t>(aError);
+	MultiGrid::AttachmentAccessor<elem_t, ANumber> aaError(mg, aError);
+	
+//	Evaluate the residual error
+	EvaluateResidualErrorP1(u, f, cmp, time, quadOrder, quadType, aaError);
+	MarkElementsAbsolute(aaError, refiner, u->dof_distribution(), refTol, -1,
+					 	 minLvl, maxLvl);
+
+// 	detach error field
+	mg.template detach_from<elem_t>(aError);
+};
+
+/** A classical residual error for the poisson problem on linear shape functions
+ * works with h-nodes.
+ *
+ * Evaluates the element residual error sqrt{hT^2 * ||RT||^2 + 0.5*sum(hS*||RS||^2)}
+ * where the sum contains all sides S of an element T. RT denotes the residuum
+ * and RS the gradient-jump over sides of T.
+ *
+* \param[in]	refFrac		given minElemError and maxElemError, all elements with
+ *							an error > minElemError+refFrac*(maxElemError-minElemError)
+ *							will be refined.
+ *
+ * \todo: Add coarsenFrac and apply coarsen-marks, too.
+ */
+template <typename TDomain, typename TAlgebra>
+void MarkForAdaption_ResidualErrorP1Relative(IRefiner& refiner,
+                                   SmartPtr<GridFunction<TDomain, TAlgebra> > u,
+                                   SmartPtr<UserData<number, TDomain::dim> > f,
+                                   const char* cmp,
+                                   number time,
+                                   number refFrac,
+                                   int minLvl, int maxLvl,
+                                   int quadOrder, std::string quadType)
+{
+	PROFILE_FUNC();
+	using namespace std;
+//	types
+	typedef GridFunction<TDomain, TAlgebra> TFunction;
+	typedef typename TFunction::domain_type::grid_type grid_t;
+	typedef typename TFunction::element_type elem_t;
+	typedef typename TFunction::template traits<elem_t>::const_iterator	ElemIter;
+
+// 	attach error field
+	grid_t& mg = *u->domain()->grid();
+	typedef Attachment<number> ANumber;
+	ANumber aError;
+	mg.template attach_to<elem_t>(aError);
+	MultiGrid::AttachmentAccessor<elem_t, ANumber> aaError(mg, aError);
+	
+//	Evaluate the residual error
+	EvaluateResidualErrorP1(u, f, cmp, time, quadOrder, quadType, aaError);
+
+//	find min- and max-values
 	number maxElemError = 0;	// error in elements which may be refined
 	number minElemError = numeric_limits<number>::max();
 	for(ElemIter iter = u->template begin<elem_t>();
 		iter != u->template end<elem_t>(); ++iter)
 	{
-		number err = aaError[*iter] = sqrt(aaError[*iter]);
-		maxElemError = max(maxElemError, err);
-		minElemError = min(minElemError, err);
+		if(mg.get_level(*iter) < maxLvl){
+			 number err = aaError[*iter] = sqrt(aaError[*iter]);
+			 maxElemError = max(maxElemError, err);
+			 minElemError = min(minElemError, err);
+		}
 	}
 
 	#ifdef UG_PARALLEL
-		pcl::ProcessCommunicator com;
-		minElemError = com.allreduce(minElemError, PCL_RO_MIN);
-		maxElemError = com.allreduce(maxElemError, PCL_RO_MAX);
+	 	pcl::ProcessCommunicator com;
+	 	minElemError = com.allreduce(minElemError, PCL_RO_MIN);
+	 	maxElemError = com.allreduce(maxElemError, PCL_RO_MAX);
 	#endif
 
 	number refTol = minElemError + (maxElemError - minElemError) * refFrac;
-	UG_LOG("minElemError: " << minElemError << ", maxElemError: " << maxElemError
-			<< ", refTol: " << refTol << std::endl);
 	MarkElementsAbsolute(aaError, refiner, u->dof_distribution(), refTol, -1,
 					 	 minLvl, maxLvl);
 
@@ -1139,6 +1222,7 @@ void MarkForAdaption_GradientAverage(IRefiner& refiner,
                                    number refFrac,
                                    int minLvl, int maxLvl)
 {
+	PROFILE_FUNC();
 	using namespace std;
 //	types
 	typedef GridFunction<TDomain, TAlgebra> TFunction;

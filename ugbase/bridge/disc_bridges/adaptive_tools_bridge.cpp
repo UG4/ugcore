@@ -50,7 +50,23 @@ namespace ug{
 	}
 
 	template <typename TDomain, typename TAlgebra>
-	static void MarkForAdaption_ResidualErrorP1LUA(IRefiner& refiner,
+	static void MarkForAdaption_ResidualErrorP1AbsoluteLUA(IRefiner& refiner,
+                                   SmartPtr<GridFunction<TDomain, TAlgebra> > u,
+                                   const char* fCallbackName,
+                                   const char* cmp,
+                                   number time,
+                                   number refTol,
+                                   int minLvl, int maxLvl,
+                                   int quadOrder, std::string quadType)
+	{
+		SmartPtr<UserData<number, TDomain::dim> > spCallback
+			= make_sp(new LuaUserData<number, TDomain::dim>(fCallbackName));
+		MarkForAdaption_ResidualErrorP1Absolute(refiner, u, spCallback, cmp, time, refTol,
+												minLvl, maxLvl, quadOrder, quadType);
+	}
+
+	template <typename TDomain, typename TAlgebra>
+	static void MarkForAdaption_ResidualErrorP1RelativeLUA(IRefiner& refiner,
                                    SmartPtr<GridFunction<TDomain, TAlgebra> > u,
                                    const char* fCallbackName,
                                    const char* cmp,
@@ -61,9 +77,10 @@ namespace ug{
 	{
 		SmartPtr<UserData<number, TDomain::dim> > spCallback
 			= make_sp(new LuaUserData<number, TDomain::dim>(fCallbackName));
-		MarkForAdaption_ResidualErrorP1(refiner, u, spCallback, cmp, time, refFrac,
-										minLvl, maxLvl, quadOrder, quadType);
+		MarkForAdaption_ResidualErrorP1Relative(refiner, u, spCallback, cmp, time, refFrac,
+												minLvl, maxLvl, quadOrder, quadType);
 	}
+
 #endif
 	
 
@@ -132,12 +149,22 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_function("MarkForAdaption_GradientAverage",
 				&MarkForAdaption_GradientAverage<TDomain, TAlgebra>, grp);
 
-		reg.add_function("MarkForAdaption_ResidualErrorP1",
-						 &MarkForAdaption_ResidualErrorP1<TDomain, TAlgebra>, grp);
+	//	MarkForAdaption_ResidualErrorP1Absolute
+		reg.add_function("MarkForAdaption_ResidualErrorP1Absolute",
+						 &MarkForAdaption_ResidualErrorP1Absolute<TDomain, TAlgebra>, grp);
 		
 		#ifdef UG_FOR_LUA
-			reg.add_function("MarkForAdaption_ResidualErrorP1",
-						 	 &MarkForAdaption_ResidualErrorP1LUA<TDomain, TAlgebra>, grp);
+			reg.add_function("MarkForAdaption_ResidualErrorP1Absolute",
+						 	 &MarkForAdaption_ResidualErrorP1AbsoluteLUA<TDomain, TAlgebra>, grp);
+		#endif
+
+	//	MarkForAdaption_ResidualErrorP1Relative
+		reg.add_function("MarkForAdaption_ResidualErrorP1Relative",
+						 &MarkForAdaption_ResidualErrorP1Relative<TDomain, TAlgebra>, grp);
+		
+		#ifdef UG_FOR_LUA
+			reg.add_function("MarkForAdaption_ResidualErrorP1Relative",
+						 	 &MarkForAdaption_ResidualErrorP1RelativeLUA<TDomain, TAlgebra>, grp);
 		#endif
 	}
 
