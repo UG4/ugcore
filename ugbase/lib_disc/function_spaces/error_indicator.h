@@ -3,6 +3,7 @@
  *
  *  Created on: 30.03.2011
  *      Author: andreasvogel
+ *		Additions by Sebastian Reiter
  */
 
 #ifndef __H__UG__LIB_DISC__FUNCTION_SPACE__ERROR_INDICATOR__
@@ -793,9 +794,10 @@ void ExchangeAndAdjustSideErrors(TFunction& u, ANumber aSideError, ANumber aNumE
  * integrals into aaError.*/
 template <typename TGradientEvaluator, typename TFunction>
 void EvaluateGradientJump_SideIntegral(TFunction& u, size_t fct,
-					                     MultiGrid::AttachmentAccessor<
-					                     typename TFunction::element_type,
-					                     ug::Attachment<number> >& aaError)
+					                   MultiGrid::AttachmentAccessor<
+					                   		typename TFunction::element_type,
+					                     	ug::Attachment<number> >& aaError,
+					                   bool addErrSquareToAAError = false)
 {
 	using std::max;
 
@@ -858,16 +860,16 @@ void EvaluateGradientJump_SideIntegral(TFunction& u, size_t fct,
 			side_t* s = sides[i];
 			if(aaNumElems[s] > 1){
 				g.associated_elements(edges, s);
-				number hSq = 0;
-				for(size_t j = 0; j < edges.size(); ++j)
-					hSq = max(hSq, EdgeLengthSq(edges[j], aaPos));
-
 				number a = CalculateVolume(s, aaPos);
-				err += (sqrt(hSq) * sq(a * aaSideError[s]));
+				number hs = ElementDiameter(g, aaPos, s);
+				err += hs * sq(a * aaSideError[s]);
 			}
 		}
 
-		aaError[elem] = sqrt(0.5 * err);
+		if(addErrSquareToAAError)
+			aaError[elem] += 0.5 * err;
+		else
+			aaError[elem] = sqrt(0.5 * err);
 	}
 
 	g.template detach_from<side_t>(aSideError);
@@ -1027,6 +1029,101 @@ void MarkForAdaption_GradientJump(IRefiner& refiner,
 
 //	note that aaError contains error-squares
 	number refTol = minElemError + (maxElemError - minElemError) * refFrac;
+	MarkElementsAbsolute(aaError, refiner, u->dof_distribution(), refTol, -1,
+					 	 minLvl, maxLvl);
+
+// 	detach error field
+	mg.template detach_from<elem_t>(aError);
+};
+
+
+/** A classical residual error for the poisson problem on linear shape functions
+ * works with h-nodes.
+ *
+ * Evaluates the element residual error sqrt{hT^2 * ||RT||^2 + 0.5*sum(hS*||RS||^2)}
+ * where the sum contains all sides S of an element T. RT denotes the residuum
+ * and RS the gradient-jump over sides of T.
+ *
+ * \param[in]	refFrac		given minElemError and maxElemError, all elements with
+ *							an error > minElemError+refFrac*(maxElemError-minElemError)
+ *							will be refined.
+ * \todo: Add coarsenFrac and apply coarsen-marks, too.
+ */
+template <typename TDomain, typename TAlgebra>
+void MarkForAdaption_ResidualErrorP1(IRefiner& refiner,
+                                   SmartPtr<GridFunction<TDomain, TAlgebra> > u,
+                                   SmartPtr<UserData<number, TDomain::dim> > f,
+                                   const char* cmp,
+                                   number time,
+                                   number refFrac,
+                                   int minLvl, int maxLvl,
+                                   int quadOrder, std::string quadType)
+{
+	using namespace std;
+//	types
+	typedef GridFunction<TDomain, TAlgebra>	TFunction;
+	typedef typename TFunction::domain_type::grid_type grid_t;
+	typedef typename TFunction::element_type elem_t;
+	typedef typename TFunction::template traits<elem_t>::const_iterator	ElemIter;
+	const int dim = TFunction::dim;
+
+//	function id
+	const size_t fct = u->fct_id_by_name(cmp);
+	UG_COND_THROW(fct >= u->num_fct(),
+				  "Function space does not contain a function with name " << cmp);
+
+//	get multigrid and position accessor
+	grid_t& mg = *u->domain()->grid();
+	typename TFunction::domain_type::position_accessor_type&
+		aaPos = u->domain()->position_accessor();
+
+// 	attach error field
+	typedef Attachment<number> ANumber;
+	ANumber aError;
+	mg.template attach_to<elem_t>(aError);
+	MultiGrid::AttachmentAccessor<elem_t, ANumber> aaError(mg, aError);
+	
+//	evaluate L2-Norm of f and store element contributions in aaError
+	SmartPtr<IIntegrand<number, dim> > spIntegrand
+		= make_sp(new UserDataIntegrand<number, TFunction>(f, u, time));
+
+	Integrate<dim, dim>(u->template begin<elem_t>(), u->template end<elem_t>(),
+			  			aaPos, *spIntegrand, quadOrder, quadType, &aaError);
+
+//	we have to square contributions in aaError and multiply them with the
+//	square of the element-diameter
+	for(ElemIter iter = u->template begin<elem_t>();
+		iter != u->template end<elem_t>(); ++iter)
+	{
+		elem_t* elem = *iter;
+		aaError[elem] *= aaError[elem] * ElementDiameterSq(mg, aaPos, elem);
+	}
+
+//	now evaluate contributions of the integral over gradient jumps on the element sides
+//	their squares will be added to aaError.
+	typedef GradientEvaluator_LagrangeP1<TFunction>	LagrangeP1Evaluator;
+	EvaluateGradientJump_SideIntegral<LagrangeP1Evaluator>(*u, fct, aaError, true);
+
+//	finally take the square root of aaError and find min- and max-values
+	number maxElemError = 0;	// error in elements which may be refined
+	number minElemError = numeric_limits<number>::max();
+	for(ElemIter iter = u->template begin<elem_t>();
+		iter != u->template end<elem_t>(); ++iter)
+	{
+		number err = aaError[*iter] = sqrt(aaError[*iter]);
+		maxElemError = max(maxElemError, err);
+		minElemError = min(minElemError, err);
+	}
+
+	#ifdef UG_PARALLEL
+		pcl::ProcessCommunicator com;
+		minElemError = com.allreduce(minElemError, PCL_RO_MIN);
+		maxElemError = com.allreduce(maxElemError, PCL_RO_MAX);
+	#endif
+
+	number refTol = minElemError + (maxElemError - minElemError) * refFrac;
+	UG_LOG("minElemError: " << minElemError << ", maxElemError: " << maxElemError
+			<< ", refTol: " << refTol << std::endl);
 	MarkElementsAbsolute(aaError, refiner, u->dof_distribution(), refTol, -1,
 					 	 minLvl, maxLvl);
 
