@@ -838,6 +838,9 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 								BinaryBuffer& out,
 								MultiElementAttachmentAccessor<AGeomObjID>* paaID)
 {
+//	NOTE: SERIALIZATION HAS TO MATCH THE ORDER OF CONTAINER SECTIONS AS DEFINED IN
+//		  grid_objects_0d.h, grid_objects_1d.h, grid_objects_2d.h, grid_objects_3d.h
+
 	SRLZ_PROFILE_FUNC();
 
 	int tInt;
@@ -1110,27 +1113,6 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 			}
 		}
 
-		if(mgoc.num<ConstrainingTriangle>(iLevel) > 0)
-		{
-			tInt = GOID_CONSTRAINING_TRIANGLE;
-			out.write((char*)&tInt, sizeof(int));
-			tInt = (int)mgoc.num<ConstrainingTriangle>(iLevel);
-			out.write((char*)&tInt, sizeof(int));
-
-			for(ConstrainingTriangleIterator iter = mgoc.begin<ConstrainingTriangle>(iLevel);
-				iter != mgoc.end<ConstrainingTriangle>(iLevel); ++iter)
-			{
-				ConstrainingTriangle* e = *iter;
-				mg.mark(e);
-				out.write((char*)&aaInt[e->vertex(0)], sizeof(int));
-				out.write((char*)&aaInt[e->vertex(1)], sizeof(int));
-				out.write((char*)&aaInt[e->vertex(2)], sizeof(int));
-				aaInt[e] = faceInd++;
-				WriteParent(mg, e, aaInt, out);
-				if(paaID)	Serialize(out, (*paaID)[e]);
-			}
-		}
-
 		if(mgoc.num<ConstrainedQuadrilateral>(iLevel) > 0)
 		{
 			tInt = GOID_CONSTRAINED_QUADRILATERAL;
@@ -1165,6 +1147,27 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 				tInt = e->get_parent_base_object_id();
 				out.write((char*)&tInt, sizeof(int));
 
+				WriteParent(mg, e, aaInt, out);
+				if(paaID)	Serialize(out, (*paaID)[e]);
+			}
+		}
+
+		if(mgoc.num<ConstrainingTriangle>(iLevel) > 0)
+		{
+			tInt = GOID_CONSTRAINING_TRIANGLE;
+			out.write((char*)&tInt, sizeof(int));
+			tInt = (int)mgoc.num<ConstrainingTriangle>(iLevel);
+			out.write((char*)&tInt, sizeof(int));
+
+			for(ConstrainingTriangleIterator iter = mgoc.begin<ConstrainingTriangle>(iLevel);
+				iter != mgoc.end<ConstrainingTriangle>(iLevel); ++iter)
+			{
+				ConstrainingTriangle* e = *iter;
+				mg.mark(e);
+				out.write((char*)&aaInt[e->vertex(0)], sizeof(int));
+				out.write((char*)&aaInt[e->vertex(1)], sizeof(int));
+				out.write((char*)&aaInt[e->vertex(2)], sizeof(int));
+				aaInt[e] = faceInd++;
 				WriteParent(mg, e, aaInt, out);
 				if(paaID)	Serialize(out, (*paaID)[e]);
 			}

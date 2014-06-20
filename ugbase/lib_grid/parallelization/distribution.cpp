@@ -1990,6 +1990,16 @@ bool DistributeGrid(MultiGrid& mg,
 	PCL_DEBUG_BARRIER(procComm);
 	GDIST_PROFILE_END();
 
+//	DEBUGGING...
+	// {
+	// 	static int counter = 0;
+	// 	stringstream ss;
+	// 	ss << "parallel-grid-layout-before-redist-(cleared)" << counter << "-p" << pcl::ProcRank() << ".ugx";
+	// 	UG_LOG("DEBUG SAVE OF PARALLEL GRID LAYOUT IN DistributeGrid\n");
+	// 	SaveParallelGridLayout(mg, ss.str().c_str(), 2);
+	// 	++counter;
+	// }
+
 ////////////////////////////////
 //	DESERIALIZE INCOMING GRIDS
 	GDIST_PROFILE(gdist_Deserialize);
@@ -2084,19 +2094,19 @@ bool DistributeGrid(MultiGrid& mg,
 		PerformValidityCheck(distGridMgr);
 	#endif
 
-////	DEBUGGING...
-//	{
-//		static int counter = 0;
-//		stringstream ss;
-//		ss << "parallel-grid-layout-after-redist-" << counter << "-p" << pcl::ProcRank() << ".ugx";
-//		UG_LOG("DEBUG SAVE OF PARALLEL GRID LAYOUT IN DistributeGrid\n");
-//		SaveParallelGridLayout(mg, ss.str().c_str(), 0.1);
-//		++counter;
-//
-//		if(!TestGridLayoutMap(mg, glm)){
-//			UG_THROW("TestGridLayoutMap failed after redistribution!");
-//		}
-//	}
+//	DEBUGGING...
+	// {
+	// 	static int counter = 0;
+	// 	stringstream ss;
+	// 	ss << "parallel-grid-layout-after-redist-" << counter << "-p" << pcl::ProcRank() << ".ugx";
+	// 	UG_LOG("DEBUG SAVE OF PARALLEL GRID LAYOUT IN DistributeGrid\n");
+	// 	SaveParallelGridLayout(mg, ss.str().c_str(), 2);
+	// 	++counter;
+
+	// 	if(!TestGridLayoutMap(mg, glm)){
+	// 		UG_THROW("TestGridLayoutMap failed after redistribution!");
+	// 	}
+	// }
 
 
 
