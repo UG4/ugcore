@@ -230,10 +230,10 @@ template<typename TAlgebra>
 void MultiStepTimeDiscretization<TAlgebra>::
 calc_error(const vector_type& u, vector_type* u_vtk)
 {
-	PROFILE_BEGIN_GROUP(MultiStepTimeDiscretization_mark_error, "discretization MultiStepTimeDiscretization");
+	PROFILE_BEGIN_GROUP(MultiStepTimeDiscretization_calc_error, "discretization MultiStepTimeDiscretization");
 //	perform checks
 	if(m_pPrevSol->size() < m_prevSteps)
-		UG_THROW("ThetaTimeStep::mark_error:"
+		UG_THROW("ThetaTimeStep::calc_error:"
 				" Number of previous solutions must be at least "<<
 				m_prevSteps <<", but only "<< m_pPrevSol->size() << " passed.");
 

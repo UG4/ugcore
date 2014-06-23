@@ -101,6 +101,9 @@ class MultiStepTimeDiscretization
 	/// they will have to be newly calculated by a call to calc_error
 		void invalidate_error() {this->m_spDomDisc->invalidate_error();};
 
+	/// returns whether error indicators are valid
+		bool is_error_valid() {return this->m_spDomDisc->is_error_valid();};
+
 	/// Error estimator												///
 	///////////////////////////////////////////////////////////////////
 

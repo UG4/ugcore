@@ -317,7 +317,11 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 			int maxLevel
 		) = 0;
 
+	/// marks error indicators as invalid
 		virtual void invalidate_error() = 0;
+
+	/// returns whether current error values are valid
+		virtual bool is_error_valid() = 0;
 
 	///	returns the number of post processes
 		virtual size_t num_constraints() const = 0;

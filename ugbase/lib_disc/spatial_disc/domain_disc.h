@@ -260,9 +260,12 @@ class DomainDiscretization : public IDomainDiscretization<TAlgebra>
 			int maxLevel
 		);
 
-	/// marks error indicators as invalid; in order to revalidate them,
-	/// they will have to be newly calculated by a call to calc_error
+		/// marks error indicators as invalid; in order to revalidate them,
+		/// they will have to be newly calculated by a call to calc_error
 		virtual void invalidate_error();
+
+		/// returns whether current error values are valid
+		virtual bool is_error_valid();
 
 	protected:
 		typedef typename domain_traits<dim>::element_type elem_type;

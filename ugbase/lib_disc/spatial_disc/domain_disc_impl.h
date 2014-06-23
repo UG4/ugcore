@@ -1757,6 +1757,14 @@ invalidate_error()
 	}
 }
 
+template <typename TDomain, typename TAlgebra>
+bool DomainDiscretization<TDomain, TAlgebra>::
+is_error_valid()
+{
+	// check that error indicators have been calculated
+	return m_bErrorCalculated;
+}
+
 
 
 

@@ -82,6 +82,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 				"mark elements for coarsening according to calculated error indicators")
 			.add_method("invalidate_error", &T::invalidate_error, "", "Marks error indicators as invalid, "
 				"which will prohibit refining and coarsening before a new call to calc_error.")
+			.add_method("is_error_valid", &T::is_error_valid, "", "Returns whether error values are valid")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "DomainDiscretization", tag);
 	}
