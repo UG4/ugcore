@@ -30,33 +30,14 @@
 #include "lib_algebra/operator/preconditioner/iterator_product.h"
 #include "lib_algebra/operator/operator_util.h"
 #include "lib_algebra/operator/vector_writer.h"
+#include "../util_overloaded.h"
+
+#include "bridge_mat_vec_operations.h"
+#include "matrix_diagonal.h"
 
 using namespace std;
 
 namespace ug{
-
-/**
- * \defgroup algebracommon_bridge Common Algebra Bridge
- * \ingroup algebra_bridge
- * \{
- */
-
-//! calculates dest = alpha1*v1 + alpha2*v2
-template<typename vector_t>
-inline void VecScaleAdd2(vector_t &dest, double alpha1, const vector_t &v1, double alpha2, const vector_t &v2)
-{
-	VecScaleAdd(dest, alpha1, v1, alpha2, v2);
-}
-
-//! calculates dest = alpha1*v1 + alpha2*v2 + alpha3*v3
-template<typename vector_t>
-inline void VecScaleAdd3(vector_t &dest, double alpha1, const vector_t &v1, double alpha2, const vector_t &v2, double alpha3, const vector_t &v3)
-{
-	VecScaleAdd(dest, alpha1, v1, alpha2, v2, alpha3, v3);
-}
-
-// end group algebracommon_bridge
-/// \}
 
 namespace bridge{
 namespace AlgebraCommon{
@@ -64,12 +45,16 @@ namespace AlgebraCommon{
 /// \addtogroup algebracommon_bridge
 /// \{
 
+
+
 /**
  * Class exporting the functionality. All functionality that is to
  * be used in scripts or visualization must be registered here.
  */
 struct Functionality
 {
+
+
 
 /**
  * Function called for the registration of Algebra dependent parts.
@@ -91,6 +76,29 @@ static void Algebra(Registry& reg, string grp)
 	string suffix = GetAlgebraSuffix<TAlgebra>();
 	string tag = GetAlgebraTag<TAlgebra>();
 
+// MatrixDiagonal
+	{
+		typedef MatrixOperator<matrix_type, vector_type> T2;
+		typedef MatrixDiagonal<matrix_type, vector_type> T;
+		string name = string("MatrixDiagonal").append(suffix);
+		reg.add_class_<T, ILinearOperator<vector_type> >(name, grp)
+				.ADD_CONSTRUCTOR( (SmartPtr<T2> mo) )()
+				.set_construct_as_smart_pointer(true);
+
+		reg.add_class_to_group(name, "MatrixDiagonal", tag);
+	}
+
+// MatrixDiagonalInverse
+	{
+		typedef MatrixOperator<matrix_type, vector_type> T2;
+		typedef MatrixDiagonalInverse<matrix_type, vector_type> T;
+		string name = string("MatrixDiagonalInverse").append(suffix);
+		reg.add_class_<T, ILinearOperator<vector_type> >(name, grp)
+				.ADD_CONSTRUCTOR( (SmartPtr<T2> mo) )()
+				.set_construct_as_smart_pointer(true);
+
+		reg.add_class_to_group(name, "MatrixDiagonalInverse", tag);
+	}
 //	Vector
 	{
 		string name = string("Vector").append(suffix);
@@ -121,8 +129,33 @@ static void Algebra(Registry& reg, string grp)
 		reg.add_function("VecScaleAdd3", /*(void (*)(vector_type&, number, const vector_type&, number, const vector_type &, number, const vector_type &))*/
 				&VecScaleAdd3<vector_type>, grp, "alpha1*vec1 + alpha2*vec2 + alpha3*vec3",
 				"dest#alpha1#vec1#alpha2#vec2#alpha3#vec3");
+		reg.add_function("VecProd", &VecProd2<TAlgebra>);
+		reg.add_function("VecProd", &VecProdOp<vector_type>);
+		reg.add_function("VecProd", &VecScaleAddProd1<TAlgebra>);
+		reg.add_function("VecProd", &VecScaleAddProd2<TAlgebra>);
+		reg.add_function("VecNorm", &VecNorm<TAlgebra>);
+		reg.add_function("VecNorm", &VecScaleAddNorm<TAlgebra>);
 	}
 
+//	VecScaleAddClass
+	{
+		string name = string("VecScaleAddClass").append(suffix);
+		typedef VecScaleAddClass<TAlgebra> T;
+		reg.add_class_<T>(name, grp)
+		.add_constructor()
+		.ADD_CONSTRUCTOR( (double scale1, SmartPtr<vector_type> v1) ) ()
+		.ADD_CONSTRUCTOR( (double scale1, SmartPtr<vector_type> v1, double scale2, SmartPtr<vector_type> v2) ) ()
+		.ADD_CONSTRUCTOR( (double scale, SmartPtr<VecScaleAddClass<TAlgebra > > vsac, double scale1, SmartPtr<vector_type> v1) ) ()
+		.ADD_CONSTRUCTOR( (double scale1, SmartPtr<vector_type> v1, double scale, SmartPtr<VecScaleAddClass<TAlgebra > > vsac) ) ()
+		.ADD_CONSTRUCTOR( (double scale, SmartPtr<VecScaleAddClass<TAlgebra > > vsac) ) ()
+		.add_method("eval", &T::eval)
+		.add_method("assign", &T::assign)
+		.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "VecScaleAddClass", tag);
+
+		reg.add_function("Eval", &Eval<TAlgebra>, grp);
+		reg.add_function("Assign", &Assign<TAlgebra>, grp);
+	}
 //	Matrix
 	{
 		string name = string("Matrix").append(suffix);
@@ -161,7 +194,7 @@ static void Algebra(Registry& reg, string grp)
 		typedef VectorDebugWritingObject<vector_type> T;
 		string name = string("VectorDebugWritingObject").append(suffix);
 		reg.add_class_<T>(name, grp)
-			.add_method("set_debug", &T::set_debug, "sets a debug writer", "debugWriter")
+			.add_method("set_debug", &T::set_debug,  "", "dbgWriter", "sets a debug writer")
 			.add_method("vector_debug_writer", static_cast<SmartPtr<IVectorDebugWriter<vector_type> > (T::*)()>(&T::vector_debug_writer))
 			.add_method("vector_debug_writer", static_cast<ConstSmartPtr<IVectorDebugWriter<vector_type> > (T::*)() const>(&T::vector_debug_writer));
 		reg.add_class_to_group(name, "VectorDebugWritingObject", tag);
@@ -173,7 +206,7 @@ static void Algebra(Registry& reg, string grp)
 		typedef VectorDebugWritingObject<vector_type> TBase;
 		string name = string("DebugWritingObject").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
-			.add_method("set_debug", static_cast<void (T::*)(SmartPtr<IDebugWriter<TAlgebra> >)>(&T::set_debug), "sets a debug writer", "d")
+			.add_method("set_debug", static_cast<void (T::*)(SmartPtr<IDebugWriter<TAlgebra> >)>(&T::set_debug), "", "dbgWriter", "sets a debug writer")
 			.add_method("debug_writer", static_cast<SmartPtr<IDebugWriter<TAlgebra> > (T::*)()>(&T::debug_writer))
 			.add_method("debug_writer", static_cast<ConstSmartPtr<IDebugWriter<TAlgebra> > (T::*)() const>(&T::debug_writer));
 		reg.add_class_to_group(name, "DebugWritingObject", tag);
@@ -199,7 +232,7 @@ static void Algebra(Registry& reg, string grp)
 		string name = string("ILinearOperator").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_method("init", static_cast<void (T::*)()>(&T::init))
-			.add_method("apply", &T::apply, "f#u");
+			.add_method("apply", &T::apply, "f#u", "", "calculates f = Op(u)");
 		reg.add_class_to_group(name, "ILinearOperator", tag);
 	}
 
@@ -219,9 +252,10 @@ static void Algebra(Registry& reg, string grp)
 		typedef ILinearIterator<vector_type> T;
 		string name = string("ILinearIterator").append(suffix);
 		reg.add_class_<T>(name, grp)
-			.add_method("set_damp", static_cast<void (T::*)(number)>(&T::set_damp))
-			.add_method("set_damp", static_cast<void (T::*)(SmartPtr<IDamping<vector_type> >)>(&T::set_damp))
-			.add_method("config_string", &T::config_string);
+			.add_method("set_damp", static_cast<void (T::*)(number)>(&T::set_damp), "", "damp", "set the damping to a number")
+			.add_method("set_damp", static_cast<void (T::*)(SmartPtr<IDamping<vector_type> >)>(&T::set_damp), "", "damp", "set the damping to a damping object")
+			.add_method("config_string", &T::config_string, "strConfiguration", "", "string to display configuration of the linear iterator")
+			.add_method("clone", &T::clone, "SmartPointer to a copy of this object", "", "returns a clone of the object which can be modified independently");
 		reg.add_class_to_group(name, "ILinearIterator", tag);
 	}
 
@@ -247,9 +281,9 @@ static void Algebra(Registry& reg, string grp)
 			.add_method("apply", &T::apply, "Success", "u#f", "Solve A*u = f, such that u = A^{-1} f by iterating u := u + B(f - A*u), f remains constant")
 			.add_method("set_convergence_check", &T::set_convergence_check)
 			.add_method("convergence_check", static_cast<ConstSmartPtr<IConvergenceCheck<vector_type> > (T::*)() const>(&T::convergence_check))
-			.add_method("defect", &T::defect)
-			.add_method("step", &T::step)
-			.add_method("reduction", &T::reduction)
+			.add_method("defect", &T::defect, "the current defect")
+			.add_method("step", &T::step, "the current number of steps")
+			.add_method("reduction", &T::reduction, "the current relative reduction")
 			.add_method("config_string", &T::config_string);
 		reg.add_class_to_group(name, "ILinearOperatorInverse", tag);
 	}
