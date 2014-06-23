@@ -537,7 +537,6 @@ void SideAndElemErrEstData<TDomain>::summarize_err_est_data(ConstSmartPtr<TDomai
 			// interpolate coarse IPs on fine side:
 			for (std::size_t cip = 0; cip < m_aaSide[c_rim_side].size(); cip++)
 			{
-				std::size_t nearest = 0;
 				MathVector<dim> diff;
 				number dist = std::numeric_limits<number>::infinity();
 				number val = 0.0;
@@ -561,7 +560,6 @@ void SideAndElemErrEstData<TDomain>::summarize_err_est_data(ConstSmartPtr<TDomai
 						if (VecLengthSq(diff) < dist)
 						{
 							dist = VecLengthSq(diff);
-							nearest = fip;
 							val = m_aaSide[f_rim_side][fip];
 						}
 					}
