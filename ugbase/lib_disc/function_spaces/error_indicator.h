@@ -1120,7 +1120,8 @@ void MarkForAdaption_ResidualErrorP1Absolute(IRefiner& refiner,
                                    number time,
                                    number refTol,
                                    int minLvl, int maxLvl,
-                                   int quadOrder, std::string quadType)
+                                   int quadOrder, std::string quadType,
+                                   bool markTopLvlOnly = false)
 {
 	PROFILE_FUNC();
 	using namespace std;
@@ -1140,7 +1141,7 @@ void MarkForAdaption_ResidualErrorP1Absolute(IRefiner& refiner,
 //	Evaluate the residual error
 	EvaluateResidualErrorP1(u, f, cmp, time, quadOrder, quadType, aaError);
 	MarkElementsAbsolute(aaError, refiner, u->dof_distribution(), refTol, -1,
-					 	 minLvl, maxLvl);
+					 	 minLvl, maxLvl, markTopLvlOnly);
 
 // 	detach error field
 	mg.template detach_from<elem_t>(aError);

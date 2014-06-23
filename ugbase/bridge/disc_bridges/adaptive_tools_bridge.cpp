@@ -57,12 +57,14 @@ namespace ug{
                                    number time,
                                    number refTol,
                                    int minLvl, int maxLvl,
-                                   int quadOrder, std::string quadType)
+                                   int quadOrder, std::string quadType,
+                                   bool markTopLvlOnly)
 	{
 		SmartPtr<UserData<number, TDomain::dim> > spCallback
 			= make_sp(new LuaUserData<number, TDomain::dim>(fCallbackName));
 		MarkForAdaption_ResidualErrorP1Absolute(refiner, u, spCallback, cmp, time, refTol,
-												minLvl, maxLvl, quadOrder, quadType);
+												minLvl, maxLvl, quadOrder, quadType,
+												markTopLvlOnly);
 	}
 
 	template <typename TDomain, typename TAlgebra>
