@@ -989,7 +989,7 @@ static int LuaToStringDefault(lua_State *L)
 	ParameterStack out;
 	char buf[255];
 	try{
-		sprintf(buf, "%s: %p", c->name().c_str(), c);
+		sprintf(buf, "[ %s: %p", c->name().c_str(), c);
 
 	}
 	catch(...)
@@ -1427,7 +1427,6 @@ bool CreateBindings_LUA(lua_State* L, Registry& reg)
 		// if we did not find a __tostring function, we
 		// add a default __tostring method which shows 
 		// classname: <adress>
-		bToStringFound = true;
 		if(bToStringFound == false)
 		{
 			lua_pushstring(L, "__tostring");
