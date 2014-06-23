@@ -11,7 +11,16 @@
  * not fully developed.
  * the idea is to call Serialize(obj, serializationObj) for all UserData-Objects, if this Serialize is registered in the registry.
  */
+
+#include "common/util/stringify.h"
+#include "bridge/misc_bridges/serialization.h"
+#include "bindings_lua.h"
 #include "lua_parsing.h"
+
+namespace ug{
+size_t SerializerGetLastID();
+
+namespace bridge{
 
 string LUAStringEscape(string s)
 {
@@ -228,4 +237,7 @@ bool RegisterSerializationCommands(Registry &reg, const char* parentGroup)
 	UG_REGISTRY_CATCH_THROW(grp);
 
 	return true;
+}
+
+}
 }
