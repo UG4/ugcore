@@ -33,9 +33,9 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 // interactive shells
-//#define UG_PROMPT "\e[1mug:>\e[0m"
 
 #define UG_PROMPT "ug:> "
+#define UG_DEBUG_PROMPT "debug:> "
 
 using namespace std;
 
@@ -211,7 +211,7 @@ debug_return DebugShell()
 		string buf;
 		{
 			PROFILE_BEGIN(ug_readline);
-			buf = ug_readline("debug:>", quit);
+			buf = ug_readline(UG_DEBUG_PROMPT, quit);
 		}
 
 
