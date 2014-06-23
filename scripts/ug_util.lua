@@ -13,7 +13,7 @@ ug_load_script("util/test_utils.lua")
 ug_load_script("util/domain_distribution_util.lua")
 ug_load_script("util/stats_util.lua")
 ug_load_script("util/user_data_util.lua")
---ug_load_script("util/vec_util.lua")
+ug_load_script("util/vec_util.lua")
 ug_load_script("util/gnuplot.lua")
 ug_load_script("util/table_util.lua")
 ug_load_script("util/time_step_util.lua")
@@ -59,30 +59,36 @@ end
 -- lua script functions
 --------------------------------------------------------------------------------
 
-function util.PrintTableHelper(indexPar, valuePar)
+function util.TableToTextLongHelper(indexPar, valuePar)
+	local str=""
 	if type(valuePar) == "table" then
-		print(util.PrintTableHelperIntend .. tostring(indexPar)  .. " = {")
+		str = str..util.PrintTableHelperIntend .. tostring(indexPar)  .. " = {\n"
 		util.PrintTableHelperIntend = util.PrintTableHelperIntend .. "  "
 		
-		for i,v in pairs(valuePar) do util.PrintTableHelper(i, v) end
+		for i,v in pairs(valuePar) do str = str..util.TableToTextLongHelper(i, v) end
 		
 		util.PrintTableHelperIntend = string.sub(util.PrintTableHelperIntend, 3)
-		print(util.PrintTableHelperIntend .. "}")
+		str = str..util.PrintTableHelperIntend .. "}\n"
 	else
 		if type(valuePar) == "string" or type(valuePar) == "number" then
-			print(util.PrintTableHelperIntend .. tostring(indexPar) .. " = " .. valuePar )
+			str = str..util.PrintTableHelperIntend .. tostring(indexPar) .. " = " .. valuePar .."\n" 
 		elseif type(valuePar) == "boolean" then
-			print(util.PrintTableHelperIntend .. tostring(indexPar) .. " = " .. tostring(valuePar) )
+			str = str..util.PrintTableHelperIntend .. tostring(indexPar) .. " = " .. tostring(valuePar) .."\n"
 		else
-			print(util.PrintTableHelperIntend .. "type(" .. tostring(indexPar) .. ") = " .. type(valuePar) )
+			str = str..util.PrintTableHelperIntend .. " " .. tostring(indexPar) .. " = " .. tostring(valuePar) .."\n"
 		end
 	end
+	return str
+end
+
+function util.TableToTextLong(tablePar)
+	util.PrintTableHelperIntend = ""
+	return util.TableToTextLongHelper("", tablePar)
 end
 
 --! to print tables
 function util.PrintTable(tablePar)
-	util.PrintTableHelperIntend = ""
-	util.PrintTableHelper("", tablePar)
+	print(util.TableToTextLong(tablePar))
 end
 
 function util.TableToText(var)
@@ -334,6 +340,21 @@ io.open = util.safe_io_open
 --! for parallel different integers s
 function util.ParallelMaxMinAvg(s)
 	return "min: "..ParallelMin(s)..", max: "..ParallelMax(s)..", avg: ".. ParallelSum(s)/NumProcs()
+end
+
+_tostring = _tostring or tostring
+function tostring(Val)
+	if type(Val) == "table" then
+   		return util.TableToTextLong(Val)
+   	elseif type(Val) == "boolean" then
+   		if Val then
+   			return "true"
+   		else
+   			return "false"
+   		end
+   	else
+   		return _tostring(Val)
+   	end
 end
 
 -- end group scripts_util
