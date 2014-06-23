@@ -1044,6 +1044,7 @@ void MarkForAdaption_GradientJump(IRefiner& refiner,
 };
 
 
+///	Evaluates the residual error for P1 shape functions (with some simplifications)
 template <typename TFunction>
 void EvaluateResidualErrorP1(SmartPtr<TFunction> u,
 	                           SmartPtr<UserData<number, TFunction::dim> > f,
@@ -1110,10 +1111,12 @@ void EvaluateResidualErrorP1(SmartPtr<TFunction> u,
  * \param[in]	refTol		Threshold value. Only elements with a higher residual
  *							error than refTol are refined.
  *
+ * \returns		the fraction of the residual error in marked elements compared to
+ *				the total residual error.
  * \todo: Add coarsenFrac and apply coarsen-marks, too.
  */
 template <typename TDomain, typename TAlgebra>
-void MarkForAdaption_ResidualErrorP1Absolute(IRefiner& refiner,
+number MarkForAdaption_ResidualErrorP1Absolute(IRefiner& refiner,
                                    SmartPtr<GridFunction<TDomain, TAlgebra> > u,
                                    SmartPtr<UserData<number, TDomain::dim> > f,
                                    const char* cmp,
@@ -1140,11 +1143,38 @@ void MarkForAdaption_ResidualErrorP1Absolute(IRefiner& refiner,
 	
 //	Evaluate the residual error
 	EvaluateResidualErrorP1(u, f, cmp, time, quadOrder, quadType, aaError);
+
+//	mark
 	MarkElementsAbsolute(aaError, refiner, u->dof_distribution(), refTol, -1,
 					 	 minLvl, maxLvl, markTopLvlOnly);
 
+//	evaluate fraction of error in marked elements compared to the total error
+	number errs[2] = {0, 0};	//0: marked error, 1: total error
+
+	for(ElemIter iter = u->template begin<elem_t>();
+		iter != u->template end<elem_t>(); ++iter)
+	{
+		elem_t* e = *iter;
+		errs[1] += sq(aaError[e]);
+		if(refiner.get_mark(e) & (RM_REFINE | RM_ANISOTROPIC))
+			errs[0] += sq(aaError[e]);
+	}
+
+	#ifdef UG_PARALLEL
+		pcl::ProcessCommunicator com;
+		number gErrs[2];
+		com.allreduce(errs, gErrs, 2, PCL_RO_SUM);
+	#else
+		number* gErrs = errs;
+	#endif
+
+	number frac = 1;
+	if(gErrs[1] > 0)
+		frac = sqrt(gErrs[0] / gErrs[1]);
+
 // 	detach error field
 	mg.template detach_from<elem_t>(aError);
+	return frac;
 };
 
 /** A classical residual error for the poisson problem on linear shape functions

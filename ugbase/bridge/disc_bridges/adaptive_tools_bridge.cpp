@@ -50,7 +50,7 @@ namespace ug{
 	}
 
 	template <typename TDomain, typename TAlgebra>
-	static void MarkForAdaption_ResidualErrorP1AbsoluteLUA(IRefiner& refiner,
+	static number MarkForAdaption_ResidualErrorP1AbsoluteLUA(IRefiner& refiner,
                                    SmartPtr<GridFunction<TDomain, TAlgebra> > u,
                                    const char* fCallbackName,
                                    const char* cmp,
@@ -62,9 +62,9 @@ namespace ug{
 	{
 		SmartPtr<UserData<number, TDomain::dim> > spCallback
 			= make_sp(new LuaUserData<number, TDomain::dim>(fCallbackName));
-		MarkForAdaption_ResidualErrorP1Absolute(refiner, u, spCallback, cmp, time, refTol,
-												minLvl, maxLvl, quadOrder, quadType,
-												markTopLvlOnly);
+		return MarkForAdaption_ResidualErrorP1Absolute(refiner, u, spCallback,
+									cmp, time, refTol, minLvl, maxLvl, quadOrder,
+									quadType, markTopLvlOnly);
 	}
 
 	template <typename TDomain, typename TAlgebra>
