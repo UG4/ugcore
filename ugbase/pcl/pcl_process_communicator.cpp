@@ -416,10 +416,10 @@ receive_data(void* pBuffOut, int bufferSize, int srcProc, int tag) const
 }
 
 void ProcessCommunicator::
-distribute_data(void* pBufferOut, int* pBufferOutSegSizes,
-				int* pSenderProcMap, int numSenderProcs,
-				void* pBuffer, int* pBufferSegSizes,
-			  	int* pRecvProcMap, int numRecvProcs, int tag) const
+distribute_data(void* recvBufOut, int* recvBufSegSizesOut,
+				int* recvFromRanks, int numRecvs,
+				void* sendBuf, int* sendBufSegSizes,
+			  	int* sendToRanks, int numSends, int tag) const
 {
 	if(is_local()) return;
 	PCL_PROFILE(pcl_ProcCom_distribute_data);
@@ -427,29 +427,29 @@ distribute_data(void* pBufferOut, int* pBufferOutSegSizes,
 	UG_COND_THROW(empty(),	"ERROR in ProcessCommunicator::distribute_data: empty communicator.");
 
 //	used for mpi-communication.
-	std::vector<MPI_Request> vSendRequests(numRecvProcs);
-	std::vector<MPI_Request> vReceiveRequests(numSenderProcs);
+	std::vector<MPI_Request> vSendRequests(numSends);
+	std::vector<MPI_Request> vReceiveRequests(numRecvs);
 	
 //	wait until data has been received
-	std::vector<MPI_Status> vSendStates(numRecvProcs);
-	std::vector<MPI_Status> vReceiveStates(numSenderProcs);
+	std::vector<MPI_Status> vSendStates(numSends);
+	std::vector<MPI_Status> vReceiveStates(numRecvs);
 
 //	shedule receives first
-	for(int i = 0; i < numSenderProcs; ++i)
+	for(int i = 0; i < numRecvs; ++i)
 	{
-		MPI_Irecv(pBufferOut, pBufferOutSegSizes[i], MPI_UNSIGNED_CHAR,	
-				  pSenderProcMap[i], tag, m_comm->m_mpiComm,
+		MPI_Irecv(recvBufOut, recvBufSegSizesOut[i], MPI_UNSIGNED_CHAR,	
+				  recvFromRanks[i], tag, m_comm->m_mpiComm,
 				  &vReceiveRequests[i]);
-		pBufferOut = (byte*)pBufferOut + pBufferOutSegSizes[i];
+		recvBufOut = (byte*)recvBufOut + recvBufSegSizesOut[i];
 	}
 
 //	now send the data
-	for(int i = 0; i < numRecvProcs; ++i)
+	for(int i = 0; i < numSends; ++i)
 	{
-		MPI_Isend(pBuffer, pBufferSegSizes[i], MPI_UNSIGNED_CHAR,
-				  pRecvProcMap[i], tag, m_comm->m_mpiComm,
+		MPI_Isend(sendBuf, sendBufSegSizes[i], MPI_UNSIGNED_CHAR,
+				  sendToRanks[i], tag, m_comm->m_mpiComm,
 				  &vSendRequests[i]);
-		pBuffer = (byte*)pBuffer + pBufferSegSizes[i];
+		sendBuf = (byte*)sendBuf + sendBufSegSizes[i];
 	}
 
 	Waitall(vReceiveRequests, vSendRequests);	
@@ -459,7 +459,7 @@ void ProcessCommunicator::
 distribute_data(ug::BinaryBuffer& recvBufOut, int* segSizesOut,
 				int* recvFromRanks, int numRecvFroms,
 				void* sendBuf, int* sendSegSizes,
-				int* sendToRanks, int numSendTos) const
+				int* sendToRanks, int numSendTos, int tag) const
 {
 	if(is_local()) return;
 	PCL_PROFILE(pcl_ProcCom_distribute_data__flex);
@@ -475,7 +475,7 @@ distribute_data(ug::BinaryBuffer& recvBufOut, int* segSizesOut,
 	distribute_data(GetDataPtr(bufferSizes), GetDataPtr(tmpRecvSegSizes),
 					recvFromRanks, numRecvFroms,
 					sendSegSizes, GetDataPtr(tmpSendSegSizes),
-					sendToRanks, numSendTos, 89347);
+					sendToRanks, numSendTos, tag);
 
 //	calculate buffer sizes and resize the binary stream
 	int totalSize = 0;
@@ -489,8 +489,63 @@ distribute_data(ug::BinaryBuffer& recvBufOut, int* segSizesOut,
 	distribute_data(recvBufOut.buffer(), GetDataPtr(bufferSizes),
 					recvFromRanks, numRecvFroms,
 					sendBuf, sendSegSizes,
-					sendToRanks, numSendTos, 3458);
+					sendToRanks, numSendTos, tag);
 	recvBufOut.set_write_pos(totalSize);
+}
+
+void ProcessCommunicator::
+distribute_data(ug::BinaryBuffer* recvBufs, int* recvFromRanks, int numRecvs,
+				ug::BinaryBuffer* sendBufs, int* sendToRanks, int numSends,
+				int tag) const
+{
+	if(is_local()) return;
+	PCL_PROFILE(pcl_ProcCom_distribute_data__multi_buf);
+
+//	small helper arrays
+	vector<int> tmpRecvSegSizes(numRecvs, sizeof(int));
+	vector<int> tmpSendSegSizes(numSends, sizeof(int));
+
+//	the actual data sizes which will be sent and received
+	vector<int> recvSizes(numRecvs);
+	vector<int> sendSizes(numSends);
+	for(int i = 0; i < numSends; ++i)
+		sendSizes[i] = sendBufs[i].write_pos();
+
+//	exchange buffer sizes (use an arbitrary tag)
+	distribute_data(GetDataPtr(recvSizes), GetDataPtr(tmpRecvSegSizes),
+					recvFromRanks, numRecvs,
+					GetDataPtr(sendSizes), GetDataPtr(tmpSendSegSizes),
+					sendToRanks, numSends, tag);
+
+//	used for mpi-communication.
+	std::vector<MPI_Request> vSendRequests(numSends);
+	std::vector<MPI_Request> vReceiveRequests(numRecvs);
+	
+//	wait until data has been received
+	std::vector<MPI_Status> vSendStates(numSends);
+	std::vector<MPI_Status> vReceiveStates(numRecvs);
+
+//	shedule receives first
+	for(int i = 0; i < numRecvs; ++i){
+		recvBufs[i].clear();
+		recvBufs[i].reserve(recvSizes[i]);
+		MPI_Irecv(recvBufs[i].buffer(), recvSizes[i], MPI_UNSIGNED_CHAR,	
+				  recvFromRanks[i], tag, m_comm->m_mpiComm,
+				  &vReceiveRequests[i]);
+	}
+
+//	now send the data
+	for(int i = 0; i < numSends; ++i){
+		MPI_Isend(sendBufs[i].buffer(), sendSizes[i], MPI_UNSIGNED_CHAR,
+				  sendToRanks[i], tag, m_comm->m_mpiComm,
+				  &vSendRequests[i]);
+	}
+
+	Waitall(vReceiveRequests, vSendRequests);
+
+//	adjust write-pos in receive buffers
+	for(int i = 0; i < numRecvs; ++i)
+		recvBufs[i].set_write_pos(recvSizes[i]);
 }
 
 void ProcessCommunicator::

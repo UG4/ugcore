@@ -377,7 +377,27 @@ class ProcessCommunicator
 		void distribute_data(ug::BinaryBuffer& recvBufOut, int* segSizesOut,
 							int* recvFromRanks, int numRecvFroms,
 							void* sendBuf, int* sendSegSizes,
-							int* sendToRanks, int numSendTos) const;
+							int* sendToRanks, int numSendTos,
+							 int tag = 1) const;
+
+	///	sends and receives data to/from multiple processes
+	/** Note that it has to communicate twice, since the buffer-sizes also
+	 * have to be communicated.
+	 *
+	 * \param recvBufs		Received data will be written to this buffers.
+	 *						This array has to be of the size numRecvs
+	 * \param recvFromRanks	Array containing the ranks from which data
+	 * 						shall be received. Has to have size numRecvs.
+	 * \param numRecvs		Specifies from how many processes this process
+	 * 						will receive data.
+	 * \param sendBufs		Array of buffers whose data will be send to other
+	 * 						processes. Has to be of size numSends
+	 * \param sendToRanks	An array of process ids, which defines to where
+	 * 						data shall be sent. Has to have size numSends.
+	 * \param numSendTos	Specifies to how many processes data will be sent.*/
+		void distribute_data(ug::BinaryBuffer* recvBufs, int* recvFromRanks, int numRecvs,
+							 ug::BinaryBuffer* sendBufs, int* sendToRanks, int numSendTos,
+							 int tag = 1) const;
 	private:
 	///	holds an mpi-communicator.
 	/**	A variable stores whether the communicator has to be freed when the
