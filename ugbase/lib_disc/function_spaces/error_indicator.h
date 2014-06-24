@@ -1122,9 +1122,10 @@ number MarkForAdaption_ResidualErrorP1Absolute(IRefiner& refiner,
                                    const char* cmp,
                                    number time,
                                    number refTol,
-                                   int minLvl, int maxLvl,
+                                   number coarsenTol,
+                                   int maxLvl,
                                    int quadOrder, std::string quadType,
-                                   bool markTopLvlOnly = false)
+                                   bool refTopLvlOnly = false)
 {
 	PROFILE_FUNC();
 	using namespace std;
@@ -1145,8 +1146,8 @@ number MarkForAdaption_ResidualErrorP1Absolute(IRefiner& refiner,
 	EvaluateResidualErrorP1(u, f, cmp, time, quadOrder, quadType, aaError);
 
 //	mark
-	MarkElementsAbsolute(aaError, refiner, u->dof_distribution(), refTol, -1,
-					 	 minLvl, maxLvl, markTopLvlOnly);
+	MarkElementsAbsolute(aaError, refiner, u->dof_distribution(), refTol, coarsenTol,
+					 	 0, maxLvl, refTopLvlOnly);
 
 //	evaluate fraction of error in marked elements compared to the total error
 	number errs[2] = {0, 0};	//0: marked error, 1: total error

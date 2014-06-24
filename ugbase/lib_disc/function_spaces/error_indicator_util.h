@@ -346,7 +346,7 @@ void MarkElementsAbsolute(MultiGrid::AttachmentAccessor<TElem, ug::Attachment<nu
 						  number coarsenTol,
 						  int minLevel,
 						  int maxLevel,
-						  bool markTopLvlOnly = false)
+						  bool refTopLvlOnly = false)
 {
 	typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
 
@@ -358,19 +358,18 @@ void MarkElementsAbsolute(MultiGrid::AttachmentAccessor<TElem, ug::Attachment<nu
 	if(mg)
 		topLvl = (int)mg->top_level();
 	else
-		markTopLvlOnly = false;
+		refTopLvlOnly = false;
 
 //	loop elements for marking
 	for(; iter != iterEnd; ++iter)
 	{
 		TElem* elem = *iter;
-		if(markTopLvlOnly && (mg->get_level(elem) != topLvl))
-			continue;
 
 	//	marks for refinement
 		if((refTol >= 0)
 			&& (aaError[elem] > refTol)
-			&& (dd->multi_grid()->get_level(elem) < maxLevel))
+			&& (dd->multi_grid()->get_level(elem) < maxLevel)
+			&& ((!refTopLvlOnly) || (mg->get_level(elem) == topLvl)))
 		{
 			refiner.mark(elem, RM_REFINE);
 			numMarkedRefine++;
