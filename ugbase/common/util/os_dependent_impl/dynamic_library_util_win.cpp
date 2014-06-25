@@ -2,6 +2,7 @@
 // s.b.reiter@gmail.com
 // 10.01.2013 (d,m,y)
 
+#include <string>
 #include "../dynamic_library_util.h"
 
 namespace ug{
@@ -41,7 +42,7 @@ bool CloseLibrary(DynLibHandle h)
 
 void* GetLibraryProcedure(DynLibHandle h, const char* procName)
 {
-	return GetProcAddress(h, procName);
+	return (void*) GetProcAddress(h, procName);
 }
 
 }// end of namespace
