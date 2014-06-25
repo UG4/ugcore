@@ -108,7 +108,10 @@ void IRefiner::refine()
 		}
 	}
 	CATCH_STD_EXCEPTIONS();
-	PCL_DEBUG_BARRIER_ALL();
+	
+	#ifdef UG_PARALLEL
+		PCL_DEBUG_BARRIER_ALL();
+	#endif
 }
 
 
@@ -152,7 +155,9 @@ bool IRefiner::coarsen()
 		adaption_ends();
 
 //	done
-	PCL_DEBUG_BARRIER_ALL();
+	#ifdef UG_PARALLEL
+		PCL_DEBUG_BARRIER_ALL();
+	#endif
 	return retVal;
 }
 
