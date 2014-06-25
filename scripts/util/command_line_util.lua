@@ -68,7 +68,7 @@ function util.GetParam(name, default, description, options, atype)
 	-- check if argument passed
 	local value = default
 	local bFound = false
-	for i = 1, ugargc-1 do
+	for i = 2, ugargc-1 do
 		if not(bFound) and ugargv[i] == name then			
 			util.argsUsed[i]=true
 			util.argsUsed[i+1]=true
@@ -78,7 +78,7 @@ function util.GetParam(name, default, description, options, atype)
 	end
 	
 	local iFound=0
-	for i = 1, ugargc-1 do
+	for i = 2, ugargc do
 		if ugargv[i] == name then
 			iFound=iFound+1			
 		end
@@ -99,7 +99,7 @@ function util.GetParam(name, default, description, options, atype)
 	-- return default
 	return value; 
 end
-
+ 
 
 --! util.GetParamNumber
 --! use with CommandLine to get option, like -useAMG
@@ -147,6 +147,31 @@ function util.GetParamBool(name, default, description)
 		print("ERROR in GetParamBool: passed '"..r.."' for Parameter '"..name.."' is not a bool.")
 		exit();
 	end
+end
+
+--! util.GetParamFromList
+--! use with CommandLine to get a value out of a list
+--! @param name name of the option, like -smoother
+--! @param default returned value if 'name' is not present (default nil)
+--! @param description description for 'name' (default nil)
+--! @return the number after the parameter 'name' or default if 'name' was not present/no number
+--! unlike util.HasParamOption , you must specify a value for your optionn, like -useAMG 1
+--! possible values are (false): 0, n, false, (true) 1, y, j, true
+function util.GetParamFromList(name, default, list)
+	local n = util.GetParam(name, default)
+	if list[n] == nil then
+		print("option \""..n.."\" not supported")
+		local s = "available options: "
+		local first = true
+		for i, v in pairs(list) do
+			if first then first = false else s = s..", " end
+			s = s..i			
+		end
+		print(s)
+		ug_assert(false, "option \""..n.."\" not supported")
+	else
+		return list[n]
+	end	
 end
 
 --! util.HasParamOption
@@ -232,13 +257,20 @@ function util.PrintIgnoredArguments()
 	if bPrintIgnoredArgumentsCalled then return end
 	bPrintIgnoredArgumentsCalled = true
 	local pline = ""
-	for i=1, ugargc do
-		if (util.argsUsed == nil or util.argsUsed[i] == nil) and 
+	for i=2, ugargc do
+		if ugargv[i] == "-ex"
+		 	or ugargv[i] == "-outproc"
+			or ugargv[i] == "-outproc"
+			or ugargv[i] == "-logtofile" then
+			ugargc=ugargc+1
+		elseif
+			ugargv[i] == "-noterm"
+			or ugargv[i] == "-noquit" then
+			-- continue			
+				
+		elseif (util.argsUsed == nil or util.argsUsed[i] == nil) and
 			string.sub(ugargv[i], 1,1) == "-" 
-			and string.sub(ugargv[i], 1,8) ~= "-outproc"
-			and string.sub(ugargv[i], 1,7) ~= "-noterm"
-			and string.sub(ugargv[i], 1,10) ~= "-logtofile"
-			and string.sub(ugargv[i], 1,7) ~= "-noquit" then
+			 then
 			local imin=10
 			local namemin=""
 			for name,arg in pairs(util.args) do
@@ -279,3 +311,10 @@ function util.GetUniqueFilenameFromCommandLine()
 		return ret
 	end
 end
+
+util.HasParamOption("-noquit", "Runs the interactive shell after specified script")
+util.HasParamOption("-noterm", "Terminal logging will be disabled")
+util.HasParamOption("-profile", "Shows profile-output when the application terminates")
+util.GetParamNumber("-outproc", 0, "Sets the output-proc to id.")
+util.GetParam("-ex", "", "Executes the specified script")
+util.GetParam("-logtofile", "", "Output will be written to the specified file")
