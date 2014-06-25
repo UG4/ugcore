@@ -172,7 +172,12 @@ class GridFunction
 		this_type& operator=(const this_type& v) {assign(v); return *this;}
 
 	/// clone including values
+		#ifndef UG_FOR_VRL
 		SmartPtr<this_type> clone() const {return SmartPtr<this_type>(this->virtual_clone());}
+		#else
+		SmartPtr<this_type> clone() {return SmartPtr<this_type>(this->virtual_clone());}
+		#endif
+
 
 	/// clone excluding values
 		SmartPtr<this_type> clone_without_values() const {return SmartPtr<this_type>(this->virtual_clone_without_values());}
