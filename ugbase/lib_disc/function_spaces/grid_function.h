@@ -311,8 +311,20 @@ class GridFunction
 
 	public:
 	/// return m_bManaged
-		bool managed(){return m_bManaged;}
+		bool managed() const {return m_bManaged;}
 		
+	///	retruns true if the grid-function is redistributed together with the grid in parallel applications
+	/**	\note	if redistribution is disabled, values corresponding to elements
+	 *			which were received during redistribution will not be initialized
+	 *			and my be completely random.*/
+		bool redistribution_enabled() const	{return m_bRedistribute;}
+
+	///	enables or disables redistribution for this grid function
+	/**	\note	if redistribution is disabled, values corresponding to elements
+	 *			which were received during redistribution will not be initialized
+	 *			and my be completely random.*/
+		void enable_redistribution(bool enable)	{m_bRedistribute = enable;}
+
 	///	\copydoc IGridFunction::resize_values
 		virtual void resize_values(size_t s, number defaultValue = 0.0);
 
@@ -351,6 +363,10 @@ class GridFunction
 
 	/// boolean for DoF Distribution management of grid function
 		bool m_bManaged;
+
+	///	specifies whether the gridfunction should be redistributed together with the grid.
+	/**	enabled by default */
+		bool m_bRedistribute;
 
 	///	stores the storage-type from before redistribution
 		uint m_preDistStorageType;

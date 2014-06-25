@@ -65,6 +65,7 @@ init(SmartPtr<ApproximationSpace<TDomain> > spApproxSpace,
 	m_spApproxSpace = spApproxSpace;
 	m_spDD = spDoFDistr;
 	m_bManaged = bManage;
+	m_bRedistribute = true;
 	this->set_dof_distribution_info(m_spApproxSpace->dof_distribution_info());
 	m_spAdaptGridFct = SPNULL;
 
@@ -144,6 +145,7 @@ clone_pattern(const this_type& v)
 {
 //	init normally
 	init(v.m_spApproxSpace, v.m_spDD, v.m_bManaged);
+	enable_redistribution(v.redistribution_enabled());
 
 #ifdef UG_PARALLEL
 //	copy storage type
@@ -185,6 +187,7 @@ GridFunction<TDomain, TAlgebra>::virtual_clone_without_values() const
 {
 	GridFunction<TDomain, TAlgebra>* p =
 		new GridFunction<TDomain, TAlgebra>(m_spApproxSpace, m_spDD, m_bManaged);
+	p->enable_redistribution(redistribution_enabled());
 	if(p->size() != this->size())
 		p->resize(this->size());
 #ifdef UG_PARALLEL
@@ -372,52 +375,54 @@ grid_distribution_callback(const GridMessage_Distribution& msg)
 
 	switch(msg.msg()){
 		case GMDT_DISTRIBUTION_STARTS:{
-			m_preDistStorageType = this->get_storage_mask();
-			if(!(this->has_storage_type(PST_CONSISTENT) || this->has_storage_type(PST_UNDEFINED))){
-				this->change_storage_type(PST_CONSISTENT);
-			}
+			if(redistribution_enabled()){
+				m_preDistStorageType = this->get_storage_mask();
+				if(!(this->has_storage_type(PST_CONSISTENT) || this->has_storage_type(PST_UNDEFINED))){
+					this->change_storage_type(PST_CONSISTENT);
+				}
 
-			m_spAdaptGridFct = SmartPtr<AdaptionSurfaceGridFunction<TDomain> >(
-						new AdaptionSurfaceGridFunction<TDomain>(this->domain(), false));
-			m_spAdaptGridFct->copy_from_surface(*this);
-			Grid& grid = *domain()->grid();
+				m_spAdaptGridFct = SmartPtr<AdaptionSurfaceGridFunction<TDomain> >(
+							new AdaptionSurfaceGridFunction<TDomain>(this->domain(), false));
+				m_spAdaptGridFct->copy_from_surface(*this);
+				Grid& grid = *domain()->grid();
 
-			typedef typename AdaptionSurfaceGridFunction<TDomain>::AValues AValues;
+				typedef typename AdaptionSurfaceGridFunction<TDomain>::AValues AValues;
 
-			if(m_spDDI->max_dofs(VERTEX)){
-				ComPol_CopyAttachment<VertexLayout, AValues> compol(grid, m_spAdaptGridFct->value_attachment());
-				pcl::InterfaceCommunicator<VertexLayout> com;
-				com.exchange_data(grid.distributed_grid_manager()->grid_layout_map(),
-								  INT_V_SLAVE, INT_V_MASTER, compol);
-				com.communicate();
-				sh.add(GeomObjAttachmentSerializer<Vertex, AValues>::
-							create(grid, m_spAdaptGridFct->value_attachment()));
-			}
-			if(m_spDDI->max_dofs(EDGE)){
-				ComPol_CopyAttachment<EdgeLayout, AValues> compol(grid, m_spAdaptGridFct->value_attachment());
-				pcl::InterfaceCommunicator<EdgeLayout> com;
-				com.exchange_data(grid.distributed_grid_manager()->grid_layout_map(),
-								  INT_V_SLAVE, INT_V_MASTER, compol);
-				com.communicate();
-				sh.add(GeomObjAttachmentSerializer<Edge, AValues>::
-							create(grid, m_spAdaptGridFct->value_attachment()));
-			}
-			if(m_spDDI->max_dofs(FACE)){
-				ComPol_CopyAttachment<FaceLayout, AValues> compol(grid, m_spAdaptGridFct->value_attachment());
-				pcl::InterfaceCommunicator<FaceLayout> com;
-				com.exchange_data(grid.distributed_grid_manager()->grid_layout_map(),
-								  INT_V_SLAVE, INT_V_MASTER, compol);
-				com.communicate();
-				sh.add(GeomObjAttachmentSerializer<Face, AValues>::
-							create(grid, m_spAdaptGridFct->value_attachment()));
-			}
-			if(m_spDDI->max_dofs(VOLUME)){
-				ComPol_CopyAttachment<VolumeLayout, AValues> compol(grid, m_spAdaptGridFct->value_attachment());
-				pcl::InterfaceCommunicator<VolumeLayout> com;
-				com.exchange_data(grid.distributed_grid_manager()->grid_layout_map(),
-								  INT_V_SLAVE, INT_V_MASTER, compol);
-				sh.add(GeomObjAttachmentSerializer<Volume, AValues>::
-							create(grid, m_spAdaptGridFct->value_attachment()));
+				if(m_spDDI->max_dofs(VERTEX)){
+					ComPol_CopyAttachment<VertexLayout, AValues> compol(grid, m_spAdaptGridFct->value_attachment());
+					pcl::InterfaceCommunicator<VertexLayout> com;
+					com.exchange_data(grid.distributed_grid_manager()->grid_layout_map(),
+									  INT_V_SLAVE, INT_V_MASTER, compol);
+					com.communicate();
+					sh.add(GeomObjAttachmentSerializer<Vertex, AValues>::
+								create(grid, m_spAdaptGridFct->value_attachment()));
+				}
+				if(m_spDDI->max_dofs(EDGE)){
+					ComPol_CopyAttachment<EdgeLayout, AValues> compol(grid, m_spAdaptGridFct->value_attachment());
+					pcl::InterfaceCommunicator<EdgeLayout> com;
+					com.exchange_data(grid.distributed_grid_manager()->grid_layout_map(),
+									  INT_V_SLAVE, INT_V_MASTER, compol);
+					com.communicate();
+					sh.add(GeomObjAttachmentSerializer<Edge, AValues>::
+								create(grid, m_spAdaptGridFct->value_attachment()));
+				}
+				if(m_spDDI->max_dofs(FACE)){
+					ComPol_CopyAttachment<FaceLayout, AValues> compol(grid, m_spAdaptGridFct->value_attachment());
+					pcl::InterfaceCommunicator<FaceLayout> com;
+					com.exchange_data(grid.distributed_grid_manager()->grid_layout_map(),
+									  INT_V_SLAVE, INT_V_MASTER, compol);
+					com.communicate();
+					sh.add(GeomObjAttachmentSerializer<Face, AValues>::
+								create(grid, m_spAdaptGridFct->value_attachment()));
+				}
+				if(m_spDDI->max_dofs(VOLUME)){
+					ComPol_CopyAttachment<VolumeLayout, AValues> compol(grid, m_spAdaptGridFct->value_attachment());
+					pcl::InterfaceCommunicator<VolumeLayout> com;
+					com.exchange_data(grid.distributed_grid_manager()->grid_layout_map(),
+									  INT_V_SLAVE, INT_V_MASTER, compol);
+					sh.add(GeomObjAttachmentSerializer<Volume, AValues>::
+								create(grid, m_spAdaptGridFct->value_attachment()));
+				}
 			}
 		}break;
 
@@ -432,16 +437,18 @@ grid_distribution_callback(const GridMessage_Distribution& msg)
 				this->set_layouts(m_spDD->layouts());
 				#endif
 
-				m_spAdaptGridFct->copy_to_surface(*this);
-				m_spAdaptGridFct = SPNULL;
+				if(redistribution_enabled()){
+					m_spAdaptGridFct->copy_to_surface(*this);
+					m_spAdaptGridFct = SPNULL;
 
-				if(m_preDistStorageType != this->get_storage_mask()){
-					if((m_preDistStorageType & PST_ADDITIVE) == PST_ADDITIVE)
-						this->change_storage_type(PST_ADDITIVE);
-					else if((m_preDistStorageType & PST_UNIQUE) == PST_UNIQUE)
-						this->change_storage_type(PST_UNIQUE);
-					else{
-						UG_THROW("Can't reestablish storage type!");
+					if(m_preDistStorageType != this->get_storage_mask()){
+						if((m_preDistStorageType & PST_ADDITIVE) == PST_ADDITIVE)
+							this->change_storage_type(PST_ADDITIVE);
+						else if((m_preDistStorageType & PST_UNIQUE) == PST_UNIQUE)
+							this->change_storage_type(PST_UNIQUE);
+						else{
+							UG_THROW("Can't reestablish storage type!");
+						}
 					}
 				}
 
