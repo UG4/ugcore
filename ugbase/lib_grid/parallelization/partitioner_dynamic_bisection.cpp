@@ -252,9 +252,6 @@ partition(size_t baseLvl, size_t elementThreshold)
 		}
 	}
 
-//	make sure that everybody knows about the highestRedistLevel!
-	pcl::ProcessCommunicator globCom;
-	m_highestRedistLevel = globCom.allreduce(m_highestRedistLevel, PCL_RO_MAX);
 
 	if(m_nextProcessHierarchy.valid()){
 		*m_processHierarchy = *m_nextProcessHierarchy;
@@ -264,6 +261,10 @@ partition(size_t baseLvl, size_t elementThreshold)
 	mg.detach_from<elem_t>(aWeight);
 
 	if(static_partitioning_enabled()){
+	//	make sure that everybody knows about the highestRedistLevel!
+		pcl::ProcessCommunicator globCom;
+		m_highestRedistLevel = globCom.allreduce(m_highestRedistLevel, PCL_RO_MAX);
+		
 		if(m_procMap.empty() && (sh.num_subsets() > 0)){
 			if(sh.num_subsets() != 1){
 				UG_THROW("Something went wrong during partitioning. At this point"
@@ -281,6 +282,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 //	SaveGridHierarchyTransformed(mg, sh, ss.str().c_str(), 20);
 //	++execCounter;
 
+	PCL_DEBUG_BARRIER_ALL();
 	if(static_partitioning_enabled())
 		return m_highestRedistLevel != oldHighestRedistLvl;
 	else

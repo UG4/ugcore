@@ -11,6 +11,7 @@
 
 #ifdef UG_PARALLEL
 	#include "pcl/pcl_process_communicator.h"
+	#include "pcl/pcl_util.h"
 #endif
 
 namespace ug{
@@ -107,6 +108,7 @@ void IRefiner::refine()
 		}
 	}
 	CATCH_STD_EXCEPTIONS();
+	PCL_DEBUG_BARRIER_ALL();
 }
 
 
@@ -150,6 +152,7 @@ bool IRefiner::coarsen()
 		adaption_ends();
 
 //	done
+	PCL_DEBUG_BARRIER_ALL();
 	return retVal;
 }
 

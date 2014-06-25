@@ -8,7 +8,7 @@
 util = util or {}
 
 --[[
-Prints the total time spent in the profile-node with the given name.
+Prints the total time spent in the profile-node with the given name on the local proc.
 nodeName may contain spaces to ease formatting.
 ]]--
 function util.PrintProfile_TotalTime(nodeName)
@@ -21,6 +21,25 @@ function util.PrintProfile_TotalTime(nodeName)
 		end
 	end
 	print(nodeName .. " ---")
+end
+
+--[[
+Prints the maximum total time spent in the profile-node with the given name on any proc.
+nodeName may contain spaces to ease formatting.
+]]--
+function util.PrintProfile_MaxTotalTime(nodeName)
+	if(GetProfilerAvailable() == true) then
+		local rawName = string.gsub(nodeName, "^%s*(.-)%s*$", "%1")
+		local pn = GetProfileNode(rawName)
+		local t = 0
+		if(pn:is_valid() == true) then
+			t = pn:get_avg_total_time_ms() / 1000
+		end
+		t = ParallelMax(t)
+		print(nodeName .. " " .. t .. " s")
+	else
+		print(nodeName .. " ---")
+	end
 end
 
 --[[!
