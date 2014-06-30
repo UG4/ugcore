@@ -302,7 +302,7 @@ void AdjustSubsetsForLgmNg(Grid& grid, SubsetHandler& sh,
 	//	we now have to make sure that all face-subsets are regular manifolds.
 		for(int i = 0; i < sh.num_subsets(); ++i){
 			int firstFree = GetMaxSubsetIndex<Face>(sh) + 1;
-			SplitIrregularManifoldSubset(sh, i, firstFree);
+			SplitIrregularManifoldSubset(sh, i, firstFree, true);
 		}
 
 	//	fix orientation of all face subsets
@@ -434,11 +434,10 @@ void AdjustSubsetsForLgmNg(Grid& grid, SubsetHandler& sh,
 
 ////////////////////////////////////////////////////////////////////////
 bool SplitIrregularManifoldSubset(SubsetHandler& sh, int srcIndex,
-								  int targetIndex)
+								  int targetIndex, bool strictSplitting)
 {
 //	Begin with the first face in the subset-handler and find
 //	associated faces which build a regular manifold.
-
 //	if the subset is empty, there's nothing to do.
 	if(sh.empty<Face>(srcIndex))
 		return false;
@@ -501,7 +500,9 @@ bool SplitIrregularManifoldSubset(SubsetHandler& sh, int srcIndex,
 			size_t numFound = 0;
 			for(size_t i_face = 0; i_face < faces.size(); ++i_face){
 				Face* f = faces[i_face];
-				if((f != curFace) && (sh.get_subset_index(f) == srcIndex))
+				if((f != curFace) &&
+					(	(strictSplitting && (sh.get_subset_index(f) != -1))
+					 || (!strictSplitting && (sh.get_subset_index(f) == srcIndex))))
 				{
 				//	we found an associated face in the same subset
 					nbr = f;
@@ -539,7 +540,7 @@ bool SplitIrregularManifoldSubset(SubsetHandler& sh, int srcIndex,
 
 //	if all faces of the subset have been processed, then the whole subset is
 //	a regular manifold.
-	if(numProcessed == sh.num<Face>()){
+	if(numProcessed == sh.num<Face>(srcIndex)){
 		grid.end_marking();
 		return false;
 	}

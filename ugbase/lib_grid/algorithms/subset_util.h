@@ -132,11 +132,15 @@ void AdjustSubsetsForLgmNg(Grid& grid, SubsetHandler& sh,
  * this algorithm finds a regular part and assigns all other faces to
  * the given targetIndex.
  *
+ * \param	strictSplitting: if true, faces of all subsets are considered when
+ *			deciding whether an edge is a manifold edge or not. If false,
+ *			only faces of the subset with index 'srcIndex' are considered.
+ *			Default is false.
  * \return	true if the subset was splitted, false if not.
  */
 UG_API
 bool SplitIrregularManifoldSubset(SubsetHandler& sh, int srcIndex,
-								  int targetIndex);
+								  int targetIndex, bool strictSplitting = false);
 
 ////////////////////////////////////////////////////////////////////////
 //	SeparateFaceSubsetsByNormal
