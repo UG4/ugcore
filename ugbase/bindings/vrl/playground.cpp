@@ -372,10 +372,10 @@ void registerPlayground(ug::bridge::Registry& reg) {
 			*/
 
 
-			//reg.add_function("ChrisPoliTestReturn",
-			//				( std::vector<bool> (*)(std::vector<bool>) )(
-			//				&ChrisPoliTestReturn),"bool-vec-return");//the 5th method
-			//				//,grp,"bool-vec-return");//the 5th method
+			reg.add_function("ChrisPoliTestReturn",
+							( std::vector<bool> (*)(std::vector<bool>) )(
+							&ChrisPoliTestReturn),"bool-vec-return");//the 5th method
+							//,grp,"bool-vec-return");//the 5th method
 
 
 
@@ -400,10 +400,10 @@ void registerPlayground(ug::bridge::Registry& reg) {
 			//				//,grp,"path");//an other method
 
 
-			//reg.add_function("ChrisPoliTestCreateFile",
-			//							(std::string (*)(std::string, std::string))
-			//							(&ChrisPoliTestCreateFile),"outpath","inPath#outPath");//an other method
-			//							//,grp,"path");//an other method
+			reg.add_function("ChrisPoliTestCreateFile",
+										(std::string (*)(std::string, std::string))
+										(&ChrisPoliTestCreateFile),"outpath","inPath#outPath");//an other method
+										//,grp,"path");//an other method
 
 
 			//
