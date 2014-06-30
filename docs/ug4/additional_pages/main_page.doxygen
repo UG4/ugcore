@@ -36,7 +36,7 @@ environment
 		- \ref pageUG4OnWindows
 		- \ref pageUG4SetupParallel
 		- \ref pageUG4ParallelCekon, \ref pageUG4ParallelCesari, \ref pageUG4ParallelHermit, \ref pageUG4ParallelJuQueen
-	- compiling_UG4_for_VRL
+	- Compiling UG4 for VRL
 	    - \ref pageUG4SetupUG_VRL
 	    - \ref pageUG4SetupUG_VRL_UnixScript
 	- \ref pageUG4HLib
@@ -54,7 +54,7 @@ environment
 		- \ref pageParallelRendering			
 	- ug4 and vrl
 		- \ref pageUG4SetupUG_VRL
-	    - \ref pageUG4SetupUG_VRL_UnixScript
+		- \ref pageUG4SetupUG_VRL_UnixScript
 	- <a href="regdocu/namespaceug4_bridge.html">ug4-Scripting Reference Documentation</a>
 	- \ref pageLuaScript	
 	- \ref pageBashTools

@@ -306,7 +306,7 @@ echo " oeffne vrl-studio (-session) ..."
 
 \endcode
 
-\subsection subsecBuildVRL_UG_API
+\subsection subsecBuildVRL_UG_API Building VRL-UG-API with a dummy terminal project
 
 1) you need a dummy vrl-studio-consol project with vrl-ug as plugin.
    you can create own in the studio by clicking "file > export as console app"
@@ -338,3 +338,4 @@ sh run.sh
 sh run.sh
 
 \endcode
+*/
