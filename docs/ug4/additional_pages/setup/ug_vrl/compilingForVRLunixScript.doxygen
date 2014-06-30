@@ -1,0 +1,340 @@
+//	y14 m06 d30
+/** \page pageUG4SetupUG_VRL_UnixScript Build UG for VRL for Linux and Mac with a script
+
+\note This page contains a copy of the script that was made to reduce the by hand work
+      during the build of \ug4 for VRL on a Mac. 
+      You are welcomed to use and improve this script.
+
+
+\section secPreparations Preparations 
+
+\subsection subsecYouNeed You need the following preparations:
+
+1) Change the VARIABLES in the (upper part of the) scripts to paths on your computer.
+2) make your script executable:
+    \code chmode +x SCRIPTNAME.sh \endcode
+3) execute your script in the terminal in the folder were it lies
+    \code ./SCRIPTNAME.sh \endcode
+    
+\subsection subsecCompileAndZipNative
+    These script is for compiling native \ug4 and zipping the library into
+    a zip file named natives.zip, which is needed for the VRL-UG project.
+    
+\code
+
+#!/bin/bash
+#
+#script-name: compile-andzip-native-ug-parameterized.sh
+#
+#make the script executable under unix => linux / osx
+#
+# chmod 0744 compile-and-zip-native-ug-parameterized.sh 
+#
+# script for automatic compilation of (native) ug (*.dylib)
+# creating zip file of native ug version
+# and coping of the zip file into the java project
+#
+# the source code of ug can be found at e.g. /Users/christianpoliwoda/Apps/ug4-git/trunk
+
+
+###
+###    VARIABLE DECLARATION
+###
+
+# ATTENTION:
+# all FOLDER variables need to start and end with a backslash "/"
+
+#position of ug build folder 
+UG_BUILD_FOLDER=/Users/christianpoliwoda/Apps/ug4-git/build/
+
+#position of tmp folder on this system
+TMP_DIR=/Users/christianpoliwoda/temp/
+
+#name of file that we can use for temporary output
+TMP_FILE=tmp.txt 
+
+#how many parallel compilation units for native ug should be started
+# the bigger the number the more memory is need at your computer simultaneously
+# 1 =  NO parallel compilation (slowest compilation, fewest memory used simultaneously)
+# 2 = two parallel compilation units
+THREADS=2
+
+#place of the native compiled ug library
+UG_LIB_FOLDER=/Users/christianpoliwoda/Apps/ug4-git/trunk/lib/
+
+#ug library name
+UG_LIB_NAME=libug4
+
+#Operating-System (OS) specific library ending
+#ATTENTION: all endings need to start with a dot "."
+# mac = .dylib
+# windows = .dll
+# linux = .a  (static)  .so (shared/dynamic) WE USE STATIC LIBS
+UG_LIB_ENDING=.dylib
+
+#place of the vrl-ug java project
+VRL_UG_JAVA_PROJECT_FOLDER=/Users/christianpoliwoda/Apps/VRL-UG4/VRL-UG/
+
+#on which OS do we operate
+# on windows 64bit use   /windows/x64/
+# on windows 32bit use   /windows/x86/
+# on windows 64bit use   /linux/x64/
+# on windows 32bit use   /linux/x86/
+# on mac           use   /osx/
+VRL_UG_JAVA_OS_SYSTEM_FOLDER=/osx/
+
+# (OPTINAL) a VRL-studio session that should be opened after starting the studio
+VRL_STUDIO_SESSION_TO_OPEN=/Users/christianpoliwoda/Documents/vrl-sessions/0-4-2/_tmp.vrlp 
+
+
+
+###
+### SCRIPT COMMANDS
+###
+
+
+#gehe in den ug build-ordner 
+#echo "cd /Users/christianpoliwoda/Apps/ug4-git/build"
+#cd /Users/christianpoliwoda/Apps/ug4-git/build
+echo "cd $UG_BUILD_FOLDER"
+cd "$UG_BUILD_FOLDER"
+
+# EXAMPLE OF CMAKE CONFIGURATION of native ug
+#cmake ../trunk/
+
+##out put should look like
+##
+#-- The C compiler identification is GNU 4.2.1
+#-- The CXX compiler identification is Clang 4.2.0
+#-- Checking whether C compiler has -isysroot
+#-- Checking whether C compiler has -isysroot - yes
+#-- Checking whether C compiler supports OSX deployment target flag
+#-- Checking whether C compiler supports OSX deployment target flag - yes
+#-- Detecting C compiler ABI info
+#-- Detecting C compiler ABI info - done
+#-- Detecting CXX compiler ABI info
+#-- Detecting CXX compiler ABI info - done
+#-- 
+#-- Info: Current options:
+#-- Info: TARGET:            vrl (options are: ugshell, vrl, libug4, libgrid, ugplugin, gridshell, amg)
+#-- Info: DIM:               ALL (options are: 1, 2, 3, ALL, "1;2", "1;3", "2;3")
+#-- Info: CPU:               ALL (options are: 1, 2, 3, 4, VAR, ALL, "2;4", "1;3;4" , ...)
+#-- Info: PRECISION:         double (options are: single, double)
+#-- Info: STATIC_BUILD:      OFF (options are: ON, OFF)
+#-- Info: DEBUG:             OFF (options are: ON, OFF)
+#-- Info: DEBUG_LOGS:        OFF (options are: ON, OFF)
+#-- Info: PARALLEL:          OFF (options are: ON, OFF)
+#-- Info: PCL_DEBUG_BARRIER: OFF (options are: ON, OFF)
+#-- Info: PROFILER:          None (options are: None, Shiny, Scalasca, Vampir, ScoreP)
+#-- Info: PROFILE_PCL:       OFF (options are: ON, OFF)
+#-- Info: PROFILE_BRIDGE:    OFF (options are: ON, OFF)
+#-- Info: LAPACK:            OFF (options are: ON, OFF)
+#-- Info: BLAS:              OFF (options are: ON, OFF)
+#-- Info: METIS:             OFF (options are: ON, OFF)
+#-- Info: PARMETIS:          OFF (options are: ON, OFF)
+#-- Info: INTERNAL_BOOST:    ON (options are: ON, OFF)
+#-- Info: EMBEDDED_PLUGINS   ON (options are: ON, OFF)
+#-- Info: COMPILE_INFO       ON (options are: ON, OFF)
+#-- 
+#-- Info: External libraries (path which contains the library or ON if you used uginstall):
+#-- Info: TETGEN:   
+#-- Info: HYPRE:    
+#-- Info: HLIBPRO:  
+#-- 
+#-- Info: C Compiler ID: GNU, C++ Compiler ID: Clang
+#-- 
+#-- Info: Using CPU Matrix Algebra.
+#-- Info: compiling with cxx flags:  -Wall -Wsign-compare -O3 -DNDEBUG
+#-- Info: compiling with c flags:  -Wall -Wsign-compare -O3 -DNDEBUG
+#-- Info: Using LUA2C
+#-- Info: Try using internal Boost from externals/boost_1_48_0
+#-- Boost version: 1.48.0
+#-- Info: Including Boost from /Users/christianpoliwoda/Apps/ug-svn-trunk/externals/boost_1_48_0
+#-- Info: COMPILE_INFO enabled. Causes relinking on each run of make.
+#-- 
+#-- Info: Enabled plugins:
+#--       ConvectionDiffusion, 
+#-- Info: Disabled plugins:
+#--       d3f, LinearElastoPlasticity, Biogas, 
+#--       calciumDynamics, ElementQualityStatistics, GridHierarchySmoothing, 
+#--       LevelSet, MembranePotentialMapping, NavierStokes, 
+#--       NeuronPlugin, NonlinearElastoPlasticity, PlasmaMembrane, 
+#--       ReceptorKinetic, Sample, Template, 
+#--       TKDGenerator, VoltageGatedChannels, amg, 
+#--       StructuredGrid, jitsg, ParticleLadenFlow, 
+#-- 
+#fatal: Not a git repository (or any of the parent directories): .git
+#-- Configuring done
+#-- Generating done
+#-- Build files have been written to: /Users/christianpoliwoda/Apps/ug4-git/build
+
+
+##
+##  cmake  parameter
+##
+
+
+##hier der befehl der die konfiguration erstellt damit es aussieht wie oben
+#cmake ?????????? TODO 
+
+
+##
+##bereich der fuer das kompelieren zustaendig ist mit zeit markern
+##
+
+#erzeuge ersten zeitstempel in der temporaeren datei tmp.txt
+#echo "kompilieren gestartet um ..." >> /Users/christianpoliwoda/tmp/tmp.txt 
+#date >> /Users/christianpoliwoda/tmp/tmp.txt 
+echo "kompilieren gestartet um ..." >> ${TMP_DIR}${TMP_FILE}
+date >> ${TMP_DIR}${TMP_FILE}
+
+
+#kompiliere native ug mit 2 ausfuehrungsstraengen -j2, mit 3 -> -j3,  mit 4 -> -j4, usw.
+echo "make -j$THREADS"
+make -j$THREADS 
+
+#erzeuge zweiten zeitstempel in der temporaeren datei tmp.txt
+echo "kompilieren gestopt um ..." >> ${TMP_DIR}${TMP_FILE} 
+date >>  ${TMP_DIR}${TMP_FILE}
+
+##zeige den inhahlt der temporaeren datei tmp.txt und loesche diese danach 
+#cat  ${TMP_DIR}${TMP_FILE}
+#rm  ${TMP_DIR}${TMP_FILE}
+
+#check if compilation was successful
+if [ $? -eq 0 ] ; then
+#  
+# when make succeeds go on with building vrl-ug
+#
+echo " "
+echo " make comand WAS succesful"
+echo " "
+echo -ne '\007'
+echo -ne '\007'
+
+
+##
+##bereich der fuer das zippen und kopieren zustaendig ist
+##
+
+# gehe in das verzeichnis in dem die nativ kompilierte version von ug liegt
+#cd /Users/christianpoliwoda/Apps/ug4-git/trunk/lib
+cd ${UG_LIB_FOLDER}
+
+#zippe die datei libug.dylib in die datei natives.zip
+#echo " zip -r natives.zip libug4.dylib "
+#zip -r natives.zip libug4.dylib
+echo " zip -r natives.zip ${UG_LIB_NAME}${UG_LIB_ENDING} "
+zip -r natives.zip ${UG_LIB_NAME}${UG_LIB_ENDING}
+
+#gebe den zeitpunkt an wann zippen abgeschlossen
+echo " ${UG_LIB_NAME}${UG_LIB_ENDING} -> natives.zip abgeschlossen um ..." >> ${TMP_DIR}${TMP_FILE} 
+date >> ${TMP_DIR}${TMP_FILE}
+
+
+##
+##bereich der fuer das kopieren ins java-projekt zustaendig ist
+##
+echo "erzeuge ordnerstruktur fuer natives.zip"
+#cp /Users/christianpoliwoda/Apps/ug4-git/trunk/lib/natives.zip /Users/christianpoliwoda/Apps/VRL-UG4/VRL-UG/src/eu/mihosoft/vrl/plugin/content/natives/osx/natives.zip 
+mkdir -p ${VRL_UG_JAVA_PROJECT_FOLDER}src/eu/mihosoft/vrl/plugin/content/natives${VRL_UG_JAVA_OS_SYSTEM_FOLDER}
+# cp "von/datei-name" "nach/kopie-name"
+#die dort vorhandene datei natives.zip wird ueberschrieben
+echo "zip-datei wird ins java-projekt kopiert"
+#cp /Users/christianpoliwoda/Apps/ug4-git/trunk/lib/natives.zip /Users/christianpoliwoda/Apps/VRL-UG4/VRL-UG/src/eu/mihosoft/vrl/plugin/content/natives/osx/natives.zip 
+cp ${UG_LIB_FOLDER}natives.zip ${VRL_UG_JAVA_PROJECT_FOLDER}src/eu/mihosoft/vrl/plugin/content/natives${VRL_UG_JAVA_OS_SYSTEM_FOLDER}natives.zip 
+
+
+#kopieren fertig
+echo " kopiervorgang fertig um ..." >> ${TMP_DIR}${TMP_FILE}
+date >> ${TMP_DIR}${TMP_FILE}
+
+
+##
+##bereich der das kompelieren des java-projekt durch fuehrt
+##
+
+
+# gehe ins netbeans projekt
+#cd /Users/christianpoliwoda/Apps/VRL-UG4/VRL-UG/
+cd ${VRL_UG_JAVA_PROJECT_FOLDER}
+
+#call clean
+ant clean
+
+#building jar-file is a 2 step process 
+# "build" in netbeans is in ant "ant compile jar"
+#call compile
+ant compile
+
+#call jar
+ant jar
+
+#kopieren fertig
+echo " kompeliervorgang fertig um ..." >> ${TMP_DIR}${TMP_FILE} 
+date >> ${TMP_DIR}${TMP_FILE}
+
+
+#zeige den inhahlt der temporaeren datei tmp.txt und loesche diese danach 
+cat ${TMP_DIR}${TMP_FILE}
+rm ${TMP_DIR}${TMP_FILE}
+
+
+else
+  # make comand was not succesful 
+echo " make comand was not succesful"
+fi
+
+
+#
+# make a sound if ready with all compilings
+#
+echo -ne '\007'
+echo -ne '\007'
+echo -ne '\007'
+echo -ne '\007'
+echo -ne '\007'
+echo -ne '\007'
+
+
+##
+##bereich der vrl-session oeffnet
+##
+echo " oeffne vrl-studio (-session) ..."
+##open /Users/christianpoliwoda/Documents/vrl-sessions/0-4-2/_tmp.vrlp 
+#open ${VRL_STUDIO_SESSION_TO_OPEN}
+
+\endcode
+
+\subsection subsecBuildVRL_UG_API
+
+1) you need a dummy vrl-studio-consol project with vrl-ug as plugin.
+   you can create own in the studio by clicking "file > export as console app"
+2) change the paths in the scripts to paths corresponding on your system
+
+These script is used to generate the VRL-UG-API automaticaly after build a
+rebuild of VRL-UG to check if the API can still be compiled.
+
+\code
+
+# OPTIONAL clean the working folder of the user
+cd /home/ug/.vrl/0.4.2/default/plugins
+rm -rf VRL-UG*
+
+# copy the new VRL-UG.jar from the working folder of the user
+cp /home/ug/.vrl/0.4.2/default/plugin-updates/VRL-UG.jar /home/ug/Apps/ugInit-consolApp/.application/property-folder/plugin-updates/VRL-UG.jar
+
+#  clean the working folder for the console application
+#  where we want to check if building the API works
+cd /home/ug/Apps/ugInit-consolApp/.application/property-folder/plugins
+rm -rf VRL-UG*
+
+#  start the vrl-studio which triggers the installation of the new vrl-ug
+#  and the build of the vrl-ug-api
+cd /home/ug/Apps/ugInit-consolApp
+#  first run for install vrl-ug and build -api
+sh run.sh
+#  second run for install vrl-ug-api and run the console app vrl-project
+sh run.sh
+
+\endcode
