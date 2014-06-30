@@ -75,6 +75,19 @@ void MatScale( MatrixOperator<M, X, Y>& A, number alpha)
 	matA.scale(alpha);
 }
 
+template <typename X, typename Y, typename M>
+void MatTranspose( MatrixOperator<M, X, Y>& AT,  MatrixOperator<M, X, Y>& A)
+{
+	PROFILE_FUNC_GROUP("algebra");
+	typedef MatrixOperator<M, X, Y> MatrixOperator;
+	typedef typename MatrixOperator::matrix_type Matrix;
+
+	Matrix& matA = A.get_matrix();
+	Matrix& matAT = AT.get_matrix();
+
+	matAT.set_as_transpose_of(matA);
+}
+
 }//	end of namespace
 
 #endif

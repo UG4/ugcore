@@ -322,6 +322,8 @@ static void Algebra(Registry& reg, string parentGroup)
 				"", "res#alpha1#A1#alpha2#A2", "calculates res = alpha1*A1 + alpha2*A2");
 		reg.add_function("MatScale", &MatScale<vector_type, vector_type, matrix_type>, grp,
 				"", "mat#alpha", "calculates mat = mat*alpha");
+		reg.add_function("MatTranspose", &MatTranspose<vector_type, vector_type, matrix_type>, grp,
+				"", "matTranspose#mat", "calculates matTranspose = mat^T");
 	}
 
 //	ILineSearch
