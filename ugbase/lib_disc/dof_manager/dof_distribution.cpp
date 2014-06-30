@@ -1119,7 +1119,7 @@ void DoFDistribution::_indices(TBaseElem* elem, LocalIndices& ind, bool bHang) c
 	if(!bHang) return;
 
 //	get dofs on hanging vertices
-	if(max_dofs(VERTEX > 0))
+	if (max_dofs(VERTEX) > 0)
 	{
 		if(dim >= EDGE) constrained_vertex_indices<ConstrainingEdge, Vertex, Edge>(ind, vEdge);
 		if(dim >= FACE) constrained_vertex_indices<ConstrainingQuadrilateral, Vertex, Face>(ind, vFace);
