@@ -36,10 +36,10 @@ environment
 		- \ref pageUG4OnWindows
 		- \ref pageUG4SetupParallel
 		- \ref pageUG4ParallelCekon, \ref pageUG4ParallelCesari, \ref pageUG4ParallelHermit, \ref pageUG4ParallelJuQueen
-	- Compiling UG4 for VRL
+	- \ref pageUG4HLib
+	- \subpage pageCompiling_UG4_for_VRL
 	    - \ref pageUG4SetupUG_VRL
 	    - \ref pageUG4SetupUG_VRL_UnixScript
-	- \ref pageUG4HLib
 
 - \subpage pageUG4Usage
 	- \ref pageUG4Shell

@@ -2,13 +2,54 @@
 /** \page pageUG4SetupUG_VRL_UnixScript Build UG for VRL for Linux and Mac with a script
 
 \note This page contains a copy of the script that was made to reduce the by hand work
-      during the build of \ug4 for VRL on a Mac. 
+      during the build of \ug4 for the VRL-Studio plugin VRL-UG on a Mac. 
       You are welcomed to use and improve this script.
 
 
 \section secPreparations Preparations 
 
-\subsection subsecYouNeed You need the following preparations:
+\subsection subsecYouNeedVRL_UG You need the following preparations inside VRL-UG:
+
+1) checkout/clone the VRL-UG project from quadruped:
+	(replace USERNAME with your account name on quadruped)
+	\code
+ 	git clone USERNAME@quadruped.gcsc.uni-frankfurt.de:/home/gitrepos/VRL-UG
+	\endcode
+2) set the library dependencies of the VRL-UG (Netbeans) project:
+	- VRL
+	- groovy_all
+	Therefore you need to clone the VRL project from github.
+	\code
+ 	git clone https://github.com/miho/VRL.git
+	\endcode
+	Open the project in Netbeans. 
+	(The Java SE version is sufficient and can be downloaded from: https://netbeans.org/downloads/index.html )
+	
+	a) 	In the left "Project" tab window
+		- Right click in Netbeans at the opened/loaded VRL-UG project.
+		- In the context menu left click on "Propeties".
+		- In the popup window on the left side (Categories) select Libraries.
+		- Set the missing VRL project dependency via clicking the "Add Project" button
+		and navigate to the previous downloaded VRL project.
+		- Set the missing groovy jar file dependency via clicking the "Add JAR/Folder" button
+		and navigate to the previous downloaded VRL project into the subfolder:
+		\code VRL/jars/groovy \endcode and select the jar file.
+		- delete the broken references which should be now replaced by the new ones you made by now.
+		
+	b) 	In the left "Files" tab window
+		- Open the VRL-UG project folder and open inside the "build.properties" file
+		- In the "build.properties" file set the variable "vrl.dir=" to the path of	your working folder
+		of the VRL-Studio you use. (e.g.for Mac vrl.dir=/Users/USER/.vrl/0.4.2/default)
+		See in the properties of your VRL-Studio which path is used.
+
+\subsection subsecYouNeedCmake You need the following preparations with cmake:
+
+Configure your native/ug4 c++ code at least once e.g. like shown in the script part:
+EXAMPLE OF CMAKE CONFIGURATION of native ug
+
+
+
+\subsection subsecYouNeedScript You need the following preparations inside the script:
 
 1) Change the VARIABLES in the (upper part of the) scripts to paths on your computer.
 2) make your script executable:
@@ -16,7 +57,7 @@
 3) execute your script in the terminal in the folder were it lies
     \code ./SCRIPTNAME.sh \endcode
     
-\subsection subsecCompileAndZipNative
+\subsection subsecCompileAndZipNative Shell script: compile and zip
     These script is for compiling native \ug4 and zipping the library into
     a zip file named natives.zip, which is needed for the VRL-UG project.
     
@@ -93,16 +134,14 @@ VRL_STUDIO_SESSION_TO_OPEN=/Users/christianpoliwoda/Documents/vrl-sessions/0-4-2
 ###
 
 
-#gehe in den ug build-ordner 
-#echo "cd /Users/christianpoliwoda/Apps/ug4-git/build"
-#cd /Users/christianpoliwoda/Apps/ug4-git/build
+#go into ug build folder 
 echo "cd $UG_BUILD_FOLDER"
 cd "$UG_BUILD_FOLDER"
 
 # EXAMPLE OF CMAKE CONFIGURATION of native ug
 #cmake ../trunk/
 
-##out put should look like
+##output should look like
 ##
 #-- The C compiler identification is GNU 4.2.1
 #-- The CXX compiler identification is Clang 4.2.0
