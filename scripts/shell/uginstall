@@ -261,10 +261,10 @@ install_mpc()
 install_doxygen()
 {
 	my_install \
-	doxygen 1.8.1 \
-	"http://ftp.stack.nl/pub/users/dimitri/doxygen-1.8.1.src.tar.gz" \
-	doxygen-1.8.1.src.tar.gz doxygen-1.8.1 \
-	"./configure --prefix $UG4_LOCAL_INSTALL_DIR/doxygen/1.8.1" make 
+	doxygen 1.8.7 \
+	"http://ftp.stack.nl/pub/users/dimitri/doxygen-1.8.7.src.tar.gz" \
+	doxygen-1.8.7.src.tar.gz doxygen-1.8.7 \
+	"./configure --prefix $UG4_LOCAL_INSTALL_DIR/doxygen/1.8.7" make 
 }
 
 install_gcc()
@@ -291,10 +291,10 @@ install_gcc()
 install_cmake()
 {
 	my_install_external_build \
-	cmake 2.8.6 \
-	"http://www.cmake.org/files/v2.8/cmake-2.8.6.tar.gz" \
-	cmake-2.8.6.tar.gz cmake-2.8.6 \
-	"../src/bootstrap --prefix=$UG4_LOCAL_INSTALL_DIR/cmake/2.8.6" make "make install"
+	cmake 2.8.12 \
+	"http://www.cmake.org/files/v2.8/cmake-2.8.12.tar.gz" \
+	cmake-2.8.12.tar.gz cmake-2.8.12 \
+	"../src/bootstrap --prefix=$UG4_LOCAL_INSTALL_DIR/cmake/2.8.12" make "make install"
 }
 
 install_openmpi()
@@ -605,10 +605,10 @@ print_usage()
 	echo "  <program> can be:"
 	echo "	all"
 	echo "	clang       (=clang+llvm from svn)"
-	# last checked 01/2014
-	echo "	cmake       2.8.6                 " `[[ -e cmake/used/installed ]] && echo "(installed)"`
-	# last checked 01/2014	
-	echo "	doxygen     1.8.1                 " `[[ -e doxygen/used/installed ]] && echo "(installed)"`
+	# last checked 07/2014
+	echo "	cmake       2.8.12                 " `[[ -e cmake/used/installed ]] && echo "(installed)"`
+	# last checked 07/2014	
+	echo "	doxygen     1.8.7                 " `[[ -e doxygen/used/installed ]] && echo "(installed)"`
 	echo "	gcc         4.4                   " `[[ -e gcc/used/installed ]] && echo "(installed)"`
 	echo "	gmp         4.3.2                 " `[[ -e gmp/used/installed ]] && echo "(installed)"`
 	# last checked 01/2014	
