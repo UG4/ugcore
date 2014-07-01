@@ -1,3 +1,4 @@
+util = util or {}
 --! this function creates a RAM disk on Mac.
 --! it can be used for debug output, in case you want to have it faster or don't want to stress your SSD
 --! if the volume is already there, nothing is created
