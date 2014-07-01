@@ -14,7 +14,8 @@ simple and special usage as well for development.
         \code docs/ug4/additional_pages/setup/ug_vrl/compilingForVRL.doxygen \endcode
         at the end of the file are the german original notes
 
-\todo Make / Add an instruction for compiling \ug4 for VRL under mac os x, linux x86 and x64.  
+\note An instruction for compiling \ug4 for VRL under mac os x, linux x86 and x64
+	  can be found at \ref pageUG4SetupUG_VRL_UnixScript. 
 
 \todo Make this instructions more readable / structured       
 
