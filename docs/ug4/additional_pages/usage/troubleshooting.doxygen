@@ -78,6 +78,21 @@ toolchain file, so others can benefit from your knowledge.
 	</dd>
 </dl>
 
+\subsection troubleshooting_ugshell_old_cmake can't set up with cmake
+<dl>
+	<dt>Symptoms</dt>
+	<dd>\em cmake prints "parse error in cache file" and "offending entry", later won't compile or link
+	<dt>Possible Causes</dt>
+	<dd>
+		CMake too old. Minimum version is 2.8.6.
+	</dd>
+	<dt>Solution</dt>
+	<dd>
+		Update your cmake version. For this, you can use <tt>uginstall cmake</tt>.
+	</dd>
+</dl>
+
+
 \subsection troubleshooting_ugshell_registry_errors ugshell crashes on startup with registry errors
 <dl>
 	<dt>Symptoms</dt>
