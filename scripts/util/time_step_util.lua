@@ -5,6 +5,8 @@
 \{
 ]]--
 
+util = util or {}
+
 --!
 --! @param domainDisc
 --! @param timeScheme theta, impleuler, expleuer, crank-nicolson, alexander, fracstep, or bdf
