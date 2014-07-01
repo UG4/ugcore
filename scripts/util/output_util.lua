@@ -1,3 +1,4 @@
+util = util or {}
 function util.Balance(DataToBeWrittenTable)
 	-- check that table passed
 	if type(DataToBeWrittenTable) ~= "table" then
