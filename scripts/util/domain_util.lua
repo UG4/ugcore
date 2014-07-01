@@ -163,10 +163,12 @@ function util.CreateAndDistributeDomain(gridName, numRefs, numPreRefs,
 	end
 	write(" done. Post-Refining("..(numRefs-numPreRefs).."): ")
 	
-	-- Perform post-refine
-	for i=numPreRefs+1,numRefs do
-		refiner:refine()
-		write(i-numPreRefs .. " ")
+	if numRefs > 0 then
+		-- Perform post-refine
+		for i=numPreRefs+1,numRefs do
+			refiner:refine()
+			write(i-numPreRefs .. " ")
+		end
 	end
 	write("done.\n")
 	
