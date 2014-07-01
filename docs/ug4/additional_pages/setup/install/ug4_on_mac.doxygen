@@ -35,7 +35,7 @@ The \em terminal is located in <tt>Programs -> utilities (Dienstprogramme) -> Te
   <li>Download \em CMake:
     Download the <a href="http://www.cmake.org/files/v2.8/cmake-2.8.8-Darwin64-universal.dmg">
     CMake 2.8.8 dmg-file</a> (see also <a href="http://www.cmake.org/cmake/resources/software.html">here</a>. 
-    (min Release 2.6)
+    (! minimum version 2.8.6 !)
   </li>
   <li>Install \em CMake on your computer.
     Install the command line tools, when requested during installation.
