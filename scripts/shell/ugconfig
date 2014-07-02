@@ -1,5 +1,7 @@
 #!/bin/bash
 
+
+
 if [ -z "$UGSUBMIT_TYPE" ]; then
 	if [ -z "$UGSUBMIT_TYPE" ]; then
 		if [ $HOSTNAME == "cekon.gcsc.uni-frankfurt.de" ]; then
@@ -10,14 +12,20 @@ if [ -z "$UGSUBMIT_TYPE" ]; then
 			UGSUBMIT_TYPE=Juqueen
 		else
 		    #echo $HOSTNAME
+		    echo "Hello, this is ugconfig trying to config your cluster"
 	   		echo "please set UGSUBMIT_TYPE or specify cluster with -cluster".
 	   		exit
 	   	fi   	
-	fi	 	
+	fi
+	echo "Hello, this is ugconfig trying to config your cluster. Your auto-detected cluster is $UGSUBMIT_TYPE."
+else
+	echo "Hello, this is ugconfig trying to config your cluster. Your selected cluster is $UGSUBMIT_TYPE."	 	
 fi	 
 
 
+
 if [ $UGSUBMIT_TYPE == "Hermit" ]; then
+	echo "ugconfig: On Hermit, loading gnu compilers" 
 	module list 2>&1 | grep PrgEnv-gnu > /dev/null
 	if [ $? == 1 ]; then
 	echo loading PrgEnv-gnu
@@ -33,12 +41,12 @@ elif [ $UGSUBMIT_TYPE == "cesari" ]; then
 	echo "."
 			
 elif [[ $UGSUBMIT_TYPE == "Juqueen" ]]; then
+	echo "ugconfig: On Juqueen, loading cmake and lapack."
 	module load cmake
 	module load lapack
 	
 else
     #echo $HOSTNAME
-	echo "please set UGSUBMIT_TYPE or specify cluster with -cluster".
-	exit
+	echo "ugconfig: not yet supported cluster".
 fi   	
 
