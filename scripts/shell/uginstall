@@ -28,10 +28,14 @@
 	#mywget="curl -O -L"
 #fi
 
-scriptname=${BASH_SOURCE[0]};		  # name of script
-scriptpath=`dirname $scriptname`
+echo "     UGInstall (c) Martin Rupp, GCSC Frankfurt. 2012-2014"
+echo "-----------------------------------------------------------------"
+scriptpath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 source $scriptpath/uginstall_config
+
+echo "UGInstall script path is $scriptpath, UGInstall local install dir is $UG4_LOCAL_INSTALL_DIR"
+echo " "
 
 if [ ! -e $UG4_LOCAL_INSTALL_DIR ]; then mkdir $UG4_LOCAL_INSTALL_DIR; fi
 cd $UG4_LOCAL_INSTALL_DIR
