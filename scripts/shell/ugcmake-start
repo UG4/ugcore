@@ -1,0 +1,38 @@
+#!/bin/bash
+
+if [ -z "$UGSUBMIT_TYPE" ]; then
+	if [ -z "$UGSUBMIT_TYPE" ]; then
+		if [ $HOSTNAME == "cekon.gcsc.uni-frankfurt.de" ]; then
+			UGSUBMIT_TYPE=cekon
+		elif [ $HOSTNAME == "cesari.gcsc.uni-frankfurt.de" ]; then
+			UGSUBMIT_TYPE=cesari
+		elif [[ "$HOSTNAME" == "juqueen"* ]]; then
+			UGSUBMIT_TYPE=Juqueen
+		else
+		    #echo $HOSTNAME
+	   		echo "please set UGSUBMIT_TYPE or specify cluster with -cluster".
+	   		exit
+	   	fi   	
+	fi	 	
+fi	 
+
+
+if [ $UGSUBMIT_TYPE == "Hermit" ]; then
+	echo "modules are"
+	module list		
+	echo "cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchain/hermit.cmake .."
+	cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchain/hermit.cmake ..		
+elif [ $UGSUBMIT_TYPE == "cekon" ]; then
+	cmake ..
+elif [ $UGSUBMIT_TYPE == "cesari" ]; then
+	cmake ..		
+elif [[ $UGSUBMIT_TYPE == "Juqueen" ]]; then
+	echo "cmake -DSTATIC_BUILD=ON -DCMAKE_TOOLCHAIN_FILE=$UG4_ROOT/cmake/toolchain/juqueen.cmake .."
+	cmake -DSTATIC_BUILD=ON -DCMAKE_TOOLCHAIN_FILE=$UG4_ROOT/cmake/toolchain/juqueen.cmake ..
+
+else
+    #echo $HOSTNAME
+	echo "please set UGSUBMIT_TYPE or specify cluster with -cluster".
+	exit
+fi   	
+

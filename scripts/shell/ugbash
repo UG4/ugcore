@@ -63,6 +63,8 @@ chmod +x $UG4_ROOT/scripts/shell/xprun
 chmod +x $UG4_ROOT/scripts/shell/mpigdb1
 chmod +x $UG4_ROOT/scripts/shell/xtermrun
 
+chmod +x $UG4_ROOT/scripts/shell/ugcmake-start
+
 ugbasegrep()
 {
 	fgrep --exclude-dir=".svn" -rI "$1" $UG4_ROOT/ugbase

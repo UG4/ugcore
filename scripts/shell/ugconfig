@@ -1,0 +1,44 @@
+#!/bin/bash
+
+if [ -z "$UGSUBMIT_TYPE" ]; then
+	if [ -z "$UGSUBMIT_TYPE" ]; then
+		if [ $HOSTNAME == "cekon.gcsc.uni-frankfurt.de" ]; then
+			UGSUBMIT_TYPE=cekon
+		elif [ $HOSTNAME == "cesari.gcsc.uni-frankfurt.de" ]; then
+			UGSUBMIT_TYPE=cesari
+		elif [[ "$HOSTNAME" == "juqueen"* ]]; then
+			UGSUBMIT_TYPE=Juqueen
+		else
+		    #echo $HOSTNAME
+	   		echo "please set UGSUBMIT_TYPE or specify cluster with -cluster".
+	   		exit
+	   	fi   	
+	fi	 	
+fi	 
+
+
+if [ $UGSUBMIT_TYPE == "Hermit" ]; then
+	module list 2>&1 | grep PrgEnv-gnu > /dev/null
+	if [ $? == 1 ]; then
+	echo loading PrgEnv-gnu
+	module swap $(module li 2>&1 | awk '/PrgEnv/{print $2}') PrgEnv-gnu
+	else
+	echo PrgEnv-gnu already loaded.
+	fi
+	
+elif [ $UGSUBMIT_TYPE == "cekon" ]; then
+	echo "."
+	
+elif [ $UGSUBMIT_TYPE == "cesari" ]; then
+	echo "."
+			
+elif [[ $UGSUBMIT_TYPE == "Juqueen" ]]; then
+	module load cmake
+	module load lapack
+	
+else
+    #echo $HOSTNAME
+	echo "please set UGSUBMIT_TYPE or specify cluster with -cluster".
+	exit
+fi   	
+
