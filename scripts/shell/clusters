@@ -14,15 +14,19 @@
 
 
 if [ -z "$UGSUBMIT_TYPE" ]; then
-	if [ $HOSTNAME == "cekon.gcsc.uni-frankfurt.de" ]; then
-		UGSUBMIT_TYPE=cekon
-	elif [ $HOSTNAME == "cesari.gcsc.uni-frankfurt.de" ]; then
-		UGSUBMIT_TYPE=cesari
-	else
-	    #echo $HOSTNAME
-   		echo "please set UGSUBMIT_TYPE or specify cluster with -cluster".
-   		exit
-   	fi   	
+	if [ -z "$UGSUBMIT_TYPE" ]; then
+		if [ $HOSTNAME == "cekon.gcsc.uni-frankfurt.de" ]; then
+			UGSUBMIT_TYPE=cekon
+		elif [ $HOSTNAME == "cesari.gcsc.uni-frankfurt.de" ]; then
+			UGSUBMIT_TYPE=cesari
+		elif [[ "$HOSTNAME" == "juqueen"* ]]; then
+			UGSUBMIT_TYPE=Juqueen
+		else
+		    #echo $HOSTNAME
+	   		echo "please set UGSUBMIT_TYPE or specify cluster with -cluster".
+	   		exit
+	   	fi   	
+	fi	 	
 fi	 
 
 if [ $UGSUBMIT_TYPE == "Hermit" ] || [ $UGSUBMIT_TYPE == "NecNehalem" ]; then
