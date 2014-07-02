@@ -27,9 +27,6 @@ static bool PerformTetrahedralization(Grid& grid,
 	if(!grid.has_vertex_attachment(aPos))
 		return false;
 
-	if(grid.num_faces() == 0)
-		return false;
-
 //	access position data
 	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPos);
 /*
@@ -40,23 +37,25 @@ static bool PerformTetrahedralization(Grid& grid,
 	if(grid.num<Quadrilateral>() > 0)
 		Triangulate(grid, grid.begin<Quadrilateral>(), grid.end<Quadrilateral>(), &aaPos);
 
-//	we have to make sure that all vertices in the grid are actually connected
-//	to a triangle. If this wouldn't be the case, tetgen would likely have problems.
-	size_t numVrtsRemoved = 0;
-	for(VertexIterator iter = grid.begin<Vertex>();
-		iter != grid.end<Vertex>();)
-	{
-		Vertex* v = *iter;
-		++iter;
-		if((NumAssociatedEdges(grid, v) == 0) || (NumAssociatedFaces(grid, v) == 0)){
-			grid.erase(v);
-			++numVrtsRemoved;
+	if(grid.num_edges() > 0 || grid.num_faces() > 0){
+	//	we have to make sure that all vertices in the grid are actually connected
+	//	to a triangle. If this wouldn't be the case, tetgen would likely have problems.
+		size_t numVrtsRemoved = 0;
+		for(VertexIterator iter = grid.begin<Vertex>();
+			iter != grid.end<Vertex>();)
+		{
+			Vertex* v = *iter;
+			++iter;
+			if((NumAssociatedEdges(grid, v) == 0) || (NumAssociatedFaces(grid, v) == 0)){
+				grid.erase(v);
+				++numVrtsRemoved;
+			}
 		}
-	}
 
-	if(numVrtsRemoved > 0){
-		UG_LOG("WARNING in Tetrahedralize: Removed " << numVrtsRemoved
-				<< " vertices which were not connected to any edge or face\n");
+		if(numVrtsRemoved > 0){
+			UG_LOG("WARNING in Tetrahedralize: Removed " << numVrtsRemoved
+					<< " vertices which were not connected to any edge or face\n");
+		}
 	}
 
 //	attach an index to the vertices
@@ -89,9 +88,6 @@ static bool PerformTetrahedralization(Grid& grid,
 			in.pointlist[counter * 3] = (float)v.x();
 			in.pointlist[counter * 3 + 1] = (float)v.y();
 			in.pointlist[counter * 3 + 2] = (float)v.z();
-			//in.pointlist[counter * 3] = v.x();
-			//in.pointlist[counter * 3 + 1] = v.y();
-			//in.pointlist[counter * 3 + 2] = v.z();
 		}
 	}
 
@@ -120,33 +116,35 @@ static bool PerformTetrahedralization(Grid& grid,
 			UG_LOG("number of edges in: " << in.numberofedges << endl);
 		}*/
 
-		in.numberoffacets = grid.num_faces();
-		in.facetlist = new tetgenio::facet[in.numberoffacets];
-		in.facetmarkerlist = new int[in.numberoffacets];
+		if(grid.num_faces() > 0){
+			in.numberoffacets = grid.num_faces();
+			in.facetlist = new tetgenio::facet[in.numberoffacets];
+			in.facetmarkerlist = new int[in.numberoffacets];
 
-		int counter = 0;
-		for(FaceIterator iter = grid.faces_begin();
-			iter != grid.faces_end(); ++iter, ++counter)
-		{
-			Face* f = *iter;
+			int counter = 0;
+			for(FaceIterator iter = grid.faces_begin();
+				iter != grid.faces_end(); ++iter, ++counter)
+			{
+				Face* f = *iter;
 
-		//	copy the face to the facetlist
-			tetgenio::facet* tf = &in.facetlist[counter];
-			tf->numberofpolygons = 1;
-			tf->polygonlist = new tetgenio::polygon[tf->numberofpolygons];
-			tf->numberofholes = 0;
-			tf->holelist = NULL;
-			tetgenio::polygon* p = &tf->polygonlist[0];
-			p->numberofvertices = f->num_vertices();
-			p->vertexlist = new int[p->numberofvertices];
-			for(int i = 0; i < p->numberofvertices; ++i)
-				p->vertexlist[i] = aaInd[f->vertex(i)];
+			//	copy the face to the facetlist
+				tetgenio::facet* tf = &in.facetlist[counter];
+				tf->numberofpolygons = 1;
+				tf->polygonlist = new tetgenio::polygon[tf->numberofpolygons];
+				tf->numberofholes = 0;
+				tf->holelist = NULL;
+				tetgenio::polygon* p = &tf->polygonlist[0];
+				p->numberofvertices = f->num_vertices();
+				p->vertexlist = new int[p->numberofvertices];
+				for(int i = 0; i < p->numberofvertices; ++i)
+					p->vertexlist[i] = aaInd[f->vertex(i)];
 
-		//	set the face mark
-			if(pSH)
-				in.facetmarkerlist[counter] = pSH->get_subset_index(f);
-			else
-				in.facetmarkerlist[counter] = 0;
+			//	set the face mark
+				if(pSH)
+					in.facetmarkerlist[counter] = pSH->get_subset_index(f);
+				else
+					in.facetmarkerlist[counter] = 0;
+			}
 		}
 	}
 
@@ -157,15 +155,17 @@ static bool PerformTetrahedralization(Grid& grid,
 //	call tetrahedralization
 	try{
 		stringstream ss;
-		ss << "p";
-		if(quality > SMALL)
-			ss << "qq" << quality;
-		if(preserveBnds || preserveAll)
-			ss << "Y";
-		if(preserveAll)
-			ss << "Y";	// if inner bnds shall be preserved "YY" has to be passed to tetgen
+		if(grid.num_faces() > 0){
+			ss << "p";
+			if(quality > SMALL)
+				ss << "qq" << quality;
+			if(preserveBnds || preserveAll)
+				ss << "Y";
+			if(preserveAll)
+				ss << "Y";	// if inner bnds shall be preserved "YY" has to be passed to tetgen
+		}
 
-		ss << "Q";
+		ss << "Q";//"Q";
 		tetrahedralize(const_cast<char*>(ss.str().c_str()), &in, &out);
 	}
 	catch(int errCode){
@@ -219,7 +219,7 @@ static bool PerformTetrahedralization(Grid& grid,
 												vVrts[out.trifacelist[i*3 + 1]],
 												vVrts[out.trifacelist[i*3 + 2]]));
 
-		if(pSH)
+		if(pSH && out.trifacemarkerlist)
 			pSH->assign_subset(tri, out.trifacemarkerlist[i]);
 	}
 
