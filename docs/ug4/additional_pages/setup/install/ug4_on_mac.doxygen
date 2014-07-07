@@ -33,9 +33,9 @@ The \em terminal is located in <tt>Programs -> utilities (Dienstprogramme) -> Te
 
 <ul>
   <li>Download \em CMake:
-    Download the <a href="http://www.cmake.org/files/v2.8/cmake-2.8.8-Darwin64-universal.dmg">
-    CMake 2.8.8 dmg-file</a> (see also <a href="http://www.cmake.org/cmake/resources/software.html">here</a>. 
-    (! minimum version 2.8.6 !)
+    Download the <a href="http://www.cmake.org/files/v2.8/cmake-2.8.12-Darwin64-universal.dmg">
+    CMake 2.8.12 dmg-file</a> (see also <a href="http://www.cmake.org/cmake/resources/software.html">here</a>. 
+    (! minimum version 2.8.10 !)
   </li>
   <li>Install \em CMake on your computer.
     Install the command line tools, when requested during installation.
@@ -54,6 +54,8 @@ In order to use UG4 with MacOS X 10.9 Commandline Tools should be installed prop
 \verbatim
 xcode-select --install
 \endverbatim
+
+\note There have been some problems with old cmake versions and mavericks, especially after upgrading your system. Make sure you have cmake 2.8.12.
 
 
 <hr>
