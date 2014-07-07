@@ -89,7 +89,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 
 		// get solution at the corner of the bf
 		std::size_t nFct = u.num_fct();
-		std::vector<LocalVector::value_type> uAtCorner = std::vector<LocalVector::value_type>(nFct);
+		std::vector<LocalVector::value_type> uAtCorner(nFct);
 		for (std::size_t fct = 0; fct < nFct; fct++)
 			uAtCorner[fct] = u(fct,co);
 
@@ -145,7 +145,7 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 
 		// get solution at the corner of the bf
 		std::size_t nFct = u.num_fct();
-		std::vector<LocalVector::value_type> uAtCorner = std::vector<LocalVector::value_type>(nFct);
+		std::vector<LocalVector::value_type> uAtCorner(nFct);
 		for (std::size_t fct = 0; fct < nFct; fct++)
 			uAtCorner[fct] = u(fct,co);
 
@@ -162,7 +162,7 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 
 		// scale with volume of BF
 		for (std::size_t j=0; j<fc.flux.size(); j++) fc.flux[j] *= bf.volume();
-		
+
 		// add to defect
 		for (std::size_t j=0; j<fc.flux.size(); j++)
 		{
@@ -290,12 +290,14 @@ compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<
 	err_est_type* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
 
 	// cast this elem to side_type of error estimator
-	if (err_est_data->get(0)->surface_view().get() == NULL) {UG_THROW("Error estimator has NULL surface view.");}
-	MultiGrid* pErrEstGrid = (MultiGrid*) (err_est_data->get(0)->surface_view()->subset_handler()->multi_grid());
-	typename MultiGrid::traits<typename SideAndElemErrEstData<TDomain>::side_type>::secure_container side_list;
-	pErrEstGrid->associated_elements_sorted(side_list, (TElem*) elem);
-	if (side_list.size() != 1)
-			UG_THROW ("Mismatch of numbers of sides in 'FV1InnerBoundaryElemDisc::compute_err_est_A_elem'");
+	typename SideAndElemErrEstData<TDomain>::side_type* side =
+		dynamic_cast<typename SideAndElemErrEstData<TDomain>::side_type*>(elem);
+	if (!side)
+	{
+		UG_THROW("Error in DependentNeumannBoundaryFV1<TDomain>::compute_err_est_A_elem():\n"
+				 "Element that error assembling routine is called for has the wrong type.");
+	}
+
 
 	// global IPs
 	ReferenceObjectID roid = elem->reference_object_id();
@@ -337,13 +339,13 @@ compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<
 			// as the difference between this and the actual flux of the unknown is calculated
 			for (std::size_t j=0; j<fc.flux.size(); j++)
 			{
-				(*err_est_data->get(fc.from[j])) (side_list[0],sip) -= scale * fc.flux[j];
-				(*err_est_data->get(fc.to[j])) (side_list[0],sip) += scale * fc.flux[j];
+				(*err_est_data->get(fc.from[j])) (side,sip) -= scale * fc.flux[j];
+				(*err_est_data->get(fc.to[j])) (side,sip) += scale * fc.flux[j];
 			}
 		}
 	}
 	UG_CATCH_THROW("Values for the error estimator could not be assembled at every IP." << std::endl
-			<< "Maybe wrong type of ErrEstData object? This implementation needs: SideAndElemErrEstData.");
+			<< "Maybe wrong type of ErrEstData object? This implementation needs: MultipleSideAndElemErrEstData.");
 }
 
 //	postprocesses the loop over all elements of one type in the computation of the error estimator

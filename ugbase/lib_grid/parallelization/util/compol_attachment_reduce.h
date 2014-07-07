@@ -122,6 +122,104 @@ template <>
 struct attachment_reduce_traits<MathVector<4> > :
 	public vector_attachment_reduce_traits<4>	{};
 
+
+// implementation for a std::vector<number> of arbitrary size
+struct std_number_vector_attachment_reduce_traits
+{
+	typedef std::vector<number> value_t;
+
+	// we have to make sure the two vectors are of the same length
+	// if they are not, the smaller one will be resized to fit the larger one's size
+	// fill-in with zeros
+	static inline void check_length(value_t& v1, value_t& v2)
+	{
+		if (v1.size() == v2.size()) return;
+
+		if (v1.size() > v2.size())
+		{
+			v2.resize(v1.size(), 0.0);
+			return;
+		}
+
+		v1.resize(v2.size(), 0.0);
+	}
+
+	static inline value_t min(value_t v1, value_t v2)
+	{
+		check_length(v1,v2);
+		size_t sz = v1.size();
+		value_t v(sz);
+		for (size_t i = 0; i < sz; i++)
+			v[i] = std::min(v1[i], v2[i]);
+		return v;
+	}
+
+	static inline value_t max(value_t v1, value_t v2)
+	{
+		check_length(v1,v2);
+		size_t sz = v1.size();
+		value_t v(sz);
+		for (size_t i = 0; i < sz; i++)
+			v[i] = std::max(v1[i], v2[i]);
+		return v;
+	}
+
+	static inline value_t sum(value_t v1, value_t v2)
+	{
+		check_length(v1,v2);
+		size_t sz = v1.size();
+		value_t v(sz);
+		for (size_t i = 0; i < sz; i++)
+			v[i] = v1[i] + v2[i];
+		return v;
+	}
+
+	static inline value_t prod(value_t v1, value_t v2)
+	{
+		check_length(v1,v2);
+		size_t sz = v1.size();
+		value_t v(sz);
+		for (size_t i = 0; i < sz; i++)
+			v[i] = v1[i] * v2[i];
+		return v;
+	}
+
+	static inline value_t land(value_t v1, value_t v2)
+	{
+		check_length(v1,v2);
+		size_t sz = v1.size();
+		value_t v(sz);
+		for (size_t i = 0; i < sz; i++)
+			v[i] = v1[i] && v2[i];
+		return v;
+	}
+
+	static inline value_t band(value_t v1, value_t v2)
+	{
+		UG_THROW("Vectors of number do not support a binary and operation.");
+	}
+
+	static inline value_t lor(value_t v1, value_t v2)
+	{
+		check_length(v1,v2);
+		size_t sz = v1.size();
+		value_t v(sz);
+		for (size_t i = 0; i < sz; i++)
+			v[i] = v1[i] || v2[i];
+		return v;
+	}
+
+	static inline value_t bor(value_t v1, value_t v2)
+	{
+		UG_THROW("Vectors of number do not support a binary or operation.");
+	}
+};
+
+template <>
+struct attachment_reduce_traits<std::vector<number> > :
+	public std_number_vector_attachment_reduce_traits {};
+
+
 ///	Performs reduce operations on the specified attachment
 /**	Currently the following reduce operations are supported:
  *		- PCL_RO_MAX

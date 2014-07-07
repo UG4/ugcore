@@ -115,11 +115,19 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 		case 1:
 			AssembleMassMatrix<RegularEdge,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, M, u, m_spAssTuner);
+			// When assembling over lower-dim manifolds that contain hanging nodes:
+			AssembleMassMatrix<ConstrainingEdge,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, M, u, m_spAssTuner);
 			break;
 		case 2:
 			AssembleMassMatrix<Triangle,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, M, u, m_spAssTuner);
 			AssembleMassMatrix<Quadrilateral,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, M, u, m_spAssTuner);
+			// When assembling over lower-dim manifolds that contain hanging nodes:
+			AssembleMassMatrix<ConstrainingTriangle,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, M, u, m_spAssTuner);
+			AssembleMassMatrix<ConstrainingQuadrilateral,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, M, u, m_spAssTuner);
 			break;
 		case 3:
@@ -217,11 +225,19 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 		case 1:
 			AssembleStiffnessMatrix<RegularEdge,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, A, u, m_spAssTuner);
+			// When assembling over lower-dim manifolds that contain hanging nodes:
+			AssembleStiffnessMatrix<ConstrainingEdge,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, A, u, m_spAssTuner);
 			break;
 		case 2:
 			AssembleStiffnessMatrix<Triangle,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, A, u, m_spAssTuner);
 			AssembleStiffnessMatrix<Quadrilateral,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, A, u, m_spAssTuner);
+			// When assembling over lower-dim manifolds that contain hanging nodes:
+			AssembleStiffnessMatrix<ConstrainingTriangle,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, A, u, m_spAssTuner);
+			AssembleStiffnessMatrix<ConstrainingQuadrilateral,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, A, u, m_spAssTuner);
 			break;
 		case 3:
@@ -344,11 +360,19 @@ assemble_jacobian(matrix_type& J,
 		case 1:
 			AssembleJacobian<RegularEdge,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, *pModifyU, m_spAssTuner);
+			// When assembling over lower-dim manifolds that contain hanging nodes:
+			AssembleJacobian<ConstrainingEdge,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, *pModifyU, m_spAssTuner);
 			break;
 		case 2:
 			AssembleJacobian<Triangle,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, *pModifyU, m_spAssTuner);
 			AssembleJacobian<Quadrilateral,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, *pModifyU, m_spAssTuner);
+			// When assembling over lower-dim manifolds that contain hanging nodes:
+			AssembleJacobian<ConstrainingTriangle,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, *pModifyU, m_spAssTuner);
+			AssembleJacobian<ConstrainingQuadrilateral,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, *pModifyU, m_spAssTuner);
 			break;
 		case 3:
@@ -463,11 +487,19 @@ assemble_defect(vector_type& d,
 		case 1:
 			AssembleDefect<RegularEdge,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, *pModifyU, m_spAssTuner);
+			// When assembling over lower-dim manifolds that contain hanging nodes:
+			AssembleDefect<ConstrainingEdge,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, *pModifyU, m_spAssTuner);
 			break;
 		case 2:
 			AssembleDefect<Triangle,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, *pModifyU, m_spAssTuner);
 			AssembleDefect<Quadrilateral,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, *pModifyU, m_spAssTuner);
+			// When assembling over lower-dim manifolds that contain hanging nodes:
+			AssembleDefect<ConstrainingTriangle,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, *pModifyU, m_spAssTuner);
+			AssembleDefect<ConstrainingQuadrilateral,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, *pModifyU, m_spAssTuner);
 			break;
 		case 3:
@@ -564,11 +596,19 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		case 1:
 			AssembleLinear<RegularEdge,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, m_spAssTuner);
+			// When assembling over lower-dim manifolds that contain hanging nodes:
+			AssembleLinear<ConstrainingEdge,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, m_spAssTuner);
 			break;
 		case 2:
 			AssembleLinear<Triangle,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, m_spAssTuner);
 			AssembleLinear<Quadrilateral,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, m_spAssTuner);
+			// When assembling over lower-dim manifolds that contain hanging nodes:
+			AssembleLinear<ConstrainingTriangle,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, m_spAssTuner);
+			AssembleLinear<ConstrainingQuadrilateral,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, m_spAssTuner);
 			break;
 		case 3:
@@ -666,11 +706,19 @@ assemble_rhs(vector_type& rhs,
 		case 1:
 			AssembleRhs<RegularEdge,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, u, m_spAssTuner);
+			// When assembling over lower-dim manifolds that contain hanging nodes:
+			AssembleRhs<ConstrainingEdge,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, u, m_spAssTuner);
 			break;
 		case 2:
 			AssembleRhs<Triangle,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, u, m_spAssTuner);
 			AssembleRhs<Quadrilateral,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, u, m_spAssTuner);
+			// When assembling over lower-dim manifolds that contain hanging nodes:
+			AssembleRhs<ConstrainingTriangle,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, u, m_spAssTuner);
+			AssembleRhs<ConstrainingQuadrilateral,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, u, m_spAssTuner);
 			break;
 		case 3:
@@ -831,11 +879,19 @@ calc_error
 		case 1:
 			AssembleErrorEstimator<RegularEdge,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, u);
+			// When assembling over lower-dim manifolds that contain hanging nodes:
+			AssembleErrorEstimator<ConstrainingEdge,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, u);
 			break;
 		case 2:
 			AssembleErrorEstimator<Triangle,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, u);
 			AssembleErrorEstimator<Quadrilateral,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, u);
+			// When assembling over lower-dim manifolds that contain hanging nodes:
+			AssembleErrorEstimator<ConstrainingTriangle,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, u);
+			AssembleErrorEstimator<ConstrainingQuadrilateral,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, u);
 			break;
 		case 3:
@@ -998,11 +1054,19 @@ prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		case 1:
 			PrepareTimestep<RegularEdge,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_spAssTuner);
+			// When assembling over lower-dim manifolds that contain hanging nodes:
+			PrepareTimestep<ConstrainingEdge,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_spAssTuner);
 			break;
 		case 2:
 			PrepareTimestep<Triangle,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_spAssTuner);
 			PrepareTimestep<Quadrilateral,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_spAssTuner);
+			// When assembling over lower-dim manifolds that contain hanging nodes:
+			PrepareTimestep<ConstrainingTriangle,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_spAssTuner);
+			PrepareTimestep<ConstrainingQuadrilateral,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_spAssTuner);
 			break;
 		case 3:
@@ -1103,11 +1167,19 @@ assemble_jacobian(matrix_type& J,
 		case 1:
 			AssembleJacobian<RegularEdge,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, pModifyU, s_a0, m_spAssTuner);
+			// When assembling over lower-dim manifolds that contain hanging nodes:
+			AssembleJacobian<ConstrainingEdge,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, pModifyU, s_a0, m_spAssTuner);
 			break;
 		case 2:
 			AssembleJacobian<Triangle,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, pModifyU, s_a0, m_spAssTuner);
 			AssembleJacobian<Quadrilateral,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, pModifyU, s_a0, m_spAssTuner);
+			// When assembling over lower-dim manifolds that contain hanging nodes:
+			AssembleJacobian<ConstrainingTriangle,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, pModifyU, s_a0, m_spAssTuner);
+			AssembleJacobian<ConstrainingQuadrilateral,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, pModifyU, s_a0, m_spAssTuner);
 			break;
 		case 3:
@@ -1224,11 +1296,19 @@ assemble_defect(vector_type& d,
 		case 1:
 			AssembleDefect<RegularEdge,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff, m_spAssTuner);
+			// When assembling over lower-dim manifolds that contain hanging nodes:
+			AssembleDefect<ConstrainingEdge,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff, m_spAssTuner);
 			break;
 		case 2:
 			AssembleDefect<Triangle,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff, m_spAssTuner);
 			AssembleDefect<Quadrilateral,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff, m_spAssTuner);
+			// When assembling over lower-dim manifolds that contain hanging nodes:
+			AssembleDefect<ConstrainingTriangle,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff, m_spAssTuner);
+			AssembleDefect<ConstrainingQuadrilateral,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff, m_spAssTuner);
 			break;
 		case 3:
@@ -1327,11 +1407,19 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		case 1:
 			AssembleLinear<RegularEdge,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
+			// When assembling over lower-dim manifolds that contain hanging nodes:
+			AssembleLinear<ConstrainingEdge,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
 			break;
 		case 2:
 			AssembleLinear<Triangle,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
 			AssembleLinear<Quadrilateral,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
+			// When assembling over lower-dim manifolds that contain hanging nodes:
+			AssembleLinear<ConstrainingTriangle,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
+			AssembleLinear<ConstrainingQuadrilateral,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
 			break;
 		case 3:
@@ -1433,11 +1521,19 @@ assemble_rhs(vector_type& rhs,
 		case 1:
 			AssembleRhs<RegularEdge,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
+			// When assembling over lower-dim manifolds that contain hanging nodes:
+			AssembleRhs<ConstrainingEdge,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
 			break;
 		case 2:
 			AssembleRhs<Triangle,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
 			AssembleRhs<Quadrilateral,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
+			// When assembling over lower-dim manifolds that contain hanging nodes:
+			AssembleRhs<ConstrainingTriangle,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
+			AssembleRhs<ConstrainingQuadrilateral,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
 			break;
 		case 3:
@@ -1592,11 +1688,19 @@ calc_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 			case 1:
 				AssembleErrorEstimator<RegularEdge,TDomain,TAlgebra>
 					(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
+				// When assembling over lower-dim manifolds that contain hanging nodes:
+				AssembleErrorEstimator<ConstrainingEdge,TDomain,TAlgebra>
+					(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
 				break;
 			case 2:
 				AssembleErrorEstimator<Triangle,TDomain,TAlgebra>
 					(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
 				AssembleErrorEstimator<Quadrilateral,TDomain,TAlgebra>
+					(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
+				// When assembling over lower-dim manifolds that contain hanging nodes:
+				AssembleErrorEstimator<ConstrainingTriangle,TDomain,TAlgebra>
+					(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
+				AssembleErrorEstimator<ConstrainingQuadrilateral,TDomain,TAlgebra>
 					(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
 				break;
 			case 3:
@@ -1818,11 +1922,19 @@ finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		case 1:
 			FinishTimestep<RegularEdge,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_spAssTuner);
+			// When assembling over lower-dim manifolds that contain hanging nodes:
+			FinishTimestep<ConstrainingEdge,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_spAssTuner);
 			break;
 		case 2:
 			FinishTimestep<Triangle,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_spAssTuner);
 			FinishTimestep<Quadrilateral,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_spAssTuner);
+			// When assembling over lower-dim manifolds that contain hanging nodes:
+			FinishTimestep<ConstrainingTriangle,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_spAssTuner);
+			FinishTimestep<ConstrainingQuadrilateral,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_spAssTuner);
 			break;
 		case 3:

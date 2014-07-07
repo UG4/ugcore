@@ -58,14 +58,6 @@ void ComputeMinMaxTotal
 	}
 #endif
 	UG_LOG("  +++++  Error indicator on " << numElem << " elements +++++\n");
-#ifdef UG_PARALLEL
-	if (pcl::NumProcs() > 1)
-	{
-		UG_LOG("  +++ Element errors on proc " << pcl::ProcRank() <<
-				": maximum=" << max << ", minimum=" << min << ", sum=" << totalErr << ".\n");
-	}
-#endif
-
 	UG_LOG("  +++ Element errors: maximum=" << max << ", minimum="
 			<< min << ", sum=" << totalErr << ".\n");
 }
@@ -234,8 +226,6 @@ void MarkElementsForRefinement
 #ifdef UG_PARALLEL
 	if (pcl::NumProcs() > 1)
 	{
-		UG_LOG("  +++ Marked for refinement on proc " << pcl::ProcRank() << ": " <<
-				numMarkedRefine << " elements.\n");
 		pcl::ProcessCommunicator com;
 		std::size_t numMarkedRefineLocal = numMarkedRefine;
 		numMarkedRefine = com.allreduce(numMarkedRefineLocal, PCL_RO_SUM);
@@ -282,8 +272,8 @@ void MarkElementsForCoarsening
 //	compute maximum
 	//number maxErrToCoarse = min * (1+coarseFrac);
 	//if (maxErrToCoarse < TOL/numElem) maxErrToCoarse = TOL/numElem;
-	number maxErrToCoarse = TOL / numElem / 64.0;// eigtl. / 2^(dim+2)*safetyfactor
-	UG_LOG("  +++ Coarsening elements if error smaller "<< maxErrToCoarse << ".\n");
+	number maxErrToCoarse = TOL / numElem / 4.0 / 8.0; // = tol_per_elem / (2^2*safetyfactor)
+	UG_LOG("  +++ Coarsening elements if avg child error smaller than "<< maxErrToCoarse << ".\n");
 
 //	reset counter
 	std::size_t numMarkedCoarse = 0;
@@ -297,23 +287,45 @@ void MarkElementsForCoarsening
 	//	get element
 		TElem* elem = *iter;
 
-	//	if no error value exists: ignore (might be newly added by refinement);
-	//	newly added elements are supposed to have a negative error estimator
-		if (aaError[elem] < 0) continue;
+	// ignore if already marked for coarsening
+		if (refiner.get_mark(elem) & RM_COARSEN) continue;
+
+	// get parent
+		TElem* parent = dynamic_cast<TElem*>(dd->multi_grid()->get_parent(elem));
+		if (!parent) continue; // either dynamic casting failed or parent does not exist
+
+	// sum up error values over all children of parent
+		number sum = 0.0;
+		size_t cnt = 0;
+		size_t nCh = dd->multi_grid()->num_children<TElem>(parent);
+		for (size_t ch = 0; ch < nCh; ch++)
+		{
+			TElem* child = dd->multi_grid()->get_child<TElem>(parent, ch);
+
+			//	if no error value exists: ignore (might be newly added by refinement);
+			//	newly added elements are supposed to have a negative error estimator
+			if (aaError[child] < 0) continue;
+
+			sum += aaError[child];
+			cnt++;
+		}
 
 	//	marks for coarsening
-		if (aaError[elem] <= maxErrToCoarse)
+		if (sum/cnt <= maxErrToCoarse)
 		{
-			refiner.mark(elem, RM_COARSEN);
-			numMarkedCoarse++;
+			for (size_t ch = 0; ch < nCh; ch++)
+			{
+				TElem* child = dd->multi_grid()->get_child<TElem>(parent, ch);
+				if (refiner.get_mark(child) & RM_COARSEN) continue;
+				refiner.mark(child, RM_COARSEN);
+				numMarkedCoarse++;
+			}
 		}
 	}
 
 #ifdef UG_PARALLEL
 	if (pcl::NumProcs() > 1)
 	{
-		UG_LOG("  +++ Marked for coarsening on proc " << pcl::ProcRank() << ": " <<
-				numMarkedCoarse << " elements.\n");
 		pcl::ProcessCommunicator com;
 		std::size_t numMarkedCoarseLocal = numMarkedCoarse;
 		numMarkedCoarse = com.allreduce(numMarkedCoarseLocal, PCL_RO_SUM);

@@ -1561,7 +1561,7 @@ class StdFuncIntegrand
 					approxSolIP += valSH * rTrialSpace.shape(sh, vLocIP[ip]);
 				}
 
-				//	get squared of difference
+				//	get function value at ip
 				vValue[ip] = approxSolIP;
 
 			}

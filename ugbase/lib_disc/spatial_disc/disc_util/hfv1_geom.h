@@ -1038,6 +1038,9 @@ class HFV1ManifoldGeometry
 	///	update data for given element
 		void update(GridObject* elem, const MathVector<worldDim>* vCornerCoords,
 		            const ISubsetHandler* ish = NULL);
+
+	/// print information about hfvg to log
+		void print();
 /*
 	/// get vector of corners for current element
 		const MathVector<worldDim>* corners() const {return m_gloMid[0];}

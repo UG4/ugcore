@@ -1178,7 +1178,7 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 	std::vector<Edge*> vEdges;
 	CollectEdgesSorted(vEdges, grid, pElem);
 
-	// compute Nodes
+	// compute nodes
 	m_vBF.clear();
 	m_vNewEdgeInfo.clear();
 	m_vNatEdgeInfo.clear(); m_vNatEdgeInfo.resize(m_numNaturalBFS);
@@ -1194,71 +1194,18 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 		// choose whether to insert two or one new edge
 		switch (vEdges[i]->container_section())
 		{
-		case CSEDGE_CONSTRAINED_EDGE:
-		case CSEDGE_REGULAR_EDGE:
+			case CSEDGE_CONSTRAINED_EDGE:
 			// classic case (no hanging node on edge)
-			if (dim == 1)
-			{
-				// set loc & glo corner coords
-				const size_t numBF = m_vBF.size();
-				m_vBF.resize(numBF + 2);
-				MathVector<dim> locMidPt;
-				MathVector<worldDim> gloMidPt;
-				VecInterpolateLinear(locMidPt, m_locMid[0][from], m_locMid[0][to], 0.5);
-				VecInterpolateLinear(gloMidPt, m_gloMid[0][from], m_gloMid[0][to], 0.5);
-
-				m_vBF[numBF].m_vLocPos[0] = m_locMid[0][from];
-				m_vBF[numBF].m_vLocPos[1] = locMidPt;
-				m_vBF[numBF].m_vGloPos[0] = m_gloMid[0][from];
-				m_vBF[numBF].m_vGloPos[1] = gloMidPt;
-				m_vBF[numBF].nodeId = from;
-
-				m_vBF[numBF+1].m_vLocPos[0] = m_locMid[0][to];
-				m_vBF[numBF+1].m_vLocPos[1] = locMidPt;
-				m_vBF[numBF+1].m_vGloPos[0] = m_gloMid[0][to];
-				m_vBF[numBF+1].m_vGloPos[1] = gloMidPt;
-				m_vBF[numBF+1].nodeId = to;
-			}
-			if (dim == 2)
-			{
-				// remember this edge (and that it is not constraining)
-				const size_t numNewEdgeInfo = m_vNewEdgeInfo.size();
-				m_vNatEdgeInfo[i].numChildEdges = 1;
-				m_vNatEdgeInfo[i].childEdge[0] = numNewEdgeInfo;
-
-				m_vNewEdgeInfo.resize(numNewEdgeInfo + 1);
-				m_vNewEdgeInfo[numNewEdgeInfo].m_from = from;
-				m_vNewEdgeInfo[numNewEdgeInfo].m_to = to;
-
-				bAllConstraining = false;
-			}
-			break;
-
-		case CSEDGE_CONSTRAINING_EDGE:
-			{
-				// insert hanging node in list of nodes
-				const size_t newNodeId = m_gloMid[0].size();
-				m_gloMid[0].resize(newNodeId + 1);
-				m_locMid[0].resize(newNodeId + 1);
-				VecInterpolateLinear(	m_gloMid[0].back(),
-										m_gloMid[0][from],
-										m_gloMid[0][to],
-										0.5);
-				VecInterpolateLinear(	m_locMid[0].back(),
-										m_locMid[0][from],
-										m_locMid[0][to],
-										0.5);
-
+			case CSEDGE_REGULAR_EDGE:
 				if (dim == 1)
 				{
-					// insert two edges with nodeIds and set loc & glo corner coords
+					// set loc & glo corner coords
 					const size_t numBF = m_vBF.size();
-					m_vBF.resize(numBF + 4);
-
+					m_vBF.resize(numBF + 2);
 					MathVector<dim> locMidPt;
 					MathVector<worldDim> gloMidPt;
-					VecInterpolateLinear(locMidPt, m_locMid[0][from], m_locMid[0][newNodeId], 0.5);
-					VecInterpolateLinear(gloMidPt, m_gloMid[0][from], m_gloMid[0][newNodeId], 0.5);
+					VecInterpolateLinear(locMidPt, m_locMid[0][from], m_locMid[0][to], 0.5);
+					VecInterpolateLinear(gloMidPt, m_gloMid[0][from], m_gloMid[0][to], 0.5);
 
 					m_vBF[numBF].m_vLocPos[0] = m_locMid[0][from];
 					m_vBF[numBF].m_vLocPos[1] = locMidPt;
@@ -1266,49 +1213,103 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 					m_vBF[numBF].m_vGloPos[1] = gloMidPt;
 					m_vBF[numBF].nodeId = from;
 
-					m_vBF[numBF+1].m_vLocPos[0] = m_locMid[0][newNodeId];
+					m_vBF[numBF+1].m_vLocPos[0] = m_locMid[0][to];
 					m_vBF[numBF+1].m_vLocPos[1] = locMidPt;
-					m_vBF[numBF+1].m_vGloPos[0] = m_gloMid[0][newNodeId];
+					m_vBF[numBF+1].m_vGloPos[0] = m_gloMid[0][to];
 					m_vBF[numBF+1].m_vGloPos[1] = gloMidPt;
-					m_vBF[numBF+1].nodeId = newNodeId;
-
-					VecInterpolateLinear(locMidPt, m_locMid[0][to], m_locMid[0][newNodeId], 0.5);
-					VecInterpolateLinear(gloMidPt, m_gloMid[0][to], m_gloMid[0][newNodeId], 0.5);
-
-					m_vBF[numBF+2].m_vLocPos[0] = m_locMid[0][to];
-					m_vBF[numBF+2].m_vLocPos[1] = locMidPt;
-					m_vBF[numBF+2].m_vGloPos[0] = m_gloMid[0][to];
-					m_vBF[numBF+2].m_vGloPos[1] = gloMidPt;
-					m_vBF[numBF+2].nodeId = to;
-
-					m_vBF[numBF+3].m_vLocPos[0] = m_locMid[0][newNodeId];
-					m_vBF[numBF+3].m_vLocPos[1] = locMidPt;
-					m_vBF[numBF+3].m_vGloPos[0] = m_gloMid[0][newNodeId];
-					m_vBF[numBF+3].m_vGloPos[1] = gloMidPt;
-					m_vBF[numBF+3].nodeId = newNodeId;
+					m_vBF[numBF+1].nodeId = to;
 				}
-
 				if (dim == 2)
 				{
-					// mapping naturalEdges -> new edges
+					// remember this edge (and that it is not constraining)
 					const size_t numNewEdgeInfo = m_vNewEdgeInfo.size();
-					m_vNatEdgeInfo[i].nodeId = newNodeId;
-					m_vNatEdgeInfo[i].numChildEdges = 2;
+					m_vNatEdgeInfo[i].numChildEdges = 1;
 					m_vNatEdgeInfo[i].childEdge[0] = numNewEdgeInfo;
-					m_vNatEdgeInfo[i].childEdge[1] = numNewEdgeInfo + 1;
 
-					m_vNewEdgeInfo.resize(numNewEdgeInfo + 2);
-
+					m_vNewEdgeInfo.resize(numNewEdgeInfo + 1);
 					m_vNewEdgeInfo[numNewEdgeInfo].m_from = from;
-					m_vNewEdgeInfo[numNewEdgeInfo].m_to = newNodeId;
+					m_vNewEdgeInfo[numNewEdgeInfo].m_to = to;
 
-					m_vNewEdgeInfo[numNewEdgeInfo+1].m_from = newNodeId;
-					m_vNewEdgeInfo[numNewEdgeInfo+1].m_to = to;
+					bAllConstraining = false;
 				}
-			}
-			break;
+				break;
 
-		default: UG_THROW("Cannot detect type of edge.");
+			// hanging node case
+			case CSEDGE_CONSTRAINING_EDGE:
+				{
+					// insert hanging node in list of nodes
+					const size_t newNodeId = m_gloMid[0].size();
+					m_gloMid[0].resize(newNodeId + 1);
+					m_locMid[0].resize(newNodeId + 1);
+					VecInterpolateLinear(	m_gloMid[0].back(),
+											m_gloMid[0][from],
+											m_gloMid[0][to],
+											0.5);
+					VecInterpolateLinear(	m_locMid[0].back(),
+											m_locMid[0][from],
+											m_locMid[0][to],
+											0.5);
+
+					if (dim == 1)	// cannot happen! (loop is only over RegularEdge for dim==1!)
+					{
+						// insert two edges with nodeIds and set loc & glo corner coords
+						const size_t numBF = m_vBF.size();
+						m_vBF.resize(numBF + 4);
+
+						MathVector<dim> locMidPt;
+						MathVector<worldDim> gloMidPt;
+						VecInterpolateLinear(locMidPt, m_locMid[0][from], m_locMid[0][newNodeId], 0.5);
+						VecInterpolateLinear(gloMidPt, m_gloMid[0][from], m_gloMid[0][newNodeId], 0.5);
+
+						m_vBF[numBF].m_vLocPos[0] = m_locMid[0][from];
+						m_vBF[numBF].m_vLocPos[1] = locMidPt;
+						m_vBF[numBF].m_vGloPos[0] = m_gloMid[0][from];
+						m_vBF[numBF].m_vGloPos[1] = gloMidPt;
+						m_vBF[numBF].nodeId = from;
+
+						m_vBF[numBF+1].m_vLocPos[0] = m_locMid[0][newNodeId];
+						m_vBF[numBF+1].m_vLocPos[1] = locMidPt;
+						m_vBF[numBF+1].m_vGloPos[0] = m_gloMid[0][newNodeId];
+						m_vBF[numBF+1].m_vGloPos[1] = gloMidPt;
+						m_vBF[numBF+1].nodeId = newNodeId;
+
+						VecInterpolateLinear(locMidPt, m_locMid[0][to], m_locMid[0][newNodeId], 0.5);
+						VecInterpolateLinear(gloMidPt, m_gloMid[0][to], m_gloMid[0][newNodeId], 0.5);
+
+						m_vBF[numBF+2].m_vLocPos[0] = m_locMid[0][to];
+						m_vBF[numBF+2].m_vLocPos[1] = locMidPt;
+						m_vBF[numBF+2].m_vGloPos[0] = m_gloMid[0][to];
+						m_vBF[numBF+2].m_vGloPos[1] = gloMidPt;
+						m_vBF[numBF+2].nodeId = to;
+
+						m_vBF[numBF+3].m_vLocPos[0] = m_locMid[0][newNodeId];
+						m_vBF[numBF+3].m_vLocPos[1] = locMidPt;
+						m_vBF[numBF+3].m_vGloPos[0] = m_gloMid[0][newNodeId];
+						m_vBF[numBF+3].m_vGloPos[1] = gloMidPt;
+						m_vBF[numBF+3].nodeId = newNodeId;
+					}
+
+					if (dim == 2)
+					{
+						// mapping naturalEdges -> new edges
+						const size_t numNewEdgeInfo = m_vNewEdgeInfo.size();
+						m_vNatEdgeInfo[i].nodeId = newNodeId;
+						m_vNatEdgeInfo[i].numChildEdges = 2;
+						m_vNatEdgeInfo[i].childEdge[0] = numNewEdgeInfo;
+						m_vNatEdgeInfo[i].childEdge[1] = numNewEdgeInfo + 1;
+
+						m_vNewEdgeInfo.resize(numNewEdgeInfo + 2);
+
+						m_vNewEdgeInfo[numNewEdgeInfo].m_from = from;
+						m_vNewEdgeInfo[numNewEdgeInfo].m_to = newNodeId;
+
+						m_vNewEdgeInfo[numNewEdgeInfo+1].m_from = newNodeId;
+						m_vNewEdgeInfo[numNewEdgeInfo+1].m_to = to;
+					}
+				}
+				break;
+
+			default: UG_THROW("Cannot detect type of edge.");
 		}
 	}
 
@@ -1330,6 +1331,8 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 
 		///////////
 		// case QUADRILATERAL with all edges hanging and hanging node in middle
+		//
+		// cannot happen, since only Quadrilaterals are looped, not ConstrainingQuadrilaterals!
 		///////////
 		if (face->container_section() == CSFACE_CONSTRAINING_QUADRILATERAL)
 		{
@@ -1420,6 +1423,8 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 		}
 		///////////
 		// case TRIANGLE with all edges hanging, that matches a refined element on other side
+		//
+		// cannot happen, since only Triangles are looped, not ConstrainingTriangles!
 		///////////
 		else if (bAllConstraining && face->container_section() == CSFACE_CONSTRAINING_TRIANGLE)
 		{
@@ -1492,7 +1497,7 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 			}
 		}
 		//////////
-		// other cases: Not all edges hanging (i.e. neighbor not refined)
+		// other cases: neighbor not refined, but still hanging nodes
 		///////////
 		else
 		{
@@ -1632,6 +1637,51 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 		m_vLocBFIP.push_back(rBF.local_ip());
 		m_vGlobBFIP.push_back(rBF.global_ip());
 	}
+
+	//print();
+}
+
+
+/// debug output
+template <typename TElem, int TWorldDim>
+void HFV1ManifoldGeometry<TElem, TWorldDim>::print()
+{
+	UG_LOG("\nHanging FVG debug output:\n");
+	for (size_t i = 0; i < m_vBF.size(); ++i)
+	{
+		UG_LOG("SCV " << i << ": ");
+		UG_LOG("node_id=" << m_vBF[i].node_id());
+		UG_LOG(", local_ip="<< m_vBF[i].local_ip());
+		UG_LOG(", global_ip="<< m_vBF[i].global_ip());
+		UG_LOG(", vol=" << m_vBF[i].volume());
+		UG_LOG("\n");
+		for (size_t j = 0; j < m_vBF[i].num_corners(); j++)
+			UG_LOG("    localCorner " << j << "=" << m_vBF[i].m_vLocPos[j]);
+		UG_LOG("\n");
+		for (size_t j = 0; j < m_vBF[i].num_corners(); j++)
+			UG_LOG("    globalCorner " << j << "=" << m_vBF[i].m_vGloPos[j]);
+		UG_LOG("\n");
+	}
+	UG_LOG("\n");
+	/*
+	for(size_t i = 0; i < m_vSCVF.size(); ++i)
+	{
+		UG_LOG(i<<" SCVF: ");
+		UG_LOG("from=" << m_vSCVF[i].from()<<", to="<<m_vSCVF[i].to());
+		UG_LOG(", local_pos="<< m_vSCVF[i].local_ip());
+		UG_LOG(", global_pos="<< m_vSCVF[i].global_ip());
+		UG_LOG(", normal=" << m_vSCVF[i].normal());
+		UG_LOG("\n    Shapes:\n");
+		for(size_t sh=0; sh < m_vSCVF[i].num_sh(); ++sh)
+		{
+			UG_LOG("         " <<sh << ": shape="<<m_vSCVF[i].shape(sh));
+			UG_LOG(", global_grad="<<m_vSCVF[i].global_grad(sh));
+			UG_LOG(", local_grad="<<m_vSCVF[i].local_grad(sh));
+			UG_LOG("\n");
+		}
+	}
+	UG_LOG("\n");
+	*/
 }
 
 
@@ -1665,7 +1715,7 @@ template class DimHFV1Geometry<3, 3>;
 //////////////////////
 // Manifold
 //////////////////////
-template class HFV1ManifoldGeometry<RegularEdge, 2>;
+template class HFV1ManifoldGeometry<Edge, 2>;
 template class HFV1ManifoldGeometry<Triangle, 3>;
 template class HFV1ManifoldGeometry<Quadrilateral, 3>;
 

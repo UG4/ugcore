@@ -7,6 +7,8 @@
  *     Authors: Dmitriy Logashenko, Markus Breit
  */
 
+#include "err_est_data.h"
+
 namespace ug{
 
 // ******** class SideFluxErrEstData ********
@@ -37,7 +39,7 @@ void SideFluxErrEstData<TDomain>::alloc_err_est_data
 
 /// Called after the computation of the error estimator data in all the elements
 template <typename TDomain>
-void SideFluxErrEstData<TDomain>::summarize_err_est_data (ConstSmartPtr<TDomain> spDomain)
+void SideFluxErrEstData<TDomain>::summarize_err_est_data (SmartPtr<TDomain> spDomain)
 {
 	typedef typename domain_traits<dim>::side_type side_type;
 	
@@ -81,15 +83,82 @@ void SideFluxErrEstData<TDomain>::release_err_est_data ()
 
 // ******** class SideAndElemErrEstData ********
 
-/// Constructor
+inline void check_subset_strings(std::vector<std::string> s)
+{
+	//	remove white space
+	for (size_t i = 0; i < s.size(); i++)
+		RemoveWhitespaceFromString(s[i]);
+
+	//	if no subset passed, clear subsets
+	if (s.size() == 1 && s[0].empty()) s.clear();
+
+	//	if subsets passed with separator, but not all tokens filled, throw error
+	for (size_t i = 0; i < s.size(); i++)
+	{
+		if (s.empty())
+		{
+			UG_THROW("Error while setting subsets in SideAndElemErrEstData: Passed subset string lacks a "
+					 "subset specification at position " << i << "(of " << s.size()-1 << ")");
+		}
+	}
+}
+
+
 template <typename TDomain>
-SideAndElemErrEstData<TDomain>::SideAndElemErrEstData(std::size_t _sideOrder, std::size_t _elemOrder) :
+SideAndElemErrEstData<TDomain>::SideAndElemErrEstData
+(
+	std::size_t _sideOrder,
+	std::size_t _elemOrder,
+	const char* subsets
+) :
 	IErrEstData<TDomain>(),
 	sideOrder(_sideOrder), elemOrder(_elemOrder),
 	m_aSide(attachment_type("errEstSide")), m_aElem(attachment_type("errEstElem")),
 	m_aaSide(MultiGrid::AttachmentAccessor<side_type, attachment_type >()),
 	m_aaElem(MultiGrid::AttachmentAccessor<elem_type, attachment_type >()),
 	m_spSV(SPNULL), m_errEstGL(GridLevel())
+{
+	m_vSs = TokenizeString(subsets);
+	check_subset_strings(m_vSs);
+
+	if (m_vSs.size() == 0)
+	{
+		UG_LOG("Warning: SideAndElemErrEstData ist constructed without definition of subsets. This is likely not to work.\n"
+			   "Please specify a subset of the same dimension as your domain that the error estimator is supposed to work on.\n");
+	}
+
+	init_quadrature();
+}
+
+
+template <typename TDomain>
+SideAndElemErrEstData<TDomain>::SideAndElemErrEstData
+(
+	std::size_t _sideOrder,
+	std::size_t _elemOrder,
+	std::vector<std::string> subsets
+) :
+	IErrEstData<TDomain>(),
+	sideOrder(_sideOrder), elemOrder(_elemOrder),
+	m_aSide(attachment_type("errEstSide")), m_aElem(attachment_type("errEstElem")),
+	m_aaSide(MultiGrid::AttachmentAccessor<side_type, attachment_type >()),
+	m_aaElem(MultiGrid::AttachmentAccessor<elem_type, attachment_type >()),
+	m_spSV(SPNULL), m_errEstGL(GridLevel())
+{
+	m_vSs = subsets;
+	check_subset_strings(m_vSs);
+
+	if (m_vSs.size() == 0)
+	{
+		UG_LOG("Warning: SideAndElemErrEstData ist constructed without definition of subsets. This is likely not to work.\n"
+					   "Please specify a subset of the same dimension as your domain that the error estimator is supposed to work on.\n");
+	}
+
+	init_quadrature();
+}
+
+template <typename TDomain>
+void SideAndElemErrEstData<TDomain>::init_quadrature()
 {
 	// get quadrature rules for sides and elems
 	boost::mpl::for_each<typename domain_traits<dim>::ManifoldElemList>(GetQuadRules<dim-1>(&quadRuleSide[0], sideOrder));
@@ -393,12 +462,15 @@ void SideAndElemErrEstData<TDomain>::alloc_err_est_data
 		UG_THROW("SideFluxErrEstData::alloc_err_est_data:"
 			" The error estimator can work only with grid functions of the SURFACE type.");
 
+//	get the subset handler
+	ConstSmartPtr<MGSubsetHandler> ssh = spSV->subset_handler();
+
 //	copy the parameters to the object
 	m_errEstGL = gl;
 	m_spSV = spSV;
 
 //	prepare the attachments and their accessors
-	MultiGrid* pMG = (MultiGrid*) (spSV->subset_handler()->multi_grid());
+	MultiGrid* pMG = (MultiGrid*) (ssh->multi_grid());
 
 //	sides
 	pMG->template attach_to_dv<side_type, attachment_type >(m_aSide, std::vector<number>(0));
@@ -408,41 +480,137 @@ void SideAndElemErrEstData<TDomain>::alloc_err_est_data
 	pMG->template attach_to_dv<elem_type, attachment_type >(m_aElem, std::vector<number>(0));
 	m_aaElem.access(*pMG, m_aElem);
 
-//	now iterate over the grid and get the number of IPs from stored quadrature rules
-//	sides first
-	typedef typename SurfaceView::traits<side_type>::const_iterator side_iterator_type;
-	side_iterator_type side_iter_end = m_spSV->template end<side_type> (m_errEstGL, SurfaceView::ALL);
-	for (side_iterator_type side_iter = m_spSV->template begin<side_type> (m_errEstGL, SurfaceView::ALL);
-		 side_iter != side_iter_end; ++side_iter)
+//	construct subset group from subset info
+	m_ssg.set_subset_handler(ssh);
+	if (m_vSs.size() == 0) m_ssg.add_all();
+	else m_ssg.add(m_vSs);
+
+//	find out whether we work on an elem subset or a side subset
+	int ssDimMax = 0;
+	int ssDimMin = 4;
+	for (size_t si = 0; si < m_ssg.size(); si++)
 	{
-		side_type* side = *side_iter;
-
-	//	get roid of side
-		ReferenceObjectID roid = side->reference_object_id();
-
-	//	get number of IPs from quadrature rule for the roid and specified side quadrature order
-		std::size_t size = quadRuleSide[roid]->size();
-
-	//	resize attachment accordingly
-		m_aaSide[side].resize(size, 0.0);
+		const int dim_si = DimensionOfSubset(*ssh, m_ssg[si]);
+		if (dim_si > ssDimMax) ssDimMax = dim_si;
+		if (dim_si < ssDimMin) ssDimMin = dim_si;
 	}
-//	then elems
-	typedef typename SurfaceView::traits<elem_type>::const_iterator elem_iterator_type;
-	elem_iterator_type elem_iter_end = m_spSV->template end<elem_type> (m_errEstGL, SurfaceView::ALL);
-	for (elem_iterator_type elem_iter = m_spSV->template begin<elem_type> (m_errEstGL, SurfaceView::ALL);
-		 elem_iter != elem_iter_end; ++elem_iter)
+
+	if (ssDimMax != ssDimMin || ssDimMax != TDomain::dim)
 	{
-		elem_type* elem = *elem_iter;
-
-	//	get roid of elem
-		ReferenceObjectID roid = elem->reference_object_id();
-
-	//	get number of IPs from quadrature rule for the roid and specified side quadrature order
-		std::size_t size = quadRuleElem[roid]->size();
-
-	//	resize attachment accordingly
-		m_aaElem[elem].resize(size, 0.0);
+		UG_THROW("Subsets passed to an instance of SideAndElemErrEstData have varying or inadmissable dimension.\n"
+				 "(NOTE: Only sets of subsets of the same dimension as the domain are allowed.)");
 	}
+
+	// iterate over elems and associated sides and resize the IP value vectors
+	for (size_t si = 0; si < m_ssg.size(); si++)
+	{
+		typedef typename SurfaceView::traits<elem_type>::const_iterator elem_iterator_type;
+		elem_iterator_type elem_iter_end = m_spSV->template end<elem_type>(m_ssg[si], m_errEstGL, SurfaceView::ALL);
+		for (elem_iterator_type elem_iter = m_spSV->template begin<elem_type>(m_ssg[si], m_errEstGL, SurfaceView::ALL);
+			 elem_iter != elem_iter_end; ++elem_iter)
+		{
+			elem_type* elem = *elem_iter;
+
+		//	get roid of elem
+			ReferenceObjectID roid = elem->reference_object_id();
+
+		//	get number of IPs from quadrature rule for the roid and specified side quadrature order
+			std::size_t size = quadRuleElem[roid]->size();
+
+		//	resize attachment accordingly
+			m_aaElem[elem].resize(size, 0.0);
+
+		// loop associated sides
+			typename MultiGrid::traits<side_type>::secure_container side_list;
+			pMG->associated_elements(side_list, elem);
+
+			for (std::size_t side = 0; side < side_list.size(); side++)
+			{
+				side_type* pSide = side_list[side];
+
+			//	get roid of side
+				ReferenceObjectID roid = pSide->reference_object_id();
+
+			//	get number of IPs from quadrature rule for the roid and specified side quadrature order
+				std::size_t size = quadRuleSide[roid]->size();
+
+			//	resize attachment accordingly
+				if (m_aaSide[pSide].size() != size)
+					m_aaSide[pSide].resize(size, 0.0);
+			}
+		}
+	}
+
+	// equalize sizes at horizontal interface
+	// done by summing up, which, in a first step, will resize the smaller of the two vectors
+	// to the same size as the bigger one (cf. std_number_vector_attachment_reduce_traits)
+	// the actual summing does not hurt, since it performs 0 = 0 + 0;
+#ifdef UG_PARALLEL
+	typedef typename GridLayoutMap::Types<side_type>::Layout layout_type;
+	DistributedGridManager& dgm = *pMG->distributed_grid_manager();
+	GridLayoutMap& glm = dgm.grid_layout_map();
+	pcl::InterfaceCommunicator<layout_type> icom;
+
+	// sum all copies at the h-master attachment
+	ComPol_AttachmentReduce<layout_type, attachment_type> compolSumSideErr(*pMG, m_aSide, PCL_RO_SUM);
+	icom.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, compolSumSideErr);
+	icom.communicate();
+	icom.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, compolSumSideErr);
+	icom.communicate();
+
+	icom.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, compolSumSideErr);
+	icom.communicate();
+#endif
+
+	// for the case where subset border goes through SHADOW_RIM:
+	// resize SHADOW_RIM children if parent is resized and vice-versa
+	typedef typename Grid::traits<side_type>::const_iterator side_iter_type;
+	side_iter_type end_side = pMG->template end<side_type>();
+	for (side_iter_type side_iter = pMG->template begin<side_type>(); side_iter != end_side; ++side_iter)
+	{
+		// get the sides on both the levels (coarse and fine)
+		side_type* c_rim_side = *side_iter;
+
+		// if side is not SHADOW_RIM: do nothing
+		if (!m_spSV->surface_state(c_rim_side).partially_contains(SurfaceView::SHADOW_RIM)) continue;
+
+		// loop rim side children
+		bool resize_parent = false;
+		const size_t num_children = pMG->template num_children<side_type>(c_rim_side);
+		for (std::size_t ch = 0; ch < num_children; ch++)
+		{
+			side_type* child_side = pMG->template get_child<side_type>(c_rim_side, ch);
+
+			// get roid of side
+			ReferenceObjectID child_roid = child_side->reference_object_id();
+
+			// get number of IPs from quadrature rule for the roid and specified side quadrature order
+			std::size_t child_size = quadRuleSide[child_roid]->size();
+
+			// resize attachment accordingly
+			if (m_aaSide[child_side].size() != child_size && num_side_ips(c_rim_side) > 0)
+				m_aaSide[child_side].resize(child_size, 0.0);
+			else if (m_aaSide[child_side].size() == child_size && num_side_ips(c_rim_side) == 0)
+				resize_parent = true;
+		}
+
+		if (resize_parent)
+		{
+			// get roid of side
+			ReferenceObjectID roid = c_rim_side->reference_object_id();
+
+			// get number of IPs from quadrature rule for the roid and specified side quadrature order
+			std::size_t size = quadRuleSide[roid]->size();
+
+			// resize attachment accordingly
+			m_aaSide[c_rim_side].resize(size, 0.0);
+		}
+	}
+
+#ifdef UG_PARALLEL
+	icom.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, compolSumSideErr);
+	icom.communicate();
+#endif
 };
 
 /// Called after the computation of the error estimator data in all the elements
@@ -451,25 +619,71 @@ void SideAndElemErrEstData<TDomain>::alloc_err_est_data
  * 	jump, we need to add up the resp. attachments on parent and child for that side.
  */
 template <typename TDomain>
-void SideAndElemErrEstData<TDomain>::summarize_err_est_data(ConstSmartPtr<TDomain> spDomain)
+void SideAndElemErrEstData<TDomain>::summarize_err_est_data(SmartPtr<TDomain> spDomain)
 {
-	const MultiGrid* pMG = m_spSV->subset_handler()->multi_grid();
+	MultiGrid* pMG = spDomain->subset_handler()->multi_grid();
 
-//	loop the rim sides and add the jumps
-	typedef typename SurfaceView::traits<side_type>::const_iterator t_iterator;
-	t_iterator end_rim_side_iter = m_spSV->template end<side_type> (m_errEstGL, SurfaceView::SHADOW_RIM);
-	for (t_iterator rim_side_iter = m_spSV->template begin<side_type> (m_errEstGL, SurfaceView::SHADOW_RIM);
-		rim_side_iter != end_rim_side_iter; ++rim_side_iter)
+	// STEP 1: Ensure consistency over horizontal interfaces.
+	// Add the IP values of horizontal interfaces. Care has to be taken in the case where a side
+	// is SHADOW_RIM, then it only has values from one side of the interface. This will be checked
+	// by calling size() of the IP value vector.
+#ifdef UG_PARALLEL
+	typedef typename GridLayoutMap::Types<side_type>::Layout layout_type;
+	DistributedGridManager& dgm = *pMG->distributed_grid_manager();
+	GridLayoutMap& glm = dgm.grid_layout_map();
+	pcl::InterfaceCommunicator<layout_type> icom;
+
+	// sum all copies at the h-master attachment
+	ComPol_AttachmentReduce<layout_type, attachment_type> compolSumSideErr(*pMG, m_aSide, PCL_RO_SUM);
+	icom.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, compolSumSideErr);
+	icom.communicate();
+
+	// copy the sum from the master to all of its slave-copies
+	ComPol_CopyAttachment<layout_type, attachment_type> compolCopySideErr(*pMG, m_aSide);
+	icom.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, compolCopySideErr);
+	icom.communicate();
+
+	// STEP 2: Ensure correct values in vertical master rim side children.
+	// since we're copying from vmasters to vslaves later on, we have to make
+	// sure, that also all v-masters contain the correct values.
+	// todo: communication to vmasters may not be necessary here...
+	//       it is performed to make sure that all surface-rim-children
+	//       contain their true value.
+	icom.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, compolCopySideErr);
+	icom.communicate();
+#endif
+
+	// STEP 3: Calculate values on rim sides.
+	// loop the rim sides and add the jumps
+	// TODO: not sure whether we cannot simply loop with
+	//       m_spSV->template end<side_type> (m_errEstGL, SurfaceView::SHADOW_RIM)
+
+	//typedef typename SurfaceView::traits<side_type>::const_iterator t_iterator;
+	//t_iterator end_rim_side_iter = m_spSV->template end<side_type> (m_errEstGL, SurfaceView::SHADOW_RIM);
+	//for (t_iterator rim_side_iter = m_spSV->template begin<side_type> (m_errEstGL, SurfaceView::SHADOW_RIM);
+	//	rim_side_iter != end_rim_side_iter; ++rim_side_iter)
+	typedef typename Grid::traits<side_type>::const_iterator side_iter_type;
+	side_iter_type end_side = pMG->template end<side_type>();
+	for (side_iter_type side_iter = pMG->template begin<side_type>(); side_iter != end_side; ++side_iter)
 	{
-	//	get the sides on both the levels (coarse and fine)
-		side_type* c_rim_side = *rim_side_iter;
+		// get the sides on both the levels (coarse and fine)
+		side_type* c_rim_side = *side_iter;
 
-	// closure elements
-		if (pMG->template num_children<side_type>(c_rim_side) == 1)
+		// if side is not SHADOW_RIM: do nothing
+		if (!m_spSV->surface_state(c_rim_side).partially_contains(SurfaceView::SHADOW_RIM)) continue;
+
+		// if no ips registered on this side: do nothing
+		if (num_side_ips(c_rim_side) == 0) continue;
+
+		// distinguish hanging nodes and clozure elements by number of children
+		const size_t num_children = pMG->template num_children<side_type>(c_rim_side);
+
+		// closure elements
+		if (num_children == 1)
 		{
 			side_type* f_rim_side = pMG->template get_child<side_type>(c_rim_side, 0);
 
-		//	add up total jump and save it for both the sides
+			// add up total jump and save it for both sides
 			for (std::size_t i = 0; i < m_aaSide[c_rim_side].size(); i++)
 			{
 				number& c_rim_flux = m_aaSide[c_rim_side][i];
@@ -478,8 +692,9 @@ void SideAndElemErrEstData<TDomain>::summarize_err_est_data(ConstSmartPtr<TDomai
 				c_rim_flux = f_rim_flux = flux_jump;
 			}
 		}
-	// hanging node
-		else if (pMG->template num_children<side_type>(c_rim_side) > 1)
+
+		// hanging node
+		else
 		{
 			// TODO: This is a somehow dirty hack (but will converge with h->0),
 			// a correct interpolation with all given points would be preferable.
@@ -495,10 +710,11 @@ void SideAndElemErrEstData<TDomain>::summarize_err_est_data(ConstSmartPtr<TDomai
 			std::vector<MathVector<dim> > c_coCo;
 			CollectCornerCoordinates(c_coCo, c_rim_side, spDomain->position_accessor(), false);
 			std::vector<MathVector<dim> > c_gloIPs(num_side_ips(c_rim_side));
+
 			side_global_ips(&c_gloIPs[0], c_rim_side, &c_coCo[0]);
 
 			// interpolate fine IPs on coarse side
-			for (std::size_t ch = 0; ch < pMG->template num_children<side_type>(c_rim_side); ch++)
+			for (std::size_t ch = 0; ch < num_children; ch++)
 			{
 				// get fine side
 				side_type* f_rim_side = pMG->template get_child<side_type>(c_rim_side, ch);
@@ -569,10 +785,18 @@ void SideAndElemErrEstData<TDomain>::summarize_err_est_data(ConstSmartPtr<TDomai
 				m_aaSide[c_rim_side][cip] = val;
 			}
 		}
-
-	// TODO: something similar for the parallel case!?
 	}
+
+	// STEP 4: Ensure consistency in slave rim sides.
+	// Copy from v-masters to v-slaves, since there may be constrained sides which locally
+	// do not have a constraining element. Note that constrained V-Masters always have a local
+	// constraining element and thus contain the correct value.
+#ifdef UG_PARALLEL
+	icom.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, compolCopySideErr);
+	icom.communicate();
+#endif
 };
+
 
 template <typename TDomain>
 number SideAndElemErrEstData<TDomain>::get_elem_error_indicator(GridObject* pElem, const MathVector<dim> vCornerCoords[])
@@ -586,6 +810,10 @@ number SideAndElemErrEstData<TDomain>::get_elem_error_indicator(GridObject* pEle
 	ReferenceObjectID roid = pElem->reference_object_id();
 	const DimReferenceElement<dim>& refElem = ReferenceElementProvider::get<dim>(roid);
 
+	// only take into account elem contributions of the subsets defined in the constructor
+	int ssi = surface_view()->subset_handler()->get_subset_index(pElem);
+	if (!m_ssg.contains(ssi)) return 0.0;
+
 	// check number of integration points
 	std::size_t nIPs = quadRuleElem[roid]->size();
 	std::vector<number>& integrand = m_aaElem[dynamic_cast<elem_type*>(pElem)];
@@ -597,7 +825,7 @@ number SideAndElemErrEstData<TDomain>::get_elem_error_indicator(GridObject* pEle
 	mapping.update(&vCornerCoords[0]);
 
 	//	compute det of jacobian at each IP
-	std::vector<number> det = std::vector<number>(nIPs);
+	std::vector<number> det(nIPs);
 	mapping.sqrt_gram_det(&det[0], quadRuleElem[roid]->points(), nIPs);
 
 	// integrate
@@ -614,7 +842,7 @@ number SideAndElemErrEstData<TDomain>::get_elem_error_indicator(GridObject* pEle
 	etaSq += diamSq * sum;
 
 // side terms
-	//	get the sides of the element
+	// get the sides of the element
 	MultiGrid* pErrEstGrid = (MultiGrid*) (surface_view()->subset_handler()->multi_grid());
 	typename MultiGrid::traits<side_type>::secure_container side_list;
 	pErrEstGrid->associated_elements(side_list, pElem);
@@ -700,7 +928,7 @@ alloc_err_est_data(ConstSmartPtr<SurfaceView> spSV, const GridLevel& gl)
 
 template <typename TDomain, typename TErrEstData>
 void MultipleErrEstData<TDomain,TErrEstData>::
-summarize_err_est_data(ConstSmartPtr<TDomain> spDomain)
+summarize_err_est_data(SmartPtr<TDomain> spDomain)
 {
 	// only called if consider_me()
 	for (std::size_t eed = 0; eed < num(); eed++)

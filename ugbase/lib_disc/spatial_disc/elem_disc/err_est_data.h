@@ -19,8 +19,15 @@
 #include "lib_grid/tools/surface_view.h"
 #include "lib_grid/algorithms/multi_grid_util.h"
 #include "lib_disc/function_spaces/integrate.h"
+//#include "lib_disc/common/subset_util.h"	// for DimensionOfSubset
+
+#ifdef UG_PARALLEL
+ 	#include "lib_grid/parallelization/util/compol_attachment_reduce.h"
+ 	#include "lib_grid/parallelization/util/compol_copy_attachment.h"
+#endif
 
 #include <boost/mpl/for_each.hpp>
+
 
 namespace ug{
 
@@ -50,7 +57,7 @@ class IErrEstData
 		virtual void alloc_err_est_data (ConstSmartPtr<SurfaceView> spSV, const GridLevel& gl) = 0;
 		
 	///	virtual function called after the computation of the error estimator data in all the elements
-		virtual void summarize_err_est_data (ConstSmartPtr<TDomain> spDomain) = 0;
+		virtual void summarize_err_est_data (SmartPtr<TDomain> spDomain) = 0;
 
 	/// calculate L2 integrals
 		virtual number get_elem_error_indicator(GridObject* elem, const MathVector<dim> vCornerCoords[]) = 0;
@@ -118,7 +125,7 @@ public:
 		virtual void alloc_err_est_data (ConstSmartPtr<SurfaceView> spSV, const GridLevel& gl);
 		
 	///	virtual function called after the computation of the error estimator data in all the elements
-		virtual void summarize_err_est_data (ConstSmartPtr<TDomain> spDomain);
+		virtual void summarize_err_est_data (SmartPtr<TDomain> spDomain);
 
 	/// calculate L2 integrals
 		virtual number get_elem_error_indicator(GridObject* elem, const MathVector<dim> vCornerCoords[]) {return 0;};
@@ -185,8 +192,10 @@ public:
 		static const int MAX_NUM_SIDES = 6;
 
 public:
-	/// constructor
-		SideAndElemErrEstData(std::size_t _sideOrder, std::size_t _elemOrder);
+	/// constructors
+		SideAndElemErrEstData(std::size_t _sideOrder, std::size_t _elemOrder, const char* subsets);
+		SideAndElemErrEstData(std::size_t _sideOrder, std::size_t _elemOrder,
+							  std::vector<std::string> subsets = std::vector<std::string>(0));
 
 	///	virtual class destructor
 		virtual ~SideAndElemErrEstData() {};
@@ -259,7 +268,7 @@ public:
 		virtual void alloc_err_est_data (ConstSmartPtr<SurfaceView> spSV, const GridLevel& gl);
 
 	///	virtual function called after the computation of the error estimator data in all the elements
-		virtual void summarize_err_est_data (ConstSmartPtr<TDomain> spDomain);
+		virtual void summarize_err_est_data (SmartPtr<TDomain> spDomain);
 
 	/// calculate L2 integrals
 		virtual number get_elem_error_indicator(GridObject* elem, const MathVector<dim> vCornerCoords[]);
@@ -268,6 +277,9 @@ public:
 		virtual void release_err_est_data ();
 
 protected:
+	/// initialization of quadrature (to be called during construction)
+		void init_quadrature();
+
 	/// helper struct for getting quadrature rules by use of mpl::lists
 		template<int refDim>
 		struct GetQuadRules
@@ -288,6 +300,10 @@ private:
 	/// order of side and elem function approximations for integrating
 		std::size_t sideOrder;
 		std::size_t elemOrder;
+
+	/// the subsets this error estimator will produce values for
+		std::vector<std::string> m_vSs;
+		SubsetGroup m_ssg;
 
 	/// storage for integration rules
 		QuadratureRule<dim-1>* quadRuleSide[NUM_REFERENCE_OBJECTS];
@@ -367,7 +383,7 @@ class MultipleErrEstData : public IErrEstData<TDomain>
 		virtual void alloc_err_est_data(ConstSmartPtr<SurfaceView> spSV, const GridLevel& gl);
 
 	///	virtual function called after the computation of the error estimator data in all the elements
-		virtual void summarize_err_est_data(ConstSmartPtr<TDomain> spDomain);
+		virtual void summarize_err_est_data(SmartPtr<TDomain> spDomain);
 
 	/// calculate L2 integrals
 		virtual number get_elem_error_indicator(GridObject* elem, const MathVector<dim> vCornerCoords[]);

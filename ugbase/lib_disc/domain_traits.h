@@ -67,7 +67,7 @@ typedef Grid::VertexAttachmentAccessor<position_attachment_type> position_access
 template <> struct domain_traits<2> {
 typedef boost::mpl::list<Triangle, Quadrilateral> DimElemList;
 typedef boost::mpl::list<RegularEdge, Triangle, Quadrilateral> AllElemList;
-typedef boost::mpl::list<RegularEdge> ManifoldElemList;
+typedef boost::mpl::list<Edge> ManifoldElemList;
 
 typedef geometry_traits<Face>::const_iterator const_iterator;
 typedef geometry_traits<Face>::iterator iterator;

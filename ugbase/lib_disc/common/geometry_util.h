@@ -313,6 +313,7 @@ inline number ElementSize<1>(ReferenceObjectID roid, const MathVector<1>* vCorne
 {
 	switch(roid)
 	{
+		case ROID_VERTEX: return 1.0;
 		case ROID_EDGE: return ElementSize<ReferenceEdge, 1>(vCornerCoords);
 		default: UG_THROW("ReferenceObject "<<roid<<" not found in dim 1.");
 	}
@@ -323,6 +324,7 @@ inline number ElementSize<2>(ReferenceObjectID roid, const MathVector<2>* vCorne
 {
 	switch(roid)
 	{
+		case ROID_VERTEX: return 1.0;
 		case ROID_EDGE: return ElementSize<ReferenceEdge, 2>(vCornerCoords);
 		case ROID_TRIANGLE: return ElementSize<ReferenceTriangle, 2>(vCornerCoords);
 		case ROID_QUADRILATERAL: return ElementSize<ReferenceQuadrilateral, 2>(vCornerCoords);
@@ -335,6 +337,7 @@ inline number ElementSize<3>(ReferenceObjectID roid, const MathVector<3>* vCorne
 {
 	switch(roid)
 	{
+		case ROID_VERTEX: return 1.0;
 		case ROID_EDGE: return ElementSize<ReferenceEdge, 3>(vCornerCoords);
 		case ROID_TRIANGLE: return ElementSize<ReferenceTriangle, 3>(vCornerCoords);
 		case ROID_QUADRILATERAL: return ElementSize<ReferenceQuadrilateral, 3>(vCornerCoords);

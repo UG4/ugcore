@@ -54,6 +54,13 @@ struct reference_element_traits<RegularEdge>
 };
 
 template <>
+struct reference_element_traits<Edge>
+{
+	typedef ReferenceEdge reference_element_type;
+	static const int dim = reference_element_type::dim;
+};
+
+template <>
 struct reference_element_traits<ConstrainedEdge>
 	: public reference_element_traits<RegularEdge>{};
 

@@ -143,6 +143,10 @@ static void Domain(Registry& reg, string grp)
 		reg.add_class_<T, TBase>(name, domDiscGrp)
 			.template add_constructor<void (*) (std::size_t, std::size_t)>
 				("integration order for sides#integration order for elements", "", "", "")
+			.template add_constructor<void (*) (std::size_t, std::size_t, const char*)>
+				("integration order for sides#integration order for elements#subsets considered", "", "", "")
+			.template add_constructor<void (*) (std::size_t, std::size_t, std::vector<std::string>)>
+				("integration order for sides#integration order for elements#subsets considered", "", "", "")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "SideAndElemErrEstData", tag);
 	}
