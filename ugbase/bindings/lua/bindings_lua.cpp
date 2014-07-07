@@ -127,7 +127,7 @@ std::string ParameterStackString(ParameterStack &s)
  * When the function is done, the userdata is left on luas stack.
  * \{
  */
-static SmartUserDataWrapper* CreateNewUserData(lua_State* L, const SmartPtr<void>& ptr,
+SmartUserDataWrapper* CreateNewUserData(lua_State* L, const SmartPtr<void>& ptr,
 											  const char* metatableName)
 {
 //	create the userdata
@@ -146,7 +146,7 @@ static SmartUserDataWrapper* CreateNewUserData(lua_State* L, const SmartPtr<void
 	return udata;
 }
 
-static ConstSmartUserDataWrapper* CreateNewUserData(lua_State* L, const ConstSmartPtr<void>& ptr,
+ConstSmartUserDataWrapper* CreateNewUserData(lua_State* L, const ConstSmartPtr<void>& ptr,
 											  const char* metatableName)
 {
 //	create the userdata
@@ -166,7 +166,7 @@ static ConstSmartUserDataWrapper* CreateNewUserData(lua_State* L, const ConstSma
 	return udata;
 }
 
-static RawUserDataWrapper* CreateNewUserData(lua_State* L, void* ptr,
+RawUserDataWrapper* CreateNewUserData(lua_State* L, void* ptr,
 										  const char* metatableName,
 										  void (*deleteFunc)(const void*),
 										  bool is_const)

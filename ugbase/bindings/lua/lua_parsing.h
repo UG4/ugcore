@@ -5,24 +5,15 @@
 
 #ifndef LUA_PARSING_H_
 #define LUA_PARSING_H_
-#include "externals/lua/lua.h"
 
+#include "externals/lua/lua.h"
+#include "bindings_lua.h"
 
 
 namespace ug{
 namespace bridge{
 namespace lua{
-extern const bool IMLPICIT_SMART_PTR_TO_PTR_CONVERSION;
-static SmartUserDataWrapper* CreateNewUserData(lua_State* L, const SmartPtr<void>& ptr,
-											  const char* metatableName);
 
-static ConstSmartUserDataWrapper* CreateNewUserData(lua_State* L, const ConstSmartPtr<void>& ptr,
-											  const char* metatableName);
-
-static RawUserDataWrapper* CreateNewUserData(lua_State* L, void* ptr,
-										  const char* metatableName,
-										  void (*deleteFunc)(const void*),
-										  bool is_const);
 template <typename T>
 struct LuaParsing;
 

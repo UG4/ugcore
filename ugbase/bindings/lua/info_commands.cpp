@@ -883,27 +883,28 @@ void LuaList_classInstantiations()
 	{
 		lua_getglobal(L, instantiations[i].c_str());
 
-		const char * type;
+		const char * type = "UNKNOWN";
 		int ref = 0;
 		void* ptr = lua_touserdata(L, 1);
-		//	we perform delete if the user-data is a raw pointer
-			if(((lua::UserDataWrapper*)ptr)->is_raw_ptr()){
-				type = "raw ptr ";
-			}
-			else if(((lua::UserDataWrapper*)ptr)->is_smart_ptr()){
+		
+	//	we perform delete if the user-data is a raw pointer
+		if(((lua::UserDataWrapper*)ptr)->is_raw_ptr()){
+			type = "raw ptr ";
+		}
+		else if(((lua::UserDataWrapper*)ptr)->is_smart_ptr()){
 
-			//	invalidate the associated smart-pointer
-				if(((lua::UserDataWrapper*)ptr)->is_const())
-				{
-					type = "ConstSmartPtr ";
-					ref = ((lua::ConstSmartUserDataWrapper*)ptr)->smartPtr.refcount();
-				}
-				else
-				{
-					type = "SmartPtr ";
-					ref =  ((lua::SmartUserDataWrapper*)ptr)->smartPtr.refcount();
-				}
+		//	invalidate the associated smart-pointer
+			if(((lua::UserDataWrapper*)ptr)->is_const())
+			{
+				type = "ConstSmartPtr ";
+				ref = ((lua::ConstSmartUserDataWrapper*)ptr)->smartPtr.refcount();
 			}
+			else
+			{
+				type = "SmartPtr ";
+				ref =  ((lua::SmartUserDataWrapper*)ptr)->smartPtr.refcount();
+			}
+		}
 
 		if(!lua_isuserdata(L, -1)) continue;
 		const std::vector<const char*> *n  = GetClassNames(L, -1);

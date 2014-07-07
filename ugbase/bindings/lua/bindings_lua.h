@@ -25,7 +25,7 @@ namespace bridge
 namespace lua
 {
 
-
+extern const bool IMLPICIT_SMART_PTR_TO_PTR_CONVERSION;
 
 enum UserDataWrapperTypes{
 	RAW_POINTER = 1,
@@ -62,7 +62,16 @@ struct RawUserDataWrapper : public UserDataWrapper
 /**	If you use ug::script, this method will be invoked automatically.*/
 bool CreateBindings_LUA(lua_State* L, Registry& reg);
 
+SmartUserDataWrapper* CreateNewUserData(lua_State* L, const SmartPtr<void>& ptr,
+										const char* metatableName);
 
+ConstSmartUserDataWrapper* CreateNewUserData(lua_State* L, const ConstSmartPtr<void>& ptr,
+											 const char* metatableName);
+
+RawUserDataWrapper* CreateNewUserData(lua_State* L, void* ptr,
+									  const char* metatableName,
+									  void (*deleteFunc)(const void*),
+									  bool is_const);
 
 
 }//	end of namespace
