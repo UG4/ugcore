@@ -72,6 +72,19 @@ void SetMinSecondsUntilProgress(size_t s)
 	g_minSecondUntilProgress=s;
 }
 
+std::vector<std::string> GetFilesInDir(const char* dir)
+{
+	std::vector<std::string> files;
+	GetFilesInDirectory(files, dir);
+	return files;
+}
+
+std::vector<std::string> GetDirsInDir(const char* dir)
+{
+	std::vector<std::string> dirs;
+	GetDirectoriesInDirectory(dirs, dir);
+	return dirs;
+}
 
 void RegisterBridge_Util(Registry& reg, string parentGroup)
 {
@@ -113,10 +126,12 @@ void RegisterBridge_Util(Registry& reg, string parentGroup)
 
 	reg.add_function("CreateDirectory", static_cast<bool (*)(const char *) > (&CreateDirectoryTMP) );
 	reg.add_function("DirectoryExists", static_cast<bool (*)(const char *) > (&DirectoryExists) );
+	reg.add_function("FileExists", static_cast<bool (*)(const char *) > (&FileExists) );
+	reg.add_function("GetFilesInDir", GetFilesInDir);
+	reg.add_function("GetDirsInDir", GetDirsInDir);
 	reg.add_function("GetTmpPath", GetTmpPath);
 	reg.add_function("FileCompare", FileCompare);
 	reg.add_function("SetMinSecondsUntilProgress", SetMinSecondsUntilProgress, grp, "", "seconds", "determines after which time a progress bar can show up");
-
 
 	{
 		typedef StringTable T;
@@ -143,7 +158,8 @@ void RegisterBridge_Util(Registry& reg, string parentGroup)
 
 		.add_method("to_latex", &T::to_latex)
 		.add_method("to_csv", &T::to_csv)
-		.add_method("__tostring", &T::to_string);
+		.add_method("__tostring", &T::to_string)
+		.construct_as_smart_pointer();
 	}
 
 }
