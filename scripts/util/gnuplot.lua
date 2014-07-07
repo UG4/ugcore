@@ -347,7 +347,7 @@ function gnuplot.plot(filename, data, options)
 		write(" c) multiplot-multi-data: \n");		
 		write("    data = { { {file = \"f1.dat\", 1, 2}, {file = \"f1.dat\", 1, 2}, ...}, \n");		
 		write("             { {file = \"f3.dat\", 1, 2}, {file = \"f3.dat\", 1, 2}, ...}, ...} \n");		
-		exit();
+		return;
 	end
 	
 	local MultiPlotRows, MultiPlotCols
@@ -368,7 +368,7 @@ function gnuplot.plot(filename, data, options)
 			MultiPlotCols = math.ceil(#plots / MultiPlotRows )
 		end
 		if MultiPlotRows*MultiPlotCols < #plots then
-			print("Gnuplot: to few plots in multi-plot reserved"); exit()
+			print("Gnuplot: to few plots in multi-plot reserved"); return
 		end		
 	end
 	if not MultiPlotRows or not MultiPlotCols then
@@ -684,23 +684,23 @@ function gnuplot.plot(filename, data, options)
 		for _, dataset in ipairs(plot) do
 			if #dataset == 2 then
 				if plotDim and plotDim ~= 2 then
-					write("Gnuplot Error: Mixed 2d/3d data.\n"); exit();
+					write("Gnuplot Error: Mixed 2d/3d data.\n"); return;
 				end
 				plotDim = 2 
 			elseif #dataset == 3 then  
 				if plotDim and plotDim ~= 3 then
-					write("Gnuplot Error: Mixed 2d/3d data.\n"); exit();
+					write("Gnuplot Error: Mixed 2d/3d data.\n"); return;
 				end
 				plotDim = 3 
 			elseif #dataset == 0 then
 				-- function  
 			else 
-				write("Gnuplot Error: pass 0, 2 or 3 columns as data selection.\n"); exit();
+				write("Gnuplot Error: pass 0, 2 or 3 columns as data selection.\n"); return;
 			end		
 		end
 	end
 	if (plotDim ~= 2 and plotDim ~= 3) then 
-		write("Gnuplot Error: Cannot detect plot dimension (only 2d or 3d).\n"); exit();		
+		write("Gnuplot Error: Cannot detect plot dimension (only 2d or 3d).\n"); return;		
 	end
 	
 	-- dim fields
@@ -1172,7 +1172,7 @@ function gnuplot.plot(filename, data, options)
 					xo, yo = valx[last], valy[last]
 				elseif at == "first" then
 					xo, yo = valx[1], valy[1]
-				else print("slope.at: only min,max,last,first"); exit(); end
+				else print("slope.at: only min,max,last,first"); return; end
 				
 				if rate == rate and -- test for nan
 			       rate > -math.huge and rate < math.huge and -- test for finite
@@ -1212,7 +1212,7 @@ function gnuplot.plot(filename, data, options)
 			-- check style		
 			if not table.contains({"lines","points","linespoints","boxes","dots","vectors","yerrorbars","pm3d"}, style) then
 				write("Gnuplot Error: style=\""..style.."\" not supported.\n");
-				exit()
+				return
 			end
 			
 			-- assign default data label if needed
