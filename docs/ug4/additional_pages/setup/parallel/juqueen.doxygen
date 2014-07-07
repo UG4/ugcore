@@ -32,17 +32,30 @@ Each Compute Node (CN) has a 16-core IBM PowerPC A2 running at 1.6 GHz with 16 G
 
 <ol>
 <li>get the project ID (note: not the project number) from someone like Sebastian, Andreas, Martin or Arne.</li>
-<li>goto here, enter email adress .
-<li>open email, enter the project id
+<li>goto <a href="https://dispatch.fz-juelich.de:8812/nic_account_ident/back=/RESSOURCEN">here</a>, enter email adress .
+<li>open the link in the email
+<li>enter the project id
 <li>enter name and stuff
-<li>generate ssh key in terminal by
+<li>generate ssh key in terminal with
 \code
   ssh-keygen -b 2048 -t rsa
   \endcode
-do NOT leave the passphrase empty!
+do NOT leave the passphrase empty! Remember your passphrase!
 </li>
 <li>upload id_rsa.pub. check "no" at will processed personal data... , Leave the DN of the user certificate . check none of the software packages, therefore leave out licence.
 <li>get the mail, print out pdf, sign (2 places), hand over to your professor.
+</ol>
+
+\subsection secJuQueenReset Resetting your ssh keys / password
+What to do if
+- You lost your id_rsa.pub, because it got deleted, overwritten or similar
+- You ssh keys are not valid anymore because you moved to another computer
+- You forgot your passphrase
+
+Solution: 
+<ol>
+<li>generate a ssh key with the commands above
+<li>Go to <a href="https://dispatch.fz-juelich.de:8812/upload_key_ident/back=/RESSOURCEN&xxlang=english">here</a>, follow the instructions and upload the id_rsa.pub
 </ol>
 
 <hr>
