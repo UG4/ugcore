@@ -140,6 +140,7 @@ function util.SolveNonlinearTimeProblem(
 	-- start
 	local time = startTime
 	local step = 0
+	local nlsteps = 0;
 	
 	-- write start solution
 	print(">> Writing start values")
@@ -216,7 +217,9 @@ function util.SolveNonlinearTimeProblem(
 				
 				-- update new time
 				time = timeDisc:future_time()
-				
+				nlsteps = nlsteps + newtonSolver:num_newton_steps() 	 
+				--total_linsolver_calls()
+			
 				-- push oldest solutions with new values to front, oldest sol pointer is poped from end	
 				if timeScheme:lower() == "bdf" and step < orderOrTheta then
 					print("++++++ BDF: Increasing order to "..step+1)
@@ -400,6 +403,261 @@ function util.SolveLinearTimeProblem(
 	
 	if not (out==nil) then out:write_time_pvd(filename, u) end
 end
+
+function util.SolveNonlinearProblemAdaptiveTimestep(
+	u,
+	domainDisc,
+	newtonSolver,
+	out,
+	filename,
+	startTime,
+	endTime,
+	dt,
+	minStepSize,
+	maxStepSize,
+	reductionFactor,
+	tol,
+	bFinishTimeStep)
+
+	local doControl = true
+	local doExtrapolation = true
+	local timeScheme = "ImplEuler"
+	local orderOrTheta = 1.0
+	if u == nil or domainDisc == nil or newtonSolver == nil or timeScheme == nil
+		or startTime == nil or endTime == nil or maxStepSize == nil then
+		print("Wrong usage found. Please specify parameters as below:")
+		util.PrintUsageOfSolveTimeProblem()
+		exit()
+	end
+
+	-- check parameters
+	if filename == nil then filename = "sol" end
+	if minStepSize == nil then minStepSize = maxStepSize end
+	if reductionFactor == nil then reductionFactor = 0.5 end
+	
+	-- create time disc
+	local timeDisc = util.CreateTimeDisc(domainDisc, timeScheme, orderOrTheta)
+	
+	-- print newtonSolver setup	
+	print("SolveNonlinearTimeProblem, Newton Solver setup:")
+	print(newtonSolver:config_string())
+		
+	
+	-- start
+	local time = startTime
+	local step = 0
+	local nlsteps = 0;
+	
+	-- write start solution
+	print(">> Writing start values")
+	if type(out) == "function" then out(u, step, time) end
+	if type(out) == "userdata" then out:print(filename, u, step, time) end
+	
+	-- store grid function in vector of  old solutions
+	local solTimeSeries = SolutionTimeSeries()
+	local old = u:clone()	
+	solTimeSeries:push(old, time)
+
+	-- update newtonSolver	
+	local nlop = AssembledOperator(timeDisc, u:grid_level())
+	newtonSolver:init(nlop)
+	
+	
+	-- extra options for adaptive scheme
+	
+	local timeDisc2
+	local solTimeSeries2
+	local nlop2
+	
+	local timex
+	local u2, old2, aux
+	
+	
+	if (doControl) then 
+		 
+		 timeDisc2 = util.CreateTimeDisc(domainDisc, timeScheme, orderOrTheta)	
+		 nlop2 = AssembledOperator(timeDisc2, u:grid_level())	
+		
+		 old2 = old:clone()  -- second solution
+		 u2 = old:clone()  -- second solution
+		 aux = old:clone() 
+		
+		 -- time series
+		solTimeSeries2 = SolutionTimeSeries()
+		solTimeSeries2:push(old2, time)
+		if (doExtrapolation) then	
+			-- Aitken-Neville-type time	extrapolation
+			timex = AitkenNevilleTimex({1,2})
+		end
+	end		
+			
+	-- set order for bdf to 1 (initially)
+	if timeScheme:lower() == "bdf" then timeDisc:set_order(1) end
+	local currdt = dt
+		
+	while time < endTime do
+		step = step + 1
+		print("++++++ TIMESTEP "..step.." BEGIN (current time: " .. time .. ") "..endTime.."++++++");
+	
+		-- initial time step size
+		-- assure, that not reaching beyond end of interval
+		currdt = math.min(currdt, endTime-time);
+		
+		-- try time step
+		local bSuccess = false;	
+		while bSuccess == false do
+			print("++++++ Time step size: "..currdt);
+
+			-- setup time Disc for old solutions and timestep size
+			timeDisc:prepare_step(solTimeSeries, currdt)
+			newtonSolver:init(nlop)
+			
+			-- prepare newton solver
+			if newtonSolver:prepare(u) == false then 
+				print ("\n++++++ Newton solver failed."); exit();
+			end 
+				
+			-- apply newton solver
+			if newtonSolver:apply(u) == false then 
+				currdt = currdt * reductionFactor;
+				write("\n++++++ Newton solver failed. "); 
+				write("Trying decreased stepsize " .. currdt .. ".\n");
+			else
+				bSuccess = true; 
+			end
+		
+			-- time step control
+			-- compute solution u2
+			if (bSuccess and doControl) then 
+			
+				newtonSolver:init(nlop2)
+				----------------------------
+				-- step 1/2
+				print("Control 1/2:");
+		
+				-- time2 = time-tau/2;                        			-- intermediate time step 
+				VecScaleAdd2(u2, 1.0-0.5*currdt, old, 0.5*currdt, u);   -- w/ linear interpolation  (first guess)
+				timeDisc2:prepare_step(solTimeSeries2, 0.5*currdt)
+				if newtonSolver:prepare(u2) == false then print ("Newton solver failed at step "..step.."+1/2."); exit(); end 
+				if newtonSolver:apply(u2) == false then 
+					print ("Newton solver failed at step "..step.."+1/2.");
+				end 
+		
+				----------------------------
+				-- step 2/2	
+				print("Control 2/2:");
+		
+				-- push back solution
+				tmp2 = solTimeSeries2:oldest()                     			-- solution at time t 
+				VecScaleAssign(tmp2, 1.0, u2)                       		-- is removed and replaced by u2(t+tau/2)
+				solTimeSeries2:push_discard_oldest(tmp2, time + 0.5*currdt) -- re-insert as new solution 
+																			-- (now old2 is discarded)
+		
+				timeDisc2:prepare_step(solTimeSeries2, 0.5*currdt)
+				if newtonSolver:prepare(u2) == false then print ("Newton solver failed at step "..step.."+2/2."); exit(); end 
+				if newtonSolver:apply(u2) == false then
+				 	print ("Newton solver failed at step "..step.."+2/2."); 
+				 	bSuccess = false;
+				end 
+		
+				-- compute norms (we do not need old2 -> u^{1/2} value here any more!)
+				--l2norm = L2Norm(u2, "c", 2); 
+				--Interpolate(LuaSolutionValue, exact, "c", time+tau);
+				--VecScaleAdd2(exact, 1.0, exact, -1.0, u2); l2_fine_err = L2Norm(exact, "c", 2); 
+				
+	
+				if (doExtrapolation) then		
+					-- extrapolation (more accurate)
+					timex:set_solution(u, 0)
+					timex:set_solution(u2, 1)
+					timex:apply()
+					eps = timex:get_error_estimate()
+		
+					-- compute norms (we do not need old2 -> u^{1/2} value here any more!)
+					-- l2norm = L2Norm(u2, "c", 2);
+					-- Interpolate(LuaSolutionValue, exact, "c", time+tau); 
+					-- VecScaleAdd2(exact, 1.0, exact, -1.0, u2); l2_ex_err = L2Norm(exact, "c", 2); 
+					-- VecScaleAdd2(exact, 1.0, u, -1.0, u2); l2_ex_est = L2Norm(exact, "c", 2);
+				else
+					-- no extrapolation (less accurate)
+					VecScaleAdd2(aux, 1.0, u, -1.0, u2);
+					local l2_fine_est = L2Norm(aux, "c", 2);
+					eps = 2.0*l2_fine_est;
+					l2_ex_err = "---";
+					l2_ex_est = "---";
+				end
+		
+				--print("TIME_ERROR (t="..time+tau..", |u|="..l2normB.. ") :\t" .. l2_coarse_err .. "\t"..l2_fine_err .. "\t"..l2_ex_err .. "\|  ---\t"..l2_fine_est .. "\t"..l2_ex_est.. "\t"..eps)
+				--file:write(time+tau.."\t" ..l2normB.. "\t" .. l2_coarse_err .. "\t"..l2_fine_err .. "\t"..l2_ex_err .. "\t"..l2_fine_est .. "\t"..l2_ex_est.. "\t"..eps.."\n")
+				--file:flush()
+		
+				-------------------------
+				-- Adaptive step control
+				-------------------------
+				
+				dtEst = math.pow(0.9*tol/eps, 0.5)*currdt  -- (eps<=tol) implies (tol/eps >= 1) 
+				print("dtEst= "..dtEst..", eps="..eps..", tol = " ..tol..", fac = "..math.pow(0.9*tol/eps, 0.5))
+		
+				-- determine potential new step size
+				currdt = math.min(dtEst, 1.5*currdt, maxStepSize)
+
+				if (eps <= tol) then 
+					-- accept
+					print ("ACCEPTING solution, dtnew="..currdt);
+					bAcceptStep = true;
+					bSuccess =true;
+		 			
+				else
+	    			-- discard
+	    			print ("DISCARDING solution, dtnew="..currdt);
+	    			bAcceptStep = false;
+	    			bSuccess = false;
+	    			
+	    			-- reset solTimeSeries2
+	    			utmp = solTimeSeries2:oldest()
+	   				VecScaleAssign(utmp, 1.0, old)
+	   				solTimeSeries2:push_discard_oldest(utmp, time)
+				end
+			end
+		
+		
+			-- check valid step size			
+			if(bSuccess == false and currdt < minStepSize) then
+				write("++++++ Time Step size "..currdt.." below minimal step ")
+				write("size "..minStepSize..". Cannot solve problem. Aborting.");
+				test.require(false, "Time Solver failed.")
+			end
+				
+			-- start over again if failed
+			if bSuccess == false then break end
+				
+			-- update new time
+			time = timeDisc:future_time()
+			nlsteps = nlsteps + newtonSolver:num_newton_steps() 	 
+			
+			-- push oldest solutions with new values to front, oldest sol pointer is poped from end	
+			oldestSol = solTimeSeries:oldest()
+			VecScaleAssign(oldestSol, 1.0, u2)
+			solTimeSeries:push_discard_oldest(oldestSol, time)
+				
+			if not (bFinishTimeStep == nil) then 
+				timeDisc:finish_step_elem(solTimeSeries, u:grid_level()) 
+			end
+				
+		end		
+		
+		-- plot solution
+		if type(out) == "function" then out(u, step, time) end
+		if type(out) == "userdata" then out:print(filename, u, step, time) end
+	--	print("Integral("..time..")="..Integral(massLinker, u, "INNER2"))
+		print("++++++ TIMESTEP "..step.." END   (current time: " .. time .. ", nlsteps: "..nlsteps..") ++++++");
+	end
+	
+	if type(out) == "userdata" then out:write_time_pvd(filename, u) end
+end
+
+
+
 
 --[[!
 \}
