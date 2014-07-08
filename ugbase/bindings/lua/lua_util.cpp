@@ -222,8 +222,6 @@ lua_State* GetDefaultLuaState()
 		lua_register(theLuaState, "ug_class_name", UGGetClassName);
 		lua_register(theLuaState, "ug_class_group", UGGetClassGroup);
 
-		RegisterDefaultLuaBridge(g_pRegistry);
-
 	//	create lua bindings for registered functions and objects
 		ug::bridge::lua::CreateBindings_LUA(theLuaState, *g_pRegistry);
 	}
