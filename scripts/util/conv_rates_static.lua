@@ -63,6 +63,15 @@ function util.rates.static.StdMinLevelPadding(p)
 	return 0
 end
 
+
+function util.rates.static.NoMaxLevelPadding(p)
+	return 0
+end
+
+function util.rates.static.NoMinLevelPadding(p)
+	return 0
+end
+
 --------------------------------------------------------------------------------
 -- Label names
 --------------------------------------------------------------------------------
