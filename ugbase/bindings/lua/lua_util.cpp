@@ -165,7 +165,9 @@ static void UpdateScriptAfterRegistryChange(ug::bridge::Registry* pReg)
 
 void RegisterDefaultLuaBridge(ug::bridge::Registry* reg, std::string grp)
 {
-
+	if(reg->functionname_registered("ug_load_script"))
+		return;
+	
 	reg->add_function("ug_load_script", &LoadUGScript_Parallel, "/ug4/lua",
 				"success", "", "ONLY IF ALL CORES INVOLVED! Loads and parses a script and returns whether it succeeded.");
 	reg->add_function("ug_load_script_single",

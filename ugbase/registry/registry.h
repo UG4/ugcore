@@ -256,11 +256,6 @@ class UG_API Registry {
 		                        std::string classTag = "");
 
 
-	protected:
-	///	performs some checks, throws error if something wrong
-		template <typename TClass, typename TBaseClass>
-		void check_base_class(const std::string& className);
-
 	/// returns true if classname is already used by a class in this registry
 		bool classname_registered(const std::string& name);
 
@@ -270,6 +265,10 @@ class UG_API Registry {
 	/// returns true if functionname is already used by a function in this registry
 		bool functionname_registered(const std::string& name);
 
+	protected:
+	///	performs some checks, throws error if something wrong
+		template <typename TClass, typename TBaseClass>
+		void check_base_class(const std::string& className);
 
 	private:
 	//	disallow copy
