@@ -313,7 +313,7 @@ function util.rates.static.compute(ConvRateSetup)
 					
 					write(">> Preparing inital guess on level "..lev..".\n")
 					--solver = CreateSolver(approxSpace, disc, p)
-					PrepareInitialGuess(u, lev, minLev, maxLev, domainDisc, solver)
+					PrepareInitialGuess(u, lev, minLev, maxLev, domainDisc, solver, approxSpace, disc, p)
 					
 					write(">> Start: Computing solution on level "..lev..".\n")
 					--solver = CreateSolver(approxSpace, disc, p)

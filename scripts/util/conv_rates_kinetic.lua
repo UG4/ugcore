@@ -129,6 +129,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 	local plotSol = CRS.plotSol; 		if plotSol == nil then plotSol = false end
 	local onlyLast = CRS.onlyLast; 		if onlyLast == nil then onlyLast = true end
 	local plotOnlyTime = CRS.plotOnlyTime; if plotOnlyTime == nil then plotOnlyTime = false end
+	local FixRoundoff = CRS.FixRoundoff;  if FixRoundoff == nil then FixRoundoff = true end
 
 	local ExactSol = CRS.ExactSol 
  	local ExactGrad = CRS.ExactGrad 
@@ -203,7 +204,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 			local domainDisc = CreateDomainDisc(approxSpace, disc, p)
 			
 			print(">> Create Solver")
-			--local newtonSolver = CreateSolver(approxSpace)
+			local newtonSolver = CreateSolver(approxSpace)
 
 			-- get names in approx space
 			local SpaceCmp = approxSpace:names()
@@ -291,7 +292,19 @@ function util.rates.kinetic.compute(ConvRateSetup)
 						mem.step = 0
 						mem.u = GridFunction(approxSpace, lev)
 						mem.TimeSeries = SolutionTimeSeries()
-						SetStartSolution(mem.u, mem.time)				
+					end
+				end
+
+				for k = 0, refs do
+					local u = {}
+					for lev = minLev, maxLev do
+						u[lev] = memory[lev][k].u
+					end					
+				
+					for lev = minLev, maxLev do
+						local mem = memory[lev][k]
+						print(">> Set Start on lev: "..lev..", k: "..k)
+						SetStartSolution(mem.u, u, mem.time, approxSpace, disc, p, lev, minLev, maxLev)				
 						mem.TimeSeries:push(mem.u:clone(), mem.time)
 					end
 				end
@@ -370,28 +383,31 @@ function util.rates.kinetic.compute(ConvRateSetup)
 												orderOrTheta..") for step "..mem.TimeSeries:size())
 									end
 								end
+											
+								if FixRoundoff then			
+									if mem.time + dodt > sliceTime then 
+										dodt = sliceTime - mem.time 
+										print(">> End of Slice: dt "..dodt.." on lev "..lev.." ("..ts.."; "..disc..", "..p.."): at "..mem.time)
+									end
+									if (sliceTime - (mem.time+dodt)) < 1e-8*dodt then 
+										dodt = sliceTime - mem.time 
+										print(">> Roundoff Fix: dt "..dodt.." on lev "..lev.." ("..ts.."; "..disc..", "..p.."): at "..mem.time)
+									end
+								end 
 														
-								if mem.time + dodt > sliceTime then 
-									dodt = sliceTime - mem.time 
-									print(">> End of Slice: dt "..dodt.." on lev "..lev.." ("..ts.."; "..disc..", "..p.."): at "..mem.time)
-								end
-								if (sliceTime - (mem.time+dodt)) < 1e-8*dodt then 
---									dodt = sliceTime - mem.time 
-									print(">> Roundoff Fix: dt "..dodt.." on lev "..lev.." ("..ts.."; "..disc..", "..p.."): at "..mem.time)
-								end
-						
+								print(">> Using: dt "..dodt.." on lev "..lev.." ("..ts.."; "..disc..", "..p.."): at "..mem.time)
 								for stage = 1, usedTimeDisc:num_stages() do
 									usedTimeDisc:set_stage(stage)
 									usedTimeDisc:prepare_step(mem.TimeSeries, dodt)
 			
 									-- solve step						
 									--SetStartSolution(mem.u, usedTimeDisc:future_time())				
-									local newtonSolver = CreateSolver(approxSpace)									
+									--local newtonSolver = CreateSolver(approxSpace)									
 									newtonSolver:init(AssembledOperator(usedTimeDisc, mem.u:grid_level()))
 									if newtonSolver:prepare(mem.u) == false then print (">> Newton init failed."); exit(); end 
 									if newtonSolver:apply(mem.u) == false then print (">> Newton solver failed."); exit(); end 
-									AdjustMeanValue(mem.u, "p")
-									newtonSolver = nil
+									--AdjustMeanValue(mem.u, "p")
+									--newtonSolver = nil
 									collectgarbage()
 
 									-- update new time
@@ -417,8 +433,12 @@ function util.rates.kinetic.compute(ConvRateSetup)
 									end
 								end
 
-								if math.abs(sliceTime - mem.time) < 1e-8*dodt then mem.time = sliceTime end
-					
+								if FixRoundoff then
+									if math.abs(sliceTime - mem.time) < 1e-8*dodt then 
+										mem.time = sliceTime 
+									end
+								end
+													
 								if plotSol then
 									vtk = VTKOutput()
 									vtk:print(solPath.."Sol_"..disc..p.."_"..ts.."_lev"..lev.."_k"..k.."_s"..mem.step, mem.u)
@@ -484,7 +504,7 @@ function util.rates.kinetic.compute(ConvRateSetup)
 								end
 								
 								-- w.r.t max level solution
-								if best and lev < maxLev and k < refs then
+								if best and lev < maxLev and (k < refs or refs == 0) then
 									local value = createMeas(f, "best", "l2", lev)
 									value[k] = 0.0
 									for _,cmp in pairs(Cmps) do
