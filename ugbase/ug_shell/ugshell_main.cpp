@@ -233,17 +233,6 @@ int main(int argc, char* argv[])
 				UG_ERR_LOG("#### Registry ERROR: Registering of Standard Bridges and Plugins failed.")
 				bAbort = true;
 			}
-
-			if(!bAbort){
-			//	register the lua only functonality at the registry
-				RegisterDefaultLuaBridge(&bridge::GetUGRegistry());
-
-			//	check that registry is consistent. Else abort.
-				if(bridge::GetUGRegistry().check_consistency() == false) {
-					UG_ERR_LOG("#### Registry ERROR: Registering of Standard LUA Bridges failed.")
-					bAbort =true;
-				}
-			}
 		}
 		catch(UGError &err)
 		{
