@@ -1135,8 +1135,11 @@ void EnableLUA2VM(bool b)
 	useLua2VM=b;
 }
 
+bool RegisterSerializationCommands(Registry &reg, const char* parentGroup);
+
 bool RegisterInfoCommands(Registry &reg, const char* parentGroup)
 {
+	RegisterSerializationCommands(reg, parentGroup);
 	stringstream grpSS; grpSS << parentGroup << "/Info";
 	std::string grp = grpSS.str();
 
