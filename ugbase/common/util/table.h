@@ -161,6 +161,18 @@ class Table
 			return m_colAlign[col] != 0x00 ? m_colAlign[col] : m_defaultColAlignment;
 		}
 
+		void transpose()
+		{
+			DataVec newData;
+			newData.resize(m_numCols);
+			for(size_t irow = 0; irow < m_numRows; ++irow){
+				for(size_t icol = 0; icol < m_numCols; ++icol){
+					newData[icol].push_back(m_data[irow][icol]);
+				}
+			}
+			std::swap(m_numRows, m_numCols);
+			m_data.swap(newData);
+		}
 	private:
 		size_t m_numRows;
 		size_t m_numCols;

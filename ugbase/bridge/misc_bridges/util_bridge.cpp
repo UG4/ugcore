@@ -159,6 +159,9 @@ void RegisterBridge_Util(Registry& reg, string parentGroup)
 		.add_method("to_latex", &T::to_latex)
 		.add_method("to_csv", &T::to_csv)
 		.add_method("__tostring", &T::to_string)
+
+		.add_method("transpose", &T::transpose)
+		
 		.construct_as_smart_pointer();
 	}
 
