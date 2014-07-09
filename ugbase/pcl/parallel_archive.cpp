@@ -59,7 +59,7 @@ void WriteParallelArchive(ProcessCommunicator &pc, std::string strFilename, cons
 
 	MPI_File_seek(fh, myOffset, MPI_SEEK_SET);
 
-	std::vector<size_t> allOffsets;
+	std::vector<int> allOffsets;
 	if(bFirst) allOffsets.resize(pc.size());
 	else allOffsets.resize(1);
 	MPI_Gather(&myOffset, 1, MPI_INT,
