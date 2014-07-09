@@ -272,14 +272,6 @@ ugshell_complete()
 			[[ "${line##*.}" = "ugx" ]] && COMPREPLY[i++]=$line
 		done < <(compgen -f -- $word)  
 		cd $curDir
-		
-		cd $UG4_ROOT/
-		while read line; do
-			[[ -d $line ]] && COMPREPLY[i++]=$line/
-			[[ "${line##*.}" = "ugx" ]] && COMPREPLY[i++]=$line
-		done < <(compgen -f -- $word)  
-		cd $curDir
-		
 ######### get lua file completions #########
 	else
 	
