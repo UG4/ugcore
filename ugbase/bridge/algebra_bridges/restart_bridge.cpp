@@ -19,38 +19,60 @@
 // preconditioner
 #include "lib_algebra/lib_algebra.h"
 #include "common/serialization.h"
-
-#include "pcl/parallel_archive.h"
-#include "pcl/parallel_file.h"
-
 #include "../util_overloaded.h"
+#include "common/util/binary_buffer.h"
 
 using namespace std;
 
+#if UG_PARALLEL
+	#include "pcl/parallel_archive.h"
+	#include "pcl/parallel_file.h"
+#else
+
+namespace pcl {
+void ParallelFileWrite(ug::BinaryBuffer &buffer, std::string strFilename)
+{
+	FILE *f = fopen(strFilename.c_str(), "wb");
+	int numProcs = 1;
+
+	int mySize = buffer.write_pos();
+	int myNextOffset = 2*sizeof(int) + mySize;
+
+	fwrite(&numProcs, sizeof(numProcs), 1, f);
+	fwrite(&myNextOffset, sizeof(myNextOffset), 1, f);
+	fwrite(buffer.buffer(), sizeof(char), buffer.write_pos(), f);
+	fclose(f);
+}
+
+void ParallelFileRead(ug::BinaryBuffer &buffer, std::string strFilename)
+{
+	FILE *f = fopen(strFilename.c_str(), "rb");
+	int numProcs, myNextOffset;
+	fread(&numProcs, sizeof(numProcs), 1, f);
+	fread(&myNextOffset, sizeof(myNextOffset), 1, f);
+
+	UG_COND_THROW(numProcs != 1, "checkPoint numProcs = " << numProcs << ", but running on 1 cores (and UG_SERIAL!)");
+	int firstOffset = 2*sizeof(int);
+	int mySize = myNextOffset - firstOffset;
+
+	char *p = new char[mySize];
+	fread(p, sizeof(char), mySize, f);
+
+	buffer.clear();
+	buffer.reserve(mySize);
+	buffer.write(p, mySize);
+	delete[] p;
+
+	fclose(f);
+}
+
+}
+#endif
+
+
 namespace ug{
 
-
-/*
- *
-
-		restartfilename = "uNewtonSolution_T_"..step.."_p_".ug4vector"
-
-  		restartStep = util.GetParamNumber("-restartStep", 0)
-		-- apply newton solver
-		if step < restartStep then
-			ReadFromFile(u, restartfilename)
-		else
-			-- prepare newton solver
-			if newtonSolver:prepare(u) == false then
-				print ("Newton solver failed at step "..step.."."); exit();
-			end
-			if newtonSolver:apply(u) == false then
-				print ("Newton solver failed at step "..step.."."); exit();
-			end
-			SaveToFile(u, restartfilename)
-		end
- */
-
+/// Serialize for ParallelVector<T>
 #ifdef UG_PARALLEL
 template<typename T, class TOStream>
 void Serialize(TOStream &buf, const ParallelVector<T> &v)
@@ -60,6 +82,7 @@ void Serialize(TOStream &buf, const ParallelVector<T> &v)
 	Serialize(buf, *dynamic_cast<const T*>(&v));
 }
 
+/// Deerialize for ParallelVector<T>
 template<typename T, class TIStream>
 void Deserialize(TIStream &buf, ParallelVector<T> &v)
 {
@@ -68,6 +91,33 @@ void Deserialize(TIStream &buf, ParallelVector<T> &v)
 	Deserialize(buf, *dynamic_cast<T*>(&v));
 }
 #endif
+
+
+/*
+
+ Here's an example how to use SaveToFile/ReadFromFile
+ Note that they are using MPI I/O to store the BinaryBuffers from all cores into one single file.
+
+restartfilename = "uNewtonSolution_T_"..step.."_p_".ug4vector"
+
+restartStep = util.GetParamNumber("-restartStep", 0)
+-- apply newton solver
+if step < restartStep then
+	ReadFromFile(u, restartfilename)
+else
+	-- prepare newton solver
+	if newtonSolver:prepare(u) == false then
+		print ("Newton solver failed at step "..step.."."); exit();
+	end
+	if newtonSolver:apply(u) == false then
+		print ("Newton solver failed at step "..step.."."); exit();
+	end
+	SaveToFile(u, restartfilename)
+end
+
+
+See also checkpoint_util.lua and time_step_util.lua on how to generate checkpointing/debugging mechanisms with this.
+ */
 
 template<typename T>
 void SaveToFile(const T &v, std::string filename)
