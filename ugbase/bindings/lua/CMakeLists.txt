@@ -86,7 +86,8 @@ set(headersLua	externals/lua/lapi.h
 set(srcUGScript		lua_util.cpp
 					info_commands.cpp
 					bindings_lua.cpp
-					lua_debug.cpp)
+					lua_debug.cpp
+					lua_serialization.cpp)
 
 set(srcLUA2C		converter/parser.cpp
 					converter/lexer.cpp

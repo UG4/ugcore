@@ -12,10 +12,26 @@
  * the idea is to call Serialize(obj, serializationObj) for all UserData-Objects, if this Serialize is registered in the registry.
  */
 
+#include <iomanip>
+#include "bindings/lua/lua_util.h"
+#include "bindings/lua/bindings_lua.h"
+#include "bridge/bridge.h"
+#include "bridge/util.h"
+#include "registry/class_helper.h"
+#include "common/util/sort_util.h"
+#include "common/util/string_util.h"
+#include "lua_stack_check.h"
+#include "registry/class_name_provider.h"
+#include "common/util/string_util.h"
+
 #include "common/util/stringify.h"
 #include "bridge/misc_bridges/serialization.h"
 #include "bindings_lua.h"
 #include "lua_parsing.h"
+
+#include "info_commands.h"
+
+using namespace std;
 
 namespace ug{
 size_t SerializerGetLastID();
@@ -30,6 +46,8 @@ string LUAStringEscape(string s)
 	return s;
 }
 
+
+#if 0
 namespace lua{
 struct MyLuaParsing
 {
@@ -112,10 +130,11 @@ const void *getPtr(lua::UserDataWrapper *self)
 }
 
 TheSerializer theSerializer;
+#endif
 
 void WriteLUAObject2(lua_State* L, std::string name, std::ostream &s)
 {
-
+	//UG_LOG(" " << lua_tostring(L, -1) << "\n");
 	if(lua_isnil(L, -1))
 		s << name << " = nil\n";
 	else if(lua_isboolean(L, -1))
@@ -126,22 +145,33 @@ void WriteLUAObject2(lua_State* L, std::string name, std::ostream &s)
 		s << name << " = \"" << LUAStringEscape(lua_tostring(L, -1)) << "\"\n";
 	else if(lua_istable(L, -1))
 	{
+		lua_pushvalue(L, -1);
 		/* table is in the stack at index 't' */
 		s << name << " = " << name << " or {}\n";
+		UG_LOG(name << " = " << name << " or {}\n");
 		lua_pushnil(L);
 		while (lua_next(L, -2) != 0)
 		{
 			std::string nextname;
-			if(lua_type(L, -2) == LUA_TNUMBER)
-				nextname = Stringify() << name << "[" << lua_tostring(L, -2) << "]";
+			// copy the key so that lua_tostring does not modify the original
+			lua_pushvalue(L, -2);
+			if(lua_type(L, -1) == LUA_TNUMBER)
+				nextname = Stringify() << "\t" << name << "[" << lua_tostring(L, -1) << "]";
 			else
-				nextname = Stringify() << name << "[\"" << lua_tostring(L, -2) << "\"]";
-			 WriteLUAObject2(L, nextname, s);
-		    lua_pop(L, 1);
+				nextname = Stringify() << "\t" << name << "[\"" << lua_tostring(L, -1) << "\"]";
+			lua_pop(L, 1);
+
+			// also copy value
+			lua_pushvalue(L, -1);
+			WriteLUAObject2(L, nextname, s);
+		    lua_pop(L, 2);
 		 }
+		lua_pop(L, 1);
+
 	}
 	else if(lua_isuserdata(L, -1))
 	{
+#if 0
 		const ClassNameNode&  cnn = SerializeObject::class_name_node();
 		lua::UserDataWrapper* self = (lua::UserDataWrapper*)lua_touserdata(L, 1);
 		size_t id = theSerializer.is_serialized(self);
@@ -182,6 +212,9 @@ void WriteLUAObject2(lua_State* L, std::string name, std::ostream &s)
 			s << name << " = nil -- no Serialize(" << GetLuaTypeString(L, -1) << ")\n";
 		else
 			s << name << " = SerializerGet(" << id << ")\n";
+#else
+		s << name << " = nil -- Userdata serialize not yet supported\n";
+#endif
 
 	}
 	else
@@ -200,7 +233,7 @@ void WriteLUAObject(lua_State* L, std::string name, std::ostream &s)
 	lua_pop(L, 1);
 }
 
-void LuaList_writeObjects(const char*filename)
+/*void LuaList_writeObjects(const char*filename)
 {
 	fstream file(filename, ios::out);
 	lua_State* L = script::GetDefaultLuaState();
@@ -215,9 +248,19 @@ void LuaList_writeObjects(const char*filename)
 		if(luaObjects[i].compare("package") == 0) continue;
 		WriteLUAObject(L, luaObjects[i].c_str(), std::cout);
 	}
+}*/
+
+void LuaWrite(const char *filename, const char* obj)
+{
+	fstream file(filename, ios::out);
+	file << "function LoadTheCheckpoint()\n";
+	lua_State* L = script::GetDefaultLuaState();
+	WriteLUAObject(L, obj, file);
+	file << "return " << obj << "\n";
+	file << "end\n";
 }
 
-void LuaWrite(const char*obj)
+void LuaWriteCout(const char* obj)
 {
 	lua_State* L = script::GetDefaultLuaState();
 	WriteLUAObject(L, obj, std::cout);
@@ -231,8 +274,9 @@ bool RegisterSerializationCommands(Registry &reg, const char* parentGroup)
 
 	try
 	{
-		reg.add_function("LuaList_writeObjects", &LuaList_writeObjects, grp.c_str());
+//		reg.add_function("LuaList_writeObjects", &LuaList_writeObjects, grp.c_str());
 		reg.add_function("LuaWrite", &LuaWrite, grp.c_str());
+		reg.add_function("LuaWriteCout", &LuaWriteCout, grp.c_str());
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 
