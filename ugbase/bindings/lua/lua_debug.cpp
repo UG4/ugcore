@@ -55,6 +55,7 @@ static bool bStartProfiling=false;
 static bool bEndProfiling=false;
 static int profilingEndDepth=0;
 static std::map<const char*, std::map<int, pRuntimeProfileInfo> >pis;
+static std::stack<pRuntimeProfileInfo> pisStack;
 #endif
 
 bool IsLUADebug()
@@ -366,7 +367,7 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 	//		 is observed we must change that to std::string
 	if(bProfiling)
 	{	
-		if(ar->event == LUA_HOOKLINE){
+		if(ar->event == LUA_HOOKLINE || ar->event == LUA_HOOKCOUNT){
 			return; // nothing to do: but may be enabled for debugging
 		}
 
@@ -390,11 +391,11 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 			// if a return, reduce depth. If depth == 0, we also have to
 			// finish the current profile node, since this must be the return
 			// from the original c-call
-			else if(ar->event == LUA_HOOKRET){
+			else if(ar->event == LUA_HOOKRET || ar->event == LUA_HOOKTAILRET){
 				if(--profileDepthInCcall != 0) return;
 			}
 			else{
-				UG_THROW("LuaProfiling: Wrong hook event passed.");
+				UG_LOG("WARNING: LuaProfiling: Wrong hook event passed (" << ar->event << ")\n");
 			}
 		}
 		
@@ -405,16 +406,21 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 		// fill information about the event
 		lua_getinfo(L, "Sln", ar);
 
-		// we are only interested in 'Lua' or 'C' call/return events
-		if(ar->what[0] != 'L' && ar->what[0] != 'C')
-			return;
-
 		// this is the call/ret invoked, however not the called !
 		if(bDebugLuaProfiler){
 			std::string type = "call";
 			if(ar->event == LUA_HOOKRET) type = "ret ";
-			UG_LOG("## lua profile: source: "<<ar->source<<", line: "
+			else if(ar->event == LUA_HOOKTAILRET) type = "tailret ";
+			UG_LOG(repeat(' ', pisStack.size()) << "## lua profile: source: "<<ar->source<<", line: "
 			       <<ar->currentline<<" "<<type<<" " << ar->what);
+		}
+
+
+		// we are only interested in 'Lua' or 'C' call/return events
+		if(ar->what[0] != 'L' && ar->what[0] != 'C' && ar->what[0] != 't')
+		{
+			if(bDebugLuaProfiler){ UG_LOG("\n"); }
+			return;
 		}
 
 		// we get the debug info of the calling file and line
@@ -431,13 +437,18 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 		if(bDebugLuaProfiler){
 			std::string type = "call";
 			if(entry.event == LUA_HOOKRET) type = "ret ";
+			else if(entry.event == LUA_HOOKTAILRET) type = "tailret ";
 			UG_LOG(",  corr: source: "<<source<<", line: "<<line<<" "<<type<<" " << entry.what << "\n");
 		}
 
+
+
+
 		// may still be unavailable, then we ignore this issue
-		if(line < 0) return;
+		//if(line < 0) return;
 
 		// a call
+		//UG_LOG("ar->event  = " << ar->event  << endl)
 		if(ar->event == LUA_HOOKCALL)
 		{				
 			 // get info from map
@@ -455,8 +466,10 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 				 pi = new RuntimeProfileInfo(buf, true, "lua", false, source, true, line);
 			 }
 
+			 if(bDebugLuaProfiler){UG_LOG(repeat(' ', pisStack.size()) << "PUSH " << *pi << "\n");}
 			 // start profiling
 			 pi->beginNode();
+			 pisStack.push(pi);
 
 			 // if this is a call to C, we disable all successive call-event
 			 // tracings until this call returns. This is done by setting
@@ -470,7 +483,7 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 		}
 
 		// a return
-		else if(ar->event == LUA_HOOKRET)
+		else if(ar->event == LUA_HOOKRET || ar->event == LUA_HOOKTAILRET)
 		{		
 			 // if only starting the profiling, do not react on returns
 			 if(bStartProfiling) { bStartProfiling = false; return; }
@@ -482,14 +495,23 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 			 else
 			 {
 				 // get profile node
-				 pRuntimeProfileInfo &pi = pis[source][line];
+				 pRuntimeProfileInfo pi;
+				 if(line < 0 || ar->event == LUA_HOOKTAILRET)
+					 pi = pisStack.top();
+				 else
+				 {
+					 pRuntimeProfileInfo p2 = pis[source][line];
+					 pi = pisStack.top();
+					 if(pi != p2) {UG_LOG("\nPIs not matching.\n"); UG_ASSERT(0, "lua debug bug."); }
+				 }
+				 pisStack.pop();
 
 				 // release the node
 				 // if this part causes trouble, the std::map should be used
 				 // with std::string identifier, since I don't know if the
 				 // lua const char* are persistent
 				 pi->endNode();
-
+				 if(bDebugLuaProfiler){UG_LOG(repeat(' ', pisStack.size()) << "POP  " << *pi << "\n"); }
 				 // if we are ending profiling we have to check if we are in
 				 // a c call
 				 if(bEndProfiling && profileDepthInCcall == 0)
@@ -502,7 +524,7 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 			 }
 		}
 		else{
-			UG_THROW("LuaProfiling: Wrong hook event passed.");
+			UG_ASSERT(0, "wrong event already parsed: " << ar->event);
 		}
 
 	}
