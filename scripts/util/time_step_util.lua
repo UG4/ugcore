@@ -101,7 +101,7 @@ end
 --! 						Iterated until minStepSize is reached.
 --! @param bFinishTimeStep 	(optional) boolean if finish_timestep should be 
 --! 						called or not
-
+--! @param useCheckpointing (optional) if true, use checkpointing.
 function util.SolveNonlinearTimeProblem(
 	u,
 	domainDisc,
@@ -115,7 +115,8 @@ function util.SolveNonlinearTimeProblem(
 	maxStepSize,
 	minStepSize,
 	reductionFactor,
-	bFinishTimeStep)
+	bFinishTimeStep,
+	useCheckpointing)
 
 	if u == nil or domainDisc == nil or newtonSolver == nil or timeScheme == nil
 		or startTime == nil or endTime == nil or maxStepSize == nil then
@@ -136,17 +137,29 @@ function util.SolveNonlinearTimeProblem(
 	-- print newtonSolver setup	
 	print("SolveNonlinearTimeProblem, Newton Solver setup:")
 	print(newtonSolver:config_string())
-	
+
 	-- start
 	local time = startTime
 	local step = 0
 	local nlsteps = 0;
 	
+	
+	if useCheckpointing then
+		--- Read Checkpoint if necessary
+		if util.HasParamOption("-restartWithCheckpoint") then
+			cp = util.ReadCheckpoint(u)
+			if cp ~= nil then
+				time = cp.myData.time
+				step = cp.myData.step
+			end
+		end
+	end
+	
 	-- write start solution
 	print(">> Writing start values")
 	if type(out) == "function" then out(u, step, time) end
 	if type(out) == "userdata" then out:print(filename, u, step, time) end
-	
+
 	-- store grid function in vector of  old solutions
 	local solTimeSeries = SolutionTimeSeries()
 	solTimeSeries:push(u:clone(), time)
@@ -251,7 +264,18 @@ function util.SolveNonlinearTimeProblem(
 		if type(out) == "userdata" then out:print(filename, u, step, time) end
 	
 		print("++++++ TIMESTEP "..step.." END   (current time: " .. time .. ") ++++++");
+		
+		if useCheckpointing then			
+			----------------------------------------------------------
+			--- Write Checkpoint if necessary
+			util.WriteCheckpointIntervallic(u, time, {time=time, step=step, endTime=endTime})
+			----------------------------------------------------------
+		end
 	end
+	
+	if useCheckpointing and  timeDisc:num_stages() > 1 then
+		print("WARNING: Checkpointing won't work at the moment with timeDisc:num_stages() > 1")
+	end 
 	
 	if type(out) == "userdata" then out:write_time_pvd(filename, u) end
 end
@@ -274,6 +298,7 @@ end
 --! @param reductionFactor 	(optinal) factor by which the step size is
 --! 						reduced, if the problem was not solved.
 --! 						Iterated until minStepSize is reached.
+--! @param useCheckpointing (optional) if true, use checkpointing.
 function util.SolveLinearTimeProblem(
 	u,
 	domainDisc,
@@ -286,7 +311,8 @@ function util.SolveLinearTimeProblem(
 	endTime,
 	maxStepSize,
 	minStepSize,
-	reductionFactor)
+	reductionFactor,
+	useCheckpointing)
 
 	if u == nil or domainDisc == nil or linSolver == nil or timeScheme == nil
 		or startTime == nil or endTime == nil or maxStepSize == nil then
@@ -318,6 +344,17 @@ function util.SolveLinearTimeProblem(
 	-- start
 	local time = startTime
 	local step = 0
+	
+	if useCheckpointing then
+		--- Read Checkpoint if necessary
+		if util.HasParamOption("-restartWithCheckpoint")  then
+			cp = util.ReadCheckpoint(u)
+			if cp ~= nil then
+				time = cp.myData.time
+				step = cp.myData.step
+			end
+		end
+	end	
 	
 	-- write start solution
 	print(">> Writing start values")
@@ -399,9 +436,20 @@ function util.SolveLinearTimeProblem(
 		if not (out==nil) then out:print(filename, u, step, time) end
 			
 		print("++++++ TIMESTEP "..step.." END   (current time: " .. time .. ") ++++++");
+		
+		if useCheckpointing then
+			----------------------------------------------------------
+			--- Write Checkpoint if necessary
+			util.WriteCheckpointIntervallic(u, time, {time=time, step=step, endTime=endTime})
+			----------------------------------------------------------
+		end
 	end
 	
 	if not (out==nil) then out:write_time_pvd(filename, u) end
+	
+	if useCheckpointing and  timeDisc:num_stages() > 1 then
+		print("WARNING: Checkpointing won't work at the moment with timeDisc:num_stages() > 1")
+	end 
 end
 
 function util.SolveNonlinearProblemAdaptiveTimestep(
