@@ -93,7 +93,7 @@ ProcessCommunicator::
 create_sub_communicator(bool participate) const
 {
 	UG_COND_THROW(is_local(), "not available");
-	PCL_PROFILE(pcl_ProcCom_create_sub_com);
+	PCL_PROFILE(pcl_ProcCom_create_sub_com__participate);
 
 //	if the current communicator is empty theres nothing to do
 	if(empty())
@@ -149,9 +149,11 @@ ProcessCommunicator::
 create_sub_communicator(vector<int> &newProcs) const
 {
 	UG_COND_THROW(is_local(), "not available");
+	PCL_PROFILE(pcl_ProcCom_create_sub_com__array);
 	if(newProcs.size() == 0)
 		return ProcessCommunicator(PCD_EMPTY);
 
+	PCL_PROFILE(create_mpi_com);
 	MPI_Group grpOld;
 	MPI_Group grpNew;
 	MPI_Comm commNew;
@@ -159,6 +161,7 @@ create_sub_communicator(vector<int> &newProcs) const
 	MPI_Comm_group(m_comm->m_mpiComm, &grpOld);
 	MPI_Group_incl(grpOld, (int)newProcs.size(), &newProcs.front(), &grpNew);
 	MPI_Comm_create(m_comm->m_mpiComm, grpNew, &commNew);
+	PCL_PROFILE_END();
 
 //	create a new ProcessCommunicator
 //	if the process is not participating, MPI_Comm_create will return MPI_COMM_NULL
@@ -167,9 +170,11 @@ create_sub_communicator(vector<int> &newProcs) const
 	else if(commNew == MPI_COMM_WORLD)
 		return ProcessCommunicator(PCD_WORLD);
 
+	PCL_PROFILE(get_global_ranks);
 	// calculate global ranks for our newProcs array:
 	for(size_t i = 0; i < newProcs.size(); ++i)
 		newProcs[i] = get_proc_id(newProcs[i]);
+	PCL_PROFILE_END();
 
 	// note: since get_proc_rank uses newProcs, don't sort newProcs
 	// otherwise above code won't work. here it is now
