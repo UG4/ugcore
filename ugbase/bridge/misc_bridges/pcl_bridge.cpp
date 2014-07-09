@@ -61,6 +61,34 @@ static T ParallelSum(T t)
 	return pc.allreduce(t, PCL_RO_SUM);
 }
 
+template<typename T>
+static vector<T> ParallelVecMin(const vector<T>& t)
+{
+	vector<T> tmp;
+	pcl::ProcessCommunicator pc;
+	pc.allreduce(t, tmp, PCL_RO_MIN);
+	return tmp;
+}
+
+template<typename T>
+static vector<T> ParallelVecMax(const vector<T>& t)
+{
+	vector<T> tmp;
+	pcl::ProcessCommunicator pc;
+	pc.allreduce(t, tmp, PCL_RO_MAX);
+	return tmp;
+}
+
+template<typename T>
+static vector<T> ParallelVecSum(const vector<T>& t)
+{
+	vector<T> tmp;
+	pcl::ProcessCommunicator pc;
+	pc.allreduce(t, tmp, PCL_RO_SUM);
+	return tmp;
+}
+
+
 void RegisterBridge_PCL(Registry& reg, string parentGroup)
 {
 	string grp(parentGroup);
@@ -88,6 +116,10 @@ void RegisterBridge_PCL(Registry& reg, string parentGroup)
 	reg.add_function("ParallelMin", &ParallelMin<double>, grp, "tmax", "t", "returns the minimum of t over all processes. note: you have to assure that all processes call this function.");
 	reg.add_function("ParallelMax", &ParallelMax<double>, grp, "tmin", "t", "returns the maximum of t over all processes. note: you have to assure that all processes call this function.");
 	reg.add_function("ParallelSum", &ParallelSum<double>, grp, "tsum", "t", "returns the sum of t over all processes. note: you have to assure that all processes call this function.");
+
+	reg.add_function("ParallelVecMin", &ParallelVecMin<double>, grp, "tmax", "t", "returns the minimum of t over all processes. note: you have to assure that all processes call this function.");
+	reg.add_function("ParallelVecMax", &ParallelVecMax<double>, grp, "tmin", "t", "returns the maximum of t over all processes. note: you have to assure that all processes call this function.");
+	reg.add_function("ParallelVecSum", &ParallelVecSum<double>, grp, "tsum", "t", "returns the sum of t over all processes. note: you have to assure that all processes call this function.");
 }
 
 #else // UG_PARALLEL

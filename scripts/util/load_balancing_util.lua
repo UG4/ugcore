@@ -50,6 +50,7 @@ balancer.qualityRecordName	= "def-rebal"
 
 balancer.parametersParsed	= false
 balancer.defaultBalancer	= nil
+balancer.defaultPartitioner = nil
 
 
 --! Parses user-specified parameters related to load-balancing.
@@ -155,6 +156,7 @@ function balancer.CreateLoadBalancer(domain)
 
 		partitioner:enable_clustered_siblings(not balancer.noSiblingClustering)
 		
+		balancer.defaultPartitioner = partitioner
 		loadBalancer:set_partitioner(partitioner)
 		loadBalancer:set_balance_threshold(balancer.qualityThreshold)
 		loadBalancer:set_element_threshold(balancer.parallelElementThreshold)
