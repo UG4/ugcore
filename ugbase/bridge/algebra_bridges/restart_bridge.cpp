@@ -20,15 +20,20 @@
 #include "lib_algebra/lib_algebra.h"
 #include "common/serialization.h"
 
+#include "pcl/parallel_archive.h"
+#include "pcl/parallel_file.h"
+
 #include "../util_overloaded.h"
+
 using namespace std;
 
 namespace ug{
 
+
 /*
  *
 
-		restartfilename = "uNewtonSolution_T_"..step.."_p_"..ProcRank()..".ug4vector"
+		restartfilename = "uNewtonSolution_T_"..step.."_p_".ug4vector"
 
   		restartStep = util.GetParamNumber("-restartStep", 0)
 		-- apply newton solver
@@ -67,15 +72,17 @@ void Deserialize(TIStream &buf, ParallelVector<T> &v)
 template<typename T>
 void SaveToFile(const T &v, std::string filename)
 {
-	fstream f(filename.c_str(), ios::out);
-	Serialize(f, v);
+	BinaryBuffer b;
+	Serialize(b, v);
+	pcl::ParallelFileWrite(b, filename);
 }
 
 template<typename T>
 void ReadFromFile(T &v, std::string filename)
 {
-	fstream f(filename.c_str(), ios::in);
-	Deserialize(f, v);
+	BinaryBuffer b;
+	pcl::ParallelFileRead(b, filename);
+	Deserialize(b, v);
 }
 
 
@@ -119,7 +126,6 @@ static void Algebra(Registry& reg, string grp)
 
 	reg.add_function("SaveToFile", OVERLOADED_FUNCTION_PTR(void, SaveToFile<vector_type>, (const vector_type &, std::string)), grp);
 	reg.add_function("ReadFromFile", OVERLOADED_FUNCTION_PTR(void, ReadFromFile<vector_type>, (vector_type &, std::string)), grp);
-
 }
 
 }; // end Functionality
@@ -136,6 +142,7 @@ void RegisterBridge_Restart(Registry& reg, string grp)
 		RegisterAlgebraDependent<Functionality>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
+	//reg.add_function("testomato", testomato, grp);
 }
 
 } // namespace bridge
