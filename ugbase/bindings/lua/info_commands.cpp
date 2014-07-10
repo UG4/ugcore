@@ -22,6 +22,9 @@
 #include "lua_stack_check.h"
 #include "registry/class_name_provider.h"
 #include "common/util/string_util.h"
+#include "common/util/stringify.h"
+
+#include "common/profiler/profiler.h"
 #ifdef UG_PLUGINS
 	#include "common/util/plugin_util.h"
 #endif
@@ -169,6 +172,7 @@ void SetLuaNamespace(string name, string value)
  */
 string GetFileLinesLUA(const char *filename, size_t fromline, size_t toline)
 {
+	if(GetLogAssistant().is_output_process()) return "";
 	char buf[512];
 	fstream file(filename, ios::in);
 	if(file.is_open() == false) return string("");
@@ -1018,6 +1022,7 @@ std::string LuaStackTraceString(lua_State* L, int backtraceLevel)
     	if(!status || !entry.source || entry.currentline < 0) continue;
     	ss << "  " << luaLevel++ << "    " << entry.source << ":" << entry.currentline;
     	ss << "   " << GetFileLine(entry.source, entry.currentline);
+
     	ss << "\n";
     	if(luaLevel == backtraceLevel) break;
     }
@@ -1045,10 +1050,15 @@ bool GetLuaFileAndLine(lua_State* L, std::string &file, size_t &line)
 /// returns the current file and line ( \sa LuaStackTrace ).
 std::string GetLuaFileAndLine(lua_State* L)
 {
+	PROFILE_FUNC();
 	string file; size_t line;
 	if(GetLuaFileAndLine(L, file, line) == false) return "[LUA File could not be determined]";
 	std::stringstream ss;
-	ss << file << ":" << line << " " << GetFileLine(file.c_str(), line);
+	if(GetLogAssistant().is_output_process())
+		ss << file << ":" << line << " " << GetFileLine(file.c_str(), line);
+	else
+		ss << file << ":" << line;
+
 	return ss.str();
 }
 
@@ -1063,9 +1073,13 @@ std::string GetLuaFileAndLineNumber(lua_State* L)
 
 std::string GetLuaLine(lua_State* L)
 {
+	PROFILE_FUNC();
 	string file; size_t line;
 	if(GetLuaFileAndLine(L, file, line) == false) return "[ --unknown script line -- ]";
-	return GetFileLine(file.c_str(), line);
+	if(GetLogAssistant().is_output_process())
+		return GetFileLine(file.c_str(), line);
+	else
+		return Stringify() << file << ":" << line;
 }
 
 std::string LuaStackTraceString()
