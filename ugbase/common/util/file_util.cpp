@@ -17,10 +17,10 @@ using namespace std;
 
 namespace ug
 {
-
+/// !!! Serial i/o version !!!
 UG_API bool FileExists( const char *filename )
 {
-  PROFILE_FUNC();
+  PROFILE_FUNC(); // since i/o
 
   ifstream in( filename );
   if( in.good() ) {
@@ -30,9 +30,10 @@ UG_API bool FileExists( const char *filename )
   return false;
 }
 
+/// !!! Serial i/o version !!!
 UG_API size_t FileSize( const char *filename )
 {
-  PROFILE_FUNC();
+  PROFILE_FUNC(); // since i/o
 
   if( !FileExists( filename ) ) {
     UG_THROW( "The file " << filename << " could not be found." );
@@ -58,9 +59,10 @@ bool FileTypeIs( const char* filename, const char* extension )
 	return ( iExtPos != std::string::npos && name.substr(iExtPos).compare(extension) == 0 );
 }
 
+/// !!! Serial i/o version !!!
 UG_API bool FileCompare( const char *file1, const char *file2 )
 {
-  PROFILE_FUNC();
+  PROFILE_FUNC(); // since i/o
 
   // Make sure, both files do exist
   if( !FileExists( file1 ) || !FileExists( file2 ) ) {
@@ -112,7 +114,8 @@ UG_API bool FileCompare( const char *file1, const char *file2 )
   return !diff;
 }
 
-
+/// !!! Serial i/o version !!!
+/// in parallel, see ParallelReadFile.
 bool ReadFile(const char* filename, vector<char> &file, bool bText)
 {
 	PROFILE_FUNC();
@@ -132,8 +135,10 @@ bool ReadFile(const char* filename, vector<char> &file, bool bText)
 	return true;
 }
 
+/// !!! Serial i/o version !!!
 string MakeTmpFile(string filename, const string &extension, bool &bSuccess)
 {
+	PROFILE_FUNC();  // since i/o
 	bSuccess = true;
 	string t = filename+extension;
 	const char *name = t.c_str();
