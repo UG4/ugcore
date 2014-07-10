@@ -139,7 +139,7 @@ OP_CALL 1 		[ min(var2, var3) ]  (say 1 is the subfunctionIndex for myMin)
 a function like this
 function myFunction(a, b)
 	local c = a*a
-	return c+b
+	return c+b, 1
 end
 
 with LUA2C_convertVM("myFunction")
