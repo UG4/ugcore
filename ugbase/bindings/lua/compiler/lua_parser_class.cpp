@@ -165,7 +165,7 @@ int LUAParserClass::parse_luaFunction(const char *functionName)
 #endif
 
 
-	if(str.find("--lua2c:ignore") != std::string::npos)
+	if(str.find("--lua2c:ignore") != std::string::npos || str.find("--LUACompiler:ignore") != std::string::npos)
 		return LUAParserIgnore;
 	//UG_DLOG("The function:\n"<<str<<"\n");
 
