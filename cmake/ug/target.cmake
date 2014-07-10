@@ -21,6 +21,7 @@ elseif("${TARGET}" STREQUAL "vrl")
 	
 	set(buildAlgebra ON)
 	set(buildForVRL ON)
+	set(buildForLUA ON)
 	set(buildPlugins ON)
 	#todo: rename targetLibraryName to ug4_vrl
 	#set(targetLibraryName ug4_vrl)
