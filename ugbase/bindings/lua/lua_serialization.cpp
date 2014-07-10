@@ -148,7 +148,7 @@ void WriteLUAObject2(lua_State* L, std::string name, std::ostream &s)
 		lua_pushvalue(L, -1);
 		/* table is in the stack at index 't' */
 		s << name << " = " << name << " or {}\n";
-		UG_LOG(name << " = " << name << " or {}\n");
+		//UG_LOG(name << " = " << name << " or {}\n");
 		lua_pushnil(L);
 		while (lua_next(L, -2) != 0)
 		{
