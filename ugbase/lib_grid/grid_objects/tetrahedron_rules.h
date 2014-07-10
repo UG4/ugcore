@@ -12,6 +12,15 @@ namespace tet_rules
 {
 
 ////////////////////////////////////////////////////////////////////////////////
+//	REFINEMENT RULE
+
+/// identification of refinement rule to be used
+enum GlobalRefinementRule{
+	STANDARD,
+	HYBRID_TET_OCT
+};
+
+////////////////////////////////////////////////////////////////////////////////
 //	LOOKUP TABLES
 
 const int NUM_VERTICES	= 4;
@@ -109,6 +118,13 @@ const int FACE_FROM_EDGES[][6] =	{{0, 0, 0, 3, 3, -1}, {0, 0, 0, -1, 1, 1},
  */
 int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut,
 		   vector3* corners = NULL);
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+void SetRefinementRule(GlobalRefinementRule refRule);
+GlobalRefinementRule GetRefinementRule();
 
 }//	end of namespace tet_rules
 }//	end of namespace ug

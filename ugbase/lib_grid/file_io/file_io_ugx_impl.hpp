@@ -307,6 +307,9 @@ grid(Grid& gridOut, size_t index,
 			bSuccess = create_prisms(volumes, grid, curNode, vertices);
 		else if(strcmp(name, "pyramids") == 0)
 			bSuccess = create_pyramids(volumes, grid, curNode, vertices);
+		else if(strcmp(name, "octahedrons") == 0)
+			bSuccess = create_octahedrons(volumes, grid, curNode, vertices);
+
 
 		if(!bSuccess){
 			grid.set_options(gridopts);

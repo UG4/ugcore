@@ -200,6 +200,11 @@ class GridWriterUGX
 							PyramidIterator pyrasEnd,
 							AAVrtIndex aaIndVRT);
 
+		rapidxml::xml_node<>*
+		create_octahedron_node(OctahedronIterator octsBegin,
+								OctahedronIterator octsEnd,
+								AAVrtIndex aaIndVRT);
+
 		void add_subset_attributes(rapidxml::xml_node<>* targetNode,
 								   ISubsetHandler& sh, size_t subsetIndex);
 
@@ -394,6 +399,10 @@ class GridReaderUGX
 		bool create_pyramids(std::vector<Volume*>& volsOut,
 							Grid& grid, rapidxml::xml_node<>* node,
 							std::vector<Vertex*>& vrts);
+
+		bool create_octahedrons(std::vector<Volume*>& volsOut,
+								Grid& grid, rapidxml::xml_node<>* node,
+								std::vector<Vertex*>& vrts);
 
 		template <class TGeomObj>
 		bool read_subset_handler_elements(ISubsetHandler& shOut,

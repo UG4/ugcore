@@ -14,6 +14,7 @@
 
 #include <iostream>
 #include "../tetrahedron_rules.h"
+#include "../octahedron_rules.h"
 #include "../pyramid_rules.h"
 #include "../prism_rules.h"
 #include "../hexahedron_rules.h"
@@ -223,6 +224,17 @@ int main(int argc, char* argv[])
 	cout << "\ntetrahedron lists:\n";
 	{
 		using namespace ug::tet_rules;
+		PrintFaceEdgeInds(NUM_EDGES, NUM_FACES, EDGE_VRT_INDS, FACE_VRT_INDS);
+		PrintFaceContainsEdgeLists(NUM_EDGES, NUM_FACES, EDGE_VRT_INDS, FACE_VRT_INDS);
+		PrintEdgeFromVrts(NUM_VERTICES, NUM_EDGES, EDGE_VRT_INDS);
+		PrintFaceFromVrts(NUM_VERTICES, NUM_FACES, FACE_VRT_INDS);
+		PrintFaceFromEdges(NUM_EDGES, NUM_FACES, EDGE_VRT_INDS, FACE_VRT_INDS);
+	}
+
+//	octahedron lists
+	cout << "\noctahedron lists:\n";
+	{
+		using namespace ug::oct_rules;
 		PrintFaceEdgeInds(NUM_EDGES, NUM_FACES, EDGE_VRT_INDS, FACE_VRT_INDS);
 		PrintFaceContainsEdgeLists(NUM_EDGES, NUM_FACES, EDGE_VRT_INDS, FACE_VRT_INDS);
 		PrintEdgeFromVrts(NUM_VERTICES, NUM_EDGES, EDGE_VRT_INDS);

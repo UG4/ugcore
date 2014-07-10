@@ -24,6 +24,8 @@
 #include "lib_grid/algorithms/refinement/refinement_projectors/loop_subdivision_projectors.h"
 #include "lib_grid/algorithms/refinement/refinement_projectors/fractal_projector.h"
 
+#include "lib_grid/grid_objects/tetrahedron_rules.h"
+
 using namespace std;
 
 namespace ug{
@@ -1083,6 +1085,17 @@ SubdivisionLoopProjectorFactory(TDomain* dom)
 						 dom->position_attachment()));
 }
 
+void SetTetRefinementRule(std::string ruleName)
+{
+	ruleName = ToLower(ruleName);
+	if(ruleName.compare("standard") == 0)
+		tet_rules::SetRefinementRule(tet_rules::STANDARD);
+	else if(ruleName.compare("hybrid_tet_oct") == 0)
+			tet_rules::SetRefinementRule(tet_rules::HYBRID_TET_OCT);
+	else{
+		UG_THROW("Unknown refinement rule! Known rules are: standard, hybrid_tet_oct");
+	}
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1112,6 +1125,9 @@ static void Common(Registry& reg, string grp)
 {
 //	register domain independent mark methods
 	reg.add_function("MarkForRefinement_All", &MarkForRefinement_All, grp, "", "ref");
+//	register refinement rule switch function
+	reg.add_function("SetTetRefinementRule", &SetTetRefinementRule,
+			"Sets the refinement rule which is used to refine tetrahedrons. Possible parameters: 'standard', 'hybrid_tet_oct");
 }
 
 /**

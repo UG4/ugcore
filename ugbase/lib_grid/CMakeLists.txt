@@ -91,6 +91,7 @@ set(srcLibGrid	common_attachments.cpp
 				grid_objects/grid_objects_2d.cpp
 				grid_objects/grid_objects_3d.cpp
 				grid_objects/tetrahedron_rules.cpp
+				grid_objects/octahedron_rules.cpp
 				grid_objects/pyramid_rules.cpp
 				grid_objects/prism_rules.cpp
 				grid_objects/hexahedron_rules.cpp

@@ -47,6 +47,7 @@ enum ReferenceObjectID
 	ROID_TRIANGLE,
 	ROID_QUADRILATERAL,
 	ROID_TETRAHEDRON,
+	ROID_OCTAHEDRON,
 	ROID_HEXAHEDRON,
 	ROID_PRISM,
 	ROID_PYRAMID,
@@ -72,6 +73,7 @@ std::ostream& operator<< (std::ostream& outStream, ReferenceObjectID type)
 		case ROID_TRIANGLE: outStream << "Triangle"; break;
 		case ROID_QUADRILATERAL: outStream << "Quadrilateral"; break;
 		case ROID_TETRAHEDRON: outStream << "Tetrahedron"; break;
+		case ROID_OCTAHEDRON: outStream << "Octahedron"; break;
 		case ROID_HEXAHEDRON: outStream << "Hexahedron"; break;
 		case ROID_PRISM: outStream << "Prism"; break;
 		case ROID_PYRAMID: outStream << "Pyramid"; break;

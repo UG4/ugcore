@@ -24,7 +24,8 @@ enum VolumeContainerSections
 	CSVOL_TETRAHEDRON = 0,
 	CSVOL_HEXAHEDRON = 1,
 	CSVOL_PRISM = 2,
-	CSVOL_PYRAMID = 3
+	CSVOL_PYRAMID = 3,
+	CSVOL_OCTAHEDRON = 4
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -147,6 +148,123 @@ class geometry_traits<Tetrahedron>
 
 typedef geometry_traits<Tetrahedron>::iterator			TetrahedronIterator;
 typedef geometry_traits<Tetrahedron>::const_iterator	ConstTetrahedronIterator;
+
+
+////////////////////////////////////////////////////////////////////////
+//	OctahedronDescriptor
+///	only used to initialize a octahedron. for all other tasks you should use VolumeDescripor.
+/**
+ * please be sure to pass the vertices in the correct order:
+ * v1: bottom-vertex
+ * v2, v3, v4, v5: middle-section-vertices in counterclockwise order (if viewed from the top).
+ * v6: top-vertex
+ */
+class UG_API OctahedronDescriptor
+{
+	public:
+		OctahedronDescriptor()	{}
+		OctahedronDescriptor(const OctahedronDescriptor& od);
+		OctahedronDescriptor(const VolumeVertices& vv);
+		OctahedronDescriptor(Vertex* v1, Vertex* v2, Vertex* v3, Vertex* v4, Vertex* v5, Vertex* v6);
+
+		inline uint num_vertices() const	{return 6;}
+		inline Vertex* vertex(uint index) const	{return m_vertex[index];}
+
+	protected:
+		Vertex*	m_vertex[6];
+};
+
+
+////////////////////////////////////////////////////////////////////////
+//	Octahedron
+///	platonic solid with eight faces.
+/**
+ * order of vertices should be the same as described in \sa OctahedronDescriptor
+ *
+ * \ingroup lib_grid_grid_objects
+ */
+class UG_API Octahedron : public Volume
+{
+	public:
+		typedef Volume BaseClass;
+
+		static const size_t NUM_VERTICES = 6;
+
+	public:
+		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Octahedron*>(pObj) != NULL;}
+
+		Octahedron()	{}
+		Octahedron(const OctahedronDescriptor& od);
+		Octahedron(Vertex* v1, Vertex* v2, Vertex* v3, Vertex* v4, Vertex* v5, Vertex* v6);
+
+		virtual GridObject* create_empty_instance() const	{return new Octahedron;}
+
+		virtual Vertex* vertex(uint index) const	{return m_vertices[index];}
+		virtual ConstVertexArray vertices() const		{return m_vertices;}
+		virtual size_t num_vertices() const				{return 6;}
+
+		virtual EdgeDescriptor edge_desc(int index) const;
+		virtual void edge_desc(int index, EdgeDescriptor& edOut) const;
+		virtual uint num_edges() const;
+
+		virtual FaceDescriptor face_desc(int index) const;
+		virtual void face_desc(int index, FaceDescriptor& fdOut) const;
+		virtual uint num_faces() const;
+
+		virtual Edge* create_edge(int index);	///< create the edge with index i and return it.
+		virtual Face* create_face(int index);		///< create the face with index i and return it.
+
+		virtual std::pair<GridBaseObjectId, int> get_opposing_object(Vertex* vrt) const;
+
+	///	Creates new volume elements through refinement.
+	/**	Make sure that newEdgeVertices contains 6 vertex pointers.
+	 *	newFaceVertices is ignored for Octahedrons.*/
+		virtual bool refine(std::vector<Volume*>& vNewVolumesOut,
+							Vertex** ppNewVertexOut,
+							Vertex** newEdgeVertices,
+							Vertex** newFaceVertices,
+							Vertex* newVolumeVertex,
+							const Vertex& prototypeVertex,
+							Vertex** pSubstituteVertices = NULL,
+							vector3* corners = NULL);
+
+		virtual bool collapse_edge(std::vector<Volume*>& vNewVolumesOut,
+								int edgeIndex, Vertex* newVertex,
+								std::vector<Vertex*>* pvSubstituteVertices = NULL);
+
+		virtual void get_flipped_orientation(VolumeDescriptor& vdOut) const;
+
+		virtual int container_section() const	{return CSVOL_OCTAHEDRON;}
+		virtual ReferenceObjectID reference_object_id() const {return ROID_OCTAHEDRON;}
+
+	protected:
+		virtual void set_vertex(uint index, Vertex* pVrt)	{m_vertices[index] = pVrt;}
+
+	protected:
+		Vertex*	m_vertices[6];
+};
+
+template <>
+class geometry_traits<Octahedron>
+{
+	public:
+		typedef GenericGridObjectIterator<Octahedron*, VolumeIterator>		iterator;
+		typedef ConstGenericGridObjectIterator<Octahedron*, VolumeIterator,
+															ConstVolumeIterator>	const_iterator;
+
+		typedef OctahedronDescriptor Descriptor;
+		typedef Volume 		grid_base_object;
+
+		enum
+		{
+			CONTAINER_SECTION = CSVOL_OCTAHEDRON,
+			BASE_OBJECT_ID = VOLUME
+		};
+		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_OCTAHEDRON;
+};
+
+typedef geometry_traits<Octahedron>::iterator			OctahedronIterator;
+typedef geometry_traits<Octahedron>::const_iterator	ConstOctahedronIterator;
 
 
 ////////////////////////////////////////////////////////////////////////

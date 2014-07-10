@@ -7,6 +7,7 @@
 #include "grid_objects.h"
 #include "common/common.h"
 #include "tetrahedron_rules.h"
+#include "octahedron_rules.h"
 #include "pyramid_rules.h"
 #include "prism_rules.h"
 #include "hexahedron_rules.h"
@@ -25,6 +26,16 @@ class TetrahedronClass{
 			NUM_EDGES = tet_rules::NUM_EDGES,
 			NUM_FACES = tet_rules::NUM_FACES,
 			MAX_NUM_INDS_OUT = tet_rules::MAX_NUM_INDS_OUT
+		};
+};
+
+class OctahedronClass{
+	public:
+		enum{
+			NUM_VERTICES = oct_rules::NUM_VERTICES,
+			NUM_EDGES = oct_rules::NUM_EDGES,
+			NUM_FACES = oct_rules::NUM_FACES,
+			MAX_NUM_INDS_OUT = oct_rules::MAX_NUM_INDS_OUT
 		};
 };
 
@@ -153,7 +164,7 @@ static bool Refine(std::vector<Volume*>& vNewVolumesOut,
 	}
 	UG_LOG(endl);
 
-	UG_LOG("allVrts:");
+	UG_LOG("allVrts, (allVrtsSize: " << allVrtsSize << ") ; ");
 	for(int i = 0; i < allVrtsSize; ++i){
 		UG_LOG(" " << allVrts[i]);
 	}
@@ -175,6 +186,8 @@ static bool Refine(std::vector<Volume*>& vNewVolumesOut,
 			case 4:	vNewVolumesOut.push_back(new Tetrahedron(vd));	break;
 			case 5:	vNewVolumesOut.push_back(new Pyramid(vd));		break;
 			case 6:	vNewVolumesOut.push_back(new Prism(vd));		break;
+			//TODO: modify num switch to support octahedrons
+			//case 6:	vNewVolumesOut.push_back(new Octahedron(vd));		break;
 			case 8:	vNewVolumesOut.push_back(new Hexahedron(vd));	break;
 		}
 	}
@@ -366,6 +379,175 @@ void Tetrahedron::get_flipped_orientation(VolumeDescriptor& vdOut)  const
 	vdOut.set_vertex(1, vertex(1));
 	vdOut.set_vertex(2, vertex(0));
 	vdOut.set_vertex(3, vertex(3));
+}
+
+////////////////////////////////////////////////////////////////////////
+//	OctahedronDescriptor
+OctahedronDescriptor::OctahedronDescriptor(const OctahedronDescriptor& td)
+{
+	m_vertex[0] = td.vertex(0);
+	m_vertex[1] = td.vertex(1);
+	m_vertex[2] = td.vertex(2);
+	m_vertex[3] = td.vertex(3);
+   	m_vertex[4] = td.vertex(4);
+  	m_vertex[5] = td.vertex(5);
+}
+
+OctahedronDescriptor::OctahedronDescriptor(const VolumeVertices& vv)
+{
+	assert((vv.num_vertices() == 6) &&	"Bad number of vertices in volume-descriptor. Should be 6.");
+	m_vertex[0] = vv.vertex(0);
+	m_vertex[1] = vv.vertex(1);
+	m_vertex[2] = vv.vertex(2);
+	m_vertex[3] = vv.vertex(3);
+   	m_vertex[4] = vv.vertex(4);
+   	m_vertex[5] = vv.vertex(5);
+}
+
+OctahedronDescriptor::OctahedronDescriptor(Vertex* v1, Vertex* v2, Vertex* v3, Vertex* v4, Vertex* v5, Vertex* v6)
+{
+	m_vertex[0] = v1;
+	m_vertex[1] = v2;
+	m_vertex[2] = v3;
+	m_vertex[3] = v4;
+   	m_vertex[4] = v5;
+   	m_vertex[5] = v6;
+}
+
+////////////////////////////////////////////////////////////////////////
+//	Octahedron
+Octahedron::Octahedron(const OctahedronDescriptor& td)
+{
+	m_vertices[0] = td.vertex(0);
+	m_vertices[1] = td.vertex(1);
+	m_vertices[2] = td.vertex(2);
+	m_vertices[3] = td.vertex(3);
+   	m_vertices[4] = td.vertex(4);
+   	m_vertices[5] = td.vertex(5);
+}
+
+Octahedron::Octahedron(Vertex* v1, Vertex* v2, Vertex* v3, Vertex* v4, Vertex* v5, Vertex* v6)
+{
+	m_vertices[0] = v1;
+	m_vertices[1] = v2;
+	m_vertices[2] = v3;
+	m_vertices[3] = v4;
+    m_vertices[4] = v5;
+	m_vertices[5] = v6;
+}
+
+EdgeDescriptor Octahedron::edge_desc(int index) const
+{
+	EdgeDescriptor ed;
+	edge_desc(index, ed);
+	return ed;
+}
+
+void Octahedron::edge_desc(int index, EdgeDescriptor& edOut) const
+{
+	using namespace oct_rules;
+	assert(index >= 0 && index <= NUM_EDGES);
+	edOut.set_vertices(m_vertices[EDGE_VRT_INDS[index][0]],
+					   m_vertices[EDGE_VRT_INDS[index][1]]);
+}
+
+uint Octahedron::num_edges() const
+{
+	return 12;
+}
+
+FaceDescriptor Octahedron::face_desc(int index) const
+{
+	FaceDescriptor fd;
+	face_desc(index, fd);
+	return fd;
+}
+
+void Octahedron::face_desc(int index, FaceDescriptor& fdOut) const
+{
+	using namespace oct_rules;
+	assert(index >= 0 && index < NUM_FACES);
+
+	fdOut.set_num_vertices(3);
+	fdOut.set_vertex(0, m_vertices[FACE_VRT_INDS[index][0]]);
+	fdOut.set_vertex(1, m_vertices[FACE_VRT_INDS[index][2]]);
+	fdOut.set_vertex(2, m_vertices[FACE_VRT_INDS[index][1]]);
+}
+
+uint Octahedron::num_faces() const
+{
+	return 8;
+}
+
+Edge* Octahedron::create_edge(int index)
+{
+	using namespace oct_rules;
+	assert(index >= 0 && index < NUM_EDGES);
+	const int* e = EDGE_VRT_INDS[index];
+	return new RegularEdge(m_vertices[e[0]], m_vertices[e[1]]);
+}
+
+Face* Octahedron::create_face(int index)
+{
+	using namespace oct_rules;
+	assert(index >= 0 && index < NUM_FACES);
+
+	const int* f = FACE_VRT_INDS[index];
+    return new Triangle(m_vertices[f[0]], m_vertices[f[2]], m_vertices[f[1]]);
+}
+
+std::pair<GridBaseObjectId, int> Octahedron::
+get_opposing_object(Vertex* vrt) const
+{
+	using namespace oct_rules;
+	for(int i = 0; i < oct_rules::NUM_VERTICES; ++i){
+		if(vrt == m_vertices[i]){
+			return make_pair(static_cast<GridBaseObjectId>(OPPOSED_OBJECT[i][0]),
+							 OPPOSED_OBJECT[i][1]);
+		}
+	}
+
+	UG_THROW("Specified vertex is not part of this element.");
+}
+
+bool Octahedron::collapse_edge(std::vector<Volume*>& vNewVolumesOut,
+                                int edgeIndex, Vertex* newVertex,
+                                std::vector<Vertex*>* pvSubstituteVertices)
+{
+//	NOT YET SUPPORTED!
+//TODO: implement octahedron::collapse_edge
+	UG_LOG("edge-collapse for octahedrons not yet implemented... sorry\n");
+	return false;
+}
+
+
+bool Octahedron::refine(std::vector<Volume*>& vNewVolumesOut,
+							Vertex** ppNewVertexOut,
+							Vertex** newEdgeVertices,
+							Vertex** newFaceVertices,
+							Vertex* newVolumeVertex,
+							const Vertex& prototypeVertex,
+							Vertex** pSubstituteVertices,
+							vector3*)
+{
+//	handle substitute vertices.
+	Vertex** vrts;
+	if(pSubstituteVertices)
+		vrts = pSubstituteVertices;
+	else
+		vrts = m_vertices;
+
+	return Refine<OctahedronClass>(vNewVolumesOut, ppNewVertexOut,
+									newEdgeVertices, newFaceVertices,
+									newVolumeVertex, prototypeVertex,
+									vrts, oct_rules::Refine);
+}
+
+void Octahedron::get_flipped_orientation(VolumeDescriptor& vdOut)  const
+{
+//	NOT YET SUPPORTED!
+//TODO: implement octahedron::get_flipped_orientation
+	UG_LOG("get_flipped_orientation for octahedrons not yet implemented... sorry\n");
 }
 
 ////////////////////////////////////////////////////////////////////////

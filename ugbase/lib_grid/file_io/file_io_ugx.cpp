@@ -391,6 +391,11 @@ add_elements_to_node(rapidxml::xml_node<>* node,
 	if(grid.num<Pyramid>() > 0)
 		node->append_node(create_pyramid_node(grid.begin<Pyramid>(),
 											  grid.end<Pyramid>(), aaIndVRT));
+
+//	write octahedrons
+	if(grid.num<Octahedron>() > 0)
+		node->append_node(create_octahedron_node(grid.begin<Octahedron>(),
+											  grid.end<Octahedron>(), aaIndVRT));
 }
 
 rapidxml::xml_node<>* GridWriterUGX::
@@ -773,6 +778,33 @@ create_pyramid_node(PyramidIterator pyrasBegin,
 	else{
 	//	return an emtpy node
 		return m_doc.allocate_node(node_element, "pyramids");
+	}
+}
+
+rapidxml::xml_node<>* GridWriterUGX::
+create_octahedron_node(OctahedronIterator octsBegin,
+						OctahedronIterator octsEnd,
+						AAVrtIndex aaIndVRT)
+{
+//	write the elements to a temporary stream
+	stringstream ss;
+	for(OctahedronIterator iter = octsBegin; iter != octsEnd; ++iter)
+	{
+		ss << aaIndVRT[(*iter)->vertex(0)] << " " << aaIndVRT[(*iter)->vertex(1)] << " "
+			<< aaIndVRT[(*iter)->vertex(2)] << " " << aaIndVRT[(*iter)->vertex(3)] << " "
+			<< aaIndVRT[(*iter)->vertex(4)] << " " << aaIndVRT[(*iter)->vertex(5)] << " ";
+	}
+
+	if(ss.str().size() > 0){
+	//	allocate a string and erase last character(' ')
+		char* nodeData = m_doc.allocate_string(ss.str().c_str(), ss.str().size());
+		nodeData[ss.str().size()-1] = 0;
+	//	create and return the node
+		return m_doc.allocate_node(node_element, "octahedrons", nodeData);
+	}
+	else{
+	//	return an emtpy node
+		return m_doc.allocate_node(node_element, "octahedrons");
 	}
 }
 
@@ -1645,6 +1677,46 @@ create_pyramids(std::vector<Volume*>& volsOut,
 	return true;
 }
 
+bool GridReaderUGX::
+create_octahedrons(std::vector<Volume*>& volsOut,
+					Grid& grid, rapidxml::xml_node<>* node,
+					std::vector<Vertex*>& vrts)
+{
+//	create a buffer with which we can access the data
+	string str(node->value(), node->value_size());
+	stringstream ss(str, ios_base::in);
+
+//	read the octahedrons
+	int i1, i2, i3, i4, i5, i6;
+	while(!ss.eof()){
+	//	read the indices
+		ss >> i1 >> i2 >> i3 >> i4 >> i5 >> i6;
+
+	//	make sure that everything went right
+		if(ss.fail())
+			break;
+
+	//	make sure that the indices are valid
+		int maxInd = (int)vrts.size() - 1;
+		if(i1 < 0 || i1 > maxInd ||
+		   i2 < 0 || i2 > maxInd ||
+		   i3 < 0 || i3 > maxInd ||
+		   i4 < 0 || i4 > maxInd ||
+		   i5 < 0 || i5 > maxInd ||
+		   i6 < 0 || i6 > maxInd)
+		{
+			UG_LOG("  ERROR in GridReaderUGX::create_octahedrons: invalid vertex index.\n");
+			return false;
+		}
+
+	//	create the element
+		volsOut.push_back(
+			*grid.create<Octahedron>(OctahedronDescriptor(	vrts[i1], vrts[i2], vrts[i3],
+															vrts[i4], vrts[i5], vrts[i6])));
+	}
+
+	return true;
+}
 
 
 UGXFileInfo::UGXFileInfo() :
