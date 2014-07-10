@@ -28,7 +28,7 @@ int convert(const char *functionName)
 	}
 	if(ret == LUAParserClass::LUAParserIgnore)
 	{
-		UG_LOG("parsing " << functionName << " : Found --lua2c:ignore.\n");
+		UG_LOG("parsing " << functionName << " : Found --LUACompiler:ignore.\n");
 		return false;
 	}
     
@@ -52,7 +52,7 @@ int convertVM(const char *functionName)
 	}
 	if(ret == LUAParserClass::LUAParserIgnore)
 	{
-		UG_LOG("parsing " << functionName << " : Found --lua2c:ignore.\n");
+		UG_LOG("parsing " << functionName << " : Found --LUACompiler:ignore.\n");
 		return false;
 	}
 
