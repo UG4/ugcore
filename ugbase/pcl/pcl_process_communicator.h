@@ -60,6 +60,12 @@ class ProcessCommunicator
 	///	returns the i-th process in the communicator
 		int get_proc_id(size_t index) const;
 
+	/// returns true if we are the i-th process in the communicator
+		bool is_proc_id(size_t index) const
+		{
+			return get_proc_id(index) == ProcRank();
+		}
+
 	///	returns the proc-id relative to this communicator
 	/**	This method has a worst time complexity of O(n)*/
 		int get_local_proc_id(int globalProcID = pcl::ProcRank()) const;
