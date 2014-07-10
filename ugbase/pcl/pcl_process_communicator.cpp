@@ -11,6 +11,7 @@
 #include "common/util/vector_util.h"
 #include "pcl_profiling.h"
 #include "pcl_datatype.h"
+#include "pcl_util.h"
 
 using namespace std;
 using namespace ug;
@@ -118,8 +119,18 @@ create_sub_communicator(bool participate) const
 //	synchronize the newProcs array between all processes in the communicator
 	vector<int> destArray(size, 0);
 
+	{
+		PCL_PROFILE(waiting_before_allreduce);
+		PCL_DEBUG_BARRIER((*this));
+	}
+
 	allreduce(&srcArray.front(), &destArray.front(),
 			   size, PCL_DT_INT, PCL_RO_MAX);
+
+	{
+		PCL_PROFILE(waiting_after_allreduce);
+		PCL_DEBUG_BARRIER((*this));
+	}
 
 //	build a local array that holds all the procs that shall go
 //	into the new communicator
