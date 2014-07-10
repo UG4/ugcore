@@ -63,8 +63,6 @@ void ParallelFileWrite(ug::BinaryBuffer &buffer, std::string strFilename, pcl::P
 
 void ParallelFileRead(ug::BinaryBuffer &buffer, std::string strFilename, pcl::ProcessCommunicator pc)
 {
-	MPI_Offset my_current_offset;
-
 	MPI_Status status;
 	MPI_Comm m_mpiComm = pc.get_mpi_communicator();
 	MPI_File fh;
