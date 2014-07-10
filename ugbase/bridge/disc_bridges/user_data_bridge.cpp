@@ -19,6 +19,26 @@
 using namespace std;
 
 namespace ug{
+
+template <class TData, int dim>
+void PrintUserDataValue(const UserData<TData, dim>& ud, const MathVector<dim>& globIP,
+						number time, int si)
+{
+	TData data;
+	ud(data, globIP, time, si);
+	UG_LOG(data);
+}
+
+template <class TData, int dim>
+void PrintCondUserDataValue(const UserData<TData, dim, bool>& ud, const MathVector<dim>& globIP,
+							number time, int si)
+{
+	TData data;
+	bool ret = ud(data, globIP, time, si);
+	UG_LOG(ret << ", " << data);
+}
+
+
 namespace bridge{
 
 /**
@@ -26,7 +46,6 @@ namespace bridge{
  * \ingroup disc_bridge
  * \{
  */
-
 template <typename TData, int dim>
 void RegisterUserDataType(Registry& reg, string grp)
 {
@@ -46,6 +65,7 @@ void RegisterUserDataType(Registry& reg, string grp)
 			.add_method("get_dim", &T::get_dim)
 			.add_method("type", &T::type);
 		reg.add_class_to_group(name, string("User").append(type), dimTag);
+		reg.add_function("PrintUserDataValue", &PrintUserDataValue<TData, dim>, "Prints the value of the given user data at the given global position at the given time on the given subset.");
 	}
 
 //	CondUser"Type"
@@ -57,6 +77,7 @@ void RegisterUserDataType(Registry& reg, string grp)
 		string name = string("CondUser").append(type).append(dimSuffix);
 		reg.add_class_<T,TBase1>(name, grp);
 		reg.add_class_to_group(name, string("CondUser").append(type), dimTag);
+		reg.add_function("PrintUserDataValue", &PrintCondUserDataValue<TData, dim>, "Prints the value of the given user data at the given global position at the given time on the given subset.");
 	}
 
 //	CplUser"Type"
