@@ -1185,6 +1185,11 @@ void AssignSubsetsByElementType(ISubsetHandler& sh)
 		sh.assign_subset(g.begin<Hexahedron>(), g.end<Hexahedron>(), subsetInd);
 		sh.subset_info(subsetInd++).name = "Hexahedron";
 	}
+
+	if(g.num<Octahedron>() > 0){
+		sh.assign_subset(g.begin<Octahedron>(), g.end<Octahedron>(), subsetInd);
+		sh.subset_info(subsetInd++).name = "Octahedron";
+	}
 }
 
 }//	end of namespace

@@ -19,7 +19,7 @@
 using namespace std;
 
 #if WIN32
-SystemCall::SystemCall(const string &command);
+SystemCall::SystemCall(const std::string &command);
 {
 	m_bCalled = false;
 	m_returnCode = 0xDEAD;
@@ -57,7 +57,7 @@ SystemCall::SystemCall(const string &command);
 	CloseHandle(pi.hThread);
 }
 #else
-SystemCall::SystemCall(const string &command)
+SystemCall::SystemCall(const std::string &command)
 {
 	m_bCalled = false;
 	m_returnCode = 0xDEAD;

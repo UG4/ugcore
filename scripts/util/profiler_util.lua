@@ -68,7 +68,7 @@ function util.PrintProfiles_MaxTotalTimes(profNames)
 	profTimes = ParallelVecMax(profTimes)
 
 	for i, time in ipairs(profTimes) do
-		print(profNames[i] .. ":" .. string.rep("-", maxLen - string.len(profNames[i])) .. profTimes[i])
+		print(profNames[i] .. ":" .. string.rep("-", maxLen - string.len(profNames[i])) .. profTimes[i] .. " s")
 	end
 end
 
