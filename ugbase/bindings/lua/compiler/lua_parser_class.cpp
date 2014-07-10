@@ -178,8 +178,8 @@ int LUAParserClass::parse_luaFunction(const char *functionName)
     
     if(has_errors())
 	{
-    	UG_LOG("-----[ lua2c parsing error for function " << functionName << ":  -----\n");
-    	UG_LOG("-- by adding --lua2c:ignore to " << functionName << ", lua2c will ignore this function --\n");
+    	UG_LOG("-----[ LUACompiler parsing error for function " << functionName << ":  -----\n");
+    	UG_LOG("-- by adding --LUACompiler:ignore to " << functionName << ", LUACompiler will ignore this function --\n");
     	UG_LOG(src << " " << ar.linedefined << " - " << ar.lastlinedefined << " : \n");
     	UG_LOG(GetFileLines(src, ar.linedefined, ar.lastlinedefined, true));
     	UG_LOG("\n----- Parsing errors:\n");
