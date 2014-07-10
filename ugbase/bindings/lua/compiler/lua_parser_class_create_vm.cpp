@@ -9,7 +9,7 @@
 #include "common/assert.h"
 #include "bindings/lua/lua_util.h"
 #include "bindings/lua/info_commands.h"
-#include "lua2c_debug.h"
+#include "lua_compiler_debug.h"
 
 using namespace std;
 namespace ug{
@@ -274,7 +274,7 @@ int LUAParserClass::add_subfunction(std::string name, std::map<std::string, Smar
 
     if(parser->num_out() != 1)
     {
-    	UG_DLOG(DID_LUA2C, 1, "ERROR in LUA2C for LUA function " << name << ":  subfunction must have exactly one return value (not " << parser->num_out() << ")\n");
+    	UG_DLOG(DID_LUACOMPILER, 1, "ERROR in LUA2C for LUA function " << name << ":  subfunction must have exactly one return value (not " << parser->num_out() << ")\n");
         return false;
     }
 

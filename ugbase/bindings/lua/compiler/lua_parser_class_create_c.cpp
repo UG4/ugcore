@@ -8,7 +8,7 @@
 #include "lua_parser_class.h"
 #include "common/assert.h"
 #include "common/util/string_util.h"
-#include "lua2c_debug.h"
+#include "lua_compiler_debug.h"
 
 using namespace std;
 namespace ug{
@@ -281,7 +281,7 @@ int LUAParserClass::createC(ostream &out)
     stringstream definitions;
     if(add_subfunctions(knownFunctions, declarations, definitions) == false)
     {
-    	UG_DLOG(DID_LUA2C, 2, "add_subfunctions failed.\n");
+    	UG_DLOG(DID_LUACOMPILER, 2, "add_subfunctions failed.\n");
         return false;
     }
 
@@ -355,7 +355,7 @@ int LUAParserClass::addfunctionC(string name, set<string> &knownFunctions, strin
 
     if(parser.num_out() != 1)
     {
-    	UG_DLOG(DID_LUA2C, 1, "ERROR in LUA2C for LUA function " << name << ":  subfunction must have exactly one return value (not " << parser.num_out() << ")\n");
+    	UG_DLOG(DID_LUACOMPILER, 1, "ERROR in LUA2C for LUA function " << name << ":  subfunction must have exactly one return value (not " << parser.num_out() << ")\n");
         return LUAParserError;
     }
 

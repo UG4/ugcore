@@ -5,8 +5,8 @@
  * Created on 4. Dezember 2012, 17:02
  */
 
-#ifndef LUA2C_H
-#define	LUA2C_H
+#ifndef __LUACompiler_H__
+#define	__LUACompiler_H__
 
 #include <stdio.h>
 #include <string>
@@ -16,7 +16,7 @@ namespace ug{
 namespace bridge {
 
 
-class LUA2C
+class LUACompiler
 {
 	
 private:
@@ -32,7 +32,7 @@ public:
 	int m_iIn, m_iOut;
 	bool bInitialized;
 	bool bVM;
-	LUA2C()
+	LUACompiler()
 	{ 
 		m_f= NULL; 
 		m_name = "uninitialized"; 
@@ -70,7 +70,7 @@ public:
 	{
 		if(bVM)
 		{
-			const_cast<LUA2C*>(this)->vm(ret, in);
+			const_cast<LUACompiler*>(this)->vm(ret, in);
 			return true;
 		}
 		else
@@ -80,11 +80,11 @@ public:
 		}
 	}
 	
-	virtual ~LUA2C();
+	virtual ~LUACompiler();
 };
 
 
 }
 }
-#endif	/* LUA2C_H */
+#endif	/* __LUACompiler_H__ */
 

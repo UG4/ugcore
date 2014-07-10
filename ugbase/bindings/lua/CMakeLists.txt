@@ -89,21 +89,21 @@ set(srcUGScript		lua_util.cpp
 					lua_debug.cpp
 					lua_serialization.cpp)
 
-set(srcLUA2C		converter/parser.cpp
-					converter/lexer.cpp
-					converter/lua_parser_class.cpp
-					converter/lua_parser_class_create_c.cpp
-					converter/lua_parser_class_create_jitsg.cpp
-					converter/lua_parser_class_create_lua.cpp
-					converter/lua_parser_class_create_vm.cpp
-					converter/lua_parser_class_reduce.cpp
-					converter/converter.cpp
-					converter/parser.y
-					converter/lexer.l
-					converter/parser.cpp
-					converter/lexer.cpp
-					converter/lua2c.cpp
-					converter/system_call.cpp)
+set(srcLUACompiler	compiler/parser.cpp
+					compiler/lexer.cpp
+					compiler/lua_parser_class.cpp
+					compiler/lua_parser_class_create_c.cpp
+					compiler/lua_parser_class_create_jitsg.cpp
+					compiler/lua_parser_class_create_lua.cpp
+					compiler/lua_parser_class_create_vm.cpp
+					compiler/lua_parser_class_reduce.cpp
+					compiler/converter.cpp
+					compiler/parser.y
+					compiler/lexer.l
+					compiler/parser.cpp
+					compiler/lexer.cpp
+					compiler/lua_compiler.cpp
+					compiler/system_call.cpp)
 
 
 # if algebra is enabled, we have to add additional src-files and link with the
@@ -116,10 +116,8 @@ else(buildAlgebra)
 
 endif(buildAlgebra)
 
-if(USE_LUA2C)
-	set(srcUGScript ${srcUGScript}
-		${srcLUA2C})
-endif(USE_LUA2C)
+set(srcUGScript ${srcUGScript} ${srcLUACompiler})
+
 
 set(Sources ${srcUGScript} ${srcLua})
 

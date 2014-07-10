@@ -15,7 +15,6 @@ using namespace std;
 namespace ug
 {
 	
-extern bool useLua2C;
 
 ///	returns true if callback exists
 bool CheckLuaCallbackName(const char* name)

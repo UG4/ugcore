@@ -11,8 +11,12 @@
 #include "bindings/lua/lua_stack_check.h"
 #include "bindings/lua/info_commands.h"
 #include "common/util/string_util.h"
-#include "lua2c_debug.h"
+#include "lua_compiler_debug.h"
 #include "common/profiler/profiler.h"
+
+#ifdef UG_PARALLEL
+#include "pcl/pcl.h"
+#endif
 
 using namespace std;
 
@@ -101,6 +105,27 @@ void LUAParserClass::reduce()
 		nodes[i] = reduce(nodes[i]);
 }
 
+#ifdef UG_PARALLEL
+string GetFileLinesParallel(string filename, size_t fromline, size_t toline, bool includeLineNumbers, const pcl::ProcessCommunicator &pc = pcl::ProcessCommunicator())
+{
+	PCL_PROFILE_FUNC();
+	string lines;
+	BinaryBuffer buf;
+	if(pc.is_proc_id(0))
+	{
+		lines = GetFileLines(filename.c_str(), fromline, toline, includeLineNumbers);
+		Serialize(buf, lines);
+	}
+
+	pc.broadcast(buf);
+
+	if(!pc.is_proc_id(0))
+		Deserialize(buf, lines);
+
+	return lines;
+}
+#endif
+
 
 int LUAParserClass::parse_luaFunction(const char *functionName)
 {
@@ -115,7 +140,7 @@ int LUAParserClass::parse_luaFunction(const char *functionName)
 
 	if(!lua_isfunction(L, -1))
 	{
-		UG_DLOG(DID_LUA2C, 1, "LUA Script function " << functionName << " not found\n");
+		UG_DLOG(DID_LUACOMPILER, 1, "LUA Script function " << functionName << " not found\n");
 		lua_pop(L, 1);
 		return false;			
 	}
@@ -126,14 +151,19 @@ int LUAParserClass::parse_luaFunction(const char *functionName)
 	lua_getinfo(L, ">Snlu", &ar);
 	if(!ar.source)
 	{
-		UG_DLOG(DID_LUA2C, 1, "no source found\n")
+		UG_DLOG(DID_LUACOMPILER, 1, "no source found\n")
 		lua_pop(L, 1);
 		//UG_ASSERT(0, "no source found");
 		return false;			
 	}
 	const char *src = ar.source[0]=='@' ? ar.source+1 : ar.source;
 
+#ifdef UG_PARALLEL
+	string str = GetFileLinesParallel(src, ar.linedefined, ar.lastlinedefined, false);
+#else
 	string str = GetFileLines(src, ar.linedefined, ar.lastlinedefined, false);
+#endif
+
 
 	if(str.find("--lua2c:ignore") != std::string::npos)
 		return LUAParserIgnore;

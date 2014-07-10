@@ -23,10 +23,7 @@ extern "C" {
 #include "lib_disc/spatial_disc/user_data/user_function.h"
 #include "lib_disc/spatial_disc/user_data/linker/linker.h"
 #include "lua_traits.h"
-
-#ifdef USE_LUA2C
-#include "bindings/lua/converter/lua2c.h"
-#endif
+#include "bindings/lua/compiler/lua_compiler.h"
 
 namespace ug
 {
@@ -96,10 +93,8 @@ class LuaUserData
 	///	reference to lua function
 		int m_callbackRef;
 		
-    /// LUA2C type for compiled LUA code
-#ifdef USE_LUA2C
-		bridge::LUA2C m_luaC;
-#endif
+    /// LUACompiler type for compiled LUA code
+		bridge::LUACompiler m_luaComp;
 
 	///	flag, indicating if created from factory
 		bool m_bFromFactory;
@@ -297,11 +292,9 @@ class LuaUserFunction
 	/// flag for position and time data
 		bool m_bPosTimeNeed;
 		
-#ifdef USE_LUA2C
-    /// LUA2C types for compiled LUA code
-		bridge::LUA2C m_luaC;
-		std::vector<bridge::LUA2C > m_luaC_Deriv;
-#endif
+    /// LUACompiler types for compiled LUA code
+		bridge::LUACompiler m_luaComp;
+		std::vector<bridge::LUACompiler > m_luaComp_Deriv;
 
 	protected:
 	///	data input

@@ -26,7 +26,7 @@
 #endif
 namespace ug{
 
-extern bool useLua2C;
+extern bool useLuaCompiler;
 
 
 
@@ -83,9 +83,7 @@ LuaUserData<TData,dim,TRet>::LuaUserData(const char* luaCallback)
 //	store reference to lua function
 	m_callbackRef = luaL_ref(m_L, LUA_REGISTRYINDEX);
 	
-#ifdef USE_LUA2C
-	if(useLua2C) m_luaC.create(luaCallback);
-#endif
+	if(useLuaCompiler) m_luaComp.create(luaCallback);
 }
 
 template <typename TData, int dim, typename TRet>
@@ -208,8 +206,7 @@ TRet LuaUserData<TData,dim,TRet>::
 evaluate(TData& D, const MathVector<dim>& x, number time, int si) const
 {
     PROFILE_CALLBACK()
-#ifdef USE_LUA2C
-	if(useLua2C && m_luaC.is_valid())
+	if(useLuaCompiler && m_luaComp.is_valid())
 	{
 		double d[dim+2];
 		for(int i=0; i<dim; i++)
@@ -217,14 +214,13 @@ evaluate(TData& D, const MathVector<dim>& x, number time, int si) const
 		d[dim] = time;	
 		d[dim+1] = si;	
 		double ret[lua_traits<TData>::size+1];
-		m_luaC.call(ret, d);
+		m_luaComp.call(ret, d);
 		//TData D2;
 		TRet *t=NULL;
 		lua_traits<TData>::read(D, ret, t);
 		return lua_traits<TRet>::do_return(ret[0]);
 	}
 	else
-#endif
 	{
 	//	push the callback function on the stack
 		lua_rawgeti(m_L, LUA_REGISTRYINDEX, m_callbackRef);
@@ -374,9 +370,7 @@ LuaUserFunction(const char* luaCallback, size_t numArgs)
 	m_cbDerivRef.clear();
 	m_cbDerivName.clear();
 	set_lua_value_callback(luaCallback, numArgs);
-#ifdef USE_LUA2C
-	if(useLua2C) m_luaC.create(luaCallback);
-#endif
+	if(useLuaCompiler) m_luaComp.create(luaCallback);
 }
 
 template <typename TData, int dim, typename TDataIn>
@@ -389,9 +383,7 @@ LuaUserFunction(const char* luaCallback, size_t numArgs, bool bPosTimeNeed)
 	m_cbDerivRef.clear();
 	m_cbDerivName.clear();
 	set_lua_value_callback(luaCallback, numArgs);
-#ifdef USE_LUA2C
-	m_luaC_Deriv.clear();
-#endif
+	m_luaComp_Deriv.clear();
 }
 
 template <typename TData, int dim, typename TDataIn>
@@ -454,9 +446,7 @@ void LuaUserFunction<TData,dim,TDataIn>::set_lua_value_callback(const char* luaC
 //	set num inputs for linker
 	set_num_input(numArgs);
 
-#ifdef USE_LUA2C
-	m_luaC_Deriv.resize(numArgs);
-#endif
+	m_luaComp_Deriv.resize(numArgs);
 }
 
 
@@ -487,9 +477,7 @@ void LuaUserFunction<TData,dim,TDataIn>::set_deriv(size_t arg, const char* luaCa
 //	store reference to lua function
 	m_cbDerivRef[arg] = luaL_ref(m_L, LUA_REGISTRYINDEX);
 	
-#ifdef USE_LUA2C
-	if(useLua2C) m_luaC_Deriv[arg].create(luaCallback);
-#endif
+	if(useLuaCompiler) m_luaComp_Deriv[arg].create(luaCallback);
 	
 }
 
@@ -497,8 +485,7 @@ template <typename TData, int dim, typename TDataIn>
 void LuaUserFunction<TData,dim,TDataIn>::operator() (TData& out, int numArgs, ...) const
 {
     PROFILE_CALLBACK();
-#ifdef USE_LUA2C
-	if(useLua2C && m_luaC.is_valid())
+	if(useLuaCompiler && m_luaComp.is_valid())
 	{
 		double d[20];
 		//	get list of arguments
@@ -512,9 +499,9 @@ void LuaUserFunction<TData,dim,TDataIn>::operator() (TData& out, int numArgs, ..
 
 		double ret[lua_traits<TData>::size+1];
 
-		UG_ASSERT(m_luaC.num_in() == numArgs && m_luaC.num_out() == lua_traits<TData>::size, 
-			m_luaC.name() << ", " << m_luaC.num_in() << " != " << numArgs << " or " << m_luaC.num_out() << " != " << lua_traits<TData>::size);
-		m_luaC.call(ret, d);
+		UG_ASSERT(m_luaComp.num_in() == numArgs && m_luaComp.num_out() == lua_traits<TData>::size,
+				m_luaComp.name() << ", " << m_luaComp.num_in() << " != " << numArgs << " or " << m_luaComp.num_out() << " != " << lua_traits<TData>::size);
+		m_luaComp.call(ret, d);
 		//TData D2;
 		void *t=NULL;
 		//TData out2;
@@ -522,7 +509,6 @@ void LuaUserFunction<TData,dim,TDataIn>::operator() (TData& out, int numArgs, ..
 		return;
 	}
 	else
-#endif
 	{
 		UG_ASSERT(numArgs == (int)m_numArgs, "Number of arguments mismatched.");
 
@@ -577,8 +563,7 @@ void LuaUserFunction<TData,dim,TDataIn>::eval_value(TData& out, const std::vecto
 													const MathVector<dim>& x, number time, int si) const
 {
     PROFILE_CALLBACK();
-#ifdef USE_LUA2C
-	if(useLua2C && m_luaC.is_valid())
+	if(useLuaCompiler && m_luaComp.is_valid())
 	{
 		double d[20];
 
@@ -590,20 +575,19 @@ void LuaUserFunction<TData,dim,TDataIn>::eval_value(TData& out, const std::vecto
 				d[i+m_numArgs] = x[i];
 			d[dim+m_numArgs]=time;
 			d[dim+m_numArgs+1]=si;
-			UG_ASSERT(dim+m_numArgs+1 < 20, m_luaC.name());
+			UG_ASSERT(dim+m_numArgs+1 < 20, m_luaComp.name());
 		}
 
 		double ret[lua_traits<TData>::size];
-		m_luaC.call(ret, d);
+		m_luaComp.call(ret, d);
 		//TData D2;
 		void *t=NULL;
 		//TData out2;
-		UG_ASSERT(m_luaC.num_out() == lua_traits<TData>::size, m_luaC.name() << ", " << m_luaC.num_out() << " != " << lua_traits<TData>::size);
+		UG_ASSERT(m_luaComp.num_out() == lua_traits<TData>::size, m_luaComp.name() << ", " << m_luaComp.num_out() << " != " << lua_traits<TData>::size);
 		lua_traits<TData>::read(out, ret, t);
 		return;
 	}
 	else
-#endif
 	{
 		UG_ASSERT(dataIn.size() == m_numArgs, "Number of arguments mismatched.");
 
@@ -660,12 +644,12 @@ void LuaUserFunction<TData,dim,TDataIn>::eval_deriv(TData& out, const std::vecto
 		 	 	 	 	 	 	 	 	 	 	 	 const MathVector<dim>& x, number time, int si, size_t arg) const
 {
 	PROFILE_CALLBACK();
-#ifdef USE_LUA2C
-	if(useLua2C && m_luaC_Deriv[arg].is_valid()
-		&& dim+m_numArgs+1 < 20 && m_luaC_Deriv[arg].num_out() == lua_traits<TData>::size)
+	if(useLuaCompiler && m_luaComp_Deriv[arg].is_valid()
+		&& dim+m_numArgs+1 < 20 && m_luaComp_Deriv[arg].num_out() == lua_traits<TData>::size)
 	{
+		const bridge::LUACompiler &luaComp = m_luaComp_Deriv[arg];
 		double d[25];
-		UG_ASSERT(dim+m_numArgs+1 < 20, m_luaC.name());
+		UG_ASSERT(dim+m_numArgs+1 < 20, luaComp.name());
 		for(size_t i=0; i<m_numArgs; i++)
 			d[i] = dataIn[i];
 		if(m_bPosTimeNeed){
@@ -673,12 +657,12 @@ void LuaUserFunction<TData,dim,TDataIn>::eval_deriv(TData& out, const std::vecto
 				d[i+m_numArgs] = x[i];
 			d[dim+m_numArgs]=time;
 			d[dim+m_numArgs+1]=si;
-			UG_ASSERT(dim+m_numArgs+1 < 20, m_luaC.name());
+			UG_ASSERT(dim+m_numArgs+1 < 20, luaComp.name());
 		}
-		UG_ASSERT(m_luaC_Deriv[arg].num_out() == lua_traits<TData>::size, 
-			m_luaC_Deriv[arg].name() << " has wrong number of outputs: is " << m_luaC.num_out() << ", needs " << lua_traits<TData>::size);
+		UG_ASSERT(luaComp.num_out() == lua_traits<TData>::size,
+				luaComp.name() << " has wrong number of outputs: is " << luaComp.num_out() << ", needs " << lua_traits<TData>::size);
 		double ret[lua_traits<TData>::size+1];
-		m_luaC_Deriv[arg].call(ret, d);
+		luaComp.call(ret, d);
 		//TData D2;
 		void *t=NULL;
 		//TData out2;
@@ -686,7 +670,6 @@ void LuaUserFunction<TData,dim,TDataIn>::eval_deriv(TData& out, const std::vecto
 		return;
 	}
 	else
-#endif
 	{
 		UG_ASSERT(dataIn.size() == m_numArgs, "Number of arguments mismatched.");
 		UG_ASSERT(arg < m_numArgs, "Argument does not exist.");

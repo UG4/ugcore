@@ -7,6 +7,7 @@
 
 #include "lua_parser_class.h"
 #include "common/assert.h"
+#include "lua_compiler_debug.h"
 
 using namespace std;
 

@@ -9,7 +9,7 @@
 #include "bindings/lua/lua_util.h"
 #include "bindings/lua/lua_stack_check.h"
 #include "bindings/lua/info_commands.h"
-#include "lua2c.h"
+#include "lua_compiler.h"
 #include "lua_parser_class.h"
 
 using namespace std;

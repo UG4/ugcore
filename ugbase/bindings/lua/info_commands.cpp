@@ -51,7 +51,7 @@ void ug_backtrace();
 namespace ug
 {
 bool useLua2VM=false;
-bool useLua2C=false;
+bool useLuaCompiler=false;
 
 namespace bridge
 {
@@ -1136,16 +1136,15 @@ void EnableLUA2C(bool b)
 {
 #ifndef USE_LUA2C
 	UG_LOG("Warning: LUA2C not enabled. Enable with \"cmake -DUSE_LUA2C=ON ..\"\n")
+#else
+	useLuaCompiler=b;
+	useLua2VM=false;
 #endif
-	useLua2C=b;
 }
 
 void EnableLUA2VM(bool b)
 {
-#ifndef USE_LUA2C
-	UG_LOG("Warning: LUA2C not enabled. Enable with \"cmake -DUSE_LUA2C=ON ..\"\n")
-#endif
-	useLua2C=b;
+	useLuaCompiler=b;
 	useLua2VM=b;
 }
 
