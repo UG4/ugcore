@@ -65,7 +65,9 @@ void RegisterUserDataType(Registry& reg, string grp)
 			.add_method("get_dim", &T::get_dim)
 			.add_method("type", &T::type);
 		reg.add_class_to_group(name, string("User").append(type), dimTag);
-		reg.add_function("PrintUserDataValue", &PrintUserDataValue<TData, dim>, "Prints the value of the given user data at the given global position at the given time on the given subset.");
+		reg.add_function("PrintUserDataValue", &PrintUserDataValue<TData, dim>,
+						 grp, "", "userData#position#time#subsetIndex",
+						 "Prints the value of the given user data at the given global position at the given time on the given subset.");
 	}
 
 //	CondUser"Type"
@@ -77,7 +79,9 @@ void RegisterUserDataType(Registry& reg, string grp)
 		string name = string("CondUser").append(type).append(dimSuffix);
 		reg.add_class_<T,TBase1>(name, grp);
 		reg.add_class_to_group(name, string("CondUser").append(type), dimTag);
-		reg.add_function("PrintUserDataValue", &PrintCondUserDataValue<TData, dim>, "Prints the value of the given user data at the given global position at the given time on the given subset.");
+		reg.add_function("PrintUserDataValue", &PrintCondUserDataValue<TData, dim>,
+						 grp, "", "userData#position#time#subsetIndex",
+						 "Prints the value of the given user data at the given global position at the given time on the given subset.");
 	}
 
 //	CplUser"Type"

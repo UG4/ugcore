@@ -1126,7 +1126,7 @@ static void Common(Registry& reg, string grp)
 //	register domain independent mark methods
 	reg.add_function("MarkForRefinement_All", &MarkForRefinement_All, grp, "", "ref");
 //	register refinement rule switch function
-	reg.add_function("SetTetRefinementRule", &SetTetRefinementRule,
+	reg.add_function("SetTetRefinementRule", &SetTetRefinementRule, grp, "", "refRuleName",
 			"Sets the refinement rule which is used to refine tetrahedrons. Possible parameters: 'standard', 'hybrid_tet_oct");
 }
 
