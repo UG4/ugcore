@@ -13,6 +13,7 @@
 #include "common/util/string_util.h"
 #include "compile_info/compile_info.h"
 #include "common/util/crc32.h"
+#include "common/stopwatch.h"
 using namespace std;
 
 void ug_backtrace();
@@ -405,10 +406,11 @@ string GetBuildHostname()
 	return string(UGBuildHost());
 }
 
-
+/// clock() and os.clock only returns CPU time.
+/// get_clock_s returns seconds since 1970.
 double GetClockS()
 {
-	return clock()/((double)CLOCKS_PER_SEC);
+	return get_clock_s();
 }
 
 
@@ -475,7 +477,7 @@ void RegisterBridge_Misc(Registry &reg, string parentGroup)
 		reg.add_function("GetLogAssistant", &GetLogAssistant, grp, "the log assistant");
 		//reg.add_function("GetLogAssistantTag", &GetLogAssistantTag, grp, "integer tag for use int set_debug_level");
 		//reg.add_function("SetDebugLevel", &SetDebugLevel, grp);
-		reg.add_function("GetClockS", &GetClockS, grp);
+		reg.add_function("GetClockS", &GetClockS, grp, "seconds since 1970", "", "use this instead of os.clock() since os.clock only returns CPU time.");
 		reg.add_function("PrintLUA", &PrintLUA, grp);
 	}
 
