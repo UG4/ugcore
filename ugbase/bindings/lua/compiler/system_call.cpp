@@ -18,8 +18,8 @@
 
 using namespace std;
 
-#if WIN32
-SystemCall::SystemCall(const std::string &command);
+#ifdef WIN32
+SystemCall::SystemCall(const std::string &command)
 {
 	m_bCalled = false;
 	m_returnCode = 0xDEAD;
