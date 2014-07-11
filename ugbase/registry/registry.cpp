@@ -26,7 +26,7 @@ Registry::Registry()
 	add_class_<char>("c_char");
 	add_class_<const char*>("c_const_char_ptr");
 	add_class_<std::string>("c_string");
-	//add_class_<void>("c_void");
+	add_class_<void>("c_void");
 }
 
 Registry::Registry(const Registry& reg)
