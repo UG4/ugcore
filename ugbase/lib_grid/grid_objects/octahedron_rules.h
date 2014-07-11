@@ -20,7 +20,13 @@ const int NUM_EDGES		= 12;
 const int NUM_FACES		= 8;
 const int NUM_TRIS		= 8;
 const int NUM_QUADS		= 0;
-const int MAX_NUM_INDS_OUT = 64;//todo: this is just an estimate!
+
+/* in case of regular refinement an octahedron is subdivided into 14 elements,
+ * 6 octahedrons and 8 tetrahedrons, resulting in 14 type-info plus
+ * 6*6 octahedral vertex plus 4*8 tetrahedral vertex indices,
+ * thus 82 MAX_NUM_INDS_OUT
+ */
+const int MAX_NUM_INDS_OUT = 82;//todo: this is just an estimate!
 
 ///	the local vertex indices of the given edge
 const int EDGE_VRT_INDS[][2] = {	{0, 1}, {0, 2}, {0, 3}, {0, 4},

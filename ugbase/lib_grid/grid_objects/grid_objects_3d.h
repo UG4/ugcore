@@ -163,7 +163,7 @@ class UG_API OctahedronDescriptor
 {
 	public:
 		OctahedronDescriptor()	{}
-		OctahedronDescriptor(const OctahedronDescriptor& od);
+		OctahedronDescriptor(const OctahedronDescriptor& td);
 		OctahedronDescriptor(const VolumeVertices& vv);
 		OctahedronDescriptor(Vertex* v1, Vertex* v2, Vertex* v3, Vertex* v4, Vertex* v5, Vertex* v6);
 
@@ -194,7 +194,7 @@ class UG_API Octahedron : public Volume
 		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Octahedron*>(pObj) != NULL;}
 
 		Octahedron()	{}
-		Octahedron(const OctahedronDescriptor& od);
+		Octahedron(const OctahedronDescriptor& td);
 		Octahedron(Vertex* v1, Vertex* v2, Vertex* v3, Vertex* v4, Vertex* v5, Vertex* v6);
 
 		virtual GridObject* create_empty_instance() const	{return new Octahedron;}

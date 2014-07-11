@@ -61,7 +61,7 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 
 //	convenience - indices where new edge-vrts, new face-vrts and new vol-vrts begin.
 	const int E = NUM_VERTICES;
-	const int F = NUM_VERTICES + NUM_EDGES;
+	//const int F = NUM_VERTICES + NUM_EDGES;
 	const int V = NUM_VERTICES + NUM_EDGES + NUM_FACES;
 
 //	depending on the number of new vertices, we will now apply different
