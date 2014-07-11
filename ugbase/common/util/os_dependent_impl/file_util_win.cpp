@@ -119,4 +119,11 @@ std::string GetTmpPath()
 	return userDataPath.c_str();
 }
 
+void ChangeDirectory(std::string dir)
+{
+	if(chdir(dir.c_str()) != 0){
+		UG_THROW("ChangeDirectory failed.");
+	}
+}
+
 }// end of namespace

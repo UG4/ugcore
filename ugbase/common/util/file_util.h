@@ -150,6 +150,9 @@ UG_API bool ReadFile(const char* filename, std::vector<char> &file, bool bText);
 UG_API std::string MakeTmpFile(std::string filename, const std::string &extension,
 		bool &bSuccess);
 
+///	Changes the current directory
+UG_API void ChangeDirectory(std::string dir);
+
 // end group ugbase_common_io
 /// \}
 

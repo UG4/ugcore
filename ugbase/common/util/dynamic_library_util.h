@@ -5,14 +5,17 @@
 #ifndef __H__UG__dynamic_library_util__
 #define __H__UG__dynamic_library_util__
 
+#ifdef UG_WIN32
+	#define WIN32_LEAN_AND_MEAN
+	#include <windows.h>
+#endif
+
 namespace ug{
 
 /// \addtogroup ugbase_common_util
 /// \{
 
 #ifdef UG_WIN32
-	#define WIN32_LEAN_AND_MEAN
-	#include <windows.h>
 ///	Defines a reference to a dynamically loaded library
 	typedef HMODULE DynLibHandle;
 #else

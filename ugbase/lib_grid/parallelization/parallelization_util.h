@@ -13,6 +13,7 @@
 	#define GDIST_PROFILE_FUNC()	PROFILE_FUNC_GROUP("gdist")
 	#define GDIST_PROFILE(name)	PROFILE_BEGIN_GROUP(name, "gdist")
 	#define GDIST_PROFILE_END()	PROFILE_END()
+	#define GDIST_PROFILE_END_(name)	PROFILE_END_(name)
 #else
 	#define GDIST_PROFILE_FUNC()
 	#define GDIST_PROFILE(name)

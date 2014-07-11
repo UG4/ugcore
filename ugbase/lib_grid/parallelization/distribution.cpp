@@ -1606,7 +1606,7 @@ bool DistributeGrid(MultiGrid& mg,
 {
 	GDIST_PROFILE_FUNC();
 	PCL_DEBUG_BARRIER(procComm);
-
+	GDIST_PROFILE(performRedistribution);
 	UG_STATIC_ASSERT(IS_DUMMY < 256, RedistributeGrid_IS_DUMMY_too_big);
 
 	UG_DLOG(LG_DIST, 3, "dist-start: DistributeGrid\n");
@@ -2118,6 +2118,7 @@ bool DistributeGrid(MultiGrid& mg,
 	// }
 
 
+	GDIST_PROFILE_END_(performRedistribution);
 
 //	execute callbacks for external postprocessing
 	GDIST_PROFILE(gdist_ExternalPostProcessing);

@@ -3,10 +3,12 @@
 // 14.09.2011 (m,d,y)
  
 #include <dirent.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "common/util/file_util.h"
 #include "common/profiler/profiler.h"
+#include "common/error.h"
 
 using namespace std;
 
@@ -105,6 +107,13 @@ bool CreateDirectory(std::string directory)
 std::string GetTmpPath()
 {
 	return string("/tmp");
+}
+
+void ChangeDirectory(std::string dir)
+{
+	if(chdir(dir.c_str()) != 0){
+		UG_THROW("ChangeDirectory failed.");
+	}
 }
 
 }// end of namespace

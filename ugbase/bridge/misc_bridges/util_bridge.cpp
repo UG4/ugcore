@@ -130,6 +130,7 @@ void RegisterBridge_Util(Registry& reg, string parentGroup)
 	reg.add_function("GetFilesInDir", GetFilesInDir);
 	reg.add_function("GetDirsInDir", GetDirsInDir);
 	reg.add_function("GetTmpPath", GetTmpPath);
+	reg.add_function("ChangeDirectory", ChangeDirectory);
 	reg.add_function("FileCompare", FileCompare);
 	reg.add_function("SetMinSecondsUntilProgress", SetMinSecondsUntilProgress, grp, "", "seconds", "determines after which time a progress bar can show up");
 
