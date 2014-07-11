@@ -163,6 +163,8 @@ create_sub_communicator(vector<int> &newProcs) const
 	PCL_PROFILE(pcl_ProcCom_create_sub_com__array);
 	if(newProcs.size() == 0)
 		return ProcessCommunicator(PCD_EMPTY);
+	if((int)newProcs.size() == NumProcs())
+		return ProcessCommunicator(PCD_WORLD);
 
 	PCL_PROFILE(create_mpi_com);
 	MPI_Group grpOld;
