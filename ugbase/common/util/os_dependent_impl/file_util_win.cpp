@@ -5,7 +5,7 @@
 #include <windows.h>
 #include "shlobj.h"
 #include "common/util/file_util.h"
-
+#include "common/error.h"
 #include <direct.h>
 
 using namespace std;
