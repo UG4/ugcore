@@ -587,8 +587,8 @@ inline void SideNormal(MathVector<TWorldDim>& normalOut, int side, const MathVec
 	
 //	Get the coordinates of the vertices:
 	MathVector<TWorldDim> vSideCorner [(dim == TWorldDim)? maxSideCorners : maxSideCorners + 1];
-	std::size_t numSideCorners = rRefElem.num(dim-1, side, 0);
-	for (std::size_t co = 0; co < numSideCorners; ++co)
+	size_t numSideCorners = rRefElem.num(dim-1, side, 0);
+	for (size_t co = 0; co < numSideCorners; ++co)
 		vSideCorner[co] = vCornerCoords[rRefElem.id(dim-1, side, 0, co)];
 	// we need another point if dim != TWorldDim:
 	// take the highest-numbered corner of the next side, since
