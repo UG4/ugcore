@@ -388,6 +388,9 @@ estimate_distribution_quality()
 bool LoadBalancer::
 rebalance()
 {
+	#ifdef UG_PARALLEL
+		PCL_DEBUG_BARRIER_ALL();
+	#endif
 	GDIST_PROFILE_FUNC();
 
 	UG_DLOG(LIB_GRID, 1, "LoadBalancer-start rebalance\n");

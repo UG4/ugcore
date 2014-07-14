@@ -71,6 +71,9 @@ void IRefiner::adaption_ends()
 
 void IRefiner::refine()
 {
+	#ifdef UG_PARALLEL
+		PCL_DEBUG_BARRIER_ALL();
+	#endif
 	PROFILE_BEGIN_GROUP(IRefiner_refine, "grid");
 	try
 	{
@@ -117,6 +120,9 @@ void IRefiner::refine()
 
 bool IRefiner::coarsen()
 {
+	#ifdef UG_PARALLEL
+		PCL_DEBUG_BARRIER_ALL();
+	#endif
 	PROFILE_BEGIN_GROUP(IRefiner_coarsen, "grid");
 //	if coarsen isn't supported, we'll leave right away
 	if(!coarsening_supported())
