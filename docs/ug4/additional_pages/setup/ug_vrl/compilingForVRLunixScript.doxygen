@@ -134,14 +134,16 @@ VRL_STUDIO_SESSION_TO_OPEN=/Users/christianpoliwoda/Documents/vrl-sessions/0-4-2
 ###
 
 
-#go into ug build folder 
+#gehe in den ug build-ordner 
+#echo "cd /Users/christianpoliwoda/Apps/ug4-git/build"
+#cd /Users/christianpoliwoda/Apps/ug4-git/build
 echo "cd $UG_BUILD_FOLDER"
 cd "$UG_BUILD_FOLDER"
 
 # EXAMPLE OF CMAKE CONFIGURATION of native ug
 #cmake ../trunk/
 
-##output should look like
+##out put should look like
 ##
 #-- The C compiler identification is GNU 4.2.1
 #-- The CXX compiler identification is Clang 4.2.0
@@ -232,6 +234,9 @@ date >> ${TMP_DIR}${TMP_FILE}
 echo "make -j$THREADS"
 make -j$THREADS 
 
+# store the (last) exit code -> exit code of the make command
+MAKE_EXIT =$?
+
 #erzeuge zweiten zeitstempel in der temporaeren datei tmp.txt
 echo "kompilieren gestopt um ..." >> ${TMP_DIR}${TMP_FILE} 
 date >>  ${TMP_DIR}${TMP_FILE}
@@ -241,7 +246,7 @@ date >>  ${TMP_DIR}${TMP_FILE}
 #rm  ${TMP_DIR}${TMP_FILE}
 
 #check if compilation was successful
-if [ $? -eq 0 ] ; then
+if [ $MAKE_EXIT -eq 0 ] ; then
 #  
 # when make succeeds go on with building vrl-ug
 #
@@ -342,6 +347,7 @@ echo -ne '\007'
 echo " oeffne vrl-studio (-session) ..."
 ##open /Users/christianpoliwoda/Documents/vrl-sessions/0-4-2/_tmp.vrlp 
 #open ${VRL_STUDIO_SESSION_TO_OPEN}
+
 
 \endcode
 
