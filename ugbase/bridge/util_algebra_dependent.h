@@ -37,11 +37,6 @@ typedef boost::mpl::list<
 		GPUAlgebra,
 #endif
 
-#ifdef UG_CPU_VAR
-		CRSVariableBlockAlgebra,
-#endif
-
-	
 #ifdef UG_CPU_1
 		CPUAlgebra,
 #endif
