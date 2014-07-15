@@ -25,6 +25,7 @@
 #include "lib_disc/spatial_disc/constraints/constraint_interface.h"
 #include "lib_disc/time_disc/time_disc_interface.h"
 #include "lib_disc/time_disc/theta_time_step.h"
+#include "lib_disc/time_disc/time_extrapolation.h"
 #include "lib_disc/operator/linear_operator/assembled_linear_operator.h"
 #include "lib_disc/operator/non_linear_operator/assembled_non_linear_operator.h"
 #include "lib_disc/operator/non_linear_operator/line_search.h"
@@ -203,6 +204,23 @@ static void Algebra(Registry& reg, string parentGroup)
 				.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "SDIRK", tag);
 	}
+
+//	Time extrapolation
+	{
+		std::string grp = parentGroup; grp.append("/Discretization/TimeDisc");
+		typedef AitkenNevilleTimex<typename TAlgebra::vector_type> T;
+		string name = string("AitkenNevilleTimex").append(suffix);
+		reg.add_class_<T>(name, grp)
+					//.template add_constructor<void (*)(SmartPtr<IDomainDiscretization<TAlgebra> >)>("Domain Discretization")
+					.ADD_CONSTRUCTOR( (std::vector<size_t> nsteps) ) ("number of steps (vector)")
+					.add_method("set_solution", &T::set_solution)
+					.add_method("get_solution", &T::get_solution)
+					.add_method("apply", &T::apply)
+					.add_method("get_error_estimate", &T::get_error_estimate)
+					.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "AitkenNevilleTimex", tag);
+	}
+
 
 //	AssembledLinearOperator
 	{
