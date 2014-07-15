@@ -14,6 +14,7 @@
 #include "bridge/bridge.h"
 #include "bridge/util.h"
 #include "bridge/util_domain_algebra_dependent.h"
+#include "bridge/util_overloaded.h"
 
 // discretization interfaces
 #include "lib_algebra/active_set/active_set.h"
