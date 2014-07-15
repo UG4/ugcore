@@ -83,9 +83,9 @@ set(sources ${sources} profiler/profile_node.cpp)
 if(UNIX AND NOT CYGWIN)
 	set(sources ${sources}	util/os_dependent_impl/file_util_posix.cpp)
 	
-	if(NOT STATIC)
+	#if(NOT STATIC)
 		set(sources ${sources}	util/os_dependent_impl/dynamic_library_util_unix.cpp)
-	endif(NOT STATIC)
+	#endif(NOT STATIC)
 	
 	if(APPLE)
 		set(sources ${sources} util/os_dependent_impl/os_info_osx.cpp)
@@ -96,9 +96,9 @@ if(UNIX AND NOT CYGWIN)
 elseif(WIN32 OR CYGWIN)
 	set(sources ${sources}	util/os_dependent_impl/os_info_win.cpp)
 	
-	if(NOT STATIC)
+	#if(NOT STATIC)
 		set(sources ${sources}	util/os_dependent_impl/dynamic_library_util_win.cpp)
-	endif(NOT STATIC)
+	#endif(NOT STATIC)
 	
 	#if(MINGW)
 	#	set(sources ${sources} util/os_dependent_impl/file_util_posix.cpp)

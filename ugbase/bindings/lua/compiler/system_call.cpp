@@ -32,9 +32,18 @@ SystemCall::SystemCall(const std::string &command)
 	PROCESS_INFORMATION pi;
 	ZeroMemory(&pi, sizeof(pi));
 
+//	CreateProcess takes a char* string, since it may modify its contents.
+//	we thus create a non-const copy of command
+	const size_t cmdLen = command.length();
+	char* cmd = new char[cmdLen + 1];
+	memcpy(cmd, command.c_str(), cmdLen);
+	cmd[cmdLen] = 0;
+
 	//creating new process
-	BOOL bResult = CreateProcess(NULL, command.c_str(), NULL, NULL, FALSE, CREATE_NO_WINDOW,
+	BOOL bResult = CreateProcess(NULL, cmd, NULL, NULL, FALSE, CREATE_NO_WINDOW,
 			NULL, NULL, &si, &pi);
+
+	delete[] cmd;
 
 	if(bResult)
 	{
