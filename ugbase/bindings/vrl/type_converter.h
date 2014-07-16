@@ -372,7 +372,8 @@ TypeAndArray paramClass2ParamType(JNIEnv *env, jobject obj);
  */
 bool compareParamTypes(JNIEnv *env, jobjectArray params,
         ug::bridge::Registry *reg,
-		const ug::bridge::ParameterInfo& paramStack);
+		const ug::bridge::ParameterInfo& paramStack,
+                bool allowSmartToRawPtrConversion = false);
 
 /**
  * Returns parent classes (super classes) of an exported class.

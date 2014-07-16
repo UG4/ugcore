@@ -765,7 +765,8 @@ TypeAndArray paramClass2ParamType(JNIEnv *env, jobject obj) {
 
 bool compareParamTypes(JNIEnv *env, jobjectArray params,
 		ug::bridge::Registry *reg,
-		ug::bridge::ParameterInfo const& paramStack) {
+		ug::bridge::ParameterInfo const& paramStack,
+                bool allowSmartToRawPtrConversion) {
 
 //	// christian poliwoda ug-log for debug
 //	UG_LOG("trunk/ugbase/bindings/vrl/type_converter.cpp :: compareParamTypes(...)"<<std::endl);
@@ -839,36 +840,40 @@ bool compareParamTypes(JNIEnv *env, jobjectArray params,
 			paramType.type = ug::Variant::VT_CSTRING;
 		}
 
-		// UGLY SMART-PTR to RAW-PTR CONVERSION (don't use this!)
-		// allow non-const-smart* to non const*
-		if (paramType.type == ug::Variant::VT_SMART_POINTER
-				&& paramStack.type(i) == ug::Variant::VT_POINTER) {
 
-//			// christian poliwoda ug-log for debug
-//			UG_LOG(	" compareParamTypes(...) if()4 = paramType == ug::Variant::VT_SMART_POINTER && paramStack.type(i) == ug::Variant::VT_POINTER" <<std::endl);
+                if (allowSmartToRawPtrConversion) {
 
-			paramType.type = ug::Variant::VT_POINTER;
-		}
+			// UGLY SMART-PTR to RAW-PTR CONVERSION (don't use this!)
+			// allow non-const-smart* to non const*
+			if (paramType.type == ug::Variant::VT_SMART_POINTER
+					&& paramStack.type(i) == ug::Variant::VT_POINTER) {
 
-		// allow non-const-smart* to const*
-		if (paramType.type == ug::Variant::VT_SMART_POINTER
-				&& paramStack.type(i) == ug::Variant::VT_CONST_POINTER) {
+	//			// christian poliwoda ug-log for debug
+	//			UG_LOG(	" compareParamTypes(...) if()4 = paramType == ug::Variant::VT_SMART_POINTER && paramStack.type(i) == ug::Variant::VT_POINTER" <<std::endl);
 
-//			// christian poliwoda ug-log for debug
-//			UG_LOG(	" compareParamTypes(...) if()5 => paramType == ug::Variant::VT_SMART_POINTER paramStack.type(i) == ug::Variant::VT_CONST_POINTER" <<std::endl);
+				paramType.type = ug::Variant::VT_POINTER;
+			}
 
-			paramType.type = ug::Variant::VT_CONST_POINTER;
-		}
+			// allow non-const-smart* to const*
+			if (paramType.type == ug::Variant::VT_SMART_POINTER
+					&& paramStack.type(i) == ug::Variant::VT_CONST_POINTER) {
 
-		// allow const smart* to const*
-		if (paramType.type == ug::Variant::VT_CONST_SMART_POINTER
-				&& paramStack.type(i) == ug::Variant::VT_CONST_POINTER) {
+	//			// christian poliwoda ug-log for debug
+	//			UG_LOG(	" compareParamTypes(...) if()5 => paramType == ug::Variant::VT_SMART_POINTER paramStack.type(i) == ug::Variant::VT_CONST_POINTER" <<std::endl);
 
-//			// christian poliwoda ug-log for debug
-//			UG_LOG(	" compareParamTypes(...) if()6 => (paramType == ug::Variant::VT_CONST_SMART_POINTER && paramStack.type(i) == ug::Variant::VT_CONST_POINTER" <<std::endl);
+				paramType.type = ug::Variant::VT_CONST_POINTER;
+			}
 
-			paramType.type = ug::Variant::VT_CONST_POINTER;
-		}
+			// allow const smart* to const*
+			if (paramType.type == ug::Variant::VT_CONST_SMART_POINTER
+					&& paramStack.type(i) == ug::Variant::VT_CONST_POINTER) {
+
+	//			// christian poliwoda ug-log for debug
+	//			UG_LOG(	" compareParamTypes(...) if()6 => (paramType == ug::Variant::VT_CONST_SMART_POINTER && paramStack.type(i) == ug::Variant::VT_CONST_POINTER" <<std::endl);
+
+				paramType.type = ug::Variant::VT_CONST_POINTER;
+			}
+                }
 
 		//new by christian poliwoda
 		// allow integer to size_t

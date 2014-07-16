@@ -10,27 +10,6 @@ namespace ug {
 namespace vrl {
 namespace invocation {
 
-//static std::map<const char*, const ug::bridge::ExportedMethod*> methods;
-//static std::map<const char*, const ug::bridge::ExportedFunction*> functions;
-//
-//
-//const std::string createMethodSignature(JNIEnv* env, const char* className,
-//		const char* methodName, bool readOnly, jobjectArray params) {
-//	std::stringstream signature;
-//
-//	signature << className << "::" << methodName << "::const=" << readOnly;
-//	size_t size = env->GetArrayLength(params);
-//
-//	for (size_t i = 0; i < size; i++) {
-//
-//		jobject param = env->GetObjectArrayElement(params, i);
-//
-//		signature << "::" << paramClass2ParamType(env, param);
-//	}
-//
-//	return signature.str();
-//}
-
 //static ug::Hash<std::string, const ug::bridge::ClassNameNode*> classNameNodes;
 static ug::Hash<std::string, const ug::bridge::IExportedClass*> classes;
 
@@ -88,17 +67,153 @@ const ug::bridge::ExportedMethod* getMethodBySignature(
 
 		size_t numOverloads = methodGroup->num_overloads();
 
+		// search without smart->raw conversion
 		for(size_t k = 0; k < numOverloads; k++) {
 			method = methodGroup->get_overload(k);
-			if(compareParamTypes(env, params, reg, method->params_in())) {
+			if(compareParamTypes(env, params, reg, method->params_in(), false)) {
 				// found correct overload
 				return method;
 			}
 		} // end for k
+
+		// if nothing found search with smart->raw conversion
+                for(size_t k = 0; k < numOverloads; k++) {
+			method = methodGroup->get_overload(k);
+			if(compareParamTypes(env, params, reg, method->params_in(), true)) {
+				// found correct overload
+				return method;
+			}
+		} // end for k
+
 	} // end for i
 
 	return NULL;
 }
+
+const ug::bridge::ExportedFunction* getFunctionBySignature(
+		JNIEnv *env,
+		ug::bridge::Registry* reg,
+		std::string functionName,
+		jobjectArray params) {
+
+	//	// create signature
+	//	std::string signature = createMethodSignature(
+	//			env, "", "", false, params);
+	//
+	//	// search in map first and return result if entry exists
+	//	if (methods.find(signature.c_str()) != methods.end()) {
+	//		UG_LOG("FOUND:" << signature << std::endl);
+	//		return functions[signature.c_str()];
+	//	}
+
+	const ug::bridge::ExportedFunction* func = NULL;
+
+	const ug::bridge::ExportedFunctionGroup *funcGroup = reg->get_exported_function_group(functionName);
+	if(funcGroup == NULL) return NULL;
+	size_t numOverloads = funcGroup->num_overloads();
+
+	// search without smart->raw conversion
+	for(size_t k = 0; k < numOverloads; k++) {
+		func = funcGroup->get_overload(k);
+		if (compareParamTypes(env, params, reg, func->params_in(), false)) {
+			// found correct overload
+			return func;
+		}
+	}
+
+	// if nothing found search with smart->raw conversion
+	for(size_t k = 0; k < numOverloads; k++) {
+		func = funcGroup->get_overload(k);
+		if (compareParamTypes(env, params, reg, func->params_in(), true)) {
+			// found correct overload
+			return func;
+		}
+	}
+	// we did not find the correct overload
+	// there is no other group having the same name
+	return NULL;
+}
+
+const ug::bridge::ExportedConstructor* getConstructorBySignature(
+		JNIEnv *env,
+		ug::bridge::Registry* reg,
+		ug::bridge::IExportedClass* eCls,
+		jobjectArray params) {
+
+	size_t numConstructors = 0;
+
+	numConstructors = eCls->num_constructors();
+
+	// search without smart->raw conversion
+	for (size_t i = 0; i < numConstructors; i++) {
+		const ug::bridge::ExportedConstructor* constructor = 
+		&eCls->get_constructor(i);
+
+		// if the parameter types are equal
+		// we found the correct constructor
+		if (compareParamTypes(
+				env, params, reg, constructor->params_in(), false)) {
+
+			return constructor;
+		}
+	}
+
+	// if nothing found search with smart->raw conversion
+	for (size_t i = 0; i < numConstructors; i++) {
+		const ug::bridge::ExportedConstructor* constructor = 
+		&eCls->get_constructor(i);
+
+		// if the parameter types are equal
+		// we found the correct constructor
+		if (compareParamTypes(
+				env, params, reg, constructor->params_in(), true)) {
+
+			return constructor;
+		}
+	}
+
+	return NULL;
+}
+
+const ug::bridge::IExportedClass* getExportedClassPtrByName(
+		ug::bridge::Registry* reg,
+		std::string className) {
+
+	return classes.get_entry(className);
+}
+
+const ug::bridge::ClassNameNode* getClassNodePtrByName(
+		ug::bridge::Registry* reg,
+		std::string className) {
+
+	if (className == "") {
+		return NULL;
+	}
+
+	return &classes.get_entry(className)->class_name_node();
+}
+
+//static std::map<const char*, const ug::bridge::ExportedMethod*> methods;
+//static std::map<const char*, const ug::bridge::ExportedFunction*> functions;
+//
+//
+//const std::string createMethodSignature(JNIEnv* env, const char* className,
+//		const char* methodName, bool readOnly, jobjectArray params) {
+//	std::stringstream signature;
+//
+//	signature << className << "::" << methodName << "::const=" << readOnly;
+//	size_t size = env->GetArrayLength(params);
+//
+//	for (size_t i = 0; i < size; i++) {
+//
+//		jobject param = env->GetObjectArrayElement(params, i);
+//
+//		signature << "::" << paramClass2ParamType(env, param);
+//	}
+//
+//	return signature.str();
+//}
+
 //const ug::bridge::ExportedMethod* getMethodBySignature(
 //		JNIEnv *env,
 //		ug::bridge::Registry* reg,
@@ -220,82 +335,6 @@ const ug::bridge::ExportedMethod* getMethodBySignature(
 //	return NULL;
 //}
 
-const ug::bridge::ExportedFunction* getFunctionBySignature(
-		JNIEnv *env,
-		ug::bridge::Registry* reg,
-		std::string functionName,
-		jobjectArray params) {
-
-	//	// create signature
-	//	std::string signature = createMethodSignature(
-	//			env, "", "", false, params);
-	//
-	//	// search in map first and return result if entry exists
-	//	if (methods.find(signature.c_str()) != methods.end()) {
-	//		UG_LOG("FOUND:" << signature << std::endl);
-	//		return functions[signature.c_str()];
-	//	}
-
-	const ug::bridge::ExportedFunction* func = NULL;
-
-	const ug::bridge::ExportedFunctionGroup *funcGroup = reg->get_exported_function_group(functionName);
-	if(funcGroup == NULL) return NULL;
-	size_t numOverloads = funcGroup->num_overloads();
-	for(size_t k = 0; k < numOverloads; k++) {
-		func = funcGroup->get_overload(k);
-		if (compareParamTypes(env, params, reg, func->params_in())) {
-			// found correct overload
-			return func;
-		}
-	}
-	// we did not find the correct overload
-	// there is no other group having the same name
-	return NULL;
-}
-
-const ug::bridge::ExportedConstructor* getConstructorBySignature(
-		JNIEnv *env,
-		ug::bridge::Registry* reg,
-		ug::bridge::IExportedClass* eCls,
-		jobjectArray params) {
-
-	size_t numConstructors = 0;
-
-	numConstructors = eCls->num_constructors();
-
-	for (size_t i = 0; i < numConstructors; i++) {
-		const ug::bridge::ExportedConstructor* constructor = 
-		&eCls->get_constructor(i);
-
-		// if the parameter types are equal
-		// we found the correct constructor
-		if (compareParamTypes(
-				env, params, reg, constructor->params_in())) {
-
-			return constructor;
-		}
-	}
-
-	return NULL;
-}
-
-const ug::bridge::IExportedClass* getExportedClassPtrByName(
-		ug::bridge::Registry* reg,
-		std::string className) {
-
-	return classes.get_entry(className);
-}
-
-const ug::bridge::ClassNameNode* getClassNodePtrByName(
-		ug::bridge::Registry* reg,
-		std::string className) {
-
-	if (className == "") {
-		return NULL;
-	}
-
-	return &classes.get_entry(className)->class_name_node();
-}
 
 } // invocation::
 } // vrl::
