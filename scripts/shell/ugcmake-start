@@ -39,8 +39,8 @@ if [ $UGSUBMIT_TYPE == "Hermit" ]; then
 	echo "ugcmake-start: also make sure LAPACK and BLAS modules are loaded (see also ugconfig)"
 	echo "ugcmake-start: Listing Modules:"
 	module list		
-	echo "ugcmake-start: cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchain/hermit.cmake $*"
-	cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchain/hermit.cmake $*		
+	echo "ugcmake-start: cmake -DCMAKE_TOOLCHAIN_FILE=$UG4_ROOT/cmake/toolchain/hermit.cmake $*"
+	cmake -DCMAKE_TOOLCHAIN_FILE=$UG4_ROOT/cmake/toolchain/hermit.cmake $*		
 elif [ $UGSUBMIT_TYPE == "cekon" ]; then
 	echo "ugcmake-start: on Cekon: cmake $*"
 	cmake $* ..
