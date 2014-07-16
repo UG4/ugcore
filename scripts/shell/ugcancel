@@ -9,7 +9,7 @@
 scriptname=$0;		  # name of script
 scriptpath=`dirname $scriptname`
 
-echo "ugcancel 0.1. (c) Goethe-Center for Scientific Computing 2012"
+echo "ugcancel 0.1. (c) Goethe-Center for Scientific Computing 2012-2014"
 
 ######################################################################
 

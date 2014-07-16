@@ -72,7 +72,7 @@ pbsMailtype=""
 # todo: option -nodir
 # todo: interactive mode
 
-echo "ugsubmit 0.2. (c) Goethe-Center for Scientific Computing 2012-2013"
+echo "ugsubmit 0.2. (c) Goethe-Center for Scientific Computing 2012-2014"
 
 
 # complete -W "-test -nppn -cluster -walltime -mail-start -mail-end -mail-error -mail-arr -verbose -tail -i -dir -scan -Jugene-mode -Jugene-mapfile -Jugene-verbose -Hermit-workspace" ugsubmit
