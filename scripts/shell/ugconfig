@@ -1,5 +1,14 @@
 #!/bin/bash
-
+######################################################################
+# ugbash
+#-------------------------------------------------------------------
+# created by Martin Rupp 01.07.2014
+# mail: martin.rupp@gcsc.uni-frankfurt.de
+#
+# source this file in your ~/.bashrc .
+# it will then automatically set up the cluster for ug4
+# e.g. loading of lapack/blas/compiler modules.
+######################################################################
 
 
 if [ -z "$UGSUBMIT_TYPE" ]; then
@@ -11,15 +20,20 @@ if [ -z "$UGSUBMIT_TYPE" ]; then
 		elif [[ "$HOSTNAME" == "juqueen"* ]]; then
 			UGSUBMIT_TYPE=Juqueen
 		else
-		    #echo $HOSTNAME
-		    echo "Hello, this is ugconfig trying to config your cluster"
-	   		echo "please set UGSUBMIT_TYPE or specify cluster with -cluster".
-	   		exit
+			unamestr=`uname`
+			if [[ "$unamestr" == 'Darwin' ]]; then
+				UGSUBMIT_TYPE=Apple
+			else
+			    #echo $HOSTNAME
+			    echo "Hello, this is ugconfig trying to config your cluster"
+		   		echo "please set UGSUBMIT_TYPE or specify cluster with -cluster".
+		   		exit
+		   	fi
 	   	fi   	
 	fi
-	echo "Hello, this is ugconfig trying to config your cluster. Your auto-detected cluster is $UGSUBMIT_TYPE."
+	echo "ugconfig: Configuring your bash environment... Your auto-detected cluster is $UGSUBMIT_TYPE."
 else
-	echo "Hello, this is ugconfig trying to config your cluster. Your selected cluster is $UGSUBMIT_TYPE."	 	
+	echo "ugconfig: Configuring your bash environment... Your selected cluster is $UGSUBMIT_TYPE."	 	
 fi	 
 
 
@@ -35,11 +49,14 @@ if [ $UGSUBMIT_TYPE == "Hermit" ]; then
 	fi
 	
 elif [ $UGSUBMIT_TYPE == "cekon" ]; then
-	echo "."
+	echo "ugconfig: Nothing to configure on cekon. Have a nice day."
 	
 elif [ $UGSUBMIT_TYPE == "cesari" ]; then
-	echo "."
+	echo "ugconfig: Nothing to configure on cesari. Have a nice day."
 			
+elif [[ $UGSUBMIT_TYPE == "Apple" || $UGSUBMIT_TYPE == "mpi" ]]; then
+	echo "ugconfig: Nothing to configure on $UGSUBMIT_TYPE. Have a nice day."
+	
 elif [[ $UGSUBMIT_TYPE == "Juqueen" ]]; then
 	echo "ugconfig: On Juqueen, loading cmake and lapack."
 	module load cmake
