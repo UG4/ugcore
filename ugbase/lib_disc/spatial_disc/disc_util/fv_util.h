@@ -92,7 +92,10 @@ template <> struct fv1_traits<ReferenceEdge, 1> : public fv1_traits_ReferenceEdg
 	static void NormalOnSCVF(MathVector<1>& outNormal,
 	                         const MathVector<1>* vSCVFCorner,
 	                         const MathVector<1>* vElemCorner)
-		{ElementNormal<ReferenceVertex, 1>(outNormal, vSCVFCorner);}
+	{
+		ElementNormal<ReferenceVertex, 1>(outNormal, vSCVFCorner);
+		VecNormalize(outNormal, outNormal);
+	}
 };
 
 template <> struct fv1_traits<ReferenceEdge, 2> : public fv1_traits_ReferenceEdge
@@ -100,7 +103,10 @@ template <> struct fv1_traits<ReferenceEdge, 2> : public fv1_traits_ReferenceEdg
 		static void NormalOnSCVF(MathVector<2>& outNormal,
 		                         const MathVector<2>* vSCVFCorner,
 		                         const MathVector<2>* vElemCorner)
-		{VecSubtract(outNormal, vElemCorner[1], vElemCorner[0]);}
+		{
+			VecSubtract(outNormal, vElemCorner[1], vElemCorner[0]);
+			VecNormalize(outNormal, outNormal);
+		}
 };
 
 template <> struct fv1_traits<ReferenceEdge, 3> : public fv1_traits_ReferenceEdge
@@ -108,7 +114,10 @@ template <> struct fv1_traits<ReferenceEdge, 3> : public fv1_traits_ReferenceEdg
 		static void NormalOnSCVF(MathVector<3>& outNormal,
 		                         const MathVector<3>* vSCVFCorner,
 		                         const MathVector<3>* vElemCorner)
-		{VecSubtract(outNormal, vElemCorner[1], vElemCorner[0]);}
+		{
+			VecSubtract(outNormal, vElemCorner[1], vElemCorner[0]);
+			VecNormalize(outNormal, outNormal);
+		}
 };
 
 /////////////////////////
