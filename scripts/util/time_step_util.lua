@@ -187,6 +187,8 @@ function util.SolveNonlinearTimeProblem(
 		-- try time step
 		local bSuccess = false;	
 		while bSuccess == false do
+			TerminateAbortedRun()
+
 			print("++++++ Time step size: "..currdt);
 
 			-- get old solution if multistage
@@ -387,6 +389,7 @@ function util.SolveLinearTimeProblem(
 		-- try time step
 		local bSuccess = false;	
 		while bSuccess == false do
+			TerminateAbortedRun()
 			print("++++++ Time step size: "..currdt);
 
 			-- reassemble matrix if necessary
@@ -554,6 +557,7 @@ function util.SolveNonlinearProblemAdaptiveTimestep(
 		-- try time step
 		local bSuccess = false;	
 		while bSuccess == false do
+			TerminateAbortedRun()
 			print("++++++ Time step size: "..currdt);
 
 			-- setup time Disc for old solutions and timestep size

@@ -123,6 +123,18 @@ class UGError
 		std::vector<unsigned long> m_vLine; //< Line stack
 };
 
+
+////////////////////////////////////////////////////////////////////////////////
+///	This special error is used to perform a soft-abort e.g. during script execution.
+/**	Note that SoftAbort isn't an error per se. It is just a tool to use the error-handling
+ * mechanism to exit through multiple layers of code-execution.*/
+class SoftAbort : public UGError
+{
+	public:
+		SoftAbort(std::string msg) : UGError(msg.c_str())	{}
+};
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // some basic assertions
 #define THROW_IF_NOT_EQUAL(s1, s2) { UG_COND_THROW(s1 != s2, "missmatch: " << UG_TO_STRING(s1) << " = " << s1 << "  !=  " << UG_TO_STRING(s2) << " = " << s2 << "."); }

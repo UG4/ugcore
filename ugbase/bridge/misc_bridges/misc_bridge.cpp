@@ -14,6 +14,8 @@
 #include "compile_info/compile_info.h"
 #include "common/util/crc32.h"
 #include "common/stopwatch.h"
+#include "ug.h"
+
 using namespace std;
 
 void ug_backtrace();
@@ -23,7 +25,6 @@ namespace ug
 void PrintLUA();
 namespace bridge
 {
-
 /// \addtogroup misc_bridge
 /// \{
 
@@ -523,7 +524,9 @@ void RegisterBridge_Misc(Registry &reg, string parentGroup)
 		
 		reg.add_function("ug_backtrace", &ug_backtrace, grp, "", "", "prints lua/shiny/gcc backtrace information");
 		
-		
+		reg.add_function("AbortRun", &AbortRun, grp, "", "", "Sets an internal variable to true, to indicate that the run should be aborted on the next call to TerminateAbortedRun.");
+		reg.add_function("ClearAbortRunFlag", &ClearAbortRunFlag, grp, "", "", "Clear the abort-run-flag.");
+		reg.add_function("TerminateAbortedRun", &TerminateAbortedRun, grp, "", "", "Terminates the current run if AbortRun() has been called before.");
 	}
 	
 

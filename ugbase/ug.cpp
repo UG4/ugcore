@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <string>
 #include "ug.h"
+#include "common/error.h"
 #include "common/log.h"
 #include "common/util/path_provider.h"
 #include "common/util/os_info.h"
@@ -37,6 +38,9 @@ static bool outputProfileStats = false;
 
 namespace ug
 {
+	
+static bool s_abortRun = false;
+
 
 UG_API std::string UGGetVersionString()
 {
@@ -203,18 +207,21 @@ void UGForceExit()
 	UGFinalizeNoPCLFinalize();
 
 	#ifdef UG_PARALLEL
-		// pcl::Abort will terminate execution
-		pcl::Abort();
-		// !!! this point is not reached !!!
+		if(pcl::NumProcs() > 1){
+			// pcl::Abort will terminate execution
+			pcl::Abort();
+			// !!! this point is not reached !!!
+		}
 	#endif
 
-	exit(0);
+	throw(SoftAbort("Exit forced by call to UGForceExit"));
 }
 
 void UGOutputProfileStatsOnExit(bool bEnable)
 {
 	outputProfileStats = bEnable;
 }
+
 
 #ifdef UG_PLUGINS
 bool UGInitPlugins()
@@ -228,5 +235,23 @@ bool UGInitPlugins()
 }
 #endif
 
+
+void AbortRun()
+{
+	s_abortRun = true;
+}
+
+void ClearAbortRunFlag()
+{
+	s_abortRun = false;
+}
+
+void TerminateAbortedRun()
+{
+	if(s_abortRun == true){
+		s_abortRun = false;
+		UGForceExit();
+	}
+}
 
 } //end of namespace ug

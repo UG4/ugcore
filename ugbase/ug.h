@@ -61,6 +61,8 @@ UG_API bool InitPaths(const char* argv0);
 UG_API int UGFinalize();
 
 ///	Calls UGFinalize and terminates the application.
+/**	If the build-target is vrl and if no parallel build is performed, this method
+ * throws an instance of SoftAbort*/
 UG_API void UGForceExit();
 
 ///	Call with true, if profiling output is desired at the end of the show.
@@ -68,6 +70,13 @@ UG_API void UGOutputProfileStatsOnExit(bool bEnable);
 
 ///	Init (if UG_PLUGINS is set) embedded or non-shared plugins
 UG_API bool UGInitPlugins();
+
+///	sets a flag, that the current run shall be aborted during the next call of TerminateAbortedRun()
+UG_API void AbortRun();
+///	clears the abort-run-flag.
+UG_API void ClearAbortRunFlag();
+///	Terminates the current run if AbortRun() was called and the abort-run-flag is thus set to true.
+UG_API void TerminateAbortedRun();
 
 }//	end of namespace
 

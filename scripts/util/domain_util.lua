@@ -55,6 +55,7 @@ function util.CreateDomain(gridName, numRefs, neededSubsets)
 		write("Refining("..numRefs.."): ")
 		local refiner = GlobalDomainRefiner(dom)
 		for i=1,numRefs do
+			TerminateAbortedRun()
 			refiner:refine()
 			write(i .. " ")
 		end
@@ -152,6 +153,7 @@ function util.CreateAndDistributeDomain(gridName, numRefs, numPreRefs,
 	write("Pre-Refining("..numPreRefs.."): ")
 	-- Performing pre-refines
 	for i=1,numPreRefs do
+		TerminateAbortedRun()
 		write(i .. " ")
 		refiner:refine()
 	end
@@ -166,6 +168,7 @@ function util.CreateAndDistributeDomain(gridName, numRefs, numPreRefs,
 	if numRefs > 0 then
 		-- Perform post-refine
 		for i=numPreRefs+1,numRefs do
+			TerminateAbortedRun()
 			refiner:refine()
 			write(i-numPreRefs .. " ")
 		end

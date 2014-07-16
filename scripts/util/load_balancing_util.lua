@@ -257,7 +257,9 @@ function balancer.RefineAndRebalanceDomain(domain, numRefs, loadBalancer)
 		refiner = GlobalDomainRefiner(domain)
 		
 		for i = 1, numRefs do
+			TerminateAbortedRun()
 			refiner:refine()
+			TerminateAbortedRun()
 			balancer.Rebalance(domain, loadBalancer)
 		end
 		

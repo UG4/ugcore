@@ -39,6 +39,9 @@ static const char* errSymb = " % ";
 		catch(LuaError& err){ \
 			UG_LUA_THROW(L, err.get_msg().c_str()); \
 		} \
+		catch(SoftAbort& err){ \
+			throw err; \
+		} \
 		catch(UGError& err){ \
 			ug::LogAssistant& la = ug::GetLogAssistant();\
 			la.set_output_process(la.get_process_rank());\
