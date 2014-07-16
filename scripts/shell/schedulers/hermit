@@ -89,7 +89,7 @@ function UJS_GetOptions
 function UJS_Info
 {
 	echo "Using $UGSUBMIT_TYPE"
-	echo "qstat -u $USER"
+	echo "qstat -u $USER -r"
 	qstat -u $USER	
 }
 
