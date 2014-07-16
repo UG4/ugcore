@@ -24,6 +24,7 @@ function UJS_Submit
 	MYLDLPATH=/bgsys/drivers/ppcfloor/comm/lib/
 	
 	cat > $outdir/job.sh << EOF
+#!/usr/bin/bash
 # @ job_name = $jobname
 # @ comment = $executable $args
 # @ error = $outdir/job.error
@@ -101,8 +102,8 @@ function UJS_GetOptions
 
 function UJS_Info
 {	
-	echo "Using llq on Juqueen for user $USER"	
-	llq -u $USER
+	echo "Using llq on Juqueen for user $USER: llq -u $USER -f %id %nh %jn %dd %dq %p %BGCN %st %h"	
+	llq -u $USER -f %id %nh %jn %dd %dq %p %BGCN %st %h
 }
 
 function UJS_Cancel
