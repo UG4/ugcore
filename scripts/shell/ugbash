@@ -64,6 +64,7 @@ chmod +x $UG4_ROOT/scripts/shell/mpigdb1
 chmod +x $UG4_ROOT/scripts/shell/xtermrun
 
 chmod +x $UG4_ROOT/scripts/shell/ugcmake-start
+chmod +x $UG4_ROOT/scripts/shell/ugconfig
 
 ugbasegrep()
 {
