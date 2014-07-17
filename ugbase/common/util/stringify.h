@@ -59,11 +59,11 @@ public:
 };
 
 
-template<typename T>
+/*template<typename T>
 inline T& operator << (T &t, const Stringify &s)
 {
 	t << s.str();
 	return t;
-}
+}*/
 
 #endif /* STRINGIFY_H_ */
