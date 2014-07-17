@@ -53,7 +53,7 @@ class MarkerPointManager
 		inline void set_marker(size_t index,
 								const MarkerPoint& marker)			{m_markers[index] = marker;}
 
-		inline MarkerPoint* const get_array()						{return &m_markers.front();}
+		inline MarkerPoint const *get_array()						{return &m_markers.front();}
 
 	protected:
 		std::vector<MarkerPoint>	m_markers;
