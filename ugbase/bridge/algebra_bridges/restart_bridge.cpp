@@ -30,7 +30,7 @@ using namespace std;
 #else
 
 namespace pcl {
-void ParallelFileWrite(ug::BinaryBuffer &buffer, std::string strFilename)
+void WriteCombinedParallelFile(ug::BinaryBuffer &buffer, std::string strFilename)
 {
 	FILE *f = fopen(strFilename.c_str(), "wb");
 	int numProcs = 1;
@@ -44,7 +44,7 @@ void ParallelFileWrite(ug::BinaryBuffer &buffer, std::string strFilename)
 	fclose(f);
 }
 
-void ParallelFileRead(ug::BinaryBuffer &buffer, std::string strFilename)
+void ReadCombinedParallelFile(ug::BinaryBuffer &buffer, std::string strFilename)
 {
 	FILE *f = fopen(strFilename.c_str(), "rb");
 	int numProcs, myNextOffset;
@@ -124,14 +124,14 @@ void SaveToFile(const T &v, std::string filename)
 {
 	BinaryBuffer b;
 	Serialize(b, v);
-	pcl::ParallelFileWrite(b, filename);
+	pcl::WriteCombinedParallelFile(b, filename);
 }
 
 template<typename T>
 void ReadFromFile(T &v, std::string filename)
 {
 	BinaryBuffer b;
-	pcl::ParallelFileRead(b, filename);
+	pcl::ReadCombinedParallelFile(b, filename);
 	Deserialize(b, v);
 }
 

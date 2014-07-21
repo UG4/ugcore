@@ -14,7 +14,8 @@
 namespace pcl{
 
 /**
- * This function writes a binarybuffers from all participating cores into a parallel file.
+ * This function writes a binarybuffers from all participating cores into one combined parallel file.
+ * Note that to read these files, you HAVE to use ReadCombinedParallelFile
  *
  * NOTE: you have to use this function to do i/o from a lot of cores (1000+),
  * otherwise you will get big i/o problems.
@@ -45,11 +46,14 @@ namespace pcl{
  * @param strFilename	the filename
  * @param pc			a processes communicator (default pcl::World)
  */
-void ParallelFileWrite(ug::BinaryBuffer &buffer, std::string strFilename, pcl::ProcessCommunicator pc = pcl::ProcessCommunicator(pcl::PCD_WORLD));
+void WriteCombinedParallelFile(ug::BinaryBuffer &buffer, std::string strFilename, pcl::ProcessCommunicator pc = pcl::ProcessCommunicator(pcl::PCD_WORLD));
 
 
 /**
- * This function reads a binarybuffers to all participating cores from a parallel file.
+ * This function reads a binarybuffers to all participating cores from a combined parallel file,
+ * that is one file which contains data for each core.
+ * Note that this is not ParallelReadFile, so each core gets DIFFERENT data.
+ * It HAS to be used together with WriteCombinedParallelFile
  *
  * NOTE: you have to use this function to do i/o from a lot of cores (1000+),
  * otherwise you will get big i/o problems.
@@ -58,7 +62,7 @@ void ParallelFileWrite(ug::BinaryBuffer &buffer, std::string strFilename, pcl::P
  * @param strFilename	the filename
  * @param pc			a processes communicator (default pcl::World)
  */
-void ParallelFileRead(ug::BinaryBuffer &buffer, std::string strFilename, pcl::ProcessCommunicator pc = pcl::ProcessCommunicator(pcl::PCD_WORLD));
+void ReadCombinedParallelFile(ug::BinaryBuffer &buffer, std::string strFilename, pcl::ProcessCommunicator pc = pcl::ProcessCommunicator(pcl::PCD_WORLD));
 
 }
 #endif /* PARALLEL_ARCHIVE_H_ */

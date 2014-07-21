@@ -15,7 +15,7 @@
 namespace pcl{
 
 
-void ParallelFileWrite(ug::BinaryBuffer &buffer, std::string strFilename, pcl::ProcessCommunicator pc)
+void WriteCombinedParallelFile(ug::BinaryBuffer &buffer, std::string strFilename, pcl::ProcessCommunicator pc)
 {
 		MPI_Status status;
 	MPI_Comm m_mpiComm = pc.get_mpi_communicator();
@@ -61,7 +61,7 @@ void ParallelFileWrite(ug::BinaryBuffer &buffer, std::string strFilename, pcl::P
 	MPI_File_close(&fh);
 }
 
-void ParallelFileRead(ug::BinaryBuffer &buffer, std::string strFilename, pcl::ProcessCommunicator pc)
+void ReadCombinedParallelFile(ug::BinaryBuffer &buffer, std::string strFilename, pcl::ProcessCommunicator pc)
 {
 	MPI_Status status;
 	MPI_Comm m_mpiComm = pc.get_mpi_communicator();
