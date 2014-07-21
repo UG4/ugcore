@@ -122,9 +122,14 @@ end
 Remember:
 \note I will again stress out that even just <b>opening files</b> is bad, so make sure also the opening of your files is inside that ProcRank()==0.
 
-If you really want to do i/o on all cores (like writing a solution), refer to Martin Rupp, he has written a construct named ParallelArchive which
- uses MPI i/o and is much faster than naiv i/o.
+There is also a construct to help you with this: instead of io.open, use io.open_ONE("bla.txt", "w", 0). This will open the file only on core 0, all others get
+"dummy" file handles. If you really need to open files on all cores, use io.open_ALL, since io.open will give you a warning if it is called on a core which is not 0.
 
+If you really want to do i/o on all cores (like writing a solution) in C/C++, you can use
+- ParallelReadFile: Read a file on one core and distribute to all (using MPI_Broadcast)
+- WriteCombinedParallelFile and ReadCombinedParallelFile: Write and Read different data for each core (using MPI File I/O).
+
+@sa ParallelReadFile WriteCombinedParallelFile ReadCombinedParallelFile
 
 
 <hr> 
