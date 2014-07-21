@@ -7,7 +7,7 @@
 function UJS_Submit
 {
 	if [ $walltime == "unlimited" ]; then
-		walltime=01:00:00
+		walltime=00:30:00
 	fi
 	
 	if [ $((npe%nppn)) -ne 0 ]; then
@@ -95,7 +95,7 @@ EOF
 
 function UJS_GetOptions
 {
-	nppnmax=32
+	nppnmax=16
 	pemax=262144
 }
 
