@@ -13,7 +13,7 @@ namespace ug{
 
 std::vector<ProfileCall> profileCalls;
 
-size_t g_ShinyCallLoggingMaxFreq = 1; // minimum frequency is 100 Hz = 10 ms per call
+int g_ShinyCallLoggingMaxFreq = 1; // minimum frequency is 100 Hz = 10 ms per call
 
 
 std::vector<ProfileCall> callsOnHold;
