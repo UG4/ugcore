@@ -21,11 +21,11 @@ AssembledOperator<TAlgebra>::prepare(vector_type& uIn)
 	if(m_spAss.invalid())
 		UG_THROW("Discretization not set.");
 
-// 	Set Dirichlet - Nodes to exact values
+// 	Set Dirichlet - Nodes to exact values (any constraints in general)
 	try{
 		m_spAss->adjust_solution(uIn, m_gridLevel);
 	}
-	UG_CATCH_THROW("Cannot set dirichlet values in solution.");
+	UG_CATCH_THROW("Cannot set constraints in solution.");
 }
 
 // 	Compute d = L(u)

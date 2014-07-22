@@ -508,7 +508,11 @@ void NeumannBoundaryFV1<TDomain>::NumberData::
 extract_bip(const TFVGeom& geo)
 {
 	typedef typename TFVGeom::BF BF;
-	vLocIP.clear();
+	static const int locDim = TElem::dim;
+
+	std::vector<MathVector<locDim> >* vLocIP = local_ips<locDim>();
+
+	vLocIP->clear();
 	vGloIP.clear();
 	for(size_t s = 0; s < this->BndSSGrp.size(); s++)
 	{
@@ -517,22 +521,34 @@ extract_bip(const TFVGeom& geo)
 		for(size_t i = 0; i < vBF.size(); ++i)
 		{
 			const BF& bf = vBF[i];
-			vLocIP.push_back(bf.local_ip());
+			vLocIP->push_back(bf.local_ip());
 			vGloIP.push_back(bf.global_ip());
 		}
 	}
 
 //	either both are empty or none is empty
-	UG_ASSERT((vLocIP.empty() && vGloIP.empty()) || (!(vLocIP.empty() || vGloIP.empty())),
+	UG_ASSERT((vLocIP->empty() && vGloIP.empty()) || (!(vLocIP->empty() || vGloIP.empty())),
 			  "Either vLocIP and vGloIP both have to be empty or both have to be filled!");
 
-	if(vLocIP.empty()){
-		import.set_local_ips(NULL, 0);
+	if(vLocIP->empty()){
+		import.template set_local_ips<locDim>(NULL, 0);
 		import.set_global_ips(NULL, 0);
 	}
 	else{
-		import.set_local_ips(&vLocIP[0], vLocIP.size());
+		import.template set_local_ips<locDim>(&(*vLocIP)[0], vLocIP->size());
 		import.set_global_ips(&vGloIP[0], vGloIP.size());
+	}
+}
+
+template<typename TDomain>
+template <int refDim>
+std::vector<MathVector<refDim> >* NeumannBoundaryFV1<TDomain>::NumberData::local_ips()
+{
+	switch (refDim)
+	{
+		case 1: return (std::vector<MathVector<refDim> >*)(&vLocIP_dim1);
+		case 2: return (std::vector<MathVector<refDim> >*)(&vLocIP_dim2);
+		case 3: return (std::vector<MathVector<refDim> >*)(&vLocIP_dim3);
 	}
 }
 
@@ -552,6 +568,7 @@ void NeumannBoundaryFV1<Domain1d>::register_all_funcs(bool bHang)
 template<>
 void NeumannBoundaryFV1<Domain2d>::register_all_funcs(bool bHang)
 {
+	register_func<RegularEdge, FV1Geometry<RegularEdge, dim> >();
 	register_func<Triangle, FV1Geometry<Triangle, dim> >();
 	register_func<Quadrilateral, FV1Geometry<Quadrilateral, dim> >();
 }
@@ -562,6 +579,7 @@ template<>
 void NeumannBoundaryFV1<Domain3d>::register_all_funcs(bool bHang)
 {
 	if(!bHang){
+		register_func<RegularEdge, FV1Geometry<RegularEdge, dim> >();
 		register_func<Tetrahedron, FV1Geometry<Tetrahedron, dim> >();
 		register_func<Prism, FV1Geometry<Prism, dim> >();
 		register_func<Pyramid, FV1Geometry<Pyramid, dim> >();

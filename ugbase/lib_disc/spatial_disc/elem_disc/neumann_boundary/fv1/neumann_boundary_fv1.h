@@ -73,8 +73,13 @@ class NeumannBoundaryFV1
 			void set_global_ips(const MathVector<dim>* ips, std::size_t nIPs)
 			{import.set_global_ips(ips, nIPs);}
 
+			template <int refDim>
+			std::vector<MathVector<refDim> >* local_ips();
+
 			DataImport<number, dim> import;
-			std::vector<MathVector<dim> > vLocIP;
+			std::vector<MathVector<3> > vLocIP_dim3;
+			std::vector<MathVector<2> > vLocIP_dim2;	// might have Neumann bnd for lower-dim elements!
+			std::vector<MathVector<1> > vLocIP_dim1;
 			std::vector<MathVector<dim> > vGloIP;
 		};
 
