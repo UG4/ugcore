@@ -13,6 +13,8 @@ namespace ug{
 
 std::vector<ProfileCall> profileCalls;
 
+size_t g_ShinyCallLoggingMaxFreq = 1; // minimum frequency is 100 Hz = 10 ms per call
+
 
 std::vector<ProfileCall> callsOnHold;
 
@@ -26,8 +28,8 @@ bool CheckEnoughTimePassedToNow(ProfileCall &pc)
 	Shiny::tick_t tnow;
 	Shiny::GetTicks(&tnow);
 	static Shiny::tick_t freq = Shiny::GetTickFreq();  // in hz
-	const size_t maxFreq = 10000; // minimum frequency is 10000 Hz = 0.1 ms per call
-	if( (tnow - pc.c)  > freq/maxFreq)
+
+	if( (tnow - pc.c)  > freq/g_ShinyCallLoggingMaxFreq)
 		return true;
 	else return false;
 }
@@ -36,6 +38,7 @@ void FinishShinyCallLogging()
 {
 	for(size_t i=0; i<callsOnHold.size(); i++)
 		profileCalls.push_back(callsOnHold[i]);
+	callsOnHold.clear();
 }
 
 void ShinyCallLoggingEnd()

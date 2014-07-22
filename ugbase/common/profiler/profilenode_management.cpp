@@ -19,7 +19,6 @@ release_latest()
 		AutoProfileNode* node = inst().m_nodes.top();
 		inst().m_nodes.pop();
 		node->release();
-		PROFILE_LOG_CALL_END();
 	}
 }
 
@@ -62,6 +61,7 @@ void AutoProfileNode::release()
 	if(m_bActive){
 #ifdef UG_PROFILER_SHINY
 		Shiny::ProfileManager::instance._endCurNode();
+		PROFILE_LOG_CALL_END();
 #endif
 #ifdef UG_PROFILER_SCALASCA
 		EPIK_USER_END(m_pName);

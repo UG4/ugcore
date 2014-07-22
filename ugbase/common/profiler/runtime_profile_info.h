@@ -35,6 +35,7 @@ public:
 	{
 #ifdef UG_PROFILER_SHINY
 		Shiny::ProfileManager::instance._beginNode(&profilerCache, &profileInformation);
+		PROFILE_LOG_CALL_START();
 #endif
 #ifdef UG_PROFILER_SCALASCA
 		EPIK_USER_START(pName);
@@ -52,6 +53,7 @@ public:
 	{
 #ifdef UG_PROFILER_SHINY
 		Shiny::ProfileManager::instance._endCurNode();
+		PROFILE_LOG_CALL_END();
 #endif
 #ifdef UG_PROFILER_SCALASCA
 		EPIK_USER_END(pName);

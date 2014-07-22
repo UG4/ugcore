@@ -13,6 +13,7 @@
 namespace ug{
 void ShinyCallLoggingStart();
 void ShinyCallLoggingEnd();
+extern size_t g_ShinyCallLoggingMaxFreq;
 }
 
 #define PROFILE_LOG_CALL_START() ug::ShinyCallLoggingStart();
@@ -23,6 +24,7 @@ void ShinyCallLoggingEnd();
 #define PROFILE_LOG_CALL_END()
 
 #endif
+
 
 
 #endif /* SHINY_CALL_LOGGING_H_ */

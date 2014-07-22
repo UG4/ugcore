@@ -189,6 +189,10 @@ void WriteProfileDataXML(const char *filename);
  * (procId >= 0) to the specified file
  */
 void WriteProfileDataXML(const char *filename, int procId);
+
+void WriteCallLog(const char *filename);
+void WriteCallLog(const char *filename, int procId);
+
 }
 
 

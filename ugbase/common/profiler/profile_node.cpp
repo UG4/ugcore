@@ -230,6 +230,25 @@ void UGProfileNode::PDXML_rec_write(ostream &s) const
 	s << "</node>\n";
 }
 
+string GetProfilingFileLine(const char *name)
+{
+	const char *p = strchr(name, ':'); // search for line number
+	if(!(p == NULL || p[0] == 0x00 || p[1] == 0x00))
+	{
+		// if we find the corresponding code in the LUA file, print the code as "name"
+		// and the filename above
+
+		int line = strtol(p+1, NULL, 10);
+		char file[255];
+		strncpy(file, name, p-name);
+		file[p-name]=0x00;
+		string str = GetFileLine(file, line);
+		for(size_t i=0; i<str.size(); i++) if(str[i] == '\t') str[i] = ' ';
+		return str;
+	}
+	else return "";
+
+}
 
 string UGProfileNode::print_node(double fullMs, double fullMem, size_t offset) const
 {
@@ -251,19 +270,9 @@ string UGProfileNode::print_node(double fullMs, double fullMem, size_t offset) c
 		else
 			s << left << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_NAME-offset) << cut(zone->name, PROFILER_BRIDGE_OUTPUT_WIDTH_NAME-offset);
 
-		const char *name = zone->name+1;
-		const char *p = strchr(name, ':'); // search for line number
-		if(!(p == NULL || p[0] == 0x00 || p[1] == 0x00))
+		string str = GetProfilingFileLine(zone->name+1);
+		if(str.size())
 		{
-			// if we find the corresponding code in the LUA file, print the code as "name"
-			// and the filename above
-
-			int line = strtol(p+1, NULL, 10);
-			char file[255];
-			strncpy(file, name, p-name);
-			file[p-name]=0x00;
-			string str = GetFileLine(file, line);
-			for(size_t i=0; i<str.size(); i++) if(str[i] == '\t') str[i] = ' ';
 			s << "\n";
 			if(offset)	s << setw(offset) << " ";
 			s << left << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_NAME-offset) <<
@@ -593,6 +602,65 @@ void WriteProfileDataXML(const char *filename)
 	WriteProfileDataXML(filename, ug::GetLogAssistant().get_output_process());
 }
 
+
+void WriteCallLog(const char *filename, int procId)
+{
+#ifdef SHINY_CALL_LOGGING
+	if(pcl::ProcRank() != procId) return;
+	fstream f(filename, ios::out);
+
+	Shiny::tick_t curTime;
+	Shiny::GetTicks(&curTime);
+
+	FinishShinyCallLogging();
+	UG_LOG("Writing Call log to " << filename << ". Max Frequency is " << g_ShinyCallLoggingMaxFreq << " Hz.\n")
+	// print call log
+	int depth=0;
+	for(size_t i=0; i<profileCalls.size(); i++)
+	{
+		f << profileCalls[i].c << " ";
+		if(profileCalls[i].p == NULL)
+		{
+			depth--;
+			f << repeat(' ', depth) << "}\n";
+		}
+		else
+		{
+			f << repeat(' ', depth);
+
+			if(profileCalls[i].p->zone->name[0] == '@')
+			{
+				string str = GetProfilingFileLine(profileCalls[i].p->zone->name +1);
+				if(str.size())
+				{	f << str << " "; }
+
+				f << "(" << SimplifyUG4Path(profileCalls[i].p->zone->name+1) << ")\n";
+			}
+			else
+				f << profileCalls[i].p->zone->name << " (" << SimplifyUG4Path(profileCalls[i].p->zone->file) << ":" << profileCalls[i].p->zone->line << ")\n";
+
+			if(i+1 < profileCalls.size() && profileCalls[i+1].p == NULL)
+				i++;
+			else
+			{
+				f << profileCalls[i].c << " ";
+				f << repeat(' ', depth) << "{\n";
+				depth++;
+			}
+		}
+	}
+	for(int i=0; i<depth; i++)
+		f << curTime << " " << repeat(' ', depth-i-1) << "}\n";
+#else
+	UG_LOG("Did NOT write Call Log since Call Logging is disabled (enable with cmake -DSHINY_CALL_LOGGING=ON ..)\n");
+#endif
+}
+
+void WriteCallLog(const char *filename)
+{
+	WriteCallLog(filename, ug::GetLogAssistant().get_output_process());
+}
+
 void WriteProfileDataXML(const char *filename, int procId)
 {
 	#ifdef UG_PARALLEL
@@ -668,31 +736,6 @@ void WriteProfileDataXML(const char *filename, int procId)
 			f << "</call>\n";
 		}
 		f << "</log>\n";
-#if 0
-		// print call log
-		depth=0;
-		for(size_t i=0; i<profileCalls.size(); i++)
-		{
-			if(profileCalls[i].p == NULL)
-			{
-				depth--;
-				UG_LOG(repeat(' ', depth) << "}\n");
-			}
-			else
-			{
-				UG_LOG(repeat(' ', depth) << profileCalls[i].p->zone->name << "\n");
-				if(i+1 < profileCalls.size() && profileCalls[i+1].p == NULL)
-					i++;
-				else
-				{
-					UG_LOG(repeat(' ', depth) << "{\n");
-					depth++;
-				}
-			}
-		}
-		for(int i=0; i<depth; i++)
-		{ 	UG_LOG(repeat(' ', depth-i-1) << "}\n");	}
-#endif
 
 #endif
 		
