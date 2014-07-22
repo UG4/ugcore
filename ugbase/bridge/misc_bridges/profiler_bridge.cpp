@@ -22,7 +22,7 @@ static void UpdateProfiler_BridgeImpl(number damping){
 	PROFILER_UPDATE(damping);
 }
 
-static void SetShinyCallLoggingMaxFrequency(size_t maxFreq)
+static void SetShinyCallLoggingMaxFrequency(int maxFreq)
 {
 #ifdef SHINY_CALL_LOGGING
 	ug::g_ShinyCallLoggingMaxFreq = maxFreq;
