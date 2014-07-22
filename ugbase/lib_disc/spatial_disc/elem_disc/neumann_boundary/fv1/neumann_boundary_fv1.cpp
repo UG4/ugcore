@@ -580,6 +580,8 @@ void NeumannBoundaryFV1<Domain3d>::register_all_funcs(bool bHang)
 {
 	if(!bHang){
 		register_func<RegularEdge, FV1Geometry<RegularEdge, dim> >();
+		register_func<Triangle, FV1Geometry<Triangle, dim> >();
+		register_func<Quadrilateral, FV1Geometry<Quadrilateral, dim> >();
 		register_func<Tetrahedron, FV1Geometry<Tetrahedron, dim> >();
 		register_func<Prism, FV1Geometry<Prism, dim> >();
 		register_func<Pyramid, FV1Geometry<Pyramid, dim> >();
