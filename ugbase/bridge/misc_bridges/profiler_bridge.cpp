@@ -22,6 +22,15 @@ static void UpdateProfiler_BridgeImpl(number damping){
 	PROFILER_UPDATE(damping);
 }
 
+static void SetShinyCallLoggingMaxFrequency(size_t maxFreq)
+{
+#ifdef SHINY_CALL_LOGGING
+	ug::g_ShinyCallLoggingMaxFreq = maxFreq;
+#else
+	UG_LOG("SHINY CALL LOGGING NOT ENABLED! Enable with 'cmake -DSHINY_CALL_LOGGING=ON ..'")
+#endif
+}
+
   //void PrintLUA();
 namespace bridge
 {
@@ -124,7 +133,19 @@ void RegisterBridge_Profiler(Registry &reg, string parentGroup)
 					OVERLOADED_FUNCTION_PTR(void, WriteProfileDataXML, (const char*, int)),
 					 grp,
 	                 "", "filename|save-dialog|endings=[\"pdxml\"]", "writes a XML-file with profile data viewable with the ShinyProfileViewer. Pick a filename ending with .pdxml");
+	reg.add_function("WriteCallLog",
+						OVERLOADED_FUNCTION_PTR(void, WriteCallLog, (const char*)),
+						 grp,
+		                 "", "filename|save-dialog|endings=[\"txt\"]", "writes txt file with call log");
+	reg.add_function("WriteCallLog",
+					OVERLOADED_FUNCTION_PTR(void, WriteCallLog, (const char*, int)),
+					 grp,
+	                 "", "filename|save-dialog|endings=[\"txt\"]", "writes txt file with call log");
+
 	reg.add_function("UpdateProfiler", &UpdateProfiler_BridgeImpl, grp);
+
+	reg.add_function("SetShinyCallLoggingMaxFrequency", &SetShinyCallLoggingMaxFrequency, grp, "", "maxFreq");
+
 }
 
 
