@@ -75,6 +75,10 @@ void GetCuthillMcKeeOrder(const TSparseMatrix &mat, std::vector<size_t> &newInde
 	{
 		for(typename TSparseMatrix::const_row_iterator i_it = mat.begin_row(i); i_it != mat.end_row(i); ++i_it)
 			neighbors[i].push_back(i_it.index());
+
+		// make sure there are no disconnected DoFs
+		UG_ASSERT(neighbors[i].size(), "Index "<< i << " does not have any connections. This will most probably "
+				"lead to problems and is therefore disallowed.");
 	}
 
 	ComputeCuthillMcKeeOrder(newIndex, neighbors, false);
