@@ -21,7 +21,7 @@
 #include "common/serialization.h"
 
 
-
+#define NAE_APPEND
 //	serializes data from a vector<bool> into a binary stream
 /*template <class TOStream>
 void Serialize(TOStream& buf, const std::vector<bool>& vec)
@@ -427,7 +427,9 @@ public:
 	 * @param newSlaveLayout
 	 */
 	void add_new_layouts_to(IndexLayout &newMasterLayout, IndexLayout &newSlaveLayout);
-
+#ifdef NAE_APPEND
+	void append_nodes_without_comm(size_t n);
+#endif
 private:
 	void create_mark_map(const IndexLayout &masterLayout);
 

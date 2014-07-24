@@ -363,5 +363,25 @@ void ParallelNodes::add_new_layouts_to(IndexLayout &newMasterLayout, IndexLayout
 	newSlaves.clear();
 }
 
-}
+#ifdef NAE_APPEND
+/// Appending masters (without comm skills)
+void ParallelNodes::append_nodes_without_comm(size_t nnodes)
+{
 
+	const size_t nold = m_localToGlobal.size();
+	const size_t nnew = nold + nnodes;
+
+	const int myRank = pcl::ProcRank();
+	UG_ASSERT(myRank==0, "TODO: Implement for real parallel case")
+
+	m_localToGlobal.resize(nnew);
+	for(size_t i=nold; i<nnew; ++i)
+	{
+		m_localToGlobal[i] = AlgebraID(myRank, i);
+		if(m_localToGlobal[i].first != myRank)
+					m_globalToLocal.insert(pair<AlgebraID, size_t> (m_localToGlobal[i], i));
+	}
+
+}
+#endif
+} // namespace ug
