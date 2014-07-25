@@ -168,6 +168,9 @@ void SideAndElemErrEstData<TDomain>::init_quadrature()
 	// and fill IP indexing structure along the way
 	for (ReferenceObjectID roid = ROID_VERTEX; roid != NUM_REFERENCE_OBJECTS; roid++)
 	{
+		// no reference elements for octahedra so far
+		if (roid == ROID_OCTAHEDRON) continue;
+
 		// get reference element for roid
 		const ReferenceElement& re = ReferenceElementProvider::get(roid);
 		int ref_dim = re.dimension();
