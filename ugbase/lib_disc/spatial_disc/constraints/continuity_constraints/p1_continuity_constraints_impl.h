@@ -591,7 +591,7 @@ inline void get_algebra_indices(ConstSmartPtr<DoFDistribution> dd,
 	vConstrainingInd.resize(vConstrainingVrt.size());
 
 // 	get algebra indices for constrained and constraining vertices
-	for (size_t fct = 0; fct < dd->num_fct(si); fct++)
+	for (size_t fct = 0; fct < dd->num_fct(); fct++)
 	{
 	//	check that function is defined on subset
 		if (!dd->is_def_in_subset(fct, si)) continue;
