@@ -44,7 +44,7 @@ template <class TAPosition>
 void SubdivisionVolumesProjector<TAPosition>::
 new_vertex(Vertex* vrt, Vertex* parent)
 {
-	//SubdivRules_PLoop& subdiv = SubdivRules_PLoop::inst();
+	SubdivRules_PLoop& subdiv = SubdivRules_PLoop::inst();
 	Grid::VertexAttachmentAccessor<TAPosition>& aaPos = BaseClass::m_aaPos;
 
 	assert(aaPos.valid() && "make sure to initialise the refiner-callback correctly.");
@@ -55,120 +55,161 @@ new_vertex(Vertex* vrt, Vertex* parent)
 	Grid& g = *BaseClass::m_pGrid;
 	bool volumesExist = g.num<Volume>() > 0;
 
+	VecSet(m_aaTargetPos[vrt], 0);
+
 	if(!volumesExist){
 		UG_THROW("No volumes included in grid.");
 	}
 
-	size_t valence = 0;
-	pos_type p;
 
-//	Iterate over all associated volumes
-	for(Grid::AssociatedVolumeIterator vIter = g.associated_volumes_begin(vrt); vIter != g.associated_volumes_end(vrt); ++vIter)
+	if(IsBoundaryVertex3D(g, parent))
 	{
+	//	perform loop subdivision on even vertices
+	//	first get neighboured vertices
+	//	todo: replace this by a method
+		size_t valence = 0;
+		pos_type p;
 		VecSet(p, 0);
-		Volume* vol = *vIter;
-		++valence;
 
-	//	TETRAHEDRON CASE
-		if(vol->reference_object_id() == ROID_TETRAHEDRON)
+		for(Grid::AssociatedEdgeIterator iter =
+			g.associated_edges_begin(parent);
+			iter != g.associated_edges_end(parent); ++iter)
 		{
-		//	Iterate over all associated vertices inside tetrahedron
-
-			/*
-			 * Alternative iteration
-			 *
-			for(Grid::AssociatedEdgeIterator eIter = g.associated_edges_begin(vol); eIter != g.associated_edges_end(vol); ++eIter)
-			{
-				Edge* e = *eIter;
-				if(GetConnectedVertex(e, vrt) != NULL)
-					VecAdd(p, p, aaPos[GetConnectedVertex(e, vrt)]);
+			if((!volumesExist) || IsBoundaryEdge3D(g, *iter)){
+				VecAdd(p, p, aaPos[GetConnectedVertex(*iter, parent)]);
+				++valence;
 			}
-			*/
-
-			for(size_t i = 0; i < vol->num_vertices(); ++i)
-			{
-				if(i != GetVertexIndex(vol, vrt))
-					VecAdd(p, p, aaPos[vol->vertex(i)]);
-			}
-
-		//	TODO: refer to subdivision rules object
-			number centerWgt = -1.0/16;
-			number nbrWgt = 17.0/48;
-
-			VecScaleAdd(m_aaTargetPos[vrt], centerWgt, aaPos[parent], nbrWgt, p);
 		}
 
-	//	OCTAHEDRON CASE
-		else if(vol->reference_object_id() == ROID_OCTAHEDRON)
-		{
-		//	Iterate over all vertices inside octahedron, first associate ones and last the opposing one
-			for(Grid::AssociatedEdgeIterator eIter = g.associated_edges_begin(vol); eIter != g.associated_edges_end(vol); ++eIter)
-			{
-				Edge* e = *eIter;
-				if(GetConnectedVertex(e, vrt) != NULL)
-				{
-					VecAdd(p, p, aaPos[GetConnectedVertex(e, vrt)]);
-					sel.select(GetConnectedVertex(e, vrt));
-				}
-			}
+		number centerWgt = subdiv.ref_even_inner_center_weight(valence);
+		number nbrWgt = subdiv.ref_even_inner_nbr_weight(valence);
 
-			Vertex oppVrt = vol->get_opposing_object(vrt);
-
-		//	TODO: refer to subdivision rules object
-			number centerWgt = 3.0/8;
-			number nbrWgt = 1.0/12;
-			number oppNbrWgt = 7.0/12;
-
-			VecScaleAdd(m_aaTargetPos[vrt], centerWgt, aaPos[parent], nbrWgt, p, oppNbrWgt, aaPos[oppVrt]);
-		}
-
-	//	UNSUPPORTED VOLUME ELEMENT CASE
-		else
-		{
-			UG_THROW("Volume type not supported for subdivision volumes refinement.");
-		}
+		VecScaleAdd(m_aaTargetPos[vrt],
+					centerWgt, aaPos[parent],
+					nbrWgt, p);
 	}
+	else
+	{
 
-//	Scale vertex position by the number of associated volume elements
-	VecScale(m_aaTargetPos[vrt],  m_aaTargetPos[vrt], valence);
+		size_t valence = 0;
+		pos_type p;
+
+		std::vector<Volume*> volumes;
+		CollectAssociated(volumes, g, vrt);
+		UG_LOG("volumes: " << volumes.size() << std::endl);
+
+	//	Iterate over all associated volumes
+		for(Grid::AssociatedVolumeIterator vIter = g.associated_volumes_begin(vrt); vIter != g.associated_volumes_end(vrt); ++vIter)
+		{
+			VecSet(p, 0);
+			Volume* vol = *vIter;
+			++valence;
+
+		//	TETRAHEDRON CASE
+			if(vol->reference_object_id() == ROID_TETRAHEDRON)
+			{
+			//	Iterate over all associated vertices inside tetrahedron
+
+				/*
+				 * Alternative iteration
+				 *
+				for(Grid::AssociatedEdgeIterator eIter = g.associated_edges_begin(vol); eIter != g.associated_edges_end(vol); ++eIter)
+				{
+					Edge* e = *eIter;
+					if(GetConnectedVertex(e, vrt) != NULL)
+						VecAdd(p, p, aaPos[GetConnectedVertex(e, vrt)]);
+				}
+				*/
+
+				for(size_t i = 0; i < vol->num_vertices(); ++i)
+				{
+					if(i != GetVertexIndex(vol, vrt))
+					{
+						VecAdd(p, p, aaPos[vol->vertex(i)]);
+						UG_LOG("aaPos[vol->vertex(" << i << "): " << aaPos[vol->vertex(i)] << std::endl);
+					}
+				}
+
+			//	TODO: refer to subdivision rules object
+				number centerWgt = -1.0/16;
+				number nbrWgt = 17.0/48;
+
+				//VecScaleAdd(m_aaTargetPos[vrt], centerWgt, aaPos[parent], nbrWgt, p);
+				VecScaleAppend(m_aaTargetPos[vrt], centerWgt, aaPos[parent], nbrWgt, p);
+			}
+
+		//	OCTAHEDRON CASE
+			else if(vol->reference_object_id() == ROID_OCTAHEDRON)
+			{
+			//	Iterate over all vertices inside octahedron, first associate ones and last the opposing one
+				for(Grid::AssociatedEdgeIterator eIter = g.associated_edges_begin(vol); eIter != g.associated_edges_end(vol); ++eIter)
+				{
+					Edge* e = *eIter;
+					if(GetConnectedVertex(e, vrt) != NULL)
+					{
+						VecAdd(p, p, aaPos[GetConnectedVertex(e, vrt)]);
+					}
+				}
+
+				Vertex* oppVrt = vol->vertex(vol->get_opposing_object(vrt).second);
+
+			//	TODO: refer to subdivision rules object
+				number centerWgt = 3.0/8;
+				number nbrWgt = 1.0/12;
+				number oppNbrWgt = 7.0/24;
+
+				//VecScaleAdd(m_aaTargetPos[vrt], centerWgt, aaPos[parent], nbrWgt, p, oppNbrWgt, aaPos[oppVrt]);
+				VecScaleAppend(m_aaTargetPos[vrt], centerWgt, aaPos[parent], nbrWgt, p, oppNbrWgt, aaPos[oppVrt]);
+			}
+
+		//	UNSUPPORTED VOLUME ELEMENT CASE
+			else
+			{
+				UG_THROW("Volume type not supported for subdivision volumes refinement.");
+			}
+		}
+
+	//	Scale vertex position by the number of associated volume elements
+		VecScale(m_aaTargetPos[vrt],  m_aaTargetPos[vrt], valence);
+		UG_LOG("Even: " << m_aaTargetPos[vrt].x() << "; " << m_aaTargetPos[vrt].y() << "; " << m_aaTargetPos[vrt].z() << "; Val: " << valence << std::endl);
+	}
 }
 
 
 template <class TAPosition>
-void SubdivisionLoopProjector<TAPosition>::
+void SubdivisionVolumesProjector<TAPosition>::
 new_vertex(Vertex* vrt, Edge* parent)
 {
-	using namespace std;
-	using std::swap;
-
 	SubdivRules_PLoop& subdiv = SubdivRules_PLoop::inst();
 	Grid::VertexAttachmentAccessor<TAPosition>& aaPos = BaseClass::m_aaPos;
 
 	assert(aaPos.valid() && "make sure to initialise the refiner-callback correctly.");
 	assert(m_aaTargetPos.valid() && "make sure to initialise the refiner-callback correctly.");
 
-//	check whether the parent edge lies inside a volume geometry. If it does,
+//	check whether the vertex lies inside a volume geometry. If it does,
 //	perform linear refinement.
 	Grid& g = *BaseClass::m_pGrid;
-	if(g.num<Volume>() > 0){
-		if(!IsBoundaryEdge3D(g, parent)){
-			aaPos[vrt] = CalculateCenter(parent, aaPos);
-			return;
-		}
+	bool volumesExist = g.num<Volume>() > 0;
+
+	VecSet(m_aaTargetPos[vrt], 0);
+
+//	Init vertex position by linear refinement
+	aaPos[vrt] = CalculateCenter(parent, aaPos);
+
+	if(!volumesExist){
+		UG_THROW("No volumes included in grid.");
 	}
 
-	if(is_crease_edge(parent)){
-		vector2 wghts = subdiv.ref_odd_crease_weights();
-		VecScaleAdd(m_aaTargetPos[vrt], wghts.x(), aaPos[parent->vertex(0)],
-					wghts.y(), aaPos[parent->vertex(1)]);
-	}
-	else{
+	//if(IsBoundaryVertex3D(g, vrt))
+
+	if(IsBoundaryEdge3D(g, parent))
+	{
 	//	apply loop-subdivision on inner elements
 	//	get the neighboured triangles
 		Face* f[2];
 		int numAssociatedBndFaces = 0;
 		if(g.num<Volume>() > 0){
-			vector<Face*> faces;
+			std::vector<Face*> faces;
 			CollectAssociated(faces, g, parent);
 			for(size_t i = 0; i < faces.size(); ++i){
 				if(IsBoundaryFace3D(g, faces[i])){
@@ -192,33 +233,7 @@ new_vertex(Vertex* vrt, Edge* parent)
 
 				vector4 wghts;
 
-				bool isCrease0 = is_crease_vertex(v[0]);
-				bool isCrease1 = is_crease_vertex(v[1]);
-			//	if exactly one of the two is a crease vertex, special
-			//	weighting has to be performed
-			//todo: this does not yet work for inner creases.
-				if((isCrease0 && !isCrease1) || (!isCrease0 && isCrease1))
-				{
-				//	the crease vertex has to be in v[0]
-					if(isCrease1)
-						swap(v[0], v[1]);
-
-				//	todo: replace this with a method call
-				//	get the number of edges that are connected to v[0]
-				//	todo: only check edges that are on the correct side of the crease.
-					size_t valence = 0;
-					for(Grid::AssociatedEdgeIterator iter =
-						g.associated_edges_begin(v[0]);
-						iter != g.associated_edges_end(v[0]); ++iter)
-					{
-						++valence;
-					}
-
-					wghts = subdiv.ref_odd_inner_weights(valence);
-				}
-				else{
-					wghts = subdiv.ref_odd_inner_weights();
-				}
+				wghts = subdiv.ref_odd_inner_weights();
 
 				VecScaleAdd(m_aaTargetPos[vrt],
 							wghts.x(), aaPos[v[0]], wghts.y(), aaPos[v[1]],
@@ -226,15 +241,93 @@ new_vertex(Vertex* vrt, Edge* parent)
 
 			}
 			else
-				m_aaTargetPos[vrt] = CalculateCenter(parent, aaPos);
+				UG_THROW("Non triangular faces included in grid.");
 		}
 		else
-			m_aaTargetPos[vrt] = CalculateCenter(parent, aaPos);
+			UG_THROW("numAssociatedBndFaces != 2.");
+	}
+	else
+	{
+		size_t valence = 0;
+		pos_type p;
+
+	//	Iterate over all associated volumes
+		for(Grid::AssociatedVolumeIterator vIter = g.associated_volumes_begin(vrt); vIter != g.associated_volumes_end(vrt); ++vIter)
+		{
+			VecSet(p, 0);
+			Volume* vol = *vIter;
+			++valence;
+
+		//	TETRAHEDRON CASE
+			if(vol->reference_object_id() == ROID_TETRAHEDRON)
+			{
+			//	Iterate over all associated vertices inside tetrahedron
+
+				/*
+				 * Alternative iteration
+				 *
+				for(Grid::AssociatedEdgeIterator eIter = g.associated_edges_begin(vol); eIter != g.associated_edges_end(vol); ++eIter)
+				{
+					Edge* e = *eIter;
+					if(GetConnectedVertex(e, vrt) != NULL)
+						VecAdd(p, p, aaPos[GetConnectedVertex(e, vrt)]);
+				}
+				*/
+
+				for(size_t i = 0; i < vol->num_vertices(); ++i)
+				{
+					if(i != GetVertexIndex(vol, vrt))
+						VecAdd(p, p, aaPos[vol->vertex(i)]);
+				}
+
+			//	TODO: refer to subdivision rules object
+				number centerWgt = -1.0/16;
+				number nbrWgt = 17.0/48;
+
+				//VecScaleAdd(m_aaTargetPos[vrt], centerWgt, aaPos[vrt], nbrWgt, p);
+				VecScaleAppend(m_aaTargetPos[vrt], centerWgt, aaPos[vrt], nbrWgt, p);
+			}
+
+		//	OCTAHEDRON CASE
+			else if(vol->reference_object_id() == ROID_OCTAHEDRON)
+			{
+			//	Iterate over all vertices inside octahedron, first associate ones and last the opposing one
+				for(Grid::AssociatedEdgeIterator eIter = g.associated_edges_begin(vol); eIter != g.associated_edges_end(vol); ++eIter)
+				{
+					Edge* e = *eIter;
+					if(GetConnectedVertex(e, vrt) != NULL)
+					{
+						VecAdd(p, p, aaPos[GetConnectedVertex(e, vrt)]);
+					}
+				}
+
+				//Vertex oppVrt = vol->get_opposing_object(vrt);
+				Vertex* oppVrt = vol->vertex(vol->get_opposing_object(vrt).second);
+
+			//	TODO: refer to subdivision rules object
+				number centerWgt = 3.0/8;
+				number nbrWgt = 1.0/12;
+				number oppNbrWgt = 7.0/24;
+
+				//VecScaleAdd(m_aaTargetPos[vrt], centerWgt, aaPos[vrt], nbrWgt, p, oppNbrWgt, aaPos[oppVrt]);
+				VecScaleAppend(m_aaTargetPos[vrt], centerWgt, aaPos[vrt], nbrWgt, p, oppNbrWgt, aaPos[oppVrt]);
+			}
+
+		//	UNSUPPORTED VOLUME ELEMENT CASE
+			else
+			{
+				UG_THROW("Volume type not supported for subdivision volumes refinement.");
+			}
+		}
+
+	//	Scale vertex position by the number of associated volume elements
+		VecScale(m_aaTargetPos[vrt],  m_aaTargetPos[vrt], valence);
+		UG_LOG("Odd: " << m_aaTargetPos[vrt].x() << "; " << m_aaTargetPos[vrt].y() << "; " << m_aaTargetPos[vrt].z() << std::endl);
 	}
 }
 
 template <class TAPosition>
-void SubdivisionLoopProjector<TAPosition>::
+void SubdivisionVolumesProjector<TAPosition>::
 new_vertex(Vertex* vrt, Face* parent)
 {
 //	this would only be interesting for quad subdivision.
@@ -242,7 +335,7 @@ new_vertex(Vertex* vrt, Face* parent)
 }
 
 template <class TAPosition>
-void SubdivisionLoopProjector<TAPosition>::
+void SubdivisionVolumesProjector<TAPosition>::
 new_vertex(Vertex* vrt, Volume* parent)
 {
 //	here a more elaborate scheme would be nice.
@@ -250,7 +343,7 @@ new_vertex(Vertex* vrt, Volume* parent)
 }
 
 template <class TAPosition>
-bool SubdivisionLoopProjector<TAPosition>::
+bool SubdivisionVolumesProjector<TAPosition>::
 is_crease_vertex(Vertex* vrt)
 {
 	if(BaseClass::m_pGrid->template num<Volume>() > 0)
@@ -260,7 +353,7 @@ is_crease_vertex(Vertex* vrt)
 }
 
 template <class TAPosition>
-bool SubdivisionLoopProjector<TAPosition>::
+bool SubdivisionVolumesProjector<TAPosition>::
 is_crease_edge(Edge* edge)
 {
 	if(BaseClass::m_pGrid->template num<Volume>() > 0)
