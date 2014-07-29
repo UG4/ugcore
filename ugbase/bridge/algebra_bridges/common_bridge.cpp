@@ -232,7 +232,8 @@ static void Algebra(Registry& reg, string grp)
 		string name = string("ILinearOperator").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_method("init", static_cast<void (T::*)()>(&T::init))
-			.add_method("apply", &T::apply, "f#u", "", "calculates f = Op(u)");
+			.add_method("apply", &T::apply, "f#u", "", "calculates f = Op(u)")
+			.add_method("apply_sub", &T::apply_sub, "f#u", "", "calculates f -= Op(u)");
 		reg.add_class_to_group(name, "ILinearOperator", tag);
 	}
 
@@ -255,7 +256,12 @@ static void Algebra(Registry& reg, string grp)
 			.add_method("set_damp", static_cast<void (T::*)(number)>(&T::set_damp), "", "damp", "set the damping to a number")
 			.add_method("set_damp", static_cast<void (T::*)(SmartPtr<IDamping<vector_type> >)>(&T::set_damp), "", "damp", "set the damping to a damping object")
 			.add_method("config_string", &T::config_string, "strConfiguration", "", "string to display configuration of the linear iterator")
-			.add_method("clone", &T::clone, "SmartPointer to a copy of this object", "", "returns a clone of the object which can be modified independently");
+			.add_method("clone", &T::clone, "SmartPointer to a copy of this object", "", "returns a clone of the object which can be modified independently")
+			.add_method("apply", &T::apply)
+			.add_method("apply_update_defect", &T::apply_update_defect)
+			.add_method("init", OVERLOADED_METHOD_PTR(bool, T, init, (SmartPtr<ILinearOperator<vector_type,vector_type> > L) ))
+			.add_method("init", OVERLOADED_METHOD_PTR(bool, T, init, (SmartPtr<ILinearOperator<vector_type,vector_type> > L, const vector_type &u) ))
+			.add_method("name", &T::name);
 		reg.add_class_to_group(name, "ILinearIterator", tag);
 	}
 
