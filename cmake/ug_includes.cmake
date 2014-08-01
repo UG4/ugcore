@@ -413,11 +413,7 @@ include_directories(${Boost_INCLUDE_DIRS})
 ########################################
 # dynamic linking
 if(UNIX)
-    if(STATIC_BUILD)
-        set(linkLibraries ${linkLibraries})
-    else(STATIC_BUILD)
-        set(linkLibraries ${linkLibraries} dl)
-    endif(STATIC_BUILD)
+	set(linkLibraries ${linkLibraries} dl)
 # for cekon pthread bug
 #    set(linkLibraries ${linkLibraries} pthread)
 elseif(WIN32)
