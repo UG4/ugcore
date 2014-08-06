@@ -16,6 +16,7 @@
 #include "lib_grid/algorithms/refinement/global_fractured_media_refiner.h"
 #include "lib_grid/algorithms/refinement/adaptive_regular_mg_refiner.h"
 #include "lib_grid/algorithms/refinement/refinement_projectors/loop_subdivision_projectors.h"
+#include "lib_grid/algorithms/subdivision/subdivision_volumes.h"
 #include "lib_grid/parallelization/util/partition_weighting_callbacks.h"
 #include "lib_grid/algorithms/space_partitioning/lg_ntree.h"
 #include "common/space_partitioning/ntree_traverser.h"
@@ -183,6 +184,23 @@ bool CreateSmoothHierarchy(MultiGrid& mg, size_t numRefs)
 		ProjectToLimitPLoop(mg, aPosition, aPosition);
 
 	delete refCallback;
+	return true;
+}
+
+bool CreateSmoothVolumeHierarchy(MultiGrid& mg, size_t numRefs)
+{
+	PROFILE_FUNC_GROUP("grid");
+
+	GlobalMultiGridRefiner ref(mg);
+
+	for(size_t lvl = 0; lvl < numRefs; ++lvl){
+		ref.refine();
+		SubdivisionTetGridSmooth(mg);
+	}
+
+	ProjectToLimitPLoop(mg, aPosition, aPosition);
+	ProjectToLimitSmoothTetGrid(mg);
+
 	return true;
 }
 
@@ -632,7 +650,11 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 			.add_function("TestHangingNodeRefiner_MultiGrid", &TestHangingNodeRefiner_MultiGrid, grp)
 			.add_function("CreateHierarchy", &CreateHierarchy, grp)
 			.add_function("CreateSmoothHierarchy", &CreateSmoothHierarchy, grp)
+			.add_function("CreateSmoothVolumeHierarchy", &CreateSmoothVolumeHierarchy, grp)
 			.add_function("CreateSemiSmoothHierarchy", &CreateSemiSmoothHierarchy, grp);
+
+	//	subdivision
+		reg.add_function("SubdivisionTetGridSmooth", &SubdivisionTetGridSmooth, grp);
 		
 	//	subset util
 		reg.add_function("AdjustSubsetsForSimulation",
