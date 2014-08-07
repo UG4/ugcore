@@ -138,9 +138,13 @@ void SubdivisionTetGridSmooth(MultiGrid& mg)
 //	Position attachment management
 	Grid::VertexAttachmentAccessor<APosition> aaPos(mg, aPosition);
 
+//	Smooth position attachment plus initialisation with zero
 	APosition aSmoothPosition(0.0);
 	mg.attach_to_vertices(aSmoothPosition);
 	Grid::VertexAttachmentAccessor<APosition> aaSmoothPos(mg, aSmoothPosition);
+
+	vector3 zeroVector(0.0, 0.0, 0.0);
+	SetAttachmentValues(aaSmoothPos, mg.begin<Vertex>(mg.top_level()), mg.end<Vertex>(mg.top_level()), zeroVector);
 
 //	Load subdivision surfaces rules
 	SubdivRules_PLoop& subdiv = SubdivRules_PLoop::inst();
@@ -149,20 +153,6 @@ void SubdivisionTetGridSmooth(MultiGrid& mg)
 	bool volumesExist = mg.num<Volume>() > 0;
 	if(!volumesExist)
 		UG_THROW("SubdivisionTetGridSmooth: No volumes included in input grid for smooth TetGrid subdivision refinement.");
-
-//	Initialize new SmoothPosition of vertices with 0.0
-	/*
-	for(VertexIterator vrtIter = mg.begin<Vertex>(mg.top_level()); vrtIter != mg.end<Vertex>(mg.top_level()); ++vrtIter)
-	{
-		Vertex* vrt = *vrtIter;
-
-		aaSmoothPos[vrt].x() = 0.0;
-		aaSmoothPos[vrt].y() = 0.0;
-		aaSmoothPos[vrt].z() = 0.0;
-
-		//UG_LOG(aaSmoothPos[vrt].x() << ", " << aaSmoothPos[vrt].y() << ", " << aaSmoothPos[vrt].z() << endl);
-	}
-	*/
 
 // 	Loop all vertices of top_level
 	for(VertexIterator vrtIter = mg.begin<Vertex>(mg.top_level()); vrtIter != mg.end<Vertex>(mg.top_level()); ++vrtIter)
