@@ -187,7 +187,7 @@ bool CreateSmoothHierarchy(MultiGrid& mg, size_t numRefs)
 	return true;
 }
 
-bool CreateSmoothVolumeHierarchy(MultiGrid& mg, size_t numRefs)
+bool CreateSmoothVolumeHierarchy(MultiGrid& mg, size_t numRefs, bool bPreserveBnd, bool bSubdivisionLoopBnd)
 {
 	PROFILE_FUNC_GROUP("grid");
 
@@ -195,10 +195,12 @@ bool CreateSmoothVolumeHierarchy(MultiGrid& mg, size_t numRefs)
 
 	for(size_t lvl = 0; lvl < numRefs; ++lvl){
 		ref.refine();
-		SubdivisionTetGridSmooth(mg);
+		SubdivisionTetGridSmooth(mg, bPreserveBnd, bSubdivisionLoopBnd);
 	}
 
-	ProjectToLimitPLoop(mg, aPosition, aPosition);
+	if(bSubdivisionLoopBnd)
+		ProjectToLimitPLoop(mg, aPosition, aPosition);
+
 	ProjectToLimitSmoothTetGrid(mg);
 
 	return true;
