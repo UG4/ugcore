@@ -22,6 +22,7 @@
 #include "lib_disc/function_spaces/grid_function_user_data.h"
 #include "lib_disc/function_spaces/dof_position_util.h"
 #include "lib_disc/function_spaces/grid_function_global_user_data.h"
+#include "lib_disc/function_spaces/grid_function_user_data_explicit.h"
 
 using namespace std;
 
@@ -81,6 +82,28 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("enable_redistribution", &TFct::enable_redistribution)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GridFunction", tag);
+	}
+
+//	ExplicitGridFunctionValue
+	{
+		string name = string("ExplicitGridFunctionValue").append(suffix);
+		typedef ExplicitGridFunctionValue<TFct> T;
+		typedef CplUserData<number, dim> TBase;
+		reg.add_class_<T, TBase>(name, grp)
+		   .template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("ExplicitGridFunctionValue#Component")
+		   .set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "ExplicitGridFunctionValue", tag);
+	}
+
+	//	ExplicitGridFunctionGradient
+	{
+		string name = string("ExplicitGridFunctionGradient").append(suffix);
+		typedef ExplicitGridFunctionGradient<TFct> T;
+		typedef CplUserData<MathVector<dim>, dim> TBase;
+		reg.add_class_<T, TBase>(name, grp)
+		   .template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("ExplicitGridFunctionGradient#Component")
+		   .set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "ExplicitGridFunctionGradient", tag);
 	}
 
 //	GridFunctionNumberData
