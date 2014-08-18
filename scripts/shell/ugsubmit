@@ -55,7 +55,7 @@ profilePrefix=""
 
 tail=false
 interactive=false
-outDir=`pwd`
+workDir=`pwd`
 
 # Jugene Options
 JugeneMode="VN"
@@ -64,6 +64,8 @@ JugeneVerbose=2
 
 # Hermit Options (max 31)
 HermitWorkspace=0
+
+nosubdir=false
 
 # general PBS Options
 pbsMailtype=""
@@ -104,8 +106,9 @@ function usage
 	echo "        -i                     : interactive (not fully supported)"
 	echo "        -dir                   : directory to use"
 	echo "        -queue                 : the queue to use"
+	echo "        -nosubdir              : don't create job in a subdir, but in dir (default .) directly. (warning: might be dangerous)"
 	echo " "
-	echo " Supported Cluster Types: NecNehalem, Hermit, Jugene, Juqueen, mpi, cekon, moab."
+	echo " Supported Cluster Types: NecNehalem, Hermit, Jugene, Juqueen, mpi (mpi-foreground, mpi-background), cekon, cesari, moab."
 	if [ -n "$UGSUBMIT_TYPE" ]; then 
 		echo " Only UGSUBMIT_TYPE=$UGSUBMIT_TYPE specific parameters are shown ! Set UGSUBMIT_TYPE=\"\" to see all."
 	fi
@@ -248,7 +251,7 @@ do
 		HermitWorkspace=$2
 		shift 2
 	elif [ $1 == "-dir" ]; then
-		outDir=$2
+		workDir=$2
 		shift 2
 	elif [ $1 == "-queue" ]; then
 		queue=$2
@@ -262,6 +265,9 @@ do
 	elif [ $1 == "-profilePrefix" ]; then
 		profilePrefix=$2
 		shift 2
+	elif [ $1 == "-nosubdir" ]; then
+		nosubdir=true
+		shift 1
 	elif [ $1 == "---" ]; then
 		shift
 		break
@@ -326,31 +332,35 @@ dirdate=$(date "+%Yy%mm%dd-%Hh%Mm%Ss");
 jobname=$jobname.$npe.$dirdate;
 
 #create output directory
-if [ $UGSUBMIT_TYPE == "Hermit" ] && [ $HermitWorkspace -gt 0 ] ; then
-	if [ $test == true ]; then
-		HermitWorkspace=1
-	fi
-	outdir=`ws_allocate $jobname $HermitWorkspace`
-	echo "Hermit Workspace dir for $jobname is $outdir, for $HermitWorkspace days"
-	ln -s $outdir $jobname
+if [ $nosubdir == true ]; then
+	outdir=$workDir
 else
-	HermitWorkspace=0
-	outdir=$outDir/$jobname
-	
-	# check if directly exist
-	if [ -d $outdir ]; then
-		# add milliseconds to disambigue
-		millisec=$(date "+%3Nms");
-		if [ "$millisec" != "3Nms" ]; then # fix for maxosx: %N not supported 
-			outdir=$outdir$millisec;
+	if [ $UGSUBMIT_TYPE == "Hermit" ] && [ $HermitWorkspace -gt 0 ] ; then
+		if [ $test == true ]; then
+			HermitWorkspace=1
 		fi
-	fi
-		
-	# if still exist: add random string, else create directory
-	if [ -d $outdir ]; then
-		outdir=$(mktemp -d $outdir.XXXXXX);
+		outdir=`ws_allocate $jobname $HermitWorkspace`
+		echo "Hermit Workspace dir for $jobname is $outdir, for $HermitWorkspace days"
+		ln -s $outdir $jobname
 	else
-		mkdir $outdir	
+		HermitWorkspace=0
+		outdir=$workDir/$jobname
+		
+		# check if directly exist
+		if [ -d $outdir ]; then
+			# add milliseconds to disambigue
+			millisec=$(date "+%3Nms");
+			if [ "$millisec" != "3Nms" ]; then # fix for maxosx: %N not supported 
+				outdir=$outdir$millisec;
+			fi
+		fi
+			
+		# if still exist: add random string, else create directory
+		if [ -d $outdir ]; then
+			outdir=$(mktemp -d $outdir.XXXXXX);
+		else
+			mkdir $outdir	
+		fi
 	fi
 fi
 
@@ -358,7 +368,9 @@ echo "Created directory: $outdir"
 if [ -d lastRun ]; then
 	rm lastRun
 fi
-ln -s $outdir lastRun
+if [ $nosubdir == false ]; then
+	ln -s $outdir lastRun
+fi
 
 #create info file in output directory
 if [ ! -e $outdir/info.txt ]; then
@@ -383,7 +395,7 @@ echo "  Job Info:" >> info.txt
 echo " ------------" >> info.txt
 echo " cluster:      "$UGSUBMIT_TYPE >> info.txt
 echo " submit by:    "$scriptname >> info.txt
-echo " exec path:    "$outDir >> info.txt
+echo " exec path:    "$workDir >> info.txt
 echo "" >> info.txt
 echo " jobname:      "$jobname >> info.txt
 echo " nnodes:       "$nnodes >> info.txt
@@ -402,11 +414,13 @@ echo "" >> info.txt
 
 if [ $interactive == false ]; then
 	
-	if [ ! -e $execpath/ugjobs ]; then
-		echo "JOBID     EXECDATE      DIRECTORY" > $execpath/ugjobs
+	if [ $nosubdir == false ]; then
+		if [ ! -e $execpath/ugjobs ]; then
+			echo "JOBID     EXECDATE      DIRECTORY" > $execpath/ugjobs
+		fi
+		echo "$jobid    $execdate    $outdir" >> $execpath/ugjobs
 	fi	
-	echo "Received job id: $jobid"
-	echo "$jobid    $execdate    $outdir" >> $execpath/ugjobs
+	echo "Received job id: $jobid"	
 	echo " job id:       "$jobid >> info.txt
 
 	if [ $tail == true ]; then
@@ -414,7 +428,7 @@ if [ $interactive == false ]; then
 		sleep 1; tail -f job.output
 	fi
 	
-	if [ $jobid != "?" ]; then
+	if [ $jobid != "?" ] && [ $nosubdir == false ]; then
 		cd $execpath
 		ln -s $outdir jobid.$jobid
 	fi	
