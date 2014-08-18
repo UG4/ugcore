@@ -52,6 +52,13 @@
 	#define UG_ALGEBRA_CPP_TEMPLATE_DEFINE_VAR(TheTemplateClassType)
 #endif
 
+#ifdef UG_GPU
+	#define UG_ALGEBRA_CPP_TEMPLATE_DEFINE_GPU(TheTemplateClassType) \
+		template class TheTemplateClassType<GPUAlgebra>;
+#else
+	#define UG_ALGEBRA_CPP_TEMPLATE_DEFINE_GPU(TheTemplateClassType)
+#endif
+
 /**
  * use this with templates of the form
  * template<typename TALgebra> class MyClass;
@@ -68,8 +75,9 @@
 		UG_ALGEBRA_CPP_TEMPLATE_DEFINE_2(TheTemplateClassType) \
 		UG_ALGEBRA_CPP_TEMPLATE_DEFINE_3(TheTemplateClassType) \
 		UG_ALGEBRA_CPP_TEMPLATE_DEFINE_4(TheTemplateClassType) \
-		UG_ALGEBRA_CPP_TEMPLATE_DEFINE_4(TheTemplateClassType) \
-		UG_ALGEBRA_CPP_TEMPLATE_DEFINE_VAR(TheTemplateClassType)
+		UG_ALGEBRA_CPP_TEMPLATE_DEFINE_5(TheTemplateClassType) \
+		UG_ALGEBRA_CPP_TEMPLATE_DEFINE_VAR(TheTemplateClassType) \
+		UG_ALGEBRA_CPP_TEMPLATE_DEFINE_GPU(TheTemplateClassType)
 
 
 #endif /* ALGEBRA_TEMPLATE_DEFINE_HELPER_H_ */
