@@ -27,6 +27,7 @@
 
 #include "lib_algebra/algebra_common/sparsematrix_util.h"  // DenseMatrixFromSparseMatrix
 #include "lib_algebra/small_algebra/small_algebra.h"   // DEnseMAtrix...
+#include "lib_algebra/algebra_template_define_helper.h"
 
 #include "pcl/pcl_layout_tests.h"
 
@@ -400,15 +401,9 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 ////////////////////////////////////////////////////////////////////////
 //	template instantiations for all current algebra types.
 
-#ifdef UG_CPU_1
-template class SchurPrecond<CPUAlgebra>;
-#endif
-#ifdef UG_CPU_2
-template class SchurPrecond<CPUBlockAlgebra<2> >;
-#endif
-#ifdef UG_CPU_3
-template class SchurPrecond<CPUBlockAlgebra<3> >;
-#endif
+
+// define SchurPrecond< ALGEBRA > for all Algebra Types (see algebra_template_define_helper.h)
+UG_ALGEBRA_CPP_TEMPLATE_DEFINE_ALL(SchurPrecond)
 
 };  // end of namespace
 
