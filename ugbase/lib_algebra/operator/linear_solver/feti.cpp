@@ -20,6 +20,7 @@
 // algebra types
 #include "lib_algebra/cpu_algebra_types.h"
 #include "lib_algebra/operator/algebra_debug_writer.h"
+#include "lib_algebra/algebra_template_define_helper.h"
 
 // additions for profiling
 #include "common/profiler/profiler.h"
@@ -1849,43 +1850,11 @@ test_layouts(bool bPrint)
 //	template instantiations for all current algebra types.
 
 
+// define LocalSchurComplement< ALGEBRA > for all Algebra Types (see algebra_template_define_helper.h)
+UG_ALGEBRA_CPP_TEMPLATE_DEFINE_ALL(LocalSchurComplement)
+UG_ALGEBRA_CPP_TEMPLATE_DEFINE_ALL(PrimalSubassembledMatrixInverse)
+UG_ALGEBRA_CPP_TEMPLATE_DEFINE_ALL(FETISolver)
 
-
-#ifdef UG_CPU_1
-template class LocalSchurComplement<CPUAlgebra>;
-template class PrimalSubassembledMatrixInverse<CPUAlgebra>;
-template class FETISolver<CPUAlgebra>;
-#endif
-#ifdef UG_CPU_2
-template class LocalSchurComplement<CPUBlockAlgebra<2> >;
-template class PrimalSubassembledMatrixInverse<CPUBlockAlgebra<2> >;
-template class FETISolver<CPUBlockAlgebra<2> >;	
-#endif
-#ifdef UG_CPU_3
-template class LocalSchurComplement<CPUBlockAlgebra<3> >;
-template class PrimalSubassembledMatrixInverse<CPUBlockAlgebra<3> >;
-template class FETISolver<CPUBlockAlgebra<3> >;
-#endif
-#ifdef UG_CPU_4
-template class LocalSchurComplement<CPUBlockAlgebra<4> >;
-template class PrimalSubassembledMatrixInverse<CPUBlockAlgebra<4> >;
-template class FETISolver<CPUBlockAlgebra<4> >;
-#endif
-#ifdef UG_CPU_5
-template class LocalSchurComplement<CPUBlockAlgebra<5> >;
-template class PrimalSubassembledMatrixInverse<CPUBlockAlgebra<5> >;
-template class FETISolver<CPUBlockAlgebra<5> >;
-#endif
-#ifdef UG_CPU_VAR
-template class LocalSchurComplement<CPUVariableBlockAlgebra>;
-template class PrimalSubassembledMatrixInverse<CPUVariableBlockAlgebra >;
-template class FETISolver<CPUVariableBlockAlgebra >;
-#endif
-#ifdef UG_GPU
-template class LocalSchurComplement<GPUAlgebra>;
-template class PrimalSubassembledMatrixInverse<GPUAlgebra>;
-template class FETISolver<GPUAlgebra>;
-#endif
 };  // end of namespace
 
 #endif
