@@ -117,10 +117,39 @@ function util.SolveNonlinearTimeProblem(
 	reductionFactor,
 	bFinishTimeStep,
 	useCheckpointing)
+	
+	if u == nil then
+		print("SolveNonlinearTimeProblem: Illegal parameters: No grid function for the solution specified.")
+		util.PrintUsageOfSolveTimeProblem()
+		exit()
+	end
 
-	if u == nil or domainDisc == nil or newtonSolver == nil or timeScheme == nil
-		or startTime == nil or endTime == nil or maxStepSize == nil then
-		print("Wrong usage found. Please specify parameters as below:")
+	if domainDisc == nil then
+		print("SolveNonlinearTimeProblem: Illegal parameters: No domain discretization specified.")
+		util.PrintUsageOfSolveTimeProblem()
+		exit()
+	end
+
+	if newtonSolver == nil then
+		print("SolveNonlinearTimeProblem: Illegal parameters: No nonlin. solver specified.")
+		util.PrintUsageOfSolveTimeProblem()
+		exit()
+	end
+
+	if timeScheme == nil then
+		print("SolveNonlinearTimeProblem: Illegal parameters: No time scheme specified.")
+		util.PrintUsageOfSolveTimeProblem()
+		exit()
+	end
+
+	if startTime == nil or endTime == nil then
+		print("SolveNonlinearTimeProblem: Illegal parameters: Start or end time not specified.")
+		util.PrintUsageOfSolveTimeProblem()
+		exit()
+	end
+
+	if maxStepSize == nil then
+		print("SolveNonlinearTimeProblem: Illegal parameters: No max. time step specified.")
 		util.PrintUsageOfSolveTimeProblem()
 		exit()
 	end
@@ -316,9 +345,38 @@ function util.SolveLinearTimeProblem(
 	reductionFactor,
 	useCheckpointing)
 
-	if u == nil or domainDisc == nil or linSolver == nil or timeScheme == nil
-		or startTime == nil or endTime == nil or maxStepSize == nil then
-		print("Wrong usage found. Please specify parameters as below:")
+	if u == nil then
+		print("SolveLinearTimeProblem: Illegal parameters: No grid function for the solution specified.")
+		util.PrintUsageOfSolveTimeProblem()
+		exit()
+	end
+
+	if domainDisc == nil then
+		print("SolveLinearTimeProblem: Illegal parameters: No domain discretization specified.")
+		util.PrintUsageOfSolveTimeProblem()
+		exit()
+	end
+
+	if linSolver == nil then
+		print("SolveLinearTimeProblem: Illegal parameters: No lin. solver specified.")
+		util.PrintUsageOfSolveTimeProblem()
+		exit()
+	end
+
+	if timeScheme == nil then
+		print("SolveLinearTimeProblem: Illegal parameters: No time scheme specified.")
+		util.PrintUsageOfSolveTimeProblem()
+		exit()
+	end
+
+	if startTime == nil or endTime == nil then
+		print("SolveLinearTimeProblem: Illegal parameters: Start or end time not specified.")
+		util.PrintUsageOfSolveTimeProblem()
+		exit()
+	end
+
+	if maxStepSize == nil then
+		print("SolveLinearTimeProblem: Illegal parameters: No max. time step specified.")
 		util.PrintUsageOfSolveTimeProblem()
 		exit()
 	end
