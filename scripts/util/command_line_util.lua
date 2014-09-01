@@ -84,7 +84,7 @@ function util.GetParam(name, default, description, options, atype)
 		end
 	end
 	if iFound > 1 then		
-		print("--- WARNING: Parameter "..name.." found multiple times ---")
+		ug_warning("--- WARNING: Parameter "..name.." found multiple times ---")
 		if util.bFailOnMultipleParameters == true then
 			exit()
 		end
@@ -116,6 +116,7 @@ function util.GetParamNumber(name, default, description, options)
 	-- read in
 	local param = util.GetParam(name, default, description, options, " (number) ")
 	ug_assert(param ~= nil, "ERROR in GetParamNumber: Number Parameter "..name.." not set and no default value given.")
+	if param == default then return default end
 	-- cast to number	
 	local value = tonumber(param)
 	ug_assert(value ~= nil, "ERROR in GetParamNumber: passed '"..param.."' for Parameter '"
@@ -173,6 +174,7 @@ function util.GetParamFromList(name, default, list)
 		return list[n]
 	end	
 end
+
 
 --! util.HasParamOption
 --! use with CommandLine to get option, like -useAMG

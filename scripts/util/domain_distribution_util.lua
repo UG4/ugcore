@@ -61,18 +61,18 @@ function util.DistributeDomain(dom, partitioningMethod, verticalInterfaces,
 	end
 	
 	if dom:domain_info():num_elements_on_level(distributionLevel) < numTargetProcs then
-		print("\nWARNING in DistributeDomain:")
-		print("    There are less elements on distributionLevel than there are target processes.")
-		print("    If ug hangs during parallel execution, consider increasing numPreRefs to avoid this!")
-		print("    num elements on level " .. distributionLevel .. ": "
+		ug_warning("\nWARNING in DistributeDomain:")
+		ug_warning("    There are less elements on distributionLevel than there are target processes.")
+		ug_warning("    If ug hangs during parallel execution, consider increasing numPreRefs to avoid this!")
+		ug_warning("    num elements on level " .. distributionLevel .. ": "
 			.. dom:domain_info():num_elements_on_level(distributionLevel))
-		print("    num target processes: " .. numTargetProcs)
-		print("")
+		ug_warning("    num target processes: " .. numTargetProcs)
+		ug_warning("")	
 	end
 	
 	if partitioningMethod == "bisection" then
 		if distributionLevel < dom:grid():num_levels() - 1 then
-			print("WARNING in util.DistributeDomain: 'bisection' can currently "
+			ug_warning("WARNING in util.DistributeDomain: 'bisection' can currently "
 				  .. "only be performed on the top level. Sorry...")
 		end 
 		util.PartitionMapBisection(dom, partitionMap, numTargetProcs)
@@ -174,7 +174,7 @@ function util.PartitionMapLexicographic2D(dom, partitionMapOut, numNodesX,
 --	Default them to 1, if numProcsPerNode is not a square number.
 	local subGridWidth = math.floor(math.sqrt(numProcsPerNode))
 	if subGridWidth * subGridWidth ~= numProcsPerNode then
-		print(strWarning .. "numProcsPerNode has to be a square number. Defaulting to 1.")				
+		ug_warning(strWarning .. "numProcsPerNode has to be a square number. Defaulting to 1.")				
 		numProcsPerNode = 1
 		subGridWidth = 1
 	end

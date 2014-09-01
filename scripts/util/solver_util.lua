@@ -184,7 +184,7 @@ util.GetPreconditioner = util.CreateFancyFunction(
 				exit()
 			end
 			if not gmg_disc then
-				print( "WARNING: Not specifying the discretization may cause errors. Use 'gmg_disc'." )
+				ug_warning( "WARNING: Not specifying the discretization may cause errors. Use 'gmg_disc'." )
 			end
 			
 			-- get base solver

@@ -305,7 +305,7 @@ function util.SolveNonlinearTimeProblem(
 	end
 	
 	if useCheckpointing and  timeDisc:num_stages() > 1 then
-		print("WARNING: Checkpointing won't work at the moment with timeDisc:num_stages() > 1")
+		ug_warning("WARNING: Checkpointing won't work at the moment with timeDisc:num_stages() > 1")
 	end 
 	
 	if type(out) == "userdata" then out:write_time_pvd(filename, u) end
@@ -509,7 +509,7 @@ function util.SolveLinearTimeProblem(
 	if not (out==nil) then out:write_time_pvd(filename, u) end
 	
 	if useCheckpointing and  timeDisc:num_stages() > 1 then
-		print("WARNING: Checkpointing won't work at the moment with timeDisc:num_stages() > 1")
+		ug_warning("WARNING: Checkpointing won't work at the moment with timeDisc:num_stages() > 1")
 	end 
 end
 
