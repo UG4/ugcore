@@ -25,6 +25,7 @@ void get_undeleted();
 #include "compile_info/compile_info.h"
 #include "bindings/lua/lua_debug.h"
 #include "shell.h"
+#include "common/util/stringify.h"
 
 using namespace std;
 using namespace ug;
@@ -126,7 +127,12 @@ int main(int argc, char* argv[])
 	LOG(AppendSpacesToString(aux_str,80-1).append("*\n"));
 
 	aux_str = "";
-	aux_str.append("*                    on '").append(UGBuildHost()).append("'.");
+	aux_str.append("*                    on '").append(UGBuildHost()).append("'");
+#ifdef UG_DEBUG
+	aux_str.append(" (DEBUG).");
+#else
+	aux_str.append(".");
+#endif
 	LOG(AppendSpacesToString(aux_str,80-1).append("*\n"));
 
 	LOG("*                                                                              *\n");
@@ -157,7 +163,7 @@ int main(int argc, char* argv[])
 	}
 	catch(UGError& err)
 	{
-	//	if ugerror is throw, an internal fatal error occured, we termiate shell
+	//	if an UGError is thrown, an internal fatal error occured, we terminate shell
 		UG_ERR_LOG("UGError occurred during Path Initialization:\n");
 		for(size_t i=0; i<err.num_msg(); i++)
 			UG_ERR_LOG(err.get_file(i) << ":" << err.get_line(i) << " : " << err.get_msg(i) << "\n");
@@ -283,9 +289,7 @@ int main(int argc, char* argv[])
 		SetLuaUGArgs(L, argc, argv, firstParamIndex, iNoQuit);
 
 		// replace LUAs print function with our own, to use UG_LOG
-		lua_register(L, "print", UGLuaPrint );
-		lua_register(L, "print_all", UGLuaPrintAllProcs );
-		lua_register(L, "write", UGLuaWrite );
+		RegisterStdLUAFunctions(L);
 	
 		ug::bridge::InitShell();
 
