@@ -35,17 +35,35 @@ function ug_assert(condition, msg)
 	if condition then
 		return
 	else
-		print("BACKTRACE:")
-		DebugBacktrace()
+		print("\n")
+		print("[->                             ERROR:")
+		print("==============================================================================\n!")		
+		if msg ~= nil then print(msg) end
+		print("!\n==============================================================================")
 		print("ASSERTION FAILED:")
 		local f, l = test.getSourceAndLine()
 		print("     File:      "..f)
 		print("     Line:      "..l)
 		if msg ~= nil then print("     Message:   "..msg) end
+		print("LUA BACKTRACE:")
+		DebugBacktrace()		
+		print("==============================================================================")
+		print("                                 ERROR                                     <-]\n")
+		
 		assert(false)
 	end
 end
 
+function ug_warning(t)
+	print(t)
+	err_log(t)
+end
+
+function ug_cond_warning(condition, text)
+	if condition then
+		ug_warning(text)
+	end
+end
 
 ug_load_script("util/command_line_util.lua")
 
@@ -314,7 +332,7 @@ end
 --! 2. if you're really sure you want to do that, use io.open_ALL. 
 function util.safe_io_open(filename, model)	
 	if ProcRank() == 1 then
-		print_all("--- WARNING: opening a file not from proc 0 may harm performance (see util.IOOpen) ! "..util.GetLUAFileAndLine(1).." ---")
+		ug_warning("--- WARNING: opening a file not from proc 0 may harm performance (see util.IOOpen) ! "..util.GetLUAFileAndLine(1).." ---")
 	end
 	return io.open_ALL(filename, model)
 end
@@ -357,6 +375,7 @@ function tostring(Val)
    		return _tostring(Val)
    	end
 end
+
 
 -- end group scripts_util
 --[[!  
