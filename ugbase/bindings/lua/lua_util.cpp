@@ -284,40 +284,9 @@ bool ParseAndExecuteBuffer(const char* buffer, const char *bufferName)
 
 }
 
-/**
- * Parses the content of the file "filename" and executes it in the default lua state
- * \note don't use this function on all cores (i/o limited).
- * @param filename		the buffer to be executed
- * @return				true on success, otherwise throw(LuaError)
- */
-// bool ParseFile(const char* filename) deprecated ... use LoadScript instead
 
-
-/// UGLuaPrint. Redirects LUA prints to UG_LOG
-int UGLuaPrint(lua_State *L)
+static void GetToStringFromStack(lua_State *L, std::stringstream &ss)
 {
-	int nArgs = lua_gettop(L);
-	int i;
-	lua_getglobal(L, "tostring");
-
-	for(i=1; i<=nArgs; i++)
-	{
-		lua_pushvalue(L, -1);
-		lua_pushvalue(L, i);
-		lua_call(L, 1, 1);
-		const char *s = lua_tostring(L, -1);
-		if(s) UG_LOG(s);
-		lua_pop(L, 1);
-	}
-	UG_LOG(endl);
-	lua_pop(L,1);
-	return 0;
-}
-
-/// UGLuaPrint. Redirects LUA prints to UG_LOG
-int UGLuaPrintAllProcs(lua_State *L)
-{
-	std::stringstream ss;
 	int nArgs = lua_gettop(L);
 	int i;
 	lua_getglobal(L, "tostring");
@@ -331,9 +300,26 @@ int UGLuaPrintAllProcs(lua_State *L)
 		if(s) ss << s;
 		lua_pop(L, 1);
 	}
+	lua_pop(L,1);
+}
+
+/// UGLuaPrint. Redirects LUA prints to UG_LOG
+int UGLuaPrint(lua_State *L)
+{
+	std::stringstream ss;
+	GetToStringFromStack(L, ss);
+	ss << "\n";
+	UG_LOG(ss.str());
+	return 0;
+}
+
+/// UGLuaPrint. Redirects LUA prints to UG_LOG
+int UGLuaPrintAllProcs(lua_State *L)
+{
+	std::stringstream ss;
+	GetToStringFromStack(L, ss);
 	ss << "\n";
 	UG_LOG_ALL_PROCS(ss.str());
-	lua_pop(L,1);
 	return 0;
 }
 
@@ -341,23 +327,30 @@ int UGLuaPrintAllProcs(lua_State *L)
 /// UGLuaWrite. Redirects LUA prints to UG_LOG without adding newline at the end
 int UGLuaWrite(lua_State *L)
 {
-	PROFILE_FUNC();
-	int nArgs = lua_gettop(L);
-	int i;
-	lua_getglobal(L, "tostring");
-
-	for(i=1; i<=nArgs; i++)
-	{
-		lua_pushvalue(L, -1);
-		lua_pushvalue(L, i);
-		lua_call(L, 1, 1);
-		const char *s = lua_tostring(L, -1);
-		if(s) UG_LOG(s);
-		lua_pop(L, 1);
-	}
-	lua_pop(L,1);
+	std::stringstream ss;
+	GetToStringFromStack(L, ss);
+	UG_LOG(ss.str());
 	GetLogAssistant().flush();
 	return 0;
+}
+
+/// UGLuaErrLog.
+int UGLuaErrLog(lua_State *L)
+{
+	std::stringstream ss;
+	GetToStringFromStack(L, ss);
+	ss << "\n";
+	UG_ERR_LOG(ss.str());
+	GetLogAssistant().flush();
+	return 0;
+}
+
+void RegisterStdLUAFunctions(lua_State *L)
+{
+	lua_register(L, "print", UGLuaPrint );
+	lua_register(L, "print_all", UGLuaPrintAllProcs );
+	lua_register(L, "write", UGLuaWrite );
+	lua_register(L, "err_log", UGLuaErrLog);
 }
 
 int UGGetMetatable(lua_State *L)
@@ -454,18 +447,7 @@ int UGIsBaseClass(lua_State *L)
 
 	return 0;
 }
-/**
- * create ugargc and ugargv in lua
- * we want to forward argc and argv to the lua-environment.
- * we'll create a table for that.
- * Please note that ugargv will neither contain the name of the program, nor
- * the script, if one was specified.
- * @param L					the LUA state
- * @param argc				the commandline argc
- * @param argv				the commandline argv
- * @param firstParamIndex	first argv to consider
- * @param iNoQuit			index where to skip -noquit
- */
+
 void SetLuaUGArgs(lua_State* L, int argc, char* argv[], int firstParamIndex, int iNoQuit)
 {
 

@@ -87,11 +87,6 @@ UG_API void ReleaseDefaultLuaState();
  */
 UG_API bool ParseAndExecuteBuffer(const char* buffer, const char *bufferName="buffer");
 
-///	parses and executes a file
-/**	Throws an instance of LuaError, if a parse error occurs.*/
-// deprecated ... use LoadScript instead
-// UG_API bool ParseAndExecuteFile(const char* filename);
-
 /// UGLuaPrint. Redirects LUA prints to UG_LOG
 UG_API int UGLuaPrint(lua_State *L);
 
@@ -117,9 +112,24 @@ UG_API int UGAlgebraCompiled(lua_State *L);
 UG_API int UGGetClassName(lua_State *L);
 
 /// Returns classgroup of a userdata as string
-int UGGetClassGroup(lua_State *L);
+UG_API int UGGetClassGroup(lua_State *L);
 
+/**
+ * create ugargc and ugargv in lua
+ * we want to forward argc and argv to the lua-environment.
+ * we'll create a table for that.
+ * Please note that ugargv will neither contain the name of the program, nor
+ * the script, if one was specified.
+ * @param L					the LUA state
+ * @param argc				the commandline argc
+ * @param argv				the commandline argv
+ * @param firstParamIndex	first argv to consider
+ * @param iNoQuit			index where to skip -noquit
+ */
 UG_API void SetLuaUGArgs(lua_State* L, int argc, char* argv[], int firstParamIndex, int iNoQuit);
+
+/// register functions like print and write directly to LUA (not using the ug registry)
+UG_API void RegisterStdLUAFunctions(lua_State *L);
 
 /**
  * searches for the filename
