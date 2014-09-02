@@ -50,6 +50,8 @@ public:
 		m_curRow=m_curCol = 0;
 	}
 
+	StringTable &table() { return s; }
+
 	/**
 	 * operator <<. sets curCol++
 	 * @param t anything which is ostream << -able
