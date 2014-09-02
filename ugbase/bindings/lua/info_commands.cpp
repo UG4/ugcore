@@ -23,6 +23,7 @@
 #include "registry/class_name_provider.h"
 #include "common/util/string_util.h"
 #include "common/util/stringify.h"
+#include "common/util/string_table_stream.h"
 
 #include "common/profiler/profiler.h"
 #ifdef UG_PLUGINS
@@ -1012,23 +1013,30 @@ string LuaCurrentLine(lua_State* L)
 
 std::string LuaStackTraceString(lua_State* L, int backtraceLevel)
 {
-	std::stringstream ss;
+	StringTableStream sts;
     lua_Debug entry;
+
+    std::vector<string> filenames;
+
+    //sts.table().set_col_alignments("ll");
     int luaLevel=0;
     for(int depth = 0; lua_getstack(L, depth, &entry); depth++)
 	{
-    	int status = lua_getinfo(L, "Sln", &entry);
-    	if(entry.currentline <0) continue;
-    	if(!status || !entry.source || entry.currentline < 0) continue;
-    	ss << "  " << luaLevel++ << "    " << entry.source << ":" << entry.currentline;
-    	ss << "   " << GetFileLine(entry.source, entry.currentline);
+		int status = lua_getinfo(L, "Sln", &entry);
+		if(entry.currentline <0) continue;
+		if(!status || !entry.source || entry.currentline < 0) continue;
+		luaLevel++;
+		// first col
+		sts << (Stringify() << " " << luaLevel << "  " << entry.source << ":" << entry.currentline).str();
+		// second col
+		sts << TrimString(GetFileLine(entry.source, entry.currentline));
+		// next row
+		sts << "\n";
+		if(luaLevel == backtraceLevel) break;
+	}
 
-    	ss << "\n";
-    	if(luaLevel == backtraceLevel) break;
-    }
-    return ss.str();
+    return sts.to_string();
 }
-
 
 /// returns the current file and line ( \sa LuaStackTrace ).
 bool GetLuaFileAndLine(lua_State* L, std::string &file, size_t &line)
