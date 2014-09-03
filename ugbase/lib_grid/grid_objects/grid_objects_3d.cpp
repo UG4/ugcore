@@ -185,9 +185,12 @@ static bool Refine(std::vector<Volume*>& vNewVolumesOut,
 		switch(num){
 			case 4:	vNewVolumesOut.push_back(new Tetrahedron(vd));	break;
 			case 5:	vNewVolumesOut.push_back(new Pyramid(vd));		break;
-			case 6:	vNewVolumesOut.push_back(new Prism(vd));		break;
-			//TODO: modify num switch to support octahedrons
-			//case 6:	vNewVolumesOut.push_back(new Octahedron(vd));		break;
+			case 6:
+				if(tet_rules::GetRefinementRule() == tet_rules::HYBRID_TET_OCT)
+					vNewVolumesOut.push_back(new Octahedron(vd));
+				else
+					vNewVolumesOut.push_back(new Prism(vd));
+				break;
 			case 8:	vNewVolumesOut.push_back(new Hexahedron(vd));	break;
 		}
 	}

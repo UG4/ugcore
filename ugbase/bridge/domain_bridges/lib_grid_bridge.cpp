@@ -657,6 +657,7 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 
 	//	subdivision
 		reg.add_function("SubdivisionTetGridSmooth", &SubdivisionTetGridSmooth, grp);
+		reg.add_function("ConvertHybridTetOctGridToTetGrid", &ConvertHybridTetOctGridToTetGrid, grp);
 		
 	//	subset util
 		reg.add_function("AdjustSubsetsForSimulation",
