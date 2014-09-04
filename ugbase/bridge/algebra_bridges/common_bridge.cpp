@@ -338,7 +338,13 @@ static void Algebra(Registry& reg, string grp)
 		typedef IConvergenceCheck<vector_type> T;
 		string name = string("IConvergenceCheck").append(suffix);
 		reg.add_class_<T>(name, grp)
-				.add_method("config_string", &T::config_string);
+				.add_method("config_string", &T::config_string)
+				.add_method("defect", &T::defect, "defect", "", "returns the current defect")
+					.add_method("step", &T::step, "step", "", "returns the current number of steps")
+					.add_method("reduction", &T::reduction, "reduction", "", "returns the current relative reduction")
+					.add_method("iteration_ended", &T::iteration_ended)
+					.add_method("avg_rate", &T::avg_rate, "", "returns the average convergence rate")
+					;
 		reg.add_class_to_group(name, "IConvergenceCheck", tag);
 	}
 
@@ -369,12 +375,7 @@ static void Algebra(Registry& reg, string grp)
 			.add_method("set_reduction", &T::set_reduction,	"", "Relative Reduction|default|min=0D;value=1e-12")
 			.add_method("set_verbose", &T::set_verbose,	"", "Verbosity")
 			.add_method("set_supress_unsuccessful", &T::set_supress_unsuccessful,"", "supress false return")
-			.add_method("defect", &T::defect, "defect", "", "returns the current defect")
-			.add_method("step", &T::step, "step", "", "returns the current number of steps")
-			.add_method("reduction", &T::reduction, "reduction", "", "returns the current relative reduction")
-			.add_method("iteration_ended", &T::iteration_ended)
 			.add_method("previous_defect", &T::previous_defect)
-			.add_method("avg_rate", &T::avg_rate, "", "returns the average convergence rate")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ConvCheck", tag);
 	}
