@@ -247,31 +247,31 @@ ugshell_complete()
 	# get absolute UG4 root
 	# for compatibilty to mac, don't use realpath or readlink here.
 	curDir=`pwd`
-	cd $UG4_ROOT
+	cd "$UG4_ROOT"
 	UG4_ROOT_absolute=`pwd`
-	cd $curDir
+	cd "$curDir"
 
 	
 ######### get completions in directory $UG4_ROOT/apps/ #########
-	if [ -d $UG4_ROOT/apps ] && [ $UG4_ROOT_absolute/apps != $curDir ] && [ ${COMP_WORDS[COMP_CWORD-1]} = "-ex" ];
+	if [ -d $UG4_ROOT/apps ] && [ $UG4_ROOT_absolute/apps != "$curDir" ] && [ ${COMP_WORDS[COMP_CWORD-1]} = "-ex" ];
 	then 		
-		cd $UG4_ROOT/apps
+		cd "$UG4_ROOT/apps"
 		while read line; do
 			[[ -d $line ]] && COMPREPLY[i++]=$line/
 			[[ "${line##*.}" = "lua" ]] && COMPREPLY[i++]=$line
 		done < <(compgen -f -- $word)
-		cd $curDir
+		cd "$curDir"
 
 ######### get completions in directory $UG4_ROOT/data/grid #########
-	elif [ -d $UG4_ROOT/data/grids ] && [ $UG4_ROOT_absolute/data/grids != $curDir ] && [ ${COMP_WORDS[COMP_CWORD-1]} = "-grid" ];
+	elif [ -d $UG4_ROOT/data/grids ] && [ $UG4_ROOT_absolute/data/grids != "$curDir" ] && [ ${COMP_WORDS[COMP_CWORD-1]} = "-grid" ];
 	then 
 		
-		cd $UG4_ROOT/data/grids
+		cd "$UG4_ROOT/data/grids"
 		while read line; do
 			[[ -d $line ]] && COMPREPLY[i++]=$line/
 			[[ "${line##*.}" = "ugx" ]] && COMPREPLY[i++]=$line
 		done < <(compgen -f -- $word)  
-		cd $curDir
+		cd "$curDir"
 ######### get lua file completions #########
 	else
 	
