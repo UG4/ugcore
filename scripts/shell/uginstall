@@ -21,6 +21,11 @@
 # and LD_LIBRARY_PATH so you can use the program and the libs.
 # You might need to open up a new console to reset these variables.
 
+method=all
+svnServer="fuji.gcsc.uni-frankfurt.de"
+softwareServer="141.2.38.55"
+# svn://fuji.gcsc.uni-frankfurt.de/misc/uginstall
+
 #which wget &> /dev/null
 #if [ $? == 0 ]; then
 	#mywget=wget
@@ -45,27 +50,62 @@ my_download_file()
 {
 	local location=$1
 	local destination=$2
-	which wget &> /dev/null
-	if [ $? == 0 ]; then
-		wget $location -O $destination
-	else
-		curl -L $location -o $destination
+	local success=false
+	# try direct
+	if [ $success == false ] && ( [ $method == "direct" ] || [ $method == "all" ] ); then
+		echo ""
+		echo "Trying direct download from $destination..."
+	
+		which wget &> /dev/null
+		if [ $? == 0 ]; then
+			wget $location -O $destination
+		else
+			curl -L $location -o $destination
+		fi
+	
+		if [ ! $? == 0 ]; then 
+			echo "Error downloading from $destination."; 
+			rm $destination
+		else
+			success=true
+		fi
 	fi
-	if [ ! $? == 0 ]; then 
-		echo "Error downloading from $destination."; 
-		rm $destination
-		
+	
+	if [ $success == false ] && ( [ $method == "macServer" ] || [ $method == "all" ] ); then
 		echo ""
 		echo "Trying software server now: software@141.2.38.55:Software/uginstall/$filename ."
 		echo " --- Please enter software server password: ---"
 
 		if [ -e $filename.part ]; then rm $filename.part; fi
 
-		scp -r software@141.2.38.55:Software/uginstall/$filename $filename.part
+		scp -r software@$softwareServer:Software/uginstall/$filename $filename.part
 		if [ ! $? == 0 ]; then 			
-			exit;
+			echo "Error downloading from Software Server.";
+		else
+			success=true
 		fi
 	fi
+	
+	if [ $success == false ] && ( [ $method == "svn" ] || [ $method == "all" ] ); then
+		if [ -e $filename.part ]; then rm $filename.part; fi
+		
+		echo ""
+		echo "Trying svn server now: $svnServer ."
+		echo "complete svn checkout is: svn export svn://$svnServer/misc/uginstall/$filename $filename.part"
+		
+		svn export svn://$svnServer/misc/uginstall/$filename $filename.part
+		
+		if [ ! $? == 0 ]; then 			
+			echo "Error downloading from Software Server.";
+		else
+			success=true
+		fi
+	fi
+	
+	if [ $success == false ]; then
+		exit
+	fi
+	
 }
 
 my_extract()
@@ -643,7 +683,34 @@ print_usage()
 }
 
 
-case $1 in
+param1=$1;            # number of nodes
+shift
+
+while [ $# -gt 0 ]
+do
+	#echo $1
+	#echo $2
+	if [ $1 == "-fromMac" ]; then
+		method=macServer
+		shift 1
+	elif [ $1 == "-macServer" ]; then
+		softwareServer=$2
+		shift 2
+	elif [ $1 == "-fromSvn" ]; then
+		method=svn
+		shift 1
+	elif [ $1 == "-svnServer" ]; then
+		method=svn
+		svnServer=$2
+		shift 2
+	else
+		echo "undefined option $1"
+		exit
+	fi
+done
+
+
+case $param1 in
 	clang) install_clang ;;
 	cmake) install_cmake ;;
 	doxygen) install_doxygen ;;
