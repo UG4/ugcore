@@ -22,9 +22,14 @@
 # You might need to open up a new console to reset these variables.
 
 method=all
-svnServer="fuji.gcsc.uni-frankfurt.de"
-softwareServer="141.2.38.55"
+
+# address of svn server to use. can be changed with -svnServer address.
 # svn://fuji.gcsc.uni-frankfurt.de/misc/uginstall
+svnServer="fuji.gcsc.uni-frankfurt.de"
+
+# ip of software server. can be changed with -macServer address.
+softwareServer="141.2.38.55"
+
 
 #which wget &> /dev/null
 #if [ $? == 0 ]; then
@@ -625,7 +630,7 @@ install_all()
 
 print_usage()
 {
-	echo " uginstall 0.3"
+	echo " uginstall 0.4"
 	echo ""
 	echo " using install path $UG4_LOCAL_INSTALL_DIR (change in uginstall_path)"
 	echo ""  
@@ -645,7 +650,7 @@ print_usage()
 	echo " and LD_LIBRARY_PATH so you can use the program and the libs."
 	echo " You might need to open up a new console to reset these variables."
 	echo " "
-    echo " usage:  uginstall <program>"
+    echo " usage:  uginstall <program> <options>"
 	echo "  <program> can be:"
 	echo "	all"
 	echo "	clang       (=clang+llvm from svn)"
@@ -680,6 +685,13 @@ print_usage()
 	# last checked 04/2014
 	echo "	ANN         1.1.2                 " `[[ -e ANN/used/installed ]] && echo "(installed)"`
 	echo "	LUA         5.1.4                 " `[[ -e LUA/used/installed ]] && echo "(installed)"`
+	echo ""
+	echo " Options: "
+	echo "  -fromMac: only download from our software server"
+	echo "  -macServer <address> : specify macServers address (for ssh -R)"
+	echo "  -fromSvn : download from fuji.gcsc.uni-frankfurt.de's svn server"
+	echo "  -svnServer <address> : specify svn server address (for ssh -R)"
+	echo "  example: uginstall SuperLU -svnServer localhost:5337"
 }
 
 
