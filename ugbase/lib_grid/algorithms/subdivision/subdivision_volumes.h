@@ -218,6 +218,8 @@ void SplitOctahedronToTetrahedrons(Grid& grid, Octahedron* oct, Volume* parentVo
 //	ConvertHybridTetOctGridToTetGrid
 void ConvertHybridTetOctGridToTetGrid(MultiGrid& mg)
 {
+	UG_LOG("ConvertHybridTetOctGridToTetGrid" << std::endl);
+
 //	Position attachment management
 	Grid::VertexAttachmentAccessor<APosition> aaPos(mg, aPosition);
 
@@ -253,7 +255,7 @@ void ConvertHybridTetOctGridToTetGrid(MultiGrid& mg)
 
 
 //	>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-//	Re-parenting VRTS, EDGES, FACES
+//	Re-parenting to FACES
 //	>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 	std::vector<Edge*> vEdgeChildrenOfOctParent;
@@ -269,7 +271,7 @@ void ConvertHybridTetOctGridToTetGrid(MultiGrid& mg)
 //	and get current oct o, its children and its parent's children
 	for(size_t i = mg.top_level()-1; i > 0; --i)
 	{
-		UG_LOG(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Re-parenting VRT, EDGES, FACES : " << " LEVEL " << i << " >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << std::endl);
+		UG_LOG(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Re-parenting to FACES, EDGES : " << " LEVEL " << i << " >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << std::endl);
 
 	//	Loop over all octahedrons o on each level
 		for(VolumeIterator octIter = mg.begin<Octahedron>(i); octIter != mg.end<Octahedron>(i); ++octIter)
@@ -382,7 +384,7 @@ void ConvertHybridTetOctGridToTetGrid(MultiGrid& mg)
 			//	If such an edge was found, look for a child face candidate which shares this edge
 				if(sharedEdgeInd != -1)
 				{
-					UG_LOG("Found edge" << std::endl);
+					//UG_LOG("Found edge" << std::endl);
 
 				//	Iterate over all child faces but those previously collected 12 (FF) from above
 					for(size_t k = 0; k < vFaceChildrenOfOctTmp.size(); ++k)
@@ -404,7 +406,7 @@ void ConvertHybridTetOctGridToTetGrid(MultiGrid& mg)
 							(	f_e2.vertex(1) == FF->edge_desc(sharedEdgeInd).vertex(0) && f_e2.vertex(0) == FF->edge_desc(sharedEdgeInd).vertex(1)	)
 						)
 						{
-							UG_LOG("Edge shared" << std::endl);
+							//UG_LOG("Edge shared" << std::endl);
 
 						// 	If yes, does it contain the inner octahedral vertex
 							if(	mg.get_parent(f->vertex(0))->reference_object_id() == ROID_OCTAHEDRON ||
@@ -412,7 +414,7 @@ void ConvertHybridTetOctGridToTetGrid(MultiGrid& mg)
 								mg.get_parent(f->vertex(2))->reference_object_id() == ROID_OCTAHEDRON )
 							{
 							//	Push back child face candidate
-								UG_LOG("Match" << std::endl);
+								//UG_LOG("Match" << std::endl);
 								vFaceChildrenOfOct.push_back(f);
 							}
 						}
@@ -457,7 +459,6 @@ void ConvertHybridTetOctGridToTetGrid(MultiGrid& mg)
 			//	Iterate over all remaining possible parent edge candidates
 				for(size_t k = 0; k < vEdgeChildrenOfOctParent.size(); ++k)
 				{
-					UG_LOG("vEdgeChildrenOfOctParent # " << k << std::endl);
 					Edge* parentEdge = vEdgeChildrenOfOctParent[k];
 
 					number dist = DistancePointToLine(aaPos[childVrt], aaPos[parentEdge->vertex(0)], aaPos[parentEdge->vertex(1)]);
@@ -472,7 +473,7 @@ void ConvertHybridTetOctGridToTetGrid(MultiGrid& mg)
 
 				if(closestEdgeInd != -1)
 				{
-					UG_LOG("(VE) " << j << " ;mg.associate_parent_edge; " << "closestEdgeInd: " << closestEdgeInd << "; minDist: " << minDist << std::endl);
+					//UG_LOG("(VE) " << j << " ; mg.associate_parent_edge; " << "closestEdgeInd: " << closestEdgeInd << "; minDist: " << minDist << std::endl);
 					mg.associate_parent(childVrt, vEdgeChildrenOfOctParent[closestEdgeInd]);
 				}
 				else
@@ -521,7 +522,7 @@ void ConvertHybridTetOctGridToTetGrid(MultiGrid& mg)
 
 				if(closestFaceInd != -1)
 				{
-					UG_LOG("(FF) " << k << " ;mg.associate_parent; " << "closestFaceInd: " << closestFaceInd << "; minDist: " << minDist << std::endl);
+					//UG_LOG("(FF) " << k << " ; mg.associate_parent; " << "closestFaceInd: " << closestFaceInd << "; minDist: " << minDist << std::endl);
 					mg.associate_parent(childFace, vFaceChildrenOfOctParent[closestFaceInd]);
 				}
 				else
@@ -569,7 +570,7 @@ void ConvertHybridTetOctGridToTetGrid(MultiGrid& mg)
 
 					if(closestElemInd != -1)
 					{
-						UG_LOG("(EE) " << k << " ;mg.associate_parent_edge; " << "closestEdgeInd: " << closestElemInd << "; minDist: " << minDist << std::endl);
+						//UG_LOG("(EE) " << k << " ; mg.associate_parent_edge; " << "closestEdgeInd: " << closestElemInd << "; minDist: " << minDist << std::endl);
 						mg.associate_parent(childEdge, vEdgeChildrenOfOctParent[closestElemInd]);
 					}
 					else
@@ -591,7 +592,7 @@ void ConvertHybridTetOctGridToTetGrid(MultiGrid& mg)
 							mg.get_parent(f->vertex(1))->base_object_id() == VERTEX ||
 							mg.get_parent(f->vertex(2))->base_object_id() == VERTEX)
 						{
-							UG_LOG("bChildFaceWithParentFace = true" << std::endl);
+							//UG_LOG("bChildFaceWithParentFace = true" << std::endl);
 							bChildFaceWithParentFace = true;
 						}
 					}
@@ -624,7 +625,7 @@ void ConvertHybridTetOctGridToTetGrid(MultiGrid& mg)
 
 						if(closestElemInd != -1)
 						{
-							UG_LOG("(EE) " << k << " ;mg.associate_parent_face; " << "closestFaceInd: " << closestElemInd << "; minDist: " << minDist << std::endl);
+							//UG_LOG("(EF) " << k << " ; mg.associate_parent_face; " << "closestFaceInd: " << closestElemInd << "; minDist: " << minDist << std::endl);
 							mg.associate_parent(childEdge, vFaceChildrenOfOctParent[closestElemInd]);
 						}
 						else
@@ -663,6 +664,7 @@ void ConvertHybridTetOctGridToTetGrid(MultiGrid& mg)
 
 
 			UG_LOG(std::endl);
+			UG_LOG("TEST GATHERING REASSOCIATION TO FACES, EDGES: " << std::endl);
 			UG_LOG("vVrtChildrenOfOct.size() : " << vVrtChildrenOfOct.size() << std::endl);
 			UG_LOG("vEdgeChildrenOfOct.size() : " << vEdgeChildrenOfOct.size() << std::endl);
 			UG_LOG("vFaceChildrenOfOct.size() (ALL) : " << mg.num_child_faces(oct) << std::endl);
@@ -675,15 +677,15 @@ void ConvertHybridTetOctGridToTetGrid(MultiGrid& mg)
 	UG_LOG(std::endl);
 
 
-//	>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-//	Re-parenting VOLUMES, FACES
-//	>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+//	>>>>>>>>>>>>>>>>>>>>>>>
+//	Re-parenting to VOLUMES
+//	>>>>>>>>>>>>>>>>>>>>>>>
 
 //	Loop over all levels starting with toplevel-1 decrementing till level 1
 //	and get current oct o, its children tc and its parent's tetrahedral children tp
 	for(size_t i = mg.top_level()-1; i > 0; --i)
 	{
-		UG_LOG(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Re-parenting VOLUMES : " << " LEVEL " << i << " >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << std::endl);
+		UG_LOG(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Re-parenting to VOLUMES : " << " LEVEL " << i << " >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << std::endl);
 
 	//	Loop over all octahedrons o on each level
 		for(VolumeIterator octIter = mg.begin<Octahedron>(i); octIter != mg.end<Octahedron>(i); ++octIter)
@@ -741,6 +743,133 @@ void ConvertHybridTetOctGridToTetGrid(MultiGrid& mg)
 			UG_LOG("vTetChildrenOfOct.size() BEFORE reassociation : " << vTetChildrenOfOct.size() << std::endl);
 
 
+			////////////////////////
+			//	ASSOCIATION OF EDGES
+			////////////////////////
+
+		//	Check containment of o's child edges in o's parent's child tets
+		//	Iterate over all child vrts of octahedron o
+			for(size_t j = 0; j < vEdgeChildrenOfOct.size(); ++j)
+			{
+				Edge* childEdge = vEdgeChildrenOfOct[j];
+				vector3 edgeCenter = CalculateCenter(childEdge, aaPos);
+
+				number minDist = std::numeric_limits<number>::max();
+				int closestTetInd = -1;
+
+			//	Iterate over all remaining possible parent tet candidates
+				for(size_t k = 0; k < vTetChildrenOfOctParent.size(); ++k)
+				{
+					Tetrahedron* parentTet = vTetChildrenOfOctParent[k];
+					vector3 tetCenter = CalculateCenter(parentTet, aaPos);
+
+					number dist = VecDistance(edgeCenter, tetCenter);
+
+				//	Find closest parent tet candidate
+					if(dist < minDist)
+					{
+						minDist = dist;
+						closestTetInd = (int)k;
+					}
+				}
+
+				if(closestTetInd != -1)
+				{
+					//UG_LOG("(EV) " << j << " ; mg.associate_parent_tet; " << "closestTetInd: " << closestTetInd << "; minDist: " << minDist << std::endl);
+					mg.associate_parent(childEdge, vTetChildrenOfOctParent[closestTetInd]);
+				}
+				else
+				{
+					UG_THROW("Couldn't find tet parent to child edge: " << ElementDebugInfo(mg, childEdge));
+				}
+			}
+
+
+			////////////////////////
+			//	ASSOCIATION OF FACES
+			////////////////////////
+
+		//	Check containment of o's child faces in o's parent's child tets
+		//	Iterate over all child vrts of octahedron o
+			for(size_t j = 0; j < vFaceChildrenOfOct.size(); ++j)
+			{
+				Face* childFace = vFaceChildrenOfOct[j];
+				vector3 faceCenter = CalculateCenter(childFace, aaPos);
+
+				number minDist = std::numeric_limits<number>::max();
+				int closestTetInd = -1;
+
+			//	Iterate over all remaining possible parent tet candidates
+				for(size_t k = 0; k < vTetChildrenOfOctParent.size(); ++k)
+				{
+					Tetrahedron* parentTet = vTetChildrenOfOctParent[k];
+					vector3 tetCenter = CalculateCenter(parentTet, aaPos);
+
+					number dist = VecDistance(faceCenter, tetCenter);
+
+				//	Find closest parent tet candidate
+					if(dist < minDist)
+					{
+						minDist = dist;
+						closestTetInd = (int)k;
+					}
+				}
+
+				if(closestTetInd != -1)
+				{
+					//UG_LOG("(FV) " << j << " ; mg.associate_parent_tet; " << "closestTetInd: " << closestTetInd << "; minDist: " << minDist << std::endl);
+					mg.associate_parent(childFace, vTetChildrenOfOctParent[closestTetInd]);
+				}
+				else
+				{
+					UG_THROW("Couldn't find tet parent to child face: " << ElementDebugInfo(mg, childFace));
+				}
+			}
+
+
+			////////////////////////
+			//	ASSOCIATION OF TETS
+			////////////////////////
+
+		//	Check containment of o's child faces in o's parent's child tets
+		//	Iterate over all child vrts of octahedron o
+			for(size_t j = 0; j < vTetChildrenOfOct.size(); ++j)
+			{
+				Tetrahedron* childTet = vTetChildrenOfOct[j];
+				vector3 tetChildCenter = CalculateCenter(childTet, aaPos);
+
+				number minDist = std::numeric_limits<number>::max();
+				int closestTetInd = -1;
+
+			//	Iterate over all remaining possible parent tet candidates
+				for(size_t k = 0; k < vTetChildrenOfOctParent.size(); ++k)
+				{
+					Tetrahedron* parentTet = vTetChildrenOfOctParent[k];
+					vector3 tetParentCenter = CalculateCenter(parentTet, aaPos);
+
+					number dist = VecDistance(tetChildCenter, tetParentCenter);
+
+				//	Find closest parent tet candidate
+					if(dist < minDist)
+					{
+						minDist = dist;
+						closestTetInd = (int)k;
+					}
+				}
+
+				if(closestTetInd != -1)
+				{
+					//UG_LOG("(VV) " << j << " ; mg.associate_parent_tet; " << "closestTetInd: " << closestTetInd << "; minDist: " << minDist << std::endl);
+					mg.associate_parent(childTet, vTetChildrenOfOctParent[closestTetInd]);
+				}
+				else
+				{
+					UG_THROW("Couldn't find tet parent to child tet: " << ElementDebugInfo(mg, childTet));
+				}
+			}
+
+
+			/*
 			/////////////////////////////////
 			//	ASSOCIATION OF VOLUMES, FACES
 			/////////////////////////////////
@@ -826,6 +955,39 @@ void ConvertHybridTetOctGridToTetGrid(MultiGrid& mg)
 //					}
 //				}
 //			}
+			 */
+
+
+		//	TEST GATHERING:
+
+		//	Get and collect child faces of octahedron o
+			vFaceChildrenOfOct.clear();
+			for(size_t j = 0; j < mg.num_children<Face>(oct); ++j)
+			{
+				Face* f = mg.get_child_face(oct, j);
+				vFaceChildrenOfOct.push_back(f);
+			}
+
+		//	Get and collect child edges of octahedron o
+			vEdgeChildrenOfOct.clear();
+			for(size_t j = 0; j < mg.num_children<Edge>(oct); ++j)
+			{
+				Edge* e = mg.get_child_edge(oct, j);
+				vEdgeChildrenOfOct.push_back(e);
+			}
+
+		//	Get and collect child vrts of octahedron o
+			vTetChildrenOfOct.clear();
+			for(size_t j = 0; j < mg.num_children<Volume>(oct); ++j)
+			{
+				if(mg.get_child_volume(oct, j)->reference_object_id() == ROID_TETRAHEDRON)
+				{
+					Tetrahedron* tet = dynamic_cast<Tetrahedron*>(mg.get_child_volume(oct, j));
+					vTetChildrenOfOct.push_back(tet);
+				}
+				else
+					continue;
+			}
 
 			UG_LOG("vEdgeChildrenOfOct.size() AFTER reassociation : " << vEdgeChildrenOfOct.size() << std::endl);
 			UG_LOG("vFaceChildrenOfOct.size() AFTER reassociation : " << vFaceChildrenOfOct.size() << std::endl);
@@ -835,14 +997,6 @@ void ConvertHybridTetOctGridToTetGrid(MultiGrid& mg)
 		}
 	}
 	UG_LOG(std::endl);
-
-
-
-
-
-
-
-
 
 
 /*
@@ -884,7 +1038,7 @@ void ConvertHybridTetOctGridToTetGrid(MultiGrid& mg)
 //	Erase all octahedrons o from hierarchy
 	mg.erase(mg.begin<Octahedron>(), mg.end<Octahedron>());
 
-/*
+
 //	CHECK
 	UG_LOG("----------------------- VOLUME CHECK -----------------------" << std::endl);
 
@@ -954,7 +1108,7 @@ void ConvertHybridTetOctGridToTetGrid(MultiGrid& mg)
 		counter++;
 		}
 	}
-*/
+
 }
 
 
