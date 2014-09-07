@@ -252,122 +252,9 @@ void ConvertHybridTetOctGridToTetGrid(MultiGrid& mg)
 	UG_LOG(std::endl);
 
 
-//	>>>>>>>>>>>>>>>>>>>>>
-//	Re-parenting VOLUMES
-//	>>>>>>>>>>>>>>>>>>>>>
-
-//	Loop over all levels starting with toplevel-1 decrementing till level 1
-//	and get current oct o, its children tc and its parent's tetrahedral children tp
-	for(size_t i = mg.top_level()-1; i > 0; --i)
-	{
-	    UG_LOG(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Re-parenting VOLUMES : " << " LEVEL " << i << " >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << std::endl);
-
-	//	Loop over all octahedrons o on each level
-	    for(VolumeIterator octIter = mg.begin<Octahedron>(i); octIter != mg.end<Octahedron>(i); ++octIter)
-	    {
-	        vTetChildrenOfOct.clear();
-	        vTetChildrenOfOctParent.clear();
-
-	        Volume* oct		 		= *octIter;
-	        Volume* parentVol 		= dynamic_cast<Volume*>(mg.get_parent(oct));
-
-		//	Get and collect child tetrahedrons tp of octahedral parent p
-		//	Loop over all o's parent's children
-			for(size_t j = 0; j < mg.num_children<Volume>(parentVol); ++j)
-			{
-			//	Store child tetrahedrons tp in vector vTetChildrenOfOctParent
-				if(mg.get_child_volume(parentVol, j)->reference_object_id() == ROID_TETRAHEDRON)
-				{
-					Tetrahedron* tet = dynamic_cast<Tetrahedron*>(mg.get_child_volume(parentVol, j));
-					vTetChildrenOfOctParent.push_back(tet);
-				}
-				else
-					continue;
-			}
-
-		//	Get and collect child tetrahedrons tc of octahedron o
-	        for(size_t j = 0; j < mg.num_children<Volume>(oct); ++j)
-	        {
-	            if(mg.get_child_volume(oct, j)->reference_object_id() == ROID_TETRAHEDRON)
-	            {
-	                Tetrahedron* tet = dynamic_cast<Tetrahedron*>(mg.get_child_volume(oct, j));
-	                vTetChildrenOfOct.push_back(tet);
-	            }
-	            else
-	                continue;
-	        }
-
-	        UG_LOG("vTetChildrenOfOct.size() BEFORE reassociation : " << vTetChildrenOfOct.size() << std::endl);
-
-	    //	Check containment of o's child tetrahedrons tc in o's parent's child tetrahedrons tp
-		//	Iterate over all child tetrahedrons tp of octahedral parent p
-	        for(size_t j = 0; j < vTetChildrenOfOctParent.size(); ++j)
-			{
-				Tetrahedron* parentTet = vTetChildrenOfOctParent[j];
-
-			//	Iterate over all remaining possible child tetrahedron candidates tc
-				for(size_t k = 0; k < vTetChildrenOfOct.size();)
-				{
-					Tetrahedron* childTetCandidate = vTetChildrenOfOct[k];
-					vector3 center = CalculateCenter(childTetCandidate, aaPos);
-
-				//	If contained, associate family pair tp<->tc
-					if(ContainsPoint(dynamic_cast<Volume*>(parentTet), center, aaPos))
-					{
-						mg.associate_parent(childTetCandidate, parentTet);
-						vTetChildrenOfOct.erase(vTetChildrenOfOct.begin()+k);
-					}
-					else
-						 ++k;
-				}
-			}
-
-//			for(size_t j = 0; j < vTetChildrenOfOctParent.size(); ++j)
-//			{
-//				Tetrahedron* parentTet = vTetChildrenOfOctParent[j];
-//
-//			//	Iterate over all remaining possible child tetrahedron candidates tc
-//				size_t size = vTetChildrenOfOct.size();
-//				for(size_t k = 0; k < size; ++k)
-//				{
-//					Tetrahedron* childTetCandidate = vTetChildrenOfOct[k];
-//					vector3 center = CalculateCenter(childTetCandidate, aaPos);
-//
-//				//	If contained, associate family pair tp<->tc
-//					if(ContainsPoint(dynamic_cast<Volume*>(parentTet), center, aaPos))
-//					{
-//						mg.associate_parent(childTetCandidate, parentTet);
-//						vTetChildrenOfOct.erase(vTetChildrenOfOct.begin()+k);
-//					}
-//
-//				//	Correct vector size for erased element
-//					if (size != (size_t)vTetChildrenOfOct.size())
-//					{
-//						--k;
-//						size = vTetChildrenOfOct.size();
-//					}
-//				}
-//			}
-
-	        UG_LOG("vTetChildrenOfOct.size() AFTER reassociation : " << vTetChildrenOfOct.size() << std::endl);
-	        UG_LOG("vTetChildrenOfOctParent.size() : " << vTetChildrenOfOctParent.size() << std::endl);
-	        UG_LOG(std::endl);
-	    }
-	}
-	UG_LOG(std::endl);
-
-
-
-
-
-
-
-
-
-
-//	>>>>>>>>>>>>>>>>>>>>>
-//	Re-parenting EDGES, FACES
-//	>>>>>>>>>>>>>>>>>>>>>
+//	>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+//	Re-parenting VRTS, EDGES, FACES
+//	>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 	std::vector<Edge*> vEdgeChildrenOfOctParent;
 	std::vector<Face*> vFaceChildrenOfOctParent;
@@ -725,15 +612,6 @@ void ConvertHybridTetOctGridToTetGrid(MultiGrid& mg)
 				}
 			}
 
-
-
-
-
-
-
-
-
-
 		//	TEST GATHERING:
 
 		//	Get and collect child faces of octahedron o
@@ -752,7 +630,7 @@ void ConvertHybridTetOctGridToTetGrid(MultiGrid& mg)
 				vEdgeChildrenOfOct.push_back(e);
 			}
 
-		//	Get and collect child edges of octahedron o
+		//	Get and collect child vrts of octahedron o
 			vVrtChildrenOfOct.clear();
 			for(size_t j = 0; j < mg.num_children<Vertex>(oct); ++j)
 			{
@@ -774,6 +652,141 @@ void ConvertHybridTetOctGridToTetGrid(MultiGrid& mg)
 	UG_LOG(std::endl);
 
 
+//	>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+//	Re-parenting VOLUMES, FACES
+//	>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+//	Loop over all levels starting with toplevel-1 decrementing till level 1
+//	and get current oct o, its children tc and its parent's tetrahedral children tp
+	for(size_t i = mg.top_level()-1; i > 0; --i)
+	{
+		UG_LOG(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Re-parenting VOLUMES : " << " LEVEL " << i << " >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << std::endl);
+
+	//	Loop over all octahedrons o on each level
+		for(VolumeIterator octIter = mg.begin<Octahedron>(i); octIter != mg.end<Octahedron>(i); ++octIter)
+		{
+			vFaceChildrenOfOct.clear();
+			vTetChildrenOfOct.clear();
+			vTetChildrenOfOctParent.clear();
+
+			Volume* oct		 		= *octIter;
+			Volume* parentVol 		= dynamic_cast<Volume*>(mg.get_parent(oct));
+
+		//	Get and collect child tetrahedrons tp of octahedral parent p
+		//	Loop over all o's parent's children
+			for(size_t j = 0; j < mg.num_children<Volume>(parentVol); ++j)
+			{
+			//	Store child tetrahedrons tp in vector vTetChildrenOfOctParent
+				if(mg.get_child_volume(parentVol, j)->reference_object_id() == ROID_TETRAHEDRON)
+				{
+					Tetrahedron* tet = dynamic_cast<Tetrahedron*>(mg.get_child_volume(parentVol, j));
+					vTetChildrenOfOctParent.push_back(tet);
+				}
+				else
+					continue;
+			}
+
+		//	Get and collect child tetrahedrons tc of octahedron o
+			for(size_t j = 0; j < mg.num_children<Volume>(oct); ++j)
+			{
+				if(mg.get_child_volume(oct, j)->reference_object_id() == ROID_TETRAHEDRON)
+				{
+					Tetrahedron* tet = dynamic_cast<Tetrahedron*>(mg.get_child_volume(oct, j));
+					vTetChildrenOfOct.push_back(tet);
+				}
+				else
+					continue;
+			}
+
+		//	Get and collect child faces of octahedron o
+			for(size_t j = 0; j < mg.num_children<Face>(oct); ++j)
+			{
+				Face* f = mg.get_child_face(oct, j);
+				vFaceChildrenOfOct.push_back(f);
+			}
+
+			UG_LOG("vFaceChildrenOfOct.size() BEFORE reassociation : " << vFaceChildrenOfOct.size() << std::endl);
+			UG_LOG("vTetChildrenOfOct.size() BEFORE reassociation : " << vTetChildrenOfOct.size() << std::endl);
+
+
+			/////////////////////////////////
+			//	ASSOCIATION OF VOLUMES, FACES
+			/////////////////////////////////
+
+		//	Check containment of o's child tetrahedrons tc in o's parent's child tetrahedrons tp
+		//	Iterate over all child tetrahedrons tp of octahedral parent p
+			for(size_t j = 0; j < vTetChildrenOfOctParent.size(); ++j)
+			{
+				Tetrahedron* parentTet = vTetChildrenOfOctParent[j];
+
+			//	Iterate over all remaining possible child tetrahedron candidates tc
+				for(size_t k = 0; k < vTetChildrenOfOct.size();)
+				{
+					Tetrahedron* childTetCandidate = vTetChildrenOfOct[k];
+					vector3 center = CalculateCenter(childTetCandidate, aaPos);
+
+				//	If contained, associate family pair tp<->tc
+					if(ContainsPoint(dynamic_cast<Volume*>(parentTet), center, aaPos))
+					{
+						mg.associate_parent(childTetCandidate, parentTet);
+						vTetChildrenOfOct.erase(vTetChildrenOfOct.begin()+k);
+					}
+					else
+						 ++k;
+				}
+
+			//	Iterate over all remaining possible child face candidates
+				for(size_t k = 0; k < vFaceChildrenOfOct.size();)
+				{
+					Face* childFaceCandidate = vFaceChildrenOfOct[k];
+					vector3 center = CalculateCenter(childFaceCandidate, aaPos);
+
+				//	If contained, associate family pair
+					if(ContainsPoint(dynamic_cast<Volume*>(parentTet), center, aaPos))
+					{
+						mg.associate_parent(childFaceCandidate, parentTet);
+						vFaceChildrenOfOct.erase(vFaceChildrenOfOct.begin()+k);
+					}
+					else
+						 ++k;
+				}
+			}
+
+//			for(size_t j = 0; j < vTetChildrenOfOctParent.size(); ++j)
+//			{
+//				Tetrahedron* parentTet = vTetChildrenOfOctParent[j];
+//
+//			//	Iterate over all remaining possible child tetrahedron candidates tc
+//				size_t size = vTetChildrenOfOct.size();
+//				for(size_t k = 0; k < size; ++k)
+//				{
+//					Tetrahedron* childTetCandidate = vTetChildrenOfOct[k];
+//					vector3 center = CalculateCenter(childTetCandidate, aaPos);
+//
+//				//	If contained, associate family pair tp<->tc
+//					if(ContainsPoint(dynamic_cast<Volume*>(parentTet), center, aaPos))
+//					{
+//						mg.associate_parent(childTetCandidate, parentTet);
+//						vTetChildrenOfOct.erase(vTetChildrenOfOct.begin()+k);
+//					}
+//
+//				//	Correct vector size for erased element
+//					if (size != (size_t)vTetChildrenOfOct.size())
+//					{
+//						--k;
+//						size = vTetChildrenOfOct.size();
+//					}
+//				}
+//			}
+
+
+			UG_LOG("vFaceChildrenOfOct.size() AFTER reassociation : " << vFaceChildrenOfOct.size() << std::endl);
+			UG_LOG("vTetChildrenOfOct.size() AFTER reassociation : " << vTetChildrenOfOct.size() << std::endl);
+			UG_LOG("vTetChildrenOfOctParent.size() : " << vTetChildrenOfOctParent.size() << std::endl);
+			UG_LOG(std::endl);
+		}
+	}
+	UG_LOG(std::endl);
 
 
 
