@@ -183,7 +183,7 @@ inline void ICplUserData<dim>::check_s_ip(size_t s, size_t ip) const
 {
 	check_s(s);
 	UG_ASSERT(ip < num_ip(s), "Invalid index.");
-	UG_ASSERT(m_vvGlobPos[s] != NULL, "Local IP not set.");
+	UG_ASSERT(m_vvGlobPos[s] != NULL, "Global IP not set.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////

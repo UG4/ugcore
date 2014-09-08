@@ -2139,7 +2139,7 @@ AssembleErrorEstimator
 		UG_THROW("(instationary) AssembleErrorEstimator: s_a and s_m must have same size.");
 
 	if(vSol->size() < vScaleStiff.size())
-		UG_THROW("(instationary) AssembleE: Time stepping scheme needs at "
+		UG_THROW("(instationary) AssembleErrorEstimator: Time stepping scheme needs at "
 				"least "<<vScaleStiff.size()<<" time steps, but only "<<
 				vSol->size() << " passed.");
 
@@ -2187,7 +2187,7 @@ AssembleErrorEstimator
 				{
 					Eval.prepare_err_est_elem(locU, elem, vCornerCoords, ind, false);
 				}
-				UG_CATCH_THROW("(instationary) AssembleRhs: Cannot prepare element.");
+				UG_CATCH_THROW("AssembleErrorEstimator: Cannot prepare element.");
 
 			// 	assemble stiffness part
 				try

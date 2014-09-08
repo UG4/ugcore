@@ -126,14 +126,14 @@ void DataEvaluator<TDomain>::extract_imports_and_userdata(int subsetIndex, int d
 	std::vector<SmartPtr<ICplUserData<dim> > > vEvalData;
 	std::vector<SmartPtr<ICplUserData<dim> > > vTryingToAdd;
 
-//	In the next loop we extract all need UserData:
+//	In the next loop we extract all needed UserData:
 //	We only process the DataImport if there has been set data to the import
 //	since otherwise no evaluation is needed.
 //	If there is data given, we get the connected UserData and add it to the vector
 //	of EvaluationData. This simply adds the UserData to the queue for UserData, if
 //	the data does not depend on other Data. But if the UserData itself has
 //	dependencies to other UserData, this data is added first (in a recursive
-//	process). Of coarse, no circle dependency between UserData is allowed.
+//	process). Of course, no circle dependency between UserData is allowed.
 
 //	In the same loop over the data imports, we schedule the DataImports for
 //	evaluation and compute the correct FunctionMapping for the linearization
@@ -563,7 +563,7 @@ prepare_err_est_elem_loop(const ReferenceObjectID id, int si)
 	UG_CATCH_THROW("DataEvaluator::prepare_err_est_elem_loop: "
 						"Cannot prepare element loop.");
 
-//	extract data imports and userdatas
+//	extract data imports and user data
 	try{
 		extract_imports_and_userdata(si, m_discPart);
 	}
@@ -579,7 +579,7 @@ prepare_err_est_elem_loop(const ReferenceObjectID id, int si)
 		for(size_t i = 0; i < m_vImport[PT_ALL][RHS].size(); ++i)
 			m_vImport[PT_ALL][RHS][i]->check_setup();
 	}
-	UG_CATCH_THROW("DataEvaluator::prepare_err_est_elem_loop: Import correctly implemented.");
+	UG_CATCH_THROW("DataEvaluator::prepare_err_est_elem_loop: Import not correctly implemented.");
 
 //	prepare and check dependent data
 	try{
