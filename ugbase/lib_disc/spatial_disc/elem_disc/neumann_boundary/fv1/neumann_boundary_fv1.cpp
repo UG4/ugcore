@@ -321,16 +321,14 @@ prep_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> 
 {
 // get global IPs for imports
 	size_t numSideIPs;
-	std::vector<MathVector<dim> > sideIPs;
+	MathVector<dim>* sideIPs;
 
 	try
 	{
 		err_est_type* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
 
 		numSideIPs = err_est_data->num_all_side_ips(elem->reference_object_id());
-		sideIPs = std::vector<MathVector<dim> >(numSideIPs);
-
-		err_est_data->all_side_global_ips(&sideIPs[0], elem, vCornerCoords);
+		sideIPs = err_est_data->all_side_global_ips(elem, vCornerCoords);
 	}
 	UG_CATCH_THROW("Global integration points for error estimator cannot be set.");
 
@@ -389,9 +387,7 @@ compute_err_est_rhs_elem(GridObject* elem, const MathVector<dim> vCornerCoords[]
 
 	// store global side IPs
 	ReferenceObjectID roid = elem->reference_object_id();
-	size_t numSideIPs = err_est_data->num_all_side_ips(roid);
-	std::vector<MathVector<dim> > glob_ips = std::vector<MathVector<dim> >(numSideIPs);
-	err_est_data->all_side_global_ips(&glob_ips[0], elem, vCornerCoords);
+	MathVector<dim>* glob_ips = err_est_data->all_side_global_ips(elem, vCornerCoords);
 
 	//	conditional Number Data
 	for (size_t data = 0; data < m_vBNDNumberData.size(); ++data)

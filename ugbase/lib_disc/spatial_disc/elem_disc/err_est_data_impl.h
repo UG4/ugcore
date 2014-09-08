@@ -320,9 +320,8 @@ const MathVector<refDim>* SideAndElemErrEstData<TDomain>::elem_local_ips(const R
 }
 
 template <typename TDomain>
-void SideAndElemErrEstData<TDomain>::all_side_global_ips
+MathVector<SideAndElemErrEstData<TDomain>::dim>* SideAndElemErrEstData<TDomain>::all_side_global_ips
 (
-	MathVector<dim>* globIPs,
 	GridObject* elem,
 	const MathVector<dim> vCornerCoords[]
 )
@@ -337,19 +336,21 @@ void SideAndElemErrEstData<TDomain>::all_side_global_ips
 	// map IPs
 	try
 	{
-		ref_map.local_to_global(globIPs, &m_SideIPcoords[roid][0], m_SideIPcoords[roid].size());
+		m_sideGlobalIPcoords.resize(num_all_side_ips(roid));
+		ref_map.local_to_global(&m_sideGlobalIPcoords[0], &m_SideIPcoords[roid][0], m_SideIPcoords[roid].size());
 	}
 	catch (std::exception& e)
 	{
 		UG_THROW("Encountered exception while trying to fill array of global IPs: "
 				 << std::endl << "'" << e.what() << "'");
 	}
+
+	return &m_sideGlobalIPcoords[0];
 }
 
 template <typename TDomain>
-void SideAndElemErrEstData<TDomain>::side_global_ips
+MathVector<SideAndElemErrEstData<TDomain>::dim>* SideAndElemErrEstData<TDomain>::side_global_ips
 (
-	MathVector<dim>* globIPs,
 	GridObject* elem,
 	const MathVector<dim> vCornerCoords[]
 )
@@ -364,19 +365,21 @@ void SideAndElemErrEstData<TDomain>::side_global_ips
 	// map IPs
 	try
 	{
-		ref_map.local_to_global(globIPs, quadRuleSide[roid]->points(), quadRuleSide[roid]->size());
+		m_singleSideGlobalIPcoords.resize(num_side_ips(roid));
+		ref_map.local_to_global(&m_sideGlobalIPcoords[0], quadRuleSide[roid]->points(), quadRuleSide[roid]->size());
 	}
 	catch (std::exception& e)
 	{
 		UG_THROW("Encountered exception while trying to fill array of global IPs: "
 				 << std::endl << "'" << e.what() << "'");
 	}
+
+	return &m_singleSideGlobalIPcoords[0];
 }
 
 template <typename TDomain>
-void SideAndElemErrEstData<TDomain>::elem_global_ips
+MathVector<SideAndElemErrEstData<TDomain>::dim>* SideAndElemErrEstData<TDomain>::elem_global_ips
 (
-	MathVector<dim>* globIPs,
 	GridObject* elem,
 	const MathVector<dim> vCornerCoords[]
 )
@@ -391,14 +394,16 @@ void SideAndElemErrEstData<TDomain>::elem_global_ips
 	// map IPs
 	try
 	{
-		for (std::size_t ip = 0; ip < quadRuleElem[roid]->size(); ip++)
-			ref_map.local_to_global(globIPs[ip], quadRuleElem[roid]->point(ip));
+		m_elemGlobalIPcoords.resize(num_elem_ips(roid));
+		ref_map.local_to_global(&m_elemGlobalIPcoords[0], quadRuleElem[roid]->points(), quadRuleElem[roid]->size());
 	}
 	catch (std::exception e)
 	{
 		UG_THROW("Encountered exception while trying to fill array of global IPs: "
 				 << std::endl << "'" << e.what() << "'");
 	}
+
+	return &m_elemGlobalIPcoords[0];
 }
 
 template <typename TDomain>
@@ -712,9 +717,7 @@ void SideAndElemErrEstData<TDomain>::summarize_err_est_data(SmartPtr<TDomain> sp
 			// map coarse side local IPs to global
 			std::vector<MathVector<dim> > c_coCo;
 			CollectCornerCoordinates(c_coCo, c_rim_side, spDomain->position_accessor(), false);
-			std::vector<MathVector<dim> > c_gloIPs(num_side_ips(c_rim_side));
-
-			side_global_ips(&c_gloIPs[0], c_rim_side, &c_coCo[0]);
+			MathVector<dim>* c_gloIPs = side_global_ips(c_rim_side, &c_coCo[0]);
 
 			// interpolate fine IPs on coarse side
 			for (std::size_t ch = 0; ch < num_children; ch++)
@@ -725,8 +728,7 @@ void SideAndElemErrEstData<TDomain>::summarize_err_est_data(SmartPtr<TDomain> sp
 				// map fine side local IPs to global
 				std::vector<MathVector<dim> > f_coCo;
 				CollectCornerCoordinates(f_coCo, f_rim_side, spDomain->position_accessor(), false);
-				std::vector<MathVector<dim> > f_gloIPs(num_side_ips(f_rim_side));
-				side_global_ips(&f_gloIPs[0], f_rim_side, &f_coCo[0]);
+				MathVector<dim>* f_gloIPs = side_global_ips(f_rim_side, &f_coCo[0]);
 
 				// for each fine side IP, find nearest coarse side IP
 				for (std::size_t fip = 0; fip < m_aaSide[f_rim_side].size(); fip++)
@@ -769,8 +771,7 @@ void SideAndElemErrEstData<TDomain>::summarize_err_est_data(SmartPtr<TDomain> sp
 					// map fine side local IPs to global
 					std::vector<MathVector<dim> > f_coCo;
 					CollectCornerCoordinates(f_coCo, f_rim_side, spDomain->position_accessor(), false);
-					std::vector<MathVector<dim> > f_gloIPs(num_side_ips(f_rim_side));
-					side_global_ips(&f_gloIPs[0], f_rim_side, &f_coCo[0]);
+					MathVector<dim>* f_gloIPs = side_global_ips(f_rim_side, &f_coCo[0]);
 
 					// loop coarse IPs
 					for (std::size_t fip = 1; fip < m_aaSide[f_rim_side].size(); fip++)

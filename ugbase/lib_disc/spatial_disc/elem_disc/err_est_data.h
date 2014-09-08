@@ -232,15 +232,15 @@ public:
 
 	/// get all global side integration points
 	//	globIPs MUST be of the size num_side_ips()!
-		void all_side_global_ips(MathVector<dim>* globIPs, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+		MathVector<dim>* all_side_global_ips(GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	/// get the global side integration points for a specific side roid
 	//	globIPs MUST be of the size num_side_ips()!
-		void side_global_ips(MathVector<dim>* globIPs, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+		MathVector<dim>* side_global_ips(GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	/// get the global elem integration points for a specific roid
 	//	globIPs MUST be of the size num_elem_ips()!
-		void elem_global_ips(MathVector<dim>* globIPs, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+		MathVector<dim>* elem_global_ips(GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	/// get number of side IPs of a specific side
 		std::size_t num_side_ips(const side_type* pSide);
@@ -309,8 +309,13 @@ private:
 		QuadratureRule<dim-1>* quadRuleSide[NUM_REFERENCE_OBJECTS];
 		QuadratureRule<dim>* quadRuleElem[NUM_REFERENCE_OBJECTS];
 
-	/// extra storage for side IPs (elem IPs are contained in elem quad rules)
+	/// extra storage for local side IPs (elem IPs are contained in elem quad rules)
 		std::vector<MathVector<TDomain::dim> > m_SideIPcoords[NUM_REFERENCE_OBJECTS];
+
+	/// storage for global elem and side IPs
+		std::vector<MathVector<TDomain::dim> > m_sideGlobalIPcoords;
+		std::vector<MathVector<TDomain::dim> > m_singleSideGlobalIPcoords;	// not the most elegant solution...
+		std::vector<MathVector<TDomain::dim> > m_elemGlobalIPcoords;
 
 	/// the first index for IPs of a specific side in the sideIP series for a roid
 		std::size_t m_sideIPsStartIndex[NUM_REFERENCE_OBJECTS][MAX_NUM_SIDES];
