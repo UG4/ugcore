@@ -51,6 +51,27 @@ if [ ! -e $UG4_LOCAL_INSTALL_DIR ]; then mkdir $UG4_LOCAL_INSTALL_DIR; fi
 cd $UG4_LOCAL_INSTALL_DIR
 LOCAL_DIR=$UG4_LOCAL_INSTALL_DIR
 
+
+check_licence()
+{
+	clear
+	echo "uginstall will now install $1"
+	echo " "
+	if [ -e $scriptpath/install_scripts/$1.licence ]; then
+			
+		cat $scriptpath/install_scripts/$1.licence
+		echo " "
+		read -p "Do you accept the licence (type in yes or no) ? " -r
+	else
+		echo "There is no $1.licence given yet. Please make sure you fulfill the licence of the code."
+		read -p "Have you read the licence of $1 (type in yes or no) ? " -r
+	fi
+	if [[ ! $REPLY == "yes" ]]; then
+		echo "You replied $REPLY. Please use 'yes' to accept licence."
+		exit
+	fi
+}
+
 my_download_file()
 {
 	local location=$1
@@ -189,6 +210,8 @@ my_install_external_build()
 	if [ -e $subdir/$version/installed ]; then
 		echo "$subdir $version already installed."
 	else
+		check_licence $subdir
+		
 		if [ ! -e $subdir ]; then mkdir $subdir; fi
 		cd $subdir
 		# in local/subdir
@@ -237,6 +260,7 @@ my_install_external_build()
 # my_download searches automatically on the software server on /Software/uginstall/$filename
 my_install()
 {
+	
 	local subdir=$1
 	local version=$2
 	local location=$3
@@ -244,11 +268,14 @@ my_install()
 	local extractedDir=$5
 	echo "installing $subdir"
 	shift 5
+	
 	#echo "subdir = $subdir, version = $version, location = $location, filename =$filename, extractedDir = $extractedDir, command = $*"
 	
 	if [ -e $subdir/$version/installed ]; then
 		echo "$subdir $version already installed."
 	else
+		check_licence $subdir
+		
 		if [ ! -e $subdir ]; then mkdir $subdir; fi
 		cd $subdir
 				
@@ -478,9 +505,7 @@ install_ANN()
 make_SuperLU()
 {
 	local unamestr=`uname`
-	echo
 	echo "UGINSTALL: make_SuperLU"
-	echo
 	if [[ "$unamestr" == 'Darwin' ]]; then		
 		echo "UGINSTALL: On MacOS, using make.inc_mac (BLAS = /System/Library/Frameworks/Accelerate.framework/Frameworks/vecLib.framework/Versions/Current/libBLAS.dylib)"		
 	   cp $scriptpath/install_scripts/SuperLU/make.inc_mac make.inc
@@ -539,9 +564,9 @@ install_HYPRE()
 	"cd .."
 }
 
+
 install_SuperLU()
 {
-
 	my_install \
 	SuperLU "4.3"\
 	"http://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_4.3.tar.gz"\
