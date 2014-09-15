@@ -362,11 +362,9 @@ static void CopyInterfaceEntrysToDomainDecompositionLayouts(
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 	typedef IndexLayout::Interface	Interface;
-	typedef IndexLayout::iterator	InterfaceIter;
 	typedef IndexLayout::const_iterator	ConstInterfaceIter;
 	typedef Interface::Element		Element;
 	typedef Interface::const_iterator		ConstElemIter;
-	typedef Interface::iterator		ElemIter;
 
 //	the local process and subdomain id
 	int localProcID = pcl::ProcRank();
@@ -478,8 +476,6 @@ void BuildDomainDecompositionLayouts(
 	PROFILE_FUNC_GROUP("algebra parallelization");
 //	some typedefs
 	typedef IndexLayout::Interface	Interface;
-	typedef IndexLayout::iterator	InterfaceIter;
-	typedef Interface::iterator		ElemIter;
 	typedef IndexLayout::const_iterator	ConstInterfaceIter;
 	typedef Interface::const_iterator	ConstElemIter;
 

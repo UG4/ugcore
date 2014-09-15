@@ -985,7 +985,6 @@ void AssignSubsetColors(ISubsetHandler& sh)
 template <class TElem>
 void AssignSidesToSubsets(ISubsetHandler& sh, ISelector* psel)
 {
-	typedef typename geometry_traits<TElem>::iterator 	ElemIter;
 	typedef typename TElem::lower_dim_base_object 		Side;
 	typedef typename geometry_traits<Side>::iterator 	SideIter;
 	typedef basic_string<int> IntString;

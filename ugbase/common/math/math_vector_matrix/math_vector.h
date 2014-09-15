@@ -141,7 +141,7 @@ class MathVector<0, T>
 
 		value_type m_data[1];
 	protected:
-		inline void assign(const MathVector<0, T>& v)	{m_data[0] = v.x();}
+		inline void assign(const MathVector<0, T>& v)	{m_data[0] = v.m_data[0];}
 
 };
 
@@ -192,7 +192,7 @@ class MathVector<1, T>
 
 		value_type m_data[1];
 	protected:
-		inline void assign(const MathVector<1, T>& v)	{m_data[0] = v.x();}
+		inline void assign(const MathVector<1, T>& v)	{m_data[0] = v.m_data[0];}
 
 };
 
@@ -248,7 +248,8 @@ class MathVector<2, T>
 
 		value_type m_data[2];
 	protected:
-		inline void assign(const MathVector<2,T>& v)	{m_data[0] = v.coord(0);m_data[1] = v.coord(1);}
+		inline void assign(const MathVector<2,T>& v)	{m_data[0] = v.m_data[0];
+														 m_data[1] = v.m_data[1];}
 };
 
 /**
@@ -307,9 +308,9 @@ class MathVector<3, T>
 
 		value_type m_data[3];
 	protected:
-		inline void assign(const MathVector<3,T>& v)	{m_data[0] = v.coord(0);
-												 m_data[1] = v.coord(1);
-												 m_data[2] = v.coord(2);}
+		inline void assign(const MathVector<3,T>& v)	{m_data[0] = v.m_data[0];
+												 		 m_data[1] = v.m_data[1];
+												 		 m_data[2] = v.m_data[2];}
 
 };
 
@@ -373,10 +374,10 @@ class MathVector<4, T>
 
 		value_type m_data[4];
 	protected:
-		inline void assign(const MathVector<4,T>& v)	{m_data[0] = v.coord(0);
-												 m_data[1] = v.coord(1);
-												 m_data[2] = v.coord(2);
-												 m_data[3] = v.coord(3);}
+		inline void assign(const MathVector<4,T>& v)	{m_data[0] = v.m_data[0];
+														 m_data[1] = v.m_data[1];
+														 m_data[2] = v.m_data[2];
+														 m_data[3] = v.m_data[3];}
 
 };
 

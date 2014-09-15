@@ -1030,7 +1030,6 @@ class ComPol_MatDistributeDiag
 		virtual bool collect(ug::BinaryBuffer& buff, const Interface& interface)
 		{
 			PROFILE_BEGIN_GROUP(CMatDistributeDiag_collect, "algebra parallelization");
-			typedef typename TMatrix::row_iterator row_iterator;
 			typedef typename TMatrix::value_type block_type;
 
 		//	loop interface

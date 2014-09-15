@@ -396,14 +396,14 @@ include(${UG_ROOT_PATH}/cmake/ug/opencl.cmake)
 
 ########################################
 # Boost (required)
-#  If INTERNAL_BOOST is enabled we try to use this but if not available we also
-#  consider system installations and will use these.
-#  Note: If the internal Boost is available and as well system installations,
+#  If INTERNAL_BOOST is enabled, the files in externals/boost_... are used.
+#  If it is disabled, the system-installation of boost is used instead.
+#  Note: If INTERNAL_BOOST is enabled and system installations are available,
 #        the internal one has precedence.
 if(INTERNAL_BOOST)
-	set(INTERNAL_BOOST_PATH ${UG_ROOT_PATH}/externals/boost_1_48_0/)
+	set(INTERNAL_BOOST_PATH ${UG_ROOT_PATH}/externals/boost_1_56_0/)
 	set(BOOST_ROOT ${INTERNAL_BOOST_PATH})
-	message(STATUS "Info: Try using internal Boost from externals/boost_1_48_0")
+	message(STATUS "Info: Try using internal Boost from externals/boost_1_56_0")
 endif(INTERNAL_BOOST)
 find_package(Boost 1.40 REQUIRED)
 message(STATUS "Info: Including Boost from ${Boost_INCLUDE_DIRS}")

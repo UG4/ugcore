@@ -115,20 +115,14 @@ template <class T> class UG_API AttachmentDataContainer : public IAttachmentData
 	public:
 		typedef T	ValueType;
 
-		AttachmentDataContainer()	:	m_bDefaultValueSet(false)	{}
-		AttachmentDataContainer(const T& defaultValue)	: m_bDefaultValueSet(true), m_defaultValue(defaultValue)	{}
+		AttachmentDataContainer(const T& defaultValue = T())	: m_defaultValue(defaultValue)	{}
 
 		virtual ~AttachmentDataContainer()			{m_vData.clear();}
 
 		virtual void resize(size_t iSize)
 			{
 				if(iSize > 0)
-				{
-					if(m_bDefaultValueSet)
-						m_vData.resize(iSize, m_defaultValue);
-					else
-						m_vData.resize(iSize);
-				}
+					m_vData.resize(iSize, m_defaultValue);
 				else
 					m_vData.clear();
 			}
@@ -139,10 +133,7 @@ template <class T> class UG_API AttachmentDataContainer : public IAttachmentData
 
 		virtual void reset_entry(size_t index)
 			{
-				if(m_bDefaultValueSet)
-					m_vData[index] = m_defaultValue;
-				else
-					m_vData[index] = ValueType();
+				m_vData[index] = m_defaultValue;
 			}
 
 		virtual void defragment(size_t* pNewIndices, size_t numValidElements)
@@ -204,7 +195,6 @@ template <class T> class UG_API AttachmentDataContainer : public IAttachmentData
 		
 	protected:
 		DataContainer	m_vData;
-		bool			m_bDefaultValueSet;
 		T				m_defaultValue;
 };
 

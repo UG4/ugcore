@@ -40,8 +40,6 @@ static void RemoveEmptyInterfaces(
 	typedef typename TMap::iterator TIterator;
 
 	typedef typename GridLayoutMap::Types<TGeomObj>::Layout TLayout;
-	typedef typename TLayout::iterator TInterfaceIter;
-	typedef typename TLayout::Interface TInterface;
 
 	for(TIterator layoutIter = map.begin(); layoutIter != map.end(); ++layoutIter)
 	{

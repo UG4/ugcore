@@ -98,7 +98,6 @@ bool MightContainGhosts(const GridLayoutMap& layoutMap, int lvl)
 
 	typedef typename GridLayoutMap::Types<TElem>::Layout::LevelLayout TLayout;
 	typedef typename TLayout::const_iterator InterfaceIterator;
-	typedef typename TLayout::Interface ElemInterface;
 
 	const TLayout& elemLayout = layoutMap.get_layout<TElem>(INT_V_MASTER).layout_on_level(lvl);
 	for(InterfaceIterator iIter = elemLayout.begin(); iIter != elemLayout.end(); ++iIter){

@@ -136,7 +136,6 @@ bool Partitioner_DynamicBisection<TElem, dim>::
 partition(size_t baseLvl, size_t elementThreshold)
 {
 	GDIST_PROFILE_FUNC();
-	typedef typename Grid::traits<elem_t>::iterator ElemIter;
 
 	UG_COND_THROW(m_mg == NULL,
 			"No grid was specified for Partitioner_DynamicBisection. "

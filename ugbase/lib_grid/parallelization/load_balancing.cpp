@@ -112,9 +112,6 @@ bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
 							 	  int hWeight, int vWeight)
 {
 #ifdef UG_METIS
-	typedef TGeomBaseObj	TElem;
-	typedef typename geometry_traits<TGeomBaseObj>::iterator	ElemIter;
-
 //	only call metis if more than 1 part is required
 	if(numParts > 1){
 	//	here we'll store the dual graph
@@ -193,7 +190,6 @@ bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
 {
 #ifdef UG_METIS
 	typedef TGeomBaseObj	TElem;
-	typedef typename geometry_traits<TGeomBaseObj>::iterator	ElemIter;
 //	only call metis if more than 1 part is required
 	//if(numParts > 1){
 	//	here we'll store the dual graph
