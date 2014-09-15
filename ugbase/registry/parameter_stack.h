@@ -441,6 +441,9 @@ class ParameterStack : public ParameterInfo
 		template <typename T>
 		inline T to(int index) const {return ToType<T>::to(this, index);}
 
+	///	return element in param stack as plain variant
+		const Variant& get(int index) const	{return m_vEntry[index];}
+		
 	private:
 	///	fixed size array storing the data for a stack entry
 		Variant m_vEntry[PARAMETER_STACK_MAX_SIZE];

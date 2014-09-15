@@ -326,3 +326,37 @@ const char* Variant::type_name() const
 }
 
 }//	end of namespace
+
+std::ostream& operator<< (std::ostream& outStream, const ug::Variant& v)
+{
+	using namespace ug;
+	switch(v.type()){
+		case Variant::VT_BOOL:
+			if(v.to_bool())
+				outStream << "true";
+			else
+				outStream << "false";
+			break;
+		case Variant::VT_INT:
+			outStream << v.to_int();
+			break;
+		case Variant::VT_SIZE_T:
+			outStream << v.to_size_t();
+			break;
+		case Variant::VT_FLOAT:
+			outStream << v.to_float();
+			break;
+		case Variant::VT_DOUBLE:
+			outStream << v.to_double();
+			break;
+		case Variant::VT_CSTRING:
+			outStream << v.to_c_string();
+			break;
+		case Variant::VT_STDSTRING:
+			outStream << v.to_std_string();
+			break;
+		default:
+			outStream << "?";
+	}
+	return outStream;
+}

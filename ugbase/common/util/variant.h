@@ -11,6 +11,7 @@
 #include <string>
 #include "smart_pointer.h"
 #include "common/types.h"
+#include "common/ug_config.h"
 
 namespace ug{
 
@@ -53,7 +54,7 @@ namespace ug{
  * You may inspect the type represented by a variant by calling the type() method,
  * which will return a constant enumerated in Variant::Type.
  */
-class Variant{
+class UG_API Variant{
 	public:
 		enum Type{
 			VT_INVALID = 0,
@@ -162,9 +163,12 @@ template <> inline Variant::Type Variant::type<const void*>() 			{return VT_CONS
 template <> inline Variant::Type Variant::type<SmartPtr<void> >() 		{return VT_SMART_POINTER;}
 template <> inline Variant::Type Variant::type<ConstSmartPtr<void> >() 	{return VT_CONST_SMART_POINTER;}
 
+
 // end group ugbase_common_types
 /// \}
 
 }//	end of namespace
+
+UG_API std::ostream& operator<< (std::ostream& outStream, const ug::Variant& v);
 
 #endif
