@@ -63,7 +63,7 @@ static void RegisterBridge_VecMath(Registry& reg, string grp)
 
 		reg.add_class_<vec_type>(vecName, grp)
 			.add_method("coord",
-					static_cast<const number& (vec_type::*)(size_t) const>(&vec_type::coord));
+					static_cast<typename vec_type::value_type (vec_type::*)(size_t) const>(&vec_type::coord));
 		reg.add_class_to_group(vecName, "Vec", dimTag);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);

@@ -51,38 +51,40 @@ void InitUG(int dim, const AlgebraType& algType, bool verbose)
 	if( (blocksize < 0 || blocksize > 5) && blocksize != AlgebraType::VariableBlockSize)
 		UG_THROW("ERROR in InitUG: Only Algebra Blocksizes '1x1', '2x2', '3x3', '4x4', '5x5' and 'variable' are supported.");
 	
-	if(algType.type() == AlgebraType::CPU)
-	{
-#ifndef UG_CPU_1
-	if(blocksize == 1)
-		UG_THROW("ERROR in InitUG: Requested Algebra CPU, Blocksize '1x1' is not compiled into binary.");
-#endif
-#ifndef UG_CPU_2
-	if(blocksize == 2)
-		UG_THROW("ERROR in InitUG: Requested Algebra CPU, Blocksize '2x2' is not compiled into binary.");
-#endif
-#ifndef UG_CPU_3
-	if(blocksize == 3)
-		UG_THROW("ERROR in InitUG: Requested Algebra CPU, Blocksize '3x3' is not compiled into binary.");
-#endif
-#ifndef UG_CPU_4
-	if(blocksize == 4)
-		UG_THROW("ERROR in InitUG: Requested Algebra CPU, Blocksize '4x4' is not compiled into binary.");
-#endif
-#ifndef UG_CPU_5
-	if(blocksize == 5)
-		UG_THROW("ERROR in InitUG: Requested Algebra CPU, Blocksize '5x5' is not compiled into binary.");
-#endif
-#ifndef UG_CPU_VAR
-	if(blocksize == AlgebraType::VariableBlockSize)
-		UG_THROW("ERROR in InitUG: Requested Algebra CPU, Blocksize 'variable' is not compiled into binary.");
-#endif
-	}
-	else if(algType.type() == AlgebraType::GPU)
-	{
-		if(blocksize != 1)
-			UG_THROW("ERROR in InitUG: Requested Algebra GPU, Blocksize '" << blocksize << "x" << blocksize << "' is not compiled into binary.");
-	}
+	#ifdef UG_ALGEBRA
+			if(algType.type() == AlgebraType::CPU)
+			{
+		#ifndef UG_CPU_1
+			if(blocksize == 1)
+				UG_THROW("ERROR in InitUG: Requested Algebra CPU, Blocksize '1x1' is not compiled into binary.");
+		#endif
+		#ifndef UG_CPU_2
+			if(blocksize == 2)
+				UG_THROW("ERROR in InitUG: Requested Algebra CPU, Blocksize '2x2' is not compiled into binary.");
+		#endif
+		#ifndef UG_CPU_3
+			if(blocksize == 3)
+				UG_THROW("ERROR in InitUG: Requested Algebra CPU, Blocksize '3x3' is not compiled into binary.");
+		#endif
+		#ifndef UG_CPU_4
+			if(blocksize == 4)
+				UG_THROW("ERROR in InitUG: Requested Algebra CPU, Blocksize '4x4' is not compiled into binary.");
+		#endif
+		#ifndef UG_CPU_5
+			if(blocksize == 5)
+				UG_THROW("ERROR in InitUG: Requested Algebra CPU, Blocksize '5x5' is not compiled into binary.");
+		#endif
+		#ifndef UG_CPU_VAR
+			if(blocksize == AlgebraType::VariableBlockSize)
+				UG_THROW("ERROR in InitUG: Requested Algebra CPU, Blocksize 'variable' is not compiled into binary.");
+		#endif
+			}
+			else if(algType.type() == AlgebraType::GPU)
+			{
+				if(blocksize != 1)
+					UG_THROW("ERROR in InitUG: Requested Algebra GPU, Blocksize '" << blocksize << "x" << blocksize << "' is not compiled into binary.");
+			}
+	#endif
 
 //	get dim tag
 	std::string dimTag = GetDimensionTag(dim);
@@ -150,7 +152,9 @@ void InitUG(int dim, const AlgebraType& algType, bool verbose)
 	#endif
 	}
 
-	DefaultAlgebra::set(algType);
+	#ifdef UG_ALGEBRA
+		DefaultAlgebra::set(algType);
+	#endif
 }
 
 // forward for default case
@@ -171,17 +175,18 @@ void RegisterStandardBridges(Registry& reg, string parentGroup)
 		RegisterBridge_Util(reg, parentGroup);
 		RegisterBridge_Grid(reg, parentGroup);
 		RegisterBridge_PCL(reg, parentGroup);
-		RegisterBridge_Domain(reg, parentGroup);
-		RegisterBridge_PeriodicBoundary(reg, parentGroup);
-		RegisterBridge_Refinement(reg, parentGroup);
-		RegisterBridge_Selection(reg, parentGroup);
-		RegisterBridge_Transform(reg, parentGroup);
-		RegisterBridge_LoadBalancing(reg, parentGroup);
 
 		RegisterBridge_Profiler(reg, parentGroup);
 		RegisterBridge_Misc(reg, parentGroup);
 
 		#ifdef UG_ALGEBRA
+		RegisterBridge_Selection(reg, parentGroup);
+		RegisterBridge_Domain(reg, parentGroup);
+		RegisterBridge_PeriodicBoundary(reg, parentGroup);
+		RegisterBridge_Refinement(reg, parentGroup);
+		RegisterBridge_Transform(reg, parentGroup);
+		RegisterBridge_LoadBalancing(reg, parentGroup);
+
 	//	depends on lib_disc
 		RegisterBridge_DiscCommon(reg, parentGroup);
 		RegisterBridge_ElemDiscs(reg, parentGroup);

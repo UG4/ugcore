@@ -16,12 +16,25 @@ using namespace std;
 namespace ug
 {
 
+static const char* VerbosityToTetgenParam(int verbosity)
+{
+	if(verbosity <= 0)
+		return "";
+	else if(verbosity == 1)
+		return "V";
+	else if(verbosity == 2)
+		return "VV";
+	else
+		return "VVV";
+}
+
 static bool PerformTetrahedralization(Grid& grid,
 										ISubsetHandler* pSH,
 										number quality,
 										bool preserveBnds,
 										bool preserveAll,
-										APosition& aPos)
+										APosition& aPos,
+										int verbosity)
 {
 #ifdef UG_TETGEN
 	if(!grid.has_vertex_attachment(aPos))
@@ -155,6 +168,7 @@ static bool PerformTetrahedralization(Grid& grid,
 //	call tetrahedralization
 	try{
 		stringstream ss;
+		ss << VerbosityToTetgenParam(verbosity);
 		if(grid.num_faces() > 0){
 			ss << "p";
 			if(quality > SMALL)
@@ -256,7 +270,8 @@ static bool PerformRetetrahedralization(Grid& grid,
 										bool preserveAll,
 										APosition& aPos,
 										ANumber& aVolCon,
-										bool applyVolumeConstraint)
+										bool applyVolumeConstraint,
+										int verbosity)
 {
 #ifdef UG_TETGEN
 	if(!grid.has_vertex_attachment(aPos))
@@ -370,6 +385,7 @@ static bool PerformRetetrahedralization(Grid& grid,
 //	call tetrahedralization
 	try{
 		stringstream ss;
+		ss << VerbosityToTetgenParam(verbosity);
 		if(applyVolumeConstraint)
 			ss << "a";
 		ss << "r";
@@ -462,17 +478,18 @@ static bool PerformRetetrahedralization(Grid& grid,
 
 
 bool Tetrahedralize(Grid& grid, number quality, bool preserveBnds,
-					bool preserveAll, APosition& aPos)
+					bool preserveAll, APosition& aPos, int verbosity)
 {
 	return PerformTetrahedralization(grid, NULL, quality, preserveBnds,
-									preserveAll, aPos);
+									preserveAll, aPos, verbosity);
 }
 
 bool Tetrahedralize(Grid& grid, ISubsetHandler& sh, number quality,
-					bool preserveBnds, bool preserveAll, APosition& aPos)
+					bool preserveBnds, bool preserveAll, APosition& aPos,
+					int verbosity)
 {
 	return PerformTetrahedralization(grid, &sh, quality, preserveBnds,
-									preserveAll, aPos);
+									preserveAll, aPos, verbosity);
 }
 
 bool Retetrahedralize(Grid& grid, SubsetHandler& sh,
@@ -481,11 +498,13 @@ bool Retetrahedralize(Grid& grid, SubsetHandler& sh,
 					bool preserveBnds,
 					bool preserveAll,
 					APosition& aPos,
-					bool applyVolumeConstraint)
+					bool applyVolumeConstraint,
+					int verbosity)
 {
 	return PerformRetetrahedralization(grid, sh, quality, preserveBnds,
 									preserveAll, aPos, aVolumeConstraint,
-									applyVolumeConstraint);
+									applyVolumeConstraint,
+									verbosity);
 }
 
 }//	end of namespace

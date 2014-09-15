@@ -853,7 +853,7 @@ int FindCloseVertexInArray(std::vector<Vertex*>& array,
  * \note	This method performs the full test and does not perform any optimizations
  *			like an initial bounding-box check. For best performance this method
  *			should thus only be called if the two triangles do most likely intersect.*/
-bool IntersectCoplanarTriangles(std::vector<vector2>& edgesOut,
+inline bool IntersectCoplanarTriangles(std::vector<vector2>& edgesOut,
 						const vector2& p00, const vector2& p01, const vector2& p02,
 						const vector2& p10, const vector2& p11, const vector2& p12)
 {
@@ -1042,7 +1042,7 @@ bool IntersectCoplanarTriangles(std::vector<vector2>& edgesOut,
  * \note	This method performs the full test and does not perform any optimizations
  *			like an initial bounding-box check. For best performance this method
  *			should thus only be called if the two triangles do most likely intersect.*/
-bool IntersectCoplanarTriangles(std::vector<vector3>& edgesOut,
+inline bool IntersectCoplanarTriangles(std::vector<vector3>& edgesOut,
 						const vector3& p00, const vector3& p01, const vector3& p02,
 						const vector3& p10, const vector3& p11, const vector3& p12)
 {

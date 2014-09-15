@@ -9,13 +9,7 @@ project(P_UGBRIDGE)
 include("../../cmake/ug_includes.cmake")
 
 set(srcUGBridge    	bridge.cpp
-					domain_bridges/domain_bridge.cpp
 					domain_bridges/lib_grid_bridge.cpp
-					domain_bridges/load_balancing_bridge.cpp
-					domain_bridges/periodic_boundary_bridge.cpp
-					domain_bridges/refinement_bridge.cpp
-					domain_bridges/selection_bridge.cpp
-					domain_bridges/transform_bridge.cpp
 					misc_bridges/test_bridge.cpp
 					misc_bridges/profiler_bridge.cpp
 					misc_bridges/util_bridge.cpp
@@ -30,6 +24,13 @@ set(srcUGBridge     ${srcUGBridge}
 if(buildAlgebra)
 	# add source files that depend on the algebra and discretization system here.
 	set(srcUGBridge ${srcUGBridge}
+					domain_bridges/domain_bridge.cpp
+					domain_bridges/load_balancing_bridge.cpp
+					domain_bridges/periodic_boundary_bridge.cpp
+					domain_bridges/refinement_bridge.cpp
+					domain_bridges/selection_bridge.cpp
+					domain_bridges/transform_bridge.cpp
+
 					algebra_bridges/common_bridge.cpp
 					algebra_bridges/preconditioner_bridge.cpp
 					algebra_bridges/schur_bridge.cpp

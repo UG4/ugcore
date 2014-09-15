@@ -24,18 +24,23 @@ namespace ug
  *	better the tetrahedron quality.
  *
  *	Using tetgen by Hang Si.
+ *
+ *  \param verbosity	number between 0 and 3 indicating how detailed the
+ *						verbosity should be
  *	\{
  */
 bool Tetrahedralize(Grid& grid, number quality = 5,
 					bool preserveBnds = false,
 					bool preserveAll = false,
-					APosition& aPos = aPosition);
+					APosition& aPos = aPosition,
+					int verbosity = 0);
 
 bool Tetrahedralize(Grid& grid, ISubsetHandler& sh,
 					number quality = 5,
 					bool preserveBnds = false,
 					bool preserveAll = false,
-					APosition& aPos = aPosition);
+					APosition& aPos = aPosition,
+					int verbosity = 0);
 ///	\}
 
 ///	If tetrahedrons are already present, this method refines them based on the given volume constraints.
@@ -46,7 +51,8 @@ bool Retetrahedralize(Grid& grid, SubsetHandler& sh,
 					bool preserveBnds = false,
 					bool preserveAll = false,
 					APosition& aPos = aPosition,
-					bool applyVolumeConstraint = true);
+					bool applyVolumeConstraint = true,
+					int verbosity = 0);
 /**@}*/ // end of doxygen defgroup command
 
 }//	end of namespace
