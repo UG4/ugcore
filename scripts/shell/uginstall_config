@@ -154,8 +154,9 @@ add_lib $UG4_LOCAL_INSTALL_DIR/boost/used/stage/lib/
 # completion for bash (for bash only)
 SHELLTYPE=`ps -o comm="" -p $$`
 case "$SHELLTYPE" in
-	*bash*) complete -W "all cmake doxygen gcc gmp gnuplot GotoBLAS2 Metis mpfr mpc OpenMPI ParaView ParMetis scons hlibpro tbb\
-	HYPRE ANN LUA" -o default -o nospace uginstall
+	*bash*) complete -W "clang cmake doxygen gcc gnuplot gmp GotoBLAS2 mpc mpfr OpenMPI ParaView Metis ParMetis SuperLU UGIDE  \
+	HYPRE scons boost hlibpro tbb ANN LUA PT all \
+	-fromMac -macServer -fromSvn -svnServer -eclipsepath" -o default -o nospace uginstall
 	;;
 esac
 
