@@ -740,6 +740,7 @@ print_usage()
 	echo "	HYPRE       2.9.0b                " `[[ -e HYPRE/used/installed ]] && echo "(installed)"`
 	# last checked 3/2014
 	echo "	scons       2.3.1                 " `[[ -e scons/used/installed ]] && echo "(installed)"`
+	# last checked 9/2014
 	echo "	boost       1.56.0                " `[[ -e boost/used/installed ]] && echo "(installed)"`
 	echo "	hlibpro     2.0.1                 " `[[ -e hlibpro/used/installed ]] && echo "(installed)"`
 	echo "	tbb         4.2                   " `[[ -e tbb/used/installed ]] && echo "(installed)"`
