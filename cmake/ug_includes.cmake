@@ -11,6 +11,11 @@
 # including this file in your CMakeLists.txt may be a good idea.
 ################################################################################
 
+# this is added because of CMake Policy CMP0042 of CMake 3.0.2
+# and removes a warning
+if(NOT DEFINED CMAKE_MACOSX_RPATH)
+	set(CMAKE_MACOSX_RPATH 0)
+endif()
 ################################################################################
 # Make sure code is only executed once.
 # (no indent here, since it affects the whole file)
