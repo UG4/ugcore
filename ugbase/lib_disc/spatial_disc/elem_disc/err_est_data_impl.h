@@ -320,7 +320,7 @@ const MathVector<refDim>* SideAndElemErrEstData<TDomain>::elem_local_ips(const R
 }
 
 template <typename TDomain>
-MathVector<SideAndElemErrEstData<TDomain>::dim>* SideAndElemErrEstData<TDomain>::all_side_global_ips
+MathVector<TDomain::dim>* SideAndElemErrEstData<TDomain>::all_side_global_ips
 (
 	GridObject* elem,
 	const MathVector<dim> vCornerCoords[]
@@ -349,7 +349,7 @@ MathVector<SideAndElemErrEstData<TDomain>::dim>* SideAndElemErrEstData<TDomain>:
 }
 
 template <typename TDomain>
-MathVector<SideAndElemErrEstData<TDomain>::dim>* SideAndElemErrEstData<TDomain>::side_global_ips
+MathVector<TDomain::dim>* SideAndElemErrEstData<TDomain>::side_global_ips
 (
 	GridObject* elem,
 	const MathVector<dim> vCornerCoords[]
@@ -378,7 +378,7 @@ MathVector<SideAndElemErrEstData<TDomain>::dim>* SideAndElemErrEstData<TDomain>:
 }
 
 template <typename TDomain>
-MathVector<SideAndElemErrEstData<TDomain>::dim>* SideAndElemErrEstData<TDomain>::elem_global_ips
+MathVector<TDomain::dim>* SideAndElemErrEstData<TDomain>::elem_global_ips
 (
 	GridObject* elem,
 	const MathVector<dim> vCornerCoords[]

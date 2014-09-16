@@ -232,15 +232,15 @@ public:
 
 	/// get all global side integration points
 	//	globIPs MUST be of the size num_side_ips()!
-		MathVector<dim>* all_side_global_ips(GridObject* elem, const MathVector<dim> vCornerCoords[]);
+		MathVector<TDomain::dim>* all_side_global_ips(GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	/// get the global side integration points for a specific side roid
 	//	globIPs MUST be of the size num_side_ips()!
-		MathVector<dim>* side_global_ips(GridObject* elem, const MathVector<dim> vCornerCoords[]);
+		MathVector<TDomain::dim>* side_global_ips(GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	/// get the global elem integration points for a specific roid
 	//	globIPs MUST be of the size num_elem_ips()!
-		MathVector<dim>* elem_global_ips(GridObject* elem, const MathVector<dim> vCornerCoords[]);
+		MathVector<TDomain::dim>* elem_global_ips(GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	/// get number of side IPs of a specific side
 		std::size_t num_side_ips(const side_type* pSide);
