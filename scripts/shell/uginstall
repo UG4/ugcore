@@ -1,6 +1,6 @@
 #!/bin/bash
 ######################################################################
-# uginstall 0.2
+# uginstall 0.3
 #-------------------------------------------------------------------
 # created by Martin Rupp 31.05.2012
 # mail: martin.rupp@gcsc.uni-frankfurt.de
@@ -10,7 +10,7 @@
 # Following steps are made for each installation of programm APP:
 # - create folder ~/local
 # - create folder ~/local/APP
-# - download file, save in ~/local/APP
+# - download file, save in ~/local/APP (see my_download_file)
 # - extract file, store in ~/local/APP/version
 # - configure the program (depending on the program)
 # - install libraries in ~/local/APP/lib and lib64, binaries in ~/local/APP/bin
@@ -20,8 +20,11 @@
 # uginstall_config will then set PATH, LDFLAGS, LD_RUN_PATH, LIBRARY_PATH, 
 # and LD_LIBRARY_PATH so you can use the program and the libs.
 # You might need to open up a new console to reset these variables.
+#
+######################################################################################################################################################
+# pre-configuration
 
-method=all
+downloadMethod=all
 
 # address of svn server to use. can be changed with -svnServer address.
 # svn://fuji.gcsc.uni-frankfurt.de/misc/uginstall
@@ -29,14 +32,6 @@ svnServer="fuji.gcsc.uni-frankfurt.de"
 
 # ip of software server. can be changed with -macServer address.
 softwareServer="141.2.38.55"
-
-
-#which wget &> /dev/null
-#if [ $? == 0 ]; then
-	#mywget=wget
-#else
-	#mywget="curl -O -L"
-#fi
 
 echo "     UGInstall (c) Martin Rupp, GCSC Frankfurt. 2012-2014"
 echo "-----------------------------------------------------------------"
@@ -47,24 +42,36 @@ source $scriptpath/uginstall_config
 echo "UGInstall script path is $scriptpath, UGInstall local install dir is $UG4_LOCAL_INSTALL_DIR"
 echo " "
 
+originalDir=`pwd`
 if [ ! -e $UG4_LOCAL_INSTALL_DIR ]; then mkdir $UG4_LOCAL_INSTALL_DIR; fi
 cd $UG4_LOCAL_INSTALL_DIR
 LOCAL_DIR=$UG4_LOCAL_INSTALL_DIR
 
+######################################################################################################################################################
+# helper scripts
+######################################################################################################################################################
 
+
+# check_licence
+# params: 
+# check_licence APPNAME
+# if there is a file install_scripts/APPNAME.licence, it is displayed
+# otherwise, a warning is displayed to make sure the licence is OK.
+# a check to enter yes or no is displayed then
 check_licence()
 {
+	local APPNAME=$1
 	clear
-	echo "uginstall will now install $1"
+	echo "uginstall will now install $APPNAME"
 	echo " "
-	if [ -e $scriptpath/install_scripts/$1.licence ]; then
+	if [ -e $scriptpath/install_scripts/$APPNAME.licence ]; then
 			
-		cat $scriptpath/install_scripts/$1.licence
+		cat $scriptpath/install_scripts/$APPNAME.licence
 		echo " "
 		read -p "Do you accept the licence (type in yes or no) ? " -r
 	else
-		echo "There is no $1.licence given yet. Please make sure you fulfill the licence of the code."
-		read -p "Have you read the licence of $1 (type in yes or no) ? " -r
+		echo "WARNING: There is no $APPNAME.licence given yet. Please make sure you fulfill the licence of the code."
+		read -p "Have you read the licence of $APPNAME (type in yes or no) ? " -r
 	fi
 	if [[ ! $REPLY == "yes" ]]; then
 		echo "You replied $REPLY. Please use 'yes' to accept licence."
@@ -72,13 +79,20 @@ check_licence()
 	fi
 }
 
+# my_download_file
+# params:
+# my_download_file filename location destination
+# depending on downloadMethod, this will download
+# direct: download from specified location
 my_download_file()
 {
-	local location=$1
-	local destination=$2
+	local filename=$1
+	local location=$2
+	local destination=$3	
 	local success=false
+	echo "Download $filename to $destination" 
 	# try direct
-	if [ $success == false ] && ( [ $method == "direct" ] || [ $method == "all" ] ); then
+	if [ $success == false ] && ( [ $downloadMethod == "direct" ] || [ $downloadMethod == "all" ] ); then
 		echo ""
 		echo "Trying direct download from $destination..."
 	
@@ -97,14 +111,14 @@ my_download_file()
 		fi
 	fi
 	
-	if [ $success == false ] && ( [ $method == "macServer" ] || [ $method == "all" ] ); then
+	if [ $success == false ] && ( [ $downloadMethod == "macServer" ] || [ $downloadMethod == "all" ] ); then
 		echo ""
 		echo "Trying software server now: software@141.2.38.55:Software/uginstall/$filename ."
 		echo " --- Please enter software server password: ---"
 
 		if [ -e $filename.part ]; then rm $filename.part; fi
 
-		scp -r software@$softwareServer:Software/uginstall/$filename $filename.part
+		scp -r software@$softwareServer:Software/uginstall/$filename $destination
 		if [ ! $? == 0 ]; then 			
 			echo "Error downloading from Software Server.";
 		else
@@ -112,14 +126,14 @@ my_download_file()
 		fi
 	fi
 	
-	if [ $success == false ] && ( [ $method == "svn" ] || [ $method == "all" ] ); then
+	if [ $success == false ] && ( [ $downloadMethod == "svn" ] || [ $downloadMethod == "all" ] ); then
 		if [ -e $filename.part ]; then rm $filename.part; fi
 		
 		echo ""
 		echo "Trying svn server now: $svnServer ."
-		echo "complete svn checkout is: svn export svn://$svnServer/misc/uginstall/$filename $filename.part"
+		echo "complete svn checkout is: svn export svn://$svnServer/misc/uginstall/$filename $destination"
 		
-		svn export svn://$svnServer/misc/uginstall/$filename $filename.part
+		svn export svn://$svnServer/misc/uginstall/$filename $destination
 		
 		if [ ! $? == 0 ]; then 			
 			echo "Error downloading from Software Server.";
@@ -134,6 +148,11 @@ my_download_file()
 	
 }
 
+# my_extract
+# params:
+# my_extract filename
+# extracts a file by its filename e.g.
+# file.tar.gz -> tar xzf file.tar.gz 
 my_extract()
 {
  	local filename=$1
@@ -180,7 +199,7 @@ my_download ()
 
 			if [ -e $filename.part ]; then rm $filename.part; fi
 
-			my_download_file $location $filename.part
+			my_download_file $filename $location $filename.part
 			mv $filename.part $filename
 			echo "done."
 		fi
@@ -190,10 +209,13 @@ my_download ()
 	fi
  }
 
+# my_install_external_build
+# params:
+# my_install_external_build subdir version location filename extractedDir buildCommands(...)
 # installing with build not in source dir
 # downloads file from $location, saves is as $subdir/$version/$filename
 # extracts it to $subdir/$version/src
-# and runs there to rest of the commands 
+# and runs there to rest of the buildCommands 
 # (mostly ../src/configure --prefix=$UG4_LOCAL_INSTALL_DIR/$subdir/$version ; make ; make install )
 my_install_external_build()
 {
@@ -205,7 +227,7 @@ my_install_external_build()
 	echo "installing $subdir"
 	shift 5
 	# $6+ are commands executed in $subdir/$version/build  
-	echo "subdir = $subdir, version = $version, location = $location, filename =$filename, extractedDir = $extractedDir, command = $*"
+	echo "subdir = $subdir, version = $version, location = $location, filename = $filename, extractedDir = $extractedDir, buildCommands = $*"
 	
 	if [ -e $subdir/$version/installed ]; then
 		echo "$subdir $version already installed."
@@ -219,14 +241,13 @@ my_install_external_build()
 		cd $version
 		# in local/subdir/version
 				
-		#echo "i would download $subdir from $location to $filename with command $command now"
 	
 		my_download $extractedDir "src" $location $filename		
+
 		if [ ! $? == 0 ]; then echo "Error subdir "src" does not exist in `pwd`?"; exit; fi
 		if [ ! -e build ]; then mkdir build; fi		
 		cd build
 		# in local/subdir/version/build		
-		
 		
 		while (( "$#" )); do
 			echo $1
@@ -251,6 +272,9 @@ my_install_external_build()
 	fi
 }
 
+# my_install
+# params:
+# my_install subdir version location filename extractedDir buildCommands(...)
 # installing with build = source dir
 # downloads file from $location, saves is as $subdir/$filename
 # extracts it to $subdir/$version
@@ -269,7 +293,7 @@ my_install()
 	echo "installing $subdir"
 	shift 5
 	
-	#echo "subdir = $subdir, version = $version, location = $location, filename =$filename, extractedDir = $extractedDir, command = $*"
+	#echo "subdir = $subdir, version = $version, location = $location, filename =$filename, extractedDir = $extractedDir, buildCommands = $*"
 	
 	if [ -e $subdir/$version/installed ]; then
 		echo "$subdir $version already installed."
@@ -303,6 +327,10 @@ my_install()
 		source $scriptpath/uginstall_config
 	fi
 }
+
+######################################################################################################################################################
+# the actual install scripts
+######################################################################################################################################################
 
 install_gmp()
 {	
@@ -429,10 +457,10 @@ install_scons()
 install_boost()
 {
 	my_install \
-	boost 1.55.0 \
-	"http://sourceforge.net/projects/boost/files/boost/1.55.0/boost_1_55_0.tar.gz/download" \
-	boost_1_55_0.tar.gz boost_1_55_0 \
-	"./bootstrap.sh --prefix=$UG4_LOCAL_INSTALL_DIR/boost/1.55.0/" "./b2"
+	boost 1.56.0 \
+	"http://sourceforge.net/projects/boost/files/boost/1.56.0/boost_1_56_0.tar.gz/download" \
+	boost_1_56_0.tar.gz boost_1_56_0 \
+	"./bootstrap.sh --prefix=$UG4_LOCAL_INSTALL_DIR/boost/1.56.0/" "./b2"
 }
 
 install_clang()
@@ -484,12 +512,15 @@ install_parmetis()
 install_ANN()
 {
 	local unamestr=`uname`
-	local make_command
+	local make_config
 	if [[ "$unamestr" == 'Darwin' ]]; then
-		make_command="macosx-g++"
+		make_config="macosx-g++"
 	else
-		make_command="linux-g++"
+		make_config="linux-g++"
 	fi
+	
+	# add -fPIC flag via ANN_Make-config.path for position independend code
+	# (needed for dynamic libraries)
 	
 	my_install \
 	ANN "1.1.2"\
@@ -499,11 +530,13 @@ install_ANN()
 	"patch < $scriptpath/install_scripts/ann2fig.patch" \
 	"cd .." \
 	"patch < $scriptpath/install_scripts/ANN_Make-config.patch" \
-	"make $make_command"
+	"make $make_config"
 }
 
 make_SuperLU()
 {
+	# choose different makefiles depending on the system
+	# mostly for BLAS reasons.
 	local unamestr=`uname`
 	echo "UGINSTALL: make_SuperLU"
 	if [[ "$unamestr" == 'Darwin' ]]; then		
@@ -623,21 +656,24 @@ install_hlibpro()
 
 install_UGIDE()
 {
-	local eclipsePath=$1
+	cd $originalDir
+	local eclipsePath=$1	
 	if [ -z $1 ]; then
 		eclipsePath="."
 	fi
 	if [ -e "$eclipsePath/.eclipseproduct" ]; then 
-		my_download_file \
+		my_download_file ugIDE_1.0.0.001.jar \
 			http://gcsc.uni-frankfurt.de/Members/mrupp/ug4-auto-completion/ug4-auto-completion/ugIDE_1.0.0.001.jar \
 			$eclipsePath/dropins/ugIDE_1.0.0.001.jar
 	else
 		echo ".eclipseproduct not found in path '$eclipsePath'."
 		echo "Make sure you are inside the Eclipse Directory. Current directory is `pwd`"
-		echo "or provide eclipse path as second parameter: uginstall UGIDE /path/to/eclipse"
+		echo "or provide eclipse path as parameter: uginstall UGIDE -eclipsepath /path/to/eclipse"
 	fi 
 }
 
+
+######################################################################################################################################################
 
 install_all()
 {
@@ -704,7 +740,7 @@ print_usage()
 	echo "	HYPRE       2.9.0b                " `[[ -e HYPRE/used/installed ]] && echo "(installed)"`
 	# last checked 3/2014
 	echo "	scons       2.3.1                 " `[[ -e scons/used/installed ]] && echo "(installed)"`
-	echo "	boost       1.55.0                " `[[ -e boost/used/installed ]] && echo "(installed)"`
+	echo "	boost       1.56.0                " `[[ -e boost/used/installed ]] && echo "(installed)"`
 	echo "	hlibpro     2.0.1                 " `[[ -e hlibpro/used/installed ]] && echo "(installed)"`
 	echo "	tbb         4.2                   " `[[ -e tbb/used/installed ]] && echo "(installed)"`
 	# last checked 04/2014
@@ -719,8 +755,16 @@ print_usage()
 	echo "  example: uginstall SuperLU -svnServer localhost:5337"
 }
 
+######################################################################################################################################################
 
-param1=$1;            # number of nodes
+#  'main'
+###############
+
+# get parameters
+
+eclipsePath="."
+
+param1=$1;
 shift
 
 while [ $# -gt 0 ]
@@ -728,17 +772,20 @@ do
 	#echo $1
 	#echo $2
 	if [ $1 == "-fromMac" ]; then
-		method=macServer
+		downloadMethod=macServer
 		shift 1
 	elif [ $1 == "-macServer" ]; then
 		softwareServer=$2
 		shift 2
 	elif [ $1 == "-fromSvn" ]; then
-		method=svn
+		downloadMethod=svn
 		shift 1
 	elif [ $1 == "-svnServer" ]; then
-		method=svn
+		downloadMethod=svn
 		svnServer=$2
+		shift 2
+	elif [ $1 == "-eclipsepath" ]; then
+		eclipsePath=$2		
 		shift 2
 	else
 		echo "undefined option $1"
@@ -746,7 +793,7 @@ do
 	fi
 done
 
-
+# call install routines
 case $param1 in
 	clang) install_clang ;;
 	cmake) install_cmake ;;
@@ -762,7 +809,7 @@ case $param1 in
 	Metis) install_metis ;;
 	ParMetis) install_parmetis ;;
 	SuperLU) install_SuperLU ;;
-	UGIDE) install_UGIDE $2 ;;
+	UGIDE) install_UGIDE $eclipsePath ;;
 	HYPRE) install_HYPRE ;;
 	scons) install_scons ;;
 	boost) install_boost ;;
