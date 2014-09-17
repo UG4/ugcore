@@ -22,7 +22,7 @@ bool PluginLoaded(const string &name)
 	return (strstr(ListOfEmbeddedPlugins(), searchStr.c_str()) != NULL);
 }
 
-bool LoadPlugins(const char*, string parentGroup, bridge::Registry& reg)
+bool LoadPlugins(const char*, string parentGroup, bridge::Registry& reg, bool bPrefixGroup)
 {
 	InitializeEmbeddedPlugins(&reg, parentGroup);
 	return true;

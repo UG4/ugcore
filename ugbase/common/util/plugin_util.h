@@ -17,7 +17,7 @@ namespace ug
 
 ///	Loads all plugins in the given path.
 UG_API bool LoadPlugins(const char* pluginPath, std::string parentGroup,
-						bridge::Registry& reg);
+						bridge::Registry& reg, bool bPrefixGroup=false);
 UG_API bool UnloadPlugins();
 UG_API bool PluginLoaded(const std::string &name);
 

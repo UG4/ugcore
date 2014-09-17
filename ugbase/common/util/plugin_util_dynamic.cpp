@@ -29,7 +29,7 @@ bool PluginLoaded(const string &name)
 	return find(loadedPluginNames.begin(), loadedPluginNames.end(), name) != loadedPluginNames.end();
 }
 
-bool LoadPlugins(const char* pluginPath, string parentGroup, bridge::Registry& reg)
+bool LoadPlugins(const char* pluginPath, string parentGroup, bridge::Registry& reg, bool bPrefixGroup)
 {
 	PROFILE_FUNC();
 	typedef void (*FctInitPlugin)(ug::bridge::Registry*, string);
@@ -128,10 +128,19 @@ bool LoadPlugins(const char* pluginPath, string parentGroup, bridge::Registry& r
 		UG_LOG("Call " << fctName << "... ");
 #endif
 
+		// added this for better docu generation
+		// this way, we can distinguish what plugin did what classes/functions etc.
+		std::string group;
+		if(bPrefixGroup)
+			group = std::string("(Plugin) ") + pluginName + std::string(" ") + parentGroup;
+		else
+			group = parentGroup;
+
 	//	call the init method
-		fctInitPlugin(&reg, parentGroup);
+		fctInitPlugin(&reg, group);
 #ifdef DEBUG_PLUGINS
-		UG_LOG("added " << reg.num_classes() - numClassesPre << " classes, " << reg.num_functions()-numFunctionsPre << " functions.\n")
+		UG_LOG("added " << reg.num_classes() - numClassesPre << " classes, " << reg.num_functions()-numFunctionsPre << " functions, "
+				<< "group = " << group << "\n")
 #endif
 
 		loadedPlugins.push_back(libHandle);
