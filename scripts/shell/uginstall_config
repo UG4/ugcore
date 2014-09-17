@@ -28,47 +28,46 @@ add_lib()
 {
 	lib=$1
 	if [ -e $lib ]; then
-
-	if [ -z $LIBRARY_PATH ]; then
-		LIBRARY_PATH=$lib
-	else
-		echo $LIBRARY_PATH | grep -q $lib
-		if [ $? -ne 0 ] ; then
-			LIBRARY_PATH=$LIBRARY_PATH:$lib
+		if [ -z $LIBRARY_PATH ]; then
+			LIBRARY_PATH=$lib
+		else
+			echo $LIBRARY_PATH | grep -q $lib
+			if [ $? -ne 0 ] ; then
+				LIBRARY_PATH=$LIBRARY_PATH:$lib
+			fi
 		fi
-	fi
-
-	if [ -z $LD_LIBRARY_PATH ]; then
-		LD_LIBRARY_PATH=$lib
-	else
-		echo $LD_LIBRARY_PATH | grep -q $lib
-		if [ $? -ne 0 ] ; then
-			LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$lib
-		fi
-	fi
-
-	if [ -z $LD_RUN_PATH ]; then
-		LD_RUN_PATH=$lib
-	else
-		echo $LD_RUN_PATH | grep -q $lib
-		if [ $? -ne 0 ] ; then
-			LD_RUN_PATH=$LD_RUN_PATH:$lib
-		fi
-	fi
 	
-	if [ -z $DYLD_LIBRARY_PATH ]; then
-		DYLD_LIBRARY_PATH=$lib
-	else
-		echo $DYLD_LIBRARY_PATH | grep -q $lib
-		if [ $? -ne 0 ] ; then
-			DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$lib
+		if [ -z $LD_LIBRARY_PATH ]; then
+			LD_LIBRARY_PATH=$lib
+		else
+			echo $LD_LIBRARY_PATH | grep -q $lib
+			if [ $? -ne 0 ] ; then
+				LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$lib
+			fi
 		fi
-	fi
-
-	echo $LDFLAGS | grep -q $lib
-	if [ $? -ne 0 ] ; then
-		LDFLAGS="-L$lib $LDFLAGS"
-	fi
+	
+		if [ -z $LD_RUN_PATH ]; then
+			LD_RUN_PATH=$lib
+		else
+			echo $LD_RUN_PATH | grep -q $lib
+			if [ $? -ne 0 ] ; then
+				LD_RUN_PATH=$LD_RUN_PATH:$lib
+			fi
+		fi
+		
+		if [ -z $DYLD_LIBRARY_PATH ]; then
+			DYLD_LIBRARY_PATH=$lib
+		else
+			echo $DYLD_LIBRARY_PATH | grep -q $lib
+			if [ $? -ne 0 ] ; then
+				DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$lib
+			fi
+		fi
+	
+		echo $LDFLAGS | grep -q $lib
+		if [ $? -ne 0 ] ; then
+			LDFLAGS="-L$lib $LDFLAGS"
+		fi
 	fi
 }
 
@@ -100,7 +99,7 @@ my_setup()
 	dir=$1
 	if [ -e $dir ]; then
 		
-		#echo $dir found!
+		#echo $dir found!	
 		add_lib $dir/lib
 		add_lib $dir/lib64
 		add_include $dir/include
