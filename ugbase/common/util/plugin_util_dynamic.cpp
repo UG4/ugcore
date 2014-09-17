@@ -15,6 +15,8 @@
 
 using namespace std;
 
+
+
 namespace ug{
 
 namespace {
@@ -87,6 +89,7 @@ bool LoadPlugins(const char* pluginPath, string parentGroup, bridge::Registry& r
 		string fullPluginName(pluginPath);
 		fullPluginName.append("/").append(files[i]);
 
+
 		DynLibHandle libHandle;
 		try{
 			libHandle = OpenLibrary(fullPluginName.c_str());
@@ -117,8 +120,20 @@ bool LoadPlugins(const char* pluginPath, string parentGroup, bridge::Registry& r
 			continue;
 		}
 
+//#define DEBUG_PLUGINS
+#ifdef DEBUG_PLUGINS
+		UG_LOG("Loaded plugin " << pluginName << " from " << fullPluginName << "\n");
+		size_t numClassesPre = reg.num_classes();
+		size_t numFunctionsPre = reg.num_functions();
+		UG_LOG("Call " << fctName << "... ");
+#endif
+
 	//	call the init method
 		fctInitPlugin(&reg, parentGroup);
+#ifdef DEBUG_PLUGINS
+		UG_LOG("added " << reg.num_classes() - numClassesPre << " classes, " << reg.num_functions()-numFunctionsPre << " functions.\n")
+#endif
+
 		loadedPlugins.push_back(libHandle);
 		loadedPluginNames.push_back(pluginName);
 	}
