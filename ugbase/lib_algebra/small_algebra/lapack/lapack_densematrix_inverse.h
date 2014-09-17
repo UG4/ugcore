@@ -56,7 +56,7 @@ public:
 	//! initializes this object as inverse of mat
 	bool set_as_inverse_of(const DenseMatrix<TStorage> &mat)
 	{
-		UG_ASSERT(mat.num_rows() == mat.num_cols(), "only for square matrices");
+		UG_COND_THROW(mat.num_rows() != mat.num_cols(), "only for square matrices");
 
 		densemat = mat;
 		return invert();
@@ -85,7 +85,7 @@ public:
 		if(vec.size() == 0) return;
 		int info = getrs(ModeNoTrans, num_rows(), 1, &densemat(0,0), num_rows(), &interchange[0], &vec[0], num_rows());
 		(void) info;
-		UG_ASSERT(info == 0, "DenseMatrixInverse::mat_mult: getrs failed.");
+		UG_COND_THROW(info != 0, "DenseMatrixInverse::mat_mult: getrs failed.");
 	}
 
 	// todo: implement operator *=

@@ -87,7 +87,7 @@ inline char TransposeModeToChar(eTransposeMode t, bool isComplex)
 	case ModeConjTranspose:
 		return (isComplex ? 'C' : 'T');
 	default:
-		UG_ASSERT(0, "wrong tranpose mode");
+		UG_THROW("wrong tranpose mode");
 		return 'N';
 	}
 }

@@ -82,7 +82,7 @@ int GeneralizedEigenvalueProblem(DenseMatrix<A_type> &A, DenseMatrix<A_type> &X,
 		info = gegv(true, false, N, &A(0,0), N, &B(0,0), N, &alphar[0], &alphai[0], &beta[0], &X(0,0), N, NULL, 0, &dWorksize, worksize);
 	if(A_type::ordering == ColMajor)
 		info = gegv(false, true, N, &A(0,0), N, &B(0,0), N, &alphar[0], &alphai[0], &beta[0], NULL, N, &X(0,0), N, &dWorksize, worksize);
-	UG_ASSERT(info == 0, "gegv: failed to detect worksize");
+	UG_COND_THROW(info != 0, "gegv: failed to detect worksize");
 
 	worksize = (int)dWorksize;
 	double *dwork = new double[worksize];
@@ -90,14 +90,14 @@ int GeneralizedEigenvalueProblem(DenseMatrix<A_type> &A, DenseMatrix<A_type> &X,
 		info = gegv(true, false, N, &A(0,0), N, &B(0,0), N, &alphar[0], &alphai[0], &beta[0], &X(0,0), N, NULL, 0, dwork, worksize);
 	if(A_type::ordering == ColMajor)
 		info = gegv(false, true, N, &A(0,0), N, &B(0,0), N, &alphar[0], &alphai[0], &beta[0], NULL, N, &X(0,0), N, dwork, worksize);
-	UG_ASSERT(info == 0, "gegv: failed calculate");
+	UG_COND_THROW(info != 0, "gegv: failed calculate");
 
 	delete[] dwork;
 
 	for(size_t i=0; i<N; i++)
 	{
 		lambda[i] = alphar[i]/beta[i];
-		UG_ASSERT(dabs(alphai[i]) < 1e-10, "complex values");
+		UG_COND_THROW(dabs(alphai[i]) > 1e-11, "gegv: complex values");
 	}
 
 	if(bSortEigenvalues)

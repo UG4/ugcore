@@ -24,6 +24,7 @@
 #include "lapack_interface.h"
 #include <complex>
 #include "../small_matrix/densematrix.h"
+#include "common/error.h"
 
 namespace ug{
 
@@ -49,7 +50,7 @@ int GeneralizedEigenvalueProblemComplex(DenseMatrix<A_type> &A, DenseMatrix<A_ty
 		TLambdaVectorType &lambda, DenseMatrix<A_type> &B, bool bSortEigenvalues=false)
 {
 	size_t N = A.num_rows();
-	UG_ASSERT(N == A.num_cols() && N == B.num_rows() && N == B.num_cols(), "");
+	THROW_IF_NOT_EQUAL_4(N, A.num_cols(), B.num_rows(), B.num_cols());
 
 	std::vector<double> alphar; alphar.resize(N);
 	std::vector<double> alphai; alphai.resize(N);
@@ -65,7 +66,7 @@ int GeneralizedEigenvalueProblemComplex(DenseMatrix<A_type> &A, DenseMatrix<A_ty
 		info = gegv(true, false, N, &A(0,0), N, &B(0,0), N, &alphar[0], &alphai[0], &beta[0], &X(0,0), N, NULL, 0, &dWorksize, worksize);
 	if(A_type::ordering == ColMajor)
 		info = gegv(false, true, N, &A(0,0), N, &B(0,0), N, &alphar[0], &alphai[0], &beta[0], NULL, N, &X(0,0), N, &dWorksize, worksize);
-	UG_ASSERT(info == 0, "gegv: failed to detect worksize");
+	UG_COND_THROW(info != 0, "gegv: failed to detect worksize");
 
 	worksize = (int)dWorksize;
 	double *dwork = new double[worksize];
@@ -73,7 +74,7 @@ int GeneralizedEigenvalueProblemComplex(DenseMatrix<A_type> &A, DenseMatrix<A_ty
 		info = gegv(true, false, N, &A(0,0), N, &B(0,0), N, &alphar[0], &alphai[0], &beta[0], &X(0,0), N, NULL, 0, dwork, worksize);
 	if(A_type::ordering == ColMajor)
 		info = gegv(false, true, N, &A(0,0), N, &B(0,0), N, &alphar[0], &alphai[0], &beta[0], NULL, N, &X(0,0), N, dwork, worksize);
-	UG_ASSERT(info == 0, "gegv: failed calculate");
+	UG_COND_THROW(info != 0, "gegv: failed calculate");
 
 	delete[] dwork;
 
