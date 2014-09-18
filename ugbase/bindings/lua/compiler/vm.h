@@ -300,7 +300,10 @@ public:
 		{
 			UG_LOG("<< SUBFUNCTIONS OF " << m_name << ":\n");
 			for(size_t i=0; i<subfunctions.size(); i++)
+			{
+				UG_LOG("---- SUBFUNCTION " << i << " of " << m_name << " ----\n");
 				subfunctions[i]->print_rec(level+1);
+			}
 			UG_LOG("   SUBFUNCTIONS OF " << m_name << " >>\n");
 		}
 	}
