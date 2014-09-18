@@ -370,7 +370,9 @@ int LUAParserClass::addfunctionC(string name, set<string> &knownFunctions, strin
 
     parser.returnType = RT_SUBFUNCTION;
 
-    parser.declare(declarations); declarations << ";\n";
+    declarations << "inline ";
+    parser.declare(declarations);
+    declarations << ";\n";
 
     parser.createC_inline(definitions);
 
@@ -387,7 +389,7 @@ int LUAParserClass::addfunctionC(string name, set<string> &knownFunctions, strin
 
 int LUAParserClass::declare(ostream &out)
 {
-    out << "inline double LUA2C_Subfunction_" << name << "(";
+    out << "double LUA2C_Subfunction_" << name << "(";
 	nodeType *a = args;
 	while(a->type == typeOpr)
 	{
