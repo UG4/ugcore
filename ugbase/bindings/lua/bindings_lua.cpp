@@ -17,6 +17,8 @@
 #include "pcl/pcl_base.h"
 #endif
 #include "bridge/bridge.h"
+
+#include "common/util/stringify.h"
 //#define __UG__BINDINGS_LUA__CATCH_UNKNOWN_EXCEPTIONS__
 
 using namespace std;
@@ -30,8 +32,6 @@ static const char* errSymb = " % ";
 #define UG_LUA_THROW(luaState, msg)		luaL_error(luaState, "\n%s", msg)
 
 #define UG_LUA_BINDINGS_THROW(L) \
-			UG_LOG(errSymb<<"In FILE: " << GetLuaFileAndLineNumber(L) << "\n"); \
-			UG_LOG(errSymb<<"At LINE: '" << GetLuaLine(L) << "'\n"); \
 			ug_throw_error(); \
 			UG_LUA_THROW_EMPTY(L);
 
@@ -46,12 +46,14 @@ static const char* errSymb = " % ";
 			ug::LogAssistant& la = ug::GetLogAssistant();\
 			la.set_output_process(la.get_process_rank());\
 			la.flush();\
-			UG_LOG("\n" << errSymb << "EXCEPTION on Proc "<<la.get_process_rank()<<":" \
+			UG_LOG((Stringify() << "\n" << errSymb << "EXCEPTION on Proc "<<la.get_process_rank()<<":" \
 				<< " UGError thrown\n" \
 				<< UGErrorTraceback(err) \
 				<< errSymb << msg << "\n" \
-				<< errSymb <<"   ARGS: ("<< args << ")\n"); \
-			PrintCallStack();\
+				<< errSymb <<"   ARGS: ("<< args << ")\n" \
+				<< errSymb<<"In FILE: " << GetLuaFileAndLineNumber(L) << "\n" \
+				<< errSymb<<"At LINE: '" << GetLuaLine(L) << "'\n").str()); \
+			/*PrintLUACallStack();*/\
 			la.flush();\
 			UG_LUA_BINDINGS_THROW(L)\
 		}\
@@ -60,11 +62,13 @@ static const char* errSymb = " % ";
 			ug::LogAssistant& la = ug::GetLogAssistant();\
 			la.set_output_process(la.get_process_rank());\
 			la.flush();\
-			UG_LOG("\n" << errSymb << "EXCEPTION on Proc "<<la.get_process_rank()<<":\n" \
+			UG_LOG((Stringify() << "\n" << errSymb << "EXCEPTION on Proc "<<la.get_process_rank()<<":\n" \
 				<< ErrorStringFromStdException(&ex) << "\n" \
 				<< errSymb << msg << "\n" \
-				<< errSymb <<"   ARGS: ("<< args << ")\n"); \
-			PrintCallStack();\
+				<< errSymb <<"   ARGS: ("<< args << ")\n" \
+				<< errSymb<<"In FILE: " << GetLuaFileAndLineNumber(L) << "\n" \
+				<< errSymb<<"At LINE: '" << GetLuaLine(L) << "'\n").str()); \
+			/*PrintLUACallStack();*/\
 			la.flush();\
 			UG_LUA_BINDINGS_THROW(L);\
 		}\
@@ -73,12 +77,14 @@ static const char* errSymb = " % ";
 			ug::LogAssistant& la = ug::GetLogAssistant();\
 			la.set_output_process(la.get_process_rank());\
 			la.flush();\
-			UG_LOG("\n" << errSymb << "EXCEPTION on Proc "<<la.get_process_rank()<<":" \
+			UG_LOG((Stringify() << "\n" << errSymb << "EXCEPTION on Proc "<<la.get_process_rank()<<":" \
 				<< " Unknown Exception thrown\n" \
 				<< errSymb << msg << "\n" \
-				<< errSymb <<"With ARGUMENTS: ("<< args << ")\n"); \
-			PrintCallStack();\
-			la.flush();\
+				<< errSymb <<"With ARGUMENTS: ("<< args << ")\n" \
+				<< errSymb<<"In FILE: " << GetLuaFileAndLineNumber(L) << "\n" \
+				<< errSymb<<"At LINE: '" << GetLuaLine(L) << "'\n").str()); \
+				/*PrintLUACallStack();*/\
+				la.flush();\
 			UG_LUA_BINDINGS_THROW(L);\
 		}
 
@@ -603,7 +609,12 @@ string UGErrorTraceback(UGError &err)
 	return ss.str();
 }
 
-void PrintCallStack()
+/**
+ * prints the LUA Call Stack, i.e.
+ * the call stack of functions calls in LUA up to this point,
+ * files and filelines.
+ */
+void PrintLUACallStack()
 {
 	std::string s = LuaStackTraceString();
 	if(s.length())
@@ -611,6 +622,7 @@ void PrintCallStack()
 		UG_LOG("Call Stack:\n" << s << "\n");
 	}
 }
+
 /**
  * LuaProxyFunction handling calls to global functions.
  * Note that not the best matching, but the first matching overload is chosen!
@@ -664,7 +676,7 @@ static int LuaProxyFunction(lua_State* L)
 			UG_LOG(": " << GetTypeMismatchString(func->params_in(), L, 0, badParam) << "\n");
 		}
 
-		PrintCallStack();
+		PrintLUACallStack();
 
 		UG_LUA_THROW_EMPTY(L);
 	}
@@ -738,7 +750,7 @@ static int LuaConstructor(lua_State* L, IExportedClass* c, const char *groupname
 			UG_LOG(ConstructorInfo(constr, c->name().c_str()));
 			UG_LOG(": " << GetTypeMismatchString(constr.params_in(), L, 0, badParam) << "\n");
 		}
-		PrintCallStack();
+		PrintLUACallStack();
 		//UG_LOG(errSymb<<"Call stack:\n");	LuaStackTrace(L);
 		UG_LUA_THROW_EMPTY(L);
 	}
@@ -983,6 +995,7 @@ static int ExecuteMethod(lua_State* L, const ExportedMethodGroup* methodGrp,
 }
 /**
  * a default __tostring method which shows classname: \<adress\>
+ * __tostring is used in all print(object) and tostring(object) calls in LUA
  * @param L
  * @return nr of parameters (its one string)
  */
@@ -1060,7 +1073,7 @@ static int LuaProxyMethod(lua_State* L)
 //	time outputting the errors
 	ExecuteMethod(L, methodGrp, self, classNameNode, true);
 
-	PrintCallStack();
+	PrintLUACallStack();
 
 	//UG_LOG(errSymb<<"Call stack:\n"); LuaStackTrace(L);
 	UG_LUA_THROW_EMPTY(L);
@@ -1068,6 +1081,15 @@ static int LuaProxyMethod(lua_State* L)
 	return 0;
 }
 
+/**
+ * This function is used if the user enters a member function wrong and returns
+ * the best guess what he means.
+ * Also searches in base classes.
+ * @param c			(in) the class
+ * @param name		(in) the name of the member function we are searching
+ * @param minname	(out) the name of the closest match to name (in Levenshtein-Distance)
+ * @param mind		(out) number of edits needed from name -> minname
+ */
 void GetBestMatchingMember(const IExportedClass *c, const char *name, std::string &minname, int &mind)
 {
 	const char *funcname;
@@ -1092,8 +1114,19 @@ void GetBestMatchingMember(const IExportedClass *c, const char *name, std::strin
 			mind = d;
 		}
 	}
+	// search in the classes derived from
+	const vector<const char *> *pNames = c->class_names();
+	if(pNames)
+	{
+		bridge::Registry &reg = ug::bridge::GetUGRegistry();
+		for(size_t i=1; i<pNames->size(); i++) // skip the class itself
+			GetBestMatchingMember(reg.get_class(pNames->at(i)), name, minname, mind);
+	}
 }
 
+/**
+ * @sa GetBestMatchingMember
+ */
 void GetBestMatchingMember(const char *classname, const char *name, std::string &minname, int &mind)
 {
 	bridge::Registry &reg = ug::bridge::GetUGRegistry();
@@ -1101,15 +1134,6 @@ void GetBestMatchingMember(const char *classname, const char *name, std::string 
 	minname = "";
 	mind = 10;
 	GetBestMatchingMember(c, name, minname, mind);
-
-	const vector<const char *> *pNames = c->class_names();
-	if(pNames)
-	{
-
-		for(size_t i=1; i<pNames->size(); i++)
-			GetBestMatchingMember(reg.get_class(pNames->at(i)), name, minname, mind);
-	}
-
 }
 
 //TODO:	The metatable indexer could probably be integrated into ExecuteMethod,

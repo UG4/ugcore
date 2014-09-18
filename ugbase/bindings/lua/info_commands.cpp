@@ -989,7 +989,10 @@ string GetLuaTypeString(lua_State* L, int index)
 }
 
 
-
+/**
+ * @param L
+ * @param entry (out) returns the lua_Debug entry associated with the deepest call stack level (the "current line")
+ */
 void LuaGetLastLine(lua_State* L, lua_Debug entry)
 {
     for(int depth = 0; lua_getstack(L, depth, &entry); depth++)
@@ -999,7 +1002,12 @@ void LuaGetLastLine(lua_State* L, lua_Debug entry)
     }
 }
 
-
+/**
+ * @param L
+ * @return the current line with content
+ * example:
+ * @/Users/mrupp/Documents/workspace/ug4svn/apps/amg//setup.lua:576        local dim = p.approxSpace:get_dim()
+ */
 string LuaCurrentLine(lua_State* L)
 {
 	std::stringstream ss;
@@ -1011,7 +1019,16 @@ string LuaCurrentLine(lua_State* L)
 
 }
 
-std::string LuaStackTraceString(lua_State* L, int backtraceLevel)
+/**
+ * this function returns e.g.
+ * 1  @/Users/mrupp/Documents/workspace/ug4svn/apps/amg//setup.lua:576        local dim = p.approxSpace:get_dim()
+ * 2  @/Users/mrupp/Documents/workspace/ug4svn/apps/amg//setup.lua:649        amgsetup.CreateApproxSpaceAndDisc()
+ * 3  @/Users/mrupp/Documents/workspace/ug4svn/apps/amg/famg_laplace.lua:21   amgsetup.LoadStdDomAndApproxSpace()
+ * @param L
+ * @param backtraceLevel  how far we want to go back
+ * @return a list list
+ */
+string LuaStackTraceString(lua_State* L, int backtraceLevel)
 {
 	StringTableStream sts;
     lua_Debug entry;
