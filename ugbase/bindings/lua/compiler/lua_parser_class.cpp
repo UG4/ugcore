@@ -164,12 +164,21 @@ int LUAParserClass::parse_luaFunction(const char *functionName)
 	string str = GetFileLines(src, ar.linedefined, ar.lastlinedefined, false);
 #endif
 
+	lua_pop(L, 1);
 
+	// check for --LUACompiler:ignore
+	if(ar.linedefined > 0)
+	{
+		string str2 = GetFileLines(src, ar.linedefined-1, ar.linedefined, false);
+		if(str2.find("--lua2c:ignore") != std::string::npos || str2.find("--LUACompiler:ignore") != std::string::npos)
+			return LUAParserIgnore;
+	}
 	if(str.find("--lua2c:ignore") != std::string::npos || str.find("--LUACompiler:ignore") != std::string::npos)
 		return LUAParserIgnore;
+
 	//UG_DLOG("The function:\n"<<str<<"\n");
 
-    lua_pop(L, 1);
+
     iLineAdd = ar.linedefined;
     filename = src;
     filename = FilenameWithoutPath(filename);
@@ -196,8 +205,12 @@ int LUAParserClass::add_subfunctions(set<string> &knownFunctions, stringstream &
 {
     //UG_LOG("nr of subfunctions: " << localFunctions.size() << ".\n");        
     for(set<size_t>::iterator it = localFunctions.begin(); it != localFunctions.end(); ++it)
-        if(addfunctionC(id2variable[*it], knownFunctions, declarations, definitions) == false) return false;
-    return true;
+    {
+    	int ret = addfunctionC(id2variable[*it], knownFunctions, declarations, definitions);
+    	if(ret != LUAParserOK)
+    		return ret;
+    }
+    return LUAParserOK;
 }
 
 

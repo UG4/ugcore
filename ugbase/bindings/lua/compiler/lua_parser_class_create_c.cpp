@@ -78,7 +78,7 @@ int LUAParserClass::createC(nodeType *p, ostream &out, int indent)
 						a = a->opr.op[1];
 					}
 					createC(a, out, indent);
-					out << ")\n";
+					out << ")";
                     break;
                 }
 
@@ -279,10 +279,12 @@ int LUAParserClass::createC(ostream &out)
     set<string> knownFunctions;
     stringstream declarations;
     stringstream definitions;
-    if(add_subfunctions(knownFunctions, declarations, definitions) == false)
+    int ret;
+    ret = add_subfunctions(knownFunctions, declarations, definitions);
+    if(ret != LUAParserOK)
     {
     	UG_DLOG(DID_LUACOMPILER, 2, "add_subfunctions failed.\n");
-        return false;
+        return ret;
     }
 
     out << "#define LUAPARSER_MATH_PI 3.1415926535897932384626433832795028841971693\n";
@@ -319,7 +321,7 @@ int LUAParserClass::createC(ostream &out)
 	for(size_t i=0; i<nodes.size(); i++)
 		createC(nodes[i], out, 1);
 	out << "}\n";
-	return 0;
+	return LUAParserOK;
 }
 
 
@@ -350,12 +352,19 @@ int LUAParserClass::addfunctionC(string name, set<string> &knownFunctions, strin
 
     LUAParserClass parser;
     int ret = parser.parse_luaFunction(name.c_str());
-    if(ret != LUAParserOK)
+    if(ret == LUAParserError)
+    {
+    	UG_DLOG(DID_LUACOMPILER, 1, "ERROR in LUA2C for LUA function " << name << ":  could not be parsed.\n");
         return ret;
+    }
+    else if(ret != LUAParserOK)
+    {
+    	return ret;
+    }
 
     if(parser.num_out() != 1)
     {
-    	UG_DLOG(DID_LUACOMPILER, 1, "ERROR in LUA2C for LUA function " << name << ":  subfunction must have exactly one return value (not " << parser.num_out() << ")\n");
+    	UG_DLOG(DID_LUACOMPILER, 1, "ERROR in LUA2C for LUA function " << name << ":  subfunctions must have exactly one return value (not " << parser.num_out() << ")\n");
         return LUAParserError;
     }
 
@@ -365,7 +374,12 @@ int LUAParserClass::addfunctionC(string name, set<string> &knownFunctions, strin
 
     parser.createC_inline(definitions);
 
-    parser.add_subfunctions(knownFunctions, declarations, definitions);
+    ret = parser.add_subfunctions(knownFunctions, declarations, definitions);
+    if(ret != LUAParserOK)
+    {
+    	UG_DLOG(DID_LUACOMPILER, 1, "ERROR in LUA2C for LUA function " << name << ":  one of its subfunctions could not be parsed.\n");
+    	return ret;
+    }
 
     return LUAParserOK;
 }
@@ -373,7 +387,7 @@ int LUAParserClass::addfunctionC(string name, set<string> &knownFunctions, strin
 
 int LUAParserClass::declare(ostream &out)
 {
-    out << "double LUA2C_Subfunction_" << name << "(";
+    out << "inline double LUA2C_Subfunction_" << name << "(";
 	nodeType *a = args;
 	while(a->type == typeOpr)
 	{

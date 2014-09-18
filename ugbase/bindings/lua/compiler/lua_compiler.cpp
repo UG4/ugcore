@@ -42,19 +42,19 @@ bool LUACompiler::createC(const char *functionName)
 {
 #ifdef USE_LUA2C
 	PROFILE_BEGIN_GROUP(LUACompiler_createVM, "LUA2C");
-	UG_DLOG(DID_LUACOMPILER, 2, "parsing " << functionName << "... ");
+	UG_DLOG(DID_LUACOMPILER, 1, "LUA2C: parsing " << functionName << "... ");
 	try{
 		m_f=NULL;
 		LUAParserClass parser;
 		int ret = parser.parse_luaFunction(functionName);
 		if(ret == LUAParserClass::LUAParserError)
 		{
-			UG_LOG("parsing " << functionName << " failed: reduced LUA parser failed.\n");
+			UG_DLOG(DID_LUACOMPILER, 1, "failed: reduced LUA parser failed.\n");
 			return false;
 		}
 		if(ret == LUAParserClass::LUAParserIgnore)
 		{
-			UG_DLOG(DID_LUACOMPILER, 3, "parsing " << functionName << " : Found --LUACompiler:ignore.\n");
+			UG_DLOG(DID_LUACOMPILER, 1, "Found --LUACompiler:ignore. Ignoring this function.\n");
 			return false;
 		}
 		//parser.reduce();
@@ -69,11 +69,20 @@ bool LUACompiler::createC(const char *functionName)
 		out << "#include <math.h>\n";
 		out << "#define true 1\n";
 		out << "#define false 0\n";
-		parser.createC(out);
+
+		ret = parser.createC(out);
+		if(ret != LUAParserClass::LUAParserOK)
+		{
+			UG_DLOG(DID_LUACOMPILER, 1, "some problem when generating C code.\n");
+			return false;
+		}
 
 		m_iIn = parser.num_in();
 		m_iOut = parser.num_out();
 		out.close();
+
+		UG_DLOG(DID_LUACOMPILER, 5, GetFileLines((p+"LUACompiler_output.c").c_str(), 1, -1, true) << "\n");
+
 
 		string c1s=string("gcc -fpic -O3 -c ") + p + "LUACompiler_output.c -o " + p + "LUACompiler_output.o";
 		UG_DLOG(DID_LUACOMPILER, 2, "compiling line: " << c1s << "\n");
@@ -82,7 +91,7 @@ bool LUACompiler::createC(const char *functionName)
 //			IF_DEBUG(DID_LUACOMPILER, 1)
 			if(GetLogAssistant().is_output_process())
 			{
-				UG_LOG("Error when compiling " << functionName << "\n");
+				UG_LOG("\nLUA2C: Error when compiling " << functionName << "\n");
 				UG_LOG("compiling line: " << c1s << "\n");
 				UG_LOG("--[LUACompiler]-----------------------------------------------\n");
 				UG_LOG("created C function from LUA function " << functionName << ":\n");
@@ -98,13 +107,16 @@ bool LUACompiler::createC(const char *functionName)
 		m_pDyn = MakeTmpFile(p+string(functionName), ".dylib", bTmpFileSuccess);
 
 		string c2s=string("gcc -dynamiclib ") + p+"LUACompiler_output.o -o " + m_pDyn.c_str();
-		UG_DLOG(DID_LUACOMPILER, 2, "linking line: " << c2s << "\n");
+
+		if(GetLogAssistant().is_output_process())
+		{	UG_DLOG(DID_LUACOMPILER, 2, "linking line: " << c2s << "\n"); }
+
 		if(system(c2s.c_str()) != 0)
 		{
 //			IF_DEBUG(DID_LUACOMPILER, 1)
 			if(GetLogAssistant().is_output_process())
 			{
-				UG_LOG("Error when linking " << functionName << "\n");
+				UG_LOG("\nLUA2C: Error when linking " << functionName << "\n");
 				UG_LOG("linking line: " << c2s << "\n");
 				UG_LOG("--[LUACompiler]-----------------------------------------------\n");
 				UG_LOG("created C function from LUA function " << functionName << ":\n");
@@ -118,21 +130,21 @@ bool LUACompiler::createC(const char *functionName)
 		}
 		catch(std::string error)
 		{
-			UG_LOG("Error when opening library for function " << functionName << "\n");
+			UG_LOG("\nLUA2C: Error when opening library for function " << functionName << "\n");
 			UG_LOG("Error is " << error << "\n");
 			return false;
 		}
 		m_f = (LUA2C_Function) GetLibraryProcedure(m_libHandle, functionName);
 
-		if(m_f !=NULL) { UG_DLOG(DID_LUACOMPILER, 2, "OK\n"); }
-		else { UG_DLOG(DID_LUACOMPILER, 2, "FAILED\n"); }
+		if(m_f !=NULL) { UG_DLOG(DID_LUACOMPILER, 1, "OK\n"); }
+		else { UG_DLOG(DID_LUACOMPILER, 1, "FAILED\n"); }
 		if(m_f !=NULL)
 			bInitialized = true;
 		return m_f != NULL;
 	}
 	catch(...)
 	{
-		UG_DLOG(DID_LUACOMPILER, 1, "exception thrown in LUACompiler::create(" << functionName << ")\n");
+		UG_DLOG(DID_LUACOMPILER, 1, "LUA2C: exception thrown in LUACompiler::create(" << functionName << ")\n");
 		return false;
 	}
 #else
@@ -165,17 +177,21 @@ bool LUACompiler::createVM(const char *functionName)
 			UG_LOG("parsing " << functionName << " failed: create VM failed.\n");
 			return false;
 		}
-		UG_DLOG(DID_LUACOMPILER, 2, "parsing " << functionName << " OK.\n");
+
+		IF_DEBUG(DID_LUACOMPILER, 5)
+		{	vm.print(); }
+
+		UG_DLOG(DID_LUACOMPILER, 1, "LUA2VM: parsing " << functionName << " OK.\n");
 	}
 	catch(UGError e)
 	{
-		UG_DLOG(DID_LUACOMPILER, 1, "parsing " << functionName << "... ");
+		UG_DLOG(DID_LUACOMPILER, 1, "LUA2VM: parsing " << functionName << "... ");
 		UG_DLOG(DID_LUACOMPILER, 1, "failed:\n" << e.get_stacktrace() << "\n");
 		return false;
 	}
 	catch(...)
 	{
-		UG_DLOG(DID_LUACOMPILER, 1, "parsing " << functionName << "... ");
+		UG_DLOG(DID_LUACOMPILER, 1, "LUA2VM: parsing " << functionName << "... ");
 		UG_DLOG(DID_LUACOMPILER, 1, "failed: Exception.\n");
 		return false;
 	}
