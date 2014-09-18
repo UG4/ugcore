@@ -95,12 +95,15 @@ class SubdivisionLoopProjector : public RefinementCallbackLinear<TAPosition>
 		virtual void new_vertex(Vertex* vrt, Face* parent);
 		virtual void new_vertex(Vertex* vrt, Volume* parent);
 
+		virtual void consider_as_crease_edge(Grid::edge_traits::callback cbIsCrease);
+
 	protected:
 		virtual bool is_crease_vertex(Vertex* vrt);
 		virtual bool is_crease_edge(Edge* edge);
 
 	protected:
 		Grid::VertexAttachmentAccessor<TAPosition>	m_aaTargetPos;
+		Grid::edge_traits::callback					m_cbIsCrease;
 };
 /// @}
 

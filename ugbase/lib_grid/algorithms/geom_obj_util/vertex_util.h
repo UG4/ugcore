@@ -308,13 +308,6 @@ void MarkFixedCreaseVertices(Grid& grid, SubsetHandler& sh,
 							int creaseSI, int fixedSI);
 
 ////////////////////////////////////////////////////////////////////////
-template <class TIterator, class AAPosVRT>
-UG_API 
-void LaplacianSmooth(Grid& grid, TIterator vrtsBegin,
-					TIterator vrtsEnd, AAPosVRT& aaPos,
-					number alpha, int numIterations);
-
-////////////////////////////////////////////////////////////////////////
 ///	returns the position of the vertex.
 /**	Main purpose is to allow the use of vertices in template-methods
  *	that call CalculateCenter

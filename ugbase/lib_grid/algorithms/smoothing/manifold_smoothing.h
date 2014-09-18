@@ -7,8 +7,80 @@
 
 #include "common/types.h"
 #include "lib_grid/algorithms/geom_obj_util/face_util.h"
+#include "../volume_calculation.h"
 
 namespace ug{
+
+////////////////////////////////////////////////////////////////////////
+template <class TIterator, class AAPosVRT>
+void LaplacianSmooth(Grid& grid, TIterator vrtsBegin,
+					TIterator vrtsEnd, AAPosVRT& aaPos,
+					number alpha, int numIterations)
+{
+	Grid::edge_traits::secure_container edges;
+	Grid::face_traits::secure_container faces;
+	Grid::volume_traits::secure_container vols;
+
+	bool gotFaces = grid.num<Face>() > 0;
+	bool gotVols = grid.num<Volume>() > 0;
+
+	for(int iteration = 0; iteration < numIterations; ++iteration){
+	//	iterate through all vertices
+		for(TIterator iter = vrtsBegin; iter != vrtsEnd; ++iter){
+		//	smooth each one
+			Vertex* vrt = *iter;
+			vector3 v;
+			VecSet(v, 0);
+			number weight = 0;
+
+		//	calculate smoothing vector relative to neighbors
+			grid.associated_elements(edges, vrt);
+			for(size_t i = 0; i < edges.size(); ++i){
+				// number w = EdgeLength(edges[i], aaPos);
+				number w = 1;
+				VecScaleAdd(v, 1, v, w, aaPos[GetConnectedVertex(edges[i], vrt)]);
+				weight += w;				
+			}
+
+			if(gotFaces){
+				grid.associated_elements(faces, vrt);
+				for(size_t i = 0; i < faces.size(); ++i){
+					Face* f = faces[i];
+					// number a = CalculateVolume(f, aaPos);
+					number a = 1;
+					VecScaleAdd(v, 1, v, a,
+						CalculateGridObjectCenter(
+							grid.get_opposing_object(vrt, f),
+							aaPos));
+
+					weight += a;
+				}
+			}
+
+			if(gotVols){
+				grid.associated_elements(vols, vrt);
+				for(size_t i = 0; i < vols.size(); ++i){
+					Volume* vol = vols[i];
+					// number a = CalculateVolume(vol, aaPos);
+					number a = 1;
+					VecScaleAdd(v, 1, v, a,
+						CalculateGridObjectCenter(
+							grid.get_opposing_object(vrt, vol),
+							aaPos));
+
+					weight += a;
+				}
+			}
+
+			if(weight > 0){
+				VecScale(v, v, 1. / weight);
+				VecSubtract(v, v, aaPos[vrt]);
+				VecScale(v, v, alpha);
+				VecAdd(aaPos[vrt], aaPos[vrt], v);
+			}
+		}
+	}
+}
 
 ///	Smoothes vertices in a 2d-manifold in 3d-space be moving vertices in the
 ///	tangential plane, only.
@@ -228,6 +300,136 @@ void TangentialSmooth(Grid& g, TVrtIter vrtsBegin, TVrtIter vrtsEnd,
 	//	and now move the vertices by their smoothed offset vectors
 		for(size_t i_vrt = 0; i_vrt + 1 < adjVrtOffsets.size(); ++i_vrt){
 			VecScaleAdd(*vrtPos[i_vrt], 1, *vrtPos[i_vrt], alpha, offsets[i_vrt]);
+		}
+	}
+}
+
+
+////////////////////////////////////////////////////////////////////////
+/** vertices which will not be smoothed get a special weight when being considered
+ * during smoothing of neighbored vertices.
+ *
+ * Make sure that cbSmoothVertex returns true for exactly all those vertices,
+ * which in the range of the specified iterators.
+ */
+template <class TIterator, class AAPosVRT>
+void WeightedEdgeSmooth(Grid& grid, TIterator vrtsBegin,
+					TIterator vrtsEnd, AAPosVRT& aaPos,
+					number alpha, int numIterations,
+					Grid::vertex_traits::callback cbSmoothVertex)
+{
+	typedef typename AAPosVRT::ValueType vector_t;
+
+	Grid::edge_traits::secure_container edges;
+
+	for(int iteration = 0; iteration < numIterations; ++iteration){
+	//	iterate through all vertices
+		for(TIterator iter = vrtsBegin; iter != vrtsEnd; ++iter){
+		//	smooth each one
+			Vertex* vrt = *iter;
+			vector_t vrtPos = aaPos[vrt];
+			vector_t avDir;
+			VecSet(avDir, 0);
+			number weight = 0;
+
+		//	calculate smoothing vector relative to neighbors
+			grid.associated_elements(edges, vrt);
+			number numNonSmooth = 0;
+			for(size_t i = 0; i < edges.size(); ++i){
+				Vertex* connVrt = GetConnectedVertex(edges[i], vrt);
+				if(!cbSmoothVertex(connVrt))
+					numNonSmooth += 1;
+			}
+
+			number nonSmoothWeight = 1. / std::max<number>(1, numNonSmooth);
+
+			for(size_t i = 0; i < edges.size(); ++i){
+				Vertex* connVrt = GetConnectedVertex(edges[i], vrt);
+				number w = 1;
+				if(!cbSmoothVertex(connVrt))
+					w = nonSmoothWeight;
+
+				vector_t dir;
+				VecSubtract(dir, aaPos[connVrt], vrtPos);
+				w *= VecLengthSq(dir);
+				dir *= w;
+				VecAdd(avDir, avDir, dir);
+				weight += w;
+			}
+
+			if(weight > 0){
+				avDir *= alpha / weight;
+				VecAdd(aaPos[vrt], vrtPos, avDir);
+			}
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
+/** vertices which will not be smoothed get a special weight when being considered
+ * during smoothing of neighbored vertices.
+ *
+ * Make sure that cbSmoothVertex returns true for exactly all those vertices,
+ * which in the range of the specified iterators.
+ */
+template <class TIterator, class AAPosVRT>
+void WeightedFaceSmooth(Grid& grid, TIterator vrtsBegin,
+					TIterator vrtsEnd, AAPosVRT& aaPos,
+					number alpha, int numIterations,
+					Grid::vertex_traits::callback cbSmoothVertex)
+{
+	typedef typename AAPosVRT::ValueType vector_t;
+
+	Grid::face_traits::secure_container faces;
+
+	for(int iteration = 0; iteration < numIterations; ++iteration){
+	//	iterate through all vertices
+		for(TIterator iter = vrtsBegin; iter != vrtsEnd; ++iter){
+		//	smooth each one
+			Vertex* vrt = *iter;
+			vector_t vrtPos = aaPos[vrt];
+			vector_t avDir;
+			VecSet(avDir, 0);
+			number weight = 0;
+
+		//	calculate smoothing vector relative to neighbors
+			grid.associated_elements(faces, vrt);
+
+			for(size_t i = 0; i < faces.size(); ++i){
+				Face* f = faces[i];
+				if(f->num_vertices() != 3)
+					continue;
+
+				number w = 1;
+				Edge* e = GetConnectedEdge(grid, vrt, f);
+				Vertex* v0 = e->vertex(0);
+				Vertex* v1 = e->vertex(1);
+				vector_t edgeCenter;
+				if(cbSmoothVertex(v0)){
+					if(cbSmoothVertex(v1))
+						VecScaleAdd(edgeCenter, 0.5, aaPos[v0], 0.5, aaPos[v1]);
+					else
+						VecScaleAdd(edgeCenter, 0.75, aaPos[v0], 0.25, aaPos[v1]);
+				}
+				else if(cbSmoothVertex(v1))
+					VecScaleAdd(edgeCenter, 0.25, aaPos[v0], 0.75, aaPos[v1]);
+				else{
+					VecScaleAdd(edgeCenter, 0.5, aaPos[v0], 0.5, aaPos[v1]);
+					w = 0.5;
+				}
+
+				vector_t dir;
+				VecSubtract(dir, edgeCenter, vrtPos);
+				w *= CalculateVolume(f, aaPos);
+				dir *= w;
+				VecAdd(avDir, avDir, dir);
+				weight += w;
+			}
+
+			if(weight > 0){
+				avDir *= alpha / weight;
+				VecAdd(aaPos[vrt], vrtPos, avDir);
+			}
 		}
 	}
 }

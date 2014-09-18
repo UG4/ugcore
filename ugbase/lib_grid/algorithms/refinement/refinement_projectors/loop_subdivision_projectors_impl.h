@@ -147,16 +147,18 @@ is_crease_edge(Edge* edge)
 ////////////////////////////////////////////////////////////////////////
 template <class TAPosition>
 SubdivisionLoopProjector<TAPosition>::
-SubdivisionLoopProjector()
+SubdivisionLoopProjector() :
+	m_cbIsCrease(Grid::edge_traits::cb_consider_none)
 {
 }
 
 template <class TAPosition>
 SubdivisionLoopProjector<TAPosition>::
 SubdivisionLoopProjector(Grid& g,
-								  TAPosition& aPos,
-								  TAPosition& aTargetPos) :
-	BaseClass(g, aPos)
+						  TAPosition& aPos,
+						  TAPosition& aTargetPos) :
+	BaseClass(g, aPos),
+	m_cbIsCrease(Grid::edge_traits::cb_consider_none)
 {
 //	we have to make sure that aTargetPos is attached at the grid.
 //	This is important to avoid crashes later on.
@@ -171,6 +173,13 @@ SubdivisionLoopProjector<TAPosition>::
 ~SubdivisionLoopProjector()
 {
 
+}
+
+template <class TAPosition>
+void SubdivisionLoopProjector<TAPosition>::
+consider_as_crease_edge(Grid::edge_traits::callback cbIsCrease)
+{
+	m_cbIsCrease = cbIsCrease;
 }
 
 template <class TAPosition>
@@ -378,8 +387,19 @@ is_crease_vertex(Vertex* vrt)
 {
 	if(BaseClass::m_pGrid->template num<Volume>() > 0)
 		return false;
-	return !IsRegularSurfaceVertex(*BaseClass::m_pGrid, vrt);
-	//return IsBoundaryVertex2D(*BaseClass::m_pGrid, vrt);
+
+	if(!IsRegularSurfaceVertex(*BaseClass::m_pGrid, vrt))
+		return true;
+
+	Grid::edge_traits::secure_container edges;
+	BaseClass::m_pGrid->associated_elements(edges, vrt);
+
+	for(size_t i = 0; i < edges.size(); ++i){
+		if(m_cbIsCrease(edges[i]))
+			return true;
+	}
+
+	return false;
 }
 
 template <class TAPosition>
@@ -388,8 +408,8 @@ is_crease_edge(Edge* edge)
 {
 	if(BaseClass::m_pGrid->template num<Volume>() > 0)
 		return false;
-	return NumAssociatedFaces(*BaseClass::m_pGrid, edge) != 2;
-	//return IsBoundaryEdge2D(*BaseClass::m_pGrid, edge);
+	return (NumAssociatedFaces(*BaseClass::m_pGrid, edge) != 2 ||
+			m_cbIsCrease(edge));
 }
 
 }// end of namespace
