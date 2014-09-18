@@ -556,9 +556,11 @@ bool CompositeConvCheck<TVector, TDomain>::post()
 	{
 		CmpInfo& cmpInfo = m_CmpInfo[cmp];
 
-		if (!is_valid_number(cmpInfo.currDefect)){
+		if (!is_valid_number(cmpInfo.currDefect))
+		{
 			success = false;
-			if(m_verbose){
+			if (m_verbose)
+			{
 				print_offset();
 				UG_LOG("Current defect for '" << cmpInfo.name <<
 					   "' is not a valid number.\n");
@@ -568,26 +570,34 @@ bool CompositeConvCheck<TVector, TDomain>::post()
 		bool cmpFinished = false;
 		if (cmpInfo.currDefect < cmpInfo.minDefect)
 		{
-			print_offset();
-			UG_LOG("Absolute defect    of " << cmpInfo.minDefect << " for '"
-			       << cmpInfo.name << "' reached after " << step() << " steps.\n");
+			if (m_verbose)
+			{
+				print_offset();
+				UG_LOG("Absolute defect    of " << cmpInfo.minDefect << " for '"
+						<< cmpInfo.name << "' reached after " << step() << " steps.\n");
+			}
 			cmpFinished = true;
 		}
 
-		if(cmpInfo.initDefect != 0.0){
+		if (cmpInfo.initDefect != 0.0)
+		{
 			if (cmpInfo.currDefect/cmpInfo.initDefect < cmpInfo.relReduction)
 			{
-				print_offset();
-				UG_LOG("Relative reduction of " << cmpInfo.relReduction << " for '"
-					   << cmpInfo.name << "' reached after " << step() << " steps.\n");
+				if (m_verbose)
+				{
+					print_offset();
+					UG_LOG("Relative reduction of " << cmpInfo.relReduction << " for '"
+							<< cmpInfo.name << "' reached after " << step() << " steps.\n");
+				}
 				cmpFinished = true;
 			}
 		}
 
-		if(!cmpFinished) success = false;
+		if (!cmpFinished) success = false;
 	}
 
-	if(m_verbose){
+	if (m_verbose)
+	{
 		print_offset();
 		UG_LOG(repeat(m_symbol, 5));
 		std::stringstream tmsg;
