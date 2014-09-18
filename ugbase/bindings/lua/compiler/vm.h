@@ -22,10 +22,12 @@ namespace ug{
 //////////////////////////////////////////
 class VMAdd
 {
+private:
 	std::vector<char> vmBuf;
 	std::string m_name;
 	std::vector<double> variables;
 	size_t m_nrOut, m_nrIn;
+	std::vector<SmartPtr<VMAdd> > subfunctions;
 
 	enum VMInstruction
 	{
@@ -201,7 +203,6 @@ public:
 //		UG_LOG("POS " << get_pos() << "\n");
 	}
 
-	std::vector<SmartPtr<VMAdd> > subfunctions;
 	void call(SmartPtr<VMAdd> subfunction)
 	{
 		size_t i;
@@ -234,6 +235,12 @@ public:
 
 	void print()
 	{
+		print_rec(0);
+	}
+
+	void print_rec(int level)
+	{
+		if(level > 5) { UG_LOG("\n... aborting recursion (potential infinite loop)\n"); }
 		print_short();
 		UG_LOG("\n");
 		for(size_t i=0; i<vmBuf.size(); )
@@ -288,6 +295,13 @@ public:
 				default:
 					UG_LOG(((int)instr) << "?\n");
 			}
+		}
+		if(subfunctions.size() > 0)
+		{
+			UG_LOG("<< SUBFUNCTIONS OF " << m_name << ":\n");
+			for(size_t i=0; i<subfunctions.size(); i++)
+				subfunctions[i]->print_rec(level+1);
+			UG_LOG("   SUBFUNCTIONS OF " << m_name << " >>\n");
 		}
 	}
 
@@ -452,7 +466,7 @@ public:
 		return call(stack, SP);
 	}
 
-	void operator ()(double *ret, double *in)
+	int execute(double *ret, const double *in)
 	{
 		double stack[255];
 		int SP=0;
@@ -463,6 +477,8 @@ public:
 		UG_ASSERT(SP == (int)m_nrOut, SP << " != " << m_nrOut);
 		for(size_t i=0; i<m_nrOut; i++)
 			ret[i] = stack[i];
+
+		return 1;
 	}
 
 	double call()
@@ -498,6 +514,7 @@ public:
 		variables[0] = a;
 		return call();
 	}
+
 	size_t num_out()
 	{
 		return m_nrOut;

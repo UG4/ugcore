@@ -18,6 +18,7 @@
 #include "lua_compiler.h"
 #include "lua_compiler_debug.h"
 #include "common/profiler/profiler.h"
+#include "vm.h"
 using namespace std;
 
 namespace ug{
@@ -158,9 +159,13 @@ bool LUACompiler::createVM(const char *functionName)
 	PROFILE_BEGIN_GROUP(LUACompiler_createVM, "LUA2VM");
 	m_name = functionName;
 
+
 	LUAParserClass parser;
-	try{
+	try
+	{
 		int ret = parser.parse_luaFunction(functionName);
+		if(vm != NULL) delete vm;
+		vm = new VMAdd;
 		if(ret == LUAParserClass::LUAParserError)
 		{
 			UG_LOG("parsing " << functionName << " failed: reduced LUA parser failed.\n");
@@ -172,14 +177,14 @@ bool LUACompiler::createVM(const char *functionName)
 			return false;
 		}
 
-		if(parser.createVM(vm) == false)
+		if(parser.createVM(*vm) == false)
 		{
 			UG_LOG("parsing " << functionName << " failed: create VM failed.\n");
 			return false;
 		}
 
 		IF_DEBUG(DID_LUACOMPILER, 5)
-		{	vm.print(); }
+		{	vm->print(); }
 
 		UG_DLOG(DID_LUACOMPILER, 1, "LUA2VM: parsing " << functionName << " OK.\n");
 	}
@@ -196,9 +201,8 @@ bool LUACompiler::createVM(const char *functionName)
 		return false;
 	}
 	//UG_LOG(" ok.\n");
-//	vm.print();
-	m_iIn = vm.num_in();
-	m_iOut = vm.num_out();
+	m_iIn = vm->num_in();
+	m_iOut = vm->num_out();
 	bInitialized = true;
 	bVM = true;
 	return true;
@@ -207,6 +211,8 @@ bool LUACompiler::createVM(const char *functionName)
 
 LUACompiler::~LUACompiler()
 {
+	if(vm != NULL) delete vm;
+
     UG_DLOG(DID_LUACOMPILER, 2, "removing " << m_name << "\n");
 	if(m_libHandle)
 	   	CloseLibrary(m_libHandle);
@@ -216,6 +222,21 @@ LUACompiler::~LUACompiler()
 		string s = string("rm ") + m_pDyn;
 		UG_DLOG(DID_LUACOMPILER, 2, s << "\n");
 		system(s.c_str());
+	}
+}
+
+bool LUACompiler::call(double *ret, const double *in) const
+{
+	if(bVM)
+	{
+		const_cast<LUACompiler*>(this)->vm->execute(ret, in);
+		return true;
+	}
+	else
+	{
+		UG_ASSERT(m_f != NULL, "function " << m_name << " not valid");
+		m_f(ret, in);
+		return true;
 	}
 }
 

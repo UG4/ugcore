@@ -11,20 +11,23 @@
 #include <stdio.h>
 #include <string>
 #include "common/util/dynamic_library_util.h"
-#include "vm.h"
 namespace ug{
+
+class VMAdd;
+
 namespace bridge {
+
 
 
 class LUACompiler
 {
 	
 private:
-	typedef bool (*LUA2C_Function)(double *, double *) ;
+	typedef int (*LUA2C_Function)(double *, const double *) ;
 	
 	DynLibHandle m_libHandle;
 	std::string m_pDyn;
-	VMAdd vm;
+	VMAdd* vm;
 
 public:
 	std::string m_name;
@@ -40,7 +43,8 @@ public:
 		m_libHandle = NULL;
 		bInitialized = false;
 		bVM = false;
-	}	
+		vm = NULL;
+	}
 	
 	int num_in() const
 	{
@@ -66,20 +70,7 @@ public:
 	bool createVM(const char *functionName);
 	bool createC(const char *functionName);
 	
-	inline bool call(double *ret, double *in) const
-	{
-		if(bVM)
-		{
-			const_cast<LUACompiler*>(this)->vm(ret, in);
-			return true;
-		}
-		else
-		{
-			UG_ASSERT(m_f != NULL, "function " << m_name << " not valid");
-			return m_f(ret, in);
-		}
-	}
-	
+	bool call(double *ret, const double *in) const;
 	virtual ~LUACompiler();
 };
 

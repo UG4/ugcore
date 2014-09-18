@@ -11,6 +11,7 @@
 #include "bindings/lua/info_commands.h"
 #include "lua_compiler.h"
 #include "lua_parser_class.h"
+#include "vm.h"
 
 using namespace std;
 namespace ug{

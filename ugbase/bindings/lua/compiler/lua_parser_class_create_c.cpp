@@ -297,7 +297,7 @@ int LUAParserClass::createC(ostream &out)
     // the function
 	out << "int " << name << "(";
 	out << "double *LUA2C_ret, "; //[" << numOut << "], ";
-	out << "double *LUA2C_in)\n"; //[" << numIn << "])\n";
+	out << "const double *LUA2C_in)\n"; //[" << numIn << "])\n";
 	nodeType *a = args;
 
 	out << "{\n";
