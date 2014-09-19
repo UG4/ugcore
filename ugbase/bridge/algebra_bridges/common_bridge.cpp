@@ -35,6 +35,8 @@
 #include "bridge_mat_vec_operations.h"
 #include "matrix_diagonal.h"
 
+#include "lib_algebra/operator/energy_convergence_check.h"
+
 using namespace std;
 
 namespace ug{
@@ -380,6 +382,31 @@ static void Algebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "ConvCheck", tag);
 	}
 
+
+	{
+		typedef EnergyConvCheck<vector_type> T;
+		typedef IConvergenceCheck<vector_type> TBase;
+		string name = string("EnergyConvCheck").append(suffix);
+		reg.add_class_<T, TBase>(name, grp, "Energy Convergence Check")
+				.add_method("set_linear_operator", &T::set_linear_operator)
+				.template add_constructor<void (*)(int, number, number, bool)>
+											("Maximum Steps|default|min=0;value=100#"
+											 "Minimum Defect|default|min=0D;value=1e-10#"
+											 "Relative Reduction|default|min=0D;value=1e-12#"
+											 "Verbosity")
+				.template add_constructor<void (*)(int, number, number, bool, bool)>
+								("Maximum Steps|default|min=0;value=100#"
+								 "Minimum Defect|default|min=0D;value=1e-10#"
+								 "Relative Reduction|default|min=0D;value=1e-12#"
+								 "Verbosity"
+								 "supress unsuccessful return")
+				.template add_constructor<void (*)(int, number, number)>
+								("Maximum Steps|default|min=0;value=100#"
+								 "Minimum Defect|default|min=0D;value=1e-10#"
+								 "Relative Reduction|default|min=0D;value=1e-12")
+				.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "EnergyConvCheck", tag);
+	}
 }
 
 
