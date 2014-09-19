@@ -38,7 +38,23 @@ start your job on a cluster!
 The node you are logging into is only a login node, and you don't want to run 
 your job on these.
 
+<hr>
+\section secSetupCluster Setting up your cluster
+We have included a automatic configuration: It is called <b>ugconfig</b>, and is in ug4/scripts/shell/ugconfig. So for your .bashrc, we suggest
+\code
+source $HOME/ug4/trunk/scripts/shell/ugbash		% for completion etc.
+source $HOME/ug4/trunk/scripts/shell/ugconfig	% for configuration
+\endcode
 
+ugconfig then automatically detects you cluster and loads standard modules like cmake, LAPACK or compilers.
+With this, you can also use the next tool to help you set up: Instead of using cmake, you can use ugcmake-start, e.g.
+\code
+ugcmake-start -DDIM=2 -DCPU=1 -Damg=ON ..
+\endcode
+This will again automatically detect your cluster, and call cmake with the appropriate toolchain file and flags (see also \ref secCMake).
+
+The aim of ugconfig and ugcmake-start is to make your life easier, so if they do not work, please tell, so we can fix that problem for you and others. 
+ 
 <hr>
 \section secCMake CMake, Toolchains, Compilers
 

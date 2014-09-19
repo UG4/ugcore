@@ -1,0 +1,72 @@
+//	created by Martin Rupp
+//	martin.rupp@gcsc.uni-frankfurt.de
+//	y14 m09 d18
+
+/** \page pageLUA2C LUA2C/LUA2VM
+
+[TOC]
+
+
+With LUA2C/LUA2VM you can speed up your applications which use a lot of LUA-Callbacks. 
+
+Both LUA2C and LUA2VM first parse your code. Then LUA2C creates a C file, compiles it with GCC and creates a library from it. This library is then dynamically linked to ug4. 
+That means code which is compiled by LUA2C has the same speed as native C code. 
+
+\warning The LUA2C  compile/load process is not available on all platforms, especially clusters. For those, you can choose LUA2VM.
+
+LUA2VM creates special code which can be interpreted with a special virtual machine on every machine/cluster. 
+
+Keep in mind that LUA2C/LUA2VM only implement a subset of LUA's functionality. Some restrictions are:
+
+- Global variables: They work, but they are assume to be \emph constant.
+- All other variables have to be declared \emph local (if they are not a paramter of the function).
+- all variables are assumed to be \emph doubles or convertible to doubles (like ints). That means: no strings, no tables.
+so if you have code like <tt> if Modell == "1" then ...</tt> you should replace it with something like <tt>if Modell == 1.0 then </tt>.
+- A lot of other fancy stuff like Closures are not possible.
+- Calling other C functions is not possible at the moment.
+- However, you can call other LUA functions (if they can be parsed, too). Those Subfunctions are restricted to returning exactly one double.
+- All other functions may return an arbitrary number of doubles.
+- build-in math functions from LUA: math.cos, math.sin, math.exp, math.abs, math.log, math.log10, math.sqrt, math.floor, math.ceil, math.pow, math.max, math.min, math.math.pi.
+- control structures:
+	- if x then y elseif a then b else z end
+	- for a=start,stop do statement (break) end
+	- not possible: while
+- comparison operators: <tt>and or >= <= == ~=</tt>
+
+- multi-line comments  --[[ ]]-- are not possible at the moment, howoever single-line (-- comment) fworks
+
+\note If you function can not be parsed, LUA2C/LUA2VM won't be used. Instead, the normal LUA functionality is used for this function. This is a fallback strategy to keep things safe.
+
+\warning LUA2C/LUA2VM assumes at the moment that global variables are constant at the moment of the first parsing.
+
+You enable LUA2C at the beginning of your script with 
+\code
+EnableLUA2C(true)
+\endcode
+and LUA2VM with 
+\code
+EnableLUA2VM(true)
+\endcode
+Note that you can't use both at the same time.
+
+If you want to disable LUA2C/LUA2VM for some functions, use <tt>--LUACompiler:ignore</tt>
+\code
+--LUACompiler:ignore
+function Diffusion(x, y, t)
+	local a = MyCFunction(x, y)
+	return a, 0, 0, a
+end
+\endcode
+
+<tt>--LUACompiler:ignore</tt> can be either on the line directly before the function or somewhere inside the function. Please make sure to use exactly <tt>--LUACompiler:ignore</tt>.
+
+For debugging, you can use
+\code
+EnableLUA2VM(true)
+SetDebugLevel(debugID.LUACompiler, 1)
+\endcode
+
+This way you are getting more information about successful/unsuccessful parsing. You can also set this to 5 and get even more information (generated C/VM Code and so on).
+
+\note Use LUA2VM on clusters and in parallel settings. Don't use LUA2C on clusters/parallel.
+*/

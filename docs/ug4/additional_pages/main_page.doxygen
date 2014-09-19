@@ -58,6 +58,7 @@ environment
 	- <a href="regdocu/namespaceug4_bridge.html">ug4-Scripting Reference Documentation</a>
 	- \ref pageLuaScript	
 	- \ref pageBashTools
+	- \ref pageLUA2C
 
 - \subpage pageUG4Development
 	- \ref pageUG4CppIntroduction
