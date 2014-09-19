@@ -271,12 +271,12 @@ void GatherVectorOnOne(IndexLayout &agglomeratedMaster, IndexLayout &agglomerate
 	else
 	{
 		//UG_LOG("gather_vertical: receiving data at level " << level << "\n");
-		UG_ASSERT(&vec != &collectedVec, "");
+		UG_COND_THROW(&vec == &collectedVec, "vec and collected vec may not be same");
 		collectedVec.set(0.0);
 		for(size_t i=0; i<vec.size(); i++)
 			collectedVec[i] = vec[i];
 
-		UG_ASSERT(vec.has_storage_type(type), "");
+		UG_COND_THROW(!vec.has_storage_type(type), "storage type is " << vec.get_storage_type() << ", not " << type);
 		if(type == PST_ADDITIVE)
 		{
 			ComPol_VecAdd<vector_type > compolAdd(&collectedVec, &vec);
@@ -291,7 +291,7 @@ void GatherVectorOnOne(IndexLayout &agglomeratedMaster, IndexLayout &agglomerate
 			com.communicate();
 			collectedVec.set_storage_type(PST_CONSISTENT);
 		}
-		else { UG_ASSERT(0, "unsupported."); }
+		else { UG_THROW("storage type " << type << "unsupported."); }
 	}
 	}UG_CATCH_THROW(__FUNCTION__ << " failed");
 }
@@ -325,10 +325,11 @@ void BroadcastVectorFromOne(IndexLayout &agglomeratedMaster, IndexLayout &agglom
 	}
 	else
 	{
-		UG_ASSERT(&vec != &collectedVec, "");
+		UG_COND_THROW(&vec == &collectedVec, "vec and collected vec may not be same");
 		for(size_t i=0; i<vec.size(); i++)
 			vec[i] = collectedVec[i];
-		UG_ASSERT(collectedVec.has_storage_type(type), "");
+
+		UG_COND_THROW(!collectedVec.has_storage_type(type), "storage type is " << collectedVec.get_storage_type() << ", not " << type);
 		vec.set_storage_type(type);
 
 		ComPol_VecAdd<vector_type > compolCopy(&vec, &collectedVec);
@@ -342,7 +343,7 @@ void BroadcastVectorFromOne(IndexLayout &agglomeratedMaster, IndexLayout &agglom
 		vec.set_storage_type(PST_ADDITIVE);
 	}
 	else if(type == PST_CONSISTENT) {	}
-	else { UG_ASSERT(0, "unsupported."); }
+	else { UG_THROW("storage type " << type << "unsupported."); }
 
 	}UG_CATCH_THROW(__FUNCTION__ << " failed");
 }
