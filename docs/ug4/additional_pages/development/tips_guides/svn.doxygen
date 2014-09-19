@@ -160,6 +160,48 @@ so when you used your local svn on the remote directory, you can't use the
 remote svn anymore. See this script to <a href="http://svn.apache.org/repos/asf/subversion/trunk/tools/client-side/change-svn-wc-format.py">
 Change SVN format</a>.
 
+<hr>
+\section secSVNSSHTunneling SVN/SSH Tunneling
+On some clusters it is forbidden to connect directly to the internet. That also includes fuji.gcsc.uni-frankfurt.de. On those clusters, you can not check out or update svn sources.
+The cure for this problem is called SSH Tunneling.
+Say you connect to your cluster with <tt>ssh martin@cluster.com</tt>. You now need to replace this call with
+\code
+ssh -R5337:fuji.gcsc.uni-frankfurt.de:3690 martin@cluster.com
+\endcode
+Here the -R specifies that all connections to localhost:5337 are forwarded to fuji.gcsc.uni-frankfurt.de:3690.
+It is important to issue this ssh command on a computer which can connect to fuji.gcsc.uni-frankfurt.de.
+Now we instead of <tt>svn co svn://fuji.gcsc.uni-frankfurt.de/ug4/trunk</tt> we can do 
+\code
+svn co svn://localhost:5337/ug4/trunk
+\endcode  
+
+You can now do a svn co or update. However, some externals might not be able to be checked out.
+\code
+cd externals
+svn propedit svn:externals .
+\endcode
+(If you are getting an error that no editor is set use <tt>export EDITOR=emacs</tt> or similar)
+Now change
+\code
+boost_1_56_0/boost	svn://fuji.gcsc.uni-frankfurt.de/boost_mirror/boost_1_56_0/boost
+\endcode
+to
+\code
+boost_1_56_0/boost	svn://localhost:5337/boost_mirror/boost_1_56_0/boost
+\endcode
+
+Now you should be able to do a complete update/co.
+
+For convenience it is nice to have an alias for such clusters like
+\code
+alias ssh-cluster="ssh -Y-R5337:fuji.gcsc.uni-frankfurt.de:3690 martin@cluster.com"
+\endcode
+since you need to do this ssh -R every time you want to do svn on the cluster.
+
+\note uginstall also supports this, e.g.
+\code
+uginstall SuperLU -svnServer localhost:5337
+\endcode
 
 <hr>
 \subsection secSVNMore More
@@ -333,6 +375,8 @@ Sometimes SVN is not getting it right. Some problems are:
  svn update THESUBDIR
  \endcode
  </li>
+ <li> svn update / co takes a while, then displays some connection error.<br>
+ This might be a problem on a cluster that you are not allowed to connect to the svn server (see \ref secSVNSSHTunneling), or our svn server is down. 
  </ul>  
 
 
