@@ -10,36 +10,19 @@
 # e.g. loading of lapack/blas/compiler modules.
 ######################################################################
 
+scriptpath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 if [ -z "$UGSUBMIT_TYPE" ]; then
-	if [ -z "$UGSUBMIT_TYPE" ]; then
-		if [ $HOSTNAME == "cekon.gcsc.uni-frankfurt.de" ]; then
-			UGSUBMIT_TYPE=cekon
-		elif [ $HOSTNAME == "cesari.gcsc.uni-frankfurt.de" ]; then
-			UGSUBMIT_TYPE=cesari
-		elif [[ "$HOSTNAME" == "juqueen"* ]]; then
-			UGSUBMIT_TYPE=Juqueen
-		else
-			unamestr=`uname`
-			if [[ "$unamestr" == 'Darwin' ]]; then
-				UGSUBMIT_TYPE=Apple
-			else
-			    #echo $HOSTNAME
-			    echo "Hello, this is ugconfig trying to config your cluster"
-		   		echo "please set UGSUBMIT_TYPE or specify cluster with -cluster".
-		   		exit
-		   	fi
-	   	fi   	
-	fi
 	echo "ugconfig: Configuring your bash environment... Your auto-detected cluster is $UGSUBMIT_TYPE."
 else
-	echo "ugconfig: Configuring your bash environment... Your selected cluster is $UGSUBMIT_TYPE."	 	
-fi	 
+	source $scriptpath/clusterdetect
+	echo "ugconfig: Configuring your bash environment... Your auto-detected cluster is $UGSUBMIT_TYPE."
+fi
 
 
 
 if [ $UGSUBMIT_TYPE == "Hermit" ]; then
-	echo "ugconfig: On Hermit, loading gnu compilers" 
+	echo "ugconfig: On Hermit/Hornet, loading gnu compilers" 
 	module list 2>&1 | grep PrgEnv-gnu > /dev/null
 	if [ $? == 1 ]; then
 	echo loading PrgEnv-gnu
@@ -53,17 +36,26 @@ elif [ $UGSUBMIT_TYPE == "cekon" ]; then
 	
 elif [ $UGSUBMIT_TYPE == "cesari" ]; then
 	echo "ugconfig: Nothing to configure on cesari. Have a nice day."
-			
-elif [[ $UGSUBMIT_TYPE == "Apple" || $UGSUBMIT_TYPE == "mpi" ]]; then
-	echo "ugconfig: Nothing to configure on $UGSUBMIT_TYPE. Have a nice day."
 	
+elif [ $UGSUBMIT_TYPE == "mpi" ] && [ $UGSUBMIT_MORE == "Apple" ]; then
+	echo "ugconfig: Nothing to configure on Apple systems. Have a nice day."
+				
+elif [ $UGSUBMIT_TYPE == "mpi" ]; then
+	echo "ugconfig: Nothing to configure on $UGSUBMIT_TYPE. Have a nice day."
+		
 elif [[ $UGSUBMIT_TYPE == "Juqueen" ]]; then
 	echo "ugconfig: On Juqueen, loading cmake and lapack."
 	module load cmake
-	module load lapack
+	module load lapac
+
+elif [ "$UGSUBMIT_TYPE" == "unknown" ]; then 
+    echo "Hello, this is ugconfig trying to config your cluster"
+    echo "The UGSUBMIT_TYPE could not be set automatically." 
+	echo "please set UGSUBMIT_TYPE manually."
+	exit
 	
 else
     #echo $HOSTNAME
-	echo "ugconfig: not yet supported cluster".
+	echo "ugconfig: not yet supported cluster $UGSUBMIT_TYPE".
 fi   	
 

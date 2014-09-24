@@ -12,24 +12,9 @@
 #NecNehalem		qsub+mpirun		4	1024
 #Jugene			LL+mpirun		4	65536
 
+source $scriptpath/clusterdetect
 
-if [ -z "$UGSUBMIT_TYPE" ]; then
-	if [ -z "$UGSUBMIT_TYPE" ]; then
-		if [ $HOSTNAME == "cekon.gcsc.uni-frankfurt.de" ]; then
-			UGSUBMIT_TYPE=cekon
-		elif [ $HOSTNAME == "cesari.gcsc.uni-frankfurt.de" ]; then
-			UGSUBMIT_TYPE=cesari
-		elif [[ "$HOSTNAME" == "juqueen"* ]]; then
-			UGSUBMIT_TYPE=Juqueen
-		else
-		    #echo $HOSTNAME
-	   		echo "please set UGSUBMIT_TYPE or specify cluster with -cluster".
-	   		exit
-	   	fi   	
-	fi	 	
-fi	 
-
-if [ $UGSUBMIT_TYPE == "Hermit" ] || [ $UGSUBMIT_TYPE == "NecNehalem" ]; then
+if [ $UGSUBMIT_TYPE == "Hermit" ] || [ $UGSUBMIT_TYPE == "Hornet" ] || [ $UGSUBMIT_TYPE == "NecNehalem" ] || [ $UGSUBMIT_TYPE == "HermitOrHornet" ]; then
 
 	source $scriptpath/schedulers/hermit
 	
@@ -39,9 +24,13 @@ elif [ $UGSUBMIT_TYPE == "Jugene" ]; then
 	
 elif [ $UGSUBMIT_TYPE == "Juqueen" ]; then
 	source $scriptpath/schedulers/juqueen
-elif [ $UGSUBMIT_TYPE == "mpi" ]; then
+elif [ $UGSUBMIT_TYPE == "mpi" ] || [ $UGSUBMIT_TYPE == "mpi-foreground" ]; then
 
-	source $scriptpath/schedulers/mpi
+	source $scriptpath/schedulers/mpi-foreground
+
+elif [ $UGSUBMIT_TYPE == "mpi-background" ]; then
+
+	source $scriptpath/schedulers/mpi-background
 	
 elif [ $UGSUBMIT_TYPE == "cekon" ]; then
 
