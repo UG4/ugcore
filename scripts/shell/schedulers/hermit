@@ -80,9 +80,12 @@ function UJS_GetOptions
 	if [ $UGSUBMIT_TYPE == "NecNehalem" ]; then
 		nppnmax=4
 		pemax=1024
+	elif [ $UGSUBMIT_TYPE == "Hornet" ]; then
+		nppnmax=24
+		pemax=94656
 	else
 		nppnmax=32
-		pemax=65536
+		pemax=113664
 	fi
 }
 
