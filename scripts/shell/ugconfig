@@ -46,7 +46,7 @@ elif [ $UGSUBMIT_TYPE == "mpi" ]; then
 elif [[ $UGSUBMIT_TYPE == "Juqueen" ]]; then
 	echo "ugconfig: On Juqueen, loading cmake and lapack."
 	module load cmake
-	module load lapac
+	module load lapack
 
 elif [ "$UGSUBMIT_TYPE" == "unknown" ]; then 
     echo "Hello, this is ugconfig trying to config your cluster"
