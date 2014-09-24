@@ -13,10 +13,10 @@
 scriptpath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 if [ -z "$UGSUBMIT_TYPE" ]; then
-	echo "ugconfig: Configuring your bash environment... Your auto-detected cluster is $UGSUBMIT_TYPE."
-else
 	source $scriptpath/clusterdetect
 	echo "ugconfig: Configuring your bash environment... Your auto-detected cluster is $UGSUBMIT_TYPE."
+else
+	echo "ugconfig: Configuring your bash environment... Your manually set cluster is $UGSUBMIT_TYPE."
 fi
 
 
