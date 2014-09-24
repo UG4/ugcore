@@ -12,7 +12,11 @@ if [ -z "$UGSUBMIT_TYPE" ]; then
 	elif [[ "$HOSTNAME" == "juqueen"* ]]; then
 		UGSUBMIT_TYPE=Juqueen
 	elif [[ "$HOSTNAME" == "eslogin"* ]]; then
-		UGSUBMIT_TYPE=Hermit
+		if [ "$SITE_PLATFORM_NAME" == "hornet" ]; then
+			UGSUBMIT_TYPE=Hornet
+		else
+			UGSUBMIT_TYPE=Hermit
+		fi
 	else
 		unamestr=`uname`
 		if [[ "$unamestr" == 'Darwin' ]]; then
