@@ -1,0 +1,26 @@
+#!/bin/bash
+######################################################################
+# clusterdetect
+######################################################################
+
+if [ -z "$UGSUBMIT_TYPE" ]; then
+
+	if [ $HOSTNAME == "cekon.gcsc.uni-frankfurt.de" ]; then
+		UGSUBMIT_TYPE=cekon
+	elif [ $HOSTNAME == "cesari.gcsc.uni-frankfurt.de" ]; then
+		UGSUBMIT_TYPE=cesari
+	elif [[ "$HOSTNAME" == "juqueen"* ]]; then
+		UGSUBMIT_TYPE=Juqueen
+	elif [[ "$HOSTNAME" == "eslogin"* ]]; then
+		UGSUBMIT_TYPE=Hermit
+	else
+		unamestr=`uname`
+		if [[ "$unamestr" == 'Darwin' ]]; then
+			UGSUBMIT_TYPE=mpi
+			UGSUBMIT_MORE=Apple
+		else
+			UGSUBMIT_TYPE=unknown
+	   	fi   	
+	fi
+fi	 
+	
