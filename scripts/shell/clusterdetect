@@ -17,10 +17,11 @@ if [ -z "$UGSUBMIT_TYPE" ]; then
 		unamestr=`uname`
 		if [[ "$unamestr" == 'Darwin' ]]; then
 			UGSUBMIT_TYPE=mpi
-			UGSUBMIT_MORE=Apple
+			export UGSUBMIT_MORE=Apple
 		else
 			UGSUBMIT_TYPE=unknown
 	   	fi   	
 	fi
+	export UGSUBMIT_TYPE
 fi	 
 	
