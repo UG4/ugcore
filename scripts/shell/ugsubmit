@@ -148,9 +148,13 @@ function usage
 	echo ""
 	echo " Environment Variables to control ugsubmit:"
 if [ -z "$UGSUBMIT_TYPE" ]; then
-   	echo "        UGSUBMIT_TYPE is not set!"
+	source $scriptpath/clusterdetect
+	echo "        UGSUBMIT_TYPE=\"$UGSUBMIT_TYPE\" (auto-detected)"
 else
 	echo "        UGSUBMIT_TYPE=\"$UGSUBMIT_TYPE\""
+fi
+if [ ! -z "$UGSUBMIT_MORE" ]; then
+	echo "        UGSUBMIT_MORE=\"$UGSUBMIT_MORE\""
 fi
 if [ -z "$UGSUBMIT_EMAIL" ]; then
 	echo "        UGSUBMIT_EMAIL is not set!"
