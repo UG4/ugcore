@@ -5,14 +5,29 @@
 # created by Martin Rupp 31.05.2012
 # mail: martin.rupp@gcsc.uni-frankfurt.de
 ######################################################################
-# This file sets all environment variables for uginstall
+# This file sets all environment variables for software installed with uginstall
 # these are
-# - LIBRARY_PATH
-# - LD_LIBRARY_PATH
-# - LDFLAGS
-# - PATH
-# - C_INCLUDE_PATH
-# - CPLUS_INCLUDE_PATH
+#
+# --- flags for compiling ---
+# C_INCLUDE_PATH	 	additional path used by gcc/g++ when searching for includes (headers)
+#						used for including headers from libraries
+# CPLUS_INCLUDE_PATH	C++ version
+#		
+# --- flags for linking ---
+# LIBRARY_PATH 			is used by gcc before compilation to search for directories
+#              			containing libraries that need to be linked to your program.
+# LD_LIBRARY_PATH 		is used by your program to search for directories containing 
+#                 		the libraries after it has been successfully compiled and linked
+# LDFLAGS 				additional flags used for linking
+#
+# --- flags for dynamic linking ---
+# DYLD_LIBRARY_PATH		path where to search for dynamic libraries
+# LD_RUN_PATH
+#
+# --- flags for launching binaries in the shell ---
+# PATH					PATH for where to search for binaries. used when installing programs
+#                   	like doxygen so that they are accessible from everywhere
+#
 # without this file, uginstall won't work!
 
 scriptname=${BASH_SOURCE:-$0};		  # name of script
@@ -20,10 +35,8 @@ scriptpath=`dirname $scriptname`
 
 source $scriptpath/uginstall_path
 
-# LIBRARY_PATH is used by gcc before compilation to search for directories
-#              containing libraries that need to be linked to your program.
-# LD_LIBRARY_PATH is used by your program to search for directories containing 
-#                 the libraries after it has been successfully compiled and linked
+
+####################################################################################
 add_lib()
 {
 	lib=$1
@@ -71,6 +84,7 @@ add_lib()
 	fi
 }
 
+####################################################################################
 add_include()
 {
 	the_path=$1
@@ -94,6 +108,13 @@ add_include()
 	fi
 }
 
+####################################################################################
+# usage:
+# my_setup dir
+# if dir exists:
+#  will make libs in dir/lib and dir/lib64 available for the linker 
+#  and headers in dir/include available for gcc
+#  and binaries in dir/bin available for bash
 my_setup()
 {
 	dir=$1

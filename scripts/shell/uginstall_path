@@ -1,1 +1,8 @@
+# this file set the UG4_LOCAL_INSTALL_DIR
+# it is set by default to $HOME/local
+# it is used by the uginstall command
+# uginstall installs locally software to UG4_LOCAL_INSTALL_DIR/APPNAME/...
+#
+# see also uginstall
+#
 export UG4_LOCAL_INSTALL_DIR=$HOME/local/

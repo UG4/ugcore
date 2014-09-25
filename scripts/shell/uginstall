@@ -8,14 +8,15 @@
 # uginstall will download and install a number of programs:
 # cmake, doxygen, gcc, gmp, gnuplot, GotoBLAS2, Metis, mpfr, mpc, OpenMPI, ParaView, ParMetis
 # Following steps are made for each installation of programm APP:
-# - create folder ~/local
-# - create folder ~/local/APP
-# - download file, save in ~/local/APP (see my_download_file)
-# - extract file, store in ~/local/APP/version
+# (LOCAL here is $UG4_LOCAL_INSTALL_DIR, see uginstall_path. default is $HOME/local)
+# - create folder LOCAL
+# - create folder LOCAL/APP
+# - download file, save in LOCAL/APP (see my_download_file)
+# - extract file, store in LOCAL/APP/version
 # - configure the program (depending on the program)
-# - install libraries in ~/local/APP/lib and lib64, binaries in ~/local/APP/bin
-#   includes in ~/local/APP/include ...
-# - create a symbolic link from ~/local/APP/used to ~/local/APP/version
+# - install libraries in LOCAL/APP/lib and lib64, binaries in LOCAL/APP/bin
+#   includes in LOCAL/APP/include ...
+# - create a symbolic link from LOCAL/APP/used to LOCAL/APP/version
 # done.
 # uginstall_config will then set PATH, LDFLAGS, LD_RUN_PATH, LIBRARY_PATH, 
 # and LD_LIBRARY_PATH so you can use the program and the libs.
