@@ -21,7 +21,7 @@ void Init(int *argcp, char ***argvp)
 	if (!flag) MPI_Init(argcp, argvp);
 
 	// default to MPI_COMM_WORLD
-	if  PCL_COMM_WORLD == MPI_COMM_NULL) {PCL_COMM_WORLD= MPI_COMM_WORLD;}
+	if  (PCL_COMM_WORLD == MPI_COMM_NULL) {PCL_COMM_WORLD= MPI_COMM_WORLD;}
 	SetErrHandler();
 }
 
