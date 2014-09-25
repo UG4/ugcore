@@ -221,13 +221,13 @@ bool SendRecvBuffersMatch(const std::vector<int>& recvFrom, const std::vector<in
 	for(size_t i = 0; i < recvFrom.size(); ++i)
 	{
 		MPI_Irecv(&vSendBufSizes[i], 1, MPI_INT, recvFrom[i], testTag,
-				  MPI_COMM_WORLD, &vReceiveRequests[i]);
+				  PCL_COMM_WORLD, &vReceiveRequests[i]);
 	}
 
 	for(size_t i = 0; i < sendTo.size(); ++i)
 	{
 		int s = sendBufSizes[i];
-		MPI_Isend(&s, 1, MPI_INT, sendTo[i], testTag, MPI_COMM_WORLD,
+		MPI_Isend(&s, 1, MPI_INT, sendTo[i], testTag, PCL_COMM_WORLD,
 				  &vSendRequests[i]);
 	}
 

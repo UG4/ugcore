@@ -30,7 +30,7 @@ ProcessCommunicator(ProcessCommunicatorDefaults pcd)
 			break;
 
 		case PCD_WORLD:
-			m_comm = SPCommWrapper(new CommWrapper(MPI_COMM_WORLD, false));
+			m_comm = SPCommWrapper(new CommWrapper(PCL_COMM_WORLD, false));
 			break;
 
 		case PCD_LOCAL:
@@ -58,7 +58,7 @@ int ProcessCommunicator::
 get_proc_id(size_t groupIndex) const
 {
 	if(is_local()) return pcl::ProcRank();
-	if(m_comm->m_mpiComm == MPI_COMM_WORLD)
+	if(m_comm->m_mpiComm == PCL_COMM_WORLD)
 		return (int)groupIndex;
 	return m_comm->m_procs[groupIndex];
 }
@@ -67,7 +67,7 @@ int ProcessCommunicator::
 get_local_proc_id(int globalProcID) const
 {
 	if(is_local()) return 0;
-	if(m_comm->m_mpiComm == MPI_COMM_WORLD)
+	if(m_comm->m_mpiComm == PCL_COMM_WORLD)
 		return globalProcID;
 
 	const vector<int>& procs = m_comm->m_procs;
@@ -180,7 +180,7 @@ create_sub_communicator(vector<int> &newProcs) const
 //	if the process is not participating, MPI_Comm_create will return MPI_COMM_NULL
 	if(commNew == MPI_COMM_NULL)
 		return ProcessCommunicator(PCD_EMPTY);
-	else if(commNew == MPI_COMM_WORLD)
+	else if(commNew == PCL_COMM_WORLD)
 		return ProcessCommunicator(PCD_WORLD);
 
 	PCL_PROFILE(get_global_ranks);
@@ -205,21 +205,21 @@ ProcessCommunicator
 ProcessCommunicator::
 create_communicator(vector<int> &newGlobalProcs)
 {
-	CommWrapper comm(MPI_COMM_WORLD, false);
+	CommWrapper comm(PCL_COMM_WORLD, false);
 
 	MPI_Group grpWorld;
 	MPI_Group grpNew;
 	MPI_Comm commNew;
 
-	MPI_Comm_group(MPI_COMM_WORLD, &grpWorld);
+	MPI_Comm_group(PCL_COMM_WORLD, &grpWorld);
 	MPI_Group_incl(grpWorld, (int)newGlobalProcs.size(), &newGlobalProcs.front(), &grpNew);
-	MPI_Comm_create(MPI_COMM_WORLD, grpNew, &commNew);
+	MPI_Comm_create(PCL_COMM_WORLD, grpNew, &commNew);
 
 //	create a new ProcessCommunicator
 //	if the process is not participating, MPI_Comm_create will return MPI_COMM_NULL
 	if(commNew == MPI_COMM_NULL)
 		return ProcessCommunicator(PCD_EMPTY);
-	else if(commNew == MPI_COMM_WORLD)
+	else if(commNew == PCL_COMM_WORLD)
 		return ProcessCommunicator(PCD_WORLD);
 
 	ProcessCommunicator newProcComm;
@@ -245,15 +245,15 @@ create_communicator(size_t first, size_t num)
 	for(size_t i = 0; i < num; ++i)
 		procs[i] = first + i;
 
-	MPI_Comm_group(MPI_COMM_WORLD, &grpWorld);
+	MPI_Comm_group(PCL_COMM_WORLD, &grpWorld);
 	MPI_Group_incl(grpWorld, (int)procs.size(), &procs.front(), &grpNew);
-	MPI_Comm_create(MPI_COMM_WORLD, grpNew, &commNew);
+	MPI_Comm_create(PCL_COMM_WORLD, grpNew, &commNew);
 
 	//	create a new ProcessCommunicator
 //	if the process is not participating, MPI_Comm_create will return MPI_COMM_NULL
 	if(commNew == MPI_COMM_NULL)
 		return ProcessCommunicator(PCD_EMPTY);
-	else if(commNew == MPI_COMM_WORLD)
+	else if(commNew == PCL_COMM_WORLD)
 		return ProcessCommunicator(PCD_WORLD);
 
 	newProcComm.m_comm->m_mpiComm = commNew;
@@ -615,7 +615,7 @@ void ProcessCommunicator::broadcast(size_t &s, int root) const
 ////////////////////////////////////////////////////////////////////////
 ProcessCommunicator::CommWrapper::
 CommWrapper() :
-	m_mpiComm(MPI_COMM_WORLD),
+	m_mpiComm(PCL_COMM_WORLD),
 	m_bReleaseCommunicator(false)
 {}
 

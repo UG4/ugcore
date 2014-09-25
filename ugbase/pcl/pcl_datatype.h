@@ -1,7 +1,7 @@
 // created by Martin Rupp
 // martin.rupp@gcsc.uni-frankfurt.de
 // y2012m04d27
-#include "mpi.h"
+#include <mpi.h>
 #include "common/types.h"
 #include "common/error.h"
 #ifndef __H__PCL__pcl_datatype__

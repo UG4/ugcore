@@ -1,8 +1,8 @@
 //	Sebastian Reiter
 //	s.b.reiter@googlemail.com
 //	y10 m06 d4
-
-#include "mpi.h"
+#include<mpi.h>
+#include "pcl_comm.h"
 #include "pcl_base.h"
 #include "pcl_profiling.h"
 #include "common/log.h"
@@ -14,8 +14,14 @@ namespace pcl
 void Init(int *argcp, char ***argvp)
 {
 	PCL_PROFILE(MPI_Init);
-	//	init mpi
-	MPI_Init(argcp, argvp);
+
+	//	init mpi /* was: MPI_Init(argcp, argvp);*/
+	int flag;
+	MPI_Initialized(&flag);
+	if (!flag) MPI_Init(argcp, argvp);
+
+	// default to MPI_COMM_WORLD
+	if  PCL_COMM_WORLD == MPI_COMM_NULL) {PCL_COMM_WORLD= MPI_COMM_WORLD;}
 	SetErrHandler();
 }
 
@@ -23,7 +29,7 @@ void Init(int *argcp, char ***argvp)
 void Abort(int errorcode)
 {
 	PCL_PROFILE(pclAbort);
-	MPI_Abort(MPI_COMM_WORLD, 1);
+	MPI_Abort(PCL_COMM_WORLD, 1);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -37,7 +43,7 @@ void Finalize()
 int ProcRank()
 {
 	int rank;
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	MPI_Comm_rank(PCL_COMM_WORLD, &rank);
 	return rank;
 }
 
@@ -45,7 +51,7 @@ int ProcRank()
 int NumProcs()
 {
 	int numProcesses;
-	MPI_Comm_size(MPI_COMM_WORLD, &numProcesses);
+	MPI_Comm_size(PCL_COMM_WORLD, &numProcesses);
 	return numProcesses;
 }
 
@@ -72,10 +78,10 @@ void SetErrHandler()
 	MPI_Errhandler newerr;
 #if MPI_VERSION > 1
 	MPI_Comm_create_errhandler( MPIErrorHandler, &newerr );
-	MPI_Comm_set_errhandler( MPI_COMM_WORLD, newerr );
+	MPI_Comm_set_errhandler( PCL_COMM_WORLD, newerr );
 #else
 	MPI_Errhandler_create( MPIErrorHandler, &newerr );
-	MPI_Errhandler_set( MPI_COMM_WORLD, newerr );
+	MPI_Errhandler_set( PCL_COMM_WORLD, newerr );
 #endif
 
 }

@@ -49,7 +49,7 @@ class ProcessCommunicator
 		inline bool empty() const		{return !is_local() && m_comm->m_mpiComm == MPI_COMM_NULL;}
 
 	/// return true if the communicator is PCD_WORLD
-		inline bool is_world() const	{ return !is_local() && m_comm->m_mpiComm == MPI_COMM_WORLD; }
+		inline bool is_world() const	{ return !is_local() && m_comm->m_mpiComm == PCL_COMM_WORLD; }
 		
 	/// return true if the communicator is local, simulating current proc is the only proc
 		inline bool is_local() const {return m_comm.valid() == false;}
@@ -409,7 +409,7 @@ class ProcessCommunicator
 	/**	A variable stores whether the communicator has to be freed when the
 	 *	the wrapper is deleted.*/
 		struct CommWrapper{
-		///	initializes the commWrapper with MPI_COMM_WORLD
+		///	initializes the commWrapper with PCL_COMM_WORLD
 			CommWrapper();
 			CommWrapper(const MPI_Comm& comm,
 						bool bReleaseComm);
@@ -418,7 +418,7 @@ class ProcessCommunicator
 			MPI_Comm			m_mpiComm;
 			bool				m_bReleaseCommunicator;
 
-		///	only contains data if m_mpiComm != MPI_COMM_WORLD
+		///	only contains data if m_mpiComm != PCL_COMM_WORLD
 			std::vector<int>	m_procs;
 		};
 		

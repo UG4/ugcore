@@ -20,7 +20,7 @@ namespace pcl{
 inline std::string ToString(const ProcessCommunicator &pc)
 {
 	if(pc.empty()) return "Empty ProcessCommunicator";
-	else if(pc.is_world()) return "MPI_COMM_WORLD ProcessCommunicator";
+	else if(pc.is_world()) return "PCL_COMM_WORLD ProcessCommunicator";
 	else
 	{
 		std::stringstream out;

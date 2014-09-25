@@ -535,7 +535,7 @@ communicate_and_resume(int tag)
 			iter != m_curInProcs.end(); ++iter, ++counter)
 		{
 			MPI_Irecv(&vBufferSizesIn[counter], sizeof(int), MPI_UNSIGNED_CHAR,	
-					*iter, sizeTag, MPI_COMM_WORLD, &m_vReceiveRequests[counter]);
+					*iter, sizeTag, PCL_COMM_WORLD, &m_vReceiveRequests[counter]);
 		}
 
 	//	send buffer sizes
@@ -547,7 +547,7 @@ communicate_and_resume(int tag)
 			streamSizes[counter] = (int)m_bufMapOut[*iter].write_pos();
 
 			MPI_Isend(&streamSizes[counter], sizeof(int), MPI_UNSIGNED_CHAR,
-					*iter, sizeTag, MPI_COMM_WORLD, &m_vSendRequests[counter]);
+					*iter, sizeTag, PCL_COMM_WORLD, &m_vSendRequests[counter]);
 		}
 
 	//	TODO: this can be improved:
@@ -613,7 +613,7 @@ communicate_and_resume(int tag)
 		ug::BinaryBuffer& binBuf = m_bufMapIn[*iter];
 	//	receive the data
 		MPI_Irecv(binBuf.buffer(), vBufferSizesIn[counter], MPI_UNSIGNED_CHAR,
-				*iter, dataTag, MPI_COMM_WORLD, &m_vReceiveRequests[counter]);
+				*iter, dataTag, PCL_COMM_WORLD, &m_vReceiveRequests[counter]);
 	}
 
 	UG_DLOG(ug::LIB_PCL, 1, "\nsending to procs:");
@@ -629,7 +629,7 @@ communicate_and_resume(int tag)
 				<< "(" << binBuf.write_pos() << ")");
 
 		MPI_Isend(binBuf.buffer(), binBuf.write_pos(), MPI_UNSIGNED_CHAR,
-				*iter, dataTag, MPI_COMM_WORLD, &m_vSendRequests[counter]);
+				*iter, dataTag, PCL_COMM_WORLD, &m_vSendRequests[counter]);
 	}
 	UG_DLOG(ug::LIB_PCL, 1, "\n");
 

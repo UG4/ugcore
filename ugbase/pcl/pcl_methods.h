@@ -12,12 +12,14 @@
 //	Don't rely on mpi being included.
 //	It is only included to allow us to define some constants.
 //	This include will most likely be removed in future versions.
-#include "mpi.h"
+#include <mpi.h>
+#include "pcl_comm.h"
 #include "pcl_base.h"
 #include "common/types.h"
 #include "common/profiler/profiler.h"
 #include "pcl_datatype.h"
 #include <cassert>
+
 
 namespace pcl
 {
@@ -42,6 +44,7 @@ typedef int ProcID;
 #define PCL_RO_MINLOC 	MPI_MINLOC
 
 typedef MPI_Op ReduceOperation;
+
 
 
 ////////////////////////////////////////////////////////////////////////
