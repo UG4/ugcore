@@ -1135,26 +1135,40 @@ template <typename TElem, int TWorldDim>
 void HFV1ManifoldGeometry<TElem, TWorldDim>::
 update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
-	UG_ASSERT(dynamic_cast<TElem*>(elem) != NULL, "Wrong element type.");
-	TElem* pElem = static_cast<TElem*>(elem);
+	/* FIXME: This is ugly. We need this distinction, because elem might be of type
+	 * ConstrainingTriangle or ConstrainingQuadrilateral. Unfortunately, TElem can only be
+	 * of type Triangle or Quadrilateral, even though the Constraining* variants work
+	 * with the exact same code.
+	 * Best would be for Constraining* to inherit from * (as is the case for ConstrainingEdge).
+	 */
+	if (dim == 1)
+	{
+		UG_ASSERT(dynamic_cast<Edge*>(elem), "Wrong element type.");
+	}
+	else if (dim == 2)
+	{
+		UG_ASSERT(dynamic_cast<Face*>(elem), "Wrong element type.");
+	}
 
 	// 	if already update for this element, do nothing
-	if (m_pElem == pElem) return;
-	else m_pElem = pElem;
+	// we can do this only because we do not use m_pElem elsewhere,
+	// otherwise this cast would be very dangerous!
+	if (m_pElem == reinterpret_cast<TElem*>(elem)) return;
+	else m_pElem = reinterpret_cast<TElem*>(elem);
 
 	//	store subset index for geometry
 	Grid& grid = *(ish->grid());
 	if (dim == 1)
 	{
 		std::vector<Edge*> vEdge;
-		CollectEdges(vEdge, grid, pElem);
+		CollectEdges(vEdge, grid, static_cast<Edge*>(elem));
 		UG_ASSERT(vEdge.size(),"No edge contained in 1D manifold element!");
 		m_ssi = ish->get_subset_index(vEdge[0]);
 	}
 	if (dim == 2)
 	{
 		std::vector<Face*> vFace;
-		CollectFaces(vFace, grid, pElem);
+		CollectFaces(vFace, grid, static_cast<Face*>(elem));
 		UG_ASSERT(vFace.size(),"No face contained in 2D manifold element!");
 		m_ssi = ish->get_subset_index(vFace[0]);
 	}
@@ -1176,7 +1190,7 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 
 	// get natural edges
 	std::vector<Edge*> vEdges;
-	CollectEdgesSorted(vEdges, grid, pElem);
+	CollectEdgesSorted(vEdges, grid, elem);
 
 	// compute nodes
 	m_vBF.clear();
@@ -1318,7 +1332,7 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 	if (dim == 2)
 	{
 		std::vector<Face*> vFaces;
-		CollectFacesSorted(vFaces, grid, pElem);
+		CollectFacesSorted(vFaces, grid, elem);
 
 		if (vFaces.size() != 1)
 			UG_THROW("Expected number of faces to be exactly 1, but number is " << vFaces.size() << ".");
