@@ -137,6 +137,16 @@ mgSolver = util.GetSolver( {
 
 util = util or {}
 
+
+--! @return if SuperLU available, return SuperLU, else LU()
+function util.GetBestLU()
+	if HasClassGroup("SuperLU") then 
+		return SuperLU()
+	else
+		return LU()
+	end	
+end
+
 --[[
 Creates a preconditioner based on an abbreviated name
 ]]--
@@ -313,10 +323,11 @@ util.GetSolver = util.CreateFancyFunction(
 
 		elseif name == "lu" then
 -- 			print( "DBG >>   Creating LU solver" )
-			return LU()
+			return util.GetBestLU()
 		end
 	end
 )
+
 
 -- end group scripts_util_solver
 --[[!
