@@ -312,6 +312,39 @@ function util.StringTableFromTable(tab, header, s)
 	return s
 end
 
+
+
+--! inserts the table tab into resTable in a "flat" way
+--! that means, subtables are getting indices so that
+--! the resulting table has no subtables
+--! example:
+--! tab = {a=2, b="hi", c={word=3, nose=4} }
+--! res = {}
+--! flattenTable(tab, "tab", res)
+--! res = {
+--!  {"tab.a",  2},
+--!  {"tab.b", "hi"},
+--!  {"tab.c.word", 3},
+--!  {"tab.c.nose", 4}
+--! }
+--! especially usefull for util.writeFileStats
+--! note: syntax {name, value} used instead of name=value
+--! because this way the order is stable
+function util.flattenTable(tab, name, resTable)
+	local tName = ""
+	if name ~= nil then
+		tName = name.."."
+	end
+	if type(tab) == "table" then
+		for i, v in pairs(tab) do
+			flattenTable(v, tName..i, resTable)
+		end
+	elseif type(tab) ~= "userdata" then		
+		table.insert(resTable, {name, tab})
+	end
+	return resTable
+end
+
 -- end group scripts_util_stats
 --[[!
 \}
