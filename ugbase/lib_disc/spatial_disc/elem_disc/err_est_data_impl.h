@@ -365,8 +365,8 @@ MathVector<TDomain::dim>* SideAndElemErrEstData<TDomain>::side_global_ips
 	// map IPs
 	try
 	{
-		m_singleSideGlobalIPcoords.resize(num_side_ips(roid));
-		ref_map.local_to_global(&m_sideGlobalIPcoords[0], quadRuleSide[roid]->points(), quadRuleSide[roid]->size());
+		m_singleSideGlobalIPcoords.resize(quadRuleSide[roid]->size());
+		ref_map.local_to_global(&m_singleSideGlobalIPcoords[0], quadRuleSide[roid]->points(), quadRuleSide[roid]->size());
 	}
 	catch (std::exception& e)
 	{
