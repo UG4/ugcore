@@ -170,7 +170,7 @@ check_callback_returns(const char* callName, const bool bThrow)
 		if(bThrow){
 			UG_THROW(name() << ": Data values type incorrect "
 					"for callback\n"<<callName<< " (" << bridge::GetLUAScriptFunctionDefined(callName) << ")"
-							"Use signature as follows:\n"
+							"\nUse signature as follows:\n"
 							<< signature());
 		}
 		else{
@@ -183,7 +183,7 @@ check_callback_returns(const char* callName, const bool bThrow)
 		if(bThrow){
 			UG_THROW("LuaUserData: Return values type incorrect "
 					"for callback\n"<<callName<< " (" << bridge::GetLUAScriptFunctionDefined(callName) << ")"
-							"Use signature as follows:\n"
+							"\nUse signature as follows:\n"
 							<< signature());
 		}
 		else{
@@ -259,7 +259,7 @@ evaluate(TData& D, const MathVector<dim>& x, number time, int si) const
 			lua_traits<TRet>::read(m_L, res, -retSize);
 		}
 		UG_CATCH_THROW(name() << "::operator(...): Error while running "
-						"callback '" << m_callbackName << "'."
+						"callback '" << m_callbackName << "'.\n"
 						"Use signature as follows:\n"
 						<< signature());
 
