@@ -94,8 +94,8 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 			uAtCorner[fct] = u(fct,co);
 
 		// get corner coordinates
-		const MathVector<dim>& cc = vCornerCoords[co];
-		
+		const MathVector<dim>& cc = bf.global_corner(0);
+
 		FluxDerivCond fdc;
 		if (!fluxDensityDerivFct(uAtCorner, cc, si, fdc))
 			UG_THROW("FV1InnerBoundaryElemDisc::add_jac_A_elem:"
@@ -150,8 +150,8 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 			uAtCorner[fct] = u(fct,co);
 
 		// get corner coordinates
-		const MathVector<dim>& cc = vCornerCoords[co];
-		
+		const MathVector<dim>& cc = bf.global_corner(0);
+
 		// get flux densities in that node
 		FluxCond fc;
 		if (!fluxDensityFct(uAtCorner, cc, si, fc))
@@ -300,9 +300,9 @@ compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<
 
 
 	// global IPs
-	ReferenceObjectID roid = elem->reference_object_id();
+	ReferenceObjectID roid = side->reference_object_id();
 	std::size_t numSideIPs = err_est_data->get(0)->num_side_ips(roid);
-	MathVector<dim>* globIPs = err_est_data->get(0)->side_global_ips(elem, vCornerCoords);
+	MathVector<dim>* globIPs = err_est_data->get(0)->side_global_ips(side, vCornerCoords);
 
 	// loop IPs
 	try
@@ -324,7 +324,7 @@ compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<
 			const MathVector<dim>& ipCoords = globIPs[sip];
 
 			// elem subset
-			int si = this->subset_handler().get_subset_index(elem);
+			int si = this->subset_handler().get_subset_index(side);
 
 			FluxCond fc;
 			if (!fluxDensityFct(uAtIP, ipCoords, si, fc))
