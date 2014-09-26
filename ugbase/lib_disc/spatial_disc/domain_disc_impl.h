@@ -1720,7 +1720,7 @@ calc_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		}
 		UG_CATCH_THROW("DomainDiscretization::calc_error:"
 						" Assembling of elements of Dimension " << dim << " in "
-						" subset "<<si<< " failed.");
+						" subset "<< si << "failed.");
 	}
 
 //	summarize the error estimator data in the discretizations
