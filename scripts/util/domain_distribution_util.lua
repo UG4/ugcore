@@ -143,7 +143,7 @@ function util.PartitionMapMetis(dom, partitionMapOut, numProcs, baseLevel)
 	PartitionDomain_MetisKWay(dom, partitionMapOut, numProcs, baseLevel, 1, 1)
 end
 
---! create a partition map by using metis graph partitioning anf correct
+--! create a partition map by using metis graph partitioning and correct
 --! weights of dual graph edges by weighting function.
 --! This only works if Metis is available in the current build.
 --! Use PartitionDomain_MetisKWay directly in this case.
