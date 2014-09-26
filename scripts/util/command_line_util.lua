@@ -3,6 +3,34 @@ util = util or {}
 -- Command line functions
 --------------------------------------------------------------------------------
 
+--! @return name, distance of the index of the table 'list' which is most equal to str
+function GetMinLevenshteinDistanceOfIndex(str, list)
+	local imin=10
+	local namemin=""
+	for i,v in pairs(list) do
+		local d = LevenshteinDistance(str, i)
+		if d < imin then
+			imin = d
+			namemin = i
+		end
+	end
+	return namemin, imin
+end
+
+--! @return name, distance of the value of the table 'list' which is most equal to str
+function GetMinLevenshteinDistanceOfValue(str, list)
+	local imin=10
+	local namemin=""
+	for i,v in pairs(list) do
+		local d = LevenshteinDistance(str, v)
+		if d < imin then
+			imin = d
+			namemin = v
+		end
+	end
+	return namemin, imin
+end
+
 function util.ConcatOptions(options)
 	local sOpt = ""
 	if options ~= nil then
@@ -31,8 +59,11 @@ function util.CheckOptionsValue(name, value, options)
 		for i=1,#options do
 			if value == options[i] then bValid = true; end
 		end
+		local s = ""
+		local minname, imin = GetMinLevenshteinDistanceOfValue(value, options)
+		if imin < 5 then s = "\nDid you mean '"..minname.."' ?" end
 		ug_assert(bValid, "ERROR in util.GetParam: passed value '"..value.."' for '"
-				..name.."' not contained in options:"..util.ConcatOptions(options))
+				..name.."' not contained in options:"..util.ConcatOptions(options)..s)
 	end
 end
 
@@ -161,15 +192,21 @@ end
 function util.GetParamFromList(name, default, list)
 	local n = util.GetParam(name, default)
 	if list[n] == nil then
-		print("option \""..n.."\" not supported")
+		print("\n\noption \""..n.."\" not supported")
 		local s = "available options: "
 		local first = true
 		for i, v in pairs(list) do
 			if first then first = false else s = s..", " end
 			s = s..i			
 		end
+		local namemin, imin = GetMinLevenshteinDistanceOfIndex(n, list)
+		if imin < 5 then
+			s = s.."\nDid you mean '"..namemin.."' ?"
+		end
+		
 		print(s)
-		ug_assert(false, "option \""..n.."\" not supported")
+		
+		ug_assert(false, "option \""..n.."\" not supported\n"..s)
 	else
 		return list[n]
 	end	
