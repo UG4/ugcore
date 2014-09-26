@@ -1327,8 +1327,8 @@ assemble_defect(vector_type& d,
 		}
 		}
 		UG_CATCH_THROW("DomainDiscretization::assemble_defect (instationary):"
-						" Assembling of elements of Dimension " << dim << " in "
-						" subset "<<si<< " failed.");
+						" Assembling of elements of Dimension " << dim << " in"
+						" subset "<< si << " failed.");
 	}
 
 //	post process
