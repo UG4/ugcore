@@ -189,6 +189,21 @@ void ISubsetHandler::assign_subset_handler(const ISubsetHandler& sh)
 		set_subset_info(i, sh.subset_info(i));
 }
 
+
+void ISubsetHandler::
+assign_subset(GridObject* elem, int subsetIndex)
+{
+	switch(elem->base_object_id()){
+		case VERTEX: assign_subset(static_cast<Vertex*>(elem), subsetIndex); break;
+		case EDGE: assign_subset(static_cast<Edge*>(elem), subsetIndex); break;
+		case FACE: assign_subset(static_cast<Face*>(elem), subsetIndex); break;
+		case VOLUME: assign_subset(static_cast<Volume*>(elem), subsetIndex); break;
+		default:
+			UG_THROW("Unsupported base-object-id encountered: " << elem->base_object_id());
+	}
+}
+
+
 void ISubsetHandler::
 create_required_subsets(int index)
 {

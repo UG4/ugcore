@@ -6,6 +6,7 @@
 #include "common/assert.h"
 #include "lib_grid/algorithms/multi_grid_util.h"
 #include "lib_grid/algorithms/selection_util.h"
+#include "lib_grid/algorithms/debug_util.h"
 #include "hanging_node_refiner_multi_grid.h"
 #include "ref_mark_adjusters/mg_hnode_adjuster.h"
 

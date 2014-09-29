@@ -128,7 +128,7 @@ create_vertex_node(RegularVertexIterator vrtsBegin,
 
 //	write the vertices to a temporary stream
 	stringstream ss;
-	ss.precision(32);
+	ss.precision(18);
 	for(RegularVertexIterator iter = vrtsBegin; iter != vrtsEnd; ++iter)
 	{
 		for(int i = 0; i < numCoords; ++i)

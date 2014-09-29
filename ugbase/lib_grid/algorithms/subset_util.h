@@ -487,6 +487,7 @@ void FindSubsetGroups
 	const NeighborhoodType nbhType = NHT_VERTEX_NEIGHBORS
 );
 
+
 /**@}*/ // end of doxygen defgroup command
 }//	end of namespace
 

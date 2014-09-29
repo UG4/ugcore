@@ -11,6 +11,22 @@
 #include "lib_grid/algorithms/subset_util.h"
 #include "lib_grid/tools/surface_view.h"
 
+#include "file_io_art.h"
+#include "file_io_txt.h"
+#include "file_io_tetgen.h"
+#include "file_io_obj.h"
+#include "file_io_lgm.h"
+#include "file_io_lgb.h"
+#include "file_io_ng.h"
+#include "file_io_ug.h"
+#include "file_io_dump.h"
+#include "file_io_ncdf.h"
+#include "file_io_ugx.h"
+#include "file_io_msh.h"
+#include "file_io_stl.h"
+#include "file_io_tikz.h"
+#include "file_io_vtu.h"
+
 #ifdef UG_PARALLEL
 	#include "pcl/pcl_process_communicator.h"
 	#include "pcl/pcl_util.h"
@@ -163,9 +179,18 @@ static bool LoadGrid(Grid& grid, ISubsetHandler* psh,
 				if(psh)
 					retVal = LoadGridFromUGX(grid, *psh, tfile.c_str(), aPos);
 				else{
-				//	we have to create a temporary subset handler, since
+				//	we have to create a temporary subset handler
 					SubsetHandler shTmp(grid);
 					retVal = LoadGridFromUGX(grid, shTmp, tfile.c_str(), aPos);
+				}
+			}
+			else if(tfile.find(".vtu") != string::npos){
+				if(psh)
+					retVal = LoadGridFromVTU(grid, *psh, tfile.c_str(), aPos);
+				else{
+				//	we have to create a temporary subset handler
+					SubsetHandler shTmp(grid);
+					retVal = LoadGridFromVTU(grid, shTmp, tfile.c_str(), aPos);
 				}
 			}
 			else{
@@ -242,6 +267,8 @@ static bool SaveGrid3d_IMPL(Grid& grid, ISubsetHandler* pSH,
 		return SaveGridToNCDF(grid, filename, pSH, aPos);
 	else if(strName.find(".stl") != string::npos)
 		return SaveGridToSTL(grid, filename, pSH, aPos);
+	else if(strName.find(".smesh") != string::npos)
+		return ExportGridToSMESH(grid, filename, aPos);
 	else if((strName.find(".tikz") != string::npos)
 			|| (strName.find(".tex") != string::npos))
 	{

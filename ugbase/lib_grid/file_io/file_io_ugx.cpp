@@ -827,7 +827,7 @@ get_grid_name(size_t index) const
 	xml_attribute<>* attrib = m_entries[index].node->first_attribute("name");
 	if(attrib)
 		return attrib->value();
-	return NULL;
+	return "";
 }
 
 size_t GridReaderUGX::num_subset_handlers(size_t refGridIndex) const
@@ -851,7 +851,7 @@ get_subset_handler_name(size_t refGridIndex, size_t subsetHandlerIndex) const
 	xml_attribute<>* attrib = ge.subsetHandlerEntries[subsetHandlerIndex].node->first_attribute("name");
 	if(attrib)
 		return attrib->value();
-	return NULL;
+	return "";
 }
 
 bool GridReaderUGX::
@@ -993,7 +993,7 @@ get_selector_name(size_t refGridIndex, size_t selectorIndex) const
 	xml_attribute<>* attrib = ge.selectorEntries[selectorIndex].node->first_attribute("name");
 	if(attrib)
 		return attrib->value();
-	return NULL;
+	return "";
 }
 
 ///	fills the given selector

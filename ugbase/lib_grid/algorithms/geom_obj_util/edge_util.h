@@ -262,22 +262,6 @@ bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, Edge* e,
 
 
 ////////////////////////////////////////////////////////////////////////
-/**
- * paFaceNormal is ignored in the current implementation.
- * In the moment normals are calculated on the fly and not stored.
- * That means that the normal of each single face is calculated up to
- * four times. This can be improved!
- */
-template <class TEdgeIterator>
-UG_API 
-void MarkCreaseEdges(Grid& grid, ISubsetHandler& sh,
-					TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
-					int subsetIndex, number angle,
-					APosition& aPos = aPosition,
-					ANormal* paFaceNormal = NULL);
-
-
-////////////////////////////////////////////////////////////////////////
 ///	Calculates the center of an edge
 template<class TVertexPositionAttachmentAccessor>
 UG_API 

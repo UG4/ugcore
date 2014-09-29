@@ -7,6 +7,7 @@
 #include "common/assert.h"
 #include "lib_grid/parallelization/util/compol_boolmarker.h"
 #include "lib_grid/file_io/file_io.h"
+#include "periodic_boundary_manager.h"
 
 #ifdef UG_PARALLEL
 	#include "pcl/pcl_interface_communicator.h"

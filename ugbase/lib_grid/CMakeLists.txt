@@ -72,6 +72,7 @@ set(srcFileIO	file_io/file_io_art.cpp
 				file_io/file_io_ncdf.cpp
 				file_io/file_io_msh.cpp
 				file_io/file_io_stl.cpp
+				file_io/file_io_vtu.cpp
 				file_io/file_io.cpp)
 								
 set(srcLibGrid	common_attachments.cpp

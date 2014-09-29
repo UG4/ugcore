@@ -8,6 +8,7 @@
 #include "bridge/bridge.h"
 #include "bridge/util.h"
 #include "lib_grid/lib_grid.h"
+#include "lib_grid/file_io/file_io_ugx.h"
 #include "lib_grid/tools/surface_view.h"
 #include "common/profiler/profiler.h"
 #include "lib_grid/algorithms/debug_util.h"

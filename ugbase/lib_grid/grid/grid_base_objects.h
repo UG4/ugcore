@@ -596,6 +596,13 @@ class UG_API FaceDescriptor : public FaceVertices
 		FaceDescriptor();
 		FaceDescriptor(uint numVertices);
 		FaceDescriptor(const FaceDescriptor& fd);
+		FaceDescriptor(Vertex* v0, Vertex* v1, Vertex* v2) :
+			m_numVertices(3)
+			{m_vertices[0] = v0; m_vertices[1] = v1; m_vertices[2] = v2;}
+
+		FaceDescriptor(Vertex* v0, Vertex* v1, Vertex* v2, Vertex* v3) :
+			m_numVertices(4)
+			{m_vertices[0] = v0; m_vertices[1] = v1; m_vertices[2] = v2; m_vertices[3] = v3;}
 
 		virtual ~FaceDescriptor()					{}
 

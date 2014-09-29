@@ -412,6 +412,10 @@ class UG_API ISubsetHandler : public GridObserver
 	 *	The index can be retrieved with get_subset_index(...).*/
 		virtual void assign_subset(Volume* elem, int subsetIndex) = 0;
 
+	/**	Forwards the call to the assign_subset method for the specific type
+	 * (e.g. Vertex, Edge, Face, Volume).*/
+		virtual void assign_subset(GridObject* elem, int subsetIndex);
+
 	///	collects all vertices that are in the given subset.
 	/**	Please note: This method should only be used, if the begin and end methods
 	 *	of derived classes are not available.*/

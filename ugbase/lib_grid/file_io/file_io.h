@@ -2,29 +2,22 @@
 //	s.b.reiter@googlemail.com
 //	y08 m11 d13
 
-#include "file_io_art.h"
-#include "file_io_txt.h"
-#include "file_io_tetgen.h"
-#include "file_io_obj.h"
-#include "file_io_lgm.h"
-#include "file_io_lgb.h"
-#include "file_io_ng.h"
-#include "file_io_ug.h"
-#include "file_io_dump.h"
-#include "file_io_ncdf.h"
-#include "file_io_ugx.h"
-#include "file_io_msh.h"
-#include "file_io_stl.h"
-#include "file_io_tikz.h"
-
 #ifndef __H__LIB_GRID__FILE_IO__
 #define __H__LIB_GRID__FILE_IO__
+
+#include "common/types.h"
+#include "common/ug_config.h"
+#include "common/error.h"
+
 
 namespace ug
 {
 
 //	predeclaration of surface view (declared in lib_grid/tools/surface_view.h)
+class Grid;
+class MultiGrid;
 class SurfaceView;
+class ISubsetHandler;
 
 ////////////////////////////////////////////////////////////////////////////////
 ///	This checks whether oneof the standard grid paths contains the specified file.
