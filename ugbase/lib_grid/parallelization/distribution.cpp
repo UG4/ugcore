@@ -11,6 +11,7 @@
 #include "lib_grid/algorithms/selection_util.h"
 #include "lib_grid/algorithms/subset_util.h"
 #include "lib_grid/algorithms/attachment_util.h"
+#include "lib_grid/algorithms/debug_util.h"
 #include "parallelization_util.h"
 #include "lib_grid/file_io/file_io.h"
 
