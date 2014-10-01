@@ -52,6 +52,9 @@ static void ComputeMidPoints(const TRefElem& rRefElem,
 	// resulting from the division into two tetrahedra alongside x==y
 	if (rRefElem.roid() == ROID_PYRAMID)
 	{
+		UG_THROW("Pyramid FV geometries are currently implemented incorrectly."
+			" Please contact Martin Stepniewski if you see this error. ");
+
 		// diagonal 2->0, diagonal 0->2
 		VecScaleAdd(vvMid[1][rRefElem.num(1)], 0.5, vCorner[2], 0.5, vCorner[0]);
 		VecScaleAdd(vvMid[1][rRefElem.num(1)+1], 0.5, vCorner[0], 0.5, vCorner[2]);
