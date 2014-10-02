@@ -321,7 +321,12 @@ my_install()
 			shift
 		done
 		
-		echo "$subdir version $version installed!"
+		echo " "
+		echo "---------------------------------------------------------------------------------------"
+		echo " "
+		echo " UGINSTALL: $subdir version $version installed!"
+		echo "you might need to re-source ugbash (or .bashrc) to get access to PATH and libraries"
+		echo " "
 		# in local/subdir/version
 		touch installed				
 		cd ..
