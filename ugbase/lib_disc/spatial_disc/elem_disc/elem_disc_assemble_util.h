@@ -869,6 +869,8 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	//	loop all time points and assemble them
 		for(size_t t = 0; t < vScaleStiff.size(); ++t)
 		{
+			number scale_stiff = vScaleStiff[t];
+			
 		//	get local solution at timepoint
 			LocalVector& locU = locTimeSeries.solution(t);
 			Eval.set_time_point(t);
@@ -892,9 +894,12 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		// 	Assemble A
 			try
 			{
-				tmpLocD = 0.0;
-				Eval.add_def_A_elem(tmpLocD, locU, elem, vCornerCoords, PT_INSTATIONARY);
-				locD.scale_append(vScaleStiff[t], tmpLocD);
+				if(scale_stiff != 0.0)
+				{
+					tmpLocD = 0.0;
+					Eval.add_def_A_elem(tmpLocD, locU, elem, vCornerCoords, PT_INSTATIONARY);
+					locD.scale_append(scale_stiff, tmpLocD);
+				}
 
 				if(t == 0)
 					Eval.add_def_A_elem(locD, locU, elem, vCornerCoords, PT_STATIONARY);
@@ -922,11 +927,15 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		// 	Assemble rhs
 			try
 			{
-				tmpLocD = 0.0;
-				Eval.add_rhs_elem(tmpLocD, elem, vCornerCoords, PT_INSTATIONARY);
-				locD.scale_append( -vScaleStiff[t], tmpLocD);
+				if(scale_stiff != 0.0)
+				{
+					tmpLocD = 0.0;
+					Eval.add_rhs_elem(tmpLocD, elem, vCornerCoords, PT_INSTATIONARY);
+					locD.scale_append( - scale_stiff, tmpLocD);
+				}
 
-				if(t==0){
+				if(t == 0)
+				{
 					tmpLocD = 0.0;
 					Eval.add_rhs_elem(tmpLocD, elem, vCornerCoords, PT_STATIONARY);
 					locD.scale_append( -1.0, tmpLocD);
