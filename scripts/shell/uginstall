@@ -34,8 +34,13 @@ svnServer="fuji.gcsc.uni-frankfurt.de"
 # ip of software server. can be changed with -macServer address.
 softwareServer="141.2.38.55"
 
-echo "     UGInstall (c) Martin Rupp, GCSC Frankfurt. 2012-2014"
-echo "-----------------------------------------------------------------"
+print_info()
+{
+	echo "     UGInstall (c) Martin Rupp, GCSC Frankfurt. 2012-2014"
+	echo "-----------------------------------------------------------------"
+}
+
+print_info
 scriptpath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 source $scriptpath/uginstall_config
@@ -63,6 +68,7 @@ check_licence()
 {
 	local APPNAME=$1
 	clear
+	print_info
 	echo "uginstall will now install $APPNAME"
 	echo " "
 	if [ -e $scriptpath/install_scripts/$APPNAME.licence ]; then
@@ -673,6 +679,14 @@ install_UGIDE()
 	fi 
 }
 
+install_cppcheck()
+{
+	my_install \
+	cppcheck "1.66"\
+	"http://netcologne.dl.sourceforge.net/project/cppcheck/cppcheck/1.66/cppcheck-1.66.tar.bz2"\
+	cppcheck-1.66.tar.bz2 cppcheck-1.66 \
+	"make CFGDIR=$UG4_LOCAL_INSTALL_DIR/cppcheck/used/cfg"	
+}
 
 ######################################################################################################################################################
 
@@ -821,5 +835,6 @@ case $param1 in
 	LUA) install_LUA ;;
 	PT) install_PT ;;
 	all) install_all ;;
+	cppcheck) install_cppcheck ;;
 	*) print_usage ;;
 esac

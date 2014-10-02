@@ -108,6 +108,16 @@ add_include()
 	fi
 }
 
+add_bin()
+{
+	the_path=$1
+	if [ -e $the_path ]; then
+		echo $PATH | grep -q $the_path
+		if [ $? -ne 0 ] ; then
+			PATH=$the_path:$PATH
+		fi
+	fi
+}
 ####################################################################################
 # usage:
 # my_setup dir
@@ -125,12 +135,7 @@ my_setup()
 		add_lib $dir/lib64
 		add_include $dir/include
 		
-		if [ -e $dir/bin ]; then
-			echo $PATH | grep -q $dir/bin
-			if [ $? -ne 0 ] ; then
-				PATH=$dir/bin:$PATH
-			fi
-		fi
+		add_bin $dir/bin		
 	fi
 }
 
@@ -160,6 +165,7 @@ my_setup2 hlibpro
 my_setup2 ANN
 my_setup2 LUA
 
+add_bin $UG4_LOCAL_INSTALL_DIR/cppcheck/used/
 add_lib $UG4_LOCAL_INSTALL_DIR/hlibpro/used/
 
 # tbb
