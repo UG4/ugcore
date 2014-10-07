@@ -33,6 +33,7 @@ include_directories(${CMAKE_BINARY_DIR})
 link_directories(${UG_ROOT_PATH}/lib)
 ################################################################################
 # include cmake functions
+
 set(CMAKE_MODULE_PATH ${UG_ROOT_PATH}/cmake/modules)
 include(${UG_ROOT_PATH}/cmake/compiler_flags.cmake)
 # reset flags, because of maybe switched DEBUG option
@@ -339,6 +340,10 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     # for some reason -Wsign-compare is not in -Wall for Clang 
 	add_cxx_flag("-Wsign-compare")
 	#set(CMAKE_CPP_FLAGS	"${CMAKE_CPP_FLAGS} -Wno-overloaded-virtual -Wno-autological-compare" CACHE STRING "overriden flags!" FORCE)
+endif()
+
+if("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang" AND EXISTS /usr/bin/gcc)
+  message(WARNING "WARNING: C Compiler is Clang, might not work with CUDA. Try cmake -DCUDA_HOST_COMPILER=/usr/bin/gcc ..")
 endif()
 
 ########################################
