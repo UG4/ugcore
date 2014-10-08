@@ -18,7 +18,7 @@
 #include "gpusparsematrix.h"
 #include <vector>
 #include <algorithm>
-#include "cuda/cuda_helper.h"
+#include "cuda/cuda_manager.h"
 
 
 namespace ug{
@@ -133,7 +133,7 @@ template<typename vector_t>
 void GPUSparseMatrix<T>::axpy(double alpha, vector_t &x, double beta, const vector_t &y) const
 {
 	check_device();
-	cusparseDcsrmv(CUDAHelper::get_cusparseHandle(), CUSPARSE_OPERATION_NON_TRANSPOSE, num_rows(), num_cols(), get_nnz(),
+	cusparseDcsrmv(CUDAManager::get_cusparseHandle(), CUSPARSE_OPERATION_NON_TRANSPOSE, num_rows(), num_cols(), get_nnz(),
 	        &beta, get_matrix_descr(), get_device_value_ptr(), get_device_rowStart(), get_device_cols(), y.get_dev_ptr(),
 	            &alpha, x.get_dev_ptr());
 }

@@ -24,7 +24,7 @@
 #include "../algebra_common/matrixrow.h"
 #include "../common/operations_mat/operations_mat.h"
 
-#include "cuda/cuda_helper.h"
+#include "cuda/cuda_manager.h"
 #include "common/debug_print.h"
 
 #define PROFILE_GPUMATRIX(name) PROFILE_BEGIN_GROUP(name, "GPUSparseMatrix algebra")
@@ -591,7 +591,7 @@ public:
 
    void copy_to_device()
    {
-	   CUDAHelper::get_instance();
+	   CUDAManager::get_instance();
 	   descr = 0;
 	   cusparseStatus_t cusparseStatus = cusparseCreateMatDescr(&descr);
 

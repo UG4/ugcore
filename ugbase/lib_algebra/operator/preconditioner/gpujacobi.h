@@ -53,7 +53,6 @@ class GPUJacobi : public IPreconditioner<GPUAlgebra>
 		using base_type::set_debug;
 		using base_type::debug_writer;
 		using base_type::write_debug;
-		using base_type::m_spOperator;
 		using base_type::damping;
 
 	public:
@@ -63,14 +62,18 @@ class GPUJacobi : public IPreconditioner<GPUAlgebra>
 	///	constructor setting the damping parameter
 		GPUJacobi(number damp) {this->set_damp(damp);};
 
+	/// clone constructor
+		GPUJacobi( const GPUJacobi &parent )
+			: base_type(parent)
+		{
+		}
+
 	///	Clone
 		virtual SmartPtr<ILinearIterator<vector_type> > clone()
 		{
-			SmartPtr<GPUJacobi> newInst(new GPUJacobi());
-			newInst->set_debug(debug_writer());
-			newInst->set_damp(damping());
-			return newInst;
+			return make_sp(new GPUJacobi(*this));
 		}
+
 
 	///	Destructor
 		virtual ~GPUJacobi()

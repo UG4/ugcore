@@ -9,7 +9,7 @@
 #define __H__UG__CRS_ALGEBRA__VECTOR__
 
 #include "../cpu_algebra/vector.h"
-#include "cuda/cuda_helper.h"
+#include "cuda/cuda_manager.h"
 #include "cuda/common_cuda.h"
 
 namespace ug{

@@ -15,8 +15,8 @@
 #include "cpu_algebra/sparsematrix.h"
 
 #ifdef UG_GPU
-#include "gpu_algebra/gpuvector.h"
-#include "gpu_algebra/gpusparsematrix.h"
+//#include "gpu_algebra/gpuvector.h"
+//#include "gpu_algebra/gpusparsematrix.h"
 #endif
 
 // parallel support
@@ -73,7 +73,7 @@ struct CPUAlgebra
  * \ingroup lib_algebra
  * \{
  */
-#ifdef UG_GPU
+/*#ifdef UG_GPU
 struct GPUAlgebra
 {
 #ifdef UG_PARALLEL
@@ -93,7 +93,7 @@ struct GPUAlgebra
 #endif
 // end group crs_algebra
 /// \}
-
+*/
 ////////////////////////////////////////////////////////////////////////////////
 //   CPU Fixed Block Algebra
 ////////////////////////////////////////////////////////////////////////////////

@@ -53,7 +53,7 @@ endif(PARALLEL)
 if(CUDA_FOUND)
 	set(src_Algebra ${src_Algebra} 
 			 	gpu_algebra/cuda/cuda_error.cpp
-				gpu_algebra/cuda/cuda_helper.cpp                
+				gpu_algebra/cuda/cuda_manager.cpp                
                 gpu_algebra/cuda/helper_cuda.cpp
                 gpu_algebra/cuda/common_cuda.cu
 				)
