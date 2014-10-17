@@ -357,7 +357,11 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 // 	local indices and local algebra
 	LocalIndices ind; LocalVector locU; LocalMatrix locJ;
 
-// 	Loop over all elements
+	std::vector<std::vector<SmartPtr<IElemDiscModifier<TDomain> > > > vMod;
+	for(size_t i = 0; i < vElemDisc.size(); ++i)
+		vMod.push_back(vElemDisc[i]->get_elem_modifier());
+
+ // 	Loop over all elements
 	for(TIterator iter = iterBegin; iter != iterEnd; ++iter)
 	{
 	// 	get Element
@@ -378,6 +382,10 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	// 	read local values of u
 		GetLocalVector(locU, u);
 
+        for(size_t i = 0; i < vMod.size(); ++i)
+            for(size_t j = 0; j < vMod[i].size(); ++j)
+            	vMod[i][j]->preprocess(locU, locJ, elem, vCornerCoords, ind);
+
 	// 	prepare element
 		try
 		{
@@ -394,6 +402,10 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 			Eval.add_jac_A_elem(locJ, locU, elem, vCornerCoords);
 		}
 		UG_CATCH_THROW("(stationary) AssembleJacobian: Cannot compute Jacobian (A).");
+
+         for(size_t i = 0; i < vMod.size(); ++i)
+            for(size_t j = 0; j < vMod[i].size(); ++j)
+            	vMod[i][j]->postprocess(locU, locJ, ind);
 
 	// send local to global matrix
 		try{
@@ -664,6 +676,11 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 // 	local indices and local algebra
 	LocalIndices ind; LocalVector locU, locD, tmpLocD;
 
+	std::vector<std::vector<SmartPtr<IElemDiscModifier<TDomain> > > > vMod;
+	for(size_t i = 0; i < vElemDisc.size(); ++i)
+		vMod.push_back(vElemDisc[i]->get_elem_modifier());
+
+
 // 	Loop over all elements
 	for(TIterator iter = iterBegin; iter != iterEnd; ++iter)
 	{
@@ -685,18 +702,9 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	// 	read local values of u
 		GetLocalVector(locU, u);
 
-	//  ANALOG to 'domain_disc_elem()' -  modifies the solution, used
-	//	for computing the defect
-		if( spAssTuner->modify_solution_enabled() )
-		{
-			LocalVector& modLocU = locU;
-			try{
-				spAssTuner->modify_LocalSol(modLocU, locU, dd);
-			} UG_CATCH_THROW("Cannot modify local solution.");
-
-		// recopy modified LocalVector:
-			locU = modLocU;
-		}
+        for(size_t i = 0; i < vMod.size(); ++i)
+            for(size_t j = 0; j < vMod[i].size(); ++j)
+             	vMod[i][j]->preprocess(locU, locD, tmpLocD, elem, vCornerCoords, ind);
 
 	// 	prepare element
 		try
@@ -705,6 +713,20 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		}
 		UG_CATCH_THROW("(stationary) AssembleDefect: Cannot prepare element.");
 
+	//  ANALOG to 'domain_disc_elem()' -  modifies the solution, used
+	//	for computing the defect
+		if( spAssTuner->modify_solution_enabled() )
+		{
+ 			LocalVector& modLocU = locU;
+			try{
+				spAssTuner->modify_LocalSol(modLocU, locU, dd);
+			} UG_CATCH_THROW("Cannot modify local solution.");
+
+			// recopy modified LocalVector:
+			locU = modLocU;
+		}
+
+ 
 	//	reset local algebra
 		locD = 0.0;
 
@@ -721,8 +743,13 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 			tmpLocD = 0.0;
 			Eval.add_rhs_elem(tmpLocD, elem, vCornerCoords);
 			locD.scale_append(-1, tmpLocD);
+
 		}
 		UG_CATCH_THROW("(stationary) AssembleDefect: Cannot compute Rhs.");
+
+        for(size_t i = 0; i < vMod.size(); ++i)
+            for(size_t j = 0; j < vMod[i].size(); ++j)
+            	vMod[i][j]->postprocess(locU, locD, ind);
 
 	// 	send local to global defect
 		try{

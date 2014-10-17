@@ -22,6 +22,7 @@
 #include "common/util/provider.h"
 #include "lib_disc/domain_util.h"
 #include "lib_disc/domain_traits.h"
+#include "elem_modifier.h"
 #include "lib_disc/spatial_disc/elem_disc/err_est_data.h"
 
 namespace ug{
@@ -74,7 +75,7 @@ class IElemDisc
 		IElemDisc(const std::vector<std::string>& vFct, const std::vector<std::string>& vSubset);
 
 	/// Virtual destructor
-		virtual ~IElemDisc() {}
+		virtual ~IElemDisc(){}
 
 	public:
 	///	sets the approximation space
@@ -109,12 +110,22 @@ class IElemDisc
 			return *m_spApproxSpace->domain()->subset_handler();
 		}
 
+		void add_elem_modifier(SmartPtr<IElemDiscModifier<TDomain> > elemModifier )
+		{
+			m_spElemModifier.push_back(elemModifier);
+			elemModifier->set_elem_disc(this);
+		}
+		std::vector<SmartPtr<IElemDiscModifier<TDomain> > >& get_elem_modifier(){ return m_spElemModifier;}
+
 	protected:
 	///	callback invoked, when approximation space is changed
 		virtual void approximation_space_changed() {}
 
 	///	Approximation Space
 		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
+
+	///	Approximation Space
+		std::vector<SmartPtr<IElemDiscModifier<TDomain> > > m_spElemModifier;
 
 	////////////////////////////
 	// Functions and Subsets
