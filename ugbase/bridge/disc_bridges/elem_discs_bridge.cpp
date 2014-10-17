@@ -65,6 +65,14 @@ static void Domain(Registry& reg, string grp)
 	string approxGrp = grp; approxGrp.append("/ApproximationSpace");
 	string elemGrp = grp; elemGrp.append("/SpatialDisc/ElemDisc");
 
+//	ElemDiscModifier base class
+	{
+		typedef IElemDiscModifier<TDomain> T;
+		string name = string("IElemDiscModifier").append(suffix);
+		reg.add_class_<T>(name, elemGrp);
+		reg.add_class_to_group(name, "IElemDiscModifier", tag);
+	}
+
 //	DomainElemDisc base class
 	{
 		typedef IElemDisc<TDomain> T;
