@@ -73,7 +73,7 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 //	storage for corner coordinates
-	MathVector<TDomain::dim> vCornerCoords[TElem::NUM_VERTICES];
+	MathVector<TDomain::dim> vCornerCoords[domain_traits<TDomain::dim>::MaxNumVerticesOfElem];
 
 	try
 	{
@@ -207,7 +207,7 @@ AssembleMassMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 //	storage for corner coordinates
-	MathVector<TDomain::dim> vCornerCoords[TElem::NUM_VERTICES];
+	MathVector<TDomain::dim> vCornerCoords[domain_traits<TDomain::dim>::MaxNumVerticesOfElem];
 
 //	prepare for given elem discs
 	try
@@ -343,7 +343,7 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 //	storage for corner coordinates
-	MathVector<TDomain::dim> vCornerCoords[TElem::NUM_VERTICES];
+	MathVector<TDomain::dim> vCornerCoords[domain_traits<TDomain::dim>::MaxNumVerticesOfElem];
 
 //	prepare for given elem discs
 	try
@@ -496,7 +496,7 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 //	storage for corner coordinates
-	MathVector<TDomain::dim> vCornerCoords[TElem::NUM_VERTICES];
+	MathVector<TDomain::dim> vCornerCoords[domain_traits<TDomain::dim>::MaxNumVerticesOfElem];
 
 //	get current time and vector
 	const typename TAlgebra::vector_type& u = *vSol->solution(0);
@@ -662,7 +662,7 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 //	storage for corner coordinates
-	MathVector<TDomain::dim> vCornerCoords[TElem::NUM_VERTICES];
+	MathVector<TDomain::dim> vCornerCoords[domain_traits<TDomain::dim>::MaxNumVerticesOfElem];
 
 //	prepare for given elem discs
 	try
@@ -841,7 +841,7 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 //	storage for corner coordinates
-	MathVector<TDomain::dim> vCornerCoords[TElem::NUM_VERTICES];
+	MathVector<TDomain::dim> vCornerCoords[domain_traits<TDomain::dim>::MaxNumVerticesOfElem];
 
 //	check time scheme
 	if(vScaleMass.size() != vScaleStiff.size())
@@ -1059,7 +1059,7 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 //	storage for corner coordinates
-	MathVector<TDomain::dim> vCornerCoords[TElem::NUM_VERTICES];
+	MathVector<TDomain::dim> vCornerCoords[domain_traits<TDomain::dim>::MaxNumVerticesOfElem];
 
 //	prepare for given elem discs
 	try
@@ -1209,7 +1209,7 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 //	storage for corner coordinates
-	MathVector<TDomain::dim> vCornerCoords[TElem::NUM_VERTICES];
+	MathVector<TDomain::dim> vCornerCoords[domain_traits<TDomain::dim>::MaxNumVerticesOfElem];
 
 //	check time scheme
 	if(vScaleMass.size() != vScaleStiff.size())
@@ -1442,7 +1442,7 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 //	storage for corner coordinates
-	MathVector<TDomain::dim> vCornerCoords[TElem::NUM_VERTICES];
+	MathVector<TDomain::dim> vCornerCoords[domain_traits<TDomain::dim>::MaxNumVerticesOfElem];
 
 //	prepare for given elem discs
 	try
@@ -1584,7 +1584,7 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 //	storage for corner coordinates
-	MathVector<TDomain::dim> vCornerCoords[TElem::NUM_VERTICES];
+	MathVector<TDomain::dim> vCornerCoords[domain_traits<TDomain::dim>::MaxNumVerticesOfElem];
 
 //	check time scheme
 	if(vScaleMass.size() != vScaleStiff.size())
@@ -1792,7 +1792,7 @@ PrepareTimestep(const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 //	storage for corner coordinates
-	MathVector<TDomain::dim> vCornerCoords[TElem::NUM_VERTICES];
+	MathVector<TDomain::dim> vCornerCoords[domain_traits<TDomain::dim>::MaxNumVerticesOfElem];
 
 //	get current time and vector
 	const typename TAlgebra::vector_type& u = *vSol->solution(0);
@@ -1916,7 +1916,7 @@ FinishTimestep(const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 //	storage for corner coordinates
-	MathVector<TDomain::dim> vCornerCoords[TElem::NUM_VERTICES];
+	MathVector<TDomain::dim> vCornerCoords[domain_traits<TDomain::dim>::MaxNumVerticesOfElem];
 
 //	get current time and vector
 	const typename TAlgebra::vector_type& u = *vSol->solution(0);
@@ -2043,7 +2043,7 @@ AssembleErrorEstimator
 	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 //	storage for corner coordinates
-	MathVector<TDomain::dim> vCornerCoords[TElem::NUM_VERTICES];
+	MathVector<TDomain::dim> vCornerCoords[domain_traits<TDomain::dim>::MaxNumVerticesOfElem];
 
 //	prepare for given elem discs
 	try
@@ -2168,7 +2168,7 @@ AssembleErrorEstimator
 	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 //	storage for corner coordinates
-	MathVector<TDomain::dim> vCornerCoords[TElem::NUM_VERTICES];
+	MathVector<TDomain::dim> vCornerCoords[domain_traits<TDomain::dim>::MaxNumVerticesOfElem];
 
 //	check time scheme
 	if(vScaleMass.size() != vScaleStiff.size())
