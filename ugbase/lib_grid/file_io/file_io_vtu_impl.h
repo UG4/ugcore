@@ -34,8 +34,130 @@ bool LoadGridFromVTU(Grid& grid, ISubsetHandler& sh, const char* filename,
 	return true;
 }
 
+template <class TAPosition>
+bool SaveGridToVTU(Grid& grid, ISubsetHandler* psh, const char* filename,
+				   TAPosition& aPos)
+{
+	GridWriterVTU vtuWriter;
+	std::ofstream out(filename);
+
+	vtuWriter.set_stream(&out);
+
+	vtuWriter.new_piece(grid, psh, aPos);
+
+	vtuWriter.finish();
+
+	return true;
+}
 
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+//	GridWriterVTU
+////////////////////////////////////////////////////////////////////////////////
+template <class TPositionAttachment>
+bool GridWriterVTU::
+new_piece(Grid& grid, ISubsetHandler* psh, TPositionAttachment& aPos)
+{
+	using namespace std;
+	UG_COND_THROW(!m_pout, "Invalid ostream specified fo GridWriterVTU!");
+	ostream& out = *m_pout;
+
+//	if a subset-handler is specified, all grid elements which are assigned to
+//	subsets are considered as cells.
+//	If not, only elements of highest dimension are considered as cells.
+	m_cells.clear();
+
+	if(psh){
+		collect_cells<Vertex>(m_cells, grid, IsNotInSubset(*psh, -1));
+		collect_cells<Edge>(m_cells, grid, IsNotInSubset(*psh, -1));
+		collect_cells<Face>(m_cells, grid, IsNotInSubset(*psh, -1));
+		collect_cells<Volume>(m_cells, grid, IsNotInSubset(*psh, -1));
+	}
+	else{
+		if(grid.num<Volume>() > 0)
+			collect_cells<Volume>(m_cells, grid, ConsiderAll());
+		else if(grid.num<Face>() > 0)
+			collect_cells<Face>(m_cells, grid, ConsiderAll());
+		else if(grid.num<Edge>() > 0)
+			collect_cells<Edge>(m_cells, grid, ConsiderAll());
+		else
+			collect_cells<Vertex>(m_cells, grid, ConsiderAll());
+	}
+
+	out << "    <Piece NumberOfPoints=\"" << grid.num<Vertex>() << "\""
+		  << " NumberOfCells=\"" << m_cells.size() << "\">" << endl;
+
+
+//	write points
+	out << "      <Points>" << endl;
+	write_vector_data<Vertex>(grid, aPos, "", "        ");
+	out << "      </Points>" << endl;
+
+//	write cells
+//	first we'll assign indices to the vertices, which can then be used as
+//	references by the cells.
+	AInt aInd;
+	grid.attach_to_vertices(aInd);
+	Grid::VertexAttachmentAccessor<AInt> aaInd(grid, aInd);
+	AssignIndices(grid.begin<Vertex>(), grid.end<Vertex>(), aaInd, 0);
+	
+	write_cells(m_cells, grid, aaInd, "      ");
+
+	grid.detach_from_vertices(aInd);
+
+	out << "    </Piece>" << endl;
+
+	return true;
+}
+
+
+template <class TElem, class TAttachment>
+void GridWriterVTU::
+write_vector_data(Grid& grid,
+				  TAttachment aData,
+				  const char* name,
+				  const char* prefix,
+				  typename Grid::traits<TElem>::callback consider_elem)
+{
+	using namespace std;
+	UG_COND_THROW(!m_pout, "Invalid ostream specified fo GridWriterVTU!");
+	ostream& out = *m_pout;
+
+	typedef typename TAttachment::ValueType			vector_t;
+	typedef typename Grid::traits<TElem>::iterator	iter_t;
+
+	Grid::AttachmentAccessor<TElem, TAttachment> aaData(grid, aData);
+
+	write_data_array_header("Float32", "", vector_t::Size, prefix);
+	out << prefix << " ";
+
+	for(iter_t i = grid.begin<TElem>(); i != grid.end<TElem>(); ++i){
+		vector_t& v = aaData[*i];
+		for(size_t c = 0; c < vector_t::Size; ++c){
+			out << " " << v[c];
+		}
+	}
+
+	out << endl << prefix << "</DataArray>" << endl;
+}
+
+template <class TElem>
+void GridWriterVTU::
+collect_cells(std::vector<GridObject*>& cellsOut, Grid& grid,
+			  typename Grid::traits<TElem>::callback consider_elem)
+{
+	typedef typename Grid::traits<TElem>::iterator iter_t;
+	for(iter_t i = grid.begin<TElem>(); i != grid.end<TElem>(); ++i){
+		if(consider_elem(*i))
+			cellsOut.push_back(*i);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+//	GridReaderVTU
+////////////////////////////////////////////////////////////////////////////////
 template <class TPositionAttachment>
 bool GridReaderVTU::
 grid(Grid& gridOut, size_t index, TPositionAttachment& aPos)

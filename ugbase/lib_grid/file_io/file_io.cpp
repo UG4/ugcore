@@ -331,6 +331,9 @@ static bool SaveGrid(Grid& grid, ISubsetHandler* psh,
 			return SaveGridToUGX(grid, shTmp, filename, aPos);
 		}
 	}
+	else if(strName.find(".vtu") != string::npos){
+		return SaveGridToVTU(grid, psh, filename, aPos);
+	}
 	else
 		return SaveGrid3d(grid, psh, filename, aPos);
 }

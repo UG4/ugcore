@@ -29,7 +29,7 @@ template <class TAPosition>
 bool LoadGridFromVTU(Grid& grid, ISubsetHandler& sh,
 					const char* filename, APosition& aPos);
 
-///	Reads a grid to an vtu (vtk) file.
+///	Reads a grid to a vtu (vtk unstructured mesh) file.
 /**	Before reading a grid from file, this method searches for the
  *	attached standard position attachment with the highest dimension.
  *	This will be used as position-attachment in a call to the overloaded
@@ -40,6 +40,98 @@ bool LoadGridFromVTU(Grid& grid, ISubsetHandler& sh,
 bool LoadGridFromVTU(Grid& grid, ISubsetHandler& sh,
 					const char* filename);
 					
+
+///	Writes a grid to a vtu (vtk unstructured mesh) file
+template <class TAPosition>
+bool SaveGridToVTU(Grid& grid, ISubsetHandler* psh, const char* filename,
+				   TAPosition& aPos);
+
+
+////////////////////////////////////////////////////////////////////////					
+////////////////////////////////////////////////////////////////////////
+///	Grants write access to vtu files.
+/**	Make sure that all elements added via one of the add_* methods
+ *	exist until the FileAccessor is destroyed.
+ */
+class GridWriterVTU
+{
+	public:
+		GridWriterVTU();
+	///	Pass a pointer to an ostream to which the data shall be written.
+	/**	Make sure, that the stream is open and stays valid while write operations
+	 * are performed.*/
+		GridWriterVTU(std::ostream* out);
+
+		virtual ~GridWriterVTU();
+
+	///	Pass a pointer to an ostream to which the data shall be written.
+	/**	Make sure, that the stream is open and stays valid while write operations
+	 * are performed.*/
+		void set_stream(std::ostream* out);
+
+		void finish();
+
+	/**	TPositionAttachments value type has to be compatible with MathVector.
+	 *	Make sure that aPos is attached to the vertices of the grid.*/
+		template <class TPositionAttachment>
+		bool new_piece(Grid& grid, ISubsetHandler* psh,
+					   TPositionAttachment& aPos);
+
+		void begin_point_data();
+		//...
+		void end_point_data();
+
+		void begin_cell_data();
+		void add_subset_handler(ISubsetHandler& sh, const char* name);
+		void end_cell_data();
+
+	protected:
+		typedef Grid::VertexAttachmentAccessor<AInt> AAVrtIndex;
+		typedef Grid::EdgeAttachmentAccessor<AInt> AAEdgeIndex;
+		typedef Grid::FaceAttachmentAccessor<AInt> AAFaceIndex;
+		typedef Grid::VolumeAttachmentAccessor<AInt> AAVolIndex;
+
+	/** \param name:			  Set to "" to omit this parameter in the output.
+	 * \param numberOfComponents: Set to 0 to omit this parameter in the output.*/
+		void write_data_array_header(const char* type, const char* name,
+									 int numberOfComponents, const char* prefix);
+
+		template <class TElem, class TAttachment>
+		void write_vector_data(Grid& grid,
+							   TAttachment aData,
+							   const char* name = "",
+							   const char* prefix = "",
+							   typename Grid::traits<TElem>::callback consider_elem =
+							  		Grid::traits<TElem>::cb_consider_all);
+
+		template <class TElem>
+		void collect_cells(std::vector<GridObject*>& cellsOut,
+						   Grid& grid,
+						   typename Grid::traits<TElem>::callback consider_elem =
+							  		Grid::traits<TElem>::cb_consider_all);
+
+		void write_cells(std::vector<GridObject*>& cells, Grid& grid,
+						 AAVrtIndex aaInd, const char* prefix = "");
+
+		void end_piece();
+		
+		enum Mode{
+			NONE,
+			OPEN,
+			CLOSED
+		};
+
+		std::ostream*	m_pout;
+		Mode			m_pointDataMode;
+		Mode			m_cellDataMode;
+
+		Grid*		 	m_curGrid;
+		int				m_curCellOffset;
+		
+		std::vector<ISubsetHandler*>	m_pieceSubsetHandlers;
+		std::vector<GridObject*>		m_cells;
+};
+
 
 
 ////////////////////////////////////////////////////////////////////////

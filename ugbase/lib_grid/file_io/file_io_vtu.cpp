@@ -60,6 +60,14 @@ const char* VTKCellNames[] = {	"UNDEFINED",
 								"QUADRATIC_TETRA",
 								"QUADRATIC_HEXAHEDRON"};
 
+const int ugRefObjIdToVTKCellType[] = {	VTK_VERTEX,
+										VTK_LINE,
+										VTK_TRIANGLE,
+										VTK_QUAD,
+										VTK_TETRA,
+										VTK_HEXAHEDRON,
+										VTK_WEDGE,
+										VTK_PYRAMID};
 
 bool LoadGridFromVTU(Grid& grid, ISubsetHandler& sh,
 					const char* filename)
@@ -78,6 +86,219 @@ bool LoadGridFromVTU(Grid& grid, ISubsetHandler& sh,
 }
 
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+//	GridWriterVTU
+////////////////////////////////////////////////////////////////////////////////
+GridWriterVTU::
+GridWriterVTU() :
+	m_pout(NULL),
+	m_pointDataMode(NONE),
+	m_cellDataMode(NONE),
+	m_curGrid(NULL),
+	m_curCellOffset(0)
+{
+
+}
+
+GridWriterVTU::
+GridWriterVTU(std::ostream* pout) :
+	m_pout(NULL),
+	m_pointDataMode(NONE),
+	m_cellDataMode(NONE),
+	m_curGrid(NULL),
+	m_curCellOffset(0)
+{
+	set_stream(pout);
+}
+
+GridWriterVTU::
+~GridWriterVTU()
+{
+
+}
+
+void GridWriterVTU::
+set_stream(std::ostream* pout)
+{
+	if(m_pout)
+		finish();
+	m_pout = pout;
+
+	if(!m_pout)
+		return;
+
+	std::ostream& out = *m_pout;
+	UG_COND_THROW(!out, "Invalid ostream specified fo GridWriterVTU!");
+
+//	todo: check endianiess for binary writes!
+	out << "<?xml version=\"1.0\"?>" << endl;
+	out << "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">" << endl;
+	out << "  <UnstructuredGrid>" << endl;
+}
+
+void GridWriterVTU::
+finish()
+{
+	UG_COND_THROW(!m_pout, "Invalid ostream specified fo GridWriterVTU!");
+	ostream& out = *m_pout;
+
+	out << "  </UnstructuredGrid>" << endl;
+	out << "</VTKFile>" << endl;
+}
+
+void GridWriterVTU::
+begin_point_data()
+{
+	UG_COND_THROW(m_pointDataMode != NONE,
+				  "begin_point_data can only be called once per piece!");
+	
+	UG_COND_THROW(m_cellDataMode == OPEN,
+				  "begin_point_data may not be called between "
+				  "begin_cell_data and end_cell_data!");
+
+	m_pointDataMode = OPEN;
+}
+
+void GridWriterVTU::
+end_point_data()
+{
+	UG_COND_THROW(m_pointDataMode != OPEN,
+				  "end_point_data has to be called after begin_point_data!");
+	m_pointDataMode = CLOSED;
+}
+
+
+void GridWriterVTU::
+write_data_array_header(const char* type, const char* name,
+						int numberOfComponents, const char* prefix)
+{
+	UG_COND_THROW(!m_pout, "Invalid ostream specified fo GridWriterVTU!");
+	ostream& out = *m_pout;
+
+	out << prefix << "<DataArray type=\"" << type << "\"";
+	if(strlen(name) > 0)
+		out << " Name=\"" << name << "\"";
+	if(numberOfComponents > 0)
+		out << " NumberOfComponents=\"" << numberOfComponents << "\"";
+	out << " format=\"ascii\">" << endl;
+}
+
+void GridWriterVTU::
+begin_cell_data()
+{
+	UG_COND_THROW(m_cellDataMode != NONE,
+				  "begin_cell_data can only be called once per piece!");
+	
+	UG_COND_THROW(m_pointDataMode == OPEN,
+				  "begin_cell_data may not be called between "
+				  "begin_point_data and end_point_data!");
+
+	m_cellDataMode = OPEN;
+}
+
+void GridWriterVTU::
+add_subset_handler(ISubsetHandler& sh, const char* name)
+{
+	UG_COND_THROW(m_cellDataMode != OPEN,
+				  "A subset handler can only be added between calls to "
+				  "begin_cell_data and end_cell_data!");
+}
+
+void GridWriterVTU::
+end_cell_data()
+{
+	UG_COND_THROW(m_cellDataMode != OPEN,
+				  "end_cell_data has to be called after begin_cell_data!");
+	m_cellDataMode = CLOSED;
+
+//	todo: write region-infos of subset-handlers added during add_subset_handler.
+}
+
+void GridWriterVTU::
+write_cells(std::vector<GridObject*>& cells, Grid & grid,
+			AAVrtIndex aaInd, const char* prefix)
+{
+	UG_COND_THROW(!m_pout, "Invalid ostream specified fo GridWriterVTU!");
+	ostream& out = *m_pout;
+
+	out << prefix << "<Cells>" << endl;
+
+	string dataPrefix(prefix);
+	dataPrefix.append("  ");
+
+	write_data_array_header("Int32", "connectivity", 0, dataPrefix.c_str());
+	out << dataPrefix << " ";
+
+	Grid::vertex_traits::secure_container vrts;
+	for(size_t icell = 0; icell < cells.size(); ++icell){
+		GridObject* cell = cells[icell];
+		grid.associated_elements(vrts, cell);
+	//	Prisms have a different vertex order in ug than in vtk.
+		if(cell->reference_object_id() == ROID_PRISM){
+			out << " " << aaInd[vrts[1]];
+			out << " " << aaInd[vrts[0]];
+			out << " " << aaInd[vrts[2]];
+			out << " " << aaInd[vrts[4]];
+			out << " " << aaInd[vrts[3]];
+			out << " " << aaInd[vrts[5]];
+		}
+		else{
+			for(size_t ivrt = 0; ivrt < vrts.size(); ++ivrt){
+				out << " " << aaInd[vrts[ivrt]];
+			}
+		}
+	}
+	
+	out << endl << dataPrefix << "</DataArray>" << endl;
+
+
+	write_data_array_header("Int32", "offsets", 0, dataPrefix.c_str());
+	out << dataPrefix << " ";
+
+	size_t offset = 0;
+	for(size_t icell = 0; icell < cells.size(); ++icell){
+		GridObject* cell = cells[icell];
+		grid.associated_elements(vrts, cell);
+		offset += vrts.size();
+		out << " " << offset;
+	}
+	
+	out << endl << dataPrefix << "</DataArray>" << endl;
+
+
+	write_data_array_header("Int8", "types", 0, dataPrefix.c_str());
+	out << dataPrefix << " ";
+
+	for(size_t icell = 0; icell < cells.size(); ++icell){
+		GridObject* cell = cells[icell];
+		int roid = cell->reference_object_id();
+		if(roid >= 0 && roid <= ROID_PYRAMID){
+			out << " " << ugRefObjIdToVTKCellType[roid];
+		}
+		else{
+			UG_THROW("Can't map grid-object with ROID " << roid << " to vtk cell type!");
+		}
+	}
+	
+	out << endl << dataPrefix << "</DataArray>" << endl;
+
+	out << prefix << "</Cells>" << endl;
+}
+
+
+
+void GridWriterVTU::
+end_piece()
+{
+
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+//	GridReaderVTU
+////////////////////////////////////////////////////////////////////////////////
 GridReaderVTU::GridReaderVTU()
 {
 }

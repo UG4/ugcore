@@ -19,6 +19,23 @@ namespace ug
  * \{
  */
 
+class ConsiderAll{
+	public:
+		bool operator() (Vertex* v) const	{return true;}
+		bool operator() (Edge* e) const		{return true;}
+		bool operator() (Face* f) const		{return true;}
+		bool operator() (Volume* v) const	{return true;}
+};
+
+
+class ConsiderNone{
+	public:
+		bool operator() (Vertex* v) const	{return false;}
+		bool operator() (Edge* e) const		{return false;}
+		bool operator() (Face* f) const		{return false;}
+		bool operator() (Volume* v) const	{return false;}
+};
+
 ////////////////////////////////////////////////////////////////////////////////
 ///	Element callback that returns true, if an element is selected
 class IsSelected
