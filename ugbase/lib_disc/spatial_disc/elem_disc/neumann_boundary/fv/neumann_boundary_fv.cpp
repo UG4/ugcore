@@ -151,7 +151,7 @@ prep_elem_loop(const ReferenceObjectID roid, const int si)
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
 void NeumannBoundaryFV<TDomain>::
-prep_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
+prep_elem(const LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[])
 {
 //  update Geometry for this element
 	TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID,m_order);

@@ -62,7 +62,7 @@ class DataEvaluator
 		void prepare_elem_loop(const ReferenceObjectID id, int si);
 
 	///	prepares the element for all IElemDiscs
-		void prepare_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[],
+		void prepare_elem(LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[],
 		                  const LocalIndices& ind, bool bDeriv = false);
 
 	///	finishes the element loop for all IElemDiscs

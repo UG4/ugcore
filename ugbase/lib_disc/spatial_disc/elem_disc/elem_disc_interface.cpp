@@ -327,7 +327,7 @@ do_prep_timestep_elem(const number time, LocalVector& u, GridObject* elem, const
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
-do_prep_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
+do_prep_elem(LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[])
 {
 	//	access by map
 	u.access_by_map(map());
@@ -336,7 +336,7 @@ do_prep_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoor
 
 	//	call assembling routine
 	UG_ASSERT(m_vPrepareElemFct[m_id]!=NULL, "ElemDisc method prepare_elem missing.");
-	(this->*(m_vPrepareElemFct[m_id]))(u, elem, vCornerCoords);
+	(this->*(m_vPrepareElemFct[m_id]))(u, elem, roid, vCornerCoords);
 }
 
 template <typename TDomain>
@@ -611,7 +611,7 @@ prep_timestep_elem(const number time, const LocalVector& u, GridObject* elem, co
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
-prep_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
+prep_elem(const LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[])
 {
 	ThrowMissingVirtualMethod("prep_elem", elem->reference_object_id ());
 }

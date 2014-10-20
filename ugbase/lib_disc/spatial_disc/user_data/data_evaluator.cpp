@@ -367,14 +367,14 @@ prepare_timestep_elem(const number time, LocalVector& u, GridObject* elem, const
 
 template <typename TDomain>
 void DataEvaluator<TDomain>::
-prepare_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[],
+prepare_elem(LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[],
              const LocalIndices& ind,
              bool bDeriv)
 {
 // 	prepare element
 	try{
 		for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
-			m_vElemDisc[PT_ALL][i]->do_prep_elem(u, elem, vCornerCoords);
+			m_vElemDisc[PT_ALL][i]->do_prep_elem(u, elem, roid, vCornerCoords);
 	}
 	UG_CATCH_THROW("DataEvaluator::prep_elem: Cannot prepare element.");
 

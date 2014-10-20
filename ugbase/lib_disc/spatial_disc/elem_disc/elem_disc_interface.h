@@ -369,7 +369,7 @@ class IElemDisc
 		virtual void prep_elem_loop(const ReferenceObjectID roid, const int si);
 
 	///	virtual prepare one elements for assembling
-		virtual void prep_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+		virtual void prep_elem(const LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[]);
 
 	///	virtual postprocesses the loop over all elements of one type
 		virtual void fsh_elem_loop();
@@ -417,7 +417,7 @@ class IElemDisc
 	/// \{
 		void do_prep_timestep_elem(const number time, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 		void do_prep_elem_loop(const ReferenceObjectID roid, const int si);
-		void do_prep_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+		void do_prep_elem(LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[]);
 		void do_fsh_elem_loop();
 		void do_fsh_timestep_elem(const number time, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 		void do_add_jac_A_elem(LocalMatrix& J, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
@@ -444,7 +444,7 @@ class IElemDisc
 
 	// 	types of loop function pointers
 		typedef void (T::*PrepareElemLoopFct)(ReferenceObjectID roid, int si);
-		typedef void (T::*PrepareElemFct)(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+		typedef void (T::*PrepareElemFct)(const LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[]);
 		typedef void (T::*FinishElemLoopFct)();
 
 	// 	types of Jacobian assemble functions
