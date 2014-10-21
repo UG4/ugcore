@@ -72,17 +72,28 @@ class GridWriterVTU
 		void finish();
 
 	/**	TPositionAttachments value type has to be compatible with MathVector.
-	 *	Make sure that aPos is attached to the vertices of the grid.*/
+	 * Make sure that aPos is attached to the vertices of the grid.
+	 * If a SubsetHandler is specified through 'psh' (NULL is valid too), it will
+	 * automatically be passed to 'add_subset_handler' with the name "regions".
+	 * If you pass a subset handler to this method, furthermore only those elements
+	 * which are assigned to subsets will be written to the file as cells.
+	 * If you don't pass a subset-handler, only elements of highest dimension are
+	 * written to the file.*/
 		template <class TPositionAttachment>
 		bool new_piece(Grid& grid, ISubsetHandler* psh,
 					   TPositionAttachment& aPos);
+
+	///	You may add subset-handlers which will be written as regions to the vtk-file.
+	/**	Make sure to add subset-handlers before 'end_cell_data' is called.
+	 * Note that if you pass a subset-handler to 'new_piece', then it will be
+	 * automatically registered with the name "regions".*/
+		void add_subset_handler(ISubsetHandler& sh, const std::string& name);
 
 		void begin_point_data();
 		//...
 		void end_point_data();
 
 		void begin_cell_data();
-		void add_subset_handler(ISubsetHandler& sh, const char* name);
 		void end_cell_data();
 
 	protected:
@@ -91,16 +102,19 @@ class GridWriterVTU
 		typedef Grid::FaceAttachmentAccessor<AInt> AAFaceIndex;
 		typedef Grid::VolumeAttachmentAccessor<AInt> AAVolIndex;
 
+		inline std::ostream& out_stream();
+
 	/** \param name:			  Set to "" to omit this parameter in the output.
 	 * \param numberOfComponents: Set to 0 to omit this parameter in the output.*/
 		void write_data_array_header(const char* type, const char* name,
-									 int numberOfComponents, const char* prefix);
+									 int numberOfComponents);
+
+		void write_data_array_footer();
 
 		template <class TElem, class TAttachment>
 		void write_vector_data(Grid& grid,
 							   TAttachment aData,
 							   const char* name = "",
-							   const char* prefix = "",
 							   typename Grid::traits<TElem>::callback consider_elem =
 							  		Grid::traits<TElem>::cb_consider_all);
 
@@ -111,10 +125,11 @@ class GridWriterVTU
 							  		Grid::traits<TElem>::cb_consider_all);
 
 		void write_cells(std::vector<GridObject*>& cells, Grid& grid,
-						 AAVrtIndex aaInd, const char* prefix = "");
+						 AAVrtIndex aaInd);
 
 		void end_piece();
 		
+
 		enum Mode{
 			NONE,
 			OPEN,
@@ -122,14 +137,15 @@ class GridWriterVTU
 		};
 
 		std::ostream*	m_pout;
+		Mode			m_pieceMode;
 		Mode			m_pointDataMode;
 		Mode			m_cellDataMode;
 
 		Grid*		 	m_curGrid;
-		int				m_curCellOffset;
-		
-		std::vector<ISubsetHandler*>	m_pieceSubsetHandlers;
+		ISubsetHandler*	m_curSH;
+				
 		std::vector<GridObject*>		m_cells;
+		std::vector<std::pair<ISubsetHandler*, std::string> >	m_pieceSubsetHandlers;
 };
 
 

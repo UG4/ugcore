@@ -93,10 +93,10 @@ bool LoadGridFromVTU(Grid& grid, ISubsetHandler& sh,
 GridWriterVTU::
 GridWriterVTU() :
 	m_pout(NULL),
+	m_pieceMode(NONE),
 	m_pointDataMode(NONE),
 	m_cellDataMode(NONE),
-	m_curGrid(NULL),
-	m_curCellOffset(0)
+	m_curGrid(NULL)
 {
 
 }
@@ -104,10 +104,10 @@ GridWriterVTU() :
 GridWriterVTU::
 GridWriterVTU(std::ostream* pout) :
 	m_pout(NULL),
+	m_pieceMode(NONE),
 	m_pointDataMode(NONE),
 	m_cellDataMode(NONE),
-	m_curGrid(NULL),
-	m_curCellOffset(0)
+	m_curGrid(NULL)
 {
 	set_stream(pout);
 }
@@ -138,13 +138,32 @@ set_stream(std::ostream* pout)
 }
 
 void GridWriterVTU::
-finish()
+add_subset_handler(ISubsetHandler& sh, const std::string& name)
 {
-	UG_COND_THROW(!m_pout, "Invalid ostream specified fo GridWriterVTU!");
-	ostream& out = *m_pout;
+	UG_COND_THROW(m_cellDataMode == CLOSED,
+				  "A subset handler has to be added before a call to 'end_cell_data'");
 
-	out << "  </UnstructuredGrid>" << endl;
-	out << "</VTKFile>" << endl;
+	m_pieceSubsetHandlers.push_back(make_pair(&sh, name));
+}
+
+void GridWriterVTU::
+write_data_array_header(const char* type, const char* name,
+						int numberOfComponents)
+{
+	ostream& out = out_stream();
+
+	out << "        <DataArray type=\"" << type << "\"";
+	if(strlen(name) > 0)
+		out << " Name=\"" << name << "\"";
+	if(numberOfComponents > 0)
+		out << " NumberOfComponents=\"" << numberOfComponents << "\"";
+	out << " format=\"ascii\">" << endl;
+}
+
+void GridWriterVTU::
+write_data_array_footer()
+{
+	out_stream() << "        </DataArray>" << endl;
 }
 
 void GridWriterVTU::
@@ -157,6 +176,8 @@ begin_point_data()
 				  "begin_point_data may not be called between "
 				  "begin_cell_data and end_cell_data!");
 
+	out_stream() << "      <PointData>" << endl;
+
 	m_pointDataMode = OPEN;
 }
 
@@ -165,24 +186,12 @@ end_point_data()
 {
 	UG_COND_THROW(m_pointDataMode != OPEN,
 				  "end_point_data has to be called after begin_point_data!");
+	
+	out_stream() << "      </PointData>" << endl;
+
 	m_pointDataMode = CLOSED;
 }
 
-
-void GridWriterVTU::
-write_data_array_header(const char* type, const char* name,
-						int numberOfComponents, const char* prefix)
-{
-	UG_COND_THROW(!m_pout, "Invalid ostream specified fo GridWriterVTU!");
-	ostream& out = *m_pout;
-
-	out << prefix << "<DataArray type=\"" << type << "\"";
-	if(strlen(name) > 0)
-		out << " Name=\"" << name << "\"";
-	if(numberOfComponents > 0)
-		out << " NumberOfComponents=\"" << numberOfComponents << "\"";
-	out << " format=\"ascii\">" << endl;
-}
 
 void GridWriterVTU::
 begin_cell_data()
@@ -194,41 +203,65 @@ begin_cell_data()
 				  "begin_cell_data may not be called between "
 				  "begin_point_data and end_point_data!");
 
+	out_stream() << "      <CellData>" << endl;
+
 	m_cellDataMode = OPEN;
 }
 
-void GridWriterVTU::
-add_subset_handler(ISubsetHandler& sh, const char* name)
-{
-	UG_COND_THROW(m_cellDataMode != OPEN,
-				  "A subset handler can only be added between calls to "
-				  "begin_cell_data and end_cell_data!");
-}
 
 void GridWriterVTU::
 end_cell_data()
 {
 	UG_COND_THROW(m_cellDataMode != OPEN,
 				  "end_cell_data has to be called after begin_cell_data!");
+
+	ostream& out = out_stream();
+
+	for(size_t i = 0; i < m_pieceSubsetHandlers.size(); ++i){
+		ISubsetHandler* sh = m_pieceSubsetHandlers[i].first;
+		const string& name = m_pieceSubsetHandlers[i].second;
+		write_data_array_header("Int32", name.c_str(), 1);
+
+		out << "         ";
+		for(size_t icell = 0; icell < m_cells.size(); ++icell){
+			out << " " << sh->get_subset_index(m_cells[icell]);
+		}
+		out << endl;
+
+		write_data_array_footer();
+	}
+
+	out << "      </CellData>" << endl;
+
 	m_cellDataMode = CLOSED;
 
-//	todo: write region-infos of subset-handlers added during add_subset_handler.
+//	finally write regionos-info
+	for(size_t i = 0; i < m_pieceSubsetHandlers.size(); ++i){
+		ISubsetHandler& sh = *m_pieceSubsetHandlers[i].first;
+		const string& name = m_pieceSubsetHandlers[i].second;
+		out << "      <RegionInfo Name=\"" << name << "\">" << endl;
+		
+		for(int si = 0; si < sh.num_subsets(); ++si){
+			out << "        <Region Name=\"" << sh.subset_info(si).name << "\">";// << endl;
+			out << "</Region>" << endl;
+			//out << "        </Region>" << endl;
+		}
+
+		out << "      </RegionInfo>" << endl;
+	}
 }
 
 void GridWriterVTU::
 write_cells(std::vector<GridObject*>& cells, Grid & grid,
-			AAVrtIndex aaInd, const char* prefix)
+			AAVrtIndex aaInd)
 {
-	UG_COND_THROW(!m_pout, "Invalid ostream specified fo GridWriterVTU!");
-	ostream& out = *m_pout;
+	ostream& out = out_stream();
 
-	out << prefix << "<Cells>" << endl;
+	out << "      <Cells>" << endl;
 
-	string dataPrefix(prefix);
-	dataPrefix.append("  ");
-
-	write_data_array_header("Int32", "connectivity", 0, dataPrefix.c_str());
-	out << dataPrefix << " ";
+	write_data_array_header("Int32", "connectivity", 0);
+	const char* dataPrefix = "         ";
+	out << dataPrefix;
 
 	Grid::vertex_traits::secure_container vrts;
 	for(size_t icell = 0; icell < cells.size(); ++icell){
@@ -250,10 +283,11 @@ write_cells(std::vector<GridObject*>& cells, Grid & grid,
 		}
 	}
 	
-	out << endl << dataPrefix << "</DataArray>" << endl;
+	out << endl;
+	write_data_array_footer();
 
 
-	write_data_array_header("Int32", "offsets", 0, dataPrefix.c_str());
+	write_data_array_header("Int32", "offsets", 0);
 	out << dataPrefix << " ";
 
 	size_t offset = 0;
@@ -264,10 +298,11 @@ write_cells(std::vector<GridObject*>& cells, Grid & grid,
 		out << " " << offset;
 	}
 	
-	out << endl << dataPrefix << "</DataArray>" << endl;
+	out << endl;
+	write_data_array_footer();
 
 
-	write_data_array_header("Int8", "types", 0, dataPrefix.c_str());
+	write_data_array_header("Int8", "types", 0);
 	out << dataPrefix << " ";
 
 	for(size_t icell = 0; icell < cells.size(); ++icell){
@@ -281,18 +316,58 @@ write_cells(std::vector<GridObject*>& cells, Grid & grid,
 		}
 	}
 	
-	out << endl << dataPrefix << "</DataArray>" << endl;
+	out << endl;
+	write_data_array_footer();
 
-	out << prefix << "</Cells>" << endl;
+	out << "      </Cells>" << endl;
 }
-
 
 
 void GridWriterVTU::
 end_piece()
 {
+	if(m_pieceMode == OPEN){
+		if(m_pointDataMode == NONE)
+			begin_point_data();
+		if(m_pointDataMode == OPEN)
+			end_point_data();
 
+		if(m_cellDataMode == NONE)
+			begin_cell_data();
+		if(m_cellDataMode == OPEN)
+			end_cell_data();
+
+		m_pieceMode = CLOSED;
+		out_stream() << "    </Piece>" << endl;
+	}
+
+	m_pieceSubsetHandlers.clear();
+	m_cells.clear();
 }
+
+void GridWriterVTU::
+finish()
+{
+//	make sure that point and cell data are present in the file
+	if(m_pieceMode == NONE){
+		m_pieceMode = OPEN;
+		m_pieceSubsetHandlers.clear();
+		m_cells.clear();
+		out_stream() << "    <Piece NumberOfPoints=\"0\" NumberOfCells=\"0\">" << endl;
+		out_stream() << "		<Points></Points>" << endl;
+		out_stream() << "		<Cells></Cells>" << endl;
+	}
+
+	if(m_pieceMode == OPEN)
+		end_piece();
+
+	out_stream() << "  </UnstructuredGrid>" << endl;
+	out_stream() << "</VTKFile>" << endl;
+
+//	invalidate out-stream
+	m_pout = NULL;
+}
+
 
 
 ////////////////////////////////////////////////////////////////////////////////

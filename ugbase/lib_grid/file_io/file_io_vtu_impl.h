@@ -55,20 +55,41 @@ bool SaveGridToVTU(Grid& grid, ISubsetHandler* psh, const char* filename,
 ////////////////////////////////////////////////////////////////////////////////
 //	GridWriterVTU
 ////////////////////////////////////////////////////////////////////////////////
+
+std::ostream& GridWriterVTU::
+out_stream()
+{
+	UG_COND_THROW(!m_pout, "Invalid ostream specified fo GridWriterVTU!");
+	return *m_pout;
+}
+
 template <class TPositionAttachment>
 bool GridWriterVTU::
 new_piece(Grid& grid, ISubsetHandler* psh, TPositionAttachment& aPos)
 {
 	using namespace std;
-	UG_COND_THROW(!m_pout, "Invalid ostream specified fo GridWriterVTU!");
-	ostream& out = *m_pout;
+
+	if(m_pieceMode == OPEN)
+		end_piece();
+
+	m_pieceMode = OPEN;
+	m_pointDataMode = NONE;
+	m_cellDataMode = NONE;
+
+	ostream& out = out_stream();
+
+	m_curGrid = &grid;
+	m_curSH = psh;
+	
+	m_pieceSubsetHandlers.clear();
+	m_cells.clear();
 
 //	if a subset-handler is specified, all grid elements which are assigned to
 //	subsets are considered as cells.
 //	If not, only elements of highest dimension are considered as cells.
-	m_cells.clear();
 
 	if(psh){
+		add_subset_handler(*psh, string("regions"));
 		collect_cells<Vertex>(m_cells, grid, IsNotInSubset(*psh, -1));
 		collect_cells<Edge>(m_cells, grid, IsNotInSubset(*psh, -1));
 		collect_cells<Face>(m_cells, grid, IsNotInSubset(*psh, -1));
@@ -91,7 +112,7 @@ new_piece(Grid& grid, ISubsetHandler* psh, TPositionAttachment& aPos)
 
 //	write points
 	out << "      <Points>" << endl;
-	write_vector_data<Vertex>(grid, aPos, "", "        ");
+	write_vector_data<Vertex>(grid, aPos, "");
 	out << "      </Points>" << endl;
 
 //	write cells
@@ -102,11 +123,9 @@ new_piece(Grid& grid, ISubsetHandler* psh, TPositionAttachment& aPos)
 	Grid::VertexAttachmentAccessor<AInt> aaInd(grid, aInd);
 	AssignIndices(grid.begin<Vertex>(), grid.end<Vertex>(), aaInd, 0);
 	
-	write_cells(m_cells, grid, aaInd, "      ");
+	write_cells(m_cells, grid, aaInd);
 
 	grid.detach_from_vertices(aInd);
-
-	out << "    </Piece>" << endl;
 
 	return true;
 }
@@ -117,20 +136,18 @@ void GridWriterVTU::
 write_vector_data(Grid& grid,
 				  TAttachment aData,
 				  const char* name,
-				  const char* prefix,
 				  typename Grid::traits<TElem>::callback consider_elem)
 {
 	using namespace std;
-	UG_COND_THROW(!m_pout, "Invalid ostream specified fo GridWriterVTU!");
-	ostream& out = *m_pout;
+	ostream& out = out_stream();
 
 	typedef typename TAttachment::ValueType			vector_t;
 	typedef typename Grid::traits<TElem>::iterator	iter_t;
 
 	Grid::AttachmentAccessor<TElem, TAttachment> aaData(grid, aData);
 
-	write_data_array_header("Float32", "", vector_t::Size, prefix);
-	out << prefix << " ";
+	write_data_array_header("Float32", "", vector_t::Size);
+	out << "         ";
 
 	for(iter_t i = grid.begin<TElem>(); i != grid.end<TElem>(); ++i){
 		vector_t& v = aaData[*i];
@@ -138,8 +155,8 @@ write_vector_data(Grid& grid,
 			out << " " << v[c];
 		}
 	}
-
-	out << endl << prefix << "</DataArray>" << endl;
+	out << endl;
+	write_data_array_footer();
 }
 
 template <class TElem>
