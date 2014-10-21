@@ -423,20 +423,23 @@ new_document_parsed()
 	xml_node<>* vtkNode = m_doc.first_node("VTKFile");
 	UG_COND_THROW(!vtkNode, "Specified file is not a valid VTKFile!");
 
+	xml_node<>* ugridNode = vtkNode->first_node("UnstructuredGrid");
+	UG_COND_THROW(!ugridNode, "Specified file does not contain an unstructured grid!");
+
 //	iterate through all grids
-	xml_node<>* curNode = vtkNode->first_node("UnstructuredGrid");
+	xml_node<>* curNode = ugridNode->first_node("Piece");
 	while(curNode){
 		m_entries.push_back(GridEntry(curNode));
 		GridEntry& gridEntry = m_entries.back();
 
 	//	collect associated subset handlers
-		xml_node<>* curSHNode = curNode->first_node("Regions");
+		xml_node<>* curSHNode = curNode->first_node("RegionInfo");
 		while(curSHNode){
 			gridEntry.subsetHandlerEntries.push_back(SubsetHandlerEntry(curSHNode));
-			curSHNode = curSHNode->next_sibling("Regions");
+			curSHNode = curSHNode->next_sibling("RegionInfo");
 		}
 
-		curNode = curNode->next_sibling("UnstructuredGrid");
+		curNode = curNode->next_sibling("Piece");
 	}
 
 	return true;
@@ -471,7 +474,7 @@ get_subset_handler_name(size_t refGridIndex, size_t subsetHandlerIndex) const
 	const GridEntry& ge = m_entries[refGridIndex];
 	assert(subsetHandlerIndex < ge.subsetHandlerEntries.size() && "Bad subsetHandlerIndex!");
 
-	xml_attribute<>* attrib = ge.subsetHandlerEntries[subsetHandlerIndex].node->first_attribute("name");
+	xml_attribute<>* attrib = ge.subsetHandlerEntries[subsetHandlerIndex].node->first_attribute("Name");
 	if(attrib)
 		return attrib->value();
 	return "";
@@ -479,8 +482,8 @@ get_subset_handler_name(size_t refGridIndex, size_t subsetHandlerIndex) const
 
 bool GridReaderVTU::
 subset_handler(ISubsetHandler& shOut,
-				size_t subsetHandlerIndex,
-				size_t refGridIndex)
+				size_t refGridIndex,
+				size_t subsetHandlerIndex)
 {
 	if(refGridIndex >= m_entries.size()){
 		UG_THROW("GridReaderVTU::subset_handler: bad refGridIndex " << refGridIndex
@@ -490,33 +493,60 @@ subset_handler(ISubsetHandler& shOut,
 
  	GridEntry& gridEntry = m_entries[refGridIndex];
 
+//	get the referenced subset-handler entry
+	if(subsetHandlerIndex >= gridEntry.subsetHandlerEntries.size()){
+		UG_LOG("GridReaderVTU::subset_handler: bad subsetHandlerIndex."
+			   << " Assigning all cells to subset 0.\n");
+		vector<GridObject*>& cells = gridEntry.cells;
+	 	for(size_t i = 0; i < cells.size(); ++i){
+	 		shOut.assign_subset(cells[i], 0);
+	 	}
+		return false;
+	}
 
-//	todo: use the "Regions" CellData to define regions
- 	vector<GridObject*>& cells = gridEntry.cells;
- 	for(size_t i = 0; i < cells.size(); ++i){
- 		shOut.assign_subset(cells[i], 0);
- 	}
+	SubsetHandlerEntry& shEntry = gridEntry.subsetHandlerEntries[subsetHandlerIndex];
+	shEntry.sh = &shOut;
+	string shName = get_subset_handler_name(refGridIndex, subsetHandlerIndex);
 
-// //	get the referenced subset-handler entry
-// 	if(subsetHandlerIndex >= gridEntry.subsetHandlerEntries.size()){
-// 		UG_LOG("GridReaderVTU::subset_handler: bad subsetHandlerIndex. Aborting.\n");
-// 		return false;
-// 	}
+//	read region-infos
+	xml_node<>* regionNode = shEntry.node->first_node("Region");
+	int subsetInd = 0;
+	while(regionNode)
+	{
+	//	set subset info
+	//	retrieve an initial subset-info from shOut, so that initialised values are kept.
+		SubsetInfo& si = shOut.subset_info(subsetInd);
 
-// 	SubsetHandlerEntry& shEntry = gridEntry.subsetHandlerEntries[subsetHandlerIndex];
-// 	shEntry.sh = &shOut;
+		xml_attribute<>* attrib = regionNode->first_attribute("Name");
+		if(attrib)
+			si.name = attrib->value();
 
-// 	xml_node<>* subsetNode = shEntry.node->first_node("subset");
-// 	size_t subsetInd = 0;
-// 	while(subsetNode)
-// 	{
-// 	//	set subset info
-// 	//	retrieve an initial subset-info from shOut, so that initialised values are kept.
-// 		SubsetInfo si = shOut.subset_info(subsetInd);
+		regionNode = regionNode->next_sibling("Region");
+		++subsetInd;
+	}
 
-// 		xml_attribute<>* attrib = subsetNode->first_attribute("name");
-// 		if(attrib)
-// 			si.name = attrib->value();
+//	read subset-index for each cell
+	xml_node<>* cellDataNode = gridEntry.node->first_node("CellData");
+	UG_COND_THROW(cellDataNode == NULL, "CellData has to be available if regions are defined!");
+
+	xml_node<>* regionDataNode = find_child_node_by_argument_value(cellDataNode,
+																   "DataArray",
+																   "Name",
+																   shName.c_str());
+	UG_COND_THROW(regionDataNode == NULL, "No Cell-Data-Array with name " << shName
+				  << " has been defined!");
+
+	vector<GridObject*>& cells = gridEntry.cells;
+	vector<int> subsetIndices;
+	read_scalar_data(subsetIndices, regionDataNode, true);
+
+	UG_COND_THROW(subsetIndices.size() != cells.size(),
+				  "Mismatch regarding number of cells and number of region-indices!");
+
+	for(size_t i = 0; i < cells.size(); ++i){
+		shOut.assign_subset(cells[i], subsetIndices[i]);
+	}
+
 
 // 		attrib = subsetNode->first_attribute("color");
 // 		if(attrib){
@@ -559,45 +589,6 @@ subset_handler(ISubsetHandler& shOut,
 
 	return true;
 }
-
-template <class TGeomObj>
-bool GridReaderVTU::
-read_subset_handler_elements(ISubsetHandler& shOut,
-							 const char* elemNodeName,
-							 rapidxml::xml_node<>* subsetNode,
-							 int subsetIndex,
-							 std::vector<TGeomObj*>& vElems)
-{
-	xml_node<>* elemNode = subsetNode->first_node(elemNodeName);
-
-	while(elemNode)
-	{
-	//	read the indices
-		stringstream ss(elemNode->value(), ios_base::in);
-
-		size_t index;
-		while(!ss.eof()){
-			ss >> index;
-			if(ss.fail())
-				continue;
-
-			if(index < vElems.size()){
-				shOut.assign_subset(vElems[index], subsetIndex);
-			}
-			else{
-				UG_LOG("Bad element index in subset-node " << elemNodeName <<
-						": " << index << ". Ignoring element.\n");
-				return false;
-			}
-		}
-
-	//	get next element node
-		elemNode = elemNode->next_sibling(elemNodeName);
-	}
-
-	return true;
-}
-
 
 
 
@@ -723,8 +714,8 @@ create_cells(std::vector<GridObject*>& cellsOut,
 				case VTK_PYRAMID:{
 					check_indices(connectivity, curOffset, 5, numPieceVrts);
 					Volume* v = *grid.create<Pyramid>(
-									PyramidDescriptor(VRT(1), VRT(0), VRT(2),
-													VRT(4), VRT(3)));
+									PyramidDescriptor(VRT(0), VRT(1), VRT(2),
+													VRT(3), VRT(4)));
 					cellsOut.push_back(v);
 				}break;
 				
@@ -750,6 +741,25 @@ create_cells(std::vector<GridObject*>& cellsOut,
 	}
 
 	return true;
+}
+
+
+xml_node<>* GridReaderVTU::
+find_child_node_by_argument_value(rapidxml::xml_node<>* parent,
+								  const char* nodeName,
+								  const char* argName,
+								  const char* argValue)
+{
+	xml_node<>* curNode = parent->first_node(nodeName);
+	while(curNode){
+		xml_attribute<>* attrib = curNode->first_attribute("Name");
+		if(attrib){
+			if(strcmp(attrib->value(), argValue) == 0)
+				return curNode;
+		}
+		curNode = curNode->next_sibling(nodeName);
+	}
+	return NULL;
 }
 
 }//	end of namespace

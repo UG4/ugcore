@@ -187,8 +187,8 @@ class GridReaderVTU
 
 	///	fills the given subset-handler
 		bool subset_handler(ISubsetHandler& shOut,
-								size_t subsetHandlerIndex,
-								size_t refGridIndex);
+							size_t refGridIndex,
+							size_t subsetHandlerIndex);
 
 	protected:
 		struct SubsetHandlerEntry
@@ -241,14 +241,12 @@ class GridReaderVTU
 
 		template <class T>
 		void check_indices(std::vector<T>& inds, size_t first, size_t num, size_t max);
-		
-		template <class TGeomObj>
-		bool read_subset_handler_elements(ISubsetHandler& shOut,
-										 const char* elemNodeName,
-										 rapidxml::xml_node<>* subsetNode,
-										 int subsetIndex,
-										 std::vector<TGeomObj*>& vElems);
 
+		rapidxml::xml_node<>* find_child_node_by_argument_value(
+													rapidxml::xml_node<>* parent,
+													const char* nodeName,
+													const char* argName,
+													const char* argValue);
 	protected:
 	///	stores the file-name
 		std::string					m_filename;

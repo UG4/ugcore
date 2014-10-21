@@ -28,8 +28,7 @@ bool LoadGridFromVTU(Grid& grid, ISubsetHandler& sh, const char* filename,
 
 	vtuReader.grid(grid, 0, aPos);
 
-	//if(vtuReader.num_subset_handlers(0) > 0)
-		vtuReader.subset_handler(sh, 0, 0);
+	vtuReader.subset_handler(sh, 0, 0);
 
 	return true;
 }
@@ -171,6 +170,9 @@ collect_cells(std::vector<GridObject*>& cellsOut, Grid& grid,
 	}
 }
 
+
+
+
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 //	GridReaderVTU
@@ -212,70 +214,17 @@ grid(Grid& gridOut, size_t index, TPositionAttachment& aPos)
 	vector<GridObject*>& cells = m_entries[index].cells;
 
 //	iterate over all pieces
-	xml_node<>* pieceNode = gridNode->first_node("Piece");
-	for(; pieceNode; pieceNode = pieceNode->next_sibling()){
-	//	first we'll create all points and cells, then we'll parse point- and cell-data
-		xml_node<>* pointsNode = pieceNode->first_node("Points");
-		UG_COND_THROW(pointsNode == NULL, "Missing Points node in UnstructuredGrid node!")
+	xml_node<>* pieceNode = gridNode;
+//	first we'll create all points and cells, then we'll parse point- and cell-data
+	xml_node<>* pointsNode = pieceNode->first_node("Points");
+	UG_COND_THROW(pointsNode == NULL, "Missing Points node in UnstructuredGrid node!")
 
-		size_t vrtOffset = vertices.size();
-		create_vertices(vertices, grid, pointsNode, aaPos);
+	size_t vrtOffset = vertices.size();
+	create_vertices(vertices, grid, pointsNode, aaPos);
 
-		xml_node<>* cellsNode = pieceNode->first_node("Cells");
-		UG_COND_THROW(cellsNode == NULL, "Missing Cells node in UnstructuredGrid node!")		
-		create_cells(cells, grid, cellsNode, vertices, vrtOffset);
-	}
-
-
-
-//	iterate through the nodes in the grid and create the entries
-	// xml_node<>* curNode = gridNode->first_node();
-	// for(;curNode; curNode = curNode->next_sibling()){
-	// 	bool bSuccess = true;
-	// 	const char* name = curNode->name();
-	// 	if(strcmp(name, "Points") == 0)
-	// 	 	bSuccess = create_vertices(vertices, grid, curNode, aaPos);
-	// 	// else if(strcmp(name, "constrained_vertices") == 0)
-	// 	// 	bSuccess = create_constrained_vertices(vertices, constrainingObjsVRT,
-	// 	// 										   grid, curNode, aaPos);
-	// 	// else if(strcmp(name, "edges") == 0)
-	// 	// 	bSuccess = create_edges(edges, grid, curNode, vertices);
-	// 	// else if(strcmp(name, "constraining_edges") == 0)
-	// 	// 	bSuccess = create_constraining_edges(edges, grid, curNode, vertices);
-	// 	// else if(strcmp(name, "constrained_edges") == 0)
-	// 	// 	bSuccess = create_constrained_edges(edges, constrainingObjsEDGE,
-	// 	// 										grid, curNode, vertices);
-	// 	// else if(strcmp(name, "triangles") == 0)
-	// 	// 	bSuccess = create_triangles(faces, grid, curNode, vertices);
-	// 	// else if(strcmp(name, "constraining_triangles") == 0)
-	// 	// 	bSuccess = create_constraining_triangles(faces, grid, curNode, vertices);
-	// 	// else if(strcmp(name, "constrained_triangles") == 0)
-	// 	// 	bSuccess = create_constrained_triangles(faces, constrainingObjsTRI,
-	// 	// 										grid, curNode, vertices);
-	// 	// else if(strcmp(name, "quadrilaterals") == 0)
-	// 	// 	bSuccess = create_quadrilaterals(faces, grid, curNode, vertices);
-	// 	// else if(strcmp(name, "constraining_quadrilaterals") == 0)
-	// 	// 	bSuccess = create_constraining_quadrilaterals(faces, grid, curNode, vertices);
-	// 	// else if(strcmp(name, "constrained_quadrilaterals") == 0)
-	// 	// 	bSuccess = create_constrained_quadrilaterals(faces, constrainingObjsQUAD,
-	// 	// 										grid, curNode, vertices);
-	// 	// else if(strcmp(name, "tetrahedrons") == 0)
-	// 	// 	bSuccess = create_tetrahedrons(volumes, grid, curNode, vertices);
-	// 	// else if(strcmp(name, "hexahedrons") == 0)
-	// 	// 	bSuccess = create_hexahedrons(volumes, grid, curNode, vertices);
-	// 	// else if(strcmp(name, "prisms") == 0)
-	// 	// 	bSuccess = create_prisms(volumes, grid, curNode, vertices);
-	// 	// else if(strcmp(name, "pyramids") == 0)
-	// 	// 	bSuccess = create_pyramids(volumes, grid, curNode, vertices);
-	// 	// else if(strcmp(name, "octahedrons") == 0)
-	// 	// 	bSuccess = create_octahedrons(volumes, grid, curNode, vertices);
-
-
-	// 	if(!bSuccess){
-	// 		grid.set_options(gridopts);
-	// 		return false;
-	// 	}
-	// }
+	xml_node<>* cellsNode = pieceNode->first_node("Cells");
+	UG_COND_THROW(cellsNode == NULL, "Missing Cells node in UnstructuredGrid node!")		
+	create_cells(cells, grid, cellsNode, vertices, vrtOffset);
 
 //	reenable the grids options.
 	grid.set_options(gridopts);
