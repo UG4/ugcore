@@ -33,7 +33,6 @@ const int MAX_NUM_INDS_OUT = 64;//todo: this is just an estimate!
 ///	the local vertex indices of the given edge
 const int EDGE_VRT_INDS[][2] = {	{0, 1}, {1, 2}, {2, 0},
 									{0, 3}, {1, 3}, {2,3}};
-//									{3, 0}, {3, 1}, {3,2}};
 
 ///	the local vertex indices of the given face
 const int FACE_VRT_INDS[][4] = {	{0, 1, 2, -1}, {1, 3, 2, -1},

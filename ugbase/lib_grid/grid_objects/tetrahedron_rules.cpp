@@ -110,6 +110,35 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut,
 				//	two types exist: The two refined edges share a vertex or not.
 					if(OPPOSED_EDGE[refEdgeInds[0]] == refEdgeInds[1]){
 					//	they do not share an edge
+					//	we create a local order from refEdgeInds[0], which
+					//	always has to be an edge in the base-triangle and
+					//	refEdgeInds[1], which always connects a base-corner with
+					//	the top.
+						const int v0 = EDGE_VRT_INDS[refEdgeInds[0]][0];
+						const int v1 = EDGE_VRT_INDS[refEdgeInds[0]][1];
+						const int v2 = EDGE_VRT_INDS[refEdgeInds[1]][0];
+						const int v3 = EDGE_VRT_INDS[refEdgeInds[1]][1];
+						const int n0 = refEdgeInds[0] + NUM_VERTICES;
+						const int n1 = refEdgeInds[1] + NUM_VERTICES;
+
+					//	from this local order we can now construct the 4 new tetrahedrons.
+						int& fi = fillCount;
+						int* inds = newIndsOut;
+						inds[fi++] = 4;
+						inds[fi++] = v0;	inds[fi++] = n0;
+						inds[fi++] = v2; 	inds[fi++] = n1;
+
+						inds[fi++] = 4;
+						inds[fi++] = v0;	inds[fi++] = n0;
+						inds[fi++] = n1; 	inds[fi++] = v3;
+
+						inds[fi++] = 4;
+						inds[fi++] = n0;	inds[fi++] = v1;
+						inds[fi++] = v2; 	inds[fi++] = n1;
+
+						inds[fi++] = 4;
+						inds[fi++] = n0;	inds[fi++] = v1;
+						inds[fi++] = n1; 	inds[fi++] = v3;
 					}
 					else{
 					//	they share an edge

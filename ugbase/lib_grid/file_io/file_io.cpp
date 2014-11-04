@@ -268,7 +268,7 @@ static bool SaveGrid3d_IMPL(Grid& grid, ISubsetHandler* pSH,
 	else if(strName.find(".stl") != string::npos)
 		return SaveGridToSTL(grid, filename, pSH, aPos);
 	else if(strName.find(".smesh") != string::npos)
-		return ExportGridToSMESH(grid, filename, aPos);
+		return ExportGridToSMESH(grid, filename, aPos, pSH);
 	else if((strName.find(".tikz") != string::npos)
 			|| (strName.find(".tex") != string::npos))
 	{
