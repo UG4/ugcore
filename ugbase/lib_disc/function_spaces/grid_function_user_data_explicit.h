@@ -60,7 +60,7 @@ protected:
 
 		///	returns if provided data is continuous over geometric object boundaries
 		//virtual bool continuous() const {return true;}
-		virtual bool continuous() const {return getImpl().template continuous(); }
+		virtual bool continuous() const {return getImpl().continuous(); }
 
 		template <int refDim>
 		void eval(LocalVector* u, GridObject* elem,
