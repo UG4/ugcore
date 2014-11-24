@@ -70,7 +70,7 @@ EOF
 # @ bg_size = $nnodes
 # @ queue
 $profilePrefix
-runjob --np $npe --ranks-per-node $nppn : $executable $args
+runjob --np $npe --ranks-per-node $nppn $runjobarg : $executable $args
 EOF
 
 	commandline="llsubmit $outdir/job.sh"
