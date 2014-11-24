@@ -269,6 +269,12 @@ do
 	elif [ $1 == "-profilePrefix" ]; then
 		profilePrefix=$2
 		shift 2
+	elif [ $1 == "-runjobarg" ]; then
+		runjobarg=$2
+		shift 2
+	elif [ $1 == "-scorep" ]; then
+		runjobarg="--envs SCOREP_EXPERIMENT_DIRECTORY=ScoreP SCOREP_METRIC_PAPI=PAPI_FP_OPS,PAPI_LD_INS,PAPI_SR_INS,PAPI_INT_INS SCOREP_MPI_MAX_GROUPS=100 SCOREP_MPI_MAX_COMMUNICATORS=100 "
+		shift 1
 	elif [ $1 == "-nosubdir" ]; then
 		nosubdir=true
 		shift 1
