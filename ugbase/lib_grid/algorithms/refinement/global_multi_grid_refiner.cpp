@@ -156,6 +156,8 @@ void GlobalMultiGridRefiner::perform_refinement()
 
 //	the old top level
 	int oldTopLevel = mg.num_levels() - 1;
+//todo: Ghosts have to be ignored in the specified grid-object-collection - otherwise problems may occur
+//		e.g. in the AdaptionSurfaceGridFunction during prolongation of piecewise const functions... (M. Breit)
 	m_messageHub->post_message(GridMessage_Adaption(GMAT_GLOBAL_REFINEMENT_BEGINS,
 													mg.get_grid_objects(oldTopLevel)));
 
