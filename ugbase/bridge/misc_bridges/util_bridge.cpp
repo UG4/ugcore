@@ -9,6 +9,7 @@
 #include "../util_overloaded.h"
 #include "ug.h"
 #include "common/util/table.h"
+#include "common/stopwatch.h"
 
 #include <cstdlib>
 #include <string>
@@ -164,6 +165,16 @@ void RegisterBridge_Util(Registry& reg, string parentGroup)
 		.add_method("transpose", &T::transpose)
 		
 		.construct_as_smart_pointer();
+	}
+
+	{
+		// Matlab like stop watch
+		 typedef CuckooClock T;
+		 reg.add_class_<T>("CuckooClock", grp)
+			.add_constructor()
+		    .add_method("tic", &T::tic)
+		    .add_method("toc", &T::toc)
+		    .add_method("cuckoo", &T::cuckoo);
 	}
 
 }

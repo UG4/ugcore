@@ -2,7 +2,7 @@
  * \file common/stopwatch.h
  * \author Martin Rupp
  * \date 2010-03-03
- * \author Torbjörn Klatt
+ * \author Torbjoern Klatt
  * \date 2012-05-07
  * \copyright 2010 G-CSC, University of Frankfurt. All rights reserved.
  * \brief stopwatch class for quickly taking times
@@ -25,6 +25,35 @@
 
 namespace ug
 {
+
+
+
+class CuckooClock{
+
+ public:
+ CuckooClock() : m_tlaunch(0), m_tdone(0), m_ttotal(0) {}
+
+  void tic(){m_tlaunch = clock();}
+
+  //! returns time since last tic
+  double toc()
+  {
+    m_tdone = clock();
+    //std::cerr << m_tdone;
+    clock_t delta= (m_tdone-m_tlaunch);
+    m_ttotal += delta;
+    return 1.0*delta/CLOCKS_PER_SEC;
+  }
+
+  //! returns total time (in seconds)
+  double cuckoo() {return 1.0*m_ttotal/ CLOCKS_PER_SEC;}
+
+protected:
+
+    clock_t m_tlaunch;
+    clock_t m_tdone;
+    clock_t m_ttotal;
+};
 
 
 #ifdef UG_POSIX
