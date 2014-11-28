@@ -47,18 +47,18 @@ static void ComputeMidPoints(const TRefElem& rRefElem,
 		}
 	}
 
-	// for PYRAMIDS: add midpoints of imaginary faces, edges and volumes
-	// resulting from the division into two tetrahedra alongside x==y
+// 	for PYRAMIDS: add midpoints of imaginary faces, edges and volumes
+// 	resulting from the division into two tetrahedra alongside x==y
 	if (rRefElem.roid() == ROID_PYRAMID)
 	{
 		UG_THROW("Pyramid FV geometries are currently implemented incorrectly."
-				" Please contact Martin Stepniewski if you see this error. ");
+				 " Please contact Martin Stepniewski if you see this error. ");
 
-		// diagonal 2->0, diagonal 0->2
+	// 	diagonal 2->0, diagonal 0->2
 		VecScaleAdd(vvMid[1][rRefElem.num(1)], 0.5, vCorner[2], 0.5, vCorner[0]);
 		VecScaleAdd(vvMid[1][rRefElem.num(1)+1], 0.5, vCorner[0], 0.5, vCorner[2]);
 
-		// subface 0,1,2; subface 0,2,3; face 0,4,2; face 0,2,4
+	// 	subface 0,1,2; subface 0,2,3; face 0,4,2; face 0,2,4
 		vvMid[2][rRefElem.num(2)] = vCorner[0];
 		vvMid[2][rRefElem.num(2)] += vCorner[1];
 		vvMid[2][rRefElem.num(2)] += vCorner[2];
@@ -79,8 +79,7 @@ static void ComputeMidPoints(const TRefElem& rRefElem,
 		vvMid[2][rRefElem.num(2)+3] += vCorner[4];
 		vvMid[2][rRefElem.num(2)+3] *= 1.0/3.0;
 
-		// subvolume 0,1,2,4; subvolume 0,2,3,4
-
+	// 	subvolume 0,1,2,4; subvolume 0,2,3,4
 		vvMid[3][rRefElem.num(3)] = vCorner[0];
 		vvMid[3][rRefElem.num(3)] += vCorner[1];
 		vvMid[3][rRefElem.num(3)] += vCorner[2];
@@ -93,6 +92,81 @@ static void ComputeMidPoints(const TRefElem& rRefElem,
 		vvMid[3][rRefElem.num(3)+1] += vCorner[4];
 		vvMid[3][rRefElem.num(3)+1] *= 0.25;
 	}
+
+// 	for OCTAHEDRONS: add midpoints of imaginary faces, edges and volumes
+// 	resulting from the division into 4 tetrahedra alongside inner edge 3->1
+	if (rRefElem.roid() == ROID_OCTAHEDRON)
+	{
+	// 	diagonal 3->1, diagonal 1->3
+		VecScaleAdd(vvMid[1][rRefElem.num(1)], 0.5, vCorner[3], 0.5, vCorner[1]);
+		VecScaleAdd(vvMid[1][rRefElem.num(1)+1], 0.5, vCorner[1], 0.5, vCorner[3]);
+
+	// 	subface 1,2,3; subface 1,3,2; subface 1,3,4; subface 1,4,3; face 1,3,5; face 1,5,3; face 1,0,3; face 1,3,0
+		vvMid[2][rRefElem.num(2)] = vCorner[1];
+		vvMid[2][rRefElem.num(2)] += vCorner[2];
+		vvMid[2][rRefElem.num(2)] += vCorner[3];
+		vvMid[2][rRefElem.num(2)] *= 1.0/3.0;
+
+		vvMid[2][rRefElem.num(2)+1] = vCorner[1];
+		vvMid[2][rRefElem.num(2)+1] += vCorner[3];
+		vvMid[2][rRefElem.num(2)+1] += vCorner[2];
+		vvMid[2][rRefElem.num(2)+1] *= 1.0/3.0;
+
+		vvMid[2][rRefElem.num(2)+2] = vCorner[1];
+		vvMid[2][rRefElem.num(2)+2] += vCorner[3];
+		vvMid[2][rRefElem.num(2)+2] += vCorner[4];
+		vvMid[2][rRefElem.num(2)+2] *= 1.0/3.0;
+
+		vvMid[2][rRefElem.num(2)+3] = vCorner[1];
+		vvMid[2][rRefElem.num(2)+3] += vCorner[4];
+		vvMid[2][rRefElem.num(2)+3] += vCorner[3];
+		vvMid[2][rRefElem.num(2)+3] *= 1.0/3.0;
+
+		vvMid[2][rRefElem.num(2)+4] = vCorner[1];
+		vvMid[2][rRefElem.num(2)+4] += vCorner[3];
+		vvMid[2][rRefElem.num(2)+4] += vCorner[5];
+		vvMid[2][rRefElem.num(2)+4] *= 1.0/3.0;
+
+		vvMid[2][rRefElem.num(2)+5] = vCorner[1];
+		vvMid[2][rRefElem.num(2)+5] += vCorner[5];
+		vvMid[2][rRefElem.num(2)+5] += vCorner[3];
+		vvMid[2][rRefElem.num(2)+5] *= 1.0/3.0;
+
+		vvMid[2][rRefElem.num(2)+6] = vCorner[1];
+		vvMid[2][rRefElem.num(2)+6] += vCorner[0];
+		vvMid[2][rRefElem.num(2)+6] += vCorner[3];
+		vvMid[2][rRefElem.num(2)+6] *= 1.0/3.0;
+
+		vvMid[2][rRefElem.num(2)+7] = vCorner[1];
+		vvMid[2][rRefElem.num(2)+7] += vCorner[3];
+		vvMid[2][rRefElem.num(2)+7] += vCorner[0];
+		vvMid[2][rRefElem.num(2)+7] *= 1.0/3.0;
+
+	// 	subvolume 1,2,3,5; subvolume 1,3,4,5; subvolume 1,2,3,0; subvolume 1,3,4,0
+		vvMid[3][rRefElem.num(3)] = vCorner[1];
+		vvMid[3][rRefElem.num(3)] += vCorner[2];
+		vvMid[3][rRefElem.num(3)] += vCorner[3];
+		vvMid[3][rRefElem.num(3)] += vCorner[5];
+		vvMid[3][rRefElem.num(3)] *= 0.25;
+
+		vvMid[3][rRefElem.num(3)+1] = vCorner[1];
+		vvMid[3][rRefElem.num(3)+1] += vCorner[3];
+		vvMid[3][rRefElem.num(3)+1] += vCorner[4];
+		vvMid[3][rRefElem.num(3)+1] += vCorner[5];
+		vvMid[3][rRefElem.num(3)+1] *= 0.25;
+
+		vvMid[3][rRefElem.num(3)+2] = vCorner[1];
+		vvMid[3][rRefElem.num(3)+2] += vCorner[2];
+		vvMid[3][rRefElem.num(3)+2] += vCorner[3];
+		vvMid[3][rRefElem.num(3)+2] += vCorner[0];
+		vvMid[3][rRefElem.num(3)+2] *= 0.25;
+
+		vvMid[3][rRefElem.num(3)+3] = vCorner[1];
+		vvMid[3][rRefElem.num(3)+3] += vCorner[3];
+		vvMid[3][rRefElem.num(3)+3] += vCorner[4];
+		vvMid[3][rRefElem.num(3)+3] += vCorner[0];
+		vvMid[3][rRefElem.num(3)+3] *= 0.25;
+	}
 }
 
 /**
@@ -104,14 +178,14 @@ static void ComputeSCVFMidID(const TRefElem& rRefElem,
 {
 	static const int dim = TRefElem::dim;
 
-	if (rRefElem.roid() != ROID_PYRAMID)
+	if (rRefElem.roid() != ROID_PYRAMID && rRefElem.roid() != ROID_OCTAHEDRON)
 	{
-		//	set mid ids
+	//	set mid ids
 		{
-			// 	start at edge midpoint
+		// 	start at edge midpoint
 			vMidID[0] = MidID(1,i);
 
-			// 	loop up dimension
+		// 	loop up dimension
 			if(dim == 2)
 			{
 				vMidID[1] = MidID(dim, 0); // center of element
@@ -124,78 +198,78 @@ static void ComputeSCVFMidID(const TRefElem& rRefElem,
 			}
 		}
 	}
-	// pyramid here
-	else
+// 	pyramid here
+	else if(rRefElem.roid() == ROID_PYRAMID)
 	{
 		switch (i)
 		{
-			// scvf of edge 0
+		// 	scvf of edge 0
 			case 0:	vMidID[0] = MidID(1,0);	// edge 0
 					vMidID[1] = MidID(2,5);	// subface 0/0
 					vMidID[2] = MidID(3,1);	// subvolume 0/0
 					vMidID[3] = MidID(2,1); // face 1
 					break;
-			// scvf of edge 1
+		// 	scvf of edge 1
 			case 1:	vMidID[0] = MidID(1,1);	// edge 1
 					vMidID[1] = MidID(2,5);	// subface 0/0
 					vMidID[2] = MidID(3,1);	// subvolume 0/0
 					vMidID[3] = MidID(2,2); // face 2
 					break;
-			// scvf of diagonal 2->0
+		// 	scvf of diagonal 2->0
 			case 2:	vMidID[0] = MidID(1,8);	// diagonal 2->0
 					vMidID[1] = MidID(2,5);	// subface 0/0
 					vMidID[2] = MidID(3,1);	// subvolume 0/0
 					vMidID[3] = MidID(2,7); // face 0,4,2
 					break;
-			// scvf of edge 4 in subvolume 0/0
+		//	scvf of edge 4 in subvolume 0/0
 			case 3:	vMidID[0] = MidID(1,4);	// edge 4
 					vMidID[1] = MidID(2,1); // face 1
 					vMidID[2] = MidID(3,1);	// subvolume 0/0
 					vMidID[3] = MidID(2,7); // face 0,4,2
 					break;
-			// scvf of edge 5
+		// 	scvf of edge 5
 			case 4:	vMidID[0] = MidID(1,5);	// edge 5
 					vMidID[1] = MidID(2,2);	// face 2
 					vMidID[2] = MidID(3,1);	// subvolume 0/0
 					vMidID[3] = MidID(2,1); // face 1
 					break;
-			// scvf of edge 6 in subvolume 0/0
+		// 	scvf of edge 6 in subvolume 0/0
 			case 5:	vMidID[0] = MidID(1,6);	// edge 6
 					vMidID[1] = MidID(2,7); // face 0,4,2
 					vMidID[2] = MidID(3,1);	// subvolume 0/0
 					vMidID[3] = MidID(2,2);	// face 2
 					break;
-			// edge 0->2
+		// 	edge 0->2
 			case 6:	vMidID[0] = MidID(1,9);	// edge 0->2
 					vMidID[1] = MidID(2,6);	// subface 1/0
 					vMidID[2] = MidID(3,2);	// subvolume 1/0
 					vMidID[3] = MidID(2,8);	// face 0,2,4
 					break;
-			// scvf of edge 2
+		// 	scvf of edge 2
 			case 7:	vMidID[0] = MidID(1,2);	// edge 2
 					vMidID[1] = MidID(2,6);	// subface 1/0
 					vMidID[2] = MidID(3,2);	// subvolume 1/0
 					vMidID[3] = MidID(2,3); // face 3
 					break;
-			// scvf of edge 3
+		// 	scvf of edge 3
 			case 8:	vMidID[0] = MidID(1,3);	// edge 3
 					vMidID[1] = MidID(2,6);	// subface 1/0
 					vMidID[2] = MidID(3,2);	// subvolume 1/0
 					vMidID[3] = MidID(2,4); // face 4
 					break;
-			// scvf of edge 4 in subvolume 1/0
+		// 	scvf of edge 4 in subvolume 1/0
 			case 9:	vMidID[0] = MidID(1,4);	// edge 4
 					vMidID[1] = MidID(2,8);	// face 0,2,4
 					vMidID[2] = MidID(3,2);	// subvolume 1/0
 					vMidID[3] = MidID(2,4); // face 4
 					break;
-			// scvf of edge 6 in subvolume 1/0
+		// 	scvf of edge 6 in subvolume 1/0
 			case 10:vMidID[0] = MidID(1,6);	// edge 6
 					vMidID[1] = MidID(2,3);	// face 3
 					vMidID[2] = MidID(3,2);	// subvolume 1/0
 					vMidID[1] = MidID(2,8);	// face 0,2,4
 					break;
-			// scvf of edge 7
+		// 	scvf of edge 7
 			case 11:vMidID[0] = MidID(1,7);	// edge 7
 					vMidID[3] = MidID(2,4); // face 4
 					vMidID[2] = MidID(3,2);	// subvolume 1/0
@@ -205,10 +279,187 @@ static void ComputeSCVFMidID(const TRefElem& rRefElem,
 					break;
 		}
 	}
+// 	octahedron here (analogue to scvf ordering in pyramids but in top/bottom pairs)
+	else
+	{
+		switch (i)
+		{
+		// 	scvf of edge 4 (top)
+			case 0:	vMidID[0] = MidID(1,4);	// edge 4
+					vMidID[1] = MidID(2,8);	// subface 0 = 1,2,3
+					vMidID[2] = MidID(3,1);	// subvolume 0
+					vMidID[3] = MidID(2,4); // face 4
+					break;
+		// 	scvf of edge 4 (bottom)
+			case 1:	vMidID[0] = MidID(1,4);	// edge 4
+					vMidID[1] = MidID(2,9);	// subface 1 = 1,3,2
+					vMidID[2] = MidID(3,3);	// subvolume 2
+					vMidID[3] = MidID(2,0); // face 0
+					break;
+
+
+		// 	scvf of edge 5 (top)
+			case 2:	vMidID[0] = MidID(1,5);	// edge 5
+					vMidID[1] = MidID(2,8);	// subface 0 = 1,2,3
+					vMidID[2] = MidID(3,1);	// subvolume 0
+					vMidID[3] = MidID(2,5); // face 5
+					break;
+		// 	scvf of edge 5 (bottom)
+			case 3:	vMidID[0] = MidID(1,5);	// edge 5
+					vMidID[1] = MidID(2,9);	// subface 1 = 1,3,2
+					vMidID[2] = MidID(3,3);	// subvolume 2
+					vMidID[3] = MidID(2,1); // face 1
+					break;
+
+
+		// 	scvf of diagonal 3->1 (top) in subvolume 0
+			case 4:	vMidID[0] = MidID(1,12);// diagonal 3->1
+					vMidID[1] = MidID(2,8);	// subface 0 = 1,2,3
+					vMidID[2] = MidID(3,1);	// subvolume 0
+					vMidID[3] = MidID(2,13); // face 1,5,3
+					break;
+		// 	scvf of diagonal 3->1 (bottom) in subvolume 2
+			case 5:	vMidID[0] = MidID(1,12);// diagonal 3->1
+					vMidID[1] = MidID(2,9);	// subface 1 = 1,3,2
+					vMidID[2] = MidID(3,3);	// subvolume 2
+					vMidID[3] = MidID(2,14); // face 1,0,3
+					break;
+
+
+		//	scvf of edge 8 in subvolume 0
+			case 6:	vMidID[0] = MidID(1,8);	// edge 8
+					vMidID[1] = MidID(2,4); // face 4
+					vMidID[2] = MidID(3,1);	// subvolume 0
+					vMidID[3] = MidID(2,13);// face 1,5,3
+					break;
+		//	scvf of edge 0 in subvolume 2
+			case 7:	vMidID[0] = MidID(1,0);	// edge 0
+					vMidID[1] = MidID(2,0); // face 0
+					vMidID[2] = MidID(3,3);	// subvolume 2
+					vMidID[3] = MidID(2,15);// face 1,3,0
+					break;
+
+
+		// 	scvf of edge 9
+			case 8:	vMidID[0] = MidID(1,9);	// edge 9
+					vMidID[1] = MidID(2,5);	// face 5
+					vMidID[2] = MidID(3,1);	// subvolume 0
+					vMidID[3] = MidID(2,4); // face 4
+					break;
+		// 	scvf of edge 1
+			case 9:	vMidID[0] = MidID(1,1);	// edge 1
+					vMidID[1] = MidID(2,1);	// face 1
+					vMidID[2] = MidID(3,3);	// subvolume 2
+					vMidID[3] = MidID(2,0); // face 0
+					break;
+
+
+		// 	scvf of edge 10 in subvolume 0
+			case 10:vMidID[0] = MidID(1,10);// edge 10
+					vMidID[1] = MidID(2,12);// face 1,3,5
+					vMidID[2] = MidID(3,1);	// subvolume 0
+					vMidID[3] = MidID(2,5);	// face 5
+					break;
+		// 	scvf of edge 2 in subvolume 2
+			case 11:vMidID[0] = MidID(1,2);	// edge 2
+					vMidID[1] = MidID(2,14);// face 1,0,3
+					vMidID[2] = MidID(3,3);	// subvolume 2
+					vMidID[3] = MidID(2,1); // face 1
+					break;
+
+
+		// 	scvf of diagonal 1->3 (top) in subvolume 1
+			case 12:vMidID[0] = MidID(1,13);// diagonal 1->3
+					vMidID[1] = MidID(2,10);// subface 2 = 1,3,4
+					vMidID[2] = MidID(3,2);	// subvolume 1
+					vMidID[3] = MidID(2,12);// face 1,3,5
+					break;
+		// 	scvf of diagonal 1->3 (bottom) in subvolume 3
+			case 13:vMidID[0] = MidID(1,13);// diagonal 1->3
+					vMidID[1] = MidID(2,11);// subface 3 = 1,4,3
+					vMidID[2] = MidID(3,4);	// subvolume 3
+					vMidID[3] = MidID(2,15);// face 1,3,0
+					break;
+
+
+		// 	scvf of edge 6 (top)
+			case 14:vMidID[0] = MidID(1,6);	// edge 6
+					vMidID[1] = MidID(2,10);// subface 2 = 1,3,4
+					vMidID[2] = MidID(3,2);	// subvolume 1
+					vMidID[3] = MidID(2,6); // face 6
+					break;
+		// 	scvf of edge 6 (bottom)
+			case 15:vMidID[0] = MidID(1,6);	// edge 6
+					vMidID[1] = MidID(2,11);// subface 3 = 1,4,3
+					vMidID[2] = MidID(3,4);	// subvolume 3
+					vMidID[3] = MidID(2,2);	// face 2
+					break;
+
+
+		// 	scvf of edge 7 (top)
+			case 16:vMidID[0] = MidID(1,7);	// edge 7
+					vMidID[1] = MidID(2,10);// subface 2 = 1,3,4
+					vMidID[2] = MidID(3,2);	// subvolume 1
+					vMidID[3] = MidID(2,7); // face 7
+					break;
+		// 	scvf of edge 7 (bottom)
+			case 17:vMidID[0] = MidID(1,7);	// edge 7
+					vMidID[1] = MidID(2,11);// subface 3 = 1,4,3
+					vMidID[2] = MidID(3,4);	// subvolume 3
+					vMidID[3] = MidID(2,3);	// face 3
+					break;
+
+
+		// 	scvf of edge 8 in subvolume 1
+			case 18:vMidID[0] = MidID(1,8);	// edge 8
+					vMidID[1] = MidID(2,13);// face 1,5,3
+					vMidID[2] = MidID(3,2);	// subvolume 1
+					vMidID[3] = MidID(2,7); // face 7
+					break;
+		// 	scvf of edge 0 in subvolume 3
+			case 19:vMidID[0] = MidID(1,6);	// edge 6
+					vMidID[1] = MidID(2,15);// face 1,3,0
+					vMidID[2] = MidID(3,4);	// subvolume 3
+					vMidID[3] = MidID(2,3);	// face 3
+					break;
+
+
+		// 	scvf of edge 10 in subvolume 1
+			case 20:vMidID[0] = MidID(1,10);// edge 10
+					vMidID[1] = MidID(2,6); // face 6
+					vMidID[2] = MidID(3,2);	// subvolume 1
+					vMidID[3] = MidID(2,12);// face 1,3,5
+					break;
+		// 	scvf of edge 2 in subvolume 3
+			case 21:vMidID[0] = MidID(1,2);	// edge 2
+					vMidID[1] = MidID(2,2); // face 2
+					vMidID[2] = MidID(3,4);	// subvolume 3
+					vMidID[3] = MidID(2,14);// face 1,0,3
+					break;
+
+
+		// 	scvf of edge 11 in subvolume 1
+			case 22:vMidID[0] = MidID(1,11);// edge 11
+					vMidID[1] = MidID(2,7); // face 7
+					vMidID[2] = MidID(3,2);	// subvolume 1
+					vMidID[3] = MidID(2,6); // face 6
+					break;
+		// 	scvf of edge 3 in subvolume 3
+			case 23:vMidID[0] = MidID(1,3);	// edge 3
+					vMidID[1] = MidID(2,2); // face 3
+					vMidID[2] = MidID(3,4);	// subvolume 3
+					vMidID[3] = MidID(2,14);// face 2
+					break;
+
+
+			default:UG_THROW("Octahedron only has 24 SCVFs (no. 0-23), but requested no. " << i << ".");
+					break;
+		}
+	}
 }
 
 /**
- * \param[in]	i		indicates that scvf corresponds to i'th corner of ref elem
+ * \param[in]	i		indicates that scv corresponds to i'th corner of ref elem
  */
 template <typename TRefElem>
 static void ComputeSCVMidID(const TRefElem& rRefElem,
@@ -216,7 +467,7 @@ static void ComputeSCVMidID(const TRefElem& rRefElem,
 {
 	static const int dim = TRefElem::dim;
 
-	if (rRefElem.roid() != ROID_PYRAMID)
+	if (rRefElem.roid() != ROID_PYRAMID && rRefElem.roid() != ROID_OCTAHEDRON)
 	{
 		if(dim == 1)
 		{
@@ -241,14 +492,14 @@ static void ComputeSCVMidID(const TRefElem& rRefElem,
 			vMidID[6] = MidID(dim, 0);	// center of element
 			vMidID[7] = MidID(2, rRefElem.id(0, i, 2, 1)); // face 1
 		}
-		else {UG_THROW("Dimension higher that 3 not implemented.");}
+		else {UG_THROW("Dimension higher than 3 not implemented.");}
 	}
-	// pyramid here
-	else
+// 	pyramid here
+	else if (rRefElem.roid() == ROID_PYRAMID)
 	{
 		switch (i)
 		{
-			// scv of corner 0 in subvolume 0/0
+		// 	scv of corner 0 in subvolume 0/0
 			case 0:	vMidID[0] = MidID(0,0);	// corner 0
 					vMidID[1] = MidID(1,0);	// edge 0
 					vMidID[2] = MidID(2,5);	// subface 0/0
@@ -258,7 +509,7 @@ static void ComputeSCVMidID(const TRefElem& rRefElem,
 					vMidID[6] = MidID(3,1);	// subvolume 0/0
 					vMidID[7] = MidID(2,7); // face 0,4,2
 					break;
-			// scv of corner 1
+		// 	scv of corner 1
 			case 1:	vMidID[0] = MidID(0,1);	// corner 1
 					vMidID[1] = MidID(1,1);	// edge 1
 					vMidID[2] = MidID(2,5);	// subface 0/0
@@ -268,7 +519,7 @@ static void ComputeSCVMidID(const TRefElem& rRefElem,
 					vMidID[6] = MidID(3,1);	// subvolume 0/0
 					vMidID[7] = MidID(2,1); // face 1
 					break;
-			// scv of corner 2 in subvolume 0/0
+		// 	scv of corner 2 in subvolume 0/0
 			case 2:	vMidID[0] = MidID(0,2);	// corner 2
 					vMidID[1] = MidID(1,8); // edge 2->0
 					vMidID[2] = MidID(2,5);	// subface 0/0
@@ -278,7 +529,7 @@ static void ComputeSCVMidID(const TRefElem& rRefElem,
 					vMidID[6] = MidID(3,1);	// subvolume 0/0
 					vMidID[7] = MidID(2,2);	// face 2
 					break;
-			// scv of corner 4 in subvolume 0/0
+		// 	scv of corner 4 in subvolume 0/0
 			case 3:	vMidID[0] = MidID(0,4);	// corner 4
 					vMidID[1] = MidID(1,5);	// edge 5
 					vMidID[2] = MidID(2,1); // face 1
@@ -288,7 +539,7 @@ static void ComputeSCVMidID(const TRefElem& rRefElem,
 					vMidID[6] = MidID(3,1);	// subvolume 0/0
 					vMidID[7] = MidID(2,7); // face 0,4,2
 					break;
-			// scv of corner 0 in subvolume 1/0
+		// 	scv of corner 0 in subvolume 1/0
 			case 4:	vMidID[0] = MidID(0,0);	// corner 0
 					vMidID[1] = MidID(1,9);	// edge 0->2
 					vMidID[2] = MidID(2,6);	// subface 1/0
@@ -298,7 +549,7 @@ static void ComputeSCVMidID(const TRefElem& rRefElem,
 					vMidID[6] = MidID(3,2);	// subvolume 1/0
 					vMidID[7] = MidID(2,4); // face 4
 					break;
-			// scv of corner 2 in subvolume 1/0
+		// 	scv of corner 2 in subvolume 1/0
 			case 5:	vMidID[0] = MidID(0,2);	// corner 2
 					vMidID[1] = MidID(1,2);	// edge 2
 					vMidID[2] = MidID(2,6);	// subface 1/0
@@ -308,7 +559,7 @@ static void ComputeSCVMidID(const TRefElem& rRefElem,
 					vMidID[6] = MidID(3,2);	// subvolume 1/0
 					vMidID[7] = MidID(2,8); // face 0,2,4
 					break;
-			// scv of corner 3
+		// 	scv of corner 3
 			case 6:	vMidID[0] = MidID(0,3);	// corner 3
 					vMidID[1] = MidID(1,3);	// edge 3
 					vMidID[2] = MidID(2,6);	// subface 1/0
@@ -318,7 +569,7 @@ static void ComputeSCVMidID(const TRefElem& rRefElem,
 					vMidID[6] = MidID(3,2);	// subvolume 1/0
 					vMidID[7] = MidID(2,3); // face 3
 					break;
-			// scv of corner 4 in subvolume 1/0
+		// 	scv of corner 4 in subvolume 1/0
 			case 7:	vMidID[0] = MidID(0,4);	// corner 4
 					vMidID[1] = MidID(1,6);	// edge 6
 					vMidID[2] = MidID(2,8); // face 0,2,4
@@ -332,10 +583,193 @@ static void ComputeSCVMidID(const TRefElem& rRefElem,
 					break;
 		}
 	}
+	// octahedron here (analogue to scv ordering in pyramids but in top/bottom pairs)
+	else
+	{
+		switch (i)
+		{
+		// 	scv of corner 1 in subvolume 0 (top)
+			case 0:	vMidID[0] = MidID(0,1);	// corner 1
+					vMidID[1] = MidID(1,4);	// edge 4
+					vMidID[2] = MidID(2,8);	// subface 0 = 1,2,3
+					vMidID[3] = MidID(1,12);// edge 3->1
+					vMidID[4] = MidID(1,8);	// edge 8
+					vMidID[5] = MidID(2,4); // face 4
+					vMidID[6] = MidID(3,1);	// subvolume 0
+					vMidID[7] = MidID(2,13);// face 1,5,3
+					break;
+		// 	scv of corner 1 in subvolume 2 (bottom)
+			case 1:	vMidID[0] = MidID(0,1);	// corner 1
+					vMidID[1] = MidID(1,4);	// edge 4
+					vMidID[2] = MidID(2,9);	// subface 1 = 1,3,2
+					vMidID[3] = MidID(1,13);// edge 1->3
+					vMidID[4] = MidID(1,0);	// edge 0
+					vMidID[5] = MidID(2,0); // face 0
+					vMidID[6] = MidID(3,3);	// subvolume 2
+					vMidID[7] = MidID(2,15);// face 1,3,0
+					break;
+
+
+		// 	scv of corner 2 in subvolume 0 (top)
+			case 2:	vMidID[0] = MidID(0,2);	// corner 2
+					vMidID[1] = MidID(1,5);	// edge 5
+					vMidID[2] = MidID(2,8);	// subface 0 = 1,2,3
+					vMidID[3] = MidID(1,4); // edge 4
+					vMidID[4] = MidID(1,9);	// edge 9
+					vMidID[5] = MidID(2,5); // face 5
+					vMidID[6] = MidID(3,1);	// subvolume 0
+					vMidID[7] = MidID(2,4); // face 4
+					break;
+		// 	scv of corner 2 in subvolume 2 (bottom)
+			case 3:	vMidID[0] = MidID(0,2);	// corner 2
+					vMidID[1] = MidID(1,5);	// edge 5
+					vMidID[2] = MidID(2,9);	// subface 1 = 1,3,2
+					vMidID[3] = MidID(1,4); // edge 4
+					vMidID[4] = MidID(1,1);	// edge 1
+					vMidID[5] = MidID(2,1); // face 1
+					vMidID[6] = MidID(3,3);	// subvolume 2
+					vMidID[7] = MidID(2,0); // face 0
+					break;
+
+
+		// 	scv of corner 3 in subvolume 0 (top)
+			case 4:	vMidID[0] = MidID(0,3);	// corner 3
+					vMidID[1] = MidID(1,12);// edge 3->1
+					vMidID[2] = MidID(2,8);	// subface 0 = 1,2,3
+					vMidID[3] = MidID(1,5);	// edge 5
+					vMidID[4] = MidID(1,10);// edge 10
+					vMidID[5] = MidID(2,13);// face 1,5,3
+					vMidID[6] = MidID(3,1);	// subvolume 0
+					vMidID[7] = MidID(2,2);	// face 5
+					break;
+		// 	scv of corner 3 in subvolume 2 (bottom)
+			case 5:	vMidID[0] = MidID(0,3);	// corner 3
+					vMidID[1] = MidID(1,13);// edge 1->3
+					vMidID[2] = MidID(2,9);	// subface 0 = 1,3,2
+					vMidID[3] = MidID(1,5);	// edge 5
+					vMidID[4] = MidID(1,2); // edge 2
+					vMidID[5] = MidID(2,15);// face 1,3,0
+					vMidID[6] = MidID(3,3);	// subvolume 2
+					vMidID[7] = MidID(2,1);	// face 1
+					break;
+
+
+		// 	scv of corner 5 in subvolume 0 (top)
+			case 6:	vMidID[0] = MidID(0,5);	// corner 5
+					vMidID[1] = MidID(1,9); // edge 9
+					vMidID[2] = MidID(2,8);	// face 4
+					vMidID[3] = MidID(1,8);	// edge 8
+					vMidID[4] = MidID(1,10);// edge 10
+					vMidID[5] = MidID(2,5); // face 5
+					vMidID[6] = MidID(3,1);	// subvolume 0
+					vMidID[7] = MidID(2,13);// subface 1,5,3
+					break;
+		// 	scv of corner 0 in subvolume 2 (bottom)
+			case 7:	vMidID[0] = MidID(0,0);	// corner 0
+					vMidID[1] = MidID(1,7); // edge 7
+					vMidID[2] = MidID(2,0);	// face 0
+					vMidID[3] = MidID(1,6);	// edge 6
+					vMidID[4] = MidID(1,2); // edge 2
+					vMidID[5] = MidID(2,1); // face 1
+					vMidID[6] = MidID(3,3);	// subvolume 2
+					vMidID[7] = MidID(2,14);// subface 1,0,3
+					break;
+
+
+		// 	scv of corner 1 in subvolume 1 (top)
+			case 8:	vMidID[0] = MidID(0,1);	// corner 1
+					vMidID[1] = MidID(1,13);// edge 1->3
+					vMidID[2] = MidID(2,10);// subface 2 = 1,3,4
+					vMidID[3] = MidID(1,7); // edge 7
+					vMidID[4] = MidID(1,8);	// edge 8
+					vMidID[5] = MidID(2,12);// face 1,3,5
+					vMidID[6] = MidID(3,2);	// subvolume 1
+					vMidID[7] = MidID(2,7); // face 7
+					break;
+		// 	scv of corner 1 in subvolume 3 (bottom)
+			case 9:	vMidID[0] = MidID(0,1);	// corner 1
+					vMidID[1] = MidID(1,12);// edge 3->1
+					vMidID[2] = MidID(2,11);// subface 3 = 1,4,3
+					vMidID[3] = MidID(1,7); // edge 7
+					vMidID[4] = MidID(1,0);	// edge 0
+					vMidID[5] = MidID(2,14);// face 1,0,3
+					vMidID[6] = MidID(3,4);	// subvolume 3
+					vMidID[7] = MidID(2,3); // face 3
+					break;
+
+
+		// 	scv of corner 3 in subvolume 1 (top)
+			case 10:vMidID[0] = MidID(0,3);	// corner 3
+					vMidID[3] = MidID(1,6); // edge 6
+					vMidID[2] = MidID(2,10);// subface 2 = 1,3,4
+					vMidID[1] = MidID(1,13);// edge 1->3
+					vMidID[4] = MidID(1,10);// edge 10
+					vMidID[5] = MidID(2,6); // face 6
+					vMidID[6] = MidID(3,2);	// subvolume 1
+					vMidID[7] = MidID(2,12);// face 1,3,5
+					break;
+		// 	scv of corner 3 in subvolume 3 (bottom)
+			case 11:vMidID[0] = MidID(0,3);	// corner 3
+					vMidID[3] = MidID(1,6); // edge 6
+					vMidID[2] = MidID(2,11);// subface 3 = 1,4,3
+					vMidID[1] = MidID(1,12);// edge 3->1
+					vMidID[4] = MidID(1,2);	// edge 2
+					vMidID[5] = MidID(2,2); // face 2
+					vMidID[6] = MidID(3,4);	// subvolume 3
+					vMidID[7] = MidID(2,14);// face 1,0,3
+					break;
+
+
+		// 	scv of corner 4 in subvolume 1 (top)
+			case 12:vMidID[0] = MidID(0,4);	// corner 4
+					vMidID[3] = MidID(1,7); // edge 7
+					vMidID[2] = MidID(2,10);// subface 2 = 1,3,4
+					vMidID[1] = MidID(1,6); // edge 6
+					vMidID[4] = MidID(1,11);// edge 11
+					vMidID[5] = MidID(2,7); // face 7
+					vMidID[6] = MidID(3,2);	// subvolume 1
+					vMidID[7] = MidID(2,6); // face 6
+					break;
+		// 	scv of corner 4 in subvolume 3 (bottom)
+			case 13:vMidID[0] = MidID(0,4);	// corner 4
+					vMidID[3] = MidID(1,7); // edge 7
+					vMidID[2] = MidID(2,11);// subface 3 = 1,4,3
+					vMidID[1] = MidID(1,6); // edge 6
+					vMidID[4] = MidID(1,3);	// edge 3
+					vMidID[5] = MidID(2,3); // face 3
+					vMidID[6] = MidID(3,4);	// subvolume 3
+					vMidID[7] = MidID(2,2); // face 2
+					break;
+
+
+		// 	scv of corner 5 in subvolume 1 (top)
+			case 14:vMidID[0] = MidID(0,5);	// corner 5
+					vMidID[1] = MidID(1,10);// edge 10
+					vMidID[2] = MidID(2,12);// subface 1,3,5
+					vMidID[3] = MidID(1,8);	// edge 8
+					vMidID[4] = MidID(1,11);// edge 11
+					vMidID[5] = MidID(2,6);	// face 6
+					vMidID[6] = MidID(3,2);	// subvolume 1
+					vMidID[7] = MidID(2,7); // face 7
+					break;
+		// 	scv of corner 0 in subvolume 3 (bottom)
+			case 15:vMidID[0] = MidID(0,0);	// corner 0
+					vMidID[1] = MidID(1,2); // edge 2
+					vMidID[2] = MidID(2,15);// subface 1,3,0
+					vMidID[3] = MidID(1,0);	// edge 0
+					vMidID[4] = MidID(1,3); // edge 3
+					vMidID[5] = MidID(2,2); // face 2
+					vMidID[6] = MidID(3,4);	// subvolume 3
+					vMidID[7] = MidID(2,3); // face 3
+					break;
+			default:UG_THROW("Octahedron only has 16 SCVs (no. 0-15), but requested no. " << i << ".");
+					break;
+		}
+	}
 }
 
 /**
- * \param[in]	i		indicates that scvf corresponds to i'th corner of ref elem
+ * \param[in]	i		indicates that bf corresponds to i'th corner of ref elem
  */
 template <typename TRefElem>
 static void ComputeBFMidID(const TRefElem& rRefElem, int side,
