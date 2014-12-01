@@ -328,6 +328,30 @@ class DomainDiscretization : public IDomainDiscretization<TAlgebra>
 			m_vConstraint.push_back(pp);
 		}
 
+	/// removes a constraint from the assembling process
+	/**
+	 * This function removes a previously added IConstraint from the assembling.
+	 * The constraint's assemblings are no longer called.
+	 *
+	 * \param[in] 	pp		constraint to be removed
+	 */
+		void remove(SmartPtr<IDomainConstraint<TDomain, TAlgebra> > pp)
+		{
+			// check that already registered
+			for (size_t i = 0; i < m_vConstraint.size(); i++)
+			{
+				if (m_vConstraint[i] == pp)
+				{
+					// remove constraint
+					m_vConstraint.erase(m_vConstraint.begin()+i);
+					return;
+				}
+			}
+
+			UG_LOG("Tried to remove DomainConstraint from DomainDisc"
+					", but could not find it there.");
+		}
+
 	/// adds a disc item to the assembling process
 	/**
 	 * This function adds a IDiscretizationItem to the assembling. The contained
