@@ -292,9 +292,9 @@ static void ComputeSCVFMidID(const TRefElem& rRefElem,
 					break;
 		// 	scvf of edge 4 (bottom)
 			case 1:	vMidID[0] = MidID(1,4);	// edge 4
-					vMidID[1] = MidID(2,9);	// subface 1 = 1,3,2
+					vMidID[1] = MidID(2,0); // face 0
 					vMidID[2] = MidID(3,3);	// subvolume 2
-					vMidID[3] = MidID(2,0); // face 0
+					vMidID[3] = MidID(2,9);	// subface 1 = 1,3,2
 					break;
 
 
@@ -306,9 +306,9 @@ static void ComputeSCVFMidID(const TRefElem& rRefElem,
 					break;
 		// 	scvf of edge 5 (bottom)
 			case 3:	vMidID[0] = MidID(1,5);	// edge 5
-					vMidID[1] = MidID(2,9);	// subface 1 = 1,3,2
+					vMidID[1] = MidID(2,1); // face 1
 					vMidID[2] = MidID(3,3);	// subvolume 2
-					vMidID[3] = MidID(2,1); // face 1
+					vMidID[3] = MidID(2,9);	// subface 1 = 1,3,2
 					break;
 
 
@@ -316,13 +316,13 @@ static void ComputeSCVFMidID(const TRefElem& rRefElem,
 			case 4:	vMidID[0] = MidID(1,12);// diagonal 3->1
 					vMidID[1] = MidID(2,8);	// subface 0 = 1,2,3
 					vMidID[2] = MidID(3,1);	// subvolume 0
-					vMidID[3] = MidID(2,13); // face 1,5,3
+					vMidID[3] = MidID(2,13);// face 1,5,3
 					break;
 		// 	scvf of diagonal 3->1 (bottom) in subvolume 2
 			case 5:	vMidID[0] = MidID(1,12);// diagonal 3->1
-					vMidID[1] = MidID(2,9);	// subface 1 = 1,3,2
+					vMidID[1] = MidID(2,14);// face 1,0,3
 					vMidID[2] = MidID(3,3);	// subvolume 2
-					vMidID[3] = MidID(2,14); // face 1,0,3
+					vMidID[3] = MidID(2,9);	// subface 1 = 1,3,2
 					break;
 
 
@@ -376,9 +376,9 @@ static void ComputeSCVFMidID(const TRefElem& rRefElem,
 					break;
 		// 	scvf of diagonal 1->3 (bottom) in subvolume 3
 			case 13:vMidID[0] = MidID(1,13);// diagonal 1->3
-					vMidID[1] = MidID(2,11);// subface 3 = 1,4,3
+					vMidID[1] = MidID(2,15);// face 1,3,0
 					vMidID[2] = MidID(3,4);	// subvolume 3
-					vMidID[3] = MidID(2,15);// face 1,3,0
+					vMidID[3] = MidID(2,11);// subface 3 = 1,4,3
 					break;
 
 
@@ -390,9 +390,9 @@ static void ComputeSCVFMidID(const TRefElem& rRefElem,
 					break;
 		// 	scvf of edge 6 (bottom)
 			case 15:vMidID[0] = MidID(1,6);	// edge 6
-					vMidID[1] = MidID(2,11);// subface 3 = 1,4,3
+					vMidID[1] = MidID(2,2);	// face 2
 					vMidID[2] = MidID(3,4);	// subvolume 3
-					vMidID[3] = MidID(2,2);	// face 2
+					vMidID[3] = MidID(2,11);// subface 3 = 1,4,3
 					break;
 
 
@@ -404,9 +404,9 @@ static void ComputeSCVFMidID(const TRefElem& rRefElem,
 					break;
 		// 	scvf of edge 7 (bottom)
 			case 17:vMidID[0] = MidID(1,7);	// edge 7
-					vMidID[1] = MidID(2,11);// subface 3 = 1,4,3
+					vMidID[1] = MidID(2,3);	// face 3
 					vMidID[2] = MidID(3,4);	// subvolume 3
-					vMidID[3] = MidID(2,3);	// face 3
+					vMidID[3] = MidID(2,11);// subface 3 = 1,4,3
 					break;
 
 
