@@ -75,15 +75,42 @@ class ProcessHierarchy{
 };
 
 
-//template <int dim>
-//class ConnectionWeights{
-//	public:
-//		virtual ~ConnectionWeights()	{}
-//		virtual void refresh_weights(int baseLevel) = 0;
-//		virtual number get_weight(Vertex*) = 0;
-//		virtual number get_weight(Edge*) = 0;
-//		virtual number get_weight(Face*) = 0;
-//};
+/**
+ * Interface for the definition of weights for connections between elements.
+ * These weights introduce a customizable penalty for any side if the border
+ * of a partition includes the side.
+ * This can be used to minimize communication cost e.g. when using the ParMetis
+ * partitioner.
+ * It can also be useful if you want to make sure that certain subsets are not
+ * contained in any partition boundary or if you want to enforce that a collection
+ * of elements be in one single partition.
+ */
+template <int dim>
+class ICommunicationCostWeights
+{
+	public:
+		typedef typename GeomObjBaseTypeByDim<dim>::base_obj_type elem_t;
+		typedef typename elem_t::side side_t;
+
+		virtual ~ICommunicationCostWeights(){};
+		//virtual void refresh_weights(int baseLevel) = 0;
+
+		/**
+		 * Get the weight of a specific connection.
+		 * @param conn pointer to the connection in question
+		 * @return weight for the side
+		 */
+		virtual number get_weight(side_t* conn) = 0;
+
+		/**
+		 * Whether or not the given connection is to be assigned another weight.
+		 * If true, this weight can be obtained by get_weight(),
+		 * if false, no such weight must be obtained.
+		 * @param conn pointer to the connection in question
+		 * @return true iff get_weight() can provide a new weight for the connection
+		 */
+		virtual bool reweigh(side_t* conn) {return true;}
+};
 
 
 class IBalanceWeights{
@@ -92,10 +119,10 @@ class IBalanceWeights{
 		virtual ~IBalanceWeights()	{}
 		virtual void refresh_weights(int baseLevel)	{};
 
-		virtual number get_weight(Vertex*)	{return 1;}
-		virtual number get_weight(Edge*) 	{return 1;}
-		virtual number get_weight(Face*) 	{return 1;}
-		virtual number get_weight(Volume*)	{return 1;}
+		virtual number get_weight(Vertex*)	{return 1.;}
+		virtual number get_weight(Edge*) 	{return 1.;}
+		virtual number get_weight(Face*) 	{return 1.;}
+		virtual number get_weight(Volume*)	{return 1.;}
 
 		virtual number get_refined_weight(Vertex* e)	{return get_weight(e);}
 		virtual number get_refined_weight(Edge* e) 		{return 2. * get_weight(e);}

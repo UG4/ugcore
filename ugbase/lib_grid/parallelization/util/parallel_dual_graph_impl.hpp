@@ -230,6 +230,7 @@ generate_graph(int level, pcl::ProcessCommunicator procCom)
 	m_adjacencyMapStructure.resize(numElems + 1);
 	m_adjacencyMapStructure[0] = 0;
 	m_adjacencyMap.clear();
+	m_connections.clear();
 
 //	generate adjacency structure.
 	typename Grid::traits<ConElem>::secure_container conElems;
@@ -255,6 +256,7 @@ generate_graph(int level, pcl::ProcessCommunicator procCom)
 					UG_ASSERT(conInds[i] != -1, "ghosts should be ignored when assigning conInds.");
 					if(conInds[i] != eInd){
 						m_adjacencyMap.push_back(conInds[i]);
+						m_connections.push_back(conElems[i_con]);
 					}
 				}
 			}

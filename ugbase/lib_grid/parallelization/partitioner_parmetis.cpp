@@ -26,6 +26,7 @@ Partitioner_Parmetis() :
 {
 	m_processHierarchy = SPProcessHierarchy(new ProcessHierarchy);
 	m_processHierarchy->add_hierarchy_level(0, 1);
+	m_balanceWeights = make_sp(new IBalanceWeights());	// default weights
 }
 
 template<int dim>
@@ -42,8 +43,8 @@ set_grid(MultiGrid* mg, Attachment<MathVector<dim> >)
 		return;
 
 	if(m_mg){
-		m_mg->detach_from<elem_t>(m_aNumChildren);
-		m_aaNumChildren.invalidate();
+		m_mg->detach_from<elem_t>(m_aWeightChildren);
+		m_aaWeightChildren.invalidate();
 		m_sh.assign_grid(NULL);
 		m_mg = NULL;
 	}
@@ -51,8 +52,8 @@ set_grid(MultiGrid* mg, Attachment<MathVector<dim> >)
 	if(mg){
 		m_mg = mg;
 		m_sh.assign_grid(m_mg);
-		m_mg->attach_to<elem_t>(m_aNumChildren);
-		m_aaNumChildren.access(*m_mg, m_aNumChildren);
+		m_mg->attach_to<elem_t>(m_aWeightChildren);
+		m_aaWeightChildren.access(*m_mg, m_aWeightChildren);
 	}
 }
 
@@ -70,12 +71,12 @@ set_balance_weights(SPBalanceWeights balanceWeights)
 	m_balanceWeights = balanceWeights;
 }
 
-//template<int dim>
-//void Partitioner_Parmetis<dim>::
-//set_connection_weights(SmartPtr<ConnectionWeights<dim> > conWeights)
-//{
-//	m_connectionWeights = conWeights;
-//}
+template<int dim>
+void Partitioner_Parmetis<dim>::
+set_communication_cost_weights(SmartPtr<ICommunicationCostWeights<dim> > commWeights)
+{
+	m_communicationCostWeights = commWeights;
+}
 
 
 template<int dim>
@@ -103,7 +104,7 @@ supports_balance_weights() const
 
 template<int dim>
 bool Partitioner_Parmetis<dim>::
-supports_connection_weights() const
+supports_communication_cost_weights() const
 {
 	return true;
 }
@@ -170,7 +171,7 @@ accumulate_child_counts(int baseLvl, int topLvl, AInt aInt,
 
 template <int dim>
 void Partitioner_Parmetis<dim>::
-gather_child_counts_from_level(int baseLvl, int childLvl, AInt aInt,
+gather_child_weights_from_level(int baseLvl, int childLvl, Attachment<idx_t> aWeight,
 								bool copyToVMastersOnBaseLvl)
 {
 	GDIST_PROFILE_FUNC();
@@ -182,22 +183,23 @@ gather_child_counts_from_level(int baseLvl, int childLvl, AInt aInt,
 
 	assert(m_mg);
 	assert(m_mg->is_parallel());
-	assert(m_mg->has_attachment<elem_t>(aInt));
+	assert(m_mg->has_attachment<elem_t>(aWeight));
+	UG_ASSERT(m_balanceWeights.valid(), "Partitioner_Parmetis: Balance weights are invalid.");
 
 	MultiGrid& mg = *m_mg;
-	Grid::AttachmentAccessor<elem_t, AInt> aaNumChildren(mg, aInt);
+	Grid::AttachmentAccessor<elem_t, Attachment<idx_t> > aaWeightChildren(mg, aWeight);
 	GridLayoutMap& glm = mg.distributed_grid_manager()->grid_layout_map();
-	ComPol_CopyAttachment<layout_t, AInt> compolCopy(mg, aInt);
+	ComPol_CopyAttachment<layout_t, Attachment<idx_t> > compolCopy(mg, aWeight);
 
 //	first write child-counts to elements on childLvl - 1
-	for(ElemIter iter = mg.begin<elem_t>(childLvl - 1);
-		iter != mg.end<elem_t>(childLvl - 1); ++iter)
+	for(ElemIter iter = mg.begin<elem_t>(childLvl);
+		iter != mg.end<elem_t>(childLvl); ++iter)
 	{
 		elem_t* e = *iter;
-		aaNumChildren[e] = mg.num_children<elem_t>(e);
+		aaWeightChildren[e] = (idx_t) m_balanceWeights->get_weight(e);
 	}
 
-	for(int lvl = childLvl - 2; lvl >= baseLvl; --lvl){
+	for(int lvl = childLvl - 1; lvl >= baseLvl; --lvl){
 	//	copy from v-slaves to vmasters
 		if(glm.has_layout<elem_t>(INT_V_SLAVE))
 			m_intfcCom.send_data(glm.get_layout<elem_t>(INT_V_SLAVE).layout_on_level(lvl + 1),
@@ -211,10 +213,10 @@ gather_child_counts_from_level(int baseLvl, int childLvl, AInt aInt,
 		for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter)
 		{
 			elem_t* e = *iter;
-			aaNumChildren[e] = 0;
+			aaWeightChildren[e] = m_balanceWeights->get_weight(e);
 			size_t numChildren = mg.num_children<elem_t>(e);
 			for(size_t i = 0; i < numChildren; ++i)
-				aaNumChildren[e] += aaNumChildren[mg.get_child<elem_t>(e, i)];
+				aaWeightChildren[e] += aaWeightChildren[mg.get_child<elem_t>(e, i)];
 		}
 	}
 
@@ -228,7 +230,7 @@ gather_child_counts_from_level(int baseLvl, int childLvl, AInt aInt,
 									compolCopy);
 		m_intfcCom.communicate();
 	}
-	UG_DLOG(LIB_GRID, 1, "Partitioner_Parmetis-stop gather_child_counts_from_level\n");
+	UG_DLOG(LIB_GRID, 1, "Partitioner_Parmetis-stop gather_child_weights_from_level\n");
 }
 
 
@@ -236,14 +238,17 @@ template<int dim>
 template<class TIter>
 void Partitioner_Parmetis<dim>::
 fill_multi_constraint_vertex_weights(vector<idx_t>& vwgtsOut,
-									 int baseLvl, int maxLvl, AInt aInt,
+									 int baseLvl, int maxLvl, Attachment<idx_t> aWeight,
 									 bool fillVMastersOnBaseLvl,
 									 TIter baseElemsBegin, TIter baseElemsEnd,
 									 int numBaseElements)
 {
 	GDIST_PROFILE_FUNC();
+
+	UG_ASSERT(m_balanceWeights.valid(), "Partitioner_Parmetis: Balance weights are invalid.");
+
 	MultiGrid& mg = *m_mg;
-	Grid::AttachmentAccessor<elem_t, AInt> aaNumChildren(mg, aInt);
+	Grid::AttachmentAccessor<elem_t, Attachment<idx_t> > aaWeightChildren(mg, aWeight);
 
 	int ncons = maxLvl - baseLvl + 1;
 	vwgtsOut.resize(numBaseElements * ncons);
@@ -254,15 +259,15 @@ fill_multi_constraint_vertex_weights(vector<idx_t>& vwgtsOut,
 
 	for(TIter iter = baseElemsBegin; iter != baseElemsEnd; ++iter, wgtInd += wgtOffset)
 	{
-		vwgtsOut[wgtInd] = 1;
+		vwgtsOut[wgtInd] = (idx_t) m_balanceWeights->get_weight(*iter);
 	}
 
 	for(int ci = 1; ci < ncons; ++ci){
-		gather_child_counts_from_level(baseLvl, baseLvl + ci, aInt, fillVMastersOnBaseLvl);
+		gather_child_weights_from_level(baseLvl, baseLvl + ci, aWeight, fillVMastersOnBaseLvl);
 		wgtInd = ci;
 		for(TIter iter = baseElemsBegin; iter != baseElemsEnd; ++iter, wgtInd += wgtOffset)
 		{
-			vwgtsOut[wgtInd] = aaNumChildren[*iter];
+			vwgtsOut[wgtInd] = aaWeightChildren[*iter];
 		}
 	}
 }
@@ -516,8 +521,9 @@ partition_level_metis(int baseLvl, int maxLvl, int numTargetProcs)
 	vector<idx_t> adjacencyMapStructure;
 	vector<idx_t> adjacencyMap;
 
+	vector<elem_t*> elems(mg.num<elem_t>(lvl));
 	ConstructDualGraphMGLevel<elem_t, idx_t>(adjacencyMapStructure, adjacencyMap,
-											 mg, lvl);
+											 mg, lvl, NULL, &elems.front());
 
 
  //note: using the option METIS_OPTION_DBGLVL could be useful for debugging.
@@ -533,10 +539,9 @@ partition_level_metis(int baseLvl, int maxLvl, int numTargetProcs)
 	idx_t numParts = (idx_t)numTargetProcs;
 	vector<idx_t> partitionMap(nVrts);
 
-//todo: consider specified balance and connection weights!
 	idx_t nConstraints = maxLvl - baseLvl + 1;
 	vector<idx_t> vrtWgtMap;
-	fill_multi_constraint_vertex_weights(vrtWgtMap, baseLvl, maxLvl, m_aNumChildren, false,
+	fill_multi_constraint_vertex_weights(vrtWgtMap, baseLvl, maxLvl, m_aWeightChildren, false,
 										 mg.begin<elem_t>(baseLvl), mg.end<elem_t>(baseLvl),
 										 mg.num<elem_t>(baseLvl));
 
@@ -546,7 +551,7 @@ partition_level_metis(int baseLvl, int maxLvl, int numTargetProcs)
 //	if(lvl < (int)mg.top_level()){
 //		vrtWgtMap.reserve(nVrts);
 //		for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter){
-//			vrtSizeMap.push_back(m_childWeight * m_aaNumChildren[*iter] + 1);
+//			vrtSizeMap.push_back(m_childWeight * m_aaWeightChildren[*iter] + 1);
 //		}
 //
 //		assert((int)vrtSizeMap.size() == nVrts);
@@ -554,18 +559,14 @@ partition_level_metis(int baseLvl, int maxLvl, int numTargetProcs)
 //	}
 
 	if(adjacencyMap.size() > 1){
-	//	under some circumstances, we have to cluster siblings. This requires special
-	//	edge weights...
 		idx_t* pAdjWgts = NULL;
 		vector<idx_t> adjwgts;
+		adjwgts.resize(adjacencyMap.size(), (idx_t) 1);
+		pAdjWgts = &adjwgts.front();
+		//	under some circumstances, we have to cluster siblings. This requires special
+		//	edge weights...
 		if(base_class::clustered_siblings_enabled()){
 		//	we have to weighten edges between siblings higher than between non-siblings
-			vector<elem_t*> elems;
-			for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter)
-				elems.push_back(*iter);
-
-			adjwgts.resize(adjacencyMap.size(), 1);
-
 			UG_ASSERT(adjacencyMapStructure.size() >= 2,
 					  "There have to be at least 2 entries in the structure map if 1 vertex exists!");
 
@@ -584,8 +585,26 @@ partition_level_metis(int baseLvl, int maxLvl, int numTargetProcs)
 					}
 				}
 			}
+		}
 
-			pAdjWgts = &adjwgts.front();
+		// consider specified connection weights
+		if (m_communicationCostWeights.valid())
+		{
+			for (size_t iElem = 0; iElem < adjacencyMapStructure.size() - 1; iElem++)
+			{
+				elem_t* e = elems[iElem];
+				size_t edgesBegin = adjacencyMapStructure[iElem];
+				size_t edgesEnd = adjacencyMapStructure[iElem+1];
+
+				for (size_t iConn = edgesBegin; iConn != edgesEnd; iConn++)
+				{
+					elem_t* ce = elems[adjacencyMap[iConn]];
+					side_t* conn = GetSharedSide(mg, e, ce);
+
+					if (m_communicationCostWeights->reweigh(conn))
+						adjwgts[iConn] = (idx_t) m_communicationCostWeights->get_weight(conn);
+				}
+			}
 		}
 
 		UG_DLOG(LIB_GRID, 1, "CALLING METIS\n");
@@ -691,9 +710,8 @@ partition_level_parmetis(int baseLvl, int maxLvl, int numTargetProcs,
 	vector<real_t> ubvec(nConstraints, 1.05);
 	real_t comVsRedistRation = m_comVsRedistRatio;
 
-//todo: consider specified balance and connection weights!
 	vector<idx_t> vrtWgtMap;
-	fill_multi_constraint_vertex_weights(vrtWgtMap, baseLvl, maxLvl, m_aNumChildren, false,
+	fill_multi_constraint_vertex_weights(vrtWgtMap, baseLvl, maxLvl, m_aWeightChildren, false,
 										 pdg.elements_begin(), pdg.elements_end(),
 										 pdg.num_graph_vertices());
 
@@ -703,7 +721,7 @@ partition_level_parmetis(int baseLvl, int maxLvl, int numTargetProcs,
 //	vrtWgtMap.reserve(nVrts);
 //	for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter){
 //		if(pdg.was_considered(*iter))
-//			vrtWgtMap.push_back(m_childWeight * m_aaNumChildren[*iter] + 1);
+//			vrtWgtMap.push_back(m_childWeight * m_aaWeightChildren[*iter] + 1);
 //	}
 
 	UG_DLOG(LIB_GRID, 2, "  parallel dual graph #vrts: " << (int)pdg.num_graph_vertices()
@@ -715,7 +733,8 @@ partition_level_parmetis(int baseLvl, int maxLvl, int numTargetProcs,
 		idx_t* pAdjWgts = NULL;
 		vector<idx_t> adjwgts;
 		adjwgts.resize(pdg.num_graph_edges(), 1);
-		if(base_class::clustered_siblings_enabled()){
+
+		if (base_class::clustered_siblings_enabled()){
 		//	we have to weighten edges between siblings higher than between non-siblings
 			idx_t* adjacencyMapStructure = pdg.adjacency_map_structure();
 			idx_t* adjacencyMap = pdg.adjacency_map();//global
@@ -743,6 +762,21 @@ partition_level_parmetis(int baseLvl, int maxLvl, int numTargetProcs,
 				}
 			}
 		}
+
+		// consider specified connection weights
+		if (m_communicationCostWeights.valid())
+		{
+			idx_t numConn = pdg.num_graph_edges();
+
+			for (idx_t i = 0; i < numConn; i++)
+			{
+				side_t* conn = pdg.get_connection(i);
+
+				if (m_communicationCostWeights->reweigh(conn))
+					adjwgts[i] = (idx_t) m_communicationCostWeights->get_weight(conn);
+			}
+		}
+
 		pAdjWgts = &adjwgts.front();
 
 //		UG_LOG("parallel offset map: ");

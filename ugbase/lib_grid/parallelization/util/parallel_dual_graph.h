@@ -50,6 +50,12 @@ class ParallelDualGraph{
 	///	returns the graph-vertex for the given index
 		TGeomBaseObj* get_element(size_t gvrtIndex)		{return m_elems[gvrtIndex];}
 
+	///	returns the graph-edge for the given index
+		/** The i-th connection is the side_t element of the grid that represents
+		 * the i-th connection stored in m_adjacencyMap.
+		 */
+		TConnectingObj* get_connection(size_t connIndex)		{return m_connections.at(connIndex);}
+
 	///	returns the begin-iterator to the elements corresponding to graph vertices*/
 		element_iterator_t elements_begin()				{return m_elems.begin();}
 
@@ -85,6 +91,7 @@ class ParallelDualGraph{
 		pcl::ProcessCommunicator	m_procCom;
 		MultiGrid*				m_pMG;
 		std::vector<TGeomBaseObj*>	m_elems;
+		std::vector<TConnectingObj*>	m_connections;
 		std::vector<TIndexType> m_adjacencyMapStructure;
 		std::vector<TIndexType> m_adjacencyMap;
 		std::vector<TIndexType> m_nodeOffsetMap;

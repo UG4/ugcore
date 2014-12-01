@@ -17,6 +17,27 @@ extern "C" {
 
 namespace ug{
 
+/*
+// helper function for better conversion from number to idx_t
+// i.e. for handling of special case, where d > numeric_limits<idx_t>::max()
+inline idx_t cast_to_idx_t(const number& d)
+{
+	return	d >= std::numeric_limits<idx_t>::max() ?
+			std::numeric_limits<idx_t>::max()
+			: (idx_t) d;
+}
+
+
+// helper function for better addition of idx_t values
+// i.e. for handling possible overflows when adding up very large values
+inline void add_b_to_a(idx_t& a, const idx_t& b)
+{
+	a = b > std::numeric_limits<idx_t>::max() - a ?
+		std::numeric_limits<idx_t>::max()
+		: a+b;
+}
+*/
+
 /// \addtogroup lib_grid_parallelization_distribution
 ///	\{
 
@@ -42,13 +63,13 @@ class Partitioner_Parmetis : public IPartitioner{
 		virtual void set_grid(MultiGrid* mg, Attachment<MathVector<dim> > aPos);
 		virtual void set_next_process_hierarchy(SPProcessHierarchy procHierarchy);
 		virtual void set_balance_weights(SPBalanceWeights balanceWeights);
-//		virtual void set_connection_weights(SmartPtr<ConnectionWeights<dim> > conWeights);
+		virtual void set_communication_cost_weights(SmartPtr<ICommunicationCostWeights<dim> > commWeights);
 
 		virtual ConstSPProcessHierarchy current_process_hierarchy() const;
 		virtual ConstSPProcessHierarchy next_process_hierarchy() const;
 
 		virtual bool supports_balance_weights() const;
-		virtual bool supports_connection_weights() const;
+		virtual bool supports_communication_cost_weights() const;
 		virtual bool supports_repartitioning() const			{return true;}
 
 		virtual bool partition(size_t baseLvl, size_t elementThreshold);
@@ -68,12 +89,13 @@ class Partitioner_Parmetis : public IPartitioner{
 	private:
 	///	fills m_aNumChildren with child-counts from levels baseLvl to topLvl.
 	/**	Elements in topLvl have child-count 0.*/
+		// dead code?
 		void accumulate_child_counts(int baseLvl, int topLvl, AInt aInt,
 									 bool copyToVMastersOnBaseLvl = false);
 
 	/**	writes the number of children in childLvl of each element in baseLvl into
 	 *	the given int-attachment of the baseLvl elements.*/
-		void gather_child_counts_from_level(int baseLvl, int childLvl, AInt aInt,
+		void gather_child_weights_from_level(int baseLvl, int childLvl, Attachment<idx_t> aWeight,
 											bool copyToVMastersOnBaseLvl);
 
 	///	Fills the array vwgtsOut with multi-constraint weights for elements in base-lvl
@@ -82,7 +104,7 @@ class Partitioner_Parmetis : public IPartitioner{
 	 * of an element represents the weight of its child-elements in the i-th level.*/
 		template <class TIter>
 		void fill_multi_constraint_vertex_weights(std::vector<idx_t>& vwgtsOut,
-											 int baseLvl, int maxLvl, AInt aInt,
+											 int baseLvl, int maxLvl, Attachment<idx_t> aWeight,
 											 bool fillVMastersOnBaseLvl,
 											 TIter baseElemsBegin, TIter baseElemsEnd,
 											 int numBaseElements);
@@ -103,10 +125,10 @@ class Partitioner_Parmetis : public IPartitioner{
 
 		MultiGrid* m_mg;
 		SubsetHandler m_sh;
-		AInt m_aNumChildren;
-		Grid::AttachmentAccessor<elem_t, AInt>	m_aaNumChildren;
+		Attachment<idx_t> m_aWeightChildren;
+		Grid::AttachmentAccessor<elem_t, Attachment<idx_t> >	m_aaWeightChildren;
 		SPBalanceWeights	m_balanceWeights;
-//		SPConnectionWeights	m_connectionWeights;
+		SmartPtr<ICommunicationCostWeights<dim> >	m_communicationCostWeights;
 		SPProcessHierarchy	m_processHierarchy;
 		SPProcessHierarchy	m_nextProcessHierarchy;
 		pcl::InterfaceCommunicator<layout_t>	m_intfcCom;

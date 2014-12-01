@@ -124,6 +124,14 @@ class DomainBalanceWeights : public TBalanceWeights{
 		}
 };
 
+template <class TDomain, class TCommunicationCostWeights>
+class DomainCommunicationCostWeights : public TCommunicationCostWeights{
+	public:
+		DomainCommunicationCostWeights(TDomain& dom){
+			TCommunicationCostWeights::set_grid(dom.grid().get(), dom.position_attachment());
+		}
+};
+
 }// end of namespace
 
 #endif

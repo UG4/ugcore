@@ -35,12 +35,14 @@ balancer.redistProcs	= 256
 balancer.maxDistLvl		= balancer.maxLvl
 balancer.maxLvlsWithoutRedist = 4
 
-balancer.parallelElementThreshold = 32
-balancer.qualityThreshold	= 0.8
-balancer.childWeight		= 2
-balancer.siblingWeight		= 2
-balancer.itrFactor			= 1000
-balancer.noSiblingClustering = false
+balancer.parallelElementThreshold	= 32
+balancer.qualityThreshold			= 0.8
+balancer.balanceWeights				= nil
+balancer.communicationCostWeights	= nil
+balancer.childWeight				= 2
+balancer.siblingWeight				= 2
+balancer.itrFactor					= 1000
+balancer.noSiblingClustering 		= false
 
 balancer.staticProcHierarchy = false
 
@@ -134,6 +136,12 @@ function balancer.CreateLoadBalancer(domain)
 			if(ParmetisIsAvailable() == true) then
 				print("Creating ParmetisPartitioner")
 				partitioner = Partitioner_Parmetis(domain)
+				if balancer.balanceWeights ~= nil then
+					partitioner:set_balance_weights(balancer.balanceWeights)
+				end
+				if balancer.communicationCostWeights ~= nil then
+					partitioner:set_communication_cost_weights(balancer.communicationCostWeights)
+				end
 				partitioner:set_child_weight(balancer.childWeight)
 				partitioner:set_sibling_weight(balancer.siblingWeight)
 				partitioner:set_itr_factor(balancer.itrFactor)
