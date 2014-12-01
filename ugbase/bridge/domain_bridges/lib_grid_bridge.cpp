@@ -406,9 +406,15 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 	//	Geometric Objects
 		reg.add_class_<GridObject>("GridObject", grp);
 		reg.add_class_<Vertex, GridObject>("Vertex", grp);
-		reg.add_class_<Edge, GridObject>("Edge", grp);
-		reg.add_class_<Face, GridObject>("Face", grp);
-		reg.add_class_<Volume, GridObject>("Volume", grp);
+		reg.add_class_<Edge, GridObject>("Edge", grp)
+			.add_method("num_vertices", &Edge::num_vertices, grp)
+			.add_method("vertex", &Edge::vertex, grp);
+		reg.add_class_<Face, GridObject>("Face", grp)
+			.add_method("num_vertices", &Face::num_vertices, grp)
+			.add_method("vertex", &Face::vertex, grp);
+		reg.add_class_<Volume, GridObject>("Volume", grp)
+			.add_method("num_vertices", &Volume::num_vertices, grp)
+			.add_method("vertex", &Volume::vertex, grp);
 
 		reg.add_function("IsValid", &IsValidPtr<Vertex>, grp);
 		reg.add_function("IsValid", &IsValidPtr<Edge>, grp);
@@ -460,6 +466,15 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 
 	//  ISubsetHandler
 		reg.add_class_<ISubsetHandler>("ISubsetHandler", grp)
+			.add_method("assign_subset", static_cast<void (ISubsetHandler::*)(Vertex*, int)>(&ISubsetHandler::assign_subset))
+			.add_method("assign_subset", static_cast<void (ISubsetHandler::*)(Edge*, int)>(&ISubsetHandler::assign_subset))
+			.add_method("assign_subset", static_cast<void (ISubsetHandler::*)(Face*, int)>(&ISubsetHandler::assign_subset))
+			.add_method("assign_subset", static_cast<void (ISubsetHandler::*)(Volume*, int)>(&ISubsetHandler::assign_subset))
+			.add_method("get_subset_index", static_cast<int (ISubsetHandler::*)(Vertex*) const>(&ISubsetHandler::get_subset_index))
+			.add_method("get_subset_index", static_cast<int (ISubsetHandler::*)(Edge*) const>(&ISubsetHandler::get_subset_index))
+			.add_method("get_subset_index", static_cast<int (ISubsetHandler::*)(Face*) const>(&ISubsetHandler::get_subset_index))
+			.add_method("get_subset_index", static_cast<int (ISubsetHandler::*)(Volume*) const>(&ISubsetHandler::get_subset_index))
+
 			.add_method("num_subsets", &ISubsetHandler::num_subsets)
 			.add_method("get_subset_name", &ISubsetHandler::get_subset_name, "subset name", "subsetIndex")
 			.add_method("set_subset_name", &ISubsetHandler::set_subset_name, "", "name#subsetIndex")
@@ -491,7 +506,18 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 
 		reg.add_class_<Selector, ISelector>("Selector", grp)
 			.add_constructor<void (*)(Grid&)>()
-
+			.add_method("select", static_cast<void (Selector::*)(Vertex*)>(&Selector::select))
+			.add_method("select", static_cast<void (Selector::*)(Edge*)>(&Selector::select))
+			.add_method("select", static_cast<void (Selector::*)(Face*)>(&Selector::select))
+			.add_method("select", static_cast<void (Selector::*)(Volume*)>(&Selector::select))
+			.add_method("deselect", static_cast<void (Selector::*)(Vertex*)>(&Selector::deselect))
+			.add_method("deselect", static_cast<void (Selector::*)(Edge*)>(&Selector::deselect))
+			.add_method("deselect", static_cast<void (Selector::*)(Face*)>(&Selector::deselect))
+			.add_method("deselect", static_cast<void (Selector::*)(Volume*)>(&Selector::deselect))
+			.add_method("is_selected", static_cast<bool (Selector::*)(Vertex*) const>(&Selector::is_selected))
+			.add_method("is_selected", static_cast<bool (Selector::*)(Edge*) const>(&Selector::is_selected))
+			.add_method("is_selected", static_cast<bool (Selector::*)(Face*) const>(&Selector::is_selected))
+			.add_method("is_selected", static_cast<bool (Selector::*)(Volume*) const>(&Selector::is_selected))
 			.add_method("num_vertices", static_cast<size_t (Selector::*)() const>(&Selector::num<Vertex>))
 			.add_method("num_edges", static_cast<size_t (Selector::*)() const>(&Selector::num<Edge>))
 			.add_method("num_faces", static_cast<size_t (Selector::*)() const>(&Selector::num<Face>))

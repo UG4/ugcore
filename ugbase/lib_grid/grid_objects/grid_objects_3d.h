@@ -45,7 +45,7 @@ class UG_API TetrahedronDescriptor
 		TetrahedronDescriptor(Vertex* v1, Vertex* v2, Vertex* v3, Vertex* v4);
 
 		inline uint num_vertices() const	{return 4;}
-		inline Vertex* vertex(uint index) const	{return m_vertex[index];}
+		inline Vertex* vertex(size_t index) const	{return m_vertex[index];}
 
 	protected:
 		Vertex*	m_vertex[4];
@@ -75,7 +75,7 @@ class UG_API Tetrahedron : public Volume
 
 		virtual GridObject* create_empty_instance() const	{return new Tetrahedron;}
 
-		virtual Vertex* vertex(uint index) const	{return m_vertices[index];}
+		virtual Vertex* vertex(size_t index) const	{return m_vertices[index];}
 		virtual ConstVertexArray vertices() const		{return m_vertices;}
 		virtual size_t num_vertices() const				{return 4;}
 
@@ -168,7 +168,7 @@ class UG_API OctahedronDescriptor
 		OctahedronDescriptor(Vertex* v1, Vertex* v2, Vertex* v3, Vertex* v4, Vertex* v5, Vertex* v6);
 
 		inline uint num_vertices() const	{return 6;}
-		inline Vertex* vertex(uint index) const	{return m_vertex[index];}
+		inline Vertex* vertex(size_t index) const	{return m_vertex[index];}
 
 	protected:
 		Vertex*	m_vertex[6];
@@ -199,7 +199,7 @@ class UG_API Octahedron : public Volume
 
 		virtual GridObject* create_empty_instance() const	{return new Octahedron;}
 
-		virtual Vertex* vertex(uint index) const	{return m_vertices[index];}
+		virtual Vertex* vertex(size_t index) const	{return m_vertices[index];}
 		virtual ConstVertexArray vertices() const		{return m_vertices;}
 		virtual size_t num_vertices() const				{return 6;}
 
@@ -285,7 +285,7 @@ class UG_API HexahedronDescriptor
 							Vertex* v5, Vertex* v6, Vertex* v7, Vertex* v8);
 
 		inline uint num_vertices() const	{return 8;}
-		inline Vertex* vertex(uint index) const	{return m_vertex[index];}
+		inline Vertex* vertex(size_t index) const	{return m_vertex[index];}
 
 	protected:
 		Vertex*	m_vertex[8];
@@ -316,7 +316,7 @@ class UG_API Hexahedron : public Volume
 
 		virtual GridObject* create_empty_instance() const	{return new Hexahedron;}
 
-		virtual Vertex* vertex(uint index) const	{return m_vertices[index];}
+		virtual Vertex* vertex(size_t index) const	{return m_vertices[index];}
 		virtual ConstVertexArray vertices() const		{return m_vertices;}
 		virtual size_t num_vertices() const				{return 8;}
 
@@ -402,7 +402,7 @@ class UG_API PrismDescriptor
 						Vertex* v4, Vertex* v5, Vertex* v6);
 
 		inline uint num_vertices() const	{return 6;}
-		inline Vertex* vertex(uint index) const	{return m_vertex[index];}
+		inline Vertex* vertex(size_t index) const	{return m_vertex[index];}
 
 	protected:
 		Vertex*	m_vertex[6];
@@ -433,7 +433,7 @@ class UG_API Prism : public Volume
 
 		virtual GridObject* create_empty_instance() const	{return new Prism;}
 
-		virtual Vertex* vertex(uint index) const	{return m_vertices[index];}
+		virtual Vertex* vertex(size_t index) const	{return m_vertices[index];}
 		virtual ConstVertexArray vertices() const		{return m_vertices;}
 		virtual size_t num_vertices() const				{return 6;}
 
@@ -519,7 +519,7 @@ class UG_API PyramidDescriptor
 						Vertex* v4, Vertex* v5);
 
 		inline uint num_vertices() const	{return 5;}
-		inline Vertex* vertex(uint index) const	{return m_vertex[index];}
+		inline Vertex* vertex(size_t index) const	{return m_vertex[index];}
 
 	protected:
 		Vertex*	m_vertex[5];
@@ -550,7 +550,7 @@ class UG_API Pyramid : public Volume
 
 		virtual GridObject* create_empty_instance() const	{return new Pyramid;}
 
-		virtual Vertex* vertex(uint index) const	{return m_vertices[index];}
+		virtual Vertex* vertex(size_t index) const	{return m_vertices[index];}
 		virtual ConstVertexArray vertices() const		{return m_vertices;}
 		virtual size_t num_vertices() const				{return 5;}
 

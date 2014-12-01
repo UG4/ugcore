@@ -122,10 +122,15 @@ class UG_API ISelector : public GridObserver
 	 * in the list of selected elements.
 	 * \{
 	 */
-		inline void select(GridObject* elem, byte status = 1);
+		inline void select(GridObject* elem, byte status);
+		inline void select(GridObject* elem)
+		{select(elem, 1);}
 
 		template <class TElem>
-		inline void select(TElem* elem, byte status = 1);
+		inline void select(TElem* elem, byte status);
+		template <class TElem>
+		inline void select(TElem* elem)
+		{select(elem, 1);}
 
 		template <class TIterator>
 		inline void select(TIterator iterBegin, TIterator iterEnd, byte status = 1);

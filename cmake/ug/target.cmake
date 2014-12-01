@@ -60,15 +60,17 @@ elseif("${TARGET}" STREQUAL "ugplugin")
 
 elseif("${TARGET}" STREQUAL "gridshell")
 	set(targetExecutableName gridshell)
-	set(buildUGShell ON)
+
 	set(buildPlugins ON)
+	set(buildUGShell ON)
+	set(buildForLUA ON)
+	set(buildAlgebra OFF)
 	set(buildGrid ON)
-	set(buildAlgebra ON)
-	set(buildDisc ON)
+	set(buildDisc OFF)
 	set(buildBridge ON)
 	set(buildBindings ON)
 	set(buildRegistry ON)
-	
+
 elseif("${TARGET}" STREQUAL "amg")
 	set(buildPluginSystem OFF)
 	set(targetLibraryName ugamg)

@@ -252,7 +252,7 @@ class UG_API IVertexGroup
 		typedef Vertex* const* ConstVertexArray;
 
 		virtual ~IVertexGroup()	{};
-		virtual Vertex* vertex(uint index) const = 0;
+		virtual Vertex* vertex(size_t index) const = 0;
 		virtual ConstVertexArray vertices() const = 0;
 		virtual size_t num_vertices() const = 0;
 
@@ -272,7 +272,7 @@ class UG_API CustomVertexGroup : public IVertexGroup
 		CustomVertexGroup(size_t numVrts)			{m_vrts.resize(numVrts);}
 		virtual ~CustomVertexGroup()				{}
 
-		virtual Vertex* vertex(uint index) const	{return m_vrts[index];}
+		virtual Vertex* vertex(size_t index) const	{return m_vrts[index];}
 		virtual ConstVertexArray vertices() const	{return &m_vrts.front();}
 		virtual size_t num_vertices() const			{return m_vrts.size();}
 
@@ -296,7 +296,7 @@ class UG_API EdgeVertices : public IVertexGroup
 	friend class Grid;
 	public:
 		virtual ~EdgeVertices()						{}
-		virtual Vertex* vertex(uint index) const	{return m_vertices[index];}
+		virtual Vertex* vertex(size_t index) const	{return m_vertices[index];}
 		virtual ConstVertexArray vertices() const	{return m_vertices;}
 		virtual size_t num_vertices() const			{return 2;}
 
@@ -414,7 +414,7 @@ class UG_API FaceVertices : public IVertexGroup
 {
 	public:
 		virtual ~FaceVertices()							{}
-		virtual Vertex* vertex(uint index) const		{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return NULL;}
+		virtual Vertex* vertex(size_t index) const		{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return NULL;}
 		virtual ConstVertexArray vertices() const		{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return NULL;}
 		virtual size_t num_vertices() const				{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return 0;}
 
@@ -608,7 +608,7 @@ class UG_API FaceDescriptor : public FaceVertices
 
 		FaceDescriptor& operator = (const FaceDescriptor& fd);
 
-		virtual Vertex* vertex(uint index) const	{return m_vertices[index];}
+		virtual Vertex* vertex(size_t index) const	{return m_vertices[index];}
 		virtual ConstVertexArray vertices() const		{return m_vertices;}
 		virtual size_t num_vertices() const				{return m_numVertices;}
 
@@ -634,7 +634,7 @@ class UG_API VolumeVertices : public IVertexGroup
 	public:
 		virtual ~VolumeVertices()						{}
 
-		virtual Vertex* vertex(uint index) const	{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return NULL;}
+		virtual Vertex* vertex(size_t index) const	{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return NULL;}
 		virtual ConstVertexArray vertices() const		{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return NULL;}
 		virtual size_t num_vertices() const				{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return 0;}
 
@@ -843,7 +843,7 @@ class UG_API VolumeDescriptor : public VolumeVertices
 		VolumeDescriptor& operator = (const VolumeDescriptor& vv);
 		VolumeDescriptor& operator = (const VolumeVertices& vv);
 
-		virtual Vertex* vertex(uint index) const	{return m_vertices[index];}
+		virtual Vertex* vertex(size_t index) const	{return m_vertices[index];}
 		virtual ConstVertexArray vertices() const		{return m_vertices;}
 		virtual size_t num_vertices() const				{return m_numVertices;}
 

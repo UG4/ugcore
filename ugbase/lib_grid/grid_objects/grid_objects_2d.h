@@ -47,7 +47,7 @@ class UG_API TriangleDescriptor
 
 		inline uint num_vertices() const					{return 3;}
 		inline void set_vertex(uint index, Vertex* v)	{m_vertex[index] = v;}
-		inline Vertex* vertex(uint index) const			{return m_vertex[index];}
+		inline Vertex* vertex(size_t index) const			{return m_vertex[index];}
 
 	protected:
 		Vertex*	m_vertex[3];
@@ -77,7 +77,7 @@ class UG_API CustomTriangle : public BaseClass
 		virtual GridObject* create_empty_instance() const	{return new ConcreteTriangleType;}
 		virtual ReferenceObjectID reference_object_id() const {return ROID_TRIANGLE;}
 
-		virtual Vertex* vertex(uint index) const	{return m_vertices[index];}
+		virtual Vertex* vertex(size_t index) const	{return m_vertices[index];}
 		virtual Face::ConstVertexArray vertices() const		{return m_vertices;}
 		virtual size_t num_vertices() const	{return 3;}
 
@@ -181,7 +181,7 @@ class UG_API QuadrilateralDescriptor
 
 		inline uint num_vertices() const					{return 4;}
 		inline void set_vertex(uint index, Vertex* v)	{m_vertex[index] = v;}
-		inline Vertex* vertex(uint index) const			{return m_vertex[index];}
+		inline Vertex* vertex(size_t index) const			{return m_vertex[index];}
 
 	protected:
 		Vertex*	m_vertex[4];
@@ -214,7 +214,7 @@ class UG_API CustomQuadrilateral : public BaseClass
 		virtual GridObject* create_empty_instance() const	{return new ConcreteQuadrilateralType;}
 		virtual ReferenceObjectID reference_object_id() const {return ROID_QUADRILATERAL;}
 
-		virtual Vertex* vertex(uint index) const	{return m_vertices[index];}
+		virtual Vertex* vertex(size_t index) const	{return m_vertices[index];}
 		virtual Face::ConstVertexArray vertices() const		{return m_vertices;}
 		virtual size_t num_vertices() const	{return 4;}
 
