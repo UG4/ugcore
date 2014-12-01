@@ -886,17 +886,119 @@ update_local_data()
 	{
 
 	//	this scvf separates the given nodes
-		if (m_rRefElem.REFERENCE_OBJECT_ID != ROID_PYRAMID)
+		if (m_rRefElem.REFERENCE_OBJECT_ID != ROID_PYRAMID && m_rRefElem.REFERENCE_OBJECT_ID != ROID_OCTAHEDRON)
 		{
 			m_vSCVF[i].From = m_rRefElem.id(1, i, 0, 0);
 			m_vSCVF[i].To = m_rRefElem.id(1, i, 0, 1);
 		}
 		// special case pyramid (scvf not mappable by edges)
-		else
+		else if(m_rRefElem.REFERENCE_OBJECT_ID == ROID_PYRAMID)
 		{
 			// map according to order defined in ComputeSCVFMidID
 			m_vSCVF[i].From = ((i>6 && i%3) ? (i%3)+1 : i%3);
 			m_vSCVF[i].To = i%6 > 2 ? 4 : ((i+1)%3 + (i>5 && i<8 ? 1 : 0));
+		}
+		//	special case octahedron (scvf not mappable by edges)
+		else
+		{
+			// map according to order defined in ComputeSCVFMidID
+			switch(i)
+			{
+				case 0:	m_vSCVF[i].From = 1;
+						m_vSCVF[i].To	= 2;
+						break;
+				case 1:	m_vSCVF[i].From = 1;
+						m_vSCVF[i].To	= 2;
+						break;
+
+
+				case 2:	m_vSCVF[i].From = 2;
+						m_vSCVF[i].To	= 3;
+						break;
+				case 3:	m_vSCVF[i].From = 2;
+						m_vSCVF[i].To	= 3;
+						break;
+
+
+				case 4:	m_vSCVF[i].From = 3;
+						m_vSCVF[i].To	= 1;
+						break;
+				case 5:	m_vSCVF[i].From = 3;
+						m_vSCVF[i].To	= 1;
+						break;
+
+
+				case 6:	m_vSCVF[i].From = 1;
+						m_vSCVF[i].To	= 5;
+						break;
+				case 7:	m_vSCVF[i].From = 0;
+						m_vSCVF[i].To	= 1;
+						break;
+
+
+				case 8:	m_vSCVF[i].From = 2;
+						m_vSCVF[i].To	= 5;
+						break;
+				case 9:	m_vSCVF[i].From = 0;
+						m_vSCVF[i].To	= 2;
+						break;
+
+
+				case 10:m_vSCVF[i].From = 3;
+						m_vSCVF[i].To	= 5;
+						break;
+				case 11:m_vSCVF[i].From = 0;
+						m_vSCVF[i].To	= 3;
+						break;
+
+
+				case 12:m_vSCVF[i].From = 1;
+						m_vSCVF[i].To	= 3;
+						break;
+				case 13:m_vSCVF[i].From = 1;
+						m_vSCVF[i].To	= 3;
+						break;
+
+
+				case 14:m_vSCVF[i].From = 2;
+						m_vSCVF[i].To	= 3;
+						break;
+				case 15:m_vSCVF[i].From = 2;
+						m_vSCVF[i].To	= 3;
+						break;
+
+
+				case 16:m_vSCVF[i].From = 3;
+						m_vSCVF[i].To	= 0;
+						break;
+				case 17:m_vSCVF[i].From = 3;
+						m_vSCVF[i].To	= 0;
+						break;
+
+
+				case 18:m_vSCVF[i].From = 1;
+						m_vSCVF[i].To	= 5;
+						break;
+				case 19:m_vSCVF[i].From = 0;
+						m_vSCVF[i].To	= 1;
+						break;
+
+
+				case 20:m_vSCVF[i].From = 2;
+						m_vSCVF[i].To	= 5;
+						break;
+				case 21:m_vSCVF[i].From = 0;
+						m_vSCVF[i].To	= 2;
+						break;
+
+
+				case 22:m_vSCVF[i].From = 3;
+						m_vSCVF[i].To	= 5;
+						break;
+				case 23:m_vSCVF[i].From = 0;
+						m_vSCVF[i].To	= 3;
+						break;
+			}
 		}
 
 	//	compute mid ids of the scvf
@@ -919,10 +1021,64 @@ update_local_data()
 			m_vSCV[i].nodeId = i;
 		}
 		// special case pyramid (scv not mappable by corners)
-		else
+		else if(m_rRefElem.REFERENCE_OBJECT_ID == ROID_PYRAMID)
 		{
 			// map according to order defined in ComputeSCVMidID
 			m_vSCV[i].nodeId = i<3 ? i : (i<5 ? (i+1)%5 : i-3);
+		}
+		//	special case octahedron (scvf not mappable by edges)
+		else
+		{
+			// map according to order defined in ComputeSCVMidID
+			switch(i)
+			{
+				case 0: m_vSCV[i].nodeId = 1;
+						break;
+				case 1: m_vSCV[i].nodeId = 1;
+						break;
+
+
+				case 2: m_vSCV[i].nodeId = 2;
+						break;
+				case 3: m_vSCV[i].nodeId = 2;
+						break;
+
+
+				case 4: m_vSCV[i].nodeId = 3;
+						break;
+				case 5: m_vSCV[i].nodeId = 3;
+						break;
+
+
+				case 6: m_vSCV[i].nodeId = 5;
+						break;
+				case 7: m_vSCV[i].nodeId = 0;
+						break;
+
+
+				case 8: m_vSCV[i].nodeId = 1;
+						break;
+				case 9: m_vSCV[i].nodeId = 1;
+						break;
+
+
+				case 10:m_vSCV[i].nodeId = 3;
+						break;
+				case 11:m_vSCV[i].nodeId = 3;
+						break;
+
+
+				case 12:m_vSCV[i].nodeId = 4;
+						break;
+				case 13:m_vSCV[i].nodeId = 4;
+						break;
+
+
+				case 14:m_vSCV[i].nodeId = 5;
+						break;
+				case 15:m_vSCV[i].nodeId = 0;
+						break;
+			}
 		}
 
 	//	compute mid ids scv
