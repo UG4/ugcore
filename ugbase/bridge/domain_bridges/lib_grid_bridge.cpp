@@ -464,7 +464,9 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 			.add_method("get_subset_name", &ISubsetHandler::get_subset_name, "subset name", "subsetIndex")
 			.add_method("set_subset_name", &ISubsetHandler::set_subset_name, "", "name#subsetIndex")
 			.add_method("get_subset_index", static_cast<int (ISubsetHandler::*)(const char*) const>(
-											&ISubsetHandler::get_subset_index), "subset index", "subsetName");
+											&ISubsetHandler::get_subset_index), "subsetIndex", "subsetName")
+			.add_method("set_default_subset_index", &ISubsetHandler::set_default_subset_index, "", "subsetIndex")
+			.add_method("get_default_subset_index", &ISubsetHandler::set_default_subset_index, "subsetIndex", "");
 		
 	//	SubsetHandler
 		reg.add_class_<SubsetHandler, ISubsetHandler>("SubsetHandler", grp)

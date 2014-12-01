@@ -8,7 +8,6 @@
 #include "lib_grid/selector.h"
 #include "selection_util.h"
 #include "geom_obj_util/geom_obj_util.h"
-#include "graph/graph.h"
 #include "lib_grid/grid/grid_util.h"
 
 using namespace std;

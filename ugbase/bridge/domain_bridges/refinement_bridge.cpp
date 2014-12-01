@@ -215,7 +215,6 @@ void MarkForAdaption_VerticesInSphere(TDomain& dom, SmartPtr<IRefiner> refiner,
                                       number radius, std::string markType)
 {
 	PROFILE_FUNC_GROUP("grid");
-	typedef typename TDomain::position_type 			position_type;
 	typedef typename TDomain::position_accessor_type	position_accessor_type;
 
 	RefinementMark rmMark = StringToRefinementMark(markType);
@@ -271,7 +270,6 @@ void MarkForRefinement_ElementsInSphere(TDomain& dom, SmartPtr<IRefiner> refiner
 									number radius)
 {
 	PROFILE_FUNC_GROUP("grid");
-	typedef typename TDomain::position_type 			position_type;
 	typedef typename TDomain::position_accessor_type	position_accessor_type;
 	typedef typename geometry_traits<TElem>::iterator	ElemIter;
 
@@ -449,7 +447,6 @@ void MarkForRefinement_AnisotropicElements(TDomain& dom, SmartPtr<IRefiner> refi
 											number sizeRatio)
 {
 	PROFILE_FUNC_GROUP("grid");
-	typedef typename TDomain::position_type 			position_type;
 	typedef typename TDomain::position_accessor_type	position_accessor_type;
 
 //	make sure that the refiner was created for the given domain
@@ -703,7 +700,6 @@ void MarkForRefinement_AnisotropicElements2(TDomain& dom, SmartPtr<IRefiner> ref
 												number sizeRatio)
 {
 	PROFILE_FUNC_GROUP("grid");
-	typedef typename TDomain::position_type 			position_type;
 	typedef typename TDomain::position_accessor_type	position_accessor_type;
 
 //	make sure that the refiner was created for the given domain
@@ -1143,7 +1139,6 @@ template <typename TDomain>
 static void Domain(Registry& reg, string grp)
 {
 	typedef TDomain 							domain_type;
-	typedef typename TDomain::position_type		pos_type;
 	typedef typename TDomain::position_attachment_type apos_type;
 
 	string suffix = GetDomainSuffix<TDomain>();
