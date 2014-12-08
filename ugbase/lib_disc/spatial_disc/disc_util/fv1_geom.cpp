@@ -1016,7 +1016,7 @@ update_local_data()
 	for(size_t i = 0; i < num_scv(); ++i)
 	{
 	//	store associated node
-		if (m_rRefElem.REFERENCE_OBJECT_ID != ROID_PYRAMID)
+		if (m_rRefElem.REFERENCE_OBJECT_ID != ROID_PYRAMID && m_rRefElem.REFERENCE_OBJECT_ID != ROID_OCTAHEDRON)
 		{
 			m_vSCV[i].nodeId = i;
 		}
