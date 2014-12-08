@@ -26,6 +26,9 @@ set(srcBindingsVRL
                     basicTest.cpp
 )
 
+if(buildAlgebra)
+	set(Sources ${srcBindingsVRL} vrl_bridge.cpp)
+endif(buildAlgebra)
 
 set(Sources ${srcBindingsVRL})
 

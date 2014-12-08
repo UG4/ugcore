@@ -7,10 +7,8 @@
 #include "registry/class.h"
 #include "common/util/path_provider.h"
 #include "bridge/util.h"
-#include "bridge/util_algebra_dependent.h"
 
 #include "common/common.h"
-#include "lib_algebra/operator/convergence_check.h"
 #include "common/authors.h"
 #include "common/util/string_util.h"
 
@@ -21,7 +19,6 @@
 #include "bindings_vrl_native.h"
 
 #include "user_data.h"
-#include "lib_disc/spatial_disc/user_data/const_user_data.h"
 
 #include "compile_info/compile_info.h"
 
@@ -31,6 +28,10 @@
 
 //#include "bindings/lua/externals/lua/lstate.h"
 #include "basicTest.h"
+
+#ifdef UG_ALGEBRA
+#include "vrl_bridge.h"
+#endif
 
 namespace ug {
 namespace vrl {
@@ -147,44 +148,6 @@ public:
 	}
 };
 
-/**
- * Class exporting the functionality. All functionality that is to
- * be used in scripts or visualization must be registered here.
- */
-struct Functionality {
-
-	/**
-	 * Function called for the registration of Algebra dependent parts.
-	 * All Functions and Classes depending on Algebra
-	 * are to be placed here when registering. The method is called for all
-	 * available Algebra types, based on the current build options.
-	 *
-	 * @param reg				registry
-	 * @param parentGroup		group for sorting of functionality
-	 */
-	template<typename TAlgebra>
-	static void Algebra(ug::bridge::Registry& reg, std::string parentGroup) {
-//	typedefs for Vector and Matrix
-		typedef typename TAlgebra::vector_type vector_type;
-		typedef typename TAlgebra::matrix_type matrix_type;
-
-//	suffix and tag
-		std::string suffix = ug::bridge::GetAlgebraSuffix<TAlgebra>();
-		std::string tag = ug::bridge::GetAlgebraTag<TAlgebra>();
-
-		reg.add_function("GetDefects", &getDefects<vector_type>, "UG4/Util",
-				"Defects");
-	}
-
-};
-// end Functionality
-
-void RegisterVRLFunctionality(ug::bridge::Registry& reg, std::string grp) {
-	typedef ug::vrl::Functionality Functionality;
-
-	ug::bridge::RegisterAlgebraDependent<Functionality>(reg, grp);
-}
-
 } // end vrl::
 } // end ug::
 
@@ -218,23 +181,29 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug_UG__1ugInit(JNIEnv *env, jclass cls,
 	char** pargv = &argv[0];
 	//\todo: generalize outputproc rank
 	// isn't this possible already via SetOuputRank() ?
+
+// PLEASE NOTE: UG_ALGEBRA is used here to exclude all algebra
+//		and discretization related code.
+//		This makes it possible to compile e.g. for target vrlgrid
 	int retVal = ug::UGInit(&argc, &pargv, 0);
 
-	// Register Playground if we are in debug mode
-
 #ifdef UG_DEBUG
+	// Register Playground if we are in debug mode
 	ug::vrl::registerPlayground(reg);
 #endif
 
 	ug::vrl::registerBasicTest(reg);
 
+#ifdef UG_ALGEBRA
 	ug::vrl::RegisterUserData(reg, "UG4/VRL");
+#endif
 	ug::vrl::registerMessaging(reg);
 	ug::vrl::registerThrowUtil(reg);
 	ug::vrl::registerNumberArray(reg);
+#ifdef UG_ALGEBRA
 	ug::vrl::RegisterVRLFunctionality(reg, "UG4/VRL");
 	ug::vrl::registerUGFinalize(reg);
-
+#endif
 	reg.add_class_<ug::vrl::VTest>("VTest", "UG4/VRL/Testing").add_constructor().add_constructor<
 			void (*)(const char*)>().add_method("hello",
 			&ug::vrl::VTest::hello);

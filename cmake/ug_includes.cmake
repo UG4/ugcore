@@ -69,7 +69,7 @@ set(linkLibraries)
 # In this section we'll define default variables
 	
 # Values for the TARGET option
-set(targetOptions "ugshell, vrl, libug4, libgrid, ugplugin, gridshell, amg")
+set(targetOptions "ugshell, vrl, libug4, ugplugin, libgrid, gridshell, vrlgrid, amg")
 set(targetDefault "ugshell")
 set(targetExecutableName ugshell)
 set(targetLibraryName ug4)
@@ -197,6 +197,12 @@ if(NOT PROFILER)
 	set(PROFILER ${profilerDefault})
 endif(NOT PROFILER)
 
+
+########################################
+# TARGET
+include(${UG_ROOT_PATH}/cmake/ug/target.cmake)
+
+
 # convert the DIM and CPU sets to readable sets
 # otherwise "2;3" gets "23" .
 # todo: make this a function/macro
@@ -216,8 +222,6 @@ foreach(d ${CPU})
 		set(CPUReadable "${CPUReadable}" "\;" ${d})
 	endif("${CPUReadable}" STREQUAL "")
 endforeach(d)
-
-
 
 ################################################################################
 # We'll output the current options-setting in this section
@@ -257,10 +261,6 @@ endif(INTERNAL_MEMTRACKER)
 
 ################################################################################
 # Options are processed in this section.
-
-########################################
-# TARGET
-include(${UG_ROOT_PATH}/cmake/ug/target.cmake)
 
 ########################################
 # PRECISION
