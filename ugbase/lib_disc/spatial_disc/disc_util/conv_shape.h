@@ -616,7 +616,7 @@ update(const FV1Geometry<TElem, dim>* geo,
 {
 	UG_ASSERT(geo != NULL, "Null pointer");
 	UG_ASSERT(Velocity != NULL, "Null pointer");
-	UG_ASSERT(DiffDisp != NULL, "Null pointer");
+//	UG_ASSERT(DiffDisp != NULL, "Null pointer");
 
 //	Compute Volume of Element
 	typedef typename FV1Geometry<TElem, dim>::ref_elem_type ref_elem_type;
