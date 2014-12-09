@@ -100,6 +100,9 @@ set(precisionOptions "single, double")
 set(profilerOptions "None, Shiny, Scalasca, Vampir, ScoreP")
 set(profilerDefault "None")
 
+# Option to set frequency
+set(cpufreqDefault OFF)
+
 # If we run the script the first time, search for MPI to determine the default value
 if(LOCAL_OPENMPI)
 	message("local openmpi")
@@ -197,6 +200,10 @@ if(NOT PROFILER)
 	set(PROFILER ${profilerDefault})
 endif(NOT PROFILER)
 
+if(NOT CPU_FREQ)
+    set(CPU_FREQ ${cpufreqDefault})
+endif(CPU_FREQ)
+
 
 ########################################
 # TARGET
@@ -238,6 +245,7 @@ message(STATUS "Info: PARALLEL:          ${PARALLEL} (options are: ON, OFF)")
 message(STATUS "Info: PCL_DEBUG_BARRIER: ${PCL_DEBUG_BARRIER} (options are: ON, OFF)")
 message(STATUS "Info: PROFILER:          ${PROFILER} (options are: ${profilerOptions})")
 message(STATUS "Info: PROFILE_PCL:       ${PROFILE_PCL} (options are: ON, OFF)")
+message(STATUS "Info: CPU_FREQ:          ${CPU_FREQ} (options are: ON, OFF)")
 message(STATUS "Info: PROFILE_BRIDGE:    ${PROFILE_BRIDGE} (options are: ON, OFF)")
 message(STATUS "Info: LAPACK:            ${LAPACK} (options are: ON, OFF)")
 message(STATUS "Info: BLAS:              ${BLAS} (options are: ON, OFF)")
@@ -470,6 +478,14 @@ endif(buildForVRL)
 if(buildForLUA)
 	add_definitions(-DUG_FOR_LUA)
 endif(buildForLUA)
+
+########################################
+# Frequency setting
+if(CPU_FREQ)
+	add_definitions(-DUG_CPU_FREQ)
+	set(linkLibraries ${linkLibraries} cpufreq)
+endif(CPU_FREQ)
+
 
 
 ################################################################################
