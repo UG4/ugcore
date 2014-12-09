@@ -138,55 +138,55 @@ CreateGlobalFracturedDomainRefiner(TDomain* dom)
 }
 
 
-////////////////////////////////////////////////////////////////////////////////
-/// marks face for anisotropic refinement, if it contains edges below given sizeRatio
-/**
- * marks face and for anisotropic refinement, if it contains edges
- * below given sizeRatio. These edges are also marked.
- * @return true, if face has been marked for anisotropic refinement.
- * This is the case, when one of its edges has been marked for refinement.*/
-template <class TAAPos> bool MarkIfAnisotropic(Face* f, IRefiner* refiner, number sizeRatio, TAAPos& aaPos)
-{
-	bool marked = false;
-	uint num_edges = f->num_edges();
-	vector<Edge*> edges(num_edges);
-	// collect associated edges
-	CollectAssociated(edges, *refiner->grid(), f);
+// ////////////////////////////////////////////////////////////////////////////////
+// /// marks face for anisotropic refinement, if it contains edges below given sizeRatio
+// /**
+//  * marks face and for anisotropic refinement, if it contains edges
+//  * below given sizeRatio. These edges are also marked.
+//  * @return true, if face has been marked for anisotropic refinement.
+//  * This is the case, when one of its edges has been marked for refinement.*/
+// template <class TAAPos> bool MarkIfAnisotropic(Face* f, IRefiner* refiner, number sizeRatio, TAAPos& aaPos)
+// {
+// 	bool marked = false;
+// 	uint num_edges = f->num_edges();
+// 	vector<Edge*> edges(num_edges);
+// 	// collect associated edges
+// 	CollectAssociated(edges, *refiner->grid(), f);
 
-	//	find the shortest edge
-	Edge* minEdge = FindShortestEdge(edges.begin(), edges.end(), aaPos);
-	UG_ASSERT(minEdge,
-			"Associated edges of each face have to exist at this point.");
-	number minLen = EdgeLength(minEdge, aaPos);
+// 	//	find the shortest edge
+// 	Edge* minEdge = FindShortestEdge(edges.begin(), edges.end(), aaPos);
+// 	UG_ASSERT(minEdge,
+// 			"Associated edges of each face have to exist at this point.");
+// 	number minLen = EdgeLength(minEdge, aaPos);
 
-	//	compare all associated edges of f against minEdge (even minEdge itself,
-	//	if somebody sets edgeRatio to 1 or higher)
-	for (uint i_edge = 0; i_edge < num_edges; ++i_edge) {
-		Edge* e = edges[i_edge];
-		number len = EdgeLength(e, aaPos);
-		//	to avoid division by 0, we only consider edges with a length > 0
-		if(len > 0) {
-			if(minLen / len <= sizeRatio) {
-				//	the edge will be refined
-				refiner->mark(e);
-				marked = true;
-			}
-		}
-	}
+// 	//	compare all associated edges of f against minEdge (even minEdge itself,
+// 	//	if somebody sets edgeRatio to 1 or higher)
+// 	for (uint i_edge = 0; i_edge < num_edges; ++i_edge) {
+// 		Edge* e = edges[i_edge];
+// 		number len = EdgeLength(e, aaPos);
+// 		//	to avoid division by 0, we only consider edges with a length > 0
+// 		if(len > 0) {
+// 			if(minLen / len <= sizeRatio) {
+// 				//	the edge will be refined
+// 				refiner->mark(e);
+// 				marked = true;
+// 			}
+// 		}
+// 	}
 
-	if(marked) {
-		//	if a vertex has been marked, also mark the face, or else just a hanging
-		//	node would be inserted.
-		//	We do not mark other associated objects here since this would
-		//	cause creation of a closure and would also behave differently
-		//	in a parallel environment, compared to a serial environment.
-		//	By using RM_ANISOTROPIC, we avoid that associated edges of
-		//	the marked face will automatically be marked, too.
-		refiner->mark(f, RM_ANISOTROPIC);
-	}
+// 	if(marked) {
+// 		//	if a vertex has been marked, also mark the face, or else just a hanging
+// 		//	node would be inserted.
+// 		//	We do not mark other associated objects here since this would
+// 		//	cause creation of a closure and would also behave differently
+// 		//	in a parallel environment, compared to a serial environment.
+// 		//	By using RM_ANISOTROPIC, we avoid that associated edges of
+// 		//	the marked face will automatically be marked, too.
+// 		refiner->mark(f, RM_ANISOTROPIC);
+// 	}
 
-	return marked;
-}
+// 	return marked;
+// }
 
 ////////////////////////////////////////////////////////////////////////////////
 ///	Marks all elements from refinement.
@@ -419,338 +419,338 @@ void MarkAnisotropic_LongEdges(TDomain& dom, IRefiner& refiner, number minLen)
 }
 
 
-////////////////////////////////////////////////////////////////////////////////
-///	Marks the long edges in anisotropic faces and faces with a big area in anisotropic volumes.
-/**
- * THE NOT HIGHLY SUCCESSFUL IMPLEMENTATION OF THIS METHOD LEAD TO NEW INSIGHT.
- * A NEW ANISOTROPIC REFINEMENT STRATEGY WILL BE IMPLEMENTED, WHICH WILL ALSO
- * LEAD TO A REIMPLEMENTATION OF THIS METHOD. BEST NOT TO USE IT UNTIL THEN.
- *
- * The sizeRatio determines Whether a face or a volume is considered anisotropic.
- * Make sure that the sizeRatio is in the interval [0, 1]. If the
- * ratio of the shortest edge to an other edge falls below the given threshold,
- * then the associated face is considered anisotropic and the longer edge will be
- * marked. The face itself will then be marked for anisotropic refinement.
- * The same technique is applied to volumes, this time however the ratio between
- * face-areas is considered when judging whether a volume is anisotropic.
- *
- * VOLUME MARKS ARE CURRENTLY DISABLED
- *
- * Note that this algorithm only really works for a serial environment.
- * \todo	improve it so that it works in parallel, too. A specialization of
- * 			HangingNodeRefiner may be required for this.
- *
- * \todo	activate and improve volume marks
- **/
-template <class TDomain>
-void MarkForRefinement_AnisotropicElements(TDomain& dom, SmartPtr<IRefiner> refiner,
-											number sizeRatio)
-{
-	PROFILE_FUNC_GROUP("grid");
-	typedef typename TDomain::position_accessor_type	position_accessor_type;
+// ////////////////////////////////////////////////////////////////////////////////
+// ///	Marks the long edges in anisotropic faces and faces with a big area in anisotropic volumes.
+// /**
+//  * THE NOT HIGHLY SUCCESSFUL IMPLEMENTATION OF THIS METHOD LEAD TO NEW INSIGHT.
+//  * A NEW ANISOTROPIC REFINEMENT STRATEGY WILL BE IMPLEMENTED, WHICH WILL ALSO
+//  * LEAD TO A REIMPLEMENTATION OF THIS METHOD. BEST NOT TO USE IT UNTIL THEN.
+//  *
+//  * The sizeRatio determines Whether a face or a volume is considered anisotropic.
+//  * Make sure that the sizeRatio is in the interval [0, 1]. If the
+//  * ratio of the shortest edge to an other edge falls below the given threshold,
+//  * then the associated face is considered anisotropic and the longer edge will be
+//  * marked. The face itself will then be marked for anisotropic refinement.
+//  * The same technique is applied to volumes, this time however the ratio between
+//  * face-areas is considered when judging whether a volume is anisotropic.
+//  *
+//  * VOLUME MARKS ARE CURRENTLY DISABLED
+//  *
+//  * Note that this algorithm only really works for a serial environment.
+//  * \todo	improve it so that it works in parallel, too. A specialization of
+//  * 			HangingNodeRefiner may be required for this.
+//  *
+//  * \todo	activate and improve volume marks
+//  **/
+// template <class TDomain>
+// void MarkForRefinement_AnisotropicElements(TDomain& dom, SmartPtr<IRefiner> refiner,
+// 											number sizeRatio)
+// {
+// 	PROFILE_FUNC_GROUP("grid");
+// 	typedef typename TDomain::position_accessor_type	position_accessor_type;
 
-//	make sure that the refiner was created for the given domain
-	if(refiner->get_associated_grid() != dom.grid().get()){
-		throw(UGError("ERROR in MarkForRefinement_VerticesInCube: "
-					"Refiner was not created for the specified domain. Aborting."));
-	}
+// //	make sure that the refiner was created for the given domain
+// 	if(refiner->get_associated_grid() != dom.grid().get()){
+// 		throw(UGError("ERROR in MarkForRefinement_VerticesInCube: "
+// 					"Refiner was not created for the specified domain. Aborting."));
+// 	}
 
-//	access the grid and the position attachment
-	Grid& grid = *refiner->get_associated_grid();
-	position_accessor_type& aaPos = dom.position_accessor();
+// //	access the grid and the position attachment
+// 	Grid& grid = *refiner->get_associated_grid();
+// 	position_accessor_type& aaPos = dom.position_accessor();
 
-//	If the grid is a multigrid, we want to avoid marking of elements, which do
-//	have children
-	MultiGrid* pmg = dynamic_cast<MultiGrid*>(&grid);
+// //	If the grid is a multigrid, we want to avoid marking of elements, which do
+// //	have children
+// 	MultiGrid* pmg = dynamic_cast<MultiGrid*>(&grid);
 
-//	make sure that the grid automatically generates sides for each element
-	if(!grid.option_is_enabled(GRIDOPT_AUTOGENERATE_SIDES)){
-		UG_LOG("WARNING in MarkForRefinement_AnisotropicElements: "
-				"Enabling GRIDOPT_AUTOGENERATE_SIDES.\n");
-		grid.enable_options(GRIDOPT_AUTOGENERATE_SIDES);
-	}
+// //	make sure that the grid automatically generates sides for each element
+// 	if(!grid.option_is_enabled(GRIDOPT_AUTOGENERATE_SIDES)){
+// 		UG_LOG("WARNING in MarkForRefinement_AnisotropicElements: "
+// 				"Enabling GRIDOPT_AUTOGENERATE_SIDES.\n");
+// 		grid.enable_options(GRIDOPT_AUTOGENERATE_SIDES);
+// 	}
 
-//	we'll store associated edges and faces in those containers
-	vector<Edge*> edges;
-	vector<Face*> faces;
+// //	we'll store associated edges and faces in those containers
+// 	vector<Edge*> edges;
+// 	vector<Face*> faces;
 
-//	iterate over all faces of the grid.
-	for(FaceIterator iter = grid.begin<Face>();
-		iter != grid.end<Face>(); ++iter)
-	{
-		Face* f = *iter;
+// //	iterate over all faces of the grid.
+// 	for(FaceIterator iter = grid.begin<Face>();
+// 		iter != grid.end<Face>(); ++iter)
+// 	{
+// 		Face* f = *iter;
 
-	//	ignore faces with children
-		if(pmg && pmg->has_children(f))
-			continue;
+// 	//	ignore faces with children
+// 		if(pmg && pmg->has_children(f))
+// 			continue;
 
-	//	collect associated edges
-		CollectAssociated(edges, grid, f);
+// 	//	collect associated edges
+// 		CollectAssociated(edges, grid, f);
 
-	//	find the shortest edge
-		Edge* minEdge = FindShortestEdge(edges.begin(), edges.end(), aaPos);
-		UG_ASSERT(minEdge, "Associated edges of each face have to exist at this point.");
-		number minLen = EdgeLength(minEdge, aaPos);
+// 	//	find the shortest edge
+// 		Edge* minEdge = FindShortestEdge(edges.begin(), edges.end(), aaPos);
+// 		UG_ASSERT(minEdge, "Associated edges of each face have to exist at this point.");
+// 		number minLen = EdgeLength(minEdge, aaPos);
 
-	//	compare all associated edges of f against minEdge (even minEdge itself,
-	//	if somebody sets edgeRatio to 1 or higher)
-		for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
-			Edge* e = edges[i_edge];
-			number len = EdgeLength(e, aaPos);
-		//	to avoid division by 0, we only consider edges with a length > 0
-			if(len > 0){
-				if(minLen / len <= sizeRatio){
-				//	the edge will be refined
-					refiner->mark(e);
+// 	//	compare all associated edges of f against minEdge (even minEdge itself,
+// 	//	if somebody sets edgeRatio to 1 or higher)
+// 		for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
+// 			Edge* e = edges[i_edge];
+// 			number len = EdgeLength(e, aaPos);
+// 		//	to avoid division by 0, we only consider edges with a length > 0
+// 			if(len > 0){
+// 				if(minLen / len <= sizeRatio){
+// 				//	the edge will be refined
+// 					refiner->mark(e);
 
-				//	we'll also mark the current face, or else just a hanging
-				//	node would be inserted.
-				//	We do not mark other associated objects here since this would
-				//	cause creation of a closure and would also behave differently
-				//	in a parallel environment, compared to a serial environment.
-				//	By using RM_ANISOTROPIC, we avoid that associated edges of
-				//	the marked face will automatically be marked, too.
-					refiner->mark(f, RM_ANISOTROPIC);
-				}
-			}
-		}
-	}
+// 				//	we'll also mark the current face, or else just a hanging
+// 				//	node would be inserted.
+// 				//	We do not mark other associated objects here since this would
+// 				//	cause creation of a closure and would also behave differently
+// 				//	in a parallel environment, compared to a serial environment.
+// 				//	By using RM_ANISOTROPIC, we avoid that associated edges of
+// 				//	the marked face will automatically be marked, too.
+// 					refiner->mark(f, RM_ANISOTROPIC);
+// 				}
+// 			}
+// 		}
+// 	}
 
-//	iterate over all faces again. We have to make sure that faces which have
-//	a marked short edge are refined regular.
-//	first push all marked faces into a queue
-//	we're using grid::mark to make sure that each face lies only once on the queue.
-//	Grid::mark has nothing to do with refinement. It is just a helper for us.
-	grid.begin_marking();
+// //	iterate over all faces again. We have to make sure that faces which have
+// //	a marked short edge are refined regular.
+// //	first push all marked faces into a queue
+// //	we're using grid::mark to make sure that each face lies only once on the queue.
+// //	Grid::mark has nothing to do with refinement. It is just a helper for us.
+// 	grid.begin_marking();
 
-	queue<Face*> queFaces;
-	for(FaceIterator iter = grid.begin<Face>(); iter != grid.end<Face>(); ++iter){
-		queFaces.push(*iter);
-		grid.mark(*iter);
-	}
+// 	queue<Face*> queFaces;
+// 	for(FaceIterator iter = grid.begin<Face>(); iter != grid.end<Face>(); ++iter){
+// 		queFaces.push(*iter);
+// 		grid.mark(*iter);
+// 	}
 
-	while(!queFaces.empty()){
-		Face* f = queFaces.front();
-		queFaces.pop();
+// 	while(!queFaces.empty()){
+// 		Face* f = queFaces.front();
+// 		queFaces.pop();
 
-		if(pmg && pmg->has_children(f)){
-			grid.unmark(f);
-			continue;
-		}
+// 		if(pmg && pmg->has_children(f)){
+// 			grid.unmark(f);
+// 			continue;
+// 		}
 
-	//	collect associated edges
-		CollectAssociated(edges, grid, f);
-/*
-		if(refiner->get_mark(f) == RM_NONE){
-			bool gotOne = false;
-			for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
-				Edge* e = edges[i_edge];
-				if(refiner->get_mark(e) != RM_NONE){
-					gotOne = true;
-					break;
-				}
-			}
+// 	//	collect associated edges
+// 		CollectAssociated(edges, grid, f);
+// /*
+// 		if(refiner->get_mark(f) == RM_NONE){
+// 			bool gotOne = false;
+// 			for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
+// 				Edge* e = edges[i_edge];
+// 				if(refiner->get_mark(e) != RM_NONE){
+// 					gotOne = true;
+// 					break;
+// 				}
+// 			}
 
-			if(gotOne){
-				for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
-					Edge* e = edges[i_edge];
-					if(refiner->get_mark(e) == RM_NONE){
-						refiner->mark(e);
-						CollectFaces(faces, grid, e);
-						for(size_t i_face = 0; i_face < faces.size(); ++i_face){
-							Face* nbr = faces[i_face];
-							if(!grid.is_marked(nbr)
-							   && (refiner->get_mark(nbr) == RM_ANISOTROPIC))
-							{
-								grid.mark(nbr);
-								queFaces.push(nbr);
-							}
-						}
-					}
-				}
-				refiner->mark(f);
-			}
-		}
-		else */if(refiner->get_mark(f) == RM_ANISOTROPIC){
-		//	find the shortest edge
-			Edge* minEdge = FindShortestEdge(edges.begin(), edges.end(), aaPos);
-			UG_ASSERT(minEdge, "Associated edges of each face have to exist at this point.");
-			number minLen = EdgeLength(minEdge, aaPos);
+// 			if(gotOne){
+// 				for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
+// 					Edge* e = edges[i_edge];
+// 					if(refiner->get_mark(e) == RM_NONE){
+// 						refiner->mark(e);
+// 						CollectFaces(faces, grid, e);
+// 						for(size_t i_face = 0; i_face < faces.size(); ++i_face){
+// 							Face* nbr = faces[i_face];
+// 							if(!grid.is_marked(nbr)
+// 							   && (refiner->get_mark(nbr) == RM_ANISOTROPIC))
+// 							{
+// 								grid.mark(nbr);
+// 								queFaces.push(nbr);
+// 							}
+// 						}
+// 					}
+// 				}
+// 				refiner->mark(f);
+// 			}
+// 		}
+// 		else */if(refiner->get_mark(f) == RM_ANISOTROPIC){
+// 		//	find the shortest edge
+// 			Edge* minEdge = FindShortestEdge(edges.begin(), edges.end(), aaPos);
+// 			UG_ASSERT(minEdge, "Associated edges of each face have to exist at this point.");
+// 			number minLen = EdgeLength(minEdge, aaPos);
 
-		//	check if a short edge and a long edge is selected
-			bool longEdgeSelected = false;
-			bool shortEdgeSelected = false;
+// 		//	check if a short edge and a long edge is selected
+// 			bool longEdgeSelected = false;
+// 			bool shortEdgeSelected = false;
 
-			for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
-				Edge* e = edges[i_edge];
-				if(refiner->get_mark(e) == RM_NONE)
-					continue;
+// 			for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
+// 				Edge* e = edges[i_edge];
+// 				if(refiner->get_mark(e) == RM_NONE)
+// 					continue;
 
-				number len = EdgeLength(e, aaPos);
-			//	to avoid division by 0, we only consider edges with a length > 0
-				if(len > 0){
-					if(minLen / len <= sizeRatio){
-						longEdgeSelected = true;
-					}
-					else{
-						shortEdgeSelected = true;
-					}
-				}
-			}
+// 				number len = EdgeLength(e, aaPos);
+// 			//	to avoid division by 0, we only consider edges with a length > 0
+// 				if(len > 0){
+// 					if(minLen / len <= sizeRatio){
+// 						longEdgeSelected = true;
+// 					}
+// 					else{
+// 						shortEdgeSelected = true;
+// 					}
+// 				}
+// 			}
 
-		//	if a short edge and a long edge was selected, we'll have to mark all
-		//	edges and push associated faces with anisotropic mark to the queue
-			if(longEdgeSelected && shortEdgeSelected){
-				for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
-					Edge* e = edges[i_edge];
-					if(refiner->get_mark(e) == RM_NONE){
-					//	mark it and push associated anisotropic faces to the queue
-						refiner->mark(e);
-	//!!!
+// 		//	if a short edge and a long edge was selected, we'll have to mark all
+// 		//	edges and push associated faces with anisotropic mark to the queue
+// 			if(longEdgeSelected && shortEdgeSelected){
+// 				for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
+// 					Edge* e = edges[i_edge];
+// 					if(refiner->get_mark(e) == RM_NONE){
+// 					//	mark it and push associated anisotropic faces to the queue
+// 						refiner->mark(e);
+// 	//!!!
 
-	if(ConstrainingEdge::type_match(e)){
-		UG_LOG("CONSTRAINING EDGE MARKED (2)\n");
-	}
+// 	if(ConstrainingEdge::type_match(e)){
+// 		UG_LOG("CONSTRAINING EDGE MARKED (2)\n");
+// 	}
 
-						CollectFaces(faces, grid, e);
-						for(size_t i_face = 0; i_face < faces.size(); ++i_face){
-							Face* nbr = faces[i_face];
-							if(!grid.is_marked(nbr)
-							   && (refiner->get_mark(nbr) == RM_ANISOTROPIC))
-							{
-								grid.mark(nbr);
-								queFaces.push(nbr);
-							}
-						}
-					}
-				}
-			}
-		}
-	//	now unmark the face
-		grid.unmark(f);
-	}
+// 						CollectFaces(faces, grid, e);
+// 						for(size_t i_face = 0; i_face < faces.size(); ++i_face){
+// 							Face* nbr = faces[i_face];
+// 							if(!grid.is_marked(nbr)
+// 							   && (refiner->get_mark(nbr) == RM_ANISOTROPIC))
+// 							{
+// 								grid.mark(nbr);
+// 								queFaces.push(nbr);
+// 							}
+// 						}
+// 					}
+// 				}
+// 			}
+// 		}
+// 	//	now unmark the face
+// 		grid.unmark(f);
+// 	}
 
-	grid.end_marking();
+// 	grid.end_marking();
 
-//	mark unmarked neighbors of marked edges for regular refinement
-/*
-	for(FaceIterator iter = grid.begin<Face>();
-		iter != grid.end<Face>(); ++iter)
-	{
-		Face* f = *iter;
+// //	mark unmarked neighbors of marked edges for regular refinement
+// /*
+// 	for(FaceIterator iter = grid.begin<Face>();
+// 		iter != grid.end<Face>(); ++iter)
+// 	{
+// 		Face* f = *iter;
 
-	//	if it is already marked, leave it as it is
-		if(refiner->get_mark(f) != RM_NONE)
-			continue;
+// 	//	if it is already marked, leave it as it is
+// 		if(refiner->get_mark(f) != RM_NONE)
+// 			continue;
 
-	//	ignore faces with children
-		if(pmg && pmg->has_children(f))
-			continue;
+// 	//	ignore faces with children
+// 		if(pmg && pmg->has_children(f))
+// 			continue;
 
-		for(size_t i = 0; i < f->num_edges(); ++i){
-			if(refiner->get_mark(grid.get_side(f, i)) != RM_NONE)
-				refiner->mark(f);
-		}
-	}*/
+// 		for(size_t i = 0; i < f->num_edges(); ++i){
+// 			if(refiner->get_mark(grid.get_side(f, i)) != RM_NONE)
+// 				refiner->mark(f);
+// 		}
+// 	}*/
 
-/*
-//	now that all faces are marked, we can process volumes. We consider a
-//	volume which has an anisotropic side as an anisotropic volume
-	for(VolumeIterator iter = grid.begin<Volume>();
-		iter != grid.end<Volume>(); ++iter)
-	{
-		Volume* v = *iter;
+// /*
+// //	now that all faces are marked, we can process volumes. We consider a
+// //	volume which has an anisotropic side as an anisotropic volume
+// 	for(VolumeIterator iter = grid.begin<Volume>();
+// 		iter != grid.end<Volume>(); ++iter)
+// 	{
+// 		Volume* v = *iter;
 
-	//	collect associated faces
-		CollectAssociated(faces, grid, v);
+// 	//	collect associated faces
+// 		CollectAssociated(faces, grid, v);
 
-	//	find the smallest face
-		Face* minFace = FindSmallestFace(faces.begin(), faces.end(), aaPos);
-		UG_ASSERT(minFace, "Associated faces of each volume have to exist at this point.");
-		number minArea = FaceArea(minFace, aaPos);
+// 	//	find the smallest face
+// 		Face* minFace = FindSmallestFace(faces.begin(), faces.end(), aaPos);
+// 		UG_ASSERT(minFace, "Associated faces of each volume have to exist at this point.");
+// 		number minArea = FaceArea(minFace, aaPos);
 
-	//	compare all associated faces of v against minArea
-		for(size_t i_face = 0; i_face < faces.size(); ++i_face){
-			Face* f = faces[i_face];
-			number area = FaceArea(f, aaPos);
-		//	avoid division by 0
-			if(area > 0){
-				if(minArea / area <= sizeRatio){
-				//	the face will be refined. If it is already marked, we'll
-				//	leave it at that, to keep the anisotropy.
-				//	If it wasn't marked, we'll mark it for full refinement
-				//	(all anisotropic faces have already been marked).
-					if(refiner->get_mark(f) == RM_NONE)
-						refiner->mark(f);
+// 	//	compare all associated faces of v against minArea
+// 		for(size_t i_face = 0; i_face < faces.size(); ++i_face){
+// 			Face* f = faces[i_face];
+// 			number area = FaceArea(f, aaPos);
+// 		//	avoid division by 0
+// 			if(area > 0){
+// 				if(minArea / area <= sizeRatio){
+// 				//	the face will be refined. If it is already marked, we'll
+// 				//	leave it at that, to keep the anisotropy.
+// 				//	If it wasn't marked, we'll mark it for full refinement
+// 				//	(all anisotropic faces have already been marked).
+// 					if(refiner->get_mark(f) == RM_NONE)
+// 						refiner->mark(f);
 
-				//	the volume itself now has to be marked, too.
-					refiner->mark(v, RM_ANISOTROPIC);
-				}
-			}
-		}
-	}*/
-}
+// 				//	the volume itself now has to be marked, too.
+// 					refiner->mark(v, RM_ANISOTROPIC);
+// 				}
+// 			}
+// 		}
+// 	}*/
+// }
 
-///////
-/**
- *
- */
-template <class TDomain>
-void MarkForRefinement_AnisotropicElements2(TDomain& dom, SmartPtr<IRefiner> refiner,
-												number sizeRatio)
-{
-	PROFILE_FUNC_GROUP("grid");
-	typedef typename TDomain::position_accessor_type	position_accessor_type;
+// ///////
+// /**
+//  *
+//  */
+// template <class TDomain>
+// void MarkForRefinement_AnisotropicElements2(TDomain& dom, SmartPtr<IRefiner> refiner,
+// 												number sizeRatio)
+// {
+// 	PROFILE_FUNC_GROUP("grid");
+// 	typedef typename TDomain::position_accessor_type	position_accessor_type;
 
-//	make sure that the refiner was created for the given domain
-	if(refiner->get_associated_grid() != dom.grid().get()){
-		throw(UGError("ERROR in MarkForRefinement_VerticesInCube: "
-					"Refiner was not created for the specified domain. Aborting."));
-	}
+// //	make sure that the refiner was created for the given domain
+// 	if(refiner->get_associated_grid() != dom.grid().get()){
+// 		throw(UGError("ERROR in MarkForRefinement_VerticesInCube: "
+// 					"Refiner was not created for the specified domain. Aborting."));
+// 	}
 
-//	access the grid and the position attachment
-	Grid& grid = *refiner->get_associated_grid();
-	position_accessor_type& aaPos = dom.position_accessor();
-	IRefiner* ref = refiner.get_nonconst();
+// //	access the grid and the position attachment
+// 	Grid& grid = *refiner->get_associated_grid();
+// 	position_accessor_type& aaPos = dom.position_accessor();
+// 	IRefiner* ref = refiner.get_nonconst();
 
-//	If the grid is a multigrid, we want to avoid marking of elements, which do
-//	have children
-	MultiGrid* pmg = dynamic_cast<MultiGrid*>(&grid);
+// //	If the grid is a multigrid, we want to avoid marking of elements, which do
+// //	have children
+// 	MultiGrid* pmg = dynamic_cast<MultiGrid*>(&grid);
 
-//	make sure that the grid automatically generates sides for each element
-	if(!grid.option_is_enabled(GRIDOPT_AUTOGENERATE_SIDES)){
-		UG_LOG("WARNING in MarkForRefinement_AnisotropicElements: "
-				"Enabling GRIDOPT_AUTOGENERATE_SIDES.\n");
-		grid.enable_options(GRIDOPT_AUTOGENERATE_SIDES);
-	}
+// //	make sure that the grid automatically generates sides for each element
+// 	if(!grid.option_is_enabled(GRIDOPT_AUTOGENERATE_SIDES)){
+// 		UG_LOG("WARNING in MarkForRefinement_AnisotropicElements: "
+// 				"Enabling GRIDOPT_AUTOGENERATE_SIDES.\n");
+// 		grid.enable_options(GRIDOPT_AUTOGENERATE_SIDES);
+// 	}
 
-//	we'll store associated edges, faces and volumes in those containers
-	vector<Edge*> edges;
-	vector<Face*> faces;
-	vector<Volume*> volumes;
-//	iterate over all faces of the grid.
-	for(FaceIterator iter = grid.begin<Face>();
-		iter != grid.end<Face>(); ++iter)
-	{
-		Face* f = *iter;
-		// ignore faces with children
-		if(pmg && pmg->has_children(f))
-			continue;
+// //	we'll store associated edges, faces and volumes in those containers
+// 	vector<Edge*> edges;
+// 	vector<Face*> faces;
+// 	vector<Volume*> volumes;
+// //	iterate over all faces of the grid.
+// 	for(FaceIterator iter = grid.begin<Face>();
+// 		iter != grid.end<Face>(); ++iter)
+// 	{
+// 		Face* f = *iter;
+// 		// ignore faces with children
+// 		if(pmg && pmg->has_children(f))
+// 			continue;
 
-		// if faces has been marked, store it for later marking of its neighbours
-		if(MarkIfAnisotropic(f, ref, sizeRatio, aaPos))
-			faces.push_back(f);
-		else // fixme: mark for regular refinement should not be needed!
-			refiner->mark(f);
-	}
+// 		// if faces has been marked, store it for later marking of its neighbours
+// 		if(MarkIfAnisotropic(f, ref, sizeRatio, aaPos))
+// 			faces.push_back(f);
+// 		else // fixme: mark for regular refinement should not be needed!
+// 			refiner->mark(f);
+// 	}
 
-// if a face is marked for anisotropic refinement (AR),
-// also mark associated volumes for AR
-	for(vector<Face*>::iterator iter = faces.begin(); iter != faces.end(); ++iter)
-		CollectVolumes(volumes, grid, *iter, false);
+// // if a face is marked for anisotropic refinement (AR),
+// // also mark associated volumes for AR
+// 	for(vector<Face*>::iterator iter = faces.begin(); iter != faces.end(); ++iter)
+// 		CollectVolumes(volumes, grid, *iter, false);
 
-	refiner->mark(volumes.begin(), volumes.end(), RM_ANISOTROPIC);
-}
+// 	refiner->mark(volumes.begin(), volumes.end(), RM_ANISOTROPIC);
+// }
 
 
 template <class TDomain>
@@ -1180,12 +1180,12 @@ static void Domain(Registry& reg, string grp)
 		.add_function("MarkAnisotropic_LongEdges",
 					&MarkAnisotropic_LongEdges<domain_type>, grp,
 					"", "dom#refiner#maxEdgeLen")
-		.add_function("MarkForRefinement_AnisotropicElements",
-				&MarkForRefinement_AnisotropicElements<domain_type>, grp,
-				"", "dom#refiner#sizeRatio")
-		.add_function("MarkForRefinement_AnisotropicElements2",
-				&MarkForRefinement_AnisotropicElements2<domain_type>, grp,
-				"", "dom#refiner#sizeRatio")
+		// .add_function("MarkForRefinement_AnisotropicElements",
+		// 		&MarkForRefinement_AnisotropicElements<domain_type>, grp,
+		// 		"", "dom#refiner#sizeRatio")
+		// .add_function("MarkForRefinement_AnisotropicElements2",
+		// 		&MarkForRefinement_AnisotropicElements2<domain_type>, grp,
+		// 		"", "dom#refiner#sizeRatio")
 		.add_function("MarkForRefinement_ElementsByLuaCallback",
 				&MarkForRefinement_ElementsByLuaCallback<domain_type>, grp,
 				"", "dom#refiner#time#callbackName")
