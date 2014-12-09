@@ -3,6 +3,8 @@
 
 The purpose of this tutorial is to demonstrate how one can use adaptive
 refinement to refine geometries in a more sophisticated way.
+It also shows how the load-balancer can accounter for anisotropies and
+how the GMG-Solver has to be adjusted in order to do the right transfer.
 
 Below you'll find the scripts sources.
 They are the same as in
