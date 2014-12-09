@@ -646,7 +646,7 @@ function util.SolveNonlinearProblemAdaptiveTimestep(
 				print("Control 1/2:");
 		
 				-- time2 = time-tau/2;                        			-- intermediate time step 
-				VecScaleAdd2(u2, 1.0-0.5*currdt, old, 0.5*currdt, u);   -- w/ linear interpolation  (first guess)
+				--VecScaleAdd2(u2, 1.0-0.5*currdt, old, 0.5*currdt, u);   -- w/ linear interpolation  (first guess)
 				timeDisc2:prepare_step(solTimeSeries2, 0.5*currdt)
 				if newtonSolver:prepare(u2) == false then print ("Newton solver failed at step "..step.."+1/2."); exit(); end 
 				if newtonSolver:apply(u2) == false then 
@@ -734,7 +734,7 @@ function util.SolveNonlinearProblemAdaptiveTimestep(
 			-- check valid step size			
 			if(bSuccess == false and currdt < minStepSize) then
 				write("++++++ Time Step size "..currdt.." below minimal step ")
-				write("size "..minStepSize..". Cannot solve problem. Aborting.");
+				print("size "..minStepSize..". Cannot solve problem. Aborting.");
 				test.require(false, "Time Solver failed.")
 			end
 				
