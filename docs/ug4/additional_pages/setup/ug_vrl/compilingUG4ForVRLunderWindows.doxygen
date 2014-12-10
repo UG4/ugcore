@@ -28,9 +28,13 @@ BUILDING NATIV \ug4 UNDER WINDOWS 7   <br>
 Effective 2012-06-27
 </h2>
 
-\section secPreparations Preparations 
+\section secPreparations Preparations
 
-\subsection subsecYouNeed You need the following programms:
+\subsection subsecJavaAndNetBeans Installing Java (JDK) and NetBeans:
+
+To build VRL it is necessary to install JDK >= 6.0 and NetBeans >= 7.4. For further instructions on how to compile VRL see https://github.com/VRL-Studio/VRL
+
+\subsection subsecYouNeed You need the following programs:
   - git or svn 
   - MSYS
   - Mingw64

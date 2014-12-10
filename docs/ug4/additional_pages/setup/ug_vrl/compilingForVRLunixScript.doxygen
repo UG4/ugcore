@@ -8,6 +8,10 @@
 
 \section secPreparations Preparations 
 
+\subsection subsecJavaAndNetBeans Installing Java (JDK) and NetBeans:
+
+To build VRL it is necessary to install JDK >= 6.0 and NetBeans >= 7.4. For further instructions on how to compile VRL see https://github.com/VRL-Studio/VRL
+
 \subsection subsecYouNeedVRL_UG You need the following preparations inside VRL-UG:
 
 1) checkout/clone the VRL-UG project from quadruped:
