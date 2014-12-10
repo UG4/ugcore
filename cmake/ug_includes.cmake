@@ -202,7 +202,7 @@ endif(NOT PROFILER)
 
 if(NOT CPU_FREQ)
     set(CPU_FREQ ${cpufreqDefault})
-endif(CPU_FREQ)
+endif(NOT CPU_FREQ)
 
 
 ########################################
