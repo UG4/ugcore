@@ -12,26 +12,18 @@
 #include "common/authors.h"
 #include "common/util/string_util.h"
 
-#include "type_converter.h"
 #include "messaging.h"
+#include "invocation.h"
+#include "threading.h"
+
+#include "type_converter.h"
 #include "canvas.h"
 #include "bindings_vrl.h"
 #include "bindings_vrl_native.h"
 
-#include "user_data.h"
-
 #include "compile_info/compile_info.h"
 
-#include "invocation.h"
-#include "playground.h"
-#include "threading.h"
-
-//#include "bindings/lua/externals/lua/lstate.h"
-#include "basicTest.h"
-
-#ifdef UG_ALGEBRA
 #include "vrl_bridge.h"
-#endif
 
 namespace ug {
 namespace vrl {
@@ -55,98 +47,6 @@ void initJavaVM(JNIEnv* env) {
 JavaVM* getJavaVM() {
 	return javaVM;
 }
-
-void Log(std::string s) {
-	UG_LOG(s);
-}
-
-void Logln(std::string s) {
-	UG_LOG(s << std::endl);
-}
-
-void ThrowIf(bool b, std::string s) {
-	if (!b) {
-		throw(ug::UGError(s.c_str()));
-	}
-}
-
-void ThrowIfNot(bool b, std::string s) {
-	if (!b) {
-		throw(ug::UGError(s.c_str()));
-	}
-}
-
-void registerMessaging(ug::bridge::Registry & reg) {
-	reg.add_function("print", &Log, "UG4/Util/Messaging");
-	reg.add_function("println", &Logln, "UG4/Util/Messaging");
-}
-
-void registerThrowUtil(ug::bridge::Registry & reg) {
-	reg.add_function("throwIf", &ThrowIf, "UG4/Util");
-	reg.add_function("throwIfNot", &ThrowIfNot, "UG4/Util");
-}
-
-class NumberArray {
-private:
-	std::vector<number> _vec;
-public:
-
-	NumberArray() {
-	}
-
-	NumberArray(std::vector<number> vec) {
-		_vec = vec;
-	}
-
-	void setArray(std::vector<number> vec) {
-		_vec = vec;
-	}
-
-	int size() const {
-		return _vec.size();
-	}
-
-	number get(int i) const {
-
-		if (i < 0 || (size_t) i >= _vec.size()) {
-			throw UGError("NumberArray: index out of Bounds!");
-		}
-
-		return _vec[i];
-	}
-};
-
-template<typename TVector>
-SmartPtr<NumberArray> getDefects(const ug::StdConvCheck<TVector>* convCheck) {
-
-	return SmartPtr<NumberArray>(new NumberArray(convCheck->get_defects()));
-}
-
-void registerNumberArray(ug::bridge::Registry & reg) {
-	reg.add_class_<NumberArray>("NumberArray", "UG4/Util").add_constructor().add_method(
-			"get", &NumberArray::get).add_method("size", &NumberArray::size);
-}
-
-void registerUGFinalize(ug::bridge::Registry & reg) {
-	reg.add_function("UGFinalize", &ug::UGFinalize, "UG4/Util");
-}
-
-class VTest {
-public:
-
-	VTest() {
-		UG_LOG("VTest::VTest() constructor used.\n")
-	}
-
-	VTest(const char* msg) {
-		UG_LOG("VTest::VTest(const char*) constructor used.\n")
-		UG_LOG("Message is: '" << msg << "'.\n");
-	}
-
-	std::string hello() {
-		return "i am instantiated!";
-	}
-};
 
 } // end vrl::
 } // end ug::
@@ -182,31 +82,9 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug_UG__1ugInit(JNIEnv *env, jclass cls,
 	//\todo: generalize outputproc rank
 	// isn't this possible already via SetOuputRank() ?
 
-// PLEASE NOTE: UG_ALGEBRA is used here to exclude all algebra
-//		and discretization related code.
-//		This makes it possible to compile e.g. for target vrlgrid
 	int retVal = ug::UGInit(&argc, &pargv, 0);
 
-#ifdef UG_DEBUG
-	// Register Playground if we are in debug mode
-	ug::vrl::registerPlayground(reg);
-#endif
-
-	ug::vrl::registerBasicTest(reg);
-
-#ifdef UG_ALGEBRA
-	ug::vrl::RegisterUserData(reg, "UG4/VRL");
-#endif
-	ug::vrl::registerMessaging(reg);
-	ug::vrl::registerThrowUtil(reg);
-	ug::vrl::registerNumberArray(reg);
-#ifdef UG_ALGEBRA
 	ug::vrl::RegisterVRLFunctionality(reg, "UG4/VRL");
-	ug::vrl::registerUGFinalize(reg);
-#endif
-	reg.add_class_<ug::vrl::VTest>("VTest", "UG4/VRL/Testing").add_constructor().add_constructor<
-			void (*)(const char*)>().add_method("hello",
-			&ug::vrl::VTest::hello);
 
 	if (!reg.check_consistency()) {
 		ug::GetLogAssistant().flush_error_log();

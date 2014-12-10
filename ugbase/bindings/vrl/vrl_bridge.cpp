@@ -8,17 +8,119 @@
 #include "registry/class.h"
 #include "common/util/path_provider.h"
 #include "bridge/util.h"
-#include "bridge/util_algebra_dependent.h"
-#include "lib_algebra/operator/convergence_check.h"
-#include "lib_disc/spatial_disc/user_data/const_user_data.h"
-#include "user_data.h"
+
+#include "playground.h"
+#include "basicTest.h"
 
 #include "common/common.h"
 #include "common/authors.h"
 #include "common/util/string_util.h"
 
-namespace ug {
-namespace vrl {
+// PLEASE NOTE: UG_ALGEBRA is used here to exclude all algebra
+//		and discretization related code.
+//		This makes it possible to compile e.g. for target vrlgrid
+#ifdef UG_ALGEBRA
+#include "bridge/util_algebra_dependent.h"
+#include "lib_algebra/operator/convergence_check.h"
+#include "lib_disc/spatial_disc/user_data/const_user_data.h"
+#include "user_data.h"
+#endif // UG_ALGEBRA
+
+
+namespace ug{
+namespace vrl{
+
+void Log(std::string s) {
+	UG_LOG(s);
+}
+
+void Logln(std::string s) {
+	UG_LOG(s << std::endl);
+}
+
+void ThrowIf(bool b, std::string s) {
+	if (!b) {
+		throw(ug::UGError(s.c_str()));
+	}
+}
+
+void ThrowIfNot(bool b, std::string s) {
+	if (!b) {
+		throw(ug::UGError(s.c_str()));
+	}
+}
+
+void registerMessaging(ug::bridge::Registry & reg) {
+	reg.add_function("print", &Log, "UG4/Util/Messaging");
+	reg.add_function("println", &Logln, "UG4/Util/Messaging");
+}
+
+void registerThrowUtil(ug::bridge::Registry & reg) {
+	reg.add_function("throwIf", &ThrowIf, "UG4/Util");
+	reg.add_function("throwIfNot", &ThrowIfNot, "UG4/Util");
+}
+
+class NumberArray {
+private:
+	std::vector<number> _vec;
+public:
+
+	NumberArray() {
+	}
+
+	NumberArray(std::vector<number> vec) {
+		_vec = vec;
+	}
+
+	void setArray(std::vector<number> vec) {
+		_vec = vec;
+	}
+
+	int size() const {
+		return _vec.size();
+	}
+
+	number get(int i) const {
+
+		if (i < 0 || (size_t) i >= _vec.size()) {
+			throw UGError("NumberArray: index out of Bounds!");
+		}
+
+		return _vec[i];
+	}
+};
+
+template<typename TVector>
+SmartPtr<NumberArray> getDefects(const ug::StdConvCheck<TVector>* convCheck) {
+
+	return SmartPtr<NumberArray>(new NumberArray(convCheck->get_defects()));
+}
+
+void registerNumberArray(ug::bridge::Registry & reg) {
+	reg.add_class_<NumberArray>("NumberArray", "UG4/Util").add_constructor().add_method(
+			"get", &NumberArray::get).add_method("size", &NumberArray::size);
+}
+
+void registerUGFinalize(ug::bridge::Registry & reg) {
+	reg.add_function("UGFinalize", &ug::UGFinalize, "UG4/Util");
+}
+
+class VTest {
+public:
+
+	VTest() {
+		UG_LOG("VTest::VTest() constructor used.\n")
+	}
+
+	VTest(const char* msg) {
+		UG_LOG("VTest::VTest(const char*) constructor used.\n")
+		UG_LOG("Message is: '" << msg << "'.\n");
+	}
+
+	std::string hello() {
+		return "i am instantiated!";
+	}
+};
 
 /**
  * Class exporting the functionality. All functionality that is to
@@ -53,9 +155,30 @@ struct Functionality {
 // end Functionality
 
 void RegisterVRLFunctionality(ug::bridge::Registry& reg, std::string grp) {
-	typedef ug::vrl::Functionality Functionality;
 
-	ug::bridge::RegisterAlgebraDependent<Functionality>(reg, grp);
+// PLEASE NOTE: UG_ALGEBRA is used here to exclude all algebra
+//		and discretization related code.
+//		This makes it possible to compile e.g. for target vrlgrid
+	#ifdef UG_ALGEBRA
+		typedef ug::vrl::Functionality Functionality;
+		ug::bridge::RegisterAlgebraDependent<Functionality>(reg, grp);
+		ug::vrl::RegisterUserData(reg, "UG4/VRL");
+	#endif
+	
+	ug::vrl::registerUGFinalize(reg);
+
+
+	ug::vrl::registerBasicTest(reg);
+	ug::vrl::registerMessaging(reg);
+	ug::vrl::registerThrowUtil(reg);
+	ug::vrl::registerNumberArray(reg);
+
+	// ug::vrl::registerPlayground(reg);
+
+	reg.add_class_<ug::vrl::VTest>("VTest", "UG4/VRL/Testing").add_constructor().add_constructor<
+									void (*)(const char*)>().add_method("hello",
+									&ug::vrl::VTest::hello);
+
 }
 
 } // end vrl::
