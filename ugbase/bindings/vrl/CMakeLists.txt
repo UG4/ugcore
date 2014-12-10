@@ -15,22 +15,20 @@ include_directories(${P_UGBASE_SOURCE_DIR})
 include("../../../cmake/ug_includes.cmake")
 
 
-set(srcBindingsVRL
-                    bindings_vrl.cpp
-                    type_converter.cpp
-                    canvas.cpp
-                    messaging.cpp
-                    invocation.cpp
-                    playground.cpp
-                    user_data.cpp
-                    basicTest.cpp
+set(Sources	bindings_vrl.cpp
+			type_converter.cpp
+			canvas.cpp
+			messaging.cpp
+			invocation.cpp
+			playground.cpp
+			user_data.cpp
+			basicTest.cpp
 )
 
 if(buildAlgebra)
-	set(Sources ${srcBindingsVRL} vrl_bridge.cpp)
+	set(Sources ${Sources} vrl_bridge.cpp)
 endif(buildAlgebra)
 
-set(Sources ${srcBindingsVRL})
 
 if(BUILD_ONE_LIB)
 	EXPORTSOURCES(ugbase/bindings/vrl  ${Sources})
