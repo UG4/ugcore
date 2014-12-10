@@ -1,6 +1,7 @@
 #include <string>
 #include <vector>
 
+#include "vrl_bridge.h"
 #include "ug.h"
 #include "ugbase.h"
 #include "registry/registry.h"
