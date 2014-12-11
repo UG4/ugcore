@@ -32,8 +32,11 @@ static void SetShinyCallLoggingMaxFrequency(int maxFreq)
 #endif
 }
 
+
 static void SetFrequency(const std::string& csvFile){
+#ifdef UG_CPU_FREQ
 	FreqAdaptValues::set_freqs(csvFile);
+#endif
 }
 
 
