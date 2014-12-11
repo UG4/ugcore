@@ -1,6 +1,0 @@
-/home/lreinhardt/eclipse/cpp/ug4/cmake/ugbase/compile_info/CMakeFiles/CompileInfo.dir
-/home/lreinhardt/eclipse/cpp/ug4/cmake/plugins/core/convection_diffusion/CMakeFiles/ConvectionDiffusion.dir
-/home/lreinhardt/eclipse/cpp/ug4/cmake/plugins/core/small_strain_mechanics/CMakeFiles/SmallStrainMechanics.dir
-/home/lreinhardt/eclipse/cpp/ug4/cmake/CMakeFiles/ug4.dir
-/home/lreinhardt/eclipse/cpp/ug4/cmake/ugbase/ug_shell/CMakeFiles/ugshell.dir
-/home/lreinhardt/eclipse/cpp/ug4/cmake/ugbase/compile_info/CMakeFiles/updateCompileInfo.dir
