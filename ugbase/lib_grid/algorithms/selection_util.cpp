@@ -414,11 +414,14 @@ void SelectAssociatedGenealogy(MGSelector& msel, bool selectAssociatedElements)
 
 ////////////////////////////////////////////////////////////////////////
 //	SelectSmoothEdgePath
-void SelectSmoothEdgePath(Selector& sel, number thresholdDegree,
+void SelectSmoothEdgePath(Selector& sel, number thresholdDegree, number normalWeight,
 							bool stopAtSelVrts, APosition& aPos)
 {
 	bool bMinimalNormalDeviation = true;
 	
+	normalWeight = clip<number>(normalWeight, 0, 1);
+	number dirWeight = 1. - normalWeight;
+
 	if(!sel.grid())
 		return;
 	
@@ -538,7 +541,7 @@ void SelectSmoothEdgePath(Selector& sel, number thresholdDegree,
 								number nd = VecDot(lastNormal, n);
 							//	weight the dots to ensure that the better edge is found even
 							//	for equal normal-dots.
-								if((0.9*nd + 0.1*d) > (0.9*bestNormalDot + 0.1*bestDot)){
+								if((normalWeight*nd + dirWeight*d) > (normalWeight*bestNormalDot + dirWeight*bestDot)){
 									bestEdge = e;
 									bestDot = d;
 									bestDir = dir;

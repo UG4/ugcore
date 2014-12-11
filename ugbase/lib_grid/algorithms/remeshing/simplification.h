@@ -244,6 +244,83 @@ void ReplaceLowValenceVertices(Grid& g, TVrtIter vrtsBegin, TVrtIter vrtsEnd,
 	}
 }
 
+
+
+// template <class TAAPosVRT, class TAANormVRT, class TAAIntVRT>
+// Vertex* TryFlatRegionEdgeCollapse(Grid& grid, Edge* e,
+// 							  TAAPosVRT& aaPos, TAANormVRT& aaNorm, 
+// 							  TAAIntVRT& aaInt, SubsetHandler* pshMarks = NULL,
+// 							  EdgeSelector* pCandidates = NULL)
+// {
+// 	if(pshMarks)
+// 	{
+// 		SubsetHandler& shMarks = *pshMarks;
+// 	//	collapses are not allowed for fixed edges
+// 		if(shMarks.get_subset_index(e) == REM_FIXED)
+// 			return NULL;
+			
+// 	//	if both endpoints of are fixed vertices then
+// 	//	we may not collapse
+// 		int vrtSI[2];
+// 		vrtSI[0] = shMarks.get_subset_index(e->vertex(0));
+// 		vrtSI[1] = shMarks.get_subset_index(e->vertex(1));
+
+// 		if((vrtSI[0] == REM_FIXED) && (vrtSI[1] == REM_FIXED))
+// 			return NULL;
+
+// 	//	if both endpoints are somehow marked, e has to be a
+// 	//	crease edge
+// 		if((vrtSI[0] != REM_NONE) && (vrtSI[1] != REM_NONE)
+// 			&&	(shMarks.get_subset_index(e) != REM_CREASE))
+// 			return NULL;
+// 	}
+
+// //	check whether the edge can be collapsed
+// 	if(!EdgeCollapseIsValid(grid, e))
+// 		return NULL;
+
+
+// 	vector3 edgeNormal;
+// 	int numNbrFaces = CalculateNormal(edgeNormal, grid, e, aaPos);
+// //todo: If the edge is a crease edge, we'll have to check the crease-bending...
+// 	//UG_COND_THROW(numNbrFaces > 2, "DEBUG-THROW: CREASES ARE TEMPORARILY NOT SUPPORTED IN COLLAPSE EDGE");
+// 	if(numNbrFaces > 2){
+// 		UG_LOG("DEBUG: IGNORING NON-MANIFOLD EDGE!\n");
+// 		return NULL;
+// 	}
+
+// //	compare the normal of the edge that shall be collapsed with the normals
+// //	of its corners.
+// 	number cornerDotThreshold = cos(deg_to_rad<number>(0.1));
+
+// 	number cornerDots[2];
+// 	int maxCornerDotInd = 0;
+// 	for(size_t i = 0; i < 2; ++i)
+// 		cornerDots[i] = VecDot(edgeNormal, aaNorm[e->vertex(i)]);
+// 	if(cornerDots[1] > cornerDots[0])
+// 		maxCornerDotInd = 1;
+
+// 	if(cornerDots[maxCornerDotInd] < cornerDotThreshold)
+// 		return NULL;
+
+	
+// //	collapse the edge
+// //todo:	When creases are involved,we have to do a better check which vertex to preserve
+// 	Vertex* vrt = e->vertex(maxCornerDotInd);
+// 	CollapseEdge(grid, e, vrt);
+
+// 	return vrt;
+// }
+
+
+// template <class TVrtIter, class TAAPos>
+// void CollapseEdgesInFlatRegions(Grid& g, TVrtIter vrtsBegin, TVrtIter vrtsEnd,
+// 							    number maxNormalDeviation, TAAPos aaPos)
+// {
+
+// }
+
+
 }//	end of namespace
 
 #endif	//__H__simplification
