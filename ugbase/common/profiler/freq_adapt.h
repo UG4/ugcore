@@ -5,15 +5,17 @@
  *      Author: andreasvogel
  */
 
-#ifndef FREQ_ADAPT_H_
-#define FREQ_ADAPT_H_
+#ifndef __H__UG__COMMON__PROFILER__FREQ_ADAPT__
+#define __H__UG__COMMON__PROFILER__FREQ_ADAPT__
 
 #include <stack>
+#include <vector>
+#include <string>
 
 class AutoFreqAdaptNode;
 
 ////////////////////////////////////////////////////////////////////////////////
-// AutoFreqAdaptNode
+// FreqAdaptNodeManager
 ////////////////////////////////////////////////////////////////////////////////
 
 class FreqAdaptNodeManager
@@ -67,7 +69,7 @@ class FreqAdaptValues {
 		~FreqAdaptValues() {};
 
 	// 	Singleton provider
-		inline static FreqAdaptValues& inst();
+		static FreqAdaptValues& inst();
 
 	private:
 	//	return freq if adjusted; if not contained, return 0
@@ -87,16 +89,13 @@ class FreqAdaptValues {
 
 	public:
 		// returns requested frequency (or 0 if freq not adjusted)
-		unsigned long freq(const char* file, const int line){
-			return inst().find_freq();
+		static unsigned long freq(const char* file, const int line){
+			return inst().find_freq(file, line);
 		}
 
-		static void read_marks( /* some database for reading */);
+		static void set_freqs(std::string csvFile);
 
 };
 
-std::vector<FreqAdaptValues::FreqAdaptPoint> FreqAdaptValues::m_pos =
-		std::vector<FreqAdaptValues::FreqAdaptPoint>();
 
-
-#endif /* FREQ_ADAPT_H_ */
+#endif /* __H__UG__COMMON__PROFILER__FREQ_ADAPT__ */

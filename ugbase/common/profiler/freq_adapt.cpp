@@ -6,18 +6,25 @@
  */
 
 #include <cpufreq.h>
-#include "freq_adapt.cpp"
+#include "freq_adapt.h"
+#include <iostream>
+#include <fstream>
+#include <cstdlib>	//used for atoi. Better: boost::lexical_cast
+#include "common/common.h"
+#include "common/util/string_util.h"
+
+using namespace std;
 
 ////////////////////////////////////////////////////////////////////////////////
-// AutoFreqAdaptNode
+// FreqAdaptNodeManager
 ////////////////////////////////////////////////////////////////////////////////
 
-void AutoFreqAdaptNode::add(AutoFreqAdaptNode* node)
+void FreqAdaptNodeManager::add(AutoFreqAdaptNode* node)
 {
 	inst().m_nodes.push(node);
 }
 
-void AutoFreqAdaptNode::release_latest()
+void FreqAdaptNodeManager::release_latest()
 {
 	if(!inst().m_nodes.empty()){
 		AutoFreqAdaptNode* node = inst().m_nodes.top();
@@ -26,16 +33,16 @@ void AutoFreqAdaptNode::release_latest()
 	}
 }
 
-AutoFreqAdaptNode::FreqAdaptNodeManager() {}
+FreqAdaptNodeManager::FreqAdaptNodeManager() {}
 
-AutoFreqAdaptNode::~FreqAdaptNodeManager()
+FreqAdaptNodeManager::~FreqAdaptNodeManager()
 {
 	//	release and deactivate all nodes
 		while(!inst().m_nodes.empty())
 			inst().release_latest();
 }
 
-static FreqAdaptNodeManager& AutoFreqAdaptNode::inst()
+FreqAdaptNodeManager& FreqAdaptNodeManager::inst()
 {
 	static FreqAdaptNodeManager pnm;
 	return pnm;
@@ -47,23 +54,24 @@ static FreqAdaptNodeManager& AutoFreqAdaptNode::inst()
 ////////////////////////////////////////////////////////////////////////////////
 
 AutoFreqAdaptNode::AutoFreqAdaptNode(unsigned long freq) : m_bActive(true) {
+	// remember for auto-release
 	FreqAdaptNodeManager::add(this);
 
 	if(freq){
+		cout << "CPU_FREQ: Changing frequency to " << freq << "\n";
+
 		// remember curr freq
 		if ( (m_prevFreq = cpufreq_get_freq_kernel(0)) == 0)
 			UG_THROW("Error while getting frequency");
 
 		// set new freq \todo: adjust to different architectures
-		for (int i=0; i<40; i++) {
-			if (cpufreq_modify_policy_governor(i, "userspace") != 0)
-				UG_THROW("Error while setting governor");
-
-			if (cpufreq_set_frequency(i, freq) != 0)
-				UG_LOG("error while setting frequency");
-		}
+		if (cpufreq_modify_policy_governor(0, "userspace") != 0)
+			UG_THROW("Error while setting governor");
+		if (cpufreq_set_frequency(0, freq) != 0)
+			UG_LOG("error while setting frequency");
 	}
 	else{
+		// no freq-change issued -> no change back
 		m_prevFreq = 0;
 	}
 }
@@ -76,15 +84,17 @@ AutoFreqAdaptNode::~AutoFreqAdaptNode()
 }
 
 void AutoFreqAdaptNode::release(){
-	if(m_prevFreq){
-		// set previous freq \todo: adjust to different architectures
-		for (int i=0; i<40; i++) {
-			if (cpufreq_modify_policy_governor(i, "userspace") != 0)
-				UG_THROW("Error while setting governor");
 
-			if (cpufreq_set_frequency(i, m_prevFreq) != 0)
-				UG_LOG("error while setting frequency");
-		}
+	// check if freq was changed on entry
+	if(m_prevFreq){
+
+		cout << "CPU_FREQ: Resetting frequency to " << m_prevFreq << "\n";
+
+		// set previous freq \todo: adjust to different architectures
+		if (cpufreq_modify_policy_governor(0, "userspace") != 0)
+			UG_THROW("Error while setting governor");
+		if (cpufreq_set_frequency(0, m_prevFreq) != 0)
+			UG_LOG("error while setting frequency");
 	}
 }
 
@@ -100,7 +110,10 @@ FreqAdaptValues& FreqAdaptValues::inst()
 };
 
 unsigned long FreqAdaptValues::find_freq(const char* file, const int line){
-	for(int i = 0; i < m_pos; ++i){
+
+	cout << "CPU_FREQ: Node for: "<<file<<", line: " << line << endl;
+
+	for(size_t i = 0; i < m_pos.size(); ++i){
 		if(m_pos[i].line == line && m_pos[i].file == file){
 			return m_pos[i].freq;
 		}
@@ -109,8 +122,40 @@ unsigned long FreqAdaptValues::find_freq(const char* file, const int line){
 	return 0;
 }
 
-static void FreqAdaptValues::read_marks(){
-	// todo: Add code here
+void FreqAdaptValues::set_freqs(std::string csvFile){
+	ifstream in(csvFile.c_str());
+	if(!in){
+		UG_THROW("FreqAdaptValues::set_freqs: Couldn't open: '" << csvFile << "'\n");
+	}
+
+	m_pos.clear();
+	cout << "FreqAdaptValues: parsing file: "<<csvFile << "\n";
+	string line;
+	while(!in.eof()){
+		getline(in, line);
+
+		size_t i2 = line.rfind(",");
+		if(i2 == string::npos)
+			continue;
+
+		size_t i1 = line.rfind(",", i2 - 1);
+		if(i1 == string::npos)
+			continue;
+
+		string file = ug::TrimString(line.substr(0, i1));
+		string s2 = line.substr(i1 + 1, i2 - 1 - i1);
+		string s3 = line.substr(i2 + 1, line.size() - i1 + 1);
+
+		int line = atoi(s2.c_str());
+		unsigned long freq = atoi(s3.c_str());
+	//	instead of atoi, better use boost::lexical_cast
+		// int lineNumber = boost::lexical_cast<int>(s2);
+		// int frequency = boost::lexical_cast<int>(s3);
+
+		cout << file << "===" << line << "===" << freq << "===" << endl;
+
+		m_pos.push_back( FreqAdaptPoint(file,line,freq) );
+	}
 }
 
 

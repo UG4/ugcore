@@ -8,12 +8,12 @@
 // if cpu-frequency adaption is enabled
 #ifdef UG_CPU_FREQ
 	#include "freq_adapt.h"
-	#define CPU_FREQ_BEGIN_AUTO_END(name, file, line)    \
-			static unsigned long __freq__##name = EnergyNodeProvider::freq(file, line); \
-			AutoFreqAdaptNode(__freq__##name);
+	#define CPU_FREQ_BEGIN_AUTO_END(id, file, line)    \
+			static unsigned long __freq__##id = FreqAdaptValues::freq(file, line); \
+			AutoFreqAdaptNode __node__freq__##id((__freq__##id));
 
 	#define CPU_FREQ_END()  \
-			AutoFreqNodeManager::release_latest();
+			FreqAdaptNodeManager::release_latest();
 #else
 	#define CPU_FREQ_BEGIN_AUTO_END(name, file, line)
 	#define CPU_FREQ_END()
@@ -39,7 +39,7 @@
 	/**	Helper makro used in PROFILE_BEGIN and PROFILE_FUNC.*/
 	#define PROFILE_BEGIN_AUTO_END(id, name, group, file, line)			\
 															\
-		CPU_FREQ_BEGIN_AUTO_END(name, file, line); 			\
+		CPU_FREQ_BEGIN_AUTO_END(id, file, line); 			\
 		AutoProfileNode	id;									\
 		static Shiny::ProfileZone __ShinyZone_##id = {		\
 			NULL, Shiny::ProfileZone::STATE_HIDDEN, name, 	\
@@ -223,10 +223,10 @@
 	}
 
 //	Empty macros if UG_PROFILER == false
-	#define PROFILE_BEGIN(name) 				CPU_FREQ_BEGIN_AUTO_END(name, __FILE__, __LINE__);
+	#define PROFILE_BEGIN(name) 				CPU_FREQ_BEGIN_AUTO_END(apn_##name, __FILE__, __LINE__);
 	#define PROFILE_BEGIN_GROUP(name, groups) 	PROFILE_BEGIN(name)
 	#define PROFILE_END() 						CPU_FREQ_END();
-	#define PROFILE_FUNC() 						CPU_FREQ_BEGIN_AUTO_END(__FUNCTION__, __FILE__, __LINE__);
+	#define PROFILE_FUNC() 						CPU_FREQ_BEGIN_AUTO_END(apn##__FUNCTION__, __FILE__, __LINE__);
 	#define PROFILE_FUNC_GROUP(groups) 			PROFILE_FUNC()
 	#define PROFILER_UPDATE	ProfilerDummy::Update
 	#define PROFILER_OUTPUT	ProfilerDummy::Output

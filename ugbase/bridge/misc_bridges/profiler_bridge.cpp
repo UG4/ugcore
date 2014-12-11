@@ -13,6 +13,7 @@
 #include <string>
 #include <sstream>
 #include "../util_overloaded.h"
+#include "common/profiler/freq_adapt.h"
 using namespace std;
 
 namespace ug
@@ -30,6 +31,11 @@ static void SetShinyCallLoggingMaxFrequency(int maxFreq)
 	UG_LOG("SHINY CALL LOGGING NOT ENABLED! Enable with 'cmake -DSHINY_CALL_LOGGING=ON ..'")
 #endif
 }
+
+static void SetFrequency(const std::string& csvFile){
+	FreqAdaptValues::set_freqs(csvFile);
+}
+
 
   //void PrintLUA();
 namespace bridge
@@ -145,6 +151,8 @@ void RegisterBridge_Profiler(Registry &reg, string parentGroup)
 	reg.add_function("UpdateProfiler", &UpdateProfiler_BridgeImpl, grp);
 
 	reg.add_function("SetShinyCallLoggingMaxFrequency", &SetShinyCallLoggingMaxFrequency, grp, "", "maxFreq");
+
+	reg.add_function("SetFrequency", &SetFrequency, grp, "", "CSV-File");
 
 }
 

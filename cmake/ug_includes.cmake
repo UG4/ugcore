@@ -482,8 +482,10 @@ endif(buildForLUA)
 ########################################
 # Frequency setting
 if(CPU_FREQ)
-	add_definitions(-DUG_CPU_FREQ)
-	set(linkLibraries ${linkLibraries} cpufreq)
+	add_definitions(-DUG_CPU_FREQ)	  # add C-Preprocessor definition 
+	set(UG_CPU_FREQ ON)               # add Cmake variable
+	
+	set(linkLibraries ${linkLibraries} cpufreq) # add library for linking
 endif(CPU_FREQ)
 
 

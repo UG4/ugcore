@@ -70,6 +70,11 @@ if(UG_PROFILER_SHINY)
 	set(sources ${sources} ${srcShiny})
 endif(UG_PROFILER_SHINY)
 
+if(UG_CPU_FREQ)
+	set(freqShiny	profiler/freq_adapt.cpp)
+	set(sources ${sources} ${freqShiny})    
+endif(UG_CPU_FREQ)
+
 if(SHINY_CALL_LOGGING)
     set(sources ${sources} profiler/shiny_call_logging.cpp)
 endif(SHINY_CALL_LOGGING)
