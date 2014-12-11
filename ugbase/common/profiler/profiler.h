@@ -5,18 +5,27 @@
 #ifndef __H__UG__COMMON__PROFILER__
 #define __H__UG__COMMON__PROFILER__
 
-#ifdef UG_PROFILER
+// if cpu-frequency adaption is enabled
+#ifdef UG_CPU_FREQ
+	#include "freq_adapt.h"
+	#define CPU_FREQ_BEGIN_AUTO_END(name, file, line)    \
+			static unsigned long __freq__##name = EnergyNodeProvider::freq(file, line); \
+			AutoFreqAdaptNode(__freq__##name);
 
-
-#include <vector>
-
-#ifdef UG_PROFILER_SCOREP
-	#include <scorep/SCOREP_User.h>
+	#define CPU_FREQ_END()  \
+			AutoFreqNodeManager::release_latest();
+#else
+	#define CPU_FREQ_BEGIN_AUTO_END(name, file, line)
+	#define CPU_FREQ_END()
 #endif
 
+
+// if some profiler is enabled
+#ifdef UG_PROFILER
+
+#include <vector>
 #include "profilenode_management.h"
 #include "shiny_call_logging.h"
-
 
 
 #ifdef UG_PROFILER_SHINY
@@ -30,10 +39,11 @@
 	/**	Helper makro used in PROFILE_BEGIN and PROFILE_FUNC.*/
 	#define PROFILE_BEGIN_AUTO_END(id, name, group, file, line)			\
 															\
-		AutoProfileNode	id;								\
+		CPU_FREQ_BEGIN_AUTO_END(name, file, line); 			\
+		AutoProfileNode	id;									\
 		static Shiny::ProfileZone __ShinyZone_##id = {		\
-			NULL, Shiny::ProfileZone::STATE_HIDDEN, name, \
-			group, file, line,	\
+			NULL, Shiny::ProfileZone::STATE_HIDDEN, name, 	\
+			group, file, line,								\
 			{ { 0, 0 }, { 0, 0 }, { 0, 0 } }				\
 		};													\
 		{													\
@@ -54,7 +64,8 @@
 
 	/**	Ends profiling of the latest PROFILE_BEGIN section.*/
 	#define PROFILE_END()							\
-			ProfileNodeManager::release_latest()
+			ProfileNodeManager::release_latest(); \
+			CPU_FREQ_END();
 
 	/**	Profiles the whole function*/
 	#define PROFILE_FUNC()										\
@@ -212,11 +223,11 @@
 	}
 
 //	Empty macros if UG_PROFILER == false
-	#define PROFILE_BEGIN(name)
-	#define PROFILE_BEGIN_GROUP(name, groups)
-	#define PROFILE_END()
-	#define PROFILE_FUNC()
-	#define PROFILE_FUNC_GROUP(groups)
+	#define PROFILE_BEGIN(name) 				CPU_FREQ_BEGIN_AUTO_END(name, __FILE__, __LINE__);
+	#define PROFILE_BEGIN_GROUP(name, groups) 	PROFILE_BEGIN(name)
+	#define PROFILE_END() 						CPU_FREQ_END();
+	#define PROFILE_FUNC() 						CPU_FREQ_BEGIN_AUTO_END(__FUNCTION__, __FILE__, __LINE__);
+	#define PROFILE_FUNC_GROUP(groups) 			PROFILE_FUNC()
 	#define PROFILER_UPDATE	ProfilerDummy::Update
 	#define PROFILER_OUTPUT	ProfilerDummy::Output
 
