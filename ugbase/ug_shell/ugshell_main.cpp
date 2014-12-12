@@ -399,7 +399,7 @@ int main(int argc, char* argv[])
 	ug::UGProfileNode::CheckForTooSmallNodes();
 	UG_LOG(endl);
 
-	// If shell aborted then return '1'; return 'ret' otherwise
+	// If shell aborted and no custom ret-value defined then return '1'; return 'ret' otherwise
 	return bAbort&&ret==0?1:ret;
 }
 
