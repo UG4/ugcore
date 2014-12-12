@@ -303,9 +303,8 @@ int main(int argc, char* argv[])
 			try{
 				if(!LoadUGScript_Parallel(scriptName))
 				{
-					UG_LOG("Can not find specified script ('" << scriptName << "'). Aborting.\n");
+					UG_LOG("Cannot find specified script ('" << scriptName << "'). Aborting.\n");
 					bAbort=true;
-					ret=1;
 				}
 			}
 			catch(SoftAbort& err){
@@ -323,6 +322,7 @@ int main(int argc, char* argv[])
 				}
 				UG_LOG(errSymb<<"ABORTING script parsing.\n");
 				quit_all_mpi_procs_in_parallel();
+				bAbort=true;
 			}
 			catch(UGError &err)
 			{
@@ -333,6 +333,7 @@ int main(int argc, char* argv[])
 				UG_LOG("\n");
 				UG_LOG(errSymb<<"ABORTING script parsing.\n");
 				quit_all_mpi_procs_in_parallel();
+				bAbort=true;
 			}
 			CATCH_STD_EXCEPTIONS();
 
@@ -398,7 +399,8 @@ int main(int argc, char* argv[])
 	ug::UGProfileNode::CheckForTooSmallNodes();
 	UG_LOG(endl);
 
-	return ret;
+	// If shell aborted then return '1'; return 'ret' otherwise
+	return bAbort?1:ret;
 }
 
 // end group ugbase_ugshell
