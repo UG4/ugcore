@@ -400,7 +400,7 @@ int main(int argc, char* argv[])
 	UG_LOG(endl);
 
 	// If shell aborted then return '1'; return 'ret' otherwise
-	return bAbort?1:ret;
+	return bAbort&&ret==0?1:ret;
 }
 
 // end group ugbase_ugshell
