@@ -26,6 +26,7 @@ set(srcAlgorithms	algorithms/debug_util.cpp
 					algorithms/polychain_util.cpp
 					algorithms/problem_detection_util.cpp
 					algorithms/remeshing/edge_length_adjustment.cpp
+					algorithms/remeshing/edge_length_adjustment_extended.cpp
 					algorithms/remeshing/simple_grid.cpp
 					algorithms/remeshing/grid_adaption.cpp
 					algorithms/geom_obj_util/edge_util.cpp
