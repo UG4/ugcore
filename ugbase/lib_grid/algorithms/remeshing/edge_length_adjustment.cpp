@@ -400,7 +400,6 @@ Vertex* TryCollapse(Grid& grid, Edge* e,
 		
 	//	calculate geometric-approximation-degree and triangle quality
 		number approxDeg = GeometricApproximationDegree(sgSrc);
-		number minApproxDeg = approxDeg;
 		number shapeDeg = ShapeQualityDegree(sgSrc);
 
 	//	perform a collapse on the simple grid
@@ -413,18 +412,12 @@ Vertex* TryCollapse(Grid& grid, Edge* e,
 		}
 
 	//	get the positions of the old endpoints
-		//static const int numTestPositions = 3;
-		static const int numTestPositions = 2;
+		static const int numTestPositions = 3;
 		int newInd = 0;
 		vector3 v[numTestPositions];
 		v[0] = aaPos[e->vertex(0)];
 		v[1] = aaPos[e->vertex(1)];
-		// v[2] = sgDest.vertices[newInd];
-
-		vector3 n[numTestPositions];
-		n[0] = aaNorm[e->vertex(0)];
-		n[1] = aaNorm[e->vertex(1)];
-		// n[2] = sgDest.vertexNormals[newInd];
+		v[2] = sgDest.vertices[newInd];
 		
 	//	we'll compare 3 approximation degrees and three shape degrees
 		number newApproxDeg[numTestPositions];
@@ -444,14 +437,12 @@ Vertex* TryCollapse(Grid& grid, Edge* e,
 			if((vrtSI[0] == REM_FIXED) || ((vrtSI[0] != REM_NONE) && (vrtSI[1] == REM_NONE))){
 				bestIndex = 0;
 				sgDest.vertices[newInd] = v[0];
-				sgDest.vertexNormals[newInd] = n[0];
 				newApproxDeg[0] = GeometricApproximationDegree(sgDest);
 				newShapeDeg[0] = ShapeQualityDegree(sgDest);
 			}
 			else if((vrtSI[1] == REM_FIXED) || ((vrtSI[1] != REM_NONE) && (vrtSI[0] == REM_NONE))){
 				bestIndex = 1;
 				sgDest.vertices[newInd] = v[1];
-				sgDest.vertexNormals[newInd] = n[1];
 				newApproxDeg[1] = GeometricApproximationDegree(sgDest);
 				newShapeDeg[1] = ShapeQualityDegree(sgDest);
 			}
@@ -462,34 +453,26 @@ Vertex* TryCollapse(Grid& grid, Edge* e,
 			for(int i = 0; i < numTestPositions; ++i){
 			//	we'll compute all qualities with the averaged normal
 				sgDest.vertices[newInd] = v[i];
-				sgDest.vertexNormals[newInd] = n[i];
 				CalculateTriangleNormals(sgDest);
 				newApproxDeg[i] = GeometricApproximationDegree(sgDest);
 				newShapeDeg[i] = ShapeQualityDegree(sgDest);
 			}
 		//	get the best one
-			bestIndex = -1;
-
-			for(int i = 0; i < numTestPositions; ++i){
-				if(newApproxDeg[i] >= minApproxDeg){
-					if(bestIndex == -1)
-						bestIndex = i;
-				 	else if(newShapeDeg[i] > newShapeDeg[bestIndex])
-				 		bestIndex = i;
-				}
+			bestIndex = 0;
+		/*
+			for(int i = 1; i < numTestPositions; ++i){
+				if(newApproxDeg[i] > newApproxDeg[bestIndex])
+					bestIndex = i;
 			}
-
-			// for(int i = 1; i < numTestPositions; ++i){
-			// 	if(newShapeDeg[i] > newShapeDeg[bestIndex])
-			// 		bestIndex = i;
-			// }
+		*/
+			for(int i = 1; i < numTestPositions; ++i){
+				if(newShapeDeg[i] > newShapeDeg[bestIndex])
+					bestIndex = i;
+			}
 		}
 
-		if(bestIndex == -1)
-			return NULL;
-
 	//	if the shape-degree of the collapsed region is too bad, we'll skip the collapse
-		if(newShapeDeg[bestIndex] < 0.9 * shapeDeg)
+		if(newShapeDeg[bestIndex] < 0.5 * shapeDeg)
 			return NULL;
 /*
 	//	the approximation degree is only interesting if both endpoints of the
@@ -499,7 +482,7 @@ Vertex* TryCollapse(Grid& grid, Edge* e,
 */
 
 	//	if the best approximation degree is not too bad, we'll perform the collapse
-		if(/*!regularNeighbourhood || */(newApproxDeg[bestIndex] >= minApproxDeg))
+		if(/*!regularNeighbourhood || */(newApproxDeg[bestIndex] > 0.95 * approxDeg))
 		{						
 		//	pick one of the endpoints to be the one that resides
 		//	This has to be done with care, since the residing vertex
@@ -589,7 +572,7 @@ Vertex* TryCollapse(Grid& grid, Edge* e,
 		//	assign best position
 			aaPos[vrt] = v[bestIndex];
 		//	assign the normal
-			aaNorm[vrt] = n[bestIndex];
+			aaNorm[vrt] = sgDest.vertexNormals[newInd];
 /*
 			if(pCandidates){
 //TODO: all edges that belong to associated faces are new candidates.						
@@ -666,18 +649,15 @@ bool TrySplit(Grid& grid, Edge* e, TAAPosVRT& aaPos, TAANormVRT& aaNorm,
 
 //	the new normal
 	vector3 n;
-	VecAdd(n, aaNorm[e->vertex(0)], aaNorm[e->vertex(1)]);
-	VecNormalize(n, n);
-	
-	// if(bCreaseEdge){		
-	// //	interpolating the normal can cause severe problems at highly
-	// //	irregular vertices or if one vertecs lies on a very
-	// //	sharp edge (the normals of the endpoints thus point
-	// //	in different directions.)
-	// 	// VecAdd(n, aaNorm[e->vertex(0)], aaNorm[e->vertex(1)]);
-	// 	// VecNormalize(n, n);
-	// 	CalculateNormal(n, grid, e, aaPos);
-	// }
+	if(bCreaseEdge){		
+	//	interpolating the normal can cause severe problems at highly
+	//	irregular vertices or if one vertecs lies on a very
+	//	sharp edge (the normals of the endpoints thus point
+	//	in different directions.)
+//		VecAdd(n, aaNorm[e->vertex(0)], aaNorm[e->vertex(1)]);
+//		VecNormalize(n, n);
+		CalculateNormal(n, grid, e, aaPos);
+	}
 
 //	split the edge
 	RegularVertex* vrt = SplitEdge<RegularVertex>(grid, e, false);
@@ -686,8 +666,8 @@ bool TrySplit(Grid& grid, Edge* e, TAAPosVRT& aaPos, TAANormVRT& aaNorm,
 	aaPos[vrt] = vCenter;
 
 //	assign the new normal. calculate it if required
-	// if(!bCreaseEdge)
-	// 	CalculateVertexNormal(n, grid, vrt, aaPos);			
+	if(!bCreaseEdge)
+		CalculateVertexNormal(n, grid, vrt, aaPos);			
 
 	aaNorm[vrt] = n;
 
@@ -1083,36 +1063,36 @@ bool AdjustEdgeLength(Grid& grid, SubsetHandler& shMarks,
 		PerformSmoothing(grid, shMarks, aaPos, aaNorm, 10, 0.1);
 		LOG(" done\n");*/
 
-		// LOG("  updating normals...\n");
-		// CalculateVertexNormals(grid, aPos, aNorm);
+		LOG("  updating normals...\n");
+		CalculateVertexNormals(grid, aPos, aNorm);
 
 	//	project points back on the surface
-// 		if(projectPoints)
-// 		{
-// 			LOG("  projecting points...");
-// 			//PROFILE_BEGIN(projecting_points);
-// 			for(VertexIterator iter = grid.vertices_begin();
-// 				iter != grid.vertices_end(); ++iter)
-// 			{
-// //TODO:	project crease vertices onto creases only! Don't project fixed vertices
-// 				if(shMarks.get_subset_index(*iter) != REM_FIXED){
-// 					vector3 vNew;
-// 					if(pojectionTraverser.project(aaPos[*iter], octree/*, &aaNorm[*iter]*/)){
-// 						aaPos[*iter] = pojectionTraverser.get_closest_point();
-// 					}
-// 					else{
-// 						LOG("f");
-// 					}
-// 				}
-// 			}
-// 			//PROFILE_END();
-// 			LOG(" done\n");
-// 		}
+		if(projectPoints)
+		{
+			LOG("  projecting points...");
+			//PROFILE_BEGIN(projecting_points);
+			for(VertexIterator iter = grid.vertices_begin();
+				iter != grid.vertices_end(); ++iter)
+			{
+//TODO:	project crease vertices onto creases only! Don't project fixed vertices
+				if(shMarks.get_subset_index(*iter) != REM_FIXED){
+					vector3 vNew;
+					if(pojectionTraverser.project(aaPos[*iter], octree/*, &aaNorm[*iter]*/)){
+						aaPos[*iter] = pojectionTraverser.get_closest_point();
+					}
+					else{
+						LOG("f");
+					}
+				}
+			}
+			//PROFILE_END();
+			LOG(" done\n");
+		}
 
-// 		if(iteration < numIterations - 1){
-// 			LOG("  updating normals...");
-// 			CalculateVertexNormals(grid, aPos, aNorm);
-// 		}
+		if(iteration < numIterations - 1){
+			LOG("  updating normals...");
+			CalculateVertexNormals(grid, aPos, aNorm);
+		}
 	}
 
 
