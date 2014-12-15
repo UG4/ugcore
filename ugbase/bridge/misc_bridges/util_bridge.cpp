@@ -113,6 +113,9 @@ void RegisterBridge_Util(Registry& reg, string parentGroup)
 	reg.add_function("ug_get_current_path", &GetCurrentPath, grp,
 	                 "pathName", "", "Returns the current path");
 
+	reg.add_function("ug_set_paths", &InitPaths, grp,
+	                 "", "pathName", "Sets the paths");
+
 	reg.add_function("ExecuteSystemCommand", &ExecuteSystemCommand, grp,
 	                 "success", "command", "Executes a command in the system shell");
 
