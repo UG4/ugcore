@@ -111,6 +111,24 @@ bool InitPaths(const char* argv0)
 	return true;
 }
 
+
+/**
+ *  init app, script and data paths for a given root path
+ */
+void SetRootPath(const std::string& strRoot)
+{
+	PROFILE_FUNC();
+	const char* pathSep = GetPathSeparator();
+
+	PathProvider::set_path(ROOT_PATH, strRoot);
+	PathProvider::set_path(BIN_PATH, strRoot + pathSep + "bin");
+	PathProvider::set_path(SCRIPT_PATH, strRoot + pathSep + "scripts");
+	PathProvider::set_path(DATA_PATH, strRoot + pathSep + "data");
+	PathProvider::set_path(GRID_PATH, strRoot + pathSep + "data" + pathSep + "grids");
+	PathProvider::set_path(PLUGIN_PATH, strRoot + pathSep + "bin" + pathSep + "plugins");
+	PathProvider::set_path(APPS_PATH, strRoot + pathSep + "apps");
+}
+
 ////////////////////////////////////////////////////////////////////////
 ///	initializes ug
 /**	This method should be called at the beginning of main(...).

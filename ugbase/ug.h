@@ -51,6 +51,17 @@ UG_API int UGInit(int *argcp, char ***argvp, int parallelOutputProcRank = -1);
  * Note: If you set a path before calling this method, it won't be overwritten.*/
 UG_API bool InitPaths(const char* argv0);
 
+///	Initializes the paths of ug::PathProvider.
+/**	Initializes the following paths in ug::PathProvider relative to passed root path
+ *	- ROOT_PATH
+ *	- BIN_PATH
+ *	- SCRIPT_PATH
+ *	- DATA_PATH
+ *	- GRID_PATH
+ *	- PLUGIN_PATH
+ */
+UG_API void SetRootPath(const std::string& strRoot);
+
 ///	finalizes ug
 /**	If ug has been compiled for parallel use (UG_PARALLEL is defined)
  *	then this method will internally call pcl::Finalize.
