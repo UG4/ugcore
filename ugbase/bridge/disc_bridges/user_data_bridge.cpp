@@ -17,6 +17,7 @@
 #include "lib_disc/spatial_disc/user_data/linker/inverse_linker.h"
 #include "lib_disc/spatial_disc/user_data/linker/darcy_velocity_linker.h"
 #include "lib_disc/spatial_disc/user_data/user_function.h"
+#include "lib_disc/spatial_disc/user_data/common_user_data/common_user_data.h"
 
 using namespace std;
 
@@ -39,56 +40,6 @@ void PrintCondUserDataValue(const UserData<TData, dim, bool>& ud, const MathVect
 	bool ret = ud(data, globIP, time, si);
 	UG_LOG(ret << ", " << data);
 }
-
-
-class RotatingCone2d
-	: public StdGlobPosData<RotatingCone2d, number, 2>
-{
-	public:
-		RotatingCone2d(double _eps, double _cx, double _cy, double _ax, double _ay,
-		             double _nu, double _delta)
-			: eps(_eps), cx(_cx), cy(_cy), ax(_ax), ay(_ay), nu(_nu), delta(_delta)
-		{};
-
-		inline void evaluate(number& val, const MathVector<2>& pos, number time, int si) const
-		{
-			const number t = time;
-			const number x = pos[0];
-			const number y = pos[1];
-
-			const number xRot = cos(nu*t) * (x-cx) - sin(nu*t) * (y-cy);
-			const number yRot = sin(nu*t) * (x-cx) + cos(nu*t) * (y-cy);
-
-			const number expo = -((xRot - ax)*(xRot - ax) + (yRot - ay)*(yRot - ay)) / (delta + 4*eps*t);
-			const number scale = delta/(delta+4*eps*t);
-
-			val = scale * exp(expo);
-		}
-
-	protected:
-		double eps, cx, cy, ax, ay, nu, delta;
-};
-
-class RotatingVelocity2d
-	: public StdGlobPosData<RotatingVelocity2d, MathVector<2>, 2>
-{
-	public:
-		RotatingVelocity2d(double _cx, double _cy, double _nu)
-			: cx(_cx), cy(_cy), nu(_nu)
-		{};
-
-		inline void evaluate(MathVector<2>& val, const MathVector<2>& pos, number time, int si) const
-		{
-			const number x = pos[0];
-			const number y = pos[1];
-
-			val[0] = nu*(y - cx);
-			val[1] = nu*(cy - x);
-		}
-
-	protected:
-		double cx, cy, nu;
-};
 
 
 namespace bridge{
@@ -335,6 +286,21 @@ static void Dimension(Registry& reg, string grp)
 
 	}
 
+
+	{
+		typedef ug::LognormalRandomField<MathMatrix<dim, dim>, dim> T;
+		typedef CplUserData<MathMatrix<dim, dim>, dim> TBase;
+		string name = string("LognormalRandomField").append(dimSuffix);;
+		reg.add_class_<T, TBase>(name, grp)
+			//.add_constructor()
+			.template add_constructor<void (*)()>("LognormalRandomField")
+			.template add_constructor<void (*)(size_t N, double mean_f, double sigma_f, double sigma)>("LognormalRandomField", "N#mean_f#sigma_f#sigma")
+			.add_method("set_config",  &T::set_config, "", "N#mean_f#sigma_f#sigma")
+			.add_method("set_no_exp",  &T::set_no_exp, "", "", "use this for display of log of the field")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, string("LognormalRandomField"), dimTag);
+	}
+
 }
 
 /**
@@ -363,6 +329,7 @@ static void Common(Registry& reg, string grp)
 		reg.add_class_<RotatingVelocity2d, TBase2>("RotatingVelocity2d", grp)
 				.add_constructor<void (*)(double,double,double)>()
 				.set_construct_as_smart_pointer(true);
+
 	}
 }
 
