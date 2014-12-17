@@ -41,7 +41,6 @@ template <typename TData, int dim, typename TRet>
 double LognormalRandomField<TData,dim,TRet>::gasdev()
 {
 	// from Numerical Recipes
-	long n;
 	int iset;
 	static double gset;
 	double fac, rsq, v1, v2, x1, x2;

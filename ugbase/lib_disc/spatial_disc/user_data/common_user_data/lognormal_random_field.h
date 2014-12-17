@@ -43,7 +43,7 @@ public:
 	}
 	inline TRet evaluate(TData& D, const MathVector<dim>& x, number time, int si) const;
 
-	bool set_no_exp() { m_bNoExp = true; }
+	void set_no_exp() { m_bNoExp = true; }
 	void set_config(size_t N, double mean_f, double sigma_f, double sigma);
 
 private:
