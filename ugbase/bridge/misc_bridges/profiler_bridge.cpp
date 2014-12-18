@@ -13,7 +13,9 @@
 #include <string>
 #include <sstream>
 #include "../util_overloaded.h"
-#include "common/profiler/freq_adapt.h"
+#ifdef UG_CPU_FREQ
+	#include "common/profiler/freq_adapt.h"
+#endif
 using namespace std;
 
 namespace ug
