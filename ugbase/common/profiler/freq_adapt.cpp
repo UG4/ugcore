@@ -5,11 +5,11 @@
  *      Author: andreasvogel
  */
 
-#include <cpufreq.h>
+#include <cpufreq.h>  // frequency adaption library
+#include <iostream>   // usual i/o
+#include <fstream>    // file i/o
+#include <cstdlib>	  //used for atoi. Better: boost::lexical_cast
 #include "freq_adapt.h"
-#include <iostream>
-#include <fstream>
-#include <cstdlib>	//used for atoi. Better: boost::lexical_cast
 #include "common/common.h"
 #include "common/util/string_util.h"
 
@@ -64,11 +64,8 @@ AutoFreqAdaptNode::AutoFreqAdaptNode(unsigned long freq) : m_bActive(true) {
 		if ( (m_prevFreq = cpufreq_get_freq_kernel(0)) == 0)
 			UG_THROW("Error while getting frequency");
 
-		// set new freq \todo: adjust to different architectures
-		if (cpufreq_modify_policy_governor(0, "userspace") != 0)
-			UG_THROW("Error while setting governor");
-		if (cpufreq_set_frequency(0, freq) != 0)
-			UG_LOG("error while setting frequency");
+		// set new frequency
+		FreqAdaptValues::adjust_freq(freq);
 	}
 	else{
 		// no freq-change issued -> no change back
@@ -90,11 +87,8 @@ void AutoFreqAdaptNode::release(){
 
 		cout << "CPU_FREQ: Resetting frequency to " << m_prevFreq << "\n";
 
-		// set previous freq \todo: adjust to different architectures
-		if (cpufreq_modify_policy_governor(0, "userspace") != 0)
-			UG_THROW("Error while setting governor");
-		if (cpufreq_set_frequency(0, m_prevFreq) != 0)
-			UG_LOG("error while setting frequency");
+		// set previous freq
+		FreqAdaptValues::adjust_freq(freq);
 	}
 }
 
@@ -122,7 +116,50 @@ unsigned long FreqAdaptValues::find_freq(const char* file, const int line){
 	return 0;
 }
 
+
+void *freqAdaptWorker(void *params) {
+
+	unsigned long freq;
+
+	while (1) {
+
+		// wait on frequency transition request
+		pthread_mutex_lock(&freqAdapt_mutex);
+		while (newFreq == 0) {
+			pthread_cond_wait(&freqAdapt_condVar, &freqAdapt_mutex);
+		}
+		pthread_mutex_unlock(&freqAdapt_mutex);
+
+		/* sleep some time to handle only the very last of a series of
+                   requests as seen in case of multiple nested routines */
+		usleep(10); // TODO: find an appropriate value
+
+		pthread_mutex_lock(&freqAdapt_mutex);
+		freq = newFreq;
+		newFreq = 0;
+		pthread_mutex_unlock(&freqAdapt_mutex);
+
+		// do the actual frequency transition
+		if (cpufreq_set_frequency(0, freq) != 0) {
+			printf("error while setting frequency\n");
+		}
+
+	}
+
+}
+
+void FreqAdaptValues::adjust_freq(unsigned long freq){
+    pthread_mutex_lock(&freqAdapt_mutex);
+    newFreq = freq;
+    pthread_cond_signal(&freqAdapt_condVar);
+    pthread_mutex_unlock(&freqAdapt_mutex);
+}
+
 void FreqAdaptValues::set_freqs(std::string csvFile){
+
+	///////////////////////////
+	// read file, line, freqs
+	///////////////////////////
 	ifstream in(csvFile.c_str());
 	if(!in){
 		UG_THROW("FreqAdaptValues::set_freqs: Couldn't open: '" << csvFile << "'\n");
@@ -156,6 +193,28 @@ void FreqAdaptValues::set_freqs(std::string csvFile){
 
 		m_pos.push_back( FreqAdaptPoint(file,line,freq) );
 	}
+
+
+	///////////////////////////
+	// start adaption thread
+	///////////////////////////
+
+	// TODO: check return values?
+
+	newFreq = 0;
+
+	pthread_mutex_init(&freqAdapt_mutex, NULL);
+	pthread_cond_init(&freqAdapt_condVar, NULL);
+	pthread_attr_init(&freqAdaptWorkerThreadAttr);
+	pthread_attr_setdetachstate(&freqAdaptWorkerThreadAttr, PTHREAD_CREATE_DETACHED);
+	// pin the new thread to the corresponding virtual core
+	// TODO: can we achieve a better performance by pinning it to another core?
+	CPU_ZERO(&processor_mask);
+	CPU_SET(20,&processor_mask);
+	pthread_attr_setaffinity_np(&freqAdaptWorkerThreadAttr, sizeof(cpu_set_t), &processor_mask);
+
+	pthread_create(&freqAdaptWorkerThread, &freqAdaptWorkerThreadAttr, freqAdaptWorker, NULL);
+
 }
 
 

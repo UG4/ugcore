@@ -11,6 +11,7 @@
 #include <stack>
 #include <vector>
 #include <string>
+#include <pthread.h>  // used to start separate thread controlling freqency
 
 class AutoFreqAdaptNode;
 
@@ -88,12 +89,25 @@ class FreqAdaptValues {
 		static std::vector<FreqAdaptPoint> m_pos;
 
 	public:
-		// returns requested frequency (or 0 if freq not adjusted)
+		// returns requested frequency (or 0 if freq not adjusted) at file and line
 		static unsigned long freq(const char* file, const int line){
 			return inst().find_freq(file, line);
 		}
 
+		// reads the database of (file, line, required frequency)
 		static void set_freqs(std::string csvFile);
+
+		// adjust the frequency of the cpu
+		static void adjust_freq(unsigned long freq);
+
+	protected:
+		unsigned long newFreq;
+		pthread_mutex_t freqAdapt_mutex;
+		pthread_cond_t freqAdapt_condVar;
+
+		pthread_attr_t freqAdaptWorkerThreadAttr;
+		cpu_set_t processor_mask;
+		pthread_t freqAdaptWorkerThread;
 
 };
 
