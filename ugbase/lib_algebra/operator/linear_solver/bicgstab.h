@@ -13,7 +13,7 @@
 #include <sstream>
 
 #include "lib_algebra/operator/interface/operator.h"
-#include "common/profiler/profiler.h"
+ #include "lib_algebra/operator/interface/linear_solver_profiling.h"
 #ifdef UG_PARALLEL
 	#include "lib_algebra/parallelization/parallelization.h"
 #endif
@@ -86,6 +86,8 @@ class BiCGStab
 	// 	Solve J(u)*x = b, such that x = J(u)^{-1} b
 		virtual bool apply_return_defect(vector_type& x, vector_type& b)
 		{
+			LS_PROFILE_BEGIN(LS_ApplyReturnDefect);
+
 		//	check correct storage type in parallel
 			#ifdef UG_PARALLEL
 			if(!b.has_storage_type(PST_ADDITIVE) || !x.has_storage_type(PST_CONSISTENT))
