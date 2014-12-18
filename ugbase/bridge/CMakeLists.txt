@@ -9,12 +9,19 @@ project(P_UGBRIDGE)
 include("../../cmake/ug_includes.cmake")
 
 set(srcUGBridge    	bridge.cpp
-					domain_bridges/lib_grid_bridge.cpp
 					misc_bridges/test_bridge.cpp
 					misc_bridges/profiler_bridge.cpp
 					misc_bridges/util_bridge.cpp
 					misc_bridges/misc_bridge.cpp
 					misc_bridges/vec_math_bridge.cpp)
+
+set(srcUGBridge     ${srcUGBridge}
+					misc_bridges/pcl_bridge.cpp)
+
+if(buildGrid)
+	set(srcUGBridge     ${srcUGBridge}
+						domain_bridges/lib_grid_bridge.cpp)
+endif(buildGrid)
 
 set(srcUGBridge     ${srcUGBridge}
 					misc_bridges/pcl_bridge.cpp)

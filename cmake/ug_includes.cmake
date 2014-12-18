@@ -69,7 +69,7 @@ set(linkLibraries)
 # In this section we'll define default variables
 	
 # Values for the TARGET option
-set(targetOptions "ugshell, vrl, libug4, ugplugin, libgrid, gridshell, vrlgrid, amg")
+set(targetOptions "ugshell, libug4, vrl, vrlgrid, libgrid, gridshell, ugplugin, amg, luashell")
 set(targetDefault "ugshell")
 set(targetExecutableName ugshell)
 set(targetLibraryName ug4)
@@ -444,6 +444,11 @@ endif(UNIX)
 # MPI
 include(${UG_ROOT_PATH}/cmake/ug/mpi.cmake)
 
+
+########################################
+if(buildGrid)
+	add_definitions(-DUG_GRID)
+endif(buildGrid)
 
 ########################################
 set(buildCompileInfo ${COMPILE_INFO})

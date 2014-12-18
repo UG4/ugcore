@@ -23,7 +23,9 @@ ug_load_script("util/domain_util.lua")
 ug_load_script("util/math_util.lua")
 ug_load_script("util/output_util.lua")
 ug_load_script("util/checkpoint_util.lua")
-
+-- ug_load_script("util/command_line_util.lua") is called below after the definition
+-- of ug_assert. This should be changed! ug_assert should be in a separate file
+-- that is included by command_line_util.lua
 
 
 --------------------------------------------------------------------------------

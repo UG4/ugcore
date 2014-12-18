@@ -42,7 +42,8 @@ end
 function set_user_data_overloads2(name)
 	-- request metatable for the classname
 	mt = ug_get_metatable(name)
-
+	if mt == nil then return end
+	
 	-- set __add function in metatable
 	mt.__add = _G["__ug__TemplateExpressions_add"]
 

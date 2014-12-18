@@ -313,6 +313,8 @@ ugshell_complete()
 # ugshell completion
 
 complete -o plusdirs -F ugshell_complete -o nospace ugshell
+complete -o plusdirs -F ugshell_complete -o nospace luashell
+complete -o plusdirs -F ugshell_complete -o nospace gridshell
 
 
 

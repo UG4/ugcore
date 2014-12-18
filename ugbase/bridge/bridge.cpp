@@ -173,53 +173,55 @@ void RegisterStandardBridges(Registry& reg, string parentGroup)
 
 		RegisterBridge_VecMath(reg, parentGroup);
 		RegisterBridge_Util(reg, parentGroup);
-		RegisterBridge_Grid(reg, parentGroup);
 		RegisterBridge_PCL(reg, parentGroup);
 
 		RegisterBridge_Profiler(reg, parentGroup);
 		RegisterBridge_Misc(reg, parentGroup);
 
+		#ifdef UG_GRID
+			RegisterBridge_Grid(reg, parentGroup);
+		#endif
+		
 		#ifdef UG_ALGEBRA
-		RegisterBridge_Selection(reg, parentGroup);
-		RegisterBridge_Domain(reg, parentGroup);
-		RegisterBridge_PeriodicBoundary(reg, parentGroup);
-		RegisterBridge_Refinement(reg, parentGroup);
-		RegisterBridge_Transform(reg, parentGroup);
-		RegisterBridge_LoadBalancing(reg, parentGroup);
+			RegisterBridge_Selection(reg, parentGroup);
+			RegisterBridge_Domain(reg, parentGroup);
+			RegisterBridge_PeriodicBoundary(reg, parentGroup);
+			RegisterBridge_Refinement(reg, parentGroup);
+			RegisterBridge_Transform(reg, parentGroup);
+			RegisterBridge_LoadBalancing(reg, parentGroup);
 
-	//	depends on lib_disc
-		RegisterBridge_DiscCommon(reg, parentGroup);
-		RegisterBridge_ElemDiscs(reg, parentGroup);
+		//	depends on lib_disc
+			RegisterBridge_DiscCommon(reg, parentGroup);
+			RegisterBridge_ElemDiscs(reg, parentGroup);
 
-	//	depends on lib_algebra
-		RegisterBridge_AlgebraCommon(reg, parentGroup);
-		RegisterBridge_Preconditioner(reg, parentGroup);
-		RegisterBridge_Schur(reg, parentGroup);
-		RegisterBridge_Obstacle(reg, parentGroup);
-		RegisterBridge_PILUT(reg, parentGroup);
-		RegisterBridge_Solver(reg, parentGroup);
-		RegisterBridge_Eigensolver(reg, parentGroup);
-		RegisterBridge_DomainDependentPreconditioner(reg, parentGroup);
+		//	depends on lib_algebra
+			RegisterBridge_AlgebraCommon(reg, parentGroup);
+			RegisterBridge_Preconditioner(reg, parentGroup);
+			RegisterBridge_Schur(reg, parentGroup);
+			RegisterBridge_Obstacle(reg, parentGroup);
+			RegisterBridge_PILUT(reg, parentGroup);
+			RegisterBridge_Solver(reg, parentGroup);
+			RegisterBridge_Eigensolver(reg, parentGroup);
+			RegisterBridge_DomainDependentPreconditioner(reg, parentGroup);
 
-		RegisterBridge_Restart(reg, parentGroup);
+			RegisterBridge_Restart(reg, parentGroup);
 
-	//	depends on lib_disc
-		RegisterBridge_DiscAlgebra(reg, parentGroup);
-		RegisterBridge_DomainDisc(reg, parentGroup);
-		RegisterBridge_GridFunction(reg, parentGroup);
-		RegisterBridge_Interpolate(reg, parentGroup);
-		RegisterBridge_Evaluate(reg, parentGroup);
-		RegisterBridge_MaxError(reg, parentGroup);
-		RegisterBridge_Ordering(reg, parentGroup);
-		RegisterBridge_UserData(reg, parentGroup);
-		RegisterBridge_Constraints(reg, parentGroup);
-		RegisterBridge_MultiGrid(reg, parentGroup);
-		RegisterBridge_Output(reg, parentGroup);
-		RegisterBridge_AdaptiveTools(reg, parentGroup);
-		RegisterBridge_FiniteVolume(reg, parentGroup);
-		RegisterBridge_Integrate(reg, parentGroup);
-		RegisterBridge_ManifoldUtil(reg, parentGroup);
-
+		//	depends on lib_disc
+			RegisterBridge_DiscAlgebra(reg, parentGroup);
+			RegisterBridge_DomainDisc(reg, parentGroup);
+			RegisterBridge_GridFunction(reg, parentGroup);
+			RegisterBridge_Interpolate(reg, parentGroup);
+			RegisterBridge_Evaluate(reg, parentGroup);
+			RegisterBridge_MaxError(reg, parentGroup);
+			RegisterBridge_Ordering(reg, parentGroup);
+			RegisterBridge_UserData(reg, parentGroup);
+			RegisterBridge_Constraints(reg, parentGroup);
+			RegisterBridge_MultiGrid(reg, parentGroup);
+			RegisterBridge_Output(reg, parentGroup);
+			RegisterBridge_AdaptiveTools(reg, parentGroup);
+			RegisterBridge_FiniteVolume(reg, parentGroup);
+			RegisterBridge_Integrate(reg, parentGroup);
+			RegisterBridge_ManifoldUtil(reg, parentGroup);
 		#endif
 
 
