@@ -4,6 +4,7 @@
 #include <boost/archive/iterators/transform_width.hpp>
 #include <boost/archive/iterators/base64_from_binary.hpp>
 #include <boost/archive/iterators/ostream_iterator.hpp>
+//#include <boost/filesystem.hpp>
 
 // debug includes!!
 #include "common/profiler/profiler.h"
@@ -122,6 +123,16 @@ Base64FileWriter::~Base64FileWriter()
 void Base64FileWriter::open(const char *filename,
 								const ios_base::openmode mode)
 {
+	// TODO: Create non-existing subdirectories in a platform-independent way
+	// like in the following code. (Problem: no header-only boost implementation!)
+	/*
+	if (mode & std::ios_base::out)
+	{
+		boost::filesystem::path p(filename);
+		boost::filesystem::create_directories(p.parent_path());
+	}
+	*/
+
 	m_fStream.open(filename, mode);
 	if (!m_fStream.is_open()) {
 		UG_THROW( "Could not open output file: " << filename);
