@@ -117,7 +117,7 @@ unsigned long FreqAdaptValues::find_freq(const char* file, const int line){
 }
 
 
-void *freqAdaptWorker(void *params) {
+void* FreqAdaptValues::freqAdaptWorker(void* This) {
 
 	unsigned long freq;
 
@@ -141,7 +141,7 @@ void *freqAdaptWorker(void *params) {
 
 		// do the actual frequency transition
 		if (cpufreq_set_frequency(0, freq) != 0) {
-			printf("error while setting frequency\n");
+			UG_THROW("FreqAdaptValues::freqAdaptWorker: Error while setting frequency");
 		}
 
 	}
@@ -213,7 +213,7 @@ void FreqAdaptValues::set_freqs(std::string csvFile){
 	CPU_SET(20,&processor_mask);
 	pthread_attr_setaffinity_np(&freqAdaptWorkerThreadAttr, sizeof(cpu_set_t), &processor_mask);
 
-	pthread_create(&freqAdaptWorkerThread, &freqAdaptWorkerThreadAttr, freqAdaptWorker, NULL);
+	pthread_create(&freqAdaptWorkerThread, &freqAdaptWorkerThreadAttr, freqAdaptWorker, this);
 
 }
 

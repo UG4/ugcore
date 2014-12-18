@@ -101,6 +101,8 @@ class FreqAdaptValues {
 		static void adjust_freq(unsigned long freq);
 
 	protected:
+		static void* freqAdaptWorker(void* This);
+
 		unsigned long newFreq;
 		pthread_mutex_t freqAdapt_mutex;
 		pthread_cond_t freqAdapt_condVar;
