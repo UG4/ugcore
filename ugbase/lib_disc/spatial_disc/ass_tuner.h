@@ -20,8 +20,8 @@ class IDomainConstraint;
 
 /// Types of constraint
 /**
- * This types control the order in with the constraints are performed.
- * constraints with a lower number will be performed first. The order of
+ * These types control the order the constraints are applied in.
+ * Constraints with a lower number will be applied first. The order of
  * constraints with equal number is undefined.
  */
 enum ConstraintType
@@ -64,7 +64,7 @@ class LocalToGlobalMapper : public ILocalToGlobalMapper<TAlgebra>
 		~LocalToGlobalMapper() {};
 };
 
-/// The AssemblingTuner class combines tools to adapt the assemble routine
+/// The AssemblingTuner class combines tools to adapt the assembling routine.
 template <typename TAlgebra>
 class AssemblingTuner
 {
@@ -125,9 +125,9 @@ class AssemblingTuner
 	///	sets a selector of elements for assembling
 	/**
 	 * This methods sets an element list. Only elements of this list will be
-	 * assembled during assembling process. Especially the list defines the begin
+	 * assembled during assembling process. The list especially defines the begin
 	 * and end of the element-iterator in the element assembling-loop.
-	 * If no element list is set, this corresponds to a assembling where the loop is
+	 * If no element list is set, this corresponds to an assembling where the loop is
 	 * carried out over all elements of a subset.
 	 *
 	 * \param[in]	sel		Selector
