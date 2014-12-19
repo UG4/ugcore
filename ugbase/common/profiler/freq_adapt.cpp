@@ -220,3 +220,12 @@ void FreqAdaptValues::set_freqs(std::string csvFile){
 
 std::vector<FreqAdaptValues::FreqAdaptPoint> FreqAdaptValues::m_pos =
 		std::vector<FreqAdaptValues::FreqAdaptPoint>();
+
+unsigned long FreqAdaptValues::newFreq = 0;
+pthread_mutex_t FreqAdaptValues::freqAdapt_mutex = pthread_mutex_t();
+pthread_cond_t FreqAdaptValues::freqAdapt_condVar = pthread_cond_t();
+
+pthread_attr_t FreqAdaptValues::freqAdaptWorkerThreadAttr = pthread_attr_t();
+cpu_set_t FreqAdaptValues::processor_mask = cpu_set_t();
+pthread_t FreqAdaptValues::freqAdaptWorkerThread = pthread_t();
+
