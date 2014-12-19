@@ -14,6 +14,7 @@ function util.Balance(DataToBeWrittenTable)
 	local PosEvals = {}
 	local Integrals = {}
 	local Fluxes = {}
+	local PrintFreq = DataToBeWrittenTable.datafreq or 1
 	
 	----------------------------------
 	-- loop "Data-to-be-written"-Table
@@ -245,6 +246,8 @@ function util.Balance(DataToBeWrittenTable)
 	-- the function being called, when data writer is invoked
 	-------------------------------------------------------------------
 	return function(u, step, time)
+		
+		if math.fmod(step, PrintFreq) == 0 then
 		if verbose then print(" ******** Start Balancing ********") end		
 		
 		-- write VTK datas
@@ -335,6 +338,7 @@ function util.Balance(DataToBeWrittenTable)
 			io.close(file)
 		end
 		
-		if verbose then print(" ******** End   Balancing ********")	end			
+		if verbose then print(" ******** End   Balancing ********")	end		
+		end	
 	end
 end
