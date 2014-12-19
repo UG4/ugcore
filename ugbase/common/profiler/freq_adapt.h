@@ -103,13 +103,13 @@ class FreqAdaptValues {
 	protected:
 		static void* freqAdaptWorker(void* This);
 
-		unsigned long newFreq;
-		pthread_mutex_t freqAdapt_mutex;
-		pthread_cond_t freqAdapt_condVar;
+		static unsigned long newFreq;
+		static pthread_mutex_t freqAdapt_mutex;
+		static pthread_cond_t freqAdapt_condVar;
 
-		pthread_attr_t freqAdaptWorkerThreadAttr;
-		cpu_set_t processor_mask;
-		pthread_t freqAdaptWorkerThread;
+		static pthread_attr_t freqAdaptWorkerThreadAttr;
+		static cpu_set_t processor_mask;
+		static pthread_t freqAdaptWorkerThread;
 
 };
 
