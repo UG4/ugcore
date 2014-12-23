@@ -82,13 +82,17 @@ AutoFreqAdaptNode::~AutoFreqAdaptNode()
 
 void AutoFreqAdaptNode::release(){
 
-	// check if freq was changed on entry
-	if(m_prevFreq){
+	if(m_bActive){
+		// check if freq was changed on entry
+		if(m_prevFreq){
 
-		cout << "CPU_FREQ: Resetting frequency to " << m_prevFreq << "\n";
+			cout << "CPU_FREQ: Resetting frequency to " << m_prevFreq << "\n";
 
-		// set previous freq
-		FreqAdaptValues::adjust_freq(freq);
+			// set previous freq
+			FreqAdaptValues::adjust_freq(freq);
+		}
+
+		m_bActive = false;
 	}
 }
 
