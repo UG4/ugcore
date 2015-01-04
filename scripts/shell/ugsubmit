@@ -323,7 +323,9 @@ if [ $npe -gt $pemax ]; then
 	exit
 fi
 
-nnodes=$((npe/nppn))
+#nnodes=$((npe/nppn))
+# round up. this is npe/nppn + 0.5, effectively rounding up (bash automatically rounds down and can't do rounding math)
+nnodes=$(((npe+(nppn/2))/nppn))
 
 ################################################################################
 
