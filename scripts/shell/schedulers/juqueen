@@ -27,8 +27,8 @@ function UJS_Submit
 #!/usr/bin/bash
 # @ job_name = $jobname
 # @ comment = $executable $args
-# @ error = $outdir/job.error
-# @ output = $outdir/job.output
+# @ error = job.error
+# @ output = job.output
 # @ environment = COPY_ALL
 # @ wall_clock_limit = $walltime
 EOF
