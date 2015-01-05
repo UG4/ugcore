@@ -23,7 +23,7 @@ function UJS_Submit
 	
 	MYLDLPATH=/bgsys/drivers/ppcfloor/comm/lib/
 	
-	cat > $outdir/job.sh << EOF
+	cat > job.sh << EOF
 #!/usr/bin/bash
 # @ job_name = $jobname
 # @ comment = $executable $args
@@ -73,7 +73,7 @@ $profilePrefix
 runjob --np $npe --ranks-per-node $nppn $runjobarg : $executable $args
 EOF
 
-	commandline="llsubmit $outdir/job.sh"
+	commandline="llsubmit job.sh"
 	echo " command:      "$commandline >> info.txt
 
 	if [ $test == true ]; then
