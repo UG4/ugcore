@@ -94,7 +94,7 @@ class Stopwatch
       // you cant be really sure when constructor is called
 #ifdef UG_CXX11
       begin = std::chrono::high_resolution_clock::now();
-      end = std::chrono::high_resolution_clock::now() - begin;
+      end = std::chrono::high_resolution_clock::now();
 #else
       beg = end = get_clock_s();
 #endif
@@ -119,7 +119,7 @@ class Stopwatch
      */
     void stop() {
 #ifdef UG_CXX11
-      end = std::chrono::high_resolution_clock::now() - begin;
+      end = std::chrono::high_resolution_clock::now();
 #else
       end = get_clock_s();
 #endif
@@ -155,8 +155,7 @@ class Stopwatch
     double ms() {
 #ifdef UG_CXX11
       if ( bRunning ) end = std::chrono::high_resolution_clock::now();
-      std::chrono::microseconds ellapsed = duration_cast<duration<double>> (end-begin);
-      return ellapsed.count() / 1000.0;
+      return std::chrono::duration_cast<std::chrono::milliseconds> (end-begin).count();
 #else
       if( bRunning ) end = get_clock_s();
       return ( end - beg ) * 1000.0;
