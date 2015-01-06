@@ -154,8 +154,9 @@ class Stopwatch
      */
     double ms() {
 #ifdef UG_CXX11
-      if ( bRunning ) end = std::chrono::high_resolution_clock::now() - begin;
-      return end.count() / 100.0;
+      if ( bRunning ) end = std::chrono::high_resolution_clock::now();
+      std::chrono::microseconds ellapsed = duration_cast<duration<double>> (end-begin);
+      return ellapsed.count() / 1000.0;
 #else
       if( bRunning ) end = get_clock_s();
       return ( end - beg ) * 1000.0;
@@ -167,7 +168,8 @@ class Stopwatch
     /// Time point of the start of Stopwatch
     std::chrono::high_resolution_clock::time_point begin;
     /// Number of microseconds since \c begin
-    std::chrono::microseconds end;
+
+    std::chrono::high_resolution_clock::time_point end;
 #else
     /// Time point of the start of Stopwatch
     double beg;
