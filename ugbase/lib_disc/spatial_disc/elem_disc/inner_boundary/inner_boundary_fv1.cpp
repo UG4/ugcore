@@ -104,15 +104,17 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		// scale with volume of BF
 		for (std::size_t j=0; j<fdc.fluxDeriv.size(); j++)
 			for (std::size_t k=0; k<fdc.fluxDeriv[j].size(); k++)
-				fdc.fluxDeriv[j][k] *= bf.volume();
+				fdc.fluxDeriv[j][k].second *= bf.volume();
 		
 		// add to Jacobian
 		for (std::size_t j=0; j<fdc.fluxDeriv.size(); j++)
 		{
 			for (std::size_t k=0; k<fdc.fluxDeriv[j].size(); k++)
 			{
-				J(fdc.from[j],co,k,co)	+= fdc.fluxDeriv[j][k];
-				J(fdc.to[j],co,k,co)	-= fdc.fluxDeriv[j][k];
+				if (fdc.from[j] != InnerBoundaryConstants::_IGNORE_)
+					J(fdc.from[j], co, fdc.fluxDeriv[j][k].first, co) += fdc.fluxDeriv[j][k].second;
+				if (fdc.to[j] != InnerBoundaryConstants::_IGNORE_)
+					J(fdc.to[j], co, fdc.fluxDeriv[j][k].first, co)	-= fdc.fluxDeriv[j][k].second;
 			}
 		}	
 	}
@@ -166,8 +168,8 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		// add to defect
 		for (std::size_t j=0; j<fc.flux.size(); j++)
 		{
-			d(fc.from[j], co) += fc.flux[j];
-			d(fc.to[j], co) -= fc.flux[j];
+			if (fc.from[j] != InnerBoundaryConstants::_IGNORE_) d(fc.from[j], co) += fc.flux[j];
+			if (fc.to[j] != InnerBoundaryConstants::_IGNORE_) d(fc.to[j], co) -= fc.flux[j];
 		}
 	}
 }
@@ -338,8 +340,8 @@ compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<
 			// as the difference between this and the actual flux of the unknown is calculated
 			for (std::size_t j=0; j<fc.flux.size(); j++)
 			{
-				(*err_est_data->get(fc.from[j])) (side,sip) -= scale * fc.flux[j];
-				(*err_est_data->get(fc.to[j])) (side,sip) += scale * fc.flux[j];
+				if (fc.from[j] != InnerBoundaryConstants::_IGNORE_) (*err_est_data->get(fc.from[j])) (side,sip) -= scale * fc.flux[j];
+				if (fc.to[j] != InnerBoundaryConstants::_IGNORE_) (*err_est_data->get(fc.to[j])) (side,sip) += scale * fc.flux[j];
 			}
 		}
 	}

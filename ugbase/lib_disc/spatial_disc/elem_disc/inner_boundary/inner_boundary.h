@@ -21,6 +21,7 @@
 #include <boost/function.hpp>
 #include <vector>
 #include <string>
+#include <utility>      // std::pair
 
 // other ug4 modules
 #include "common/common.h"
@@ -36,6 +37,13 @@
 
 namespace ug
 {
+
+struct InnerBoundaryConstants
+{
+	public:
+		/// index value for which a flux is ignored
+		static const size_t _IGNORE_ = -1;
+};
 
 template<typename TDomain>
 class FV1InnerBoundaryElemDisc
@@ -55,8 +63,10 @@ class FV1InnerBoundaryElemDisc
 		/// and from where to where the flux occurs
 		struct FluxDerivCond
 		{
-			// vector of fluxFctDerivValues (wrt fct, flux number)
-			std::vector<std::vector<number> > fluxDeriv;
+			// vector of fluxFctDerivValues
+			// rows: fluxIndex, cols: dependency;
+			// in the pair: first: with respect to which local function index, second: value
+			std::vector<std::vector<std::pair<size_t,number> > > fluxDeriv;
 			std::vector<std::size_t> from;
 			std::vector<std::size_t> to;
 		};
@@ -84,7 +94,7 @@ class FV1InnerBoundaryElemDisc
 	public:
 	
     /// Constructor
-        FV1InnerBoundaryElemDisc(const char* functions, const char* subsets)
+        FV1InnerBoundaryElemDisc(const char* functions = "", const char* subsets = "")
         	: IElemDisc<TDomain>(functions, subsets), m_bNonRegularGrid(false)
         {
         	register_all_fv1_funcs();
