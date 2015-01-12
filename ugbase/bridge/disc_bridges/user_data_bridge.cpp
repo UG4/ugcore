@@ -256,13 +256,14 @@ static void Dimension(Registry& reg, string grp)
 		typedef DependentUserData<MathVector<dim>, dim> TBase;
 		string name = string("DarcyVelocityLinker").append(dimSuffix);
 		reg.add_class_<T, TBase>(name, grp)
-			.add_method("set_density", &T::set_density)
 			.add_method("set_gravity", &T::set_gravity)
 			.add_method("set_permeability", static_cast<void (T::*)(number)>(&T::set_permeability))
 			.add_method("set_permeability", static_cast<void (T::*)(SmartPtr<CplUserData<MathMatrix<dim,dim>,dim> >)>(&T::set_permeability))
 			.add_method("set_pressure_gradient", &T::set_pressure_gradient)
 			.add_method("set_viscosity", static_cast<void (T::*)(number)>(&T::set_viscosity))
 			.add_method("set_viscosity", static_cast<void (T::*)(SmartPtr<CplUserData<number,dim> >)>(&T::set_viscosity))
+			.add_method("set_density", static_cast<void (T::*)(number)>(&T::set_density))
+			.add_method("set_density", static_cast<void (T::*)(SmartPtr<CplUserData<number,dim> >)>(&T::set_density))
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "DarcyVelocityLinker", dimTag);

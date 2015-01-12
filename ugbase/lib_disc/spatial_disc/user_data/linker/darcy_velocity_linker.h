@@ -331,6 +331,11 @@ class DarcyVelocityLinker
 			base_type::set_input(_RHO_, data, data);
 		}
 
+		void set_density(number val)
+		{
+			set_density(make_sp(new ConstUserNumber<dim>(val)));
+		}
+
 	///	set gravity import
 		void set_gravity(SmartPtr<CplUserData<MathVector<dim>, dim> > data)
 		{
