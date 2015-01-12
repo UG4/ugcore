@@ -353,8 +353,17 @@ private:
  * As they most probably figure in some other ElemDisc of their corresponding unknown,
  * the considerMe property is set to false by default.
  *
+ * Make sure that the error estimation routines of any elem disc that is given this
+ * MultipleErrEstData object write to the correct sub-objects (i.e. ErrEstData objects)!
+ * There has to be some kind of mapping between the unknowns of the elem disc and
+ * the order in which the single-function ErrEstData objects are added to this object.
+ * This will typically be the exact same order. So try not to add the same object of
+ * MultipleErrEstData to elem discs with unknowns defined in a different order!
+ *
  * The template parameter TErrEstData must implement the IErrEstData interface.
  *
+ * \todo Maybe find a better way to deal with the orders of ErrEstData objects here
+ *       and unknowns in the elem discs.
  * \tparam TDomain	domain type
  */
 template <typename TDomain, typename TErrEstData>
