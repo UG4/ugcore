@@ -128,12 +128,12 @@ UG_API std::string GetLuaTypeString(lua_State* L, int index);
  * @param L the lua state
  * @param backtraceLevel number of calls to display (<= 0 -> all)
  */
-UG_API std::string LuaStackTraceString(lua_State* L, int backtraceLevel=0);
+UG_API std::string LuaStackTraceString(lua_State* L, int fromLevel=0, int toLevel=-1);
 
 UG_API std::string LuaStackTraceString();
 
 /// prints information about lua's call stack (file:line source).
-UG_API void LuaStackTrace();
+UG_API void LuaStackTrace(int fromlevel);
 
 
 /// returns the current file and line-number and line-content ( \sa LuaStackTrace ).

@@ -87,6 +87,7 @@ set(srcUGScript		lua_util.cpp
 					info_commands.cpp
 					bindings_lua.cpp
 					lua_debug.cpp
+					lua_stack.cpp
 					lua_serialization.cpp)
 
 set(srcLUACompiler	compiler/parser.cpp

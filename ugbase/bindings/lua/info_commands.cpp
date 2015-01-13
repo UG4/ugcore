@@ -1025,10 +1025,11 @@ string LuaCurrentLine(lua_State* L)
  * 2  @/Users/mrupp/Documents/workspace/ug4svn/apps/amg//setup.lua:649        amgsetup.CreateApproxSpaceAndDisc()
  * 3  @/Users/mrupp/Documents/workspace/ug4svn/apps/amg/famg_laplace.lua:21   amgsetup.LoadStdDomAndApproxSpace()
  * @param L
- * @param backtraceLevel  how far we want to go back
+ * @param fromLevel  where to start
+ * @param toLevel  how far we want to go back
  * @return a list list
  */
-string LuaStackTraceString(lua_State* L, int backtraceLevel)
+string LuaStackTraceString(lua_State* L, int fromLevel, int toLevel)
 {
 	StringTableStream sts;
     lua_Debug entry;
@@ -1043,13 +1044,14 @@ string LuaStackTraceString(lua_State* L, int backtraceLevel)
 		if(entry.currentline <0) continue;
 		if(!status || !entry.source || entry.currentline < 0) continue;
 		luaLevel++;
+		if(luaLevel < fromLevel) continue;
 		// first col
 		sts << (Stringify() << " " << luaLevel << "  " << entry.source << ":" << entry.currentline).str();
 		// second col
 		sts << TrimString(GetFileLine(entry.source, entry.currentline));
 		// next row
 		sts << "\n";
-		if(luaLevel == backtraceLevel) break;
+		if(luaLevel == toLevel) break;
 	}
 
     return sts.to_string();
@@ -1109,12 +1111,12 @@ std::string GetLuaLine(lua_State* L)
 
 std::string LuaStackTraceString()
 {
-	return LuaStackTraceString(script::GetDefaultLuaState());
+	return LuaStackTraceString(script::GetDefaultLuaState(), 0, -1);
 }
 
-void LuaStackTrace()
+void LuaStackTrace(int fromLevel)
 {
-	UG_LOG(LuaStackTraceString());
+	UG_LOG(LuaStackTraceString(script::GetDefaultLuaState(), fromLevel, -1));
 }
 
 void ScriptPrintClassHierarchy(const char *classname)

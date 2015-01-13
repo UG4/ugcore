@@ -19,10 +19,13 @@
 #include "bridge/bridge.h"
 
 #include "common/util/stringify.h"
+#include "lua_stack.h"
+
 //#define __UG__BINDINGS_LUA__CATCH_UNKNOWN_EXCEPTIONS__
 
 using namespace std;
 using namespace ug::script;
+using namespace ug::bridge;
 
 //	a symbol preceding error messages
 static const char* errSymb = " % ";
@@ -307,269 +310,6 @@ static string GetTypeMismatchString(const ParameterInfo& paramsTemplate,
 
 
 
-template <typename T>
-static bool PushLuaStackEntryToParamStack(ParameterStack& ps, lua_State* L,
-                                          int index, bool bIsVector)
-{
-	if(!bIsVector){
-		if(LuaParsing<T>::check(L, index)){
-			ps.push(LuaParsing<T>::get(L, index));
-		}
-		else return false;
-	}
-	else {
-		if (lua_istable(L, index)){
-			SmartPtr<std::vector<T> > spVec
-							= SmartPtr<std::vector<T> >(new std::vector<T>());
-			lua_pushnil(L);
-			while (lua_next(L, index) != 0) {
-				if(!LuaParsing<T>::check(L, -1)) {
-					lua_pop(L, 1);
-					while (lua_next(L, index) != 0) lua_pop(L, 1);
-					return false;
-				}
-				spVec->push_back(LuaParsing<T>::get(L, -1));
-				lua_pop(L, 1);
-		   }
-		   ps.push(spVec);
-		}
-		else return false;
-	}
-	return true;
-}
-
-template <typename T>
-static bool PushLuaStackPointerEntryToParamStack(ParameterStack& ps, lua_State* L,
-                                                 int index, const char* baseClassName,
-                                                 bool bIsVector)
-{
-	typedef std::pair<T, const ClassNameNode*> result_type;
-
-	result_type res;
-	if(!bIsVector){
-		if(LuaParsing<T>::checkAndGet(res, L, index, baseClassName)){
-			ps.push(res.first, res.second);
-		}
-		else return false;
-	}
-	else {
-		if (lua_istable(L, index)){
-			SmartPtr<std::vector<result_type> > spVec
-				= SmartPtr<std::vector<result_type> >(new std::vector<result_type>());
-			lua_pushnil(L);
-			while (lua_next(L, index) != 0) {
-				if(!LuaParsing<T>::checkAndGet(res, L, -1, baseClassName)) {
-					lua_pop(L, 1);
-					while (lua_next(L, index) != 0) lua_pop(L, 1);
-					return false;
-				}
-				spVec->push_back(res);
-				lua_pop(L, 1);
-		   }
-		   ps.push(spVec);
-		}
-		else return false;
-	}
-	return true;
-}
-
-
-///	copies parameter values from the lua-stack to a parameter-list.
-/**	\returns	The index of the first bad parameter starting from 1.
- *				Returns 0 if everything went right.
- *				Returns -1 if the number of parameters did not match.
- */
-static int LuaStackToParams(ParameterStack& ps,
-							const ParameterInfo& psInfo,
-							lua_State* L,
-							int offsetToFirstParam = 0)
-{
-//	make sure that we have the right amount of parameters
-//	if the sizes do not match, return -1.
-	if((lua_gettop(L)) - offsetToFirstParam != (int)psInfo.size())
-		return -1;
-
-//	initialize temporary variables
-	int badParam = 0;
-	
-//	iterate through parameter list and copy the value in the associated stack entry.
-	for(int i = 0; i < psInfo.size(); ++i){
-	//	get type and vectorMode (if bIsVector==true a lua table is expected)
-		int type = psInfo.type(i);
-		bool bIsVector = psInfo.is_vector(i);
-		
-	//	compute stack index, stack-indices start with 1
-		int index = (int)i + offsetToFirstParam + 1;
-
-	//	check for nil
-		if(lua_type(L, index) == LUA_TNONE) return (int)i + 1;
-
-	//	try to read in expected type
-		switch(type){
-			case Variant::VT_BOOL:{
-				if(!PushLuaStackEntryToParamStack<bool>(ps, L, index, bIsVector))
-					badParam = (int)i + 1;
-			}break;
-			case Variant::VT_INT:{
-				if(!PushLuaStackEntryToParamStack<int>(ps, L, index, bIsVector))
-					badParam = (int)i + 1;
-			}break;
-			case Variant::VT_SIZE_T:{
-				if(!PushLuaStackEntryToParamStack<size_t>(ps, L, index, bIsVector))
-					badParam = (int)i + 1;
-			}break;
-			case Variant::VT_FLOAT:{
-				if(!PushLuaStackEntryToParamStack<float>(ps, L, index, bIsVector))
-					badParam = (int)i + 1;
-			}break;
-			case Variant::VT_DOUBLE:{
-				if(!PushLuaStackEntryToParamStack<double>(ps, L, index, bIsVector))
-					badParam = (int)i + 1;
-			}break;
-			case Variant::VT_CSTRING:{
-				if(!PushLuaStackEntryToParamStack<const char*>(ps, L, index, bIsVector))
-					badParam = (int)i + 1;
-			}break;
-			case Variant::VT_STDSTRING:{
-				if(!PushLuaStackEntryToParamStack<std::string>(ps, L, index, bIsVector))
-					badParam = (int)i + 1;
-			}break;
-			case Variant::VT_POINTER:{
-			//	NOTE that smart-ptrs are implicitly used as normal pointers here.
-			//	This can cause severe problems in regard to reference-counting.
-			//	This behaviour was introduced, since the registry does not
-			//	allow by-value arguments. (Small temporary objects profit from
-			//	this strategy).
-				if(!PushLuaStackPointerEntryToParamStack<void*>
-					(ps, L, index, psInfo.class_name(i), bIsVector))
-					badParam = (int)i + 1;
-			}break;
-			case Variant::VT_CONST_POINTER:{
-			//	NOTE that smart-ptrs are implicitly used as normal pointers here.
-			//	This can cause severe problems in regard to reference-counting.
-			//	This behaviour was introduced, since the registry does not
-			//	allow by-value arguments. (Small temporary objects profit from
-			//	this strategy).
-				if(!PushLuaStackPointerEntryToParamStack<const void*>
-					(ps, L, index, psInfo.class_name(i), bIsVector))
-					badParam = (int)i + 1;
-			}break;
-			case Variant::VT_SMART_POINTER:{
-				if(!PushLuaStackPointerEntryToParamStack<SmartPtr<void> >
-					(ps, L, index, psInfo.class_name(i), bIsVector))
-					badParam = (int)i + 1;
-			}break;
-			case Variant::VT_CONST_SMART_POINTER:{
-				if(!PushLuaStackPointerEntryToParamStack<ConstSmartPtr<void> >
-					(ps, L, index, psInfo.class_name(i), bIsVector))
-					badParam = (int)i + 1;
-			}break;
-
-			default:{//	unknown type
-				badParam = (int)i + 1;
-			}break;
-		}
-
-	//	check if param has been read correctly
-		if(badParam)
-			return badParam;
-	}
-		
-//	return result flag
-	return badParam;
-}
-
-template <typename T>
-static void ParamStackEntryToLuaStack(const ParameterStack& ps, lua_State* L,
-                                      int index, bool bIsVector)
-{
-	if(!bIsVector){
-		LuaParsing<T>::push(L, ps.to<T>(index));
-	}
-	else {
-		const std::vector<T>& vec = ps.to<std::vector<T> >(index);
-		lua_createtable(L, vec.size(), 0);
-		int newTable = lua_gettop(L);
-		for(int i=0; i < (int)vec.size(); i++) {
-			LuaParsing<T>::push(L, vec[i]);
-			lua_rawseti(L, newTable, i + 1);
-		}
-	}
-}
-
-template <typename T>
-static void ParamStackPointerEntryToLuaStack(const ParameterStack& ps, lua_State* L,
-                                             int index, bool bIsVector)
-{
-	const char* className = ps.class_name(index);
-	if(!bIsVector){
-		LuaParsing<T>::push(L, ps.to<T>(index), className);
-	}
-	else {
-		SmartPtr<std::vector<std::pair<T, const ClassNameNode*> > > spVec = ps.to<SmartPtr<std::vector<std::pair<T, const ClassNameNode*> > > >(index);
-		lua_createtable(L, spVec->size(), 0);
-		int newTable = lua_gettop(L);
-		for(int i=0; i < (int)spVec->size(); i++) {
-			LuaParsing<T>::push(L, (*spVec)[i].first, (*spVec)[i].second->name().c_str());
-			lua_rawseti(L, newTable, i + 1);
-		}
-	}
-}
-
-
-///	Pushes the parameter-values to the Lua-Stack.
-/**
- * \returns The number of items pushed to the stack.
- */
-static int ParamsToLuaStack(const ParameterStack& ps, lua_State* L)
-{
-//	push output parameters to the lua stack
-	for(int i = 0; i < ps.size(); ++i){
-		const int type = ps.type(i);
-		const bool bIsVector = ps.is_vector(i);
-		switch(type){
-			case Variant::VT_BOOL:{
-				ParamStackEntryToLuaStack<bool>(ps, L, i, bIsVector);
-			}break;
-			case Variant::VT_INT:{
-				ParamStackEntryToLuaStack<int>(ps, L, i, bIsVector);
-			}break;
-			case Variant::VT_SIZE_T:{
-				ParamStackEntryToLuaStack<size_t>(ps, L, i, bIsVector);
-			}break;
-			case Variant::VT_FLOAT:{
-				ParamStackEntryToLuaStack<float>(ps, L, i, bIsVector);
-			}break;
-			case Variant::VT_DOUBLE:{
-				ParamStackEntryToLuaStack<double>(ps, L, i, bIsVector);
-			}break;
-			case Variant::VT_CSTRING:{
-				ParamStackEntryToLuaStack<const char*>(ps, L, i, bIsVector);
-			}break;
-			case Variant::VT_STDSTRING:{
-				ParamStackEntryToLuaStack<std::string>(ps, L, i, bIsVector);
-			}break;
-			case Variant::VT_POINTER:{
-				ParamStackPointerEntryToLuaStack<void*>(ps, L, i, bIsVector);
-			}break;
-			case Variant::VT_CONST_POINTER:{
-				ParamStackPointerEntryToLuaStack<const void*>(ps, L, i, bIsVector);
-			}break;
-			case Variant::VT_SMART_POINTER:{
-				ParamStackPointerEntryToLuaStack<SmartPtr<void> >(ps, L, i, bIsVector);
-			}break;
-			case Variant::VT_CONST_SMART_POINTER:{
-				ParamStackPointerEntryToLuaStack<ConstSmartPtr<void> >(ps, L, i, bIsVector);
-			}break;
-			default:{
-				UG_THROW("ParamsToLuaStack: invalid type in ParamStack.")
-			}break;
-		}
-	}
-	
-	return (int)ps.size();
-}
-
 
 /**
  * @param err
@@ -799,7 +539,7 @@ static int LuaProxyGroupConstructor(lua_State* L)
 	if(!c){
 		UG_LOG(errSymb<<"Error at "<<GetLuaFileAndLine(L) << ":\n")
 		UG_LOG(errSymb<<"Can't create default instance of group '" << group->name());
-		UG_LOG("': No default class set!\n");
+		UG_LOG("': No default class set! (Have you called InitUG?)\n");
 		lua_pushnil(L);
 		return 1;
 	}
@@ -809,7 +549,7 @@ static int LuaProxyGroupConstructor(lua_State* L)
 
 /**
  * This method is not called by lua, but a helper to LuaProxyMethod.
- * It recursivly calls itself until a matching overload was found.
+ * It recursively calls itself until a matching overload was found.
  * @param L
  * @param methodGrp
  * @param self

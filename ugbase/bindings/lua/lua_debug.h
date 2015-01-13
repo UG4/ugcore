@@ -49,7 +49,7 @@ UG_API void ProfileLUA(bool bProfile);
 UG_API void DebugList();
 
 /// lists the function stack in lua
-UG_API void DebugBacktrace();
+UG_API void DebugBacktrace(int fromLevel);
 
 /// move down function stack
 UG_API void DebugDown();

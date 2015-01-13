@@ -577,9 +577,9 @@ void DebugList()
 	}
 	// todo
 }
-void DebugBacktrace()
+void DebugBacktrace(int fromLevel)
 {
-	ug::bridge::LuaStackTrace();
+	ug::bridge::LuaStackTrace(fromLevel);
 }
 
 
@@ -675,7 +675,7 @@ void SetLuaDebugIDs(lua_State* L)
 			"function SetDebugLevel(did, level)\n"
 			"if(did == nil) then\n"
 			"print(\"ERROR: Debug Node not existing. Perhaps you did not include the plugin?\")\n"
-			"DebugBacktrace()"
+			"DebugBacktrace(0)"
 			"else GetLogAssistant():set_debug_level((did.id) ..\"*\", level) end end",
 			"SetLuaDebugIDs");
 	const vector<string> &s = DebugIDManager::instance().get_registered_debug_IDs_arr();

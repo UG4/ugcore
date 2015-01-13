@@ -22,7 +22,7 @@
 #include "registry/class_name_provider.h"
 #include "registry/registry.h"
 #include "lua_debug.h"
-
+#include "lua_stack.h"
 #include "common/util/binary_buffer.h"
 
 
@@ -248,7 +248,7 @@ void ReleaseDefaultLuaState()
 int luaCallStackError( lua_State *L )
 {
 	UG_LOG("LUA-ERROR! Call stack:\n");
-    ug::bridge::LuaStackTrace();
+    ug::bridge::LuaStackTrace(0);
     return 1;
 }
 
@@ -344,6 +344,29 @@ int UGLuaErrLog(lua_State *L)
 	GetLogAssistant().flush();
 	return 0;
 }
+//
+//static int LuaGetClassName(lua_State *L)
+//{
+//	UG_LOG(lua_typename(L, lua_upvalueindex(1)));
+//	bridge::IExportedClass* c = (bridge::IExportedClass*)lua_touserdata(L, lua_upvalueindex(1));
+//	bridge::ParameterStack out;
+//	if(c)
+//		out.push(c->name());
+//	else
+//		out.push("error");
+//	return bridge::ParamsToLuaStack(out, L);
+//}
+//
+//static int LuaGetClassGroup(lua_State *L)
+//{
+//	bridge::IExportedClass* c = (bridge::IExportedClass*)lua_touserdata(L, lua_upvalueindex(1));
+//	bridge::ParameterStack out;
+//	if(c)
+//		out.push(c->group());
+//	else
+//		out.push("error");
+//	return bridge::ParamsToLuaStack(out, L);
+//}
 
 void RegisterStdLUAFunctions(lua_State *L)
 {
@@ -351,6 +374,8 @@ void RegisterStdLUAFunctions(lua_State *L)
 	lua_register(L, "print_all", UGLuaPrintAllProcs );
 	lua_register(L, "write", UGLuaWrite );
 	lua_register(L, "err_log", UGLuaErrLog);
+//	lua_register(L, "GetClassName", LuaGetClassName);
+//	lua_register(L, "GetClassGroup", LuaGetClassGroup);
 }
 
 int UGGetMetatable(lua_State *L)
