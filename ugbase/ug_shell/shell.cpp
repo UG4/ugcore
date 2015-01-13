@@ -188,7 +188,7 @@ debug_return DebugShell()
 
 	static string last="";
 
-	ug::bridge::LuaStackTrace();
+	ug::bridge::LuaStackTrace(0);
 	//ug::bridge::LuaPrintCurrentLine(GetDefaultLuaState());
 
 #ifdef UG_PARALLEL
@@ -251,7 +251,7 @@ debug_return DebugShell()
 		}
 		else if(buf.compare("backtrace")==0 || buf.compare("bt")==0)
 		{
-			DebugBacktrace();
+			DebugBacktrace(0);
 			continue;
 		}
 		else if(buf.compare("up")==0)
