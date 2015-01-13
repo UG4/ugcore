@@ -4,6 +4,7 @@ util = util or {}
 -- Subset utils
 --------------------------------------------------------------------------------
 
+
 --! util.CheckSubsets
 --! checks if all required subsets are contained in the SubsetHandler
 --! @param dom Domain
@@ -66,10 +67,8 @@ function util.CreateDomain(gridName, numRefs, neededSubsets)
 	
 	-- check whether required subsets are present
 	if neededSubsets ~= nil then
-		if util.CheckSubsets(dom, neededSubsets) == false then 
-			print("Something wrong with required subsets. Aborting.");
-			exit();
-		end
+		ug_assert(util.CheckSubsets(dom, neededSubsets) == true, 
+			"Something wrong with required subsets. Aborting.");
 	end
 	
 	-- return the created domain
@@ -134,10 +133,7 @@ function util.CreateAndDistributeDomain(gridName, numRefs, numPreRefs,
 	write("done. ")
 	
 	-- create Refiner
-	if numPreRefs > numRefs then
-		print("numPreRefs must be smaller than numRefs. Aborting.");
-		exit();
-	end
+	ug_assert(numPreRefs <= numRefs, "numPreRefs must be smaller than numRefs. Aborting.");
 	
 	if numPreRefs > numRefs then
 		numPreRefs = numRefs
@@ -160,8 +156,7 @@ function util.CreateAndDistributeDomain(gridName, numRefs, numPreRefs,
 	write("done. Distributing...")
 	-- Distribute the domain to all involved processes
 	if util.DistributeDomain(dom, distributionMethod, verticalInterfaces, numTargetProcs, distributionLevel, wFct) == false then
-		print("Error while Distributing Grid. Aborting.")
-		exit();
+		ug_error("Error while Distributing Grid. Aborting.")
 	end
 	write(" done. Post-Refining("..(numRefs-numPreRefs).."): ")
 	
@@ -178,8 +173,7 @@ function util.CreateAndDistributeDomain(gridName, numRefs, numPreRefs,
 	-- Now we loop all subsets an search for it in the SubsetHandler of the domain
 	if neededSubsets ~= nil then
 		if util.CheckSubsets(dom, neededSubsets) == false then 
-			print("Something wrong with required subsets. Aborting.");
-			exit();
+			ug_error("Something wrong with required subsets. Aborting.");
 		end
 	end
 	
@@ -192,3 +186,4 @@ function util.CreateAndDistributeDomain(gridName, numRefs, numPreRefs,
 	-- return the created domain
 	return dom
 end
+

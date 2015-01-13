@@ -495,6 +495,7 @@ function util.SolveLinearTimeProblem(
 
 		-- plot solution
 		if not (out==nil) then out:print(filename, u, step, time) end
+		--SaveVectorForConnectionViewer(u, filename.."_t"..step..".vec")
 			
 		print("++++++ TIMESTEP "..step.." END   (current time: " .. time .. ") ++++++");
 		

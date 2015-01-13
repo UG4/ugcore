@@ -1,4 +1,71 @@
 util = util or {}
+
+
+--------------------------------------------------------------------------------
+-- lua script functions
+--------------------------------------------------------------------------------
+
+function util.TableToTextLongHelper(indexPar, valuePar)
+	local str=""
+	if type(valuePar) == "table" then
+		str = str..util.PrintTableHelperIntend .. tostring(indexPar)  .. " = {\n"
+		util.PrintTableHelperIntend = util.PrintTableHelperIntend .. "  "
+		
+		for i,v in pairs(valuePar) do str = str..util.TableToTextLongHelper(i, v) end
+		
+		util.PrintTableHelperIntend = string.sub(util.PrintTableHelperIntend, 3)
+		str = str..util.PrintTableHelperIntend .. "}\n"
+	else
+		if type(valuePar) == "string" or type(valuePar) == "number" then
+			str = str..util.PrintTableHelperIntend .. tostring(indexPar) .. " = " .. valuePar .."\n" 
+		elseif type(valuePar) == "boolean" then
+			str = str..util.PrintTableHelperIntend .. tostring(indexPar) .. " = " .. tostring(valuePar) .."\n"
+		else
+			str = str..util.PrintTableHelperIntend .. " " .. tostring(indexPar) .. " = " .. tostring(valuePar) .."\n"
+		end
+	end
+	return str
+end
+
+function util.TableToTextLong(tablePar)
+	util.PrintTableHelperIntend = ""
+	return util.TableToTextLongHelper("", tablePar)
+end
+
+--! to print tables
+function util.PrintTable(tablePar)
+	print(util.TableToTextLong(tablePar))
+end
+
+function util.TableToText(var)
+	local out= ""
+	local i
+	local v
+	if type(var) == "table" then
+		out = out.." {"
+		
+		local count = 0
+		for _ in pairs(var) do count = count + 1 end
+		if count == #var then count = 0 else count = 1 end
+		
+		local bfirst = true		
+		for i,v in pairs(var) do
+			if bfirst then bfirst = false else out=out .. ", " end
+			if count == 1 then out=out .. "["..tostring(i).."] = " end 
+			out=out..util.TableToText(v)
+			 
+		end
+		
+		out = out.. "}"
+	else
+		out = out ..tostring(var)		
+	end
+	return out
+end
+
+
+
+
 function util.Balance(DataToBeWrittenTable)
 	-- check that table passed
 	if type(DataToBeWrittenTable) ~= "table" then
@@ -342,3 +409,33 @@ function util.Balance(DataToBeWrittenTable)
 		end	
 	end
 end
+
+
+
+--- adding tostring for booleans
+_tostring = _tostring or tostring
+function tostring(Val)
+	if type(Val) == "table" then
+   		return util.TableToTextLong(Val)
+   	elseif type(Val) == "boolean" then
+   		if Val then
+   			return "true"
+   		else
+   			return "false"
+   		end
+   	else
+   		return _tostring(Val)
+   	end
+end
+
+if print_all == nil then
+	function print_all(...)
+		local la = GetLogAssistant()
+		local opp = la:get_output_process()
+		la:set_output_process(-1)
+		print(unpack(arg))
+		la:set_output_process(opp) 
+	end
+end    
+
+

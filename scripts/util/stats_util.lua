@@ -337,7 +337,7 @@ function util.flattenTable(tab, name, resTable)
 	end
 	if type(tab) == "table" then
 		for i, v in pairs(tab) do
-			flattenTable(v, tName..i, resTable)
+			util.flattenTable(v, tName..i, resTable)
 		end
 	elseif type(tab) ~= "userdata" then		
 		table.insert(resTable, {name, tab})

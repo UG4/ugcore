@@ -3,12 +3,85 @@
 -- \defgroup scripts_util_userdata UserData Utility
 -- \ingroup scripts_util
 -- Some usage info:
+-- FreeUserDataInTable, FreeUserData.
+--
 -- Name of instance of ug4-object: ug_class_name(obj) (returns "" if not a ug4 class)
 -- Check if class is base class: ug_is_base_class("BaseClass", "DerivClass")
 -- Check if dimension compiled in:  ug_dim_compiled(dim)
 -- Returning metatable for a ug4-class: ug_get_metatable("ClassName")
 -- \{
 !]]--
+
+--------------------------------------------------------------------------------
+-- list and free user data
+--------------------------------------------------------------------------------
+
+function ListUserDataInTable(t, name)
+   	for n,v in pairs(t) do
+      if type(v) == "userdata" then
+		 print(name.."["..n.."]")
+      end
+  
+	  if type(v) == "table" then
+		if(n ~= "_G" and n ~= "io" and n ~= "package" and n ~= "gnuplot") then 
+			ListUserDataInTable(v, name.."["..n.."]")
+		end
+  	  end
+    end
+end
+
+--! Lists all user data (even in tables)
+function ListUserData()
+   	for n,v in pairs(_G) do
+	   -- all userdata
+	   if type(v) == "userdata" then
+		 print(n)
+	   end
+    
+	    -- userdata in table
+		if type(v) == "table" then
+			if(n ~= "_G" and n ~= "io" and n ~= "package" and n ~= "gnuplot") then 
+				ListUserDataInTable(_G[n], n)
+			end
+		end
+    end
+end
+
+function FreeUserDataInTable(t)
+   	for n,v in pairs(t) do
+      if type(v) == "userdata" then
+      	 t[n] = nil
+      end
+      
+      if type(v) == "table" then
+		if(n ~= "_G" and n ~= "io" and n ~= "package" and n ~= "gnuplot") then
+			FreeUserDataInTable(v)
+		end
+  	  end
+      
+    end
+end
+
+--! sets all userdata to nil (even in tables) and calls garbage collector
+function FreeUserData()
+   -- set user data to nil
+   for n,v in pairs(_G) do
+      if type(v) == "userdata" then
+		 _G[n] = nil
+      end
+      
+      if type(v) == "table" then
+		if(n ~= "_G" and n ~= "io" and n ~= "package" and n ~= "gnuplot") then
+ 	     	FreeUserDataInTable(_G[n])
+ 	     end
+      end
+   end
+   
+   -- call garbage collector
+   collectgarbage("collect")
+end
+
+
 
 function __ug__CheckUserDataArgType(r, l)
 	local rType = ug_class_name(r)
