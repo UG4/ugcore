@@ -97,7 +97,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		const MathVector<dim>& cc = bf.global_corner(0);
 
 		FluxDerivCond fdc;
-		if (!fluxDensityDerivFct(uAtCorner, cc, si, fdc))
+		if (!fluxDensityDerivFct(uAtCorner, elem, cc, si, fdc))
 			UG_THROW("FV1InnerBoundaryElemDisc::add_jac_A_elem:"
 							" Call to fluxDensityDerivFct resulted did not succeed.");
 		
@@ -156,7 +156,7 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 
 		// get flux densities in that node
 		FluxCond fc;
-		if (!fluxDensityFct(uAtCorner, cc, si, fc))
+		if (!fluxDensityFct(uAtCorner, elem, cc, si, fc))
 		{
 			UG_THROW("FV1InnerBoundaryElemDisc::add_def_A_elem:"
 						" Call to fluxDensityFct did not succeed.");
@@ -329,7 +329,7 @@ compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<
 			int si = this->subset_handler().get_subset_index(side);
 
 			FluxCond fc;
-			if (!fluxDensityFct(uAtIP, ipCoords, si, fc))
+			if (!fluxDensityFct(uAtIP, elem, ipCoords, si, fc))
 			{
 				UG_THROW("FV1InnerBoundaryElemDisc::compute_err_est_A_elem:"
 							" Call to fluxDensityFct did not succeed.");

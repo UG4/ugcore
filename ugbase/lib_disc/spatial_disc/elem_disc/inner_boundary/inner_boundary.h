@@ -100,6 +100,9 @@ class FV1InnerBoundaryElemDisc
         	register_all_fv1_funcs();
         }
 
+	/// Destructor
+		virtual ~FV1InnerBoundaryElemDisc() {};
+
     /// Setting the flux function
         //void set_fluxFunction(UserData<number, dim>& fluxFct) {m_fluxFct.set_data(fluxFct);}
 	
@@ -117,14 +120,14 @@ class FV1InnerBoundaryElemDisc
 	 *	depending on the unknowns on the boundary;
 	 *	shall be defined in a specialized class that is derived from FV1InnerBoundaryElemDisc.
 	 */
-		virtual bool fluxDensityFct(const std::vector<LocalVector::value_type>& u, const MathVector<dim>& cc,
+		virtual bool fluxDensityFct(const std::vector<LocalVector::value_type>& u, GridObject* e, const MathVector<dim>& cc,
 									int si, FluxCond& fc) = 0;
 	
 	/**	This is the flux derivative function defining the flux density derivatives over the boundary
 	 *	depending on the unknowns on the boundary;
 	 *	shall be defined in a specialized class that is derived from FV1InnerBoundaryElemDisc.
 	 */
-		virtual bool fluxDensityDerivFct(const std::vector<LocalVector::value_type>& u, const MathVector<dim>& cc,
+		virtual bool fluxDensityDerivFct(const std::vector<LocalVector::value_type>& u, GridObject* e, const MathVector<dim>& cc,
 										 int si, FluxDerivCond& fdc) = 0;
 	
 	///	prepares the loop over all elements
