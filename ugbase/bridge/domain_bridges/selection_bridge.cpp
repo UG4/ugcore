@@ -149,7 +149,6 @@ template <typename TDomain>
 static void Domain(Registry& reg, string grp)
 {
 	typedef TDomain 							domain_type;
-	typedef typename TDomain::position_type		pos_type;
 
 	reg.add_function("SelectDomainSubset",
 					 &SelectDomainSubset<domain_type>, grp,
