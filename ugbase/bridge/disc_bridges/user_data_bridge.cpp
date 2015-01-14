@@ -19,6 +19,8 @@
 #include "lib_disc/spatial_disc/user_data/user_function.h"
 #include "lib_disc/spatial_disc/user_data/common_user_data/common_user_data.h"
 
+#include "lib_disc/spatial_disc/user_data/common_user_data/rotating_cone.h"
+
 using namespace std;
 
 namespace ug{
@@ -322,6 +324,7 @@ static void Common(Registry& reg, string grp)
 	}
 
 	{
+/*
 		typedef CplUserData<number, 2> TBase1;
 		reg.add_class_<RotatingCone2d, TBase1>("RotatingCone2d", grp)
 				.add_constructor<void (*)(double,double,double,double,double,double,double)>()
@@ -330,6 +333,7 @@ static void Common(Registry& reg, string grp)
 		reg.add_class_<RotatingVelocity2d, TBase2>("RotatingVelocity2d", grp)
 				.add_constructor<void (*)(double,double,double)>()
 				.set_construct_as_smart_pointer(true);
+*/
 
 	}
 }
