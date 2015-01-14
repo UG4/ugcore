@@ -172,7 +172,7 @@ class GridFunction
 		this_type& operator=(const this_type& v) {assign(v); return *this;}
 
 	/// clone including values
-		SmartPtr<this_type> clone() const {return SmartPtr<this_type>(this->virtual_clone());}
+		SmartPtr<this_type> clone() {return SmartPtr<this_type>(this->virtual_clone());}
 
 
 	/// clone excluding values
