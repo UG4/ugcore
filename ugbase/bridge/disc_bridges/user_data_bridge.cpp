@@ -323,8 +323,8 @@ static void Common(Registry& reg, string grp)
 		reg.add_class_<UserDataInfo>("UserDataInfo", grp);
 	}
 
+#ifdef UG_DIM_2
 	{
-/*
 		typedef CplUserData<number, 2> TBase1;
 		reg.add_class_<RotatingCone2d, TBase1>("RotatingCone2d", grp)
 				.add_constructor<void (*)(double,double,double,double,double,double,double)>()
@@ -333,9 +333,8 @@ static void Common(Registry& reg, string grp)
 		reg.add_class_<RotatingVelocity2d, TBase2>("RotatingVelocity2d", grp)
 				.add_constructor<void (*)(double,double,double)>()
 				.set_construct_as_smart_pointer(true);
-*/
-
 	}
+#endif
 }
 
 }; // end Functionality
