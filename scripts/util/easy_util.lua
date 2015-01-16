@@ -1,5 +1,29 @@
 util = util or {}
 
+function util_std_zero_2(x, y, t)
+	return 0
+end
+
+function util_std_zero_3(x, y, z, t)
+	return 0
+end
+
+function util_std_dirichlet_zero_2(x, y, t)
+	return true, 0
+end
+
+function util_std_dirichlet_zero_3(x, y, z, t)
+	return true, 0
+end
+
+function util_std_dirichlet_one_2(x, y, t)
+	return true, 1
+end
+
+function util_std_dirichlet_one_3(x, y, z, t)
+	return true, 1
+end
+
 --! this function ensures that elements in T which are
 --! not set (i.e. T[i]=nil) are set to T[i] = defaultT[i]
 --! this way we can use T as a parameter Table
@@ -42,9 +66,10 @@ function util.EasyLoadGrid(p)
 		
 	local stretchX = util.GetParamNumber("-stretchX", 1.0)
 	local stretchY = util.GetParamNumber("-stretchY", 1.0)
-	if stretchX ~= 1.0 or stretchY ~= 1.0 then
+	local stretchZ = util.GetParamNumber("-stretchZ", 1.0)
+	if stretchX ~= 1.0 or stretchY ~= 1.0 or stretchZ ~= 1.0 then
 		print("scaling domain by ("..stretchX..", "..stretchY..")") 
-		ScaleDomain(dom, MakeVec(0,0,0), MakeVec(stretchX, stretchY, 1.0))
+		ScaleDomain(dom, MakeVec(0,0,0), MakeVec(stretchX, stretchY, stretchZ))
 	end
 	
 	local distortDomain = util.GetParamNumber("-distortDomain", 0.0)
@@ -55,4 +80,32 @@ function util.EasyLoadGrid(p)
 	end			
 		
 	return dom
+end
+
+function util.EasyCreateApproxSpace(dom, fct)
+	-- create Approximation Space
+	local approxSpace = ApproximationSpace(dom)
+	for i, v in pairs(fct) do
+		approxSpace:add_fct(v, "Lagrange", 1)
+	end    
+	approxSpace:init_levels()
+	approxSpace:init_top_surface()
+	--approxSpace:print_local_dof_statistic(2)
+	--approxSpace:print_layout_statistic()
+	--approxSpace:print_statistic()
+	
+	return approxSpace
+end
+
+function util.EasyDirichlet_0_Boundary(p)
+	NeededParameters(p, {"dim", "boundaries"})
+	
+	if p.fct == nil then p.fct = {"c"} end
+	local dirichletBND = DirichletBoundary()
+	for i,v in pairs(p.boundaries) do
+		for ifct,vfct in pairs(p.fct) do
+			dirichletBND:add("util_std_dirichlet_zero_"..p.dim, vfct, v)
+		end
+	end
+	return dirichletBND
 end

@@ -29,7 +29,7 @@ function ug_assert(condition, msg)
 	if condition then
 		return
 	else
-		ug_error(msg, "ASSERTION FAILED:", 3)		
+		ug_error(msg, "ASSERTION FAILED:")		
 	end
 end
 
