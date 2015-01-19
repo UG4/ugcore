@@ -30,8 +30,10 @@ void TokenizeString(const string& str, vector<string>& vToken, const char delimi
 	tokenstream << str;
 	string token;
 
-	while ( getline (tokenstream, token, delimiter ) )
-		vToken.push_back(token);
+	while ( getline (tokenstream, token, delimiter ) ){
+		if(!token.empty())
+			vToken.push_back(token);
+	}
 }
 
 vector<string> TokenizeString(const string& str, const char delimiter)
@@ -48,12 +50,24 @@ vector<string> TokenizeString(const char* str, const char delimiter)
 	return vToken;
 }
 
+void TokenizeTrimString(const string& str, vector<string>& vToken, const char delimiter)
+{
+	vToken.clear();
+	stringstream tokenstream;
+	tokenstream << str;
+	string token;
+
+	while ( getline (tokenstream, token, delimiter ) ){
+		token = TrimString(token);
+		if(!token.empty())
+			vToken.push_back(token);
+	}
+}
+
 vector<string> TokenizeTrimString(const string& str, const char delimiter)
 {
 	vector<string> vToken;
-	TokenizeString(str, vToken, delimiter);
-	for(size_t i = 0; i < vToken.size(); ++i)
-		vToken[i] = TrimString(vToken[i]);
+	TokenizeTrimString(str, vToken, delimiter);
 	return vToken;
 }
 

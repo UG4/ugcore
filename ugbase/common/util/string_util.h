@@ -54,6 +54,17 @@ UG_API std::vector<std::string> TokenizeString( const char* str,
 
 /**
  * \brief splits the string into trimmed parts based on a separating char
+ * \details places the generated tokens in the given vector.
+ * \note any prior content of \c vToken will get deleted
+ * \param[in]     str       original string
+ * \param[in,out] vToken    tokenized parts
+ * \param[in]     delimiter char used as separator
+ */
+UG_API void TokenizeTrimString(const std::string& str, std::vector<std::string>& vToken,
+							   const char delimiter=',');
+
+/**
+ * \brief splits the string into trimmed parts based on a separating char
  * \details returns the string parts separated by \c delimiter and trims all parts
  * \param[in] str       original string
  * \param[in] delimiter char used as separator

@@ -3,8 +3,10 @@
 //	s.b.reiter@googlemail.com
 
 #include <fstream>
+#include <algorithm>
 #include "file_io_stl.h"
 #include "common/util/loader/loader_util.h"
+#include "common/util/string_util.h"
 #include "lib_grid/lg_base.h"
 #include "lib_grid/algorithms/geom_obj_util/face_util.h"
 
@@ -13,19 +15,44 @@ using namespace std;
 namespace ug
 {
 
+bool STLFileHasASCIIFormat(const char* filename)
+{
+	ifstream in(filename);
+	UG_COND_THROW(!in, "Couldn't open file " << filename);
+
+	string firstWord;
+	in >> firstWord;
+	transform(firstWord.begin(), firstWord.end(), firstWord.begin(), ::tolower);
+
+	return firstWord.compare("solid") == 0;
+}
+
+
 bool LoadGridFromSTL(Grid& grid, const char* filename,
 					ISubsetHandler* pSH,
 					AVector3& aPos,
 					AVector3& aNormFACE)
 {
+	if(STLFileHasASCIIFormat(filename)){
+	//	load ascii-stl
+		return LoadGridFromSTL_ASCII(grid, filename, pSH, aPos, aNormFACE);
+	}
+	else{
+	//	load binary-stl
+		return LoadGridFromSTL_BINARY(grid, filename, pSH, aPos, aNormFACE);
+	}
+}
+
+bool LoadGridFromSTL_ASCII(Grid& grid, const char* filename,
+						   ISubsetHandler* pSH,
+						   AVector3& aPos,
+						   AVector3& aNormFACE)
+{
+	UG_LOG("Loading STL with ASCII format\n");
+
 //	open the file
 	ifstream in(filename);
-
-	if(!in)
-	{
-		LOG(" file not found: " << filename << "\n");
-		return false;
-	}
+	UG_COND_THROW(!in, "Couldn't open file " << filename);
 
 	if(!grid.has_vertex_attachment(aPos))
 		grid.attach_to_vertices(aPos);
@@ -35,7 +62,7 @@ bool LoadGridFromSTL(Grid& grid, const char* filename,
 	if(grid.has_face_attachment(aNormFACE))
 		aaNormFACE.access(grid, aNormFACE);
 
-	char* BUFFER = new char[512];
+	string buffer;
 	vector<string> paramVec;
 	bool bSuccess = true;
 	int lineCount = 1;
@@ -46,19 +73,20 @@ bool LoadGridFromSTL(Grid& grid, const char* filename,
 	while(!in.eof())
 	{
 	//	read the line
-		in.getline(BUFFER, 512);
-		BUFFER[511] = 0;
+		getline(in, buffer);
 
 	//	split the parameters
-		split_parameters(paramVec, BUFFER, " \r");
+	//	todo: this causes problems with tabs or newlines which are used in between
+	//		  coordinates or keywords. Use a more robust approach that searches
+	//		  for keywords instead.
+		TokenizeTrimString(buffer, paramVec, ' ');
 
 	//	check if there are some at all
 		if(!paramVec.empty())
 		{
 		//	check if the line is a comment
 			string& str = paramVec[0];
-			
-			if(str.find("vertex") == 0){
+			if(str.compare("vertex") == 0){
 				if(paramVec.size() != 4){
 					LOG("  PROBLEM while reading from " << filename << ":\n");
 					LOG("  vertex not specified correctly in line " << lineCount << endl);
@@ -74,7 +102,7 @@ bool LoadGridFromSTL(Grid& grid, const char* filename,
 				
 				positions.push_back(v);
 			}
-			else if(str.find("facet") == 0)
+			else if(str.compare("facet") == 0)
 			{
 				if(paramVec.size() != 5){
 					LOG("  PROBLEM while reading from " << filename << ":\n");
@@ -83,7 +111,7 @@ bool LoadGridFromSTL(Grid& grid, const char* filename,
 					break;
 				}
 				
-				if(paramVec[1].find("normal") != 0){
+				if(paramVec[1].compare("normal") != 0){
 					LOG("  PROBLEM while reading from " << filename << ":\n");
 					LOG("  Missing 'normal' specifier in line " << lineCount << endl);
 					bSuccess = false;
@@ -95,10 +123,10 @@ bool LoadGridFromSTL(Grid& grid, const char* filename,
 				n.y() = atof(paramVec[3].c_str());
 				n.z() = atof(paramVec[4].c_str());
 			}
-			else if(str.find("outer") == 0){
+			else if(str.compare("outer") == 0){
 				bool ok = false;
 				if(paramVec.size() > 1){
-					if(paramVec[1].find("loop") == 0)
+					if(paramVec[1].compare("loop") == 0)
 						ok = true;
 				}
 				
@@ -109,7 +137,7 @@ bool LoadGridFromSTL(Grid& grid, const char* filename,
 					break;
 				}
 			}
-			else if(str.find("endfacet") == 0){
+			else if(str.compare("endfacet") == 0){
 				if(positions.size() != 3){
 					LOG("  PROBLEM while reading from " << filename << ":\n");
 					LOG("  bad number of vertices specified for face in line " << lineCount << endl);
@@ -139,7 +167,7 @@ bool LoadGridFromSTL(Grid& grid, const char* filename,
 					pSH->assign_subset(t, newSubsetIndex);
 				}	
 			}
-			else if(str.find("solid") == 0){
+			else if(str.compare("solid") == 0){
 			//	add a new subset
 				if(pSH){
 					newSubsetIndex = pSH->num_subsets();
@@ -152,9 +180,64 @@ bool LoadGridFromSTL(Grid& grid, const char* filename,
 		lineCount++;
 	}
 
-	delete[] BUFFER;
-	
 	return bSuccess;
+}
+
+bool LoadGridFromSTL_BINARY(Grid& grid, const char* filename,
+							ISubsetHandler* pSH,
+							AVector3& aPos,
+							AVector3& aNormFACE)
+{
+	UG_LOG("Loading STL with BINARY format\n");
+
+	ifstream in(filename, ios::binary);
+	UG_COND_THROW(!in, "Couldn't open file " << filename);
+
+	char stl_header[80];
+	in.read(stl_header, 80);
+	UG_COND_THROW(!in, "Error while parsing binary stl header in file " << filename);
+
+	uint32 numTris = 0;
+	in.read((char*)&numTris, 4);
+	UG_COND_THROW(!in, "Couldn't determine number of triangles in binary stl file " << filename);
+
+	if(!grid.has_vertex_attachment(aPos))
+		grid.attach_to_vertices(aPos);
+	Grid::VertexAttachmentAccessor<AVector3> aaPos(grid, aPos);
+	
+	Grid::FaceAttachmentAccessor<AVector3> aaNormFACE;
+	if(grid.has_face_attachment(aNormFACE))
+		aaNormFACE.access(grid, aNormFACE);
+
+	int si = pSH->num_subsets();
+
+	for(uint32 tri = 0; tri < numTris; ++tri){
+		float d[12];
+		in.read((char*)d, 12 * 4);
+		UG_COND_THROW(!in, "Error while parsing trianlge in binary stl file " << filename);
+
+		Vertex* v[3];
+		for(int i = 0; i < 3; ++i){
+			v[i] = *grid.create<RegularVertex>();
+			float* di = d + (i + 1) * 3;
+			aaPos[v[i]] = vector3(di[0], di[1], di[2]);
+		}
+
+		Triangle* f = *grid.create<Triangle>(TriangleDescriptor(v[0], v[1], v[2]));
+
+		if(pSH)
+			pSH->assign_subset(f, si);
+
+		if(aaNormFACE.valid())
+			aaNormFACE[f] = vector3(d[0], d[1], d[2]);
+
+	//	read additional data
+		char addData[2];
+		in.read(addData, 2);
+		UG_COND_THROW(!in, "Error while parsing additional triangle data in binary stl file " << filename);
+	}
+
+	return true;
 }
 
 bool SaveGridToSTL(Grid& grid, const char* filename,
@@ -163,7 +246,7 @@ bool SaveGridToSTL(Grid& grid, const char* filename,
 {
 	ofstream out(filename);
 	if(!out){
-		UG_LOG("Couldn't load file " << filename << "\n");
+		UG_LOG("Couldn't open file " << filename << " for writing\n");
 		return false;
 	}
 

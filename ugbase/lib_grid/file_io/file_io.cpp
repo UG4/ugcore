@@ -89,6 +89,8 @@ static bool LoadGrid3d_IMPL(Grid& grid, ISubsetHandler* pSH,
 
 		bSuccess = LoadGridFromLGB(grid, filename, &pSH, numSHs, aPos);
 	}
+	else if(strName.find(".stl") != string::npos)
+		bSuccess = LoadGridFromSTL(grid, filename, pSH, aPos);
 	else if(strName.find(".net") != string::npos)
 		bSuccess = LoadGridFromART(grid, filename, pSH, aPos);
 	else if(strName.find(".art") != string::npos)
