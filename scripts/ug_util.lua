@@ -23,50 +23,7 @@ ug_load_script("util/domain_util.lua")
 ug_load_script("util/math_util.lua")
 ug_load_script("util/output_util.lua")
 ug_load_script("util/checkpoint_util.lua")
--- ug_load_script("util/command_line_util.lua") is called below after the definition
--- of ug_assert. This should be changed! ug_assert should be in a separate file
--- that is included by command_line_util.lua
-
-
---------------------------------------------------------------------------------
-
---! use it like ug_assert(numPreRefs <= numRefs, "It must be choosen: numPreRefs <= numRefs")
---! @param condition the condition to assert
---! @param msg (optional) message to be printed if condition is not fulfilled
-function ug_assert(condition, msg)
-	if condition then
-		return
-	else
-		print("\n")
-		print("[->                             ERROR:")
-		print("==============================================================================\n!")		
-		if msg ~= nil then print(msg) end
-		print("!\n==============================================================================")
-		print("ASSERTION FAILED:")
-		local f, l = test.getSourceAndLine()
-		print("     File:      "..f)
-		print("     Line:      "..l)
-		if msg ~= nil then print("     Message:   "..msg) end
-		print("LUA BACKTRACE:")
-		DebugBacktrace()		
-		print("==============================================================================")
-		print("                                 ERROR                                     <-]\n")
-		
-		assert(false)
-	end
-end
-
-function ug_warning(t)
-	print(t)
-	err_log(t)
-end
-
-function ug_cond_warning(condition, text)
-	if condition then
-		ug_warning(text)
-	end
-end
-
+ug_load_script("util/debug_util.lua")
 ug_load_script("util/command_line_util.lua")
 
 --------------------------------------------------------------------------------
@@ -75,69 +32,6 @@ ug_load_script("util/command_line_util.lua")
 function util.GetGridPath()
 	return ug_get_data_path().."/grids/"
 end
-
---------------------------------------------------------------------------------
--- lua script functions
---------------------------------------------------------------------------------
-
-function util.TableToTextLongHelper(indexPar, valuePar)
-	local str=""
-	if type(valuePar) == "table" then
-		str = str..util.PrintTableHelperIntend .. tostring(indexPar)  .. " = {\n"
-		util.PrintTableHelperIntend = util.PrintTableHelperIntend .. "  "
-		
-		for i,v in pairs(valuePar) do str = str..util.TableToTextLongHelper(i, v) end
-		
-		util.PrintTableHelperIntend = string.sub(util.PrintTableHelperIntend, 3)
-		str = str..util.PrintTableHelperIntend .. "}\n"
-	else
-		if type(valuePar) == "string" or type(valuePar) == "number" then
-			str = str..util.PrintTableHelperIntend .. tostring(indexPar) .. " = " .. valuePar .."\n" 
-		elseif type(valuePar) == "boolean" then
-			str = str..util.PrintTableHelperIntend .. tostring(indexPar) .. " = " .. tostring(valuePar) .."\n"
-		else
-			str = str..util.PrintTableHelperIntend .. " " .. tostring(indexPar) .. " = " .. tostring(valuePar) .."\n"
-		end
-	end
-	return str
-end
-
-function util.TableToTextLong(tablePar)
-	util.PrintTableHelperIntend = ""
-	return util.TableToTextLongHelper("", tablePar)
-end
-
---! to print tables
-function util.PrintTable(tablePar)
-	print(util.TableToTextLong(tablePar))
-end
-
-function util.TableToText(var)
-	local out= ""
-	local i
-	local v
-	if type(var) == "table" then
-		out = out.." {"
-		
-		local count = 0
-		for _ in pairs(var) do count = count + 1 end
-		if count == #var then count = 0 else count = 1 end
-		
-		local bfirst = true		
-		for i,v in pairs(var) do
-			if bfirst then bfirst = false else out=out .. ", " end
-			if count == 1 then out=out .. "["..tostring(i).."] = " end 
-			out=out..util.TableToText(v)
-			 
-		end
-		
-		out = out.. "}"
-	else
-		out = out ..tostring(var)		
-	end
-	return out
-end
-
 
 
 --! pairsSortedByKeys
@@ -201,74 +95,6 @@ function bool2string(boolB)
 	end
 end
 
---------------------------------------------------------------------------------
--- list and free user data
---------------------------------------------------------------------------------
-
-function ListUserDataInTable(t, name)
-   	for n,v in pairs(t) do
-      if type(v) == "userdata" then
-		 print(name.."["..n.."]")
-      end
-  
-	  if type(v) == "table" then
-		if(n ~= "_G" and n ~= "io" and n ~= "package" and n ~= "gnuplot") then 
-			ListUserDataInTable(v, name.."["..n.."]")
-		end
-  	  end
-    end
-end
-
---! Lists all user data (even in tables)
-function ListUserData()
-   	for n,v in pairs(_G) do
-	   -- all userdata
-	   if type(v) == "userdata" then
-		 print(n)
-	   end
-    
-	    -- userdata in table
-		if type(v) == "table" then
-			if(n ~= "_G" and n ~= "io" and n ~= "package" and n ~= "gnuplot") then 
-				ListUserDataInTable(_G[n], n)
-			end
-		end
-    end
-end
-
-function FreeUserDataInTable(t)
-   	for n,v in pairs(t) do
-      if type(v) == "userdata" then
-      	 t[n] = nil
-      end
-      
-      if type(v) == "table" then
-		if(n ~= "_G" and n ~= "io" and n ~= "package" and n ~= "gnuplot") then
-			FreeUserDataInTable(v)
-		end
-  	  end
-      
-    end
-end
-
---! sets all userdata to nil (even in tables) and calls garbage collector
-function FreeUserData()
-   -- set user data to nil
-   for n,v in pairs(_G) do
-      if type(v) == "userdata" then
-		 _G[n] = nil
-      end
-      
-      if type(v) == "table" then
-		if(n ~= "_G" and n ~= "io" and n ~= "package" and n ~= "gnuplot") then
- 	     	FreeUserDataInTable(_G[n])
- 	     end
-      end
-   end
-   
-   -- call garbage collector
-   collectgarbage("collect")
-end
 
 --! 
 --! @param pluginNamesList a list like {"amg", "d3f"} of plugins to check
@@ -293,32 +119,10 @@ function AssertPluginsLoaded(pluginNamesList)
 	RequiredPlugins(pluginNamesList)
 end
 
---! @param backtraceLevel the number of levels to go up
---! for backtraceLevel = 0, it returns file and line of the
---! calling function. for  backtraceLevel = 1 the
---! file and line of the caller of the calling function and so on.
-function util.GetLUAFileAndLine (backtraceLevel)
-	local level = 2+backtraceLevel
-	local info = debug.getinfo(level, "Sl")
-	if not info then return "" end
-	if info.what == "C" then   -- is a C function?
-		return "C function"
-	else
-		return string.format("[%s]:%d", info.short_src, info.currentline)
-	end
-end
-
-if print_all == nil then
-function print_all(...)
-	local la = GetLogAssistant()
-	local opp = la:get_output_process()
-	la:set_output_process(-1)
-	print(unpack(arg))
-	la:set_output_process(opp) 
-end
-end    
     
-
+------ PARALLEL FILE OPEN FUNCTIONS ------ 
+-- the following code inserts checks to prevent unnecessary i/o --
+  
 util._original_io_open = util._original_io_open or io.open
 
 function io.open_ALL(filename, model)
@@ -363,20 +167,6 @@ function util.ParallelMaxMinAvg(s)
 	return "min: "..ParallelMin(s)..", max: "..ParallelMax(s)..", avg: ".. ParallelSum(s)/NumProcs()
 end
 
-_tostring = _tostring or tostring
-function tostring(Val)
-	if type(Val) == "table" then
-   		return util.TableToTextLong(Val)
-   	elseif type(Val) == "boolean" then
-   		if Val then
-   			return "true"
-   		else
-   			return "false"
-   		end
-   	else
-   		return _tostring(Val)
-   	end
-end
 
 
 -- end group scripts_util
