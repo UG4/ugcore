@@ -428,7 +428,6 @@ void WriteVector(std::string filename, const Matrix_type &A, const Vector_type &
 	file << "v " << nameValues << "\n";
 
 	std::fstream fileValues(nameValues.c_str(), std::ios::out);
-fileValues.precision(16);
 	if(compareVec == NULL)
 	{
 		for(size_t i=0; i < rows; i++)
