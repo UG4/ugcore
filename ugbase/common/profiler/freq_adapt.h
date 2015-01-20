@@ -62,6 +62,8 @@ class AutoFreqAdaptNode{
 ////////////////////////////////////////////////////////////////////////////////
 
 class FreqAdaptValues {
+	friend class AutoFreqAdaptNode;
+
 	private:
 	// disallow constructor, destructor; copy and assignment (intentionally left unimplemented)
 		FreqAdaptValues() {};

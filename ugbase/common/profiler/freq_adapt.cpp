@@ -9,9 +9,12 @@
 #include <iostream>   // usual i/o
 #include <fstream>    // file i/o
 #include <cstdlib>	  //used for atoi. Better: boost::lexical_cast
+#include <unistd.h>   // usleep
 #include "freq_adapt.h"
 #include "common/common.h"
 #include "common/util/string_util.h"
+
+//#include <sys/time.h> // for testing purposes only, can be removed
 
 using namespace std;
 
@@ -57,15 +60,27 @@ AutoFreqAdaptNode::AutoFreqAdaptNode(unsigned long freq) : m_bActive(true) {
 	// remember for auto-release
 	FreqAdaptNodeManager::add(this);
 
-	if(freq){
-		cout << "CPU_FREQ: Changing frequency to " << freq << "\n";
+	//timeval tv; // for testing purposes only, can be removed
 
+	if(freq){
 		// remember curr freq
-		if ( (m_prevFreq = cpufreq_get_freq_kernel(0)) == 0)
-			UG_THROW("Error while getting frequency");
+		// we now use the most recently requested value instead of the actual current frequency
+		m_prevFreq = FreqAdaptValues::newFreq;
+
+		// for testing purposes only, can be removed
+		//if ( gettimeofday(&tv, NULL) != 0 ) {
+		//	printf("error while getting time\n");
+		//}
+		//cout << "CPU_FREQ: time = " << tv.tv_sec*1000000+tv.tv_usec << " , Changing frequency to " << freq << " ...\n";
 
 		// set new frequency
 		FreqAdaptValues::adjust_freq(freq);
+
+		// for testing purposes only, can be removed
+		//if ( gettimeofday(&tv, NULL) != 0 ) {
+		//	printf("error while getting time\n");
+		//}
+		//cout << "CPU_FREQ: time = " << tv.tv_sec*1000000+tv.tv_usec << " , Changing frequency to " << freq << " ... done\n";
 	}
 	else{
 		// no freq-change issued -> no change back
@@ -82,14 +97,26 @@ AutoFreqAdaptNode::~AutoFreqAdaptNode()
 
 void AutoFreqAdaptNode::release(){
 
+	//timeval tv; // for testing purposes only, can be removed
+
 	if(m_bActive){
 		// check if freq was changed on entry
 		if(m_prevFreq){
 
-			cout << "CPU_FREQ: Resetting frequency to " << m_prevFreq << "\n";
+			// for testing purposes only, can be removed
+			//if ( gettimeofday(&tv, NULL) != 0 ) {
+			//	printf("error while getting time\n");
+			//}
+			//cout << "CPU_FREQ: time = " << tv.tv_sec*1000000+tv.tv_usec << " , Resetting frequency to " << m_prevFreq << " ...\n";
 
 			// set previous freq
-			FreqAdaptValues::adjust_freq(freq);
+			FreqAdaptValues::adjust_freq(m_prevFreq);
+
+			// for testing purposes only, can be removed
+			//if ( gettimeofday(&tv, NULL) != 0 ) {
+			//	printf("error while getting time\n");
+			//}
+			//cout << "CPU_FREQ: time = " << tv.tv_sec*1000000+tv.tv_usec << " , Resetting frequency to " << m_prevFreq << " ... done\n";
 		}
 
 		m_bActive = false;
@@ -109,7 +136,8 @@ FreqAdaptValues& FreqAdaptValues::inst()
 
 unsigned long FreqAdaptValues::find_freq(const char* file, const int line){
 
-	cout << "CPU_FREQ: Node for: "<<file<<", line: " << line << endl;
+	// for testing purposes only, can be removed
+	//cout << "CPU_FREQ: Node for: "<<file<<", line: " << line << endl;
 
 	for(size_t i = 0; i < m_pos.size(); ++i){
 		if(m_pos[i].line == line && m_pos[i].file == file){
@@ -125,38 +153,59 @@ void* FreqAdaptValues::freqAdaptWorker(void* This) {
 
 	unsigned long freq;
 
+	//timeval tv; // for testing purposes only, can be removed
+
 	while (1) {
 
 		// wait on frequency transition request
-		pthread_mutex_lock(&freqAdapt_mutex);
+		if ( pthread_mutex_lock(&freqAdapt_mutex) != 0 )
+			UG_THROW("Error while locking freqAdapt_mutex");
 		while (newFreq == 0) {
-			pthread_cond_wait(&freqAdapt_condVar, &freqAdapt_mutex);
+			if ( pthread_cond_wait(&freqAdapt_condVar, &freqAdapt_mutex) != 0 )
+				UG_THROW("Error while waiting on freqAdapt_condVar");
 		}
-		pthread_mutex_unlock(&freqAdapt_mutex);
+		if ( pthread_mutex_unlock(&freqAdapt_mutex) != 0 )
+			UG_THROW("Error while unlocking freqAdapt_mutex");
 
 		/* sleep some time to handle only the very last of a series of
                    requests as seen in case of multiple nested routines */
 		usleep(10); // TODO: find an appropriate value
 
-		pthread_mutex_lock(&freqAdapt_mutex);
+		if ( pthread_mutex_lock(&freqAdapt_mutex) != 0 )
+			UG_THROW("Error while locking freqAdapt_mutex");
 		freq = newFreq;
 		newFreq = 0;
-		pthread_mutex_unlock(&freqAdapt_mutex);
+		if ( pthread_mutex_unlock(&freqAdapt_mutex) != 0 )
+			UG_THROW("Error while unlocking freqAdapt_mutex");
+
+		// for testing purposes only, can be removed
+		//if ( gettimeofday(&tv, NULL) != 0 ) {
+		//	printf("error while getting time\n");
+		//}
+		//cout << "CPU_FREQ: time = " << tv.tv_sec*1000000+tv.tv_usec << " , calling cpufreq_set_frequency() with " << freq << " ...\n";
 
 		// do the actual frequency transition
 		if (cpufreq_set_frequency(0, freq) != 0) {
 			UG_THROW("FreqAdaptValues::freqAdaptWorker: Error while setting frequency");
 		}
 
+		// for testing purposes only, can be removed
+		//if ( gettimeofday(&tv, NULL) != 0 ) {
+		//	printf("error while getting time\n");
+		//}
+		//cout << "CPU_FREQ: time = " << tv.tv_sec*1000000+tv.tv_usec << " , calling cpufreq_set_frequency() with " << freq << " ... done\n";
 	}
 
 }
 
 void FreqAdaptValues::adjust_freq(unsigned long freq){
-    pthread_mutex_lock(&freqAdapt_mutex);
-    newFreq = freq;
-    pthread_cond_signal(&freqAdapt_condVar);
-    pthread_mutex_unlock(&freqAdapt_mutex);
+	if ( pthread_mutex_lock(&freqAdapt_mutex) != 0 )
+	        UG_THROW("Error while locking freqAdapt_mutex");
+	newFreq = freq;
+	if ( pthread_cond_signal(&freqAdapt_condVar) != 0 )
+	        UG_THROW("Error while signaling freqAdapt_condVar");
+	if ( pthread_mutex_unlock(&freqAdapt_mutex) != 0 )
+	        UG_THROW("Error while unlocking freqAdapt_mutex");
 }
 
 void FreqAdaptValues::set_freqs(std::string csvFile){
@@ -170,7 +219,10 @@ void FreqAdaptValues::set_freqs(std::string csvFile){
 	}
 
 	m_pos.clear();
-	cout << "FreqAdaptValues: parsing file: "<<csvFile << "\n";
+
+	// for testing purposes only, can be removed
+	//cout << "FreqAdaptValues: parsing file: "<<csvFile << "\n";
+
 	string line;
 	while(!in.eof()){
 		getline(in, line);
@@ -189,11 +241,12 @@ void FreqAdaptValues::set_freqs(std::string csvFile){
 
 		int line = atoi(s2.c_str());
 		unsigned long freq = atoi(s3.c_str());
-	//	instead of atoi, better use boost::lexical_cast
+		// instead of atoi, better use boost::lexical_cast
 		// int lineNumber = boost::lexical_cast<int>(s2);
 		// int frequency = boost::lexical_cast<int>(s3);
 
-		cout << file << "===" << line << "===" << freq << "===" << endl;
+		// for testing purposes only, can be removed
+		//cout << file << "===" << line << "===" << freq << "===" << endl;
 
 		m_pos.push_back( FreqAdaptPoint(file,line,freq) );
 	}
@@ -203,22 +256,34 @@ void FreqAdaptValues::set_freqs(std::string csvFile){
 	// start adaption thread
 	///////////////////////////
 
-	// TODO: check return values?
-
 	newFreq = 0;
 
-	pthread_mutex_init(&freqAdapt_mutex, NULL);
-	pthread_cond_init(&freqAdapt_condVar, NULL);
-	pthread_attr_init(&freqAdaptWorkerThreadAttr);
-	pthread_attr_setdetachstate(&freqAdaptWorkerThreadAttr, PTHREAD_CREATE_DETACHED);
+	if ( pthread_mutex_init(&freqAdapt_mutex, NULL) != 0 )
+	        UG_THROW("Error while initializing freqAdapt_mutex");
+	if ( pthread_cond_init(&freqAdapt_condVar, NULL) != 0 )
+	        UG_THROW("Error while initializing freqAdapt_condVar");
+	if ( pthread_attr_init(&freqAdaptWorkerThreadAttr) != 0 )
+	        UG_THROW("Error while initializing freqAdaptWorkerThreadAttr");
+	if ( pthread_attr_setdetachstate(&freqAdaptWorkerThreadAttr, PTHREAD_CREATE_DETACHED) != 0 )
+	        UG_THROW("Error while setting detach state of freqAdaptWorkerThreadAttr");
 	// pin the new thread to the corresponding virtual core
 	// TODO: can we achieve a better performance by pinning it to another core?
 	CPU_ZERO(&processor_mask);
 	CPU_SET(20,&processor_mask);
-	pthread_attr_setaffinity_np(&freqAdaptWorkerThreadAttr, sizeof(cpu_set_t), &processor_mask);
+	if ( pthread_attr_setaffinity_np(&freqAdaptWorkerThreadAttr, sizeof(cpu_set_t), &processor_mask) != 0 )
+	        UG_THROW("Error while setting affinity of freqAdaptWorkerThreadAttr");
 
-	pthread_create(&freqAdaptWorkerThread, &freqAdaptWorkerThreadAttr, freqAdaptWorker, this);
+	if ( pthread_create(&freqAdaptWorkerThread, &freqAdaptWorkerThreadAttr, freqAdaptWorker, NULL) != 0 )
+	        UG_THROW("Error while creating thread freqAdaptWorkerThread");
 
+
+
+	///////////////////////////
+	// initialize newFreq
+	///////////////////////////
+
+	if ( (newFreq = cpufreq_get_freq_kernel(0)) == 0)
+	        UG_THROW("Error while getting frequency");
 }
 
 
@@ -232,4 +297,3 @@ pthread_cond_t FreqAdaptValues::freqAdapt_condVar = pthread_cond_t();
 pthread_attr_t FreqAdaptValues::freqAdaptWorkerThreadAttr = pthread_attr_t();
 cpu_set_t FreqAdaptValues::processor_mask = cpu_set_t();
 pthread_t FreqAdaptValues::freqAdaptWorkerThread = pthread_t();
-
