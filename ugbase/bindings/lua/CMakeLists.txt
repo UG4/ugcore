@@ -101,8 +101,6 @@ set(srcLUACompiler	compiler/parser.cpp
 					compiler/converter.cpp
 					compiler/parser.y
 					compiler/lexer.l
-					compiler/parser.cpp
-					compiler/lexer.cpp
 					compiler/lua_compiler.cpp
 					compiler/system_call.cpp)
 
