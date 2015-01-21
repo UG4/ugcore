@@ -259,7 +259,8 @@ message(STATUS "Info: External libraries (path which contains the library or ON 
 message(STATUS "Info: TETGEN:   ${TETGEN}")
 message(STATUS "Info: HLIBPRO:  ${HLIBPRO}")
 message(STATUS "")
-message(STATUS "Info: C Compiler ID: ${CMAKE_C_COMPILER_ID}, C++ Compiler ID: ${CMAKE_CXX_COMPILER_ID}") 
+message(STATUS "Info: C   Compiler: ${CMAKE_C_COMPILER} (ID: ${CMAKE_C_COMPILER_ID})")
+message(STATUS "Info: C++ Compiler: ${CMAKE_CXX_COMPILER} (ID: ${CMAKE_CXX_COMPILER_ID})")
 message(STATUS "")
 
 if(INTERNAL_MEMTRACKER)
