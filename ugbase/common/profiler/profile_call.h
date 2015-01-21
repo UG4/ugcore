@@ -34,6 +34,11 @@ struct ProfileCall
 		p = _p;
 		Shiny::GetTicks(&c);
 	}
+	ProfileCall(Shiny::ProfileNode *_p, Shiny::tick_t now)
+	{
+		p = _p;
+		c = now;
+	}
 	Shiny::ProfileNode *p;
 	Shiny::tick_t c;
 };

@@ -23,10 +23,8 @@ void ShinyCallLoggingStart()
 	callsOnHold.push_back(ProfileCall(Shiny::ProfileManager::instance._curNode));
 }
 
-bool CheckEnoughTimePassedToNow(ProfileCall &pc)
+bool CheckEnoughTimePassedToNow(ProfileCall &pc, Shiny::tick_t tnow)
 {
-	Shiny::tick_t tnow;
-	Shiny::GetTicks(&tnow);
 	static Shiny::tick_t freq = Shiny::GetTickFreq();  // in hz
 
 	if( (tnow - pc.c)  > freq/g_ShinyCallLoggingMaxFreq)
@@ -45,13 +43,19 @@ void ShinyCallLoggingEnd()
 {
 	size_t N = callsOnHold.size();
 
-	if( CheckEnoughTimePassedToNow(callsOnHold[N-1]))
+	Shiny::tick_t tnow;
+	Shiny::GetTicks(&tnow);
+
+	if(N == 0)
+		profileCalls.push_back(ProfileCall(NULL, tnow));
+	else
+		if( CheckEnoughTimePassedToNow(callsOnHold[N-1], tnow))
 	{
 		for(size_t i=0; i<N; i++)
 			profileCalls.push_back(callsOnHold[i]);
 		callsOnHold.clear();
 
-		profileCalls.push_back(ProfileCall(NULL));
+		profileCalls.push_back(ProfileCall(NULL, tnow));
 	}
 	else
 	{
