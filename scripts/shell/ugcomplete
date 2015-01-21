@@ -482,7 +482,7 @@ None Shiny Scalasca Vampir \
 -DPROFILE_BRIDGE= \
 -DPROFILE_PCL= \
 -DSHELLTYPE= \
--DSTATIC= \
+-DSTATIC_BUILD= \
 -DTARGET= \
 -DTETGEN= \
 -DTKDGenerator= \
