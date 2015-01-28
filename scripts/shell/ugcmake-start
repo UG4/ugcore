@@ -44,7 +44,7 @@ elif [ $UGSUBMIT_TYPE == "cesari" ]; then
 	cmake $* ..
 			
 elif [[ $UGSUBMIT_TYPE == "Juqueen" ]]; then
-	echo "ugcmake-start: on Juqueen. calling cmake with:
+	echo "ugcmake-start: on Juqueen. calling cmake with:"
 	echo "               Toolchain file: -DCMAKE_TOOLCHAIN_FILE=$UG4_ROOT/cmake/toolchain/juqueen.cmake"
 	echo "               Static Build: -DSTATIC_BUILD=ON"
 	echo "ugcmake-start: also make sure LAPACK and cmake modules are loaded (see also ugconfig)"
