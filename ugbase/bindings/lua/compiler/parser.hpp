@@ -116,7 +116,7 @@
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 32 "parser.y"
+#line 36 "parser.y"
 {
     double iValue;                 /* integer value */
     int sIndex;                /* symbol table index */
@@ -131,5 +131,5 @@ typedef union YYSTYPE
 # define YYSTYPE_IS_TRIVIAL 1
 #endif
 
-extern YYSTYPE yylval;
+extern YYSTYPE ug4_lua_YY_lval;
 

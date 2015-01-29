@@ -5,7 +5,7 @@
  * Created on 20. November 2012, 10:16
  * 
  * use with
- * 		flex -o lexer.cpp lexer.l
+ * 		flex -P ug4_lua_YY_ -o lexer.cpp lexer.l
  * to generate lexer.cpp
  */
 
@@ -14,6 +14,11 @@
 #include "lua_parser_class.h"
 #include "parser.hpp"
 using namespace ug;
+
+#define THE_PREFIX ug4_lua_YY_
+#define yylval ug4_lua_YY_lval
+#define yyerror ug4_lua_YY_error
+
 void yyerror(const char *);
 using namespace ug;
 extern LUAParserClass *globalP;

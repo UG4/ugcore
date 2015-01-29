@@ -22,6 +22,10 @@
 
 #include "vm.h"
 
+#define THE_PREFIX ug4_lua_YY_
+#define yyerror ug4_lua_YY_error
+
+
 void yyerror(const char *s);
 namespace ug{
 class LUAParserClass;

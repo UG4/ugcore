@@ -5,7 +5,7 @@
  * Created on 20. November 2012, 10:16
  * 
  * use with
- * 		bison -d -y parser.y -o parser.cpp
+ * 		bison -p ug4_lua_YY_ -d -y parser.y -o parser.cpp
  * to generate parser.cpp
  */
 
@@ -18,6 +18,10 @@
 #include "lua_parser_class.h"
 
 #define YYERROR_VERBOSE
+
+#define THE_PREFIX ug4_lua_YY_
+#define yy_scan_string ug4_lua_YY__scan_string
+
 /* prototypes */
 using namespace ug;
 int yylex(void);

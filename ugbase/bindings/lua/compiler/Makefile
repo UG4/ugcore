@@ -1,25 +1,9 @@
-CC      = gcc
-CFLAGS  =
-LDFLAGS =
+# note: this is the makefile for parser.y -> parser.cpp and lexer.l -> lexer.cpp
+all: parser lexer
 
-OBJ = lexer.cpp parser.cpp
+parser: parser.y
+	bison -p ug4_lua_YY_ -d -y parser.y -o parser.cpp
 
-prog: $(OBJ)
-	g++ -g $(CFLAGS) -o prog $(OBJ) $(LDFLAGS)
-
-parser.cpp: parser.y
-	bison -d -y parser.y -o parser.cpp
-
-lexer.cpp: lexer.l
-	flex -o lexer.cpp lexer.l
-
-%.o: %.c
-	$(CC) -g $(CFLAGS) -c $<
-
-%.o: %.cpp
-	g++ -g -c $<
-
-
-
-
+lexer: lexer.l
+	flex -P ug4_lua_YY_ -o lexer.cpp lexer.l
 
