@@ -1,0 +1,26 @@
+#!/bin/bash
+
+scriptpath=`dirname $0`
+
+source $scriptpath/clusters
+
+UJS_GetOptions
+
+function usage
+{
+	echo "Valid options are nppnmax, pemax"
+}
+
+if [ $# -eq 0 ]; then
+	usage
+	exit
+fi
+
+if [ $1 == "nppnmax" ]; then
+	echo $nppnmax
+elif  [ $1 == "pemax" ]; then
+	echo $pemax
+else
+	usage
+fi
+	

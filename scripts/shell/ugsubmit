@@ -43,7 +43,7 @@ runDir=$execPath
 execdate=`date`;      # date of execution
 verbose=false;
 exclusive=false;
-scriptpath=`dirname $scriptname`
+scriptpath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 mailStart=false
 mailEnd=false
