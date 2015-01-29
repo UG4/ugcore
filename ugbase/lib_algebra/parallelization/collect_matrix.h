@@ -339,8 +339,13 @@ void BroadcastVectorFromOne(IndexLayout &agglomeratedMaster, IndexLayout &agglom
 
 	if(type == PST_ADDITIVE)
 	{
-		SetLayoutValues(&vec, vec.layouts()->slave(), 0.0); //!!!
-		vec.set_storage_type(PST_ADDITIVE);
+		UG_THROW("ONLY CONSISTENT!");
+		// das problem ist, dass der vektor noch slave-interfaces nach "au§en" haben kann,
+		// diese werden dann fŠlschlicherweise auch 0 gesetzt.
+
+		//!!! WRONG !!! SetLayoutValues(&vec, vec.layouts()->slave(), 0.0); //!!!
+		//vec.set_storage_type(PST_ADDITIVE);
+
 	}
 	else if(type == PST_CONSISTENT) {	}
 	else { UG_THROW("storage type " << type << "unsupported."); }
