@@ -70,6 +70,8 @@ nosubdir=false
 # general PBS Options
 pbsMailtype=""
 
+completeCommandline=$*
+
 ################################################################################
 # todo: option -nodir
 # todo: interactive mode
@@ -389,6 +391,14 @@ if [ ! -e $outdir/info.txt ]; then
     touch $outdir/info.txt
 fi
 
+cd $outdir
+echo " -------------------------------------- " >> info.txt
+echo "      ugsubmit submitted Job" >> info.txt
+echo " -------------------------------------- " >> info.txt
+echo " complete ugsubmit command line:" >> info.txt
+echo "               ugsubmit $completeCommandline" >> info.txt
+echo "" >> info.txt
+echo " executed command for cluster:" >> info.txt
 
 export UGS_JOBNAME=$jobname
 export UGS_OUTDIR=$outdir
@@ -397,14 +407,11 @@ export UGS_NPPN=$nppn
 export UGS_MYDIR=$execpath
 
 #### now call job schedulers ####
-cd $outdir
 UJS_Submit
 
 ################################################################################
 # writing info: info.txt
-echo " ------------" >> info.txt
-echo "  Job Info:" >> info.txt
-echo " ------------" >> info.txt
+echo "" >> info.txt
 echo " cluster:      "$UGSUBMIT_TYPE >> info.txt
 echo " submit by:    "$scriptname >> info.txt
 echo " exec path:    "$workDir >> info.txt
