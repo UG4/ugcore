@@ -203,6 +203,9 @@ since you need to do this ssh -R every time you want to do svn on the cluster.
 uginstall SuperLU -svnServer localhost:5337
 \endcode
 
+\note When you are doing SVN/SSH Tunneling, all your svn data is transfered through your connection. To avoid this, you might want to first connect to a server with good connection 
+(like quadruped at GCSC), and connect from there with tunneling to the cluster. 
+
 <hr>
 \subsection secSVNMore More
 \subsubsection secSVNRevisionNumber SVN Revision number
