@@ -71,8 +71,88 @@ BIBTEX:
 }
 \endverbatim
 </li>
+<li>
+Dissertation <b>Dr. Andreas Vogel</b> (Discretization, Geometric Multigrid, adaptive Grids, ug4 in General)
+\verbatim
+@phdthesis{DissAndreasVogel,
+  Type = {Dissertation},
+  Title = {Flexible und kombinierbare Implementierung von Finite-Volumen-Verfahren h\"oherer Ordnung},
+  Author = {Andreas Vogel},
+  School = {Universit\"at Frankfurt},
+  Year = {2014}
+} 
+\endverbatim
+</li>
+<li>
+Dissertation <b>Dr. Sebastian Reiter</b> (Grids, PCL, ProMesh, adaptive Grids, geometric Multigrid, ug4 in General) 
+\verbatim
+@phdthesis{DissSebastianReiter,
+  Type = {Dissertation},
+  Title = {Effiziente Algorithmen und Datenstrukturen f\"ur die Realisierung von adaptiven, hierarchischen Gittern auf massiv parallelen Systemen},
+  Author = {Sebastian Reiter},
+  School = {Universit\"at Frankfurt},
+  Year = {2014}
+}
+\endverbatim
 
 
+</li> 
 </ol>
+
+Other stuff:
+
+\verbatim
+
+@article{SuperLU,                                                                  
+    AUTHOR = {Xiaoye S. Li},                                                    
+    TITLE = {An Overview of {SuperLU}: Algorithms, Implementation, and User Interface},                                               
+    journal = toms,                                                             
+    volume = {31},                                                              
+    number = {3},                                                               
+    month = {September},                                                        
+    year = {2005},                                                              
+    pages = {302-325},                                                          
+}
+
+@inproceedings{HYPRE,
+    author = {Robert D. Falgout and Ulrike Meier Yang},
+    title = {hypre: a Library of High Performance Preconditioners},
+    booktitle = {Preconditioners,Ó Lecture Notes in Computer Science},
+    year = {2002},
+    pages = {632--641}
+}
+
+@Book{MPI,
+	author	 =	"William Gropp and Ewing Lusk and Anthony Skjellum",
+	title	 =	"Using {MPI}: Portable Parallel Programming with the Message-Passing Interface",
+	publisher	 =	"MIT Press",
+	address	 =	"Cambridge, MA",
+	pages	 =	"xx + 307",
+	year	 =	"1994",
+	ISBN	 =	"0-262-57104-8",
+	LCCN	 =	"QA76.642 G76 1994",
+	OPTseries	 =	"Scientific and engineering computation",
+	keywords	 =	"Computer interfaces.; Parallel computers --- Programming.; Parallel programming; Parallel programming (Computer science)",
+	area	 =	"M",
+	areaseq	 =	"0",
+}
+
+@inproceedings{ug3_Bastian94a,
+	Address = {Basel},
+	Author = {Bastian, Peter and Wittum, G.},
+	Booktitle = {Multigrid Methods IV, Proceedings of the Fourth European Multigrid Conference, Amsterdam, 1993},
+	Date-Added = {2010-12-13 13:11:44 +0100},
+	Date-Modified = {2014-07-03 23:49:11 +0200},
+	Editor = {Hemker, P. and Wesseling, P.},
+	Keywords = {UG},
+	Pages = {1--17},
+	Publisher = {Birkh{\"a}user},
+	Title = {Robustness and adaptivity: The UG concept.},
+	Year = {1994}}
+	
+
+
+\endverbatim
+
 
 **/
