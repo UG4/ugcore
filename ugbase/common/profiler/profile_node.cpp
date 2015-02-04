@@ -538,10 +538,30 @@ void UGProfileNode::check_for_too_small_nodes(double fullMs, map<string, const U
 
 }
 
+void ProfileTestFunction1()
+{
+	PROFILE_FUNC();
+}
+
+void ProfileTestFunction2()
+{
+	PROFILE_FUNC();
+}
+
+
 void UGProfileNode::CheckForTooSmallNodes()
 {
 	Shiny::ProfileManager::instance.update(1.0); // WE call with damping = 1.0
 	const UGProfileNode *pnRoot = UGProfileNode::get_root();
+
+	const size_t numProfileCall = 100;
+	for(size_t i=0; i<numProfileCall; i++)
+	{
+		ProfileTestFunction1();
+		ProfileTestFunction2();
+	}
+
+	const UGProfileNode *ptf1 = GetProfileNode("ProfileTestFunction1");
 
 	double fullMs = pnRoot->get_avg_total_time_ms();
 
@@ -552,15 +572,25 @@ void UGProfileNode::CheckForTooSmallNodes()
 
 		if(list.size() != 0)
 		{
-			UG_LOG("WARNING: Some profile nodes are too small\n");
-			UG_LOG("(nodes with hits > " << PROFILE_NODE_MIN_HITS << " and totalTime > " << PROFILE_NODE_MIN_TOTAL_TIME_MS
-					<< " and totalTime/hits < " << PROFILE_NODE_MAX_TIME_PER_CALL_MS << " ms) :\n");
+			UG_LOG(resetiosflags( ::ios::scientific ));
+			UG_LOG("WARNING: Some profile nodes might be too small\n");
+			UG_LOG("----------------------------------------------------------------------\n");
+
+			double tProfileCall= ptf1->get_avg_total_time()/numProfileCall;
+			const Shiny::TimeUnit *unit2 = Shiny::GetTimeUnit(tProfileCall);
+
+			UG_LOG("Profile Call overhead estimated at " << tProfileCall * unit2->invTickFreq << " " << unit2->suffix << ".\n");
+
+			UG_LOG("Displaying nodes with hits > " << PROFILE_NODE_MIN_HITS << " and totalTime > " << PROFILE_NODE_MIN_TOTAL_TIME_MS
+					<< " and totalTime/hits < " << PROFILE_NODE_MAX_TIME_PER_CALL_MS << " ms :\n");
+
 
 			stringstream s;
 			s << 	left << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_NAME) << "name" << " " <<
 					right << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_HIT) << "hits" << " " <<
 					setw(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME+4) << "total  " << " " <<
-					setw(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME+5) << "total/hits\n";
+					setw(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME+5) << "total/hits  " <<
+					"  potentially lost (prediction)\n";
 			for(map<string, const UGProfileNode *>::iterator it = list.begin();
 					it != list.end(); ++it)
 			{
@@ -574,15 +604,30 @@ void UGProfileNode::CheckForTooSmallNodes()
 						setprecision(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME-1);
 
 				// total time
-				const Shiny::TimeUnit *totalUnit = Shiny::GetTimeUnit(p->get_avg_total_time());
-				s << 	setw(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME) << p->get_avg_total_time() * totalUnit->invTickFreq << " " <<
-						left << setw(2) << totalUnit->suffix << "   ";
+				const Shiny::TimeUnit *unit = Shiny::GetTimeUnit(p->get_avg_total_time());
+				s << 	right << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME) << p->get_avg_total_time() * unit->invTickFreq << " " <<
+						left << setw(2) << unit->suffix << "   ";
 
 				// fraction
 				double t = p->get_avg_total_time()/p->get_avg_entry_count();
-				const Shiny::TimeUnit *fracUnit = Shiny::GetTimeUnit(t);
-				s << 	setw(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME) <<  t * fracUnit->invTickFreq << " " <<
-						left << setw(2) << fracUnit->suffix << "\n";
+				unit = Shiny::GetTimeUnit(t);
+				s << 	right << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME) <<  t * unit->invTickFreq << " " <<
+						left << setw(2) << unit->suffix << "   ";
+
+				// lost
+
+				t = tProfileCall*p->get_avg_entry_count();
+				unit = Shiny::GetTimeUnit(t);
+				s << 	right << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME) <<  t * unit->invTickFreq << " " <<
+						left << setw(2) << unit->suffix << "   ";
+
+				// %
+
+//				t = tProfileCall*p->get_avg_entry_count();
+//				unit = Shiny::GetTimeUnit(t);
+//				s << (tProfileCall*p->get_avg_entry_count()*100)/ p->get_avg_total_time() << "% ";
+
+				s << "\n";
 			}
 			UG_LOG(s.str());
 
