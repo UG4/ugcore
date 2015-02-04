@@ -8,10 +8,10 @@
 #ifndef __H__UG__CPU_ALGEBRA__PERMUTATION_UTIL__
 #define __H__UG__CPU_ALGEBRA__PERMUTATION_UTIL__
 
-
+#include "common/common.h"
 #include "common/profiler/profiler.h"
 #include "common/error.h"
-#include "lib_disc/dof_manager/ordering/cuthill_mckee.h"
+#include "common/cuthill_mckee.h"
 #include <vector>
 
 namespace ug{
