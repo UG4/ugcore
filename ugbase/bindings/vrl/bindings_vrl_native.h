@@ -111,6 +111,7 @@ JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getBinaryLicense
 JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug_UG__1ugInit
   (JNIEnv *, jclass, jobjectArray);
 
+#if 0
 /*
  * Class:     edu_gcsc_vrl_ug_UG
  * Method:    _test_debug
@@ -118,6 +119,7 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug_UG__1ugInit
  */
 JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1test_1debug
   (JNIEnv *, jobject, jstring, jobjectArray);
+#endif
 
 /*
  * Class:     edu_gcsc_vrl_ug_UG

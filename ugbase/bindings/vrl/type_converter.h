@@ -8,12 +8,13 @@
 #ifndef TYPE_CONVERTER_H
 #define	TYPE_CONVERTER_H
 
-#include<jni.h>
-#include<string>
-#include<vector>
+#include <jni.h>
+#include <string>
+#include <vector>
 #include "registry/class.h"
 #include "registry/registry.h"
 #include "messaging.h"
+
 
 // we are not sure whether NULL is equivalent to null object in Java.
 // thus, we use this define that allows us to change that easily in the future
@@ -31,7 +32,7 @@ namespace vrl {
  * - and if it is an array
  */
 struct TypeAndArray {
-	uint type;
+	ug::Variant::Type type;
 	bool isArray;
 };
 
@@ -181,12 +182,28 @@ std::string jObject2String(JNIEnv *env, jobject obj);
 jobject pointer2JObject(JNIEnv *env, void* value);
 
 /**
+ * Converts a native const pointer to a Java object (jobject).
+ * @param env JVM environment to operate on
+ * @param value const pointer to convert
+ * @return a Java object (jobject)
+ */
+jobject constPointer2JObject(JNIEnv *env, const void* value);
+
+/**
  * Converts a native smart-pointer to a Java object (jobject).
  * @param env JVM environment to operate on
  * @param value smart-pointer to convert
  * @return a Java object (jobject)
  */
 jobject smartPointer2JObject(JNIEnv *env, SmartPtr<void> value);
+
+/**
+ * Converts a native const smart-pointer to a Java object (jobject).
+ * @param env JVM environment to operate on
+ * @param value const smart-pointer to convert
+ * @return a Java object (jobject)
+ */
+jobject constSmartPointer2JObject(JNIEnv *env, ConstSmartPtr<void> value);
 
 /**
  * Indicates whether the specified smart pointer is const, i.e., if the
@@ -215,6 +232,14 @@ void invalidateJSmartPointer(JNIEnv *env, jobject obj);
 void invalidateJConstSmartPointer(JNIEnv *env, jobject obj);
 
 /**
+ *	Finds out whether a java pointer wrapper is const.
+ * @param env	JVM environment to operate on
+ * @param obj	pointer type to check for constness
+ * @return	true iff pointer wrapper's readOnly member is true
+ */
+bool isConstJPtr(JNIEnv* env, jobject obj);
+
+/**
  * Converts a Java object (jobject) to a native pointer.
  * @param env JVM environment to operate on
  * @param obj object to convert
@@ -223,7 +248,7 @@ void invalidateJConstSmartPointer(JNIEnv *env, jobject obj);
 void* jObject2Pointer(JNIEnv *env, jobject obj);
 
 /**
- * Pondon of javas getName().
+ * Pendant of javas getName().
  * @param env JVM environment to operate on
  * @param obj object which class name we want to know
  * @return the class name of the jobject
@@ -231,54 +256,119 @@ void* jObject2Pointer(JNIEnv *env, jobject obj);
 std::string jPointerGetName(JNIEnv *env, jobject obj);
 
 
-
-//	added by Christian Poliwoda
-//	christian.poliwoda@gcsc.uni-frankfurt.de
-//	y 13 m 07 d 10
-/**
- * This method is designed to compare the first characters (minimum length)
- * of two strings.
- */
-bool startsWithSymbolOrderMin(JNIEnv *env, std::string check,
-		std::string symbolOrder);
-
-//	added by Christian Poliwoda
-//	christian.poliwoda@gcsc.uni-frankfurt.de
-//	y 13 m 06 d 06
-/**
- * This method is designed to compare the first characters (minimum length)
- * of two strings.
- */
-bool startsWithSymbolOrderMin(JNIEnv *env, jstring check, jstring symbolOrder);
-
 //	added by Christian Poliwoda
 //	christian.poliwoda@gcsc.uni-frankfurt.de
 //	y 13 m 05 d 28
 bool isJObjectAnArray(JNIEnv *env, jobject value);
 
-//	added by Christian Poliwoda
-//	christian.poliwoda@gcsc.uni-frankfurt.de
-//	y 13 m 10 d 30
-bool isJObjectAnArrayList(JNIEnv *env, jobject value);
+void jObject2BoolVector(JNIEnv *env, jobject object, std::vector<bool>& bv);
+void jObject2IntVector(JNIEnv *env, jobject object, std::vector<int>& iv);
+void jObject2SizetVector(JNIEnv *env, jobject object, std::vector<size_t>& stv);
+void jObject2NumberVector(JNIEnv *env, jobject object, std::vector<number>& nv);
+void jObject2stdStringVector(JNIEnv *env, jobject object, std::vector<std::string>& sv);
+void jObject2PtrVector
+(
+	JNIEnv *env,
+	jobject object,
+	ug::Variant::Type jo_type,
+	ug::bridge::Registry* reg,
+	std::vector<std::pair<void*, const ug::bridge::ClassNameNode*> >& pv
+);
+void jObject2SmartPtrVector
+(
+	JNIEnv *env,
+	jobject object,
+	ug::bridge::Registry* reg,
+	std::vector<std::pair<SmartPtr<void>, const ug::bridge::ClassNameNode*> >& pv
+);
+void jObject2ConstSmartPtrVector
+(
+	JNIEnv *env,
+	jobject object,
+	ug::Variant::Type jo_type,
+	ug::bridge::Registry* reg,
+	std::vector<std::pair<ConstSmartPtr<void>, const ug::bridge::ClassNameNode*> >& pv
+);
 
-
-//	added by Christian Poliwoda
-//	christian.poliwoda@gcsc.uni-frankfurt.de
-//	y 13 m 05 d 28
-jbooleanArray jObject2BooleanArray(JNIEnv *env, jobject object);
-
-
-//	added by Christian Poliwoda
-//	christian.poliwoda@gcsc.uni-frankfurt.de
-//	y 13 m 10 d 30
 /**
- * Cuts the last part of a string, if the last part equals with the to cutting string.
- * @param original string were the tail should be cutted off
- * @param toCut string which should be cutted of from original string
- * @return a new shorter string or the original string if nothing was cutted.
+ * Converts a bool vector to a Java object (jobject).
+ * @param env JVM environment to operate on
+ * @param bv vector to convert
+ * @return Java object (jobject)
  */
-std::string cutLastStringPart(std::string original, std::string toCut);
+jobject boolVector2JObject(JNIEnv* env, const std::vector<bool>& bv);
 
+/**
+ * Converts an int vector to a Java object (jobject).
+ * @param env JVM environment to operate on
+ * @param iv vector to convert
+ * @return Java object (jobject)
+ */
+jobject intVector2JObject(JNIEnv* env, const std::vector<int>& iv);
+
+/**
+ * Converts a size_t vector to a Java object (jobject).
+ * @param env JVM environment to operate on
+ * @param iv vector to convert
+ * @return Java object (jobject)
+ */
+jobject sizetVector2JObject(JNIEnv* env, const std::vector<size_t>& iv);
+
+/**
+ * Converts a number vector to a Java object (jobject).
+ * @param env JVM environment to operate on
+ * @param nv vector to convert
+ * @return Java object (jobject)
+ */
+jobject numberVector2JObject(JNIEnv* env, const std::vector<number>& nv);
+
+/**
+ * Converts a c-string vector to a Java object (jobject).
+ * @param env JVM environment to operate on
+ * @param sv vector to convert
+ * @return Java object (jobject)
+ */
+jobject cStringVector2JObject(JNIEnv* env, const std::vector<const char*>& sv);
+
+/**
+ * Converts a std::string vector to a Java object (jobject).
+ * @param env JVM environment to operate on
+ * @param sv vector to convert
+ * @return Java object (jobject)
+ */
+jobject stdStringVector2JObject(JNIEnv* env, const std::vector<std::string>& sv);
+
+/**
+ * Converts a void-pointer vector to a Java object (jobject).
+ * @param env JVM environment to operate on
+ * @param pv vector to convert
+ * @return Java object (jobject)
+ */
+jobject ptrVector2JObject(JNIEnv* env, const std::vector<void*>& pv);
+
+/**
+ * Converts a const-void-pointer vector to a Java object (jobject).
+ * @param env JVM environment to operate on
+ * @param pv vector to convert
+ * @return Java object (jobject)
+ */
+jobject constPtrVector2JObject(JNIEnv* env, const std::vector<const void*>& pv);
+
+/**
+ * Converts a SmartPtr vector to a Java object (jobject).
+ * @param env JVM environment to operate on
+ * @param pv vector to convert
+ * @return Java object (jobject)
+ */
+jobject smartPtrVector2JObject(JNIEnv* env, const std::vector<SmartPtr<void> >& pv);
+
+/**
+ * Converts a ConstSmartPtr vector to a Java object (jobject).
+ * @param env JVM environment to operate on
+ * @param pv vector to convert
+ * @return Java object (jobject)
+ */
+jobject constSmartPtrVector2JObject(JNIEnv* env, const std::vector<ConstSmartPtr<void> >& pv);
 
 /**
  * Converts an array of Java objects to a parameter stack.

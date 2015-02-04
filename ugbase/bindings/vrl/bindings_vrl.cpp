@@ -228,7 +228,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1newInstance(JNIEnv *env,
 
 			jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
 			env->ThrowNew(Exception, ss.str().c_str());
-			return (jlong) NULL;
+			return NULL;
 		}
 
 		ug::vrl::jobjectArray2ParamStack(env, ug::vrl::vrlRegistry, paramsIn,
@@ -268,7 +268,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1newInstance(JNIEnv *env,
 		env->ThrowNew(Exception, ss.str().c_str());
 	}
 
-	return (jlong) NULL;
+	return NULL;
 }
 
 JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeFunction(JNIEnv *env,
@@ -523,6 +523,7 @@ JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getBinaryLicense(
 //	//	ug::vrl::Canvas::getInstance()->addObject(ug::vrl::string2JObject(env,"Test_String"));
 //}
 
+#if 0
 //method needed only for debug
 //after debugging is finished this method should be commented out
 jobject bool_array(JNIEnv *env, jobject obj, jstring jName,
@@ -588,6 +589,10 @@ jobject bool_array(JNIEnv *env, jobject obj, jstring jName,
 
 }
 
+#endif
+
+
+#if 0
 //method needed only for debug
 //after debugging is finished this method should be commented out
 jobject array_of_bool_arrays(JNIEnv *env, jobject obj, jstring jName,
@@ -669,6 +674,7 @@ jobject array_of_bool_arrays(JNIEnv *env, jobject obj, jstring jName,
 	return result;
 }
 
+
 /*
  * this method is only for debug issues and should NOT be used later
  */JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1test_1debug(JNIEnv *env,
@@ -703,3 +709,4 @@ jobject array_of_bool_arrays(JNIEnv *env, jobject obj, jstring jName,
 
 	return result;
 }
+#endif
