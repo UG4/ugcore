@@ -92,13 +92,20 @@ class FV1InnerBoundaryElemDisc
 		typedef MultipleSideAndElemErrEstData<TDomain> err_est_type;
 
 	public:
-	
-    /// Constructor
-        FV1InnerBoundaryElemDisc(const char* functions = "", const char* subsets = "")
-        	: IElemDisc<TDomain>(functions, subsets), m_bNonRegularGrid(false)
-        {
-        	register_all_fv1_funcs();
-        }
+
+	/// Constructor with c-strings
+		FV1InnerBoundaryElemDisc(const char* functions = "", const char* subsets = "")
+			: IElemDisc<TDomain>(functions, subsets), m_bNonRegularGrid(false)
+		{
+			register_all_fv1_funcs();
+		}
+
+	/// Constructor with functions
+		FV1InnerBoundaryElemDisc(const std::vector<std::string>& functions, const std::vector<std::string>& subsets)
+			: IElemDisc<TDomain>(functions, subsets), m_bNonRegularGrid(false)
+		{
+			register_all_fv1_funcs();
+		}
 
 	/// Destructor
 		virtual ~FV1InnerBoundaryElemDisc() {};
