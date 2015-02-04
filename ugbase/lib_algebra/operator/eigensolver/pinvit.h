@@ -73,7 +73,8 @@ namespace ug{
  * end
  * \endcode
  *
-
+ * If you want to use a solver as preconditioner, use
+ * precond = OperatorInverseIterator(linSolver)
  */
 template<typename TAlgebra>
 class PINVIT
@@ -117,6 +118,7 @@ private:
 
 	double m_linearDependentEps;
 
+	bool m_bLaplacian;
 
 	bool m_bPrintProjectedEigenvalues;
 	bool m_bPrintProjectedEigenvectors;
@@ -157,6 +159,8 @@ public:
 		}
 		if(m_bUseAdditionalCorrections)
 			ss << "\n\tUsing additional Corrections.";
+		if(m_bLaplacian)
+			ss << "\n\tUsing LAPLACIAN!";
 
 		ss << "\n";
 		return ss.str();
@@ -181,6 +185,7 @@ public:
 		m_additionalEigenvectorsToKeep = 0;
 		m_currentAdditionalEigenvectors = 0;
 		m_linearDependentEps = 1e-6;
+		m_bLaplacian = false;
 	}
 
 	void set_linear_dependent_eps(double eps)
@@ -214,8 +219,37 @@ public:
 				m_pA.template cast_dynamic<MatrixOperator<matrix_type, vector_type> >();
 		matrix_type &A = pOp->get_matrix();
 		vbDirichlet.resize(A.num_rows());
-		for(size_t i=0; i<A.num_rows(); i++)
-			vbDirichlet[i] = A.is_isolated(i);
+
+		if(m_bLaplacian)
+		{
+			bool bFirst=false;
+			for(size_t i=0; i<A.num_rows(); i++)
+			{
+				//vbDirichlet[i] = A.is_isolated(i);
+				if(bFirst && A.is_isolated(i))
+				{
+					bFirst = false;
+					continue;
+				}
+
+				typename matrix_type::value_type v;
+				for(typename matrix_type::row_iterator it = A.begin_row(i); it != A.end_row(i); ++it)
+				{
+					it.value() = -1.0;
+				}
+				A(i, i) = A.num_connections(i)*1.0;
+
+			}
+
+			for(size_t i=0; i<A.num_rows(); i++)
+				vbDirichlet[i] = false;
+		}
+		else
+		{
+			for(size_t i=0; i<A.num_rows(); i++)
+				vbDirichlet[i] = A.is_isolated(i);
+		}
+
 	}
 
 	void set_linear_operator_B(matrix_operator_type &B)
@@ -587,6 +621,7 @@ public:
 	void set_new_approximations_and_save_old(DenseMatrix<VariableArray2<double> > &r_ev, SmartPtrVector<vector_type> &pTestVectors, SmartPtrVector<vector_type> &vOldX,
 			SmartPtrVector<vector_type> &vAdditional)
 	{
+		PINVIT_PROFILE_FUNC();
 		try{
 	#ifdef UG_PARALLEL
 			for(size_t i=0; i<pTestVectors.size(); i++)
@@ -645,6 +680,7 @@ public:
 
 	void assert_real_positive(const std::vector<std::complex<double> > &r_lambda)
 	{
+		PINVIT_PROFILE_FUNC();
 		try{
 			//#define UG_ASSERT2(cond, txt) {if(!cond) { UG_LOG("Warning: " << txt << "\n"); }}
 
@@ -675,6 +711,7 @@ public:
 	void get_max_deflection_of_a_mode(vector_type& maxDeflect, vector_type& statSol,
 			const vector_type& eigenVec, const matrix_type& massMat)
 	{
+		PINVIT_PROFILE_FUNC();
 #ifdef UG_PARALLEL
 		statSol.set_storage_type(PST_CONSISTENT);
 		maxDeflect.set_storage_type(PST_CONSISTENT);
@@ -733,6 +770,7 @@ private:
 
 	void calculate_correction(vector_type &corr, vector_type &defect)
 	{
+		PINVIT_PROFILE_FUNC();
 		try{
 	#ifdef UG_PARALLEL
 			defect.change_storage_type(PST_ADDITIVE);
@@ -766,8 +804,8 @@ private:
 	 */
 	void compute_rayleigh_and_defect(vector_type &x, double &lambda, vector_type &defect, double &defectNorm)
 	{
+		PINVIT_PROFILE_FUNC();
 		try{
-			PINVIT_PROFILE_FUNC();
 	// a. compute rayleigh quotients
 
 	#ifdef UG_PARALLEL
@@ -1045,6 +1083,11 @@ private:
 			}
 		}UG_CATCH_THROW("PINVIT::get_projected_eigenvalue_problem failed.");
 
+	}
+public:
+	void set_laplacian(bool b)
+	{
+		m_bLaplacian = b;
 	}
 
 };
