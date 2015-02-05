@@ -20,10 +20,11 @@ namespace ug{
 
 template <class TVector>
 AlgebraicConvCheck<TVector>::AlgebraicConvCheck(size_t ncmp)
-:	m_maxSteps(100), m_minDefect(1e-12), m_relReduction(1e-10), m_verbose(true),
+:	
+	m_vCmpInfo(ncmp, CmpInfo(1e-12, 1e-10)),
+	m_maxSteps(100), m_minDefect(1e-12), m_relReduction(1e-10), m_verbose(true),
  	m_currentStep(0), m_offset(0), m_symbol('%'), m_name("Iteration"), m_info(""),
-	m_bTimeMeas(true),
-	m_vCmpInfo(ncmp, CmpInfo(1e-12, 1e-10))
+	m_bTimeMeas(true)
 {}
 
 
