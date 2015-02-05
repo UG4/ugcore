@@ -444,7 +444,7 @@ if [ $interactive == false ]; then
 
 	if [ $tail == true ]; then
 		touch job.output
-		sleep 1; tail -f job.output
+		sleep 1; tail -f job.output +c 0
 	fi
 	
 	if [ $jobid != "?" ] && [ $nosubdir == false ]; then
