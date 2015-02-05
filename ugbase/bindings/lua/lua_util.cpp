@@ -86,6 +86,16 @@ bool GetAbsoluteUGScriptFilename(const string &filename, string &absoluteFilenam
 }
 
 
+std::string GetAbsoluteUGScriptFilenamePaths()
+{
+	std::stringstream ss;
+	ss << "Current Path = " << PathProvider::get_current_path()
+			<< ", SCRIPT_PATH = " << PathProvider::get_path(SCRIPT_PATH)
+			<< ", APPS_PATH = " << PathProvider::get_path(APPS_PATH)
+			<< ", ROOT_PATH = " << PathProvider::get_path(ROOT_PATH);
+	return ss.str();
+}
+
 /**
  *
  * @param _filename			the 'relative' script name. \sa GetAbsoluteUGScriptFilename
@@ -113,9 +123,14 @@ bool LoadUGScript(const char *_filename, bool bDistributedLoad, bool bThrowOnErr
 #endif
 	if(bSuccess == false)
 	{
-		if(bThrowOnError) { UG_THROW("Couldn't find script " << _filename << endl); }
+		if(bThrowOnError)
+		{
+			UG_THROW("Couldn't find script " << _filename << endl
+					<< "Search paths: " << GetAbsoluteUGScriptFilenamePaths() << endl);
+		}
 		return false;
 	}
+
 #ifdef UG_PARALLEL
 	if(pcl::ParallelReadFile(absoluteFilename, file, true, bDistributedLoad) == false)
 #else
