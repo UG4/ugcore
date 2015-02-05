@@ -104,7 +104,7 @@ public:
 
 	//! operator overloading for streams
 	friend std::ostream& operator<<(std::ostream& os, ScalarMatrixAdapter<AT,ST> const &a)
-	{ a.outputToStream(os);}
+	{ a.outputToStream(os); return os; }
 
 	/**
 	 *  row_iterator
@@ -159,7 +159,7 @@ public:
 
 protected:
 	std::ostream& outputToStream(std::ostream& os) const
-	{ os << m_src;}
+	{ return os << m_src; }
 
 	encapsulated_matrix_type &m_src;
 	const encapsulated_matrix_type &m_const;
