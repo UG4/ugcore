@@ -232,7 +232,6 @@ public:
 					continue;
 				}
 
-				typename matrix_type::value_type v;
 				for(typename matrix_type::row_iterator it = A.begin_row(i); it != A.end_row(i); ++it)
 				{
 					it.value() = -1.0;
