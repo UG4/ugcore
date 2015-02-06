@@ -67,48 +67,56 @@ chmod +x $UG4_ROOT/scripts/shell/ugcmake-start
 chmod +x $UG4_ROOT/scripts/shell/ugconfig
 chmod +x $UG4_ROOT/scripts/shell/ugsubmit-getconfig
 
+# grep search for ug
+# use e.g. 
+#    ugbasegrep MySearchTerm
+#    ugappsgrep LoadDomain
+# all searches exclude the .svn dirs
+ 
+# search in ug4/ugbase 
 ugbasegrep()
 {
 	fgrep --exclude-dir=".svn" -rI "$1" $UG4_ROOT/ugbase
 }
+
+# search in ug4/plugins}
 ugpluginsgrep()
 {
 	fgrep --exclude-dir=".svn" -rI "$1" $UG4_ROOT/plugins
 }
+
+# search in ug4/cmake
 ugcmakegrep()
 {
 	fgrep --exclude-dir=".svn" -rI "$1" $UG4_ROOT/cmake
 }
 
+# search in ug4/apps for lua, c, cpp or .txt files
 ugappsgrep()
 {
-	fgrep --include="*\.lua" --exclude="ug4CompletionList.txt" --exclude="myUg4CompletionList.txt" \
+	fgrep --exclude-dir=".svn" --include="*\.lua" --exclude="ug4CompletionList.txt" --exclude="myUg4CompletionList.txt" \
 		--include="*\.c" --include="*\.cpp" --include="*\.txt" --include="*\.h" -rI "$1" $UG4_ROOT/apps
 }
 
+# search in ug4/scripts
 ugscriptsgrep()
 {
-	fgrep --include="*\.lua" --include="*\.c" --include="*\.cpp" --include="*\.txt"--include="*\.h" \
-		-rI "$1" $UG4_ROOT/scripts
+	fgrep --exclude-dir=".svn" -rI "$1" $UG4_ROOT/scripts
 }
 
+# search in all ug4 for .lua, .c*, .h, .txt
 uggrep()
 {
 	fgrep --include="*\.lua" --include="*\.c*" --include="*\.h" --include="*\.txt" --exclude-dir=".svn" \
 		--exclude="ug4CompletionList.txt" --exclude="myUg4CompletionList.txt" -rI "$1" $UG4_ROOT
 }
 
+# search in ug4/docs for .doxygen files
 ugdocsgrep()
 {
 	fgrep --include="*\.doxygen" --exclude-dir=".svn" -rI "$1" $UG4_ROOT/docs
 }
 
-ug4svnupdate()
-{
-	cd $UG4_ROOT
-	svn update
-	cd -
-}
 
 ugclearoutput()
 {
@@ -123,10 +131,15 @@ ugclearoutput()
 	find . -name '*.ugx' | xargs rm
 }
 
+
+# svn update $UG4_ROOT
+alias ug4svnupdate="svn update $UG4_ROOT"
+
+# delete all binary output files forcing a re-linking
 alias ugrelib="rm $UG4_ROOT/lib/*; rm $UG4_ROOT/bin/ugshell; rm $UG4_ROOT/bin/plugins/*"
 
-alias ugcmake-start-std="ugcmake-start -DDIM=\"2;3\" -DCPU=\"1;2;3\" -DPROFILER=Shiny -DSuperLU=ON -Damg=ON .."
 
+alias ugcmake-start-std="ugcmake-start -DDIM=\"2;3\" -DCPU=\"1;2;3\" -DPROFILER=Shiny -DSuperLU=ON -Damg=ON .."
 
 scriptpath=`dirname ${BASH_SOURCE:-$0}`
 source $scriptpath/uginstall_config
