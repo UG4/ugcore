@@ -100,7 +100,7 @@ public:
 		static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 	//	storage for corner coordinates
-		MathVector<domain_type::dim> vCornerCoords[domain_traits<domain_type::dim>::MaxNumVerticesOfElem];
+		MathVector<domain_type::dim> vCornerCoords[TElem::NUM_VERTICES];
 
 		try
 		{
@@ -207,7 +207,7 @@ public:
 		static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 	//	storage for corner coordinates
-		MathVector<domain_type::dim> vCornerCoords[domain_traits<domain_type::dim>::MaxNumVerticesOfElem];
+		MathVector<domain_type::dim> vCornerCoords[TElem::NUM_VERTICES];
 
 	//	prepare for given elem discs
 		try
@@ -314,7 +314,7 @@ public:
 		static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 	//	storage for corner coordinates
-		MathVector<domain_type::dim> vCornerCoords[domain_traits<domain_type::dim>::MaxNumVerticesOfElem];
+		MathVector<domain_type::dim> vCornerCoords[TElem::NUM_VERTICES];
 
 	//	prepare for given elem discs
 		try
@@ -328,11 +328,7 @@ public:
 	//	local indices and local algebra
 		LocalIndices ind; LocalVector locU; LocalMatrix locJ;
 
-		std::vector<std::vector<SmartPtr<IElemDiscModifier<domain_type> > > > vMod;
-		for(size_t i = 0; i < vElemDisc.size(); ++i)
-			vMod.push_back(vElemDisc[i]->get_elem_modifier());
-
-	 //		Loop over all elements
+	//	Loop over all elements
 		for(TIterator iter = iterBegin; iter != iterEnd; ++iter)
 		{
 		//	get Element
@@ -353,10 +349,6 @@ public:
 		//	read local values of u
 			GetLocalVector(locU, u);
 
-			for(size_t i = 0; i < vMod.size(); ++i)
-				for(size_t j = 0; j < vMod[i].size(); ++j)
-					vMod[i][j]->preprocess(locU, locJ, elem, vCornerCoords, ind);
-
 		//	prepare element
 			try
 			{
@@ -373,10 +365,6 @@ public:
 				Eval.add_jac_A_elem(locJ, locU, elem, vCornerCoords);
 			}
 			UG_CATCH_THROW("(stationary) AssembleJacobian: Cannot compute Jacobian (A).");
-
-			 for(size_t i = 0; i < vMod.size(); ++i)
-				for(size_t j = 0; j < vMod[i].size(); ++j)
-					vMod[i][j]->postprocess(locU, locJ, ind);
 
 		// send local to global matrix
 			try{
@@ -439,7 +427,7 @@ public:
 		static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 	//	storage for corner coordinates
-		MathVector<domain_type::dim> vCornerCoords[domain_traits<domain_type::dim>::MaxNumVerticesOfElem];
+		MathVector<domain_type::dim> vCornerCoords[TElem::NUM_VERTICES];
 
 	//	get current time and vector
 		const vector_type& u = *vSol->solution(0);
@@ -577,7 +565,7 @@ public:
 		static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 	//	storage for corner coordinates
-		MathVector<domain_type::dim> vCornerCoords[domain_traits<domain_type::dim>::MaxNumVerticesOfElem];
+		MathVector<domain_type::dim> vCornerCoords[TElem::NUM_VERTICES];
 
 	//	prepare for given elem discs
 		try
@@ -590,11 +578,6 @@ public:
 
 	//	local indices and local algebra
 		LocalIndices ind; LocalVector locU, locD, tmpLocD;
-
-		std::vector<std::vector<SmartPtr<IElemDiscModifier<domain_type> > > > vMod;
-		for(size_t i = 0; i < vElemDisc.size(); ++i)
-			vMod.push_back(vElemDisc[i]->get_elem_modifier());
-
 
 	//	Loop over all elements
 		for(TIterator iter = iterBegin; iter != iterEnd; ++iter)
@@ -616,10 +599,6 @@ public:
 
 		//	read local values of u
 			GetLocalVector(locU, u);
-
-			for(size_t i = 0; i < vMod.size(); ++i)
-				for(size_t j = 0; j < vMod[i].size(); ++j)
-					vMod[i][j]->preprocess(locU, locD, tmpLocD, elem, vCornerCoords, ind);
 
 		//	prepare element
 			try
@@ -660,10 +639,6 @@ public:
 
 			}
 			UG_CATCH_THROW("(stationary) AssembleDefect: Cannot compute Rhs.");
-
-			for(size_t i = 0; i < vMod.size(); ++i)
-				for(size_t j = 0; j < vMod[i].size(); ++j)
-					vMod[i][j]->postprocess(locU, locD, ind);
 
 		//	send local to global defect
 			try{
@@ -727,7 +702,7 @@ public:
 		static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 	//	storage for corner coordinates
-		MathVector<domain_type::dim> vCornerCoords[domain_traits<domain_type::dim>::MaxNumVerticesOfElem];
+		MathVector<domain_type::dim> vCornerCoords[TElem::NUM_VERTICES];
 
 	//	check time scheme
 		if(vScaleMass.size() != vScaleStiff.size())
@@ -915,7 +890,7 @@ public:
 		static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 	//	storage for corner coordinates
-		MathVector<domain_type::dim> vCornerCoords[domain_traits<domain_type::dim>::MaxNumVerticesOfElem];
+		MathVector<domain_type::dim> vCornerCoords[TElem::NUM_VERTICES];
 
 	//	prepare for given elem discs
 		try
@@ -1038,7 +1013,7 @@ public:
 		static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 	//	storage for corner coordinates
-		MathVector<domain_type::dim> vCornerCoords[domain_traits<domain_type::dim>::MaxNumVerticesOfElem];
+		MathVector<domain_type::dim> vCornerCoords[TElem::NUM_VERTICES];
 
 	//	check time scheme
 		if(vScaleMass.size() != vScaleStiff.size())
@@ -1240,7 +1215,7 @@ public:
 		static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 	//	storage for corner coordinates
-		MathVector<domain_type::dim> vCornerCoords[domain_traits<domain_type::dim>::MaxNumVerticesOfElem];
+		MathVector<domain_type::dim> vCornerCoords[TElem::NUM_VERTICES];
 
 	//	prepare for given elem discs
 		try
@@ -1354,7 +1329,7 @@ public:
 		static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 	//	storage for corner coordinates
-		MathVector<domain_type::dim> vCornerCoords[domain_traits<domain_type::dim>::MaxNumVerticesOfElem];
+		MathVector<domain_type::dim> vCornerCoords[TElem::NUM_VERTICES];
 
 	//	check time scheme
 		if(vScaleMass.size() != vScaleStiff.size())
@@ -1533,7 +1508,7 @@ public:
 		static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 	//	storage for corner coordinates
-		MathVector<domain_type::dim> vCornerCoords[domain_traits<domain_type::dim>::MaxNumVerticesOfElem];
+		MathVector<domain_type::dim> vCornerCoords[TElem::NUM_VERTICES];
 
 	//	get current time and vector
 		const vector_type& u = *vSol->solution(0);
@@ -1630,7 +1605,7 @@ public:
 		static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 	//	storage for corner coordinates
-		MathVector<domain_type::dim> vCornerCoords[domain_traits<domain_type::dim>::MaxNumVerticesOfElem];
+		MathVector<domain_type::dim> vCornerCoords[TElem::NUM_VERTICES];
 
 	//	get current time and vector
 		const vector_type& u = *vSol->solution(0);
@@ -1730,7 +1705,7 @@ public:
 		static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 	//	storage for corner coordinates
-		MathVector<domain_type::dim> vCornerCoords[domain_traits<domain_type::dim>::MaxNumVerticesOfElem];
+		MathVector<domain_type::dim> vCornerCoords[TElem::NUM_VERTICES];
 
 	//	prepare for given elem discs
 		try
@@ -1840,7 +1815,7 @@ public:
 		static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 	//	storage for corner coordinates
-		MathVector<domain_type::dim> vCornerCoords[domain_traits<domain_type::dim>::MaxNumVerticesOfElem];
+		MathVector<domain_type::dim> vCornerCoords[TElem::NUM_VERTICES];
 
 	//	check time scheme
 		if(vScaleMass.size() != vScaleStiff.size())
