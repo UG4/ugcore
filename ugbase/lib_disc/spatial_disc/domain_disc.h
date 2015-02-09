@@ -27,15 +27,33 @@ namespace ug {
 /// \ingroup lib_disc_domain_assemble
 /// @{
 
-/// domain discretization implementing the interface
+/// generic domain discretization implementing the interface
 /**
- * This class is an implementation of the IDomainDiscretization interface. It
- * is designed to simply group several discretizations on different subsets and
- * perform element based assemblings and constraints in the same order.
+ * This class template is an implementation of the IDomainDiscretization
+ * interface based on the simple groupping of several local (element) 
+ * discretizations and constraints.
+ *
+ * Functions of this class template prepare lists of the local discretizations
+ * and elements (where to assemble) for every subset, whereas assembling itself
+ * is performed by functions of the so-called 'global assembler class' specified
+ * by the TGlobAssembler template parameter. The latter class implements
+ * assembling for the generic lists of elements belonging to only one subset.
+ * Cf. class StdGlobAssembler for a complete example. Note that all the functions
+ * from that example should be implemented (no matter where as regular or static
+ * members).
+ *
+ * \tparam TDomain          domain type
+ * \tparam TAlgebra         algebra type
+ * \tparam TGlobAssembler   global assembler type
  */
-template <typename TDomain, typename TAlgebra>
-class DomainDiscretization : public IDomainDiscretization<TAlgebra>
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+class DomainDiscretizationBase
+:   public IDomainDiscretization<TAlgebra>,
+    private TGlobAssembler
 {
+    /// Type of the global assembler
+        typedef TGlobAssembler gass_type;
+        
 	public:
 	///	Type of Domain
 		typedef TDomain domain_type;
@@ -57,11 +75,12 @@ class DomainDiscretization : public IDomainDiscretization<TAlgebra>
 		
 	public:
 	///	default Constructor
-		DomainDiscretization(SmartPtr<approx_space_type> pApproxSpace) :
+		DomainDiscretizationBase(SmartPtr<approx_space_type> pApproxSpace) :
 			m_spApproxSpace(pApproxSpace), m_spAssTuner(new AssemblingTuner<TAlgebra>)
 		{};
 
-		virtual ~DomainDiscretization() {};
+	/// virtual destructor
+		virtual ~DomainDiscretizationBase() {};
 
 	///////////////////////////
 	// Time independent part
@@ -82,13 +101,14 @@ class DomainDiscretization : public IDomainDiscretization<TAlgebra>
 		virtual void assemble_linear(matrix_type& mat, vector_type& rhs, const GridLevel& gl)
 		{assemble_linear(mat, rhs, dd(gl));}
 
-	/// assembles the stiffness matrix
+	/// \copydoc IAssemble::assemble_rhs()
 		virtual void assemble_rhs(vector_type& rhs, const vector_type& u, ConstSmartPtr<DoFDistribution> dd);
 		virtual void assemble_rhs(vector_type& rhs, const vector_type& u, const GridLevel& gl)
 		{assemble_rhs(rhs, u, dd(gl));}
 
 	/// \copydoc IAssemble::assemble_rhs()
-		virtual void assemble_rhs(vector_type& b, ConstSmartPtr<DoFDistribution> dd);
+		virtual void assemble_rhs(vector_type& rhs, ConstSmartPtr<DoFDistribution> dd)
+		{assemble_rhs(rhs, rhs, dd);}
 		virtual void assemble_rhs(vector_type& rhs, const GridLevel& gl)
 		{assemble_rhs(rhs, dd(gl));}
 
@@ -401,6 +421,151 @@ class DomainDiscretization : public IDomainDiscretization<TAlgebra>
 		
 	///	this object provides tools to adapt the assemble routine
 		SmartPtr<AssemblingTuner<TAlgebra> > m_spAssTuner;
+	
+	private:
+	//---- Auxiliary function templates for the assembling ----//
+	//	These functions call the corresponding functions from the global assembler for a composed list of elements:
+	//-- for stationary problems --//
+	template <typename TElem>
+	void AssembleMassMatrix(		const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+									ConstSmartPtr<DoFDistribution> dd,
+									int si, bool bNonRegularGrid,
+									matrix_type& M,
+									const vector_type& u);
+	template <typename TElem>
+	void AssembleStiffnessMatrix(	const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+									ConstSmartPtr<DoFDistribution> dd,
+									int si, bool bNonRegularGrid,
+									matrix_type& A,
+									const vector_type& u);
+	template <typename TElem>
+	void AssembleJacobian(			const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+									ConstSmartPtr<DoFDistribution> dd,
+									int si, bool bNonRegularGrid,
+									matrix_type& J,
+									const vector_type& u);
+	template <typename TElem>
+	void AssembleDefect( 			const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+									ConstSmartPtr<DoFDistribution> dd,
+									int si, bool bNonRegularGrid,
+									vector_type& d,
+									const vector_type& u);
+	template <typename TElem>
+	void AssembleLinear( 			const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+									ConstSmartPtr<DoFDistribution> dd,
+									int si, bool bNonRegularGrid,
+									matrix_type& A,
+									vector_type& rhs);
+	template <typename TElem>
+	void AssembleRhs(				const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+									ConstSmartPtr<DoFDistribution> dd,
+									int si, bool bNonRegularGrid,
+									vector_type& rhs,
+									const vector_type& u);
+	template <typename TElem>
+	void AssembleErrorEstimator(	const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+									ConstSmartPtr<DoFDistribution> dd,
+									int si, bool bNonRegularGrid,
+									const vector_type& u);
+	//-- for time-dependent problems --//
+	template <typename TElem>
+	void PrepareTimestep(			const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+									ConstSmartPtr<DoFDistribution> dd,
+									int si, bool bNonRegularGrid,
+									ConstSmartPtr<VectorTimeSeries<vector_type> > vSol);
+	template <typename TElem>
+	void AssembleJacobian(			const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+									ConstSmartPtr<DoFDistribution> dd,
+									int si, bool bNonRegularGrid,
+									matrix_type& J,
+									ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+									number s_a0);
+	template <typename TElem>
+	void AssembleDefect( 			const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+									ConstSmartPtr<DoFDistribution> dd,
+									int si, bool bNonRegularGrid,
+									vector_type& d,
+									ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+									const std::vector<number>& vScaleMass,
+									const std::vector<number>& vScaleStiff);
+	template <typename TElem>
+	void AssembleLinear( 			const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+									ConstSmartPtr<DoFDistribution> dd,
+									int si, bool bNonRegularGrid,
+									matrix_type& A,
+									vector_type& rhs,
+									ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+									const std::vector<number>& vScaleMass,
+									const std::vector<number>& vScaleStiff);
+	template <typename TElem>
+	void AssembleRhs(				const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+									ConstSmartPtr<DoFDistribution> dd,
+									int si, bool bNonRegularGrid,
+									vector_type& rhs,
+									ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+									const std::vector<number>& vScaleMass,
+									const std::vector<number>& vScaleStiff);
+	template <typename TElem>
+	void AssembleErrorEstimator(	const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+									ConstSmartPtr<DoFDistribution> dd,
+									int si, bool bNonRegularGrid,
+									std::vector<number> vScaleMass,
+									std::vector<number> vScaleStiff,
+									ConstSmartPtr<VectorTimeSeries<vector_type> > vSol);
+	template <typename TElem>
+	void FinishTimestep(			const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+									ConstSmartPtr<DoFDistribution> dd,
+									int si, bool bNonRegularGrid,
+									ConstSmartPtr<VectorTimeSeries<vector_type> > vSol);
+};
+
+/// domain discretization implementing the interface
+/**
+ * This class template is an implementation of the IDomainDiscretization
+ * interface based on the simple groupping of several local (element) 
+ * discretizations and constraints.
+ *
+ * This is the "usual" and "trivial" global discretizations: all the
+ * local (element) discretizations are perfomed once for every element, and
+ * their contributions are algebraically added to the global data.
+ *
+ * \tparam TDomain          domain type
+ * \tparam TAlgebra         algebra type
+ */
+template <typename TDomain, typename TAlgebra>
+class DomainDiscretization
+:	public DomainDiscretizationBase<TDomain, TAlgebra, StdGlobAssembler<TDomain, TAlgebra> >
+{
+    /// Type of the global assembler
+        typedef StdGlobAssembler<TDomain, TAlgebra> gass_type;
+        
+	public:
+	///	Type of Domain
+		typedef TDomain domain_type;
+
+	///	Type of algebra
+		typedef TAlgebra algebra_type;
+
+	///	Type of algebra matrix
+		typedef typename algebra_type::matrix_type matrix_type;
+
+	///	Type of algebra vector
+		typedef typename algebra_type::vector_type vector_type;
+
+	///	Type of approximation space
+		typedef ApproximationSpace<TDomain>	approx_space_type;
+		
+	///	world dimension
+		static const int dim = TDomain::dim;
+		
+	public:
+	///	default Constructor
+		DomainDiscretization(SmartPtr<approx_space_type> pApproxSpace)
+		: DomainDiscretizationBase<domain_type, algebra_type, gass_type> (pApproxSpace)
+		{};
+
+	/// virtual destructor
+		virtual ~DomainDiscretization() {};
 };
 
 /// @}

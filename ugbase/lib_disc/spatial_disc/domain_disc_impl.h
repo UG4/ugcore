@@ -19,8 +19,8 @@
 
 namespace ug{
 
-template <typename TDomain, typename TAlgebra>
-void DomainDiscretization<TDomain, TAlgebra>::update_elem_discs()
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::update_elem_discs()
 {
 //	check Approximation space
 	if(!m_spApproxSpace.valid())
@@ -40,8 +40,8 @@ void DomainDiscretization<TDomain, TAlgebra>::update_elem_discs()
 	}
 }
 
-template <typename TDomain, typename TAlgebra>
-void DomainDiscretization<TDomain, TAlgebra>::update_constraints()
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::update_constraints()
 {
 //	check Approximation space
 	if(!m_spApproxSpace.valid())
@@ -55,8 +55,8 @@ void DomainDiscretization<TDomain, TAlgebra>::update_constraints()
 		m_vConstraint[i]->set_approximation_space(m_spApproxSpace);
 }
 
-template <typename TDomain, typename TAlgebra>
-void DomainDiscretization<TDomain, TAlgebra>::update_disc_items()
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::update_disc_items()
 {
 	update_elem_discs();
 	update_constraints();
@@ -65,8 +65,8 @@ void DomainDiscretization<TDomain, TAlgebra>::update_disc_items()
 ///////////////////////////////////////////////////////////////////////////////
 // Mass Matrix
 ///////////////////////////////////////////////////////////////////////////////
-template <typename TDomain, typename TAlgebra>
-void DomainDiscretization<TDomain, TAlgebra>::
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
 assemble_mass_matrix(matrix_type& M, const vector_type& u,
                      ConstSmartPtr<DoFDistribution> dd)
 {
@@ -113,32 +113,32 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 		switch(dim)
 		{
 		case 1:
-			AssembleMassMatrix<RegularEdge,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, M, u, m_spAssTuner);
+			this->template AssembleMassMatrix<RegularEdge>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			AssembleMassMatrix<ConstrainingEdge,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, M, u, m_spAssTuner);
+			this->template AssembleMassMatrix<ConstrainingEdge>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u);
 			break;
 		case 2:
-			AssembleMassMatrix<Triangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, M, u, m_spAssTuner);
-			AssembleMassMatrix<Quadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, M, u, m_spAssTuner);
+			this->template AssembleMassMatrix<Triangle>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u);
+			this->template AssembleMassMatrix<Quadrilateral>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			AssembleMassMatrix<ConstrainingTriangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, M, u, m_spAssTuner);
-			AssembleMassMatrix<ConstrainingQuadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, M, u, m_spAssTuner);
+			this->template AssembleMassMatrix<ConstrainingTriangle>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u);
+			this->template AssembleMassMatrix<ConstrainingQuadrilateral>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u);
 			break;
 		case 3:
-			AssembleMassMatrix<Tetrahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, M, u, m_spAssTuner);
-			AssembleMassMatrix<Pyramid,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, M, u, m_spAssTuner);
-			AssembleMassMatrix<Prism,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, M, u, m_spAssTuner);
-			AssembleMassMatrix<Hexahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, M, u, m_spAssTuner);
+			this->template AssembleMassMatrix<Tetrahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u);
+			this->template AssembleMassMatrix<Pyramid>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u);
+			this->template AssembleMassMatrix<Prism>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u);
+			this->template AssembleMassMatrix<Hexahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u);
 			break;
 		default:
 			UG_THROW("DomainDiscretization::assemble_mass_matrix:"
@@ -171,12 +171,54 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 #endif
 }
 
+/**
+ * This function adds the contributions of all passed element discretizations
+ * on one given subset to the global Mass matrix.
+ *
+ * \param[in]		vElemDisc		element discretizations
+ * \param[in]		dd				DoF Distribution
+ * \param[in]		si				subset index
+ * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
+ * \param[in,out]	M				Mass matrix
+ * \param[in]		u				solution
+ */
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+template <typename TElem>
+void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
+AssembleMassMatrix( const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+					ConstSmartPtr<DoFDistribution> dd,
+					int si, bool bNonRegularGrid,
+					matrix_type& M,
+					const vector_type& u)
+{
+	//	check if only some elements are selected
+	if(m_spAssTuner->selected_elements_used())
+	{
+		std::vector<TElem*> vElem;
+		m_spAssTuner->collect_selected_elements(vElem, dd, si);
+
+		//	assembling is carried out only over those elements
+		//	which are selected and in subset si
+		gass_type::template AssembleMassMatrix<TElem>
+			(vElemDisc, m_spApproxSpace->domain(), dd, vElem.begin(), vElem.end(), si,
+			 bNonRegularGrid, M, u, m_spAssTuner);
+	}
+	else
+	{
+		//	general case: assembling over all elements in subset si
+		gass_type::template AssembleMassMatrix<TElem>
+			(vElemDisc, m_spApproxSpace->domain(), dd,
+				dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
+					bNonRegularGrid, M, u, m_spAssTuner);
+	}
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Stiffness Matrix
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename TDomain, typename TAlgebra>
-void DomainDiscretization<TDomain, TAlgebra>::
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
 assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
                           ConstSmartPtr<DoFDistribution> dd)
 {
@@ -223,32 +265,32 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 		switch(dim)
 		{
 		case 1:
-			AssembleStiffnessMatrix<RegularEdge,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, A, u, m_spAssTuner);
+			this->template AssembleStiffnessMatrix<RegularEdge>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			AssembleStiffnessMatrix<ConstrainingEdge,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, A, u, m_spAssTuner);
+			this->template AssembleStiffnessMatrix<ConstrainingEdge>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u);
 			break;
 		case 2:
-			AssembleStiffnessMatrix<Triangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, A, u, m_spAssTuner);
-			AssembleStiffnessMatrix<Quadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, A, u, m_spAssTuner);
+			this->template AssembleStiffnessMatrix<Triangle>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u);
+			this->template AssembleStiffnessMatrix<Quadrilateral>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			AssembleStiffnessMatrix<ConstrainingTriangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, A, u, m_spAssTuner);
-			AssembleStiffnessMatrix<ConstrainingQuadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, A, u, m_spAssTuner);
+			this->template AssembleStiffnessMatrix<ConstrainingTriangle>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u);
+			this->template AssembleStiffnessMatrix<ConstrainingQuadrilateral>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u);
 			break;
 		case 3:
-			AssembleStiffnessMatrix<Tetrahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, A, u, m_spAssTuner);
-			AssembleStiffnessMatrix<Pyramid,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, A, u, m_spAssTuner);
-			AssembleStiffnessMatrix<Prism,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, A, u, m_spAssTuner);
-			AssembleStiffnessMatrix<Hexahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, A, u, m_spAssTuner);
+			this->template AssembleStiffnessMatrix<Tetrahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u);
+			this->template AssembleStiffnessMatrix<Pyramid>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u);
+			this->template AssembleStiffnessMatrix<Prism>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u);
+			this->template AssembleStiffnessMatrix<Hexahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u);
 			break;
 		default:
 			UG_THROW("DomainDiscretization::assemble_stiffness_matrix:"
@@ -281,6 +323,48 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 #endif
 }
 
+/**
+ * This function adds the contributions of all passed element discretizations
+ * on one given subset to the global Stiffness matrix.
+ *
+ * \param[in]		vElemDisc		element discretizations
+ * \param[in]		dd				DoF Distribution
+ * \param[in]		si				subset index
+ * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
+ * \param[in,out]	A				Stiffness matrix
+ * \param[in]		u				solution
+ */
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+template <typename TElem>
+void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
+AssembleStiffnessMatrix(	const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+							ConstSmartPtr<DoFDistribution> dd,
+							int si, bool bNonRegularGrid,
+							matrix_type& A,
+							const vector_type& u)
+{
+	//	check if only some elements are selected
+	if(m_spAssTuner->selected_elements_used())
+	{
+		std::vector<TElem*> vElem;
+		m_spAssTuner->collect_selected_elements(vElem, dd, si);
+
+		//	assembling is carried out only over those elements
+		//	which are selected and in subset si
+		gass_type::template AssembleStiffnessMatrix<TElem>
+			(vElemDisc, m_spApproxSpace->domain(), dd, vElem.begin(), vElem.end(), si,
+			 bNonRegularGrid, A, u, m_spAssTuner);
+	}
+	else
+	{
+		//	general case: assembling over all elements in subset si
+		gass_type::template AssembleStiffnessMatrix<TElem>
+			(vElemDisc, m_spApproxSpace->domain(), dd,
+				dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
+					bNonRegularGrid, A, u, m_spAssTuner);
+	}
+}
+
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 //  Time Independent (stationary)
@@ -291,8 +375,8 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 ///////////////////////////////////////////////////////////////////////////////
 // Jacobian (stationary)
 ///////////////////////////////////////////////////////////////////////////////
-template <typename TDomain, typename TAlgebra>
-void DomainDiscretization<TDomain, TAlgebra>::
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
 assemble_jacobian(matrix_type& J,
                   const vector_type& u,
                   ConstSmartPtr<DoFDistribution> dd)
@@ -358,32 +442,32 @@ assemble_jacobian(matrix_type& J,
 		switch(dim)
 		{
 		case 1:
-			AssembleJacobian<RegularEdge,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, *pModifyU, m_spAssTuner);
+			this->template AssembleJacobian<RegularEdge>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			AssembleJacobian<ConstrainingEdge,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, *pModifyU, m_spAssTuner);
+			this->template AssembleJacobian<ConstrainingEdge>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU);
 			break;
 		case 2:
-			AssembleJacobian<Triangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, *pModifyU, m_spAssTuner);
-			AssembleJacobian<Quadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, *pModifyU, m_spAssTuner);
+			this->template AssembleJacobian<Triangle>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU);
+			this->template AssembleJacobian<Quadrilateral>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			AssembleJacobian<ConstrainingTriangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, *pModifyU, m_spAssTuner);
-			AssembleJacobian<ConstrainingQuadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, *pModifyU, m_spAssTuner);
+			this->template AssembleJacobian<ConstrainingTriangle>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU);
+			this->template AssembleJacobian<ConstrainingQuadrilateral>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU);
 			break;
 		case 3:
-			AssembleJacobian<Tetrahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, *pModifyU, m_spAssTuner);
-			AssembleJacobian<Pyramid,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, *pModifyU, m_spAssTuner);
-			AssembleJacobian<Prism,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, *pModifyU, m_spAssTuner);
-			AssembleJacobian<Hexahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, *pModifyU, m_spAssTuner);
+			this->template AssembleJacobian<Tetrahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU);
+			this->template AssembleJacobian<Pyramid>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU);
+			this->template AssembleJacobian<Prism>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU);
+			this->template AssembleJacobian<Hexahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU);
 			break;
 		default:
 			UG_THROW("DomainDiscretization::assemble_jacobian (stationary):"
@@ -416,12 +500,52 @@ assemble_jacobian(matrix_type& J,
 #endif
 }
 
+/**
+ * This function adds the contributions of all passed element discretizations
+ * on one given subset to the global Jacobian in the stationary case.
+ *
+ * \param[in]		vElemDisc		element discretizations
+ * \param[in]		si				subset index
+ * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
+ * \param[in,out]	J				jacobian
+ * \param[in]		u				solution
+ */
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+template <typename TElem>
+void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
+AssembleJacobian(	const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+					ConstSmartPtr<DoFDistribution> dd,
+					int si, bool bNonRegularGrid,
+					matrix_type& J,
+					const vector_type& u)
+{
+	//	check if only some elements are selected
+	if(m_spAssTuner->selected_elements_used())
+	{
+		std::vector<TElem*> vElem;
+		m_spAssTuner->collect_selected_elements(vElem, dd, si);
+
+		//	assembling is carried out only over those elements
+		//	which are selected and in subset si
+		gass_type::template AssembleJacobian<TElem>
+			(vElemDisc, m_spApproxSpace->domain(), dd, vElem.begin(), vElem.end(), si,
+			 bNonRegularGrid, J, u, m_spAssTuner);
+	}
+	else
+	{
+		//	general case: assembling over all elements in subset si
+		gass_type::template AssembleJacobian<TElem>
+			(vElemDisc, m_spApproxSpace->domain(), dd,
+				dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
+					bNonRegularGrid, J, u, m_spAssTuner);
+	}
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Defect (stationary)
 ///////////////////////////////////////////////////////////////////////////////
-template <typename TDomain, typename TAlgebra>
-void DomainDiscretization<TDomain, TAlgebra>::
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
 assemble_defect(vector_type& d,
                 const vector_type& u,
                 ConstSmartPtr<DoFDistribution> dd)
@@ -485,32 +609,32 @@ assemble_defect(vector_type& d,
 		switch(dim)
 		{
 		case 1:
-			AssembleDefect<RegularEdge,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, *pModifyU, m_spAssTuner);
+			this->template AssembleDefect<RegularEdge>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			AssembleDefect<ConstrainingEdge,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, *pModifyU, m_spAssTuner);
+			this->template AssembleDefect<ConstrainingEdge>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU);
 			break;
 		case 2:
-			AssembleDefect<Triangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, *pModifyU, m_spAssTuner);
-			AssembleDefect<Quadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, *pModifyU, m_spAssTuner);
+			this->template AssembleDefect<Triangle>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU);
+			this->template AssembleDefect<Quadrilateral>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			AssembleDefect<ConstrainingTriangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, *pModifyU, m_spAssTuner);
-			AssembleDefect<ConstrainingQuadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, *pModifyU, m_spAssTuner);
+			this->template AssembleDefect<ConstrainingTriangle>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU);
+			this->template AssembleDefect<ConstrainingQuadrilateral>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU);
 			break;
 		case 3:
-			AssembleDefect<Tetrahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, *pModifyU, m_spAssTuner);
-			AssembleDefect<Pyramid,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, *pModifyU, m_spAssTuner);
-			AssembleDefect<Prism,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, *pModifyU, m_spAssTuner);
-			AssembleDefect<Hexahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, *pModifyU, m_spAssTuner);
+			this->template AssembleDefect<Tetrahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU);
+			this->template AssembleDefect<Pyramid>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU);
+			this->template AssembleDefect<Prism>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU);
+			this->template AssembleDefect<Hexahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU);
 			break;
 		default:
 			UG_THROW("DomainDiscretization::assemble_defect (stationary):"
@@ -542,11 +666,53 @@ assemble_defect(vector_type& d,
 #endif
 }
 
+/**
+ * This function adds the contributions of all passed element discretizations
+ * on one given subset to the global Defect in the stationary case.
+ *
+ * \param[in]		vElemDisc		element discretizations
+ * \param[in]		dd				DoF Distribution
+ * \param[in]		si				subset index
+ * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
+ * \param[in,out]	d				defect
+ * \param[in]		u				solution
+ */
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+template <typename TElem>
+void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
+AssembleDefect( const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+				ConstSmartPtr<DoFDistribution> dd,
+				int si, bool bNonRegularGrid,
+				vector_type& d,
+				const vector_type& u)
+{
+	//	check if only some elements are selected
+	if(m_spAssTuner->selected_elements_used())
+	{
+		std::vector<TElem*> vElem;
+		m_spAssTuner->collect_selected_elements(vElem, dd, si);
+
+		//	assembling is carried out only over those elements
+		//	which are selected and in subset si
+		gass_type::template AssembleDefect<TElem>
+			(vElemDisc, m_spApproxSpace->domain(), dd, vElem.begin(), vElem.end(), si,
+			 bNonRegularGrid, d, u, m_spAssTuner);
+	}
+	else
+	{
+		//	general case: assembling over all elements in subset si
+		gass_type::template AssembleDefect<TElem>
+			(vElemDisc, m_spApproxSpace->domain(), dd,
+				dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
+					bNonRegularGrid, d, u, m_spAssTuner);
+	}
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Matrix and RHS (stationary)
 ///////////////////////////////////////////////////////////////////////////////
-template <typename TDomain, typename TAlgebra>
-void DomainDiscretization<TDomain, TAlgebra>::
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
 assemble_linear(matrix_type& mat, vector_type& rhs,
                 ConstSmartPtr<DoFDistribution> dd)
 {
@@ -594,32 +760,32 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		switch(dim)
 		{
 		case 1:
-			AssembleLinear<RegularEdge,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, m_spAssTuner);
+			this->template AssembleLinear<RegularEdge>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			AssembleLinear<ConstrainingEdge,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, m_spAssTuner);
+			this->template AssembleLinear<ConstrainingEdge>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs);
 			break;
 		case 2:
-			AssembleLinear<Triangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, m_spAssTuner);
-			AssembleLinear<Quadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, m_spAssTuner);
+			this->template AssembleLinear<Triangle>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs);
+			this->template AssembleLinear<Quadrilateral>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			AssembleLinear<ConstrainingTriangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, m_spAssTuner);
-			AssembleLinear<ConstrainingQuadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, m_spAssTuner);
+			this->template AssembleLinear<ConstrainingTriangle>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs);
+			this->template AssembleLinear<ConstrainingQuadrilateral>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs);
 			break;
 		case 3:
-			AssembleLinear<Tetrahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, m_spAssTuner);
-			AssembleLinear<Pyramid,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, m_spAssTuner);
-			AssembleLinear<Prism,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, m_spAssTuner);
-			AssembleLinear<Hexahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, m_spAssTuner);
+			this->template AssembleLinear<Tetrahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs);
+			this->template AssembleLinear<Pyramid>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs);
+			this->template AssembleLinear<Prism>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs);
+			this->template AssembleLinear<Hexahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs);
 			break;
 		default:
 			UG_THROW("DomainDiscretization::assemble_linear (stationary):"
@@ -652,11 +818,54 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 #endif
 }
 
+/**
+ * This function adds the contributions of all passed element discretizations
+ * on one given subset to the global Matrix and the global Right-Hand Side
+ * of the Linear problem in the stationary case.
+ *
+ * \param[in]		vElemDisc		element discretizations
+ * \param[in]		dd				DoF Distribution
+ * \param[in]		si				subset index
+ * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
+ * \param[in,out]	A				Matrix
+ * \param[in,out]	rhs				Right-hand side
+ */
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+template <typename TElem>
+void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
+AssembleLinear( const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+				ConstSmartPtr<DoFDistribution> dd,
+				int si, bool bNonRegularGrid,
+				matrix_type& A,
+				vector_type& rhs)
+{
+	//	check if only some elements are selected
+	if(m_spAssTuner->selected_elements_used())
+	{
+		std::vector<TElem*> vElem;
+		m_spAssTuner->collect_selected_elements(vElem, dd, si);
+
+		//	assembling is carried out only over those elements
+		//	which are selected and in subset si
+		gass_type::template AssembleLinear<TElem>
+			(vElemDisc, m_spApproxSpace->domain(), dd, vElem.begin(), vElem.end(), si,
+			 bNonRegularGrid, A, rhs, m_spAssTuner);
+	}
+	else
+	{
+		//	general case: assembling over all elements in subset si
+		gass_type::template AssembleLinear<TElem>
+			(vElemDisc, m_spApproxSpace->domain(), dd,
+				dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
+					bNonRegularGrid, A, rhs, m_spAssTuner);
+	}
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // RHS (stationary)
 ///////////////////////////////////////////////////////////////////////////////
-template <typename TDomain, typename TAlgebra>
-void DomainDiscretization<TDomain, TAlgebra>::
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
 assemble_rhs(vector_type& rhs,
 			const vector_type& u,
 			ConstSmartPtr<DoFDistribution> dd)
@@ -704,32 +913,32 @@ assemble_rhs(vector_type& rhs,
 		switch(dim)
 		{
 		case 1:
-			AssembleRhs<RegularEdge,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, u, m_spAssTuner);
+			this->template AssembleRhs<RegularEdge>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			AssembleRhs<ConstrainingEdge,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, u, m_spAssTuner);
+			this->template AssembleRhs<ConstrainingEdge>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u);
 			break;
 		case 2:
-			AssembleRhs<Triangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, u, m_spAssTuner);
-			AssembleRhs<Quadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, u, m_spAssTuner);
+			this->template AssembleRhs<Triangle>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u);
+			this->template AssembleRhs<Quadrilateral>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			AssembleRhs<ConstrainingTriangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, u, m_spAssTuner);
-			AssembleRhs<ConstrainingQuadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, u, m_spAssTuner);
+			this->template AssembleRhs<ConstrainingTriangle>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u);
+			this->template AssembleRhs<ConstrainingQuadrilateral>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u);
 			break;
 		case 3:
-			AssembleRhs<Tetrahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, u, m_spAssTuner);
-			AssembleRhs<Pyramid,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, u, m_spAssTuner);
-			AssembleRhs<Prism,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, u, m_spAssTuner);
-			AssembleRhs<Hexahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, u, m_spAssTuner);
+			this->template AssembleRhs<Tetrahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u);
+			this->template AssembleRhs<Pyramid>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u);
+			this->template AssembleRhs<Prism>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u);
+			this->template AssembleRhs<Hexahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u);
 			break;
 		default:
 			UG_THROW("DomainDiscretization::assemble_rhs (stationary):"
@@ -761,19 +970,52 @@ assemble_rhs(vector_type& rhs,
 #endif
 }
 
-template <typename TDomain, typename TAlgebra>
-void DomainDiscretization<TDomain, TAlgebra>::
-assemble_rhs(vector_type& rhs,
-			ConstSmartPtr<DoFDistribution> dd)
+/**
+ * This function adds the contributions of all passed element discretizations
+ * on one given subset to the global Right-Hand Side.
+ *
+ * \param[in]		vElemDisc		element discretizations
+ * \param[in]		dd				DoF Distribution
+ * \param[in]		si				subset index
+ * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
+ * \param[in,out]	rhs				Right-hand side
+ * \param[in]		u				solution
+ */
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+template <typename TElem>
+void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
+AssembleRhs(	const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+				ConstSmartPtr<DoFDistribution> dd,
+				int si, bool bNonRegularGrid,
+				vector_type& rhs,
+				const vector_type& u)
 {
-	assemble_rhs(rhs, rhs, dd);
+	//	check if only some elements are selected
+	if(m_spAssTuner->selected_elements_used())
+	{
+		std::vector<TElem*> vElem;
+		m_spAssTuner->collect_selected_elements(vElem, dd, si);
+
+		//	assembling is carried out only over those elements
+		//	which are selected and in subset si
+		gass_type::template AssembleRhs<TElem>
+			(vElemDisc, m_spApproxSpace->domain(), dd, vElem.begin(), vElem.end(), si,
+			 bNonRegularGrid, rhs, u, m_spAssTuner);
+	}
+	else
+	{
+		//	general case: assembling over all elements in subset si
+		gass_type::template AssembleRhs<TElem>
+			(vElemDisc, m_spApproxSpace->domain(), dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
+					bNonRegularGrid, rhs, u, m_spAssTuner);
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // set constraints (stationary)
 ///////////////////////////////////////////////////////////////////////////////
-template <typename TDomain, typename TAlgebra>
-void DomainDiscretization<TDomain, TAlgebra>::
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
 adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd)
 {
 	PROFILE_FUNC_GROUP("discretization");
@@ -808,8 +1050,8 @@ adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd)
 ///////////////////////////////////////////////////////////////////////////////
 // Error estimator (stationary)
 ///////////////////////////////////////////////////////////////////////////////
-template <typename TDomain, typename TAlgebra>
-void DomainDiscretization<TDomain, TAlgebra>::
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
 calc_error
 (
 	const vector_type& u,
@@ -877,32 +1119,32 @@ calc_error
 		switch(dim)
 		{
 		case 1:
-			AssembleErrorEstimator<RegularEdge,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, u);
+			this->template AssembleErrorEstimator<RegularEdge>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, u);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			AssembleErrorEstimator<ConstrainingEdge,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, u);
+			this->template AssembleErrorEstimator<ConstrainingEdge>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, u);
 			break;
 		case 2:
-			AssembleErrorEstimator<Triangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, u);
-			AssembleErrorEstimator<Quadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, u);
+			this->template AssembleErrorEstimator<Triangle>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, u);
+			this->template AssembleErrorEstimator<Quadrilateral>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, u);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			AssembleErrorEstimator<ConstrainingTriangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, u);
-			AssembleErrorEstimator<ConstrainingQuadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, u);
+			this->template AssembleErrorEstimator<ConstrainingTriangle>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, u);
+			this->template AssembleErrorEstimator<ConstrainingQuadrilateral>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, u);
 			break;
 		case 3:
-			AssembleErrorEstimator<Tetrahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, u);
-			AssembleErrorEstimator<Pyramid,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, u);
-			AssembleErrorEstimator<Prism,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, u);
-			AssembleErrorEstimator<Hexahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, u);
+			this->template AssembleErrorEstimator<Tetrahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, u);
+			this->template AssembleErrorEstimator<Pyramid>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, u);
+			this->template AssembleErrorEstimator<Prism>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, u);
+			this->template AssembleErrorEstimator<Hexahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, u);
 			break;
 		default:
 			UG_THROW("DomainDiscretization::calc_error:"
@@ -995,6 +1237,31 @@ calc_error
 	UG_CATCH_THROW("DomainDiscretization::calc_error: Cannot release the error estimator");
 }
 
+/**
+ * This function assembles the error estimator associated with all the
+ * element discretizations in the internal data structure for one given subset.
+ *
+ * \param[in]		vElemDisc		element discretizations
+ * \param[in]		dd				DoF Distribution
+ * \param[in]		si				subset index
+ * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
+ * \param[in]		u				solution
+ */
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+template <typename TElem>
+inline void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
+AssembleErrorEstimator(	const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+						ConstSmartPtr<DoFDistribution> dd,
+						int si, bool bNonRegularGrid,
+						const vector_type& u)
+{
+	//	general case: assembling over all elements in subset si
+	gass_type::template AssembleErrorEstimator<TElem>
+		(vElemDisc, m_spApproxSpace->domain(), dd,
+			dd->template begin<TElem>(si), dd->template end<TElem>(si),
+				si, bNonRegularGrid, u);
+}
+
 
 
 
@@ -1007,8 +1274,8 @@ calc_error
 ///////////////////////////////////////////////////////////////////////////////
 // Prepare Timestep (instationary)
 ///////////////////////////////////////////////////////////////////////////////
-template <typename TDomain, typename TAlgebra>
-void DomainDiscretization<TDomain, TAlgebra>::
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
 prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
                 ConstSmartPtr<DoFDistribution> dd)
 {
@@ -1052,32 +1319,32 @@ prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		switch(dim)
 		{
 		case 1:
-			PrepareTimestep<RegularEdge,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_spAssTuner);
+			this->template PrepareTimestep<RegularEdge>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			PrepareTimestep<ConstrainingEdge,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_spAssTuner);
+			this->template PrepareTimestep<ConstrainingEdge>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
 			break;
 		case 2:
-			PrepareTimestep<Triangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_spAssTuner);
-			PrepareTimestep<Quadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_spAssTuner);
+			this->template PrepareTimestep<Triangle>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
+			this->template PrepareTimestep<Quadrilateral>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			PrepareTimestep<ConstrainingTriangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_spAssTuner);
-			PrepareTimestep<ConstrainingQuadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_spAssTuner);
+			this->template PrepareTimestep<ConstrainingTriangle>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
+			this->template PrepareTimestep<ConstrainingQuadrilateral>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
 			break;
 		case 3:
-			PrepareTimestep<Tetrahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_spAssTuner);
-			PrepareTimestep<Pyramid,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_spAssTuner);
-			PrepareTimestep<Prism,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_spAssTuner);
-			PrepareTimestep<Hexahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_spAssTuner);
+			this->template PrepareTimestep<Tetrahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
+			this->template PrepareTimestep<Pyramid>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
+			this->template PrepareTimestep<Prism>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
+			this->template PrepareTimestep<Hexahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
 			break;
 		default:
 			UG_THROW("DomainDiscretization::prepare_timestep (instationary):"
@@ -1090,12 +1357,52 @@ prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 	}
 }
 
+/**
+ * This function prepares the global discretization for a time-stepping scheme
+ * by calling the "prepare_timestep_elem" methods of all passed element
+ * discretizations on one given subset.
+ *
+ * \param[in]		vElemDisc		element discretizations
+ * \param[in]		dd				DoF Distribution
+ * \param[in]		si				subset index
+ * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
+ * \param[in]		vSol			current and previous solutions
+ */
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+template <typename TElem>
+void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
+PrepareTimestep(const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+				ConstSmartPtr<DoFDistribution> dd,
+				int si, bool bNonRegularGrid,
+				ConstSmartPtr<VectorTimeSeries<vector_type> > vSol)
+{
+	//	check if only some elements are selected
+	if(m_spAssTuner->selected_elements_used())
+	{
+		std::vector<TElem*> vElem;
+		m_spAssTuner->collect_selected_elements(vElem, dd, si);
+
+		//	assembling is carried out only over those elements
+		//	which are selected and in subset si
+		gass_type::template PrepareTimestep<TElem>
+			(vElemDisc, m_spApproxSpace->domain(), dd, vElem.begin(), vElem.end(), si,
+			 bNonRegularGrid, vSol, m_spAssTuner);
+	}
+	else
+	{
+		//	general case: assembling over all elements in subset si
+		gass_type::template PrepareTimestep<TElem>
+			(vElemDisc, m_spApproxSpace->domain(), dd,
+				dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
+					bNonRegularGrid, vSol, m_spAssTuner);
+	}
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Jacobian (instationary)
 ///////////////////////////////////////////////////////////////////////////////
-template <typename TDomain, typename TAlgebra>
-void DomainDiscretization<TDomain, TAlgebra>::
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
 assemble_jacobian(matrix_type& J,
                   ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
                   const number s_a0,
@@ -1136,8 +1443,6 @@ assemble_jacobian(matrix_type& J,
 		} UG_CATCH_THROW("'DomainDiscretization': Cannot modify solution.");
 	}
 
-
-
 //	loop subsets
 	for(size_t i = 0; i < unionSubsets.size(); ++i)
 	{
@@ -1165,32 +1470,32 @@ assemble_jacobian(matrix_type& J,
 		switch(dim)
 		{
 		case 1:
-			AssembleJacobian<RegularEdge,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, pModifyU, s_a0, m_spAssTuner);
+			this->template AssembleJacobian<RegularEdge>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			AssembleJacobian<ConstrainingEdge,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, pModifyU, s_a0, m_spAssTuner);
+			this->template AssembleJacobian<ConstrainingEdge>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0);
 			break;
 		case 2:
-			AssembleJacobian<Triangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, pModifyU, s_a0, m_spAssTuner);
-			AssembleJacobian<Quadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, pModifyU, s_a0, m_spAssTuner);
+			this->template AssembleJacobian<Triangle>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0);
+			this->template AssembleJacobian<Quadrilateral>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			AssembleJacobian<ConstrainingTriangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, pModifyU, s_a0, m_spAssTuner);
-			AssembleJacobian<ConstrainingQuadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, pModifyU, s_a0, m_spAssTuner);
+			this->template AssembleJacobian<ConstrainingTriangle>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0);
+			this->template AssembleJacobian<ConstrainingQuadrilateral>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0);
 			break;
 		case 3:
-			AssembleJacobian<Tetrahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, pModifyU, s_a0, m_spAssTuner);
-			AssembleJacobian<Pyramid,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, pModifyU, s_a0, m_spAssTuner);
-			AssembleJacobian<Prism,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, pModifyU, s_a0, m_spAssTuner);
-			AssembleJacobian<Hexahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, pModifyU, s_a0, m_spAssTuner);
+			this->template AssembleJacobian<Tetrahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0);
+			this->template AssembleJacobian<Pyramid>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0);
+			this->template AssembleJacobian<Prism>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0);
+			this->template AssembleJacobian<Hexahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0);
 			break;
 		default:
 			UG_THROW("DomainDiscretization::assemble_jacobian (instationary):"
@@ -1222,12 +1527,55 @@ assemble_jacobian(matrix_type& J,
 #endif
 }
 
+/**
+ * This function adds the contributions of all passed element discretizations
+ * on one given subset to the global Jacobian in the time-dependent case.
+ * Note, that s_m0 == 1
+ *
+ * \param[in]		vElemDisc		element discretizations
+ * \param[in]		dd				DoF Distribution
+ * \param[in]		si				subset index
+ * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
+ * \param[in,out]	J				jacobian
+ * \param[in]		vSol			current and previous solutions
+ * \param[in]		s_a0			scaling factor for stiffness part
+ */
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+template <typename TElem>
+void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
+AssembleJacobian(	const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+					ConstSmartPtr<DoFDistribution> dd,
+					int si, bool bNonRegularGrid,
+					matrix_type& J,
+					ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+					number s_a0)
+{
+	//	check if only some elements are selected
+	if(m_spAssTuner->selected_elements_used())
+	{
+		std::vector<TElem*> vElem;
+		m_spAssTuner->collect_selected_elements(vElem, dd, si);
+	
+		//	assembling is carried out only over those elements
+		//	which are selected and in subset si
+		gass_type::template AssembleJacobian<TElem>
+			(vElemDisc, m_spApproxSpace->domain(), dd, vElem.begin(), vElem.end(), si,
+			 bNonRegularGrid, J, vSol, s_a0, m_spAssTuner);
+	}
+	else
+	{
+		gass_type::template AssembleJacobian<TElem>
+			(vElemDisc, m_spApproxSpace->domain(), dd,
+				dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
+					bNonRegularGrid, J, vSol, s_a0, m_spAssTuner);
+	}
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Defect (instationary)
 ///////////////////////////////////////////////////////////////////////////////
-template <typename TDomain, typename TAlgebra>
-void DomainDiscretization<TDomain, TAlgebra>::
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
 assemble_defect(vector_type& d,
                 ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
                 const std::vector<number>& vScaleMass,
@@ -1249,7 +1597,6 @@ assemble_defect(vector_type& d,
 	try{
 		CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler());
 	}UG_CATCH_THROW("'DomainDiscretization': Can not create Subset Groups and Union.");
-
 
 //	pre process -  modifies the solution, used for computing the defect
 	ConstSmartPtr<VectorTimeSeries<vector_type> > pModifyU = vSol;
@@ -1294,32 +1641,32 @@ assemble_defect(vector_type& d,
 		switch(dim)
 		{
 		case 1:
-			AssembleDefect<RegularEdge,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff, m_spAssTuner);
+			this->template AssembleDefect<RegularEdge>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			AssembleDefect<ConstrainingEdge,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff, m_spAssTuner);
+			this->template AssembleDefect<ConstrainingEdge>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff);
 			break;
 		case 2:
-			AssembleDefect<Triangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff, m_spAssTuner);
-			AssembleDefect<Quadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff, m_spAssTuner);
+			this->template AssembleDefect<Triangle>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff);
+			this->template AssembleDefect<Quadrilateral>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			AssembleDefect<ConstrainingTriangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff, m_spAssTuner);
-			AssembleDefect<ConstrainingQuadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff, m_spAssTuner);
+			this->template AssembleDefect<ConstrainingTriangle>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff);
+			this->template AssembleDefect<ConstrainingQuadrilateral>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff);
 			break;
 		case 3:
-			AssembleDefect<Tetrahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff, m_spAssTuner);
-			AssembleDefect<Pyramid,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff, m_spAssTuner);
-			AssembleDefect<Prism,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff, m_spAssTuner);
-			AssembleDefect<Hexahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff, m_spAssTuner);
+			this->template AssembleDefect<Tetrahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff);
+			this->template AssembleDefect<Pyramid>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff);
+			this->template AssembleDefect<Prism>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff);
+			this->template AssembleDefect<Hexahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff);
 			break;
 		default:
 			UG_THROW("DomainDiscretization::assemble_defect (instationary):"
@@ -1350,11 +1697,57 @@ assemble_defect(vector_type& d,
 #endif
 }
 
+/*
+ * This function adds the contributions of all passed element discretizations
+ * on one given subset to the global Defect in the instationary case.
+ *
+ * \param[in]		vElemDisc		element discretizations
+ * \param[in]		dd				DoF Distribution
+ * \param[in]		si				subset index
+ * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
+ * \param[in,out]	d				defect
+ * \param[in]		vSol			current and previous solutions
+ * \param[in]		vScaleMass		scaling factors for mass part
+ * \param[in]		vScaleStiff		scaling factors for stiffness part
+ */
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+template <typename TElem>
+void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
+AssembleDefect( const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+				ConstSmartPtr<DoFDistribution> dd,
+				int si, bool bNonRegularGrid,
+				vector_type& d,
+				ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+				const std::vector<number>& vScaleMass,
+				const std::vector<number>& vScaleStiff)
+{
+	//	check if only some elements are selected
+	if(m_spAssTuner->selected_elements_used())
+	{
+		std::vector<TElem*> vElem;
+		m_spAssTuner->collect_selected_elements(vElem, dd, si);
+		
+		//	assembling is carried out only over those elements
+		//	which are selected and in subset si
+		gass_type::template AssembleDefect<TElem>
+			(vElemDisc, m_spApproxSpace->domain(), dd, vElem.begin(), vElem.end(), si,
+			 bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
+	}
+	else
+	{
+		//	general case: assembling over all elements in subset si
+		gass_type::template AssembleDefect<TElem>
+			(vElemDisc, m_spApproxSpace->domain(), dd,
+				dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
+					bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
+	}
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Matrix and RHS (instationary)
 ///////////////////////////////////////////////////////////////////////////////
-template <typename TDomain, typename TAlgebra>
-void DomainDiscretization<TDomain, TAlgebra>::
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
 assemble_linear(matrix_type& mat, vector_type& rhs,
                 ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
                 const std::vector<number>& vScaleMass,
@@ -1405,32 +1798,32 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		switch(dim)
 		{
 		case 1:
-			AssembleLinear<RegularEdge,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
+			this->template AssembleLinear<RegularEdge>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			AssembleLinear<ConstrainingEdge,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
+			this->template AssembleLinear<ConstrainingEdge>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff);
 			break;
 		case 2:
-			AssembleLinear<Triangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
-			AssembleLinear<Quadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
+			this->template AssembleLinear<Triangle>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff);
+			this->template AssembleLinear<Quadrilateral>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			AssembleLinear<ConstrainingTriangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
-			AssembleLinear<ConstrainingQuadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
+			this->template AssembleLinear<ConstrainingTriangle>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff);
+			this->template AssembleLinear<ConstrainingQuadrilateral>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff);
 			break;
 		case 3:
-			AssembleLinear<Tetrahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
-			AssembleLinear<Pyramid,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
-			AssembleLinear<Prism,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
-			AssembleLinear<Hexahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
+			this->template AssembleLinear<Tetrahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff);
+			this->template AssembleLinear<Pyramid>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff);
+			this->template AssembleLinear<Prism>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff);
+			this->template AssembleLinear<Hexahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff);
 			break;
 		default:
 			UG_THROW("DomainDiscretization::assemble_linear (instationary):"
@@ -1441,7 +1834,6 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 						" Assembling of elements of Dimension " << dim << " in "
 						" subset "<<si<< " failed.");
 	}
-
 
 //	post process
 	try{
@@ -1465,11 +1857,60 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 #endif
 }
 
+/**
+ * This function adds the contributions of all passed element discretizations
+ * on one given subset to the global Matrix and the global Right-Hand Side
+ * of the Linear problem in the stationary case.
+ *
+ * \param[in]		vElemDisc		element discretizations
+ * \param[in]		dd				DoF Distribution
+ * \param[in]		si				subset index
+ * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
+ * \param[in,out]	A				Matrix
+ * \param[in,out]	rhs				Right-hand side
+ * \param[in]		vSol			current and previous solutions
+ * \param[in]		vScaleMass		scaling factors for mass part
+ * \param[in]		vScaleStiff		scaling factors for stiffness part
+ */
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+template <typename TElem>
+void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
+AssembleLinear( const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+				ConstSmartPtr<DoFDistribution> dd,
+				int si, bool bNonRegularGrid,
+				matrix_type& A,
+				vector_type& rhs,
+				ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+				const std::vector<number>& vScaleMass,
+				const std::vector<number>& vScaleStiff)
+{
+	//	check if only some elements are selected
+	if(m_spAssTuner->selected_elements_used())
+	{
+		std::vector<TElem*> vElem;
+		m_spAssTuner->collect_selected_elements(vElem, dd, si);
+
+		//	assembling is carried out only over those elements
+		//	which are selected and in subset si
+		gass_type::template AssembleLinear<TElem>
+			(vElemDisc, m_spApproxSpace->domain(), dd, vElem.begin(), vElem.end(), si,
+			 bNonRegularGrid, A, rhs, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
+	}
+	else
+	{
+		//	general case: assembling over all elements in subset si
+		gass_type::template AssembleLinear<TElem>
+			(vElemDisc, m_spApproxSpace->domain(), dd,
+				dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
+					bNonRegularGrid, A, rhs, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
+	}
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // RHS (instationary)
 ///////////////////////////////////////////////////////////////////////////////
-template <typename TDomain, typename TAlgebra>
-void DomainDiscretization<TDomain, TAlgebra>::
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
 assemble_rhs(vector_type& rhs,
              ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
              const std::vector<number>& vScaleMass,
@@ -1519,32 +1960,32 @@ assemble_rhs(vector_type& rhs,
 		switch(dim)
 		{
 		case 1:
-			AssembleRhs<RegularEdge,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
+			this->template AssembleRhs<RegularEdge>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			AssembleRhs<ConstrainingEdge,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
+			this->template AssembleRhs<ConstrainingEdge>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff);
 			break;
 		case 2:
-			AssembleRhs<Triangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
-			AssembleRhs<Quadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
+			this->template AssembleRhs<Triangle>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff);
+			this->template AssembleRhs<Quadrilateral>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			AssembleRhs<ConstrainingTriangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
-			AssembleRhs<ConstrainingQuadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
+			this->template AssembleRhs<ConstrainingTriangle>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff);
+			this->template AssembleRhs<ConstrainingQuadrilateral>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff);
 			break;
 		case 3:
-			AssembleRhs<Tetrahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
-			AssembleRhs<Pyramid,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
-			AssembleRhs<Prism,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
-			AssembleRhs<Hexahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
+			this->template AssembleRhs<Tetrahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff);
+			this->template AssembleRhs<Pyramid>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff);
+			this->template AssembleRhs<Prism>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff);
+			this->template AssembleRhs<Hexahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff);
 			break;
 		default:
 			UG_THROW("DomainDiscretization::assemble_rhs (instationary):"
@@ -1576,11 +2017,57 @@ assemble_rhs(vector_type& rhs,
 #endif
 }
 
+/**
+ * This function adds the contributions of all passed element discretizations
+ * on one given subset to the global Right-Hand Side in the time-dependent case.
+ *
+ * \param[in]		vElemDisc		element discretizations
+ * \param[in]		dd				DoF Distribution
+ * \param[in]		si				subset index
+ * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
+ * \param[in,out]	rhs				Right-hand side
+ * \param[in]		vSol			current and previous solutions
+ * \param[in]		vScaleMass		scaling factors for mass part
+ * \param[in]		vScaleStiff		scaling factors for stiffness part
+ */
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+template <typename TElem>
+void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
+AssembleRhs(	const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+				ConstSmartPtr<DoFDistribution> dd,
+				int si, bool bNonRegularGrid,
+				vector_type& rhs,
+				ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+				const std::vector<number>& vScaleMass,
+				const std::vector<number>& vScaleStiff)
+{
+	//	check if only some elements are selected
+	if(m_spAssTuner->selected_elements_used())
+	{
+		std::vector<TElem*> vElem;
+		m_spAssTuner->collect_selected_elements(vElem, dd, si);
+
+		//	assembling is carried out only over those elements
+		//	which are selected and in subset si
+		gass_type::template AssembleRhs<TElem>
+			(vElemDisc, m_spApproxSpace->domain(), dd, vElem.begin(), vElem.end(), si,
+			 bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
+	}
+	else
+	{
+		//	general case: assembling over all elements in subset si
+		gass_type::template AssembleRhs<TElem>
+			(vElemDisc, m_spApproxSpace->domain(), dd,
+				dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
+					bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
+	}
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // set constraint values (instationary)
 ///////////////////////////////////////////////////////////////////////////////
-template <typename TDomain, typename TAlgebra>
-void DomainDiscretization<TDomain, TAlgebra>::
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
 adjust_solution(vector_type& u, number time, ConstSmartPtr<DoFDistribution> dd)
 {
 	PROFILE_FUNC_GROUP("discretization");
@@ -1615,8 +2102,8 @@ adjust_solution(vector_type& u, number time, ConstSmartPtr<DoFDistribution> dd)
 ///////////////////////////////////////////////////////////////////////////////
 // Error estimator (instationary)
 ///////////////////////////////////////////////////////////////////////////////
-template <typename TDomain, typename TAlgebra>
-void DomainDiscretization<TDomain, TAlgebra>::
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
 calc_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		   ConstSmartPtr<DoFDistribution> dd,
 		   std::vector<number> vScaleMass,
@@ -1686,32 +2173,32 @@ calc_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 			switch(dim)
 			{
 			case 1:
-				AssembleErrorEstimator<RegularEdge,TDomain,TAlgebra>
-					(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
+				this->template AssembleErrorEstimator<RegularEdge>
+					(vSubsetElemDisc, dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
 				// When assembling over lower-dim manifolds that contain hanging nodes:
-				AssembleErrorEstimator<ConstrainingEdge,TDomain,TAlgebra>
-					(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
+				this->template AssembleErrorEstimator<ConstrainingEdge>
+					(vSubsetElemDisc, dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
 				break;
 			case 2:
-				AssembleErrorEstimator<Triangle,TDomain,TAlgebra>
-					(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
-				AssembleErrorEstimator<Quadrilateral,TDomain,TAlgebra>
-					(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
+				this->template AssembleErrorEstimator<Triangle>
+					(vSubsetElemDisc, dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
+				this->template AssembleErrorEstimator<Quadrilateral>
+					(vSubsetElemDisc, dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
 				// When assembling over lower-dim manifolds that contain hanging nodes:
-				AssembleErrorEstimator<ConstrainingTriangle,TDomain,TAlgebra>
-					(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
-				AssembleErrorEstimator<ConstrainingQuadrilateral,TDomain,TAlgebra>
-					(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
+				this->template AssembleErrorEstimator<ConstrainingTriangle>
+					(vSubsetElemDisc, dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
+				this->template AssembleErrorEstimator<ConstrainingQuadrilateral>
+					(vSubsetElemDisc, dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
 				break;
 			case 3:
-				AssembleErrorEstimator<Tetrahedron,TDomain,TAlgebra>
-					(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
-				AssembleErrorEstimator<Pyramid,TDomain,TAlgebra>
-					(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
-				AssembleErrorEstimator<Prism,TDomain,TAlgebra>
-					(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
-				AssembleErrorEstimator<Hexahedron,TDomain,TAlgebra>
-					(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
+				this->template AssembleErrorEstimator<Tetrahedron>
+					(vSubsetElemDisc, dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
+				this->template AssembleErrorEstimator<Pyramid>
+					(vSubsetElemDisc, dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
+				this->template AssembleErrorEstimator<Prism>
+					(vSubsetElemDisc, dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
+				this->template AssembleErrorEstimator<Hexahedron>
+					(vSubsetElemDisc, dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
 				break;
 			default:
 				UG_THROW("DomainDiscretization::calc_error:"
@@ -1807,8 +2294,37 @@ calc_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 	UG_CATCH_THROW("DomainDiscretization::calc_error: Cannot release the error estimator");
 }
 
-template <typename TDomain, typename TAlgebra>
-void DomainDiscretization<TDomain, TAlgebra>::
+/**
+ * This function assembles the error estimator associated with all the
+ * element discretizations in the internal data structure for one given subset.
+ *
+ * \param[in]		vElemDisc		element discretizations
+ * \param[in]		dd				DoF Distribution
+ * \param[in]		si				subset index
+ * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
+ * \param[in]		vScaleMass		scaling factors for mass part
+ * \param[in]		vScaleStiff		scaling factors for stiffness part
+ * \param[in]		vSol				solution
+ */
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+template <typename TElem>
+inline void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
+AssembleErrorEstimator(	const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+						ConstSmartPtr<DoFDistribution> dd,
+						int si, bool bNonRegularGrid,
+						std::vector<number> vScaleMass,
+						std::vector<number> vScaleStiff,
+						ConstSmartPtr<VectorTimeSeries<vector_type> > vSol)
+{
+	//	general case: assembling over all elements in subset si
+	gass_type::template AssembleErrorEstimator<TElem>
+		(vElemDisc, m_spApproxSpace->domain(), dd,
+			dd->template begin<TElem>(si), dd->template end<TElem>(si),
+				si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
+}
+
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
 mark_for_refinement
 (	IRefiner& refiner,
 	number TOL,
@@ -1828,8 +2344,8 @@ mark_for_refinement
 		TOL, refineFrac, maxLevel);
 }
 
-template <typename TDomain, typename TAlgebra>
-void DomainDiscretization<TDomain, TAlgebra>::
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
 mark_for_coarsening
 (	IRefiner& refiner,
 	number TOL,
@@ -1849,8 +2365,8 @@ mark_for_coarsening
 		TOL, coarseFrac, maxLevel);
 }
 
-template <typename TDomain, typename TAlgebra>
-void DomainDiscretization<TDomain, TAlgebra>::
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
 invalidate_error()
 {
 	// check that error indicators have been calculated
@@ -1861,22 +2377,19 @@ invalidate_error()
 	}
 }
 
-template <typename TDomain, typename TAlgebra>
-bool DomainDiscretization<TDomain, TAlgebra>::
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+bool DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
 is_error_valid()
 {
 	// check that error indicators have been calculated
 	return m_bErrorCalculated;
 }
 
-
-
-
 ///////////////////////////////////////////////////////////////////////////////
 // Finish Timestep (instationary)
 ///////////////////////////////////////////////////////////////////////////////
-template <typename TDomain, typename TAlgebra>
-void DomainDiscretization<TDomain, TAlgebra>::
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
 finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
                 ConstSmartPtr<DoFDistribution> dd)
 {
@@ -1920,32 +2433,32 @@ finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		switch(dim)
 		{
 		case 1:
-			FinishTimestep<RegularEdge,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_spAssTuner);
+			this->template FinishTimestep<RegularEdge>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			FinishTimestep<ConstrainingEdge,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_spAssTuner);
+			this->template FinishTimestep<ConstrainingEdge>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
 			break;
 		case 2:
-			FinishTimestep<Triangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_spAssTuner);
-			FinishTimestep<Quadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_spAssTuner);
+			this->template FinishTimestep<Triangle>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
+			this->template FinishTimestep<Quadrilateral>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			FinishTimestep<ConstrainingTriangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_spAssTuner);
-			FinishTimestep<ConstrainingQuadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_spAssTuner);
+			this->template FinishTimestep<ConstrainingTriangle>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
+			this->template FinishTimestep<ConstrainingQuadrilateral>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
 			break;
 		case 3:
-			FinishTimestep<Tetrahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_spAssTuner);
-			FinishTimestep<Pyramid,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_spAssTuner);
-			FinishTimestep<Prism,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_spAssTuner);
-			FinishTimestep<Hexahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_spAssTuner);
+			this->template FinishTimestep<Tetrahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
+			this->template FinishTimestep<Pyramid>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
+			this->template FinishTimestep<Prism>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
+			this->template FinishTimestep<Hexahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
 			break;
 		default:
 			UG_THROW("DomainDiscretization::finish_timestep (instationary):"
@@ -1959,6 +2472,46 @@ finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 
 }
 
+/**
+ * This function finalizes the global discretization in a time-stepping scheme
+ * by calling the "finish_timestep_elem" methods of all passed element
+ * discretizations on one given subset.
+ *
+ * \param[in]		vElemDisc		element discretizations
+ * \param[in]		dd				DoF Distribution
+ * \param[in]		si				subset index
+ * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
+ * \param[in]		vSol			current and previous solutions
+ */
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+template <typename TElem>
+void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
+FinishTimestep(const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+			   ConstSmartPtr<DoFDistribution> dd,
+			   int si, bool bNonRegularGrid,
+			   ConstSmartPtr<VectorTimeSeries<vector_type> > vSol)
+{
+	//	check if only some elements are selected
+	if(m_spAssTuner->selected_elements_used())
+	{
+		std::vector<TElem*> vElem;
+		m_spAssTuner->collect_selected_elements(vElem, dd, si);
+
+		//	assembling is carried out only over those elements
+		//	which are selected and in subset si
+		gass_type::template FinishTimestep<TElem>
+			(vElemDisc, m_spApproxSpace->domain(), dd, vElem.begin(), vElem.end(), si,
+			 bNonRegularGrid, vSol, m_spAssTuner);
+	}
+	else
+	{
+		//	general case: assembling over all elements in subset si
+		gass_type::template FinishTimestep<TElem>
+			(vElemDisc, m_spApproxSpace->domain(), dd,
+				dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
+					bNonRegularGrid, vSol, m_spAssTuner);
+	}
+}
 
 } // end namespace ug
 
