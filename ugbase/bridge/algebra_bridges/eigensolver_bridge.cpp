@@ -70,6 +70,7 @@ static void Algebra(Registry& reg, string grp)
 			.add_method("num_eigenvalues", &T::num_eigenvalues, "number of eigenvalues")
 			.add_method("get_eigenvalue", &T::get_eigenvalue, "eigenvalue i", "i")
 			.add_method("set_precision", &T::set_precision, "", "precision")
+			.add_method("set_relative_precision", &T::set_relative_precision, "", "precision")
 			.add_method("get_eigenvector", &T::get_eigenvector, "eigenvector i", "i")
 			.add_method("set_print_projected_eigenvectors", &T::set_print_projected_eigenvectors, "", "b")
 			.add_method("set_print_projected_eigenvalues", &T::set_print_projected_eigenvalues, "", "b")
@@ -82,7 +83,15 @@ static void Algebra(Registry& reg, string grp)
 			.add_method("set_linear_dependent_eps", &T::set_linear_dependent_eps)
 			.add_method("set_laplacian", &T::set_laplacian)
 			.add_method("get_max_deflection_of_a_mode", &T::get_max_deflection_of_a_mode, "maximal deflection of a mode", "composed mode and eigenvectors,")
+			.add_method("set_store_defects", &T::set_store_defects)
+			.add_method("set_store_lambdas", &T::set_store_lambdas)
+			.add_method("get_defect", &T::get_defect)
+			.add_method("get_lambda", &T::get_lambda)
+			.add_method("get_iterations", &T::get_iterations)
 			.add_method("apply", &T::apply);
+
+
+
 
 		reg.add_class_to_group(name, "EigenSolver", tag);
 	}
