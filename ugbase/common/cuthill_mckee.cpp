@@ -4,7 +4,6 @@
  *  Created on: 21.03.2011
  *      Author: andreasvogel
  */
-#if 0
 #include "common/common.h"
 #include "cuthill_mckee.h"
 #include <algorithm>
@@ -13,6 +12,23 @@
 #include "common/profiler/profiler.h"
 
 namespace ug{
+
+bool CheckPermutationBijective(const std::vector<size_t> &perm)
+{
+	std::vector<size_t> invPerm;
+	invPerm.resize(perm.size());
+	bool bId = true;
+	for(size_t i=0; i<perm.size(); i++) invPerm[i] = (size_t) (-1);
+
+	for(size_t i=0; i<perm.size(); i++)
+	{
+		UG_COND_THROW(invPerm[perm[i]] != (size_t) (-1), "not a bijective permutation "
+			"(double mapping to index " << perm[i] << " by indices " << invPerm[perm[i]] << " and " << i << ")!");
+		bId = bId && perm[i] == i;
+		invPerm[perm[i]] = i;
+	}
+	return bId;
+}
 
 /// help class to provide compare operator for indices based on their degree
 /**
@@ -55,7 +71,7 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 	{
 	//	indices with no adjacent indices are marked as handled (and skipped)
 		if(vvConnection[i].size() == 0){
-			//vHandled[i] = true;
+			vHandled[i] = true;
 		}
 	//	sort adjacent index by degree
 		else {
@@ -138,7 +154,7 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 		for(size_t oldInd = 0; oldInd < vvConnection.size(); ++oldInd)
 		{
 		//	skip non-sorted indices
-			//if(vvConnection[oldInd].size() == 0) continue;
+			if(vvConnection[oldInd].size() == 0) continue;
 
 		//	get old index
 			UG_ASSERT(cnt < vNewOrder.size(), "cnt: "<<cnt<<", ordered: "<<vNewOrder.size())
@@ -154,7 +170,7 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 		for(size_t oldInd = 0; oldInd < vvConnection.size(); ++oldInd)
 		{
 		//	skip non-sorted indices
-			//if(vvConnection[oldInd].size() == 0) continue;
+			if(vvConnection[oldInd].size() == 0) continue;
 
 		//	get old index
 			UG_ASSERT(cnt < vNewOrder.size(), "cnt: "<<cnt<<", ordered: "<<vNewOrder.size())
@@ -201,8 +217,8 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 	{
 		if(vNewIndex[i] == (size_t)-1) vNewIndex[i] = vNewIndex[i-1] + 1;
 	}
+
+	//CheckPermutationBijective(vNewIndex);
 }
 
 }
-
-#endif

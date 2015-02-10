@@ -4,7 +4,6 @@
  *  Created on: 21.03.2011
  *      Author: andreasvogel
  */
-#if 0
 
 #ifndef __H__UG__COMMON__CUTHILL_MCKEE__
 #define __H__UG__COMMON__CUTHILL_MCKEE__
@@ -33,4 +32,3 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 } // end namespace ug
 
 #endif /* __H__UG__LIB_DISC__DOF_MANAGER__CUTHILL_MCKEE__ */
-#endif
