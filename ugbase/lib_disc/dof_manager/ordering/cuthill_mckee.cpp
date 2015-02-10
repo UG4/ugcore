@@ -15,6 +15,25 @@
 
 namespace ug{
 
+DebugID DID_CUTHILL_MCKEE("CuthillMcKee");
+
+bool CheckPermutationBijective(const std::vector<size_t> &perm)
+{
+	std::vector<size_t> invPerm;
+	invPerm.resize(perm.size());
+	bool bId = true;
+	for(size_t i=0; i<perm.size(); i++) invPerm[i] = (size_t) (-1);
+
+	for(size_t i=0; i<perm.size(); i++)
+	{
+		UG_COND_THROW(invPerm[perm[i]] != (size_t) (-1), "not a bijective permutation "
+			"(double mapping to index " << perm[i] << " by indices " << invPerm[perm[i]] << " and " << i << ")!");
+		bId = bId && perm[i] == i;
+		invPerm[perm[i]] = i;
+	}
+	return bId;
+}
+
 /// help class to provide compare operator for indices based on their degree
 /**
  * This class is used to provide an ordering for indices. The ordering relation
@@ -202,6 +221,9 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 	{
 		if(vNewIndex[i] == (size_t)-1) vNewIndex[i] = vNewIndex[i-1] + 1;
 	}
+
+	IF_DEBUG(DID_CUTHILL_MCKEE, 1)
+		CheckPermutationBijective(vNewIndex);
 }
 
 void OrderCuthillMcKee(DoFDistribution& dofDistr, bool bReverse)
