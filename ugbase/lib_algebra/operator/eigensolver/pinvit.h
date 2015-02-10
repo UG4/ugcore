@@ -112,6 +112,7 @@ private:
 
 	size_t m_maxIterations;
 	double m_dPrecision;
+	bool m_bRelativePrecision;
 	size_t m_iPINVIT;
 	std::vector<double> lambda;
 	std::vector<bool> vbDirichlet;
@@ -138,9 +139,9 @@ public:
 	virtual std::string config_string() const
 	{
 		std::stringstream ss;
-		ss << "PINVIT Eigensolver by Martin Rupp / G-CSC 2013." <<
+		ss << "PINVIT Eigensolver by Martin Rupp / G-CSC 2013-2015." <<
 				"\n MaxIterations = " << m_maxIterations <<
-				"\n Precision = " << m_dPrecision <<
+				"\n Precision = " << m_dPrecision << (m_bRelativePrecision ? " (relative) " : " (absolute) ") <<
 				"\n MinimumDefectToCalcCorrection = " << m_dMinimumDefectToCalcCorrection <<
 				"\n Number of EV = " << px.size() <<
 				"\n PINVIT = " << m_iPINVIT << " = ";
@@ -186,6 +187,9 @@ public:
 		m_currentAdditionalEigenvectors = 0;
 		m_linearDependentEps = 1e-6;
 		m_bLaplacian = false;
+		m_bStoreDefects = false;
+		m_bStoreLambdas = false;
+		m_bRelativePrecision = false;
 	}
 
 	void set_linear_dependent_eps(double eps)
@@ -265,6 +269,7 @@ public:
 	{
 		m_dPrecision = precision;
 		m_dMinimumDefectToCalcCorrection = precision;
+		m_bRelativePrecision = false;
 	}
 
 	void set_additional_eigenvectors_to_keep(size_t i)
@@ -361,6 +366,44 @@ public:
 		return t;
 	}
 
+	void set_store_defects(bool b)
+	{
+		m_bStoreDefects = b;
+	}
+
+	void set_store_lambdas(bool b)
+	{
+		m_bStoreLambdas = b;
+	}
+
+	bool m_bStoreDefects;
+	bool m_bStoreLambdas;
+	size_t m_iteration;
+	std::vector<std::vector<double> > m_defects;
+	std::vector<std::vector<double> > m_lambdas;
+
+	size_t get_iterations()
+	{
+		return m_iteration;
+	}
+
+	double get_defect(size_t nev, size_t it)
+	{
+		UG_COND_THROW(m_bStoreDefects == false, "Not storing defects. Use set_store_defects(true).");
+		UG_COND_THROW(nev > m_defects.size(), nev << " > #EV" << m_defects.size());
+		UG_COND_THROW(it > m_defects[nev].size(), "Iteration " << it << " not available.");
+		return m_defects[nev][it];
+	}
+
+	double get_lambda(size_t nev, size_t it)
+	{
+		UG_COND_THROW(m_bStoreLambdas == false, "Not storing lambdas. Use set_store_lambdas(true).");
+		UG_COND_THROW(nev > m_lambdas.size(), nev << " > #EV" << m_lambdas.size());
+		UG_COND_THROW(it > m_lambdas[nev].size(), "Iteration " << it << " not available.");
+
+		return m_lambdas[nev][it];
+	}
+
 	/**
 	 * perform the calculation
 	 * @return
@@ -385,6 +428,7 @@ public:
 
 		std::vector<double> vDefectNorm(nEigenvalues, m_dPrecision*10);
 		std::vector<double> oldXnorm(nEigenvalues);
+		std::vector<bool> bConverged(nEigenvalues, false);
 
 		std::vector<std::string> vTestVectorDescription;
 
@@ -430,8 +474,15 @@ public:
 		pcl::ProcessCommunicator pc;
 #endif
 
+		m_iteration=0;
+		m_defects.clear();
+		if(m_bStoreDefects)
+			m_defects.resize(nEigenvalues);
+		m_lambdas.clear();
+		if(m_bStoreLambdas)
+			m_lambdas.resize(nEigenvalues);
 
-		for(size_t iteration=0; iteration<m_maxIterations; iteration++)
+		for(m_iteration=0; m_iteration<m_maxIterations; m_iteration++)
 		{
 			try{
 
@@ -452,12 +503,18 @@ public:
 					PROGRESS_UPDATE(prog, i);
 	//				UG_LOG("compute rayleigh " << i << "...\n");
 					compute_rayleigh_and_defect(px(i), lambda[i], *spDefect, vDefectNorm[i]);
+
 	//				UG_LOG("EV " << i << " defect norm: " << vDefectNorm[i] << "\n");
 
-					if(vDefectNorm[i] < m_dPrecision)
+					if((m_iteration != 0 && m_bRelativePrecision && vDefectNorm[i]/lambda[i] < m_dPrecision)
+							|| (!m_bRelativePrecision && vDefectNorm[i] < m_dPrecision))
+						bConverged[i] = true;
+
+					if(bConverged[i])
 					{
 						nrofconverged++;
-						if(m_bUseAdditionalCorrections && currentAdditionalCorrections < m_currentAdditionalEigenvectors)
+						if(!m_bRelativePrecision &&
+								m_bUseAdditionalCorrections && currentAdditionalCorrections < m_currentAdditionalEigenvectors)
 						{
 							double additionalLambda, additionalDefect;
 							compute_rayleigh_and_defect(vAdditional(currentAdditionalCorrections),
@@ -476,6 +533,11 @@ public:
 						vCorrectionName[numCorrections] = std::string("correction ") + ToString(i);
 						calculate_correction(*vCorr[numCorrections++], *spDefect);
 					}
+
+					if(m_bStoreDefects)
+						m_defects[i].push_back(vDefectNorm[i]);
+					if(m_bStoreLambdas)
+						m_lambdas[i].push_back(lambda[i]);
 				}
 				PROGRESS_FINISH(prog);
 
@@ -483,7 +545,7 @@ public:
 
 
 				// output
-				print_eigenvalues_and_defect(iteration, vDefectNorm, oldXnorm, lambda);
+				print_eigenvalues_and_defect(m_iteration, vDefectNorm, oldXnorm, lambda, bConverged);
 
 				if(nrofconverged==nEigenvalues)
 				{
@@ -494,12 +556,12 @@ public:
 				// 5. add Testvectors
 				//UG_LOG("5. add Testvectors\nEigenvalues");
 
-				get_testvectors(iteration, vCorr, vCorrectionName, numCorrections, vOldX, vAdditional, pTestVectors, vTestVectorDescription, vDefectNorm);
+				get_testvectors(m_iteration, vCorr, vCorrectionName, numCorrections, vOldX, vAdditional, pTestVectors, vTestVectorDescription, bConverged);
 
 				for(size_t i=0; i<nEigenvalues; i++)
 				{
-					write_debug(iteration, i, px(i), *spDefect, vCorr(i), vDefectNorm[i] < m_dPrecision);
-					if(vOldX.size() > i) write_debug_old(iteration, i, vOldX(i));
+					write_debug(m_iteration, i, px(i), *spDefect, vCorr(i), bConverged[i]);
+					if(vOldX.size() > i) write_debug_old(m_iteration, i, vOldX(i));
 				}
 
 				/*for(size_t i=0; i<vTestVectorDescription.size(); i++)
@@ -528,11 +590,11 @@ public:
 
 
 				if(m_bDebugCalcProjectedEigenvalues)
-					debug_calc_projected_eigenvalues(r_ev, pTestVectors, iteration, false);
+					debug_calc_projected_eigenvalues(r_ev, pTestVectors, m_iteration, false);
 				set_new_approximations_and_save_old(r_ev, pTestVectors, vOldX, vAdditional);
 
 				assert_real_positive(r_lambda);
-			}UG_CATCH_THROW("PINVIT::apply iteration " << iteration << " failed.");
+			}UG_CATCH_THROW("PINVIT::apply iteration " << m_iteration << " failed.");
 		}
 
 		UG_LOG("not converged after" << m_maxIterations << " steps.\nEigenvalues");
@@ -796,7 +858,7 @@ private:
 	 * For a given eigenvalue approximation, computes the
 	 * rayleigh quotient, the defect, the norm of the defect, and the correction calculated by the preconditioner
 	 * @param[in]  x			current normalized eigenvalue approximation (<x,x> = 1)
-	 * @param[out] lambda		lambda = <x, Ax> / <x, x>
+	 * @param[out] lambda		lambda = <x, Ax> / <x, Bx>
 	 * @param[out] defect		defect = lambda x - Ax
 	 * @param[out] vDefectNorm 	vDefectNorm = | defect |_2
 	 * @param[out] vCorr		P defect
@@ -818,7 +880,7 @@ private:
 			defect.change_storage_type(PST_UNIQUE);
 			x.change_storage_type(PST_UNIQUE);
 	#endif
-			lambda = x.dotprod(defect); // / <px[i], px[i]> = 1.0.
+			lambda = x.dotprod(defect); // / <px[i], Bpx[i]> = 1.0.
 			//UG_LOG("lambda[" << i << "] = " << lambda << "\n");
 
 	// b. calculate residuum
@@ -853,7 +915,7 @@ private:
 	 * @param[in] 		vLambda			vector of eigenvalue approximations
 	 */
 	void print_eigenvalues_and_defect(int iteration, const std::vector<double> &vDefectNorm,
-			std::vector<double> &vOldDefectNorm, const std::vector<double> &vLambda)
+			std::vector<double> &vOldDefectNorm, const std::vector<double> &vLambda, std::vector<bool> &bConverged)
 	{
 		PINVIT_PROFILE_FUNC();
 		UG_LOG("=====================================================================================\n");
@@ -864,7 +926,7 @@ private:
 			UG_LOG(i << " lambda: " << std::setw(14) << vLambda[i] << " defect: " <<
 					std::setw(14) << vDefectNorm[i]);
 			if(iteration != 0) { UG_LOG(" reduction: " << std::setw(14) << vDefectNorm[i]/vOldDefectNorm[i]); }
-			if(vDefectNorm[i] < m_dPrecision) { UG_LOG(" (converged)"); }
+			if(bConverged[i]) { UG_LOG(" (converged)"); }
 			UG_LOG("\n");
 			vOldDefectNorm[i] = vDefectNorm[i];
 		}
@@ -892,7 +954,7 @@ private:
 			std::vector<std::string> &vCorrectionName,
 			size_t numCorrections, SmartPtrVector<vector_type> &vOldX, SmartPtrVector<vector_type> &vAdditional,
 			SmartPtrVector<vector_type> &pTestVectors, std::vector<std::string> &vTestVectorDescription,
-			const std::vector<double> &vDefectNorm)
+			std::vector<bool> &bConverged)
 	{
 		try{
 			PINVIT_PROFILE_FUNC();
@@ -903,7 +965,7 @@ private:
 				UG_ASSERT(0, "todo");
 				for(size_t i=0; i < px.size(); i++)
 				{
-					if(vDefectNorm[i] >= m_dPrecision)
+					if(!bConverged[i])
 					{
 						VecScaleAdd(vCorr(i), -1.0, vCorr(i), 1.0, px(i));
 						vTestVectorDescription.push_back(std::string("ev - vCorr [") + ToString(i) + std::string("]") );
@@ -919,7 +981,7 @@ private:
 						pTestVectors.push_back(px[i]);
 						vTestVectorDescription.push_back(std::string("eigenvector [") + ToString(i) + std::string("]") );
 
-						if(vDefectNorm[i] >= m_dPrecision && m_iPINVIT >= 3)
+						if(!bConverged[i] && m_iPINVIT >= 3)
 						{
 							if(iteration != 0)
 							{
@@ -1087,6 +1149,13 @@ public:
 	void set_laplacian(bool b)
 	{
 		m_bLaplacian = b;
+	}
+
+	void set_relative_precision(double precision)
+	{
+		m_dPrecision = precision;
+		m_dMinimumDefectToCalcCorrection = precision;
+		m_bRelativePrecision = true;
 	}
 
 };
