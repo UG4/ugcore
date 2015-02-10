@@ -4,7 +4,7 @@
  *  Created on: 21.03.2011
  *      Author: andreasvogel
  */
-
+#if 0
 #include "common/common.h"
 #include "cuthill_mckee.h"
 #include <algorithm>
@@ -204,3 +204,5 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 }
 
 }
+
+#endif
