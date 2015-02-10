@@ -11,8 +11,8 @@
 #include "common/common.h"
 #include "common/profiler/profiler.h"
 #include "common/error.h"
-//#include "common/cuthill_mckee.h"
-#include "lib_disc/dof_manager/ordering/cuthill_mckee.h"
+#include "common/cuthill_mckee.h"
+//#include "lib_disc/dof_manager/ordering/cuthill_mckee.h"
 #include <vector>
 
 namespace ug{
