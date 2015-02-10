@@ -11,7 +11,6 @@
 #include "common/profiler/profiler.h"
 #include "domain_disc.h"
 #include "lib_disc/common/groups_util.h"
-#include "lib_disc/spatial_disc/elem_disc/elem_disc_assemble_util.h"
 #include "lib_disc/function_spaces/error_indicator_util.h"
 #ifdef UG_PARALLEL
 #include "lib_disc/parallelization/parallelization_util.h"
