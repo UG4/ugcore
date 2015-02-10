@@ -509,6 +509,8 @@ public:
 					if((m_iteration != 0 && m_bRelativePrecision && vDefectNorm[i]/lambda[i] < m_dPrecision)
 							|| (!m_bRelativePrecision && vDefectNorm[i] < m_dPrecision))
 						bConverged[i] = true;
+					else
+						bConverged[i] = false;
 
 					if(bConverged[i])
 					{
