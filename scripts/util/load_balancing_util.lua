@@ -38,7 +38,7 @@ balancer.maxLvlsWithoutRedist = 4
 balancer.parallelElementThreshold	= 32
 balancer.qualityThreshold			= 0.8
 balancer.balanceWeights				= nil
-balancer.communicationCostWeights	= nil
+balancer.communicationWeights	= nil
 balancer.childWeight				= 2
 balancer.siblingWeight				= 2
 balancer.itrFactor					= 1000
@@ -139,8 +139,8 @@ function balancer.CreateLoadBalancer(domain)
 				if balancer.balanceWeights ~= nil then
 					partitioner:set_balance_weights(balancer.balanceWeights)
 				end
-				if balancer.communicationCostWeights ~= nil then
-					partitioner:set_communication_cost_weights(balancer.communicationCostWeights)
+				if balancer.communicationWeights ~= nil then
+					partitioner:set_communication_weights(balancer.communicationWeights)
 				end
 				partitioner:set_child_weight(balancer.childWeight)
 				partitioner:set_sibling_weight(balancer.siblingWeight)

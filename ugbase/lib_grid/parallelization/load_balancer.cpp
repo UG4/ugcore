@@ -401,7 +401,7 @@ rebalance()
 				  "A Process-Hierarchy has to be specifed for rebalancing");
 
 	m_partitioner->set_next_process_hierarchy(m_processHierarchy);
-	//m_partitioner->set_communication_cost_weights(m_communicationCostWeights);
+	//m_partitioner->set_communication_weights(m_communicationCostWeights);
 	m_partitioner->set_balance_weights(m_balanceWeights);
 
 //todo:	check imbalance and find base-level on which to partition!

@@ -73,9 +73,9 @@ set_balance_weights(SPBalanceWeights balanceWeights)
 
 template<int dim>
 void Partitioner_Parmetis<dim>::
-set_communication_cost_weights(SmartPtr<ICommunicationCostWeights<dim> > commWeights)
+set_communication_weights(SmartPtr<ICommunicationWeights<dim> > commWeights)
 {
-	m_communicationCostWeights = commWeights;
+	m_communicationWeights = commWeights;
 }
 
 
@@ -104,7 +104,7 @@ supports_balance_weights() const
 
 template<int dim>
 bool Partitioner_Parmetis<dim>::
-supports_communication_cost_weights() const
+supports_communication_weights() const
 {
 	return true;
 }
@@ -588,7 +588,7 @@ partition_level_metis(int baseLvl, int maxLvl, int numTargetProcs)
 		}
 
 		// consider specified connection weights
-		if (m_communicationCostWeights.valid())
+		if (m_communicationWeights.valid())
 		{
 			for (size_t iElem = 0; iElem < adjacencyMapStructure.size() - 1; iElem++)
 			{
@@ -601,8 +601,8 @@ partition_level_metis(int baseLvl, int maxLvl, int numTargetProcs)
 					elem_t* ce = elems[adjacencyMap[iConn]];
 					side_t* conn = GetSharedSide(mg, e, ce);
 
-					if (m_communicationCostWeights->reweigh(conn))
-						adjwgts[iConn] = (idx_t) m_communicationCostWeights->get_weight(conn);
+					if (m_communicationWeights->reweigh(conn))
+						adjwgts[iConn] = (idx_t) m_communicationWeights->get_weight(conn);
 				}
 			}
 		}
@@ -764,7 +764,7 @@ partition_level_parmetis(int baseLvl, int maxLvl, int numTargetProcs,
 		}
 
 		// consider specified connection weights
-		if (m_communicationCostWeights.valid())
+		if (m_communicationWeights.valid())
 		{
 			idx_t numConn = pdg.num_graph_edges();
 
@@ -772,8 +772,8 @@ partition_level_parmetis(int baseLvl, int maxLvl, int numTargetProcs,
 			{
 				side_t* conn = pdg.get_connection(i);
 
-				if (m_communicationCostWeights->reweigh(conn))
-					adjwgts[i] = (idx_t) m_communicationCostWeights->get_weight(conn);
+				if (m_communicationWeights->reweigh(conn))
+					adjwgts[i] = (idx_t) m_communicationWeights->get_weight(conn);
 			}
 		}
 

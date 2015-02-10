@@ -293,21 +293,32 @@ static void Domain(Registry& reg, string grp)
 	#ifdef UG_PARALLEL
 
 		{
-			string name = string("ICommunicationCostWeights").append(suffix);
-			reg.add_class_<ICommunicationCostWeights<TDomain::dim> >(name, grp);
-			reg.add_class_to_group(name, "ICommunicationCostWeights", tag);
+			string name = string("ICommunicationWeights").append(suffix);
+			reg.add_class_<ICommunicationWeights<TDomain::dim> >(name, grp);
+			reg.add_class_to_group(name, "ICommunicationWeights", tag);
 		}
 
 		{
-			string name = string("SubsetCommunicationCostWeights").append(suffix);
-			typedef SubsetCommunicationCostWeights<TDomain> T;
-			typedef ICommunicationCostWeights<TDomain::dim> TBase;
+			string name = string("SubsetCommunicationWeights").append(suffix);
+			typedef SubsetCommunicationWeights<TDomain> T;
+			typedef ICommunicationWeights<TDomain::dim> TBase;
 			reg.add_class_<T, TBase>(name, grp)
 				.template add_constructor<void (*)(SmartPtr<TDomain>)>()
 				.add_method("set_weight_on_subset", &T::set_weight_on_subset)
 				//.add_method("set_infinite_weight_on_subset", &T::set_infinite_weight_on_subset)
 				.set_construct_as_smart_pointer(true);
-			reg.add_class_to_group(name, "SubsetCommunicationCostWeights", tag);
+			reg.add_class_to_group(name, "SubsetCommunicationWeights", tag);
+		}
+
+		{
+			string name = string("ProtectSubsetVerticesCommunicationWeights").append(suffix);
+			typedef ProtectSubsetVerticesCommunicationWeights<TDomain> T;
+			typedef ICommunicationWeights<TDomain::dim> TBase;
+			reg.add_class_<T, TBase>(name, grp)
+				.template add_constructor<void (*)(SmartPtr<TDomain>)>()
+				.add_method("set_weight_on_subset", &T::set_weight_on_subset)
+				.set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, "ProtectSubsetVerticesCommunicationWeights", tag);
 		}
 
 		#ifdef UG_PARMETIS
@@ -317,7 +328,7 @@ static void Domain(Registry& reg, string grp)
 			reg.add_class_<T, IPartitioner>(name, grp)
 				.template add_constructor<void (*)(TDomain&)>()
 				.add_method("set_balance_weights", &T::set_balance_weights)
-				.add_method("set_communication_cost_weights", &T::set_communication_cost_weights)
+				.add_method("set_communication_weights", &T::set_communication_weights)
 				.add_method("set_child_weight", &T::set_child_weight)
 				.add_method("set_sibling_weight", &T::set_sibling_weight)
 				.add_method("set_itr_factor", &T::set_itr_factor)
