@@ -126,6 +126,17 @@ class AgglomeratingBase : public TBase
 		virtual bool init_agglomerated(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op) = 0;
 		virtual bool apply_agglomerated(vector_type& x, const vector_type& b) = 0;
 
+		bool is_serial()
+		{
+			UG_COND_THROW(m_pMatrix == NULL, "ERROR: No Matrix given.");
+#ifdef UG_PARALLEL
+			return m_pMatrix->layouts()->proc_comm().is_local() || m_pMatrix->layouts()->proc_comm().empty();
+
+#else
+			return true;
+#endif
+		}
+
 ///	Preprocess routine
 		bool base_init(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op)
 		{
@@ -134,13 +145,14 @@ class AgglomeratingBase : public TBase
 		//	get matrix of Operator
 			m_pMatrix = &Op->get_matrix();
 
+
 #ifdef UG_PARALLEL
+			if(is_serial())
+				return init_agglomerated(Op);
+
 			PROFILE_BEGIN(AGGLOMERATING_Solver_BARRIER);
 				m_pMatrix->layouts()->proc_comm().barrier();
 			PROFILE_END();
-		//	check that matrix exist
-			if(m_pMatrix == NULL)
-				{UG_LOG("ERROR in LUOperator::init: No Matrix given,\n"); return false;}
 
 		//	init LU operator
 			if(!init_mat(*m_pMatrix))
@@ -183,6 +195,9 @@ class AgglomeratingBase : public TBase
 		virtual bool apply(vector_type& x, const vector_type& b)
 		{
 			try{
+
+			if(is_serial())
+				return apply_agglomerated(x, b);
 #if UG_PARALLEL
 			if(empty()) return true;
 
@@ -193,8 +208,6 @@ class AgglomeratingBase : public TBase
 				apply_agglomerated(collectedX, collectedB);
 
 			broadcast_vector_from_one(x, collectedX, PST_CONSISTENT);
-#else
-			apply_agglomerated(x, b);
 #endif
 			}UG_CATCH_THROW("AgglomeratingBase::" << __FUNCTION__ << " failed")
 		//	we're done
