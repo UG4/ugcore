@@ -280,8 +280,9 @@ static void Algebra(Registry& reg, string grp)
 //	ILinearOperatorInverse
 	{
 		typedef ILinearOperatorInverse<vector_type> T;
+		typedef ILinearIterator<vector_type> TBase;
 		string name = string("ILinearOperatorInverse").append(suffix);
-		reg.add_class_<T>(name, grp)
+		reg.add_class_<T, TBase>(name, grp)
 			.add_method("init", static_cast<bool (T::*)(SmartPtr<ILinearOperator<vector_type> >)>(&T::init))
 			.add_method("init", static_cast<bool (T::*)(SmartPtr<ILinearOperator<vector_type> >,const vector_type&)>(&T::init))
 			.add_method("apply_return_defect", &T::apply_return_defect, "Success", "u#f",

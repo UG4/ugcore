@@ -9,6 +9,7 @@
 #define __H__LIB_ALGEBRA__OPERATOR__INTERFACE__LINEAR_OPERATOR_INVERSE__
 
 #include "linear_operator.h"
+#include "linear_iterator.h"
 #include "lib_algebra/operator/convergence_check.h"
 #include "common/error.h"
 #include "common/util/smart_pointer.h"
@@ -50,7 +51,7 @@ namespace ug{
  * \tparam	Y		range space
  */
 template <typename X, typename Y = X>
-class ILinearOperatorInverse
+class ILinearOperatorInverse : public ILinearIterator<X,Y>
 {
 	public:
 	///	Domain space
@@ -160,6 +161,17 @@ class ILinearOperatorInverse
 	 * \returns			bool	success flag
 	 */
 		virtual bool apply_return_defect(Y& u, X& f) = 0;
+
+		virtual bool apply_update_defect(Y& u, X& f)
+		{
+			return apply_return_defect(u,f);
+		}
+
+		virtual SmartPtr<ILinearIterator<X,Y> > clone()
+		{
+			UG_THROW("No cloning implemented.");
+			return SPNULL;
+		}
 
 	///	returns the convergence check
 		ConstSmartPtr<IConvergenceCheck<X> > convergence_check() const {return m_spConvCheck;}

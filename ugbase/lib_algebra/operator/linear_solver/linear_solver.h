@@ -116,6 +116,10 @@ class LinearSolver
 			LS_PROFILE_BEGIN(LS_CreateCorrection);
 			SmartPtr<vector_type> spC = x.clone_without_values();
 			vector_type& c = *spC;
+			#ifdef UG_PARALLEL
+				// this is ok if clone_without_values() inits with zeros
+				c.set_storage_type(PST_CONSISTENT);
+			#endif
 			LS_PROFILE_END(LS_CreateCorrection);
 
 			LS_PROFILE_BEGIN(LS_ComputeStartDefect);

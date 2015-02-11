@@ -70,7 +70,7 @@ class IExternalSolver
 		SmartPtr<ILinearIterator<vector_type> > clone()
 		{
 			UG_THROW("");
-			return NULL;
+			return SPNULL;
 		}
 
 
@@ -90,12 +90,23 @@ class IExternalSolver
 			CPUAlgebra::matrix_type mat;
 
 			#ifdef UG_PARALLEL
+				// add slave rows to master rows (in indices which this is possible for)
+				matrix_type A_tmp; A_tmp = A;
+				MatAddSlaveRowsToMasterRowOverlap0(A_tmp);
+
+				// set zero on slaves
+				std::vector<IndexLayout::Element> vIndex;
+				CollectUniqueElements(vIndex, A.layouts()->slave());
+				SetDirichletRow(A_tmp, vIndex);
+
 				mat.set_storage_type(PST_ADDITIVE);
 				mat.set_layouts(CreateLocalAlgebraLayouts());
+			#else
+				const matrix_type& A_tmp = A;
 			#endif
 
-			m_size = GetDoubleSparseFromBlockSparse(mat, A);
-			m_blockSize = mat.num_rows()/A.num_rows();
+			m_size = GetDoubleSparseFromBlockSparse(mat, A_tmp);
+			m_blockSize = mat.num_rows()/A_tmp.num_rows();
 
 			if(m_size != 0)
 				double_init(mat);
@@ -156,8 +167,16 @@ class IExternalSolver
 #ifdef UG_PARALLEL
 			m_d.set_storage_type(PST_ADDITIVE);
 			m_c.set_storage_type(PST_CONSISTENT);
-#endif
+
+			//	make defect unique
+			SmartPtr<vector_type> spDtmp = d.clone();
+			spDtmp->change_storage_type(PST_UNIQUE);
+
+			get_vector(m_d, *spDtmp);
+#else
 			get_vector(m_d, d);
+#endif
+
 			m_c.set(0.0);
 
 
@@ -166,9 +185,9 @@ class IExternalSolver
 			set_vector(m_c, c);
 
 #ifdef 	UG_PARALLEL
-		//	Correction is always consistent
-		//	todo: We set here correction to consistent, but it is not. Think about how to use ilu in parallel.
-			c.set_storage_type(PST_CONSISTENT);
+			// correction must always be consistent (but is unique by construction)
+			c.set_storage_type(PST_UNIQUE);
+			c.change_storage_type(PST_CONSISTENT);
 #endif
 			return true;
 		}
