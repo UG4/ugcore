@@ -46,6 +46,8 @@ public:
 	void set_no_exp() { m_bNoExp = true; }
 	void set_config(size_t N, double mean_f, double sigma_f, double sigma);
 
+	std::string config_string() const;
+
 private:
 	double gasdev();
     double undev();
@@ -57,6 +59,7 @@ private:
     double m_dSigma_f;
     double m_N;
     bool m_bNoExp;
+    double m_dSigma;
 
 	std::vector<MathVector<dim> > m_vRandomQvec;
 	std::vector<double> m_vRandomAlpha;

@@ -16,6 +16,7 @@
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__LOGNORMAL_RANDOM_FIELD_IMPL__
 #define __H__UG__LIB_DISC__SPATIAL_DISC__LOGNORMAL_RANDOM_FIELD_IMPL__
 
+#include "common/util/typename.h"
 #include "lognormal_random_field.h"
 #include "common/math/misc/math_util.h" // urand
 
@@ -100,6 +101,7 @@ void LognormalRandomField<TData,dim,TRet>::set_config(size_t N, double mean_f, d
 		m_sigma[j] = sqrt(1.0/sigma);
 	m_dMean_f = mean_f;
 	m_dSigma_f = sigma_f;
+	m_dSigma = sigma;
 
 	m_vRandomQvec.clear();
 	m_vRandomAlpha.clear();
@@ -118,6 +120,18 @@ void LognormalRandomField<TData,dim,TRet>::set_config(size_t N, double mean_f, d
 //	UG_LOG("corrx = " << m_sigma[0] << " corry = " << m_sigma[1] << "\n");
 //	PRINT_VECTOR(m_vRandomQvec, "m_vRandomQvec");
 //	PRINT_VECTOR(m_vRandomAlpha, "m_vRandomAlpha");
+
+}
+
+template <typename TData, int dim, typename TRet>
+std::string LognormalRandomField<TData,dim,TRet>::config_string() const
+{
+	std::stringstream ss;
+
+	//ss << "LognormalRandomField < TData =  " << TypeName<TData>() << ", dim = " << dim << ", TRet = " << TypeName<TRet>() << " >\n";
+	ss << " LognormalRandomField<" << dim << "d> ( m_N = " << m_N << ", m_dMean_f = " << m_dMean_f <<
+			", m_dSigma_f = " << m_dSigma_f << ", sigma = " << m_dSigma << ", m_bNoExp = " << TrueFalseString(m_bNoExp) << ")";
+	return ss.str();
 
 }
 
