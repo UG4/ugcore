@@ -292,6 +292,7 @@ static void Domain(Registry& reg, string grp)
 
 	#ifdef UG_PARALLEL
 
+		#ifdef UG_PARMETIS
 		{
 			string name = string("ICommunicationWeights").append(suffix);
 			reg.add_class_<ICommunicationWeights<TDomain::dim> >(name, grp);
@@ -321,7 +322,6 @@ static void Domain(Registry& reg, string grp)
 			reg.add_class_to_group(name, "ProtectSubsetVerticesCommunicationWeights", tag);
 		}
 
-		#ifdef UG_PARMETIS
 		{
 			typedef DomainPartitioner<TDomain, Partitioner_Parmetis<TDomain::dim> > T;
 			string name = string("Partitioner_Parmetis").append(suffix);
