@@ -40,8 +40,9 @@ void ElementGaussSeidelStep(const typename TAlgebra::matrix_type& A,
 	
 	// set all vector entries to zero
 	c.set(0.0);
+#ifdef UG_PARALLEL
 	c.set_storage_type(PST_ADDITIVE);
-
+#endif
 	typedef typename GridFunction<TDomain, TAlgebra>::element_type Element;
 	std::vector<Element*> vElem;
 
