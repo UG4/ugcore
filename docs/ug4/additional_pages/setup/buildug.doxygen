@@ -29,6 +29,8 @@ they speak about `ug4/apps` or `ug4/trunk/apps`.
 For some helpful bash tools and completion, use the \ref pageBashTools. 
 If you are new to bash/Linux, please also try the bash prompt covered there.
 
+For installing additional software like cmake, SuperLU, BLAS etc. see \ref pageUginstall.
+
 <hr>
 \section secBuildUG4RunCmake Run CMake
 
