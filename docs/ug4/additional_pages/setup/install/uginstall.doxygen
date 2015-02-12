@@ -25,6 +25,10 @@ uginstall doxygen
 which installs doxygen 1.8 in <tt>~/local/doxygen</tt>. Here again, you'll have to use <tt>source ~/.bashrc</tt>.
 If you want to uninstall doxygen, just delete <tt>~/local/doxygen/</tt>.
 
+\note Please do always make sure that you comply with the licence of the software you are using. uginstall will print 
+you a yes/no question to accept licences, so it is your responsiblity to make sure you use the software in the right context.
+Also cite software you are using.
+
 Syntax is
 \code
 uginstall <APP> [-fromSvn] [-svnServer <address>] [-fromMac] [-macServer <address>]
@@ -75,16 +79,16 @@ You might need to open up a new console to reset these variables.
 \section uginstallOtherAccess Other access
  
 Sometimes it is not possible to access the internet from a 
-cluster. With the option -fromSvn, uginstall downloads the source archive from a server at the G-CSC named AG Queisser via
+cluster. With the option <tt>-fromSvn</tt>, uginstall downloads the source archive from a server at the G-CSC named AG Queisser via
 \code
 scp -r software@$softwareServer:Software/uginstall/$filename $destination
 \endcode
-softwareServer is set to 141.2.38.55 by default. You can change this with -macServer x.x.x.x .
-It is also possible to download the archives from our svn server, with the option -fromSvn, then uginstall uses
+softwareServer is set to <tt>141.2.38.55</tt> by default. You can change this with <tt>-macServer x.x.x.x</tt> .
+It is also possible to download the archives from our svn server, with the option <tt>-fromSvn</tt>, then uginstall uses
 \code
 svn export svn://$svnServer/misc/uginstall/$filename $destination
 \endcode
-svnServer is set to fuji.gcsc.uni-frankfurt.de by default. You can change this with -svnServer.
+svnServer is set to <tt>fuji.gcsc.uni-frankfurt.de</tt> by default. You can change this with <tt>-svnServer</tt>.
 
 This is especially usefull when clusters do not allow internet connections and you have to use SVN tunneling. 
 So you connect to your cluster with
@@ -97,11 +101,23 @@ and there you can use uginstall with
 uginstall SuperLU -svnServer localhost:5337
 \endcode
 
+\section uginstallCmake Using uginstall in Cmake Files
+
+You can use uginstall also in cmake files. e.g. in the plugin experimental/superlu, when the plugin is activated with <tt>cmake -DSuperLU=ON ..</tt>, it automatically installs 
+the SuperLU library. This is done with
+\code  
+	UGInstall("SuperLU" INTERNAL_SUPERLU_PATH)
+	ExportDependencies("${INTERNAL_SUPERLU_PATH}/lib/libsuperlu_4.3.a")
+\endcode
+See for documentation the superlu cmake file and cmake/ug_plugin_includes.cmake .
+
 \section uginstallAddPrograms Add Programs
  
 If you want to add programs to the list, you have to add it to the files uginstall and uginstall_config.
  
-To make it possible to use it on clusters which don't allow internet acces, also add the source archive to /Users/software/Software/uginstall/ on the Software Server (MacPro AG Queisser) and to the SVN svn://fuji.gcsc.uni-frankfurt.de/misc/uginstall .
+To make it possible to use it on clusters which don't allow internet acces, also add the source archive to 
+<tt>/Users/software/Software/uginstall/</tt> on the Software Server (MacPro AG Queisser) and to the SVN 
+<tt>svn://fuji.gcsc.uni-frankfurt.de/misc/uginstall</tt> .
 
 
 
