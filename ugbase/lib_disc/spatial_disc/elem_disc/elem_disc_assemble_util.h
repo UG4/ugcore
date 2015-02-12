@@ -1156,12 +1156,12 @@ public:
 				UG_CATCH_THROW("(instationary) AssembleLinear: Cannot compute Rhs.");
 			}
 
-			//	send local to global matrix & rhs
-				try{
-					spAssTuner->add_local_mat_to_global(A, locA, dd);
-					spAssTuner->add_local_vec_to_global(rhs, locRhs, dd);
-				}
-				UG_CATCH_THROW("(instationary) AssembleLinear: Cannot add local vector/matrix.");
+		//	send local to global matrix & rhs
+			try{
+				spAssTuner->add_local_mat_to_global(A, locA, dd);
+				spAssTuner->add_local_vec_to_global(rhs, locRhs, dd);
+			}
+			UG_CATCH_THROW("(instationary) AssembleLinear: Cannot add local vector/matrix.");
 		}
 
 	//	finish element loop
