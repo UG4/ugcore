@@ -974,7 +974,7 @@ public:
 	/**
 	 * This function adds the contributions of all passed element discretizations
 	 * on one given subset to the global Matrix and the global Right-Hand Side
-	 * of the Linear problem in the stationary case. (This version processes
+	 * of the Linear problem in the time-dependent case. (This version processes
 	 * elements in a given interval.)
 	 *
 	 * \param[in]		vElemDisc		element discretizations
