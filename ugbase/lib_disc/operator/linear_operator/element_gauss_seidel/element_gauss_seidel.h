@@ -40,6 +40,7 @@ void ElementGaussSeidelStep(const typename TAlgebra::matrix_type& A,
 	
 	// set all vector entries to zero
 	c.set(0.0);
+	c.set_storage_type(PST_ADDITIVE);
 
 	typedef typename GridFunction<TDomain, TAlgebra>::element_type Element;
 	std::vector<Element*> vElem;
@@ -180,9 +181,9 @@ class ElementGaussSeidel : public IPreconditioner<TAlgebra>
 				//	copy original matrix
 				MakeConsistent(*pOp, m_A);
 				//	set zero on slaves
-				std::vector<IndexLayout::Element> vIndex;
-				CollectUniqueElements(vIndex,  m_A.layouts()->slave());
-				SetDirichletRow(m_A, vIndex);
+				//	std::vector<IndexLayout::Element> vIndex;
+				//CollectUniqueElements(vIndex,  m_A.layouts()->slave());
+				//SetDirichletRow(m_A, vIndex);
 			}
 #endif
 			return true;
@@ -199,30 +200,40 @@ class ElementGaussSeidel : public IPreconditioner<TAlgebra>
 			typedef typename GridFunction<TDomain, TAlgebra>::element_type Element;
 			typedef typename GridFunction<TDomain, TAlgebra>::side_type Side;
 
-			const vector_type* pD = &d;
-			const matrix_type* pMat = pOp.get();
-
+			
 #ifdef UG_PARALLEL
 			if(pcl::NumProcs() > 1){
-			//	make defect unique
+			         // make defect unique
 				SmartPtr<vector_type> spDtmp = d.clone();
 				spDtmp->change_storage_type(PST_UNIQUE);
-				pD = spDtmp.get();
-				pMat = &m_A;
+				
+				// execute step
+				if (m_type == "element") ElementGaussSeidelStep<Element,TDomain,TAlgebra>(m_A, *pC, *spDtmp, m_relax);
+				else UG_THROW("ElementGaussSeidel: wrong patch type '"<<m_type<<"'."
+					      " Options: element, side, face, edge, vertex.");
+				
+				// make correction consistent
+				// pC->set_storage_type(PST_CONSISTENT);
+				pC->change_storage_type(PST_CONSISTENT);
+				return true;
 			}
+			else
 #endif
-			if		(m_type == "element") ElementGaussSeidelStep<Element,TDomain,TAlgebra>(*pMat, *pC, *pD, m_relax);
-			else if	(m_type == "side") ElementGaussSeidelStep<Side,TDomain,TAlgebra>(*pMat, *pC, *pD, m_relax);
-			else if	(m_type == "face") ElementGaussSeidelStep<Face,TDomain,TAlgebra>(*pMat, *pC, *pD, m_relax);
-			else if	(m_type == "edge") ElementGaussSeidelStep<Edge,TDomain,TAlgebra>(*pMat, *pC, *pD, m_relax);
-			else if	(m_type == "vertex") ElementGaussSeidelStep<Vertex,TDomain,TAlgebra>(*pMat, *pC, *pD, m_relax);
-			else UG_THROW("ElementGaussSeidel: wrong patch type '"<<m_type<<"'."
-						 " Options: element, side, face, edge, vertex.")
-
+			  {
+			    matrix_type &A=*pOp; 
+			    if (m_type == "element") ElementGaussSeidelStep<Element,TDomain,TAlgebra>(A, *pC, d, m_relax);
+			    else if	(m_type == "side") ElementGaussSeidelStep<Side,TDomain,TAlgebra>(A, *pC, d, m_relax);
+			    else if	(m_type == "face") ElementGaussSeidelStep<Face,TDomain,TAlgebra>(A, *pC, d, m_relax);
+			    else if	(m_type == "edge") ElementGaussSeidelStep<Edge,TDomain,TAlgebra>(A, *pC, d, m_relax);
+			    else if	(m_type == "vertex") ElementGaussSeidelStep<Vertex,TDomain,TAlgebra>(A, *pC, d, m_relax);
+			    else UG_THROW("ElementGaussSeidel: wrong patch type '"<<m_type<<"'."
+					  " Options: element, side, face, edge, vertex.")
 #ifdef UG_PARALLEL
-			 pC->set_storage_type(PST_UNIQUE);
+				   pC->set_storage_type(PST_CONSISTENT);
 #endif
-			return true;
+
+			    return true;
+			  }
 		}
 
 	///	Postprocess routine
