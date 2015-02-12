@@ -25,22 +25,94 @@ uginstall doxygen
 which installs doxygen 1.8 in <tt>~/local/doxygen</tt>. Here again, you'll have to use <tt>source ~/.bashrc</tt>.
 If you want to uninstall doxygen, just delete <tt>~/local/doxygen/</tt>.
 
-Some of the software uginstall can install
+Syntax is
 \code
-cmake
-doxygen
-gnuplot
-GotoBLAS2
-OpenMPI
-ParaView
+uginstall <APP> [-fromSvn] [-svnServer <address>] [-fromMac] [-macServer <address>]
+\endcode
+Where APP can be
+\code
+	cmake       2.8.12 
+	doxygen     1.8.7  
+	gcc         4.4                   
+	gmp         4.3.2                 
+	gnuplot     4.6.0
+	GotoBLAS2   1.13                  
+	Metis       5.0.2
+	mpfr        2.4.2                 
+	mpc         0.8.1                 
+	OpenMPI     1.6  
+	ParaView    3.14.1-Linux-32bit
+	ParMetis    4.0.2             
+	SuperLU     4.3               
+	HYPRE       2.9.0b            
+	scons       2.3.1             
+	boost       1.56.0            
+	hlibpro     2.0.1             
+	tbb         4.2               
+	ANN         1.1.2                 
+	LUA         5.1.4             
 \endcode
 
+
+\section uginstallSteps uginstall steps
+Following steps are made for each installation of a programm APP:
+ - create folder $HOME/local/
+ - create folder $HOME/local/APP
+ - download source archive from internet, save in $HOME/local//APP
+ - extract file, store in $HOME/local/APP/version
+ - configure the program (depending on the program, sometimes depending on platform)
+ - install libraries in $HOME/local/APP/lib and lib64, binaries in $HOME/local/APP/bin
+   includes in $HOME/local/APP/include ...
+ - create a symbolic link from $HOME/local/APP/used to $HOME/local/APP/version
+ 
+ 
+uginstall_config will then set PATH, LDFLAGS, LD_RUN_PATH, LIBRARY_PATH, 
+and LD_LIBRARY_PATH so you can use the program and the libs.
+You might need to open up a new console to reset these variables.
+
+\note You can change the install path in the file uginstall_path .
+
+\section uginstallOtherAccess Other access
+ 
+Sometimes it is not possible to access the internet from a 
+cluster. With the option -fromSvn, uginstall downloads the source archive from a server at the G-CSC named AG Queisser via
+\code
+scp -r software@$softwareServer:Software/uginstall/$filename $destination
+\endcode
+softwareServer is set to 141.2.38.55 by default. You can change this with -macServer x.x.x.x .
+It is also possible to download the archives from our svn server, with the option -fromSvn, then uginstall uses
+\code
+svn export svn://$svnServer/misc/uginstall/$filename $destination
+\endcode
+svnServer is set to fuji.gcsc.uni-frankfurt.de by default. You can change this with -svnServer.
+
+This is especially usefull when clusters do not allow internet connections and you have to use SVN tunneling. 
+So you connect to your cluster with
+\code
+ssh -R5337:fuji.gcsc.uni-frankfurt.de:3690 martin@cluster.com
+\endcode
+
+and there you can use uginstall with
+\code
+uginstall SuperLU -svnServer localhost:5337
+\endcode
+
+\section uginstallAddPrograms Add Programs
+ 
+If you want to add programs to the list, you have to add it to the files uginstall and uginstall_config.
+ 
+To make it possible to use it on clusters which don't allow internet acces, also add the source archive to /Users/software/Software/uginstall/ on the Software Server (MacPro AG Queisser) and to the SVN svn://fuji.gcsc.uni-frankfurt.de/misc/uginstall .
+
+
+
+
+*/
+/*
+<hr>
 You can also install the software by yourself. To see how that works, I collected some of the most used software examples here.
 Note that there might be easier ways to install this software (Mac: installers/fink, Windows: installers, Linux: Package managers),
 and there might be newer versions of the software.
 
-
-<hr>
 \section secGCCFlags Some Paths you can adjust.
 All paths you can change in the following way:
 \code
