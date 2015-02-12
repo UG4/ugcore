@@ -30,6 +30,8 @@ environment
 	
 - \subpage pageUG4Setup
 	- \ref pageBuildUG4
+		- \ref pageBashTools
+		- \ref pageUginstall
 	- \ref pageUG4Install
 		- \ref pageUG4OnLinux
 		- \ref pageUG4OnMac
