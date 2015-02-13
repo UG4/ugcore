@@ -120,7 +120,7 @@ my_download_file()
 	
 	if [ $success == false ] && ( [ $downloadMethod == "macServer" ] || [ $downloadMethod == "all" ] ); then
 		echo ""
-		echo "Trying software server now: software@141.2.38.55:Software/uginstall/$filename ."
+		echo "Trying software server now: software@$softwareServer:Software/uginstall/$filename ."
 		echo " --- Please enter software server password: ---"
 
 		if [ -e $filename.part ]; then rm $filename.part; fi
