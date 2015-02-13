@@ -6,6 +6,8 @@
 
 [TOC]
 
+
+
 \note Because of the great variety of systems, this installation guides may be outdated quickly. So if this guide is not working for you
 \em please write an email to martin.rupp@gcsc.uni-frankfurt.de explaining where you're stuck - even if you have resolved your problem.
 It's the only chance we have to keep this guides updated and correct. 
@@ -16,6 +18,8 @@ from your cluster management tool (e.g. <tt>module load</tt>).
 
 <hr>
 \section secInstallLinuxCMake CMake
+
+\note You can use \ref pageUginstall for easy installation of cmake.
 
 <ul>
   <li> In order to compile ug4, you have to have cmake installed.
@@ -50,6 +54,9 @@ from your cluster management tool (e.g. <tt>module load</tt>).
 <hr>
 \section secInstallLinuxMPI MPI
 
+\note You can use \ref pageUginstall for easy installation of OpenMPI.
+
+
 <ul>
   <li> Note: MPI is only needed for \em parallel execution of ug4.
   <li> Check if MPI is already installed: open a terminal, enter <tt>which mpicc</tt>.
@@ -64,6 +71,7 @@ from your cluster management tool (e.g. <tt>module load</tt>).
 <br>
 \section secInstallLinuxLAPACK Installation BLAS/LAPACK (optional)
 
+\note You can use \ref pageUginstall for easy installation of GotoBLAS2.
 
 <ul>
   <li> Note: On most systems, LAPACK and BLAS are preinstalled and are found by cmake.
