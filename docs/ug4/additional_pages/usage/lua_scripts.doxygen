@@ -7,12 +7,14 @@
 Here you find documentation about some of the script in ug4/scripts:
 
 - <a href="ug__util_8lua.html">ug util - standard include</a>
-- <a href="partition__maps_8lua.html">Partition Maps</a>
-- <a href="time__step__util_8lua.html">Time Steps Util</a>
-- <a href="domain__disc__util_8lua.html">Domain Disc Util</a>
-- <a href="scripts_2util_2domain__distribution__util_8lua.html">Domain Distribution Util</a>
-- <a href="stats__util_8lua.html">Stats Utily for tables across runs</a>
-- <a href="gnuplot_8lua.html">Gnuplot Util</a>
+	- <a href="command__line__util_8lua.html"> command line utils</a>
+	- <a href="debug__util_8lua.html.html"> debug utils</a>
+	- <a href="domain__distribution__util_8lua.html"> domain distributation util</a>
+	- <a href="partition__maps_8lua.html">Partition Maps</a>
+	- <a href="time__step__util_8lua.html">Time Steps Util</a>
+	- <a href="domain__disc__util_8lua.html">Domain Disc Util</a>
+	- <a href="stats__util_8lua.html">Stats Utily for tables across runs</a>
+	- <a href="gnuplot_8lua.html">Gnuplot Util</a>
 
 Solvers:
 - <a href="solver__util_8lua.html">Solver Util</a>
