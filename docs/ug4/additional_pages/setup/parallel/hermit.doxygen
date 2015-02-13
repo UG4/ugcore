@@ -30,6 +30,8 @@ Speak to the administration for more nodes.
 <hr>
 \section secHermit_General General 
 
+Be aware that hermit blocks all connections to the normal internet. You have to use \ref secSVNSSHTunneling to check out on Hermit, and use uginstall's -svnServer option (see \ref pageUginstall).
+
 The Job Scheduler on Hermit is supported by \ref pageugsubmit "ugsubmit" for unified  job scheduling on all clusters.
 You might want to use -Hermit-workspace .
 
