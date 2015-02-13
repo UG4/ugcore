@@ -49,7 +49,7 @@ namespace ug {
 template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
 class DomainDiscretizationBase
 :   public IDomainDiscretization<TAlgebra>,
-    private TGlobAssembler
+    protected TGlobAssembler
 {
     /// Type of the global assembler
         typedef TGlobAssembler gass_type;
