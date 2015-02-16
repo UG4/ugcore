@@ -364,8 +364,6 @@ bool ResolveEdgeFaceIntersection(Grid& grid, Edge* e, Face* f,
 	if(FaceContains(f, e->vertex(0)) || FaceContains(f, e->vertex(1)))
 		return false;
 
-	number snapThresholdSq = snapThreshold * snapThreshold;
-
 	vector_t dir;
 	VecSubtract(dir, aaPos[e->vertex(1)], aaPos[e->vertex(0)]);
 
