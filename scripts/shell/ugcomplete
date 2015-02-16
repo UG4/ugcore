@@ -435,7 +435,8 @@ COMPLETIONS_UG4_PLUGINS="\
 -DSG= \
 -DSmallStrainMechanics= \
 -DSuperLU= \
--DElectricCircuit= "
+-DElectricCircuit= \
+-DLimex= "
 
 complete -W "\
 ON \
