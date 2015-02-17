@@ -1,30 +1,54 @@
 --[[!
 -- \defgroup scripts_util_common common Utility
 -- \ingroup scripts_util
+--
 -- Utility functions for common operations
+-- Questions? mailto: stephan.grein@gcsc.uni-frankfurt.de
 -- \{
 ]]--
 
 common = {}
 
+--! unpacks a list of lists (trivial recursion to unpack all levels if needed)
+local function prepare(s, ...)
+   args = {}
+   for i, v in ipairs(arg) do
+      if (type(v) == "table") then
+         for j, w in ipairs(v) do
+            if (type(w) == "table") then
+               for k, x in ipairs(w) do
+                  args[#args+1] = x
+               end
+            else
+               args[#args+1] = w
+            end
+         end
+      else
+         args[#args+1] = v
+      end
+   end
+
+   return string.format(s, unpack(args))
+end
+
 --! emulates printf
 function common:printf(s, ...) 
-   print(string.format(s, ...))
+   print(prepare(s, ...))
 end
 
 --! emulates printf with newline appended
 function common:printfn(s, ...)
-   print(string.format(s .. "\n", ...))
+   print(prepare(s .. "\n", ...))
 end
 
 --! emulates sprintf
 function common:sprintf(s, ...)
-   return string.format(s, ...)
+   return prepare(s, ...)
 end
 
 --! emulates sprintfn
 function common:sprintfn(s, ...)
-   return string.format(s .. "\n", ...)
+   return prepare(s .. "\n" , ...)
 end
 
 --! tail
