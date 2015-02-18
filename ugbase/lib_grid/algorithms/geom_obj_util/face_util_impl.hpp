@@ -131,6 +131,7 @@ void InvertOrientation(Grid& grid, TFaceIterator facesBegin,
 		grid.flip_orientation(*iter);
 }
 
+
 ////////////////////////////////////////////////////////////////////////
 template<class TVertexPositionAttachmentAccessor>
 typename TVertexPositionAttachmentAccessor::ValueType

@@ -341,6 +341,29 @@ VecDot(const vector_t& v1, const vector_t& v2)
 	return dp;
 }
 
+template <typename vector_t>
+inline
+typename vector_t::value_type
+VecAngle(const vector_t& v1, const vector_t& v2)
+{
+	typedef typename vector_t::value_type value_t;
+
+	value_t l = sqrt(VecLengthSq(v1) * VecLengthSq(v2));
+	if(l > 0){
+		return acos(VecDot(v1, v2) / l);
+	}
+
+	return 0;
+}
+
+template <typename vector_t>
+inline
+typename vector_t::value_type
+VecAngleNorm(const vector_t& v1, const vector_t& v2)
+{
+	return acos(VecDot(v1, v2));
+}
+
 ///	calculates the cross product of two MathVector<N>s of dimension 3. It makes no sense to use VecCross for
 /// MathVector<N>s that have not dimension 3.
 /// todo: Create compile-time check for dimensionality in case of MathVector type.

@@ -220,6 +220,24 @@ typename vector_t::value_type
 VecDot(const vector_t& v1, const vector_t& v2);
 
 ////////////////////////////////////////////////////////////////
+// Angle
+///	returns the angle between two vectors in radiants
+template <typename vector_t>
+inline
+typename vector_t::value_type
+VecAngle(const vector_t& v1, const vector_t& v2);
+
+////////////////////////////////////////////////////////////////
+// Angle
+///	returns the angle between two vectors of length 1 in radiants
+/** This method assumes that v1 and v2 are normalized vectors (both have length 1).
+ * No checks are performed!*/
+template <typename vector_t>
+inline
+typename vector_t::value_type
+VecAngleNorm(const vector_t& v1, const vector_t& v2);
+
+////////////////////////////////////////////////////////////////
 // Cross Product
 ///	calculates the cross product of two Vectors of dimension 3. It makes no sense to use VecCross for vector_ts that have not dimension 3.
 template <typename vector_t>

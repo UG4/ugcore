@@ -119,7 +119,7 @@ template <class TElemIter, class TAttachment>
 bool CopyAttachments(Grid& grid, TElemIter elemsBegin, TElemIter elemsEnd,
 					 TAttachment& aSrc, TAttachment& aDest)
 {
-	typedef typename PtrTypeToGeomObjBaseType<
+	typedef typename PtrToValueType<
 			typename TElemIter::value_type>::base_type TElem;
 
 //	make sure the attachments are properly attached.

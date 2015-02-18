@@ -434,6 +434,157 @@ void WeightedFaceSmooth(Grid& grid, TIterator vrtsBegin,
 	}
 }
 
+
+////////////////////////////////////////////////////////////////////////
+/** The higher the dot-product between an outgoing edge and the vertex normal,
+ * the higher the influence of that edge during smoothing of that vertex.
+ */
+template <class TIterator, class AAPosVRT>
+void WeightedNormalSmooth(Grid& grid, TIterator vrtsBegin,
+						  TIterator vrtsEnd, AAPosVRT& aaPos,
+						  number alpha, number dotThreshold,
+						  int numIterations)
+{
+	using std::min;
+	using std::max;
+
+	typedef typename AAPosVRT::ValueType vector_t;
+
+	Grid::edge_traits::secure_container edges;
+
+	for(int iteration = 0; iteration < numIterations; ++iteration){
+	//	iterate through all vertices
+		for(TIterator iter = vrtsBegin; iter != vrtsEnd; ++iter){
+		//	smooth each one
+			Vertex* vrt = *iter;
+			vector_t vrtPos = aaPos[vrt];
+			vector_t vrtNorm;
+			CalculateVertexNormal(vrtNorm, grid, vrt, aaPos);
+			
+			vector_t avDir;
+			VecSet(avDir, 0);
+
+			grid.associated_elements(edges, vrt);
+			number nbrs = 0;
+			for(size_t i = 0; i < edges.size(); ++i){
+				Vertex* connVrt = GetConnectedVertex(edges[i], vrt);
+				vector_t dir = aaPos[connVrt];
+				dir -= vrtPos;
+				vector_t ndir;
+				VecNormalize(ndir, dir);
+				number dot = VecDot(vrtNorm, ndir);
+				if(dot >= dotThreshold){
+					dir *= 0.5 * (dot + 1);
+					avDir += dir;
+					++nbrs;
+				}
+			}
+
+			if(nbrs > 0){
+				avDir *= alpha / nbrs;
+				aaPos[vrt] += avDir;
+			}
+		}
+	}
+}
+
+
+////////////////////////////////////////////////////////////////////////
+/** Linearizes the geometry along the gradient (steepest descent) with respect to the given up-vector*/
+template <class TIterator, class AAPosVRT>
+void SlopeSmooth(Grid& grid, TIterator vrtsBegin,
+					TIterator vrtsEnd, AAPosVRT& aaPos,
+					number alpha, const vector3& up,
+					int numIterations)
+{
+	using std::min;
+	using std::max;
+
+	typedef typename AAPosVRT::ValueType vector_t;
+
+	vector3 upN;
+	VecNormalize(upN, up);
+
+//	we'll approximate the gradient by finding the path between the intersections
+//	of connected edges and the plane through the center-vertex, spanned by the normal-
+//	and up-vectors
+	Grid::edge_traits::secure_container edges;
+	Grid::face_traits::secure_container faces;
+
+	for(int iteration = 0; iteration < numIterations; ++iteration){
+	//	iterate through all vertices
+		for(TIterator iter = vrtsBegin; iter != vrtsEnd; ++iter){
+		//	smooth each one
+			Vertex* vrt = *iter;
+			vector_t vrtPos = aaPos[vrt];
+			vector_t vrtNorm;
+
+		//	check if the vertex is a boundary vertex. If so, we'll only consider
+		//	the connected boundary vertices
+			if(LiesOnBoundary(grid, vrt)){
+				grid.associated_elements(edges, vrt);
+
+				vector3 target(0, 0, 0);
+				number numBndEdges = 0;
+
+				for(size_t i = 0; i < edges.size(); ++i){
+					if(IsBoundaryEdge2D(grid, edges[i])){
+						target += aaPos[GetConnectedVertex(edges[i], vrt)];
+						++numBndEdges;
+					}
+				}
+				
+				if(numBndEdges > 0)
+					VecScaleAdd(aaPos[vrt], alpha/numBndEdges, target, 1. - alpha, vrtPos);
+			}
+			else{
+				CalculateVertexNormal(vrtNorm, grid, vrt, aaPos);
+				
+			//todo: one could think about performing laplacian smoothing in this case
+				if(fabs(VecDot(vrtNorm, upN)) > 1. - SMALL)
+					continue;
+
+				vector3 planeNormal;
+				VecCross(planeNormal, vrtNorm, upN);
+
+				vector3	inters[2];
+				int numInters = 0;
+
+				grid.associated_elements(faces, vrt);
+				for(size_t i = 0; i < faces.size(); ++i){
+					Edge* e = GetConnectedEdge(grid, vrt, faces[i]);
+					vector3 v0 = aaPos[e->vertex(0)];
+					vector3 dir = aaPos[e->vertex(1)];
+					dir -= v0;
+
+					vector3 vi;
+					number t;
+					if(RayPlaneIntersection(vi, t, v0, dir, vrtPos, planeNormal)){
+						if(t >= -SMALL && t <= 1 + SMALL){
+							if((numInters > 1) && 
+							   (VecDistanceSq(vi, inters[0]) > VecDistanceSq(inters[1], inters[0])))
+							{
+								inters[1] = vi;
+							}
+							else{
+								inters[numInters] = vi;
+								++numInters;
+							}
+						}
+					}
+				}
+
+				if(numInters == 2){
+					vector3 target;
+					VecScaleAdd(target, 0.5, inters[0], 0.5, inters[1]);
+					VecScaleAdd(aaPos[vrt], alpha, target, 1. - alpha, vrtPos);
+				}
+			}
+		}
+	}
+}
+
+
 }// end of namespace
 
 #endif

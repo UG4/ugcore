@@ -333,12 +333,12 @@ UG_API
 Edge* FindShortestEdge(TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
 							TAAPosVRT& aaPos);
 
-////////////////////////////////////////////////////////////////////////////////
-///	Removes edges that connect the same two vertices as another edge.
-/**	THIS ALGORITHM USES Grid::mark*/
-template <class TEdgeIterator>
-UG_API 
-void RemoveDoubleEdges(Grid& grid, TEdgeIterator edgesBegin, TEdgeIterator edgesEnd);
+//////////////////////////////////////////////////////////////////////////////////
+/////	Removes edges that connect the same two vertices as another edge.
+///**	THIS ALGORITHM USES Grid::mark*/
+//template <class TEdgeIterator>
+//UG_API 
+//void RemoveDoubleEdges(Grid& grid, TEdgeIterator edgesBegin, TEdgeIterator edgesEnd);
 
 ///	Transforms the given edge-set so that the sum of the length the edges is minimized.
 /**

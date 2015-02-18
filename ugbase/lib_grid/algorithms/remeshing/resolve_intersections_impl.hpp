@@ -9,6 +9,7 @@
 #include "resolve_intersections.h"
 #include "common/math/misc/shapes.h"
 #include "lib_grid/algorithms/space_partitioning/lg_ntree.h"
+#include "lib_grid/algorithms/remove_duplicates_util.h"
 #include "common/space_partitioning/ntree_traverser.h"
 
 namespace ug{
@@ -1430,7 +1431,7 @@ bool ResolveTriangleIntersections(Grid& grid, TriangleIterator trisBegin,
 			}
 
 		//	due to construction there may be double-edges
-			RemoveDoubleEdges(tgrid, tgrid.edges_begin(), tgrid.edges_end());
+			RemoveDuplicates(tgrid, tgrid.edges_begin(), tgrid.edges_end());
 
 		//	we now have to resolve intersections between the edges
 		//	first we'll try to snap vertices to edges

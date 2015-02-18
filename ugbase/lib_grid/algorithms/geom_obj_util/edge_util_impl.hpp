@@ -269,65 +269,65 @@ Edge* FindLongestEdge(TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
 
 	return longestEdge;
 }
-////////////////////////////////////////////////////////////////////////////////
-template <class TEdgeIterator>
-void RemoveDoubleEdges(Grid& grid, TEdgeIterator edgesBegin, TEdgeIterator edgesEnd)
-{
-//	iterate over all edges and check whether both associated vertices are already
-//	marked. If this is the case and a marked edge exists between those vertices,
-//	then the current edge is a double.
+// ////////////////////////////////////////////////////////////////////////////////
+// template <class TEdgeIterator>
+// void RemoveDoubleEdges(Grid& grid, TEdgeIterator edgesBegin, TEdgeIterator edgesEnd)
+// {
+// //	iterate over all edges and check whether both associated vertices are already
+// //	marked. If this is the case and a marked edge exists between those vertices,
+// //	then the current edge is a double.
 
-	grid.begin_marking();
+// 	grid.begin_marking();
 
-//	the first is the double, the second the original
-	std::vector<std::pair<Edge*, Edge*> > doubles;
-	std::vector<Edge*> edges;
+// //	the first is the double, the second the original
+// 	std::vector<std::pair<Edge*, Edge*> > doubles;
+// 	std::vector<Edge*> edges;
 
-	for(TEdgeIterator iter = edgesBegin; iter != edgesEnd; ++iter){
-		Edge* e = *iter;
-		if(!grid.is_marked(e)){
-		//	check whether both vertices are marked
-			Vertex* v0 = e->vertex(0);
-			Vertex* v1 = e->vertex(1);
+// 	for(TEdgeIterator iter = edgesBegin; iter != edgesEnd; ++iter){
+// 		Edge* e = *iter;
+// 		if(!grid.is_marked(e)){
+// 		//	check whether both vertices are marked
+// 			Vertex* v0 = e->vertex(0);
+// 			Vertex* v1 = e->vertex(1);
 
-			bool isDouble = false;
+// 			bool isDouble = false;
 
-			if(grid.is_marked(v0) && grid.is_marked(v1)){
-			//	a necessary condition is met. However not yet sufficient.
-			//	find marked edge between v0 and v1.
-				CollectAssociated(edges, grid, v0);
-				for(size_t i = 0; i < edges.size(); ++i){
-					Edge* te = edges[i];
-					if((te->vertex(0) == v1 || te->vertex(1) == v1)
-						&& grid.is_marked(te))
-					{
-					//	e is a double
-						isDouble = true;
-						doubles.push_back(std::make_pair(e, te));
-						break;
-					}
-				}
-			}
+// 			if(grid.is_marked(v0) && grid.is_marked(v1)){
+// 			//	a necessary condition is met. However not yet sufficient.
+// 			//	find marked edge between v0 and v1.
+// 				CollectAssociated(edges, grid, v0);
+// 				for(size_t i = 0; i < edges.size(); ++i){
+// 					Edge* te = edges[i];
+// 					if((te->vertex(0) == v1 || te->vertex(1) == v1)
+// 						&& grid.is_marked(te))
+// 					{
+// 					//	e is a double
+// 						isDouble = true;
+// 						doubles.push_back(std::make_pair(e, te));
+// 						break;
+// 					}
+// 				}
+// 			}
 
-		//	finally mark e and its vertices (every processed edge is marked).
-			if(!isDouble){
-				grid.mark(e);
-				grid.mark(v0);
-				grid.mark(v1);
-			}
-		}
-	}
+// 		//	finally mark e and its vertices (every processed edge is marked).
+// 			if(!isDouble){
+// 				grid.mark(e);
+// 				grid.mark(v0);
+// 				grid.mark(v1);
+// 			}
+// 		}
+// 	}
 
-	grid.end_marking();
+// 	grid.end_marking();
 
-//	now erase all doubles
-	for(size_t i = 0; i < doubles.size(); ++i){
-	//	this allows listeners to take actions
-		grid.objects_will_be_merged(doubles[i].second, doubles[i].second,
-									doubles[i].first);
-		grid.erase(doubles[i].first);
-	}
-}
+// //	now erase all doubles
+// 	for(size_t i = 0; i < doubles.size(); ++i){
+// 	//	this allows listeners to take actions
+// 		grid.objects_will_be_merged(doubles[i].second, doubles[i].second,
+// 									doubles[i].first);
+// 		grid.erase(doubles[i].first);
+// 	}
+// }
 
 ////////////////////////////////////////////////////////////////////////////////
 template <class EdgeIterator, class TAAPos>

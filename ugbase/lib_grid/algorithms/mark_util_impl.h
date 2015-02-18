@@ -4,6 +4,7 @@
 #ifndef __H__UG_mark_util_impl
 #define __H__UG_mark_util_impl
 
+#include "lib_grid/algorithms/geom_obj_util/edge_util.h"
 namespace ug{
 
 template <class TEdgeIterator>

@@ -161,7 +161,7 @@ template <class TIterator>
 void CopySubsetIndicesToSides(ISubsetHandler& sh, TIterator elemsBegin,
 							TIterator elemsEnd, bool toUnassignedOnly)
 {
-	typedef typename PtrTypeToGeomObjBaseType<typename TIterator::value_type>::base_type TElem;
+	typedef typename PtrToValueType<typename TIterator::value_type>::base_type TElem;
 	typedef typename TElem::side TSide;
 
 	if(!TElem::HAS_SIDES)

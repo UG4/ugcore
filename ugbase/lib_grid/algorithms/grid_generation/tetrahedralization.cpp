@@ -6,6 +6,7 @@
 #include <sstream>
 #include "tetrahedralization.h"
 #include "../geom_obj_util/geom_obj_util.h"
+#include "../remove_duplicates_util.h"
 
 #ifdef UG_TETGEN
 	#include "tetgen.h"
@@ -75,6 +76,9 @@ static bool PerformTetrahedralization(Grid& grid,
 		}
 	}
 
+//	we have to make sure, that no face-duplicates exist in the grid
+	RemoveDuplicates(grid, grid.begin<Face>(), grid.end<Face>());
+	
 //	attach an index to the vertices
 	AInt aInd;
 	grid.attach_to_vertices(aInd);
