@@ -34,6 +34,21 @@ function util.GetGridPath()
 	return ug_get_data_path().."/grids/"
 end
 
+--! perhaps move this to bridge, and use function
+function util.DirSeperator()
+	if GetOperatingSystem() == "cygwin" then return "\\" else return "/" end
+end
+
+--! perhaps move this to file_util*
+function util.GetBaseName(filename)
+	
+	for i=1,string.len(filename) do
+		if string.char(string.byte(filename, i)) == util.DirSeperator() then
+			return string.sub(filename, i+1)
+		end 
+	end
+	return filename
+end
 
 --! pairsSortedByKeys
 --! the normal pairs(table) function returns elements unsorted
