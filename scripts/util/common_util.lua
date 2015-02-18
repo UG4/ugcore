@@ -3,7 +3,7 @@
 -- \ingroup scripts_util
 --
 -- Utility functions for common operations
--- Questions? mailto: stephan.grein@gcsc.uni-frankfurt.de
+-- Questions? mailto:stephan.grein@gcsc.uni-frankfurt.de
 -- \{
 ]]--
 
