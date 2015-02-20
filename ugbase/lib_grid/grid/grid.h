@@ -903,11 +903,11 @@ class UG_API Grid
 	///	returns true if the object is marked, false if not.
 	/**	Only pass objects that are contained by the grid.
 	 * \{ */
-		inline bool is_marked(GridObject* obj);
-		inline bool is_marked(Vertex* obj);
-		inline bool is_marked(Edge* obj);
-		inline bool is_marked(Face* obj);
-		inline bool is_marked(Volume* obj);
+		inline bool is_marked(GridObject* obj) const;
+		inline bool is_marked(Vertex* obj) const;
+		inline bool is_marked(Edge* obj) const;
+		inline bool is_marked(Face* obj) const;
+		inline bool is_marked(Volume* obj) const;
 	/** \} */
 
 	///	ends a marking sequence. Call this method when you're done with marking.

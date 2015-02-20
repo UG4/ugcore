@@ -7,11 +7,13 @@
 #include "lib_grid/algorithms/attachment_util.h"
 #include "common/util/path_provider.h"
 #include "common/util/file_util.h"
+#include "common/util/string_util.h"
 #include "lib_grid/parallelization/distributed_grid.h"
 #include "lib_grid/algorithms/subset_util.h"
 #include "lib_grid/tools/surface_view.h"
 
 #include "file_io_art.h"
+#include "file_io_asc.h"
 #include "file_io_txt.h"
 #include "file_io_tetgen.h"
 #include "file_io_obj.h"
@@ -71,17 +73,19 @@ bool FindFileInStandardGridPaths(std::string& filenameOut, const char* filename)
 static bool LoadGrid3d_IMPL(Grid& grid, ISubsetHandler* pSH,
 					   const char* filename, AVector3& aPos)
 {
-	string strName = filename;
+	string strExt = GetFilenameExtension(string(filename));
+	strExt = ToLower(strExt);
+
 	bool bAutoassignFaces = false;
 	bool bSuccess = false;
-	if(strName.find(".txt") != string::npos)
+	if(strExt.compare("txt") == 0)
 	{
 		bAutoassignFaces = true;
 		bSuccess = LoadGridFromTXT(grid, filename, aPos);
 	}
-	else if(strName.find(".obj") != string::npos)
+	else if(strExt.compare("obj") == 0)
 		bSuccess = LoadGridFromOBJ(grid, filename, aPos, NULL, pSH);
-	else if(strName.find(".lgb") != string::npos)
+	else if(strExt.compare("lgb") == 0)
 	{
 		int numSHs = 0;
 		if(pSH)
@@ -89,26 +93,30 @@ static bool LoadGrid3d_IMPL(Grid& grid, ISubsetHandler* pSH,
 
 		bSuccess = LoadGridFromLGB(grid, filename, &pSH, numSHs, aPos);
 	}
-	else if(strName.find(".stl") != string::npos)
+	else if(strExt.compare("stl") == 0)
 		bSuccess = LoadGridFromSTL(grid, filename, pSH, aPos);
-	else if(strName.find(".net") != string::npos)
+	else if(strExt.compare("net") == 0)
 		bSuccess = LoadGridFromART(grid, filename, pSH, aPos);
-	else if(strName.find(".art") != string::npos)
+	else if(strExt.compare("art") == 0)
 		bSuccess = LoadGridFromART(grid, filename, pSH, aPos);
-	else if(strName.find(".dat") != string::npos)
+	else if(strExt.compare("dat") == 0)
 		bSuccess = LoadGridFromART(grid, filename, pSH, aPos);
-	else if(strName.find(".lgm") != string::npos)
+	else if(strExt.compare("lgm") == 0)
 		bSuccess = ImportGridFromLGM(grid, filename, aPos, pSH);
-	else if(strName.find(".ng") != string::npos)
+	else if(strExt.compare("ng") == 0)
 		bSuccess = ImportGridFromNG(grid, filename, aPos, pSH);
-	else if(strName.find(".dump") != string::npos)
+	else if(strExt.compare("dump") == 0)
 	{
 		bSuccess = LoadGridFromDUMP(grid, filename, pSH, aPos);
 	}
-	else if(strName.find(".ele") != string::npos)
+	else if(strExt.compare("ele") == 0)
 		return LoadGridFromELE(grid, filename, pSH, aPos);
-	else if(strName.find(".msh") != string::npos)
+	else if(strExt.compare("msh") == 0)
 		bSuccess = LoadGridFromMSH(grid, filename, pSH, aPos);
+	else if(strExt.compare("asc") == 0){
+		bSuccess = LoadGridFromASC(grid, filename, aPos);
+		bAutoassignFaces = true;
+	}
 
 	if(bAutoassignFaces && pSH)
 		pSH->assign_subset(grid.faces_begin(), grid.faces_end(), 0);

@@ -19,6 +19,7 @@ set(srcGrid		grid/grid.cpp
 				grid/neighborhood.cpp)
 				
 set(srcAlgorithms	algorithms/debug_util.cpp
+					algorithms/field_util.cpp
 					algorithms/subset_util.cpp
 					algorithms/selection_util.cpp
 					algorithms/serialization.cpp
@@ -61,6 +62,7 @@ set(srcAlgorithms	algorithms/debug_util.cpp
 					algorithms/unit_tests/check_associated_elements.cpp)
 					
 set(srcFileIO	file_io/file_io_art.cpp
+				file_io/file_io_asc.cpp
 				file_io/file_io_dump.cpp
 				file_io/file_io_lgb.cpp
 				file_io/file_io_lgm.cpp

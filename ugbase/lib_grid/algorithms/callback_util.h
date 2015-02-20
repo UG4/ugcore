@@ -37,6 +37,48 @@ class ConsiderNone{
 };
 
 ////////////////////////////////////////////////////////////////////////////////
+///	Element callback that returns true, if an element is marked
+class IsMarked
+{
+	public:
+		IsMarked(const Grid& grid) :
+			m_grid(grid)	{}
+
+		bool operator() (Vertex* v)	{return callback(v);}
+		bool operator() (Edge* e)	{return callback(e);}
+		bool operator() (Face* f)	{return callback(f);}
+		bool operator() (Volume* v)	{return callback(v);}
+
+	private:
+		template <class TElem>
+		bool callback(TElem* e)			{return m_grid.is_marked(e);}
+
+	private:
+		const Grid&	m_grid;
+};
+
+///	Element callback that returns true, if an element is not marked
+class IsNotMarked
+{
+	public:
+		IsNotMarked(const Grid& grid) :
+			m_grid(grid)	{}
+
+		bool operator() (Vertex* v)	{return callback(v);}
+		bool operator() (Edge* e)	{return callback(e);}
+		bool operator() (Face* f)	{return callback(f);}
+		bool operator() (Volume* v)	{return callback(v);}
+
+	private:
+		template <class TElem>
+		bool callback(TElem* e)			{return !m_grid.is_marked(e);}
+
+	private:
+		const Grid&	m_grid;
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
 ///	Element callback that returns true, if an element is selected
 class IsSelected
 {

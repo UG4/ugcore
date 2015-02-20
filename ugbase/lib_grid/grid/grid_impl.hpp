@@ -814,7 +814,7 @@ inline void Grid::unmark(Volume* obj)
 	m_aaMarkVOL[obj] = 0;
 }
 
-inline bool Grid::is_marked(GridObject* obj)
+inline bool Grid::is_marked(GridObject* obj) const
 {
 	const int typeID = obj->base_object_id();
 	switch(typeID){
@@ -826,28 +826,28 @@ inline bool Grid::is_marked(GridObject* obj)
 	}
 }
 
-inline bool Grid::is_marked(Vertex* obj)
+inline bool Grid::is_marked(Vertex* obj) const
 {
 	if(m_currentMark == 0)
 		return false;
 	return m_aaMarkVRT[obj] == m_currentMark;
 }
 
-inline bool Grid::is_marked(Edge* obj)
+inline bool Grid::is_marked(Edge* obj) const
 {
 	if(m_currentMark == 0)
 		return false;
 	return m_aaMarkEDGE[obj] == m_currentMark;
 }
 
-inline bool Grid::is_marked(Face* obj)
+inline bool Grid::is_marked(Face* obj) const
 {
 	if(m_currentMark == 0)
 		return false;
 	return m_aaMarkFACE[obj] == m_currentMark;
 }
 
-inline bool Grid::is_marked(Volume* obj)
+inline bool Grid::is_marked(Volume* obj) const
 {
 	if(m_currentMark == 0)
 		return false;
