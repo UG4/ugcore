@@ -461,6 +461,16 @@ UG_API std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<2
 UG_API std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<3>& v);
 UG_API std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<4>& v);
 
+UG_API std::ostream& write_plain_txt (std::ostream& outStream, const ug::MathVector<1>& v);
+UG_API std::ostream& write_plain_txt (std::ostream& outStream, const ug::MathVector<2>& v);
+UG_API std::ostream& write_plain_txt (std::ostream& outStream, const ug::MathVector<3>& v);
+UG_API std::ostream& write_plain_txt (std::ostream& outStream, const ug::MathVector<4>& v);
+
+UG_API std::istream& read_plain_txt (std::istream& inStream, ug::MathVector<1>& v);
+UG_API std::istream& read_plain_txt (std::istream& inStream, ug::MathVector<2>& v);
+UG_API std::istream& read_plain_txt (std::istream& inStream, ug::MathVector<3>& v);
+UG_API std::istream& read_plain_txt (std::istream& inStream, ug::MathVector<4>& v);
+
 template <class TStream, std::size_t N, class T>
 void Serialize(TStream& out, const MathVector<N, T>& val)
 {
