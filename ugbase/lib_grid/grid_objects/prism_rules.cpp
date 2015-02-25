@@ -5,6 +5,7 @@
 #include <cassert>
 #include "prism_rules.h"
 #include "rule_util.h"
+#include "grid_object_ids.h"
 
 namespace ug{
 namespace prism_rules{
@@ -66,7 +67,7 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 		case 0:
 		{
 		//	simply put the default prism back to newIndsOut
-			newIndsOut[fillCount++] = 6;
+			newIndsOut[fillCount++] = GOID_PRISM;
 			newIndsOut[fillCount++] = 0;
 			newIndsOut[fillCount++] = 1;
 			newIndsOut[fillCount++] = 2;
@@ -93,13 +94,13 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 				//	quad, then we'll create a pyramid.
 					if(f[3] == -1){
 					//	create a tetrahedron
-						inds[fi++] = 4;
+						inds[fi++] = GOID_TETRAHEDRON;
 						inds[fi++] = f[0];	inds[fi++] = f[1];
 						inds[fi++] = f[2];	inds[fi++] = nVrt;
 					}
 					else{
 					//	create a prism
-						inds[fi++] = 5;
+						inds[fi++] = GOID_PRISM;
 						inds[fi++] = f[0];	inds[fi++] = f[1];
 						inds[fi++] = f[2];	inds[fi++] = f[3];
 						inds[fi++] = nVrt;
@@ -136,15 +137,15 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 					const int e3 = EDGE_FROM_VRTS[p[0]][p[3]] + E;
 					const int e5 = EDGE_FROM_VRTS[p[2]][p[5]] + E;
 
-					inds[fi++] = 5;
+					inds[fi++] = GOID_PYRAMID;
 					inds[fi++] = p[0];	inds[fi++] = p[2];	inds[fi++] = e5;
 					inds[fi++] = e3;	inds[fi++] = p[1];
 
-					inds[fi++] = 5;
+					inds[fi++] = GOID_PYRAMID;
 					inds[fi++] = e3;	inds[fi++] = e5;	inds[fi++] = p[5];
 					inds[fi++] = p[3];	inds[fi++] = p[4];
 
-					inds[fi++] = 4;
+					inds[fi++] = GOID_TETRAHEDRON;
 					inds[fi++] = p[1];	inds[fi++] = e3;
 					inds[fi++] = p[4];	inds[fi++] = e5;
 				}
@@ -154,10 +155,10 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 					const int e2 = EDGE_FROM_VRTS[p[0]][p[2]] + E;
 					const int e8 = EDGE_FROM_VRTS[p[3]][p[5]] + E;
 
-					inds[fi++] = 6;
+					inds[fi++] = GOID_PRISM;
 					inds[fi++] = p[0];	inds[fi++] = p[1];	inds[fi++] = e2;
 					inds[fi++] = p[3];	inds[fi++] = p[4];	inds[fi++] = e8;
-					inds[fi++] = 6;
+					inds[fi++] = GOID_PRISM;
 					inds[fi++] = p[1];	inds[fi++] = p[2];	inds[fi++] = e2;
 					inds[fi++] = p[4];	inds[fi++] = p[5];	inds[fi++] = e8;
 				}
@@ -182,11 +183,11 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 				int& fi = fillCount;
 				int* inds = newIndsOut;
 
-				inds[fi++] = 6;
+				inds[fi++] = GOID_PRISM;
 				inds[fi++] = 0;		inds[fi++] = 1;		inds[fi++] = 2;
 				inds[fi++] = e3;	inds[fi++] = e4;	inds[fi++] = e5;
 
-				inds[fi++] = 6;
+				inds[fi++] = GOID_PRISM;
 				inds[fi++] = e3;	inds[fi++] = e4;	inds[fi++] = e5;
 				inds[fi++] = 3;		inds[fi++] = 4;		inds[fi++] = 5;
 			}
@@ -232,13 +233,13 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 				int& fi = fillCount;
 				int* inds = newIndsOut;
 
-				inds[fi++] = 8;
+				inds[fi++] = GOID_HEXAHEDRON;
 				inds[fi++] = p[0];	inds[fi++] = e0;
 				inds[fi++] = e1;	inds[fi++] = p[2];
 				inds[fi++] = p[3];	inds[fi++] = e6;
 				inds[fi++] = e7;	inds[fi++] = p[5];
 
-				inds[fi++] = 6;
+				inds[fi++] = GOID_PRISM;
 				inds[fi++] = e0;	inds[fi++] = p[1];	inds[fi++] = e1;
 				inds[fi++] = e6;	inds[fi++] = p[4];	inds[fi++] = e7;
 			}
@@ -268,19 +269,19 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 				int& fi = fillCount;
 				int* inds = newIndsOut;
 
-				inds[fi++] = 6;
+				inds[fi++] = GOID_PRISM;
 				inds[fi++] = 0;		inds[fi++] = e0;	inds[fi++] = e2;
 				inds[fi++] = 3;		inds[fi++] = e6;	inds[fi++] = e8;
 
-				inds[fi++] = 6;
+				inds[fi++] = GOID_PRISM;
 				inds[fi++] = 1;		inds[fi++] = e1;	inds[fi++] = e0;
 				inds[fi++] = 4;		inds[fi++] = e7;	inds[fi++] = e6;
 
-				inds[fi++] = 6;
+				inds[fi++] = GOID_PRISM;
 				inds[fi++] = 2;		inds[fi++] = e2;	inds[fi++] = e1;
 				inds[fi++] = 5;		inds[fi++] = e8;	inds[fi++] = e7;
 
-				inds[fi++] = 6;
+				inds[fi++] = GOID_PRISM;
 				inds[fi++] = e0;	inds[fi++] = e1;	inds[fi++] = e2;
 				inds[fi++] = e6;	inds[fi++] = e7;	inds[fi++] = e8;
 			}
@@ -298,35 +299,35 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 		//	we have to create 8 new prisms
 			int& fi = fillCount;
 			int* inds = newIndsOut;
-			inds[fi++] = 6;
+			inds[fi++] = GOID_PRISM;
 			inds[fi++] = 0;			inds[fi++] = E;			inds[fi++] = E + 2;
 			inds[fi++] = E + 3;		inds[fi++] = F + 1;		inds[fi++] = F + 3;
 
-			inds[fi++] = 6;
+			inds[fi++] = GOID_PRISM;
 			inds[fi++] = E;			inds[fi++] = 1;			inds[fi++] = E + 1;
 			inds[fi++] = F + 1;		inds[fi++] = E + 4;		inds[fi++] = F + 2;
 
-			inds[fi++] = 6;
+			inds[fi++] = GOID_PRISM;
 			inds[fi++] = E + 2;		inds[fi++] = E + 1;		inds[fi++] = 2;
 			inds[fi++] = F + 3;		inds[fi++] = F + 2;		inds[fi++] = E + 5;
 
-			inds[fi++] = 6;
+			inds[fi++] = GOID_PRISM;
 			inds[fi++] = E + 1;		inds[fi++] = E + 2;		inds[fi++] = E;
 			inds[fi++] = F + 2;		inds[fi++] = F + 3;		inds[fi++] = F + 1;
 
-			inds[fi++] = 6;
+			inds[fi++] = GOID_PRISM;
 			inds[fi++] = E + 3;		inds[fi++] = F + 1;		inds[fi++] = F + 3;
 			inds[fi++] = 3;			inds[fi++] = E + 6;		inds[fi++] = E + 8;
 
-			inds[fi++] = 6;
+			inds[fi++] = GOID_PRISM;
 			inds[fi++] = F + 1;		inds[fi++] = E + 4;		inds[fi++] = F + 2;
 			inds[fi++] = E + 6;		inds[fi++] = 4;			inds[fi++] = E + 7;
 
-			inds[fi++] = 6;
+			inds[fi++] = GOID_PRISM;
 			inds[fi++] = F + 3;		inds[fi++] = F + 2;		inds[fi++] = E + 5;
 			inds[fi++] = E + 8;		inds[fi++] = E + 7;		inds[fi++] = 5;
 
-			inds[fi++] = 6;
+			inds[fi++] = GOID_PRISM;
 			inds[fi++] = F + 2;		inds[fi++] = F + 3;		inds[fi++] = F + 1;
 			inds[fi++] = E + 7;		inds[fi++] = E + 8;		inds[fi++] = E + 6;
 		}break;

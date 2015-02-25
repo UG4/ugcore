@@ -96,7 +96,10 @@ const int FACE_FROM_EDGES[][8] =
  *
  * \param newIndsOut	Array which has to be of size MAX_NUM_INDS_OUT.
  * 						When the algorithm is done, the array will contain
- * 						sequences of integers: {{numInds, ind1, ind2, ...}, ...}.
+ * 						sequences of integers: {{gridObjectID, ind1, ind2, ...}, ...}.
+ *						gridObjectID is a constant enumerated in GridObjectID and
+ *						describes the type of the grid-object that is
+ *						built from the following set of corner indices.
  * 						Old vertices are referenced by their local index. Vertices
  * 						created on an edge are indexed by the index of the edge +
  * 						NUM_VERTICES.

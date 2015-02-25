@@ -5,6 +5,7 @@
 #include <cassert>
 #include "rule_util.h"
 #include "hexahedron_rules.h"
+#include "grid_object_ids.h"
 
 namespace ug{
 namespace hex_rules{
@@ -61,8 +62,8 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 	switch(numNewVrts){
 		case 0:
 		{
-		//	simply put the default prism back to newIndsOut
-			newIndsOut[fillCount++] = 8;
+		//	simply put the default hexahedron back to newIndsOut
+			newIndsOut[fillCount++] = GOID_HEXAHEDRON;
 			newIndsOut[fillCount++] = 0;
 			newIndsOut[fillCount++] = 1;
 			newIndsOut[fillCount++] = 2;
@@ -86,7 +87,7 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 			for(int i = 0; i < NUM_FACES; ++i){
 				if(!FACE_CONTAINS_EDGE[i][refEdge]){
 					const int* f = FACE_VRT_INDS[i];
-					inds[fi++] = 5;
+					inds[fi++] = GOID_PYRAMID;
 					inds[fi++] = f[0];	inds[fi++] = f[1];
 					inds[fi++] = f[2];	inds[fi++] = f[3];
 					inds[fi++] = nVrt;
@@ -147,15 +148,15 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 			int& fi = fillCount;
 			int* inds = newIndsOut;
 
-			inds[fi++] = 6;
+			inds[fi++] = GOID_PRISM;
 			inds[fi++] = f[0];	inds[fi++] = f[1];	inds[fi++] = v0;
 			inds[fi++] = of[0];	inds[fi++] = of[1];	inds[fi++] = v1;
 
-			inds[fi++] = 6;
+			inds[fi++] = GOID_PRISM;
 			inds[fi++] = f[0];	inds[fi++] = v0;	inds[fi++] = f[3];
 			inds[fi++] = of[0];	inds[fi++] = v1;	inds[fi++] = of[3];
 
-			inds[fi++] = 6;
+			inds[fi++] = GOID_PRISM;
 			inds[fi++] = f[2];	inds[fi++] = f[3];	inds[fi++] = v0;
 			inds[fi++] = of[2];	inds[fi++] = of[3];	inds[fi++] = v1;
 		}break;
@@ -223,13 +224,13 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 			int& fi = fillCount;
 			int* inds = newIndsOut;
 
-			inds[fi++] = 8;
+			inds[fi++] = GOID_HEXAHEDRON;
 			inds[fi++] = f[0];	inds[fi++] = f[1];
 			inds[fi++] = v0;	inds[fi++] = v1;
 			inds[fi++] = of[0];	inds[fi++] = of[1];
 			inds[fi++] = ov0;	inds[fi++] = ov1;
 
-			inds[fi++] = 8;
+			inds[fi++] = GOID_HEXAHEDRON;
 			inds[fi++] = f[2];	inds[fi++] = f[3];
 			inds[fi++] = v1;	inds[fi++] = v0;
 			inds[fi++] = of[2];	inds[fi++] = of[3];
@@ -286,25 +287,25 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 				int& fi = fillCount;
 				int* inds = newIndsOut;
 
-				inds[fi++] = 8;
+				inds[fi++] = GOID_HEXAHEDRON;
 				inds[fi++] = f[0];	inds[fi++] = e0;
 				inds[fi++] = fvrt;	inds[fi++] = e3;
 				inds[fi++] = of[0];	inds[fi++] = oe0;
 				inds[fi++] = ofvrt;	inds[fi++] = oe3;
 
-				inds[fi++] = 8;
+				inds[fi++] = GOID_HEXAHEDRON;
 				inds[fi++] = f[1];	inds[fi++] = e1;
 				inds[fi++] = fvrt;	inds[fi++] = e0;
 				inds[fi++] = of[1];	inds[fi++] = oe1;
 				inds[fi++] = ofvrt;	inds[fi++] = oe0;
 
-				inds[fi++] = 8;
+				inds[fi++] = GOID_HEXAHEDRON;
 				inds[fi++] = f[2];	inds[fi++] = e2;
 				inds[fi++] = fvrt;	inds[fi++] = e1;
 				inds[fi++] = of[2];	inds[fi++] = oe2;
 				inds[fi++] = ofvrt;	inds[fi++] = oe1;
 
-				inds[fi++] = 8;
+				inds[fi++] = GOID_HEXAHEDRON;
 				inds[fi++] = f[3];	inds[fi++] = e3;
 				inds[fi++] = fvrt;	inds[fi++] = e2;
 				inds[fi++] = of[3];	inds[fi++] = oe3;
@@ -317,49 +318,49 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 		//	we have to create 8 new hexahedrons
 			int& fi = fillCount;
 			int* inds = newIndsOut;
-			inds[fi++] = 8;
+			inds[fi++] = GOID_HEXAHEDRON;
 			inds[fi++] = 0;			inds[fi++] = E;
 			inds[fi++] = F;			inds[fi++] = E + 3;
 			inds[fi++] = E + 4;		inds[fi++] = F + 1;
 			inds[fi++] = V;			inds[fi++] = F + 4;
 
-			inds[fi++] = 8;
+			inds[fi++] = GOID_HEXAHEDRON;
 			inds[fi++] = E;			inds[fi++] = 1;
 			inds[fi++] = E + 1;		inds[fi++] = F;
 			inds[fi++] = F + 1;		inds[fi++] = E + 5;
 			inds[fi++] = F + 2;		inds[fi++] = V;
 
-			inds[fi++] = 8;
+			inds[fi++] = GOID_HEXAHEDRON;
 			inds[fi++] = F;			inds[fi++] = E + 1;
 			inds[fi++] = 2;			inds[fi++] = E + 2;
 			inds[fi++] = V;			inds[fi++] = F + 2;
 			inds[fi++] = E + 6;		inds[fi++] = F + 3;
 
-			inds[fi++] = 8;
+			inds[fi++] = GOID_HEXAHEDRON;
 			inds[fi++] = E + 3;		inds[fi++] = F;
 			inds[fi++] = E + 2;		inds[fi++] = 3;
 			inds[fi++] = F + 4;		inds[fi++] = V;
 			inds[fi++] = F + 3;		inds[fi++] = E + 7;
 
-			inds[fi++] = 8;
+			inds[fi++] = GOID_HEXAHEDRON;
 			inds[fi++] = E + 4;		inds[fi++] = F + 1;
 			inds[fi++] = V;			inds[fi++] = F + 4;
 			inds[fi++] = 4;			inds[fi++] = E + 8;
 			inds[fi++] = F + 5;		inds[fi++] = E + 11;
 
-			inds[fi++] = 8;
+			inds[fi++] = GOID_HEXAHEDRON;
 			inds[fi++] = F + 1;		inds[fi++] = E + 5;
 			inds[fi++] = F + 2;		inds[fi++] = V;
 			inds[fi++] = E + 8;		inds[fi++] = 5;
 			inds[fi++] = E + 9;		inds[fi++] = F + 5;
 
-			inds[fi++] = 8;
+			inds[fi++] = GOID_HEXAHEDRON;
 			inds[fi++] = V;			inds[fi++] = F + 2;
 			inds[fi++] = E + 6;		inds[fi++] = F + 3;
 			inds[fi++] = F + 5;		inds[fi++] = E + 9;
 			inds[fi++] = 6;			inds[fi++] = E + 10;
 
-			inds[fi++] = 8;
+			inds[fi++] = GOID_HEXAHEDRON;
 			inds[fi++] = F + 4;		inds[fi++] = V;
 			inds[fi++] = F + 3;		inds[fi++] = E + 7;
 			inds[fi++] = E + 11;	inds[fi++] = F + 5;
