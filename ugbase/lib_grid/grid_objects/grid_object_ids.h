@@ -15,8 +15,10 @@ enum GridObjectID{
 	GOID_PYRAMID = 5,
 	GOID_PRISM = 6,
 	GOID_OCTAHEDRON = 7,
-	GOID_HEXAHEDRON = 8
+	GOID_HEXAHEDRON = 8,
+	GOID_NUM_GRID_OBJECT_IDS
 };
+
 
 }//	end of namespace
 

@@ -70,6 +70,30 @@ class HexahedronClass{
 		};
 };
 
+struct GridObjectInfo{
+	public:
+		static size_t num_vertices(int gridObjectID)	{return inst().m_numVertices[gridObjectID];}
+
+	private:
+		static GridObjectInfo& inst(){
+			static GridObjectInfo goi;
+			return goi;
+		}
+
+		GridObjectInfo(){
+			for(size_t i = 0; i < GOID_NUM_GRID_OBJECT_IDS; ++i)
+				m_numVertices[i] = 0;
+
+			m_numVertices[GOID_TETRAHEDRON] = 4;
+			m_numVertices[GOID_PYRAMID] = 5;
+			m_numVertices[GOID_PRISM] = 6;
+			m_numVertices[GOID_OCTAHEDRON] = 6;
+			m_numVertices[GOID_HEXAHEDRON] = 8;
+		}
+
+		size_t	m_numVertices[GOID_NUM_GRID_OBJECT_IDS];
+};
+
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	TOOLS
@@ -176,14 +200,15 @@ static bool Refine(std::vector<Volume*>& vNewVolumesOut,
 	VolumeDescriptor vd;
 
 	for(int i = 0; i < numElemInds;){
-		int num = newElemInds[i++];
+		int gridObjectID = newElemInds[i++];
+		size_t num = GridObjectInfo::num_vertices(gridObjectID);
 		vd.set_num_vertices(num);
-		for(int j = 0; j < num; ++j){
+		for(size_t j = 0; j < num; ++j){
 			assert(allVrts[newElemInds[i]]);
 			vd.set_vertex(j, allVrts[newElemInds[i++]]);
 		}
 
-		switch(num){
+		switch(gridObjectID){
 			case GOID_TETRAHEDRON:	vNewVolumesOut.push_back(new Tetrahedron(vd));	break;
 			case GOID_PYRAMID:		vNewVolumesOut.push_back(new Pyramid(vd));		break;
 			case GOID_PRISM:		vNewVolumesOut.push_back(new Prism(vd)); 		break;
