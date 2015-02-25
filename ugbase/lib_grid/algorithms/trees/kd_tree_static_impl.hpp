@@ -48,9 +48,23 @@ create_from_grid(Grid& grid, TVrtIterator vrtsBegin, TVrtIterator vrtsEnd,
 					TPositionAttachment& aPos, int maxTreeDepth,
 					int splitThreshold, KDSplitDimension splitDimension)
 {
+	Grid::VertexAttachmentAccessor<TPositionAttachment> aaPos(grid, aPos);
+	return create_from_grid(grid, vrtsBegin, vrtsEnd, aaPos, maxTreeDepth,
+							splitThreshold, splitDimension);
+}
+
+template<class TPositionAttachment, int numDimensions, class TVector>
+template <class TVrtIterator>
+bool
+KDTreeStatic<TPositionAttachment, numDimensions, TVector>::
+create_from_grid(Grid& grid, TVrtIterator vrtsBegin, TVrtIterator vrtsEnd,
+				 Grid::VertexAttachmentAccessor<TPositionAttachment> aaPos,
+				 int maxTreeDepth, int splitThreshold,
+				 KDSplitDimension splitDimension)
+{
 	clear();
 	m_pGrid = &grid;
-	m_aaPos.access(grid, aPos);
+	m_aaPos = aaPos;
 	m_iSplitThreshold = splitThreshold;
 	m_splitDimension = splitDimension;	//	how the split dimensions are chosen
 	return create_barycentric(vrtsBegin, vrtsEnd, grid.num_vertices(), &m_parentNode, 0, maxTreeDepth);

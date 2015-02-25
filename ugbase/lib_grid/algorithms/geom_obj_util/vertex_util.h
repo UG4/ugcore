@@ -246,12 +246,20 @@ Vertex* MergeMultipleVertices(Grid& grid, TVrtIterator vrtsBegin,
  *	that should be removed in future revisins.
  *
  *	\todo	remove container restrictions as described above.
- */
+ * \{ */
 template <int dim, class TVrtIterator>
 UG_API 
 void RemoveDoubles(Grid& grid, const TVrtIterator& iterBegin,
 					const TVrtIterator& iterEnd, Attachment<MathVector<dim> >& aPos,
 					number threshold);
+
+template <int dim, class TVrtIterator, class TAAPos>
+UG_API 
+void RemoveDoubles(Grid& grid, const TVrtIterator& iterBegin,
+					const TVrtIterator& iterEnd,
+					TAAPos aaPos,
+					number threshold);
+/** \} */
 
 ////////////////////////////////////////////////////////////////////////
 ///	returns whether a vertex lies on the boundary of a polygonal chain.

@@ -6,7 +6,6 @@
 #include "file_io_asc.h"
 #include "common/error.h"
 #include "common/util/string_util.h"
-#include "lib_grid/algorithms/field_util.h"
 
 using namespace std;
 
@@ -15,14 +14,22 @@ namespace ug{
 FileReaderASC::FileReaderASC() :
 	m_cellSize(0),
 	m_center(0, 0),
-	m_noDataValue(0),
-	m_numRows(0),
-	m_numCols(0)
+	m_noDataValue(0)
 {
+	m_privateField = make_sp(new Field<number>);
+	m_field = m_privateField.get();
 }
 
 FileReaderASC::~FileReaderASC()
 {
+}
+
+void FileReaderASC::set_field(Field<number>* field)
+{
+	if(field)
+		m_field = field;
+	else
+		m_field = m_privateField.get();
 }
 
 
@@ -31,6 +38,8 @@ void FileReaderASC::load_file(const char* filename)
 	ifstream in(filename);
 	UG_COND_THROW(!in, "Couldn't read from file " << filename);
 
+	size_t numCols = 0, numRows = 0;
+
 //	parse header
 	for(int i = 0; i < 6; ++i){
 		string name;
@@ -38,13 +47,12 @@ void FileReaderASC::load_file(const char* filename)
 		in >> name >> value;
 		UG_COND_THROW(!in, "Couldn't parse expected name-value pair in row " << i);
 
-		UG_LOG("name-value-pair: " << name << ", " << value << endl);
 		name = ToLower(name);
 
 		if(name.compare("ncols") == 0)
-			m_numCols = (size_t)value;
+			numCols = (size_t)value;
 		else if(name.compare("nrows") == 0)
-			m_numRows = (size_t)value;
+			numRows = (size_t)value;
 		else if(name.compare("xllcenter") == 0)
 			m_center.x() = value;
 		else if(name.compare("yllcenter") == 0)
@@ -59,14 +67,14 @@ void FileReaderASC::load_file(const char* filename)
 	}
 	
 //	parse values
-	m_field.resize_no_copy(m_numCols, m_numRows);
-	for(size_t irow = 0; irow < m_numRows; ++irow){
-		for(size_t icol = 0; icol < m_numCols; ++icol){
-			in >> m_field.at(icol, irow);
+	Field<number>& field = *m_field;
+	field.resize_no_copy(numCols, numRows);
+	for(size_t irow = 0; irow < numRows; ++irow){
+		for(size_t icol = 0; icol < numCols; ++icol){
+			in >> field.at(icol, irow);
 			UG_COND_THROW(!in, "Couln't read value at col: " << icol << ", row: " << irow);
 		}
 	}
-	UG_LOG("Field parsed.\n");
 }
 
 bool LoadGridFromASC(Grid& grid, const char* filename, AVector3& aPos)
@@ -81,11 +89,20 @@ bool LoadGridFromASC(Grid& grid, const char* filename, AVector3& aPos)
 	Grid::VertexAttachmentAccessor<AVector3> aaPos(grid, aPos);
 	CreateGridFromField(grid, reader.field(),
 						vector2(reader.cell_size(), reader.cell_size()),
-						//vector2(reader.center_x(), reader.center_y()),
-						vector2(0, 0),
+						vector2(reader.center_x(), reader.center_y()),
 						reader.no_data_value(),
 						aaPos);
 	return true;
+}
+
+void LoadHeightfieldFromASC(Heightfield& hfield, const char* filename)
+{
+	FileReaderASC reader;
+	reader.set_field(&hfield.field);
+	reader.load_file(filename);
+	hfield.cellSize = vector2(reader.cell_size(), reader.cell_size());
+	hfield.offset = vector2(reader.center_x(), reader.center_y());
+	hfield.noDataValue = reader.no_data_value();
 }
 
 }//	end of namespace

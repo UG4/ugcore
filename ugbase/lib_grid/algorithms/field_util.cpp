@@ -2,9 +2,60 @@
 // s.b.reiter@gmail.com
 
 #include "field_util.h"
+#include "lib_grid/algorithms/geom_obj_util/vertex_util.h"
 
 namespace ug{
+
+using namespace std;
+
+////////////////////////////////////////////////////////////////////////////////
+Heightfield::Heightfield() :
+	cellSize(1, 1),
+	offset(0, 0),
+	noDataValue(1e30)
+{
+}
+
+number Heightfield::
+interpolate(number x, number y) const
+{
+	pair<int, int> ind = coordinate_to_index(x, y);
+	if( ind.first >= 0 && ind.first < (int)field.width() &&
+		ind.second >= 0 && ind.second < (int)field.height())
+	{
+		return field.at(ind.first, ind.second);
+	}
+	return noDataValue;
+}
+
+std::pair<int, int> Heightfield::
+coordinate_to_index(number x, number y) const
+{
+//	roundOffset 0: value is constant across each cell
+//	roundOffset 0.5: value is constant around each node
+	const number roundOffset = 0.5;
+
+	pair<int, int> c;
+	if(cellSize.x() != 0)
+		c.first = (int)(roundOffset + (x - offset.x()) / cellSize.x());
+	else
+		c.first = 0;
 	
+	if(cellSize.y() != 0)
+		c.second = (int)(roundOffset + (y - offset.y()) / cellSize.y());
+	else
+		c.second = 0;
+	return c;
+}
+
+vector2 Heightfield::index_to_coordinate(int ix, int iy) const
+{
+	return vector2(	offset.x() + (number)ix * cellSize.x(),
+					offset.y() + (number)iy * cellSize.y());
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
 void CreateGridFromField(Grid& grid,
 						 const Field<number>& field,
 						 const vector2& cellSize,
@@ -82,6 +133,114 @@ void CreateGridFromField(Grid& grid,
 			}
 		}
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+void CreateGridFromField(Grid& grid,
+						 const Heightfield& hfield,
+						 Grid::VertexAttachmentAccessor<APosition> aaPos)
+{
+	CreateGridFromField(grid, hfield.field, hfield.cellSize, hfield.offset,
+						hfield.noDataValue, aaPos);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+void CreateGridFromFieldBoundary(Grid& grid,
+								 const Field<number>& field,
+								 const vector2& cellSize,
+								 const vector2& offset,
+								 number noDataValue,
+								 Grid::VertexAttachmentAccessor<APosition> aaPos)
+{
+//	iterate over cells and create edges between neighbored boundary vertices
+//	we'll create duplicate vertices and remove them later on
+	VertexIterator firstVrtIter;
+	bool gotFirstVrt = false;
+
+	for(int irow = -1; irow < (int)field.height(); ++irow){
+		for(int icol = -1; icol < (int)field.width(); ++icol){
+			int corner[4][2] = {{icol, irow},
+								{icol, irow + 1},
+								{icol + 1, irow + 1},
+								{icol + 1, irow}};
+		//	values of cell corners
+			number values[4];
+			for(int i = 0; i < 4; ++i){
+				if(	(corner[i][0] >= 0) && (corner[i][0] < (int)field.width()) &&
+					(corner[i][1] >= 0) && (corner[i][1] < (int)field.height()))
+				{
+					values[i] = field.at(corner[i][0], corner[i][1]);
+				}
+				else
+					values[i] = noDataValue;
+			}
+
+			int validCorners[4];
+			size_t numValid = 0;
+			int firstValid = -1;
+			int firstInvalid = -1;
+			for(size_t i = 0; i < 4; ++i){
+				if(values[i] != noDataValue){
+					validCorners[numValid] = i;
+					++numValid;
+					if(firstValid == -1)
+						firstValid = (int)i;
+				}
+				else if(firstInvalid == -1)
+					firstInvalid = (int)i;
+			}
+
+			bool createEdge = false;
+			int ci[2];
+			if(numValid == 3){
+			//	we'll create an edge which separates the invalid corner
+				ci[0] = (firstInvalid + 1) % 4;
+				ci[1] = (firstInvalid + 3) % 4;
+				createEdge = true;
+			}
+			else if((numValid == 2) &&
+				((validCorners[1] == (validCorners[0] + 1)) ||
+				 (validCorners[0] == (validCorners[1] + 1) % 4)))
+			{
+			//	we only create an edge if the two valid corners are direct neighbors
+				ci[0] = validCorners[0];
+				ci[1] = validCorners[1];
+				createEdge = true;
+			}
+
+			if(createEdge){
+				Vertex* vrts[2];
+				for(int i = 0; i < 2; ++i){
+					VertexIterator vi = grid.create<RegularVertex>();
+					aaPos[*vi] = vector3(offset.x() + cellSize.x() * (number)corner[ci[i]][0],
+										 offset.y() + cellSize.y() * (number)corner[ci[i]][1],
+										 field.at(corner[ci[i]][0], corner[ci[i]][1]));
+					vrts[i] = *vi;
+					if(!gotFirstVrt){
+						gotFirstVrt = true;
+						firstVrtIter = vi;
+					}
+				}
+
+				grid.create<RegularEdge>(EdgeDescriptor(vrts[0], vrts[1]));
+			}
+		}
+	}
+
+	if(gotFirstVrt){
+	//	we have to remove double vertices
+		RemoveDoubles<3>(grid, firstVrtIter, grid.end<Vertex>(), aaPos, SMALL);
+	}
+}
+
+
+void CreateGridFromFieldBoundary(Grid& grid,
+								 const Heightfield& hfield,
+								 Grid::VertexAttachmentAccessor<APosition> aaPos)
+{
+	CreateGridFromFieldBoundary(grid, hfield.field, hfield.cellSize, hfield.offset,
+								hfield.noDataValue, aaPos);
 }
 
 }//	end of namespace

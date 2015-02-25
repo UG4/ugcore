@@ -232,11 +232,20 @@ void RemoveDoubles(Grid& grid, const TVrtIterator& iterBegin,
 		return;
 
 	typedef Attachment<MathVector<dim> > attachment_type;
-
 	Grid::VertexAttachmentAccessor<attachment_type> aaPos(grid, aPos);
 
+	RemoveDoubles<dim>(grid, iterBegin, iterEnd, aaPos, threshold);
+}
+
+template <int dim, class TVrtIterator, class TAAPos>
+void RemoveDoubles(Grid& grid, const TVrtIterator& iterBegin,
+					const TVrtIterator& iterEnd,
+					TAAPos aaPos,
+					number threshold)
+{
+	typedef Attachment<MathVector<dim> > attachment_type;
 	KDTreeStatic<attachment_type, dim, MathVector<dim> > kdTree;
-	kdTree.create_from_grid(grid, iterBegin, iterEnd, aPos, 20, 10, KDSD_LARGEST);
+	kdTree.create_from_grid(grid, iterBegin, iterEnd, aaPos, 20, 10, KDSD_LARGEST);
 
 //	we need temporary attachments:
 //	a vector<Vertex*> attachment, that stores for each vertex all other vertices

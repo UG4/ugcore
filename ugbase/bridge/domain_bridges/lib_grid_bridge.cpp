@@ -12,14 +12,15 @@
 #include "lib_grid/tools/surface_view.h"
 #include "common/profiler/profiler.h"
 #include "lib_grid/algorithms/debug_util.h"
-#include "lib_grid/tools/partition_map.h"
 //todo: include this in algorithms.h
+#include "lib_grid/algorithms/grid_generation/horizontal_layers_mesher.h"
 #include "lib_grid/algorithms/refinement/global_fractured_media_refiner.h"
 #include "lib_grid/algorithms/refinement/adaptive_regular_mg_refiner.h"
 #include "lib_grid/algorithms/refinement/refinement_projectors/loop_subdivision_projectors.h"
+#include "lib_grid/algorithms/space_partitioning/lg_ntree.h"
 #include "lib_grid/algorithms/subdivision/subdivision_volumes.h"
 #include "lib_grid/parallelization/util/partition_weighting_callbacks.h"
-#include "lib_grid/algorithms/space_partitioning/lg_ntree.h"
+#include "lib_grid/tools/partition_map.h"
 #include "common/space_partitioning/ntree_traverser.h"
 
 
@@ -727,7 +728,15 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 		//	handling of registry. Should be adapted.
 //		reg.add_function("ExpandLayers2d", &ExpandFractures2d, grp)
 //			.add_function("ExpandLayers3d", &ExpandFractures3d, grp);
-			
+	
+//	prism-meshing
+		reg.add_class_<RasterLayers>("RasterLayers", grp)
+			.add_constructor()
+			.add_method("load_from_files", &RasterLayers::load_from_files)
+			.add_method("invalidate_flat_cells", &RasterLayers::invalidate_flat_cells)
+			.set_construct_as_smart_pointer(true);
+
+
 	//	Debugging
 		reg.add_function("CheckHangingNodeConsistency", static_cast<bool (*)(MultiGrid&)>(&CheckHangingNodeConsistency), grp)
 			.add_function("CheckMultiGridConsistency", &CheckMultiGridConsistency, grp)
