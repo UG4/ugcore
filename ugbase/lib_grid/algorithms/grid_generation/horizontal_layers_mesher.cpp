@@ -71,6 +71,14 @@ invalidate_flat_cells(number minHeight)
 	}
 }
 
+void RasterLayers::
+blur_layers(number alpha, size_t numIterations)
+{
+	for(size_t i = 0; i < size(); ++i){
+		BlurField(layer(i).field, alpha, numIterations, layer(i).noDataValue);
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 void MeshLayerBoundaries(Grid& grid, const RasterLayers& layers,
 						 Grid::VertexAttachmentAccessor<AVector3> aaPos,

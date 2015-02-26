@@ -500,6 +500,68 @@ bool SelectRegion(Selector& sel, const typename TAAPos::ValueType& p, TAAPos& aa
 	return true;
 }
 
+template <class TAAPos>
+void SelectShortPolychains(ISelector& sel, number maxLength, bool closedChainsOnly,
+						   TAAPos aaPos)
+{
+	if(!sel.grid())
+		return;
+	Grid& grid = *sel.grid();
+
+//	we'll collect all contained short polychains in this vector before deciding
+//	to select them or not. If a polychain is already longer than maxLength
+//	we won't add its edges to the vector
+	std::vector<Edge*> curChain;
+	std::queue<Edge*> nextEdges;
+	Grid::edge_traits::secure_container edges;
+
+	grid.begin_marking();
+
+	for(EdgeIterator eiter = grid.begin<Edge>(); eiter != grid.end<Edge>(); ++eiter){
+		if(grid.is_marked(*eiter))
+			continue;
+
+		bool curChainIsClosed = true;
+		number curChainLength = 0;
+
+		curChain.clear();
+		
+		nextEdges.push(*eiter);
+		grid.mark(*eiter);
+
+		while(!nextEdges.empty()){
+			Edge* e = nextEdges.front();
+			nextEdges.pop();
+			
+			curChainLength += EdgeLength(e, aaPos);
+			if(curChainLength <= maxLength)
+				curChain.push_back(e);
+
+			for(size_t ivrt = 0; ivrt < 2; ++ivrt){
+				Vertex* vrt = e->vertex(ivrt);
+				grid.associated_elements(edges, vrt);
+				if(edges.size() != 2){
+					curChainIsClosed = false;
+					continue;	//end of chain reached
+				}
+
+				for(size_t iedge = 0; iedge < 2; ++iedge){
+					Edge* nextEdge = edges[iedge];
+					if(!grid.is_marked(nextEdge)){
+						grid.mark(nextEdge);
+						nextEdges.push(nextEdge);
+					}
+				}
+			}
+		}
+
+		if((curChainLength <= maxLength) && (curChainIsClosed || !closedChainsOnly)){
+			sel.select(curChain.begin(), curChain.end());
+		}
+	}
+
+	grid.end_marking();
+}
 
 template <class TElem>
 void SelectLinkedElements(ISelector& sel,

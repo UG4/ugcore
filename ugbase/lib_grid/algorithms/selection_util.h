@@ -358,6 +358,13 @@ void SelectSmoothEdgePath(Selector& sel, number thresholdDegree,
 
 
 ////////////////////////////////////////////////////////////////////////
+//	SelectShortPolychains
+///	Selects regular polygonal chains which are shorter than a given threshold
+template <class TAAPos>
+void SelectShortPolychains(ISelector& sel, number maxLength, bool closedChainsOnly,
+						   TAAPos aaPos);
+
+////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	SelectInnerSelectionVertices
 ///	selects all vertices that are only connected to selected elements.

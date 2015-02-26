@@ -74,6 +74,16 @@ CreateGridFromFieldBoundary(Grid& grid,
 					const Heightfield& hfield,
 					Grid::VertexAttachmentAccessor<APosition> aaPos);
 
+////////////////////////////////////////////////////////////////////////////////
+///	Smoothens the field by adjusting the value of each pixel towards the average of its neighbours
+/** The value type T has to support operators += and *= and = 0*/
+template <class T>
+void BlurField(Field<T>& field, number alpha, size_t numIterations, const T& noDataValue);
+
 }//	end of namespace
+
+////////////////////////////////////////
+//	include implementation
+#include "field_util_impl.h"
 
 #endif	//__H__UG_field_util

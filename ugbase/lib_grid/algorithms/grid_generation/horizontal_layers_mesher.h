@@ -33,6 +33,9 @@ class RasterLayers{
 	///	invalidates cells in lower levels which are too close to valid cells in higher levels
 		void invalidate_flat_cells(number minHeight);
 
+	///	smoothens the values in each layer by averaging with neighboured values
+		void blur_layers(number alpha, size_t numIterations);
+
 	private:
 		std::vector<SmartPtr<layer_t> >	m_layers;
 };

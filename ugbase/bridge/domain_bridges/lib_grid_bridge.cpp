@@ -734,6 +734,7 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 			.add_constructor()
 			.add_method("load_from_files", &RasterLayers::load_from_files)
 			.add_method("invalidate_flat_cells", &RasterLayers::invalidate_flat_cells)
+			.add_method("blur_layers", &RasterLayers::blur_layers)
 			.set_construct_as_smart_pointer(true);
 
 
