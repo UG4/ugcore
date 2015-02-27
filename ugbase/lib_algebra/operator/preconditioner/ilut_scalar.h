@@ -53,6 +53,7 @@ class ILUTScalarPreconditioner : public IPreconditioner<TAlgebra>
 		ILUTScalarPreconditioner( const ILUTScalarPreconditioner<TAlgebra> &parent )
 			: base_type(parent)
 		{
+			m_eps = parent.m_eps;
 			set_info(parent.m_info);
 			set_sort(parent.m_bSort);
 		}
