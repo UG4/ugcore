@@ -234,7 +234,6 @@ template<typename TSparseMatrixType>
 void GetSliceSparse(const TSparseMatrixType &A, const std::vector<size_t> &indices,
 		CPUAlgebra::matrix_type &R)
 {
-	typedef typename TSparseMatrixType::const_row_iterator const_row_iterator;
 	size_t blockSize = GetRows(A(0,0));
 	size_t numRows = indices.size();
 	size_t numCols = indices.size();
