@@ -89,7 +89,7 @@ fill(size_t x, size_t y, size_t w, size_t h, const T& value)
 	const size_t yEnd = max(y + h, m_height);
 
 	for(size_t iy = max(y, size_t(0)); iy < yEnd; ++iy){
-		for(size_t ix = max(x, size_t(0)); ix < yEnd; ++ix){
+		for(size_t ix = max(x, size_t(0)); ix < xEnd; ++ix){
 			m_data[array_index(ix, iy)] = value;
 		}
 	}
@@ -112,7 +112,7 @@ copy(size_t x, size_t y, const Field& f){
 	const size_t yEnd = max(y + f.height(), m_height);
 
 	for(size_t iy = max(y, size_t(0)); iy < yEnd; ++iy){
-		for(size_t ix = max(x, size_t(0)); ix < yEnd; ++ix){
+		for(size_t ix = max(x, size_t(0)); ix < xEnd; ++ix){
 			m_data[array_index(ix, iy)] = f.at(ix, iy);
 		}
 	}
