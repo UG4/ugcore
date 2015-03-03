@@ -34,10 +34,29 @@ UG_API class Heightfield{
 	///	returns the coordinate of the given cell (specified through an index-tuple)
 		vector2 index_to_coordinate(int ix, int iy) const;
 
-		Field<number>	field;
-		vector2			cellSize;
-		vector2			offset;
-		number			noDataValue;
+	///	returns the x- and y-extent of the heightfield
+		vector2 extent() const;
+
+		Field<number>& field()					{return m_field;}
+		const Field<number>& field() const		{return m_field;}
+
+		const vector2& cell_size() const		{return m_cellSize;}
+		void set_cell_size(const vector2& s)	{m_cellSize = s;}
+
+		const vector2& offset() const			{return m_offset;}
+		void set_offset(const vector2& o)		{m_offset = o;}
+
+		number no_data_value() const			{return m_noDataValue;}
+		void set_no_data_value(number val)		{m_noDataValue = val;}
+
+	//	moves the heightfield by altering it's offset
+		void move(const vector2& v)				{m_offset += v;}
+
+	private:
+		Field<number>	m_field;
+		vector2			m_cellSize;
+		vector2			m_offset;
+		number			m_noDataValue;
 };
 
 

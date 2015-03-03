@@ -38,7 +38,8 @@ void Extrude(Grid& grid,
 			std::vector<Face*>* pvFacesInOut,
 			const vector_t& direction,
 			uint extrusionOptions,
-			Attachment<vector_t>& aPos)
+			Attachment<vector_t>& aPos,
+			std::vector<Volume*>* pvVolsOut)
 {
 	UG_DLOG(LIB_GRID, 0, "extruding...\n");
 	
@@ -46,6 +47,23 @@ void Extrude(Grid& grid,
 		grid.attach_to_vertices(aPos);
 
 	Grid::VertexAttachmentAccessor<Attachment<vector_t> > aaPos(grid, aPos);
+
+	Extrude(grid, pvVerticesInOut, pvEdgesInOut, pvFacesInOut,
+			direction, aaPos, extrusionOptions, pvVolsOut);
+}
+
+template <class TAAPos>
+void Extrude(Grid& grid,
+			std::vector<Vertex*>* pvVerticesInOut,
+			std::vector<Edge*>* pvEdgesInOut,
+			std::vector<Face*>* pvFacesInOut,
+			const typename TAAPos::ValueType& direction,
+			TAAPos aaPos,
+			uint extrusionOptions,
+			std::vector<Volume*>* pvVolsOut)
+{
+	if(pvVolsOut)
+		pvVolsOut->clear();
 
 //TODO: find a better guess.
 //	first we'll determine the rough size of the hash.
@@ -194,6 +212,7 @@ void Extrude(Grid& grid,
 		//	all new vertices exist now.
 		//	create the new face
 			Face* fNew = NULL;
+			Volume* vol = NULL;
 			if(numVrts == 3)
 			{
 				UG_DLOG(LIB_GRID, 2, "    " << i << ": creating tri...\n");
@@ -209,10 +228,10 @@ void Extrude(Grid& grid,
 					if (!ExtrusionHelper_CheckOrientation(&prism, aaPos)){
 						VolumeDescriptor vd;
 						prism.get_flipped_orientation(vd);
-						grid.create_by_cloning(&prism, vd, f);	
+						vol = *grid.create_by_cloning(&prism, vd, f);	
 					}
 					else
-						grid.create_by_cloning(&prism, prism, f);					
+						vol = *grid.create_by_cloning(&prism, prism, f);					
 
 				}
 			}
@@ -231,10 +250,10 @@ void Extrude(Grid& grid,
 					if(!ExtrusionHelper_CheckOrientation(&hex, aaPos)){
 						VolumeDescriptor vd;
 						hex.get_flipped_orientation(vd);
-						grid.create_by_cloning(&hex, vd, f);	
+						vol = *grid.create_by_cloning(&hex, vd, f);	
 					}
 					else
-						grid.create_by_cloning(&hex, hex, f);					
+						vol = *grid.create_by_cloning(&hex, hex, f);					
 				}
 			}
 			else{
@@ -251,6 +270,9 @@ void Extrude(Grid& grid,
 					vNewFaces[newFaceCount++] = fNew;
 				}
 			}
+
+			if(pvVolsOut && vol)
+				pvVolsOut->push_back(vol);
 		}
 		UG_DLOG(LIB_GRID, 1, "  extruding faces done.\n");
 	}
@@ -269,7 +291,8 @@ template void Extrude<vector1>(Grid&,
 								std::vector<Face*>*,
 								const vector1&,
 								uint,
-								Attachment<vector1>&);
+								Attachment<vector1>&,
+								std::vector<Volume*>*);
 
 template void Extrude<vector2>(Grid&,
 								std::vector<Vertex*>*,
@@ -277,7 +300,8 @@ template void Extrude<vector2>(Grid&,
 								std::vector<Face*>*,
 								const vector2&,
 								uint,
-								Attachment<vector2>&);
+								Attachment<vector2>&,
+								std::vector<Volume*>*);
 
 template void Extrude<vector3>(Grid&,
 								std::vector<Vertex*>*,
@@ -285,5 +309,36 @@ template void Extrude<vector3>(Grid&,
 								std::vector<Face*>*,
 								const vector3&,
 								uint,
-								Attachment<vector3>&);
+								Attachment<vector3>&,
+								std::vector<Volume*>*);
+
+template void Extrude<Grid::VertexAttachmentAccessor<Attachment<vector1> > >(
+								Grid&,
+								std::vector<Vertex*>*,
+								std::vector<Edge*>*,
+								std::vector<Face*>*,
+								const vector1&,
+								Grid::VertexAttachmentAccessor<Attachment<vector1> >,
+								uint,
+								std::vector<Volume*>*);
+
+template void Extrude<Grid::VertexAttachmentAccessor<Attachment<vector2> > >(
+								Grid&,
+								std::vector<Vertex*>*,
+								std::vector<Edge*>*,
+								std::vector<Face*>*,
+								const vector2&,
+								Grid::VertexAttachmentAccessor<Attachment<vector2> >,
+								uint,
+								std::vector<Volume*>*);
+
+template void Extrude<Grid::VertexAttachmentAccessor<Attachment<vector3> > >(
+								Grid&,
+								std::vector<Vertex*>*,
+								std::vector<Edge*>*,
+								std::vector<Face*>*,
+								const vector3&,
+								Grid::VertexAttachmentAccessor<Attachment<vector3> >,
+								uint,
+								std::vector<Volume*>*);
 }//	end of namespace

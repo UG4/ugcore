@@ -86,10 +86,13 @@ bool LoadGridFromASC(Grid& grid, const char* filename, AVector3& aPos)
 	FileReaderASC reader;
 	reader.load_file(filename);
 
+	vector2 offset(reader.center_x() - 0.5 * reader.cell_size() * (number)reader.num_columns(),
+				   reader.center_y() - 0.5 * reader.cell_size() * (number)reader.num_rows());
+
 	Grid::VertexAttachmentAccessor<AVector3> aaPos(grid, aPos);
 	CreateGridFromField(grid, reader.field(),
 						vector2(reader.cell_size(), reader.cell_size()),
-						vector2(reader.center_x(), reader.center_y()),
+						offset,
 						reader.no_data_value(),
 						aaPos);
 	return true;
@@ -98,11 +101,12 @@ bool LoadGridFromASC(Grid& grid, const char* filename, AVector3& aPos)
 void LoadHeightfieldFromASC(Heightfield& hfield, const char* filename)
 {
 	FileReaderASC reader;
-	reader.set_field(&hfield.field);
+	reader.set_field(&hfield.field());
 	reader.load_file(filename);
-	hfield.cellSize = vector2(reader.cell_size(), reader.cell_size());
-	hfield.offset = vector2(reader.center_x(), reader.center_y());
-	hfield.noDataValue = reader.no_data_value();
+	hfield.set_cell_size(vector2(reader.cell_size(), reader.cell_size()));
+	hfield.set_offset(vector2(reader.center_x() - 0.5 * reader.cell_size() * (number)reader.num_columns(),
+							  reader.center_y() - 0.5 * reader.cell_size() * (number)reader.num_rows()));
+	hfield.set_no_data_value(reader.no_data_value());
 }
 
 }//	end of namespace

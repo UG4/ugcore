@@ -10,9 +10,9 @@ using namespace std;
 
 ////////////////////////////////////////////////////////////////////////////////
 Heightfield::Heightfield() :
-	cellSize(1, 1),
-	offset(0, 0),
-	noDataValue(1e30)
+	m_cellSize(1, 1),
+	m_offset(0, 0),
+	m_noDataValue(1e30)
 {
 }
 
@@ -20,12 +20,12 @@ number Heightfield::
 interpolate(number x, number y) const
 {
 	pair<int, int> ind = coordinate_to_index(x, y);
-	if( ind.first >= 0 && ind.first < (int)field.width() &&
-		ind.second >= 0 && ind.second < (int)field.height())
+	if( ind.first >= 0 && ind.first < (int)m_field.width() &&
+		ind.second >= 0 && ind.second < (int)m_field.height())
 	{
-		return field.at(ind.first, ind.second);
+		return m_field.at(ind.first, ind.second);
 	}
-	return noDataValue;
+	return m_noDataValue;
 }
 
 std::pair<int, int> Heightfield::
@@ -36,13 +36,13 @@ coordinate_to_index(number x, number y) const
 	const number roundOffset = 0.5;
 
 	pair<int, int> c;
-	if(cellSize.x() != 0)
-		c.first = (int)(roundOffset + (x - offset.x()) / cellSize.x());
+	if(m_cellSize.x() != 0)
+		c.first = (int)(roundOffset + (x - m_offset.x()) / m_cellSize.x());
 	else
 		c.first = 0;
 	
-	if(cellSize.y() != 0)
-		c.second = (int)(roundOffset + (y - offset.y()) / cellSize.y());
+	if(m_cellSize.y() != 0)
+		c.second = (int)(roundOffset + (y - m_offset.y()) / m_cellSize.y());
 	else
 		c.second = 0;
 	return c;
@@ -50,10 +50,15 @@ coordinate_to_index(number x, number y) const
 
 vector2 Heightfield::index_to_coordinate(int ix, int iy) const
 {
-	return vector2(	offset.x() + (number)ix * cellSize.x(),
-					offset.y() + (number)iy * cellSize.y());
+	return vector2(	m_offset.x() + (number)ix * m_cellSize.x(),
+					m_offset.y() + (number)iy * m_cellSize.y());
 }
 
+vector2 Heightfield::extent() const
+{
+	return vector2(m_cellSize.x() * (number)m_field.width(),
+				   m_cellSize.y() * (number)m_field.height());
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 void CreateGridFromField(Grid& grid,
@@ -140,8 +145,8 @@ void CreateGridFromField(Grid& grid,
 						 const Heightfield& hfield,
 						 Grid::VertexAttachmentAccessor<APosition> aaPos)
 {
-	CreateGridFromField(grid, hfield.field, hfield.cellSize, hfield.offset,
-						hfield.noDataValue, aaPos);
+	CreateGridFromField(grid, hfield.field(), hfield.cell_size(), hfield.offset(),
+						hfield.no_data_value(), aaPos);
 }
 
 
@@ -239,8 +244,8 @@ void CreateGridFromFieldBoundary(Grid& grid,
 								 const Heightfield& hfield,
 								 Grid::VertexAttachmentAccessor<APosition> aaPos)
 {
-	CreateGridFromFieldBoundary(grid, hfield.field, hfield.cellSize, hfield.offset,
-								hfield.noDataValue, aaPos);
+	CreateGridFromFieldBoundary(grid, hfield.field(), hfield.cell_size(), hfield.offset(),
+								hfield.no_data_value(), aaPos);
 }
 
 }//	end of namespace

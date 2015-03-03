@@ -49,9 +49,13 @@ enum ExtrusionOptions
  * which have been created from the input-elements of those vectors.
  * The in-out-vectors thus can be directly used in a new call to Extrude.
  *
+ * All newly created volume-elements will be pushed to pvVolsOut if that vector
+ * was specified (NULL by default). Volume elements are created in the order in
+ * which faces are specified in pvFacesInOut.
+ *
  * If you need to have access to all newly created elements you could use
  * a ug::Selector with enabled autoselection.
- */
+ * \{ */
 template <class vector_t>
 void Extrude(Grid& grid,
 			std::vector<Vertex*>* pvVerticesInOut,
@@ -59,8 +63,19 @@ void Extrude(Grid& grid,
 			std::vector<Face*>* pvFacesInOut,
 			const vector_t& direction,
 			uint extrusionOptions = EO_DEFAULT,
-			Attachment<vector_t>& aPos = aPosition);
+			Attachment<vector_t>& aPos = aPosition,
+			std::vector<Volume*>* pvVolsOut = NULL);
 
+template <class TAAPos>
+void Extrude(Grid& grid,
+			std::vector<Vertex*>* pvVerticesInOut,
+			std::vector<Edge*>* pvEdgesInOut,
+			std::vector<Face*>* pvFacesInOut,
+			const typename TAAPos::ValueType& direction,
+			TAAPos aaPos,
+			uint extrusionOptions = EO_DEFAULT,
+			std::vector<Volume*>* pvVolsOut = NULL);
+/** \} */
 
 /*
 void Extrude(Grid& grid,

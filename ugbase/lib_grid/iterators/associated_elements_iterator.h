@@ -35,6 +35,11 @@ class AssocElemIter : public std::iterator<std::input_iterator_tag, TAssocElem*>
 				init(grid, elem);
 			}
 
+			void set_callback(typename Grid::traits<TAssocElem>::callback cbConsiderElem)
+			{
+				m_cbConsiderElem(cbConsiderElem);
+			}
+
 			void reinit(Grid& grid, TElem* elem)
 			{
 				m_i = 0;
