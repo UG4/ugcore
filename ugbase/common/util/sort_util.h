@@ -35,7 +35,7 @@ struct SortStruct
 
 
 
-template<typename TCompareValues>
+template<typename TCompareValues, bool bReverse>
 class CompareIndicesByClass
 {
 public:
@@ -44,7 +44,10 @@ public:
 	template<typename TIndex>
 	bool operator () (const TIndex &i, const TIndex &j) const
 	{
-		return m_compareValues[i] < m_compareValues[j];
+		if(bReverse)
+			return m_compareValues[i] > m_compareValues[j];
+		else
+			return m_compareValues[i] < m_compareValues[j];
 	}
 private:
 	const TCompareValues &m_compareValues;
@@ -78,9 +81,15 @@ private:
 		cout << v[i] << " = " << pivot[v[i]] << endl;
  */
 template<typename TCompareValues>
-inline CompareIndicesByClass<TCompareValues> CompareIndicesBy(const TCompareValues &values)
+inline CompareIndicesByClass<TCompareValues, false> CompareIndicesBy(const TCompareValues &values)
 {
-	return CompareIndicesByClass<TCompareValues>(values);
+	return CompareIndicesByClass<TCompareValues, false>(values);
+}
+
+template<typename TCompareValues>
+inline CompareIndicesByClass<TCompareValues, true> CompareIndicesReversedBy(const TCompareValues &values)
+{
+	return CompareIndicesByClass<TCompareValues, true>(values);
 }
 
 /**
@@ -103,11 +112,14 @@ inline CompareIndicesByClass2<TCompareValues, TCompare> CompareIndicesBy(const T
  * @return the indices list sorted with respect to the ordering in values
  */
 template<typename TCompareValues>
-void GetSortedIndices(std::vector<size_t> &indices, const TCompareValues &values)
+void GetSortedIndices(std::vector<size_t> &indices, const TCompareValues &values, bool bReverse=false)
 {
 	indices.resize(values.size());
 	for(size_t i=0; i<indices.size(); i++) indices[i] = i;
-	std::sort(indices.begin(), indices.end(), CompareIndicesByClass<TCompareValues>(values));
+	if(bReverse)
+		std::sort(indices.begin(), indices.end(), CompareIndicesByClass<TCompareValues, true>(values));
+	else
+		std::sort(indices.begin(), indices.end(), CompareIndicesByClass<TCompareValues, false>(values));
 }
 
 /**
@@ -148,6 +160,11 @@ std::vector<size_t> GetSortedIndices(const TCompareValues &values)
 inline bool boolstrcmp(const char *a, const char *b)
 {
 	return strcmp(a, b) < 0;
+}
+
+inline bool boolstrcmpReversed(const char *a, const char *b)
+{
+	return strcmp(a, b) > 0;
 }
 
 // end group ugbase_common_util
