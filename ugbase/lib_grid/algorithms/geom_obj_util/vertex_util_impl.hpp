@@ -266,6 +266,7 @@ void RemoveDoubles(Grid& grid, const TVrtIterator& iterBegin,
 
 //	compare squares.
 	threshold *= threshold;
+	std::vector<Vertex*> neighbours;
 //	iterate over all vertices and collect all that have aInt == 0 and are within range.
 	for(TVrtIterator iter = iterBegin; iter != iterEnd; ++iter)
 	{
@@ -273,7 +274,6 @@ void RemoveDoubles(Grid& grid, const TVrtIterator& iterBegin,
 		if(aaInt[v] == 0)
 		{//	the vertex will not be removed during merge
 		//	find all vertices closer than threshold
-			std::list<Vertex*> neighbours;
 			uint numClosest = 3;
 			while(numClosest < grid.num_vertices())
 			{
@@ -289,7 +289,7 @@ void RemoveDoubles(Grid& grid, const TVrtIterator& iterBegin,
 		//	store them in the vertexVec attachment
 			if(!neighbours.empty())
 			{
-				for(std::list<Vertex*>::iterator nIter = neighbours.begin();
+				for(std::vector<Vertex*>::iterator nIter = neighbours.begin();
 					nIter != neighbours.end(); ++nIter)
 				{
 					Vertex* nv = *nIter;

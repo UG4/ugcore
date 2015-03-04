@@ -405,9 +405,11 @@ void ExtrudeLayers(Grid& grid, const RasterLayers& layers,
 			}
 		}
 
-	//	during smoothing the height of non-marked vertices will be weighted stronger
+	//	during smoothing, the height of non-marked vertices will be weighted stronger
 	//	than the height of marked ones
 		const size_t numSmoothIterations = 100;
+		const number markedWeight = 1.0;
+		const number smoothAlpha = 0.5;
 		for(size_t iSmoothIter = 0; iSmoothIter < numSmoothIterations; ++iSmoothIter){
 			for(size_t ivrt = 0; ivrt < smoothVrts.size(); ++ivrt){
 				Vertex* v = smoothVrts[ivrt];
@@ -418,8 +420,8 @@ void ExtrudeLayers(Grid& grid, const RasterLayers& layers,
 				{
 					Vertex* conVrt = GetConnectedVertex(*assocVrtEdgeIterMarkedEdge, v);
 					if(grid.is_marked(conVrt)){
-						avHeight += 0.1 * aaHeight[conVrt];
-						totalNbrWeight += 0.1;
+						avHeight += markedWeight * aaHeight[conVrt];
+						totalNbrWeight += markedWeight;
 					}
 					else{
 						avHeight += aaHeight[conVrt];
@@ -430,9 +432,14 @@ void ExtrudeLayers(Grid& grid, const RasterLayers& layers,
 				UG_COND_THROW(totalNbrWeight == 0, "No neighbors found");
 				avHeight /= totalNbrWeight;
 				
-				aaHeight[v] = 0.1 * aaHeight[v] + 0.9 * avHeight;
-				aaPos[v].z() = aaPos[tmpVrts[ivrt]].z() - aaHeight[v];
+				aaHeight[v] = (1. - smoothAlpha) * aaHeight[v] + smoothAlpha * avHeight;
 			}
+		}
+
+	//	move vertices upwards only, to avoid invalid volumes in lower layers
+		for(size_t ivrt = 0; ivrt < smoothVrts.size(); ++ivrt){
+			Vertex* v = smoothVrts[ivrt];
+			aaPos[v].z() = max(aaPos[v].z(), aaPos[tmpVrts[ivrt]].z() - aaHeight[v]);
 		}
 	}
 

@@ -73,7 +73,7 @@ create_from_grid(Grid& grid, TVrtIterator vrtsBegin, TVrtIterator vrtsEnd,
 template<class TPositionAttachment, int numDimensions, class TVector>
 bool
 KDTreeStatic<TPositionAttachment, numDimensions, TVector>::
-get_neighbourhood(std::list<Vertex*>& vrtsOut, typename TPositionAttachment::ValueType& pos, int numClosest)
+get_neighbourhood(std::vector<Vertex*>& vrtsOut, typename TPositionAttachment::ValueType& pos, int numClosest)
 {
 	vrtsOut.clear();
 	m_numNeighboursFound = 0;
@@ -88,7 +88,7 @@ get_neighbourhood(std::list<Vertex*>& vrtsOut, typename TPositionAttachment::Val
 template<class TPositionAttachment, int numDimensions, class TVector>
 bool
 KDTreeStatic<TPositionAttachment, numDimensions, TVector>::
-get_points_in_box(std::list<Vertex*>& vrtsOut, const TVector& boxMin, const TVector& boxMax)
+get_points_in_box(std::vector<Vertex*>& vrtsOut, const TVector& boxMin, const TVector& boxMax)
 {
 	vrtsOut.clear();
 	return get_vertices_in_box(vrtsOut, &m_parentNode, boxMin, boxMax);
@@ -109,7 +109,7 @@ get_leafs(std::vector<Node*>& vLeafsOut)
 template<class TPositionAttachment, int numDimensions, class TVector>
 bool
 KDTreeStatic<TPositionAttachment, numDimensions, TVector>::
-get_points_in_box(std::list<Vertex*>& vrtsOut, Node* pNode, const TVector& boxMin, const TVector& boxMax)
+get_points_in_box(std::vector<Vertex*>& vrtsOut, Node* pNode, const TVector& boxMin, const TVector& boxMax)
 {
 //	check if we have reached a leaf
 	if(pNode->m_pvVertices)
