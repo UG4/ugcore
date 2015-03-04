@@ -15,18 +15,18 @@ namespace bridge
 //////////////////////
 // global functions
 //////////////////////
-template<typename TClass>
-struct AddTypeName
-{
-	static void add(std::string &s)
-	{
-	#ifdef UG_POSIX
-		if(s.length() != 0)
-			s += std::string(", ");
-		s += std::string("C++ Name: ") + TypeName<TClass>();
-	#endif
-	}
-};
+// template<typename TClass>
+// struct AddTypeName
+// {
+// 	static void add(std::string &s)
+// 	{
+// 	#ifdef UG_POSIX
+// 		if(s.length() != 0)
+// 			s += std::string(", ");
+// 		s += std::string("C++ Name: ") + TypeName<TClass>();
+// 	#endif
+// 	}
+// };
 
 template<class TFunc>
 Registry& Registry::
@@ -162,7 +162,7 @@ add_class_(std::string className, std::string group, std::string tooltip)
 //	new class pointer
 	ExportedClass<TClass>* newClass = NULL;
 
-	AddTypeName<TClass>::add(tooltip);
+	// AddTypeName<TClass>::add(tooltip);
 	newClass = new ExportedClass<TClass>(className, group, tooltip);
 
 //	add new class to list of classes
@@ -209,7 +209,7 @@ add_class_(std::string className, std::string group, std::string tooltip)
 //	new class pointer
 	ExportedClass<TClass>* newClass = NULL;
 
-	AddTypeName<TClass>::add(tooltip);
+	// AddTypeName<TClass>::add(tooltip);
 
 //	try creation of new class
 	newClass = new ExportedClass<TClass>(className, group, tooltip);
@@ -264,7 +264,7 @@ add_class_(std::string className, std::string group, std::string tooltip)
 //	new class pointer
 	ExportedClass<TClass>* newClass = NULL;
 
-	AddTypeName<TClass>::add(tooltip);
+	// AddTypeName<TClass>::add(tooltip);
 
 //	try creation of new class
 	newClass = new ExportedClass<TClass>(className, group, tooltip);
