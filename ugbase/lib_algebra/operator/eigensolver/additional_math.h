@@ -50,7 +50,7 @@ void MultiScalProd(vector_type &px,
 			DenseMatrix<densematrix_type> &rA, size_t n)
 {
 	PINVIT_PROFILE_FUNC();
-	UG_ASSERT(0, "");
+//	UG_ASSERT(0, "");
 	UG_ASSERT(n == rA.num_rows() && n == rA.num_cols(), "");
 	for(size_t r=0; r<n; r++)
 		for(size_t c=r; c<n; c++)
