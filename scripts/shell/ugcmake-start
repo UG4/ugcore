@@ -64,7 +64,7 @@ elif [[ $$UGSUBMIT_TYPE == "mpi" ]]; then
 	
 else
     #echo $HOSTNAME
-	echo "ugcmake-start: cluster could not be auto-detected or is not known. please set UGSUBMIT_TYPE.".
+	echo "ugcmake-start: cluster could not be auto-detected or is not known. please set UGSUBMIT_TYPE."
 	exit
 fi   	
 
