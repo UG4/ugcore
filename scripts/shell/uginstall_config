@@ -168,6 +168,8 @@ my_setup2 LUA
 add_bin $UG4_LOCAL_INSTALL_DIR/cppcheck/used/
 add_lib $UG4_LOCAL_INSTALL_DIR/hlibpro/used/
 
+add_bin $UG4_LOCAL_INSTALL_DIR/thrift/used/
+
 # tbb
 add_lib $UG4_LOCAL_INSTALL_DIR/tbb/used/lib/intel64/gcc4.4/
 add_lib $UG4_LOCAL_INSTALL_DIR/tbb/used/lib/

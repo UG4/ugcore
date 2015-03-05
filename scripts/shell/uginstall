@@ -58,30 +58,33 @@ LOCAL_DIR=$UG4_LOCAL_INSTALL_DIR
 ######################################################################################################################################################
 
 
-# check_licence
+# check_license
 # params: 
-# check_licence APPNAME
-# if there is a file install_scripts/APPNAME.licence, it is displayed
-# otherwise, a warning is displayed to make sure the licence is OK.
+# check_license APPNAME
+# if there is a file install_scripts/APPNAME.license, it is displayed
+# otherwise, a warning is displayed to make sure the license is OK.
 # a check to enter yes or no is displayed then
-check_licence()
+check_license()
 {
 	local APPNAME=$1
 	clear
 	print_info
 	echo "uginstall will now install $APPNAME"
 	echo " "
-	if [ -e $scriptpath/install_scripts/$APPNAME.licence ]; then
+	if [ -e $scriptpath/install_scripts/$APPNAME.license ]; then
 			
-		cat $scriptpath/install_scripts/$APPNAME.licence
-		echo " "
-		read -p "Do you accept the licence (type in yes or no) ? " -r
+		cat $scriptpath/install_scripts/$APPNAME.license
+		echo ""
+		echo "-----------------------------------------------------------------"
+		echo "uginstall will now install $APPNAME"
+		
+		read -p "Do you accept the license (type in yes or no) ? " -r
 	else
-		echo "WARNING: There is no $APPNAME.licence given yet. Please make sure you fulfill the licence of the code."
-		read -p "Have you read the licence of $APPNAME (type in yes or no) ? " -r
+		echo "WARNING: There is no $APPNAME.license given yet. Please make sure you fulfill the license of the code."
+		read -p "Have you read the license of $APPNAME (type in yes or no) ? " -r
 	fi
 	if [[ ! $REPLY == "yes" ]]; then
-		echo "You replied $REPLY. Please use 'yes' to accept licence."
+		echo "You replied $REPLY. Please use 'yes' to accept license."
 		exit
 	fi
 }
@@ -239,7 +242,7 @@ my_install_external_build()
 	if [ -e $subdir/$version/installed ]; then
 		echo "$subdir $version already installed."
 	else
-		check_licence $subdir
+		check_license $subdir
 		
 		if [ ! -e $subdir ]; then mkdir $subdir; fi
 		cd $subdir
@@ -305,7 +308,7 @@ my_install()
 	if [ -e $subdir/$version/installed ]; then
 		echo "$subdir $version already installed."
 	else
-		check_licence $subdir
+		check_license $subdir
 		
 		if [ ! -e $subdir ]; then mkdir $subdir; fi
 		cd $subdir
@@ -407,10 +410,10 @@ install_gcc()
 install_cmake()
 {
 	my_install_external_build \
-	cmake 2.8.12 \
-	"http://www.cmake.org/files/v2.8/cmake-2.8.12.tar.gz" \
-	cmake-2.8.12.tar.gz cmake-2.8.12 \
-	"../src/bootstrap --prefix=$UG4_LOCAL_INSTALL_DIR/cmake/2.8.12" make "make install"
+	cmake 3.2.0 \
+	"http://www.cmake.org/files/v3.2/cmake-3.2.0-rc2.tar.gz" \
+	cmake-3.2.0-rc2.tar.gz cmake-3.2.0-rc2 \
+	"../src/bootstrap --prefix=$UG4_LOCAL_INSTALL_DIR/cmake/3.2.0" make "make install"
 }
 
 install_openmpi()
@@ -693,6 +696,27 @@ install_cppcheck()
 	"make CFGDIR=$UG4_LOCAL_INSTALL_DIR/cppcheck/used/cfg"	
 }
 
+install_libevent()
+{
+	my_install \
+	libevent "2.0.22"\
+	"http://sourceforge.net/projects/levent/files/libevent/libevent-2.0/libevent-2.0.22-stable.tar.gz/download"\
+	libevent-2.0.22-stable.tar libevent-2.0.22-stable \
+	"./configure --prefix=$UG4_LOCAL_INSTALL_DIR/libevent/2.0.22; make ; make install"	
+}
+
+install_thrift()
+{
+## thrift needs bison > 2.4, can be installed via homebrew (http://brew.sh)
+	my_install \
+	thrift "0.9.2"\
+	"http://mirror.serversupportforum.de/apache/thrift/0.9.2/thrift-0.9.2.tar.gz"\
+	thrift-0.9.2.tar.gz thrift-0.9.2 \
+	"./configure --prefix=$UG4_LOCAL_INSTALL_DIR/thrift/used --with-boost=$UG4_LOCAL_INSTALL_DIR/boost/used --with-libevent=$UG4_LOCAL_INSTALL_DIR/libevent/used; make; make install"
+}
+
+
+
 ######################################################################################################################################################
 
 install_all()
@@ -735,8 +759,8 @@ print_usage()
 	echo "  <program> can be:"
 	echo "	all"
 	echo "	clang       (=clang+llvm from svn)"
-	# last checked 07/2014
-	echo "	cmake       2.8.12                 " `[[ -e cmake/used/installed ]] && echo "(installed)"`
+	# last checked 03/2015
+	echo "	cmake       3.2.0                 " `[[ -e cmake/used/installed ]] && echo "(installed)"`
 	# last checked 07/2014	
 	echo "	doxygen     1.8.7                 " `[[ -e doxygen/used/installed ]] && echo "(installed)"`
 	echo "	gcc         4.4                   " `[[ -e gcc/used/installed ]] && echo "(installed)"`
@@ -841,5 +865,7 @@ case $param1 in
 	PT) install_PT ;;
 	all) install_all ;;
 	cppcheck) install_cppcheck ;;
+	libevent) install_libevent ;;
+	thrift) install_thrift ;;
 	*) print_usage ;;
 esac
