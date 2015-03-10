@@ -452,6 +452,27 @@ void throwUgErrorAsJavaException(JNIEnv *env, ug::UGError error) {
 	env->ThrowNew(Exception, ss.str().c_str());
 }
 
+void throwUgErrorAsJavaException(JNIEnv *env, std::string error) {
+	jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
+
+	std::stringstream ss;
+
+	ss << "<!--NumMsg:" << 1 << ":-->";
+
+	ss << "<div><pre>\n";
+
+	ss << "<!--StartMsg:" << 0 << ":-->";
+	ss << "\n" << error << "\n";
+	ss << "<!--EndMsg:" << 0 << ":-->";
+
+	if (error.size() != 0 && error[error.size() - 1] != '\n')
+		ss << "\n";
+
+	ss << "</pre></div>";
+
+	env->ThrowNew(Exception, ss.str().c_str());
+}
+
 jobject getClass(JNIEnv *env, jobject obj) {
 	jclass classMethodAccess = env->FindClass("java/lang/Class");
 
@@ -632,14 +653,35 @@ TypeAndArray paramClass2ParamType(JNIEnv *env, jobject obj) {
 	bool isArray = isJObjectAnArray(env, obj);
 	typeAndArray.isArray = isArray;
 
-	if (isArray) {
-		// cut off the "object array" identifier: "[L"
-		className = className.substr(2);
+	jobject sub_obj = NULL;
 
-		// and cut off the tail if there is a semicolon ";"
-		if (className.at(className.size()-1) == ';')
-			className.erase(className.end()-1);
+	if (isArray) {
+		// if array is not empty, get first elem to find out type
+		// this is necessary as the elements of this array could all be of
+		// a inherited type, notably SmartPointer instead of Pointer!
+		jobjectArray arr = (jobjectArray) obj;
+
+		if (env->GetArrayLength(arr))
+		{
+			jobject sub_obj = env->GetObjectArrayElement(arr, 0);
+
+			className = getClassName(env, sub_obj);
+		}
+		// if array empty, take the type the array is built on as type
+		// FIXME: This will definitely cause problems if the expected UG type
+		// is std::vector<SmartPtr<T> > and the passed VRL array is empty;
+		// in this case, we will identify our non-existing object as typeof
+		// "VT_POINTER" and this cannot be cast to VT_SMART_POINTER.
+		else
+		{// cut off the "object array" identifier: "[L"
+			className = className.substr(2);
+
+			// and cut off the tail if there is a semicolon ";"
+			if (className.at(className.size()-1) == ';')
+				className.erase(className.end()-1);
+		}
 	}
+
 
 	if (className.compare("java.lang.Boolean") == 0) {
 		tmpResultType = ug::Variant::VT_BOOL;
@@ -651,19 +693,62 @@ TypeAndArray paramClass2ParamType(JNIEnv *env, jobject obj) {
 		tmpResultType = ug::Variant::VT_STDSTRING;
 	} else if (className.compare("edu.gcsc.vrl.ug.Pointer") == 0)
 	{
-		if (isConstJPtr(env, obj))
-			tmpResultType = ug::Variant::VT_CONST_POINTER;
+		if (isArray)
+		{
+			// if first object in array exists, determine its constness
+			if (sub_obj)
+			{
+				if (isConstJPtr(env, sub_obj))
+					tmpResultType = ug::Variant::VT_CONST_POINTER;
+				else
+					tmpResultType = ug::Variant::VT_POINTER;
+			}
+			// else (empty array) always take non-const,
+			// since it can be cast to const
+			else
+			{
+				tmpResultType = ug::Variant::VT_POINTER;
+			}
+		}
 		else
-			tmpResultType = ug::Variant::VT_POINTER;
+		{
+			if (isConstJPtr(env, obj))
+				tmpResultType = ug::Variant::VT_CONST_POINTER;
+			else
+				tmpResultType = ug::Variant::VT_POINTER;
+		}
 	}
 	else if (className.compare("edu.gcsc.vrl.ug.SmartPointer") == 0)
 	{
-		if (isConstJPtr(env, obj))
-			tmpResultType = ug::Variant::VT_CONST_SMART_POINTER;
+		if (isArray)
+		{
+			// if first object in array exists, determine its constness
+			if (sub_obj)
+			{
+				if (isConstJPtr(env, sub_obj))
+					tmpResultType = ug::Variant::VT_CONST_SMART_POINTER;
+				else
+					tmpResultType = ug::Variant::VT_SMART_POINTER;
+			}
+			// else (empty array) always take non-const,
+			// since it can be cast to const
+			else
+			{
+				tmpResultType = ug::Variant::VT_SMART_POINTER;
+			}
+		}
 		else
-			tmpResultType = ug::Variant::VT_SMART_POINTER;
+		{
+			if (isConstJPtr(env, obj))
+				tmpResultType = ug::Variant::VT_CONST_SMART_POINTER;
+			else
+				tmpResultType = ug::Variant::VT_SMART_POINTER;
+		}
 	}
-
+	else
+	{
+		UG_LOG("\nparamClass2ParamType: Encountered invalid type " << className << ".\n");
+	}
 	// What about const pointers?
 	// Answer: compareParamTypes() allows non-const* to const* conversion
 	// That is why we do not check that. We also use the same class for
@@ -715,8 +800,7 @@ bool compareParamTypes(JNIEnv *env, jobjectArray params,
 			std::stringstream ss;
 			ss << "Value " << i << " == NULL!";
 
-			jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
-			env->ThrowNew(Exception, ss.str().c_str());
+			ug::vrl::throwUgErrorAsJavaException(env, ss.str());
 		}
 
 		TypeAndArray paramType = paramClass2ParamType(env, param);

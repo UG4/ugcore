@@ -149,8 +149,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeMethod(JNIEnv *env,
 					<< "(" + ug::vrl::getParamTypesAsString(env, params) + ")"
 					<< EMPHASIZE_END << ".";
 
-			jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
-			env->ThrowNew(Exception, ss.str().c_str());
+			ug::vrl::throwUgErrorAsJavaException(env, ss.str());
 			return NULL;
 		}
 
@@ -177,8 +176,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeMethod(JNIEnv *env,
 		ss << "Incompatible conversion in method " << className << "."
 				<< methodName << "(): from " << ex.m_from << " to " << ex.m_to;
 
-		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
-		env->ThrowNew(Exception, ss.str().c_str());
+		ug::vrl::throwUgErrorAsJavaException(env, ss.str());
 	} catch (ug::UGError& ex) {
 
 		UG_LOG("bindings_vrl.cpp : _1invokeMethod() : catch (ug::UGError& ex)" << std::endl);
@@ -191,8 +189,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeMethod(JNIEnv *env,
 		ss << "Unknown exception thrown while" << " trying to invoke method: "
 				<< clazz->name() << "." << name << "().";
 
-		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
-		env->ThrowNew(Exception, ss.str().c_str());
+		ug::vrl::throwUgErrorAsJavaException(env, ss.str());
 	}
 
 	return result;
@@ -200,10 +197,6 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeMethod(JNIEnv *env,
 
 JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1newInstance(JNIEnv *env,
 		jobject obj, jlong exportedClassPointer, jobjectArray params) {
-
-//	UG_LOG( "trunk/ugbase/bindings/vrl/bindings_vrl.cpp :"
-//				<< " Java_edu_gcsc_vrl_ug_UG__1newInstance() " << std::endl);
-
 
 	ug::bridge::IExportedClass* clazz =
 			(ug::bridge::IExportedClass*) exportedClassPointer;
@@ -226,8 +219,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1newInstance(JNIEnv *env,
 					<< "(" + ug::vrl::getParamTypesAsString(env, params) + ")"
 					<< EMPHASIZE_END << ".";
 
-			jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
-			env->ThrowNew(Exception, ss.str().c_str());
+			ug::vrl::throwUgErrorAsJavaException(env, ss.str());
 			return NULL;
 		}
 
@@ -252,8 +244,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1newInstance(JNIEnv *env,
 		ss << "Incompatible conversion in constructor of " << clazz->name()
 				<< ": from " << ex.m_from << " to " << ex.m_to;
 
-		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
-		env->ThrowNew(Exception, ss.str().c_str());
+		ug::vrl::throwUgErrorAsJavaException(env, ss.str());
 	} catch (ug::UGError& ex) {
 
 		ug::vrl::throwUgErrorAsJavaException(env, ex);
@@ -264,8 +255,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1newInstance(JNIEnv *env,
 		ss << "Unknown exception thrown while" << " trying to invoke method: "
 				<< name << "().";
 
-		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
-		env->ThrowNew(Exception, ss.str().c_str());
+		ug::vrl::throwUgErrorAsJavaException(env, ss.str());
 	}
 
 	return NULL;
@@ -343,8 +333,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeFunction(JNIEnv *env,
 					<< "(" + ug::vrl::getParamTypesAsString(env, params) + ")"
 					<< EMPHASIZE_END << ".";
 
-			jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
-			env->ThrowNew(Exception, ss.str().c_str());
+			ug::vrl::throwUgErrorAsJavaException(env, ss.str());
 
 			return NULL;
 		}
@@ -383,8 +372,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeFunction(JNIEnv *env,
 		ss << "Incompatible conversion in function " << func->name()
 				<< "(): from " << ex.m_from << " to " << ex.m_to;
 
-		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
-		env->ThrowNew(Exception, ss.str().c_str());
+		ug::vrl::throwUgErrorAsJavaException(env, ss.str());
 
 	} catch (ug::UGError& ex) {
 
@@ -395,8 +383,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeFunction(JNIEnv *env,
 		ss << "Unknown exception thrown while" << " trying to invoke function: "
 				<< ug::vrl::stringJ2C(env, fName) << "().";
 
-		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
-		env->ThrowNew(Exception, ss.str().c_str());
+		ug::vrl::throwUgErrorAsJavaException(env, ss.str());
 	}
 
 	return result;

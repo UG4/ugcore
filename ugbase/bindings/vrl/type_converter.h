@@ -510,6 +510,14 @@ std::string getParamTypesAsString(JNIEnv *env, jobjectArray const& array);
  */
 void throwUgErrorAsJavaException(JNIEnv *env, ug::UGError error);
 
+/**
+ * Converts the specified message to its equivalent Java representation
+ * and throws it as Java exception.
+ * @param env JVM environment to operate on
+ * @param error the error to convert/throw
+ */
+void throwUgErrorAsJavaException(JNIEnv *env, std::string error);
+
 }// end vrl::
 }// end ug::
 
