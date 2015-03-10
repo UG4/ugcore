@@ -10,6 +10,7 @@
 
 #include <vector>
 #include "lib_disc/common/local_algebra.h"
+#include "lib_disc/time_disc/solution_time_series.h"
 #include "lib_disc/common/function_group.h"
 
 namespace ug{
@@ -211,8 +212,11 @@ class ICplUserData : virtual public UserDataInfo
 
 	/// sets the current time point
 		void set_time_point(size_t timePoint) {m_timePoint = timePoint;}
+		
+	///	returns the current time point
+		size_t time_point() {return m_timePoint;}
 
-	///	get evaluation time
+	///	get the current evaluation time
 		number time() const {return m_vTime[m_timePoint];}
 
 	public:
@@ -227,6 +231,12 @@ class ICplUserData : virtual public UserDataInfo
 
 	/// compute values (and derivatives iff compDeriv == true)
 		virtual void compute(LocalVector* u,
+		                     GridObject* elem,
+		                     const MathVector<dim> vCornerCoords[],
+		                     bool bDeriv = false) = 0;
+
+	/// compute values (and derivatives iff compDeriv == true, but only for the 'current' time point)
+		virtual void compute(LocalVectorTimeSeries* u,
 		                     GridObject* elem,
 		                     const MathVector<dim> vCornerCoords[],
 		                     bool bDeriv = false) = 0;
@@ -263,17 +273,35 @@ class ICplUserData : virtual public UserDataInfo
 		template <int ldim>
 		size_t register_local_ip_series(const MathVector<ldim>* vPos,
 										const size_t numIP,
+										const int timePointSpec,
 										bool bMayChange = true);
+
+	///	set local positions without the specification of the time point, returns series id
+		template <int ldim>
+		size_t register_local_ip_series(const MathVector<ldim>* vPos,
+										const size_t numIP,
+										bool bMayChange = true)
+		{
+			return this->template register_local_ip_series<ldim> (vPos, numIP, -1, bMayChange);
+		};
 
 	///	sets new local ip positions for a local ip series
 	/**
 	 * This method set new local positions for an already registered ip series.
-	 * Of coarse this is only possible for a ip series, that has the bMayChange
+	 * Of coarse this is only possible for a ip series with the bMayChange
 	 * flag set to true.
 	 */
 		template <int ldim>
 		void set_local_ips(const size_t seriesId, const MathVector<ldim>* vPos,
 						   const size_t numIP);
+
+	///	sets a new time point for a local ip series
+	/**
+	 * This method set a new time point for an already registered ip series.
+	 * Of coarse this is only possible for a ip series with the bMayChange
+	 * flag set to true.
+	 */
+		void set_time_point(const size_t seriesId, const int timePointSpec);
 
 	///	returns current local ip dimension
 		int dim_local_ips() const {return m_locPosDim;}
@@ -285,6 +313,18 @@ class ICplUserData : virtual public UserDataInfo
 	/// returns local ip
 		template <int ldim>
 		const MathVector<ldim>& local_ip(size_t s, size_t ip) const;
+		
+	///	returns the time point specification (note: it may be -1, i.e. not specified)
+		inline int time_point_specification(size_t s) const;
+		
+	///	returns the time point specification (in particular, the current one, if the own one not specified)
+		inline size_t time_point(size_t s) const;
+		
+	///	get the specified evaluation time
+		number time(size_t s) const {return m_vTime[time_point(s)];}
+
+	///	returns true iff the time point specification is equal to the current one, or not specified
+		inline bool at_current_time(size_t s) const;
 
 	///	set global positions
 		void set_global_ips(size_t s, const MathVector<dim>* vPos, size_t numIP);
@@ -354,6 +394,9 @@ class ICplUserData : virtual public UserDataInfo
 		std::vector<const MathVector<1>*> m_pvLocIP1d;
 		std::vector<const MathVector<2>*> m_pvLocIP2d;
 		std::vector<const MathVector<3>*> m_pvLocIP3d;
+		
+	///	time points for the series
+		std::vector<int> m_vTimePoint;
 
 	/// global ips
 		std::vector<const MathVector<dim>*> m_vvGlobPos;
@@ -361,8 +404,11 @@ class ICplUserData : virtual public UserDataInfo
 	///	time for evaluation
 		std::vector<number> m_vTime;
 
-	///	current time point
+	///	current time point (used if no explicit specification for series)
 		size_t m_timePoint;
+		
+	///	default time point (or -1 if not specified)
+		int m_defaultTimePoint;
 
 	///	subset for evaluation
 		int m_si;

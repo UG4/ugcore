@@ -71,6 +71,17 @@ class StdGlobPosData
 					this->getImpl().evaluate(this->value(s,ip), this->ip(s, ip), t, si);
 		}
 
+	///	implement as a UserData
+		virtual void compute(LocalVectorTimeSeries* u, GridObject* elem,
+		                     const MathVector<dim> vCornerCoords[], bool bDeriv = false)
+		{
+			const int si = this->subset();
+
+			for(size_t s = 0; s < this->num_series(); ++s)
+				for(size_t ip = 0; ip < this->num_ip(s); ++ip)
+					this->getImpl().evaluate(this->value(s,ip), this->ip(s, ip), this->time(s), si);
+		}
+
 	///	returns if data is constant
 		virtual bool constant() const {return false;}
 

@@ -323,7 +323,7 @@ prepare_elem_loop(const ReferenceObjectID id, int si)
 
 //	evaluate constant data
 	for(size_t i = 0; i < m_vConstData.size(); ++i)
-		m_vConstData[i]->compute(NULL, NULL, NULL, false);
+		m_vConstData[i]->compute((LocalVector*)NULL, NULL, NULL, false);
 }
 
 template <typename TDomain>
@@ -409,9 +409,17 @@ prepare_elem(LocalVector& u, GridObject* elem, const ReferenceObjectID roid, con
 
 //	compute the data
 	try{
-		for(size_t i = 0; i < m_vDependentData.size(); ++i){
-			u.access_by_map(m_vDependentData[i]->map());
-			m_vDependentData[i]->compute(&u, elem, vCornerCoords, bDeriv);
+		if (! time_series_needed ()) { // assemble for the given LocalVector
+			for(size_t i = 0; i < m_vDependentData.size(); ++i){
+				u.access_by_map(m_vDependentData[i]->map());
+				m_vDependentData[i]->compute(&u, elem, vCornerCoords, bDeriv);
+			}
+		}
+		else { // assemble for LocalVectorTimeSeries
+			for(size_t i = 0; i < m_vDependentData.size(); ++i){
+				u.access_by_map(m_vDependentData[i]->map());
+				m_vDependentData[i]->compute(m_pLocTimeSeries, elem, vCornerCoords, bDeriv);
+			}
 		}
 	}
 	UG_CATCH_THROW("DataEvaluator::prep_elem: Cannot compute data for Export or Linker.");
@@ -592,7 +600,7 @@ prepare_err_est_elem_loop(const ReferenceObjectID id, int si)
 
 //	evaluate constant data
 	for(size_t i = 0; i < m_vConstData.size(); ++i)
-		m_vConstData[i]->compute(NULL, NULL, NULL, false);
+		m_vConstData[i]->compute((LocalVector*)NULL, NULL, NULL, false);
 }
 
 template <typename TDomain>

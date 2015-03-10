@@ -66,20 +66,49 @@ protected:
 		void eval(LocalVector* u, GridObject* elem,
 				const MathVector<dim> vCornerCoords[], bool bDeriv = false) {
 
-			const number t = this->time();
 			const int si = this->subset();
 
 
 			for(size_t s = 0; s < this->num_series(); ++s)
 			{
-				getImpl().template evaluate<refDim>(this->values(s), this->ips(s), t, si,
+				getImpl().template evaluate<refDim>(this->values(s), this->ips(s), this->time(s), si,
 						elem, vCornerCoords,
 						this->template local_ips<refDim>(s), this->num_ip(s),
 						u);
 			}
 		}
 
+		template <int refDim>
+		void eval(LocalVectorTimeSeries* u, GridObject* elem,
+				const MathVector<dim> vCornerCoords[], bool bDeriv = false) {
+
+			const int si = this->subset();
+
+
+			for(size_t s = 0; s < this->num_series(); ++s)
+			{
+				getImpl().template evaluate<refDim>(this->values(s), this->ips(s), this->time(s), si,
+						elem, vCornerCoords,
+						this->template local_ips<refDim>(s), this->num_ip(s),
+						&(u->solution(this->time_point(s))));
+			}
+		}
+
 		virtual void compute(LocalVector* u, GridObject* elem,
+				const MathVector<dim> vCornerCoords[], bool bDeriv = false){
+
+			UG_ASSERT(elem->base_object_id() == this->dim_local_ips(),
+					"local ip dimension and reference element dimension mismatch.");
+
+			switch(this->dim_local_ips()){
+			case 1: eval<1>(u,elem,vCornerCoords,bDeriv); break;
+			case 2: eval<2>(u,elem,vCornerCoords,bDeriv); break;
+			case 3: eval<3>(u,elem,vCornerCoords,bDeriv); break;
+			default: UG_THROW("StdDependentUserData: Dimension not supported.");
+			}
+		}
+
+		virtual void compute(LocalVectorTimeSeries* u, GridObject* elem,
 				const MathVector<dim> vCornerCoords[], bool bDeriv = false){
 
 			UG_ASSERT(elem->base_object_id() == this->dim_local_ips(),

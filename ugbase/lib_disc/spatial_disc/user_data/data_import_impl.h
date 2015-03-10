@@ -113,7 +113,7 @@ void DataImport<TData,dim>::cache_data_access()
 
 template <typename TData, int dim>
 template <int ldim>
-void DataImport<TData,dim>::set_local_ips(const MathVector<ldim>* vPos, size_t numIP,
+void DataImport<TData,dim>::set_local_ips(const MathVector<ldim>* vPos, size_t numIP, int timePointSpec,
                                           bool bMayChange)
 {
 //	if no data set, skip
@@ -123,7 +123,7 @@ void DataImport<TData,dim>::set_local_ips(const MathVector<ldim>* vPos, size_t n
 	if(m_seriesID == -1)
 	{
 		m_seriesID = m_spUserData->template
-					register_local_ip_series<ldim>(vPos,numIP,bMayChange);
+					register_local_ip_series<ldim>(vPos,numIP,timePointSpec,bMayChange);
 
 	//	register callback, invoked when data field is changed
 		m_spUserData->register_storage_callback(this, &DataImport<TData,dim>::cache_data_access);
@@ -143,7 +143,8 @@ void DataImport<TData,dim>::set_local_ips(const MathVector<ldim>* vPos, size_t n
 			UG_THROW("DataImport: Setting different local ips to non-changable ip series.");
 
 	//	set new local ips
-		m_spUserData->template set_local_ips<ldim>(m_seriesID, vPos,numIP);
+		m_spUserData->template set_local_ips<ldim>(m_seriesID,vPos,numIP);
+		m_spUserData->set_time_point(m_seriesID,timePointSpec);
 
 		if(numIP != m_numIP)
 		{
@@ -160,10 +161,31 @@ void DataImport<TData,dim>::set_local_ips(const MathVector<ldim>* vPos, size_t n
 }
 
 template <typename TData, int dim>
+void DataImport<TData,dim>::set_local_ips(const MathVector<dim>* vPos, size_t numIP, int timePointSpec,
+                                          bool bMayChange)
+{
+	set_local_ips<dim>(vPos, numIP, timePointSpec, bMayChange);
+}
+
+template <typename TData, int dim>
+template <int ldim>
+void DataImport<TData,dim>::set_local_ips(const MathVector<ldim>* vPos, size_t numIP,
+                                          bool bMayChange)
+{
+	set_local_ips<ldim>(vPos, numIP, -1, bMayChange);
+}
+
+template <typename TData, int dim>
 void DataImport<TData,dim>::set_local_ips(const MathVector<dim>* vPos, size_t numIP,
                                           bool bMayChange)
 {
-	set_local_ips<dim>(vPos, numIP, bMayChange);
+	set_local_ips<dim>(vPos, numIP, -1, bMayChange);
+}
+
+template <typename TData, int dim>
+void DataImport<TData,dim>::set_time_point(int timePointSpec)
+{
+	m_spUserData->set_time_point(m_seriesID,timePointSpec);
 }
 
 template <typename TData, int dim>
@@ -192,27 +214,31 @@ void DataImport<TData,dim>::add_jacobian(LocalMatrix& J, const number scale)
 {
 	UG_ASSERT(m_spDependentUserData.valid(), "No Export set.");
 
+///	compute the linearization only if the export parameter is 'at current time'
+	if (! m_spUserData->at_current_time (m_seriesID))
+		return;
+	
 //	access jacobian by maps
 	J.access_by_map(this->map(), this->conn_map());
 
 //	loop integration points
 	for(size_t ip = 0; ip < num_ip(); ++ip)
 	{
-//	loop all functions
-	for(size_t fct1 = 0; fct1 < this->num_fct(); ++fct1)
-		for(size_t fct2 = 0; fct2 < m_spDependentUserData->num_fct(); ++fct2)
-		{
-//	get array of linearized defect and derivative
-	const TData* LinDef = lin_defect(ip, fct1);
-	const TData* Deriv = m_spDependentUserData->deriv(m_seriesID, ip, fct2);
+	//	loop all functions
+		for(size_t fct1 = 0; fct1 < this->num_fct(); ++fct1)
+			for(size_t fct2 = 0; fct2 < m_spDependentUserData->num_fct(); ++fct2)
+			{
+			//	get array of linearized defect and derivative
+				const TData* LinDef = lin_defect(ip, fct1);
+				const TData* Deriv = m_spDependentUserData->deriv(m_seriesID, ip, fct2);
 
-//	loop shapes of functions
-	for(size_t sh1 = 0; sh1 < num_sh(fct1); ++sh1)
-		for(size_t sh2 = 0; sh2 < m_spDependentUserData->num_sh(fct2); ++sh2)
-		{
-			J(fct1, sh1, fct2, sh2) += scale*(LinDef[sh1]*Deriv[sh2]);
-		}
-		}
+			//	loop shapes of functions
+				for(size_t sh1 = 0; sh1 < num_sh(fct1); ++sh1)
+					for(size_t sh2 = 0; sh2 < m_spDependentUserData->num_sh(fct2); ++sh2)
+					{
+						J(fct1, sh1, fct2, sh2) += scale*(LinDef[sh1]*Deriv[sh2]);
+					}
+			}
 	}
 }
 

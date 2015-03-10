@@ -18,7 +18,8 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////
 
 template <int dim>
-ICplUserData<dim>::ICplUserData() : m_locPosDim(-1), m_timePoint(0), m_si(-1)
+ICplUserData<dim>::ICplUserData()
+:	m_locPosDim(-1), m_timePoint(0), m_defaultTimePoint(-1), m_si(-1)
 {
 	m_vNumIP.clear();
 	m_vMayChange.clear();
@@ -44,12 +45,16 @@ template <int dim>
 template <int ldim>
 size_t ICplUserData<dim>::register_local_ip_series(const MathVector<ldim>* vPos,
                                          const size_t numIP,
+                                         const int timePointSpec,
                                          bool bMayChange)
 {
 //	check, that dimension is ok.
 	if(m_locPosDim == -1) m_locPosDim = ldim;
 	else if(m_locPosDim != ldim)
 		UG_THROW("Local IP dimension conflict");
+	
+//	get the "right" time point specification
+	int theTimePoint = (m_defaultTimePoint >= 0)? m_defaultTimePoint : timePointSpec;
 
 //	get local positions
 	std::vector<const MathVector<ldim>*>& vvIP = get_local_ips(Int2Type<ldim>());
@@ -61,12 +66,14 @@ size_t ICplUserData<dim>::register_local_ip_series(const MathVector<ldim>* vPos,
 		{
 		//	return series number iff exists and local ips remain constant
 			if(!m_vMayChange[s])
-				if(vvIP[s] == vPos && m_vNumIP[s] == numIP) return s;
+				if(vvIP[s] == vPos && m_vNumIP[s] == numIP && m_vTimePoint[s] == theTimePoint)
+					return s;
 		}
 
 //	if series not yet registered, add it
 	vvIP.push_back(vPos);
 	m_vNumIP.push_back(numIP);
+	m_vTimePoint.push_back(theTimePoint);
 	m_vMayChange.push_back(bMayChange);
 
 //	invoke callback:
@@ -122,6 +129,24 @@ void ICplUserData<dim>::set_local_ips(const size_t seriesID,
 }
 
 template <int dim>
+void ICplUserData<dim>::set_time_point(const size_t seriesID,
+                            		const int timePointSpec)
+{
+//	check series id
+	if(seriesID >= num_series())
+		UG_THROW("Trying to set new ips for invalid seriesID "<<seriesID);
+
+//	check that series is changeable
+	if(!m_vMayChange[seriesID])
+		UG_THROW("Time point specification is not changable, but trying to set a new one.");
+	
+//	set the new time point specification (if it is not prescribed by the object)
+	m_vTimePoint[seriesID] = (m_defaultTimePoint >= 0)? m_defaultTimePoint : timePointSpec;
+	
+//TODO: Should we call the callback here? (No data sizes are changed!)
+}
+
+template <int dim>
 template <int ldim>
 const MathVector<ldim>* ICplUserData<dim>::local_ips(size_t s) const
 {
@@ -145,6 +170,36 @@ const MathVector<ldim>& ICplUserData<dim>::local_ip(size_t s, size_t ip) const
 	UG_ASSERT(ip < num_ip(s), "Invalid index.");
 
 	return get_local_ips(Int2Type<ldim>())[s][ip];
+}
+
+template <int dim>
+int ICplUserData<dim>::time_point_specification(size_t s) const
+{
+	UG_ASSERT(s < num_series(), "Wrong series id");
+
+	return m_vTimePoint[s];
+}
+
+template <int dim>
+size_t ICplUserData<dim>::time_point(size_t s) const
+{
+	UG_ASSERT(s < num_series(), "Wrong series id");
+
+	size_t time_spec;
+	if ((time_spec = m_vTimePoint[s]) >= 0)
+		return time_spec;
+	return m_timePoint;
+}
+
+template <int dim>
+bool ICplUserData<dim>::at_current_time(size_t s) const
+{
+	UG_ASSERT(s < num_series(), "Wrong series id");
+	
+	int time_spec;
+	if ((time_spec = m_vTimePoint[s]) >= 0)
+		return ((size_t) time_spec) == m_timePoint;
+	return true;
 }
 
 template <int dim>

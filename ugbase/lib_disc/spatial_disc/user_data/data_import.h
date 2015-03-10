@@ -217,12 +217,24 @@ class DataImport : public IDataImport<dim>
 
 	///	set the local integration points
 		template <int ldim>
+		void set_local_ips(const MathVector<ldim>* vPos, size_t numIP, int timePointSpec,
+		                   bool bMayChange = true);
+
+	///	set the local integration points
+		void set_local_ips(const MathVector<dim>* vPos, size_t numIP, int timePointSpec,
+		                   bool bMayChange = true);
+
+	///	set the local integration points
+		template <int ldim>
 		void set_local_ips(const MathVector<ldim>* vPos, size_t numIP,
 		                   bool bMayChange = true);
 
 	///	set the local integration points
 		void set_local_ips(const MathVector<dim>* vPos, size_t numIP,
 		                   bool bMayChange = true);
+
+	///	set the time point specification
+		void set_time_point(int timePointSpec);
 
 	///	sets the global positions
 		void set_global_ips(const MathVector<dim>* vPos, size_t numIP);
@@ -304,6 +316,10 @@ class DataImport : public IDataImport<dim>
 	///	compute lin defect
 		virtual void compute_lin_defect(LocalVector& u)
 		{
+		///	compute the linearization only if the export parameter is 'at current time'
+			if (! m_spUserData->at_current_time (m_seriesID))
+				return;
+		///	compute the linearization
 			UG_ASSERT(m_vLinDefectFunc[m_id] != NULL, "No evaluation function.");
 			UG_ASSERT(num_ip() == 0 || m_vvvLinDefect.size() >= num_ip(),
 			          "DataImport: Num ip "<<num_ip()<<", but memory: "<<m_vvvLinDefect.size());

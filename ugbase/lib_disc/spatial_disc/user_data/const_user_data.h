@@ -72,6 +72,15 @@ class StdConstData
 					getImpl().evaluate(this->value(s,ip));
 		}
 
+	///	implement as a UserData
+		virtual void compute(LocalVectorTimeSeries* u, GridObject* elem,
+		                     const MathVector<dim> vCornerCoords[], bool bDeriv = false)
+		{
+			for(size_t s = 0; s < this->num_series(); ++s)
+				for(size_t ip = 0; ip < this->num_ip(s); ++ip)
+					getImpl().evaluate(this->value(s,ip));
+		}
+
 	///	callback, invoked when data storage changed
 		virtual void value_storage_changed(const size_t seriesID)
 		{

@@ -49,10 +49,15 @@ class StdDataLinker
 
 		virtual void compute(LocalVector* u, GridObject* elem,
 							 const MathVector<dim> vCornerCoords[], bool bDeriv = false);
+		virtual void compute(LocalVectorTimeSeries* u, GridObject* elem,
+							 const MathVector<dim> vCornerCoords[], bool bDeriv = false);
 
 	protected:
 		template <int refDim>
 		void eval_deriv(LocalVector* u, GridObject* elem,
+		                const MathVector<dim> vCornerCoords[], bool bDeriv = false);
+		template <int refDim>
+		void eval_deriv(LocalVectorTimeSeries* u, GridObject* elem,
 		                const MathVector<dim> vCornerCoords[], bool bDeriv = false);
 
 	public:
