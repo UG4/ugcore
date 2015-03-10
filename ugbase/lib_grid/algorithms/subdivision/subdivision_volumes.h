@@ -1336,8 +1336,6 @@ void SubdivisionTetGridSmooth(MultiGrid& mg, bool bPreserveBnd, bool bSubdivisio
 	if(!bPreserveBnd)
 		bSubdivisionLoopBnd = false;
 
-	typedef APosition::ValueType pos_type;
-
 //	Position attachment management
 	Grid::VertexAttachmentAccessor<APosition> aaPos(mg, aPosition);
 

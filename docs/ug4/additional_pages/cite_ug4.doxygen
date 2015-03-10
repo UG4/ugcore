@@ -38,16 +38,24 @@ Andreas Vogel, Sebastian Reiter, Martin Rupp, Arne Naegel and Gabriel Wittum
 
 <b>UG 4 - A Novel Flexible Software System for Simulating PDE Based Models on High Performance Computers</b>
 
-In: Computation and Visualisation in Science. Submitted and accepted.
+In: Computation and Visualisation in Science, August 2013, Volume 16, Issue 4, pp 165-179.
 
 BIBTEX:
 \verbatim
-@article{ug4_Vogel2012,
-	author = {Andreas Vogel and Sebastian Reiter and Martin Rupp and Arne N\"agel and Gabriel Wittum},
-	Journal = {Computation and Visualisation in Science},
- 	Title = {UG 4 - A Novel Flexible Software System for Simulating PDE Based Models on High Performance Computers},
- 	Year = {2012},
- 	note = {submitted and accepted}
+@article{vogel_ug_2013,
+year={2013},
+issn={1432-9360},
+journal={Computing and Visualization in Science},
+volume={16},
+number={4},
+doi={10.1007/s00791-014-0232-9},
+title={UG 4: A novel flexible software system for simulating PDE based models on high performance computers},
+url={http://dx.doi.org/10.1007/s00791-014-0232-9},
+publisher={Springer Berlin Heidelberg},
+keywords={Simulation framework; Unstructured grids; Multigrid; Parallelization},
+author={Vogel, Andreas and Reiter, Sebastian and Rupp, Martin and Nägel, Arne and Wittum, Gabriel},
+pages={165-179},
+language={English}
 }
 \endverbatim
 
@@ -58,16 +66,24 @@ Sebastian Reiter, Andreas Vogel, Ingo Heppner, Martin Rupp and Gabriel Wittum
 
 <b>A Massively Parallel Geometric Multigrid Solver on Hierarchically Distributed Grids</b>
 
-In: Computation and Visualisation in Science. Submitted and accepted.
+In: Computation and Visualisation in Science. August 2013, Volume 16, Issue 4, pp 151-164
 
 BIBTEX:
 \verbatim
-@article{ug4_Reiter2012,
-	author = {Sebastian Reiter and Andreas Vogel and Ingo Heppner and Martin Rupp and Gabriel Wittum},
-	Journal = {Computation and Visualisation in Science},
- 	Title = {A Massively Parallel Geometric Multigrid Solver on Hierarchically Distributed Grids},
- 	Year = {2012},
- 	note = {submitted and accepted}
+@article{reiter_gmg_2013,
+year={2013},
+issn={1432-9360},
+journal={Computing and Visualization in Science},
+volume={16},
+number={4},
+doi={10.1007/s00791-014-0231-x},
+title={A massively parallel geometric multigrid solver on hierarchically distributed grids},
+url={http://dx.doi.org/10.1007/s00791-014-0231-x},
+publisher={Springer Berlin Heidelberg},
+keywords={Parallel geometric multigrid; Multigrid methods; Parallelization; Weak scaling},
+author={Reiter, Sebastian and Vogel, Andreas and Heppner, Ingo and Rupp, Martin and Wittum, Gabriel},
+pages={151-164},
+language={English}
 }
 \endverbatim
 </li>

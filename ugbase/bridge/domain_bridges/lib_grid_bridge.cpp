@@ -730,11 +730,17 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 //			.add_function("ExpandLayers3d", &ExpandFractures3d, grp);
 	
 //	prism-meshing
-		reg.add_class_<RasterLayers>("RasterLayers", grp)
+		reg.add_class_<RasterLayers>("RasterLayers", grp, "Stack of 2d raster data.")
 			.add_constructor()
-			.add_method("load_from_files", &RasterLayers::load_from_files)
-			.add_method("invalidate_flat_cells", &RasterLayers::invalidate_flat_cells)
-			.add_method("blur_layers", &RasterLayers::blur_layers)
+			.add_method("load_from_files", &RasterLayers::load_from_files, "",
+				"filenames", "Loads raster data from the specified .asc files. "
+				"Specify the bottom layer first and the surface layer last.")
+			.add_method("invalidate_flat_cells", &RasterLayers::invalidate_flat_cells, "",
+				"min height", "Marks all cells as invalid which are closer to the "
+				"next higher valid cell than the given min height.")
+			.add_method("blur_layers", &RasterLayers::blur_layers, "",
+				"alpha # num iterations", "Blurs the values in each layer by averaging between "
+				"neighbored cells on the same layer.")
 			.set_construct_as_smart_pointer(true);
 
 
