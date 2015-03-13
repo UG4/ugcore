@@ -205,9 +205,6 @@ bool ICplUserData<dim>::at_current_time(size_t s) const
 template <int dim>
 void ICplUserData<dim>::set_global_ips(size_t s, const MathVector<dim>* vPos, size_t numIP)
 {
-	numIP = numIP +1;
-	numIP = numIP -1;
-
 	UG_ASSERT(s < num_series(), "Wrong series id: "<<s<<" (numSeries: "<<num_series()<<")");
 
 //	check number of ips (must match local ip number)
