@@ -1774,7 +1774,25 @@ bool UGXFileInfo::parse_file(const char* filename)
 			curSHNode = curSHNode->next_sibling("subset_handler");
 		}
 
-	//	fill m_hasVertices, ...
+		// loop through vertices to find bounding box of geometry
+		AABox<vector3> box(vector3(0, 0, 0), vector3(0, 0, 0));
+		xml_node<>* vrtNode = curNode->first_node("vertices");
+		while (vrtNode)
+		{
+			// create a bounding box around the vertices contained in this xml node
+			AABox<vector3> newBox;
+			bool validBox = calculate_vertex_node_bbox(vrtNode, newBox);
+		    if (validBox)
+		    	box = AABox<vector3>(box, newBox);
+
+		    vrtNode = vrtNode->next_sibling("vertices");
+		}
+
+		// TODO: Do we have to consider ConstrainedVertices here?
+
+		gInfo.m_extension = box.extension();
+
+		//	fill m_hasVertices, ...
 		gInfo.m_hasVertices = curNode->first_node("vertices") != NULL;
 		gInfo.m_hasVertices |= curNode->first_node("constrained_vertices") != NULL;
 
@@ -1852,7 +1870,21 @@ bool UGXFileInfo::grid_has_volumes(size_t gridInd) const
 	return grid_info(gridInd).m_hasVolumes;
 }
 
-int UGXFileInfo::grid_world_dimension(size_t gridInd) const
+size_t UGXFileInfo::physical_grid_dimension(size_t gridInd) const
+{
+	const GridInfo& gi = grid_info(gridInd);
+
+	const vector3& ext = gi.m_extension;
+	const number relSmall = SMALL * std::max(ext[0], std::max(ext[1], ext[2]));
+	for (int i = 2; i >= 0; --i)
+	{
+		if (ext[i] > relSmall)
+			return (size_t) (i + 1);
+	}
+	return 0;
+}
+
+size_t UGXFileInfo::topological_grid_dimension(size_t gridInd) const
 {
 	const GridInfo& gi = grid_info(gridInd);
 
@@ -1866,7 +1898,10 @@ int UGXFileInfo::grid_world_dimension(size_t gridInd) const
 	return 0;
 }
 
-
+size_t UGXFileInfo::grid_world_dimension(size_t gridInd) const
+{
+	return physical_grid_dimension(gridInd);
+}
 
 std::string UGXFileInfo::node_name(rapidxml::xml_node<>* n) const
 {
@@ -1919,6 +1954,54 @@ UGXFileInfo::subset_info(size_t gridInd, size_t shInd, size_t subsetInd) const
 	}
 
 	return shInfo.m_subsets[subsetInd];
+}
+
+bool
+UGXFileInfo::calculate_vertex_node_bbox(rapidxml::xml_node<>* vrtNode, AABox<vector3>& bb) const
+{
+	size_t numSrcCoords = 0;
+	rapidxml::xml_attribute<>* attrib = vrtNode->first_attribute("coords");
+	if (!attrib) return false;
+
+	numSrcCoords = std::strtoul(attrib->value(), NULL, 10);
+	UG_ASSERT(errno != ERANGE, "Coordinate dimension in .ugx file is out of range.");
+	UG_ASSERT(numSrcCoords <= 3,
+			  "Coordinate dimension in .ugx file needs to be in {0,1,2,3}, but is "
+			  << numSrcCoords << ".");
+
+	if (numSrcCoords > 3)
+		return false;
+
+//	create a buffer with which we can access the data
+	std::string str(vrtNode->value(), vrtNode->value_size());
+	std::stringstream ss(str, std::ios_base::in);
+
+	AABox<vector3> box(vector3(0, 0, 0), vector3(0, 0, 0));
+	vector3 min(0, 0, 0);
+	vector3 max(0, 0, 0);
+	vector3 vrt(0, 0, 0);
+	size_t nVrt = 0;
+	while (!ss.eof())
+	{
+		for (size_t i = 0; i < numSrcCoords; ++i)
+			ss >> vrt[i];
+
+		if (ss.fail())
+			break;
+
+		++nVrt;
+
+		for (size_t j = 0; j < numSrcCoords; ++j)
+		{
+			min[j] = std::min(min[j], vrt[j]);
+			max[j] = std::max(max[j], vrt[j]);
+		}
+	}
+
+	// create bounding box
+	bb = AABox<vector3>(min, max);
+
+	return nVrt > 0;
 }
 
 }//	end of namespace

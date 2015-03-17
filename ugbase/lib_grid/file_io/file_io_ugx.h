@@ -5,6 +5,9 @@
 #ifndef __H__LIB_GRID__FILE_IO_UGX__
 #define __H__LIB_GRID__FILE_IO_UGX__
 
+
+#include <errno.h>
+#include <cstdlib>
 #include <iostream>
 #include <vector>
 #include <utility>
@@ -15,6 +18,7 @@
 #include "lib_grid/tools/selector_interface.h"
 #include "lib_grid/common_attachments.h"
 #include "lib_grid/grid_objects/grid_objects.h"
+#include "common/math/misc/shapes.h"	// AABox
 
 namespace ug
 {
@@ -445,16 +449,46 @@ class UGXFileInfo{
 		bool grid_has_faces(size_t gridInd) const;
 		bool grid_has_volumes(size_t gridInd) const;
 
-	///	returns the dimension of the world-coordinates required for the given grid.
-	/** \note	In the current implementation this equals the dimension of the
-	 * 			element of highest dimension in the given grid. This may change in
-	 * 			future builds.
-	 * 			If you currently want to operate on manifolds, you should ignore
-	 * 			this dimension. Stay tuned for changes!*/
-		int grid_world_dimension(size_t gridInd) const;
+	///	Returns the physical dimension of the given grid.
+	/** We define the 'maximal range' as the maximum of the ranges of the
+	 * 	the particular coordinates. Then the result is
+	 * 	3 - iff the z-coordinate are in a range that is larger than
+	 * 		SMALL times the maximal range;
+	 * 	2 - iff it is not 3 and the y-coordinate are in a range that is
+	 * 		larger than SMALL times the maximal range;
+	 * 	1 - iff it is not 0 or 1 and the x-coordinate are in a range that is
+	 * 		larger than SMALL times the maximal range;
+	 * 	0 - iff it is not 3 or 2 or 1 (i.e. iff the geometry resides in one point).
+	 */
+		size_t physical_grid_dimension(size_t gridInd) const;
 
-	///	iterates over all vertices and calculates the width, depth, and height of the grid
-		vector3 grid_extension(size_t gridInd) const;
+	///	Returns the topological dimension of the given grid.
+	/** That is the dimension of the element of highest dimension in the given grid.
+	 */
+		size_t topological_grid_dimension(size_t gridInd) const;
+
+	///	Returns the dimension of the world-coordinates required for the given grid.
+	/** We define the 'maximal range' as the maximum of the ranges of the
+	 * 	the particular coordinates. Then the result is
+	 * 	3 - iff the z-coordinate are in a range that is larger than
+	 * 		SMALL times the maximal range;
+	 * 	2 - iff it is not 3 and the y-coordinate are in a range that is
+	 * 		larger than SMALL times the maximal range;
+	 * 	1 - iff it is not 0 or 1 and the x-coordinate are in a range that is
+	 * 		larger than SMALL times the maximal range;
+	 * 	0 - iff it is not 3 or 2 or 1 (i.e. iff the geometry resides in one point).
+	 *
+	 *	@note		The functionality of this method has been changed slightly as of
+	 *				2015-03-13 and is the same as in physical_grid_dimension(size_t gridInd);
+	 *				the previous functionality is still available in
+	 *				topological_grid_dimension(size_t gridInd).
+	 * 	@deprecated	This method is marked deprecated and might be removed
+	 * 				in a future update.
+	 *				Please use physical_grid_dimension(size_t gridInd) and
+	 *				topological_grid_dimension(size_t gridInd) instead.
+	 */
+		size_t grid_world_dimension(size_t gridInd) const;
+
 
 	private:
 		struct SubsetInfo{
@@ -473,6 +507,7 @@ class UGXFileInfo{
 			bool	m_hasFaces;
 			bool	m_hasVolumes;
 			std::vector<SubsetHandlerInfo>	m_subsetHandlers;
+			vector3 m_extension;
 		};
 
 		std::vector<GridInfo>	m_grids;
@@ -497,6 +532,16 @@ class UGXFileInfo{
 	///	throws an error if the subset index is out of range.
 	/**	Also calls check_subset_handler_index.*/
 		const SubsetInfo& subset_info(size_t gridInd, size_t shInd, size_t subsetInd) const;
+
+	/// calculates the bounding box of a group of vertices
+	/**
+	 *
+	 * @param[in] vrtNode	node in the xml file (containing vertex information)
+	 * @param[out] bb		output bounding box
+	 *
+	 * @return true iff at least one valid (coordinate dimension in {0,1,2,3}) vertex is contained
+	 */
+		bool calculate_vertex_node_bbox(rapidxml::xml_node<>* vrtNode, AABox<vector3>& bb) const;
 };
 
 }//	end of namespace

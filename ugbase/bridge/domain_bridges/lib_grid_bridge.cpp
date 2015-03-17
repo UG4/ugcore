@@ -646,6 +646,12 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 			.add_method("grid_name", &UGXFileInfo::grid_name, "grid name", "gridInd")
 			.add_method("subset_handler_name", &UGXFileInfo::subset_handler_name, "", "gridInd#shInd")
 			.add_method("subset_name", &UGXFileInfo::subset_name, "", "gridInd#shInd#subsetInd")
+			.add_method("grid_has_volumes", &UGXFileInfo::grid_has_volumes, "", "gridInd")
+			.add_method("grid_has_faces", &UGXFileInfo::grid_has_faces, "", "gridInd")
+			.add_method("grid_has_edges", &UGXFileInfo::grid_has_edges, "", "gridInd")
+			.add_method("grid_has_vertices", &UGXFileInfo::grid_has_vertices, "", "gridInd")
+			.add_method("physical_grid_dimension", &UGXFileInfo::physical_grid_dimension, "", "gridInd")
+			.add_method("topological_grid_dimension", &UGXFileInfo::topological_grid_dimension, "", "gridInd")
 			.add_method("grid_world_dimension", &UGXFileInfo::grid_world_dimension, "", "gridInd")
 			.set_construct_as_smart_pointer(true);
 
