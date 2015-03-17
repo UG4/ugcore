@@ -42,14 +42,6 @@ DelaunayInfo<TAAPos>::
 }
 
 
-// template <class TAAPos>
-// void DelaunayInfo<TAAPos>::
-// mark(Vertex* vrt, bool mark)
-// {
-// 	if(mark)	m_aaMarkedVRT[vrt] = 1;
-// 	else		m_aaMarkedVRT[vrt] = 0;
-// }
-
 template <class TAAPos>
 void DelaunayInfo<TAAPos>::
 set_mark(Face* f, DelaunayInfo<TAAPos>::Mark mark)
@@ -69,6 +61,7 @@ set_mark(Face* f, DelaunayInfo<TAAPos>::Mark mark)
 		else if(fi){
 			if(fi->classified){
 			//	we can't delete the face-info now. instead we'll only set fi->f to NULL
+			//	so that it can be identified as invalid in m_faceQueue. Clean-up is performed later.
 				fi->f = NULL;
 			}
 			else{
@@ -79,33 +72,6 @@ set_mark(Face* f, DelaunayInfo<TAAPos>::Mark mark)
 		}
 	}
 }
-	// FaceInfo* fi = m_aaFaceInfo[f];
-	// if((mark == INNER) && (fi == NULL)){
-	// 	++m_numMarkedFaces;
-	// 	if(face_classification_enabled()){
-	// 		fi = m_aaFaceInfo[f] = new FaceInfo;
-	// 		fi->f = f;
-	// 		classify_face(f);
-	// 	}
-	// 	else{
-	// 		m_aaFaceInfo[f] = &m_defaultMark;
-	// 	}
-	// }
-	// else if((mark == NONE) && (fi != NULL)){
-	// 	--m_numMarkedFaces;
-	// 	if(face_classification_enabled()){
-	// 		if(is_classified(f)){
-	// 		//	we can't delete the face-info now. instead we'll only set
-	// 		//	info->f to NULL
-	// 			fi->f = NULL;
-	// 		}
-	// 		else{
-	// 		//	delete the associated face-info
-	// 			delete fi;
-	// 			m_aaFaceInfo[f] = NULL;
-	// 		}
-	// 	}
-	// }
 
 
 template <class TAAPos>
@@ -262,7 +228,7 @@ is_classified(Face* f)
 
 
 template <class TAAPos>
-void DelaunayInfo<TAAPos>::
+bool DelaunayInfo<TAAPos>::
 classify_face(Face* f)
 {
 	UG_COND_THROW(!face_classification_enabled(),
@@ -274,14 +240,53 @@ classify_face(Face* f)
 //	only triangles can be classified
 	if(f->num_vertices() != 3){
 		fi->classified = false;
-		return;
+		return false;
 	}
 
-//	calculate min angle
 	vector_t& v1 = m_aaPos[f->vertex(0)];
 	vector_t& v2 = m_aaPos[f->vertex(1)];
 	vector_t& v3 = m_aaPos[f->vertex(2)];
+	
+//	if at least two of the vertices are SHELL vertices, we won't classify the triangle if
+//	the subtended angle to the shortest edge between shell vertices is smaller than PI/3
+	{
+		int subtended = -1;
+		int numShell = 0;
+		for(size_t i = 0; i < 3; ++i){
+			if(mark(f->vertex(i)) == SHELL)
+				++numShell;
+			else
+				subtended = i;
+		}
 
+		if(numShell == 3){
+			number d1sq = VecDistanceSq(v1, v2);
+			number d2sq = VecDistanceSq(v2, v3);
+			number d3sq = VecDistanceSq(v3, v1);
+			if(d1sq < d2sq){
+				if(d1sq < d3sq)
+					subtended = 2;
+				else
+					subtended = 1;
+			}
+			else if(d2sq < d3sq)
+				subtended = 0;
+			else
+				subtended = 1;
+		}
+
+		if(numShell >= 2){
+			vector_t dir1, dir2;
+			VecSubtract(dir1, m_aaPos[f->vertex((subtended+1)%3)], m_aaPos[f->vertex(subtended)]);
+			VecSubtract(dir2, m_aaPos[f->vertex((subtended+2)%3)], m_aaPos[f->vertex(subtended)]);
+			if(VecAngle(dir1, dir2) < PI / 3. + SMALL){
+				return false;
+			}
+		}
+	}
+
+//	perform classification
+//	calculate min angle
 	vector_t v12, v13, v23;
 	VecSubtract(v12, v2, v1);	VecNormalize(v12, v12);
 	VecSubtract(v13, v3, v1);	VecNormalize(v13, v13);
@@ -317,18 +322,22 @@ classify_face(Face* f)
 	}
 
 	if(highestDot > m_maxDot){
-		fi->classified = true;
 	//	calculate the radius of the circumcenter for the priority
 		vector_t cc;
-		if(!TriangleCircumcenter(cc, v1, v2, v3)){
-			fi->priority = 1.e12;//	just a number to increase priority
-		}
-		else
+		if(TriangleCircumcenter(cc, v1, v2, v3)){
 			fi->priority = VecDistanceSq(cc, v1);
-		m_faceQueue.push(fi);
+			fi->classified = true;
+			m_faceQueue.push(fi);
+		}
+		else{
+			// UG_LOG("Couldn't calculate triangle-circumcenter. ");
+			// UG_LOG("Ignoring triangle with center at: " << CalculateCenter(f, m_aaPos) << "\n");
+			return false;
+		}
 	}
 
-//todo	if the face-queue gets too large, we have to clean it up
+//todo	if the face-queue gets too large, we should do some clean up
+	return true;
 }
 
 

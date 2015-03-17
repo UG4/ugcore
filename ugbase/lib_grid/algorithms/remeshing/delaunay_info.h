@@ -72,23 +72,6 @@ class UG_API DelaunayInfo : public GridObserver
 		template <class TElem>
 		bool is_segment(TElem* e);
 
-		// void mark(Vertex* vrt, bool mark = true);
-
-		// bool is_marked(Vertex* vrt)		{return m_aaMarkedVRT[vrt] != 0;}
-
-		// void mark_as_constrained(Edge* e)	{m_aaMarkedEDGE[e] = 2;}
-
-		// bool is_constrained(Edge* e)	{return (m_aaMarkedEDGE[e] == 2) || m_cbConstrainedEdge(e);}
-
-		// void mark(Face* f, bool mark = true);
-		// bool is_marked(Face* f)					{return m_aaFaceInfo[f] != NULL;}
-
-		// template <class TIter>
-		// void mark(TIter begin, TIter end)
-		// {
-		// 	while(begin != end) {mark(*begin); ++begin;}
-		// }
-
 	////////////////////////////////////////////////////////////////
 	//	CANDIDATES
 	/**	candidates are used during MakeDelaunay to define the set of edges which
@@ -166,7 +149,7 @@ class UG_API DelaunayInfo : public GridObserver
 
 
 		bool is_classified(Face* f);
-		void classify_face(Face* f);
+		bool classify_face(Face* f);
 
 	private:
 		Grid& 	m_grid;

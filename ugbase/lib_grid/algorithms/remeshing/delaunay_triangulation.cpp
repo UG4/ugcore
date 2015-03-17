@@ -294,40 +294,40 @@ bool QualityGridGeneration(Grid& grid, DelaunayInfo<TAAPos>& info,
 		//	if the triangle has 3 segment edges, we'll ignore it.
 		//	if it has two, we'll ignore it if the angle between the
 		//	two segments ones is smaller than minAngle.
-			{
-				CollectAssociated(edges, grid, f);
-				int numSegs = 0;
-				Edge* segs[3];
-				for(size_t i = 0; i < edges.size(); ++i){
-					if(info.is_segment(edges[i])){
-						segs[numSegs] = edges[i];
-						++numSegs;
-					}
-				}
-				if(numSegs > 1)
-					continue;
-				else if(numSegs == 2){
-					// UG_LOG("Examining face with two constrained edges at: " << faceCenter << endl);
-					Vertex* sharedVrt = NULL, *v1 = NULL, *v2 = NULL;
-					for(int i = 0; (i < 2) && (!sharedVrt); ++i){
-						for(int j = 0; j < 2; ++j){
-							if(segs[0]->vertex(i) == segs[1]->vertex(j)){
-								sharedVrt = segs[0]->vertex(i);
-								v1 = segs[0]->vertex((i+1)%2);
-								v2 = segs[1]->vertex((j+1)%2);
-								break;
-							}
-						}
-					}
-					if(!sharedVrt)
-						continue;
-					vector_t d1, d2;
-					VecSubtract(d1, aaPos[v1], aaPos[sharedVrt]);
-					VecSubtract(d2, aaPos[v2], aaPos[sharedVrt]);
-					if(rad_to_deg(VecAngle(d1, d2)) <= minAngle)
-						continue;
-				}
-			}
+			// {
+			// 	CollectAssociated(edges, grid, f);
+			// 	int numSegs = 0;
+			// 	Edge* segs[3];
+			// 	for(size_t i = 0; i < edges.size(); ++i){
+			// 		if(info.is_segment(edges[i])){
+			// 			segs[numSegs] = edges[i];
+			// 			++numSegs;
+			// 		}
+			// 	}
+			// 	if(numSegs > 1)
+			// 		continue;
+			// 	else if(numSegs == 2){
+			// 		// UG_LOG("Examining face with two constrained edges at: " << faceCenter << endl);
+			// 		Vertex* sharedVrt = NULL, *v1 = NULL, *v2 = NULL;
+			// 		for(int i = 0; (i < 2) && (!sharedVrt); ++i){
+			// 			for(int j = 0; j < 2; ++j){
+			// 				if(segs[0]->vertex(i) == segs[1]->vertex(j)){
+			// 					sharedVrt = segs[0]->vertex(i);
+			// 					v1 = segs[0]->vertex((i+1)%2);
+			// 					v2 = segs[1]->vertex((j+1)%2);
+			// 					break;
+			// 				}
+			// 			}
+			// 		}
+			// 		if(!sharedVrt)
+			// 			continue;
+			// 		vector_t d1, d2;
+			// 		VecSubtract(d1, aaPos[v1], aaPos[sharedVrt]);
+			// 		VecSubtract(d2, aaPos[v2], aaPos[sharedVrt]);
+			// 		if(rad_to_deg(VecAngle(d1, d2)) <= minAngle)
+			// 			continue;
+			// 	}
+			// }
 
 		//	calculate triangle-circumcenter
 			vector_t& v0 = aaPos[f->vertex(0)];
@@ -408,17 +408,69 @@ bool QualityGridGeneration(Grid& grid, DelaunayInfo<TAAPos>& info,
 					}
 
 					if(split){
-						//UG_LOG("EDGE-SPLIT\n");
 						vector_t center = CalculateCenter(nextEdge, aaPos);
 
 						Vertex* vrt0 = nextEdge->vertex(0);
 						Vertex* vrt1 = nextEdge->vertex(1);
+						Vertex* edgeVrts[2] = {vrt0, vrt1};
 						number radiusSq = VecDistanceSq(center, aaPos[vrt0]);
 						number radius = sqrt(radiusSq);
 						pointInserted = SplitEdge<RegularVertex>(grid, nextEdge, false);
 
 						if(isSegment){
-							// UG_LOG("IS CONSTRAINED\n");
+						//	depending on the marks of the corners of nextEdge,
+						//	we may have to place the new point at a circular shell
+							int dartInd = -1;
+							for(int ivrt = 0; ivrt < 2; ++ivrt){
+								if(info.mark(edgeVrts[ivrt]) == DI::DART){
+									dartInd = ivrt;
+									break;
+								}
+							}
+							if(dartInd != -1){
+								Vertex* dartVrt = edgeVrts[dartInd];
+								Vertex* otherVrt = edgeVrts[(dartInd + 1) % 2];
+								typename DI::Mark m = info.mark(otherVrt);
+								if((m == DI::NEW_SEGMENT) || (m == DI::SHELL)){
+								//	the new vertex has to be placed on a circular shell!
+									info.set_mark(pointInserted, DI::SHELL);
+									number dist = VecDistance(center, aaPos[dartVrt]);
+									number csCur = 1;
+									number csNext;
+
+									if(dist >= 1){
+										csNext = 2;
+										while(csNext < dist){
+											csCur = csNext;
+											csNext *= 2.;
+										}
+									}
+									else{
+										csNext = 0.5;
+										while(csNext > dist){
+											csCur = csNext;
+											csNext *= 0.5;
+										}
+									}
+
+									vector_t dir;
+									VecSubtract(dir, center, aaPos[dartVrt]);
+									VecNormalize(dir, dir);
+
+									if(fabs(dist - csCur) < fabs(dist - csNext))
+										VecScale(dir, dir, csCur);
+									else
+										VecScale(dir, dir, csNext);
+
+									VecAdd(center, aaPos[dartVrt], dir);
+								
+								//	we have to adjust the critical radius
+									radiusSq = min(VecDistanceSq(center, aaPos[vrt0]),
+												   VecDistanceSq(center, aaPos[vrt1]));
+									radius = sqrt(radiusSq);
+								}
+							}
+
 							aaPos[pointInserted] = center;
 
 						//	we have to erase all vertices, which are marked and

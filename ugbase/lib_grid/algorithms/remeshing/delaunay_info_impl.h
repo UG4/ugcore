@@ -70,6 +70,54 @@ init_marks(TIter trisBegin, TIter trisEnd, bool pushFlipCandidates)
 //		(use grid::mark to only visit each once).
 //		Check for each whether it is connected to two segments with a smaller
 //		angle than Pi/3. If this is the case, it will be marked as DART
+	AAPos aaPos = position_accessor();
+
+	m_grid.begin_marking();
+	for(TIter triIter = trisBegin; triIter != trisEnd; ++triIter){
+		Face* f = *triIter;
+		Face::ConstVertexArray vrts = f->vertices();
+		const size_t numVrts = f->num_vertices();
+		for(size_t ivrt = 0; ivrt < numVrts; ++ivrt){
+			Vertex* vrt = vrts[ivrt];
+			if(m_grid.is_marked(vrt))
+				continue;
+			m_grid.mark(vrt);
+			
+			if(mark(vrt) != SEGMENT)
+				continue;
+
+			vector_t vrtPos = aaPos[vrt];
+
+			bool searching = true;
+			m_grid.associated_elements(edges, vrt);
+			for(size_t iedge = 0; (iedge < edges.size()) && searching; ++iedge){
+				Edge* edge = edges[iedge];
+				if(mark(edge) != SEGMENT)
+					continue;
+
+				vector_t dir1;
+				VecSubtract(dir1, aaPos[GetConnectedVertex(edge, vrt)], vrtPos);
+
+			//	check angles between all segment-edges. If one is found which
+			//	is smaller than PI/3, then the vertex will be marked as DART vertex.
+				for(size_t iotherEdge = iedge + 1; iotherEdge < edges.size(); ++iotherEdge){
+					Edge* otherEdge = edges[iotherEdge];
+					if(!mark(otherEdge) == SEGMENT)
+						continue;
+
+					vector_t dir2;
+					VecSubtract(dir2, aaPos[GetConnectedVertex(otherEdge, vrt)], vrtPos);
+
+					if(VecAngle(dir1, dir2) < PI / 3. + SMALL){
+						searching = false;
+						set_mark(vrt, DART);
+						break;
+					}
+				}
+			}
+		}
+	}
+	m_grid.end_marking();
 }
 
 
