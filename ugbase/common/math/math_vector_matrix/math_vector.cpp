@@ -69,21 +69,21 @@ std::ostream& write_plain_txt (std::ostream& outStream, const ug::MathVector<4>&
 ///	plain text input of MathVectors: read space-separated coordinates
 std::istream& read_plain_txt (std::istream& inStream, ug::MathVector<1>& v)
 {
-	inStream >> std::ws >> v.coord(0);
+	inStream >> v.coord(0);
 	return inStream;
 }
 
 ///	plain text input of MathVectors: read space-separated coordinates
 std::istream& read_plain_txt (std::istream& inStream, ug::MathVector<2>& v)
 {
-	inStream >> std::ws >> v.coord(0) >> std::ws >> v.coord(1);
+	inStream >> v.coord(0) >> v.coord(1);
 	return inStream;
 }
 
 ///	plain text input of MathVectors: read space-separated coordinates
 std::istream& read_plain_txt (std::istream& inStream, ug::MathVector<3>& v)
 {
-	inStream >> std::ws >> v.coord(0) >> std::ws >> v.coord(1) >> std::ws >> v.coord(2);
+	inStream >> v.coord(0) >> v.coord(1) >> v.coord(2);
 	return inStream;
 }
 
