@@ -7,6 +7,7 @@
 #include "global_fractured_media_refiner.h"
 #include "lib_grid/algorithms/algorithms.h"
 #include "lib_grid/common_attachments.h"
+#include "lib_grid/file_io/file_io.h"
 
 //define PROFILE_GLOBAL_FRACTURED_DOMAIN_REFINER if you want to profile
 //the refinement code.

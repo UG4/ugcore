@@ -453,6 +453,8 @@ class UGXFileInfo{
 	 * 			this dimension. Stay tuned for changes!*/
 		int grid_world_dimension(size_t gridInd) const;
 
+	///	iterates over all vertices and calculates the width, depth, and height of the grid
+		vector3 grid_extension(size_t gridInd) const;
 
 	private:
 		struct SubsetInfo{

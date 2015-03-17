@@ -26,6 +26,8 @@ set(srcAlgorithms	algorithms/debug_util.cpp
 					algorithms/grid_statistics.cpp
 					algorithms/polychain_util.cpp
 					algorithms/problem_detection_util.cpp
+					algorithms/remeshing/delaunay_info.cpp
+					algorithms/remeshing/delaunay_triangulation.cpp
 					algorithms/remeshing/edge_length_adjustment.cpp
 					algorithms/remeshing/edge_length_adjustment_extended.cpp
 					algorithms/remeshing/simple_grid.cpp

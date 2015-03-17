@@ -69,72 +69,68 @@ void CreateGridFromField(Grid& grid,
 						 Grid::VertexAttachmentAccessor<APosition> aaPos)
 {
 	Field<Vertex*> vrtField(field.width(), field.height());
-
-//	iterate over points. We create a vertex for each point which will be
-//	part of a triangle or quadrilateral
-	for(size_t irow = 0; irow < field.height(); ++irow){
-		for(size_t icol = 0; icol < field.width(); ++icol){
-			if(field.at(icol, irow) != noDataValue){
-				bool left = false;
-				bool right = false;
-				bool up = false;
-				bool down = false;
-
-				if(icol > 0)
-					left = (field.at(icol - 1, irow) != noDataValue);
-				if(icol + 1 < field.width())
-					right = (field.at(icol + 1, irow) != noDataValue);
-				if(irow > 0)
-					up = (field.at(icol, irow - 1) != noDataValue);
-				if(irow + 1 < field.height())
-					down = (field.at(icol, irow + 1) != noDataValue);
-
-				if((left && up) || (up && right) || (right && down) || (down && left)){
-					vrtField.at(icol, irow) = *grid.create<RegularVertex>();
-					aaPos[vrtField.at(icol, irow)] =
-						vector3(offset.x() + cellSize.x() * (number)icol,
-								offset.y() + cellSize.y() * (number)irow,
-								field.at(icol, irow));
-				}
-				else
-					vrtField.at(icol, irow) = NULL;
-			}
-			else
-				vrtField.at(icol, irow) = NULL;
-		}
-	}
+	vrtField.fill_all(0);
 
 //	iterate over cells and create triangles or quadrilaterals between
 //	adjacent vertices
-	for(size_t irow = 0; irow + 1 < field.height(); ++irow){
-		for(size_t icol = 0; icol + 1 < field.width(); ++icol){
-		//	cell vertices in ccw order
-			Vertex* vrts[4];
-			vrts[0] = vrtField.at(icol, irow);
-			vrts[1] = vrtField.at(icol, irow + 1);
-			vrts[2] = vrtField.at(icol + 1, irow + 1);
-			vrts[3] = vrtField.at(icol + 1, irow);
+	const int fieldWidth = (int)field.width();
+	const int fieldHeight = (int)field.height();
 
-			size_t numVrts = 0;
-			int firstZero = -1;
+	for(int irow = 0; irow + 1 < fieldHeight; ++irow){
+		for(int icol = 0; icol + 1 < fieldWidth; ++icol){
+		//	corner indices in ccw order
+		//	index order:
+		//	0--3
+		//	|  |
+		//	1--2
+			const int ci[4][2] = {{icol, irow},
+								  {icol, irow + 1},
+								  {icol + 1, irow + 1},
+								  {icol + 1, irow}};
+
+		//	cell corner values in ccw order
+			number val[4];
+			size_t numVals = 0;
+			int firstInvalid = -1;
 			for(size_t i = 0; i < 4; ++i){
-				if(vrts[i])
-					++numVrts;
-				else if(firstZero == -1)
-					firstZero = (int)i;
+				val[i] = field.at(ci[i][0], ci[i][1]);
+				if(val[i] != noDataValue)
+					++numVals;
+				else if(firstInvalid == -1)
+					firstInvalid = (int)i;
 			}
 
-			if(numVrts == 4){
+			if(numVals < 3)
+				continue;
+			
+		//	create vertices as necessary and store corner vertices in vrts[]
+			Vertex* vrts[4];
+			for(size_t i = 0; i < 4; ++i){
+				const int ic = ci[i][0];
+				const int ir = ci[i][1];
+				Vertex* vrt = vrtField.at(ic, ir);
+				if((val[i] != noDataValue) && (!vrt)){
+					vrt = *grid.create<RegularVertex>();
+					aaPos[vrt] =
+						vector3(offset.x() + cellSize.x() * (number)ic,
+								offset.y() + cellSize.y() * (number)ir,
+								field.at(ic, ir));
+					vrtField.at(ic, ir) = vrt;
+				}
+				vrts[i] = vrt;
+			}
+
+			if(numVals == 4){
 			//	create a quad
 				grid.create<Quadrilateral>(
 					QuadrilateralDescriptor(vrts[0], vrts[1], vrts[2], vrts[3]));
 			}
-			else if(numVrts == 3){
+			else if(numVals == 3){
 			//	create a tri
 				grid.create<Triangle>(
-					TriangleDescriptor(vrts[(firstZero + 1) % 4],
-									   vrts[(firstZero + 2) % 4],
-									   vrts[(firstZero + 3) % 4]));
+					TriangleDescriptor(vrts[(firstInvalid + 1) % 4],
+									   vrts[(firstInvalid + 2) % 4],
+									   vrts[(firstInvalid + 3) % 4]));
 			}
 		}
 	}
@@ -158,84 +154,106 @@ void CreateGridFromFieldBoundary(Grid& grid,
 								 number noDataValue,
 								 Grid::VertexAttachmentAccessor<APosition> aaPos)
 {
-//	iterate over cells and create edges between neighbored boundary vertices
-//	we'll create duplicate vertices and remove them later on
-	VertexIterator firstVrtIter;
-	bool gotFirstVrt = false;
+	Field<Vertex*> vrtField(field.width(), field.height());
+	vrtField.fill_all(0);
 
-	for(int irow = -1; irow < (int)field.height(); ++irow){
-		for(int icol = -1; icol < (int)field.width(); ++icol){
-			int corner[4][2] = {{icol, irow},
-								{icol, irow + 1},
-								{icol + 1, irow + 1},
-								{icol + 1, irow}};
-		//	values of cell corners
-			number values[4];
-			for(int i = 0; i < 4; ++i){
-				if(	(corner[i][0] >= 0) && (corner[i][0] < (int)field.width()) &&
-					(corner[i][1] >= 0) && (corner[i][1] < (int)field.height()))
-				{
-					values[i] = field.at(corner[i][0], corner[i][1]);
-				}
-				else
-					values[i] = noDataValue;
-			}
+//	iterate over cells and create triangles or quadrilaterals between
+//	adjacent vertices
+	const int fieldWidth = (int)field.width();
+	const int fieldHeight = (int)field.height();
 
-			int validCorners[4];
-			size_t numValid = 0;
-			int firstValid = -1;
+	for(int irow = 0; irow + 1 < fieldHeight; ++irow){
+		for(int icol = 0; icol + 1 < fieldWidth; ++icol){
+		//	corner indices in ccw order
+		//	index order:
+		//	0--3
+		//	|  |
+		//	1--2
+			const int ci[4][2] = {{icol, irow},
+								  {icol, irow + 1},
+								  {icol + 1, irow + 1},
+								  {icol + 1, irow}};
+
+		//	cell corner values in ccw order
+			number val[4];
+			size_t numVals = 0;
 			int firstInvalid = -1;
 			for(size_t i = 0; i < 4; ++i){
-				if(values[i] != noDataValue){
-					validCorners[numValid] = i;
-					++numValid;
-					if(firstValid == -1)
-						firstValid = (int)i;
-				}
+				val[i] = field.at(ci[i][0], ci[i][1]);
+				if(val[i] != noDataValue)
+					++numVals;
 				else if(firstInvalid == -1)
 					firstInvalid = (int)i;
 			}
 
-			bool createEdge = false;
-			int ci[2];
-			if(numValid == 3){
-			//	we'll create an edge which separates the invalid corner
-				ci[0] = (firstInvalid + 1) % 4;
-				ci[1] = (firstInvalid + 3) % 4;
-				createEdge = true;
-			}
-			else if((numValid == 2) &&
-				((validCorners[1] == (validCorners[0] + 1)) ||
-				 (validCorners[0] == (validCorners[1] + 1) % 4)))
-			{
-			//	we only create an edge if the two valid corners are direct neighbors
-				ci[0] = validCorners[0];
-				ci[1] = validCorners[1];
-				createEdge = true;
-			}
+			if(numVals < 3)
+				continue;
+			
+		//	create vertices as necessary and store corner vertices in vrts[]
+			Vertex* vrts[4];
 
-			if(createEdge){
-				Vertex* vrts[2];
+			if(numVals == 3){
+			//	create a diagonal which doesn't include the firstInvalid corner
+				int ind[2]  = {(firstInvalid + 1) % 4, (firstInvalid + 3) % 4};
+
 				for(int i = 0; i < 2; ++i){
-					VertexIterator vi = grid.create<RegularVertex>();
-					aaPos[*vi] = vector3(offset.x() + cellSize.x() * (number)corner[ci[i]][0],
-										 offset.y() + cellSize.y() * (number)corner[ci[i]][1],
-										 field.at(corner[ci[i]][0], corner[ci[i]][1]));
-					vrts[i] = *vi;
-					if(!gotFirstVrt){
-						gotFirstVrt = true;
-						firstVrtIter = vi;
+					int ic = ci[ind[i]][0];
+					int ir = ci[ind[i]][1];
+					Vertex* vrt = vrtField.at(ic, ir);
+					if((val[ind[i]] != noDataValue) && (!vrt)){
+						vrt = *grid.create<RegularVertex>();
+						aaPos[vrt] =
+							vector3(offset.x() + cellSize.x() * (number)ic,
+									offset.y() + cellSize.y() * (number)ir,
+									val[ind[i]]);
+						vrtField.at(ic, ir) = vrt;
 					}
+					vrts[ind[i]] = vrt;
 				}
 
-				grid.create<RegularEdge>(EdgeDescriptor(vrts[0], vrts[1]));
+				grid.create<RegularEdge>(EdgeDescriptor(vrts[ind[0]], vrts[ind[1]]));
+			}
+
+		//	now check for each inner side whether it's a neighbor to an empty cell
+			const int colAdd[4] = {-1, 0, 1, 0};
+			const int rowAdd[4] = {0, 1, 0, -1};
+			for(int iside = 0; iside < 4; ++iside){
+				const int ind[2] = {iside, (iside + 1) % 4};
+				if(val[ind[0]] != noDataValue && val[ind[1]] != noDataValue){
+				//	the edge is either inner or boundary
+					bool gotOne = false;
+					for(int i = 0; i < 2; ++i){
+						const int ic = ci[ind[i]][0] + colAdd[iside];
+						const int ir = ci[ind[i]][1] + rowAdd[iside];
+						if(ic >= 0 && ir >= 0 && ic < fieldWidth && ir < fieldHeight){
+							if(field.at(ic, ir) != noDataValue){
+								gotOne = true;
+								break;
+							}
+						}
+					}
+
+					if(!gotOne){
+					//	the current side has to be represented by an edge
+						for(int i = 0; i < 2; ++i){
+							const int ic = ci[ind[i]][0];
+							const int ir = ci[ind[i]][1];
+							Vertex* vrt = vrtField.at(ic, ir);
+							if((val[ind[i]] != noDataValue) && (!vrt)){
+								vrt = *grid.create<RegularVertex>();
+								aaPos[vrt] =
+									vector3(offset.x() + cellSize.x() * (number)ic,
+											offset.y() + cellSize.y() * (number)ir,
+											val[ind[i]]);
+								vrtField.at(ic, ir) = vrt;
+							}
+							vrts[ind[i]] = vrt;
+						}
+						grid.create<RegularEdge>(EdgeDescriptor(vrts[ind[0]], vrts[ind[1]]));
+					}
+				}
 			}
 		}
-	}
-
-	if(gotFirstVrt){
-	//	we have to remove double vertices
-		RemoveDoubles<3>(grid, firstVrtIter, grid.end<Vertex>(), aaPos, SMALL);
 	}
 }
 

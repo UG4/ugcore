@@ -28,7 +28,7 @@
 #include "graph/graph.h"
 #include "remeshing/edge_length_adjustment.h"
 #include "remeshing/grid_adaption.h"
-#include "remeshing/delaunay_triangulation.h"
+// #include "remeshing/delaunay_triangulation.h"
 #include "fractals.h"
 #include "duplicate.h"
 #include "callback_util.h"

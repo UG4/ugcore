@@ -6,6 +6,7 @@
 #include "common/profiler/profiler.h"
 #include "global_multi_grid_refiner.h"
 #include "lib_grid/algorithms/algorithms.h"
+#include "lib_grid/file_io/file_io.h"
 
 //define PROFILE_GLOBAL_MULTI_GRID_REFINER if you want to profile
 //the refinement code.
