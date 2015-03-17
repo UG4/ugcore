@@ -46,43 +46,31 @@ class DelaunayDebugSaver
 				for(VertexIterator iter = g.begin<Vertex>();
 					iter != g.end<Vertex>(); ++iter)
 				{
-					if(dinfo.is_marked(*iter))
-						sh.assign_subset(*iter, 1);
-					else
-						sh.assign_subset(*iter, 0);
+					sh.assign_subset(*iter, dinfo.mark(*iter));
 				}
 
 				for(EdgeIterator iter = g.begin<Edge>();
 					iter != g.end<Edge>(); ++iter)
 				{
-					if(dinfo.is_constrained(*iter))
-						sh.assign_subset(*iter, 3);
-					if(dinfo.is_candidate(*iter))
-						sh.assign_subset(*iter, 4);
-					else
-						sh.assign_subset(*iter, 2);
+					sh.assign_subset(*iter, dinfo.mark(*iter));
 				}
 
 				for(FaceIterator iter = g.begin<Face>();
 					iter != g.end<Face>(); ++iter)
 				{
-					if(dinfo.is_marked(*iter))
-						sh.assign_subset(*iter, 6);
-					else
-						sh.assign_subset(*iter, 5);
+					sh.assign_subset(*iter, dinfo.mark(*iter));
 				}
 
-				sh.subset_info(0).name = "unmarked vrts";
-				sh.subset_info(1).name = "marked vrts";
-				sh.subset_info(2).name = "unmarked edges";
-				sh.subset_info(3).name = "constrained edges";
-				sh.subset_info(4).name = "candidate edges";
-				sh.subset_info(5).name = "unmarked faces";
-				sh.subset_info(6).name = "marked faces";
+				sh.subset_info(0).name = "none";
+				sh.subset_info(1).name = "inner";
+				sh.subset_info(2).name = "new-inner";
+				sh.subset_info(3).name = "segment";
+				sh.subset_info(4).name = "new-segment";
+				sh.subset_info(5).name = "dart";
+				sh.subset_info(6).name = "shell";
 
 				AssignSubsetColors(sh);
 				SaveGridToFile(g, sh, ss.str().c_str());
-
 			}
 		}
 
@@ -124,7 +112,6 @@ bool MakeDelaunay(DelaunayInfo<TAAPos>& info)
 	Face* nbrFaces[2];
 	vector<Edge*> edges;
 
-//UG_LOG("MakeDelaunay...\n");
 	TAAPos& aaPos = info.position_accessor();
 
 	while(info.candidates_left()){
@@ -136,7 +123,6 @@ bool MakeDelaunay(DelaunayInfo<TAAPos>& info)
 			if(nbrFaces[0]->num_vertices() != 3 || nbrFaces[1]->num_vertices() != 3)
 				continue;
 
-		//	This section is just temporary...
 			Vertex* conVrt0 = GetConnectedVertex(e, nbrFaces[0]);
 			Vertex* conVrt1 = GetConnectedVertex(e, nbrFaces[1]);
 
@@ -152,12 +138,6 @@ bool MakeDelaunay(DelaunayInfo<TAAPos>& info)
 
 			number r1Sq = VecDistanceSq(cc1, v0);
 			number r2Sq = VecDistanceSq(cc2, v0);
-
-//			UG_LOG("  checking edge: " << CalculateCenter(e, aaPos) << "\n");
-/*					<< "cc1_ok: " << cc1_ok << ", cc2_ok: " << cc2_ok
-					<< ", cc1: " << cc1 << ", cc2: " << cc2
-					<< ", r1: " << sqrt(r1Sq) << ", r2: " << sqrt(r2Sq) << endl);
-*/
 
 		//	for stability reasons, we're checking against the smaller circle
 			if(cc1_ok){
@@ -223,8 +203,8 @@ bool MakeDelaunay(DelaunayInfo<TAAPos>& info)
 			for(size_t i = 0; i < 2; ++i){
 				CollectAssociated(edges, grid, nbrFaces[i]);
 				for(size_t j = 0; j < edges.size(); ++j){
-					if(edges[j] != e && !(info.is_constrained(edges[j])
-										  || info.is_candidate(edges[j])))
+					if((edges[j] != e) && !(info.is_segment(edges[j])
+										    || info.is_candidate(edges[j])))
 					{
 						info.push_candidate(edges[j]);
 					}
@@ -270,6 +250,7 @@ bool QualityGridGeneration(Grid& grid, DelaunayInfo<TAAPos>& info,
 
 	using namespace std;
 	typedef typename TAAPos::ValueType vector_t;
+	typedef DelaunayInfo<TAAPos> DI;
 
 	TAAPos aaPos = info.position_accessor();
 
@@ -310,30 +291,30 @@ bool QualityGridGeneration(Grid& grid, DelaunayInfo<TAAPos>& info,
 
 			vector_t faceCenter = CalculateCenter(f, aaPos);
 
-		//	if the triangle has 3 constrained edges, we'll ignore it.
+		//	if the triangle has 3 segment edges, we'll ignore it.
 		//	if it has two, we'll ignore it if the angle between the
-		//	two constrained ones is smaller than minAngle.
+		//	two segments ones is smaller than minAngle.
 			{
 				CollectAssociated(edges, grid, f);
-				int numConstrained = 0;
-				Edge* ce[3];
+				int numSegs = 0;
+				Edge* segs[3];
 				for(size_t i = 0; i < edges.size(); ++i){
-					if(info.is_constrained(edges[i])){
-						ce[numConstrained] = edges[i];
-						++numConstrained;
+					if(info.is_segment(edges[i])){
+						segs[numSegs] = edges[i];
+						++numSegs;
 					}
 				}
-				if(numConstrained > 1)
+				if(numSegs > 1)
 					continue;
-				else if(numConstrained == 2){
+				else if(numSegs == 2){
 					// UG_LOG("Examining face with two constrained edges at: " << faceCenter << endl);
 					Vertex* sharedVrt = NULL, *v1 = NULL, *v2 = NULL;
 					for(int i = 0; (i < 2) && (!sharedVrt); ++i){
 						for(int j = 0; j < 2; ++j){
-							if(ce[0]->vertex(i) == ce[1]->vertex(j)){
-								sharedVrt = ce[0]->vertex(i);
-								v1 = ce[0]->vertex((i+1)%2);
-								v2 = ce[1]->vertex((j+1)%2);
+							if(segs[0]->vertex(i) == segs[1]->vertex(j)){
+								sharedVrt = segs[0]->vertex(i);
+								v1 = segs[0]->vertex((i+1)%2);
+								v2 = segs[1]->vertex((j+1)%2);
 								break;
 							}
 						}
@@ -409,8 +390,8 @@ bool QualityGridGeneration(Grid& grid, DelaunayInfo<TAAPos>& info,
 
 				if(nextEdge){
 				//	check whether the edge has to be splitted
-					bool isConstrained = info.is_constrained(nextEdge);
-					split |= isConstrained;
+					const bool isSegment = info.is_segment(nextEdge);
+					split |= isSegment;
 					if(!split){
 						int numNbrs = GetAssociatedFaces(nbrFaces, grid, nextEdge, 2);
 						if(numNbrs != 2)
@@ -436,7 +417,7 @@ bool QualityGridGeneration(Grid& grid, DelaunayInfo<TAAPos>& info,
 						number radius = sqrt(radiusSq);
 						pointInserted = SplitEdge<RegularVertex>(grid, nextEdge, false);
 
-						if(isConstrained){
+						if(isSegment){
 							// UG_LOG("IS CONSTRAINED\n");
 							aaPos[pointInserted] = center;
 
@@ -468,7 +449,7 @@ bool QualityGridGeneration(Grid& grid, DelaunayInfo<TAAPos>& info,
 										{
 										//	if the edge is a constrained edge, we'll push it to
 										//	closeEdges
-											if(info.is_constrained(e) && !EdgeContains(e, pointInserted))
+											if(info.is_segment(e) && !EdgeContains(e, pointInserted))
 												closeEdges.push_back(e);
 
 											grid.mark(e);
@@ -487,13 +468,12 @@ bool QualityGridGeneration(Grid& grid, DelaunayInfo<TAAPos>& info,
 											if(vcon == vrt0 || vcon == vrt1)
 												continue;
 
-										//	if the new vertrex is marked (created during remeshing)
+										//	if the vertrex was created during remeshing
 										//	and lies in the circle, then we'll push it to vrts
-											//UG_LOG("is_marked: " << info.is_marked(vcon) << "rad: " << radiusSq
-											//	<< ", testvrt: " << VecDistanceSq(aaPos[vcon], center) << "\n");
-											if(VecDistanceSq(aaPos[vcon], center) < radiusSq){
-												if(info.is_marked(vcon))
-													vrts.push_back(vcon);
+											if((info.mark(vcon) == DI::NEW_INNER)
+												&& (VecDistanceSq(aaPos[vcon], center) < radiusSq))
+											{
+												vrts.push_back(vcon);
 											}
 										}
 									}
@@ -651,19 +631,19 @@ bool QualityGridGeneration(Grid& grid, DelaunayInfo<TAAPos>& info,
 				//	triangles, both marked, then it is a new candidate.
 					CollectAssociated(faces, grid, pointInserted);
 					for(size_t i_face = 0; i_face < faces.size(); ++i_face){
-						if(!info.is_marked(faces[i_face]))
+						if(!info.is_inner(faces[i_face]))
 							continue;
 
 						CollectAssociated(edges, grid, faces[i_face]);
 						for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
 							Edge* e = edges[i_edge];
-							if(info.is_candidate(e) || info.is_constrained(e))
+							if(info.is_candidate(e) || info.is_segment(e))
 								continue;
 
 							Face* nbrs[2];
 							if(GetAssociatedFaces(nbrs, grid, e, 2) == 2){
-								if(info.is_marked(nbrs[0])
-								   && info.is_marked(nbrs[1]))
+								if(info.is_inner(nbrs[0])
+								   && info.is_inner(nbrs[1]))
 								{
 									info.push_candidate(e);
 								}

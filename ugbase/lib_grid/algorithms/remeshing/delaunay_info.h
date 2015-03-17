@@ -7,22 +7,13 @@
 #include <queue>
 #include <vector>
 #include <sstream>
-#include "lib_grid/lg_base.h"
 #include "common/ug_config.h"
+#include "lib_grid/lg_base.h"
+#include "lib_grid/algorithms/attachment_util.h"
 
 namespace ug{
 
 /** This class intended for internal use in delaunay related algorithms.
- *
- * This helper class describes the set of triangles and edges, on which
- * delaunay triangulation shall be performed. All triangles for which the
- * delaunay triangulation shall hold, have to be marked through the mark
- * method.
- * All edges, which are candidates for a swap, should be declared as such
- * through the push_candidate method.
- *
- * Vertices created while the DelaunayInfo exists, are automatically marked, if
- * they are not created on a constrained edge.
  */
 template <class TAAPos>
 class UG_API DelaunayInfo : public GridObserver
@@ -31,6 +22,16 @@ class UG_API DelaunayInfo : public GridObserver
 	typedef typename TAAPos::ValueType	vector_t;
 
 	public:
+		enum Mark{
+			NONE,
+			INNER,
+			NEW_INNER,
+			SEGMENT,
+			NEW_SEGMENT,
+			DART,
+			SHELL
+		};
+
 		DelaunayInfo(Grid& g, TAAPos& aaPos,
 					 Grid::edge_traits::callback cbConstrainedEdge);
 
@@ -39,34 +40,92 @@ class UG_API DelaunayInfo : public GridObserver
 		Grid& grid()				{return m_grid;}
 		AAPos& position_accessor()	{return m_aaPos;}
 
-		void mark(Vertex* vrt, bool mark = true);
 
-		bool is_marked(Vertex* vrt)		{return m_aaMarkedVRT[vrt] != 0;}
+	/**	\warning	init_marks may currently only be called once! Undefined behaviour
+	 *				if called multiple times or after marks have already been set.
+	 *	\todo	think about adding a cleanup at the beginning of init_marks (costly)*/
+		template <class TIter>
+		void init_marks(TIter trisBegin, TIter trisEnd, bool pushFlipCandidates);
 
-		void mark_as_constrained(Edge* e)	{m_aaMarkedEDGE[e] = 2;}
+	////////////////////////////////////////////////////////////////
+	//	MARKS
+		void set_mark(Vertex* v, Mark m)		{m_aaMark[v] = m;}
+		Mark mark(Vertex* v) const				{return static_cast<Mark>(m_aaMark[v]);}
 
-		bool is_constrained(Edge* e)	{return (m_aaMarkedEDGE[e] == 2) || m_cbConstrainedEdge(e);}
+		void set_mark(Edge* e, Mark m)			{m_aaMark[e] = m;}
+		Mark mark(Edge* e) const				{return static_cast<Mark>(m_aaMark[e]);}
 
-		bool is_candidate(Edge* e)		{return m_aaMarkedEDGE[e] == 1;}
-
-		void push_candidate(Edge* e);
-		Edge* pop_candidate();
-		bool candidates_left()				{return !m_qEdgeCandidates.empty();}
-
-		void mark(Face* f, bool mark = true);
-		bool is_marked(Face* f)					{return m_aaFaceInfo[f] != NULL;}
+		void set_mark(Face* f, Mark m);
+		Mark mark(Face* f) const				{return static_cast<Mark>(m_aaMark[f]);}
 
 		template <class TIter>
-		void mark(TIter begin, TIter end)
+		void set_mark(TIter begin, TIter end, Mark m)
 		{
-			while(begin != end) {mark(*begin); ++begin;}
+			while(begin != end) {set_mark(*begin, m); ++begin;}
 		}
 
+	///	returns true if the specified element is either marked as INNER or as NEW_INNER
+		template <class TElem>
+		bool is_inner(TElem* e);
+
+	///	returns true if the specified element is either marked as SEGMENT, NEW_SEGMENT, DART or SHELL
+		template <class TElem>
+		bool is_segment(TElem* e);
+
+		// void mark(Vertex* vrt, bool mark = true);
+
+		// bool is_marked(Vertex* vrt)		{return m_aaMarkedVRT[vrt] != 0;}
+
+		// void mark_as_constrained(Edge* e)	{m_aaMarkedEDGE[e] = 2;}
+
+		// bool is_constrained(Edge* e)	{return (m_aaMarkedEDGE[e] == 2) || m_cbConstrainedEdge(e);}
+
+		// void mark(Face* f, bool mark = true);
+		// bool is_marked(Face* f)					{return m_aaFaceInfo[f] != NULL;}
+
+		// template <class TIter>
+		// void mark(TIter begin, TIter end)
+		// {
+		// 	while(begin != end) {mark(*begin); ++begin;}
+		// }
+
+	////////////////////////////////////////////////////////////////
+	//	CANDIDATES
+	/**	candidates are used during MakeDelaunay to define the set of edges which
+	 * may have to be swapped to obtain a delaunay triagnulation.
+	 * \{ */
+		bool is_candidate(Edge* e)		{return m_aaCandidateEDGE[e];}
+		void push_candidate(Edge* e);
+		Edge* pop_candidate();
+		bool candidates_left()			{return !m_qEdgeCandidates.empty();}
+	/** \} */
+
+	///	newly created edges will be recorded as possible new candidates
+	/**	All newly created edges will be added to a list of possible candidates,
+	 * however, they are not added to the list of candidates until stop_candidate_recording()
+	 * has been called. This is important since recorded possible candidates may be erased
+	 * again from the grid (opposed to real candidates, which may not be erased).*/
+		void start_candidate_recording();
+
+	///	stops candidate recording and pushes all valid recorded edges to the list of real candidates
+		void stop_candidate_recording();
+
+
+	////////////////////////////////////////////////////////////////
+	//	FACE-CLASSIFICATION
+	/**	Face classification is used to define and order the set of faces which
+	 * whose circumcenter may have to be inserted in order to obtain a delaunay-
+	 * triangulation with prescribed minimal angle during QualityGridGeneration.
+	 * Face classification is not required for MakeDelaunay.
+	 * \{ */
 		bool classified_faces_left();
 		Face* pop_classified_face();
-		bool face_classification_enabled()		{return m_faceClassificationEnabled;}
+		bool face_classification_enabled()		{return m_aaFaceInfo.valid();}
 		void enable_face_classification(number minAngle);
+	/** \} */
 
+	////////////////////////////////////////////////////////////////
+	//	GRID-OBERSERVER CALLBACKS
 		virtual void vertex_created(Grid* grid, Vertex* vrt,
 									GridObject* pParent,
 									bool replacesParent);
@@ -83,16 +142,6 @@ class UG_API DelaunayInfo : public GridObserver
 		virtual void edge_to_be_erased(Grid* grid, Edge* e, Edge* replacedBy);
 
 		virtual void face_to_be_erased(Grid* grid, Face* f, Face* replacedBy);
-
-	///	newly created edges will be recorded as possible new candidates
-	/**	All newly created edges will be added to a list of possible candidates,
-	 * however, they are not added to the list of candidates until stop_candidate_recording()
-	 * has been called. This is important since recorded possible candidates may be erased
-	 * again from the grid (opposed to real candidates, which may not be erased).*/
-		void start_candidate_recording();
-
-	///	stops candidate recording and pushes all valid recorded edges to the list of real candidates
-		void stop_candidate_recording();
 
 	private:
 		struct FaceInfo{
@@ -123,14 +172,9 @@ class UG_API DelaunayInfo : public GridObserver
 		Grid& 	m_grid;
 		AAPos	m_aaPos;
 
-		AByte 	m_aCandidateMark;
-		Grid::AttachmentAccessor<Vertex, AByte>	m_aaMarkedVRT;
-		Grid::AttachmentAccessor<Edge, AByte>	m_aaMarkedEDGE;
-		std::queue<Edge*>	m_qEdgeCandidates;
+		AByte 	m_aMark;
+		MultiElementAttachmentAccessor<AByte>		m_aaMark;
 
-	//	pointer to m_faceMark is used to mark faces, if face-classification is disabled.
-		int			m_numMarkedFaces;
-		FaceInfo	m_faceMark;
 		AFaceInfo	m_aFaceInfo;
 		Grid::AttachmentAccessor<Face, AFaceInfo>	m_aaFaceInfo;
 		FacePriorityQueue	m_faceQueue;
@@ -139,7 +183,10 @@ class UG_API DelaunayInfo : public GridObserver
 		number							m_maxDot;
 		Grid::edge_traits::callback 	m_cbConstrainedEdge;
 
-		bool	m_faceClassificationEnabled;
+	//	candidate edges
+		ABool									m_aCandidate;
+		Grid::AttachmentAccessor<Edge, ABool>	m_aaCandidateEDGE;
+		std::queue<Edge*>						m_qEdgeCandidates;
 
 	//	helper vector used during start/stop_candidate_recording
 		bool	m_candidateRecordingEnabled;
@@ -147,5 +194,11 @@ class UG_API DelaunayInfo : public GridObserver
 };
 
 }//	end of namespace
+
+
+////////////////////////////////////////
+//	include implementation
+#include "delaunay_info_impl.h"
+
 
 #endif	//__H__UG_delaunay_info
