@@ -102,7 +102,7 @@ init_marks(TIter trisBegin, TIter trisEnd, bool pushFlipCandidates)
 			//	is smaller than PI/3, then the vertex will be marked as DART vertex.
 				for(size_t iotherEdge = iedge + 1; iotherEdge < edges.size(); ++iotherEdge){
 					Edge* otherEdge = edges[iotherEdge];
-					if(!mark(otherEdge) == SEGMENT)
+					if(mark(otherEdge) != SEGMENT)
 						continue;
 
 					vector_t dir2;
