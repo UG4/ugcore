@@ -1,12 +1,15 @@
 // created by Sebastian Reiter
 // s.b.reiter@gmail.com
 
+#include <algorithm>
 #include "delaunay_triangulation.h"
 #include "lib_grid/algorithms/grid_generation/triangle_fill_sweep_line.h"
 #include "lib_grid/algorithms/subset_util.h"
 #include "lib_grid/algorithms/polychain_util.h"
 //temporary
 #include "lib_grid/file_io/file_io.h"
+
+using namespace std;
 
 namespace ug{
 
@@ -245,6 +248,9 @@ bool QualityGridGeneration(Grid& grid, DelaunayInfo<TAAPos>& info,
 						   number minAngle, int maxSteps)
 {
 	EnableDelaunayDebugSave(false);
+	minAngle = max<number>(minAngle, 0);
+	minAngle = min<number>(minAngle, 60);
+
 	// maxSteps = 100;
 	// UG_LOG("DEBUG: Setting maxSteps to " << maxSteps << "\n");
 
@@ -264,10 +270,13 @@ bool QualityGridGeneration(Grid& grid, DelaunayInfo<TAAPos>& info,
 	vector<Edge*> closeEdges; // used during splits
 	vector<Face*> faces;
 
-	//UG_LOG("MakeDelaunay Initial\n");
 	MakeDelaunay(info);
 
 	if(minAngle > 0 && maxSteps != 0){
+		const number offCenterThresholdAngle = 1.1 * minAngle;
+		const number offCenterATan = atan(deg_to_rad(0.5 * offCenterThresholdAngle));
+		// UG_LOG("off-center atan: " << offCenterATan << endl);
+
 		info.enable_face_classification(minAngle);
 
 	//	while there are faces left which have to be improved
@@ -291,56 +300,49 @@ bool QualityGridGeneration(Grid& grid, DelaunayInfo<TAAPos>& info,
 
 			vector_t faceCenter = CalculateCenter(f, aaPos);
 
-		//	if the triangle has 3 segment edges, we'll ignore it.
-		//	if it has two, we'll ignore it if the angle between the
-		//	two segments ones is smaller than minAngle.
-			// {
-			// 	CollectAssociated(edges, grid, f);
-			// 	int numSegs = 0;
-			// 	Edge* segs[3];
-			// 	for(size_t i = 0; i < edges.size(); ++i){
-			// 		if(info.is_segment(edges[i])){
-			// 			segs[numSegs] = edges[i];
-			// 			++numSegs;
-			// 		}
-			// 	}
-			// 	if(numSegs > 1)
-			// 		continue;
-			// 	else if(numSegs == 2){
-			// 		// UG_LOG("Examining face with two constrained edges at: " << faceCenter << endl);
-			// 		Vertex* sharedVrt = NULL, *v1 = NULL, *v2 = NULL;
-			// 		for(int i = 0; (i < 2) && (!sharedVrt); ++i){
-			// 			for(int j = 0; j < 2; ++j){
-			// 				if(segs[0]->vertex(i) == segs[1]->vertex(j)){
-			// 					sharedVrt = segs[0]->vertex(i);
-			// 					v1 = segs[0]->vertex((i+1)%2);
-			// 					v2 = segs[1]->vertex((j+1)%2);
-			// 					break;
-			// 				}
-			// 			}
-			// 		}
-			// 		if(!sharedVrt)
-			// 			continue;
-			// 		vector_t d1, d2;
-			// 		VecSubtract(d1, aaPos[v1], aaPos[sharedVrt]);
-			// 		VecSubtract(d2, aaPos[v2], aaPos[sharedVrt]);
-			// 		if(rad_to_deg(VecAngle(d1, d2)) <= minAngle)
-			// 			continue;
-			// 	}
-			// }
-
 		//	calculate triangle-circumcenter
-			vector_t& v0 = aaPos[f->vertex(0)];
-			vector_t& v1 = aaPos[f->vertex(1)];
-			vector_t& v2 = aaPos[f->vertex(2)];
+			vector_t vpos[3] = {aaPos[f->vertex(0)], aaPos[f->vertex(1)], aaPos[f->vertex(2)]};
 			vector_t cc;
 
-			if(!TriangleCircumcenter(cc, v0, v1, v2)){
+			if(!TriangleCircumcenter(cc, vpos[0], vpos[1], vpos[2])){
 				UG_LOG("Couldn't calculate triangle-circumcenter. Expect unexpected results!\n");
 				UG_LOG("triangle: " << faceCenter << "\n");
 				//SaveGridToFile(grid, "delaunay_debug.ugx");
 				return false;
 				//continue;
+			}
+
+		//	Test whether an off-center would be more appropriate ('Alper Üngörs Off-Centers')
+			if(offCenterATan > 0)
+			{
+				number edgeLenSq[3] = {VecDistanceSq(vpos[0], vpos[1]),
+									   VecDistanceSq(vpos[1], vpos[2]),
+									   VecDistanceSq(vpos[2], vpos[0])};
+				size_t shortestEdge = 0;
+				for(size_t iedge = 1; iedge < 3; ++iedge){
+					if(edgeLenSq[iedge] < edgeLenSq[shortestEdge])
+						shortestEdge = iedge;
+				}
+
+				size_t vrtInd[2] = {shortestEdge, (shortestEdge + 1) % 3};
+				vector_t dir[2];
+				for(size_t ivrt = 0; ivrt < 2 ; ++ivrt){
+					VecSubtract(dir[ivrt], vpos[vrtInd[ivrt]], cc);
+				}
+
+				number angle = rad_to_deg(VecAngle(dir[0], dir[1]));
+
+				if(angle < offCenterThresholdAngle){
+					vector_t base;
+					VecScaleAdd(base, 0.5, vpos[vrtInd[0]], 0.5, vpos[vrtInd[1]]);
+					vector_t ndir;
+					VecSubtract(ndir, cc, base);
+					VecNormalize(ndir, ndir);
+					VecScale(ndir, ndir, 0.5 * sqrt(edgeLenSq[shortestEdge]) / offCenterATan);
+					// UG_LOG("Adjusting cc from: " << cc << " to: ");
+					VecAdd(cc, base, ndir);
+					// UG_LOG(cc << endl);
+				}
 			}
 
 		//	locate the triangle which contains cc. Do this by traversing edges

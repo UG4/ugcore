@@ -105,6 +105,9 @@ class UG_API DelaunayInfo : public GridObserver
 		Face* pop_classified_face();
 		bool face_classification_enabled()		{return m_aaFaceInfo.valid();}
 		void enable_face_classification(number minAngle);
+
+		number min_angle() const				{return m_minAngle;}
+		number max_dot() const					{return m_maxDot;}
 	/** \} */
 
 	////////////////////////////////////////////////////////////////
