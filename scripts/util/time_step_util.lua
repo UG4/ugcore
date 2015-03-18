@@ -793,9 +793,34 @@ function util.SolveNonlinearProblemAdaptiveLimex(
 	dt,
 	minStepSize,
 	maxStepSize,
-	reductionFactor,
-	tol,
+	adaptiveStepInfo,
+	--reductionFactor,
+	--tol,
 	bFinishTimeStep)
+
+
+ -- read adaptive stuff
+  local tol = adaptiveStepInfo["TOLERANCE"]
+  local red = adaptiveStepInfo["REDUCTION"]
+  local inc_fac = adaptiveStepInfo["INCREASE"]
+  local safety_fac = adaptiveStepInfo["SAFETY"]
+  local errorEst = adaptiveStepInfo["ESTIMATOR"]
+  
+  -- check parameters
+  if filename == nil then filename = "sol" end
+  if minStepSize == nil then minStepSize = maxStepSize end
+  
+  if red == nil then red = 0.5 end   -- reduction of time step
+  if inc_fac == nil then inc_fac = 1.5 end   -- increase of time step
+  
+  if errorEst == nil then 
+    print "WARNUNG: Error estimator not set. Default is euclidean norm! "
+    errorEst = Norm2ErrorEst() 
+   end
+  if tol == nil then tol = 1e-3 end
+  if safety_fac == nil then safety_fac = 0.8 end   -- safety factor
+
+
 
 	local doControl = true
 	local doExtrapolation = true
@@ -870,7 +895,7 @@ function util.SolveNonlinearProblemAdaptiveLimex(
 		solTimeSeries2:push(old2, time)
 		if (doExtrapolation) then	
 			-- Aitken-Neville-type time	extrapolation
-			timex = AitkenNevilleTimex({1,2})
+			timex = AitkenNevilleTimex({1,2}, errorEst)
 		end
 	end		
 			
@@ -946,12 +971,7 @@ function util.SolveNonlinearProblemAdaptiveLimex(
 				end 
 					
 			
-				--vtk = VTKOutput()
-				--vtk:select_nodal(GridFunctionNumberData(u, "c"), "CNodal")
-				--vtk:select_nodal(GridFunctionNumberData(u, "p"), "PNodal")
 				
-				--out:print("CoarseSol.vtu", u, step, time) 
-				--out:print("FineSol.vtu", u2, step, time) 
 				
 				if (doExtrapolation) then		
 					-- extrapolation (more accurate)
@@ -970,6 +990,13 @@ function util.SolveNonlinearProblemAdaptiveLimex(
 					l2_ex_est = "---";
 				end
 		
+		    --vtk = VTKOutput()
+        --vtk:select_nodal(GridFunctionNumberData(u, "c"), "CNodal")
+       -- vtk:select_nodal(GridFunctionNumberData(u, "p"), "PNodal")
+        
+        --out:print("CoarseLimexSol.vtu", u, step, time) 
+        --out:print("FineLimexSol.vtu", u2, step, time) 
+		
 				--print("TIME_ERROR (t="..time+tau..", |u|="..l2normB.. ") :\t" .. l2_coarse_err .. "\t"..l2_fine_err .. "\t"..l2_ex_err .. "\|  ---\t"..l2_fine_est .. "\t"..l2_ex_est.. "\t"..eps)
 				--file:write(time+tau.."\t" ..l2normB.. "\t" .. l2_coarse_err .. "\t"..l2_fine_err .. "\t"..l2_ex_err .. "\t"..l2_fine_est .. "\t"..l2_ex_est.. "\t"..eps.."\n")
 				--file:flush()
@@ -978,8 +1005,11 @@ function util.SolveNonlinearProblemAdaptiveLimex(
 				-- Adaptive step control
 				-------------------------
 					
-				dtEst = math.pow(0.9*tol/eps, 0.5)*currdt  -- (eps<=tol) implies (tol/eps >= 1) 
-				print("dtEst= "..dtEst..", eps="..eps..", tol = " ..tol..", fac = "..math.pow(0.9*tol/eps, 0.5))
+				--dtEst = math.pow(0.9*tol/eps, 0.5)*currdt  -- (eps<=tol) implies (tol/eps >= 1) 
+				--print("dtEst= "..dtEst..", eps="..eps..", tol = " ..tol..", fac = "..math.pow(0.9*tol/eps, 0.5))
+				local lambda = math.pow(safety_fac*tol/eps, 0.5) -- (eps<=tol) implies (tol/eps >= 1) 
+        dtEst = lambda*currdt  
+        print("dtEst= "..dtEst..", eps="..eps..", tol = " ..tol..", fac = "..lambda)
 		
 				-- determine potential new step size
 				currdt = math.min(dtEst, 1.5*currdt, maxStepSize)
