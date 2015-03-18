@@ -147,7 +147,11 @@ public VectorDebugWritingObject <typename TAlgebra::vector_type>
 		/// init (expensive, since it calls \sa find_smooth_error)
 		bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
 		{
-			m_pOperator->get_matrix().set_as_copy_of(pOp->get_matrix());
+			m_pOperator->get_matrix() = pOp->get_matrix();
+			//m_pOperator->get_matrix().set_as_copy_of(pOp->get_matrix());
+#ifdef UG_PARALLEL
+			//m_pOperator->get_matrix().set_storage_Type(pOp->get_matrix()->get_storage_type());
+#endif
 			m_pprecond->init(pOp);
 
 			//write_debug(pOp->get_matrix(), "DebugMatrix");
@@ -170,6 +174,7 @@ public VectorDebugWritingObject <typename TAlgebra::vector_type>
 			vector_type myRhs(m_pOperator->get_matrix().num_rows());
 			vector_type myError(m_pOperator->get_matrix().num_rows());
 
+			myError.set(0.0);
 			myError.set_random(from, to);
 			myRhs.set(0.0);
 
