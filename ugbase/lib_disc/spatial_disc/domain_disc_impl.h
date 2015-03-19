@@ -1071,9 +1071,11 @@ calc_error
 	std::vector<SubsetGroup> vSSGrp;
 
 //	create list of all subsets
-	try{
+	try
+	{
 		CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler());
-	}UG_CATCH_THROW("'DomainDiscretization': Can not create Subset Groups and Union.");
+	}
+	UG_CATCH_THROW("'DomainDiscretization': Can not create Subset Groups and Union.");
 
 //	get the error estimator data for all the discretizations
 	std::vector<IErrEstData<TDomain>*> vErrEstData;
@@ -1088,14 +1090,15 @@ calc_error
 	}
 
 //	preprocess the error estimator data in the discretizations
-	try{
-		for(size_t i = 0; i < vErrEstData.size(); ++i)
+	try
+	{
+		for (size_t i = 0; i < vErrEstData.size(); ++i)
 			vErrEstData[i]->alloc_err_est_data(dd->surface_view(), dd->grid_level());
 	}
 	UG_CATCH_THROW("DomainDiscretization::calc_error: Cannot prepare the error estimator");
 
 //	loop subsets to assemble the estimators
-	for(size_t i = 0; i < unionSubsets.size(); ++i)
+	for (size_t i = 0; i < unionSubsets.size(); ++i)
 	{
 	//	get subset
 		const int si = unionSubsets[i];
@@ -1115,40 +1118,40 @@ calc_error
 	//	assemble on suitable elements
 		try
 		{
-		switch(dim)
-		{
-		case 1:
-			this->template AssembleErrorEstimator<RegularEdge>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, u);
-			// When assembling over lower-dim manifolds that contain hanging nodes:
-			this->template AssembleErrorEstimator<ConstrainingEdge>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, u);
-			break;
-		case 2:
-			this->template AssembleErrorEstimator<Triangle>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, u);
-			this->template AssembleErrorEstimator<Quadrilateral>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, u);
-			// When assembling over lower-dim manifolds that contain hanging nodes:
-			this->template AssembleErrorEstimator<ConstrainingTriangle>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, u);
-			this->template AssembleErrorEstimator<ConstrainingQuadrilateral>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, u);
-			break;
-		case 3:
-			this->template AssembleErrorEstimator<Tetrahedron>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, u);
-			this->template AssembleErrorEstimator<Pyramid>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, u);
-			this->template AssembleErrorEstimator<Prism>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, u);
-			this->template AssembleErrorEstimator<Hexahedron>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, u);
-			break;
-		default:
-			UG_THROW("DomainDiscretization::calc_error:"
-							" Dimension "<<dim<<" (subset="<<si<<") not supported.");
-		}
+			switch (dim)
+			{
+			case 1:
+				this->template AssembleErrorEstimator<RegularEdge>
+					(vSubsetElemDisc, dd, si, bNonRegularGrid, u);
+				// When assembling over lower-dim manifolds that contain hanging nodes:
+				this->template AssembleErrorEstimator<ConstrainingEdge>
+					(vSubsetElemDisc, dd, si, bNonRegularGrid, u);
+				break;
+			case 2:
+				this->template AssembleErrorEstimator<Triangle>
+					(vSubsetElemDisc, dd, si, bNonRegularGrid, u);
+				this->template AssembleErrorEstimator<Quadrilateral>
+					(vSubsetElemDisc, dd, si, bNonRegularGrid, u);
+				// When assembling over lower-dim manifolds that contain hanging nodes:
+				this->template AssembleErrorEstimator<ConstrainingTriangle>
+					(vSubsetElemDisc, dd, si, bNonRegularGrid, u);
+				this->template AssembleErrorEstimator<ConstrainingQuadrilateral>
+					(vSubsetElemDisc, dd, si, bNonRegularGrid, u);
+				break;
+			case 3:
+				this->template AssembleErrorEstimator<Tetrahedron>
+					(vSubsetElemDisc, dd, si, bNonRegularGrid, u);
+				this->template AssembleErrorEstimator<Pyramid>
+					(vSubsetElemDisc, dd, si, bNonRegularGrid, u);
+				this->template AssembleErrorEstimator<Prism>
+					(vSubsetElemDisc, dd, si, bNonRegularGrid, u);
+				this->template AssembleErrorEstimator<Hexahedron>
+					(vSubsetElemDisc, dd, si, bNonRegularGrid, u);
+				break;
+			default:
+				UG_THROW("DomainDiscretization::calc_error:"
+								" Dimension "<<dim<<" (subset="<<si<<") not supported.");
+			}
 		}
 		UG_CATCH_THROW("DomainDiscretization::calc_error:"
 						" Assembling of elements of Dimension " << dim << " in "
@@ -1170,6 +1173,7 @@ calc_error
 	// default value negative in order to distinguish between newly added elements (e.g. after refinement)
 	// and elements which an error indicator is known for
 	pMG->template attach_to_dv<elem_type>(m_aError, -1.0);
+	m_pMG = pMG;
 	m_aaError = aa_type(*pMG, m_aError);
 
 	// loop surface elements
@@ -1187,7 +1191,8 @@ calc_error
 
 		// integrate for all estimators, then add up
 		for (std::size_t ee = 0; ee < vErrEstData.size(); ++ee)
-			m_aaError[*elem] += vErrEstData[ee]->get_elem_error_indicator(*elem, &vCornerCoords[0]);
+			m_aaError[*elem] += vErrEstData[ee]->scaling_factor()
+								* vErrEstData[ee]->get_elem_error_indicator(*elem, &vCornerCoords[0]);
 	}
 
 //	write error estimator values to vtk
@@ -1227,6 +1232,8 @@ calc_error
 			AddLocalVector(*uVTK, locU);
 		}
 	}
+
+	m_bErrorCalculated = true;
 
 //	postprocess the error estimators in the discretizations
 	try{
@@ -2169,7 +2176,7 @@ calc_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 	//	assemble on suitable elements
 		try
 		{
-			switch(dim)
+			switch (dim)
 			{
 			case 1:
 				this->template AssembleErrorEstimator<RegularEdge>
@@ -2242,7 +2249,8 @@ calc_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 
 		// integrate for all estimators, then add up
 		for (std::size_t ee = 0; ee < vErrEstData.size(); ++ee)
-			m_aaError[*elem] += vErrEstData[ee]->get_elem_error_indicator(*elem, &vCornerCoords[0]);
+			m_aaError[*elem] += vErrEstData[ee]->scaling_factor()
+								* vErrEstData[ee]->get_elem_error_indicator(*elem, &vCornerCoords[0]);
 	}
 
 //	write error estimator values to vtk

@@ -121,7 +121,8 @@ static void Domain(Registry& reg, string grp)
 		typedef IErrEstData<TDomain> T;
 		string name = string("IErrEstData").append(suffix);
 		reg.add_class_<T>(name, domDiscGrp)
-			.add_method("set_consider_me", &T::set_consider_me, "", "", "", "");
+			.add_method("set_consider_me", &T::set_consider_me, "", "", "", "")
+			.add_method("set_scaling_factor", &T::set_scaling_factor, "", "", "", "");
 		reg.add_class_to_group(name, "ErrEstData", tag);
 	}
 

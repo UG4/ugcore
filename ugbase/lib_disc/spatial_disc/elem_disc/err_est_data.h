@@ -48,7 +48,7 @@ class IErrEstData
 		static const int dim = TDomain::dim;
 	
 	///	class constructor
-		IErrEstData () : m_consider(true) {};
+		IErrEstData () : m_consider(true), m_scale(1.0) {};
 		
 	///	virtual class destructor
 		virtual ~IErrEstData () {};
@@ -68,13 +68,35 @@ class IErrEstData
 	/// virtual function granting get access to the m_consider member
 		bool consider_me() const {return m_consider;};
 
-	/// virtual function granting set access to the m_consider member
+	/// whether or not this instance is to be considered by domainDisc
+	/**
+	 * The domainDisc calls alloc_err_est_data(), summarize_err_est_data(),
+	 * get_elem_error_indicator() etc. only for ErrEstData objects that have
+	 * consider_me() == true.
+	 * This is useful when using a MultipleErrEstData object combining ErrEstData objects
+	 * which are already set to some ElemDisc. In this case, set_consider_me(false).
+	 * The default value is true.
+	 */
 		void set_consider_me(bool b) {m_consider = b;};
 
+	/// set scaling factor for final error calculation
+		void set_scaling_factor(number scale) {m_scale = scale;};
+
+	/// get scaling factor
+	/**
+	 * 	This factor is used in the element-wise calculation of error indicators.
+	 * 	After calculation of indicators for each IErrEstData object in the domain
+	 * 	discretization (typically one per equation), the final overall indicator
+	 * 	is calculated as weighted sum (with the scaling factors as weights).
+	 * 	The default value (if not set) is 1.0.
+	 *
+	 * @return scale scaling factor
+	 */
+		number scaling_factor() {return m_scale;}
+
 	private:
-	///	whether or not the instance of this class is to be considered when the domainDisc
-	///	calls alloc, summarize, get_elem etc. (true by default)
 	bool m_consider;
+	number m_scale;
 };
 
 /// Error estimator data class storing one scalar number per side
