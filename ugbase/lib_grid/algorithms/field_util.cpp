@@ -123,14 +123,14 @@ void CreateGridFromField(Grid& grid,
 			if(numVals == 4){
 			//	create a quad
 				grid.create<Quadrilateral>(
-					QuadrilateralDescriptor(vrts[0], vrts[1], vrts[2], vrts[3]));
+					QuadrilateralDescriptor(vrts[3], vrts[2], vrts[1], vrts[0]));
 			}
 			else if(numVals == 3){
 			//	create a tri
 				grid.create<Triangle>(
-					TriangleDescriptor(vrts[(firstInvalid + 1) % 4],
+					TriangleDescriptor(vrts[(firstInvalid + 3) % 4],
 									   vrts[(firstInvalid + 2) % 4],
-									   vrts[(firstInvalid + 3) % 4]));
+									   vrts[(firstInvalid + 1) % 4]));
 			}
 		}
 	}

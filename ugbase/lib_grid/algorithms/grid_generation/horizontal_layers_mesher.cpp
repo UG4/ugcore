@@ -79,6 +79,46 @@ invalidate_flat_cells(number minHeight)
 }
 
 void RasterLayers::
+snap_cells_to_higher_layers(number minHeight)
+{
+	if(size() <= 1)
+		return;
+
+	for(int lvl = (int)size() - 2; lvl >= 0; --lvl){
+		Heightfield& curHF = layer(lvl);
+		Field<number>& curField = curHF.field();
+		Heightfield& upperHF = layer(lvl + 1);
+
+		for(int iy = 0; iy < (int)curField.height(); ++iy){
+			for(int ix = 0; ix < (int)curField.width(); ++ix){
+				number curVal = curField.at(ix, iy);
+				vector2 c = curHF.index_to_coordinate(ix, iy);
+				number upperVal = upperHF.interpolate(c);
+				if(upperVal == upperHF.no_data_value())
+					continue;
+
+				if((curVal == curHF.no_data_value()) || (curVal > upperVal)
+					|| (upperVal - curVal < minHeight))
+				{
+					curField.at(ix, iy) = upperVal;
+				}
+			}
+		}
+	}
+}
+
+
+void RasterLayers::
+eliminate_invalid_cells()
+{
+	for(size_t lvl = 0; lvl < size(); ++lvl){
+		Heightfield& hf = layer(lvl);
+		EliminateInvalidCells(hf.field(), hf.no_data_value());
+	}
+}
+
+
+void RasterLayers::
 blur_layers(number alpha, size_t numIterations)
 {
 	for(size_t i = 0; i < size(); ++i){

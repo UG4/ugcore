@@ -37,40 +37,6 @@ namespace bridge
  * \{
  */
 
-/////	Wrapper object that simplifies script creation
-//class GridObject : public Grid
-//{
-//	public:
-//		GridObject() : Grid(GRIDOPT_STANDARD_INTERCONNECTION), m_sh(*this)	{}
-//		inline Grid& grid()	{return *this;}
-//		inline SubsetHandler& subset_handler()	{return m_sh;}
-//
-//	protected:
-//		SubsetHandler m_sh;
-//};
-//
-//bool LoadGridObject(GridObject& go, const char* filename)
-//{
-//	PROFILE_FUNC_GROUP("grid");
-//	return LoadGridFromFile(go.grid(), go.subset_handler(), filename);
-//}
-//
-//bool SaveGridObject(GridObject& go, const char* filename)
-//{
-//	PROFILE_FUNC_GROUP("grid");
-//	return SaveGridToFile(go.grid(), go.subset_handler(), filename);
-//}
-//
-//GridObject* CreateGridObject(const char* filename)
-//{
-//	PROFILE_FUNC_GROUP("grid");
-//	GridObject* go = new GridObject;
-//	if(!LoadGridObject(*go, filename)){
-//		delete go;
-//		return NULL;
-//	}
-//	return go;
-//}
 
 bool CreateFractal(Grid& grid, HangingNodeRefiner_Grid& href,
 					number scaleFac, size_t numIterations)
@@ -744,6 +710,11 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 			.add_method("invalidate_flat_cells", &RasterLayers::invalidate_flat_cells, "",
 				"min height", "Marks all cells as invalid which are closer to the "
 				"next higher valid cell than the given min height.")
+			.add_method("snap_cells_to_higher_layers", &RasterLayers::snap_cells_to_higher_layers, "",
+				"min height", "sets invalid or flat cells to the value of the corresponding "
+				"cell in the level above.")
+			.add_method("eliminate_invalid_cells", &RasterLayers::eliminate_invalid_cells, "success",
+				"eliminates invalid cells by filling those cells with averages of neighboring valid cells.")
 			.add_method("blur_layers", &RasterLayers::blur_layers, "",
 				"alpha # num iterations", "Blurs the values in each layer by averaging between "
 				"neighbored cells on the same layer.")

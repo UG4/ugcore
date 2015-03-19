@@ -37,6 +37,14 @@ class RasterLayers{
 	///	invalidates cells in lower levels which are too close to valid cells in higher levels
 		void invalidate_flat_cells(number minHeight);
 
+	///	sets invalid or flat cells to the value of the corresponding cell in the level above
+	/** This method is somehow antithetical to 'invalidate_flat_cells', since it reassigns
+	 * values to invalid cells which are shadowed by valid cells.*/
+		void snap_cells_to_higher_layers(number minHeight);
+
+	///	eliminates invalid cells by filling those cells with averages of neighboring valid cells
+		void eliminate_invalid_cells();
+
 	///	smoothens the values in each layer by averaging with neighboured values
 		void blur_layers(number alpha, size_t numIterations);
 

@@ -99,6 +99,14 @@ CreateGridFromFieldBoundary(Grid& grid,
 template <class T>
 void BlurField(Field<T>& field, number alpha, size_t numIterations, const T& noDataValue);
 
+
+////////////////////////////////////////////////////////////////////////////////
+///	eliminates invalid cells by repeatedly filling those cells with averages of neighboring cells
+/** The field has to contain at least one valid cell. If it doesn't, false is returned.
+ * The value type T has to support operators += and *= and = 0*/
+template <class T>
+bool EliminateInvalidCells(Field<T>& field, const T& noDataValue);
+
 }//	end of namespace
 
 ////////////////////////////////////////

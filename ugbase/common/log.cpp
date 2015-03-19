@@ -222,6 +222,9 @@ flush_error_log()
 void LogAssistant::
 set_output_process(int procRank)
 {
+	if(m_outputProc == procRank)
+		return;
+	
 	int numProcs = 1;
 	#ifdef UG_PARALLEL
 		numProcs = pcl::NumProcs();
