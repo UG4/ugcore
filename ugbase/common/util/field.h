@@ -11,6 +11,7 @@ class Field{
 	public:
 		Field();
 		Field(size_t width, size_t height);
+		Field(size_t width, size_t height, const T& value);
 		Field(const Field& f);
 		~Field();
 

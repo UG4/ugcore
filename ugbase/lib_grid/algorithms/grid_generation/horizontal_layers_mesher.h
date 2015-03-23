@@ -37,6 +37,12 @@ class RasterLayers{
 	///	invalidates cells in lower levels which are too close to valid cells in higher levels
 		void invalidate_flat_cells(number minHeight);
 
+	///	invalidates cells that belong to a small lense regarding its horizontal area
+		void invalidate_small_lenses(number minArea);
+
+	///	removes small holes by expanding the layer in those regions to the specified height
+		void remove_small_holes(number maxArea, number minHeight);
+
 	///	sets invalid or flat cells to the value of the corresponding cell in the level above
 	/** This method is somehow antithetical to 'invalidate_flat_cells', since it reassigns
 	 * values to invalid cells which are shadowed by valid cells.*/

@@ -28,6 +28,16 @@ Field(size_t width, size_t height) :
 }
 
 template <class T> Field<T>::
+Field(size_t width, size_t height, const T& value) :
+	m_width(width),
+	m_height(height)
+{
+	m_capacity = m_width * m_height;
+	m_data = new T[m_capacity];
+	fill_all(value);
+}
+
+template <class T> Field<T>::
 Field(const Field& f){
 	m_width = f.width();
 	m_height = f.height();

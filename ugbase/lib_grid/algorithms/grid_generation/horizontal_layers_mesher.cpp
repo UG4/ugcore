@@ -78,6 +78,122 @@ invalidate_flat_cells(number minHeight)
 	}
 }
 
+
+void  RasterLayers::
+invalidate_small_lenses(number minArea)
+{
+	for(size_t lvl = 0; lvl < size(); ++lvl){
+		Heightfield& hf = layer(lvl);
+		number cellSize = hf.cell_size().x() * hf.cell_size().y();
+		if(cellSize > 0){
+			InvalidateSmallLenses(hf.field(), minArea / cellSize,
+								  hf. no_data_value());
+		}
+	}
+}
+
+void RasterLayers::
+remove_small_holes(number maxArea, number minHeight)
+{
+	using namespace std;
+
+	const int numNbrs = 4;
+	const int xadd[numNbrs] = {0, -1, 1, 0};
+	const int yadd[numNbrs] = {-1, 0, 0, 1};
+
+	Field<bool>	visited;
+	vector<pair<int, int> > cells;
+
+//	this field stores whether we already visited the given cell
+	for(int lvl = (int)size() - 2; lvl >= 0; --lvl){
+		Heightfield& hf = layer(lvl);
+		Field<number>& field = hf.field();
+		number noDataValue = hf.no_data_value();
+
+		number cellSize = hf.cell_size().x() * hf.cell_size().y();
+		if(cellSize <= 0)
+			continue;
+
+		size_t thresholdCellCount(maxArea / cellSize);
+
+
+		visited.resize_no_copy(field.width(), field.height());
+		visited.fill_all(false);
+
+		const int fwidth = (int)field.width();
+		const int fheight = (int)field.height();
+
+		for(int outerIy = 0; outerIy < fheight; ++outerIy){
+			for(int outerIx = 0; outerIx < fwidth; ++outerIx){
+				if(visited.at(outerIx, outerIy)
+				   || (field.at(outerIx, outerIy) != noDataValue))
+				{
+					continue;
+				}
+
+				cells.clear();
+				cells.push_back(make_pair(outerIx, outerIy));
+				size_t curCell = 0;
+				while(curCell < cells.size()){
+					int ix = cells[curCell].first;
+					int iy = cells[curCell].second;
+
+					for(size_t inbr = 0; inbr < numNbrs; ++inbr){
+						int nx = ix + xadd[inbr];
+						int ny = iy + yadd[inbr];
+						if((nx >= 0 && nx < fwidth && ny >= 0 && ny < fheight)
+						   &! visited.at(nx, ny))
+						{
+							visited.at(nx, ny) = true;
+							if(field.at(nx, ny) == noDataValue){
+								cells.push_back(make_pair(nx, ny));
+							}
+						}
+					}
+					++curCell;
+				}
+
+				if(cells.size() < thresholdCellCount){
+					for(size_t i = 0; i < cells.size(); ++i){
+						int ix = cells[i].first;
+						int iy = cells[i].second;
+						vector2 c = hf.index_to_coordinate(ix, iy);
+						pair<int, number> result = trace_line_up(c, (size_t)lvl);
+						if(result.first > lvl){
+						//	we have to adjust not only the value in the current layer
+						//	but also possibly values in lower levels, to avoid
+						//	creating new thin layers
+							number curVal = result.second;
+							field.at(ix, iy) = curVal;
+							for(int lowerLvl = lvl - 1; lowerLvl >= 0 ; --lowerLvl){
+								Heightfield& lhf = layer(lowerLvl);
+								Field<number>& lfield = lhf.field();
+								pair<int, int> index = lhf.coordinate_to_index(c.x(), c.y());
+								int lx = index.first;
+								int ly = index.second;
+								if(lx >= 0 && lx < (int)lfield.width()
+									&& ly >= 0 && ly < (int)lfield.height())
+								{
+									number lval = lfield.at(lx, ly);
+									if(lval != lhf.no_data_value()){
+										if(curVal - lval < minHeight){
+											curVal -= minHeight;
+											lfield.at(lx, ly) = curVal;
+										}
+										else
+											break;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+
 void RasterLayers::
 snap_cells_to_higher_layers(number minHeight)
 {

@@ -708,8 +708,14 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 				"filenames", "Loads raster data from the specified .asc files. "
 				"Specify the bottom layer first and the surface layer last.")
 			.add_method("invalidate_flat_cells", &RasterLayers::invalidate_flat_cells, "",
-				"min height", "Marks all cells as invalid which are closer to the "
+				"min height", "Marks all cells as invalid that belong to a "
+				"small lense regarding its horizontal area.")
+			.add_method("invalidate_small_lenses", &RasterLayers::invalidate_small_lenses, "",
+				"min area", "Marks all cells as invalid which are closer to the "
 				"next higher valid cell than the given min height.")
+			.add_method("remove_small_holes", &RasterLayers::remove_small_holes, "",
+				"max area, min height", "removes small holes by expanding the layer "
+				"in those regions to the specified height")
 			.add_method("snap_cells_to_higher_layers", &RasterLayers::snap_cells_to_higher_layers, "",
 				"min height", "sets invalid or flat cells to the value of the corresponding "
 				"cell in the level above.")

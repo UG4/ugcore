@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <deque>
+#include <queue>
 
 namespace ug{
 
@@ -58,9 +59,6 @@ bool EliminateInvalidCells(Field<T>& field, const T& noDataValue)
 	deque<Cell>	cells;
 	number inProgressValue = -noDataValue;
 
-	// const int numNbrs = 4;
-	// const int xadd[numNbrs] = {0, -1, 0, 1};
-	// const int yadd[numNbrs] = {-1, 0, 1, 0};
 	const int numNbrs = 8;
 	const int xadd[numNbrs] = {-1, 0, 1, -1, 1, -1, 0, 1};
 	const int yadd[numNbrs] = {-1, -1, -1, 0, 0, 1, 1, 1};
@@ -188,6 +186,68 @@ bool EliminateInvalidCells(Field<T>& field, const T& noDataValue)
 	}
 
 	return numInvalidCells == 0;
+}
+
+
+template <class T>
+void InvalidateSmallLenses(Field<T>& field, size_t thresholdCellCount,
+						   const T& noDataValue)
+{
+	using namespace std;
+
+	// const int numNbrs = 8;
+	// const int xadd[numNbrs] = {-1, 0, 1, -1, 1, -1, 0, 1};
+	// const int yadd[numNbrs] = {-1, -1, -1, 0, 0, 1, 1, 1};
+	const int numNbrs = 4;
+	const int xadd[numNbrs] = {0, -1, 1, 0};
+	const int yadd[numNbrs] = {-1, 0, 0, 1};
+
+//	this field stores whether we already visited the given cell
+	Field<bool>	visited(field.width(), field.height(), false);
+	vector<pair<int, int> > cells;
+
+	const int fwidth = (int)field.width();
+	const int fheight = (int)field.height();
+
+	for(int outerIy = 0; outerIy < fheight; ++outerIy){
+		for(int outerIx = 0; outerIx < fwidth; ++outerIx){
+			if(visited.at(outerIx, outerIy)
+			   || (field.at(outerIx, outerIy) == noDataValue))
+			{
+				continue;
+			}
+
+			cells.clear();
+			cells.push_back(make_pair(outerIx, outerIy));
+			size_t curCell = 0;
+			while(curCell < cells.size()){
+				int ix = cells[curCell].first;
+				int iy = cells[curCell].second;
+
+				for(size_t inbr = 0; inbr < numNbrs; ++inbr){
+					int nx = ix + xadd[inbr];
+					int ny = iy + yadd[inbr];
+					if((nx >= 0 && nx < fwidth && ny >= 0 && ny < fheight)
+					   &! visited.at(nx, ny))
+					{
+						visited.at(nx, ny) = true;
+						if(field.at(nx, ny) != noDataValue){
+							cells.push_back(make_pair(nx, ny));
+						}
+					}
+				}
+				++curCell;
+			}
+
+			if(cells.size() < thresholdCellCount){
+				for(size_t i = 0; i < cells.size(); ++i){
+					int ix = cells[i].first;
+					int iy = cells[i].second;
+					field.at(ix, iy) = noDataValue;
+				}
+			}
+		}
+	}
 }
 
 }//	end of namespace

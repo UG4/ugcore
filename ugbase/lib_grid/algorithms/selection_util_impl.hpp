@@ -515,6 +515,8 @@ void SelectShortPolychains(ISelector& sel, number maxLength, bool closedChainsOn
 	std::queue<Edge*> nextEdges;
 	Grid::edge_traits::secure_container edges;
 
+	std::vector<Vertex*> junctionPoints;
+
 	grid.begin_marking();
 
 	for(EdgeIterator eiter = grid.begin<Edge>(); eiter != grid.end<Edge>(); ++eiter){
@@ -525,6 +527,7 @@ void SelectShortPolychains(ISelector& sel, number maxLength, bool closedChainsOn
 		number curChainLength = 0;
 
 		curChain.clear();
+		junctionPoints.clear();
 		
 		nextEdges.push(*eiter);
 		grid.mark(*eiter);
@@ -540,23 +543,46 @@ void SelectShortPolychains(ISelector& sel, number maxLength, bool closedChainsOn
 			for(size_t ivrt = 0; ivrt < 2; ++ivrt){
 				Vertex* vrt = e->vertex(ivrt);
 				grid.associated_elements(edges, vrt);
-				if(edges.size() != 2){
+				if(edges.size() < 2)
 					curChainIsClosed = false;
-					continue;	//end of chain reached
-				}
-
-				for(size_t iedge = 0; iedge < 2; ++iedge){
-					Edge* nextEdge = edges[iedge];
-					if(!grid.is_marked(nextEdge)){
-						grid.mark(nextEdge);
-						nextEdges.push(nextEdge);
+				else if(edges.size() == 2){
+					for(size_t iedge = 0; iedge < 2; ++iedge){
+						Edge* nextEdge = edges[iedge];
+						if(!grid.is_marked(nextEdge)){
+							grid.mark(nextEdge);
+							nextEdges.push(nextEdge);
+						}
 					}
+				}
+				else{
+					junctionPoints.push_back(vrt);
 				}
 			}
 		}
 
-		if((curChainLength <= maxLength) && (curChainIsClosed || !closedChainsOnly)){
-			sel.select(curChain.begin(), curChain.end());
+		if((curChainLength <= maxLength)){
+			if(closedChainsOnly && curChainIsClosed &! junctionPoints.empty()){
+			//	count the number of associated edges of each junction-point
+			//	in curChain. If one is associated with != 2 vertices the chain
+			//	is considered as not closed 
+				for(size_t ivrt = 0; ivrt < junctionPoints.size(); ++ivrt){
+					Vertex* vrt = junctionPoints[ivrt];
+					size_t numConnectedEdges = 0;
+					for(size_t iedge = 0; iedge < curChain.size(); ++iedge){
+						if(EdgeContains(curChain[iedge], vrt))
+							++numConnectedEdges;
+					}
+
+					if(numConnectedEdges != 2){
+						curChainIsClosed = false;
+						break;
+					}
+				}
+
+		 	}
+
+		 	if(curChainIsClosed || !closedChainsOnly)
+				sel.select(curChain.begin(), curChain.end());
 		}
 	}
 

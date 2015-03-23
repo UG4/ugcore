@@ -107,6 +107,17 @@ void BlurField(Field<T>& field, number alpha, size_t numIterations, const T& noD
 template <class T>
 bool EliminateInvalidCells(Field<T>& field, const T& noDataValue);
 
+
+////////////////////////////////////////////////////////////////////////////////
+///	invalidates cells that belong to a small lense
+/**	Given a valid cell, the assoicated lense is the set of valid cells that can
+ * be reached from that cell by only traversing valid neighbors.
+ * Whether a lense is small or not is determined by the number of cells that belong
+ * to a lense.*/
+template <class T>
+void InvalidateSmallLenses(Field<T>& field, size_t thresholdCellCount,
+						   const T& noDataValue);
+
 }//	end of namespace
 
 ////////////////////////////////////////
