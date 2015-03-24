@@ -60,14 +60,23 @@ template <typename TRefElem, int TWorldDim> struct fv1_traits
 //	maximum of corners of scv
 	const static size_t NumCornersOfSCV;
 
+//	maximum of corners of bf
+	const static size_t NumCornersOfBF;
+
 //	computes the normal to a scvf
 	static void NormalOnSCVF(MathVector<TWorldDim>& outNormal,
 	                         const MathVector<TWorldDim>* vSCVFCorner,
 	                         const MathVector<TWorldDim>* vElemCorner);
 
-//	types of scv and scvf
+//	computes the normal to a bf
+	static void NormalOnBF(MathVector<TWorldDim>& outNormal,
+							 const MathVector<TWorldDim>* vSCVFCorner,
+							 const MathVector<TWorldDim>* vElemCorner);
+
+//	types of scv and scvf and bf
 	typedef void scv_type;
 	typedef void scvf_type;
+	typedef void bf_type;
 };
 
 /////////////////////////
@@ -82,9 +91,11 @@ struct fv1_traits_ReferenceEdge
 
 	const static size_t NumCornersOfSCVF = 1;
 	const static size_t NumCornersOfSCV = 2;
+	const static size_t NumCornersOfBF = 1;
 
 	typedef ReferenceEdge scv_type;
 	typedef ReferenceVertex scvf_type;
+	typedef ReferenceVertex bf_type;
 };
 
 template <> struct fv1_traits<ReferenceEdge, 1> : public fv1_traits_ReferenceEdge
@@ -95,6 +106,12 @@ template <> struct fv1_traits<ReferenceEdge, 1> : public fv1_traits_ReferenceEdg
 	{
 		ElementNormal<ReferenceVertex, 1>(outNormal, vSCVFCorner);
 		VecNormalize(outNormal, outNormal);
+	}
+	static void NormalOnBF(MathVector<1>& outNormal,
+	                       const MathVector<1>* vSCVFCorner,
+	                       const MathVector<1>* vElemCorner)
+	{
+		NormalOnSCVF(outNormal, vSCVFCorner, vElemCorner);
 	}
 };
 
@@ -107,6 +124,12 @@ template <> struct fv1_traits<ReferenceEdge, 2> : public fv1_traits_ReferenceEdg
 			VecSubtract(outNormal, vElemCorner[1], vElemCorner[0]);
 			VecNormalize(outNormal, outNormal);
 		}
+		static void NormalOnBF(MathVector<2>& outNormal,
+		                       const MathVector<2>* vSCVFCorner,
+		                       const MathVector<2>* vElemCorner)
+		{
+			NormalOnSCVF(outNormal, vSCVFCorner, vElemCorner);
+		}
 };
 
 template <> struct fv1_traits<ReferenceEdge, 3> : public fv1_traits_ReferenceEdge
@@ -117,6 +140,12 @@ template <> struct fv1_traits<ReferenceEdge, 3> : public fv1_traits_ReferenceEdg
 		{
 			VecSubtract(outNormal, vElemCorner[1], vElemCorner[0]);
 			VecNormalize(outNormal, outNormal);
+		}
+		static void NormalOnBF(MathVector<3>& outNormal,
+		                       const MathVector<3>* vSCVFCorner,
+		                       const MathVector<3>* vElemCorner)
+		{
+			NormalOnSCVF(outNormal, vSCVFCorner, vElemCorner);
 		}
 };
 
@@ -132,8 +161,11 @@ struct fv1_traits_ReferenceFace
 
 	const static size_t NumCornersOfSCVF = 2;
 	const static size_t NumCornersOfSCV = 4;
+	const static size_t NumCornersOfBF = 2;
+
 	typedef ReferenceQuadrilateral scv_type;
 	typedef ReferenceEdge scvf_type;
+	typedef ReferenceEdge bf_type;
 };
 
 struct fv1_traits_ReferenceFace2d : public fv1_traits_ReferenceFace
@@ -142,6 +174,12 @@ struct fv1_traits_ReferenceFace2d : public fv1_traits_ReferenceFace
 							 const MathVector<2>* vSCVFCorner,
 							 const MathVector<2>* vElemCorner)
 		{ElementNormal<ReferenceEdge, 2>(outNormal, vSCVFCorner);}
+	static void NormalOnBF(MathVector<2>& outNormal,
+	                       const MathVector<2>* vSCVFCorner,
+	                       const MathVector<2>* vElemCorner)
+	{
+		NormalOnSCVF(outNormal, vSCVFCorner, vElemCorner);
+	}
 };
 
 struct fv1_traits_ReferenceFace3d : public fv1_traits_ReferenceFace
@@ -182,6 +220,12 @@ struct fv1_traits_ReferenceFace3d : public fv1_traits_ReferenceFace
 		{
 			UG_THROW("not implemented.")
 		}
+	static void NormalOnBF(MathVector<3>& outNormal,
+	                       const MathVector<3>* vSCVFCorner,
+	                       const MathVector<3>* vElemCorner)
+		{
+			UG_THROW("not implemented.")
+		}
 };
 
 template <> struct fv1_traits<ReferenceTriangle, 2> : public fv1_traits_ReferenceFace2d{};
@@ -191,6 +235,12 @@ template <> struct fv1_traits<ReferenceTriangle, 3> : public fv1_traits_Referenc
 							 const MathVector<3>* vSCVFCorner,
 							 const MathVector<3>* vElemCorner)
 		{fv1_traits_ReferenceFace3d::NormalOnSCVF_Face<ReferenceTriangle>(outNormal, vSCVFCorner, vElemCorner);}
+	static void NormalOnBF(MathVector<3>& outNormal,
+	                       const MathVector<3>* vSCVFCorner,
+	                       const MathVector<3>* vElemCorner)
+	{
+		NormalOnSCVF(outNormal, vSCVFCorner, vElemCorner);
+	}
 };
 
 template <> struct fv1_traits<ReferenceQuadrilateral, 2> : public fv1_traits_ReferenceFace2d{};
@@ -200,6 +250,12 @@ template <> struct fv1_traits<ReferenceQuadrilateral, 3> : public fv1_traits_Ref
 							 const MathVector<3>* vSCVFCorner,
 							 const MathVector<3>* vElemCorner)
 		{fv1_traits_ReferenceFace3d::NormalOnSCVF_Face<ReferenceQuadrilateral>(outNormal, vSCVFCorner, vElemCorner);}
+	static void NormalOnBF(MathVector<3>& outNormal,
+	                       const MathVector<3>* vSCVFCorner,
+	                       const MathVector<3>* vElemCorner)
+	{
+		NormalOnSCVF(outNormal, vSCVFCorner, vElemCorner);
+	}
 };
 
 /////////////////////////
@@ -208,26 +264,57 @@ template <> struct fv1_traits<ReferenceQuadrilateral, 3> : public fv1_traits_Ref
 
 struct fv1_traits_ReferenceVolume
 {
-	static const size_t maxNumSCVF = 12;
-	static const size_t maxNumSCV = 8;
-	static const size_t maxNSH = maxNumSCV;
+	static const size_t maxNumSCVF = 16;
+	static const size_t maxNumSCV = 32;
+	static const size_t maxNSH = 8;
 
 	const static size_t NumCornersOfSCVF = 4;
 	const static size_t NumCornersOfSCV = 8;
+	const static size_t NumCornersOfBF = 4;
 
 	typedef ReferenceHexahedron scv_type;
 	typedef ReferenceQuadrilateral scvf_type;
+	typedef ReferenceQuadrilateral bf_type;
 
 	static void NormalOnSCVF(MathVector<3>& outNormal,
 	                         const MathVector<3>* vSCVFCorner,
 	                         const MathVector<3>* vElemCorner)
 		{ElementNormal<ReferenceQuadrilateral, 3>(outNormal, vSCVFCorner);}
+	static void NormalOnBF(MathVector<3>& outNormal,
+	                       const MathVector<3>* vSCVFCorner,
+	                       const MathVector<3>* vElemCorner)
+	{
+		NormalOnSCVF(outNormal, vSCVFCorner, vElemCorner);
+	}
 };
 
 template <> struct fv1_traits<ReferenceTetrahedron, 3> : public fv1_traits_ReferenceVolume{};
 template <> struct fv1_traits<ReferencePrism, 3> : public fv1_traits_ReferenceVolume{};
-template <> struct fv1_traits<ReferencePyramid, 3> : public fv1_traits_ReferenceVolume{};
 template <> struct fv1_traits<ReferenceHexahedron, 3> : public fv1_traits_ReferenceVolume{};
+
+// For Pyramids we use triangular scvf, since the quadrilateral scvf would not be
+// flat in general by the positions where its corners are placed
+template <> struct fv1_traits<ReferencePyramid, 3> : public fv1_traits_ReferenceVolume
+{
+	const static size_t NumCornersOfSCVF = 3; // triangles
+	const static size_t NumCornersOfSCV = 4;  // tetrahedrons
+	const static size_t NumCornersOfBF = 4;   // quadrilaterals
+
+	typedef ReferenceTetrahedron scv_type;
+	typedef ReferenceTriangle scvf_type;
+	typedef ReferenceQuadrilateral bf_type;
+
+	static void NormalOnSCVF(MathVector<3>& outNormal,
+							 const MathVector<3>* vSCVFCorner,
+							 const MathVector<3>* vElemCorner)
+		{ElementNormal<ReferenceTriangle, 3>(outNormal, vSCVFCorner);}
+	static void NormalOnBF(MathVector<3>& outNormal,
+	                       const MathVector<3>* vSCVFCorner,
+	                       const MathVector<3>* vElemCorner)
+	{
+		ElementNormal<ReferenceQuadrilateral, 3>(outNormal, vSCVFCorner);
+	}
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Dimension dependent traits DIM FV1

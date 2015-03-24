@@ -71,14 +71,14 @@ class FV1Geometry : public FVGeometryBase
 
 	///	number of SubControlVolumes
 		static const size_t numSCV = (ref_elem_type::REFERENCE_OBJECT_ID != ROID_PYRAMID)
-									? ref_elem_type::numCorners : 8;
+									? ref_elem_type::numCorners : (4*ref_elem_type::numEdges);
 
 	///	type of SubControlVolume
 		typedef typename traits::scv_type scv_type;
 
 	///	number of SubControlVolumeFaces
 		static const size_t numSCVF = (ref_elem_type::REFERENCE_OBJECT_ID != ROID_PYRAMID)
-									? ref_elem_type::numEdges : 12;
+									? ref_elem_type::numEdges : (2*ref_elem_type::numEdges);
 
 	///	type of Shape function used
 		typedef LagrangeP1<ref_elem_type> local_shape_fct_set_type;
@@ -299,7 +299,7 @@ class FV1Geometry : public FVGeometryBase
 		{
 			public:
 			/// Number of corners of bf
-				static const size_t numCo =	traits::NumCornersOfSCVF;
+				static const size_t numCo =	traits::NumCornersOfBF;
 
 			public:
 				BF() {}
