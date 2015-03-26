@@ -57,21 +57,6 @@ static void ComputeMidPoints(const TRefElem& rRefElem,
 	// 	diagonal 3->1, diagonal 1->3
 		VecScaleAdd(vvMid[1][rRefElem.num(1)], 0.5, vCorner[3], 0.5, vCorner[1]);
 		VecScaleAdd(vvMid[1][rRefElem.num(1)+1], 0.5, vCorner[1], 0.5, vCorner[3]);
-//		vvMid[1][rRefElem.num(1)] = vCorner[0];
-//		vvMid[1][rRefElem.num(1)] += vCorner[1];
-//		vvMid[1][rRefElem.num(1)] += vCorner[2];
-//		vvMid[1][rRefElem.num(1)] += vCorner[3];
-//		vvMid[1][rRefElem.num(1)] += vCorner[4];
-//		vvMid[1][rRefElem.num(1)] += vCorner[5];
-//		vvMid[1][rRefElem.num(1)] *= 1.0/6.0;
-//
-//		vvMid[1][rRefElem.num(1)+1] = vCorner[0];
-//		vvMid[1][rRefElem.num(1)+1] += vCorner[1];
-//		vvMid[1][rRefElem.num(1)+1] += vCorner[2];
-//		vvMid[1][rRefElem.num(1)+1] += vCorner[3];
-//		vvMid[1][rRefElem.num(1)+1] += vCorner[4];
-//		vvMid[1][rRefElem.num(1)+1] += vCorner[5];
-//		vvMid[1][rRefElem.num(1)+1] *= 1.0/6.0;
 
 	// 	subface 1,2,3; subface 1,3,2; subface 1,3,4; subface 1,4,3; face 1,3,5; face 1,5,3; face 1,0,3; face 1,3,0
 		vvMid[2][rRefElem.num(2)] = vCorner[1];
@@ -1206,107 +1191,107 @@ update_local(ReferenceObjectID roid)
 				m_vSCVF[i].From = rRefElem.id(1, i/2, 0, 0);
 				m_vSCVF[i].To = rRefElem.id(1, i/2, 0, 1);
 			}
-			// special case octahedron (scvf not mappable by edges)
-			else
+			//	special case octahedron (scvf not mappable by edges)
+			else if(m_roid == ROID_OCTAHEDRON)
 			{
 			// 	map according to order defined in ComputeSCVFMidID
-			switch(i)
-			{
-				case 0:	m_vSCVF[i].From = 1;
-						m_vSCVF[i].To	= 2;
-						break;
-				case 1:	m_vSCVF[i].From = 2;
-						m_vSCVF[i].To	= 1;
-						break;
+				switch(i)
+				{
+					case 0:	m_vSCVF[i].From = 1;
+							m_vSCVF[i].To	= 2;
+							break;
+					case 1:	m_vSCVF[i].From = 2;
+							m_vSCVF[i].To	= 1;
+							break;
 
 
-				case 2:	m_vSCVF[i].From = 2;
-						m_vSCVF[i].To	= 3;
-						break;
-				case 3:	m_vSCVF[i].From = 3;
-						m_vSCVF[i].To	= 2;
-						break;
+					case 2:	m_vSCVF[i].From = 2;
+							m_vSCVF[i].To	= 3;
+							break;
+					case 3:	m_vSCVF[i].From = 3;
+							m_vSCVF[i].To	= 2;
+							break;
 
 
-				case 4:	m_vSCVF[i].From = 3;
-						m_vSCVF[i].To	= 1;
-						break;
-				case 5:	m_vSCVF[i].From = 1;
-						m_vSCVF[i].To	= 3;
-						break;
+					case 4:	m_vSCVF[i].From = 3;
+							m_vSCVF[i].To	= 1;
+							break;
+					case 5:	m_vSCVF[i].From = 1;
+							m_vSCVF[i].To	= 3;
+							break;
 
 
-				case 6:	m_vSCVF[i].From = 1;
-						m_vSCVF[i].To	= 5;
-						break;
-				case 7:	m_vSCVF[i].From = 1;
-						m_vSCVF[i].To	= 0;
-						break;
+					case 6:	m_vSCVF[i].From = 1;
+							m_vSCVF[i].To	= 5;
+							break;
+					case 7:	m_vSCVF[i].From = 1;
+							m_vSCVF[i].To	= 0;
+							break;
 
 
-				case 8:	m_vSCVF[i].From = 2;
-						m_vSCVF[i].To	= 5;
-						break;
-				case 9:	m_vSCVF[i].From = 2;
-						m_vSCVF[i].To	= 0;
-						break;
+					case 8:	m_vSCVF[i].From = 2;
+							m_vSCVF[i].To	= 5;
+							break;
+					case 9:	m_vSCVF[i].From = 2;
+							m_vSCVF[i].To	= 0;
+							break;
 
 
-				case 10:m_vSCVF[i].From = 3;
-						m_vSCVF[i].To	= 5;
-						break;
-				case 11:m_vSCVF[i].From = 3;
-						m_vSCVF[i].To	= 0;
-						break;
+					case 10:m_vSCVF[i].From = 3;
+							m_vSCVF[i].To	= 5;
+							break;
+					case 11:m_vSCVF[i].From = 3;
+							m_vSCVF[i].To	= 0;
+							break;
 
 
-				case 12:m_vSCVF[i].From = 1;
-						m_vSCVF[i].To	= 3;
-						break;
-				case 13:m_vSCVF[i].From = 3;
-						m_vSCVF[i].To	= 1;
-						break;
+					case 12:m_vSCVF[i].From = 1;
+							m_vSCVF[i].To	= 3;
+							break;
+					case 13:m_vSCVF[i].From = 3;
+							m_vSCVF[i].To	= 1;
+							break;
 
 
-				case 14:m_vSCVF[i].From = 3;
-						m_vSCVF[i].To	= 4;
-						break;
-				case 15:m_vSCVF[i].From = 4;
-						m_vSCVF[i].To	= 3;
-						break;
+					case 14:m_vSCVF[i].From = 3;
+							m_vSCVF[i].To	= 4;
+							break;
+					case 15:m_vSCVF[i].From = 4;
+							m_vSCVF[i].To	= 3;
+							break;
 
 
-				case 16:m_vSCVF[i].From = 4;
-						m_vSCVF[i].To	= 1;
-						break;
-				case 17:m_vSCVF[i].From = 1;
-						m_vSCVF[i].To	= 4;
-						break;
+					case 16:m_vSCVF[i].From = 4;
+							m_vSCVF[i].To	= 1;
+							break;
+					case 17:m_vSCVF[i].From = 1;
+							m_vSCVF[i].To	= 4;
+							break;
 
 
-				case 18:m_vSCVF[i].From = 1;
-						m_vSCVF[i].To	= 5;
-						break;
-				case 19:m_vSCVF[i].From = 1;
-						m_vSCVF[i].To	= 0;
-						break;
+					case 18:m_vSCVF[i].From = 1;
+							m_vSCVF[i].To	= 5;
+							break;
+					case 19:m_vSCVF[i].From = 1;
+							m_vSCVF[i].To	= 0;
+							break;
 
 
-				case 20:m_vSCVF[i].From = 3;
-						m_vSCVF[i].To	= 5;
-						break;
-				case 21:m_vSCVF[i].From = 3;
-						m_vSCVF[i].To	= 0;
-						break;
+					case 20:m_vSCVF[i].From = 3;
+							m_vSCVF[i].To	= 5;
+							break;
+					case 21:m_vSCVF[i].From = 3;
+							m_vSCVF[i].To	= 0;
+							break;
 
 
-				case 22:m_vSCVF[i].From = 4;
-						m_vSCVF[i].To	= 5;
-						break;
-				case 23:m_vSCVF[i].From = 4;
-						m_vSCVF[i].To	= 0;
-						break;
-			}
+					case 22:m_vSCVF[i].From = 4;
+							m_vSCVF[i].To	= 5;
+							break;
+					case 23:m_vSCVF[i].From = 4;
+							m_vSCVF[i].To	= 0;
+							break;
+				}
 			}
 	
 	
@@ -1336,7 +1321,7 @@ update_local(ReferenceObjectID roid)
 				m_vSCV[i].nodeId = i<3 ? i : (i<5 ? (i+1)%5 : i-3);
 			}
 			// special case octahedron (scvf not mappable by edges)
-			else
+			else if(m_roid == ROID_OCTAHEDRON)
 			{
 			// 	map according to order defined in ComputeSCVMidID
 				switch(i)
