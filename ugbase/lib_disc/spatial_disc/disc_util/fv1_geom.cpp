@@ -902,7 +902,7 @@ update_local_data()
 	for(size_t i = 0; i < num_scvf(); ++i)
 		m_vLocSCVF_IP[i] = scvf(i).local_ip();
 
-	if(ref_elem_type::REFERENCE_OBJECT_ID == ROID_PYRAMID)
+	if(ref_elem_type::REFERENCE_OBJECT_ID == ROID_PYRAMID || ref_elem_type::REFERENCE_OBJECT_ID == ROID_OCTAHEDRON)
 		for(size_t i = 0; i < num_scv(); ++i)
 			m_vLocSCV_IP[i] = scv(i).local_ip();
 }
@@ -1028,7 +1028,7 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 	for(size_t i = 0; i < num_scvf(); ++i)
 		m_vGlobSCVF_IP[i] = scvf(i).global_ip();
 
-	if(ref_elem_type::REFERENCE_OBJECT_ID == ROID_PYRAMID)
+	if(ref_elem_type::REFERENCE_OBJECT_ID == ROID_PYRAMID || ref_elem_type::REFERENCE_OBJECT_ID == ROID_OCTAHEDRON)
 		for(size_t i = 0; i < num_scv(); ++i)
 			m_vGlobSCV_IP[i] = scv(i).global_ip();
 

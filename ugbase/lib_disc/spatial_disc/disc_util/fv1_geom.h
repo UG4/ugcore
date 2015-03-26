@@ -445,7 +445,7 @@ class FV1Geometry : public FVGeometryBase
 
 	/// returns all ips of scv as they appear in scv loop
 		const MathVector<dim>* scv_local_ips() const {
-			if(ref_elem_type::REFERENCE_OBJECT_ID == ROID_PYRAMID)
+			if(ref_elem_type::REFERENCE_OBJECT_ID == ROID_PYRAMID || ref_elem_type::REFERENCE_OBJECT_ID == ROID_OCTAHEDRON)
 				return &(m_vLocSCV_IP[0]);
 			else
 				return &(m_vvLocMid[0][0]);
@@ -453,7 +453,7 @@ class FV1Geometry : public FVGeometryBase
 
 	/// returns all ips of scv as they appear in scv loop
 		const MathVector<worldDim>* scv_global_ips() const {
-			if(ref_elem_type::REFERENCE_OBJECT_ID == ROID_PYRAMID)
+			if(ref_elem_type::REFERENCE_OBJECT_ID == ROID_PYRAMID || ref_elem_type::REFERENCE_OBJECT_ID == ROID_OCTAHEDRON)
 				return &(m_vGlobSCV_IP[0]);
 			else
 				return &(m_vvGloMid[0][0]);
