@@ -247,6 +247,7 @@ void InterpolateOnElements(SmartPtr<UserData<number, TGridFunction::dim> > spInt
 			InterpolateOnElements<Hexahedron, TGridFunction>(spInterpolFunction, spGridFct, fct, si, time);
 			InterpolateOnElements<Prism, TGridFunction>(spInterpolFunction, spGridFct, fct, si, time);
 			InterpolateOnElements<Pyramid, TGridFunction>(spInterpolFunction, spGridFct, fct, si, time);
+			InterpolateOnElements<Octahedron, TGridFunction>(spInterpolFunction, spGridFct, fct, si, time);
 			break;
 		default: UG_THROW("InterpolateOnElements: Dimension " <<dim<<
 		                " not possible for world dim "<<3<<".");

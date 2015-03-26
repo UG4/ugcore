@@ -76,7 +76,8 @@ class ConvectionShapesNoUpwind
 			register_func_for_elem<Tetrahedron>();
 			register_func_for_elem<Pyramid>();
 			register_func_for_elem<Prism>();
-			register_func_for_elem<Hexahedron>();}
+			register_func_for_elem<Hexahedron>();
+			register_func_for_elem<Octahedron>();}
 
 		template <typename TElem>
 		void register_func_for_elem()
@@ -230,7 +231,8 @@ class ConvectionShapesFullUpwind
 			register_func_for_elem<Tetrahedron>();
 			register_func_for_elem<Pyramid>();
 			register_func_for_elem<Prism>();
-			register_func_for_elem<Hexahedron>();}
+			register_func_for_elem<Hexahedron>();
+			register_func_for_elem<Octahedron>();}
 
 		template <typename TElem>
 		void register_func_for_elem()
@@ -417,7 +419,8 @@ class ConvectionShapesWeightedUpwind
 			register_func_for_elem<Tetrahedron>();
 			register_func_for_elem<Pyramid>();
 			register_func_for_elem<Prism>();
-			register_func_for_elem<Hexahedron>();}
+			register_func_for_elem<Hexahedron>();
+			register_func_for_elem<Octahedron>();}
 
 		template <typename TElem>
 		void register_func_for_elem()
@@ -589,7 +592,8 @@ class ConvectionShapesPartialUpwind
 			register_func<Tetrahedron>();
 			register_func<Pyramid>();
 			register_func<Prism>();
-			register_func<Hexahedron>();}
+			register_func<Hexahedron>();
+			register_func<Octahedron>();}
 
 		template <typename TElem>
 		void register_func()

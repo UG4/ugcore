@@ -348,6 +348,7 @@ void NeumannBoundaryFE<Domain3d>::register_all_funcs(int order)
 	register_func<Prism, DimFEGeometry<dim, 3> >();
 	register_func<Pyramid, DimFEGeometry<dim, 3> >();
 	register_func<Hexahedron, DimFEGeometry<dim, 3> >();
+	register_func<Octahedron, DimFEGeometry<dim, 3> >();
 }
 #endif
 

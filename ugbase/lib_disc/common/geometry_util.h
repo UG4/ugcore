@@ -302,6 +302,43 @@ inline number ElementSize<ReferenceHexahedron, 3>(const MathVector<3>* vCornerCo
 }
 
 ///////////////////////////////////////////////////////////////
+/// Volume of an Octahedron in 3d
+/**
+ * This function returns the volume of an octhedron in 3d
+ * by calculating the volumes of the upper and lower pyramid
+ * the octahedron consists of.
+ * The pyramidal volumes are computed via: V = 1/3 * (S * h) with
+ * - S is the area of the base
+ * - h is the height
+ *
+ * The corner coordinates must be given as prescribed by the reference element
+ *
+ * \param[in]	vCornerCoords	Vector of corner coordinates (6 corners)
+ * \return 		number			Volume of Octahedron
+ */
+template <>
+inline number ElementSize<ReferenceOctahedron, 3>(const MathVector<3>* vCornerCoords)
+{
+	MathVector<3> x31, x42, x51, n;
+	MathVector<3> 			x01;
+
+	VecSubtract(x31, vCornerCoords[3], vCornerCoords[1]);
+	VecSubtract(x42, vCornerCoords[4], vCornerCoords[2]);
+	VecSubtract(x51, vCornerCoords[5], vCornerCoords[1]);
+	VecCross(n, x31, x42);
+
+	//VecSubtract(x31, vCornerCoords[3], vCornerCoords[1]);
+	//VecSubtract(x42, vCornerCoords[4], vCornerCoords[2]);
+	VecSubtract(x01, vCornerCoords[0], vCornerCoords[1]);
+	//VecCross(n, x31, x42);
+
+	number volTopPyr 	= (1./6.) * fabs(VecDot(n, x51));
+	number volBottomPyr = (1./6.) * fabs(VecDot(n, x01));
+
+	return volTopPyr + volBottomPyr;
+}
+
+///////////////////////////////////////////////////////////////
 //	run-time size of element
 ///////////////////////////////////////////////////////////////
 
@@ -345,6 +382,7 @@ inline number ElementSize<3>(ReferenceObjectID roid, const MathVector<3>* vCorne
 		case ROID_PYRAMID: return ElementSize<ReferencePyramid, 3>(vCornerCoords);
 		case ROID_PRISM: return ElementSize<ReferencePrism, 3>(vCornerCoords);
 		case ROID_HEXAHEDRON: return ElementSize<ReferenceHexahedron, 3>(vCornerCoords);
+		case ROID_OCTAHEDRON: return ElementSize<ReferenceOctahedron, 3>(vCornerCoords);
 		default: UG_THROW("ReferenceObject "<<roid<<" not found in dim 3.");
 	}
 }
@@ -644,6 +682,7 @@ inline void SideNormal<3>(ReferenceObjectID roid, MathVector<3>& normalOut, int 
 		case ROID_PYRAMID: SideNormal<ReferencePyramid,3>(normalOut, side, vCornerCoords); return;
 		case ROID_PRISM: SideNormal<ReferencePrism,3>(normalOut, side, vCornerCoords); return;
 		case ROID_HEXAHEDRON: SideNormal<ReferenceHexahedron,3>(normalOut, side, vCornerCoords); return;
+		case ROID_OCTAHEDRON: SideNormal<ReferenceOctahedron,3>(normalOut, side, vCornerCoords); return;
 		default: UG_THROW("ReferenceObject "<<roid<<" not found in dim 3.");
 	}
 }

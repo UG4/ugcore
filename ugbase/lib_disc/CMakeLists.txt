@@ -52,7 +52,8 @@ set(srcDiscretization	domain.cpp
 						quadrature/gauss/gauss_quad_tetrahedron.cpp
 						quadrature/gauss/gauss_quad_prism.cpp
 						quadrature/gauss/gauss_quad_pyramid.cpp
-						quadrature/gauss/gauss_quad_hexahedron.cpp						
+						quadrature/gauss/gauss_quad_hexahedron.cpp
+						quadrature/gauss/gauss_quad_octahedron.cpp
 
 						local_finite_element/lagrange/lagrange_local_dof.cpp
 						local_finite_element/lagrange/lagrangep1.cpp

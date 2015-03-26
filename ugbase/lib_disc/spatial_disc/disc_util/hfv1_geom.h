@@ -474,6 +474,7 @@ class DimHFV1Geometry : public FVGeometryBase{
 		typedef typename traits::elem_type_1 elem_type_1;
 		typedef typename traits::elem_type_2 elem_type_2;
 		typedef typename traits::elem_type_3 elem_type_3;
+		typedef typename traits::elem_type_4 elem_type_4;
 
 	protected:
 		struct MidID

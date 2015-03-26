@@ -380,6 +380,8 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut,
 						}
 					}
 
+					bestDiag = 1;
+
 					switch(bestDiag){
 					case 0:// diag: 0-5
 						inds[fi++] = GOID_TETRAHEDRON;
@@ -465,9 +467,14 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut,
 
 				//	inner octahedron
 					inds[fi++] = GOID_OCTAHEDRON;
+					/*
 					inds[fi++] = NUM_VERTICES + 1;		inds[fi++] = NUM_VERTICES + 0;
 					inds[fi++] = NUM_VERTICES + 4;		inds[fi++] = NUM_VERTICES + 5;
 					inds[fi++] = NUM_VERTICES + 2;		inds[fi++] = NUM_VERTICES + 3;
+					*/
+					inds[fi++] = NUM_VERTICES + 0;		inds[fi++] = NUM_VERTICES + 3;
+					inds[fi++] = NUM_VERTICES + 4;		inds[fi++] = NUM_VERTICES + 1;
+					inds[fi++] = NUM_VERTICES + 2;		inds[fi++] = NUM_VERTICES + 5;
 
 				}break;
 			}

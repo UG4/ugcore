@@ -577,9 +577,25 @@ update_local_data()
 	// get new reference mapping
 	m_rMapping = &ReferenceMappingProvider::get<dim, worldDim>(m_roid);
 
-	m_numNaturalSCV = (m_roid != ROID_PYRAMID) ? m_rRefElem.num(0) : 8; // number of corners
-	m_numNaturalSCVF = (m_roid != ROID_PYRAMID) ? m_rRefElem.num(1) : 12; // number of edges
-	
+	//m_numNaturalSCV = (m_roid != ROID_PYRAMID) ? m_rRefElem.num(0) : 8; // number of corners
+	//m_numNaturalSCVF = (m_roid != ROID_PYRAMID) ? m_rRefElem.num(1) : 12; // number of edges
+	if(m_roid != ROID_PYRAMID && m_roid != ROID_OCTAHEDRON)
+	{
+		m_numNaturalSCV  = m_rRefElem.num(0);
+		m_numNaturalSCVF = m_rRefElem.num(1);
+	}
+	else if(m_roid == ROID_PYRAMID)
+	{
+		m_numNaturalSCV  = (4*m_rRefElem.num(1));
+		m_numNaturalSCVF = (2*m_rRefElem.num(1));
+	}
+	else
+	{
+	// 	Case octahedron
+		m_numNaturalSCV  = 16;
+		m_numNaturalSCVF = 24;
+	}
+
 	// local corners
 	m_vSCV.resize(m_numNaturalSCV);
 	m_locMid[0].resize(m_numNaturalSCV);
@@ -933,6 +949,7 @@ update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubs
 			case ROID_PYRAMID: HangingNormalOnSCVF<elem_type_1, worldDim>(m_vSCVF[i].Normal, &(m_vSCVF[i].m_vGloPos[0])); break;
 			case ROID_PRISM: HangingNormalOnSCVF<elem_type_2, worldDim>(m_vSCVF[i].Normal, &(m_vSCVF[i].m_vGloPos[0])); break;
 			case ROID_HEXAHEDRON: HangingNormalOnSCVF<elem_type_3, worldDim>(m_vSCVF[i].Normal, &(m_vSCVF[i].m_vGloPos[0])); break;
+			case ROID_OCTAHEDRON: HangingNormalOnSCVF<elem_type_4, worldDim>(m_vSCVF[i].Normal, &(m_vSCVF[i].m_vGloPos[0])); break;
 			default: UG_THROW("unsupported element type"); break;
 		}
 
@@ -1713,6 +1730,7 @@ template class HFV1Geometry<Tetrahedron, 3>;
 template class HFV1Geometry<Prism, 3>;
 template class HFV1Geometry<Pyramid, 3>;
 template class HFV1Geometry<Hexahedron, 3>;
+template class HFV1Geometry<Octahedron, 3>;
 
 //////////////////////
 // DimHFV1Geometry

@@ -150,6 +150,17 @@ struct reference_element_traits<Hexahedron>
 	static const int dim = reference_element_type::dim;
 };
 
+///////////////////////////////////////////////////////////////////////////////
+// Octahedron
+///////////////////////////////////////////////////////////////////////////////
+
+template <>
+struct reference_element_traits<Octahedron>
+{
+	typedef ReferenceOctahedron reference_element_type;
+	static const int dim = reference_element_type::dim;
+};
+
 }
 
 #endif /* __H__UG__LIB_DISC__REFERENCE_ELEMENT__REFERENCE_ELEMENT_TRAITS__ */

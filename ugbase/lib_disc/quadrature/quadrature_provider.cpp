@@ -82,6 +82,7 @@ QuadratureRuleProvider<3>::create_gauss_rule(ReferenceObjectID roid,
 		case ROID_PYRAMID: q = new FlexGaussQuadrature<ReferencePyramid>(order); break;
 		case ROID_PRISM: q = new FlexGaussQuadrature<ReferencePrism>(order); break;
 		case ROID_HEXAHEDRON: q = new FlexGaussQuadrature<ReferenceHexahedron>(order); break;
+		case ROID_OCTAHEDRON: q = new FlexGaussQuadrature<ReferenceOctahedron>(order); break;
 		default: UG_THROW("QuadratureRuleProvider<"<<dim<<">: "<<roid<<" not supported.");
 	}
 	}catch(...){return NULL;}
@@ -138,6 +139,7 @@ QuadratureRuleProvider<3>::create_gauss_legendre_rule(ReferenceObjectID roid,
 		case ROID_PRISM: q = new GaussQuadraturePrism(order); break;
 		case ROID_PYRAMID: q = new GaussQuadraturePyramid(order); break;
 		case ROID_HEXAHEDRON: q = new GaussQuadratureHexahedron(order); break;
+		case ROID_OCTAHEDRON: q = new GaussQuadratureOctahedron(order); break;
 		default: UG_THROW("QuadratureRuleProvider<"<<dim<<">: "<<roid<<" not supported.");
 	}
 	}catch(...){return NULL;}

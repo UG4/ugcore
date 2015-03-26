@@ -64,6 +64,7 @@ inline MathVector<3> ReferenceElementCenter<3>(ReferenceObjectID roid)
 		case ROID_PYRAMID: return MathVector<3>(2./5., 2./5., 1./5.);
 		case ROID_PRISM: return MathVector<3>(2./6., 2./6., 0.5);
 		case ROID_HEXAHEDRON: return MathVector<3>(0.5, 0.5, 0.5);
+		case ROID_OCTAHEDRON: return MathVector<3>(2./6., 2./6., 0.0);
 		default: UG_THROW("ReferenceObject "<<roid<<" not found in dim 3.");
 	}
 }

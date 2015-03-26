@@ -127,6 +127,14 @@ void SetLagrangeVolumeLocalDoFs(std::vector<LocalDoF>& vLocalDoF,
 					vLocalDoF.push_back(LocalDoF(3, 0, cnt++));
 				}
 		break;
+
+	case ROID_OCTAHEDRON:
+		{
+			if(p != 1)
+				UG_THROW("SetLagrangeVolumeLocalDoFs: Octahedral elements only implemented for order p = 1.");
+		}
+		break;
+
 	default: UG_THROW("SetLagrangeVolumeLocalDoFs: Missing 3d mapping "
 							"for type '"<<roid<<"'.");
 	}
@@ -209,6 +217,19 @@ size_t LagrangeNumDoFOnSub(const ReferenceObjectID elem,
 			if(sub == ROID_QUADRILATERAL) return (p-1)*(p-1);
 			if(sub == ROID_HEXAHEDRON)    return (p-1)*(p-1)*(p-1);
 			else return 0;
+		case ROID_OCTAHEDRON:
+			if(p != 1)
+			{
+				UG_THROW("LagrangeNumDoFOnSub: Octahedral elements only implemented for order p = 1.");
+			}
+			else
+			{
+				if(sub == ROID_VERTEX)		return 1;
+				if(sub == ROID_EDGE) 		return 0;
+				if(sub == ROID_TRIANGLE)   	return 0;
+				if(sub == ROID_OCTAHEDRON)	return 0;
+			}
+			break;
 		default: UG_THROW("LagrangeLDS: Invalid ReferenceObjectID: "<<elem);
 	}
 }
@@ -224,6 +245,14 @@ size_t LagrangeNumDoFs(const ReferenceObjectID elem, const size_t p)
 		case ROID_PRISM: 			return BinomCoeff(2+p,p) * (p+1);
 		case ROID_PYRAMID: 			return GetNumberOfDoFsOfPyramid(p);
 		case ROID_HEXAHEDRON: 		return (p+1)*(p+1)*(p+1);
+		case ROID_OCTAHEDRON:
+			if(p != 1)
+			{
+				UG_THROW("LagrangeNumDoFs: Octahedral elements only implemented for order p = 1.");
+			}
+			else
+				return 6;
+			break;
 		default: UG_THROW("LagrangeLDS: Invalid ReferenceObjectID: "<<elem);
 	}
 }
@@ -261,5 +290,6 @@ template class LagrangeLDS<ReferenceTetrahedron>;
 template class LagrangeLDS<ReferencePrism>;
 template class LagrangeLDS<ReferencePyramid>;
 template class LagrangeLDS<ReferenceHexahedron>;
+template class LagrangeLDS<ReferenceOctahedron>;
 
 } // end namespace ug

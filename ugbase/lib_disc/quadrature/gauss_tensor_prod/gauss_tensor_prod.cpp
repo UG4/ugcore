@@ -211,5 +211,103 @@ GaussQuadraturePyramid::~GaussQuadraturePyramid()
 	delete[] m_pvPoint;
 	delete[] m_pvWeight;
 }
+
+GaussQuadratureOctahedron::GaussQuadratureOctahedron(size_t order)
+{
+	GaussQuadratureTetrahedron quadRule = GaussQuadratureTetrahedron(order);
+
+	m_order = quadRule.order();
+	m_numPoints = quadRule.size() * 4;
+	position_type* pvPoint = new position_type[m_numPoints];
+	weight_type* pvWeight = new weight_type[m_numPoints];
+
+	MathVector<3> Tet1Co[4];
+	//Tet1Co[0] = MathVector<3>(0,0,0);
+	//Tet1Co[1] = MathVector<3>(1,1,0);
+	//Tet1Co[2] = MathVector<3>(0,0,1);
+	//Tet1Co[3] = MathVector<3>(0,1,0);
+	Tet1Co[0] = MathVector<3>(0,0,0);
+	Tet1Co[1] = MathVector<3>(1,0,0);
+	Tet1Co[2] = MathVector<3>(1,1,0);
+	Tet1Co[3] = MathVector<3>(0,0,1);
+
+
+	MathVector<3> Tet2Co[4];
+//	Tet2Co[0] = MathVector<3>(0,0,0);
+//	Tet2Co[1] = MathVector<3>(1,0,0);
+//	Tet2Co[2] = MathVector<3>(1,1,0);
+//	Tet2Co[3] = MathVector<3>(0,0,1);
+	Tet2Co[0] = MathVector<3>(0,0,0);
+	Tet2Co[1] = MathVector<3>(1,1,0);
+	Tet2Co[2] = MathVector<3>(0,1,0);
+	Tet2Co[3] = MathVector<3>(0,0,1);
+
+	MathVector<3> Tet3Co[4];
+//	Tet3Co[0] = MathVector<3>(0,0,0);
+//	Tet3Co[1] = MathVector<3>(1,1,0);
+//	Tet3Co[2] = MathVector<3>(0,0,-1);
+//	Tet3Co[3] = MathVector<3>(0,1,0);
+	Tet3Co[0] = MathVector<3>(0,0,0);
+	Tet3Co[1] = MathVector<3>(1,1,0);
+	Tet3Co[2] = MathVector<3>(1,0,0);
+	Tet3Co[3] = MathVector<3>(0,0,-1);
+
+	MathVector<3> Tet4Co[4];
+//	Tet4Co[0] = MathVector<3>(0,0,0);
+//	Tet4Co[1] = MathVector<3>(1,0,0);
+//	Tet4Co[2] = MathVector<3>(1,1,0);
+//	Tet4Co[3] = MathVector<3>(0,0,-1);
+	Tet4Co[0] = MathVector<3>(0,0,0);
+	Tet4Co[1] = MathVector<3>(0,1,0);
+	Tet4Co[2] = MathVector<3>(1,1,0);
+	Tet4Co[3] = MathVector<3>(0,0,-1);
+
+
+	DimReferenceMapping<3, 3>& map1 =
+			ReferenceMappingProvider::get<3,3>(ROID_TETRAHEDRON, Tet1Co);
+
+	size_t cnt = 0;
+	for(size_t i = 0; i < quadRule.size(); i++, cnt++) {
+		map1.local_to_global(pvPoint[cnt], quadRule.point(i));
+		pvWeight[cnt] = quadRule.weight(i) * map1.sqrt_gram_det(quadRule.point(i));
+	}
+
+
+	DimReferenceMapping<3, 3>& map2 =
+			ReferenceMappingProvider::get<3,3>(ROID_TETRAHEDRON, Tet2Co);
+
+	for(size_t j = 0; j < quadRule.size(); j++, cnt++) {
+		map2.local_to_global(pvPoint[cnt], quadRule.point(j));
+		pvWeight[cnt] = quadRule.weight(j) * map2.sqrt_gram_det(quadRule.point(j));
+	}
+
+
+	DimReferenceMapping<3, 3>& map3 =
+			ReferenceMappingProvider::get<3,3>(ROID_TETRAHEDRON, Tet3Co);
+
+	for(size_t k = 0; k < quadRule.size(); k++, cnt++) {
+		map3.local_to_global(pvPoint[cnt], quadRule.point(k));
+		pvWeight[cnt] = quadRule.weight(k) * map3.sqrt_gram_det(quadRule.point(k));
+	}
+
+
+	DimReferenceMapping<3, 3>& map4 =
+			ReferenceMappingProvider::get<3,3>(ROID_TETRAHEDRON, Tet4Co);
+
+	for(size_t l = 0; l < quadRule.size(); l++, cnt++) {
+		map4.local_to_global(pvPoint[cnt], quadRule.point(l));
+		pvWeight[cnt] = quadRule.weight(l) * map4.sqrt_gram_det(quadRule.point(l));
+	}
+
+
+	m_pvPoint = pvPoint;
+	m_pvWeight = pvWeight;
+};
+
+GaussQuadratureOctahedron::~GaussQuadratureOctahedron()
+{
+	delete[] m_pvPoint;
+	delete[] m_pvWeight;
+}
 }
 

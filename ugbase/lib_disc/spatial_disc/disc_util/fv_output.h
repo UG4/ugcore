@@ -177,6 +177,7 @@ struct ConstructGridOfSCVFWrapper<TFVGeom, 3>
 					ConstructGridOfSCVF<Hexahedron, TFVGeom, 3>(shOut, surfView, aaPos, aaPosOut, si);
 					ConstructGridOfSCVF<Prism, TFVGeom, 3>(shOut, surfView, aaPos, aaPosOut, si);
 					ConstructGridOfSCVF<Pyramid, TFVGeom, 3>(shOut, surfView, aaPos, aaPosOut, si);
+					ConstructGridOfSCVF<Octahedron, TFVGeom, 3>(shOut, surfView, aaPos, aaPosOut, si);
 					break;
 			default: UG_THROW("CreateDualGrid: Dimension " << siDim << " not supported. World dimension is " << 3);
 		}
@@ -363,6 +364,7 @@ struct ConstructGridOfSCVWrapper<TFVGeom, 3>
 					ConstructGridOfSCV<Hexahedron, TFVGeom, 3>(shOut, surfView, aaPos, aaPosOut, si);
 					ConstructGridOfSCV<Prism, TFVGeom, 3>(shOut, surfView, aaPos, aaPosOut, si);
 					ConstructGridOfSCV<Pyramid, TFVGeom, 3>(shOut, surfView, aaPos, aaPosOut, si);
+					ConstructGridOfSCV<Octahedron, TFVGeom, 3>(shOut, surfView, aaPos, aaPosOut, si);
 					break;
 			default: UG_THROW("CreateDualGrid: Dimension " << siDim << " not supported. World dimension is " << 3);
 		}

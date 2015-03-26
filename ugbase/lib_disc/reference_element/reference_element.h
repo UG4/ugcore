@@ -666,6 +666,54 @@ class ReferenceHexahedron : public DimReferenceElement<3>
 		}
 };
 
+///////////////////////////////////////////////////////////////////////////////
+// Reference Octahedron
+///////////////////////////////////////////////////////////////////////////////
+
+class ReferenceOctahedron : public DimReferenceElement<3>
+{
+	public:
+	///	type of reference element
+		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_OCTAHEDRON;
+
+	///	dimension of reference element
+		static const int dim = 3;
+
+	///	number of corners
+		static const int numCorners = 6;
+
+	///	number of edges
+		static const int numEdges = 12;
+
+	///	number of faces
+		static const int numFaces = 8;
+
+	///	number of volumes
+		static const int numVolumes = 1;
+
+	///	number of sides
+		static const int numSides = numFaces;
+
+	public:
+	///	Constructor
+		ReferenceOctahedron();
+
+	/// \copydoc ug::ReferenceElement::reference_object_id()
+		ReferenceObjectID reference_object_id() const {return REFERENCE_OBJECT_ID;}
+
+	/// \copydoc ug::ReferenceElement::dimension()
+		int dimension() const {return dim;}
+
+	/// \copydoc ug::ReferenceElement::size()
+		number size() const	{return 2.0/3.0;}
+
+	///	\copydoc ug::DimReferenceElement::check_position()
+		inline static void check_position(const MathVector<dim>& pos)
+		{
+			//\todo: add check
+		}
+};
+
 } // end namespace ug
 
 #include "reference_element_traits.h"

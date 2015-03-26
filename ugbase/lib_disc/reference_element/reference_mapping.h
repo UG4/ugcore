@@ -17,6 +17,8 @@
 
 namespace ug{
 
+extern DebugID DID_REFERENCE_MAPPING;
+
 /**
  * This class describes the mapping from a reference element into the real
  * (physical) world. The mapping is initialized by the physical positions of
@@ -326,6 +328,9 @@ class BaseReferenceMapping
 		{
 			MathMatrix<dim, worldDim> JT;
 			getImpl().jacobian_transposed(JT, locPos);
+			UG_DLOG(DID_REFERENCE_MAPPING, 2, ">>OCT_DISC_DEBUG:: " << "reference_mapping.h: " << "jacobian_transposed_inverse(): JT " << std::endl);
+			for(int i = 0; i < 3; ++i)
+				UG_DLOG(DID_REFERENCE_MAPPING, 2, "	JT:" << JT(i, 0) << "; " << JT(i, 1) << "; " << JT(i, 2) << std::endl);
 			return RightInverse(JTInv, JT);
 		}
 
@@ -1115,6 +1120,137 @@ class ReferenceMapping<ReferenceHexahedron, TWorldDim>
 
 	private:
 		MathVector<worldDim> x[ReferenceHexahedron::numCorners];
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// Reference Mapping Octahedron
+///////////////////////////////////////////////////////////////////////////////
+template <int TWorldDim>
+class ReferenceMapping<ReferenceOctahedron, TWorldDim>
+	: public BaseReferenceMapping<ReferenceOctahedron::dim, TWorldDim, false,
+								  ReferenceMapping<ReferenceOctahedron, TWorldDim> >
+{
+	public:
+	///	world dimension
+		static const int worldDim = TWorldDim;
+
+	///	reference dimension
+		static const int dim = ReferenceOctahedron::dim;
+
+	///	flag if mapping is linear (i.e. Jacobian does not depend on x)
+		static const bool isLinear = false;
+
+	public:
+		typedef BaseReferenceMapping<ReferenceOctahedron::dim, TWorldDim, false,
+				  ReferenceMapping<ReferenceOctahedron, TWorldDim> > base_type;
+		using base_type::local_to_global;
+		using base_type::jacobian;
+		using base_type::jacobian_transposed;
+		using base_type::jacobian_transposed_inverse;
+		using base_type::sqrt_gram_det;
+
+	public:
+	///	Default Constructor
+		ReferenceMapping() {}
+
+	///	Constructor setting the corners
+	/// \{
+		ReferenceMapping(const MathVector<worldDim>* vCornerCoord) {update(vCornerCoord);}
+		ReferenceMapping(const std::vector<MathVector<worldDim> >& vCornerCoord) {update(vCornerCoord);}
+	/// \}
+
+	///	refresh mapping for new set of corners
+		void update(const std::vector<MathVector<worldDim> >& vCornerCoord)
+		{
+			UG_ASSERT((int)vCornerCoord.size() >= ReferenceOctahedron::numCorners,
+			          "ReferenceMapping: to few Corner Coordinates.");
+			update(&vCornerCoord[0]);
+		}
+
+	///	update the mapping for a new set of corners
+		void update(const MathVector<worldDim>* vCornerCoord)
+		{
+			for(int co = 0; co < ReferenceOctahedron::numCorners; ++co)
+				x[co] = vCornerCoord[co];
+		}
+
+	///	map local coordinate to global coordinate
+		void local_to_global(MathVector<worldDim>& globPos,
+							 const MathVector<dim>& locPos) const
+		{
+			const number a = 1.0 - locPos[0];
+			const number b = 1.0 - locPos[1];
+
+		//	map analogously to pyramidal case introducing additional distinction of cases
+		//	z >= 0 and z < 0
+			const number z_sgn 	= (locPos[2] < 0) ? -1.0 : 1.0;
+			const number a0	 	= (locPos[2] < 0) ? -locPos[2] : 0.0;
+			const number a5	 	= (locPos[2] < 0) ?  0.0 : locPos[2];
+
+			if (locPos[0] > locPos[1])
+			{
+				const number a1 = a * b - z_sgn * locPos[2] * b;
+				const number a2 = locPos[0] * b - z_sgn * locPos[2] * locPos[1];
+				const number a3 = locPos[0] * locPos[1] + z_sgn * locPos[2] * locPos[1];
+				const number a4 = a * locPos[1] - z_sgn * locPos[2] * locPos[1];
+
+				for(int d = 0; d < worldDim; ++d)
+					globPos[d] = a0*x[0][d]+a1*x[1][d]+a2*x[2][d]
+								+a3*x[3][d]+a4*x[4][d]+a5*x[5][d];
+			}
+			else
+			{
+				const number a1 = a * b - z_sgn * locPos[2] * a;
+				const number a2 = locPos[0] * b - z_sgn * locPos[2] * locPos[0];
+				const number a3 = locPos[0] * locPos[1] + z_sgn * locPos[2] * locPos[0];
+				const number a4 = a * locPos[1] - z_sgn * locPos[2] * locPos[0];
+
+				for(int d = 0; d < worldDim; ++d)
+					globPos[d] = a0*x[0][d]+a1*x[1][d]+a2*x[2][d]
+					            +a3*x[3][d]+a4*x[4][d]+a5*x[5][d];
+			}
+		}
+
+	///	returns transposed of jacobian
+		void jacobian_transposed(MathMatrix<dim, worldDim>& JT,
+								 const MathVector<dim>& locPos) const
+	   {
+			number a[3];
+			for(int d = 0; d < worldDim; ++d)
+				a[d] = x[1][d]-x[2][d]+x[3][d]-x[4][d];
+
+		//	map analogously to pyramidal case introducing additional distinction of cases
+		//	z >= 0 and z < 0
+			const number z_sgn 	= (locPos[2] < 0) ? -1.0 : 1.0;
+			const number Da0	= (locPos[2] < 0) ? -1.0 : 0.0;
+			const number Da5	= (locPos[2] < 0) ?  0.0 : 1.0;
+
+			if (locPos[0] > locPos[1])
+			{
+				for(int d = 0; d < worldDim; ++d)
+					JT(0,d) = x[2][d]-x[1][d]+locPos[1]*a[d];
+
+				for(int d = 0; d < worldDim; ++d)
+					JT(1,d) = x[4][d]-x[1][d]+(locPos[0]+ z_sgn*locPos[2])*a[d];
+
+				for(int d = 0; d < worldDim; ++d)
+					JT(2,d) = (Da5*x[5][d]+Da0*x[0][d]-z_sgn*x[1][d]) + z_sgn*locPos[1]*a[d];
+			}
+			else
+			{
+				for(int d = 0; d < worldDim; ++d)
+					JT(0,d) = x[2][d]-x[1][d]+(locPos[1]+ z_sgn*locPos[2])*a[d];
+
+				for(int d = 0; d < worldDim; ++d)
+					JT(1,d) = x[4][d]-x[1][d]+locPos[0]*a[d];
+
+				for(int d = 0; d < worldDim; ++d)
+					JT(2,d) = (Da5*x[5][d]+Da0*x[0][d]-z_sgn*x[1][d]) + z_sgn*locPos[0]*a[d];
+			}
+		}
+
+	private:
+		MathVector<worldDim> x[ReferenceOctahedron::numCorners];
 };
 
 

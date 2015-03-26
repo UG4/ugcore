@@ -12,6 +12,8 @@
 
 namespace ug{
 
+DebugID DID_DATA_EVALUATOR("DATA_EVALUATOR");
+
 ///////////////////////////////////////////////////////////////////////////////
 // DataEvaluator Setup
 ///////////////////////////////////////////////////////////////////////////////
@@ -373,8 +375,10 @@ prepare_elem(LocalVector& u, GridObject* elem, const ReferenceObjectID roid, con
 {
 // 	prepare element
 	try{
-		for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
+		for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i){
+			UG_DLOG(DID_DATA_EVALUATOR, 2, ">>OCT_DISC_DEBUG: " << "data_evaluator.cpp: " << "DataEvaluator.prepare_elem(): m_vElemDisc[PT_ALL][i]->do_prep_elem() " << roid << std::endl);
 			m_vElemDisc[PT_ALL][i]->do_prep_elem(u, elem, roid, vCornerCoords);
+		}
 	}
 	UG_CATCH_THROW("DataEvaluator::prep_elem: Cannot prepare element.");
 

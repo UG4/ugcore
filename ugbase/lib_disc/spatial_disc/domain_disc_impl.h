@@ -138,6 +138,8 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u);
 			this->template AssembleMassMatrix<Hexahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u);
+			this->template AssembleMassMatrix<Octahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u);
 			break;
 		default:
 			UG_THROW("DomainDiscretization::assemble_mass_matrix:"
@@ -289,6 +291,8 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 			this->template AssembleStiffnessMatrix<Prism>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u);
 			this->template AssembleStiffnessMatrix<Hexahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u);
+			this->template AssembleStiffnessMatrix<Octahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u);
 			break;
 		default:
@@ -467,6 +471,8 @@ assemble_jacobian(matrix_type& J,
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU);
 			this->template AssembleJacobian<Hexahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU);
+			this->template AssembleJacobian<Octahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU);
 			break;
 		default:
 			UG_THROW("DomainDiscretization::assemble_jacobian (stationary):"
@@ -634,6 +640,8 @@ assemble_defect(vector_type& d,
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU);
 			this->template AssembleDefect<Hexahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU);
+			this->template AssembleDefect<Octahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU);
 			break;
 		default:
 			UG_THROW("DomainDiscretization::assemble_defect (stationary):"
@@ -784,6 +792,8 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 			this->template AssembleLinear<Prism>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs);
 			this->template AssembleLinear<Hexahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs);
+			this->template AssembleLinear<Octahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs);
 			break;
 		default:
@@ -937,6 +947,8 @@ assemble_rhs(vector_type& rhs,
 			this->template AssembleRhs<Prism>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u);
 			this->template AssembleRhs<Hexahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u);
+			this->template AssembleRhs<Octahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u);
 			break;
 		default:
@@ -1147,6 +1159,8 @@ calc_error
 					(vSubsetElemDisc, dd, si, bNonRegularGrid, u);
 				this->template AssembleErrorEstimator<Hexahedron>
 					(vSubsetElemDisc, dd, si, bNonRegularGrid, u);
+				this->template AssembleErrorEstimator<Octahedron>
+					(vSubsetElemDisc, dd, si, bNonRegularGrid, u);
 				break;
 			default:
 				UG_THROW("DomainDiscretization::calc_error:"
@@ -1351,6 +1365,8 @@ prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
 			this->template PrepareTimestep<Hexahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
+			this->template PrepareTimestep<Octahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
 			break;
 		default:
 			UG_THROW("DomainDiscretization::prepare_timestep (instationary):"
@@ -1501,6 +1517,8 @@ assemble_jacobian(matrix_type& J,
 			this->template AssembleJacobian<Prism>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0);
 			this->template AssembleJacobian<Hexahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0);
+			this->template AssembleJacobian<Octahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0);
 			break;
 		default:
@@ -1673,6 +1691,8 @@ assemble_defect(vector_type& d,
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff);
 			this->template AssembleDefect<Hexahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff);
+			this->template AssembleDefect<Octahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff);
 			break;
 		default:
 			UG_THROW("DomainDiscretization::assemble_defect (instationary):"
@@ -1829,6 +1849,8 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 			this->template AssembleLinear<Prism>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff);
 			this->template AssembleLinear<Hexahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff);
+			this->template AssembleLinear<Octahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff);
 			break;
 		default:
@@ -1991,6 +2013,8 @@ assemble_rhs(vector_type& rhs,
 			this->template AssembleRhs<Prism>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff);
 			this->template AssembleRhs<Hexahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff);
+			this->template AssembleRhs<Octahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff);
 			break;
 		default:
@@ -2204,6 +2228,8 @@ calc_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 				this->template AssembleErrorEstimator<Prism>
 					(vSubsetElemDisc, dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
 				this->template AssembleErrorEstimator<Hexahedron>
+					(vSubsetElemDisc, dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
+				this->template AssembleErrorEstimator<Octahedron>
 					(vSubsetElemDisc, dd, si, bNonRegularGrid, vScaleMass, vScaleStiff, vSol);
 				break;
 			default:
@@ -2465,6 +2491,8 @@ finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 			this->template FinishTimestep<Prism>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
 			this->template FinishTimestep<Hexahedron>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
+			this->template FinishTimestep<Octahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
 			break;
 		default:

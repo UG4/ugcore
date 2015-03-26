@@ -222,6 +222,7 @@ ReferenceMappingProvider()
 	set_mapping<3,3>(ROID_PRISM, Provider<DimReferenceMappingWrapper<ReferenceMapping<ReferencePrism, 3> > >::get());
 	set_mapping<3,3>(ROID_PYRAMID, Provider<DimReferenceMappingWrapper<ReferenceMapping<ReferencePyramid, 3> > >::get());
 	set_mapping<3,3>(ROID_HEXAHEDRON, Provider<DimReferenceMappingWrapper<ReferenceMapping<ReferenceHexahedron, 3> > >::get());
+	set_mapping<3,3>(ROID_OCTAHEDRON, Provider<DimReferenceMappingWrapper<ReferenceMapping<ReferenceOctahedron, 3> > >::get());
 }
 
 

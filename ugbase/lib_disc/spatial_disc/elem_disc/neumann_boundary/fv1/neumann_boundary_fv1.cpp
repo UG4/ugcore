@@ -582,6 +582,7 @@ void NeumannBoundaryFV1<Domain3d>::register_all_funcs(bool bHang)
 		register_func<Prism, FV1Geometry<Prism, dim> >();
 		register_func<Pyramid, FV1Geometry<Pyramid, dim> >();
 		register_func<Hexahedron, FV1Geometry<Hexahedron, dim> >();
+		register_func<Octahedron, FV1Geometry<Octahedron, dim> >();
 	}
 	else UG_THROW("NeumannBoundaryFV1: Hanging Nodes not implemented.");
 }

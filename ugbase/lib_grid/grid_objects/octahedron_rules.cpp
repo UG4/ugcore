@@ -100,6 +100,25 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 			inds[fi++] = E + 4;		inds[fi++] = V;
 			inds[fi++] = E + 7;		inds[fi++] = E + 8;
 
+//			inds[fi++] = GOID_OCTAHEDRON;
+//			inds[fi++] = E + 1;		inds[fi++] = 2;
+//			inds[fi++] = E + 5;		inds[fi++] = V;
+//			inds[fi++] = E + 4;		inds[fi++] = E + 9;
+//
+//			inds[fi++] = GOID_OCTAHEDRON;
+//			inds[fi++] = E + 2;		inds[fi++] = 3;
+//			inds[fi++] = E + 6;		inds[fi++] = V;
+//			inds[fi++] = E + 5;		inds[fi++] = E + 10;
+//
+//			inds[fi++] = GOID_OCTAHEDRON;
+//			inds[fi++] = E + 3;		inds[fi++] = 4;
+//			inds[fi++] = E + 7;		inds[fi++] = V;
+//			inds[fi++] = E + 6;		inds[fi++] = E + 11;
+
+			/*
+			 * This ordering works with ConvertOctahedronsToTetrahedrons
+			 * -> sub octahedrons keep scv orientation of parent element
+			 */
 			inds[fi++] = GOID_OCTAHEDRON;
 			inds[fi++] = E + 1;		inds[fi++] = E + 4;
 			inds[fi++] = 2;			inds[fi++] = E + 5;
@@ -137,6 +156,22 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 			inds[fi++] = E + 7;		inds[fi++] = E;
 			inds[fi++] = E + 3;		inds[fi++] = V;
 
+//			inds[fi++] = GOID_TETRAHEDRON;
+//			inds[fi++] = E;			inds[fi++] = E + 4;
+//			inds[fi++] = E + 1;		inds[fi++] = V;
+//
+//			inds[fi++] = GOID_TETRAHEDRON;
+//			inds[fi++] = E + 1;		inds[fi++] = E + 5;
+//			inds[fi++] = E + 2;		inds[fi++] = V;
+//
+//			inds[fi++] = GOID_TETRAHEDRON;
+//			inds[fi++] = E + 2;		inds[fi++] = E + 6;
+//			inds[fi++] = E + 3;		inds[fi++] = V;
+//
+//			inds[fi++] = GOID_TETRAHEDRON;
+//			inds[fi++] = E + 3;		inds[fi++] = E + 7;
+//			inds[fi++] = E;			inds[fi++] = V;
+
 		//	upper tetrahedrons
 			inds[fi++] = GOID_TETRAHEDRON;
 			inds[fi++] = E + 9;		inds[fi++] = E + 4;
@@ -161,36 +196,36 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 			 * Former orientation
 			 *
 		//	lower tetrahedrons
-			inds[fi++] = 4;
+			inds[fi++] = GOID_TETRAHEDRON;
 			inds[fi++] = E;			inds[fi++] = E + 1;
 			inds[fi++] = V;			inds[fi++] = E + 4;
 
-			inds[fi++] = 4;
+			inds[fi++] = GOID_TETRAHEDRON;
 			inds[fi++] = E + 1;		inds[fi++] = E + 2;
 			inds[fi++] = V;			inds[fi++] = E + 5;
 
-			inds[fi++] = 4;
+			inds[fi++] = GOID_TETRAHEDRON;
 			inds[fi++] = E + 2;		inds[fi++] = E + 3;
 			inds[fi++] = V;			inds[fi++] = E + 6;
 
-			inds[fi++] = 4;
+			inds[fi++] = GOID_TETRAHEDRON;
 			inds[fi++] = E + 3;		inds[fi++] = E;
 			inds[fi++] = V;			inds[fi++] = E + 7;
 
 		//	upper tetrahedrons
-			inds[fi++] = 4;
+			inds[fi++] = GOID_TETRAHEDRON;
 			inds[fi++] = E + 8;		inds[fi++] = E + 9;
 			inds[fi++] = V;			inds[fi++] = E + 4;
 
-			inds[fi++] = 4;
+			inds[fi++] = GOID_TETRAHEDRON;
 			inds[fi++] = E + 9;		inds[fi++] = E + 10;
 			inds[fi++] = V;			inds[fi++] = E + 5;
 
-			inds[fi++] = 4;
+			inds[fi++] = GOID_TETRAHEDRON;
 			inds[fi++] = E + 10;	inds[fi++] = E + 11;
 			inds[fi++] = V;			inds[fi++] = E + 6;
 
-			inds[fi++] = 4;
+			inds[fi++] = GOID_TETRAHEDRON;
 			inds[fi++] = E + 11;	inds[fi++] = E + 8;
 			inds[fi++] = V;			inds[fi++] = E + 7;
 			*/

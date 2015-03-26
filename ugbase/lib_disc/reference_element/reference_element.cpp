@@ -123,6 +123,9 @@ ReferenceElementProvider()
 		bRes &= add_elem(Provider<ReferencePyramid>::get());
 		bRes &= add_dim_elem<3>(Provider<ReferencePyramid>::get());
 
+		bRes &= add_elem(Provider<ReferenceOctahedron>::get());
+		bRes &= add_dim_elem<3>(Provider<ReferenceOctahedron>::get());
+
 		bRes &= add_elem(Provider<ReferenceHexahedron>::get());
 		bRes &= add_dim_elem<3>(Provider<ReferenceHexahedron>::get());
 
@@ -993,7 +996,7 @@ ReferencePyramid::ReferencePyramid()
 		m_vNumRefElem[i] = 0;
  	}
  	m_vNumRefElem[ROID_VERTEX] = 5;
- 	m_vNumRefElem[ROID_EDGE] = 18;
+ 	m_vNumRefElem[ROID_EDGE] = 8;
  	m_vNumRefElem[ROID_QUADRILATERAL] = 1;
  	m_vNumRefElem[ROID_TRIANGLE] = 4;
  	m_vNumRefElem[ROID_PYRAMID] = 1;
@@ -1613,6 +1616,326 @@ ReferenceHexahedron::ReferenceHexahedron()
  	m_vNumRefElem[ROID_EDGE] = 12;
  	m_vNumRefElem[ROID_QUADRILATERAL] = 6;
  	m_vNumRefElem[ROID_HEXAHEDRON] = 1;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//	ReferenceOctahedron
+///////////////////////////////////////////////////////////////////////////////
+
+ReferenceOctahedron::ReferenceOctahedron()
+{
+	// dimension
+	m_dim = 3;
+
+	// size
+	m_size = 2.0/3.0;
+
+	//number of Geometric Objects
+ 	m_vNum[POINT] = 6;
+ 	m_vNum[EDGE] = 12;
+ 	m_vNum[FACE] = 8;
+ 	m_vNum[VOLUME] = 1;
+
+	// number of Geometric Objects
+ 	m_vSubNum[VOLUME][0][POINT] = 6;
+ 	m_vSubNum[VOLUME][0][EDGE] = 12;
+ 	m_vSubNum[VOLUME][0][FACE] = 8;
+ 	m_vSubNum[VOLUME][0][VOLUME] = 1;
+	m_vRefElemType[VOLUME][0] = ROID_OCTAHEDRON;
+
+	for(size_t i = 0; i < m_vNum[FACE]; ++i)
+ 	{
+		m_vSubNum[FACE][i][POINT] = 3;
+		m_vSubNum[FACE][i][EDGE] = 3;
+		m_vSubNum[FACE][i][FACE] = 1;
+		m_vSubNum[FACE][i][VOLUME] = 1;
+
+		m_vRefElemType[FACE][i] = ROID_TRIANGLE;
+ 	}
+
+ 	for(size_t i = 0; i < m_vNum[EDGE]; ++i)
+ 	{
+	 	m_vSubNum[EDGE][i][POINT] = 2;
+	 	m_vSubNum[EDGE][i][EDGE] = 1;
+	 	m_vSubNum[EDGE][i][FACE] = 2;
+	 	m_vSubNum[EDGE][i][VOLUME] = 1;
+
+	 	m_vRefElemType[EDGE][i] = ROID_EDGE;
+ 	}
+
+ 	for(size_t i = 0; i < m_vNum[POINT]; ++i)
+ 	{
+	 	m_vSubNum[POINT][i][POINT] = 1;
+	 	m_vSubNum[POINT][i][EDGE] = 4;
+	 	m_vSubNum[POINT][i][FACE] = 4;
+	 	m_vSubNum[POINT][i][VOLUME] = 1;
+
+	 	m_vRefElemType[POINT][i] = ROID_VERTEX;
+ 	}
+
+	//reset m_id to -1
+	for(int i=0; i<=dim; ++i)
+		for(size_t j=0; j<MAXOBJECTS; ++j)
+			for(int k=0; k<=dim; ++k)
+				for(size_t l=0; l<MAXOBJECTS; l++)
+				{
+				 	m_id[i][j][k][l] = -1;
+				}
+
+	//self references: (i.e. Point <-> Point, Edge <-> Edge, etc.)
+	for(int i=0; i<=dim; ++i)
+		for(size_t j=0; j<m_vNum[i]; ++j)
+		{
+		 	m_id[i][j][i][0] = j;
+		}
+
+	// Face <-> Volume
+	for(size_t i=0; i<m_vNum[FACE]; ++i)
+	{
+	 	m_id[VOLUME][0][FACE][i] = i;
+	 	m_id[FACE][i][VOLUME][0] = 0;
+	}
+
+	// Edge <-> Volume
+	for(size_t i=0; i<m_vNum[EDGE]; ++i)
+	{
+	 	m_id[VOLUME][0][EDGE][i] = i;
+	 	m_id[EDGE][i][VOLUME][0] = 0;
+	}
+
+	// Point <-> Volume
+	for(size_t i=0; i<m_vNum[POINT]; ++i)
+	{
+	 	m_id[VOLUME][0][POINT][i] = i;
+	 	m_id[POINT][i][VOLUME][0] = 0;
+	}
+
+	// Face -> Points (ccw)
+ 	m_id[FACE][0][POINT][0] = 0;
+ 	m_id[FACE][0][POINT][1] = 2;
+ 	m_id[FACE][0][POINT][2] = 1;
+
+ 	m_id[FACE][1][POINT][0] = 0;
+ 	m_id[FACE][1][POINT][1] = 3;
+ 	m_id[FACE][1][POINT][2] = 2;
+
+ 	m_id[FACE][2][POINT][0] = 0;
+ 	m_id[FACE][2][POINT][1] = 4;
+ 	m_id[FACE][2][POINT][2] = 3;
+
+ 	m_id[FACE][3][POINT][0] = 0;
+ 	m_id[FACE][3][POINT][1] = 1;
+ 	m_id[FACE][3][POINT][2] = 4;
+
+ 	m_id[FACE][4][POINT][0] = 1;
+ 	m_id[FACE][4][POINT][1] = 2;
+ 	m_id[FACE][4][POINT][2] = 5;
+
+ 	m_id[FACE][5][POINT][0] = 2;
+ 	m_id[FACE][5][POINT][1] = 3;
+ 	m_id[FACE][5][POINT][2] = 5;
+
+ 	m_id[FACE][6][POINT][0] = 3;
+ 	m_id[FACE][6][POINT][1] = 4;
+ 	m_id[FACE][6][POINT][2] = 5;
+
+ 	m_id[FACE][7][POINT][0] = 4;
+ 	m_id[FACE][7][POINT][1] = 1;
+ 	m_id[FACE][7][POINT][2] = 5;
+
+ 	// Points -> Faces (cw)
+ 	m_id[POINT][0][FACE][0] = 0;
+ 	m_id[POINT][0][FACE][1] = 1;
+ 	m_id[POINT][0][FACE][2] = 2;
+ 	m_id[POINT][0][FACE][3] = 3;
+
+ 	m_id[POINT][1][FACE][0] = 0;
+ 	m_id[POINT][1][FACE][1] = 3;
+ 	m_id[POINT][1][FACE][2] = 7;
+ 	m_id[POINT][1][FACE][3] = 4;
+
+ 	m_id[POINT][2][FACE][0] = 0;
+ 	m_id[POINT][2][FACE][1] = 4;
+ 	m_id[POINT][2][FACE][2] = 5;
+ 	m_id[POINT][2][FACE][3] = 1;
+
+ 	m_id[POINT][3][FACE][0] = 1;
+ 	m_id[POINT][3][FACE][1] = 5;
+ 	m_id[POINT][3][FACE][2] = 6;
+ 	m_id[POINT][3][FACE][3] = 2;
+
+ 	m_id[POINT][4][FACE][0] = 2;
+ 	m_id[POINT][4][FACE][1] = 6;
+ 	m_id[POINT][4][FACE][2] = 7;
+ 	m_id[POINT][4][FACE][3] = 3;
+
+ 	m_id[POINT][5][FACE][0] = 4;
+ 	m_id[POINT][5][FACE][1] = 7;
+ 	m_id[POINT][5][FACE][2] = 6;
+ 	m_id[POINT][5][FACE][3] = 5;
+
+ 	// Edges <-> Faces (ccw)
+ 	m_id[FACE][0][EDGE][0] = 1;
+ 	m_id[FACE][0][EDGE][1] = 4;
+ 	m_id[FACE][0][EDGE][2] = 0;
+
+ 	m_id[FACE][1][EDGE][0] = 2;
+ 	m_id[FACE][1][EDGE][1] = 5;
+ 	m_id[FACE][1][EDGE][2] = 1;
+
+ 	m_id[FACE][2][EDGE][0] = 3;
+ 	m_id[FACE][2][EDGE][1] = 6;
+ 	m_id[FACE][2][EDGE][2] = 2;
+
+ 	m_id[FACE][3][EDGE][0] = 0;
+ 	m_id[FACE][3][EDGE][1] = 7;
+ 	m_id[FACE][3][EDGE][2] = 3;
+
+ 	m_id[FACE][4][EDGE][0] = 4;
+ 	m_id[FACE][4][EDGE][1] = 9;
+ 	m_id[FACE][4][EDGE][2] = 8;
+
+ 	m_id[FACE][5][EDGE][0] = 5;
+ 	m_id[FACE][5][EDGE][1] = 10;
+ 	m_id[FACE][5][EDGE][2] = 9;
+
+ 	m_id[FACE][6][EDGE][0] = 6;
+ 	m_id[FACE][6][EDGE][1] = 11;
+ 	m_id[FACE][6][EDGE][2] = 10;
+
+ 	m_id[FACE][7][EDGE][0] = 7;
+ 	m_id[FACE][7][EDGE][1] = 8;
+ 	m_id[FACE][7][EDGE][2] = 11;
+
+ 	m_id[EDGE][0][FACE][0] = 0;
+ 	m_id[EDGE][0][FACE][1] = 3;
+
+ 	m_id[EDGE][1][FACE][0] = 1;
+ 	m_id[EDGE][1][FACE][1] = 0;
+
+ 	m_id[EDGE][2][FACE][0] = 2;
+ 	m_id[EDGE][2][FACE][1] = 1;
+
+ 	m_id[EDGE][3][FACE][0] = 3;
+ 	m_id[EDGE][3][FACE][1] = 2;
+
+ 	m_id[EDGE][4][FACE][0] = 0;
+ 	m_id[EDGE][4][FACE][1] = 4;
+
+ 	m_id[EDGE][5][FACE][0] = 1;
+ 	m_id[EDGE][5][FACE][1] = 5;
+
+ 	m_id[EDGE][6][FACE][0] = 2;
+ 	m_id[EDGE][6][FACE][1] = 6;
+
+ 	m_id[EDGE][7][FACE][0] = 3;
+ 	m_id[EDGE][7][FACE][1] = 7;
+
+ 	m_id[EDGE][8][FACE][0] = 4;
+ 	m_id[EDGE][8][FACE][1] = 7;
+
+ 	m_id[EDGE][9][FACE][0] = 5;
+ 	m_id[EDGE][9][FACE][1] = 4;
+
+ 	m_id[EDGE][10][FACE][0] = 6;
+ 	m_id[EDGE][10][FACE][1] = 5;
+
+ 	m_id[EDGE][11][FACE][0] = 7;
+ 	m_id[EDGE][11][FACE][1] = 6;
+
+ 	// Points of Edges
+	// edge 0 = (0,1)
+ 	m_id[EDGE][0][POINT][0] = 0;
+ 	m_id[EDGE][0][POINT][1] = 1;
+ 	// edge 1 = (0,2)
+ 	m_id[EDGE][1][POINT][0] = 0;
+ 	m_id[EDGE][1][POINT][1] = 2;
+	// edge 2 = (0,3)
+ 	m_id[EDGE][2][POINT][0] = 0;
+ 	m_id[EDGE][2][POINT][1] = 3;
+	// edge 3 = (0,4)
+ 	m_id[EDGE][3][POINT][0] = 0;
+ 	m_id[EDGE][3][POINT][1] = 4;
+	// edge 4 = (1,2)
+ 	m_id[EDGE][4][POINT][0] = 1;
+ 	m_id[EDGE][4][POINT][1] = 2;
+	// edge 5 = (2,3)
+ 	m_id[EDGE][5][POINT][0] = 2;
+ 	m_id[EDGE][5][POINT][1] = 3;
+	// edge 6 = (3,4)
+ 	m_id[EDGE][6][POINT][0] = 3;
+ 	m_id[EDGE][6][POINT][1] = 4;
+	// edge 7 = (4,1)
+ 	m_id[EDGE][7][POINT][0] = 4;
+ 	m_id[EDGE][7][POINT][1] = 1;
+	// edge 8 = (1,5)
+ 	m_id[EDGE][8][POINT][0] = 1;
+ 	m_id[EDGE][8][POINT][1] = 5;
+	// edge 9 = (2,5)
+ 	m_id[EDGE][9][POINT][0] = 2;
+ 	m_id[EDGE][9][POINT][1] = 5;
+	// edge 10 = (3,5)
+ 	m_id[EDGE][10][POINT][0] = 3;
+ 	m_id[EDGE][10][POINT][1] = 5;
+	// edge 11 = (4,5)
+ 	m_id[EDGE][11][POINT][0] = 4;
+ 	m_id[EDGE][11][POINT][1] = 5;
+
+ 	// Edges of Point (ccw)
+ 	m_id[POINT][0][EDGE][0] = 0;
+ 	m_id[POINT][0][EDGE][1] = 3;
+ 	m_id[POINT][0][EDGE][2] = 2;
+ 	m_id[POINT][0][EDGE][3] = 1;
+
+ 	m_id[POINT][1][EDGE][0] = 0;
+ 	m_id[POINT][1][EDGE][1] = 4;
+ 	m_id[POINT][1][EDGE][2] = 8;
+ 	m_id[POINT][1][EDGE][3] = 7;
+
+ 	m_id[POINT][2][EDGE][0] = 1;
+ 	m_id[POINT][2][EDGE][1] = 5;
+ 	m_id[POINT][2][EDGE][2] = 9;
+ 	m_id[POINT][2][EDGE][3] = 4;
+
+ 	m_id[POINT][3][EDGE][0] = 2;
+ 	m_id[POINT][3][EDGE][1] = 6;
+ 	m_id[POINT][3][EDGE][2] = 10;
+ 	m_id[POINT][3][EDGE][3] = 5;
+
+ 	m_id[POINT][4][EDGE][0] = 3;
+ 	m_id[POINT][4][EDGE][1] = 7;
+ 	m_id[POINT][4][EDGE][2] = 11;
+ 	m_id[POINT][4][EDGE][3] = 6;
+
+ 	m_id[POINT][5][EDGE][0] = 8;
+ 	m_id[POINT][5][EDGE][1] = 9;
+ 	m_id[POINT][5][EDGE][2] = 10;
+ 	m_id[POINT][5][EDGE][3] = 11;
+
+ 	// Reference Corners
+ 	m_vCorner[0] = MathVector<dim>(0.0, 0.0,-1.0);
+ 	m_vCorner[1] = MathVector<dim>(0.0, 0.0, 0.0);
+ 	m_vCorner[2] = MathVector<dim>(1.0, 0.0, 0.0);
+ 	m_vCorner[3] = MathVector<dim>(1.0, 1.0, 0.0);
+ 	m_vCorner[4] = MathVector<dim>(0.0, 1.0, 0.0);
+ 	m_vCorner[5] = MathVector<dim>(0.0, 0.0, 1.0);
+
+ 	m_vCoInt[0] = MathVector<dim,int>(0, 0,-1);
+ 	m_vCoInt[1] = MathVector<dim,int>(0, 0, 0);
+ 	m_vCoInt[2] = MathVector<dim,int>(1, 0, 0);
+ 	m_vCoInt[3] = MathVector<dim,int>(1, 1, 0);
+ 	m_vCoInt[4] = MathVector<dim,int>(0, 1, 0);
+ 	m_vCoInt[5] = MathVector<dim,int>(0, 0, 1);
+
+	// Reference Element Types
+ 	for(int i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
+ 	{
+		m_vNumRefElem[i] = 0;
+ 	}
+ 	m_vNumRefElem[ROID_VERTEX] = 6;
+ 	m_vNumRefElem[ROID_EDGE] = 12;
+ 	m_vNumRefElem[ROID_TRIANGLE] = 8;
+ 	m_vNumRefElem[ROID_OCTAHEDRON] = 1;
 }
 
 

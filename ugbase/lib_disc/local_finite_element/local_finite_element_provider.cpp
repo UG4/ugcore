@@ -20,6 +20,8 @@
 
 namespace ug{
 
+DebugID DID_LOCAL_FINITE_ELEMENT_PROVIDER("LOCAL_FINITE_ELEMENT_PROVIDER");
+
 ////////////////////////////////////////////////////////////////////////////////
 //	Wrapper for LocalShapeFunctionSets
 ////////////////////////////////////////////////////////////////////////////////
@@ -357,6 +359,7 @@ void LocalFiniteElementProvider::create_lagrange_set(const LFEID& id)
 void LocalFiniteElementProvider::
 create_lagrange_set(ReferenceObjectID roid, const LFEID& id)
 {
+	UG_DLOG(DID_LOCAL_FINITE_ELEMENT_PROVIDER, 2, ">>OCT_DISC_DEBUG: " << "local_finite_element_provider.cpp: " << "create_lagrange_set(): " << roid << std::endl);
 	switch(roid){
 		case ROID_VERTEX:		create_lagrange_set<ReferenceVertex>(id); return;
 		case ROID_EDGE:			create_lagrange_set<ReferenceEdge>(id); return;
@@ -367,12 +370,26 @@ create_lagrange_set(ReferenceObjectID roid, const LFEID& id)
 		case ROID_HEXAHEDRON:	create_lagrange_set<ReferenceHexahedron>(id); return;
 		case ROID_PYRAMID:
 			// only space available for order 1
-			if(id.order() != 1) return;
+			if(id.order() != 1)
+				return;
+			else
 			{
 				register_set(LFEID(LFEID::LAGRANGE, 3, 1),
 							 ConstSmartPtr<LocalShapeFunctionSet<3> >
 							(new LocalShapeFunctionSetWrapper<LagrangeP1<ReferencePyramid> >));
 			}
+			return;
+		case ROID_OCTAHEDRON:
+			// only space available for order 1
+			if(id.order() != 1)
+				return;
+			else
+			{
+				register_set(LFEID(LFEID::LAGRANGE, 3, 1),
+							 ConstSmartPtr<LocalShapeFunctionSet<3> >
+							(new LocalShapeFunctionSetWrapper<LagrangeP1<ReferenceOctahedron> >));
+			}
+			return;
 		default: return;
 	}
 }
@@ -459,6 +476,7 @@ create_piecewise_constant_set(ReferenceObjectID roid, const LFEID& id)
 		case ROID_PRISM:		create_piecewise_constant_set<ReferencePrism>(id); return;
 		case ROID_PYRAMID:		create_piecewise_constant_set<ReferencePyramid>(id); return;
 		case ROID_HEXAHEDRON:	create_piecewise_constant_set<ReferenceHexahedron>(id); return;
+		case ROID_OCTAHEDRON:	create_piecewise_constant_set<ReferenceOctahedron>(id); return;
 		default: return;
 	}
 }

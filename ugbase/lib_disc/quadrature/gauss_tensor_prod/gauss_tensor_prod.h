@@ -24,7 +24,7 @@ namespace ug
 
 /**
  * The following class provides QuadratureRules for triangles
- * by using Gauss Jacobi Quadrature and Gauss Legendre Qadrature
+ * by using Gauss Jacobi Quadrature and Gauss Legendre Quadrature
  */
 class GaussQuadratureTriangle : public QuadratureRule<2> {
 
@@ -38,7 +38,7 @@ class GaussQuadratureTriangle : public QuadratureRule<2> {
 
 /**
  * The following class provides QuadratureRules for quadrilaterals
- * by using Gauss Legendre Qadrature
+ * by using Gauss Legendre Quadrature
  */
 class GaussQuadratureQuadrilateral : public QuadratureRule<2> {
 
@@ -52,7 +52,7 @@ class GaussQuadratureQuadrilateral : public QuadratureRule<2> {
 
 /**
  * The following class provides QuadratureRules for hexahedrons
- * by using Gauss Jacobi Quadrature and Gauss Legendre Qadrature
+ * by using Gauss Jacobi Quadrature and Gauss Legendre Quadrature
  */
 class GaussQuadratureHexahedron : public QuadratureRule<3> {
 
@@ -66,7 +66,7 @@ class GaussQuadratureHexahedron : public QuadratureRule<3> {
 
 /**
  * The following class provides QuadratureRules for tetrahedrons
- * by using Gauss Jacobi Quadrature and Gauss Legendre Qadrature
+ * by using Gauss Jacobi Quadrature and Gauss Legendre Quadrature
  */
 class GaussQuadratureTetrahedron : public QuadratureRule<3> {
 
@@ -80,7 +80,7 @@ class GaussQuadratureTetrahedron : public QuadratureRule<3> {
 
 /**
  * The following class provides QuadratureRules for prisms
- * by using Gauss Jacobi Quadrature and Gauss Legendre Qadrature
+ * by using Gauss Jacobi Quadrature and Gauss Legendre Quadrature
  */
 class GaussQuadraturePrism : public QuadratureRule<3> {
 
@@ -94,7 +94,7 @@ class GaussQuadraturePrism : public QuadratureRule<3> {
 
 /**
  * The following class provides QuadratureRules for pyramids
- * by using Gauss Jacobi Quadrature and Gauss Legendre Qadrature
+ * by using Gauss Jacobi Quadrature and Gauss Legendre Quadrature
  *
  * The idea of this quadrature is to divide the pyramid into two tetrahdrons given
  * by {x,0,1},{y,0,x},{z,0,1-x} and {x,0,1},{y,x,1},{z,0,1-y} and carry out
@@ -108,6 +108,23 @@ class GaussQuadraturePyramid : public QuadratureRule<3> {
 
 	///	destructor
 		~GaussQuadraturePyramid();
+};
+
+/**
+ * The following class provides QuadratureRules for octahedra
+ * by using Gauss Jacobi Quadrature and Gauss Legendre Quadrature
+ *
+ * The idea of this quadrature is to divide the octahedron into four tetrahdrons
+ * and carry out integration on those using GaussQuadratureTetrehedron.
+ */
+class GaussQuadratureOctahedron : public QuadratureRule<3> {
+
+	public:
+	///	constructor
+	GaussQuadratureOctahedron(size_t order);
+
+	///	destructor
+		~GaussQuadratureOctahedron();
 };
 
 } // namespace ug

@@ -253,6 +253,7 @@ void MaxErrorOnElements(
 			MaxErrorOnElements<Hexahedron, TGridFunction>(globalMaxError,spInterpolFunction, spGridFct, fct, si, time);
 			MaxErrorOnElements<Prism, TGridFunction>(globalMaxError,spInterpolFunction, spGridFct, fct, si, time);
 			MaxErrorOnElements<Pyramid, TGridFunction>(globalMaxError,spInterpolFunction, spGridFct, fct, si, time);
+			MaxErrorOnElements<Octahedron, TGridFunction>(globalMaxError,spInterpolFunction, spGridFct, fct, si, time);
 			break;
 		default: UG_THROW("MaxErrorOnElements: Dimension " <<dim<<
 		                " not possible for world dim "<<3<<".");

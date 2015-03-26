@@ -154,7 +154,8 @@ void ProlongateP1(GridFunction<TDomain, TAlgebra>& uFine,
 				case ROID_TRIANGLE:
 				case ROID_TETRAHEDRON:
 				case ROID_PRISM:
-				case ROID_PYRAMID: /*nothing to do in those cases */ break;
+				case ROID_PYRAMID:
+				case ROID_OCTAHEDRON: /*nothing to do in those cases */ break;
 				default: UG_THROW("Unexpected case appeared.");
 			}
 

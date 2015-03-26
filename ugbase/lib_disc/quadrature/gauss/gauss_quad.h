@@ -96,6 +96,7 @@ class FlexGaussQuadrature
 #include "gauss_quad_pyramid.h"
 #include "gauss_quad_prism.h"
 #include "gauss_quad_hexahedron.h"
+#include "gauss_quad_octahedron.h"
 
 
 #endif /* __H__UG__LIB_DISC__QUADRATURE__GAUSS_QUAD__GAUSS_QUAD__ */

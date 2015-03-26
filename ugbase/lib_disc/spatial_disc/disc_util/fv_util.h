@@ -59,7 +59,7 @@ template <typename TRefElem, int TWorldDim> struct fv1_traits
 
 //	maximum of corners of scv
 	const static size_t NumCornersOfSCV;
-
+	
 //	maximum of corners of bf
 	const static size_t NumCornersOfBF;
 
@@ -162,7 +162,7 @@ struct fv1_traits_ReferenceFace
 	const static size_t NumCornersOfSCVF = 2;
 	const static size_t NumCornersOfSCV = 4;
 	const static size_t NumCornersOfBF = 2;
-
+	
 	typedef ReferenceQuadrilateral scv_type;
 	typedef ReferenceEdge scvf_type;
 	typedef ReferenceEdge bf_type;
@@ -264,7 +264,7 @@ template <> struct fv1_traits<ReferenceQuadrilateral, 3> : public fv1_traits_Ref
 
 struct fv1_traits_ReferenceVolume
 {
-	static const size_t maxNumSCVF = 16;
+	static const size_t maxNumSCVF = 24;
 	static const size_t maxNumSCV = 32;
 	static const size_t maxNSH = 8;
 
@@ -291,6 +291,7 @@ struct fv1_traits_ReferenceVolume
 template <> struct fv1_traits<ReferenceTetrahedron, 3> : public fv1_traits_ReferenceVolume{};
 template <> struct fv1_traits<ReferencePrism, 3> : public fv1_traits_ReferenceVolume{};
 template <> struct fv1_traits<ReferenceHexahedron, 3> : public fv1_traits_ReferenceVolume{};
+template <> struct fv1_traits<ReferenceOctahedron, 3> : public fv1_traits_ReferenceVolume{};
 
 // For Pyramids we use triangular scvf, since the quadrilateral scvf would not be
 // flat in general by the positions where its corners are placed
@@ -472,6 +473,17 @@ template <> struct hfv1_traits<ReferenceHexahedron, 3>
 	typedef ReferenceTetrahedron scv_type;
 };
 
+template <> struct hfv1_traits<ReferenceOctahedron, 3>
+{
+	const static size_t NumCornersOfSCVF = 3;
+	const static size_t MaxNumCornersOfSCV = 8;
+
+	static void NormalOnSCVF(MathVector<3>& outNormal, const MathVector<3>* vCornerCoords)
+		{ElementNormal<ReferenceTriangle, 3>(outNormal, vCornerCoords);}
+
+	typedef ReferenceTetrahedron scv_type;
+};
+
 template <int TDim> struct hdimfv1_traits
 {
 	typedef void scv_type;
@@ -479,6 +491,7 @@ template <int TDim> struct hdimfv1_traits
 	typedef void elem_type_1;
 	typedef void elem_type_2;
 	typedef void elem_type_3;
+	typedef void elem_type_4;
 	const static size_t NumCornersOfSCVF;
 	const static size_t MaxNumCornersOfSCV;
 };
@@ -490,6 +503,7 @@ template <> struct hdimfv1_traits<1>
 	typedef ReferenceEdge elem_type_1;
 	typedef ReferenceEdge elem_type_2;
 	typedef ReferenceEdge elem_type_3;
+	typedef ReferenceEdge elem_type_4;
 	const static size_t NumCornersOfSCVF = 1;
 	const static size_t MaxNumCornersOfSCV = 2;
 };
@@ -501,6 +515,7 @@ template <> struct hdimfv1_traits<2>
 	typedef ReferenceQuadrilateral elem_type_1;
 	typedef ReferenceTriangle elem_type_2;
 	typedef ReferenceQuadrilateral elem_type_3;
+	typedef ReferenceQuadrilateral elem_type_4;
 	const static size_t NumCornersOfSCVF = 2;
 	const static size_t MaxNumCornersOfSCV = 4;
 };
@@ -512,6 +527,7 @@ template <> struct hdimfv1_traits<3>
 	typedef ReferencePyramid elem_type_1;
 	typedef ReferencePrism elem_type_2;
 	typedef ReferenceHexahedron elem_type_3;
+	typedef ReferenceOctahedron elem_type_4;
 	const static size_t NumCornersOfSCVF = 3;
 	const static size_t MaxNumCornersOfSCV = 10;
 };

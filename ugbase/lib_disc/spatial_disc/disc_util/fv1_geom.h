@@ -70,15 +70,15 @@ class FV1Geometry : public FVGeometryBase
 		static const int order = 1;
 
 	///	number of SubControlVolumes
-		static const size_t numSCV = (ref_elem_type::REFERENCE_OBJECT_ID != ROID_PYRAMID)
-									? ref_elem_type::numCorners : (4*ref_elem_type::numEdges);
+		static const size_t numSCV = (ref_elem_type::REFERENCE_OBJECT_ID == ROID_PYRAMID || ref_elem_type::REFERENCE_OBJECT_ID == ROID_OCTAHEDRON)
+								   ? ((ref_elem_type::REFERENCE_OBJECT_ID == ROID_PYRAMID) ? (4*ref_elem_type::numEdges) : 16) : ref_elem_type::numCorners;
 
 	///	type of SubControlVolume
 		typedef typename traits::scv_type scv_type;
 
 	///	number of SubControlVolumeFaces
-		static const size_t numSCVF = (ref_elem_type::REFERENCE_OBJECT_ID != ROID_PYRAMID)
-									? ref_elem_type::numEdges : (2*ref_elem_type::numEdges);
+		static const size_t numSCVF = (ref_elem_type::REFERENCE_OBJECT_ID == ROID_PYRAMID || ref_elem_type::REFERENCE_OBJECT_ID == ROID_OCTAHEDRON)
+									? ((ref_elem_type::REFERENCE_OBJECT_ID == ROID_PYRAMID) ? (2*ref_elem_type::numEdges) : 24) : ref_elem_type::numEdges;
 
 	///	type of Shape function used
 		typedef LagrangeP1<ref_elem_type> local_shape_fct_set_type;

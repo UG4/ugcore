@@ -85,9 +85,9 @@ typedef Grid::VertexAttachmentAccessor<position_attachment_type> position_access
 
 // 3d
 template <> struct domain_traits<3> {
-typedef boost::mpl::list<Tetrahedron, Prism, Pyramid, Hexahedron> DimElemList;
+typedef boost::mpl::list<Tetrahedron, Prism, Pyramid, Hexahedron, Octahedron> DimElemList;
 typedef boost::mpl::list<RegularEdge, Triangle, Quadrilateral,
-								 Tetrahedron, Prism, Pyramid, Hexahedron> AllElemList;
+								 Tetrahedron, Prism, Pyramid, Hexahedron, Octahedron> AllElemList;
 typedef boost::mpl::list<Triangle, Quadrilateral> ManifoldElemList;
 
 typedef geometry_traits<Volume>::const_iterator const_iterator;

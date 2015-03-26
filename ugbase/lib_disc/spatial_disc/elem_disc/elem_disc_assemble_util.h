@@ -36,6 +36,8 @@
 
 namespace ug {
 
+extern DebugID DID_ELEM_DISC_ASSEMBLE_UTIL;
+
 /// Global assembler based on the straightforward application of the local discretizations
 /**
  * Template class of the global assembler that applyes the local (element)
@@ -898,8 +900,12 @@ public:
 		DataEvaluator<domain_type> Eval(STIFF | RHS,
 						   vElemDisc, dd->function_pattern(), bNonRegularGrid);
 
+		UG_DLOG(DID_ELEM_DISC_ASSEMBLE_UTIL, 2, ">>OCT_DISC_DEBUG: " << "elem_disc_assemble_util.h: " << "AssembleLinear(): DataEvaluator(): " << id << std::endl);
+
 	//	prepare loop
 		Eval.prepare_elem_loop(id, si);
+
+		UG_DLOG(DID_ELEM_DISC_ASSEMBLE_UTIL, 2, ">>OCT_DISC_DEBUG: " << "elem_disc_assemble_util.h: " << "AssembleLinear(): prepare_elem_loop(): " << id << std::endl);
 
 	//	local indices and local algebra
 		LocalIndices ind; LocalVector locRhs; LocalMatrix locA;
@@ -925,6 +931,10 @@ public:
 		//	prepare element
 			try
 			{
+				UG_DLOG(DID_ELEM_DISC_ASSEMBLE_UTIL, 2, ">>OCT_DISC_DEBUG: " << "elem_disc_assemble_util.h: " << "AssembleLinear(): prepare_elem(): " << id << std::endl);
+				for(int i = 0; i < 8; ++i)
+					UG_DLOG(DID_ELEM_DISC_ASSEMBLE_UTIL, 2, ">>OCT_DISC_DEBUG: " << "elem_disc_assemble_util.h: " << "AssembleLinear(): prepare_elem(): " << "vCornerCoords " << i << ": " << vCornerCoords[i] << std::endl);
+
 				Eval.prepare_elem(locRhs, elem, id, vCornerCoords, ind, true);
 			}
 			UG_CATCH_THROW("(stationary) AssembleLinear: Cannot prepare element.");
