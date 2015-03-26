@@ -885,7 +885,6 @@ update_local_data()
 		CopyCornerByMidID<dim, maxMid>(m_vSCV[i].vLocPos, m_vSCV[i].midId, m_vvLocMid, m_vSCV[i].num_corners());
 	}
 
-
 // 	compute Shapes and Derivatives
 	for(size_t i = 0; i < num_scvf(); ++i)
 	{
@@ -902,6 +901,10 @@ update_local_data()
 // 	copy ip positions in a list for Sub Control Volumes Faces (SCVF)
 	for(size_t i = 0; i < num_scvf(); ++i)
 		m_vLocSCVF_IP[i] = scvf(i).local_ip();
+
+	if(ref_elem_type::REFERENCE_OBJECT_ID == ROID_PYRAMID)
+		for(size_t i = 0; i < num_scv(); ++i)
+			m_vLocSCV_IP[i] = scv(i).local_ip();
 }
 
 /// update data for given element
@@ -1024,6 +1027,10 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 // 	Copy ip pos in list for SCVF
 	for(size_t i = 0; i < num_scvf(); ++i)
 		m_vGlobSCVF_IP[i] = scvf(i).global_ip();
+
+	if(ref_elem_type::REFERENCE_OBJECT_ID == ROID_PYRAMID)
+		for(size_t i = 0; i < num_scv(); ++i)
+			m_vGlobSCV_IP[i] = scv(i).global_ip();
 
 //	if no boundary subsets required, return
 	if(num_boundary_subsets() == 0 || ish == NULL) return;
