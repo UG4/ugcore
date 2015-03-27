@@ -105,20 +105,19 @@ set(srcLUACompiler	compiler/parser.cpp
 					compiler/system_call.cpp)
 
 
+
+set(Sources ${srcUGScript} ${srcLua})
+
 # if algebra is enabled, we have to add additional src-files and link with the
 # discretization module.
 if(buildAlgebra)
-	# add the source files
-	set(srcUGScript ${srcUGScript}
-					lua_user_data.cpp)
-else(buildAlgebra)
-
+	set(Sources ${Sources} lua_user_data.cpp)
 endif(buildAlgebra)
 
-set(srcUGScript ${srcUGScript} ${srcLUACompiler})
+if(USE_LUA2C)
+	set(Sources ${Sources} ${srcLUACompiler})
+endif(USE_LUA2C)
 
-
-set(Sources ${srcUGScript} ${srcLua})
 
 if(BUILD_ONE_LIB)
 	EXPORTSOURCES(ugbase/bindings/lua  ${Sources})
