@@ -6,6 +6,7 @@
 #include "shlobj.h"
 #include "common/util/file_util.h"
 #include "common/error.h"
+#include "common/log.h"
 #include <direct.h>
 
 using namespace std;
@@ -31,10 +32,13 @@ bool GetDirectoriesInDirectory(std::vector<std::string>& dirsOut, const char* di
 {
 	dirsOut.clear();
 
+	string expr = dir;
+	expr.append("\\*");
+
 	WIN32_FIND_DATA	findData;
 	HANDLE hFind;
 	
-	hFind = FindFirstFile(dir, &findData);
+	hFind = FindFirstFile(expr.c_str(), &findData);
 	if(hFind == INVALID_HANDLE_VALUE){
 		return true;
 	}
@@ -59,10 +63,13 @@ bool GetFilesInDirectory(std::vector<std::string>& filesOut, const char* dir)
 
 	filesOut.clear();
 
+	string expr = dir;
+	expr.append("\\*");
+
 	WIN32_FIND_DATA	findData;
 	HANDLE hFind;
 	
-	hFind = FindFirstFile(dir, &findData);
+	hFind = FindFirstFile(expr.c_str(), &findData);
 	if(hFind == INVALID_HANDLE_VALUE){
 		return true;
 	}
