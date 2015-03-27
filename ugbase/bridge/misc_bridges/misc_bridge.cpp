@@ -447,6 +447,8 @@ string GetOperatingSystem()
 	return "linux";
 #elif defined(__FreeBSD__)
 	return "FreeBSD";
+#elif defined(_WIN32) || defined(_WIN64)
+	return "windows";
 #endif
 }
 
