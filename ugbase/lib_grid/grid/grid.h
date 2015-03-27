@@ -120,11 +120,6 @@ class UG_API Grid
 		//	CALLBACKS
 		///	callback type for the elements base type.
 			typedef boost::function<bool (base_object*)>			callback;
-
-		///	convenience method which can be used as a callback that always returns true
-			static bool cb_consider_all(base_object*)				{return true;}
-		///	convenience method which can be used as a callback that always returns false
-			static bool cb_consider_none(base_object*)				{return false;}
 		};
 
 	///	Convenience access to grid elements

@@ -11,7 +11,7 @@
 #include "lib_grid/algorithms/refinement/regular_refinement.h"
 #include "common/node_tree/node_tree.h"
 #include "lib_grid/algorithms/trees/octree.h"
-#include "lib_grid/algorithms/callback_util.h"
+#include "lib_grid/callbacks/callbacks.h"
 
 using namespace std;
 

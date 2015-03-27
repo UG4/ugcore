@@ -12,6 +12,7 @@
 #include "common/ug_config.h"
 #include "lib_grid/lg_base.h"
 #include "lib_grid/algorithms/geom_obj_util/edge_util.h"
+#include "lib_grid/callbacks/basic_callbacks.h"
 
 namespace ug
 {
@@ -38,7 +39,7 @@ bool QualityGridGeneration(Grid& grid, DelaunayInfo<TAAPos>& info,
 template <class TriIter, class TAAPos>
 bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 						   TAAPos& aaPos, number minAngle = 0,
-				  	  	   Grid::edge_traits::callback cbConstrainedEdge = Grid::edge_traits::cb_consider_none,
+				  	  	   Grid::edge_traits::callback cbConstrainedEdge = ConsiderNone(),
 				  	  	   int maxSteps = -1/*remove this*/)
 {
 //	set up a delaunay-info structure

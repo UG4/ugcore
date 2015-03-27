@@ -14,6 +14,7 @@
 #include "lib_grid/tools/selector_interface.h"
 #include "lib_grid/common_attachments.h"
 #include "lib_grid/grid_objects/grid_objects.h"
+#include "lib_grid/callbacks/basic_callbacks.h"
 
 namespace ug
 {
@@ -116,13 +117,13 @@ class GridWriterVTU
 							   TAttachment aData,
 							   const char* name = "",
 							   typename Grid::traits<TElem>::callback consider_elem =
-							  		Grid::traits<TElem>::cb_consider_all);
+							  		ConsiderAll());
 
 		template <class TElem>
 		void collect_cells(std::vector<GridObject*>& cellsOut,
 						   Grid& grid,
 						   typename Grid::traits<TElem>::callback consider_elem =
-							  		Grid::traits<TElem>::cb_consider_all);
+							  		ConsiderAll());
 
 		void write_cells(std::vector<GridObject*>& cells, Grid& grid,
 						 AAVrtIndex aaInd);

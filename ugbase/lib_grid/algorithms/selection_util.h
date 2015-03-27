@@ -9,6 +9,7 @@
 #include "lib_grid/lg_base.h"
 #include "common/ug_config.h"
 #include "lib_grid/tools/selector_multi_grid.h"
+#include "lib_grid/callbacks/basic_callbacks.h"
 
 namespace ug
 {
@@ -448,9 +449,9 @@ void DeselectBoundarySelectionFaces(TSelector& sel);
 template <class TElem>
 void SelectLinkedElements(ISelector& sel,
 		  typename Grid::traits<TElem>::callback
-		  	  cbIsSelectable = Grid::traits<TElem>::cb_consider_all,
+		  	  cbIsSelectable = ConsiderAll(),
 		  typename Grid::traits<typename TElem::side>::callback
-		  	  cbIsTraversable = Grid::traits<typename TElem::side>::cb_consider_all);
+		  	  cbIsTraversable = ConsiderAll());
 
 							   
 ////////////////////////////////////////////////////////////////////////

@@ -10,7 +10,7 @@
 #include "lib_grid/tools/subset_handler_grid.h"
 #include "lib_grid/multi_grid.h"
 #include "util/parallel_callbacks.h"
-
+#include "lib_grid/callbacks/basic_callbacks.h"
 
 namespace ug
 {
@@ -33,7 +33,7 @@ bool PartitionElements_RegularGrid(SubsetHandler& shOut,
 								int numCellsX, int numCellsY, int numCellsZ,
 								TAAPos& aaPos,
 								typename Grid::traits<TElem>::callback cbConsiderElem
-									= Grid::traits<TElem>::cb_consider_all,
+									= ConsiderAll(),
 								int bucketSubset = -1);
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -6,6 +6,7 @@
 #define __H__UG__loop_subdivision_projectors_impl__
 
 #include "loop_subdivision_projectors.h"
+#include "lib_grid/callbacks/basic_callbacks.h"
 
 namespace ug{
 
@@ -148,7 +149,7 @@ is_crease_edge(Edge* edge)
 template <class TAPosition>
 SubdivisionLoopProjector<TAPosition>::
 SubdivisionLoopProjector() :
-	m_cbIsCrease(Grid::edge_traits::cb_consider_none)
+	m_cbIsCrease(ConsiderNone())
 {
 }
 
@@ -158,7 +159,7 @@ SubdivisionLoopProjector(Grid& g,
 						  TAPosition& aPos,
 						  TAPosition& aTargetPos) :
 	BaseClass(g, aPos),
-	m_cbIsCrease(Grid::edge_traits::cb_consider_none)
+	m_cbIsCrease(ConsiderNone())
 {
 //	we have to make sure that aTargetPos is attached at the grid.
 //	This is important to avoid crashes later on.

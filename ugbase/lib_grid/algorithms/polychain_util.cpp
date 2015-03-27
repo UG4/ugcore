@@ -3,7 +3,7 @@
 // s.b.reiter@googlemail.com
 
 #include "polychain_util.h"
-#include "callback_util.h"
+#include "lib_grid/callbacks/callbacks.h"
 
 using namespace std;
 

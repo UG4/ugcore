@@ -10,6 +10,7 @@
 #include "lib_grid/grid_objects/grid_objects.h"
 #include "lib_grid/common_attachments.h"
 #include "lib_grid/tools/subset_handler_grid.h"
+#include "lib_grid/callbacks/basic_callbacks.h"
 #include "common/math/ugmath.h"
 
 namespace ug
@@ -269,7 +270,7 @@ void RemoveDoubles(Grid& grid, const TVrtIterator& iterBegin,
  */
 UG_API 
 bool IsBoundaryVertex1D(Grid& grid, Vertex* v,
-						Grid::edge_traits::callback cbConsiderEdge = Grid::edge_traits::cb_consider_all);
+						Grid::edge_traits::callback cbConsiderEdge = ConsiderAll());
 
 ////////////////////////////////////////////////////////////////////////
 ///	returns whether a vertex lies on the boundary of a 2D grid.

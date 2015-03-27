@@ -7,7 +7,7 @@
 #include <vector>
 #include "expand_layers.h"
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
-#include "lib_grid/algorithms/callback_util.h"
+#include "lib_grid/callbacks/callbacks.h"
 #include "lib_grid/grid/grid_util.h"
 //#include "lib_grid/util/simple_algebra/least_squares_solver.h"
 

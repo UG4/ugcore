@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <vector>
 #include "horizontal_layers_mesher.h"
-#include "lib_grid/algorithms/callback_util.h"
+#include "lib_grid/callbacks/callbacks.h"
 #include "lib_grid/algorithms/extrusion/extrude.h"
 #include "lib_grid/algorithms/geom_obj_util/face_util.h"
 #include "lib_grid/algorithms/geom_obj_util/vertex_util.h"

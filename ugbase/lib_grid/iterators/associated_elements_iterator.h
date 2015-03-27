@@ -6,6 +6,7 @@
 
 #include <iterator>
 #include <limits>
+#include "lib_grid/callbacks/basic_callbacks.h"
 
 namespace ug{
 
@@ -21,14 +22,14 @@ class AssocElemIter : public std::iterator<std::input_iterator_tag, TAssocElem*>
 {
 		public:
 			AssocElemIter(typename Grid::traits<TAssocElem>::callback cbConsiderElem =
-							Grid::traits<TAssocElem>::cb_consider_all) :
+							ConsiderAll()) :
 				m_i(0),
 				m_cbConsiderElem(cbConsiderElem)
 			{}
 
 			AssocElemIter(Grid& grid, TElem* elem,
 						  typename Grid::traits<TAssocElem>::callback cbConsiderElem =
-							Grid::traits<TAssocElem>::cb_consider_all) :
+							ConsiderAll()) :
 				m_i(0),
 				m_cbConsiderElem(cbConsiderElem)
 			{
