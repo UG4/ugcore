@@ -380,8 +380,6 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut,
 						}
 					}
 
-					bestDiag = 1;
-
 					switch(bestDiag){
 					case 0:// diag: 0-5
 						inds[fi++] = GOID_TETRAHEDRON;
