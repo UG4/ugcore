@@ -21,6 +21,7 @@ namespace ug
 ////////////////////////////////////////////////////////////////////////
 //	attachment-types
 typedef Attachment<bool>		ABool;
+typedef Attachment<char>		AChar;
 typedef Attachment<byte>		AByte;
 typedef Attachment<int>			AInt;
 typedef Attachment<uint>		AUInt;
@@ -31,8 +32,8 @@ typedef Attachment<vector1>		AVector1;
 typedef Attachment<vector2>		AVector2;
 typedef Attachment<vector3>		AVector3;
 typedef Attachment<vector4>		AVector4;
-typedef Attachment<Vertex*>	AVertex;
-typedef Attachment<Edge*>	AEdge;
+typedef Attachment<Vertex*>		AVertex;
+typedef Attachment<Edge*>		AEdge;
 typedef Attachment<Face*>		AFace;
 typedef Attachment<Volume*>		AVolume;
 

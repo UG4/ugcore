@@ -202,6 +202,115 @@ void AssignVolumeInterfaceFacesToSubsets(Grid& grid, SubsetHandler& sh)
 	}
 }
 
+
+////////////////////////////////////////////////////////////////////////
+/**	Helper method that copies subset-indices based on the subset-dimension
+ * property of each element. Subsets are only assigned to previously unassigned elements.*/
+template <class TIterator>
+static void CopySubsetFromHigherDimNbr(
+				ISubsetHandler& sh,
+				TIterator elemsBegin,
+				TIterator elemsEnd,
+				AChar aDimension)
+{
+	typedef typename PtrToValueType<typename TIterator::value_type>::base_type TElem;
+
+	UG_COND_THROW(!sh.grid(), "The subset-handler has to operate on a grid!");
+	Grid& grid = *sh.grid();
+	MultiElementAttachmentAccessor<AChar> aaDim(grid, aDimension, true, true, true, true);
+
+	Grid::edge_traits::secure_container		edges;
+	Grid::face_traits::secure_container		faces;
+	Grid::volume_traits::secure_container	vols;
+
+	for(TIterator iter = elemsBegin; iter != elemsEnd; ++iter){
+		TElem* elem = *iter;
+		if(sh.get_subset_index(elem) != -1)
+			continue;
+
+		const int dim = aaDim[elem];
+		switch(dim){
+			case 1:{
+			//	get the edge with dim 1 and with the lowest subset index
+				int si = sh.num_subsets();
+				grid.associated_elements(edges, elem);
+				for(size_t i = 0; i < edges.size(); ++i){
+					Edge* e = edges[i];
+					int esi = sh.get_subset_index(e);
+					if((aaDim[e] == 1) && (esi < si))
+						si = esi;
+				}
+				sh.assign_subset(elem, si);
+			}break;
+
+			case 2:{
+			//	get the face with dim 2 and with the lowest subset index
+				int si = sh.num_subsets();
+				grid.associated_elements(faces, elem);
+				for(size_t i = 0; i < faces.size(); ++i){
+					Face* e = faces[i];
+					int esi = sh.get_subset_index(e);
+					if((aaDim[e] == 2) && (esi < si))
+						si = esi;
+				}
+				sh.assign_subset(elem, si);
+			}break;
+
+			case 3:{
+			//	get the volume with dim 3 and with the lowest subset index
+				int si = sh.num_subsets();
+				grid.associated_elements(vols, elem);
+				for(size_t i = 0; i < vols.size(); ++i){
+					Volume* e = vols[i];
+					int esi = sh.get_subset_index(e);
+					if((aaDim[e] == 3) && (esi < si))
+						si = esi;
+				}
+				sh.assign_subset(elem, si);
+			}break;
+		}
+	}
+}
+
+void CopySubsetIndicesToSides(
+		ISubsetHandler& sh,
+		GridObjectCollection goc,
+		bool toUnassignedOnly)
+{
+	UG_COND_THROW(!sh.grid(), "The subset-handler has to operate on a grid!");
+	Grid& grid = *sh.grid();
+
+	if(toUnassignedOnly){
+		AChar aDimension;
+		grid.attach_to_all(aDimension);
+		ComputeLocalSubsetDimensions(sh, aDimension, true);
+		for(int i = 0; i < (int)goc.num_levels(); ++i)
+			CopySubsetFromHigherDimNbr(sh, goc.begin<Vertex>(i), goc.end<Vertex>(i), aDimension);
+		for(int i = 0; i < (int)goc.num_levels(); ++i)
+			CopySubsetFromHigherDimNbr(sh, goc.begin<Edge>(i), goc.end<Edge>(i), aDimension);
+		for(int i = 0; i < (int)goc.num_levels(); ++i)
+			CopySubsetFromHigherDimNbr(sh, goc.begin<Face>(i), goc.end<Face>(i), aDimension);
+		grid.detach_from_all(aDimension);
+	}
+	else{
+		for(int i = 0; i < (int)goc.num_levels(); ++i){
+			CopySubsetIndicesToSides(sh, goc.begin<Volume>(i), goc.end<Volume>(i), false);
+			CopySubsetIndicesToSides(sh, goc.begin<Face>(i), goc.end<Face>(i), false);
+			CopySubsetIndicesToSides(sh, goc.begin<Edge>(i), goc.end<Edge>(i), false);
+			CopySubsetIndicesToSides(sh, goc.begin<Vertex>(i), goc.end<Vertex>(i), false);
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
+void CopySubsetIndicesToSides(ISubsetHandler& sh, bool toUnassignedOnly)
+{
+	UG_COND_THROW(!sh.grid(), "The subset-handler has to operate on a grid!");
+	Grid& grid = *sh.grid();
+	CopySubsetIndicesToSides(sh, grid.get_grid_objects(), toUnassignedOnly);
+}
+
+
 ////////////////////////////////////////////////////////////////////////
 // AdjustSubsetsForLgmNg
 void AdjustSubsetsForLgmNg(Grid& grid, SubsetHandler& sh,
@@ -1188,6 +1297,128 @@ void AssignSubsetsByElementType(ISubsetHandler& sh)
 	if(g.num<Octahedron>() > 0){
 		sh.assign_subset(g.begin<Octahedron>(), g.end<Octahedron>(), subsetInd);
 		sh.subset_info(subsetInd++).name = "Octahedron";
+	}
+}
+
+template <class TElem>
+static char GetSmallestLocalSubsetDimension(
+				typename Grid::traits<TElem>::secure_container& nbrs,
+				MultiElementAttachmentAccessor<AChar>& aaDim)
+{
+	int d = -1;
+	for(size_t i = 0; i < nbrs.size(); ++i){
+		TElem* e = nbrs[i];
+		char ed = aaDim[e];
+		if((ed != -1 ) && ((d == -1) || (ed < d)))
+			d = ed;
+	}
+	return d;
+}
+
+template <class TElem>
+static bool NbrIsInSubset(
+				ISubsetHandler& sh,
+				typename Grid::traits<TElem>::secure_container& nbrs,
+				int si)
+{
+	for(size_t i = 0; i < nbrs.size(); ++i){
+		if(sh.get_subset_index(nbrs[i]) == si)
+			return true;
+	}
+	return false;
+}
+
+void ComputeLocalSubsetDimensions(
+		ISubsetHandler& sh, 
+		AChar aDimension,
+		bool includeUnassigned)
+{
+	UG_COND_THROW(!sh.grid(), "The subset-handler has to operate on a grid!");
+	Grid& grid = *sh.grid();
+	grid.attach_to_all(aDimension);
+	MultiElementAttachmentAccessor<AChar> aaDim(grid, aDimension, true, true, true, true);
+
+
+	for(VolumeIterator ivol = grid.begin<Volume>(); ivol != grid.end<Volume>(); ++ivol){
+		if(sh.get_subset_index(*ivol) == -1)
+			aaDim[*ivol] = -1;
+		else
+			aaDim[*ivol] = 3;
+	}
+
+	Grid::volume_traits::secure_container vols;
+	for(FaceIterator iface = grid.begin<Face>(); iface != grid.end<Face>(); ++iface){
+		Face* f = *iface;
+		int si = sh.get_subset_index(f);
+		if(si == -1){
+			if(includeUnassigned){
+				grid.associated_elements(vols, f);
+				aaDim[f] = GetSmallestLocalSubsetDimension<Volume>(vols, aaDim);
+			}
+			else
+				aaDim[f] = -1;
+		}
+		else{
+			aaDim[f] = 2;
+			grid.associated_elements(vols, f);
+			if(NbrIsInSubset<Volume>(sh, vols, si))
+				aaDim[f] = 3;
+		}
+	}
+
+	Grid::face_traits::secure_container faces;
+	for(EdgeIterator iedge = grid.begin<Edge>(); iedge != grid.end<Edge>(); ++iedge){
+		Edge* e = *iedge;
+		int si = sh.get_subset_index(e);
+		if(si == -1){
+			if(includeUnassigned){
+				grid.associated_elements(faces, e);
+				aaDim[e] = GetSmallestLocalSubsetDimension<Face>(faces, aaDim);
+			}
+			else
+				aaDim[e] = -1;
+		}
+		else{
+			aaDim[e] = 1;
+			grid.associated_elements(vols, e);
+			if(NbrIsInSubset<Volume>(sh, vols, si))
+				aaDim[e] = 3;
+			else{
+				grid.associated_elements(faces, e);
+				if(NbrIsInSubset<Face>(sh, faces, si))
+					aaDim[e] = 2;
+			}
+		}
+	}
+
+	Grid::edge_traits::secure_container edges;
+	for(VertexIterator ivrt = grid.begin<Vertex>(); ivrt != grid.end<Vertex>(); ++ivrt){
+		Vertex* v = *ivrt;
+		int si = sh.get_subset_index(v);
+		if(si == -1){
+			if(includeUnassigned){
+				grid.associated_elements(edges, v);
+				aaDim[v] = GetSmallestLocalSubsetDimension<Edge>(edges, aaDim);
+			}
+			else
+				aaDim[v] = -1;
+		}
+		else{
+			aaDim[v] = 0;
+			grid.associated_elements(vols, v);
+			if(NbrIsInSubset<Volume>(sh, vols, si))
+				aaDim[v] = 3;
+			else{
+				grid.associated_elements(faces, v);
+				if(NbrIsInSubset<Face>(sh, faces, si))
+					aaDim[v] = 2;
+				else{
+					grid.associated_elements(edges, v);
+					if(NbrIsInSubset<Edge>(sh, edges, si))
+						aaDim[v] = 1;
+				}
+			}
+		}
 	}
 }
 

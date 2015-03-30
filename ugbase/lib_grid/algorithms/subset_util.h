@@ -103,6 +103,25 @@ void CopySubsetIndicesToSides(ISubsetHandler& sh, TIterator elemsBegin,
 							TIterator elemsEnd, bool toUnassignedOnly);
 
 ////////////////////////////////////////////////////////////////////////
+///	copies subset-indices to sides of the specified elements
+/**	Lower dimensional elements have higher priority during assignment
+ * (e.g. if toUnnassignedOnly == 'true' and the unassigned edge e is connected
+ * to a face and a to volume element of different subsets, then it will
+ * be assigned to the subset of the connected face).*/
+UG_API
+void CopySubsetIndicesToSides(ISubsetHandler& sh, GridObjectCollection goc,
+							  bool toUnassignedOnly);
+
+////////////////////////////////////////////////////////////////////////
+///	copies subset-indices to sides of all elements in the subset handler
+/**	Lower dimensional elements have higher priority during assignment
+ * (e.g. if toUnnassignedOnly == 'true' and the unassigned edge e is connected
+ * to a face and a to volume element of different subsets, then it will
+ * be assigned to the subset of the connected face).*/
+UG_API
+void CopySubsetIndicesToSides(ISubsetHandler& sh, bool toUnassignedOnly);
+
+////////////////////////////////////////////////////////////////////////
 //	AdjustSubsetsForLgmNg
 ///	reorders subsets in a way that allows for easy export to lgm-ng.
 /**
@@ -479,14 +498,34 @@ void AssignAssociatedLowerDimElemsToSubsets(TSubsetHandlerDest& sh,
  * \param[in]	nbhType		type of the connectivity (for ex. via vertices, or only full edges, ...)
  */
 template <typename TBaseObj>
-void FindSubsetGroups
-(
-	std::vector<int> & minCondInd,
-	const std::vector<bool> & isMarked,
-	const ISubsetHandler & sh,
-	const NeighborhoodType nbhType = NHT_VERTEX_NEIGHBORS
-);
+void FindSubsetGroups(
+		std::vector<int> & minCondInd,
+		const std::vector<bool> & isMarked,
+		const ISubsetHandler & sh,
+		const NeighborhoodType nbhType = NHT_VERTEX_NEIGHBORS);
 
+
+////////////////////////////////////////////////////////////////////////
+///	Computes the local subset dimension for each element and stores it in the given attachment
+/**	The local subset dimension of an element is the dimension of the
+ * highest dimensional associated element in the same subset as the element itself.
+ *
+ * If an element isn't assigned to a subset (subset index == -1) then the local
+ * subset dimension is either defined as the smallest subset-dimension of any associated element
+ * of higher dimension (if includeUnassigned==true) or is simply set to -1
+ * (if inculdeUnassigned==false).
+ *
+ * The subset-dimension of each element will be written to the 'aDimension' attachment.
+ * If this attachment isn't already attached to the subset-handler's grid, it
+ * will be automatically attached to all elements.
+ * Make sure to detach it when it is no longer needed!
+ *
+ * If a local subset-dimension can't be computed for a given element, -1 is assigned.*/
+UG_API
+void ComputeLocalSubsetDimensions(
+		ISubsetHandler& sh, 
+		AChar aDimension,
+		bool includeUnassigned);
 
 /**@}*/ // end of doxygen defgroup command
 }//	end of namespace
