@@ -223,7 +223,8 @@ static bool
 DelaunayLineLineIntersection(vector3& vOut,
 							 const vector3& lineFrom, const vector3& lineTo,
 							 const vector3& edgeVrt1, const vector3& edgeVrt2,
-							 vector3 areaNormal)
+							 vector3 areaNormal,
+							 number smallsq = SMALL_SQ)
 {
 	number t;
 
@@ -231,10 +232,11 @@ DelaunayLineLineIntersection(vector3& vOut,
 	VecSubtract(lineDir, lineTo, lineFrom);
 	VecNormalize(lineDir, lineDir);
 	VecSubtract(edgeDir, edgeVrt2, edgeVrt1);
+	number threshold = smallsq * VecLengthSq(edgeDir);
 	VecNormalize(edgeDir, edgeDir);
 	VecCross(planeNormal, edgeDir, areaNormal);
 	if(RayPlaneIntersection(vOut, t, lineFrom, lineDir, edgeVrt1, planeNormal)){
-		if(t > 0 && VecDistanceSq(lineFrom, vOut) < VecDistanceSq(lineFrom, lineTo) + SMALL_SQ){
+		if(t > 0 && (VecDistanceSq(lineFrom, vOut) < VecDistanceSq(lineFrom, lineTo) + threshold)){
 			return true;
 		}
 	}
@@ -251,10 +253,11 @@ bool QualityGridGeneration(Grid& grid, DelaunayInfo<TAAPos>& info,
 	minAngle = max<number>(minAngle, 0);
 	minAngle = min<number>(minAngle, 60);
 
-	// maxSteps = 100;
+	// maxSteps = 20;
 	// UG_LOG("DEBUG: Setting maxSteps to " << maxSteps << "\n");
 
 	using namespace std;
+
 	typedef typename TAAPos::ValueType vector_t;
 	typedef DelaunayInfo<TAAPos> DI;
 
@@ -371,12 +374,15 @@ bool QualityGridGeneration(Grid& grid, DelaunayInfo<TAAPos>& info,
 
 					vector_t a;
 					if(DelaunayLineLineIntersection(a, faceCenter, cc,
-							aaPos[e->vertex(0)], aaPos[e->vertex(1)], faceNormal))
+							aaPos[e->vertex(0)], aaPos[e->vertex(1)], faceNormal, SMALL_SQ))
 					{
 					//	this edge will be traversed next.
 						nextEdge = e;
+						number threshold =	VecDistanceSq(faceCenter, cc)
+											- SMALL_SQ * EdgeLengthSq(e, aaPos);
+
 					//	check whether e has to be split, to avoid bad aspect ratios
-						split = (VecDistanceSq(faceCenter, a) > VecDistanceSq(faceCenter, cc) - SMALL_SQ);
+						split = (VecDistanceSq(faceCenter, a) > threshold);
 						break;
 					}/*
 					// This else-condition is not necessary - if they are parallel, that's not a problem...
@@ -653,20 +659,35 @@ bool QualityGridGeneration(Grid& grid, DelaunayInfo<TAAPos>& info,
 				else{
 				//	we found the triangle, which contains cc. Insert the point
 				//	and perform local delaunay (not necessarily local...).
-				//	todo: make sure, that cc really lies in curTri
 				//...
-					//UG_LOG("Inserting point into triangle\n");
+				//	But first we have to check whether an edge of the triangle
+				//	would be encroached.
+				//	If this is the case, we'll insert the new vertex at the triangle's
+				//	center instead of the circum-center, to avoid skinny triangles
+					CollectAssociated(edges, grid, curFace);
+					for(size_t i = 0; i < edges.size(); ++i){
+						Edge* e = edges[i];
+						if(info.is_segment(e)){
+							vector_t eCenter = CalculateCenter(e, aaPos);
+							number eLenSq = EdgeLengthSq(e, aaPos);
+							if(VecDistanceSq(eCenter, cc) < eLenSq / 4.){
+								cc = CalculateCenter(curFace, aaPos);
+								break;
+							}
+						}
+					}
+
 					Vertex* vrt0 = curFace->vertex(0);
 					Vertex* vrt1 = curFace->vertex(1);
 					Vertex* vrt2 = curFace->vertex(2);
 
-				//UG_LOG("creating new elements...\n");
+					//UG_LOG("creating new elements...\n");
 					Vertex* vrt = *grid.create<RegularVertex>(curFace);
 					aaPos[vrt] = cc;
 					grid.create<Triangle>(TriangleDescriptor(vrt0, vrt1, vrt), curFace);
 					grid.create<Triangle>(TriangleDescriptor(vrt1, vrt2, vrt), curFace);
 					grid.create<Triangle>(TriangleDescriptor(vrt2, vrt0, vrt), curFace);
-				//UG_LOG("erasing old face\n");
+					//UG_LOG("erasing old face\n");
 					grid.erase(curFace);
 
 					//DelaunayDebugSave(grid, "After InsertPoint", info);

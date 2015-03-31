@@ -72,10 +72,24 @@ class UG_API DelaunayInfo : public GridObserver
 		template <class TElem>
 		bool is_segment(TElem* e);
 
+	///	returns true if the specified edge is a segment and is connected to a DART vertex
+		bool is_dart_segment(Edge* e);
+
+	///	returns true if the specified edge is a new segment and is connected to a DART vertex
+		bool is_new_dart_segment(Edge* e);
+
+	///	returns true if the specified edge is a segment and connects a DART and a SHELL vertex
+		bool is_dart_shell_segment(Edge* e);
+
+	///	returns true if the face can be classified
+	/**	Faces which contain two shell vertices whose subtended angle is small
+	 * are not classifiable.*/
+		bool is_classifiable(Face* f);
+
 	////////////////////////////////////////////////////////////////
 	//	CANDIDATES
 	/**	candidates are used during MakeDelaunay to define the set of edges which
-	 * may have to be swapped to obtain a delaunay triagnulation.
+	 * may have to be swapped to obtain a delaunay triangulation.
 	 * \{ */
 		bool is_candidate(Edge* e)		{return m_aaCandidateEDGE[e];}
 		void push_candidate(Edge* e);

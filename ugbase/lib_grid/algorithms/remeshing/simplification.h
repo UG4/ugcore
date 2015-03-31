@@ -66,7 +66,71 @@ inline bool QuadDiagonalIsValid(const vector3& c0, const vector3& c1,
 	vector3 n0, n1;
 	CalculateTriangleNormalNoNormalize(n0, c0, c1, c2);
 	CalculateTriangleNormalNoNormalize(n1, c0, c2, c3);
-	return VecDot(n0, n1) >= 0;
+	return VecDot(n0, n1) > SMALL;
+}
+
+
+template <class TVrtIter, class TAAPos>
+void ReplaceValence3Vertices(Grid& g, TVrtIter vrtsBegin, TVrtIter vrtsEnd,
+							 number maxSquaredHeightToBaseAreaRatio, TAAPos aaPos)
+{
+	using namespace std;
+
+	Grid::face_traits::secure_container	faces;
+	Vertex* conVrts[3];
+
+	std::vector<Vertex*> candidates;
+
+	for(TVrtIter iter = vrtsBegin; iter != vrtsEnd;)
+	{
+		Vertex* vrt = *iter;
+		++iter;
+		g.associated_elements(faces, vrt);
+
+		if(faces.size() != 3)
+			continue;
+
+	//	get the connected vertices. If there are more or less than 3 connected
+	//	vertices, then the connected triangles do not form a valid closed surface patch
+		size_t numConVrts = 0;
+		for(size_t i = 0; i < faces.size(); ++i){
+			Face* f = faces[i];
+			if(f->num_vertices() != 3){
+				numConVrts = 0;
+				break;
+			}
+
+			int baseInd = GetVertexIndex(f, vrt);
+
+			for(size_t j = 1; j < 3; ++j){
+				Vertex* cv = f->vertex((baseInd + j) % 3);
+				if(cv != vrt){
+					bool gotOne = false;
+					for(size_t k = 0; k < numConVrts; ++k){
+						if(conVrts[k] == cv){
+							gotOne = true;
+							break;
+						}
+					}
+					if(!gotOne){
+						if(numConVrts < 3)
+							conVrts[numConVrts] = cv;
+						++numConVrts;
+					}
+				}
+			}
+		}
+
+		if(numConVrts == 3){
+			if(Valence3VertexIsObsolete(aaPos[vrt], aaPos[conVrts[0]], 
+										aaPos[conVrts[1]], aaPos[conVrts[2]],
+										maxSquaredHeightToBaseAreaRatio))
+			{
+				g.create<Triangle>(TriangleDescriptor(conVrts[0], conVrts[1], conVrts[2]), faces[0]);
+				g.erase(vrt);
+			}
+		}
+	}
 }
 
 
@@ -174,18 +238,26 @@ void ReplaceLowValenceVertices(Grid& g, TVrtIter vrtsBegin, TVrtIter vrtsEnd,
 
 				CreatePolyChain(poly, g, conEdges.begin(), conEdges.end());
 
-			//	we first try triangulate along the shorter diagonal.
+			//	we first try the better quality-diagonal
 			//	If this doesn't work, we'll try the other one.
 			//	diag 0: create diagonal between vrts 0,2
 			//	diag 1: between vrts 1,3
-				int firstDiag = 0;
-				if(VecDistanceSq(aaPos[poly[0]], aaPos[poly[2]])
-					> VecDistanceSq(aaPos[poly[1]], aaPos[poly[3]]))
-				{
-					firstDiag = 1;
+				number q[2];
+				for(int diag = 0; diag < 2; ++diag){
+					int i0 = diag;
+					int i1 = (diag + 1);
+					int i2 = (diag + 2);
+					int i3 = (diag + 3) % 4;
+					q[diag] = min(TriangleQuality_Area(aaPos[poly[i0]], aaPos[poly[i1]],
+													   aaPos[poly[i2]]),
+								  TriangleQuality_Area(aaPos[poly[i0]], aaPos[poly[i2]],
+													   aaPos[poly[i3]]));
 				}
 
-			//	we iterate
+				int firstDiag = 0;
+				if(q[1] > q[0])
+					firstDiag = 1;
+
 				for(int idiag = 0; idiag < 2; ++idiag){
 					int diag = (firstDiag + idiag) % 2;
 					int i0 = diag;

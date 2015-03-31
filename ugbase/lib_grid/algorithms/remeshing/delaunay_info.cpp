@@ -75,6 +75,34 @@ set_mark(Face* f, typename DelaunayInfo<TAAPos>::Mark mark)
 
 
 template <class TAAPos>
+bool DelaunayInfo<TAAPos>::
+is_dart_segment(Edge* e)
+{
+	Edge::ConstVertexArray vrts = e->vertices();
+	return is_segment(e) && (mark(vrts[0]) == DART || mark(vrts[1]) == DART);
+}
+
+template <class TAAPos>
+bool DelaunayInfo<TAAPos>::
+is_new_dart_segment(Edge* e)
+{
+	Edge::ConstVertexArray vrts = e->vertices();
+	return mark(e) == NEW_SEGMENT && (mark(vrts[0]) == DART || mark(vrts[1]) == DART);
+}
+
+
+template <class TAAPos>
+bool DelaunayInfo<TAAPos>::
+is_dart_shell_segment(Edge* e)
+{
+	Edge::ConstVertexArray vrts = e->vertices();
+	return is_segment(e)
+			&& ((mark(vrts[0]) == DART && mark(vrts[1]) == SHELL)
+			    || (mark(vrts[0]) == SHELL && mark(vrts[1]) == DART));
+}
+
+
+template <class TAAPos>
 void DelaunayInfo<TAAPos>::
 push_candidate(Edge* e)
 {
@@ -229,6 +257,49 @@ is_classified(Face* f)
 
 template <class TAAPos>
 bool DelaunayInfo<TAAPos>::
+is_classifiable(Face* f)
+{
+	int subtended = -1;
+	int numShell = 0;
+	for(size_t i = 0; i < 3; ++i){
+		if(mark(f->vertex(i)) == SHELL)
+			++numShell;
+		else
+			subtended = i;
+	}
+
+	vector_t v[3] = {m_aaPos[f->vertex(0)], m_aaPos[f->vertex(1)], m_aaPos[f->vertex(2)]};
+
+	if(numShell == 3){
+		number d1sq = VecDistanceSq(v[0], v[1]);
+		number d2sq = VecDistanceSq(v[1], v[2]);
+		number d3sq = VecDistanceSq(v[2], v[0]);
+		if(d1sq < d2sq){
+			if(d1sq < d3sq)
+				subtended = 2;
+			else
+				subtended = 1;
+		}
+		else if(d2sq < d3sq)
+			subtended = 0;
+		else
+			subtended = 1;
+	}
+
+	if(numShell >= 2){
+		vector_t dir1, dir2;
+		VecSubtract(dir1, v[(subtended+1)%3], v[subtended]);
+		VecSubtract(dir2, v[(subtended+2)%3], v[subtended]);
+		if(VecAngle(dir1, dir2) < PI / 3. + SMALL){
+			return false;
+		}
+	}
+	return true;
+}
+
+
+template <class TAAPos>
+bool DelaunayInfo<TAAPos>::
 classify_face(Face* f)
 {
 	UG_COND_THROW(!face_classification_enabled(),
@@ -243,47 +314,50 @@ classify_face(Face* f)
 		return false;
 	}
 
+	if(!is_classifiable(f))
+		return false;
+	
 	vector_t& v1 = m_aaPos[f->vertex(0)];
 	vector_t& v2 = m_aaPos[f->vertex(1)];
 	vector_t& v3 = m_aaPos[f->vertex(2)];
 	
 //	if at least two of the vertices are SHELL vertices, we won't classify the triangle if
 //	the subtended angle to the shortest edge between shell vertices is smaller than PI/3
-	{
-		int subtended = -1;
-		int numShell = 0;
-		for(size_t i = 0; i < 3; ++i){
-			if(mark(f->vertex(i)) == SHELL)
-				++numShell;
-			else
-				subtended = i;
-		}
+	// {
+	// 	int subtended = -1;
+	// 	int numShell = 0;
+	// 	for(size_t i = 0; i < 3; ++i){
+	// 		if(mark(f->vertex(i)) == SHELL)
+	// 			++numShell;
+	// 		else
+	// 			subtended = i;
+	// 	}
 
-		if(numShell == 3){
-			number d1sq = VecDistanceSq(v1, v2);
-			number d2sq = VecDistanceSq(v2, v3);
-			number d3sq = VecDistanceSq(v3, v1);
-			if(d1sq < d2sq){
-				if(d1sq < d3sq)
-					subtended = 2;
-				else
-					subtended = 1;
-			}
-			else if(d2sq < d3sq)
-				subtended = 0;
-			else
-				subtended = 1;
-		}
+	// 	if(numShell == 3){
+	// 		number d1sq = VecDistanceSq(v1, v2);
+	// 		number d2sq = VecDistanceSq(v2, v3);
+	// 		number d3sq = VecDistanceSq(v3, v1);
+	// 		if(d1sq < d2sq){
+	// 			if(d1sq < d3sq)
+	// 				subtended = 2;
+	// 			else
+	// 				subtended = 1;
+	// 		}
+	// 		else if(d2sq < d3sq)
+	// 			subtended = 0;
+	// 		else
+	// 			subtended = 1;
+	// 	}
 
-		if(numShell >= 2){
-			vector_t dir1, dir2;
-			VecSubtract(dir1, m_aaPos[f->vertex((subtended+1)%3)], m_aaPos[f->vertex(subtended)]);
-			VecSubtract(dir2, m_aaPos[f->vertex((subtended+2)%3)], m_aaPos[f->vertex(subtended)]);
-			if(VecAngle(dir1, dir2) < PI / 3. + SMALL){
-				return false;
-			}
-		}
-	}
+	// 	if(numShell >= 2){
+	// 		vector_t dir1, dir2;
+	// 		VecSubtract(dir1, m_aaPos[f->vertex((subtended+1)%3)], m_aaPos[f->vertex(subtended)]);
+	// 		VecSubtract(dir2, m_aaPos[f->vertex((subtended+2)%3)], m_aaPos[f->vertex(subtended)]);
+	// 		if(VecAngle(dir1, dir2) < PI / 3. + SMALL){
+	// 			return false;
+	// 		}
+	// 	}
+	// }
 
 //	perform classification
 //	calculate min angle
