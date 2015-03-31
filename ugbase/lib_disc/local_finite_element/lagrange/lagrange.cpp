@@ -175,6 +175,10 @@ void SetLagrangeVolumeMultiIndex(	MathVector<TRefElem::dim,int>* vMultiIndex,
 		if(p>1) UG_THROW("LagrangeLSFS: Higher order Pyramid not implemented.");
 		break;
 
+	case ROID_OCTAHEDRON:
+		if(p>1) UG_THROW("LagrangeLSFS: Higher order Octahedron not implemented.");
+		break;
+
 	case ROID_PRISM:
 		for(size_t m2 = 1; m2 < p; ++m2)
 			for(size_t m1 = 1; m1 < p; ++m1)
@@ -559,6 +563,45 @@ LagrangeLSFS<ReferencePyramid, TOrder>::LagrangeLSFS()
 
 template class LagrangeLSFS<ReferencePyramid, 1>;
 template class LagrangeLSFS<ReferencePyramid, 2>;
+
+///////////////////////////////////////////////////////////////////////////////
+// Octahedron
+///////////////////////////////////////////////////////////////////////////////
+
+template <int TOrder>
+LagrangeLSFS<ReferenceOctahedron, TOrder>::LagrangeLSFS()
+	: LagrangeLDS<ReferenceOctahedron>(p)
+{
+	UG_THROW("LagrangeLSFS<ReferenceOctahedron, TOrder>::LagrangeLSFS(): Octahedral elements currently not implemented. Use LagrangeP1 implementation instead.");
+	/*
+	if(p != 1)
+		UG_THROW("LagrangeLSFS<ReferenceOctahedron, TOrder>::LagrangeLSFS(): Octahedral elements only implemented for order p = 1.");
+
+	m_vvPolynom.resize(p+1);
+	m_vvDPolynom.resize(p+1);
+
+	for(size_t i2 = 0; i2 <= p; ++i2)
+	{
+		m_vvPolynom[i2].resize(p+1);
+		m_vvDPolynom[i2].resize(p+1);
+
+		for(size_t i = 0; i <= p-i2; ++i)
+		{
+			m_vvPolynom[i2][i] = BoundedEquidistantLagrange1D(i, p, p-i2);
+			m_vvDPolynom[i2][i] = m_vvPolynom[i2][i].derivative();
+		}
+	}
+
+	//	reference element
+		const ReferenceOctahedron& rRef =
+				Provider<ReferenceOctahedron>::get();
+
+	//	init shape -> multi-index mapping
+		SetLagrangeMultiIndex(m_vMultiIndex, rRef, p);
+	*/
+}
+
+template class LagrangeLSFS<ReferenceOctahedron, 1>;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Hexahedron

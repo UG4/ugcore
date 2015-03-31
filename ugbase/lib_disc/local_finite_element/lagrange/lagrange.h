@@ -2373,6 +2373,318 @@ class FlexLagrangeLSFS<ReferenceHexahedron>
 		std::vector<MathVector<dim,int> > m_vMultiIndex;
 };
 
+///////////////////////////////////////////////////////////////////////////////
+// Octahedron
+///////////////////////////////////////////////////////////////////////////////
+
+//	NOTE:	Currently only 1st order is implemented. There is no shape function
+//			set for octahedrons, that is continuous and allows a continuous
+//			derivative in the inner of the pyramid. This is basically, since
+//			one regards the octahedron as 4 tetrahedrons, glued together.
+template <int TOrder>
+class LagrangeLSFS<ReferenceOctahedron, TOrder>
+	: public LagrangeLDS<ReferenceOctahedron>,
+	  public BaseLSFS<LagrangeLSFS<ReferenceOctahedron, TOrder>, 3>
+{
+	private:
+	///	abbreviation for order
+		static const size_t p = TOrder;
+
+	///	base class
+		typedef BaseLSFS<LagrangeLSFS<ReferenceOctahedron, TOrder>, 3> base_type;
+
+	public:
+	///	Shape type
+		typedef typename base_type::shape_type shape_type;
+
+	///	Gradient type
+		typedef typename base_type::grad_type grad_type;
+
+	public:
+	///	Order of Shape functions
+		static const size_t order = TOrder;
+
+	///	Dimension, where shape functions are defined
+		static const int dim = 3;	//reference_element_type::dim; (compile error on OSX 10.5)
+
+	/// Number of shape functions
+		static const size_t nsh = 6;
+
+	public:
+	///	Constructor
+		LagrangeLSFS();
+
+	///	\copydoc ug::LocalShapeFunctionSet::continuous()
+		inline bool continuous() const {return true;}
+
+	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
+		inline size_t num_sh() const {return nsh;}
+
+	///	\copydoc ug::LocalShapeFunctionSet::position()
+		inline bool position(size_t i, MathVector<dim>& pos) const
+		{
+		//	get Multi Index
+			MathVector<dim,int> ind = multi_index(i);
+
+		//	set position
+			for(int d = 0; d < dim; ++d)
+				pos[d] = EquidistantLagrange1D::position(ind[d], p);
+
+			return true;
+		}
+
+	///	\copydoc ug::LocalShapeFunctionSet::shape()
+		inline number shape(const size_t i, const MathVector<dim>& x) const
+		{
+		//	only first order
+			if(p != 1) UG_THROW("Only 1. order Lagrange Octahedron implemented.");
+
+		//	shape analogously to pyramidal case introducing additional distinction of cases
+		//	z >= 0 and z < 0
+			const number z_sgn 	= (x[2] < 0) ? -1.0 : 1.0;
+
+			switch(i)
+			{
+			  case 0 :
+				if (x[2] < 0)
+				  return(-1.0*x[2]);
+				else
+				  return(0.0);
+			  case 1 :
+				if (x[0] > x[1])
+				  return((1.0-x[0])*(1.0-x[1]) + z_sgn*x[2]*(x[1]-1.0));
+				else
+				  return((1.0-x[0])*(1.0-x[1]) + z_sgn*x[2]*(x[0]-1.0));
+			  case 2 :
+				if (x[0] > x[1])
+				  return(x[0]*(1.0-x[1])       - z_sgn*x[2]*x[1]);
+				else
+				  return(x[0]*(1.0-x[1])       - z_sgn*x[2]*x[0]);
+			  case 3 :
+				if (x[0] > x[1])
+				  return(x[0]*x[1]             + z_sgn*x[2]*x[1]);
+				else
+				  return(x[0]*x[1]             + z_sgn*x[2]*x[0]);
+			  case 4 :
+				if (x[0] > x[1])
+				  return((1.0-x[0])*x[1]       - z_sgn*x[2]*x[1]);
+				else
+				  return((1.0-x[0])*x[1]       - z_sgn*x[2]*x[0]);
+			  case 5 :
+				if (x[2] < 0)
+				  return(0.0);
+				else
+				  return(x[2]);
+			  default: UG_THROW("Wrong index "<< i<<" in Octahedron.");
+			}
+		}
+
+	///	shape value for a Multi Index
+		inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
+		{
+			check_multi_index(ind);
+
+		//	forward
+			return shape(index(ind), x);
+		}
+
+	///	\copydoc ug::LocalShapeFunctionSet::grad()
+		inline void grad(grad_type& g, const size_t i, const MathVector<dim>& x) const
+		{
+		//	only first order
+			if(p != 1) UG_THROW("Only 1. order Lagrange Octahedron implemented.");
+
+			//	shape analogously to pyramidal case introducing additional distinction of cases
+			//	z >= 0 and z < 0
+				const number z_sgn 	= (x[2] < 0) ? -1.0 : 1.0;
+
+				switch(i)
+				{
+				  case 0:
+					if (x[2] < 0.0)
+					{
+						g[0] = 0.0;
+						g[1] = 0.0;
+						g[2] = -1.0;
+						break;
+					}
+					else
+					{
+						g[0] = 0.0;
+						g[1] = 0.0;
+						g[2] = 0.0;
+						break;
+					}
+				  case 1:
+					if (x[0] > x[1])
+					  {
+						g[0] = -(1.0-x[1]);
+						g[1] = -(1.0-x[0]) + z_sgn*x[2];
+						g[2] = -z_sgn*(1.0-x[1]);
+						break;
+					  }
+					else
+					  {
+						g[0] = -(1.0-x[1]) + z_sgn*x[2];
+						g[1] = -(1.0-x[0]);
+						g[2] = -z_sgn*(1.0-x[0]);
+						break;
+					  }
+				  case 2:
+					if (x[0] > x[1])
+					  {
+						g[0] = (1.0-x[1]);
+						g[1] = -x[0] - z_sgn*x[2];
+						g[2] = -z_sgn*x[1];
+						break;
+					  }
+					else
+					  {
+						g[0] = (1.0-x[1]) - z_sgn*x[2];
+						g[1] = -x[0];
+						g[2] = -z_sgn*x[0];
+						break;
+					  }
+				  case 3:
+					if (x[0] > x[1])
+					  {
+						g[0] = x[1];
+						g[1] = x[0] + z_sgn*x[2];
+						g[2] = z_sgn*x[1];
+						break;
+					  }
+					else
+					  {
+						g[0] = x[1] + z_sgn*x[2];
+						g[1] = x[0];
+						g[2] = z_sgn*x[0];
+						break;
+					  }
+				  case 4:
+					if (x[0] > x[1])
+					  {
+						g[0] = -x[1];
+						g[1] = 1.0-x[0] - z_sgn*x[2];
+						g[2] = -z_sgn*x[1];
+						break;
+					  }
+					else
+					  {
+						g[0] = -x[1] - z_sgn*x[2];
+						g[1] = 1.0-x[0];
+						g[2] = -z_sgn*x[0];
+						break;
+					  }
+			      case 5:
+			        if (x[2] < 0.0)
+			        {
+			        	g[0] = 0.0;
+			        	g[1] = 0.0;
+			        	g[2] = 0.0;
+			        	break;
+			        }
+			        else
+			        {
+			        	g[0] = 0.0;
+			        	g[1] = 0.0;
+			        	g[2] = 1.0;
+			        	break;
+			        }
+			      default: UG_THROW("Wrong index "<< i<<" in Octahedron.");
+				}
+		}
+
+	///	evaluates the gradient
+		inline void grad(grad_type& g, const MathVector<dim,int> ind,
+		               	   	   	   	   	   const MathVector<dim>& x) const
+		{
+			grad(g, index(ind), x);
+		}
+
+	///	return Multi index for index i
+		inline const MathVector<dim,int>& multi_index(size_t i) const
+		{
+			check_index(i);
+			return m_vMultiIndex[i];
+		}
+
+	///	return the index for a multi_index
+		inline size_t index(const MathVector<dim,int>& ind) const
+		{
+			check_multi_index(ind);
+			for(size_t i=0; i<nsh; ++i)
+				if(multi_index(i) == ind) return i;
+			UG_THROW("Index not found in LagrangeLSFS");
+		}
+
+	///	return the index for a multi_index
+		inline size_t mapped_index(const MathVector<dim,int>& ind) const
+		{
+			/*
+			check_multi_index(ind);
+
+			size_t res = 0;
+
+		//	add layers that are completely filled
+			for(int i2 = 0; i2 < ind[2]; ++i2)
+				res += (p+1-i2)*(p+1-i2);
+
+		//	add dofs of top z-layer
+			res += ind[1] * (p+1-ind[2]) + ind[0];
+
+			check_index(res);
+			return res;
+			*/
+
+			return 0;
+		}
+
+	///	return the multi_index for an index
+		inline MathVector<dim,int> mapped_multi_index(size_t i) const
+		{
+			/*
+			check_index(i);
+
+		//	get z layer
+			int iTmp = i;
+			int i2;
+			for(i2 = 0; i2 < (int)p; ++i2)
+			{
+				const int diff = iTmp - (p+1-i2)*(p+1-i2);
+				if(diff < 0) break;
+
+				iTmp = diff;
+			}
+
+			return MathVector<dim,int>( iTmp%(p+1-i2), iTmp/(p+1-i2), i2);
+			*/
+
+			return 0;
+		}
+
+	///	checks in debug mode that index is valid
+		inline void check_index(size_t i) const
+		{
+			//UG_ASSERT(i < nsh, "Wrong index.");
+		}
+
+	///	checks in debug mode that multi-index is valid
+		inline void check_multi_index(const MathVector<dim,int>& ind) const
+		{
+			/*
+			UG_ASSERT(ind[0] <= (int)p-ind[2] && ind[0] >= 0, "Wrong Multiindex.");
+			UG_ASSERT(ind[1] <= (int)p-ind[2] && ind[1] >= 0, "Wrong Multiindex.");
+			UG_ASSERT(ind[2] <= (int)p && ind[2] >= 0, "Wrong Multiindex.");
+			*/
+		}
+
+	private:
+		std::vector<std::vector<Polynomial1D> > m_vvPolynom;
+		std::vector<std::vector<Polynomial1D> > m_vvDPolynom;
+
+		MathVector<dim,int> m_vMultiIndex[nsh];
+};
+
 
 } //namespace ug
 
