@@ -66,8 +66,8 @@ class IRefiner
 	/**	\{ */
 		virtual bool mark(Vertex* v, RefinementMark refMark = RM_REFINE)	{return false;}
 		virtual bool mark(Edge* e, RefinementMark refMark = RM_REFINE)		{return false;}
-		virtual bool mark(Face* f, RefinementMark refMark = RM_REFINE)			{return false;}
-		virtual bool mark(Volume* v, RefinementMark refMark = RM_REFINE)		{return false;}
+		virtual bool mark(Face* f, RefinementMark refMark = RM_REFINE)		{return false;}
+		virtual bool mark(Volume* v, RefinementMark refMark = RM_REFINE)	{return false;}
 	/**	\} */
 
 	///	marks the specified geometric object

@@ -166,6 +166,15 @@ FixOrientation(Grid& grid, TVolIterator volsBegin, TVolIterator volsEnd,
  */
 void InsertCenterVertex(Grid& g, Volume* vol, Vertex* vrt, bool eraseOldVol);
 
+
+////////////////////////////////////////////////////////////////////////
+///	Converts all volumes in the given range to tetrahedra
+template <class TVolIter>
+void ConvertToTetrahedra (
+		Grid& grid,
+		TVolIter volsBegin,
+		TVolIter volsEnd);
+
 }//	end of namespace
 
 /// @}

@@ -250,33 +250,33 @@ read_data(BinaryBuffer& in, Volume* o)
  * Don't change the constants, since they are used i.e. in external files too.
  * If you want to add constants, do so at the end of the enumeration.
  */
-enum GridObjectID
+enum GridSerializationID
 {
-	GOID_END_OF_GRID = -2,
-	GOID_INVALID = -1,
+	GSID_END_OF_GRID = -2,
+	GSID_INVALID = -1,
 
-	GOID_GEOMETRIC_OBJECT = 0,
-	GOID_VERTEX_BASE = 10,
-	GOID_VERTEX = 11,
-	GOID_HANGING_VERTEX = 12,
-	GOID_EDGE_BASE = 20,
-	GOID_EDGE = 21,
-	GOID_CONSTRAINED_EDGE = 22,
-	GOID_CONSTRAINING_EDGE = 23,
-	GOID_FACE = 30,
-	GOID_TRIANGLE = 31,
-	GOID_CONSTRAINED_TRIANGLE = 32,
-	GOID_CONSTRAINING_TRIANGLE = 33,
-	GOID_QUADRILATERAL = 40,
-	GOID_CONSTRAINED_QUADRILATERAL = 41,
-	GOID_CONSTRAINING_QUADRILATERAL = 42,
-	GOID_VOLUME = 60,
-	GOID_TETRAHEDRON = 61,
-	GOID_HEXAHEDRON = 70,
-	GOID_PRISM = 80,
-	GOID_PYRAMID = 90,
+	GSID_GEOMETRIC_OBJECT = 0,
+	GSID_VERTEX_BASE = 10,
+	GSID_VERTEX = 11,
+	GSID_HANGING_VERTEX = 12,
+	GSID_EDGE_BASE = 20,
+	GSID_EDGE = 21,
+	GSID_CONSTRAINED_EDGE = 22,
+	GSID_CONSTRAINING_EDGE = 23,
+	GSID_FACE = 30,
+	GSID_TRIANGLE = 31,
+	GSID_CONSTRAINED_TRIANGLE = 32,
+	GSID_CONSTRAINING_TRIANGLE = 33,
+	GSID_QUADRILATERAL = 40,
+	GSID_CONSTRAINED_QUADRILATERAL = 41,
+	GSID_CONSTRAINING_QUADRILATERAL = 42,
+	GSID_VOLUME = 60,
+	GSID_TETRAHEDRON = 61,
+	GSID_HEXAHEDRON = 70,
+	GSID_PRISM = 80,
+	GSID_PYRAMID = 90,
 
-	GOID_NEW_LEVEL = 1000
+	GSID_NEW_LEVEL = 1000
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -425,7 +425,7 @@ bool SerializeGridElements(Grid& grid, GridObjectCollection goc,
 	//	write vertices to the stream
 		if(goc.num<RegularVertex>() > 0)
 		{
-			tInt = GOID_VERTEX;
+			tInt = GSID_VERTEX;
 			out.write((char*)&tInt, sizeof(int));
 			tInt = (int)goc.num<RegularVertex>();
 			out.write((char*)&tInt, sizeof(int));
@@ -434,7 +434,7 @@ bool SerializeGridElements(Grid& grid, GridObjectCollection goc,
 	//	write hanging vertices
 		if(goc.num<ConstrainedVertex>() > 0)
 		{
-			tInt = GOID_HANGING_VERTEX;
+			tInt = GSID_HANGING_VERTEX;
 			out.write((char*)&tInt, sizeof(int));
 			tInt = goc.num<ConstrainedVertex>();
 			out.write((char*)&tInt, sizeof(int));
@@ -462,7 +462,7 @@ bool SerializeGridElements(Grid& grid, GridObjectCollection goc,
 	//	normal edges first.
 		if(goc.num<RegularEdge>() > 0)
 		{
-			tInt = GOID_EDGE;
+			tInt = GSID_EDGE;
 			out.write((char*)&tInt, sizeof(int));
 			tInt = (int)goc.num<RegularEdge>();
 			out.write((char*)&tInt, sizeof(int));
@@ -486,7 +486,7 @@ bool SerializeGridElements(Grid& grid, GridObjectCollection goc,
 	//TODO: add support for constrained faces etc...
 		if(goc.num<Triangle>() > 0)
 		{
-			tInt = GOID_TRIANGLE;
+			tInt = GSID_TRIANGLE;
 			out.write((char*)&tInt, sizeof(int));
 			tInt = (int)goc.num<Triangle>();
 			out.write((char*)&tInt, sizeof(int));
@@ -503,7 +503,7 @@ bool SerializeGridElements(Grid& grid, GridObjectCollection goc,
 		
 		if(goc.num<Quadrilateral>() > 0)
 		{
-			tInt = GOID_QUADRILATERAL;
+			tInt = GSID_QUADRILATERAL;
 			out.write((char*)&tInt, sizeof(int));
 			tInt = (int)goc.num<Quadrilateral>();
 			out.write((char*)&tInt, sizeof(int));
@@ -524,7 +524,7 @@ bool SerializeGridElements(Grid& grid, GridObjectCollection goc,
 	{
 		if(goc.num<Tetrahedron>() > 0)
 		{
-			tInt = GOID_TETRAHEDRON;
+			tInt = GSID_TETRAHEDRON;
 			out.write((char*)&tInt, sizeof(int));
 			tInt = (int)goc.num<Tetrahedron>();
 			out.write((char*)&tInt, sizeof(int));
@@ -542,7 +542,7 @@ bool SerializeGridElements(Grid& grid, GridObjectCollection goc,
 		
 		if(goc.num<Hexahedron>() > 0)
 		{
-			tInt = GOID_HEXAHEDRON;
+			tInt = GSID_HEXAHEDRON;
 			out.write((char*)&tInt, sizeof(int));
 			tInt = (int)goc.num<Hexahedron>();
 			out.write((char*)&tInt, sizeof(int));
@@ -564,7 +564,7 @@ bool SerializeGridElements(Grid& grid, GridObjectCollection goc,
 		
 		if(goc.num<Prism>() > 0)
 		{
-			tInt = GOID_PRISM;
+			tInt = GSID_PRISM;
 			out.write((char*)&tInt, sizeof(int));
 			tInt = (int)goc.num<Prism>();
 			out.write((char*)&tInt, sizeof(int));
@@ -584,7 +584,7 @@ bool SerializeGridElements(Grid& grid, GridObjectCollection goc,
 		
 		if(goc.num<Pyramid>() > 0)
 		{
-			tInt = GOID_PYRAMID;
+			tInt = GSID_PYRAMID;
 			out.write((char*)&tInt, sizeof(int));
 			tInt = (int)goc.num<Pyramid>();
 			out.write((char*)&tInt, sizeof(int));
@@ -603,7 +603,7 @@ bool SerializeGridElements(Grid& grid, GridObjectCollection goc,
 	}
 	
 //	mark the end of the grid-section
-	tInt = GOID_END_OF_GRID;
+	tInt = GSID_END_OF_GRID;
 	out.write((char*)&tInt, sizeof(int));
 
 	return true;
@@ -646,7 +646,7 @@ bool DeserializeGridElements(Grid& grid, BinaryBuffer& in,
 			in.read((char*)&goid, sizeof(int));
 
 		//	check whether we reached the end of the grid-description.
-			if(goid == GOID_END_OF_GRID)
+			if(goid == GSID_END_OF_GRID)
 				break;
 	
 		//	we have to read more elements. check how many.
@@ -656,13 +656,13 @@ bool DeserializeGridElements(Grid& grid, BinaryBuffer& in,
 		//	depending on the goid we'll create new elements.
 			switch(goid)
 			{
-				case GOID_VERTEX:
+				case GSID_VERTEX:
 					{
 						for(int i = 0; i < numElems; ++i)
 							vVrts.push_back(*grid.create<RegularVertex>());
 					}break;
 					
-				case GOID_HANGING_VERTEX:
+				case GSID_HANGING_VERTEX:
 					{
 					//	create the hanging vertices and assign the local coordinates
 						for(int i = 0; i < numElems; ++i)
@@ -676,7 +676,7 @@ bool DeserializeGridElements(Grid& grid, BinaryBuffer& in,
 							vVrts.push_back(hv);
 						}
 					}break;
-				case GOID_EDGE:
+				case GSID_EDGE:
 					{
 						for(int i = 0; i < numElems; ++i)
 						{
@@ -688,7 +688,7 @@ bool DeserializeGridElements(Grid& grid, BinaryBuffer& in,
 							vEdges.push_back(e);
 						}
 					}break;
-				case GOID_TRIANGLE:
+				case GSID_TRIANGLE:
 					{
 						for(int i = 0; i < numElems; ++i)
 						{
@@ -704,7 +704,7 @@ bool DeserializeGridElements(Grid& grid, BinaryBuffer& in,
 							vFaces.push_back(t);
 						}
 					}break;
-				case GOID_QUADRILATERAL:
+				case GSID_QUADRILATERAL:
 					{
 						for(int i = 0; i < numElems; ++i)
 						{
@@ -722,7 +722,7 @@ bool DeserializeGridElements(Grid& grid, BinaryBuffer& in,
 							vFaces.push_back(q);
 						}
 					}break;
-				case GOID_TETRAHEDRON:
+				case GSID_TETRAHEDRON:
 					{
 						for(int i = 0; i < numElems; ++i)
 						{
@@ -737,7 +737,7 @@ bool DeserializeGridElements(Grid& grid, BinaryBuffer& in,
 													vVrts[i3], vVrts[i4]));
 						}
 					}break;
-				case GOID_HEXAHEDRON:
+				case GSID_HEXAHEDRON:
 					{
 						for(int i = 0; i < numElems; ++i)
 						{
@@ -758,7 +758,7 @@ bool DeserializeGridElements(Grid& grid, BinaryBuffer& in,
 													vVrts[i7], vVrts[i8]));
 						}
 					}break;
-				case GOID_PRISM:
+				case GSID_PRISM:
 					{
 						for(int i = 0; i < numElems; ++i)
 						{
@@ -776,7 +776,7 @@ bool DeserializeGridElements(Grid& grid, BinaryBuffer& in,
 													vVrts[i5], vVrts[i6]));
 						}
 					}break;
-				case GOID_PYRAMID:
+				case GSID_PYRAMID:
 					{
 						for(int i = 0; i < numElems; ++i)
 						{
@@ -864,7 +864,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 	for(uint iLevel = 0; iLevel < numLevels; ++iLevel)
 	{
 	//	write the level
-		tInt = GOID_NEW_LEVEL;
+		tInt = GSID_NEW_LEVEL;
 		out.write((char*)&tInt, sizeof(int));
 		out.write((char*)&iLevel, sizeof(uint));
 
@@ -872,7 +872,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 	//	write vertices
 		if(mgoc.num<RegularVertex>(iLevel) > 0)
 		{
-			tInt = GOID_VERTEX;
+			tInt = GSID_VERTEX;
 			out.write((char*)&tInt, sizeof(int));
 			tInt = (int)mgoc.num<RegularVertex>(iLevel);
 			out.write((char*)&tInt, sizeof(int));
@@ -890,7 +890,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 	//	write hanging vertices
 		if(mgoc.num<ConstrainedVertex>(iLevel) > 0)
 		{
-			tInt = GOID_HANGING_VERTEX;
+			tInt = GSID_HANGING_VERTEX;
 			out.write((char*)&tInt, sizeof(int));
 			tInt = mgoc.num<ConstrainedVertex>(iLevel);
 			out.write((char*)&tInt, sizeof(int));
@@ -947,7 +947,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 	//	normal edges first.
 		if(mgoc.num<RegularEdge>(iLevel) > 0)
 		{
-			tInt = GOID_EDGE;
+			tInt = GSID_EDGE;
 			out.write((char*)&tInt, sizeof(int));
 			tInt = (int)mgoc.num<RegularEdge>(iLevel);
 			out.write((char*)&tInt, sizeof(int));
@@ -968,7 +968,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 	//	now constrained edges
 		if(mgoc.num<ConstrainedEdge>(iLevel) > 0)
 		{
-			tInt = GOID_CONSTRAINED_EDGE;
+			tInt = GSID_CONSTRAINED_EDGE;
 			out.write((char*)&tInt, sizeof(int));
 			tInt = (int)mgoc.num<ConstrainedEdge>(iLevel);
 			out.write((char*)&tInt, sizeof(int));
@@ -1012,7 +1012,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 	//	now constraining edges
 		if(mgoc.num<ConstrainingEdge>(iLevel) > 0)
 		{
-			tInt = GOID_CONSTRAINING_EDGE;
+			tInt = GSID_CONSTRAINING_EDGE;
 			out.write((char*)&tInt, sizeof(int));
 			tInt = (int)mgoc.num<ConstrainingEdge>(iLevel);
 			out.write((char*)&tInt, sizeof(int));
@@ -1034,7 +1034,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 	//	faces
 		if(mgoc.num<Triangle>(iLevel) > 0)
 		{
-			tInt = GOID_TRIANGLE;
+			tInt = GSID_TRIANGLE;
 			out.write((char*)&tInt, sizeof(int));
 			tInt = (int)mgoc.num<Triangle>(iLevel);
 			out.write((char*)&tInt, sizeof(int));
@@ -1055,7 +1055,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 
 		if(mgoc.num<Quadrilateral>(iLevel) > 0)
 		{
-			tInt = GOID_QUADRILATERAL;
+			tInt = GSID_QUADRILATERAL;
 			out.write((char*)&tInt, sizeof(int));
 			tInt = (int)mgoc.num<Quadrilateral>(iLevel);
 			out.write((char*)&tInt, sizeof(int));
@@ -1077,7 +1077,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 	
 		if(mgoc.num<ConstrainedTriangle>(iLevel) > 0)
 		{
-			tInt = GOID_CONSTRAINED_TRIANGLE;
+			tInt = GSID_CONSTRAINED_TRIANGLE;
 			out.write((char*)&tInt, sizeof(int));
 			tInt = (int)mgoc.num<ConstrainedTriangle>(iLevel);
 			out.write((char*)&tInt, sizeof(int));
@@ -1115,7 +1115,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 
 		if(mgoc.num<ConstrainedQuadrilateral>(iLevel) > 0)
 		{
-			tInt = GOID_CONSTRAINED_QUADRILATERAL;
+			tInt = GSID_CONSTRAINED_QUADRILATERAL;
 			out.write((char*)&tInt, sizeof(int));
 			tInt = (int)mgoc.num<ConstrainedQuadrilateral>(iLevel);
 			out.write((char*)&tInt, sizeof(int));
@@ -1154,7 +1154,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 
 		if(mgoc.num<ConstrainingTriangle>(iLevel) > 0)
 		{
-			tInt = GOID_CONSTRAINING_TRIANGLE;
+			tInt = GSID_CONSTRAINING_TRIANGLE;
 			out.write((char*)&tInt, sizeof(int));
 			tInt = (int)mgoc.num<ConstrainingTriangle>(iLevel);
 			out.write((char*)&tInt, sizeof(int));
@@ -1175,7 +1175,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 
 		if(mgoc.num<ConstrainingQuadrilateral>(iLevel) > 0)
 		{
-			tInt = GOID_CONSTRAINING_QUADRILATERAL;
+			tInt = GSID_CONSTRAINING_QUADRILATERAL;
 			out.write((char*)&tInt, sizeof(int));
 			tInt = (int)mgoc.num<ConstrainingQuadrilateral>(iLevel);
 			out.write((char*)&tInt, sizeof(int));
@@ -1199,7 +1199,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 	//	volumes
 		if(mgoc.num<Tetrahedron>(iLevel) > 0)
 		{
-			tInt = GOID_TETRAHEDRON;
+			tInt = GSID_TETRAHEDRON;
 			out.write((char*)&tInt, sizeof(int));
 			tInt = (int)mgoc.num<Tetrahedron>(iLevel);
 			out.write((char*)&tInt, sizeof(int));
@@ -1221,7 +1221,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 		
 		if(mgoc.num<Hexahedron>(iLevel) > 0)
 		{
-			tInt = GOID_HEXAHEDRON;
+			tInt = GSID_HEXAHEDRON;
 			out.write((char*)&tInt, sizeof(int));
 			tInt = (int)mgoc.num<Hexahedron>(iLevel);
 			out.write((char*)&tInt, sizeof(int));
@@ -1247,7 +1247,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 		
 		if(mgoc.num<Prism>(iLevel) > 0)
 		{
-			tInt = GOID_PRISM;
+			tInt = GSID_PRISM;
 			out.write((char*)&tInt, sizeof(int));
 			tInt = (int)mgoc.num<Prism>(iLevel);
 			out.write((char*)&tInt, sizeof(int));
@@ -1271,7 +1271,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 		
 		if(mgoc.num<Pyramid>(iLevel) > 0)
 		{
-			tInt = GOID_PYRAMID;
+			tInt = GSID_PYRAMID;
 			out.write((char*)&tInt, sizeof(int));
 			tInt = (int)mgoc.num<Pyramid>(iLevel);
 			out.write((char*)&tInt, sizeof(int));
@@ -1296,7 +1296,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 	mg.end_marking();
 
 //	mark the end of the grid-section
-	tInt = GOID_END_OF_GRID;
+	tInt = GSID_END_OF_GRID;
 	out.write((char*)&tInt, sizeof(int));
 
 	return true;
@@ -1466,10 +1466,10 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 			in.read((char*)&goid, sizeof(int));
 
 		//	check whether we reached the end of the grid-description.
-			if(goid == GOID_END_OF_GRID)
+			if(goid == GSID_END_OF_GRID)
 				break;
 
-			if(goid == GOID_NEW_LEVEL){
+			if(goid == GSID_NEW_LEVEL){
 			//	read the current level and start at the beginning of the loop
 				in.read((char*)&currentLevel, sizeof(uint));
 				continue;
@@ -1482,7 +1482,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 		//	depending on the goid we'll create new elements.
 			switch(goid)
 			{
-				case GOID_VERTEX:
+				case GSID_VERTEX:
 					{
 						SRLZ_PROFILE(srlz_vertices);
 						for(int i = 0; i < numElems; ++i)
@@ -1522,7 +1522,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 						}
 					}break;
 					
-				case GOID_HANGING_VERTEX:
+				case GSID_HANGING_VERTEX:
 					{
 						SRLZ_PROFILE(srlz_hangingVertices);
 					//	create the hanging vertices and assign the local coordinates
@@ -1613,7 +1613,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 							}
 						}
 					}break;
-				case GOID_EDGE:
+				case GSID_EDGE:
 					{
 						SRLZ_PROFILE(srlz_edges);
 						for(int i = 0; i < numElems; ++i)
@@ -1651,7 +1651,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 								(*paaID)[e] = id;
 						}
 					}break;
-				case GOID_CONSTRAINING_EDGE:
+				case GSID_CONSTRAINING_EDGE:
 					{
 						SRLZ_PROFILE(srlz_constrainingEdges);
 						for(int i = 0; i < numElems; ++i)
@@ -1690,7 +1690,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 								(*paaID)[e] = id;
 						}
 					}break;
-				case GOID_CONSTRAINED_EDGE:
+				case GSID_CONSTRAINED_EDGE:
 					{
 						SRLZ_PROFILE(srlz_constrainedEdges);
 						for(int i = 0; i < numElems; ++i)
@@ -1780,7 +1780,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 							}
 						}
 					}break;
-				case GOID_TRIANGLE:
+				case GSID_TRIANGLE:
 					{
 						SRLZ_PROFILE(srlz_triangles);
 						for(int i = 0; i < numElems; ++i)
@@ -1822,7 +1822,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 								(*paaID)[t] = id;
 						}
 					}break;
-				case GOID_QUADRILATERAL:
+				case GSID_QUADRILATERAL:
 					{
 						SRLZ_PROFILE(srlz_quadrilaterals);
 						for(int i = 0; i < numElems; ++i)
@@ -1866,7 +1866,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 						}
 					}break;
 
-				case GOID_CONSTRAINING_TRIANGLE:
+				case GSID_CONSTRAINING_TRIANGLE:
 					{
 						SRLZ_PROFILE(srlz_constrainingTriangles);
 						for(int i = 0; i < numElems; ++i)
@@ -1909,7 +1909,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 						}
 					}break;
 
-				case GOID_CONSTRAINED_TRIANGLE:
+				case GSID_CONSTRAINED_TRIANGLE:
 					{
 						SRLZ_PROFILE(srlz_constrainedTriangles);
 						for(int i = 0; i < numElems; ++i)
@@ -1976,7 +1976,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 						}
 					}break;
 
-				case GOID_CONSTRAINING_QUADRILATERAL:
+				case GSID_CONSTRAINING_QUADRILATERAL:
 					{
 						SRLZ_PROFILE(srlz_constrainingQuadrilaterals);
 						for(int i = 0; i < numElems; ++i)
@@ -2023,7 +2023,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 						}
 					}break;
 
-				case GOID_CONSTRAINED_QUADRILATERAL:
+				case GSID_CONSTRAINED_QUADRILATERAL:
 					{
 						SRLZ_PROFILE(srlz_constrainedQuadrilaterals);
 						for(int i = 0; i < numElems; ++i)
@@ -2094,7 +2094,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 						}
 					}break;
 
-				case GOID_TETRAHEDRON:
+				case GSID_TETRAHEDRON:
 					{
 						SRLZ_PROFILE(srlz_tetrahedrons);
 						for(int i = 0; i < numElems; ++i)
@@ -2139,7 +2139,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 								(*paaID)[t] = id;
 						}
 					}break;
-				case GOID_HEXAHEDRON:
+				case GSID_HEXAHEDRON:
 					{
 						SRLZ_PROFILE(srlz_hexahedrons);
 						for(int i = 0; i < numElems; ++i)
@@ -2188,7 +2188,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 								(*paaID)[h] = id;
 						}
 					}break;
-				case GOID_PRISM:
+				case GSID_PRISM:
 					{
 						SRLZ_PROFILE(srlz_prisms);
 						for(int i = 0; i < numElems; ++i)
@@ -2235,7 +2235,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 								(*paaID)[p] = id;
 						}
 					}break;
-				case GOID_PYRAMID:
+				case GSID_PYRAMID:
 					{
 						SRLZ_PROFILE(srlz_pyramids);
 						for(int i = 0; i < numElems; ++i)

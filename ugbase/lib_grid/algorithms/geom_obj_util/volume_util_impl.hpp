@@ -5,7 +5,13 @@
 #ifndef __H__LIB_GRID__VOLUME_UTIL_IMPL__
 #define __H__LIB_GRID__VOLUME_UTIL_IMPL__
 
+#include <algorithm>
+#include <vector>
 #include "lib_grid/lg_base.h"
+#include "common/util/vec_for_each.h"
+#include "lib_grid/grid_objects/hexahedron_rules.h"
+#include "lib_grid/grid_objects/prism_rules.h"
+#include "lib_grid/grid_objects/pyramid_rules.h"
 
 namespace ug
 {
@@ -159,6 +165,143 @@ FixOrientation(Grid& grid, TVolIterator volsBegin, TVolIterator volsEnd,
 	}
 	
 	return numFlips;
+}
+
+
+///	Can be used to compare vertices of their grids through their hash-value.
+template <class TElem>
+class CmpVrtsByHash{
+	public:
+		CmpVrtsByHash(TElem* e) : m_e(e) {};
+		bool operator () (int i0, int i1) {
+			return m_e->vertex(i0)->get_hash_value() < m_e->vertex(i1)->get_hash_value();
+		}
+	private:
+		TElem* m_e;
+};
+
+
+template <class TVolIter>
+void ConvertToTetrahedra (
+		Grid& grid,
+		TVolIter volsBegin,
+		TVolIter volsEnd)
+{
+	using namespace std;
+
+//	first we'll collect all quadrilaterals that are connected to selected
+//	volumes. Avoid 'grid.mark' here, since it may be used by 'grid.associated_elements'
+	Grid::face_traits::secure_container	faces;
+	vector<Face*>	quads;
+
+	for(TVolIter iv = volsBegin; iv != volsEnd; ++iv){
+		grid.associated_elements(faces, *iv);
+		for_each_in_vec(Face* f, faces){
+			if(f->num_vertices() == 4)
+				quads.push_back(f);
+		}for_end;
+	}
+
+//	remove double entries
+	grid.begin_marking();
+	size_t offset = 0;
+
+	for(size_t i = 0; i + offset < quads.size();){
+		if(offset > 0)
+			quads[i] = quads[i + offset];
+		
+		if(!grid.is_marked(quads[i])){
+			grid.mark(quads[i]);
+			++i;
+		}
+		else{
+			++offset;
+		}
+	}
+
+	if(offset > 0)
+		quads.resize(quads.size() - offset);
+
+	grid.end_marking();
+
+	for_each_in_vec(Face* f, quads){
+//todo	in a parallel environment, global id's should be compared here
+		CmpVrtsByHash<Face> cmp(f);
+	//	get the smallest vertex of the face
+		int smallest = 0;
+		for(int i = 1; i < 4; ++i){
+			if(cmp(i, smallest))
+				smallest = i;
+		}
+
+		int i0 = smallest;
+		int i1 = (smallest + 1) % 4;
+		int i2 = (smallest + 2) % 4;
+		int i3 = (smallest + 3) % 4;
+		grid.create<Triangle>(TriangleDescriptor(f->vertex(i0), f->vertex(i1), f->vertex(i2)), f);
+		grid.create<Triangle>(TriangleDescriptor(f->vertex(i2), f->vertex(i3), f->vertex(i0)), f);
+	}for_end;
+
+
+//	now convert the given volume-elements
+	static const int arrayLen = max(pyra_rules::MAX_NUM_INDS_OUT,
+									max(prism_rules::MAX_NUM_INDS_OUT,
+										hex_rules::MAX_NUM_INDS_OUT));
+	int inds[arrayLen];
+	
+	vector<Volume*> volsToErase;
+	for(TVolIter iv = volsBegin; iv != volsEnd; ++iv){
+		Volume* vol = *iv;
+		const ReferenceObjectID roid = vol->reference_object_id();
+		CmpVrtsByHash<Volume> cmp(vol);
+		int numEntries = 0;
+
+		switch(roid){
+			case ROID_PYRAMID:
+				UG_THROW("ConvertToTetrahedra for pyramids not yet implemented!");
+				break;
+
+			case ROID_PRISM:
+				numEntries = prism_rules::ConvertToTetrahedra(inds, cmp);
+				break;
+
+			case ROID_HEXAHEDRON:
+				UG_THROW("ConvertToTetrahedra for hexahedra not yet implemented!");
+				break;
+			default:
+				break;
+		}
+
+		if(numEntries > 0){
+			volsToErase.push_back(vol);
+			size_t i = 0;
+			Volume::ConstVertexArray vrts = vol->vertices();
+			while(i < numEntries){
+				int goid = inds[i++];
+				UG_COND_THROW(goid != GOID_TETRAHEDRON,
+							  "Only tetrahedra may result from ConvertToTetrahedra");
+				int i0 = inds[i++];
+				int i1 = inds[i++];
+				int i2 = inds[i++];
+				int i3 = inds[i++];
+				grid.create<Tetrahedron>(
+					TetrahedronDescriptor(vrts[i0], vrts[i1], vrts[i2], vrts[i3]),
+					vol);
+			}
+		}
+	}
+
+//	finally erase all unused volumes and quadrilaterals
+	for_each_in_vec(Volume* v, volsToErase){
+		grid.erase(v);
+	}for_end;
+
+	Grid::volume_traits::secure_container	assVols;
+	for_each_in_vec(Face* f, quads){
+		grid.associated_elements(assVols, f);
+		if(assVols.empty())
+			grid.erase(f);
+	}for_end;
 }
 
 }//	end of namespace

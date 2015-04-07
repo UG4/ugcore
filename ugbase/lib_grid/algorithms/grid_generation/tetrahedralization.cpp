@@ -344,7 +344,7 @@ static bool PerformRetetrahedralization(Grid& grid,
 
 		int curTri = 0;
 		for(TriangleIterator iter = grid.begin<Triangle>();
-			iter != grid.end<Triangle>(); ++iter, ++curTri)
+			iter != grid.end<Triangle>(); ++iter)
 		{
 			Triangle* t = *iter;
 
@@ -359,6 +359,8 @@ static bool PerformRetetrahedralization(Grid& grid,
 
 		//	set the face mark
 			in.trifacemarkerlist[curTri] = sh.get_subset_index(t);
+
+			++curTri;
 		}
 	}
 

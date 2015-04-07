@@ -58,6 +58,7 @@ set(srcAlgorithms	algorithms/debug_util.cpp
 					# (unmaintained) algorithms/refinement/hanging_node_refiner_2d_irn.cpp
 					# (unmaintained) algorithms/refinement/multi_grid_refiner.cpp
 					algorithms/refinement/regular_refinement.cpp
+					algorithms/refinement/regular_refiner_multi_grid.cpp
 					algorithms/refinement/global_multi_grid_refiner.cpp
 					algorithms/refinement/global_fractured_media_refiner.cpp
 					algorithms/subdivision/subdivision_loop.cpp

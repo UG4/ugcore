@@ -149,7 +149,48 @@ const int FACE_FROM_EDGES[][9] =
 int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut,
 		   vector3* corners = NULL);
 
+
+/// fills an array of integers describing tetrahedra that shall replace the prism
+/**	The method requires a compare-operator that defines a strict (global) ordering on the
+ * vertices of the prism. Note that this operate should return consistent results
+ * for all vertices in a given grid. The ordering is used to decide along which
+ * diagonal each quadrilateral is split. Each new diagonal will start at the
+ * smallest vertex of the corresponding quadrilateral, regarding the given ordering.
+ *
+ * The specified compare function (or compare operator) 'bool cmp (int i0, int i1)'
+ * will be called with two local corner indices and has to return true, if vertex
+ * at the first corner shall be considered smaller (globally) than the vertex at
+ * the second corner.
+ *
+ * The idea and implementation follows:
+ * Dompierre et al., "How to Subdivide Pyramids, Prisms and Hexahedra into Tetrahedra"
+ *
+ * \param newIndsOut	Array which has to be of size MAX_NUM_INDS_OUT.
+ * 						When the algorithm is done, the array will contain
+ * 						sequences of integers: {{gridObjectID, ind1, ind2, ...}, ...}.
+ *						gridObjectID is a constant enumerated in GridObjectID and
+ *						describes the type of the grid-object that is
+ *						built from the following set of corner indices.
+ *
+ * \param cmp			A function object that induces a strict ordering on the
+ *						corners of the prism. The method shall return true if
+ *						the vertex at the first corner-index shall be considered
+ *						smaller than the vertex at the second corner index.
+ *						If multiple prisms shall be converted to tetrahedra, it
+ *						is important that the given ordering is global, i.e., if
+ *						a pair of vertices is present in two connected prisms,
+ *						the 'cmp' operator has to return the same value.
+ *
+ * \returns	the number of entries written to newIndsOut or 0, if the refinement
+ * 			could not be performed.*/
+template <class TCmp>
+int ConvertToTetrahedra(int* newIndsOut, TCmp cmp);
+
 }//	end of namespace
 }//	end of namespace
+
+////////////////////////////////////////
+//	include implementation
+#include "prism_rules_impl.h"
 
 #endif

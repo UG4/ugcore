@@ -163,7 +163,7 @@ remove_small_holes(number maxArea, number minHeight)
 						//	we have to adjust not only the value in the current layer
 						//	but also possibly values in lower levels, to avoid
 						//	creating new thin layers
-							number curVal = result.second;
+							number curVal = result.second - minHeight;
 							field.at(ix, iy) = curVal;
 							for(int lowerLvl = lvl - 1; lowerLvl >= 0 ; --lowerLvl){
 								Heightfield& lhf = layer(lowerLvl);
