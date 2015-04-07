@@ -240,28 +240,28 @@ class UG_API Selector : public ISelector
 		inline VertexSectionContainer::iterator
 		get_iterator(Vertex* o)
 		{
-			assert((is_selected(o) >= 0) && "object not selected.");
+			assert(is_selected(o) && "object not selected.");
 			return section_container<Vertex>().get_container().get_iterator(o);
 		}
 
 		inline EdgeSectionContainer::iterator
 		get_iterator(Edge* o)
 		{
-			assert((is_selected(o) >= 0) && "object not selected");
+			assert(is_selected(o) && "object not selected");
 			return section_container<Edge>().get_container().get_iterator(o);
 		}
 
 		inline FaceSectionContainer::iterator
 		get_iterator(Face* o)
 		{
-			assert((is_selected(o) >= 0) && "object not selected");
+			assert(is_selected(o) && "object not selected");
 			return section_container<Face>().get_container().get_iterator(o);
 		}
 
 		inline VolumeSectionContainer::iterator
 		get_iterator(Volume* o)
 		{
-			assert((is_selected(o) >= 0) && "object not selected");
+			assert(is_selected(o) && "object not selected");
 			return section_container<Volume>().get_container().get_iterator(o);
 		}
 	/**	\}	*/

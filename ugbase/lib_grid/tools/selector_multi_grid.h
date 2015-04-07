@@ -375,7 +375,7 @@ class UG_API MGSelector : public ISelector
 		inline VertexSectionContainer::iterator
 		get_level_iterator(Vertex* o)
 		{
-			assert((is_selected(o) >= 0) && "object not selected.");
+			assert(is_selected(o) && "object not selected.");
 			return section_container<Vertex>(m_pMultiGrid->get_level(o)).
 				get_container().get_iterator(o);
 		}
@@ -383,7 +383,7 @@ class UG_API MGSelector : public ISelector
 		inline EdgeSectionContainer::iterator
 		get_level_iterator(Edge* o)
 		{
-			assert((is_selected(o) >= 0) && "object not selected");
+			assert(is_selected(o) && "object not selected");
 			return section_container<Edge>(m_pMultiGrid->get_level(o)).
 				get_container().get_iterator(o);
 		}
@@ -391,7 +391,7 @@ class UG_API MGSelector : public ISelector
 		inline FaceSectionContainer::iterator
 		get_level_iterator(Face* o)
 		{
-			assert((is_selected(o) >= 0) && "object not selected");
+			assert(is_selected(o) && "object not selected");
 			return section_container<Face>(m_pMultiGrid->get_level(o)).
 				get_container().get_iterator(o);
 		}
@@ -399,7 +399,7 @@ class UG_API MGSelector : public ISelector
 		inline VolumeSectionContainer::iterator
 		get_level_iterator(Volume* o)
 		{
-			assert((is_selected(o) >= 0) && "object not selected");
+			assert(is_selected(o) && "object not selected");
 			return section_container<Volume>(m_pMultiGrid->get_level(o)).
 				get_container().get_iterator(o);
 		}
