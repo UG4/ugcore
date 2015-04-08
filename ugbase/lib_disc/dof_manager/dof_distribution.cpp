@@ -1313,7 +1313,7 @@ void DoFDistribution::reinit()
 	//	in order to also cater for some seldom occurring parallel cases, we have
 	//	to perform a slightly cumbersome iteration here. The basic idea is the following:
 	//	Each PURE_SURFACE element requires a dof. Furthermore all SHADOWING elements
-	//	which are not SHADOWED require a dof. SHADWOED_NONCOPY elements also require
+	//	which are not SHADOWED require a dof. SHADOWED_NONCOPY elements also require
 	//	a dof and SHADOWED_COPY elements have to copy their dofs from their SHADOWING
 	//	element.
 	//	In parallel, however, a problem occurs. The associated SHADOWING element of

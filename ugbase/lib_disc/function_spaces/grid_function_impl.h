@@ -432,10 +432,8 @@ grid_distribution_callback(const GridMessage_Distribution& msg)
 				// all grid functions must resize to the current number of dofs
 				resize_values(num_indices());
 
-				#ifdef UG_PARALLEL
 				//	set layouts
 				this->set_layouts(m_spDD->layouts());
-				#endif
 
 				if(redistribution_enabled()){
 					m_spAdaptGridFct->copy_to_surface(*this);
