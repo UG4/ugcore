@@ -58,18 +58,37 @@ extract_dof_indices(ConstSmartPtr<DoFDistribution> dd)
 {
 	typename DoFDistribution::traits<TBaseElem>::const_iterator iter, iterBegin, iterEnd;
 
-	//	get element iterator for current subset
-	iterBegin = dd->template begin<TBaseElem>();
-	iterEnd = dd->template end<TBaseElem>();
+	const SurfaceView& sv = *dd->surface_view();
+	const MultiGrid& mg = *dd->multi_grid();
+
+	// We need to iterate over SurfaceView::ALL unknowns here since, in parallel,
+	// it is possible for the shadowing elems of SHADOW_RIM_COPY elem to be located
+	// on a different processor!
+	// (cf. DoFDistribution::reinit() implementation comments)
+
+	// iterate all elements (including SHADOW_RIM_COPY!)
+	iterBegin = dd->template begin<TBaseElem>(SurfaceView::ALL);
+	iterEnd = dd->template end<TBaseElem>(SurfaceView::ALL);
 
 	// loop over all elements
 	std::vector<DoFIndex> vInd;
 	for (iter = iterBegin; iter != iterEnd; ++iter)
 	{
+		TBaseElem* elem = *iter;
+		if (sv.is_contained(elem, dd->grid_level(), SurfaceView::SHADOW_RIM_COPY))
+		{
+			if (mg.num_children<TBaseElem>(elem) > 0)
+			{
+				TBaseElem* child = mg.get_child<TBaseElem>(elem, 0);
+				if (sv.is_contained(child, dd->grid_level(), SurfaceView::SURFACE_RIM))
+					continue;
+			}
+		}
+
 		for (size_t fi = 0; fi < dd->num_fct(); fi++)
 		{
 			// inner multi indices of the grid object for a function component
-			dd->inner_dof_indices(*iter, fi, vInd);
+			dd->inner_dof_indices(elem, fi, vInd);
 
 			// remember multi indices
 			for (size_t dof = 0; dof < vInd.size(); dof++)
