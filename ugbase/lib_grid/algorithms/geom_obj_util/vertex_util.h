@@ -71,6 +71,23 @@ UG_API int GetConnectedVertexIndex(Face* f, const EdgeDescriptor& ed);
 /**	Make sure that tri is a triangle!*/
 UG_API Edge* GetConnectedEdge(Grid& g, Vertex* vrt, Face* tri);
 
+
+////////////////////////////////////////////////////////////////////////
+///	returns the first vertex of vrts0 that is also contained in vrts1 (or NULL if no such vertex exists)
+UG_API Vertex* GetSharedVertex(IVertexGroup* vrts0, IVertexGroup* vrts1);
+
+////////////////////////////////////////////////////////////////////////
+///	fills a vector with the vertices that are both contained in vrts0 and vrts1.
+/** \return	The number of shared vertices*/
+size_t GetSharedVertices(
+			std::vector<Vertex*>& vrtsOut,
+			IVertexGroup* vrts0,
+			IVertexGroup* vrts1);
+
+////////////////////////////////////////////////////////////////////////
+///	Returns the number of shared vertices between vrts0 and vrts1
+size_t NumSharedVertices(IVertexGroup* vrts0, IVertexGroup* vrts1);
+
 ////////////////////////////////////////////////////////////////////////
 ///	returns the number of associated edges of the given vertex
 UG_API

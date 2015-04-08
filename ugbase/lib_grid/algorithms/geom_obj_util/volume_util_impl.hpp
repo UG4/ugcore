@@ -199,7 +199,7 @@ void ConvertToTetrahedra (
 		for_each_in_vec(Face* f, faces){
 			if(f->num_vertices() == 4)
 				quads.push_back(f);
-		}for_end;
+		}end_for;
 	}
 
 //	remove double entries
@@ -240,7 +240,7 @@ void ConvertToTetrahedra (
 		int i3 = (smallest + 3) % 4;
 		grid.create<Triangle>(TriangleDescriptor(f->vertex(i0), f->vertex(i1), f->vertex(i2)), f);
 		grid.create<Triangle>(TriangleDescriptor(f->vertex(i2), f->vertex(i3), f->vertex(i0)), f);
-	}for_end;
+	}end_for;
 
 
 //	now convert the given volume-elements
@@ -294,14 +294,14 @@ void ConvertToTetrahedra (
 //	finally erase all unused volumes and quadrilaterals
 	for_each_in_vec(Volume* v, volsToErase){
 		grid.erase(v);
-	}for_end;
+	}end_for;
 
 	Grid::volume_traits::secure_container	assVols;
 	for_each_in_vec(Face* f, quads){
 		grid.associated_elements(assVols, f);
 		if(assVols.empty())
 			grid.erase(f);
-	}for_end;
+	}end_for;
 }
 
 }//	end of namespace

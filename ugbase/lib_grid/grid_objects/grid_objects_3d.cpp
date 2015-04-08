@@ -97,6 +97,34 @@ struct GridObjectInfo{
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	TOOLS
+static
+void CreateVolumesFromElementIndexList (
+		vector<Volume*>& volsOut,
+		int* elemIndexList,
+		int elemIndexListSize,
+		Vertex** vrts)
+{
+	VolumeDescriptor vd;
+	volsOut.clear();
+
+	for(int i = 0; i < elemIndexListSize;){
+		int gridObjectID = elemIndexList[i++];
+		size_t num = GridObjectInfo::num_vertices(gridObjectID);
+		vd.set_num_vertices(num);
+		for(size_t j = 0; j < num; ++j){
+			assert(vrts[elemIndexList[i]]);
+			vd.set_vertex(j, vrts[elemIndexList[i++]]);
+		}
+
+		switch(gridObjectID){
+			case GOID_TETRAHEDRON:	volsOut.push_back(new Tetrahedron(vd));	break;
+			case GOID_PYRAMID:		volsOut.push_back(new Pyramid(vd));		break;
+			case GOID_PRISM:		volsOut.push_back(new Prism(vd)); 		break;
+			case GOID_HEXAHEDRON:	volsOut.push_back(new Hexahedron(vd));	break;
+			case GOID_OCTAHEDRON:	volsOut.push_back(new Octahedron(vd));	break;
+		}
+	}
+}
 ///	helpful if a local vertex-order is required
 /**
  * cornersOut and cornersIn both have to be of size numCorners.
@@ -196,26 +224,24 @@ static bool Refine(std::vector<Volume*>& vNewVolumesOut,
 	UG_LOG(endl);
 */
 
-//	the VolumeDescriptor will be used to create new volumes
-	VolumeDescriptor vd;
+	CreateVolumesFromElementIndexList(vNewVolumesOut, newElemInds, numElemInds, allVrts);
+	// for(int i = 0; i < numElemInds;){
+	// 	int gridObjectID = newElemInds[i++];
+	// 	size_t num = GridObjectInfo::num_vertices(gridObjectID);
+	// 	vd.set_num_vertices(num);
+	// 	for(size_t j = 0; j < num; ++j){
+	// 		assert(allVrts[newElemInds[i]]);
+	// 		vd.set_vertex(j, allVrts[newElemInds[i++]]);
+	// 	}
 
-	for(int i = 0; i < numElemInds;){
-		int gridObjectID = newElemInds[i++];
-		size_t num = GridObjectInfo::num_vertices(gridObjectID);
-		vd.set_num_vertices(num);
-		for(size_t j = 0; j < num; ++j){
-			assert(allVrts[newElemInds[i]]);
-			vd.set_vertex(j, allVrts[newElemInds[i++]]);
-		}
-
-		switch(gridObjectID){
-			case GOID_TETRAHEDRON:	vNewVolumesOut.push_back(new Tetrahedron(vd));	break;
-			case GOID_PYRAMID:		vNewVolumesOut.push_back(new Pyramid(vd));		break;
-			case GOID_PRISM:		vNewVolumesOut.push_back(new Prism(vd)); 		break;
-			case GOID_HEXAHEDRON:	vNewVolumesOut.push_back(new Hexahedron(vd));	break;
-			case GOID_OCTAHEDRON:	vNewVolumesOut.push_back(new Octahedron(vd));	break;
-		}
-	}
+	// 	switch(gridObjectID){
+	// 		case GOID_TETRAHEDRON:	vNewVolumesOut.push_back(new Tetrahedron(vd));	break;
+	// 		case GOID_PYRAMID:		vNewVolumesOut.push_back(new Pyramid(vd));		break;
+	// 		case GOID_PRISM:		vNewVolumesOut.push_back(new Prism(vd)); 		break;
+	// 		case GOID_HEXAHEDRON:	vNewVolumesOut.push_back(new Hexahedron(vd));	break;
+	// 		case GOID_OCTAHEDRON:	vNewVolumesOut.push_back(new Octahedron(vd));	break;
+	// 	}
+	// }
 
 	return true;
 }
@@ -541,6 +567,7 @@ bool Octahedron::collapse_edge(std::vector<Volume*>& vNewVolumesOut,
 {
 //	NOT YET SUPPORTED!
 //TODO: implement octahedron::collapse_edge
+	vNewVolumesOut.clear();
 	UG_LOG("edge-collapse for octahedrons not yet implemented... sorry\n");
 	return false;
 }
@@ -738,6 +765,7 @@ bool Hexahedron::collapse_edge(std::vector<Volume*>& vNewVolumesOut,
 {
 //	NOT YET SUPPORTED!
 //TODO: implement Hexahedron::collapse_edge
+	vNewVolumesOut.clear();
 	UG_LOG("edge-collapse for hexahedrons not yet implemented... sorry\n");
 	return false;
 }
@@ -949,10 +977,32 @@ bool Prism::collapse_edge(std::vector<Volume*>& vNewVolumesOut,
 					int edgeIndex, Vertex* newVertex,
 					std::vector<Vertex*>* pvSubstituteVertices)
 {
-//	NOT YET SUPPORTED!
-//TODO: implement prism::collapse_edge
-	UG_LOG("edge-collapse for prism not yet implemented... sorry\n");
-	return false;
+	using namespace prism_rules;
+
+	int elemInds[MAX_NUM_COLLAPSE_INDS_OUT];
+	int elemIndsSize = CollapseEdge(
+							elemInds,
+							EDGE_VRT_INDS[edgeIndex][0],
+							EDGE_VRT_INDS[edgeIndex][1]);
+
+	if(elemIndsSize > 0){
+		Vertex** vrts;
+		if(pvSubstituteVertices)
+			vrts = &pvSubstituteVertices->front();
+		else
+			vrts = m_vertices;
+
+		CreateVolumesFromElementIndexList(
+			vNewVolumesOut,
+			elemInds,
+			elemIndsSize,
+			vrts);
+		return !vNewVolumesOut.empty();
+	}
+	else{
+		vNewVolumesOut.clear();
+		return false;
+	}
 }
 
 bool Prism::refine(std::vector<Volume*>& vNewVolumesOut,
@@ -1139,10 +1189,32 @@ bool Pyramid::collapse_edge(std::vector<Volume*>& vNewVolumesOut,
 					int edgeIndex, Vertex* newVertex,
 					std::vector<Vertex*>* pvSubstituteVertices)
 {
-//	NOT YET SUPPORTED!
-//TODO: implement pyramids::collapse_edge
-	UG_LOG("edge-collapse for pyramids not yet implemented... sorry\n");
-	return false;
+	using namespace pyra_rules;
+
+	int elemInds[MAX_NUM_COLLAPSE_INDS_OUT];
+	int elemIndsSize = CollapseEdge(
+							elemInds,
+							EDGE_VRT_INDS[edgeIndex][0],
+							EDGE_VRT_INDS[edgeIndex][1]);
+
+	if(elemIndsSize > 0){
+		Vertex** vrts;
+		if(pvSubstituteVertices)
+			vrts = &pvSubstituteVertices->front();
+		else
+			vrts = m_vertices;
+
+		CreateVolumesFromElementIndexList(
+			vNewVolumesOut,
+			elemInds,
+			elemIndsSize,
+			vrts);
+		return !vNewVolumesOut.empty();
+	}
+	else{
+		vNewVolumesOut.clear();
+		return false;
+	}
 }
 
 bool Pyramid::refine(std::vector<Volume*>& vNewVolumesOut,

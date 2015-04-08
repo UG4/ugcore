@@ -190,68 +190,73 @@ static inline unsigned long HashKey(const VolumeVertices* key)
 ////////////////////////////////////////////////////////////////////////
 //	hash-funtions for vertices
 //	returns the hash-value of the vertex.
-template <>
-size_t hash_key<PVertex>(const PVertex& key)
+size_t hash_key(Vertex* key)
 {
 	return (unsigned long)key->get_hash_value();
 }
 
 ////////////////////////////////////////////////////////////////////////
 //	hash-funtions for edges
-template <>
-size_t hash_key<PEdgeVertices>(const PEdgeVertices& key)
+size_t hash_key(EdgeVertices* key)
 {
 	return HashKey(key);
 }
 
-template <>
-size_t hash_key<PEdge>(const PEdge& key)
+size_t hash_key(const EdgeVertices* key)
 {
 	return HashKey(key);
 }
 
-template <>
-size_t hash_key<PEdgeDescriptor>(const PEdgeDescriptor& key)
+size_t hash_key(Edge* key)
+{
+	return HashKey(key);
+}
+
+size_t hash_key(EdgeDescriptor* key)
 {
 	return HashKey(key);
 }
 
 ////////////////////////////////////////////////////////////////////////
 //	hash-funtions for faces
-template <>
-size_t hash_key<PFaceVertices>(const PFaceVertices& key)
+size_t hash_key(FaceVertices* key)
 {
 	return HashKey(key);
 }
 
-template <>
-size_t hash_key<PFace>(const PFace& key)
+size_t hash_key(const FaceVertices* key)
 {
 	return HashKey(key);
 }
 
-template <>
-size_t hash_key<PFaceDescriptor>(const PFaceDescriptor& key)
+size_t hash_key(Face* key)
+{
+	return HashKey(key);
+}
+
+size_t hash_key(FaceDescriptor* key)
 {
 	return HashKey(key);
 }
 
 ////////////////////////////////////////////////////////////////////////
 //	hash-funtions for volumes
-template <>
-size_t hash_key<PVolumeVertices>(const PVolumeVertices& key)
+size_t hash_key(VolumeVertices* key)
 {
 	return HashKey(key);
 }
 
-template <>
-size_t hash_key<PVolume>(const PVolume& key)
+size_t hash_key(const VolumeVertices* key)
 {
 	return HashKey(key);
 }
 
-template <>
-size_t hash_key<PVolumeDescriptor>(const PVolumeDescriptor& key)
+size_t hash_key(Volume* key)
+{
+	return HashKey(key);
+}
+
+size_t hash_key(VolumeDescriptor* key)
 {
 	return HashKey(key);
 }

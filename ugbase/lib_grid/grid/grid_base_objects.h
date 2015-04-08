@@ -102,20 +102,6 @@ class EdgeVertices;		//	manages the vertices of an edge. Base for Edge and EdgeD
 class FaceVertices;		//	manages the vertices of a face. Base for Face and FaceDescriptor.
 class VolumeVertices;	//	manages the vertices of a volume. Base for Volume and VolumeDescriptor.
 
-//	pointer-types. Primarily required for template-specializations.
-typedef Vertex*	PVertex;
-typedef Edge*		PEdge;
-typedef Face*			PFace;
-typedef Volume*		PVolume;
-
-typedef EdgeDescriptor*	PEdgeDescriptor;
-typedef FaceDescriptor*	PFaceDescriptor;
-typedef VolumeDescriptor*	PVolumeDescriptor;
-
-typedef EdgeVertices*		PEdgeVertices;
-typedef FaceVertices*		PFaceVertices;
-typedef VolumeVertices*		PVolumeVertices;
-
 template<> class attachment_traits<Vertex*, ElementStorage<Vertex> >;
 template<> class attachment_traits<Edge*, ElementStorage<Edge> >;
 template<> class attachment_traits<Face*, ElementStorage<Face> >;
@@ -916,8 +902,7 @@ struct PtrToValueType<Volume*>
 ////////////////////////////////////////////////////////////////////////
 //	hash-funtions for vertices
 ///	returns the hash-value of the vertex.
-template <>
-size_t hash_key<PVertex>(const PVertex& key);
+size_t hash_key(Vertex* key);
 
 ////////////////////////////////////////////////////////////////////////
 //	hash-funtions for edges
@@ -928,18 +913,16 @@ size_t hash_key<PVertex>(const PVertex& key);
  * as another Edge (or EdgeDescriptor), the hash-keys
  * are the same.
  */
-template <>
-size_t hash_key<PEdgeVertices>(const PEdgeVertices& key);
+size_t hash_key(EdgeVertices* key);
+size_t hash_key(const EdgeVertices* key);
 
 ///	the hash-key is a function of vertex-hash-values.
 /** \sa hash_key<PEdgeVertices>*/
-template <>
-size_t hash_key<PEdge>(const PEdge& key);
+size_t hash_key(Edge* key);
 
 ///	the hash-key is a function of vertex-hash-values.
 /** \sa hash_key<PEdgeVertices>*/
-template <>
-size_t hash_key<PEdgeDescriptor>(const PEdgeDescriptor& key);
+size_t hash_key(EdgeDescriptor* key);
 
 ////////////////////////////////////////////////////////////////////////
 //	hash-funtions for faces
@@ -950,18 +933,16 @@ size_t hash_key<PEdgeDescriptor>(const PEdgeDescriptor& key);
  * as another Face (or FaceDescriptor), the hash-keys
  * are the same.
  */
-template <>
-size_t hash_key<PFaceVertices>(const PFaceVertices& key);
+size_t hash_key(FaceVertices* key);
+size_t hash_key(const FaceVertices* key);
 
 ///	the hash-key is a function of vertex-hash-values.
 /**\sa hash_key<PFaceVertices>*/
-template <>
-size_t hash_key<PFace>(const PFace& key);
+size_t hash_key(Face* key);
 
 ///	the hash-key is a function of vertex-hash-values.
 /**\sa hash_key<PFaceVertices>*/
-template <>
-size_t hash_key<PFaceDescriptor>(const PFaceDescriptor& key);
+size_t hash_key(FaceDescriptor* key);
 
 ////////////////////////////////////////////////////////////////////////
 //	hash-funtions for volumes
@@ -972,18 +953,16 @@ size_t hash_key<PFaceDescriptor>(const PFaceDescriptor& key);
  * as another Volume (or VolumeDescriptor), the hash-keys
  * are the same.
  */
-template <>
-size_t hash_key<PVolumeVertices>(const PVolumeVertices& key);
+size_t hash_key(VolumeVertices* key);
+size_t hash_key(const VolumeVertices* key);
 
 ///	the hash-key is a function of vertex-hash-values.
 /**\sa hash_key<PVolumeVertices>*/
-template <>
-size_t hash_key<PVolume>(const PVolume& key);
+size_t hash_key(Volume* key);
 
 ///	the hash-key is a function of vertex-hash-values.
 /**\sa hash_key<PVolumeVertices>*/
-template <>
-size_t hash_key<PVolumeDescriptor>(const PVolumeDescriptor& key);
+size_t hash_key(VolumeDescriptor* key);
 
 }//	end of namespace
 

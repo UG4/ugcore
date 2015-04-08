@@ -502,7 +502,7 @@ void ExtrudeLayers(Grid& grid, const RasterLayers& layers,
 			if(volSubsetInds[ivol] != ilayer)
 				continue;
 
-			const number shrinkConst = 0.2;
+			const number shrinkConst = 1;
 			const number minHeight = shrinkConst * volHeightVals[ivol];
 
 			for(assocVolEdgeIter.reinit(grid, vol); assocVolEdgeIter.valid();
@@ -528,77 +528,80 @@ void ExtrudeLayers(Grid& grid, const RasterLayers& layers,
 	//	Push all new vertices which do not belong to the current layer to smoothVrts
 	//	and the vertices directly above them to tmpVrts.
 	//	Calculate height for each new vertex on the fly
-		smoothVrts.clear();
-		tmpVrts.clear();
-		for(size_t ivrt = 0; ivrt < curVrts.size(); ++ivrt){
-			Vertex* v = curVrts[ivrt];
-			Vertex* conVrt = NULL;
-			for(assocVrtEdgeIterOneMarked.reinit(grid, v);
-				assocVrtEdgeIterOneMarked.valid(); ++assocVrtEdgeIterOneMarked)
-			{
-				conVrt = GetConnectedVertex(*assocVrtEdgeIterOneMarked, v);
-				aaHeight[v] = aaPos[conVrt].z() - aaPos[v].z();
+		const bool performSmoothing = false;
+		if(performSmoothing){
+			smoothVrts.clear();
+			tmpVrts.clear();
+			for(size_t ivrt = 0; ivrt < curVrts.size(); ++ivrt){
+				Vertex* v = curVrts[ivrt];
+				Vertex* conVrt = NULL;
+				for(assocVrtEdgeIterOneMarked.reinit(grid, v);
+					assocVrtEdgeIterOneMarked.valid(); ++assocVrtEdgeIterOneMarked)
+				{
+					conVrt = GetConnectedVertex(*assocVrtEdgeIterOneMarked, v);
+					aaHeight[v] = aaPos[conVrt].z() - aaPos[v].z();
+				}
+				if((sh.get_subset_index(v) != ilayer) && conVrt){
+					smoothVrts.push_back(v);
+					tmpVrts.push_back(conVrt);
+				}
 			}
-			if((sh.get_subset_index(v) != ilayer) && conVrt){
-				smoothVrts.push_back(v);
-				tmpVrts.push_back(conVrt);
+
+
+		//	to perform smoothing we need different marks again
+			grid.clear_marks();
+
+		//	we'll mark all smoothing vertices
+			grid.mark(smoothVrts.begin(), smoothVrts.end());
+
+		//	and we'll mark all those edges along which we'll smooth
+			for(size_t iface = 0; iface < curFaces.size(); ++iface){
+				for(assocFaceEdgeIter.reinit(grid, curFaces[iface]); assocFaceEdgeIter.valid();
+					++assocFaceEdgeIter)
+				{
+					grid.mark(*assocFaceEdgeIter);
+				}
 			}
-		}
 
+		//	during smoothing, the height of non-marked vertices will be weighted stronger
+		//	than the height of marked ones
+			const size_t numSmoothIterations = 100;
+			const number markedWeight = 1.0;
+			const number smoothAlpha = 0.5;
+			for(size_t iSmoothIter = 0; iSmoothIter < numSmoothIterations; ++iSmoothIter){
+				for(size_t ivrt = 0; ivrt < smoothVrts.size(); ++ivrt){
+					Vertex* v = smoothVrts[ivrt];
+					number totalNbrWeight = 0;
+					number avHeight = 0;
+					for(assocVrtEdgeIterMarkedEdge.reinit(grid, v); assocVrtEdgeIterMarkedEdge.valid();
+						++assocVrtEdgeIterMarkedEdge)
+					{
+						Vertex* conVrt = GetConnectedVertex(*assocVrtEdgeIterMarkedEdge, v);
+						if(grid.is_marked(conVrt)){
+							avHeight += markedWeight * aaHeight[conVrt];
+							totalNbrWeight += markedWeight;
+						}
+						else{
+							avHeight += aaHeight[conVrt];
+							totalNbrWeight += 1;
+						}
+					}
 
-	//	to perform smoothing we need different marks again
-		grid.clear_marks();
-
-	//	we'll mark all smoothing vertices
-		grid.mark(smoothVrts.begin(), smoothVrts.end());
-
-	//	and we'll mark all those edges along which we'll smooth
-		for(size_t iface = 0; iface < curFaces.size(); ++iface){
-			for(assocFaceEdgeIter.reinit(grid, curFaces[iface]); assocFaceEdgeIter.valid();
-				++assocFaceEdgeIter)
-			{
-				grid.mark(*assocFaceEdgeIter);
+					UG_COND_THROW(totalNbrWeight == 0, "No neighbors found");
+					avHeight /= totalNbrWeight;
+					
+					aaHeight[v] = (1. - smoothAlpha) * aaHeight[v] + smoothAlpha * avHeight;
+				}
 			}
-		}
 
-	//	during smoothing, the height of non-marked vertices will be weighted stronger
-	//	than the height of marked ones
-		const size_t numSmoothIterations = 100;
-		const number markedWeight = 1.0;
-		const number smoothAlpha = 0.5;
-		for(size_t iSmoothIter = 0; iSmoothIter < numSmoothIterations; ++iSmoothIter){
+		//	move vertices upwards only, to avoid invalid volumes in lower layers
 			for(size_t ivrt = 0; ivrt < smoothVrts.size(); ++ivrt){
 				Vertex* v = smoothVrts[ivrt];
-				number totalNbrWeight = 0;
-				number avHeight = 0;
-				for(assocVrtEdgeIterMarkedEdge.reinit(grid, v); assocVrtEdgeIterMarkedEdge.valid();
-					++assocVrtEdgeIterMarkedEdge)
-				{
-					Vertex* conVrt = GetConnectedVertex(*assocVrtEdgeIterMarkedEdge, v);
-					if(grid.is_marked(conVrt)){
-						avHeight += markedWeight * aaHeight[conVrt];
-						totalNbrWeight += markedWeight;
-					}
-					else{
-						avHeight += aaHeight[conVrt];
-						totalNbrWeight += 1;
-					}
-				}
-
-				UG_COND_THROW(totalNbrWeight == 0, "No neighbors found");
-				avHeight /= totalNbrWeight;
-				
-				aaHeight[v] = (1. - smoothAlpha) * aaHeight[v] + smoothAlpha * avHeight;
+				aaPos[v].z() = max(aaPos[v].z(), aaPos[tmpVrts[ivrt]].z() - aaHeight[v]);
 			}
 		}
-
-	//	move vertices upwards only, to avoid invalid volumes in lower layers
-		for(size_t ivrt = 0; ivrt < smoothVrts.size(); ++ivrt){
-			Vertex* v = smoothVrts[ivrt];
-			aaPos[v].z() = max(aaPos[v].z(), aaPos[tmpVrts[ivrt]].z() - aaHeight[v]);
-		}
 	}
-
+	
 	grid.end_marking();
 	grid.detach_from_vertices(aHeight);
 }

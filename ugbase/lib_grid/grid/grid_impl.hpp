@@ -513,8 +513,7 @@ void Grid::get_associated_sorted(typename traits<typename TElem::grid_base_objec
 ////////////////////////////////////////////////////////////////////////
 //	neighbourhood access
 template <class TGeomObj>
-Edge* Grid::find_edge_in_associated_edges(TGeomObj* obj,
-												EdgeVertices& ev)
+Edge* Grid::find_edge_in_associated_edges(TGeomObj* obj, const EdgeVertices& ev)
 {
 	GRID_PROFILE_FUNC();
 
@@ -531,8 +530,7 @@ Edge* Grid::find_edge_in_associated_edges(TGeomObj* obj,
 
 										
 template <class TGeomObj>
-Face* Grid::find_face_in_associated_faces(TGeomObj* obj,
-											FaceVertices& fv)
+Face* Grid::find_face_in_associated_faces(TGeomObj* obj, const FaceVertices& fv)
 {
 	GRID_PROFILE_FUNC();
 
@@ -554,7 +552,7 @@ Face* Grid::find_face_in_associated_faces(TGeomObj* obj,
 										
 template <class TGeomObj>
 Volume* Grid::find_volume_in_associated_volumes(TGeomObj* obj,
-												VolumeVertices& vv)
+												const VolumeVertices& vv)
 {
 	GRID_PROFILE_FUNC();
 

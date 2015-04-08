@@ -21,7 +21,7 @@ template <typename TKey> size_t hash_key(const TKey& key);
 
 template <typename TKey> size_t hash_key(const TKey& key)
 {
-	return (size_t)key;
+	return static_cast<size_t>(key);
 }
 
 /** \} */

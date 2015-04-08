@@ -98,6 +98,72 @@ Edge* GetConnectedEdge(Grid& g, Vertex* vrt, Face* tri)
 }
 
 ////////////////////////////////////////////////////////////////////////
+Vertex* GetSharedVertex(IVertexGroup* vrts0, IVertexGroup* vrts1)
+{
+	const size_t num0 = vrts0->size();
+	const size_t num1 = vrts1->size();
+
+	IVertexGroup::ConstVertexArray v0 = vrts0->vertices();
+	IVertexGroup::ConstVertexArray v1 = vrts1->vertices();
+
+	for(size_t i0 = 0; i0 < num0; ++i0){
+		Vertex* v = v0[i0];
+		for(size_t i1 = 0; i1 < num1; ++i1){
+			if(v == v1[i1])
+				return v;
+		}
+	}
+
+	return 0;
+}
+
+////////////////////////////////////////////////////////////////////////
+size_t GetSharedVertices(
+			std::vector<Vertex*>& vrtsOut,
+			IVertexGroup* vrts0,
+			IVertexGroup* vrts1)
+{
+	vrtsOut.clear();
+
+	const size_t num0 = vrts0->size();
+	const size_t num1 = vrts1->size();
+
+	IVertexGroup::ConstVertexArray v0 = vrts0->vertices();
+	IVertexGroup::ConstVertexArray v1 = vrts1->vertices();
+
+	for(size_t i0 = 0; i0 < num0; ++i0){
+		Vertex* v = v0[i0];
+		for(size_t i1 = 0; i1 < num1; ++i1){
+			if(v == v1[i1])
+				vrtsOut.push_back(v);
+		}
+	}
+
+	return vrtsOut.size();
+}
+
+////////////////////////////////////////////////////////////////////////
+size_t NumSharedVertices(IVertexGroup* vrts0, IVertexGroup* vrts1)
+{
+	const size_t num0 = vrts0->size();
+	const size_t num1 = vrts1->size();
+
+	IVertexGroup::ConstVertexArray v0 = vrts0->vertices();
+	IVertexGroup::ConstVertexArray v1 = vrts1->vertices();
+
+	size_t numShared = 0;
+	for(size_t i0 = 0; i0 < num0; ++i0){
+		Vertex* v = v0[i0];
+		for(size_t i1 = 0; i1 < num1; ++i1){
+			if(v == v1[i1])
+				++numShared;
+		}
+	}
+
+	return numShared;
+}
+
+////////////////////////////////////////////////////////////////////////
 int NumAssociatedEdges(Grid& grid, Vertex* v)
 {
 	Grid::edge_traits::secure_container edges;
@@ -309,88 +375,96 @@ void MergeVertices(Grid& grid, Vertex* v1, Vertex* v2)
 		grid.enable_options(VRTOPT_STORE_ASSOCIATED_VOLUMES);
 	}
 
-//	notify the grid, that the two vertices will be merged
-	grid.objects_will_be_merged(v1, v1, v2);
-	
-//	first we have to check if there are elements that connect the vertices.
-//	We have to delete those.
-	EraseConnectingElements(grid, v1, v2);
 
-//	create new edges for each edge that is connected with v2.
-//	avoid double edges
-	if(grid.num_edges() > 0)
-	{
-		EdgeDescriptor ed;
-		Grid::AssociatedEdgeIterator iterEnd = grid.associated_edges_end(v2);
-		for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(v2); iter != iterEnd; ++iter)
-		{
-			Edge* e = *iter;
-			if(e->vertex(0) == v2)
-				ed.set_vertices(v1, e->vertex(1));
-			else
-				ed.set_vertices(e->vertex(0), v1);
-
-			Edge* existingEdge = grid.get_edge(ed);
-			if(!existingEdge)
-				grid.create_by_cloning(e, ed, e);
-			else
-				grid.objects_will_be_merged(existingEdge, existingEdge, e);
-		}
+	Edge* conEdge = grid.get_edge(v1, v2);
+	if(conEdge){
+	//	perform an edge-collapse on conEdge
+		CollapseEdge(grid, conEdge, v1);
 	}
+	else{
+	//	notify the grid, that the two vertices will be merged
+		grid.objects_will_be_merged(v1, v1, v2);
+		
+	//	we have to check if there are elements that connect the vertices.
+	//	We have to delete those.
+		EraseConnectingElements(grid, v1, v2);
 
-//	create new faces for each face that is connected to v2
-//	avoid double faces.
-	if(grid.num_faces() > 0)
-	{
-		FaceDescriptor fd;
-		Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(v2);
-		for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(v2); iter != iterEnd; ++iter)
+	//	create new edges for each edge that is connected with v2.
+	//	avoid double edges
+		if(grid.num_edges() > 0)
 		{
-			Face* f = *iter;
-			uint numVrts = f->num_vertices();
-			fd.set_num_vertices(numVrts);
-			for(uint i = 0; i < numVrts; ++i)
+			EdgeDescriptor ed;
+			Grid::AssociatedEdgeIterator iterEnd = grid.associated_edges_end(v2);
+			for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(v2); iter != iterEnd; ++iter)
 			{
-				if(f->vertex(i) == v2)
-					fd.set_vertex(i, v1);
+				Edge* e = *iter;
+				if(e->vertex(0) == v2)
+					ed.set_vertices(v1, e->vertex(1));
 				else
-					fd.set_vertex(i, f->vertex(i));
+					ed.set_vertices(e->vertex(0), v1);
+
+				Edge* existingEdge = grid.get_edge(ed);
+				if(!existingEdge)
+					grid.create_by_cloning(e, ed, e);
+				else
+					grid.objects_will_be_merged(existingEdge, existingEdge, e);
 			}
-
-			Face* existingFace = grid.get_face(fd);
-			if(!existingFace)
-				grid.create_by_cloning(f, fd, f);
-			else
-				grid.objects_will_be_merged(existingFace, existingFace, f);
 		}
-	}
 
-//	create new volumes for each volume that is connected to v2
-	if(grid.num_volumes() > 0)
-	{
-		VolumeDescriptor vd;
-		Grid::AssociatedVolumeIterator iterEnd = grid.associated_volumes_end(v2);
-		for(Grid::AssociatedVolumeIterator iter = grid.associated_volumes_begin(v2); iter != iterEnd; ++iter)
+	//	create new faces for each face that is connected to v2
+	//	avoid double faces.
+		if(grid.num_faces() > 0)
 		{
-			Volume* v = *iter;
-			uint numVrts = v->num_vertices();
-			vd.set_num_vertices(numVrts);
-			for(uint i = 0; i < numVrts; ++i)
+			FaceDescriptor fd;
+			Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(v2);
+			for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(v2); iter != iterEnd; ++iter)
 			{
-				if(v->vertex(i) == v2)
-					vd.set_vertex(i, v1);
+				Face* f = *iter;
+				uint numVrts = f->num_vertices();
+				fd.set_num_vertices(numVrts);
+				for(uint i = 0; i < numVrts; ++i)
+				{
+					if(f->vertex(i) == v2)
+						fd.set_vertex(i, v1);
+					else
+						fd.set_vertex(i, f->vertex(i));
+				}
+
+				Face* existingFace = grid.get_face(fd);
+				if(!existingFace)
+					grid.create_by_cloning(f, fd, f);
 				else
-					vd.set_vertex(i, v->vertex(i));
+					grid.objects_will_be_merged(existingFace, existingFace, f);
 			}
-
-			//assert(!"avoid double volumes! implement FindVolume and use it here.");
-			grid.create_by_cloning(v, vd, v);
 		}
-	}
 
-//	new elements have been created. remove the old ones.
-//	it is sufficient to simply erase v2.
-	grid.erase(v2);
+	//	create new volumes for each volume that is connected to v2
+		if(grid.num_volumes() > 0)
+		{
+			VolumeDescriptor vd;
+			Grid::AssociatedVolumeIterator iterEnd = grid.associated_volumes_end(v2);
+			for(Grid::AssociatedVolumeIterator iter = grid.associated_volumes_begin(v2); iter != iterEnd; ++iter)
+			{
+				Volume* v = *iter;
+				uint numVrts = v->num_vertices();
+				vd.set_num_vertices(numVrts);
+				for(uint i = 0; i < numVrts; ++i)
+				{
+					if(v->vertex(i) == v2)
+						vd.set_vertex(i, v1);
+					else
+						vd.set_vertex(i, v->vertex(i));
+				}
+
+				//assert(!"avoid double volumes! implement FindVolume and use it here.");
+				grid.create_by_cloning(v, vd, v);
+			}
+		}
+
+	//	new elements have been created. remove the old ones.
+	//	it is sufficient to simply erase v2.
+		grid.erase(v2);
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////

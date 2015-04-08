@@ -346,5 +346,36 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 	return fillCount;
 }
 
+
+int CollapseEdge (int* newIndsOut, int v0, int v1)
+{
+//	get the edge which is connected by v0 and v1
+	const int edgeInd = EDGE_FROM_VRTS[v0][v1];
+
+//	if the edge doesn't exist or if one of the triangle-edges is collapsed,
+//	no volume can be created
+	if((edgeInd < 3) || (edgeInd > 5))
+		return 0;
+
+//	the index of the opposing edge of the base quadrilateral
+//	the two non-collapsed vertical edges
+	const int opEdgeInd0 = 3 + (edgeInd + 1) % 3;
+	const int opEdgeInd1 = 3 + (edgeInd + 2) % 3;
+
+//	the base of the pyramid
+	const int baseFaceInd = FACE_FROM_EDGES[opEdgeInd0][opEdgeInd1];
+
+//	the resulting volume is a pyramid
+	int fi = 0;
+	newIndsOut[fi++] = GOID_PYRAMID;
+	newIndsOut[fi++] = FACE_VRT_INDS[baseFaceInd][0];
+	newIndsOut[fi++] = FACE_VRT_INDS[baseFaceInd][1];
+	newIndsOut[fi++] = FACE_VRT_INDS[baseFaceInd][2];
+	newIndsOut[fi++] = FACE_VRT_INDS[baseFaceInd][3];
+	newIndsOut[fi++] = v0;
+
+	return fi;
+}
+
 }// end of namespace
 }// end of namespace

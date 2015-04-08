@@ -397,5 +397,30 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 	return fillCount;
 }
 
+
+int CollapseEdge (int* newIndsOut, int v0, int v1)
+{
+//	get the edge which is connected by v0 and v1
+	const int edgeInd = EDGE_FROM_VRTS[v0][v1];
+
+//	if the edge doesn't exist or if one of the triangle-edges is collapsed,
+//	no volume can be created
+	if((edgeInd == -1) || (edgeInd > 3))
+		return 0;
+
+//	the index of the opposing edge of the base quadrilateral
+	const int opEdgeInd = (edgeInd + 2) % 4;
+
+//	the resulting volume is a tetrahedron
+	int fi = 0;
+	newIndsOut[fi++] = GOID_TETRAHEDRON;
+	newIndsOut[fi++] = v0;
+	newIndsOut[fi++] = EDGE_VRT_INDS[opEdgeInd][0];
+	newIndsOut[fi++] = EDGE_VRT_INDS[opEdgeInd][1];
+	newIndsOut[fi++] = TOP_VERTEX;
+
+	return fi;
+}
+
 }// end of namespace
 }// end of namespace

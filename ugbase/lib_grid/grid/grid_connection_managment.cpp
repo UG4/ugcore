@@ -2221,7 +2221,6 @@ bool Grid::replace_vertex(Vertex* vrtOld, Vertex* vrtNew)
 				Face* fNew = get_face(fd);
 				if(fNew)
 				{
-					LOG("double face" << endl);
 				//	The face will be removed. Notify observers.
 					NOTIFY_OBSERVERS_REVERSE(m_faceObservers, face_to_be_erased(this, f));
 
@@ -2251,7 +2250,6 @@ bool Grid::replace_vertex(Vertex* vrtOld, Vertex* vrtNew)
 					{
 					//	unregister f from adjacent edges.
 						CollectEdges(vEdges, *this, f);
-						LOG("removing face. num associated edges: " << vEdges.size() << endl);
 						for(uint i = 0; i < vEdges.size(); ++i)
 						{
 							FaceContainer& fc = m_aaFaceContainerEDGE[vEdges[i]];

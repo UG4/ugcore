@@ -21,6 +21,7 @@ const int NUM_FACES		= 5;
 const int NUM_TRIS		= 4;
 const int NUM_QUADS		= 1;
 const int MAX_NUM_INDS_OUT = 128;//todo: this is just an estimate!
+const int MAX_NUM_COLLAPSE_INDS_OUT = 5;
 
 ///	the local vertex indices of the given edge
 const int EDGE_VRT_INDS[][2] = {	{0, 1}, {1, 2}, {2, 3}, {3, 0},
@@ -124,6 +125,19 @@ const int FACE_FROM_EDGES[][8] =
  */
 int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut,
 		   vector3* corners = NULL);
+
+///	Creates new volume elements that result from collapsing the edge between v0 and v1 into v0
+/**	Note that the returned array may be empty.
+ *
+ * \param newIndsOut	Array which has to be of size MAX_NUM_COLLAPSE_INDS_OUT.
+ * 						When the algorithm is done, the array will contain
+ * 						sequences of integers: {{gridObjectID, ind1, ind2, ...}, ...}.
+ *						gridObjectID is a constant enumerated in GridObjectID and
+ *						describes the type of the grid-object that is
+ *						built from the following set of corner indices.
+ *
+ * \returns	the size of the resulting element list 'newIndsOut'.*/
+int CollapseEdge(int* newIndsOut, int v0, int v1);
 
 }//	end of namespace pyra_rules
 }//	end of namespace ug

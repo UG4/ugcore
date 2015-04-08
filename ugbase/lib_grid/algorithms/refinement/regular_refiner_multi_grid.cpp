@@ -168,9 +168,9 @@ adjust_side_states (
 					if(closure)
 						m_aaClosure[s] = true;
 				}
-			}for_end;
+			}end_for;
 		}
-	}lg_for_end;
+	}lg_end_for;
 }
 
 template <class TElem>
@@ -199,9 +199,9 @@ copy_state_to_sides (
 					if(closure)
 						m_aaClosure[s] = true;
 				}
-			}for_end;
+			}end_for;
 		}
-	}lg_for_end;
+	}lg_end_for;
 }
 
 template <class TSide>
@@ -232,9 +232,9 @@ adjust_side_of_states (
 					if(closure)
 						m_aaClosure[s] = true;
 				}
-			}for_end;
+			}end_for;
 		}
-	}lg_for_end;
+	}lg_end_for;
 }
 
 template <class TElem>
@@ -244,7 +244,7 @@ clear_dummies () {
 		lg_for_each_in_lvl(TElem, e, m_marks, lvl){
 			if(get_mark(e) == RM_DUMMY)
 				mark(e, RM_NONE);
-		}lg_for_end;
+		}lg_end_for;
 	}
 }
 
@@ -263,9 +263,9 @@ mark_by_level_discrepancy (size_t lvl, Grid::VertexAttachmentAccessor<AInt> aaLv
 				if(((get_mark(e) & LIFT) == 0) && refinement_is_allowed(e)){
 					mark(e, RM_ANISOTROPIC);
 				}
-			}for_end;
+			}end_for;
 		}
-	}lg_for_end;
+	}lg_end_for;
 }
 
 void RegularRefiner_MultiGrid::
@@ -320,7 +320,7 @@ collect_objects_for_refine ()
 		lg_for_each_in_lvl(Vertex, vrt, sel, lvl){
 			if(aaLvl[vrt] == -1)
 				aaLvl[vrt] = lvl + 1;
-		}lg_for_end;
+		}lg_end_for;
 
 	//todo: notify parent vertices. Don't use mark here, since we'll also select
 	//		shadow vertices.
@@ -334,7 +334,7 @@ collect_objects_for_refine ()
 					sel.select(parent, RM_DUMMY);
 					aaLvl[parent] = aaLvl[vrt];
 				}
-			}lg_for_end;
+			}lg_end_for;
 		}
 	}
 }

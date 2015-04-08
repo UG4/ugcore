@@ -12,10 +12,10 @@
  * //...
  * for_each_in_vec(T& t, vec){
  *    t.memberFunc();
- * }for_end
+ * }end_for
  * \endcode
  * The '{' and '}' brackets are hereby optional, since a new block is automatically
- * defined between 'for_each_in_vec' and 'for_end'.
+ * defined between 'for_each_in_vec' and 'end_for'.
  *
  * The specified vector has to feature methods 'T& operator[](size_t i)' and
  * 'size_t size()'.
@@ -24,7 +24,7 @@
 			for(size_t _vfeI = 0; _vfeI < _vfeVec.size(); ++_vfeI){\
 				_vfeDecl = _vfeVec[_vfeI];
 
-#define for_end	}
+#define end_for	}
 /** \} */
 
 #endif	//__H__UG_for_each_in_vec

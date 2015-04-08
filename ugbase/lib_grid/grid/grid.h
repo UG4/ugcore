@@ -540,7 +540,7 @@ class UG_API Grid
 		Edge* get_edge(Vertex* v1, Vertex* v2);
 	///	returns the edge that is described by ev.
 	/**	Note that you may pass an EdgeDescriptor to this method.*/
-		Edge* get_edge(EdgeVertices& ev);
+		Edge* get_edge(const EdgeVertices& ev);
 	///	If it exists, this method returns the i-th edge of the given Face. If not NULL is returned.
 	/**	To make sure that associated edges always exist, enable the grid-option
 	 *	FACEOPT_AUTOGENERATE_EDGES.
@@ -561,7 +561,7 @@ class UG_API Grid
 		Edge* get_edge(Volume* v, int ind);
 	///	returns the face that is described by fv.
 	/**	Note that you may pass a FaceDescriptor to this method.*/
-		Face* get_face(FaceVertices& fv);
+		Face* get_face(const FaceVertices& fv);
 	///	If it exists, this method returns the i-th face of the given Volume. If not NULL is returned.
 	/**	To make sure that associated faces always exist, enable the grid-option
 	 *	VOLOPT_AUTOGENERATE_FACES.
@@ -573,7 +573,7 @@ class UG_API Grid
 		Face* get_face(Volume* v, int ind);
 	///	returns the volume that is described by ev.
 	/**	Note that you may pass an VolumeDescriptor to this method.*/
-		Volume* get_volume(VolumeVertices& vv);
+		Volume* get_volume(const VolumeVertices& vv);
 		
 	///	returns the element for the given vertices.
 	/**	Note that you can either pass an element type (Edge, Face, Volume)
@@ -582,9 +582,9 @@ class UG_API Grid
 	 * A special overload exists for Vertex*, which simply returns the
 	 * specified vertex. Useful for template programming...
 	 * \{ */
-		Edge* get_element(EdgeVertices& ev)	{return get_edge(ev);}
-		Face* get_element(FaceVertices& fv)		{return get_face(fv);}
-		Volume* get_element(VolumeVertices& vv)	{return get_volume(vv);}
+		Edge* get_element(const EdgeVertices& ev)	{return get_edge(ev);}
+		Face* get_element(const FaceVertices& fv)		{return get_face(fv);}
+		Volume* get_element(const VolumeVertices& vv)	{return get_volume(vv);}
 	/**	\} */
 
 	////////////////////////////////////////////////
@@ -1005,15 +1005,15 @@ class UG_API Grid
 	//	neighbourhood access
 		template <class TGeomObj>
 		Edge* find_edge_in_associated_edges(TGeomObj* obj,
-												EdgeVertices& ev);
+											const EdgeVertices& ev);
 												
 		template <class TGeomObj>
 		Face* find_face_in_associated_faces(TGeomObj* obj,
-											FaceVertices& fv);
+											const FaceVertices& fv);
 												
 		template <class TGeomObj>
 		Volume* find_volume_in_associated_volumes(TGeomObj* obj,
-												VolumeVertices& vv);
+												  const VolumeVertices& vv);
 
 	//	get associated elements
 		void get_associated(SecureVertexContainer& vrts, Edge* e);

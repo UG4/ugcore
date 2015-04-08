@@ -9,6 +9,8 @@
 #include "face_util.h"
 #include "lib_grid/algorithms/refinement/regular_refinement.h"
 #include "../refinement/refinement_projectors/misc_refinement_projectors.h"
+#include "common/util/vec_for_each.h"
+#include "common/util/vec_for_each.h"
 
 using namespace std;
 
@@ -357,17 +359,17 @@ bool CollapseEdge(Grid& grid, Edge* e, Vertex* newVrt)
 {
 //	prepare the grid, so that we may perform Grid::replace_vertex.
 //	create collapse geometries first and delete old geometries.
-	{
+	Grid::face_traits::secure_container assFaces;
+	if(grid.num_faces() > 0){
 	//	collect adjacent faces
-		vector<Face*> vFaces;
-		CollectFaces(vFaces, grid, e);
+		grid.associated_elements(assFaces, e);
 
 	//	a vector thats is used to store the collapse-geometries.
 		vector<Face*> vNewFaces;
 
-		for(uint i = 0; i < vFaces.size(); ++i)
+		for(uint i = 0; i < assFaces.size(); ++i)
 		{
-			Face* f = vFaces[i];
+			Face* f = assFaces[i];
 			int eInd = GetEdgeIndex(f, e);
 
 		//	create the collapse-geometry
@@ -385,34 +387,27 @@ bool CollapseEdge(Grid& grid, Edge* e, Vertex* newVrt)
 			//	now get the edge between conVrt and newVrt
 				Edge* target = grid.get_edge(conVrt, newVrt);
 			//	now get the two old edges
-				Edge* e1 = NULL;
-				Edge* e2 = NULL;
-				for(size_t j = 0; j < 3; ++j){
-					if((int)j != eInd){
-						if(!e1)
-							e1 = grid.get_edge(f, j);
-						else
-							e2 = grid.get_edge(f, j);
-					}
-				}
+				Edge* e1 = grid.get_edge(f, (eInd + 1) % 3);
+				Edge* e2 = grid.get_edge(f, (eInd + 2) % 3);
 				grid.objects_will_be_merged(target, e1, e2);
 			}
-		//	erase f
-			grid.erase(f);
 		}
 	}
 
-	{
+	Grid::volume_traits::secure_container assVols;
+	if(grid.num_volumes() > 0){
+	//	used to identify merge-faces
+		Grid::edge_traits::secure_container assEdges;
+
 	//	collect adjacent volumes
-		vector<Volume*> vVolumes;
-		CollectVolumes(vVolumes, grid, e);
+		grid.associated_elements(assVols, e);
 
 	//	a vector thats used to store the collapse-geometries.
 		vector<Volume*> vNewVolumes;
 
-		for(uint i = 0; i < vVolumes.size(); ++i)
+		for(uint i = 0; i < assVols.size(); ++i)
 		{
-			Volume* v = vVolumes[i];
+			Volume* v = assVols[i];
 		//	create the collapse-geometry
 			int eInd = GetEdgeIndex(v, e);
 			v->collapse_edge(vNewVolumes, eInd, newVrt);
@@ -421,11 +416,37 @@ bool CollapseEdge(Grid& grid, Edge* e, Vertex* newVrt)
 			for(uint j = 0; j < vNewVolumes.size(); ++j)
 				grid.register_element(vNewVolumes[i], v);
 
-		//	erase v
-			grid.erase(v);
+		//	if v is a tetrahedron, two faces will be merged
+			if(v->num_vertices() == 4){
+			//	find the opposing edge of e
+				Edge* oppEdge = NULL;
+				grid.associated_elements(assEdges, v);
+				for_each_in_vec(Edge* te, assEdges){
+					if(!GetSharedVertex(e, te)){
+						oppEdge = te;
+						break;
+					}
+				}end_for;
+
+				if(oppEdge){
+					Face* f0 = grid.get_face(FaceDescriptor(
+										e->vertex(0),
+										oppEdge->vertex(0),
+										oppEdge->vertex(1)));
+					Face* f1 = grid.get_face(FaceDescriptor(
+										e->vertex(1),
+										oppEdge->vertex(0),
+										oppEdge->vertex(1)));
+					Face* fNew = grid.get_face(FaceDescriptor(
+										newVrt,
+										oppEdge->vertex(0),
+										oppEdge->vertex(1)));
+					if(f0 && f1 && fNew)
+						grid.objects_will_be_merged(fNew, f0, f1);
+				}
+			}
 		}
 	}
-
 //	store the end-points of e
 	Vertex* v[2];
 	v[0] = e->vertex(0);
@@ -434,7 +455,15 @@ bool CollapseEdge(Grid& grid, Edge* e, Vertex* newVrt)
 //	notify the grid that the endpoints will be merged
 	grid.objects_will_be_merged(newVrt, v[0], v[1]);
 
-//	erase e
+//	erase e, associated faces and associated volumes
+	for_each_in_vec(Volume* v, assVols){
+		grid.erase(v);
+	}end_for;
+	
+	for_each_in_vec(Face* f, assFaces){
+		grid.erase(f);
+	}end_for;
+
 	grid.erase(e);
 
 //	perform replace_vertex for both endpoints

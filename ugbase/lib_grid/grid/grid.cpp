@@ -1024,7 +1024,7 @@ Edge* Grid::get_edge(Vertex* v1, Vertex* v2)
 	return find_edge_in_associated_edges(v1, ed);
 }
 
-Edge* Grid::get_edge(EdgeVertices& ev)
+Edge* Grid::get_edge(const EdgeVertices& ev)
 {
 	return find_edge_in_associated_edges(ev.vertex(0), ev);
 }
@@ -1084,7 +1084,7 @@ Edge* Grid::get_edge(Volume* v, int ind)
 	return NULL;
 }
 
-Face* Grid::get_face(FaceVertices& fv)
+Face* Grid::get_face(const FaceVertices& fv)
 {
 	return find_face_in_associated_faces(fv.vertex(0), fv);
 }
@@ -1112,7 +1112,7 @@ Face* Grid::get_face(Volume* v, int ind)
 	return NULL;
 }
 
-Volume* Grid::get_volume(VolumeVertices& vv)
+Volume* Grid::get_volume(const VolumeVertices& vv)
 {
 	return find_volume_in_associated_volumes(vv.vertex(0), vv);
 }

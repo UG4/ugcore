@@ -4,6 +4,8 @@
 #ifndef __H__UG_lg_for_each
 #define __H__UG_lg_for_each
 
+#include "common/util/vec_for_each.h"	//include end_for
+
 #define lg_for_each(_feType, _feVar, _feCon) \
 			for(typename Grid::traits<_feType>::iterator _feI = _feCon.begin<_feType>();\
 				_feI != _feCon.end<_feType>(); ++_feI){\
@@ -28,6 +30,6 @@
 			for(size_t _feI = 0; _feI < _feElem->num_vertices(); ++_feI){\
 				Vertex* _feVar = _feElem->vertex(_feI);
 
-#define lg_for_end	}
+#define lg_end_for	}
 
 #endif	//__H__UG_lg_for_each
