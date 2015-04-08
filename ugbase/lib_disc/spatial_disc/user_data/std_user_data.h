@@ -197,7 +197,9 @@ class StdDependentUserData
 							 const MathVector<dim> vCornerCoords[], bool bDeriv = false){
 
 			UG_ASSERT(elem->base_object_id() == this->dim_local_ips(),
-			          "local ip dimension and reference element dimension mismatch.");
+			          "local ip dimension (" << this->dim_local_ips()
+					  << ") and reference element dimension ("
+					  << elem->base_object_id() << ") mismatch.");
 
 			switch(this->dim_local_ips()){
 				case 1: eval_deriv<1>(u,elem,vCornerCoords,bDeriv); break;
