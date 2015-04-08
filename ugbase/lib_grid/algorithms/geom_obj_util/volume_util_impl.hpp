@@ -254,7 +254,7 @@ void ConvertToTetrahedra (
 		Volume* vol = *iv;
 		const ReferenceObjectID roid = vol->reference_object_id();
 		CmpVrtsByHash<Volume> cmp(vol);
-		int numEntries = 0;
+		size_t numEntries = 0;
 
 		switch(roid){
 			case ROID_PYRAMID:
