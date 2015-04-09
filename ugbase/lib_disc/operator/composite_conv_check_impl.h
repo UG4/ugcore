@@ -140,7 +140,8 @@ norm(const TVector& vec, const std::vector<DoFIndex>& vMultiIndex)
 
 #ifdef UG_PARALLEL
 	// sum squared local norms
-	norm = vec.layouts()->proc_comm().allreduce(norm, PCL_RO_SUM);
+	if (!vec.layouts()->proc_comm().empty())
+		norm = vec.layouts()->proc_comm().allreduce(norm, PCL_RO_SUM);
 #endif
 
 	// return global norm
