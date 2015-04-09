@@ -70,21 +70,31 @@ class RasterLayers{
 		std::vector<SmartPtr<layer_t> >	m_layers;
 };
 
-void MeshLayerBoundaries(Grid& grid, const RasterLayers& layers,
-						 Grid::VertexAttachmentAccessor<AVector3> aaPos,
-						 ISubsetHandler* pSH = NULL);
+void MeshLayerBoundaries(
+		Grid& grid,
+		const RasterLayers& layers,
+		Grid::VertexAttachmentAccessor<AVector3> aaPos,
+		ISubsetHandler* pSH = NULL);
 
-void MeshLayers(Grid& grid, const RasterLayers& layers,
-				Grid::VertexAttachmentAccessor<AVector3> aaPos,
-				ISubsetHandler* pSH = NULL);
+void MeshLayers(
+		Grid& grid,
+		const RasterLayers& layers,
+		Grid::VertexAttachmentAccessor<AVector3> aaPos,
+		ISubsetHandler* pSH = NULL);
 
 /**	grid has to contain a triangluation of the surface grid of raster-layers.
  * Only x- and y- coordinates of the vertices of the reference triangulation are
  * considered, since all vertices are projected to their respective layers.
+ * By setting 'allowForTetsAndPyras = true', one will receive less elements. By
+ * setting 'allowForTetsAndPyras = false', the resulting mesh will consist of
+ * (possibly rather flat) prisms only.
  */
-void ExtrudeLayers(Grid& grid, const RasterLayers& layers,
-				   Grid::VertexAttachmentAccessor<AVector3> aaPos,
-				   ISubsetHandler& sh);
+void ExtrudeLayers(
+		Grid& grid,
+		const RasterLayers& layers,
+		Grid::VertexAttachmentAccessor<AVector3> aaPos,
+		ISubsetHandler& sh,
+		bool allowForTetsAndPyras);
 
 }//	end of namespace
 

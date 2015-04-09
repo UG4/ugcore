@@ -7,6 +7,7 @@
 #include "lib_grid/grid/grid_util.h"
 #include "vertex_util.h"
 #include "face_util.h"
+#include "lib_grid/algorithms/debug_util.h"
 #include "lib_grid/algorithms/refinement/regular_refinement.h"
 #include "../refinement/refinement_projectors/misc_refinement_projectors.h"
 #include "common/util/vec_for_each.h"
@@ -369,6 +370,7 @@ bool CollapseEdge(Grid& grid, Edge* e, Vertex* newVrt)
 
 		for(uint i = 0; i < assFaces.size(); ++i)
 		{
+
 			Face* f = assFaces[i];
 			int eInd = GetEdgeIndex(f, e);
 
@@ -414,7 +416,7 @@ bool CollapseEdge(Grid& grid, Edge* e, Vertex* newVrt)
 
 		//	register the new volumes
 			for(uint j = 0; j < vNewVolumes.size(); ++j)
-				grid.register_element(vNewVolumes[i], v);
+				grid.register_element(vNewVolumes[j], v);
 
 		//	if v is a tetrahedron, two faces will be merged
 			if(v->num_vertices() == 4){
@@ -447,6 +449,7 @@ bool CollapseEdge(Grid& grid, Edge* e, Vertex* newVrt)
 			}
 		}
 	}
+	
 //	store the end-points of e
 	Vertex* v[2];
 	v[0] = e->vertex(0);

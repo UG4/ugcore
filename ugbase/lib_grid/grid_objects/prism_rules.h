@@ -20,6 +20,7 @@ const int NUM_FACES		= 5;
 const int NUM_TRIS		= 2;
 const int NUM_QUADS		= 3;
 const int MAX_NUM_INDS_OUT = 128;//todo: this is just an estimate!
+const int MAX_NUM_CONVERT_TO_TETS_INDS_OUT = 15;
 const int MAX_NUM_COLLAPSE_INDS_OUT = 6;
 
 ///	the local vertex indices of the given edge
@@ -153,7 +154,7 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut,
 
 /// fills an array of integers describing tetrahedra that shall replace the prism
 /**	The method requires a compare-operator that defines a strict (global) ordering on the
- * vertices of the prism. Note that this operate should return consistent results
+ * vertices of the prism. Note that this operator should return consistent results
  * for all vertices in a given grid. The ordering is used to decide along which
  * diagonal each quadrilateral is split. Each new diagonal will start at the
  * smallest vertex of the corresponding quadrilateral, regarding the given ordering.
@@ -166,7 +167,7 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut,
  * The idea and implementation follows:
  * Dompierre et al., "How to Subdivide Pyramids, Prisms and Hexahedra into Tetrahedra"
  *
- * \param newIndsOut	Array which has to be of size MAX_NUM_INDS_OUT.
+ * \param newIndsOut	Array which has to be of size MAX_NUM_CONVERT_TO_TETS_INDS_OUT.
  * 						When the algorithm is done, the array will contain
  * 						sequences of integers: {{gridObjectID, ind1, ind2, ...}, ...}.
  *						gridObjectID is a constant enumerated in GridObjectID and

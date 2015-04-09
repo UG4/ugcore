@@ -20,6 +20,7 @@ const int NUM_FACES		= 6;
 const int NUM_TRIS		= 0;
 const int NUM_QUADS		= 6;
 const int MAX_NUM_INDS_OUT = 256;//todo: this is just an estimate!
+const int MAX_NUM_CONVERT_TO_TETS_INDS_OUT = 30;
 
 ///	the local vertex indices of the given edge
 const int EDGE_VRT_INDS[][2] = {	{0, 1}, {1, 2}, {2, 3}, {3, 0},

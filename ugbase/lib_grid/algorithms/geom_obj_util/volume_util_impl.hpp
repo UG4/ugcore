@@ -244,9 +244,9 @@ void ConvertToTetrahedra (
 
 
 //	now convert the given volume-elements
-	static const int arrayLen = max(pyra_rules::MAX_NUM_INDS_OUT,
-									max(prism_rules::MAX_NUM_INDS_OUT,
-										hex_rules::MAX_NUM_INDS_OUT));
+	static const int arrayLen = max(pyra_rules::MAX_NUM_CONVERT_TO_TETS_INDS_OUT,
+									max(prism_rules::MAX_NUM_CONVERT_TO_TETS_INDS_OUT,
+										hex_rules::MAX_NUM_CONVERT_TO_TETS_INDS_OUT));
 	int inds[arrayLen];
 	
 	vector<Volume*> volsToErase;
@@ -258,7 +258,7 @@ void ConvertToTetrahedra (
 
 		switch(roid){
 			case ROID_PYRAMID:
-				UG_THROW("ConvertToTetrahedra for pyramids not yet implemented!");
+				numEntries = pyra_rules::ConvertToTetrahedra(inds, cmp);
 				break;
 
 			case ROID_PRISM:

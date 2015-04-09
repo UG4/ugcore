@@ -10,6 +10,7 @@
 #include "lib_grid/algorithms/geom_obj_util/vertex_util.h"
 #include "lib_grid/file_io/file_io_asc.h"
 #include "lib_grid/iterators/associated_elements_iterator.h"
+#include "lib_grid/iterators/lg_for_each.h"
 
 using namespace std;
 
@@ -316,9 +317,12 @@ struct ConnectedToOneMarkedVrt{
 	Grid& m_grid;
 };
 
-void ExtrudeLayers(Grid& grid, const RasterLayers& layers,
-				   Grid::VertexAttachmentAccessor<AVector3> aaPos,
-				   ISubsetHandler& sh)
+void ExtrudeLayers (
+		Grid& grid, 
+		const RasterLayers& layers,
+		Grid::VertexAttachmentAccessor<AVector3> aaPos,
+		ISubsetHandler& sh,
+		bool allowForTetsAndPyras)
 {
 	UG_COND_THROW(layers.size() < 2, "At least 2 layers are required to perform extrusion!");
 
@@ -602,6 +606,73 @@ void ExtrudeLayers(Grid& grid, const RasterLayers& layers,
 		}
 	}
 	
+
+//	remove unnecessary prisms through edge-collapses and thus introduce pyramids and tetrahedra
+	if(allowForTetsAndPyras){
+		ABool aInterface;
+		grid.attach_to_vertices_dv(aInterface, false, true);
+		Grid::VertexAttachmentAccessor<ABool> aaInterface(grid, aInterface);
+
+		Grid::volume_traits::secure_container	assVols;
+
+	//	all triangle-interface-elements shall store 'true' in aaIsInterface
+		lg_for_each(Face, f, grid){
+			if(f->num_vertices() != 3)
+				continue;
+
+			grid.associated_elements(assVols, f);
+			if(assVols.size() == 1){
+				lg_for_each_vertex_in_elem(vrt, f){
+					aaInterface[vrt] = true;
+				}lg_end_for;
+			}
+			else{
+				int si = -1;
+				for_each_in_vec(Volume* v, assVols){
+					if(si == -1)
+						si = sh.get_subset_index(v);
+					else{
+						if(sh.get_subset_index(v) != si){
+							lg_for_each_vertex_in_elem(vrt, f){
+								aaInterface[vrt] = true;
+							}lg_end_for;
+							break;
+						}
+					}
+				}end_for;
+			}
+		}lg_end_for;
+
+
+	//	all unmarked vertices are collapse candidates
+		vector<Vertex*> candidates;
+		lg_for_each(Vertex, vrt, grid){
+			if(!aaInterface[vrt])
+				candidates.push_back(vrt);
+		}lg_end_for;
+
+	//	merge each candidate with the next upper vertex.
+		Grid::edge_traits::secure_container assEdges;
+		for_each_in_vec(Vertex* vrt, candidates){
+			grid.associated_elements(assEdges, vrt);
+			for_each_in_vec(Edge* e, assEdges){
+				Vertex* cv = GetConnectedVertex(e, vrt);
+				if(cv == vrt)
+					continue;
+
+				vector3 dir;
+				VecSubtract(dir, aaPos[cv], aaPos[vrt]);
+				if((dir.z() > SMALL) && (fabs(dir.x()) < SMALL) && (fabs(dir.y()) < SMALL)){
+					CollapseEdge(grid, e, cv);
+					break;
+				}
+			}end_for;
+		}end_for;
+
+	//	clean up
+		grid.detach_from_vertices(aInterface);
+	}
+
 	grid.end_marking();
 	grid.detach_from_vertices(aHeight);
 }
