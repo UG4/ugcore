@@ -152,7 +152,7 @@ adjust_side_states (
 	MGSelector& sel = m_marks;
 	typename Grid::traits<side_t>::secure_container sides;
 
-	lg_for_each_in_lvl(TElem, elem, sel, lvl){
+	lg_for_each_in_lvl_template(TElem, elem, sel, lvl){
 		uint m = get_mark(elem);
 		if(m & considerElemMarks){
 			mg.associated_elements(sides, elem);
@@ -186,7 +186,7 @@ copy_state_to_sides (
 	MGSelector& sel = m_marks;
 	typename Grid::traits<side_t>::secure_container sides;
 
-	lg_for_each_in_lvl(TElem, elem, sel, lvl){
+	lg_for_each_in_lvl_template(TElem, elem, sel, lvl){
 		uint m = get_mark(elem);
 		if(m & considerElemMarks){
 			mg.associated_elements(sides, elem);
@@ -219,7 +219,7 @@ adjust_side_of_states (
 	MGSelector& sel = m_marks;
 	typename Grid::traits<elem_t>::secure_container elems;
 
-	lg_for_each_in_lvl(TSide, s, sel, lvl){
+	lg_for_each_in_lvl_template(TSide, s, sel, lvl){
 		uint m = get_mark(s);
 		if(m & considerSideMarks){
 			mg.associated_elements(elems, s);
@@ -241,7 +241,7 @@ template <class TElem>
 void RegularRefiner_MultiGrid::
 clear_dummies () {
 	for(size_t lvl = 0; lvl < m_marks.num_levels(); ++lvl){
-		lg_for_each_in_lvl(TElem, e, m_marks, lvl){
+		lg_for_each_in_lvl_template(TElem, e, m_marks, lvl){
 			if(get_mark(e) == RM_DUMMY)
 				mark(e, RM_NONE);
 		}lg_end_for;

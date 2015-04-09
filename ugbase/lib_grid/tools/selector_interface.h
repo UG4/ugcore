@@ -135,7 +135,21 @@ class UG_API ISelector : public GridObserver
 		template <class TIterator>
 		inline void select(TIterator iterBegin, TIterator iterEnd, byte status = 1);
 	/**	\} */
-		
+
+	///	selects an element
+	/**	In this context 'mark' is simply a synonym for 'select' and simply forwards
+	 * to the corresponding 'select' method.
+	 * \{ */
+	 	template <class TElem>
+		inline void mark(TElem* elem)
+		{select(elem);}
+
+		template <class TElem>
+		inline void mark(TElem* elem, byte status)
+		{select(elem, status);}
+	/** \} */
+
+
 	//	deselection
 		inline void deselect(GridObject* elem);
 		
@@ -145,13 +159,30 @@ class UG_API ISelector : public GridObserver
 		template <class TIterator>
 		inline void deselect(TIterator iterBegin, TIterator iterEnd);
 
+	///	deselects an element
+	/**	In this context 'unmark' is simply a synonym for 'deselect'.*/
+	 	template <class TElem>
+		inline void unmark(TElem* elem)
+		{deselect(elem);}
+
 	//	selection status
+	///	returns the selection state of the specified elelent
+	/** \{ */
 		inline byte get_selection_status(GridObject* elem) const;
 		inline byte get_selection_status(Vertex* vrt) const	{if(!elements_are_supported(SE_VERTEX)) return 0; return m_aaSelVRT[vrt];}
 		inline byte get_selection_status(Edge* edge) const	{if(!elements_are_supported(SE_EDGE)) return 0; return m_aaSelEDGE[edge];}
 		inline byte get_selection_status(Face* face) const		{if(!elements_are_supported(SE_FACE)) return 0; return m_aaSelFACE[face];}
 		inline byte get_selection_status(Volume* vol) const		{if(!elements_are_supported(SE_VOLUME)) return 0; return m_aaSelVOL[vol];}
+	/** \} */
 
+	///	returns the selection state of the specified elelent
+	/** In this context, 'get_mark' is simply a synonym for 'get_selection_status'
+	 * and simply forwards to the corresponding method.*/
+		template <class TElem>
+		inline byte get_mark(TElem* elem) const	
+		{return get_selection_status(elem);}
+
+	///	returns true if an element is selected
 		template <class TElem>
 		inline bool is_selected(TElem* elem) const		{return get_selection_status(elem) != 0;}
 
