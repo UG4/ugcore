@@ -486,9 +486,6 @@ template <typename TDomain>
 void IElemDisc<TDomain>::
 do_prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
 {
-// do nothing if error estimation is turned off
-	if (!err_est_enabled()) return;
-
 //	set id and disc part (this checks the assemble functions)
 	this->set_roid(roid, si);
 
@@ -509,9 +506,6 @@ template <typename TDomain>
 void IElemDisc<TDomain>::
 do_prep_err_est_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
-	// do nothing if error estimation is turned off
-	if (!err_est_enabled()) return;
-
 	//	access by map
 	u.access_by_map(map());
 	if (local_time_series_needed())
@@ -526,9 +520,6 @@ template <typename TDomain>
 void IElemDisc<TDomain>::
 do_compute_err_est_A_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale)
 {
-	// do nothing if error estimation is turned off
-	if (!err_est_enabled()) return;
-
 	//	access by map
 	u.access_by_map(map());
 	if (local_time_series_needed())
@@ -543,9 +534,6 @@ template <typename TDomain>
 void IElemDisc<TDomain>::
 do_compute_err_est_M_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale)
 {
-	// do nothing if error estimation is turned off
-	if (!err_est_enabled()) return;
-
 	//	access by map
 	u.access_by_map(map());
 	if(local_time_series_needed())
@@ -560,9 +548,6 @@ template <typename TDomain>
 void IElemDisc<TDomain>::
 do_compute_err_est_rhs_elem(GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale)
 {
-	// do nothing if error estimation is turned off
-	if (!err_est_enabled()) return;
-
 	if(local_time_series_needed())
 		m_pLocalVectorTimeSeries->access_by_map(map());
 
@@ -575,9 +560,6 @@ template <typename TDomain>
 void IElemDisc<TDomain>::
 do_fsh_err_est_elem_loop()
 {
-// do nothing if error estimation is turned off
-	if (!err_est_enabled()) return;
-
 //	call finish
 	if (this->m_vFinishErrEstElemLoopFct[m_id] != NULL)
 		(this->*m_vFinishErrEstElemLoopFct[m_id])();

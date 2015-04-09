@@ -1127,6 +1127,15 @@ calc_error
 	//	get all element discretizations that work on the subset
 		GetElemDiscOnSubset(vSubsetElemDisc, m_vElemDisc, vSSGrp, si);
 
+	//	remove from elemDisc list those with !err_est_enabled()
+		typename std::vector<IElemDisc<TDomain>*>::iterator it = vSubsetElemDisc.begin();
+		while (it != vSubsetElemDisc.end())
+		{
+			if (!(*it)->err_est_enabled())
+				it = vSubsetElemDisc.erase(it);
+			else ++it;
+		}
+
 	//	assemble on suitable elements
 		try
 		{
@@ -2196,6 +2205,15 @@ calc_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 
 	//	get all element discretizations that work on the subset
 		GetElemDiscOnSubset(vSubsetElemDisc, m_vElemDisc, vSSGrp, si);
+
+	//	remove from elemDisc list those with !err_est_enabled()
+		typename std::vector<IElemDisc<TDomain>*>::iterator it = vSubsetElemDisc.begin();
+		while (it != vSubsetElemDisc.end())
+		{
+			if (!(*it)->err_est_enabled())
+				it = vSubsetElemDisc.erase(it);
+			else ++it;
+		}
 
 	//	assemble on suitable elements
 		try

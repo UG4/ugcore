@@ -628,13 +628,13 @@ const LocalIndices& ind, bool bDeriv)
 {
 	try
 	{
-		for (std::size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
+		for (size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
 			m_vElemDisc[PT_ALL][i]->do_prep_err_est_elem(u, elem, vCornerCoords);
 	}
 	UG_CATCH_THROW("DataEvaluator::compute_elem_err_est: Cannot prepare element.");
 
 //	evaluate position data
-	for (std::size_t i = 0; i < m_vPosData.size(); ++i)
+	for (size_t i = 0; i < m_vPosData.size(); ++i)
 		m_vPosData[i]->compute(&u, elem, vCornerCoords, false);
 
 // 	process dependent data:
@@ -647,7 +647,7 @@ const LocalIndices& ind, bool bDeriv)
 //	compute the data
 	try
 	{
-		for (std::size_t i = 0; i < m_vDependentData.size(); ++i)
+		for (size_t i = 0; i < m_vDependentData.size(); ++i)
 		{
 			u.access_by_map(m_vDependentData[i]->map());
 			m_vDependentData[i]->compute(&u, elem, vCornerCoords, false);
