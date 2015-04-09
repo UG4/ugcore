@@ -288,7 +288,7 @@ class ICplUserData : virtual public UserDataInfo
 	///	sets new local ip positions for a local ip series
 	/**
 	 * This method set new local positions for an already registered ip series.
-	 * Of coarse this is only possible for a ip series with the bMayChange
+	 * Of course this is only possible for a ip series with the bMayChange
 	 * flag set to true.
 	 */
 		template <int ldim>
@@ -298,7 +298,7 @@ class ICplUserData : virtual public UserDataInfo
 	///	sets a new time point for a local ip series
 	/**
 	 * This method set a new time point for an already registered ip series.
-	 * Of coarse this is only possible for a ip series with the bMayChange
+	 * Of course this is only possible for a ip series with the bMayChange
 	 * flag set to true.
 	 */
 		void set_time_point(const size_t seriesId, const int timePointSpec);
