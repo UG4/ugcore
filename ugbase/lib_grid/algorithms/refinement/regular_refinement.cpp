@@ -6,6 +6,7 @@
 #include "regular_refinement.h"
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 #include "lib_grid/algorithms/selection_util.h"
+#include "lib_grid/algorithms/debug_util.h"
 
 using namespace std;
 

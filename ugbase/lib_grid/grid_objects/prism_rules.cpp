@@ -100,7 +100,7 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 					}
 					else{
 					//	create a prism
-						inds[fi++] = GOID_PRISM;
+						inds[fi++] = GOID_PYRAMID;
 						inds[fi++] = f[0];	inds[fi++] = f[1];
 						inds[fi++] = f[2];	inds[fi++] = f[3];
 						inds[fi++] = nVrt;
