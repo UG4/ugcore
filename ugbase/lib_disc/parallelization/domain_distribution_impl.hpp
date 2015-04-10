@@ -339,7 +339,6 @@ static bool DistributeDomain(TDomain& domainOut,
 	PROFILE_FUNC_GROUP("parallelization");
 //todo	Use a process-communicator to restrict communication
 
-	typedef typename TDomain::position_attachment_type	position_attachment_type;
 //	make sure that the input is fine
 	typedef typename TDomain::grid_type GridType;
 	SmartPtr<GridType> pGrid = domainOut.grid();
@@ -350,6 +349,9 @@ static bool DistributeDomain(TDomain& domainOut,
 	}
 
 #ifdef UG_PARALLEL
+
+	typedef typename TDomain::position_attachment_type	position_attachment_type;
+	
 //	used to check whether all processes are correctly prepared for redistribution
 	//bool performDistribution = true;
 
