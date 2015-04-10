@@ -222,14 +222,8 @@ size_t LagrangeNumDoFOnSub(const ReferenceObjectID elem,
 			{
 				UG_THROW("LagrangeNumDoFOnSub: Octahedral elements only implemented for order p = 1.");
 			}
-			else
-			{
-				if(sub == ROID_VERTEX)		return 1;
-				if(sub == ROID_EDGE) 		return 0;
-				if(sub == ROID_TRIANGLE)   	return 0;
-				if(sub == ROID_OCTAHEDRON)	return 0;
-			}
-			break;
+			if(sub == ROID_VERTEX)		return 1;
+			else return 0;
 		default: UG_THROW("LagrangeLDS: Invalid ReferenceObjectID: "<<elem);
 	}
 }
@@ -252,7 +246,6 @@ size_t LagrangeNumDoFs(const ReferenceObjectID elem, const size_t p)
 			}
 			else
 				return 6;
-			break;
 		default: UG_THROW("LagrangeLDS: Invalid ReferenceObjectID: "<<elem);
 	}
 }
