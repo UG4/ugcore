@@ -24,16 +24,38 @@ GlobalRefinementRule GetRefinementRule()
 	return g_refinementRule;
 }
 
-///	Output are the vertices of a tetrahedron rotated around its vertical axis
-void RotateTetrahedron(int vrtsOut[NUM_VERTICES], int steps)
+
+///	Rotates the given tetrahedron while keeping the specified point fixed
+/**	The face opposed to the fixed point is rotated in counter-clockwise order when
+ * viewed from the fixed point.
+ * e.g.
+ * \code
+ *		int vrts[] = {0, 1, 2, 3};
+ *		TetRotation(vrts, 3, 1);
+ *	//	-> vrts == {2, 0, 1, 3}
+ * \endcode
+ */
+void TetRotation (
+		int vrtsInOut[NUM_VERTICES],
+		const int fixedPoint,
+		const size_t steps)
 {
-	if(steps < 0)
-		steps = (3 - ((-steps) % 3));
+//	get the opposing face of the fixed point
+	const int opFace = OPPOSED_OBJECT[fixedPoint][1];
+	const int* finds = FACE_VRT_INDS[opFace];
 
-	for(int i = 0; i < 3; ++i)
-		vrtsOut[(i + steps) % 3] = i;
+	for(size_t i = 0; i < steps; ++i){
+		const int tmp = vrtsInOut[finds[0]];
+		vrtsInOut[finds[0]] = vrtsInOut[finds[2]];
+		vrtsInOut[finds[2]] = vrtsInOut[finds[1]];
+		vrtsInOut[finds[1]] = tmp;
+	}
+}
 
-	vrtsOut[3] = 3;
+void InverseTetTransform(int* indsOut, const int* transformedInds){
+	UG_ASSERT(indsOut != transformedInds, "The arrays have to differ!");
+	for(int i = 0; i < NUM_VERTICES; ++i)
+		indsOut[transformedInds[i]] = i;
 }
 
 
@@ -269,7 +291,8 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut,
 		case 4:
 		{
 		//	multiple settings with 4 refined edges exist.
-		//	currently only one is directly supported.
+		//	Either two opposing edges are not marked (case all2 == true)
+		//	or the two unmarked edges are contained in 1 triangle
 
 		//	check whether all vertices have corner state 2
 			bool all2 = true;
@@ -282,15 +305,15 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut,
 
 			if(all2){
 			//	we've got a straight cut.
-			//	we'll rotate the tetrahedron so, that edge 2 won't be refined.
+			//	we'll rotate the tetrahedron around the tip so, that edge 2 won't be refined.
 				int steps = 0;
 				if(!newEdgeVrts[EDGE_FROM_VRTS[0][1]])
 					steps = 2;
 				else if(!newEdgeVrts[EDGE_FROM_VRTS[1][2]])
 					steps = 1;
 
-				int t[NUM_VERTICES];
-				RotateTetrahedron(t, steps);
+				int t[NUM_VERTICES] = {0, 1, 2, 3};
+				TetRotation(t, 3, steps);
 
 				const int v0v1 = EDGE_FROM_VRTS[t[0]][t[1]] + NUM_VERTICES;
 				const int v1v2 = EDGE_FROM_VRTS[t[1]][t[2]] + NUM_VERTICES;
@@ -314,6 +337,122 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut,
 				inds[fi++] = t[1];	inds[fi++] = v1v2;	inds[fi++] = v0v1;
 				inds[fi++] = t[3];	inds[fi++] = v2v3;	inds[fi++] = v0v3;
 			}
+			else{
+			//	one corner has state 1, one has state 3 and two have state 2.
+			//	Rotate the tet so that 1 is at the top and 4 is at the origin
+				int I[NUM_VERTICES] = {0, 1, 2, 3};
+
+				int s1 = -1;
+				for(int i = 0; i < 4; ++i){
+					if(cornerStatus[i] == 1){
+						s1 = i;
+						break;
+					}
+				}
+
+				if(s1 != 3){
+					const int fixedPoint = (s1 + 2) % 3;
+					TetRotation(I, fixedPoint, 1);
+				}
+
+				if(cornerStatus[I[1]] == 3)
+					TetRotation(I, 3, 2);
+				else if(cornerStatus[I[2]] == 3)
+					TetRotation(I, 3, 1);
+
+			//	indices of edge-center vertices
+				const int v01 = EDGE_FROM_VRTS[I[0]][I[1]] + NUM_VERTICES;
+				const int v02 = EDGE_FROM_VRTS[I[0]][I[2]] + NUM_VERTICES;
+				const int v03 = EDGE_FROM_VRTS[I[0]][I[3]] + NUM_VERTICES;
+				const int v12 = EDGE_FROM_VRTS[I[1]][I[2]] + NUM_VERTICES;
+
+				int& fi = fillCount;
+				int* inds = newIndsOut;
+
+				inds[fi++] = GOID_TETRAHEDRON;
+				inds[fi++] = I[0];	inds[fi++] = v01;
+				inds[fi++] = v02;	inds[fi++] = v03;
+
+				inds[fi++] = GOID_TETRAHEDRON;
+				inds[fi++] = v01;	inds[fi++] = v12;
+				inds[fi++] = v02;	inds[fi++] = v03;
+
+				inds[fi++] = GOID_PYRAMID;
+				inds[fi++] = I[3];	inds[fi++] = I[1];
+				inds[fi++] = v01;	inds[fi++] = v03;
+				inds[fi++] = v12;
+
+				inds[fi++] = GOID_PYRAMID;
+				inds[fi++] = I[2];	inds[fi++] = I[3];
+				inds[fi++] = v03;	inds[fi++] = v02;
+				inds[fi++] = v12;
+			}
+		}break;
+
+		case 5:{
+		//	only one edge is not marked for refinement
+			int unmarkedEdge = 0;
+			for(int i = 0; i < NUM_EDGES; ++i){
+				if(!newEdgeVrts[i]){
+					unmarkedEdge = i;
+					break;
+				}
+			}
+
+			int uei0 = EDGE_VRT_INDS[unmarkedEdge][0];
+			int uei1 = EDGE_VRT_INDS[unmarkedEdge][1];
+
+		//	orientate the tetrahedron so that the unmarked edge connects
+		//	vertices 2 and 3
+			int I[NUM_VERTICES] = {0, 1, 2, 3};
+		//	if the unmarked edge lies in the base triangle, we'll first have to
+		//	rotate so that it connects a base-vertex with the top
+			if(unmarkedEdge < 3){
+				const int fixedPoint = (uei1 + 1) % 3;
+				TetRotation(I, fixedPoint, 1);
+				int IInv[4];
+				InverseTetTransform(IInv, I);
+
+				uei0 = IInv[uei0];
+				uei1 = IInv[uei1];
+				unmarkedEdge = EDGE_FROM_VRTS[uei0][uei1];
+			}
+
+		//	now rotate the tet to its final place
+			if(unmarkedEdge == 3)
+				TetRotation(I, 3, 2);
+			else if(unmarkedEdge == 4)
+				TetRotation(I, 3, 1);
+
+		//	We obtained the final permutation I. Now create new elements
+		//	indices of edge-center vertices
+			const int v01 = EDGE_FROM_VRTS[I[0]][I[1]] + NUM_VERTICES;
+			const int v02 = EDGE_FROM_VRTS[I[0]][I[2]] + NUM_VERTICES;
+			const int v03 = EDGE_FROM_VRTS[I[0]][I[3]] + NUM_VERTICES;
+			const int v12 = EDGE_FROM_VRTS[I[1]][I[2]] + NUM_VERTICES;
+			const int v13 = EDGE_FROM_VRTS[I[1]][I[3]] + NUM_VERTICES;
+
+			int& fi = fillCount;
+			int* inds = newIndsOut;
+
+			inds[fi++] = GOID_TETRAHEDRON;
+			inds[fi++] = I[0];	inds[fi++] = v01;
+			inds[fi++] = v02;	inds[fi++] = v03;
+
+			inds[fi++] = GOID_TETRAHEDRON;
+			inds[fi++] = I[1];	inds[fi++] = v12;
+			inds[fi++] = v01;	inds[fi++] = v13;
+
+			inds[fi++] = GOID_PYRAMID;
+			inds[fi++] = v02;	inds[fi++] = v12;
+			inds[fi++] = v13;	inds[fi++] = v03;
+			inds[fi++] = v01;
+
+			inds[fi++] = GOID_PRISM;
+			inds[fi++] = v02;	inds[fi++] = v12;	inds[fi++] = I[2];
+			inds[fi++] = v03;	inds[fi++] = v13;	inds[fi++] = I[3];
+
+
 		}break;
 
 	//	REGULAR REFINEMENT
