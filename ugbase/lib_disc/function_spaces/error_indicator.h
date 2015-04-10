@@ -688,7 +688,7 @@ void MarkForAdaption_L2ErrorExact(IRefiner& refiner,
 template <class side_t, class TFunction>
 void ExchangeAndAdjustSideErrors(TFunction& u, ANumber aSideError, ANumber aNumElems)
 {
-	typedef typename TFunction::template traits<side_t>::const_iterator side_iter_t;
+	//typedef typename TFunction::template traits<side_t>::const_iterator side_iter_t;
 	typedef typename TFunction::domain_type::grid_type	grid_t;
 
 	grid_t& g = *u.domain()->grid();
