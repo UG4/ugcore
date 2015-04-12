@@ -188,7 +188,7 @@ function util.CreateAndDistributeDomain(gridName, numRefs, numPreRefs,
 end
 
 
-function util.CreateAndDistributeDomainFromGrid(grid, numRefs, numPreRefs,
+function util.CreateAndDistributeDomainFromGrid(grid, sh, numRefs, numPreRefs,
 										neededSubsets, distributionMethod,
 										verticalInterfaces, numTargetProcs,
 										distributionLevel, wFct)
@@ -198,7 +198,7 @@ function util.CreateAndDistributeDomainFromGrid(grid, numRefs, numPreRefs,
 	
 	-- load domain
 	write("Loading Domain  ... ") 
-LoadDomainFromGridInMemory(dom, grid)
+LoadDomainFromGridInMemory(dom, grid, sh)
 	write("done. ")
 	
 	-- create Refiner
