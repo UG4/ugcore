@@ -12,7 +12,7 @@ template<typename TElem>
 void ComputeMinMaxTotal
 (	MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >& aaError,
 	ConstSmartPtr<DoFDistribution> dd,
-	number& min, number& max, number& totalErr, std::size_t& numElem
+	number& min, number& max, number& totalErr, size_t& numElem
 )
 {
 	typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
@@ -42,7 +42,7 @@ void ComputeMinMaxTotal
 
 	//	sum up total error
 		totalErr += aaError[elem];
-		numElem += 1;
+		++numElem;
 	}
 
 #ifdef UG_PARALLEL
@@ -89,7 +89,7 @@ void MarkElements(MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >&
 
 // compute minimal/maximal/ total error and number of elements
 	number min, max, totalErr;
-	std::size_t numElem;
+	size_t numElem;
 	ComputeMinMaxTotal(aaError, dd, min, max, totalErr, numElem);
 
 //	check if total error is smaller than tolerance. If that is the case we're done
@@ -181,7 +181,7 @@ void MarkElementsForRefinement
 
 // compute minimal/maximal/ total error and number of elements
 	number min, max, totalErr;
-	std::size_t numElem;
+	size_t numElem;
 	ComputeMinMaxTotal(aaError, dd, min, max, totalErr, numElem);
 
 //	check if total error is smaller than tolerance; if that is the case we're done
@@ -199,7 +199,7 @@ void MarkElementsForRefinement
 		   " = " << minErrToRefine << ".\n");
 
 //	reset counter
-	std::size_t numMarkedRefine = 0;
+	size_t numMarkedRefine = 0;
 
 	const_iterator iter = dd->template begin<TElem>();
 	const_iterator iterEnd = dd->template end<TElem>();
@@ -227,7 +227,7 @@ void MarkElementsForRefinement
 	if (pcl::NumProcs() > 1)
 	{
 		pcl::ProcessCommunicator com;
-		std::size_t numMarkedRefineLocal = numMarkedRefine;
+		size_t numMarkedRefineLocal = numMarkedRefine;
 		numMarkedRefine = com.allreduce(numMarkedRefineLocal, PCL_RO_SUM);
 	}
 #endif
@@ -266,7 +266,7 @@ void MarkElementsForCoarsening
 
 // compute minimal/maximal/ total error and number of elements
 	number min, max, totalErr;
-	std::size_t numElem;
+	size_t numElem;
 	ComputeMinMaxTotal(aaError, dd, min, max, totalErr, numElem);
 
 //	compute maximum
@@ -276,7 +276,7 @@ void MarkElementsForCoarsening
 	UG_LOG("  +++ Coarsening elements if avg child error smaller than "<< maxErrToCoarse << ".\n");
 
 //	reset counter
-	std::size_t numMarkedCoarse = 0;
+	size_t numMarkedCoarse = 0;
 
 	const_iterator iter = dd->template begin<TElem>();
 	const_iterator iterEnd = dd->template end<TElem>();
@@ -327,7 +327,7 @@ void MarkElementsForCoarsening
 	if (pcl::NumProcs() > 1)
 	{
 		pcl::ProcessCommunicator com;
-		std::size_t numMarkedCoarseLocal = numMarkedCoarse;
+		size_t numMarkedCoarseLocal = numMarkedCoarse;
 		numMarkedCoarse = com.allreduce(numMarkedCoarseLocal, PCL_RO_SUM);
 	}
 #endif
