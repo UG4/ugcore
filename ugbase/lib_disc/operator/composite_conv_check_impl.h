@@ -140,10 +140,18 @@ norm(const TVector& vec, const std::vector<DoFIndex>& vMultiIndex)
 
 #ifdef UG_PARALLEL
 	// sum squared local norms
-	if (!vec.layouts()->proc_comm().empty())
-	norm = vec.layouts()->proc_comm().allreduce(norm, PCL_RO_SUM);
-	//pcl::ProcessCommunicator com;
-	//norm = com.allreduce(norm, PCL_RO_SUM);
+	//if (!vec.layouts()->proc_comm().empty())
+	//norm = vec.layouts()->proc_comm().allreduce(norm, PCL_RO_SUM);
+
+	// Use this alternative: otherwise, racing conditions occur in cases
+	// where a process has no elements, since the defect would be 0 for them then
+	// and iteration_ended() would return true; ergo: the empty processors would
+	// wait at the next global communication involving them while non-empty processors
+	// might encounter a different communication event before.
+	// This results in error messages like
+	// MPI ERROR: MPI_ERR_TRUNCATE: message truncated.
+	pcl::ProcessCommunicator com;
+	norm = com.allreduce(norm, PCL_RO_SUM);
 #endif
 
 	// return global norm
