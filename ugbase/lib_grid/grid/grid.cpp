@@ -9,6 +9,7 @@
 #include "common/common.h"
 #include "lib_grid/attachments/attached_list.h"
 #include "lib_grid/tools/periodic_boundary_manager.h"
+#include "attachment_io_handler.h"
 
 #ifdef UG_PARALLEL
 #include "lib_grid/parallelization/distributed_grid.h"
@@ -31,12 +32,16 @@ Grid::Grid() :
 	m_aFaceContainer("Grid_FaceContainer", false),
 	m_aVolumeContainer("Grid_VolumeContainer", false),
 	m_bMarking(false),
-	m_aMark("Grid_Mark", false)
+	m_aMark("Grid_Mark", false),
+	m_distGridMgr(NULL),
+	m_periodicBndMgr(NULL),
+	m_attachmentIOHandler(NULL)
 {
 	m_hashCounter = 0;
 	m_currentMark = 0;
 	m_options = GRIDOPT_NONE;
 	m_messageHub = SPMessageHub(new MessageHub());
+	m_attachmentIOHandler = new AttachmentIOHandler;
 
 	change_options(GRIDOPT_DEFAULT);
 }
@@ -47,12 +52,16 @@ Grid::Grid(uint options) :
 	m_aFaceContainer("Grid_FaceContainer", false),
 	m_aVolumeContainer("Grid_VolumeContainer", false),
 	m_bMarking(false),
-	m_aMark("Grid_Mark", false)
+	m_aMark("Grid_Mark", false),
+	m_distGridMgr(NULL),
+	m_periodicBndMgr(NULL),
+	m_attachmentIOHandler(NULL)
 {
 	m_hashCounter = 0;
 	m_currentMark = 0;
 	m_options = GRIDOPT_NONE;
 	m_messageHub = SPMessageHub(new MessageHub());
+	m_attachmentIOHandler = new AttachmentIOHandler;
 
 	change_options(options);
 }
@@ -63,13 +72,17 @@ Grid::Grid(const Grid& grid) :
 	m_aFaceContainer("Grid_FaceContainer", false),
 	m_aVolumeContainer("Grid_VolumeContainer", false),
 	m_bMarking(false),
-	m_aMark("Grid_Mark", false)
+	m_aMark("Grid_Mark", false),
+	m_distGridMgr(NULL),
+	m_periodicBndMgr(NULL),
+	m_attachmentIOHandler(NULL)
 {
 	m_hashCounter = 0;
 	m_currentMark = 0;
 	m_options = GRIDOPT_NONE;
 	m_messageHub = SPMessageHub(new MessageHub());
-	
+	m_attachmentIOHandler = new AttachmentIOHandler;
+
 	assign_grid(grid);
 }
 
@@ -82,6 +95,14 @@ Grid::~Grid()
 
 //	remove marks - would be done anyway...
 	remove_marks();
+
+//	erase any internal managers and handlers
+	#ifdef UG_PARALLEL
+		if(m_distGridMgr)			delete m_distGridMgr;
+	#endif
+
+	if(m_periodicBndMgr)		delete m_periodicBndMgr;
+	if(m_attachmentIOHandler)	delete m_attachmentIOHandler;
 }
 
 void Grid::notify_and_clear_observers_on_grid_destruction(GridObserver* initiator)
@@ -122,7 +143,8 @@ set_parallel(bool parallel)
 			//	we currently only support parallel mutli-grids, sadly...
 				MultiGrid* mg = dynamic_cast<MultiGrid*>(this);
 				if(mg){
-					m_distGridMgr.reset(new DistributedGridManager);
+					if(m_distGridMgr) delete m_distGridMgr;
+					m_distGridMgr = new DistributedGridManager;
 					m_distGridMgr->assign(*mg);
 				}
 				else{
@@ -138,7 +160,10 @@ set_parallel(bool parallel)
 		#endif
 	}
 	else if(is_parallel()){
-		m_distGridMgr.reset(NULL);
+		#ifdef UG_PARALLEL
+			if(m_distGridMgr) delete m_distGridMgr;
+			m_distGridMgr = NULL;
+		#endif
 	}
 }
 
@@ -146,27 +171,40 @@ void Grid::set_periodic_boundaries(bool is_periodic)
 {
 	if(is_periodic)
 	{
-		m_PeriodicBndIdent.reset(new PeriodicBoundaryManager());
-		m_PeriodicBndIdent->set_grid(this);
+		if(m_periodicBndMgr) delete m_periodicBndMgr;
+		m_periodicBndMgr = new PeriodicBoundaryManager();
+		m_periodicBndMgr->set_grid(this);
 	}
-	else {
-		m_PeriodicBndIdent.reset(NULL);
+	else if(m_periodicBndMgr){
+		delete m_periodicBndMgr;
+		m_periodicBndMgr = NULL;
 	}
 }
 
 bool Grid::has_periodic_boundaries() const
 {
-	return m_PeriodicBndIdent.get() != NULL;
+	return m_periodicBndMgr != NULL;
 }
 
 PeriodicBoundaryManager* Grid::periodic_boundary_manager()
 {
-	return m_PeriodicBndIdent.get();
+	return m_periodicBndMgr;
 }
 
 const PeriodicBoundaryManager* Grid::periodic_boundary_manager() const
 {
-	return m_PeriodicBndIdent.get();
+	return m_periodicBndMgr;
+}
+
+
+AttachmentIOHandler& Grid::attachment_io_handler()
+{
+	return *m_attachmentIOHandler;
+}
+
+const AttachmentIOHandler& Grid::attachment_io_handler() const
+{
+	return *m_attachmentIOHandler;
 }
 
 void Grid::clear()

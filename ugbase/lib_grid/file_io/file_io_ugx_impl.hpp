@@ -8,6 +8,7 @@
 #include <sstream>
 #include <cstring>
 #include "lib_grid/algorithms/debug_util.h"
+#include "lib_grid/grid/attachment_io_handler.h"
 
 namespace ug
 {
@@ -20,6 +21,7 @@ bool SaveGridToUGX(Grid& grid, ISubsetHandler& sh, const char* filename,
 	GridWriterUGX ugxWriter;
 	ugxWriter.add_grid(grid, "defGrid", aPos);
 	ugxWriter.add_subset_handler(sh, "defSH", 0);
+
 	return ugxWriter.write_to_file(filename);
 };
 
@@ -96,6 +98,11 @@ add_grid(Grid& grid, const char* name,
 //	add the remaining grid elements to the nodes
 	add_elements_to_node(gridNode, grid);
 
+	process_attachment_io_handler<Vertex>(grid, gridNode);
+	process_attachment_io_handler<Edge>(grid, gridNode);
+	process_attachment_io_handler<Face>(grid, gridNode);
+	process_attachment_io_handler<Volume>(grid, gridNode);
+
 	return true;
 }
 
@@ -106,13 +113,57 @@ add_grid(Grid& grid, const char* name,
 //{
 //}
 
-template <class TAttachment>
-void GridWriterUGX::
-add_vertex_attachment(const TAttachment& attachment,
-						const char* name,
-						size_t refGridIndex)
+template <class TElem>
+const char* GridWriterUGX::
+attachment_node_name()
 {
+	static const char* attachmentNodeNames[4] = {"vertex_attachment",
+												 "edge_attachment",
+												 "face_attachment",
+												 "volume_attachment"};
+	return attachmentNodeNames[TElem::BASE_OBJECT_ID];
 }
+
+
+template <class TElem, class TAttachment>
+void GridWriterUGX::
+add_attachment(TAttachment attachment,
+			   const char* name,
+			   size_t refGridIndex)
+{
+	using namespace rapidxml;
+	using namespace std;
+
+	UG_COND_THROW(refGridIndex >= m_vEntries.size(),
+				  "Invalid refGridIndex: " << refGridIndex
+				  << ", but only " << m_vEntries.size() << " grids available.");
+
+	Grid& grid = *m_vEntries[refGridIndex].grid;
+	stringstream ss;
+
+	WriteAttachmentToStream<TElem, TAttachment>(ss, grid, attachment);
+
+//	create the node
+	xml_node<>* node = m_doc.allocate_node(
+								node_element,
+								attachment_node_name<TElem>(),
+								m_doc.allocate_string(ss.str().c_str()));
+
+//	attributes	
+	node->append_attribute(
+		m_doc.allocate_attribute(
+			"name",
+			m_doc.allocate_string(name)));
+
+	node->append_attribute(
+		m_doc.allocate_attribute(
+			"type",
+			m_doc.allocate_string(
+				attachment_info_traits<TAttachment>::type_name().c_str())));
+
+	m_vEntries[refGridIndex].node->append_node(node);
+}
+
 
 template <class TAAPos>
 rapidxml::xml_node<>*
@@ -309,6 +360,15 @@ grid(Grid& gridOut, size_t index,
 			bSuccess = create_pyramids(volumes, grid, curNode, vertices);
 		else if(strcmp(name, "octahedrons") == 0)
 			bSuccess = create_octahedrons(volumes, grid, curNode, vertices);
+
+		else if(strcmp(name, "vertex_attachment") == 0)
+			bSuccess = read_attachment<Vertex>(grid, curNode);
+		else if(strcmp(name, "edge_attachment") == 0)
+			bSuccess = read_attachment<Edge>(grid, curNode);
+		else if(strcmp(name, "face_attachment") == 0)
+			bSuccess = read_attachment<Face>(grid, curNode);
+		else if(strcmp(name, "volume_attachment") == 0)
+			bSuccess = read_attachment<Volume>(grid, curNode);
 
 
 		if(!bSuccess){
@@ -701,6 +761,38 @@ create_constrained_vertices(std::vector<Vertex*>& vrtsOut,
 	//	add the constraining object id and index to the list
 		constrainingObjsOut.push_back(std::make_pair(conObjType, conObjIndex));
 	}
+
+	return true;
+}
+
+
+template <class TElem>
+bool GridReaderUGX::
+read_attachment(Grid& grid, rapidxml::xml_node<>* node)
+{
+	using namespace rapidxml;
+	using namespace std;
+	AttachmentIOHandler& handler = grid.attachment_io_handler();
+
+	xml_attribute<>* attribName = node->first_attribute("name");
+	UG_COND_THROW(!attribName, "Invalid attachment entry: No 'name' attribute was supplied!");
+	string name = attribName->value();
+
+	xml_attribute<>* attribType = node->first_attribute("type");
+	UG_COND_THROW(!attribType, "Invalid attachment entry: No 'type' attribute was supplied!");
+	string type = attribType->value();
+
+	if(!handler.attachment_is_registered<TElem>(name))
+		return true;
+
+	UG_COND_THROW(type.compare(handler.type_name<TElem>(name)) != 0,
+				  "Attachment type mismatch. Expecting type: " << 
+				  handler.type_name<TElem>(name)
+				  << ", but given type is: " << type);
+
+	string str(node->value(), node->value_size());
+	stringstream ss(str, ios_base::in);
+	handler.read_attachment_values<TElem>(ss, grid, name);
 
 	return true;
 }

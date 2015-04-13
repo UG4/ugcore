@@ -18,19 +18,19 @@ namespace ug
 bool Grid::
 is_parallel() const
 {
-	return m_distGridMgr.get() != NULL;
+	return m_distGridMgr != NULL;
 }
 
 DistributedGridManager* Grid::
 distributed_grid_manager()
 {
-	return m_distGridMgr.get();
+	return m_distGridMgr;
 }
 
 const DistributedGridManager* Grid::
 distributed_grid_manager() const
 {
-	return m_distGridMgr.get();
+	return m_distGridMgr;
 }
 
 

@@ -809,6 +809,43 @@ create_octahedron_node(OctahedronIterator octsBegin,
 }
 
 
+template <class TElem>
+void GridWriterUGX::
+process_attachment_io_handler(Grid& grid, rapidxml::xml_node<>* gridNode)
+{
+	AttachmentIOHandler& handler = grid.attachment_io_handler();
+
+	vector<string>	attachmentNames;
+	handler.registered_attachments<TElem>(attachmentNames);
+
+	for(size_t ia = 0; ia < attachmentNames.size(); ++ia){
+		std::string& name = attachmentNames[ia];
+		stringstream ss;
+		handler.write_attachment_values<TElem>(ss, grid, name);
+
+	//	create the node
+		xml_node<>* node = m_doc.allocate_node(
+									node_element,
+									attachment_node_name<TElem>(),
+									m_doc.allocate_string(ss.str().c_str()));
+
+	//	attributes	
+		node->append_attribute(
+			m_doc.allocate_attribute(
+				"name",
+				m_doc.allocate_string(name.c_str())));
+
+		node->append_attribute(
+			m_doc.allocate_attribute(
+				"type",
+				m_doc.allocate_string(
+					handler.type_name<TElem>(name))));
+
+		gridNode->append_node(node);
+	}
+}
+
+
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	implementation of GridReaderUGX

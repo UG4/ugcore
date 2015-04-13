@@ -95,10 +95,10 @@ class GridWriterUGX
 		void add_selector(ISelector& sel, const char* name,
 						  size_t refGridIndex);
 
-		template <class TAttachment>
-		void add_vertex_attachment(const TAttachment& attachment,
-									const char* name,
-									size_t refGridIndex);
+		template <class TElem, class TAttachment>
+		void add_attachment(TAttachment attachment,
+							const char* name,
+							size_t refGridIndex);
 
 		virtual bool write_to_stream(std::ostream& out);
 
@@ -221,6 +221,13 @@ class GridWriterUGX
 		template <class TGeomObj>
 		rapidxml::xml_node<>*
 		create_selector_element_node(const char* name, const ISelector& sel);
+
+
+		template <class TElem>
+		void process_attachment_io_handler(Grid& grid, rapidxml::xml_node<>* gridNode);
+
+		template <class TElem>
+		const char* attachment_node_name();
 
 	protected:
 	///	entries are stored for each grid.
@@ -420,6 +427,9 @@ class GridReaderUGX
 									 const char* elemNodeName,
 									 rapidxml::xml_node<>* selNode,
 									 std::vector<TGeomObj*>& vElems);
+
+		template <class TElem>
+		bool read_attachment(Grid& grid, rapidxml::xml_node<>* node);
 
 	protected:
 	///	the xml_document which stores the data
