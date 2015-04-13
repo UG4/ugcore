@@ -29,15 +29,15 @@ void SelectNonShadowsAdjacentToShadowsOnLevel(BoolMarker& sel,
 	Grid& grid = *sel.grid();
 
 //	get multigrid
-	MultiGrid& mg = *dynamic_cast<MultiGrid*>(&grid);
+	MultiGrid* mg = dynamic_cast<MultiGrid*>(&grid);
 
 //	check multigrid
-	if(&mg == NULL)
+	if(mg == NULL)
 		UG_THROW("SelectNonShadowsAdjacentToShadowsOnLevel: No "
-					"Multigrid given, selection ob level not possible.");
+					"Multigrid given, selection on level not possible.");
 
 //	check level
-	if(level >= (int) mg.num_levels() || level < 0)
+	if(level >= (int) mg->num_levels() || level < 0)
 		UG_THROW("SelectNonShadowsAdjacentToShadowsOnLevel: Requested "
 						"level "<<level<<" does not exist in Multigrid.");
 
@@ -46,10 +46,10 @@ void SelectNonShadowsAdjacentToShadowsOnLevel(BoolMarker& sel,
 //	iterator type
 	geometry_traits<Vertex>::const_iterator iter, iterEnd;
 
-	iterEnd = mg.end<Vertex>(level);
+	iterEnd = mg->end<Vertex>(level);
 
 //	loop all base elems
-	for(iter = mg.begin<Vertex>(level); iter != iterEnd; ++iter)
+	for(iter = mg->begin<Vertex>(level); iter != iterEnd; ++iter)
 	{
 	//	get element
 		Vertex* shadow = *iter;
