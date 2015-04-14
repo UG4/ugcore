@@ -134,7 +134,7 @@ function __ug__CheckUserDataArgType(r, l)
 	---------------------------------------------------------
 	
 	-- both operands are UserData
-	-- check for same dimesion
+	-- check for same dimension
 	if rType ~= "" and lType ~= "" then
 		if lDim ~= rDim then
 			error("Error: Dimensions of UserData does not match")
@@ -247,7 +247,7 @@ function __ug__UserNumber_mul(l, r)
 	-- Check match of types for operands
 	---------------------------------------------------------
 	
-	-- if operand is not UserData it must be a numer
+	-- if operand is not UserData it must be a number
 	if rType == "" then
 		if not tonumber(r) then
 			error("Error in '*': Operand must be scalar number or UserData.")
