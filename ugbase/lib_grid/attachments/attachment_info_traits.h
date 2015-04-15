@@ -17,7 +17,6 @@ struct attachment_info_traits {
 	static std::string type_name ();
 };
 
-
 DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<bool>, "bool");
 DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<char>, "char");
 DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<byte>, "byte");
