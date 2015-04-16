@@ -117,7 +117,6 @@ class GlobalAttachments {
 			AttachmentEntry () : attachment(NULL), type(""), functionIndex(-1) {}
 			AttachmentEntry (IAttachment* a, const char* t, int fi) :
 				attachment(a), type(t), functionIndex(fi) {}
-			~AttachmentEntry () {if(attachment) delete attachment;}
 			IAttachment* 	attachment;
 			const char*		type;
 			int				functionIndex;
@@ -154,6 +153,15 @@ class GlobalAttachments {
 
 		GlobalAttachments ()
 		{}
+
+		~GlobalAttachments ()
+		{
+			AttachmentMap& m = attachments();
+			for(AttachmentMap::iterator i = m.begin(); i != m.end(); ++i) {
+				if(i->second.attachment)
+					delete i->second.attachment;
+			}
+		}
 
 		static
 		std::vector<std::string>& attachment_names() {
