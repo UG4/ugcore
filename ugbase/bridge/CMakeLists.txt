@@ -20,7 +20,16 @@ set(srcUGBridge     ${srcUGBridge}
 
 if(buildGrid)
 	set(srcUGBridge     ${srcUGBridge}
-						domain_bridges/lib_grid_bridge.cpp)
+						grid_bridges/balancing_bridge.cpp
+						grid_bridges/debug_bridge.cpp
+						grid_bridges/file_io_bridge.cpp
+						grid_bridges/grid_bridge.cpp
+						grid_bridges/grid_bridges.cpp
+						grid_bridges/layers_bridge.cpp
+						grid_bridges/misc_bridge.cpp
+						grid_bridges/refinement_bridge.cpp
+						grid_bridges/selector_bridge.cpp
+						grid_bridges/subset_handler_bridge.cpp)
 endif(buildGrid)
 
 set(srcUGBridge     ${srcUGBridge}

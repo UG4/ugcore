@@ -14,6 +14,7 @@
 #include "lib_grid/algorithms/debug_util.h"
 #include "parallelization_util.h"
 #include "lib_grid/file_io/file_io.h"
+#include "lib_grid/global_attachments.h"
 
 //#define LG_DISTRIBUTION_DEBUG
 //#define LG_DISTRIBUTION_Z_OUTPUT_TRANSFORM 40
@@ -1597,6 +1598,22 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 	UG_DLOG(LG_DIST, 3, "dist-stop: CreateLayoutsFromDistInfos\n");
 }
 
+template <class TElem>
+static
+void AddGlobalAttachmentsToSerializer (
+		GridDataSerializationHandler& handler,
+		Grid& grid)
+{
+	const vector<string>& attachmentNames = GlobalAttachments::declared_attachment_names();
+	for(size_t i = 0; i < attachmentNames.size(); ++i){
+		const string& name = attachmentNames[i];
+		if(GlobalAttachments::is_attached<TElem>(grid, name)){
+			GlobalAttachments::add_data_serializer<TElem>(handler, grid, name);
+		}
+	}
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 bool DistributeGrid(MultiGrid& mg,
 					SubsetHandler& shPartition,
@@ -1623,6 +1640,12 @@ bool DistributeGrid(MultiGrid& mg,
 	GridDataSerializationHandler	userDataSerializer;
 	SPMessageHub msgHub = mg.message_hub();
 	msgHub->post_message(GridMessage_Distribution(GMDT_DISTRIBUTION_STARTS, userDataSerializer));
+//	add global attachments to the user-data-serializer
+	AddGlobalAttachmentsToSerializer<Vertex>(userDataSerializer, mg);
+	AddGlobalAttachmentsToSerializer<Edge>(userDataSerializer, mg);
+	AddGlobalAttachmentsToSerializer<Face>(userDataSerializer, mg);
+	AddGlobalAttachmentsToSerializer<Volume>(userDataSerializer, mg);
+
 	PCL_DEBUG_BARRIER(procComm);
 	GDIST_PROFILE_END();
 

@@ -9,7 +9,6 @@
 #include "common/common.h"
 #include "lib_grid/attachments/attached_list.h"
 #include "lib_grid/tools/periodic_boundary_manager.h"
-#include "attachment_io_handler.h"
 
 #ifdef UG_PARALLEL
 #include "lib_grid/parallelization/distributed_grid.h"
@@ -34,14 +33,12 @@ Grid::Grid() :
 	m_bMarking(false),
 	m_aMark("Grid_Mark", false),
 	m_distGridMgr(NULL),
-	m_periodicBndMgr(NULL),
-	m_attachmentIOHandler(NULL)
+	m_periodicBndMgr(NULL)
 {
 	m_hashCounter = 0;
 	m_currentMark = 0;
 	m_options = GRIDOPT_NONE;
 	m_messageHub = SPMessageHub(new MessageHub());
-	m_attachmentIOHandler = new AttachmentIOHandler;
 
 	change_options(GRIDOPT_DEFAULT);
 }
@@ -54,14 +51,12 @@ Grid::Grid(uint options) :
 	m_bMarking(false),
 	m_aMark("Grid_Mark", false),
 	m_distGridMgr(NULL),
-	m_periodicBndMgr(NULL),
-	m_attachmentIOHandler(NULL)
+	m_periodicBndMgr(NULL)
 {
 	m_hashCounter = 0;
 	m_currentMark = 0;
 	m_options = GRIDOPT_NONE;
 	m_messageHub = SPMessageHub(new MessageHub());
-	m_attachmentIOHandler = new AttachmentIOHandler;
 
 	change_options(options);
 }
@@ -74,14 +69,12 @@ Grid::Grid(const Grid& grid) :
 	m_bMarking(false),
 	m_aMark("Grid_Mark", false),
 	m_distGridMgr(NULL),
-	m_periodicBndMgr(NULL),
-	m_attachmentIOHandler(NULL)
+	m_periodicBndMgr(NULL)
 {
 	m_hashCounter = 0;
 	m_currentMark = 0;
 	m_options = GRIDOPT_NONE;
 	m_messageHub = SPMessageHub(new MessageHub());
-	m_attachmentIOHandler = new AttachmentIOHandler;
 
 	assign_grid(grid);
 }
@@ -102,7 +95,6 @@ Grid::~Grid()
 	#endif
 
 	if(m_periodicBndMgr)		delete m_periodicBndMgr;
-	if(m_attachmentIOHandler)	delete m_attachmentIOHandler;
 }
 
 void Grid::notify_and_clear_observers_on_grid_destruction(GridObserver* initiator)
@@ -196,16 +188,6 @@ const PeriodicBoundaryManager* Grid::periodic_boundary_manager() const
 	return m_periodicBndMgr;
 }
 
-
-AttachmentIOHandler& Grid::attachment_io_handler()
-{
-	return *m_attachmentIOHandler;
-}
-
-const AttachmentIOHandler& Grid::attachment_io_handler() const
-{
-	return *m_attachmentIOHandler;
-}
 
 void Grid::clear()
 {

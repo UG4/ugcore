@@ -224,7 +224,7 @@ class GridWriterUGX
 
 
 		template <class TElem>
-		void process_attachment_io_handler(Grid& grid, rapidxml::xml_node<>* gridNode);
+		void process_global_attachments(Grid& grid, rapidxml::xml_node<>* gridNode);
 
 		template <class TElem>
 		const char* attachment_node_name();

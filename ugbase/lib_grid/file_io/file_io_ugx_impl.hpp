@@ -8,7 +8,7 @@
 #include <sstream>
 #include <cstring>
 #include "lib_grid/algorithms/debug_util.h"
-#include "lib_grid/grid/attachment_io_handler.h"
+#include "lib_grid/global_attachments.h"
 
 namespace ug
 {
@@ -98,10 +98,10 @@ add_grid(Grid& grid, const char* name,
 //	add the remaining grid elements to the nodes
 	add_elements_to_node(gridNode, grid);
 
-	process_attachment_io_handler<Vertex>(grid, gridNode);
-	process_attachment_io_handler<Edge>(grid, gridNode);
-	process_attachment_io_handler<Face>(grid, gridNode);
-	process_attachment_io_handler<Volume>(grid, gridNode);
+	process_global_attachments<Vertex>(grid, gridNode);
+	process_global_attachments<Edge>(grid, gridNode);
+	process_global_attachments<Face>(grid, gridNode);
+	process_global_attachments<Volume>(grid, gridNode);
 
 	return true;
 }
@@ -141,7 +141,21 @@ add_attachment(TAttachment attachment,
 	Grid& grid = *m_vEntries[refGridIndex].grid;
 	stringstream ss;
 
-	WriteAttachmentToStream<TElem, TAttachment>(ss, grid, attachment);
+	if(!grid.has_attachment<TElem>(attachment))
+		return;
+
+	Grid::AttachmentAccessor<TElem, TAttachment> aaVal(grid, attachment);
+
+	const typename Grid::traits<TElem>::iterator iterEnd = grid.end<TElem>();
+	for(typename Grid::traits<TElem>::iterator iter = grid.begin<TElem>();
+		iter != iterEnd;)
+	{
+		attachment_io_traits<TAttachment>::write_value(ss, aaVal[*iter]);
+		UG_COND_THROW(!ss, "Failed to write attachment entry.\n");
+		++iter;
+		if(iter != iterEnd)
+			ss << " ";
+	}
 
 //	create the node
 	xml_node<>* node = m_doc.allocate_node(
@@ -772,7 +786,6 @@ read_attachment(Grid& grid, rapidxml::xml_node<>* node)
 {
 	using namespace rapidxml;
 	using namespace std;
-	AttachmentIOHandler& handler = grid.attachment_io_handler();
 
 	xml_attribute<>* attribName = node->first_attribute("name");
 	UG_COND_THROW(!attribName, "Invalid attachment entry: No 'name' attribute was supplied!");
@@ -782,17 +795,17 @@ read_attachment(Grid& grid, rapidxml::xml_node<>* node)
 	UG_COND_THROW(!attribType, "Invalid attachment entry: No 'type' attribute was supplied!");
 	string type = attribType->value();
 
-	if(!handler.attachment_is_registered<TElem>(name))
+	if(!GlobalAttachments::is_declared(name))
 		return true;
 
-	UG_COND_THROW(type.compare(handler.type_name<TElem>(name)) != 0,
+	UG_COND_THROW(type.compare(GlobalAttachments::type_name(name)) != 0,
 				  "Attachment type mismatch. Expecting type: " << 
-				  handler.type_name<TElem>(name)
+				  GlobalAttachments::type_name(name)
 				  << ", but given type is: " << type);
 
 	string str(node->value(), node->value_size());
 	stringstream ss(str, ios_base::in);
-	handler.read_attachment_values<TElem>(ss, grid, name);
+	GlobalAttachments::read_attachment_values<TElem>(ss, grid, name);
 
 	return true;
 }

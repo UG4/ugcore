@@ -8,6 +8,7 @@
 #include <vector>
 #include <cassert>
 #include "lib_grid/lg_base.h"
+#include "lib_grid/algorithms/debug_util.h"
 
 namespace ug
 {

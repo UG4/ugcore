@@ -44,12 +44,6 @@ class DistributedGridManager;
 //	"lib_grid/tools/periodic_boundary_identifier.h"
 class PeriodicBoundaryManager;
 
-//	predeclaration of the attachment io handler. This handler can be used to
-//	register special attachments for file-io and more general for serialization
-//	Include the following file if you intend to use it:
-//	"lib_grid/grid/attachment_io_handler.h"
-class AttachmentIOHandler;
-
 /**
  * \brief Grid, MultiGrid and GridObjectCollection are contained in this group
  * \defgroup lib_grid_grid grid
@@ -323,16 +317,6 @@ class UG_API Grid
 		const PeriodicBoundaryManager* periodic_boundary_manager() const;
 	/** \} */
 
-
-	///	returns a reference to the internal AttachmentIOHandler
-	/**	The AttachmentIOHandler can be used to register attachments for
-	 * input/output and for serialization (e.g. during grid redistribution).
-	 * To use it one has to include the header
-	 * "lib_grid/grid/attachment_io_handler.h"
-	 * \{ */
-	 	AttachmentIOHandler& attachment_io_handler();
-	 	const AttachmentIOHandler& attachment_io_handler() const;
-	/** \} */
 
 	////////////////////////////////////////////////
 	//	clear
@@ -1182,7 +1166,6 @@ class UG_API Grid
 		SPMessageHub 							m_messageHub;
 		DistributedGridManager*		m_distGridMgr;
 		PeriodicBoundaryManager*	m_periodicBndMgr;
-		AttachmentIOHandler*		m_attachmentIOHandler;
 };
 
 /** \} */

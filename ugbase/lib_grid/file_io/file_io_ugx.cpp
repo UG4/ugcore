@@ -811,17 +811,17 @@ create_octahedron_node(OctahedronIterator octsBegin,
 
 template <class TElem>
 void GridWriterUGX::
-process_attachment_io_handler(Grid& grid, rapidxml::xml_node<>* gridNode)
+process_global_attachments(Grid& grid, rapidxml::xml_node<>* gridNode)
 {
-	AttachmentIOHandler& handler = grid.attachment_io_handler();
-
-	vector<string>	attachmentNames;
-	handler.registered_attachments<TElem>(attachmentNames);
+	const vector<string>& attachmentNames = GlobalAttachments::declared_attachment_names();
 
 	for(size_t ia = 0; ia < attachmentNames.size(); ++ia){
-		std::string& name = attachmentNames[ia];
+		const std::string& name = attachmentNames[ia];
+		if(!GlobalAttachments::is_attached<TElem>(grid, name))
+			continue;
+
 		stringstream ss;
-		handler.write_attachment_values<TElem>(ss, grid, name);
+		GlobalAttachments::write_attachment_values<TElem>(ss, grid, name);
 
 	//	create the node
 		xml_node<>* node = m_doc.allocate_node(
@@ -839,7 +839,7 @@ process_attachment_io_handler(Grid& grid, rapidxml::xml_node<>* gridNode)
 			m_doc.allocate_attribute(
 				"type",
 				m_doc.allocate_string(
-					handler.type_name<TElem>(name))));
+					GlobalAttachments::type_name(name))));
 
 		gridNode->append_node(node);
 	}
