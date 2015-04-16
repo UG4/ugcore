@@ -10,11 +10,11 @@ namespace ug{
 
 #define DECLARE_ATTACHMENT_INFO_TRAITS(attachmentType, typeName)\
 		template <> struct attachment_info_traits<attachmentType> {\
-			static std::string type_name ()	{return typeName;}};
+			static const char* type_name ()	{return typeName;}};
 
 template <class TAttachment>
 struct attachment_info_traits {
-	static std::string type_name ();
+	static const char* type_name ();
 };
 
 DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<bool>, "bool");
