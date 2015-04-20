@@ -21,6 +21,7 @@
 #include "disc_item.h"
 #include "lib_disc/spatial_disc/domain_disc_interface.h"
 #include "lib_disc/function_spaces/grid_function.h"
+#include "lib_disc/function_spaces/error_elem_marking_strategy.h"
 
 namespace ug {
 
@@ -278,6 +279,11 @@ class DomainDiscretizationBase
 			number TOL,
 			number coarseFrac,
 			int maxLevel
+		);
+
+		virtual void mark_with_strategy
+		(	IRefiner& refiner,
+			SmartPtr <IElementMarkingStrategy<TDomain> > strategy
 		);
 
 		/// marks error indicators as invalid; in order to revalidate them,

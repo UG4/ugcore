@@ -18,6 +18,25 @@
 
 namespace ug{
 
+template <class TElemDisc>
+static void prep_assemble_loop(std::vector<TElemDisc*> vElemDisc)
+{
+	for(size_t i = 0; i < vElemDisc.size(); ++i)
+	{
+		vElemDisc[i]->prep_assemble_loop();
+	}
+}
+
+template <class TElemDisc>
+static void post_assemble_loop(std::vector<TElemDisc*> vElemDisc)
+{
+	for(size_t i = 0; i < vElemDisc.size(); ++i)
+	{
+		vElemDisc[i]->post_assemble_loop();
+	}
+}
+
+
 template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
 void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::update_elem_discs()
 {
@@ -72,6 +91,7 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 	PROFILE_FUNC_GROUP("discretization");
 //	update the elem discs
 	update_disc_items();
+	prep_assemble_loop(m_vElemDisc);
 
 //	reset matrix to zero and resize
 	m_spAssTuner->resize(dd, M);
@@ -162,6 +182,7 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 				m_vConstraint[i]->adjust_jacobian(M, u, dd);
 			}
 	}
+	post_assemble_loop(m_vElemDisc);
 	}UG_CATCH_THROW("DomainDiscretization::assemble_mass_matrix:"
 					" Cannot execute post process.");
 
@@ -226,6 +247,7 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 	PROFILE_FUNC_GROUP("discretization");
 //	update the elem discs
 	update_disc_items();
+	prep_assemble_loop(m_vElemDisc);
 
 //	reset matrix to zero and resize
 	m_spAssTuner->resize(dd, A);
@@ -316,6 +338,7 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 				m_vConstraint[i]->adjust_jacobian(A, u, dd);
 			}
 	}
+	post_assemble_loop(m_vElemDisc);
 	}UG_CATCH_THROW("DomainDiscretization::assemble_stiffness_matrix:"
 					" Cannot execute post process.");
 
@@ -387,6 +410,7 @@ assemble_jacobian(matrix_type& J,
 	PROFILE_FUNC_GROUP("discretization");
 //	update the elem discs
 	update_disc_items();
+	prep_assemble_loop(m_vElemDisc);
 
 //	reset matrix to zero and resize
 	m_spAssTuner->resize(dd, J);
@@ -495,6 +519,7 @@ assemble_jacobian(matrix_type& J,
 				m_vConstraint[i]->adjust_jacobian(J, *pModifyU, dd);
 			}
 	}
+	post_assemble_loop(m_vElemDisc);
 	}UG_CATCH_THROW("DomainDiscretization::assemble_jacobian:"
 					" Cannot execute post process.");
 
@@ -558,6 +583,7 @@ assemble_defect(vector_type& d,
 	PROFILE_FUNC_GROUP("discretization");
 //	update the elem discs
 	update_disc_items();
+	prep_assemble_loop(m_vElemDisc);
 
 //	reset matrix to zero and resize
 	m_spAssTuner->resize(dd, d);
@@ -664,6 +690,7 @@ assemble_defect(vector_type& d,
 				m_vConstraint[i]->adjust_defect(d, *pModifyU, dd);
 			}
 	}
+	post_assemble_loop(m_vElemDisc);
 	} UG_CATCH_THROW("Cannot adjust defect.");
 
 
@@ -726,6 +753,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 	PROFILE_FUNC_GROUP("discretization");
 //	update the elem discs
 	update_disc_items();
+	prep_assemble_loop(m_vElemDisc);
 
 //	reset matrix to zero and resize
 	m_spAssTuner->resize(dd, mat);
@@ -817,6 +845,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 				m_vConstraint[i]->adjust_linear(mat, rhs, dd);
 			}
 	}
+	post_assemble_loop(m_vElemDisc);
 	}UG_CATCH_THROW("DomainDiscretization::assemble_linear: Cannot post process.");
 
 //	Remember parallel storage type
@@ -882,6 +911,7 @@ assemble_rhs(vector_type& rhs,
 	PROFILE_FUNC_GROUP("discretization");
 //	update the elem discs
 	update_disc_items();
+	prep_assemble_loop(m_vElemDisc);
 
 //	reset matrix to zero and resize
 	m_spAssTuner->resize(dd, rhs);
@@ -972,6 +1002,7 @@ assemble_rhs(vector_type& rhs,
 				m_vConstraint[i]->adjust_rhs(rhs, u, dd);
 			}
 	}
+	post_assemble_loop(m_vElemDisc);
 	}UG_CATCH_THROW("DomainDiscretization::assemble_rhs:"
 					" Cannot execute post process.");
 
@@ -1311,6 +1342,7 @@ prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 	PROFILE_FUNC_GROUP("discretization");
 //	update the elem discs
 	update_disc_items();
+	prep_assemble_loop(m_vElemDisc);
 
 //	Union of Subsets
 	SubsetGroup unionSubsets;
@@ -1386,6 +1418,7 @@ prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 						" Assembling of elements of Dimension " << dim << " in "
 						" subset "<<si<< " failed.");
 	}
+	post_assemble_loop(m_vElemDisc);
 }
 
 /**
@@ -1442,6 +1475,7 @@ assemble_jacobian(matrix_type& J,
 	PROFILE_FUNC_GROUP("discretization");
 //	update the elem discs
 	update_disc_items();
+	prep_assemble_loop(m_vElemDisc);
 
 //	reset matrix to zero and resize
 	m_spAssTuner->resize(dd, J);
@@ -1551,6 +1585,7 @@ assemble_jacobian(matrix_type& J,
 				m_vConstraint[i]->adjust_jacobian(J, *pModifyU->solution(0), dd, time, pModifyU,s_a0);
 			}
 	}
+	post_assemble_loop(m_vElemDisc);
 	}UG_CATCH_THROW("Cannot adjust jacobian.");
 
 //	Remember parallel storage type
@@ -1618,6 +1653,7 @@ assemble_defect(vector_type& d,
 	PROFILE_FUNC_GROUP("discretization");
 //	update the elem discs
 	update_disc_items();
+	prep_assemble_loop(m_vElemDisc);
 
 //	reset vector to zero and resize
 	m_spAssTuner->resize(dd, d);
@@ -1724,6 +1760,7 @@ assemble_defect(vector_type& d,
 				m_vConstraint[i]->adjust_defect(d, *pModifyU->solution(0), dd, pModifyU->time(0), pModifyU, &vScaleMass, &vScaleStiff);
 			}
 	}
+	post_assemble_loop(m_vElemDisc);
 	} UG_CATCH_THROW("Cannot adjust defect.");
 
 //	Remember parallel storage type
@@ -2414,6 +2451,26 @@ mark_for_coarsening
 	MarkElementsForCoarsening<elem_type>(m_aaError, refiner,
 		this->dd(GridLevel(GridLevel::TOP, GridLevel::SURFACE)),
 		TOL, coarseFrac, maxLevel);
+}
+
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
+mark_with_strategy
+(	IRefiner& refiner,
+	SmartPtr<IElementMarkingStrategy<TDomain> >spMarkingStrategy
+)
+{
+	// check that error indicators have been calculated
+	if (!m_bErrorCalculated)
+	{
+		UG_THROW("Error indicators have to be calculated first by a call to 'calc_error'.");
+	}
+
+	// mark elements for refinement
+	if (spMarkingStrategy.valid())
+	{
+		spMarkingStrategy->mark(m_aaError, refiner, this->dd(GridLevel(GridLevel::TOP, GridLevel::SURFACE)));
+	}
 }
 
 template <typename TDomain, typename TAlgebra, typename TGlobAssembler>

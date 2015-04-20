@@ -362,6 +362,12 @@ class IElemDisc
 	// assembling functions
 	////////////////////////////
 	public:
+	///	virtual prepares the loop over all elements of one type
+		virtual void prep_assemble_loop() {}
+
+	///	virtual prepares the loop over all elements of one type
+		virtual void post_assemble_loop() {}
+
 	/// prepare the timestep
 		virtual void prep_timestep_elem(const number time, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
