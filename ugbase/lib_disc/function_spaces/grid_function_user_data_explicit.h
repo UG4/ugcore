@@ -237,15 +237,16 @@ public:
 			//	memory for shapes
 			std::vector<number> vShape;
 
+			//	get multiindices of element
+			std::vector<DoFIndex> ind;
+			m_spGridFct->dof_indices(elem, m_fct, ind);
+
+          
 			//	loop ips
 			for(size_t ip = 0; ip < nip; ++ip)
 			{
 				//	evaluate at shapes at ip
 				rTrialSpace.shapes(vShape, vLocIP[ip]);
-
-				//	get multiindices of element
-				std::vector<DoFIndex> ind;
-				m_spGridFct->dof_indices(elem, m_fct, ind);
 
 				// 	compute solution at integration point
 				vValue[ip] = 0.0;
