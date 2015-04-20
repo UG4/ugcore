@@ -294,7 +294,7 @@ Vertex* FindVertexByCoordiante(vector3& coord, VertexIterator iterBegin, VertexI
 	iter++;
 	while(iter != iterEnd)
 	{
-		number distSq = VecDistance(coord, aaPos[*iter]);
+		number distSq = VecDistanceSq(coord, aaPos[*iter]);
 		if(distSq < bestDistSq)
 		{
 			bestDistSq = distSq;
