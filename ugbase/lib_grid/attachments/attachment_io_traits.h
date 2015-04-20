@@ -14,7 +14,6 @@ struct attachment_io_traits {
 	static void read_value(std::istream& in, value_type& v)				{in >> v;}
 };
 
-
 template <>
 struct attachment_io_traits<Attachment<vector1> > {
 	typedef vector1	value_type;
