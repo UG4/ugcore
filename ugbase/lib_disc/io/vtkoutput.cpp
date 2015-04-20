@@ -177,6 +177,9 @@ pvtu_filename(std::string& nameOut, std::string nameIn,
               int si, int maxSi, int step)
 {
 //	copy name
+	// TODO: It might not be the best of ideas to use find_last_of('.')
+	// here, as this will cause unexpected results if filename is a path
+	// that includes a ".", e.g. "./path/to/someFileName" or "stupid.path.name/fileName"
 	nameOut = nameIn.substr(0, nameIn.find_last_of('.'));
 
 // 	subset index
