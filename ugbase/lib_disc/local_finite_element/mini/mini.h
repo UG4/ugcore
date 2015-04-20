@@ -1,8 +1,8 @@
 /*
- * crouzeix_raviart.h
+ * mini.h
  *
  * Created on: 18.06.2012
- * Author: Christian Wehner
+ * Author: Arne Naegel
  */
 
 #ifndef __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__MINI__MINI_BUBBLE__
@@ -161,7 +161,7 @@ class MiniBubbleLSFS<ReferenceEdge>
 			{
 				case 0:	return 1-x[0];
 				case 1:	return x[0];
-				case 2:	return x[0]*(1-x[0]);
+				case 2:	return 2.0*x[0]*(1-x[0]);
 				default: UG_THROW("MiniBubbleLSFS: shape function "<<i<<
 									" not found. Only "<<nsh<<" shapes present.");
 			}
@@ -176,7 +176,7 @@ class MiniBubbleLSFS<ReferenceEdge>
 			{
 				case 0:	g[0] = -1.0;
 				case 1:	g[0] =  1.0;
-				case 2:	g[0] =  1.0-2*x[0];
+				case 2:	g[0] =  2.0-4.0*x[0];
 				default: UG_THROW("MiniBubbleLSFS: shape function "<<i<<
 									" not found. Only "<<nsh<<" shapes present.");
 			}
@@ -252,7 +252,7 @@ class MiniBubbleLSFS<ReferenceTriangle>
 				case 0:	return (1.0-x[0]-x[1]);
 				case 1:	return x[0];
 				case 2:	return x[1];
-				case 3: return x[0]*x[1]*(1.0-x[0]-x[1]); // bubble
+				case 3: return 27.0*x[0]*x[1]*(1.0-x[0]-x[1]); // bubble
 				default: UG_THROW("MiniLSFS: shape function "<<i<<
 									" not found. Only "<<nsh<<" shapes present.");
 			}
@@ -271,8 +271,8 @@ class MiniBubbleLSFS<ReferenceTriangle>
 						g[1] = 0.0; return;
 				case 2:	g[0] = 0.0;
 						g[1] = 1.0; return;
-				case 3: g[0] = x[1]*(1.0-x[1]-2.0*x[0]);
-						g[1] = x[0]*(1.0-x[0]-2.0*x[1]); return;
+				case 3: g[0] = 27*x[1]*(1.0-x[1]-2.0*x[0]);
+						g[1] = 27*x[0]*(1.0-x[0]-2.0*x[1]); return;
 				default: UG_THROW("MiniLSFS: shape function "<<i<<
 									" not found. Only "<<nsh<<" shapes present.");
 			}
@@ -354,7 +354,7 @@ class MiniBubbleLSFS<ReferenceQuadrilateral>
 				case 1:	return x[0]*(1.0-x[1]);
 				case 2:	return x[0]*x[1];
 				case 3:	return x[1]*(1.0-x[0]);
-				case 4:	return x[0]*x[1]*(1.0-x[0])*(1.0-x[1]);
+				case 4:	return 16.0*x[0]*x[1]*(1.0-x[0])*(1.0-x[1]);
 
 				default: UG_THROW("MiniLSFS: shape function "<<i<<
 									" not found. Only "<<nsh<<" shapes present.");
@@ -376,8 +376,8 @@ class MiniBubbleLSFS<ReferenceQuadrilateral>
 						g[1] = x[0]; return;
 				case 3: g[0] = -x[1];
 						g[1] = 1.0-x[0]; return;
-				case 4: g[0] = x[1]*(1.0-x[1])*(1.0-2.0*x[0]);
-						g[1] = x[0]*(1.0-x[0])*(1.0-2.0*x[1]); return;
+				case 4: g[0] = 16.0*x[1]*(1.0-x[1])*(1.0-2.0*x[0]);
+						g[1] = 16.0*x[0]*(1.0-x[0])*(1.0-2.0*x[1]); return;
 
 				default: UG_THROW("MiniLSFS: shape function "<<i<<
 									" not found. Only "<<nsh<<" shapes present.");
@@ -388,7 +388,7 @@ class MiniBubbleLSFS<ReferenceQuadrilateral>
 ////////////////////////////////////////////////////////////////////////////////
 //	ReferenceTetrahedron
 //
-//  function space span {1,x,y,z}
+//  function space span {1,x,y,z} + bubble
 //
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -489,6 +489,150 @@ class MiniBubbleLSFS<ReferenceTetrahedron>
 				default: UG_THROW("MiniLSFS: shape function "<<i<<
 									" not found. Only "<<nsh<<" shapes present.");
 			}
+		}
+};
+
+////////////////////////////////////////////////////////////////////////////////
+//	ReferenceHexahedron
+//
+//  function space span {1,x} \times {1,y} \times {1,z} + bubble
+//
+////////////////////////////////////////////////////////////////////////////////
+template <>
+class MiniBubbleLSFS<ReferenceHexahedron>
+: public MiniBubbleLDS<ReferenceHexahedron>,
+  public BaseLSFS<MiniBubbleLSFS<ReferenceHexahedron>, 3>
+{
+	public:
+	///	Order of Shape functions
+		static const size_t order = 6;
+
+	///	Dimension, where shape functions are defined
+		static const int dim = 3;
+
+	/// Number of shape functions
+		static const size_t nsh = 8+1;
+
+	public:
+	///	Shape type
+		typedef number shape_type;
+
+	///	Gradient type
+		typedef MathVector<dim> grad_type;
+
+	///	Reference Element type
+		typedef ReferenceHexahedron reference_element_type;
+
+	public:
+	///	Constructor
+		MiniBubbleLSFS(){}
+
+	///	\copydoc ug::LocalShapeFunctionSet::continuous()
+		inline bool continuous() const {return true;}
+
+	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
+		inline size_t num_sh() const {return nsh;}
+
+
+	///	\copydoc ug::LocalShapeFunctionSet::position()
+		inline bool position(size_t i, MathVector<dim>& pos) const
+		{
+			static const DimReferenceElement<3>& refElem
+				= ReferenceElementProvider::get<3>(ROID_HEXAHEDRON);
+
+			if (i<=7)
+			{ 	// corner
+				pos = refElem.corner(i); return true;
+			} else if (i==8)
+			{	// bubble
+				pos[0] = 0.5; pos[1] = 0.5; pos[2] = 0.5; return true;
+			} else
+			{
+				UG_THROW("MiniLSFS: shape function "<<i<< " not found. Only "<<nsh<<" shapes present.");
+			}
+			return false;
+		}
+
+	///	\copydoc ug::LocalShapeFunctionSet::shape()
+		inline number shape(const size_t i, const MathVector<dim>& x) const
+		{
+
+			switch(i)
+			{
+			// corners 0..7
+			case 0: return((1.0-x[0])*(1.0-x[1])*(1.0-x[2]));
+			case 1: return((x[0])*(1.0-x[1])*(1.0-x[2]));
+			case 2: return((x[0])*(x[1])*(1.0-x[2]));
+			case 3: return((1.0-x[0])*(x[1])*(1.0-x[2]));
+			case 4: return((1.0-x[0])*(1.0-x[1])*(x[2]));
+			case 5: return((x[0])*(1.0-x[1])*(x[2]));
+			case 6: return((x[0])*(x[1])*(x[2]));
+			case 7: return((1.0-x[0])*(x[1])*(x[2]));
+			// bubble
+			case 8: return 64.0*x[0]*(1-x[0])*x[1]*(1-x[1])*x[2]*(1-x[2]);
+			default: UG_THROW("MiniLSFS: shape function "<<i<<
+					" not found. Only "<<nsh<<" shapes present.");
+			}
+
+		}
+
+	///	\copydoc ug::LocalShapeFunctionSet::grad()
+		inline void grad(MathVector<dim>& value, const size_t i, const MathVector<dim>& x) const
+		{
+
+			switch(i)
+
+			{
+			case 0:
+				value[0] = -(1.0-x[1])*(1.0-x[2]);
+				value[1] = -(1.0-x[0])*(1.0-x[2]);
+				value[2] = -(1.0-x[0])*(1.0-x[1]);
+				return;
+			case 1:
+				value[0] = (1.0-x[1])*(1.0-x[2]);
+				value[1] = -(x[0])*(1.0-x[2]);
+				value[2] = -(x[0])*(1.0-x[1]);
+				return;
+			case 2:
+				value[0] = (x[1])*(1.0-x[2]);
+				value[1] = (x[0])*(1.0-x[2]);
+				value[2] = -x[0]*x[1];
+				return;
+			case 3:
+				value[0] = -(x[1])*(1.0-x[2]);
+				value[1] = (1.0-x[0])*(1.0-x[2]);
+				value[2] = -(1.0-x[0])*(x[1]);
+				return;
+			case 4:
+				value[0] = -(1.0-x[1])*(x[2]);
+				value[1] = -(1.0-x[0])*(x[2]);
+				value[2] = (1.0-x[0])*(1.0-x[1]);
+				return;
+			case 5:
+				value[0] = (1.0-x[1])*x[2];
+				value[1] = -(x[0])*x[2];
+				value[2] = (x[0])*(1.0-x[1]);
+				return;
+			case 6:
+				value[0] = (x[1])*x[2];
+				value[1] = (x[0])*x[2];
+				value[2] = x[0]*x[1];
+				return;
+			case 7:
+				value[0] = -(x[1])*x[2];
+				value[1] = (1.0-x[0])*x[2];
+				value[2] = (1.0-x[0])*x[1];
+				return;
+			case 8: // bubble
+				value[0] = 64.0*(1.0-2.0*x[0])*x[1]*(1-x[1])*x[2]*(1-x[2]);
+				value[1] = 64.0*(1.0-2.0*x[1])*x[0]*(1-x[0])*x[2]*(1-x[2]);
+				value[2] = 64.0*(1.0-2.0*x[2])*x[0]*(1-x[0])*x[1]*(1-x[1]);
+				return;
+
+			default: UG_THROW("MiniLSFS: Invalid shape fct index: "<<i);
+			}
+
+
 		}
 };
 
