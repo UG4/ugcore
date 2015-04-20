@@ -2617,70 +2617,21 @@ class LagrangeLSFS<ReferenceOctahedron, TOrder>
 			UG_THROW("Index not found in LagrangeLSFS");
 		}
 
-	///	return the index for a multi_index
-		inline size_t mapped_index(const MathVector<dim,int>& ind) const
-		{
-			/*
-			check_multi_index(ind);
-
-			size_t res = 0;
-
-		//	add layers that are completely filled
-			for(int i2 = 0; i2 < ind[2]; ++i2)
-				res += (p+1-i2)*(p+1-i2);
-
-		//	add dofs of top z-layer
-			res += ind[1] * (p+1-ind[2]) + ind[0];
-
-			check_index(res);
-			return res;
-			*/
-
-			return 0;
-		}
-
-	///	return the multi_index for an index
-		inline MathVector<dim,int> mapped_multi_index(size_t i) const
-		{
-			/*
-			check_index(i);
-
-		//	get z layer
-			int iTmp = i;
-			int i2;
-			for(i2 = 0; i2 < (int)p; ++i2)
-			{
-				const int diff = iTmp - (p+1-i2)*(p+1-i2);
-				if(diff < 0) break;
-
-				iTmp = diff;
-			}
-
-			return MathVector<dim,int>( iTmp%(p+1-i2), iTmp/(p+1-i2), i2);
-			*/
-
-			return 0;
-		}
-
 	///	checks in debug mode that index is valid
 		inline void check_index(size_t i) const
 		{
-			//UG_ASSERT(i < nsh, "Wrong index.");
+			UG_ASSERT(i < nsh, "Wrong index.");
 		}
 
 	///	checks in debug mode that multi-index is valid
 		inline void check_multi_index(const MathVector<dim,int>& ind) const
 		{
-			/*
 			UG_ASSERT(ind[0] <= (int)p-ind[2] && ind[0] >= 0, "Wrong Multiindex.");
 			UG_ASSERT(ind[1] <= (int)p-ind[2] && ind[1] >= 0, "Wrong Multiindex.");
 			UG_ASSERT(ind[2] <= (int)p && ind[2] >= 0, "Wrong Multiindex.");
-			*/
 		}
 
 	private:
-		std::vector<std::vector<Polynomial1D> > m_vvPolynom;
-		std::vector<std::vector<Polynomial1D> > m_vvDPolynom;
 
 		MathVector<dim,int> m_vMultiIndex[nsh];
 };
