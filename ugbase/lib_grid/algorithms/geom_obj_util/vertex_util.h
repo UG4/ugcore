@@ -135,6 +135,11 @@ Vertex* FindVertexByCoordiante(vector3& coord, VertexIterator iterBegin,
 									VertexIterator iterEnd,
 									Grid::VertexAttachmentAccessor<APosition>& aaPos);
 
+/// returns  (non-unique?) index of closest vertex
+/** returns -1 iff ncoords == 0*/
+template <size_t dim>
+int FindVertexByCoordinate(const MathVector<dim>& coord, size_t ncoords, const MathVector<dim> vCoords[]);
+
 ////////////////////////////////////////////////////////////////////////
 ///	calculates the normal of a vertex using associated faces
 /**

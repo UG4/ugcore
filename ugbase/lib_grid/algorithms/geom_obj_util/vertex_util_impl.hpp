@@ -381,6 +381,27 @@ ContainsPoint(const Vertex* v, const vector_t& p, TAAPos aaPos)
 	return true;
 }
 
+template <size_t dim>
+int FindVertexByCoordinate(const MathVector<dim>& coord, size_t ncoords, const MathVector<dim> vCoords[])
+{
+
+	if (ncoords <= 0) return -1;
+
+	int bestVrt = 0;
+	number bestDistSq = VecDistanceSq(coord, vCoords[0]);
+
+	for (int i=1; i<ncoords; ++i)
+	{
+		number distSq = VecDistance(coord, vCoords[i]);
+		if(distSq < bestDistSq)
+		{
+			bestDistSq = distSq;
+			bestVrt = i;
+		}
+	}
+	return bestVrt;
+}
+
 }//	end of namespace
 
 #endif
