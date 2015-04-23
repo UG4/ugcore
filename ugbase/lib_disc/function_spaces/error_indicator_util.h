@@ -9,10 +9,11 @@ namespace ug{
 
 /// helper function that computes min/max and total of error indicators
 template<typename TElem>
-void ComputeMinMaxTotal
+void ComputeMinMax
 (	MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >& aaError,
 	ConstSmartPtr<DoFDistribution> dd,
-	number& min, number& max, number& totalErr, size_t& numElem
+	number& min, number& max, number& totalErr, size_t& numElem,
+	number& minLocal, number& maxLocal, number& totalErrLocal, size_t& numElemLocal
 )
 {
 	typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
@@ -45,9 +46,13 @@ void ComputeMinMaxTotal
 		++numElem;
 	}
 
+	// set local variables
+	maxLocal = max;
+	minLocal = min;
+	totalErrLocal = totalErr;
+	numElemLocal = numElem;
+
 #ifdef UG_PARALLEL
-	number maxLocal = max, minLocal = min, totalErrLocal = totalErr;
-	int numElemLocal = numElem;
 	if (pcl::NumProcs() > 1)
 	{
 		pcl::ProcessCommunicator com;
@@ -62,6 +67,20 @@ void ComputeMinMaxTotal
 			<< min << ", sum=" << totalErr << ".\n");
 }
 
+
+/// helper function that computes min/max and total of error indicators
+template<typename TElem>
+void ComputeMinMaxTotal
+(	MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >& aaError,
+	ConstSmartPtr<DoFDistribution> dd,
+	number& min, number& max, number& totalErr, size_t& numElem
+
+)
+{
+	number minLocal, maxLocal, totalErrLocal;
+	size_t numElemLocal;
+	ComputeMinMax(aaError, dd, min, max, totalErr, numElem, minLocal, maxLocal, totalErrLocal, numElemLocal);
+}
 /// marks elements according to an attached error value field
 /**
  * This function marks elements for refinement and coarsening. The passed error attachment

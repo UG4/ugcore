@@ -59,13 +59,41 @@ void StdMarkingStrategy<TDomain>::mark(typename base_type::elem_accessor_type& a
 }
 
 
-// marks elements above a certain fraction of the maximum
+template<class TElem>
+number CreateListOfElemWeights(
+		MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> > &aaError,
+		typename DoFDistribution::traits<TElem>::const_iterator iterBegin,
+		const typename DoFDistribution::traits<TElem>::const_iterator iterEnd,
+		std::vector<double> &eta)
+{
+	number localErr;
+	typename DoFDistribution::traits<TElem>::const_iterator iter; // = iterBegin;
+	size_t i=0;
+	for (iter = iterBegin; iter != iterEnd; ++iter)
+	{
+		const double elemErr = aaError[*iter];
+
+			//	if no error value exists: ignore (might be newly added by refinement);
+			//	newly added elements are supposed to have a negative error estimator
+			if (elemErr < 0) continue;
+
+			eta[i++]  = elemErr;
+			localErr += elemErr;
+	}
+
+	// sort descending using default comparison
+	std::sort (eta.begin(), eta.end(), std::greater<double>());
+	return localErr;
+};
+
+/// marks elements above a certain fraction of the maximum
+//!
 template <typename TDomain>
 class MaximumMarking : public IElementMarkingStrategy<TDomain>{
 
 public:
 	typedef IElementMarkingStrategy<TDomain> base_type;
-	MaximumMarking(number theta=1.0) : m_theta(theta), m_eps(0.1), m_max_level(100) {};
+	MaximumMarking(number theta=1.0) : m_theta(theta), m_eps(0.01), m_max_level(100) {};
 	MaximumMarking(number theta, number eps) : m_theta(theta), m_eps (eps), m_max_level(100) {};
 
 	void mark(typename base_type::elem_accessor_type& aaError,
@@ -83,84 +111,109 @@ void MaximumMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaErr
 				IRefiner& refiner,
 				ConstSmartPtr<DoFDistribution> dd)
 {
-		typedef typename base_type::elem_type TElem;
-		typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
+	typedef typename base_type::elem_type TElem;
+	typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
 
-		// compute minimal/maximal/ total error and number of elements
-		number minElemErr, maxElemErr, totalErr;
-		size_t numElem;
-		ComputeMinMaxTotal(aaError, dd, minElemErr, maxElemErr, totalErr, numElem);
+	// compute minimal/maximal/ total error and number of elements
 
-		// init iterators
-		const_iterator iter;
-		const const_iterator iterEnd = dd->template end<TElem>();
+	number minElemErr, minElemErrLocal;
+	number maxElemErr, maxElemErrLocal;
+	number errTotal, errLocal;
+	size_t numElem, numElemLocal;
 
-		UG_LOG("  +++ Found max "<<  maxElemErr << ".\n");
+	ComputeMinMax(aaError, dd, minElemErr, maxElemErr, errTotal, numElem,
+				minElemErrLocal, maxElemErrLocal, errLocal, numElemLocal);
 
-		// Verfuerths strategy for skipping excess
+
+	// init iterators
+	const_iterator iter;
+	const const_iterator iterEnd = dd->template end<TElem>();
+
+	// determine (local) number of excess elements
+	const int ndiscard = (int) (numElemLocal*m_eps); // TODO: on every process?
+	UG_LOG("  +++ Found max "<<  maxElemErr << "ndiscard="<<ndiscard<<".\n");
+
+	// Verfuerths strategy for skipping excess
+/*	while (ndiscard)
+	{
+		// find elements that should be discarded
 		int discard = 0;
-		const int ndiscard = (int)( numElem*m_eps );
-		while (true)
-		{
-			// find elemnts that should be discarded
-			double newmax = 0.0;
-			for (iter = dd->template begin<TElem>(); iter != iterEnd; ++iter)
-			{
-				const double elemErr = aaError[*iter];
-
-				if ( elemErr >= maxElemErr)
-				{ discard++;}
-				else
-				{ newmax = std::max(newmax, elemErr);}
-			}
-
-			// quit, if enough elements have been found
-			if ( discard <  ndiscard)
-				maxElemErr = newmax;
-			else
-				break;
-		}
-
-		UG_LOG("  +++ Skipping " << ndiscard << " elements; new max." << maxElemErr << ".\n");
-
-	// refine all element above threshold
-		const number minErrToRefine = maxElemErr*m_theta;
-		UG_LOG("  +++ Refining elements if error greater " << maxElemErr << "*" << m_theta <<
-			   " = " << minErrToRefine << ".\n");
-
-	//	reset counter
-		std::size_t numMarkedRefine = 0;
-
-
-	//	loop elements for marking
+		double newmax = 0.0;
 		for (iter = dd->template begin<TElem>(); iter != iterEnd; ++iter)
 		{
+			const double elemErr = aaError[*iter];
+
+			if ( elemErr >= maxElemErr) { discard++; }
+			else { newmax = std::max(newmax, elemErr); }
+		}
+
+		// quit, if enough elements have been found
+		if ( discard <  ndiscard) maxElemErr = newmax;
+		else break;
+
+	}*/
+
+	// create sorted array of elem weights
+	std::vector<double> eta;
+	eta.resize(numElemLocal);
+	CreateListOfElemWeights<TElem>(aaError,dd->template begin<TElem>(), iterEnd, eta);
+	UG_ASSERT(numElemLocal==eta.size(), "Huhh: number of elements does not match!");
+	maxElemErr = eta[ndiscard];
+
+	UG_LOG("  +++ MaximumMarking: Maximum for refinement: " << maxElemErr << " elements.\n");
+
+	// compute parallel threshold
+#ifdef UG_PARALLEL
+	if (pcl::NumProcs() > 1)
+	{
+		pcl::ProcessCommunicator com;
+		number maxElemErrLocal = maxElemErr;
+		maxElemErr = com.allreduce(maxElemErrLocal, PCL_RO_MAX);
+		UG_LOG("  +++ MaximumMarking: Maximum for refinement: " << maxElemErr << " elements.\n");
+	}
+#else
+	UG_LOG("  +++ Skipping " << ndiscard << " elements; new max." << maxElemErr << ".\n");
+#endif
+
+	// refine all element above threshold
+	const number minErrToRefine = maxElemErr*m_theta;
+	UG_LOG("  +++ Refining elements if error greater " << maxElemErr << "*" << m_theta <<
+			" = " << minErrToRefine << ".\n");
+
+	//	reset counter
+	std::size_t numMarkedRefine = 0;
+
+	//	loop elements for marking
+	for (iter = dd->template begin<TElem>(); iter != iterEnd; ++iter)
+	{
 		//	get element
-			TElem* elem = *iter;
+		TElem* elem = *iter;
 
 		//	if no error value exists: ignore (might be newly added by refinement);
 		//	newly added elements are supposed to have a negative error estimator
-			if (aaError[elem] < 0) continue;
+		if (aaError[elem] < 0) continue;
 
 		//	marks for refinement
-			if (aaError[elem] >= minErrToRefine)
-				if (dd->multi_grid()->get_level(elem) <= m_max_level)
-				{
-					refiner.mark(elem, RM_REFINE);
-					numMarkedRefine++;
-				}
-		}
+		if (aaError[elem] >= minErrToRefine)
+			if (dd->multi_grid()->get_level(elem) <= m_max_level)
+			{
+				refiner.mark(elem, RM_REFINE);
+				numMarkedRefine++;
+			}
+	}
 
-	#ifdef UG_PARALLEL
-		if (pcl::NumProcs() > 1)
-		{
-			pcl::ProcessCommunicator com;
-			std::size_t numMarkedRefineLocal = numMarkedRefine;
-			numMarkedRefine = com.allreduce(numMarkedRefineLocal, PCL_RO_SUM);
-		}
-	#endif
+#ifdef UG_PARALLEL
+	if (pcl::NumProcs() > 1)
+	{
+		pcl::ProcessCommunicator com;
+		std::size_t numMarkedRefineLocal = numMarkedRefine;
+		numMarkedRefine = com.allreduce(numMarkedRefineLocal, PCL_RO_SUM);
+		UG_LOG("  +++ MaximumMarking: Marked for refinement: " << numMarkedRefine << " ("<< numMarkedRefineLocal << ") elements.\n");
+	}
+#else
+	UG_LOG("  +++ MaximumMarking: Marked for refinement: " << numMarkedRefine << " elements.\n");
+#endif
 
-		UG_LOG("  +++ MaximumMarking: Marked for refinement: "<< ndiscard << "+" << numMarkedRefine << " elements.\n");
 
 }
 
@@ -184,6 +237,10 @@ protected:
 	int m_max_level;
 };
 
+
+
+
+
 template <typename TDomain>
 void EquilibrationMarkingStrategy<TDomain>::mark(typename base_type::elem_accessor_type& aaError,
 				IRefiner& refiner,
@@ -193,22 +250,28 @@ void EquilibrationMarkingStrategy<TDomain>::mark(typename base_type::elem_access
 	typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
 
 	// compute minimal/maximal/total error and number of elements
-	number minElemErr, maxElemErr;
-	number totalErr = 0.0;
-	number markedErr = 0.0;  // contribution of marked (largest) elements
-	size_t numElem = 0;
+	number minElemErr, minElemErrLocal;
+	number maxElemErr, maxElemErrLocal;
+	number errTotal= 0.0, errLocal= 0.0;
+	size_t numElem= 0, numElemLocal;
 
-	ComputeMinMaxTotal(aaError, dd, minElemErr, maxElemErr, totalErr, numElem);
-	//UG_LOG("  +++ Error^2= "<<  totalErr << ".\n");
+	// ComputeMinMaxTotal(aaError, dd, minElemErr, maxElemErr, errTotal, numTotalElem);
+	ComputeMinMax(aaError, dd, minElemErr, maxElemErr, errTotal, numElem,
+					minElemErrLocal, maxElemErrLocal, errLocal, numElemLocal);
+
+	number localErr = 0.0;   // local error
+	number subsetErr = 0.0;  // local contribution of marked (largest) elements
 
 	// init iterators
 	const const_iterator iterEnd = dd->template end<TElem>();
 	const_iterator iter;
 
-	// TODO: Parallel
-	// create array of $\eta^2_i$
-	std::vector<double> eta(numElem);
-	size_t i=0;
+	// create and fill array of $\eta^2_i$ for all (local) elements
+	std::vector<double> eta;
+	eta.resize(numElemLocal);
+
+	CreateListOfElemWeights<TElem>(aaError,dd->template begin<TElem>(), iterEnd, eta);
+/*	size_t i=0;
 	for (iter = dd->template begin<TElem>(); iter != iterEnd; ++iter)
 	{
 		const double elemErr = aaError[*iter];
@@ -217,30 +280,35 @@ void EquilibrationMarkingStrategy<TDomain>::mark(typename base_type::elem_access
 		//	newly added elements are supposed to have a negative error estimator
 		if (elemErr < 0) continue;
 
-		eta[i++] = elemErr;
-		// totalErr += elemErr;
-	}
-
-	UG_ASSERT(i==numElem, "Huhh: number of elements does not match!");
-	UG_ASSERT( ((m_eps>=0.0) && (m_eps<=1.0)), "Huhh: m_eps invalid!");
+		eta[i++]  = elemErr;
+		localErr += elemErr;
+	}*/
 
 	// sort descending using default comparison
-	std::sort (eta.begin(), eta.end(), std::greater<double>());
+	//std::sort (eta.begin(), eta.end(), std::greater<double>());
+	UG_ASSERT(numElemLocal==eta.size(), "Huhh: number of elements does not match!");
 
-	// discard at least some fraction of elements
-	const int ndiscard = (m_eps!=0.0) ? (int) (numElem*m_eps) : 0;
 
-	// find cutoff threshold
-	UG_LOG("  +++  Error^2= "<<   m_theta*totalErr << std::endl);
-	markedErr = 0.0;
-	i=0;
-	while ( markedErr < m_theta*totalErr)
-	{
-		markedErr += eta[i++];
-	}
+	// error for marked subset
+	subsetErr = 0.0;
+	size_t i=0;
+
+	// discard a fraction of elements
+	UG_ASSERT( ((m_eps>=0.0) && (m_eps<=1.0)), "Huhh: m_eps invalid!");
+	const int ndiscard = (m_eps!=0.0) ? (int) (numElemLocal*m_eps) : 0;
+	for (i=0; i<ndiscard; ++i)
+	{ subsetErr += eta[i]; }
+
+	// define cutoff threshold
+	const number theta = (m_theta*numElemLocal)/numElem;
+	while (subsetErr < theta*errTotal)
+	{ subsetErr += eta[i++]; }
 	maxElemErr = eta[i-1];
 
-	UG_LOG("  +++  Error^2= "<<  totalErr << "; MarkedError^2= "<<  markedErr << "; threshold= "<< maxElemErr<<"; i="<< i<<"\n");
+	UG_LOG("  +++  localGoalErr^2= "<<   theta*errTotal << std::endl);
+	UG_LOG("  +++  localErr^2= "<<  localErr << std::endl);
+	UG_LOG("  +++  markedError^2= "<<  subsetErr << std::endl);
+	UG_LOG("  +++  threshold= "<< maxElemErr<<"; i="<< i<< std::endl);
 
 
 	//	mark elements with maximal contribution
@@ -261,7 +329,6 @@ void EquilibrationMarkingStrategy<TDomain>::mark(typename base_type::elem_access
 		if (elemErr > maxElemErr)
 		{
 			refiner.mark(*iter, RM_REFINE);
-			markedErr += elemErr;
 			numMarkedRefine++;
 		}
 	}
@@ -312,6 +379,8 @@ void AbsoluteMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaEr
 
 		number lowerBound = m_eta*m_eta;
 
+		number errTotal=0.0, errLocal=0.0;
+
 		size_t numMarkedRefine = 0;
 		for (const_iterator iter = dd->template begin<TElem>(); iter != iterEnd; ++iter)
 		{
@@ -321,6 +390,7 @@ void AbsoluteMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaEr
 
 		// skip newly added
 			if (elemError < 0) continue;
+			errLocal += elemError;
 
 		//	mark for refinement
 			if ((elemError >= lowerBound) && (dd->multi_grid()->get_level(elem) <= m_max_level))
@@ -330,16 +400,21 @@ void AbsoluteMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaEr
 			}
 		}
 
-	#ifdef UG_PARALLEL
+#ifdef UG_PARALLEL
 		if (pcl::NumProcs() > 1)
 		{
 			pcl::ProcessCommunicator com;
 			std::size_t numMarkedRefineLocal = numMarkedRefine;
 			numMarkedRefine = com.allreduce(numMarkedRefineLocal, PCL_RO_SUM);
-		}
-	#endif
 
-		UG_LOG("  +++ AbsoluteMarking: Marked "<< numMarkedRefine << " elements for refinement.\n");
+			errTotal = com.allreduce(errLocal, PCL_RO_SUM);
+		}
+		else
+#else
+		errTotal = errLocal;
+#endif
+
+		UG_LOG("  +++ AbsoluteMarking: Marked "<< numMarkedRefine << " elements for refinement"<<errTotal <<".\n");
 
 }
 
