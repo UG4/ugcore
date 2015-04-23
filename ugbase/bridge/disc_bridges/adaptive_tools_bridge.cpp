@@ -19,6 +19,7 @@
 #include "lib_disc/function_spaces/grid_function.h"
 #include "lib_disc/function_spaces/approximation_space.h"
 #include "lib_disc/function_spaces/error_indicator.h"
+#include "lib_disc/function_spaces/error_elem_marking_strategy.h"
 #include "lib_disc/function_spaces/level_transfer.h"
 #include "lib_disc/function_spaces/local_transfer.h"
 
@@ -198,6 +199,63 @@ static void Domain(Registry& reg, string grp)
 	string suffix = GetDomainSuffix<TDomain>();
 	string tag = GetDomainTag<TDomain>();
 
+	//	group string
+	grp.append("/Adaptive");
+
+	//  IElementMarkingStrategy
+	{
+		typedef IElementMarkingStrategy<TDomain> T;
+		string name = string("IElementMarkingStrategy").append(suffix);
+		reg.add_class_<T>(name, grp);
+		reg.add_class_to_group(name, "IElementMarkingStrategy", tag);
+	}
+
+
+	//  StdMarkingStrategy
+	{
+		typedef StdMarkingStrategy<TDomain> T;
+		typedef IElementMarkingStrategy<TDomain> TBase;
+		string name = string("StdMarkingStrategy").append(suffix);
+		reg.add_class_<T, TBase>(name, grp)
+							   .template add_constructor<void (*)(number, number, int)>("tol#ratio#max level")
+							   .set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "StdMarkingStrategy", tag);
+	}
+
+	//  MaximumMarking
+	{
+			typedef MaximumMarking<TDomain> T;
+			typedef IElementMarkingStrategy<TDomain> TBase;
+			string name = string("MaximumMarking").append(suffix);
+			reg.add_class_<T, TBase>(name, grp)
+								   .template add_constructor<void (*)(number)>("theta")
+								   .template add_constructor<void (*)(number, number)>("theta#eps")
+								   .set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, "MaximumMarking", tag);
+	}
+
+	//  EquilibrationMarking
+	{
+		typedef EquilibrationMarkingStrategy<TDomain> T;
+		typedef IElementMarkingStrategy<TDomain> TBase;
+		string name = string("EquilibrationMarking").append(suffix);
+		reg.add_class_<T, TBase>(name, grp)
+									.template add_constructor<void (*)(number)>("theta")
+									.template add_constructor<void (*)(number, number)>("theta#eps")
+									.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "EquilibrationMarking", tag);
+	}
+
+	//  AbsoluteMarking
+	{
+			typedef AbsoluteMarking<TDomain> T;
+			typedef IElementMarkingStrategy<TDomain> TBase;
+			string name = string("AbsoluteMarking").append(suffix);
+			reg.add_class_<T, TBase>(name, grp)
+										.template add_constructor<void (*)(number)>("eta")
+										.set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, "AbsoluteMarking", tag);
+	}
 }
 
 /**
