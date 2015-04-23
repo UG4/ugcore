@@ -1118,7 +1118,7 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 			const number x0 = 1 - x[0] - x[1] - x[2];
 
 			UG_ASSERT(i0 <= p, "Wrong Multiindex.");
-			UG_ASSERT(x0 <= 1.0 && x0 >= 0.0, "Wrong Position.");
+			UG_ASSERT(x0 <= 1.0+SMALL && x0 >= -SMALL, "Wrong Position.");
 
 		//	loop dimensions
 			for(int d = 0; d < dim; ++d)
