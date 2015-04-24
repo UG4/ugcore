@@ -390,7 +390,7 @@ int FindVertexByCoordinate(const MathVector<dim>& coord, size_t ncoords, const M
 	size_t bestVrt = 0;
 	number bestDistSq = VecDistanceSq(coord, vCoords[0]);
 
-	for (int i=1; i<ncoords; ++i)
+	for (size_t i=1; i<ncoords; ++i)
 	{
 		number distSq = VecDistance(coord, vCoords[i]);
 		if(distSq < bestDistSq)
