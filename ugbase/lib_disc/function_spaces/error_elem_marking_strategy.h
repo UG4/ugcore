@@ -379,7 +379,7 @@ void AbsoluteMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaEr
 
 		number lowerBound = m_eta*m_eta;
 
-		number errTotal=0.0, errLocal=0.0;
+		number errTotal=0.0;
 
 		size_t numMarkedRefine = 0;
 		for (const_iterator iter = dd->template begin<TElem>(); iter != iterEnd; ++iter)
@@ -390,7 +390,7 @@ void AbsoluteMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaEr
 
 		// skip newly added
 			if (elemError < 0) continue;
-			errLocal += elemError;
+			errTotal += elemError;
 
 		//	mark for refinement
 			if ((elemError >= lowerBound) && (dd->multi_grid()->get_level(elem) <= m_max_level))
@@ -400,21 +400,20 @@ void AbsoluteMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaEr
 			}
 		}
 
+
+
 #ifdef UG_PARALLEL
 		if (pcl::NumProcs() > 1)
 		{
 			pcl::ProcessCommunicator com;
 			std::size_t numMarkedRefineLocal = numMarkedRefine;
+			number errLocal = errTotal;
 			numMarkedRefine = com.allreduce(numMarkedRefineLocal, PCL_RO_SUM);
-
 			errTotal = com.allreduce(errLocal, PCL_RO_SUM);
 		}
-		else
-#else
-		errTotal = errLocal;
 #endif
 
-		UG_LOG("  +++ AbsoluteMarking: Marked "<< numMarkedRefine << " elements for refinement"<<errTotal <<".\n");
+		UG_LOG("  +++ AbsoluteMarking: Error**2 = "<<errTotal <<"; marked "<< numMarkedRefine << " elements for refinement "<<std::endl);
 
 }
 
