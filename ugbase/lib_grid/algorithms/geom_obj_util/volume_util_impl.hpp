@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <vector>
 #include "lib_grid/lg_base.h"
+#include "common/static_assert.h"
 #include "common/util/vec_for_each.h"
 #include "lib_grid/grid_objects/hexahedron_rules.h"
 #include "lib_grid/grid_objects/prism_rules.h"
@@ -244,9 +245,12 @@ void ConvertToTetrahedra (
 
 
 //	now convert the given volume-elements
-	static const int arrayLen = max(pyra_rules::MAX_NUM_CONVERT_TO_TETS_INDS_OUT,
-									max(prism_rules::MAX_NUM_CONVERT_TO_TETS_INDS_OUT,
-										hex_rules::MAX_NUM_CONVERT_TO_TETS_INDS_OUT));
+	UG_STATIC_ASSERT((prism_rules::MAX_NUM_CONVERT_TO_TETS_INDS_OUT < 
+							hex_rules::MAX_NUM_CONVERT_TO_TETS_INDS_OUT) &&
+					 	(pyra_rules::MAX_NUM_CONVERT_TO_TETS_INDS_OUT <
+							hex_rules::MAX_NUM_CONVERT_TO_TETS_INDS_OUT),
+					 HEX_RULES_MAX_NUM_CONVERT_TO_TETS_INDS_OUT__considered_to_be_highest_among_prism_pyra_and_hex);
+	static const int arrayLen = hex_rules::MAX_NUM_CONVERT_TO_TETS_INDS_OUT;
 	int inds[arrayLen];
 	
 	vector<Volume*> volsToErase;
