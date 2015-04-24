@@ -20,8 +20,8 @@ struct attachment_io_traits {
 template <>
 struct attachment_io_traits<Attachment<bool> > {
 	typedef bool															value_type;
-	typedef typename attachment_value_traits<value_type>::reference			reference_type;
-	typedef typename attachment_value_traits<value_type>::const_reference 	const_reference_type;
+	typedef attachment_value_traits<value_type>::reference			reference_type;
+	typedef attachment_value_traits<value_type>::const_reference 	const_reference_type;
 
 	static void write_value (std::ostream& out, const_reference_type v)	{out << v;}
 	static void read_value(std::istream& in, reference_type v)			{value_type tmp; in >> tmp; v = tmp;}
@@ -31,8 +31,8 @@ struct attachment_io_traits<Attachment<bool> > {
 template <>
 struct attachment_io_traits<Attachment<vector1> > {
 	typedef vector1															value_type;
-	typedef typename attachment_value_traits<value_type>::reference			reference_type;
-	typedef typename attachment_value_traits<value_type>::const_reference 	const_reference_type;
+	typedef attachment_value_traits<value_type>::reference			reference_type;
+	typedef attachment_value_traits<value_type>::const_reference 	const_reference_type;
 
 	static void write_value (std::ostream& out, const_reference_type v)
 	{
@@ -48,8 +48,8 @@ struct attachment_io_traits<Attachment<vector1> > {
 template <>
 struct attachment_io_traits<Attachment<vector2> > {
 	typedef vector2															value_type;
-	typedef typename attachment_value_traits<value_type>::reference			reference_type;
-	typedef typename attachment_value_traits<value_type>::const_reference 	const_reference_type;
+	typedef attachment_value_traits<value_type>::reference			reference_type;
+	typedef attachment_value_traits<value_type>::const_reference 	const_reference_type;
 
 	static void write_value (std::ostream& out, const_reference_type v)
 	{
@@ -65,8 +65,8 @@ struct attachment_io_traits<Attachment<vector2> > {
 template <>
 struct attachment_io_traits<Attachment<vector3> > {
 	typedef vector3															value_type;
-	typedef typename attachment_value_traits<value_type>::reference			reference_type;
-	typedef typename attachment_value_traits<value_type>::const_reference 	const_reference_type;
+	typedef attachment_value_traits<value_type>::reference			reference_type;
+	typedef attachment_value_traits<value_type>::const_reference 	const_reference_type;
 
 	static void write_value (std::ostream& out, const_reference_type v)
 	{
@@ -82,8 +82,8 @@ struct attachment_io_traits<Attachment<vector3> > {
 template <>
 struct attachment_io_traits<Attachment<vector4> > {
 	typedef vector4															value_type;
-	typedef typename attachment_value_traits<value_type>::reference			reference_type;
-	typedef typename attachment_value_traits<value_type>::const_reference 	const_reference_type;
+	typedef attachment_value_traits<value_type>::reference			reference_type;
+	typedef attachment_value_traits<value_type>::const_reference 	const_reference_type;
 
 	static void write_value (std::ostream& out, const_reference_type v)
 	{
