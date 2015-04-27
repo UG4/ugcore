@@ -131,7 +131,7 @@ void MaximumMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaErr
 
 	// determine (local) number of excess elements
 	const int ndiscard = (int) (numElemLocal*m_eps); // TODO: on every process?
-	UG_LOG("  +++ Found max "<<  maxElemErr << "ndiscard="<<ndiscard<<".\n");
+	UG_LOG("  +++ Found max "<<  maxElemErr << " ndiscard="<<ndiscard<<".\n");
 
 	// Verfuerths strategy for skipping excess
 /*	while (ndiscard)
@@ -153,12 +153,17 @@ void MaximumMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaErr
 
 	}*/
 
-	// create sorted array of elem weights
-	std::vector<double> eta;
-	eta.resize(numElemLocal);
-	CreateListOfElemWeights<TElem>(aaError,dd->template begin<TElem>(), iterEnd, eta);
-	UG_ASSERT(numElemLocal==eta.size(), "Huhh: number of elements does not match!");
-	maxElemErr = eta[ndiscard];
+	if (numElemLocal > 0)
+	{
+		// create sorted array of elem weights
+		std::vector<double> eta;
+		eta.resize(numElemLocal);
+		CreateListOfElemWeights<TElem>(aaError,dd->template begin<TElem>(), iterEnd, eta);
+		UG_ASSERT(numElemLocal==eta.size(), "Huhh: number of elements does not match!");
+		UG_ASSERT(numElemLocal > ndiscard, "Huhh: number of elements does not match!");
+		maxElemErr = eta[ndiscard];
+
+	}
 
 	UG_LOG("  +++ MaximumMarking: Maximum for refinement: " << maxElemErr << " elements.\n");
 
