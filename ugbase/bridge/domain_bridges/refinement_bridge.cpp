@@ -15,6 +15,7 @@
 #include "lib_disc/domain_traits.h"
 #include "lib_grid/lib_grid.h"
 //todo: include this in algorithms.h
+#include "lib_grid/algorithms/refinement_mark_util.h"
 #include "lib_grid/algorithms/refinement/adaptive_regular_mg_refiner.h"
 #include "lib_grid/algorithms/refinement/refinement_projectors/refinement_projection_handler.h"
 #include "lib_grid/algorithms/refinement/refinement_projectors/sphere_projector.h"
@@ -978,6 +979,94 @@ void MarkForAdaption_ElementsTouchingSubsets(TDomain& dom, IRefiner& refiner,
 }
 
 
+
+template <class TDomain>
+void MarkForRefinement_AnisotropicElements(TDomain& dom, IRefiner& refiner,
+										 number minEdgeRatio)
+{
+	typedef typename domain_traits<TDomain::dim>::element_type	TElem;
+
+	Grid& grid = *dom.grid();
+	MarkForAnisotropicRefinement(grid, refiner, minEdgeRatio,
+								 grid.begin<TElem>(), grid.end<TElem>(),
+								 dom.position_accessor());
+}
+
+
+void MarkNeighborsForFullRefinement(IRefiner& refiner)
+{
+	refiner.mark_neighborhood(1, RM_REFINE);
+}
+
+void MarkNeighborsForAnisotropicRefinement(IRefiner& refiner)
+{
+	refiner.mark_neighborhood(1, RM_ANISOTROPIC);
+}
+
+
+template <class TDomain>
+void MarkForRefinement_AnisotropicDirection (
+		TDomain& dom,
+		IRefiner& refiner,
+		MathVector<TDomain::dim>& dir,
+		number minEdgeRatio)
+{
+	using std::min;
+	using std::max;
+
+	typedef MathVector<TDomain::dim> 							vector_t;
+	typedef typename domain_traits<TDomain::dim>::element_type	TElem;
+
+	vector_t ndir;
+	VecNormalize(ndir, dir);
+
+	typename TDomain::position_accessor_type aaPos = dom.position_accessor();
+	MultiGrid& mg = *dom.grid();
+	
+	MultiGrid::edge_traits::secure_container	assEdges;
+
+	vector<Edge*> anisoEdges;
+	vector<Edge*> normalEdges;
+	number shortestAnisoEdgeSq = numeric_limits<number>::max();
+	number longestNormalEdgeSq = 0;
+
+	lg_for_each_template(TElem, elem, mg){
+		if(mg.has_children(elem))
+			continue;
+
+	//	we'll mark all elements as anisotropic since we use copy elements anyway
+		refiner.mark(elem, RM_ANISOTROPIC);
+
+		anisoEdges.clear();
+		normalEdges.clear();
+
+		mg.associated_elements(assEdges, elem);
+		for_each_in_vec(Edge* e, assEdges){
+			vector_t edgeDir;
+			VecSubtract(edgeDir, aaPos[e->vertex(0)], aaPos[e->vertex(1)]);
+			VecNormalize(edgeDir, edgeDir);
+			number dot = VecDot(edgeDir, ndir);
+			if((dot + SMALL >= 1) || (dot - SMALL <= -1)){
+				anisoEdges.push_back(e);
+				shortestAnisoEdgeSq = min(shortestAnisoEdgeSq, EdgeLengthSq(e, aaPos));
+			}
+			else{
+				normalEdges.push_back(e);
+				longestNormalEdgeSq = max(longestNormalEdgeSq, EdgeLengthSq(e, aaPos));
+			}
+		}end_for;
+
+		if(longestNormalEdgeSq > 0){
+			if(shortestAnisoEdgeSq / longestNormalEdgeSq <= sq(minEdgeRatio)){
+			//	mark all normal edges for full refinement
+				for_each_in_vec(Edge* e, normalEdges){
+					refiner.mark(e, RM_REFINE);	
+				}end_for;
+			}
+		}
+	}lg_end_for;
+}
+
 // end group refinement_bridge
 /// \}
 
@@ -1124,6 +1213,13 @@ static void Common(Registry& reg, string grp)
 //	register refinement rule switch function
 	reg.add_function("SetTetRefinementRule", &SetTetRefinementRule, grp, "", "refRuleName",
 			"Sets the refinement rule which is used to refine tetrahedrons. Possible parameters: 'standard', 'hybrid_tet_oct");
+
+	reg.add_function("MarkNeighborsForFullRefinement",
+				&MarkNeighborsForFullRefinement,
+				grp, "", "refiner")
+		.add_function("MarkNeighborsForAnisotropicRefinement",
+				&MarkNeighborsForAnisotropicRefinement,
+				grp, "", "refiner");
 }
 
 /**
@@ -1213,7 +1309,13 @@ static void Domain(Registry& reg, string grp)
 				grp, "", "dom#refiner#subsetHandler#subsetIndex#strMark")
 		.add_function("MarkForAdaption_ElementsTouchingSubsets",
 				&MarkForAdaption_ElementsTouchingSubsets<domain_type>,
-				grp, "", "dom#refiner#subsetHandler#subsetNames#strMark");
+				grp, "", "dom#refiner#subsetHandler#subsetNames#strMark")
+		.add_function("MarkForRefinement_AnisotropicElements",
+				&MarkForRefinement_AnisotropicElements<domain_type>,
+				grp, "", "dom#refiner#minEdgeRatio")
+		.add_function("MarkForRefinement_AnisotropicDirection",
+				&MarkForRefinement_AnisotropicDirection<domain_type>,
+				grp, "", "dom#refiner#dir#minEdgeRatio");
 //		.add_function("MarkForAdaption_EdgesContainingPoint",
 //				&MarkForAdaption_ElementsContainingPoint<domain_type, Edge>,
 //				grp, "", "dom#refiner#x#y#z#markType")

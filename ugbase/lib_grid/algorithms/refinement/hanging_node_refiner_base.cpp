@@ -161,7 +161,7 @@ bool HangingNodeRefinerBase<TSelector>::mark(Volume* v, RefinementMark refMark)
 
 template <class TSelector>
 void HangingNodeRefinerBase<TSelector>::
-mark_neighborhood(size_t numIterations)
+mark_neighborhood(size_t numIterations, RefinementMark refMark)
 {
 	if(!m_pGrid)
 		return;
@@ -217,25 +217,30 @@ mark_neighborhood(size_t numIterations)
 			iter != sel.template end<Vertex>(); ++iter)
 		{
 			ISelector::status_t s = sel.get_selection_status(*iter);
-			RefinementMark rm = RM_NONE;
-			switch(s){
-				case RM_REFINE:	rm = RM_REFINE; break;
-				case RM_ANISOTROPIC: rm = RM_ANISOTROPIC; break;
-				case RM_COARSEN: rm = RM_COARSEN; break;
-				default: break;
+			RefinementMark rm = refMark;
+			if(rm == RM_NONE){
+				switch(s){
+					case RM_REFINE:	rm = RM_REFINE; break;
+					case RM_ANISOTROPIC: rm = RM_ANISOTROPIC; break;
+					case RM_COARSEN: rm = RM_COARSEN; break;
+					default: break;
+				}
 			}
 
 			g.associated_elements(edges, *iter);
 			for(size_t i = 0; i < edges.size(); ++i)
-				this->mark(edges[i], rm);
+				if(!this->is_marked(edges[i]))
+					this->mark(edges[i], rm);
 
 			g.associated_elements(faces, *iter);
 			for(size_t i = 0; i < faces.size(); ++i)
-				this->mark(faces[i], rm);
+				if(!this->is_marked(faces[i]))
+					this->mark(faces[i], rm);
 
 			g.associated_elements(vols, *iter);
 			for(size_t i = 0; i < vols.size(); ++i)
-				this->mark(vols[i], rm);
+				if(!this->is_marked(vols[i]))
+					this->mark(vols[i], rm);
 		}
 
 	//	since we selected vertices which possibly may not be refined, we have to
