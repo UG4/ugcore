@@ -52,7 +52,9 @@ void MarkForAnisotropicRefinement (
 
 	//	the element is anisotropic mark it and all long edges
 		//ref.mark(elem, RM_ANISOTROPIC);
-		number thresholdLenSq = shortestLenSq / minEdgeRatioSq;
+		// number thresholdLenSq = shortestLenSq / minEdgeRatioSq;
+	//	refine all edges that are at least half as long as the longest one
+		number thresholdLenSq = longestLenSq / 4.;
 		for_each_in_vec(Edge* e, assEdges){
 			if(EdgeLengthSq(e, aaPos) > thresholdLenSq){
 				ref.mark(e, RM_REFINE);

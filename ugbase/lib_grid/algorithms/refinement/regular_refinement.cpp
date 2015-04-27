@@ -161,9 +161,6 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 	if(numRefVols > 0)
 		aaIntFACE.access(grid, aInt);
 	
-//	access the position-attachment
-	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPosition);
-	
 //	notify refinement callbacks about encountered vertices
 	for(VertexIterator iter = sel.begin<Vertex>();
 		iter != sel.end<Vertex>(); ++iter)
@@ -295,6 +292,12 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 //	only used for tetrahedron refinement
 	vector<vector3> corners(4, vector3(0, 0, 0));
 
+// //	DEBUG
+// 	UG_LOG("> VOL-REF-BEGIN\n");
+// 	UG_LOG("> DEBUG-ACCESSOR...\n");
+// 	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPosition);
+
+
 	for(size_t i = 0; i < vols.size(); ++i){
 		Volume* v = vols[i];
 		Vertex* newVrt;
@@ -330,6 +333,8 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 			pCorners = &corners.front();
 		}
 
+		// UG_LOG("v " << CalculateCenter(v, aaPos) << "\n");
+
 		if(v->refine(newVols, &newVrt, &volEdgeVrts.front(),
 					&volFaceVrts.front(), NULL, RegularVertex(), NULL, pCorners))
 		{
@@ -348,6 +353,7 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 			LOG("  WARNING in Refine: could not refine volume.\n");
 		}
 	}
+// UG_LOG("> VOL-REF-END\n");
 
 //	erase old volumes
 	grid.erase(vols.begin(), vols.end());

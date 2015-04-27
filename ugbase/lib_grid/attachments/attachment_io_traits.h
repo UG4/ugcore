@@ -19,7 +19,7 @@ struct attachment_io_traits {
 
 template <>
 struct attachment_io_traits<Attachment<bool> > {
-	typedef bool															value_type;
+	typedef bool													value_type;
 	typedef attachment_value_traits<value_type>::reference			reference_type;
 	typedef attachment_value_traits<value_type>::const_reference 	const_reference_type;
 
@@ -30,7 +30,7 @@ struct attachment_io_traits<Attachment<bool> > {
 
 template <>
 struct attachment_io_traits<Attachment<vector1> > {
-	typedef vector1															value_type;
+	typedef vector1													value_type;
 	typedef attachment_value_traits<value_type>::reference			reference_type;
 	typedef attachment_value_traits<value_type>::const_reference 	const_reference_type;
 
@@ -47,7 +47,7 @@ struct attachment_io_traits<Attachment<vector1> > {
 
 template <>
 struct attachment_io_traits<Attachment<vector2> > {
-	typedef vector2															value_type;
+	typedef vector2													value_type;
 	typedef attachment_value_traits<value_type>::reference			reference_type;
 	typedef attachment_value_traits<value_type>::const_reference 	const_reference_type;
 
@@ -64,7 +64,7 @@ struct attachment_io_traits<Attachment<vector2> > {
 
 template <>
 struct attachment_io_traits<Attachment<vector3> > {
-	typedef vector3															value_type;
+	typedef vector3													value_type;
 	typedef attachment_value_traits<value_type>::reference			reference_type;
 	typedef attachment_value_traits<value_type>::const_reference 	const_reference_type;
 
@@ -81,7 +81,7 @@ struct attachment_io_traits<Attachment<vector3> > {
 
 template <>
 struct attachment_io_traits<Attachment<vector4> > {
-	typedef vector4															value_type;
+	typedef vector4													value_type;
 	typedef attachment_value_traits<value_type>::reference			reference_type;
 	typedef attachment_value_traits<value_type>::const_reference 	const_reference_type;
 

@@ -196,52 +196,64 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 		case 4:
 		{
 		//	only a nice, vertical cut is directly supported in the moment
-		//	find a quadrilateral, whose corner states are all 1.
-			int freeFaceInd = -1;
-			for(int i = 0; i < NUM_QUADS; ++i){
-				const int* f = FACE_VRT_INDS[QUADS[i]];
-				bool allOne = true;
-				for(int j = 0; j < 4; ++j){
-					if(cornerStatus[f[j]] != 1){
-						allOne = false;
+		//	this means that 2 marked edges are top-edges and two are bottom edges
+			int numTop = 0;
+			int numBottom = 0;
+			for(int i = 0; i < 4; ++i){
+				if(IS_TOP_EDGE[refEdgeInds[i]])
+					++numTop;
+				else if(IS_BOTTOM_EDGE[refEdgeInds[i]])
+					++numBottom;
+			}
+
+			if((numTop == 2) && (numBottom == 2)){
+			//	find a quadrilateral, whose corner states are all 1.
+				int freeFaceInd = -1;
+				for(int i = 0; i < NUM_QUADS; ++i){
+					const int* f = FACE_VRT_INDS[QUADS[i]];
+					bool allOne = true;
+					for(int j = 0; j < 4; ++j){
+						if(cornerStatus[f[j]] != 1){
+							allOne = false;
+							break;
+						}
+					}
+
+					if(allOne){
+						freeFaceInd = QUADS[i];
 						break;
 					}
 				}
 
-				if(allOne){
-					freeFaceInd = QUADS[i];
-					break;
+				if(freeFaceInd != -1){
+				//	we got the free quad. It is thus clear, that all associated
+				//	edges, which do not lie in the quad itself, will be refined.
+				//	create a hexahedron and a prism.
+				//	First however rotate the prism so that the free quad is at
+				//	index 3.
+					int p[NUM_VERTICES];
+					RotatePrism(p, 3 - freeFaceInd);
+
+				//	some important indices.
+					const int e0 = EDGE_FROM_VRTS[p[0]][p[1]] + E;
+					const int e1 = EDGE_FROM_VRTS[p[1]][p[2]] + E;
+					const int e6 = EDGE_FROM_VRTS[p[3]][p[4]] + E;
+					const int e7 = EDGE_FROM_VRTS[p[4]][p[5]] + E;
+
+				//	now create the elements
+					int& fi = fillCount;
+					int* inds = newIndsOut;
+
+					inds[fi++] = GOID_HEXAHEDRON;
+					inds[fi++] = p[0];	inds[fi++] = e0;
+					inds[fi++] = e1;	inds[fi++] = p[2];
+					inds[fi++] = p[3];	inds[fi++] = e6;
+					inds[fi++] = e7;	inds[fi++] = p[5];
+
+					inds[fi++] = GOID_PRISM;
+					inds[fi++] = e0;	inds[fi++] = p[1];	inds[fi++] = e1;
+					inds[fi++] = e6;	inds[fi++] = p[4];	inds[fi++] = e7;
 				}
-			}
-
-			if(freeFaceInd != -1){
-			//	we got the free quad. It is thus clear, that all associated
-			//	edges, which do not lie in the quad itself, will be refined.
-			//	create a hexahedron and a prism.
-			//	First however rotate the prism so that the free quad is at
-			//	index 3.
-				int p[NUM_VERTICES];
-				RotatePrism(p, 3 - freeFaceInd);
-
-			//	some important indices.
-				const int e0 = EDGE_FROM_VRTS[p[0]][p[1]] + E;
-				const int e1 = EDGE_FROM_VRTS[p[1]][p[2]] + E;
-				const int e6 = EDGE_FROM_VRTS[p[3]][p[4]] + E;
-				const int e7 = EDGE_FROM_VRTS[p[4]][p[5]] + E;
-
-			//	now create the elements
-				int& fi = fillCount;
-				int* inds = newIndsOut;
-
-				inds[fi++] = GOID_HEXAHEDRON;
-				inds[fi++] = p[0];	inds[fi++] = e0;
-				inds[fi++] = e1;	inds[fi++] = p[2];
-				inds[fi++] = p[3];	inds[fi++] = e6;
-				inds[fi++] = e7;	inds[fi++] = p[5];
-
-				inds[fi++] = GOID_PRISM;
-				inds[fi++] = e0;	inds[fi++] = p[1];	inds[fi++] = e1;
-				inds[fi++] = e6;	inds[fi++] = p[4];	inds[fi++] = e7;
 			}
 		}break;
 
