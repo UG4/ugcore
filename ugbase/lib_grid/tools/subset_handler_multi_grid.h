@@ -46,7 +46,7 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 		inline const MultiGrid* multi_grid() const {return m_pMG;}
 
 	///	creates the required levels, if they do not yet exist
-		inline void level_required(size_t level);
+		inline void level_required(int level);
 
 	///	returns the number of levels
 		inline uint num_levels() const	{return (uint)m_levels.size();}
@@ -242,7 +242,7 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 		void change_elem_subset_indices(int indOld, int indNew);
 		
 	///	Throws an error if the required level does not yet exist
-		inline void level_required(size_t level) const;
+		inline void level_required(int level) const;
 
 		void add_level();
 		void add_subset_to_all_levels();///< increases m_numSubsets.

@@ -195,15 +195,15 @@ change_elem_subset_indices(int indOld, int indNew)
 }
 
 inline void MultiGridSubsetHandler::
-level_required(size_t level)
+level_required(int level)
 {
-	while(m_levels.size() <= level) add_level();
+	while((int)m_levels.size() <= level) add_level();
 }
 
 inline void MultiGridSubsetHandler::
-level_required(size_t level) const
+level_required(int level) const
 {
-	if(level >= num_levels()){
+	if(level >= (int)num_levels()){
 		UG_THROW("Can't create additional levels in const MGSubsetHandler. "
 						<< "num current levels: " << num_levels()
 						<< " required level: " << level);
