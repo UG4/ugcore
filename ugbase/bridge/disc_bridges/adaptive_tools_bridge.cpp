@@ -234,6 +234,17 @@ static void Domain(Registry& reg, string grp)
 			reg.add_class_to_group(name, "MaximumMarking", tag);
 	}
 
+	//  MeanValueMarking
+	{
+			typedef MeanValueMarking<TDomain> T;
+			typedef IElementMarkingStrategy<TDomain> TBase;
+			string name = string("MeanValueMarking").append(suffix);
+			reg.add_class_<T, TBase>(name, grp)
+								   .template add_constructor<void (*)(number, number)>("theta#factor")
+								   .set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, "MeanValueMarking", tag);
+	}
+
 	//  VarianceMarking
 	{
 			typedef VarianceMarking<TDomain> T;
@@ -258,8 +269,6 @@ static void Domain(Registry& reg, string grp)
 						.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "VarianceMarkingEta", tag);
 	}
-
-
 
 	//  EquilibrationMarking
 	{

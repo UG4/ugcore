@@ -66,7 +66,7 @@ number CreateListOfElemWeights(
 		const typename DoFDistribution::traits<TElem>::const_iterator iterEnd,
 		std::vector<double> &eta)
 {
-	number localErr;
+	number localErr=0;
 	typename DoFDistribution::traits<TElem>::const_iterator iter; // = iterBegin;
 	size_t i=0;
 	for (iter = iterBegin; iter != iterEnd; ++iter)
@@ -173,8 +173,10 @@ void MaximumMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaErr
 	{
 		pcl::ProcessCommunicator com;
 		number maxElemErrLocal = maxElemErr;
-		maxElemErr = com.allreduce(maxElemErrLocal, PCL_RO_MAX);
-		UG_LOG("  +++ MaximumMarking: Maximum for refinement: " << maxElemErr << " elements.\n");
+		maxElemErr = com.allreduce(maxElemErrLocal, PCL_RO_SUM);
+		UG_LOG("  +++ MaximumMarking: Maximum for refinement: " << maxElemErr << ".\n");
+		maxElemErr = maxElemErr / pcl::NumProcs();
+		UG_LOG("  +++ MaximumMarking: Average for refinement: " << maxElemErr << ".\n");
 	}
 #else
 	UG_LOG("  +++ Skipping " << ndiscard << " elements; new max." << maxElemErr << ".\n");
@@ -475,6 +477,99 @@ void VarianceMarkingEta<TDomain>::mark(typename base_type::elem_accessor_type& a
 }
 
 
+/// marks elements above a certain fraction of the maximum
+//!
+template <typename TDomain>
+class MeanValueMarking : public IElementMarkingStrategy<TDomain>{
+
+public:
+	typedef IElementMarkingStrategy<TDomain> base_type;
+	MeanValueMarking(number theta, number factor) : m_theta(theta), m_factor (factor) {};
+
+	void mark(typename base_type::elem_accessor_type& aaError,
+					IRefiner& refiner,
+					ConstSmartPtr<DoFDistribution> dd);
+protected:
+
+	number m_theta;
+	number m_factor;
+};
+
+template <typename TDomain>
+void MeanValueMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaError,
+				IRefiner& refiner,
+				ConstSmartPtr<DoFDistribution> dd)
+{
+	typedef typename base_type::elem_type TElem;
+	typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
+
+	// compute minimal/maximal/ total error and number of elements
+
+	number minElemErr, minElemErrLocal;
+	number maxElemErrSq, maxElemErrLocal;
+	number errTotalSq, errLocal;
+	size_t numElem, numElemLocal;
+
+	ComputeMinMax(aaError, dd, minElemErr, maxElemErrSq, errTotalSq, numElem,
+				minElemErrLocal, maxElemErrLocal, errLocal, numElemLocal);
+
+
+	// init iterators
+	number avgElemErr = errTotalSq / numElem;
+	UG_LOG("  +++ Global max: "<<  maxElemErrSq << ", Global min: "<< minElemErr <<".\n");
+	UG_LOG("  +++ MeanValueMarking: Mean value : " << avgElemErr << " (Global error sum: "<<errTotalSq<<" on "<< numElem <<" elements).\n");
+
+	// refine all element above threshold
+	const number minThetaErrToRefine = maxElemErrSq*m_theta;
+	const number minFactorAvgErrToRefine = avgElemErr*m_factor;
+	UG_LOG("  +++ MeanValueMarking: Min theta error : "<<minThetaErrToRefine<<" (Global Max Error: " << maxElemErrSq<< " for theta: "<<m_theta<<").\n");
+	UG_LOG("  +++ MeanValueMarking: Min factor avg error : "<<minFactorAvgErrToRefine<<" (Global Avg Error: " << avgElemErr<< " for factor: "<<m_factor<<").\n");
+
+	const number minErrToRefine = std::min(minThetaErrToRefine, minFactorAvgErrToRefine);
+	UG_LOG("  +++ MeanValueMarking: Refining if error >= : "<<minErrToRefine<<".\n");
+
+
+	//	reset counter
+	std::size_t numMarkedRefine = 0;
+
+	//	loop elements for marking
+	const_iterator iter;
+	const const_iterator iterEnd = dd->template end<TElem>();
+	for (iter = dd->template begin<TElem>(); iter != iterEnd; ++iter)
+	{
+		//	get element
+		TElem* elem = *iter;
+
+		//	if no error value exists: ignore (might be newly added by refinement);
+		//	newly added elements are supposed to have a negative error estimator
+		if (aaError[elem] < 0) continue;
+
+		//	marks for refinement
+		if (aaError[elem] >= minErrToRefine)
+			{
+				refiner.mark(elem, RM_REFINE);
+				numMarkedRefine++;
+			}
+	}
+
+#ifdef UG_PARALLEL
+	if (pcl::NumProcs() > 1)
+	{
+		pcl::ProcessCommunicator com;
+		std::size_t numMarkedRefineLocal = numMarkedRefine;
+		numMarkedRefine = com.allreduce(numMarkedRefineLocal, PCL_RO_SUM);
+		UG_LOG("  +++ MeanValueMarking: Marked for refinement: " << numMarkedRefine << " ("<< numMarkedRefineLocal << ") elements.\n");
+	}
+#else
+	UG_LOG("  +++ MeanValueMarking: Marked for refinement: " << numMarkedRefine << " elements.\n");
+#endif
+
+
+}
+
+
+
+
 // marks elements above a certain fraction of the maximum
 template <typename TDomain>
 class EquilibrationMarkingStrategy : public IElementMarkingStrategy<TDomain>{
@@ -548,7 +643,7 @@ void EquilibrationMarkingStrategy<TDomain>::mark(typename base_type::elem_access
 
 	// error for marked subset
 	subsetErr = 0.0;
-	size_t i=0;
+	int i=0;
 
 	// discard a fraction of elements
 	UG_ASSERT( ((m_eps>=0.0) && (m_eps<=1.0)), "Huhh: m_eps invalid!");
