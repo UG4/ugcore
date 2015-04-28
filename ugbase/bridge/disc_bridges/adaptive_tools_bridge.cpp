@@ -234,6 +234,19 @@ static void Domain(Registry& reg, string grp)
 			reg.add_class_to_group(name, "MaximumMarking", tag);
 	}
 
+	//  VarianceMarking
+	{
+			typedef VarianceMarking<TDomain> T;
+			typedef IElementMarkingStrategy<TDomain> TBase;
+			string name = string("VarianceMarking").append(suffix);
+			reg.add_class_<T, TBase>(name, grp)
+									   .template add_constructor<void (*)(number)>("theta")
+									   .template add_constructor<void (*)(number, number)>("theta#eps")
+									   .set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, "VarianceMarking", tag);
+	}
+
+
 	//  EquilibrationMarking
 	{
 		typedef EquilibrationMarkingStrategy<TDomain> T;

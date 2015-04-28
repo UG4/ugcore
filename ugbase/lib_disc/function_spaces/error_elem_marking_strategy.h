@@ -222,6 +222,130 @@ void MaximumMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaErr
 
 }
 
+/// marks elements above $\theta * (\mu + width * \sigma)$
+//! where $\mu = E[\eta^2], \sigma^2 = Var[\eta^2]$
+template <typename TDomain>
+class VarianceMarking : public IElementMarkingStrategy<TDomain>{
+
+public:
+	typedef IElementMarkingStrategy<TDomain> base_type;
+	VarianceMarking(number theta) : m_theta(theta), m_width(3.0), m_max_level(100) {};
+	VarianceMarking(number theta, number width) : m_theta(theta), m_width (width), m_max_level(100) {};
+
+	void mark(typename base_type::elem_accessor_type& aaError,
+					IRefiner& refiner,
+					ConstSmartPtr<DoFDistribution> dd);
+protected:
+
+	number m_theta;
+	number m_width;
+	int m_max_level;
+};
+
+template <typename TDomain>
+void VarianceMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaError,
+				IRefiner& refiner,
+				ConstSmartPtr<DoFDistribution> dd)
+{
+	typedef typename base_type::elem_type TElem;
+	typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
+
+	// compute minimal/maximal/ total error and number of elements
+
+	number minElemErr, minElemErrLocal;
+	number maxElemErr, maxElemErrLocal;
+	number errTotal, errLocal;
+	size_t numElem, numElemLocal;
+
+	ComputeMinMax(aaError, dd, minElemErr, maxElemErr, errTotal, numElem,
+				minElemErrLocal, maxElemErrLocal, errLocal, numElemLocal);
+
+
+//	number elemMean =  sqrt(errTotal) / numElem;
+	number elemMean =  errTotal / numElem;
+
+	UG_LOG("  +++ VarianceMarking: Mean error : " << elemMean << " on "<< numElem << "elements.\n");
+
+	// init iterators
+	const_iterator iter;
+	const const_iterator iterEnd = dd->template end<TElem>();
+
+	number elemVar = 0.0;
+	for (iter = dd->template begin<TElem>(); iter != iterEnd; ++iter)
+	{
+		TElem* elem = *iter;
+		number elemError = aaError[elem];  // eta_i^2
+
+		if (elemError < 0) continue;
+		elemVar += (elemMean-elemError) * (elemMean-elemError);
+
+
+	}
+
+	UG_LOG("  +++ VarianceMarking: Est. variance (1) : " << elemVar << " on "<< numElem << "elements.\n");
+#ifdef UG_PARALLEL
+	if (pcl::NumProcs() > 1)
+	{
+		pcl::ProcessCommunicator com;
+		number elemVarLocal = elemVar;
+		elemVar = com.allreduce(elemVarLocal, PCL_RO_SUM);
+
+	}
+#endif
+
+	elemVar /= (numElem-1.0);
+	UG_LOG("  +++ VarianceMarking: Est. variance (2): " << elemVar << " on "<< numElem << "elements.\n");
+
+
+		// refine all element above threshold
+	const number sigma = sqrt(elemVar);
+	const number maxError = elemMean + sigma*m_width;
+	UG_LOG("  +++ Refining elements if error greater " << sigma << "*" << m_width <<" + "<< elemMean <<
+			" = " << maxError << ".\n");
+
+
+
+	const number minErrToRefine = maxError*m_theta;
+	UG_LOG("  +++ Refining elements if error greater " << maxError << "*" << m_theta <<
+				" = " << minErrToRefine << ".\n");
+
+	//	reset counter
+	std::size_t numMarkedRefine = 0;
+
+	//	loop elements for marking
+	for (iter = dd->template begin<TElem>(); iter != iterEnd; ++iter)
+	{
+		//	get element
+		TElem* elem = *iter;
+
+		//	if no error value exists: ignore (might be newly added by refinement);
+		//	newly added elements are supposed to have a negative error estimator
+		if (aaError[elem] < 0) continue;
+
+		//	marks for refinement
+		if (aaError[elem] >= minErrToRefine)
+			if (dd->multi_grid()->get_level(elem) <= m_max_level)
+			{
+				refiner.mark(elem, RM_REFINE);
+				numMarkedRefine++;
+			}
+	}
+
+#ifdef UG_PARALLEL
+	if (pcl::NumProcs() > 1)
+	{
+		pcl::ProcessCommunicator com;
+		std::size_t numMarkedRefineLocal = numMarkedRefine;
+		numMarkedRefine = com.allreduce(numMarkedRefineLocal, PCL_RO_SUM);
+		UG_LOG("  +++ MaximumMarking: Marked for refinement: " << numMarkedRefine << " ("<< numMarkedRefineLocal << ") elements.\n");
+	}
+#else
+	UG_LOG("  +++ MaximumMarking: Marked for refinement: " << numMarkedRefine << " elements.\n");
+#endif
+
+
+}
+
 
 // marks elements above a certain fraction of the maximum
 template <typename TDomain>
