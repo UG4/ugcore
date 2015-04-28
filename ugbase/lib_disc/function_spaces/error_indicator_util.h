@@ -7,6 +7,79 @@
 
 namespace ug{
 
+
+/// helper function that computes min/max and total of error indicators
+template<typename TElem>
+number ComputeAvg
+(	MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >& aaError,
+	ConstSmartPtr<DoFDistribution> dd,
+	number& min, number& max, number& sum, size_t& numElem,
+	number& minLocal, number& maxLocal, number& sumLocal, size_t& numElemLocal
+)
+{
+	typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
+
+//	reset maximum of error
+	max = 0.0, min = std::numeric_limits<number>::max();
+	sum = 0.0;
+	number err = 0.0;
+	numElem = 0;
+
+//	get element iterator
+	const_iterator iter = dd->template begin<TElem>();
+	const_iterator iterEnd = dd->template end<TElem>();
+
+//	loop all elements to find the maximum of the error
+	for (; iter != iterEnd; ++iter)
+	{
+	//	get element
+		TElem* elem = *iter;
+
+		const number elemEta2 = aaError[elem];
+
+	//	if no error value exists: ignore (might be newly added by refinement);
+	//	newly added elements are supposed to have a negative error estimator
+		if (aaError[elem] < 0) continue;
+
+
+		const number elemEta = sqrt(aaError[elem]);
+
+	//	search for maximum and minimum
+		if (elemEta > max) max = elemEta;
+		if (elemEta < min) min = elemEta;
+
+	//	sum up total error
+		sum += elemEta;
+		err += elemEta2;
+		++numElem;
+	}
+
+	// set local variables
+	maxLocal = max;
+	minLocal = min;
+	sumLocal = sum;
+	number errLocal = err;
+	numElemLocal = numElem;
+
+#ifdef UG_PARALLEL
+	if (pcl::NumProcs() > 1)
+	{
+		pcl::ProcessCommunicator com;
+		max = com.allreduce(maxLocal, PCL_RO_MAX);
+		min = com.allreduce(minLocal, PCL_RO_MIN);
+		sum = com.allreduce(sumLocal, PCL_RO_SUM);
+		err = com.allreduce(errLocal, PCL_RO_SUM);
+		numElem = com.allreduce(numElemLocal, PCL_RO_SUM);
+	}
+#endif
+	UG_LOG("  +++++  Error indicator on " << numElem << " elements +++++\n");
+	UG_LOG("  +++ Element errors: maximum=" << max << ", minimum="
+			<< min << ", sum=" << sum << ", error=" << err << ".\n");
+
+	return (sum/numElem);
+}
+
+
 /// helper function that computes min/max and total of error indicators
 template<typename TElem>
 void ComputeMinMax
