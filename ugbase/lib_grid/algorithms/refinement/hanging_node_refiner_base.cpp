@@ -12,6 +12,10 @@
 #include "lib_grid/tools/selector_multi_grid.h"
 #include "lib_grid/tools/periodic_boundary_manager.h"
 
+#ifdef UG_PARALLEL
+	#include "pcl/pcl_util.h"
+#endif
+
 //define PROFILE_HANGING_NODE_REFINER if you want to profile
 //the refinement code.
 #define PROFILE_HANGING_NODE_REFINER
@@ -161,7 +165,7 @@ bool HangingNodeRefinerBase<TSelector>::mark(Volume* v, RefinementMark refMark)
 
 template <class TSelector>
 void HangingNodeRefinerBase<TSelector>::
-mark_neighborhood(size_t numIterations, RefinementMark refMark)
+mark_neighborhood(size_t numIterations, RefinementMark refMark, bool sideNbrsOnly)
 {
 	if(!m_pGrid)
 		return;
@@ -175,85 +179,265 @@ mark_neighborhood(size_t numIterations, RefinementMark refMark)
 	Grid::face_traits::secure_container		faces;
 	Grid::volume_traits::secure_container	vols;
 
+	EdgeDescriptor edesc;
+
 	TSelector& sel = m_selMarkedElements;
 	Grid& g = *m_pGrid;
 
+	#ifdef UG_PARALLEL
+		bool hasVolumes = pcl::OneProcTrue(g.num_volumes() > 0);
+		bool hasFaces;
+		if(hasVolumes)
+			hasFaces = true;
+		else
+			hasFaces = pcl::OneProcTrue(g.num_faces() > 0);
+		bool hasEdges;
+		if(hasFaces)
+			hasEdges = true;
+		else
+			hasEdges = pcl::OneProcTrue(g.num_edges() > 0);
+	#else
+		bool hasEdges	= g.num_edges() > 0;
+		bool hasFaces	= g.num_faces() > 0;
+		bool hasVolumes = g.num_volumes() > 0;
+	#endif
+
 //todo:	Speed could be improved by only considering newly marked elements after each iteration.
 	for(size_t iteration = 0; iteration < numIterations; ++iteration){
-	//	first we'll select all vertices which are connected to marked elements
-		for(SelEdgeIter iter = sel.template begin<Edge>();
-			iter != sel.template end<Edge>(); ++iter)
-		{
-			Edge* e = *iter;
-			sel.select(e->vertex(0), sel.get_selection_status(e));
-			sel.select(e->vertex(1), sel.get_selection_status(e));
-		}
+		if(sideNbrsOnly){
+		//	first we'll select all unselected sides which are connected to marked elements
+			for(SelVolIter iter = sel.template begin<Volume>();
+				iter != sel.template end<Volume>(); ++iter)
+			{
+				Volume* vol = *iter;
+				RefinementMark s = get_mark(vol);
+				g.associated_elements(faces, vol);
+				for_each_in_vec(Face* f, faces){
+					if(!sel.is_selected(f) && this->refinement_is_allowed(f))
+						this->mark(f, s);
+				}end_for;
+			}
 
-		for(SelFaceIter iter = sel.template begin<Face>();
-			iter != sel.template end<Face>(); ++iter)
-		{
-			Face* f = *iter;
-			ISelector::status_t s = sel.get_selection_status(f);
-			Face::ConstVertexArray faceVrts = f->vertices();
-			for(size_t i = 0; i < f->num_vertices(); ++i)
-				sel.select(faceVrts[i], s);
-		}
+			for(SelFaceIter iter = sel.template begin<Face>();
+				iter != sel.template end<Face>(); ++iter)
+			{
+				Face* f = *iter;
+				RefinementMark s = get_mark(f);
+				g.associated_elements(edges, f);
+				for_each_in_vec(Edge* e, edges){
+					if(!sel.is_selected(e) && this->refinement_is_allowed(e))
+						this->mark(e, s);
+				}end_for;
+			}
 
-		for(SelVolIter iter = sel.template begin<Volume>();
-			iter != sel.template end<Volume>(); ++iter)
-		{
-			Volume* vol = *iter;
-			ISelector::status_t s = sel.get_selection_status(vol);
-			Volume::ConstVertexArray volVrts = vol->vertices();
-			for(size_t i = 0; i < vol->num_vertices(); ++i)
-				sel.select(volVrts[i], s);
+			for(SelEdgeIter iter = sel.template begin<Edge>();
+				iter != sel.template end<Edge>(); ++iter)
+			{
+				Edge* e = *iter;
+				RefinementMark s = get_mark(e);
+				for(size_t i = 0; i < 2; ++i){
+					Vertex* vrt = e->vertex(i);
+					if(!sel.is_selected(vrt) && this->refinement_is_allowed(vrt))
+						mark(vrt, s);
+				}
+			}
+		}
+		else{
+		//	first we'll select all vertices which are connected to marked elements
+			for(SelEdgeIter iter = sel.template begin<Edge>();
+				iter != sel.template end<Edge>(); ++iter)
+			{
+				Edge* e = *iter;
+				sel.select(e->vertex(0), sel.get_selection_status(e));
+				sel.select(e->vertex(1), sel.get_selection_status(e));
+			}
+
+			for(SelFaceIter iter = sel.template begin<Face>();
+				iter != sel.template end<Face>(); ++iter)
+			{
+				Face* f = *iter;
+				ISelector::status_t s = sel.get_selection_status(f);
+				Face::ConstVertexArray faceVrts = f->vertices();
+				for(size_t i = 0; i < f->num_vertices(); ++i)
+					sel.select(faceVrts[i], s);
+			}
+
+			for(SelVolIter iter = sel.template begin<Volume>();
+				iter != sel.template end<Volume>(); ++iter)
+			{
+				Volume* vol = *iter;
+				ISelector::status_t s = sel.get_selection_status(vol);
+				Volume::ConstVertexArray volVrts = vol->vertices();
+				for(size_t i = 0; i < vol->num_vertices(); ++i)
+					sel.select(volVrts[i], s);
+			}
 		}
 
 	//	if we're in a parallel environment, we have to broadcast the current selection
 		sel.broadcast_selection_states();
 
-	//	mark all associated elements of marked vertices
-		for(SelVrtIter iter = sel.template begin<Vertex>();
-			iter != sel.template end<Vertex>(); ++iter)
-		{
-			ISelector::status_t s = sel.get_selection_status(*iter);
-			RefinementMark rm = refMark;
-			if(rm == RM_NONE){
-				switch(s){
-					case RM_REFINE:	rm = RM_REFINE; break;
-					case RM_ANISOTROPIC: rm = RM_ANISOTROPIC; break;
-					case RM_COARSEN: rm = RM_COARSEN; break;
-					default: break;
+		if(sideNbrsOnly){
+		//	mark those elements which have a marked side
+			if(hasVolumes){
+				vector<Edge*> markedDummyEdges;
+				lg_for_each(Volume, vol, g){
+					if(this->refinement_is_allowed(vol)){
+						RefinementMark s = get_mark(vol);
+						if(s == RM_NONE){
+							g.associated_elements(faces, vol);
+							RefinementMark rm = RM_NONE;
+							for_each_in_vec(Face* f, faces){
+								RefinementMark sSide = get_mark(f);
+								if(sSide){
+									rm = refMark;
+									if(rm == RM_NONE){
+										switch(sSide){
+											case RM_REFINE:	rm = RM_REFINE; break;
+											case RM_ANISOTROPIC: rm = RM_ANISOTROPIC; break;
+											case RM_COARSEN: rm = RM_COARSEN; break;
+											default: break;
+										}
+									}
+									mark(vol, rm);
+									break;
+								}
+							}end_for;
+
+							if(rm == RM_ANISOTROPIC){
+								UG_LOG("*");
+							//	we'll also copy edge-marks to guarantee an anisotropic refinement
+								bool copying = true;
+								while(copying){
+									copying = false;
+									for_each_in_vec(Face* f, faces){
+										g.associated_elements(edges, f);
+										for_each_in_vec(Edge* e, edges){
+											RefinementMark erm = get_mark(e);
+											if(erm == RM_REFINE){
+												UG_LOG("-");
+												if(f->get_opposing_side(e, edesc)){
+													Edge* oe = g.get_edge(edesc);
+													if(oe && get_mark(oe) < erm){
+														UG_LOG("+");
+														copying = true;
+														mark(oe, RM_DUMMY);
+														markedDummyEdges.push_back(oe);
+													}
+												}
+											}	
+										}end_for;
+									}end_for;
+								}
+								UG_LOG("#");
+							}
+						}
+					}
+				}lg_end_for;
+
+				for_each_in_vec(Edge* e, markedDummyEdges){
+					mark(e, RM_REFINE);	
+				}end_for;
+			}
+			else if(hasFaces){
+				lg_for_each(Face, f, g){
+					if(this->refinement_is_allowed(f)){
+						RefinementMark s = get_mark(f);
+						if(s == RM_NONE){
+							g.associated_elements(edges, f);
+							RefinementMark rm = RM_NONE;
+							for_each_in_vec(Edge* e, edges){
+								RefinementMark sSide = get_mark(e);
+								if(sSide){
+									rm = refMark;
+									if(rm == RM_NONE){
+										switch(sSide){
+											case RM_REFINE:	rm = RM_REFINE; break;
+											case RM_ANISOTROPIC: rm = RM_ANISOTROPIC; break;
+											case RM_COARSEN: rm = RM_COARSEN; break;
+											default: break;
+										}
+									}
+									mark(f, rm);
+									break;
+								}
+							}end_for;
+
+						//	todo: if rm == RM_ANISOTROPIC: mark opposite edges (cf hasVolumes)
+						}
+					}
+				}lg_end_for;
+			}
+			else if(hasEdges){
+				lg_for_each(Edge, e, g){
+					if(this->refinement_is_allowed(e)){
+						RefinementMark s = get_mark(e);
+						if(s == RM_NONE){
+							Edge::ConstVertexArray vrts = e->vertices();
+							for(size_t i = 0; i < 2; ++i){
+								ISelector::status_t sSide = sel.get_selection_status(vrts[i]);
+								if(sSide){
+									RefinementMark rm = refMark;
+									if(rm == RM_NONE){
+										switch(sSide){
+											case RM_REFINE:	rm = RM_REFINE; break;
+											case RM_ANISOTROPIC: rm = RM_ANISOTROPIC; break;
+											case RM_COARSEN: rm = RM_COARSEN; break;
+											default: break;
+										}
+									}
+									mark(e, rm);
+								}
+							}
+						}
+					}
+				}lg_end_for;
+			}
+		}
+		else{
+		//	mark all associated elements of marked vertices
+			for(SelVrtIter iter = sel.template begin<Vertex>();
+				iter != sel.template end<Vertex>(); ++iter)
+			{
+				ISelector::status_t s = sel.get_selection_status(*iter);
+				RefinementMark rm = refMark;
+				if(rm == RM_NONE){
+					switch(s){
+						case RM_REFINE:	rm = RM_REFINE; break;
+						case RM_ANISOTROPIC: rm = RM_ANISOTROPIC; break;
+						case RM_COARSEN: rm = RM_COARSEN; break;
+						default: break;
+					}
 				}
+
+				g.associated_elements(edges, *iter);
+				for(size_t i = 0; i < edges.size(); ++i)
+					if(!this->is_marked(edges[i]))
+						this->mark(edges[i], rm);
+
+				g.associated_elements(faces, *iter);
+				for(size_t i = 0; i < faces.size(); ++i)
+					if(!this->is_marked(faces[i]))
+						this->mark(faces[i], rm);
+
+				g.associated_elements(vols, *iter);
+				for(size_t i = 0; i < vols.size(); ++i)
+					if(!this->is_marked(vols[i]))
+						this->mark(vols[i], rm);
 			}
 
-			g.associated_elements(edges, *iter);
-			for(size_t i = 0; i < edges.size(); ++i)
-				if(!this->is_marked(edges[i]))
-					this->mark(edges[i], rm);
+		//	since we selected vertices which possibly may not be refined, we have to
+		//	deselect those now.
+			for(SelVrtIter iter = sel.template begin<Vertex>();
+				iter != sel.template end<Vertex>();)
+			{
+				Vertex* vrt = *iter;
+				++iter;
 
-			g.associated_elements(faces, *iter);
-			for(size_t i = 0; i < faces.size(); ++i)
-				if(!this->is_marked(faces[i]))
-					this->mark(faces[i], rm);
-
-			g.associated_elements(vols, *iter);
-			for(size_t i = 0; i < vols.size(); ++i)
-				if(!this->is_marked(vols[i]))
-					this->mark(vols[i], rm);
+				if(!refinement_is_allowed(vrt))
+					sel.deselect(vrt);
+			}
 		}
-
-	//	since we selected vertices which possibly may not be refined, we have to
-	//	deselect those now.
-		for(SelVrtIter iter = sel.template begin<Vertex>();
-			iter != sel.template end<Vertex>();)
-		{
-			Vertex* vrt = *iter;
-			++iter;
-
-			if(!refinement_is_allowed(vrt))
-				sel.deselect(vrt);
-		}
+		
 	}
 
 }

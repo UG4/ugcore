@@ -993,14 +993,14 @@ void MarkForRefinement_AnisotropicElements(TDomain& dom, IRefiner& refiner,
 }
 
 
-void MarkNeighborsForFullRefinement(IRefiner& refiner)
+void MarkNeighborsForFullRefinement(IRefiner& refiner, bool sideNbrsOnly)
 {
-	refiner.mark_neighborhood(1, RM_REFINE);
+	refiner.mark_neighborhood(1, RM_REFINE, sideNbrsOnly);
 }
 
-void MarkNeighborsForAnisotropicRefinement(IRefiner& refiner)
+void MarkNeighborsForAnisotropicRefinement(IRefiner& refiner, bool sideNbrsOnly)
 {
-	refiner.mark_neighborhood(1, RM_ANISOTROPIC);
+	refiner.mark_neighborhood(1, RM_ANISOTROPIC, sideNbrsOnly);
 }
 
 
@@ -1216,10 +1216,10 @@ static void Common(Registry& reg, string grp)
 
 	reg.add_function("MarkNeighborsForFullRefinement",
 				&MarkNeighborsForFullRefinement,
-				grp, "", "refiner")
+				grp, "", "refiner#sideNeighborsOnly")
 		.add_function("MarkNeighborsForAnisotropicRefinement",
 				&MarkNeighborsForAnisotropicRefinement,
-				grp, "", "refiner");
+				grp, "", "refiner#sideNeighborsOnly");
 }
 
 /**

@@ -106,7 +106,10 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 
 	///	Marks the neighborhood of the current selection.
 	/**	\sa ISelector::mark_neighborhood*/
-		virtual void mark_neighborhood(size_t numIterations, RefinementMark refMark);
+		virtual void mark_neighborhood(
+						size_t numIterations,
+						RefinementMark refMark,
+						bool sideNbrsOnly);
 
 	///	Returns the mark of a given element.
 	/**	\{ */

@@ -79,17 +79,23 @@ class IRefiner
 	/**	In each step direct neighbors of currently marked elements are selected.
 	 * The number of iterations thus specifies the width of the neighborhood which
 	 * will be marked.
-	 * Calls mark_neighborhood(numIterations, RM_NONE)*/
+	 * Calls mark_neighborhood(numIterations, RM_NONE, false)*/
 	 	void mark_neighborhood(size_t numIterations)
-	 	{mark_neighborhood(numIterations, RM_NONE);}
+	 	{mark_neighborhood(numIterations, RM_NONE, false);}
 
 	///	marks the neighborhood of currently marked elements.
 	/**	In each step direct neighbors of currently marked elements are also marked.
 	 * You may specify the refinement mark that will be applied to newly mared elements
 	 * - elements which already were marked will be ignored.
 	 * By passing RM_NONE as refMark, the refinement-mark will be derived from
-	 * neighbored elements.*/
-		virtual void mark_neighborhood(size_t numIterations, RefinementMark refMark)	{}
+	 * neighbored elements.
+	 * If sideNbrsOnly is set to true, only elements which are connected to
+	 * sides of marked elements are also marked. Otherwise all elements which are
+	 * connected to vertices of marked elements are marked.*/
+		virtual void mark_neighborhood(
+						size_t numIterations,
+						RefinementMark refMark,
+						bool sideNbrsOnly)			{}
 
 	///	Returns the mark of a given element. Default returns RM_REFINE
 	/**	\{ */
