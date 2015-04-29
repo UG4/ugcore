@@ -284,7 +284,6 @@ void VarianceMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaEr
 
 	}
 
-	UG_LOG("  +++ VarianceMarking: Est. variance (1) : " << elemVar << " on "<< numElem << "elements.\n");
 #ifdef UG_PARALLEL
 	if (pcl::NumProcs() > 1)
 	{
@@ -294,6 +293,8 @@ void VarianceMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaEr
 
 	}
 #endif
+	UG_LOG("  +++ VarianceMarking: Est. variance (1) : " << elemVar << " on "<< numElem << "elements.\n");
+
 
 	elemVar /= (numElem-1.0);
 	UG_LOG("  +++ VarianceMarking: Est. variance (2): " << elemVar << " on "<< numElem << "elements.\n");

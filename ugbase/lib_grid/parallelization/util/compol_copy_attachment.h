@@ -57,8 +57,11 @@ class ComPol_CopyAttachment : public pcl::ICommunicationPolicy<TLayout>
 		virtual bool
 		extract(ug::BinaryBuffer& buff, const Interface& interface);
 		
+		void extract_on_constrained_elems_only(bool enable);
+
 	protected:
 		Grid::AttachmentAccessor<GeomObj, TAttachment>	m_aaVal;
+		bool m_extractOnConstrainedElemsOnly;
 };
 
 
@@ -70,14 +73,16 @@ class ComPol_CopyAttachment : public pcl::ICommunicationPolicy<TLayout>
 ////////////////////////////////////////////////////////////////////////
 template <class TNodeLayout, class TAttachment>
 ComPol_CopyAttachment<TNodeLayout, TAttachment>::
-ComPol_CopyAttachment()
+ComPol_CopyAttachment() :
+	m_extractOnConstrainedElemsOnly(false)
 {
 }
 
 ////////////////////////////////////////////////////////////////////////
 template <class TNodeLayout, class TAttachment>
 ComPol_CopyAttachment<TNodeLayout, TAttachment>::
-ComPol_CopyAttachment(Grid& grid, TAttachment attachment)
+ComPol_CopyAttachment(Grid& grid, TAttachment attachment) :
+	m_extractOnConstrainedElemsOnly(false)
 {
 	set_attachment(grid, attachment);
 }
@@ -108,12 +113,31 @@ template <class TNodeLayout, class TAttachment>
 bool ComPol_CopyAttachment<TNodeLayout, TAttachment>::
 extract(ug::BinaryBuffer& buff, const Interface& interface)
 {
-	for(typename Interface::const_iterator iter = interface.begin();
-		iter != interface.end(); ++iter)
-	{
-		Deserialize(buff, m_aaVal[interface.get_element(iter)]);
+	if(m_extractOnConstrainedElemsOnly){
+		for(typename Interface::const_iterator iter = interface.begin();
+			iter != interface.end(); ++iter)
+		{
+			typename TAttachment::ValueType val;
+			Deserialize(buff, val);
+			if(interface.get_element(iter)->is_constrained())
+				m_aaVal[interface.get_element(iter)] = val;
+		}
+	}
+	else{
+		for(typename Interface::const_iterator iter = interface.begin();
+			iter != interface.end(); ++iter)
+		{
+			Deserialize(buff, m_aaVal[interface.get_element(iter)]);
+		}
 	}
 	return true;
+}
+
+template <class TNodeLayout, class TAttachment>
+void ComPol_CopyAttachment<TNodeLayout, TAttachment>::
+extract_on_constrained_elems_only(bool enable)
+{
+	m_extractOnConstrainedElemsOnly = enable;
 }
 
 };

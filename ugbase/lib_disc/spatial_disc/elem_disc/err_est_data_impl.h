@@ -796,6 +796,7 @@ void SideAndElemErrEstData<TDomain>::summarize_err_est_data(SmartPtr<TDomain> sp
 	// do not have a constraining element. Note that constrained V-Masters always have a local
 	// constraining element and thus contain the correct value.
 #ifdef UG_PARALLEL
+	compolCopySideErr.extract_on_constrained_elems_only(true);
 	icom.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, compolCopySideErr);
 	icom.communicate();
 #endif
