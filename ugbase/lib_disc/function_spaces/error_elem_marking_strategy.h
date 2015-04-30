@@ -391,7 +391,7 @@ void VarianceMarkingEta<TDomain>::mark(typename base_type::elem_accessor_type& a
 //	number elemMean =  sqrt(errTotal) / numElem;
 	//number elemMean =  errTotal / numElem;
 
-	UG_LOG("  +++ VarianceMarkingEta: Mean error : " << elemMean << " on "<< numElem << "elements.\n");
+	UG_LOG("  +++ VarianceMarkingEta: Mean error : " << elemMean << " on "<< numElem << " elements.\n");
 
 	// init iterators
 	const_iterator iter;
@@ -411,7 +411,7 @@ void VarianceMarkingEta<TDomain>::mark(typename base_type::elem_accessor_type& a
 
 	}
 
-	UG_LOG("  +++ VarianceMarkingEta: Est. variance (1) : " << elemVar << " on "<< numElem << "elements.\n");
+	UG_LOG("  +++ VarianceMarkingEta: Est. variance (1) : " << elemVar << " on "<< numElem << " elements.\n");
 #ifdef UG_PARALLEL
 	if (pcl::NumProcs() > 1)
 	{
@@ -423,7 +423,7 @@ void VarianceMarkingEta<TDomain>::mark(typename base_type::elem_accessor_type& a
 #endif
 
 	elemVar /= (numElem-1.0);
-	UG_LOG("  +++ VarianceMarkingEta: Est. variance (2): " << elemVar << " on "<< numElem << "elements.\n");
+	UG_LOG("  +++ VarianceMarkingEta: Est. variance (2): " << elemVar << " on "<< numElem << " elements.\n");
 
 
 		// refine all element above threshold
@@ -470,6 +470,8 @@ void VarianceMarkingEta<TDomain>::mark(typename base_type::elem_accessor_type& a
 		numMarkedRefine = com.allreduce(numMarkedRefineLocal, PCL_RO_SUM);
 		UG_LOG("  +++ VarianceMarkingEta: Marked for refinement: " << numMarkedRefine << " ("<< numMarkedRefineLocal << ") elements.\n");
 	}
+	else
+		UG_LOG("  +++ VarianceMarkingEta: Marked for refinement: " << numMarkedRefine << " elements.\n");
 #else
 	UG_LOG("  +++ VarianceMarkingEta: Marked for refinement: " << numMarkedRefine << " elements.\n");
 #endif
