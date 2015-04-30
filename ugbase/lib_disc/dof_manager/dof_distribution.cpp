@@ -1158,6 +1158,8 @@ changable_indices(std::vector<size_t>& vIndex,
 	//	get adjacent index
 		const size_t adjInd = obj_index(elem);
 
+		UG_ASSERT(adjInd < (size_t)1e10, "adjInd = " << adjInd); // <-- I get an adjInd of (size_t) (-1) here!
+
 	//	add to index list
 		vIndex.push_back(adjInd);
 	}
