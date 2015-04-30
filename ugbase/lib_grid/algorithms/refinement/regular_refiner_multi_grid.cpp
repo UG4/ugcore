@@ -250,7 +250,7 @@ clear_dummies () {
 
 template <class TElem>
 void RegularRefiner_MultiGrid::
-mark_by_level_discrepancy (size_t lvl, Grid::VertexAttachmentAccessor<AInt> aaLvl)
+mark_by_level_discrepancy (int lvl, Grid::VertexAttachmentAccessor<AInt> aaLvl)
 {
 	MultiGrid& mg = *m_pMG;
 	MGSelector& sel = m_marks;

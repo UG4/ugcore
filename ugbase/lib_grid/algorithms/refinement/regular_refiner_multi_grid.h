@@ -87,7 +87,7 @@ class UG_API RegularRefiner_MultiGrid : public IRefiner{
 
 		template <class TElem>
 		void mark_by_level_discrepancy (
-				size_t lvl,
+				int lvl,
 				Grid::VertexAttachmentAccessor<AInt> aaLvl);
 
 		void collect_objects_for_refine ();
