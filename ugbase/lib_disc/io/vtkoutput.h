@@ -254,7 +254,7 @@ class VTKOutput
 		}
 
 	/**
-	 * This function simply calles 'print' using step = -1 to indicate the
+	 * This function simply calls 'print' using step = -1 to indicate the
 	 * stationary case. It is intended to write time independent data.
 	 *
 	 * \param[in]	filename		filename for produced files
