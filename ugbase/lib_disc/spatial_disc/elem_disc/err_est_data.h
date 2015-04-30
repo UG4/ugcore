@@ -173,7 +173,7 @@ private:
 
 /// Error estimator data class storing a number vector per side and per element.
 /**
- * This class represents an L2 error estimator.
+ * This class represents an H1 error estimator.
  * It can integrate expressions on elements and their sides with arbitrary order.
  * A vector of values at defined integration points is attached to any element and
  * side to that end.
