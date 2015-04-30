@@ -64,6 +64,7 @@ AssembledMultiGridCycle(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
 	m_spRestrictionPrototype(m_spProlongationPrototype),
 	m_spBaseSolver(new LU<TAlgebra>()),
 	m_bGatheredBaseIfAmbiguous(true),
+	m_ignoreInitForBaseSolver(false),
 	m_spDebugWriter(NULL), m_dbgIterCnt(0)
 {};
 
@@ -412,16 +413,32 @@ init()
 	GMG_PROFILE_END();
 
 //	Init base solver
-	GMG_PROFILE_BEGIN(GMG_Init_BaseSolver);
-	try{
-		init_base_solver();
+	if(!ignore_init_for_base_solver()){
+		GMG_PROFILE_BEGIN(GMG_Init_BaseSolver);
+		try{
+			init_base_solver();
+		}
+		UG_CATCH_THROW("GMG:init: Cannot init Base Solver.");
+		GMG_PROFILE_END();
 	}
-	UG_CATCH_THROW("GMG:init: Cannot init Base Solver.");
-	GMG_PROFILE_END();
-
 	} UG_CATCH_THROW("GMG: Init failure for init(u)");
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop init_common\n");
+}
+
+
+template <typename TDomain, typename TAlgebra>
+void AssembledMultiGridCycle<TDomain, TAlgebra>::
+ignore_init_for_base_solver(bool ignore)
+{
+	m_ignoreInitForBaseSolver = ignore;
+}
+
+template <typename TDomain, typename TAlgebra>
+bool AssembledMultiGridCycle<TDomain, TAlgebra>::
+ignore_init_for_base_solver() const
+{
+	return m_ignoreInitForBaseSolver;
 }
 
 

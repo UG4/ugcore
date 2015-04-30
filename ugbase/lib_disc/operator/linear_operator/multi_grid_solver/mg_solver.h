@@ -194,6 +194,16 @@ class AssembledMultiGridCycle :
 	///	Prepare for Linear Operator L
 		virtual bool init(SmartPtr<ILinearOperator<vector_type> > L);
 
+	///	does not call init on base-solver during initialization
+	/**	Use this method with care. It can be useful e.g. during repeated
+	 * adaption of a linear problem, where the base-level does not change.
+	 * \note	This only affects calls to init(...) and has no effect on
+	 *			direct calls to init_base_solver.
+	 * \{ */
+		virtual void ignore_init_for_base_solver(bool ignore);
+		virtual bool ignore_init_for_base_solver() const;
+	/** \\ */
+
 	///	Compute new correction c = B*d
 		virtual bool apply(vector_type& c, const vector_type& d);
 
@@ -398,6 +408,9 @@ class AssembledMultiGridCycle :
 
 	///	flag if using parallel base solver
 		bool m_bGatheredBaseUsed;
+
+	///	flag indicating whether the base-solver shall be initialized during a call to init()
+		bool m_ignoreInitForBaseSolver;
 
 	///	Matrix for gathered base solver
 		SmartPtr<MatrixOperator<matrix_type, vector_type> > spGatheredBaseMat;
