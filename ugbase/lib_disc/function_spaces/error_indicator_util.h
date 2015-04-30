@@ -39,7 +39,7 @@ number ComputeAvg
 
 	//	if no error value exists: ignore (might be newly added by refinement);
 	//	newly added elements are supposed to have a negative error estimator
-		if (aaError[elem] < 0) continue;
+		if (aaError[elem] < 0) UG_THROW("error value invalid!");//continue;
 
 
 		const number elemEta = sqrt(aaError[elem]);
