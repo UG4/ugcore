@@ -83,7 +83,7 @@ struct IteratorProvider<MGSubsetHandler>
 /// output writer to the VTK file format
 /**
  * This class can be used to write grid and data associated with the grid to
- * then vtk file format.
+ * the vtk file format.
  *
  * The produced files are:
  *

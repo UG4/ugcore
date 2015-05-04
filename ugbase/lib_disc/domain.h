@@ -249,7 +249,7 @@ class Domain : public IDomain<TGrid, TSubsetHandler>
 	/**
 	 * creates an empty domain. Grid and Subset Handler are set up. The
 	 * Distributed Grid Manager is set in the parallel case.
-	 * \param[in]	options		Grid Options (optinal)
+	 * \param[in]	options		Grid Options (optional)
 	 */
 		Domain(bool isAdaptive = true);
 		virtual ~Domain() {};
