@@ -30,12 +30,12 @@ class FileReaderASC{
 
 		void load_file(const char* filename);
 
-		number cell_size() const		{return m_cellSize;}
-		number center_x() const			{return m_center.x();}
-		number center_y() const			{return m_center.y();}
-		number no_data_value() const	{return m_noDataValue;}
-		size_t num_rows() const			{return m_field->height();}
-		size_t num_columns() const		{return m_field->width();}
+		number cell_size() const			{return m_cellSize;}
+		number lower_left_corner_x() const	{return m_llcorner.x();}
+		number lower_left_corner_y() const	{return m_llcorner.y();}
+		number no_data_value() const		{return m_noDataValue;}
+		size_t num_rows() const				{return m_field->height();}
+		size_t num_columns() const			{return m_field->width();}
 
 		number at(size_t r, size_t c) const	{return m_field->at(r, c);}
 		const Field<number>& field() const	{return *m_field;}
@@ -43,7 +43,7 @@ class FileReaderASC{
 	private:
 		Field<number>*	m_field;
 		number			m_cellSize;
-		vector2			m_center;
+		vector2			m_llcorner;
 		number			m_noDataValue;
 		SmartPtr<Field<number> >	m_privateField;
 };

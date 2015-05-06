@@ -48,10 +48,27 @@ void RegisterGridBridge_Layers(Registry& reg, string parentGroup)
 //			.add_function("ExpandLayers3d", &ExpandFractures3d, grp);
 
 //	prism-meshing
+	reg.add_class_<RasterLayerDesc>("RasterLayerDesc", grp,
+			"Layer Desc for RasterLayers class")
+		.add_constructor<void (RasterLayerDesc::*)(const std::string&, number)>()
+		.add_method("filename", &RasterLayerDesc::filename,
+			"filename", "", "Returns the filename of the given layer-desc")
+		.add_method("min_height", &RasterLayerDesc::min_height,
+			"minHeight", "", "Returns the minimal height of the given layer-desc")
+		.set_construct_as_smart_pointer(true);
+
 	reg.add_class_<RasterLayers>("RasterLayers", grp, "Stack of 2d raster data.")
 		.add_constructor()
-		.add_method("load_from_files", &RasterLayers::load_from_files, "",
-			"filenames", "Loads raster data from the specified .asc files. "
+		.add_method("load_from_files",
+			static_cast<void (RasterLayers::*)(const std::vector<std::string>&, number)>(
+				&RasterLayers::load_from_files),
+			"", "filenames", "Loads raster data from the specified .asc files. "
+			"Specify the bottom layer first and the surface layer last.")
+		.add_method("load_from_files",
+			static_cast<void (RasterLayers::*)(
+				const std::vector<SPRasterLayerDesc>&)>(
+					&RasterLayers::load_from_files),
+			"", "filenames", "Loads raster data from the specified .asc files. "
 			"Specify the bottom layer first and the surface layer last.")
 		.add_method("invalidate_flat_cells", &RasterLayers::invalidate_flat_cells, "",
 			"min height", "Marks all cells as invalid that belong to a "

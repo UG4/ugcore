@@ -13,7 +13,7 @@ namespace ug{
 
 FileReaderASC::FileReaderASC() :
 	m_cellSize(0),
-	m_center(0, 0),
+	m_llcorner(0, 0),
 	m_noDataValue(0)
 {
 	m_privateField = make_sp(new Field<number>);
@@ -38,7 +38,11 @@ void FileReaderASC::load_file(const char* filename)
 	ifstream in(filename);
 	UG_COND_THROW(!in, "Couldn't read from file " << filename);
 
-	size_t numCols = 0, numRows = 0;
+	int numCols = 0, numRows = 0;
+	
+//	indicate whether the lower left corner was specified through cell-center
+	bool llcenterx = false;
+	bool llcentery = false;
 
 //	parse header
 	for(int i = 0; i < 6; ++i){
@@ -50,13 +54,21 @@ void FileReaderASC::load_file(const char* filename)
 		name = ToLower(name);
 
 		if(name.compare("ncols") == 0)
-			numCols = (size_t)value;
+			numCols = (int)value;
 		else if(name.compare("nrows") == 0)
-			numRows = (size_t)value;
-		else if(name.compare("xllcenter") == 0)
-			m_center.x() = value;
-		else if(name.compare("yllcenter") == 0)
-			m_center.y() = value;
+			numRows = (int)value;
+		else if(name.compare("xllcenter") == 0){
+			m_llcorner.x() = value;
+			llcenterx = true;
+		}
+		else if(name.compare("xllcorner") == 0)
+			m_llcorner.x() = value;
+		else if(name.compare("yllcenter") == 0){
+			m_llcorner.y() = value;
+			llcentery = true;
+		}
+		else if(name.compare("yllcorner") == 0)
+			m_llcorner.y() = value;
 		else if(name.compare("cellsize") == 0)
 			m_cellSize = value;
 		else if(name.compare("nodata_value") == 0)
@@ -66,13 +78,18 @@ void FileReaderASC::load_file(const char* filename)
 		}
 	}
 	
+	if(llcenterx)
+		m_llcorner.x() -= 0.5 * m_cellSize;
+	if(llcentery)
+		m_llcorner.y() -= 0.5 * m_cellSize;
+
 //	parse values
 	Field<number>& field = *m_field;
 	field.resize_no_copy(numCols, numRows);
-	for(size_t irow = 0; irow < numRows; ++irow){
-		for(size_t icol = 0; icol < numCols; ++icol){
+	for(int irow = numRows - 1; irow >= 0; --irow){
+		for(int icol = 0; icol < numCols; ++icol){
 			in >> field.at(icol, irow);
-			UG_COND_THROW(!in, "Couln't read value at col: " << icol << ", row: " << irow);
+			UG_COND_THROW(!in, "Couln't read value at col: " << icol << ", row: " << numRows - irow);
 		}
 	}
 }
@@ -86,8 +103,7 @@ bool LoadGridFromASC(Grid& grid, const char* filename, AVector3& aPos)
 	FileReaderASC reader;
 	reader.load_file(filename);
 
-	vector2 offset(reader.center_x() - 0.5 * reader.cell_size() * (number)reader.num_columns(),
-				   reader.center_y() - 0.5 * reader.cell_size() * (number)reader.num_rows());
+	vector2 offset(reader.lower_left_corner_x(), reader.lower_left_corner_y());
 
 	Grid::VertexAttachmentAccessor<AVector3> aaPos(grid, aPos);
 	CreateGridFromField(grid, reader.field(),
@@ -104,8 +120,8 @@ void LoadHeightfieldFromASC(Heightfield& hfield, const char* filename)
 	reader.set_field(&hfield.field());
 	reader.load_file(filename);
 	hfield.set_cell_size(vector2(reader.cell_size(), reader.cell_size()));
-	hfield.set_offset(vector2(reader.center_x() - 0.5 * reader.cell_size() * (number)reader.num_columns(),
-							  reader.center_y() - 0.5 * reader.cell_size() * (number)reader.num_rows()));
+	hfield.set_offset(vector2(reader.lower_left_corner_x(),
+							  reader.lower_left_corner_y()));
 	hfield.set_no_data_value(reader.no_data_value());
 }
 

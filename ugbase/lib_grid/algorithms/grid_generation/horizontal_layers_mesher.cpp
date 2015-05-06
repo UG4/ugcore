@@ -16,260 +16,6 @@ using namespace std;
 
 namespace ug{
 
-
-void RasterLayers::
-load_from_files(const std::vector<std::string>& filenames)
-{
-	resize(filenames.size());
-	for(size_t i = 0; i < filenames.size(); ++i){
-		LoadHeightfieldFromASC(*m_layers[i], filenames[i].c_str());
-	}
-}
-
-void RasterLayers::
-resize(size_t newSize)
-{
-	size_t oldSize = size();
-	m_layers.resize(newSize);
-	for(size_t i = oldSize; i < newSize; ++i){
-		m_layers[i] = make_sp(new layer_t);
-	}
-}
-
-void RasterLayers::
-invalidate_flat_cells(number minHeight)
-{
-//	since the top-layer is considered to be the terrain surface, we'll start
-//	one layer below the top.
-	if(size() <= 1)
-		return;
-	for(int lvl = (int)size() - 2; lvl >= 0; --lvl){
-		Heightfield& curHF = layer(lvl);
-		Field<number>& innerField = curHF.field();
-
-	//	iterate over the cells of each heightfield and invalidate values
-		for(int iy = 0; iy < (int)innerField.height(); ++iy){
-			for(int ix = 0; ix < (int)innerField.width(); ++ix){
-				number val = innerField.at(ix, iy);
-				if(val != curHF.no_data_value()){
-					bool gotDataVal = false;
-					vector2 c = curHF.index_to_coordinate(ix, iy);
-				//	compare the value against values from higher layers
-					for(int ulvl = lvl + 1; ulvl < (int)size(); ++ulvl){
-						Heightfield& uHF = layer(ulvl);
-						number uval = uHF.interpolate(c);
-						if(uval != uHF.no_data_value()){
-							gotDataVal = true;
-							if(val + minHeight > uval){
-							//	the height in the current cell is too small
-								innerField.at(ix, iy) = curHF.no_data_value();
-							}
-							break;
-						}
-					}
-
-					if(!gotDataVal){
-					//	The cell lies outside of the domain which is specified
-					//	by the upmost field. The cell thus has to be invalidated
-						innerField.at(ix, iy) = curHF.no_data_value();
-					}
-				}
-			}
-		}
-	}
-}
-
-
-void  RasterLayers::
-invalidate_small_lenses(number minArea)
-{
-	for(size_t lvl = 0; lvl < size(); ++lvl){
-		Heightfield& hf = layer(lvl);
-		number cellSize = hf.cell_size().x() * hf.cell_size().y();
-		if(cellSize > 0){
-			InvalidateSmallLenses(hf.field(), minArea / cellSize,
-								  hf. no_data_value());
-		}
-	}
-}
-
-void RasterLayers::
-remove_small_holes(number maxArea, number minHeight)
-{
-	using namespace std;
-
-	const int numNbrs = 4;
-	const int xadd[numNbrs] = {0, -1, 1, 0};
-	const int yadd[numNbrs] = {-1, 0, 0, 1};
-
-	Field<bool>	visited;
-	vector<pair<int, int> > cells;
-
-//	this field stores whether we already visited the given cell
-	for(int lvl = (int)size() - 2; lvl >= 0; --lvl){
-		Heightfield& hf = layer(lvl);
-		Field<number>& field = hf.field();
-		number noDataValue = hf.no_data_value();
-
-		number cellSize = hf.cell_size().x() * hf.cell_size().y();
-		if(cellSize <= 0)
-			continue;
-
-		size_t thresholdCellCount(maxArea / cellSize);
-
-
-		visited.resize_no_copy(field.width(), field.height());
-		visited.fill_all(false);
-
-		const int fwidth = (int)field.width();
-		const int fheight = (int)field.height();
-
-		for(int outerIy = 0; outerIy < fheight; ++outerIy){
-			for(int outerIx = 0; outerIx < fwidth; ++outerIx){
-				if(visited.at(outerIx, outerIy)
-				   || (field.at(outerIx, outerIy) != noDataValue))
-				{
-					continue;
-				}
-
-				cells.clear();
-				cells.push_back(make_pair(outerIx, outerIy));
-				size_t curCell = 0;
-				while(curCell < cells.size()){
-					int ix = cells[curCell].first;
-					int iy = cells[curCell].second;
-
-					for(size_t inbr = 0; inbr < numNbrs; ++inbr){
-						int nx = ix + xadd[inbr];
-						int ny = iy + yadd[inbr];
-						if((nx >= 0 && nx < fwidth && ny >= 0 && ny < fheight)
-						   &! visited.at(nx, ny))
-						{
-							visited.at(nx, ny) = true;
-							if(field.at(nx, ny) == noDataValue){
-								cells.push_back(make_pair(nx, ny));
-							}
-						}
-					}
-					++curCell;
-				}
-
-				if(cells.size() < thresholdCellCount){
-					for(size_t i = 0; i < cells.size(); ++i){
-						int ix = cells[i].first;
-						int iy = cells[i].second;
-						vector2 c = hf.index_to_coordinate(ix, iy);
-						pair<int, number> result = trace_line_up(c, (size_t)lvl);
-						if(result.first > lvl){
-						//	we have to adjust not only the value in the current layer
-						//	but also possibly values in lower levels, to avoid
-						//	creating new thin layers
-							number curVal = result.second - minHeight;
-							field.at(ix, iy) = curVal;
-							for(int lowerLvl = lvl - 1; lowerLvl >= 0 ; --lowerLvl){
-								Heightfield& lhf = layer(lowerLvl);
-								Field<number>& lfield = lhf.field();
-								pair<int, int> index = lhf.coordinate_to_index(c.x(), c.y());
-								int lx = index.first;
-								int ly = index.second;
-								if(lx >= 0 && lx < (int)lfield.width()
-									&& ly >= 0 && ly < (int)lfield.height())
-								{
-									number lval = lfield.at(lx, ly);
-									if(lval != lhf.no_data_value()){
-										if(curVal - lval < minHeight){
-											curVal -= minHeight;
-											lfield.at(lx, ly) = curVal;
-										}
-										else
-											break;
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-}
-
-
-void RasterLayers::
-snap_cells_to_higher_layers(number minHeight)
-{
-	if(size() <= 1)
-		return;
-
-	for(int lvl = (int)size() - 2; lvl >= 0; --lvl){
-		Heightfield& curHF = layer(lvl);
-		Field<number>& curField = curHF.field();
-		Heightfield& upperHF = layer(lvl + 1);
-
-		for(int iy = 0; iy < (int)curField.height(); ++iy){
-			for(int ix = 0; ix < (int)curField.width(); ++ix){
-				number curVal = curField.at(ix, iy);
-				vector2 c = curHF.index_to_coordinate(ix, iy);
-				number upperVal = upperHF.interpolate(c);
-				if(upperVal == upperHF.no_data_value())
-					continue;
-
-				if((curVal == curHF.no_data_value()) || (curVal > upperVal)
-					|| (upperVal - curVal < minHeight))
-				{
-					curField.at(ix, iy) = upperVal;
-				}
-			}
-		}
-	}
-}
-
-
-void RasterLayers::
-eliminate_invalid_cells()
-{
-	for(size_t lvl = 0; lvl < size(); ++lvl){
-		Heightfield& hf = layer(lvl);
-		EliminateInvalidCells(hf.field(), hf.no_data_value());
-	}
-}
-
-
-void RasterLayers::
-blur_layers(number alpha, size_t numIterations)
-{
-	for(size_t i = 0; i < size(); ++i){
-		BlurField(layer(i).field(), alpha, numIterations, layer(i).no_data_value());
-	}
-}
-
-std::pair<int, number> RasterLayers::
-trace_line_down(const vector2& c, size_t firstLayer) const
-{
-	for(int i = (int)firstLayer; i >= 0; --i){
-		number val = layer(i).interpolate(c);
-		if(val != layer(i).no_data_value()){
-			return make_pair(i, val);
-		}
-	}
-
-	return make_pair<int, number>(-1, 0);
-}
-
-std::pair<int, number> RasterLayers::
-trace_line_up(const vector2& c, size_t firstLayer) const
-{
-	for(size_t i = firstLayer; i < size(); ++i){
-		number val = layer(i).interpolate(c);
-		if(val != layer(i).no_data_value()){
-			return make_pair(i, val);
-		}
-	}
-
-	return make_pair<int, number>(-1, 0);
-}
-
-
 ////////////////////////////////////////////////////////////////////////////////
 void MeshLayerBoundaries(Grid& grid, const RasterLayers& layers,
 						 Grid::VertexAttachmentAccessor<AVector3> aaPos,
@@ -282,7 +28,7 @@ void MeshLayerBoundaries(Grid& grid, const RasterLayers& layers,
 	for(size_t lvl = 0; lvl < layers.size(); ++lvl){
 		if(pSH)
 			pSH->set_default_subset_index((int)lvl);
-		CreateGridFromFieldBoundary(grid, layers[lvl], aaPos);
+		CreateGridFromFieldBoundary(grid, layers.heightfield(lvl), aaPos);
 	}
 
 	if(pSH)
@@ -301,13 +47,17 @@ void MeshLayers(Grid& grid, const RasterLayers& layers,
 	for(size_t lvl = 0; lvl < layers.size(); ++lvl){
 		if(pSH)
 			pSH->set_default_subset_index((int)lvl);
-		CreateGridFromField(grid, layers[lvl], aaPos);
+		CreateGridFromField(grid, layers.heightfield(lvl), aaPos);
 	}
 
 	if(pSH)
 		pSH->set_default_subset_index(defSubInd);
 }
 
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+//	EXTRUDE LAYERS
 struct ConnectedToOneMarkedVrt{
 	ConnectedToOneMarkedVrt(Grid& grid) : m_grid(grid) {}
 	bool operator() (Edge* e) const{
@@ -361,8 +111,8 @@ void ExtrudeLayers (
 	const int topLayerInd = (int)layers.num_layers() - 1;
 	for(VertexIterator i = grid.begin<Vertex>(); i != grid.end<Vertex>(); ++i){
 		Vertex* v = *i;
-		number val = top.interpolate(vector2(aaPos[v].x(), aaPos[v].y()));
-		if(val != top.no_data_value()){
+		number val = top.heightfield.interpolate(vector2(aaPos[v].x(), aaPos[v].y()));
+		if(val != top.heightfield.no_data_value()){
 			aaPos[v].z() = val;
 			curVrts.push_back(v);
 			grid.mark(v);
@@ -405,6 +155,8 @@ void ExtrudeLayers (
 	newVols.reserve(curFaces.size());
 	volHeightVals.reserve(curFaces.size());
 	volSubsetInds.reserve(curFaces.size());
+	const int invalidSub = max<int>(sh.num_subsets(), layers.size() + 1);
+	vector<Volume*> invalidVols;
 
 	for(int ilayer = (int)layers.size() - 2; ilayer >= 0; --ilayer){
 
@@ -417,8 +169,8 @@ void ExtrudeLayers (
 		grid.clear_marks();
 
 	//	trace rays from the current vertices down through the layers until the
-	//	next valid entry is found. If none is found, the vertex will be ignored
-	//	from then on.
+	//	next valid entry is found. If none is found, the vertex will either be ignored
+	//	from then on (allowForTetsAndPyras == false) or a dummy vertex will be inserted.
 		for(size_t icur = 0; icur < curVrts.size(); ++icur){
 			Vertex* v = curVrts[icur];
 			vector2 c(aaPos[v].x(), aaPos[v].y());
@@ -437,6 +189,15 @@ void ExtrudeLayers (
 				sh.assign_subset(v, val.first);
 				grid.mark(v);
 			}
+			else if(allowForTetsAndPyras){
+			//	we insert a dummy-vertex which will later on allow for easier
+			//	edge-collapses of inner vertical rim edges
+				tmpVrts.push_back(v);
+				number height = aaPos[v].z() - layers.min_height(ilayer);
+				vrtHeightVals.push_back(height);
+				sh.assign_subset(v, invalidSub);
+				grid.mark(v);
+			}
 		}
 
 	//	now find the faces which connect those vertices
@@ -448,7 +209,7 @@ void ExtrudeLayers (
 			vector3 center = CalculateCenter(f, aaPos);
 			vector2 c(center.x(), center.y());
 			pair<int, number> val = layers.trace_line_down(c, ilayer);
-			if(val.first < 0)
+			if((val.first < 0) && !allowForTetsAndPyras)
 				continue;
 
 		//	now check whether all vertices are marked
@@ -464,7 +225,14 @@ void ExtrudeLayers (
 
 			if(allMarked){
 				pair<int, number> upVal = layers.trace_line_up(c, ilayer+1);
-				if(upVal.first != -1){
+				if(val.first < 0 || upVal.first < 0){
+					if(allowForTetsAndPyras){
+						tmpFaces.push_back(f);
+						volSubsetInds.push_back(invalidSub);
+						volHeightVals.push_back(layers.min_height(ilayer));
+					}
+				}
+				else{
 					tmpFaces.push_back(f);
 					volSubsetInds.push_back(val.first);
 					volHeightVals.push_back(upVal.second - val.second);
@@ -483,8 +251,11 @@ void ExtrudeLayers (
 
 
 	// assign pre-determined subsets
-		for(size_t ivol = 0; ivol < newVols.size(); ++ivol)
+		for(size_t ivol = 0; ivol < newVols.size(); ++ivol){
 			sh.assign_subset(newVols[ivol], volSubsetInds[ivol]);
+			if(volSubsetInds[ivol] == invalidSub)
+				invalidVols.push_back(newVols[ivol]);
+		}
 
 	//	set the precalculated height of new vertices
 		for(size_t ivrt = 0; ivrt < curVrts.size(); ++ivrt){
@@ -631,18 +402,35 @@ void ExtrudeLayers (
 				for_each_in_vec(Volume* v, assVols){
 					if(si == -1)
 						si = sh.get_subset_index(v);
-					else{
-						if(sh.get_subset_index(v) != si){
-							lg_for_each_vertex_in_elem(vrt, f){
-								aaInterface[vrt] = true;
-							}lg_end_for;
-							break;
-						}
+					else if(sh.get_subset_index(v) != si){
+						lg_for_each_vertex_in_elem(vrt, f){
+							aaInterface[vrt] = true;
+						}lg_end_for;
+						break;
 					}
 				}end_for;
 			}
 		}lg_end_for;
 
+	//	all lower vertices of elements in invalidSub are collapse candidates and
+	//	are thus not considered to be interface elements
+		Grid::edge_traits::secure_container assEdges;
+		for_each_in_vec(Volume* vol, invalidVols){
+			grid.associated_elements(assEdges, vol);
+			for_each_in_vec(Edge* e, assEdges){
+				Vertex* v0 = e->vertex(0);
+				Vertex* v1 = e->vertex(1);
+
+				vector3 dir;
+				VecSubtract(dir, aaPos[v1], aaPos[v0]);
+				if((dir.z() > SMALL) && (fabs(dir.x()) < SMALL) && (fabs(dir.y()) < SMALL)){
+					aaInterface[v0] = false;
+				}
+				else if((-dir.z() > SMALL) && (fabs(dir.x()) < SMALL) && (fabs(dir.y()) < SMALL)){
+					aaInterface[v1] = false;
+				}
+			}end_for;
+		}end_for;
 
 	//	all unmarked vertices are collapse candidates
 		vector<Vertex*> candidates;
@@ -652,7 +440,6 @@ void ExtrudeLayers (
 		}lg_end_for;
 
 	//	merge each candidate with the next upper vertex.
-		Grid::edge_traits::secure_container assEdges;
 		for_each_in_vec(Vertex* vrt, candidates){
 			grid.associated_elements(assEdges, vrt);
 			for_each_in_vec(Edge* e, assEdges){
@@ -671,6 +458,9 @@ void ExtrudeLayers (
 
 	//	clean up
 		grid.detach_from_vertices(aInterface);
+
+	//	delete invalidSub from the subset handler
+		sh.erase_subset(invalidSub);
 	}
 
 	grid.end_marking();
