@@ -50,7 +50,8 @@ void RegisterGridBridge_Layers(Registry& reg, string parentGroup)
 //	prism-meshing
 	reg.add_class_<RasterLayerDesc>("RasterLayerDesc", grp,
 			"Layer Desc for RasterLayers class")
-		.add_constructor<void (RasterLayerDesc::*)(const std::string&, number)>()
+		.add_constructor<void (RasterLayerDesc::*)(const std::string&, number)>(
+			"filename#minLayerHeight")
 		.add_method("filename", &RasterLayerDesc::filename,
 			"filename", "", "Returns the filename of the given layer-desc")
 		.add_method("min_height", &RasterLayerDesc::min_height,
