@@ -68,7 +68,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef IConstraint<TAlgebra> TBase;
 		typedef IDomainConstraint<TDomain, TAlgebra> T;
 		string name = string("IDomainConstraint").append(suffix);
-		reg.add_class_<T, TBase>(name, grp);
+		reg.add_class_<T, TBase>(name, grp)
+			.add_method("set_error_estimator", &T::set_error_estimator, "", "error estimator data object");
 		reg.add_class_to_group(name, "IDomainConstraint", tag);
 	}
 

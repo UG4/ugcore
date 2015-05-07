@@ -70,7 +70,11 @@ class IConstraint
 
 	///	sets the constraints in a solution vector
 		virtual void adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd,
-		                             number time = 0.0)  = 0;
+									 number time = 0.0)  = 0;
+
+	///	adjusts the assembled error estimator values in the attachments according to the constraint
+		virtual void adjust_error(const vector_type& u, ConstSmartPtr<DoFDistribution> dd,
+								  number time = 0.0) {};
 
 	///	sets constraints in prolongation
 		virtual void adjust_prolongation(matrix_type& P,
@@ -126,6 +130,10 @@ class IDomainConstraint : public IConstraint<TAlgebra>
 		typedef typename algebra_type::vector_type vector_type;
 
 	public:
+	/// constructor
+		IDomainConstraint() : IConstraint<TAlgebra>(),
+	  		m_bDoErrEst(false), m_spErrEstData(SPNULL) {};
+
 	///	sets the approximation space
 		virtual void set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace)
 		{
@@ -152,6 +160,38 @@ class IDomainConstraint : public IConstraint<TAlgebra>
 		{
 			m_spAssTuner = spAssemblingTuner;
 		}
+
+	// //////////////////////////
+	// Error estimator
+	// //////////////////////////
+	public:
+	///	sets the pointer to an error estimator data object (or NULL)
+	/**
+	 * This function sets the pointer to an error estimator data object
+	 * that should be used for this discretization. Note that the ElemDisc
+	 * object must use RTTI to try to convert this pointer to the type
+	 * of the objects accepted by it for this purpose. If the conversion
+	 * fails than an exception must be thrown since this situation is not
+	 * allowed.
+	 */
+		void set_error_estimator(SmartPtr<IErrEstData<TDomain> > ee) {m_spErrEstData = ee; m_bDoErrEst = true;}
+
+	/// find out whether or not a posteriori error estimation is to be performed for this disc
+		bool err_est_enabled() const {return m_bDoErrEst;}
+
+	///	returns the pointer to the error estimator data object (or NULL)
+		virtual SmartPtr<IErrEstData<TDomain> > err_est_data() {return m_spErrEstData;}
+
+	private:
+	/// flag indicating whether or not a posteriori error estimation is to be performed for this disc
+		bool m_bDoErrEst;
+
+	protected:
+	/// error estimation object associated to the element discretization
+		SmartPtr<IErrEstData<TDomain> > m_spErrEstData;
+
+	// ///////////////////////////
+
 
 	protected:
 	///	returns the level dof distribution

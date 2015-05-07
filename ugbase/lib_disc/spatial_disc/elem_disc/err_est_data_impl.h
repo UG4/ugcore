@@ -107,8 +107,8 @@ inline void check_subset_strings(std::vector<std::string> s)
 template <typename TDomain>
 SideAndElemErrEstData<TDomain>::SideAndElemErrEstData
 (
-	std::size_t _sideOrder,
-	std::size_t _elemOrder,
+	size_t _sideOrder,
+	size_t _elemOrder,
 	const char* subsets
 ) :
 	IErrEstData<TDomain>(),
@@ -134,8 +134,8 @@ SideAndElemErrEstData<TDomain>::SideAndElemErrEstData
 template <typename TDomain>
 SideAndElemErrEstData<TDomain>::SideAndElemErrEstData
 (
-	std::size_t _sideOrder,
-	std::size_t _elemOrder,
+	size_t _sideOrder,
+	size_t _elemOrder,
 	std::vector<std::string> subsets
 ) :
 	IErrEstData<TDomain>(),
@@ -183,7 +183,7 @@ void SideAndElemErrEstData<TDomain>::init_quadrature()
 		m_SideIPcoords[roid].clear();
 
 		// loop sides of ref elem
-		for (std::size_t side = 0; side < ref_elem.num(ref_dim-1); side++)
+		for (size_t side = 0; side < ref_elem.num(ref_dim-1); side++)
 		{
 			// get side roid
 			ReferenceObjectID side_roid = ref_elem.roid(ref_dim-1, side);
@@ -191,7 +191,7 @@ void SideAndElemErrEstData<TDomain>::init_quadrature()
 			// get number of IPs for this roid from quad rules
 			if (!quadRuleSide[side_roid])
 				UG_THROW("Requesting side IPs for roid " << roid << ", but no quadrature rule has been created for it.");
-			std::size_t nIPs = quadRuleSide[side_roid]->size();
+			size_t nIPs = quadRuleSide[side_roid]->size();
 
 			// save start index for this side's IPs
 			if (side == 0) m_sideIPsStartIndex[roid][side] = 0;
@@ -201,11 +201,11 @@ void SideAndElemErrEstData<TDomain>::init_quadrature()
 			const MathVector<dim-1>* sideloc_IPs = quadRuleSide[side_roid]->points();
 
 			// fill vector of side corners (in element-dimensional coords)
-			std::size_t nCo = ref_elem.num(dim-1, side, 0);
+			size_t nCo = ref_elem.num(dim-1, side, 0);
 			std::vector<MathVector<dim> > side_corners(nCo);
-			for (std::size_t co = 0; co < ref_elem.num(dim-1, side, 0); co++)
+			for (size_t co = 0; co < ref_elem.num(dim-1, side, 0); co++)
 			{
-				std::size_t co_id = ref_elem.id(dim-1, side, 0, co);
+				size_t co_id = ref_elem.id(dim-1, side, 0, co);
 				side_corners[co] = ref_elem.corner(co_id);
 			}
 
@@ -213,7 +213,7 @@ void SideAndElemErrEstData<TDomain>::init_quadrature()
 			DimReferenceMapping<dim-1,dim>& ref_map = ReferenceMappingProvider::get<dim-1,dim>(side_roid, &side_corners[0]);
 
 			// map IPs
-			for (std::size_t ip = 0; ip < nIPs; ip++)
+			for (size_t ip = 0; ip < nIPs; ip++)
 			{
 				m_SideIPcoords[roid].push_back(MathVector<TDomain::dim>());
 				ref_map.local_to_global(m_SideIPcoords[roid].back(), sideloc_IPs[ip]);
@@ -225,7 +225,7 @@ void SideAndElemErrEstData<TDomain>::init_quadrature()
 
 ///	get the data reference for a given side and ip
 template <typename TDomain>
-number& SideAndElemErrEstData<TDomain>::operator() (side_type* pSide, std::size_t ip)
+number& SideAndElemErrEstData<TDomain>::operator() (side_type* pSide, size_t ip)
 {
 	try
 	{
@@ -245,7 +245,7 @@ number& SideAndElemErrEstData<TDomain>::operator() (side_type* pSide, std::size_
 }
 
 template <typename TDomain>
-number& SideAndElemErrEstData<TDomain>::operator() (elem_type* pElem, std::size_t ip)
+number& SideAndElemErrEstData<TDomain>::operator() (elem_type* pElem, size_t ip)
 {
 	try
 	{
@@ -407,13 +407,13 @@ MathVector<TDomain::dim>* SideAndElemErrEstData<TDomain>::elem_global_ips
 }
 
 template <typename TDomain>
-std::size_t SideAndElemErrEstData<TDomain>::num_side_ips(const side_type* pSide)
+size_t SideAndElemErrEstData<TDomain>::num_side_ips(const side_type* pSide)
 {
 	return m_aaSide[pSide].size();
 }
 
 template <typename TDomain>
-std::size_t SideAndElemErrEstData<TDomain>::num_side_ips(const ReferenceObjectID roid)
+size_t SideAndElemErrEstData<TDomain>::num_side_ips(const ReferenceObjectID roid)
 {
 	// check that quad rule exists
 	if (!quadRuleSide[roid])
@@ -423,20 +423,20 @@ std::size_t SideAndElemErrEstData<TDomain>::num_side_ips(const ReferenceObjectID
 }
 
 template <typename TDomain>
-std::size_t SideAndElemErrEstData<TDomain>::first_side_ips(const ReferenceObjectID roid, const std::size_t side)
+size_t SideAndElemErrEstData<TDomain>::first_side_ips(const ReferenceObjectID roid, const size_t side)
 {
 	return m_sideIPsStartIndex[roid][side];
 }
 
 
 template <typename TDomain>
-std::size_t SideAndElemErrEstData<TDomain>::num_all_side_ips(const ReferenceObjectID roid)
+size_t SideAndElemErrEstData<TDomain>::num_all_side_ips(const ReferenceObjectID roid)
 {
 	return m_SideIPcoords[roid].size();
 }
 
 template <typename TDomain>
-std::size_t SideAndElemErrEstData<TDomain>::num_elem_ips(const ReferenceObjectID roid)
+size_t SideAndElemErrEstData<TDomain>::num_elem_ips(const ReferenceObjectID roid)
 {
 	// check that quad rule exists
 	if (!quadRuleElem[roid])
@@ -446,10 +446,10 @@ std::size_t SideAndElemErrEstData<TDomain>::num_elem_ips(const ReferenceObjectID
 }
 
 template <typename TDomain>
-std::size_t SideAndElemErrEstData<TDomain>::side_ip_index
+size_t SideAndElemErrEstData<TDomain>::side_ip_index
 (	const ReferenceObjectID roid,
-	const std::size_t side,
-	const std::size_t ip
+	const size_t side,
+	const size_t ip
 )
 {
 	// TODO: check validity of side index
@@ -523,7 +523,7 @@ void SideAndElemErrEstData<TDomain>::alloc_err_est_data
 			ReferenceObjectID roid = elem->reference_object_id();
 
 		//	get number of IPs from quadrature rule for the roid and specified side quadrature order
-			std::size_t size = quadRuleElem[roid]->size();
+			size_t size = quadRuleElem[roid]->size();
 
 		//	resize attachment accordingly
 			m_aaElem[elem].resize(size, 0.0);
@@ -532,7 +532,7 @@ void SideAndElemErrEstData<TDomain>::alloc_err_est_data
 			typename MultiGrid::traits<side_type>::secure_container side_list;
 			pMG->associated_elements(side_list, elem);
 
-			for (std::size_t side = 0; side < side_list.size(); side++)
+			for (size_t side = 0; side < side_list.size(); side++)
 			{
 				side_type* pSide = side_list[side];
 
@@ -540,7 +540,7 @@ void SideAndElemErrEstData<TDomain>::alloc_err_est_data
 				ReferenceObjectID roid = pSide->reference_object_id();
 
 			//	get number of IPs from quadrature rule for the roid and specified side quadrature order
-				std::size_t size = quadRuleSide[roid]->size();
+				size_t size = quadRuleSide[roid]->size();
 
 			//	resize attachment accordingly
 				if (m_aaSide[pSide].size() != size)
@@ -585,7 +585,7 @@ void SideAndElemErrEstData<TDomain>::alloc_err_est_data
 		// loop rim side children
 		bool resize_parent = false;
 		const size_t num_children = pMG->template num_children<side_type>(c_rim_side);
-		for (std::size_t ch = 0; ch < num_children; ch++)
+		for (size_t ch = 0; ch < num_children; ch++)
 		{
 			side_type* child_side = pMG->template get_child<side_type>(c_rim_side, ch);
 
@@ -593,7 +593,7 @@ void SideAndElemErrEstData<TDomain>::alloc_err_est_data
 			ReferenceObjectID child_roid = child_side->reference_object_id();
 
 			// get number of IPs from quadrature rule for the roid and specified side quadrature order
-			std::size_t child_size = quadRuleSide[child_roid]->size();
+			size_t child_size = quadRuleSide[child_roid]->size();
 
 			// resize attachment accordingly
 			if (m_aaSide[child_side].size() != child_size && num_side_ips(c_rim_side) > 0)
@@ -608,7 +608,7 @@ void SideAndElemErrEstData<TDomain>::alloc_err_est_data
 			ReferenceObjectID roid = c_rim_side->reference_object_id();
 
 			// get number of IPs from quadrature rule for the roid and specified side quadrature order
-			std::size_t size = quadRuleSide[roid]->size();
+			size_t size = quadRuleSide[roid]->size();
 
 			// resize attachment accordingly
 			m_aaSide[c_rim_side].resize(size, 0.0);
@@ -692,7 +692,7 @@ void SideAndElemErrEstData<TDomain>::summarize_err_est_data(SmartPtr<TDomain> sp
 			side_type* f_rim_side = pMG->template get_child<side_type>(c_rim_side, 0);
 
 			// add up total jump and save it for both sides
-			for (std::size_t i = 0; i < m_aaSide[c_rim_side].size(); i++)
+			for (size_t i = 0; i < m_aaSide[c_rim_side].size(); i++)
 			{
 				number& c_rim_flux = m_aaSide[c_rim_side][i];
 				number& f_rim_flux = m_aaSide[f_rim_side][i];
@@ -720,7 +720,7 @@ void SideAndElemErrEstData<TDomain>::summarize_err_est_data(SmartPtr<TDomain> sp
 			MathVector<dim>* c_gloIPs = side_global_ips(c_rim_side, &c_coCo[0]);
 
 			// interpolate fine IPs on coarse side
-			for (std::size_t ch = 0; ch < num_children; ch++)
+			for (size_t ch = 0; ch < num_children; ch++)
 			{
 				// get fine side
 				side_type* f_rim_side = pMG->template get_child<side_type>(c_rim_side, ch);
@@ -731,18 +731,18 @@ void SideAndElemErrEstData<TDomain>::summarize_err_est_data(SmartPtr<TDomain> sp
 				MathVector<dim>* f_gloIPs = side_global_ips(f_rim_side, &f_coCo[0]);
 
 				// for each fine side IP, find nearest coarse side IP
-				for (std::size_t fip = 0; fip < m_aaSide[f_rim_side].size(); fip++)
+				for (size_t fip = 0; fip < m_aaSide[f_rim_side].size(); fip++)
 				{
 					if (m_aaSide[c_rim_side].size() < 1)
 						{UG_THROW("No IP defined for coarse side.");}
 
-					std::size_t nearest = 0;
+					size_t nearest = 0;
 					MathVector<dim> diff;
 					VecSubtract(diff, f_gloIPs[fip], c_gloIPs[0]);
 					number dist = VecLengthSq(diff);
 
 					// loop coarse IPs
-					for (std::size_t cip = 1; cip < m_aaSide[c_rim_side].size(); cip++)
+					for (size_t cip = 1; cip < m_aaSide[c_rim_side].size(); cip++)
 					{
 						VecSubtract(diff, f_gloIPs[fip], c_gloIPs[cip]);
 						if (VecLengthSq(diff) < dist)
@@ -756,14 +756,14 @@ void SideAndElemErrEstData<TDomain>::summarize_err_est_data(SmartPtr<TDomain> sp
 			}
 
 			// interpolate coarse IPs on fine side:
-			for (std::size_t cip = 0; cip < m_aaSide[c_rim_side].size(); cip++)
+			for (size_t cip = 0; cip < m_aaSide[c_rim_side].size(); cip++)
 			{
 				MathVector<dim> diff;
 				number dist = std::numeric_limits<number>::infinity();
 				number val = 0.0;
 
 				// we have to loop all child sides
-				for (std::size_t ch = 0; ch < pMG->template num_children<side_type>(c_rim_side); ch++)
+				for (size_t ch = 0; ch < pMG->template num_children<side_type>(c_rim_side); ch++)
 				{
 					// get fine side
 					side_type* f_rim_side = pMG->template get_child<side_type>(c_rim_side, ch);
@@ -774,7 +774,7 @@ void SideAndElemErrEstData<TDomain>::summarize_err_est_data(SmartPtr<TDomain> sp
 					MathVector<dim>* f_gloIPs = side_global_ips(f_rim_side, &f_coCo[0]);
 
 					// loop coarse IPs
-					for (std::size_t fip = 1; fip < m_aaSide[f_rim_side].size(); fip++)
+					for (size_t fip = 1; fip < m_aaSide[f_rim_side].size(); fip++)
 					{
 						VecSubtract(diff, f_gloIPs[fip], c_gloIPs[cip]);
 						if (VecLengthSq(diff) < dist)
@@ -820,7 +820,7 @@ number SideAndElemErrEstData<TDomain>::get_elem_error_indicator(GridObject* pEle
 	if (!m_ssg.contains(ssi)) return 0.0;
 
 	// check number of integration points
-	std::size_t nIPs = quadRuleElem[roid]->size();
+	size_t nIPs = quadRuleElem[roid]->size();
 	std::vector<number>& integrand = m_aaElem[dynamic_cast<elem_type*>(pElem)];
 	if (nIPs != integrand.size())
 		UG_THROW("Element attachment vector does not have the required size for integration!");
@@ -835,7 +835,7 @@ number SideAndElemErrEstData<TDomain>::get_elem_error_indicator(GridObject* pEle
 
 	// integrate
 	number sum = 0.0;
-	for (std::size_t ip = 0; ip < nIPs; ip++)
+	for (size_t ip = 0; ip < nIPs; ip++)
 		sum += quadRuleElem[roid]->weight(ip) * std::pow(integrand[ip], 2.0) * det[ip];
 
 	// scale by diam^2(elem)
@@ -854,7 +854,7 @@ number SideAndElemErrEstData<TDomain>::get_elem_error_indicator(GridObject* pEle
 
 	// loop sides
 	number diam;
-	for (std::size_t side = 0; side < side_list.size(); side++)
+	for (size_t side = 0; side < side_list.size(); side++)
 	{
 		side_type* pSide = side_list[side];
 
@@ -862,14 +862,14 @@ number SideAndElemErrEstData<TDomain>::get_elem_error_indicator(GridObject* pEle
 		ReferenceObjectID side_roid = pSide->reference_object_id();
 
 		// check number of integration points
-		std::size_t nsIPs = quadRuleSide[side_roid]->size();
+		size_t nsIPs = quadRuleSide[side_roid]->size();
 		if (nsIPs != m_aaSide[pSide].size())
 			UG_THROW("Side attachment vector does not have the required size for integration!");
 
 		// get side corners
 		std::vector<MathVector<dim> > vSideCornerCoords(0);
-		std::size_t nsCo = refElem.num(dim-1, side, 0);
-		for (std::size_t co = 0; co < nsCo; co++)
+		size_t nsCo = refElem.num(dim-1, side, 0);
+		for (size_t co = 0; co < nsCo; co++)
 			vSideCornerCoords.push_back(vCornerCoords[refElem.id(dim-1, side, 0, co)]);
 
 		// get reference element mapping
@@ -882,7 +882,7 @@ number SideAndElemErrEstData<TDomain>::get_elem_error_indicator(GridObject* pEle
 
 		// integrate
 		number sum = 0.0;
-		for (std::size_t ip = 0; ip < nsIPs; ip++)
+		for (size_t ip = 0; ip < nsIPs; ip++)
 			sum += quadRuleSide[side_roid]->weight(ip) * std::pow(m_aaSide[pSide][ip], 2.0) * det[ip];
 
 		// scale by diam(side)
@@ -927,7 +927,7 @@ void MultipleErrEstData<TDomain,TErrEstData>::
 alloc_err_est_data(ConstSmartPtr<SurfaceView> spSV, const GridLevel& gl)
 {
 	// only called if consider_me()
-	for (std::size_t eed = 0; eed < num(); eed++)
+	for (size_t eed = 0; eed < num(); eed++)
 		m_vEed[eed]->alloc_err_est_data(spSV, gl);
 }
 
@@ -936,7 +936,7 @@ void MultipleErrEstData<TDomain,TErrEstData>::
 summarize_err_est_data(SmartPtr<TDomain> spDomain)
 {
 	// only called if consider_me()
-	for (std::size_t eed = 0; eed < num(); eed++)
+	for (size_t eed = 0; eed < num(); eed++)
 		m_vEed[eed]->summarize_err_est_data(spDomain);
 }
 
@@ -946,7 +946,7 @@ get_elem_error_indicator(GridObject* elem, const MathVector<dim> vCornerCoords[]
 {
 	// only called if consider_me()
 	number sum = 0.0;
-	for (std::size_t eed = 0; eed < num(); eed++)
+	for (size_t eed = 0; eed < num(); eed++)
 		sum += m_vEed[eed]->get_elem_error_indicator(elem, vCornerCoords);
 
 	return sum;
@@ -957,7 +957,7 @@ void MultipleErrEstData<TDomain,TErrEstData>::
 release_err_est_data()
 {
 	// only called if consider_me()
-	for (std::size_t eed = 0; eed < num(); eed++)
+	for (size_t eed = 0; eed < num(); eed++)
 		m_vEed[eed]->release_err_est_data();
 }
 
@@ -966,10 +966,11 @@ release_err_est_data()
 // ******** class MultipleSideAndElemErrEstData ********
 
 template <typename TDomain>
-void MultipleSideAndElemErrEstData<TDomain>::add(SmartPtr<SideAndElemErrEstData<TDomain> > spEed)
+void MultipleSideAndElemErrEstData<TDomain>::
+add(SmartPtr<SideAndElemErrEstData<TDomain> > spEed, const char* fct)
 {
-	this->m_vEed.push_back(spEed.get());
 	check_equal_order();
+	this->MultipleErrEstData<TDomain, SideAndElemErrEstData<TDomain> >::add(spEed, fct);
 }
 
 template <typename TDomain>
@@ -990,9 +991,9 @@ void MultipleSideAndElemErrEstData<TDomain>::check_equal_side_order()
 		return;
 	}
 
-	std::size_t side_order = this->m_vEed[0]->side_order();
+	size_t side_order = this->m_vEed[0]->side_order();
 
-	for (std::size_t ee = 1; ee < this->m_vEed.size(); ee++)
+	for (size_t ee = 1; ee < this->m_vEed.size(); ee++)
 		if (this->m_vEed[ee]->side_order() != side_order) return;
 
 	m_bEqSideOrder = true;
@@ -1009,9 +1010,9 @@ void MultipleSideAndElemErrEstData<TDomain>::check_equal_elem_order()
 		return;
 	}
 
-	std::size_t elem_order = this->m_vEed[0]->elem_order();
+	size_t elem_order = this->m_vEed[0]->elem_order();
 
-	for (std::size_t ee = 1; ee < this->m_vEed.size(); ee++)
+	for (size_t ee = 1; ee < this->m_vEed.size(); ee++)
 		if (this->m_vEed[ee]->elem_order() != elem_order) return;
 
 	m_bEqElemOrder = true;

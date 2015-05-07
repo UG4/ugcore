@@ -51,9 +51,12 @@ class DirichletBoundary
 	/// Type of value type
 		typedef typename matrix_type::value_type value_type;
 
+	/// error estimator type
+		typedef MultipleSideAndElemErrEstData<TDomain> err_est_type;
+
 
 	public:
-	/// If you want to have Dirichlet columns than use the constructer with the flag
+	/// If you want to have Dirichlet columns than use the constructor with the flag
 	/// The default ist without Dirichlet columns.
 
 	///	constructor
@@ -136,6 +139,10 @@ class DirichletBoundary
 		void adjust_rhs(vector_type& b, const vector_type& u,
 		                ConstSmartPtr<DoFDistribution> dd, number time = 0.0);
 
+	/// @copydoc IConstraint::adjust_error()
+		virtual void adjust_error(const vector_type& u, ConstSmartPtr<DoFDistribution> dd,
+								  number time = 0.0);
+
 	///	sets constraints in prolongation
 		virtual void adjust_prolongation(matrix_type& P,
 										 ConstSmartPtr<DoFDistribution> ddFine,
@@ -209,6 +216,14 @@ class DirichletBoundary
 		                vector_type& b, const vector_type& u,
 		                ConstSmartPtr<DoFDistribution> dd, number time);
 
+		template <typename TUserData>
+		void adjust_error(const std::map<int, std::vector<TUserData*> >& mvUserData,
+		                  const vector_type& u, ConstSmartPtr<DoFDistribution> dd, number time);
+/*
+		template <typename TBaseElem, typename TUserData>
+		void adjust_error(const std::vector<TUserData*>& vUserData, int si,
+		                  const vector_type& u, ConstSmartPtr<DoFDistribution> dd, number time);
+*/
 		template <typename TUserData>
 		void adjust_prolongation(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		                         matrix_type& P,

@@ -22,7 +22,7 @@ void FV1InnerBoundaryElemDisc<TDomain>::
 prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid)
 {
 	// check that Lagrange 1st order
-	for(std::size_t i = 0; i < vLfeID.size(); ++i)
+	for(size_t i = 0; i < vLfeID.size(); ++i)
 		if(vLfeID[i].type() != LFEID::LAGRANGE || vLfeID[i].order() != 1)
 			UG_THROW("FV1InnerBoundary: 1st order lagrange expected.");
 
@@ -78,7 +78,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 	// get finite volume geometry
 	const static TFVGeom& fvgeom = GeomProvider<TFVGeom>::get();
 
-	for (std::size_t i = 0; i < fvgeom.num_bf(); ++i)
+	for (size_t i = 0; i < fvgeom.num_bf(); ++i)
 	{
 		// get current BF
 		const typename TFVGeom::BF& bf = fvgeom.bf(i);
@@ -88,9 +88,9 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		int si = fvgeom.subset_index();
 
 		// get solution at the corner of the bf
-		std::size_t nFct = u.num_fct();
+		size_t nFct = u.num_fct();
 		std::vector<LocalVector::value_type> uAtCorner(nFct);
-		for (std::size_t fct = 0; fct < nFct; fct++)
+		for (size_t fct = 0; fct < nFct; fct++)
 			uAtCorner[fct] = u(fct,co);
 
 		// get corner coordinates
@@ -102,14 +102,14 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 							" Call to fluxDensityDerivFct resulted did not succeed.");
 		
 		// scale with volume of BF
-		for (std::size_t j=0; j<fdc.fluxDeriv.size(); j++)
-			for (std::size_t k=0; k<fdc.fluxDeriv[j].size(); k++)
+		for (size_t j=0; j<fdc.fluxDeriv.size(); j++)
+			for (size_t k=0; k<fdc.fluxDeriv[j].size(); k++)
 				fdc.fluxDeriv[j][k].second *= bf.volume();
 		
 		// add to Jacobian
-		for (std::size_t j=0; j<fdc.fluxDeriv.size(); j++)
+		for (size_t j=0; j<fdc.fluxDeriv.size(); j++)
 		{
-			for (std::size_t k=0; k<fdc.fluxDeriv[j].size(); k++)
+			for (size_t k=0; k<fdc.fluxDeriv[j].size(); k++)
 			{
 				if (fdc.from[j] != InnerBoundaryConstants::_IGNORE_)
 					J(fdc.from[j], co, fdc.fluxDeriv[j][k].first, co) += fdc.fluxDeriv[j][k].second;
@@ -136,7 +136,7 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 	static TFVGeom& fvgeom = GeomProvider<TFVGeom>::get();
 
 	// loop Boundary Faces
-	for (std::size_t i = 0; i < fvgeom.num_bf(); ++i)
+	for (size_t i = 0; i < fvgeom.num_bf(); ++i)
 	{
 		// get current BF
 		const typename TFVGeom::BF& bf = fvgeom.bf(i);
@@ -146,9 +146,9 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		int si = fvgeom.subset_index();
 
 		// get solution at the corner of the bf
-		std::size_t nFct = u.num_fct();
+		size_t nFct = u.num_fct();
 		std::vector<LocalVector::value_type> uAtCorner(nFct);
-		for (std::size_t fct = 0; fct < nFct; fct++)
+		for (size_t fct = 0; fct < nFct; fct++)
 			uAtCorner[fct] = u(fct,co);
 
 		// get corner coordinates
@@ -163,10 +163,10 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		}
 
 		// scale with volume of BF
-		for (std::size_t j=0; j<fc.flux.size(); j++) fc.flux[j] *= bf.volume();
+		for (size_t j=0; j<fc.flux.size(); j++) fc.flux[j] *= bf.volume();
 
 		// add to defect
-		for (std::size_t j=0; j<fc.flux.size(); j++)
+		for (size_t j=0; j<fc.flux.size(); j++)
 		{
 			if (fc.from[j] != InnerBoundaryConstants::_IGNORE_) d(fc.from[j], co) += fc.flux[j];
 			if (fc.to[j] != InnerBoundaryConstants::_IGNORE_) d(fc.to[j], co) -= fc.flux[j];
@@ -230,7 +230,7 @@ prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
 		static const int refDim = TElem::dim;
 
 		// get local IPs
-		std::size_t numSideIPs;
+		size_t numSideIPs;
 		const MathVector<refDim>* sideIPs;
 		try
 		{
@@ -244,7 +244,7 @@ prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
 					= Provider<LagrangeP1<typename reference_element_traits<TElem>::reference_element_type> >::get();
 
 		m_shapeValues.resize(numSideIPs, trialSpace.num_sh());
-		for (std::size_t ip = 0; ip < numSideIPs; ip++)
+		for (size_t ip = 0; ip < numSideIPs; ip++)
 			trialSpace.shapes(m_shapeValues.shapesAtSideIP(ip), sideIPs[ip]);
 	}
 }
@@ -263,7 +263,7 @@ prep_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> 
 		static const int refDim = TElem::dim;
 		ReferenceObjectID roid = elem->reference_object_id();
 
-		std::size_t numSideIPs;
+		size_t numSideIPs;
 		const MathVector<refDim>* sideIPs;
 		try
 		{
@@ -277,7 +277,7 @@ prep_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> 
 					= Provider<LagrangeP1<typename reference_element_traits<TElem>::reference_element_type> >::get();
 
 		m_shapeValues.resize(numSideIPs, trialSpace.num_sh());
-		for (std::size_t ip = 0; ip < numSideIPs; ip++)
+		for (size_t ip = 0; ip < numSideIPs; ip++)
 			trialSpace.shapes(m_shapeValues.shapesAtSideIP(ip), sideIPs[ip]);
 	}
 }
@@ -300,25 +300,24 @@ compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<
 				 "Element that error assembling routine is called for has the wrong type.");
 	}
 
-
 	// global IPs
 	ReferenceObjectID roid = side->reference_object_id();
-	std::size_t numSideIPs = err_est_data->get(0)->num_side_ips(roid);
+	size_t numSideIPs = err_est_data->get(0)->num_side_ips(roid);
 	MathVector<dim>* globIPs = err_est_data->get(0)->side_global_ips(side, vCornerCoords);
 
 	// loop IPs
 	try
 	{
-		for (std::size_t sip = 0; sip < numSideIPs; sip++)
+		for (size_t sip = 0; sip < numSideIPs; sip++)
 		{
 			// get values of u at ip (interpolate)
-			std::size_t nFct = u.num_fct();
+			size_t nFct = u.num_fct();
 			std::vector<LocalVector::value_type> uAtIP = std::vector<LocalVector::value_type>(nFct);
 
-			for (std::size_t fct = 0; fct < nFct; fct++)
+			for (size_t fct = 0; fct < nFct; fct++)
 			{
 				uAtIP[fct] = 0.0;
-				for (std::size_t sh = 0; sh < m_shapeValues.num_sh(); sh++)
+				for (size_t sh = 0; sh < m_shapeValues.num_sh(); sh++)
 					uAtIP[fct] += u(fct,sh) * m_shapeValues.shapeAtSideIP(sh,sip);
 			}
 
@@ -338,10 +337,12 @@ compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<
 			// subtract from estimator values
 			// sign must be opposite of that in add_def_A_elem
 			// as the difference between this and the actual flux of the unknown is calculated
-			for (std::size_t j=0; j<fc.flux.size(); j++)
+			for (size_t j=0; j<fc.flux.size(); j++)
 			{
-				if (fc.from[j] != InnerBoundaryConstants::_IGNORE_) (*err_est_data->get(fc.from[j])) (side,sip) -= scale * fc.flux[j];
-				if (fc.to[j] != InnerBoundaryConstants::_IGNORE_) (*err_est_data->get(fc.to[j])) (side,sip) += scale * fc.flux[j];
+				if (fc.from[j] != InnerBoundaryConstants::_IGNORE_)
+					(*err_est_data->get(this->m_fctGrp[fc.from[j]])) (side,sip) -= scale * fc.flux[j];
+				if (fc.to[j] != InnerBoundaryConstants::_IGNORE_)
+					(*err_est_data->get(this->m_fctGrp[fc.to[j]])) (side,sip) += scale * fc.flux[j];
 			}
 		}
 	}

@@ -14,7 +14,7 @@ template <typename TDomain>
 IElemDisc<TDomain>::IElemDisc(const char* functions, const char* subsets)
 	: 	m_spApproxSpace(NULL), m_spFctPattern(0),
 	  	m_timePoint(0), m_pLocalVectorTimeSeries(NULL), m_bStationaryForced(false),
-	  	m_bDoErrEst(false),
+	  	m_bDoErrEst(false), m_spErrEstData(SPNULL),
 	  	m_id(ROID_UNKNOWN)
 {
 	if(functions == NULL) functions = "";
@@ -29,7 +29,7 @@ IElemDisc<TDomain>::IElemDisc(const std::vector<std::string>& vFct,
                               const std::vector<std::string>& vSubset)
 	: 	m_spApproxSpace(NULL), m_spFctPattern(0),
 		m_timePoint(0), m_pLocalVectorTimeSeries(NULL), m_bStationaryForced(false),
-	  	m_bDoErrEst(false),
+	  	m_bDoErrEst(false), m_spErrEstData(SPNULL),
 		m_id(ROID_UNKNOWN)
 {
 	set_functions(vFct);

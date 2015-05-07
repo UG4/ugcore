@@ -304,19 +304,18 @@ class IElemDisc
 	///	flag if stationary assembling is to be used even in instationary assembling
 		bool m_bStationaryForced;
 
-	////////////////////////////
+	// //////////////////////////
 	// Error estimator
-	////////////////////////////
+	// //////////////////////////
 	public:
 	///	sets the pointer to an error estimator data object (or NULL)
 	/**
 	 * This function sets the pointer to an error estimator data object
 	 * that should be used for this discretization. Note that the ElemDisc
-	 * object must ust RTTI to try to convert this pointer to the type
+	 * object must use RTTI to try to convert this pointer to the type
 	 * of the objects accepted by it for this purpose. If the conversion
 	 * fails than an exception must be thrown since this situation is not
-	 * allowed. But this function can be always used with the SPNULL argument:
-	 * This means that no error estimators are assembled for this discretization.
+	 * allowed.
 	 */
 		void set_error_estimator(SmartPtr<IErrEstData<TDomain> > ee) {m_spErrEstData = ee; m_bDoErrEst = true;}
 
@@ -329,6 +328,10 @@ class IElemDisc
 	private:
 	/// flag indicating whether or not a posteriori error estimation is to be performed for this disc
 		bool m_bDoErrEst;
+
+	protected:
+	/// error estimation object associated to the element discretization
+		SmartPtr<IErrEstData<TDomain> > m_spErrEstData;
 
 	////////////////////////////
 	// general info
@@ -569,9 +572,6 @@ class IElemDisc
 	protected:
 	/// current Geometric Object
 		ReferenceObjectID m_id;
-
-	/// error estimation object associated to the element discretization
-		SmartPtr<IErrEstData<TDomain> > m_spErrEstData;
 };
 /// @}
 

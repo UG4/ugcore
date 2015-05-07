@@ -215,8 +215,8 @@ public:
 
 public:
 	/// constructors
-		SideAndElemErrEstData(std::size_t _sideOrder, std::size_t _elemOrder, const char* subsets);
-		SideAndElemErrEstData(std::size_t _sideOrder, std::size_t _elemOrder,
+		SideAndElemErrEstData(size_t _sideOrder, size_t _elemOrder, const char* subsets);
+		SideAndElemErrEstData(size_t _sideOrder, size_t _elemOrder,
 							  std::vector<std::string> subsets = std::vector<std::string>(0));
 
 	///	virtual class destructor
@@ -225,23 +225,23 @@ public:
 	//	Functions to access data
 
 	/// getting the side integration order
-		std::size_t side_order() const {return sideOrder;}
+		size_t side_order() const {return sideOrder;}
 
 	/// getting the elem integration order
-		std::size_t elem_order() const {return elemOrder;}
+		size_t elem_order() const {return elemOrder;}
 
 	///	get the data reference for a given side and ip
 		number& operator()
 		(
 			side_type* pSide, 	///< pointer to the side
-			std::size_t ip		///< integration point id on the side
+			size_t ip		///< integration point id on the side
 		);
 
 	///	get the data reference for a given elem and ip
 		number& operator()
 		(
 			elem_type* pElem, 	///< pointer to the elem
-			std::size_t ip		///< integration point id on the elem
+			size_t ip		///< integration point id on the elem
 		);
 
 	/// get the local side integration points for a specific roid
@@ -253,34 +253,31 @@ public:
 		const MathVector<refDim>* elem_local_ips(const ReferenceObjectID roid);
 
 	/// get all global side integration points
-	//	globIPs MUST be of the size num_side_ips()!
 		MathVector<TDomain::dim>* all_side_global_ips(GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	/// get the global side integration points for a specific side roid
-	//	globIPs MUST be of the size num_side_ips()!
 		MathVector<TDomain::dim>* side_global_ips(GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	/// get the global elem integration points for a specific roid
-	//	globIPs MUST be of the size num_elem_ips()!
 		MathVector<TDomain::dim>* elem_global_ips(GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	/// get number of side IPs of a specific side
-		std::size_t num_side_ips(const side_type* pSide);
+		size_t num_side_ips(const side_type* pSide);
 
 	/// get number of side IPs of a specific side type
-		std::size_t num_side_ips(const ReferenceObjectID roid);
+		size_t num_side_ips(const ReferenceObjectID roid);
 
 	/// get number of first IP belonging to a specific side
-		std::size_t first_side_ips(const ReferenceObjectID roid, const std::size_t side);
+		size_t first_side_ips(const ReferenceObjectID roid, const size_t side);
 
 	/// get number of side IPs
-		std::size_t num_all_side_ips(const ReferenceObjectID roid);
+		size_t num_all_side_ips(const ReferenceObjectID roid);
 
 	/// get number of elem IPs
-		std::size_t num_elem_ips(const ReferenceObjectID roid);
+		size_t num_elem_ips(const ReferenceObjectID roid);
 
 	/// get index of specific side IP in sideIP array returned by side_local_ips
-		std::size_t side_ip_index(const ReferenceObjectID roid, const std::size_t side, const std::size_t ip);
+		size_t side_ip_index(const ReferenceObjectID roid, const size_t side, const size_t ip);
 
 	///	get the surface view
 		ConstSmartPtr<SurfaceView>& surface_view () {return m_spSV;};
@@ -306,10 +303,10 @@ protected:
 		template<int refDim>
 		struct GetQuadRules
 		{
-				GetQuadRules(QuadratureRule<refDim>** ppQuadRule, std::size_t quadOrder) :
+				GetQuadRules(QuadratureRule<refDim>** ppQuadRule, size_t quadOrder) :
 					m_ppQuadRule(ppQuadRule), m_quadOrder(quadOrder) {}
 				QuadratureRule<refDim>** m_ppQuadRule;
-				std::size_t m_quadOrder;
+				size_t m_quadOrder;
 				template< typename TElem > void operator()(TElem&)
 				{
 					const ReferenceObjectID roid = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
@@ -320,8 +317,8 @@ protected:
 
 private:
 	/// order of side and elem function approximations for integrating
-		std::size_t sideOrder;
-		std::size_t elemOrder;
+		size_t sideOrder;
+		size_t elemOrder;
 
 	/// the subsets this error estimator will produce values for
 		std::vector<std::string> m_vSs;
@@ -340,7 +337,7 @@ private:
 		std::vector<MathVector<TDomain::dim> > m_elemGlobalIPcoords;
 
 	/// the first index for IPs of a specific side in the sideIP series for a roid
-		std::size_t m_sideIPsStartIndex[NUM_REFERENCE_OBJECTS][MAX_NUM_SIDES];
+		size_t m_sideIPsStartIndex[NUM_REFERENCE_OBJECTS][MAX_NUM_SIDES];
 
 	///	vector of attachments for sides
 		attachment_type m_aSide;
@@ -396,22 +393,54 @@ class MultipleErrEstData : public IErrEstData<TDomain>
 		static const int dim = TDomain::dim;
 
 	///	class constructor
-		MultipleErrEstData() : IErrEstData<TDomain>() {this->set_consider_me(false);};
+		MultipleErrEstData(ConstSmartPtr<ApproximationSpace<TDomain> > approx)
+		: IErrEstData<TDomain>(), m_spApprox(approx),
+		  m_fctGrp(m_spApprox->dof_distribution_info())
+		{
+			this->set_consider_me(false);
+		}
 
 	///	virtual class destructor
 		virtual ~MultipleErrEstData() {};
 
 	/// adding error estimator data objects
-		virtual void add(SmartPtr<TErrEstData> spEed) {m_vEed.push_back(spEed.get());};
+		virtual void add(SmartPtr<TErrEstData> spEed, const char* fct)
+		{
+			// check that fct is not already contained in fctGrp
+			size_t uid = m_spApprox->fct_id_by_name(fct);
+			if (m_fctGrp.contains(uid))
+			{
+				UG_THROW("Error estimator for function '" << fct << "' can not be added\n"
+						 "as another error estimator object for the same function is already\n"
+						 "contained here.")
+			}
+
+			// add to function group
+			try
+			{
+				m_fctGrp.add(fct);
+			}
+			UG_CATCH_THROW("Error estimator data object for function '"
+							<< fct << "' could not be added.");
+
+			m_vEed.push_back(spEed.get());
+		}
 
 	/// getting the number of underlying error estimator data objects
-		std::size_t num() const {return m_vEed.size();};
+		size_t num() const {return m_vEed.size();};
 
-	/// accessing the underlying error estimator data objects
-		TErrEstData* get(std::size_t eed)
+	/// accessing the underlying error estimator data objects via function id
+		TErrEstData* get(size_t uid)
 		{
-			if (eed >= num()) UG_THROW("Trying to access an index that does not exist.")
-			return m_vEed[eed];
+			if (!m_fctGrp.contains(uid))
+			{
+				std::string name = m_spApprox->name(uid);
+				UG_THROW("Trying to access error estimator data object "
+						 "for unique function index " << uid << "(aka '" << name << "')\n"
+						 "which is not present in this collection.")
+			}
+
+			return m_vEed[m_fctGrp.local_index(uid)];
 		}
 
 	//	inherited from IErrEstData
@@ -429,6 +458,12 @@ class MultipleErrEstData : public IErrEstData<TDomain>
 
 	protected:
 		std::vector<TErrEstData*> m_vEed;
+
+		/// approx space
+		ConstSmartPtr<ApproximationSpace<TDomain> > m_spApprox;
+
+		/// function group (in order to map fcts to error estimator objects)
+		FunctionGroup m_fctGrp;
 };
 
 
@@ -440,9 +475,13 @@ class MultipleSideAndElemErrEstData
 	/// world dimension
 		static const int dim = TDomain::dim;
 
+	///	type of the sides (face, edge) and the elems (volume, face)
+		typedef typename SideAndElemErrEstData<TDomain>::side_type side_type;
+		typedef typename SideAndElemErrEstData<TDomain>::elem_type elem_type;
+
 	/// constructor
-		MultipleSideAndElemErrEstData()
-			: MultipleErrEstData<TDomain, SideAndElemErrEstData<TDomain> >(),
+		MultipleSideAndElemErrEstData(ConstSmartPtr<ApproximationSpace<TDomain> > approx)
+			: MultipleErrEstData<TDomain, SideAndElemErrEstData<TDomain> >(approx),
 			  m_bEqSideOrder(false), m_bEqElemOrder(false) {};
 
 	/// destructor
@@ -450,13 +489,13 @@ class MultipleSideAndElemErrEstData
 
 	/// adding error estimator data objects
 	/// overrides parent add method; performs check for equal order after adding
-		virtual void add(SmartPtr<SideAndElemErrEstData<TDomain> > spEed);
+		virtual void add(SmartPtr<SideAndElemErrEstData<TDomain> > spEed, const char* fct);
 
-		/// returns whether all underlying err ests have the same elem and side integration orders
-			bool equal_side_order() const {return m_bEqSideOrder;}
+	/// returns whether all underlying err ests have the same elem and side integration orders
+		bool equal_side_order() const {return m_bEqSideOrder;}
 
-		/// returns whether all underlying err ests have the same elem and side integration orders
-			bool equal_elem_order() const {return m_bEqElemOrder;}
+	/// returns whether all underlying err ests have the same elem and side integration orders
+		bool equal_elem_order() const {return m_bEqElemOrder;}
 
 	protected:
 		/// find out whether all underlying err_ests have the same integration orders

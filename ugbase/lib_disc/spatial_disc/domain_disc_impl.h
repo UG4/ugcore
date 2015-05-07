@@ -1212,6 +1212,22 @@ calc_error
 						" subset "<<si<< " failed.");
 	}
 
+//	apply constraints
+	try
+	{
+		for (int type = 1; type < CT_ALL; type = type << 1)
+		{
+			if (!(m_spAssTuner->constraint_type_enabled(type))) continue;
+			for (size_t i = 0; i < m_vConstraint.size(); ++i)
+				if ((m_vConstraint[i]->type() & type) && m_vConstraint[i]->err_est_enabled())
+				{
+					m_vConstraint[i]->set_ass_tuner(m_spAssTuner);
+					m_vConstraint[i]->adjust_error(u, dd);
+				}
+		}
+	}
+	UG_CATCH_THROW("Cannot adjust error assemblings.");
+
 //	summarize the error estimator data in the discretizations
 	try
 	{
@@ -2296,6 +2312,22 @@ calc_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 						" Assembling of elements of Dimension " << dim << " in "
 						" subset "<< si << "failed.");
 	}
+
+//	apply constraints
+	try
+	{
+		for (int type = 1; type < CT_ALL; type = type << 1)
+		{
+			if (!(m_spAssTuner->constraint_type_enabled(type))) continue;
+			for (size_t i = 0; i < m_vConstraint.size(); ++i)
+				if ((m_vConstraint[i]->type() & type) && m_vConstraint[i]->err_est_enabled())
+				{
+					m_vConstraint[i]->set_ass_tuner(m_spAssTuner);
+					m_vConstraint[i]->adjust_error(*vSol->solution(0), dd, vSol->time(0));
+				}
+		}
+	}
+	UG_CATCH_THROW("Cannot adjust error assemblings.");
 
 //	summarize the error estimator data in the discretizations
 	try

@@ -154,14 +154,14 @@ static void Domain(Registry& reg, string grp)
 		reg.add_class_to_group(name, "SideAndElemErrEstData", tag);
 	}
 
-//	MultipleErrEstData
+//	MultipleSideAndElemErrEstData
 	{
 		typedef MultipleSideAndElemErrEstData<TDomain> T;
 		typedef IErrEstData<TDomain> TBase;
 		string name = string("MultipleSideAndElemErrEstData").append(suffix);
 		reg.add_class_<T, TBase>(name, domDiscGrp)
-			.template add_constructor<void (*) ()> ()
-			.add_method("add", static_cast<void (T::*)(SmartPtr<SideAndElemErrEstData<TDomain> >)>(&T::add),
+			.template add_constructor<void (*) (ConstSmartPtr<ApproximationSpace<TDomain> >)> ()
+			.add_method("add", static_cast<void (T::*)(SmartPtr<SideAndElemErrEstData<TDomain> >, const char* )>(&T::add),
 						"ErrEstData object", "", "Add existing ErrEstData objects one at a time. "
 						"+++ TAKE CARE: The order matters! +++ "
 						"ElemDiscs given this object can access the underlying error estimator "

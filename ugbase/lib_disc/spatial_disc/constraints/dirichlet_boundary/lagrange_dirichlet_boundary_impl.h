@@ -1242,6 +1242,165 @@ adjust_rhs(const std::vector<TUserData*>& vUserData, int si,
 	}
 }
 
+
+// //////////////////////////////////////////////////////////////////////////////
+//	adjust error
+// //////////////////////////////////////////////////////////////////////////////
+
+template <typename TDomain, typename TAlgebra>
+void DirichletBoundary<TDomain, TAlgebra>::
+adjust_error(const vector_type& u, ConstSmartPtr<DoFDistribution> dd, number time)
+{
+	//	get the error estimator data object and check that it is of the right type
+	//	we check this at this point in order to be able to dispense with this check later on
+	//	(i.e. in prep_err_est_elem and compute_err_est_A_elem())
+	if (this->m_spErrEstData.get() == NULL)
+	{
+		UG_THROW("No ErrEstData object has been given to this constraint!");
+	}
+
+	err_est_type* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
+
+	if (!err_est_data)
+	{
+		UG_THROW("Dynamic cast to MultipleSideAndElemErrEstData failed."
+				<< std::endl << "Make sure you handed the correct type of ErrEstData to this discretization.");
+	}
+
+
+	extract_data();
+
+	adjust_error<CondNumberData>(m_mBNDNumberBndSegment, u, dd, time);
+	adjust_error<NumberData>(m_mNumberBndSegment, u, dd, time);
+	adjust_error<ConstNumberData>(m_mConstNumberBndSegment, u, dd, time);
+	adjust_error<VectorData>(m_mVectorBndSegment, u, dd, time);
+}
+
+template <typename TDomain, typename TAlgebra>
+template <typename TUserData>
+void DirichletBoundary<TDomain, TAlgebra>::
+adjust_error
+(
+	const std::map<int, std::vector<TUserData*> >& mvUserData,
+	const vector_type& u,
+	ConstSmartPtr<DoFDistribution> dd,
+	number time
+)
+{
+	// cast error estimator data object to the right type
+	err_est_type* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
+
+	typedef typename err_est_type::side_type side_type;
+
+	// loop boundary subsets
+	typename std::map<int, std::vector<TUserData*> >::const_iterator iter;
+	for (iter = mvUserData.begin(); iter != mvUserData.end(); ++iter)
+	{
+		// get subset index
+		const int si = (*iter).first;
+
+		// get vector of scheduled dirichlet data on this subset
+		const std::vector<TUserData*>& vUserData = (*iter).second;
+
+		try
+		{
+			// create multi-index
+			std::vector<DoFIndex> multInd;
+
+			// dummy for readin
+			typename TUserData::value_type val;
+
+			// position of dofs
+			std::vector<position_type> vPos;
+
+			// iterators
+			typename DoFDistribution::traits<side_type>::const_iterator iter, iterEnd;
+			iter = dd->begin<side_type>(si);
+			iterEnd = dd->end<side_type>(si);
+
+			// loop elements of side_type (only!)
+			// elements of measure 0 in the boundary are ignored.
+			for( ; iter != iterEnd; iter++)
+			{
+				// get vertex
+				side_type* elem = *iter;
+
+				// get reference object id
+				ReferenceObjectID roid = elem->reference_object_id();
+
+				// get corner coords (for later use in calculating global IPs)
+				std::vector<typename TDomain::position_type> vCoCo;
+				CollectCornerCoordinates(vCoCo, elem, *m_spDomain, false);
+
+				// loop dirichlet functions on this segment
+				for(size_t i = 0; i < vUserData.size(); ++i)
+				{
+					for(size_t f = 0; f < TUserData::numFct; ++f)
+					{
+						// get function index
+						const size_t fct = vUserData[i]->fct[f];
+
+						// get lfeID for function
+						LFEID lfeID = dd->local_finite_element_id(fct);
+
+						// get local and global IPs
+						size_t numSideIPs;
+						const MathVector<side_type::dim>* sideLocIPs;
+						const MathVector<dim>* sideGlobIPs;
+
+						try
+						{
+							// TODO: adapt Multiple... to match this access!
+							numSideIPs = err_est_data->get(fct)->num_side_ips(roid);
+							sideLocIPs = err_est_data->get(fct)->template side_local_ips<side_type::dim>(roid);
+							sideGlobIPs = err_est_data->get(fct)->side_global_ips(elem, &vCoCo[0]);
+						}
+						UG_CATCH_THROW("Global integration points for error estimator cannot be determined.");
+
+						// loop IPs
+						for (size_t ip = 0; ip < numSideIPs; ++ip)
+						{
+							// get Dirichlet value (and do nothing, if conditional D value is false)
+							if (!(*vUserData[i])(val, sideGlobIPs[ip], time, si)) continue;
+
+							// evaluate shapes at ip
+							// TODO: Check that this is correct:
+							// Instead of using the full-dim element that this side is part of,
+							// we take only the side and implicitly suppose that the full-dim shape
+							// function restricted to the side are exactly the (full-1)-dim shape
+							// fcts on the side (and 0 if not existing there). Is this the case?
+							// If not, we need to find an element that this side belongs to
+							// (using grid::get_associated_elements).
+							// This is certainly true for P1, Q1 on tetrahedra, hexahedra.
+
+							LFEID new_lfeID(lfeID.type(), lfeID.dim()-1, lfeID.order());
+							const LocalShapeFunctionSet<side_type::dim>& rTrialSpace =
+								LocalFiniteElementProvider::get<side_type::dim>(roid, new_lfeID);
+							std::vector<number> vShape;
+							rTrialSpace.shapes(vShape, sideLocIPs[ip]);
+
+							// get multiindices of element
+							std::vector<DoFIndex> ind;
+							dd->dof_indices(elem, fct, ind);
+
+							// compute solution at integration point
+							number uAtIP = 0.0;
+							for (size_t sh = 0; sh < vShape.size(); ++sh)
+								uAtIP += DoFRef(u, ind[sh]) * vShape[sh];
+
+							// set error integrand value at IP
+							(*err_est_data->get(fct))(elem,ip) = val[f] - uAtIP;
+						}
+					}
+				}
+			}
+		}
+		UG_CATCH_THROW("DirichletBoundary::adjust_error:"
+						" While calling 'adjust_error' for TUserData, aborting.");
+	}
+}
+
+
 } // end namespace ug
 
 #endif /* __H__UG__LIB_DISC__SPATIAL_DISC__CONSTRAINTS__LAGRANGE_DIRICHLET_BOUNDARY_IMPL__ */

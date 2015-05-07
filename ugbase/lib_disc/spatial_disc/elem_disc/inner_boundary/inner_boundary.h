@@ -55,8 +55,8 @@ class FV1InnerBoundaryElemDisc
 		{
 			// vector of fluxFctValues
 			std::vector<number> flux;
-			std::vector<std::size_t> from;
-			std::vector<std::size_t> to;
+			std::vector<size_t> from;
+			std::vector<size_t> to;
 		};
 
 		/// struct that holds information about the derivatives of the flux densities
@@ -67,8 +67,8 @@ class FV1InnerBoundaryElemDisc
 			// rows: fluxIndex, cols: dependency;
 			// in the pair: first: with respect to which local function index, second: value
 			std::vector<std::vector<std::pair<size_t,number> > > fluxDeriv;
-			std::vector<std::size_t> from;
-			std::vector<std::size_t> to;
+			std::vector<size_t> from;
+			std::vector<size_t> to;
 		};
 
 	private:
@@ -220,17 +220,17 @@ class FV1InnerBoundaryElemDisc
 		struct ShapeValues
 		{
 			public:
-				void resize(std::size_t nSip, std::size_t _nSh)
+				void resize(size_t nSip, size_t _nSh)
 				{
 					nSh = _nSh;
 					sideVals.resize(nSip);
-					for (std::size_t i = 0; i < nSip; i++) sideVals[i].resize(nSh);
+					for (size_t i = 0; i < nSip; i++) sideVals[i].resize(nSh);
 				}
-				number& shapeAtSideIP(std::size_t sh, std::size_t ip) {return sideVals[ip][sh];}
-				number* shapesAtSideIP(std::size_t ip) {return &sideVals[ip][0];}
-				std::size_t num_sh() {return nSh;}
+				number& shapeAtSideIP(size_t sh, size_t ip) {return sideVals[ip][sh];}
+				number* shapesAtSideIP(size_t ip) {return &sideVals[ip][0];}
+				size_t num_sh() {return nSh;}
 			private:
-				std::size_t nSh;
+				size_t nSh;
 				std::vector<std::vector<number> > sideVals;
 		} m_shapeValues;
 
