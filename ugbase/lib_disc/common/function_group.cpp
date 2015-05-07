@@ -57,7 +57,7 @@ void FunctionGroup::add(size_t fct)
 		UG_THROW("Cannot use FunctionGroup without FunctionPattern.");
 
 	if(fct >= m_spFunctionPattern->num_fct())
-		UG_THROW("Unique function ID " <<fct << " not conatined in "
+		UG_THROW("Unique function ID " <<fct << " not contained in "
 		               "underlying function pattern (with size=" <<
 		               	  m_spFunctionPattern->num_fct() << ".");
 
