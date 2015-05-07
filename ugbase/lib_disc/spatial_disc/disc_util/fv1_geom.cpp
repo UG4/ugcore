@@ -1711,21 +1711,23 @@ FV1ManifoldGeometry() : m_pElem(NULL), m_rRefElem(Provider<ref_elem_type>::get()
 			// local integration point
 			AveragePositions(m_vBF[i].localIP, m_vBF[i].vLocPos, 4);
 		}
-		else {UG_ASSERT(0, "Dimension higher that 2 not implemented.");}
+		else {UG_ASSERT(0, "Dimension higher than 2 not implemented.");}
 	}
 
 	/////////////
 	// Shapes
 	/////////////
-	// A word of warning: This is only meaningful,
-	// if the trial space is piecewise linear on tetrahedra/triangles!
+	// Shapes are calculated using the lower-dimensional shape functions
+	// on the manifold element. This is the same (for Lagrange shape functions)
+	// as using the actual shapes of the full-dimensional element.
 	for (size_t i = 0; i < num_bf(); ++i)
 	{
 		const LocalShapeFunctionSet<ref_elem_type::dim>& TrialSpace =
-				LocalFiniteElementProvider::
-					get<ref_elem_type::dim>
-					(ref_elem_type::REFERENCE_OBJECT_ID,
-					 LFEID(LFEID::LAGRANGE, ref_elem_type::dim, 1));
+			LocalFiniteElementProvider::get<ref_elem_type::dim>
+			(
+				ref_elem_type::REFERENCE_OBJECT_ID,
+				LFEID(LFEID::LAGRANGE, ref_elem_type::dim, 1)
+			);
 
 		const size_t num_sh = m_numBF;
 		m_vBF[i].vShape.resize(num_sh);
