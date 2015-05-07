@@ -7,7 +7,9 @@
 #define PROFILENODE_MANAGEMENT_H_
 
 #include <stack>
-
+#ifdef UG_PROFILER_SCOREP
+#include <scorep/SCOREP_User.h>
+#endif
 class AutoProfileNode;
 
 class ProfileNodeManager
