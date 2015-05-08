@@ -197,6 +197,7 @@ class AssembledMultiGridCycle :
 	///	does not call init on base-solver during initialization
 	/**	Use this method with care. It can be useful e.g. during repeated
 	 * adaption of a linear problem, where the base-level does not change.
+	 * \warning	Currently only works in serial environments
 	 * \note	This only affects calls to init(...) and has no effect on
 	 *			direct calls to init_base_solver.
 	 * \{ */

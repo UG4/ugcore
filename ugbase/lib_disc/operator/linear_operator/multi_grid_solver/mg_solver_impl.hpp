@@ -12,6 +12,7 @@
 #include <sstream>
 #include <string>
 #include "common/profiler/profiler.h"
+ #include "common/error.h"
 #include "lib_disc/function_spaces/grid_function_util.h"
 #include "lib_disc/operator/linear_operator/std_transfer.h"
 #include "lib_disc/operator/linear_operator/std_injection.h"
@@ -431,6 +432,10 @@ template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
 ignore_init_for_base_solver(bool ignore)
 {
+	#ifdef UG_PARALLEL
+		UG_COND_THROW(ignore && (pcl::NumProcs() > 1),
+					  "ignore_init_for_base_solver currently only works for serial runs.")
+	#endif
 	m_ignoreInitForBaseSolver = ignore;
 }
 
