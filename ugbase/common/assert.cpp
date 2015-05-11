@@ -119,7 +119,7 @@ void ug_backtrace()
 /// b ug_assert_or_error
 void ug_assert_or_error()
 {
-	// intentially left empty
+	// intentionally left empty
 }
 
 
