@@ -27,7 +27,7 @@ ContainsPoint(Volume* vol, const vector3& p, TAAPos aaPos)
 	FaceDescriptor fd;
 	vector3 n, dir;
 
-//	to minimize rouding errors we'll compare against a small-constant which is
+//	to minimize rounding errors we'll compare against a small-constant which is
 //	relative to the longest edge of the examined volume.
 	number lenSq = 0;
 	EdgeDescriptor ed;
@@ -35,7 +35,12 @@ ContainsPoint(Volume* vol, const vector3& p, TAAPos aaPos)
 		vol->edge_desc(i, ed);
 		lenSq = max(lenSq, EdgeLengthSq(&ed, aaPos));
 	}
-	const number locSmall = sqrt(lenSq) * SMALL;
+
+	// the constant should be relative to the same geometric measure as what it is
+	// compared against later on, i.e. length*area, since otherwise problems arise
+	// with geometries scaled to very small extensions;
+	// which is why I changed sqrt(lenSq) to lenSq^1.5 (mbreit, 2015-05-11)
+	const number locSmall = std::pow(lenSq, 1.5) * SMALL;
 
 	for(size_t i = 0; i < vol->num_faces(); ++i){
 		vol->face_desc(i, fd);
