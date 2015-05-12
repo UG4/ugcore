@@ -16,7 +16,6 @@ struct attachment_io_traits {
 	static void read_value(std::istream& in, reference_type v)			{in >> v;}
 };
 
-
 template <>
 struct attachment_io_traits<Attachment<bool> > {
 	typedef bool													value_type;
@@ -26,7 +25,6 @@ struct attachment_io_traits<Attachment<bool> > {
 	static void write_value (std::ostream& out, const_reference_type v)	{out << v;}
 	static void read_value(std::istream& in, reference_type v)			{value_type tmp; in >> tmp; v = tmp;}
 };
-
 
 template <>
 struct attachment_io_traits<Attachment<vector1> > {
