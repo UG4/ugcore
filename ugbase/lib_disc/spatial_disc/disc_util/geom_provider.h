@@ -123,7 +123,7 @@ class GeomProvider
 
 		///	clears all singletons
 		static inline void clear(){
-			return inst().clear_geoms();
+			inst().clear_geoms();
 		}
 };
 

@@ -58,7 +58,9 @@ number ComputeAvg
 	maxLocal = max;
 	minLocal = min;
 	sumLocal = sum;
+#ifdef UG_PARALLEL
 	number errLocal = err;
+#endif
 	numElemLocal = numElem;
 
 #ifdef UG_PARALLEL
