@@ -6,8 +6,9 @@
 
 namespace ug{
 
+
 template <class TAttachment>
-struct attachment_io_traits {
+struct attachment_io_traits{
 	typedef typename TAttachment::ValueType									value_type;
 	typedef typename attachment_value_traits<value_type>::reference			reference_type;
 	typedef typename attachment_value_traits<value_type>::const_reference 	const_reference_type;
@@ -92,6 +93,31 @@ struct attachment_io_traits<Attachment<vector4> > {
 		in >> v[0] >> v[1] >> v[2] >> v[3];
 	}
 };
+
+
+template <typename T>
+struct attachment_io_traits<Attachment<std::vector<T> > >
+{
+	typedef typename std::vector<T>											value_type;
+	typedef typename attachment_value_traits<value_type>::reference			reference_type;
+	typedef typename attachment_value_traits<value_type>::const_reference 	const_reference_type;
+
+	static void write_value (std::ostream& out, const_reference_type v)
+	{
+		out << v.size() << " ";
+		for (size_t i = 0; i < v.size(); ++i)
+			attachment_io_traits<Attachment<T> >::write_value(out, v[i]);
+	}
+	static void read_value(std::istream& in, reference_type v)
+	{
+		size_t sz;
+		in >> sz;
+		v.resize(sz);
+		for (size_t i = 0; i < sz; ++i)
+			attachment_io_traits<Attachment<T> >::read_value(in, v[i]);
+	}
+};
+
 
 }//	end of namespace
 
