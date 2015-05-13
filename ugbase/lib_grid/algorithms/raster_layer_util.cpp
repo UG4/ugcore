@@ -158,7 +158,7 @@ remove_small_holes(number maxArea)
 						int nx = ix + xadd[inbr];
 						int ny = iy + yadd[inbr];
 						if((nx >= 0 && nx < fwidth && ny >= 0 && ny < fheight)
-						   &! visited.at(nx, ny))
+						   && !visited.at(nx, ny))
 						{
 							visited.at(nx, ny) = true;
 							if(field.at(nx, ny) == noDataValue){
@@ -168,7 +168,6 @@ remove_small_holes(number maxArea)
 					}
 					++curCell;
 				}
-
 				if(cells.size() < thresholdCellCount){
 					for(size_t i = 0; i < cells.size(); ++i){
 						int ix = cells[i].first;
@@ -278,7 +277,7 @@ trace_line_up(const vector2& c, size_t firstLayer) const
 	for(size_t i = firstLayer; i < size(); ++i){
 		number val = heightfield(i).interpolate(c);
 		if(val != heightfield(i).no_data_value()){
-			return make_pair(i, val);
+			return make_pair((int)i, val);
 		}
 	}
 

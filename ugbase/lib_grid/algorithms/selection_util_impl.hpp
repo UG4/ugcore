@@ -561,7 +561,7 @@ void SelectShortPolychains(ISelector& sel, number maxLength, bool closedChainsOn
 		}
 
 		if((curChainLength <= maxLength)){
-			if(closedChainsOnly && curChainIsClosed &! junctionPoints.empty()){
+			if(closedChainsOnly && curChainIsClosed && !junctionPoints.empty()){
 			//	count the number of associated edges of each junction-point
 			//	in curChain. If one is associated with != 2 vertices the chain
 			//	is considered as not closed 

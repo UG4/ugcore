@@ -36,7 +36,7 @@ void FileReaderASC::set_field(Field<number>* field)
 void FileReaderASC::load_file(const char* filename)
 {
 	ifstream in(filename);
-	UG_COND_THROW(!in, "Couldn't read from file " << filename);
+	UG_COND_THROW(!in, "Couldn't access file " << filename);
 
 	int numCols = 0, numRows = 0;
 	
@@ -89,7 +89,7 @@ void FileReaderASC::load_file(const char* filename)
 	for(int irow = numRows - 1; irow >= 0; --irow){
 		for(int icol = 0; icol < numCols; ++icol){
 			in >> field.at(icol, irow);
-			UG_COND_THROW(!in, "Couln't read value at col: " << icol << ", row: " << numRows - irow);
+			UG_COND_THROW(!in, "Couldn't read value at col: " << icol << ", row: " << numRows - irow);
 		}
 	}
 }

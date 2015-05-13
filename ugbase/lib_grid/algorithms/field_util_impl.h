@@ -228,7 +228,7 @@ void InvalidateSmallLenses(Field<T>& field, size_t thresholdCellCount,
 					int nx = ix + xadd[inbr];
 					int ny = iy + yadd[inbr];
 					if((nx >= 0 && nx < fwidth && ny >= 0 && ny < fheight)
-					   &! visited.at(nx, ny))
+					   && !visited.at(nx, ny))
 					{
 						visited.at(nx, ny) = true;
 						if(field.at(nx, ny) != noDataValue){
