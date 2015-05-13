@@ -95,8 +95,16 @@ struct attachment_io_traits<Attachment<vector4> > {
 };
 
 
+////////////////////////////////////////////////////////////////////////////////
+/// serialization for std::vector<T> with type T - e. g std::vector<bool>
+////////////////////////////////////////////////////////////////////////////////
 template <typename T>
 struct attachment_io_traits<Attachment<std::vector<T> > >
+/*!
+ * \brief serializes/deserializes an Attachment of std::vector<T>
+ * \note  this is possible whenever the corresponding Attachment<T>
+ *        can be serialized/deserialized (cf. above)
+ */
 {
 	typedef typename std::vector<T>											value_type;
 	typedef typename attachment_value_traits<value_type>::reference			reference_type;
