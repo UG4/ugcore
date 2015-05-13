@@ -96,7 +96,7 @@ struct attachment_io_traits<Attachment<vector4> > {
 
 
 ////////////////////////////////////////////////////////////////////////////////
-/// serialization for std::vector<T> with type T - e. g std::vector<bool>
+/// serialization for std::vector<T> with type T - e. g. std::vector<bool>
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T>
 struct attachment_io_traits<Attachment<std::vector<T> > >
