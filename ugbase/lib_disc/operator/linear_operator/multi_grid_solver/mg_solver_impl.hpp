@@ -1095,11 +1095,14 @@ init_base_solver()
 
 		spGatheredBaseMat->set_layouts(spOneProcLayout);
 		spGatheredBaseCorr->set_layouts(spOneProcLayout);
+
 		ld.t->set_layouts(spOneProcLayout);
 		#endif
 
 	//	we init the base solver with the whole grid matrix
-		if(!m_spBaseSolver->init(spGatheredBaseMat, *spGatheredBaseCorr))
+		if(!m_pSurfaceSol)
+			ld.t->set(0);
+		if(!m_spBaseSolver->init(spGatheredBaseMat, *ld.t))
 			UG_THROW("GMG::init: Cannot init base solver on baselevel "<< m_baseLev);
 	}
 	else
@@ -1114,6 +1117,8 @@ init_base_solver()
 						" process stores the whole base grid, to cure this issue.");
 #endif
 
+		if(!m_pSurfaceSol)
+			ld.st->set(0);
 		if(!m_spBaseSolver->init(ld.A, *ld.st))
 			UG_THROW("GMG::init: Cannot init base solver on baselevel "<< m_baseLev);
 	}

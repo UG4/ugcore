@@ -123,24 +123,28 @@ util.solver.defaults =
 	preconditioner =
 	{
 		gmg = {
-			adaptive = true,
+			adaptive = false,
+			approxSpace = nil,
 			baseLevel = 0,
 			baseSolver = "lu",
 			cycle = "V",
-			smoother = "gs",
+			discretization = nil,	-- only necessary if the underlying matrix is not of type AssembledLinearOperator
+			gatheredBaseSolverIfAmbiguous = false,
 			preSmooth = 3,
 			postSmooth = 3,
 			rap = false,
-			gatheredBaseSolverIfAmbiguous = false,
-			approxSpace = nil,
-			discretization = nil	-- only necessary if the underlying matrix is not of type AssembledLinearOperator
+			smoother = "gs"
+		},
+
+		ilu = {
+			beta = 0
 		},
 
 		ilut = {
 			threshold = 1e-6
 		},
 
-		jacobi = {
+		jac = {
 			damping = 0.66
 		},
 
@@ -255,7 +259,10 @@ function util.solver.CreatePreconditioner(precondDesc)
 
 	local precond = nil
 
-	if	   name == "ilu"  then precond = ILU ();
+	if name == "ilu"  then
+		precond = ILU ()
+		precond:set_beta (desc.beta or defaults.beta)
+	
 	elseif name == "ilut" then precond = ILUT (desc.threshold or defaults.threshold);
 	elseif name == "jac"  then precond = Jacobi (desc.damping or defaults.damping);
 	elseif name == "bgs"  then precond = BlockGaussSeidel ();
@@ -335,12 +342,16 @@ function util.solver.CreateConvCheck(convCheckDesc)
 	
 	local cc = nil
 	
+	local verbose = true;
+	if desc.verbose ~= nil then verbose = desc.verbose
+	elseif defaults.verbose ~= nil then verbose = defaults.verbose end
+
 	if name == "standard" then
 		cc = ConvCheck()
 		cc:set_maximum_steps	(desc.iterations	or defaults.iterations)
 		cc:set_minimum_defect	(desc.absolut		or defaults.absolut)
 		cc:set_reduction		(desc.reduction		or defaults.reduction)
-		cc:set_verbose			(desc.verbose		or defaults.verbose)
+		cc:set_verbose			(verbose)
 	end
 
 	util.solver.util.CondAbort(cc == nil, "Invalid conv-check specified: " .. name)
