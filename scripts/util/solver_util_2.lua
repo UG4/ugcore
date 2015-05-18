@@ -49,9 +49,10 @@
 -- method.
 --
 --
--- A not necessarily meaningful example follows:
+-- Two not necessarily meaningful examples follow:
 -- (here someApproxSpace points to a previously created approximation space)
 --
+--  -- EXAMPLE 1
 --	solverDesc = 
 --	{
 --		type = "bicgstab",			-- linear solver type ["bicgstab", "cg", "linear"]
@@ -82,6 +83,16 @@
 --	}
 --
 --	solver = util.solver.CreateSolver(solverDesc)
+--
+--
+--  -- EXAMPLE 2
+--	solverDesc =
+--	{
+--		type = "linear",
+--		precond = ILU()		-- for each component one can optionally supply a custom instance
+--	}
+--
+--	solver = util.solver.CreateSolver(solverDesc)
 
 util = util or {}
 util.solver = util.solver or {}
@@ -109,17 +120,6 @@ util.solver.defaults =
 		},
 	},
 
-	iterativeSolver =
-	{
-		ilut = {
-			threshold = 1e-6
-		},
-
-		jacobi = {
-			damping = 0.66
-		}
-	},
-
 	preconditioner =
 	{
 		gmg = {
@@ -133,7 +133,20 @@ util.solver.defaults =
 			rap = false,
 			gatheredBaseSolverIfAmbiguous = false,
 			approxSpace = nil,
-			discretization = nil
+			discretization = nil	-- only necessary if the underlying matrix is not of type AssembledLinearOperator
+		},
+
+		ilut = {
+			threshold = 1e-6
+		},
+
+		jacobi = {
+			damping = 0.66
+		},
+
+		schur = {
+			dirichletSolver	= "superlu",
+			skeletonSolver	= "superlu"
 		}
 	},
 
@@ -156,6 +169,14 @@ function util.solver.util.CondAbort(condition, message)
 	end
 end
 
+function util.solver.util.IsPreset(desc)
+	if type(desc) == "userdata" then
+		return true
+	else
+		return false
+	end
+end
+
 function util.solver.util.ToNameAndDesc(descOrName)
 	if type(descOrName) == "string" then
 		return descOrName, nil
@@ -169,16 +190,15 @@ end
 
 function util.solver.CreateSolver(solverDesc)
 --	todo: add non-linear solvers
-	return util.solver.CreateLinearSolver(solverDesc, true)
+	return util.solver.CreateLinearSolver(solverDesc)
 end
 
 
-function util.solver.CreateLinearSolver(solverDesc, agglomerating)
-	if agglomerating == nil then agglomerating = true end
+function util.solver.CreateLinearSolver(solverDesc)
+	if util.solver.util.IsPreset(solverDesc) then return solverDesc end
 
 	local name, desc = util.solver.util.ToNameAndDesc(solverDesc)
-	
-	local defaults = util.solver.defaults.linearSolver[name]
+	local defaults   = util.solver.defaults.linearSolver[name]
 	if desc == nil then desc = defaults end
 
 
@@ -203,31 +223,13 @@ function util.solver.CreateLinearSolver(solverDesc, agglomerating)
 		createConvCheck = true
 
 	elseif name == "lu"		then
-		if agglomerating then
-			linSolver = AgglomeratingSolver(LU())
-		else
-			linSolver = LU()
-		end
+		linSolver = AgglomeratingSolver(LU())
+
 	elseif name == "superlu"	then
-		if agglomerating then
-			linSolver = AgglomeratingSolver(SuperLU());
-		else
-			linSolver = SuperLU()
-		end
-
-	elseif name == "schur" 	then
-		-- todo: Move "schur" to preconditioners?
-		local skeletonSolver = AgglomeratingSolver(SuperLU())
-		local schur = SchurComplement()
-		schur:set_dirichlet_solver(SuperLU())
-		schur:set_skeleton_solver(SchurInverseWithFullMatrix(skeletonSolver))
-		linSolver = LinearSolver()
-		linSolver:set_preconditioner(schur)
-
-	else 
-		print("Linear solver '"..name.."' not found."); 
-		exit(); 
+		linSolver = AgglomeratingSolver(SuperLU());
 	end
+
+	util.solver.util.CondAbort(linSolver == nil, "Invalid linear solver specified: " .. name)
 	
 	if createPrecond == true then
 		linSolver:set_preconditioner(
@@ -245,20 +247,30 @@ end
 
 
 function util.solver.CreatePreconditioner(precondDesc)
+	if util.solver.util.IsPreset(precondDesc) then return precondDesc end
+
 	local name, desc = util.solver.util.ToNameAndDesc(precondDesc)
+	local defaults   = util.solver.defaults.preconditioner[name]
+	if desc == nil then desc = defaults end
 
 	local precond = nil
-	if name == "gmg" then 
-		local defaults = util.solver.defaults.preconditioner.gmg
-		if desc == nil then desc = defaults end
 
+	if	   name == "ilu"  then precond = ILU ();
+	elseif name == "ilut" then precond = ILUT (desc.threshold or defaults.threshold);
+	elseif name == "jac"  then precond = Jacobi (desc.damping or defaults.damping);
+	elseif name == "bgs"  then precond = BlockGaussSeidel ();
+	elseif name == "gs"   then precond = GaussSeidel ();
+	elseif name == "sgs"  then precond = SymmetricGaussSeidel ();
+	elseif name == "egs"  then precond = ElementGaussSeidel ();
+
+	elseif name == "gmg"  then 
 		local smoother =
-				util.solver.CreateIterativeSolver(
+				util.solver.CreatePreconditioner(
 					desc.smoother or defaults.smoother)
 		
 		local baseSolver = 
 				util.solver.CreateLinearSolver(
-					desc.baseSolver or defaults.baseSolver, false)
+					desc.baseSolver or defaults.baseSolver)
 
 		local approxSpace = desc.approxSpace or util.solver.defaults.approxSpace
 		if approxSpace == nil then
@@ -291,8 +303,20 @@ function util.solver.CreatePreconditioner(precondDesc)
 		end
 
 		precond = gmg
-	else
-		precond = util.solver.CreateIterativeSolver(precondDesc)
+
+	elseif name == "schur" 	then
+		local dirichletSolver =
+				solver.util.CreateLinearSolver(
+					desc.dirichletSolver or defaults.dirichletSolver)
+
+		local skeletonSolver =
+				solver.util.CreateLinearSolver(
+					desc.skeletonSolver or defaults.skeletonSolver)
+
+		local schur = SchurComplement()
+		schur:set_dirichlet_solver(dirichletSolver)
+		schur:set_skeleton_solver(SchurInverseWithFullMatrix(skeletonSolver))
+		precond = schur
 	end
 
 	util.solver.util.CondAbort(precond == nil, "Invalid preconditioner specified: " .. name)
@@ -302,36 +326,14 @@ function util.solver.CreatePreconditioner(precondDesc)
 end
 
 
-function util.solver.CreateIterativeSolver(iterSolverDesc)
-	local name, desc = util.solver.util.ToNameAndDesc(iterSolverDesc)
-	local defaults = util.solver.defaults.iterativeSolver[name]
-	if desc == nil then desc = defaults end
-
-	local solver = nil
-	if 	    name == "ilu"  then solver = ILU ();
-	elseif 	name == "ilut" then solver = ILUT (desc.threshold or defaults.threshold);
-	elseif 	name == "jac"  then solver = Jacobi (desc.damping or defaults.damping);
-	elseif 	name == "bgs"  then solver = BlockGaussSeidel ();
-	elseif 	name == "gs"   then solver = GaussSeidel ();
-	elseif 	name == "sgs"  then solver = SymmetricGaussSeidel ();
-	elseif  name == "egs"  then solver = ElementGaussSeidel ();
-	else
-		print("Iterative solver " .. " '" .. name .."' not found.")
-		exit()
-	end
-
-	if desc then desc.instance = solver end
-	return solver
-end
-
-
 function util.solver.CreateConvCheck(convCheckDesc)
-	
+	if util.solver.util.IsPreset(convCheckDesc) then return convCheckDesc end
+
 	local name, desc = util.solver.util.ToNameAndDesc(convCheckDesc)
-	local cc = nil
-	
-	defaults = util.solver.defaults.convCheck[name]
+	local defaults	 = util.solver.defaults.convCheck[name]
 	if desc == nil then desc = defaults end
+	
+	local cc = nil
 	
 	if name == "standard" then
 		cc = ConvCheck()
