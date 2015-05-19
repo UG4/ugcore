@@ -94,6 +94,8 @@
 --
 --	solver = util.solver.CreateSolver(solverDesc)
 
+ug_load_script("table_desc_util.lua")
+
 util = util or {}
 util.solver = util.solver or {}
 util.solver.util = util.solver.util or {}
@@ -137,7 +139,8 @@ util.solver.defaults =
 		},
 
 		ilu = {
-			beta = 0
+			beta = 0,
+			damping = 1
 		},
 
 		ilut = {
@@ -166,29 +169,11 @@ util.solver.defaults =
 }
 
 
-function util.solver.util.CondAbort(condition, message)
+function util.solver.CondAbort(condition, message)
 	if condition == true then
-		print(message)
+		print("ERROR in util.solver: " .. message)
 		exit()
 	end
-end
-
-function util.solver.util.IsPreset(desc)
-	if type(desc) == "userdata" then
-		return true
-	else
-		return false
-	end
-end
-
-function util.solver.util.ToNameAndDesc(descOrName)
-	if type(descOrName) == "string" then
-		return descOrName, nil
-	elseif type(descOrName) == "table" then
-		return descOrName.type, descOrName
-	end
-	print("Invalid name or descriptor specified!")
-	exit()
 end
 
 
@@ -199,9 +184,9 @@ end
 
 
 function util.solver.CreateLinearSolver(solverDesc)
-	if util.solver.util.IsPreset(solverDesc) then return solverDesc end
+	if util.tableDesc.IsPreset(solverDesc) then return solverDesc end
 
-	local name, desc = util.solver.util.ToNameAndDesc(solverDesc)
+	local name, desc = util.tableDesc.ToNameAndDesc(solverDesc)
 	local defaults   = util.solver.defaults.linearSolver[name]
 	if desc == nil then desc = defaults end
 
@@ -233,7 +218,7 @@ function util.solver.CreateLinearSolver(solverDesc)
 		linSolver = AgglomeratingSolver(SuperLU());
 	end
 
-	util.solver.util.CondAbort(linSolver == nil, "Invalid linear solver specified: " .. name)
+	util.solver.CondAbort(linSolver == nil, "Invalid linear solver specified: " .. name)
 	
 	if createPrecond == true then
 		linSolver:set_preconditioner(
@@ -251,9 +236,9 @@ end
 
 
 function util.solver.CreatePreconditioner(precondDesc)
-	if util.solver.util.IsPreset(precondDesc) then return precondDesc end
+	if util.tableDesc.IsPreset(precondDesc) then return precondDesc end
 
-	local name, desc = util.solver.util.ToNameAndDesc(precondDesc)
+	local name, desc = util.tableDesc.ToNameAndDesc(precondDesc)
 	local defaults   = util.solver.defaults.preconditioner[name]
 	if desc == nil then desc = defaults end
 
@@ -262,6 +247,7 @@ function util.solver.CreatePreconditioner(precondDesc)
 	if name == "ilu"  then
 		precond = ILU ()
 		precond:set_beta (desc.beta or defaults.beta)
+		precond:set_damp(desc.damping or defaults.damping)
 	
 	elseif name == "ilut" then precond = ILUT (desc.threshold or defaults.threshold);
 	elseif name == "jac"  then precond = Jacobi (desc.damping or defaults.damping);
@@ -326,7 +312,7 @@ function util.solver.CreatePreconditioner(precondDesc)
 		precond = schur
 	end
 
-	util.solver.util.CondAbort(precond == nil, "Invalid preconditioner specified: " .. name)
+	util.solver.CondAbort(precond == nil, "Invalid preconditioner specified: " .. name)
 	if desc then desc.instance = precond end
 
 	return precond
@@ -334,9 +320,9 @@ end
 
 
 function util.solver.CreateConvCheck(convCheckDesc)
-	if util.solver.util.IsPreset(convCheckDesc) then return convCheckDesc end
+	if util.tableDesc.IsPreset(convCheckDesc) then return convCheckDesc end
 
-	local name, desc = util.solver.util.ToNameAndDesc(convCheckDesc)
+	local name, desc = util.tableDesc.ToNameAndDesc(convCheckDesc)
 	local defaults	 = util.solver.defaults.convCheck[name]
 	if desc == nil then desc = defaults end
 	
@@ -354,7 +340,7 @@ function util.solver.CreateConvCheck(convCheckDesc)
 		cc:set_verbose			(verbose)
 	end
 
-	util.solver.util.CondAbort(cc == nil, "Invalid conv-check specified: " .. name)
+	util.solver.CondAbort(cc == nil, "Invalid conv-check specified: " .. name)
 	if desc then desc.instance = cc end
 	return cc
 end
