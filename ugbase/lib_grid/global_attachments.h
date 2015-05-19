@@ -95,8 +95,7 @@ class GlobalAttachments {
 									  const std::string& name)
 		{
 			AttachmentEntry& ae = attachment_entry(name);
-			IFunctionEntry& fe = function_entry<TElem>(ae);
-			fe.writeFunc(out, grid, *ae.attachment);
+			function_entry<TElem>(ae).writeFunc(out, grid, *ae.attachment);
 		}
 
 		template <class TElem>
@@ -106,7 +105,8 @@ class GlobalAttachments {
 								 const std::string& name)
 		{
 			AttachmentEntry& ae = attachment_entry(name);
-			function_entry<TElem>(ae).addSerializer(handler, grid, *ae.attachment);
+			IFunctionEntry& fe = function_entry<TElem>(ae);
+			fe.addSerializer(handler, grid, *ae.attachment);
 		}
 
 
@@ -135,6 +135,7 @@ class GlobalAttachments {
 			FunctionEntry() {
 				readFunc = &read_attachment_from_stream<TElem, TAttachment>;
 				writeFunc = &write_attachment_to_stream<TElem, TAttachment>;
+				addSerializer = &add_attachment_serializer<TElem, TAttachment>;
 			}
 		};
 
@@ -252,14 +253,14 @@ class GlobalAttachments {
 
 		template <class TElem, class TAttachment>
 		static
-		SmartPtr<GeomObjDataSerializer<TElem> >
+		void//SmartPtr<GeomObjDataSerializer<TElem> >
 		add_attachment_serializer (
 			GridDataSerializationHandler& handler,
 			Grid& g,
 			IAttachment& attachment)
 		{
 			TAttachment& a = dynamic_cast<TAttachment&>(attachment);
-			return handler.add(GeomObjAttachmentSerializer<TElem, TAttachment>::
+			handler.add(GeomObjAttachmentSerializer<TElem, TAttachment>::
 									create(g, a));
 		}
 
