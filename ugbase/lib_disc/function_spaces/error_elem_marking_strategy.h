@@ -130,7 +130,7 @@ void MaximumMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaErr
 	const const_iterator iterEnd = dd->template end<TElem>();
 
 	// determine (local) number of excess elements
-	const int ndiscard = (int) (numElemLocal*m_eps); // TODO: on every process?
+	const size_t ndiscard = (size_t) (numElemLocal*m_eps); // TODO: on every process?
 	UG_LOG("  +++ Found max "<<  maxElemErr << " ndiscard="<<ndiscard<<".\n");
 
 	// Verfuerths strategy for skipping excess
