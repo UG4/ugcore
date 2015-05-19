@@ -1101,7 +1101,7 @@ init_base_solver()
 
 	//	we init the base solver with the whole grid matrix
 		if(!m_pSurfaceSol)
-			ld.t->set(0);
+			*ld.t = 0;
 		if(!m_spBaseSolver->init(spGatheredBaseMat, *ld.t))
 			UG_THROW("GMG::init: Cannot init base solver on baselevel "<< m_baseLev);
 	}
@@ -1118,7 +1118,7 @@ init_base_solver()
 #endif
 
 		if(!m_pSurfaceSol)
-			ld.st->set(0);
+			*ld.st = 0;
 		if(!m_spBaseSolver->init(ld.A, *ld.st))
 			UG_THROW("GMG::init: Cannot init base solver on baselevel "<< m_baseLev);
 	}

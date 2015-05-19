@@ -170,6 +170,7 @@ class GridFunction
 
 	///	assigns another grid function
 		this_type& operator=(const this_type& v) {assign(v); return *this;}
+		this_type& operator=(number d) {vector_type::operator=(d); return *this;}
 
 	/// clone including values
 		SmartPtr<this_type> clone() const {return SmartPtr<this_type>(this->virtual_clone());}
