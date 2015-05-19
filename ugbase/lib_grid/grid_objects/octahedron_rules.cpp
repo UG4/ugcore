@@ -62,7 +62,6 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 
 //	convenience - indices where new edge-vrts, new face-vrts and new vol-vrts begin.
 	const int E = NUM_VERTICES;
-	//const int F = NUM_VERTICES + NUM_EDGES;
 	const int V = NUM_VERTICES + NUM_EDGES + NUM_FACES;
 
 //	depending on the number of new vertices, we will now apply different
@@ -99,21 +98,6 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 			inds[fi++] = E;			inds[fi++] = 1;
 			inds[fi++] = E + 4;		inds[fi++] = V;
 			inds[fi++] = E + 7;		inds[fi++] = E + 8;
-
-//			inds[fi++] = GOID_OCTAHEDRON;
-//			inds[fi++] = E + 1;		inds[fi++] = 2;
-//			inds[fi++] = E + 5;		inds[fi++] = V;
-//			inds[fi++] = E + 4;		inds[fi++] = E + 9;
-//
-//			inds[fi++] = GOID_OCTAHEDRON;
-//			inds[fi++] = E + 2;		inds[fi++] = 3;
-//			inds[fi++] = E + 6;		inds[fi++] = V;
-//			inds[fi++] = E + 5;		inds[fi++] = E + 10;
-//
-//			inds[fi++] = GOID_OCTAHEDRON;
-//			inds[fi++] = E + 3;		inds[fi++] = 4;
-//			inds[fi++] = E + 7;		inds[fi++] = V;
-//			inds[fi++] = E + 6;		inds[fi++] = E + 11;
 
 			/*
 			 * This ordering works with ConvertOctahedronsToTetrahedrons
@@ -156,22 +140,6 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 			inds[fi++] = E + 7;		inds[fi++] = E;
 			inds[fi++] = E + 3;		inds[fi++] = V;
 
-//			inds[fi++] = GOID_TETRAHEDRON;
-//			inds[fi++] = E;			inds[fi++] = E + 4;
-//			inds[fi++] = E + 1;		inds[fi++] = V;
-//
-//			inds[fi++] = GOID_TETRAHEDRON;
-//			inds[fi++] = E + 1;		inds[fi++] = E + 5;
-//			inds[fi++] = E + 2;		inds[fi++] = V;
-//
-//			inds[fi++] = GOID_TETRAHEDRON;
-//			inds[fi++] = E + 2;		inds[fi++] = E + 6;
-//			inds[fi++] = E + 3;		inds[fi++] = V;
-//
-//			inds[fi++] = GOID_TETRAHEDRON;
-//			inds[fi++] = E + 3;		inds[fi++] = E + 7;
-//			inds[fi++] = E;			inds[fi++] = V;
-
 		//	upper tetrahedrons
 			inds[fi++] = GOID_TETRAHEDRON;
 			inds[fi++] = E + 9;		inds[fi++] = E + 4;
@@ -192,44 +160,6 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 		//	the rule requires a new center vertex
 			newCenterOut = true;
 
-			/*
-			 * Former orientation
-			 *
-		//	lower tetrahedrons
-			inds[fi++] = GOID_TETRAHEDRON;
-			inds[fi++] = E;			inds[fi++] = E + 1;
-			inds[fi++] = V;			inds[fi++] = E + 4;
-
-			inds[fi++] = GOID_TETRAHEDRON;
-			inds[fi++] = E + 1;		inds[fi++] = E + 2;
-			inds[fi++] = V;			inds[fi++] = E + 5;
-
-			inds[fi++] = GOID_TETRAHEDRON;
-			inds[fi++] = E + 2;		inds[fi++] = E + 3;
-			inds[fi++] = V;			inds[fi++] = E + 6;
-
-			inds[fi++] = GOID_TETRAHEDRON;
-			inds[fi++] = E + 3;		inds[fi++] = E;
-			inds[fi++] = V;			inds[fi++] = E + 7;
-
-		//	upper tetrahedrons
-			inds[fi++] = GOID_TETRAHEDRON;
-			inds[fi++] = E + 8;		inds[fi++] = E + 9;
-			inds[fi++] = V;			inds[fi++] = E + 4;
-
-			inds[fi++] = GOID_TETRAHEDRON;
-			inds[fi++] = E + 9;		inds[fi++] = E + 10;
-			inds[fi++] = V;			inds[fi++] = E + 5;
-
-			inds[fi++] = GOID_TETRAHEDRON;
-			inds[fi++] = E + 10;	inds[fi++] = E + 11;
-			inds[fi++] = V;			inds[fi++] = E + 6;
-
-			inds[fi++] = GOID_TETRAHEDRON;
-			inds[fi++] = E + 11;	inds[fi++] = E + 8;
-			inds[fi++] = V;			inds[fi++] = E + 7;
-			*/
-
 		}break;
 	}
 
@@ -247,5 +177,5 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 }
 
 
-}//	end of namespace tet_rules
+}//	end of namespace oct_rules
 }//	end of namespace ug
