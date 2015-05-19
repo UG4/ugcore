@@ -23,6 +23,8 @@ number CalculateVolume(Volume* elem, TAAPos aaPos)
 		return CalculateVolume(static_cast<Pyramid*>(elem), aaPos);
 	case ROID_HEXAHEDRON:
 		return CalculateVolume(static_cast<Hexahedron*>(elem), aaPos);
+	case ROID_OCTAHEDRON:
+		return CalculateVolume(static_cast<Octahedron*>(elem), aaPos);
 	default:
 		UG_THROW("Unknown volume type");
 		break;
@@ -74,6 +76,16 @@ number CalculateVolume(Hexahedron* elem, TAAPos aaPos)
 									aaPos[elem->vertex(7)]);
 }
 
+template <class TAAPos>
+number CalculateVolume(Octahedron* elem, TAAPos aaPos)
+{
+	return CalculateOctahedronVolume(aaPos[elem->vertex(0)],
+								aaPos[elem->vertex(1)],
+								aaPos[elem->vertex(2)],
+								aaPos[elem->vertex(3)],
+								aaPos[elem->vertex(4)],
+								aaPos[elem->vertex(5)]);
+}
 
 template <class TAAPos>
 number CalculateVolume(FaceVertices* elem, TAAPos aaPos)

@@ -621,6 +621,25 @@ number CalculateHexahedronVolume(const vector3& v0, const vector3& v1,
 		const vector3& v2, const vector3& v3, const vector3& v4,
 		const vector3& v5, const vector3& v6, const vector3& v8);
 
+//	CalculateHexahedronVolume - mstepnie
+/**
+ * (compare to lib_disc/common/geometry_util.h)
+ * This function returns the volume of an octhedron in 3d
+ * by calculating the volumes of the upper and lower pyramid
+ * the octahedron consists of.
+ * The pyramidal volumes are computed via: V = 1/3 * (S * h) with
+ * - S is the area of the base
+ * - h is the height
+ *
+ * The corner coordinates must be given as prescribed by the reference element
+ *
+ * \param[in]	a,...,f			3d Vectors of corner coordinates (6 corners)
+ * \return 		number			Volume of Octahedron
+ */
+number CalculateOctahedronVolume(const vector3& a, const vector3& b,
+		const vector3& c, const vector3& d, const vector3& e,
+		const vector3& f);
+
 ////////////////////////////////////////////////////////////////////////
 //	BinomialCoefficient
 ///	Returns the BinomialCoefficient

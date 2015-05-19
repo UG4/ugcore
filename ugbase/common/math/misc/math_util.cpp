@@ -498,6 +498,32 @@ number CalculateHexahedronVolume(const vector3& a, const vector3& b,
 	return result;
 }
 
+number CalculateOctahedronVolume(const vector3& a, const vector3& b,
+		const vector3& c, const vector3& d, const vector3& e,
+		const vector3& f) {
+	number result = 0;
+
+	MathVector<3> x31, x42, x51, n;
+	MathVector<3> 			x01;
+
+	VecSubtract(x31, d, b);
+	VecSubtract(x42, e, c);
+	VecSubtract(x51, f, b);
+	VecCross(n, x31, x42);
+
+	//VecSubtract(x31, d, b);
+	//VecSubtract(x42, e, c);
+	VecSubtract(x01, a, b);
+	//VecCross(n, x31, x42);
+
+	number volTopPyr 	= (1./6.) * fabs(VecDot(n, x51));
+	number volBottomPyr = (1./6.) * fabs(VecDot(n, x01));
+
+	result += volTopPyr + volBottomPyr;
+
+	return result;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 //	Returns the BinomialCoefficient
 int BinomCoeff(int n, int k)

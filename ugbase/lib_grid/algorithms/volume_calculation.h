@@ -42,6 +42,10 @@ template <class TAAPos>
 inline
 number CalculateVolume(Hexahedron* elem, TAAPos aaPos);
 
+template <class TAAPos>
+inline
+number CalculateVolume(Octahedron* elem, TAAPos aaPos);
+
 //	FACES
 template <class TAAPos>
 inline
