@@ -103,8 +103,8 @@ function util.balancer.CreateLoadBalancer(dom, desc)
 	local loadBalancer = DomainLoadBalancer(dom)
 
 	local partitionerDesc = desc.partitioner or defaults.partitioner
-	local partitioner = util.balancer.CreatePartitioner(dom, partitionerDesc)
-	loadBalancer:set_partitioner(partitioner)
+	local part = util.balancer.CreatePartitioner(dom, partitionerDesc)
+	loadBalancer:set_partitioner(part)
 
 	local hierarchyDesc = desc.hierarchy or defaults.hierarchy
 	local procH, elemThreshold = util.balancer.CreateProcessHierarchy(dom, hierarchyDesc)
