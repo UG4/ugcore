@@ -1598,6 +1598,10 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 	UG_DLOG(LG_DIST, 3, "dist-stop: CreateLayoutsFromDistInfos\n");
 }
 
+///	Adds serializers for all registered global attachments.
+/**	Make sure that the same global attachments are attached to the given grid
+ * on all processes before calling this method. Use 'SynchronizeAttachedGlobalAttachments'
+ * to achieve this.*/
 template <class TElem>
 static
 void AddGlobalAttachmentsToSerializer (
@@ -1610,6 +1614,48 @@ void AddGlobalAttachmentsToSerializer (
 		if(GlobalAttachments::is_attached<TElem>(grid, name)){
 			GlobalAttachments::add_data_serializer<TElem>(handler, grid, name);
 		}
+	}
+}
+
+/**	Attaches global attachments to 'g' that are attached at 'g' on some other process,
+ * thus synchronizing the set of attached global attachments of 'g'.*/
+static void SynchronizeAttachedGlobalAttachments (
+				Grid& g,
+				const pcl::ProcessCommunicator& procComm)
+{
+	const vector<string>&  names = GlobalAttachments::declared_attachment_names();
+	if(names.empty())
+		return;
+
+	vector<byte> locAttached(names.size(), 0);
+	for(size_t i = 0; i < names.size(); ++i){
+		byte& b = locAttached[i];
+		if(GlobalAttachments::is_attached<Vertex>(g, names[i]))
+			b |= 1;
+		if(GlobalAttachments::is_attached<Edge>(g, names[i]))
+			b |= 1<<1;
+		if(GlobalAttachments::is_attached<Face>(g, names[i]))
+			b |= 1<<2;
+		if(GlobalAttachments::is_attached<Volume>(g, names[i]))
+			b |= 1<<3;
+	}
+
+	vector<byte> globAttached(names.size());
+	procComm.allreduce(locAttached, globAttached, PCL_RO_BOR);
+
+	for(size_t i = 0; i < names.size(); ++i){
+		byte& b = globAttached[i];
+		if((b & 1) && !GlobalAttachments::is_attached<Vertex>(g, names[i]))
+			GlobalAttachments::attach<Vertex>(g, names[i]);
+
+		if((b & 1<<1) && !GlobalAttachments::is_attached<Edge>(g, names[i]))
+			GlobalAttachments::attach<Edge>(g, names[i]);
+
+		if((b & 1<<2) && !GlobalAttachments::is_attached<Face>(g, names[i]))
+			GlobalAttachments::attach<Face>(g, names[i]);
+
+		if((b & 1<<3) && !GlobalAttachments::is_attached<Volume>(g, names[i]))
+			GlobalAttachments::attach<Volume>(g, names[i]);
 	}
 }
 
@@ -1641,6 +1687,7 @@ bool DistributeGrid(MultiGrid& mg,
 	SPMessageHub msgHub = mg.message_hub();
 	msgHub->post_message(GridMessage_Distribution(GMDT_DISTRIBUTION_STARTS, userDataSerializer));
 //	add global attachments to the user-data-serializer
+	SynchronizeAttachedGlobalAttachments(mg, procComm);
 	AddGlobalAttachmentsToSerializer<Vertex>(userDataSerializer, mg);
 	AddGlobalAttachmentsToSerializer<Edge>(userDataSerializer, mg);
 	AddGlobalAttachmentsToSerializer<Face>(userDataSerializer, mg);

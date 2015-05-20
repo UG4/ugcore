@@ -51,6 +51,15 @@ class GlobalAttachments {
 
 		template <class TElem>
 		static
+		void attach(Grid& g, const std::string& name)
+		{
+			AttachmentEntry& ae = attachment_entry(name);
+			IFunctionEntry& fe = function_entry<TElem>(ae);
+			fe.attach(g, *ae.attachment);
+		}
+
+		template <class TElem>
+		static
 		bool is_attached(Grid& g, const std::string& name)
 		{
 			AttachmentEntry& ae = attachment_entry(name);
@@ -123,19 +132,20 @@ class GlobalAttachments {
 		};
 
 		struct IFunctionEntry {
-			IFunctionEntry() : readFunc(0), writeFunc(0), addSerializer(0) {}
+			IFunctionEntry() : readFunc(0), writeFunc(0), addSerializer(0), attach(0) {}
 			void (*readFunc	)		(std::istream&, Grid&, IAttachment&);
 			void (*writeFunc)		(std::ostream&, Grid&, IAttachment&);
 			void (*addSerializer)	(GridDataSerializationHandler&, Grid&, IAttachment&);
-
+			void (*attach)			(Grid&, IAttachment&);
 		};
 
 		template <class TElem, class TAttachment>
 		struct FunctionEntry : public IFunctionEntry {
 			FunctionEntry() {
-				readFunc = &read_attachment_from_stream<TElem, TAttachment>;
-				writeFunc = &write_attachment_to_stream<TElem, TAttachment>;
+				readFunc = 		&read_attachment_from_stream<TElem, TAttachment>;
+				writeFunc = 	&write_attachment_to_stream<TElem, TAttachment>;
 				addSerializer = &add_attachment_serializer<TElem, TAttachment>;
+				attach = 		&cast_and_attach<TElem, TAttachment>;
 			}
 		};
 
@@ -264,6 +274,17 @@ class GlobalAttachments {
 									create(g, a));
 		}
 
+		template <class TElem, class TAttachment>
+		static
+		void cast_and_attach (
+				Grid& grid,
+				IAttachment& attachment)
+		{
+			TAttachment& a = dynamic_cast<TAttachment&>(attachment);
+			
+			if(!grid.has_attachment<TElem>(a))
+				grid.attach_to<TElem>(a);
+		}
 
 	////////////////////////////////////////
 	//	VARIABLES

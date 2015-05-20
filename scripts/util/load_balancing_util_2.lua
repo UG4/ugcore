@@ -93,6 +93,7 @@ function util.balancer.CreateLoadBalancer(dom, desc)
 	--todo:	support a serial load-balancer
 	if NumProcs() == 1 then
 		return {
+			descriptor	= desc,
 			rebalance =	function (recordName) end,
 			create_quality_record =	function (name) end,
 			print_quality_records =	function () end
@@ -116,6 +117,11 @@ function util.balancer.CreateLoadBalancer(dom, desc)
 	if desc then desc.instance = loadBalancer end
 
 	return {
+		balancer	= loadBalancer,
+		descriptor	= desc,
+		partitioner	= part,
+		hierarchy	= procH,
+
 		rebalance =	function (recordName)
 						local hierarchyDesc = desc.hierarchy or util.balancer.defaults.hierarchy
 						local ph = util.balancer.CreateProcessHierarchy(dom, hierarchyDesc)
