@@ -257,7 +257,7 @@ function util.balancer.CreateProcessHierarchy(dom, hierarchyDesc)
 	local curProcs = 1
 	local lastDistLvl = -2
 
-	for curLvl = 0, domInfo:num_levels() do
+	for curLvl = 0, domInfo:num_levels() - 1 do
 		if lastDistLvl + 1 < curLvl then
 			local redistProcs = defNumRedistProcs
 			local maxProcs = defMaxProcs
@@ -285,19 +285,16 @@ function util.balancer.CreateProcessHierarchy(dom, hierarchyDesc)
 
 			if maxProcs > numProcsInvolved then maxProcs = numProcsInvolved end
 
-			local ignoreRedist = false
 			if curProcs * redistProcs > maxProcs then
 				redistProcs = math.floor(maxProcs / curProcs)
-			end
-			if redistProcs <= 1 then
-				if curProcs == numComputeProcs then
-					break
-				else
-					ignoreRedist = true
+				if redistProcs <= 1 then
+					if curProcs == numComputeProcs then
+						break
+					end
 				end
 			end
 
-			if	ignoreRedist == false
+			if	redistProcs > 1
 				and curProcs * redistProcs * elemThreshold
 					<= domInfo:num_elements_on_level(curLvl)
 			then
@@ -313,10 +310,15 @@ function util.balancer.CreateProcessHierarchy(dom, hierarchyDesc)
 		return procH, elemThreshold
 	end
 
-	local numQualityRedists = math.floor((domInfo:num_levels() - lastDistLvl) / qualityRedistLvlOffset);
-	if numQualityRedists > 0 then
-		for i = 1, numQualityRedists do
-			procH:add_hierarchy_level(lastDistLvl + i * qualityRedistLvlOffset, 1);
+	if curProcs == numComputeProcs then
+		local numQualityRedists = math.floor((domInfo:num_levels() - lastDistLvl) / qualityRedistLvlOffset);
+		if numQualityRedists > 0 then
+			for i = 1, numQualityRedists do
+				local lvl = lastDistLvl + i * qualityRedistLvlOffset
+				if lvl < domInfo:num_levels() then
+					procH:add_hierarchy_level(lvl, 1);
+				end
+			end
 		end
 	end
 	return procH, elemThreshold
