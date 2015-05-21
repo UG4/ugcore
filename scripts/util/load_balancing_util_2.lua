@@ -288,12 +288,12 @@ function util.balancer.CreateProcessHierarchy(dom, hierarchyDesc)
 			local ignoreRedist = false
 			if curProcs * redistProcs > maxProcs then
 				redistProcs = math.floor(maxProcs / curProcs)
-				if redistProcs <= 1 then
-					if curProcs == numComputeProcs then
-						break
-					else
-						ignoreRedist = true
-					end
+			end
+			if redistProcs <= 1 then
+				if curProcs == numComputeProcs then
+					break
+				else
+					ignoreRedist = true
 				end
 			end
 
