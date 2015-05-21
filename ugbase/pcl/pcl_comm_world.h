@@ -1,5 +1,5 @@
-#ifndef __H__PCL_COMM__
-#define __H__PCL_COMM__
+#ifndef __H__PCL_COMM_WORLD__
+#define __H__PCL_COMM_WORLD__
 
 #include <mpi.h>
 

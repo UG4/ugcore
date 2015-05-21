@@ -18,7 +18,7 @@ set(srcPcl	pcl_base.cpp
 			pcl_util.cpp
 			parallel_archive.cpp
 			parallel_file.cpp
-			pcl_comm.cpp)
+			pcl_comm_world.cpp)
 
 if(BUILD_ONE_LIB)
 	EXPORTSOURCES(ugbase/pcl ${srcPcl})

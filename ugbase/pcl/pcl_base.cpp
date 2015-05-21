@@ -2,7 +2,7 @@
 //	s.b.reiter@googlemail.com
 //	y10 m06 d4
 #include<mpi.h>
-#include "pcl_comm.h"
+#include "pcl_comm_world.h"
 #include "pcl_base.h"
 #include "pcl_profiling.h"
 #include "common/log.h"
