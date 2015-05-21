@@ -1,6 +1,6 @@
 -- balancerDesc =
 -- {
--- 	partitioner = "dynBisection",
+-- 	partitioner = "dynamicBisection",
 
 -- 	hierarchy =
 -- 	{
@@ -13,9 +13,10 @@
 -- 			maxProcs = 1
 -- 		},
 
--- 		{-- levels 2 to 4
--- 			upperLvl = 4,
--- 			maxProcs = 64
+-- 		{-- levels 2 to 5
+-- 			upperLvl = 5,
+-- 			maxProcs = 64,
+--			maxRedistProcs 8
 -- 		},
 -- 	}
 -- }
@@ -102,20 +103,22 @@ function util.balancer.CreateLoadBalancer(dom, desc)
 
 	local loadBalancer = DomainLoadBalancer(dom)
 
+	print("  util.balancer: creating partitioner...")
 	local partitionerDesc = desc.partitioner or defaults.partitioner
 	local part = util.balancer.CreatePartitioner(dom, partitionerDesc)
 	loadBalancer:set_partitioner(part)
 
+	print("  util.balancer: creating process hierarchy...")
 	local hierarchyDesc = desc.hierarchy or defaults.hierarchy
 	local procH, elemThreshold = util.balancer.CreateProcessHierarchy(dom, hierarchyDesc)
 	loadBalancer:set_next_process_hierarchy(procH)
 
-	
 	loadBalancer:set_balance_threshold(desc.qualityThreshold or defaults.qualityThreshold)
 	loadBalancer:set_element_threshold(elemThreshold)
 
 	if desc then desc.instance = loadBalancer end
 
+	print("  util.balancer: done")
 	return {
 		balancer	= loadBalancer,
 		descriptor	= desc,
@@ -125,6 +128,8 @@ function util.balancer.CreateLoadBalancer(dom, desc)
 		rebalance =	function (recordName)
 						local hierarchyDesc = desc.hierarchy or util.balancer.defaults.hierarchy
 						local ph = util.balancer.CreateProcessHierarchy(dom, hierarchyDesc)
+						print("new prochess hierarchy:")
+						print(ph:to_string())
 						loadBalancer:set_next_process_hierarchy(ph)
 						loadBalancer:rebalance()
 						if recordName == nil then recordName = "def-rebal" end
@@ -241,9 +246,10 @@ function util.balancer.CreateProcessHierarchy(dom, hierarchyDesc)
 		return procH, elemThreshold
 	end
 
-	local numProcsInvolved = math.floor(maxElemsPerLvl / elemThreshold)
-	if numProcsInvolved > numComputeProcs then numProcsInvolved = numComputeProcs
-	elseif numProcsInvolved < 1 then
+	local defNumProcsInvolved = math.floor(maxElemsPerLvl / elemThreshold)
+	if defNumProcsInvolved > numComputeProcs then
+		defNumProcsInvolved = numComputeProcs
+	elseif defNumProcsInvolved < 1 then
 		procH:add_hierarchy_level(0, 1)
 		return procH, elemThreshold
 	end
@@ -258,7 +264,7 @@ function util.balancer.CreateProcessHierarchy(dom, hierarchyDesc)
 
 			-- check if a subsection exists which contains the current level
 			for name, val in pairs(desc) do
-				if name == nil and type(val) == "table" then
+				if type(val) == "table" then
 					if type(val.upperLvl) == "number" then
 						if val.upperLvl >= curLvl then
 						--	overwrite values from this section
@@ -269,6 +275,13 @@ function util.balancer.CreateProcessHierarchy(dom, hierarchyDesc)
 					end
 				end
 			end
+
+			if maxProcs > numComputeProcs then maxProcs = numComputeProcs end
+			if redistProcs > maxProcs then redistProcs = maxProcs end
+
+			-- The following line only ensures that v-interfaces stay on fixed levels
+			-- todo: remove the following line as soon as v-interfaces may change levels.
+			numProcsInvolved = math.floor(defNumProcsInvolved / redistProcs) * redistProcs
 
 			if maxProcs > numProcsInvolved then maxProcs = numProcsInvolved end
 			if curProcs * redistProcs > maxProcs then
