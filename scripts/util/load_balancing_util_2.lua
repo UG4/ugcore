@@ -261,7 +261,7 @@ function util.balancer.CreateProcessHierarchy(dom, hierarchyDesc)
 
 	for curLvl = 0, domInfo:num_levels() do
 		print("  >--- curLvl: " .. curLvl .. " ---<")
-		
+
 		if lastDistLvl + 1 < curLvl then
 			local redistProcs = defNumRedistProcs
 			local maxProcs = defMaxProcs
@@ -294,12 +294,23 @@ function util.balancer.CreateProcessHierarchy(dom, hierarchyDesc)
 			print("  > numProcsInvolved (bound): " .. numProcsInvolved)
 
 			if maxProcs > numProcsInvolved then maxProcs = numProcsInvolved end
+
+			local ignoreRedist = false
 			if curProcs * redistProcs > maxProcs then
 				redistProcs = math.floor(maxProcs / curProcs)
-				if redistProcs <= 1 then break end
+				if redistProcs <= 1 then
+					if curProcs == numComputeProcs then
+						break
+					else
+						ignoreRedist = true
+					end
+				end
 			end
 
-			if curProcs * redistProcs * elemThreshold <= domInfo:num_elements_on_level(curLvl) then
+			if	ignoreRedist == false
+				and curProcs * redistProcs * elemThreshold
+					<= domInfo:num_elements_on_level(curLvl)
+			then
 				lastDistLvl = curLvl
 				procH:add_hierarchy_level(curLvl, redistProcs)
 				curProcs = curProcs * redistProcs
@@ -318,6 +329,5 @@ function util.balancer.CreateProcessHierarchy(dom, hierarchyDesc)
 			procH:add_hierarchy_level(lastDistLvl + i * qualityRedistLvlOffset, 1);
 		end
 	end
-
 	return procH, elemThreshold
 end
