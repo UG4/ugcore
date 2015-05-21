@@ -254,14 +254,10 @@ function util.balancer.CreateProcessHierarchy(dom, hierarchyDesc)
 		return procH, elemThreshold
 	end
 
-	print("  > defNumProcsInvolved: " .. defNumProcsInvolved)
-
 	local curProcs = 1
 	local lastDistLvl = -2
 
 	for curLvl = 0, domInfo:num_levels() do
-		print("  >--- curLvl: " .. curLvl .. " ---<")
-
 		if lastDistLvl + 1 < curLvl then
 			local redistProcs = defNumRedistProcs
 			local maxProcs = defMaxProcs
@@ -280,18 +276,12 @@ function util.balancer.CreateProcessHierarchy(dom, hierarchyDesc)
 				end
 			end
 
-			print("  > maxProcs (unbound): " .. maxProcs)
 			if maxProcs > numComputeProcs then maxProcs = numComputeProcs end
-			print("  > maxProcs (bound): " .. maxProcs)
-
-			print("  > redistProcs (unbound): " .. redistProcs)
 			if redistProcs > maxProcs then redistProcs = maxProcs end
-			print("  > redistProcs (bound): " .. redistProcs)
 
 			-- The following line only ensures that v-interfaces stay on fixed levels
 			-- todo: remove the following line as soon as v-interfaces may change levels.
 			numProcsInvolved = math.floor(defNumProcsInvolved / redistProcs) * redistProcs
-			print("  > numProcsInvolved (bound): " .. numProcsInvolved)
 
 			if maxProcs > numProcsInvolved then maxProcs = numProcsInvolved end
 
