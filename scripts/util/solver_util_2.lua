@@ -103,6 +103,7 @@ util.solver.util = util.solver.util or {}
 util.solver.defaults =
 {
 	approxSpace = nil,
+	discretization = nil,
 
 	linearSolver = 
 	{
@@ -291,8 +292,9 @@ function util.solver.CreatePreconditioner(precondDesc)
 			gmg:set_transfer(transfer)
 		end
 
-		if desc.discretization then
-			gmg:set_discretization(desc.discretization)
+		local discretization = desc.discretization or util.solver.defaults.discretization
+		if discretization then
+			gmg:set_discretization(discretization)
 		end
 
 		precond = gmg
