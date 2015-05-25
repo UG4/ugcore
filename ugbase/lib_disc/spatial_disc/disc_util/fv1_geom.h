@@ -408,27 +408,30 @@ class FV1Geometry : public FVGeometryBase
 		                           const MathVector<worldDim>* vCornerCoords,
 		                           const ISubsetHandler* ish = NULL);
 
+	///	get the element
+		TElem* elem() const {return m_pElem;}
+		
 	/// get vector of the global coordinates of corners for current element
 		const MathVector<worldDim>* corners() const {return m_vvGloMid[0];}
 
 	/// number of SubControlVolumeFaces
-		inline size_t num_scvf() const {return numSCVF;};
+		size_t num_scvf() const {return numSCVF;};
 
 	/// const access to SubControlVolumeFace number i
-		inline const SCVF& scvf(size_t i) const
+		const SCVF& scvf(size_t i) const
 			{UG_ASSERT(i < num_scvf(), "Invalid Index."); return m_vSCVF[i];}
 
 	/// number of SubControlVolumes
 		// do not use this method to obtain the number of shape functions,
 		// since this is NOT the same for pyramids; use num_sh() instead.
-		inline size_t num_scv() const {return numSCV;}
+		size_t num_scv() const {return numSCV;}
 
 	/// const access to SubControlVolume number i
-		inline const SCV& scv(size_t i) const
+		const SCV& scv(size_t i) const
 			{UG_ASSERT(i < num_scv(), "Invalid Index."); return m_vSCV[i];}
 
 	/// number of shape functions
-		inline size_t num_sh() const {return nsh;};
+		size_t num_sh() const {return nsh;};
 
 	public:
 	/// returns number of all scvf ips
@@ -916,27 +919,30 @@ class DimFV1Geometry : public FVGeometryBase
 		                           const MathVector<worldDim>* vCornerCoords,
 		                           const ISubsetHandler* ish = NULL);
 
+	///	get the element
+		GridObject* elem() const {return m_pElem;}
+		
 	/// get vector of corners for current element
 		const MathVector<worldDim>* corners() const {return m_vvGloMid[0];}
 
 	/// number of SubControlVolumeFaces
-		inline size_t num_scvf() const {return m_numSCVF;};
+		size_t num_scvf() const {return m_numSCVF;};
 
 	/// const access to SubControlVolumeFace number i
-		inline const SCVF& scvf(size_t i) const
+		const SCVF& scvf(size_t i) const
 			{UG_ASSERT(i < num_scvf(), "Invalid Index."); return m_vSCVF[i];}
 
 	/// number of SubControlVolumes
 		// do not use this method to obtain the number of shape functions,
 		// since this is NOT the same for pyramids; use num_sh() instead.
-		inline size_t num_scv() const {return m_numSCV;}
+		size_t num_scv() const {return m_numSCV;}
 
 	/// const access to SubControlVolume number i
-		inline const SCV& scv(size_t i) const
+		const SCV& scv(size_t i) const
 			{UG_ASSERT(i < num_scv(), "Invalid Index."); return m_vSCV[i];}
 
 	/// number of shape functions
-		inline size_t num_sh() const {return m_nsh;};
+		size_t num_sh() const {return m_nsh;};
 
 	public:
 	/// returns number of all scvf ips
@@ -1205,6 +1211,9 @@ class FV1ManifoldGeometry
 		void update(GridObject* elem, const MathVector<worldDim>* vCornerCoords,
 		            const ISubsetHandler* ish = NULL);
 			
+	///	get the element
+		TElem* elem() const {return m_pElem;}
+		
 	/// get vector of corners for current element
 		const MathVector<worldDim>* corners() const {return m_gloMid[0];}
 
