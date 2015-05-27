@@ -50,8 +50,6 @@ class FileReaderASC{
 
 bool LoadGridFromASC(Grid& grid, const char* filename, AVector3& aPos = aPosition);
 
-void LoadHeightfieldFromASC(Heightfield& field, const char* filename);
-
 }//	end of namespace
 
 #endif	//__H__UG_file_io_asc

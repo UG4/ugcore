@@ -20,6 +20,7 @@ set(srcGrid		grid/grid.cpp
 				
 set(srcAlgorithms	algorithms/debug_util.cpp
 					algorithms/field_util.cpp
+					algorithms/heightfield_util.cpp
 					algorithms/subset_util.cpp
 					algorithms/selection_util.cpp
 					algorithms/serialization.cpp

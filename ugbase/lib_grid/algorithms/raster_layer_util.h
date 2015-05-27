@@ -7,7 +7,7 @@
 #include <utility>
 #include <string>
 #include <vector>
-#include "lib_grid/algorithms/field_util.h"
+#include "lib_grid/algorithms/heightfield_util.h"
 
 namespace ug{
 

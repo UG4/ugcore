@@ -114,15 +114,4 @@ bool LoadGridFromASC(Grid& grid, const char* filename, AVector3& aPos)
 	return true;
 }
 
-void LoadHeightfieldFromASC(Heightfield& hfield, const char* filename)
-{
-	FileReaderASC reader;
-	reader.set_field(&hfield.field());
-	reader.load_file(filename);
-	hfield.set_cell_size(vector2(reader.cell_size(), reader.cell_size()));
-	hfield.set_offset(vector2(reader.lower_left_corner_x(),
-							  reader.lower_left_corner_y()));
-	hfield.set_no_data_value(reader.no_data_value());
-}
-
 }//	end of namespace
