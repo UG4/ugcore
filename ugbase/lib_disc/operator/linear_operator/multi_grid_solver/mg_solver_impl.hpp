@@ -1615,6 +1615,7 @@ presmooth_and_restriction(int lev)
 	UG_CATCH_THROW("GMG: Pre-Smoothing on level "<<lev<<" failed.");
 	GMG_PROFILE_END();
 
+	log_debug_data(lev, "AfterPreSmooth_BeforeCom");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - presmooth on level "<<lev<<"\n");
 
 //	PARALLEL CASE:
