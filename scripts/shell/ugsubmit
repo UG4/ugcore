@@ -15,6 +15,7 @@
 # - Hermit, HLRS Stuttgart (qsub, aprun)
 # - NecNehalem, HLRS Stuttgart (qsub, mpirun)
 # - MOAB Workload Manager (msub, srun)
+# - Rosa, CSCS Lugano (SLURM, aprun)
 #
 # feel free to add more! see the files "schedulers/new_template" and "clusters"
 #
@@ -131,6 +132,11 @@ function usage
 		echo ""
 		echo " Juqueen Parameters"
 		echo ""
+	fi
+	if [ -z "$UGSUBMIT_TYPE" ] || [ $UGSUBMIT_TYPE == "DoraCSCS" ]; then
+	    echo ""
+	    echo " Dora Parameters"
+	    echo ""
 	fi
 	echo ""
 	echo " descr: The script creates a new folder relative to the current path with the name"

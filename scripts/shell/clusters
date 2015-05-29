@@ -11,6 +11,7 @@
 #hermit 		qsub+aprun 		32 	65536
 #NecNehalem		qsub+mpirun		4	1024
 #Jugene			LL+mpirun		4	65536
+#Jugene			slurm+aprun		4	65536
 
 source $scriptpath/clusterdetect
 
@@ -41,6 +42,10 @@ elif [ $UGSUBMIT_TYPE == "cesari" ]; then
 
 	source $scriptpath/schedulers/cesari
 	
+elif [ $UGSUBMIT_TYPE == "DoraCSCS" ]; then
+
+	source $scriptpath/schedulers/dora
+
 elif [ $UGSUBMIT_TYPE == "moab" ]; then
 	source $scriptpath/schedulers/moab
 ############################################################
