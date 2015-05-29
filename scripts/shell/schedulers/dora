@@ -1,0 +1,124 @@
+#!/bin/bash
+######################################################################
+#                           cesari
+#-------------------------------------------------------------------
+# using SLURM
+######################################################################
+
+function UJS_Submit
+{
+	echo "Cluster: dora.cscs.ch. Scheduler: SLURM."
+		
+	local SlurmWalltime=""
+	if [ $walltime != "unlimited" ]; then
+		SlurmWalltime="--time=$walltime "
+	fi
+	
+	local SlurmMail=""
+	if [ $mail == true ]; then 
+		if [ -z "$UGSUBMIT_EMAIL" ]; then
+			echo "please set UGSUBMIT_EMAIL or specify email with -email. Aborting."
+			exit
+		fi
+
+		SlurmNotification="never"
+		if [ $mailStart == true ]; then
+			SlurmNotification="BEGIN"
+		fi
+		if [ $mailEnd == true ]; then
+			if [ $SlurmNotification == "never" ]; then
+				SlurmNotification="END"
+			else
+				SlurmNotification="ALL"
+			fi
+		fi
+		if [ $mailError == true ]; then
+			if [ $SlurmNotification == "never" ]; then
+				SlurmNotification="FAIL"
+			else
+				SlurmNotification="ALL"
+			fi
+		fi	 
+		SlurmMail="--mail-user=$UGSUBMIT_EMAIL --mail-type=$SlurmNotification "
+	fi
+
+	local SlurmExclusive=""
+	if [ $exclusive == true ]; then
+		SlurmExclusive="--exclusive "
+	fi	
+	local additionalSlurm="$SlurmWalltime$SlurmMail$SlurmExclusive"
+	
+	commandline="salloc -N $nnodes -n $npe $additionalSlurm --job-name=$jobname aprun -B $executable $args"
+	echo " command:      "$commandline >> info.txt
+
+	if [ $test == true ]; then
+		echo "ONLY testing - NOT executing."
+		echo "Submit/Start: $commandline"
+		return
+	fi
+
+	if [ $interactive == true ]; then	
+		echo "[[ current cluster allocation"
+		squeue
+		echo "]] current cluster allocation"
+		
+		echo "Start: $commandline"
+		
+		$commandline | tee $outdir/job.output
+		return=$?	
+		if [ ! $return == 0 ]; then
+			echo "ERROR: srun returned $return. Job has NOT been started."
+			exit
+		fi
+	else
+		echo "Submit: $commandline"
+		nohup $commandline > $outdir/job.output &
+		sleep 1
+		jobid=`cat job.output | sed -n 1p | sed 's/.* \([0-9]*\).*/\1/'`
+		
+		echo " ------------" >> info.txt
+		echo "  scontrol show jobid $jobid" >> info.txt
+		echo " ------------" >> info.txt
+		scontrol show jobid $jobid >> info.txt
+	fi
+}
+
+
+function UJS_GetOptions
+{
+	nppnmax=24
+	pemax=30144	
+}
+
+function UJS_Info
+{
+	echo "UGSUBMIT Info for rosa:"
+	echo "Max Cores Total: YY (XX Nodes with 2x16 cores Per Node)"
+	echo "Using SLURM on rosa"	
+	if [ ! -z $1 ] && [ $1 == "all" ]; then
+		echo "squeue -o \"%.7i %6C %6D %.50j %.10u %.8T %.10M %.10l %.6D %19R\""
+		squeue -o "%.7i %6C %6D %.50j %.10u %.8T %.10M %.10l %.6D %19R"
+	else
+		echo "squeue -u $USER -o \"%.7i %6C %6D %.50j %.10u %.8T %.10M %.10l %.6D %19R\""
+		squeue -u $USER -o "%.7i %6C %6D %.50j %.10u %.8T %.10M %.10l %.6D %19R"
+	fi	
+}
+
+function UJS_Cancel
+{
+	echo "Using SLURM on rosa"
+	if [ ! -z $1 ] && [ $1 == "all" ]; then
+		echo "your jobs:"
+		squeue -u $USER -o "%.7i %6C %6D %.50j %.10u %.8T %.10M %.10l %.6D %19R"
+		echo " "
+		read -p "Are you sure you want to cancel all your jobs (yes=j,J,y or Y) ? " -n 1 -r
+		echo " "		
+		if [[ $REPLY =~ ^[JjYy]$ ]]
+		then			
+		    scancel --user=$USER
+		fi
+		
+	else
+		scancel $1
+	fi
+}
