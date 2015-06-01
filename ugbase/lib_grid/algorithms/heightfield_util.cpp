@@ -4,6 +4,7 @@
 #include "heightfield_util.h"
 #include "field_util.h"
 #include "lib_grid/file_io/file_io_asc.h"
+#include "lib_grid/file_io/file_io.h"
 
 using namespace std;
 
@@ -83,9 +84,13 @@ void CreateGridFromFieldBoundary(Grid& grid,
 ////////////////////////////////////////////////////////////////////////////////
 void LoadHeightfieldFromASC(Heightfield& hfield, const char* filename)
 {
+	std::string name;
+	bool fileFound = FindFileInStandardGridPaths(name, filename);
+	UG_COND_THROW(!fileFound, "Couldn't locate file " << filename);
+
 	FileReaderASC reader;
 	reader.set_field(&hfield.field());
-	reader.load_file(filename);
+	reader.load_file(name.c_str());
 	hfield.set_cell_size(vector2(reader.cell_size(), reader.cell_size()));
 	hfield.set_offset(vector2(reader.lower_left_corner_x(),
 							  reader.lower_left_corner_y()));

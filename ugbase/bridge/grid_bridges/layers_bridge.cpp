@@ -89,6 +89,17 @@ void RegisterGridBridge_Layers(Registry& reg, string parentGroup)
 			"alpha # num iterations", "Blurs the values in each layer by averaging between "
 			"neighbored cells on the same layer.")
 		.set_construct_as_smart_pointer(true);
+
+	reg.add_class_<Heightfield>("Heightfield", grp, "2d raster with number values")
+		.add_constructor()
+		.add_method("interpolate",
+					static_cast<number (Heightfield::*)(number, number) const>(&Heightfield::interpolate),
+					"height", "x#y", "returns the height at the given coordinate")
+		.add_method("no_data_value", &Heightfield::no_data_value,
+					"noDataValue", "", "returns the value which represents an invalid height");
+
+	reg.add_function("LoadHeightfieldFromASC", LoadHeightfieldFromASC, grp,
+					 "", "heightfield # filename", "Loads a heightfield from the specified file");
 }
 
 }//	end of namespace
