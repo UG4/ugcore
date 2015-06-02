@@ -130,6 +130,7 @@ end
 function table.print(data, style)
 
 	-- get format
+	if style == nil then style = {} end
 	local heading = style.heading
 	local format = style.format or {}
 	local vline = style.vline or false
@@ -208,6 +209,89 @@ function table.print(data, style)
 		end
 		write("\n");
 	end		
+end
+
+
+--! traverses a table recursively and returns the length of the longest identifyer
+function table.len_of_longest_identifyer(t)
+	local maxLen = 0
+	for n, v in pairs(t) do
+		if type(v) == "table" then
+			maxLen = math.max(maxLen, table.len_of_longest_identifyer(v))
+		else
+			maxLen = math.max(maxLen, string.len(n))
+		end
+	end
+	return maxLen
+end
+
+
+function table.print_flat(t, prefix, maxLen)
+	if prefix == nil then prefix = "" end
+	if maxLen == nil then
+		maxLen = table.len_of_longest_identifyer(t)
+	end
+
+	local namesSorted = {}
+	local c = 1
+	for n, _ in pairs(t) do
+		namesSorted[c] = n
+		c = c + 1
+	end
+	table.sort(namesSorted)
+
+	for i = 1, c do
+		local n = namesSorted[i]
+		if n ~= nil then
+			local v = t[n]
+			
+			local l = string.len(n)
+			local pn = n
+			if l > maxLen then
+				pn = string.sub(pn, 1, maxLen)
+				l = maxLen
+			end
+			pn = pn .. " " .. string.rep(".", 2 + maxLen - l)
+
+			if type(v) == "table" then
+				print(prefix, pn, " = {")
+				table.print_flat(t, prefix .. "  ", maxLen)
+				print(prefix, "}")
+			else
+				print(prefix, pn, " = ", v)
+			end
+		end
+	end
+end
+
+
+--! Recursively adds entries from table t2 to table t1, if those entries were
+--! not already contained in t1.
+--! @returns t1
+function table.merge_inplace(t1, t2)
+	for n, v in pairs(t2) do
+		if type(v) == "table" then
+			if t1[n] == nil then
+				t1[n] = table.deepcopy(v)
+			elseif type(t1[n]) == "table" then
+				table.merge_inplace(t1[n], v)
+			end
+		elseif t1[n] == nil then
+			t1[n] = v
+		end
+	end
+	return t1
+end
+
+--! Creates a new table which contains the entries from tables t1 and t2.
+--! key-value pairs from table t1 have higher priority than those from t2,
+--! meaning that if a key is found in both tables, the key-value pair from
+--! t1 is considered only.
+--! @returns A new table resulting from merging t1 and t2
+function table.merge(t1, t2)
+	local t = table.deepcopy(t1)
+	table.merge_inplace(t, t2)
+	return t
 end
 
 -- end group scripts_util_table

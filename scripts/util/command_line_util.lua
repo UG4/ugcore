@@ -146,8 +146,15 @@ function util.GetParamNumber(name, default, description, options)
 	
 	-- read in
 	local param = util.GetParam(name, default, description, options, " (number) ")
+	if param == nil and default == nil then
+		return nil
+	end
+
 	ug_assert(param ~= nil, "ERROR in GetParamNumber: Number Parameter "..name.." not set and no default value given.")
-	if param == default then return default end
+	if param == default then
+		return default
+	end
+	
 	-- cast to number	
 	local value = tonumber(param)
 	ug_assert(value ~= nil, "ERROR in GetParamNumber: passed '"..param.."' for Parameter '"
@@ -239,6 +246,21 @@ function util.HasParamOption(name, description)
 	-- not passed
 	return false 
 end
+
+--! util.HasParamOption
+--! Checks whether a paramneter was specified in the command line
+--! @param name of the parameter to search for in argv
+--! @return true if the parameter was found, false if not
+function util.CheckForParam(name)
+	for i = 1, ugargc do
+		if ugargv[i] == name then
+			return true
+		end		
+	end	
+	
+	return false 
+end
+
 
 --! returns all arguments from the command line
 function util.GetCommandLine()

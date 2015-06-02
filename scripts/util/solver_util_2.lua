@@ -71,7 +71,7 @@
 --				convCheck = {
 --					type		= "standard"
 --					iteration	= 1000,
---					absolut		= 1e-12,
+--					absolute		= 1e-12,
 --					reduction	= 1e-10,
 --					verbose		= false
 --				}
@@ -162,7 +162,7 @@ util.solver.defaults =
 	{
 		standard = {
 			iterations	= 100,		-- number of iterations
-			absolut		= 1e-12,	-- absolut value of defect to be reached;
+			absolute		= 1e-12,	-- absolute value of defect to be reached;
 			reduction	= 1e-6,		-- reduction factor of defect to be reached;
 			verbose		= true
 		}
@@ -177,14 +177,34 @@ function util.solver.CondAbort(condition, message)
 	end
 end
 
+--! if solverDesc is a table, solverDesc.solverutil will be set to solverutil or
+--! initialized as an empty table. The method will then return solverDesc.solverutil.
+--! If solverDesc is not a table, the method returns solverutil or {}, if
+--! solverutil == nil.
+function util.solver.PrepareSolverUtil(solverDesc, solverutil)
+	if type(solverDesc) == "table" then
+		solverDesc.solverutil = solverutil or solverDesc.solverutil or {}
+		return solverDesc.solverutil
+	else
+		return solverutil or {}
+	end
+end
 
-function util.solver.CreateSolver(solverDesc)
+--! Creates a solver.
+--! @param solverutil	You may OPTIONALLY pass a table solverutil in which
+--! 					solver related information will be stored. If solverDesc
+--!						is a table, you may also acacess this information through
+--!						solverDesc.solverutil (even if the parameter solverutil == nil).
+function util.solver.CreateSolver(solverDesc, solverutil)
+	solverutil = util.solver.PrepareSolverUtil(solverDesc, solverutil)
 --	todo: add non-linear solvers
-	return util.solver.CreateLinearSolver(solverDesc)
+	return util.solver.CreateLinearSolver(solverDesc, solverutil)
 end
 
 
-function util.solver.CreateLinearSolver(solverDesc)
+function util.solver.CreateLinearSolver(solverDesc, solverutil)
+	solverutil = util.solver.PrepareSolverUtil(solverDesc, solverutil)
+
 	if util.tableDesc.IsPreset(solverDesc) then return solverDesc end
 
 	local name, desc = util.tableDesc.ToNameAndDesc(solverDesc)
@@ -223,12 +243,12 @@ function util.solver.CreateLinearSolver(solverDesc)
 	
 	if createPrecond == true then
 		linSolver:set_preconditioner(
-			util.solver.CreatePreconditioner(desc.precond or defaults.precond))
+			util.solver.CreatePreconditioner(desc.precond or defaults.precond, solverutil))
 	end
 
 	if createConvCheck == true then
 		linSolver:set_convergence_check(
-			util.solver.CreateConvCheck(desc.convCheck or defaults.convCheck))
+			util.solver.CreateConvCheck(desc.convCheck or defaults.convCheck, solverutil))
 	end
 
 	if desc then desc.instance = linSolver end
@@ -236,7 +256,8 @@ function util.solver.CreateLinearSolver(solverDesc)
 end
 
 
-function util.solver.CreatePreconditioner(precondDesc)
+function util.solver.CreatePreconditioner(precondDesc, solverutil)
+	solverutil = util.solver.PrepareSolverUtil(solverDesc, solverutil)
 	if util.tableDesc.IsPreset(precondDesc) then return precondDesc end
 
 	local name, desc = util.tableDesc.ToNameAndDesc(precondDesc)
@@ -260,11 +281,11 @@ function util.solver.CreatePreconditioner(precondDesc)
 	elseif name == "gmg"  then 
 		local smoother =
 				util.solver.CreatePreconditioner(
-					desc.smoother or defaults.smoother)
+					desc.smoother or defaults.smoother, solverutil)
 		
 		local baseSolver = 
 				util.solver.CreateLinearSolver(
-					desc.baseSolver or defaults.baseSolver)
+					desc.baseSolver or defaults.baseSolver, solverutil)
 
 		local approxSpace = desc.approxSpace or util.solver.defaults.approxSpace
 		if approxSpace == nil then
@@ -302,11 +323,11 @@ function util.solver.CreatePreconditioner(precondDesc)
 	elseif name == "schur" 	then
 		local dirichletSolver =
 				solver.util.CreateLinearSolver(
-					desc.dirichletSolver or defaults.dirichletSolver)
+					desc.dirichletSolver or defaults.dirichletSolver, solverutil)
 
 		local skeletonSolver =
 				solver.util.CreateLinearSolver(
-					desc.skeletonSolver or defaults.skeletonSolver)
+					desc.skeletonSolver or defaults.skeletonSolver, solverutil)
 
 		local schur = SchurComplement()
 		schur:set_dirichlet_solver(dirichletSolver)
@@ -321,7 +342,8 @@ function util.solver.CreatePreconditioner(precondDesc)
 end
 
 
-function util.solver.CreateConvCheck(convCheckDesc)
+function util.solver.CreateConvCheck(convCheckDesc, solverutil)
+	solverutil = util.solver.PrepareSolverUtil(solverDesc, solverutil)
 	if util.tableDesc.IsPreset(convCheckDesc) then return convCheckDesc end
 
 	local name, desc = util.tableDesc.ToNameAndDesc(convCheckDesc)
@@ -337,12 +359,54 @@ function util.solver.CreateConvCheck(convCheckDesc)
 	if name == "standard" then
 		cc = ConvCheck()
 		cc:set_maximum_steps	(desc.iterations	or defaults.iterations)
-		cc:set_minimum_defect	(desc.absolut		or defaults.absolut)
+		cc:set_minimum_defect	(desc.absolute		or defaults.absolute)
 		cc:set_reduction		(desc.reduction		or defaults.reduction)
 		cc:set_verbose			(verbose)
 	end
 
 	util.solver.CondAbort(cc == nil, "Invalid conv-check specified: " .. name)
-	if desc then desc.instance = cc end
+	if desc then
+		desc.instance = cc
+		solverutil.convCheckDescs = solverutil.convCheckDescs or {}
+		table.insert(solverutil.convCheckDescs, desc)
+	end
+
 	return cc
+end
+
+
+--! Prepares a solution step, e.g. during nested iterations.
+--! @param desc			a solver-desc which was used during solver-creation in one of
+--! 					the solver_util_2 methods or a solverutil table, which is was 
+--! 					also created in one of the solver_util_2 methods or simply
+--!						a table which holds a bunch of Convergence-Check descriptor tables.
+--!
+--! @param nestedStep	(optional) the step of the nested iteration (default: 1)
+--!
+--! @param timeStep		(optional) the current time step (default: 1)
+function util.solver.PrepareStep(desc, nestedStep, timeStep)
+	if nestedStep == nil then nestedStep = 1 end
+	if timeStep == nil then timeStep = 1 end
+
+	local convCheckDescs = (desc.solverutil and desc.solverutil.convCheckDescs)
+						 or desc.convCheckDescs
+						 or desc
+
+	if convCheckDescs then
+		for _, ccDesc in pairs(convCheckDescs) do
+			local cc = ccDesc.instance
+			for _, d in pairs(ccDesc) do
+				if type(d) == "table" then
+					if	(d.nestedStep == nil or d.nestedStep == nestedStep) and
+						(d.timeStep == nil or d.timeStep == timeStep)
+					then
+						if d.iterations		then cc:set_maximum_steps(d.iterations) end
+						if d.absolute		then cc:set_minimum_defect(d.absolute) end
+						if d.reduction		then cc:set_reduction(d.reduction) end
+						if d.verbose ~= nil	then cc:set_verbose(d.verbose) end
+					end
+				end
+			end
+		end
+	end
 end

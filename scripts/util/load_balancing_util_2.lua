@@ -97,7 +97,7 @@ function util.balancer.CreateLoadBalancer(dom, desc)
 			descriptor	= desc,
 			rebalance =	function (recordName) end,
 			create_quality_record =	function (name) end,
-			print_quality_records =	function () end
+			print_quality_records =	function () print("  ---") end
 		}
 	end
 

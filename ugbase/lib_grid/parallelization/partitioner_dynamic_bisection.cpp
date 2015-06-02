@@ -648,6 +648,30 @@ control_bisection(ISubsetHandler& partitionSH, std::vector<TreeNode>& treeNodes,
 		m_lastSplitDim = splitDim;
 	bisect_elements(childNodes, treeNodes, aWeight, maxChildWeight, com, 0, splitDim);
 
+// //	DEBUG OUTPUT
+// 	{
+// 		UG_LOG("DEBUG: bisect-node-sizes:\n");
+// 		for(size_t i = 0; i < childNodes.size(); ++i){
+// 			UG_LOG(childNodes[i].elems.size() << ", ");
+// 		}
+// 		UG_LOG("\n");
+
+// 		UG_LOG("DEBUG: bisect-node-weights:\n");
+// 		Grid::AttachmentAccessor<elem_t, ANumber> aaWeight(*m_mg, aWeight);
+// 		for(size_t i = 0; i < childNodes.size(); ++i){
+// 			TreeNode& node = childNodes[i];
+// 			number w = 0;
+// 			for(size_t ielem = node.elems.first(); ielem != s_invalidIndex;
+// 				ielem = node.elems.next(ielem))
+// 			{
+// 				w += aaWeight[node.elems.elem(ielem)];
+// 			}
+
+// 			UG_LOG(w << ", ");
+// 		}
+// 		UG_LOG("\n");
+// 	}
+
 //	perform the recursion
 	int newSplitDim = -1;
 	if(splitDim >= 0)
