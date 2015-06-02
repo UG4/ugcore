@@ -89,7 +89,7 @@ void FunctionGroup::add(const string& name)
 
 // 	if not found, return false
 	if(found == 0)
-		UG_THROW("FunctionGroup: no function '"<<tName<<" in Function Pattern.");
+		UG_THROW("FunctionGroup: no function '"<<tName<<"' in Function Pattern.");
 }
 
 void FunctionGroup::add(const char* name)
@@ -162,7 +162,7 @@ void FunctionGroup::remove(const string& name)
 
 // 	if not found, return false
 	if(found == 0)
-		UG_THROW("FunctionGroup: no function '"<<tName<<" in Function Pattern.");
+		UG_THROW("FunctionGroup: no function '"<<tName<<"' in Function Pattern.");
 }
 
 void FunctionGroup::remove(const char* name)
