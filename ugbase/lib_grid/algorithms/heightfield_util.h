@@ -40,7 +40,7 @@ UG_API class Heightfield{
 
 		number	interpolate (number x, number y) const
 		{
-			interpolate(x, y, 0);
+			return interpolate(x, y, 0);
 		}
 
 		number	interpolate (const vector2& c) const
