@@ -21,12 +21,32 @@ UG_API class Heightfield{
 	public:
 		Heightfield();
 		
-	///	returns the value of the closest entry in the m_data field.
-	/** \todo: add a method 'set_interpolation_method' to also support
+	///	returns the interpolated value at the given location.
+	/** returns the interpolated value at the given location. Through 'interpOrder'
+	 * one may specify the order of interpolation:
+	 *	- 0: piecewise constant (nearest entry)
+	 *	- 1: linear
+	 *
+	 * \todo: add a method 'set_interpolation_method' to also support
 	 * bilinear- or spline-interpolation
 	 * \{ */
-		number	interpolate(number x, number y) const;
-		number	interpolate(const vector2& c) const		{return interpolate(c.x(), c.y());}
+
+		number	interpolate (number x, number y, int interpOrder) const;
+		
+		number	interpolate (const vector2& c, int interpOrder) const
+		{
+			return interpolate(c.x(), c.y(), interpOrder);
+		}
+
+		number	interpolate (number x, number y) const
+		{
+			interpolate(x, y, 0);
+		}
+
+		number	interpolate (const vector2& c) const
+		{
+			return interpolate(c.x(), c.y(), 0);
+		}
 	/** \} */
 
 	///	returns the index-tuple of the closest field-entry

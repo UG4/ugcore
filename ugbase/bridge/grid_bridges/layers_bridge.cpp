@@ -94,7 +94,10 @@ void RegisterGridBridge_Layers(Registry& reg, string parentGroup)
 		.add_constructor()
 		.add_method("interpolate",
 					static_cast<number (Heightfield::*)(number, number) const>(&Heightfield::interpolate),
-					"height", "x#y", "returns the height at the given coordinate")
+					"height", "x#y", "returns the height at the given coordinate using piecewise constant interpolation")
+		.add_method("interpolate",
+					static_cast<number (Heightfield::*)(number, number, int) const>(&Heightfield::interpolate),
+					"height", "x#y#order", "returns the height at the given coordinate using the specified interpolation order")
 		.add_method("no_data_value", &Heightfield::no_data_value,
 					"noDataValue", "", "returns the value which represents an invalid height");
 

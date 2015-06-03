@@ -1,11 +1,11 @@
 // created by Sebastian Reiter
 // s.b.reiter@gmail.com
 
+#include <cmath>
 #include "heightfield_util.h"
 #include "field_util.h"
 #include "lib_grid/file_io/file_io_asc.h"
 #include "lib_grid/file_io/file_io.h"
-
 using namespace std;
 
 namespace ug{
@@ -19,14 +19,40 @@ Heightfield::Heightfield() :
 }
 
 number Heightfield::
-interpolate(number x, number y) const
+interpolate(number x, number y, int interpOrder) const
 {
-	pair<int, int> ind = coordinate_to_index(x, y);
-	if( ind.first >= 0 && ind.first < (int)m_field.width() &&
-		ind.second >= 0 && ind.second < (int)m_field.height())
-	{
-		return m_field.at(ind.first, ind.second);
+	switch(interpOrder){
+		case 0: {
+			pair<int, int> ind = coordinate_to_index(x, y);
+			if( ind.first >= 0 && ind.first < (int)m_field.width() &&
+				ind.second >= 0 && ind.second < (int)m_field.height())
+			{
+				return m_field.at(ind.first, ind.second);
+			}
+		}break;
+
+		case 1:{
+			int cx = int((x - m_offset.x()) / m_cellSize.x());
+			int cy = int((y - m_offset.y()) / m_cellSize.y());
+			if(		cx >= 0
+				and cy >= 0
+				and cx + 1 < (int)m_field.width()
+				and cy + 1 < (int)m_field.height())
+			{
+				float vx = (x - ((number)cx * m_cellSize.x() + m_offset.x())) / m_cellSize.x();
+				float vy = (y - ((number)cy * m_cellSize.y() + m_offset.y())) / m_cellSize.y();
+				float ux = 1-vx;
+				float uy = 1-vy;
+
+				return	ux*uy*m_field.at(cx, cy) + vx*uy*m_field.at(cx+1,cy)
+					  + ux*vy*m_field.at(cx, cy+1) + vx*vy*m_field.at(cx+1, cy+1);
+			}
+		}break;
+
+		default:
+			UG_THROW("Currently only interpolation orders 0 and 1 supported in Heightfield::interpolate")
 	}
+
 	return m_noDataValue;
 }
 
