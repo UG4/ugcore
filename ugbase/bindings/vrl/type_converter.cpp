@@ -1821,7 +1821,7 @@ jobject method2NativeMethod(JNIEnv *env,
 			"([Ledu/gcsc/vrl/ug/NativeParamInfo;)V");
 
 	using namespace ug::bridge;
-	std::string name = method->name(); // TODO pre-ocessing necessary
+	std::string name = method->name(); // TODO pre-processing necessary
 	env->CallVoidMethod(obj, setName, stringC2J(env, name.c_str()));
 	env->CallVoidMethod(obj, setHelp, stringC2J(env, method->help().c_str()));
 	env->CallVoidMethod(obj, setToolTip, stringC2J(env, name.c_str()));
@@ -2087,7 +2087,7 @@ jobjectArray classGroups2NativeClassGroups(JNIEnv *env,
 		}
 
 		// initialize default class name with empty string. when trying to
-		// instanciate from java we have to check that!
+		// instantiate from java we have to check that!
 		std::string defaultClassName = "";
 
 		if (clsGrp->get_default_class() != NULL) {
