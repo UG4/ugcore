@@ -96,7 +96,7 @@ void Heightfield::blur(number alpha, size_t numIterations)
 
 bool Heightfield::eliminate_invalid_cells()
 {
-	EliminateInvalidCells(field(), no_data_value());
+	return EliminateInvalidCells(field(), no_data_value());
 }
 
 
