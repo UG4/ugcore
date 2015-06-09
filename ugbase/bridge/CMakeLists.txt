@@ -43,6 +43,7 @@ if(buildAlgebra)
 					domain_bridges/domain_bridge.cpp
 					domain_bridges/load_balancing_bridge.cpp
 					domain_bridges/periodic_boundary_bridge.cpp
+					domain_bridges/ray_tracing_bridge.cpp
 					domain_bridges/refinement_bridge.cpp
 					domain_bridges/selection_bridge.cpp
 					domain_bridges/transform_bridge.cpp

@@ -254,6 +254,103 @@ bool FindElementsInIntersectingNodes(std::vector<typename tree_t::elem_t>& elems
 	return !elemsOut.empty();
 }
 
+
+
+// template <class TVector, class TData>
+// class TraceRecorder {
+// 	public:
+// 		typedef TVector		vector_t;
+// 		typedef TData		data_t;
+
+// 		void clear		();
+// 		void set_ray	(const vector_t& from, const vector_t& dir);
+// 		void add_point	(const vector_t& p, const data_t& d);
+// 		void add_point	(number t, const data_t& d);
+
+// 		size_t 				num_points 				() const;
+// 		const vector_t&		point					(size_t i) const;
+// 		const point_data&	point_data				(size_t i) const;
+// 		number 				local_point_coordinate	(size_t i) const;
+
+// 		size_t	closest_point_index				() const;
+// 		size_t	closest_positive_point_index	() const;
+// 		size_t	closest_negative_point_index	() const;
+// };
+
+
+template <class tree_t>
+class Traverser_RayElementIntersection
+{
+	public:
+		typedef typename tree_t::elem_t		elem_t;
+		typedef typename tree_t::vector_t	vector_t;
+		typedef typename tree_t::box_t		box_t;
+
+		Traverser_RayElementIntersection(const vector_t& rayFrom,
+										 const vector_t rayDir,
+										 const number small = 1.e-12) :
+			m_rayFrom(rayFrom),
+			m_rayDir(rayDir),
+			m_small(small)
+		{}
+
+		void begin_traversal(const tree_t& tree)
+		{
+			m_intersections.clear();
+		}
+
+		int visit_up(const tree_t& tree, size_t node)
+		{
+			const box_t& box = tree.bounding_box(node);
+			if(!tree_t::traits::ray_box_intersection(m_rayFrom, m_rayDir, box))
+				return DONT_TRAVERSE_CHILDREN;
+
+			if(tree.num_child_nodes(node) == 0){
+			//	iterate over all elements. If an element intersects the given ray,
+			//	we'll record the intersection point
+				vector_t v;
+				number s = 0, t0 = 0, t1 = 0;
+				for(typename tree_t::elem_iterator_t iter = tree.elems_begin(node);
+					iter != tree.elems_end(node); ++iter)
+				{
+					if(tree_t::traits::intersects_ray(
+							*iter, m_rayFrom, m_rayDir, tree.common_data(),
+							v, s, t0, t1, m_small))
+					{
+						m_intersections.push_back(v);
+					}
+				}
+			}
+			return TRAVERSE_CHILDREN;
+		}
+
+		void visit_down(const tree_t&, size_t)	{}
+
+		void end_traversal(const tree_t&)	{}
+
+		const std::vector<vector_t>& result() const	{return m_intersections;}
+
+	private:
+		vector_t				m_rayFrom;
+		vector_t				m_rayDir;
+		const number			m_small;
+		std::vector<vector_t>	m_intersections;
+};
+
+template <class tree_t>
+bool RayElementIntersections(std::vector<typename tree_t::vector_t>& intersectionsOut,
+									 const tree_t& tree,
+									 const typename tree_t::vector_t& rayFrom,
+									 const typename tree_t::vector_t& rayDir,
+									 const number small = 1.e-12)
+{
+	Traverser_RayElementIntersection<tree_t> trav(rayFrom, rayDir, small);
+	TraverseDepthFirst(tree, trav);
+	//UG_LOG("num elems checked for one pick: " << trav.num_elems_checked() << "\n");
+	intersectionsOut = trav.result();
+	return !intersectionsOut.empty();
+}
+
 }// end of namespace
 
 #endif

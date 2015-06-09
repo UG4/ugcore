@@ -465,7 +465,8 @@ bool LineLineProjection(number& t1Out, number& t2Out,
 template <class vector_t>
 bool RayTriangleIntersection(vector_t &vOut, number& bc1Out, number& bc2Out, number& tOut,
 						   const vector_t &p0, const vector_t &p1, const vector_t &p2, 
-						   const vector_t &vFrom, const vector_t &vDir)
+						   const vector_t &vFrom, const vector_t &vDir,
+						   const number small)
 {
 //	this piece of code is rather old and should probably be replaced by a
 //	new method to improve speed and robustness.
@@ -478,7 +479,7 @@ bool RayTriangleIntersection(vector_t &vOut, number& bc1Out, number& bc2Out, num
 //	(r and s can at the same time be seen as the barycentric coordinates of
 //	the triangle).
 //	Division by zero is avoided (currently a == check is used - should be 
-//	replaced by a comparision to SMALL)
+//	replaced by a comparision to small)
 
 /*
 	p2
@@ -567,7 +568,7 @@ bool RayTriangleIntersection(vector_t &vOut, number& bc1Out, number& bc2Out, num
 		else if(b[i1] != 0)
 			return false;
 
-		if((bc1Out >=-SMALL ) && (bc2Out >= -SMALL ) && ((bc1Out + bc2Out) <= 1.+SMALL))
+		if((bc1Out >=-small ) && (bc2Out >= -small ) && ((bc1Out + bc2Out) <= 1.+small))
 		{
 			vOut.x() = vFrom.x() + tOut*vDir.x();
 			vOut.y() = vFrom.y() + tOut*vDir.y();

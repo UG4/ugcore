@@ -187,6 +187,7 @@ void RegisterStandardBridges(Registry& reg, string parentGroup)
 			RegisterBridge_Domain(reg, parentGroup);
 			RegisterBridge_PeriodicBoundary(reg, parentGroup);
 			RegisterBridge_Refinement(reg, parentGroup);
+			RegisterBridge_DomainRayTracing(reg, parentGroup);
 			RegisterBridge_Transform(reg, parentGroup);
 			RegisterBridge_LoadBalancing(reg, parentGroup);
 

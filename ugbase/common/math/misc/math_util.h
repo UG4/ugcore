@@ -398,7 +398,8 @@ number DistanceLineToLine(const vector3& a1, const vector3& a2,
 template <class vector_t>
 bool RayTriangleIntersection(vector_t &vOut, number& bc1Out, number& bc2Out, number& tOut,
 						   const vector_t &p0, const vector_t &p1, const vector_t &p2, 
-						   const vector_t &vFrom, const vector_t &vDir);
+						   const vector_t &vFrom, const vector_t &vDir,
+						   const number small = SMALL);
 
 ////////////////////////////////////////////////////////////////////////
 //	RayTriangleIntersection

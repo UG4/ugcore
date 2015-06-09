@@ -98,6 +98,13 @@ struct lg_ntree_traits_base
 		return true;
 	}
 
+	static bool ray_box_intersection(const vector_t& from,
+									 const vector_t& dir,
+									 const box_t& box)
+	{
+		return RayBoxIntersection(from, dir, box.min, box.max);
+	}
+
 ///	returns the smallest box that contains both box1 and box2
 	static void merge_boxes(box_t& boxOut, const box_t& box1, const box_t& box2)
 	{
@@ -120,6 +127,27 @@ struct lg_ntree_traits_base
 //		if(box.contains_point(point))
 //			return ContainsPoint(e, point, aaPos);
 //		return false;
+	}
+
+	static bool intersects_ray( const elem_t& e,
+								const vector_t& rayFrom,
+								const vector_t& rayDir,
+								const common_data_t& cd,
+								vector_t& vout,
+								number sout,
+								number t0out,
+								number t1out,
+								const number small = SMALL)
+	{
+		UG_COND_THROW(e->num_vertices() != 3,
+			"Only triangles are currently supported in lg_ntree::intersect_ray");
+
+		return RayTriangleIntersection(
+					vout, t0out, t1out, sout,
+					cd.position(e->vertex(0)),
+					cd.position(e->vertex(1)),
+					cd.position(e->vertex(2)),
+					rayFrom, rayDir, small);
 	}
 };
 
