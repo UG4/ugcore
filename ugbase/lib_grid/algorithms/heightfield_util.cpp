@@ -88,6 +88,19 @@ vector2 Heightfield::extent() const
 				   m_cellSize.y() * (number)m_field.height());
 }
 
+void Heightfield::blur(number alpha, size_t numIterations)
+{
+	BlurField(field(), alpha, numIterations, no_data_value());
+}
+
+
+bool Heightfield::eliminate_invalid_cells()
+{
+	EliminateInvalidCells(field(), no_data_value());
+}
+
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 void CreateGridFromField(Grid& grid,

@@ -57,6 +57,26 @@ void RegisterGridBridge_Layers(Registry& reg, string parentGroup)
 		.add_method("min_height", &RasterLayerDesc::min_height,
 			"minHeight", "", "Returns the minimal height of the given layer-desc")
 		.set_construct_as_smart_pointer(true);
+	
+	reg.add_class_<Heightfield>("Heightfield", grp, "2d raster with number values")
+		.add_constructor()
+		.add_method("interpolate",
+					static_cast<number (Heightfield::*)(number, number) const>(&Heightfield::interpolate),
+					"height", "x#y", "returns the height at the given coordinate using piecewise constant interpolation")
+		.add_method("interpolate",
+					static_cast<number (Heightfield::*)(number, number, int) const>(&Heightfield::interpolate),
+					"height", "x#y#order", "returns the height at the given coordinate using the specified interpolation order")
+		.add_method("no_data_value", &Heightfield::no_data_value,
+					"noDataValue", "", "returns the value which represents an invalid height")
+		.add_method("blur", &Heightfield::blur, "", "alpha, iterations",
+					"Smoothens the field by adjusting the value of each pixel "
+					"towards the average of its neighbours")
+		.add_method("eliminate_invalid_cells", &Heightfield::eliminate_invalid_cells,
+					"success", "", "eliminates invalid cells by repeatedly filling "
+					"those cells with averages of neighboring cells");
+
+	reg.add_function("LoadHeightfieldFromASC", LoadHeightfieldFromASC, grp,
+					 "", "heightfield # filename", "Loads a heightfield from the specified file");
 
 	reg.add_class_<RasterLayers>("RasterLayers", grp, "Stack of 2d raster data.")
 		.add_constructor()
@@ -90,19 +110,6 @@ void RegisterGridBridge_Layers(Registry& reg, string parentGroup)
 			"neighbored cells on the same layer.")
 		.set_construct_as_smart_pointer(true);
 
-	reg.add_class_<Heightfield>("Heightfield", grp, "2d raster with number values")
-		.add_constructor()
-		.add_method("interpolate",
-					static_cast<number (Heightfield::*)(number, number) const>(&Heightfield::interpolate),
-					"height", "x#y", "returns the height at the given coordinate using piecewise constant interpolation")
-		.add_method("interpolate",
-					static_cast<number (Heightfield::*)(number, number, int) const>(&Heightfield::interpolate),
-					"height", "x#y#order", "returns the height at the given coordinate using the specified interpolation order")
-		.add_method("no_data_value", &Heightfield::no_data_value,
-					"noDataValue", "", "returns the value which represents an invalid height");
-
-	reg.add_function("LoadHeightfieldFromASC", LoadHeightfieldFromASC, grp,
-					 "", "heightfield # filename", "Loads a heightfield from the specified file");
 }
 
 }//	end of namespace

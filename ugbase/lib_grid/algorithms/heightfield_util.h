@@ -49,6 +49,8 @@ UG_API class Heightfield{
 		}
 	/** \} */
 
+
+
 	///	returns the index-tuple of the closest field-entry
 		std::pair<int, int> coordinate_to_index(number x, number y) const;
 
@@ -73,6 +75,13 @@ UG_API class Heightfield{
 	//	moves the heightfield by altering it's offset
 		void move(const vector2& v)				{m_offset += v;}
 
+	///	Smoothens the field by adjusting the value of each pixel towards the average of its neighbours
+		void blur(number alpha, size_t numIterations);
+
+	///	eliminates invalid cells by repeatedly filling those cells with averages of neighboring cells
+	/** The field has to contain at least one valid cell. If it doesn't, false is returned.*/
+		bool eliminate_invalid_cells();
+	
 	private:
 		Field<number>	m_field;
 		vector2			m_cellSize;
