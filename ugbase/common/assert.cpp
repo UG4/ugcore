@@ -12,8 +12,10 @@
 
 #ifdef UG_POSIX
 #include "util/demangle.h"
+#ifndef ANDROID
 #include <execinfo.h>
-#endif
+#endif // ANDROID
+#endif // UG_POSIX
 
 #include <string>
 #include <sstream>
@@ -72,7 +74,7 @@ void shiny_backtrace()
 
 string get_gcc_backtrace()
 {
-#ifdef UG_POSIX
+#if defined UG_POSIX && !defined ANDROID
 	stringstream ss;
 	void *array[100];
 	size_t size;
