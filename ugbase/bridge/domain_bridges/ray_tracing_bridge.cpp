@@ -120,7 +120,9 @@ void RegisterBridge_DomainRayTracing(Registry& reg, string grp) {
 	grp.append("/RayTracing");
 
 	try {
+#ifdef UG_DIM_3
 		RegisterCommon<domain_ray_tracing::Functionality>(reg, grp);
+#endif
 	} UG_REGISTRY_CATCH_THROW(grp);
 }
 
