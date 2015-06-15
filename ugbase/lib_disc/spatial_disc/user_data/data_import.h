@@ -72,6 +72,9 @@ class IDataImport
 	///	sets if import is located in stiff part (default)
 		void set_stiff_part() {m_part = STIFF;}
 
+	///	sets if lin defect is to be computed
+		void set_comp_lin_defect(bool b) {m_bCompLinDefect = b;}
+
 	///	returns if import is located in mass part (for time dependent problems)
 		DiscPart part() const {return m_part;}
 
