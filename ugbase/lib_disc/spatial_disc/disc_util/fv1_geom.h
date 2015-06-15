@@ -473,7 +473,7 @@ class FV1Geometry : public FVGeometryBase
 		MathVector<worldDim> m_vGlobSCVF_IP[numSCVF];
 		MathVector<dim> m_vLocSCVF_IP[numSCVF];
 
-	//	global and local ips on SCV (only needed for Pyramid)
+	//	global and local ips on SCV (only needed for Pyramid and Octahedron)
 		MathVector<worldDim> m_vGlobSCV_IP[numSCV];
 		MathVector<dim> m_vLocSCV_IP[numSCV];
 
