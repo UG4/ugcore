@@ -1192,7 +1192,7 @@ update_local(ReferenceObjectID roid)
 				m_vSCVF[i].To = rRefElem.id(1, i/2, 0, 1);
 			}
 			//	special case octahedron (scvf not mappable by edges)
-			else if(m_roid == ROID_OCTAHEDRON)
+			else if(dim == 3 && m_roid == ROID_OCTAHEDRON)
 			{
 			// 	map according to order defined in ComputeSCVFMidID
 				switch(i)
@@ -1321,7 +1321,7 @@ update_local(ReferenceObjectID roid)
 				m_vSCV[i].nodeId = i<3 ? i : (i<5 ? (i+1)%5 : i-3);
 			}
 			// special case octahedron (scvf not mappable by edges)
-			else if(m_roid == ROID_OCTAHEDRON)
+			else if(dim == 3 && m_roid == ROID_OCTAHEDRON)
 			{
 			// 	map according to order defined in ComputeSCVMidID
 				switch(i)
