@@ -268,7 +268,7 @@ function util.solver.CreateLinearSolver(solverDesc, solverutil)
 		createConvCheck = true
 
 	elseif name == "cg" then
-		linSover = CG()
+		linSolver = CG()
 		createPrecond = true
 		createConvCheck = true
 
