@@ -55,7 +55,10 @@ class DataEvaluator
 		// Regular assembling
 		////////////////////////////////////////////
 
-	///	prepares the element for all time-dependent IElemDiscs
+	///	prepares all time-dependent IElemDiscs
+		void prepare_timestep(const number time, VectorProxyBase* u, size_t algebra_id);
+
+	///	prepares the elements of all time-dependent IElemDiscs
 		void prepare_timestep_elem(const number time, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	///	prepares the element loop for all IElemDiscs
@@ -68,7 +71,10 @@ class DataEvaluator
 	///	finishes the element loop for all IElemDiscs
 		void finish_elem_loop();
 
-	///	finishes the element for all time-dependent IElemDiscs
+	/// finishes all time-dependent IElemDiscs
+		void finish_timestep(const number time, VectorProxyBase* u, size_t algebra_id);
+
+	///	finishes the elements of all time-dependent IElemDiscs
 		void finish_timestep_elem(const number time, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	///	compute local stiffness matrix for all IElemDiscs

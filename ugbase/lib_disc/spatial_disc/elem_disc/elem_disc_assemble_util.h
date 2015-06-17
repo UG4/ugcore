@@ -21,6 +21,7 @@
 #include "lib_disc/common/function_group.h"
 #include "lib_disc/common/local_algebra.h"
 #include "lib_disc/spatial_disc/user_data/data_evaluator.h"
+#include "bridge/util_algebra_dependent.h"
 
 #define PROFILE_ELEM_LOOP
 #ifdef PROFILE_ELEM_LOOP
@@ -1479,10 +1480,61 @@ public:
 		UG_CATCH_THROW("(instationary) AssembleRhs: Cannot create Data Evaluator.");
 	}
 
-////////////////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////////////////
 // Prepare Timestep (for instationary problems)
-////////////////////////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////////////////
+public:
+	/**
+	 * This function prepares the global discretization for a time-stepping scheme
+	 * by calling the "prepare_timestep" methods of all passed element
+	 * discretizations.
+	 *
+	 * \param[in]		vElemDisc		element discretizations
+	 * \param[in]		dd				DoF Distribution
+	 * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
+	 * \param[in]		vSol			current and previous solutions
+	 * \param[in]		spAssTuner		assemble adapter
+	 */
+	static void
+	PrepareTimestep
+	(
+		const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+		ConstSmartPtr<DoFDistribution> dd,
+		bool bNonRegularGrid,
+		ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+		ConstSmartPtr<AssemblingTuner<TAlgebra> > spAssTuner
+	)
+	{
+	//	get current time and vector
+		const vector_type& u = *vSol->solution(0);
 
+	//	create local time series
+		LocalVectorTimeSeries locTimeSeries;
+		locTimeSeries.read_times(vSol);
+
+		try
+		{
+			DataEvaluator<domain_type> Eval(NONE,
+						   vElemDisc, dd->function_pattern(), bNonRegularGrid,
+						   &locTimeSeries);
+			Eval.set_time_point(0);
+
+		//	prepare timestep
+			try
+			{
+				VectorProxy<vector_type> vp(u);
+				size_t algebra_index = bridge::AlgebraTypeIDProvider::instance().id<algebra_type>();
+				Eval.prepare_timestep(vSol->time(0), &vp, algebra_index);
+			}
+			UG_CATCH_THROW("(instationary) PrepareTimestep: Cannot prepare timestep.");
+
+		}
+		UG_CATCH_THROW("(instationary) PrepareTimestep: Cannot create Data Evaluator.");
+	}
+
+////////////////////////////////////////////////////////////////////////////////
+// Prepare Timestep Elem (for instationary problems)
+////////////////////////////////////////////////////////////////////////////////
 public:
 	/**
 	 * This function prepares the global discretization for a time-stepping scheme
@@ -1502,7 +1554,7 @@ public:
 	 */
 	template <typename TElem, typename TIterator>
 	static void
-	PrepareTimestep(const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+	PrepareTimestepElem(const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 					ConstSmartPtr<domain_type> spDomain,
 					ConstSmartPtr<DoFDistribution> dd,
 					TIterator iterBegin,
@@ -1577,8 +1629,60 @@ public:
 		UG_CATCH_THROW("(instationary) PrepareTimestep: Cannot create Data Evaluator.");
 	}
 
-////////////////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////////////////
 // Finish Timestep (for instationary problems)
+// /////////////////////////////////////////////////////////////////////////////
+public:
+	/**
+	 * This function finishes the global discretization for a time-stepping scheme
+	 * by calling the "finish_timestep" methods of all passed element
+	 * discretizations.
+	 *
+	 * \param[in]		vElemDisc		element discretizations
+	 * \param[in]		dd				DoF Distribution
+	 * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
+	 * \param[in]		vSol			current and previous solutions
+	 * \param[in]		spAssTuner		assemble adapter
+	 */
+	static void
+	FinishTimestep
+	(
+		const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+		ConstSmartPtr<DoFDistribution> dd,
+		bool bNonRegularGrid,
+		ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+		ConstSmartPtr<AssemblingTuner<TAlgebra> > spAssTuner
+	)
+	{
+	//	get current time and vector
+		const vector_type& u = *vSol->solution(0);
+
+	//	create local time series
+		LocalVectorTimeSeries locTimeSeries;
+		locTimeSeries.read_times(vSol);
+
+		try
+		{
+			DataEvaluator<domain_type> Eval(NONE,
+						   vElemDisc, dd->function_pattern(), bNonRegularGrid,
+						   &locTimeSeries);
+			Eval.set_time_point(0);
+
+		//	finish time step
+			try
+			{
+				VectorProxy<vector_type> vp(u);
+				size_t algebra_index = bridge::AlgebraTypeIDProvider::instance().id<algebra_type>();
+				Eval.finish_timestep(vSol->time(0), &vp, algebra_index);
+			}
+			UG_CATCH_THROW("(instationary) FinishTimestep: Cannot prepare time step.");
+
+		}
+		UG_CATCH_THROW("(instationary) FinishTimestep: Cannot create Data Evaluator.");
+	}
+
+////////////////////////////////////////////////////////////////////////////////
+// Finish Timestep Elem (for instationary problems)
 ////////////////////////////////////////////////////////////////////////////////
 
 public:
@@ -1599,7 +1703,7 @@ public:
 	 */
 	template <typename TElem, typename TIterator>
 	static void
-	FinishTimestep(const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+	FinishTimestepElem(const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 				   ConstSmartPtr<domain_type> spDomain,
 				   ConstSmartPtr<DoFDistribution> dd,
 				   TIterator iterBegin,
@@ -1668,11 +1772,11 @@ public:
 			{
 				Eval.finish_timestep_elem(locTimeSeries.time(0), locU, elem, vCornerCoords);
 			}
-			UG_CATCH_THROW("(instationary) FinishTimestep: Cannot finish timestep.");
+			UG_CATCH_THROW("(instationary) FinishTimestepElem: Cannot finish timestep.");
 		}
 
 		}
-		UG_CATCH_THROW("(instationary) FinishTimestep: Cannot create Data Evaluator");
+		UG_CATCH_THROW("(instationary) FinishTimestepElem: Cannot create Data Evaluator");
 	}
 
 ////////////////////////////////////////////////////////////////////////////////

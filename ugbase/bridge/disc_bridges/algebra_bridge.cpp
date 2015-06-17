@@ -127,8 +127,9 @@ static void Algebra(Registry& reg, string parentGroup)
 		typedef ITimeDiscretization<TAlgebra> T;
 		string name = string("ITimeDiscretization").append(suffix);
 		reg.add_class_<T,TBase>(name, grp)
-			.add_method("prepare_step", &T::prepare_step, "", "", "prepares the assembling of Defect/Jacobian for a time step")
+			.add_method("prepare_step", &T::prepare_step, "", "", "prepares the assembling of defect/Jacobian for a time step")
 			.add_method("prepare_step_elem", static_cast<void (T::*)(SmartPtr<VectorTimeSeries<vector_type> >, number)>(&T::prepare_step_elem))
+			.add_method("finish_step", &T::finish_step, "", "", "finishes the assembling of defect/Jacobian for a time step")
 			.add_method("finish_step_elem", static_cast<void (T::*)(SmartPtr<VectorTimeSeries<vector_type> >)>(&T::finish_step_elem))
 			.add_method("finish_step_elem", static_cast<void (T::*)(SmartPtr<VectorTimeSeries<vector_type> >, const GridLevel&)>(&T::finish_step_elem))
 			.add_method("num_stages", &T::num_stages, "the number of stages")

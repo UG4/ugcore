@@ -34,6 +34,13 @@ prepare_step(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
 	m_futureTime = update_scaling(m_vScaleMass, m_vScaleStiff,
 	                              m_dt, m_pPrevSol->time(0),
 	                              m_pPrevSol);
+
+//	prepare time step (elemDisc-wise)
+	try
+	{
+		this->m_spDomDisc->prepare_timestep(m_pPrevSol);
+	}
+	UG_CATCH_THROW("ThetaTimeStep: Cannot prepare time step.");
 }
 
 template <typename TAlgebra>
@@ -59,10 +66,17 @@ prepare_step_elem(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
 	                              m_dt, m_pPrevSol->time(0),
 	                              m_pPrevSol);
 
-// 	prepare timestep
-	try{
+//	prepare time step (elemDisc-wise)
+	try
+	{
 		this->m_spDomDisc->prepare_timestep(m_pPrevSol, gl);
-	}UG_CATCH_THROW("ThetaTimeStep: Cannot prepare timestep.");
+	}
+	UG_CATCH_THROW("ThetaTimeStep: Cannot prepare time step.");
+
+// 	prepare timestep element-wise
+	try{
+		this->m_spDomDisc->prepare_timestep_elem(m_pPrevSol, gl);
+	}UG_CATCH_THROW("ThetaTimeStep: Cannot prepare timestep element-wise.");
 }
 
 template <typename TAlgebra>
@@ -262,6 +276,24 @@ calc_error(const vector_type& u, vector_type* u_vtk)
 
 template <typename TAlgebra>
 void MultiStepTimeDiscretization<TAlgebra>::
+finish_step(SmartPtr<VectorTimeSeries<vector_type> > currSol)
+{
+//	perform checks whether 'currSol' is a solutionTimeSeries only with the new values
+	if (currSol->time(0) != m_futureTime)
+		UG_THROW("ThetaTimeStep::finish_step:"
+				" The solution of the SolutionTimeSeries used in this function"
+				" does not coincide with the current solution! ");
+
+// 	finish timestep using the current solution
+	try
+	{
+		this->m_spDomDisc->finish_timestep(currSol);
+	}
+	UG_CATCH_THROW("ThetaTimeStep: Cannot finish timestep.");
+}
+
+template <typename TAlgebra>
+void MultiStepTimeDiscretization<TAlgebra>::
 finish_step_elem(SmartPtr<VectorTimeSeries<vector_type> > currSol,
                  const GridLevel& gl)
 {
@@ -271,10 +303,17 @@ finish_step_elem(SmartPtr<VectorTimeSeries<vector_type> > currSol,
 				" The solution of the SolutionTimeSeries used in this function"
 				" does not coincide with the current solution! ");
 
-	// 	finish timestep using the current solution
-	try{
+// 	finish timestep using the current solution
+	try
+	{
 		this->m_spDomDisc->finish_timestep(currSol, gl);
-	}UG_CATCH_THROW("ThetaTimeStep: Cannot finish timestep.");
+	}
+	UG_CATCH_THROW("ThetaTimeStep: Cannot finish timestep.");
+
+// 	finish timestep element-wise using the current solution
+	try{
+		this->m_spDomDisc->finish_timestep_elem(currSol, gl);
+	}UG_CATCH_THROW("ThetaTimeStep: Cannot finish timestep element-wise.");
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -574,6 +613,13 @@ prepare_step(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
 
 	this->m_futureTime = update_scaling(this->m_vScaleMass, this->m_vScaleStiff,
 	                                    this->m_dt);
+
+//	prepare time step (elemDisc-wise)
+	try
+	{
+		this->m_spDomDisc->prepare_timestep(this->m_pPrevSol);
+	}
+	UG_CATCH_THROW("ThetaTimeStep: Cannot prepare time step.");
 }
 
 template <typename TAlgebra>
@@ -666,6 +712,13 @@ template <typename TAlgebra>
 void SDIRK<TAlgebra>::
 prepare_step_elem(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
                   number dt, const GridLevel& gl)
+{
+	UG_THROW("Not implemented")
+}
+
+template <typename TAlgebra>
+void SDIRK<TAlgebra>::
+finish_step(SmartPtr<VectorTimeSeries<vector_type> > currSol)
 {
 	UG_THROW("Not implemented")
 }

@@ -1352,7 +1352,44 @@ AssembleErrorEstimator(	const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 ///////////////////////////////////////////////////////////////////////////////
 template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
 void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
-prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+prepare_timestep
+(
+	ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+	ConstSmartPtr<DoFDistribution> dd
+)
+{
+	PROFILE_FUNC_GROUP("discretization");
+//	update the elem discs
+	update_disc_items();
+	prep_assemble_loop(m_vElemDisc);
+
+//	find out whether grid is regular
+	ConstSmartPtr<ISubsetHandler> sh = dd->subset_handler();
+	size_t num_subsets = sh->num_subsets();
+	bool bNonRegularGrid = false;
+	for (size_t si = 0; si < num_subsets; ++si)
+		bNonRegularGrid |= !SubsetIsRegularGrid(*sh, si);
+
+//	overrule by regular grid if required
+	if(m_spAssTuner->regular_grid_forced()) bNonRegularGrid = false;
+
+//	call assembler's PrepareTimestep
+	try
+	{
+		gass_type::PrepareTimestep(m_vElemDisc, dd, bNonRegularGrid, vSol, m_spAssTuner);
+	}
+	UG_CATCH_THROW("DomainDiscretization::prepare_timestep (instationary):" <<
+				   " Preparing time step failed.");
+
+	post_assemble_loop(m_vElemDisc);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Prepare Timestep Elem (instationary)
+///////////////////////////////////////////////////////////////////////////////
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
+prepare_timestep_elem(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
                 ConstSmartPtr<DoFDistribution> dd)
 {
 	PROFILE_FUNC_GROUP("discretization");
@@ -1396,41 +1433,41 @@ prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		switch(dim)
 		{
 		case 1:
-			this->template PrepareTimestep<RegularEdge>
+			this->template PrepareTimestepElem<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			this->template PrepareTimestep<ConstrainingEdge>
+			this->template PrepareTimestepElem<ConstrainingEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
 			break;
 		case 2:
-			this->template PrepareTimestep<Triangle>
+			this->template PrepareTimestepElem<Triangle>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
-			this->template PrepareTimestep<Quadrilateral>
+			this->template PrepareTimestepElem<Quadrilateral>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			this->template PrepareTimestep<ConstrainingTriangle>
+			this->template PrepareTimestepElem<ConstrainingTriangle>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
-			this->template PrepareTimestep<ConstrainingQuadrilateral>
+			this->template PrepareTimestepElem<ConstrainingQuadrilateral>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
 			break;
 		case 3:
-			this->template PrepareTimestep<Tetrahedron>
+			this->template PrepareTimestepElem<Tetrahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
-			this->template PrepareTimestep<Pyramid>
+			this->template PrepareTimestepElem<Pyramid>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
-			this->template PrepareTimestep<Prism>
+			this->template PrepareTimestepElem<Prism>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
-			this->template PrepareTimestep<Hexahedron>
+			this->template PrepareTimestepElem<Hexahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
-			this->template PrepareTimestep<Octahedron>
+			this->template PrepareTimestepElem<Octahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
 			break;
 		default:
-			UG_THROW("DomainDiscretization::prepare_timestep (instationary):"
+			UG_THROW("DomainDiscretization::prepare_timestep_elem (instationary):"
 							"Dimension "<<dim<<" (subset="<<si<<") not supported.");
 		}
 		}
-		UG_CATCH_THROW("DomainDiscretization::prepare_timestep (instationary):"
+		UG_CATCH_THROW("DomainDiscretization::prepare_timestep_elem (instationary):"
 						" Assembling of elements of Dimension " << dim << " in "
 						" subset "<<si<< " failed.");
 	}
@@ -1451,7 +1488,7 @@ prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
 template <typename TElem>
 void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
-PrepareTimestep(const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+PrepareTimestepElem(const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 				ConstSmartPtr<DoFDistribution> dd,
 				int si, bool bNonRegularGrid,
 				ConstSmartPtr<VectorTimeSeries<vector_type> > vSol)
@@ -1464,14 +1501,14 @@ PrepareTimestep(const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
-		gass_type::template PrepareTimestep<TElem>
+		gass_type::template PrepareTimestepElem<TElem>
 			(vElemDisc, m_spApproxSpace->domain(), dd, vElem.begin(), vElem.end(), si,
 			 bNonRegularGrid, vSol, m_spAssTuner);
 	}
 	else
 	{
 		//	general case: assembling over all elements in subset si
-		gass_type::template PrepareTimestep<TElem>
+		gass_type::template PrepareTimestepElem<TElem>
 			(vElemDisc, m_spApproxSpace->domain(), dd,
 				dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
 					bNonRegularGrid, vSol, m_spAssTuner);
@@ -2530,7 +2567,44 @@ is_error_valid()
 ///////////////////////////////////////////////////////////////////////////////
 template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
 void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
-finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+finish_timestep
+(
+	ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+	ConstSmartPtr<DoFDistribution> dd
+)
+{
+	PROFILE_FUNC_GROUP("discretization");
+//	update the elem discs
+	update_disc_items();
+	prep_assemble_loop(m_vElemDisc);
+
+//	find out whether grid is regular
+	ConstSmartPtr<ISubsetHandler> sh = dd->subset_handler();
+	size_t num_subsets = sh->num_subsets();
+	bool bNonRegularGrid = false;
+	for (size_t si = 0; si < num_subsets; ++si)
+		bNonRegularGrid |= !SubsetIsRegularGrid(*sh, si);
+
+//	overrule by regular grid if required
+	if(m_spAssTuner->regular_grid_forced()) bNonRegularGrid = false;
+
+//	call assembler's PrepareTimestep
+	try
+	{
+		gass_type::FinishTimestep(m_vElemDisc, dd, bNonRegularGrid, vSol, m_spAssTuner);
+	}
+	UG_CATCH_THROW("DomainDiscretization::finish_timestep (instationary):" <<
+				   " Finishing time step failed.");
+
+	post_assemble_loop(m_vElemDisc);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Finish Timestep Elem (instationary)
+///////////////////////////////////////////////////////////////////////////////
+template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
+void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
+finish_timestep_elem(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
                 ConstSmartPtr<DoFDistribution> dd)
 {
 	PROFILE_FUNC_GROUP("discretization");
@@ -2573,41 +2647,41 @@ finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		switch(dim)
 		{
 		case 1:
-			this->template FinishTimestep<RegularEdge>
+			this->template FinishTimestepElem<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			this->template FinishTimestep<ConstrainingEdge>
+			this->template FinishTimestepElem<ConstrainingEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
 			break;
 		case 2:
-			this->template FinishTimestep<Triangle>
+			this->template FinishTimestepElem<Triangle>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
-			this->template FinishTimestep<Quadrilateral>
+			this->template FinishTimestepElem<Quadrilateral>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
 			// When assembling over lower-dim manifolds that contain hanging nodes:
-			this->template FinishTimestep<ConstrainingTriangle>
+			this->template FinishTimestepElem<ConstrainingTriangle>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
-			this->template FinishTimestep<ConstrainingQuadrilateral>
+			this->template FinishTimestepElem<ConstrainingQuadrilateral>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
 			break;
 		case 3:
-			this->template FinishTimestep<Tetrahedron>
+			this->template FinishTimestepElem<Tetrahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
-			this->template FinishTimestep<Pyramid>
+			this->template FinishTimestepElem<Pyramid>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
-			this->template FinishTimestep<Prism>
+			this->template FinishTimestepElem<Prism>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
-			this->template FinishTimestep<Hexahedron>
+			this->template FinishTimestepElem<Hexahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
-			this->template FinishTimestep<Octahedron>
+			this->template FinishTimestepElem<Octahedron>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
 			break;
 		default:
-			UG_THROW("DomainDiscretization::finish_timestep (instationary):"
+			UG_THROW("DomainDiscretization::finish_timestep_elem (instationary):"
 							"Dimension "<<dim<<" (subset="<<si<<") not supported.");
 		}
 		}
-		UG_CATCH_THROW("DomainDiscretization::finish_timestep (instationary):"
+		UG_CATCH_THROW("DomainDiscretization::finish_timestep_elem (instationary):"
 						" Assembling of elements of Dimension " << dim << " in "
 						" subset "<<si<< " failed.");
 	}
@@ -2628,7 +2702,7 @@ finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
 template <typename TElem>
 void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
-FinishTimestep(const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+FinishTimestepElem(const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 			   ConstSmartPtr<DoFDistribution> dd,
 			   int si, bool bNonRegularGrid,
 			   ConstSmartPtr<VectorTimeSeries<vector_type> > vSol)
@@ -2641,14 +2715,14 @@ FinishTimestep(const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
-		gass_type::template FinishTimestep<TElem>
+		gass_type::template FinishTimestepElem<TElem>
 			(vElemDisc, m_spApproxSpace->domain(), dd, vElem.begin(), vElem.end(), si,
 			 bNonRegularGrid, vSol, m_spAssTuner);
 	}
 	else
 	{
 		//	general case: assembling over all elements in subset si
-		gass_type::template FinishTimestep<TElem>
+		gass_type::template FinishTimestepElem<TElem>
 			(vElemDisc, m_spApproxSpace->domain(), dd,
 				dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
 					bNonRegularGrid, vSol, m_spAssTuner);

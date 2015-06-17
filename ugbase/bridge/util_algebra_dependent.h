@@ -15,6 +15,8 @@
 #include <boost/mpl/front.hpp>
 #include <boost/mpl/pop_front.hpp>
 
+#include "boost/mpl/size.hpp"
+
 #include "common/util/end_boost_list.h"
 
 #ifndef UTIL_ALGEBRA_DEPENDENT_H
@@ -64,6 +66,94 @@ typedef boost::mpl::list<
 	end_boost_list // see common/util/end_boost_list.h
 > CompileAlgebraList;
 
+
+static const size_t NUM_ALGEBRA_TYPES = boost::mpl::size<CompileAlgebraList>::type::value - 1;
+
+
+struct AlgebraTypeIDProvider
+{
+	public:
+		static AlgebraTypeIDProvider& instance()
+		{
+			static AlgebraTypeIDProvider instance;
+			return instance;
+		}
+
+		// helper structs for storage of algebra type indices
+		struct AlgebraIDBase
+		{
+			// needed - otherwise compiler will assume AlgebraIDBase is not polymorphic
+			virtual ~AlgebraIDBase() {};
+		};
+
+		template <typename TAlgebra>
+		struct AlgebraID : public AlgebraIDBase {};
+
+		template <typename TAlgebra>
+		void reg()
+		{
+			m_aid[n++] = (new AlgebraID<TAlgebra>());
+		}
+
+		template <typename TAlgebra>
+		size_t id()
+		{
+			// maybe this can be done faster
+			// however, unless number of algebra types grows significantly,
+			// this should be fine
+			for (size_t i = 0; i < NUM_ALGEBRA_TYPES; ++i)
+			{
+				AlgebraID<TAlgebra>* p_aid = dynamic_cast<AlgebraID<TAlgebra>*>(m_aid[i]);
+				if (p_aid) return i;
+			}
+			UG_THROW("Cannot provide Algebra type index. Algebra type unknown.");
+			return 0;
+		}
+
+	private:
+		// helper struct for filling storage of indices via boost::mpl::list
+		template <typename List = CompileAlgebraList>
+		struct RegisterAlgebraIndices
+		{
+			RegisterAlgebraIndices(AlgebraTypeIDProvider& atidp)
+			{
+				static const bool isEmpty = boost::mpl::empty<List>::value;
+				(typename boost::mpl::if_c<isEmpty, RegEnd, RegNext>::type (atidp));
+			}
+
+			struct RegEnd
+			{
+				RegEnd(AlgebraTypeIDProvider&) {}
+			};
+
+			struct RegNext
+			{
+				RegNext(AlgebraTypeIDProvider& atidp)
+				{
+					typedef typename boost::mpl::front<List>::type AlgebraType;
+					typedef typename boost::mpl::pop_front<List>::type NextList;
+					atidp.reg<AlgebraType>();
+					(RegisterAlgebraIndices<NextList> (atidp));
+				}
+			};
+		};
+
+		// constructor
+		AlgebraTypeIDProvider()
+		{
+			n = 0;
+			RegisterAlgebraIndices<>(*this);
+		}
+
+		// prevent copy constructor and assignment
+		AlgebraTypeIDProvider(AlgebraTypeIDProvider const&);	// do not implement
+		void operator=(AlgebraTypeIDProvider const&);			// do not implement
+
+	private:
+		// storage for algebra types (index in array corresponds to algebra type index)
+		AlgebraIDBase* m_aid[NUM_ALGEBRA_TYPES];
+		size_t n;
+};
 
 
 template <typename Functionality, typename List = CompileAlgebraList>

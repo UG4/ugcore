@@ -356,6 +356,17 @@ void DataEvaluator<TDomain>::clear_positions_in_user_data()
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain>
+void DataEvaluator<TDomain>::prepare_timestep(const number time, VectorProxyBase* u, size_t algebra_id)
+{
+	try
+	{
+		for (size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
+			m_vElemDisc[PT_ALL][i]->do_prep_timestep(time, u, algebra_id);
+	}
+	UG_CATCH_THROW("DataEvaluator::prep_timestep: Cannot prepare time step.");
+}
+
+template <typename TDomain>
 void DataEvaluator<TDomain>::
 prepare_timestep_elem(const number time, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
@@ -427,6 +438,17 @@ prepare_elem(LocalVector& u, GridObject* elem, const ReferenceObjectID roid, con
 		}
 	}
 	UG_CATCH_THROW("DataEvaluator::prep_elem: Cannot compute data for Export or Linker.");
+}
+
+template <typename TDomain>
+void DataEvaluator<TDomain>::finish_timestep(const number time, VectorProxyBase* u, size_t algebra_id)
+{
+	try
+	{
+		for (size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
+			m_vElemDisc[PT_ALL][i]->do_fsh_timestep(time, u, algebra_id);
+	}
+	UG_CATCH_THROW("DataEvaluator::finish_timestep: Cannot prepare time step.");
 }
 
 template <typename TDomain>

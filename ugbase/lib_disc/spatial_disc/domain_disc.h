@@ -142,12 +142,17 @@ class DomainDiscretizationBase
 	///////////////////////
 	// Time dependent part
 	///////////////////////
-
-	/// \copydoc IDomainDiscretization::prepare_timestep()
-		virtual void prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
-		                              ConstSmartPtr<DoFDistribution> dd);
+	///	\copydoc IDomainDiscretization::prepare_timestep()
+		virtual void prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, ConstSmartPtr<DoFDistribution> dd);
 		virtual	void prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, const GridLevel& gl)
 		{prepare_timestep(vSol, dd(gl));}
+
+
+	/// \copydoc IDomainDiscretization::prepare_timestep_elem()
+		virtual void prepare_timestep_elem(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+		                              ConstSmartPtr<DoFDistribution> dd);
+		virtual	void prepare_timestep_elem(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, const GridLevel& gl)
+		{prepare_timestep_elem(vSol, dd(gl));}
 
 	/// \copydoc IDomainDiscretization::assemble_jacobian()
 		virtual void assemble_jacobian(matrix_type& J,
@@ -203,10 +208,15 @@ class DomainDiscretizationBase
 		virtual void adjust_solution(vector_type& u, number time, const GridLevel& gl)
 		{adjust_solution(u, time, dd(gl));}
 
-	/// \copydoc IDomainDiscretization::finish_timestep()
+	///	\copydoc IDomainDiscretization::finish_timestep()
 		virtual void finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, ConstSmartPtr<DoFDistribution> dd);
-		virtual void finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, const GridLevel& gl)
+		virtual	void finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, const GridLevel& gl)
 		{finish_timestep(vSol, dd(gl));}
+
+	/// \copydoc IDomainDiscretization::finish_timestep_elem()
+		virtual void finish_timestep_elem(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, ConstSmartPtr<DoFDistribution> dd);
+		virtual void finish_timestep_elem(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, const GridLevel& gl)
+		{finish_timestep_elem(vSol, dd(gl));}
 
 	///////////////////////////
 	// Mass and Stiffness Matrix
@@ -475,7 +485,7 @@ class DomainDiscretizationBase
 									const vector_type& u);
 	//-- for time-dependent problems --//
 	template <typename TElem>
-	void PrepareTimestep(			const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+	void PrepareTimestepElem(		const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 									ConstSmartPtr<DoFDistribution> dd,
 									int si, bool bNonRegularGrid,
 									ConstSmartPtr<VectorTimeSeries<vector_type> > vSol);
@@ -519,7 +529,7 @@ class DomainDiscretizationBase
 									std::vector<number> vScaleStiff,
 									ConstSmartPtr<VectorTimeSeries<vector_type> > vSol);
 	template <typename TElem>
-	void FinishTimestep(			const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+	void FinishTimestepElem(			const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 									ConstSmartPtr<DoFDistribution> dd,
 									int si, bool bNonRegularGrid,
 									ConstSmartPtr<VectorTimeSeries<vector_type> > vSol);

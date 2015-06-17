@@ -24,6 +24,7 @@
 #include "lib_disc/domain_traits.h"
 #include "elem_modifier.h"
 #include "lib_disc/spatial_disc/elem_disc/err_est_data.h"
+#include "bridge/util_algebra_dependent.h"
 
 namespace ug{
 
@@ -35,6 +36,21 @@ enum ElemDiscType
 	EDT_SIDE = 1 << 1,
 	EDT_BND = 1 << 2,
 	EDT_ALL = EDT_NONE | EDT_SIDE | EDT_ELEM | EDT_BND
+};
+
+
+/// Proxy struct for generic passing of any vector type
+struct VectorProxyBase
+{
+	virtual ~VectorProxyBase() {};
+};
+
+template <typename TVector>
+struct VectorProxy : public VectorProxyBase
+{
+	public:
+		VectorProxy(const TVector& v) : m_v(v) {}
+		const TVector& m_v;
 };
 
 /**
@@ -371,7 +387,10 @@ class IElemDisc
 	///	virtual prepares the loop over all elements of one type
 		virtual void post_assemble_loop() {}
 
-	/// prepare the timestep
+	/// prepare the time step
+		virtual void prep_timestep(number time, VectorProxyBase* u);
+
+	/// prepare the time step element-wise
 		virtual void prep_timestep_elem(const number time, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	///	virtual prepares the loop over all elements of one type
@@ -383,7 +402,10 @@ class IElemDisc
 	///	virtual postprocesses the loop over all elements of one type
 		virtual void fsh_elem_loop();
 
-	/// virtual finish the timestep
+	/// finish the time step
+		virtual void fsh_timestep(number time, VectorProxyBase* u);
+
+	/// virtual finish the time step element-wise
 		virtual void fsh_timestep_elem(const number time, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	/// Assembling of Jacobian (Stiffness part)
@@ -424,10 +446,12 @@ class IElemDisc
 		
 	///	function dispatching call to implementation
 	/// \{
+		void do_prep_timestep(const number time, VectorProxyBase* u, size_t algebra_id);
 		void do_prep_timestep_elem(const number time, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 		void do_prep_elem_loop(const ReferenceObjectID roid, const int si);
 		void do_prep_elem(LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[]);
 		void do_fsh_elem_loop();
+		void do_fsh_timestep(const number time, VectorProxyBase* u, size_t algebra_id);
 		void do_fsh_timestep_elem(const number time, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 		void do_add_jac_A_elem(LocalMatrix& J, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 		void do_add_jac_M_elem(LocalMatrix& J, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
@@ -448,7 +472,9 @@ class IElemDisc
 		typedef IElemDisc<TDomain> T;
 
 	// 	types of timestep function pointers
+		typedef void (T::*PrepareTimestepFct)(number, VectorProxyBase*);
 		typedef void (T::*PrepareTimestepElemFct)(number, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+		typedef void (T::*FinishTimestepFct)(number, VectorProxyBase*);
 		typedef void (T::*FinishTimestepElemFct)(number, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	// 	types of loop function pointers
@@ -477,7 +503,9 @@ class IElemDisc
 
 	protected:
 	// 	register the functions
+		template <typename TAssFunc> void set_prep_timestep_fct(size_t algebra_id, TAssFunc func);
 		template <typename TAssFunc> void set_prep_timestep_elem_fct(ReferenceObjectID id, TAssFunc func);
+		template <typename TAssFunc> void set_fsh_timestep_fct(size_t algebra_id, TAssFunc func);
 		template <typename TAssFunc> void set_fsh_timestep_elem_fct(ReferenceObjectID id, TAssFunc func);
 
 		template <typename TAssFunc> void set_prep_elem_loop_fct(ReferenceObjectID id, TAssFunc func);
@@ -499,7 +527,9 @@ class IElemDisc
 		template <typename TAssFunc> void set_fsh_err_est_elem_loop(ReferenceObjectID id, TAssFunc func);
 		
 	//	unregister functions
+		void remove_prep_timestep_fct(size_t algebra_id);
 		void remove_prep_timestep_elem_fct(ReferenceObjectID id);
+		void remove_fsh_timestep_fct(size_t algebra_id);
 		void remove_fsh_timestep_elem_fct(ReferenceObjectID id);
 
 		void remove_prep_elem_loop_fct(ReferenceObjectID id);
@@ -541,7 +571,9 @@ class IElemDisc
 
 	private:
 	// 	timestep function pointers
+		PrepareTimestepFct			m_vPrepareTimestepFct[bridge::NUM_ALGEBRA_TYPES];
 		PrepareTimestepElemFct 		m_vPrepareTimestepElemFct[NUM_REFERENCE_OBJECTS];
+		FinishTimestepFct			m_vFinishTimestepFct[bridge::NUM_ALGEBRA_TYPES];
 		FinishTimestepElemFct 		m_vFinishTimestepElemFct[NUM_REFERENCE_OBJECTS];
 
 	// 	loop function pointers

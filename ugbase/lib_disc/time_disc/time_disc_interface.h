@@ -88,10 +88,21 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 	/// \}
 
 	/// finishes a time step and allows to adapt data depending on
-	///	the current solution elementwise
+	///	the current solution elemDisc-wise
+	/**
+	 *	This function is called after the assembling routines
+	 *	at the end of a time step.
+	 *
+	 * \param[in] currSol 	the solution at the previous time steps
+	 * \param[in] dt		size of time step
+	 */
+		virtual void finish_step(SmartPtr<VectorTimeSeries<vector_type> > currSol) = 0;
+
+	/// finishes a time step and allows to adapt data depending on
+	///	the current solution element-wise
 	/**
 	 *	This function is called after the assembling routines at the end of a
-	 *	timestep.
+	 *	time step.
 	 *	Within this function "fsh_timestep_elem" is called which allows
 	 *	modifying data depending on the current solution at element-level.
 	 *

@@ -111,19 +111,32 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 
 
 	public:
-	/// prepares Timestep
+	/// prepares time step
 	/**
-	 * prepares timestep at a given Solution u.
+	 * Prepares time step at a given solution u.
+	 * This method is called only once before any time step.
+	 *
+	 * \param[in]  vSol			vector of previous and current (iterated) solution
+	 * \param[in]  dd 			DoF distribution
+	 */
+		virtual void prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, ConstSmartPtr<DoFDistribution> dd) = 0;
+		virtual void prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, const GridLevel& gl) = 0;
+		virtual void prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol)
+		{prepare_timestep(vSol, GridLevel());}
+
+	/// prepares time step element-wise
+	/**
+	 * prepares time step element-wise at a given solution u.
 	 *
 	 * \param[in]  vSol			vector of previous and current (iterated) solution
 	 * \param[in]  dd 			DoF Distribution
 	 */
-	virtual void prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, const GridLevel& gl) = 0;
-	virtual void prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, ConstSmartPtr<DoFDistribution> dd) = 0;
+		virtual void prepare_timestep_elem(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, ConstSmartPtr<DoFDistribution> dd) = 0;
+		virtual void prepare_timestep_elem(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, const GridLevel& gl) = 0;
 
 	///	prepares timestep on surface level
-	void prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol)
-		{prepare_timestep(vSol, GridLevel());}
+		void prepare_timestep_elem(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol)
+		{prepare_timestep_elem(vSol, GridLevel());}
 
 	/// assembles Jacobian (or Approximation of Jacobian)
 	/**
@@ -250,6 +263,19 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 		void adjust_solution(vector_type& u, number time)
 		{adjust_solution(u,time, GridLevel());}
 
+	/// finishes time step
+	/**
+	 * Finishes time step at a given solution u.
+	 * This method is called only once after any time step.
+	 *
+	 * \param[in]  vSol			vector of previous and current (iterated) solution
+	 * \param[in]  dd 			DoF distribution
+	 */
+		virtual void finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, ConstSmartPtr<DoFDistribution> dd) = 0;
+		virtual void finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, const GridLevel& gl) = 0;
+		virtual void finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol)
+		{finish_timestep(vSol, GridLevel());}
+
 	/// finishes timestep
 	/**
 	 * finishes timestep at a given Solution u.
@@ -257,12 +283,12 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 	 * \param[in]  vSol			vector of previous and current (iterated) solution
 	 * \param[in]  dd 			DoF Distribution
 	 */
-		virtual void finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, const GridLevel& gl) = 0;
-		virtual void finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, ConstSmartPtr<DoFDistribution> dd) = 0;
+		virtual void finish_timestep_elem(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, const GridLevel& gl) = 0;
+		virtual void finish_timestep_elem(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, ConstSmartPtr<DoFDistribution> dd) = 0;
 
-	///	prepares timestep on surface level
-		void finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol)
-			{finish_timestep(vSol, GridLevel());}
+	///	finishes timestep on surface level
+		void finish_timestep_elem(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol)
+			{finish_timestep_elem(vSol, GridLevel());}
 
 	/// computes the error estimator
 	/**

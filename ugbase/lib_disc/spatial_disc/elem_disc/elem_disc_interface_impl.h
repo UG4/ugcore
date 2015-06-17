@@ -20,6 +20,18 @@ namespace ug{
 
 template <typename TDomain>
 template<typename TAssFunc>
+void IElemDisc<TDomain>::set_prep_timestep_fct(size_t algebra_id, TAssFunc func)
+{
+	m_vPrepareTimestepFct[algebra_id] = static_cast<PrepareTimestepFct>(func);
+};
+template <typename TDomain>
+void IElemDisc<TDomain>::remove_prep_timestep_fct(size_t algebra_id)
+{
+	m_vPrepareTimestepFct[algebra_id] = NULL;
+};
+
+template <typename TDomain>
+template<typename TAssFunc>
 void IElemDisc<TDomain>::set_prep_timestep_elem_fct(ReferenceObjectID id, TAssFunc func)
 {
 	m_vPrepareTimestepElemFct[id] = static_cast<PrepareTimestepElemFct>(func);
@@ -136,6 +148,18 @@ template <typename TDomain>
 void IElemDisc<TDomain>::remove_add_rhs_elem_fct(ReferenceObjectID id)
 {
 	m_vElemRHSFct[id] = NULL;
+};
+
+template <typename TDomain>
+template<typename TAssFunc>
+void IElemDisc<TDomain>::set_fsh_timestep_fct(size_t algebra_id, TAssFunc func)
+{
+	m_vFinishTimestepFct[algebra_id] = static_cast<FinishTimestepFct>(func);
+};
+template <typename TDomain>
+void IElemDisc<TDomain>::remove_fsh_timestep_fct(size_t algebra_id)
+{
+	m_vFinishTimestepFct[algebra_id] = NULL;
 };
 
 template <typename TDomain>

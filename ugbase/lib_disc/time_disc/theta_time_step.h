@@ -62,6 +62,9 @@ class MultiStepTimeDiscretization
 		virtual void prepare_step_elem(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
 		                               number dt, const GridLevel& gl);
 
+	///	\copydoc ITimeDiscretization::finish_step()
+		virtual void finish_step(SmartPtr<VectorTimeSeries<vector_type> > currSol);
+
 	///	\copydoc ITimeDiscretization::finish_step_elem()
 		virtual void finish_step_elem(SmartPtr<VectorTimeSeries<vector_type> > currSol,
 		                              const GridLevel& gl);
@@ -443,6 +446,7 @@ class SDIRK
 								  number dt);
 		virtual void prepare_step_elem(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
 									   number dt, const GridLevel& gl);
+		virtual void finish_step(SmartPtr<VectorTimeSeries<vector_type> > currSol);
 		virtual void finish_step_elem(SmartPtr<VectorTimeSeries<vector_type> > currSol,
 									  const GridLevel& gl);
 

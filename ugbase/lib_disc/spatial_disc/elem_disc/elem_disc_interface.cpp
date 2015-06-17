@@ -88,6 +88,11 @@ void IElemDisc<TDomain>::clear_add_fct()
 {
 	for(size_t i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
 		clear_add_fct((ReferenceObjectID) i);
+	for (size_t i = 0; i < bridge::NUM_ALGEBRA_TYPES; ++i)
+	{
+		m_vPrepareTimestepFct[i] = NULL;
+		m_vFinishTimestepFct[i] = NULL;
+	}
 }
 
 
@@ -118,6 +123,11 @@ void IElemDisc<TDomain>::set_default_add_fct()
 		m_vElemComputeErrEstMFct[i] = &T::compute_err_est_M_elem;
 		m_vElemComputeErrEstRhsFct[i] = &T::compute_err_est_rhs_elem;
 		m_vFinishErrEstElemLoopFct[i] = &T::fsh_err_est_elem_loop;
+	}
+	for (size_t i = 0; i < bridge::NUM_ALGEBRA_TYPES; ++i)
+	{
+		m_vPrepareTimestepFct[i] = &T::prep_timestep;
+		m_vFinishTimestepFct[i] = &T::fsh_timestep;
 	}
 }
 
@@ -313,6 +323,15 @@ void IElemDisc<TDomain>::set_time_independent()
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
+do_prep_timestep(const number time, VectorProxyBase* u, size_t algebra_id)
+{
+	//	call assembling routine
+	if (this->m_vPrepareTimestepFct[algebra_id] != NULL)
+		(this->*(m_vPrepareTimestepFct[algebra_id]))(time, u);
+}
+
+template <typename TDomain>
+void IElemDisc<TDomain>::
 do_prep_timestep_elem(const number time, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	//	access by map
@@ -337,6 +356,15 @@ do_prep_elem(LocalVector& u, GridObject* elem, const ReferenceObjectID roid, con
 	//	call assembling routine
 	UG_ASSERT(m_vPrepareElemFct[m_id]!=NULL, "ElemDisc method prepare_elem missing.");
 	(this->*(m_vPrepareElemFct[m_id]))(u, elem, roid, vCornerCoords);
+}
+
+template <typename TDomain>
+void IElemDisc<TDomain>::
+do_fsh_timestep(const number time, VectorProxyBase* u, size_t algebra_id)
+{
+	//	call assembling routine
+	if (this->m_vFinishTimestepFct[algebra_id] != NULL)
+		(this->*(m_vFinishTimestepFct[algebra_id]))(time, u);
 }
 
 template <typename TDomain>
@@ -586,6 +614,13 @@ inline void ThrowMissingVirtualMethod(const char* method){
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
+prep_timestep(number time, VectorProxyBase* u)
+{
+	// do nothing
+}
+
+template <typename TDomain>
+void IElemDisc<TDomain>::
 prep_timestep_elem(const number time, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	// ThrowMissingVirtualMethod("prep_timestep_elem", elem->reference_object_id ());
@@ -596,6 +631,13 @@ void IElemDisc<TDomain>::
 prep_elem(const LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[])
 {
 	ThrowMissingVirtualMethod("prep_elem", elem->reference_object_id ());
+}
+
+template <typename TDomain>
+void IElemDisc<TDomain>::
+fsh_timestep(number time, VectorProxyBase* u)
+{
+	// do nothing
 }
 
 template <typename TDomain>
