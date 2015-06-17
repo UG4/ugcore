@@ -104,7 +104,8 @@ LuaUserData<TData,dim,TRet>::LuaUserData(LuaFunctionHandle handle)
 	check_callback_returns(m_L, m_callbackRef, m_callbackName.c_str(), true);
 
 	#ifdef USE_LUA2C
-		if(useLuaCompiler) m_luaComp.create(luaCallback);
+		UG_THROW("LuaFunctionHandle usage currently not supported with LUA2C.");
+//		if(useLuaCompiler) m_luaComp.create(luaCallback);
 	#endif
 }
 
