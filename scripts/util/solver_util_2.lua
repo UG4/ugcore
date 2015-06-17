@@ -407,6 +407,24 @@ function util.solver.CreateConvCheck(convCheckDesc, solverutil)
 		cc:set_minimum_defect	(desc.absolute		or defaults.absolute)
 		cc:set_reduction		(desc.reduction		or defaults.reduction)
 		cc:set_verbose			(verbose)
+	elseif name == "composite" then
+		local approxSpace = desc.approxSpace or util.solver.defaults.approxSpace
+		if approxSpace == nil then 
+			print("For a composite convergence check the approximation space must be passed.")
+			exit()
+		end
+		cc = CompositeConvCheck(approxSpace, 
+			desc.iterations	or defaults.iterations, 
+			desc.absolute		or defaults.absolute,
+			desc.reduction		or defaults.reduction)
+		cc:set_verbose			(verbose)
+		if desc.sub and type(desc.sub) == "table" then
+			for _, v in pairs(desc.sub) do
+				cc:set_component_check(v.cmp, 
+					(v.absolute or desc.absolute or defaults.absolute), 
+					(v.relative or desc.reduction or defaults.reduction))
+			end
+		end
 	end
 
 	util.solver.CondAbort(cc == nil, "Invalid conv-check specified: " .. name)
