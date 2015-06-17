@@ -65,13 +65,13 @@
 --			postSmooth 	= 3,		-- number postsmoothing steps
 --			rap			= false,	-- comutes RAP-product instead of assembling if true 
 --			baseLevel	= 0,		-- gmg - baselevel
---			basesolver	= {			-- better options are most likely "lu" or "superlu"
+--			baseSolver	= {			-- better options are most likely "lu" or "superlu"
 --				type	  = "bicgstab",
 --				precond	  = "gs",
 --				convCheck = {
 --					type		= "standard"
 --					iteration	= 1000,
---					absolute		= 1e-12,
+--					absolute	= 1e-12,
 --					reduction	= 1e-10,
 --					verbose		= false
 --				}
@@ -94,7 +94,8 @@
 --
 --	solver = util.solver.CreateSolver(solverDesc)
 
-ug_load_script("table_desc_util.lua")
+ug_load_script("util/table_desc_util.lua")
+ug_load_script("util/table_util.lua")
 
 util = util or {}
 util.solver = util.solver or {}
@@ -105,6 +106,15 @@ util.solver.defaults =
 	approxSpace = nil,
 	discretization = nil,
 
+	nonlinearSolver =
+	{
+		newton = {
+			convCheck	= "standard",
+			linSolver	= "bicgstab",
+			lineSearch	= nil
+		}
+	},
+	
 	linearSolver = 
 	{
 		linear = {
@@ -166,6 +176,17 @@ util.solver.defaults =
 			reduction	= 1e-6,		-- reduction factor of defect to be reached;
 			verbose		= true
 		}
+	},
+	
+	lineSearch =
+	{
+		standard = {
+			maxSteps		= 10,
+			lambdaStart		= 1,
+			lambdaReduce	= 0.5,
+			acceptBest 		= true,
+			checkAll		= false
+		}
 	}
 }
 
@@ -197,10 +218,34 @@ end
 --!						solverDesc.solverutil (even if the parameter solverutil == nil).
 function util.solver.CreateSolver(solverDesc, solverutil)
 	solverutil = util.solver.PrepareSolverUtil(solverDesc, solverutil)
---	todo: add non-linear solvers
-	return util.solver.CreateLinearSolver(solverDesc, solverutil)
-end
 
+	if util.tableDesc.IsPreset(solverDesc) then return solverDesc end
+
+	local name, desc = util.tableDesc.ToNameAndDesc(solverDesc)
+	local defaults   = util.solver.defaults.nonlinearSolver[name]
+	if desc == nil then desc = defaults end
+	
+	if name == "newton" then
+		local newtonSolver = NewtonSolver()
+		newtonSolver:set_linear_solver(
+			util.solver.CreateLinearSolver(
+				desc.linSolver or defaults.linSolver, solverutil))
+
+		newtonSolver:set_convergence_check(
+			util.solver.CreateConvCheck(
+				desc.convCheck or defaults.convCheck, solverutil))
+		
+		local lineSearch = desc.lineSearch or defaults.lineSearch
+		if lineSearch and lineSearch ~= "none" then
+			newtonSolver:set_line_search(
+				util.solver.CreateLineSearch(lineSearch, solverutil))
+		end
+
+		return newtonSolver
+	else
+		return util.solver.CreateLinearSolver(solverDesc, solverutil)
+	end
+end
 
 function util.solver.CreateLinearSolver(solverDesc, solverutil)
 	solverutil = util.solver.PrepareSolverUtil(solverDesc, solverutil)
@@ -343,7 +388,7 @@ end
 
 
 function util.solver.CreateConvCheck(convCheckDesc, solverutil)
-	solverutil = util.solver.PrepareSolverUtil(solverDesc, solverutil)
+	solverutil = util.solver.PrepareSolverUtil(convCheckDesc, solverutil)
 	if util.tableDesc.IsPreset(convCheckDesc) then return convCheckDesc end
 
 	local name, desc = util.tableDesc.ToNameAndDesc(convCheckDesc)
@@ -374,6 +419,35 @@ function util.solver.CreateConvCheck(convCheckDesc, solverutil)
 	return cc
 end
 
+
+function util.solver.CreateLineSearch(lineSearchDesc, solverutil)
+	solverutil = util.solver.PrepareSolverUtil(lineSearchDesc, solverutil)
+	if util.tableDesc.IsPreset(lineSearchDesc) then return lineSearchDesc end
+
+	local name, desc = util.tableDesc.ToNameAndDesc(lineSearchDesc)
+	local defaults	 = util.solver.defaults.lineSearch[name]
+	if desc == nil then desc = defaults end
+	
+	local ls = nil
+	if name == "standard" then
+	--	battle booleans
+		if desc.acceptBest == nil then desc.acceptBest = defaults.acceptBest end
+		if desc.checkAll == nil then desc.checkAll = defaults.checkAll end
+		
+		ls = StandardLineSearch(desc.maxSteps or defaults.maxSteps,
+								desc.lambdaStart or defaults.lambdaStart,
+								desc.lambdaReduce or defaults.lambdaReduce,
+								desc.acceptBest,
+								desc.checkAll)
+	end
+	
+	util.solver.CondAbort(ls == nil, "Invalid line-search specified: " .. name)
+	if desc then
+		desc.instance = ls
+	end
+
+	return ls
+end
 
 --! Prepares a solution step, e.g. during nested iterations.
 --! @param desc			a solver-desc which was used during solver-creation in one of
