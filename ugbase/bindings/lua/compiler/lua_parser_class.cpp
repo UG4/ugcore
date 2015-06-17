@@ -129,7 +129,7 @@ string GetFileLinesParallel(string filename, size_t fromline, size_t toline, boo
 int LUAParserClass::parse_luaFunction(LuaFunctionHandle handle)
 {
     lua_State* L = script::GetDefaultLuaState();
-	lua_rawgeti(m_L, LUA_REGISTRYINDEX, m_callbackRef);
+	lua_rawgeti(L, LUA_REGISTRYINDEX, handle.ref);
 
 	if(!lua_isfunction(L, -1))
 	{

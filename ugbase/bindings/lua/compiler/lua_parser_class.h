@@ -19,6 +19,7 @@
 #include "parser.hpp"
 #include <iostream>
 #include "common/util/smart_pointer.h"
+#include "bindings/lua/lua_function_handle.h"
 
 #include "vm.h"
 

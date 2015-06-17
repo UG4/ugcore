@@ -11,6 +11,8 @@
 #include <stdio.h>
 #include <string>
 #include "common/util/dynamic_library_util.h"
+#include "bindings/lua/lua_function_handle.h"
+
 namespace ug{
 
 class VMAdd;
