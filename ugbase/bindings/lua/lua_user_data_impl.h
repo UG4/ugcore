@@ -67,9 +67,6 @@ template <typename TData, int dim, typename TRet>
 LuaUserData<TData,dim,TRet>::LuaUserData(const char* luaCallback)
 	: m_callbackName(luaCallback), m_bFromFactory(false)
 {
-//	make a test run
-	check_callback_returns(luaCallback, true);
-	
 //	get lua state
 	m_L = ug::script::GetDefaultLuaState();
 
@@ -84,6 +81,9 @@ LuaUserData<TData,dim,TRet>::LuaUserData(const char* luaCallback)
 
 //	store reference to lua function
 	m_callbackRef = luaL_ref(m_L, LUA_REGISTRYINDEX);
+
+//	make a test run
+	check_callback_returns(m_L, m_callbackRef, m_callbackName.c_str(), true);
 	
 	#ifdef USE_LUA2C
 		if(useLuaCompiler) m_luaComp.create(luaCallback);
@@ -91,32 +91,31 @@ LuaUserData<TData,dim,TRet>::LuaUserData(const char* luaCallback)
 }
 
 template <typename TData, int dim, typename TRet>
+LuaUserData<TData,dim,TRet>::LuaUserData(LuaFunctionHandle handle)
+	: m_callbackName("__anonymous__lua__function__"), m_bFromFactory(false)
+{
+//	get lua state
+	m_L = ug::script::GetDefaultLuaState();
+
+//	store reference to lua function
+	m_callbackRef = handle.ref;
+
+//	make a test run
+	check_callback_returns(m_L, m_callbackRef, m_callbackName.c_str(), true);
+
+	#ifdef USE_LUA2C
+		if(useLuaCompiler) m_luaComp.create(luaCallback);
+	#endif
+}
+
+
+template <typename TData, int dim, typename TRet>
 bool LuaUserData<TData,dim,TRet>::
-check_callback_returns(const char* callName, const bool bThrow)
+check_callback_returns(lua_State* L, int callbackRef, const char* callName, const bool bThrow)
 {
     PROFILE_CALLBACK()
-//	get lua state
-	lua_State* L = ug::script::GetDefaultLuaState();
-
 //	get current stack level
 	const int level = lua_gettop(L);
-
-//	obtain a reference
-	lua_getglobal(L, callName);
-
-//	check if reference is valid
-	if(lua_isnil(L, -1)) {
-		if(bThrow) {
-			UG_THROW(name() << ": Cannot find specified lua callback "
-							" with name: "<<callName);
-		}
-		else {
-			return false;
-		}
-	}
-
-//	get reference
-	int callbackRef = luaL_ref(L, LUA_REGISTRYINDEX);
 
 //	dummy values to invoke the callback once
 	MathVector<dim> x; x = 0.0;
@@ -197,6 +196,38 @@ check_callback_returns(const char* callName, const bool bThrow)
 
 //	pop values
 	lua_pop(L, numResults);
+
+//	return match
+	return bRet;
+}
+
+template <typename TData, int dim, typename TRet>
+bool LuaUserData<TData,dim,TRet>::
+check_callback_returns(const char* callName, const bool bThrow)
+{
+    PROFILE_CALLBACK()
+//	get lua state
+	lua_State* L = ug::script::GetDefaultLuaState();
+
+//	obtain a reference
+	lua_getglobal(L, callName);
+
+//	check if reference is valid
+	if(lua_isnil(L, -1)) {
+		if(bThrow) {
+			UG_THROW(name() << ": Cannot find specified lua callback "
+							" with name: "<<callName);
+		}
+		else {
+			return false;
+		}
+	}
+
+//	get reference
+	int callbackRef = luaL_ref(L, LUA_REGISTRYINDEX);
+
+//	forward call
+	bool bRet = check_callback_returns(L, callbackRef, callName, bThrow);
 
 //	free reference to callback
 	luaL_unref(L, LUA_REGISTRYINDEX, callbackRef);

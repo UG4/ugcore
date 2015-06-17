@@ -71,6 +71,12 @@ Variant::Variant(const ConstSmartPtr<void>& val) :
 	m_type(VT_CONST_SMART_POINTER)
 {}
 
+#ifdef UG_FOR_LUA
+Variant::Variant(LuaFunctionHandle val) :
+	m_luafcthandle(val),
+	m_type(VT_LUA_FUNCTION_HANDLE)
+{}
+#endif
 
 Variant::Variant(const Variant& v)
 {
@@ -143,6 +149,11 @@ void Variant::assign_variant(const Variant& v)
 		case VT_CONST_SMART_POINTER:
 			m_constsmartptr = new ConstSmartPtr<void>(*v.m_constsmartptr);
 			break;
+#ifdef UG_FOR_LUA
+		case VT_LUA_FUNCTION_HANDLE:
+			m_luafcthandle = v.m_luafcthandle;
+			break;
+#endif
 		default:
 			break;
 	}
@@ -304,6 +315,13 @@ ConstSmartPtr<void> Variant::to_const_smart_pointer() const
 
 	UG_THROW("Variant: can't convert " << type_name() << " to const smart pointer.");
 }
+
+#ifdef UG_FOR_LUA
+LuaFunctionHandle Variant::to_lua_function_handle() const
+{
+	return m_luafcthandle;
+}
+#endif
 
 const char* Variant::type_name() const
 {

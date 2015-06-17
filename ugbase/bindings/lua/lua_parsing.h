@@ -8,7 +8,7 @@
 
 #include "externals/lua/lua.h"
 #include "bindings_lua.h"
-
+#include "bindings/lua/lua_function_handle.h"
 
 namespace ug{
 namespace bridge{
@@ -117,6 +117,24 @@ struct LuaParsing<const std::string&>{
 		lua_pushstring(L, data.c_str());
 	}
 };
+
+#ifdef UG_FOR_LUA
+template <>
+struct LuaParsing<LuaFunctionHandle>{
+	static bool check(lua_State* L, int index){
+		return lua_isfunction(L, index);
+	}
+	static LuaFunctionHandle get(lua_State* L, int index){
+		LuaFunctionHandle tmp;
+		lua_pushvalue(L, index);
+		tmp.ref = luaL_ref(L, LUA_REGISTRYINDEX);
+		return tmp;
+	}
+	static void push(lua_State* L, LuaFunctionHandle data){
+		UG_THROW("Return value of type LuaFunctionHandle not implemented.");
+	}
+};
+#endif
 
 template <>
 struct LuaParsing<void*>{

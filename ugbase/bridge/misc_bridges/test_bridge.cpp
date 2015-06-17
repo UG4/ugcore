@@ -10,6 +10,10 @@
 #include "bridge/util.h"
 #include "common/util/message_hub.h"
 
+#ifdef UG_FOR_LUA
+#include "bindings/lua/lua_function_handle.h"
+#endif
+
 //	temporary include
 #include "lib_grid/attachments/page_container.h"
 
@@ -561,7 +565,13 @@ const std::vector<T>& ReturnConstStdVectorRefOfClassSP(){
 
 void NotAllowedParamPerValue(Piece P){}
 
-
+#ifdef UG_FOR_LUA
+void FunctionWithFunctionArgument(LuaFunctionHandle handle)
+{
+	UG_LOG("Test LuaFunctionHandle: handle.ref=" << handle.ref << std::endl);
+	return;
+}
+#endif
 
 void RegisterBridge_Test(Registry& reg, string parentGroup)
 {
@@ -574,6 +584,10 @@ void RegisterBridge_Test(Registry& reg, string parentGroup)
 	//	registering hello world
 		reg.add_function("PrintHelloWorld", &PrintHelloWorldToScreen, grp);
 
+#ifdef UG_FOR_LUA
+	//	registering LuaFunctionHandle
+		reg.add_function("FunctionWithFunctionArgument", &FunctionWithFunctionArgument, grp);
+#endif
 
 	//	registering add
 		reg.add_function("add", static_cast<int (*)(int, int)>(

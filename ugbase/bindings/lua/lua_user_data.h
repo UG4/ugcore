@@ -24,6 +24,8 @@ extern "C" {
 #include "lib_disc/spatial_disc/user_data/linker/linker.h"
 #include "lua_traits.h"
 
+#include "bindings/lua/lua_function_handle.h"
+
 #ifdef USE_LUA2C
 #include "bindings/lua/compiler/lua_compiler.h"
 #endif
@@ -67,7 +69,10 @@ class LuaUserData
 	 *
 	 * @param luaCallback		Name of Lua Callback Function
 	 */
+	///{
 		LuaUserData(const char* luaCallback);
+		LuaUserData(LuaFunctionHandle handle);
+	///}
 
 	///	destructor: frees lua callback, unregisters from LuaUserDataFactory if used
 		virtual ~LuaUserData();
@@ -81,6 +86,10 @@ class LuaUserData
 	///	returns true if callback has correct return values
 		static bool check_callback_returns(const char* callName,
 										   const bool bThrow = false);
+
+	///	returns true if callback has correct return values
+		static bool check_callback_returns(lua_State* L, int callbackRef, const char* callName,
+		                                   const bool bThrow = false);
 
 	///	evaluates the data at a given point and time
 		inline TRet evaluate(TData& D, const MathVector<dim>& x, number time, int si) const;

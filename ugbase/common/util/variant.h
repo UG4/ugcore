@@ -12,6 +12,9 @@
 #include "smart_pointer.h"
 #include "common/types.h"
 #include "common/ug_config.h"
+#ifdef UG_FOR_LUA
+#include "bindings/lua/lua_function_handle.h"
+#endif
 
 namespace ug{
 
@@ -69,6 +72,9 @@ class UG_API Variant{
 			VT_CONST_POINTER = 9,
 			VT_SMART_POINTER = 10,
 			VT_CONST_SMART_POINTER = 11
+#ifdef UG_FOR_LUA
+			,VT_LUA_FUNCTION_HANDLE = 12
+#endif
 		};
 
 	public:
@@ -84,6 +90,9 @@ class UG_API Variant{
 		Variant(const void* val);
 		Variant(const SmartPtr<void>& val);
 		Variant(const ConstSmartPtr<void>& val);
+#ifdef UG_FOR_LUA
+		Variant(LuaFunctionHandle val);
+#endif
 
 		Variant(const Variant& v);
 
@@ -108,6 +117,9 @@ class UG_API Variant{
 		const void* to_const_pointer() const;
 		SmartPtr<void> to_smart_pointer() const;
 		ConstSmartPtr<void> to_const_smart_pointer() const;
+#ifdef UG_FOR_LUA
+		LuaFunctionHandle to_lua_function_handle() const;
+#endif
 
 		template <typename T>
 		inline T to() const;
@@ -132,6 +144,9 @@ class UG_API Variant{
 			const void* 			m_constptr;
 			SmartPtr<void>*			m_smartptr;
 			ConstSmartPtr<void>* 	m_constsmartptr;
+#ifdef UG_FOR_LUA
+			LuaFunctionHandle		m_luafcthandle;
+#endif
 		};
 
 		Type	m_type;
@@ -149,6 +164,9 @@ template <> inline void* 				Variant::to<void*>() const 					{return to_pointer(
 template <> inline const void* 		   	Variant::to<const void*>() const 			{return to_const_pointer();}
 template <> inline SmartPtr<void> 	   	Variant::to<SmartPtr<void> >() const 		{return to_smart_pointer();}
 template <> inline ConstSmartPtr<void> 	Variant::to<ConstSmartPtr<void> >() const 	{return to_const_smart_pointer();}
+#ifdef UG_FOR_LUA
+template <> inline LuaFunctionHandle 	Variant::to<LuaFunctionHandle>() const 		{return to_lua_function_handle();}
+#endif
 
 template <> inline Variant::Type Variant::type<bool>() 					{return VT_BOOL;}
 template <> inline Variant::Type Variant::type<int>() 					{return VT_INT;}
@@ -162,6 +180,9 @@ template <> inline Variant::Type Variant::type<void*>() 				{return VT_POINTER;}
 template <> inline Variant::Type Variant::type<const void*>() 			{return VT_CONST_POINTER;}
 template <> inline Variant::Type Variant::type<SmartPtr<void> >() 		{return VT_SMART_POINTER;}
 template <> inline Variant::Type Variant::type<ConstSmartPtr<void> >() 	{return VT_CONST_SMART_POINTER;}
+#ifdef UG_FOR_LUA
+template <> inline Variant::Type Variant::type<LuaFunctionHandle>() 	{return VT_LUA_FUNCTION_HANDLE;}
+#endif
 
 
 // end group ugbase_common_types

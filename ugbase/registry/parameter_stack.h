@@ -8,6 +8,9 @@
 #include "common/common.h"
 #include "common/util/smart_pointer.h"
 #include "common/util/variant.h"
+#ifdef UG_FOR_LUA
+#include "bindings/lua/lua_function_handle.h"
+#endif
 
 #ifndef __H__UG_BRIDGE__PARAMETER_STACK__
 #define __H__UG_BRIDGE__PARAMETER_STACK__
@@ -160,6 +163,9 @@ template <> struct ParameterInfo::PushType<double>				{static void push(Paramete
 template <> struct ParameterInfo::PushType<const char*>			{static void push(ParameterInfo* This){This->_push_type<const char*>();}};
 template <> struct ParameterInfo::PushType<std::string>			{static void push(ParameterInfo* This){This->_push_type<std::string>();}};
 template <> struct ParameterInfo::PushType<const std::string&>	{static void push(ParameterInfo* This){This->_push_type<std::string>();}};
+#ifdef UG_FOR_LUA
+template <> struct ParameterInfo::PushType<LuaFunctionHandle>	{static void push(ParameterInfo* This){This->_push_type<LuaFunctionHandle>();}};
+#endif
 
 // implementation pointers and references to registered types
 template <typename TClass> struct ParameterInfo::PushType<TClass*>				{static void push(ParameterInfo* This){This->_push_type<void*, TClass>();}};
@@ -462,6 +468,9 @@ template <> struct ParameterStack::PushType<double>			{static void push(Paramete
 template <> struct ParameterStack::PushType<const char*>		{static void push(ParameterStack* This, const char* data)		{This->_push_native<const char*>(data);}};
 template <> struct ParameterStack::PushType<std::string>		{static void push(ParameterStack* This, std::string data){This->_push_native<std::string>(data);}};
 template <> struct ParameterStack::PushType<const std::string&>	{static void push(ParameterStack* This, const std::string& data){This->_push_native<std::string>(data);}};
+#ifdef UG_FOR_LUA
+template <> struct ParameterStack::PushType<LuaFunctionHandle>	{static void push(ParameterStack* This, LuaFunctionHandle data)	{This->_push_native<LuaFunctionHandle>(data);}};
+#endif
 
 // convert pointers to native types
 template <> struct ParameterStack::PushType<std::vector<bool> >			{static void push(ParameterStack* This, const std::vector<bool>& spVec)			{This->push(SmartPtr<std::vector<bool> >(new std::vector<bool>(spVec)));}};
@@ -529,6 +538,9 @@ template <> struct ParameterStack::ToType<double>			{static double to(const Para
 template <> struct ParameterStack::ToType<const char*>		{static const char* to(const ParameterStack* This, int index)			{return This->_to_native<const char*>(index);}};
 template <> struct ParameterStack::ToType<std::string>		{static std::string to(const ParameterStack* This, int index)			{return This->_to_native<std::string>(index);}};
 template <> struct ParameterStack::ToType<const std::string&>{static const std::string& to(const ParameterStack* This, int index)	{return This->_to_native<const std::string&>(index);}};
+#ifdef UG_FOR_LUA
+template <> struct ParameterStack::ToType<LuaFunctionHandle>	{static LuaFunctionHandle to(const ParameterStack* This, int index)		{return This->_to_native<LuaFunctionHandle>(index);}};
+#endif
 
 // convert to void types
 template <> struct ParameterStack::ToType<void*>			{static void* to(const ParameterStack* This, int index)						{return This->_to_native<void*>(index);}};

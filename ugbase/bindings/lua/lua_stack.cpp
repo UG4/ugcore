@@ -14,6 +14,7 @@
 #include "lua_parsing.h"
 
 #include "lua_stack.h"
+#include "bindings/lua/lua_function_handle.h"
 
 namespace ug
 {
@@ -105,6 +106,13 @@ int LuaStackToParams(ParameterStack& ps,
 					(ps, L, index, psInfo.class_name(i), bIsVector))
 					badParam = (int)i + 1;
 			}break;
+
+#ifdef UG_FOR_LUA
+			case Variant::VT_LUA_FUNCTION_HANDLE:{
+				if(!PushLuaStackEntryToParamStack<LuaFunctionHandle>(ps, L, index, bIsVector))
+					badParam = (int)i + 1;
+			}break;
+#endif
 
 			default:{//	unknown type
 				badParam = (int)i + 1;

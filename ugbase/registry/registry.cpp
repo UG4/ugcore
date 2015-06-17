@@ -6,6 +6,9 @@
 
 #include "registry.h"
 #include "registry_util.h"
+#ifdef UG_FOR_LUA
+#include "bindings/lua/lua_function_handle.h"
+#endif
 
 using namespace ug::bridge;
 
@@ -27,6 +30,9 @@ Registry::Registry()
 	add_class_<const char*>("c_const_char_ptr");
 	add_class_<std::string>("c_string");
 	add_class_<void>("c_void");
+#ifdef UG_FOR_LUA
+	add_class_<LuaFunctionHandle>("c_LuaFunctionHandle");
+#endif
 }
 
 Registry::Registry(const Registry& reg)

@@ -103,6 +103,7 @@ void RegisterLuaUserDataType(Registry& reg, string type, string grp)
 		string name = string("LuaUser").append(type).append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(const char*)>("Callback")
+			.template add_constructor<void (*)(LuaFunctionHandle)>("handle")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, string("LuaUser").append(type), tag);
 	}
@@ -114,6 +115,7 @@ void RegisterLuaUserDataType(Registry& reg, string type, string grp)
 		string name = string("LuaCondUser").append(type).append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(const char*)>("Callback")
+			.template add_constructor<void (*)(LuaFunctionHandle)>("handle")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, string("LuaCondUser").append(type), tag);
 	}
