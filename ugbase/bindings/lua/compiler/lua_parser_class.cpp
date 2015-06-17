@@ -126,6 +126,20 @@ string GetFileLinesParallel(string filename, size_t fromline, size_t toline, boo
 }
 #endif
 
+int LUAParserClass::parse_luaFunction(LuaFunctionHandle handle)
+{
+    lua_State* L = script::GetDefaultLuaState();
+	lua_rawgeti(m_L, LUA_REGISTRYINDEX, m_callbackRef);
+
+	if(!lua_isfunction(L, -1))
+	{
+		UG_DLOG(DID_LUACOMPILER, 1, "LUA Script function " << "__unknown__lua__function__by__handle" << " not found\n");
+		lua_pop(L, 1);
+		return false;
+	}
+
+	return parse_luaFunction_StackTop("__unknown__lua__function__by__handle");
+}
 
 int LUAParserClass::parse_luaFunction(const char *functionName)
 {
@@ -145,8 +159,14 @@ int LUAParserClass::parse_luaFunction(const char *functionName)
 		return false;			
 	}
 
+	return parse_luaFunction_StackTop(functionName);
+}
 
-	lua_pushvalue(L, -1);
+int LUAParserClass::parse_luaFunction_StackTop(const char *functionName)
+{
+    lua_State* L = script::GetDefaultLuaState();
+
+    lua_pushvalue(L, -1);
 	lua_Debug ar;
 	lua_getinfo(L, ">Snlu", &ar);
 	if(!ar.source)

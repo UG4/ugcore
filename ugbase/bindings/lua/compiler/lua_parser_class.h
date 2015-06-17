@@ -196,6 +196,8 @@ public:
     
     void getVar(int i, std::ostream &out);
     int parse_luaFunction(const char *name);
+    int parse_luaFunction(LuaFunctionHandle handle);
+    int parse_luaFunction_StackTop(const char *name);
 	
     int declare(std::ostream &out);
     int createC_inline(std::ostream &out);

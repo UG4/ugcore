@@ -31,15 +31,15 @@ DebugID DID_LUACOMPILER("LUACompiler");
 namespace bridge {
     
 
-bool LUACompiler::create(const char *functionName)
+bool LUACompiler::create(const char *functionName, LuaFunctionHandle* pHandle)
 {
 	if(useLua2VM)
-		return createVM(functionName);
+		return createVM(functionName, pHandle);
 	else
-		return createC(functionName);
+		return createC(functionName, pHandle);
 }
 
-bool LUACompiler::createC(const char *functionName)
+bool LUACompiler::createC(const char *functionName, LuaFunctionHandle* pHandle)
 {
 #ifdef USE_LUA2C
 	PROFILE_BEGIN_GROUP(LUACompiler_createVM, "LUA2C");
@@ -47,7 +47,12 @@ bool LUACompiler::createC(const char *functionName)
 	try{
 		m_f=NULL;
 		LUAParserClass parser;
-		int ret = parser.parse_luaFunction(functionName);
+		int ret = 0;
+		if(pHandle == NULL){
+			parser.parse_luaFunction(functionName);
+		} else {
+			parser.parse_luaFunction(*pHandle);
+		}
 		if(ret == LUAParserClass::LUAParserError)
 		{
 			UG_DLOG(DID_LUACOMPILER, 1, "failed: reduced LUA parser failed.\n");
@@ -154,7 +159,7 @@ bool LUACompiler::createC(const char *functionName)
 
 }
 
-bool LUACompiler::createVM(const char *functionName)
+bool LUACompiler::createVM(const char *functionName, LuaFunctionHandle* pHandle)
 {
 	PROFILE_BEGIN_GROUP(LUACompiler_createVM, "LUA2VM");
 	m_name = functionName;
@@ -163,7 +168,12 @@ bool LUACompiler::createVM(const char *functionName)
 	LUAParserClass parser;
 	try
 	{
-		int ret = parser.parse_luaFunction(functionName);
+		int ret = 0;
+		if(pHandle == NULL){
+			parser.parse_luaFunction(functionName);
+		} else {
+			parser.parse_luaFunction(*pHandle);
+		}
 		if(vm != NULL) delete vm;
 		vm = new VMAdd;
 		if(ret == LUAParserClass::LUAParserError)

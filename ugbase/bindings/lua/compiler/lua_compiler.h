@@ -66,9 +66,9 @@ public:
 		return bInitialized;
 	}
 	
-	bool create(const char *functionName);
-	bool createVM(const char *functionName);
-	bool createC(const char *functionName);
+	bool create(const char *functionName, LuaFunctionHandle* pHandle = NULL);
+	bool createVM(const char *functionName, LuaFunctionHandle* pHandle = NULL);
+	bool createC(const char *functionName, LuaFunctionHandle* pHandle = NULL);
 	
 	bool call(double *ret, const double *in) const;
 	virtual ~LUACompiler();
