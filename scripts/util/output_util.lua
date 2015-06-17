@@ -102,13 +102,18 @@ function util.Balance(DataToBeWrittenTable)
 			exit()															
 		end
 		table.insert(Filenames, file)
-
+		
 		----------------------------------
 		-- check for vtk-data
 		----------------------------------
 		if DataSet.vtk ~= nil then
 			local vtkOut = VTKOutput()
 			local vtk = DataSet.vtk
+			
+			-- binary or ascii
+			if DataSet.binary ~= nil then
+				vtkOut:set_binary (DataSet.binary)
+			end
 			
 			-- case: single sting passed
 			if type(vtk) == "string" then
