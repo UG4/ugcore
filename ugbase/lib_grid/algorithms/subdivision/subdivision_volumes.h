@@ -1199,7 +1199,7 @@ void MoveVertexToSmoothTetGridSubdivisionPosition(MultiGrid& mg, Vertex* vrt,
 	//	OCTAHEDRON CASE
 		else if(vol->reference_object_id() == ROID_OCTAHEDRON)
 		{
-		//	Iterate over all vertices inside octahedron, first associate ones and last the opposing one
+		//	Summate positions of all other vertices inside octahedron, first associate ones and last the opposing one
 			for(Grid::AssociatedEdgeIterator eIter = mg.associated_edges_begin(vol); eIter != mg.associated_edges_end(vol); ++eIter)
 			{
 				Edge* e = *eIter;
