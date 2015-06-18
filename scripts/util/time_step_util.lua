@@ -102,6 +102,7 @@ end
 --! @param bFinishTimeStep 	(optional) boolean if finish_timestep should be 
 --! 						called or not
 --! @param useCheckpointing (optional) if true, use checkpointing.
+--! @param postProcess		(optional) if passed, will be called after every time step
 function util.SolveNonlinearTimeProblem(
 	u,
 	domainDisc,
@@ -116,7 +117,8 @@ function util.SolveNonlinearTimeProblem(
 	minStepSize,
 	reductionFactor,
 	bFinishTimeStep,
-	useCheckpointing)
+	useCheckpointing,
+	postProcess)
 	
 	if u == nil then
 		print("SolveNonlinearTimeProblem: Illegal parameters: No grid function for the solution specified.")
@@ -289,6 +291,9 @@ function util.SolveNonlinearTimeProblem(
 		if timeDisc:num_stages() > 1 then
 			uOld = u
 		end			
+		
+		-- call post process
+		if type(postProcess) == "function" then postProcess(u, step, time, currdt) end
 		
 		-- plot solution
 		if type(out) == "function" then out(u, step, time) end
