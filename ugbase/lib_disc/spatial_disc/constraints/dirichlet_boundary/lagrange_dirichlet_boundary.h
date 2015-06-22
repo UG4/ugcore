@@ -71,19 +71,26 @@ class DirichletBoundary
 	///	adds a lua callback (cond and non-cond)
 #ifdef UG_FOR_LUA
 		void add(const char* name, const char* function, const char* subsets);
+		void add(const char* name, const std::vector<std::string>& Fcts, const std::vector<std::string>& Subsets);
+		void add(LuaFunctionHandle fct, const char* function, const char* subsets);
+		void add(LuaFunctionHandle fct, const std::vector<std::string>& Fcts, const std::vector<std::string>& Subsets);
 #endif
 
 	///	adds a conditional user-defined value as dirichlet condition for a function on subsets
 		void add(SmartPtr<UserData<number, dim, bool> > func, const char* function, const char* subsets);
+		void add(SmartPtr<UserData<number, dim, bool> > func, const std::vector<std::string>& Fcts, const std::vector<std::string>& Subsets);
 
 	///	adds a user-defined value as dirichlet condition for a function on subsets
 		void add(SmartPtr<UserData<number, dim> > func, const char* function, const char* subsets);
+		void add(SmartPtr<UserData<number, dim> > func, const std::vector<std::string>& Fcts, const std::vector<std::string>& Subsets);
 
 	///	adds a constant value as dirichlet condition for a function on subsets
 		void add(number value, const char* function, const char* subsets);
+		void add(number value, const std::vector<std::string>& Fcts, const std::vector<std::string>& Subsets);
 
 	///	adds a user-defined vector as dirichlet condition for a vector-function on subsets
 		void add(SmartPtr<UserData<MathVector<dim>, dim> > func, const char* functions, const char* subsets);
+		void add(SmartPtr<UserData<MathVector<dim>, dim> > func, const std::vector<std::string>& Fcts, const std::vector<std::string>& Subsets);
 
 	///	sets the approximation space to work on
 		void set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace);

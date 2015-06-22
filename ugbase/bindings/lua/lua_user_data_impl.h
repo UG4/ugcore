@@ -204,6 +204,21 @@ check_callback_returns(lua_State* L, int callbackRef, const char* callName, cons
 
 template <typename TData, int dim, typename TRet>
 bool LuaUserData<TData,dim,TRet>::
+check_callback_returns(LuaFunctionHandle handle, const bool bThrow)
+{
+    PROFILE_CALLBACK()
+//	get lua state
+	lua_State* L = ug::script::GetDefaultLuaState();
+
+//	forward call
+	bool bRet = check_callback_returns(L, handle.ref, "__lua_function_handle__", bThrow);
+
+//	return match
+	return bRet;
+}
+
+template <typename TData, int dim, typename TRet>
+bool LuaUserData<TData,dim,TRet>::
 check_callback_returns(const char* callName, const bool bThrow)
 {
     PROFILE_CALLBACK()

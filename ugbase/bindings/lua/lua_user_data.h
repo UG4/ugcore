@@ -88,6 +88,10 @@ class LuaUserData
 										   const bool bThrow = false);
 
 	///	returns true if callback has correct return values
+		static bool check_callback_returns(LuaFunctionHandle handle,
+										   const bool bThrow = false);
+
+	///	returns true if callback has correct return values
 		static bool check_callback_returns(lua_State* L, int callbackRef, const char* callName,
 		                                   const bool bThrow = false);
 

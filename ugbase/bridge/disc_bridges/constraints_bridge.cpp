@@ -105,16 +105,30 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.template add_constructor<void (*)(bool)>()
 			.add_method("add", static_cast<void (T::*)(SmartPtr<UserData<number, dim, bool> >, const char*, const char*)>(&T::add),
 						"", "Value#Function#Subsets")
+			.add_method("add", static_cast<void (T::*)(SmartPtr<UserData<number, dim, bool> >, const std::vector<std::string>&, const std::vector<std::string>&)>(&T::add),
+						"", "Value#Function#Subsets")
 			.add_method("add", static_cast<void (T::*)(SmartPtr<UserData<number, dim> >, const char*, const char*)>(&T::add),
+						"", "Value#Function#Subsets")
+			.add_method("add", static_cast<void (T::*)(SmartPtr<UserData<number, dim> >, const std::vector<std::string>&, const std::vector<std::string>&)>(&T::add),
 						"", "Value#Function#Subsets")
 			.add_method("add", static_cast<void (T::*)(SmartPtr<UserData<MathVector<dim>, dim> >, const char*, const char*)>(&T::add),
 						"", "Vector#Functions#Subsets")
+			.add_method("add", static_cast<void (T::*)(SmartPtr<UserData<MathVector<dim>, dim> >, const std::vector<std::string>&, const std::vector<std::string>&)>(&T::add),
+						"", "Vector#Functions#Subsets")
 			.add_method("add",static_cast<void (T::*)(number, const char*, const char*)>(&T::add),
+						"", "ConstantValue#Function#Subsets")
+			.add_method("add",static_cast<void (T::*)(number, const std::vector<std::string>&, const std::vector<std::string>&)>(&T::add),
 						"", "ConstantValue#Function#Subsets")
 			.add_method("set_approximation_space",static_cast<void (T::*)(SmartPtr<ApproximationSpace<TDomain> >)>(&T::set_approximation_space),
 						"", "ApproximationSpace")
 #ifdef UG_FOR_LUA
 			.add_method("add",static_cast<void (T::*)(const char*, const char*, const char*)>(&T::add),
+						"", "LuaCallback#Function#Subsets")
+			.add_method("add",static_cast<void (T::*)(const char*, const std::vector<std::string>&, const std::vector<std::string>&)>(&T::add),
+						"", "LuaCallback#Function#Subsets")
+			.add_method("add",static_cast<void (T::*)(LuaFunctionHandle, const char*, const char*)>(&T::add),
+						"", "LuaCallback#Function#Subsets")
+			.add_method("add",static_cast<void (T::*)(LuaFunctionHandle, const std::vector<std::string>&, const std::vector<std::string>&)>(&T::add),
 						"", "LuaCallback#Function#Subsets")
 #endif
 			.add_method("clear", &T::clear)

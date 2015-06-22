@@ -65,10 +65,82 @@ add_inner_subsets(const char* InnerSubsets)
 
 template<typename TDomain>
 void NeumannBoundaryBase<TDomain>::
+add(SmartPtr<CplUserData<number, dim> > data, const std::vector<std::string>& BndSubsets, const std::vector<std::string>& InnerSubsets)
+{
+	std::string bnd;
+	for(size_t i = 0; i < BndSubsets.size(); ++i){
+		if(i > 0) bnd.append(",");
+		bnd.append(BndSubsets[i]);
+	}
+	std::string inner;
+	for(size_t i = 0; i < InnerSubsets.size(); ++i){
+		if(i > 0) inner.append(",");
+		inner.append(InnerSubsets[i]);
+	}
+
+	add(data, bnd.c_str(), inner.c_str());
+}
+
+template<typename TDomain>
+void NeumannBoundaryBase<TDomain>::
+add(SmartPtr<CplUserData<number, dim, bool> > data, const std::vector<std::string>& BndSubsets, const std::vector<std::string>& InnerSubsets)
+{
+	std::string bnd;
+	for(size_t i = 0; i < BndSubsets.size(); ++i){
+		if(i > 0) bnd.append(",");
+		bnd.append(BndSubsets[i]);
+	}
+	std::string inner;
+	for(size_t i = 0; i < InnerSubsets.size(); ++i){
+		if(i > 0) inner.append(",");
+		inner.append(InnerSubsets[i]);
+	}
+
+	add(data, bnd.c_str(), inner.c_str());
+}
+
+template<typename TDomain>
+void NeumannBoundaryBase<TDomain>::
+add(SmartPtr<CplUserData<MathVector<dim>, dim> > data, const std::vector<std::string>& BndSubsets, const std::vector<std::string>& InnerSubsets)
+{
+	std::string bnd;
+	for(size_t i = 0; i < BndSubsets.size(); ++i){
+		if(i > 0) bnd.append(",");
+		bnd.append(BndSubsets[i]);
+	}
+	std::string inner;
+	for(size_t i = 0; i < InnerSubsets.size(); ++i){
+		if(i > 0) inner.append(",");
+		inner.append(InnerSubsets[i]);
+	}
+
+	add(data, bnd.c_str(), inner.c_str());
+}
+
+template<typename TDomain>
+void NeumannBoundaryBase<TDomain>::
 add(number val, const char* function, const char* subsets)
 {
 	SmartPtr<CplUserData<number, dim> > sp = make_sp(new ConstUserNumber<dim>(val));
 	add(sp, function, subsets);
+}
+
+template<typename TDomain>
+void NeumannBoundaryBase<TDomain>::
+add(number val, const std::vector<std::string>& BndSubsets, const std::vector<std::string>& InnerSubsets)
+{
+	std::string bnd;
+	for(size_t i = 0; i < BndSubsets.size(); ++i){
+		if(i > 0) bnd.append(",");
+		bnd.append(BndSubsets[i]);
+	}
+	std::string inner;
+	for(size_t i = 0; i < InnerSubsets.size(); ++i){
+		if(i > 0) inner.append(",");
+		inner.append(InnerSubsets[i]);
+	}
+
+	add(val, bnd.c_str(), inner.c_str());
 }
 
 template<typename TDomain>
@@ -78,6 +150,25 @@ add(const std::vector<number>& val, const char* function, const char* subsets)
 	SmartPtr<CplUserData<MathVector<dim>, dim> > sp = make_sp(new ConstUserVector<dim>(val));
 	add(sp, function, subsets);
 }
+
+template<typename TDomain>
+void NeumannBoundaryBase<TDomain>::
+add(const std::vector<number>& val, const std::vector<std::string>& BndSubsets, const std::vector<std::string>& InnerSubsets)
+{
+	std::string bnd;
+	for(size_t i = 0; i < BndSubsets.size(); ++i){
+		if(i > 0) bnd.append(",");
+		bnd.append(BndSubsets[i]);
+	}
+	std::string inner;
+	for(size_t i = 0; i < InnerSubsets.size(); ++i){
+		if(i > 0) inner.append(",");
+		inner.append(InnerSubsets[i]);
+	}
+
+	add(val, bnd.c_str(), inner.c_str());
+}
+
 
 #ifdef UG_FOR_LUA
 template <typename TDomain>
@@ -118,6 +209,75 @@ add(const char* name, const char* function, const char* subsets)
 					"c) "<<dim<<"d Vector - Callback\n"
 					<< (LuaUserData<MathVector<dim>, dim>::signature()));
 }
+
+template <typename TDomain>
+void NeumannBoundaryBase<TDomain>::
+add(const char* name,  const std::vector<std::string>& BndSubsets, const std::vector<std::string>& InnerSubsets)
+{
+	std::string bnd;
+	for(size_t i = 0; i < BndSubsets.size(); ++i){
+		if(i > 0) bnd.append(",");
+		bnd.append(BndSubsets[i]);
+	}
+	std::string inner;
+	for(size_t i = 0; i < InnerSubsets.size(); ++i){
+		if(i > 0) inner.append(",");
+		inner.append(InnerSubsets[i]);
+	}
+	add(name, bnd.c_str(), inner.c_str());
+}
+
+template <typename TDomain>
+void NeumannBoundaryBase<TDomain>::
+add(LuaFunctionHandle fct, const char* function, const char* subsets)
+{
+	if(LuaUserData<number, dim>::check_callback_returns(fct)){
+		SmartPtr<CplUserData<number, dim> > sp =
+							make_sp(new LuaUserData<number, dim>(fct));
+		add(sp, function, subsets);
+		return;
+	}
+	if(LuaUserData<number, dim, bool>::check_callback_returns(fct)){
+		SmartPtr<CplUserData<number, dim, bool> > sp =
+							make_sp(new LuaUserData<number, dim, bool>(fct));
+		add(sp, function, subsets);
+		return;
+	}
+	if(LuaUserData<MathVector<dim>, dim>::check_callback_returns(fct)){
+		SmartPtr<CplUserData<MathVector<dim>, dim> > sp =
+							make_sp(new LuaUserData<MathVector<dim>, dim>(fct));
+		add(sp, function, subsets);
+		return;
+	}
+
+//	name exists but wrong signature
+	UG_THROW("NeumannBoundaryBase: Cannot find matching callback "
+					"signature. Use one of:\n"
+					"a) Number - Callback\n"
+					<< (LuaUserData<number, dim>::signature()) << "\n" <<
+					"b) Conditional Number - Callback\n"
+					<< (LuaUserData<number, dim, bool>::signature()) << "\n" <<
+					"c) "<<dim<<"d Vector - Callback\n"
+					<< (LuaUserData<MathVector<dim>, dim>::signature()));
+}
+
+template <typename TDomain>
+void NeumannBoundaryBase<TDomain>::
+add(LuaFunctionHandle fct,  const std::vector<std::string>& BndSubsets, const std::vector<std::string>& InnerSubsets)
+{
+	std::string bnd;
+	for(size_t i = 0; i < BndSubsets.size(); ++i){
+		if(i > 0) bnd.append(",");
+		bnd.append(BndSubsets[i]);
+	}
+	std::string inner;
+	for(size_t i = 0; i < InnerSubsets.size(); ++i){
+		if(i > 0) inner.append(",");
+		inner.append(InnerSubsets[i]);
+	}
+	add(fct, bnd.c_str(), inner.c_str());
+}
+
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////

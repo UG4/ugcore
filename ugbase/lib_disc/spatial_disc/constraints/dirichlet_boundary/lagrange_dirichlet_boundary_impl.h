@@ -52,9 +52,45 @@ add(SmartPtr<UserData<number, dim, bool> > func, const char* function, const cha
 
 template <typename TDomain, typename TAlgebra>
 void DirichletBoundary<TDomain, TAlgebra>::
+add(SmartPtr<UserData<number, dim, bool> > func, const std::vector<std::string>& Fcts, const std::vector<std::string>& Subsets)
+{
+	std::string function;
+	for(size_t i = 0; i < Fcts.size(); ++i){
+		if(i > 0) function.append(",");
+		function.append(Fcts[i]);
+	}
+	std::string subsets;
+	for(size_t i = 0; i < Subsets.size(); ++i){
+		if(i > 0) subsets.append(",");
+		subsets.append(Subsets[i]);
+	}
+
+	add(func, function.c_str(), subsets.c_str());
+}
+
+template <typename TDomain, typename TAlgebra>
+void DirichletBoundary<TDomain, TAlgebra>::
 add(SmartPtr<UserData<number, dim> > func, const char* function, const char* subsets)
 {
 	m_vNumberData.push_back(NumberData(func, function, subsets));
+}
+
+template <typename TDomain, typename TAlgebra>
+void DirichletBoundary<TDomain, TAlgebra>::
+add(SmartPtr<UserData<number, dim> > func, const std::vector<std::string>& Fcts, const std::vector<std::string>& Subsets)
+{
+	std::string function;
+	for(size_t i = 0; i < Fcts.size(); ++i){
+		if(i > 0) function.append(",");
+		function.append(Fcts[i]);
+	}
+	std::string subsets;
+	for(size_t i = 0; i < Subsets.size(); ++i){
+		if(i > 0) subsets.append(",");
+		subsets.append(Subsets[i]);
+	}
+
+	add(func, function.c_str(), subsets.c_str());
 }
 
 template <typename TDomain, typename TAlgebra>
@@ -66,9 +102,45 @@ add(number value, const char* function, const char* subsets)
 
 template <typename TDomain, typename TAlgebra>
 void DirichletBoundary<TDomain, TAlgebra>::
+add(number value, const std::vector<std::string>& Fcts, const std::vector<std::string>& Subsets)
+{
+	std::string function;
+	for(size_t i = 0; i < Fcts.size(); ++i){
+		if(i > 0) function.append(",");
+		function.append(Fcts[i]);
+	}
+	std::string subsets;
+	for(size_t i = 0; i < Subsets.size(); ++i){
+		if(i > 0) subsets.append(",");
+		subsets.append(Subsets[i]);
+	}
+
+	add(value, function.c_str(), subsets.c_str());
+}
+
+template <typename TDomain, typename TAlgebra>
+void DirichletBoundary<TDomain, TAlgebra>::
 add(SmartPtr<UserData<MathVector<dim>, dim> > func, const char* functions, const char* subsets)
 {
 	m_vVectorData.push_back(VectorData(func, functions, subsets));
+}
+
+template <typename TDomain, typename TAlgebra>
+void DirichletBoundary<TDomain, TAlgebra>::
+add(SmartPtr<UserData<MathVector<dim>, dim> > func, const std::vector<std::string>& Fcts, const std::vector<std::string>& Subsets)
+{
+	std::string function;
+	for(size_t i = 0; i < Fcts.size(); ++i){
+		if(i > 0) function.append(",");
+		function.append(Fcts[i]);
+	}
+	std::string subsets;
+	for(size_t i = 0; i < Subsets.size(); ++i){
+		if(i > 0) subsets.append(",");
+		subsets.append(Subsets[i]);
+	}
+
+	add(func, function.c_str(), subsets.c_str());
 }
 
 #ifdef UG_FOR_LUA
@@ -109,6 +181,76 @@ add(const char* name, const char* function, const char* subsets)
 					<< (LuaUserData<number, dim, bool>::signature()) << "\n" <<
 					"c) "<<dim<<"d Vector - Callback\n"
 					<< (LuaUserData<MathVector<dim>, dim>::signature()));
+}
+
+template <typename TDomain, typename TAlgebra>
+void DirichletBoundary<TDomain, TAlgebra>::
+add(const char* name, const std::vector<std::string>& Fcts, const std::vector<std::string>& Subsets)
+{
+	std::string function;
+	for(size_t i = 0; i < Fcts.size(); ++i){
+		if(i > 0) function.append(",");
+		function.append(Fcts[i]);
+	}
+	std::string subsets;
+	for(size_t i = 0; i < Subsets.size(); ++i){
+		if(i > 0) subsets.append(",");
+		subsets.append(Subsets[i]);
+	}
+
+	add(name, function.c_str(), subsets.c_str());
+}
+
+template <typename TDomain, typename TAlgebra>
+void DirichletBoundary<TDomain, TAlgebra>::
+add(LuaFunctionHandle fct, const char* function, const char* subsets)
+{
+	if(LuaUserData<number, dim>::check_callback_returns(fct)){
+		SmartPtr<UserData<number, dim> > sp =
+				make_sp(new LuaUserData<number, dim>(fct));
+		add(sp, function, subsets);
+		return;
+	}
+	if(LuaUserData<number, dim, bool>::check_callback_returns(fct)){
+		SmartPtr<UserData<number, dim, bool> > sp =
+				make_sp(new LuaUserData<number, dim, bool>(fct));
+		add(sp, function, subsets);
+		return;
+	}
+	if(LuaUserData<MathVector<dim>, dim>::check_callback_returns(fct)){
+		SmartPtr<UserData<MathVector<dim>, dim> > sp =
+				make_sp(new LuaUserData<MathVector<dim>, dim>(fct));
+		add(sp, function, subsets);
+		return;
+	}
+
+//	name exists but wrong signature
+	UG_THROW("LagrangeDirichlet::add: Cannot find matching callback "
+					"signature. Use one of:\n"
+					"a) Number - Callback\n"
+					<< (LuaUserData<number, dim>::signature()) << "\n" <<
+					"b) Conditional Number - Callback\n"
+					<< (LuaUserData<number, dim, bool>::signature()) << "\n" <<
+					"c) "<<dim<<"d Vector - Callback\n"
+					<< (LuaUserData<MathVector<dim>, dim>::signature()));
+}
+
+template <typename TDomain, typename TAlgebra>
+void DirichletBoundary<TDomain, TAlgebra>::
+add(LuaFunctionHandle fct, const std::vector<std::string>& Fcts, const std::vector<std::string>& Subsets)
+{
+	std::string function;
+	for(size_t i = 0; i < Fcts.size(); ++i){
+		if(i > 0) function.append(",");
+		function.append(Fcts[i]);
+	}
+	std::string subsets;
+	for(size_t i = 0; i < Subsets.size(); ++i){
+		if(i > 0) subsets.append(",");
+		subsets.append(Subsets[i]);
+	}
+
+	add(fct, function.c_str(), subsets.c_str());
 }
 #endif
 

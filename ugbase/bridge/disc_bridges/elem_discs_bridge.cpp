@@ -91,13 +91,21 @@ static void Domain(Registry& reg, string grp)
 		string name = string("NeumannBoundaryBase").append(suffix);
 		reg.add_class_<T, TBase >(name, elemGrp)
 			.add_method("add", static_cast<void (T::*)(SmartPtr<CplUserData<number, dim> >, const char*, const char*)>(&T::add))
+			.add_method("add", static_cast<void (T::*)(SmartPtr<CplUserData<number, dim> >, const std::vector<std::string>&, const std::vector<std::string>&)>(&T::add))
 			.add_method("add", static_cast<void (T::*)(SmartPtr<CplUserData<number, dim, bool> >, const char*, const char*)>(&T::add))
+			.add_method("add", static_cast<void (T::*)(SmartPtr<CplUserData<number, dim, bool> >, const std::vector<std::string>&, const std::vector<std::string>&)>(&T::add))
 			.add_method("add", static_cast<void (T::*)(SmartPtr<CplUserData<MathVector<dim>, dim> >, const char*, const char*)>(&T::add))
+			.add_method("add", static_cast<void (T::*)(SmartPtr<CplUserData<MathVector<dim>, dim> >, const std::vector<std::string>&, const std::vector<std::string>&)>(&T::add))
 			.add_method("add", static_cast<void (T::*)(number, const char*, const char*)>(&T::add))
+			.add_method("add", static_cast<void (T::*)(number, const std::vector<std::string>&, const std::vector<std::string>&)>(&T::add))
 #ifdef UG_FOR_LUA
 			.add_method("add", static_cast<void (T::*)(const char*, const char*, const char*)>(&T::add))
+			.add_method("add", static_cast<void (T::*)(const char*, const std::vector<std::string>&, const std::vector<std::string>&)>(&T::add))
+			.add_method("add", static_cast<void (T::*)(LuaFunctionHandle, const char*, const char*)>(&T::add))
+			.add_method("add", static_cast<void (T::*)(LuaFunctionHandle, const std::vector<std::string>&, const std::vector<std::string>&)>(&T::add))
 #endif
-			.add_method("add", static_cast<void (T::*)(const vector<number>&, const char*, const char*)>(&T::add));
+			.add_method("add", static_cast<void (T::*)(const vector<number>&, const char*, const char*)>(&T::add))
+			.add_method("add", static_cast<void (T::*)(const vector<number>&, const std::vector<std::string>&, const std::vector<std::string>&)>(&T::add));
 		reg.add_class_to_group(name, "NeumannBoundaryBase", tag);
 	}
 

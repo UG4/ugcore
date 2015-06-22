@@ -38,12 +38,21 @@ class NeumannBoundaryBase
 	///	add a boundary value
 	///	\{
 		virtual void add(SmartPtr<CplUserData<number, dim> > data, const char* BndSubsets, const char* InnerSubsets) = 0;
+		void add(SmartPtr<CplUserData<number, dim> > data, const std::vector<std::string>& BndSubsets, const std::vector<std::string>& InnerSubsets);
 		virtual void add(SmartPtr<CplUserData<number, dim, bool> > user, const char* BndSubsets, const char* InnerSubsets) = 0;
+		void add(SmartPtr<CplUserData<number, dim, bool> > user, const std::vector<std::string>& BndSubsets, const std::vector<std::string>& InnerSubsets);
 		virtual void add(SmartPtr<CplUserData<MathVector<dim>, dim> > user, const char* BndSubsets, const char* InnerSubsets) = 0;
+		void add(SmartPtr<CplUserData<MathVector<dim>, dim> > user, const std::vector<std::string>& BndSubsets, const std::vector<std::string>& InnerSubsets);
+
 		void add(number val, const char* BndSubsets, const char* InnerSubsets);
+		void add(number val, const std::vector<std::string>& BndSubsets, const std::vector<std::string>& InnerSubsets);
 		void add(const std::vector<number>& val, const char* BndSubsets, const char* InnerSubsets);
+		void add(const std::vector<number>& val, const std::vector<std::string>& BndSubsets, const std::vector<std::string>& InnerSubsets);
 #ifdef UG_FOR_LUA
 		void add(const char* name, const char* BndSubsets, const char* InnerSubsets);
+		void add(const char* name, const std::vector<std::string>& BndSubsets, const std::vector<std::string>& InnerSubsets);
+		void add(LuaFunctionHandle fct, const char* BndSubsets, const char* InnerSubsets);
+		void add(LuaFunctionHandle fct, const std::vector<std::string>& BndSubsets, const std::vector<std::string>& InnerSubsets);
 #endif
 	/// \}
 
