@@ -343,6 +343,9 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "XL")
     # however, the -Wall option is not supported
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 	add_definitions("/EHsc")
+	# The following flag is necessary for gigantic .obj files
+        # which cause problems on Windows
+	add_cxx_flag("/bigobj")
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 	add_cxx_flag("-Wall")
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
