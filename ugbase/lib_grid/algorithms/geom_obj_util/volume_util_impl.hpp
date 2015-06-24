@@ -40,7 +40,8 @@ ContainsPoint(Volume* vol, const vector3& p, TAAPos aaPos)
 	// compared against later on, i.e. length*area, since otherwise problems arise
 	// with geometries scaled to very small extensions;
 	// which is why I changed sqrt(lenSq) to lenSq^1.5 (mbreit, 2015-05-11)
-	const number locSmall = std::pow(lenSq, 1.5) * SMALL;
+	const number sqrtLenSq = sqrt(lenSq);
+	const number locSmall = sqrtLenSq * sqrtLenSq * sqrtLenSq * SMALL;
 
 	for(size_t i = 0; i < vol->num_faces(); ++i){
 		vol->face_desc(i, fd);
