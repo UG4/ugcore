@@ -34,10 +34,10 @@ interpolate(number x, number y, int interpOrder) const
 		case 1:{
 			int cx = int((x - m_offset.x()) / m_cellSize.x());
 			int cy = int((y - m_offset.y()) / m_cellSize.y());
-			if(		cx >= 0
-				and cy >= 0
-				and cx + 1 < (int)m_field.width()
-				and cy + 1 < (int)m_field.height())
+			if(		(cx >= 0)
+				&& (cy >= 0)
+				&& (cx + 1 < (int)m_field.width())
+				&& (cy + 1 < (int)m_field.height()) )
 			{
 				float vx = (x - ((number)cx * m_cellSize.x() + m_offset.x())) / m_cellSize.x();
 				float vy = (y - ((number)cy * m_cellSize.y() + m_offset.y())) / m_cellSize.y();
