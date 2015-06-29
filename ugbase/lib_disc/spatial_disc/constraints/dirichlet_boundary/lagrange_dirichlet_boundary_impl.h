@@ -1492,7 +1492,6 @@ adjust_error
 
 						try
 						{
-							// TODO: adapt Multiple... to match this access!
 							numSideIPs = err_est_data->get(fct)->num_side_ips(roid);
 							sideLocIPs = err_est_data->get(fct)->template side_local_ips<side_type::dim>(roid);
 							sideGlobIPs = err_est_data->get(fct)->side_global_ips(elem, &vCoCo[0]);
@@ -1506,15 +1505,6 @@ adjust_error
 							if (!(*vUserData[i])(val, sideGlobIPs[ip], time, si)) continue;
 
 							// evaluate shapes at ip
-							// TODO: Check that this is correct:
-							// Instead of using the full-dim element that this side is part of,
-							// we take only the side and implicitly suppose that the full-dim shape
-							// function restricted to the side are exactly the (full-1)-dim shape
-							// fcts on the side (and 0 if not existing there). Is this the case?
-							// If not, we need to find an element that this side belongs to
-							// (using grid::get_associated_elements).
-							// This is certainly true for P1, Q1 on tetrahedra, hexahedra.
-
 							LFEID new_lfeID(lfeID.type(), lfeID.dim()-1, lfeID.order());
 							const LocalShapeFunctionSet<side_type::dim>& rTrialSpace =
 								LocalFiniteElementProvider::get<side_type::dim>(roid, new_lfeID);
