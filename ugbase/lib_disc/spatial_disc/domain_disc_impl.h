@@ -2497,7 +2497,7 @@ mark_for_refinement
 
 	// mark elements for refinement
 	MarkElementsForRefinement<elem_type>(m_aaError, refiner,
-		this->dd(GridLevel(GridLevel::TOP, GridLevel::SURFACE)),
+		this->dd(GridLevel()),
 		TOL, refineFrac, maxLevel);
 }
 

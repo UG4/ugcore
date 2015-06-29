@@ -77,6 +77,7 @@ class DomainDiscretizationBase
 	public:
 	///	default Constructor
 		DomainDiscretizationBase(SmartPtr<approx_space_type> pApproxSpace) :
+			m_bErrorCalculated(false),
 			m_spApproxSpace(pApproxSpace), m_spAssTuner(new AssemblingTuner<TAlgebra>)
 		{};
 
