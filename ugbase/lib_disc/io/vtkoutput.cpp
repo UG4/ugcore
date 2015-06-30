@@ -242,6 +242,10 @@ write_subset_pvd(int numSubset, const std::string& filename, int step, number ti
 	numProcs = pcl::NumProcs();
 #endif
 
+//	change locale to ensure decimal . is really a .
+	char* oldLocale = setlocale (LC_ALL, NULL);
+	setlocale(LC_NUMERIC, "C");
+
 //	only output proc writes this file
 	if (isOutputProc)
 	{
@@ -312,6 +316,10 @@ write_subset_pvd(int numSubset, const std::string& filename, int step, number ti
 		fprintf(file, "</VTKFile>\n");
 		fclose(file);
 	}
+
+	// restore old locale
+		setlocale(LC_NUMERIC, oldLocale);
+
 	#ifdef UG_PARALLEL
 		PCL_DEBUG_BARRIER_ALL();
 	#endif

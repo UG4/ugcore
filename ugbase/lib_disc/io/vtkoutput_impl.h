@@ -1782,6 +1782,10 @@ write_time_pvd(const char* filename, TFunction& u)
 //	get time steps
 	std::vector<number>& vTimestep = m_mTimestep[filename];
 
+//	change locale to ensure decimal . is really a .
+	char* oldLocale = setlocale (LC_ALL, NULL);
+	setlocale(LC_NUMERIC, "C");
+
 	if (isOutputProc)
 	{
 	//	get file name
@@ -1874,6 +1878,9 @@ write_time_pvd(const char* filename, TFunction& u)
 		fprintf(file, "</VTKFile>\n");
 		fclose(file);
 	}
+
+// restore old locale
+	setlocale(LC_NUMERIC, oldLocale);
 
 	#ifdef UG_PARALLEL
 		PCL_DEBUG_BARRIER_ALL();
