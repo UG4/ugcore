@@ -2588,7 +2588,7 @@ finish_timestep
 //	overrule by regular grid if required
 	if(m_spAssTuner->regular_grid_forced()) bNonRegularGrid = false;
 
-//	call assembler's PrepareTimestep
+//	call assembler's FinishTimestep
 	try
 	{
 		gass_type::FinishTimestep(m_vElemDisc, dd, bNonRegularGrid, vSol, m_spAssTuner);
