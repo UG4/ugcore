@@ -350,6 +350,12 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 	add_cxx_flag("-Wall")
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	add_cxx_flag("-Wall")
+	# When building on MacOS >10.8, code using sin(x) _and_ cos(x) with the same argument x,
+	# a dynamic library will be used which is not available on older systems; this will lead to
+	# the VRL crashing on this code. In order to suppress usage of this dyld:
+	if(buildForVRL AND APPLE)
+		add_cxx_flag("-mmacosx-version-min=10.8")
+    endif()
     # for some reason -Wsign-compare is not in -Wall for Clang 
 	add_cxx_flag("-Wsign-compare")
 	#set(CMAKE_CPP_FLAGS	"${CMAKE_CPP_FLAGS} -Wno-overloaded-virtual -Wno-autological-compare" CACHE STRING "overriden flags!" FORCE)
