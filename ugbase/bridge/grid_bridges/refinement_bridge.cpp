@@ -100,13 +100,13 @@ bool CreateSmoothVolumeHierarchy(MultiGrid& mg, size_t numRefs, bool bPreserveBn
 
 	for(size_t lvl = 0; lvl < numRefs; ++lvl){
 		ref.refine();
-		SubdivisionTetGridSmooth(mg, bPreserveBnd, bSubdivisionLoopBnd);
+		SubdivisionVolumes(mg, bPreserveBnd, bSubdivisionLoopBnd);
 	}
 
 	if(bSubdivisionLoopBnd)
 		ProjectToLimitPLoop(mg, aPosition, aPosition);
 
-	ProjectToLimitSmoothTetGrid(mg);
+	ProjectToLimitSubdivisionVolume(mg);
 
 	return true;
 }
@@ -237,9 +237,8 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 		.add_function("CreateSmoothVolumeHierarchy", &CreateSmoothVolumeHierarchy, grp)
 		.add_function("CreateSemiSmoothHierarchy", &CreateSemiSmoothHierarchy, grp);
 
-//	subdivision
-	reg.add_function("SubdivisionTetGridSmooth", &SubdivisionTetGridSmooth, grp);
-	reg.add_function("ConvertHybridTetOctGridToTetGrid", &ConvertHybridTetOctGridToTetGrid, grp);
+//	smooth volume subdivision
+	reg.add_function("SubdivisionVolumes", &SubdivisionVolumes, grp);
 }
 
 }//	end of namespace
