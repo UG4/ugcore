@@ -9,6 +9,7 @@
 #define __H__UG__LIB_DISC__SPATIAL_DISC__USER_DATA__USER_DATA__
 
 #include <vector>
+#include "common/types.h"
 #include "lib_disc/common/local_algebra.h"
 #include "lib_disc/time_disc/solution_time_series.h"
 #include "lib_disc/common/function_group.h"

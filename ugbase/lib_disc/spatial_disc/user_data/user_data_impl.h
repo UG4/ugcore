@@ -185,9 +185,10 @@ size_t ICplUserData<dim>::time_point(size_t s) const
 {
 	UG_ASSERT(s < num_series(), "Wrong series id");
 
-	size_t time_spec;
-	if ((time_spec = m_vTimePoint[s]) >= 0)
-		return time_spec;
+//	size_t time_spec;
+//	if ((time_spec = m_vTimePoint[s]) >= 0)
+	if (m_vTimePoint[s] >= 0)
+		return m_vTimePoint[s];
 	return m_timePoint;
 }
 

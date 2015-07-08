@@ -237,19 +237,19 @@ local_ip_series_added(const size_t seriesID)
 				m_vvSeriesID[i][s] =
 						m_vspICplUserData[i]->template register_local_ip_series<1>
 								(this->template local_ips<1>(s), this->num_ip(s),
-								 this->m_vMayChange[s]);
+								 this->m_vTimePoint[s], this->m_vMayChange[s]);
 				break;
 			case 2:
 				m_vvSeriesID[i][s] =
 						m_vspICplUserData[i]->template register_local_ip_series<2>
 								(this->template local_ips<2>(s), this->num_ip(s),
-								 this->m_vMayChange[s]);
+								 this->m_vTimePoint[s], this->m_vMayChange[s]);
 				break;
 			case 3:
 				m_vvSeriesID[i][s] =
 						m_vspICplUserData[i]->template register_local_ip_series<3>
 								(this->template local_ips<3>(s), this->num_ip(s),
-								 this->m_vMayChange[s]);
+								 this->m_vTimePoint[s], this->m_vMayChange[s]);
 				break;
 			default: UG_THROW("Dimension not supported."); break;
 		}
