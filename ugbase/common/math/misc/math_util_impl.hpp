@@ -850,21 +850,28 @@ bool BoxBoundProbe(const vector_t& v, const vector_t& boxMin,
 //	PointIsInsideTriangle
 template <class vector_t>
 bool PointIsInsideTriangle(const vector_t& v, const vector_t& v0,
-							const vector_t& v1, const vector_t& v2)
+						   const vector_t& v1, const vector_t& v2)
 {
 //	we'll check for each side of the tri, whether v and the point of
 //	the tri, that does not lie on the edge, do lie on the same side.
 	vector_t e;			// the examined edge
 	vector_t edgeNorm;	// the normal of the examined edge
 	vector_t tv1, tv2;	// the direction of a tri-point to v
-	
 
+//	We compare against a small-constant which is
+//	relative to the first edge of the triangle under examination.
+//	Note: If we do not do this in a relative fashion, sufficiently
+//	small-scale triangles will always return true!
 	VecSubtract(e, v1, v0);
+	number locSmall = VecTwoNormSq(e);
+	locSmall = locSmall * locSmall * SMALL;
+
+	//VecSubtract(e, v1, v0);
 	edgeNorm.x() = e.y();
 	edgeNorm.y() = -e.x();
 	VecSubtract(tv1, v2, v0);
 	VecSubtract(tv2, v, v0);
-	if(VecDot(tv1, edgeNorm) * VecDot(tv2, edgeNorm) < -SMALL_SQ)
+	if(VecDot(tv1, edgeNorm) * VecDot(tv2, edgeNorm) < -locSmall)
 		return false;
 
 	VecSubtract(e, v2, v1);
@@ -872,7 +879,7 @@ bool PointIsInsideTriangle(const vector_t& v, const vector_t& v0,
 	edgeNorm.y() = -e.x();
 	VecSubtract(tv1, v0, v1);
 	VecSubtract(tv2, v, v1);
-	if(VecDot(tv1, edgeNorm) * VecDot(tv2, edgeNorm) < -SMALL_SQ)
+	if(VecDot(tv1, edgeNorm) * VecDot(tv2, edgeNorm) < -locSmall)
 		return false;
 
 	VecSubtract(e, v0, v2);
@@ -880,9 +887,9 @@ bool PointIsInsideTriangle(const vector_t& v, const vector_t& v0,
 	edgeNorm.y() = -e.x();
 	VecSubtract(tv1, v1, v2);
 	VecSubtract(tv2, v, v2);
-	if(VecDot(tv1, edgeNorm) * VecDot(tv2, edgeNorm) < -SMALL_SQ)
+	if(VecDot(tv1, edgeNorm) * VecDot(tv2, edgeNorm) < -locSmall)
 		return false;
-	
+
 //	all tests succeeded. return true.
 	return true;
 }
@@ -894,49 +901,11 @@ template <class vector_t>
 bool PointIsInsideTriangle_HighAcc(const vector_t& v, const vector_t& v0,
 								   const vector_t& v1, const vector_t& v2)
 {
-	using std::max;
-
-//	we'll check for each side of the tri, whether v and the point of
-//	the tri, that does not lie on the edge, do lie on the same side.
-	vector_t e;			// the examined edge
-	vector_t edgeNorm;	// the normal of the examined edge
-	vector_t tv1, tv2;	// the direction of a tri-point to v
-	typedef typename vector_t::value_type value_t;
-
-	const value_t locSmallSq = SMALL_SQ * sqrt(max(VecDistanceSq(v0, v1),
-								  	 	 	 	   max(VecDistanceSq(v1, v2),
-								  	 	 	 		   VecDistanceSq(v2, v0))));
-
-	VecSubtract(e, v1, v0);
-	edgeNorm.x() = e.y();
-	edgeNorm.y() = -e.x();
-	VecSubtract(tv1, v2, v0);
-	VecSubtract(tv2, v, v0);
-	if(VecDot(tv1, edgeNorm) * VecDot(tv2, edgeNorm) < -locSmallSq)
-		return false;
-
-	VecSubtract(e, v2, v1);
-	edgeNorm.x() = e.y();
-	edgeNorm.y() = -e.x();
-	VecSubtract(tv1, v0, v1);
-	VecSubtract(tv2, v, v1);
-	if(VecDot(tv1, edgeNorm) * VecDot(tv2, edgeNorm) < -locSmallSq)
-		return false;
-
-	VecSubtract(e, v0, v2);
-	edgeNorm.x() = e.y();
-	edgeNorm.y() = -e.x();
-	VecSubtract(tv1, v1, v2);
-	VecSubtract(tv2, v, v2);
-	if(VecDot(tv1, edgeNorm) * VecDot(tv2, edgeNorm) < -locSmallSq)
-		return false;
-
-//	all tests succeeded. return true.
-	return true;
+	return PointIsInsideTriangle(v, v0, v1, v2);
 }
 
 ////////////////////////////////////////////////////////////////////////
-//	PointIsInsideQuadrilateral
+//	PointIsInsideQuadrilateral (for convex quads only)
 template <class vector_t>
 bool PointIsInsideQuadrilateral(const vector_t& v, const vector_t& v0,
 								const vector_t& v1, const vector_t& v2,
@@ -948,13 +917,20 @@ bool PointIsInsideQuadrilateral(const vector_t& v, const vector_t& v0,
 	vector_t edgeNorm;	// the normal of the examined edge
 	vector_t tv1, tv2;	// the direction of a quad-point to v
 
-
+//	we compare against a small-constant which is
+//	relative to the first edge of the examined triangle
+//	Note: If we do not do this in a relative fashion, small-scale quads
+//	will always return true!
 	VecSubtract(e, v1, v0);
+	number locSmall = VecTwoNormSq(e);
+	locSmall = locSmall * locSmall * SMALL;
+
+	//VecSubtract(e, v1, v0);
 	edgeNorm.x() = e.y();
 	edgeNorm.y() = -e.x();
 	VecSubtract(tv1, v2, v0);
 	VecSubtract(tv2, v, v0);
-	if(VecDot(tv1, edgeNorm) * VecDot(tv2, edgeNorm) < -SMALL_SQ)
+	if(VecDot(tv1, edgeNorm) * VecDot(tv2, edgeNorm) < -locSmall)
 		return false;
 
 	VecSubtract(e, v2, v1);
@@ -962,7 +938,7 @@ bool PointIsInsideQuadrilateral(const vector_t& v, const vector_t& v0,
 	edgeNorm.y() = -e.x();
 	VecSubtract(tv1, v3, v1);
 	VecSubtract(tv2, v, v1);
-	if(VecDot(tv1, edgeNorm) * VecDot(tv2, edgeNorm) < -SMALL_SQ)
+	if(VecDot(tv1, edgeNorm) * VecDot(tv2, edgeNorm) < -locSmall)
 		return false;
 
 	VecSubtract(e, v3, v2);
@@ -970,7 +946,7 @@ bool PointIsInsideQuadrilateral(const vector_t& v, const vector_t& v0,
 	edgeNorm.y() = -e.x();
 	VecSubtract(tv1, v0, v2);
 	VecSubtract(tv2, v, v2);
-	if(VecDot(tv1, edgeNorm) * VecDot(tv2, edgeNorm) < -SMALL_SQ)
+	if(VecDot(tv1, edgeNorm) * VecDot(tv2, edgeNorm) < -locSmall)
 		return false;
 
 	VecSubtract(e, v0, v3);
@@ -978,7 +954,7 @@ bool PointIsInsideQuadrilateral(const vector_t& v, const vector_t& v0,
 	edgeNorm.y() = -e.x();
 	VecSubtract(tv1, v1, v3);
 	VecSubtract(tv2, v, v3);
-	if(VecDot(tv1, edgeNorm) * VecDot(tv2, edgeNorm) < -SMALL_SQ)
+	if(VecDot(tv1, edgeNorm) * VecDot(tv2, edgeNorm) < -locSmall)
 		return false;
 
 //	all tests succeeded. return true.
@@ -997,12 +973,20 @@ bool PointIsInsideTetrahedron(const vector_t& v, const vector_t& v0, const vecto
 	vector_t e1, e2;	// directions of two edges of a face
 	number pn;			// dot product of a point in the plane with the normal
 
+//	we compare against a small-constant which is
+//	relative to the first edge of the examined triangle
+//	Note: If we do not do this in a relative fashion, small-scale quads
+//	will always return true!
+	VecSubtract(e2, v1, v0);
+	number locSmall = VecTwoNormSq(e2);
+	locSmall = locSmall * locSmall * locSmall * SMALL;
+
 //	check side 0, 2, 1
 	VecSubtract(e1, v2, v0);
-	VecSubtract(e2, v1, v0);
+	//VecSubtract(e2, v1, v0);
 	VecCross(n, e1, e2);
 	pn = VecDot(v0, n);
-	if((VecDot(v3, n) - pn) * (VecDot(v, n) - pn) < -SMALL_SQ)
+	if((VecDot(v3, n) - pn) * (VecDot(v, n) - pn) < -locSmall)
 		return false;
 
 //	check side 0, 1, 3
@@ -1010,7 +994,7 @@ bool PointIsInsideTetrahedron(const vector_t& v, const vector_t& v0, const vecto
 	VecSubtract(e2, v3, v0);
 	VecCross(n, e1, e2);
 	pn = VecDot(v0, n);
-	if((VecDot(v2, n) - pn) * (VecDot(v, n) - pn) < -SMALL_SQ)
+	if((VecDot(v2, n) - pn) * (VecDot(v, n) - pn) < -locSmall)
 		return false;
 
 //	check side 1, 2, 3
@@ -1018,7 +1002,7 @@ bool PointIsInsideTetrahedron(const vector_t& v, const vector_t& v0, const vecto
 	VecSubtract(e2, v3, v1);
 	VecCross(n, e1, e2);
 	pn = VecDot(v1, n);
-	if((VecDot(v0, n) - pn) * (VecDot(v, n) - pn) < -SMALL_SQ)
+	if((VecDot(v0, n) - pn) * (VecDot(v, n) - pn) < -locSmall)
 		return false;
 
 //	check side 0, 3, 2
@@ -1026,7 +1010,7 @@ bool PointIsInsideTetrahedron(const vector_t& v, const vector_t& v0, const vecto
 	VecSubtract(e2, v2, v0);
 	VecCross(n, e1, e2);
 	pn = VecDot(v0, n);
-	if((VecDot(v1, n) - pn) * (VecDot(v, n) - pn) < -SMALL_SQ)
+	if((VecDot(v1, n) - pn) * (VecDot(v, n) - pn) < -locSmall)
 		return false;
 
 //	all tests succeeded. return true.
