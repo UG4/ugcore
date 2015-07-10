@@ -1035,6 +1035,8 @@ void jobjectArray2ParamStack
 				{
 					UG_THROW("Parameter in method template is invalid. This must not happen.");
 				}
+      default:
+         break;
 			} // end switch
 		}
 
@@ -1144,6 +1146,8 @@ void jobjectArray2ParamStack
 				{
 					UG_THROW("Parameter in method template is invalid. This must not happen.");
 				}
+      default:
+         break;
 			} // end switch
 		}
 	} // end for
@@ -1202,6 +1206,9 @@ jobject param2JObject(JNIEnv *env, ug::bridge::ParameterStack& params, size_t in
 
 		case ug::Variant::VT_INVALID:
 			UG_THROW("Parameter in method template is invalid. This must not happen.");
+   
+   default:
+      break;
 	}
 
 	return jobject();
