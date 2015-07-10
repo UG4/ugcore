@@ -140,18 +140,25 @@ norm(const TVector& vec, const std::vector<DoFIndex>& vMultiIndex)
 
 #ifdef UG_PARALLEL
 	// sum squared local norms
-	//if (!vec.layouts()->proc_comm().empty())
-	//norm = vec.layouts()->proc_comm().allreduce(norm, PCL_RO_SUM);
+	if (!vec.layouts()->proc_comm().empty())
+	norm = vec.layouts()->proc_comm().allreduce(norm, PCL_RO_SUM);
 
-	// Use this alternative: otherwise, racing conditions occur in cases
-	// where a process has no elements, since the defect would be 0 for them then
-	// and iteration_ended() would return true; ergo: the empty processors would
-	// wait at the next global communication involving them while non-empty processors
-	// might encounter a different communication event before.
-	// This results in error messages like
-	// MPI ERROR: MPI_ERR_TRUNCATE: message truncated.
-	pcl::ProcessCommunicator com;
-	norm = com.allreduce(norm, PCL_RO_SUM);
+	// In the lines above,
+	// racing conditions occur in cases where a process has no elements,
+	// since the defect would be 0 for them then and iteration_ended() would return true;
+	// ergo: the empty processors would wait at the next global communication involving them
+	// while non-empty processors might encounter a different communication event before.
+	// This results in error messages like MPI ERROR: MPI_ERR_TRUNCATE: message truncated.
+
+	// The lines below, however, result in Bi-CGSTAB going down in the first step with
+	// "minOrthogonality failed" in settings with empty processes as they will compute
+	// a zero (local) dot_product r*r0, but with (global) r=r0 != 0.
+	// Therefore switching to old alternative here. MPI_ERR_TRUNCATE should be prevented
+	// by not communicating globally, but only with the processes that really need to be
+	// involved (i.e. NO empty processes), if possible.
+
+	//pcl::ProcessCommunicator com;
+	//norm = com.allreduce(norm, PCL_RO_SUM);
 #endif
 
 	// return global norm
@@ -575,7 +582,7 @@ bool CompositeConvCheck<TVector, TDomain>::post()
 
 	bool success = true;
 
-	if (step() >= m_maxSteps){
+	if (step() > m_maxSteps){
 		print_offset();
 		UG_LOG("Maximum numbers of "<< m_maxSteps <<
 		       	  " iterations reached without convergence.\n");
