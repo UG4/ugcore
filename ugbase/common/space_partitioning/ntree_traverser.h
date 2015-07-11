@@ -277,14 +277,26 @@ bool FindElementsInIntersectingNodes(std::vector<typename tree_t::elem_t>& elems
 // 		size_t	closest_negative_point_index	() const;
 // };
 
+template <class TElem>
+struct RayElemIntersectionRecord
+{
+	RayElemIntersectionRecord()	{}
+	RayElemIntersectionRecord(number _smin, number _smax, TElem _elem) :
+		smin(_smin), smax(_smax), elem(_elem)	{}
+
+	number	smin;	///< relative coordinate where the ray enters the element
+	number	smax;	///< relative coordinate where the ray leaves the element. May be equal to smin.
+	TElem	elem; ///< the element that was intersected
+};
 
 template <class tree_t>
 class Traverser_RayElementIntersection
 {
 	public:
-		typedef typename tree_t::elem_t		elem_t;
-		typedef typename tree_t::vector_t	vector_t;
-		typedef typename tree_t::box_t		box_t;
+		typedef typename tree_t::elem_t				elem_t;
+		typedef typename tree_t::vector_t			vector_t;
+		typedef typename tree_t::box_t				box_t;
+		typedef RayElemIntersectionRecord<elem_t>	intersection_record_t;
 
 		Traverser_RayElementIntersection(const vector_t& rayFrom,
 										 const vector_t rayDir,
@@ -309,15 +321,15 @@ class Traverser_RayElementIntersection
 			//	iterate over all elements. If an element intersects the given ray,
 			//	we'll record the intersection point
 				vector_t v;
-				number s = 0, t0 = 0, t1 = 0;
+				number smin = 0, smax = 0, t0 = 0, t1 = 0;
 				for(typename tree_t::elem_iterator_t iter = tree.elems_begin(node);
 					iter != tree.elems_end(node); ++iter)
 				{
 					if(tree_t::traits::intersects_ray(
 							*iter, m_rayFrom, m_rayDir, tree.common_data(),
-							v, s, t0, t1, m_small))
+							smin, smax, t0, t1, m_small))
 					{
-						m_intersections.push_back(v);
+						m_intersections.push_back(intersection_record_t(smin, smax, *iter));
 					}
 				}
 			}
@@ -328,21 +340,22 @@ class Traverser_RayElementIntersection
 
 		void end_traversal(const tree_t&)	{}
 
-		const std::vector<vector_t>& result() const	{return m_intersections;}
+		const std::vector<intersection_record_t>& result() const	{return m_intersections;}
 
 	private:
-		vector_t				m_rayFrom;
-		vector_t				m_rayDir;
-		const number			m_small;
-		std::vector<vector_t>	m_intersections;
+		vector_t							m_rayFrom;
+		vector_t							m_rayDir;
+		const number						m_small;
+		std::vector<intersection_record_t>	m_intersections;
 };
 
 template <class tree_t>
-bool RayElementIntersections(std::vector<typename tree_t::vector_t>& intersectionsOut,
-									 const tree_t& tree,
-									 const typename tree_t::vector_t& rayFrom,
-									 const typename tree_t::vector_t& rayDir,
-									 const number small = 1.e-12)
+bool RayElementIntersections(
+	std::vector<RayElemIntersectionRecord<typename tree_t::elem_t> >& intersectionsOut,
+	const tree_t& tree,
+	const typename tree_t::vector_t& rayFrom,
+	const typename tree_t::vector_t& rayDir,
+	const number small = 1.e-12)
 {
 	Traverser_RayElementIntersection<tree_t> trav(rayFrom, rayDir, small);
 	TraverseDepthFirst(tree, trav);

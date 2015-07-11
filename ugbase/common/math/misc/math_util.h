@@ -159,6 +159,12 @@ template <class vector_t>
 number DropAPerpendicular(vector_t& vOut, const vector_t& v,
 							const vector_t& v0, const vector_t& v1);
 
+
+////////////////////////////////////////////////////////////////////////
+///	returns the point described by a relative ray coordinate
+template <class vector_t>
+vector_t PointOnRay(const vector_t& from, const vector_t& dir, number s);
+
 ////////////////////////////////////////////////////////////////////////
 ///	finds the projection of v onto the ray defined by from and dir
 /**

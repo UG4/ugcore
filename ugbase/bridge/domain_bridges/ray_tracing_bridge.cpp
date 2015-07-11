@@ -50,7 +50,11 @@ class DomainRayTracer {
 
 		size_t trace_ray(const vector_t& from, const vector_t& dir)
 		{
-			RayElementIntersections(m_tracePoints, m_tree, from, dir, m_small);
+			m_tracePoints.clear();
+			RayElementIntersections(m_intersectionRecords, m_tree, from, dir, m_small);
+			for_each_in_vec(intersection_record_t& r, m_intersectionRecords){
+				m_tracePoints.push_back(PointOnRay(from, dir, r.smin));
+			}end_for;
 			return m_tracePoints.size();
 		}
 
@@ -86,8 +90,10 @@ class DomainRayTracer {
 
 	private:
 		typedef lg_ntree<3, 3, Triangle>	tree_t;
+		typedef RayElemIntersectionRecord<Triangle*>	intersection_record_t;
 
 		std::vector<vector_t>	m_tracePoints;
+		std::vector<intersection_record_t>	m_intersectionRecords;
 		tree_t					m_tree;
 		number					m_small;
 		Domain3d*				m_dom;

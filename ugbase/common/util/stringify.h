@@ -8,9 +8,7 @@
 #ifndef STRINGIFY_H_
 #define STRINGIFY_H_
 
-#include "smart_pointer.h"
 #include <sstream>
-
 
 /**
  * use this class like this
@@ -31,6 +29,12 @@
  * const char *str = (Stringify() << "bla").c_str());
  * will NOT work.
  *
+ * You can use mkstr as a wrapper around Stringify like this:
+ * \code
+ * std::string s = mkstr("Hello " << 5 << " is a number");
+ * \endcode
+ *
+ * \sa mkstr
  */
 class Stringify
 {
@@ -58,12 +62,17 @@ public:
 	}
 };
 
+///	Comfortable (but not necessarily efficient) string building
+/** Based on Stringify, mkstr allows you to easily join strings and convert
+ * strings to numbers like this:
+ *
+ * \code
+ * std::string s = mkstr("Hello " << 5 << " is a number");
+ * \endcode
+ *
+ * Note that mkstr is not highly efficient. It should only be used in code
+ * which is not performance critical.*/
+#define mkstr(s)	(Stringify() << s).str()
 
-/*template<typename T>
-inline T& operator << (T &t, const Stringify &s)
-{
-	t << s.str();
-	return t;
-}*/
 
 #endif /* STRINGIFY_H_ */

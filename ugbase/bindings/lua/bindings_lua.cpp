@@ -125,7 +125,9 @@ std::string ParameterStackString(ParameterStack &s)
 				case Variant::VT_CONST_POINTER: ss << "ConstPointer " << s.class_name(i) << " " << s.to<const void*>(i); break;
 				case Variant::VT_SMART_POINTER: ss << "SmartPtr<" << s.class_name(i) << "> " << s.to<SmartPtr<void> >(i).get(); break;
 				case Variant::VT_CONST_SMART_POINTER: ss << "ConstSmartPtr<" << s.class_name(i) << "> " << s.to<ConstSmartPtr<void> >(i).get(); break;
+			#ifdef UG_FOR_LUA
 				case Variant::VT_LUA_FUNCTION_HANDLE: ss << "LuaFunctionHandle " << s.to<LuaFunctionHandle>(i).ref; break;
+			#endif
 				default: ss << "unknown"; break;
 			}
 		}

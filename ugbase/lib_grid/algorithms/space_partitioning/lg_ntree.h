@@ -129,25 +129,108 @@ struct lg_ntree_traits_base
 //		return false;
 	}
 
-	static bool intersects_ray( const elem_t& e,
+
+	static bool intersects_ray( const Vertex* e,
 								const vector_t& rayFrom,
 								const vector_t& rayDir,
 								const common_data_t& cd,
-								vector_t& vout,
-								number sout,
-								number t0out,
-								number t1out,
+								number& s0out,
+								number& s1out,
+								number& t0out,
+								number& t1out,
 								const number small = SMALL)
 	{
-		UG_COND_THROW(e->num_vertices() != 3,
-			"Only triangles are currently supported in lg_ntree::intersect_ray");
+		UG_THROW("intersects_ray not yet implemented for vertices");
+		return false;
+	}
 
-		return RayTriangleIntersection(
-					vout, t0out, t1out, sout,
+
+	static bool intersects_ray( const Edge* e,
+								const vector_t& rayFrom,
+								const vector_t& rayDir,
+								const common_data_t& cd,
+								number& s0out,
+								number& sMaxOut,
+								number& t0out,
+								number& t1out,
+								const number small = SMALL)
+	{
+		UG_THROW("intersects_ray not yet implemented for edges");
+		return false;
+	}
+
+
+	static bool intersects_ray( const Face* e,
+								const vector_t& rayFrom,
+								const vector_t& rayDir,
+								const common_data_t& cd,
+								number& sMinOut,
+								number& sMaxOut,
+								number& t0out,
+								number& t1out,
+								const number small = SMALL)
+	{
+		UG_COND_THROW(e->num_vertices() > 4,
+			"Only triangles and quadrilaterals are currently supported in lg_ntree::intersect_ray");
+
+		vector_t v;
+		bool ret = RayTriangleIntersection(
+					v, t0out, t1out, sMinOut,
 					cd.position(e->vertex(0)),
 					cd.position(e->vertex(1)),
 					cd.position(e->vertex(2)),
 					rayFrom, rayDir, small);
+
+		if(!ret && e->num_vertices() == 4){
+			ret = RayTriangleIntersection(
+					v, t0out, t1out, sMinOut,
+					cd.position(e->vertex(0)),
+					cd.position(e->vertex(2)),
+					cd.position(e->vertex(3)),
+					rayFrom, rayDir, small);
+		}
+		sMaxOut = sMinOut;
+		return ret;
+	}
+
+
+	static bool intersects_ray( const Volume* e,
+								const vector_t& rayFrom,
+								const vector_t& rayDir,
+								const common_data_t& cd,
+								number& sMinOut,
+								number& sMaxOut,
+								number& t0out,
+								number& t1out,
+								const number small = SMALL)
+	{
+		using namespace std;
+		UG_COND_THROW(!cd.grid_ptr(), "No grid assigned to ntree::common_data.");
+
+		int numIntersections = 0;
+		number smin, smax;
+		Grid& g = *cd.grid_ptr();
+
+		Grid::face_traits::secure_container sides;
+		g.associated_elements(sides, e);
+
+		for_each_in_vec(Face* f, sides){
+			number tsmin, tsmax, tt0, tt1;
+			if(intersects_ray(f, rayFrom, rayDir, cd, tsmin, tsmax, tt0, tt1, small)){
+				if(numIntersections == 0)
+					smin = smax = tsmin;
+				else{
+					smin = min(smin, tsmin);
+					smax = max(smax, tsmax);
+				}
+				++numIntersections;
+			}
+		}end_for;
+
+		sMinOut = smin;
+		sMaxOut = smax;
+		t0out = t1out = 0;
+		return numIntersections > 0;
 	}
 };
 

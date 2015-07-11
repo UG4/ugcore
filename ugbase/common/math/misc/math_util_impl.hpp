@@ -118,6 +118,16 @@ number DropAPerpendicular(vector_t& vOut, const vector_t& v,
 
 ////////////////////////////////////////////////////////////////////////
 template <class vector_t>
+vector_t PointOnRay(const vector_t& from, const vector_t& dir, number s)
+{
+	vector_t v = dir;
+	v *= s;
+	v += from;
+	return v;
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class vector_t>
 number ProjectPointToRay(vector_t& vOut, const vector_t& v,
 							const vector_t& from, const vector_t& dir)
 {

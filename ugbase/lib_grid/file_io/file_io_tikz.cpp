@@ -1,9 +1,15 @@
 // created by Sebastian Reiter
 // s.b.reiter@gmail.com
 
-#include <fstream>
+#include <algorithm>
 #include <cmath>
+#include <fstream>
+#include <vector>
 #include "file_io_tikz.h"
+#include "common/util/string_util.h"
+#include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
+#include "lib_grid/algorithms/bounding_box_util.h"
+#include "lib_grid/iterators/lg_for_each.h"
 
 using namespace std;
 
@@ -29,23 +35,88 @@ static vector2 trunk(const vector2& v, number smallestVal)
 	return t;
 }
 
+
+struct TIKZElem{
+	GridObject* elem;
+	float zmin;
+	float zmax;
+	int elemId;
+	int subsetId;
+
+	template <class vector_t>
+	TIKZElem(GridObject* _e, int _si, const AABox<vector_t>& bbox) :
+		elem(_e),
+		elemId(_e->base_object_id()),
+		subsetId(_si)
+		{
+			if(vector_t::Size == 3){
+				zmin = bbox.min[2];
+				zmax = bbox.max[2];
+			}
+			else
+				zmin = zmax = 0;
+		}
+
+//	if x < y, x will be rendered before y
+	bool operator <(const TIKZElem& e) const{
+		if(zmin - e.zmin > SMALL)			return false;
+		else if(e.zmin - zmin > SMALL)	return true;
+		
+		if(e.elemId > elemId)		return false;
+		else if(e.elemId < elemId)	return true;
+
+		if(zmax - e.zmax > SMALL)			return false;
+		else if(e.zmax - zmax > SMALL)	return true;
+
+		if(e.subsetId < subsetId)		return false;
+		else if(e.subsetId > subsetId)	return true;
+
+		return false;	
+	}
+};
+
+
+
 bool ExportGridToTIKZ(Grid& grid, const char* filename, const ISubsetHandler* psh,
 					  APosition aPos, TikzExportDesc desc)	
 {
-	ofstream out(filename);
-	if(!out){
-		UG_LOG("Couldn't load file " << filename << "\n");
-		return false;
-	}
+	UG_COND_THROW(!psh, "A subset handler is required to write a tikz file!\n");
 
-	if(!psh){
-		UG_LOG("A subset handler is required to write a tikz file!\n");
-		return false;
+	ofstream out(filename);
+	UG_COND_THROW(!out, "Couldn't load file " << filename << "\n");
+
+
+	vector<string>	subsetIdentifyer;
+	vector<bool>	subsetNameIsDuplicate;
+	for(int si = 0; si < psh->num_subsets(); ++si){
+		string sname = psh->get_subset_name(si);
+		for(size_t i = 0; i < sname.size(); ++i){
+			char c = sname[i];
+			if(!(isalnum(c) || c == '_'))
+				sname[i] = '_';
+		}
+
+	//	check if the string is already contained in subsetIdentifyers and mark it
+	//	as a duplicate if that's the case
+		bool isDuplicate = false;
+		for(size_t i = 0; i < subsetIdentifyer.size(); ++i){
+			if(subsetIdentifyer[i] == sname){
+				isDuplicate = true;
+				break;
+			}
+		}
+		subsetIdentifyer.push_back(sname);
+		subsetNameIsDuplicate.push_back(isDuplicate);
 	}
 
 	number sml = max(SMALL, desc.smallestVal);
 
 	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPos);
+
+	out << "% This tex-file was exported from ProMesh (www.promesh3d.com)" << endl << endl;
+	out << "% Call 'pdflatex' with this script to generate a .pdf file from it." << endl << endl;
+	out << "% By placing a file 'custom_promesh_style.tex' in the same folder as this" << endl;
+	out << "% script, you may override all local style definitions with custom definitions." << endl << endl;
 
 	out << "\\documentclass[tikz]{standalone}" << endl;
 	out << "\\begin{document}" << endl;
@@ -68,65 +139,131 @@ bool ExportGridToTIKZ(Grid& grid, const char* filename, const ISubsetHandler* ps
 	out << endl;
 
 	for(int si = 0; si < psh->num_subsets(); ++si){
-		out << "%subset styles for subset " << si << " (" << psh->subset_info(si).name << ")" << endl;
-		out << "\\tikzset{vertex" << si << "/.style={vertexBase}}\n";
-		out << "\\tikzset{edge" << si << "/.style={edgeBase}}\n";
-		out << "\\tikzset{face" << si << "/.style={faceBase}}\n";
+		if(!subsetNameIsDuplicate[si]){
+			const std::string& subsetName = subsetIdentifyer[si];
+			out << "% '" << subsetName << "' subset styles" <<endl;
+			out << "\\tikzset{vertex_" << subsetName << "/.style={vertexBase}}\n";
+			out << "\\tikzset{edge_" << subsetName << "/.style={edgeBase}}\n";
+			out << "\\tikzset{face_" << subsetName << "/.style={faceBase}}\n";
+		}
 	}
 	
 	out << endl;
+	out << "\\InputIfFileExists{./custom_promesh_style.tex}{}{}" << endl;
+	out << endl;
+
+
+//	create a vector which contains all objects that shall be rendered and sort it
+	vector<TIKZElem>	elems;
+	lg_for_each(Vertex, v, grid){
+		if(psh->get_subset_index(v) != -1)
+			elems.push_back(TIKZElem(v, psh->get_subset_index(v),
+									 CalculateBoundingBox(v, aaPos)));
+	}lg_end_for;
+
+	lg_for_each(Edge, e, grid){
+		if(psh->get_subset_index(e) != -1)
+			elems.push_back(TIKZElem(e, psh->get_subset_index(e),
+									 CalculateBoundingBox(e, aaPos)));
+	}lg_end_for;
+
+	lg_for_each(Face, f, grid){
+		if(psh->get_subset_index(f) != -1)
+			elems.push_back(TIKZElem(f, psh->get_subset_index(f),
+									 CalculateBoundingBox(f, aaPos)));
+	}lg_end_for;
+
+	sort(elems.begin(), elems.end());
 
 	out << "\\begin{scope}" << endl;
-	for(int si = 0; si < psh->num_subsets(); ++si){
-	//	draw all faces which are in a subset
-		for(FaceIterator iter = grid.begin<Face>();
-			iter != grid.end<Face>(); ++iter)
-		{
-			Face* f = *iter;
-			if(psh->get_subset_index(f) != si)	// THIS IS NASTY! One should iterate over subset-elements directly instead
-				continue;
-			out << "\\filldraw[face" << si << "]";
-			for(size_t i = 0; i < f->num_vertices(); ++i){
-				Vertex* vrt = f->vertex(i);
+	for_each_in_vec(TIKZElem& tikzElem, elems){
+		const std::string& subsetName = subsetIdentifyer[tikzElem.subsetId];
+		switch(tikzElem.elemId){
+			case VERTEX:{
+				Vertex* vrt = static_cast<Vertex*>(tikzElem.elem);
 				vector2 p = trunk(vector2(aaPos[vrt].x(), aaPos[vrt].y()), sml);
-				out << " (" << p.x() << "cm, " << p.y() << "cm) --";
-			}
-			out << " cycle;" << endl;
-		}
-	}
+				out << "\\node[vertex_" << subsetName << "] at (" << p.x() << "cm, " << p.y() << "cm) {};" << endl;
+			}break;
 
-	for(int si = 0; si < psh->num_subsets(); ++si){
-	//	draw all edges which are in a subset
-		for(EdgeIterator iter = grid.begin<Edge>();
-			iter != grid.end<Edge>(); ++iter)
-		{
-			Edge* e = *iter;
-			if(psh->get_subset_index(e) != si)	// THIS IS NASTY! One should iterate over subset-elements directly instead
-				continue;
-			out << "\\draw[edge" << si << "]";
-			for(size_t i = 0; i < e->num_vertices(); ++i){
-				Vertex* vrt = e->vertex(i);
-				vector2 p = trunk(vector2(aaPos[vrt].x(), aaPos[vrt].y()), sml);
-				out << " (" << p.x() << "cm, " << p.y() << "cm)";
-				if(i+1 != e->num_vertices())
-					out << " --";
-			}
-			out << ";" << endl;
-		}
-	}
+			case EDGE:{
+				Edge* e = static_cast<Edge*>(tikzElem.elem);
+				out << "\\draw[edge_" << subsetName << "]";
+				for(size_t i = 0; i < e->num_vertices(); ++i){
+					Vertex* vrt = e->vertex(i);
+					vector2 p = trunk(vector2(aaPos[vrt].x(), aaPos[vrt].y()), sml);
+					out << " (" << p.x() << "cm, " << p.y() << "cm)";
+					if(i+1 != e->num_vertices())
+						out << " --";
+				}
+				out << ";" << endl;
+			}break;
 
-	for(int si = 0; si < psh->num_subsets(); ++si){
-	//	draw all nodes which are in a subset
-		for(VertexIterator iter = grid.begin<Vertex>();
-			iter != grid.end<Vertex>(); ++iter)
-		{
-			Vertex* vrt = *iter;
-			if(psh->get_subset_index(vrt) != si)	// THIS IS NASTY! One should iterate over subset-elements directly instead
-				continue;
-			vector2 p = trunk(vector2(aaPos[vrt].x(), aaPos[vrt].y()), sml);
-			out << "\\node[vertex" << si << "] at (" << p.x() << "cm, " << p.y() << "cm) {};" << endl;
+			case FACE:{
+				Face* f = static_cast<Face*>(tikzElem.elem);
+				out << "\\filldraw[face_" << subsetName << "]";
+				for(size_t i = 0; i < f->num_vertices(); ++i){
+					Vertex* vrt = f->vertex(i);
+					vector2 p = trunk(vector2(aaPos[vrt].x(), aaPos[vrt].y()), sml);
+					out << " (" << p.x() << "cm, " << p.y() << "cm) --";
+				}
+				out << " cycle;" << endl;
+			}break;
+
 		}
-	}
+
+	}end_for;
+	
+
+	// for(int si = 0; si < psh->num_subsets(); ++si){
+	// //	draw all faces which are in a subset
+	// 	for(FaceIterator iter = grid.begin<Face>();
+	// 		iter != grid.end<Face>(); ++iter)
+	// 	{
+	// 		Face* f = *iter;
+	// 		if(psh->get_subset_index(f) != si)	// THIS IS NASTY! One should iterate over subset-elements directly instead
+	// 			continue;
+	// 		out << "\\filldraw[face" << si << "]";
+	// 		for(size_t i = 0; i < f->num_vertices(); ++i){
+	// 			Vertex* vrt = f->vertex(i);
+	// 			vector2 p = trunk(vector2(aaPos[vrt].x(), aaPos[vrt].y()), sml);
+	// 			out << " (" << p.x() << "cm, " << p.y() << "cm) --";
+	// 		}
+	// 		out << " cycle;" << endl;
+	// 	}
+	// }
+
+	// for(int si = 0; si < psh->num_subsets(); ++si){
+	// //	draw all edges which are in a subset
+	// 	for(EdgeIterator iter = grid.begin<Edge>();
+	// 		iter != grid.end<Edge>(); ++iter)
+	// 	{
+	// 		Edge* e = *iter;
+	// 		if(psh->get_subset_index(e) != si)	// THIS IS NASTY! One should iterate over subset-elements directly instead
+	// 			continue;
+	// 		out << "\\draw[edge" << si << "]";
+	// 		for(size_t i = 0; i < e->num_vertices(); ++i){
+	// 			Vertex* vrt = e->vertex(i);
+	// 			vector2 p = trunk(vector2(aaPos[vrt].x(), aaPos[vrt].y()), sml);
+	// 			out << " (" << p.x() << "cm, " << p.y() << "cm)";
+	// 			if(i+1 != e->num_vertices())
+	// 				out << " --";
+	// 		}
+	// 		out << ";" << endl;
+	// 	}
+	// }
+
+	// for(int si = 0; si < psh->num_subsets(); ++si){
+	// //	draw all nodes which are in a subset
+	// 	for(VertexIterator iter = grid.begin<Vertex>();
+	// 		iter != grid.end<Vertex>(); ++iter)
+	// 	{
+	// 		Vertex* vrt = *iter;
+	// 		if(psh->get_subset_index(vrt) != si)	// THIS IS NASTY! One should iterate over subset-elements directly instead
+	// 			continue;
+	// 		vector2 p = trunk(vector2(aaPos[vrt].x(), aaPos[vrt].y()), sml);
+	// 		out << "\\node[vertex" << si << "] at (" << p.x() << "cm, " << p.y() << "cm) {};" << endl;
+	// 	}
+	// }
 	out << "\\end{scope}" << endl;
 
 	out << "\\end{tikzpicture}" << endl;
