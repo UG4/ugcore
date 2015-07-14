@@ -130,7 +130,7 @@ struct lg_ntree_traits_base
 	}
 
 
-	static bool intersects_ray( const Vertex* e,
+	static bool intersects_ray( Vertex* e,
 								const vector_t& rayFrom,
 								const vector_t& rayDir,
 								const common_data_t& cd,
@@ -145,7 +145,7 @@ struct lg_ntree_traits_base
 	}
 
 
-	static bool intersects_ray( const Edge* e,
+	static bool intersects_ray( Edge* e,
 								const vector_t& rayFrom,
 								const vector_t& rayDir,
 								const common_data_t& cd,
@@ -169,7 +169,7 @@ struct lg_ntree_traits_base_wd2 : public
 	using typename base_t::vector_t;
 	using typename base_t::common_data_t;
 
-	static bool intersects_ray( const Face* e,
+	static bool intersects_ray( Face* e,
 								const vector_t& rayFrom,
 								const vector_t& rayDir,
 								const common_data_t& cd,
@@ -193,7 +193,7 @@ struct lg_ntree_traits_base_wd3 : public
 	using typename base_t::vector_t;
 	using typename base_t::common_data_t;
 
-	static bool intersects_ray( const Face* e,
+	static bool intersects_ray( Face* e,
 								const vector_t& rayFrom,
 								const vector_t& rayDir,
 								const common_data_t& cd,
@@ -227,7 +227,7 @@ struct lg_ntree_traits_base_wd3 : public
 	}
 
 
-	static bool intersects_ray( const Volume* e,
+	static bool intersects_ray( Volume* e,
 								const vector_t& rayFrom,
 								const vector_t& rayDir,
 								const common_data_t& cd,
