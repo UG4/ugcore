@@ -38,7 +38,7 @@ bool OrientationMatches(const EdgeVertices& e1, const EdgeVertices& e2)
 }
 
 void ComputeOrientationOffsetLagrange(std::vector<size_t>& vOrientOffset,
-                                      EdgeDescriptor& ed, Edge* edge, const size_t p)
+                                      EdgeDescriptor& ed, EdgeVertices* edge, const size_t p)
 {
 	vOrientOffset.reserve(p-1);
 	vOrientOffset.clear();
@@ -116,7 +116,7 @@ void ComputeOrientationOffsetLagrange(std::vector<size_t>& vOrientOffset,
  * a mapping.
  */
 
-static void MapLagrangeMultiIndexQuad(std::vector<size_t>& vOrientOffset,
+void MapLagrangeMultiIndexQuad(std::vector<size_t>& vOrientOffset,
                                       const int id0, bool sameOrientation,
                                       const size_t pOuter)
 {
@@ -152,7 +152,7 @@ static void MapLagrangeMultiIndexQuad(std::vector<size_t>& vOrientOffset,
 	}
 };
 
-static void MapLagrangeMultiIndexTriangle(std::vector<size_t>& vOrientOffset,
+void MapLagrangeMultiIndexTriangle(std::vector<size_t>& vOrientOffset,
                                           const int id0, bool sameOrientation,
                                           const size_t pOuter)
 {
