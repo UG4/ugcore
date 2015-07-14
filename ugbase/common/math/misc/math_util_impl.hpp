@@ -598,109 +598,176 @@ bool RayTriangleIntersection(vector_t &vOut, const vector_t &p0,
 	return RayTriangleIntersection(vOut, r, s, t, p0, p1, p2, vFrom, vDir);
 }
 
+// ////////////////////////////////////////////////////////////////////////
+// template <class vector_t>
+// bool RayBoxIntersection(const vector_t& rayFrom, const vector_t& rayDir,
+// 						const vector_t& boxMin, const vector_t& boxMax,
+// 						number* tNearOut, number* tFarOut)
+// {
+// 	number tMin = 0, tMax = 0;// initialized only to avoid mislead compiler warnings...
+// 	number t1, t2;
+// 	bool bMinMaxSet = false;
+	
+// 	if(fabs(rayDir.x()) > SMALL)
+// 	{
+// 		//get xNear and xFar
+// 		t1 = (boxMin.x() - rayFrom.x()) / rayDir.x();
+// 		t2 = (boxMax.x() - rayFrom.x()) / rayDir.x();
+// 		if(t1 > t2)
+// 			std::swap(t1, t2);
+// 		tMin	= t1;
+// 		tMax	= t2;
+// 		bMinMaxSet = true;
+// 	}
+// 	else
+// 	{
+// 		if(rayFrom.x() < boxMin.x())
+// 			return false;
+// 		if(rayFrom.x() > boxMax.x())
+// 			return false;
+// 	}
+	
+// 	if(fabs(rayDir.y()) > SMALL)
+// 	{
+// 		//get yNear and yFar
+// 		t1 = (boxMin.y() - rayFrom.y()) / rayDir.y();
+// 		t2 = (boxMax.y() - rayFrom.y()) / rayDir.y();
+// 		if(t1 > t2)
+// 			std::swap(t1, t2);
+// 		if(bMinMaxSet)
+// 		{
+// 			if((t1 <= tMax) && (t2 >= tMin))
+// 			{
+// 				tMin = std::max(t1, tMin);
+// 				tMax = std::min(t2, tMax);
+// 			}
+// 			else
+// 				return false;
+// 		}
+// 		else
+// 		{
+// 			tMin	= t1;
+// 			tMax	= t2;
+// 		}
+// 		bMinMaxSet = true;
+// 	}
+// 	else
+// 	{
+// 		if(rayFrom.y() < boxMin.y())
+// 			return false;
+// 		if(rayFrom.y() > boxMax.y())
+// 			return false;		
+// 	}
+	
+// 	if(fabs(rayDir.z()) > SMALL)
+// 	{
+// 		//get zNear and zFar
+// 		t1 = (boxMin.z() - rayFrom.z()) / rayDir.z();
+// 		t2 = (boxMax.z() - rayFrom.z()) / rayDir.z();
+// 		if(t1 > t2)
+// 			std::swap(t1, t2);
+// 		if(bMinMaxSet)
+// 		{
+// 			if((t1 <= tMax) && (t2 >= tMin))
+// 			{
+// 				tMin = std::max(t1, tMin);
+// 				tMax = std::min(t2, tMax);
+// 			}
+// 			else
+// 				return false;
+// 		}
+// 		else
+// 		{
+// 			tMin	= t1;
+// 			tMax	= t2;
+// 		}
+// 		bMinMaxSet = true;
+// 	}
+// 	else
+// 	{
+// 		if(rayFrom.z() < boxMin.z())
+// 			return false;
+// 		if(rayFrom.z() > boxMax.z())
+// 			return false;		
+// 	}
+	
+// 	if(bMinMaxSet)
+// 	{
+// 	//	the ray intersects the box
+// 	//	lets calculate tNear and tFar and return true
+// 		if(fabs(tMin) > fabs(tMax))
+// 			std::swap(tMin, tMax);
+// 		if(tNearOut)
+// 			*tNearOut = tMin;
+// 		if(tFarOut)
+// 			*tFarOut = tMax;
+// 		return true;
+// 	}
+// 	else
+// 	{
+// 	//	the ray has no direction -> we'll check if the From-point lies inside the box
+// 		if(BoxBoundProbe(rayFrom, boxMin, boxMax)){
+		
+// 			if(*tNearOut)
+// 				*tNearOut = 0;
+// 			if(*tFarOut)
+// 				*tFarOut = 0;
+// 			return true;
+// 		}
+// 		else
+// 			return false;
+// 	}
+// }
+
 ////////////////////////////////////////////////////////////////////////
 template <class vector_t>
 bool RayBoxIntersection(const vector_t& rayFrom, const vector_t& rayDir,
 						const vector_t& boxMin, const vector_t& boxMax,
-						number* tNearOut, number* tFarOut)
+						number* tMinOut, number* tMaxOut)
 {
 	number tMin = 0, tMax = 0;// initialized only to avoid mislead compiler warnings...
 	number t1, t2;
 	bool bMinMaxSet = false;
 	
-	if(fabs(rayDir.x()) > SMALL)
-	{
-		//get xNear and xFar
-		t1 = (boxMin.x() - rayFrom.x()) / rayDir.x();
-		t2 = (boxMax.x() - rayFrom.x()) / rayDir.x();
-		if(t1 > t2)
-			std::swap(t1, t2);
-		tMin	= t1;
-		tMax	= t2;
-		bMinMaxSet = true;
-	}
-	else
-	{
-		if(rayFrom.x() < boxMin.x())
-			return false;
-		if(rayFrom.x() > boxMax.x())
-			return false;
-	}
-	
-	if(fabs(rayDir.y()) > SMALL)
-	{
-		//get yNear and yFar
-		t1 = (boxMin.y() - rayFrom.y()) / rayDir.y();
-		t2 = (boxMax.y() - rayFrom.y()) / rayDir.y();
-		if(t1 > t2)
-			std::swap(t1, t2);
-		if(bMinMaxSet)
+	for(size_t i = 0; i < vector_t::Size; ++i){
+		if(fabs(rayDir[i]) > SMALL)
 		{
-			if((t1 <= tMax) && (t2 >= tMin))
+			//get near and far
+			t1 = (boxMin[i] - rayFrom[i]) / rayDir[i];
+			t2 = (boxMax[i] - rayFrom[i]) / rayDir[i];
+			if(t1 > t2)
+				std::swap(t1, t2);
+			if(bMinMaxSet)
 			{
-				tMin = std::max(t1, tMin);
-				tMax = std::min(t2, tMax);
+				if((t1 <= tMax) && (t2 >= tMin))
+				{
+					tMin = std::max(t1, tMin);
+					tMax = std::min(t2, tMax);
+				}
+				else
+					return false;
 			}
 			else
-				return false;
-		}
-		else
-		{
-			tMin	= t1;
-			tMax	= t2;
-		}
-		bMinMaxSet = true;
-	}
-	else
-	{
-		if(rayFrom.y() < boxMin.y())
-			return false;
-		if(rayFrom.y() > boxMax.y())
-			return false;		
-	}
-	
-	if(fabs(rayDir.z()) > SMALL)
-	{
-		//get zNear and zFar
-		t1 = (boxMin.z() - rayFrom.z()) / rayDir.z();
-		t2 = (boxMax.z() - rayFrom.z()) / rayDir.z();
-		if(t1 > t2)
-			std::swap(t1, t2);
-		if(bMinMaxSet)
-		{
-			if((t1 <= tMax) && (t2 >= tMin))
 			{
-				tMin = std::max(t1, tMin);
-				tMax = std::min(t2, tMax);
+				tMin	= t1;
+				tMax	= t2;
 			}
-			else
-				return false;
+			bMinMaxSet = true;
 		}
-		else
-		{
-			tMin	= t1;
-			tMax	= t2;
-		}
-		bMinMaxSet = true;
-	}
-	else
-	{
-		if(rayFrom.z() < boxMin.z())
+		else if((rayFrom[i] < boxMin[i]) || (rayFrom[i] > boxMax[i]))
 			return false;
-		if(rayFrom.z() > boxMax.z())
-			return false;		
 	}
 	
 	if(bMinMaxSet)
 	{
 	//	the ray intersects the box
 	//	lets calculate tNear and tFar and return true
-		if(fabs(tMin) > fabs(tMax))
+		if(tMin > tMax)
 			std::swap(tMin, tMax);
-		if(tNearOut)
-			*tNearOut = tMin;
-		if(tFarOut)
-			*tFarOut = tMax;
+		if(tMinOut)
+			*tMinOut = tMin;
+		if(tMaxOut)
+			*tMaxOut = tMax;
 		return true;
 	}
 	else
@@ -708,10 +775,10 @@ bool RayBoxIntersection(const vector_t& rayFrom, const vector_t& rayDir,
 	//	the ray has no direction -> we'll check if the From-point lies inside the box
 		if(BoxBoundProbe(rayFrom, boxMin, boxMax)){
 		
-			if(*tNearOut)
-				*tNearOut = 0;
-			if(*tFarOut)
-				*tFarOut = 0;
+			if(*tMinOut)
+				*tMinOut = 0;
+			if(*tMaxOut)
+				*tMaxOut = 0;
 			return true;
 		}
 		else
@@ -724,13 +791,13 @@ template <class vector_t>
 bool LineBoxIntersection(const vector_t& v1, const vector_t& v2,
 						const vector_t& boxMin, const vector_t& boxMax)
 {
-	number tNear, tFar;
+	number tmin, tmax;
 
 	vector_t vDir;
 	VecSubtract(vDir, v2, v1);
-	if(RayBoxIntersection(v1, vDir, boxMin, boxMax, &tNear, &tFar))
+	if(RayBoxIntersection(v1, vDir, boxMin, boxMax, &tmin, &tmax))
 	{		
-		return ((tNear * tFar < 0) || (tNear >= 0 && tNear <= 1.));
+		return ((tmin * tmax < 0) || (tmin >= 0 && tmin <= 1.));
 	}
 
 	return false;

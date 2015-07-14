@@ -430,7 +430,7 @@ bool RayTriangleIntersection(vector_t &vOut, const vector_t &p0,
 //	RayBoxIntersection
 ///	checks if a ray is intersecting a box
 /**
- * vector_t has to feature a x, y and z component.
+ * vector_t has to feature a static 'Size' member and index access
  *
  * \param rayFrom:
  * \param rayDir:
@@ -449,7 +449,7 @@ bool RayBoxIntersection(const vector_t& rayFrom, const vector_t& rayDir,
 ////////////////////////////////////////////////////////////////////////
 ///	checks whether the given line-segment (v1, v2) intersect the given box.
 /**
- * vector_t has to feature a x, y and z component.
+ * vector_t has to feature a static 'Size' member and index access
  *
  * \sa RayBoxIntersection
  */
