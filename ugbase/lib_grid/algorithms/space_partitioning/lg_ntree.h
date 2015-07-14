@@ -251,6 +251,25 @@ struct ntree_traits<1, 1, elem_t, NTreeGridData<1> > :
 
 
 template <class elem_t>
+struct ntree_traits<1, 2, elem_t, NTreeGridData<2> > :
+	public lg_ntree_traits_base<1, 2, elem_t, NTreeGridData<2> >
+{
+	typedef MathVector<2>			vector_t;
+	typedef AABox<vector_t>			box_t;
+
+	static void split_box(box_t* boxesOut, const box_t& box, const vector_t& splitPoint)
+	{
+		vector_t splitPointYMin = splitPoint;
+		splitPointYMin.y() = box.min.y();
+		vector_t splitPointYMax = splitPoint;
+		splitPointYMax.y() = box.max.y();
+		boxesOut[0] = box_t(box.min, splitPointYMax);
+		boxesOut[1] = box_t(splitPointYMin, box.max);
+	}
+};
+
+
+template <class elem_t>
 struct ntree_traits<2, 2, elem_t, NTreeGridData<2> > :
 	public lg_ntree_traits_base<2, 2, elem_t, NTreeGridData<2> >
 {
