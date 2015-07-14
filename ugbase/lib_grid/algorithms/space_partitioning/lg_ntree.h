@@ -162,6 +162,30 @@ struct lg_ntree_traits_base
 
 
 template <int tree_dim, class elem_t_, class common_data_t_>
+struct lg_ntree_traits_base_wd2 : public
+	lg_ntree_traits_base<tree_dim, 2, elem_t_, common_data_t_>
+{
+	typedef lg_ntree_traits_base<tree_dim, 2, elem_t_, common_data_t_> base_t;
+	using typename base_t::vector_t;
+	using typename base_t::common_data_t;
+
+	static bool intersects_ray( const Face* e,
+								const vector_t& rayFrom,
+								const vector_t& rayDir,
+								const common_data_t& cd,
+								number& sMinOut,
+								number& sMaxOut,
+								number& t0out,
+								number& t1out,
+								const number small = SMALL)
+	{
+		UG_THROW("intersects_ray not yet implemented for faces in 2d");
+		return false;
+	}
+};
+
+
+template <int tree_dim, class elem_t_, class common_data_t_>
 struct lg_ntree_traits_base_wd3 : public
 	lg_ntree_traits_base<tree_dim, 3, elem_t_, common_data_t_>
 {
@@ -261,7 +285,7 @@ struct ntree_traits<1, 1, elem_t, NTreeGridData<1> > :
 
 template <class elem_t>
 struct ntree_traits<1, 2, elem_t, NTreeGridData<2> > :
-	public lg_ntree_traits_base<1, 2, elem_t, NTreeGridData<2> >
+	public lg_ntree_traits_base_wd2<1, elem_t, NTreeGridData<2> >
 {
 	typedef MathVector<2>			vector_t;
 	typedef AABox<vector_t>			box_t;
@@ -280,7 +304,7 @@ struct ntree_traits<1, 2, elem_t, NTreeGridData<2> > :
 
 template <class elem_t>
 struct ntree_traits<2, 2, elem_t, NTreeGridData<2> > :
-	public lg_ntree_traits_base<2, 2, elem_t, NTreeGridData<2> >
+	public lg_ntree_traits_base_wd2<2, elem_t, NTreeGridData<2> >
 {
 	typedef MathVector<2>			vector_t;
 	typedef AABox<vector_t>			box_t;
