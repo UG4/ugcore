@@ -460,7 +460,7 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 			const number x0 = 1.0 - x[0] - x[1];
 
 			UG_ASSERT(i0 <= (int)p, "Wrong Multiindex.");
-			UG_ASSERT(x0 <= 1.0 && x0 >= 0.0, "Wrong Position.");
+			UG_ASSERT(x0 <= 1.0+SMALL && x0 >= -SMALL, "Wrong Position.");
 
 		//	loop dimensions
 			for(int d = 0; d < dim; ++d)
@@ -629,7 +629,7 @@ class FlexLagrangeLSFS<ReferenceTriangle>
 			const number x0 = 1.0 - x[0] - x[1];
 
 			UG_ASSERT(i0 <= (int)p && i0 >= 0, "Wrong Multiindex.");
-			UG_ASSERT(x0 <= 1.0 && x0 >= 0.0, "Wrong Position.");
+			UG_ASSERT(x0 <= 1.0+SMALL && x0 >= -SMALL, "Wrong Position.");
 
 		//	loop dimensions
 			for(int d = 0; d < dim; ++d)
@@ -1315,7 +1315,7 @@ class FlexLagrangeLSFS<ReferenceTetrahedron>
 			const number x0 = 1 - x[0] - x[1] - x[2];
 
 			UG_ASSERT(i0 <= p, "Wrong Multiindex.");
-			UG_ASSERT(x0 <= 1.0 && x0 >= 0.0, "Wrong Position.");
+			UG_ASSERT(x0 <= 1.0+SMALL && x0 >= -SMALL, "Wrong Position.");
 
 		//	loop dimensions
 			for(int d = 0; d < dim; ++d)
@@ -1542,7 +1542,7 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 			const number x0 = 1 - x[0] - x[1];
 
 			UG_ASSERT(i0 <= p, "Wrong Multiindex.");
-			UG_ASSERT(x0 <= 1.0 && x0 >= 0.0, "Wrong Position.");
+			UG_ASSERT(x0 <= 1.0+SMALL && x0 >= -SMALL, "Wrong Position.");
 
 		//	x-y gradient
 			for(size_t d = 0; d < 2; ++d)
@@ -1730,7 +1730,7 @@ class FlexLagrangeLSFS<ReferencePrism>
 			const number x0 = 1 - x[0] - x[1];
 
 			UG_ASSERT(i0 <= p, "Wrong Multiindex.");
-			UG_ASSERT(x0 <= 1.0 && x0 >= 0.0, "Wrong Position.");
+			UG_ASSERT(x0 <= 1.0+SMALL && x0 >= -SMALL, "Wrong Position.");
 
 		//	x-y gradient
 			for(size_t d = 0; d < 2; ++d)
