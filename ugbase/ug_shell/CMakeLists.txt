@@ -42,12 +42,6 @@ set(srcUGShell	    ugshell_main.cpp
                     #algebra_test.cpp)
                     #signal_handler.cpp)
 
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-	set(srcUGShell	    ${srcUGShell} completion_dummy.cpp)
-else()
-	set(srcUGShell	    ${srcUGShell} completion.cpp)
-endif()
-
 if(CLOCK_FIX)
     set(srcUGShell	    ${srcUGShell} clock_fix.cpp)
     message(STATUS "Info: USING THE CLOCK_FIX WORKAROUND (fixes undefined reference to clock_gettime and clock_getres, see ugbase/ug_shell/clock_fix.cpp).")
@@ -55,6 +49,9 @@ endif(CLOCK_FIX)
 
 if("${SHELLTYPE}" STREQUAL "linenoise")
 	add_definitions(-DUG_USE_LINENOISE)
+	if(POSIX)
+		set(srcUGShell	    ${srcUGShell} completion.cpp)
+	endif(POSIX)
 	set(srcUGShell	${srcUGShell} externals/linenoise/linenoise.cpp)
 	
 elseif("${SHELLTYPE}" STREQUAL "readline")
