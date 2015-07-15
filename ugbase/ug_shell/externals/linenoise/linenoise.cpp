@@ -102,7 +102,7 @@ static int history_max_len = LINENOISE_DEFAULT_HISTORY_MAX_LEN;
 static int history_len = 0;
 char **history = NULL;
 
-static CompletionFunctionPtr complete;
+static CompletionFunctionPtr complete = NULL;
 
 // linenoiseSetCompletionFunction
 /**
