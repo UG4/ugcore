@@ -321,13 +321,13 @@ class Traverser_RayElementIntersection
 			//	iterate over all elements. If an element intersects the given ray,
 			//	we'll record the intersection point
 				vector_t v;
-				number smin = 0, smax = 0, t0 = 0, t1 = 0;
+				number smin = 0, smax = 0;
 				for(typename tree_t::elem_iterator_t iter = tree.elems_begin(node);
 					iter != tree.elems_end(node); ++iter)
 				{
 					if(tree_t::traits::intersects_ray(
 							*iter, m_rayFrom, m_rayDir, tree.common_data(),
-							smin, smax, t0, t1, m_small))
+							smin, smax))
 					{
 						m_intersections.push_back(intersection_record_t(smin, smax, *iter));
 					}

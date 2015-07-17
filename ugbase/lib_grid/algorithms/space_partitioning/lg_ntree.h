@@ -8,6 +8,7 @@
 #include "common/space_partitioning/ntree.h"
 #include "common/space_partitioning/ntree_traverser.h"
 #include "common/math/misc/shapes.h"
+#include "lib_grid/algorithms/ray_element_intersection_util.h"
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 
 namespace ug{
@@ -135,135 +136,46 @@ struct lg_ntree_traits_base
 								const vector_t& rayDir,
 								const common_data_t& cd,
 								number& s0out,
-								number& s1out,
-								number& t0out,
-								number& t1out,
-								const number small = SMALL)
+								number& s1out)
 	{
 		UG_THROW("intersects_ray not yet implemented for vertices");
 		return false;
 	}
-
 
 	static bool intersects_ray( Edge* e,
 								const vector_t& rayFrom,
 								const vector_t& rayDir,
 								const common_data_t& cd,
 								number& s0out,
-								number& sMaxOut,
-								number& t0out,
-								number& t1out,
-								const number small = SMALL)
+								number& s1out)
 	{
-		UG_THROW("intersects_ray not yet implemented for edges");
-		return false;
+		UG_COND_THROW(!cd.grid_ptr(), "No grid assigned to ntree::common_data.");
+		return RayElementIntersection(s0out, s1out, rayFrom, rayDir,
+									  e, *cd.grid_ptr(), cd.position_accessor());
 	}
-};
-
-
-template <int tree_dim, class elem_t_, class common_data_t_>
-struct lg_ntree_traits_base_wd2 : public
-	lg_ntree_traits_base<tree_dim, 2, elem_t_, common_data_t_>
-{
-	typedef lg_ntree_traits_base<tree_dim, 2, elem_t_, common_data_t_> base_t;
-	using typename base_t::vector_t;
-	using typename base_t::common_data_t;
 
 	static bool intersects_ray( Face* e,
 								const vector_t& rayFrom,
 								const vector_t& rayDir,
 								const common_data_t& cd,
-								number& sMinOut,
-								number& sMaxOut,
-								number& t0out,
-								number& t1out,
-								const number small = SMALL)
+								number& s0out,
+								number& s1out)
 	{
-		UG_THROW("intersects_ray not yet implemented for faces in 2d");
-		return false;
+		UG_COND_THROW(!cd.grid_ptr(), "No grid assigned to ntree::common_data.");
+		return RayElementIntersection(s0out, s1out, rayFrom, rayDir,
+									  e, *cd.grid_ptr(), cd.position_accessor());
 	}
-};
-
-
-template <int tree_dim, class elem_t_, class common_data_t_>
-struct lg_ntree_traits_base_wd3 : public
-	lg_ntree_traits_base<tree_dim, 3, elem_t_, common_data_t_>
-{
-	typedef lg_ntree_traits_base<tree_dim, 3, elem_t_, common_data_t_> base_t;
-	using typename base_t::vector_t;
-	using typename base_t::common_data_t;
-
-	static bool intersects_ray( Face* e,
-								const vector_t& rayFrom,
-								const vector_t& rayDir,
-								const common_data_t& cd,
-								number& sMinOut,
-								number& sMaxOut,
-								number& t0out,
-								number& t1out,
-								const number small = SMALL)
-	{
-		UG_COND_THROW(e->num_vertices() > 4,
-			"Only triangles and quadrilaterals are currently supported in lg_ntree::intersect_ray");
-
-		vector_t v;
-		bool ret = RayTriangleIntersection(
-					v, t0out, t1out, sMinOut,
-					cd.position(e->vertex(0)),
-					cd.position(e->vertex(1)),
-					cd.position(e->vertex(2)),
-					rayFrom, rayDir, small);
-
-		if(!ret && e->num_vertices() == 4){
-			ret = RayTriangleIntersection(
-					v, t0out, t1out, sMinOut,
-					cd.position(e->vertex(0)),
-					cd.position(e->vertex(2)),
-					cd.position(e->vertex(3)),
-					rayFrom, rayDir, small);
-		}
-		sMaxOut = sMinOut;
-		return ret;
-	}
-
 
 	static bool intersects_ray( Volume* e,
 								const vector_t& rayFrom,
 								const vector_t& rayDir,
 								const common_data_t& cd,
-								number& sMinOut,
-								number& sMaxOut,
-								number& t0out,
-								number& t1out,
-								const number small = SMALL)
+								number& s0out,
+								number& s1out)
 	{
-		using namespace std;
 		UG_COND_THROW(!cd.grid_ptr(), "No grid assigned to ntree::common_data.");
-
-		int numIntersections = 0;
-		number smin, smax;
-		Grid& g = *cd.grid_ptr();
-
-		Grid::face_traits::secure_container sides;
-		g.associated_elements(sides, e);
-
-		for_each_in_vec(Face* f, sides){
-			number tsmin, tsmax, tt0, tt1;
-			if(intersects_ray(f, rayFrom, rayDir, cd, tsmin, tsmax, tt0, tt1, small)){
-				if(numIntersections == 0)
-					smin = smax = tsmin;
-				else{
-					smin = min(smin, tsmin);
-					smax = max(smax, tsmax);
-				}
-				++numIntersections;
-			}
-		}end_for;
-
-		sMinOut = smin;
-		sMaxOut = smax;
-		t0out = t1out = 0;
-		return numIntersections > 0;
+		return RayElementIntersection(s0out, s1out, rayFrom, rayDir,
+									  e, *cd.grid_ptr(), cd.position_accessor());
 	}
 };
 
@@ -285,7 +197,7 @@ struct ntree_traits<1, 1, elem_t, NTreeGridData<1> > :
 
 template <class elem_t>
 struct ntree_traits<1, 2, elem_t, NTreeGridData<2> > :
-	public lg_ntree_traits_base_wd2<1, elem_t, NTreeGridData<2> >
+	public lg_ntree_traits_base<1, 2, elem_t, NTreeGridData<2> >
 {
 	typedef MathVector<2>			vector_t;
 	typedef AABox<vector_t>			box_t;
@@ -304,7 +216,7 @@ struct ntree_traits<1, 2, elem_t, NTreeGridData<2> > :
 
 template <class elem_t>
 struct ntree_traits<2, 2, elem_t, NTreeGridData<2> > :
-	public lg_ntree_traits_base_wd2<2, elem_t, NTreeGridData<2> >
+	public lg_ntree_traits_base<2, 2, elem_t, NTreeGridData<2> >
 {
 	typedef MathVector<2>			vector_t;
 	typedef AABox<vector_t>			box_t;
@@ -323,7 +235,7 @@ struct ntree_traits<2, 2, elem_t, NTreeGridData<2> > :
 
 template <class elem_t>
 struct ntree_traits<2, 3, elem_t, NTreeGridData<3> > :
-	public lg_ntree_traits_base_wd3<2, elem_t, NTreeGridData<3> >
+	public lg_ntree_traits_base<2, 3, elem_t, NTreeGridData<3> >
 {
 	typedef MathVector<3>			vector_t;
 	typedef AABox<vector_t>			box_t;
@@ -346,7 +258,7 @@ struct ntree_traits<2, 3, elem_t, NTreeGridData<3> > :
 
 template <class elem_t>
 struct ntree_traits<3, 3, elem_t, NTreeGridData<3> > :
-	public lg_ntree_traits_base_wd3<3, elem_t, NTreeGridData<3> >
+	public lg_ntree_traits_base<3, 3, elem_t, NTreeGridData<3> >
 {
 	typedef MathVector<3>			vector_t;
 	typedef AABox<vector_t>			box_t;

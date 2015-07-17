@@ -294,7 +294,7 @@ bool RayRayIntersection2d(vector_t &vOut, number& t0Out, number& t1Out,
  * Furthermore the local (barycentric) coordinate of the
  * intersection is written to bcOut. tOut
  * will contain the local coordinate of the intersection
- * regarding the lines parameter form.
+ * regarding the rays parameter form.
  */
 template <class vector_t>
 bool RayLineIntersection2d(vector_t &vOut, number& bcOut, number& tOut,
