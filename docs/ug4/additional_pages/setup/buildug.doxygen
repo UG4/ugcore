@@ -50,7 +50,7 @@ The following example is for a debug build:
 -# `cd build_debug`
 -# Generate Makefiles:
    - Linux/MacOS: `cmake ..`
-   - Windows: `cmake -G"MSYS Makefiles" ..`
+   - Windows: see \ref pageUG4OnWindows
    - Clusters: `cmake -DCMAKE_TOOLCHAIN_FILE=<TOOLCHAINFILE> ..` <br>
      see \ref pageUG4SetupParallel.
 

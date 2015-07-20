@@ -2,19 +2,17 @@
 
 [TOC]
 
-\note Because of the great variety of systems, this installation guides may be outdated quickly. So if this guide is not working for you
-\em please write an email to sebastian.reiter@gcsc.uni-frankfurt.de explaining where you're stuck - even if you have resolved your problem.
-It's the only chance we have to keep this guides updated and correct.
-
 <hr>
-\section secInstallWindowsMinGW Install MinGW
+\section secWindowsCompiler Compiler
 
-\ug4 supports Windows through the \em MinGW gcc-compilers.
-\em MinGW can be downloaded together with \em MSYS at 
-http://www.mingw.org/wiki/MSYS .
-\em MSYS is a 'minimal shell', which mimics some of the features of unix shells.
-You should install \em MSYS and \em MinGW to a rather simple path which does 
-not contain spaces or special characters (e.g. <tt>C:\\MinGW</tt>).
+The Microsoft Visual C++ 2013 compiler is recommended for compilation of \ug4
+on windows which can be downloaded as part of the free
+"Express 2013 for Windows Desktop" edition if Visual Studio
+(https://www.visualstudio.com/en-us/products/visual-studio-express-vs.aspx).
+
+To allow for parallel compilation in the terminal one can use the tool "jom"
+(https://wiki.qt.io/Jom). Extract it and add the path in which the executable
+lies to your path environment variable.
 
 <hr>
 \section secInstallWindowsCMake Install CMake on Windows
@@ -47,12 +45,37 @@ Enter the repository adress (e.g.
 <tt>svn://fuji.gcsc.uni-frankfurt.de/ug4/trunk</tt>), your username and 
 password.
 
-You should now have received a full checkout of \ug4's sources.
-Now open the \em MSYS shell and navigate to the \ug4 folder you just created.
-Note that folders in \em MSYS are specified in a unix way, e.g. <tt>cd 
-/c/ug4</tt>)
+<hr>
+\section secWindowsBuild	Building
 
-If you chose \em Eclipse, then please follow the tutorial given in 
-\ref pageInstallEclipse to set up \em Eclipse and how to checkout \ug4.
+	-	Open 'VS2013 x64 Cross Tools-Eingabeaufforderung'
+		(Start -> All Programs -> Visual Studio 2013 -> Visual Studio-Tools)
+		if you want to compile a 64bit version of \ug4. If you only want to
+		compile for 32bit, use 'VS2013 x86 Native Tools-Eingabeaufforderung'.
+	
+	-	Navigate to your ug4-source-code root folder
 
+	- 	create a new directory called 'build' ('mkdir build').
+
+	-	Before cmake can be run and before jom can be executed one hast to initialize
+		Visual Studios environment variables.
+
+	-	type 'cmake -G"NMake Makefiles JOM" ..\trunk -DSTATIC_BUILD=ON -DDIM="2;3" -DCPU=1'.
+		This generates the makefiles required by Jom. You only have to execute cmake if
+		you're initializing a build directory for the first time or if you want to
+		change build options. See note below if you want to use the Visual Studio IDE directly.
+
+	-	You may enable or disable other plugins using cmake, e.g.: 'cmake ..\trunk -DSmallStrainMechanics=OFF'
+
+	-	to execute a build, type 'jom'
+
+\note	If you want to embed the build-process in your favorite IDE (e.g. Eclipse or Sublime)
+		you most likely have to initialize the build environment before executing jom.
+		You can do this by calling '"C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" x86_amd64'
+		before calling jom.
+
+\note	If you want to compile directly using the VisualStudio IDE, you should specify another
+		builder for cmake. Create a new build directory and call 'cmake -G"Visual Studio 2013" ...'
+		(rest as above). This creates a visual-studio project which you can edit and compile
+		using the Visual Studio IDE.
 */
