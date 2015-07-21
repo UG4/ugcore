@@ -53,6 +53,9 @@ struct AABox{
 ///	returns true if the given point lies in the box or on its boundary
 	bool contains_point(const vector_t& point) const;
 
+/// return true if the given line (segment) and the box overlap
+	bool overlaps_line(const vector_t& point1, const vector_t& point2) const;
+
 	vector_t min;
 	vector_t max;
 };

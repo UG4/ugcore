@@ -94,6 +94,18 @@ bool AABox<vector_t>::contains_point(const vector_t& point) const
 	return BoxBoundProbe(point, min, max);
 }
 
+template <class vector_t>
+bool AABox<vector_t>::overlaps_line(const vector_t& point1, const vector_t& point2) const
+{
+	vector_t lmin, lmax;
+	lmin = lmax = point1;
+	for (size_t i = 0; i < vector_t::Size; i++) {
+		lmin[i] = std::min(lmin[i], point2[i]);
+		lmax[i] = std::max(lmax[i], point2[i]);
+	}
+	return BoxBoxIntersection(lmin, lmax, min, max);
+}
+
 }// end of namespace
 
 #endif
