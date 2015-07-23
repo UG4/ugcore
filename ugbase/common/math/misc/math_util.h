@@ -16,6 +16,12 @@
 #include "../../ug_config.h"
 #include "eigenvalues.h"
 
+// this is quite hacky...
+// some environments (on windows) seem to define a small type or variable.
+// this causes errors with parameter names etc. It is thus undefined below.
+#ifdef small
+	#undef small
+#endif
 
 namespace ug
 {
