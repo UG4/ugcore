@@ -167,7 +167,6 @@ void ExtrudeLayers (
 		volHeightVals.clear();
 		volSubsetInds.clear();
 		grid.clear_marks();
-
 	//	trace rays from the current vertices down through the layers until the
 	//	next valid entry is found. If none is found, the vertex will either be ignored
 	//	from then on (allowForTetsAndPyras == false) or a dummy vertex will be inserted.
@@ -199,7 +198,6 @@ void ExtrudeLayers (
 				grid.mark(v);
 			}
 		}
-
 	//	now find the faces which connect those vertices
 		for(size_t iface = 0; iface < curFaces.size(); ++iface){
 			Face* f = curFaces[iface];
@@ -249,7 +247,6 @@ void ExtrudeLayers (
 		Extrude(grid, &curVrts, NULL, &curFaces, vector3(0, 0, 0), aaPos,
 				EO_DEFAULT, &newVols);
 
-
 	// assign pre-determined subsets
 		for(size_t ivol = 0; ivol < newVols.size(); ++ivol){
 			sh.assign_subset(newVols[ivol], volSubsetInds[ivol]);
@@ -267,7 +264,6 @@ void ExtrudeLayers (
 	//	current layer
 		grid.clear_marks();
 		grid.mark(curVrts.begin(), curVrts.end());
-
 	//	Consider all current-layer-volumes and apply a minHeight constraint to
 	//	those edges which do not lie in the current layer.
 	//	We'll also assign subset-indices of vertices connected to volumes of
@@ -298,7 +294,6 @@ void ExtrudeLayers (
 				}
 			}
 		}
-
 	//	prepare smoothing
 	//	Push all new vertices which do not belong to the current layer to smoothVrts
 	//	and the vertices directly above them to tmpVrts.
@@ -377,7 +372,6 @@ void ExtrudeLayers (
 		}
 	}
 	
-
 //	remove unnecessary prisms through edge-collapses and thus introduce pyramids and tetrahedra
 	if(allowForTetsAndPyras){
 		ABool aInterface;
@@ -460,9 +454,9 @@ void ExtrudeLayers (
 		grid.detach_from_vertices(aInterface);
 
 	//	delete invalidSub from the subset handler
-		sh.erase_subset(invalidSub);
+		if(invalidSub < sh.num_subsets())
+			sh.erase_subset(invalidSub);
 	}
-
 	grid.end_marking();
 	grid.detach_from_vertices(aHeight);
 }

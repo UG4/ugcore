@@ -94,6 +94,9 @@ bool ExportGridToSMESH(Grid& grid, const char* filename, AVector3& aPos,
 						std::vector<int>* pvRegionAttributes = NULL,
 						std::vector<float>* pvRegionVolumeConstraints = NULL);
 
+bool LoadGridFromSMESH(Grid& grid, const char* filename, AVector3& aPos,
+						ISubsetHandler* psh = NULL);
+
 bool ExportGridToTETGEN(Grid& grid, const char* nodesFilename,
 						const char* facesFilename, const char* elemsFilename,
 						AVector3& aPos, std::vector<AFloat>* pvNodeAttributes = NULL,

@@ -113,6 +113,8 @@ static bool LoadGrid3d_IMPL(Grid& grid, ISubsetHandler* pSH,
 		return LoadGridFromELE(grid, filename, pSH, aPos);
 	else if(strExt.compare("msh") == 0)
 		bSuccess = LoadGridFromMSH(grid, filename, pSH, aPos);
+	else if(strExt.compare("smesh") == 0)
+		bSuccess = LoadGridFromSMESH(grid, filename, aPos, pSH);
 	else if(strExt.compare("asc") == 0){
 		bSuccess = LoadGridFromASC(grid, filename, aPos);
 		bAutoassignFaces = true;

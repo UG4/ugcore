@@ -4,6 +4,7 @@
 
 #include <fstream>
 #include "file_io_tetgen.h"
+#include "common/util/string_util.h"
 #include "../lg_base.h"
 
 using namespace std;
@@ -753,6 +754,141 @@ bool ExportGridToSMESH(Grid& grid, const char* filename, AVector3& aPos,
 
 	return true;
 }
+
+////////////////////////////////////////////////////////////////////////
+bool LoadGridFromSMESH(Grid& grid, const char* filename, AVector3& aPos,
+						ISubsetHandler* psh)
+{
+	ifstream file(filename);
+	UG_COND_THROW(!file, "Couldn't open " << filename << " for reading.");
+
+	if(!grid.has_vertex_attachment(aPos))
+		grid.attach_to_vertices(aPos);
+	Grid::VertexAttachmentAccessor<AVector3> aaPos(grid, aPos);
+
+	enum ReadState{
+		READ_VRT_HEADER,
+		READ_VERTICES,
+		READ_FACE_HEADER,
+		READ_FACES
+	};
+
+	ReadState readState = READ_VRT_HEADER;
+
+	size_t numVrts = 0;
+	size_t dim = 0;
+	size_t numAttribs = 0;
+	size_t bndMarker = 0;
+	size_t numFaces = 0;
+	size_t numFacesRead = 0;
+	vector<Vertex*> vrts;
+
+	size_t curLine = 0;
+
+	while(!file.eof()){
+		++curLine;
+
+		string line;
+		getline(file, line);
+		string trimmedLine = TrimString(line);
+		
+		if(trimmedLine.empty())
+			continue;
+
+		if(trimmedLine[0] == '#')
+			continue;
+		
+		stringstream in(trimmedLine);
+
+		try{
+			switch(readState){
+				case READ_VRT_HEADER:{
+					in >> numVrts >> dim >> numAttribs >> bndMarker;
+					UG_COND_THROW(!in, "Couldn't read vertex header");
+					if(numVrts == 0)
+						return true;
+					readState = READ_VERTICES;
+				}break;
+
+
+				case READ_VERTICES:{
+					size_t vrtInd;
+					int tmp;
+					Vertex* vrt = *grid.create<RegularVertex>();
+					in >> vrtInd >> aaPos[vrt].x() >> aaPos[vrt].y() >> aaPos[vrt].z();
+					for(size_t i = 0; i < numAttribs; ++i)
+						in >> tmp;
+					
+					if(psh && bndMarker){
+						in >> tmp;
+						psh->assign_subset(vrt, tmp);
+					}
+
+
+					UG_COND_THROW(!in, "Couldn't read vertex");
+
+					vrts.push_back(vrt);
+					if(vrts.size() >= numVrts)
+						readState = READ_FACE_HEADER;
+				}break;
+
+
+				case READ_FACE_HEADER:{
+					in >> numFaces >> bndMarker;
+					UG_COND_THROW(!in, "Couldn't read face header");
+					if(numFaces == 0)
+						return true;
+					readState = READ_FACES;
+				}break;
+
+
+				case READ_FACES:{
+					size_t numCorners;
+					size_t inds[4];
+					
+					in >> numCorners;
+					for(size_t i = 0; i < numCorners; ++i)
+						in >> inds[i];
+
+					Face* f = NULL;
+					switch(numCorners){
+						case 3:{
+							f = *grid.create<Triangle>(
+										TriangleDescriptor(
+											vrts[inds[0]], vrts[inds[1]],
+											vrts[inds[2]]));
+						}break;
+
+						case 4:{
+							f = *grid.create<Quadrilateral>(
+										QuadrilateralDescriptor(
+											vrts[inds[0]], vrts[inds[1]],
+											vrts[inds[2]], vrts[inds[3]]));
+						}break;
+
+						default:
+							UG_THROW("Faces with " << numCorners << " corners are currently not supported");
+					}
+
+					if(psh && bndMarker){
+						int si;
+						in >> si;
+						psh->assign_subset(f, si);
+					}
+
+					++numFacesRead;
+					if(numFacesRead >= numFaces)
+						return true;
+				}break;
+			}
+		}
+		UG_CATCH_THROW("LoadGridFromSMESH: Failed to interprete data in line " << curLine
+						<< " of file '" << filename << "'");
+	}
+
+	return false;
+}
+
 
 ////////////////////////////////////////////////////////////////////////
 //	ExportGridToTETGEN
