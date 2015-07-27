@@ -433,6 +433,10 @@ class FV1Geometry : public FVGeometryBase
 	/// number of shape functions
 		size_t num_sh() const {return nsh;};
 
+	///	returns reference object id
+		ReferenceObjectID roid() const {return ref_elem_type::REFERENCE_OBJECT_ID;}
+
+
 	public:
 	/// returns number of all scvf ips
 		size_t num_scvf_ips() const {return numSCVF;}
@@ -968,6 +972,9 @@ class DimFV1Geometry : public FVGeometryBase
 		
 	///	returns the global coordinates of the center of mass of the element
 		const MathVector<worldDim>* coe_global() const {return &(m_vvGloMid[dim][0]);}
+
+	///	returns reference object id
+		ReferenceObjectID roid() const {return m_roid;}
 
 	protected:
 	///	update local data
