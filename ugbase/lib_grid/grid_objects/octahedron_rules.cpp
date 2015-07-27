@@ -40,13 +40,13 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 
 //	here we'll store the index of each edge, which will be refined.
 //	Size of the valid sub-array is numNewVrts, which is calculated below.
-	int refEdgeInds[NUM_EDGES];
+	// int refEdgeInds[NUM_EDGES];
 
 //	count the number of new vertices and fill newVrtEdgeInds
 	int numNewVrts = 0;
 	for(int i = 0; i < NUM_EDGES; ++i){
 		if(newEdgeVrts[i]){
-			refEdgeInds[numNewVrts] = i;
+			// refEdgeInds[numNewVrts] = i;
 			++numNewVrts;
 
 		//	adjust corner status of associated vertices

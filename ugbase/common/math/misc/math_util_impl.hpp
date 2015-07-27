@@ -775,14 +775,19 @@ bool RayBoxIntersection(const vector_t& rayFrom, const vector_t& rayDir,
 	//	the ray has no direction -> we'll check if the From-point lies inside the box
 		if(BoxBoundProbe(rayFrom, boxMin, boxMax)){
 		
-			if(*tMinOut)
+			if(tMinOut)
 				*tMinOut = 0;
-			if(*tMaxOut)
+			if(tMaxOut)
 				*tMaxOut = 0;
 			return true;
 		}
-		else
+		else{
+			if(tMinOut)
+				*tMinOut = 0;
+			if(tMaxOut)
+				*tMaxOut = 0;
 			return false;
+		}
 	}
 }
 

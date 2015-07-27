@@ -88,7 +88,7 @@ mark (Volume* v, RefinementMark refMark) {
 
 
 void RegularRefiner_MultiGrid::
-mark_neighborhood (size_t numIterations, RefinementMark refMark) {
+mark_neighborhood (size_t numIterations, RefinementMark refMark, bool sideNbrsOnly) {
 	UG_THROW("NOT YET IMPLEMENTED!");
 }
 

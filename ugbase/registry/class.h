@@ -64,6 +64,11 @@ template <class TClass> void CastAndDelete(const void* ptr)
 	delete reinterpret_cast<const TClass*>(ptr);
 }
 
+template <> inline void CastAndDelete<void>(const void* ptr)
+{
+	UG_THROW("Can't delete instance of class 'void'");
+}
+
 
 /** function exported from ug
  * This class describes a wrapper for a c++ - function, that is exported by ug

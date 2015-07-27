@@ -718,223 +718,223 @@ bool PerformSplits(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 
 ////////////////////////////////////////////////////////////////////////
 //	relocate point by smoothing
-void RelocatePointBySmoothing(vector3& vOut, const vector3&v,
-						  std::vector<vector3>& vNodes,
-						  size_t numIterations, number stepSize,
-						  std::vector<number>* pvWeights = NULL)
-{
-	if(vNodes.empty())
-		return;
+// static void RelocatePointBySmoothing(vector3& vOut, const vector3&v,
+// 						  std::vector<vector3>& vNodes,
+// 						  size_t numIterations, number stepSize,
+// 						  std::vector<number>* pvWeights = NULL)
+// {
+// 	if(vNodes.empty())
+// 		return;
 
-//TODO:	incorporate weights
-//	iterate through all nodes, calculate the direction
-//	from v to each node, and add the scaled sum to v.
-	vector3 t, vOld;
-	vOut = v;
-	stepSize /= (number)vNodes.size();
+// //TODO:	incorporate weights
+// //	iterate through all nodes, calculate the direction
+// //	from v to each node, and add the scaled sum to v.
+// 	vector3 t, vOld;
+// 	vOut = v;
+// 	stepSize /= (number)vNodes.size();
 
-	for(size_t j = 0; j < numIterations; ++j){
-		vOld = vOut;
-		for(size_t i = 0; i < vNodes.size(); ++i){
-			VecSubtract(t, vNodes[i], vOld);
-			VecScale(t, t, stepSize);
-			VecAdd(vOut, vOut, t);
-		}
-	}
-}
+// 	for(size_t j = 0; j < numIterations; ++j){
+// 		vOld = vOut;
+// 		for(size_t i = 0; i < vNodes.size(); ++i){
+// 			VecSubtract(t, vNodes[i], vOld);
+// 			VecScale(t, t, stepSize);
+// 			VecAdd(vOut, vOut, t);
+// 		}
+// 	}
+// }
 
 ////////////////////////////////////////////////////////////////////////
 //	FixBadTriangles
-template <class TAAPosVRT, class TAANormVRT>
-bool FixBadTriangles(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
-					TAAPosVRT& aaPos, TAANormVRT& aaNorm,
-					number qualityThreshold)
-{
-	LOG("  fixing bad triangles... ");
-//	iterate through marked edges and check whether adjacent triangles are
-//	badly shaped. If this is the case, then split the non-marked
-//	edges of the triangle.
-//	store newly inserted vertices and smooth them at the end of the algo
-	vector<Vertex*> vNewVrts;
-	vector<Face*> vFaces;
-	vector<Edge*> vEdges;
+// template <class TAAPosVRT, class TAANormVRT>
+// static bool FixBadTriangles(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
+// 					TAAPosVRT& aaPos, TAANormVRT& aaNorm,
+// 					number qualityThreshold)
+// {
+// 	LOG("  fixing bad triangles... ");
+// //	iterate through marked edges and check whether adjacent triangles are
+// //	badly shaped. If this is the case, then split the non-marked
+// //	edges of the triangle.
+// //	store newly inserted vertices and smooth them at the end of the algo
+// 	vector<Vertex*> vNewVrts;
+// 	vector<Face*> vFaces;
+// 	vector<Edge*> vEdges;
 	
-//	we wont assign this selector to the grid until it is clear that
-//	we'll need it.
-	Selector sel;
+// //	we wont assign this selector to the grid until it is clear that
+// //	we'll need it.
+// 	Selector sel;
 	
 	
-	EdgeIterator iter = esel.begin<Edge>();
-	while(iter != esel.end<Edge>())
-	{
-	//	store edge and increase iterator immediatly
-		Edge* e = *iter;
-		++iter;
+// 	EdgeIterator iter = esel.begin<Edge>();
+// 	while(iter != esel.end<Edge>())
+// 	{
+// 	//	store edge and increase iterator immediatly
+// 		Edge* e = *iter;
+// 		++iter;
 		
-	//	get the adjacent faces
-		CollectFaces(vFaces, grid, e);
+// 	//	get the adjacent faces
+// 		CollectFaces(vFaces, grid, e);
 		
-	//	check whether one of them is degenerated.
-		for(size_t i = 0; i < vFaces.size(); ++i){
-			Face* f = vFaces[i];
-			number q = FaceQuality(f, aaPos);
-		//	if the quality is smaller than threshold, we have to
-		//	do something
-			if(q < qualityThreshold){
-			//	make sure that the selector is connected to the grid
-				if(sel.grid() == NULL)
-					sel.assign_grid(grid);
+// 	//	check whether one of them is degenerated.
+// 		for(size_t i = 0; i < vFaces.size(); ++i){
+// 			Face* f = vFaces[i];
+// 			number q = FaceQuality(f, aaPos);
+// 		//	if the quality is smaller than threshold, we have to
+// 		//	do something
+// 			if(q < qualityThreshold){
+// 			//	make sure that the selector is connected to the grid
+// 				if(sel.grid() == NULL)
+// 					sel.assign_grid(grid);
 					
-			//	get associated edges and mark them for refinement
-				CollectEdges(vEdges, grid, f);
+// 			//	get associated edges and mark them for refinement
+// 				CollectEdges(vEdges, grid, f);
 
-				for(size_t j = 0; j < vEdges.size(); ++j){
-					if(shMarks.get_subset_index(vEdges[j]) == REM_NONE)
-						sel.select(vEdges[j]);
-				}
-			}
-		}
-	}
+// 				for(size_t j = 0; j < vEdges.size(); ++j){
+// 					if(shMarks.get_subset_index(vEdges[j]) == REM_NONE)
+// 						sel.select(vEdges[j]);
+// 				}
+// 			}
+// 		}
+// 	}
 	
-//	if edges have been selected, we'll now call refine.
-	if(sel.grid() != NULL){
-		if(sel.num<Edge>() > 0){
-			if(Refine(grid, sel)){
-				LOG(sel.num<Vertex>() << " new vertices... ");
-			//	retriangulate surface
-				if(grid.num<Quadrilateral>() > 0)
-					Triangulate(grid, grid.begin<Quadrilateral>(), grid.end<Quadrilateral>());
+// //	if edges have been selected, we'll now call refine.
+// 	if(sel.grid() != NULL){
+// 		if(sel.num<Edge>() > 0){
+// 			if(Refine(grid, sel)){
+// 				LOG(sel.num<Vertex>() << " new vertices... ");
+// 			//	retriangulate surface
+// 				if(grid.num<Quadrilateral>() > 0)
+// 					Triangulate(grid, grid.begin<Quadrilateral>(), grid.end<Quadrilateral>());
 				
-			//	calculate normals, then
-			//	smooth new vertices (all vertices selected in sel).
-				vector<Vertex*> vNeighbours;
-				vector<vector3> vNodes;
+// 			//	calculate normals, then
+// 			//	smooth new vertices (all vertices selected in sel).
+// 				vector<Vertex*> vNeighbours;
+// 				vector<vector3> vNodes;
 				
-			//	calculate normals
-				for(VertexIterator iter = sel.begin<Vertex>();
-						iter != sel.end<Vertex>(); ++iter)
-				{
-				//	collect neighbour nodes
-					Vertex* vrt = *iter;
-					CollectNeighbors(vNeighbours, grid, vrt);
+// 			//	calculate normals
+// 				for(VertexIterator iter = sel.begin<Vertex>();
+// 						iter != sel.end<Vertex>(); ++iter)
+// 				{
+// 				//	collect neighbour nodes
+// 					Vertex* vrt = *iter;
+// 					CollectNeighbors(vNeighbours, grid, vrt);
 					
-				//	sum their normals and interpolate it
-				//	make sure to only add valid normals
-					vector3 n(0, 0, 0);
-					for(size_t i = 0; i < vNeighbours.size(); ++i){
-						if(!sel.is_selected(vNeighbours[i]))
-							VecAdd(n, n, aaNorm[vNeighbours[i]]);
-					}
-					VecNormalize(aaNorm[vrt], n);
-				}
+// 				//	sum their normals and interpolate it
+// 				//	make sure to only add valid normals
+// 					vector3 n(0, 0, 0);
+// 					for(size_t i = 0; i < vNeighbours.size(); ++i){
+// 						if(!sel.is_selected(vNeighbours[i]))
+// 							VecAdd(n, n, aaNorm[vNeighbours[i]]);
+// 					}
+// 					VecNormalize(aaNorm[vrt], n);
+// 				}
 				
-			//	repeat smoothing.
-				for(size_t i = 0; i < 5; ++i){
-					for(VertexIterator iter = sel.begin<Vertex>();
-						iter != sel.end<Vertex>(); ++iter)
-					{
-						Vertex* vrt = *iter;
+// 			//	repeat smoothing.
+// 				for(size_t i = 0; i < 5; ++i){
+// 					for(VertexIterator iter = sel.begin<Vertex>();
+// 						iter != sel.end<Vertex>(); ++iter)
+// 					{
+// 						Vertex* vrt = *iter;
 
-					//	collect the neighbours and project them to the plane
-					//	that is defined by vrt and its normal
-						vector3 v = aaPos[vrt];
-						vector3 n = aaNorm[vrt];
+// 					//	collect the neighbours and project them to the plane
+// 					//	that is defined by vrt and its normal
+// 						vector3 v = aaPos[vrt];
+// 						vector3 n = aaNorm[vrt];
 
-						CollectNeighbors(vNeighbours, grid, vrt);
-						vNodes.resize(vNeighbours.size());
+// 						CollectNeighbors(vNeighbours, grid, vrt);
+// 						vNodes.resize(vNeighbours.size());
 						
-						for(size_t j = 0; j < vNodes.size(); ++j)
-							ProjectPointToPlane(vNodes[j], aaPos[vNeighbours[j]], v, n);
+// 						for(size_t j = 0; j < vNodes.size(); ++j)
+// 							ProjectPointToPlane(vNodes[j], aaPos[vNeighbours[j]], v, n);
 						
-					//	perform point relocation
-						RelocatePointBySmoothing(aaPos[vrt], v, vNodes, 5, 0.05);
-					}
-				}
-			}
-			else{
-				LOG("refine failed!\n");
-				return false;
-			}
-		}
-	}
+// 					//	perform point relocation
+// 						RelocatePointBySmoothing(aaPos[vrt], v, vNodes, 5, 0.05);
+// 					}
+// 				}
+// 			}
+// 			else{
+// 				LOG("refine failed!\n");
+// 				return false;
+// 			}
+// 		}
+// 	}
 	
-	LOG("done\n");
-	return true;
-}
+// 	LOG("done\n");
+// 	return true;
+// }
 
-////////////////////////////////////////////////////////////////////////
-//	PerformSmoothing
-template <class TAAPosVRT, class TAANormVRT>
-void PerformSmoothing(Grid& grid, SubsetHandler& shMarks,
-					TAAPosVRT& aaPos, TAANormVRT& aaNorm,
-					size_t numIterations, number stepSize)
-{
-	vector<vector3> vNodes;
-	vector<Vertex*> vNeighbours;
-	for(size_t i = 0; i < numIterations; ++i){
-		CalculateVertexNormals(grid, aaPos, aaNorm);
-		for(VertexIterator iter = grid.begin<Vertex>();
-			iter != grid.end<Vertex>(); ++iter)
-		{
-			Vertex* vrt = *iter;
-		//	if the vertex is fixed then leave it where it is.
-			if(shMarks.get_subset_index(vrt) == REM_FIXED)
-				continue;
-/*
-if(shMarks.get_subset_index(vrt) == REM_CREASE)
-	continue;
-*/
-		//	collect the neighbours and project them to the plane
-		//	that is defined by vrt and its normal
-			vector3 v = aaPos[vrt];
-			vector3 n = aaNorm[vrt];
+// ////////////////////////////////////////////////////////////////////////
+// //	PerformSmoothing
+// template <class TAAPosVRT, class TAANormVRT>
+// static void PerformSmoothing(Grid& grid, SubsetHandler& shMarks,
+// 					TAAPosVRT& aaPos, TAANormVRT& aaNorm,
+// 					size_t numIterations, number stepSize)
+// {
+// 	vector<vector3> vNodes;
+// 	vector<Vertex*> vNeighbours;
+// 	for(size_t i = 0; i < numIterations; ++i){
+// 		CalculateVertexNormals(grid, aaPos, aaNorm);
+// 		for(VertexIterator iter = grid.begin<Vertex>();
+// 			iter != grid.end<Vertex>(); ++iter)
+// 		{
+// 			Vertex* vrt = *iter;
+// 		//	if the vertex is fixed then leave it where it is.
+// 			if(shMarks.get_subset_index(vrt) == REM_FIXED)
+// 				continue;
+// /*
+// if(shMarks.get_subset_index(vrt) == REM_CREASE)
+// 	continue;
+// */
+// 		//	collect the neighbours and project them to the plane
+// 		//	that is defined by vrt and its normal
+// 			vector3 v = aaPos[vrt];
+// 			vector3 n = aaNorm[vrt];
 
-			bool bProjectPointsToPlane = true;
+// 			bool bProjectPointsToPlane = true;
 			
-			if(shMarks.get_subset_index(vrt) == REM_CREASE){
-				CollectNeighbors(vNeighbours, grid, vrt, NHT_EDGE_NEIGHBORS,
-									IsInSubset(shMarks, REM_CREASE));
+// 			if(shMarks.get_subset_index(vrt) == REM_CREASE){
+// 				CollectNeighbors(vNeighbours, grid, vrt, NHT_EDGE_NEIGHBORS,
+// 									IsInSubset(shMarks, REM_CREASE));
 
-			//	we have to choose a special normal
-				if(vNeighbours.size() != 2){
-					UG_LOG("n"<<vNeighbours.size());
-					continue;
-				}
-				else{
-					vector3 v1, v2;
-					VecSubtract(v1, v, aaPos[vNeighbours[0]]);
-					VecSubtract(v2, v, aaPos[vNeighbours[1]]);
-					VecNormalize(v1, v1);
-					VecNormalize(v2, v2);
-					VecAdd(n, v1, v2);
-					if(VecLengthSq(n) > SMALL)
-						VecNormalize(n, n);
-					else {
-					//	both edges have the same direction.
-					//	don't project normals
-						bProjectPointsToPlane = false;
-					}
-				}
-			}
-			else{
-				CollectNeighbors(vNeighbours, grid, vrt);
-			}
+// 			//	we have to choose a special normal
+// 				if(vNeighbours.size() != 2){
+// 					UG_LOG("n"<<vNeighbours.size());
+// 					continue;
+// 				}
+// 				else{
+// 					vector3 v1, v2;
+// 					VecSubtract(v1, v, aaPos[vNeighbours[0]]);
+// 					VecSubtract(v2, v, aaPos[vNeighbours[1]]);
+// 					VecNormalize(v1, v1);
+// 					VecNormalize(v2, v2);
+// 					VecAdd(n, v1, v2);
+// 					if(VecLengthSq(n) > SMALL)
+// 						VecNormalize(n, n);
+// 					else {
+// 					//	both edges have the same direction.
+// 					//	don't project normals
+// 						bProjectPointsToPlane = false;
+// 					}
+// 				}
+// 			}
+// 			else{
+// 				CollectNeighbors(vNeighbours, grid, vrt);
+// 			}
 			
-			vNodes.resize(vNeighbours.size());
+// 			vNodes.resize(vNeighbours.size());
 
-			if(bProjectPointsToPlane){
-				for(size_t j = 0; j < vNodes.size(); ++j)
-					ProjectPointToPlane(vNodes[j], aaPos[vNeighbours[j]], v, n);
-			}
-			else{
-				for(size_t j = 0; j < vNodes.size(); ++j)
-					vNodes[j] = aaPos[vNeighbours[j]];
-			}
-		//	perform point relocation
-			RelocatePointBySmoothing(aaPos[vrt], v, vNodes, 5, stepSize);
-		}
-	}
-}
+// 			if(bProjectPointsToPlane){
+// 				for(size_t j = 0; j < vNodes.size(); ++j)
+// 					ProjectPointToPlane(vNodes[j], aaPos[vNeighbours[j]], v, n);
+// 			}
+// 			else{
+// 				for(size_t j = 0; j < vNodes.size(); ++j)
+// 					vNodes[j] = aaPos[vNeighbours[j]];
+// 			}
+// 		//	perform point relocation
+// 			RelocatePointBySmoothing(aaPos[vrt], v, vNodes, 5, stepSize);
+// 		}
+// 	}
+// }
 
 /**	Make sure that elements in gridOut directly correspond to
  *	elements in gridIn*/

@@ -28,7 +28,9 @@ class UG_API RegularRefiner_MultiGrid : public IRefiner{
 		virtual bool mark (Face* f, RefinementMark refMark = RM_REFINE);
 		virtual bool mark (Volume* v, RefinementMark refMark = RM_REFINE);
 
-		virtual void mark_neighborhood (size_t numIterations, RefinementMark refMark);
+		virtual void mark_neighborhood (size_t numIterations,
+										RefinementMark refMark,
+										bool sideNbrsOnly);
 
 		virtual RefinementMark get_mark (Vertex* v);
 		virtual RefinementMark get_mark (Edge* e);
