@@ -42,9 +42,15 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 
 	///	Matrix Operator type
 		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
+		using IPreconditioner<TAlgebra>::set_debug;
+
+	protected:
+		typedef typename matrix_type::value_type block_type;
+
+		using IPreconditioner<TAlgebra>::debug_writer;
+		using IPreconditioner<TAlgebra>::write_debug;
 
 	private:
-		typedef typename matrix_type::value_type block_type;
 		typedef IPreconditioner<TAlgebra> base_type;
 
 	public:
@@ -145,6 +151,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 			PROFILE_BEGIN_GROUP(ILUT_preprocess, "ilut algebra");
 			//matrix_type &mat = *pOp;
 			STATIC_ASSERT(matrix_type::rows_sorted, Matrix_has_to_have_sorted_rows);
+			write_debug(mat, "ILUT_PreprocessIn");
 
 			matrix_type* A;
 			matrix_type permA;
