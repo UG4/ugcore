@@ -61,7 +61,7 @@ password.
 	-	Before cmake can be run and before jom can be executed one hast to initialize
 		Visual Studios environment variables.
 
-	-	type 'cmake -G"NMake Makefiles JOM" ..\trunk -DSTATIC_BUILD=ON -DDIM="2;3" -DCPU=1'.
+	-	type 'cmake -G"NMake Makefiles JOM" ..\trunk -DSTATIC_BUILD=ON -DCMAKE_BUILD_TYPE=Release -DDIM="2;3" -DCPU=1'.
 		This generates the makefiles required by Jom. You only have to execute cmake if
 		you're initializing a build directory for the first time or if you want to
 		change build options. See note below if you want to use the Visual Studio IDE directly.
