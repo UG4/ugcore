@@ -21,7 +21,7 @@ namespace ug{
 
 template <typename TDomain, typename TAlgebra>
 void ProlongateP1(GridFunction<TDomain, TAlgebra>& uFine,
-                  GridFunction<TDomain, TAlgebra>& uCoarse)
+                  const GridFunction<TDomain, TAlgebra>& uCoarse)
 {
 	typedef GridFunction<TDomain, TAlgebra> TGridFunction;
 	typedef typename TGridFunction::template traits<Vertex>::const_iterator const_iterator;
@@ -171,7 +171,7 @@ void ProlongateP1(GridFunction<TDomain, TAlgebra>& uFine,
 
 template <typename TDomain, typename TAlgebra>
 void ProlongateElemwise(GridFunction<TDomain, TAlgebra>& uFine,
-                        GridFunction<TDomain, TAlgebra>& uCoarse)
+                        const GridFunction<TDomain, TAlgebra>& uCoarse)
 {
 //	dimension
 	const int dim = TDomain::dim;
@@ -197,7 +197,7 @@ void ProlongateElemwise(GridFunction<TDomain, TAlgebra>& uFine,
 	std::vector<LFEID> vFineLFEID(fineDD->num_fct());
 	for(size_t fct = 0; fct < fineDD->num_fct(); ++fct)
 		vFineLFEID[fct] = fineDD->local_finite_element_id(fct);
-	SmartPtr<DoFDistribution> coarseDD = uCoarse.dof_distribution();
+	ConstSmartPtr<DoFDistribution> coarseDD = uCoarse.dof_distribution();
 	std::vector<LFEID> vCoarseLFEID(coarseDD->num_fct());
 	for(size_t fct = 0; fct < coarseDD->num_fct(); ++fct)
 		vCoarseLFEID[fct] = coarseDD->local_finite_element_id(fct);
@@ -316,7 +316,7 @@ void ProlongateElemwise(GridFunction<TDomain, TAlgebra>& uFine,
 
 template <typename TDomain, typename TAlgebra>
 void Prolongate(GridFunction<TDomain, TAlgebra>& uFine,
-                GridFunction<TDomain, TAlgebra>& uCoarse)
+                const GridFunction<TDomain, TAlgebra>& uCoarse)
 {
 //	grid functions must be from same Domain
 	if(uFine.domain() != uCoarse.domain())
@@ -363,13 +363,13 @@ void Prolongate(GridFunction<TDomain, TAlgebra>& uFine,
 
 template <typename TDomain, typename TAlgebra>
 void RestrictP1(GridFunction<TDomain, TAlgebra>& uCoarse,
-                GridFunction<TDomain,  TAlgebra>& uFine)
+                const GridFunction<TDomain,  TAlgebra>& uFine)
 {
 	typedef GridFunction<TDomain, TAlgebra> TGridFunction;
 	typedef typename TGridFunction::template traits<Vertex>::const_iterator const_iterator;
 
 //  get subsethandler and grid
-	SmartPtr<MultiGrid> mg = uFine.domain()->grid();
+	SmartPtr<MultiGrid> mg = uCoarse.domain()->grid();
 
 //	get top level of gridfunctions
 	const int fineTopLevel = uFine.dof_distribution()->grid_level().level();
@@ -412,14 +412,14 @@ void RestrictP1(GridFunction<TDomain, TAlgebra>& uCoarse,
 
 template <typename TDomain, typename TAlgebra>
 void RestrictElemwise(GridFunction<TDomain, TAlgebra>& uCoarse,
-                      GridFunction<TDomain, TAlgebra>& uFine)
+                      const GridFunction<TDomain, TAlgebra>& uFine)
 {
 //	dimension
 	const int dim = TDomain::dim;
 	const int locDim = TDomain::dim;
 
 //  get subsethandler and grid
-	SmartPtr<MultiGrid> mg = uFine.domain()->grid();
+	SmartPtr<MultiGrid> mg = uCoarse.domain()->grid();
 
 //	get top level of gridfunctions
 	const int fineTopLevel = uFine.dof_distribution()->grid_level().level();
@@ -565,7 +565,7 @@ void RestrictElemwise(GridFunction<TDomain, TAlgebra>& uCoarse,
 
 template <typename TDomain, typename TAlgebra>
 void Restrict(GridFunction<TDomain, TAlgebra>& uCoarse,
-              GridFunction<TDomain, TAlgebra>& uFine)
+              const GridFunction<TDomain, TAlgebra>& uFine)
 {
 //	grid functions must be from same Domain
 	if(uCoarse.domain() != uFine.domain())
