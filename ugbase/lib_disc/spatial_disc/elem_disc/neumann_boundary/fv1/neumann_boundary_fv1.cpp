@@ -115,7 +115,6 @@ prep_elem_loop(const ReferenceObjectID roid, const int si)
 //	clear imports, since we will set them afterwards
 	this->clear_imports();
 
-	typedef typename NeumannBoundaryFV1<TDomain>::NumberData T;
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 //	set lin defect fct for imports
@@ -278,7 +277,6 @@ prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
 //	clear imports, since we will set them now
 	this->clear_imports();
 
-	typedef typename NeumannBoundaryFV1<TDomain>::NumberData T;
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 //	set lin defect fct for imports

@@ -63,10 +63,9 @@ static void Algebra(Registry& reg, string grp)
 	string tag = GetAlgebraTag<TAlgebra>();
 
 //	typedefs for this algebra
-	typedef typename TAlgebra::vector_type vector_type;
-	typedef typename TAlgebra::matrix_type matrix_type;
 
 #ifdef UG_PARALLEL
+typedef typename TAlgebra::vector_type vector_type;
 
 	{
 		string name = string("ISchurComplementInverse").append(suffix);

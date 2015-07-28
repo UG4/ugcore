@@ -171,8 +171,6 @@ static void Algebra(Registry& reg, string grp)
 
 //	typedefs for this algebra
 	typedef typename TAlgebra::vector_type vector_type;
-	typedef typename TAlgebra::matrix_type matrix_type;
-
 
 	reg.add_function("SaveToFile", OVERLOADED_FUNCTION_PTR(void, SaveToFile<vector_type>, (const vector_type &, std::string)), grp);
 	reg.add_function("ReadFromFile", OVERLOADED_FUNCTION_PTR(void, ReadFromFile<vector_type>, (vector_type &, std::string)), grp);
