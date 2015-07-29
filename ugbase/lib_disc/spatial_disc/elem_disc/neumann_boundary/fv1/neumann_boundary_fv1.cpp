@@ -225,6 +225,7 @@ fsh_elem_loop()
 		for(size_t s = 0; s < m_vNumberData[i].BndSSGrp.size(); ++s){
 			const int si = m_vNumberData[i].BndSSGrp[s];
 			geo.remove_boundary_subset(si);
+			geo.reset_curr_elem();
 		}
 	}
 
@@ -233,6 +234,7 @@ fsh_elem_loop()
 		for(size_t s = 0; s < m_vBNDNumberData[i].BndSSGrp.size(); ++s){
 			const int si = m_vBNDNumberData[i].BndSSGrp[s];
 			geo.remove_boundary_subset(si);
+			geo.reset_curr_elem();
 		}
 	}
 
@@ -241,6 +243,7 @@ fsh_elem_loop()
 		for(size_t s = 0; s < m_vVectorData[i].BndSSGrp.size(); ++s){
 			const int si = m_vVectorData[i].BndSSGrp[s];
 			geo.remove_boundary_subset(si);
+			geo.reset_curr_elem();
 		}
 	}
 }

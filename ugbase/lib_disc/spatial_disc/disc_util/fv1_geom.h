@@ -532,6 +532,8 @@ class FV1Geometry : public FVGeometryBase
 			return (*it).second;
 		}
 
+		void reset_curr_elem() {m_pElem = NULL;}
+
 	protected:
 		std::map<int, std::vector<BF> > m_mapVectorBF;
 		std::vector<BF> m_vEmptyVectorBF;
