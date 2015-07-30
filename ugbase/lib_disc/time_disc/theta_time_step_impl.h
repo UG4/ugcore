@@ -712,6 +712,7 @@ assemble_rhs(vector_type& b, const vector_type& u, const GridLevel& gl)
 	UG_THROW("Not implemented")
 }
 
+/* Please overwrite any of the following methods, if applicable:
 template <typename TAlgebra>
 void SDIRK<TAlgebra>::
 prepare_step_elem(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
@@ -734,7 +735,9 @@ finish_step_elem(SmartPtr<VectorTimeSeries<vector_type> > currSol,
 {
 	UG_THROW("Not implemented")
 }
+*/
 
 } // end namespace ug
+
 
 #endif /* __H__UG__LIB_DISC__TIME_DISC__THETA_TIME_STEP_IMPL__ */

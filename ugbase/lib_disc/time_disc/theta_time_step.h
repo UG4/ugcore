@@ -444,11 +444,13 @@ class SDIRK
 	public:
 		virtual void prepare_step(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
 								  number dt);
-		virtual void prepare_step_elem(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
+	/*	Please overwrite any of the following methods, if applicable:
+	    virtual void prepare_step_elem(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
 									   number dt, const GridLevel& gl);
 		virtual void finish_step(SmartPtr<VectorTimeSeries<vector_type> > currSol);
 		virtual void finish_step_elem(SmartPtr<VectorTimeSeries<vector_type> > currSol,
 									  const GridLevel& gl);
+	*/
 
 	public:
 		void assemble_jacobian(matrix_type& J, const vector_type& u, const GridLevel& gl);
