@@ -11,6 +11,11 @@
 				_feI != _feCon.end<_feType>(); ++_feI){\
 				_feType* _feVar = *_feI;
 
+#define lg_for_each_const(_feType, _feVar, _feCon) \
+			for(Grid::traits<_feType>::const_iterator _feI = _feCon.begin<_feType>();\
+				_feI != _feCon.end<_feType>(); ++_feI){\
+				_feType* _feVar = *_feI;
+
 #define lg_for_each_template(_feType, _feVar, _feCon) \
 			for(typename Grid::traits<_feType>::iterator _feI = _feCon.begin<_feType>();\
 				_feI != _feCon.end<_feType>(); ++_feI){\

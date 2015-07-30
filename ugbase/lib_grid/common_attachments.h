@@ -12,7 +12,7 @@
 
 #include "common/types.h"
 #include "lib_grid/attachments/attachment_pipe.h"
-#include "common/math/ugmath.h"
+#include "common/math/ugmath_types.h"
 #include "grid/grid_base_objects.h"
 
 namespace ug

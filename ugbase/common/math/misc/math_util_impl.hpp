@@ -9,6 +9,7 @@
 #include "common/common.h"
 #include "common/math/math_vector_matrix/math_vector_functions.h"
 #include "common/math/math_vector_matrix/math_matrix_functions.h"
+#include "common/math/math_vector_matrix/math_matrix_vector_functions.h"
 
 namespace ug
 {
