@@ -101,6 +101,18 @@ bool RayElementIntersection(
 		Grid& g,
 		Grid::VertexAttachmentAccessor<AVector3> aaPos);
 
+///	3d ray-element intersection for edges
+/** Not implemented yet, always returns false
+ */
+bool RayElementIntersection(
+		number& sminOut,
+		number& smaxOut,
+		const vector3& from,
+		const vector3& dir,
+		Edge* e,
+		Grid& g,
+		Grid::VertexAttachmentAccessor<AVector3> aaPos);
+
 }//	end of namespace
 
 #endif	//__H__UG_ray_element_intersection_util

@@ -123,4 +123,17 @@ bool RayElementIntersection(
 	return RayElementIntersectionImpl(sminOut, smaxOut, from, dir, v, g, aaPos);
 }
 
+//  3d edge intersection
+bool RayElementIntersection(
+		number& sminOut,
+		number& smaxOut,
+		const vector3& from,
+		const vector3& dir,
+		Edge* e,
+		Grid& g,
+		Grid::VertexAttachmentAccessor<AVector3> aaPos)
+{
+	return false;
+}
+
 }//	end of namespace
