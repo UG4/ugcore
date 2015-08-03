@@ -1158,16 +1158,16 @@ update_local(ReferenceObjectID roid)
 			m_numSCV  = rRefElem.num(0);
 			m_numSCVF = rRefElem.num(1);
 		}
-		else if(m_roid == ROID_PYRAMID)
+		else if(dim == 3 && m_roid == ROID_PYRAMID)
 		{
-			UG_THROW("Pyramid Finite Volume Geometry for 1st order currently only "
-					"implemented in FV1Geom and not in DimFV1Geom. Please contact "
+			UG_WARNING("Pyramid Finite Volume Geometry for 1st order currently  "
+					"implemented in DimFV1Geom EXPERIMENTATLLY. Please contact "
 					"Martin Stepniewski or Andreas Vogel if you see this message.")
 
 			m_numSCV  = 4*rRefElem.num(1);
 			m_numSCVF = 2*rRefElem.num(1);
 		}
-		else if(m_roid == ROID_OCTAHEDRON)
+		else if(dim == 3 && m_roid == ROID_OCTAHEDRON)
 		{
 		// 	Case octahedron
 			m_numSCV  = 16;
@@ -1185,7 +1185,7 @@ update_local(ReferenceObjectID roid)
 				m_vSCVF[i].To = rRefElem.id(1, i, 0, 1);
 			}
 			// special case pyramid (scvf not mappable by edges)
-			else if (m_roid == ROID_PYRAMID)
+			else if (dim == 3 && m_roid == ROID_PYRAMID)
 			{
 			// 	map according to order defined in ComputeSCVFMidID
 				m_vSCVF[i].From = rRefElem.id(1, i/2, 0, 0);
@@ -1315,10 +1315,14 @@ update_local(ReferenceObjectID roid)
 				m_vSCV[i].nodeId = i;
 			}
 			// special case pyramid (scv not mappable by corners)
-			else if(m_roid == ROID_PYRAMID)
+			else if(dim == 3 && m_roid == ROID_PYRAMID)
 			{
 			// 	map according to order defined in ComputeSCVMidID
-				m_vSCV[i].nodeId = i<3 ? i : (i<5 ? (i+1)%5 : i-3);
+				if(i%2 == 0){
+					m_vSCV[i].nodeId  = rRefElem.id(1, i/4, 0, 0); // from
+				} else {
+					m_vSCV[i].nodeId  = rRefElem.id(1, i/4, 0, 1); // to
+				}
 			}
 			// special case octahedron (scvf not mappable by edges)
 			else if(dim == 3 && m_roid == ROID_OCTAHEDRON)
@@ -1411,6 +1415,10 @@ update_local(ReferenceObjectID roid)
 // 	copy ip positions in a list for Sub Control Volumes Faces (SCVF)
 	for(size_t i = 0; i < num_scvf(); ++i)
 		m_vLocSCVF_IP[i] = scvf(i).local_ip();
+
+	if(roid == ROID_PYRAMID || roid == ROID_OCTAHEDRON)
+		for(size_t i = 0; i < num_scv(); ++i)
+			m_vLocSCV_IP[i] = scv(i).local_ip();
 }
 
 
@@ -1513,6 +1521,10 @@ update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubs
 	for(size_t i = 0; i < num_scvf(); ++i)
 		m_vGlobSCVF_IP[i] = scvf(i).global_ip();
 
+	if(m_roid == ROID_PYRAMID || m_roid == ROID_OCTAHEDRON)
+		for(size_t i = 0; i < num_scv(); ++i)
+			m_vGlobSCV_IP[i] = scv(i).global_ip();
+
 	}
 	UG_CATCH_THROW("DimFV1Geometry: update failed.");
 
@@ -1586,9 +1598,9 @@ update_boundary_faces(GridObject* pElem, const MathVector<worldDim>* vCornerCoor
 		//	skip non boundary sides
 			if(vSubsetIndex[side] != bndIndex) continue;
 
-		//	number of corners of side (special case bottom side pyramid)
-			const int coOfSide = (pElem->reference_object_id() != ROID_PYRAMID || side != 0)
-								? rRefElem.num(dim-1, side, 0) : rRefElem.num(dim-1, side, 0) + 2;
+		//	number of corners of side
+			const int coOfSide = rRefElem.num(dim-1, side, 0);
+
 		//	resize vector
 			vBF.resize(curr_bf + coOfSide);
 
@@ -1599,13 +1611,7 @@ update_boundary_faces(GridObject* pElem, const MathVector<worldDim>* vCornerCoor
 				BF& bf = vBF[curr_bf];
 
 			//	set node id == scv this bf belongs to
-				if (pElem->reference_object_id() != ROID_PYRAMID || side != 0)
-					bf.nodeId = rRefElem.id(dim-1, side, 0, co);
-				else
-				{
-					// map according to order defined in ComputeBFMidID
-					bf.nodeId = rRefElem.id(dim-1, side, 0, (co % 3) + (co>3 ? 1 : 0));
-				}
+				bf.nodeId = rRefElem.id(dim-1, side, 0, co);
 
 			//	Compute MidID for BF
 				ComputeBFMidID(rRefElem, side, bf.vMidID, co);

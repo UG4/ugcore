@@ -964,10 +964,20 @@ class DimFV1Geometry : public FVGeometryBase
 		size_t num_scv_ips() const {return m_numSCV;}
 
 	/// returns all ips of scv as they appear in scv loop
-		const MathVector<dim>* scv_local_ips() const {return &(m_vvLocMid[0][0]);}
+		const MathVector<dim>* scv_local_ips() const {
+			if(m_roid == ROID_PYRAMID || m_roid == ROID_OCTAHEDRON)
+				return &(m_vLocSCV_IP[0]);
+			else
+				return &(m_vvLocMid[0][0]);
+		}
 
 	/// returns all ips of scv as they appear in scv loop
-		const MathVector<worldDim>* scv_global_ips() const {return &(m_vvGloMid[0][0]);}
+		const MathVector<worldDim>* scv_global_ips() const {
+			if(m_roid == ROID_PYRAMID || m_roid == ROID_OCTAHEDRON)
+				return &(m_vGlobSCV_IP[0]);
+			else
+				return &(m_vvGloMid[0][0]);
+		}
 
 	///	returns the local coordinates of the center of mass of the element
 		const MathVector<dim>* coe_local() const {return &(m_vvLocMid[dim][0]);}
@@ -986,6 +996,10 @@ class DimFV1Geometry : public FVGeometryBase
 	//	global and local ips on SCVF
 		MathVector<worldDim> m_vGlobSCVF_IP[maxNumSCVF];
 		MathVector<dim> m_vLocSCVF_IP[maxNumSCVF];
+
+	//	global and local ips on SCV (only needed for Pyramid and Octahedron)
+		MathVector<worldDim> m_vGlobSCV_IP[maxNumSCV];
+		MathVector<dim> m_vLocSCV_IP[maxNumSCV];
 
 	public:
 	/// add subset that is interpreted as boundary subset.
