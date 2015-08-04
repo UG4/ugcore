@@ -704,10 +704,8 @@ create_vertices(std::vector<Vertex*>& vrtsOut, Grid& grid,
 				v[i] = 0;
 
 		//	make sure that everything went right
-			if(ss.fail()){
-				UG_LOG("GridReaderUGX::create_vertices: Failed to read vertex.\n");
-				return false;
-			}
+			if(ss.fail())
+				break;
 
 		//	create a new vertex
 			RegularVertex* vrt = *grid.create<RegularVertex>();
@@ -791,15 +789,8 @@ create_constrained_vertices(std::vector<Vertex*>& vrtsOut,
 		}
 				
 	//	make sure that everything went right
-		if(ss.fail()){
-			UG_LOG("GridReaderUGX::create_constrained_vertices: Failed to read constrained vertex.\n");
-			UG_LOG("  currently set are: "
-					<< "position = " << v
-					<< ", conObjType = " << conObjType
-					<< ", conObjIndex = " << conObjIndex
-					<< ", localCoords = " << localCoords << "\n");
-			return false;
-		}
+		if(ss.fail())
+			break;
 
 	//	create a new vertex
 		ConstrainedVertex* vrt = *grid.create<ConstrainedVertex>();
