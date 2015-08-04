@@ -425,7 +425,7 @@ function set_user_data_overloads(name)
 end
 
 -- loop some kinds of UserData implementation
-for k, class in ipairs({"CplUser", "ConstUser", "LuaUser", "ScaleAddLinker"}) do
+for k, class in ipairs({"CplUser", "ConstUser", "LuaUser", "ScaleAddLinker", "LuaUserFunction"}) do
 	-- loop some kind of data types
 	for k, type in ipairs({"Number", "Vector", "Matrix"}) do
 		-- loop dimensions
