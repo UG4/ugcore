@@ -177,10 +177,22 @@ pvtu_filename(std::string& nameOut, std::string nameIn,
               int si, int maxSi, int step)
 {
 //	copy name
-	// FIXME: It might not be the best of ideas to use find_last_of('.')
-	// here, as this will cause unexpected results if filename is a path
-	// that includes a ".", e.g. "./path/to/someFileName" or "stupid.path.name/fileName"
-	nameOut = nameIn.substr(0, nameIn.find_last_of('.'));
+	// This hack is a little bit ugly. What is supposed to be achieved is the following:
+	// As simply using
+	// 		nameIn.substr(0, nameIn.find_last_of('.'));
+	// will cause unexpected results if filename is a path that
+	// includes a ".", e.g. "./path/to/someFileName" or "stupid.path.name/fileName",
+	// we check whether there is a '/' in the file name _after_ the last '.';
+	// in that case, we take the whole file name, otherwise only up to the last dot.
+	// This will treat the two example cases above (on Unix systems).
+	// A proper solution would use boost::filesystem and throw away the file extension
+	// if present. However, this would require linking against a boost library.
+	size_t lo_slash = nameIn.find_last_of('/');
+	size_t lo_dot = nameIn.find_last_of('.');
+	if (lo_slash < std::string::npos || lo_slash < lo_dot)
+		nameOut = nameIn.substr(0, lo_dot);
+	else
+		nameOut = nameIn;
 
 // 	subset index
 	if(si >= 0)
