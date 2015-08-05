@@ -1103,10 +1103,12 @@ public:
 		//	Assemble JA
 			try
 			{
-				tmpLocA = 0.0;
-				Eval.add_jac_A_elem(tmpLocA, locU, elem, vCornerCoords, PT_INSTATIONARY);
-				locA.scale_append(vScaleStiff[0], tmpLocA);
-
+				if (vScaleStiff[0] != 0.0)
+				{
+					tmpLocA = 0.0;
+					Eval.add_jac_A_elem(tmpLocA, locU, elem, vCornerCoords, PT_INSTATIONARY);
+					locA.scale_append(vScaleStiff[0], tmpLocA);
+				}
 				Eval.add_jac_A_elem(locA, locU, elem, vCornerCoords, PT_STATIONARY);
 			}
 			UG_CATCH_THROW("(instationary) AssembleLinear: Cannot compute Jacobian (A).");
@@ -1114,10 +1116,12 @@ public:
 		//	Assemble rhs
 			try
 			{
-				tmpLocRhs = 0.0;
-				Eval.add_rhs_elem(tmpLocRhs, elem, vCornerCoords, PT_INSTATIONARY);
-				locRhs.scale_append(vScaleStiff[0], tmpLocRhs);
-
+				if (vScaleStiff[0] != 0.0)
+				{
+					tmpLocRhs = 0.0;
+					Eval.add_rhs_elem(tmpLocRhs, elem, vCornerCoords, PT_INSTATIONARY);
+					locRhs.scale_append(vScaleStiff[0], tmpLocRhs);
+				}
 				Eval.add_rhs_elem(locRhs, elem, vCornerCoords, PT_STATIONARY);
 			}
 			UG_CATCH_THROW("(instationary) AssembleLinear: Cannot compute Rhs.");
@@ -1131,6 +1135,7 @@ public:
 			//	get local solution at time point
 				LocalVector& locU = locTimeSeries.solution(t);
 				Eval.set_time_point(t);
+				number scaleStiff = vScaleStiff[t];
 
 			//	prepare element
 				try
@@ -1151,18 +1156,24 @@ public:
 			//	Assemble dA
 				try
 				{
-					tmpLocRhs = 0.0;
-					Eval.add_def_A_elem(tmpLocRhs, locU, elem, vCornerCoords, PT_INSTATIONARY);
-					locRhs.scale_append(-vScaleStiff[t], tmpLocRhs);
+					if (scaleStiff != 0.0)
+					{
+						tmpLocRhs = 0.0;
+						Eval.add_def_A_elem(tmpLocRhs, locU, elem, vCornerCoords, PT_INSTATIONARY);
+						locRhs.scale_append(-scaleStiff, tmpLocRhs);
+					}
 				}
 				UG_CATCH_THROW("(instationary) AssembleLinear: Cannot compute Jacobian (A).");
 
 			//	Assemble rhs
 				try
 				{
-					tmpLocRhs = 0.0;
-					Eval.add_rhs_elem(tmpLocRhs, elem, vCornerCoords, PT_INSTATIONARY);
-					locRhs.scale_append(vScaleStiff[t], tmpLocRhs);
+					if (scaleStiff != 0.0)
+					{
+						tmpLocRhs = 0.0;
+						Eval.add_rhs_elem(tmpLocRhs, elem, vCornerCoords, PT_INSTATIONARY);
+						locRhs.scale_append(scaleStiff, tmpLocRhs);
+					}
 				}
 				UG_CATCH_THROW("(instationary) AssembleLinear: Cannot compute Rhs.");
 			}
