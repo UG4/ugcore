@@ -187,7 +187,7 @@ copy_state_to_sides (
 	typename Grid::traits<side_t>::secure_container sides;
 
 	lg_for_each_in_lvl_template(TElem, elem, sel, lvl){
-		uint m = get_mark(elem);
+		RefinementMark m = get_mark(elem);
 		if(m & considerElemMarks){
 			mg.associated_elements(sides, elem);
 			for_each_in_vec(side_t* s, sides){

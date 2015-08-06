@@ -198,7 +198,7 @@ void InvalidateSmallLenses(Field<T>& field, size_t thresholdCellCount,
 	// const int numNbrs = 8;
 	// const int xadd[numNbrs] = {-1, 0, 1, -1, 1, -1, 0, 1};
 	// const int yadd[numNbrs] = {-1, -1, -1, 0, 0, 1, 1, 1};
-	const int numNbrs = 4;
+	const size_t numNbrs = 4;
 	const int xadd[numNbrs] = {0, -1, 1, 0};
 	const int yadd[numNbrs] = {-1, 0, 0, 1};
 

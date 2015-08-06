@@ -222,8 +222,8 @@ snap_cells_to_higher_layers()
 		Heightfield& upperHF = heightfield(lvl + 1);
 		number minHeight = min_height(lvl);
 
-		for(int iy = 0; iy < (int)curField.height(); ++iy){
-			for(int ix = 0; ix < (int)curField.width(); ++ix){
+		for(size_t iy = 0; iy < curField.height(); ++iy){
+			for(size_t ix = 0; ix < curField.width(); ++ix){
 				number curVal = curField.at(ix, iy);
 				vector2 c = curHF.index_to_coordinate(ix, iy);
 				number upperVal = upperHF.interpolate(c);
