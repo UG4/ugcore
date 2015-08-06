@@ -213,6 +213,12 @@ class BaseReferenceMapping
 				MatVecScaleMultAppend(locPos, -1.0, JInv, dist);
 			}
 
+			// compiler does not know that maxIter will never be 0
+			// therefore it warns that dist may be uninit'ed;
+			// as we will throw here anyway, we may as well check that
+			UG_COND_THROW(!maxIter, "Without a single iteration, local-to-global "
+						  "mapping can never converge.");
+
 			UG_THROW("ReferenceMapping::global_to_local: Newton method did not"
 					" reach a tolerance "<<tol<<" after "<<maxIter<<" steps. "
 					"Global Pos: "<<globPos<<", dim: "<<dim<<", worldDim: "<<
