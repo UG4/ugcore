@@ -977,6 +977,16 @@ bool PointIsInsideTriangle(const vector_t& v, const vector_t& v0,
 	return true;
 }
 
+// prevent usage with MathVector<3> (otherwise: undefined behavior due to uninit'ed edgeNorm[2]),
+// even if all vertices are located in the same xy plane, edgeNorm[2] might be inf or nan!
+template <>
+inline bool PointIsInsideTriangle(const MathVector<3>& v, const MathVector<3>& v0,
+						   	   	   	   	    const MathVector<3>& v1, const MathVector<3>& v2)
+{
+	UG_THROW("Not implemented for 3D!");
+	return false;
+}
+
 
 ////////////////////////////////////////////////////////////////////////
 //	PointIsInsideTriangle_HighAcc
@@ -1043,6 +1053,19 @@ bool PointIsInsideQuadrilateral(const vector_t& v, const vector_t& v0,
 //	all tests succeeded. return true.
 	return true;
 }
+
+
+// prevent usage with MathVector<3> (otherwise: undefined behavior due to uninit'ed edgeNorm[2]),
+// even if all vertices are located in the same xy plane, edgeNorm[2] might be inf or nan!
+template <>
+inline bool PointIsInsideQuadrilateral(const MathVector<3>& v, const MathVector<3>& v0,
+						   	   	   	   	    const MathVector<3>& v1, const MathVector<3>& v2,
+											const MathVector<3>& v3)
+{
+	UG_THROW("Not implemented for 3D!");
+	return false;
+}
+
 
 ////////////////////////////////////////////////////////////////////////
 //	PointIsInsideTetrahedron
