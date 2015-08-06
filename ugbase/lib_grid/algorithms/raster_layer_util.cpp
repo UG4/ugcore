@@ -114,7 +114,7 @@ remove_small_holes(number maxArea)
 {
 	using namespace std;
 
-	const int numNbrs = 4;
+	const size_t numNbrs = 4;
 	const int xadd[numNbrs] = {0, -1, 1, 0};
 	const int yadd[numNbrs] = {-1, 0, 0, 1};
 
