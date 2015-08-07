@@ -350,7 +350,12 @@ VecAngle(const vector_t& v1, const vector_t& v2)
 
 	value_t l = sqrt(VecLengthSq(v1) * VecLengthSq(v2));
 	if(l > 0){
-		return acos(VecDot(v1, v2) / l);
+		number a = VecDot(v1, v2) / l;
+		if(a >= 1)
+			return 0;
+		else if(a <= -1)
+			return PI;
+		return acos(a);
 	}
 
 	return 0;
@@ -361,7 +366,12 @@ inline
 typename vector_t::value_type
 VecAngleNorm(const vector_t& v1, const vector_t& v2)
 {
-	return acos(VecDot(v1, v2));
+	number a = VecDot(v1, v2);
+	if(a >= 1)
+		return 0;
+	else if(a <= -1)
+		return PI;
+	return acos(a);
 }
 
 ///	calculates the cross product of two MathVector<N>s of dimension 3. It makes no sense to use VecCross for
