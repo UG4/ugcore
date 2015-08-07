@@ -2,14 +2,23 @@
 ######################################################################
 # cdug 1.0
 #-------------------------------------------------------------------
-# author: Stefan Grein, Martin Rupp
+# author: Stephan Grein, Martin Rupp
 ######################################################################
 
-
 function cdug() {
-  cd $UG4_ROOT/$1
-   
+  if [ -z "$UG4_ROOT" ]; then
+      echo "Global shell variable \$UG4_ROOT not set."
+  elif [ ! -d "$UG4_ROOT" ]; then
+      echo "Global shell variable \$UG4_ROOT set but directory ($UG4_ROOT) does not exist."
+  else
+     if [ ! -z "$1" -a -d "$UG4_ROOT/$1" ]; then
+         cd "$UG4_ROOT/$1"
+     else
+         cd "$UG4_ROOT"
+      fi
+  fi
 }
+
 
 function ugupdate() {
   cdug
