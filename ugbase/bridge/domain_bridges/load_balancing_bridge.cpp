@@ -166,6 +166,7 @@ static void Common(Registry& reg, string grp) {
 		typedef LoadBalancer T;
 		reg.add_class_<T>("LoadBalancer", grp)
 				//.add_method("add_distribution_level", &T::add_distribution_level)
+				.add_method("enable_vertical_interface_creation", &T::enable_vertical_interface_creation)
 				.add_method("set_next_process_hierarchy", &T::set_next_process_hierarchy)
 				.add_method("rebalance", &T::rebalance)
 				.add_method("set_balance_threshold", &T::set_balance_threshold)
