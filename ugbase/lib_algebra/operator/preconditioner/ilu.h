@@ -305,12 +305,13 @@ class ILU : public IPreconditioner<TAlgebra>
 
 	public:
 	//	Constructor
-		ILU(double beta=0.0) : m_beta(beta), m_bSort(false) {};
+		ILU(double beta=0.0) : m_beta(beta), m_bSort(false), m_bDisablePreprocessing(false) {};
 
 	/// clone constructor
 		ILU( const ILU<TAlgebra> &parent )
 			: base_type(parent),
-			  m_beta(parent.m_beta), m_bSort(parent.m_bSort)
+			  m_beta(parent.m_beta), m_bSort(parent.m_bSort),
+			  m_bDisablePreprocessing(parent.m_bDisablePreprocessing)
 		{	}
 
 	///	Clone
@@ -333,6 +334,9 @@ class ILU : public IPreconditioner<TAlgebra>
 		{
 			m_bSort = b;
 		}
+
+	/// disable preprocessing (if underlying matrix has not changed)
+		void set_disable_preprocessing(bool bDisable) {m_bDisablePreprocessing = bDisable;}
 
 
 	protected:
@@ -360,6 +364,9 @@ class ILU : public IPreconditioner<TAlgebra>
 	//	Preprocess routine
 		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
 		{
+			// no not do a thing if preprocessing disabled
+			if (m_bDisablePreprocessing) return true;
+
 			matrix_type &mat = *pOp;
 			PROFILE_BEGIN_GROUP(ILU_preprocess, "algebra ILU");
 		//	Debug output of matrices
@@ -468,6 +475,9 @@ class ILU : public IPreconditioner<TAlgebra>
 		std::vector<size_t> m_newIndex, m_oldIndex;
 		bool m_bSortIsIdentity;
 		bool m_bSort;
+
+	/// whether or not to disable preprocessing
+		bool m_bDisablePreprocessing;
 };
 
 } // end namespace ug
