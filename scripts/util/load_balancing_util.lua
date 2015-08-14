@@ -38,10 +38,11 @@ balancer.maxLvlsWithoutRedist = 4
 balancer.parallelElementThreshold	= 32
 balancer.qualityThreshold			= 0.8
 balancer.balanceWeights				= nil
-balancer.communicationWeights	= nil
+balancer.communicationWeights		= nil
 balancer.childWeight				= 2
 balancer.siblingWeight				= 2
 balancer.itrFactor					= 1000
+balancer.imbalanceFactor			= 1.05
 balancer.noSiblingClustering 		= false
 
 balancer.staticProcHierarchy = false
@@ -85,6 +86,12 @@ function balancer.ParseParameters()
 									"Values in the range from 0.000001 to 1000000. A low value means that "..
 									"communication time is considered low compared to redistribution time while "..
 									"a high value means the contrary. Default is 1000.")
+	balancer.imbalanceFactor	= util.GetParamNumber("-imbalanceFactor", balancer.imbalanceFactor, "This factor is set as allowed imbalance for each constraint."..
+													  " From METIS manual: "..
+													  "'This is an array of size ncon that specifies the allowed load imbalance tolerance "..
+	 												  "for each constraint. For the ith partition and jth constraint the allowed weight is "..
+	 												  "the ubvec[j]*tpwgts[i*ncon+j] fraction of the jth’s constraint total weight. "..
+	 												  "The load imbalances must be greater than 1.0.'")
 
 	balancer.noSiblingClustering = util.HasParamOption("-noSiblingClustering", "siblings should always be clustered if adaptive refinement is performed. Better distribution qualities if disabled.")
 
@@ -111,10 +118,16 @@ function balancer.PrintParameters()
 	print("    childWeight              = " .. balancer.childWeight)
 	print("    siblingWeight            = " .. balancer.siblingWeight)
 	print("    itrFactor                = " .. balancer.itrFactor)
+	print("    imbalanceFactor          = " .. balancer.imbalanceFactor)
 	if balancer.regardAllChildren == true then
 		print("    regardAllChildren          active")
 	else
 		print("    regardAllChildren          inactive")
+	end
+	if balancer.staticProcHierarchy == true then
+		print("    staticProcHierarchy        active")
+	else
+		print("    staticProcHierarchy        inactive")
 	end
 	print("    partitioner              = " .. balancer.partitioner)
 end
@@ -145,6 +158,7 @@ function balancer.CreateLoadBalancer(domain)
 				partitioner:set_child_weight(balancer.childWeight)
 				partitioner:set_sibling_weight(balancer.siblingWeight)
 				partitioner:set_itr_factor(balancer.itrFactor)
+				partitioner:set_allowed_imbalance_factor(balancer.imbalanceFactor)
 				partitioner:set_verbose(false)
 			else
 				print("ERROR: partitioner 'parmetis' specified in balancer.CreateLoadBalancer but ParMETIS isn't available.")
@@ -207,7 +221,7 @@ function balancer.CreateLoadBalancer(domain)
 			end
 		elseif balancer.firstDistLvl < 0 then
 			processHierarchy:add_hierarchy_level(0, numComputeProcs)
-			loadBalancer:rebalance()
+			--loadBalancer:rebalance()
 		end
 		
 		loadBalancer:set_next_process_hierarchy(processHierarchy);
