@@ -35,7 +35,7 @@ prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid)
 		UG_THROW("NeumannBoundaryFV: Need exactly 1 function.");
 
 	if(vLfeID[0].type() != LFEID::LAGRANGE)
-		UG_THROW("NeumannBoundary: FV Scheme only implemented for 1st order.");
+		UG_THROW("NeumannBoundary: FV Scheme only implemented for Lagrange-type elements.");
 
 //	check that not ADAPTIVE
 	if(vLfeID[0].order() < 1)
@@ -251,6 +251,7 @@ finish_elem_loop()
 		for(size_t s = 0; s < m_vNumberData[i].BndSSGrp.size(); ++s){
 			const int si = m_vNumberData[i].BndSSGrp[s];
 			geo.remove_boundary_subset(si);
+			geo.reset_curr_elem();
 		}
 	}
 
@@ -259,6 +260,7 @@ finish_elem_loop()
 		for(size_t s = 0; s < m_vBNDNumberData[i].BndSSGrp.size(); ++s){
 			const int si = m_vBNDNumberData[i].BndSSGrp[s];
 			geo.remove_boundary_subset(si);
+			geo.reset_curr_elem();
 		}
 	}
 
@@ -267,6 +269,7 @@ finish_elem_loop()
 		for(size_t s = 0; s < m_vVectorData[i].BndSSGrp.size(); ++s){
 			const int si = m_vVectorData[i].BndSSGrp[s];
 			geo.remove_boundary_subset(si);
+			geo.reset_curr_elem();
 		}
 	}
 }
@@ -304,7 +307,11 @@ void NeumannBoundaryFV<TDomain>::NumberData::
 extract_bip(const TFVGeom& geo)
 {
 	typedef typename TFVGeom::BF BF;
-	vLocIP.clear();
+	static const int locDim = TElem::dim;
+
+	std::vector<MathVector<locDim> >* vLocIP = local_ips<locDim>();
+
+	vLocIP->clear();
 	vGloIP.clear();
 	for(size_t s = 0; s < this->BndSSGrp.size(); s++)
 	{
@@ -314,15 +321,28 @@ extract_bip(const TFVGeom& geo)
 		{
 			const BF& bf = vBF[i];
 			for(size_t ip = 0; ip < bf.num_ip(); ++ip){
-				vLocIP.push_back(bf.local_ip(ip));
+				vLocIP->push_back(bf.local_ip(ip));
 				vGloIP.push_back(bf.global_ip(ip));
 			}
 		}
 	}
 
-	import.set_local_ips(&vLocIP[0], vLocIP.size());
+	import.template set_local_ips<locDim>(&(*vLocIP)[0], vLocIP->size());
 	import.set_global_ips(&vGloIP[0], vGloIP.size());
 }
+
+template<typename TDomain>
+template <int refDim>
+std::vector<MathVector<refDim> >* NeumannBoundaryFV<TDomain>::NumberData::local_ips()
+{
+	switch (refDim)
+	{
+		case 1: return (std::vector<MathVector<refDim> >*)(&vLocIP_dim1);
+		case 2: return (std::vector<MathVector<refDim> >*)(&vLocIP_dim2);
+		case 3: return (std::vector<MathVector<refDim> >*)(&vLocIP_dim3);
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 //	register assemble functions
 ////////////////////////////////////////////////////////////////////////////////
@@ -338,6 +358,9 @@ void NeumannBoundaryFV<Domain1d>::register_all_funcs(int order)
 template<>
 void NeumannBoundaryFV<Domain2d>::register_all_funcs(int order)
 {
+// Edge
+	register_func<Edge, DimFVGeometry<dim, 1> >();
+
 //	Triangle
 	switch(order)
 	{
@@ -369,6 +392,9 @@ void NeumannBoundaryFV<Domain2d>::register_all_funcs(int order)
 template<>
 void NeumannBoundaryFV<Domain3d>::register_all_funcs(int order)
 {
+// Edge
+	register_func<Edge, DimFVGeometry<dim, 1> >();
+
 //	Tetrahedron
 	switch(order)
 	{
