@@ -17,6 +17,7 @@
 #include "lib_disc/local_finite_element/local_finite_element_provider.h"
 #include "lib_disc/spatial_disc/user_data/const_user_data.h"
 #include "lib_disc/reference_element/reference_mapping.h"
+#include "lib_disc/function_spaces/dof_position_util.h"
 
 #ifdef UG_FOR_LUA
 #include "bindings/lua/lua_user_data.h"
@@ -114,13 +115,9 @@ void InterpolateOnElements(
 		SmartPtr<UserData<number, TGridFunction::dim> > spInterpolFunction,
 		SmartPtr<TGridFunction> spGridFct, size_t fct, int si, number time)
 {
-//	get reference element type
-	typedef typename reference_element_traits<TElem>::reference_element_type
-				ref_elem_type;
-	const ReferenceObjectID roid = ref_elem_type::REFERENCE_OBJECT_ID;
-
-//	dimension of reference element
-	const int dim = ref_elem_type::dim;
+	// do nothing if no DoFs here
+	if (!spGridFct->max_fct_dofs(fct, ROID_TETRAHEDRON, si))
+		return;
 
 //	domain type and position_type
 	typedef typename TGridFunction::domain_type domain_type;
@@ -137,57 +134,34 @@ void InterpolateOnElements(
 //	id of shape functions used
 	LFEID id = spGridFct->local_finite_element_id(fct);
 
-//	get trial space
-	const LocalShapeFunctionSet<dim>& trialSpace =
-			LocalFiniteElementProvider::get<dim>(roid, id);
-
-//	number of dofs on element
-	const size_t nsh = trialSpace.num_sh();
-
-// 	load local positions of dofs for the trial space on element
-	std::vector<MathVector<dim> > loc_pos(nsh);
-	for(size_t i = 0; i < nsh; ++i)
-		if(!trialSpace.position(i, loc_pos[i]))
-			UG_THROW("InterpolateOnElem: Cannot find meaningful"
-					" local positions of dofs.");
-
-//	create a reference mapping
-	ReferenceMapping<ref_elem_type, domain_type::dim> mapping;
-
 // 	iterate over all elements
 	for( ; iter != iterEnd; ++iter)
 	{
 	//	get element
 		TElem* elem = *iter;
 
-	//	get all corner coordinates
-		std::vector<position_type> vCorner;
-		CollectCornerCoordinates(vCorner, *elem, *spGridFct->domain());
-
-	//	update the reference mapping for the corners
-		mapping.update(&vCorner[0]);
-
 	//	get multiindices of element
 		std::vector<DoFIndex> ind;
-		spGridFct->dof_indices(elem, fct, ind);
+		spGridFct->inner_dof_indices(elem, fct, ind);
 
-	//	check multi indices
-		if(ind.size() != nsh)
-			UG_THROW("InterpolateOnElem: On subset "<<si<<": Number of shapes is "
-					<<nsh<<", but got "<<ind.size()<<" multi indices.");
+	//	global positions of DoFs
+		std::vector<position_type> glob_pos;
+		InnerDoFPosition<domain_type>(glob_pos, elem, *spGridFct->domain(), id);
+
+	//	check global positions size
+		size_t ind_sz = ind.size();
+		size_t gp_sz = glob_pos.size();
+		if (ind_sz != gp_sz)
+			UG_THROW("InterpolateOnElem: On subset " << si << ": Number of DoFs is "
+					<< ind_sz << ", but number of DoF positions is "
+					<< gp_sz << "." << std::endl);
 
 	// 	loop all dofs
-		for(size_t i = 0; i < nsh; ++i)
+		for(size_t i = 0; i < ind_sz && i < gp_sz; ++i)
 		{
-		//	global position
-			position_type glob_pos;
-
-		//  map local dof position to global position
-			mapping.local_to_global(glob_pos, loc_pos[i]);
-
 		//	value at position
 			number val;
-			(*spInterpolFunction)(val, glob_pos, time, si);
+			(*spInterpolFunction)(val, glob_pos[i], time, si);
 
 		//	set value
 			DoFRef(*spGridFct, ind[i]) = val;
@@ -225,33 +199,60 @@ void InterpolateOnElements(SmartPtr<UserData<number, TGridFunction::dim> > spInt
 	//	switch dimensions
 		try
 		{
-		const int dim = ssGrp.dim(i);
+			const int dim = ssGrp.dim(i);
 
-		if(dim > TGridFunction::dim)
-			UG_THROW("InterpolateOnElements: Dimension of subset is "<<dim<<", but "
-			         " World Dimension is "<<TGridFunction::dim<<". Cannot interpolate this.");
+			if(dim > TGridFunction::dim)
+				UG_THROW("InterpolateOnElements: Dimension of subset is "<<dim<<", but "
+						 " World Dimension is "<<TGridFunction::dim<<". Cannot interpolate this.");
 
-		switch(dim)
-		{
-		case DIM_SUBSET_EMPTY_GRID: break;
-		case 0: /* \TODO: do nothing may be wrong */	break;
-		case 1:
-			InterpolateOnElements<RegularEdge, TGridFunction>(spInterpolFunction, spGridFct, fct, si, time);
-			break;
-		case 2:
-			InterpolateOnElements<Triangle, TGridFunction>(spInterpolFunction, spGridFct, fct, si, time);
-			InterpolateOnElements<Quadrilateral, TGridFunction>(spInterpolFunction, spGridFct, fct, si, time);
-			break;
-		case 3:
-			InterpolateOnElements<Tetrahedron, TGridFunction>(spInterpolFunction, spGridFct, fct, si, time);
-			InterpolateOnElements<Hexahedron, TGridFunction>(spInterpolFunction, spGridFct, fct, si, time);
-			InterpolateOnElements<Prism, TGridFunction>(spInterpolFunction, spGridFct, fct, si, time);
-			InterpolateOnElements<Pyramid, TGridFunction>(spInterpolFunction, spGridFct, fct, si, time);
-			InterpolateOnElements<Octahedron, TGridFunction>(spInterpolFunction, spGridFct, fct, si, time);
-			break;
-		default: UG_THROW("InterpolateOnElements: Dimension " <<dim<<
-		                " not possible for world dim "<<3<<".");
-		}
+
+
+			// In a parallel scenario, the distribution CAN cause elements of of lower
+			// dimension than the rest of their subset to be located disconnected from
+			// the rest of the subset on a processor. For example, in 2D, think of a
+			// (1D) boundary subset and a distribution where the boundary of a proc's
+			// domain only touches the boundary subset in a vertex, but intersects with
+			// the boundary subset in another place.
+			// Therefore, we need to interpolate on all dimensions < dim and we will
+			// only consider inner indices then, thus we simply switch-case backwards
+			// and without breaks.
+			switch(dim)
+			{
+				case DIM_SUBSET_EMPTY_GRID: break;
+				case 3:
+					if (spGridFct->max_fct_dofs(fct, VOLUME, si))
+					{
+						InterpolateOnElements<Tetrahedron, TGridFunction>
+							(spInterpolFunction, spGridFct, fct, si, time);
+						InterpolateOnElements<Hexahedron, TGridFunction>
+							(spInterpolFunction, spGridFct, fct, si, time);
+						InterpolateOnElements<Prism, TGridFunction>
+							(spInterpolFunction, spGridFct, fct, si, time);
+						InterpolateOnElements<Pyramid, TGridFunction>
+							(spInterpolFunction, spGridFct, fct, si, time);
+						InterpolateOnElements<Octahedron, TGridFunction>
+							(spInterpolFunction, spGridFct, fct, si, time);
+					}
+				case 2:
+					if (spGridFct->max_fct_dofs(fct, FACE, si))
+					{
+						InterpolateOnElements<Triangle, TGridFunction>
+							(spInterpolFunction, spGridFct, fct, si, time);
+						InterpolateOnElements<Quadrilateral, TGridFunction>
+							(spInterpolFunction, spGridFct, fct, si, time);
+					}
+				case 1:
+					if (spGridFct->max_fct_dofs(fct, EDGE, si))
+						InterpolateOnElements<RegularEdge, TGridFunction>
+							(spInterpolFunction, spGridFct, fct, si, time);
+				case 0:
+					if (spGridFct->max_fct_dofs(fct, VERTEX, si))
+						InterpolateOnElements<RegularVertex, TGridFunction>
+							(spInterpolFunction, spGridFct, fct, si, time);
+					break;
+				default: UG_THROW("InterpolateOnElements: Dimension " <<dim<<
+							" not possible for world dim "<<3<<".");
+			}
 		}
 		UG_CATCH_THROW("InterpolateOnElements: Cannot interpolate on elements.");
 	}
