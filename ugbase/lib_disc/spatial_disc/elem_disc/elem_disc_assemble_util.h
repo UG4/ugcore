@@ -1091,6 +1091,8 @@ public:
 			}
 			UG_CATCH_THROW("(instationary) AssembleLinear: Cannot prepare element.");
 
+		if (!spAssTuner->matrix_is_const())
+		{
 		//	Assemble JM
 			try
 			{
@@ -1112,7 +1114,7 @@ public:
 				Eval.add_jac_A_elem(locA, locU, elem, vCornerCoords, PT_STATIONARY);
 			}
 			UG_CATCH_THROW("(instationary) AssembleLinear: Cannot compute Jacobian (A).");
-
+		}
 		//	Assemble rhs
 			try
 			{
@@ -1180,7 +1182,8 @@ public:
 
 		//	send local to global matrix & rhs
 			try{
-				spAssTuner->add_local_mat_to_global(A, locA, dd);
+				if (!spAssTuner->matrix_is_const())
+					spAssTuner->add_local_mat_to_global(A, locA, dd);
 				spAssTuner->add_local_vec_to_global(rhs, locRhs, dd);
 			}
 			UG_CATCH_THROW("(instationary) AssembleLinear: Cannot add local vector/matrix.");

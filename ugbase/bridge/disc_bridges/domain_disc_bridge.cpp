@@ -85,6 +85,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("invalidate_error", &T::invalidate_error, "", "Marks error indicators as invalid, "
 				"which will prohibit refining and coarsening before a new call to calc_error.")
 			.add_method("is_error_valid", &T::is_error_valid, "", "Returns whether error values are valid")
+			.add_method("ass_tuner", static_cast<SmartPtr<AssemblingTuner<TAlgebra> > (T::*) ()> (&T::ass_tuner), "assembling tuner", "", "get this domain discretization's assembling tuner")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "DomainDiscretization", tag);
 	}
@@ -203,6 +204,16 @@ static void Algebra(Registry& reg, string grp)
 	string suffix = GetAlgebraSuffix<TAlgebra>();
 	string tag = GetAlgebraTag<TAlgebra>();
 
+	// AssemblingTuner
+	{
+		typedef AssemblingTuner<TAlgebra> T;
+		std::string name = string("AssTuner");
+		reg.add_class_<T>(name+suffix, grp)
+			.add_method("set_matrix_is_const", &T::set_matrix_is_const, "",
+						"whether matrix is constant in time", "")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name+suffix, name, tag);
+	}
 }
 
 /**
@@ -236,7 +247,7 @@ void RegisterBridge_DomainDisc(Registry& reg, string grp)
 //		RegisterCommon<Functionality>(reg,grp);
 //		RegisterDimensionDependent<Functionality>(reg,grp);
 		RegisterDomainDependent<Functionality>(reg,grp);
-//		RegisterAlgebraDependent<Functionality>(reg,grp);
+		RegisterAlgebraDependent<Functionality>(reg,grp);
 		RegisterDomainAlgebraDependent<Functionality>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);

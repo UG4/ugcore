@@ -84,10 +84,11 @@ class AssemblingTuner
 	public:
 	/// constructor
 		AssemblingTuner(): m_pBoolMarker(NULL), m_pSelector(NULL),
+		m_bSingleAssIndex(false), m_SingleAssIndex(0),
 		m_bForceRegGrid(false), m_bModifySolutionImplemented(false),
-		m_ConstraintTypesEnabled(CT_ALL), m_ElemTypesEnabled(EDT_ALL)
+		m_ConstraintTypesEnabled(CT_ALL), m_ElemTypesEnabled(EDT_ALL),
+		m_bMatrixIsConst(false)
 		{
-			m_bSingleAssIndex = false;
 			m_pMapper = &m_pMapperCommon;
 		}
 
@@ -206,6 +207,21 @@ class AssemblingTuner
 		void set_dirichlet_row(matrix_type& mat, const DoFIndex& ind) const;
 		void set_dirichlet_val(vector_type& vec, const DoFIndex& ind, const double val) const;
 
+	/**
+	 * specify whether matrix will be modified by assembling
+	 * disables matrix assembling if set to true
+	 *
+	 * @param bCh set true if matrix is not to be changed during assembling
+	 */
+		void set_matrix_is_const(bool bCh) {m_bMatrixIsConst = bCh;}
+
+	/**
+	 * whether matrix is to be modified by assembling
+	 *
+	 * @return true iff matrix is not to be modified
+	 */
+		bool matrix_is_const() const {return m_bMatrixIsConst;}
+
 	protected:
 	///	default LocalToGlobalMapper
 		LocalToGlobalMapper<TAlgebra> m_pMapperCommon;
@@ -235,6 +251,9 @@ class AssemblingTuner
 
 	///	enables the constraints
 		int m_ElemTypesEnabled;
+
+	/// disables matrix assembling if set to false
+		bool m_bMatrixIsConst;
 };
 
 } // end namespace ug

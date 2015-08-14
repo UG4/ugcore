@@ -1525,6 +1525,9 @@ assemble_jacobian(matrix_type& J,
                   const number s_a0,
                   ConstSmartPtr<DoFDistribution> dd)
 {
+	// do not do anything if matrix is supposed to be const
+	if (m_spAssTuner->matrix_is_const()) return;
+
 	PROFILE_FUNC_GROUP("discretization");
 //	update the elem discs
 	update_disc_items();
@@ -1884,7 +1887,8 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 	update_disc_items();
 
 //	reset matrix to zero and resize
-	m_spAssTuner->resize(dd, mat);
+	if (!m_spAssTuner->matrix_is_const())
+		m_spAssTuner->resize(dd, mat);
 	m_spAssTuner->resize(dd, rhs);
 
 //	Union of Subsets
