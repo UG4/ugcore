@@ -22,7 +22,9 @@ Partitioner_Parmetis() :
 	m_mg(NULL),
 	m_childWeight(1),
 	m_siblingWeight(2),
-	m_comVsRedistRatio(1000)
+	m_comVsRedistRatio(1000),
+	m_imbFactor(1.05),
+	m_elemType(VERTEX)
 {
 	m_processHierarchy = SPProcessHierarchy(new ProcessHierarchy);
 	m_processHierarchy->add_hierarchy_level(0, 1);
@@ -43,17 +45,39 @@ set_grid(MultiGrid* mg, Attachment<MathVector<dim> >)
 		return;
 
 	if(m_mg){
-		m_mg->detach_from<elem_t>(m_aWeightChildren);
-		m_aaWeightChildren.invalidate();
+		switch(m_elemType)
+		{
+			case VOLUME:
+				m_mg->detach_from<Volume>(m_aWeightChildren); break;
+			case FACE:
+				m_mg->detach_from<Face>(m_aWeightChildren); break;
+			case EDGE:
+				m_mg->detach_from<Edge>(m_aWeightChildren); break;
+			default:
+				UG_THROW("Distribution can only be performed with elements of at least dim 1.");
+		}
+
+		//m_aaWeightChildren.invalidate();
 		m_sh.assign_grid(NULL);
 		m_mg = NULL;
 	}
 
 	if(mg){
 		m_mg = mg;
+		find_max_elem_dim();
 		m_sh.assign_grid(m_mg);
-		m_mg->attach_to<elem_t>(m_aWeightChildren);
-		m_aaWeightChildren.access(*m_mg, m_aWeightChildren);
+		switch(m_elemType)
+		{
+			case VOLUME:
+				m_mg->attach_to<Volume>(m_aWeightChildren); break;
+			case FACE:
+				m_mg->attach_to<Face>(m_aWeightChildren); break;
+			case EDGE:
+				m_mg->attach_to<Edge>(m_aWeightChildren); break;
+			default:
+				UG_THROW("Distribution can only be performed with elements of at least dim 1.");
+		}
+		//m_aaWeightChildren.access(*m_mg, m_aWeightChildren);
 	}
 }
 
@@ -73,7 +97,7 @@ set_balance_weights(SPBalanceWeights balanceWeights)
 
 template<int dim>
 void Partitioner_Parmetis<dim>::
-set_communication_weights(SmartPtr<ICommunicationWeights<dim> > commWeights)
+set_communication_weights(SmartPtr<ICommunicationWeights> commWeights)
 {
 	m_communicationWeights = commWeights;
 }
@@ -110,17 +134,20 @@ supports_communication_weights() const
 }
 
 template<int dim>
+template <typename TElem>
 void Partitioner_Parmetis<dim>::
 accumulate_child_counts(int baseLvl, int topLvl, AInt aInt,
+						pcl::InterfaceCommunicator<typename GridLayoutMap::Types<TElem>::Layout::LevelLayout>* p_intfcCom,
 						bool copyToVMastersOnBaseLvl)
 {
 	GDIST_PROFILE_FUNC();
 	UG_DLOG(LIB_GRID, 1, "Partitioner_Parmetis-start accumulate_child_counts\n");
-	typedef typename Grid::traits<elem_t>::iterator ElemIter;
+	typedef typename Grid::traits<TElem>::iterator ElemIter;
+	typedef typename GridLayoutMap::Types<TElem>::Layout::LevelLayout layout_t;
 
 	assert(m_mg);
 	assert(m_mg->is_parallel());
-	assert(m_mg->has_attachment<elem_t>(aInt));
+	assert(m_mg->has_attachment<TElem>(aInt));
 
 	MultiGrid& mg = *m_mg;
 
@@ -129,21 +156,21 @@ accumulate_child_counts(int baseLvl, int topLvl, AInt aInt,
 				 << topLvl << ", mg.num_levels() = " << mg.num_levels());
 	}
 
-	Grid::AttachmentAccessor<elem_t, AInt> aaNumChildren(mg, aInt);
+	Grid::AttachmentAccessor<TElem, AInt> aaNumChildren(mg, aInt);
 
-	SetAttachmentValues(aaNumChildren, mg.begin<elem_t>(topLvl),
-						mg.end<elem_t>(topLvl), 0);
+	SetAttachmentValues(aaNumChildren, mg.begin<TElem>(topLvl),
+						mg.end<TElem>(topLvl), 0);
 
 
 	for(int lvl = topLvl-1; lvl >= baseLvl; --lvl){
-		for(ElemIter iter = mg.begin<elem_t>(lvl);
-			iter != mg.end<elem_t>(lvl); ++iter)
+		for(ElemIter iter = mg.begin<TElem>(lvl);
+			iter != mg.end<TElem>(lvl); ++iter)
 		{
-			elem_t* e = *iter;
-			size_t numChildren = mg.num_children<elem_t>(e);
+			TElem* e = *iter;
+			size_t numChildren = mg.num_children<TElem>(e);
 			aaNumChildren[e] = numChildren;
 			for(size_t i_child = 0; i_child < numChildren; ++i_child){
-				aaNumChildren[e] += aaNumChildren[mg.get_child<elem_t>(e, i_child)];
+				aaNumChildren[e] += aaNumChildren[mg.get_child<TElem>(e, i_child)];
 			}
 		}
 
@@ -154,15 +181,15 @@ accumulate_child_counts(int baseLvl, int topLvl, AInt aInt,
 		//	communicate the child counts from v-slaves to v-masters, since the
 		//	latter havn't got children on their local processes.
 			ComPol_CopyAttachment<layout_t, AInt> compolCopy(mg, aInt);
-			if(glm.has_layout<elem_t>(INT_V_SLAVE)){
-				m_intfcCom.send_data(glm.get_layout<elem_t>(INT_V_SLAVE).layout_on_level(lvl),
+			if(glm.has_layout<TElem>(INT_V_SLAVE)){
+				p_intfcCom->send_data(glm.get_layout<TElem>(INT_V_SLAVE).layout_on_level(lvl),
 									 compolCopy);
 			}
-			if(glm.has_layout<elem_t>(INT_V_MASTER)){
-				m_intfcCom.receive_data(glm.get_layout<elem_t>(INT_V_MASTER).layout_on_level(lvl),
+			if(glm.has_layout<TElem>(INT_V_MASTER)){
+				p_intfcCom->receive_data(glm.get_layout<TElem>(INT_V_MASTER).layout_on_level(lvl),
 										compolCopy);
 			}
-			m_intfcCom.communicate();
+			p_intfcCom->communicate();
 		}
 	}
 	UG_DLOG(LIB_GRID, 1, "Partitioner_Parmetis-stop accumulate_child_counts\n");
@@ -170,85 +197,89 @@ accumulate_child_counts(int baseLvl, int topLvl, AInt aInt,
 
 
 template <int dim>
+template <typename TElem>
 void Partitioner_Parmetis<dim>::
 gather_child_weights_from_level(int baseLvl, int childLvl, Attachment<idx_t> aWeight,
-								bool copyToVMastersOnBaseLvl)
+								bool copyToVMastersOnBaseLvl,
+								pcl::InterfaceCommunicator<typename GridLayoutMap::Types<TElem>::Layout::LevelLayout>* p_intfcCom)
 {
 	GDIST_PROFILE_FUNC();
 	UG_DLOG(LIB_GRID, 1, "Partitioner_Parmetis-start gather_child_counts_from_level\n");
-	typedef typename Grid::traits<elem_t>::iterator ElemIter;
+	typedef typename Grid::traits<TElem>::iterator ElemIter;
+	typedef typename GridLayoutMap::Types<TElem>::Layout::LevelLayout layout_t;
 
 	if(childLvl <= baseLvl)
 		return;
 
 	assert(m_mg);
 	assert(m_mg->is_parallel());
-	assert(m_mg->has_attachment<elem_t>(aWeight));
+	assert(m_mg->has_attachment<TElem>(aWeight));
 	UG_ASSERT(m_balanceWeights.valid(), "Partitioner_Parmetis: Balance weights are invalid.");
 
 	MultiGrid& mg = *m_mg;
-	Grid::AttachmentAccessor<elem_t, Attachment<idx_t> > aaWeightChildren(mg, aWeight);
+	Grid::AttachmentAccessor<TElem, Attachment<idx_t> > aaWeightChildren(mg, aWeight);
 	GridLayoutMap& glm = mg.distributed_grid_manager()->grid_layout_map();
 	ComPol_CopyAttachment<layout_t, Attachment<idx_t> > compolCopy(mg, aWeight);
 
 //	first write child-counts to elements on childLvl - 1
-	for(ElemIter iter = mg.begin<elem_t>(childLvl);
-		iter != mg.end<elem_t>(childLvl); ++iter)
+	for(ElemIter iter = mg.begin<TElem>(childLvl);
+		iter != mg.end<TElem>(childLvl); ++iter)
 	{
-		elem_t* e = *iter;
+		TElem* e = *iter;
 		aaWeightChildren[e] = (idx_t) m_balanceWeights->get_weight(e);
 	}
 
 	for(int lvl = childLvl - 1; lvl >= baseLvl; --lvl){
 	//	copy from v-slaves to vmasters
-		if(glm.has_layout<elem_t>(INT_V_SLAVE))
-			m_intfcCom.send_data(glm.get_layout<elem_t>(INT_V_SLAVE).layout_on_level(lvl + 1),
+		if(glm.has_layout<TElem>(INT_V_SLAVE))
+			p_intfcCom->send_data(glm.get_layout<TElem>(INT_V_SLAVE).layout_on_level(lvl + 1),
 								 compolCopy);
-		if(glm.has_layout<elem_t>(INT_V_MASTER))
-			m_intfcCom.receive_data(glm.get_layout<elem_t>(INT_V_MASTER).layout_on_level(lvl + 1),
+		if(glm.has_layout<TElem>(INT_V_MASTER))
+			p_intfcCom->receive_data(glm.get_layout<TElem>(INT_V_MASTER).layout_on_level(lvl + 1),
 									compolCopy);
-		m_intfcCom.communicate();
+		p_intfcCom->communicate();
 
 	//	accumulate child counts in parent elements on lvl
-		for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter)
+		for(ElemIter iter = mg.begin<TElem>(lvl); iter != mg.end<TElem>(lvl); ++iter)
 		{
-			elem_t* e = *iter;
+			TElem* e = *iter;
 			aaWeightChildren[e] = m_balanceWeights->get_weight(e);
-			size_t numChildren = mg.num_children<elem_t>(e);
+			size_t numChildren = mg.num_children<TElem>(e);
 			for(size_t i = 0; i < numChildren; ++i)
-				aaWeightChildren[e] += aaWeightChildren[mg.get_child<elem_t>(e, i)];
+				aaWeightChildren[e] += aaWeightChildren[mg.get_child<TElem>(e, i)];
 		}
 	}
 
 //	if child counts are required in vmasters on the base-level, copy them now...
 	if(copyToVMastersOnBaseLvl){
-		if(glm.has_layout<elem_t>(INT_V_SLAVE))
-			m_intfcCom.send_data(glm.get_layout<elem_t>(INT_V_SLAVE).layout_on_level(baseLvl),
+		if(glm.has_layout<TElem>(INT_V_SLAVE))
+			p_intfcCom->send_data(glm.get_layout<TElem>(INT_V_SLAVE).layout_on_level(baseLvl),
 								 compolCopy);
-		if(glm.has_layout<elem_t>(INT_V_MASTER))
-			m_intfcCom.receive_data(glm.get_layout<elem_t>(INT_V_MASTER).layout_on_level(baseLvl),
+		if(glm.has_layout<TElem>(INT_V_MASTER))
+			p_intfcCom->receive_data(glm.get_layout<TElem>(INT_V_MASTER).layout_on_level(baseLvl),
 									compolCopy);
-		m_intfcCom.communicate();
+		p_intfcCom->communicate();
 	}
 	UG_DLOG(LIB_GRID, 1, "Partitioner_Parmetis-stop gather_child_weights_from_level\n");
 }
 
 
 template<int dim>
-template<class TIter>
+template<class TIter, typename TElem>
 void Partitioner_Parmetis<dim>::
-fill_multi_constraint_vertex_weights(vector<idx_t>& vwgtsOut,
+fill_multi_constraint_vertex_weights(std::vector<idx_t>& vwgtsOut,
 									 int baseLvl, int maxLvl, Attachment<idx_t> aWeight,
 									 bool fillVMastersOnBaseLvl,
 									 TIter baseElemsBegin, TIter baseElemsEnd,
-									 int numBaseElements)
+									 int numBaseElements,
+									 pcl::InterfaceCommunicator<typename GridLayoutMap::Types<TElem>::Layout::LevelLayout>* p_intfcCom)
 {
 	GDIST_PROFILE_FUNC();
 
 	UG_ASSERT(m_balanceWeights.valid(), "Partitioner_Parmetis: Balance weights are invalid.");
 
 	MultiGrid& mg = *m_mg;
-	Grid::AttachmentAccessor<elem_t, Attachment<idx_t> > aaWeightChildren(mg, aWeight);
+	Grid::AttachmentAccessor<TElem, Attachment<idx_t> > aaWeightChildren(mg, aWeight);
 
 	int ncons = maxLvl - baseLvl + 1;
 	vwgtsOut.resize(numBaseElements * ncons);
@@ -263,7 +294,7 @@ fill_multi_constraint_vertex_weights(vector<idx_t>& vwgtsOut,
 	}
 
 	for(int ci = 1; ci < ncons; ++ci){
-		gather_child_weights_from_level(baseLvl, baseLvl + ci, aWeight, fillVMastersOnBaseLvl);
+		gather_child_weights_from_level<TElem>(baseLvl, baseLvl + ci, aWeight, fillVMastersOnBaseLvl, p_intfcCom);
 		wgtInd = ci;
 		for(TIter iter = baseElemsBegin; iter != baseElemsEnd; ++iter, wgtInd += wgtOffset)
 		{
@@ -277,6 +308,26 @@ template<int dim>
 bool Partitioner_Parmetis<dim>::
 partition(size_t baseLvl, size_t elementThreshold)
 {
+	assert(m_mg);
+
+	switch(m_elemType)
+	{
+		case VOLUME:
+			return partition_with_elem_type<Volume>(baseLvl, elementThreshold);
+		case FACE:
+			return partition_with_elem_type<Face>(baseLvl, elementThreshold);
+		case EDGE:
+			return partition_with_elem_type<Edge>(baseLvl, elementThreshold);
+		default:
+			UG_THROW("Distribution can only be performed with elements of at least dim 1.");
+	}
+}
+
+template <int dim>
+template <typename TElem>
+bool Partitioner_Parmetis<dim>::
+partition_with_elem_type(size_t baseLvl, size_t elementThreshold)
+{
 	GDIST_PROFILE_FUNC();
 	UG_DLOG(LIB_GRID, 1, "Partitioner_Parmetis-start partition\n");
 
@@ -287,7 +338,10 @@ partition(size_t baseLvl, size_t elementThreshold)
 //		UG_LOG(m_nextProcessHierarchy->to_string() << endl);
 //	}
 
-	typedef typename Grid::traits<elem_t>::iterator ElemIter;
+	typedef typename Grid::traits<TElem>::iterator ElemIter;
+	typedef typename GridLayoutMap::Types<TElem>::Layout::LevelLayout	layout_t;
+	pcl::InterfaceCommunicator<layout_t>	intfcCom;
+
 
 	assert(m_mg);
 	MultiGrid& mg = *m_mg;
@@ -297,28 +351,31 @@ partition(size_t baseLvl, size_t elementThreshold)
 //	load-partitioning via parmetis is performed.
 //	Declaring the graph here is for performance reasons only! It avoids
 //	repeated attachment and detachment of required data in the graph.
-	ParallelDualGraph<elem_t, idx_t> pdg;
+	ParallelDualGraph<TElem, idx_t> pdg;
 
 	int localProc = pcl::ProcRank();
 
 	m_sh.clear();
 
 	GridLayoutMap& glm = mg.distributed_grid_manager()->grid_layout_map();
-	UG_ASSERT(!(glm.has_layout<elem_t>(INT_H_MASTER) || glm.has_layout<elem_t>(INT_H_SLAVE)),
+	UG_ASSERT(!(glm.has_layout<TElem>(INT_H_MASTER) || glm.has_layout<TElem>(INT_H_SLAVE)),
 			  "Elements for which a partitioning is generated may not be contained in"
 			  " H-Interfaces!");
 
 //	assign all elements below baseLvl to the local process
 	for(int i = 0; i < (int)baseLvl; ++i)
-		m_sh.assign_subset(mg.begin<elem_t>(i), mg.end<elem_t>(i), localProc);
+		m_sh.assign_subset(mg.begin<TElem>(i), mg.end<TElem>(i), localProc);
 
-//	UG_LOG("New Partitioning. Local elements (including ghosts): " << mg.num<elem_t>() << endl);
+//	UG_LOG("New Partitioning. Local elements (including ghosts): " << mg.num<TElem>() << endl);
 
 	const ProcessHierarchy* procH;
 	if(m_nextProcessHierarchy.valid())
 		procH = m_nextProcessHierarchy.get();
 	else
 		procH = m_processHierarchy.get();
+
+	// resize edgeCut vector
+	m_vEdgeCut.resize(procH->num_hierarchy_levels());
 
 //	iterate through all hierarchy levels and perform rebalancing for all
 //	hierarchy-sections which contain levels higher than baseLvl
@@ -352,7 +409,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 		if(numProcsOnLvl <= 1){
 			int targetProcId = 0;
 			for(int i = minLvl; i <= maxLvl; ++i)
-				m_sh.assign_subset(mg.begin<elem_t>(i), mg.end<elem_t>(i), targetProcId);
+				m_sh.assign_subset(mg.begin<TElem>(i), mg.end<TElem>(i), targetProcId);
 			continue;
 		}
 
@@ -380,7 +437,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 //					  << " shouldn't contain vertices on this level: " << oldMinLvl);
 //
 //		//	since we communicate with elements in maxLvl below, this assertion has to hold.
-//			UG_COND_THROW(mg.num<elem_t>(oldMaxLvl) > 0,
+//			UG_COND_THROW(mg.num<TElem>(oldMaxLvl) > 0,
 //					  "Process " << localProc
 //					  << " shouldn't contain elements on this level: " << oldMaxLvl);
 //			continue;
@@ -418,7 +475,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 						  << " shouldn't contain vertices on this level: " << minLvl);
 
 			//	since we communicate with elements in maxLvl below, this assertion has to hold.
-				UG_COND_THROW(mg.num<elem_t>(maxLvl) > 0,
+				UG_COND_THROW(mg.num<TElem>(maxLvl) > 0,
 						  "Process " << localProc
 						  << " shouldn't contain elements on this level: " << maxLvl);
 				continue;
@@ -428,12 +485,12 @@ partition(size_t baseLvl, size_t elementThreshold)
 	//	adjust the number of target processes so that each receives at least
 	//	#elementThreshold elements.
 		int numGhosts = 0;
-		if(glm.has_layout<elem_t>(INT_V_MASTER)){
-			numGhosts = glm.get_layout<elem_t>(INT_V_MASTER).
+		if(glm.has_layout<TElem>(INT_V_MASTER)){
+			numGhosts = glm.get_layout<TElem>(INT_V_MASTER).
 							layout_on_level(minLvl).num_interface_elements();
 		}
 
-		int numLocalElems = (int)mg.num<elem_t>(minLvl) - numGhosts;
+		int numLocalElems = (int)mg.num<TElem>(minLvl) - numGhosts;
 		int numTargetProcs = numProcsOnLvl;
 		if(elementThreshold > 0){
 			int numGlobalElems = hlvlCom.allreduce(numLocalElems, PCL_RO_SUM);
@@ -444,7 +501,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 		if(numTargetProcs == 1){
 		//	all elements have to be sent to process 0
 			for(int i = minLvl; i <= maxLvl; ++i)
-				m_sh.assign_subset(mg.begin<elem_t>(i), mg.end<elem_t>(i), 0);
+				m_sh.assign_subset(mg.begin<TElem>(i), mg.end<TElem>(i), 0);
 			continue;
 		}
 
@@ -462,20 +519,20 @@ partition(size_t baseLvl, size_t elementThreshold)
 
 		if(numProcsWithGrid == 1){
 			//if(gotGrid)
-			partition_level_metis(minLvl, maxLvl, numTargetProcs);
+			m_vEdgeCut[hlevel] = partition_level_metis<TElem>(minLvl, maxLvl, numTargetProcs, &intfcCom);
 		}
 		else{
-			partition_level_parmetis(minLvl, maxLvl, numTargetProcs, hlvlCom, pdg);
+			m_vEdgeCut[hlevel] = partition_level_parmetis<TElem>(minLvl, maxLvl, numTargetProcs, hlvlCom, pdg, &intfcCom);
 		}
 
 	//	assign partitions to all children in this hierarchy level
 		for(int lvl = minLvl; lvl < maxLvl; ++lvl){
-			for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter)
+			for(ElemIter iter = mg.begin<TElem>(lvl); iter != mg.end<TElem>(lvl); ++iter)
 			{
-				size_t numChildren = mg.num_children<elem_t>(*iter);
+				size_t numChildren = mg.num_children<TElem>(*iter);
 				int si = m_sh.get_subset_index(*iter);
 				for(size_t i = 0; i < numChildren; ++i)
-					m_sh.assign_subset(mg.get_child<elem_t>(*iter, i), si);
+					m_sh.assign_subset(mg.get_child<TElem>(*iter, i), si);
 			}
 
 			if(mg.is_parallel()){
@@ -483,15 +540,15 @@ partition(size_t baseLvl, size_t elementThreshold)
 			//	communicate partitions from v-masters to v-slaves, since v-slaves
 			//	havn't got no parents on their procs.
 				ComPol_Subset<layout_t>	compolSHCopy(m_sh, true);
-				if(glm.has_layout<elem_t>(INT_V_MASTER)){
-					m_intfcCom.send_data(glm.get_layout<elem_t>(INT_V_MASTER).layout_on_level(lvl+1),
+				if(glm.has_layout<TElem>(INT_V_MASTER)){
+					intfcCom.send_data(glm.get_layout<TElem>(INT_V_MASTER).layout_on_level(lvl+1),
 										 compolSHCopy);
 				}
-				if(glm.has_layout<elem_t>(INT_V_SLAVE)){
-					m_intfcCom.receive_data(glm.get_layout<elem_t>(INT_V_SLAVE).layout_on_level(lvl+1),
+				if(glm.has_layout<TElem>(INT_V_SLAVE)){
+					intfcCom.receive_data(glm.get_layout<TElem>(INT_V_SLAVE).layout_on_level(lvl+1),
 											compolSHCopy);
 				}
-				m_intfcCom.communicate();
+				intfcCom.communicate();
 			}
 		}
 	}
@@ -507,12 +564,16 @@ partition(size_t baseLvl, size_t elementThreshold)
 
 
 template<int dim>
-void Partitioner_Parmetis<dim>::
-partition_level_metis(int baseLvl, int maxLvl, int numTargetProcs)
+template <typename TElem>
+idx_t Partitioner_Parmetis<dim>::
+partition_level_metis(int baseLvl, int maxLvl, int numTargetProcs,
+					  pcl::InterfaceCommunicator<typename GridLayoutMap::Types<TElem>::Layout::LevelLayout>* p_intfcCom)
 {
 	GDIST_PROFILE_FUNC();
 	UG_DLOG(LIB_GRID, 1, "Partitioner_Parmetis-start partition_level_metis\n");
-	typedef typename Grid::traits<elem_t>::iterator ElemIter;
+	typedef typename TElem::side side_t;
+	typedef typename Grid::traits<TElem>::iterator ElemIter;
+	typedef typename GridLayoutMap::Types<TElem>::Layout::LevelLayout layout_t;
 	assert(m_mg);
 	MultiGrid& mg = *m_mg;
 	int lvl = baseLvl;
@@ -521,8 +582,8 @@ partition_level_metis(int baseLvl, int maxLvl, int numTargetProcs)
 	vector<idx_t> adjacencyMapStructure;
 	vector<idx_t> adjacencyMap;
 
-	vector<elem_t*> elems(mg.num<elem_t>(lvl));
-	ConstructDualGraphMGLevel<elem_t, idx_t>(adjacencyMapStructure, adjacencyMap,
+	vector<TElem*> elems(mg.num<TElem>(lvl));
+	ConstructDualGraphMGLevel<TElem, idx_t>(adjacencyMapStructure, adjacencyMap,
 											 mg, lvl, NULL, &elems.front());
 
 
@@ -540,17 +601,19 @@ partition_level_metis(int baseLvl, int maxLvl, int numTargetProcs)
 	vector<idx_t> partitionMap(nVrts);
 
 	idx_t nConstraints = maxLvl - baseLvl + 1;
+	vector<real_t> tpwgts(numParts * nConstraints, 1. / (number)numParts);
 	vector<idx_t> vrtWgtMap;
-	fill_multi_constraint_vertex_weights(vrtWgtMap, baseLvl, maxLvl, m_aWeightChildren, false,
-										 mg.begin<elem_t>(baseLvl), mg.end<elem_t>(baseLvl),
-										 mg.num<elem_t>(baseLvl));
+	fill_multi_constraint_vertex_weights<ElemIter, TElem>(vrtWgtMap, baseLvl, maxLvl, m_aWeightChildren, false,
+										 mg.begin<TElem>(baseLvl), mg.end<TElem>(baseLvl),
+										 mg.num<TElem>(baseLvl), p_intfcCom);
+	vector<real_t> ubvec(nConstraints, m_imbFactor);
 
 //	create a weight map for the vertices based on the number of children+1
 //	for each graph-vertex. This is not necessary, if we're already on the top level
 //	accumulate_child_counts(baseLvl, maxLvl, m_aNumChildren);
 //	if(lvl < (int)mg.top_level()){
 //		vrtWgtMap.reserve(nVrts);
-//		for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter){
+//		for(ElemIter iter = mg.begin<TElem>(lvl); iter != mg.end<TElem>(lvl); ++iter){
 //			vrtSizeMap.push_back(m_childWeight * m_aaWeightChildren[*iter] + 1);
 //		}
 //
@@ -571,14 +634,14 @@ partition_level_metis(int baseLvl, int maxLvl, int numTargetProcs)
 					  "There have to be at least 2 entries in the structure map if 1 vertex exists!");
 
 			for(size_t ivrt = 0; ivrt < adjacencyMapStructure.size() - 1; ++ivrt){
-				elem_t* e = elems[ivrt];
+				TElem* e = elems[ivrt];
 				size_t edgesBegin = adjacencyMapStructure[ivrt];
 				size_t edgesEnd = adjacencyMapStructure[ivrt+1];
 
 				for(size_t ie = edgesBegin; ie != edgesEnd; ++ie){
-					elem_t* ce = elems[adjacencyMap[ie]];
+					TElem* ce = elems[adjacencyMap[ie]];
 					side_t* side = GetSharedSide(mg, e, ce);
-					if(side && (mg.parent_type(side) == elem_t::BASE_OBJECT_ID)){
+					if(side && (mg.parent_type(side) == TElem::BASE_OBJECT_ID)){
 					//	e and ce should share the same parent, since the side shared
 					//	by e and ce has a parent of the same type as e and ce
 						adjwgts[ie] = m_siblingWeight;
@@ -592,13 +655,13 @@ partition_level_metis(int baseLvl, int maxLvl, int numTargetProcs)
 		{
 			for (size_t iElem = 0; iElem < adjacencyMapStructure.size() - 1; iElem++)
 			{
-				elem_t* e = elems[iElem];
+				TElem* e = elems[iElem];
 				size_t edgesBegin = adjacencyMapStructure[iElem];
 				size_t edgesEnd = adjacencyMapStructure[iElem+1];
 
 				for (size_t iConn = edgesBegin; iConn != edgesEnd; iConn++)
 				{
-					elem_t* ce = elems[adjacencyMap[iConn]];
+					TElem* ce = elems[adjacencyMap[iConn]];
 					side_t* conn = GetSharedSide(mg, e, ce);
 
 					if (m_communicationWeights->reweigh(conn))
@@ -613,8 +676,10 @@ partition_level_metis(int baseLvl, int maxLvl, int numTargetProcs)
 											&adjacencyMapStructure.front(),
 											&adjacencyMap.front(),
 											&vrtWgtMap.front(), NULL, pAdjWgts,
-											&numParts, NULL, NULL, options,
+											&numParts, NULL, &ubvec.front(), options,
 											&edgeCut, &partitionMap.front());
+
+		UG_DLOG(LIB_GRID, 1, "Edge cut of METIS partitioning: " << edgeCut << "\n");
 		GDIST_PROFILE_END();
 		UG_DLOG(LIB_GRID, 1, "METIS DONE\n");
 
@@ -625,7 +690,7 @@ partition_level_metis(int baseLvl, int maxLvl, int numTargetProcs)
 
 //	assign partition-subsets from graph-colors
 	int counter = 0;
-	for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter){
+	for(ElemIter iter = mg.begin<TElem>(lvl); iter != mg.end<TElem>(lvl); ++iter){
 		m_sh.assign_subset(*iter, partitionMap[counter++]);
 	}
 
@@ -635,13 +700,13 @@ partition_level_metis(int baseLvl, int maxLvl, int numTargetProcs)
 	GridLayoutMap& glm = mg.distributed_grid_manager()->grid_layout_map();
 	ComPol_Subset<layout_t>	compolSHCopy(m_sh, true);
 
-	if(glm.has_layout<elem_t>(INT_V_SLAVE))
-		m_intfcCom.send_data(glm.get_layout<elem_t>(INT_V_SLAVE).layout_on_level(lvl),
+	if(glm.has_layout<TElem>(INT_V_SLAVE))
+		p_intfcCom->send_data(glm.get_layout<TElem>(INT_V_SLAVE).layout_on_level(lvl),
 							 compolSHCopy);
-	if(glm.has_layout<elem_t>(INT_V_MASTER))
-		m_intfcCom.receive_data(glm.get_layout<elem_t>(INT_V_MASTER).layout_on_level(lvl),
+	if(glm.has_layout<TElem>(INT_V_MASTER))
+		p_intfcCom->receive_data(glm.get_layout<TElem>(INT_V_MASTER).layout_on_level(lvl),
 						 	 	compolSHCopy);
-	m_intfcCom.communicate();
+	p_intfcCom->communicate();
 
 //	clustered siblings help to ensure that all vertices which are connected to
 //	a constrained vertex through are on the same process as the constrained vertex.
@@ -653,15 +718,15 @@ partition_level_metis(int baseLvl, int maxLvl, int numTargetProcs)
 		//UG_LOG("NOTE: Clustering siblings during partitioning.\n");
 		if(lvl > 0){
 		//	put all children in the subset of the first one.
-			for(ElemIter iter = mg.begin<elem_t>(lvl-1);
-				iter != mg.end<elem_t>(lvl-1); ++iter)
+			for(ElemIter iter = mg.begin<TElem>(lvl-1);
+				iter != mg.end<TElem>(lvl-1); ++iter)
 			{
-				elem_t* e = *iter;
-				size_t numChildren = mg.num_children<elem_t>(e);
+				TElem* e = *iter;
+				size_t numChildren = mg.num_children<TElem>(e);
 				if(numChildren > 1){
-					int partition = m_sh.get_subset_index(mg.get_child<elem_t>(e, 0));
+					int partition = m_sh.get_subset_index(mg.get_child<TElem>(e, 0));
 					for(size_t i = 1; i < numChildren; ++i){
-						m_sh.assign_subset(mg.get_child<elem_t>(e, i), partition);
+						m_sh.assign_subset(mg.get_child<TElem>(e, i), partition);
 					}
 				}
 			}
@@ -669,20 +734,26 @@ partition_level_metis(int baseLvl, int maxLvl, int numTargetProcs)
 	}
 
 	UG_DLOG(LIB_GRID, 1, "Partitioner_Parmetis-stop partition_level_metis\n");
+
+	return edgeCut;
 }
 
 template<int dim>
-void Partitioner_Parmetis<dim>::
+template <typename TElem>
+idx_t Partitioner_Parmetis<dim>::
 partition_level_parmetis(int baseLvl, int maxLvl, int numTargetProcs,
 						 const pcl::ProcessCommunicator& procComAll,
-						 ParallelDualGraph<elem_t, idx_t>& pdg)
+						 ParallelDualGraph<TElem, idx_t>& pdg,
+						 pcl::InterfaceCommunicator<typename GridLayoutMap::Types<TElem>::Layout::LevelLayout>* p_intfcCom)
 {
 	GDIST_PROFILE_FUNC();
 
 	PCL_DEBUG_BARRIER(procComAll);
 
 	UG_DLOG(LIB_GRID, 1, "Partitioner_Parmetis-start partition_level_parmetis\n");
-	typedef typename Grid::traits<elem_t>::iterator ElemIter;
+	typedef typename TElem::side side_t;
+	typedef typename Grid::traits<TElem>::iterator ElemIter;
+	typedef typename GridLayoutMap::Types<TElem>::Layout::LevelLayout layout_t;
 	assert(m_mg);
 	MultiGrid& mg = *m_mg;
 	int lvl = baseLvl;
@@ -707,19 +778,20 @@ partition_level_parmetis(int baseLvl, int maxLvl, int numTargetProcs,
 	idx_t numParts = (idx_t)numTargetProcs;
 	vector<idx_t> partitionMap(nVrts);
 	vector<real_t> tpwgts(numParts * nConstraints, 1. / (number)numParts);
-	vector<real_t> ubvec(nConstraints, 1.05);
+	vector<real_t> ubvec(nConstraints, m_imbFactor);
 	real_t comVsRedistRation = m_comVsRedistRatio;
 
 	vector<idx_t> vrtWgtMap;
-	fill_multi_constraint_vertex_weights(vrtWgtMap, baseLvl, maxLvl, m_aWeightChildren, false,
+	typedef typename ParallelDualGraph<TElem, idx_t>::element_iterator_t iter_t;
+	fill_multi_constraint_vertex_weights<iter_t, TElem>(vrtWgtMap, baseLvl, maxLvl, m_aWeightChildren, false,
 										 pdg.elements_begin(), pdg.elements_end(),
-										 pdg.num_graph_vertices());
+										 pdg.num_graph_vertices(), p_intfcCom);
 
 //	(THE CODE BELOW WAS REPLACED BY THE CODE ABOVE...)
 //	create a weight map for the vertices based on the number of children+1
 //	accumulate_child_counts(baseLvl, maxLvl, m_aNumChildren);
 //	vrtWgtMap.reserve(nVrts);
-//	for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter){
+//	for(ElemIter iter = mg.begin<TElem>(lvl); iter != mg.end<TElem>(lvl); ++iter){
 //		if(pdg.was_considered(*iter))
 //			vrtWgtMap.push_back(m_childWeight * m_aaWeightChildren[*iter] + 1);
 //	}
@@ -741,7 +813,7 @@ partition_level_parmetis(int baseLvl, int maxLvl, int numTargetProcs,
 			int localOffset = pdg.parallel_offset_map()[procCom.get_local_proc_id()];
 
 			for(idx_t ivrt = 0; ivrt < nVrts; ++ivrt){
-				elem_t* e = pdg.get_element(ivrt);
+				TElem* e = pdg.get_element(ivrt);
 				size_t edgesBegin = adjacencyMapStructure[ivrt];
 				size_t edgesEnd = adjacencyMapStructure[ivrt+1];
 
@@ -752,9 +824,9 @@ partition_level_parmetis(int baseLvl, int maxLvl, int numTargetProcs,
 					if((localInd < 0) || (localInd >= (int)pdg.num_graph_vertices()))
 						continue;
 
-					elem_t* ce = pdg.get_element(localInd);
+					TElem* ce = pdg.get_element(localInd);
 					side_t* side = GetSharedSide(mg, e, ce);
-					if(side && (mg.parent_type(side) == elem_t::BASE_OBJECT_ID)){
+					if(side && (mg.parent_type(side) == TElem::BASE_OBJECT_ID)){
 					//	e and ce should share the same parent, since the side shared
 					//	by e and ce has a parent of the same type as e and ce
 						adjwgts[ie] = m_siblingWeight;
@@ -853,7 +925,7 @@ partition_level_parmetis(int baseLvl, int maxLvl, int numTargetProcs,
 
 	//	assign partition-subsets from graph-colors
 		int counter = 0;
-		for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter){
+		for(ElemIter iter = mg.begin<TElem>(lvl); iter != mg.end<TElem>(lvl); ++iter){
 			if(pdg.was_considered(*iter))
 				m_sh.assign_subset(*iter, partitionMap[counter++]);
 		}
@@ -866,13 +938,13 @@ partition_level_parmetis(int baseLvl, int maxLvl, int numTargetProcs,
 	GridLayoutMap& glm = mg.distributed_grid_manager()->grid_layout_map();
 	ComPol_Subset<layout_t>	compolSHCopy(m_sh, true);
 
-	if(glm.has_layout<elem_t>(INT_V_SLAVE))
-		m_intfcCom.send_data(glm.get_layout<elem_t>(INT_V_SLAVE).layout_on_level(lvl),
+	if(glm.has_layout<TElem>(INT_V_SLAVE))
+		p_intfcCom->send_data(glm.get_layout<TElem>(INT_V_SLAVE).layout_on_level(lvl),
 							 compolSHCopy);
-	if(glm.has_layout<elem_t>(INT_V_MASTER))
-		m_intfcCom.receive_data(glm.get_layout<elem_t>(INT_V_MASTER).layout_on_level(lvl),
+	if(glm.has_layout<TElem>(INT_V_MASTER))
+		p_intfcCom->receive_data(glm.get_layout<TElem>(INT_V_MASTER).layout_on_level(lvl),
 						 	 	compolSHCopy);
-	m_intfcCom.communicate();
+	p_intfcCom->communicate();
 
 //	clustered siblings help to ensure that all vertices which are connected to
 //	a constrained vertex through are on the same process as the constrained vertex.
@@ -886,15 +958,15 @@ partition_level_parmetis(int baseLvl, int maxLvl, int numTargetProcs,
 		//UG_LOG("NOTE: Clustering siblings during partitioning.\n");
 		if(lvl > 0){
 		//	put all children in the subset of the first one.
-			for(ElemIter iter = mg.begin<elem_t>(lvl-1);
-				iter != mg.end<elem_t>(lvl-1); ++iter)
+			for(ElemIter iter = mg.begin<TElem>(lvl-1);
+				iter != mg.end<TElem>(lvl-1); ++iter)
 			{
-				elem_t* e = *iter;
-				size_t numChildren = mg.num_children<elem_t>(e);
+				TElem* e = *iter;
+				size_t numChildren = mg.num_children<TElem>(e);
 				if(numChildren > 1){
-					int partition = m_sh.get_subset_index(mg.get_child<elem_t>(e, 0));
+					int partition = m_sh.get_subset_index(mg.get_child<TElem>(e, 0));
 					for(size_t i = 1; i < numChildren; ++i){
-						m_sh.assign_subset(mg.get_child<elem_t>(e, i), partition);
+						m_sh.assign_subset(mg.get_child<TElem>(e, i), partition);
 					}
 				}
 			}
@@ -902,18 +974,45 @@ partition_level_parmetis(int baseLvl, int maxLvl, int numTargetProcs,
 
 	//	communicate the subset id's back from masters to slaves, since slaves don't
 	//	have parents and thus can't adjust their sibling id's
-		if(glm.has_layout<elem_t>(INT_V_MASTER))
-			m_intfcCom.send_data(glm.get_layout<elem_t>(INT_V_MASTER).layout_on_level(lvl),
+		if(glm.has_layout<TElem>(INT_V_MASTER))
+			p_intfcCom->send_data(glm.get_layout<TElem>(INT_V_MASTER).layout_on_level(lvl),
 								 compolSHCopy);
 
-		if(glm.has_layout<elem_t>(INT_V_SLAVE))
-			m_intfcCom.receive_data(glm.get_layout<elem_t>(INT_V_SLAVE).layout_on_level(lvl),
+		if(glm.has_layout<TElem>(INT_V_SLAVE))
+			p_intfcCom->receive_data(glm.get_layout<TElem>(INT_V_SLAVE).layout_on_level(lvl),
 									compolSHCopy);
-		m_intfcCom.communicate();
+		p_intfcCom->communicate();
 	}
 
 	UG_DLOG(LIB_GRID, 1, "Partitioner_Parmetis-stop partition_level_parmetis\n");
+
+	return edgeCut;
 }
+
+template<int dim>
+void Partitioner_Parmetis<dim>::
+find_max_elem_dim()
+{
+	GridBaseObjectId locElemType;
+	UG_ASSERT(m_mg, "No multigrid available.");
+	if (m_mg->template num<Volume>())
+		locElemType = VOLUME;
+	else if (m_mg->template num<Face>())
+		locElemType = FACE;
+	else if (m_mg->template num<Edge>())
+		locElemType = EDGE;
+	else
+		locElemType = VERTEX;
+
+#ifdef UG_PARALLEL
+	pcl::ProcessCommunicator commWorld;
+	// communicate the element type of highest dimension present in the global grid.
+	m_elemType = (GridBaseObjectId) commWorld.allreduce((int) locElemType, PCL_RO_MAX);
+#else
+	m_elemType = locElemType;
+#endif
+}
+
 
 template<int dim>
 SubsetHandler& Partitioner_Parmetis<dim>::
@@ -927,6 +1026,17 @@ const std::vector<int>* Partitioner_Parmetis<dim>::
 get_process_map() const
 {
 	return NULL;
+}
+
+template<int dim>
+idx_t Partitioner_Parmetis<dim>::
+edge_cut_on_lvl(size_t lvl)
+{
+	UG_COND_THROW(lvl >= m_vEdgeCut.size(), "Requested level " << lvl
+				  << " edge cut from distribution that has only "
+				  << lvl << " level" << (m_vEdgeCut.size() == 1 ? "." : "s."));
+
+	return m_vEdgeCut[lvl];
 }
 
 template<int dim>
@@ -949,6 +1059,16 @@ set_itr_factor(float itr)
 {
 	m_comVsRedistRatio = itr;
 }
+
+
+template<int dim>
+void Partitioner_Parmetis<dim>::
+set_allowed_imbalance_factor(float imb)
+{
+	UG_COND_THROW(imb <= 1.0, "Imbalance factor must be > 1.0.");
+	m_imbFactor = imb;
+}
+
 
 template class Partitioner_Parmetis<1>;
 template class Partitioner_Parmetis<2>;

@@ -5,6 +5,7 @@
 #ifndef __H__UG__partitioner_parmetis__
 #define __H__UG__partitioner_parmetis__
 
+#include "lib_disc/domain.h"
 #include "parallel_grid_layout.h"
 #include "load_balancer.h"
 #include "pcl/pcl_interface_communicator.h"
@@ -51,31 +52,26 @@ inline void add_b_to_a(idx_t& a, const idx_t& b)
  * contained in any partition boundary or if you want to enforce that a collection
  * of elements be in one single partition.
  */
-template <int dim>
 class ICommunicationWeights
 {
 	public:
-		typedef typename GeomObjBaseTypeByDim<dim>::base_obj_type elem_t;
-		typedef typename elem_t::side side_t;
-
-		virtual ~ICommunicationWeights(){};
-		//virtual void refresh_weights(int baseLevel) = 0;
+		virtual ~ICommunicationWeights() {};
 
 		/**
 		 * Get the weight of a specific connection.
 		 * @param conn pointer to the connection in question
 		 * @return weight for the side
 		 */
-		virtual number get_weight(side_t* conn) = 0;
+		virtual number get_weight(GridObject* conn) = 0;
 
 		/**
 		 * Whether or not the given connection is to be assigned another weight.
 		 * If true, this weight can be obtained by get_weight(),
-		 * if false, no such weight must be obtained.
+		 * if false, no such weight must be requested.
 		 * @param conn pointer to the connection in question
 		 * @return true iff get_weight() can provide a new weight for the connection
 		 */
-		virtual bool reweigh(side_t* conn) {return true;}
+		virtual bool reweigh(GridObject* conn) {return false;}
 };
 
 
@@ -87,15 +83,11 @@ class ICommunicationWeights
  * some reason this subset needs to be protected from being part of the
  * partition border.
  */
-template <typename TDomain>
-class SubsetCommunicationWeights : public ICommunicationWeights<TDomain::dim>
+class SubsetCommunicationWeights : public ICommunicationWeights
 {
 	public:
-		typedef typename GeomObjBaseTypeByDim<TDomain::dim>::base_obj_type elem_t;
-		typedef typename elem_t::side side_t;
-
 		/// constructor
-		SubsetCommunicationWeights(SmartPtr<TDomain> spDom) : m_sh(spDom->subset_handler()) {};
+		SubsetCommunicationWeights(SmartPtr<IDomain<> > spDom) : m_sh(spDom->subset_handler()) {};
 
 		/// destructor
 		virtual ~SubsetCommunicationWeights() {};
@@ -124,7 +116,7 @@ class SubsetCommunicationWeights : public ICommunicationWeights<TDomain::dim>
 		*/
 
 		/// getting the weights (inherited from ICommunicationCostWeights)
-		virtual number get_weight(side_t* conn)
+		virtual number get_weight(GridObject* conn)
 		{
 			if (!this->m_sh.valid())
 				UG_THROW("Subset handler must be assigned to SubsetCommunicationCostWeights before it is used!");
@@ -141,7 +133,7 @@ class SubsetCommunicationWeights : public ICommunicationWeights<TDomain::dim>
 		}
 
 		/// checking whether weight is available
-		virtual bool reweigh(side_t* conn)
+		virtual bool reweigh(GridObject* conn)
 		{
 			// get the subset for the connecting elem
 			int si = m_sh->get_subset_index(conn);
@@ -167,18 +159,15 @@ class SubsetCommunicationWeights : public ICommunicationWeights<TDomain::dim>
  * protected; if so, a user-specified weight will be put onto that connection.
  * If more than one protected subset is involved the maximum weight will be used.
  */
-template <typename TDomain>
-class ProtectSubsetVerticesCommunicationWeights : public ICommunicationWeights<TDomain::dim>
+class ProtectSubsetVerticesCommunicationWeights : public ICommunicationWeights
 {
 	public:
-		typedef typename GeomObjBaseTypeByDim<TDomain::dim>::base_obj_type elem_t;
-		typedef typename elem_t::side side_t;
 		typedef MultiGrid::traits<Vertex>::secure_container vertex_list_type;
 
 		static const int NO_WEIGHT = 0;
 
 		/// constructor
-		ProtectSubsetVerticesCommunicationWeights(SmartPtr<TDomain> spDom)
+		ProtectSubsetVerticesCommunicationWeights(SmartPtr<IDomain<> > spDom)
 		: m_sh(spDom->subset_handler()), m_weight(NO_WEIGHT) {};
 
 		/// destructor
@@ -201,7 +190,7 @@ class ProtectSubsetVerticesCommunicationWeights : public ICommunicationWeights<T
 		}
 
 		/// getting the weights (inherited from ICommunicationCostWeights)
-		virtual number get_weight(side_t* conn)
+		virtual number get_weight(GridObject* conn)
 		{
 			if (m_weight != NO_WEIGHT)
 				return m_weight;
@@ -211,7 +200,7 @@ class ProtectSubsetVerticesCommunicationWeights : public ICommunicationWeights<T
 		}
 
 		/// checking whether weight is available
-		virtual bool reweigh(side_t* conn)
+		virtual bool reweigh(GridObject* conn)
 		{
 			// reset local weight value
 			m_weight = (number) NO_WEIGHT;
@@ -274,8 +263,6 @@ class Partitioner_Parmetis : public IPartitioner{
 
 	public:
 		typedef IPartitioner base_class;
-		typedef typename GeomObjBaseTypeByDim<dim>::base_obj_type	elem_t;
-		typedef typename elem_t::side		side_t;
 
 		using base_class::verbose;
 
@@ -285,7 +272,7 @@ class Partitioner_Parmetis : public IPartitioner{
 		virtual void set_grid(MultiGrid* mg, Attachment<MathVector<dim> > aPos);
 		virtual void set_next_process_hierarchy(SPProcessHierarchy procHierarchy);
 		virtual void set_balance_weights(SPBalanceWeights balanceWeights);
-		virtual void set_communication_weights(SmartPtr<ICommunicationWeights<dim> > commWeights);
+		virtual void set_communication_weights(SmartPtr<ICommunicationWeights> commWeights);
 
 		virtual ConstSPProcessHierarchy current_process_hierarchy() const;
 		virtual ConstSPProcessHierarchy next_process_hierarchy() const;
@@ -299,6 +286,8 @@ class Partitioner_Parmetis : public IPartitioner{
 		virtual SubsetHandler& get_partitions();
 		virtual const std::vector<int>* get_process_map() const;
 
+		idx_t edge_cut_on_lvl(size_t lvl);
+
 		void set_child_weight(int w);
 		void set_sibling_weight(int w);
 
@@ -308,56 +297,86 @@ class Partitioner_Parmetis : public IPartitioner{
 	 * a high value means the contrary. Default is 1000.*/
 		void set_itr_factor(float itr);
 
+	/**
+	 * @brief set factor of allowed imbalance
+	 * This factor is set as allowed imbalance for each constraint.
+	 * From METIS manual:
+	 * "This is an array of size ncon that specifies the allowed load imbalance tolerance
+	 * for each constraint. For the ith partition and jth constraint the allowed weight is
+	 * the ubvec[j]*tpwgts[i*ncon+j] fraction of the jth’s constraint total weight.
+	 * The load imbalances must be greater than 1.0."
+	 *
+	 * @param imb imbalance factor (default: 1.05)
+	 */
+		void set_allowed_imbalance_factor(float imb);
+
 	private:
 	///	fills m_aNumChildren with child-counts from levels baseLvl to topLvl.
 	/**	Elements in topLvl have child-count 0.*/
 		// dead code?
+		template <typename TElem>
 		void accumulate_child_counts(int baseLvl, int topLvl, AInt aInt,
+									 pcl::InterfaceCommunicator<typename GridLayoutMap::Types<TElem>::Layout::LevelLayout>* p_intfcCom,
 									 bool copyToVMastersOnBaseLvl = false);
 
 	/**	writes the number of children in childLvl of each element in baseLvl into
 	 *	the given int-attachment of the baseLvl elements.*/
+		template <typename TElem>
 		void gather_child_weights_from_level(int baseLvl, int childLvl, Attachment<idx_t> aWeight,
-											bool copyToVMastersOnBaseLvl);
+											bool copyToVMastersOnBaseLvl,
+											pcl::InterfaceCommunicator<typename GridLayoutMap::Types<TElem>::Layout::LevelLayout>* p_intfcCom);
 
 	///	Fills the array vwgtsOut with multi-constraint weights for elements in base-lvl
 	/**	vwgtsOut will be resized to (#elemsInBaseLvl * (maxLvl-baseLvl+1)) resulting
 	 * in a multi-constraint weights vector for elements in base-level. The i-th constraint
 	 * of an element represents the weight of its child-elements in the i-th level.*/
-		template <class TIter>
+		template <class TIter, typename TElem>
 		void fill_multi_constraint_vertex_weights(std::vector<idx_t>& vwgtsOut,
 											 int baseLvl, int maxLvl, Attachment<idx_t> aWeight,
 											 bool fillVMastersOnBaseLvl,
 											 TIter baseElemsBegin, TIter baseElemsEnd,
-											 int numBaseElements);
+											 int numBaseElements,
+											 pcl::InterfaceCommunicator<typename GridLayoutMap::Types<TElem>::Layout::LevelLayout>* p_intfcCom);
+	/// the actual partitioning functionality
+		template <typename TElem>
+		bool partition_with_elem_type(size_t baseLvl, size_t elementThreshold);
 
 	/**	make sure that m_numChildren contains a valid number for all elements
 	 * on the given level!*/
-		void partition_level_metis(int baseLvl, int maxLvl, int numTargetProcs);
+		template <typename TElem>
+		idx_t partition_level_metis(int baseLvl, int maxLvl, int numTargetProcs,
+				  	  	  	  	   pcl::InterfaceCommunicator<typename GridLayoutMap::Types<TElem>::Layout::LevelLayout>* p_intfcCom);
 
 	/**	make sure that m_numChildren contains a valid number for all elements
 	 * on the given level!
 	 * The given procCom should contain all processes which are potentially
 	 * involved on the given level (before or after distribution).*/
-		void partition_level_parmetis(int baseLvl, int maxLvl, int numTargetProcs,
+		template <typename TElem>
+		idx_t partition_level_parmetis(int baseLvl, int maxLvl, int numTargetProcs,
 									  const pcl::ProcessCommunicator& procComAll,
-									  ParallelDualGraph<elem_t, idx_t>& pdg);
+									  ParallelDualGraph<TElem, idx_t>& pdg,
+									  pcl::InterfaceCommunicator<typename GridLayoutMap::Types<TElem>::Layout::LevelLayout>* p_intfcCom);
 
-		typedef typename GridLayoutMap::Types<elem_t>::Layout::LevelLayout	layout_t;
+	///	find dimension of highest-dimensional element in the associated grid
+		void find_max_elem_dim();
 
 		MultiGrid* m_mg;
 		SubsetHandler m_sh;
 		Attachment<idx_t> m_aWeightChildren;
-		Grid::AttachmentAccessor<elem_t, Attachment<idx_t> >	m_aaWeightChildren;
+		//Grid::AttachmentAccessor<elem_t, Attachment<idx_t> > m_aaWeightChildren;
 		SPBalanceWeights	m_balanceWeights;
-		SmartPtr<ICommunicationWeights<dim> >	m_communicationWeights;
+		SmartPtr<ICommunicationWeights>	m_communicationWeights;
 		SPProcessHierarchy	m_processHierarchy;
 		SPProcessHierarchy	m_nextProcessHierarchy;
-		pcl::InterfaceCommunicator<layout_t>	m_intfcCom;
+
+		std::vector<idx_t> m_vEdgeCut;
 
 		int	m_childWeight;
 		int	m_siblingWeight;
 		float m_comVsRedistRatio;
+		float m_imbFactor;
+
+		GridBaseObjectId m_elemType;
 };
 
 ///	\}
