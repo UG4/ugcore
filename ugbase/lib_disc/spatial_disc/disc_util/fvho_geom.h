@@ -605,6 +605,8 @@ class FVGeometry : public FVGeometryBase
 			return (*it).second;
 		}
 
+		void reset_curr_elem() {m_pElem = NULL;}
+
 	protected:
 		std::map<int, std::vector<BF> > m_mapVectorBF;
 		std::vector<BF> m_vEmptyVectorBF;
@@ -1159,6 +1161,8 @@ class DimFVGeometry : public FVGeometryBase
 			if(it == m_mapVectorBF.end()) return m_vEmptyVectorBF;
 			return (*it).second;
 		}
+
+		void reset_curr_elem() {m_pElem = NULL;}
 
 	protected:
 		std::map<int, std::vector<BF> > m_mapVectorBF;

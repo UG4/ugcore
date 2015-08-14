@@ -1319,7 +1319,6 @@ update_boundary_faces(GridObject* elem, const MathVector<worldDim>* vCornerCoord
 					for(size_t i = 0; i < bf.num_corners(); ++i)
 						m_rMapping.local_to_global(bf.vGloPos[i], bf.vLocPos[i]);
 
-
 				// 	normal on scvf
 					traits::NormalOnSCVF(bf.Normal, bf.vGloPos, m_vSubElem[se].vvGloMid[0]);
 
@@ -1367,14 +1366,14 @@ update_boundary_faces(GridObject* elem, const MathVector<worldDim>* vCornerCoord
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-template <int TDim, int TWorldDim>
-DimFVGeometry<TDim, TWorldDim>::
+template <int TWorldDim, int TDim>
+DimFVGeometry<TWorldDim, TDim>::
 DimFVGeometry()	: m_pElem(NULL) {}
 
 
 
-template <int TDim, int TWorldDim>
-void DimFVGeometry<TDim, TWorldDim>::
+template <int TWorldDim, int TDim>
+void DimFVGeometry<TWorldDim, TDim>::
 update_local(ReferenceObjectID roid, const LFEID& lfeID, size_t orderQuad)
 {
 //	save setting we prepare the local data for
@@ -1600,8 +1599,8 @@ update_local(ReferenceObjectID roid, const LFEID& lfeID, size_t orderQuad)
 
 
 /// update data for given element
-template <int TDim, int TWorldDim>
-void DimFVGeometry<TDim, TWorldDim>::
+template <int TWorldDim, int TDim>
+void DimFVGeometry<TWorldDim, TDim>::
 update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords,
        const LFEID& lfeID, size_t quadOrder,
        const ISubsetHandler* ish)
@@ -1702,8 +1701,8 @@ update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords,
 	else update_boundary_faces(pElem, vCornerCoords, ish);
 }
 
-template <int TDim, int TWorldDim>
-void DimFVGeometry<TDim, TWorldDim>::
+template <int TWorldDim, int TDim>
+void DimFVGeometry<TWorldDim, TDim>::
 update_boundary_faces(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 //	get grid
@@ -1787,6 +1786,11 @@ update_boundary_faces(GridObject* pElem, const MathVector<worldDim>* vCornerCoor
 			//	number of corners of side
 				const int coOfSide = rRefElem.num(dim-1, elemBndSide, 0);
 
+			//	compute global mids for vertices on this subelem
+			//	(needed to calculate normal - at least if dim < worldDim)
+				for (size_t m = 0; m < maxMid; ++m)
+					rMapping.local_to_global(m_vSubElem[se].vvGloMid[0][m], m_vSubElem[se].vvLocMid[0][m]);
+
 			//	resize vector
 				vBF.resize(curr_bf + coOfSide);
 
@@ -1803,15 +1807,17 @@ update_boundary_faces(GridObject* pElem, const MathVector<worldDim>* vCornerCoor
 				//	Compute MidID for BF
 					ComputeBFMidID(rRefElem, elemBndSide, bf.vMidID, co);
 
-				// 	copy corners of bf
+				// 	copy local corners of bf
 					CopyCornerByMidID<dim, maxMid>
 						(bf.vLocPos, bf.vMidID, m_vSubElem[se].vvLocMid, BF::numCo);
 //					CopyCornerByMidID<worldDim, maxMid>
-//						(bf.vGloPos, bf.vMidID, m_vSubElem[se].vvGloMid, BF::numCo);				// 	compute global corners of bf
+//						(bf.vGloPos, bf.vMidID, m_vSubElem[se].vvGloMid, BF::numCo);
+
+				// 	compute global corners of bf
 					for(size_t i = 0; i < bf.num_corners(); ++i)
 						rMapping.local_to_global(bf.vGloPos[i], bf.vLocPos[i]);
 
-				// 	normal on scvf
+				// 	normal on bf
 					traits::NormalOnSCVF(bf.Normal, bf.vGloPos, m_vSubElem[se].vvGloMid[0]);
 
 				//	compute volume
@@ -1874,35 +1880,35 @@ update_boundary_faces(GridObject* pElem, const MathVector<worldDim>* vCornerCoor
 //////////////////////
 // FVGeometry
 #ifdef UG_DIM_1
-template class DimFVGeometry<1, 1>;
-//template class DimFVGeometry<2, 1>;
-//template class DimFVGeometry<3, 1>;
+	template class DimFVGeometry<1, 1>;
 #endif
 
 #ifdef UG_DIM_2
-template class FVGeometry<1, Triangle, 2>;
-template class FVGeometry<1, Quadrilateral, 2>;
-template class FVGeometry<2, Triangle, 2>;
-template class FVGeometry<2, Quadrilateral, 2>;
-template class FVGeometry<3, Triangle, 2>;
-template class FVGeometry<3, Quadrilateral, 2>;
+	template class FVGeometry<1, Triangle, 2>;
+	template class FVGeometry<1, Quadrilateral, 2>;
+	template class FVGeometry<2, Triangle, 2>;
+	template class FVGeometry<2, Quadrilateral, 2>;
+	template class FVGeometry<3, Triangle, 2>;
+	template class FVGeometry<3, Quadrilateral, 2>;
 
-template class DimFVGeometry<2, 2>;
-template class DimFVGeometry<3, 2>;
+	template class DimFVGeometry<2, 2>;
+	template class DimFVGeometry<2, 1>;
 #endif
 
 #ifdef UG_DIM_3
-template class FVGeometry<1, Tetrahedron, 3>;
-template class FVGeometry<1, Prism, 3>;
-template class FVGeometry<1, Hexahedron, 3>;
-template class FVGeometry<2, Tetrahedron, 3>;
-template class FVGeometry<2, Prism, 3>;
-template class FVGeometry<2, Hexahedron, 3>;
-template class FVGeometry<3, Tetrahedron, 3>;
-template class FVGeometry<3, Prism, 3>;
-template class FVGeometry<3, Hexahedron, 3>;
+	template class FVGeometry<1, Tetrahedron, 3>;
+	template class FVGeometry<1, Prism, 3>;
+	template class FVGeometry<1, Hexahedron, 3>;
+	template class FVGeometry<2, Tetrahedron, 3>;
+	template class FVGeometry<2, Prism, 3>;
+	template class FVGeometry<2, Hexahedron, 3>;
+	template class FVGeometry<3, Tetrahedron, 3>;
+	template class FVGeometry<3, Prism, 3>;
+	template class FVGeometry<3, Hexahedron, 3>;
 
-template class DimFVGeometry<3, 3>;
+	template class DimFVGeometry<3, 3>;
+	template class DimFVGeometry<3, 2>;
+	template class DimFVGeometry<3, 1>;
 #endif
 
 } // end namespace ug
