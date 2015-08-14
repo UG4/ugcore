@@ -34,7 +34,7 @@ prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid)
 		UG_THROW("NeumannBoundary: Need exactly 1 function.");
 
 	if(vLfeID[0].order() != 1 || vLfeID[0].type() != LFEID::LAGRANGE)
-		UG_THROW("NeumannBoundary: FV Scheme only implemented for 1st order.");
+		UG_THROW("NeumannBoundary: FV Scheme only implemented for 1st order Lagrange.");
 }
 
 template<typename TDomain>
