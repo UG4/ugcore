@@ -95,7 +95,6 @@ extract_dof_indices(ConstSmartPtr<DoFDistribution> dd)
 				m_vNativCmpInfo[fi].vMultiIndex.push_back(vInd[dof]);
 		}
 	}
-
 	// note: no duplicate indices possible
 }
 
@@ -132,7 +131,8 @@ norm(const TVector& vec, const std::vector<DoFIndex>& vMultiIndex)
 #endif
 
 	double norm = 0.0;
-	for (size_t dof = 0; dof < vMultiIndex.size(); ++dof)
+	size_t sz = vMultiIndex.size();
+	for (size_t dof = 0; dof < sz; ++dof)
 	{
 		const number val = DoFRef(vec, vMultiIndex[dof]);
 		norm += (double) (val*val);
