@@ -279,6 +279,7 @@ template <class TElem>
 void SurfaceView::ConstSurfaceViewElementIterator<TElem>::
 increment()
 {
+	PROFILE_FUNC_GROUP("SurfaceView::iterator")
 //	we search the next non-shadowed element
 	do
 	{
