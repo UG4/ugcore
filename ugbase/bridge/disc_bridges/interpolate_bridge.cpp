@@ -18,6 +18,7 @@
 // lib_disc includes
 #include "lib_disc/function_spaces/grid_function.h"
 #include "lib_disc/function_spaces/interpolate.h"
+#include "lib_disc/function_spaces/interpolate_inner.h"
 
 using namespace std;
 
@@ -74,6 +75,26 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_function("Interpolate", static_cast<void (*)(const char*, SmartPtr<TFct>, const char*, number)>(&ug::Interpolate<TFct>),grp, "Integral", "LuaFunction#GridFunction#Component#Time");
 		reg.add_function("Interpolate", static_cast<void (*)(const char*, SmartPtr<TFct>, const char*, const char*)>(&ug::Interpolate<TFct>), grp, "Integral", "LuaFunction#GridFunction#Component#Subsets");
 		reg.add_function("Interpolate", static_cast<void (*)(const char*, SmartPtr<TFct>, const char*)>(&ug::Interpolate<TFct>),grp, "Integral", "LuaFunction#GridFunction#Component");
+		#endif
+	}
+
+	// InterpolateInner
+	{
+		reg.add_function("InterpolateInner", static_cast<void (*)(SmartPtr<UserData<number, dim> >, SmartPtr<TFct>, const char*, const char*, number)>(&ug::InterpolateInner<TFct>),grp, "Integral", "Data#GridFunction#Component#Subsets#Time");
+		reg.add_function("InterpolateInner", static_cast<void (*)(SmartPtr<UserData<number, dim> >, SmartPtr<TFct>, const char*, number)>(&ug::InterpolateInner<TFct>),grp, "Integral", "Data#GridFunction#Component#Time");
+		reg.add_function("InterpolateInner", static_cast<void (*)(SmartPtr<UserData<number, dim> >, SmartPtr<TFct>, const char*, const char*)>(&ug::InterpolateInner<TFct>), grp, "Integral", "Data#GridFunction#Component#Subsets");
+		reg.add_function("InterpolateInner", static_cast<void (*)(SmartPtr<UserData<number, dim> >, SmartPtr<TFct>, const char*)>(&ug::InterpolateInner<TFct>),grp, "Integral", "Data#GridFunction#Component");
+
+		reg.add_function("InterpolateInner", static_cast<void (*)(number, SmartPtr<TFct>, const char*, const char*, number)>(&ug::InterpolateInner<TFct>),grp, "Integral", "ConstantValue#GridFunction#Component#Subsets#Time");
+		reg.add_function("InterpolateInner", static_cast<void (*)(number, SmartPtr<TFct>, const char*, number)>(&ug::InterpolateInner<TFct>),grp, "Integral", "ConstantValue#GridFunction#Component#Time");
+		reg.add_function("InterpolateInner", static_cast<void (*)(number, SmartPtr<TFct>, const char*, const char*)>(&ug::InterpolateInner<TFct>), grp, "Integral", "ConstantValue#GridFunction#Component#Subsets");
+		reg.add_function("InterpolateInner", static_cast<void (*)(number, SmartPtr<TFct>, const char*)>(&ug::InterpolateInner<TFct>),grp, "Integral", "ConstantValue#GridFunction#Component");
+
+		#ifdef UG_FOR_LUA
+		reg.add_function("InterpolateInner", static_cast<void (*)(const char*, SmartPtr<TFct>, const char*, const char*, number)>(&ug::InterpolateInner<TFct>),grp, "Integral", "LuaFunction#GridFunction#Component#Subsets#Time");
+		reg.add_function("InterpolateInner", static_cast<void (*)(const char*, SmartPtr<TFct>, const char*, number)>(&ug::InterpolateInner<TFct>),grp, "Integral", "LuaFunction#GridFunction#Component#Time");
+		reg.add_function("InterpolateInner", static_cast<void (*)(const char*, SmartPtr<TFct>, const char*, const char*)>(&ug::InterpolateInner<TFct>), grp, "Integral", "LuaFunction#GridFunction#Component#Subsets");
+		reg.add_function("InterpolateInner", static_cast<void (*)(const char*, SmartPtr<TFct>, const char*)>(&ug::InterpolateInner<TFct>),grp, "Integral", "LuaFunction#GridFunction#Component");
 		#endif
 	}
 }
