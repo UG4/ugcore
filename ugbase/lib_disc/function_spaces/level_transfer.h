@@ -435,7 +435,7 @@ void RestrictElemwise(GridFunction<TDomain, TAlgebra>& uCoarse,
 	std::vector<DoFIndex> vCoarseMI, vFineMI;
 
 //	vector of local finite element ids
-	SmartPtr<DoFDistribution> fineDD = uFine.dof_distribution();
+	ConstSmartPtr<DoFDistribution> fineDD = uFine.dof_distribution();
 	std::vector<LFEID> vFineLFEID(fineDD->num_fct());
 	for(size_t fct = 0; fct < fineDD->num_fct(); ++fct)
 		vFineLFEID[fct] = fineDD->local_finite_element_id(fct);
@@ -597,7 +597,8 @@ void Restrict(GridFunction<TDomain, TAlgebra>& uCoarse,
 		RestrictP1(uCoarse, uFine);
 	}
 	else{
-		UG_THROW("Restrict: Only P1 implemented.")
+		// UG_THROW("Restrict: Only P1 implemented.")
+		RestrictElemwise(uCoarse, uFine);
 	}
 
 #ifdef UG_PARALLEL
