@@ -597,7 +597,7 @@ void Restrict(GridFunction<TDomain, TAlgebra>& uCoarse,
 		RestrictP1(uCoarse, uFine);
 	}
 	else{
-		// UG_THROW("Restrict: Only P1 implemented.")
+		UG_THROW("Restrict: Only P1 implemented.")
 		RestrictElemwise(uCoarse, uFine);
 	}
 
