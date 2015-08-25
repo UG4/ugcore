@@ -204,16 +204,21 @@ function util.SolveNonlinearTimeProblem(
 
 	-- set order for bdf to 1 (initially)
 	if timeScheme:lower() == "bdf" then timeDisc:set_order(1) end
-		
-	while time < endTime do
-		step = step + 1
-		print("++++++ TIMESTEP "..step.." BEGIN (current time: " .. time .. ") ++++++");
-	
-		-- initial time step size
-		-- assure, that not reaching beyond end of interval and care for round-off
+
+	-- bound on t-stepper from machine precision (conservative)
+	relPrecisionBound = 1e-12
+
+	-- stop if size of remaining t-domain (relative to `maxStepSize`) lies below `relPrecisionBound`
+	while (time < endTime) and ((endTime-time)/maxStepSize > relPrecisionBound) do
+		step = step+1
+		print("++++++ TIMESTEP " .. step .. " BEGIN (current time: " .. time .. ") ++++++");
+
+		-- initial t-step size
 		local currdt = maxStepSize
-		if time+currdt > endTime then currdt = endTime - time end
-		if ((endTime - (time+currdt))/currdt) < 1e-8 then currdt = endTime - time end
+		-- adjust in case of over-estimation
+		if time+currdt > endTime then currdt = endTime-time end
+		-- adjust if size of remaining t-domain (relative to `maxStepSize`) lies below `relPrecisionBound`
+		if ((endTime-(time+currdt))/maxStepSize < relPrecisionBound) then currdt = endTime-time end
 		
 		-- try time step
 		local bSuccess = false;	
