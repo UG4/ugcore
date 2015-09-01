@@ -1,8 +1,8 @@
 ################################################################################
 # created by Stephan Grein <stephan.grein@gcsc.uni-frankfurt.de>
-# derived from juqueen.cmake established by Ingo Heppner
+# derived from juqueen.cmake established by Ingo Heppner.
 #
-# choses OpenMP+MPI capable compiler tools on JUQUEEN 
+# chooses OpenMP+MPI capable compiler and tools on JUQUEEN 
 ################################################################################
 
 # set CMAKE_SYSTEM_NAME to include automatically corresponding platform files
