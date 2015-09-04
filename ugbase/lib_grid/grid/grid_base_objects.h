@@ -156,15 +156,20 @@ class UG_API GridObject/* : public SmallObject<>*/
 	 * The default implementation returns false.*/
 		virtual bool is_constrained() const						{return false;}
 
+	///	Returns the grid attachment data index of a geometric object.
+	/** Beware that this index is for internal use in the grid management and can
+	 * be changed by some operations (e.g. by Grid::defragment). But this function
+	 * can be used for debugging, when one wants to identify an element at several
+	 * places in the code.
+	 */
+		inline uint grid_data_index() const				{return m_gridDataIndex;}
+
 	protected:
 	///	ATTENTION: Use this method with extreme care!
 	/**	This method is for internal use only and should almost never be called
 	 * by a user of lib_grid. The method sets the attachment data index and is
 	 * mainly used by attachment-traits classes.*/
 		inline void set_grid_data_index(uint index)		{m_gridDataIndex = index;}
-
-	///	Returns the grid attachment data index of a geometric object.
-		inline uint grid_data_index() const				{return m_gridDataIndex;}
 
 	protected:
 		uint						m_gridDataIndex;//	index to grid-attached data.
