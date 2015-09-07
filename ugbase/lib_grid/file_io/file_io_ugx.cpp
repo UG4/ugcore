@@ -1726,6 +1726,7 @@ UGXFileInfo::UGXFileInfo() :
 
 bool UGXFileInfo::parse_file(const char* filename)
 {
+	PROFILE_FUNC_GROUP("UGXFileInfo");
 	ifstream in(filename, ios::binary);
 	if(!in)
 		return false;
