@@ -373,6 +373,10 @@ static void Domain(Registry& reg, string grp)
 					 &LoadDomain<TDomain>), grp,
 					"", "Domain # Filename | load-dialog | endings=[\"ugx\"]; description=\"*.ugx-Files\" # Number Refinements",
 					"Loads a domain", "No help");
+	reg.add_function("LoadDomain", static_cast<void (*)(TDomain&, const char*, int)>(
+					 &LoadDomain<TDomain>), grp,
+					"", "Domain # Filename # procID | load-dialog | endings=[\"ugx\"]; description=\"*.ugx-Files\" # Number Refinements",
+					"Loads a domain", "No help");
 
 //	LoadAndRefineDomain
 	reg.add_function("LoadAndRefineDomain", &LoadAndRefineDomain<TDomain>, grp,
