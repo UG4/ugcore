@@ -159,7 +159,7 @@ string UGProfileNode::entry_count_sorted(double dSkipMarginal) const
 
 bool UGProfileNode::valid() const
 {
-	return this != NULL;
+	return this != PROFILER_NULL_NODE;
 }
 
 string SimplifyUG4Path(string s)
@@ -341,6 +341,8 @@ void UGProfileNode::rec_print(double fullMs, double fullMem, stringstream &s, si
 
 string UGProfileNode::groups() const
 {
+	if (!valid()) return "Profile Node not valid!";
+
 	vector<const UGProfileNode*> nodes;
 	rec_add_nodes(nodes);
 
@@ -836,7 +838,7 @@ const UGProfileNode *GetProfileNode(const char *name, const UGProfileNode *node)
 	} while (node);
 
 //	UG_LOG("Profiler Node \"" << name << "\" not found\n");
-	return NULL;
+	return PROFILER_NULL_NODE;
 }
 
 const UGProfileNode *GetProfileNode(const char *name)
@@ -1005,12 +1007,12 @@ string UGProfileNode::groups() const
 
 const UGProfileNode *GetProfileNode(const char *name)
 {
-	return NULL;
+	return PROFILER_NULL_NODE;
 }
 
 const UGProfileNode *GetProfileNode(const char *name, const UGProfileNode *node)
 {
-	return NULL;
+	return PROFILER_NULL_NODE;
 }
 
 void WriteProfileDataXML(const char *filename)

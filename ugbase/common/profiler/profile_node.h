@@ -177,6 +177,26 @@ private:
 };
 
 
+/// This singleton represents a UGProfileNode that has not been found.
+class UGProfileNodeNull
+: public UGProfileNode
+{
+	public:
+       static UGProfileNodeNull* getInstance()
+       {
+           static UGProfileNodeNull instance;
+           return &instance;
+       }
+
+   private:
+       UGProfileNodeNull() {};
+       UGProfileNodeNull(UGProfileNodeNull const&); // do not implement
+       void operator=(UGProfileNodeNull const&); // do not implement
+};
+
+#define PROFILER_NULL_NODE UGProfileNodeNull::getInstance()
+
+
 const UGProfileNode *GetProfileNode(const char *name);
 const UGProfileNode *GetProfileNode(const char *name, const UGProfileNode *node);
 bool GetProfilerAvailable();
