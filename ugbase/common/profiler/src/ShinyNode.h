@@ -36,7 +36,7 @@ namespace Shiny {
 	struct ProfileNode {
 
 		//NOTE: data-members are intentionally public because the
-		//		class needs to fulfil the definition of an aggregate
+		//		class needs to fulfill the definition of an aggregate
 
 
 		ProfileLastData _last;
