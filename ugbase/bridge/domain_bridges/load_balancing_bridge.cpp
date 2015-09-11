@@ -110,6 +110,8 @@ namespace LoadBalancing{
 /// \addtogroup loadbalance_bridge
 /// \{
 
+#ifdef UG_PARALLEL
+
 template <class TDomain, class TPartitioner>
 static void RegisterDynamicBisectionPartitioner(
 	Registry& reg,
@@ -139,6 +141,9 @@ static void RegisterDynamicBisectionPartitioner(
 
 	reg.add_class_to_group(name, clsGrpName, GetDomainTag<TDomain>());
 }
+
+#endif
+
 
 /**
  * Class exporting the functionality. All functionality that is to
