@@ -243,7 +243,7 @@ gather_child_weights_from_level(int baseLvl, int childLvl, Attachment<idx_t> aWe
 		for(ElemIter iter = mg.begin<TElem>(lvl); iter != mg.end<TElem>(lvl); ++iter)
 		{
 			TElem* e = *iter;
-			aaWeightChildren[e] = m_balanceWeights->get_weight(e);
+			aaWeightChildren[e] = (idx_t) m_balanceWeights->get_weight(e);
 			size_t numChildren = mg.num_children<TElem>(e);
 			for(size_t i = 0; i < numChildren; ++i)
 				aaWeightChildren[e] += aaWeightChildren[mg.get_child<TElem>(e, i)];
