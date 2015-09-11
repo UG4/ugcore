@@ -137,13 +137,11 @@ bool FactorizeILUBeta(Matrix_type &A, number beta)
 }
 
 template<typename Matrix_type>
-bool FactorizeILUSorted(Matrix_type &A)
+bool FactorizeILUSorted(Matrix_type &A, const number eps = 1e-50)
 {
 	PROFILE_FUNC_GROUP("algebra ILU");
 	typedef typename Matrix_type::row_iterator row_iterator;
 	typedef typename Matrix_type::value_type block_type;
-
-	static const number __eps = 1e-50;
 
 	// for all rows
 	for(size_t i=1; i < A.num_rows(); i++)
@@ -162,9 +160,9 @@ bool FactorizeILUSorted(Matrix_type &A)
 			// safe A(i,k)/A(k,k) in A(i,k)
 			a_ik /= a_kk;
 
-			if(fabs(BlockNorm(A(k,k))) < __eps * BlockNorm(A(i,k)))
+			if(fabs(BlockNorm(A(k,k))) < eps * BlockNorm(A(i,k)))
 				UG_THROW("ILU: Blocknorm of diagonal is near-zero for k="<<k<<
-				         " with eps: "<<__eps<<", ||A_kk||="<<fabs(BlockNorm(A(k,k)))
+				         " with eps: "<< eps <<", ||A_kk||="<<fabs(BlockNorm(A(k,k)))
 				         <<", ||A_ik||="<<BlockNorm(A(i,k)));
 
 			typename Matrix_type::row_iterator it_ij = it_k; // of row i
@@ -216,14 +214,14 @@ bool invert_L(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 
 // solve x = U^-1 * b
 template<typename Matrix_type, typename Vector_type>
-bool invert_U(const Matrix_type &A, Vector_type &x, const Vector_type &b)
+bool invert_U(const Matrix_type &A, Vector_type &x, const Vector_type &b,
+			  const number eps = 1e-8)
 {
 	PROFILE_FUNC_GROUP("algebra ILU");
 	typedef typename Matrix_type::const_row_iterator const_row_iterator;
 
 	typename Vector_type::value_type s;
 	
-	static const number __eps = 1e-8;
 	size_t numNearZero=0;
 
 	// last row diagonal U entry might be close to zero with corresponding close to zero rhs
@@ -239,13 +237,18 @@ bool invert_U(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 		// nearly zero due to round-off errors. In order to allow ill-
 		// scaled matrices (i.e. small matrix entries row-wise) this
 		// is compared to the rhs, that is small in this case as well.
-		if (BlockNorm(A(i,i)) <= __eps * BlockNorm(s))
+		if (BlockNorm(A(i,i)) <= eps * BlockNorm(s))
 		{
 			if(numNearZero++<5)
 			{	UG_LOG("ILU Warning: Near-zero diagonal entry "
 					"with norm "<<BlockNorm(A(i,i))<<" in last row of U "
 					" with corresponding non-near-zero rhs with norm "
 					<< BlockNorm(s) << ". Setting rhs to zero.\n");
+				UG_LOG("NOTE: Call this method with a smaller 'eps' parameter "
+					   "to avoid this warning. (current eps: " << eps <<
+					   "). If this method is called from the "
+					   "ILU preconditioner class, you may want to call "
+					   "ILU::set_inversion_eps(...) with a smaller threshold.\n")
 			}
 			// set correction to zero
 			x[i] = 0;
@@ -305,12 +308,20 @@ class ILU : public IPreconditioner<TAlgebra>
 
 	public:
 	//	Constructor
-		ILU(double beta=0.0) : m_beta(beta), m_bSort(false), m_bDisablePreprocessing(false) {};
+		ILU(double beta=0.0) :
+			m_beta(beta),
+			m_sortEps(1.e-50),
+			m_invEps(1.e-8),
+			m_bSort(false),
+			m_bDisablePreprocessing(false) {};
 
 	/// clone constructor
 		ILU( const ILU<TAlgebra> &parent )
 			: base_type(parent),
-			  m_beta(parent.m_beta), m_bSort(parent.m_bSort),
+			  m_beta(parent.m_beta),
+			  m_sortEps(parent.m_sortEps),
+			  m_invEps(parent.m_invEps),
+			  m_bSort(parent.m_bSort),
 			  m_bDisablePreprocessing(parent.m_bDisablePreprocessing)
 		{	}
 
@@ -336,8 +347,13 @@ class ILU : public IPreconditioner<TAlgebra>
 		}
 
 	/// disable preprocessing (if underlying matrix has not changed)
-		void set_disable_preprocessing(bool bDisable) {m_bDisablePreprocessing = bDisable;}
+		void set_disable_preprocessing(bool bDisable)	{m_bDisablePreprocessing = bDisable;}
 
+	///	sets the smallest allowed value for sorted factorization
+		void set_sort_eps(number eps)					{m_sortEps = eps;}
+
+	///	sets the smallest allowed value for the Aii/Bi quotient
+		void set_inversion_eps(number eps)				{m_invEps = eps;}
 
 	protected:
 	//	Name of preconditioner
@@ -394,7 +410,7 @@ class ILU : public IPreconditioner<TAlgebra>
 
 		// 	Compute ILU Factorization
 			if (m_beta!=0.0) FactorizeILUBeta(m_ILU, m_beta);
-			else if(matrix_type::rows_sorted) FactorizeILUSorted(m_ILU);
+			else if(matrix_type::rows_sorted) FactorizeILUSorted(m_ILU, m_sortEps);
 			else FactorizeILU(m_ILU);
 			m_ILU.defragment();
 
@@ -412,14 +428,14 @@ class ILU : public IPreconditioner<TAlgebra>
 			{
 				// 	apply iterator: c = LU^{-1}*d
 				invert_L(m_ILU, tmp, d); // h := L^-1 d
-				invert_U(m_ILU, c, tmp); // c := U^-1 h = (LU)^-1 d
+				invert_U(m_ILU, c, tmp, m_invEps); // c := U^-1 h = (LU)^-1 d
 			}
 			else
 			{
 				// we save one vector here by renaming
 				SetVectorAsPermutation(tmp, d, m_newIndex);
 				invert_L(m_ILU, c, tmp); // c = L^{-1} d
-				invert_U(m_ILU, tmp, c); // tmp = (LU)^{-1} d
+				invert_U(m_ILU, tmp, c, m_invEps); // tmp = (LU)^{-1} d
 				SetVectorAsPermutation(c, tmp, m_oldIndex);
 			}
 		}
@@ -470,6 +486,12 @@ class ILU : public IPreconditioner<TAlgebra>
 		
 	/// Factor for ILU-beta
 		number m_beta;
+
+	///	smallest allowed value for sorted factorization
+		number m_sortEps;
+
+	///	smallest allowed value for the Aii/Bi quotient
+		number m_invEps;
 
 	/// for cuthill-mckee reordering
 		std::vector<size_t> m_newIndex, m_oldIndex;
