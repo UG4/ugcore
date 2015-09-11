@@ -361,8 +361,14 @@ void AdjustSubsetsForSimulation(TSubsetHandler& sh,
 
 ////////////////////////////////////////////////////////////////////////
 ///	Assigns subset depending on the element type
+/** \{ */
 UG_API
 void AssignSubsetsByElementType(ISubsetHandler& sh);
+
+UG_API
+void AssignSubsetsByElementType(ISubsetHandler& sh, GridObjectCollection g);
+/** \} */
+
 
 ////////////////////////////////////////////////////////////////////////
 //  FaceArea

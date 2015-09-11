@@ -1215,8 +1215,12 @@ void AssignSubsetsByElementType(ISubsetHandler& sh)
 	if(!sh.grid())
 		return;
 
-	Grid& g = *sh.grid();
+	AssignSubsetsByElementType(sh, sh.grid()->get_grid_objects());
+}
 
+
+void AssignSubsetsByElementType(ISubsetHandler& sh, GridObjectCollection g)
+{
 	int subsetInd = 0;
 
 	if(g.num<RegularVertex>() > 0){

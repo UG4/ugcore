@@ -18,10 +18,11 @@ namespace ug
 enum RefinementMark{
 	RM_NONE = 0,							///< no refinement is performed
 	RM_COPY = 1,							///< EXPERIMENTAL! Copy-elements are copied to the next level during refinement. Ignored during coarsening.
-	RM_ANISOTROPIC = 1 << 1,				///< EXPERIMENTAL! anisotropic refinement is performed
-	RM_REFINE = 1 << 2,						///< regular refinement is performed
-	RM_COARSEN = 1 << 3,					///< the element is coarsened (only valid for adaptive multi-grid refinement)
-	RM_DUMMY = 1 << 4,						///< used internally during mark-adjustment
+	RM_CLOSURE = 1 << 1,					///< EXPERIMENTAL! refines the element so that only marked edges are refined.
+	RM_ANISOTROPIC = 1 << 2,				///< EXPERIMENTAL! anisotropic refinement is performed
+	RM_REFINE = 1 << 3,						///< regular refinement is performed
+	RM_COARSEN = 1 << 4,					///< the element is coarsened (only valid for adaptive multi-grid refinement)
+	RM_DUMMY = 1 << 5,						///< used internally during mark-adjustment
 	RM_MAX									///< the highest constant in RefinementMark. Should always be smaller than 128!
 };
 

@@ -274,13 +274,16 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 		inline bool marked_copy(TElem* elem)				{return (m_selMarkedElements.get_selection_status(elem) & RM_COPY) == RM_COPY;}
 
 		template <class TElem>
-		inline bool marked_refine(TElem* elem)				{return (m_selMarkedElements.get_selection_status(elem) & (RM_REFINE | RM_ANISOTROPIC)) != 0;}
+		inline bool marked_refine(TElem* elem)				{return (m_selMarkedElements.get_selection_status(elem) & (RM_REFINE | RM_ANISOTROPIC | RM_CLOSURE)) != 0;}
 
 		template <class TElem>
 		inline bool marked_anisotropic(TElem* elem)			{return (m_selMarkedElements.get_selection_status(elem) & RM_ANISOTROPIC) == RM_ANISOTROPIC;}
 
 		template <class TElem>
-		inline bool marked_regular(TElem* elem)				{return marked_refine(elem) && (!(marked_anisotropic(elem) || marked_copy(elem)));}
+		inline bool marked_adaptive(TElem* elem)			{return (m_selMarkedElements.get_selection_status(elem) & (RM_ANISOTROPIC | RM_CLOSURE));}
+
+		template <class TElem>
+		inline bool marked_regular(TElem* elem)				{return marked_refine(elem) && (!(marked_adaptive(elem) || marked_copy(elem)));}
 
 		template <class TElem>
 		inline bool marked_coarsen(TElem* elem)				{return (m_selMarkedElements.get_selection_status(elem) & RM_COARSEN) == RM_COARSEN;}

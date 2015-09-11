@@ -22,13 +22,21 @@ Partitioner_DynamicBisection() :
 	m_staticPartitioning(false),
 	m_tolerance(0.99),
 	m_splitImproveIterations(10),
-	m_lastSplitDim(-1),
+	m_longestSplitAxisEnabled(false),
+	m_startSplitAxis(0),
+	m_lastSplitAxis(-1),
+	m_firstSplitAxisEnabled(0),
 	m_highestRedistLevel(-1)
 {
 	m_processHierarchy = SPProcessHierarchy(new ProcessHierarchy);
 	m_processHierarchy->add_hierarchy_level(0, 1);
 
 	m_balanceWeights = make_sp(new IBalanceWeights());
+
+	m_numSplitAxisEnabled = dim;
+	for(int i = 0; i < dim; ++i){
+		m_splitAxisEnabled[i] = true;
+	}
 }
 
 template <class TElem, int dim>
@@ -37,6 +45,9 @@ Partitioner_DynamicBisection<TElem, dim>::
 {
 }
 
+////////////////////////////////
+//	SETTERS AND GETTERS
+////////////////////////////////
 template <class TElem, int dim>
 void Partitioner_DynamicBisection<TElem, dim>::
 set_grid(MultiGrid* mg, Attachment<MathVector<dim> > aPos)
@@ -55,6 +66,25 @@ set_subset_handler(SmartPtr<SubsetHandler> sh)
 	m_sh = sh;
 	if(m_mg)
 		m_sh->assign_grid(m_mg);
+}
+
+template <class TElem, int dim>
+void Partitioner_DynamicBisection<TElem, dim>::
+enable_split_axis(int axis, bool enable)
+{
+	if(axis >= 0 && axis < dim){
+		m_splitAxisEnabled[axis] = enable;
+	//	count enabled axis and find first enabled axis
+		m_numSplitAxisEnabled = 0;
+		m_firstSplitAxisEnabled = -1;
+		for(int i = 0; i < dim; ++i){
+			if(m_splitAxisEnabled[i]){
+				++m_numSplitAxisEnabled;
+				if(m_firstSplitAxisEnabled == -1)
+					m_firstSplitAxisEnabled = i;
+			}
+		}
+	}
 }
 
 template <class TElem, int dim>
@@ -131,6 +161,26 @@ get_process_map() const
 		return NULL;
 }
 
+
+template <class TElem, int dim>
+void Partitioner_DynamicBisection<TElem, dim>::
+enable_static_partitioning(bool enable)
+{
+	m_staticPartitioning = true;
+}
+
+
+template <class TElem, int dim>
+bool Partitioner_DynamicBisection<TElem, dim>::
+static_partitioning_enabled() const
+{
+	return m_staticPartitioning;
+}
+
+
+////////////////////////////////
+//	PARTITIONING
+////////////////////////////////
 template <class TElem, int dim>
 bool Partitioner_DynamicBisection<TElem, dim>::
 partition(size_t baseLvl, size_t elementThreshold)
@@ -168,6 +218,10 @@ partition(size_t baseLvl, size_t elementThreshold)
 
 	m_problemsOccurred = false;
 
+	bool m_origSplitAxisEnabled[dim];
+	for(int i = 0; i < dim; ++i)
+		m_origSplitAxisEnabled[i] = m_splitAxisEnabled[i];
+	
 //	iteprocHierarchy levels and perform rebalancing for all
 //	hierarchy-sections which contain levels higher than baseLvl
 	int oldHighestRedistLvl = m_highestRedistLevel;	// only used if static_partitioning is enabled
@@ -223,6 +277,15 @@ partition(size_t baseLvl, size_t elementThreshold)
 			continue;
 		}
 
+	//	apply partitioning hints
+		Variant hintVal;
+		if(procH->partition_hint(hintVal, hlevel, "enableXCuts"))
+			enable_split_axis(0, hintVal.to_bool());
+		if(procH->partition_hint(hintVal, hlevel, "enableYCuts"))
+			enable_split_axis(1, hintVal.to_bool());
+		if(procH->partition_hint(hintVal, hlevel, "enableZCuts"))
+			enable_split_axis(2, hintVal.to_bool());
+
 	//	if clustered siblings are enabled, we'll perform partitioning on the level
 	//	below minLvl (if such a level exists). However, only the partition-map
 	//	of minLvl and levels above will be adjusted.
@@ -239,7 +302,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 			com = procH->global_proc_com(hlevel);
 		}
 
-		perform_bisection_new(numPartitions, minLvl, maxLvl, partitionLvl, aWeight, com);
+		perform_bisection(numPartitions, minLvl, maxLvl, partitionLvl, aWeight, com);
 
 		for(int i = minLvl; i < maxLvl; ++i){
 			copy_partitions_to_children(sh, i);
@@ -249,8 +312,17 @@ partition(size_t baseLvl, size_t elementThreshold)
 			m_procMap = procH->cluster_procs(hlevel);
 			m_highestRedistLevel = hlevel;
 		}
+
+	//	restore original split axis setup (possibly changed by partition hints)
+		for(int i = 0; i < dim; ++i)
+			enable_split_axis(i, m_origSplitAxisEnabled[i]);
 	}
 
+//	restore original split axis setup again (possibly changed by partition hints)
+//	(this is here just to prevent errors. If the code didn't change from this writing,
+//	 the setup should already be restored at the end of the h-level-loop.)
+	for(int i = 0; i < dim; ++i)
+		enable_split_axis(i, m_origSplitAxisEnabled[i]);
 
 	if(m_nextProcessHierarchy.valid()){
 		*m_processHierarchy = *m_nextProcessHierarchy;
@@ -286,6 +358,485 @@ partition(size_t baseLvl, size_t elementThreshold)
 		return m_highestRedistLevel != oldHighestRedistLvl;
 	else
 		return true;
+}
+
+
+template <class TElem, int dim>
+void Partitioner_DynamicBisection<TElem, dim>::
+perform_bisection(int numTargetProcs, int minLvl, int maxLvl, int partitionLvl,
+				  ANumber aWeight, pcl::ProcessCommunicator com)
+{
+	GDIST_PROFILE_FUNC();
+
+	typedef typename MultiGrid::traits<elem_t>::iterator iter_t;
+	
+	// UG_LOG("Performing bisection for " << numTargetProcs << " procs on level "
+	// 		<< partitionLvl << " for levels " << minLvl << " to " << maxLvl << "\n");
+
+	m_lastSplitAxis = -1;
+
+	MultiGrid&		mg	= *m_mg;
+	SubsetHandler&	sh	= *m_sh;
+	DistributedGridManager* pdgm = mg.distributed_grid_manager();
+
+	if(m_numSplitAxisEnabled == 0){
+		UG_COND_THROW(numTargetProcs > 1, "Can't perform partitioning: "
+					  "All split-axis are disabled but more than one target process is requested. "
+					  "Use Partitioner_DynamicBisection::enable_split_axis to enable a split-axis.");
+		for(int i = minLvl; i <= maxLvl; ++i){
+			sh.assign_subset(mg.begin<elem_t>(i),
+					   		 mg.end<elem_t>(i), 0);
+		}
+		return;
+	}
+
+	Grid::AttachmentAccessor<elem_t, ANumber> aaWeight(mg, aWeight);
+	SetAttachmentValues(aaWeight, mg.begin<elem_t>(partitionLvl),
+						mg.end<elem_t>(partitionLvl), 0);
+
+//	arrays on which we'll perform partitioning
+//	vector<elem_t*>	elems;
+	m_entries.reserve(mg.num<elem_t>(partitionLvl));
+	vector<TreeNode> treeNodes(1);
+
+	vector<int> origSubsetIndices;
+	if(partitionLvl < minLvl){
+		origSubsetIndices.reserve(mg.num<elem_t>(partitionLvl));
+		for(iter_t eiter = mg.begin<elem_t>(partitionLvl);
+			eiter != mg.end<elem_t>(partitionLvl); ++eiter)
+		{
+			origSubsetIndices.push_back(sh.get_subset_index(*eiter));
+		}
+	}
+
+//	invalidate target partitions of all elements in partitionLvl
+	sh.assign_subset(mg.begin<elem_t>(partitionLvl),
+					   mg.end<elem_t>(partitionLvl), -1);
+
+	bool markedElemsOnly = m_balanceWeights->has_level_offsets();
+
+//	iterate over all levels and gather child-counts in the partitionLvl
+	for(int i_lvl = maxLvl; i_lvl >= minLvl;){
+		gather_weights_from_level(partitionLvl, i_lvl, aWeight, false, markedElemsOnly);
+
+	//	now collect elements on partitionLvl, which have children in i_lvl but
+	//	have not yet been partitioned.
+		m_entries.clear();
+		TreeNode& root = treeNodes.front();
+		root.elems.set_entry_list(&m_entries);
+		ElemList& elems = root.elems;
+		elems.clear();
+
+		number maxChildWeight = 0;// per element on partitionLvl
+		for(iter_t eiter = mg.begin<elem_t>(partitionLvl);
+			eiter != mg.end<elem_t>(partitionLvl); ++eiter)
+		{
+			elem_t* elem = *eiter;
+			if((aaWeight[elem] > 0) && (sh.get_subset_index(elem) == -1)
+				&& ((!pdgm) || (!pdgm->is_ghost(elem))))
+			{
+				m_entries.push_back(Entry(elem));
+				elems.add(m_entries.size() - 1);
+				maxChildWeight = max<number>(maxChildWeight, aaWeight[elem]);
+			}
+		}
+
+		if(maxChildWeight == 0)
+			maxChildWeight = 1;
+
+		if(!com.empty()){
+			maxChildWeight = com.allreduce(maxChildWeight, PCL_RO_MAX);
+
+			root.firstProc = 0;
+			root.numTargetProcs = numTargetProcs;
+
+			control_bisection(sh, treeNodes, aWeight, maxChildWeight, com);
+		}
+
+		if(markedElemsOnly)
+			markedElemsOnly = false;
+		else
+			--i_lvl;
+	}
+
+	if(partitionLvl < minLvl){
+		UG_ASSERT(partitionLvl == minLvl - 1,
+				  "partitionLvl and minLvl should be neighbors");
+
+	//	copy subset indices from partition-level to minLvl
+		for(int i = partitionLvl; i < minLvl; ++i){
+			copy_partitions_to_children(sh, i);
+		}
+
+	//	reset partitions in the specified partition-level
+		size_t counter = 0;
+		for(iter_t eiter = mg.begin<elem_t>(partitionLvl);
+			eiter != mg.end<elem_t>(partitionLvl); ++eiter, ++counter)
+		{
+			sh.assign_subset(*eiter, origSubsetIndices[counter]);
+		}
+	}
+	else if(pdgm){
+	//	copy subset indices from vertical slaves to vertical masters,
+	//	since partitioning was only performed on vslaves
+		GridLayoutMap& glm = pdgm->grid_layout_map();
+		ComPol_Subset<layout_t>	compolSHCopy(sh, true);
+
+		if(glm.has_layout<elem_t>(INT_V_SLAVE))
+			m_intfcCom.send_data(glm.get_layout<elem_t>(INT_V_SLAVE).layout_on_level(partitionLvl),
+								 compolSHCopy);
+		if(glm.has_layout<elem_t>(INT_V_MASTER))
+			m_intfcCom.receive_data(glm.get_layout<elem_t>(INT_V_MASTER).layout_on_level(partitionLvl),
+									compolSHCopy);
+		m_intfcCom.communicate();
+	}
+}
+
+
+template <class TElem, int dim>
+void Partitioner_DynamicBisection<TElem, dim>::
+control_bisection(ISubsetHandler& partitionSH, std::vector<TreeNode>& treeNodes,
+				  ANumber aWeight, number maxChildWeight, pcl::ProcessCommunicator& com)
+{
+//	for(size_t i = 0; i < treeNodes.size(); ++i){
+//		UG_LOG("tree-node " << i << ": targetProc " << treeNodes[i].numTargetProcs
+//				<< ", firstProc " << treeNodes[i].firstProc << "\n");
+//	}
+
+//	UG_LOG("\nCONTROL-BISECTION-STARTS\n");
+//	at the beginning of this function, each node in treeNodes has to have
+//	valid 'elem', 'firstProc', 'numTargetProcs' and members.
+//	numTargetProcs has to be at least 2.
+	GDIST_PROFILE_FUNC();
+
+//	calculate the number of child-nodes required and the split-ratio for each parent node
+	vector<TreeNode> childNodes;
+	childNodes.reserve(treeNodes.size() * 2);
+	for(size_t iNode = 0; iNode < treeNodes.size(); ++iNode){
+		TreeNode& tn = treeNodes[iNode];
+		tn.bisectionComplete = false;
+
+		if(tn.numTargetProcs < 2){
+			tn.bisectionComplete = true;
+			tn.firstChildNode = s_invalidIndex;
+			tn.ratioLeft = 0.5;
+		//	the tree node is a leaf node and we can thus assign all of its elements
+		//	to the final partition
+			size_t numElems = 0;
+			for(size_t i = tn.elems.first(); i != s_invalidIndex; i = tn.elems.next(i), ++numElems)
+				partitionSH.assign_subset(tn.elems.elem(i), tn.firstProc);
+
+//			UG_LOG("assigned " << numElems << " elements to proc " << tn.firstProc << "\n");
+
+			continue;
+		}
+
+		int numTargetProcsLeft = tn.numTargetProcs / 2;
+		int numTargetProcsRight = tn.numTargetProcs - numTargetProcsLeft;
+		tn.ratioLeft = (number)numTargetProcsLeft / (number)tn.numTargetProcs;
+
+		tn.firstChildNode = childNodes.size();
+		childNodes.resize(childNodes.size() + 2);
+		TreeNode& childNodeLeft = childNodes[tn.firstChildNode];
+		TreeNode& childNodeRight = childNodes[tn.firstChildNode + 1];
+
+		childNodeLeft.elems.set_entry_list(&m_entries);
+		childNodeLeft.firstProc = tn.firstProc;
+		childNodeLeft.numTargetProcs = numTargetProcsLeft;
+
+		childNodeRight.elems.set_entry_list(&m_entries);
+		childNodeRight.firstProc = tn.firstProc + numTargetProcsLeft;
+		childNodeRight.numTargetProcs = numTargetProcsRight;
+
+	}
+
+//	if there are no child nodes, we're done.
+	if(childNodes.empty())
+		return;
+
+//	perform the actual bisection
+	bisect_elements(childNodes, treeNodes, aWeight, maxChildWeight, com, 0,
+					m_longestSplitAxisEnabled ? -1 : get_next_split_axis());
+
+// //	DEBUG OUTPUT
+// 	{
+// 		UG_LOG("DEBUG: bisect-node-sizes:\n");
+// 		for(size_t i = 0; i < childNodes.size(); ++i){
+// 			UG_LOG(childNodes[i].elems.size() << ", ");
+// 		}
+// 		UG_LOG("\n");
+
+// 		UG_LOG("DEBUG: bisect-node-weights:\n");
+// 		Grid::AttachmentAccessor<elem_t, ANumber> aaWeight(*m_mg, aWeight);
+// 		for(size_t i = 0; i < childNodes.size(); ++i){
+// 			TreeNode& node = childNodes[i];
+// 			number w = 0;
+// 			for(size_t ielem = node.elems.first(); ielem != s_invalidIndex;
+// 				ielem = node.elems.next(ielem))
+// 			{
+// 				w += aaWeight[node.elems.elem(ielem)];
+// 			}
+
+// 			UG_LOG(w << ", ");
+// 		}
+// 		UG_LOG("\n");
+// 	}
+
+//	perform the recursion
+	control_bisection(partitionSH, childNodes, aWeight, maxChildWeight, com);
+}
+
+
+template <class TElem, int dim>
+void Partitioner_DynamicBisection<TElem, dim>::
+bisect_elements(vector<TreeNode>& childNodesOut, vector<TreeNode>& parentNodes,
+				ANumber aWeight, number maxChildWeight, pcl::ProcessCommunicator& com,
+				int cutRecursion, int splitAxis)
+{
+	GDIST_PROFILE_FUNC();
+	MultiGrid& mg = *m_mg;
+
+//	calculate bounding box and center for the current tree-nodes
+	calculate_global_dimensions(parentNodes, maxChildWeight, aWeight, com);
+
+//	we will now calculate the split-dim and split-value for each tree-node
+	for(size_t iNode = 0; iNode < parentNodes.size(); ++iNode){
+		TreeNode& tn = parentNodes[iNode];
+		if(!tn.bisectionComplete){
+			if(cutRecursion == 0){
+				if(splitAxis == -1){
+					tn.splitAxis = m_firstSplitAxisEnabled;
+					for(int i = 1; i < dim; ++i){
+						if(m_splitAxisEnabled[i]){
+							if((tn.boxMax[i] - tn.boxMin[i]) > (tn.boxMax[tn.splitAxis] - tn.boxMin[tn.splitAxis]))
+								tn.splitAxis = i;
+						}
+					}
+				}
+				else
+					tn.splitAxis = splitAxis;
+			}
+			else
+				tn.splitAxis = get_next_split_axis(tn.splitAxis);
+
+			tn.minSplitValue = tn.boxMin[tn.splitAxis];
+			tn.maxSplitValue = tn.boxMax[tn.splitAxis];
+		//	this is an initial guess
+			tn.splitValue = (1. - 2. * tn.ratioLeft) * tn.minSplitValue
+							+ 2. * tn.ratioLeft * tn.center[tn.splitAxis];
+
+//			UG_LOG("node " << iNode << ":\n");
+//			UG_LOG("  center: " << tn.center << ", boxMin: " << tn.boxMin << ", boxMax: " << tn.boxMax << endl);
+//			UG_LOG("  splitAxis: " << tn.splitAxis << ", splitValue: " << tn.splitValue << endl);
+		}
+	}
+
+	improve_split_values(parentNodes, m_splitImproveIterations, aWeight, com);
+
+
+	Grid::AttachmentAccessor<elem_t, ANumber> aaWeight(mg, aWeight);
+
+	vector<ElemList> elemsCutVec(parentNodes.size());
+	for(size_t i = 0; i < elemsCutVec.size(); ++i){
+		elemsCutVec[i].set_entry_list(parentNodes[i].elems.entries());
+	}
+
+	if(cutRecursion < m_numSplitAxisEnabled - 1){
+		const size_t numWgtsPerNode = 5;
+		vector<double> weights(parentNodes.size() * numWgtsPerNode, 0);
+
+		for(size_t iNode = 0; iNode < parentNodes.size(); ++iNode){
+			TreeNode& tn = parentNodes[iNode];
+			if(!tn.bisectionComplete){
+				size_t firstWgtInd = iNode * numWgtsPerNode;
+				ElemList& elems = tn.elems;
+				ElemList& elemsCut = elemsCutVec[iNode];
+				ElemList& elemsLeftOut = childNodesOut[tn.firstChildNode].elems;
+				ElemList& elemsRightOut = childNodesOut[tn.firstChildNode + 1].elems;
+				for(size_t i = elems.first(); i != s_invalidIndex;){
+					elem_t* e = elems.elem(i);
+					size_t iNext = elems.next(i);
+
+					int loc = classify_elem(e, tn.splitAxis, tn.splitValue);
+					switch(loc){
+						case LEFT:
+							elemsLeftOut.add(i);
+							weights[firstWgtInd] += aaWeight[e];
+							break;
+						case RIGHT:
+							elemsRightOut.add(i);
+							weights[firstWgtInd + 1] += aaWeight[e];
+							break;
+						case CUTTING:
+							elemsCut.add(i);
+							weights[firstWgtInd + 2] += aaWeight[e];
+						//	check whether the center is left or right, since we can
+						//	eventually avoid additional bisection
+							if(CalculateCenter(e, m_aaPos)[tn.splitAxis] < tn.splitValue)
+								weights[firstWgtInd + 3] += aaWeight[e];
+							else
+								weights[firstWgtInd + 4] += aaWeight[e];
+							break;
+						default:
+							UG_THROW("INVALID CLASSIFICATION DURING BISECTION\n");
+							break;
+					}
+
+					i = iNext;
+				}
+			}
+
+		//	since all elements from the elem list have been assigned to other arrays,
+		//	we have to clear elems, since it would be invalid anyways
+			tn.elems.clear();
+		}
+
+		vector<double> gWeights;
+		com.allreduce(weights, gWeights, PCL_RO_SUM);
+
+		for(size_t iNode = 0; iNode < parentNodes.size(); ++iNode){
+			TreeNode& tn = parentNodes[iNode];
+			if(!tn.bisectionComplete){
+//				UG_LOG("Performing bisection with ratio: " << tn.ratioLeft << endl);
+
+				size_t firstWgtInd = iNode * numWgtsPerNode;
+				ElemList& elemsCut = elemsCutVec[iNode];
+				ElemList& elemsLeftOut = childNodesOut[tn.firstChildNode].elems;
+				ElemList& elemsRightOut = childNodesOut[tn.firstChildNode + 1].elems;
+
+			//	calculate the number of elements which have to go to the left side
+				double gWTotal = gWeights[firstWgtInd] + gWeights[firstWgtInd + 1] + gWeights[firstWgtInd + 2];
+				double gMissingLeft = tn.ratioLeft * gWTotal - gWeights[firstWgtInd];
+				double gMissingRight = (1. - tn.ratioLeft) * gWTotal - gWeights[firstWgtInd + 1];
+
+		//		UG_LOG("weights left:  " << gWeights[0] << endl);
+		//		UG_LOG("weights right: " << gWeights[1] << endl);
+		//		UG_LOG("weights cut:   " << gWeights[2] << endl);
+
+			//	bisect the cutting elements
+				if(gMissingLeft <= 0){
+//					UG_LOG("Adding all to right\n");
+				//	add all cut-elements to the right side
+					for(size_t i = elemsCut.first(); i != s_invalidIndex;){
+						size_t iNext = elemsCut.next(i);
+						elemsRightOut.add(i);
+						i = iNext;
+					}
+					elemsCut.clear();
+					tn.bisectionComplete = true;
+				}
+				else if(gMissingRight <= 0){
+//					UG_LOG("Adding all to left\n");
+				//	add all cut-elements to the left side
+					for(size_t i = elemsCut.first(); i != s_invalidIndex;){
+						size_t iNext = elemsCut.next(i);
+						elemsLeftOut.add(i);
+						i = iNext;
+					}
+
+					elemsCut.clear();
+					tn.bisectionComplete = true;
+				}
+				else{
+				//	if the ratios would be fine if one simply bisected by midpoints, we'll do that
+//					number wLeft = gWeights[0] + gWeights[3];
+//					number wRight = gWeights[1] + gWeights[4];
+//					number ratio;
+//					if(wLeft < wRight)	ratio = wLeft / wRight;
+//					else				ratio = wRight / wLeft;
+//
+//					if(ratio > 0.99){
+					number ratioLeft = (gWeights[0] + gWeights[3]) / (gWTotal * tn.ratioLeft);
+					number ratioRight = (gWeights[1] + gWeights[4]) / (gWTotal * (1. - tn.ratioLeft));
+
+					if((ratioLeft > m_tolerance) && (ratioRight > m_tolerance)){
+//						UG_LOG("direct cut bisection on node " << iNode
+//								<< " with ratioLeft = " << ratioLeft
+//								<< " and ratioRight = " << ratioRight << "\n");
+
+						for(size_t i = elemsCut.first(); i != s_invalidIndex;){
+							elem_t* e = elemsCut.elem(i);
+							size_t iNext = elemsCut.next(i);
+							if(CalculateCenter(e, m_aaPos)[tn.splitAxis] < tn.splitValue)
+								elemsLeftOut.add(i);
+							else
+								elemsRightOut.add(i);
+							i = iNext;
+						}
+						elemsCut.clear();
+						tn.bisectionComplete = true;
+					}
+				}
+			//	prepare for recursion
+				if(!tn.bisectionComplete){
+//					UG_LOG("Preparing for recursion in node " << iNode << endl);
+//					UG_LOG("elemsLeftOut.size(): " << elemsLeftOut.size() <<
+//							", elemsRightOut.size(): " << elemsRightOut.size() << "\n");
+					number newRatioLeft = (number)gMissingLeft / (number)(gMissingLeft + gMissingRight);
+					tn.ratioLeft = newRatioLeft;
+					tn.elems = elemsCut;
+				}
+			}
+		}
+
+		bisect_elements(childNodesOut, parentNodes, aWeight,
+						maxChildWeight, com, cutRecursion + 1, splitAxis);
+	}
+	else{
+	//	perform a simple bisection
+		for(size_t iNode = 0; iNode < parentNodes.size(); ++iNode){
+			TreeNode& tn = parentNodes[iNode];
+			if(!tn.bisectionComplete){
+//				UG_LOG("performing simple bisection on node " << iNode
+//						<< " with ratio " << tn.ratioLeft << "\n");
+				ElemList& elems = tn.elems;
+				ElemList& elemsLeftOut = childNodesOut[tn.firstChildNode].elems;
+				ElemList& elemsRightOut = childNodesOut[tn.firstChildNode + 1].elems;
+				for(size_t i = elems.first(); i != s_invalidIndex;){
+					size_t iNext = elems.next(i);
+					elem_t* e = elems.elem(i);
+					if(CalculateCenter(e, m_aaPos)[tn.splitAxis] <= tn.splitValue)
+						elemsLeftOut.add(i);
+					else
+						elemsRightOut.add(i);
+					i = iNext;
+				}
+				elems.clear();
+			}
+		}
+	}
+}
+
+
+////////////////////////////////
+//	UTILITY
+////////////////////////////////
+template <class TElem, int dim>
+int Partitioner_DynamicBisection<TElem, dim>::
+get_next_split_axis()
+{
+	int lastAxis = m_lastSplitAxis >= 0 ? m_lastSplitAxis : m_startSplitAxis - 1;
+
+	int nextSplitAxis = get_next_split_axis(lastAxis);
+	
+	m_lastSplitAxis = nextSplitAxis;
+	return nextSplitAxis;
+}
+
+
+template <class TElem, int dim>
+int Partitioner_DynamicBisection<TElem, dim>::
+get_next_split_axis(int lastAxis) const
+{
+	for(int i = 1; i <= dim; ++i){
+		int candidate = (lastAxis + i) % dim;
+		if(m_splitAxisEnabled[candidate]){
+			return candidate;
+		}
+	}
+
+	UG_THROW("Couldn't find a valid split axis starting from axis " << lastAxis << ".");
+	return -1;
 }
 
 
@@ -437,7 +988,7 @@ gather_weights_from_level(int baseLvl, int childLvl, ANumber aWeight,
 
 template <class TElem, int dim>
 int Partitioner_DynamicBisection<TElem, dim>::
-classify_elem(elem_t* e, int splitDim, number splitValue)
+classify_elem(elem_t* e, int splitAxis, number splitValue)
 {
 	typename elem_t::ConstVertexArray vrts = e->vertices();
 	const size_t numVrts = e->num_vertices();
@@ -446,7 +997,7 @@ classify_elem(elem_t* e, int splitDim, number splitValue)
 //	right of the splitting plane
 	int location = UNCLASSIFIED;
 	for(size_t i = 0; i < numVrts; ++i){
-		number vrtVal = m_aaPos[vrts[i]][splitDim];
+		number vrtVal = m_aaPos[vrts[i]][splitAxis];
 		if(vrtVal < splitValue)
 			location |= LEFT;
 		else if(vrtVal > splitValue)
@@ -456,227 +1007,6 @@ classify_elem(elem_t* e, int splitDim, number splitValue)
 	}
 
 	return location;
-}
-
-
-template <class TElem, int dim>
-void Partitioner_DynamicBisection<TElem, dim>::
-perform_bisection_new(int numTargetProcs, int minLvl, int maxLvl, int partitionLvl,
-				  ANumber aWeight, pcl::ProcessCommunicator com)
-{
-	// UG_LOG("Performing bisection for " << numTargetProcs << " procs on level "
-	// 		<< partitionLvl << " for levels " << minLvl << " to " << maxLvl << "\n");
-
-	SubsetHandler& sh = *m_sh;
-
-	GDIST_PROFILE_FUNC();
-	typedef typename MultiGrid::traits<elem_t>::iterator iter_t;
-
-//	clear subset-assignment on partitionLvl
-	MultiGrid& mg = *m_mg;
-	DistributedGridManager* pdgm = mg.distributed_grid_manager();
-
-	Grid::AttachmentAccessor<elem_t, ANumber> aaWeight(mg, aWeight);
-	SetAttachmentValues(aaWeight, mg.begin<elem_t>(partitionLvl),
-						mg.end<elem_t>(partitionLvl), 0);
-
-//	arrays on which we'll perform partitioning
-//	vector<elem_t*>	elems;
-	m_entries.reserve(mg.num<elem_t>(partitionLvl));
-	vector<TreeNode> treeNodes(1);
-
-	vector<int> origSubsetIndices;
-	if(partitionLvl < minLvl){
-		origSubsetIndices.reserve(mg.num<elem_t>(partitionLvl));
-		for(iter_t eiter = mg.begin<elem_t>(partitionLvl);
-			eiter != mg.end<elem_t>(partitionLvl); ++eiter)
-		{
-			origSubsetIndices.push_back(sh.get_subset_index(*eiter));
-		}
-	}
-
-//	invalidate target partitions of all elements in partitionLvl
-	sh.assign_subset(mg.begin<elem_t>(partitionLvl),
-					   mg.end<elem_t>(partitionLvl), -1);
-
-//	iterate over all levels and gather child-counts in the partitionLvl
-	bool markedElemsOnly = m_balanceWeights->has_level_offsets();
-
-	for(int i_lvl = maxLvl; i_lvl >= minLvl;){
-		gather_weights_from_level(partitionLvl, i_lvl, aWeight, false, markedElemsOnly);
-
-	//	now collect elements on partitionLvl, which have children in i_lvl but
-	//	have not yet been partitioned.
-		m_entries.clear();
-		TreeNode& root = treeNodes.front();
-		root.elems.set_entry_list(&m_entries);
-		ElemList& elems = root.elems;
-		elems.clear();
-
-		number maxChildWeight = 0;// per element on partitionLvl
-		for(iter_t eiter = mg.begin<elem_t>(partitionLvl);
-			eiter != mg.end<elem_t>(partitionLvl); ++eiter)
-		{
-			elem_t* elem = *eiter;
-			if((aaWeight[elem] > 0) && (sh.get_subset_index(elem) == -1)
-				&& ((!pdgm) || (!pdgm->is_ghost(elem))))
-			{
-				m_entries.push_back(Entry(elem));
-				elems.add(m_entries.size() - 1);
-				maxChildWeight = max<number>(maxChildWeight, aaWeight[elem]);
-			}
-		}
-
-		if(maxChildWeight == 0)
-			maxChildWeight = 1;
-
-		if(!com.empty()){
-			maxChildWeight = com.allreduce(maxChildWeight, PCL_RO_MAX);
-
-			root.firstProc = 0;
-			root.numTargetProcs = numTargetProcs;
-			int splitDim = -1;
-			if(m_lastSplitDim > -2)
-				splitDim = (m_lastSplitDim + 1) % dim;
-			control_bisection(sh, treeNodes, aWeight, maxChildWeight, com, splitDim);
-		}
-
-		if(markedElemsOnly)
-			markedElemsOnly = false;
-		else
-			--i_lvl;
-	}
-
-	if(partitionLvl < minLvl){
-		UG_ASSERT(partitionLvl == minLvl - 1,
-				  "partitionLvl and minLvl should be neighbors");
-
-	//	copy subset indices from partition-level to minLvl
-		for(int i = partitionLvl; i < minLvl; ++i){
-			copy_partitions_to_children(sh, i);
-		}
-
-	//	reset partitions in the specified partition-level
-		size_t counter = 0;
-		for(iter_t eiter = mg.begin<elem_t>(partitionLvl);
-			eiter != mg.end<elem_t>(partitionLvl); ++eiter, ++counter)
-		{
-			sh.assign_subset(*eiter, origSubsetIndices[counter]);
-		}
-	}
-	else if(pdgm){
-	//	copy subset indices from vertical slaves to vertical masters,
-	//	since partitioning was only performed on vslaves
-		GridLayoutMap& glm = pdgm->grid_layout_map();
-		ComPol_Subset<layout_t>	compolSHCopy(sh, true);
-
-		if(glm.has_layout<elem_t>(INT_V_SLAVE))
-			m_intfcCom.send_data(glm.get_layout<elem_t>(INT_V_SLAVE).layout_on_level(partitionLvl),
-								 compolSHCopy);
-		if(glm.has_layout<elem_t>(INT_V_MASTER))
-			m_intfcCom.receive_data(glm.get_layout<elem_t>(INT_V_MASTER).layout_on_level(partitionLvl),
-									compolSHCopy);
-		m_intfcCom.communicate();
-	}
-}
-
-
-template <class TElem, int dim>
-void Partitioner_DynamicBisection<TElem, dim>::
-control_bisection(ISubsetHandler& partitionSH, std::vector<TreeNode>& treeNodes,
-				  ANumber aWeight, number maxChildWeight, pcl::ProcessCommunicator& com,
-				  int splitDim)
-{
-//	for(size_t i = 0; i < treeNodes.size(); ++i){
-//		UG_LOG("tree-node " << i << ": targetProc " << treeNodes[i].numTargetProcs
-//				<< ", firstProc " << treeNodes[i].firstProc << "\n");
-//	}
-
-//	UG_LOG("\nCONTROL-BISECTION-STARTS\n");
-//	at the beginning of this function, each node in treeNodes has to have
-//	valid 'elem', 'firstProc', 'numTargetProcs' and members.
-//	numTargetProcs has to be at least 2.
-	GDIST_PROFILE_FUNC();
-
-//	calculate the number of child-nodes required and the split-ratio for each parent node
-	vector<TreeNode> childNodes;
-	childNodes.reserve(treeNodes.size() * 2);
-	for(size_t iNode = 0; iNode < treeNodes.size(); ++iNode){
-		TreeNode& tn = treeNodes[iNode];
-		tn.bisectionComplete = false;
-
-		if(tn.numTargetProcs < 2){
-			tn.bisectionComplete = true;
-			tn.firstChildNode = s_invalidIndex;
-			tn.ratioLeft = 0.5;
-		//	the tree node is a leaf node and we can thus assign all of its elements
-		//	to the final partition
-			size_t numElems = 0;
-			for(size_t i = tn.elems.first(); i != s_invalidIndex; i = tn.elems.next(i), ++numElems)
-				partitionSH.assign_subset(tn.elems.elem(i), tn.firstProc);
-
-//			UG_LOG("assigned " << numElems << " elements to proc " << tn.firstProc << "\n");
-
-			continue;
-		}
-
-		int numTargetProcsLeft = tn.numTargetProcs / 2;
-		int numTargetProcsRight = tn.numTargetProcs - numTargetProcsLeft;
-		tn.ratioLeft = (number)numTargetProcsLeft / (number)tn.numTargetProcs;
-
-		tn.firstChildNode = childNodes.size();
-		childNodes.resize(childNodes.size() + 2);
-		TreeNode& childNodeLeft = childNodes[tn.firstChildNode];
-		TreeNode& childNodeRight = childNodes[tn.firstChildNode + 1];
-
-		childNodeLeft.elems.set_entry_list(&m_entries);
-		childNodeLeft.firstProc = tn.firstProc;
-		childNodeLeft.numTargetProcs = numTargetProcsLeft;
-
-		childNodeRight.elems.set_entry_list(&m_entries);
-		childNodeRight.firstProc = tn.firstProc + numTargetProcsLeft;
-		childNodeRight.numTargetProcs = numTargetProcsRight;
-
-	}
-
-//	if there are no child nodes, we're done.
-	if(childNodes.empty())
-		return;
-
-//	perform the actual bisection
-	if(splitDim >= 0)
-		m_lastSplitDim = splitDim;
-	bisect_elements(childNodes, treeNodes, aWeight, maxChildWeight, com, 0, splitDim);
-
-// //	DEBUG OUTPUT
-// 	{
-// 		UG_LOG("DEBUG: bisect-node-sizes:\n");
-// 		for(size_t i = 0; i < childNodes.size(); ++i){
-// 			UG_LOG(childNodes[i].elems.size() << ", ");
-// 		}
-// 		UG_LOG("\n");
-
-// 		UG_LOG("DEBUG: bisect-node-weights:\n");
-// 		Grid::AttachmentAccessor<elem_t, ANumber> aaWeight(*m_mg, aWeight);
-// 		for(size_t i = 0; i < childNodes.size(); ++i){
-// 			TreeNode& node = childNodes[i];
-// 			number w = 0;
-// 			for(size_t ielem = node.elems.first(); ielem != s_invalidIndex;
-// 				ielem = node.elems.next(ielem))
-// 			{
-// 				w += aaWeight[node.elems.elem(ielem)];
-// 			}
-
-// 			UG_LOG(w << ", ");
-// 		}
-// 		UG_LOG("\n");
-// 	}
-
-//	perform the recursion
-	int newSplitDim = -1;
-	if(splitDim >= 0)
-		newSplitDim = (splitDim + 1) % dim;
-	control_bisection(partitionSH, childNodes, aWeight, maxChildWeight, com, newSplitDim);
 }
 
 
@@ -782,11 +1112,11 @@ improve_split_values(vector<TreeNode>& treeNodes,
 
 			for(size_t i = elems.first(); i != s_invalidIndex; i = elems.next(i)){
 				elem_t* e = elems.elem(i);
-				int location = classify_elem(e, tn.splitDim, tn.splitValue);
+				int location = classify_elem(e, tn.splitAxis, tn.splitValue);
 				weights[firstWgt + location] += aaWeight[e];
 				weights[firstWgt + TOTAL] += aaWeight[e];
 				if(location == CUTTING){
-					if(CalculateCenter(e, m_aaPos)[tn.splitDim] < tn.splitValue)
+					if(CalculateCenter(e, m_aaPos)[tn.splitAxis] < tn.splitValue)
 						weights[firstWgt + CUTTING_CENTER_LEFT] += aaWeight[e];
 					else
 						weights[firstWgt + CUTTING_CENTER_RIGHT] += aaWeight[e];
@@ -855,237 +1185,6 @@ improve_split_values(vector<TreeNode>& treeNodes,
 			}
 		}
 	}
-}
-
-template <class TElem, int dim>
-void Partitioner_DynamicBisection<TElem, dim>::
-bisect_elements(vector<TreeNode>& childNodesOut, vector<TreeNode>& parentNodes,
-				ANumber aWeight, number maxChildWeight, pcl::ProcessCommunicator& com,
-				int cutRecursion, int splitDim)
-{
-	GDIST_PROFILE_FUNC();
-	MultiGrid& mg = *m_mg;
-
-//	calculate bounding box and center for the current tree-nodes
-	calculate_global_dimensions(parentNodes, maxChildWeight, aWeight, com);
-
-//	we will now calculate the split-dim and split-value for each tree-node
-	for(size_t iNode = 0; iNode < parentNodes.size(); ++iNode){
-		TreeNode& tn = parentNodes[iNode];
-		if(!tn.bisectionComplete){
-			if(splitDim == -1){
-				tn.splitDim = 0;
-				for(int i = 1; i < dim; ++i){
-					if((tn.boxMax[i] - tn.boxMin[i]) > (tn.boxMax[tn.splitDim] - tn.boxMin[tn.splitDim]))
-						tn.splitDim = i;
-				}
-			}
-			else
-				tn.splitDim = splitDim;
-
-		//	this is an initial guess
-			tn.minSplitValue = tn.boxMin[tn.splitDim];
-			tn.maxSplitValue = tn.boxMax[tn.splitDim];
-			tn.splitValue = (1. - 2. * tn.ratioLeft) * tn.minSplitValue
-							+ 2. * tn.ratioLeft * tn.center[tn.splitDim];
-
-//			UG_LOG("node " << iNode << ":\n");
-//			UG_LOG("  center: " << tn.center << ", boxMin: " << tn.boxMin << ", boxMax: " << tn.boxMax << endl);
-//			UG_LOG("  splitDim: " << tn.splitDim << ", splitValue: " << tn.splitValue << endl);
-		}
-	}
-
-	improve_split_values(parentNodes, m_splitImproveIterations, aWeight, com);
-
-
-	Grid::AttachmentAccessor<elem_t, ANumber> aaWeight(mg, aWeight);
-
-	vector<ElemList> elemsCutVec(parentNodes.size());
-	for(size_t i = 0; i < elemsCutVec.size(); ++i){
-		elemsCutVec[i].set_entry_list(parentNodes[i].elems.entries());
-	}
-
-	if(cutRecursion < dim - 1){
-		const size_t numWgtsPerNode = 5;
-		vector<double> weights(parentNodes.size() * numWgtsPerNode, 0);
-
-		for(size_t iNode = 0; iNode < parentNodes.size(); ++iNode){
-			TreeNode& tn = parentNodes[iNode];
-			if(!tn.bisectionComplete){
-				size_t firstWgtInd = iNode * numWgtsPerNode;
-				ElemList& elems = tn.elems;
-				ElemList& elemsCut = elemsCutVec[iNode];
-				ElemList& elemsLeftOut = childNodesOut[tn.firstChildNode].elems;
-				ElemList& elemsRightOut = childNodesOut[tn.firstChildNode + 1].elems;
-				for(size_t i = elems.first(); i != s_invalidIndex;){
-					elem_t* e = elems.elem(i);
-					size_t iNext = elems.next(i);
-
-					int loc = classify_elem(e, tn.splitDim, tn.splitValue);
-					switch(loc){
-						case LEFT:
-							elemsLeftOut.add(i);
-							weights[firstWgtInd] += aaWeight[e];
-							break;
-						case RIGHT:
-							elemsRightOut.add(i);
-							weights[firstWgtInd + 1] += aaWeight[e];
-							break;
-						case CUTTING:
-							elemsCut.add(i);
-							weights[firstWgtInd + 2] += aaWeight[e];
-						//	check whether the center is left or right, since we can
-						//	eventually avoid additional bisection
-							if(CalculateCenter(e, m_aaPos)[tn.splitDim] < tn.splitValue)
-								weights[firstWgtInd + 3] += aaWeight[e];
-							else
-								weights[firstWgtInd + 4] += aaWeight[e];
-							break;
-						default:
-							UG_THROW("INVALID CLASSIFICATION DURING BISECTION\n");
-							break;
-					}
-
-					i = iNext;
-				}
-			}
-
-		//	since all elements from the elem list have been assigned to other arrays,
-		//	we have to clear elems, since it would be invalid anyways
-			tn.elems.clear();
-		}
-
-		vector<double> gWeights;
-		com.allreduce(weights, gWeights, PCL_RO_SUM);
-
-		for(size_t iNode = 0; iNode < parentNodes.size(); ++iNode){
-			TreeNode& tn = parentNodes[iNode];
-			if(!tn.bisectionComplete){
-//				UG_LOG("Performing bisection with ratio: " << tn.ratioLeft << endl);
-
-				size_t firstWgtInd = iNode * numWgtsPerNode;
-				ElemList& elemsCut = elemsCutVec[iNode];
-				ElemList& elemsLeftOut = childNodesOut[tn.firstChildNode].elems;
-				ElemList& elemsRightOut = childNodesOut[tn.firstChildNode + 1].elems;
-
-			//	calculate the number of elements which have to go to the left side
-				double gWTotal = gWeights[firstWgtInd] + gWeights[firstWgtInd + 1] + gWeights[firstWgtInd + 2];
-				double gMissingLeft = tn.ratioLeft * gWTotal - gWeights[firstWgtInd];
-				double gMissingRight = (1. - tn.ratioLeft) * gWTotal - gWeights[firstWgtInd + 1];
-
-		//		UG_LOG("weights left:  " << gWeights[0] << endl);
-		//		UG_LOG("weights right: " << gWeights[1] << endl);
-		//		UG_LOG("weights cut:   " << gWeights[2] << endl);
-
-			//	bisect the cutting elements
-				if(gMissingLeft <= 0){
-//					UG_LOG("Adding all to right\n");
-				//	add all cut-elements to the right side
-					for(size_t i = elemsCut.first(); i != s_invalidIndex;){
-						size_t iNext = elemsCut.next(i);
-						elemsRightOut.add(i);
-						i = iNext;
-					}
-					elemsCut.clear();
-					tn.bisectionComplete = true;
-				}
-				else if(gMissingRight <= 0){
-//					UG_LOG("Adding all to left\n");
-				//	add all cut-elements to the left side
-					for(size_t i = elemsCut.first(); i != s_invalidIndex;){
-						size_t iNext = elemsCut.next(i);
-						elemsLeftOut.add(i);
-						i = iNext;
-					}
-
-					elemsCut.clear();
-					tn.bisectionComplete = true;
-				}
-				else{
-				//	if the ratios would be fine if one simply bisected by midpoints, we'll do that
-//					number wLeft = gWeights[0] + gWeights[3];
-//					number wRight = gWeights[1] + gWeights[4];
-//					number ratio;
-//					if(wLeft < wRight)	ratio = wLeft / wRight;
-//					else				ratio = wRight / wLeft;
-//
-//					if(ratio > 0.99){
-					number ratioLeft = (gWeights[0] + gWeights[3]) / (gWTotal * tn.ratioLeft);
-					number ratioRight = (gWeights[1] + gWeights[4]) / (gWTotal * (1. - tn.ratioLeft));
-
-					if((ratioLeft > m_tolerance) && (ratioRight > m_tolerance)){
-//						UG_LOG("direct cut bisection on node " << iNode
-//								<< " with ratioLeft = " << ratioLeft
-//								<< " and ratioRight = " << ratioRight << "\n");
-
-						for(size_t i = elemsCut.first(); i != s_invalidIndex;){
-							elem_t* e = elemsCut.elem(i);
-							size_t iNext = elemsCut.next(i);
-							if(CalculateCenter(e, m_aaPos)[tn.splitDim] < tn.splitValue)
-								elemsLeftOut.add(i);
-							else
-								elemsRightOut.add(i);
-							i = iNext;
-						}
-						elemsCut.clear();
-						tn.bisectionComplete = true;
-					}
-				}
-			//	prepare for recursion
-				if(!tn.bisectionComplete){
-//					UG_LOG("Preparing for recursion in node " << iNode << endl);
-//					UG_LOG("elemsLeftOut.size(): " << elemsLeftOut.size() <<
-//							", elemsRightOut.size(): " << elemsRightOut.size() << "\n");
-					number newRatioLeft = (number)gMissingLeft / (number)(gMissingLeft + gMissingRight);
-					tn.ratioLeft = newRatioLeft;
-					tn.elems = elemsCut;
-				}
-			}
-		}
-
-		int newSplitDim = -1;
-		if(splitDim >= 0)
-			newSplitDim = (splitDim + 1) % dim;
-		bisect_elements(childNodesOut, parentNodes, aWeight,
-						maxChildWeight, com, cutRecursion + 1, newSplitDim);
-	}
-	else{
-	//	perform a simple bisection
-		for(size_t iNode = 0; iNode < parentNodes.size(); ++iNode){
-			TreeNode& tn = parentNodes[iNode];
-			if(!tn.bisectionComplete){
-//				UG_LOG("performing simple bisection on node " << iNode
-//						<< " with ratio " << tn.ratioLeft << "\n");
-				ElemList& elems = tn.elems;
-				ElemList& elemsLeftOut = childNodesOut[tn.firstChildNode].elems;
-				ElemList& elemsRightOut = childNodesOut[tn.firstChildNode + 1].elems;
-				for(size_t i = elems.first(); i != s_invalidIndex;){
-					size_t iNext = elems.next(i);
-					elem_t* e = elems.elem(i);
-					if(CalculateCenter(e, m_aaPos)[tn.splitDim] <= tn.splitValue)
-						elemsLeftOut.add(i);
-					else
-						elemsRightOut.add(i);
-					i = iNext;
-				}
-				elems.clear();
-			}
-		}
-	}
-}
-
-template <class TElem, int dim>
-void Partitioner_DynamicBisection<TElem, dim>::
-enable_static_partitioning(bool enable)
-{
-	m_staticPartitioning = true;
-}
-
-template <class TElem, int dim>
-bool Partitioner_DynamicBisection<TElem, dim>::
-static_partitioning_enabled() const
-{
-	return m_staticPartitioning;
 }
 
 

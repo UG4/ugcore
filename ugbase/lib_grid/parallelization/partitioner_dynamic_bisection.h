@@ -18,6 +18,11 @@ namespace ug{
 ///	Parallel bisection partitioner
 /**	The partitioner can be used inside a LoadBalancer or separately. It can
  * operate on serial and parallel multigrids.
+ *
+ * The following partition hints provided by a process hierarchy are supported:
+ *	- 'enableXCuts' (bool)
+ *	- 'enableYCuts' (bool)
+ *	- 'enableZCuts' (bool)
  */
 template <class TElem, int dim>
 class Partitioner_DynamicBisection : public IPartitioner{
@@ -40,6 +45,19 @@ class Partitioner_DynamicBisection : public IPartitioner{
 	///	sets the tolerance threshold. 1: no tolerance, 0: full tolerance.
 	/**	the tolerance is defaulted to 0.99*/
 		void set_tolerance(number tol)	{m_tolerance = tol;}
+
+	///	enables automatical determination of split-axis by longest geometry extension
+	/** disabled by default*/
+		void enable_longest_split_axis(bool enable)	{m_longestSplitAxisEnabled = enable;}
+
+	///	enable or disable splits along a certain axis.
+	/**	By default, splits along all axis are enabled.*/
+		void enable_split_axis(int axis, bool enable);
+
+	///	sets the axis with which bisection is started.
+	/** 0 by default.
+	 * \note	the start-split-axis is only considered if longest-split-axis is disabled.*/
+		void set_start_split_axis(int axis)			{m_startSplitAxis = axis;}
 
 	///	the maximum number of iterations performed to find a good split plane
 		int num_split_improvement_iterations() const	{return m_splitImproveIterations;}
@@ -148,7 +166,7 @@ class Partitioner_DynamicBisection : public IPartitioner{
 			number		totalWeight;
 
 			number		splitValue;
-			int			splitDim;
+			int			splitAxis;
 			number		minSplitValue;
 			number		maxSplitValue;
 
@@ -156,22 +174,35 @@ class Partitioner_DynamicBisection : public IPartitioner{
 		};
 
 
-		void copy_partitions_to_children(ISubsetHandler& partitionSH, int lvl);
-
-		void perform_bisection_new(int numTargetProcs, int minLvl, int maxLvl,
+		void perform_bisection(int numTargetProcs, int minLvl, int maxLvl,
 							   int partitionLvl, ANumber aWeight,
 							   pcl::ProcessCommunicator com);
 
 		void control_bisection(ISubsetHandler& partitionSH,
 							   std::vector<TreeNode>& treeNodes, ANumber aWeight,
-							   number maxChildWeight, pcl::ProcessCommunicator& com,
-							   int splitDim);
+							   number maxChildWeight, pcl::ProcessCommunicator& com);
 
-		void bisect_elements(ElemList& elemsLeftOut,
-							ElemList& elemsRightOut,
-							ElemList& elems, number ratioLeft,
-							ANumber aWeight, number maxChildWeight,
-							pcl::ProcessCommunicator& com, int cutRecursion);
+	/** if splitAxis is set to -1, then the split-axis is chosen for each node as
+	 * the axis along which the geometry of the node has the longest extension.*/
+		void bisect_elements(std::vector<TreeNode>& childNodesOut,
+							 std::vector<TreeNode>& parentNodes,
+							 ANumber aWeight, number maxChildWeight,
+							 pcl::ProcessCommunicator& com,
+							 int cutRecursion, int splitAxis);
+
+	///	returns the next valid split axis to m_lastSplitAxis.
+	/** The method starts from m_startSplitAxis, cycling through all valid split axis.
+	 * \note	The method uses m_lastSplitAxis to determine the last used axis.
+	 *			It also sets m_lastSplitAxis to the next axis.
+	 *			In order to force the method to restart from m_startSplitAxis you may
+	 *			set m_lastSplitAxis to -1.*/
+		int get_next_split_axis();
+
+	///	returns the next valid split axis to the specified one
+		int get_next_split_axis(int lastAxis) const;
+
+
+		void copy_partitions_to_children(ISubsetHandler& partitionSH, int lvl);
 
 		void calculate_global_dimensions(std::vector<TreeNode>& treeNodes,
 										 number maxChildWeight, ANumber aWeight,
@@ -180,18 +211,12 @@ class Partitioner_DynamicBisection : public IPartitioner{
 		void gather_weights_from_level(int baseLvl, int childLvl, ANumber aWeight,
 									   bool copyToVMastersOnBaseLvl, bool markedElemsOnly);
 
-		int classify_elem(elem_t* e, int splitDim, number splitValue);
+		int classify_elem(elem_t* e, int splitAxis, number splitValue);
 
 		void improve_split_values(std::vector<TreeNode>& treeNodes,
 								  size_t maxIterations, ANumber aWeight,
 								  pcl::ProcessCommunicator& com);
-
-		void bisect_elements(std::vector<TreeNode>& childNodesOut,
-							 std::vector<TreeNode>& parentNodes,
-							 ANumber aWeight, number maxChildWeight,
-							 pcl::ProcessCommunicator& com,
-							 int cutRecursion, int splitDim);
-
+	
 
 		MultiGrid*								m_mg;
 		apos_t									m_aPos;
@@ -206,9 +231,15 @@ class Partitioner_DynamicBisection : public IPartitioner{
 
 		bool	m_staticPartitioning;
 
-		number m_tolerance;
-		size_t m_splitImproveIterations;
-		int	   m_lastSplitDim;// set to -2 to enable auto-split-dim based on largest bbox axis
+		number	m_tolerance;
+		size_t	m_splitImproveIterations;
+
+		int		m_longestSplitAxisEnabled;
+		int		m_startSplitAxis;
+		int		m_lastSplitAxis;
+		bool	m_splitAxisEnabled[dim];
+		int		m_numSplitAxisEnabled;
+		int		m_firstSplitAxisEnabled;
 
 	//	the following parameters are only used if the partitioner operates in
 	//	static mode

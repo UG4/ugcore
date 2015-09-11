@@ -187,6 +187,30 @@ to_string() const
 	return table.to_string();
 }
 
+void ProcessHierarchy::
+add_partition_hint(int hlvl, const std::string& name, const Variant& value)
+{
+	UG_LOG("Adding partition hint '" << name << "' on level " << hlvl << " with value " << value.to_bool() << endl);
+	get_hlevel_info(hlvl).m_partitionHints[name] = value;
+}
+
+
+bool ProcessHierarchy::
+partition_hint(Variant& valOut, int hlvl, const std::string& name) const
+{
+	for(int l = hlvl; l >= 0 ; --l){
+		const PartitionHintMap& m = get_hlevel_info(l).m_partitionHints;
+		PartitionHintMap::const_iterator i = m.find(name);
+		if(i != m.end()){
+			valOut = i->second;
+			UG_LOG("Found partition hint '" << name << "' on level " << l << " with value " << valOut.to_bool() << endl);
+			return true;
+		}
+	}
+	return false;
+}
+
+
 //pcl::ProcessCommunicator ProcessHierarchy::
 //cluster_proc_com(size_t hierarchyLevel)
 //{

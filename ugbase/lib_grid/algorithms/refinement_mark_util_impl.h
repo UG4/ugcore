@@ -29,6 +29,8 @@ void MarkForAnisotropicRefinement (
 
 	for(TIter iter = elemsBegin; iter != elemsEnd; ++iter){
 		elem_ptr_t elem = *iter;
+		ref.mark(elem, RM_CLOSURE);
+
 		grid.associated_elements(assEdges, elem);
 
 		if(assEdges.size() < 2)
@@ -53,7 +55,7 @@ void MarkForAnisotropicRefinement (
 	//	the element is anisotropic mark it and all long edges
 		ref.mark(elem, RM_ANISOTROPIC);
 	//	refine all edges that are at least half as long as the longest one
-		number thresholdLenSq = longestLenSq / 4.;
+		number thresholdLenSq = shortestLenSq / minEdgeRatioSq;
 		for_each_in_vec(Edge* e, assEdges){
 			if(EdgeLengthSq(e, aaPos) > thresholdLenSq){
 				ref.mark(e, RM_REFINE);

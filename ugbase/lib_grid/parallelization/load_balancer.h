@@ -54,15 +54,33 @@ class ProcessHierarchy{
 	///	Returns a string which describes the hierarchy layout.
 		std::string to_string() const;
 
+	///	allows specification of partitioning hints per hierarchy level.
+	/**	\note	A hint is valid for all subsequent hierarchy levels until it is 
+	 *			specified again with a different value.
+	 *
+	 * \note 	Partitioners are free to ignore any partitioning hints.
+	 *			For a list of supported hints please check the documentation
+	 *			of the respective partitioner.*/
+		void add_partition_hint(int hlvl, const std::string& name, const Variant& value);
+
+	///	returns true if the queried partition hint exists and writes it value to 'valOut'
+	/**	The method searches hierarchy levels starting from the specified one
+	 * down to level 0 and returns the first matching value.*/
+		bool partition_hint(Variant& valOut, int hlvl, const std::string& name) const;
+
 	protected:
+		typedef std::map<std::string, Variant>	PartitionHintMap;
+
 		struct HLevelInfo{
 			pcl::ProcessCommunicator globalCom;
 			//pcl::ProcessCommunicator clusterCom;
 			std::vector<int> clusterProcs;
 			size_t gridLvl;
 			size_t numGlobalProcsInUse;
+			PartitionHintMap	m_partitionHints;
 		};
 
+		HLevelInfo& get_hlevel_info(size_t lvl)				{return m_levels.at(lvl);}
 		const HLevelInfo& get_hlevel_info(size_t lvl) const	{return m_levels.at(lvl);}
 
 //		virtual pcl::ProcessCommunicator

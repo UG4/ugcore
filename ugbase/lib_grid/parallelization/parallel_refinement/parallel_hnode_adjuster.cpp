@@ -63,6 +63,8 @@ class ComPol_BroadcastRefineMarks : public pcl::ICommunicationPolicy<TLayout>
 				if(val > curVal){
 					if(val & RM_COARSEN)
 						m_ref.mark(elem, RM_COARSEN);
+					if(val & RM_CLOSURE)
+						m_ref.mark(elem, RM_CLOSURE);
 					if(val & RM_ANISOTROPIC)
 						m_ref.mark(elem, RM_ANISOTROPIC);
 					if(val & RM_REFINE)
