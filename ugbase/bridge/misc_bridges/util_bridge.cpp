@@ -2,14 +2,15 @@
 // s.b.reiter@googlemail.com
 // 22.03.2011 (m,d,y)
 
-#include "common/util/path_provider.h"
-#include "registry/registry.h"
-#include "bridge/bridge.h"
-#include "common/util/file_util.h"
 #include "../util_overloaded.h"
 #include "ug.h"
-#include "common/util/table.h"
+#include "bridge/bridge.h"
 #include "common/stopwatch.h"
+#include "common/util/file_util.h"
+#include "common/util/path_provider.h"
+#include "common/util/table.h"
+#include "common/util/variant.h"
+#include "registry/registry.h"
 
 #include <cstdlib>
 #include <string>
@@ -137,6 +138,27 @@ void RegisterBridge_Util(Registry& reg, string parentGroup)
 	reg.add_function("ChangeDirectory", ChangeDirectory);
 	reg.add_function("FileCompare", FileCompare);
 	reg.add_function("SetMinSecondsUntilProgress", SetMinSecondsUntilProgress, grp, "", "seconds", "determines after which time a progress bar can show up");
+
+	{
+		typedef Variant T;
+		reg.add_class_<T>("Variant", grp)
+		.add_constructor()
+		.add_constructor<void (*)(bool)>()
+		.add_constructor<void (*)(int)>()
+		.add_constructor<void (*)(size_t)>()
+		.add_constructor<void (*)(float)>()
+		.add_constructor<void (*)(double)>()
+		.add_constructor<void (*)(const char*)>()
+		.add_constructor<void (*)(const Variant&)>()
+		.add_method("to_bool", &T::to_bool)
+		.add_method("to_int", &T::to_int)
+		.add_method("to_size_t", &T::to_size_t)
+		.add_method("to_float", &T::to_float)
+		.add_method("to_double", &T::to_double)
+		.add_method("to_number", &T::to_number)
+		.add_method("to_string", &T::to_c_string)
+		.construct_as_smart_pointer();
+	}
 
 	{
 		typedef StringTable T;

@@ -110,6 +110,36 @@ namespace LoadBalancing{
 /// \addtogroup loadbalance_bridge
 /// \{
 
+template <class TDomain, class TPartitioner>
+static void RegisterDynamicBisectionPartitioner(
+	Registry& reg,
+	string name,
+	string grpName,
+	string clsGrpName)
+{
+	reg.add_class_<TPartitioner, IPartitioner>(name, grpName)
+		.template add_constructor<void (*)(TDomain&)>()
+		.add_method("set_subset_handler",
+			&TPartitioner::set_subset_handler)
+		.add_method("enable_longest_split_axis",
+			&TPartitioner::enable_longest_split_axis)
+		.add_method("enable_split_axis",
+			&TPartitioner::enable_split_axis)
+		.add_method("set_start_split_axis",
+			&TPartitioner::set_start_split_axis)
+		.add_method("num_split_improvement_iterations",
+			&TPartitioner::num_split_improvement_iterations)
+		.add_method("set_num_split_improvement_iterations",
+			&TPartitioner::set_num_split_improvement_iterations)
+		.add_method("enable_static_partitioning",
+			&TPartitioner::enable_static_partitioning)
+		.add_method("static_partitioning_enabled",
+			&TPartitioner::static_partitioning_enabled)
+		.set_construct_as_smart_pointer(true);
+
+	reg.add_class_to_group(name, clsGrpName, GetDomainTag<TDomain>());
+}
+
 /**
  * Class exporting the functionality. All functionality that is to
  * be used in scripts or visualization must be registered here.
@@ -134,6 +164,8 @@ static void Common(Registry& reg, string grp) {
 			.add_method("hierarchy_level_from_grid_level", &T::hierarchy_level_from_grid_level)
 			.add_method("cluster_procs", &T::cluster_procs)
 			.add_method("to_string", &T::to_string)
+			.add_method("add_partition_hint", &T::add_partition_hint)
+			.add_method("partition_hint", &T::partition_hint)
 			.set_construct_as_smart_pointer(true);
 	}
 
@@ -209,97 +241,162 @@ static void Common(Registry& reg, string grp) {
 	#ifdef UG_DIM_1
 	{
 		typedef ug::Domain<1>	TDomain;
-		string tag = GetDomainTag<TDomain>();
-		typedef DomainPartitioner<TDomain, Partitioner_DynamicBisection<Edge, 1> > T;
-		string name = string("EdgePartitioner_DynamicBisection1d");
-		reg.add_class_<T, IPartitioner>(name, grp)
-			.add_constructor<void (*)(TDomain&)>()
-			.add_method("enable_static_partitioning", &T::enable_static_partitioning)
-			.add_method("static_partitioning_enabled", &T::static_partitioning_enabled)
-			.add_method("set_subset_handler", &T::set_subset_handler)
-			.add_method("num_split_improvement_iterations", &T::num_split_improvement_iterations)
-			.add_method("set_num_split_improvement_iterations", &T::set_num_split_improvement_iterations)
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "Partitioner_DynamicBisection", tag);
+		RegisterDynamicBisectionPartitioner<
+				TDomain,
+				DomainPartitioner<TDomain, Partitioner_DynamicBisection<Edge, 1> > >(
+			reg,
+			"EdgePartitioner_DynamicBisection1d",
+			grp,
+			"Partitioner_DynamicBisection");
 	}
 	#endif
 	#ifdef UG_DIM_2
 	{
 		typedef ug::Domain<2>	TDomain;
-		string tag = GetDomainTag<TDomain>();
-		{
-			typedef DomainPartitioner<TDomain, Partitioner_DynamicBisection<Edge, 2> >T;
-			string name = string("EdgePartitioner_DynamicBisection2d");
-			reg.add_class_<T, IPartitioner>(name, grp)
-				.add_constructor<void (*)(TDomain&)>()
-				.add_method("enable_static_partitioning", &T::enable_static_partitioning)
-				.add_method("static_partitioning_enabled", &T::static_partitioning_enabled)
-				.add_method("set_subset_handler", &T::set_subset_handler)
-				.add_method("num_split_improvement_iterations", &T::num_split_improvement_iterations)
-				.add_method("set_num_split_improvement_iterations", &T::set_num_split_improvement_iterations)
-				.set_construct_as_smart_pointer(true);
-			reg.add_class_to_group(name, "ManifoldPartitioner_DynamicBisection", tag);
-		}
-		{
-			typedef DomainPartitioner<TDomain, Partitioner_DynamicBisection<Face, 2> > T;
-			string name = string("FacePartitioner_DynamicBisection2d");
-			reg.add_class_<T, IPartitioner>(name, grp)
-				.add_constructor<void (*)(TDomain&)>()
-				.add_method("enable_static_partitioning", &T::enable_static_partitioning)
-				.add_method("static_partitioning_enabled", &T::static_partitioning_enabled)
-				.add_method("set_subset_handler", &T::set_subset_handler)
-				.add_method("num_split_improvement_iterations", &T::num_split_improvement_iterations)
-				.add_method("set_num_split_improvement_iterations", &T::set_num_split_improvement_iterations)
-				.set_construct_as_smart_pointer(true);
-			reg.add_class_to_group(name, "Partitioner_DynamicBisection", tag);
-		}
+
+		RegisterDynamicBisectionPartitioner<
+				TDomain,
+				DomainPartitioner<TDomain, Partitioner_DynamicBisection<Edge, 2> > >(
+			reg,
+			"EdgePartitioner_DynamicBisection2d",
+			grp,
+			"ManifoldPartitioner_DynamicBisection");
+
+		RegisterDynamicBisectionPartitioner<
+				TDomain,
+				DomainPartitioner<TDomain, Partitioner_DynamicBisection<Face, 2> > >(
+			reg,
+			"FacePartitioner_DynamicBisection2d",
+			grp,
+			"Partitioner_DynamicBisection");
 	}
 	#endif
 	#ifdef UG_DIM_3
 	{
 		typedef ug::Domain<3>	TDomain;
-		string tag = GetDomainTag<TDomain>();
-		{
-			typedef DomainPartitioner<TDomain, Partitioner_DynamicBisection<Edge, 3> > T;
-			string name = string("EdgePartitioner_DynamicBisection3d");
-			reg.add_class_<T, IPartitioner>(name, grp)
-				.add_constructor<void (*)(TDomain&)>()
-				.add_method("enable_static_partitioning", &T::enable_static_partitioning)
-				.add_method("static_partitioning_enabled", &T::static_partitioning_enabled)
-				.add_method("set_subset_handler", &T::set_subset_handler)
-				.add_method("num_split_improvement_iterations", &T::num_split_improvement_iterations)
-				.add_method("set_num_split_improvement_iterations", &T::set_num_split_improvement_iterations)
-				.set_construct_as_smart_pointer(true);
-			reg.add_class_to_group(name, "HyperManifoldPartitioner_DynamicBisection", tag);
-		}
-		{
-			typedef DomainPartitioner<TDomain, Partitioner_DynamicBisection<Face, 3> > T;
-			string name = string("FacePartitioner_DynamicBisection3d");
-			reg.add_class_<T, IPartitioner>(name, grp)
-				.add_constructor<void (*)(TDomain&)>()
-				.add_method("enable_static_partitioning", &T::enable_static_partitioning)
-				.add_method("static_partitioning_enabled", &T::static_partitioning_enabled)
-				.add_method("set_subset_handler", &T::set_subset_handler)
-				.add_method("num_split_improvement_iterations", &T::num_split_improvement_iterations)
-				.add_method("set_num_split_improvement_iterations", &T::set_num_split_improvement_iterations)
-				.set_construct_as_smart_pointer(true);
-			reg.add_class_to_group(name, "ManifoldPartitioner_DynamicBisection", tag);
-		}
-		{
-			typedef DomainPartitioner<TDomain, Partitioner_DynamicBisection<Volume, 3> > T;
-			string name = string("VolumePartitioner_DynamicBisection3d");
-			reg.add_class_<T, IPartitioner>(name, grp)
-				.add_constructor<void (*)(TDomain&)>()
-				.add_method("enable_static_partitioning", &T::enable_static_partitioning)
-				.add_method("static_partitioning_enabled", &T::static_partitioning_enabled)
-				.add_method("set_subset_handler", &T::set_subset_handler)
-				.add_method("num_split_improvement_iterations", &T::num_split_improvement_iterations)
-				.add_method("set_num_split_improvement_iterations", &T::set_num_split_improvement_iterations)
-				.set_construct_as_smart_pointer(true);
-			reg.add_class_to_group(name, "Partitioner_DynamicBisection", tag);
-		}
+
+		RegisterDynamicBisectionPartitioner<
+				TDomain,
+				DomainPartitioner<TDomain, Partitioner_DynamicBisection<Edge, 3> > >(
+			reg,
+			"EdgePartitioner_DynamicBisection3d",
+			grp,
+			"HyperManifoldPartitioner_DynamicBisection");
+
+		RegisterDynamicBisectionPartitioner<
+				TDomain,
+				DomainPartitioner<TDomain, Partitioner_DynamicBisection<Face, 3> > >(
+			reg,
+			"FacePartitioner_DynamicBisection3d",
+			grp,
+			"ManifoldPartitioner_DynamicBisection");
+
+		RegisterDynamicBisectionPartitioner<
+				TDomain,
+				DomainPartitioner<TDomain, Partitioner_DynamicBisection<Volume, 3> > >(
+			reg,
+			"VolumePartitioner_DynamicBisection3d",
+			grp,
+			"Partitioner_DynamicBisection");
 	}
 	#endif
+
+
+
+	// #ifdef UG_DIM_1
+	// {
+	// 	typedef ug::Domain<1>	TDomain;
+	// 	string tag = GetDomainTag<TDomain>();
+	// 	typedef DomainPartitioner<TDomain, Partitioner_DynamicBisection<Edge, 1> > T;
+	// 	string name = string("EdgePartitioner_DynamicBisection1d");
+	// 	reg.add_class_<T, IPartitioner>(name, grp)
+	// 		.add_constructor<void (*)(TDomain&)>()
+	// 		.add_method("enable_static_partitioning", &T::enable_static_partitioning)
+	// 		.add_method("static_partitioning_enabled", &T::static_partitioning_enabled)
+	// 		.add_method("set_subset_handler", &T::set_subset_handler)
+	// 		.add_method("num_split_improvement_iterations", &T::num_split_improvement_iterations)
+	// 		.add_method("set_num_split_improvement_iterations", &T::set_num_split_improvement_iterations)
+	// 		.set_construct_as_smart_pointer(true);
+	// 	reg.add_class_to_group(name, "Partitioner_DynamicBisection", tag);
+	// }
+	// #endif
+	// #ifdef UG_DIM_2
+	// {
+	// 	typedef ug::Domain<2>	TDomain;
+	// 	string tag = GetDomainTag<TDomain>();
+	// 	{
+	// 		typedef DomainPartitioner<TDomain, Partitioner_DynamicBisection<Edge, 2> >T;
+	// 		string name = string("EdgePartitioner_DynamicBisection2d");
+	// 		reg.add_class_<T, IPartitioner>(name, grp)
+	// 			.add_constructor<void (*)(TDomain&)>()
+	// 			.add_method("enable_static_partitioning", &T::enable_static_partitioning)
+	// 			.add_method("static_partitioning_enabled", &T::static_partitioning_enabled)
+	// 			.add_method("set_subset_handler", &T::set_subset_handler)
+	// 			.add_method("num_split_improvement_iterations", &T::num_split_improvement_iterations)
+	// 			.add_method("set_num_split_improvement_iterations", &T::set_num_split_improvement_iterations)
+	// 			.set_construct_as_smart_pointer(true);
+	// 		reg.add_class_to_group(name, "ManifoldPartitioner_DynamicBisection", tag);
+	// 	}
+	// 	{
+	// 		typedef DomainPartitioner<TDomain, Partitioner_DynamicBisection<Face, 2> > T;
+	// 		string name = string("FacePartitioner_DynamicBisection2d");
+	// 		reg.add_class_<T, IPartitioner>(name, grp)
+	// 			.add_constructor<void (*)(TDomain&)>()
+	// 			.add_method("enable_static_partitioning", &T::enable_static_partitioning)
+	// 			.add_method("static_partitioning_enabled", &T::static_partitioning_enabled)
+	// 			.add_method("set_subset_handler", &T::set_subset_handler)
+	// 			.add_method("num_split_improvement_iterations", &T::num_split_improvement_iterations)
+	// 			.add_method("set_num_split_improvement_iterations", &T::set_num_split_improvement_iterations)
+	// 			.set_construct_as_smart_pointer(true);
+	// 		reg.add_class_to_group(name, "Partitioner_DynamicBisection", tag);
+	// 	}
+	// }
+	// #endif
+	// #ifdef UG_DIM_3
+	// {
+	// 	typedef ug::Domain<3>	TDomain;
+	// 	string tag = GetDomainTag<TDomain>();
+	// 	{
+	// 		typedef DomainPartitioner<TDomain, Partitioner_DynamicBisection<Edge, 3> > T;
+	// 		string name = string("EdgePartitioner_DynamicBisection3d");
+	// 		reg.add_class_<T, IPartitioner>(name, grp)
+	// 			.add_constructor<void (*)(TDomain&)>()
+	// 			.add_method("enable_static_partitioning", &T::enable_static_partitioning)
+	// 			.add_method("static_partitioning_enabled", &T::static_partitioning_enabled)
+	// 			.add_method("set_subset_handler", &T::set_subset_handler)
+	// 			.add_method("num_split_improvement_iterations", &T::num_split_improvement_iterations)
+	// 			.add_method("set_num_split_improvement_iterations", &T::set_num_split_improvement_iterations)
+	// 			.set_construct_as_smart_pointer(true);
+	// 		reg.add_class_to_group(name, "HyperManifoldPartitioner_DynamicBisection", tag);
+	// 	}
+	// 	{
+	// 		typedef DomainPartitioner<TDomain, Partitioner_DynamicBisection<Face, 3> > T;
+	// 		string name = string("FacePartitioner_DynamicBisection3d");
+	// 		reg.add_class_<T, IPartitioner>(name, grp)
+	// 			.add_constructor<void (*)(TDomain&)>()
+	// 			.add_method("enable_static_partitioning", &T::enable_static_partitioning)
+	// 			.add_method("static_partitioning_enabled", &T::static_partitioning_enabled)
+	// 			.add_method("set_subset_handler", &T::set_subset_handler)
+	// 			.add_method("num_split_improvement_iterations", &T::num_split_improvement_iterations)
+	// 			.add_method("set_num_split_improvement_iterations", &T::set_num_split_improvement_iterations)
+	// 			.set_construct_as_smart_pointer(true);
+	// 		reg.add_class_to_group(name, "ManifoldPartitioner_DynamicBisection", tag);
+	// 	}
+	// 	{
+	// 		typedef DomainPartitioner<TDomain, Partitioner_DynamicBisection<Volume, 3> > T;
+	// 		string name = string("VolumePartitioner_DynamicBisection3d");
+	// 		reg.add_class_<T, IPartitioner>(name, grp)
+	// 			.add_constructor<void (*)(TDomain&)>()
+	// 			.add_method("enable_static_partitioning", &T::enable_static_partitioning)
+	// 			.add_method("static_partitioning_enabled", &T::static_partitioning_enabled)
+	// 			.add_method("set_subset_handler", &T::set_subset_handler)
+	// 			.add_method("num_split_improvement_iterations", &T::num_split_improvement_iterations)
+	// 			.add_method("set_num_split_improvement_iterations", &T::set_num_split_improvement_iterations)
+	// 			.set_construct_as_smart_pointer(true);
+	// 		reg.add_class_to_group(name, "Partitioner_DynamicBisection", tag);
+	// 	}
+	// }
+	// #endif
 	#endif
 }
 

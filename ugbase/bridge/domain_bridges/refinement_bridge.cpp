@@ -17,6 +17,7 @@
 //todo: include this in algorithms.h
 #include "lib_grid/algorithms/refinement_mark_util.h"
 #include "lib_grid/algorithms/refinement/adaptive_regular_mg_refiner.h"
+#include "lib_grid/algorithms/refinement/hanging_node_refiner_multi_grid.h"
 #include "lib_grid/algorithms/refinement/refinement_projectors/refinement_projection_handler.h"
 #include "lib_grid/algorithms/refinement/refinement_projectors/sphere_projector.h"
 #include "lib_grid/algorithms/refinement/refinement_projectors/spherical_falloff_projector.h"
@@ -24,7 +25,7 @@
 #include "lib_grid/algorithms/refinement/refinement_projectors/cylindrical_falloff_projector.h"
 #include "lib_grid/algorithms/refinement/refinement_projectors/loop_subdivision_projectors.h"
 #include "lib_grid/algorithms/refinement/refinement_projectors/fractal_projector.h"
-
+#include "lib_grid/algorithms/refinement/ref_mark_adjusters/horizontal_anisotropy_adjuster.h"
 #include "lib_grid/grid_objects/tetrahedron_rules.h"
 
 using namespace std;
@@ -137,6 +138,26 @@ CreateGlobalFracturedDomainRefiner(TDomain* dom)
 
 	return SmartPtr<GlobalFracturedMediaRefiner>(ref);
 }
+
+
+///	Adds a horizontal-anisotropy-adjuster to the given refiner.
+/** Adds a horizontal-anisotropy-adjuster to the given refiner. The provided
+ * domain is used to obtain the used position attachment.
+ *
+ * \note	ref has to be derived from HangingNodeRefinerBase*/
+template <class TDomain>
+static void
+AddHorizontalAnisotropyAdjuster(IRefiner* ref, TDomain* dom)
+{
+	HangingNodeRefiner_MultiGrid* href = dynamic_cast<HangingNodeRefiner_MultiGrid*>(ref);
+	UG_COND_THROW(!href, "A horizontal anisotropy adjuster can only be added to an instance of HangingNodeRefiner_MultiGrid.");
+
+	href->add_ref_mark_adjuster(
+			make_sp(new HorizontalAnisotropyAdjuster<
+							typename TDomain::position_attachment_type>
+						(dom->position_attachment())));
+}
+
 
 
 // ////////////////////////////////////////////////////////////////////////////////
@@ -1027,15 +1048,16 @@ void MarkForRefinement_AnisotropicDirection (
 
 	vector<Edge*> anisoEdges;
 	vector<Edge*> normalEdges;
-	number shortestAnisoEdgeSq = numeric_limits<number>::max();
-	number longestNormalEdgeSq = 0;
 
 	lg_for_each_template(TElem, elem, mg){
 		if(mg.has_children(elem))
 			continue;
 
-	//	we'll mark all elements as anisotropic since we use copy elements anyway
-		refiner.mark(elem, RM_ANISOTROPIC);
+		number shortestAnisoEdgeSq = numeric_limits<number>::max();
+		number longestNormalEdgeSq = 0;
+
+	//	we'll mark all elements as closure since we use copy elements anyway
+		refiner.mark(elem, RM_CLOSURE);
 
 		anisoEdges.clear();
 		normalEdges.clear();
@@ -1243,13 +1265,15 @@ static void Domain(Registry& reg, string grp)
 //	refiner factory-method registration
 //	Note that the refiners themselves have already been registered in lib_grid_bridge.
 	reg.add_function("GlobalDomainRefiner",
-					 &GlobalDomainRefiner<domain_type>, grp, "new GlobalDomainRefiner", "dom");
+					 &GlobalDomainRefiner<domain_type>, grp, "GlobalDomainRefiner", "dom");
 	reg.add_function("HangingNodeDomainRefiner",
-					 &HangingNodeDomainRefiner<domain_type>, grp, "new HangingNodeDomainRefiner", "dom");
+					 &HangingNodeDomainRefiner<domain_type>, grp, "HangingNodeDomainRefiner", "dom");
 	reg.add_function("GlobalFracturedDomainRefiner",
-					 &CreateGlobalFracturedDomainRefiner<domain_type>, grp, "new GlobalFracturedDomainRefiner", "dom");
+					 &CreateGlobalFracturedDomainRefiner<domain_type>, grp, "GlobalFracturedDomainRefiner", "dom");
 	reg.add_function("AdaptiveRegularDomainRefiner",
-					 &CreateAdaptiveRegularDomainRefiner<domain_type>, grp, "new AdaptiveRegularDomainRefiner", "dom");
+					 &CreateAdaptiveRegularDomainRefiner<domain_type>, grp, "AdaptiveRegularDomainRefiner", "dom");
+	reg.add_function("AddHorizontalAnisotropyAdjuster",
+					&AddHorizontalAnisotropyAdjuster<domain_type>, grp, "", "refiner # dom");
 
 //	register domain dependent mark methods
 	reg.add_function("MarkForRefinement_VerticesInSphere",

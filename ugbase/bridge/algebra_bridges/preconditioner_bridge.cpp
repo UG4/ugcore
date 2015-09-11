@@ -212,6 +212,8 @@ static void Algebra(Registry& reg, string grp)
 		reg.add_class_<T,TBase>(name, grp, "Incomplete LU Decomposition")
 			.add_constructor()
 			.add_method("set_beta", &T::set_beta, "", "beta")
+			.add_method("set_sort_eps", &T::set_sort_eps, "", "eps")
+			.add_method("set_inversion_eps", &T::set_inversion_eps, "", "eps")
 			.add_method("set_sort", &T::set_sort, "", "bSort", "if bSort=true, use a cuthill-mckey sorting to reduce fill-in. default false")
 			.add_method("set_disable_preprocessing", &T::set_disable_preprocessing, "", "disable",
 						"set whether preprocessing (notably, LU factorization) is to be disabled - usable when the operator has not changed; use with care")

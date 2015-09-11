@@ -58,7 +58,8 @@ void RegisterGridBridge_SubsetHandler(Registry& reg, string parentGroup)
 		.add_function("AdjustSubsetsForSimulation",
 					static_cast<void (*)(MGSubsetHandler&, bool)>(
 					&AdjustSubsetsForSimulation<MGSubsetHandler>), grp)
-		.add_function("AssignSubsetsByElementType", &AssignSubsetsByElementType)
+		.add_function("AssignSubsetsByElementType",
+					static_cast<void (*)(ISubsetHandler&)>(&AssignSubsetsByElementType))
 		.add_function("AssignSubsetColors", &AssignSubsetColors);
 }
 
