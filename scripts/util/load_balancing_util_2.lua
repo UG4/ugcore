@@ -42,7 +42,10 @@ util.balancer.defaults =
 	{
 		dynamicBisection =
 		{
-			verbose = false
+			verbose = false,
+			enableXCuts = true,
+			enableYCuts = true,
+			enableZCuts = true
 		},
 
 		staticBisection =
@@ -164,7 +167,13 @@ function util.balancer.CreatePartitioner(dom, partitionerDesc)
 	if(name == "dynamicBisection") then
 		partitioner = Partitioner_DynamicBisection(dom)
 		partitioner:set_verbose(verbose)
+		if desc.enableXCuts == false then partitioner:enable_split_axis(0, false) end
+		if desc.enableYCuts == false then partitioner:enable_split_axis(1, false) end
+		if desc.enableZCuts == false then partitioner:enable_split_axis(2, false) end
 	elseif(name == "staticBisection") then
+		if desc.enableXCuts == false then partitioner:enable_split_axis(0, false) end
+		if desc.enableYCuts == false then partitioner:enable_split_axis(1, false) end
+		if desc.enableZCuts == false then partitioner:enable_split_axis(2, false) end
 		partitioner = Partitioner_DynamicBisection(dom)
 		partitioner:set_verbose(verbose)
 		partitioner:enable_static_partitioning(true)
@@ -261,17 +270,19 @@ function util.balancer.CreateProcessHierarchy(dom, hierarchyDesc)
 		if lastDistLvl + 1 < curLvl then
 			local redistProcs = defNumRedistProcs
 			local maxProcs = defMaxProcs
+			local hints = nil
 
 			-- check if a subsection exists which contains the current level
 			for name, val in pairs(desc) do
 				if type(val) == "table" then
-					if type(val.upperLvl) == "number" then
-						if val.upperLvl >= curLvl then
-						--	overwrite values from this section
-							maxProcs = val.maxProcs or maxProcs
-							redistProcs = val.maxRedistProcs or redistProcs
-							break
+					if val.upperLvl == nil or val.upperLvl >= curLvl then
+					--	overwrite values from this section
+						maxProcs = val.maxProcs or maxProcs
+						redistProcs = val.maxRedistProcs or redistProcs
+						if type(val.hints) == "table" then
+							hints = val.hints
 						end
+						break
 					end
 				end
 			end
@@ -299,7 +310,13 @@ function util.balancer.CreateProcessHierarchy(dom, hierarchyDesc)
 					<= domInfo:num_elements_on_level(curLvl)
 			then
 				lastDistLvl = curLvl
+				local hlvl = procH:num_hierarchy_levels()
 				procH:add_hierarchy_level(curLvl, redistProcs)
+				if hints ~= nil then
+					for name, val in pairs(hints) do
+						procH:add_partition_hint(hlvl, name, Variant(val))
+					end
+				end
 				curProcs = curProcs * redistProcs
 			end
 		end
