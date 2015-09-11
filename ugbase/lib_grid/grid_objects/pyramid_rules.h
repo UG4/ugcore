@@ -42,6 +42,11 @@ const int TOP_VERTEX = 4;
  * on the opposite side of the pyramid, to a given vertex.*/
 const int OPPOSED_OBJECT[][NUM_VERTICES] = {{1, 6}, {1, 7}, {1, 4}, {1, 5}, {2, 0}};
 
+const int NUM_BOTTOM_EDGES = 4;
+const int BOTTOM_EDGE_INDS[NUM_BOTTOM_EDGES] = {0, 1, 2, 3};
+
+const int NUM_TOP_EDGES = 4;
+const int TOP_EDGE_INDS[NUM_BOTTOM_EDGES] = {4, 5, 6, 7};
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

@@ -147,8 +147,8 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 						RotatePyramid(p, steps);
 
 					//	important vertex indices
-						int v1v2 = EDGE_FROM_VRTS[p[1]][p[2]] + E;
-						int v3v0 = EDGE_FROM_VRTS[p[3]][p[0]] + E;
+						const int v1v2 = EDGE_FROM_VRTS[p[1]][p[2]] + E;
+						const int v3v0 = EDGE_FROM_VRTS[p[3]][p[0]] + E;
 
 					//	now build two pyramids
 						int& fi = fillCount;
@@ -172,8 +172,8 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 						RotatePyramid(p, steps);
 
 					//	important vertex indices
-						int v1v2 = EDGE_FROM_VRTS[p[1]][p[2]] + E;
-						int v2v3 = EDGE_FROM_VRTS[p[2]][p[3]] + E;
+						const int v1v2 = EDGE_FROM_VRTS[p[1]][p[2]] + E;
+						const int v2v3 = EDGE_FROM_VRTS[p[2]][p[3]] + E;
 
 					//	now we have to create 4 tetrahedrons
 						int& fi = fillCount;
@@ -252,9 +252,9 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 					RotatePyramid(p, -freeEdge);
 
 				//	important vertex indices
-					int v1v2 = EDGE_FROM_VRTS[p[1]][p[2]] + E;
-					int v2v3 = EDGE_FROM_VRTS[p[2]][p[3]] + E;
-					int v3v0 = EDGE_FROM_VRTS[p[3]][p[0]] + E;
+					const int v1v2 = EDGE_FROM_VRTS[p[1]][p[2]] + E;
+					const int v2v3 = EDGE_FROM_VRTS[p[2]][p[3]] + E;
+					const int v3v0 = EDGE_FROM_VRTS[p[3]][p[0]] + E;
 
 				//	now we have to create 1 pyramid and 3 tetrahedrons
 					int& fi = fillCount;
@@ -286,11 +286,11 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 			if(cornerStatus[4] == 0){
 			//	all lie in the base
 			//	we require an additional face vertex here
-				int nVrt = FACE_FROM_VRTS[0][1][2] + F;
-				int v0v1 = EDGE_FROM_VRTS[0][1] + E;
-				int v1v2 = EDGE_FROM_VRTS[1][2] + E;
-				int v2v3 = EDGE_FROM_VRTS[2][3] + E;
-				int v3v0 = EDGE_FROM_VRTS[3][0] + E;
+				const int nVrt = FACE_FROM_VRTS[0][1][2] + F;
+				const int v0v1 = EDGE_FROM_VRTS[0][1] + E;
+				const int v1v2 = EDGE_FROM_VRTS[1][2] + E;
+				const int v2v3 = EDGE_FROM_VRTS[2][3] + E;
+				const int v3v0 = EDGE_FROM_VRTS[3][0] + E;
 
 			//	create 4 new pyramids
 				int& fi = fillCount;
@@ -314,10 +314,10 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 			}
 			else if(cornerStatus[4] == 4){
 			//	all lie on the side edges
-				int e0 = EDGE_FROM_VRTS[0][4] + E;
-				int e1 = EDGE_FROM_VRTS[1][4] + E;
-				int e2 = EDGE_FROM_VRTS[2][4] + E;
-				int e3 = EDGE_FROM_VRTS[3][4] + E;
+				const int e0 = EDGE_FROM_VRTS[0][4] + E;
+				const int e1 = EDGE_FROM_VRTS[1][4] + E;
+				const int e2 = EDGE_FROM_VRTS[2][4] + E;
+				const int e3 = EDGE_FROM_VRTS[3][4] + E;
 
 			//	create a hexahedron and a new pyramid
 				int& fi = fillCount;
@@ -332,6 +332,52 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 				inds[fi++] = GOID_PYRAMID;
 				inds[fi++] = e0;	inds[fi++] = e1;	inds[fi++] = e2;
 				inds[fi++] = e3;	inds[fi++] = 4;
+			}
+		}break;
+
+		case 6:
+		{
+		//	in the considered cases all 4 top edges and two opposing bottom edges
+		//	are marked
+			if(cornerStatus[TOP_VERTEX] == 4){
+				int rotSteps = -1;
+				if(newEdgeVrts[BOTTOM_EDGE_INDS[0]] && newEdgeVrts[BOTTOM_EDGE_INDS[2]])
+					rotSteps = 0;
+				else if(newEdgeVrts[BOTTOM_EDGE_INDS[1]] && newEdgeVrts[BOTTOM_EDGE_INDS[3]])
+					rotSteps = 1;
+				
+				if(rotSteps != -1){
+					int vrts[NUM_VERTICES];
+					RotatePyramid(vrts, rotSteps);
+
+					const int e0 = EDGE_FROM_VRTS[vrts[0]][TOP_VERTEX] + E;
+					const int e1 = EDGE_FROM_VRTS[vrts[1]][TOP_VERTEX] + E;
+					const int e2 = EDGE_FROM_VRTS[vrts[2]][TOP_VERTEX] + E;
+					const int e3 = EDGE_FROM_VRTS[vrts[3]][TOP_VERTEX] + E;
+
+					const int v0v1 = EDGE_FROM_VRTS[vrts[0]][vrts[1]] + E;
+					const int v2v3 = EDGE_FROM_VRTS[vrts[2]][vrts[3]] + E;
+
+				//	create 1 pyramid and 3 prisms
+					int& fi = fillCount;
+					int* inds = newIndsOut;
+
+					inds[fi++] = GOID_PYRAMID;
+					inds[fi++] = e0;	inds[fi++] = e1;	inds[fi++] = e2;
+					inds[fi++] = e3;	inds[fi++] = TOP_VERTEX;
+
+					inds[fi++] = GOID_PRISM;
+					inds[fi++] = vrts[0];	inds[fi++] = e0;	inds[fi++] = v0v1;
+					inds[fi++] = vrts[3];	inds[fi++] = e3;	inds[fi++] = v2v3;
+
+					inds[fi++] = GOID_PRISM;
+					inds[fi++] = vrts[1];	inds[fi++] = v0v1;	inds[fi++] = e1;
+					inds[fi++] = vrts[2];	inds[fi++] = v2v3;	inds[fi++] = e2;
+
+					inds[fi++] = GOID_PRISM;
+					inds[fi++] = v0v1;		inds[fi++] = e0;	inds[fi++] = e1;
+					inds[fi++] = v2v3;		inds[fi++] = e3;	inds[fi++] = e2;
+				}
 			}
 		}break;
 

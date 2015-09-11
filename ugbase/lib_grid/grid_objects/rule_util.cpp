@@ -23,14 +23,29 @@ int RecursiveRefine(int* newIndsOut, int* newEdgeVrts,
 {
 //	no refinement rule was found. We'll thus insert a new vertex in the
 //	center and split the element into sub-elements.
-//	we'll then recursively call this method for each sub-tetrahedron.
-//	since all refinement rules for one side are given, one recursion will
-//	always suffice.
+//	we'll then recursively call this method for each sub-tetrahedron/-pyramid.
+//	since all refinement rules for one side exist for those element types,
+//	one recursion will always suffice.
 
 //	a helper which avoids multiple recursion
 	/*static bool dbgRecursionActive = false;
 	assert(!dbgRecursionActive);
 	dbgRecursionActive = true;*/
+
+	// #define LIBGRID_RECURSIVE_REFINE__PRINT_DEBUG_INFO
+	#ifdef LIBGRID_RECURSIVE_REFINE__PRINT_DEBUG_INFO
+		static bool firstVisit = true;
+		if(firstVisit){
+			firstVisit = false;
+			UG_LOG("DEBUGGING: LIBGRID_RECURSIVE_REFINE__PRINT_DEBUG_INFO enabled.\n");
+		}
+		UG_LOG("DEBUG: RecursiveRefine called on element with " << numVrts << " vertices.\n");
+		UG_LOG("       Edge mark pattern: ");
+		for(int i = 0; i < numEdges; ++i){
+			cout << " " << newEdgeVrts[i] != NULL;
+		}
+		cout << endl;
+	#endif
 
 
 	int fillCount = 0;
