@@ -22,6 +22,7 @@
 
 #include "lib_grid/algorithms/refinement/global_multi_grid_refiner.h"
 #include "lib_grid/algorithms/geom_obj_util/misc_util.h"
+#include "lib_grid/algorithms/grid_statistics.h"
 
 #include "lib_grid/algorithms/subset_util.h"
 
@@ -320,6 +321,34 @@ static number GetMaxEdgeLength(TDomain& dom)
 #endif
 }
 
+
+template <typename TDomain>
+static void PrintElementEdgeRatios(TDomain& dom)
+{
+	int elemType = dom.domain_info().element_type();
+
+	MultiGrid& mg = *dom.grid();
+
+	UG_LOG("Element Edge Ratios:\n");
+	for(size_t lvl = 0; lvl < mg.num_levels(); ++lvl){
+		UG_LOG("  level " << lvl << ":\t");
+		switch(elemType){
+			case FACE:
+				PrintElementEdgeRatios(mg, mg.begin<Face>(lvl),
+									   mg.end<Face>(lvl), dom.position_accessor());
+				break;
+
+			case VOLUME:
+				PrintElementEdgeRatios(mg, mg.begin<Volume>(lvl),
+									   mg.end<Volume>(lvl), dom.position_accessor());
+				break;
+			default:
+				UG_LOG("---\n");
+				break;
+		}
+	}
+}
+
 // end group domain_bridge
 /// \}
 
@@ -430,7 +459,7 @@ static void Domain(Registry& reg, string grp)
 
 //	geometry information
 	reg.add_function("GetMaxEdgeLength", &GetMaxEdgeLength<TDomain>, grp);
-
+	reg.add_function("PrintElementEdgeRatios", &PrintElementEdgeRatios<TDomain>, grp);
 //	debugging
 	reg.add_function("TestDomainInterfaces", &TestDomainInterfaces<TDomain>, grp);
 

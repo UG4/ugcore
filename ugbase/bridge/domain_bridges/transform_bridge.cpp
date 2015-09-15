@@ -249,7 +249,6 @@ template <typename TDomain>
 static void Domain(Registry& reg, string grp)
 {
 	typedef TDomain 							domain_type;
-	typedef typename TDomain::position_type		pos_type;
 
 	reg.add_function("TranslateDomain", &TranslateDomain<domain_type>, grp, "", "dom#sel#offset");
 	reg.add_function("ScaleDomain",
