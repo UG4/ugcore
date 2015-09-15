@@ -414,9 +414,19 @@ count_sizes(Grid& grid, const T& iterContainer, int si,
 	//	get the element
 		TElem *elem = *iterBegin;
 
-	//	count number of elements and number of connections
-		++numElem ;
-		numConn += numCo;
+	//	count number of elements and number of connections;
+	//	handle octahedrons separately by splitting into a top and bottom pyramid
+		if(ref_elem_type::REFERENCE_OBJECT_ID != ROID_OCTAHEDRON)
+		{
+			++numElem;
+			numConn += numCo;
+		}
+		else
+		{
+		// 	counting top and bottom pyramid
+			numElem += 2;
+			numConn += 10;
+		}
 
 	//	loop vertices of the element
 		for(int i = 0; i < numCo; ++i)
@@ -454,6 +464,7 @@ count_piece_sizes(Grid& grid, const T& iterContainer, int si, int dim,
 		case 3: count_sizes<Tetrahedron, T>(grid, iterContainer, si, numVert, numElem, numConn);
 				count_sizes<Pyramid, T>(grid, iterContainer, si, numVert, numElem, numConn);
 				count_sizes<Prism, T>(grid, iterContainer, si, numVert, numElem, numConn);
+				count_sizes<Octahedron, T>(grid, iterContainer, si, numVert, numElem, numConn);
 				count_sizes<Hexahedron, T>(grid, iterContainer, si, numVert, numElem, numConn); break;
 		default: UG_THROW("VTK::count_piece_sizes: Dimension " << dim <<
 		                        " is not supported.");
@@ -550,6 +561,7 @@ write_points(VTKFileWriter& File,
 			case 3:	write_points_elementwise<Tetrahedron,T>(File, aaVrtIndex, aaPos, grid, iterContainer, si, n);
 					write_points_elementwise<Pyramid,T>(File, aaVrtIndex, aaPos, grid, iterContainer, si, n);
 					write_points_elementwise<Prism,T>(File, aaVrtIndex, aaPos, grid, iterContainer, si, n);
+					write_points_elementwise<Octahedron,T>(File, aaVrtIndex, aaPos, grid, iterContainer, si, n);
 					write_points_elementwise<Hexahedron,T>(File, aaVrtIndex, aaPos, grid, iterContainer, si, n); break;
 			default: UG_THROW("VTK::write_points: Dimension " << dim <<
 			                        " is not supported.");
@@ -633,7 +645,7 @@ write_cell_connectivity(VTKFileWriter& File,
 		TElem* elem = *iterBegin;
 
 	//	write ids of the element
-		if(refID != ROID_PRISM)
+		if(refID != ROID_PRISM && refID != ROID_OCTAHEDRON)
 		{
 			for(size_t i=0; i< (size_t) ref_elem_type::numCorners; i++)
 			{
@@ -644,7 +656,7 @@ write_cell_connectivity(VTKFileWriter& File,
 					File << ' ';
 			}
 		}
-		else
+		else if(refID == ROID_PRISM)
 		{
 			int id = aaVrtIndex[elem->vertex(0)]; File << id;
 			if(!m_bBinary) File << ' ';
@@ -657,6 +669,33 @@ write_cell_connectivity(VTKFileWriter& File,
 			id = aaVrtIndex[elem->vertex(5)]; File << id;
 			if(!m_bBinary) File << ' ';
 			id = aaVrtIndex[elem->vertex(4)]; File << id;
+			if(!m_bBinary) File << ' ';
+		}
+		//	case == ROID_OCTAHEDRON (handle by a splitting into a top and bottom pyramid)
+		else
+		{
+		//	top pyramid
+			int id = aaVrtIndex[elem->vertex(1)]; File << id;
+			if(!m_bBinary) File << ' ';
+			id = aaVrtIndex[elem->vertex(2)]; File << id;
+			if(!m_bBinary) File << ' ';
+			id = aaVrtIndex[elem->vertex(3)]; File << id;
+			if(!m_bBinary) File << ' ';
+			id = aaVrtIndex[elem->vertex(4)]; File << id;
+			if(!m_bBinary) File << ' ';
+			id = aaVrtIndex[elem->vertex(5)]; File << id;
+			if(!m_bBinary) File << ' ';
+
+		//	bottom pyramid
+			id = aaVrtIndex[elem->vertex(1)]; File << id;
+			if(!m_bBinary) File << ' ';
+			id = aaVrtIndex[elem->vertex(2)]; File << id;
+			if(!m_bBinary) File << ' ';
+			id = aaVrtIndex[elem->vertex(3)]; File << id;
+			if(!m_bBinary) File << ' ';
+			id = aaVrtIndex[elem->vertex(4)]; File << id;
+			if(!m_bBinary) File << ' ';
+			id = aaVrtIndex[elem->vertex(0)]; File << id;
 			if(!m_bBinary) File << ' ';
 		}
 	}
@@ -690,6 +729,7 @@ write_cell_connectivity(VTKFileWriter& File,
 			case 3: write_cell_connectivity<Tetrahedron,T>(File, aaVrtIndex, grid, iterContainer, si);
 					write_cell_connectivity<Pyramid,T>(File, aaVrtIndex, grid, iterContainer, si);
 					write_cell_connectivity<Prism,T>(File, aaVrtIndex, grid, iterContainer, si);
+					write_cell_connectivity<Octahedron,T>(File, aaVrtIndex, grid, iterContainer, si);
 					write_cell_connectivity<Hexahedron,T>(File, aaVrtIndex, grid, iterContainer, si); break;
 			default: UG_THROW("VTK::write_cell_connectivity: Dimension " << dim <<
 			                        " is not supported.");
@@ -728,13 +768,35 @@ write_cell_offsets(VTKFileWriter& File, const T& iterContainer, int si, int& n)
 //	loop all elements
 	for( ; iterBegin != iterEnd; ++iterBegin)
 	{
-	//	increase counter of vertices
-		n += ref_elem_type::numCorners;
+	//	handle octahedron separately by splitting into a top and bottom pyramid
+		if(ref_elem_type::REFERENCE_OBJECT_ID != ROID_OCTAHEDRON)
+		{
+		//	increase counter of vertices
+			n += ref_elem_type::numCorners;
 
-	//	write offset
-		File << n;
-		if(!m_bBinary)
-			File << ' ';
+		//	write offset
+			File << n;
+			if(!m_bBinary)
+				File << ' ';
+		}
+		else
+		{
+		//	increase counter for top pyramid vertices
+			n += 5;
+
+		//	write offset for top pyramid
+			File << n;
+			if(!m_bBinary)
+				File << ' ';
+
+		//	increase counter for bottom pyramid vertices
+			n += 5;
+
+		//	write offset for bottom pyramid
+			File << n;
+			if(!m_bBinary)
+				File << ' ';
+		}
 	}
 }
 
@@ -765,6 +827,7 @@ write_cell_offsets(VTKFileWriter& File, const T& iterContainer, int si, int dim,
 			case 3: write_cell_offsets<Tetrahedron,T>(File, iterContainer, si, n);
 					write_cell_offsets<Pyramid,T>(File, iterContainer, si, n);
 					write_cell_offsets<Prism,T>(File, iterContainer, si, n);
+					write_cell_offsets<Octahedron,T>(File, iterContainer, si, n);
 					write_cell_offsets<Hexahedron,T>(File, iterContainer, si, n); break;
 			default: UG_THROW("VTK::write_cell_offsets: Dimension " << dim <<
 			                        " is not supported.");
@@ -804,6 +867,7 @@ write_cell_types(VTKFileWriter& File, const T& iterContainer, int si)
 		case ROID_TETRAHEDRON: type = (char) 10; break;
 		case ROID_PYRAMID: type = (char) 14; break;
 		case ROID_PRISM: type = (char) 13; break;
+		case ROID_OCTAHEDRON: type = (char) 14; break; // use type id == 14 (PYRAMID) as we handle an octahedron by splitting into a top and bottom pyramid
 		case ROID_HEXAHEDRON: type = (char) 12; break;
 		default: UG_THROW("Element Type not known.");
 	}
@@ -820,10 +884,27 @@ write_cell_types(VTKFileWriter& File, const T& iterContainer, int si)
 //	loop all elements, write type for each element to stream
 	for( ; iterBegin != iterEnd; ++iterBegin)
 	{
-		if(m_bBinary)
-			File << type;
-		 else
-			File << (int) type << ' ';
+	//	handle octahedral case separately by splitting into a top and bottom pyramid
+		if(ref_elem_type::REFERENCE_OBJECT_ID != ROID_OCTAHEDRON)
+		{
+			if(m_bBinary)
+				File << type;
+			 else
+				File << (int) type << ' ';
+		}
+		else
+		{
+			if(m_bBinary)
+			{
+				File << type; // top pyramid
+				File << type; // bottom pyramid
+			}
+			else
+			{
+				File << (int) type << ' '; // top pyramid
+				File << (int) type << ' '; // bottom pyramid
+			}
+		}
 	}
 }
 
@@ -853,6 +934,7 @@ write_cell_types(VTKFileWriter& File, const T& iterContainer, int si, int dim,
 			case 3: write_cell_types<Tetrahedron>(File, iterContainer, si);
 					write_cell_types<Pyramid>(File, iterContainer, si);
 					write_cell_types<Prism>(File, iterContainer, si);
+					write_cell_types<Octahedron>(File, iterContainer, si);
 					write_cell_types<Hexahedron>(File, iterContainer, si);break;
 			default: UG_THROW("VTK::write_cell_types: Dimension " << dim <<
 			                        " is not supported.");
@@ -1000,6 +1082,7 @@ write_nodal_data(VTKFileWriter& File, TFunction& u, number time,
 		case 3:	write_nodal_data_elementwise<Tetrahedron,TFunction,TData>(File, u, time, spData, grid, si);
 				write_nodal_data_elementwise<Pyramid,TFunction,TData>(File, u, time, spData, grid, si);
 				write_nodal_data_elementwise<Prism,TFunction,TData>(File, u, time, spData, grid, si);
+				write_nodal_data_elementwise<Octahedron,TFunction,TData>(File, u, time, spData, grid, si);
 				write_nodal_data_elementwise<Hexahedron,TFunction,TData>(File, u, time, spData, grid, si);break;
 		default: UG_THROW("VTK::write_nodal_data: Dimension " << dim <<
 		                        " is not supported.");
@@ -1117,6 +1200,7 @@ write_nodal_values(VTKFileWriter& File, TFunction& u,
 		case 3:	write_nodal_values_elementwise<Tetrahedron>(File, u, vFct, grid, si);
 				write_nodal_values_elementwise<Pyramid>(File, u, vFct, grid, si);
 				write_nodal_values_elementwise<Prism>(File, u, vFct, grid, si);
+				write_nodal_values_elementwise<Octahedron>(File, u, vFct, grid, si);
 				write_nodal_values_elementwise<Hexahedron>(File, u, vFct, grid, si);break;
 		default: UG_THROW("VTK::write_nodal_values: Dimension " << dim <<
 		                        " is not supported.");
@@ -1315,7 +1399,16 @@ write_cell_data_elementwise(VTKFileWriter& File, TFunction& u, number time,
 			UG_CATCH_THROW("VTK::write_cell_data_elementwise: Cannot evaluate data.");
 		}
 
-		write_item_to_file(File, value);
+	//	handle octahedral case separately by splitting into top and bottom pyramid with the same values
+		if(ref_elem_type::REFERENCE_OBJECT_ID != ROID_OCTAHEDRON)
+		{
+			write_item_to_file(File, value);
+		}
+		else
+		{
+			write_item_to_file(File, value); // top pyramid
+			write_item_to_file(File, value); // bottom pyramid
+		}
 	}
 
 }
@@ -1351,6 +1444,7 @@ write_cell_data(VTKFileWriter& File, TFunction& u, number time,
 		case 3:	write_cell_data_elementwise<Tetrahedron,TFunction,TData>(File, u, time, spData, grid, si);
 				write_cell_data_elementwise<Pyramid,TFunction,TData>(File, u, time, spData, grid, si);
 				write_cell_data_elementwise<Prism,TFunction,TData>(File, u, time, spData, grid, si);
+				write_cell_data_elementwise<Octahedron,TFunction,TData>(File, u, time, spData, grid, si);
 				write_cell_data_elementwise<Hexahedron,TFunction,TData>(File, u, time, spData, grid, si);break;
 		default: UG_THROW("VTK::write_cell_data: Dimension " << dim <<
 		                        " is not supported.");
@@ -1432,12 +1526,20 @@ write_cell_values_elementwise(VTKFileWriter& File, TFunction& u,
 
 		//	flush stream
 			write_item_to_file(File, ipVal);
+
+		//	flush stream a second time in case of an octahedron as we handle it by splitting into a top and bottom pyramid
+			if(roid == ROID_OCTAHEDRON)
+				write_item_to_file(File, ipVal); // bottom pyramid
 		}
 
 	//	fill with zeros up to 3d if vector type
 		if(vFct.size() != 1){
 			for(size_t i = vFct.size(); i < 3; ++i) {
 				write_item_to_file(File, 0.f);
+
+			//	flush stream a second time in case of an octahedron as we handle it by splitting into a top and bottom pyramid
+				if(roid == ROID_OCTAHEDRON)
+					write_item_to_file(File, 0.f); // bottom pyramid
 			}
 		}
 	}
@@ -1473,6 +1575,7 @@ write_cell_values(VTKFileWriter& File, TFunction& u,
 		case 3:	write_cell_values_elementwise<Tetrahedron>(File, u, vFct, grid, si);
 				write_cell_values_elementwise<Pyramid>(File, u, vFct, grid, si);
 				write_cell_values_elementwise<Prism>(File, u, vFct, grid, si);
+				write_cell_values_elementwise<Octahedron>(File, u, vFct, grid, si);
 				write_cell_values_elementwise<Hexahedron>(File, u, vFct, grid, si);break;
 		default: UG_THROW("VTK::write_cell_values: Dimension " << dim <<
 		                        " is not supported.");
