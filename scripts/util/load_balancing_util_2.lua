@@ -64,6 +64,12 @@ util.balancer.defaults =
 		}
 	},
 
+	partitionPostProcessors =
+	{
+		smoothPartitionBounds = {
+		}
+	},
+
 	hierarchies =
 	{
 		standard = {
@@ -109,6 +115,13 @@ function util.balancer.CreateLoadBalancer(dom, desc)
 	print("  util.balancer: creating partitioner...")
 	local partitionerDesc = desc.partitioner or defaults.partitioner
 	local part = util.balancer.CreatePartitioner(dom, partitionerDesc)
+
+	if desc.partitionPostProcessor ~= nil then
+		print("  util.balancer: creating partition post processor...")
+		local postProc = util.balancer.CreatePostProcessor(dom, desc.partitionPostProcessor)
+		part:set_partition_post_processor(postProc)
+	end
+
 	loadBalancer:set_partitioner(part)
 
 	print("  util.balancer: creating process hierarchy...")
@@ -205,6 +218,27 @@ function util.balancer.CreatePartitioner(dom, partitionerDesc)
 	if desc then desc.instance = partitioner end
 
 	return partitioner
+end
+
+
+function util.balancer.CreatePostProcessor(dom, postProcDesc)
+	if util.tableDesc.IsPreset(postProcDesc) then return postProcDesc end
+
+	local name, desc = util.tableDesc.ToNameAndDesc(postProcDesc)
+	local defaults = util.balancer.defaults.partitionPostProcessors[name]
+	if desc == nil then desc = defaults end
+
+	local postProc = nil
+	if name == "smoothPartitionBounds" then
+		postProc = SmoothPartitionBounds()
+	else
+		print("ERROR: Unknown partitionPostProcessor specified in " ..
+			  " util.balancer. CreatePostProcessor: " .. name)
+		exit()
+	end
+
+	if desc then desc.instance = postProc end
+	return postProc
 end
 
 

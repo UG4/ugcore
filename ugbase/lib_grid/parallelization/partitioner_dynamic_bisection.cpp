@@ -10,6 +10,7 @@
 #include "lib_grid/parallelization/parallelization_util.h"
 #include "lib_grid/algorithms/attachment_util.h"
 #include "lib_grid/algorithms/subset_util.h"
+#include "lib_grid/iterators/lg_for_each.h"
 
 using namespace std;
 
@@ -107,6 +108,12 @@ set_balance_weights(SPBalanceWeights balanceWeights)
 //{
 //}
 
+template <class TElem, int dim>
+void Partitioner_DynamicBisection<TElem, dim>::
+set_partition_post_processor(SPPartitionPostProcessor ppp)
+{
+	m_partitionPostProcessor = ppp;
+}
 
 template <class TElem, int dim>
 ConstSPProcessHierarchy Partitioner_DynamicBisection<TElem, dim>::
@@ -203,6 +210,8 @@ partition(size_t baseLvl, size_t elementThreshold)
 
 	ANumber aWeight;
 	mg.attach_to<elem_t>(aWeight);
+	if(m_partitionPostProcessor.valid())
+		m_partitionPostProcessor->init_post_processing(m_mg, m_sh.get());
 
 //	assign all elements below baseLvl to the local process
 	for(int i = 0; i < (int)baseLvl; ++i)
@@ -330,6 +339,8 @@ partition(size_t baseLvl, size_t elementThreshold)
 	}
 
 	mg.detach_from<elem_t>(aWeight);
+	if(m_partitionPostProcessor.valid())
+		m_partitionPostProcessor->partitioning_done();
 
 	if(static_partitioning_enabled()){
 	//	make sure that everybody knows about the highestRedistLevel!
@@ -458,6 +469,11 @@ perform_bisection(int numTargetProcs, int minLvl, int maxLvl, int partitionLvl,
 		else
 			--i_lvl;
 	}
+
+
+	if(m_partitionPostProcessor.valid())
+		m_partitionPostProcessor->post_process(partitionLvl);
+
 
 	if(partitionLvl < minLvl){
 		UG_ASSERT(partitionLvl == minLvl - 1,

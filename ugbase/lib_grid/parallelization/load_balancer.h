@@ -124,6 +124,31 @@ class IBalanceWeights{
 typedef SmartPtr<IBalanceWeights>		SPBalanceWeights;
 
 
+///	allows to post-process partitions
+/**	If supported by a partitioner, a post-processor is called for each partitioned level
+ * to allow for the adjustment of partitions following some specific rules.
+ *
+ * 'init_post_processing' is called before 'post_process' is called for the first time.
+ * A specialization can e.g. attach required attachments during this routine.
+ * 
+ * 'post_process' is called each time partitioning is done for a hierarchy-level.
+ * It will be called with the multigrid level-index on which the partitioning was performed.
+ * Note that this means that post_process will only be called for some MultiGrid levels.
+ *
+ * When partitioning is completed, 'partitioning_done' will be called. Use this method
+ * to detach any attachments that were attached during 'init_post_processing'*/
+class IPartitionPostProcessor{
+	public:
+		virtual ~IPartitionPostProcessor()	{}
+		
+		virtual void init_post_processing(MultiGrid* mg, SubsetHandler* partitions) = 0;
+		virtual void post_process(int lvl) = 0;
+		virtual void partitioning_done() = 0;
+};
+
+typedef SmartPtr<IPartitionPostProcessor>	SPPartitionPostProcessor;
+
+
 ///	Partitioners can be used inside a LoadBalancer or separately to create partition maps
 /**	This is the abstract base class for partitioners.*/
 class IPartitioner{
@@ -138,6 +163,10 @@ class IPartitioner{
 		virtual void set_next_process_hierarchy(SPProcessHierarchy procHierarchy) = 0;
 		virtual void set_balance_weights(SPBalanceWeights balanceWeights) = 0;
 //		virtual void set_connection_weights(SmartPtr<ConnectionWeights<dim> > conWeights) = 0;
+
+		virtual void set_partition_post_processor(SPPartitionPostProcessor){
+			UG_THROW("Partition-Post-Processing is currently not supported by the chosen partitioner.");
+		}
 
 		virtual ConstSPProcessHierarchy current_process_hierarchy() const = 0;
 		virtual ConstSPProcessHierarchy next_process_hierarchy() const = 0;

@@ -15,11 +15,12 @@
 #include "bindings/lua/lua_user_data.h"
 
 #ifdef UG_PARALLEL
+	#include "lib_disc/parallelization/domain_load_balancer.h"
 	#include "lib_grid/parallelization/load_balancer.h"
 	#include "lib_grid/parallelization/load_balancer_util.h"
 	#include "lib_grid/parallelization/partitioner_dynamic_bisection.h"
 	#include "lib_grid/parallelization/balance_weights_ref_marks.h"
-	#include "lib_disc/parallelization/domain_load_balancer.h"
+	#include "lib_grid/parallelization/partition_post_processors/smooth_partition_bounds.h"
 	#ifdef UG_PARMETIS
 		#include "lib_grid/parallelization/partitioner_parmetis.h"
 	#endif
@@ -142,6 +143,20 @@ static void RegisterDynamicBisectionPartitioner(
 	reg.add_class_to_group(name, clsGrpName, GetDomainTag<TDomain>());
 }
 
+template <class TDomain, class elem_t>
+static void RegisterSmoothPartitionBounds(
+	Registry& reg,
+	string name,
+	string grpName,
+	string clsGrpName)
+{
+	typedef SmoothPartitionBounds<elem_t>	T;
+	reg.add_class_<T, IPartitionPostProcessor>(name, grpName)
+		.add_constructor()
+		.set_construct_as_smart_pointer(true);
+	reg.add_class_to_group(name, clsGrpName, GetDomainTag<TDomain>());
+}
+
 #endif
 
 
@@ -215,13 +230,19 @@ static void Common(Registry& reg, string grp) {
 	#endif
 
 	{
+		typedef IPartitionPostProcessor T;
+		reg.add_class_<T>("IPartitionPostProcessor", grp);
+	}
+
+	{
 		typedef IPartitioner T;
 		reg.add_class_<T>("IPartitioner", grp)
 			.add_method("set_verbose", &T::set_verbose)
 			.add_method("partition", &T::partition)
 			.add_method("set_next_process_hierarchy", &T::set_next_process_hierarchy)
 			.add_method("enable_clustered_siblings", &T::enable_clustered_siblings)
-			.add_method("clustered_siblings_enabled", &T::clustered_siblings_enabled);
+			.add_method("clustered_siblings_enabled", &T::clustered_siblings_enabled)
+			.add_method("set_partition_post_processor", &T::set_partition_post_processor);
 	}
 
 	{
@@ -253,6 +274,13 @@ static void Common(Registry& reg, string grp) {
 			"EdgePartitioner_DynamicBisection1d",
 			grp,
 			"Partitioner_DynamicBisection");
+
+
+		RegisterSmoothPartitionBounds<TDomain, Edge>(
+			reg,
+			"SmoothPartitionBounds1d",
+			grp,
+			"SmoothPartitionBounds");
 	}
 	#endif
 	#ifdef UG_DIM_2
@@ -274,6 +302,12 @@ static void Common(Registry& reg, string grp) {
 			"FacePartitioner_DynamicBisection2d",
 			grp,
 			"Partitioner_DynamicBisection");
+
+		RegisterSmoothPartitionBounds<TDomain, Face>(
+			reg,
+			"SmoothPartitionBounds2d",
+			grp,
+			"SmoothPartitionBounds");
 	}
 	#endif
 	#ifdef UG_DIM_3
@@ -303,6 +337,12 @@ static void Common(Registry& reg, string grp) {
 			"VolumePartitioner_DynamicBisection3d",
 			grp,
 			"Partitioner_DynamicBisection");
+
+		RegisterSmoothPartitionBounds<TDomain, Volume>(
+			reg,
+			"SmoothPartitionBounds3d",
+			grp,
+			"SmoothPartitionBounds");
 	}
 	#endif
 

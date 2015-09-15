@@ -5,6 +5,7 @@
 #ifndef __H__UG__partitioner_dynamic_biscection__
 #define __H__UG__partitioner_dynamic_biscection__
 
+#include <utility>
 #include <vector>
 #include "parallel_grid_layout.h"
 #include "load_balancer.h"
@@ -27,10 +28,11 @@ namespace ug{
 template <class TElem, int dim>
 class Partitioner_DynamicBisection : public IPartitioner{
 	public:
-		typedef IPartitioner	 			base_class;
-		typedef TElem						elem_t;
-		typedef MathVector<dim>				vector_t;
-		typedef Attachment<vector_t>		apos_t;
+		typedef IPartitioner	 						base_class;
+		typedef TElem									elem_t;
+		typedef typename TElem::side					side_t;
+		typedef MathVector<dim>							vector_t;
+		typedef Attachment<vector_t>					apos_t;
 		typedef Grid::VertexAttachmentAccessor<apos_t>	aapos_t;
 		typedef typename GridLayoutMap::Types<elem_t>::Layout::LevelLayout	layout_t;
 
@@ -66,6 +68,7 @@ class Partitioner_DynamicBisection : public IPartitioner{
 		virtual void set_next_process_hierarchy(SPProcessHierarchy procHierarchy);
 		virtual void set_balance_weights(SPBalanceWeights balanceWeights);
 //		virtual void set_connection_weights(SmartPtr<ConnectionWeights<dim> >);
+		virtual void set_partition_post_processor(SPPartitionPostProcessor ppp);
 
 		virtual ConstSPProcessHierarchy current_process_hierarchy() const;
 		virtual ConstSPProcessHierarchy next_process_hierarchy() const;
@@ -228,6 +231,7 @@ class Partitioner_DynamicBisection : public IPartitioner{
 		std::vector<Entry>						m_entries;
 
 		SPBalanceWeights						m_balanceWeights;
+		SPPartitionPostProcessor				m_partitionPostProcessor;
 
 		bool	m_staticPartitioning;
 

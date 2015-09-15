@@ -1,0 +1,164 @@
+// created by Sebastian Reiter
+// s.b.reiter@gmail.com
+
+#ifndef __H__UG_smooth_partition_bounds
+#define __H__UG_smooth_partition_bounds
+
+#include "../load_balancing.h"
+#include "lib_grid/iterators/lg_for_each.h"
+
+namespace ug{
+
+///	early draft. Currently only useful for prism-geometries in the d3f-wipp setting
+template <class elem_t>/*, int dim>*/
+class SmoothPartitionBounds : public IPartitionPostProcessor
+{
+	public:
+		SmoothPartitionBounds() :
+			m_mg(NULL),
+			m_partitions(NULL)
+			// m_consideringVerticalSidesOnly(false)
+		{}
+
+		virtual ~SmoothPartitionBounds()
+		{
+			if(m_mg && m_mg->has_attachment<side_t>(m_aSubsetNbrs))
+				m_mg->detach_from<side_t>(m_aSubsetNbrs);
+		}
+
+		void init_post_processing(MultiGrid* mg, SubsetHandler* partitions)
+		{
+			m_mg = mg;
+			m_partitions = partitions;
+			mg->attach_to<side_t>(m_aSubsetNbrs);
+		}
+
+		// void set_position_attachment(position_attachment_t aPos);
+
+		// void consider_vertical_sides_only(bool enable)
+		// {
+		// 	m_consideringVerticalSidesOnly = enable;
+		// 	if(enable){
+		// 		UG_COND_THROW(!mg->has_vertex_attachment(m_aPos),
+		// 					  "consider_vertical_sides_only may only be enabled if "
+		// 					  "a valid position attachment for the underlying grid "
+		// 					  "has been set previously.");
+		// 		m_aaPos.access(*mg, m_aPos);
+		// 	}
+		// }
+		
+		// bool considering_vertical_sides_only() const	{return m_consideringVerticalSidesOnly;}
+
+		void post_process(int partitionLvl)
+		{
+			using namespace std;
+		//	we'll regularize the partition to reduce h-interface sizes
+		//	(also important to improve gmg-smoother efficiency).
+		//todo:	PARALLEL IMPLEMENTATION, EQUALLY DISTRIBUTE SWAP-ELEMENTS
+			MultiGrid& mg = *m_mg;
+			SubsetHandler& sh = *m_partitions;
+
+			Grid::AttachmentAccessor<side_t, a_subset_pair_t>	aaSubsetNbrs(mg, m_aSubsetNbrs);
+
+			typename MultiGrid::traits<side_t>::secure_container	sides;
+			
+			vector<int> nbrSubs;
+			bool assignToSmallerSubsetsOnly = true;
+
+			for(int main_iteration = 0; main_iteration < 2; ++main_iteration){
+				SetAttachmentValues(aaSubsetNbrs, mg.begin<side_t>(partitionLvl),
+									mg.end<side_t>(partitionLvl), pair<int, int>(-1, -1));
+
+			//	regularization step 1: assign element-subset-indices to sides
+				lg_for_each_in_lvl_template(elem_t, e, mg, partitionLvl){
+					int si = sh.get_subset_index(e);
+					if(si >= 0){
+						mg.associated_elements(sides, e);
+						for_each_in_vec(side_t* s, sides){
+							if(aaSubsetNbrs[s].first == -1)
+								aaSubsetNbrs[s].first = si;
+							else
+								aaSubsetNbrs[s].second = si;
+						}end_for;
+					}
+				}end_for;
+
+			//todo:	regularization step 1.5: communicate subsetNbrs
+			//	...
+			
+			//	regularization step 2: check for elements whose neighbors belong to other partitions
+				lg_for_each_in_lvl_template(elem_t, e, mg, partitionLvl){
+					int si = sh.get_subset_index(e);
+					if(si >= 0){
+						nbrSubs.clear();
+						mg.associated_elements(sides, e);
+						int numOwnSubsetNbrs = 0;
+						for_each_in_vec(side_t* s, sides){
+							if(s->reference_object_id() == ROID_QUADRILATERAL){
+								const subset_pair_t& nbrs = aaSubsetNbrs[s];
+								if(nbrs.first == si && nbrs.second == si)
+									++numOwnSubsetNbrs;
+								else if(nbrs.first != -1 && nbrs.first != si)
+									nbrSubs.push_back(nbrs.first);
+								else if(nbrs.second != -1 && nbrs.second != si)
+									nbrSubs.push_back(nbrs.second);
+							}
+						}end_for;
+
+					//	we'll now search for the subset which shares the most sides.
+						int newSubsetNbrs = numOwnSubsetNbrs;
+						int newSub = si;
+
+						for(size_t i_nbrSub = 0; i_nbrSub < nbrSubs.size(); ++i_nbrSub){
+							int nbrSub = nbrSubs[i_nbrSub];
+							if(nbrSub != -1){// otherwise the subset has already been processed
+								int count = 1;
+								for(size_t i = i_nbrSub + 1; i < nbrSubs.size(); ++i){
+									if(nbrSubs[i] == nbrSub){
+										nbrSubs[i] = -1;
+										++count;
+									}
+								}
+
+								if(count > newSubsetNbrs){
+									newSubsetNbrs = count;
+									newSub = nbrSub;
+								}
+							}
+						}
+
+					//	assign the new subset.
+					//todo:	use a more elaborate decider to which subset an element shall be assigned.
+						if(newSub != -1
+						   && ((assignToSmallerSubsetsOnly && newSub < si)
+						   	   || (!assignToSmallerSubsetsOnly && newSub != si)))
+						{
+							sh.assign_subset(e, newSub);
+						}
+					}
+				}end_for;
+
+			//	in the second iteration we'll assign to all neighbors
+				assignToSmallerSubsetsOnly = false;
+			}
+		}
+
+		void partitioning_done()
+		{
+			m_mg->detach_from<side_t>(m_aSubsetNbrs);
+		}
+
+	private:
+		typedef typename elem_t::side		side_t;
+		typedef std::pair<int, int>			subset_pair_t;
+		typedef Attachment<subset_pair_t>	a_subset_pair_t;
+		
+		MultiGrid*		m_mg;
+		SubsetHandler*	m_partitions;
+		a_subset_pair_t	m_aSubsetNbrs;
+		// bool			m_consideringVerticalSidesOnly;
+};
+
+}//	end of namespace
+
+#endif	//__H__UG_smooth_partition_bounds
