@@ -45,12 +45,14 @@ util.balancer.defaults =
 			verbose = false,
 			enableXCuts = true,
 			enableYCuts = true,
-			enableZCuts = true
+			enableZCuts = true,
+			clusteredSiblings = true,
 		},
 
 		staticBisection =
 		{
-			verbose = false
+			verbose = false,
+			clusteredSiblings = true,
 		},
 
 		parmetis =
@@ -60,7 +62,8 @@ util.balancer.defaults =
 			childWeight		= 2,
 			siblingWeight	= 2,
 			itrFactor		= 1000,
-			verbose = false
+			verbose = false,
+			clusteredSiblings = true,
 		}
 	},
 
@@ -213,7 +216,13 @@ function util.balancer.CreatePartitioner(dom, partitionerDesc)
 		exit()
 	end
 
-	partitioner:enable_clustered_siblings(true)
+	if desc.clusteredSiblings ~= nil then
+		partitioner:enable_clustered_siblings(desc.clusteredSiblings)
+	elseif defaults.clusteredSiblings ~= nil then
+		partitioner:enable_clustered_siblings(defaults.clusteredSiblings)
+	else
+		partitioner:enable_clustered_siblings(true)
+	end
 
 	if desc then desc.instance = partitioner end
 
