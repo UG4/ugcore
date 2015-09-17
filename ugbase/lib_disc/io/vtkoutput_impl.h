@@ -1490,6 +1490,10 @@ write_cell_values_elementwise(VTKFileWriter& File, TFunction& u,
 
 //	request for trial space
 	try{
+
+	// avoid passing this code, since LocalShapeFunctionSet might not exist for RefElem-Type
+	if(iterBegin == iterEnd) return;
+
 	std::vector<std::vector<number> > vvShape(vFct.size());
 	std::vector<size_t> vNsh(vFct.size());
 
