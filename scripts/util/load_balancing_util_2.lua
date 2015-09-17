@@ -52,6 +52,9 @@ util.balancer.defaults =
 		staticBisection =
 		{
 			verbose = false,
+			enableXCuts = true,
+			enableYCuts = true,
+			enableZCuts = true,
 			clusteredSiblings = true,
 		},
 
@@ -187,12 +190,12 @@ function util.balancer.CreatePartitioner(dom, partitionerDesc)
 		if desc.enableYCuts == false then partitioner:enable_split_axis(1, false) end
 		if desc.enableZCuts == false then partitioner:enable_split_axis(2, false) end
 	elseif(name == "staticBisection") then
-		if desc.enableXCuts == false then partitioner:enable_split_axis(0, false) end
-		if desc.enableYCuts == false then partitioner:enable_split_axis(1, false) end
-		if desc.enableZCuts == false then partitioner:enable_split_axis(2, false) end
 		partitioner = Partitioner_DynamicBisection(dom)
 		partitioner:set_verbose(verbose)
 		partitioner:enable_static_partitioning(true)
+		if desc.enableXCuts == false then partitioner:enable_split_axis(0, false) end
+		if desc.enableYCuts == false then partitioner:enable_split_axis(1, false) end
+		if desc.enableZCuts == false then partitioner:enable_split_axis(2, false) end
 	elseif(name == "parmetis") then
 		util.balancer.CondAbort(
 			ParmetisIsAvailable() == false,
