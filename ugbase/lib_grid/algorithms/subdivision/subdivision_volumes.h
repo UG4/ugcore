@@ -469,7 +469,7 @@ void SubdivisionVolumes(MultiGrid& mg, bool bPreserveBnd, bool bSubdivisionLoopB
 //	Check, if volumes are included in input grid
 	bool volumesExist = mg.num<Volume>() > 0;
 	if(!volumesExist)
-		UG_THROW("SubdivisionTetGridSmooth: No volumes included in input grid for smooth TetGrid subdivision refinement.");
+		UG_THROW("SubdivisionVolumes: No volumes included in input grid for smooth TetGrid subdivision refinement.");
 
 // 	Loop all vertices of top_level
 	for(VertexIterator vrtIter = mg.begin<Vertex>(mg.top_level()); vrtIter != mg.end<Vertex>(mg.top_level()); ++vrtIter)
