@@ -275,6 +275,7 @@ enum GridSerializationID
 	GSID_HEXAHEDRON = 70,
 	GSID_PRISM = 80,
 	GSID_PYRAMID = 90,
+	GSID_OCTAHEDRON = 100,
 
 	GSID_NEW_LEVEL = 1000
 };
@@ -1291,6 +1292,30 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 				if(paaID)	Serialize(out, (*paaID)[*iter]);
 			}
 		}
+
+		if(mgoc.num<Octahedron>(iLevel) > 0)
+		{
+			tInt = GSID_OCTAHEDRON;
+			out.write((char*)&tInt, sizeof(int));
+			tInt = (int)mgoc.num<Octahedron>(iLevel);
+			out.write((char*)&tInt, sizeof(int));
+			
+			for(OctahedronIterator iter = mgoc.begin<Octahedron>(iLevel);
+				iter != mgoc.end<Octahedron>(iLevel); ++iter)
+			{
+				Octahedron* p = *iter;
+				mg.mark(p);
+				out.write((char*)&aaInt[p->vertex(0)], sizeof(int));
+				out.write((char*)&aaInt[p->vertex(1)], sizeof(int));
+				out.write((char*)&aaInt[p->vertex(2)], sizeof(int));
+				out.write((char*)&aaInt[p->vertex(3)], sizeof(int));
+				out.write((char*)&aaInt[p->vertex(4)], sizeof(int));
+				out.write((char*)&aaInt[p->vertex(5)], sizeof(int));
+				aaInt[*iter] = volInd++;
+				WriteParent(mg, p, aaInt, out);
+				if(paaID)	Serialize(out, (*paaID)[*iter]);
+			}
+		}
 	}
 	
 	mg.end_marking();
@@ -2272,6 +2297,52 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 								p = *mg.create<Pyramid>(PyramidDescriptor(
 													vVrts[i1], vVrts[i2], vVrts[i3],
 													vVrts[i4], vVrts[i5]), currentLevel);
+								mg.set_parent_type(p, pInfo.second);
+							}
+							vVols.push_back(p);
+							if(paaID)
+								(*paaID)[p] = id;
+						}
+					}break;
+
+				case GSID_OCTAHEDRON:
+					{
+						SRLZ_PROFILE(srlz_octahedra);
+						for(int i = 0; i < numElems; ++i)
+						{
+							int i1, i2, i3, i4, i5, i6;
+							in.read((char*)&i1, sizeof(int));
+							in.read((char*)&i2, sizeof(int));
+							in.read((char*)&i3, sizeof(int));
+							in.read((char*)&i4, sizeof(int));
+							in.read((char*)&i5, sizeof(int));
+							in.read((char*)&i6, sizeof(int));
+							pair<GridObject*, char> pInfo = GetParent(in, vVrts, vEdges,
+																			vFaces, vVols);
+							GridObject* parent = pInfo.first;
+
+							if(paaID){
+								Deserialize(in, id);
+								Volume* oldVol;
+								if(volHash.get_entry(oldVol, id)){
+									assert(dynamic_cast<Pyramid*>(oldVol));
+									vVols.push_back(oldVol);
+								//	make sure that its parent is registered
+									if(parent && (!mg.get_parent(oldVol)))
+										mg.associate_parent(oldVol, parent);
+									continue;
+								}
+							}
+
+							Octahedron* p;
+							if(parent)
+								p = *mg.create<Octahedron>(OctahedronDescriptor(
+													vVrts[i1], vVrts[i2], vVrts[i3],
+													vVrts[i4], vVrts[i5], vVrts[i6]), parent);
+							else{
+								p = *mg.create<Octahedron>(OctahedronDescriptor(
+													vVrts[i1], vVrts[i2], vVrts[i3],
+													vVrts[i4], vVrts[i5], vVrts[i6]), currentLevel);
 								mg.set_parent_type(p, pInfo.second);
 							}
 							vVols.push_back(p);
