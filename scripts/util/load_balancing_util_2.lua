@@ -73,6 +73,10 @@ util.balancer.defaults =
 	partitionPostProcessors =
 	{
 		smoothPartitionBounds = {
+		},
+
+		clusterElementStacks = {
+			stackingDir = MakeVec(0, 0, 1)
 		}
 	},
 
@@ -243,6 +247,9 @@ function util.balancer.CreatePostProcessor(dom, postProcDesc)
 	local postProc = nil
 	if name == "smoothPartitionBounds" then
 		postProc = SmoothPartitionBounds()
+	elseif name == "clusterElementStacks" then
+		postProc = ClusterElementStacks(dom:position_attachment(),
+										desc.stackingDir or defaults.stackingDir)
 	else
 		print("ERROR: Unknown partitionPostProcessor specified in " ..
 			  " util.balancer. CreatePostProcessor: " .. name)

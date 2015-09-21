@@ -102,6 +102,12 @@ set_communication_weights(SmartPtr<ICommunicationWeights> commWeights)
 	m_communicationWeights = commWeights;
 }
 
+template<int dim>
+void Partitioner_Parmetis<dim>::
+set_partition_post_processor(SPPartitionPostProcessor ppp)
+{
+	m_partitionPostProcessor = ppp;
+}
 
 template<int dim>
 ConstSPProcessHierarchy Partitioner_Parmetis<dim>::
@@ -362,6 +368,9 @@ partition_with_elem_type(size_t baseLvl, size_t elementThreshold)
 			  "Elements for which a partitioning is generated may not be contained in"
 			  " H-Interfaces!");
 
+	if(m_partitionPostProcessor.valid())
+		m_partitionPostProcessor->init_post_processing(m_mg, &m_sh);
+
 //	assign all elements below baseLvl to the local process
 	for(int i = 0; i < (int)baseLvl; ++i)
 		m_sh.assign_subset(mg.begin<TElem>(i), mg.end<TElem>(i), localProc);
@@ -525,6 +534,9 @@ partition_with_elem_type(size_t baseLvl, size_t elementThreshold)
 			m_vEdgeCut[hlevel] = partition_level_parmetis<TElem>(minLvl, maxLvl, numTargetProcs, hlvlCom, pdg, &intfcCom);
 		}
 
+		if(m_partitionPostProcessor.valid()){
+			m_partitionPostProcessor->post_process(minLvl);
+		}
 	//	assign partitions to all children in this hierarchy level
 		for(int lvl = minLvl; lvl < maxLvl; ++lvl){
 			for(ElemIter iter = mg.begin<TElem>(lvl); iter != mg.end<TElem>(lvl); ++iter)
@@ -553,6 +565,9 @@ partition_with_elem_type(size_t baseLvl, size_t elementThreshold)
 		}
 	}
 
+	if(m_partitionPostProcessor.valid())
+		m_partitionPostProcessor->partitioning_done();
+	
 	if(m_nextProcessHierarchy.valid()){
 		*m_processHierarchy = *m_nextProcessHierarchy;
 		m_nextProcessHierarchy = SPProcessHierarchy(NULL);

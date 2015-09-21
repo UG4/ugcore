@@ -382,11 +382,15 @@ static void Domain(Registry& reg, string grp)
 
 //	Domain
 	{
+		typedef typename TDomain::position_attachment_type apos_t;
 		typedef IDomain<> TBase;
 		string name = string("Domain").append(suffix);
 		reg.add_class_<TDomain, TBase>(name, grp)
 			.add_constructor()
 			.add_method("empty", &TDomain::empty)
+			.add_method("position_attachment",
+						static_cast<const apos_t& (TDomain::*)()const>(
+							&TDomain::position_attachment))
 			.set_construct_as_smart_pointer(true);
 
 		reg.add_class_to_group(name, "Domain", tag);

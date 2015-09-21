@@ -273,6 +273,7 @@ class Partitioner_Parmetis : public IPartitioner{
 		virtual void set_next_process_hierarchy(SPProcessHierarchy procHierarchy);
 		virtual void set_balance_weights(SPBalanceWeights balanceWeights);
 		virtual void set_communication_weights(SmartPtr<ICommunicationWeights> commWeights);
+		virtual void set_partition_post_processor(SPPartitionPostProcessor);
 
 		virtual ConstSPProcessHierarchy current_process_hierarchy() const;
 		virtual ConstSPProcessHierarchy next_process_hierarchy() const;
@@ -366,9 +367,9 @@ class Partitioner_Parmetis : public IPartitioner{
 		//Grid::AttachmentAccessor<elem_t, Attachment<idx_t> > m_aaWeightChildren;
 		SPBalanceWeights	m_balanceWeights;
 		SmartPtr<ICommunicationWeights>	m_communicationWeights;
-		SPProcessHierarchy	m_processHierarchy;
-		SPProcessHierarchy	m_nextProcessHierarchy;
-
+		SPProcessHierarchy			m_processHierarchy;
+		SPProcessHierarchy			m_nextProcessHierarchy;
+		SPPartitionPostProcessor	m_partitionPostProcessor;
 		std::vector<idx_t> m_vEdgeCut;
 
 		int	m_childWeight;

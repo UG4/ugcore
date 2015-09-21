@@ -21,6 +21,7 @@
 	#include "lib_grid/parallelization/partitioner_dynamic_bisection.h"
 	#include "lib_grid/parallelization/balance_weights_ref_marks.h"
 	#include "lib_grid/parallelization/partition_post_processors/smooth_partition_bounds.h"
+	#include "lib_grid/parallelization/partition_post_processors/cluster_element_stacks.h"
 	#ifdef UG_PARMETIS
 		#include "lib_grid/parallelization/partitioner_parmetis.h"
 	#endif
@@ -157,6 +158,24 @@ static void RegisterSmoothPartitionBounds(
 	reg.add_class_to_group(name, clsGrpName, GetDomainTag<TDomain>());
 }
 
+template <class TDomain, class elem_t, class vector_t>
+static void RegisterClusterElementStacks(
+	Registry& reg,
+	string name,
+	string grpName,
+	string clsGrpName)
+{
+	typedef Attachment<vector_t> apos_t;
+	typedef ClusterElementStacks<elem_t, vector_t>	T;
+	reg.add_class_<T, IPartitionPostProcessor>(name, grpName)
+		.add_constructor()
+		.template add_constructor<void (*)(const apos_t&, const vector_t&)>()
+		.add_method("set_position_attachment", &T::set_position_attachment)
+		.add_method("set_stacking_direction", &T::set_stacking_direction)
+		.set_construct_as_smart_pointer(true);
+	reg.add_class_to_group(name, clsGrpName, GetDomainTag<TDomain>());
+}
+
 #endif
 
 
@@ -281,6 +300,12 @@ static void Common(Registry& reg, string grp) {
 			"SmoothPartitionBounds1d",
 			grp,
 			"SmoothPartitionBounds");
+
+		// RegisterClusterElementStacks<TDomain, Edge, vector1>(
+		// 	reg,
+		// 	"ClusterElementStacks1d",
+		// 	grp,
+		// 	"ClusterElementStacks");
 	}
 	#endif
 	#ifdef UG_DIM_2
@@ -308,6 +333,12 @@ static void Common(Registry& reg, string grp) {
 			"SmoothPartitionBounds2d",
 			grp,
 			"SmoothPartitionBounds");
+
+		RegisterClusterElementStacks<TDomain, Face, vector2>(
+			reg,
+			"ClusterElementStacks2d",
+			grp,
+			"ClusterElementStacks");
 	}
 	#endif
 	#ifdef UG_DIM_3
@@ -343,6 +374,12 @@ static void Common(Registry& reg, string grp) {
 			"SmoothPartitionBounds3d",
 			grp,
 			"SmoothPartitionBounds");
+
+		RegisterClusterElementStacks<TDomain, Volume, vector3>(
+			reg,
+			"ClusterElementStacks3d",
+			grp,
+			"ClusterElementStacks");
 	}
 	#endif
 

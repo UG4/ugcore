@@ -7,6 +7,7 @@
 
 #include "normal_calculation.h"
 #include "geom_obj_util/face_util.h"
+#include "common/math/ugmath.h"
 
 namespace ug{
 
@@ -72,6 +73,27 @@ CalculateOuterNormal(GridObject* o, int sideIndex, TAAPos aaPos)
 			return CalculateOuterNormal(static_cast<Volume*>(o), sideIndex, aaPos);
 	}
 	UG_THROW("Unsupported base object id in CalculateOuterNormal");
+}
+
+
+inline vector2
+CalculateNormal(EdgeVertices* edge,
+				Grid::AttachmentAccessor<Vertex, Attachment<vector2> >& aaPos)
+{
+	vector2 d;
+	VecSubtract(d, aaPos[edge->vertex(1)], aaPos[edge->vertex(0)]);
+	VecNormalize(d, d);
+	return vector2(d.y(), -d.x());
+}
+
+
+inline vector3
+CalculateNormal(FaceVertices* face,
+				Grid::AttachmentAccessor<Vertex, Attachment<vector3> >& aaPos)
+{
+	vector3 n;
+	CalculateNormal(n, face, aaPos);
+	return n;
 }
 
 }//	end of namespace

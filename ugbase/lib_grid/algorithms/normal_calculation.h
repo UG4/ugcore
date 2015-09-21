@@ -40,6 +40,15 @@ CalculateOuterNormal(GridObject* v, int sideIndex, TAAPos aaPos);
 
 /** \} */
 
+
+inline vector2
+CalculateNormal(EdgeVertices* edge,
+				Grid::AttachmentAccessor<Vertex, APosition2>& aaPos);
+
+inline vector3
+CalculateNormal(FaceVertices* face,
+				Grid::AttachmentAccessor<Vertex, APosition>& aaPos);
+
 /** \} */	//	end of docu-group normal_calculation
 }//	end of namespace
 

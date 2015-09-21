@@ -76,6 +76,10 @@ void RegisterGridBridge_Grid(Registry& reg, string parentGroup)
 		.add_method("num_hexahedrons", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<Hexahedron>)
 		.set_construct_as_smart_pointer(true);
 
+//	standard attachments
+	reg.add_class_<APosition1>("APosition1");
+	reg.add_class_<APosition2>("APosition2");
+	reg.add_class_<APosition3>("APosition3");
 }
 
 }//	end of namespace
