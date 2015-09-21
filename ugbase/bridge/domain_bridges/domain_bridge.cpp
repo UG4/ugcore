@@ -463,7 +463,7 @@ static void Domain(Registry& reg, string grp)
 
 //	geometry information
 	reg.add_function("GetMaxEdgeLength", &GetMaxEdgeLength<TDomain>, grp);
-	reg.add_function("PrintElementEdgeRatios", &PrintElementEdgeRatios<TDomain>, grp);
+	reg.add_function("PrintElementEdgeRatios", static_cast<void (*)(TDomain&)>(&PrintElementEdgeRatios<TDomain>), grp);
 //	debugging
 	reg.add_function("TestDomainInterfaces", &TestDomainInterfaces<TDomain>, grp);
 
