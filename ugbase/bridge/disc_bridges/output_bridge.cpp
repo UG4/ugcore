@@ -91,7 +91,12 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("print", static_cast<void (T::*)(const char*, function_type&, bool)>(&T::print))
 			.add_method("print", static_cast<void (T::*)(const char*, function_type&)>(&T::print))
 			.add_method("print_subset", static_cast<void (T::*)(const char*, function_type&, int, int, number, bool)>(&T::print_subset))
-			.add_method("print_subset", static_cast<void (T::*)(const char*, function_type&, int, int, number)>(&T::print_subset));
+			.add_method("print_subset", static_cast<void (T::*)(const char*, function_type&, int, int, number)>(&T::print_subset))
+			.add_method("print_subsets", static_cast<void (T::*)(const char*, function_type&, const char*, int, number, bool)>(&T::print_subsets))
+			.add_method("print_subsets", static_cast<void (T::*)(const char*, function_type&, const char*, int, number)>(&T::print_subsets))
+			.add_method("print_subsets", static_cast<void (T::*)(const char*, function_type&, const char*, bool)>(&T::print_subsets))
+			.add_method("print_subsets", static_cast<void (T::*)(const char*, function_type&, const char*)>(&T::print_subsets))
+			;
 			
 	}
 
