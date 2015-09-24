@@ -329,9 +329,9 @@ function util.Balance(DataToBeWrittenTable)
 			local subsets = vtkData[3]
 
 			if verbose then write(" * Write VTK-data to '"..file.."' ... ") end
-
+			
 			if type(subsets) == "string" then
-				vtkOut:print(file, u, step, time) 
+				vtkOut:print_subsets(file, u, subsets, step, time) 
 				vtkOut:write_time_pvd(file, u) 				
 			else
 				vtkOut:print(file, u, step, time) 
