@@ -4,13 +4,13 @@
  *  Created on: 13.07.2010
  *      Author: andreasvogel
  */
-
-#include "./subset_group.h"
-#include "common/common.h"
-#include "common/util/string_util.h"
-#include "lib_disc/common/subset_util.h"
 #include <algorithm>
 #include <cstring>
+
+#include "subset_group.h"
+#include "common/common.h"
+#include "common/util/string_util.h"
+#include "lib_grid/algorithms/subset_dim_util.h"
 
 using namespace std;
 

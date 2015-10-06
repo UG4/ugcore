@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__UG__LIB_DISC__COMMON__SUBSET_GROUP__
-#define __H__UG__LIB_DISC__COMMON__SUBSET_GROUP__
+#ifndef __H__UG__LIB_GRID__SUBSET_GROUP__
+#define __H__UG__LIB_GRID__SUBSET_GROUP__
 
 #include <vector>
 #include <string>
@@ -151,4 +151,4 @@ class SubsetGroup
 
 } // end namespace ug
 
-#endif /*__H__UG__LIB_DISC__COMMON__SUBSET_GROUP__ */
+#endif /*__H__UG__LIB_GRID__SUBSET_GROUP__ */

@@ -5,7 +5,7 @@
  *      Author: andreasvogel
  */
 
-#include "subset_util.h"
+#include "subset_dim_util.h"
 #include "lib_grid/lg_base.h"
 
 namespace ug{
