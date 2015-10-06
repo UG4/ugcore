@@ -20,6 +20,7 @@
 #include "subdivision/subdivision_loop.h"
 #include "extruder_util.h"
 #include "subset_util.h"
+#include "subset_dim_util.h"
 #include "attachment_util.h"
 #include "serialization.h"
 #include "selection_util.h"

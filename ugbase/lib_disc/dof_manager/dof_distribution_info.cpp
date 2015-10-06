@@ -6,8 +6,8 @@
  */
 
 #include "dof_distribution_info.h"
+#include "lib_grid/tools/subset_group.h"
 #include "lib_disc/common/function_group.h"
-#include "lib_disc/common/subset_group.h"
 #include "lib_disc/reference_element/reference_element_util.h"
 #include "lib_disc/local_finite_element/local_finite_element_provider.h"
 

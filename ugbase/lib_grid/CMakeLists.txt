@@ -22,6 +22,7 @@ set(srcAlgorithms	algorithms/debug_util.cpp
 					algorithms/field_util.cpp
 					algorithms/heightfield_util.cpp
 					algorithms/subset_util.cpp
+					algorithms/subset_dim_util.cpp
 					algorithms/selection_util.cpp
 					algorithms/serialization.cpp
 					algorithms/grid_statistics.cpp
@@ -100,6 +101,7 @@ set(srcLibGrid	common_attachments.cpp
 				tools/partition_map.cpp
 				tools/periodic_boundary_manager.cpp
 				tools/grid_level.cpp
+				tools/subset_group.cpp
 				grid_objects/grid_objects_1d.cpp
 				grid_objects/grid_objects_2d.cpp
 				grid_objects/grid_objects_3d.cpp

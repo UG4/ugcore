@@ -10,7 +10,7 @@
 
 #include <vector>
 #include <string>
-#include "lib_disc/common/subset_group.h"
+#include "lib_grid/tools/subset_group.h"
 #include "lib_disc/common/function_group.h"
 #include "lib_disc/dof_manager/function_pattern.h"
 

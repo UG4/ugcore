@@ -31,7 +31,6 @@
 #include "common/groups_util.h"
 #include "common/local_algebra.h"
 #include "common/multi_index.h"
-#include "common/subset_group.h"
 
 // DoF Manager
 #include "dof_manager/function_pattern.h"

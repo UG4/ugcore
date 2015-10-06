@@ -12,10 +12,10 @@
 #include <string>
 
 #include "common/common.h"
-#include "lib_grid/tools/subset_handler_interface.h"
-#include "lib_disc/common/subset_util.h"
-#include "lib_disc/common/subset_group.h"
 #include "common/util/string_util.h"
+#include "lib_grid/tools/subset_handler_interface.h"
+#include "lib_grid/tools/subset_group.h"
+#include "lib_grid/algorithms/subset_dim_util.h"
 #include "lib_disc/local_finite_element/local_finite_element_id.h"
 
 namespace ug{

@@ -11,7 +11,7 @@
 #include <cmath>
 
 #include "common/common.h"
-#include "lib_disc/common/subset_group.h"
+#include "lib_grid/tools/subset_group.h"
 #include "lib_disc/common/function_group.h"
 #include "lib_disc/common/groups_util.h"
 

@@ -19,7 +19,6 @@
 #include "lib_grid/tools/surface_view.h"
 #include "lib_grid/algorithms/multi_grid_util.h"
 #include "lib_disc/function_spaces/integrate.h"
-//#include "lib_disc/common/subset_util.h"	// for DimensionOfSubset
 
 #ifdef UG_PARALLEL
  	#include "lib_grid/parallelization/util/compol_attachment_reduce.h"

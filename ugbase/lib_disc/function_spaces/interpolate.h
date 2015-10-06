@@ -11,8 +11,9 @@
 #include "common/common.h"
 #include "common/util/smart_pointer.h"
 
+#include "lib_grid/tools/subset_group.h"
+
 #include "lib_disc/domain_util.h"
-#include "lib_disc/common/subset_group.h"
 #include "lib_disc/common/groups_util.h"
 #include "lib_disc/local_finite_element/local_finite_element_provider.h"
 #include "lib_disc/spatial_disc/user_data/const_user_data.h"

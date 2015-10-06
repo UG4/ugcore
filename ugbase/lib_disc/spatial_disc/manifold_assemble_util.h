@@ -15,8 +15,8 @@
 
 // other ug4 modules
 #include "common/common.h"
+#include "lib_grid/tools/subset_group.h"
 #include "lib_disc/common/function_group.h"
-#include "lib_disc/common/subset_group.h"
 #include "lib_disc/common/groups_util.h"
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
 

@@ -15,9 +15,7 @@ set(srcDiscretization	domain.cpp
 						domain_util.cpp
 
                         common/function_group.cpp
-						common/subset_group.cpp
 						common/groups_util.cpp
-						common/subset_util.cpp
 
 						dof_manager/function_pattern.cpp
 						dof_manager/orientation.cpp
