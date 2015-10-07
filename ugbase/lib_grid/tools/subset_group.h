@@ -149,6 +149,20 @@ class SubsetGroup
 		std::vector<int> m_vSubset; ///< selected Subset Indices
 };
 
+/**
+ * Returns if dimension is the same in all subsets of the subset group
+ * @param subsetGroup	subset group that is checked
+ * @returns true if dimension is the same in all subsets, else false
+ */
+bool SameDimensionsInAllSubsets(const SubsetGroup& subsetGroup);
+
+/**
+ * Removes all subsets from the subset group that have a lower dimension than the
+ * highest dimension contained in the subset group.
+ * @param subsetGroup 	subset group that is modified
+ */
+void RemoveLowerDimSubsets(SubsetGroup& subsetGroup);
+
 } // end namespace ug
 
 #endif /*__H__UG__LIB_GRID__SUBSET_GROUP__ */

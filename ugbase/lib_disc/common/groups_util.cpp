@@ -15,48 +15,6 @@ using namespace std;
 
 namespace ug{
 
-bool SameDimensionsInAllSubsets(const SubsetGroup& subsetGroup)
-{
-//	compute maximum
-	int max = numeric_limits<int>::min();
-	for(size_t s = 0; s < subsetGroup.size(); ++s)
-		max = std::max(subsetGroup.dim(s), max);
-
-//	check
-	for(size_t s = 0; s < subsetGroup.size(); ++s)
-		if(subsetGroup.dim(s) < max)
-			return false;
-
-//	same dimension in all subsets
-	return true;
-}
-
-void RemoveLowerDimSubsets(SubsetGroup& subsetGroup)
-{
-//	compute maximum
-	int max = numeric_limits<int>::min();
-	for(size_t s = 0; s < subsetGroup.size(); ++s)
-		max = std::max(subsetGroup.dim(s), max);
-
-//	check
-	size_t s = 0;
-	while(s < subsetGroup.size())
-	{
-		if(subsetGroup.dim(s) < max)
-		{
-			// remove and start again
-			subsetGroup.remove(subsetGroup[s]);
-			s = 0;
-		}
-		else
-		{
-			// next
-			++s;
-		}
-	}
-}
-
-
 void
 CreateFunctionIndexMapping(FunctionIndexMapping& map,
                            const FunctionGroup& grpFromSmall,

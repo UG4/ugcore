@@ -10,29 +10,10 @@
 
 #include <vector>
 #include <string>
-#include "lib_grid/tools/subset_group.h"
 #include "lib_disc/common/function_group.h"
 #include "lib_disc/dof_manager/function_pattern.h"
 
 namespace ug{
-
-////////////////////////////////////////////////////////////////////////////////
-//	Subset Group
-////////////////////////////////////////////////////////////////////////////////
-
-/**
- * Returns if dimension is the same in all subsets of the subset group
- * @param subsetGroup	subset group that is checked
- * @returns true if dimension is the same in all subsets, else false
- */
-bool SameDimensionsInAllSubsets(const SubsetGroup& subsetGroup);
-
-/**
- * Removes all subsets from the subset group that have a lower dimension than the
- * highest dimension contained in the subset group.
- * @param subsetGroup 	subset group that is modified
- */
-void RemoveLowerDimSubsets(SubsetGroup& subsetGroup);
 
 ////////////////////////////////////////////////////////////////////////////////
 //	Index Mapping
