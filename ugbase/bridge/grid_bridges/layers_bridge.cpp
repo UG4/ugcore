@@ -2,6 +2,8 @@
 // s.b.reiter@gmail.com
 
 #include "grid_bridges.h"
+#include "bridge/suffix_tag.h"
+#include "lib_grid/algorithms/deg_layer_mngr.h"
 #include "lib_grid/algorithms/extrusion/expand_layers.h"
 #include "lib_grid/algorithms/grid_generation/horizontal_layers_mesher.h"
 
@@ -9,6 +11,29 @@ using namespace std;
 
 namespace ug{
 namespace bridge{
+
+/**
+ * A template function for registering a degenerated layer manager for a
+ * specified dimensionality.
+ */
+template <int dim>
+static void RegisterDegeneratedLayerManager(Registry& reg, string grp)
+{
+	string suffix = GetDimensionSuffix<dim>();
+	string tag = GetDimensionTag<dim>();
+
+	typedef DegeneratedLayerManager<dim> T;
+	string name = string("DegeneratedLayerManager").append(suffix);
+	reg.add_class_<T>(name, grp)
+		.template add_constructor<void (*) (SmartPtr<MultiGridSubsetHandler>)>("MultiGridSubsetHandler")
+		.add_method("add", static_cast<void (T::*) (const char*)>(&T::add), "Adds degenerated subsets to the manager", "subset(s)")
+		.add_method("remove", static_cast<void (T::*) (const char*)>(&T::remove), "Removes subsets from the manager", "subset(s)")
+		.add_method("close", static_cast<void (T::*) ()>(&T::close), "Finalizes the fracture manager", "")
+		.add_method("contains", static_cast<bool (T::*) (int)>(&T::contains), "Is subset registered in the manager", "subset(s)")
+		.add_method("init_refiner", static_cast<void (T::*) (SmartPtr<GlobalFracturedMediaRefiner>,bool)>(&T::init_refiner), "Init. refiner", "refiner#as low dim")
+		.set_construct_as_smart_pointer(true);
+	reg.add_class_to_group(name, "DegeneratedLayerManager", tag);
+}
 
 ////////////////////////////////////////////////////////////////////////
 ///	A helper class for ExpandLayers.
@@ -33,6 +58,9 @@ class ExpandLayersDesc : public std::vector<FractureInfo>
 void RegisterGridBridge_Layers(Registry& reg, string parentGroup)
 {
 	string grp = parentGroup;
+	
+	RegisterDegeneratedLayerManager<2> (reg, grp);
+	RegisterDegeneratedLayerManager<3> (reg, grp);
 
 	typedef vector<FractureInfo> FracInfoVec;
 	reg.add_class_<FracInfoVec>("FractureInfoVec", grp);
