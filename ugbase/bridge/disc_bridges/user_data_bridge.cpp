@@ -19,8 +19,6 @@
 #include "lib_disc/spatial_disc/user_data/user_function.h"
 #include "lib_disc/spatial_disc/user_data/common_user_data/common_user_data.h"
 
-#include "lib_disc/spatial_disc/user_data/common_user_data/rotating_cone.h"
-
 using namespace std;
 
 namespace ug{
@@ -305,6 +303,20 @@ static void Dimension(Registry& reg, string grp)
 		reg.add_class_to_group(name, string("LognormalRandomField"), dimTag);
 	}
 
+//	Inverse-distance-weighting interpolation
+	{
+		typedef IDWUserData<dim, number> T;
+		typedef CplUserData<number, dim> TBase;
+		string name = string("IDWUserData").append(dimSuffix);
+		reg.add_class_<T, TBase>(name, grp)
+		   .add_method("load_data_from", static_cast<void (T::*)(const char*)>(&T::load_data_from), "loads data from a file", "file name")
+		   .add_method("set_order", static_cast<void (T::*)(number)>(&T::set_order), "sets order of the IDW-interpolation", "order")
+		   .add_method("set_radius", static_cast<void (T::*)(number)>(&T::set_radius), "sets radius of the neighbourhood for the IDW-interpolation", "radius")
+		   .add_constructor()
+		   .template add_constructor<void(*)(number,number)> ("order#radius")
+		   .set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "IDWUserData", dimTag);
+	}
 }
 
 /**
