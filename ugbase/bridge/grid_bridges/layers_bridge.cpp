@@ -59,8 +59,12 @@ void RegisterGridBridge_Layers(Registry& reg, string parentGroup)
 {
 	string grp = parentGroup;
 	
+#ifdef UG_DIM_2
 	RegisterDegeneratedLayerManager<2> (reg, grp);
+#endif
+#ifdef UG_DIM_3
 	RegisterDegeneratedLayerManager<3> (reg, grp);
+#endif
 
 	typedef vector<FractureInfo> FracInfoVec;
 	reg.add_class_<FracInfoVec>("FractureInfoVec", grp);
