@@ -198,7 +198,7 @@ new_vertex(Vertex* vrt, Vertex* parent)
 	Grid& g = *BaseClass::m_pGrid;
 	bool volumesExist = g.num<Volume>() > 0;
 
-	if(volumesExist){
+	if(volumesExist){m_aaTargetPos[vrt] = CalculateCenter(parent, BaseClass::m_aaPos);
 		if(!IsBoundaryVertex3D(g, parent)){
 			aaPos[vrt] = aaPos[parent];
 			return;
@@ -285,7 +285,7 @@ new_vertex(Vertex* vrt, Edge* parent)
 	Grid& g = *BaseClass::m_pGrid;
 	if(g.num<Volume>() > 0){
 		if(!IsBoundaryEdge3D(g, parent)){
-			aaPos[vrt] = CalculateCenter(parent, aaPos);
+			m_aaTargetPos[vrt] = CalculateCenter(parent, aaPos);
 			return;
 		}
 	}
