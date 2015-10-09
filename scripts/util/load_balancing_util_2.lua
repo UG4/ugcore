@@ -47,6 +47,7 @@ util.balancer.defaults =
 			enableYCuts = true,
 			enableZCuts = true,
 			clusteredSiblings = true,
+			balanceThreshold = 0.9
 		},
 
 		staticBisection =
@@ -56,6 +57,7 @@ util.balancer.defaults =
 			enableYCuts = true,
 			enableZCuts = true,
 			clusteredSiblings = true,
+			balanceThreshold = 0.9
 		},
 
 		parmetis =
@@ -67,6 +69,7 @@ util.balancer.defaults =
 			itrFactor		= 1000,
 			verbose = false,
 			clusteredSiblings = true,
+			balanceThreshold = 0.9
 		}
 	},
 
