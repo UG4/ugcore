@@ -7,6 +7,7 @@
 #include "bridge/util.h"
 #include "bridge/util_domain_dependent.h"
 #include "lib_grid/algorithms/space_partitioning/lg_ntree.h"
+#include "lib_grid/tools/subset_group.h"
 
 
 using namespace std;
@@ -46,6 +47,14 @@ class DomainRayTracer {
 			}
 
 			m_tree.create_tree(tris.begin(), tris.end());
+		}
+		
+		void init (const char* subsetNames)
+		{
+			std::vector<std::string> vNames = TokenizeString (subsetNames);
+			SubsetGroup ssGrp (m_dom->subset_handler());
+			ssGrp.add (vNames);
+			init (ssGrp.index_vector ());
 		}
 
 		size_t trace_ray(const vector_t& from, const vector_t& dir)
@@ -106,17 +115,21 @@ namespace domain_ray_tracing {
 
 struct Functionality {
 
-	static void Common(Registry& reg, string grp) {
+	static void Common(Registry& reg, string grp)
+	{
+		typedef DomainRayTracer T;
+		
 		reg.add_class_<DomainRayTracer>("DomainRayTracer", grp)
 				.add_constructor<void (*)(Domain3d&)> ()
-				.add_method("set_small", &DomainRayTracer::set_small, "", "small", "")
-				.add_method("init", &DomainRayTracer::init, "", "subsetIndices", "")
-				.add_method("trace_ray", &DomainRayTracer::trace_ray, "", "rayFrom # rayTo", "")
-				.add_method("num_trace_points", &DomainRayTracer::num_trace_points, "numPoints", "", "")
-				.add_method("trace_point", &DomainRayTracer::trace_point, "point", "index", "")
-				.add_method("trace_point_x", &DomainRayTracer::trace_point_x, "xCoord", "index", "")
-				.add_method("trace_point_y", &DomainRayTracer::trace_point_y, "yCoord", "index", "")
-				.add_method("trace_point_z", &DomainRayTracer::trace_point_z, "zCoord", "index", "");
+				.add_method("set_small", &T::set_small, "", "small", "")
+				.add_method("init", static_cast<void (T::*) (const std::vector<int>&)>(&T::init), "", "subsetIndices", "")
+				.add_method("init", static_cast<void (T::*) (const char*)>(&T::init), "", "subsetNames", "")
+				.add_method("trace_ray", &T::trace_ray, "", "rayFrom # rayTo", "")
+				.add_method("num_trace_points", &T::num_trace_points, "numPoints", "", "")
+				.add_method("trace_point", &T::trace_point, "point", "index", "")
+				.add_method("trace_point_x", &T::trace_point_x, "xCoord", "index", "")
+				.add_method("trace_point_y", &T::trace_point_y, "yCoord", "index", "")
+				.add_method("trace_point_z", &T::trace_point_z, "zCoord", "index", "");
 	}
 }; // end Functionality
 
