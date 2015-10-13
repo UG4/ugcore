@@ -51,10 +51,9 @@ class DomainRayTracer {
 		
 		void init (const char* subsetNames)
 		{
-			std::vector<std::string> vNames = TokenizeString (subsetNames);
-			SubsetGroup ssGrp (m_dom->subset_handler());
-			ssGrp.add (vNames);
-			init (ssGrp.index_vector ());
+			SubsetGroup ssGrp(m_dom->subset_handler());
+			ssGrp.add(TokenizeString(subsetNames));
+			init(ssGrp.index_vector());
 		}
 
 		size_t trace_ray(const vector_t& from, const vector_t& dir)
