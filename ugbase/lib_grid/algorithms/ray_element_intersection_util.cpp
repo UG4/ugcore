@@ -20,7 +20,8 @@ RayElementIntersectionImpl(
 		const vector_t& dir,
 		TElem* e,
 		Grid& g,
-		Grid::VertexAttachmentAccessor<Attachment<vector_t> > aaPos)
+		Grid::VertexAttachmentAccessor<Attachment<vector_t> > aaPos,
+		number sml)
 {
 	typedef typename TElem::side	side_t;
 
@@ -32,7 +33,7 @@ RayElementIntersectionImpl(
 
 	for_each_in_vec(side_t* s, sides){
 		number tsmin, tsmax;
-		if(RayElementIntersection(tsmin, tsmax, from, dir, s, g, aaPos)){
+		if(RayElementIntersection(tsmin, tsmax, from, dir, s, g, aaPos, sml)){
 			if(numIntersections == 0)
 				smin = smax = tsmin;
 			else{
@@ -57,12 +58,13 @@ bool RayElementIntersection(
 		const vector2& dir,
 		Edge* e,
 		Grid&,
-		Grid::VertexAttachmentAccessor<AVector2> aaPos)
+		Grid::VertexAttachmentAccessor<AVector2> aaPos,
+		number sml)
 {
 	vector2 v;
 	number t;
 	bool ret = RayLineIntersection2d(v, t, sminOut, aaPos[e->vertex(0)],
-									 aaPos[e->vertex(1)], from, dir);
+									 aaPos[e->vertex(1)], from, dir, sml);
 	smaxOut = sminOut;
 	return ret;
 }
@@ -75,9 +77,10 @@ bool RayElementIntersection(
 		const vector2& dir,
 		Face* f,
 		Grid& g,
-		Grid::VertexAttachmentAccessor<AVector2> aaPos)
+		Grid::VertexAttachmentAccessor<AVector2> aaPos,
+		number sml)
 {
-	return RayElementIntersectionImpl(sminOut, smaxOut, from, dir, f, g, aaPos);
+	return RayElementIntersectionImpl(sminOut, smaxOut, from, dir, f, g, aaPos, sml);
 }
 
 
@@ -89,7 +92,8 @@ bool RayElementIntersection(
 		const vector3& dir,
 		Face* f,
 		Grid&,
-		Grid::VertexAttachmentAccessor<AVector3> aaPos)
+		Grid::VertexAttachmentAccessor<AVector3> aaPos,
+		number sml)
 {
 		vector3 v;
 		number t0, t1;
@@ -102,7 +106,7 @@ bool RayElementIntersection(
 					aaPos[f->vertex(0)],
 					aaPos[f->vertex(i + 1)],
 					aaPos[f->vertex(i + 2)],
-					from, dir);
+					from, dir, sml);
 			++i;
 		}while(!ret && (i + 2 < f->num_vertices()));
 
@@ -118,9 +122,10 @@ bool RayElementIntersection(
 		const vector3& dir,
 		Volume* v,
 		Grid& g,
-		Grid::VertexAttachmentAccessor<AVector3> aaPos)
+		Grid::VertexAttachmentAccessor<AVector3> aaPos,
+		number sml)
 {
-	return RayElementIntersectionImpl(sminOut, smaxOut, from, dir, v, g, aaPos);
+	return RayElementIntersectionImpl(sminOut, smaxOut, from, dir, v, g, aaPos, sml);
 }
 
 //  3d edge intersection
@@ -131,7 +136,8 @@ bool RayElementIntersection(
 		const vector3& dir,
 		Edge* e,
 		Grid& g,
-		Grid::VertexAttachmentAccessor<AVector3> aaPos)
+		Grid::VertexAttachmentAccessor<AVector3> aaPos,
+		number sml)
 {
 	return false;
 }

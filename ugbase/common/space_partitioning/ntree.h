@@ -29,6 +29,12 @@ struct ntree_traits
 	static void calculate_bounding_box(box_t& boxOut, const elem_t& e,
 									   const common_data_t& commonData);
 
+///	adds the given offset to box.max and subtracts it from box.min
+	static void grow_box(box_t& boxOut, const box_t& box,
+						 const vector_t& offset);
+
+	static vector_t box_diagonal(const box_t& box);
+
 	static bool box_contains_point(const box_t& box, const vector_t& point);
 
 ///	returns true if the given boxes intersect

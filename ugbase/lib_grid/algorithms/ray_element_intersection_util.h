@@ -35,7 +35,8 @@ bool RayElementIntersection(
 		const vector2& dir,
 		Edge* e,
 		Grid& g,
-		Grid::VertexAttachmentAccessor<AVector2> aaPos);
+		Grid::VertexAttachmentAccessor<AVector2> aaPos,
+		number sml = SMALL);
 
 ///	2d ray-element intersection for faces
 /**	If the method returns true, the point where the ray enters and
@@ -53,7 +54,8 @@ bool RayElementIntersection(
 		const vector2& dir,
 		Face* f,
 		Grid& g,
-		Grid::VertexAttachmentAccessor<AVector2> aaPos);
+		Grid::VertexAttachmentAccessor<AVector2> aaPos,
+		number sml = SMALL);
 
 
 ///	3d ray-element intersection for faces
@@ -81,7 +83,8 @@ bool RayElementIntersection(
 		const vector3& dir,
 		Face* f,
 		Grid& g,
-		Grid::VertexAttachmentAccessor<AVector3> aaPos);
+		Grid::VertexAttachmentAccessor<AVector3> aaPos,
+		number sml = SMALL);
 
 ///	3d ray-element intersection for volumes
 /**	If the method returns true, the point where the ray enters and
@@ -99,7 +102,8 @@ bool RayElementIntersection(
 		const vector3& dir,
 		Volume* v,
 		Grid& g,
-		Grid::VertexAttachmentAccessor<AVector3> aaPos);
+		Grid::VertexAttachmentAccessor<AVector3> aaPos,
+		number sml = SMALL);
 
 ///	3d ray-element intersection for edges
 /** Not implemented yet, always returns false
@@ -111,7 +115,8 @@ bool RayElementIntersection(
 		const vector3& dir,
 		Edge* e,
 		Grid& g,
-		Grid::VertexAttachmentAccessor<AVector3> aaPos);
+		Grid::VertexAttachmentAccessor<AVector3> aaPos,
+		number sml = SMALL);
 
 }//	end of namespace
 

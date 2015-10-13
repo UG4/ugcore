@@ -305,7 +305,8 @@ bool RayRayIntersection2d(vector_t &vOut, number& t0Out, number& t1Out,
 template <class vector_t>
 bool RayLineIntersection2d(vector_t &vOut, number& bcOut, number& tOut,
 						   const vector_t &p0, const vector_t &p1,
-						   const vector_t &vFrom, const vector_t &vDir);
+						   const vector_t &vFrom, const vector_t &vDir,
+						   number sml = 0);
 
 
 ////////////////////////////////////////////////////////////////////////

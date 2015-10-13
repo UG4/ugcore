@@ -313,7 +313,12 @@ class Traverser_RayElementIntersection
 
 		int visit_up(const tree_t& tree, size_t node)
 		{
-			const box_t& box = tree.bounding_box(node);
+			box_t box = tree.bounding_box(node);
+			vector_t vsmall;
+			VecSet(vsmall, m_small);
+			VecScale(vsmall, vsmall, VecLength(tree_t::traits::box_diagonal(box)));
+			tree_t::traits::grow_box(box, box, vsmall);
+
 			if(!tree_t::traits::ray_box_intersection(m_rayFrom, m_rayDir, box))
 				return DONT_TRAVERSE_CHILDREN;
 
@@ -327,7 +332,7 @@ class Traverser_RayElementIntersection
 				{
 					if(tree_t::traits::intersects_ray(
 							*iter, m_rayFrom, m_rayDir, tree.common_data(),
-							smin, smax))
+							smin, smax, m_small))
 					{
 						m_intersections.push_back(intersection_record_t(smin, smax, *iter));
 					}

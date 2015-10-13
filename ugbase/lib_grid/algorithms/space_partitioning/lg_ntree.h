@@ -84,6 +84,20 @@ struct lg_ntree_traits_base
 			boxOut = box_t(boxOut, commonData.position(vrts[i]));
 	}
 
+	static void grow_box(box_t& boxOut, const box_t& box,
+						 const vector_t& offset)
+	{
+		VecSubtract(boxOut.min, box.min, offset);
+		VecAdd(boxOut.max, box.max, offset);
+	}
+
+	static vector_t box_diagonal(const box_t& box)
+	{
+		vector_t d;
+		VecSubtract(d, box.max, box.min);
+		return d;
+	}
+
 	static bool box_contains_point(const box_t& box, const vector_t& point)
 	{
 		return box.contains_point(point);
@@ -147,11 +161,13 @@ struct lg_ntree_traits_base
 								const vector_t& rayDir,
 								const common_data_t& cd,
 								number& s0out,
-								number& s1out)
+								number& s1out,
+								number sml = SMALL)
 	{
 		UG_COND_THROW(!cd.grid_ptr(), "No grid assigned to ntree::common_data.");
 		return RayElementIntersection(s0out, s1out, rayFrom, rayDir,
-									  e, *cd.grid_ptr(), cd.position_accessor());
+									  e, *cd.grid_ptr(), cd.position_accessor(),
+									  sml);
 	}
 
 	static bool intersects_ray( Face* e,
@@ -159,11 +175,13 @@ struct lg_ntree_traits_base
 								const vector_t& rayDir,
 								const common_data_t& cd,
 								number& s0out,
-								number& s1out)
+								number& s1out,
+								number sml = SMALL)
 	{
 		UG_COND_THROW(!cd.grid_ptr(), "No grid assigned to ntree::common_data.");
 		return RayElementIntersection(s0out, s1out, rayFrom, rayDir,
-									  e, *cd.grid_ptr(), cd.position_accessor());
+									  e, *cd.grid_ptr(), cd.position_accessor(),
+									  sml);
 	}
 
 	static bool intersects_ray( Volume* e,
@@ -171,11 +189,13 @@ struct lg_ntree_traits_base
 								const vector_t& rayDir,
 								const common_data_t& cd,
 								number& s0out,
-								number& s1out)
+								number& s1out,
+								number sml = SMALL)
 	{
 		UG_COND_THROW(!cd.grid_ptr(), "No grid assigned to ntree::common_data.");
 		return RayElementIntersection(s0out, s1out, rayFrom, rayDir,
-									  e, *cd.grid_ptr(), cd.position_accessor());
+									  e, *cd.grid_ptr(), cd.position_accessor(),
+									  sml);
 	}
 };
 

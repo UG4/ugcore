@@ -399,12 +399,13 @@ bool RayRayIntersection2d(vector_t &vOut, number& t0Out, number& t1Out,
 template <class vector_t>
 bool RayLineIntersection2d(vector_t &vOut, number& bcOut, number& tOut,
 						   const vector_t &p0, const vector_t &p1,
-						   const vector_t &vFrom, const vector_t &vDir)
+						   const vector_t &vFrom, const vector_t &vDir,
+						   number sml)
 {
 	vector_t dir0;
 	VecSubtract(dir0, p1, p0);
 	if(RayRayIntersection2d(vOut, bcOut, tOut, p0, dir0, vFrom, vDir)){
-		if(bcOut >= 0 && bcOut <= 1.)
+		if(bcOut >= -sml && bcOut <= 1.+sml)
 			return true;
 	}
 	return false;
