@@ -100,12 +100,18 @@ class SubsetGroup
 			return m_vSubset.size();
 		}
 
-	/// subset i in this group
+	/// index of the subset # i in this group
 		inline int operator[](size_t i) const
 		{
 			UG_ASSERT(is_init(), "No SubsetHandler set.");
 			UG_ASSERT(i < size(), "requested subset does not exist.");
 			return m_vSubset[i];
+		}
+		
+	///	vector of the subset indices in the group
+		inline const std::vector<int>& index_vector() const
+		{
+			return m_vSubset;
 		}
 
 	///	name of subset
