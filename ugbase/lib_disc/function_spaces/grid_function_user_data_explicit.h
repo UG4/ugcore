@@ -8,6 +8,10 @@
 #ifndef __H__UG__LIB_DISC__FUNCTION_SPACE__CONST_GRID_FUNCTION_USER_DATA__
 #define __H__UG__LIB_DISC__FUNCTION_SPACE__CONST_GRID_FUNCTION_USER_DATA__
 
+
+#include <map>
+#include <string>
+
 #include "common/common.h"
 
 #include "lib_grid/tools/subset_group.h"
@@ -291,7 +295,7 @@ class ExplicitGridFunctionGradient
 
 	/// constructor
 	ExplicitGridFunctionGradient(SmartPtr<TGridFunction> spGridFct, const char* cmp)
-	: base_type(spGridFct, cmp)
+	: base_type(spGridFct, cmp), m_diffCoeffMap()
 	{};
 
 	// evaluate gradient
@@ -323,6 +327,12 @@ class ExplicitGridFunctionGradient
 					vJT = &(vJTTmp[0]);
 				}UG_CATCH_THROW("GridFunctionGradientData: failed.");
 			}
+
+			// scale with coeficient
+			const int   subsetInd  = m_spGridFct->domain()->subset_handler()->get_subset_index(elem);
+			const char* subsetName = m_spGridFct->domain()->subset_handler()->get_subset_name(subsetInd);
+
+			double diffCoeff = get_subset_coeff(std::string(subsetName));
 
 			//	get trial space
 			try{
@@ -357,6 +367,8 @@ class ExplicitGridFunctionGradient
 					Inverse(JTInv, vJT[ip]);
 					MatVecMult(vValue[ip], JTInv, locGrad);
 
+					// scale with diff coeff (TODO: matrix)
+					VecScale(vValue[ip], vValue[ip], diffCoeff);
 				}
 			}
 			UG_CATCH_THROW("ExplicitGridFunctionGradient: Shape Function Set missing for"
@@ -366,6 +378,21 @@ class ExplicitGridFunctionGradient
 
 	bool continuous() const
 	{ return false; }
+
+	void add_subset_coeff(const std::string &key, double val)
+	{
+		m_diffCoeffMap.insert(std::pair<std::string, double>(key, val));
+	}
+
+	double get_subset_coeff(const std::string &key) const
+	{
+		std::map<std::string, double>::const_iterator it = m_diffCoeffMap.find(key);
+		double val = (it != m_diffCoeffMap.end()) ? it->second : 1.0;
+		return val;
+	}
+
+	protected:
+		std::map<std::string, double> m_diffCoeffMap;
 };
 
 
