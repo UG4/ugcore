@@ -204,9 +204,7 @@ function util.balancer.CreatePartitioner(dom, partitionerDesc)
 		if desc.enableYCuts == false then partitioner:enable_split_axis(1, false) end
 		if desc.enableZCuts == false then partitioner:enable_split_axis(2, false) end
 	elseif(name == "parmetis") then
-		util.balancer.CondAbort(
-			ParmetisIsAvailable() == false,
-			"Can't create 'parmetis' partitioner: 'parmetis' isn't available")
+		RequiredPlugins({"Parmetis"})
 
 		partitioner = Partitioner_Parmetis(dom)
 		partitioner:set_child_weight(desc.childWeight or defaults.childWeight)

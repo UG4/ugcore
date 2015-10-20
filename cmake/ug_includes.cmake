@@ -59,8 +59,6 @@ set(buildBridge OFF)
 set(buildBindings OFF)
 set(buildRegistry OFF)
 set(buildCompileInfo ON)
-set(buildMetis OFF)
-set(buildParmetis OFF)
 
 # Here we'll store libs, if we find and need them
 set(linkLibraries)
@@ -152,8 +150,6 @@ option(PROFILE_BRIDGE "Enables profiling of bridge objects. Valid options are ON
 option(PCL_DEBUG_BARRIER "Enables debug barriers in the pcl-library. Valid options are ON, OFF" OFF)
 option(LAPACK "Lapack won't be used, even if available. Valid options are ON, OFF" ${lapackDefault})
 option(BLAS "Blas won't be used, even if available. Valid options are ON, OFF" ${blasDefault})
-option(METIS "Embeds the Metis library into UG. Valid options are ON, OFF" OFF)
-option(PARMETIS "Embeds the Parmetis library for non commercial use. Valid options are ON, OFF" OFF)
 option(INTERNAL_BOOST "If enabled, the boost version found in the externals directory will be used. Valid options are ON, OFF" ${internalBoostDefault})
 option(BUILTIN_BLAS "BLAS is built into compiler" OFF)
 option(BUILTIN_LAPACK "LAPACK is built into compiler" OFF)
@@ -249,8 +245,6 @@ message(STATUS "Info: CPU_FREQ:          ${CPU_FREQ} (options are: ON, OFF)")
 message(STATUS "Info: PROFILE_BRIDGE:    ${PROFILE_BRIDGE} (options are: ON, OFF)")
 message(STATUS "Info: LAPACK:            ${LAPACK} (options are: ON, OFF)")
 message(STATUS "Info: BLAS:              ${BLAS} (options are: ON, OFF)")
-message(STATUS "Info: METIS:             ${METIS} (options are: ON, OFF)")
-message(STATUS "Info: PARMETIS:          ${PARMETIS} (options are: ON, OFF)")
 message(STATUS "Info: INTERNAL_BOOST:    ${INTERNAL_BOOST} (options are: ON, OFF)")
 message(STATUS "Info: EMBEDDED_PLUGINS   ${EMBEDDED_PLUGINS} (options are: ON, OFF)")
 message(STATUS "Info: COMPILE_INFO       ${COMPILE_INFO} (options are: ON, OFF)")
@@ -408,10 +402,6 @@ include(${UG_ROOT_PATH}/cmake/ug/build_algebra.cmake)
 
 
 ########################################
-# METIS
-include(${UG_ROOT_PATH}/cmake/ug/metis.cmake)
-# PARMETIS
-include(${UG_ROOT_PATH}/cmake/ug/parmetis.cmake)    
 # TETGEN
 include(${UG_ROOT_PATH}/cmake/ug/tetgen.cmake)
 # HLIBPRO

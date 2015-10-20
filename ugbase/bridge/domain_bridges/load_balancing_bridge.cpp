@@ -22,9 +22,6 @@
 	#include "lib_grid/parallelization/balance_weights_ref_marks.h"
 	#include "lib_grid/parallelization/partition_post_processors/smooth_partition_bounds.h"
 	#include "lib_grid/parallelization/partition_post_processors/cluster_element_stacks.h"
-	#ifdef UG_PARMETIS
-		#include "lib_grid/parallelization/partitioner_parmetis.h"
-	#endif
 #endif
 
 using namespace std;
@@ -36,22 +33,6 @@ namespace ug{
  * \ingroup domain_bridge
  * \{
  */
-
-static bool MetisIsAvailable()
-{
-	#ifdef UG_METIS
-		return true;
-	#endif
-	return false;
-}
-
-static bool ParmetisIsAvailable()
-{
-	#ifdef UG_PARMETIS
-		return true;
-	#endif
-	return false;
-}
 
 #ifdef UG_PARALLEL
 	template <class TDomain>
@@ -187,9 +168,6 @@ struct Functionality
 {
 
 static void Common(Registry& reg, string grp) {
-	reg.add_function("MetisIsAvailable", &MetisIsAvailable, grp);
-	reg.add_function("ParmetisIsAvailable", &ParmetisIsAvailable, grp);
-
 	#ifdef UG_PARALLEL
 	{
 		typedef ProcessHierarchy T;
@@ -219,34 +197,6 @@ static void Common(Registry& reg, string grp) {
 			.add_constructor<void (*)(IRefiner*)>()
 			.set_construct_as_smart_pointer(true);
 	}
-
-	#ifdef UG_PARMETIS
-	{
-		string name = string("ICommunicationWeights");
-		reg.add_class_<ICommunicationWeights>(name, grp);
-	}
-
-	{
-		string name = string("SubsetCommunicationWeights");
-		typedef SubsetCommunicationWeights T;
-		typedef ICommunicationWeights TBase;
-		reg.add_class_<T, TBase>(name, grp)
-			.add_constructor<void (*)(SmartPtr<IDomain<> >)>()
-			.add_method("set_weight_on_subset", &T::set_weight_on_subset)
-			//.add_method("set_infinite_weight_on_subset", &T::set_infinite_weight_on_subset)
-			.set_construct_as_smart_pointer(true);
-	}
-
-	{
-		string name = string("ProtectSubsetVerticesCommunicationWeights");
-		typedef ProtectSubsetVerticesCommunicationWeights T;
-		typedef ICommunicationWeights TBase;
-		reg.add_class_<T, TBase>(name, grp)
-			.add_constructor<void (*)(SmartPtr<IDomain<> >)>()
-			.add_method("set_weight_on_subset", &T::set_weight_on_subset)
-			.set_construct_as_smart_pointer(true);
-	}
-	#endif
 
 	{
 		typedef IPartitionPostProcessor T;
@@ -498,25 +448,6 @@ static void Domain(Registry& reg, string grp)
 	string tag = GetDomainTag<TDomain>();
 
 	#ifdef UG_PARALLEL
-
-		#ifdef UG_PARMETIS
-		{
-			typedef DomainPartitioner<TDomain, Partitioner_Parmetis<TDomain::dim> > T;
-			string name = string("Partitioner_Parmetis").append(suffix);
-			reg.add_class_<T, IPartitioner>(name, grp)
-				.template add_constructor<void (*)(TDomain&)>()
-				.add_method("set_balance_weights", &T::set_balance_weights)
-				.add_method("set_communication_weights", &T::set_communication_weights)
-				.add_method("set_child_weight", &T::set_child_weight)
-				.add_method("set_sibling_weight", &T::set_sibling_weight)
-				.add_method("set_itr_factor", &T::set_itr_factor)
-				.add_method("set_allowed_imbalance_factor", &T::set_allowed_imbalance_factor)
-				.add_method("edge_cut_on_lvl", &T::edge_cut_on_lvl)
-				.set_construct_as_smart_pointer(true);
-			reg.add_class_to_group(name, "Partitioner_Parmetis", tag);
-		}
-		#endif
-
 		{
 			typedef DomainBalanceWeights<TDomain, AnisotropicBalanceWeights<TDomain::dim> > T;
 			string name = string("AnisotropicBalanceWeights").append(suffix);

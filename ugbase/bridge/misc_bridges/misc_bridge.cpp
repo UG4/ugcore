@@ -197,18 +197,6 @@ bool IsDefinedBLAS_AVAILABLE() { return false; }
 #endif
 
 // External libraries:
-#ifdef UG_METIS
-bool IsDefinedUG_METIS() { return true; }
-#else
-bool IsDefinedUG_METIS() { return false; }
-#endif
-
-#ifdef UG_PARMETIS
-bool IsDefinedUG_PARMETIS() { return true; }
-#else
-bool IsDefinedUG_PARMETIS() { return false; }
-#endif
-
 #ifdef UG_TETGEN
 bool IsDefinedUG_TETGEN() { return true; }
 #else
@@ -330,13 +318,6 @@ void PrintBuildConfiguration()
 
 	// 2. External stuff:
 	UG_LOG("\n2. External libraries:\n");
-	aux_str = "";
-	aux_str.append("METIS:             ").append( (IsDefinedUG_METIS() ? "ON " : "OFF") );
-	UG_LOG(AppendSpacesToString(aux_str,40).append(""));
-
-	aux_str = "";
-	aux_str.append("PARMETIS:          ").append( (IsDefinedUG_PARMETIS() ? "ON " : "OFF") );
-	UG_LOG(AppendSpacesToString(aux_str,40).append("\n"));
 
 	// next pair
 	aux_str = "";
@@ -504,7 +485,6 @@ void RegisterBridge_Misc(Registry &reg, string parentGroup)
 		ADD_DEFINED_FUNC(UG_ENABLE_DEBUG_LOGS);
 		ADD_DEFINED_FUNC(LAPACK_AVAILABLE);
 		ADD_DEFINED_FUNC(BLAS_AVAILABLE);
-		ADD_DEFINED_FUNC(UG_METIS);
 		ADD_DEFINED_FUNC(UG_HYPRE);
 		ADD_DEFINED_FUNC(UG_HLIBPRO);
 

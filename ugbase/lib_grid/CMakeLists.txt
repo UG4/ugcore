@@ -129,10 +129,6 @@ if(PARALLEL)
 							parallelization/parallel_refinement/parallel_global_fractured_media_refiner.cpp
 							parallelization/parallel_refinement/parallel_hanging_node_refiner_multi_grid.cpp
 							parallelization/parallel_refinement/parallel_hnode_adjuster.cpp)
-	if(PARMETIS)
-		set(srcParallelization	${srcParallelization}
-								parallelization/partitioner_parmetis.cpp)
-	endif(PARMETIS)
 	
 else(PARALLEL)
 	set(srcParallelization	parallelization/load_balancing.cpp

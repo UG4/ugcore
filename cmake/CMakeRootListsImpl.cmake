@@ -23,18 +23,6 @@ if(buildPlugins)
 endif(buildPlugins)
 
 ########################
-# compile metis
-if(buildMetis)
-   add_subdirectory(externals/metis-5.0.2)
-endif(buildMetis)
-
-########################
-# compile parmetis
-if(buildParmetis)
-   add_subdirectory(externals/parmetis-4.0.2)
-endif(buildParmetis)
-
-########################
 # ugbase
 add_subdirectory(ugbase)
 

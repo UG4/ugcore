@@ -146,24 +146,20 @@ function balancer.CreateLoadBalancer(domain)
 		loadBalancer = DomainLoadBalancer(domain)
 		local partitioner = nil
 		if(balancer.partitioner == "parmetis") then
-			if(ParmetisIsAvailable() == true) then
-				print("Creating ParmetisPartitioner")
-				partitioner = Partitioner_Parmetis(domain)
-				if balancer.balanceWeights ~= nil then
-					partitioner:set_balance_weights(balancer.balanceWeights)
-				end
-				if balancer.communicationWeights ~= nil then
-					partitioner:set_communication_weights(balancer.communicationWeights)
-				end
-				partitioner:set_child_weight(balancer.childWeight)
-				partitioner:set_sibling_weight(balancer.siblingWeight)
-				partitioner:set_itr_factor(balancer.itrFactor)
-				partitioner:set_allowed_imbalance_factor(balancer.imbalanceFactor)
-				partitioner:set_verbose(false)
-			else
-				print("ERROR: partitioner 'parmetis' specified in balancer.CreateLoadBalancer but ParMETIS isn't available.")
-				exit()
+			RequiredPlugins({"Parmetis"})
+			print("Creating ParmetisPartitioner")
+			partitioner = Partitioner_Parmetis(domain)
+			if balancer.balanceWeights ~= nil then
+				partitioner:set_balance_weights(balancer.balanceWeights)
 			end
+			if balancer.communicationWeights ~= nil then
+				partitioner:set_communication_weights(balancer.communicationWeights)
+			end
+			partitioner:set_child_weight(balancer.childWeight)
+			partitioner:set_sibling_weight(balancer.siblingWeight)
+			partitioner:set_itr_factor(balancer.itrFactor)
+			partitioner:set_allowed_imbalance_factor(balancer.imbalanceFactor)
+			partitioner:set_verbose(false)
 		elseif(balancer.partitioner == "bisection") then
 			partitioner = Partitioner_DynamicBisection(domain)
 			partitioner:set_verbose(false)
