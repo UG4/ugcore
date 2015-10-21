@@ -15,6 +15,30 @@ namespace ug{
 DebugID DID_CUDA("CUDA");
 
 
+
+void CUDAManager::get_cuda_devices(std::vector<cudaDeviceProp> &devices)
+{
+	int iDevices;
+	cudaGetDeviceCount(&iDevices);
+	devices.resize(iDevices);
+	for(int i=0; i<iDevices; i++)
+		cudaGetDeviceProperties(&devices[i], i);
+}
+
+int CUDAManager::get_max_multiprocessor_cuda_device()
+{
+	std::vector<cudaDeviceProp> devices;
+	get_cuda_devices(devices);
+
+	int devMax=0;
+	for(size_t i=0; i<devices.size(); i++)
+		if (devices[i].computeMode != cudaComputeModeProhibited
+				&& devices[i].multiProcessorCount > devices[devMax].multiProcessorCount)
+			devMax = i;
+
+	return devMax;
+}
+
 CUDAManager::~CUDAManager()
 {
 	if(m_tempBuffer)
@@ -36,18 +60,12 @@ void CUDAManager::init()
 	
      // This will pick the best possible CUDA capable device
     cudaDeviceProp deviceProp;
-    int devID;
-	int device_count;
-	cudaGetDeviceCount(&device_count);
-	cout << device_count << " CUDA devices.\n";
-    devID = gpuGetMaxGflopsDeviceId();
-    checkCudaErrors(cudaSetDevice(devID));
-	cudaSetDevice(devID);
-
+    int devID = get_max_multiprocessor_cuda_device();
     if (devID < 0)
     {
     	UG_THROW("no CUDA device found.\n");
     }
+    CUDA_CHECK_SUCCESS(cudaSetDevice(devID), "setting up device " << devID);
 
     CUDA_CHECK_STATUS(cudaGetDeviceProperties(&deviceProp, devID));
 
@@ -57,7 +75,6 @@ void CUDAManager::init()
     int version = (deviceProp.major * 0x10 + deviceProp.minor);
     if (version < 0x11)
     {
-
         cudaDeviceReset();
         UG_THROW("Requires a minimum CUDA compute 1.1 capability\n");
     }

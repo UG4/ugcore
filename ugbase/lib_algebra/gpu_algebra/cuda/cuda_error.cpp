@@ -1,6 +1,6 @@
 #include <cuda_runtime.h>
 namespace ug{
-const char* CUDAError(cudaError_t err)
+const char* CUDAError(int err)
 {
 	switch (err)
 	{

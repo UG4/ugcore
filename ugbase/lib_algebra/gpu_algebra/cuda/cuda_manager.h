@@ -21,7 +21,6 @@
 #include <vector>
 
 // Utilities and system includes
-#include "helper_cuda.h"
 #include "common/error.h"
 #include "common/log.h"
 
@@ -30,13 +29,13 @@
 namespace ug{
 extern DebugID DID_CUDA;
 
-std::string CUDAError(int err);
+const char *CUDAError(int err);
 
 template<typename T>
 inline void CudaCheckStatus(T status, const char * file, int line)
 {
 	unsigned int s = static_cast<unsigned int>(status );
-	UG_COND_THROW(status != 0, "CUDA error at " << file << ":" << line << " " << s << " = " << _cudaGetErrorEnum(status) );
+	UG_COND_THROW(status != 0, "CUDA error at " << file << ":" << line << " " << s << " = " << ug::CUDAError(status) );
 }
 
 
@@ -45,8 +44,8 @@ inline void CudaCheckStatus(T status, const char * file, int line)
 #define CUDA_CHECK_SUCCESS(err, desc) \
 if(err != cudaSuccess)\
 {\
-    UG_THROW("Error in " << __FUNCTION__ << ": CUDA ERROR " << err <<": " <<\
-            cudaGetErrorString(err) << "\n" << desc << "\n");\
+    UG_THROW("Error in " << __FUNCTION__ << ": CUDA ERROR " << err <<":\n" <<\
+    		ug::CUDAError(err) << "\n----------------------------\n" << desc << "\n");\
 }
 
 
@@ -60,7 +59,7 @@ T *MyCudaAlloc(size_t N)
 	if(err != cudaSuccess)
 	{
 		UG_THROW("Error in " << __FUNCTION__ << "when allocating " << sizeof(T)*N << " bytes. CUDA ERROR " << err <<": " <<
-	            cudaGetErrorString(err));
+				ug::CUDAError(err));
 	}
 	return p;
 }
@@ -104,6 +103,9 @@ public:
 	{
     	return (T*)m_tempRetBuffer;
 	}
+
+    static void get_cuda_devices(std::vector<cudaDeviceProp> &devices);
+    static int get_max_multiprocessor_cuda_device();
 
 private:    
     cublasHandle_t cublasHandle;
