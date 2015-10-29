@@ -361,6 +361,9 @@ class DomainDiscretizationBase
 				if(m_vConstraint[i] == pp)
 					return;
 
+		//	set approximation space
+			pp->set_approximation_space(m_spApproxSpace);
+
 		//	add constraint
 			m_vConstraint.push_back(pp);
 		}
