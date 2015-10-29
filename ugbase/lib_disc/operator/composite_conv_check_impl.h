@@ -466,7 +466,7 @@ void CompositeConvCheck<TVector, TDomain>::start(const TVector& vec)
 
 			print_offset();
 			if(cmp != 0) {UG_LOG("         " );}
-			else {UG_LOG(std::setw(4) << step() << ":    ");}
+			else {UG_LOG(std::right << std::setw(5) << step() << "    ");}
 
 			UG_LOG(std::scientific << cmpInfo.currDefect <<  "    ");
 			UG_LOG(std::scientific << std::setprecision(3) << cmpInfo.minDefect <<   "    " << std::setprecision(6) );
@@ -529,7 +529,7 @@ void CompositeConvCheck<TVector, TDomain>::update(const TVector& vec)
 
 			print_offset();
 			if(cmp != 0) {UG_LOG("         " );}
-			else {UG_LOG(std::setw(4) << step() << ":    ");}
+			else {UG_LOG(std::right << std::setw(5) << step() << "    ");}
 
 			UG_LOG(std::scientific << cmpInfo.currDefect <<  "    ");
 			UG_LOG(std::scientific << std::setprecision(3) << cmpInfo.minDefect <<   "    " << std::setprecision(6));
