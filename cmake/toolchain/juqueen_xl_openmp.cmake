@@ -2,7 +2,7 @@
 # created by Stephan Grein <stephan.grein@gcsc.uni-frankfurt.de>
 # derived from juqueen.cmake established by Ingo Heppner.
 #
-# enables OpenMP for GCC compiler and associated tools on JUQUEEN (BlueGene/Q)
+# enables OpenMP for IBM XL compiler and associated tools on JUQUEEN (BlueGene/Q)
 ################################################################################
 
 # set CMAKE_SYSTEM_NAME to include automatically corresponding platform files
@@ -41,3 +41,7 @@ message(STATUS "TMP INFO: Value of '\${MPI_Fortran_COMPILER}'   is: ${MPI_Fortra
 # add compiler flag -fopenmp (OpenMP)
 SET( CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -fopenmp")
 SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fopenmp")
+
+# XL specific options (not known by GCC to my knowledge)
+SET( CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -qsmp=omp -qnosave")
+SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -qsmp=omp -qnosave")
