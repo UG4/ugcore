@@ -253,6 +253,7 @@ message(STATUS "")
 message(STATUS "Info: External libraries (path which contains the library or ON if you used uginstall):")
 message(STATUS "Info: TETGEN:   ${TETGEN}")
 message(STATUS "Info: HLIBPRO:  ${HLIBPRO}")
+message(STATUS "Info: PHREEQC:  ${PHREEQC}")
 message(STATUS "")
 message(STATUS "Info: C   Compiler: ${CMAKE_C_COMPILER} (ID: ${CMAKE_C_COMPILER_ID})")
 message(STATUS "Info: C++ Compiler: ${CMAKE_CXX_COMPILER} (ID: ${CMAKE_CXX_COMPILER_ID})")
@@ -406,6 +407,8 @@ include(${UG_ROOT_PATH}/cmake/ug/build_algebra.cmake)
 include(${UG_ROOT_PATH}/cmake/ug/tetgen.cmake)
 # HLIBPRO
 include(${UG_ROOT_PATH}/cmake/ug/hlibpro.cmake)
+# PHREEQC (modularized version: IPhreeqC)
+include(${UG_ROOT_PATH}/cmake/ug/iphreeqc.cmake)
 # OpenCL
 include(${UG_ROOT_PATH}/cmake/ug/opencl.cmake)
 
@@ -582,3 +585,12 @@ mark_as_advanced(BUILTIN_LAPACK)
 mark_as_advanced(BUILTIN_BLAS)
 mark_as_advanced(BUILTIN_MPI)
 
+################################################################################
+# Log useful CMake variables for debugging
+#MESSAGE( STATUS "")
+#MESSAGE( STATUS "################################################################################")
+#MESSAGE( STATUS "### Log useful CMake variables #################################################")
+#include(${UG_ROOT_PATH}/cmake/log_useful_cmake_variables.cmake)
+#MESSAGE( STATUS "### Log useful CMake variables - END ###########################################")
+#MESSAGE( STATUS "################################################################################")
+#MESSAGE( STATUS "")

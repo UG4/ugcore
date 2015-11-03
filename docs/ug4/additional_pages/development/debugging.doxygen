@@ -121,7 +121,7 @@ For simple parallel debugging, see \ref bashToolsXprun .
 Sometimes you cannot set breakpoints because the source is in a shared library. This is true for all plugins. 
 Also ug4 is loaded dynamically from ugshell. There are two solutions for this:
 <ol>
-<li> compile ug4 static: <tt>cmake -DSTATIC=ON ..</tt>
+<li> compile ug4 static: <tt>cmake -DSTATIC_BUILD=ON ..</tt>
 <li> adding the breakpoints "pending". you can use <tt>set breakpoint pending on</tt> to avoid the y/n. Note that now gdb won't 
 tell you if your filename was wrong.
 <li> we've added a function SharedLibrariesLoaded . You can set a breakpoint there with <tt>b SharedLibrariesLoaded</tt>. After that,

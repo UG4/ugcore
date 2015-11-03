@@ -464,6 +464,7 @@ None Shiny Scalasca Vampir \
 -DDIM= \
 -DEMBEDDED_PLUGINS= \
 -DHLIBPRO= \
+-DPHREEQC= \
 -DHYPRE= \
 -DINTERNAL_BOOST= \
 -DLAPACK= \
