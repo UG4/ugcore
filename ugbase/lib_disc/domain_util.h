@@ -1,7 +1,3 @@
-//	created by Sebastian Reiter, Andreas Vogel
-//	s.b.reiter@googlemail.com
-//	y10 m06 d30
-
 #ifndef __H__UG__LIB_DISC__DOMAIN_UTIL__
 #define __H__UG__LIB_DISC__DOMAIN_UTIL__
 

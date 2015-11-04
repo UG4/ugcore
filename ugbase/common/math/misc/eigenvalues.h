@@ -1,11 +1,3 @@
-/**
- * \file eigenvalues.h
- *
- * Calculation of Eigenvalues.
- */
-
-//	created by Daniel Jungblut, converted to ugmath by Sebastian Reiter
-
 #ifndef __H__UG_MATH__EIGENVALUES__
 #define __H__UG_MATH__EIGENVALUES__
 

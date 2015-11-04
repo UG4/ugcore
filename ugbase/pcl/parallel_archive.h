@@ -1,9 +1,3 @@
-/*
- * parallel_archive.h
- *
- *  Created on: 13.12.2013
- *      Author: mrupp
- */
 
 #ifndef PARALLEL_ARCHIVE_H_
 #define PARALLEL_ARCHIVE_H_

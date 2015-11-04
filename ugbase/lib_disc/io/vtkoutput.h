@@ -1,9 +1,3 @@
-/*
- * vtkoutput.h
- *
- *  Created on: 06.07.2009
- *      Author: andreasvogel
- */
 
 #ifndef __H__UG__LIB_DISC__IO__VTKOUTPUT__
 #define __H__UG__LIB_DISC__IO__VTKOUTPUT__

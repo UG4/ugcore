@@ -1,9 +1,3 @@
-/**
- * \file ugbase/pcl/pcl_tostring.h
- *
- *  \date	 	05.03.2013
- *  \author 	mrupp
- */
 
 #include <string>
 #include <sstream>

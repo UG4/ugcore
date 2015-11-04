@@ -1,7 +1,3 @@
-//	created by Sebastian Reiter
-//	s.b.reiter@googlemail.com
-//	y08 m10 d10
-
 #include <cassert>
 #include <algorithm>
 #include "grid.h"

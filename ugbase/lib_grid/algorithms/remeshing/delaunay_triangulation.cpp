@@ -1,6 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@gmail.com
-
 #include <algorithm>
 #include "delaunay_triangulation.h"
 #include "lib_grid/algorithms/grid_generation/triangle_fill_sweep_line.h"

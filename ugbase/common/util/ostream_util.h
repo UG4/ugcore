@@ -1,9 +1,3 @@
-/*
- * ostream_util.h
- *
- *  Created on: 26.04.2013
- *      Author: mrupp
- */
 
 #ifndef __H__UG_OSTREAM_UTIL_H_
 #define __H__UG_OSTREAM_UTIL_H_

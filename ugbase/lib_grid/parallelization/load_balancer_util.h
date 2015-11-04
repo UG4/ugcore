@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@gmail.com
-// Feb 25, 2013 (d,m,y)
-
 #ifndef __H__UG__load_balancer_util__
 #define __H__UG__load_balancer_util__
 

@@ -1,13 +1,3 @@
-/* TODO:
- * If finished: Check for unnecessary "set zero" operations!
- *
- */
-/*
- * feti.h
- *
- *  Created on: 21.01.2011
- *      Author: iheppner, avogel
- */
 
 #ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__FETI__
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__FETI__

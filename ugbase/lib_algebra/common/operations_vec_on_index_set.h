@@ -1,9 +1,3 @@
-/*
- * operations_vec_on_index_set.h
- *
- *  Created on: 13.02.2011
- *      Author: andreasvogel
- */
 
 #ifndef __H__UG__LIB_ALGEBRA__OPERATIONS_VEC_ON_INDEX_SET__
 #define __H__UG__LIB_ALGEBRA__OPERATIONS_VEC_ON_INDEX_SET__

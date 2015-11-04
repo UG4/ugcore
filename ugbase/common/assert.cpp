@@ -1,9 +1,3 @@
-/*
- * assert.cpp
- *
- *  Created on: 05.07.2012
- *      Author: Martin Rupp
- */
 
 #include "common/log.h"
 #include "common/profiler/profiler.h"

@@ -1,5 +1,3 @@
-// created by Martin Rupp 31.01.2011
-
 #include <utility>
 
 #ifndef __H__SORT_UTIL__

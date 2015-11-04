@@ -1,7 +1,3 @@
-// created by Sebastian Reiter, Martin Stepniewski, Martin Scherer
-// s.b.reiter@gmail.com
-// Nov 28, 2013
-
 #ifndef __H__UG__volume_calculation__
 #define __H__UG__volume_calculation__
 

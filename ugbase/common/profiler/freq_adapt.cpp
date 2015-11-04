@@ -1,9 +1,3 @@
-/*
- * freq_adapt.cpp
- *
- *  Created on: 10.12.2014
- *      Author: andreasvogel
- */
 
 #include <cpufreq.h>  // frequency adaption library
 #include <iostream>   // usual i/o

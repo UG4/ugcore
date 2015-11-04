@@ -1,7 +1,3 @@
-//	created by Sebastian Reiter
-//	s.b.reiter@googlemail.com
-//	y09 m08 d11
-
 #ifndef __H__UTIL__BINARY_STREAM__
 #define __H__UTIL__BINARY_STREAM__
 

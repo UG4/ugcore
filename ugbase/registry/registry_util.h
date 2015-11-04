@@ -1,5 +1,3 @@
-// 23.11.2011 (m,d,y)
-
 #ifndef __H__UG__registry_util__
 #define __H__UG__registry_util__
 

@@ -1,9 +1,3 @@
-/*
- * active_set_impl.h
- *
- *  Created on: 15.02.2013
- *      Author: raphaelprohl
- */
 
 #ifndef ACTIVE_SET_IMPL_H_
 #define ACTIVE_SET_IMPL_H_

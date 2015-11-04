@@ -1,6 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@gmail.com
-
 #ifndef __H__UG_for_each_in_vec
 #define __H__UG_for_each_in_vec
 

@@ -1,7 +1,3 @@
-//Loader_obj.cpp
-//created by Sebastian Reiter
-//reitersbasti@web.de
-
 #include <vector>
 #include <fstream>
 #include <cstring>

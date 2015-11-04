@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@googlemail.com
-// 21.03.2012 (m,d,y)
- 
 #include "binary_stream.h"
 #include "../log.h"
 

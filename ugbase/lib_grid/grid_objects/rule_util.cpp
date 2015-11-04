@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@googlemail.com
-// 01.06.2011 (m,d,y)
-
 #include <cassert>
 #include <algorithm>
 #include <iostream>

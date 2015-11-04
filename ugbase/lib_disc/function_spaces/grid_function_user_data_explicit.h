@@ -1,9 +1,3 @@
-/*
- * const_grid_function_user_data.h
- *
- *  Created on: 08.01.2014
- *  Author: anaegel
- */
 
 #ifndef __H__UG__LIB_DISC__FUNCTION_SPACE__CONST_GRID_FUNCTION_USER_DATA__
 #define __H__UG__LIB_DISC__FUNCTION_SPACE__CONST_GRID_FUNCTION_USER_DATA__

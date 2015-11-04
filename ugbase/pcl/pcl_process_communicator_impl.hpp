@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@googlemail.com
-// 03.02.2011 (m,d,y)
-
 #ifndef __H__PCL__pcl_process_communicator_impl__
 #define __H__PCL__pcl_process_communicator_impl__
 

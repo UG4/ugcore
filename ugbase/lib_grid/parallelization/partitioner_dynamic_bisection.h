@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@gmail.com
-// Nov 4, 2013
-
 #ifndef __H__UG__partitioner_dynamic_biscection__
 #define __H__UG__partitioner_dynamic_biscection__
 

@@ -1,11 +1,3 @@
-/*
- * max_error_bridge.cpp
- *
- *  Created on: 15.04.2013
- *      Author: Andreas Vogel, Christian Wehner
- *
- */
-
 // extern headers
 #include <iostream>
 #include <sstream>

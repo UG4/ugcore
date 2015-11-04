@@ -1,7 +1,3 @@
-//	created by Sebastian Reiter
-//	s.b.reiter@googlemail.com
-//	y08 m11 d09 (wrong date!)
-
 #include <cassert>
 #include "multi_grid_refiner.h"
 #include "lib_grid/algorithms/algorithms.h"

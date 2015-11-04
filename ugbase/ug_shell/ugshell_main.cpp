@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@googlemail.com
-// y10 m01 d19
-
 #include <iostream>
 #include <sstream>
 

@@ -1,9 +1,3 @@
-/*
- * std_injection_impl.h
- *
- *  Created on: 01.08.2012
- *      Author: andreasvogel
- */
 
 #ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__STD_INJECTION_IMPL__
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__STD_INJECTION_IMPL__

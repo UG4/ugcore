@@ -1,9 +1,3 @@
-/*
- * periodic_boundary_bridge.cpp
- *
- *  Created on: 26.11.2012
- *      Author: marscher
- */
 
 #include "registry/registry.h"
 #include "bridge/bridge.h"

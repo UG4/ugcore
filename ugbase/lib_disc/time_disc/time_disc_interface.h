@@ -1,9 +1,3 @@
-/*
- * time_disc_interface.h
- *
- *  Created on: 23.10.2009
- *      Author: andreasvogel
- */
 
 #ifndef __H__UG__LIB_DISC__TIME_DISC__TIME_DISC_INTERFACE__
 #define __H__UG__LIB_DISC__TIME_DISC__TIME_DISC_INTERFACE__

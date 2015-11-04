@@ -1,9 +1,3 @@
-/*
- * mini.h
- *
- * Created on: 18.06.2012
- * Author: Arne Naegel
- */
 
 #ifndef __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__MINI__MINI_BUBBLE__
 #define __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__MINI__MINI_BUBBLE__

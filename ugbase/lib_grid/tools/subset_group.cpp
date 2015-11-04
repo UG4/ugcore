@@ -1,9 +1,3 @@
-/*
- * subset_group.cpp
- *
- *  Created on: 13.07.2010
- *      Author: andreasvogel
- */
 #include <algorithm>
 #include <cstring>
 

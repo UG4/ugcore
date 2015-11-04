@@ -1,6 +1,3 @@
-//	created by Sebastian Reiter
-//	s.b.reiter@googlemail.com
-
 #ifndef __H__LIB_GRID__FILE_IO_VTU__
 #define __H__LIB_GRID__FILE_IO_VTU__
 

@@ -1,7 +1,3 @@
-//	created by Sebastian Reiter
-//	s.b.reiter@googlemail.com
-//	y09 m09 d10
-
 #include <algorithm>
 #include "multi_grid.h"
 #include "lib_grid_messages.h"

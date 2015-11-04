@@ -1,9 +1,3 @@
-/*
- * grid_function_global_user_data.h
- *
- *  Created on: 03.07.2012
- *      Author: andreasvogel
- */
 
 #ifndef __H__UG__LIB_DISC__FUNCTION_SPACE__GRID_FUNCTION_GLOBAL_USER_DATA__
 #define __H__UG__LIB_DISC__FUNCTION_SPACE__GRID_FUNCTION_GLOBAL_USER_DATA__

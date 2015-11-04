@@ -1,9 +1,3 @@
-/*
- * linear_solver.h
- *
- *  Created on: 30.10.2013
- *      Author: martin rupp
- */
 
 #ifndef __H__UG__LIB_DISC__OPERATOR__AUTO_LINEAR_OPERATOR__LINEAR_SOLVER__
 #define __H__UG__LIB_DISC__OPERATOR__AUTO_LINEAR_OPERATOR__LINEAR_SOLVER__

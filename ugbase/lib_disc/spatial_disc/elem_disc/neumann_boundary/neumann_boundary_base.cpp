@@ -1,9 +1,3 @@
-/*
- * neumann_boundary_base.h
- *
- *  Created on: 14.10.2010
- *      Author: andreasvogel
- */
 
 #include "neumann_boundary_base.h"
 #include "lib_disc/common/groups_util.h"

@@ -1,7 +1,3 @@
-//	created by Sebastian Reiter
-//	s.b.reiter@googlemail.com
-//	y10 m04 d27
-
 #ifndef __H__UG__NODE_TREE__TRAVERSER_COLLISION_TREE__
 #define __H__UG__NODE_TREE__TRAVERSER_COLLISION_TREE__
 

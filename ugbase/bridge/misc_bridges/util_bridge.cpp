@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@googlemail.com
-// 22.03.2011 (m,d,y)
-
 #include "../util_overloaded.h"
 #include "ug.h"
 #include "bridge/bridge.h"

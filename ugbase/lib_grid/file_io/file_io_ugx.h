@@ -1,7 +1,3 @@
-//	created by Sebastian Reiter
-//	s.b.reiter@googlemail.com
-//	y10 m06 d16
-
 #ifndef __H__LIB_GRID__FILE_IO_UGX__
 #define __H__LIB_GRID__FILE_IO_UGX__
 

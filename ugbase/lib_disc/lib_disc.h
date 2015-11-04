@@ -1,9 +1,3 @@
-/*
- * lib_disc.h
- *
- *  Created on: 09.03.2011
- *      Author: andreasvogel
- */
 
 #ifndef __H__UG__LIB_DISC__LIB__DISC__
 #define __H__UG__LIB_DISC__LIB__DISC__

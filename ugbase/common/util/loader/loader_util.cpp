@@ -1,7 +1,3 @@
-//	created by Sebastian Reiter
-//	y09 m08 d03
-//	s.b.reiter@googlemail.com
-
 #include <cstring>
 #include "loader_util.h"
 

@@ -1,17 +1,10 @@
 /*
- * Lognormal_Random_Field_impl.h
- *
- *  Created on: 17.12.2014
- *      Author: Ivo Muha, Martin Rupp
- *
- *
  *  Method described in Comput Visual Sci (2006) 9: 1Ð10, DOI 10.1007/s00791-006-0012-2
  *  Simulation of lognormal random fields with varying resolution scale and local average for Darcy flow
  *  For the generation of the d-dimensional Gaussian random field we choose
  *  a simple spectral method which can sim- ulate anisotropicly correlated fields.
  *  The Gaussian random field f (x) is realized as a superposition of a large number
  *  of randomly chosen harmonic modes following the method introduced by Kraichnan
- *
  */
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__LOGNORMAL_RANDOM_FIELD_IMPL__
 #define __H__UG__LIB_DISC__SPATIAL_DISC__LOGNORMAL_RANDOM_FIELD_IMPL__

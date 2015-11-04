@@ -1,9 +1,3 @@
-/*
- * lagrange.cpp
- *
- *  Created on: 01.07.2011
- *      Author: andreasvogel
- */
 
 #include "lagrange.h"
 #include <sstream>

@@ -1,9 +1,3 @@
-/*
- * algebra_debug_writer.h
- *
- *  Created on: 18.01.2011
- *      Author: andreasvogel
- */
 
 #ifndef __H__LIB_ALGEBRA__OPERATOR__ALGEBRA_DEBUG_WRITER__
 #define __H__LIB_ALGEBRA__OPERATOR__ALGEBRA_DEBUG_WRITER__

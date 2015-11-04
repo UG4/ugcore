@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@googlemail.com
-// 28.03.2011 (m,d,y)
- 
 #include "profiler.h"
 
 #ifdef UG_PROFILER

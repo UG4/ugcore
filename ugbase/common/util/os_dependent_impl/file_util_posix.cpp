@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@googlemail.com
-// 14.09.2011 (m,d,y)
- 
 #include <dirent.h>
 #include <unistd.h>
 #include <sys/types.h>

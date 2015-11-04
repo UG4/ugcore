@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@googlemail.com
-// 25.11.2011 (m,d,y)
-
 #ifndef __H__UG__LIB_GRID__TOOLS__SURFACE_VIEW_IMPL__
 #define __H__UG__LIB_GRID__TOOLS__SURFACE_VIEW_IMPL__
 

@@ -1,9 +1,3 @@
-/*
- * operations_mat.h
- *
- *  Created on: 29.09.2010
- *      Author: mrupp
- */
 
 #ifndef __H__UG__CPU_ALGEBRA__OPERATIONS_MAT__
 #define __H__UG__CPU_ALGEBRA__OPERATIONS_MAT__

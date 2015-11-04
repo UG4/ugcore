@@ -1,9 +1,3 @@
-/*
- * data_evaluator_impl.h
- *
- *  Created on: 03.07.2011
- *      Author: andreasvogel
- */
 
 #include <sstream>
 

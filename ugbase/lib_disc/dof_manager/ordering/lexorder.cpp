@@ -1,9 +1,3 @@
-/*
- * lexorder.cpp
- *
- *  Created on: 21.03.2011
- *      Author: andreasvogel
- */
 
 #include "lexorder.h"
 #include "common/common.h"

@@ -1,9 +1,3 @@
-/*
- * slicing.h
- *
- *  Created on: 08.01.2014
- *      Author: anaegel
- */
 
 #ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__SCHUR_SLICING_H_
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__SCHUR_SLICING_H_

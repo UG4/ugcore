@@ -1,9 +1,3 @@
-/*
- * progress.cpp
- *
- *  Created on: 17.05.2013
- *      Author: mrupp
- */
 
 #include "progress.h"
 namespace ug{

@@ -1,9 +1,5 @@
 /*
- * element_list_traits.h
  * Classes for computing integral properties of geometric objects types in lists.
- *
- * Created by D. Logashenko
- * Sep. 25, 2013
  */
 #ifndef __H__UG__LIB_DISC__REFERENCE_ELEMENT__ELEMENT_LIST_TRAITS__
 #define __H__UG__LIB_DISC__REFERENCE_ELEMENT__ELEMENT_LIST_TRAITS__

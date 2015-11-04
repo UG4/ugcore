@@ -1,6 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@gmail.com
-
 #ifndef __H__UG_simplify_polychain
 #define __H__UG_simplify_polychain
 

@@ -1,9 +1,3 @@
-/*
- * global_function.cpp
- *
- *  Created on: 11.07.2011
- *      Author: andreasvogel
- */
 
 #include "global_function.h"
 #include <iostream>

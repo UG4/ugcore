@@ -1,8 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@googlemail.com
-// 27.01.2011 (m,d,y)
-//
-
 #include <algorithm>
 #include <vector>
 #include "parallelization_util.h"

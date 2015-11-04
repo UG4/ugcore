@@ -1,9 +1,3 @@
-/*
- * periodic_identifier_impl.hpp
- *
- *  Created on: 26.11.2012
- *      Author: marscher
- */
 
 #ifndef PERIODIC_IDENTIFIER_IMPL_HPP_
 #define PERIODIC_IDENTIFIER_IMPL_HPP_

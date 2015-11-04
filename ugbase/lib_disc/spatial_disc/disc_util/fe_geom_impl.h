@@ -1,9 +1,3 @@
-/*
- * fe_geom_impl.h
- *
- *  Created on: 04.09.2010
- *      Author: andreasvogel
- */
 
 #include "fe_geom.h"
 

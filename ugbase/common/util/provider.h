@@ -1,9 +1,3 @@
-/*
- * provider.h
- *
- *  Created on: 20.07.2011
- *      Author: andreasvogel
- */
 
 #ifndef __H__COMMON__UTIL__PROVIDER__
 #define __H__COMMON__UTIL__PROVIDER__

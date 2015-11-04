@@ -1,9 +1,3 @@
-/*
- * ivector_vec_functions.h
- *
- *  Created on: 26.09.2013
- *      Author: mrupp
- */
 
 #ifndef IVECTOR_VEC_FUNCTIONS_H_
 #define IVECTOR_VEC_FUNCTIONS_H_

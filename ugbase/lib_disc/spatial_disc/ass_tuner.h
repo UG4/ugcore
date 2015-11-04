@@ -1,9 +1,3 @@
-/*
- * ass_tuner.h
- *
- *  Created on: 04.02.2013
- *      Author: raphaelprohl, Andreas Vogel
- */
 
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__ASS_TUNER__
 #define __H__UG__LIB_DISC__SPATIAL_DISC__ASS_TUNER__

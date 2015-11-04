@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@googlemail.com
-// 22.11.2011 (m,d,y)
-
 #ifndef __H__UG__message_hub_impl__
 #define __H__UG__message_hub_impl__
 

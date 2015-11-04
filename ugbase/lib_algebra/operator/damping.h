@@ -1,9 +1,3 @@
-/*
- * damping.h
- *
- *  Created on: 06.08.2012
- *      Author: Andreas Vogel, Christian Wehner
- */
 
 #ifndef __H__LIB_ALGEBRA__OPERATOR__DAMPING__
 #define __H__LIB_ALGEBRA__OPERATOR__DAMPING__

@@ -1,7 +1,3 @@
-//	Sebastian Reiter
-//	s.b.reiter@googlemail.com
-//	y10 m07 d29
-
 #ifndef __H__PCL_UTIL__
 #define __H__PCL_UTIL__
 

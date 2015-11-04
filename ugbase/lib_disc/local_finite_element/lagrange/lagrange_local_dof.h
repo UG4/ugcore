@@ -1,9 +1,3 @@
-/*
- * lagrange_local_dof.h
- *
- *  Created on: 27.06.2011
- *      Author: andreasvogel
- */
 
 #ifndef __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__LAGRANGE__LAGRANGE_LOCAL_DOF__
 #define __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__LAGRANGE__LAGRANGE_LOCAL_DOF__

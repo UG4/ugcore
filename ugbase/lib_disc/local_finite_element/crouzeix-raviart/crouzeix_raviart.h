@@ -1,9 +1,3 @@
-/*
- * crouzeix_raviart.h
- *
- * Created on: 18.06.2012
- * Author: Christian Wehner
- */
 
 #ifndef __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__CROUZEIX_RAVIART__
 #define __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__CROUZEIX_RAVIART__

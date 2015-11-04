@@ -1,10 +1,3 @@
-################################################
-# created by Sebastian Reiter
-# s.b.reiter@googlemail.com
-#
-# lib_grid
-################################################
-
 cmake_minimum_required(VERSION 2.6)
 
 project(P_LIB_GRID)

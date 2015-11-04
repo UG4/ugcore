@@ -1,9 +1,3 @@
-/*
- * interpolate_inner.h
- *
- *  Created on: 14.08.2015
- *      Author: mbreit
- */
 
 #ifndef UG__LIB_DISC__FUNCTION_SPACES__INTERPOLATE_INNER_H
 #define UG__LIB_DISC__FUNCTION_SPACES__INTERPOLATE_INNER_H

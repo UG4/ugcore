@@ -1,12 +1,3 @@
-/**
- * \file mapsparsematrix_print.h
- *
- * \author Martin Rupp
- *
- * \date 05.11.2012
- *
- * Goethe-Center for Scientific Computing 2012
- */
 
 #ifndef __H__UG__MAP_ALGEBRA__SPARSEMATRIX_PRINT__
 #define  __H__UG__MAP_ALGEBRA__SPARSEMATRIX_PRINT__

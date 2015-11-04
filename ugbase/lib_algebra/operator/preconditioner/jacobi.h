@@ -1,9 +1,3 @@
-/*
- * jacobi.h
- *
- *  Created on: 04.07.2010
- *      Author: andreasvogel
- */
 
 #ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__JACOBI__
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__JACOBI__

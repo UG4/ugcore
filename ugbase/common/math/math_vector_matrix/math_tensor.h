@@ -1,6 +1,3 @@
-//	created by Andreas Vogel
-//	05.08.2010
-
 #ifndef __H__COMMON__MATH_TENSOR__
 #define __H__COMMON__MATH_TENSOR__
 

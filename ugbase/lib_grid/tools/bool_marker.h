@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@googlemail.com
-// 31.01.2012 (m,d,y)
-
 #ifndef __H__UG__bool_marker__
 #define __H__UG__bool_marker__
 

@@ -1,9 +1,3 @@
-/*
- * operator_iterator_product.h
- *
- *  Created on: 17.03.2011
- *      Author: anaegel
- */
 
 #ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__PRODUCT__
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__PRODUCT__

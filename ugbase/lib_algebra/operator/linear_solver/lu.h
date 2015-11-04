@@ -1,9 +1,3 @@
-/*
- * lu.h
- *
- *  Created on: 16.06.2010
- *      Author: mrupp
- */
 
 #ifndef __H__LIB_ALGEBRA__LAPACK_LU_OPERATOR__
 #define __H__LIB_ALGEBRA__LAPACK_LU_OPERATOR__

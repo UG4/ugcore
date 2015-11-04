@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@googlemail.com
-// 25.05.2011 (m,d,y)
-
 #ifndef __H__UG__partition_map__
 #define __H__UG__partition_map__
 

@@ -1,9 +1,3 @@
-/*
- * grid_dim_traits.h
- *
- *	Created on: 07.10.2015 (separated from lib_disc/domain_traits.h)
- *		Authors: andreasvogel
- */
 #ifndef __H__LIB_GRID__GRID_DIM_TRAITS__
 #define __H__LIB_GRID__GRID_DIM_TRAITS__
 

@@ -1,12 +1,3 @@
-/**
- * \file completion.cpp
- *
- * \author Martin Rupp
- *
- * \date 14.10.2010
- *
- * Goethe-Center for Scientific Computing 2010-2012.
- */
 
 #include <iostream>
 #include <sstream>

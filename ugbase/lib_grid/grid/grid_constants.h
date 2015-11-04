@@ -1,7 +1,3 @@
-//	created by Sebastian Reiter
-//	s.b.reiter@googlemail.com
-//	y08 m10 d15
-
 #ifndef __H__LIB_GRID__GRID_CONSTANTS__
 #define __H__LIB_GRID__GRID_CONSTANTS__
 

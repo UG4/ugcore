@@ -1,6 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@googlemail.com
-
 #ifndef __H__TABLE
 #define __H__TABLE
 

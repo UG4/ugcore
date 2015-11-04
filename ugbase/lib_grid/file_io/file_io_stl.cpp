@@ -1,7 +1,3 @@
-//	created by Sebastian Reiter
-//	y10 m11 d11
-//	s.b.reiter@googlemail.com
-
 #include <fstream>
 #include <algorithm>
 #include "file_io_stl.h"

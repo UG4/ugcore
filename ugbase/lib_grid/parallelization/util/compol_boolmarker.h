@@ -1,5 +1,3 @@
-// created by Andreas Vogel
-
 #ifndef __H__UG__compol_boolmarker__
 #define __H__UG__compol_boolmarker__
 

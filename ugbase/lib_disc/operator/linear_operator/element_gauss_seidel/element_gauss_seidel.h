@@ -1,9 +1,4 @@
 /*
- * element_gauss_seidel.h
- *
- *  Created on: 24.07.2012
- *      Author: Christian Wehner, Andreas Vogel
- *
  *  Remark: Base on Vanka idea and implementation
  */
 

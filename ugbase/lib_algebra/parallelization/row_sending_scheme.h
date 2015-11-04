@@ -1,9 +1,3 @@
-/*
- * row_sending_scheme.h
- *
- *  Created on: 05.10.2011
- *      Author: mrupp
- */
 
 #ifndef __H__LIB_ALGEBRA__PARALLELIZATION__ROW_SENDING_SCHEME_H_
 #define __H__LIB_ALGEBRA__PARALLELIZATION__ROW_SENDING_SCHEME_H_

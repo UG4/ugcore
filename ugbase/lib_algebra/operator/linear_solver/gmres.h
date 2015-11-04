@@ -1,9 +1,3 @@
-/*
- * gmres.h
- *
- *  Created on: 27.06.2013
- *      Author: andreasvogel
- */
 
 #ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__GMRES__
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__GMRES__

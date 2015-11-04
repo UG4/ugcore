@@ -1,9 +1,3 @@
-/*
- * demangle.cpp
- *
- *  Created on: 26.09.2013
- *      Author: mrupp
- */
 #ifdef UG_POSIX
 #include <cxxabi.h>
 #endif

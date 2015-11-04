@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@googlemail.com
-// 11.01.2011 (m,d,y)
-
 #ifndef __H__UG__HANGIN_NODE_REFINER_MULTI_GRID__
 #define __H__UG__HANGIN_NODE_REFINER_MULTI_GRID__
 

@@ -1,9 +1,3 @@
-/*
- * File:   Playground.h
- * Author: Michael Hoffer <info@michaelhoffer.de>
- *
- * Created on 12. April 2011, 12:49
- */
 
 #ifndef PLAYGROUND_H
 #define	PLAYGROUND_H

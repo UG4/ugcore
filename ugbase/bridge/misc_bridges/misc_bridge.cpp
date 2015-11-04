@@ -1,9 +1,3 @@
-/*
- * misc_bridge.cpp
- *
- *  Created on: 21.03.2011
- *      Author: Martin Rupp
- */
 
 #include "registry/registry.h"
 #include "bridge/bridge.h"

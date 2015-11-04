@@ -1,9 +1,3 @@
-/*
- * blas_vec_interface.h
- *
- *  Created on: 22.03.2011
- *      Author: mrupp
- */
 
 #ifndef BLAS_VEC_INTERFACE_H_
 #define BLAS_VEC_INTERFACE_H_

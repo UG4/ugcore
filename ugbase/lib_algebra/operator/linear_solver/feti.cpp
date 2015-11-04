@@ -1,5 +1,3 @@
-// 01.02.2011 (m,d,y)
-
 //	THIS FILE IS ONLY TEMPORARY!
 //	I (Sebastian) created this file to reduce compile-time during
 //	the creation of the FETI solver. When everything works as

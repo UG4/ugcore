@@ -1,7 +1,3 @@
-//	created by Sebastian Reiter
-//	s.b.reiter@googlemail.com
-//	y08 m12 d03
-
 #ifndef __H__COMMON__MATH_VECTOR_FUNCTIONS__
 #define __H__COMMON__MATH_VECTOR_FUNCTIONS__
 

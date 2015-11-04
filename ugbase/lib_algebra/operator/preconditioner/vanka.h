@@ -1,9 +1,3 @@
-/*
- * vanka.h
- *
- *  Created on: 24.07.2012
- *      Author: Christian Wehner
- */
 
 #ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__VANKA__
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__VANKA__

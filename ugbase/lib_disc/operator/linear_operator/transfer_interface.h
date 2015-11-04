@@ -1,9 +1,3 @@
-/*
- * transfer_interface.h
- *
- *  Created on: 20.12.2011
- *      Author: andreasvogel
- */
 
 #ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__TRANSFER_INTERFACE__
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__TRANSFER_INTERFACE__

@@ -1,9 +1,3 @@
-/*
- * end_boost_list.h
- *
- *  Created on: 29.05.2013
- *      Author: mrupp
- */
 
 #ifndef __H__UG__END_BOOST_LIST_H_
 #define __H__UG__END_BOOST_LIST_H_

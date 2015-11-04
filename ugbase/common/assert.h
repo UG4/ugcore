@@ -1,9 +1,3 @@
-/*
- * assert.h
- *
- *  Created on: 10.03.2010
- *      Author: andreasvogel
- */
 
 #ifndef __H__COMMON__ASSERT__
 #define __H__COMMON__ASSERT__

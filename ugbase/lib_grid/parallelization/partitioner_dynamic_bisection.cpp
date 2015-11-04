@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@gmail.com
-// Nov 4, 2013
-
 #include "partitioner_dynamic_bisection.h"
 #include "load_balancer_util.h"
 #include "distributed_grid.h"

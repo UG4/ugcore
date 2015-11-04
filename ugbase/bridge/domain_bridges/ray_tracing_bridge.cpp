@@ -1,6 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@gmail.com
-
 #include <vector>
 #include "registry/registry.h"
 #include "bridge/bridge.h"

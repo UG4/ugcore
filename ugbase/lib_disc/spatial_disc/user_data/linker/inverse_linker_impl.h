@@ -1,9 +1,3 @@
-/*
- * inverse_linker_impl.h
- *
- *  Created on: 12.02.2013
- *      Author: ivomuha, andreasvogel scale_add_linker_impl.h used as template
- */
 
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__INVERSE_LINKER_IMPL__
 #define __H__UG__LIB_DISC__SPATIAL_DISC__INVERSE_LINKER_IMPL__

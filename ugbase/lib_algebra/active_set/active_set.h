@@ -1,9 +1,3 @@
-/*
- * active_set.h
- *
- *  Created on: 15.02.2013
- *      Author: raphaelprohl
- */
 
 #ifndef ACTIVE_SET_H_
 #define ACTIVE_SET_H_

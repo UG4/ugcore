@@ -1,9 +1,3 @@
-/*
- * operator_inverse_iterator.h
- *
- *  Created on: 19.03.2013
- *      Author: Martin Rupp
- */
 
 #ifndef __H__UG__LIB_DISC__OPERATOR__ITERATOR_OPERATOR_INVERSE__
 #define __H__UG__LIB_DISC__OPERATOR__ITERATOR_OPERATOR_INVERSE__

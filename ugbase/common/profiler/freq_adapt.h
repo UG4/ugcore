@@ -1,9 +1,3 @@
-/*
- * freq_adapt.h
- *
- *  Created on: 11.12.2014
- *      Author: andreasvogel
- */
 
 #ifndef __H__UG__COMMON__PROFILER__FREQ_ADAPT__
 #define __H__UG__COMMON__PROFILER__FREQ_ADAPT__

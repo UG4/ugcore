@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@googlemail.com
-// 09.06.2011 (m,d,y)
- 
 #include "load_balancing.h"
 #include "lib_grid/algorithms/graph/dual_graph.h"
 

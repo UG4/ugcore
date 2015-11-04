@@ -1,9 +1,3 @@
-/*
- * class.cpp
- *
- *  Created on: 26.09.2011
- *      Author: andreasvogel
- */
 
 #include "class.h"
 

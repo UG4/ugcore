@@ -1,7 +1,3 @@
-// created by Andreas Vogel, Sebastian Reiter
-// s.b.reiter@googlemail.com
-// 08.07.2011 (m,d,y)
- 
 #include <string>
 
 #include "registry.h"

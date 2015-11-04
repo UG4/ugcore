@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@googlemail.com
-// 08.03.2012 (m,d,y)
-
 #ifndef __H__UG__parallel_hanging_node_refiner_multi_grid__
 #define __H__UG__parallel_hanging_node_refiner_multi_grid__
 

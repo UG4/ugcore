@@ -1,9 +1,3 @@
-/*
- * math_tensor_functions.h
- *
- *  Created on: 06.05.2014
- *      Author: raphaelprohl
- */
 
 #ifndef __H__UG__COMMON__MATH_TENSOR_FUNCTIONS__
 #define __H__UG__COMMON__MATH_TENSOR_FUNCTIONS__

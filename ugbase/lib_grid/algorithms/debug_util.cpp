@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@googlemail.com
-// 13.01.2011 (m,d,y)
- 
 #include "debug_util.h"
 #include "attachment_util.h"
 

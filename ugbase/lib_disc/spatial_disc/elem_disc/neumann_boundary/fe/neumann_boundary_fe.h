@@ -1,9 +1,3 @@
-/*
- * neumann_boundary_fe.h
- *
- *  Created on: 26.02.2010
- *      Author: andreasvogel
- */
 
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__ELEM_DISC__NEUMANN_BOUNDARY___NEUMANN_BOUNDARY_FE__
 #define __H__UG__LIB_DISC__SPATIAL_DISC__ELEM_DISC__NEUMANN_BOUNDARY___NEUMANN_BOUNDARY_FE__

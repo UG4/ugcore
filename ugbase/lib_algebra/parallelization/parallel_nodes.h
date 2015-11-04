@@ -1,9 +1,3 @@
-/*
- * parallel_nodes.h
- *
- *  Created on: 27.10.2011
- *      Author: mrupp
- */
 
 #ifndef UG_PARALLEL_NODES_H_
 #define UG_PARALLEL_NODES_H_

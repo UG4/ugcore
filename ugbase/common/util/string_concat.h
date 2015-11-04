@@ -1,9 +1,3 @@
-/*
- * string_concat.h
- *
- *  Created on: 22.05.2013
- *      Author: mrupp
- */
 
 #ifndef STRING_CONCAT_H_
 #define STRING_CONCAT_H_

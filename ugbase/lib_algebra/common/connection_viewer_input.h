@@ -1,10 +1,3 @@
-/**
- * 	connection_viewer_input.h
- *
- *  Created by Martin Rupp on 26.09.12.
- *  Copyright 2012 . All rights reserved.
- *
- */
 
 #ifndef CONNECTION_VIEWER_IO_H
 #define CONNECTION_VIEWER_IO_H

@@ -1,9 +1,3 @@
-/*
- * function_pattern.h
- *
- *  Created on: 13.07.2010
- *      Author: andreasvogel
- */
 
 #ifndef __H__UG__LIB_DISC__DOF_MANAGER__FUNCTION_PATTERN__
 #define __H__UG__LIB_DISC__DOF_MANAGER__FUNCTION_PATTERN__

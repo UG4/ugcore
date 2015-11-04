@@ -1,6 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@gmail.com
-
 #include <algorithm>
 #include "ray_element_intersection_util.h"
 #include "common/math/misc/math_util.h"

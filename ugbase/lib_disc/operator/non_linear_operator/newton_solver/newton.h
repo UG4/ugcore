@@ -1,9 +1,3 @@
-/*
- * newton.h
- *
- *  Created on: 26.10.2009
- *      Author: andreasvogel
- */
 
 #ifndef __H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__NEWTON_SOLVER__NEWTON__
 #define __H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__NEWTON_SOLVER__NEWTON__

@@ -1,9 +1,3 @@
-/*
- * algebra_bridge.cpp
- *
- *  Created on: 22.09.2010
- *      Author: andreasvogel
- */
 
 // extern libraries
 #include <iostream>

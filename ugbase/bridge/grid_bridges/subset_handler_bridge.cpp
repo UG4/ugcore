@@ -1,6 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@gmail.com
-
 #include "grid_bridges.h"
 #include "lib_grid/algorithms/subset_util.h"
 #include "lib_grid/subset_handler.h"

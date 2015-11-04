@@ -1,9 +1,3 @@
-/*
- * approximation_space.cpp
- *
- *  Created on: 13.12.2011
- *      Author: andreasvogel
- */
 
 #include "approximation_space.h"
 #include "lib_disc/domain.h"

@@ -10,9 +10,6 @@
  * 
  * \tparam	TDomain		Domain
  * \tparam	TAlgebra	Algebra
- * 
- *  Created on: 26.02.2010
- *      Author: mbreit
  */
 
 #ifndef __H__UG__LIB_DISC__SPACIAL_DISCRETIZATION__ELEM_DISC__NEUMANN_BOUNDARY__FV1__INNER_BOUNDARY__

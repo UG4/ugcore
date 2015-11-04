@@ -1,6 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@gmail.com
-
 #ifndef __H__UG_lg_for_each
 #define __H__UG_lg_for_each
 

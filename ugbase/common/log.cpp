@@ -1,9 +1,3 @@
-/*
- * log.cpp
- *
- *  Created on: 10.03.2010
- *      Author: andreasvogel, sebastianreiter
- */
 #include <iostream>
 #include "common/log.h"
 #include "common/profiler/profiler.h"

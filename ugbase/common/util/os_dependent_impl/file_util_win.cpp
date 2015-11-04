@@ -1,6 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@googlemail.com
-// 14.09.2011 (m,d,y)
 #define _WIN32_IE 0x0501 //0x0400 //required so that SHGetSpecialFolderPath is exposed by shlobj.h
 #include <windows.h>
 #include "shlobj.h"

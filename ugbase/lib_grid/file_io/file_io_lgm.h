@@ -1,7 +1,3 @@
-//	created by Sebastian Reiter, Nicolas Tessore
-//	s.b.reiter@googlemail.com
-//	y09 m03 d07
-
 #include "lib_grid/grid/grid.h"
 #include "lib_grid/common_attachments.h"
 #include "lib_grid/subset_handler.h"

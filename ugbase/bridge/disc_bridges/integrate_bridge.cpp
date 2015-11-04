@@ -1,9 +1,3 @@
-/*
- * integrate_bridge.cpp
- *
- *  Created on: 21.05.2012
- *      Author: andreasvogel
- */
 
 // extern headers
 #include <iostream>

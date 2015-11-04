@@ -1,9 +1,3 @@
-/*
- * revision_counter.h
- *
- *  Created on: 18.11.2013
- *      Author: andreasvogel
- */
 
 #ifndef __H__UG__LIB_DISC__COMMON__REVISION_COUNTER__
 #define __H__UG__LIB_DISC__COMMON__REVISION_COUNTER__

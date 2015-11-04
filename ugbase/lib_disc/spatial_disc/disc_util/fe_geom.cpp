@@ -1,9 +1,3 @@
-/*
- * fe_geom.cpp
- *
- *  Created on: 04.09.2010
- *      Author: andreasvogel
- */
 
 #include "fe_geom.h"
 #include "lib_disc/domain_traits.h"

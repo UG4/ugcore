@@ -1,7 +1,3 @@
-//	created by Sebastian Reiter
-//	s.b.reiter@googlemail.com
-//	y10 m07 d09
-
 #include <fstream>
 #include "lib_grid/lg_base.h"
 #include "lib_grid/algorithms/attachment_util.h"

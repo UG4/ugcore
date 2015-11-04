@@ -1,9 +1,4 @@
 /*
- * util_overloaded.h
- *
- *  Created on: 05.12.2013
- *      Author: mrupp
- *
  * simplified casting of overloaded functions/methods
  */
 

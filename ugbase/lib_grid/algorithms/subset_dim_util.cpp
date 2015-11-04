@@ -1,9 +1,3 @@
-/*
- * subset_util.cpp
- *
- *  Created on: 05.03.2012
- *      Author: andreasvogel
- */
 
 #include "subset_dim_util.h"
 #include "lib_grid/lg_base.h"

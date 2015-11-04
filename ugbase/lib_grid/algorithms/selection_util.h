@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// y09 m11 d06
-// s.b.reiter@googlemail.com
-
 #ifndef __H__LIB_GRID__SELECTION_UTIL__
 #define __H__LIB_GRID__SELECTION_UTIL__
 

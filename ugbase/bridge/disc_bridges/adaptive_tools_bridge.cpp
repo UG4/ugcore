@@ -1,9 +1,3 @@
-/*
- * adaptive_tools_bridge.cpp
- *
- *  Created on: 06.03.2012
- *      Author: andreasvogel
- */
 
 // extern headers
 #include <iostream>

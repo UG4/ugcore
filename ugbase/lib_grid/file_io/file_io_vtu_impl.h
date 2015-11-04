@@ -1,6 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@gmail.com
-
 #ifndef __H__UG_file_io_vtu_impl
 #define __H__UG_file_io_vtu_impl
 

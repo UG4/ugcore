@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@googlemail.com
-// y09 m12 d09
-
 #include "pcl/pcl_base.h"
 
 #ifndef __H__PLG__COMPOL_GATHER_VEC_ATTACHMENT__

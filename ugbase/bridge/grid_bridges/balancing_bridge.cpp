@@ -1,6 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@gmail.com
-
 #include "grid_bridges.h"
 #include "lib_grid/parallelization/util/partition_weighting_callbacks.h"
 #include "lib_grid/tools/partition_map.h"

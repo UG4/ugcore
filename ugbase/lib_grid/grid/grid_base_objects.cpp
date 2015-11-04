@@ -1,7 +1,3 @@
-//	created by Sebastian Reiter
-//	s.b.reiter@googlemail.com
-//	y09 m10 d26
-
 #include "grid_base_objects.h"
 #include "grid_util.h"
 

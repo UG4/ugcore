@@ -1,9 +1,3 @@
-/*
- * progress.h
- *
- *  Created on: 05.10.2012
- *      Author: mrupp
- */
 
 #ifndef PROGRESS_H_
 #define PROGRESS_H_

@@ -1,9 +1,3 @@
-/*
- * preconditioner.h
- *
- *  Created on: 23.04.2013
- *      Author: andreasvogel
- */
 
 #ifndef __H__LIB_ALGEBRA__OPERATOR__INTERFACE__PRECONDITIONER__
 #define __H__LIB_ALGEBRA__OPERATOR__INTERFACE__PRECONDITIONER__

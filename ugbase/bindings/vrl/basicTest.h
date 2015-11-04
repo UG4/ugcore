@@ -1,9 +1,3 @@
-/* 
- * File:   basicTest.h
- * Author: christianpoliwoda
- *
- * Created on 20. Oktober 2011, 16:26
- */
 
 #ifndef BASICTEST_H
 #define	BASICTEST_H

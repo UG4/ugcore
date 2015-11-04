@@ -1,10 +1,3 @@
-/*
- *  template_expressions.h
- *
- *  Created by Martin Rupp on 08.02.10.
- *  Copyright 2010 G-CSC, University of Frankfurt. All rights reserved.
- *
- */
 
 #ifndef __H__UG__LIB_ALGEBRA__TEMPLATE_EXPRESSIONS2__
 #define __H__UG__LIB_ALGEBRA__TEMPLATE_EXPRESSIONS2__

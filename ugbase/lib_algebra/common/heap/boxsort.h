@@ -1,10 +1,3 @@
-/*
- *  BoxPriorityQueue.h
- *
- *  Created by Martin Rupp on 24.09.10.
- *  Copyright 2010 . All rights reserved.
- *
- */
 
 #ifndef __H__UG__LIB_DISC__AMG_SOLVER__BoxPriorityQueue_H__
 #define __H__UG__LIB_DISC__AMG_SOLVER__BoxPriorityQueue_H__

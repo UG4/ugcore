@@ -1,8 +1,3 @@
-/**
- * \file matrix_io.h
- * \author Torbjoern Klatt
- * \date 2012-05-06
- */
 
 #ifndef __H__UG__LIB_ALGEBRA__MATRIX_IO_H
 #define __H__UG__LIB_ALGEBRA__MATRIX_IO_H

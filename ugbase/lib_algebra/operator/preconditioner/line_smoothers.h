@@ -1,9 +1,4 @@
 /*
- * line_smoothers.h
- *
- *  Created on: 27.08.2012
- *      Author: Christian Wehner
- *
  *  Gauss-Seidel type smoothers using alternating directions
  *  for handling of anisotropic problems 
  *	Steps forward and backward in all coordinate directions

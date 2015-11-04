@@ -1,8 +1,3 @@
-/**
- * \file matrix_io.cpp
- * \author Torbjoern Klatt
- * \date 2012-05-06
- */
 
 #include "matrix_io.h"
 

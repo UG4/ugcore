@@ -1,7 +1,5 @@
 /*
  * Inverse Distance Weighting (IDW) interpolation for data sets
- *
- * Created on Feb. 15, 2015 by D. Logashenko
  */
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__USER_DATA__IDW_USER_DATA__
 #define __H__UG__LIB_DISC__SPATIAL_DISC__USER_DATA__IDW_USER_DATA__

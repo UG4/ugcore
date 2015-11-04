@@ -1,6 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@gmail.com
-
 #include "../standard_bridges.h"
 #include "grid_bridges.h"
 #include "bridge/util.h"

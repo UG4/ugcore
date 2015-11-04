@@ -1,9 +1,3 @@
-/*
- * neumann_boundary_fe.cpp
- *
- *  Created on: 14.10.2010
- *      Author: andreasvogel
- */
 
 #include "neumann_boundary_fe.h"
 #include "lib_disc/spatial_disc/disc_util/fe_geom.h"

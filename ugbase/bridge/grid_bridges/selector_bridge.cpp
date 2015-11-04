@@ -1,6 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@gmail.com
-
 #include "grid_bridges.h"
 #include "lib_grid/selector.h"
 #include "lib_grid/grid_objects/grid_objects.h"

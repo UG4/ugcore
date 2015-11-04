@@ -1,9 +1,3 @@
-/*
- * proj_gauss_seidel_impl.h
- *
- *  Created on: 10.10.2013
- *      Author: raphaelprohl
- */
 
 #ifndef __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_GAUSS_SEIDEL__PROJ_GAUSS_SEIDEL_IMPL__
 #define __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_GAUSS_SEIDEL__PROJ_GAUSS_SEIDEL_IMPL__

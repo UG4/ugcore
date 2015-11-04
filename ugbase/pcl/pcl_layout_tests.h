@@ -1,5 +1,3 @@
-// created by Martin Rupp, 31.01.2011
-
 #ifndef __H__PCL_TEST_LAYOUTS__
 #define __H__PCL_TEST_LAYOUTS__
 

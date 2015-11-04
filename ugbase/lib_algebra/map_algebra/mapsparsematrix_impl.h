@@ -1,10 +1,3 @@
-/*
- *  mapsparsematrix_impl.hpp
- *
- *  Created by Martin Rupp on 05.11.2012
- *  2012 G-CSC
- *
- */
 #ifndef __H__UG__MAP_ALGEBRA__SPARSEMATRIX_IMPL__
 #define __H__UG__MAP_ALGEBRA__SPARSEMATRIX_IMPL__
 

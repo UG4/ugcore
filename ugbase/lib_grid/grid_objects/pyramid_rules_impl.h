@@ -1,6 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@gmail.com
-
 #ifndef __H__UG_pyramid_rules_impl
 #define __H__UG_pyramid_rules_impl
 

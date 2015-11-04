@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@googlemail.com
-// 29.02.2012 (m,d,y)
- 
 #include "icosahedron.h"
 #include "lib_grid/algorithms/refinement/regular_refinement.h"
 #include "../refinement/refinement_projectors/sphere_projector.h"

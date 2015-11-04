@@ -1,9 +1,3 @@
-/*
- * energy_convergence_check.h
- *
- *  Created on: 16.09.2014
- *      Author: martinrupp
- */
 
 #ifndef __H__LIB_ALGEBRA__OPERATOR__ENERGY_CONVERGENCE_CHECK__
 #define __H__LIB_ALGEBRA__OPERATOR__ENERGY_CONVERGENCE_CHECK__

@@ -1,9 +1,3 @@
-/*
- * user_data_impl.h
- *
- *  Created on: 04.07.2011
- *      Author: andreasvogel
- */
 
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__USER_DATA__USER_DATA_IMPL__
 #define __H__UG__LIB_DISC__SPATIAL_DISC__USER_DATA__USER_DATA_IMPL__

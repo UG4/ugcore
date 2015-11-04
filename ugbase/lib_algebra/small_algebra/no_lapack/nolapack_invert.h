@@ -1,9 +1,3 @@
-/*
- * nolapack_invert.h
- *
- *  Created on: 25.10.2013
- *      Author: mrupp
- */
 
 #ifndef __H__UG__CPU_ALGEBRA__NOLAPACK_INVERT_H_
 #define __H__UG__CPU_ALGEBRA__NOLAPACK_INVERT_H_

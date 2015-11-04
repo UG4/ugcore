@@ -1,9 +1,3 @@
-/*
- * dof_count.cpp
- *
- *  Created on: 06.11.2013
- *      Author: andreasvogel
- */
 
 #include "dof_count.h"
 #ifdef UG_PARALLEL

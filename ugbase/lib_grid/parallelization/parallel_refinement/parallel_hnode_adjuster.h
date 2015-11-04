@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@gmail.com
-// 16.11.2012 (d,m,y)
-
 #ifndef __H__UG__parallel_hnode_adjuster__
 #define __H__UG__parallel_hnode_adjuster__
 

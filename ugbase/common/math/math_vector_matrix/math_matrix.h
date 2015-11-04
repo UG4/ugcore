@@ -1,11 +1,3 @@
-/**
- * \file math_matrix.h
- *
- * \author Andreas Vogel
- *
- * \date 08.07.2009
- */
-
 #ifndef MATRIX_H_
 #define MATRIX_H_
 

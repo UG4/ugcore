@@ -1,7 +1,5 @@
 /*
  * Implementation of the Inverse Distance Weighting (IDW) interpolation for data sets
- *
- * Created on Feb. 15, 2015 by D. Logashenko
  */
 
 namespace ug {

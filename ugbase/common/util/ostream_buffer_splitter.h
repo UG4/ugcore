@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@googlemail.com
-// y11 m01 d02
-
 #ifndef __H__UG_OSTREAM_BUFFER_SPLITTER__
 #define __H__UG_OSTREAM_BUFFER_SPLITTER__
 

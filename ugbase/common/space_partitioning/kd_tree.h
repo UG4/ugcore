@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@gmail.com
-// Sep 3, 2013
-
 
 #ifndef __H__UG__kd_tree__
 #define __H__UG__kd_tree__

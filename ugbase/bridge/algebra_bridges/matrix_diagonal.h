@@ -1,9 +1,3 @@
-/*
- * matrix_diagonal.h
- *
- *  Created on: 23.06.2014
- *      Author: mrupp
- */
 
 #ifndef MATRIX_DIAGONAL_H_
 #define MATRIX_DIAGONAL_H_

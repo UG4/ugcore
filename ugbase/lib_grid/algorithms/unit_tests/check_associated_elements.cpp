@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@googlemail.com
-// 08.08.2012 (m,d,y)
-
 #include "check_associated_elements.h"
 #include "lib_grid/grid/grid_util.h"
 

@@ -1,9 +1,3 @@
-/*
- * debug_shell.cpp
- *
- *  Created on: 21.06.2013
- *      Author: mrupp
- */
 
 #include <string>
 #include <iostream>

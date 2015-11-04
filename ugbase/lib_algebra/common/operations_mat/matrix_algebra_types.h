@@ -1,9 +1,3 @@
-/*
- * matrix_algebra_types.h
- *
- *  Created on: 08.04.2013
- *      Author: mrupp
- */
 
 #ifndef MATRIX_ALGEBRA_TYPES_H_
 #define MATRIX_ALGEBRA_TYPES_H_

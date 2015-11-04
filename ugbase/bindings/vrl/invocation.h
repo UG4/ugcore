@@ -1,9 +1,3 @@
-/* 
- * File:   invokation.h
- * Author: Michael Hoffer <info@michaelhoffer.de>
- *
- * Created on 4. November 2010, 10:31
- */
 
 #include <map>
 #include <sstream>

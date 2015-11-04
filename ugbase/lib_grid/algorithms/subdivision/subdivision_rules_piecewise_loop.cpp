@@ -1,7 +1,3 @@
-//	created by Sebastian Reiter
-//	s.b.reiter@googlemail.com
-//	y10 m10 d9
-
 #include <cmath>
 #include "subdivision_rules_piecewise_loop.h"
 

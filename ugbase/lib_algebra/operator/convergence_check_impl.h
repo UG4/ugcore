@@ -1,9 +1,3 @@
-/*
- * convergence_check.cpp
- *
- *  Created on: 13.03.2012
- *      Author: andreasvogel
- */
 
 #ifndef __H__LIB_ALGEBRA__OPERATOR__CONVERGENCE_CHECK_IMPL__
 #define __H__LIB_ALGEBRA__OPERATOR__CONVERGENCE_CHECK_IMPL__

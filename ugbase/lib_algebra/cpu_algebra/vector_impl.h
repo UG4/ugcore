@@ -1,10 +1,3 @@
-/*
- *  Vector.hpp
- *
- *  Created by Martin Rupp on 04.11.09.
- *  Copyright 2009 G-CSC, University of Frankfurt. All rights reserved.
- *
- */
 
 #ifndef __H__UG__CPU_ALGEBRA__VECTOR_IMPL__
 #define __H__UG__CPU_ALGEBRA__VECTOR_IMPL__

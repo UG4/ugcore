@@ -1,9 +1,3 @@
-/* 
- * File:   util_algebra_dependent.h
- *
- * Created on 2. November 2012, 10:48
- */
-
 #include "registry/registry.h"
 
 #include "lib_algebra/cpu_algebra_types.h"

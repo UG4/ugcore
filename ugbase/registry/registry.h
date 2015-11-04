@@ -1,5 +1,3 @@
-//	Authors: Andreas Vogel, Sebastian Reiter
-
 #ifndef __H__UG_BRIDGE__REGISTRY__
 #define __H__UG_BRIDGE__REGISTRY__
 

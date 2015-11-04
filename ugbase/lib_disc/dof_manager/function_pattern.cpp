@@ -1,9 +1,3 @@
-/*
- * function_pattern.cpp
- *
- *  Created on: 03.12.2010
- *      Author: andreasvogel
- */
 
 #include "function_pattern.h"
 #include "lib_grid/algorithms/subset_dim_util.h"

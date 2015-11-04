@@ -1,9 +1,3 @@
-/*
- * schur_complement_inverse_interface.h
- *
- *  Created on: 08.01.2014
- *      Author: mrupp
- */
 
 #ifndef SCHUR_COMPLEMENT_INVERSE_INTERFACE_H_
 #define SCHUR_COMPLEMENT_INVERSE_INTERFACE_H_

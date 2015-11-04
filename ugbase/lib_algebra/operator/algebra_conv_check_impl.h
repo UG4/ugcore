@@ -1,10 +1,3 @@
-/*
- * algebra_conv_check_impl.h
- *
- *  Author: A. Naegel
- *  (algebraic version of composite_conv_check.h by M. Breit)
- */
-
 #ifndef __H__LIB_ALGEBRA__OPERATOR__ALGEBRA_CONV_CHECK_IMPL__
 #define __H__LIB_ALGEBRA__OPERATOR__ALGEBRA_CONV_CHECK_IMPL__
 

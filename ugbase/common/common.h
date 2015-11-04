@@ -1,7 +1,3 @@
-//	created by Sebastian Reiter
-//	s.b.reiter@googlemail.com
-//	y08 m10 d10
-
 #ifndef __H__UG__COMMON__COMMON__
 #define __H__UG__COMMON__COMMON__
 

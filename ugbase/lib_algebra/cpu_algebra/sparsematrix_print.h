@@ -1,12 +1,3 @@
-/**
- * \file sparsematrix_print.h
- *
- * \author Martin Rupp
- *
- * \date 29.10.2012
- *
- * Goethe-Center for Scientific Computing 2012
- */
 
 #ifndef __H__UG__CPU_ALGEBRA__SPARSEMATRIX_PRINT__
 #define  __H__UG__CPU_ALGEBRA__SPARSEMATRIX_PRINT__

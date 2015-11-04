@@ -1,9 +1,3 @@
-/*
- * scalar_lower_obstacle.h
- *
- *  Created on: 25.11.2013
- *      Author: raphaelprohl
- */
 
 #ifndef __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_GAUSS_SEIDEL__SCALAR_LOWER_OBSTACLE__
 #define __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_GAUSS_SEIDEL__SCALAR_LOWER_OBSTACLE__

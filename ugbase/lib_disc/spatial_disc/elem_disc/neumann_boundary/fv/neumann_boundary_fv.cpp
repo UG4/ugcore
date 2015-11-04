@@ -1,9 +1,3 @@
-/*
- * neumann_boundary_fv.cpp
- *
- *  Created on: 14.10.2010
- *      Author: andreasvogel
- */
 
 #include "neumann_boundary_fv.h"
 #include "lib_disc/spatial_disc/disc_util/fvho_geom.h"

@@ -1,9 +1,3 @@
-/*
- * grid_level.h
- *
- *  Created on: 15.12.2011
- *      Author: andreasvogel
- */
 
 #ifndef __H__UG__LIB_GRID__TOOLS__GRID_LEVEL__
 #define __H__UG__LIB_GRID__TOOLS__GRID_LEVEL__

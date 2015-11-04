@@ -1,7 +1,3 @@
-//	created by Sebastian Reiter
-//	s.b.reiter@googlemail.com
-//	y10 m01 d22
-
 #include <fstream>
 #include <queue>
 #include "lib_grid/lg_base.h"

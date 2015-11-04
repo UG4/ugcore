@@ -1,9 +1,3 @@
-/*
- * solver_bridge.cpp
- *
- *  Created on: 03.05.2012
- *      Author: avogel
- */
 
 // extern headers
 #include <iostream>

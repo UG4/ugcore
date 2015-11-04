@@ -1,9 +1,3 @@
-/*
- * shiny_call_logging.cpp
- *
- *  Created on: 23.07.2013
- *      Author: mrupp
- */
 
 #include <vector>
 #include "src/ShinyManager.h"

@@ -1,9 +1,3 @@
-/*
- * gauss.h
- *
- *  Created on: 14.07.2010
- *      Author: Martin Rupp
- */
 
 #ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__GAUSS__
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__GAUSS__

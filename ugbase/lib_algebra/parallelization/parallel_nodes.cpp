@@ -1,9 +1,3 @@
-/*
- * parallel_nodes.cpp
- *
- *  Created on: 01.03.2013
- *      Author: mrupp
- */
 
 #include "parallel_nodes.h"
 

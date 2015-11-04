@@ -1,7 +1,3 @@
-//	created by Sebastian Reiter
-//	s.b.reiter@googlemail.com
-//	y09 m09 d17
-
 #ifndef __H__LIB_GRID__TETRAHEDRALIZATION__
 #define __H__LIB_GRID__TETRAHEDRALIZATION__
 

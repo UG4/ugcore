@@ -1,9 +1,3 @@
-/*
- * mg_solver.h
- *
- *  Created on: 07.12.2009
- *      Author: andreasvogel
- */
 
 #ifndef __H__UG__LIB_DISC__MULTI_GRID_SOLVER__MG_SOLVER__
 #define __H__UG__LIB_DISC__MULTI_GRID_SOLVER__MG_SOLVER__

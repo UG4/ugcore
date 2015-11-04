@@ -1,9 +1,3 @@
-/*
- * util.h
- *
- *  Created on: 24.05.2012
- *      Author: andreasvogel
- */
 
 #ifndef __H__UG_BRIDGE__UTIL__
 #define __H__UG_BRIDGE__UTIL__

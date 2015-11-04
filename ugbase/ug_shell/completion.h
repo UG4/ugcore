@@ -1,9 +1,3 @@
-/*
- * completion.h
- *
- *  Created on: 24.06.2013
- *      Author: mrupp
- */
 
 #ifndef COMPLETION_H_
 #define COMPLETION_H_

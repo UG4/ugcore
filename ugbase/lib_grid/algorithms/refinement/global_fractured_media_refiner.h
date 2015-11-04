@@ -1,7 +1,3 @@
-//	created by Sebastian Reiter
-//	s.b.reiter@googlemail.com
-//	y12 m04 d25
-
 #ifndef __H__LIB_GRID__GLOBAL_FRACTURED_MEDIA_REFINER__
 #define __H__LIB_GRID__GLOBAL_FRACTURED_MEDIA_REFINER__
 

@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// y09 m07 d31
-// s.b.reiter@googlemail.com
-
 #include "grid_object_collection.h"
 
 namespace ug

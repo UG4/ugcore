@@ -1,7 +1,3 @@
-// created by Martin Stepniewski, Sebastian Reiter
-// s.b.reiter@googlemail.com
-//	y09 m05 d27
-
 #include <vector>
 #include <string>
 #include <fstream>

@@ -1,6 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@gmail.com
-
 #include <algorithm>
 #include <cmath>
 #include <fstream>

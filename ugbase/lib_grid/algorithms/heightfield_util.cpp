@@ -1,6 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@gmail.com
-
 #include <cmath>
 #include "heightfield_util.h"
 #include "field_util.h"

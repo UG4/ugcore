@@ -1,8 +1,3 @@
-/*
- * assemble.h
- *
- *      Author: andreasvogel
- */
 
 #ifndef __H__UG__LIB_DISC__ASSEMBLE__
 #define __H__UG__LIB_DISC__ASSEMBLE__

@@ -1,9 +1,3 @@
-/* 
- * File:   CUDAManager.h
- * Author: mrupp
- *
- * Created on 16. Oktober 2012, 13:07
- */
 
 #ifndef CUDAManager_H
 #define	CUDAManager_H

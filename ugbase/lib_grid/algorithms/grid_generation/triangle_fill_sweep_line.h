@@ -1,7 +1,3 @@
-//	created by Sebastian Reiter
-//	s.b.reiter@googlemail.com
-//	y10 m11 d19
-
 #include <list>
 #include <vector>
 #include <cassert>

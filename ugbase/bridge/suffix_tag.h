@@ -1,9 +1,3 @@
-/*
- * suffix_tag.h
- *
- *  Created on: 24.05.2012
- *      Author: andreasvogel
- */
 
 #ifndef __H__UG_BRIDGE__SUFFIX_TAG__
 #define __H__UG_BRIDGE__SUFFIX_TAG__

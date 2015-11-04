@@ -1,7 +1,3 @@
-//	created by Sebastian Reiter
-//	s.b.reiter@googlemail.com
-//	y09 m12 d09
-
 #ifndef __H__LIB_GRID__PARALLELIZATION__
 #define __H__LIB_GRID__PARALLELIZATION__
 

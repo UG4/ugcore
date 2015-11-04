@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@googlemail.com
-// y10 m02 d15
-
 #include <cassert>
 #include "selector_grid.h"
 

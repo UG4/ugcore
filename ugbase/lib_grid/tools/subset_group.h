@@ -1,9 +1,3 @@
-/*
- * subset_group.h
- *
- *  Created on: 13.07.2010
- *      Author: andreasvogel
- */
 
 #ifndef __H__UG__LIB_GRID__SUBSET_GROUP__
 #define __H__UG__LIB_GRID__SUBSET_GROUP__

@@ -1,9 +1,3 @@
-/* 
- * File:   CUDAManager.cpp
- * Author: mrupp
- * 
- * Created on 16. Oktober 2012, 13:07
- */
 //#ifdef USE_CUDA
 #include "cuda_manager.h"
 #include <iostream>

@@ -1,9 +1,3 @@
-/*
- * groups_util.cpp
- *
- *  Created on: 18.10.2010
- *      Author: andreasvogel
- */
 
 #include "groups_util.h"
 #include "common/util/string_util.h"

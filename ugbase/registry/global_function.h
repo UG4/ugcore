@@ -1,5 +1,3 @@
-//	authors: Sebastian Reiter, Andreas Vogel
-
 #ifndef __H__UG_BRIDGE__GLOBAL_FUNCTION__
 #define __H__UG_BRIDGE__GLOBAL_FUNCTION__
 

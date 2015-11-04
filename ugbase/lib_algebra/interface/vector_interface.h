@@ -1,9 +1,3 @@
-/*
- * vector_interface.h
- *
- *  Created on: 22.03.2011
- *      Author: mrupp
- */
 
 #ifndef VECTOR_INTERFACE_H_
 #define VECTOR_INTERFACE_H_

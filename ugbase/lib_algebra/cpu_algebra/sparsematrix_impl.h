@@ -1,10 +1,3 @@
-/*
- *  sparsematrix_impl.hpp
- *
- *  Created by Martin Rupp on 29.10.2012
- *  2012 G-CSC
- *
- */
 #ifndef __H__UG__CPU_ALGEBRA__SPARSEMATRIX_IMPL__
 #define __H__UG__CPU_ALGEBRA__SPARSEMATRIX_IMPL__
 

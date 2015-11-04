@@ -1,9 +1,3 @@
-/*
- * orientation.h
- *
- *  Created on: 25.07.2013
- *      Author: andreasvogel
- */
 
 #ifndef __H__UG__LIB_DISC__DOF_MANAGER__ORIENTATION__
 #define __H__UG__LIB_DISC__DOF_MANAGER__ORIENTATION__

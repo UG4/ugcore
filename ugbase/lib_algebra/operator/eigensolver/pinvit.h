@@ -1,12 +1,3 @@
-/**
- * \file pinvit.h
- *
- * \author Martin Rupp
- *
- * \date 01.11.2010
- *
- * Goethe-Center for Scientific Computing 2010.
- */
 
 #ifndef __H__UG__LIB_ALGEBRA__PINVIT_H__
 #define __H__UG__LIB_ALGEBRA__PINVIT_H__

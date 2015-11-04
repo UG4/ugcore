@@ -2,9 +2,6 @@
  * A manager for the degenerated layer subsets. It helps to distinguish between the sides
  * of the degenerated elements and to find out the correspondence of the nodes
  * in them.
- *
- * Created on: Mar. 17, 2014
- * Author: D. Logashenko
  */
 #ifndef __H__UG__PLUGINS__D3F__DEGENERATED_LAYER_MANAGER__
 #define __H__UG__PLUGINS__D3F__DEGENERATED_LAYER_MANAGER__

@@ -1,9 +1,3 @@
-/*
- * parallelization.h
- *
- *  Created on: 14.6.2010
- *      Author: A. Vogel
- */
 
 #ifndef __H__LIB_ALGEBRA__PARALLELIZATION__PARALLELIZATION__
 #define __H__LIB_ALGEBRA__PARALLELIZATION__PARALLELIZATION__

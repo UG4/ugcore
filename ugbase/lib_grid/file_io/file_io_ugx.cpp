@@ -1,7 +1,3 @@
-//	created by Sebastian Reiter
-//	s.b.reiter@googlemail.com
-//	y10 m06 d16
-
 #include <sstream>
 #include "common/common.h"
 #include "file_io_ugx.h"

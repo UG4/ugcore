@@ -1,9 +1,3 @@
-/*
- * lib_algebra.h
- *
- *  Created on: 04.05.2012
- *      Author: Martin Rupp
- */
 
 #ifndef __H__LIB_ALGEBRA__LIB_ALGEBRA_IMPL__
 #define __H__LIB_ALGEBRA__LIB_ALGEBRA_IMPL__

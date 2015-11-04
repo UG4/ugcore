@@ -1,9 +1,3 @@
-/*
- * demangle.h
- *
- *  Created on: 26.09.2013
- *      Author: mrupp
- */
 
 #ifndef DEMANGLE_H_
 #define DEMANGLE_H_

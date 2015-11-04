@@ -1,9 +1,3 @@
-/*
- * parallel_vector.h
- *
- *  Created on: 3.7.2010
- *      Author: A. Vogel
- */
 
 #ifndef __H__LIB_ALGEBRA__PARALLELIZATION__PARALLEL_VECTOR__
 #define __H__LIB_ALGEBRA__PARALLELIZATION__PARALLEL_VECTOR__

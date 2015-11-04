@@ -1,9 +1,3 @@
-/* 
- * File:   type_converter.h
- * Author: Michael Hoffer <info@michaelhoffer.de>
- *
- * Created on 5. Oktober 2010, 14:54
- */
 
 #ifndef TYPE_CONVERTER_H
 #define	TYPE_CONVERTER_H

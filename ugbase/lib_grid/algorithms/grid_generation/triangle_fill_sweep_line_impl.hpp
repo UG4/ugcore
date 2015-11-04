@@ -1,7 +1,3 @@
-//	created by Sebastian Reiter
-//	s.b.reiter@googlemail.com
-//	y10 m11 d19
-
 #ifndef __H__UG4__LIB_GRID__TRIANGLE_FILL_SWEEP_LINE_IMPL__
 #define __H__UG4__LIB_GRID__TRIANGLE_FILL_SWEEP_LINE_IMPL__
 

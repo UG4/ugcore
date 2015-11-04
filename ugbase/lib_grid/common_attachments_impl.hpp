@@ -1,7 +1,3 @@
-//	created by Sebastian Reiter
-//	s.b.reiter@googlemail.com
-//	y10 m08 d25
-
 #ifndef __H__LIB_GRID__COMMON_ATTACHMENTS_IMPL__
 #define __H__LIB_GRID__COMMON_ATTACHMENTS_IMPL__
 

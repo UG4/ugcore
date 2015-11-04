@@ -1,9 +1,3 @@
-/*
- * global_layout.h
- *
- *  Created on: 02.08.2011
- *      Author: mrupp
- */
 
 #ifndef GLOBAL_LAYOUT_H_
 #define GLOBAL_LAYOUT_H_

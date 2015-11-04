@@ -1,9 +1,3 @@
-/*
- * shell.h
- *
- *  Created on: 21.06.2013
- *      Author: mrupp
- */
 
 #ifndef __UG__UG_SHELL_H_
 #define __UG__UG_SHELL_H_

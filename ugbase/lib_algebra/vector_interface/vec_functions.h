@@ -1,9 +1,3 @@
-/*
- * vec_vec_functions.h
- *
- *  Created on: 26.09.2013
- *      Author: mrupp
- */
 
 #ifndef VEC_VEC_FUNCTIONS_H_
 #define VEC_VEC_FUNCTIONS_H_

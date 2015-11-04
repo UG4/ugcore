@@ -1,7 +1,3 @@
-//	created by Sebastian Reiter
-//	s.b.reiter@googlemail.com
-//	y10 m02 d05
-
 #ifndef __H__LIB_GRID__VERTEX_UTIL_IMPL__
 #define __H__LIB_GRID__VERTEX_UTIL_IMPL__
 

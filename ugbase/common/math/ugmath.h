@@ -1,7 +1,3 @@
-//	created by Sebastian Reiter
-//	s.b.reiter@googlemail.com
-//	y08 m11 d12
-
 #ifndef __H__UGMATH__
 #define __H__UGMATH__
 

@@ -1,6 +1,4 @@
 /**
- * \file file_util.cpp
- * \date 2012-05-15
  * \brief Implementation of OS independent file utility functions
  */
 

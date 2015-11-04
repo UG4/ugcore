@@ -1,8 +1,3 @@
-/*
- * common_user_data.h
- *
- *      Author: Martin Rupp
- */
 
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__COMMON_USER_DATA__
 #define __H__UG__LIB_DISC__SPATIAL_DISC__COMMON_USER_DATA__

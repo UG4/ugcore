@@ -1,7 +1,3 @@
-//	created by Sebastian Reiter
-//	s.b.reiter@googlemail.com
-//	y09 m12 d05
-
 #ifndef __H__PCL__PCL_INTERFACE_COMMUNICATOR_IMPL__
 #define __H__PCL__PCL_INTERFACE_COMMUNICATOR_IMPL__
 

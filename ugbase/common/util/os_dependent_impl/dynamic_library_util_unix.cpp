@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@gmail.com
-// 10.01.2013 (d,m,y)
-
 #include <dlfcn.h>
 #include "../dynamic_library_util.h"
 #include <string>

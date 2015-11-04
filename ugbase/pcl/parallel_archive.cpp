@@ -1,9 +1,3 @@
-/*
- * parallel_archive.cpp
- *
- *  Created on: 13.12.2013
- *      Author: mrupp
- */
 
 #include "parallel_archive.h"
 #include "common/util/tar.h"

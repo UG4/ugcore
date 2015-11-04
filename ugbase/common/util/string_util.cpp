@@ -1,5 +1,3 @@
-// author: Andreas Vogel
-
 #include "string_util.h"
 #include <algorithm>
 #include <string>

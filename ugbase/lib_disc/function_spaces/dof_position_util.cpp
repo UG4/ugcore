@@ -1,9 +1,3 @@
-/*
- * dof_position_util.cpp
- *
- *  Created on: 11.01.2012
- *      Author: andreasvogel
- */
 
 #include "dof_position_util.h"
 #include "approximation_space.h"

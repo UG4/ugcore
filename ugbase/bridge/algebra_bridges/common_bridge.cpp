@@ -1,9 +1,3 @@
-/*
- * common_bridge.cpp
- *
- *  Created on: 11.10.2010
- *      Author: andreasvogel
- */
 
 // extern headers
 #include <iostream>

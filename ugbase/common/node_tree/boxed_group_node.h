@@ -1,7 +1,3 @@
-//	boxed_group_node.h
-//	created by Sebastian Reiter y07 m12 d4
-//	s.b.reiter@googlemail.com
-
 #ifndef __H__UG__NODE_TREE__BOXED_GROUP_NODE__
 #define __H__UG__NODE_TREE__BOXED_GROUP_NODE__
 

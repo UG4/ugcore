@@ -1,9 +1,3 @@
-/*
- * math_matrix_functions_common_impl.hpp
- *
- *  Created on: 07.07.2009
- *      Author: andreasvogel
- */
 
 #ifndef __H__UG__COMMON__MATH_MATRIX_FUNCTIONS_COMMON_IMPL__
 #define __H__UG__COMMON__MATH_MATRIX_FUNCTIONS_COMMON_IMPL__

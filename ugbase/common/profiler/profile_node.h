@@ -1,9 +1,3 @@
-/*
- * profile_node.h
- *
- *  Created on: May 22, 2012
- *      Author: Martin Rupp
- */
 
 #ifndef __H_UG__PROFILE_NODE__
 #define __H_UG__PROFILE_NODE__

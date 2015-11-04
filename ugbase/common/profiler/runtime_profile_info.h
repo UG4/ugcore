@@ -1,4 +1,3 @@
-// Lua Profiling (mrupp)
 
 #ifndef __H__UG__COMMON__PROFILER__RUNTIME_PROFILE_INFO__
 #define __H__UG__COMMON__PROFILER__RUNTIME_PROFILE_INFO__

@@ -1,7 +1,3 @@
-//	created by Sebastian Reiter
-//	s.b.reiter@googlemail.com
-//	y10 m03 d18
-
 #ifndef __H__UG__MULTI_GRID_UTIL_IMPL__
 #define __H__UG__MULTI_GRID_UTIL_IMPL__
 

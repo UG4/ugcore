@@ -1,9 +1,3 @@
-/*
- * parallel_index_layout.cpp
- *
- *  Created on: May 30, 2012
- */
-
 #include "common/common.h"
 #include <vector>
 #include <iomanip>

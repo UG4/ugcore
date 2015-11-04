@@ -1,9 +1,3 @@
-/*
- * domain.h
- *
- *  Created on: 17.12.2009
- *      Author: andreasvogel
- */
 
 #ifndef __H__UG__LIB_DISC__DOMAIN__
 #define __H__UG__LIB_DISC__DOMAIN__

@@ -1,9 +1,3 @@
-/*
- * math_vector.cpp
- *
- *  Created on: 08.07.2009
- *      Author: andreasvogel
- */
 
 #include "math_vector.h"
 #include  <iostream>

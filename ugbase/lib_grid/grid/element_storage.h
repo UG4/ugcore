@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@googlemail.com
-// 09.12.2011 (m,d,y)
-
 #ifndef __H__UG__element_storage__
 #define __H__UG__element_storage__
 

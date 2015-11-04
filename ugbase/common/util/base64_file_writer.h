@@ -1,9 +1,3 @@
-/**
- * \file base64_file_writer.h
- * \author Torbjoern Klatt
- * \author Martin Scherer
- * \date 2013-02-25
- */
 
 #ifndef __H__UG__COMMON__UTIL__BASE64_FILE_WRITER__
 #define __H__UG__COMMON__UTIL__BASE64_FILE_WRITER__

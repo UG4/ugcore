@@ -1,9 +1,3 @@
-/*
- * log.h
- *
- *  Created on: 10.03.2010
- *      Author: andreasvogel, sebastianreiter
- */
 
 #ifndef __H__UG__COMMON__LOG__
 #define __H__UG__COMMON__LOG__

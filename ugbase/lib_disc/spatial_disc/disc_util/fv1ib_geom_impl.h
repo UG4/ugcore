@@ -1,9 +1,4 @@
 /*
- * fv1ib_geom.cpp
- *
- *  Created on: 07.02.2014
- *      Author: susanne hoellbacher
- *
  *      copy of 'fv1_geom.h' with two additional methods:
  *   	'adapt_normals()' and 'adapt_integration_points()'
  */

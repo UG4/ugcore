@@ -1,7 +1,3 @@
-//	created by Sebastian Reiter
-//	s.b.reiter@googlemail.com
-//	y08 m11 d18
-
 #include <fstream>
 #include "file_io_tetgen.h"
 #include "common/util/string_util.h"

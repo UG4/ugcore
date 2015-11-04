@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@googlemail.com
-// 29.02.2012 (m,d,y)
-
 #ifndef __H__UG__icosahedron__
 #define __H__UG__icosahedron__
 

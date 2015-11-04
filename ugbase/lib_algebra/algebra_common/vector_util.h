@@ -1,9 +1,3 @@
-/*
- * vector_util.h
- *
- *  Created on: 18.06.2013
- *      Author: mrupp
- */
 
 #ifndef VECTOR_UTIL_H_
 #define VECTOR_UTIL_H_

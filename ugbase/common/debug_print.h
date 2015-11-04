@@ -1,9 +1,3 @@
-/*
- * debug_print.h
- *
- *  Created on: 10.05.2013
- *      Author: mrupp
- */
 
 #ifndef __H__UG__DEBUG_PRINT_H_
 #define __H__UG__DEBUG_PRINT_H_

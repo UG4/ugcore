@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@gmail.com
-// march 2014
-
 #ifndef __H__UG_NORMAL_CALCULATION_IMPL__
 #define __H__UG_NORMAL_CALCULATION_IMPL__
 

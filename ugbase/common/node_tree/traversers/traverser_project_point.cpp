@@ -1,7 +1,3 @@
-//	distance_point_to_geom.h
-//	created by Sebastian Reiter y07 m12 d5
-//	s.b.reiter@googlemail.com
-
 #include <iostream>
 #include "traverser_project_point.h"
 #include "../node_tree.h"

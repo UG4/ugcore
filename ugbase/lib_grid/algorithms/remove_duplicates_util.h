@@ -1,6 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@gmail.com
-
 #ifndef __H__UG_remove_duplicates_util
 #define __H__UG_remove_duplicates_util
 

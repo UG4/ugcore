@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@googlemail.com
-// y11 m01 d11
-
 #include <vector>
 #include "hanging_node_refiner_base.h"
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"

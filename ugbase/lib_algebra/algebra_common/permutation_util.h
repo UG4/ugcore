@@ -1,9 +1,3 @@
-/*
- * permutation_util.h
- *
- *  Created on: 02.12.2013
- *      Author: mrupp
- */
 
 #ifndef __H__UG__CPU_ALGEBRA__PERMUTATION_UTIL__
 #define __H__UG__CPU_ALGEBRA__PERMUTATION_UTIL__

@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@googlemail.com
-// 01.06.2011 (m,d,y)
-
 #ifndef __H__UG__rule_util__
 #define __H__UG__rule_util__
 

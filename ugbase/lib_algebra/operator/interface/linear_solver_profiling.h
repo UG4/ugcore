@@ -1,6 +1,3 @@
-/*
- * linear_solver_profiling.h
- */
 
 #ifndef LINEAR_SOLVER_PROFILING_H_
 #define LINEAR_SOLVER_PROFILING_H_

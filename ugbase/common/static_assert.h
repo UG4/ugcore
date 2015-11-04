@@ -1,7 +1,3 @@
-//	created by Sebastian Reiter
-//	s.b.reiter@googlemail.com
-//	y09 m9 d11
-
 #ifndef __H__COMMON__STATIC_ASSERT__
 #define __H__COMMON__STATIC_ASSERT__
 

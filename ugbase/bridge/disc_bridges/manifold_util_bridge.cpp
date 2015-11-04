@@ -1,9 +1,3 @@
-/*
- * manifold_assemble_util_bridge.cpp
- *
- *  Created on: 08.04.2014
- *      Author: mstepnie
- */
 
 // extern headers
 #include <iostream>

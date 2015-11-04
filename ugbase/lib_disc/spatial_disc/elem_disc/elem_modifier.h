@@ -1,9 +1,3 @@
-/*
- * elem_modifier.h
- *
- *  Created on: 04.10.2014
- *      Author: suze
- */
 
 #ifndef ELEM_MODIFIER_H_
 #define ELEM_MODIFIER_H_

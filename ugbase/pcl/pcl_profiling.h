@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@googlemail.com
-// 15.04.2011 (m,d,y)
-
 /**	This file defines some macros which should be used for profiling
  * the pcl. If PROFILE_PCL is defined, the profiling is executed,
  * if not, then no profiling will be done. You should enable PROFILE_PCL

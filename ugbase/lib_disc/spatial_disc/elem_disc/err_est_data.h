@@ -1,10 +1,5 @@
 /*
- * err_est_data.h
- *
  *	Data shared by element discretizations for a-posteriori error estimation
- *
- *  Created on: 25.02.2014
- *     Authors: Dmitriy Logashenko, Markus Breit
  */
 
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__ELEM_DISC__ERR_EST_DATA__

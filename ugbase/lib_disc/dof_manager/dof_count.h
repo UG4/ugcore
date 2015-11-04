@@ -1,9 +1,3 @@
-/*
- * dof_count.h
- *
- *  Created on: 06.11.2013
- *      Author: andreasvogel
- */
 
 #ifndef __H__UG__LIB_DISC__DOF_MANAGER__DOF_COUNT__
 #define __H__UG__LIB_DISC__DOF_MANAGER__DOF_COUNT__

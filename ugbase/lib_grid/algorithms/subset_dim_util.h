@@ -1,9 +1,3 @@
-/*
- * subset_dim_util.h
- *
- *  Created on: 05.03.2012 (as lib_disc/common/subset_util.h)
- *      Author: andreasvogel
- */
 
 #ifndef __H__UG__LIB_GRID__SUBSET_DIM_UTIL__
 #define __H__UG__LIB_GRID__SUBSET_DIM_UTIL__

@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@googlemail.com
-// 24.11.2011 (m,d,y)
-
 #ifndef __H__UG__lib_grid_messages__
 #define __H__UG__lib_grid_messages__
 

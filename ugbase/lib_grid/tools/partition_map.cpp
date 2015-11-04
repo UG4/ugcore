@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@googlemail.com
-// 25.05.2011 (m,d,y)
- 
 #include "partition_map.h"
 
 using namespace std;

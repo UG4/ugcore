@@ -1,10 +1,3 @@
-################################################
-# created by Andreas Vogel
-# andreas.vogel@gcsc.uni-frankfurt.de
-#
-# lib_discretization
-################################################
-
 cmake_minimum_required(VERSION 2.6)
 
 project(P_LIB_DISCRETIZATION)

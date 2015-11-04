@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@googlemail.com
-// y09 m08 d17
-
 #include "distributed_grid.h"
 #include "common/serialization.h"
 #include "common/util/hash.h"

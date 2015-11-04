@@ -1,9 +1,3 @@
-/*
- * serialization.h
- *
- *  Created on: May 29, 2012
- *      Author: rupp4
- */
 
 #ifndef SERIALIZATION_H_
 #define SERIALIZATION_H_

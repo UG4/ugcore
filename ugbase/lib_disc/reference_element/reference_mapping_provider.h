@@ -1,9 +1,3 @@
-/*
- * reference_mapping_provider.h
- *
- *  Created on: 29.06.2012
- *      Author: andreasvogel
- */
 
 #ifndef __H__UG__LIB_DISC__REFERENCE_ELEMENT__REFERENCE_MAPPING_PROVIDER__
 #define __H__UG__LIB_DISC__REFERENCE_ELEMENT__REFERENCE_MAPPING_PROVIDER__

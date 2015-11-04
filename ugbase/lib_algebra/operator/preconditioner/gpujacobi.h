@@ -1,9 +1,3 @@
-/*
- * GPUjacobi.h
- *
- *  Created on: 27.05.2013
- *      Author: mrupp
- */
 
 #ifdef CUDA_AVAILABLE
 #ifdef UG_GPU

@@ -1,6 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@gmail.com
-
 #include "grid_bridges.h"
 #include "bridge/suffix_tag.h"
 #include "lib_grid/algorithms/deg_layer_mngr.h"

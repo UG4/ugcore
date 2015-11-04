@@ -1,7 +1,3 @@
-//	created by Sebastian Reiter
-//	s.b.reiter@googlemail.com
-//	y08 m11 d13
-
 #include "../grid/grid.h"
 #include "../common_attachments.h"
 

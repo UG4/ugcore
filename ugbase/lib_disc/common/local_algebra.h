@@ -1,9 +1,3 @@
-/*
- * local_algebra.h
- *
- *  Created on: 19.07.2010
- *      Author: andreasvogel
- */
 
 #ifndef __H__UG__LIB_DISC__COMMON__LOCAL_ALGEBRA__
 #define __H__UG__LIB_DISC__COMMON__LOCAL_ALGEBRA__

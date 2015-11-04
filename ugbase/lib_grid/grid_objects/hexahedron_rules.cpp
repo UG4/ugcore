@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@googlemail.com
-// 31.05.2011 (m,d,y)
-
 #include <cassert>
 #include "rule_util.h"
 #include "hexahedron_rules.h"

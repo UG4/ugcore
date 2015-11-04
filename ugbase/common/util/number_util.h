@@ -1,9 +1,3 @@
-/*
- * number_util.h
- *
- *  Created on: 01.11.2013
- *      Author: mrupp
- */
 
 #ifndef NUMBER_UTIL_H_
 #define NUMBER_UTIL_H_

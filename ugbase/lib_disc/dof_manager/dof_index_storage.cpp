@@ -1,9 +1,3 @@
-/*
- * dof_index_storage.cpp
- *
- *  Created on: 29.11.2011
- *      Author: andreasvogel
- */
 
 #include "dof_index_storage.h"
 

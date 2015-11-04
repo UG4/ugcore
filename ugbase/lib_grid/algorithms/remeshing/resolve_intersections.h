@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@gmail.com
-// Jun 21, 2013 (d,m,y)
-
 #ifndef __H__UG__resolve_intersections__
 #define __H__UG__resolve_intersections__
 

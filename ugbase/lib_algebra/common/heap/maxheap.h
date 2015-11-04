@@ -1,12 +1,3 @@
-/**
- * \file maxheap.h
- *
- * \author Martin Rupp
- *
- * \date 02.10.09
- *
- * Goethe-Center for Scientific Computing 2009-2010.
- */
 
 #ifndef __H__UG__LIB_ALGEBRA__AMG_SOLVER__MAXHEAP_H__
 #define __H__UG__LIB_ALGEBRA__AMG_SOLVER__MAXHEAP_H__

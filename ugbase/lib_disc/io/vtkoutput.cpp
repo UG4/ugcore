@@ -1,9 +1,3 @@
-/*
- * vtkoutput.cpp
- *
- *  Created on: 25.04.2012
- *      Author: andreasvogel
- */
 #include "vtkoutput.h"
 #include <sstream>
 

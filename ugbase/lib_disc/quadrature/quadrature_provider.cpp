@@ -1,9 +1,3 @@
-/*
- * quadrature_provider.cpp
- *
- *  Created on: 15.02.2010
- *      Author: andreasvogel
- */
 
 #include "common/util/string_util.h"
 #include "quadrature_provider.h"

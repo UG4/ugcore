@@ -1,9 +1,3 @@
-/*
- * solve_deficit.h
- *
- *  Created on: 19.09.2013
- *      Author: mrupp
- */
 
 #ifndef SOLVE_DEFICIT_H_
 #define SOLVE_DEFICIT_H_

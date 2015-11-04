@@ -1,7 +1,3 @@
-//	collision_edges_node.h
-//	created by Sebastian Reiter y07 m12 d5
-//	s.b.reiter@googlemail.com
-
 #ifndef __H__UG__NODE_TREE__COLLSISION_EDGES_NODE__
 #define __H__UG__NODE_TREE__COLLSISION_EDGES_NODE__
 

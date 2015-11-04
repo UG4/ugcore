@@ -1,9 +1,3 @@
-/*
- * obstacle_bridge.cpp
- *
- *  Created on: 26.11.2013
- *      Author: raphaelprohl
- */
 
 // extern headers
 #include <iostream>

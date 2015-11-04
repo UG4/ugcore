@@ -1,7 +1,3 @@
-//	created by Sebastian Reiter
-//	s.b.reiter@googlemail.com
-//	y09 m11 d11
-
 #include <fstream>
 #include "lib_grid/lg_base.h"
 #include "lib_grid/algorithms/serialization.h"

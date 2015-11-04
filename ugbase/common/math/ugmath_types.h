@@ -1,13 +1,3 @@
-/**
- * \file ugmath_types.h
- * \brief typedefs for ugmath
- *
- * \author Sebastian Reiter
- * \date  y08 m11 d12
- *
- * This file contains typedefs for ug math.
- */
-
 #ifndef __H__UGMATH_TYPES__
 #define __H__UGMATH_TYPES__
 

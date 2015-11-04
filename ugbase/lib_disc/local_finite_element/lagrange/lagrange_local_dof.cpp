@@ -1,9 +1,3 @@
-/*
- * lagrange_local_dof.cpp
- *
- *  Created on: 30.06.2013
- *      Author: andreasvogel
- */
 
 #include "lagrange_local_dof.h"
 #include "common/util/provider.h"

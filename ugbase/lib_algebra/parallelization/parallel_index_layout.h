@@ -1,9 +1,3 @@
-/*
- * parallel_index_layout.h
- *
- *  Created on: 21.5.2010
- *      Author: A. Vogel, S.Reiter
- */
 
 #ifndef __H__LIB_ALGEBRA__PARALLELIZATION__PARALLEL_INDEX_LAYOUT__
 #define __H__LIB_ALGEBRA__PARALLELIZATION__PARALLEL_INDEX_LAYOUT__

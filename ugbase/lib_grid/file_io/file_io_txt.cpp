@@ -1,7 +1,3 @@
-//	created by Sebastian Reiter
-//	s.b.reiter@googlemail.com
-//	y08 m11 d14
-
 #include <fstream>
 #include <vector>
 #include "file_io_txt.h"

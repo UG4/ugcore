@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@googlemail.com
-// 25.7.2011 (m,d,y)
-
 #ifndef __H__UG__compol_subset__
 #define __H__UG__compol_subset__
 #include "pcl/pcl_communication_structs.h"

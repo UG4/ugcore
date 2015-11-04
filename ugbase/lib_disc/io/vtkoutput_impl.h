@@ -1,9 +1,3 @@
-/*
- * vtkoutput.cpp
- *
- *  Created on: 06.07.2009
- *      Author: andreasvogel
- */
 
 //other libraries
 #include <cstdio>

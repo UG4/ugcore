@@ -1,9 +1,3 @@
-/*
- * class_name_provider_impl.h
- *
- *  Created on: 08.07.2011
- *      Author: sreiter, andreasvogel
- */
 
 #ifndef __H__UG_BRIDGE__CLASS_NAME_PROVIDER_IMPL__
 #define __H__UG_BRIDGE__CLASS_NAME_PROVIDER_IMPL__

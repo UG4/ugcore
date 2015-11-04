@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@googlemail.com
-// 22.03.2011 (m,d,y)
- 
 #include <cstring>
 #include <cstdlib>
 #include "parameter_parsing.h"

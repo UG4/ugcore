@@ -1,7 +1,3 @@
-//	created by Sebastian Reiter
-//	s.b.reiter@googlemail.com
-//	y09 m02 d02
-
 #include "vertex_util.h"
 #include "edge_util.h"
 #include "../trees/kd_tree_static.h"

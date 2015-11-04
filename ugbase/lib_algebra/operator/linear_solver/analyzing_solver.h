@@ -1,9 +1,3 @@
-/*
- * analyzing solver
- *
- *  Created on: 19.11.2013
- *      Author: mrupp
- */
 
 #ifndef __H__LIB_ALGEBRA__LAPACK_ANALYZING_SOLVER__
 #define __H__LIB_ALGEBRA__LAPACK_ANALYZING_SOLVER__

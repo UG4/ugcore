@@ -1,9 +1,3 @@
-/*
- * lib_algebra.h
- *
- *  Created on: 02.07.2009
- *      Author: andreasvogel
- */
 
 #ifndef __H__LIB_ALGEBRA__LIB_ALGEBRA__
 #define __H__LIB_ALGEBRA__LIB_ALGEBRA__

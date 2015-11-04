@@ -1,9 +1,3 @@
-/*
- * schur_bridge.cpp
- *
- *  Created on: 08.01.2014
- *      Author: mrupp
- */
 
 // extern headers
 #include <iostream>

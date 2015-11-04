@@ -1,9 +1,3 @@
-/*
- * algebra_layouts.h
- *
- *  Created on: 18.02.2013
- *      Author: andreasvogel
- */
 
 #ifndef __H__UG4__LIB_ALGEBRA__PARALLELIZATION__ALGEBRA_LAYOUTS__
 #define __H__UG4__LIB_ALGEBRA__PARALLELIZATION__ALGEBRA_LAYOUTS__

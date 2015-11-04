@@ -1,7 +1,3 @@
-//	created by Sebastian Reiter
-//	s.b.reiter@googlemail.com
-//	y10 m01 d27
-
 #ifndef __H__REMESHING__SIMPLE_GRID__
 #define __H__REMESHING__SIMPLE_GRID__
 

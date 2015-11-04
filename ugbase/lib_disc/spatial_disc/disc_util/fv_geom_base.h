@@ -1,9 +1,3 @@
-/*
- * fv_geom_base.h
- *
- *  Created on: 11.01.2013
- *      Author: andreasvogel
- */
 
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__DISC_HELPER__FINITE_VOLUME_BASE__
 #define __H__UG__LIB_DISC__SPATIAL_DISC__DISC_HELPER__FINITE_VOLUME_BASE__

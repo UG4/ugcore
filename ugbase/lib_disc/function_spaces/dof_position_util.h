@@ -1,9 +1,3 @@
-/*
- * dof_position_util.h
- *
- *  Created on: 17.08.2010
- *      Author: andreasvogel
- */
 
 #ifndef __H__UG__LIB_DISC__FUNCTION_SPACE__DOF_POSITION_UTIL__
 #define __H__UG__LIB_DISC__FUNCTION_SPACE__DOF_POSITION_UTIL__

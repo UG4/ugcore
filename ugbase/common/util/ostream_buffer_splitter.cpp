@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@googlemail.com
-// y11 m01 d02
-
 #include "ostream_buffer_splitter.h"
 
 using namespace std;

@@ -1,10 +1,3 @@
-/*
- * SparseMatrixProxy.hh
- *
- *  Created on: Jun 10, 2013
- *      Author: anaegel
- */
-
 #ifndef SCALAR_MATRIX_ADAPTER_HH_
 #define SCALAR_MATRIX_ADAPTER_HH_
 

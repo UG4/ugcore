@@ -1,6 +1,5 @@
 /*
  * profilenode_management.h
- *
  */
 
 #ifndef PROFILENODE_MANAGEMENT_H_

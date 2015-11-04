@@ -1,9 +1,3 @@
-/*
- * File:   bindings_vrl.h
- * Author: Michael Hoffer <info@michaelhoffer.de>
- *
- * Created on 5. Oktober 2010, 14:54
- */
 
 #ifndef BINDINGS_VRL_H
 #define	BINDINGS_VRL_H

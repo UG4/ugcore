@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@googlemail.com
-// y2010
-
 #include <cstring>
 #include "class_name_provider.h"
 #include "function_traits.h"

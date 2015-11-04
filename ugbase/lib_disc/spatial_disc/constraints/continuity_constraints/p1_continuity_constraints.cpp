@@ -1,9 +1,3 @@
-/*
- * p1_continuity_constraints.cpp
- *
- *  Created on: 06.03.2012
- *      Author: andreasvogel
- */
 
 #include "p1_continuity_constraints.h"
 #include "lib_grid/algorithms/geom_obj_util/edge_util.h"

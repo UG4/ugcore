@@ -1,7 +1,3 @@
-//	created by Sebastian Reiter
-//	s.b.reiter@googlemail.com
-//	y08 m11 d09 (wrong date!)
-
 #ifndef __H__LIB_GRID__MULTI_GRID_REFINER__
 #define __H__LIB_GRID__MULTI_GRID_REFINER__
 

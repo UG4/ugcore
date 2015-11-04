@@ -1,9 +1,3 @@
-/*
- * parallelization_util.h
- *
- *  Created on: 18.11.2011
- *      Author: S.Reiter
- */
 
 #ifndef __H__LIB_ALGEBRA__PARALLELIZATION__ALGEBRA_ID__
 #define __H__LIB_ALGEBRA__PARALLELIZATION__ALGEBRA_ID__

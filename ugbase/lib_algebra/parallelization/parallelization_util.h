@@ -1,9 +1,3 @@
-/*
- * parallelization_util.h
- *
- *  Created on: 14.6.2010
- *      Author: A. Vogel, S.Reiter
- */
 
 #ifndef __H__LIB_ALGEBRA__PARALLELIZATION__PARALLELIZATION_UTIL__
 #define __H__LIB_ALGEBRA__PARALLELIZATION__PARALLELIZATION_UTIL__

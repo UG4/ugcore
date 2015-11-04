@@ -1,6 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@gmail.com
-
 #include "raster_layer_util.h"
 #include "field_util.h"
 #include "lib_grid/file_io/file_io_asc.h"

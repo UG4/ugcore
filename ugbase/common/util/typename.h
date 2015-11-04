@@ -1,9 +1,3 @@
-/*
- * typename.h
- *
- *  Created on: 26.09.2013
- *      Author: mrupp
- */
 
 #ifndef __H__UTIL__TYPENAME_H_
 #define __H__UTIL__TYPENAME_H_

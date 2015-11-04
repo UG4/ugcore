@@ -1,7 +1,3 @@
-// created by Sebastian Reiter
-// s.b.reiter@googlemail.com
-// 01.02.2012 (m,d,y)
-
 #ifndef __H__UG__debug_util_impl__
 #define __H__UG__debug_util_impl__
 

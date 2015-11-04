@@ -1,9 +1,3 @@
-/*
- * tar.h
- *
- *  Created on: 16.12.2013
- *      Author: mrupp
- */
 
 #ifndef __H__TAR_H_
 #define __H__TAR_H_

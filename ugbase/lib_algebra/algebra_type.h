@@ -1,9 +1,3 @@
-/*
- * algebra_types.h
- *
- *  Created on: 01.04.2011
- *      Author: mrupp
- */
 
 #ifndef __H__UG__LIB_ALGEBRA__ALGEBRA_TYPE__
 #define __H__UG__LIB_ALGEBRA__ALGEBRA_TYPE__

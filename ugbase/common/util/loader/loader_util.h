@@ -1,7 +1,3 @@
-//	created by Sebastian Reiter
-//	y09 m08 d03
-//	s.b.reiter@googlemail.com
-
 #ifndef __H__UTIL__LOADER_UTIL__
 #define __H__UTIL__LOADER_UTIL__
 

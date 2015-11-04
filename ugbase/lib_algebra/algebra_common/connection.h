@@ -1,9 +1,3 @@
-/*
- * connection.h
- *
- *  Created on: 10.05.2013
- *      Author: mrupp
- */
 
 #ifndef CONNECTION_H_
 #define CONNECTION_H_

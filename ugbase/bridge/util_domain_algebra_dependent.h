@@ -1,9 +1,3 @@
-/* 
- * File:   util_domain_algebra_dependent.h
- *
- * Created on 2. November 2012, 10:52
- */
-
 #ifndef UTIL_DOMAIN_ALGEBRA_DEPENDENT_H
 #define	UTIL_DOMAIN_ALGEBRA_DEPENDENT_H
 

@@ -1,9 +1,3 @@
-/*
- * reference_element_mapping.h
- *
- *  Created on: 13.05.2009
- *      Author: andreasvogel
- */
 
 #ifndef __H__UG__LIB_DISC__REFERENCE_ELEMENT__REFERENCE_ELEMENT_MAPPING__
 #define __H__UG__LIB_DISC__REFERENCE_ELEMENT__REFERENCE_ELEMENT_MAPPING__

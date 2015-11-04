@@ -1,9 +1,3 @@
-/*
- * string_table_stream.h
- *
- *  Created on: 06.12.2013
- *      Author: mrupp
- */
 
 #ifndef STRING_TABLE_STREAM_H_
 #define STRING_TABLE_STREAM_H_

@@ -1,10 +1,3 @@
-################################################
-# created by Sebastian Reiter
-# s.b.reiter@googlemail.com
-#
-# Parallel Communication Layer
-################################################
-
 cmake_minimum_required(VERSION 2.6)
 
 project(P_PCL)

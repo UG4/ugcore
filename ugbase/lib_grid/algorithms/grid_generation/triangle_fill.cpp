@@ -1,7 +1,3 @@
-//	created by Sebastian Reiter
-//	s.b.reiter@googlemail.com
-//	y10 m05 d14
-
 #include <queue>
 #include <algorithm>
 #include "triangle_fill.h"
