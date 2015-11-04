@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y08 m10 d09
+
 #ifndef __H__UNIQUE_IDENTITY__
 #define __H__UNIQUE_IDENTITY__
 

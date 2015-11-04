@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y08 m12 d04
+
 #ifndef __H__LIB_GRID__KD_TREE_IMPL__
 #define __H__LIB_GRID__KD_TREE_IMPL__
 

@@ -1,3 +1,9 @@
+/*
+ * print.h
+ *
+ *  Created on: 18.09.2013
+ *      Author: mrupp
+ */
 
 #ifndef SMALL_ALGEBRA_PRINT_H_
 #define SMALL_ALGEBRA_PRINT_H_

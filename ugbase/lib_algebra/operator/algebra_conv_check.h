@@ -1,3 +1,10 @@
+/*
+ * algebra_conv_check.h
+ *
+ * A. Naegel
+ * (algebraic version of composite_conv_check.h by M. Breit)
+ */
+
 #ifndef __H__LIB_ALGEBRA__OPERATOR__ALGEBRA_CONVERGENCE_CHECK__
 #define __H__LIB_ALGEBRA__OPERATOR__ALGEBRA_CONVERGENCE_CHECK__
 

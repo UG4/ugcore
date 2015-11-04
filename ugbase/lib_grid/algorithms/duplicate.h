@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@googlemail.com
+// 19.12.2011 (m,d,y)
+
 #ifndef __H__UG__duplicate__
 #define __H__UG__duplicate__
 

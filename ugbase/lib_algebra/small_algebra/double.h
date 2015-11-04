@@ -1,4 +1,9 @@
 /*
+ *  blockMatrix.h
+ *
+ *  Created by Martin Rupp on 16.12.09.
+ *  Copyright 2009 G-CSC, University of Frankfurt. All rights reserved.
+ *
  *  Header File for general block matrix / double accessing 
  *  i.e. setAt(mat, i, j, d) -> mat(i,j) = d
  *	and setAt(f, 0, 0, d) -> f = d.

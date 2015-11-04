@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y10 m09 d20
+
 #include <iostream>
 #include <sstream>
 #include "registry/registry.h"

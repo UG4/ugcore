@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y08 m11 d24
+
 #include <cassert>
 #include "subset_handler_grid.h"
 

@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@googlemail.com
+// y10 m02 d15
+
 #ifndef __H__LIBGRID__SELECTOR_INTERFACE__
 #define __H__LIBGRID__SELECTOR_INTERFACE__
 

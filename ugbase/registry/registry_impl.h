@@ -1,3 +1,7 @@
+// created by Andreas Vogel, Sebastian Reiter
+// s.b.reiter@googlemail.com
+// 08.07.2011 (m,d,y)
+
 #ifndef __H__UG_BRIDGE__REGISTRY_IMPL__
 #define __H__UG_BRIDGE__REGISTRY_IMPL__
 

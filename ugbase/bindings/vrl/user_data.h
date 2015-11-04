@@ -1,3 +1,9 @@
+/* 
+ * File:   const_user_data.h
+ * Author: miho
+ *
+ * Created on 15. April 2011, 11:11
+ */
 
 #ifndef USER_DATA_H
 #define	USER_DATA_H

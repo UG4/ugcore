@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@googlemail.com
+// 24.05.2011 (m,d,y)
+
 #include <vector>
 #include <queue>
 #include "fractured_media_refiner.h"

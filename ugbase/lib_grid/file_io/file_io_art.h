@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y09 m12 d01
+
 #ifndef __H__LIB_GRID__FILE_IO_ART__
 #define __H__LIB_GRID__FILE_IO_ART__
 

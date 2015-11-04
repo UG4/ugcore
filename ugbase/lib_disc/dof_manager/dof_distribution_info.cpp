@@ -1,3 +1,9 @@
+/*
+ * dof_info.cpp
+ *
+ *  Created on: 15.02.2013
+ *      Author: andreasvogel
+ */
 
 #include "dof_distribution_info.h"
 #include "lib_grid/tools/subset_group.h"

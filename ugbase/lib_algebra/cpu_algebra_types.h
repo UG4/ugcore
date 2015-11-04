@@ -1,3 +1,9 @@
+/*
+ * cpu_algebra_types.h
+ *
+ *  Created on: 01.04.2011
+ *      Author: mrupp
+ */
 
 #ifndef __H__UG__LIB_ALGEBRA__CPU_ALGEBRA_TYPES__
 #define __H__UG__LIB_ALGEBRA__CPU_ALGEBRA_TYPES__

@@ -1,3 +1,6 @@
+//	authors: Sebastian Reiter, Andreas Vogel
+
+
 #ifndef __H__UG_BRIDGE__CLASS_NAME_PROVIDER__
 #define __H__UG_BRIDGE__CLASS_NAME_PROVIDER__
 

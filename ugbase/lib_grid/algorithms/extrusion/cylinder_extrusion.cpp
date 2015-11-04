@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y10 m02 d22
+
 #include <vector>
 #include "extrude.h"
 #include "cylinder_extrusion.h"

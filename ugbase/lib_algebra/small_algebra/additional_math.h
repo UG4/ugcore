@@ -1,3 +1,9 @@
+/*
+ * additional_math.h
+ *
+ *  Created on: 20.09.2013
+ *      Author: mrupp
+ */
 
 #ifndef FAMG_ADDITIONAL_MATH_H_
 #define FAMG_ADDITIONAL_MATH_H_

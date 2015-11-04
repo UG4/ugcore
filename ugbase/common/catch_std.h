@@ -1,3 +1,9 @@
+/*
+ * catch_std.h
+ *
+ *  Created on: 10.06.2013
+ *      Author: mrupp
+ */
 
 #ifndef __H_COMMON_CATCH_STD_H_
 #define __H_COMMON_CATCH_STD_H_

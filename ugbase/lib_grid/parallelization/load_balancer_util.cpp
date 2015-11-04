@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@gmail.com
+// Oct 17, 2013 (d,m,y)
+
 #include <cmath>
 #include "load_balancer_util.h"
 

@@ -1,3 +1,9 @@
+/*
+ * quadrature_provider_impl.h
+ *
+ *  Created on: 15.02.2010
+ *      Author: andreasvogel
+ */
 
 #include "quadrature_provider.h"
 

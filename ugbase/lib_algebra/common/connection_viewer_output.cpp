@@ -1,3 +1,9 @@
+/*
+ * connection_viewer_output.cpp
+ *
+ *  Created on: 03.08.2011
+ *      Author: mrupp
+ */
 
 #include <string>
 #include <fstream>

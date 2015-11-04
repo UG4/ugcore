@@ -1,3 +1,9 @@
+/*
+ * local_to_global_mapper.h
+ *
+ *  Created on: 19.02.2013
+ *      Author: susannehoellbacher
+ */
 
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__LOCAL_TO_GLOBAL_MAPPER__
 #define __H__UG__LIB_DISC__SPATIAL_DISC__LOCAL_TO_GLOBAL_MAPPER__

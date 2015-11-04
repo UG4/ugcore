@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@googlemail.com
+// 14.07.2011 (m,d,y)
+ 
 #include <string>
 #include <sstream>
 

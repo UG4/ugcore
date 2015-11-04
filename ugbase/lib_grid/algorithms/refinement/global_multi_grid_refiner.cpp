@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y10 m04 d14
+
 #include <cassert>
 #include "common/profiler/profiler.h"
 #include "global_multi_grid_refiner.h"

@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter, Andreas Vogel
+//	s.b.reiter@googlemail.com
+//	y10 m09 d20
+
 #include "bridge/bridge.h"
 #include "lib_algebra/algebra_type.h"
 #include "common/util/path_provider.h"

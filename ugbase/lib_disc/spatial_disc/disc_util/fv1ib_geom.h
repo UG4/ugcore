@@ -1,3 +1,11 @@
+/*
+ * fv1ib_geom.h
+ *
+ *  Created on: 07.02.2014
+ *      Author: susanne hoellbacher
+ *
+ */
+
 #ifndef FV1IB_GEOM_H_
 #define FV1IB_GEOM_H_
 

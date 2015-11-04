@@ -1,3 +1,9 @@
+/*
+ * subset_assemble_util.cpp
+ *
+ *  Created on: 05.03.2012
+ *      Author: andreasvogel
+ */
 
 #include "subset_assemble_util.h"
 

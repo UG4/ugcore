@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y10 m09 d20
+
 #ifndef __H__UG_BRIDGE__UG_STANDARD_BRIDGES__
 #define __H__UG_BRIDGE__UG_STANDARD_BRIDGES__
 

@@ -1,3 +1,9 @@
+/*
+ * eigensolver_bridge.cpp
+ *
+ *  Created on: 07.07.2011
+ *      Author: mrupp
+ */
 
 // extern headers
 #include <iostream>

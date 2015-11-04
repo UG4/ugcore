@@ -1,3 +1,9 @@
+/*
+ * assembled_linear_operator.h
+ *
+ *  Created on: ..
+ *      Author: andreasvogel
+ */
 
 #ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__ASSEMBLED_LINEAR_OPERATOR__
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__ASSEMBLED_LINEAR_OPERATOR__

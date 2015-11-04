@@ -1,3 +1,9 @@
+/*
+ * function_group.cpp
+ *
+ *  Created on: 13.07.2010
+ *      Author: andreasvogel
+ */
 
 #include "function_group.h"
 #include "common/common.h"

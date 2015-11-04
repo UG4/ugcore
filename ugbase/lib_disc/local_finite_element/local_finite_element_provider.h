@@ -1,3 +1,9 @@
+/*
+ * local_finite_element_provider.h
+ *
+ *  Created on: 12.05.2009
+ *      Author: andreasvogel
+ */
 
 #ifndef __H__UG__LIB_DISC__LOCAL_FINITE_ELEMENT__LOCAL_FINITE_ELEMENT_PROVIDER__
 #define __H__UG__LIB_DISC__LOCAL_FINITE_ELEMENT__LOCAL_FINITE_ELEMENT_PROVIDER__

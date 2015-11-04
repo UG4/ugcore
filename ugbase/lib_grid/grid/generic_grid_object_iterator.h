@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@googlemail.com
+// 22.12.2011 (m,d,y)
+
 #ifndef __H__UG__generic_grid_object_iterator__
 #define __H__UG__generic_grid_object_iterator__
 

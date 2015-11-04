@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y10 m07 d06
+
 #ifndef __H__PCL__PCL_PROCESS_COMMUNICATOR__
 #define __H__PCL__PCL_PROCESS_COMMUNICATOR__
 

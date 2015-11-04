@@ -1,3 +1,9 @@
+/*
+ * manifold_assemble_util.h
+ *
+ *  Created on: 08.04.2014
+ *      Author: mstepnie
+ */
 
 
 #ifndef __H_MANIFOLD_ASSEMBLE_UTIL__

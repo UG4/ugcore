@@ -1,3 +1,9 @@
+/*
+ * std_glob_pos_data.h
+ *
+ *  Created on: 03.07.2012
+ *      Author: andreasvogel
+ */
 
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__STD_GLOB_POS_DATA__
 #define __H__UG__LIB_DISC__SPATIAL_DISC__STD_GLOB_POS_DATA__

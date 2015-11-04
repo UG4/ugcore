@@ -1,3 +1,9 @@
+/*
+ * reference_mapping_provider.cpp
+ *
+ *  Created on: 21.07.2011
+ *      Author: andreasvogel
+ */
 
 #include "common/util/provider.h"
 #include "reference_mapping_provider.h"

@@ -1,3 +1,9 @@
+/*
+ * operations_mat.h
+ *
+ *  Created on: 17.11.2010
+ *      Author: mrupp
+ */
 
 #ifndef __H__UG__LIB_ALGEBRA__INDEX_VIEW_H__
 #define __H__UG__LIB_ALGEBRA__INDEX_VIEW_H__

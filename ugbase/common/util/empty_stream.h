@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@googlemail.com
+// 20.03.2012 (m,d,y)
+
 #ifndef __H__UG__empty_stream__
 #define __H__UG__empty_stream__
 

@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y11 m07 d19
+
 #ifndef __H__UG__NODE_TREE__INTERSECT_FACES__
 #define __H__UG__NODE_TREE__INTERSECT_FACES__
 

@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@googlemail.com
+// 11.01.2011
+
 #ifndef __H__UG__HANGING_NODE_REFINER_BASE__
 #define __H__UG__HANGING_NODE_REFINER_BASE__
 

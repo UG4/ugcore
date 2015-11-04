@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// y10 m12 d13
+// s.b.reiter@googlemail.com
+
 #include "polychain_util.h"
 #include "lib_grid/callbacks/callbacks.h"
 

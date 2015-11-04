@@ -1,3 +1,9 @@
+/*
+ * periodic_boundary_manager.h
+ *
+ *  Created on: 26.11.2012
+ *      Author: marscher
+ */
 
 #ifndef PERIODIC_IDENTIFIER_H_
 #define PERIODIC_IDENTIFIER_H_

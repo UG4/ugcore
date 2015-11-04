@@ -1,3 +1,12 @@
+/*
+ * convergence_check.h
+ *
+ *  Created on: 18.07.2010
+ *      Author: andreasvogel
+ *
+ *  Comment: Based on an idea by Arne Naegel
+ */
+
 #ifndef __H__LIB_ALGEBRA__OPERATOR__CONVERGENCE_CHECK__
 #define __H__LIB_ALGEBRA__OPERATOR__CONVERGENCE_CHECK__
 

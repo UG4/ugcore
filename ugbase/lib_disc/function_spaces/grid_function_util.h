@@ -1,3 +1,9 @@
+/*
+ * grid_function_util.h
+ *
+ *  Created on: 17.08.2010
+ *      Author: andreasvogel
+ */
 
 #ifndef __H__UG__LIB_DISC__FUNCTION_SPACE__GRID_FUNCTION_UTIL__
 #define __H__UG__LIB_DISC__FUNCTION_SPACE__GRID_FUNCTION_UTIL__

@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y08 m11 d04
+
 #include <vector>
 #include <algorithm>
 #include "grid_objects.h"

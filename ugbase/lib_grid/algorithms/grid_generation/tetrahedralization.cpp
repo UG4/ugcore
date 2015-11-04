@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y09 m09 d17
+
 #include <vector>
 #include <sstream>
 #include "tetrahedralization.h"

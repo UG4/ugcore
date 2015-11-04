@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@gmail.com
+// 12.09.2012 (d,m,y)
+
 #include "lib_grid/algorithms/selection_util.h"
 #include "adaptive_regular_mg_refiner.h"
 

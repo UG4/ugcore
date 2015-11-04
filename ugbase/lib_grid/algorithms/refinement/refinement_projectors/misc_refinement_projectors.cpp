@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@googlemail.com
+//	y10 m07 d08
+
 #include <cassert>
 #include <algorithm>
 #include "misc_refinement_projectors.h"

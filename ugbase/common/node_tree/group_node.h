@@ -1,3 +1,7 @@
+//	group_node.h
+//	created by Sebastian Reiter 15. November 2007
+//	s.b.reiter@googlemail.com
+
 #ifndef __H__UG__NODE_TREE__GROUP_NODE__
 #define __H__UG__NODE_TREE__GROUP_NODE__
 

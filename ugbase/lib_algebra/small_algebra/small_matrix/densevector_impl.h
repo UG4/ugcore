@@ -1,3 +1,12 @@
+/**
+ * \file densevector_impl.h
+ *
+ * \author Martin Rupp
+ *
+ * \date 21.07.2010
+ *
+ * Goethe-Center for Scientific Computing 2010.
+ */
 
 
 #ifndef __H__UG__COMMON__DENSEVECTOR_IMPL_H__

@@ -1,3 +1,9 @@
+/*
+ * algebra_type.cpp
+ *
+ *  Created on: 06.10.2011
+ *      Author: andreasvogel
+ */
 
 #include "algebra_type.h"
 #include "common/common.h"

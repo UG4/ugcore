@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y08 m10 d16
+
 #ifndef __H__LIB_GRID__GRID_UTIL__
 #define __H__LIB_GRID__GRID_UTIL__
 

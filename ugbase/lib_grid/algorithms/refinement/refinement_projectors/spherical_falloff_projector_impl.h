@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@gmail.com
+// Feb 20, 2014
+
 #ifndef __H__UG__spherical_falloff_projector_impl__
 #define __H__UG__spherical_falloff_projector_impl__
 

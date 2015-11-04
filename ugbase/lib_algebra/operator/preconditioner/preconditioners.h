@@ -1,3 +1,9 @@
+/**
+ * \file ugbase/lib_algebra/operator/preconditioner/preconditioners.h
+ *
+ *  \date	 	05.04.2013
+ *  \author 	mrupp
+ */
 
 #ifndef __UG__PRECONDITIONERS_H__
 #define __UG__PRECONDITIONERS_H__

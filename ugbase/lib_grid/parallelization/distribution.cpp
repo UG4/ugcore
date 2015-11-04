@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@gmail.com
+// 29.11.2012 (d,m,y)
+
 #include <sstream>
 #include "common/static_assert.h"
 #include "common/util/table.h"

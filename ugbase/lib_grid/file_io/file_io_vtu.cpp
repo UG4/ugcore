@@ -1,3 +1,6 @@
+// created by Sebastian Reiter
+// s.b.reiter@gmail.com
+
 #include "file_io_vtu.h"
 
 using namespace std;

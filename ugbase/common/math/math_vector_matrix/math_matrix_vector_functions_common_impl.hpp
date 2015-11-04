@@ -1,3 +1,9 @@
+/*
+ * lgmath_matrix_vector_functions_common_impl.hpp
+ *
+ *  Created on: 07.07.2009
+ *      Author: andreasvogel
+ */
 
 #ifndef __H__LGMATH__MATRIX_VECTOR_FUNCTIONS_COMMON_IMPL__
 #define __H__LGMATH__MATRIX_VECTOR_FUNCTIONS_COMMON_IMPL__

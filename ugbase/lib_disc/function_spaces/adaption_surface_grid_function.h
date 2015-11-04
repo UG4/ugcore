@@ -1,3 +1,9 @@
+/*
+ * adaption_surface_grid_function.h
+ *
+ *  Created on: 14.06.2013
+ *      Author: andreasvogel
+ */
 
 #ifndef __H__UG__LIB_DISC__FUNCTION_SPACE__ADAPTION_SURFACE_GRID_FUNCTION__
 #define __H__UG__LIB_DISC__FUNCTION_SPACE__ADAPTION_SURFACE_GRID_FUNCTION__

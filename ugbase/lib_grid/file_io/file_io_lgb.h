@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y09 m11 d11
+
 #ifndef __H__LIBGRID__FILE_IO_BIN__
 #define __H__LIBGRID__FILE_IO_BIN__
 

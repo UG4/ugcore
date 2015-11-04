@@ -1,3 +1,12 @@
+/**
+ * \file densematrix_operations.h
+ *
+ * \author Martin Rupp
+ *
+ * \date 29.10.2010
+ *
+ * Goethe-Center for Scientific Computing 2010.
+ */
 
 #ifndef __H__UG__COMMON__DENSEMATRIX_OPERATIONS_H__
 #define __H__UG__COMMON__DENSEMATRIX_OPERATIONS_H__

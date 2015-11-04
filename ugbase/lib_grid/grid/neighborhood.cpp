@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y10 m01 d18
+
 #include "neighborhood.h"
 #include "lib_grid/algorithms/geom_obj_util/vertex_util.h"
 

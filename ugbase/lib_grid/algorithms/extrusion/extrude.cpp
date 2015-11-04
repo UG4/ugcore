@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@googlemail.com
+// y09 m05 d28
+
 #include "extrude.h"
 #include "common/util/hash.h"
 #include "lib_grid/algorithms/geom_obj_util/face_util.h"

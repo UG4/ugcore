@@ -1,3 +1,5 @@
+// 23.11.2011 (m,d,y)
+ 
 #include "registry_util.h"
 
 namespace ug{

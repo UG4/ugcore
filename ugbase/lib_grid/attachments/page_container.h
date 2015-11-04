@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@googlemail.com
+// 22.06.2011 (m,d,y)
+
 #ifndef __H__UG__page_container__
 #define __H__UG__page_container__
 

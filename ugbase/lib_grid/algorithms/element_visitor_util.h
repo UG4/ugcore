@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@googlemail.com
+// 20.01.2012 (m,d,y)
+
 #ifndef __H__UG__element_visitor_util__
 #define __H__UG__element_visitor_util__
 

@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y10 m04 d26
+
 #ifndef __H__LIB_GRID__OCTREE__
 #define __H__LIB_GRID__OCTREE__
 

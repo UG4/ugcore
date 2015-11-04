@@ -1,3 +1,9 @@
+/*
+ * subset_assemble_util.h
+ *
+ *  Created on: 08.07.2010
+ *      Author: andreasvogel
+ */
 
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__SUBSET_ASSEMBLE_UTIL__
 #define __H__UG__LIB_DISC__SPATIAL_DISC__SUBSET_ASSEMBLE_UTIL__

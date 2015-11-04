@@ -1,3 +1,9 @@
+/*
+ * parallel_file.h
+ *
+ *  Created on: 01.07.2014
+ *      Author: mrupp
+ */
 
 #ifndef PARALLEL_FILE_H_
 #define PARALLEL_FILE_H_

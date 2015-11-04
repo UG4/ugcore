@@ -1,3 +1,8 @@
+/*
+ * composite_conv_check.h
+ *
+ *      Author: M. Breit
+ */
 
 #ifndef __H__LIB_DISC__OPERATOR__COMPOSITE_CONVERGENCE_CHECK__
 #define __H__LIB_DISC__OPERATOR__COMPOSITE_CONVERGENCE_CHECK__

@@ -1,3 +1,4 @@
+// author: stephan
 #include <vector>
 #include <string>
 #include <sstream>

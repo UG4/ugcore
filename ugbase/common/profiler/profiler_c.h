@@ -1,3 +1,5 @@
+//	created by Martin Rupp
+
 #ifndef __H__UG__COMMON__PROFILER_C__
 #define __H__UG__COMMON__PROFILER_C__
 

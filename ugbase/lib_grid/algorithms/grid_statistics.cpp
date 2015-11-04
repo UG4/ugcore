@@ -1,3 +1,7 @@
+//	created by Martin Stepniewski
+//	mastep@gmx.de
+//	y09 m11 d11
+
 #include "grid_statistics.h"
 #include "geom_obj_util/volume_util.h"
 

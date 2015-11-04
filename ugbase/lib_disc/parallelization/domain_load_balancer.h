@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@gmail.com
+// Feb 27, 2013
+
 #ifndef __H__UG__domain_load_balancer__
 #define __H__UG__domain_load_balancer__
 

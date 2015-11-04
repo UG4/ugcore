@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y09 m07 d21
+
 #ifndef __H__LIB_GRID__CYLINDER_EXTRUSION__
 #define __H__LIB_GRID__CYLINDER_EXTRUSION__
 

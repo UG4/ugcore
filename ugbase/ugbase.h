@@ -1,3 +1,7 @@
+/**
+ * \file ugbase.h
+ */
+
 #ifndef __H__UG__UGBASE__
 #define __H__UG__UGBASE__
 

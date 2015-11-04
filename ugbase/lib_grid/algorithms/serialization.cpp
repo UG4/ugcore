@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// y09 m11 d05
+// s.b.reiter@googlemail.com
+
 #include <cassert>
 #include <vector>
 #include <algorithm>

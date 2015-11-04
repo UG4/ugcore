@@ -1,3 +1,7 @@
+//	Sebastian Reiter (sreiter), Martin Stepniewski (mstepnie)
+//	s.b.reiter@googlemail.com, mastep@gmx.de
+//	y09 m02 d02
+
 #ifndef __H__LIB_GRID__VOLUME_UTIL__
 #define __H__LIB_GRID__VOLUME_UTIL__
 

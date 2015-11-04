@@ -1,3 +1,7 @@
+//	traverser.cpp
+//	created by Sebastian Reiter y07 m12 d4
+//	s.b.reiter@googlemail.com
+
 #include "traverser.h"
 #include "node_tree.h"
 #include <iostream>

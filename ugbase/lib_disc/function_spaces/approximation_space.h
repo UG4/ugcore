@@ -1,3 +1,9 @@
+/*
+ * approximation_space.h
+ *
+ *  Created on: 19.02.2010
+ *      Author: andreasvogel
+ */
 
 #ifndef __H__UG__LIB_DISC__FUNCTION_SPACE__APPROXIMATION_SPACE__
 #define __H__UG__LIB_DISC__FUNCTION_SPACE__APPROXIMATION_SPACE__

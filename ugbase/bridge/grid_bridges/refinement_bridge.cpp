@@ -1,3 +1,6 @@
+// created by Sebastian Reiter
+// s.b.reiter@gmail.com
+
 #include "grid_bridges.h"
 #include "lib_grid/algorithms/refinement/adaptive_regular_mg_refiner.h"
 #include "lib_grid/algorithms/refinement/global_fractured_media_refiner.h"

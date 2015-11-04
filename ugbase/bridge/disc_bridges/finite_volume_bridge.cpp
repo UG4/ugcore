@@ -1,3 +1,9 @@
+/*
+ * finite_volume_bridge.cpp
+ *
+ *  Created on: 24.08.2012
+ *      Author: andreasvogel
+ */
 
 // extern headers
 #include <iostream>

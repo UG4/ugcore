@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y10 m01 d18
+
 #ifndef __H__LIB_GRID__NEIGHBORHOOD__
 #define __H__LIB_GRID__NEIGHBORHOOD__
 

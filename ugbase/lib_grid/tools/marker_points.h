@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y10 m02 d18
+
 #ifndef __H__LIBGRID__MARKER_POINTS__
 #define __H__LIBGRID__MARKER_POINTS__
 

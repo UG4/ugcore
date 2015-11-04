@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@gmail.com
+// Feb 25, 2013 (d,m,y)
+
 #include <algorithm>
 #include "load_balancer.h"
 #include "load_balancer_util.h"

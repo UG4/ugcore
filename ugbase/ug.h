@@ -1,3 +1,10 @@
+/**
+ * \file ug.h
+ */
+// created by Sebastian Reiter
+// s.b.reiter@googlemail.com
+// y10 m05 d31
+
 #ifndef __H__UG__UG__
 #define __H__UG__UG__
 

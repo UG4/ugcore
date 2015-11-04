@@ -1,3 +1,9 @@
+/*
+ * theta_time_step_impl.h
+ *
+ *  Created on: 23.10.2009
+ *      Author: andreasvogel
+ */
 
 #ifndef __H__UG__LIB_DISC__TIME_DISC__THETA_TIME_STEP_IMPL__
 #define __H__UG__LIB_DISC__TIME_DISC__THETA_TIME_STEP_IMPL__

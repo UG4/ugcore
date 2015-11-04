@@ -1,3 +1,9 @@
+/*
+ * \file ilut.h
+ *
+ * \date 20.07.2013
+ * \author Martin Rupp
+ */
 
 #ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__ILUT_SCALAR__
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__ILUT_SCALAR__

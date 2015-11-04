@@ -1,3 +1,9 @@
+/*
+ * math_constants.h
+ *
+ *  Created on: 29.11.2013
+ *      Author: raphaelprohl
+ */
 
 #ifndef __H__UGMATH__MATH_CONSTANTS_H_
 #define __H__UGMATH__MATH_CONSTANTS_H_

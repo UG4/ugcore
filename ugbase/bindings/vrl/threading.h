@@ -1,3 +1,9 @@
+/*
+ * File:   threading.h
+ * Author: Michael Hoffer <info@michaelhoffer.de>
+ *
+ * Created on 3. November 2010, 15:37
+ */
 
 #include <jni.h>
 #include <stddef.h>

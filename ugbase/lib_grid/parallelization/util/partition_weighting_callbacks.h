@@ -1,3 +1,9 @@
+/*
+ * edge_weighting_callbacks.h
+ *
+ *  Created on: 29.01.2013
+ *      Author: mbreit
+ */
 
 #ifndef __H__UG__LIB_GRID__PARALLELIZATION__UTIL__PARTITION_WEIGHTING_CALLBACKS__
 #define __H__UG__LIB_GRID__PARALLELIZATION__UTIL__PARTITION_WEIGHTING_CALLBACKS__

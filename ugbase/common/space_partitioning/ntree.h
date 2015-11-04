@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@gmail.com
+// Sep 3, 2013
+
 #ifndef __H__UG__ntree__
 #define __H__UG__ntree__
 

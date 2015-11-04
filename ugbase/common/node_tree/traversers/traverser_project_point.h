@@ -1,3 +1,7 @@
+//	distance_point_to_geom.h
+//	created by Sebastian Reiter y07 m12 d5
+//	s.b.reiter@googlemail.com
+
 #ifndef __H__UG__NODE_TREE__TRAVERSER_PROJECT_POINT__
 #define __H__UG__NODE_TREE__TRAVERSER_PROJECT_POINT__
 

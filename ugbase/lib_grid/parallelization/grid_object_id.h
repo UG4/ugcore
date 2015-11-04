@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@gmail.com
+// May 2013
+
 #ifndef __H__LIB_GRID__GEOMETRIC_OBJECT_ID__
 #define __H__LIB_GRID__GEOMETRIC_OBJECT_ID__
 

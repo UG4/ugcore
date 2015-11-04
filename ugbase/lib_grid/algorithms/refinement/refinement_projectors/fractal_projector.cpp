@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@gmail.com
+// Feb 20, 2014
+
 #include "fractal_projector.h"
 
 namespace ug{

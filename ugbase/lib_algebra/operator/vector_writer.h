@@ -1,3 +1,9 @@
+/*
+ * vector_writer.h
+ *
+ *  Created on: 10.03.2011
+ */
+
 #ifndef __H__LIB_ALGEBRA__OPERATOR__VECTOR_WRITER__
 #define __H__LIB_ALGEBRA__OPERATOR__VECTOR_WRITER__
 

@@ -1,3 +1,9 @@
+/*
+ * periodic_boundary_manager.cpp
+ *
+ *  Created on: 05.12.2012
+ *      Author: marscher
+ */
 #include "periodic_boundary_manager.h"
 
 namespace ug {

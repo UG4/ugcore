@@ -1,3 +1,9 @@
+/*
+ * transfer_post_process.h
+ *
+ *  Created on: 04.12.2009
+ *      Author: andreasvogel
+ */
 
 #ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__TRANSFER_POST_PROCESS__
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__TRANSFER_POST_PROCESS__

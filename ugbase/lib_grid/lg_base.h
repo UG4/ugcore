@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y08 m02 d05
+
 ////////////////////////////////////////////////////////////////////////
 //	This file includes the most basic components of libGrid.
 //	You should include this file instead of lib_grid.h whenever

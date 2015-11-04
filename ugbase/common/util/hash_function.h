@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@gmail.com
+// oct 2013
+
 #ifndef __H__UG__hash_function__
 #define __H__UG__hash_function__
 

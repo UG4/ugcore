@@ -1,3 +1,9 @@
+/*
+ * domain_disc.h
+ *
+ *  Created on: 29.06.2010
+ *      Author: andreasvogel
+ */
 
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__DOMAIN_DISC__
 #define __H__UG__LIB_DISC__SPATIAL_DISC__DOMAIN_DISC__

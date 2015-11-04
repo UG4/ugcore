@@ -1,3 +1,9 @@
+/*
+ * dof_distribution.h
+ *
+ *  Created on: 24.01.2012
+ *      Author: andreasvogel
+ */
 
 #ifndef __H__UG__LIB_DISC__DOF_MANAGER__DOF_DISTRIBUTION__
 #define __H__UG__LIB_DISC__DOF_MANAGER__DOF_DISTRIBUTION__

@@ -1,4 +1,9 @@
 /*
+ * lognormal_random_field.h
+ *
+ *  Created on: 17.12.2014
+ *      Author: Ivo Muha, Martin Rupp
+ *
  *      example usage (on unit square)
  *      	elemDisc = ConvectionDiffusion("c", "Inner", disc)
  *			elemDisc:set_diffusion(LognormalRandomField(100, 0, 1, 0.01))

@@ -1,3 +1,6 @@
+// created by Sebastian Reiter
+// s.b.reiter@gmail.com
+
 #include <string>
 #include <fstream>
 #include "file_io_asc.h"

@@ -1,3 +1,9 @@
+/*
+ * error.cpp
+ *
+ *  Created on: 09.12.2013
+ *      Author: mrupp
+ */
 
 #include "error.h"
 #include <typeinfo>

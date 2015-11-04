@@ -1,3 +1,9 @@
+/*
+ * proj_gauss_seidel_preconds.h
+ *
+ *  Created on: 25.11.2013
+ *      Author: raphaelprohl
+ */
 
 #ifndef PROJ_GAUSS_SEIDEL_PRECONDS_H_
 #define PROJ_GAUSS_SEIDEL_PRECONDS_H_

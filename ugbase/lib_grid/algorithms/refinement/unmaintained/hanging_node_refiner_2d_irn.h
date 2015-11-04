@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@googlemail.com
+//	y09 m03 d16
+
 #ifndef __H__LIB_GRID__HANGING_NODE_REFINER_2D_IRN__
 #define __H__LIB_GRID__HANGING_NODE_REFINER_2D_IRN__
 

@@ -1,3 +1,9 @@
+/*
+ * math_matrix.cpp
+ *
+ *  Created on: 08.07.2009
+ *      Author: andreasvogel
+ */
 
 #include "math_matrix.h"
 #include  <iostream>

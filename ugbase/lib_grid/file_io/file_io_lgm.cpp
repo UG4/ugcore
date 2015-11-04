@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter, Nicolas Tessore
+//	s.b.reiter@googlemail.com
+//	y09 m03 d09
+
 #include "file_io_lgm.h"
 
 #include <vector>

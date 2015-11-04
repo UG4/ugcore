@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y08 m11 d06
+
 #ifndef __UTIL__ATTACHMENT_PIPE__IMPL__
 #define __UTIL__ATTACHMENT_PIPE__IMPL__
 

@@ -1,3 +1,9 @@
+/*
+ * lagrangep1.h
+ *
+ *  Created on: 17.02.2010
+ *      Author: andreasvogel
+ */
 
 #ifndef __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__LAGRANGEP1__LAGRANGEP1__
 #define __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__LAGRANGEP1__LAGRANGEP1__

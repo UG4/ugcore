@@ -1,3 +1,9 @@
+/*
+ * schur_complement_inverse.h
+ *
+ *  Created on: 08.01.2014
+ *      Author: mrupp
+ */
 
 #ifndef SCHUR_COMPLEMENT_INVERSE_H_
 #define SCHUR_COMPLEMENT_INVERSE_H_

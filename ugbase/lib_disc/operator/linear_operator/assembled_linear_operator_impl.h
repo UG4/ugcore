@@ -1,3 +1,9 @@
+/*
+ * assembled_linear_operator_impl.h
+ *
+ *  Created on: 24.02.2011
+ *      Author: andreasvogel
+ */
 
 #ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__ASSEMBLED_LINEAR_OPERATOR_IMPL__
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__ASSEMBLED_LINEAR_OPERATOR_IMPL__

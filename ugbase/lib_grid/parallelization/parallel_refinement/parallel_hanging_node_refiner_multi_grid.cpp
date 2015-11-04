@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@googlemail.com
+// 09.02.2011 (m,d,y)
+ 
 #include <algorithm>
 #include "parallel_hanging_node_refiner_multi_grid.h"
 #include "../util/compol_selection.h"

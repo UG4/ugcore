@@ -1,3 +1,6 @@
+// created by Sebastian Reiter
+// s.b.reiter@gmail.com
+
 #ifndef __H__UG_ray_element_intersection_util
 #define __H__UG_ray_element_intersection_util
 

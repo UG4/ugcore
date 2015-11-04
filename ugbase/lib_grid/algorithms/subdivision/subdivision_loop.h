@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter, Martin Stepniewski
+//	s.b.reiter@googlemail.com, mastep@gmx.de
+//	y08 m12 d07
+
 #ifndef __H__UG__SUBDIVISION_LOOP__
 #define __H__UG__SUBDIVISION_LOOP__
 

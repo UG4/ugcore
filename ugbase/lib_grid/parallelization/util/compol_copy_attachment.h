@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@googlemail.com
+// y09 m12 d09
+
 #include "pcl/pcl_base.h"
 #include "common/serialization.h"
 

@@ -1,3 +1,13 @@
+
+/*
+ *  stub_lapack.c
+ *
+ *
+ *  Created by Martin Rupp on 02.08.10.
+ *  Copyright 2010 . All rights reserved.
+ *
+ */
+
 #ifndef __H__UG__CPU_ALGEBRA__LAPACK_LU_H__
 #define __H__UG__CPU_ALGEBRA__LAPACK_LU_H__
 

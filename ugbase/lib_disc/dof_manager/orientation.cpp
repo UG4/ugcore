@@ -1,3 +1,9 @@
+/*
+ * orientation.cpp
+ *
+ *  Created on: 25.07.2013
+ *      Author: andreasvogel
+ */
 
 #include "orientation.h"
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"

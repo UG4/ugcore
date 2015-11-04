@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@googlemail.com
+// 24.11.2011 (m,d,y)
+ 
 #include <sstream>
 #include "surface_view.h"
 #include "common/assert.h"

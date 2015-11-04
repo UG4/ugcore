@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter, Martin Rupp
+//	s.b.reiter@googlemail.com
+//	y10 m12 d2
+
 #ifndef __H__UG__SERIALIZATION__
 #define __H__UG__SERIALIZATION__
 

@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y09 m10 d21
+
 #ifndef __H__UG__COMMON__PROFILER__
 #define __H__UG__COMMON__PROFILER__
 

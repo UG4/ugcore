@@ -1,3 +1,6 @@
+// created by Sebastian Reiter
+// s.b.reiter@googlemail.com
+
 #ifndef __H__FUNCTION_CAST__
 #define __H__FUNCTION_CAST__
 

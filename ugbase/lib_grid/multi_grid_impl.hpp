@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y09 m09 d10
+
 #include "common/static_assert.h"
 #include "multi_grid.h"
 

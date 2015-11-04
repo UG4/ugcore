@@ -1,3 +1,6 @@
+// created by Sebastian Reiter
+// s.b.reiter@gmail.com
+
 #include "problem_detection_util.h"
 #include "lib_grid/grid_objects/tetrahedron_rules.h"
 #include "common/math/misc/math_util.h"

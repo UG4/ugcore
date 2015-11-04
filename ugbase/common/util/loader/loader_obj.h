@@ -1,3 +1,7 @@
+//Loader_obj.h
+//created by Sebastian Reiter
+//reitersbasti@web.de
+
 #ifndef __LIBMESH_LOADER_OBJ__
 #define __LIBMESH_LOADER_OBJ__
 

@@ -1,3 +1,9 @@
+/*
+ * fe_geom.h
+ *
+ *  Created on: 08.12.2009
+ *      Author: andreasvogel
+ */
 
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__DISC_HELPER__FINITE_ELEMENT_GEOMETRY__
 #define __H__UG__LIB_DISC__SPATIAL_DISC__DISC_HELPER__FINITE_ELEMENT_GEOMETRY__

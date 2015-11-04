@@ -1,3 +1,9 @@
+/*
+ * dof_distribution.cpp
+ *
+ *  Created on: 24.01.2012
+ *      Author: andreasvogel
+ */
 
 #include "dof_distribution.h"
 #include "lib_disc/function_spaces/grid_function.h"

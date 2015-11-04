@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@gmail.com
+// Mar 3, 2014
+
 #ifndef __H__UG__balance_weights_ref_marks__
 #define __H__UG__balance_weights_ref_marks__
 

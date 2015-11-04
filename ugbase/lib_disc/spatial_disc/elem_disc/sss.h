@@ -1,3 +1,9 @@
+/*
+ * singular sources and sinks
+ *
+ *  Created on: 09.07.2015
+ *      Author: M. Lampe
+ */
 
 #ifndef __H_SINGULAR_SOURCES_AND_SINKS__
 #define __H_SINGULAR_SOURCES_AND_SINKS__

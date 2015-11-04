@@ -1,3 +1,9 @@
+/* 
+ * File:   DebugID.cpp
+ * Author: mrupp
+ * 
+ * Created on 22. Oktober 2012, 13:55
+ */
 
 #include "debug_id.h"
 #include "common/log.h"

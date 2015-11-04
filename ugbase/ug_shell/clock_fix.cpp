@@ -1,3 +1,9 @@
+/*
+ * clock_fix.cpp
+ *
+ *  Created on: 14.02.2014
+ *      Author: mrupp
+ */
 
 /*
  this fixes a linker problem on hermit (and possibly on other clusters):

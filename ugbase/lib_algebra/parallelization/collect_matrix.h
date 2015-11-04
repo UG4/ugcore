@@ -1,3 +1,9 @@
+/*
+ * collect_matrix.h
+ *
+ *  Created on: 02.05.2011
+ *      Author: mrupp
+ */
 
 #ifndef __H__LIB_ALGEBRA__COLLECT_MATRIX_H_
 #define __H__LIB_ALGEBRA__COLLECT_MATRIX_H_

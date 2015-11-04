@@ -1,3 +1,9 @@
+/*
+ * local_transfer_interface.cpp
+ *
+ *  Created on: 26.07.2013
+ *      Author: andreasvogel
+ */
 
 #include "local_transfer_interface.h"
 #include "local_transfer.h"

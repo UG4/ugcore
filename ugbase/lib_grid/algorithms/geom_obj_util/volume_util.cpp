@@ -1,3 +1,7 @@
+//	Sebastian Reiter (sreiter), Martin Stepniewski (mstepnie)
+//	s.b.reiter@googlemail.com, mastep@gmx.de
+//	y09 m11 d11
+
 #include "volume_util.h"
 #include "lib_grid/lg_base.h"
 #include "edge_util.h"

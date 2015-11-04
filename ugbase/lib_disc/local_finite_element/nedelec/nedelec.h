@@ -1,6 +1,11 @@
 /*
+ * nedelec.h
+ *
  * This file contains implementations of the local shape function set for
  * the so-called Nedelec (or Whitney-1) elements.
+ *
+ * Created on: 08.02.2013
+ * Author: Dmitry Logashenko
  */
 #ifndef __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__NEDELEC__NEDELEC__
 #define __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__NEDELEC__NEDELEC__

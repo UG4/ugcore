@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y08 m11 d24   (reworked y09 m12 d15)
+
 
 #include <cassert>
 #include "subset_handler_interface.h"

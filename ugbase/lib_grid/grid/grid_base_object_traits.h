@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@googlemail.com
+// 22.12.2011 (m,d,y)
+
 #ifndef __H__UG__grid_base_object_traits__
 #define __H__UG__grid_base_object_traits__
 

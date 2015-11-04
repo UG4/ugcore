@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@googlemail.com
+// y10 m02 d15
+
 #include "lib_grid/algorithms/attachment_util.h"
 #include "selector_interface.h"
 #ifdef UG_PARALLEL

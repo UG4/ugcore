@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@gmail.com
+// Mar 7, 2013 (d,m,y)
+
 #ifndef __H__UG__parallel_dual_graph_impl__
 #define __H__UG__parallel_dual_graph_impl__
 

@@ -1,3 +1,10 @@
+################################################
+# created by Sebastian Reiter, Andreas Vogel
+# s.b.reiter@googlemail.com
+#
+# ugbase
+################################################
+
 cmake_minimum_required(VERSION 2.6)
 
 project(P_UGBASE)

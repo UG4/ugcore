@@ -1,3 +1,9 @@
+/*
+ * schur_precond.cpp
+ *
+ *  Created on: 18.12.2013
+ *      Author: anaegel
+ */
 
 //	THIS FILE IS ONLY TEMPORARY!
 //  When everything works as

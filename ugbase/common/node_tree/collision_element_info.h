@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y10 m04 d26
+
 #ifndef __H__UG__NODE_TREE__COLLSISION_ELEMENT_INFO__
 #define __H__UG__NODE_TREE__COLLSISION_ELEMENT_INFO__
 

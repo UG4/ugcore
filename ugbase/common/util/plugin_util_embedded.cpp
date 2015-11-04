@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@gmail.com
+// Nov 25, 2013
+
 #include <string>
 #include <cstring>
 #include "common/log.h"

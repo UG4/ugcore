@@ -1,3 +1,10 @@
+/*
+ *  variable_array_impl.h
+ *
+ *  Created by Martin Rupp on 28.02.11.
+ *  Copyright 2010 . All rights reserved.
+ *
+ */
 
 #ifndef __H__UG__COMMON__VARIABLE_ARRAY_IMPL_H__
 #define __H__UG__COMMON__VARIABLE_ARRAY_IMPL_H__

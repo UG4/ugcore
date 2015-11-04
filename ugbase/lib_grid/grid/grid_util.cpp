@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y08 m10 d16
+
 #include "grid_util.h"
 #include "grid.h"
 #include <iostream>

@@ -1,3 +1,9 @@
+/*
+ * profile_node.cpp
+ *
+ *  Created on: May 22, 2012
+ *      Author: Martin Rupp
+ */
 
 
 #include "profiler.h"

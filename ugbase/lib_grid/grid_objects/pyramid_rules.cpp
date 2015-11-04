@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@googlemail.com
+// 31.05.2011 (m,d,y)
+
 #include <cassert>
 #include "pyramid_rules.h"
 #include "rule_util.h"

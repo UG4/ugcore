@@ -1,3 +1,9 @@
+/*
+ * local_dof_set.cpp
+ *
+ *  Created on: 18.07.2011
+ *      Author: andreasvogel
+ */
 
 #include "local_dof_set.h"
 #include "lib_disc/reference_element/reference_element_util.h"

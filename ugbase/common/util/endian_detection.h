@@ -1,3 +1,9 @@
+/*
+ * endian.h
+ *
+ *  Created on: 31.08.2012
+ *      Author: andreasvogel
+ */
 
 #ifndef __H__UG__COMMON__UTIL__ENDIAN__
 #define __H__UG__COMMON__UTIL__ENDIAN__

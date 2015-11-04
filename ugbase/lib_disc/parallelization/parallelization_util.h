@@ -1,3 +1,9 @@
+/*
+ * parallelization.h
+ *
+ *  Created on: 21.5.2010
+ *      Author: A. Vogel, S.Reiter
+ */
 
 #ifndef __H__UG__LIB_DISC__PARALLELIZATION__PARALLELIZATION_UTIL__
 #define __H__UG__LIB_DISC__PARALLELIZATION__PARALLELIZATION_UTIL__

@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// y09 m07 d31
+// s.b.reiter@googlemail.com
+
 #ifndef __H__LIB_GRID__GEOMETRIC_OBJECT_COLLECTION_IMPL__
 #define __H__LIB_GRID__GEOMETRIC_OBJECT_COLLECTION_IMPL__
 

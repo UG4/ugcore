@@ -1,3 +1,7 @@
+// created by mstepnie
+// martin.stepniewski@gcsc.uni-frankfurt.de
+// Juli 14, 2014
+
 #ifndef __H__UG__SUBDIVISION_VOLUMES__
 #define __H__UG__SUBDIVISION_VOLUMES__
 

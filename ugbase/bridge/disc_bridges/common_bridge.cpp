@@ -1,3 +1,9 @@
+/*
+ * common_bridge.cpp
+ *
+ *  Created on: 14.02.2011
+ *      Author: andreasvogel
+ */
 
 #include <string>
 

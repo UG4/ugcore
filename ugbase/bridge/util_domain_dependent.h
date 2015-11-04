@@ -1,3 +1,9 @@
+/* 
+ * File:   util_domain_dependent.h
+ *
+ * Created on 2. November 2012, 10:50
+ */
+
 #ifndef UTIL_DOMAIN_DEPENDENT_H
 #define	UTIL_DOMAIN_DEPENDENT_H
 

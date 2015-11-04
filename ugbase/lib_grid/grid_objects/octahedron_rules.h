@@ -1,3 +1,8 @@
+// created by mstepnie
+// adapted from Sebastian Reiter
+// martin.stepniewski@gcsc.uni-frankfurt.de
+// 10.07.2014 (m,d,y)
+
 #ifndef __H__UG__octahedron_rules__
 #define __H__UG__octahedron_rules__
 

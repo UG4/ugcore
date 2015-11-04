@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@googlemail.com
+//	y10 m07 d08
+
 #ifndef __H__LIB_GRID__REFINEMENT_CALLBACKS__
 #define __H__LIB_GRID__REFINEMENT_CALLBACKS__
 

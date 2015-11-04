@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@gmail.com
+// 07.12.2012 (d,m,y)
+
 #ifndef __H__PCL__pcl_layout_util__
 #define __H__PCL__pcl_layout_util__
 

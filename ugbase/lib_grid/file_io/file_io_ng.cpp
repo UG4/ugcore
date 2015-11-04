@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter, Nicolas Tessore
+//	s.b.reiter@googlemail.com
+//	y08 m12 d02
+
 #include "file_io_ng.h"
 
 #include <vector>

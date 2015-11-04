@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@googlemail.com
+// 12.09.2011 (m,d,y)
+
 #include <string>
 #include "common/log.h"
 #include "bridge/bridge.h"

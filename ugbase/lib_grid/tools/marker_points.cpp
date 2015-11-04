@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y10 m02 d18
+
 #include <sstream>
 #include "marker_points.h"
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"

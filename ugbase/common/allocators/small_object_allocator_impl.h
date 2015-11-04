@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y10 m12 d03
+
 #ifndef __H__SMALL_OBJECT_ALLOCATOR_IMPL__
 #define __H__SMALL_OBJECT_ALLOCATOR_IMPL__
 

@@ -1,3 +1,11 @@
+/**
+ * \file math_symmetric_matrix.h
+ *
+ * \author Christian Wehner
+ *
+ * \date 18.11.2013
+ */
+
 #ifndef SYM_MATRIX_H_
 #define SYM_MATRIX_H_
 

@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y08 m11 d05
+
 /**
  * \defgroup lib_grid lib_grid
  * \brief The grid library.

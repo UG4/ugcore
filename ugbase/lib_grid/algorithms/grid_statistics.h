@@ -1,3 +1,7 @@
+//	created by Martin Stepniewski, Sebastian Reiter
+//	mastep@gmx.de
+//	y09 m11 d11
+
 #ifndef __H__UG__GRID_STATISTICS__
 #define __H__UG__GRID_STATISTICS__
 

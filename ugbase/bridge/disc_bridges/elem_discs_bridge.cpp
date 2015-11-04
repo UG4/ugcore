@@ -1,3 +1,9 @@
+/*
+ * elem_discs_bridge.cpp
+ *
+ *  Created on: 20.05.2011
+ *      Author: andreasvogel
+ */
 
 // extern headers
 #include <iostream>

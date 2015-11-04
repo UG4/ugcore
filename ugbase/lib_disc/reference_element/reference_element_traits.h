@@ -1,3 +1,9 @@
+/*
+ * reference_element_traits.h
+ *
+ *  Created on: 30.06.2011
+ *      Author: andreasvogel
+ */
 
 #ifndef __H__UG__LIB_DISC__REFERENCE_ELEMENT__REFERENCE_ELEMENT_TRAITS__
 #define __H__UG__LIB_DISC__REFERENCE_ELEMENT__REFERENCE_ELEMENT_TRAITS__

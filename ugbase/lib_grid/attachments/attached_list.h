@@ -1,3 +1,7 @@
+// created by Sebastian Reiter, ideas from discussions with Andreas Vogel
+// s.b.reiter@googlemail.com
+// 01.04.2011 (m,d,y)
+
 #ifndef __H__UG__attached_list__
 #define __H__UG__attached_list__
 

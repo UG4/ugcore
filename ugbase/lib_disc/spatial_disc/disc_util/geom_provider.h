@@ -1,3 +1,9 @@
+/*
+ * geom_provider.h
+ *
+ *  Created on: 20.07.2011
+ *      Author: andreasvogel
+ */
 
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__DISC_UTIL__GEOM_PROVIDER__
 #define __H__UG__LIB_DISC__SPATIAL_DISC__DISC_UTIL__GEOM_PROVIDER__

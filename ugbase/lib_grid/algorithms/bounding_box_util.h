@@ -1,3 +1,6 @@
+// created by Sebastian Reiter
+// s.b.reiter@gmail.com
+
 #ifndef __H__UG_bounding_box_util
 #define __H__UG_bounding_box_util
 

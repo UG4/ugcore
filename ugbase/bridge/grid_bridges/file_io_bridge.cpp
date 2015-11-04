@@ -1,3 +1,6 @@
+// created by Sebastian Reiter
+// s.b.reiter@gmail.com
+
 #include "grid_bridges.h"
 #include "common/profiler/profiler.h"
 #include "lib_grid/multi_grid.h"

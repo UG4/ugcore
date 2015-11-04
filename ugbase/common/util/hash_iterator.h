@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@gmail.com
+// Oct 14, 2013 (d,m,y)
+
 #ifndef __H__UG__hash_iterator__
 #define __H__UG__hash_iterator__
 

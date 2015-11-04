@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y10 m01 d27
+
 #include <cassert>
 #include "common/math/ugmath.h"
 #include "simple_grid.h"

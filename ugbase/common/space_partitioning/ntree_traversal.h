@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@gmail.com
+// Sep 12, 2013 (d,m,y)
+
 #ifndef __H__UG__ntree_traversal__
 #define __H__UG__ntree_traversal__
 

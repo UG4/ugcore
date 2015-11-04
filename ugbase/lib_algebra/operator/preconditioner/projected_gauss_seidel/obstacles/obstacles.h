@@ -1,3 +1,9 @@
+/*
+ * obstacles.h
+ *
+ *  Created on: 26.11.2013
+ *      Author: raphaelprohl
+ */
 
 #ifndef OBSTACLES_H_
 #define OBSTACLES_H_

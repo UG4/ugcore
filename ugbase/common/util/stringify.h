@@ -1,3 +1,9 @@
+/*
+ * stringify.h
+ *
+ *  Created on: 12.03.2014
+ *      Author: mrupp
+ */
 
 #ifndef STRINGIFY_H_
 #define STRINGIFY_H_

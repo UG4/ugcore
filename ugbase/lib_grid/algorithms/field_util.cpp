@@ -1,3 +1,6 @@
+// created by Sebastian Reiter
+// s.b.reiter@gmail.com
+
 #include "field_util.h"
 #include "lib_grid/algorithms/geom_obj_util/vertex_util.h"
 

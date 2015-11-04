@@ -1,3 +1,6 @@
+// created by Sebastian Reiter
+// s.b.reiter@gmail.com
+
 #include "regular_refiner_multi_grid.h"
 #include "common/util/vec_for_each.h"
 #include "lib_grid/iterators/lg_for_each.h"

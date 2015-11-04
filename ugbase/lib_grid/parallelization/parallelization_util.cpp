@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y10 m06 d30
+
 #include <sstream>
 #include "parallelization_util.h"
 #include "load_balancing.h"

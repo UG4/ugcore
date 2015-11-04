@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y08 m11 d13
+
 #include <string>
 #include "file_io.h"
 #include "lib_grid/algorithms/attachment_util.h"

@@ -1,3 +1,12 @@
+/*
+ * \file operations_transform.h
+ *
+ * \author Martin Rupp
+ *
+ * \date 29.09.2010
+ *
+ * Goethe-Center for Scientific Computing 2010.
+ */
 
 
 #ifndef __H__UG__LIB_ALGEBRA__OPERATIONS_TRANSFORM__

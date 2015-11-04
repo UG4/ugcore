@@ -1,3 +1,9 @@
+/*
+ * operator.h
+ *
+ *  Created on: 22.02.2010
+ *      Author: andreasvogel
+ */
 
 #ifndef __H__LIB_ALGEBRA__OPERATOR__INTERFACE__OPERATOR__
 #define __H__LIB_ALGEBRA__OPERATOR__INTERFACE__OPERATOR__

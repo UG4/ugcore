@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@gmail.com
+//	april 2013
+
 #ifndef __H__UG__REFINEMENT_PROJECTION_HANDLER__
 #define __H__UG__REFINEMENT_PROJECTION_HANDLER__
 

@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// y09 m11 d16
+// s.b.reiter@googlemail.com
+
 #include <vector>
 #include <stack>
 #include <queue>

@@ -1,3 +1,9 @@
+/*
+ * copy_attachment_handler.h
+ *
+ *  Created on: 19.05.2015
+ *      Author: mbreit
+ */
 #ifndef LIB_GRID__COPY_ATTACHMENT_HANDLER_H_
 #define LIB_GRID__COPY_ATTACHMENT_HANDLER_H_
 

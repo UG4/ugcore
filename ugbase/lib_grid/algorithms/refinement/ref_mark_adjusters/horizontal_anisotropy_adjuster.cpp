@@ -1,3 +1,6 @@
+// created by Sebastian Reiter
+// s.b.reiter@gmail.com
+
 #include "common/math/ugmath_types.h"
 #include "horizontal_anisotropy_adjuster.h"
 #include "common/util/vec_for_each.h"

@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y10 m12 d03
+
 #include "small_object_allocator.h"
 
 

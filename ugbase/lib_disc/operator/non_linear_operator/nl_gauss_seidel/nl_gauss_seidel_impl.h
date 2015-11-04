@@ -1,3 +1,13 @@
+/*
+ * nl_gauss_seidel_impl.h
+ *
+ *  Created on: 07.01.2013
+ *  (main parts are based on the structure of
+ *  	newton_impl.h and some ideas of Sebastian Reiter & Andreas Vogel)
+ *
+ *  Author: raphaelprohl
+ */
+
 #ifndef __H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__NL_GAUSS_SEIDEL__NL_GAUSS_SEIDEL_IMPL_H_
 #define __H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__NL_GAUSS_SEIDEL__NL_GAUSS_SEIDEL_IMPL_H_
 

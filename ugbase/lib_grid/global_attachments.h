@@ -1,3 +1,6 @@
+// created by Sebastian Reiter
+// s.b.reiter@gmail.com
+
 #ifndef __H__UG_global_attachments
 #define __H__UG_global_attachments
 

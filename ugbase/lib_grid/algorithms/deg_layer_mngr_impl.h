@@ -1,3 +1,9 @@
+/*
+ * Implementation of the degenerated layer subset manager.
+ *
+ * Created on: Mar. 17, 2014
+ * Author: D. Logashenko
+ */
 // ug4 headers
 #include "lib_grid/grid/grid.h"
 

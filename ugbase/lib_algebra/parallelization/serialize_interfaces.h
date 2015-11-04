@@ -1,3 +1,9 @@
+/*
+ * serialize_interfaces.h
+ *
+ *  Created on: 02.08.2011
+ *      Author: mrupp
+ */
 
 #ifndef __H__LIB_ALGEBRA__SERIALIZE_INTERFACES_H_
 #define __H__LIB_ALGEBRA__SERIALIZE_INTERFACES_H_

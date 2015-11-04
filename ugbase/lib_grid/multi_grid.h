@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y09 m09 d10
+
 #ifndef __H__LIB_GRID__MULTI_GRID__
 #define __H__LIB_GRID__MULTI_GRID__
 

@@ -1,3 +1,9 @@
+/*
+ * domain_disc_interface.h
+ *
+ *  Created on: 01.03.2010
+ *      Author: andreasvogel
+ */
 
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__DOMAIN_DISC_INTERFACE__
 #define __H__UG__LIB_DISC__SPATIAL_DISC__DOMAIN_DISC_INTERFACE__

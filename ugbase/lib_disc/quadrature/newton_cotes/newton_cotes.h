@@ -1,3 +1,9 @@
+/*
+ * newton_cotes.h
+ *
+ *  Created on: 12.03.2013
+ *      Author: lisagrau, andreasvogel
+ */
 
 #include "../quadrature.h"
 

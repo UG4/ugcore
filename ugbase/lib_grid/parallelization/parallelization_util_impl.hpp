@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@googlemail.com
+// 08.03.2011 (m,d,y)
+
 #ifndef __H__UG__LIB_GRID__parallelization_util_impl__
 #define __H__UG__LIB_GRID__parallelization_util_impl__
 

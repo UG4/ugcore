@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@googlemail.com
+// 31.01.2012 (m,d,y)
+ 
 #include "bool_marker.h"
 
 namespace ug{

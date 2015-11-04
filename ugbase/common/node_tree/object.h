@@ -1,3 +1,7 @@
+//	object.h
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+
 #ifndef __H__UG__NODE_TREE__OBJECT__
 #define __H__UG__NODE_TREE__OBJECT__
 

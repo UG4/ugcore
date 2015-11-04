@@ -1,3 +1,9 @@
+/*
+ * gauss_jacobi.h
+ *
+ *  Created on: 15.03.2013
+ *      Author: lisagrau, andreasvogel
+ */
 
 #include "../quadrature.h"
 

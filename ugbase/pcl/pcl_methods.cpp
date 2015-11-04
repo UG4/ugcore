@@ -1,3 +1,7 @@
+//	Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y09 m06 d07
+
 
 #include <mpi.h>
 #include "pcl_comm_world.h"

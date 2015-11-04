@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@googlemail.com
+// 17.03.2011 (m,d,y)
+ 
 #include <vector>
 #include "pcl_util.h"
 #include "pcl_profiling.h"

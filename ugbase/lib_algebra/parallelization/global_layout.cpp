@@ -1,3 +1,9 @@
+/*
+ * global_layout.cpp
+ *
+ *  Created on: 02.08.2011
+ *      Author: mrupp
+ */
 
 #ifndef UG_PARALLEL
 #error "This only works with a UG_PARALLEL define."

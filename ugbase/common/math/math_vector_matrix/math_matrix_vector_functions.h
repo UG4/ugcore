@@ -1,3 +1,9 @@
+/*
+ * lgmath_matrix_vector_functions.h
+ *
+ *  Created on: 07.07.2009
+ *      Author: andreasvogel
+ */
 
 #ifndef __H__UGMATH__MATRIX_VECTOR_FUNCTIONS__
 #define __H__UGMATH__MATRIX_VECTOR_FUNCTIONS__

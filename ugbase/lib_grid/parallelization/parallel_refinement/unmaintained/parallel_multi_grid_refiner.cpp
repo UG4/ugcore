@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y10 m03 d23
+
 #include <vector>
 #include "parallel_multi_grid_refiner.h"
 #include "pcl/pcl.h"

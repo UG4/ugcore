@@ -1,3 +1,9 @@
+/*
+ * ivector.h
+ *
+ *  Created on: 26.09.2013
+ *      Author: mrupp
+ */
 
 #ifndef IVECTOR_H_
 #define IVECTOR_H_

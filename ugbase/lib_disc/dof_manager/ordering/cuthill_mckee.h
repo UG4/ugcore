@@ -1,3 +1,9 @@
+/*
+ * cuthill_mckee.h
+ *
+ *  Created on: 21.03.2011
+ *      Author: andreasvogel
+ */
 
 #ifndef __H__UG__LIB_DISC__DOF_MANAGER__CUTHILL_MCKEE__
 #define __H__UG__LIB_DISC__DOF_MANAGER__CUTHILL_MCKEE__

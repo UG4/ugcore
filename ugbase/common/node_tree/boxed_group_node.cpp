@@ -1,3 +1,7 @@
+//	boxed_group_node.cpp
+//	created by Sebastian Reiter y07 m12 d4
+//	s.b.reiter@googlemail.com
+
 #include "boxed_group_node.h"
 
 namespace ug{

@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y08 m11 d19
+
 #ifndef __H__LIBGRID__GRID_OBSERVERS__
 #define __H__LIBGRID__GRID_OBSERVERS__
 

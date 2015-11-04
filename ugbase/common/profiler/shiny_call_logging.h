@@ -1,3 +1,9 @@
+/*
+ * shiny_call_logging.h
+ *
+ *  Created on: 08.07.2013
+ *      Author: mrupp
+ */
 
 #ifndef SHINY_CALL_LOGGING_H_
 #define SHINY_CALL_LOGGING_H_

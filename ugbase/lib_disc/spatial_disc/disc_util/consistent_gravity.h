@@ -1,3 +1,9 @@
+/*
+ * consistent_gravity.h
+ *
+ *  Created on: 26.10.2010
+ *      Author: andreasvogel
+ */
 
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__ELEM_DISC__DENSITY_DRIVEN_FLOW__FV1__CONSISTENT_GRAVITY__
 #define __H__UG__LIB_DISC__SPATIAL_DISC__ELEM_DISC__DENSITY_DRIVEN_FLOW__FV1__CONSISTENT_GRAVITY__

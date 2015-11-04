@@ -1,3 +1,9 @@
+/*
+ * sparse_vector.h
+ *
+ *  Created on: 13.05.2013
+ *      Author: mrupp
+ */
 
 #ifndef SPARSE_VECTOR_H_
 #define SPARSE_VECTOR_H_

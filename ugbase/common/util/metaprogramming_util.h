@@ -1,3 +1,5 @@
+// author: andreasvogel
+
 #ifndef __H__COMMON__METAPROGRAMMING_UTIL__
 #define __H__COMMON__METAPROGRAMMING_UTIL__
 

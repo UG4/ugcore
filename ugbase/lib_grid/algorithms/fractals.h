@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//y10 m10 d03
+
 #ifndef __H__UG__LIB_GRID__FRACTALS__
 #define __H__UG__LIB_GRID__FRACTALS__
 

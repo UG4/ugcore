@@ -1,3 +1,9 @@
+/*
+ * cuthill_mckee.cpp
+ *
+ *  Created on: 21.03.2011
+ *      Author: andreasvogel
+ */
 #include "common/common.h"
 #include "cuthill_mckee.h"
 #include <algorithm>

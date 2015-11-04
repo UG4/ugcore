@@ -1,3 +1,9 @@
+/*
+ * eigensolver_interface.h
+ *
+ *  Created on: 01.11.2010
+ *      Author: Martin Rupp
+ */
 
 #ifndef __H__LIB_ALGEBRA__OPERATOR__EIGENSOLVER_INTERFACE__
 #define __H__LIB_ALGEBRA__OPERATOR__EIGENSOLVER_INTERFACE__

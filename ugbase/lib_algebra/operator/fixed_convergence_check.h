@@ -1,3 +1,9 @@
+/*
+ * fixed_convergence_check.h
+ *
+ *  Created on: 26.06.2013
+ *      Author: mrupp
+ */
 
 #ifndef FIXED_CONVERGENCE_CHECK_H_
 #define FIXED_CONVERGENCE_CHECK_H_

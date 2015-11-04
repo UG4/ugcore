@@ -1,3 +1,7 @@
+// created by Andreas Vogel, Sebastian Reiter
+// s.b.reiter@googlemail.com
+// 10.02.2011 (m,d,y)
+
 #include <iostream>
 #include <sstream>
 #include <vector>

@@ -1,3 +1,9 @@
+/*
+ * quad_test.cpp
+ *
+ *  Created on: 13.03.2013
+ *      Author: andreasvogel
+ */
 
 #include "quad_test.h"
 #include "gauss/gauss_quad.h"

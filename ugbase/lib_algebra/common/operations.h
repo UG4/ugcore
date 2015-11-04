@@ -1,3 +1,12 @@
+/*
+ * \file operations.h
+ *
+ * \author Martin Rupp
+ *
+ * \date 29.09.2010
+ *
+ * Goethe-Center for Scientific Computing 2010.
+ */
 
 #ifndef __H_UG__LIB_ALGEBRA__OPERATIONS_H__
 #define __H_UG__LIB_ALGEBRA__OPERATIONS_H__

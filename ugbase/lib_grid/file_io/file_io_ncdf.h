@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y10 m07 d09
+
 #ifndef __H__LIBGRID__FILE_IO_NCDF__
 #define __H__LIBGRID__FILE_IO_NCDF__
 

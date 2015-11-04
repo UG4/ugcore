@@ -1,3 +1,9 @@
+/*
+ * File:   Playground.cpp
+ * Author: Michael Hoffer <info@michaelhoffer.de>
+ *
+ * Created on 12. April 2011, 12:49
+ */
 
 #include "playground.h"
 #include "bindings_vrl.h"

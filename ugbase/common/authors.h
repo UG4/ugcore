@@ -1,3 +1,9 @@
+/* 
+ * File:   authors.h
+ * Author: miho
+ *
+ * Created on 12. September 2011, 13:35
+ */
 
 #ifndef AUTHORS_H
 #define	AUTHORS_H

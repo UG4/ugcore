@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y09 m02 d02
+
 #ifndef __H__LIB_GRID__EDGE_UTIL__
 #define __H__LIB_GRID__EDGE_UTIL__
 

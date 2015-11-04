@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@gmail.com
+// 11.01.2013 (d,m,y)
+
 #ifndef __H__UG__multi_grid_child_info__
 #define __H__UG__multi_grid_child_info__
 

@@ -1,3 +1,9 @@
+/*
+ * gnuplot_output.h
+ *
+ *  Created on: 20.08.2013
+ *      Author: mrupp
+ */
 
 #ifndef GNUPLOT_OUTPUT_H_
 #define GNUPLOT_OUTPUT_H_

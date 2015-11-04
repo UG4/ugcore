@@ -1,3 +1,11 @@
+/*
+ * connection_viewer_output.h
+ *
+ *  Created on: 03.08.2011
+ *      Author: anaegel
+ *      (based on connection_viewer_output.h by mrupp)
+ */
+
 #ifndef CSVGNUPLOTOUTPUT_H_
 #define CSVGNUPLOTOUTPUT_H_
 

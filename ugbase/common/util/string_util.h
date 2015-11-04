@@ -1,3 +1,6 @@
+//	string_util.h
+//	created by Andreas Vogel
+
 #ifndef __H__COMMON_STRING_UTIL__
 #define __H__COMMON_STRING_UTIL__
 

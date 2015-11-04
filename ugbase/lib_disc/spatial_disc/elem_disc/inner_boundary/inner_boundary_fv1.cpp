@@ -1,3 +1,9 @@
+/*
+ * inner_boundary_impl.h
+ *
+ *  Created on: 14.10.2010
+ *      Author: markusbreit
+ */
 
 #ifndef __H__UG__LIB_DISC__SPACIAL_DISCRETIZATION__ELEM_DISC__NEUMANN_BOUNDARY__FV1__INNER_BOUNDARY_IMPL__
 #define __H__UG__LIB_DISC__SPACIAL_DISCRETIZATION__ELEM_DISC__NEUMANN_BOUNDARY__FV1__INNER_BOUNDARY_IMPL__

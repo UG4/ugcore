@@ -1,3 +1,9 @@
+/*
+ * domain_traits.h
+ *
+ *  Created on: 05.03.2012
+ *      Author: andreasvogel
+ */
 
 #ifndef __H__UG__LIB_DISC__DOMAIN_TRAITS__
 #define __H__UG__LIB_DISC__DOMAIN_TRAITS__

@@ -1,3 +1,9 @@
+/*
+ * reference_element_util.h
+ *
+ *  Created on: 03.03.2012
+ *      Author: andreasvogel
+ */
 
 #ifndef __H__UG__LIB_DISC__REFERENCE_ELEMENT__REFERENCE_ELEMENT_UTIL__
 #define __H__UG__LIB_DISC__REFERENCE_ELEMENT__REFERENCE_ELEMENT_UTIL__

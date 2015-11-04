@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	y09 m08 d03
+//	s.b.reiter@googlemail.com
+
 #include <fstream>
 #include "file_io_dump.h"
 #include "common/util/loader/loader_util.h"

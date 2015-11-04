@@ -1,3 +1,6 @@
+// created by Sebastian Reiter
+// s.b.reiter@gmail.com
+
 #ifndef __H__UG_regular_refiner_multi_grid
 #define __H__UG_regular_refiner_multi_grid
 

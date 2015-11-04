@@ -1,3 +1,13 @@
+/*
+ * nl_jacobi.h
+ *
+ *  Created on: 07.01.2013
+ *  (main parts are based on the structure of
+ *  	newton.h by Andreas Vogel)
+ *
+ *      Author: raphaelprohl
+ */
+
 #ifndef __H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__NL_JACOBI__NL_JACOBIL_H_
 #define __H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__NL_JACOBI__NL_JACOBIL_H_
 

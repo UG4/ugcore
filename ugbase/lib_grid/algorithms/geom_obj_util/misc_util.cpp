@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y08 m12 d03
+
 #include "common/util/vec_for_each.h"
 #include "misc_util.h"
 

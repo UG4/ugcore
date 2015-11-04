@@ -1,3 +1,9 @@
+/*
+ * transpose.h
+ *
+ *  Created on: 05.09.2013
+ *      Author: mrupp
+ */
 
 #ifndef __H__UG__COMMON__TRANSPOSE_H_
 #define __H__UG__COMMON__TRANSPOSE_H_

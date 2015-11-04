@@ -1,3 +1,9 @@
+/*
+ * local_finite_element_id.h
+ *
+ *  Created on: 16.11.2010
+ *      Author: andreasvogel
+ */
 
 #ifndef __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__LOCAL_FINITE_ELEMENT_ID__
 #define __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__LOCAL_FINITE_ELEMENT_ID__

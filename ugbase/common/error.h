@@ -1,3 +1,9 @@
+/*
+ * error.h
+ *
+ *  Created on: 22.09.2011
+ *      Author: sreiter, avogel
+ */
 
 #ifndef __H__UG__COMMON__ERROR__
 #define __H__UG__COMMON__ERROR__

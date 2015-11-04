@@ -1,4 +1,9 @@
 /*
+ * max_error.h
+ *
+ *  Created on: 15.04.2013
+ *      Author: Andreas Vogel, Christian Wehner
+ *     
  *      an adaption of interpolate.h to maximum error computation
  */
 

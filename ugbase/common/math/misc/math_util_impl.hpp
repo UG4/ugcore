@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y08 m10 d14
+
 #ifndef __H__UGMATH__MATH_UTIL_IMPL__
 #define __H__UGMATH__MATH_UTIL_IMPL__
 

@@ -1,3 +1,12 @@
+/**
+ * \file ugbase/lib_algebra/cpu_algebra/core_smoothers.h
+ *
+ * \author Martin Rupp
+ *
+ * \date 21.07.2010
+ *
+ * Goethe-Center for Scientific Computing 2010.
+ */
 
 #ifndef __H__UG__CPU_ALGEBRA__CORE_SMOOTHERS__
 #define __H__UG__CPU_ALGEBRA__CORE_SMOOTHERS__

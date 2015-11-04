@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@gmail.com
+// 16.11.2012 (d,m,y)
+
 #include "parallel_hnode_adjuster.h"
 #include "lib_grid/parallelization/distributed_grid.h"
 #include "lib_grid/algorithms/debug_util.h"

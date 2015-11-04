@@ -1,3 +1,9 @@
+/*
+ * gauss_seidel.h
+ *
+ *  Created on: 14.07.2010
+ *      Author: Martin Rupp
+ */
 
 #ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__GAUSS_SEIDEL__
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__GAUSS_SEIDEL__

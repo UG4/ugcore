@@ -1,3 +1,5 @@
+// authors: Sebastian Reiter, Andreas Vogel
+
 #ifndef __H__UG_BRIDGE__FUNCTION_TRAITS__
 #define __H__UG_BRIDGE__FUNCTION_TRAITS__
 

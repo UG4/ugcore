@@ -1,3 +1,9 @@
+/*
+ * parallel_matrix_impl.h
+ *
+ *  Created on: 19.10.2010
+ *      Author: A. Vogel
+ */
 
 #ifndef __H__LIB_ALGEBRA__PARALLELIZATION__PARALLEL_MATRIX_IMPL__
 #define __H__LIB_ALGEBRA__PARALLELIZATION__PARALLEL_MATRIX_IMPL__

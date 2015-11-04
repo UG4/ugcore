@@ -1,3 +1,9 @@
+/*
+ * elem_disc_interface.cpp
+ *
+ *  Created on: 03.07.2011
+ *      Author: andreasvogel
+ */
 
 #include "elem_disc_interface.h"
 #include "lib_disc/common/groups_util.h"

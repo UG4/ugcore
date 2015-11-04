@@ -1,3 +1,9 @@
+/* 
+ * File:   DebugID.h
+ * Author: Martin Rupp
+ *
+ * Created on 22. Oktober 2012, 13:55
+ */
 
 #ifndef __H__UG__COMMON__DEBUG_ID_H
 #define	__H__UG__COMMON__DEBUG_ID_H

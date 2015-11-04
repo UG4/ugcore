@@ -1,3 +1,10 @@
+/*
+ *  fixed_array.h
+ *
+ *  Created by Martin Rupp on 21.07.10.
+ *  Copyright 2010 . All rights reserved.
+ *
+ */
 
 #ifndef __H__UG__COMMON__FIXED_ARRAY_H__
 #define __H__UG__COMMON__FIXED_ARRAY_H__

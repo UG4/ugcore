@@ -1,3 +1,9 @@
+/*
+ * geometry_util.h
+ *
+ *  Created on: 07.09.2010
+ *      Author: andreasvogel
+ */
 
 #ifndef __H__UG__LIB_DISC__COMMON__GEOMETRY_UTIL__
 #define __H__UG__LIB_DISC__COMMON__GEOMETRY_UTIL__

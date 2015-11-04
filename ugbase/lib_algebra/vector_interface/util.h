@@ -1,3 +1,9 @@
+/*
+ * util.h
+ *
+ *  Created on: 26.09.2013
+ *      Author: mrupp
+ */
 
 #ifndef UTIL_H_
 #define UTIL_H_

@@ -1,3 +1,7 @@
+//	collision_tree_root_node.cpp
+//	created by Sebastian Reiter y07 m12 d5
+//	s.b.reiter@googlemail.com
+
 #include "collision_tree_root_node.h"
 
 namespace ug{

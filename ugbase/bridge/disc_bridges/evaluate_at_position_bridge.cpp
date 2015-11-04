@@ -1,3 +1,9 @@
+/*
+ * evaluate_at_position_bridge.cpp
+ *
+ *  Created on: 01.08.2013
+ *      Author: ivomuha
+ */
 
 // extern headers
 #include <iostream>

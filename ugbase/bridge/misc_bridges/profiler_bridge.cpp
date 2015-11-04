@@ -1,3 +1,9 @@
+/*
+ * profiler_bridge.cpp
+ *
+ *  Created on: 11.02.2011
+ *      Author: Martin Rupp
+ */
 
 #include "registry/registry.h"
 #include "bridge/bridge.h"

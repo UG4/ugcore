@@ -1,3 +1,9 @@
+/*
+ * error.h
+ *
+ *  Created on: 29.05.2012
+ *      Author: andreasvogel
+ */
 
 #ifndef __H__UG_BRIDGE__ERROR__
 #define __H__UG_BRIDGE__ERROR__

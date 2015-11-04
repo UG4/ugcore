@@ -1,3 +1,9 @@
+/**
+ * \file ugbase/lib_algebra/operator/eigensolver/additional_math.h
+ *
+ *  \date	 	28.03.2013
+ *  \author 	mrupp
+ */
 
 #ifndef __UG__ADDITIONAL_MATH_H__
 #define __UG__ADDITIONAL_MATH_H__

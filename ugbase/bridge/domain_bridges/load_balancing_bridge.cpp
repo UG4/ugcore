@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@gmail.com
+// Mar 6, 2013 (d,m,y)
+
 #include <iostream>
 #include <sstream>
 #include <vector>

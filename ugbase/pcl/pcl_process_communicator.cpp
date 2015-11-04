@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y10 m07 d06
+
 #include <vector>
 #include "pcl_methods.h"
 #include "common/util/smart_pointer.h"

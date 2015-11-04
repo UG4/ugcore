@@ -1,3 +1,5 @@
+// author: Andreas Vogel
+
 #include <iostream>
 #include <sstream>
 #include <boost/function.hpp>

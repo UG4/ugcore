@@ -1,3 +1,9 @@
+/*
+ * connection_viewer_output.h
+ *
+ *  Created on: 03.08.2011
+ *      Author: mrupp
+ */
 
 #ifndef CONNECTIONVIEWEROUTPUT_H_
 #define CONNECTIONVIEWEROUTPUT_H_

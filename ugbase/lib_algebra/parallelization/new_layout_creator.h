@@ -1,3 +1,9 @@
+/*
+ * new_layout_creator.h
+ *
+ *  Created on: 05.10.2011
+ *      Author: mrupp
+ */
 
 #ifndef __H__LIB_ALGEBRA__PARALLELIZATION__NEW_LAYOUT_CREATOR_H_
 #define __H__LIB_ALGEBRA__PARALLELIZATION__NEW_LAYOUT_CREATOR_H_

@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@googlemail.com
+// 06.08.2012 (m,d,y)
+
 #ifndef __H__UG__pointer_const_array__
 #define __H__UG__pointer_const_array__
 

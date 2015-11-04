@@ -1,5 +1,10 @@
 /*
+ * err_est_data_impl.h
+ *
  *	Implementation of classes from err_est_data.h
+ *
+ *  Created on: 26.03.2014
+ *     Authors: Dmitriy Logashenko, Markus Breit
  */
 
 #include "err_est_data.h"

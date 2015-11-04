@@ -1,3 +1,9 @@
+/*
+ * scalar_obstacle_impl.h
+ *
+ *  Created on: 25.11.2013
+ *      Author: raphaelprohl
+ */
 
 #ifndef __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_GAUSS_SEIDEL__SCALAR_OBSTACLE_IMPL__
 #define __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_GAUSS_SEIDEL__SCALAR_OBSTACLE_IMPL__

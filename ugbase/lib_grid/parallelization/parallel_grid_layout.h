@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y09 m12 d08
+
 #ifndef __H__LIB_GRID__PARALLEL_GRID_LAYOUT__
 #define __H__LIB_GRID__PARALLEL_GRID_LAYOUT__
 

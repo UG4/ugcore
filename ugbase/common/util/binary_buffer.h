@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@googlemail.com
+// 12.05.2011 (m,d,y)
+
 #ifndef __H__UG__binary_buffer__
 #define __H__UG__binary_buffer__
 

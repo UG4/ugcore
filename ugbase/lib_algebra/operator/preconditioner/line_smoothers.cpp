@@ -1,3 +1,9 @@
+/*
+ * line_smoothers.cpp
+ *
+ *  Created on: 23.11.2013
+ *      Author: anaegel
+ */
 #include "line_smoothers.h"
 namespace ug{
 template<int dim>

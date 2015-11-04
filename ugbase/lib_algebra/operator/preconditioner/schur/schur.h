@@ -1,3 +1,9 @@
+/*
+ * schur.h
+ *
+ *  Created on: 18.12.2013
+ *      Author: anaegel
+ */
 
 #ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__SCHUR__
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__SCHUR__

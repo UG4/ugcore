@@ -1,3 +1,9 @@
+/*
+ * algebra_template_define_helper.h
+ *
+ *  Created on: 18.08.2014
+ *      Author: mrupp
+ */
 
 #ifndef ALGEBRA_TEMPLATE_DEFINE_HELPER_H_
 #define ALGEBRA_TEMPLATE_DEFINE_HELPER_H_

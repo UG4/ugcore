@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@googlemail.com
+// 18.11.2011 (m,d,y)
+ 
 #include "message_hub.h"
 #include "common/assert.h"
 #include "common/error.h"

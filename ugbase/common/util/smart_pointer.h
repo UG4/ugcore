@@ -1,3 +1,9 @@
+//	smart_pointer.h
+//	created by Sebastian Reiter
+//
+// this code was originally created for a private project of mine,
+// may however be freely used in ug.
+
 #ifndef __SMART_POINTER__
 #define __SMART_POINTER__
 

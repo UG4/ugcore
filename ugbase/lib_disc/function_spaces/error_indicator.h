@@ -1,3 +1,11 @@
+/*
+ * error_indicator.h
+ *
+ *  Created on: 30.03.2011
+ *      Author: andreasvogel
+ *		Additions by Sebastian Reiter
+ */
+
 #ifndef __H__UG__LIB_DISC__FUNCTION_SPACE__ERROR_INDICATOR__
 #define __H__UG__LIB_DISC__FUNCTION_SPACE__ERROR_INDICATOR__
 

@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@gmail.com
+// 15.11.2012 (d,m,y)
+
 #ifndef __H__UG__refmark_adjuster_interface__
 #define __H__UG__refmark_adjuster_interface__
 

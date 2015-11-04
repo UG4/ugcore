@@ -1,4 +1,9 @@
 /*
+ *  local_helper.h
+ *
+ *  Created by Martin Rupp on 27.7.2010.
+ *  Copyright 2010 G-CSC, University of Frankfurt. All rights reserved.
+ *
  *	Diese Funktionen sollen das Benutzen von SparseMatrix::add(M&m) erleichtern.
  */
 #ifndef __H__UG__MARTIN_ALGEBRA__LOCAL_HELPER__

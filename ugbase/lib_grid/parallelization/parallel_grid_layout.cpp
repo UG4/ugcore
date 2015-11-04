@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@googlemail.com
+// 08.03.2011 (m,d,y)
+ 
 #include "parallel_grid_layout.h"
 #include "pcl/pcl_layout_util.h"
 

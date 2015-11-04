@@ -1,3 +1,9 @@
+/*
+ * std_transfer_impl.h
+ *
+ *  Created on: 04.12.2009
+ *      Author: andreasvogel
+ */
 
 #ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__STD_TRANSFER_IMPL__
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__STD_TRANSFER_IMPL__

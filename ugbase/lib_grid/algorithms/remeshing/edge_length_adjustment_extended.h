@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y10 m01 d22
+
 #ifndef __H__LIB_GRID__EDGE_LENGTH_ADJUSTMENT_EXTENDED__
 #define __H__LIB_GRID__EDGE_LENGTH_ADJUSTMENT_EXTENDED__
 

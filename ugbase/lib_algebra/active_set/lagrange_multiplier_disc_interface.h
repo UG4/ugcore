@@ -1,3 +1,9 @@
+/*
+ * lagrange_multiplier_disc_interface.h
+ *
+ *  Created on: 06.05.2013
+ *      Author: raphaelprohl
+ */
 
 #ifndef LAGRANGE_MULTIPLIER_DISC_INTERFACE_H_
 #define LAGRANGE_MULTIPLIER_DISC_INTERFACE_H_

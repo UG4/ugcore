@@ -1,3 +1,7 @@
+//	Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y10 m06 d4
+
 #ifndef __H__PCL__PCL_BASE__
 #define __H__PCL__PCL_BASE__
 

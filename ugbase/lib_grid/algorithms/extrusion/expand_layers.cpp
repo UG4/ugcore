@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@googlemail.com
+// 22.09.2011 (m,d,y)
+ 
 #include <boost/function.hpp>
 #include <stack>
 #include <vector>

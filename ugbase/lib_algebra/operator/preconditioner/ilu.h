@@ -1,3 +1,9 @@
+/*
+ * ilu.h
+ *
+ *  Created on: 04.07.2010
+ *      Author: Andreas Vogel, Arne Naegel
+ */
 
 #ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__ILU__
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__ILU__

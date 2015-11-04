@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// y09 m11 d05
+// s.b.reiter@googlemail.com
+
 #ifndef __H__LIB_GRID__SERIALIZATION_IMPL__
 #define __H__LIB_GRID__SERIALIZATION_IMPL__
 

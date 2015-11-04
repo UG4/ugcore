@@ -1,3 +1,12 @@
+/**
+ * \file matrixrow.h
+ *
+ * \author Martin Rupp
+ *
+ * \date 18.01.10
+ *
+ * Goethe-Center for Scientific Computing 2010.
+ */
 
 #ifndef __H__UG__CPU_ALGEBRA__MATRIXROW__
 #define __H__UG__CPU_ALGEBRA__MATRIXROW__

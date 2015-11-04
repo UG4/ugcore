@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y10 m04 d27
+
 #include "traverser_collision_tree.h"
 #include "../node_tree.h"
 

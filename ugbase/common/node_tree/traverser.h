@@ -1,3 +1,7 @@
+//	traverser.h
+//	created by Sebastian Reiter 15. November 2007
+//	s.b.reiter@googlemail.com
+
 #ifndef __H__UG__NODE_TREE__TRAVERSER__
 #define __H__UG__NODE_TREE__TRAVERSER__
 

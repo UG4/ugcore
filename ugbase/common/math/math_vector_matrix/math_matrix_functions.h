@@ -1,3 +1,9 @@
+/*
+ * math_matrix_functions.h
+ *
+ *  Created on: 07.07.2009
+ *      Author: andreasvogel
+ */
 
 #ifndef __H__UG__COMMON__MATH_MATRIX_FUNCTIONS__
 #define __H__UG__COMMON__MATH_MATRIX_FUNCTIONS__

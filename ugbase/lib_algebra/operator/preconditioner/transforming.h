@@ -1,3 +1,15 @@
+/*
+ * transforming_smoother.h
+ *
+ *   Created on: 01.10.2013
+ *       Author: andreasvogel
+ *
+ *  Redesign for general left-/right transforms
+ *
+ *  		 on: 29.05.2014
+ *       Author: anaegel
+ *
+ */
 
 #ifndef __H__UG__LIB_ALGEBRA__OPERATOR__LINEAR_OPERATOR__TRANSFORMING_ITER__
 #define __H__UG__LIB_ALGEBRA__OPERATOR__LINEAR_OPERATOR__TRANSFORMING_ITER__

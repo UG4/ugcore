@@ -1,3 +1,9 @@
+/*
+ * parallel_file.cpp
+ *
+ *  Created on: 01.07.2014
+ *      Author: mrupp
+ */
 
 #include "pcl_process_communicator.h"
 #include "common/util/binary_buffer.h"

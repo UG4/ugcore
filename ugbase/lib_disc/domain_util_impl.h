@@ -1,3 +1,5 @@
+//	created by Andreas Vogel
+
 #ifndef __H__UG__LIB_DISC__DOMAIN_UTIL_GENERAL_IMPL__
 #define __H__UG__LIB_DISC__DOMAIN_UTIL_GENERAL_IMPL__
 

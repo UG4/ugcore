@@ -1,3 +1,9 @@
+/*
+ * gauss_tensor_prod.h
+ *
+ *  Created on: 15.03.2013
+ *      Author: lisagrau, andreasvogel
+ */
 
 #ifndef __H__UG__LIB_DISC__QUADRATURE__GAUSS_TENSOR_PROD__
 #define __H__UG__LIB_DISC__QUADRATURE__GAUSS_TENSOR_PROD__

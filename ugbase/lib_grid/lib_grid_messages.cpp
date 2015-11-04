@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@googlemail.com
+// 02.03.2012 (m,d,y)
+ 
 #include "lib_grid_messages.h"
 
 namespace ug{

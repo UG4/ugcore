@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@googlemail.com
+// 13.01.2011 (m,d,y)
+
 #ifndef __H__UG__LIB_GIRD__DEBUG_UTIL__
 #define __H__UG__LIB_GIRD__DEBUG_UTIL__
 

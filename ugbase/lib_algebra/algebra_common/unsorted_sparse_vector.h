@@ -1,3 +1,9 @@
+/*
+ * unsorted_vector.h
+ *
+ *  Created on: 13.05.2013
+ *      Author: mrupp
+ */
 
 #ifndef UNSORTED_VECTOR_H_
 #define UNSORTED_VECTOR_H_

@@ -1,3 +1,9 @@
+/*
+ * File:   messaging.h
+ * Author: Michael Hoffer <info@michaelhoffer.de>
+ *
+ * Created on 15. Oktober 2010, 11:41
+ */
 
 
 #include <string>

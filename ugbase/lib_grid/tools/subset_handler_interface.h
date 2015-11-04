@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y08 m11 d24
+
 #ifndef __H__LIBGRID__SUBSET_HANDLER_INTERFACE__
 #define __H__LIBGRID__SUBSET_HANDLER_INTERFACE__
 

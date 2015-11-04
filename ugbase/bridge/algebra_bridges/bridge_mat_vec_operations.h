@@ -1,3 +1,9 @@
+/*
+ * bridge_mat_vec_operations.h
+ *
+ *  Created on: 23.06.2014
+ *      Author: mrupp
+ */
 
 
 // include bridge

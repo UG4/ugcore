@@ -1,3 +1,9 @@
+/*
+ * communication_scheme.h
+ *
+ *  Created on: 13.09.2011
+ *      Author: mrupp
+ */
 
 #ifndef COMMUNICATION_SCHEME_H_
 #define COMMUNICATION_SCHEME_H_

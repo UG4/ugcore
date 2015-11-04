@@ -1,3 +1,7 @@
+// created by Sebastian Reiter, Dmitriy Logashenko
+// s.b.reiter@gmail.com
+// Oct. 15, 2015
+
 #ifndef __H__UG_PCL_ATTACHMENT_OPERATIONS__
 #define __H__UG_PCL_ATTACHMENT_OPERATIONS__
 

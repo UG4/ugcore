@@ -1,3 +1,9 @@
+/*
+ * gauss_tensor_prod.cpp
+ *
+ *  Created on: 15.03.2013
+ *      Author: lisagrau
+ */
 
 
 #include "../quadrature.h"

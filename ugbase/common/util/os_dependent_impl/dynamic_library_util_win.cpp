@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@gmail.com
+// 10.01.2013 (d,m,y)
+
 #include <string>
 #include "../dynamic_library_util.h"
 

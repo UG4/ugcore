@@ -1,3 +1,10 @@
+/**
+ * \file math_util.h
+ */
+//	created by Sebastian Reiter (with several contributions...)
+//	s.b.reiter@googlemail.com
+//	y08 m10 d14
+
 #ifndef __H__UGMATH__MATH_UTIL__
 #define __H__UGMATH__MATH_UTIL__
 

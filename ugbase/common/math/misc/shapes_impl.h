@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@gmail.com
+// Sep 4, 2013
+
 #ifndef __H__UG__shapes_impl__
 #define __H__UG__shapes_impl__
 

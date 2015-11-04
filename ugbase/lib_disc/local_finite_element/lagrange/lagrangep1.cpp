@@ -1,3 +1,9 @@
+/*
+ * lagrangep1.h
+ *
+ *  Created on: 16.02.2010
+ *      Author: andreasvogel
+ */
 
 
 #include "./lagrangep1.h"

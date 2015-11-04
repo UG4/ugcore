@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y12 m04 d25
+
 #include <cassert>
 #include "common/profiler/profiler.h"
 #include "global_fractured_media_refiner.h"

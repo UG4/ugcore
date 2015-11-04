@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@gmail.com
+// Oct 31, 2013
+
 #ifndef __H__UG__manifold_smoothing__
 #define __H__UG__manifold_smoothing__
 

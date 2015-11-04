@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y10 m10 d9
+
 #ifndef __H__UG__SUBDIVISION_RULES_PIECEWISE_LOOP__
 #define __H__UG__SUBDIVISION_RULES_PIECEWISE_LOOP__
 

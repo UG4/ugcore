@@ -1,3 +1,7 @@
+//	created by Martin Stepniewski
+//	mastep@gmx.de
+//	y08 m12 d07
+
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 #include "subdivision_loop.h"
 

@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@gmail.com
+//	april 2013
+
 namespace ug{
 
 template<class TAPosition>

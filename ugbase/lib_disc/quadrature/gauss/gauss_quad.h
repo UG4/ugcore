@@ -1,3 +1,9 @@
+/*
+ * gauss_quad.h
+ *
+ *  Created on: 15.02.2010
+ *      Author: andreasvogel
+ */
 
 #ifndef __H__UG__LIB_DISC__QUADRATURE__GAUSS_QUAD__GAUSS_QUAD__
 #define __H__UG__LIB_DISC__QUADRATURE__GAUSS_QUAD__GAUSS_QUAD__

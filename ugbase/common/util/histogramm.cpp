@@ -1,3 +1,9 @@
+/*
+ * histogramm.cpp
+ *
+ *  Created on: 20.09.2013
+ *      Author: mrupp
+ */
 
 #include "histogramm.h"
 #include <algorithm>    // std::sort

@@ -1,3 +1,9 @@
+/*
+ * domain_util.cpp
+ *
+ *  Created on: 05.03.2012
+ *      Author: andreasvogel
+ */
 
 #include "domain_util.h"
 #include "domain_traits.h"

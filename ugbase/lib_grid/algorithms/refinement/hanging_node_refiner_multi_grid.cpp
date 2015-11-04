@@ -1,3 +1,7 @@
+// created by Sebastian Reiter
+// s.b.reiter@googlemail.com
+// 11.01.2011 (m,d,y)
+
 #include <sstream>
 #include "common/assert.h"
 #include "lib_grid/algorithms/multi_grid_util.h"

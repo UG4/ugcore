@@ -1,3 +1,9 @@
+/*
+ * parallel_matrix_overlap_impl.h
+ *
+ *  Created on: 17.01.2010
+ *      Author: Martin Rupp / Sebastian Reiter
+ */
 
 #ifndef __H__LIB_ALGEBRA__PARALLELIZATION__PARALLEL_MATRIX_OVERLAP_IMPL__
 #define __H__LIB_ALGEBRA__PARALLELIZATION__PARALLEL_MATRIX_OVERLAP_IMPL__

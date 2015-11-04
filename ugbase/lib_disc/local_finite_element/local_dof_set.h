@@ -1,3 +1,9 @@
+/*
+ * local_dof_set.h
+ *
+ *  Created on: 17.02.2010
+ *      Author: andreasvogel
+ */
 
 #ifndef __H__UG__LIB_DISC__LOCAL_FINITE_ELEMENT__LOCAL_DOF_SET__
 #define __H__UG__LIB_DISC__LOCAL_FINITE_ELEMENT__LOCAL_DOF_SET__

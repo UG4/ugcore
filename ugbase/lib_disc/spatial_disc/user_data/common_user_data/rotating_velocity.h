@@ -1,3 +1,8 @@
+/*
+ * rotating_velocity.h
+ *
+ *      Author: andreasvogel
+ */
 
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__ROTATING_VELOCITY__
 #define __H__UG__LIB_DISC__SPATIAL_DISC__ROTATING_VELOCITY__

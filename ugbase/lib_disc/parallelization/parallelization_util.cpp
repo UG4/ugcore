@@ -1,3 +1,9 @@
+/*
+ * parallelization.cpp
+ *
+ *  Created on: 24.03.2011
+ *      Author: andreasvogel, S.Reiter
+ */
 
 #include "parallelization_util.h"
 

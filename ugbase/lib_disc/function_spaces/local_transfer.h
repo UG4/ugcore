@@ -1,3 +1,9 @@
+/*
+ * local_transfer.h
+ *
+ *  Created on: 07.03.2012
+ *      Author: Andreas Vogel, Christian Wehner
+ */
 
 #ifndef __H__UG__LIB_DISC__FUNCTION_SPACS__LOCAL_TRANSFER__
 #define __H__UG__LIB_DISC__FUNCTION_SPACS__LOCAL_TRANSFER__

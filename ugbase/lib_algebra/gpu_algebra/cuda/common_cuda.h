@@ -1,3 +1,9 @@
+/* 
+ * File:   common_cuda.h
+ * Author: mrupp
+ *
+ * Created on 18. Januar 2013, 17:18
+ */
 
 #ifndef COMMON_CUDA_H
 #define	COMMON_CUDA_H

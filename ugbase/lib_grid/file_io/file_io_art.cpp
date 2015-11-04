@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y09 m12 d01
+
 #include <fstream>
 #include <vector>
 #include <iostream>

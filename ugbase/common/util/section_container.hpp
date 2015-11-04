@@ -1,3 +1,7 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y08 m11 d10
+
 #ifndef __UTIL__SECTION_CONTAINER__IMPL__
 #define __UTIL__SECTION_CONTAINER__IMPL__
 

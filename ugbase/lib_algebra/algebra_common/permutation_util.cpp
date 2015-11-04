@@ -1,3 +1,9 @@
+/*
+ * permutation_util.cpp
+ *
+ *  Created on: 02.12.2013
+ *      Author: mrupp
+ */
 
 #include "permutation_util.h"
 

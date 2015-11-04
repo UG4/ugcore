@@ -1,3 +1,9 @@
+/*
+ * conv_shape_interface.h
+ *
+ *  Created on: 08.05.2011
+ *      Author: andreasvogel
+ */
 
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__ELEM_DISC__DENSITY_DRIVEN_FLOW__FV1__CONV_SHAPE_INTERFACE__
 #define __H__UG__LIB_DISC__SPATIAL_DISC__ELEM_DISC__DENSITY_DRIVEN_FLOW__FV1__CONV_SHAPE_INTERFACE__
