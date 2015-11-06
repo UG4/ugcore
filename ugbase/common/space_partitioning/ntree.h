@@ -157,6 +157,10 @@ class ntree
 		const box_t& bounding_box(size_t nodeId) const;
 
 	private:
+	
+	///	clear only the nodes
+		void clear_nodes ();
+		
 	///	static template implementation to raise n to the power exponent
 		template <size_t n, size_t exponent>
 		struct pow;

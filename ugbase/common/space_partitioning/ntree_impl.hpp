@@ -20,11 +20,21 @@ ntree()
 
 template <int tree_dim, int world_dim, class elem_t, class common_data_t>
 void ntree<tree_dim, world_dim, elem_t, common_data_t>::
-clear()
+clear_nodes()
 {
 	m_nodes.clear();
 	m_nodes.resize(1);
 	m_nodes[0].level = 0;
+}
+
+
+template <int tree_dim, int world_dim, class elem_t, class common_data_t>
+void ntree<tree_dim, world_dim, elem_t, common_data_t>::
+clear()
+{
+	clear_nodes();
+	m_entries.clear();
+	m_numDelayedElements = 0;
 }
 
 
@@ -118,7 +128,7 @@ rebalance()
 {
 //	push all elements into the root node, calculate its bounding box
 //	and call split_leaf_node if the element threshold is surpassed.
-	clear();
+	clear_nodes();
 	Node& root = m_nodes.back();
 	if(!m_entries.empty()){
 		root.firstEntryInd = 0;
