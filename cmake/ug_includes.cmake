@@ -54,15 +54,15 @@ set(UG_CMAKE_INCLUDES_INCLUDED on)
 ################################################################################
 # include ug header and library path
 get_filename_component(UG_ROOT_CMAKE_PATH ${CMAKE_CURRENT_LIST_FILE} PATH)
-set(UG_ROOT_PATH ${UG_ROOT_CMAKE_PATH}/../)
-include_directories(${UG_ROOT_PATH}/ugbase)
+set(UG_ROOT_PATH ${UG_ROOT_CMAKE_PATH}/../..)
+include_directories(${UG_ROOT_PATH}/ugcore/ugbase)
 include_directories(${CMAKE_BINARY_DIR})
 link_directories(${UG_ROOT_PATH}/lib)
 ################################################################################
 # include cmake functions
 
-set(CMAKE_MODULE_PATH ${UG_ROOT_PATH}/cmake/modules)
-include(${UG_ROOT_PATH}/cmake/compiler_flags.cmake)
+set(CMAKE_MODULE_PATH ${UG_ROOT_CMAKE_PATH}/modules)
+include(${UG_ROOT_CMAKE_PATH}/compiler_flags.cmake)
 # reset flags, because of maybe switched DEBUG option
 reset_cxx_flags()
 
@@ -230,7 +230,7 @@ endif(NOT CPU_FREQ)
 
 ########################################
 # TARGET
-include(${UG_ROOT_PATH}/cmake/ug/target.cmake)
+include(${UG_ROOT_CMAKE_PATH}/ug/target.cmake)
 
 
 # convert the DIM and CPU sets to readable sets
@@ -280,7 +280,6 @@ message(STATUS "")
 message(STATUS "Info: External libraries (path which contains the library or ON if you used uginstall):")
 message(STATUS "Info: TETGEN:   ${TETGEN}")
 message(STATUS "Info: HLIBPRO:  ${HLIBPRO}")
-message(STATUS "Info: PHREEQC:  ${PHREEQC}")
 message(STATUS "")
 message(STATUS "Info: C   Compiler: ${CMAKE_C_COMPILER} (ID: ${CMAKE_C_COMPILER_ID})")
 message(STATUS "Info: C++ Compiler: ${CMAKE_CXX_COMPILER} (ID: ${CMAKE_CXX_COMPILER_ID})")
@@ -351,7 +350,7 @@ endif("${DIM}" STREQUAL "ALL")
 ########################################
 # Algebra Selection (CPU=)
 # The cpu option sets defines for C and C++
-include(${UG_ROOT_PATH}/cmake/ug/algebra_selection.cmake)
+include(${UG_ROOT_CMAKE_PATH}/ug/algebra_selection.cmake)
 
 ########################################
 # COMPILER specific flags
@@ -390,7 +389,7 @@ endif()
 ########################################
 # DEBUG
 ########################################
-include(${UG_ROOT_PATH}/cmake/ug/debug.cmake)
+include(${UG_ROOT_CMAKE_PATH}/ug/debug.cmake)
 
 # if build type is set print own cflags and flags from build type 
 if(CMAKE_BUILD_TYPE)
@@ -404,7 +403,7 @@ endif()
 
 ########################################
 # PROFILER
-include(${UG_ROOT_PATH}/cmake/ug/profiler.cmake)
+include(${UG_ROOT_CMAKE_PATH}/ug/profiler.cmake)
 
 
 ########################################
@@ -416,28 +415,26 @@ endif(PCL_DEBUG_BARRIER)
 
 ########################################
 # OPENMP
-include(${UG_ROOT_PATH}/cmake/ug/openmp.cmake)
+include(${UG_ROOT_CMAKE_PATH}/ug/openmp.cmake)
 # C++11
-include(${UG_ROOT_PATH}/cmake/ug/cpp11.cmake)
+include(${UG_ROOT_CMAKE_PATH}/ug/cpp11.cmake)
 # CUDA
-include(${UG_ROOT_PATH}/cmake/ug/cuda.cmake)
+include(${UG_ROOT_CMAKE_PATH}/ug/cuda.cmake)
 # LUA2C
-include(${UG_ROOT_PATH}/cmake/ug/lua2c.cmake)
+include(${UG_ROOT_CMAKE_PATH}/ug/lua2c.cmake)
 
 ########################################
 # buildAlgebra
-include(${UG_ROOT_PATH}/cmake/ug/build_algebra.cmake)
+include(${UG_ROOT_CMAKE_PATH}/ug/build_algebra.cmake)
 
 
 ########################################
 # TETGEN
-include(${UG_ROOT_PATH}/cmake/ug/tetgen.cmake)
+include(${UG_ROOT_CMAKE_PATH}/ug/tetgen.cmake)
 # HLIBPRO
-include(${UG_ROOT_PATH}/cmake/ug/hlibpro.cmake)
-# PHREEQC (modularized version: IPhreeqC)
-include(${UG_ROOT_PATH}/cmake/ug/iphreeqc.cmake)
+include(${UG_ROOT_CMAKE_PATH}/ug/hlibpro.cmake)
 # OpenCL
-include(${UG_ROOT_PATH}/cmake/ug/opencl.cmake)
+include(${UG_ROOT_CMAKE_PATH}/ug/opencl.cmake)
 
 
 ################################################################################
@@ -445,12 +442,12 @@ include(${UG_ROOT_PATH}/cmake/ug/opencl.cmake)
 
 ########################################
 # Boost (required)
-#  If INTERNAL_BOOST is enabled, the files in externals/boost_... are used.
+#  If INTERNAL_BOOST is enabled, the files in externals/BoostForUG4 are used.
 #  If it is disabled, the system-installation of boost is used instead.
 #  Note: If INTERNAL_BOOST is enabled and system installations are available,
 #        the internal one has precedence.
 if(INTERNAL_BOOST)
-	set(INTERNAL_BOOST_PATH ${UG_ROOT_PATH}/externals/boost_1_56_0/)
+	set(INTERNAL_BOOST_PATH ${UG_ROOT_PATH}/externals/BoostForUG4/)
 	set(BOOST_ROOT ${INTERNAL_BOOST_PATH})
 endif(INTERNAL_BOOST)
 find_package(Boost 1.40 REQUIRED)
@@ -473,7 +470,7 @@ endif(UNIX)
 
 ########################################
 # MPI
-include(${UG_ROOT_PATH}/cmake/ug/mpi.cmake)
+include(${UG_ROOT_CMAKE_PATH}/ug/mpi.cmake)
 
 
 ########################################
@@ -554,22 +551,22 @@ link_libraries(${linkLibraries})
 ################################################################################
 # Declare a method that allows all sub-cmake-files to add their sources
 # to a common library.
-include(${UG_ROOT_PATH}/cmake/ug/export_sources.cmake)
+include(${UG_ROOT_CMAKE_PATH}/ug/export_sources.cmake)
 
 ################################################################################
 # Declare a method that allows all sub-cmake-files to add their dependencies
 # to a common library.
-include(${UG_ROOT_PATH}/cmake/ug/export_dependencies.cmake)
+include(${UG_ROOT_CMAKE_PATH}/ug/export_dependencies.cmake)
 
 ################################################################################
 # Declare a method that allows all sub-cmake-files to add their includes paths
 # to a common library.
-include(${UG_ROOT_PATH}/cmake/ug/export_includes.cmake)
+include(${UG_ROOT_CMAKE_PATH}/ug/export_includes.cmake)
 
 ################################################################################
 # Declare a method that allows all sub-cmake-files to add their definitions to
 # to the main project P_UG4
-include(${UG_ROOT_PATH}/cmake/ug/export_definitions.cmake)
+include(${UG_ROOT_CMAKE_PATH}/ug/export_definitions.cmake)
 
 ######################################################################################################################
 # the following options are pseudo cmake-options (normal options only support ON and OFF).

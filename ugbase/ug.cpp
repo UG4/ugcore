@@ -30,7 +30,6 @@
  * GNU Lesser General Public License for more details.
  */
 
-
 #include <stack>
 #include <cstdlib>
 #include <string>
@@ -115,7 +114,7 @@ bool InitPaths(const char* argv0)
 	if(!PathProvider::has_path(BIN_PATH))
 		PathProvider::set_path(BIN_PATH, strRoot + pathSep + "bin");
 	if(!PathProvider::has_path(SCRIPT_PATH))
-		PathProvider::set_path(SCRIPT_PATH, strRoot + pathSep + "scripts");
+		PathProvider::set_path(SCRIPT_PATH, strRoot + pathSep + "ugcore/scripts");
 	if(!PathProvider::has_path(DATA_PATH))
 		PathProvider::set_path(DATA_PATH, strRoot + pathSep + "data");
 	if(!PathProvider::has_path(GRID_PATH))

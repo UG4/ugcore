@@ -42,7 +42,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
-include("../../cmake/ug_includes.cmake")
+include("${UG_ROOT_CMAKE_PATH}/ug_includes.cmake")
 
 #	Name of the file that will contain the compile-info variables
 set(infoFileName ${CMAKE_BINARY_DIR}/compile_info_vars.cpp)
@@ -72,7 +72,7 @@ if(UNIX AND buildCompileInfo)
 	add_custom_target(updateCompileInfo)
 #	The build of the custom target triggers this custom command, which updates
 #	the compile_info.cpp file.
-	add_custom_command(TARGET updateCompileInfo PRE_BUILD COMMAND bash ${UG_ROOT_PATH}/scripts/shell/generate_compile_info ${UG_ROOT_PATH} ${infoFileName})
+	add_custom_command(TARGET updateCompileInfo PRE_BUILD COMMAND bash ${UG_ROOT_PATH}/ugcore/scripts/shell/generate_compile_info ${UG_ROOT_PATH} ${infoFileName})
 endif(UNIX AND buildCompileInfo)
 
 #	Export sources to the file which contains the info-access-methods.
