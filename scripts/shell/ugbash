@@ -8,7 +8,7 @@
 # source this file in your ~/.bashrc :
 # 1. with specifiying UG4_ROOT:
 # UG4_ROOT=~/Documents/workspace/ug4
-# source $UG4_ROOT/scripts/shell/ugbash
+# source $UG4_ROOT/ugcore/scripts/shell/ugbash
 # 2. without (UG4_ROOT is set to the path ../../ of ugbash)
 # source ~/Documents/workspace/ug4/scripts/ugbash
 #
@@ -23,7 +23,7 @@
 ########################
 
 if [ -z "$UG4_ROOT" ]; then
-	UG4_ROOT=`dirname ${BASH_SOURCE[0]}`/../../
+	UG4_ROOT=`dirname ${BASH_SOURCE[0]}`/../../../
 	
 	# make path absolute
 	# for compatibilty to mac, don't use realpath or readlink here.
@@ -32,40 +32,40 @@ if [ -z "$UG4_ROOT" ]; then
 	UG4_ROOT=`pwd`
 	cd $olddir
 else
-	if [ ! -e $UG4_ROOT/cmake/ug_includes.cmake ]; then
-		echo "Could not find UG4_ROOT/cmake/ug_includes.cmake . Is UG4_ROOT=$UG4_ROOT right?"
+	if [ ! -e $UG4_ROOT/ugcore/cmake/ug_includes.cmake ]; then
+		echo "Could not find UG4_ROOT/cmake/ug_includes.cmake. Is UG4_ROOT=$UG4_ROOT right?"
 	fi	   	
 fi	
 
 export UG4_ROOT
 
 # add scripts/shell to path
-PATH=$PATH:$UG4_ROOT/scripts/shell:$UG4_ROOT/bin
+PATH=$PATH:$UG4_ROOT/ugcore/scripts/shell:$UG4_ROOT/bin
 export PATH
 
 # add ugcomplete and cdug (for bash only)
 SHELLTYPE=`ps -o comm="" -p $$`
 case "$SHELLTYPE" in
-	*bash*) source $UG4_ROOT/scripts/shell/ugcomplete
+	*bash*) source $UG4_ROOT/ugcore/scripts/shell/ugcomplete
 	;;
 esac
-source $UG4_ROOT/scripts/shell/cdug
+source $UG4_ROOT/ugcore/scripts/shell/cdug
 
 # make bash scripts executable
-chmod +x $UG4_ROOT/scripts/shell/uginfo
-chmod +x $UG4_ROOT/scripts/shell/ugcancel
-chmod +x $UG4_ROOT/scripts/shell/ugsubmit
+chmod +x $UG4_ROOT/ugcore/scripts/shell/uginfo
+chmod +x $UG4_ROOT/ugcore/scripts/shell/ugcancel
+chmod +x $UG4_ROOT/ugcore/scripts/shell/ugsubmit
 
-chmod +x $UG4_ROOT/scripts/shell/uginstall
-chmod +x $UG4_ROOT/scripts/shell/sshfsmake
+chmod +x $UG4_ROOT/ugcore/scripts/shell/uginstall
+chmod +x $UG4_ROOT/ugcore/scripts/shell/sshfsmake
 
-chmod +x $UG4_ROOT/scripts/shell/xprun
-chmod +x $UG4_ROOT/scripts/shell/mpigdb1
-chmod +x $UG4_ROOT/scripts/shell/xtermrun
+chmod +x $UG4_ROOT/ugcore/scripts/shell/xprun
+chmod +x $UG4_ROOT/ugcore/scripts/shell/mpigdb1
+chmod +x $UG4_ROOT/ugcore/scripts/shell/xtermrun
 
-chmod +x $UG4_ROOT/scripts/shell/ugcmake-start
-chmod +x $UG4_ROOT/scripts/shell/ugconfig
-chmod +x $UG4_ROOT/scripts/shell/ugsubmit-getconfig
+chmod +x $UG4_ROOT/ugcore/scripts/shell/ugcmake-start
+chmod +x $UG4_ROOT/ugcore/scripts/shell/ugconfig
+chmod +x $UG4_ROOT/ugcore/scripts/shell/ugsubmit-getconfig
 
 # grep search for ug
 # use e.g. 
@@ -76,7 +76,7 @@ chmod +x $UG4_ROOT/scripts/shell/ugsubmit-getconfig
 # search in ug4/ugbase 
 ugbasegrep()
 {
-	fgrep --exclude-dir=".svn" -rI "$1" $UG4_ROOT/ugbase
+	fgrep --exclude-dir=".svn" -rI "$1" $UG4_ROOT/ugcore/ugbase
 }
 
 # search in ug4/plugins}
@@ -88,7 +88,7 @@ ugpluginsgrep()
 # search in ug4/cmake
 ugcmakegrep()
 {
-	fgrep --exclude-dir=".svn" -rI "$1" $UG4_ROOT/cmake
+	fgrep --exclude-dir=".svn" -rI "$1" $UG4_ROOT/ugcore/cmake
 }
 
 # search in ug4/apps for lua, c, cpp or .txt files
@@ -101,7 +101,7 @@ ugappsgrep()
 # search in ug4/scripts
 ugscriptsgrep()
 {
-	fgrep --exclude-dir=".svn" -rI "$1" $UG4_ROOT/scripts
+	fgrep --exclude-dir=".svn" -rI "$1" $UG4_ROOT/ugcore/scripts
 }
 
 # search in all ug4 for .lua, .c*, .h, .txt
@@ -114,7 +114,7 @@ uggrep()
 # search in ug4/docs for .doxygen files
 ugdocsgrep()
 {
-	fgrep --include="*\.doxygen" --exclude-dir=".svn" -rI "$1" $UG4_ROOT/docs
+	fgrep --include="*\.doxygen" --exclude-dir=".svn" -rI "$1" $UG4_ROOT/ugcore/docs
 }
 
 

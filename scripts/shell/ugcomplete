@@ -262,16 +262,7 @@ ugshell_complete()
 		done < <(compgen -f -- $word)
 		cd "$curDir"
 
-######### get completions in directory $UG4_ROOT/data/grid #########
-	elif [ -d $UG4_ROOT/data/grids ] && [ $UG4_ROOT_absolute/data/grids != "$curDir" ] && [ ${COMP_WORDS[COMP_CWORD-1]} = "-grid" ];
-	then 
-		
-		cd "$UG4_ROOT/data/grids"
-		while read line; do
-			[[ -d $line ]] && COMPREPLY[i++]=$line/
-			[[ "${line##*.}" = "ugx" ]] && COMPREPLY[i++]=$line
-		done < <(compgen -f -- $word)  
-		cd "$curDir"
+
 ######### get lua file completions #########
 	else
 	
