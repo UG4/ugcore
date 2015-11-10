@@ -52,6 +52,14 @@ elif [[ $UGSUBMIT_TYPE == "Juqueen" ]]; then
 	echo ""
 	cmake -DSTATIC_BUILD=ON -DCMAKE_TOOLCHAIN_FILE=$UG4_ROOT/cmake/toolchain/juqueen.cmake $*
 	
+elif [[ $UGSUBMIT_TYPE == "Jureca" ]]; then
+	echo "ugcmake-start: On Jureca. Calling cmake with:"
+	echo "               Toolchain file: -DCMAKE_TOOLCHAIN_FILE=$UG4_ROOT/cmake/toolchain/jureca.cmake"
+	echo "ugcmake-start: Also make sure compilers, LAPACK and cmake modules are loaded (see also ugconfig)."
+	echo "ugcmake-start: cmake -DCMAKE_TOOLCHAIN_FILE=$UG4_ROOT/cmake/toolchain/jureca.cmake $*"
+	echo ""
+	cmake -DCMAKE_TOOLCHAIN_FILE=$UG4_ROOT/cmake/toolchain/jureca.cmake $*
+	
 elif [[ $UGSUBMIT_MORE == "Apple" && $UGSUBMIT_TYPE == "mpi" ]]; then
 	echo "ugcmake-start: on Apple: cmake $*"
 	echo ""

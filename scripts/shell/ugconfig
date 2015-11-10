@@ -47,6 +47,14 @@ elif [[ $UGSUBMIT_TYPE == "Juqueen" ]]; then
 	echo "ugconfig: On Juqueen, loading cmake and lapack."
 	module load cmake
 	module load lapack
+	
+elif [[ $UGSUBMIT_TYPE == "Jureca" ]]; then
+	echo "ugconfig: On Jureca, loading toolchain with compilers and lapack as well as cmake."
+	module load intel-para
+	module load CMake/3.2.3
+	echo "ugconfig: export library paths for LAPACk and BLAS"
+	export LAPACK_LIB_DIR=/usr/local/software/jureca/Stage3/software/Toolchain/ipsmpi/2015.07/imkl/11.2.3.187/mkl/lib/int$
+	export BLAS_LIB_DIR=/usr/local/software/jureca/Stage3/software/Toolchain/ipsmpi/2015.07/imkl/11.2.3.187/mkl/lib/intel$
 
 elif [ "$UGSUBMIT_TYPE" == "unknown" ]; then 
     echo "Hello, this is ugconfig trying to config your cluster"

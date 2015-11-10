@@ -11,6 +11,8 @@ if [ -z "$UGSUBMIT_TYPE" ]; then
 		UGSUBMIT_TYPE=cesari
 	elif [[ "$HOSTNAME" == "juqueen"* ]]; then
 		UGSUBMIT_TYPE=Juqueen
+	elif [[ "$HOSTNAME" == "jrl"* ]]; then
+		UGSUBMIT_TYPE=Jureca
 	elif [[ "$HOSTNAME" == "dora"* ]]; then
 		UGSUBMIT_TYPE=DoraCSCS
 	elif [[ "$HOSTNAME" == "eslogin"* ]]; then

@@ -26,6 +26,9 @@ elif [ $UGSUBMIT_TYPE == "Jugene" ]; then
 elif [ $UGSUBMIT_TYPE == "Juqueen" ]; then
 	source $scriptpath/schedulers/juqueen
 	
+elif [ $UGSUBMIT_TYPE == "Jureca" ]; then
+	source $scriptpath/schedulers/jureca
+	
 elif [ $UGSUBMIT_TYPE == "mpi" ] || [ $UGSUBMIT_TYPE == "mpi-foreground" ]; then
 
 	source $scriptpath/schedulers/mpi-foreground

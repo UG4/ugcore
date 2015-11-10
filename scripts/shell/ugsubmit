@@ -10,8 +10,10 @@
 # ugsubmit is a job submitting script to unify the job schedulers
 # on different clusters. Supported Clusters are:
 # - cekon , G-CSC Frankfurt (SLURM, salloc)
+# - cesari , G-CSC Frankfurt (SLURM, salloc)
 # - Jugene, Forschungszentrum Juelich (ll_submit)
 # - Juqueen, Forschungszentrum Juelich (ll_submit)
+# - Jureca, Forschungszentrum Juelich (SLURM)
 # - Hermit, HLRS Stuttgart (qsub, aprun)
 # - NecNehalem, HLRS Stuttgart (qsub, mpirun)
 # - MOAB Workload Manager (msub, srun)
@@ -111,7 +113,7 @@ function usage
 	echo "        -queue                 : the queue to use"
 	echo "        -nosubdir              : don't create job in a subdir, but in dir (default .) directly. (warning: might be dangerous)"
 	echo " "
-	echo " Supported Cluster Types: NecNehalem, Hermit, Jugene, Juqueen, mpi (mpi-foreground, mpi-background), cekon, cesari, moab."
+	echo " Supported Cluster Types: NecNehalem, Hermit, Jugene, Juqueen, Jureca, mpi (mpi-foreground, mpi-background), cekon, cesari, moab."
 	if [ -n "$UGSUBMIT_TYPE" ]; then 
 		echo " Only UGSUBMIT_TYPE=$UGSUBMIT_TYPE specific parameters are shown ! Set UGSUBMIT_TYPE=\"\" to see all."
 	fi
@@ -131,6 +133,16 @@ function usage
 	if [ -z "$UGSUBMIT_TYPE" ] || [ $UGSUBMIT_TYPE == "Juqueen" ]; then
 		echo ""
 		echo " Juqueen Parameters"
+		echo "        -Jureca-partition <part>: Partition to use; default is batch:"
+		echo "                                  devel (max. 2h walltime, 8 nodes, 128G memory/node)"
+		echo "                                  batch (max. 24h walltime, 128 nodes, 128/256 memory/node)"
+		echo "                                  mem512 (512G memory/node, needs to be explicitly requested)"
+		echo "        -Jureca-memory <mem>:     Amount of memory to use (default is 128): 128, 256, 512."                   
+		echo ""
+	fi
+	if [ -z "$UGSUBMIT_TYPE" ] || [ $UGSUBMIT_TYPE == "Jureca" ]; then
+		echo ""
+		echo " Jureca Parameters"
 		echo ""
 	fi
 	if [ -z "$UGSUBMIT_TYPE" ] || [ $UGSUBMIT_TYPE == "DoraCSCS" ]; then
@@ -286,6 +298,12 @@ do
 	elif [ $1 == "-nosubdir" ]; then
 		nosubdir=true
 		shift 1
+	elif [ $1 == "-Jureca-partition" ]; then
+		jureca_part=$2
+		shift 2
+	elif [ $1 == "-Jureca-memory" ]; then
+		jureca_mem=$2
+		shift 2
 	elif [ $1 == "---" ]; then
 		shift
 		break
