@@ -193,6 +193,7 @@ int main(int argc, char* argv[])
 #endif
 	LOG("*   -call:               Combines all following arguments to one lua command   *\n");
 	LOG("*                        and executes it. Ignored if it follows '-ex'.         *\n");
+	LOG("*                        '(', ')', and '\"' have to be escaped, e.g.: '\\('      *\n");
 	LOG("* Additional parameters are passed to the script through ugargc and ugargv.    *\n");
 	LOG("*                                                                              *\n");
 
