@@ -107,6 +107,24 @@ int main(int argc, char* argv[])
 		pcl::Init(&argc, &argv);
 	#endif
 
+//	ALWAYS FIRST: check if the '-call' option has been specified. If so,
+//	concatenate all following parameters to one luaCall and shorten argc
+//	so that it only contains parameters up to the '-call' parameter.
+//	If '-ex' has been specified before '-call', abort the check.
+	string callCommand = "";
+	for(int i = 1; i < argc; ++i){
+		if(strcmp(argv[i], "-ex") == 0)
+			break;
+		if(strcmp(argv[i], "-call") == 0){
+			for(int j = i + 1; j < argc; ++j){
+				callCommand.append(argv[j]);
+				if(j+1 < argc)
+					callCommand.append(" ");
+			}
+			argc = i;
+			break;
+		}
+	}
 
 //	check if an output-process has been specified
 	int outputProc = 0;
@@ -173,6 +191,8 @@ int main(int argc, char* argv[])
 #ifdef UG_PROFILER
 	LOG("*   -profile:            Shows profile-output when the application terminates. *\n");
 #endif
+	LOG("*   -call:               Combines all following arguments to one lua command   *\n");
+	LOG("*                        and executes it. Ignored if it follows '-ex'.         *\n");
 	LOG("* Additional parameters are passed to the script through ugargc and ugargv.    *\n");
 	LOG("*                                                                              *\n");
 
@@ -326,46 +346,50 @@ int main(int argc, char* argv[])
 		EnableMemTracker(true);
 	//	if a script has been specified, then execute it now
 	//	if a script is executed, we won't execute the interactive shell.
-		if(scriptName)
-		{
-			try{
+		try{
+			if(scriptName){
 				if(!LoadUGScript_Parallel(scriptName))
 				{
 					UG_LOG("Cannot find specified script ('" << scriptName << "'). Aborting.\n");
 					bAbort=true;
 				}
 			}
-			catch(SoftAbort& err){
-				UG_LOG("Execution of script-buffer aborted with the following message:\n")
-				UG_LOG(err.get_msg() << std::endl);
+			else if(!callCommand.empty()){
+				script::ParseAndExecuteBuffer(callCommand.c_str());
 			}
-			catch(LuaError& err) {
-				PathProvider::clear_current_path_stack();
-				if(err.show_msg()){
-					if(!err.get_msg().empty()){
-						UG_LOG("LUA-ERROR: \n");
-						for(size_t i=0;i<err.num_msg();++i)
-							UG_LOG(err.get_msg(i)<<endl);
-					}
+		}
+		catch(SoftAbort& err){
+			UG_LOG("Execution of script-buffer aborted with the following message:\n")
+			UG_LOG(err.get_msg() << std::endl);
+		}
+		catch(LuaError& err) {
+			PathProvider::clear_current_path_stack();
+			if(err.show_msg()){
+				if(!err.get_msg().empty()){
+					UG_LOG("LUA-ERROR: \n");
+					for(size_t i=0;i<err.num_msg();++i)
+						UG_LOG(err.get_msg(i)<<endl);
 				}
-				UG_LOG(errSymb<<"ABORTING script parsing.\n");
-				quit_all_mpi_procs_in_parallel();
-				bAbort=true;
 			}
-			catch(UGError &err)
-			{
-				PathProvider::clear_current_path_stack();
-				UG_LOG("UGError:\n");
-				for(size_t i=0; i<err.num_msg(); i++)
-					UG_LOG(err.get_file(i) << ":" << err.get_line(i) << " : " << err.get_msg(i));
-				UG_LOG("\n");
-				UG_LOG(errSymb<<"ABORTING script parsing.\n");
-				quit_all_mpi_procs_in_parallel();
-				bAbort=true;
-			}
-			CATCH_STD_EXCEPTIONS();
+			UG_LOG(errSymb<<"ABORTING script parsing.\n");
+			quit_all_mpi_procs_in_parallel();
+			bAbort=true;
+		}
+		catch(UGError &err)
+		{
+			PathProvider::clear_current_path_stack();
+			UG_LOG("UGError:\n");
+			for(size_t i=0; i<err.num_msg(); i++)
+				UG_LOG(err.get_file(i) << ":" << err.get_line(i) << " : " << err.get_msg(i));
+			UG_LOG("\n");
+			UG_LOG(errSymb<<"ABORTING script parsing.\n");
+			quit_all_mpi_procs_in_parallel();
+			bAbort=true;
+		}
+		CATCH_STD_EXCEPTIONS();
 
 //#ifdef UG_DEBUG
+		if(scriptName){
 			try{
 				script::ParseAndExecuteBuffer("if util ~= nil and util.CheckAndPrintHelp ~= nil then util.CheckAndPrintHelp(\"\\n-help: Available Command Line Arguments:\") end\n"
 							"if util ~= nil and util.PrintIgnoredArguments ~= nil then print(\"\") util.PrintIgnoredArguments() end\n"
@@ -375,13 +399,14 @@ int main(int argc, char* argv[])
 				UG_LOG("Execution of script-buffer aborted with the following message:\n");
 				UG_LOG(err.get_msg() << std::endl);
 			}
-
-			if(FindParam("-noquit", argc, argv))
-				runInteractiveShell = true;
-			else
-				runInteractiveShell = false;
-//#endif
 		}
+//#endif
+
+		if(FindParam("-noquit", argc, argv))
+			runInteractiveShell = true;
+		else
+			runInteractiveShell = false;
+
 		EnableMemTracker(false);
 		//DisplayVacantMemory();
 
