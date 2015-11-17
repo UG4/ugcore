@@ -83,9 +83,6 @@ endif(buildPlugins)
 add_subdirectory(ugbase)
 
 ########################
-if(BUILD_UGDOCU)
-    add_subdirectory(apps/ugdocu)
-endif(BUILD_UGDOCU)
 
 IF(BUILD_DOXYDOCU)
    ADD_SUBDIRECTORY(docs)
