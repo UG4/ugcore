@@ -153,7 +153,7 @@ void SetRootPath(const std::string& strRoot)
 
 	PathProvider::set_path(ROOT_PATH, strRoot);
 	PathProvider::set_path(BIN_PATH, strRoot + pathSep + "bin");
-	PathProvider::set_path(SCRIPT_PATH, strRoot + pathSep + "scripts");
+	PathProvider::set_path(SCRIPT_PATH, strRoot + pathSep + "ugcore" + pathSep + "scripts");
 	PathProvider::set_path(DATA_PATH, strRoot + pathSep + "data");
 	PathProvider::set_path(GRID_PATH, strRoot + pathSep + "data" + pathSep + "grids");
 	PathProvider::set_path(PLUGIN_PATH, strRoot + pathSep + "bin" + pathSep + "plugins");
