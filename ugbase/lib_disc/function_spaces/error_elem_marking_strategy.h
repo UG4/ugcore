@@ -297,7 +297,7 @@ void VarianceMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaEr
 //	number elemMean =  sqrt(errTotal) / numElem;
 	number elemMean =  errTotal / numElem;
 
-	UG_LOG("  +++ VarianceMarking: Mean error : " << elemMean << " on "<< numElem << "elements.\n");
+	UG_LOG("  +++ VarianceMarking: Mean error : " << elemMean << " on "<< numElem << " elements.\n");
 
 	// init iterators
 	const_iterator iter;
@@ -324,11 +324,11 @@ void VarianceMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaEr
 
 	}
 #endif
-	UG_LOG("  +++ VarianceMarking: Est. variance (1) : " << elemVar << " on "<< numElem << "elements.\n");
+	UG_LOG("  +++ VarianceMarking: Est. variance (1) : " << elemVar << " on "<< numElem << " elements.\n");
 
 
 	elemVar /= (numElem-1.0);
-	UG_LOG("  +++ VarianceMarking: Est. variance (2): " << elemVar << " on "<< numElem << "elements.\n");
+	UG_LOG("  +++ VarianceMarking: Est. variance (2): " << elemVar << " on "<< numElem << " elements.\n");
 
 
 		// refine all element above threshold
