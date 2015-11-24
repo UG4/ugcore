@@ -64,12 +64,12 @@ macro(check_fortran_libraries DEFINITIONS LIBRARIES _prefix _name _flags _list _
       elseif ( APPLE )
         find_library(${_prefix}_${_library}_LIBRARY
                     NAMES ${_library}
-                    PATHS "${_andpaths}" ENV DYLD_LIBRARY_PATH
+                    PATHS ${_andpaths} ENV DYLD_LIBRARY_PATH
                     )
       else ()
         find_library(${_prefix}_${_library}_LIBRARY
                     NAMES ${_library}
-                    PATHS "${_andpaths}" ENV LD_LIBRARY_PATH
+                    PATHS ${_andpaths} ENV LD_LIBRARY_PATH
                     )
       endif()
       mark_as_advanced(${_prefix}_${_library}_LIBRARY)
@@ -152,7 +152,7 @@ else()
       "${CGAL_TAUCS_LIBRARIES_DIR} $ENV{BLAS_LIB_DIR}")
   
   set(BLAS_UNIX_SEARCH_PATHS
-      "/usr/local/lib;/usr/lib;/usr/local/lib64;/usr/lib64;/bgsys/local/lib")
+      "/usr/local/lib;/usr/lib;/usr/local/lib64;/usr/lib64")
 
     #
     # If Unix, search for BLAS function in possible libraries
@@ -166,7 +166,7 @@ else()
       BLAS
       sgemm
       ""
-      "esslbg;xlopt;xlf90_r;xlfmath;xl;m;rt;dl;pthread"
+      "esslbg;xlf90_r;xlfmath;xl;m;rt;dl;pthread"  #leaving out xlopt; not needed?
       "/opt/ibmmath/lib64;/opt/ibmcmp/xlf/14.1/lib64" "${BLAS_UNIX_SEARCH_PATHS}"
       )
     endif()
