@@ -114,7 +114,7 @@ bool InitPaths(const char* argv0)
 	if(!PathProvider::has_path(BIN_PATH))
 		PathProvider::set_path(BIN_PATH, strRoot + pathSep + "bin");
 	if(!PathProvider::has_path(SCRIPT_PATH))
-		PathProvider::set_path(SCRIPT_PATH, strRoot + pathSep + "ugcore/scripts");
+		PathProvider::set_path(SCRIPT_PATH, strRoot + pathSep + "ugcore" + pathSep + "scripts");
 	if(!PathProvider::has_path(DATA_PATH))
 		PathProvider::set_path(DATA_PATH, strRoot + pathSep + "data");
 	if(!PathProvider::has_path(GRID_PATH))
