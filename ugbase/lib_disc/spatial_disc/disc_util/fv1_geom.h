@@ -1260,7 +1260,7 @@ class FV1ManifoldGeometry
 		            const ISubsetHandler* ish = NULL);
 			
 	///	get the element
-		TElem* elem() const {return m_pElem;}
+		GridObject* elem() const {return m_pElem;}
 		
 	/// get vector of corners for current element
 		const MathVector<worldDim>* corners() const {return m_gloMid[0];}
@@ -1293,7 +1293,7 @@ class FV1ManifoldGeometry
 
 	private:
 	// 	pointer to current element
-		TElem* m_pElem;
+		GridObject* m_pElem;
 		
 	// 	local and global geom object midpoints for each dimension
 		MathVector<dim> m_locMid[dim+1][m_numBF];

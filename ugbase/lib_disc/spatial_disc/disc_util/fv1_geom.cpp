@@ -1791,17 +1791,16 @@ template <typename TElem, int TWorldDim>
 void FV1ManifoldGeometry<TElem, TWorldDim>::
 update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
-	UG_ASSERT(dynamic_cast<TElem*>(elem) != NULL, "Wrong element type.");
-	TElem* pElem = static_cast<TElem*>(elem);
-
 	// 	if already update for this element, do nothing
-	if (m_pElem == pElem) return;
-	else m_pElem = pElem;
+	if (m_pElem == elem) return;
+	else m_pElem = elem;
 
 	//	store subset index for geometry
 	Grid& grid = *(ish->grid());
 	if (worldDim == 2)
 	{
+		UG_ASSERT(dynamic_cast<Edge*>(elem) != NULL, "Wrong element type.");
+		Edge* pElem = static_cast<Edge*>(elem);
 		std::vector<Edge*> vEdge;
 		CollectEdges(vEdge, grid, pElem);
 		UG_ASSERT(vEdge.size(),"No edge contained in 1D manifold element!");
@@ -1809,6 +1808,8 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 	}
 	if (worldDim == 3)
 	{
+		UG_ASSERT(dynamic_cast<Face*>(elem) != NULL, "Wrong element type.");
+		Face* pElem = static_cast<Face*>(elem);
 		std::vector<Face*> vFace;
 		CollectFaces(vFace, grid, pElem);
 		UG_ASSERT(vFace.size(),"No face contained in 2D manifold element!");
