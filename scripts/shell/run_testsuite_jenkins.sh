@@ -2,8 +2,8 @@
 # execute UG test-suite
 # ------------------------
 # xml input files
-ugroot=$WORKSPACE/trunk
-unit_test_data=$ugroot/unit_tests/data/script_tests
+ugroot=$WORKSPACE
+unit_test_data=$ugroot/apps/unit_tests/data/script_tests
 core_tests=$unit_test_data/script_test_param.xml
 experimental_test=$unit_test_data/experimental_plugins.xml
 validate_schema=$unit_test_data/ScriptParamMappingSchema.xsd
