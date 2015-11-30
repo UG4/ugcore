@@ -11,7 +11,7 @@ validate_schema=$unit_test_data/ScriptParamMappingSchema.xsd
 # testsuite arguments
 defargs='--output_format=XML --log_level=all --report_level=no --log_sink=utf_log_${mode}_np$np.xml'
 # note script params defaults to $core_tests
-testcore_args='--run_test=*NumProc$np'
+testcore_args='-script_params $core_tests --run_test=*NumProc$np'
 # run testsuite LuaScripts for plugins
 testplugins_args='-script_params $experimental_test --run_test=/LUAScriptsNumProc$np'
 
