@@ -166,8 +166,8 @@ norm(const TVector& vec, const std::vector<DoFIndex>& vMultiIndex)
 
 #ifdef UG_PARALLEL
 	// sum squared local norms
-	if (!vec.layouts()->proc_comm().empty())
-	norm = vec.layouts()->proc_comm().allreduce(norm, PCL_RO_SUM);
+	//if (!vec.layouts()->proc_comm().empty())
+	//norm = vec.layouts()->proc_comm().allreduce(norm, PCL_RO_SUM);
 
 	// In the lines above,
 	// racing conditions occur in cases where a process has no elements,
@@ -183,8 +183,8 @@ norm(const TVector& vec, const std::vector<DoFIndex>& vMultiIndex)
 	// by not communicating globally, but only with the processes that really need to be
 	// involved (i.e. NO empty processes), if possible.
 
-	//pcl::ProcessCommunicator com;
-	//norm = com.allreduce(norm, PCL_RO_SUM);
+	pcl::ProcessCommunicator commWorld;
+	norm = commWorld.allreduce(norm, PCL_RO_SUM);
 #endif
 
 	// return global norm
