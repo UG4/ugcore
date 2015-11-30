@@ -40,20 +40,48 @@ namespace ug{
 
 /// returns an array describing the needed index mapping for Cuthill-McKee ordering
 /**
- * This function computes a index mapping, that transforms a index-graph into
- * Cuthill-McKee ordering. For each index an vector of all adjacent indices
- * must be passed. (If no adjacent index is passed for an index, this index is
- * skipped and not sorted). On exit the index field vNewIndex is filled with
- * the index mapping: newInd = vNewIndex[oldInd]
+ * This function computes an index mapping that transforms an index-graph by a
+ * Cuthill-McKee ordering. For each index, a vector of all adjacent indices
+ * must be passed.
+ *
+ * There are two intended ways of this function to work, depending on the flag bPreserveConsec:
+ * If set to true (default), the function expects vvNeighbor to contain adjacency information
+ * sorted by associated geometric object, i.e.:
+ * Geometric object 0
+ *   DoF 0
+ *   DoF 1
+ *   DoF 2
+ *   ...
+ * Geometric object 1
+ *   DoF 0
+ *   DoF 1
+ *   DoF 2
+ *   ...
+ * ...
+ *
+ * None of the first indices of any geometric object must be unconnected!
+ * Only the first DoF index of any geometric object must be given neighbor information!
+ * This is required to guarantee that DoF indices associated to a geometric object stay consecutive.
+ *
+ * If set to false, indices without any adjacency information given in vvNeighbour
+ * will be sorted to the end. Nothing is preserved. This is applicable if vvNeighbour
+ * contains the final non-zero entries of a sparse matrix to be re-ordered, e.g., as a
+ * pre-processing step for ILU(-T) pre-conditioning.
+ *
+ *
+ * On exit, the index field vNewIndex is filled with the index mapping:
+ * newInd = vNewIndex[oldInd]
  *
  * \param[out]	vNewIndex		vector returning new index for old index
  * \param[in]	vvNeighbour		vector of adjacent indices for each index
  * \param[in]	bReverse		flag if "reverse Cuthill-McKee" is used
+ * \param[in]   bPreserveConsec flag indicating whether ordering is done for DofDistribution
  * \returns		flag if ordering was successful
  */
 void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
                               std::vector<std::vector<size_t> >& vvNeighbour,
-                              bool bReverse = true);
+                              bool bReverse = true,
+							  bool bPreserveConsec = true);
 
 } // end namespace ug
 
