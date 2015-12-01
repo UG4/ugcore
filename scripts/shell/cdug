@@ -31,7 +31,7 @@ cdug_complete() {
   local i=0
   while read line; do
   	[[ -d $line ]] && COMPREPLY[i++]=`echo $line | sed -n "s?$UG4_ROOT[/]*??p"`/;
-  	done <<(compgen -f -- "$UG4_ROOT/$word")  
+  	done < <(compgen -f -- "$UG4_ROOT/$word")  
 }
 
 SHELLTYPE=`ps -o comm="" -p $$`
