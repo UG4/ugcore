@@ -41,13 +41,16 @@ fi
 # first of all validate input xml files againt schema
 which xmllint
 if [ $? -eq 0 ]; then
-	for file in $core_tests $experimental_test; do
-		xmllint --schema $validate_schema --noout $file  
-		if [ $? -gt 0 ]; then
-			echo "$file does not validate against schema"
-			exit 1
-		fi
-	done
+	if [ $plugins ]; then
+		file=$experimental_test
+	else
+		file=$core_tests
+	fi
+	xmllint --schema $validate_schema --noout $file  
+	if [ $? -gt 0 ]; then
+		echo "$file does not validate against schema"
+		exit 1
+	fi
 else
 	echo "warning: input files did not get validated, because xmllint is missing"
 fi
