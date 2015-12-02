@@ -1,0 +1,1 @@
+call "%VS120COMNTOOLS%..\..\VC\vcvarsall.bat" x86_amd64
