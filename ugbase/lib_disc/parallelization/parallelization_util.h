@@ -98,7 +98,7 @@ bool CreateIndexLayouts_DomainDecomposition(
 
 // returns in a vector all appearencies of an index in a layout
 void FindPositionInInterfaces(std::vector<std::pair<int, size_t> >& vIndexInterface,
-                                     IndexLayout& layout, size_t index);
+                                     const IndexLayout& layout, size_t index);
 
 bool AddExtraProcessEntriesToSubdomainLayout(
 								size_t numIDs,
