@@ -42,7 +42,20 @@ namespace ug{
 // Darcy Velocity linker
 ////////////////////////////////////////////////////////////////////////////////
 
-/// Hard Coded Linker for d3f
+/// Hard Coded Linker for the Darcy velocity
+/**
+ * This linker computes the Darcy velocity \f$ \mathbf{q} = - \frac{\mathbf{K}}{\mu} ( \nabla p - \rho \mathbf{g} ) \f$,
+ * where
+ * <ul>
+ * <li> \f$ \mathbf{K} \f$		permeability
+ * <li> \f$ \mu \f$				viscosity
+ * <li> \f$ \rho \f$			density
+ * <li> \f$ \mathbf{g} \f$		gravity
+ * <li> \f$ \nabla p \f$		pressure gradient
+ * </ul>
+ * are input parameters. This linker can be composed as a tree of other linkers,
+ * but is computationally cheaper.
+ */
 template <int dim>
 class DarcyVelocityLinker
 	: public StdDataLinker< DarcyVelocityLinker<dim>, MathVector<dim>, dim>
