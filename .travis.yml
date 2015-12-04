@@ -20,7 +20,7 @@ compiler:
 before_script:
   - git clone https://www.github.com/UG4/ughub
   - ughub/ughub init
-  - ughub/ughub install ugcore
+  - ughub/ughub install ugcore LuaShell
   - mkdir build && cd build && cmake ../ -DTARGET=ugshell -DLAPACK=OFF -DBLAS=OFF -DDIM="1;2;3" -DCOMPILE_INFO=OFF
 
 # compile ug
