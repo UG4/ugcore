@@ -1534,6 +1534,11 @@ add_indices_from_layouts(IndexLayout& indexLayout,int keyType)
 				typename ElemInterface::Element elem = elemInterface.get_element(eIter);
 
 			//	check if element is a surface element
+				// Using SURFACE will also admit SHADOW elements from a level distribution.
+				// SHADOW_RIM elements must not be included; otherwise, any communication
+				// between hMaster and hSlaves would be done twice (also by the corresponding
+				// shadowing element, which references the same DoF), which is why we use
+				// SURFACE here instead of, e.g., ALL.
 				if(!m_spSurfView->is_contained(elem, grid_level(), SurfaceView::SURFACE))
 					continue;
 
