@@ -69,7 +69,7 @@ bool FactorizeILU(Matrix_type &A)
 		
 			// add row k to row i by A(i, .) -= A(k,.)  A(i,k) / A(k,k)
 			// so that A(i,k) is zero.
-			// safe A(i,k)/A(k,k) in A(i,k)
+			// save A(i,k)/A(k,k) in A(i,k)
 			if(fabs(BlockNorm(A(k,k))) < 1e-15*BlockNorm(A(i,k)))
 				UG_THROW("Diag is Zero for k="<<k<<", cannot factorize ILU.");
 
@@ -184,12 +184,13 @@ bool FactorizeILUSorted(Matrix_type &A, const number eps = 1e-50)
 			// add row k to row i by A(i, .) -= A(k,.)  A(i,k) / A(k,k)
 			// so that A(i,k) is zero.
 			// safe A(i,k)/A(k,k) in A(i,k)
-			a_ik /= a_kk;
-
 			if(fabs(BlockNorm(A(k,k))) < eps * BlockNorm(A(i,k)))
 				UG_THROW("ILU: Blocknorm of diagonal is near-zero for k="<<k<<
 				         " with eps: "<< eps <<", ||A_kk||="<<fabs(BlockNorm(A(k,k)))
 				         <<", ||A_ik||="<<BlockNorm(A(i,k)));
+
+			a_ik /= a_kk;
+
 
 			typename Matrix_type::row_iterator it_ij = it_k; // of row i
 			++it_ij; // skip a_ik
