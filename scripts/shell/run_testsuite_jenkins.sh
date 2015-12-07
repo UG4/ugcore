@@ -2,8 +2,8 @@
 # execute UG test-suite
 # ------------------------
 # xml input files
-ugroot=$WORKSPACE/trunk
-unit_test_data=$ugroot/unit_tests/data/script_tests
+ugroot=$WORKSPACE
+unit_test_data=$ugroot/apps/unit_tests/data/script_tests
 core_tests=$unit_test_data/script_test_param.xml
 experimental_test=$unit_test_data/experimental_plugins.xml
 validate_schema=$unit_test_data/ScriptParamMappingSchema.xsd
@@ -11,7 +11,7 @@ validate_schema=$unit_test_data/ScriptParamMappingSchema.xsd
 # testsuite arguments
 defargs='--output_format=XML --log_level=all --report_level=no --log_sink=utf_log_${mode}_np$np.xml'
 # note script params defaults to $core_tests
-testcore_args='--run_test=*NumProc$np'
+testcore_args='-script_params $core_tests --run_test=*NumProc$np'
 # run testsuite LuaScripts for plugins
 testplugins_args='-script_params $experimental_test --run_test=/LUAScriptsNumProc$np'
 
@@ -41,13 +41,16 @@ fi
 # first of all validate input xml files againt schema
 which xmllint
 if [ $? -eq 0 ]; then
-	for file in $core_tests $experimental_test; do
-		xmllint --schema $validate_schema --noout $file  
-		if [ $? -gt 0 ]; then
-			echo "$file does not validate against schema"
-			exit 1
-		fi
-	done
+	if [ $plugins ]; then
+		file=$experimental_test
+	else
+		file=$core_tests
+	fi
+	xmllint --schema $validate_schema --noout $file  
+	if [ $? -gt 0 ]; then
+		echo "$file does not validate against schema"
+		exit 1
+	fi
 else
 	echo "warning: input files did not get validated, because xmllint is missing"
 fi

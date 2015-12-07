@@ -30,6 +30,11 @@
  * GNU Lesser General Public License for more details.
  */
 
+
+// Removed the 'releases page' from the Overview for a lack of meaningful releases:
+// - \subpage pageUG4Releases
+
+
 /** \mainpage ug4 - Documentation 
  
 \section secAbout About
@@ -54,7 +59,6 @@ environment
 \section secUserManual User Manual
 - Overview
 	- \subpage pageUG4Introduction
-	- \subpage pageUG4Releases
 	- \subpage pageUG4Cite
 	- Ideas behind ug4
 	- Software Architecture
