@@ -50,7 +50,8 @@ private:
 // computes ordering using Cuthill-McKee algorithm
 void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
                               std::vector<std::vector<size_t> >& vvConnection,
-                              bool bReverse)
+                              bool bReverse,
+							  bool bPreserveConsec)
 {
 	PROFILE_FUNC();
 //	list of sorted (will be filled later)
@@ -70,8 +71,8 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 	//	sort adjacent index by degree
 	//	edit (mbreit, 10-11-2015): using stable_sort here because implementations
 	//	of std::sort seem to vary among different platforms with regard to the
-	//	sorting outcome of entries where myCompDegree is "=", causing massive
-	//	convergence-behavioral differences in ILU-T.
+	//	sorting outcome of entries where myCompDegree is "=", causing differences
+	//	in convergence behavior in ILU-T
 		else {
 			std::stable_sort(	vvConnection[i].begin(),
 			          	vvConnection[i].end(), myCompDegree);
@@ -100,19 +101,9 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 				start = i;
 		}
 
-	//	Add start vertex to mapping
-		vNewOrder.push_back(start);
-		vHandled[start] = true;
-
 	//	Create queue of adjacent vertices
 		std::queue<size_t> qAdjacent;
-		for(size_t i = 0; i < vvConnection[start].size(); ++i)
-		{
-			const size_t ind = vvConnection[start][i];
-
-			if(!vHandled[ind] && ind != start)
-				qAdjacent.push(ind);
-		}
+		qAdjacent.push(start);
 
 	//	add adjacent vertices to mapping
 		while(!qAdjacent.empty())
@@ -132,7 +123,7 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 				{
 					const size_t ind = vvConnection[front][i];
 
-					if(!vHandled[ind] && ind != front)
+					if(!vHandled[ind])
 						qAdjacent.push(ind);
 				}
 			}
@@ -145,75 +136,80 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 // 	Create list of mapping
 	vNewIndex.clear(); vNewIndex.resize(vvConnection.size(), (size_t)-1);
 
-//	write new indices into out array
-	size_t cnt = 0;
-	if(bReverse)
+	if (bPreserveConsec)
 	{
-		for(size_t oldInd = 0; oldInd < vvConnection.size(); ++oldInd)
+	//	write new indices into out array
+		size_t cnt = 0;
+		if(bReverse)
 		{
-		//	skip non-sorted indices
-			if(vvConnection[oldInd].size() == 0) continue;
+			for(size_t oldInd = 0; oldInd < vvConnection.size(); ++oldInd)
+			{
+			//	skip non-sorted indices
+				if(vvConnection[oldInd].size() == 0) continue;
 
-		//	get old index
-			UG_ASSERT(cnt < vNewOrder.size(), "cnt: "<<cnt<<", ordered: "<<vNewOrder.size())
-			const size_t newInd = vNewOrder[vNewOrder.size() - 1 - cnt]; ++cnt;
-			UG_ASSERT(newInd < vNewIndex.size(), "newInd: "<<newInd<<", size: "<<vNewIndex.size())
+			//	get old index
+				UG_ASSERT(cnt < vNewOrder.size(), "cnt: "<<cnt<<", ordered: "<<vNewOrder.size())
+				const size_t newInd = vNewOrder[vNewOrder.size() - 1 - cnt]; ++cnt;
+				UG_ASSERT(newInd < vNewIndex.size(), "newInd: "<<newInd<<", size: "<<vNewIndex.size())
 
-		//	set new index to order
-			vNewIndex[newInd] = oldInd;
+			//	set new index to order
+				vNewIndex[newInd] = oldInd;
+			}
+		}
+		else
+		{
+			for(size_t oldInd = 0; oldInd < vvConnection.size(); ++oldInd)
+			{
+			//	skip non-sorted indices
+				if(vvConnection[oldInd].size() == 0) continue;
+
+			//	get old index
+				UG_ASSERT(cnt < vNewOrder.size(), "cnt: "<<cnt<<", ordered: "<<vNewOrder.size())
+				const size_t newInd = vNewOrder[cnt++];
+				UG_ASSERT(newInd < vNewIndex.size(), "newInd: "<<newInd<<", size: "<<vNewIndex.size())
+
+			//	set new index to order
+				vNewIndex[newInd] = oldInd;
+			}
+		}
+
+	//	check if all ordered indices have been written
+		if(cnt != vNewOrder.size())
+			UG_THROW("OrderCuthillMcKee: Not all indices sorted that must be sorted: "
+					<<cnt<<" written, but should write: "<<vNewOrder.size());
+
+	//	fill non-sorted indices (preserving consecutive indexing)
+		for(size_t i = 1; i < vNewIndex.size(); ++i)
+		{
+			if(vNewIndex[i] == (size_t)-1) vNewIndex[i] = vNewIndex[i-1] + 1;
 		}
 	}
 	else
 	{
-		for(size_t oldInd = 0; oldInd < vvConnection.size(); ++oldInd)
+		size_t newOrdSz = vNewOrder.size();
+		if (bReverse)
 		{
-		//	skip non-sorted indices
-			if(vvConnection[oldInd].size() == 0) continue;
-
-		//	get old index
-			UG_ASSERT(cnt < vNewOrder.size(), "cnt: "<<cnt<<", ordered: "<<vNewOrder.size())
-			const size_t newInd = vNewOrder[cnt++];
-			UG_ASSERT(newInd < vNewIndex.size(), "newInd: "<<newInd<<", size: "<<vNewIndex.size())
-
-		//	set new index to order
-			vNewIndex[newInd] = oldInd;
+			for (size_t i = 0; i < newOrdSz; ++i)
+			{
+				size_t oldInd = vNewOrder[newOrdSz - 1 - i];
+				vNewIndex[oldInd] = i;
+			}
 		}
-	}
+		else
+		{
+			for (size_t i = 0; i < newOrdSz; ++i)
+			{
+				size_t oldInd = vNewOrder[i];
+				vNewIndex[oldInd] = i;
+			}
+		}
 
-//	check if all ordered indices have been written
-	if(cnt != vNewOrder.size())
-		UG_THROW("OrderCuthillMcKee: Not all indices sorted that must be sorted: "
-				<<cnt<<" written, but should write: "<<vNewOrder.size());
-
-//	fill non-sorted indices
-/*	TODO: This is definitely wrong in general if DoFs are allowed not to have any connections!
- *	Suppose, we have N nodes containing one DoF each (indexed 0, 1, ... N-1).
- *	Now, DoF i might not have any connections, while all the other DoFs do. In that case,
- *	the only possible value for vNewIndex[i] is i, as all the other values are already taken
- *	by the other indices. But in general, vNewIndex[i-1] will not be i-1 as it would have to
- *	be in order to ensure vNewIndex[i] = i!
- *	Furthermore, with bad luck, DoF 0 might be disconnected. In that case, this loop does not
- *	even set _any_ value and vNewIndex[0] will contain -1.
- *
- *	BEWARE, however: One cannot simply assign vNewIndex[i] = i (as would seem to be a logical
- *	choice of ordering), since DoF i-1 and DoF i might belong to the same node (in a case where
- *	there is more than one unknown per node) and must therefore have consecutive indices!
- *
- *	The intended usage of this method is like this:
- *	vvConnection is filled by calling dofDistr.get_connections(vvConnection).
- *	Then for any geometry that does not contain isolated (i.e. unconnected) vertices,
- *	it will contain connections EXACTLY for every first DoFs of any node i.e.:
- *	- It does not contain any connections for any other DoF BUT the first of every node.
- *	- There is not any node for which the first DoF has no connections.
- *
- *	If these conditions are satisfied the code will work.
- *	Otherwise (like in the above example) this will not be the case in general.
- *
- *	Best solution at the moment: Avoid DoFs that are disconnected!
- */
-	for(size_t i = 1; i < vNewIndex.size(); ++i)
-	{
-		if(vNewIndex[i] == (size_t)-1) vNewIndex[i] = vNewIndex[i-1] + 1;
+		// move unconnected indices to the bottom of the ordering
+		for (size_t i = 0; i < vNewIndex.size(); ++i)
+		{
+			if (vNewIndex[i] == (size_t)-1)
+				vNewIndex[i] = newOrdSz++;
+		}
 	}
 
 	//CheckPermutationBijective(vNewIndex);

@@ -192,7 +192,7 @@ bool TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm, TAPos& aPos)
 		}
 	}
 
-	UG_LOG("Testing vertical edge layouts...\n");
+	UG_LOG("Testing vertical face layouts...\n");
 	{
 		FaceLayout& masterLayout = glm.get_layout<Face>(INT_V_MASTER);
 		FaceLayout& slaveLayout = glm.get_layout<Face>(INT_V_SLAVE);

@@ -192,7 +192,10 @@ class BiCGStab
 				const number rhoOld = rho;
 
 			// 	Compute rho new
-				rho = VecProd(r0, r);
+				if (r.layouts()->proc_comm().empty())
+					rho = 1.0;
+				else
+					rho = VecProd(r0, r);
 
 			//	check for restart compare (r, r0) > m_minOrtho * ||r|| ||r0||
 				const number norm_r = convergence_check()->defect();
@@ -245,7 +248,10 @@ class BiCGStab
 				#endif
 
 			//	alpha = (v,r)
-				alpha = VecProd(v, r0);
+				if (v.layouts()->proc_comm().empty())
+					alpha = 1.0;
+				else
+					alpha = VecProd(v, r0);
 
 			//	check validity of alpha
 				if(alpha == 0.0){
@@ -298,10 +304,17 @@ class BiCGStab
 				#endif
 
 			// 	tt = (t,t)
-				const number tt = VecProd(t, t);
+				number tt;
+				if (t.layouts()->proc_comm().empty())
+					tt = 1.0;
+				else
+					tt = VecProd(t, t);
 
 			// 	omega = (s,t)
-				omega = VecProd(s, t);
+				if (s.layouts()->proc_comm().empty())
+					omega = 1.0;
+				else
+					omega = VecProd(s, t);
 
 			//	check tt
 				if(tt == 0.0){

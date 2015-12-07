@@ -314,19 +314,19 @@ bool CreateSurfaceIndexLayout(	IndexLayout& layoutOut,
 
 /// returns in a vector all appearencies of an index in a layout
 void FindPositionInInterfaces(std::vector<std::pair<int, size_t> >& vIndexInterface,
-                                     IndexLayout& layout, size_t index)
+                                     const IndexLayout& layout, size_t index)
 {
-	for(IndexLayout::iterator interface_iter = layout.begin();
+	for(IndexLayout::const_iterator interface_iter = layout.begin();
 				interface_iter != layout.end(); ++interface_iter)
 	{
 	//	get interface
-		IndexLayout::Interface& interface = layout.interface(interface_iter);
+		const IndexLayout::Interface& interface = layout.interface(interface_iter);
 
 		int targetProc   = layout.proc_id(interface_iter);
 
 	//	loop over indices
 		int i = 0;
-		for( IndexLayout::Interface::iterator iter = interface.begin();
+		for( IndexLayout::Interface::const_iterator iter = interface.begin();
 				iter != interface.end(); ++iter, ++i)
 		{
 			size_t currIndex = interface.get_element(iter);
