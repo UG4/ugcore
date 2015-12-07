@@ -192,11 +192,9 @@ class BiCGStab
 				const number rhoOld = rho;
 
 			// 	Compute rho new
-				#ifdef UG_PARALLEL
-				if (r.layouts()->proc_comm().empty())
+				if (!r.size())
 					rho = 1.0;
 				else
-				#endif
 					rho = VecProd(r0, r);
 
 			//	check for restart compare (r, r0) > m_minOrtho * ||r|| ||r0||
@@ -250,11 +248,9 @@ class BiCGStab
 				#endif
 
 			//	alpha = (v,r)
-				#ifdef UG_PARALLEL
-				if (v.layouts()->proc_comm().empty())
+				if (!v.size())
 					alpha = 1.0;
 				else
-				#endif
 					alpha = VecProd(v, r0);
 
 			//	check validity of alpha
@@ -309,19 +305,15 @@ class BiCGStab
 
 			// 	tt = (t,t)
 				number tt;
-				#ifdef UG_PARALLEL
-				if (t.layouts()->proc_comm().empty())
+				if (!t.size())
 					tt = 1.0;
 				else
-				#endif
 					tt = VecProd(t, t);
 
 			// 	omega = (s,t)
-				#ifdef UG_PARALLEL
-				if (s.layouts()->proc_comm().empty())
+				if (!s.size())
 					omega = 1.0;
 				else
-				#endif
 					omega = VecProd(s, t);
 
 			//	check tt
