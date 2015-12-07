@@ -38,6 +38,7 @@
 #include <assert.h>
 
 #include "common/common.h"
+#include "lib_algebra/small_algebra/blocks.h"	// needed for BlockRef
 
 namespace ug{
 
