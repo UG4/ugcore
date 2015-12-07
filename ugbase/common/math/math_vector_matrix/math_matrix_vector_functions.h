@@ -76,6 +76,24 @@ inline
 void
 TransposedMatVecMultAdd(vector_t_out& vOut, const matrix_t& m, const vector_t_in& v);
 
+/// Multiplication by the Givens rotation of the QR-Decomposition
+template <typename matrix_t, typename vector_t>
+inline
+void
+GivensMatVecMult (matrix_t& A, vector_t& v);
+
+/// Multiplication by the inverse using the Givens rotations
+template <typename matrix_t, typename vector_t>
+inline
+void
+InvMatVecMult_byGivens (matrix_t& A, vector_t& v);
+
+/// Orthogonal projection
+template <typename matrix_t, typename vector_t>
+inline
+void
+OrthogProjectVec (vector_t& v, matrix_t& A);
+
 // end group ugbase_math
 /// \}
 

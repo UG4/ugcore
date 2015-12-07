@@ -46,6 +46,7 @@
 #include "lib_disc/spatial_disc/user_data/linker/scale_add_linker.h"
 #include "lib_disc/spatial_disc/user_data/linker/inverse_linker.h"
 #include "lib_disc/spatial_disc/user_data/linker/darcy_velocity_linker.h"
+#include "lib_disc/spatial_disc/user_data/linker/projection_linker.h"
 #include "lib_disc/spatial_disc/user_data/user_function.h"
 #include "lib_disc/spatial_disc/user_data/common_user_data/common_user_data.h"
 
@@ -318,7 +319,18 @@ static void Dimension(Registry& reg, string grp)
 
 	}
 
+//	ProjectionLinker
+	{
+		typedef ProjectionLinker<dim> T;
+		typedef DependentUserData<MathVector<dim>, dim> TBase;
+		string name = string("ProjectionLinker").append(dimSuffix);
+		reg.add_class_<T, TBase>(name, grp)
+		   .template add_constructor<void (*) (SmartPtr<CplUserData<MathVector<dim>, dim> >)>()
+		   .set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "ProjectionLinker", dimTag);
+	}
 
+//	LognormalRandomField
 	{
 		typedef ug::LognormalRandomField<MathMatrix<dim, dim>, dim> T;
 		typedef CplUserData<MathMatrix<dim, dim>, dim> TBase;

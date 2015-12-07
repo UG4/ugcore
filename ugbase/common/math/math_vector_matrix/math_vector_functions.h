@@ -275,7 +275,7 @@ VecCross(vector_t& vOut, const vector_t& v1, const vector_t& v2);
 
 ////////////////////////////////////////////////////////////////
 // Generalized cross Product
-///	calculates the usual cross product in 3d, and the (det, 0) vector as a cross product in 3d
+///	calculates the usual cross product in 3d, and the (det, 0) vector as a cross product in 2d
 template <size_t dim>
 inline void GenVecCross
 (
