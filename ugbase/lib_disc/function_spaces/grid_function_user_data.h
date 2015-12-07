@@ -371,7 +371,7 @@ class GridFunctionGradientData
 					VecScaleAppend(locGrad, valSH, vLocGrad[sh]);
 				}
 
-				Inverse(JTInv, vJT[ip]);
+				RightInverse (JTInv, vJT[ip]);
 				MatVecMult(vValue[ip], JTInv, locGrad);
 			}
 		}
@@ -520,7 +520,7 @@ class GridFunctionGradientComponentData
 					VecScaleAppend( locGrad, valSH, vLocGrad[sh] );
 				}
 
-				Inverse( JTInv, vJT[ip] );
+				RightInverse( JTInv, vJT[ip] );
 				MatVecMult( vValueVec[ip], JTInv, locGrad );
 
 				vValue[ip] = vValueVec[ip][m_component];
