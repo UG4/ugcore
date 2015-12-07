@@ -345,19 +345,19 @@ InverseTransposed(MathMatrix<3,3,T>& mOut, const MathMatrix<3,3,T>& m);
 /// \{
 template <size_t N, size_t M, typename T>
 inline typename MathMatrix<N,M,T>::value_type
-RightInverse(MathMatrix<N,M,T>& mOut, MathMatrix<M,N,T>& m);
+RightInverse(MathMatrix<N,M,T>& mOut, const MathMatrix<M,N,T>& m);
 
 template <typename T>
 inline typename MathMatrix<1,1,T>::value_type
-RightInverse(MathMatrix<1,1>& mOut, MathMatrix<1,1>& m);
+RightInverse(MathMatrix<1,1>& mOut, const MathMatrix<1,1>& m);
 
 template <typename T>
 inline typename MathMatrix<2,2,T>::value_type
-RightInverse(MathMatrix<2,2>& mOut, MathMatrix<2,2>& m);
+RightInverse(MathMatrix<2,2>& mOut, const MathMatrix<2,2>& m);
 
 template <typename T>
 inline typename MathMatrix<3,3,T>::value_type
-RightInverse(MathMatrix<3,3>& mOut, MathMatrix<3,3>& m);
+RightInverse(MathMatrix<3,3>& mOut, const MathMatrix<3,3>& m);
 /// \}
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -386,19 +386,19 @@ RightInverse(MathMatrix<3,3>& mOut, MathMatrix<3,3>& m);
 /// \{
 template <size_t N, size_t M, typename T>
 inline typename MathMatrix<N,M,T>::value_type
-LeftInverse(MathMatrix<N,M,T>& mOut, MathMatrix<M,N,T>& m);
+LeftInverse(MathMatrix<N,M,T>& mOut, const MathMatrix<M,N,T>& m);
 
 template <typename T>
 inline typename MathMatrix<1,1,T>::value_type
-LeftInverse(MathMatrix<1,1>& mOut, MathMatrix<1,1>& m);
+LeftInverse(MathMatrix<1,1>& mOut, const MathMatrix<1,1>& m);
 
 template <typename T>
 inline typename MathMatrix<2,2,T>::value_type
-LeftInverse(MathMatrix<2,2>& mOut, MathMatrix<2,2>& m);
+LeftInverse(MathMatrix<2,2>& mOut, const MathMatrix<2,2>& m);
 
 template <typename T>
 inline typename MathMatrix<3,3,T>::value_type
-LeftInverse(MathMatrix<3,3>& mOut, MathMatrix<3,3>& m);
+LeftInverse(MathMatrix<3,3>& mOut, const MathMatrix<3,3>& m);
 /// \}
 
 ////////////////////////////////////////////////////////////////////////////////
