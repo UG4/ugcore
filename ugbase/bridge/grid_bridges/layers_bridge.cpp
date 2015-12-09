@@ -59,6 +59,11 @@ static void RegisterDegeneratedLayerManager(Registry& reg, string grp)
 		.add_method("remove", static_cast<void (T::*) (const char*)>(&T::remove), "Removes subsets from the manager", "subset(s)")
 		.add_method("close", static_cast<void (T::*) ()>(&T::close), "Finalizes the fracture manager", "")
 		.add_method("contains", static_cast<bool (T::*) (int)>(&T::contains), "Is subset registered in the manager", "subset(s)")
+		.add_method("num_subsets", static_cast<size_t (T::*) ()>(&T::num_subsets), "Number of subsets in the manager", "")
+		.add_method("subset", static_cast<int (T::*) (size_t)>(&T::subset), "Subset index for a given index in the manager", "index in the manager")
+		.add_method("assign_middle_subset", static_cast<int (T::*) (int, int)>(&T::assign_middle_subset), "Assigns the subset index to the middle manifold", "subset index of the layer#subset index for the middle manifold")
+		.add_method("assign_middle_subset", static_cast<int (T::*) (int, const char*)>(&T::assign_middle_subset), "Assigns the subset index to the middle manifold", "subset index of the layer#subset name for the middle manifold")
+		.add_method("assign_middle_subset", static_cast<int (T::*) (const char*, const char*)>(&T::assign_middle_subset), "Assigns the subset index to the middle manifold", "subset of the layer#subset name for the middle manifold")
 		.add_method("init_refiner", static_cast<void (T::*) (SmartPtr<GlobalFracturedMediaRefiner>,bool)>(&T::init_refiner), "Init. refiner", "refiner#as low dim")
 		.set_construct_as_smart_pointer(true);
 	reg.add_class_to_group(name, "DegeneratedLayerManager", tag);
