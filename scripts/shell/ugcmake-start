@@ -21,7 +21,7 @@ else
 fi
 	
 
-if [ $UGSUBMIT_TYPE == "Hermit" ] || [ $UGSUBMIT_TYPE == "Hornet" ]; then
+if [ $UGSUBMIT_TYPE == "Hermit" ] || [ $UGSUBMIT_TYPE == "Hazelhen" ] || [ $UGSUBMIT_TYPE == "Hornet" ]; then
 	echo "ugcmake-start: on $UGSUBMIT_TYPE. calling cmake with toolchain file."
 	echo "               Toolchain file: -DCMAKE_TOOLCHAIN_FILE=$UG4_ROOT/ugcore/cmake/toolchain/hermit.cmake"
 	echo "ugcmake-start: also make sure LAPACK and BLAS modules are loaded (see also ugconfig)"

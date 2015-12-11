@@ -21,8 +21,8 @@ fi
 
 
 
-if [ $UGSUBMIT_TYPE == "Hermit" ] || [ $UGSUBMIT_TYPE == "Hornet" ]; then
-	echo "ugconfig: On Hermit/Hornet, loading gnu compilers" 
+if [ $UGSUBMIT_TYPE == "Hermit" ] || [ $UGSUBMIT_TYPE == "Hazelhen" ] || [ $UGSUBMIT_TYPE == "Hornet" ]; then
+	echo "ugconfig: On Hermit/Hornet/Hazelhen, loading gnu compilers" 
 	module list 2>&1 | grep PrgEnv-gnu > /dev/null
 	if [ $? == 1 ]; then
 	echo loading PrgEnv-gnu
