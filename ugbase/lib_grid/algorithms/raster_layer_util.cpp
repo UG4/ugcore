@@ -314,4 +314,26 @@ trace_line_up(const vector2& c, size_t firstLayer) const
 	return make_pair<int, number>(-1, 0);
 }
 
+std::pair<int, int> RasterLayers::
+get_layer_indices(const vector3& c) const
+{
+	vector2 xy(c.x(), c.y());
+	
+	int upperLayer = -1;
+	int lowerLayer = -1;
+	while(1){
+		std::pair<int, number> cut = trace_line_down(xy, upperLayer + 1);
+		if(cut.first == -1)
+			break;
+		else if(cut.second > c.z()){
+			lowerLayer = cut.first;
+			break;
+		}
+		else
+			upperLayer = cut.first;
+	}
+
+	return make_pair(upperLayer, lowerLayer);
+}
+
 }//	end of namespace
