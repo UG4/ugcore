@@ -34,9 +34,9 @@
 # overwriting configs from INCLUDE
 PROJECT_NAME           = "Apps"
 OUTPUT_DIRECTORY       = apps
-INPUT                  = ../apps \
+INPUT                  = ../../apps \
                          apps/additional_pages
-EXCLUDE               += ../apps/d3f
+EXCLUDE               += ../../apps/d3f
 LAYOUT_FILE            = Layout_apps.xml
 
 # The TAGFILES option can be used to specify one or more tagfiles. For each
@@ -53,7 +53,7 @@ LAYOUT_FILE            = Layout_apps.xml
 # doxygen is run, you must also specify the path to the tagfile here.
 
 TAGFILES               = ugbase.tags=.. \
-                         plugins.tags=../plugins \
+                         plugins.tags=../../plugins \
                          regdocu.tags=../regdocu
 
 # When a file name is specified after GENERATE_TAGFILE, doxygen will create

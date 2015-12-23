@@ -35,9 +35,13 @@
 PROJECT_NAME           = "Plugins"
 OUTPUT_DIRECTORY       = plugins
 INPUT                  = plugins/additional_pages \
-                         ../plugins
-EXCLUDE               += ../plugins/core/d3f \
-                         ../plugins/external
+                         ../../plugins/ConvectionDiffusion \
+                         ../../plugins/LuaShell \
+                         ../../plugins/ProMesh \
+                         ../../plugins/Sample \
+                         ../../plugins/SmallStrainMechanics
+
+EXCLUDE               += ../../plugins/core/d3f
 LAYOUT_FILE            = Layout_plugins.xml
 
 # The TAGFILES option can be used to specify one or more tagfiles. For each

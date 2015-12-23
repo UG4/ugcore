@@ -32,6 +32,7 @@
 
 /**
 \mainpage Plugins
+\defgroup plugins Plugins
 
 This is the documentation of the plugins for ug4.
 
