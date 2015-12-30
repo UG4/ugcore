@@ -175,9 +175,13 @@ void VTKOutput<TDim>::
 vtu_filename(std::string& nameOut, std::string nameIn, int rank,
              int si, int maxSi, int step)
 {
-//	copy name
-	nameOut = nameIn.substr(0, nameIn.find_last_of('.'));
-	nameOut = nameIn;
+	// remove extension of file if necessary (see below, pvtu_filename)
+	size_t lo_slash = nameIn.find_last_of('/');
+	size_t lo_dot = nameIn.find_last_of('.');
+	if (lo_slash == std::string::npos || lo_slash < lo_dot)
+		nameOut = nameIn.substr(0, lo_dot);
+	else
+		nameOut = nameIn;
 #ifdef UG_PARALLEL
 // 	process index
 	if(pcl::NumProcs() > 1)
@@ -202,7 +206,6 @@ void VTKOutput<TDim>::
 pvtu_filename(std::string& nameOut, std::string nameIn,
               int si, int maxSi, int step)
 {
-//	copy name
 	// This hack is a little bit ugly. What is supposed to be achieved is the following:
 	// As simply using
 	// 		nameIn.substr(0, nameIn.find_last_of('.'));
@@ -215,7 +218,7 @@ pvtu_filename(std::string& nameOut, std::string nameIn,
 	// if present. However, this would require linking against a boost library.
 	size_t lo_slash = nameIn.find_last_of('/');
 	size_t lo_dot = nameIn.find_last_of('.');
-	if (lo_slash < std::string::npos || lo_slash < lo_dot)
+	if (lo_slash == std::string::npos || lo_slash < lo_dot)
 		nameOut = nameIn.substr(0, lo_dot);
 	else
 		nameOut = nameIn;
