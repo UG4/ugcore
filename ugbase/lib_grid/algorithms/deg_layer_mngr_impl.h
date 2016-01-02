@@ -388,6 +388,108 @@ void DegeneratedLayerManager<dim>::get_layer_sides
 	}
 }
 
+/**
+ * Assigns a different subset index to the inner sides of a layer. (Only to
+ * the sides, not vertices, or edges in 3d!) If -1 passed instead of the index
+ * of the subset to assign, new subset is created. The function returns the
+ * index of the assigned subset.
+ */
+template <int dim>
+int DegeneratedLayerManager<dim>::assign_middle_subset
+(
+	int layer_si, ///< subset index of the layer
+	int middle_si ///< the subset index to assign (or -1 to create a new subset)
+)
+{
+	typedef typename geometry_traits<element_type>::const_iterator t_elem_iter;
+	
+	MultiGrid * pMG = (MultiGrid *) (m_spSH->multi_grid ());
+	
+//	Assign the default value of the subset (if necessary)
+	if (middle_si < 0) middle_si = m_spSH->num_subsets ();
+	
+//	Loop the elements of the layer in all the grid levels
+	pMG->message_hub()->post_message (GridMessage_Creation (GMCT_CREATION_STARTS, 0));
+	for (size_t lev = 0; lev < pMG->num_levels (); lev++)
+	{
+		t_elem_iter list_end = m_spSH->template end<element_type> (layer_si, lev);
+		for (t_elem_iter iElem = m_spSH->template begin<element_type> (layer_si, lev);
+				iElem != list_end; ++iElem)
+		{
+			element_type * elem = *iElem;
+			size_t num_side_co;
+			side_type * inner_side, * outer_side;
+			size_t inner_side_idx, outer_side_idx;
+			size_t inner_side_corners [maxLayerSideCorners], outer_side_corners [maxLayerSideCorners];
+			size_t ass_co [maxLayerSideCorners];
+			
+		//	get the inner side
+			get_layer_sides (elem, num_side_co,
+				inner_side, inner_side_idx, inner_side_corners,
+				outer_side, outer_side_idx, outer_side_corners,
+				ass_co);
+			
+		//	assign the subset
+			m_spSH->assign_subset (inner_side, middle_si);
+		}
+	}
+	pMG->message_hub()->post_message (GridMessage_Creation (GMCT_CREATION_STOPS, 0));
+	
+	return middle_si;
+}
+
+/**
+ * Assigns a different subset to the inner sides of a layer. (Only to
+ * the sides, not vertices, or edges in 3d!) If the given subset does not exist,
+ * it is created. The function returns the index of the assigned subset.
+ */
+template <int dim>
+int DegeneratedLayerManager<dim>::assign_middle_subset
+(
+	int layer_si, ///< subset index of the layer
+	const char* middle_ss_name ///< name of the subset to assign
+)
+{
+//	Look for the subset to assign
+	int middle_si = -1;
+	bool new_ss = true;
+	for (int si = 0; si < m_spSH->num_subsets (); si++)
+	if (strcmp (middle_ss_name, m_spSH->get_subset_name (si)) == 0)
+	{
+		middle_si = si;
+		new_ss = false;
+		break;
+	}
+	
+//	Assign the subset
+	middle_si = assign_middle_subset (layer_si, middle_si);
+	
+//	Set the name
+	if (new_ss)
+		m_spSH->set_subset_name (middle_ss_name, middle_si);
+	
+	return middle_si;
+}
+
+/**
+ * Assigns a different subset to the inner sides of a layer. (Only to
+ * the sides, not vertices, or edges in 3d!) If the given subset does not exist,
+ * it is created. The function returns the index of the assigned subset.
+ */
+template <int dim>
+int DegeneratedLayerManager<dim>::assign_middle_subset
+(
+	const char* layer_ss_name, ///< subset name of the layer
+	const char* middle_ss_name ///< name of the subset to assign
+)
+{
+//	Look for the subset of the layer
+	for (int si = 0; si < m_spSH->num_subsets (); si++)
+	if (strcmp (layer_ss_name, m_spSH->get_subset_name (si)) == 0)
+		return assign_middle_subset (si, middle_ss_name);
+	UG_THROW ("DegeneratedLayerManager: Subset '" << layer_ss_name << "' not found");
+}
+
 } // end namespace ug
 
 /* End of File */

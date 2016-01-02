@@ -92,7 +92,7 @@ InvMatVecMult_byGivens (matrix_t& A, vector_t& v);
 template <typename matrix_t, typename vector_t>
 inline
 void
-OrthogProjectVec (vector_t& v, matrix_t& A);
+OrthogProjectVec (vector_t& v, const matrix_t& A);
 
 // end group ugbase_math
 /// \}

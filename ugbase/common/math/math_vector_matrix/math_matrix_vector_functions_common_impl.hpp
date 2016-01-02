@@ -222,7 +222,6 @@ void
 InvMatVecMult_byGivens (matrix_t& A, vector_t& v)
 {
 	typedef typename matrix_t::size_type size_type;
-	typedef typename matrix_t::value_type value_type;
 	
 // I. Multiply 'this' by the Givens rotation:
 	GivensMatVecMult (A, v);
@@ -248,7 +247,7 @@ InvMatVecMult_byGivens (matrix_t& A, vector_t& v)
 template <typename matrix_t, typename vector_t>
 inline
 void
-OrthogProjectVec (vector_t& v, matrix_t& A)
+OrthogProjectVec (vector_t& v, const matrix_t& A)
 {
 	typedef typename matrix_t::size_type size_type;
 	typedef typename matrix_t::value_type value_type;

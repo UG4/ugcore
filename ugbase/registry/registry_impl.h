@@ -59,8 +59,19 @@ namespace bridge
 template<class TFunc>
 Registry& Registry::
 add_function(std::string funcName, TFunc func, std::string group,
-			 std::string retValInfos, std::string paramInfos,
-			 std::string tooltip, std::string help)
+					 std::string retValInfos, std::string paramInfos,
+					 std::string tooltip, std::string help)
+{
+	add_and_get_function(funcName, func, group, retValInfos, paramInfos,
+						 tooltip, help);
+	return *this;
+}
+
+template<class TFunc>
+ExportedFunction* Registry::
+add_and_get_function(std::string funcName, TFunc func, std::string group,
+					 std::string retValInfos, std::string paramInfos,
+					 std::string tooltip, std::string help)
 {
 //	At this point the method name contains parameters (name|param1=...).
 //todo: they should be removed and specified with an extra parameter.
@@ -101,18 +112,18 @@ add_function(std::string funcName, TFunc func, std::string group,
 	}
 
 //  add an overload to the function group
-	bool success = funcGrp->add_overload(func, &FunctionProxy<TFunc>::apply,
-	                                     methodOptions, group,
-	                                     retValInfos, paramInfos,
-	                                     tooltip, help);
+	ExportedFunction* ef = funcGrp->add_overload(func, &FunctionProxy<TFunc>::apply,
+	                                     		 methodOptions, group,
+	                                     		 retValInfos, paramInfos,
+	                                     		 tooltip, help);
 
-	if(!success){
+	if(!ef){
 		UG_THROW_REGISTRY_ERROR(strippedMethodName,
 		"Trying to register function name '"<<funcName
 		<< "', that is already used by another function in this registry.");
 	}
 
-	return *this;
+	return ef;
 }
 
 

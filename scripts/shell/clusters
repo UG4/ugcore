@@ -15,7 +15,7 @@
 
 source $scriptpath/clusterdetect
 
-if [ $UGSUBMIT_TYPE == "Hermit" ] || [ $UGSUBMIT_TYPE == "Hornet" ] || [ $UGSUBMIT_TYPE == "NecNehalem" ] || [ $UGSUBMIT_TYPE == "HermitOrHornet" ]; then
+if [ $UGSUBMIT_TYPE == "Hermit" ] || [ $UGSUBMIT_TYPE == "Hazelhen" ] || [ $UGSUBMIT_TYPE == "Hornet" ] || [ $UGSUBMIT_TYPE == "NecNehalem" ] || [ $UGSUBMIT_TYPE == "HermitOrHornet" ]; then
 
 	source $scriptpath/schedulers/hermit
 	
