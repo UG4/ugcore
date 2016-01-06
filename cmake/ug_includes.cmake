@@ -379,6 +379,7 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     endif()
     # for some reason -Wsign-compare is not in -Wall for Clang 
 	add_cxx_flag("-Wsign-compare")
+	add_cxx_flag("-Wno-unused-local-typedef")
 	#set(CMAKE_CPP_FLAGS	"${CMAKE_CPP_FLAGS} -Wno-overloaded-virtual -Wno-autological-compare" CACHE STRING "overriden flags!" FORCE)
 endif()
 
