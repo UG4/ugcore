@@ -570,6 +570,11 @@ include(${UG_ROOT_CMAKE_PATH}/ug/export_includes.cmake)
 # to the main project P_UG4
 include(${UG_ROOT_CMAKE_PATH}/ug/export_definitions.cmake)
 
+################################################################################
+# Declare a method that allows all sub-cmake-files to add definitions for
+# specific files to the main project P_UG4
+include(${UG_ROOT_CMAKE_PATH}/ug/export_single_file_definitions.cmake)
+
 ######################################################################################################################
 # the following options are pseudo cmake-options (normal options only support ON and OFF).
 # Their default values are defined in the section above.

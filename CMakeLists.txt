@@ -94,6 +94,9 @@ if(BUILD_ONE_LIB)
 	get_property(ug4libDependencies GLOBAL PROPERTY ugDependencies)
 	get_property(ug4libIncludes GLOBAL PROPERTY ugIncludes)
 	get_property(ug4libDefinitions GLOBAL PROPERTY ugDefinitions)
+	get_property(ug4libSingleFileDefinitionsFiles GLOBAL PROPERTY ugSingleFileDefinitionFiles)
+	get_property(ug4libSingleFileDefinitionsDefs GLOBAL PROPERTY ugSingleFileDefinitionDefs)
+	
 	
 	if(buildEmbeddedPlugins)
 		add_definitions(${ug4libDefinitions})
@@ -118,26 +121,35 @@ if(BUILD_ONE_LIB)
 			target_link_libraries(${targetLibraryName} CompileInfo)
 		endif(buildCompileInfo AND NOT buildEmbeddedPlugins)
 
-   else(buildDynamicLib)
-       if(CUDA_FOUND)
-           CUDA_add_library(${targetLibraryName} ${ug4libSources})
-       else(CUDA_FOUND)
-           add_library(${targetLibraryName} ${ug4libSources})
-        endif(CUDA_FOUND)
-       
-      
-      if(buildCompileInfo AND NOT buildEmbeddedPlugins)
-         add_dependencies(${targetLibraryName} CompileInfo_s)
-         target_link_libraries(${targetLibraryName} CompileInfo_s)
-      endif(buildCompileInfo AND NOT buildEmbeddedPlugins)
-      
-   endif(buildDynamicLib)
+	else(buildDynamicLib)
+		if(CUDA_FOUND)
+			CUDA_add_library(${targetLibraryName} ${ug4libSources})
+		else(CUDA_FOUND)
+			add_library(${targetLibraryName} ${ug4libSources})
+		endif(CUDA_FOUND)
+
+		if(buildCompileInfo AND NOT buildEmbeddedPlugins)
+			add_dependencies(${targetLibraryName} CompileInfo_s)
+			target_link_libraries(${targetLibraryName} CompileInfo_s)
+		endif(buildCompileInfo AND NOT buildEmbeddedPlugins)
+	endif(buildDynamicLib)
    
-   if(buildEmbeddedPlugins)
-   #  if we build with embedded plugins, the compile-info is also embedded
-   #  into the single big target lib. We thus have to add a dependency to
-   #  the custom updateCompileInfo target declared in compile_info/CMakeLists.txt.
-      add_dependencies(${targetLibraryName} updateCompileInfo)
-   endif(buildEmbeddedPlugins)
+	if(buildEmbeddedPlugins)
+		# if we build with embedded plugins, the compile-info is also embedded
+		# into the single big target lib. We thus have to add a dependency to
+		# the custom updateCompileInfo target declared in compile_info/CMakeLists.txt.
+		add_dependencies(${targetLibraryName} updateCompileInfo)
+		
+		# apply single file definitions
+		list(LENGTH ug4libSingleFileDefinitionsFiles len)
+		if (${len} GREATER 0)
+			math(EXPR len "${len} - 1")
+			foreach (idx RANGE ${len})
+				list(GET ug4libSingleFileDefinitionsFiles ${idx} file)
+				list(GET ug4libSingleFileDefinitionsDefs ${idx} defs)
+				set_source_files_properties(${file} PROPERTIES COMPILE_DEFINITIONS ${defs})
+			endforeach()
+		endif()
+	endif(buildEmbeddedPlugins)
    
 endif(BUILD_ONE_LIB)
