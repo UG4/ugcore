@@ -145,7 +145,8 @@ set(srcLibGrid	common_attachments.cpp
 
 if(PARALLEL)
 	# add parallelization
-	set(srcParallelization	parallelization/distribution.cpp
+	set(srcParallelization	parallelization/broadcast.cpp
+							parallelization/distribution.cpp
 							parallelization/distributed_grid.cpp
 							parallelization/parallelization_util.cpp
 							parallelization/parallel_grid_layout.cpp
