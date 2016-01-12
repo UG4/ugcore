@@ -379,6 +379,8 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     endif()
     # for some reason -Wsign-compare is not in -Wall for Clang 
 	add_cxx_flag("-Wsign-compare")
+	add_cxx_flag(-Wno-unused-local-typedef)
+	add_cxx_flag(-Wno-unknown-warning-option)
 	#set(CMAKE_CPP_FLAGS	"${CMAKE_CPP_FLAGS} -Wno-overloaded-virtual -Wno-autological-compare" CACHE STRING "overriden flags!" FORCE)
 endif()
 
@@ -567,6 +569,11 @@ include(${UG_ROOT_CMAKE_PATH}/ug/export_includes.cmake)
 # Declare a method that allows all sub-cmake-files to add their definitions to
 # to the main project P_UG4
 include(${UG_ROOT_CMAKE_PATH}/ug/export_definitions.cmake)
+
+################################################################################
+# Declare a method that allows all sub-cmake-files to add definitions for
+# specific files to the main project P_UG4
+include(${UG_ROOT_CMAKE_PATH}/ug/export_single_file_definitions.cmake)
 
 ######################################################################################################################
 # the following options are pseudo cmake-options (normal options only support ON and OFF).

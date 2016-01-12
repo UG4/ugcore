@@ -34,6 +34,7 @@
 #define __H__UG_attachment_info_traits
 
 #include <typeinfo>
+#include "lib_grid/common_attachments.h"
 
 namespace ug{
 

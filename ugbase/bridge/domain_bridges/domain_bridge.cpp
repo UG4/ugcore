@@ -416,9 +416,13 @@ static void Domain(Registry& reg, string grp)
 		reg.add_class_<TDomain, TBase>(name, grp)
 			.add_constructor()
 			.add_method("empty", &TDomain::empty)
+#ifndef UG_FOR_VRL
+			// This does not work with current automated code generation for VRL.
+			// Remove ifndef once this has been fixed.
 			.add_method("position_attachment",
 						static_cast<const apos_t& (TDomain::*)()const>(
 							&TDomain::position_attachment))
+#endif
 			.set_construct_as_smart_pointer(true);
 
 		reg.add_class_to_group(name, "Domain", tag);

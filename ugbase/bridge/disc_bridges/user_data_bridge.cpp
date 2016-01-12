@@ -210,6 +210,7 @@ static void Dimension(Registry& reg, string grp)
 			.template add_constructor<void (*)(number)>("Value")
 			.add_method("set", &T::set, "", "Value")
 			.add_method("print", &T::print)
+			.add_method("get", &T::get)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ConstUserNumber", dimTag);
 	}
