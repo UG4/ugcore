@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# call e.g. like this: 'generate_amalgamated_docu doxylog.log 1'
+# Please make sure that the DocuGen plugin is installed.
 doxylog="${1:-"doxylog.log"}"
 with_regdocu="${2:-0}"
 
@@ -28,6 +30,7 @@ function generate_plugins {
 function generate_regdocu {
 	if [ "$with_regdocu" -eq "1" ]; then
 		echo "Step 4/8: Generating tags and html for Registry"
+		../../../bin/ugshell -call GenerateScriptReferenceDocu\(\"ug4/regdocu\", true, true, true, true\)
 		doxygen - < doxy_config_regdocu.txt &> "${doxylog}4"
 	else
 		echo "Step 4/8: Skipping tags and html for Registry"
