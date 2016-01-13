@@ -35,12 +35,6 @@
 
 [TOC]
 
-\note Because of the great variety of systems, this installation guides may be outdated quickly. So if this guide is not working for you
-\em please write an email to martin.rupp@gcsc.uni-frankfurt.de explaining where you're stuck - even if you have resolved your problem.
-It's the only chance we have to keep this guides updated and correct.
-
-\note If you're working at the G-CSC, some software is faster downloaded from our servers. Ask for "software server".
-
 Before installing something on a Mac, make sure things aren't already installed by some other user by checking
 the appropriate commands in the terminal (<tt>gcc --version</tt> and <tt>cmake --version</tt>).
 
@@ -73,6 +67,10 @@ The \em terminal is located in <tt>Programs -> utilities (Dienstprogramme) -> Te
     installed correctly.
   </li>
 </ul>
+
+<hr>
+\section secInstallUg Installation of UG4
+Please follow the description at https://github.com/UG4/ughub/wiki
 
 <hr>
 \section secInstallMac109 GCC on MacOS X 10.9 Mavericks

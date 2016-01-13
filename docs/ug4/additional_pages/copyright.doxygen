@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2010-2015:  G-CSC, Goethe University Frankfurt
- * Author: Andreas Vogel
+ * Copyright (c) 2010-2016:  G-CSC, Goethe University Frankfurt
  * 
  * This file is part of UG4.
  * 
@@ -34,7 +33,7 @@
 /** \page pageCopyrights License
 \code
 UG4 - Unstructured Grids 4
-Copyright 2009-2015 Goethe Center for Scientific Computing, University Frankfurt
+Copyright 2009-2016 Goethe Center for Scientific Computing, University Frankfurt
 
 UG4 is free software: you can redistribute it and/or modify it under the
 terms of the GNU Lesser General Public License version 3 (as published by the

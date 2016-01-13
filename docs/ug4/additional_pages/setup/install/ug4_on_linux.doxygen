@@ -34,13 +34,6 @@
 
 [TOC]
 
-
-
-\note Because of the great variety of systems, this installation guides may be outdated quickly. So if this guide is not working for you
-\em please write an email to martin.rupp@gcsc.uni-frankfurt.de explaining where you're stuck - even if you have resolved your problem.
-It's the only chance we have to keep this guides updated and correct. 
-
-
 Before installing manually, you should check if the software is available in your packet manager or
 from your cluster management tool (e.g. <tt>module load</tt>).
 
@@ -123,6 +116,9 @@ from your cluster management tool (e.g. <tt>module load</tt>).
   <li> Now cmake should accept GotoBLAS2 as LAPACK/BLAS library.
 </ul>
 
+<hr>
+\section secInstallUg Installation of UG4
+Please follow the description at https://github.com/UG4/ughub/wiki
 
 <hr>
 <br>

@@ -36,8 +36,6 @@
 
 The page is an install guide for the usage of Eclipse for ug.
 
-For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
-
 \note If you're working at the G-CSC, there is a preconfigured Eclipse download available. Ask for "software server".
 
 <hr>
@@ -85,32 +83,12 @@ For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
 
 
 <hr>
-\section secInstallEclipseUG4Download Download ug4 via Eclipse/SVN
+In order work with UG4 in Eclipse, please download and install UG4 as usual through
+UG4's package-manager (see https://github.com/UG4/ughub/wiki).
 
-<ul>
-  <li>In Eclipse's Menu, choose \em File -> \em New -> <em>Other ...</em>, and 
-    there \em SVN -> <em>Project from SVN</em>
-  </li>
-  <li>URL is: <tt>svn://fuji.gcsc.uni-frankfurt.de/ug4/trunk</tt></li>
-  <li>Choose <em>Use a custom label</em>: <tt>ug4-trunk</tt></li>
-  <li>Fill in your \em User and \em Password as received by (currently) 
-    Sebastian Reiter.
-  </li>
-  <li>Disable \em Advanced -> <em>Detect repository structure</em></li>
-  <li>Click \em Next (Click always yes when problems occure)</li>
-  <li>Choose <em>Head Revision</em></li>
-  <li>Click \em Finish </li>
-  <li>Choose <em>Check out as a project configured using the the New Project 
-    Wizard</em>.
-    Click \em Finish.
-  </li>
-  <li>Choose <em>C/C++</em> -> <em>C++ Project</em>.
-    Click \em Next.
-  </li>
-  <li>Choose <em>Project name</em>: <tt>ug4</tt> and <em>Empty Project</em>.  
-    Click \em Finish
-  </li>
-</ul>
+You'll find detailed instructions on how to generate and import UG4 project-files
+for Eclipse here: https://github.com/UG4/ughub/wiki#importing-ug4-into-your-ide
+
 
 <hr>
 \section secInstallEclipseUseMakefiles Build in Eclipse using external Makefiles

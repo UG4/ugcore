@@ -57,26 +57,8 @@ If the option is presented to you by the installer, you should choose to install
 the command-line tools, too.
 
 <hr>
-\section secInstallWindowsSVN Checkout ug4 on Windows
-
-In order to checkout \ug4 from its svn repository you'll either have to follow 
-the instructions on how to setup \em Eclipse with svn capabilities
-or you'll have to install <em>Tortoise SVN</em> (http://tortoisesvn.net/),
-depending on whether you want to develop with \ug4 or just compile it.
-<em>Tortoise SVN</em> is an extension to the Windows Explorer and
-allows to perform checkouts and commits through the right-click-menu directly
-in the explorer.
-
-If the option is presented to you by the installer, you should choose to install
-the command-line tools, too.
-
-If you're using <em>Tortoise SVN</em>, then open the explorer and navigate to 
-the folder in which you want to install \ug4.
-Create a new folder called \c ug4, perform a right click on it and choose 
-<em>svn checkout</em> from the menu.
-Enter the repository adress (e.g. 
-<tt>svn://fuji.gcsc.uni-frankfurt.de/ug4/trunk</tt>), your username and 
-password.
+\section secInstallUg Installation of UG4
+Please follow the description at https://github.com/UG4/ughub/wiki
 
 <hr>
 \section secWindowsBuild	Building
