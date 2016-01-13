@@ -35,6 +35,13 @@
 [TOC]
 
 <hr>
+\section secInstallUg Installation of UG4
+Please follow the description at https://github.com/UG4/ughub/wiki to obtain a
+copy of \ug4. Below you'll find hints on how to obtain additional software which
+is required to build \ug4.
+
+
+<hr>
 \section secWindowsCompiler Compiler
 
 The Microsoft Visual C++ 2013 compiler is recommended for compilation of \ug4
@@ -55,10 +62,6 @@ can be obtained from here http://www.cmake.org/cmake/resources/software.html
 
 If the option is presented to you by the installer, you should choose to install
 the command-line tools, too.
-
-<hr>
-\section secInstallUg Installation of UG4
-Please follow the description at https://github.com/UG4/ughub/wiki
 
 <hr>
 \section secWindowsBuild	Building

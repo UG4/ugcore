@@ -49,6 +49,13 @@ You can obtain your version by clicking on the apple in the left upper corner ->
 The \em terminal is located in <tt>Programs -> utilities (Dienstprogramme) -> Terminal</tt>.
 
 <hr>
+\section secInstallUg Installation of UG4
+Please follow the description at https://github.com/UG4/ughub/wiki to obtain a
+copy of \ug4. Below you'll find hints on how to obtain additional software which
+is required to build \ug4.
+
+
+<hr>
 \section secInstallMacCMake CMake
 <hr>
 
@@ -68,9 +75,6 @@ The \em terminal is located in <tt>Programs -> utilities (Dienstprogramme) -> Te
   </li>
 </ul>
 
-<hr>
-\section secInstallUg Installation of UG4
-Please follow the description at https://github.com/UG4/ughub/wiki
 
 <hr>
 \section secInstallMac109 GCC on MacOS X 10.9 Mavericks

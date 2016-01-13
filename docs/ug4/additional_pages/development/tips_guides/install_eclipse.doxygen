@@ -42,10 +42,10 @@ The page is an install guide for the usage of Eclipse for ug.
 \section secInstallEclipseDownload Download Eclipse
 
 <ul>
-  <li>Download \em Eclipse from http://www.eclipse.org/downloads/packages/eclipse-ide-cc-developers/keplersr1 :
+  <li>Download the latest release of \em Eclipse from http://www.eclipse.org/downloads/packages/eclipse-ide-cc-developers/neonm4a :
     <em>Eclipse IDE for C/C++ Developers</em>
   </li>
-  <li>Unzip \em Eclipse and move it to your "Application" folder</li>
+  <li>Unzip \em Eclipse and move it to your "Application" folder (MAC only)</li>
   <li> Start \em Eclipse.
     On startup you are requested to choose a workspace.
     This is the location, where your projects will be placed.
@@ -53,36 +53,12 @@ The page is an install guide for the usage of Eclipse for ug.
     So, choose an folder where you want \ug4 to be downloaded to.
     (e.g. <tt>home/projects/</tt>)
   </li>
-  <li>Install a \em Subversion plugin:
-    <ol>
-      <li><em>Help</em> -> <em>Install new Software</em></li>
-      <li>On Eclipse Kepler, type <tt>Work with: http://download.eclipse.org/releases/kepler</tt></li>
-      <li>Choose the plugin <em>Collaboration</em> by setting checking the box</li>
-      <li>Click \em Next </li>
-      <li>Click \em Next </li>
-      <li>Accept license
-      <li>Click \em Finish </li>
-      <li>Installation begins.
-        Restart \em Eclipse when finished.
-      </li>
-      <li>Choose latest release of <em>SVN Kit *.*.*</em>.
-        Click \em Finish.
-      </li>
-      <li>Choose all items to be installed.
-        Click \em Next.
-      </li>
-      <li>Click \em Next </li>
-      <li>Accept license.
-        Click \em Finish.
-        Install begins.
-        Restart \em Eclipse when finished.
-      </li>
-    </ol>
-  </li>
+  <li>Make sure that the Eclipse-git Plugin 'EGit' is installed.</li>
 </ul>
 
 
 <hr>
+\section secUG4AndEclipse Generating Eclipse Project-Files
 In order work with UG4 in Eclipse, please download and install UG4 as usual through
 UG4's package-manager (see https://github.com/UG4/ughub/wiki).
 

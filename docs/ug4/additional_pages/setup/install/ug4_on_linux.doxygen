@@ -38,6 +38,13 @@ Before installing manually, you should check if the software is available in you
 from your cluster management tool (e.g. <tt>module load</tt>).
 
 <hr>
+\section secInstallUg Installation of UG4
+Please follow the description at https://github.com/UG4/ughub/wiki to obtain a
+copy of \ug4. Below you'll find hints on how to obtain additional software which
+is required to build \ug4.
+
+
+<hr>
 \section secInstallLinuxCMake CMake
 
 \note You can use \ref pageUginstall for easy installation of cmake.
@@ -115,10 +122,6 @@ from your cluster management tool (e.g. <tt>module load</tt>).
   <li> remember to <tt> source ~/.bashrc</tt>
   <li> Now cmake should accept GotoBLAS2 as LAPACK/BLAS library.
 </ul>
-
-<hr>
-\section secInstallUg Installation of UG4
-Please follow the description at https://github.com/UG4/ughub/wiki
 
 <hr>
 <br>
