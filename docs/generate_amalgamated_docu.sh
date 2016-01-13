@@ -5,9 +5,10 @@
 doxylog="${1:-"doxylog.log"}"
 with_regdocu="${2:-0}"
 
+
 # remove old html and tags
 function cleanup_old_docu {
-	echo "Step 1/8: Removing old docu if existend"
+	echo "Step 1/8: Removing old docu if existent"
 	if [ "$with_regdocu" -eq "1" ]; then
 		rm -rf ug4/html ug4/plugins/html ug4/apps/html ug4/regdocu/html *.tags &> "${doxylog}1"
 	else
@@ -30,8 +31,10 @@ function generate_plugins {
 function generate_regdocu {
 	if [ "$with_regdocu" -eq "1" ]; then
 		echo "Step 4/8: Generating tags and html for Registry"
-		../../../bin/ugshell -call GenerateScriptReferenceDocu\(\"ug4/regdocu\", true, true, true, true\)
-		doxygen - < doxy_config_regdocu.txt &> "${doxylog}4"
+		rm -rf regdocu
+		mkdir regdocu
+		../../bin/ugshell -call GenerateScriptReferenceDocu\(\"regdocu\", true, false, true, false\) > "${doxylog}4"
+		doxygen - < doxy_config_regdocu.txt &>> "${doxylog}4"
 	else
 		echo "Step 4/8: Skipping tags and html for Registry"
 		echo "  WARNING This is not recommended as some links in the final docu will be broken!"
@@ -84,5 +87,6 @@ cleanup_old_docu \
 && generate_ug4 \
 && prepare_amalgamate \
 && amalgamate
+
 #&& generate_apps \Automated performance modeling of the UG4 simulation framework
 
