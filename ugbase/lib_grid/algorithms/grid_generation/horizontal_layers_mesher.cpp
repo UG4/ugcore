@@ -203,6 +203,9 @@ void ExtrudeLayers (
 			Vertex* v = curVrts[icur];
 			vector2 c(aaPos[v].x(), aaPos[v].y());
 			pair<int, number> val = layers.trace_line_down(c, ilayer);
+			pair<int, number> upperVal = layers.trace_line_up(c, ilayer+1);
+			UG_COND_THROW(upperVal.first == -1, "An upper layer has to exist");
+
 			number height;
 
 			if(val.first >= 0){
@@ -214,7 +217,7 @@ void ExtrudeLayers (
 				height = (1. - ia) * aaPos[v].z() + ia * val.second;
 				tmpVrts.push_back(v);
 				vrtHeightVals.push_back(height);
-				aaHeight[v] = aaPos[v].z() - height;
+				aaHeight[v] = upperVal.second - val.second;//total height of ilayer
 				sh.assign_subset(v, val.first);
 				grid.mark(v);
 			}
@@ -224,7 +227,7 @@ void ExtrudeLayers (
 				tmpVrts.push_back(v);
 				number height = aaPos[v].z() - layers.min_height(ilayer);
 				vrtHeightVals.push_back(height);
-				aaHeight[v] = aaPos[v].z() - height;
+				aaHeight[v] = upperVal.second - val.second;//total height of ilayer
 				sh.assign_subset(v, invalidSub);
 				grid.mark(v);
 			}
