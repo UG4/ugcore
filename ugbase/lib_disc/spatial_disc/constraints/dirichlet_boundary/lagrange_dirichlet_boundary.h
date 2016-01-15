@@ -163,6 +163,10 @@ class DirichletBoundary
 		void adjust_solution(vector_type& u,
 		                     ConstSmartPtr<DoFDistribution> dd, number time = 0.0);
 
+	/// sets zero to correction
+		virtual void adjust_correction(vector_type& c, ConstSmartPtr<DoFDistribution> dd,
+									   number time = 0.0);
+
 	///	sets unity rows in A and dirichlet values in right-hand side b
 		void adjust_linear(matrix_type& A, vector_type& b,
 		                   ConstSmartPtr<DoFDistribution> dd, number time = 0.0);
@@ -224,9 +228,17 @@ class DirichletBoundary
 		void adjust_solution(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		                     vector_type& u, ConstSmartPtr<DoFDistribution> dd, number time);
 
+		template <typename TUserData>
+		void adjust_correction(const std::map<int, std::vector<TUserData*> >& mvUserData,
+		                     vector_type& c, ConstSmartPtr<DoFDistribution> dd, number time);
+
 		template <typename TBaseElem, typename TUserData>
 		void adjust_solution(const std::vector<TUserData*>& vUserData, int si,
 		                     vector_type& u, ConstSmartPtr<DoFDistribution> dd, number time);
+
+		template <typename TBaseElem, typename TUserData>
+		void adjust_correction(const std::vector<TUserData*>& vUserData, int si,
+		                     vector_type& c, ConstSmartPtr<DoFDistribution> dd, number time);
 
 		template <typename TUserData>
 		void adjust_linear(const std::map<int, std::vector<TUserData*> >& mvUserData,

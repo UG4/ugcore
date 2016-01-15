@@ -75,6 +75,28 @@ namespace ug{
 
 template <typename TDomain, typename TAlgebra>
 AssembledMultiGridCycle<TDomain, TAlgebra>::
+AssembledMultiGridCycle() :
+	m_spSurfaceMat(NULL), m_spAss(NULL), m_spApproxSpace(SPNULL),
+	m_topLev(GridLevel::TOP), m_surfaceLev(GridLevel::TOP),
+	m_baseLev(0), m_cycleType(_V_),
+	m_numPreSmooth(2), m_numPostSmooth(2),
+	m_LocalFullRefLevel(0), m_GridLevelType(GridLevel::LEVEL),
+	m_bUseRAP(false), m_bSmoothOnSurfaceRim(false),
+	m_bCommCompOverlap(false),
+	m_spPreSmootherPrototype(new Jacobi<TAlgebra>()),
+	m_spPostSmootherPrototype(m_spPreSmootherPrototype),
+	m_spProjectionPrototype(SPNULL),
+	m_spProlongationPrototype(new StdTransfer<TDomain,TAlgebra>()),
+	m_spRestrictionPrototype(m_spProlongationPrototype),
+	m_spBaseSolver(new LU<TAlgebra>()),
+	m_bGatheredBaseIfAmbiguous(true),
+	m_ignoreInitForBaseSolver(false),
+	m_spDebugWriter(NULL), m_dbgIterCnt(0)
+{};
+
+
+template <typename TDomain, typename TAlgebra>
+AssembledMultiGridCycle<TDomain, TAlgebra>::
 AssembledMultiGridCycle(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
 	m_spSurfaceMat(NULL), m_spAss(NULL), m_spApproxSpace(approxSpace),
 	m_topLev(GridLevel::TOP), m_surfaceLev(GridLevel::TOP),
@@ -93,6 +115,14 @@ AssembledMultiGridCycle(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
 	m_ignoreInitForBaseSolver(false),
 	m_spDebugWriter(NULL), m_dbgIterCnt(0)
 {};
+
+template <typename TDomain, typename TAlgebra>
+void  AssembledMultiGridCycle<TDomain, TAlgebra>::
+set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace)
+{
+	m_spApproxSpace = approxSpace;
+	m_spProjectionPrototype = make_sp(new StdInjection<TDomain,TAlgebra>(m_spApproxSpace));
+}
 
 template <typename TDomain, typename TAlgebra>
 SmartPtr<ILinearIterator<typename TAlgebra::vector_type> >
@@ -1627,14 +1657,20 @@ presmooth_and_restriction(int lev)
 			} else {
 				if(lev > m_LocalFullRefLevel)
 					lc.RimCpl_Coarse_Fine.matmul_minus(*lc.sd, *lf.st);
+				// make sure each lc.sd has the same PST
+				// (if m_LocalFullRefLevel not equal on every proc)
+				#ifdef UG_PARALLEL
+				else
+					lc.sd->set_storage_type(PST_ADDITIVE);
+				#endif
 			}
 
 		//	c) update the defect with this correction ...
 			lf.A->apply_sub(*lf.sd, *lf.st);
 
 		//	d) ... and add the correction to the overall correction
-			if(nu < m_numPreSmooth-1)
-				(*lf.sc) += (*lf.st);
+		//	if(nu < m_numPreSmooth-1)  // why would you do this!?
+			(*lf.sc) += (*lf.st);
 		}
 	}
 	UG_CATCH_THROW("GMG: Pre-Smoothing on level "<<lev<<" failed.");
@@ -1685,8 +1721,8 @@ presmooth_and_restriction(int lev)
 	lc.sc->set(0.0);
 
 //	update last correction
-	if(m_numPreSmooth > 0)
-		(*lf.sc) += (*lf.st);
+	//if(m_numPreSmooth > 0)
+	//	(*lf.sc) += (*lf.st);
 	GMG_PROFILE_END();
 
 	#ifdef UG_PARALLEL

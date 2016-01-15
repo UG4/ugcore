@@ -84,6 +84,7 @@ if(buildAlgebra)
 					algebra_bridges/solver_bridge.cpp
 					algebra_bridges/eigensolver_bridge.cpp
 					algebra_bridges/domain_dependent_preconditioner_bridge.cpp
+					algebra_bridges/constrained_linear_iterator_bridge.cpp
 					algebra_bridges/pilut_bridge.cpp
 					algebra_bridges/obstacle_bridge.cpp
 					algebra_bridges/restart_bridge.cpp

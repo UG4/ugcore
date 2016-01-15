@@ -108,6 +108,7 @@ void RegisterBridge_PILUT(Registry& reg, std::string grp = UG4_GRP);
 void RegisterBridge_Solver(Registry& reg, std::string grp = UG4_GRP);
 void RegisterBridge_Eigensolver(Registry& reg, std::string grp = UG4_GRP);
 void RegisterBridge_DomainDependentPreconditioner(Registry& reg, std::string grp = UG4_GRP);
+void RegisterBridge_ConstrainedLinearIterator(Registry& reg, std::string grp = UG4_GRP);
 ///	registers restart functionality
 void RegisterBridge_Restart(Registry& reg, std::string grp = UG4_GRP);
 

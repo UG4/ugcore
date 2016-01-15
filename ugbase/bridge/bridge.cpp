@@ -232,6 +232,7 @@ void RegisterStandardBridges(Registry& reg, string parentGroup)
 			RegisterBridge_Solver(reg, parentGroup);
 			RegisterBridge_Eigensolver(reg, parentGroup);
 			RegisterBridge_DomainDependentPreconditioner(reg, parentGroup);
+			RegisterBridge_ConstrainedLinearIterator(reg, parentGroup);
 
 			RegisterBridge_Restart(reg, parentGroup);
 

@@ -101,8 +101,14 @@ class AssembledMultiGridCycle :
 	///////////////////////////////////////////////////////////////////////////
 
 	public:
+	/// constructor without arguments
+		AssembledMultiGridCycle();
+
 	/// constructor setting approximation space
 		AssembledMultiGridCycle(SmartPtr<ApproximationSpace<TDomain> > approxSpace);
+
+	/// sets the approximation space
+		void set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace);
 
 	/// sets the assembling procedure that is used to compute coarse grid matrices
 		void set_discretization(SmartPtr<IAssemble<TAlgebra> > spAss)
