@@ -759,6 +759,9 @@ void ApplySmoothSubdivisionToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH)
 	{
 		Vertex* vrt = *vrtIter;
 
+		if(aaNumElems[vrt] == 0)
+			UG_THROW("ERROR in ApplySmoothSubdivisionToTopLevel: grid contains vertex not contained in any volume.");
+
 		if(g_boundaryRefinementRule == SUBDIV_VOL)
 		{
 		//	Scale smooth vertex position by the number of associated volume elements (SubdivisionVolumes smoothing)
