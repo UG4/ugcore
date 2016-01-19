@@ -396,10 +396,46 @@ void ApplySmoothSubdivisionToVolume(MultiGrid& mg, MGSubsetHandler& markSH, Volu
  * 	@param aaSmoothBndPos	reference to VertexAttachmentAccessor accessing aSmoothBndPos
 **/
 void ApplySmoothSubdivisionToManifoldVertex(MultiGrid& mg, MGSubsetHandler& markSH, Vertex* vrt,
-											Grid::VertexAttachmentAccessor<APosition>& aaPos,
 											Grid::VertexAttachmentAccessor<APosition>& aaSmoothBndPos,
+											Grid::VertexAttachmentAccessor<APosition>& aaSmoothBndPosEvenVrt,
+											Grid::EdgeAttachmentAccessor<APosition>& aaSmoothBndPosOddVrt,
 											Grid::VertexAttachmentAccessor<AInt> aaNumManifoldEdges)
 {
+//	#ifdef UG_PARALLEL
+//		DistributedGridManager& dgm = *mg.distributed_grid_manager();
+//	#endif
+
+	if(mg.get_parent(vrt) == NULL)
+		return;
+
+//	EVEN VERTEX
+	if(mg.get_parent(vrt)->reference_object_id() == ROID_VERTEX)
+	{
+	//	Get parent vertex
+		Vertex* parentVrt = static_cast<Vertex*>(mg.get_parent(vrt));
+
+		aaSmoothBndPos[vrt] = aaSmoothBndPosEvenVrt[parentVrt];
+	}
+
+//	ODD VERTEX
+	else if(mg.get_parent(vrt)->reference_object_id() == ROID_EDGE)
+	{
+	//	Get parent edge
+		Edge* parentEdge = static_cast<Edge*>(mg.get_parent(vrt));
+
+		aaSmoothBndPos[vrt] =  aaSmoothBndPosOddVrt[parentEdge];
+	}
+}
+
+void CalculateSmoothManifoldPosInParentLevel(	MultiGrid& mg, int level, MGSubsetHandler& markSH,
+												Grid::VertexAttachmentAccessor<APosition>& aaPos,
+												Grid::VertexAttachmentAccessor<APosition>& aaSmoothBndPosEvenVrt,
+												Grid::EdgeAttachmentAccessor<APosition>& aaSmoothBndPosOddVrt,
+												Grid::VertexAttachmentAccessor<AInt>& aaNumManifoldEdges)
+{
+	if(level < 0)
+		UG_THROW("Error in CalculateSmoothManifoldPosInParentLevel: specify parent level >= 0.");
+
 	#ifdef UG_PARALLEL
 		DistributedGridManager& dgm = *mg.distributed_grid_manager();
 	#endif
@@ -412,14 +448,21 @@ void ApplySmoothSubdivisionToManifoldVertex(MultiGrid& mg, MGSubsetHandler& mark
 //	Load subdivision surfaces rules
 	SubdivRules_PLoop& subdiv = SubdivRules_PLoop::inst();
 
-//	EVEN VERTEX
-	if(mg.get_parent(vrt)->reference_object_id() == ROID_VERTEX)
+//	Calculate smooth position for even vertices
+	for(VertexIterator vrtIter = mg.begin<Vertex>(level); vrtIter != mg.end<Vertex>(level); ++vrtIter)
 	{
-		Vertex* parentVrt = static_cast<Vertex*>(mg.get_parent(vrt));
+		VecSet(p, 0);
 
-	//	perform loop subdivision on even surface vertices
+		Vertex* vrt = *vrtIter;
+
+		#ifdef UG_PARALLEL
+			if(dgm.is_ghost(vrt))
+				continue;
+		#endif
+
+	//	perform loop subdivision on even manifold vertices
 	//	first get neighbored manifold vertices
-		for(Grid::AssociatedEdgeIterator eIter = mg.associated_edges_begin(parentVrt); eIter != mg.associated_edges_end(parentVrt); ++eIter)
+		for(Grid::AssociatedEdgeIterator eIter = mg.associated_edges_begin(vrt); eIter != mg.associated_edges_end(vrt); ++eIter)
 		{
 			Edge* e = *eIter;
 
@@ -434,7 +477,7 @@ void ApplySmoothSubdivisionToManifoldVertex(MultiGrid& mg, MGSubsetHandler& mark
 						continue;
 				#endif
 
-				VecAdd(p, p, aaPos[GetConnectedVertex(e, parentVrt)]);
+				VecAdd(p, p, aaPos[GetConnectedVertex(e, vrt)]);
 			}
 		}
 
@@ -443,42 +486,51 @@ void ApplySmoothSubdivisionToManifoldVertex(MultiGrid& mg, MGSubsetHandler& mark
 
 	//	Exclude horizontal slaves of the currently smoothed vertex to avoid multiple contributions to centroid
 		#ifdef UG_PARALLEL
+			if(dgm.is_ghost(vrt))
+				continue;
+
 			if(dgm.contains_status(vrt, ES_H_SLAVE))
 			{
-				VecScaleAppend(aaSmoothBndPos[vrt], nbrWgt, p);
-				return;
+				VecScaleAppend(aaSmoothBndPosEvenVrt[vrt], nbrWgt, p);
+				continue;
 			}
 		#endif
 
-		VecScaleAppend(aaSmoothBndPos[vrt], centerWgt, aaPos[parentVrt], nbrWgt, p);
+		VecScaleAppend(aaSmoothBndPosEvenVrt[vrt], centerWgt, aaPos[vrt], nbrWgt, p);
 	}
 
-/*
- * Smoothing of odd vertices x
- *
- * Weights of face adjacent vertices to x: 1/8
- * Weights of edge adjacent vertices to x: 3/8
- *
-			1/8
-			/ \
-		3/8--x--3/8
-			\ /
-			1/8
- *
- */
+	/*
+	 * Smoothing of odd vertices x
+	 *
+	 * Weights of face adjacent vertices to x: 1/8
+	 * Weights of edge adjacent vertices to x: 3/8
+	 *
+				1/8
+				/ \
+			3/8--x--3/8
+				\ /
+				1/8
+	 *
+	 */
 
-//	ODD VERTEX
-	else if(mg.get_parent(vrt)->reference_object_id() == ROID_EDGE)
+//	Calculate smooth position for odd vertices
+	for(EdgeIterator eIter = mg.begin<Edge>(level); eIter != mg.end<Edge>(level); ++eIter)
 	{
-	//	Get parent edge
-		Edge* parentEdge = static_cast<Edge*>(mg.get_parent(vrt));
+		VecSet(p, 0);
 
-	//	apply loop-subdivision on inner elements
+		Edge* e = *eIter;
+
+		#ifdef UG_PARALLEL
+			if(dgm.is_ghost(e))
+				continue;
+		#endif
+
+	//	perform loop subdivision on odd manifold vertices
 	//	get the neighbored manifold triangles
 		std::vector<Face*> associatedFaces;
 		std::vector<Face*> associatedManifoldFaces;
 
-		CollectAssociated(associatedFaces, mg, parentEdge);
+		CollectAssociated(associatedFaces, mg, e);
 
 		for(size_t i = 0; i < associatedFaces.size(); ++i)
 		{
@@ -507,35 +559,68 @@ void ApplySmoothSubdivisionToManifoldVertex(MultiGrid& mg, MGSubsetHandler& mark
 			{
 				if(associatedManifoldFaces[i]->num_vertices() != 3)
 				{
-					UG_THROW("ERROR in ApplySmoothSubdivisionToManifoldVertex: Non triangular faces included in grid.");
+					UG_THROW("ERROR in CalculateSmoothManifoldPosInParentLevel: Non triangular faces included in grid.");
 				}
 			}
 
 		//	Summate centroid of face adjacent vertices
 			for(size_t i = 0; i < associatedManifoldFaces.size(); ++i)
 			{
-				VecAdd(p, p, aaPos[GetConnectedVertex(parentEdge, associatedManifoldFaces[i])]);
+				VecAdd(p, p, aaPos[GetConnectedVertex(e, associatedManifoldFaces[i])]);
 			}
 
 		//	Exclude ghost and horizontal slaves of the parent edge vertices of the currently smoothed vertex
 		//	to avoid multiple contributions to the centroid of the edge adjacent vertices
 			#ifdef UG_PARALLEL
-				if(dgm.is_ghost(parentEdge))
+				if(dgm.is_ghost(e))
 				{
-					//return;
+					continue;
 				}
 
-				if(dgm.contains_status(parentEdge, ES_H_SLAVE))
+				if(dgm.contains_status(e, ES_H_SLAVE))
 				{
-					VecScaleAppend(aaSmoothBndPos[vrt], 0.125, p);
-					return;
+					VecScaleAppend(aaSmoothBndPosOddVrt[e], 0.125, p);
+					continue;
 				}
 			#endif
 
-			VecScaleAppend(aaSmoothBndPos[vrt], 0.375, aaPos[parentEdge->vertex(0)], 0.375, aaPos[parentEdge->vertex(1)], 0.125, p);
+			VecScaleAppend(aaSmoothBndPosOddVrt[e], 0.375, aaPos[e->vertex(0)], 0.375, aaPos[e->vertex(1)], 0.125, p);
 		}
 		else
-			UG_THROW("ERROR in ApplySmoothSubdivisionToManifoldVertex: numAssociatedManifoldFaces > 2.");
+			UG_THROW("ERROR in CalculateSmoothManifoldPosInParentLevel: numAssociatedManifoldFaces > 2.");
+	}
+}
+
+void CalculateNumManifoldEdges(MultiGrid& mg, MGSubsetHandler& markSH, Grid::VertexAttachmentAccessor<AInt>& aaNumManifoldEdges)
+{
+#ifdef UG_PARALLEL
+	DistributedGridManager& dgm = *mg.distributed_grid_manager();
+#endif
+
+//	Catch use of ApplySmoothSubdivisionToTopLevel in base level == 0
+	if(mg.top_level() == 0)
+		UG_THROW("ApplySmoothSubdivisionToTopLevel: method may not be used in base level 0.");
+
+//	Loop all edges of parent level and calculate number of associated manifold edges of each vertex
+	for(EdgeIterator eIter = mg.begin<Edge>(mg.top_level()-1); eIter != mg.end<Edge>(mg.top_level()-1); ++eIter)
+	{
+		Edge* e = *eIter;
+
+	// 	Check, if edge is contained in subset with marked manifold elements
+		if (markSH.get_subset_index(e) != -1)
+		{
+		//	Skip ghost and horizontal slave edges
+			#ifdef UG_PARALLEL
+				if(dgm.is_ghost(e))
+					continue;
+
+				if(dgm.contains_status(e, ES_H_SLAVE))
+					continue;
+			#endif
+
+		   ++aaNumManifoldEdges[e->vertex(0)];
+		   ++aaNumManifoldEdges[e->vertex(1)];
+		}
 	}
 }
 
@@ -553,17 +638,23 @@ void ApplySmoothSubdivisionToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH)
 	if(tet_rules::GetRefinementRule() != tet_rules::HYBRID_TET_OCT)
 		UG_THROW("ERROR in ApplySubdivisionVolumesToTopLevel: Set necessary refinement rule by SetTetRefinementRule('hybrid_tet_oct').");
 
-//	Vertex attachments for associated number of elements, manifold edges and smooth position
+//	Vertex attachments for associated number of elements, number of manifold edges and smooth position
+//	(distinguish between volume and boundary smooth vertex positions
+//	 and in case of boundary between EVEN and ODD smooth vertex positions)
 	AInt aNumElems;
 	AInt aNumManifoldEdges;
 	APosition aSmoothVolPos;
 	APosition aSmoothBndPos;
+	APosition aSmoothBndPosEvenVrt;
+	APosition aSmoothBndPosOddVrt;
 
 //	attach previously declared vertex attachments with initial value 0
 	mg.attach_to_vertices_dv(aNumElems, 0);
 	mg.attach_to_vertices_dv(aNumManifoldEdges, 0);
 	mg.attach_to_vertices_dv(aSmoothVolPos, vector3(0, 0, 0));
 	mg.attach_to_vertices_dv(aSmoothBndPos, vector3(0, 0, 0));
+	mg.attach_to_vertices_dv(aSmoothBndPosEvenVrt, vector3(0, 0, 0));
+	mg.attach_to_edges_dv(aSmoothBndPosOddVrt, vector3(0, 0, 0));
 
 //	Define attachment accessors
 	Grid::VertexAttachmentAccessor<APosition> aaPos(mg, aPosition);
@@ -571,6 +662,8 @@ void ApplySmoothSubdivisionToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH)
 	Grid::VertexAttachmentAccessor<AInt> aaNumManifoldEdges(mg, aNumManifoldEdges);
 	Grid::VertexAttachmentAccessor<APosition> aaSmoothVolPos(mg, aSmoothVolPos);
 	Grid::VertexAttachmentAccessor<APosition> aaSmoothBndPos(mg, aSmoothBndPos);
+	Grid::VertexAttachmentAccessor<APosition> aaSmoothBndPosEvenVrt(mg, aSmoothBndPosEvenVrt);
+	Grid::EdgeAttachmentAccessor<APosition> aaSmoothBndPosOddVrt(mg, aSmoothBndPosOddVrt);
 
 //	Manage vertex attachment communication in parallel case:
 //	- Setup communication policies for the above attachments
@@ -578,20 +671,29 @@ void ApplySmoothSubdivisionToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH)
 //	- Setup distributed grid manager
 //	- Setup grid layout map
 #ifdef UG_PARALLEL
-	ComPol_AttachmentReduce<VertexLayout, AInt> comPolNumElems(mg, aNumElems, PCL_RO_SUM);
-	ComPol_AttachmentReduce<VertexLayout, AInt> comPolNumManifoldEdges(mg, aNumManifoldEdges, PCL_RO_SUM);
-	ComPol_AttachmentReduce<VertexLayout, AVector3> comPolSmoothVolPos(mg, aSmoothVolPos, PCL_RO_SUM);
-	ComPol_AttachmentReduce<VertexLayout, AVector3> comPolSmoothBndPos(mg, aSmoothBndPos, PCL_RO_SUM);
+//	Attachment communication policies REDUCE ADD
+	ComPol_AttachmentReduce<VertexLayout, AInt> comPolAddNumElems(mg, aNumElems, PCL_RO_SUM);
+	ComPol_AttachmentReduce<VertexLayout, AInt> comPolAddNumManifoldEdges(mg, aNumManifoldEdges, PCL_RO_SUM);
+	ComPol_AttachmentReduce<VertexLayout, AVector3> comPolAddSmoothVolPos(mg, aSmoothVolPos, PCL_RO_SUM);
+	ComPol_AttachmentReduce<VertexLayout, AVector3> comPolAddSmoothBndPos(mg, aSmoothBndPos, PCL_RO_SUM);
+	ComPol_AttachmentReduce<VertexLayout, AVector3> comPolAddSmoothBndPosEvenVrt(mg, aSmoothBndPosEvenVrt, PCL_RO_SUM);
+	ComPol_AttachmentReduce<EdgeLayout, AVector3> comPolAddSmoothBndPosOddVrt(mg, aSmoothBndPosOddVrt, PCL_RO_SUM);
 
-	ComPol_CopyAttachment<VertexLayout, AInt> copyNumElems(mg, aNumElems);
-	ComPol_CopyAttachment<VertexLayout, AInt> copyNumManifoldEdges(mg, aNumManifoldEdges);
-	ComPol_CopyAttachment<VertexLayout, AVector3> copySmoothVolPos(mg, aSmoothVolPos);
-	ComPol_CopyAttachment<VertexLayout, AVector3> copySmoothBndPos(mg, aSmoothBndPos);
+//	Attachment communication policies COPY
+	ComPol_CopyAttachment<VertexLayout, AInt> comPolCopyNumElems(mg, aNumElems);
+	ComPol_CopyAttachment<VertexLayout, AInt> comPolCopyNumManifoldEdges(mg, aNumManifoldEdges);
+	ComPol_CopyAttachment<VertexLayout, AVector3> comPolCopySmoothVolPos(mg, aSmoothVolPos);
+	ComPol_CopyAttachment<VertexLayout, AVector3> comPolCopySmoothBndPos(mg, aSmoothBndPos);
+	ComPol_CopyAttachment<VertexLayout, AVector3> comPolCopySmoothBndPosEvenVrt(mg, aSmoothBndPosEvenVrt);
+	ComPol_CopyAttachment<EdgeLayout, AVector3> comPolCopySmoothBndPosOddVrt(mg, aSmoothBndPosOddVrt);
 
-	pcl::InterfaceCommunicator<VertexLayout> com;
+//	Interface communicators and distributed domain manager
+	pcl::InterfaceCommunicator<VertexLayout> comVertices;
+	pcl::InterfaceCommunicator<EdgeLayout> comEdges;
 	DistributedGridManager& dgm = *mg.distributed_grid_manager();
 	GridLayoutMap& glm = dgm.grid_layout_map();
 #endif
+
 
 /*****************************************
  *
@@ -616,14 +718,19 @@ void ApplySmoothSubdivisionToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH)
 		}
 	}
 
+
 /*****************************************
  *
  *	(2) DETERMINE aNumManifoldEdges
  *
  *****************************************/
 
-//	Loop all edges of top level and calculate number of associated manifold edges of each vertex
-	for(EdgeIterator eIter = mg.begin<Edge>(mg.top_level()); eIter != mg.end<Edge>(mg.top_level()); ++eIter)
+//	Catch use of ApplySmoothSubdivisionToTopLevel in base level == 0
+	if(mg.top_level() == 0)
+		UG_THROW("ApplySmoothSubdivisionToTopLevel: method may not be used in base level 0.");
+
+//	Loop all edges of parent level and calculate number of associated manifold edges of each vertex
+	for(EdgeIterator eIter = mg.begin<Edge>(mg.top_level()-1); eIter != mg.end<Edge>(mg.top_level()-1); ++eIter)
 	{
 		Edge* e = *eIter;
 
@@ -644,26 +751,37 @@ void ApplySmoothSubdivisionToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH)
 		}
 	}
 
-//	Manage vertex attachment communication in parallel case -> COMMUNICATE (1) aNumElems and (2) aNumManifoldEdges
-#ifdef UG_PARALLEL
-//	Reduce operations (sum)
-	com.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, comPolNumElems);
-	com.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, comPolNumManifoldEdges);  // TODO: ??? effectively HM = HM + 0, since HSLAVES are left out in (2)
-	com.communicate();
-
-//	Copy operations
-	com.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, copyNumElems);
-	com.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, copyNumManifoldEdges);
-	com.communicate();
-
-	com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, copyNumElems);			// copy to ghosts = VMASTER for step (3) APPLY SUBDIVISION
-	com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, copyNumManifoldEdges);	// copy to ghosts = VMASTER for step (3) APPLY SUBDIVISION
-	com.communicate();
-#endif
 
 /*****************************************
  *
- *	(3) CALCULATE aSmoothVolPos
+ *	(3) COMMUNICATE aNumElems, aNumManifoldEdges
+ *
+ *****************************************/
+
+//	Manage vertex attachment communication in parallel case -> COMMUNICATE (1) aNumElems and (2) aNumManifoldEdges
+	#ifdef UG_PARALLEL
+	//	Reduce add operations:
+	//	sum up h_slaves into h_masters
+		comVertices.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, comPolAddNumElems);
+		comVertices.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, comPolAddNumManifoldEdges);
+		comVertices.communicate();
+
+	//	Copy operations:
+	//	copy h_masters to h_slaves for consistency
+		comVertices.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, comPolCopyNumElems);
+		comVertices.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, comPolCopyNumManifoldEdges);
+		comVertices.communicate();
+
+	//	copy v_slaves to ghosts = VMASTER for step (10) APPLY SUBDIVISION
+		comVertices.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopyNumElems);
+		comVertices.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopyNumManifoldEdges);
+		comVertices.communicate();
+	#endif
+
+
+/*****************************************
+ *
+ *	(4) CALCULATE aSmoothVolPos
  *
  *****************************************/
 
@@ -682,7 +800,73 @@ void ApplySmoothSubdivisionToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH)
 	    ApplySmoothSubdivisionToVolume(mg, markSH, vol, aaPos, aaSmoothVolPos, aaNumElems);
 	}
 
-//	MANIFOLD GRID SMOOTHING
+
+/*****************************************
+ *
+ *	(5) COMMUNICATE aaSmoothVolPos
+ *
+ *****************************************/
+
+	#ifdef UG_PARALLEL
+	//	Reduce add operations:
+	//	sum up h_slaves into h_masters
+		comVertices.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, comPolAddSmoothVolPos);
+		comVertices.communicate();
+
+	//	Copy operations:
+	//	copy h_masters to h_slaves for consistency
+		comVertices.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, comPolCopySmoothVolPos);
+		comVertices.communicate();
+
+	//	copy v_slaves to ghosts = VMASTER for step (10) APPLY SUBDIVISION
+		comVertices.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopySmoothVolPos);
+		comVertices.communicate();
+	#endif
+
+
+/*****************************************
+ *
+ *	(6) CALCULATE aaSmoothBndPosEvenVrt, aaSmoothBndPosOddVrt
+ *
+ *****************************************/
+
+	if(g_boundaryRefinementRule == SUBDIV_LOOP)
+	{
+		CalculateSmoothManifoldPosInParentLevel(mg, mg.top_level()-1, markSH, aaPos, aaSmoothBndPosEvenVrt, aaSmoothBndPosOddVrt, aaNumManifoldEdges);
+	}
+
+
+/*****************************************
+ *
+ *	(7) COMMUNICATE aaSmoothBndPosEvenVrt, aaSmoothBndPosOddVrt
+ *
+ *****************************************/
+
+	#ifdef UG_PARALLEL
+	//	Reduce add operations:
+	//	sum up h_slaves into h_masters
+		comEdges.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, comPolAddSmoothBndPosOddVrt);
+		comEdges.communicate();
+
+		comVertices.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, comPolAddSmoothBndPosEvenVrt);
+		comVertices.communicate();
+
+	//	Copy operations:
+	//	copy h_masters to h_slaves for consistency
+		comEdges.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, comPolCopySmoothBndPosOddVrt);
+		comEdges.communicate();
+
+		comVertices.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, comPolCopySmoothBndPosEvenVrt);
+		comVertices.communicate();
+	#endif
+
+
+/*****************************************
+ *
+ *	(8) CALCULATE aaSmoothBndPos
+ *
+ *****************************************/
+
 //	Loop all vertices of top level
 	if(g_boundaryRefinementRule != SUBDIV_VOL)
 	{
@@ -690,19 +874,13 @@ void ApplySmoothSubdivisionToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH)
 		{
 			Vertex* vrt = *vrtIter;
 
-		// 	Skip vertical slave vertices as they don't have their paren on the same processor
-			#ifdef UG_PARALLEL
-				if(dgm.contains_status(vrt, ES_V_SLAVE))
-					continue;
-			#endif
-
 		//	In case of marked manifold vertices and activated subdivision Loop refinement apply subdivision surfaces smoothing,
 		//	else linear refinement
 			if(markSH.get_subset_index(vrt) != -1)
 			{
 				if(g_boundaryRefinementRule == SUBDIV_LOOP)
 				{
-					ApplySmoothSubdivisionToManifoldVertex(mg, markSH, vrt, aaPos, aaSmoothBndPos, aaNumManifoldEdges);
+					ApplySmoothSubdivisionToManifoldVertex(mg, markSH, vrt, aaSmoothBndPos, aaSmoothBndPosEvenVrt, aaSmoothBndPosOddVrt, aaNumManifoldEdges);
 				}
 				else if(g_boundaryRefinementRule == LINEAR)
 				{
@@ -716,40 +894,24 @@ void ApplySmoothSubdivisionToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH)
 		}
 	}
 
-//	Manage vertex attachment communication in parallel case -> COMMUNICATE (3) aSmoothVolPos and aSmoothBndPos
-#ifdef UG_PARALLEL
-//------------------------------------------------------------------------------
-//	@ VOLUME GRID SMOOTHING
-//------------------------------------------------------------------------------
-	com.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, comPolSmoothVolPos);
-	com.communicate();
-
-	com.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, copySmoothVolPos);
-	com.communicate();
-
-	com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, copySmoothVolPos);
-	com.communicate();
-
-//------------------------------------------------------------------------------
-//	@ MANIFOLD GRID SMOOTHING
-//------------------------------------------------------------------------------
-	//TODO: WRONG ORDER PREVIOUSLY, NOW FINALLY!!! CORRECT
-	//com.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, comPolSmoothBndPos);
-	com.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, comPolSmoothBndPos);	//raus
-	com.communicate();
-
-	//com.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, copySmoothBndPos);
-	com.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, copySmoothBndPos);	//raus
-	com.communicate();
-
-	com.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, copySmoothBndPos);	// stattdessen: com.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, comPolSmoothBndPos); aber vorher VSLAVES die nicht VMASTER sind mit 0 initialisieren
-	com.communicate();
-	// dann copy auf VMASTER
-#endif
 
 /*****************************************
  *
- *	(3) APPLY SUBDIVISION (aPos = aSmooth(Vol/Bnd)Pos)
+ *	(9) COMMUNICATE aSmoothBndPos
+ *
+ *****************************************/
+
+//	Manage vertex attachment communication in parallel case -> COMMUNICATE (8) aSmoothBndPos
+#ifdef UG_PARALLEL
+//	copy v_slaves to ghosts = VMASTER for step (10) APPLY SUBDIVISION
+	comVertices.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, comPolCopySmoothBndPos);
+	comVertices.communicate();
+#endif
+
+
+/*****************************************
+ *
+ *	(10) APPLY SUBDIVISION (aPos = aSmooth(Vol/Bnd)Pos)
  *
  *****************************************/
 
@@ -803,6 +965,8 @@ void ApplySmoothSubdivisionToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH)
 	mg.detach_from_vertices(aNumManifoldEdges);
 	mg.detach_from_vertices(aSmoothVolPos);
 	mg.detach_from_vertices(aSmoothBndPos);
+	mg.detach_from_vertices(aSmoothBndPosEvenVrt);
+	mg.detach_from_edges(aSmoothBndPosOddVrt);
 }
 
 
