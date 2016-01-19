@@ -43,10 +43,9 @@
 #ifdef UG_PARALLEL
 	#include "lib_grid/parallelization/util/compol_attachment_reduce.h"
 	#include "lib_grid/parallelization/util/compol_copy_attachment.h"
+	#include "lib_grid/parallelization/distributed_grid.h"
+	#include "pcl/pcl_interface_communicator.h"
 #endif
-
-#include "lib_grid/parallelization/distributed_grid.h"
-#include "pcl/pcl_interface_communicator.h"
 
 namespace ug
 {
