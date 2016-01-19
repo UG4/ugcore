@@ -1634,9 +1634,9 @@ write_nodal_values_elementwise(VTKFileWriter& File, TFunction& u,
 				if(u.inner_dof_indices(v, vFct[i], vMultInd) != 1)
 					UG_THROW("VTK:write_nodal_values_elementwise: "
 							"The function component "<<vFct[i]<<" has "<<
-							vMultInd.size()<<" DoFs in  a vertex. To write a "
-							"component to vtk, exactly one DoF must be "
-							"given in a vertex.");
+							vMultInd.size()<<" DoFs in a vertex of subset "
+							<<si<<". To write a component to vtk, exactly "
+							"one DoF must be given in any vertex.");
 
 			//	flush stream
 				write_item_to_file(File, DoFRef(u, vMultInd[0]));
