@@ -400,7 +400,7 @@ void CalculateSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
 			}
 
 		//	Scale smooth vertex position by the number of associated volume elements (SubdivisionVolumes smoothing)
-			//VecScale(aaSmoothVolPos[vrt],  aaSmoothVolPos[vrt], 1.0/aaNumElems[vrt]);
+			VecScale(aaSmoothVolPos[vrt],  aaSmoothVolPos[vrt], 1.0/aaNumElems[vrt]);
 		}
 	}
 
@@ -1050,7 +1050,7 @@ CalculateSmoothVolumePosInTopLevel(mg, markSH, aSmoothVolPos, aNumElems);
 		if(g_boundaryRefinementRule == SUBDIV_VOL)
 		{
 		//	Scale smooth vertex position by the number of associated volume elements (SubdivisionVolumes smoothing)
-			VecScale(aaSmoothVolPos[vrt],  aaSmoothVolPos[vrt], 1.0/aaNumElems[vrt]);
+			//VecScale(aaSmoothVolPos[vrt],  aaSmoothVolPos[vrt], 1.0/aaNumElems[vrt]);
 			VecScale(aaPos[vrt], aaSmoothVolPos[vrt], 1.0);
 		}
 		else if(g_boundaryRefinementRule == SUBDIV_LOOP)
@@ -1059,7 +1059,7 @@ CalculateSmoothVolumePosInTopLevel(mg, markSH, aSmoothVolPos, aNumElems);
 			if(markSH.get_subset_index(vrt) == -1)
 			{
 			//	Scale smooth vertex position by the number of associated volume elements
-				VecScale(aaSmoothVolPos[vrt],  aaSmoothVolPos[vrt], 1.0/aaNumElems[vrt]);
+				//VecScale(aaSmoothVolPos[vrt],  aaSmoothVolPos[vrt], 1.0/aaNumElems[vrt]);
 				VecScale(aaPos[vrt], aaSmoothVolPos[vrt], 1.0);
 			}
 			else
@@ -1072,7 +1072,7 @@ CalculateSmoothVolumePosInTopLevel(mg, markSH, aSmoothVolPos, aNumElems);
 			if(markSH.get_subset_index(vrt) == -1)
 			{
 			//	Scale smooth vertex position by the number of associated volume elements
-				VecScale(aaSmoothVolPos[vrt],  aaSmoothVolPos[vrt], 1.0/aaNumElems[vrt]);
+				//VecScale(aaSmoothVolPos[vrt],  aaSmoothVolPos[vrt], 1.0/aaNumElems[vrt]);
 				VecScale(aaPos[vrt], aaSmoothVolPos[vrt], 1.0);
 			}
 			else
