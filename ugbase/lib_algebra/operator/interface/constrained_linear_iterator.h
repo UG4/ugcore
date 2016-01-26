@@ -124,7 +124,7 @@ class ConstrainedLinearIterator : public TLinIt
 					if (m_spDomDisc->constraint(i)->type() & CT_CONSTRAINTS)
 						m_spDomDisc->constraint(i)->adjust_correction(c, gf->dof_distribution(), m_time);
 
-				// first Dirichlet (hanging nodes might be constrained by Dirichlet nodes)
+				// and Dirichlet again (Dirichlet nodes might also be hanging)
 				for (size_t i = 0; i < nConstr; i++)
 					if (m_spDomDisc->constraint(i)->type() & CT_DIRICHLET)
 						m_spDomDisc->constraint(i)->adjust_correction(c, gf->dof_distribution(), m_time);
@@ -169,7 +169,7 @@ class ConstrainedLinearIterator : public TLinIt
 					}
 				}
 
-				// first Dirichlet (hanging nodes might be constrained by Dirichlet nodes)
+				// and Dirichlet again (Dirichlet nodes might also be hanging)
 				for (size_t i = 0; i < nConstr; i++)
 				{
 					if (m_spDomDisc->constraint(i)->type() & CT_DIRICHLET)
