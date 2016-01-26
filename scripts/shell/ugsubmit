@@ -133,16 +133,16 @@ function usage
 	if [ -z "$UGSUBMIT_TYPE" ] || [ $UGSUBMIT_TYPE == "Juqueen" ]; then
 		echo ""
 		echo " Juqueen Parameters"
-		echo "        -Jureca-partition <part>: Partition to use; default is batch:"
-		echo "                                  devel (max. 2h walltime, 8 nodes, 128G memory/node)"
-		echo "                                  batch (max. 24h walltime, 128 nodes, 128/256 memory/node)"
-		echo "                                  mem512 (512G memory/node, needs to be explicitly requested)"
-		echo "        -Jureca-memory <mem>:     Amount of memory to use (default is 128): 128, 256, 512."                   
 		echo ""
 	fi
 	if [ -z "$UGSUBMIT_TYPE" ] || [ $UGSUBMIT_TYPE == "Jureca" ]; then
 		echo ""
 		echo " Jureca Parameters"
+		echo "        -Jureca-partition <part>: Partition to use; default is batch:"
+		echo "                                  devel (max. 2h walltime, 8 nodes, 128G memory/node)"
+		echo "                                  batch (max. 24h walltime, 128 nodes, 128/256 memory/node)"
+		echo "                                  mem512 (512G memory/node, needs to be explicitly requested)"
+		echo "        -Jureca-memory <mem>:     Amount of memory to use (default is 128): 128, 256, 512."                   
 		echo ""
 	fi
 	if [ -z "$UGSUBMIT_TYPE" ] || [ $UGSUBMIT_TYPE == "DoraCSCS" ]; then
