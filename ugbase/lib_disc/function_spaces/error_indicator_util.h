@@ -342,7 +342,7 @@ void MarkElementsForRefinement
 
 	//	marks for refinement
 		if (aaError[elem] >= minErrToRefine)
-			if (dd->multi_grid()->get_level(elem) <= maxLevel)
+			if (dd->multi_grid()->get_level(elem) < maxLevel)
 			{
 				refiner.mark(elem, RM_REFINE);
 				numMarkedRefine++;
