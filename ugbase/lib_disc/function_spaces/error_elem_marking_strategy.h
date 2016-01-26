@@ -59,16 +59,19 @@ struct IElementMarkingStrategy
 			ConstSmartPtr<DoFDistribution> dd) = 0;
 };
 
-/// M. Breits standard refienment strategy
+/// M. Breit's standard refinement strategy
 template <typename TDomain>
-class StdMarkingStrategy : public IElementMarkingStrategy<TDomain>
+class StdRefinementMarkingStrategy : public IElementMarkingStrategy<TDomain>
 {
 
 public:
 	typedef IElementMarkingStrategy<TDomain> base_type;
 
-	StdMarkingStrategy(number tol, number frac, int max_level)
-	: m_tol(tol), m_frac(frac), m_max_level(max_level) {};
+	StdRefinementMarkingStrategy(number tol, int max_level)
+	: m_tol(tol), m_max_level(max_level) {};
+
+	void set_tolerance(number tol) {m_tol = tol;}
+	void set_max_level(int max_level) {m_max_level = max_level;}
 
 	void mark(typename base_type::elem_accessor_type& aaError,
 				IRefiner& refiner,
@@ -77,16 +80,50 @@ public:
 protected:
 
 	number m_tol;
-	number m_frac;
 	int m_max_level;
 };
 
 template <typename TDomain>
-void StdMarkingStrategy<TDomain>::mark(typename base_type::elem_accessor_type& aaError,
+void StdRefinementMarkingStrategy<TDomain>::mark(typename base_type::elem_accessor_type& aaError,
 				IRefiner& refiner,
 				ConstSmartPtr<DoFDistribution> dd)
 {
-	MarkElementsForRefinement<typename base_type::elem_type>(aaError, refiner, dd, m_tol, m_frac, m_max_level);
+	MarkElementsForRefinement<typename base_type::elem_type>(aaError, refiner, dd, m_tol, m_max_level);
+}
+
+/// M. Breit's standard coarsening strategy
+template <typename TDomain>
+class StdCoarseningMarkingStrategy : public IElementMarkingStrategy<TDomain>
+{
+
+public:
+	typedef IElementMarkingStrategy<TDomain> base_type;
+
+	StdCoarseningMarkingStrategy(number tol)
+		: m_tol(tol), m_safety(8.0) {};
+
+	StdCoarseningMarkingStrategy(number tol, number safety)
+		: m_tol(tol), m_safety(safety) {};
+
+	void set_tolerance(number tol) {m_tol = tol;}
+	void set_safety_factor(number safety) {m_safety = safety;}
+
+	void mark(typename base_type::elem_accessor_type& aaError,
+				IRefiner& refiner,
+				ConstSmartPtr<DoFDistribution> dd);
+
+protected:
+
+	number m_tol;
+	number m_safety;
+};
+
+template <typename TDomain>
+void StdCoarseningMarkingStrategy<TDomain>::mark(typename base_type::elem_accessor_type& aaError,
+				IRefiner& refiner,
+				ConstSmartPtr<DoFDistribution> dd)
+{
+	MarkElementsForCoarsening<typename base_type::elem_type>(aaError, refiner, dd, m_tol, m_safety);
 }
 
 

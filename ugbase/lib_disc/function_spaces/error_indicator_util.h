@@ -277,20 +277,20 @@ void MarkElements(MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >&
 	UG_LOG("  +++ Marked for coarsening: " << numMarkedCoarse << " Elements.\n");
 }
 
-/// marks elements according to an attached error value field
+/// marks elements according for refinement to an attached error value field
 /**
  * This function marks elements for refinement. The passed error attachment
- * is used as a weight for the amount of the error an each element. All elements
- * that have an indicated error with s* max <= err <= max are marked for refinement.
- * Here, max is the maximum error measured, s is a scaling quantity chosen by
- * the user. In addition, all elements with an error smaller than TOL
- * (user defined) are not refined.
+ * is used as an indicator for the the error on each element.
+ * Elements are refined if the error sum taken over all elements is greater
+ * than the tolerance value tol. In that case, elements with an indicated
+ * error of err >= tol / #elems are marked for refinement if and only if their
+ * multigrid level is below the tolerated maximum of maxLevel.
  *
- * \param[in, out]	refiner		Refiner, elements marked on exit
+ * \param[in]		aaError		error value attachment to elements (\eta_i^2)
+ * \param[in, out]	refiner		refiner, elements marked on exit
  * \param[in]		dd			dof distribution
- * \param[in]		TOL			Minimum error, such that an element is marked
- * \param[in]		scale		scaling factor indicating lower bound for marking
- * \param[in]		aaError		Error value attachment to elements (\eta_i^2)
+ * \param[in]		tol			tolerated global error (no refinement if error below)
+ * \param[in]		maxLevel	maximal refinement level in multigrid
  */
 
 template<typename TElem>
@@ -298,8 +298,7 @@ void MarkElementsForRefinement
 (	MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >& aaError,
 	IRefiner& refiner,
 	ConstSmartPtr<DoFDistribution> dd,
-	number TOL,
-	number refineFrac,
+	number tol,
 	int maxLevel
 )
 {
@@ -311,17 +310,17 @@ void MarkElementsForRefinement
 	ComputeMinMaxTotal(aaError, dd, min, max, totalErr, numElem);
 
 //	check if total error is smaller than tolerance; if that is the case we're done
-	if (totalErr < TOL)
+	if (totalErr < tol)
 	{
-		UG_LOG("  +++ Total error "<<totalErr<<" smaller than TOL (" << TOL << "). "
+		UG_LOG("  +++ Total error "<<totalErr<<" smaller than TOL (" << tol << "). "
 			   "No refinement necessary." << std::endl);
 		return;
 	}
 
 //	compute minimum
 	//number minErrToRefine = max * refineFrac;
-	number minErrToRefine = TOL / numElem;
-	UG_LOG("  +++ Refining elements if error greater " << TOL << "/" << numElem <<
+	number minErrToRefine = tol / numElem;
+	UG_LOG("  +++ Refining elements if error greater " << tol << "/" << numElem <<
 		   " = " << minErrToRefine << ".\n");
 
 //	reset counter
@@ -361,22 +360,21 @@ void MarkElementsForRefinement
 	UG_LOG("  +++ Marked for refinement: " << numMarkedRefine << " elements.\n");
 }
 
-/// marks elements according to an attached error value field
+/// marks elements for coarsening according to an attached error value field
 /**
  * This function marks elements for coarsening. The passed error attachment
- * is used as a weight for the amount of the error an each element. All elements
- * that have an indicated error with s* max <= err <= max are marked for refinement.
- * Here, max is the maximum error measured, s is a scaling quantity chosen by
- * the user. In addition, all elements with an error smaller than TOL
- * (user defined) are not refined.
+ * is used as an indicator for the the error on each element.
+ * Elements one level below surface are marked if the average error of its
+ * children is lower than tol / #elems / 4 / safety. The safety factor is
+ * supposed to ensure that elements are not refined and coarsened back and
+ * forth in a dynamic adaptive simulation.
  *
- * \param[in, out]	refiner		Refiner, elements marked on exit
+ * \param[in]		aaError		error value attachment to elements (\eta_i^2)
+ * \param[in, out]	refiner		refiner, elements marked on exit
  * \param[in]		dd			dof distribution
- * \param[in]		TOL			Minimum error, such that an element is marked
- * \param[in]		scale		scaling factor indicating lower bound for marking
- * \param[in]		aaError		Error value attachment to elements (\eta_i^2)
+ * \param[in]		tol			tolerated global error
+ * \param[in]		safety		safety factor
  */
-
 template<typename TElem>
 void MarkElementsForCoarsening
 (	MultiGrid::AttachmentAccessor<TElem,
@@ -384,8 +382,7 @@ void MarkElementsForCoarsening
 		IRefiner& refiner,
 		ConstSmartPtr<DoFDistribution> dd,
 		number TOL,
-		number coarseFrac,
-		int maxLevel
+		number safety
 )
 {
 	typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
@@ -398,7 +395,7 @@ void MarkElementsForCoarsening
 //	compute maximum
 	//number maxErrToCoarse = min * (1+coarseFrac);
 	//if (maxErrToCoarse < TOL/numElem) maxErrToCoarse = TOL/numElem;
-	number maxErrToCoarse = TOL / numElem / 4.0 / 8.0; // = tol_per_elem / (2^2*safetyfactor)
+	number maxErrToCoarse = TOL / numElem / 4.0 / safety; // = tol_per_elem / (2^2*safety_factor)
 	UG_LOG("  +++ Coarsening elements if avg child error smaller than "<< maxErrToCoarse << ".\n");
 
 //	reset counter

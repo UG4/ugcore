@@ -2511,48 +2511,6 @@ AssembleErrorEstimator(	const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 
 template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
 void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
-mark_for_refinement
-(	IRefiner& refiner,
-	number TOL,
-	number refineFrac,
-	int maxLevel
-)
-{
-	// check that error indicators have been calculated
-	if (!m_bErrorCalculated)
-	{
-		UG_THROW("Error indicators have to be calculated first by a call to 'calc_error'.");
-	}
-
-	// mark elements for refinement
-	MarkElementsForRefinement<elem_type>(m_aaError, refiner,
-		this->dd(GridLevel()),
-		TOL, refineFrac, maxLevel);
-}
-
-template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
-void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
-mark_for_coarsening
-(	IRefiner& refiner,
-	number TOL,
-	number coarseFrac,
-	int maxLevel
-)
-{
-	// check that error indicators have been calculated
-	if (!m_bErrorCalculated)
-	{
-		UG_THROW("Error indicators have to be calculated first by a call to 'calc_error'.");
-	}
-
-	// mark elements for coarsening
-	MarkElementsForCoarsening<elem_type>(m_aaError, refiner,
-		this->dd(GridLevel(GridLevel::TOP, GridLevel::SURFACE)),
-		TOL, coarseFrac, maxLevel);
-}
-
-template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
-void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
 mark_with_strategy
 (	IRefiner& refiner,
 	SmartPtr<IElementMarkingStrategy<TDomain> >spMarkingStrategy

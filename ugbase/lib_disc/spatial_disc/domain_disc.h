@@ -303,20 +303,6 @@ class DomainDiscretizationBase
 					   vScaleMass, vScaleStiff, u_vtk);
 		}
 
-		virtual void mark_for_refinement
-		(	IRefiner& refiner,
-			number TOL,
-			number refineFrac,
-			int maxLevel
-		);
-
-		virtual void mark_for_coarsening
-		(	IRefiner& refiner,
-			number TOL,
-			number coarseFrac,
-			int maxLevel
-		);
-
 		virtual void mark_with_strategy
 		(	IRefiner& refiner,
 			SmartPtr <IElementMarkingStrategy<TDomain> > strategy

@@ -102,10 +102,6 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("adjust_solution", static_cast<void (T::*)(GridFunction<TDomain, TAlgebra>&)>(&T::adjust_solution))
 			.add_method("calc_error", static_cast<void (T::*)(const GridFunction<TDomain, TAlgebra>&)>(&T::calc_error), "", "Calculate element-wise error indicators from error estimator")
 			.add_method("calc_error", static_cast<void (T::*)(const GridFunction<TDomain, TAlgebra>&, typename TAlgebra::vector_type*)>(&T::calc_error), "", "Calculate element-wise error indicators from error estimator")
-			.add_method("mark_for_refinement", static_cast<void (T::*)(IRefiner&, number, number, int)>(&T::mark_for_refinement), "",
-				"mark elements for refinement according to calculated error indicators")
-			.add_method("mark_for_coarsening", static_cast<void (T::*)(IRefiner&, number, number, int)>(&T::mark_for_coarsening), "",
-				"mark elements for coarsening according to calculated error indicators")
 			.add_method("mark_with_strategy", &T::mark_with_strategy)
 			.add_method("invalidate_error", &T::invalidate_error, "", "Marks error indicators as invalid, "
 				"which will prohibit refining and coarsening before a new call to calc_error.")

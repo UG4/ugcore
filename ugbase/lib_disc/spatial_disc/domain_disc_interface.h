@@ -346,29 +346,6 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 			vector_type* u_vtk
 		) = 0;
 
-	/// marks elements for refinement
-		/**
-		 * Marks elements for refinement.
-		 *
-		 */
-		virtual void mark_for_refinement
-		(	IRefiner& refiner,
-			number TOL,
-			number refineFrac,
-			int maxLevel
-		) = 0;
-	/// marks elements for coarsening
-			/**
-			 * Marks elements for coarsening.
-			 *
-			 */
-		virtual void mark_for_coarsening
-		(	IRefiner& refiner,
-			number TOL,
-			number coarseFrac,
-			int maxLevel
-		) = 0;
-
 	/// marks error indicators as invalid
 		virtual void invalidate_error() = 0;
 
