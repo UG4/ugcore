@@ -59,7 +59,7 @@ function(UGInstall name returned_path)
         endif()
     
         message(STATUS "Install directory is $ENV{UG4_LOCAL_INSTALL_DIR}/${name}.")
-        execute_process(COMMAND bash ${UG_ROOT_PATH}/scripts/shell/uginstall ${name})
+        execute_process(COMMAND bash ${UG_ROOT_PATH}/ugcore/scripts/shell/uginstall ${name})
         if(NOT EXISTS "$ENV{UG4_LOCAL_INSTALL_DIR}/${name}/used/installed")
             message(FATAL_ERROR "${name} could not be installed by uginstall.")
         endif()        
