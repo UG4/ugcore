@@ -848,29 +848,18 @@ void ApplySmoothSubdivisionToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH)
 //	- Setup interface communicator
 //	- Setup distributed grid manager
 //	- Setup grid layout map
-#ifdef UG_PARALLEL
-//	Attachment communication policies REDUCE ADD
-//	ComPol_AttachmentReduce<VertexLayout, AInt> comPolAddNumElems(mg, aNumElems, PCL_RO_SUM);
-//	ComPol_AttachmentReduce<VertexLayout, AInt> comPolAddNumManifoldEdges(mg, aNumManifoldEdges, PCL_RO_SUM);
-//	ComPol_AttachmentReduce<VertexLayout, AVector3> comPolAddSmoothVolPos(mg, aSmoothVolPos, PCL_RO_SUM);
-//	ComPol_AttachmentReduce<VertexLayout, AVector3> comPolAddSmoothBndPos(mg, aSmoothBndPos, PCL_RO_SUM);
-//	ComPol_AttachmentReduce<VertexLayout, AVector3> comPolAddSmoothBndPosEvenVrt(mg, aSmoothBndPosEvenVrt, PCL_RO_SUM);
-//	ComPol_AttachmentReduce<EdgeLayout, AVector3> comPolAddSmoothBndPosOddVrt(mg, aSmoothBndPosOddVrt, PCL_RO_SUM);
+	#ifdef UG_PARALLEL
+	//	Attachment communication policies COPY
+		ComPol_CopyAttachment<VertexLayout, AInt> comPolCopyNumElems(mg, aNumElems);
+		ComPol_CopyAttachment<VertexLayout, AInt> comPolCopyNumManifoldEdges(mg, aNumManifoldEdges);
+		ComPol_CopyAttachment<VertexLayout, AVector3> comPolCopySmoothVolPos(mg, aSmoothVolPos);
+		ComPol_CopyAttachment<VertexLayout, AVector3> comPolCopySmoothBndPos(mg, aSmoothBndPos);
 
-//	Attachment communication policies COPY
-	ComPol_CopyAttachment<VertexLayout, AInt> comPolCopyNumElems(mg, aNumElems);
-	ComPol_CopyAttachment<VertexLayout, AInt> comPolCopyNumManifoldEdges(mg, aNumManifoldEdges);
-	ComPol_CopyAttachment<VertexLayout, AVector3> comPolCopySmoothVolPos(mg, aSmoothVolPos);
-	ComPol_CopyAttachment<VertexLayout, AVector3> comPolCopySmoothBndPos(mg, aSmoothBndPos);
-//	ComPol_CopyAttachment<VertexLayout, AVector3> comPolCopySmoothBndPosEvenVrt(mg, aSmoothBndPosEvenVrt);
-//	ComPol_CopyAttachment<EdgeLayout, AVector3> comPolCopySmoothBndPosOddVrt(mg, aSmoothBndPosOddVrt);
-
-//	Interface communicators and distributed domain manager
-	pcl::InterfaceCommunicator<VertexLayout> comVertices;
-//	pcl::InterfaceCommunicator<EdgeLayout> comEdges;
-	DistributedGridManager& dgm = *mg.distributed_grid_manager();
-	GridLayoutMap& glm = dgm.grid_layout_map();
-#endif
+	//	Interface communicators and distributed domain manager
+		pcl::InterfaceCommunicator<VertexLayout> comVertices;
+		DistributedGridManager& dgm = *mg.distributed_grid_manager();
+		GridLayoutMap& glm = dgm.grid_layout_map();
+	#endif
 
 
 /*****************************************
@@ -878,23 +867,8 @@ void ApplySmoothSubdivisionToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH)
  *	(1) DETERMINE aNumElems
  *
  *****************************************/
-CalculateNumElemsVertexAttachment(mg, markSH, aNumElems);
-////	Loop all volumes of top level and calculate number of volumes each vertex is contained by
-//	for(VolumeIterator vIter = mg.begin<Volume>(mg.top_level()); vIter != mg.end<Volume>(mg.top_level()); ++vIter)
-//	{
-//		Volume* vol = *vIter;
-//
-//	//	Skip ghosts
-//		#ifdef UG_PARALLEL
-//			if(dgm.is_ghost(vol))
-//				continue;
-//		#endif
-//
-//		for(size_t i = 0; i < vol->num_vertices(); ++i)
-//		{
-//			++aaNumElems[vol->vertex(i)];
-//		}
-//	}
+
+	CalculateNumElemsVertexAttachment(mg, markSH, aNumElems);
 
 
 /*****************************************
@@ -902,32 +876,8 @@ CalculateNumElemsVertexAttachment(mg, markSH, aNumElems);
  *	(2) DETERMINE aNumManifoldEdges
  *
  *****************************************/
-CalculateNumManifoldEdgesVertexAttachmentInParentLevel(mg, markSH, aNumManifoldEdges);
-////	Catch use of ApplySmoothSubdivisionToTopLevel in base level == 0
-//	if(mg.top_level() == 0)
-//		UG_THROW("ApplySmoothSubdivisionToTopLevel: method may not be used in base level 0.");
-//
-////	Loop all edges of parent level and calculate number of associated manifold edges of each vertex
-//	for(EdgeIterator eIter = mg.begin<Edge>(mg.top_level()-1); eIter != mg.end<Edge>(mg.top_level()-1); ++eIter)
-//	{
-//		Edge* e = *eIter;
-//
-//	// 	Check, if edge is contained in subset with marked manifold elements
-//		if (markSH.get_subset_index(e) != -1)
-//		{
-//		//	Skip ghost and horizontal slave edges
-//			#ifdef UG_PARALLEL
-//				if(dgm.is_ghost(e))
-//					continue;
-//
-//				if(dgm.contains_status(e, ES_H_SLAVE))
-//					continue;
-//			#endif
-//
-//		   ++aaNumManifoldEdges[e->vertex(0)];
-//		   ++aaNumManifoldEdges[e->vertex(1)];
-//		}
-//	}
+
+	CalculateNumManifoldEdgesVertexAttachmentInParentLevel(mg, markSH, aNumManifoldEdges);
 
 
 /*****************************************
@@ -938,18 +888,6 @@ CalculateNumManifoldEdgesVertexAttachmentInParentLevel(mg, markSH, aNumManifoldE
 
 //	Manage vertex attachment communication in parallel case -> COMMUNICATE (1) aNumElems and (2) aNumManifoldEdges
 	#ifdef UG_PARALLEL
-//	//	Reduce add operations:
-//	//	sum up h_slaves into h_masters
-//		comVertices.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, comPolAddNumElems);
-//		comVertices.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, comPolAddNumManifoldEdges);
-//		comVertices.communicate();
-//
-//	//	Copy operations:
-//	//	copy h_masters to h_slaves for consistency
-//		comVertices.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, comPolCopyNumElems);
-//		comVertices.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, comPolCopyNumManifoldEdges);
-//		comVertices.communicate();
-
 	//	copy v_slaves to ghosts = VMASTER for step (10) APPLY SUBDIVISION
 		comVertices.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopyNumElems);
 		comVertices.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopyNumManifoldEdges);
@@ -962,21 +900,8 @@ CalculateNumManifoldEdgesVertexAttachmentInParentLevel(mg, markSH, aNumManifoldE
  *	(4) CALCULATE aSmoothVolPos
  *
  *****************************************/
-CalculateSmoothVolumePosInTopLevel(mg, markSH, aSmoothVolPos, aNumElems);
-////	VOLUME GRID SMOOTHING
-////	Loop all volumes of top_level
-//	for(VolumeIterator vIter = mg.begin<Volume>(mg.top_level()); vIter != mg.end<Volume>(mg.top_level()); ++vIter)
-//	{
-//		Volume* vol = *vIter;
-//
-//	//	Skip ghost volumes
-//		#ifdef UG_PARALLEL
-//	    	if(dgm.is_ghost(vol))
-//	    		continue;
-//		#endif
-//
-//	    ApplySmoothSubdivisionToVolume(mg, markSH, vol, aaPos, aaSmoothVolPos, aaNumElems);
-//	}
+
+	CalculateSmoothVolumePosInTopLevel(mg, markSH, aSmoothVolPos, aNumElems);
 
 
 /*****************************************
@@ -986,17 +911,7 @@ CalculateSmoothVolumePosInTopLevel(mg, markSH, aSmoothVolPos, aNumElems);
  *****************************************/
 
 	#ifdef UG_PARALLEL
-//	//	Reduce add operations:
-//	//	sum up h_slaves into h_masters
-//		comVertices.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, comPolAddSmoothVolPos);
-//		comVertices.communicate();
-//
-//	//	Copy operations:
-//	//	copy h_masters to h_slaves for consistency
-//		comVertices.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, comPolCopySmoothVolPos);
-//		comVertices.communicate();
-
-	//	copy v_slaves to ghosts = VMASTER for step (10) APPLY SUBDIVISION
+	//	copy v_slaves to ghosts = VMASTER for step (9) APPLY SUBDIVISION
 		comVertices.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopySmoothVolPos);
 		comVertices.communicate();
 	#endif
@@ -1016,32 +931,7 @@ CalculateSmoothVolumePosInTopLevel(mg, markSH, aSmoothVolPos, aNumElems);
 
 /*****************************************
  *
- *	(7) COMMUNICATE aaSmoothBndPosEvenVrt, aaSmoothBndPosOddVrt
- *
- *****************************************/
-
-//	#ifdef UG_PARALLEL
-//	//	Reduce add operations:
-//	//	sum up h_slaves into h_masters
-//		comEdges.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, comPolAddSmoothBndPosOddVrt);
-//		comEdges.communicate();
-//
-//		comVertices.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, comPolAddSmoothBndPosEvenVrt);
-//		comVertices.communicate();
-//
-//	//	Copy operations:
-//	//	copy h_masters to h_slaves for consistency
-//		comEdges.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, comPolCopySmoothBndPosOddVrt);
-//		comEdges.communicate();
-//
-//		comVertices.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, comPolCopySmoothBndPosEvenVrt);
-//		comVertices.communicate();
-//	#endif
-
-
-/*****************************************
- *
- *	(8) CALCULATE aaSmoothBndPos
+ *	(7) CALCULATE aaSmoothBndPos
  *
  *****************************************/
 
@@ -1049,48 +939,26 @@ CalculateSmoothVolumePosInTopLevel(mg, markSH, aSmoothVolPos, aNumElems);
 	if(g_boundaryRefinementRule != SUBDIV_VOL)
 	{
 		CalculateSmoothManifoldPosInTopLevel(mg, markSH, aSmoothBndPos, aSmoothBndPosEvenVrt, aSmoothBndPosOddVrt);
-//		for(VertexIterator vrtIter = mg.begin<Vertex>(mg.top_level()); vrtIter != mg.end<Vertex>(mg.top_level()); ++vrtIter)
-//		{
-//			Vertex* vrt = *vrtIter;
-//
-//		//	In case of marked manifold vertices and activated subdivision Loop refinement apply subdivision surfaces smoothing,
-//		//	else linear refinement
-//			if(markSH.get_subset_index(vrt) != -1)
-//			{
-//				if(g_boundaryRefinementRule == SUBDIV_LOOP)
-//				{
-//					ApplySmoothSubdivisionToManifoldVertex(mg, markSH, vrt, aaSmoothBndPos, aaSmoothBndPosEvenVrt, aaSmoothBndPosOddVrt);
-//				}
-//				else if(g_boundaryRefinementRule == LINEAR)
-//				{
-//					continue;
-//				}
-//				else
-//				{
-//					UG_THROW("ERROR in ApplySmoothSubdivisionToTopLevel: Unknown boundary refinement rule. Known rules are 'LINEAR', 'SUBDIV_LOOP' or 'SUBDIV_VOL'.");
-//				}
-//			}
-//		}
 	}
 
 
 /*****************************************
  *
- *	(9) COMMUNICATE aSmoothBndPos
+ *	(8) COMMUNICATE aSmoothBndPos
  *
  *****************************************/
 
-//	Manage vertex attachment communication in parallel case -> COMMUNICATE (8) aSmoothBndPos
-#ifdef UG_PARALLEL
-//	copy v_slaves to ghosts = VMASTER for step (10) APPLY SUBDIVISION
-	comVertices.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, comPolCopySmoothBndPos);
-	comVertices.communicate();
-#endif
+//	Manage vertex attachment communication in parallel case -> COMMUNICATE (7) aSmoothBndPos
+	#ifdef UG_PARALLEL
+	//	copy v_slaves to ghosts = VMASTER for step (10) APPLY SUBDIVISION
+		comVertices.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, comPolCopySmoothBndPos);
+		comVertices.communicate();
+	#endif
 
 
 /*****************************************
  *
- *	(10) APPLY SUBDIVISION (aPos = aSmooth(Vol/Bnd)Pos)
+ *	(9) APPLY SUBDIVISION (aPos = aSmooth(Vol/Bnd)Pos)
  *
  *****************************************/
 
