@@ -62,18 +62,22 @@ enum GlobalBoundaryRefinementRule
 	SUBDIV_VOL
 };
 
+
 /// global boundary refinement rule information switching between linear and subdivision Loop refinement
 static GlobalBoundaryRefinementRule g_boundaryRefinementRule = LINEAR;
+
 
 void SetBoundaryRefinementRule(GlobalBoundaryRefinementRule refRule)
 {
 	g_boundaryRefinementRule = refRule;
 }
 
+
 GlobalBoundaryRefinementRule GetBoundaryRefinementRule()
 {
 	return g_boundaryRefinementRule;
 }
+
 
 /// Function for splitting an octahedron to 4 sub-tetrahedrons
 /** Recall the refinement of a tetrahedron (s. tetrahdron_rules.cpp). A tetrahedron is
@@ -281,31 +285,55 @@ void SplitOctahedronToTetrahedrons(	Grid& grid, Octahedron* oct, Volume* parentV
  *
  * 	@param mg			reference to MultiGrid
 **/
-void ProjectToLimitSubdivisionVolume(MultiGrid& mg)
+void ProjectHierarchyToLimitSubdivisionVolume(MultiGrid& mg)
 {
+	#ifdef UG_PARALLEL
+	//	Attachment communication policies COPY
+		ComPol_CopyAttachment<VertexLayout, AVector3> comPolCopyAPosition(mg, aPosition);
+
+	//	Interface communicators and distributed domain manager
+		pcl::InterfaceCommunicator<VertexLayout> com;
+		DistributedGridManager& dgm = *mg.distributed_grid_manager();
+		GridLayoutMap& glm = dgm.grid_layout_map();
+	#endif
+
 	Grid::VertexAttachmentAccessor<APosition> aaPos(mg, aPosition);
 
-//	Loop all vertices of top level
-	for(VertexIterator vrtIter = mg.begin<Vertex>(mg.top_level()); vrtIter != mg.end<Vertex>(mg.top_level()); ++vrtIter)
-	{
-		Vertex* v = *vrtIter;
+//	AttachmentCopy VSLAVE->VMASTER on mg.top_level() in case not all VMasters in toplevel don't have correct position already
+	#ifdef UG_PARALLEL
+	//	copy v_slaves to ghosts = VMASTER
+		com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopyAPosition);
+		com.communicate();
+	#endif
 
-	//	Reposition all parents according to the position on the finest level
-		while(v)
+//	Loop all levels from toplevel down to base level
+	for(int lvl = (int)mg.top_level(); lvl > 0; --lvl)
+	{
+	//	Loop all vertices of current level and submit positions to parent vertices
+		for(VertexIterator vrtIter = mg.begin<Vertex>(lvl); vrtIter != mg.end<Vertex>(lvl); ++vrtIter)
 		{
+			Vertex* v = *vrtIter;
 			Vertex* parent = dynamic_cast<Vertex*>(mg.get_parent(v));
-			if(parent){
+
+		//	Only, if parent vertex exists
+			if(parent)
+			{
 				aaPos[parent] = aaPos[v];
 			}
-			v = parent;
 		}
+
+	#ifdef UG_PARALLEL
+	//	copy v_slaves to ghosts = VMASTER
+		com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopyAPosition);
+		com.communicate();
+	#endif
 	}
 }
 
 
-/// Vertex repositioning function for subdivision volumes refinement
-/** This function repositions a vertex to its smoothed position in the current
- * 	level determined by the subdivision volumes refinement.
+/// Toplevel vertex repositioning function for subdivision volumes refinement
+/** This function repositions a toplevel vertex to its smoothed position
+ * 	determined by the subdivision volumes refinement.
  *
  * 	@param mg				reference to MultiGrid
  * 	@param markSH			reference to SubsetHandler markSH containing marked (inner) boundary manifold
@@ -416,15 +444,15 @@ void CalculateSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
 }
 
 
-/// Vertex repositioning function for subdivision surfaces refinement (by C. Loop, 1987)
-/** This function repositions a vertex to its smoothed position in the current
- * 	level determined by the subdivision surfaces refinement.
+/// Toplevel vertex repositioning function for subdivision surfaces refinement (by C. Loop, 1987)
+/** This function repositions a toplevel vertex to its smoothed position
+ * 	determined by the subdivision surfaces refinement.
  *
  * 	@param mg					reference to MultiGrid
  * 	@param markSH				reference to SubsetHandler markSH containing marked (inner) boundary manifold
- * 	@param aaSmoothBndPos		reference to VertexAttachmentAccessor accessing aSmoothBndPos
- * 	@param aSmoothBndPosEvenVrt	reference to VertexAttachmentAccessor accessing aSmoothBndPosEvenVrt
- * 	@param aSmoothBndPosOddVrt	reference to VertexAttachmentAccessor accessing aSmoothBndPosOddVrt
+ * 	@param aSmoothBndPos		reference to aSmoothBndPos
+ * 	@param aSmoothBndPosEvenVrt	reference to aSmoothBndPosEvenVrt
+ * 	@param aSmoothBndPosOddVrt	reference to aSmoothBndPosOddVrt
 **/
 void CalculateSmoothManifoldPosInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
 											APosition& aSmoothBndPos,
@@ -482,6 +510,16 @@ void CalculateSmoothManifoldPosInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH
 }
 
 
+/// Parent level vertex repositioning function for subdivision surfaces refinement (by C. Loop, 1987)
+/** This function repositions a parent level vertex to its smoothed position
+ * 	determined by the subdivision surfaces refinement.
+ *
+ * 	@param mg						reference to MultiGrid
+ * 	@param markSH					reference to SubsetHandler markSH containing marked (inner) boundary manifold
+ * 	@param aSmoothBndPosEvenVrt		reference to aSmoothBndPosEvenVrt
+ * 	@param aSmoothBndPosOddVrt		reference to aSmoothBndPosOddVrt
+ * 	@param aNumManifoldEdges		reference to aNumManifoldEdges
+**/
 void CalculateSmoothManifoldPosInParentLevel(MultiGrid& mg, MGSubsetHandler& markSH,
 											 APosition& aSmoothBndPosEvenVrt,
 											 APosition& aSmoothBndPosOddVrt,
@@ -663,6 +701,14 @@ void CalculateSmoothManifoldPosInParentLevel(MultiGrid& mg, MGSubsetHandler& mar
 }
 
 
+/// Function for calculating the number of associated volumes of all toplevel vertices
+/** This function calculates the number of associated volumes
+ * 	for all toplevel vertices.
+ *
+ * 	@param mg				reference to MultiGrid
+ * 	@param markSH			reference to SubsetHandler markSH containing marked (inner) boundary manifold
+ * 	@param aNumElems		reference to aNumElems
+**/
 void CalculateNumElemsVertexAttachment(MultiGrid& mg, MGSubsetHandler& markSH, AInt& aNumElems)
 {
 	#ifdef UG_PARALLEL
@@ -701,7 +747,15 @@ void CalculateNumElemsVertexAttachment(MultiGrid& mg, MGSubsetHandler& markSH, A
 }
 
 
-void CalculateNumManifoldEdgesVertexAttachment(MultiGrid& mg, MGSubsetHandler& markSH, AInt& aNumManifoldEdges)
+/// Function for calculating the number of associated manifold edges of all parent level vertices
+/** This function calculates the number of associated manifold edges
+ * 	for all parent level vertices.
+ *
+ * 	@param mg						reference to MultiGrid
+ * 	@param markSH					reference to SubsetHandler markSH containing marked (inner) boundary manifold
+ * 	@param aNumManifoldEdges		reference to aNumManifoldEdges
+**/
+void CalculateNumManifoldEdgesVertexAttachmentInParentLevel(MultiGrid& mg, MGSubsetHandler& markSH, AInt& aNumManifoldEdges)
 {
 #ifdef UG_PARALLEL
 	DistributedGridManager& dgm = *mg.distributed_grid_manager();
@@ -712,7 +766,7 @@ void CalculateNumManifoldEdgesVertexAttachment(MultiGrid& mg, MGSubsetHandler& m
 
 //	Catch use of ApplySmoothSubdivisionToTopLevel in base level == 0
 	if(mg.top_level() == 0)
-		UG_THROW("ApplySmoothSubdivisionToTopLevel: method may not be used in base level 0.");
+		UG_THROW("CalculateNumManifoldEdgesVertexAttachmentInParentLevel: method may not be used in base level 0.");
 
 //	Loop all edges of parent level and calculate number of associated manifold edges of each vertex
 	for(EdgeIterator eIter = mg.begin<Edge>(mg.top_level()-1); eIter != mg.end<Edge>(mg.top_level()-1); ++eIter)
@@ -746,6 +800,7 @@ void CalculateNumManifoldEdgesVertexAttachment(MultiGrid& mg, MGSubsetHandler& m
 		AttachmentAllReduce<Vertex>(mg, aNumManifoldEdges, PCL_RO_SUM);
 	#endif
 }
+
 
 /// Function to create a smooth subdivision volumes hierarchy
 /** This function transforms a linearly refined hybrid tetra-/octahedral volume
@@ -847,7 +902,7 @@ CalculateNumElemsVertexAttachment(mg, markSH, aNumElems);
  *	(2) DETERMINE aNumManifoldEdges
  *
  *****************************************/
-CalculateNumManifoldEdgesVertexAttachment(mg, markSH, aNumManifoldEdges);
+CalculateNumManifoldEdgesVertexAttachmentInParentLevel(mg, markSH, aNumManifoldEdges);
 ////	Catch use of ApplySmoothSubdivisionToTopLevel in base level == 0
 //	if(mg.top_level() == 0)
 //		UG_THROW("ApplySmoothSubdivisionToTopLevel: method may not be used in base level 0.");

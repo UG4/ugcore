@@ -280,7 +280,7 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 
 //	smooth volume subdivision
 	reg.add_function("ApplySmoothSubdivisionToTopLevel", &ApplySmoothSubdivisionToTopLevel, grp);
-	reg.add_function("ProjectToLimitSubdivisionVolume", &ProjectToLimitSubdivisionVolume, grp);
+	reg.add_function("ProjectHierarchyToLimitSubdivisionVolume", &ProjectHierarchyToLimitSubdivisionVolume, grp);
 
 //	register boundary refinement rule switch function for Subdivision Volumes smoothing
 	reg.add_function("SetBoundaryRefinementRule", &SetBoundaryRefinementRule, grp, "", "bndRefRule",
