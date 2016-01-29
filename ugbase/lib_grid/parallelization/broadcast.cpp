@@ -38,6 +38,7 @@ namespace ug{
 void BroadcastGrid(	Grid& gridOut,
 					Selector& sel,
 					GridDataSerializationHandler& serializer,
+					GridDataSerializationHandler& deserializer,
 					int root,
 					const pcl::ProcessCommunicator& procCom)
 {
@@ -45,9 +46,7 @@ void BroadcastGrid(	Grid& gridOut,
 
 	UG_COND_THROW(sel.grid() == NULL, "A grid has to be assigned to the given selector.");
 	Grid& gFrom = *sel.grid();
-
 	SelectAssociatedGridObjects(sel);
-
 //	serialize
 	BinaryBuffer buf;
 	if(pcl::ProcRank() == root){
@@ -59,23 +58,20 @@ void BroadcastGrid(	Grid& gridOut,
 		
 		Serialize(buf, magicNumber);
 	}
-
 	procCom.broadcast(buf, root);
 
 //	deserialize
 	gridOut.clear_geometry();
-	
 	int tmp;
 	Deserialize(buf, tmp);
-	UG_COND_THROW(tmp != magicNumber, "Magic number mismatch in BroadcastGrid at check 1");
-
+	UG_COND_THROW(tmp != magicNumber, "Magic number mismatch in BroadcastGrid at check 1. "
+				  "Internal error in grid serialization.");
 	DeserializeGridElements(gridOut, buf);
-	
-	serializer.read_infos(buf);
-	serializer.deserialize(buf, gridOut.get_grid_objects());
-
+	deserializer.read_infos(buf);
+	deserializer.deserialize(buf, gridOut.get_grid_objects());
 	Deserialize(buf, tmp);
-	UG_COND_THROW(tmp != magicNumber, "Magic number mismatch in BroadcastGrid at check 2");
+	UG_COND_THROW(tmp != magicNumber, "Magic number mismatch in BroadcastGrid at check 2. "
+				  "Please make sure to specify matching 'serializer' and 'deserializer'.");
 }
 
 }//	end of namespace

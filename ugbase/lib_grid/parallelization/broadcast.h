@@ -44,11 +44,19 @@ namespace ug{
 /** Selected elements and associated attachments are broadcasted from
  * 'root' to all processes in procCom (including 'root').
  *
+ * @param serializer	Has to operate on 'sel.grid()'. It is responsible to serialize
+ *						e.g. attachments, subset-handlers or selectors.
+ *
+ * @param deserializer	Has to operate on 'gridOut'. It has to contain exactly the same
+ *						components as 'serializer', except that all components have
+ *						to operate on 'gridOut', too.
+
  * \note	In order to make sure that all required sides and vertices of selected
  *			elements are broadcasted, the given selector may be adjusted.*/
 void BroadcastGrid(	Grid& gridOut,
 					Selector& sel,
 					GridDataSerializationHandler& serializer,
+					GridDataSerializationHandler& deserializer,
 					int root,
 					const pcl::ProcessCommunicator& procCom =
 												pcl::ProcessCommunicator());
