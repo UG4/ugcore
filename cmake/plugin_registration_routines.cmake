@@ -155,9 +155,7 @@ function(AddActivePluginSubdirectories)
 	endforeach(pluginDir)
 	
 	# Add directories of all enabled plugins
-	
-	string(COMPARE EQUAL "$registeredPluginDirs" "" result)
-	if(NOT result)
+	if(NOT "${registeredPluginDirs}" STREQUAL "")
 		list(LENGTH registeredPluginDirs numPlugins)
 		math(EXPR numPlugins ${numPlugins}-1)
 		
