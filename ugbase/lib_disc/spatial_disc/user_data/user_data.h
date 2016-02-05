@@ -134,10 +134,20 @@ class UserData : virtual public UserDataInfo
 								 const MathVector<dim>& globIP,
 								 number time, int si) const = 0;
 
-	///	returns value for global positions
+	///	returns values for global positions
 		virtual void operator()(TData vValue[],
 								const MathVector<dim> vGlobIP[],
 								number time, int si, const size_t nip) const = 0;
+		
+	///	returns a value at a vertex
+		virtual void operator() (TData& value,
+								 const MathVector<dim>& globIP,
+								 number time, int si,
+								 Vertex* vrt) const
+		{
+		//	The standard version uses only the coordinates. But it can be redefined.
+			operator()(value, globIP, time, si);
+		}
 
 	///	returns value for local and global position
 	///	\{
