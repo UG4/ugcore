@@ -553,10 +553,17 @@ void CalculateSmoothManifoldPosInParentLevel(MultiGrid& mg, MGSubsetHandler& mar
 
 		Vertex* vrt = *vrtIter;
 
+	//	Skip ghost vertices
 		#ifdef UG_PARALLEL
 			if(dgm.is_ghost(vrt))
 				continue;
 		#endif
+
+	//	Skip vertices not belonging to marked boundary manifold subsets
+		if(markSH.get_subset_index(vrt) == -1)
+		{
+			continue;
+		}
 
 	//	perform loop subdivision on even manifold vertices
 	//	first get neighbored manifold vertices
@@ -618,10 +625,17 @@ void CalculateSmoothManifoldPosInParentLevel(MultiGrid& mg, MGSubsetHandler& mar
 
 		Edge* e = *eIter;
 
+	//	Skip ghost edges
 		#ifdef UG_PARALLEL
 			if(dgm.is_ghost(e))
 				continue;
 		#endif
+
+	//	Skip edges not belonging to marked boundary manifold subsets
+		if(markSH.get_subset_index(e) == -1)
+		{
+			continue;
+		}
 
 	//	perform loop subdivision on odd manifold vertices
 	//	get the neighbored manifold triangles
