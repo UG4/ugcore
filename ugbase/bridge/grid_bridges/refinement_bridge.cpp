@@ -121,7 +121,8 @@ bool CreateSmoothHierarchy(MultiGrid& mg, size_t numRefs)
 	return true;
 }
 
-bool CreateSmoothVolumeHierarchy(MultiGrid& mg, MGSubsetHandler& markSH, size_t numRefs)
+bool CreateSmoothVolumeHierarchy(MultiGrid& mg, MGSubsetHandler& sh, MGSubsetHandler& markSH,
+								 size_t numRefs, const char* linearBndManifoldSubsets)
 {
 	PROFILE_FUNC_GROUP("grid");
 
@@ -129,13 +130,13 @@ bool CreateSmoothVolumeHierarchy(MultiGrid& mg, MGSubsetHandler& markSH, size_t 
 
 	for(size_t lvl = 0; lvl < numRefs; ++lvl){
 		ref.refine();
-		ApplySmoothSubdivisionToTopLevel(mg, markSH);
+		ApplySmoothSubdivisionToTopLevel(mg, sh, markSH, linearBndManifoldSubsets);
 	}
 
 	//if(g_boundaryRefinementRule == SUBDIV_LOOP)
 		//ProjectToLimitPLoop(mg, aPosition, aPosition);
 
-	//ProjectToLimitSubdivisionVolume(mg);
+	ProjectHierarchyToLimitSubdivisionVolume(mg);
 
 	return true;
 }

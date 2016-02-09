@@ -448,13 +448,15 @@ void CalculateSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
 /** This function repositions a toplevel vertex to its smoothed position
  * 	determined by the subdivision surfaces refinement.
  *
- * 	@param mg					reference to MultiGrid
- * 	@param markSH				reference to SubsetHandler markSH containing marked (inner) boundary manifold
- * 	@param aSmoothBndPos		reference to aSmoothBndPos
- * 	@param aSmoothBndPosEvenVrt	reference to aSmoothBndPosEvenVrt
- * 	@param aSmoothBndPosOddVrt	reference to aSmoothBndPosOddVrt
+ * 	@param mg							reference to MultiGrid
+ * 	@param markSH						reference to SubsetHandler markSH containing marked (inner) boundary manifold
+ * 	@param linearBndManifoldSubsetsSH	reference to user-specified linearBndManifoldSubsets SubsetHandler
+ * 	@param aSmoothBndPos				reference to aSmoothBndPos
+ * 	@param aSmoothBndPosEvenVrt			reference to aSmoothBndPosEvenVrt
+ * 	@param aSmoothBndPosOddVrt			reference to aSmoothBndPosOddVrt
 **/
 void CalculateSmoothManifoldPosInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
+											MGSubsetHandler& linearBndManifoldSubsetsSH,
 											APosition& aSmoothBndPos,
 											APosition& aSmoothBndPosEvenVrt,
 											APosition& aSmoothBndPosOddVrt)
@@ -473,9 +475,9 @@ void CalculateSmoothManifoldPosInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH
 		if(mg.get_parent(vrt) == NULL)
 			return;
 
-	//	In case of marked manifold vertices and activated subdivision Loop refinement apply subdivision surfaces smoothing,
-	//	else linear refinement
-		if(markSH.get_subset_index(vrt) != -1)
+	//	In case of marked manifold vertices, which do not belong to the user-specified linear boundary manifold subsets,
+	//	and activated subdivision Loop refinement apply subdivision surfaces smoothing, else linear refinement
+		if(markSH.get_subset_index(vrt) != -1 && linearBndManifoldSubsetsSH.get_subset_index(vrt) == -1)
 		{
 			if(g_boundaryRefinementRule == SUBDIV_LOOP)
 			{
@@ -514,13 +516,15 @@ void CalculateSmoothManifoldPosInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH
 /** This function repositions a parent level vertex to its smoothed position
  * 	determined by the subdivision surfaces refinement.
  *
- * 	@param mg						reference to MultiGrid
- * 	@param markSH					reference to SubsetHandler markSH containing marked (inner) boundary manifold
- * 	@param aSmoothBndPosEvenVrt		reference to aSmoothBndPosEvenVrt
- * 	@param aSmoothBndPosOddVrt		reference to aSmoothBndPosOddVrt
- * 	@param aNumManifoldEdges		reference to aNumManifoldEdges
+ * 	@param mg							reference to MultiGrid
+ * 	@param markSH						reference to SubsetHandler markSH containing marked (inner) boundary manifold
+ * 	@param linearBndManifoldSubsetsSH	reference to user-specified linearBndManifoldSubsets SubsetHandler
+ * 	@param aSmoothBndPosEvenVrt			reference to aSmoothBndPosEvenVrt
+ * 	@param aSmoothBndPosOddVrt			reference to aSmoothBndPosOddVrt
+ * 	@param aNumManifoldEdges			reference to aNumManifoldEdges
 **/
 void CalculateSmoothManifoldPosInParentLevel(MultiGrid& mg, MGSubsetHandler& markSH,
+											 MGSubsetHandler& linearBndManifoldSubsetsSH,
 											 APosition& aSmoothBndPosEvenVrt,
 											 APosition& aSmoothBndPosOddVrt,
 											 AInt& aNumManifoldEdges)
@@ -559,49 +563,48 @@ void CalculateSmoothManifoldPosInParentLevel(MultiGrid& mg, MGSubsetHandler& mar
 				continue;
 		#endif
 
-	//	Skip vertices not belonging to marked boundary manifold subsets
-		if(markSH.get_subset_index(vrt) == -1)
+	//	In case of marked manifold vertices, which do not belong to the user-specified linear boundary manifold subsets,
+	//	and activated subdivision Loop refinement calculate subdivision surfaces smooth position
+		if(markSH.get_subset_index(vrt) != -1 && linearBndManifoldSubsetsSH.get_subset_index(vrt) == -1)
 		{
-			continue;
-		}
-
-	//	perform loop subdivision on even manifold vertices
-	//	first get neighbored manifold vertices
-		for(Grid::AssociatedEdgeIterator eIter = mg.associated_edges_begin(vrt); eIter != mg.associated_edges_end(vrt); ++eIter)
-		{
-			Edge* e = *eIter;
-
-			if(markSH.get_subset_index(e) != -1)
+		//	perform loop subdivision on even manifold vertices
+		//	first get neighbored manifold vertices
+			for(Grid::AssociatedEdgeIterator eIter = mg.associated_edges_begin(vrt); eIter != mg.associated_edges_end(vrt); ++eIter)
 			{
-			//	Exclude ghost and horizontal slave neighbor vertices from contributing to centroid
-				#ifdef UG_PARALLEL
-					if(dgm.is_ghost(e))
-						continue;
+				Edge* e = *eIter;
 
-					if(dgm.contains_status(e, ES_H_SLAVE))
-						continue;
-				#endif
+				if(markSH.get_subset_index(e) != -1 && linearBndManifoldSubsetsSH.get_subset_index(e) == -1)
+				{
+				//	Exclude ghost and horizontal slave neighbor vertices from contributing to centroid
+					#ifdef UG_PARALLEL
+						if(dgm.is_ghost(e))
+							continue;
 
-				VecAdd(p, p, aaPos[GetConnectedVertex(e, vrt)]);
+						if(dgm.contains_status(e, ES_H_SLAVE))
+							continue;
+					#endif
+
+					VecAdd(p, p, aaPos[GetConnectedVertex(e, vrt)]);
+				}
 			}
+
+			number centerWgt 	= subdiv.ref_even_inner_center_weight(aaNumManifoldEdges[vrt]);
+			number nbrWgt 		= subdiv.ref_even_inner_nbr_weight(aaNumManifoldEdges[vrt]);
+
+		//	Exclude horizontal slaves of the currently smoothed vertex to avoid multiple contributions to centroid
+			#ifdef UG_PARALLEL
+				if(dgm.is_ghost(vrt))
+					continue;
+
+				if(dgm.contains_status(vrt, ES_H_SLAVE))
+				{
+					VecScaleAppend(aaSmoothBndPosEvenVrt[vrt], nbrWgt, p);
+					continue;
+				}
+			#endif
+
+			VecScaleAppend(aaSmoothBndPosEvenVrt[vrt], centerWgt, aaPos[vrt], nbrWgt, p);
 		}
-
-		number centerWgt 	= subdiv.ref_even_inner_center_weight(aaNumManifoldEdges[vrt]);
-		number nbrWgt 		= subdiv.ref_even_inner_nbr_weight(aaNumManifoldEdges[vrt]);
-
-	//	Exclude horizontal slaves of the currently smoothed vertex to avoid multiple contributions to centroid
-		#ifdef UG_PARALLEL
-			if(dgm.is_ghost(vrt))
-				continue;
-
-			if(dgm.contains_status(vrt, ES_H_SLAVE))
-			{
-				VecScaleAppend(aaSmoothBndPosEvenVrt[vrt], nbrWgt, p);
-				continue;
-			}
-		#endif
-
-		VecScaleAppend(aaSmoothBndPosEvenVrt[vrt], centerWgt, aaPos[vrt], nbrWgt, p);
 	}
 
 	/*
@@ -631,75 +634,74 @@ void CalculateSmoothManifoldPosInParentLevel(MultiGrid& mg, MGSubsetHandler& mar
 				continue;
 		#endif
 
-	//	Skip edges not belonging to marked boundary manifold subsets
-		if(markSH.get_subset_index(e) == -1)
+	//	In case of marked manifold edges, which do not belong to the user-specified linear boundary manifold subsets,
+	//	and activated subdivision Loop refinement calculate subdivision surfaces smooth position
+		if(markSH.get_subset_index(e) != -1 && linearBndManifoldSubsetsSH.get_subset_index(e) == -1)
 		{
-			continue;
-		}
+		//	perform loop subdivision on odd manifold vertices
+		//	get the neighbored manifold triangles
+			std::vector<Face*> associatedFaces;
+			std::vector<Face*> associatedManifoldFaces;
 
-	//	perform loop subdivision on odd manifold vertices
-	//	get the neighbored manifold triangles
-		std::vector<Face*> associatedFaces;
-		std::vector<Face*> associatedManifoldFaces;
+			CollectAssociated(associatedFaces, mg, e);
 
-		CollectAssociated(associatedFaces, mg, e);
-
-		for(size_t i = 0; i < associatedFaces.size(); ++i)
-		{
-			if(markSH.get_subset_index(associatedFaces[i]) != -1)
+			for(size_t i = 0; i < associatedFaces.size(); ++i)
 			{
-			//	Exclude ghost and horizontal slave manifold faces
-				#ifdef UG_PARALLEL
-					if(dgm.is_ghost(associatedFaces[i]))
-						continue;
+				if(markSH.get_subset_index(associatedFaces[i]) != -1 && linearBndManifoldSubsetsSH.get_subset_index(associatedFaces[i]) == -1)
+				{
+				//	Exclude ghost and horizontal slave manifold faces
+					#ifdef UG_PARALLEL
+						if(dgm.is_ghost(associatedFaces[i]))
+							continue;
 
-					if(dgm.contains_status(associatedFaces[i], ES_H_SLAVE))
+						if(dgm.contains_status(associatedFaces[i], ES_H_SLAVE))
+							continue;
+					#endif
+
+					if(associatedManifoldFaces.size() < 2)
+					{
+						associatedManifoldFaces.push_back(associatedFaces[i]);
+					}
+				}
+			}
+
+			if(associatedManifoldFaces.size() <= 2)
+			{
+			//	Check, if all faces are triangles
+				for(size_t i = 0; i < associatedManifoldFaces.size(); ++i)
+				{
+					if(associatedManifoldFaces[i]->num_vertices() != 3)
+					{
+						UG_THROW("ERROR in CalculateSmoothManifoldPosInParentLevel: Non triangular faces included in grid.");
+					}
+				}
+
+			//	Summate centroid of face adjacent vertices
+				for(size_t i = 0; i < associatedManifoldFaces.size(); ++i)
+				{
+					VecAdd(p, p, aaPos[GetConnectedVertex(e, associatedManifoldFaces[i])]);
+				}
+
+			//	Exclude ghost and horizontal slaves of the parent edge vertices of the currently smoothed vertex
+			//	to avoid multiple contributions to the centroid of the edge adjacent vertices
+				#ifdef UG_PARALLEL
+					if(dgm.is_ghost(e))
+					{
 						continue;
+					}
+
+					if(dgm.contains_status(e, ES_H_SLAVE))
+					{
+						VecScaleAppend(aaSmoothBndPosOddVrt[e], 0.125, p);
+						continue;
+					}
 				#endif
 
-				if(associatedManifoldFaces.size() < 2)
-				{
-					associatedManifoldFaces.push_back(associatedFaces[i]);
-				}
+				VecScaleAppend(aaSmoothBndPosOddVrt[e], 0.375, aaPos[e->vertex(0)], 0.375, aaPos[e->vertex(1)], 0.125, p);
 			}
+			else
+				UG_THROW("ERROR in CalculateSmoothManifoldPosInParentLevel: numAssociatedManifoldFaces > 2.");
 		}
-
-		if(associatedManifoldFaces.size() <= 2)
-		{
-		//	Check, if all faces are triangles
-			for(size_t i = 0; i < associatedManifoldFaces.size(); ++i)
-			{
-				if(associatedManifoldFaces[i]->num_vertices() != 3)
-				{
-					UG_THROW("ERROR in CalculateSmoothManifoldPosInParentLevel: Non triangular faces included in grid.");
-				}
-			}
-
-		//	Summate centroid of face adjacent vertices
-			for(size_t i = 0; i < associatedManifoldFaces.size(); ++i)
-			{
-				VecAdd(p, p, aaPos[GetConnectedVertex(e, associatedManifoldFaces[i])]);
-			}
-
-		//	Exclude ghost and horizontal slaves of the parent edge vertices of the currently smoothed vertex
-		//	to avoid multiple contributions to the centroid of the edge adjacent vertices
-			#ifdef UG_PARALLEL
-				if(dgm.is_ghost(e))
-				{
-					continue;
-				}
-
-				if(dgm.contains_status(e, ES_H_SLAVE))
-				{
-					VecScaleAppend(aaSmoothBndPosOddVrt[e], 0.125, p);
-					continue;
-				}
-			#endif
-
-			VecScaleAppend(aaSmoothBndPosOddVrt[e], 0.375, aaPos[e->vertex(0)], 0.375, aaPos[e->vertex(1)], 0.125, p);
-		}
-		else
-			UG_THROW("ERROR in CalculateSmoothManifoldPosInParentLevel: numAssociatedManifoldFaces > 2.");
 	}
 
 //	Manage vertex and edge attachment communication in parallel case -> COMMUNICATE aSmoothBndPosEvenVrt, aSmoothBndPosOddVrt
@@ -765,11 +767,13 @@ void CalculateNumElemsVertexAttachment(MultiGrid& mg, MGSubsetHandler& markSH, A
 /** This function calculates the number of associated manifold edges
  * 	for all parent level vertices.
  *
- * 	@param mg						reference to MultiGrid
- * 	@param markSH					reference to SubsetHandler markSH containing marked (inner) boundary manifold
- * 	@param aNumManifoldEdges		reference to aNumManifoldEdges
+ * 	@param mg							reference to MultiGrid
+ * 	@param markSH						reference to SubsetHandler markSH containing marked (inner) boundary manifold
+ * 	@param linearBndManifoldSubsetsSH	reference to user-specified linearBndManifoldSubsets SubsetHandler
+ * 	@param aNumManifoldEdges			reference to aNumManifoldEdges
 **/
-void CalculateNumManifoldEdgesVertexAttachmentInParentLevel(MultiGrid& mg, MGSubsetHandler& markSH, AInt& aNumManifoldEdges)
+void CalculateNumManifoldEdgesVertexAttachmentInParentLevel(MultiGrid& mg, MGSubsetHandler& markSH,
+															MGSubsetHandler& linearBndManifoldSubsetsSH, AInt& aNumManifoldEdges)
 {
 #ifdef UG_PARALLEL
 	DistributedGridManager& dgm = *mg.distributed_grid_manager();
@@ -787,8 +791,9 @@ void CalculateNumManifoldEdgesVertexAttachmentInParentLevel(MultiGrid& mg, MGSub
 	{
 		Edge* e = *eIter;
 
-	// 	Check, if edge is contained in subset with marked manifold elements
-		if (markSH.get_subset_index(e) != -1)
+	// 	Check, if edge is contained in subset with marked manifold elements which do not belong to the
+	//	user-specified linear boundary manifold subsets
+		if (markSH.get_subset_index(e) != -1 && linearBndManifoldSubsetsSH.get_subset_index(e) == -1)
 		{
 		//	Skip ghost and horizontal slave edges
 			#ifdef UG_PARALLEL
@@ -816,19 +821,129 @@ void CalculateNumManifoldEdgesVertexAttachmentInParentLevel(MultiGrid& mg, MGSub
 }
 
 
+/// Function to return SmartPtr to the linear boundary manifold subsets SubsetHandler user-specified subsets
+/** This function returns a SmartPtr to the linear boundary manifold subsets SubsetHandler
+ * 	s.t. user-specified subsets
+ *
+ * 	@param dom							reference to Domain
+ * 	@param linearBndManifoldSubsetsSH	reference to user-specified linearBndManifoldSubsets SubsetHandler
+**/
+//SmartPtr<MGSubsetHandler> LinearBndManifoldSubsetsSubsetHandler(MultiGrid& mg, MGSubsetHandler& sh,
+void InitLinearBndManifoldSubsetsSubsetHandler(MultiGrid& mg, MGSubsetHandler& sh,
+											   MGSubsetHandler& linearBndManifoldSubsetsSH, const char* linearBndManifoldSubsets)
+{
+//	Init new SmartPtr to linear boundary manifold subsets SubsetHandler from MultiGrid
+	//SmartPtr<MGSubsetHandler> spLinearBndManifoldSubsetsSH(new MGSubsetHandler(mg));
+	//MGSubsetHandler spLinearBndManifoldSubsetsSH(mg);
+
+//	tokenize user input
+	std::vector<std::string> linearBndManifoldSubsetsString = TokenizeString(linearBndManifoldSubsets);
+
+//	remove white space
+	for(size_t i = 0; i < linearBndManifoldSubsetsString.size(); ++i)
+	{
+		RemoveWhitespaceFromString(linearBndManifoldSubsetsString[i]);
+	}
+
+//	if no subset passed, clear subsets
+	if(linearBndManifoldSubsetsString.size() == 1 && linearBndManifoldSubsetsString[0].empty())
+	{
+		linearBndManifoldSubsetsString.clear();
+	}
+
+//	if subsets passed with separator, but not all tokens filled, throw error
+	for(size_t i = 0; i < linearBndManifoldSubsetsString.size(); ++i)
+	{
+		if(linearBndManifoldSubsetsString.empty())
+		{
+			UG_THROW(	"ERROR in ApplySmoothSubdivisionToTopLevel: LinearBndManifoldSubsetsSubsetHandler: "
+						"linear boundary manifold subsets string passed lacks a "
+						"subset specification at position "<<i<<"(of "
+						<<linearBndManifoldSubsetsString.size()-1<<")");
+		}
+	}
+
+// 	assign all user specified vertices to linear boundary manifold subsets SubsetHandler
+	for(size_t i = 0; i < linearBndManifoldSubsetsString.size(); ++i)
+	{
+		int j = sh.get_subset_index(linearBndManifoldSubsetsString[i].c_str());
+
+		for(VertexIterator vrtIter = sh.begin<Vertex>(j, mg.top_level()); vrtIter != sh.end<Vertex>(j, mg.top_level()); ++vrtIter)
+		{
+			Vertex* vrt = *vrtIter;
+			linearBndManifoldSubsetsSH.assign_subset(vrt, 0);
+		}
+
+		for(VertexIterator vrtIter = sh.begin<Vertex>(j, mg.top_level()-1); vrtIter != sh.end<Vertex>(j, mg.top_level()-1); ++vrtIter)
+		{
+			Vertex* vrt = *vrtIter;
+			linearBndManifoldSubsetsSH.assign_subset(vrt, 0);
+		}
+	}
+
+// 	assign all user specified edges to linear boundary manifold subsets SubsetHandler
+	for(size_t i = 0; i < linearBndManifoldSubsetsString.size(); ++i)
+	{
+		int j = sh.get_subset_index(linearBndManifoldSubsetsString[i].c_str());
+
+		for(EdgeIterator eIter = sh.begin<Edge>(j, mg.top_level()); eIter != sh.end<Edge>(j, mg.top_level()); ++eIter)
+		{
+			Edge* e = *eIter;
+			linearBndManifoldSubsetsSH.assign_subset(e, 0);
+		}
+
+		for(EdgeIterator eIter = sh.begin<Edge>(j, mg.top_level()-1); eIter != sh.end<Edge>(j, mg.top_level()-1); ++eIter)
+		{
+			Edge* e = *eIter;
+			linearBndManifoldSubsetsSH.assign_subset(e, 0);
+		}
+	}
+
+// 	assign all user specified faces to linear boundary manifold subsets SubsetHandler
+	for(size_t i = 0; i < linearBndManifoldSubsetsString.size(); ++i)
+	{
+		int j = sh.get_subset_index(linearBndManifoldSubsetsString[i].c_str());
+
+		for(FaceIterator fIter = sh.begin<Face>(j, mg.top_level()); fIter != sh.end<Face>(j, mg.top_level()); ++fIter)
+		{
+			Face* f = *fIter;
+			linearBndManifoldSubsetsSH.assign_subset(f, 0);
+		}
+
+		for(FaceIterator fIter = sh.begin<Face>(j, mg.top_level()-1); fIter != sh.end<Face>(j, mg.top_level()-1); ++fIter)
+		{
+			Face* f = *fIter;
+			linearBndManifoldSubsetsSH.assign_subset(f, 0);
+		}
+	}
+
+//	Debug log
+	for(size_t i = 0; i < linearBndManifoldSubsetsString.size(); ++i)
+	{
+		UG_LOG(linearBndManifoldSubsetsString[i] << "; " << sh.get_subset_index(linearBndManifoldSubsetsString[i].c_str()) << std::endl);
+	}
+}
+
+
 /// Function to create a smooth subdivision volumes hierarchy
 /** This function transforms a linearly refined hybrid tetra-/octahedral volume
  * 	grid hierarchy into a smoothed subdivision volumes hierarchy
  * 	(s. Schaefer et al, "Smooth subdivision of tetrahedral meshes", 2004)
  *
- * 	@param mg					reference to MultiGrid
- * 	@param markSH				reference to SubsetHandler containing marked (inner) boundary manifold
+ * 	@param mg							reference to MultiGrid
+ * 	@param sh							reference to standard SubsetHandler
+ * 	@param markSH						reference to SubsetHandler containing marked (inner) boundary manifold
+ * 	@param linearBndManifoldSubsets 	user-specified linearBndManifoldSubsets
 **/
-void ApplySmoothSubdivisionToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH)
+void ApplySmoothSubdivisionToTopLevel(MultiGrid& mg, MGSubsetHandler& sh, MGSubsetHandler& markSH, const char* linearBndManifoldSubsets)
 {
 //	Ensure, that hybrid tet-/oct refinement is used as refinement rule for tetrahedrons
 	if(tet_rules::GetRefinementRule() != tet_rules::HYBRID_TET_OCT)
 		UG_THROW("ERROR in ApplySubdivisionVolumesToTopLevel: Set necessary refinement rule by SetTetRefinementRule('hybrid_tet_oct').");
+
+//	Init linear boundary manifold subsets SubsetHandler from domain and user-specified subsets
+	MGSubsetHandler linearBndManifoldSubsetsSH(mg);
+	InitLinearBndManifoldSubsetsSubsetHandler(mg, sh, linearBndManifoldSubsetsSH, linearBndManifoldSubsets);
 
 //	Vertex attachments for associated number of elements, number of manifold edges and smooth position
 //	(distinguish between volume and boundary smooth vertex positions
@@ -891,7 +1006,7 @@ void ApplySmoothSubdivisionToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH)
  *
  *****************************************/
 
-	CalculateNumManifoldEdgesVertexAttachmentInParentLevel(mg, markSH, aNumManifoldEdges);
+	CalculateNumManifoldEdgesVertexAttachmentInParentLevel(mg, markSH, linearBndManifoldSubsetsSH, aNumManifoldEdges);
 
 
 /*****************************************
@@ -939,7 +1054,7 @@ void ApplySmoothSubdivisionToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH)
 
 	if(g_boundaryRefinementRule == SUBDIV_LOOP)
 	{
-		CalculateSmoothManifoldPosInParentLevel(mg, markSH, aSmoothBndPosEvenVrt, aSmoothBndPosOddVrt, aNumManifoldEdges);
+		CalculateSmoothManifoldPosInParentLevel(mg, markSH, linearBndManifoldSubsetsSH, aSmoothBndPosEvenVrt, aSmoothBndPosOddVrt, aNumManifoldEdges);
 	}
 
 
@@ -952,7 +1067,7 @@ void ApplySmoothSubdivisionToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH)
 //	Loop all vertices of top level
 	if(g_boundaryRefinementRule != SUBDIV_VOL)
 	{
-		CalculateSmoothManifoldPosInTopLevel(mg, markSH, aSmoothBndPos, aSmoothBndPosEvenVrt, aSmoothBndPosOddVrt);
+		CalculateSmoothManifoldPosInTopLevel(mg, markSH, linearBndManifoldSubsetsSH, aSmoothBndPos, aSmoothBndPosEvenVrt, aSmoothBndPosOddVrt);
 	}
 
 
@@ -999,10 +1114,14 @@ void ApplySmoothSubdivisionToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH)
 				VecScale(aaSmoothVolPos[vrt],  aaSmoothVolPos[vrt], 1.0/aaNumElems[vrt]);
 				VecScale(aaPos[vrt], aaSmoothVolPos[vrt], 1.0);
 			}
-			else
+		//	In case of marked manifold vertices, which do not belong to the user-specified linear boundary manifold subsets,
+		//	and activated subdivision Loop refinement apply subdivision surfaces smooth position
+			else if(markSH.get_subset_index(vrt) != -1 && linearBndManifoldSubsetsSH.get_subset_index(vrt) == -1)
 			{
 				VecScale(aaPos[vrt], aaSmoothBndPos[vrt], 1.0);
 			}
+			else
+				continue;
 		}
 		else if(g_boundaryRefinementRule == LINEAR)
 		{
