@@ -62,9 +62,6 @@ if(buildGrid)
 						grid_bridges/subset_handler_bridge.cpp)
 endif(buildGrid)
 
-set(srcUGBridge     ${srcUGBridge}
-					misc_bridges/pcl_bridge.cpp)
-
 # if algebra is enabled, we have to add additional src-files and link with the
 # discretization module.
 if(buildAlgebra)
