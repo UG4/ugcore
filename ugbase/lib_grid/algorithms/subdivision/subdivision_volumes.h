@@ -48,6 +48,11 @@
 	#include "pcl/pcl_interface_communicator.h"
 #endif
 
+#include "lib_disc/local_finite_element/local_finite_element_provider.h"
+#include "lib_disc/local_finite_element/local_dof_set.h"
+#include "lib_disc/reference_element/reference_mapping_provider.h"
+#include "lib_disc/reference_element/reference_element_util.h"
+
 namespace ug
 {
 
@@ -1147,6 +1152,108 @@ void ApplySmoothSubdivisionToTopLevel(MultiGrid& mg, MGSubsetHandler& sh, MGSubs
 	mg.detach_from_vertices(aSmoothBndPos);
 	mg.detach_from_vertices(aSmoothBndPosEvenVrt);
 	mg.detach_from_edges(aSmoothBndPosOddVrt);
+}
+
+
+//	Experimental reference mapping test procedures
+void OctReferenceMappingTest(std::vector<number> vCornerCoord0, std::vector<number> vCornerCoord1, std::vector<number> vCornerCoord2,
+						  	 std::vector<number> vCornerCoord3, std::vector<number> vCornerCoord4, std::vector<number> vCornerCoord5,
+							 std::vector<number> vGlobPos)
+{
+	UG_LOG(">> Starting OctReferenceMappingTest: " << std::endl);
+
+	std::vector<MathVector<3, number> > vCornerCoords;
+	std::vector<MathVector<3, number> > vLocPos(1, 0.0);
+	std::vector<MathVector<3, number> > vGlobPositions;
+
+	MathVector<3> GlobPos(vGlobPos[0], vGlobPos[1], vGlobPos[2]);
+	vGlobPositions.push_back(GlobPos);
+
+	MathVector<3> CornerCoord0(vCornerCoord0[0], vCornerCoord0[1], vCornerCoord0[2]);
+	MathVector<3> CornerCoord1(vCornerCoord1[0], vCornerCoord1[1], vCornerCoord1[2]);
+	MathVector<3> CornerCoord2(vCornerCoord2[0], vCornerCoord2[1], vCornerCoord2[2]);
+	MathVector<3> CornerCoord3(vCornerCoord3[0], vCornerCoord3[1], vCornerCoord3[2]);
+	MathVector<3> CornerCoord4(vCornerCoord4[0], vCornerCoord4[1], vCornerCoord4[2]);
+	MathVector<3> CornerCoord5(vCornerCoord5[0], vCornerCoord5[1], vCornerCoord5[2]);
+
+	vCornerCoords.push_back(CornerCoord0);
+	vCornerCoords.push_back(CornerCoord1);
+	vCornerCoords.push_back(CornerCoord2);
+	vCornerCoords.push_back(CornerCoord3);
+	vCornerCoords.push_back(CornerCoord4);
+	vCornerCoords.push_back(CornerCoord5);
+
+	try
+	{
+		DimReferenceMapping<3, 3>& map = ReferenceMappingProvider::get<3, 3>(ROID_OCTAHEDRON, vCornerCoords);
+		map.global_to_local(vLocPos, vGlobPositions);
+	}
+	UG_CATCH_THROW("OctReferenceMappingTest() could not map global to local.");
+
+	UG_LOG("Calculated vLocPos: " << vLocPos[0] << std::endl);
+}
+
+
+void TetReferenceMappingTest(std::vector<number> vCornerCoord0, std::vector<number> vCornerCoord1, std::vector<number> vCornerCoord2,
+						  	 std::vector<number> vCornerCoord3, std::vector<number> vGlobPos)
+{
+	UG_LOG(">> Starting TetReferenceMappingTest: " << std::endl);
+
+	std::vector<MathVector<3, number> > vCornerCoords;
+	std::vector<MathVector<3, number> > vLocPos(1, 0.0);
+	std::vector<MathVector<3, number> > vGlobPositions;
+
+	MathVector<3> GlobPos(vGlobPos[0], vGlobPos[1], vGlobPos[2]);
+	vGlobPositions.push_back(GlobPos);
+
+	MathVector<3> CornerCoord0(vCornerCoord0[0], vCornerCoord0[1], vCornerCoord0[2]);
+	MathVector<3> CornerCoord1(vCornerCoord1[0], vCornerCoord1[1], vCornerCoord1[2]);
+	MathVector<3> CornerCoord2(vCornerCoord2[0], vCornerCoord2[1], vCornerCoord2[2]);
+	MathVector<3> CornerCoord3(vCornerCoord3[0], vCornerCoord3[1], vCornerCoord3[2]);
+
+	vCornerCoords.push_back(CornerCoord0);
+	vCornerCoords.push_back(CornerCoord1);
+	vCornerCoords.push_back(CornerCoord2);
+	vCornerCoords.push_back(CornerCoord3);
+
+	try
+	{
+		DimReferenceMapping<3, 3>& map = ReferenceMappingProvider::get<3, 3>(ROID_TETRAHEDRON, vCornerCoords);
+		map.global_to_local(vLocPos, vGlobPositions);
+	}
+	UG_CATCH_THROW("TetReferenceMappingTest() could not map global to local.");
+
+	UG_LOG("Calculated vLocPos: " << vLocPos[0] << std::endl);
+	UG_LOG("PointIsInsideTetrahedron: " << PointIsInsideTetrahedron(GlobPos, CornerCoord0, CornerCoord1, CornerCoord2, CornerCoord3) << std::endl);
+}
+
+
+void EdgeReferenceMappingTest(std::vector<number> vCornerCoord0, std::vector<number> vCornerCoord1,
+							  std::vector<number> vGlobPos)
+{
+	UG_LOG(">> Starting EdgeReferenceMappingTest: " << std::endl);
+
+	std::vector<MathVector<3, number> > vCornerCoords;
+	std::vector<MathVector<1, number> > vLocPos(1, 0.0);
+	std::vector<MathVector<3, number> > vGlobPositions;
+
+	MathVector<3> GlobPos(vGlobPos[0], vGlobPos[1], vGlobPos[2]);
+	vGlobPositions.push_back(GlobPos);
+
+	MathVector<3> CornerCoord0(vCornerCoord0[0], vCornerCoord0[1], vCornerCoord0[2]);
+	MathVector<3> CornerCoord1(vCornerCoord1[0], vCornerCoord1[1], vCornerCoord1[2]);
+
+	vCornerCoords.push_back(CornerCoord0);
+	vCornerCoords.push_back(CornerCoord1);
+
+	try
+	{
+		DimReferenceMapping<1, 3>& map = ReferenceMappingProvider::get<1, 3>(ROID_EDGE, vCornerCoords);
+		map.global_to_local(vLocPos, vGlobPositions);
+	}
+	UG_CATCH_THROW("EdgeReferenceMappingTest() could not map global to local.");
+
+	UG_LOG("Calculated vLocPos: " << vLocPos[0] << std::endl);
 }
 
 
