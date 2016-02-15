@@ -43,7 +43,7 @@
 namespace ug{
 
 extern DebugID DID_REFERENCE_MAPPING;
-extern DebugID DID_REFERENCE_MAPPING_GLOB2LOC;
+extern DebugID DID_REFERENCE_MAPPING;
 
 /**
  * This class describes the mapping from a reference element into the real
@@ -228,10 +228,10 @@ class BaseReferenceMapping
 				getImpl().local_to_global(compGlobPos, locPos);
 				VecSubtract(dist, compGlobPos, globPos);
 
-				UG_DLOG(DID_REFERENCE_MAPPING_GLOB2LOC, 2,
+				UG_DLOG(DID_REFERENCE_MAPPING, 1,
 						"reference_mapping.h: global_to_local() Newton iteration: Iter# "
-						<< i << "; fabs(VecTwoNorm(dist)) = " << fabs(VecTwoNorm(dist))
-						<< "; dist = " << dist << "; locPos: " << locPos << std::endl);
+						<< i << "; fabs(VecTwoNorm(dist)) = " << fabs(VecTwoNorm(dist)) <<
+						"; dist = " << dist << "; locPos: " << locPos << std::endl);
 
 			//	check if tol reached
 				if(VecTwoNormSq(dist) < tolSq) return;
@@ -250,11 +250,11 @@ class BaseReferenceMapping
 			UG_COND_THROW(!maxIter, "Without a single iteration, local-to-global "
 						  "mapping can never converge.");
 
-			UG_DLOG(DID_REFERENCE_MAPPING_GLOB2LOC, 2, "Last JInv:" << std::endl);
+			UG_DLOG(DID_REFERENCE_MAPPING, 1, "Last JInv:" << std::endl);
 			for(int i = 0; i < 3; ++i)
 			{
-				UG_DLOG(DID_REFERENCE_MAPPING_GLOB2LOC, 2,
-						<< JInv(i, 0) << "; " << JInv(i, 1) << "; " << JInv(i, 2) << std::endl);
+				UG_DLOG(DID_REFERENCE_MAPPING, 1,
+						JInv(i, 0) << "; " << JInv(i, 1) << "; " << JInv(i, 2) << std::endl);
 			}
 
 			UG_THROW("ReferenceMapping::global_to_local: Newton method did not"
