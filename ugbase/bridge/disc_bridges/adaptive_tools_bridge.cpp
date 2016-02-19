@@ -250,6 +250,20 @@ static void Domain(Registry& reg, string grp)
 	}
 
 
+	//  GlobalMarking
+	{
+		typedef GlobalMarking<TDomain> T;
+		typedef IElementMarkingStrategy<TDomain> TBase;
+		string name = string("GlobalMarking").append(suffix);
+		reg.add_class_<T, TBase>(name, grp)
+			.template add_constructor<void (*)(number, int)>("tolerated max error#max level")
+			.add_method("set_tolerance", &T::set_tolerance)
+			.add_method("set_max_level", &T::set_max_level)
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "GlobalMarking", tag);
+	}
+
+
 	//  StdCoarseningStrategy
 	{
 		typedef StdCoarseningMarkingStrategy<TDomain> T;

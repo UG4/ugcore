@@ -91,6 +91,58 @@ void StdRefinementMarkingStrategy<TDomain>::mark(typename base_type::elem_access
 	MarkElementsForRefinement<typename base_type::elem_type>(aaError, refiner, dd, m_tol, m_max_level);
 }
 
+
+
+/// mark everything if error too high and refinement allowed
+template <typename TDomain>
+class GlobalMarking : public IElementMarkingStrategy<TDomain>
+{
+
+public:
+	typedef IElementMarkingStrategy<TDomain> base_type;
+
+	GlobalMarking(number tol, size_t max_level)
+	: m_tol(tol), m_max_level(max_level) {};
+
+	void set_tolerance(number tol) {m_tol = tol;}
+	void set_max_level(size_t max_level) {m_max_level = max_level;}
+
+	void mark(typename base_type::elem_accessor_type& aaError,
+				IRefiner& refiner,
+				ConstSmartPtr<DoFDistribution> dd);
+
+protected:
+
+	number m_tol;
+	size_t m_max_level;
+};
+
+template <typename TDomain>
+void GlobalMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaError,
+				IRefiner& refiner,
+				ConstSmartPtr<DoFDistribution> dd)
+{
+	number minElemErr;
+	number maxElemErr;
+	number errTotal;
+	size_t numElem;
+
+	ComputeMinMaxTotal(aaError, dd, minElemErr, maxElemErr, errTotal, numElem);
+	if (errTotal <= m_tol || dd->multi_grid()->num_levels() > m_max_level)
+		return;
+
+	typedef typename DoFDistribution::traits<typename base_type::elem_type>::const_iterator const_iterator;
+
+	const_iterator iter = dd->template begin<typename base_type::elem_type>();
+	const_iterator iterEnd = dd->template end<typename base_type::elem_type>();
+
+//	loop elements for marking
+	for (; iter != iterEnd; ++iter)
+		refiner.mark(*iter, RM_REFINE);
+}
+
+
+
 /// M. Breit's standard coarsening strategy
 template <typename TDomain>
 class StdCoarseningMarkingStrategy : public IElementMarkingStrategy<TDomain>
