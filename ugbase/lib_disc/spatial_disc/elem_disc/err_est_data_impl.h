@@ -146,7 +146,7 @@ SideAndElemErrEstData<TDomain>::SideAndElemErrEstData
 
 	if (m_vSs.size() == 0)
 	{
-		UG_LOG("Warning: SideAndElemErrEstData ist constructed without definition of subsets. This is likely not to work.\n"
+		UG_LOG("Warning: SideAndElemErrEstData is constructed without definition of subsets. This is likely not to work.\n"
 			   "Please specify a subset of the same dimension as your domain that the error estimator is supposed to work on.\n");
 	}
 
@@ -173,7 +173,7 @@ SideAndElemErrEstData<TDomain>::SideAndElemErrEstData
 
 	if (m_vSs.size() == 0)
 	{
-		UG_LOG("Warning: SideAndElemErrEstData ist constructed without definition of subsets. This is likely not to work.\n"
+		UG_LOG("Warning: SideAndElemErrEstData is constructed without definition of subsets. This is likely not to work.\n"
 					   "Please specify a subset of the same dimension as your domain that the error estimator is supposed to work on.\n");
 	}
 
@@ -191,9 +191,6 @@ void SideAndElemErrEstData<TDomain>::init_quadrature()
 	// and fill IP indexing structure along the way
 	for (ReferenceObjectID roid = ROID_VERTEX; roid != NUM_REFERENCE_OBJECTS; roid++)
 	{
-		// no reference elements for octahedra so far
-		if (roid == ROID_OCTAHEDRON) continue;
-
 		// get reference element for roid
 		const ReferenceElement& re = ReferenceElementProvider::get(roid);
 		int ref_dim = re.dimension();

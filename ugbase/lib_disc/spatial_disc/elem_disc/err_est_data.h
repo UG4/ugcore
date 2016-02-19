@@ -237,7 +237,7 @@ public:
 		typedef SideAndElemErrEstData<TDomain> this_type;
 
 	/// maximal number of sides of any element
-		static const int MAX_NUM_SIDES = 6;
+		static const int MAX_NUM_SIDES = 8;
 
 public:
 	/// constructors
