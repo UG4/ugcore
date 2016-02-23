@@ -128,14 +128,8 @@ set(profilerDefault "None")
 # Option to set frequency
 set(cpufreqDefault OFF)
 
-# If we run the script the first time, search for MPI to determine the default value
-if(LOCAL_OPENMPI)
-	message("local openmpi")
-	set(MPI_C_INCLUDE_PATH "~/local/openmpi/used/include")
-	set(MPI_CXX_INCLUDE_PATH "~/local/openmpi/used/include")
-	set(MPI_C_LIBRARIES "mpi")
-	set(MPI_CXX_LIBRARIES "mpi;mpi_cxx")
-endif(LOCAL_OPENMPI)
+# If we run the script the first time, search for MPI to determine the default value.
+# Note that you may use -DMPI_DIR=... to set a custom MPI path.
 if(BUILTIN_MPI)
 	set(MPI_FOUND YES)
 else(BUILTIN_MPI)

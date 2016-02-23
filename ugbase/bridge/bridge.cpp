@@ -51,6 +51,10 @@ namespace bridge
 
 const char* UG4_GRP = "/ug4";
 
+///	the dimension to which ug was initialized through InitUG
+/** This dimension can be accessed through GetUGDim()*/
+static int UG4_DIM = -1;
+
 Registry & GetUGRegistry()
 {
 	static Registry ugReg;
@@ -73,6 +77,8 @@ void InitBridge()
 void InitUG(int dim, const AlgebraType& algType, bool verbose)
 {
 	PROFILE_FUNC();
+	UG4_DIM = dim;
+
 //	get tag of algebra type
 	const std::string& algTag = GetAlgebraTag(algType);
 	int blocksize = algType.blocksize();
@@ -192,6 +198,11 @@ void InitUG(int dim, const AlgebraType& algType)
 }
 
 
+int GetUGDim()
+{
+	return UG4_DIM;
+}
+
 void RegisterStandardBridges(Registry& reg, string parentGroup)
 {
 	try
@@ -277,6 +288,7 @@ void RegisterStandardBridges(Registry& reg, string parentGroup)
 		reg.add_function("InitUG", static_cast<void (*)(int, const AlgebraType&)>(&InitUG), "/ug4/Init",
 		                 "", string("Dimension|selection|value=[").append(availDims.str()).
 		                 	 append("]#AlgebraType"));
+		reg.add_function("GetUGDim", &GetUGDim, "/ug4", "dimension", "", "Returns the dimension to which UG was initialized.");
 
 	// 	AlgebraType Interface
 		reg.add_class_<AlgebraType>("AlgebraType", "/ug4/Init")

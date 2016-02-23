@@ -62,6 +62,10 @@ UG_API void InitUG(int dim, const AlgebraType& algebraType);
 /// calls RegisterStandardInterfaces and LoadPlugins if UG_PLUGINS is defined
 UG_API void InitBridge();
 
+///	returns the dimension to which UG was initialized through InitUG
+/** If ug::bridge::InitUG hasn't been called, the method returns -1.*/
+UG_API int GetUGDim();
+
 ///	registers all standard interfaces.
 /**	This method is called by the constructor of Registry automatically.
  *	You don't have to call it yourself!
