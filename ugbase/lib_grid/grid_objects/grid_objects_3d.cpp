@@ -608,7 +608,7 @@ bool Octahedron::refine(std::vector<Volume*>& vNewVolumesOut,
 							Vertex* newVolumeVertex,
 							const Vertex& prototypeVertex,
 							Vertex** pSubstituteVertices,
-							vector3*)
+							vector3* corners)
 {
 //	handle substitute vertices.
 	Vertex** vrts;
@@ -620,7 +620,7 @@ bool Octahedron::refine(std::vector<Volume*>& vNewVolumesOut,
 	return Refine<OctahedronClass>(vNewVolumesOut, ppNewVertexOut,
 									newEdgeVertices, newFaceVertices,
 									newVolumeVertex, prototypeVertex,
-									vrts, oct_rules::Refine);
+									vrts, oct_rules::Refine, corners);
 }
 
 void Octahedron::get_flipped_orientation(VolumeDescriptor& vdOut)  const
