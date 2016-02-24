@@ -29,8 +29,7 @@
  * GNU Lesser General Public License for more details.
  */
 
-//  This file is parsed from UG 3.9.
-//  It provides the Gauss Quadratures for a reference pyramid.
+//  This file provides the Gauss Quadratures for a reference octahedron.
 
 
 #include "../quadrature.h"
