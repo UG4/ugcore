@@ -1222,21 +1222,19 @@ class ReferenceMapping<ReferenceOctahedron, TWorldDim>
 		void local_to_global(MathVector<worldDim>& globPos,
 							 const MathVector<dim>& locPos) const
 		{
-			const number a = 1.0 - locPos[0];
-			const number b = 1.0 - locPos[1];
-
-		//	map analogously to pyramidal case introducing additional distinction of cases
-		//	z >= 0 and z < 0
+		//	the octahedral shape functions correspond to the tetrahedral ones,
+		//	but locally piecewise linear on a subdivision of the octahedron
+		//	into 4 sub-tetrahedrons.
 			const number z_sgn 	= (locPos[2] < 0) ? -1.0 : 1.0;
 			const number a0	 	= (locPos[2] < 0) ? -locPos[2] : 0.0;
 			const number a5	 	= (locPos[2] < 0) ?  0.0 : locPos[2];
 
 			if (locPos[0] > locPos[1])
 			{
-				const number a1 = a * b - z_sgn * locPos[2] * b;
-				const number a2 = locPos[0] * b - z_sgn * locPos[2] * locPos[1];
-				const number a3 = locPos[0] * locPos[1] + z_sgn * locPos[2] * locPos[1];
-				const number a4 = a * locPos[1] - z_sgn * locPos[2] * locPos[1];
+				const number a1 = 1.0 - locPos[0] - z_sgn * locPos[2];
+				const number a2 = locPos[0] - locPos[1];
+				const number a3 = locPos[1];
+				const number a4 = 0.0;
 
 				for(int d = 0; d < worldDim; ++d)
 					globPos[d] = a0*x[0][d]+a1*x[1][d]+a2*x[2][d]
@@ -1244,14 +1242,14 @@ class ReferenceMapping<ReferenceOctahedron, TWorldDim>
 			}
 			else
 			{
-				const number a1 = a * b - z_sgn * locPos[2] * a;
-				const number a2 = locPos[0] * b - z_sgn * locPos[2] * locPos[0];
-				const number a3 = locPos[0] * locPos[1] + z_sgn * locPos[2] * locPos[0];
-				const number a4 = a * locPos[1] - z_sgn * locPos[2] * locPos[0];
+				const number a1 = 1.0 - locPos[1] - z_sgn * locPos[2];
+				const number a2 = 0.0;
+				const number a3 = locPos[0];
+				const number a4 = locPos[1] - locPos[0];
 
 				for(int d = 0; d < worldDim; ++d)
 					globPos[d] = a0*x[0][d]+a1*x[1][d]+a2*x[2][d]
-					            +a3*x[3][d]+a4*x[4][d]+a5*x[5][d];
+								+a3*x[3][d]+a4*x[4][d]+a5*x[5][d];
 			}
 		}
 
@@ -1259,12 +1257,9 @@ class ReferenceMapping<ReferenceOctahedron, TWorldDim>
 		void jacobian_transposed(MathMatrix<dim, worldDim>& JT,
 								 const MathVector<dim>& locPos) const
 	   {
-			number a[3];
-			for(int d = 0; d < worldDim; ++d)
-				a[d] = x[1][d]-x[2][d]+x[3][d]-x[4][d];
-
-		//	map analogously to pyramidal case introducing additional distinction of cases
-		//	z >= 0 and z < 0
+		//	the octahedral shape functions correspond to the tetrahedral ones,
+		//	but locally piecewise linear on a subdivision of the octahedron
+		//	into 4 sub-tetrahedrons.
 			const number z_sgn 	= (locPos[2] < 0) ? -1.0 : 1.0;
 			const number Da0	= (locPos[2] < 0) ? -1.0 : 0.0;
 			const number Da5	= (locPos[2] < 0) ?  0.0 : 1.0;
@@ -1272,24 +1267,24 @@ class ReferenceMapping<ReferenceOctahedron, TWorldDim>
 			if (locPos[0] > locPos[1])
 			{
 				for(int d = 0; d < worldDim; ++d)
-					JT(0,d) = x[2][d]-x[1][d]+locPos[1]*a[d];
+					JT(0,d) = -x[1][d]+x[2][d];
 
 				for(int d = 0; d < worldDim; ++d)
-					JT(1,d) = x[4][d]-x[1][d]+(locPos[0]+ z_sgn*locPos[2])*a[d];
+					JT(1,d) = -x[2][d]+x[3][d];
 
 				for(int d = 0; d < worldDim; ++d)
-					JT(2,d) = (Da5*x[5][d]+Da0*x[0][d]-z_sgn*x[1][d]) + z_sgn*locPos[1]*a[d];
+					JT(2,d) = Da0*x[0][d] - z_sgn*x[1][d] + Da5*x[5][d];
 			}
 			else
 			{
 				for(int d = 0; d < worldDim; ++d)
-					JT(0,d) = x[2][d]-x[1][d]+(locPos[1]+ z_sgn*locPos[2])*a[d];
+					JT(0,d) = x[3][d]-x[4][d];
 
 				for(int d = 0; d < worldDim; ++d)
-					JT(1,d) = x[4][d]-x[1][d]+locPos[0]*a[d];
+					JT(1,d) = -x[1][d]+x[4][d];
 
 				for(int d = 0; d < worldDim; ++d)
-					JT(2,d) = (Da5*x[5][d]+Da0*x[0][d]-z_sgn*x[1][d]) + z_sgn*locPos[0]*a[d];
+					JT(2,d) = Da0*x[0][d] - z_sgn*x[1][d] + Da5*x[5][d];
 			}
 		}
 
