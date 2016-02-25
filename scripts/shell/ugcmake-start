@@ -35,13 +35,13 @@ elif [ $UGSUBMIT_TYPE == "cekon" ]; then
 	echo "ugcmake-start: on Cekon: normal cmake."
 	echo "ugcmake-start: cmake $*"
 	echo ""
-	cmake $* ..
+	cmake $*
 	
 elif [ $UGSUBMIT_TYPE == "cesari" ]; then
 	echo "ugcmake-start: on Cesari: normal cmake."
 	echo "ugcmake-start: cmake $*"
 	echo ""
-	cmake $* ..
+	cmake $*
 			
 elif [[ $UGSUBMIT_TYPE == "Juqueen" ]]; then
 	echo "ugcmake-start: on Juqueen. calling cmake with:"
