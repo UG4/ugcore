@@ -571,8 +571,9 @@ LagrangeP1<ReferenceOctahedron>::shape_type
 LagrangeP1<ReferenceOctahedron>::
 shape(size_t i, const MathVector<dim>& x) const
 {
-//	shape analogously to pyramidal case introducing additional distinction of cases
-//	z >= 0 and z < 0
+//	the octahedral shape functions correspond to the tetrahedral ones,
+//	but locally piecewise linear on a subdivision of the octahedron
+//	into 4 sub-tetrahedrons.
 	const number z_sgn 	= (x[2] < 0) ? -1.0 : 1.0;
 
 	switch(i)
@@ -584,24 +585,24 @@ shape(size_t i, const MathVector<dim>& x) const
 		  return(0.0);
 	  case 1 :
 		if (x[0] > x[1])
-		  return((1.0-x[0])*(1.0-x[1]) + z_sgn*x[2]*(x[1]-1.0));
+		  return(1.0-x[0]-z_sgn*x[2]);
 		else
-		  return((1.0-x[0])*(1.0-x[1]) + z_sgn*x[2]*(x[0]-1.0));
+		  return(1.0-x[1]-z_sgn*x[2]);
 	  case 2 :
 		if (x[0] > x[1])
-		  return(x[0]*(1.0-x[1])       - z_sgn*x[2]*x[1]);
+		  return(x[0]-x[1]);
 		else
-		  return(x[0]*(1.0-x[1])       - z_sgn*x[2]*x[0]);
+	      return(0.0);
 	  case 3 :
 		if (x[0] > x[1])
-		  return(x[0]*x[1]             + z_sgn*x[2]*x[1]);
+		  return(x[1]);
 		else
-		  return(x[0]*x[1]             + z_sgn*x[2]*x[0]);
+		  return(x[0]);
 	  case 4 :
 		if (x[0] > x[1])
-		  return((1.0-x[0])*x[1]       - z_sgn*x[2]*x[1]);
+		  return(0.0);
 		else
-		  return((1.0-x[0])*x[1]       - z_sgn*x[2]*x[0]);
+		  return(x[1]-x[0]);
 	  case 5 :
 		if (x[2] < 0)
 		  return(0.0);
@@ -616,8 +617,9 @@ void
 LagrangeP1<ReferenceOctahedron>::
 grad(grad_type& value, size_t i, const MathVector<dim>& x) const
 {
-//	shape analogously to pyramidal case introducing additional distinction of cases
-//	z >= 0 and z < 0
+//	the octahedral shape functions correspond to the tetrahedral ones,
+//	but locally piecewise linear on a subdivision of the octahedron
+//	into 4 sub-tetrahedrons.
 	const number z_sgn 	= (x[2] < 0) ? -1.0 : 1.0;
 
 	switch(i)
@@ -640,78 +642,78 @@ grad(grad_type& value, size_t i, const MathVector<dim>& x) const
 	  case 1:
 		if (x[0] > x[1])
 		  {
-			value[0] = -(1.0-x[1]);
-			value[1] = -(1.0-x[0]) + z_sgn*x[2];
-			value[2] = -z_sgn*(1.0-x[1]);
+			value[0] = -1.0;
+			value[1] =  0.0;
+			value[2] = -z_sgn;
 			break;
 		  }
 		else
 		  {
-			value[0] = -(1.0-x[1]) + z_sgn*x[2];
-			value[1] = -(1.0-x[0]);
-			value[2] = -z_sgn*(1.0-x[0]);
+			value[0] =  0.0;
+			value[1] = -1.0;
+			value[2] = -z_sgn;
 			break;
 		  }
 	  case 2:
 		if (x[0] > x[1])
 		  {
-			value[0] = (1.0-x[1]);
-			value[1] = -x[0] - z_sgn*x[2];
-			value[2] = -z_sgn*x[1];
+			value[0] =  1.0;
+			value[1] = -1.0;
+			value[2] =  0.0;
 			break;
 		  }
 		else
 		  {
-			value[0] = (1.0-x[1]) - z_sgn*x[2];
-			value[1] = -x[0];
-			value[2] = -z_sgn*x[0];
+			value[0] = 0.0;
+			value[1] = 0.0;
+			value[2] = 0.0;
 			break;
 		  }
 	  case 3:
 		if (x[0] > x[1])
 		  {
-			value[0] = x[1];
-			value[1] = x[0] + z_sgn*x[2];
-			value[2] = z_sgn*x[1];
+			value[0] =  0.0;
+			value[1] =  1.0;
+			value[2] =  0.0;
 			break;
 		  }
 		else
 		  {
-			value[0] = x[1] + z_sgn*x[2];
-			value[1] = x[0];
-			value[2] = z_sgn*x[0];
+			value[0] =  1.0;
+			value[1] =  0.0;
+			value[2] =  0.0;
 			break;
 		  }
 	  case 4:
 		if (x[0] > x[1])
 		  {
-			value[0] = -x[1];
-			value[1] = 1.0-x[0] - z_sgn*x[2];
-			value[2] = -z_sgn*x[1];
+			value[0] =  0.0;
+			value[1] =  0.0;
+			value[2] =  0.0;
 			break;
 		  }
 		else
 		  {
-			value[0] = -x[1] - z_sgn*x[2];
-			value[1] = 1.0-x[0];
-			value[2] = -z_sgn*x[0];
+			value[0] = -1.0;
+			value[1] =  1.0;
+			value[2] =  0.0;
 			break;
 		  }
-      case 5:
-        if (x[2] < 0.0)
-        {
-        	value[0] = 0.0;
-        	value[1] = 0.0;
-        	value[2] = 0.0;
-        	break;
-        }
-        else
-        {
-        	value[0] = 0.0;
-        	value[1] = 0.0;
-        	value[2] = 1.0;
-        	break;
-        }
+	  case 5:
+		if (x[2] < 0.0)
+		{
+			value[0] = 0.0;
+			value[1] = 0.0;
+			value[2] = 0.0;
+			break;
+		}
+		else
+		{
+			value[0] = 0.0;
+			value[1] = 0.0;
+			value[2] = 1.0;
+			break;
+		}
 	default: UG_THROW("LagrangeP1: Invalid shape fct index: "<<i);
 	}
 }
