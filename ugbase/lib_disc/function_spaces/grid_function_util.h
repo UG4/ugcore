@@ -563,16 +563,13 @@ public:
 	///	write vector
 	virtual void write_vector(const vector_type& vec, const char* filename) {
 
-
-		std::string name(get_base_dir()); name.append("/").append(filename);
-
 		//	write to conn viewer
 		if (bConnViewerOut)
-			write_vector_to_conn_viewer(vec, name.c_str());
+			write_vector_to_conn_viewer(vec, filename);
 
 		//	write to vtk
 		if (bVTKOut)
-			write_vector_to_vtk(vec, name.c_str());
+			write_vector_to_vtk(vec, filename);
 	}
 
 	virtual void update_positions()
