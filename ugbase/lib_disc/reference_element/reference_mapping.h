@@ -43,7 +43,7 @@
 namespace ug{
 
 extern DebugID DID_REFERENCE_MAPPING;
-extern DebugID DID_REFERENCE_MAPPING;
+extern DebugID DID_REFERENCE_MAPPING_GLOB_TO_LOC;
 
 /**
  * This class describes the mapping from a reference element into the real
@@ -228,7 +228,7 @@ class BaseReferenceMapping
 				getImpl().local_to_global(compGlobPos, locPos);
 				VecSubtract(dist, compGlobPos, globPos);
 
-				UG_DLOG(DID_REFERENCE_MAPPING, 1,
+				UG_DLOG(DID_REFERENCE_MAPPING_GLOB_TO_LOC, 2,
 						"reference_mapping.h: global_to_local() Newton iteration: Iter# "
 						<< i << "; fabs(VecTwoNorm(dist)) = " << fabs(VecTwoNorm(dist)) <<
 						"; dist = " << dist << "; locPos: " << locPos << std::endl);
@@ -250,10 +250,10 @@ class BaseReferenceMapping
 			UG_COND_THROW(!maxIter, "Without a single iteration, local-to-global "
 						  "mapping can never converge.");
 
-			UG_DLOG(DID_REFERENCE_MAPPING, 1, "Last JInv:" << std::endl);
+			UG_DLOG(DID_REFERENCE_MAPPING_GLOB_TO_LOC, 2, "Last JInv:" << std::endl);
 			for(int i = 0; i < 3; ++i)
 			{
-				UG_DLOG(DID_REFERENCE_MAPPING, 1,
+				UG_DLOG(DID_REFERENCE_MAPPING_GLOB_TO_LOC, 2,
 						JInv(i, 0) << "; " << JInv(i, 1) << "; " << JInv(i, 2) << std::endl);
 			}
 
