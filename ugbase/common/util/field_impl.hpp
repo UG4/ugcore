@@ -81,7 +81,7 @@ template <class T> Field<T>::
 		delete[] m_data;
 }
 
-template <class T> T& Field<T>::
+template <class T> Field<T>& Field<T>::
 operator=(const Field& f){
 	m_width = f.m_width;
 	m_height = f.m_height;
@@ -93,6 +93,7 @@ operator=(const Field& f){
 	if(!m_data)
 		m_data = new T[m_capacity];
 	memcpy(m_data, f.data(), m_capacity * sizeof(T));
+	return *this;
 }
 
 template <class T> void Field<T>::

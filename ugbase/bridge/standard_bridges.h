@@ -97,6 +97,9 @@ void RegisterBridge_UserData(Registry& reg, std::string grp = UG4_GRP);
 ///	registers LoadBalancer, partitioners, etc
 void RegisterBridge_LoadBalancing(Registry& reg, std::string grp = UG4_GRP);
 
+///	registers rasters, e.g. for 1,2,3 dimensional image data or density distributions
+void RegisterBridge_Raster(Registry& reg, std::string grp = UG4_GRP);
+
 
 #ifdef UG_ALGEBRA
 ///	registers lib-algebra interface methods at the registry.

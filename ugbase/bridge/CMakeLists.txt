@@ -43,6 +43,7 @@ set(srcUGBridge    	bridge.cpp
 					misc_bridges/profiler_bridge.cpp
 					misc_bridges/util_bridge.cpp
 					misc_bridges/misc_bridge.cpp
+					misc_bridges/raster_bridge.cpp
 					misc_bridges/vec_math_bridge.cpp)
 
 set(srcUGBridge     ${srcUGBridge}

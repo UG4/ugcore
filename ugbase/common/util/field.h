@@ -44,7 +44,7 @@ class Field{
 		Field(const Field& f);
 		~Field();
 
-		T& operator=(const Field& field);
+		Field& operator=(const Field& field);
 
 		void		resize_no_copy(size_t width, size_t height);
 
@@ -71,6 +71,7 @@ class Field{
 		size_t	m_capacity;
 		T*		m_data;
 };
+
 }//	end of namespace
 
 
