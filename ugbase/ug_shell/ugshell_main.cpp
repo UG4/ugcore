@@ -329,6 +329,9 @@ int main(int argc, char* argv[])
 				firstParamIndex = scriptParamIndex + 2;
 			//	get the name of the script
 				scriptName = argv[scriptParamIndex + 1];
+
+			//	unless -noquit was specified, we won't run the shell after the script
+				runInteractiveShell = false;
 			}
 		}
 
@@ -405,8 +408,6 @@ int main(int argc, char* argv[])
 
 		if(FindParam("-noquit", argc, argv))
 			runInteractiveShell = true;
-		else
-			runInteractiveShell = false;
 
 		EnableMemTracker(false);
 		//DisplayVacantMemory();
