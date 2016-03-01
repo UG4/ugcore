@@ -190,31 +190,24 @@ string MakeTmpFile(string filename, const string &extension, bool &bSuccess)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-bool FindFileInStandardGridPaths(std::string& filenameOut, const char* filename)
+std::string FindFileInStandardPaths(const char* filename)
 {
-	filenameOut = filename;
+//	first check whether the file can be loaded (e.g. absolute path or relative to woring-directory)
+	std::string filenameOut = filename;
 	if(FileExists(filenameOut.c_str()))
-		return true;
+		return filenameOut;
 
 
 //	Now check whether the file was specified relative to the current
-//	working directory
+//	scripting-directory
 	filenameOut = PathProvider::get_current_path();
 	filenameOut.append("/").append(filename);
 
 	if(FileExists(filenameOut.c_str()))
-		return true;
-
-//	now check the grid path
-	filenameOut = PathProvider::get_path(GRID_PATH);
-	filenameOut.append("/").append(filename);
-
-	if(FileExists(filenameOut.c_str()))
-		return true;
+		return filenameOut;
 
 //	filename couldn't be located
-	filenameOut = "";
-	return false;
+	return "";
 }
 
 } // namespace ug

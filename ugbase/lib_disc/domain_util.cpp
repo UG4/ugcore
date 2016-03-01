@@ -64,8 +64,8 @@ void LoadDomain(TDomain& domain, const char* filename, int procId)
 		#endif
 
 		if(loadingGrid){
-			string nfilename;
-			if(FindFileInStandardGridPaths(nfilename, filename)){
+			string nfilename = FindFileInStandardPaths(filename);
+			if(!nfilename.empty()){
 				GridReaderUGX ugxReader;
 				if(!ugxReader.parse_file(nfilename.c_str())){
 					UG_THROW("An error occured while parsing '" << nfilename << "'");

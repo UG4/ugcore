@@ -187,18 +187,15 @@ UG_API void ChangeDirectory(std::string dir);
 
 
 ////////////////////////////////////////////////////////////////////////////////
-///	This checks whether one of the standard grid paths contains the specified file.
+///	searches the file in the standard paths.
 /**	The checking order is the following:
- * 		- absolute path
+ *		- absolute or relative path to working directory
  * 		- relative path regarding the current script path (PathProvider::get_current_path())
- * 		- relative path regarding ug's grid path (PathProvider::get_path(GRID_PATH))
  *
- * the full path (including the filename) at which the file was found will be written
- * to filenameOut.
- *
- * \return true if a file was found at one of the specified locations
+ * \return	the full path (including the filename) at which the file was found, or an
+ *			empty string if no matching file was found.
  */
-bool FindFileInStandardGridPaths(std::string& filenameOut, const char* filename);
+std::string FindFileInStandardPaths(const char* filename);
 
 // end group ugbase_common_io
 /// \}

@@ -115,10 +115,6 @@ bool InitPaths(const char* argv0)
 		PathProvider::set_path(BIN_PATH, strRoot + pathSep + "bin");
 	if(!PathProvider::has_path(SCRIPT_PATH))
 		PathProvider::set_path(SCRIPT_PATH, strRoot + pathSep + "ugcore" + pathSep + "scripts");
-	if(!PathProvider::has_path(DATA_PATH))
-		PathProvider::set_path(DATA_PATH, strRoot + pathSep + "data");
-	if(!PathProvider::has_path(GRID_PATH))
-		PathProvider::set_path(GRID_PATH, strRoot + pathSep + "data" + pathSep + "grids");
 	if(!PathProvider::has_path(PLUGIN_PATH))
 		PathProvider::set_path(PLUGIN_PATH, strRoot + pathSep
 										+ "bin" + pathSep + "plugins");
@@ -154,8 +150,6 @@ void SetRootPath(const std::string& strRoot)
 	PathProvider::set_path(ROOT_PATH, strRoot);
 	PathProvider::set_path(BIN_PATH, strRoot + pathSep + "bin");
 	PathProvider::set_path(SCRIPT_PATH, strRoot + pathSep + "ugcore" + pathSep + "scripts");
-	PathProvider::set_path(DATA_PATH, strRoot + pathSep + "data");
-	PathProvider::set_path(GRID_PATH, strRoot + pathSep + "data" + pathSep + "grids");
 	PathProvider::set_path(PLUGIN_PATH, strRoot + pathSep + "bin" + pathSep + "plugins");
 	PathProvider::set_path(APPS_PATH, strRoot + pathSep + "apps");
 }

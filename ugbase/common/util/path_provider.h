@@ -52,11 +52,9 @@ namespace ug
 enum PathTypes
 {
 	BIN_PATH = 0,	///< path in which the binary lies
-	DATA_PATH,
 	SCRIPT_PATH,
 	ROOT_PATH,
 	PLUGIN_PATH,
-	GRID_PATH,
 	APPS_PATH,		///< path in which the application-scripts lie
 
 //	always last

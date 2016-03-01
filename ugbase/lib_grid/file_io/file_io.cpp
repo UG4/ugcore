@@ -184,8 +184,8 @@ static bool LoadGrid(Grid& grid, ISubsetHandler* psh,
 	//	Now perform the actual loading.
 	//	first all load methods, which do accept template position types are
 	//	handled. Then all those which only work with 3d position types are processed.
-		string tfile;
-		if(FindFileInStandardGridPaths(tfile, filename)){
+		string tfile = FindFileInStandardPaths(filename);
+		if(!tfile.empty()){
 			if(tfile.find(".ugx") != string::npos){
 				if(psh)
 					retVal = LoadGridFromUGX(grid, *psh, tfile.c_str(), aPos);

@@ -542,8 +542,8 @@ load_from_asc (const char* filename)
 					"' in line " << line << " of file " << filename << "," <<\
 					"while trying to read a " << TDIM << "d raster.");
 
-	std::string fullFileName;
-	UG_COND_THROW(!FindFileInStandardGridPaths(fullFileName, filename),
+	std::string fullFileName = FindFileInStandardPaths(filename);
+	UG_COND_THROW(fullFileName.empty(),
 				  LFA_ERR_WHERE << "Couldn't find the specified file in any of the standard paths.");
 
 	ifstream in(fullFileName.c_str());

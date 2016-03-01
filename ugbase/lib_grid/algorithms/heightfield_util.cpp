@@ -152,9 +152,8 @@ void CreateGridFromFieldBoundary(Grid& grid,
 ////////////////////////////////////////////////////////////////////////////////
 void LoadHeightfieldFromASC(Heightfield& hfield, const char* filename)
 {
-	std::string name;
-	bool fileFound = FindFileInStandardGridPaths(name, filename);
-	UG_COND_THROW(!fileFound, "Couldn't locate file " << filename);
+	std::string name = FindFileInStandardPaths(filename);
+	UG_COND_THROW(name.empty(), "Couldn't locate file " << filename);
 
 	FileReaderASC reader;
 	reader.set_field(&hfield.field());
