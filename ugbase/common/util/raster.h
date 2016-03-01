@@ -96,8 +96,29 @@ class Raster{
 				number	m_coord[TDIM];
 		};
 
+	///	Creates an empty raster that has to be initialized before use.
+	/**	Use the methods 'load_from_asc' or instead 'set_num_nodes', 'create',
+	 *	'set_extension', and 'set_min_corner' to initialize the raster.*/
 		Raster ();
+
+	///	Creates the new raster by copying the contents of the given raster.
 		Raster (const Raster& raster);
+
+	///	Creates a new raster with the specified number of nodes.
+	/** Internally calls 'set_num_nodes' and 'create'. The ruster can thus be used
+	 *	right after construction. The extension is chosen to be numNodes[d]-1 in each
+	 *	dimension, i.e., the distance between neighbored nodes is '1' by default.
+	 *	The min-corner is at the origin. You may change those through
+	 *	'set_extension' and 'set_min_corner'.*/
+		Raster (const MultiIndex& numNodes);
+		
+	///	Creates a new raster with the specified number of nodes and the specified extension.
+	/** Internally calls 'set_num_nodes', 'create', 'set_extension', and 'set_min_corner.
+	 *	'minCorner' is optional and defaults to the origin.*/
+		Raster (const MultiIndex& numNodes,
+				const Coordinate& extension,
+				const Coordinate& minCorner = Coordinate(0));
+
 		~Raster ();
 
 		Raster& operator= (const Raster& raster);

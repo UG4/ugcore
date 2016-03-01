@@ -166,7 +166,7 @@ template <class T, int TDIM>
 Raster<T, TDIM>::
 Raster () :
 	m_data(NULL),
-	m_numNodes(2),
+	m_numNodes(0),
 	m_selNode(0),
 	m_minCorner(0),
 	m_extension(1),
@@ -199,6 +199,49 @@ Raster (const Raster<T, TDIM>& raster) :
 	create();
 
 	memcpy(m_data, raster.m_data, num_nodes_total() * sizeof(T));
+}
+
+template <class T, int TDIM>
+Raster<T, TDIM>::
+Raster (const MultiIndex& numNodes) :
+	m_data(NULL),
+	m_numNodes(numNodes),
+	m_selNode(0),
+	m_minCorner(0),
+	m_extension(1),
+	m_cellExtension(1),
+	m_cursor(0),
+	m_numNodesTotal(0),
+	m_noDataValue(0)
+{
+	update_num_nodes_total();
+
+	for(int d = 0; d < TDIM; ++d)
+		m_extension[d] = numNodes[d] - 1;
+
+	update_cell_extension();
+
+	create();
+}
+
+template <class T, int TDIM>
+Raster<T, TDIM>::
+Raster (const MultiIndex& numNodes,
+		const Coordinate& extension,
+		const Coordinate& minCorner) :
+	m_data(NULL),
+	m_numNodes(numNodes),
+	m_selNode(0),
+	m_minCorner(minCorner),
+	m_extension(extension),
+	m_cellExtension(1),
+	m_cursor(0),
+	m_numNodesTotal(0),
+	m_noDataValue(0)
+{
+	update_num_nodes_total();
+	update_cell_extension();
+	create();
 }
 
 
