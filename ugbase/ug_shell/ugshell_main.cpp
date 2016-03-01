@@ -329,9 +329,6 @@ int main(int argc, char* argv[])
 				firstParamIndex = scriptParamIndex + 2;
 			//	get the name of the script
 				scriptName = argv[scriptParamIndex + 1];
-
-			//	unless -noquit was specified, we won't run the shell after the script
-				runInteractiveShell = false;
 			}
 		}
 
@@ -348,11 +345,15 @@ int main(int argc, char* argv[])
 		PROFILE_END(); // ugshellInit
 
 		EnableMemTracker(true);
-	//	if a script has been specified, then execute it now
-	//	if a script is executed, we won't execute the interactive shell.
+	//	if a script or a call has been specified, then execute it now
+	//	if a script or a call is executed, we won't execute the interactive shell.
 		try{
 			if(scriptName){
-				if(!LoadUGScript_Parallel(scriptName))
+				if(LoadUGScript_Parallel(scriptName)){
+				//	unless -noquit was specified, we won't run the shell after the script
+					runInteractiveShell = false;
+				}
+				else
 				{
 					UG_LOG("Cannot find specified script ('" << scriptName << "'). Aborting.\n");
 					bAbort=true;
@@ -360,6 +361,8 @@ int main(int argc, char* argv[])
 			}
 			else if(!callCommand.empty()){
 				script::ParseAndExecuteBuffer(callCommand.c_str());
+			//	unless -noquit was specified, we won't run the shell after the call
+				runInteractiveShell = false;
 			}
 		}
 		catch(SoftAbort& err){
