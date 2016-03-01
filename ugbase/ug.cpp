@@ -124,7 +124,6 @@ bool InitPaths(const char* argv0)
 //	log the paths
 	UG_DLOG(MAIN, 1, "app path set to: " << PathProvider::get_path(BIN_PATH) <<
 			std::endl << "script path set to: " << PathProvider::get_path(SCRIPT_PATH) <<
-			std::endl << "data path set to: " << PathProvider::get_path(DATA_PATH) <<
 			std::endl);
 /*
 	if(!script::FileExists(PathProvider::get_path(BIN_PATH).c_str()) ||
