@@ -180,7 +180,6 @@ option(CXX11 "Enables compilation with C++11 standard. Valid options are ON, OFF
 option(EMBEDDED_PLUGINS "Plugin sources are directly included in libug4. No dynamic loading required. Valid options are ON, OFF " OFF)
 option(COMPILE_INFO "Embeds information on compile revision and date. Requires relinking of all involved libraries. Valid options are ON, OFF " ${buildCompileInfo})
 option(POSIX "If enabled and available, some additional functionality may be available. Valid options are ON, OFF " ${posixDefault})
-option(BUILD_UGDOCU "If enabled, every build builds a new completion file for ugIDE" OFF)
 option(CRS_ALGEBRA "Use the CRS Sparse Matrix" OFF)
 option(CPU_ALGEBRA "Use the old CPU Sparse Matrix" ON)
 option(INTERNAL_MEMTRACKER "Internal Memory Tracker" OFF)

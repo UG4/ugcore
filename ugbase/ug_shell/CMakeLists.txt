@@ -134,5 +134,3 @@ else(STATIC_BUILD)
     # link the dynamic library
 	target_link_libraries (${targetExecutableName} ${targetLibraryName})
 endif(STATIC_BUILD)
-
-include(../../cmake/build_ugdocu.cmake)
