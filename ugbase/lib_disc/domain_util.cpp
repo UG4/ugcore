@@ -33,6 +33,7 @@
 #include "domain_util.h"
 #include "domain_traits.h"
 #include "common/util/string_util.h"
+ #include "common/util/file_util.h"
 #include "lib_grid/file_io/file_io.h"
 #include "lib_grid/file_io/file_io_ugx.h"
 #include "lib_grid/algorithms/geom_obj_util/misc_util.h"

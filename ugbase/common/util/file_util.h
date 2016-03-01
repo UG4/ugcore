@@ -185,6 +185,21 @@ UG_API std::string MakeTmpFile(std::string filename, const std::string &extensio
 ///	Changes the current directory
 UG_API void ChangeDirectory(std::string dir);
 
+
+////////////////////////////////////////////////////////////////////////////////
+///	This checks whether one of the standard grid paths contains the specified file.
+/**	The checking order is the following:
+ * 		- absolute path
+ * 		- relative path regarding the current script path (PathProvider::get_current_path())
+ * 		- relative path regarding ug's grid path (PathProvider::get_path(GRID_PATH))
+ *
+ * the full path (including the filename) at which the file was found will be written
+ * to filenameOut.
+ *
+ * \return true if a file was found at one of the specified locations
+ */
+bool FindFileInStandardGridPaths(std::string& filenameOut, const char* filename);
+
 // end group ugbase_common_io
 /// \}
 

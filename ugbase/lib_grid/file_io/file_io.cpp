@@ -68,35 +68,6 @@ namespace ug
 {
 
 ////////////////////////////////////////////////////////////////////////////////
-bool FindFileInStandardGridPaths(std::string& filenameOut, const char* filename)
-{
-	filenameOut = filename;
-	if(FileExists(filenameOut.c_str()))
-		return true;
-
-
-//	Now check whether the file was specified relative to the current
-//	working directory
-	filenameOut = PathProvider::get_current_path();
-	filenameOut.append("/").append(filename);
-
-	if(FileExists(filenameOut.c_str()))
-		return true;
-
-//	now check the grid path
-	filenameOut = PathProvider::get_path(GRID_PATH);
-	filenameOut.append("/").append(filename);
-
-	if(FileExists(filenameOut.c_str()))
-		return true;
-
-//	filename couldn't be located
-	filenameOut = "";
-	return false;
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
 //	this method performs the actual loading.
 static bool LoadGrid3d_IMPL(Grid& grid, ISubsetHandler* pSH,
 					   const char* filename, AVector3& aPos)

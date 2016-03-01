@@ -37,6 +37,7 @@
 #include <algorithm>
 #include <fstream>
 #include "common/error.h"
+#include "common/util/file_util.h"
 #include "common/util/string_util.h"
 
 
@@ -489,6 +490,8 @@ template <class T, int TDIM>
 void Raster<T, TDIM>::
 load_from_asc (const char* filename)
 {
+	using namespace std;
+
 	#define LFA_ERR_WHERE "Error in Raster::load_from_asc('" << filename << "'): "
 //	this macro helps with error-checks for bad dimensions
 	#define LFA_CHECK_DIM(d, line)\
@@ -496,8 +499,11 @@ load_from_asc (const char* filename)
 					"' in line " << line << " of file " << filename << "," <<\
 					"while trying to read a " << TDIM << "d raster.");
 
-	using namespace std;
-	ifstream in(filename);
+	std::string fullFileName;
+	UG_COND_THROW(!FindFileInStandardGridPaths(fullFileName, filename),
+				  LFA_ERR_WHERE << "Couldn't find the specified file in any of the standard paths.");
+
+	ifstream in(fullFileName.c_str());
 	UG_COND_THROW(!in, LFA_ERR_WHERE << "Couldn't access file.");
 
 	MultiIndex numNodes(0);
