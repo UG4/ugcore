@@ -292,6 +292,13 @@ void SplitOctahedronToTetrahedrons(	Grid& grid, Octahedron* oct, Volume* parentV
 **/
 void ProjectHierarchyToLimitSubdivisionVolume(MultiGrid& mg)
 {
+//	Catch use of procedure for MultiGrids with just one level
+	if(mg.num_levels() == 1)
+	{
+		UG_THROW("Error in ProjectHierarchyToLimitSubdivisionVolume: "
+				 "Procedure only to be used for MultiGrids with more than one level.");
+	}
+
 	#ifdef UG_PARALLEL
 	//	Attachment communication policies COPY
 		ComPol_CopyAttachment<VertexLayout, AVector3> comPolCopyAPosition(mg, aPosition);
@@ -466,6 +473,13 @@ void CalculateSmoothManifoldPosInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH
 											APosition& aSmoothBndPosEvenVrt,
 											APosition& aSmoothBndPosOddVrt)
 {
+//	Catch use of procedure for MultiGrids with just one level
+	if(mg.num_levels() == 1)
+	{
+		UG_THROW("Error in CalculateSmoothManifoldPosInTopLevel: "
+				 "Procedure only to be used for MultiGrids with more than one level.");
+	}
+
 //	Define attachment accessors
 	Grid::VertexAttachmentAccessor<APosition> aaSmoothBndPos(mg, aSmoothBndPos);
 	Grid::VertexAttachmentAccessor<APosition> aaSmoothBndPosEvenVrt(mg, aSmoothBndPosEvenVrt);
@@ -534,8 +548,12 @@ void CalculateSmoothManifoldPosInParentLevel(MultiGrid& mg, MGSubsetHandler& mar
 											 APosition& aSmoothBndPosOddVrt,
 											 AInt& aNumManifoldEdges)
 {
-	if(mg.top_level() == 0)
-		UG_THROW("Error in CalculateSmoothManifoldPosInParentLevel: method only to be used in levels > 0.");
+//	Catch use of procedure for MultiGrids with just one level
+	if(mg.num_levels() == 1)
+	{
+		UG_THROW("Error in CalculateSmoothManifoldPosInParentLevel: "
+				 "Procedure only to be used for MultiGrids with more than one level.");
+	}
 
 //	Define attachment accessors
 	Grid::VertexAttachmentAccessor<APosition> aaPos(mg, aPosition);
@@ -787,8 +805,8 @@ void CalculateNumManifoldEdgesVertexAttachmentInParentLevel(MultiGrid& mg, MGSub
 //	Define attachment accessor
 	Grid::VertexAttachmentAccessor<AInt> aaNumManifoldEdges(mg, aNumManifoldEdges);
 
-//	Catch use of ApplySmoothSubdivisionToTopLevel in base level == 0
-	if(mg.top_level() == 0)
+//	Catch use of CalculateNumManifoldEdgesVertexAttachmentInParentLevel on MultiGrids with just one level
+	if(mg.num_levels() == 1)
 		UG_THROW("CalculateNumManifoldEdgesVertexAttachmentInParentLevel: method may not be used in base level 0.");
 
 //	Loop all edges of parent level and calculate number of associated manifold edges of each vertex
@@ -837,6 +855,13 @@ void InitLinearBndManifoldSubsetsSubsetHandler(MultiGrid& mg, MGSubsetHandler& s
 											   MGSubsetHandler& linearBndManifoldSubsetsSH,
 											   const char* linearBndManifoldSubsets)
 {
+//	Catch use of procedure for MultiGrids with just one level
+	if(mg.num_levels() == 1)
+	{
+		UG_THROW("Error in InitLinearBndManifoldSubsetsSubsetHandler: "
+				 "Procedure only to be used for MultiGrids with more than one level.");
+	}
+
 //	tokenize user input
 	std::vector<std::string> linearBndManifoldSubsetsString = TokenizeString(linearBndManifoldSubsets);
 
@@ -857,7 +882,7 @@ void InitLinearBndManifoldSubsetsSubsetHandler(MultiGrid& mg, MGSubsetHandler& s
 	{
 		if(linearBndManifoldSubsetsString.empty())
 		{
-			UG_THROW(	"ERROR in ApplySmoothSubdivisionToTopLevel: InitLinearBndManifoldSubsetsSubsetHandler: "
+			UG_THROW(	"ERROR in InitLinearBndManifoldSubsetsSubsetHandler: "
 						"linear boundary manifold subsets string passed lacks a "
 						"subset specification at position "<<i<<"(of "
 						<<linearBndManifoldSubsetsString.size()-1<<")");
@@ -919,7 +944,7 @@ void InitLinearBndManifoldSubsetsSubsetHandler(MultiGrid& mg, MGSubsetHandler& s
 	}
 
 //	Debug log
-	UG_LOG("ApplySmoothSubdivisionToTopLevel: InitLinearBndManifoldSubsetsSubsetHandler:" << std::endl);
+	UG_LOG("InitLinearBndManifoldSubsetsSubsetHandler:" << std::endl);
 	UG_LOG(">> Applying linear subdivision on the following boundary manifold subsets:" << std::endl);
 
 	for(size_t i = 0; i < linearBndManifoldSubsetsString.size(); ++i)
@@ -944,6 +969,13 @@ void ApplySmoothSubdivisionToTopLevel(MultiGrid& mg, MGSubsetHandler& sh, MGSubs
 //	Ensure, that hybrid tet-/oct refinement is used as refinement rule for tetrahedrons
 	if(tet_rules::GetRefinementRule() != tet_rules::HYBRID_TET_OCT)
 		UG_THROW("ERROR in ApplySubdivisionVolumesToTopLevel: Set necessary refinement rule by SetTetRefinementRule('hybrid_tet_oct').");
+
+//	Catch use of procedure for MultiGrids with just one level
+	if(mg.num_levels() == 1)
+	{
+		UG_THROW("Error in ApplySmoothSubdivisionToTopLevel: "
+				 "Procedure only to be used for MultiGrids with more than one level.");
+	}
 
 //	Init linear boundary manifold subsets SubsetHandler from domain and user-specified subsets
 	MGSubsetHandler linearBndManifoldSubsetsSH(mg);
@@ -1021,7 +1053,7 @@ void ApplySmoothSubdivisionToTopLevel(MultiGrid& mg, MGSubsetHandler& sh, MGSubs
 
 //	Manage vertex attachment communication in parallel case -> COMMUNICATE (1) aNumElems and (2) aNumManifoldEdges
 	#ifdef UG_PARALLEL
-	//	copy v_slaves to ghosts = VMASTER for step (10) APPLY SUBDIVISION
+	//	copy v_slaves to ghosts = VMASTER for step (9) APPLY SUBDIVISION
 		comVertices.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopyNumElems);
 		comVertices.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopyNumManifoldEdges);
 		comVertices.communicate();
@@ -1030,29 +1062,7 @@ void ApplySmoothSubdivisionToTopLevel(MultiGrid& mg, MGSubsetHandler& sh, MGSubs
 
 /*****************************************
  *
- *	(4) CALCULATE aSmoothVolPos
- *
- *****************************************/
-
-	CalculateSmoothVolumePosInTopLevel(mg, markSH, aSmoothVolPos, aNumElems);
-
-
-/*****************************************
- *
- *	(5) COMMUNICATE aaSmoothVolPos
- *
- *****************************************/
-
-	#ifdef UG_PARALLEL
-	//	copy v_slaves to ghosts = VMASTER for step (9) APPLY SUBDIVISION
-		comVertices.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopySmoothVolPos);
-		comVertices.communicate();
-	#endif
-
-
-/*****************************************
- *
- *	(6) CALCULATE aaSmoothBndPosEvenVrt, aaSmoothBndPosOddVrt
+ *	(4) CALCULATE aSmoothBndPosEvenVrt, aSmoothBndPosOddVrt
  *
  *****************************************/
 
@@ -1064,7 +1074,7 @@ void ApplySmoothSubdivisionToTopLevel(MultiGrid& mg, MGSubsetHandler& sh, MGSubs
 
 /*****************************************
  *
- *	(7) CALCULATE aaSmoothBndPos
+ *	(5) CALCULATE aSmoothBndPos
  *
  *****************************************/
 
@@ -1077,14 +1087,36 @@ void ApplySmoothSubdivisionToTopLevel(MultiGrid& mg, MGSubsetHandler& sh, MGSubs
 
 /*****************************************
  *
- *	(8) COMMUNICATE aSmoothBndPos
+ *	(6) COMMUNICATE aSmoothBndPos
  *
  *****************************************/
 
-//	Manage vertex attachment communication in parallel case -> COMMUNICATE (7) aSmoothBndPos
+//	Manage vertex attachment communication in parallel case -> COMMUNICATE (5) aSmoothBndPos
 	#ifdef UG_PARALLEL
-	//	copy v_slaves to ghosts = VMASTER for step (10) APPLY SUBDIVISION
+	//	copy v_slaves to ghosts = VMASTER for step (9) APPLY SUBDIVISION
 		comVertices.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, comPolCopySmoothBndPos);
+		comVertices.communicate();
+	#endif
+
+
+/*****************************************
+ *
+ *	(7) CALCULATE aSmoothVolPos
+ *
+ *****************************************/
+
+	CalculateSmoothVolumePosInTopLevel(mg, markSH, aSmoothVolPos, aNumElems);
+
+
+/*****************************************
+ *
+ *	(8) COMMUNICATE aSmoothVolPos
+ *
+ *****************************************/
+
+	#ifdef UG_PARALLEL
+	//	copy v_slaves to ghosts = VMASTER for step (9) APPLY SUBDIVISION
+		comVertices.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopySmoothVolPos);
 		comVertices.communicate();
 	#endif
 
