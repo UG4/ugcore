@@ -826,21 +826,17 @@ void CalculateNumManifoldEdgesVertexAttachmentInParentLevel(MultiGrid& mg, MGSub
 }
 
 
-/// Function to return SmartPtr to the linear boundary manifold subsets SubsetHandler user-specified subsets
-/** This function returns a SmartPtr to the linear boundary manifold subsets SubsetHandler
+/// Procedure to initialize the linear boundary manifold subsets SubsetHandler with user-specified subsets
+/** This procedure initializes the referenced linear boundary manifold subsets SubsetHandler
  * 	s.t. user-specified subsets
  *
  * 	@param dom							reference to Domain
  * 	@param linearBndManifoldSubsetsSH	reference to user-specified linearBndManifoldSubsets SubsetHandler
 **/
-//SmartPtr<MGSubsetHandler> LinearBndManifoldSubsetsSubsetHandler(MultiGrid& mg, MGSubsetHandler& sh,
 void InitLinearBndManifoldSubsetsSubsetHandler(MultiGrid& mg, MGSubsetHandler& sh,
-											   MGSubsetHandler& linearBndManifoldSubsetsSH, const char* linearBndManifoldSubsets)
+											   MGSubsetHandler& linearBndManifoldSubsetsSH,
+											   const char* linearBndManifoldSubsets)
 {
-//	Init new SmartPtr to linear boundary manifold subsets SubsetHandler from MultiGrid
-	//SmartPtr<MGSubsetHandler> spLinearBndManifoldSubsetsSH(new MGSubsetHandler(mg));
-	//MGSubsetHandler spLinearBndManifoldSubsetsSH(mg);
-
 //	tokenize user input
 	std::vector<std::string> linearBndManifoldSubsetsString = TokenizeString(linearBndManifoldSubsets);
 
@@ -861,7 +857,7 @@ void InitLinearBndManifoldSubsetsSubsetHandler(MultiGrid& mg, MGSubsetHandler& s
 	{
 		if(linearBndManifoldSubsetsString.empty())
 		{
-			UG_THROW(	"ERROR in ApplySmoothSubdivisionToTopLevel: LinearBndManifoldSubsetsSubsetHandler: "
+			UG_THROW(	"ERROR in ApplySmoothSubdivisionToTopLevel: InitLinearBndManifoldSubsetsSubsetHandler: "
 						"linear boundary manifold subsets string passed lacks a "
 						"subset specification at position "<<i<<"(of "
 						<<linearBndManifoldSubsetsString.size()-1<<")");
@@ -923,9 +919,12 @@ void InitLinearBndManifoldSubsetsSubsetHandler(MultiGrid& mg, MGSubsetHandler& s
 	}
 
 //	Debug log
+	UG_LOG("ApplySmoothSubdivisionToTopLevel: InitLinearBndManifoldSubsetsSubsetHandler:" << std::endl);
+	UG_LOG(">> Applying linear subdivision on the following boundary manifold subsets:" << std::endl);
+
 	for(size_t i = 0; i < linearBndManifoldSubsetsString.size(); ++i)
 	{
-		UG_LOG(linearBndManifoldSubsetsString[i] << "; " << sh.get_subset_index(linearBndManifoldSubsetsString[i].c_str()) << std::endl);
+		UG_LOG("Subset # " << sh.get_subset_index(linearBndManifoldSubsetsString[i].c_str()) << ": " << linearBndManifoldSubsetsString[i] << std::endl);
 	}
 }
 
