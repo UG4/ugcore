@@ -52,6 +52,7 @@ static void RegisterRaster(Registry& reg, string name, string grp)
 
 	reg.add_class_<T>(fullName, grp)
 		.template add_constructor<void (*)()>()
+		.add_method("dim", &T::dim, "dimension", "", "Returns the dimension of the raster.")
 		.add_method(
 			"load_from_asc",
 			&T::load_from_asc,
