@@ -349,9 +349,10 @@ int main(int argc, char* argv[])
 	//	if a script or a call is executed, we won't execute the interactive shell.
 		try{
 			if(scriptName){
+			//	unless -noquit was specified, we won't run the shell after the script
+				runInteractiveShell = false;
+				
 				if(LoadUGScript_Parallel(scriptName)){
-				//	unless -noquit was specified, we won't run the shell after the script
-					runInteractiveShell = false;
 				}
 				else
 				{
