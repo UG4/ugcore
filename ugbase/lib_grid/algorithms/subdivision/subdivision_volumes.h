@@ -53,6 +53,8 @@
 #include "lib_disc/reference_element/reference_mapping_provider.h"
 #include "lib_disc/reference_element/reference_element_util.h"
 
+#include  "common/profiler/profiler.h"
+
 namespace ug
 {
 
@@ -1000,9 +1002,15 @@ void InitLinearBndManifoldSubsetsSubsetHandler(MultiGrid& mg, MGSubsetHandler& s
 **/
 void ApplySmoothSubdivisionToTopLevel(MultiGrid& mg, MGSubsetHandler& sh, MGSubsetHandler& markSH, const char* linearBndManifoldSubsets)
 {
+	PROFILE_FUNC_GROUP("subdivision_volumes");
+
 //	Ensure, that hybrid tet-/oct refinement is used as refinement rule for tetrahedrons
 	if(tet_rules::GetRefinementRule() != tet_rules::HYBRID_TET_OCT)
 		UG_THROW("ERROR in ApplySubdivisionVolumesToTopLevel: Set necessary refinement rule by SetTetRefinementRule('hybrid_tet_oct').");
+
+//	Catch wrong specification of markSH SubsetHandler containing ALL MultiGrid manifolds
+	if(!(markSH.contains_edges(0) && markSH.contains_faces(0) && markSH.contains_vertices(1)))
+		UG_THROW("ERROR in ApplySubdivisionVolumesToTopLevel: wrong specification of markSH.");
 
 //	Catch use of procedure for MultiGrids with just one level
 	if(mg.num_levels() == 1)
