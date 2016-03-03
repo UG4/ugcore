@@ -33,6 +33,7 @@
 #ifndef __H__UG_raster_impl
 #define __H__UG_raster_impl
 
+#include <limits>
 #include <cstring>
 #include <algorithm>
 #include <fstream>
@@ -173,7 +174,7 @@ Raster () :
 	m_cellExtension(1),
 	m_cursor(0),
 	m_numNodesTotal(0),
-	m_noDataValue(0)
+	m_noDataValue(std::numeric_limits<T>::max())
 {
 	update_num_nodes_total();
 	update_cell_extension();
@@ -212,7 +213,7 @@ Raster (const MultiIndex& numNodes) :
 	m_cellExtension(1),
 	m_cursor(0),
 	m_numNodesTotal(0),
-	m_noDataValue(0)
+	m_noDataValue(std::numeric_limits<T>::max())
 {
 	update_num_nodes_total();
 
@@ -237,7 +238,7 @@ Raster (const MultiIndex& numNodes,
 	m_cellExtension(1),
 	m_cursor(0),
 	m_numNodesTotal(0),
-	m_noDataValue(0)
+	m_noDataValue(std::numeric_limits<T>::max())
 {
 	update_num_nodes_total();
 	update_cell_extension();
@@ -460,6 +461,12 @@ interpolate (const Coordinate& coord, int order) const
 	return m_noDataValue;
 }
 
+// template <class T, int TDIM>
+// void Raster<T, TDIM>::
+// void blur(number alpha, size_t iterations)
+// {
+	
+// }
 
 template <class T, int TDIM>
 void Raster<T, TDIM>::
@@ -493,7 +500,7 @@ select_node (const MultiIndex& mi)
 
 template <class T, int TDIM>
 void Raster<T, TDIM>::
-set_selected_node_value (number val)
+set_selected_node_value (const T& val)
 {
 	node_value(m_selNode) = val;
 }
@@ -677,6 +684,61 @@ load_from_asc (const char* filename)
 	}
 }
 
+template <class T, int TDIM>
+void Raster<T, TDIM>::
+save_to_asc (const char* filename) const
+{
+	using namespace std;
+	#define STA_ERR_WHERE "Error in Raster::save_to_asc('" << filename << "'): "
+
+	UG_COND_THROW(!m_data, STA_ERR_WHERE << "Can't write an unitinialized raster."
+				  "Please call 'create' or 'load_from_asc' first.");
+
+	ofstream out(filename);
+	UG_COND_THROW(!out, STA_ERR_WHERE << "Couldn't open file for writing.");
+
+	out << "ncols         " << num_nodes(0) << endl;
+	if(TDIM > 1)
+		out << "nrows         " << num_nodes(1) << endl;
+	if(TDIM > 2)
+		out << "nstacks       " << num_nodes(2) << endl;
+
+	out << "xllcorner     " << setprecision(16) << min_corner(0) << endl;
+	if(TDIM > 1)
+		out << "yllcorner     " << setprecision(16) << min_corner(1) << endl;
+	if(TDIM > 2)
+		out << "zllcorner     " << setprecision(16) << min_corner(2) << endl;
+
+	bool equlateralCells = true;
+	for(int d = 1; d < TDIM; ++d){
+		if(m_cellExtension[d] != m_cellExtension[0]){
+			equlateralCells = false;
+			break;
+		}
+	}
+
+	if(equlateralCells)
+		out << "cellsize      " << m_cellExtension[0] << endl;
+	else{
+		out << "xcellsize     " << m_cellExtension[0] << endl;
+		if(TDIM > 1)
+			out << "ycellsize     " << m_cellExtension[1] << endl;
+		if(TDIM > 2)
+			out << "zcellsize     " << m_cellExtension[2] << endl;
+	}
+
+	out << "NODATA_value  " << no_data_value() << endl;
+
+	const size_t numNodesTotal = num_nodes_total();
+	const size_t numNodes0 = num_nodes(0);
+	for(size_t i = 0; i < numNodesTotal; ++i){
+		out << m_data[i];
+		if((i+1) % numNodes0 != 0)
+			out << " ";
+		else
+			out << endl;
+	}
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 //	Raster - private
