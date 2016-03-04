@@ -58,6 +58,10 @@ static void RegisterRaster(Registry& reg, string name, string grp)
 			&T::load_from_asc,
 			"", "filename", "Loads the given file and creates the raster accordingly.")
 		.add_method(
+			"save_to_asc",
+			&T::save_to_asc,
+			"", "filename", "Saves the given raster to an 'asc' file.")
+		.add_method(
 			"set_num_nodes",
 			static_cast<void (T::*)(int, size_t)>(&T::set_num_nodes),
 			"", "dim # numNodes", "set the number of nodes for the given dimension.")
@@ -104,7 +108,15 @@ static void RegisterRaster(Registry& reg, string name, string grp)
 		.add_method(
 			"interpolate_at_cursor",
 			&T::interpolate_at_cursor,
-			"value", "", "returns the interpolated value (using the given order) at the cursor (use 'set_cursor' to set the cursor).");
+			"value", "", "returns the interpolated value (using the given order) at the cursor (use 'set_cursor' to set the cursor).")
+		.add_method(
+			"set_no_data_value",
+			&T::set_no_data_value,
+			"", "value", "set the 'no-data-value'of the raster. Nodes with this value are ignored in some applications.")
+		.add_method(
+			"no_data_value",
+			&T::no_data_value,
+			"value", "", "returns the 'no-data-value'of the raster. Nodes with this value are ignored in some applications.");
 
 	reg.add_class_to_group(fullName, name, tag);
 }

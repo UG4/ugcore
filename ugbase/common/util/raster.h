@@ -64,6 +64,7 @@ namespace ug{
  *					- T& operator += (const T&)
  *					- T& operator -= (const T&)
  *					- T& operator *= (number)
+ *				It furthermore has to support std::numeric_limits<T>::max()
  */
 
 template <class T, int TDIM>
@@ -124,6 +125,7 @@ class Raster{
 		Raster& operator= (const Raster& raster);
 
 		void load_from_asc (const char* filename);
+		void save_to_asc (const char* filename) const;
 
 		int dim () const;
 
@@ -173,15 +175,17 @@ class Raster{
 	///	returns the extension of the raster for the given dimension
 		number extension (int dim) const;
 
-	///	interpolates the value with the given order at the given coordinate
-		T interpolate (const Coordinate& coord, int order) const;
-
-
 	///	sets the value that shall be considered as 'no-data-value'
 		void set_no_data_value(const T& val);
 
 	///	returns the value that shall be considered 'no-data-value'
 		const T& no_data_value() const;
+
+	///	interpolates the value with the given order at the given coordinate
+		T interpolate (const Coordinate& coord, int order) const;
+
+	// ///	blurs (smoothens) the values by repeatedly averaging between direct neighbors
+	// 	void blur(number alpha, size_t iterations);
 
 
 	////////////////////////////////////////////////////////////////////////////
@@ -193,10 +197,10 @@ class Raster{
 		void select_node (const MultiIndex& mi);
 	/** \} */
 
-	///	returns the value of the selected node (read/write)
-		void set_selected_node_value (number val);
+	///	sets the value of the selected node
+		void set_selected_node_value (const T& val);
 
-	///	returns the value of the selected node (read only)
+	///	returns the value of the selected node
 		const T& selected_node_value () const;
 
 	///	Set the coordinate of the cursor. The cursor can be used to interpolate values.
