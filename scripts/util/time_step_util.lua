@@ -554,6 +554,7 @@ function util.SolveLinearTimeProblem(
 	end 
 end
 
+-- postProcess @param postProcess    (optional) if passed, will be called after every time step)
 function util.SolveNonlinearProblemAdaptiveTimestep(
 	u,
 	domainDisc,
@@ -568,7 +569,9 @@ function util.SolveNonlinearProblemAdaptiveTimestep(
 	adaptiveStepInfo, 
 	--reductionFactor,
 	--tol,
-	bFinishTimeStep)
+	bFinishTimeStep,
+	postProcess)
+	
 
 	local doControl = true
 	local doExtrapolation = true
@@ -596,7 +599,7 @@ function util.SolveNonlinearProblemAdaptiveTimestep(
 	if red == nil then red = 0.5 end   -- reduction of time step
 	if inc_fac == nil then inc_fac = 1.5 end   -- increase of time step
 	
-	if errorEst == nil then errorEst = Norm2ErrorEst() end
+	if errorEst == nil then errorEst = Norm2Estimator() end
 	if tol == nil then tol = 1e-3 end
 	if safety_fac == nil then safety_fac = 0.8 end   -- safety factor
 	
@@ -811,6 +814,10 @@ function util.SolveNonlinearProblemAdaptiveTimestep(
 				
 		end		
 		
+		-- call post process
+    if type(postProcess) == "function" then postProcess(u, step, time, currdt) end
+		
+		
 		-- plot solution
 		if type(out) == "function" then out(u, step, time) end
 		if type(out) == "userdata" then out:print(filename, u, step, time) end
@@ -854,10 +861,13 @@ function util.SolveNonlinearProblemAdaptiveLimex(
   if inc_fac == nil then inc_fac = 1.5 end   -- increase of time step
   
   if errorEst == nil then 
-    print "WARNUNG: Error estimator not set. Default is euclidean norm! "
+    print "WARNING: Error estimator not set. Default is euclidean norm! "
     errorEst = Norm2ErrorEst() 
    end
-  if tol == nil then tol = 1e-3 end
+  if tol == nil then 
+    tol = 1e-3 
+    print ("WARNING: Using default tolerance "..tol)
+  end
   if safety_fac == nil then safety_fac = 0.8 end   -- safety factor
 
 
@@ -875,12 +885,18 @@ function util.SolveNonlinearProblemAdaptiveLimex(
 		if (timeScheme == nil) then print ("Did not find timeScheme!"); end;
 		
 		if (startTime == nil) then print ("Did not find endTime!"); end;
-		if (endTime == nil) then print ("Did not find endTime!"); end;
-		if (maxStepSize == nil) then print ("Did not find maxStepSize!"); end;
+    if (endTime == nil) then print ("Did not find endTime!"); end;
+    if (maxStepSize == nil) then print ("Did not find maxStepSize!"); end;
 		util.PrintUsageOfSolveTimeProblem()
 		exit()
 	end
 
+
+  print ("maxStepSize ="..maxStepSize)
+  print ("minStepSize ="..minStepSize)
+  
+  print ("startTime ="..startTime)
+  print ("endTime ="..endTime)
 	-- check parameters
 	if filename == nil then filename = "sol" end
 	if minStepSize == nil then minStepSize = maxStepSize end
@@ -1052,7 +1068,7 @@ function util.SolveNonlinearProblemAdaptiveLimex(
         print("dtEst= "..dtEst..", eps="..eps..", tol = " ..tol..", fac = "..lambda)
 		
 				-- determine potential new step size
-				currdt = math.min(dtEst, 1.5*currdt, maxStepSize)
+				currdt = math.min(dtEst, inc_fac*currdt, maxStepSize)
 
 				if (eps <= tol) then 
 					-- accept
@@ -1107,10 +1123,13 @@ function util.SolveNonlinearProblemAdaptiveLimex(
 				
 		end		
 		
+		-- call post process
+    if type(postProcess) == "function" then postProcess(u, step, time, currdt) end
+		
 		-- plot solution
 		if type(out) == "function" then out(u, step, time) end
 		if type(out) == "userdata" then out:print(filename, u, step, time) end
-	--	print("Integral("..time..")="..Integral(massLinker, u, "INNER2"))
+
 		print("++++++ TIMESTEP "..step.." END   (current time: " .. time .. ", nlsteps: "..nlsteps..") ++++++");
 	end
 	
