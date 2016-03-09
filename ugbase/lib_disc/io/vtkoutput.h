@@ -902,8 +902,15 @@ protected:
 
 	///	writes data to stream
 	/**
-	 * The purpose of the function is to convert a double data to float, since
-	 * in the vtk-format Float32 is used.
+	 * The purpose of the function is to convert a double data to binary float
+	 * (the Float32-format as used in vtk) or ASCII representation. Note that
+	 * the ASCII output should contain only numbers in the range of the normalized
+	 * Float32 representation, i.e. with the minimum absolute value
+	 * 1.1755e-38 = 2^-126. As 'float'-variables can potentially store denormalized
+	 * numbers (and this is really the case in the practice) with the minimum
+	 * absolute value 1.4013e-45 = 2^-149 that are not correctly read by some
+	 * visualization tools (in some operating systems), these function replace
+	 * those values (lying near to 0) with 0.
 	 */
 	/// \{
 		inline void write_item_to_file(VTKFileWriter& File, float data);
