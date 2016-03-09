@@ -328,7 +328,7 @@ function util.SolveNonlinearTimeProblem(
 					solTimeSeries:push_discard_oldest(oldestSol, time)
 				end
 				
-				if not (bFinishTimeStep == nil) then 
+				if not (bFinishTimeStep == nil) and bFinishTimeStep then 
 					timeDisc:finish_step_elem(solTimeSeries, u:grid_level()) 
 				end
 				
@@ -872,7 +872,7 @@ function util.SolveNonlinearProblemAdaptiveTimestep(
 				solTimeSeries2:push_discard_oldest(oldestSol, time)
 			end
 				
-			if not (bFinishTimeStep == nil) then 
+			if not (bFinishTimeStep == nil) and bFinishTimeStep then 
 				timeDisc:finish_step_elem(solTimeSeries, u:grid_level()) 
 			end
 				
@@ -1185,7 +1185,7 @@ function util.SolveNonlinearProblemAdaptiveLimex(
 			end
 			
 				
-			if not (bFinishTimeStep == nil) then 
+			if not (bFinishTimeStep == nil) and bFinishTimeStep then 
 				timeDisc:finish_step_elem(solTimeSeries, u:grid_level()) 
 			end
 				
