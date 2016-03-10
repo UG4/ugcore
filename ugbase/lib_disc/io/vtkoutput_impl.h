@@ -102,8 +102,8 @@ write_item_to_file(VTKFileWriter& File, const ug::MathVector<2>& data) {
 	else
 	{
 		float value_0 = (float) data[0], value_1 = (float) data[1];
-		if (value_0 < std::numeric_limits<float>::min ()) value_0 = 0; // a protection against the denormalized floats
-		if (value_1 < std::numeric_limits<float>::min ()) value_1 = 0; // a protection against the denormalized floats
+		if (std::abs (value_0) < std::numeric_limits<float>::min ()) value_0 = 0; // a protection against the denormalized floats
+		if (std::abs (value_1) < std::numeric_limits<float>::min ()) value_1 = 0; // a protection against the denormalized floats
 		File << (float) value_0 << ' ' << (float) value_1 << " 0 ";
 	}
 }
@@ -116,9 +116,9 @@ write_item_to_file(VTKFileWriter& File, const ug::MathVector<3>& data) {
 	else
 	{
 		float value_0 = (float) data[0], value_1 = (float) data[1], value_2 = (float) data[2];
-		if (value_0 < std::numeric_limits<float>::min ()) value_0 = 0; // a protection against the denormalized floats
-		if (value_1 < std::numeric_limits<float>::min ()) value_1 = 0; // a protection against the denormalized floats
-		if (value_2 < std::numeric_limits<float>::min ()) value_2 = 0; // a protection against the denormalized floats
+		if (std::abs (value_0) < std::numeric_limits<float>::min ()) value_0 = 0; // a protection against the denormalized floats
+		if (std::abs (value_1) < std::numeric_limits<float>::min ()) value_1 = 0; // a protection against the denormalized floats
+		if (std::abs (value_2) < std::numeric_limits<float>::min ()) value_2 = 0; // a protection against the denormalized floats
 		File << (float) value_0 << ' ' << (float) value_1 << ' ' << (float) value_2 << ' ';
 	}
 }
