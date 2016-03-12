@@ -182,6 +182,8 @@ static void Algebra(Registry& reg, string grp)
 		. ADD_CONSTRUCTOR( (SmartPtr<base_type> pprecond, SmartPtr<solver_type> psolver) ) ("precond#solver")
 		.add_method("set_preconditioner", &T::set_preconditioner)
 		.add_method("set_solver", &T::set_solver)
+		.add_method("set_debug", &T::set_debug)
+		.add_method("set_solution", &T::set_solution)
 		.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "DebugIterator", tag);
 	}
