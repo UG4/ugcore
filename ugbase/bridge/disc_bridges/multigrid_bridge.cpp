@@ -211,6 +211,9 @@ static void DomainAlgebra(Registry& reg, string grp)
 		.template add_constructor<void (*)(const std::vector<std::string>&)>("Cmps")
 		.template add_constructor<void (*)(number, const std::vector<std::string>&)>("relax#Cmps")
 		.template add_constructor<void (*)(number, const std::vector<std::string>&, const std::vector<int>&, const std::vector<number>&)>("relax#Cmps")
+		.add_method("set_alpha", &T::set_alpha, "", "alpha")
+		.add_method("set_beta", &T::set_beta, "", "beta")
+		.add_method("set_weights", &T::set_weights, "", "weights")
 		.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ComponentGaussSeidel", tag);
 	}
