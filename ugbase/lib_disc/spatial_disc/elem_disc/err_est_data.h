@@ -19,7 +19,7 @@
  * preserved in all covered files:
  * "Reiter, S., Vogel, A., Heppner, I., Rupp, M., and Wittum, G. A massively
  *   parallel geometric multigrid solver on hierarchically distributed grids.
- *   Computing and visualization in science 16, 4 (2013), 151-164"
+ *   Computing and visualization in science 16, 4 (2013), 151-164" 
  * "Vogel, A., Reiter, S., Rupp, M., Nägel, A., and Wittum, G. UG4 -- a novel
  *   flexible software system for simulating pde based models on high performance
  *   computers. Computing and visualization in science 16, 4 (2013), 165-179"
@@ -321,6 +321,9 @@ public:
 	///	virtual function to release data structures of the error estimator
 		virtual void release_err_est_data ();
 
+	/// select L2/H1 Estimator
+		void set_type(int type) {m_type = (type<=H1_ERROR_TYPE) ? type : H1_ERROR_TYPE;}
+
 protected:
 	/// initialization of quadrature (to be called during construction)
 		void init_quadrature();
@@ -382,6 +385,10 @@ private:
 
 	///	Finest grid level
 		GridLevel m_errEstGL;
+
+	/// set type
+		enum type {L2_ERROR_TYPE=0, H1_ERROR_TYPE};
+		int m_type;
 };
 
 
