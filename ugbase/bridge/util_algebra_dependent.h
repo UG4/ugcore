@@ -86,6 +86,10 @@ typedef boost::mpl::list<
 		CPUBlockAlgebra<5>,
 #endif
 
+#ifdef UG_CPU_6
+		CPUBlockAlgebra<6>,
+#endif
+
 #ifdef UG_CPU_VAR
 		CPUVariableBlockAlgebra,
 #endif

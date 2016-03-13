@@ -82,8 +82,8 @@ void InitUG(int dim, const AlgebraType& algType, bool verbose)
 //	get tag of algebra type
 	const std::string& algTag = GetAlgebraTag(algType);
 	int blocksize = algType.blocksize();
-	if( (blocksize < 0 || blocksize > 5) && blocksize != AlgebraType::VariableBlockSize)
-		UG_THROW("ERROR in InitUG: Only Algebra Blocksizes '1x1', '2x2', '3x3', '4x4', '5x5' and 'variable' are supported.");
+	if( (blocksize < 0 || blocksize > 6) && blocksize != AlgebraType::VariableBlockSize)
+		UG_THROW("ERROR in InitUG: Only Algebra Blocksizes '1x1', '2x2', '3x3', '4x4', '5x5', 6x6 and 'variable' are supported.");
 	
 	#ifdef UG_ALGEBRA
 			if(algType.type() == AlgebraType::CPU)
@@ -107,6 +107,10 @@ void InitUG(int dim, const AlgebraType& algType, bool verbose)
 		#ifndef UG_CPU_5
 			if(blocksize == 5)
 				UG_THROW("ERROR in InitUG: Requested Algebra CPU, Blocksize '5x5' is not compiled into binary.");
+		#endif
+		#ifndef UG_CPU_6
+			if(blocksize == 6)
+				UG_THROW("ERROR in InitUG: Requested Algebra CPU, Blocksize '6x6' is not compiled into binary.");
 		#endif
 		#ifndef UG_CPU_VAR
 			if(blocksize == AlgebraType::VariableBlockSize)

@@ -49,10 +49,10 @@ if(CPU_ALGEBRA)
         # loop dims
         foreach(d ${CPU})
             # check if dim is valid
-            if(d GREATER 5 OR d LESS 1)
+            if(d GREATER 6 OR d LESS 1)
                 message(FATAL_ERROR "ERROR: Cannot build cpu blocksize ${d}. "
                                     "Valid options are: ${cpuOptions}")
-            endif(d GREATER 5 OR d LESS 1)
+            endif(d GREATER 6 OR d LESS 1)
 
             add_definitions(-DUG_CPU_${d})
         endforeach(d)

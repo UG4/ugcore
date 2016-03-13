@@ -571,6 +571,9 @@ int UGAlgebraCompiled(lua_State *L)
 #if UG_CPU_5
 	if(name == "CPU5"){ lua_pushboolean(L, true); return 1;}
 #endif
+#if UG_CPU_6
+	if(name == "CPU6"){ lua_pushboolean(L, true); return 1;}
+#endif
 #if UG_CPU_VAR
 	if(name == "CPUVAR"){ lua_pushboolean(L, true); return 1;}
 #endif
