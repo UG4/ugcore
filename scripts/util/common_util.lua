@@ -99,6 +99,78 @@ function string:split_path(sep, n)
    return fields[n or #fields]
 end
 
+--! lists all files in a directory, then stores it into a table
+-- @param directory_ a directory
+-- @param extension_ file extension
+function common:scandir(directory_, extension_)
+   -- the file extension and directory and their defaults
+   local extension = extension_ or ""
+   local directory = directory_ or "."
+
+   -- read dir on linux/unix/mac
+   local function scandir_(dirname, extension)
+      callit = os.tmpname()
+      os.execute("ls -a1 \'"..dirname .. "\' >"..callit)
+      f = io.open(callit,"r")
+      rv = f:read("*all")
+      f:close()
+      os.remove(callit)
+      files = {}
+      local from  = 1
+      local delim_from, delim_to = string.find(rv, "\n", from)
+      while delim_from do
+         file = string.sub(rv, from, delim_from-1)
+         if (file:match(".*" .. extension .. "$")) then
+            table.insert(files, file)
+         end
+         from  = delim_to + 1
+         delim_from, delim_to = string.find(rv, "\n", from)
+      end
+      return files
+   end
+
+   -- read dir on windows
+   local function scandir__(dirname, extension)
+      local files = {}
+      for file in io.popen([[dir "C:\Program Files\" /b]]):lines() do
+         if (file:match(".*" .. extension .. "$")) then
+           tables.insert(files, file)
+         end
+      end
+      return files
+   end
+
+   path_sep = package.config:sub(1,1)
+   local filetab = {}
+   -- linux/unix/mac
+   if (path_sep == '/') then
+      filetab = scandir_(directory, extension)
+   -- windows
+   elseif (path_sep == '\\') then
+      filetab = scandir__(directory, extension)
+   -- unknown
+   else
+      print("Error: Unknown OS encountered")
+   end
+
+   -- all files matching the criteria or empty if no files found / unknown OS
+   return filetab
+end
+
+--! list all ugx files
+-- @param directory
+-- @param extension
+function common:scandir_ugx(directory, extension)
+   return common:scandir(directory, "ugx")
+end
+
+--! list all xml files
+-- @param directory
+-- @param extension
+function common:scandir_xml(directory, extension)
+   return common:scandir(directory, "xml")
+end
+
 -- end group scripts_util_common
 --[[!
 \}

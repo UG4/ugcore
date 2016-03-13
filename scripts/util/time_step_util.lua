@@ -110,12 +110,18 @@ function util.PrintUsageOfSolveTimeProblem()
 	print("reductionFactor  -- (optional) factor by which the step size is ")
 	print("                    reduced, if the problem was not solved. ")
 	print("                    Iterated until minStepSize is reached.")
+	print("bFinishTimeStep  -- (optional) boolean if finish_timestep should be")
+	print("                    called or not.")
+	print("useCheckpointing	-- (optional) if true, use checkpointing.")
+	print("postProcess		-- (optional) if passed, will be called after every time step.")
+	print("startTSNo		-- (optional) time step number of the initial condition (normally 0).")
+	print("endTSNo			-- (optional) if passed, stop after the time step with this number.")
 end
 
---!
+--! Time stepping with a fixed step size. Returns number of time steps done and the last time.
 --! @param u 				[in] GridFunction with Startvalues, [out] Solution"
---! @param domainDisc 		Domain Discretization
---! @param solver       	Linear or Nonlinear Solver
+--! @param domainDisc		Domain Discretization
+--! @param newtonSolver		Nonlinear Solver
 --! @param out				a VTKOutput (pass nil for no output)
 --! @param filename			filename for output
 --! @param timeScheme   	Name of time step scheme:
@@ -130,9 +136,11 @@ end
 --! 						reduced, if the problem was not solved.
 --! 						Iterated until minStepSize is reached.
 --! @param bFinishTimeStep 	(optional) boolean if finish_timestep should be 
---! 						called or not
+--! 						called or not.
 --! @param useCheckpointing (optional) if true, use checkpointing.
---! @param postProcess		(optional) if passed, will be called after every time step
+--! @param postProcess		(optional) if passed, will be called after every time step.
+--! @param startTSNo		(optional) time step number of the initial condition (normally 0).
+--! @param endTSNo			(optional) if passed, stop after the time step with this number.
 function util.SolveNonlinearTimeProblem(
 	u,
 	domainDisc,
@@ -148,7 +156,9 @@ function util.SolveNonlinearTimeProblem(
 	reductionFactor,
 	bFinishTimeStep,
 	useCheckpointing,
-	postProcess)
+	postProcess,
+	startTSNo,
+	endTSNo)
 	
 	if u == nil then
 		print("SolveNonlinearTimeProblem: Illegal parameters: No grid function for the solution specified.")
@@ -174,8 +184,14 @@ function util.SolveNonlinearTimeProblem(
 		exit()
 	end
 
-	if startTime == nil or endTime == nil then
-		print("SolveNonlinearTimeProblem: Illegal parameters: Start or end time not specified.")
+	if startTime == nil then
+		print("SolveNonlinearTimeProblem: Illegal parameters: Start time not specified.")
+		util.PrintUsageOfSolveTimeProblem()
+		exit()
+	end
+
+	if endTime == nil and endTSNo == nil then
+		print("SolveNonlinearTimeProblem: Illegal parameters: End time or number of steps not specified.")
 		util.PrintUsageOfSolveTimeProblem()
 		exit()
 	end
@@ -201,7 +217,7 @@ function util.SolveNonlinearTimeProblem(
 
 	-- start
 	local time = startTime
-	local step = 0
+	local step = startTSNo or 0
 	local nlsteps = 0;
 	
 	
@@ -239,7 +255,7 @@ function util.SolveNonlinearTimeProblem(
 	relPrecisionBound = 1e-12
 
 	-- stop if size of remaining t-domain (relative to `maxStepSize`) lies below `relPrecisionBound`
-	while (time < endTime) and ((endTime-time)/maxStepSize > relPrecisionBound) do
+	while (endTime == nil or ((time < endTime) and ((endTime-time)/maxStepSize > relPrecisionBound))) and ((endTSNo == nil) or (step < endTSNo)) do
 		step = step+1
 		print("++++++ TIMESTEP " .. step .. " BEGIN (current time: " .. time .. ") ++++++");
 
@@ -312,7 +328,7 @@ function util.SolveNonlinearTimeProblem(
 					solTimeSeries:push_discard_oldest(oldestSol, time)
 				end
 				
-				if not (bFinishTimeStep == nil) then 
+				if not (bFinishTimeStep == nil) and bFinishTimeStep then 
 					timeDisc:finish_step_elem(solTimeSeries, u:grid_level()) 
 				end
 				
@@ -349,6 +365,8 @@ function util.SolveNonlinearTimeProblem(
 	end 
 	
 	if type(out) == "userdata" then out:write_time_pvd(filename, u) end
+	
+	return step, time
 end
 
 
@@ -554,7 +572,23 @@ function util.SolveLinearTimeProblem(
 	end 
 end
 
--- postProcess @param postProcess    (optional) if passed, will be called after every time step)
+--! Time stepping with the adaptive step size. Returns number of time steps done and the last time.
+--! @param u 				[in] GridFunction with Startvalues, [out] Solution"
+--! @param domainDisc 		Domain Discretization
+--! @param newtonSolver		Nonlinear Solver
+--! @param out				a VTKOutput (pass nil for no output)
+--! @param filename			filename for output
+--! @param startTime		start time point
+--! @param endTime			end time point
+--! @param dt				time step
+--! @param maxStepSize		maximal step sized used
+--! @param minStepSize 		(optional) minimal step sized used
+--! @param adaptiveStepInfo adaptive stepping controls
+--! @param bFinishTimeStep 	(optional) boolean if finish_timestep should be 
+--! 						called or not.
+--! @param postProcess		(optional) if passed, will be called after every time step.
+--! @param startTSNo		(optional) time step number of the initial condition (normally 0).
+--! @param endTSNo			(optional) if passed, stop after the time step with this number.
 function util.SolveNonlinearProblemAdaptiveTimestep(
 	u,
 	domainDisc,
@@ -570,28 +604,52 @@ function util.SolveNonlinearProblemAdaptiveTimestep(
 	--reductionFactor,
 	--tol,
 	bFinishTimeStep,
-	postProcess)
-	
+	postProcess,
+	startTSNo,
+	endTSNo)
 
 	local doControl = true
 	local doExtrapolation = true
 	local timeScheme = "ImplEuler"
 	local orderOrTheta = 1.0
-	if u == nil or domainDisc == nil or newtonSolver == nil or timeScheme == nil
-		or startTime == nil or endTime == nil or maxStepSize == nil then
-		print("Wrong usage found. Please specify parameters as below:")
-		util.PrintUsageOfSolveTimeProblem()
+
+	if u == nil then
+		print("SolveNonlinearProblemAdaptiveTimestep: Illegal parameters: No grid function for the solution specified.")
 		exit()
 	end
 
+	if domainDisc == nil then
+		print("SolveNonlinearProblemAdaptiveTimestep: Illegal parameters: No domain discretization specified.")
+		exit()
+	end
+
+	if newtonSolver == nil then
+		print("SolveNonlinearProblemAdaptiveTimestep: Illegal parameters: No nonlin. solver specified.")
+		exit()
+	end
+
+	if startTime == nil then
+		print("SolveNonlinearProblemAdaptiveTimestep: Illegal parameters: Start time not specified.")
+		exit()
+	end
+
+	if endTime == nil and endTSNo == nil then
+		print("SolveNonlinearProblemAdaptiveTimestep: Illegal parameters: End time or number of steps not specified.")
+		exit()
+	end
  
-  -- read adaptive stuff
-  local tol = adaptiveStepInfo["TOLERANCE"]
-  local red = adaptiveStepInfo["REDUCTION"]
-  local inc_fac = adaptiveStepInfo["INCREASE"]
-  local safety_fac = adaptiveStepInfo["SAFETY"]
-  local errorEst = adaptiveStepInfo["ESTIMATOR"]
-  
+	if maxStepSize == nil then
+		print("SolveNonlinearProblemAdaptiveTimestep: Illegal parameters: No max. time step specified.")
+		exit()
+	end
+
+	-- read adaptive stuff
+	local tol = adaptiveStepInfo["TOLERANCE"]
+	local red = adaptiveStepInfo["REDUCTION"]
+	local inc_fac = adaptiveStepInfo["INCREASE"]
+	local safety_fac = adaptiveStepInfo["SAFETY"]
+	local errorEst = adaptiveStepInfo["ESTIMATOR"]
+
 	-- check parameters
 	if filename == nil then filename = "sol" end
 	if minStepSize == nil then minStepSize = maxStepSize end
@@ -614,7 +672,7 @@ function util.SolveNonlinearProblemAdaptiveTimestep(
 	
 	-- start
 	local time = startTime
-	local step = 0
+	local step = startTSNo or 0
 	local nlsteps = 0;
 	
 	-- write start solution
@@ -664,7 +722,7 @@ function util.SolveNonlinearProblemAdaptiveTimestep(
 	if timeScheme:lower() == "bdf" then timeDisc:set_order(1) end
 	local currdt = dt
 		
-	while time < endTime do
+	while ((endTime == nil) or (time < endTime)) and ((endTSNo == nil) or (step < endTSNo)) do
 		step = step + 1
 		print("++++++ TIMESTEP "..step.." BEGIN (current time: " .. time .. ") "..endTime.."++++++");
 	
@@ -709,7 +767,10 @@ function util.SolveNonlinearProblemAdaptiveTimestep(
 
 				--VecScaleAdd2(u2, 1.0-0.5*currdt, old, 0.5*currdt, u);   -- w/ linear interpolation  (first guess)
 				timeDisc2:prepare_step(solTimeSeries2, 0.5*currdt)
-				if newtonSolver:prepare(u2) == false then print ("Newton solver failed at step "..step.."+1/2."); exit(); end 
+				if newtonSolver:prepare(u2) == false then
+					print ("Newton solver failed at step "..step.."+1/2.");
+					exit();
+				end 
 				if newtonSolver:apply(u2) == false then 
 					print ("Newton solver failed at step "..step.."+1/2.");
 				end 
@@ -726,7 +787,10 @@ function util.SolveNonlinearProblemAdaptiveTimestep(
 																			-- (now old2 is discarded)
 		
 				timeDisc2:prepare_step(solTimeSeries2, 0.5*currdt)
-				if newtonSolver:prepare(u2) == false then print ("Newton solver failed at step "..step.."+2/2."); exit(); end 
+				if newtonSolver:prepare(u2) == false then
+					print ("Newton solver failed at step "..step.."+2/2.");
+					exit();
+				end 
 				if newtonSolver:apply(u2) == false then
 				 	print ("Newton solver failed at step "..step.."+2/2."); 
 				 	bSuccess = false;
@@ -779,7 +843,7 @@ function util.SolveNonlinearProblemAdaptiveTimestep(
 	   				VecScaleAssign(utmp, 1.0, old)
 	   				solTimeSeries2:push_discard_oldest(utmp, time)
 				end
-			end
+			end -- if (bSuccess and doControl)
 		
 		
 			-- check valid step size			
@@ -808,14 +872,14 @@ function util.SolveNonlinearProblemAdaptiveTimestep(
 				solTimeSeries2:push_discard_oldest(oldestSol, time)
 			end
 				
-			if not (bFinishTimeStep == nil) then 
+			if not (bFinishTimeStep == nil) and bFinishTimeStep then 
 				timeDisc:finish_step_elem(solTimeSeries, u:grid_level()) 
 			end
 				
-		end		
+		end	-- while bSuccess == false
 		
 		-- call post process
-    if type(postProcess) == "function" then postProcess(u, step, time, currdt) end
+		if type(postProcess) == "function" then postProcess(u, step, time, currdt) end
 		
 		
 		-- plot solution
@@ -826,6 +890,8 @@ function util.SolveNonlinearProblemAdaptiveTimestep(
 	end
 	
 	if type(out) == "userdata" then out:write_time_pvd(filename, u) end
+	
+	return step, time
 end
 
 
@@ -843,33 +909,35 @@ function util.SolveNonlinearProblemAdaptiveLimex(
 	adaptiveStepInfo,
 	--reductionFactor,
 	--tol,
-	bFinishTimeStep)
+	bFinishTimeStep,
+	postProcess,
+	startTSNo,
+	endTSNo)
 
 
- -- read adaptive stuff
-  local tol = adaptiveStepInfo["TOLERANCE"]
-  local red = adaptiveStepInfo["REDUCTION"]
-  local inc_fac = adaptiveStepInfo["INCREASE"]
-  local safety_fac = adaptiveStepInfo["SAFETY"]
-  local errorEst = adaptiveStepInfo["ESTIMATOR"]
+	-- read adaptive stuff
+	local tol = adaptiveStepInfo["TOLERANCE"]
+	local red = adaptiveStepInfo["REDUCTION"]
+	local inc_fac = adaptiveStepInfo["INCREASE"]
+	local safety_fac = adaptiveStepInfo["SAFETY"]
+	local errorEst = adaptiveStepInfo["ESTIMATOR"]
   
-  -- check parameters
-  if filename == nil then filename = "sol" end
-  if minStepSize == nil then minStepSize = maxStepSize end
-  
-  if red == nil then red = 0.5 end   -- reduction of time step
-  if inc_fac == nil then inc_fac = 1.5 end   -- increase of time step
-  
-  if errorEst == nil then 
-    print "WARNING: Error estimator not set. Default is euclidean norm! "
-    errorEst = Norm2ErrorEst() 
-   end
-  if tol == nil then 
-    tol = 1e-3 
-    print ("WARNING: Using default tolerance "..tol)
-  end
-  if safety_fac == nil then safety_fac = 0.8 end   -- safety factor
+	-- check parameters
+	if filename == nil then filename = "sol" end
+	if minStepSize == nil then minStepSize = maxStepSize end
 
+	if red == nil then red = 0.5 end   -- reduction of time step
+	if inc_fac == nil then inc_fac = 1.5 end   -- increase of time step
+  
+	if errorEst == nil then 
+		print "WARNING: Error estimator not set. Default is euclidean norm! "
+		errorEst = Norm2ErrorEst() 
+	end
+	if tol == nil then 
+		tol = 1e-3 
+		print ("WARNING: Using default tolerance "..tol)
+	end
+	if safety_fac == nil then safety_fac = 0.8 end   -- safety factor
 
 
 	local doControl = true
@@ -892,11 +960,11 @@ function util.SolveNonlinearProblemAdaptiveLimex(
 	end
 
 
-  print ("maxStepSize ="..maxStepSize)
-  print ("minStepSize ="..minStepSize)
-  
-  print ("startTime ="..startTime)
-  print ("endTime ="..endTime)
+	print ("maxStepSize ="..maxStepSize)
+	print ("minStepSize ="..minStepSize)
+
+	print ("startTime ="..startTime)
+	print ("endTime ="..endTime)
 	-- check parameters
 	if filename == nil then filename = "sol" end
 	if minStepSize == nil then minStepSize = maxStepSize end
@@ -911,7 +979,7 @@ function util.SolveNonlinearProblemAdaptiveLimex(
 			
 	-- start
 	local time = startTime
-	local step = 0
+	local step = startTSNo or 0
 	local nlsteps = 0;
 	
 	-- write start solution
@@ -959,7 +1027,7 @@ function util.SolveNonlinearProblemAdaptiveLimex(
 	-- if timeScheme:lower() == "bdf" then timeDisc:set_order(1) end
 	local currdt = dt
 		
-	while time < endTime do
+	while ((endTime == nil) or (time < endTime)) and ((endTSNo == nil) or (step < endTSNo)) do
 		step = step + 1
 		print("++++++ TIMESTEP "..step.." BEGIN (current time: " .. time .. ") "..endTime.."++++++");
 	
@@ -1046,12 +1114,12 @@ function util.SolveNonlinearProblemAdaptiveLimex(
 					l2_ex_est = "---";
 				end
 		
-		    --vtk = VTKOutput()
-        --vtk:select_nodal(GridFunctionNumberData(u, "c"), "CNodal")
-       -- vtk:select_nodal(GridFunctionNumberData(u, "p"), "PNodal")
+				--vtk = VTKOutput()
+				--vtk:select_nodal(GridFunctionNumberData(u, "c"), "CNodal")
+				--vtk:select_nodal(GridFunctionNumberData(u, "p"), "PNodal")
         
-        --out:print("CoarseLimexSol.vtu", u, step, time) 
-        --out:print("FineLimexSol.vtu", u2, step, time) 
+				--out:print("CoarseLimexSol.vtu", u, step, time) 
+				--out:print("FineLimexSol.vtu", u2, step, time) 
 		
 				--print("TIME_ERROR (t="..time+tau..", |u|="..l2normB.. ") :\t" .. l2_coarse_err .. "\t"..l2_fine_err .. "\t"..l2_ex_err .. "\|  ---\t"..l2_fine_est .. "\t"..l2_ex_est.. "\t"..eps)
 				--file:write(time+tau.."\t" ..l2normB.. "\t" .. l2_coarse_err .. "\t"..l2_fine_err .. "\t"..l2_ex_err .. "\t"..l2_fine_est .. "\t"..l2_ex_est.. "\t"..eps.."\n")
@@ -1064,8 +1132,8 @@ function util.SolveNonlinearProblemAdaptiveLimex(
 				--dtEst = math.pow(0.9*tol/eps, 0.5)*currdt  -- (eps<=tol) implies (tol/eps >= 1) 
 				--print("dtEst= "..dtEst..", eps="..eps..", tol = " ..tol..", fac = "..math.pow(0.9*tol/eps, 0.5))
 				local lambda = math.pow(safety_fac*tol/eps, 0.5) -- (eps<=tol) implies (tol/eps >= 1) 
-        dtEst = lambda*currdt  
-        print("dtEst= "..dtEst..", eps="..eps..", tol = " ..tol..", fac = "..lambda)
+				dtEst = lambda*currdt  
+				print("dtEst= "..dtEst..", eps="..eps..", tol = " ..tol..", fac = "..lambda)
 		
 				-- determine potential new step size
 				currdt = math.min(dtEst, inc_fac*currdt, maxStepSize)
@@ -1117,14 +1185,14 @@ function util.SolveNonlinearProblemAdaptiveLimex(
 			end
 			
 				
-			if not (bFinishTimeStep == nil) then 
+			if not (bFinishTimeStep == nil) and bFinishTimeStep then 
 				timeDisc:finish_step_elem(solTimeSeries, u:grid_level()) 
 			end
 				
 		end		
 		
 		-- call post process
-    if type(postProcess) == "function" then postProcess(u, step, time, currdt) end
+		if type(postProcess) == "function" then postProcess(u, step, time, currdt) end
 		
 		-- plot solution
 		if type(out) == "function" then out(u, step, time) end
@@ -1134,6 +1202,8 @@ function util.SolveNonlinearProblemAdaptiveLimex(
 	end
 	
 	if type(out) == "userdata" then out:write_time_pvd(filename, u) end
+	
+	return step, time
 end
 
 
