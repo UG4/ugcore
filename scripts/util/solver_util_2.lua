@@ -194,8 +194,8 @@ util.solver.defaults =
 		},
 
 		schur = {
-			dirichletSolver	= "superlu",
-			skeletonSolver	= "superlu"
+			dirichletSolver	= "lu",
+			skeletonSolver	= "lu"
 		}
 	},
 
@@ -308,10 +308,17 @@ function util.solver.CreateLinearSolver(solverDesc, solverutil)
 		createPrecond = true
 		createConvCheck = true
 
-	elseif name == "lu"		then
-		linSolver = AgglomeratingSolver(LU())
+	elseif name == "lu"	then
+		if HasClassGroup("SuperLU") then
+			linSolver = AgglomeratingSolver(SuperLU());
+		else
+			linSolver = AgglomeratingSolver(LU())
+		end
 
-	elseif name == "superlu"	then
+	elseif name == "uglu" then
+		linSolver = AgglomeratingSolver(LU());
+		
+	elseif name == "superlu" then
 		linSolver = AgglomeratingSolver(SuperLU());
 	end
 

@@ -190,8 +190,10 @@ class AgglomeratingBase : public TBase
 				init_collected_vec(collectedB);
 				bSuccess = init_agglomerated(m_spCollectedOp);
 				//UG_DLOG(LIB_ALG_LINEAR_SOLVER, 1,
-						UG_LOG("Agglomerated on proc 0. Size is " << collectedX.size() << "(was on this proc: "
+				if(collectedX.size() != m_pMatrix->num_rows()) {
+					UG_LOG("Agglomerated on proc 0. Size is " << collectedX.size() << "(was on this proc: "
 						<< m_pMatrix->num_rows() << ")\n");
+				}
 			}
 			if(pcl::AllProcsTrue(bSuccess, m_pMatrix->layouts()->proc_comm()) == false) return false;
 			return true;
