@@ -412,19 +412,17 @@ int main(int argc, char* argv[])
 		}
 		CATCH_STD_EXCEPTIONS();
 
-//#ifdef UG_DEBUG
 		if(runScript){
 			try{
-				script::ParseAndExecuteBuffer("if util ~= nil and util.CheckAndPrintHelp ~= nil then util.CheckAndPrintHelp(\"\\n-help: Available Command Line Arguments:\") end\n"
-							"if util ~= nil and util.PrintIgnoredArguments ~= nil then print(\"\") util.PrintIgnoredArguments() end\n"
-									, "ugshell_main");
+				script::ParseAndExecuteBuffer(
+					"if util ~= nil and util.PrintIgnoredArguments ~= nil then print(\"\") util.PrintIgnoredArguments() end\n",
+					"ugshell_main");
 			}
 			catch(SoftAbort& err){
 				UG_LOG("Execution of script-buffer aborted with the following message:\n");
 				UG_LOG(err.get_msg() << std::endl);
 			}
 		}
-//#endif
 
 		EnableMemTracker(false);
 		//DisplayVacantMemory();
