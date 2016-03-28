@@ -1,6 +1,7 @@
 #ugcore
 
 [![Build Status](https://travis-ci.org/UG4/ugcore.svg?branch=master)](https://travis-ci.org/UG4/ugcore)
+[![Code Climate](https://codeclimate.com/github/UG4/ugcore/badges/gpa.svg)](https://codeclimate.com/github/UG4/ugcore)
 
 core functionality of **UG4**. Includes sources, build-scripts,
 and utility-scripts
