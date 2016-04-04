@@ -299,27 +299,27 @@ void IElemDisc<TDomain>::set_roid(ReferenceObjectID roid, int discType)
 	}
 
 	if(m_vPrepareElemLoopFct[m_id]==NULL)
-		UG_THROW("ElemDisc: Missing evaluation method 'prepare_elem_loop' for "<<roid<<"(world dim: "<<dim<<")");
+		UG_THROW("ElemDisc: Missing evaluation method 'prepare_elem_loop' for "<<roid<<" (world dim: "<<dim<<")");
 	if(m_vPrepareElemFct[m_id]==NULL)
-		UG_THROW("ElemDisc: Missing evaluation method 'prepare_elem' for "<<roid<<"(world dim: "<<dim<<")");
+		UG_THROW("ElemDisc: Missing evaluation method 'prepare_elem' for "<<roid<<" (world dim: "<<dim<<")");
 	if(m_vFinishElemLoopFct[m_id]==NULL)
-		UG_THROW("ElemDisc: Missing evaluation method 'finish_elem_loop' for "<<roid<<"(world dim: "<<dim<<")");
+		UG_THROW("ElemDisc: Missing evaluation method 'finish_elem_loop' for "<<roid<<" (world dim: "<<dim<<")");
 
 	if(discType & MASS){
 		if(m_vElemJMFct[m_id]==NULL)
-			UG_THROW("ElemDisc: Missing evaluation method 'add_jac_M_elem' for "<<roid<<"(world dim: "<<dim<<")");
+			UG_THROW("ElemDisc: Missing evaluation method 'add_jac_M_elem' for "<<roid<<" (world dim: "<<dim<<")");
 		if(m_vElemdMFct[m_id]==NULL)
-			UG_THROW("ElemDisc: Missing evaluation method 'add_def_M_elem' for "<<roid<<"(world dim: "<<dim<<")");
+			UG_THROW("ElemDisc: Missing evaluation method 'add_def_M_elem' for "<<roid<<" (world dim: "<<dim<<")");
 	}
 	if(discType & STIFF){
 		if(m_vElemJAFct[m_id]==NULL)
-			UG_THROW("ElemDisc: Missing evaluation method 'add_jac_A_elem' for "<<roid<<"(world dim: "<<dim<<")");
+			UG_THROW("ElemDisc: Missing evaluation method 'add_jac_A_elem' for "<<roid<<" (world dim: "<<dim<<")");
 		if(m_vElemdAFct[m_id]==NULL)
-			UG_THROW("ElemDisc: Missing evaluation method 'add_def_A_elem for' "<<roid<<"(world dim: "<<dim<<")");
+			UG_THROW("ElemDisc: Missing evaluation method 'add_def_A_elem for' "<<roid<<" (world dim: "<<dim<<")");
 	}
 	if(discType & RHS){
 		if(m_vElemRHSFct[m_id]==NULL)
-			UG_THROW("ElemDisc: Missing evaluation method 'add_rhs_elem' for "<<roid<<"(world dim: "<<dim<<")");
+			UG_THROW("ElemDisc: Missing evaluation method 'add_rhs_elem' for "<<roid<<" (world dim: "<<dim<<")");
 	}
 };
 
