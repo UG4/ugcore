@@ -271,6 +271,10 @@ function util.ReadStateCheckpoint(gf_names, id, name)
 --	go to the directory and load the environment
 	local dirname = name.."."..id..".ug4cp"
 	print("Reading state from directory '"..dirname.."':")
+	if not DirectoryExists(dirname) then
+		print("---- Directory '"..dirname.."' does not exist! ----")
+		exit()
+	end
 	ChangeDirectory(dirname)
 	
 --	load the lua data
