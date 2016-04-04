@@ -590,7 +590,7 @@ class DependentUserData : public CplUserData<TData, dim>
 	/// number of shapes for local function
 		size_t num_sh(size_t fct) const
 		{
-			UG_ASSERT(fct < m_vvNumDoFPerFct.size(), "Wring index");
+			UG_ASSERT(fct < m_vvNumDoFPerFct.size(), "Wrong index");
 			return m_vvNumDoFPerFct[fct];
 		}
 
