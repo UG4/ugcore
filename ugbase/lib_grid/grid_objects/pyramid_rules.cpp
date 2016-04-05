@@ -53,7 +53,7 @@ void RotatePyramid(int vrtsOut[NUM_VERTICES], int steps)
 
 
 
-int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*, bool*)
+int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*, bool* isSnapPoint)
 {
 	newCenterOut = false;
 //	If a refinement rule is not implemented, fillCount will stay at 0.
@@ -81,6 +81,17 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*, bool
 			++cornerStatus[evi[1]];
 		}
 	}
+
+//	snap-point handling
+	int numSnapPoints = 0;
+	if(isSnapPoint){
+		for(int i = 0; i < NUM_VERTICES; ++i){
+			if(isSnapPoint[i])
+				++numSnapPoints;
+		}
+	}
+
+	bool snapPointsProcessed = numSnapPoints == 0 ? true : false;
 
 //	the fillCount tells how much data has already been written to newIndsOut.
 	int fillCount = 0;
@@ -457,6 +468,12 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*, bool
 
 		}break;
 	}
+
+	
+	if(!snapPointsProcessed){
+		UG_LOG("WARNING: Invalid or unsupported snap-point distribution detected. Ignoring snap-points for this element.\n");
+	}
+
 
 	if(fillCount == 0){
 	//	call recursive refine
