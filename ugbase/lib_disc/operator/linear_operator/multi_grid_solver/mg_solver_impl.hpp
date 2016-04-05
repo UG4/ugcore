@@ -1111,13 +1111,13 @@ init_smoother()
 		LevData& ld = *m_vLevData[lev];
 
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, "  init_smoother: initializing pre-smoother on lev "<<lev<<"\n");
-		if(!ld.PreSmoother->init(ld.A, *ld.st))
+		if(!ld.PreSmoother->init(ld.A, *ld.sc))
 			UG_THROW("GMG::init: Cannot init pre-smoother for level "<<lev);
 
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, "  init_smoother: initializing post-smoother on lev "<<lev<<"\n");
 		if(ld.PreSmoother != ld.PostSmoother)
 		{
-			if(!ld.PostSmoother->init(ld.A, *ld.st))
+			if(!ld.PostSmoother->init(ld.A, *ld.sc))
 				UG_THROW("GMG::init: Cannot init post-smoother for level "<<lev);
 		}
 	}
