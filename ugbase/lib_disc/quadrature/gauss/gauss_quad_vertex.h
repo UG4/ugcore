@@ -30,13 +30,17 @@
  */
 
 //  This file is parsed from UG 3.9.
-//  It provides the Gauss Quadratures for a reference edge.
+//  It provides the Gauss Quadratures for a reference vertex.
 
+#ifndef __H__UG__LIB_DISC__QUADRATURE__GAUSS_QUAD__GAUSS_QUAD_VERTEX__
+#define __H__UG__LIB_DISC__QUADRATURE__GAUSS_QUAD__GAUSS_QUAD_VERTEX__
 
 #include "gauss_quad.h"
 
 namespace ug{
 
+
+// TODO: This class might be superfluous now that the specializations below exist.
 class GaussQuadratureVertex : public QuadratureRule<0>
 {
 	public:
@@ -58,5 +62,89 @@ class GaussQuadratureVertex : public QuadratureRule<0>
 		number m_vWeight[1];
 };
 
+
+template <>
+class GaussQuadrature<ReferenceVertex, 0>
+: public GaussQuadBase<GaussQuadrature<ReferenceVertex, 0>, 0, 0, 1> {};
+
+
+template <>
+class GaussQuadrature<ReferenceVertex, 1>
+: public GaussQuadrature<ReferenceVertex, 0> {};
+
+template <>
+class GaussQuadrature<ReferenceVertex, 2>
+: public GaussQuadrature<ReferenceVertex, 0> {};
+
+template <>
+class GaussQuadrature<ReferenceVertex, 3>
+: public GaussQuadrature<ReferenceVertex, 0> {};
+
+template <>
+class GaussQuadrature<ReferenceVertex, 4>
+: public GaussQuadrature<ReferenceVertex, 0> {};
+
+template <>
+class GaussQuadrature<ReferenceVertex, 5>
+: public GaussQuadrature<ReferenceVertex, 0> {};
+
+template <>
+class GaussQuadrature<ReferenceVertex, 6>
+: public GaussQuadrature<ReferenceVertex, 0> {};
+
+template <>
+class GaussQuadrature<ReferenceVertex, 7>
+: public GaussQuadrature<ReferenceVertex, 0> {};
+
+template <>
+class GaussQuadrature<ReferenceVertex, 8>
+: public GaussQuadrature<ReferenceVertex, 0> {};
+
+template <>
+class GaussQuadrature<ReferenceVertex, 9>
+: public GaussQuadrature<ReferenceVertex, 0> {};
+
+template <>
+class GaussQuadrature<ReferenceVertex, 10>
+: public GaussQuadrature<ReferenceVertex, 0> {};
+
+template <>
+class GaussQuadrature<ReferenceVertex, 11>
+: public GaussQuadrature<ReferenceVertex, 0> {};
+
+template <>
+class GaussQuadrature<ReferenceVertex, 12>
+: public GaussQuadrature<ReferenceVertex, 0> {};
+
+template <>
+class GaussQuadrature<ReferenceVertex, 13>
+: public GaussQuadrature<ReferenceVertex, 0> {};
+
+template <>
+class GaussQuadrature<ReferenceVertex, 14>
+: public GaussQuadrature<ReferenceVertex, 0> {};
+
+template <>
+class GaussQuadrature<ReferenceVertex, 15>
+: public GaussQuadrature<ReferenceVertex, 0> {};
+
+template <>
+class GaussQuadrature<ReferenceVertex, 16>
+: public GaussQuadrature<ReferenceVertex, 0> {};
+
+template <>
+class GaussQuadrature<ReferenceVertex, 17>
+: public GaussQuadrature<ReferenceVertex, 0> {};
+
+template <>
+class GaussQuadrature<ReferenceVertex, 18>
+: public GaussQuadrature<ReferenceVertex, 0> {};
+
+template <>
+class GaussQuadrature<ReferenceVertex, 19>
+: public GaussQuadrature<ReferenceVertex, 0> {};
+
 }; // namespace ug
 
+
+#endif //__H__UG__LIB_DISC__QUADRATURE__GAUSS_QUAD__GAUSS_QUAD_VERTEX__

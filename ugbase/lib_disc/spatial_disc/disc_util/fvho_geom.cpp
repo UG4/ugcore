@@ -1157,7 +1157,7 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 		traits::NormalOnSCVF(m_vSCVF[i].Normal, m_vSCVF[i].vGloPos, vCornerCoords);
 		VecNormalize(m_vSCVF[i].Normal, m_vSCVF[i].Normal);
 
-		ReferenceMapping<scvf_type, dim> map(m_vSCVF[i].vGloPos);
+		ReferenceMapping<scvf_type, worldDim> map(&m_vSCVF[i].vGloPos[0]);
 		for(size_t ip = 0; ip < m_rSCVFQuadRule.size(); ++ip)
 			m_vSCVF[i].vDetJMap[ip] = map.sqrt_gram_det(m_rSCVFQuadRule.point(ip));
 	}
@@ -1214,7 +1214,7 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 
 	for(size_t i = 0; i < num_scv(); ++i)
 	{
-		ReferenceMapping<scv_type, dim> map(m_vSCV[i].vGloPos);
+		ReferenceMapping<scv_type, worldDim> map(&m_vSCV[i].vGloPos[0]);
 		for(size_t ip = 0; ip < m_rSCVQuadRule.size(); ++ip)
 			m_vSCV[i].vDetJMap[ip] = map.sqrt_gram_det(m_rSCVQuadRule.point(ip));
 	}
@@ -1909,10 +1909,13 @@ update_boundary_faces(GridObject* pElem, const MathVector<worldDim>* vCornerCoor
 #endif
 
 #ifdef UG_DIM_2
+	template class FVGeometry<1, RegularEdge, 2>;
 	template class FVGeometry<1, Triangle, 2>;
 	template class FVGeometry<1, Quadrilateral, 2>;
+	template class FVGeometry<2, RegularEdge, 2>;
 	template class FVGeometry<2, Triangle, 2>;
 	template class FVGeometry<2, Quadrilateral, 2>;
+	template class FVGeometry<3, RegularEdge, 2>;
 	template class FVGeometry<3, Triangle, 2>;
 	template class FVGeometry<3, Quadrilateral, 2>;
 
@@ -1921,12 +1924,15 @@ update_boundary_faces(GridObject* pElem, const MathVector<worldDim>* vCornerCoor
 #endif
 
 #ifdef UG_DIM_3
+	template class FVGeometry<1, RegularEdge, 3>;
 	template class FVGeometry<1, Tetrahedron, 3>;
 	template class FVGeometry<1, Prism, 3>;
 	template class FVGeometry<1, Hexahedron, 3>;
+	template class FVGeometry<2, RegularEdge, 3>;
 	template class FVGeometry<2, Tetrahedron, 3>;
 	template class FVGeometry<2, Prism, 3>;
 	template class FVGeometry<2, Hexahedron, 3>;
+	template class FVGeometry<3, RegularEdge, 3>;
 	template class FVGeometry<3, Tetrahedron, 3>;
 	template class FVGeometry<3, Prism, 3>;
 	template class FVGeometry<3, Hexahedron, 3>;

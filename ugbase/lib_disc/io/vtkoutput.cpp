@@ -170,18 +170,35 @@ write_empty_grid_piece(VTKFileWriter& File, bool binary)
 ////////////////////////////////////////////////////////////////////////////////
 
 
-template <int TDim>
-void VTKOutput<TDim>::
-vtu_filename(std::string& nameOut, std::string nameIn, int rank,
-             int si, int maxSi, int step)
+void baseName(std::string& nameOut, const std::string& nameIn)
 {
-	// remove extension of file if necessary (see below, pvtu_filename)
+	// This hack is a little bit ugly. What is supposed to be achieved is the following:
+	// As simply using
+	// 		nameIn.substr(0, nameIn.find_last_of('.'));
+	// will cause unexpected results if filename is a path that
+	// includes a ".", e.g. "./path/to/someFileName" or "stupid.path.name/fileName",
+	// we check whether there is a '/' in the file name _after_ the last '.';
+	// in that case, we take the whole file name, otherwise only up to the last dot.
+	// This will treat the two example cases above (on Unix systems).
+	// A proper solution would use boost::filesystem and throw away the file extension
+	// if present. However, this would require linking against a boost library.
 	size_t lo_slash = nameIn.find_last_of('/');
 	size_t lo_dot = nameIn.find_last_of('.');
 	if (lo_slash == std::string::npos || lo_slash < lo_dot)
 		nameOut = nameIn.substr(0, lo_dot);
 	else
 		nameOut = nameIn;
+}
+
+
+template <int TDim>
+void VTKOutput<TDim>::
+vtu_filename(std::string& nameOut, std::string nameIn, int rank,
+             int si, int maxSi, int step)
+{
+// remove extension of file if necessary
+	baseName(nameOut, nameIn);
+
 #ifdef UG_PARALLEL
 // 	process index
 	if(pcl::NumProcs() > 1)
@@ -206,22 +223,8 @@ void VTKOutput<TDim>::
 pvtu_filename(std::string& nameOut, std::string nameIn,
               int si, int maxSi, int step)
 {
-	// This hack is a little bit ugly. What is supposed to be achieved is the following:
-	// As simply using
-	// 		nameIn.substr(0, nameIn.find_last_of('.'));
-	// will cause unexpected results if filename is a path that
-	// includes a ".", e.g. "./path/to/someFileName" or "stupid.path.name/fileName",
-	// we check whether there is a '/' in the file name _after_ the last '.';
-	// in that case, we take the whole file name, otherwise only up to the last dot.
-	// This will treat the two example cases above (on Unix systems).
-	// A proper solution would use boost::filesystem and throw away the file extension
-	// if present. However, this would require linking against a boost library.
-	size_t lo_slash = nameIn.find_last_of('/');
-	size_t lo_dot = nameIn.find_last_of('.');
-	if (lo_slash == std::string::npos || lo_slash < lo_dot)
-		nameOut = nameIn.substr(0, lo_dot);
-	else
-		nameOut = nameIn;
+// remove extension of file if necessary
+	baseName(nameOut, nameIn);
 
 // 	subset index
 	if(si >= 0)
@@ -240,8 +243,8 @@ template <int TDim>
 void VTKOutput<TDim>::
 pvd_filename(std::string& nameOut, std::string nameIn)
 {
-//	copy name
-	nameOut = nameIn.substr(0, nameIn.find_last_of('.'));
+// remove extension of file if necessary
+	baseName(nameOut, nameIn);
 
 // 	add file extension
 	nameOut.append(".pvd");
@@ -252,8 +255,8 @@ template <int TDim>
 void VTKOutput<TDim>::
 pvd_time_filename(std::string& nameOut, std::string nameIn, int step)
 {
-//	copy name
-	nameOut = nameIn.substr(0, nameIn.find_last_of('.'));
+// remove extension of file if necessary
+	baseName(nameOut, nameIn);
 
 // 	time index
 	if(step >= 0)

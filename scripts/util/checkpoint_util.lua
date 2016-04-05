@@ -202,5 +202,102 @@ function util.ReadCheckpoint(u, name)
 	return cp
 end
 
+--! util.WriteStateCheckpoint
+--! 
+--! @param gf_names a table of names of grid functions to save (e.g. {u=u, lsf=lsf})
+--! @param id the id for the current solution (e.g. the current time)
+--! @param myData additional Data in Form of a table. 
+--!        Will be available as cp.myData when loading the checkpoint
+--!        Can contain all LUA types (tables, arrays, strings, numbers etc.), but no userdata!
+--!        Can also be nil.
+--! @param name name to use when writing the checkpoint (may be nil). 
+function util.WriteStateCheckpoint (gf_names, id, myData, name)
+	if type(gf_names) ~= "table" then
+		print("WriteStateCheckpoint: The first argument should be a table {...} of names")
+		exit()
+	end
+	
+	if name == nil then name = util.checkpoint.stdName end
+	ug_assert(id ~= nil)
+	
+--	create the directory
+	local dirname = name.."."..id..".ug4cp"
+	print("Writing state to directory '"..dirname.."':")
+	if ProcRank() == 0 then
+		CreateDirectory(dirname)
+	end
+	SynchronizeProcesses()
+	ChangeDirectory(dirname)
+	
+--	write the grid functions
+	for gf_n, gf in pairs (gf_names) do
+		if gf == nil then
+			print("WriteStateCheckpoint: No '"..gf_n.."' found!")
+			exit()
+		end
+		local filename = gf_n..".ug4vec"
+		print(" ... writing '"..gf_n.."'")
+		SaveToFile(gf, filename)
+	end
+	
+--	write the checkpoint data and return to the upper directory
+	print(" ... writing environment")
+	if ProcRank() == 0 then
+		cpenv =
+		{
+			ugargc=ugargc, 
+			ugargv=ugargv,
+			commandline = util.GetCommandLine(),
+		
+			stdData=util.GetStdCheckpointData(),
+		
+			id=id,
+			myData=myData
+		}
+		LuaWrite("env.lua", "cpenv")
+	end
+	ChangeDirectory("..")
+	print(" ... done.\n")
+end
 
+--! util.ReadStateCheckpoint
+--! 
+--! @param gf_names a table of names of grid functions to save (e.g. {u=u, lsf=lsf})
+--! @param id the id for the current solution (e.g. the current time)
+--! @param name name used when writing the checkpoint (may be nil). 
+function util.ReadStateCheckpoint(gf_names, id, name)
+	if name == nil then name = util.checkpoint.stdName end
+	
+--	go to the directory and load the environment
+	local dirname = name.."."..id..".ug4cp"
+	print("Reading state from directory '"..dirname.."':")
+	if not DirectoryExists(dirname) then
+		print("---- Directory '"..dirname.."' does not exist! ----")
+		exit()
+	end
+	ChangeDirectory(dirname)
+	
+--	load the lua data
+	-- note: ug_load_script is also caring about distributing data to all cores. 
+	ug_load_script("env.lua")
+	local cp = LoadTheCheckpoint()
+	
+--	read the data
+	for gf_n, gf in pairs (gf_names) do
+		if gf == nil then
+			print("ReadStateCheckpoint: No '"..gf_n.."' object created!")
+			exit()
+		end
+		local filename = gf_n..".ug4vec"
+		print(" ... reading '"..gf_n.."'")
+		ReadFromFile(gf, filename)
+	end
+	
+--	return to the parent directory
+	ChangeDirectory("..")
+	print(" ... done.")
+	
+	return cp
+end
 
+-- End of File

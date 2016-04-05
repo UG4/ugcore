@@ -197,6 +197,12 @@ UG_API void ChangeDirectory(std::string dir);
  */
 std::string FindFileInStandardPaths(const char* filename);
 
+/** Current working directory
+ *
+ * \return	the current working directory as a string
+ */
+std::string CurrentWorkingDirectory();
+
 // end group ugbase_common_io
 /// \}
 
