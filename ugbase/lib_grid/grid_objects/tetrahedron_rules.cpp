@@ -88,7 +88,7 @@ void InverseTetTransform(int* indsOut, const int* transformedInds){
 
 
 int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut,
-		   vector3* corners)
+		   vector3* corners, bool*)
 {
 	newCenterOut = false;
 //	If a refinement rule is not implemented, fillCount will stay at 0.

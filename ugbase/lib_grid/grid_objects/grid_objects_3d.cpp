@@ -183,8 +183,9 @@ static bool Refine(std::vector<Volume*>& vNewVolumesOut,
 					Vertex* newVolumeVertex,
 					const Vertex& prototypeVertex,
 					Vertex** vrts,
-					int (*funcRefine)(int*, int*, bool&, vector3*),
-					vector3* corners = NULL)
+					int (*funcRefine)(int*, int*, bool&, vector3*, bool*),
+					vector3* corners = NULL,
+					bool* isSnapPoint = NULL)
 {
 	vNewVolumesOut.clear();
 	*ppNewVertexOut = NULL;
@@ -220,7 +221,7 @@ static bool Refine(std::vector<Volume*>& vNewVolumesOut,
 
 //	perform refine
 	bool centerVrtRequired = false;
-	int numElemInds = funcRefine(newElemInds, newEdgeVrts, centerVrtRequired, corners);
+	int numElemInds = funcRefine(newElemInds, newEdgeVrts, centerVrtRequired, corners, isSnapPoint);
 
 	assert(numElemInds != 0 && "PROBLEM in Refine(...): "
 								"refine with 1 new edge vertex failed.");
@@ -434,7 +435,8 @@ bool Tetrahedron::refine(std::vector<Volume*>& vNewVolumesOut,
 							Vertex* newVolumeVertex,
 							const Vertex& prototypeVertex,
 							Vertex** pSubstituteVertices,
-							vector3* corners)
+							vector3* corners,
+							bool* isSnapPoint)
 {
 //	handle substitute vertices.
 	Vertex** vrts;
@@ -446,7 +448,8 @@ bool Tetrahedron::refine(std::vector<Volume*>& vNewVolumesOut,
 	return Refine<TetrahedronClass>(vNewVolumesOut, ppNewVertexOut,
 									newEdgeVertices, newFaceVertices,
 									newVolumeVertex, prototypeVertex,
-									vrts, tet_rules::Refine, corners);
+									vrts, tet_rules::Refine, corners,
+									isSnapPoint);
 }
 
 void Tetrahedron::get_flipped_orientation(VolumeDescriptor& vdOut)  const
@@ -608,7 +611,8 @@ bool Octahedron::refine(std::vector<Volume*>& vNewVolumesOut,
 							Vertex* newVolumeVertex,
 							const Vertex& prototypeVertex,
 							Vertex** pSubstituteVertices,
-							vector3* corners)
+							vector3* corners,
+							bool* isSnapPoint)
 {
 //	handle substitute vertices.
 	Vertex** vrts;
@@ -620,7 +624,8 @@ bool Octahedron::refine(std::vector<Volume*>& vNewVolumesOut,
 	return Refine<OctahedronClass>(vNewVolumesOut, ppNewVertexOut,
 									newEdgeVertices, newFaceVertices,
 									newVolumeVertex, prototypeVertex,
-									vrts, oct_rules::Refine, corners);
+									vrts, oct_rules::Refine, corners,
+									isSnapPoint);
 }
 
 void Octahedron::get_flipped_orientation(VolumeDescriptor& vdOut)  const
@@ -805,7 +810,8 @@ bool Hexahedron::refine(std::vector<Volume*>& vNewVolumesOut,
 						Vertex* newVolumeVertex,
 						const Vertex& prototypeVertex,
 						Vertex** pSubstituteVertices,
-						vector3*)
+						vector3* corners,
+						bool* isSnapPoint)
 {
 //	handle substitute vertices.
 	Vertex** vrts;
@@ -817,7 +823,8 @@ bool Hexahedron::refine(std::vector<Volume*>& vNewVolumesOut,
 	return Refine<HexahedronClass>(vNewVolumesOut, ppNewVertexOut,
 								   newEdgeVertices, newFaceVertices,
 								   newVolumeVertex, prototypeVertex,
-								   vrts, hex_rules::Refine);
+								   vrts, hex_rules::Refine, corners,
+								   isSnapPoint);
 }
 
 void Hexahedron::get_flipped_orientation(VolumeDescriptor& vdOut)  const
@@ -1040,7 +1047,8 @@ bool Prism::refine(std::vector<Volume*>& vNewVolumesOut,
 					Vertex* newVolumeVertex,
 					const Vertex& prototypeVertex,
 					Vertex** pSubstituteVertices,
-					vector3*)
+					vector3* corners,
+					bool* isSnapPoint)
 {
 //	handle substitute vertices.
 	Vertex** vrts;
@@ -1052,7 +1060,8 @@ bool Prism::refine(std::vector<Volume*>& vNewVolumesOut,
 	return Refine<PrismClass>(vNewVolumesOut, ppNewVertexOut,
 							  newEdgeVertices, newFaceVertices,
 							  newVolumeVertex, prototypeVertex,
-							  vrts, prism_rules::Refine);
+							  vrts, prism_rules::Refine, corners,
+							  isSnapPoint);
 }
 
 void Prism::get_flipped_orientation(VolumeDescriptor& vdOut) const
@@ -1252,7 +1261,8 @@ bool Pyramid::refine(std::vector<Volume*>& vNewVolumesOut,
 						Vertex* newVolumeVertex,
 						const Vertex& prototypeVertex,
 						Vertex** pSubstituteVertices,
-						vector3*)
+						vector3* corners,
+						bool* isSnapPoint)
 {
 //	handle substitute vertices.
 	Vertex** vrts;
@@ -1264,7 +1274,8 @@ bool Pyramid::refine(std::vector<Volume*>& vNewVolumesOut,
 	return Refine<PyramidClass>(vNewVolumesOut, ppNewVertexOut,
 									newEdgeVertices, newFaceVertices,
 									newVolumeVertex, prototypeVertex,
-									vrts, pyra_rules::Refine);
+									vrts, pyra_rules::Refine, corners,
+									isSnapPoint);
 }
 
 void Pyramid::get_flipped_orientation(VolumeDescriptor& vdOut) const

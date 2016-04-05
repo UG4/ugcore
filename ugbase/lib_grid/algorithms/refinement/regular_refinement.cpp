@@ -31,6 +31,7 @@
  */
 
 #include <vector>
+#include "boost/container/vector.hpp"	// for bool-vectors
 #include "regular_refinement.h"
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 #include "lib_grid/algorithms/selection_util.h"
@@ -293,8 +294,13 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 			const size_t numVrts = f->num_vertices();
 			for(size_t s = 0; s < numVrts; ++s){
 				if(sel.get_selection_status(vrts[s]) == snapSelVal){
+					if(snapPointIndex != -1){
+						UG_LOG("WARNING: Only one snap-point per face is allowed, "
+							"but more are present. Ignoring snap-points for this face.\n");
+						snapPointIndex = -1;
+						break;
+					}
 					snapPointIndex = static_cast<int>(s);
-					break;
 				}
 			}
 		}
@@ -354,6 +360,9 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 // 	UG_LOG("> DEBUG-ACCESSOR...\n");
 // 	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPosition);
 
+	boost::container::vector<bool> isSnapPoint;
+	if(useSnapPoints)
+		isSnapPoint.reserve(8);
 
 	for(size_t i = 0; i < vols.size(); ++i){
 		Volume* v = vols[i];
@@ -390,10 +399,26 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 			pCorners = &corners.front();
 		}
 
-		// UG_LOG("v " << CalculateCenter(v, aaPos) << "\n");
+		bool* pIsSnapPoint = NULL;
+		if(useSnapPoints){
+			Volume::ConstVertexArray vrts = v->vertices();
+			const size_t numVrts = v->num_vertices();
+			isSnapPoint.clear();
+
+			bool gotOne = false;
+			for(size_t s = 0; s < numVrts; ++s){
+				const bool val = sel.get_selection_status(vrts[s]) == snapSelVal;
+				isSnapPoint.push_back(val);
+				gotOne = gotOne | val;
+			}
+
+			if(gotOne)
+				pIsSnapPoint = &isSnapPoint.front();
+		}
 
 		if(v->refine(newVols, &newVrt, &volEdgeVrts.front(),
-					&volFaceVrts.front(), NULL, RegularVertex(), NULL, pCorners))
+					&volFaceVrts.front(), NULL, RegularVertex(), NULL,
+					pCorners, pIsSnapPoint))
 		{
 		//	if a new vertex was generated, we have to register it
 			if(newVrt){

@@ -53,7 +53,8 @@ void RotateOctahedron(int vrtsOut[NUM_VERTICES], int steps)
 }
 
 
-int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3* corners)
+int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3* corners,
+		   bool*)
 {
 	newCenterOut = false;
 

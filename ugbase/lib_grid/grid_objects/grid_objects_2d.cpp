@@ -491,8 +491,10 @@ refine(std::vector<Face*>& vNewFacesOut,
 				}
 			}
 
-			if(snapPointIndex != -1 && (snapPointIndex == iNew || snapPointIndex == (iNew + 1) % 4))
+			if(snapPointIndex != -1 && (snapPointIndex == iNew || snapPointIndex == (iNew + 1) % 4)){
+				UG_LOG("WARNING: Invalid snap-point distribution detected. Ignoring snap-points for this element.\n");
 				snapPointIndex = -1;
+			}
 			
 		//	the corners in a local ordering relative to iNew. Keeping ccw order.
 			Vertex* corner[4];
@@ -566,8 +568,10 @@ refine(std::vector<Face*>& vNewFacesOut,
 				const int rot = (iNew[0] + 3) % 4;
 				ReorderCornersCCW(corner, vrts, 4, rot);
 
-				if(snapPointIndex != -1 && ((snapPointIndex + 4 - rot) % 4) != 0)
+				if(snapPointIndex != -1 && ((snapPointIndex + 4 - rot) % 4) != 0){
 					snapPointIndex = -1;
+					UG_LOG("WARNING: Invalid snap-point distribution detected. Ignoring snap-points for this element.\n");
+				}
 
 
 			//	create new faces

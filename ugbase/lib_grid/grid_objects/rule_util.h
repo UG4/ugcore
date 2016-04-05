@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2015:  G-CSC, Goethe University Frankfurt
+ * Copyright (c) 2011-2016:  G-CSC, Goethe University Frankfurt
  * Author: Sebastian Reiter
  * 
  * This file is part of UG4.
@@ -38,6 +38,8 @@ namespace shared_rules{
 
 const int MAX_NUM_INDS_OUT = 256;
 
+/**
+ * \todo	add support for snap-vertices.*/
 int RecursiveRefine(int* newIndsOut, int* newEdgeVrts,
 					const int faceVrtInds[][4],
 					const int faceEdgeInds[][4],

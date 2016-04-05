@@ -197,7 +197,7 @@ const int FACE_FROM_EDGES[][12] =	{{0, 0, 0, 0, 1, 1, -1, -1, 1, -1, -1, -1},
  *
  * \param corners		Ignored.
  *
- * \param snapPoint		(optional) An array of size NUM_VERTICES. If all entries
+ * \param isSnapPoint	(optional) An array of size NUM_VERTICES. If all entries
  *						are set to 'false' the behaviour is the same as if the
  *						array wasn't specified.
  *						If a corner of a quadrilateral is a snap-point and if
@@ -210,7 +210,7 @@ const int FACE_FROM_EDGES[][12] =	{{0, 0, 0, 0, 1, 1, -1, -1, 1, -1, -1, -1},
  * 			could not be performed.
  */
 int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut,
-		   vector3* corners = NULL/*, bool* snapPoint = NULL*/);
+		   vector3* corners = NULL, bool* isSnapPoint = NULL);
 
 }//	end of namespace
 }//	end of namespace
