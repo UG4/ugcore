@@ -161,6 +161,16 @@ public:
 	///	Returns the subset group of the fracture network
 		const SubsetGroup & subset_grp () {return m_layerSsGrp;};
 		
+	///	Number of subsets in the manager
+		size_t num_subsets () {return m_layerSsGrp.size ();};
+		
+	/// Subset #i in the manager (only if the manager is closed)
+		int subset (size_t i)
+		{
+			if (! is_closed ()) UG_THROW ("DegeneratedLayerManager: The manager is not closed.");
+			return m_layerSsGrp[i];
+		}
+		
 	///	Returs the mark of a vertex
 		int vert_mark (Vertex * vrt) {return m_aaVertMarks [vrt];};
 		
@@ -176,6 +186,27 @@ public:
 			size_t & outer_side_idx, ///< [out] index of the outer side in the reference element
 			size_t outer_side_corners [], ///< [out] outer side corner idx -> elem. corner idx
 			size_t ass_co [] ///< [out] correspondence of the corners of the sides
+		);
+		
+	///	Assigns a different subset index to the inner sides of a layer
+		int assign_middle_subset
+		(
+			int layer_si, ///< subset index of the layer
+			int middle_si = -1 ///< the subset index to assign (or -1 to create a new subset)
+		);
+		
+	///	Assigns a different subset to the inner sides of a layer
+		int assign_middle_subset
+		(
+			int layer_si, ///< subset index of the layer
+			const char* middle_ss_name ///< name of the subset to assign
+		);
+		
+	///	Assigns a different subset to the inner sides of a layer
+		int assign_middle_subset
+		(
+			const char* layer_ss_name, ///< subset name of the layer
+			const char* middle_ss_name ///< name of the subset to assign
 		);
 		
 protected:

@@ -1,11 +1,14 @@
 #!/bin/bash
 
+# call e.g. like this: 'generate_amalgamated_docu doxylog.log 1'
+# Please make sure that the DocuGen plugin is installed.
 doxylog="${1:-"doxylog.log"}"
 with_regdocu="${2:-0}"
 
+
 # remove old html and tags
 function cleanup_old_docu {
-	echo "Step 1/8: Removing old docu if existend"
+	echo "Step 1/8: Removing old docu if existent"
 	if [ "$with_regdocu" -eq "1" ]; then
 		rm -rf ug4/html ug4/plugins/html ug4/apps/html ug4/regdocu/html *.tags &> "${doxylog}1"
 	else
@@ -28,7 +31,10 @@ function generate_plugins {
 function generate_regdocu {
 	if [ "$with_regdocu" -eq "1" ]; then
 		echo "Step 4/8: Generating tags and html for Registry"
-		doxygen - < doxy_config_regdocu.txt &> "${doxylog}4"
+		rm -rf regdocu
+		mkdir regdocu
+		../../bin/ugshell -call GenerateScriptReferenceDocu\(\"regdocu\", true, false, true, false\) > "${doxylog}4"
+		doxygen - < doxy_config_regdocu.txt &>> "${doxylog}4"
 	else
 		echo "Step 4/8: Skipping tags and html for Registry"
 		echo "  WARNING This is not recommended as some links in the final docu will be broken!"
@@ -61,12 +67,14 @@ function prepare_amalgamate {
 function amalgamate {
 	echo "Step 8/8: Amalgamate html of ubgase, plugins and apps"
 	if [ "$with_regdocu" -eq "1" ]; then
-		mv -fu apps/html/* ug4/html/apps/. \
-			&& mv -fu plugins/html/* ug4/html/plugins/. \
+		#mv -fu apps/html/* ug4/html/apps/. \
+		#	&& mv -fu plugins/html/* ug4/html/plugins/. \
+		mv -fu plugins/html/* ug4/html/plugins/. \
 			&& mv -fu regdocu/html/* ug4/html/regdocu/. &> "${doxylog}8"
 	else
-		mv -fu apps/html/* ug4/html/apps/. \
-			&& mv -fu plugins/html/* ug4/html/plugins/. &> "${doxylog}8"
+		#mv -fu apps/html/* ug4/html/apps/. \
+		#	&& mv -fu plugins/html/* ug4/html/plugins/. &> "${doxylog}8"
+		mv -fu plugins/html/* ug4/html/plugins/. &> "${doxylog}8"
 	fi
 }
 
@@ -76,8 +84,9 @@ cleanup_old_docu \
 && generate_ugbase \
 && generate_plugins \
 && generate_regdocu \
-&& generate_apps \
 && generate_ug4 \
 && prepare_amalgamate \
 && amalgamate
+
+#&& generate_apps \Automated performance modeling of the UG4 simulation framework
 

@@ -516,13 +516,12 @@ int UGIsBaseClass(lua_State *L)
 	return 0;
 }
 
-void SetLuaUGArgs(lua_State* L, int argc, char* argv[], int firstParamIndex, int iNoQuit)
+void SetLuaUGArgs(lua_State* L, int argc, char* argv[])
 {
 
 	lua_newtable(L);
 	int ugargc=0;
 	for(int i = 0; i < argc; ++i){
-		//if(i == iNoQuit) continue;
 	//	push the index to the table
 		lua_pushnumber(L, ++ugargc);
 	//	push the value to the table
@@ -570,6 +569,9 @@ int UGAlgebraCompiled(lua_State *L)
 #endif
 #if UG_CPU_5
 	if(name == "CPU5"){ lua_pushboolean(L, true); return 1;}
+#endif
+#if UG_CPU_6
+	if(name == "CPU6"){ lua_pushboolean(L, true); return 1;}
 #endif
 #if UG_CPU_VAR
 	if(name == "CPUVAR"){ lua_pushboolean(L, true); return 1;}

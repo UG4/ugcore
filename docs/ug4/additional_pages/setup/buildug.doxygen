@@ -40,20 +40,7 @@ for your system. Beginners might also want to have a look at \ref pageShellAndLi
 
 <hr>
 \section secBuildUG4Checkout Checkout ug4
-
-- You can \ref secInstallEclipseUG4Download .
-- \b OR If you want to do it \em manually with `svn`: 
-  Create a \c ug4 directory and perform a svn checkout on the trunk.
-  - `mkdir ug4`
-  - `cd ug4`
-  - `svn checkout svn://fuji.gcsc.uni-frankfurt.de/ug4/trunk`
-
-More about SVN \ref pageUG4SVN "here".
-In the following section, `YOURUG4ROOT` is the directory which contains 
-`cmake/ug_includes.cmake`, so depending on your checkout, this is `ug4/cmake` or 
-`ug4/trunk/cmake`.
-Because of that, always keep in mind that people mean `YOURUG4ROOT/apps` when
-they speak about `ug4/apps` or `ug4/trunk/apps`. 
+Please follow the description at https://github.com/UG4/ughub/wiki to obtain a copy of UG4.
 
 <hr>
 \section secBuildUG4BashTools Bash Tools

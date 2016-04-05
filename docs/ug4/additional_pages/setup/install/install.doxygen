@@ -33,8 +33,10 @@
 /** \page pageUG4Install Prerequisites and Recommended Tools
 
 \note Because of the great variety of systems, this installation guides may be outdated quickly. So if this guide is not working for you
-\em please write an email to martin.rupp@gcsc.uni-frankfurt.de explaining where you're stuck - even if you have resolved your problem.
-It's the only chance we have to keep these guides updated and correct. 
+\em please open an issue on github.com/UG4/docs
+
+  Additionally to the pages below, please have a look at https://github.com/UG4/ughub/wiki.
+  Installation and usage of UG4's package manager is detailed there.
 
   - \subpage pageAdditionalSoftware "OS-independent (old)"
   - \subpage pageUG4OnLinux

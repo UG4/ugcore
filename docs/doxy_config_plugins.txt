@@ -35,9 +35,8 @@
 PROJECT_NAME           = "Plugins"
 OUTPUT_DIRECTORY       = plugins
 INPUT                  = plugins/additional_pages \
-                         ../plugins
-EXCLUDE               += ../plugins/core/d3f \
-                         ../plugins/external
+                         ../../plugins
+
 LAYOUT_FILE            = Layout_plugins.xml
 
 # The TAGFILES option can be used to specify one or more tagfiles. For each

@@ -146,6 +146,12 @@ bool IsDefinedUG_CPU_5() { return true; }
 bool IsDefinedUG_CPU_5() { return false; }
 #endif
 
+#ifdef UG_CPU_6
+bool IsDefinedUG_CPU_6() { return true; }
+#else
+bool IsDefinedUG_CPU_6() { return false; }
+#endif
+
 #ifdef UG_CPU_VAR
 bool IsDefinedUG_CPU_VAR() { return true; }
 #else

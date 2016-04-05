@@ -139,14 +139,15 @@ SideAndElemErrEstData<TDomain>::SideAndElemErrEstData
 	m_aSide(attachment_type("errEstSide")), m_aElem(attachment_type("errEstElem")),
 	m_aaSide(MultiGrid::AttachmentAccessor<side_type, attachment_type >()),
 	m_aaElem(MultiGrid::AttachmentAccessor<elem_type, attachment_type >()),
-	m_spSV(SPNULL), m_errEstGL(GridLevel())
+	m_spSV(SPNULL), m_errEstGL(GridLevel()),
+	m_type(H1_ERROR_TYPE)
 {
 	m_vSs = TokenizeString(subsets);
 	check_subset_strings(m_vSs);
 
 	if (m_vSs.size() == 0)
 	{
-		UG_LOG("Warning: SideAndElemErrEstData ist constructed without definition of subsets. This is likely not to work.\n"
+		UG_LOG("Warning: SideAndElemErrEstData is constructed without definition of subsets. This is likely not to work.\n"
 			   "Please specify a subset of the same dimension as your domain that the error estimator is supposed to work on.\n");
 	}
 
@@ -166,14 +167,15 @@ SideAndElemErrEstData<TDomain>::SideAndElemErrEstData
 	m_aSide(attachment_type("errEstSide")), m_aElem(attachment_type("errEstElem")),
 	m_aaSide(MultiGrid::AttachmentAccessor<side_type, attachment_type >()),
 	m_aaElem(MultiGrid::AttachmentAccessor<elem_type, attachment_type >()),
-	m_spSV(SPNULL), m_errEstGL(GridLevel())
+	m_spSV(SPNULL), m_errEstGL(GridLevel()),
+	m_type(H1_ERROR_TYPE)
 {
 	m_vSs = subsets;
 	check_subset_strings(m_vSs);
 
 	if (m_vSs.size() == 0)
 	{
-		UG_LOG("Warning: SideAndElemErrEstData ist constructed without definition of subsets. This is likely not to work.\n"
+		UG_LOG("Warning: SideAndElemErrEstData is constructed without definition of subsets. This is likely not to work.\n"
 					   "Please specify a subset of the same dimension as your domain that the error estimator is supposed to work on.\n");
 	}
 
@@ -191,9 +193,6 @@ void SideAndElemErrEstData<TDomain>::init_quadrature()
 	// and fill IP indexing structure along the way
 	for (ReferenceObjectID roid = ROID_VERTEX; roid != NUM_REFERENCE_OBJECTS; roid++)
 	{
-		// no reference elements for octahedra so far
-		if (roid == ROID_OCTAHEDRON) continue;
-
 		// get reference element for roid
 		const ReferenceElement& re = ReferenceElementProvider::get(roid);
 		int ref_dim = re.dimension();
@@ -861,7 +860,7 @@ number SideAndElemErrEstData<TDomain>::get_elem_error_indicator(GridObject* pEle
 	for (size_t ip = 0; ip < nIPs; ip++)
 		sum += quadRuleElem[roid]->weight(ip) * std::pow(integrand[ip], 2.0) * det[ip];
 
-	// scale by diam^2(elem)
+	// scale by diam^2(elem) (= h^2)
 	// c* vol(elem) >= diam^3(elem) >= vol(elem)
 	// therefore, up to a constant, error estimator can calculate diam(elem) as (vol(elem))^(1/3)
 	number diamSq = std::pow(ElementSize<dim>(roid, &vCornerCoords[0]), 2./dim);
@@ -908,7 +907,7 @@ number SideAndElemErrEstData<TDomain>::get_elem_error_indicator(GridObject* pEle
 		for (size_t ip = 0; ip < nsIPs; ip++)
 			sum += quadRuleSide[side_roid]->weight(ip) * std::pow(m_aaSide[pSide][ip], 2.0) * det[ip];
 
-		// scale by diam(side)
+		// scale by diam(side) (= h)
 		// c* vol(side) >= diam^2(side) >= vol(side)
 		// therefore, up to a constant, error estimator can calculate diam as sqrt(vol(side))
 		if (dim == 1)
@@ -921,7 +920,7 @@ number SideAndElemErrEstData<TDomain>::get_elem_error_indicator(GridObject* pEle
 		// add to error indicator
 		etaSq += diam * sum;
 	}
-
+	etaSq = (m_type == SideAndElemErrEstData<TDomain>::L2_ERROR_TYPE) ? etaSq*diamSq : etaSq;
 	return etaSq;
 }
 

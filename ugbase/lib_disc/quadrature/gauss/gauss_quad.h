@@ -114,6 +114,7 @@ class FlexGaussQuadrature
 } // namespace ug
 
 // include implementation
+#include "gauss_quad_vertex.h"
 #include "gauss_quad_edge.h"
 #include "gauss_quad_triangle.h"
 #include "gauss_quad_quadrilateral.h"

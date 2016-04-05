@@ -54,7 +54,7 @@ A \em Domain defines a couple of types:
 - \em position_attachment_type:	The attachment, which associates the coordinates
 								with the vertices of the grid. This is
 								ug::Attachment<position_type> (== Attachment<MathVector<dim> >)
-- \em positin_accessor_type:	The type of the attachment accessor, with which one
+- \em position_accessor_type:	The type of the attachment accessor, with which one
 								can access the coordinates of vertices. This is
 								ug::Grid::VertexAttachmentAccessor<position_attachment_type>.
 

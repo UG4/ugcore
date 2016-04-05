@@ -413,6 +413,7 @@ void Interpolate(number val,
 ///////////////
 
 #ifdef UG_FOR_LUA
+// function-name as string
 template <typename TGridFunction>
 void Interpolate(const char* LuaFunction,
                  SmartPtr<TGridFunction> spGridFct, const char* cmp,
@@ -437,6 +438,33 @@ template <typename TGridFunction>
 void Interpolate(const char* LuaFunction,
                  SmartPtr<TGridFunction> spGridFct, const char* cmp)
 {Interpolate(LuaFunction, spGridFct, cmp, NULL, 0.0);}
+
+// function as function handle
+template <typename TGridFunction>
+void Interpolate(LuaFunctionHandle LuaFunction,
+                 SmartPtr<TGridFunction> spGridFct, const char* cmp,
+                 const char* subsets, number time)
+{
+	static const int dim = TGridFunction::dim;
+	SmartPtr<UserData<number, dim> > sp =
+			make_sp(new LuaUserData<number, dim>(LuaFunction));
+	Interpolate(sp, spGridFct, cmp, subsets, time);
+}
+template <typename TGridFunction>
+void Interpolate(LuaFunctionHandle LuaFunction,
+                 SmartPtr<TGridFunction> spGridFct, const char* cmp,
+                 number time)
+{Interpolate(LuaFunction, spGridFct, cmp, NULL, time);}
+template <typename TGridFunction>
+void Interpolate(LuaFunctionHandle LuaFunction,
+                 SmartPtr<TGridFunction> spGridFct, const char* cmp,
+                 const char* subsets)
+{Interpolate(LuaFunction, spGridFct, cmp, subsets, 0.0);}
+template <typename TGridFunction>
+void Interpolate(LuaFunctionHandle LuaFunction,
+                 SmartPtr<TGridFunction> spGridFct, const char* cmp)
+{Interpolate(LuaFunction, spGridFct, cmp, NULL, 0.0);}
+
 #endif
 
 

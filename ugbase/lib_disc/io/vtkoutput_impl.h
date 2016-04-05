@@ -64,51 +64,62 @@ namespace ug{
 template <int TDim>
 void VTKOutput<TDim>::
 write_item_to_file(VTKFileWriter& File, float data) {
-	if(m_bBinary){
+	if(m_bBinary)
 		File << (float) data;
-	} else {
-		File << (float) data << ' ';
+	else
+	{
+		if (std::abs (data) < std::numeric_limits<float>::min ()) // a protection against the denormalized floats
+			File << "0 ";
+		else
+			File << (float) data << ' ';
 	}
 }
 
 template <int TDim>
 void VTKOutput<TDim>::
-write_item_to_file(VTKFileWriter& File, double data) {
-	if(m_bBinary){
-		File << (float) data;
-	} else {
-		File << (float) data << ' ';
-	}
-}
+write_item_to_file(VTKFileWriter& File, double data) {write_item_to_file(File, (float) data);}
 
 // fill position data up with zeros if dim < 3.
 template <int TDim>
 void VTKOutput<TDim>::
 write_item_to_file(VTKFileWriter& File, const ug::MathVector<1>& data) {
-	if(m_bBinary){
+	if(m_bBinary)
 		File << (float) data[0] << (float) 0.f << (float) 0.f;
-	} else {
-		File << (float) data[0] << ' ' << (float) 0.f << ' ' << (float) 0.f << ' ';
+	else
+	{
+		if (std::abs (data[0]) < std::numeric_limits<float>::min ()) // a protection against the denormalized floats
+			File << "0 0 0 ";
+		else
+			File << (float) data[0] << " 0 0 ";
 	}
 }
 
 template <int TDim>
 void VTKOutput<TDim>::
 write_item_to_file(VTKFileWriter& File, const ug::MathVector<2>& data) {
-	if(m_bBinary){
+	if(m_bBinary)
 		File << (float) data[0] << (float) data[1] << (float) 0.f;
-	} else {
-		File << (float) data[0] << ' ' << (float) data[1] << ' ' << (float) 0.f << ' ';
+	else
+	{
+		float value_0 = (float) data[0], value_1 = (float) data[1];
+		if (std::abs (value_0) < std::numeric_limits<float>::min ()) value_0 = 0; // a protection against the denormalized floats
+		if (std::abs (value_1) < std::numeric_limits<float>::min ()) value_1 = 0; // a protection against the denormalized floats
+		File << (float) value_0 << ' ' << (float) value_1 << " 0 ";
 	}
 }
 
 template <int TDim>
 void VTKOutput<TDim>::
 write_item_to_file(VTKFileWriter& File, const ug::MathVector<3>& data) {
-	if(m_bBinary){
+	if(m_bBinary)
 		File << (float) data[0] << (float) data[1] << (float) data[2];
-	} else {
-		File << (float) data[0] << ' ' << (float) data[1] << ' ' << (float) data[2] << ' ';
+	else
+	{
+		float value_0 = (float) data[0], value_1 = (float) data[1], value_2 = (float) data[2];
+		if (std::abs (value_0) < std::numeric_limits<float>::min ()) value_0 = 0; // a protection against the denormalized floats
+		if (std::abs (value_1) < std::numeric_limits<float>::min ()) value_1 = 0; // a protection against the denormalized floats
+		if (std::abs (value_2) < std::numeric_limits<float>::min ()) value_2 = 0; // a protection against the denormalized floats
+		File << (float) value_0 << ' ' << (float) value_1 << ' ' << (float) value_2 << ' ';
 	}
 }
 
@@ -1634,9 +1645,9 @@ write_nodal_values_elementwise(VTKFileWriter& File, TFunction& u,
 				if(u.inner_dof_indices(v, vFct[i], vMultInd) != 1)
 					UG_THROW("VTK:write_nodal_values_elementwise: "
 							"The function component "<<vFct[i]<<" has "<<
-							vMultInd.size()<<" DoFs in  a vertex. To write a "
-							"component to vtk, exactly one DoF must be "
-							"given in a vertex.");
+							vMultInd.size()<<" DoFs in a vertex of subset "
+							<<si<<". To write a component to vtk, exactly "
+							"one DoF must be given in any vertex.");
 
 			//	flush stream
 				write_item_to_file(File, DoFRef(u, vMultInd[0]));

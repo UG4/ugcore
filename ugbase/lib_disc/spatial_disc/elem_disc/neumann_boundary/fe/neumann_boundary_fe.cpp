@@ -302,7 +302,7 @@ lin_def(const LocalVector& u,
             const size_t nip)
 {
 //  get finite volume geometry
-	const TFEGeom& geo = GeomProvider<TFEGeom>::get(This->m_lfeID,This->m_order);
+	const TFEGeom& geo = GeomProvider<TFEGeom>::get(This->m_lfeID,This->m_quadOrder);
 	typedef typename TFEGeom::BF BF;
 
 	for(size_t s = 0; s < this->BndSSGrp.size(); ++s)

@@ -128,14 +128,8 @@ set(profilerDefault "None")
 # Option to set frequency
 set(cpufreqDefault OFF)
 
-# If we run the script the first time, search for MPI to determine the default value
-if(LOCAL_OPENMPI)
-	message("local openmpi")
-	set(MPI_C_INCLUDE_PATH "~/local/openmpi/used/include")
-	set(MPI_CXX_INCLUDE_PATH "~/local/openmpi/used/include")
-	set(MPI_C_LIBRARIES "mpi")
-	set(MPI_CXX_LIBRARIES "mpi;mpi_cxx")
-endif(LOCAL_OPENMPI)
+# If we run the script the first time, search for MPI to determine the default value.
+# Note that you may use -DMPI_DIR=... to set a custom MPI path.
 if(BUILTIN_MPI)
 	set(MPI_FOUND YES)
 else(BUILTIN_MPI)
@@ -186,7 +180,6 @@ option(CXX11 "Enables compilation with C++11 standard. Valid options are ON, OFF
 option(EMBEDDED_PLUGINS "Plugin sources are directly included in libug4. No dynamic loading required. Valid options are ON, OFF " OFF)
 option(COMPILE_INFO "Embeds information on compile revision and date. Requires relinking of all involved libraries. Valid options are ON, OFF " ${buildCompileInfo})
 option(POSIX "If enabled and available, some additional functionality may be available. Valid options are ON, OFF " ${posixDefault})
-option(BUILD_UGDOCU "If enabled, every build builds a new completion file for ugIDE" OFF)
 option(CRS_ALGEBRA "Use the CRS Sparse Matrix" OFF)
 option(CPU_ALGEBRA "Use the old CPU Sparse Matrix" ON)
 option(INTERNAL_MEMTRACKER "Internal Memory Tracker" OFF)
@@ -379,6 +372,8 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     endif()
     # for some reason -Wsign-compare is not in -Wall for Clang 
 	add_cxx_flag("-Wsign-compare")
+	add_cxx_flag(-Wno-unused-local-typedef)
+	add_cxx_flag(-Wno-unknown-warning-option)
 	#set(CMAKE_CPP_FLAGS	"${CMAKE_CPP_FLAGS} -Wno-overloaded-virtual -Wno-autological-compare" CACHE STRING "overriden flags!" FORCE)
 endif()
 
@@ -567,6 +562,11 @@ include(${UG_ROOT_CMAKE_PATH}/ug/export_includes.cmake)
 # Declare a method that allows all sub-cmake-files to add their definitions to
 # to the main project P_UG4
 include(${UG_ROOT_CMAKE_PATH}/ug/export_definitions.cmake)
+
+################################################################################
+# Declare a method that allows all sub-cmake-files to add definitions for
+# specific files to the main project P_UG4
+include(${UG_ROOT_CMAKE_PATH}/ug/export_single_file_definitions.cmake)
 
 ######################################################################################################################
 # the following options are pseudo cmake-options (normal options only support ON and OFF).

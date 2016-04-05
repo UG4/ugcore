@@ -68,6 +68,8 @@ class LU
 	///	Base type
 		typedef IMatrixOperatorInverse<matrix_type,vector_type> base_type;
 
+		using base_type::init;
+
 	protected:
 		using base_type::convergence_check;
 
@@ -101,6 +103,8 @@ class LU
 			m_bInfo = b;
 		}
 
+		virtual const char* name() const {return "LU";}
+
 	private:
 
 		void print_info(const matrix_type &A)
@@ -110,7 +114,6 @@ class LU
 		}
 
 	///	returns name of solver
-		virtual const char* name() const {return "LU";}
 		bool init_dense(const matrix_type &A)
 		{
 			PROFILE_FUNC();

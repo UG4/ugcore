@@ -167,6 +167,9 @@ class ConstUserNumber
 	///	evaluate
 		inline void evaluate (number& value) const {value = m_Number;}
 
+	/// get value
+		number get() const {return m_Number;}
+
 	protected:
 		number m_Number;
 };

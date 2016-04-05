@@ -33,8 +33,8 @@
 #include <cmath>
 #include "heightfield_util.h"
 #include "field_util.h"
+#include "common/util/file_util.h"
 #include "lib_grid/file_io/file_io_asc.h"
-#include "lib_grid/file_io/file_io.h"
 using namespace std;
 
 namespace ug{
@@ -152,9 +152,8 @@ void CreateGridFromFieldBoundary(Grid& grid,
 ////////////////////////////////////////////////////////////////////////////////
 void LoadHeightfieldFromASC(Heightfield& hfield, const char* filename)
 {
-	std::string name;
-	bool fileFound = FindFileInStandardGridPaths(name, filename);
-	UG_COND_THROW(!fileFound, "Couldn't locate file " << filename);
+	std::string name = FindFileInStandardPaths(filename);
+	UG_COND_THROW(name.empty(), "Couldn't locate file " << filename);
 
 	FileReaderASC reader;
 	reader.set_field(&hfield.field());

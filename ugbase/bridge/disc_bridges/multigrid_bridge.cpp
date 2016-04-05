@@ -155,7 +155,9 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef ILinearIterator<vector_type> TBase;
 		string name = string("GeometricMultiGrid").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
-			.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >)>("Approximation Space")
+					.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >)>("Approximation Space")
+					.template add_constructor<void (*)()>()
+			.add_method("set_approximation_space", &T::set_approximation_space, "", "Approximation space")
 			.add_method("set_discretization", &T::set_discretization, "", "Discretization")
 			.add_method("set_base_level", &T::set_base_level, "", "Base Level")
 			.add_method("set_surface_level", &T::set_surface_level, "", "Surface Level")
@@ -209,6 +211,9 @@ static void DomainAlgebra(Registry& reg, string grp)
 		.template add_constructor<void (*)(const std::vector<std::string>&)>("Cmps")
 		.template add_constructor<void (*)(number, const std::vector<std::string>&)>("relax#Cmps")
 		.template add_constructor<void (*)(number, const std::vector<std::string>&, const std::vector<int>&, const std::vector<number>&)>("relax#Cmps")
+		.add_method("set_alpha", &T::set_alpha, "", "alpha")
+		.add_method("set_beta", &T::set_beta, "", "beta")
+		.add_method("set_weights", &T::set_weights, "", "weights")
 		.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ComponentGaussSeidel", tag);
 	}

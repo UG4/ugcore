@@ -565,6 +565,9 @@ make_SuperLU()
 		echo "UGINSTALL: On Juqueen, using make.inc_juqueen_xl"
 	   cp $scriptpath/install_scripts/SuperLU/make.inc_juqueen_xl make.inc
 	   make blaslib
+	elif [[ "$HOSTNAME" == "jrl"* ]]; then
+		echo "UGINSTALL: On Jureca, using make.inc_jureca"
+		cp $scriptpath/install_scripts/SuperLU/make.inc_jureca make.inc
 	else	
 		echo "UGINSTALL: Not yet supported cluster, using internal BLAS"
 		cp $scriptpath/install_scripts/SuperLU/make.inc_default make.inc

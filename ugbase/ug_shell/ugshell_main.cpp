@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015:  G-CSC, Goethe University Frankfurt
+ * Copyright (c) 2010-2016:  G-CSC, Goethe University Frankfurt
  * Author: Sebastian Reiter
  * 
  * This file is part of UG4.
@@ -98,8 +98,24 @@ void quit_all_mpi_procs_in_parallel()
 
 ////////////////////////////////////////////////////////////////////////////////
 // main
+/* The following behavior is expected when ugshell is executed
+ * (the higher in the list, the higher the priority):
+ *
+ *	- more than one process:	no interactive shell
+ *	- option -noquit:			interactive shell
+ *	- error occurred:			no interactive shell
+ *	- option -ex:				no interactive shell
+ *	- option -call:				no interactive shell
+ *	- else:						interactive shell
+ */
 int main(int argc, char* argv[])
-{			
+{	
+
+//	ATTENTION
+//	Make sure to initialize ug before accessing the registry or performing any
+//	UG_LOGs. This is important, since mpi has to be initialized in a parallel
+//	environment.
+
 	PROFILE_FUNC();
 	PROFILE_BEGIN(ugshellInit);
 
@@ -107,22 +123,29 @@ int main(int argc, char* argv[])
 		pcl::Init(&argc, &argv);
 	#endif
 
+
+////////////////////////////////
+//	PARSE PARAMETERS
+
 //	ALWAYS FIRST: check if the '-call' option has been specified. If so,
 //	concatenate all following parameters to one luaCall and shorten argc
 //	so that it only contains parameters up to the '-call' parameter.
 //	If '-ex' has been specified before '-call', abort the check.
+	const bool callSpecified = (GetParamIndex("-call", argc, argv) >= 0);
 	string callCommand = "";
-	for(int i = 1; i < argc; ++i){
-		if(strcmp(argv[i], "-ex") == 0)
-			break;
-		if(strcmp(argv[i], "-call") == 0){
-			for(int j = i + 1; j < argc; ++j){
-				callCommand.append(argv[j]);
-				if(j+1 < argc)
-					callCommand.append(" ");
+	if(callSpecified) {
+		for(int i = 1; i < argc; ++i){
+			if(strcmp(argv[i], "-ex") == 0)
+				break;
+			if(strcmp(argv[i], "-call") == 0){
+				for(int j = i + 1; j < argc; ++j){
+					callCommand.append(argv[j]);
+					if(j+1 < argc)
+						callCommand.append(" ");
+				}
+				argc = i;
+				break;
 			}
-			argc = i;
-			break;
 		}
 	}
 
@@ -142,24 +165,20 @@ int main(int argc, char* argv[])
 	if(FindParam("-profile", argc, argv))
 		UGOutputProfileStatsOnExit(true);
 
-//	ATTENTION
-//	Make sure to initialize ug before accessing the registry or performing any
-//	UG_LOGs. This is important, since mpi has to be initialized in a parallel
-//	environment.
+	const bool interactiveShellRequested	= FindParam("-noquit", argc, argv);
+	bool defaultInteractiveShell			= true;	// may be changed later
 
-//	initialize
-//	NOTE: UGInit is not called!!! We'll do this ourselfs, to allow early output.
-//	init ug. bindings are created here
-/*
-	if(UGInit(&argc, &argv, outputProc) != 0)
-	{
-		std::cout << "ERROR occured in 'UGInit'. Unable to start UG Shell. "
-				"Aborting programm execution.\n";
-		UGFinalize();
-		exit(1);
-	}
-*/
-	bool bAbort=false;
+	#ifdef UG_PARALLEL
+		const bool parallelEnvironment = (pcl::NumProcs() > 1);
+	#else
+		const bool parallelEnvironment = false;
+	#endif
+
+
+////////////////////////////////
+//	PRINT HEADER
+
+	bool errorOccurred = false;
 	int ret = 0;
 
 	LOG("********************************************************************************\n");
@@ -197,7 +216,9 @@ int main(int argc, char* argv[])
 	LOG("* Additional parameters are passed to the script through ugargc and ugargv.    *\n");
 	LOG("*                                                                              *\n");
 
-//	initialize the rest of ug
+
+////////////////////////////////
+//	VARIOUS INITIALIZATIONS
 
 //	INIT PATH
 	try{
@@ -216,11 +237,11 @@ int main(int argc, char* argv[])
 		UG_ERR_LOG("UGError occurred during Path Initialization:\n");
 		for(size_t i=0; i<err.num_msg(); i++)
 			UG_ERR_LOG(err.get_file(i) << ":" << err.get_line(i) << " : " << err.get_msg(i) << "\n");
-		bAbort = true;
+		errorOccurred = true;
 	}
 	catch(...){
 		UG_ERR_LOG("Unknown error received during Path Initialization.\n");
-		bAbort = true;
+		errorOccurred = true;
 	}
 
 //	INIT STANDARD BRIDGE
@@ -235,12 +256,12 @@ int main(int argc, char* argv[])
 		UG_ERR_LOG("UGError occurred during Standard Bridge Initialization:\n");
 		for(size_t i=0; i<err.num_msg(); i++)
 			UG_ERR_LOG(err.get_file(i) << ":" << err.get_line(i) << " : " << err.get_msg(i) << "\n");
-		bAbort = true;
+		errorOccurred = true;
 	}
 	catch(...){
 		UG_LOG("fail");
 		UG_ERR_LOG("Unknown error received during Standard Bridge Initialization.\n");
-		bAbort = true;
+		errorOccurred = true;
 	}
 
 //	INIT PLUGINS
@@ -264,39 +285,40 @@ int main(int argc, char* argv[])
 		UG_ERR_LOG("UGError occurred during Plugin Initialization:\n");
 		for(size_t i=0; i<err.num_msg(); i++)
 			UG_ERR_LOG(err.get_file(i) << ":" << err.get_line(i) << " : " << err.get_msg(i) << "\n");
-		bAbort = true;
+		errorOccurred = true;
 	}
 	catch(...){
 		UG_LOG("fail");
 		UG_LOG("                 *\n");
 		UG_ERR_LOG("Unknown error received during Plugin Initialization.\n");
-		bAbort = true;
+		errorOccurred = true;
 	}
 
 	LOG("********************************************************************************\n");
 
 
-#ifdef UG_DEBUG
-	SharedLibrariesLoaded();
-#endif
+	#ifdef UG_DEBUG
+		SharedLibrariesLoaded();
+	#endif
 
-	if(!bAbort)
+
+	if(!errorOccurred)
 	{
 		try{
 		//	check that registry is consistent. Else abort.
 			if(bridge::GetUGRegistry().check_consistency() == false){
 				UG_ERR_LOG("#### Registry ERROR: Registering of Standard Bridges and Plugins failed.")
-				bAbort = true;
+				errorOccurred = true;
 			}
 
-			if(!bAbort){
+			if(!errorOccurred){
 			//	register the lua only functonality at the registry
 				RegisterDefaultLuaBridge(&bridge::GetUGRegistry());
 
 			//	check that registry is consistent. Else abort.
 				if(bridge::GetUGRegistry().check_consistency() == false) {
 					UG_ERR_LOG("#### Registry ERROR: Registering of Standard LUA Bridges failed.")
-					bAbort =true;
+					errorOccurred =true;
 				}
 			}
 		}
@@ -305,58 +327,59 @@ int main(int argc, char* argv[])
 			UG_ERR_LOG("UGError occurred on registry check:\n");
 			for(size_t i=0; i<err.num_msg(); i++)
 				UG_ERR_LOG(err.get_file(i) << ":" << err.get_line(i) << " : " << err.get_msg(i) << "\n");
-			bAbort = true;
+			errorOccurred = true;
 		}
 		catch(...){
 			UG_ERR_LOG("Unknown error occurred on registry check.\n");
-			bAbort = true;
+			errorOccurred = true;
 		}
 	}
 
-	if(!bAbort){
-		bool runInteractiveShell = true;
 
-		lua_State* L = script::GetDefaultLuaState();
+////////////////////////////////
+//	SET UP LUA
+	lua_State* L = script::GetDefaultLuaState();
 
-	//	if a script shall be executed we do so now.
-		int scriptParamIndex = GetParamIndex("-ex", argc, argv);
-		int firstParamIndex = 1;
-		const char* scriptName = NULL;
+	SetLuaDebugIDs(L);
+	SetLuaUGArgs(L, argc, argv);
 
-		if(scriptParamIndex != -1){
-			if(argc > scriptParamIndex + 1){
-			//	offset to the parameterlist
-				firstParamIndex = scriptParamIndex + 2;
-			//	get the name of the script
-				scriptName = argv[scriptParamIndex + 1];
-			}
-		}
+	// replace LUAs print function with our own, to use UG_LOG
+	RegisterStdLUAFunctions(L);
 
-		int iNoQuit = GetParamIndex("-noquit", argc, argv);
+	ug::bridge::InitShell();
 
-		SetLuaDebugIDs(L);
-		SetLuaUGArgs(L, argc, argv, firstParamIndex, iNoQuit);
+	PROFILE_END(); // ugshellInit
 
-		// replace LUAs print function with our own, to use UG_LOG
-		RegisterStdLUAFunctions(L);
-	
-		ug::bridge::InitShell();
+	EnableMemTracker(true);
 
-		PROFILE_END(); // ugshellInit
 
-		EnableMemTracker(true);
-	//	if a script has been specified, then execute it now
-	//	if a script is executed, we won't execute the interactive shell.
+////////////////////////////////
+//	RUN SCRIPT OR CALL
+	if(!errorOccurred){
+		const int scriptParamIndex = GetParamIndex("-ex", argc, argv);
+		const bool runScript = (scriptParamIndex != -1);
+	//	if a script or a call has been specified, then execute it now
+	//	if a script or a call is executed, we won't execute the interactive shell.
 		try{
-			if(scriptName){
-				if(!LoadUGScript_Parallel(scriptName))
-				{
-					UG_LOG("Cannot find specified script ('" << scriptName << "'). Aborting.\n");
-					bAbort=true;
+			if(runScript) {
+				defaultInteractiveShell = false;
+
+				if(argc <= scriptParamIndex + 1) {
+					UG_LOG("ERROR: No script was specified after '-ex' option.\n");
+					errorOccurred=true;
+				}
+				else {
+					const char* scriptName = argv[scriptParamIndex + 1];
+					if(!LoadUGScript_Parallel(scriptName)) {
+						UG_LOG("ERROR: Cannot find specified script ('" << scriptName << "').\n");
+						errorOccurred=true;
+					}
 				}
 			}
-			else if(!callCommand.empty()){
+			else if(callSpecified) {
 				script::ParseAndExecuteBuffer(callCommand.c_str());
+			//	unless -noquit was specified, we won't run the shell after the call
+				defaultInteractiveShell = false;
 			}
 		}
 		catch(SoftAbort& err){
@@ -374,7 +397,7 @@ int main(int argc, char* argv[])
 			}
 			UG_LOG(errSymb<<"ABORTING script parsing.\n");
 			quit_all_mpi_procs_in_parallel();
-			bAbort=true;
+			errorOccurred=true;
 		}
 		catch(UGError &err)
 		{
@@ -385,58 +408,43 @@ int main(int argc, char* argv[])
 			UG_LOG("\n");
 			UG_LOG(errSymb<<"ABORTING script parsing.\n");
 			quit_all_mpi_procs_in_parallel();
-			bAbort=true;
+			errorOccurred=true;
 		}
 		CATCH_STD_EXCEPTIONS();
 
-//#ifdef UG_DEBUG
-		if(scriptName){
+		if(runScript){
 			try{
-				script::ParseAndExecuteBuffer("if util ~= nil and util.CheckAndPrintHelp ~= nil then util.CheckAndPrintHelp(\"\\n-help: Available Command Line Arguments:\") end\n"
-							"if util ~= nil and util.PrintIgnoredArguments ~= nil then print(\"\") util.PrintIgnoredArguments() end\n"
-									, "ugshell_main");
+				script::ParseAndExecuteBuffer(
+					"if util ~= nil and util.PrintIgnoredArguments ~= nil then print(\"\") util.PrintIgnoredArguments() end\n",
+					"ugshell_main");
 			}
 			catch(SoftAbort& err){
 				UG_LOG("Execution of script-buffer aborted with the following message:\n");
 				UG_LOG(err.get_msg() << std::endl);
 			}
 		}
-//#endif
-
-		if(FindParam("-noquit", argc, argv))
-			runInteractiveShell = true;
-		else
-			runInteractiveShell = false;
 
 		EnableMemTracker(false);
 		//DisplayVacantMemory();
 
-		//	interactive shell may only be executed in serial environment
-		#ifdef UG_PARALLEL
-			if(runInteractiveShell){
-				if(pcl::NumProcs() > 1){
-					UG_LOG("Parallel environment detected. Disabling interactive shell.\n");
-					runInteractiveShell = false;
-				}
-
-			}
-		#endif
-
-		if(runInteractiveShell){
-			try{
-				ret = ug::bridge::RunShell();
-			}
-			catch(SoftAbort& err){
-				UG_LOG("Execution of interactive shell aborted with the following message:\n");
-				UG_LOG(err.get_msg() << std::endl);
-			}
-		}
-
-	}//bAbort
+	}//errorOccurred
 	else
 	{
-		UG_LOG("Errors occured on startup (see error log). Terminating shell.\n");
+		UG_LOG("WARNING: Errors occured on startup (see error log). Scripts and calls are ignored!\n");
 	}
+
+
+	if(!parallelEnvironment && (interactiveShellRequested || (!errorOccurred && defaultInteractiveShell)))
+	{
+		try{
+			ret = ug::bridge::RunShell();
+		}
+		catch(SoftAbort& err){
+			UG_LOG("Execution of interactive shell aborted with the following message:\n");
+			UG_LOG(err.get_msg() << std::endl);
+		}
+	}
+
 
 	PROFILE_BEGIN(ugshellFinalize);
 
@@ -454,7 +462,7 @@ int main(int argc, char* argv[])
 	UG_LOG(endl);
 
 	// If shell aborted and no custom ret-value defined then return '1'; return 'ret' otherwise
-	return bAbort&&ret==0?1:ret;
+	return errorOccurred&&ret==0?1:ret;
 }
 
 // end group ugbase_ugshell

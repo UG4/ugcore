@@ -203,6 +203,9 @@ void ExtrudeLayers (
 			Vertex* v = curVrts[icur];
 			vector2 c(aaPos[v].x(), aaPos[v].y());
 			pair<int, number> val = layers.trace_line_down(c, ilayer);
+			pair<int, number> upperVal = layers.trace_line_up(c, ilayer+1);
+			UG_COND_THROW(upperVal.first == -1, "An upper layer has to exist");
+
 			number height;
 
 			if(val.first >= 0){
@@ -214,6 +217,7 @@ void ExtrudeLayers (
 				height = (1. - ia) * aaPos[v].z() + ia * val.second;
 				tmpVrts.push_back(v);
 				vrtHeightVals.push_back(height);
+				aaHeight[v] = upperVal.second - val.second;//total height of ilayer
 				sh.assign_subset(v, val.first);
 				grid.mark(v);
 			}
@@ -223,6 +227,7 @@ void ExtrudeLayers (
 				tmpVrts.push_back(v);
 				number height = aaPos[v].z() - layers.min_height(ilayer);
 				vrtHeightVals.push_back(height);
+				aaHeight[v] = upperVal.second - val.second;//total height of ilayer
 				sh.assign_subset(v, invalidSub);
 				grid.mark(v);
 			}
@@ -251,17 +256,34 @@ void ExtrudeLayers (
 			}
 
 			if(allMarked){
+			//	the highest valid side of the volume determines its subset.
+				number maxHeight = 0;
+				int subsetIndex = invalidSub;
+				for(size_t i = 0; i < numVrts; ++i){
+					int si = sh.get_subset_index(vrts[i]);
+					if(si == invalidSub)
+						continue;
+
+					number vh = aaHeight[vrts[i]];
+					if(vh > maxHeight){
+						maxHeight = vh;
+						subsetIndex = si;
+					}
+				}
+
 				pair<int, number> upVal = layers.trace_line_up(c, ilayer+1);
 				if(val.first < 0 || upVal.first < 0){
 					if(allowForTetsAndPyras){
 						tmpFaces.push_back(f);
-						volSubsetInds.push_back(invalidSub);
+						// volSubsetInds.push_back(invalidSub);
+						volSubsetInds.push_back(subsetIndex);
 						volHeightVals.push_back(layers.min_height(ilayer));
 					}
 				}
 				else{
 					tmpFaces.push_back(f);
-					volSubsetInds.push_back(val.first);
+					// volSubsetInds.push_back(val.first);
+					volSubsetInds.push_back(subsetIndex);
 					volHeightVals.push_back(upVal.second - val.second);
 				}
 			}

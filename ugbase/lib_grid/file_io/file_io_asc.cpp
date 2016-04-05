@@ -78,7 +78,8 @@ void FileReaderASC::load_file(const char* filename)
 		string name;
 		double value;
 		in >> name >> value;
-		UG_COND_THROW(!in, "Couldn't parse expected name-value pair in row " << i);
+		UG_COND_THROW(!in, "Couldn't parse expected name-value pair in row " << i
+					  << " in file '" << filename << "'");
 
 		name = ToLower(name);
 

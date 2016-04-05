@@ -80,10 +80,10 @@ class IConstraint
 
 	///	adapts defect to enforce constraints
 		virtual void adjust_defect(vector_type& d, const vector_type& u,
-		                           ConstSmartPtr<DoFDistribution> dd, number time = 0.0,
-		                           ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = SPNULL,
-		                           const std::vector<number>* vScaleMass = NULL,
-		                           const std::vector<number>* vScaleStiff = NULL) = 0;
+								   ConstSmartPtr<DoFDistribution> dd, number time = 0.0,
+								   ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = SPNULL,
+								   const std::vector<number>* vScaleMass = NULL,
+								   const std::vector<number>* vScaleStiff = NULL) = 0;
 
 	///	adapts matrix and rhs (linear case) to enforce constraints
 		virtual void adjust_linear(matrix_type& mat, vector_type& rhs,
@@ -96,6 +96,12 @@ class IConstraint
 	///	sets the constraints in a solution vector
 		virtual void adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd,
 									 number time = 0.0)  = 0;
+
+	///	adapts correction to enforce constraints
+	/// for additive constraints (e.g. linear constraints, but NOT Dirichlet other than Dirichlet-0!),
+	/// this is the same as adjust_solution, therefore default implementation
+		virtual void adjust_correction(vector_type& c, ConstSmartPtr<DoFDistribution> dd,
+									   number time = 0.0) {adjust_solution(c, dd, time);}
 
 	///	adjusts the assembled error estimator values in the attachments according to the constraint
 		virtual void adjust_error(const vector_type& u, ConstSmartPtr<DoFDistribution> dd,

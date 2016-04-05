@@ -1,5 +1,5 @@
 # Copyright (c) 2013:  G-CSC, Goethe University Frankfurt
-# Author: Martin Rupp
+# Author: Markus Breit
 # 
 # This file is part of UG4.
 # 
@@ -28,11 +28,24 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU Lesser General Public License for more details.
 
-if(BUILD_UGDOCU)
-	add_custom_target(updateUGDocu ALL )
-	add_custom_command(TARGET updateUGDocu
-						 PRE_BUILD
-						 COMMAND "${UG_ROOT_PATH}/bin/ugshell" -noterm -call GenerateScriptReferenceDocu\\\(\\\"\\\", true, false, false, true\\\)
-						 WORKING_DIRECTORY ${UG_ROOT_PATH}/bin)
-	add_dependencies(updateUGDocu ${TARGET} ugdocu)
-endif(BUILD_UGDOCU)
+##########################################################
+# Allows all sub-cmake-files to add their own flags to   #
+# specified files when building with EMBEDDED_PLUGINS=ON #
+##########################################################
+
+# Usage:
+# exportSingleFileDefinitions(file oneDefinition)
+# exportSingleFileDefinitions(file "def1 def2 ...")
+#
+# file must be a valid file, prepended by its path, typically ${CMAKE_CURRENT_SOURCE_DIR};
+# definitions for preprocessor need to be exactly like used in preprocessor macros, i.e.,
+# SOME_MACRO, and not -DSOME_MACRO.
+
+# @param file the file definitions are to be exported for
+# @param definitions a list of definitions to be exported
+function(exportSingleFileDefinitions file definitions)
+	get_property(currFileList GLOBAL PROPERTY ugSingleFileDefinitionFiles)
+	set_property(GLOBAL PROPERTY ugSingleFileDefinitionFiles ${currFileList} ${file})
+	get_property(currDefList GLOBAL PROPERTY ugSingleFileDefinitionDefs)
+	set_property(GLOBAL PROPERTY ugSingleFileDefinitionDefs ${currDefList} "${definitions}")
+endfunction(exportSingleFileDefinitions)

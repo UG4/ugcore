@@ -1085,6 +1085,121 @@ adjust_solution(const std::vector<TUserData*>& vUserData, int si,
 	}
 }
 
+
+
+////////////////////////////////////////////////////////////////////////////////
+//	adjust CORRECTION
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename TDomain, typename TAlgebra>
+void DirichletBoundary<TDomain, TAlgebra>::adjust_correction
+(
+	vector_type& c,
+	ConstSmartPtr<DoFDistribution> dd,
+	number time
+)
+{
+	extract_data();
+
+	adjust_correction<CondNumberData>(m_mBNDNumberBndSegment, c, dd, time);
+	adjust_correction<NumberData>(m_mNumberBndSegment, c, dd, time);
+	adjust_correction<ConstNumberData>(m_mConstNumberBndSegment, c, dd, time);
+
+	adjust_correction<VectorData>(m_mVectorBndSegment, c, dd, time);
+}
+
+template <typename TDomain, typename TAlgebra>
+template <typename TUserData>
+void DirichletBoundary<TDomain, TAlgebra>::
+adjust_correction(const std::map<int, std::vector<TUserData*> >& mvUserData,
+                vector_type& c, ConstSmartPtr<DoFDistribution> dd, number time)
+{
+//	loop boundary subsets
+	typename std::map<int, std::vector<TUserData*> >::const_iterator iter;
+	for(iter = mvUserData.begin(); iter != mvUserData.end(); ++iter)
+	{
+	//	get subset index
+		const int si = (*iter).first;
+
+	//	get vector of scheduled dirichlet data on this subset
+		const std::vector<TUserData*>& vUserData = (*iter).second;
+
+	//	adapt correction for dofs in each base element type
+		try
+		{
+		if(dd->max_dofs(VERTEX))
+			adjust_correction<RegularVertex, TUserData>(vUserData, si, c, dd, time);
+		if(dd->max_dofs(EDGE))
+			adjust_correction<Edge, TUserData>(vUserData, si,c, dd, time);
+		if(dd->max_dofs(FACE))
+			adjust_correction<Face, TUserData>(vUserData, si, c, dd, time);
+		if(dd->max_dofs(VOLUME))
+			adjust_correction<Volume, TUserData>(vUserData, si, c, dd, time);
+		}
+		UG_CATCH_THROW("DirichletBoundary::adjust_correction:"
+						" While calling 'adjust_correction' for TUserData, aborting.");
+	}
+}
+
+template <typename TDomain, typename TAlgebra>
+template <typename TBaseElem, typename TUserData>
+void DirichletBoundary<TDomain, TAlgebra>::
+adjust_correction(const std::vector<TUserData*>& vUserData, int si,
+                vector_type& c, ConstSmartPtr<DoFDistribution> dd, number time)
+{
+//	create Multiindex
+	std::vector<DoFIndex> multInd;
+
+//	value readin
+	typename TUserData::value_type val;
+
+//	position of dofs
+	std::vector<position_type> vPos;
+
+//	iterators
+	typename DoFDistribution::traits<TBaseElem>::const_iterator iter, iterEnd;
+	iter = dd->begin<TBaseElem>(si);
+	iterEnd = dd->end<TBaseElem>(si);
+
+//	loop elements
+	for( ; iter != iterEnd; iter++)
+	{
+	//	get vertex
+		TBaseElem* elem = *iter;
+
+	//	loop dirichlet functions on this segment
+		for(size_t i = 0; i < vUserData.size(); ++i)
+		{
+			for(size_t f = 0; f < TUserData::numFct; ++f)
+			{
+			//	get function index
+				const size_t fct = vUserData[i]->fct[f];
+
+			//	get local finite element id
+				const LFEID& lfeID = dd->local_finite_element_id(fct);
+
+			//	get dof position
+				InnerDoFPosition<TDomain>(vPos, elem, *m_spDomain, lfeID);
+
+			//	get multi indices
+				dd->inner_dof_indices(elem, fct, multInd);
+
+				UG_ASSERT(multInd.size() == vPos.size(), "Size mismatch");
+
+			//	loop dofs on element
+				for(size_t j = 0; j < multInd.size(); ++j)
+				{
+				//  find out whether to use dirichlet value; concrete value is of no consequence
+					if(!(*vUserData[i])(val, vPos[j], time, si)) continue;
+
+					this->m_spAssTuner->set_dirichlet_val(c, multInd[j], 0.0);
+				}
+			}
+		}
+	}
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 //	adjust LINEAR
 ////////////////////////////////////////////////////////////////////////////////

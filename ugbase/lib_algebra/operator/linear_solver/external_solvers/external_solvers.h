@@ -65,6 +65,7 @@ class IExternalSolver
 			  	  	  	  	  	  public VectorDebugWritingObject<typename TAlgebra::vector_type>
 {
 	public:
+
 		virtual const char *double_name() const = 0;
 
 		virtual const char* name() const
@@ -80,6 +81,8 @@ class IExternalSolver
 
 	//	Matrix type
 		typedef typename TAlgebra::matrix_type matrix_type;
+
+		using IMatrixOperatorInverse<matrix_type,vector_type>::init;
 
 	public:
 	//	Constructor
@@ -122,6 +125,26 @@ class IExternalSolver
 				std::vector<IndexLayout::Element> vIndex;
 				CollectUniqueElements(vIndex, A.layouts()->slave());
 				SetDirichletRow(A_tmp, vIndex);
+
+				// Even after this setting of Dirichlet rows, it is possible that there are
+				// zero rows on a proc because of the distribution:
+				// For example, if one has a horizontal grid interface between two SHADOW_RIM_COPY
+				// vertices, but the shadowing element for the hSlave side is vMaster (without being in
+				// any horizontal interface). Then, as the horizontal interface (on the shadowed level)
+				// is not part of the algebraic layouts, the hSlave is not converted into a Dirichlet row
+				// by the previous commands.
+				// As a first aid, we will simply convert any zero row on the current proc into a
+				// Dirichlet row.
+				// TODO: The corresponding rhs vector entry could be non-zero!
+				// It is definitely not set to zero by change_storage_type(PST_UNIQUE) as the index is not contained
+				// in the vector layouts either. Still, the defect assembling process might contain a vertex
+				// loop and assemble something that is not solution-dependent! What do we do then?
+				size_t nInd = A_tmp.num_rows();
+				for (size_t i = 0; i < nInd; ++i)
+				{
+					if (!A_tmp.num_connections(i))
+						A_tmp(i,i) = 1.0;
+				}
 
 				mat.set_storage_type(PST_ADDITIVE);
 				mat.set_layouts(CreateLocalAlgebraLayouts());
@@ -184,7 +207,13 @@ class IExternalSolver
 	//	Stepping routine
 		virtual bool apply(vector_type& c, const vector_type& d)
 		{
-			if(m_size == 0) return true;
+			if (m_size == 0)
+			{
+#ifdef UG_PARALLEL
+				c.set_storage_type(PST_CONSISTENT);
+#endif
+				return true;
+			}
 			m_c.resize(m_size);
 			m_d.resize(m_size);
 
@@ -208,7 +237,7 @@ class IExternalSolver
 
 			set_vector(m_c, c);
 
-#ifdef 	UG_PARALLEL
+#ifdef UG_PARALLEL
 			// correction must always be consistent (but is unique by construction)
 			c.set_storage_type(PST_UNIQUE);
 			c.change_storage_type(PST_CONSISTENT);

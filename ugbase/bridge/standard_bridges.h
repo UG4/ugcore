@@ -97,6 +97,9 @@ void RegisterBridge_UserData(Registry& reg, std::string grp = UG4_GRP);
 ///	registers LoadBalancer, partitioners, etc
 void RegisterBridge_LoadBalancing(Registry& reg, std::string grp = UG4_GRP);
 
+///	registers rasters, e.g. for 1,2,3 dimensional image data or density distributions
+void RegisterBridge_Raster(Registry& reg, std::string grp = UG4_GRP);
+
 
 #ifdef UG_ALGEBRA
 ///	registers lib-algebra interface methods at the registry.
@@ -108,6 +111,7 @@ void RegisterBridge_PILUT(Registry& reg, std::string grp = UG4_GRP);
 void RegisterBridge_Solver(Registry& reg, std::string grp = UG4_GRP);
 void RegisterBridge_Eigensolver(Registry& reg, std::string grp = UG4_GRP);
 void RegisterBridge_DomainDependentPreconditioner(Registry& reg, std::string grp = UG4_GRP);
+void RegisterBridge_ConstrainedLinearIterator(Registry& reg, std::string grp = UG4_GRP);
 ///	registers restart functionality
 void RegisterBridge_Restart(Registry& reg, std::string grp = UG4_GRP);
 

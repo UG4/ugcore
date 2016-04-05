@@ -222,7 +222,6 @@ void
 InvMatVecMult_byGivens (matrix_t& A, vector_t& v)
 {
 	typedef typename matrix_t::size_type size_type;
-	typedef typename matrix_t::value_type value_type;
 	
 // I. Multiply 'this' by the Givens rotation:
 	GivensMatVecMult (A, v);

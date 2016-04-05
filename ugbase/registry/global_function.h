@@ -258,15 +258,16 @@ class UG_API ExportedFunctionGroup
 
 	///	adds an overload. Returns false if the overload already existed.
 		template <class TFunc>
-		bool add_overload(TFunc f, ExportedFunction::ProxyFunc pf,
-		                  const std::string& funcOptions, const std::string& group,
-		                  const std::string& retValInfos, const std::string& paramInfos,
-		                  const std::string& tooltip, const std::string& help)
+		ExportedFunction*
+		add_overload (	TFunc f, ExportedFunction::ProxyFunc pf,
+		                const std::string& funcOptions, const std::string& group,
+		                const std::string& retValInfos, const std::string& paramInfos,
+		                const std::string& tooltip, const std::string& help)
 		{
 			size_t typeID = GetUniqueTypeID<TFunc>();
 
 		//	make sure that the overload didn't exist
-			if(get_overload_by_type_id(typeID))return false;
+			if(get_overload_by_type_id(typeID))return NULL;
 
 		//	create a new overload
 			ExportedFunction* func = new ExportedFunction(f, pf, m_name,
@@ -274,7 +275,7 @@ class UG_API ExportedFunctionGroup
 												paramInfos, tooltip, help);
 
 			m_overloads.push_back(Overload(func, typeID));
-			return true;
+			return func;
 		}
 
 		size_t num_overloads() const {return m_overloads.size();}

@@ -64,7 +64,7 @@ const int FACE_VRT_INDS[][4] = {	{0, 1, 2, 3},	{0, 4, 5, 1},
 /// contains the index of the opposed face of each face
 const int OPPOSED_FACE[NUM_FACES] =	{5, 3, 4, 1, 2, 0};
 
-///	vertex indices of the face on the opposite site of the i-th face.
+///	vertex indices of the face on the opposite side of the i-th face.
 /**	Note that the orientation of those faces are different from the orientation
  * of the original faces. The j-th vertex i' is the one on the opposite site of
  * the j-th vertex of face i.
@@ -169,7 +169,7 @@ const int FACE_FROM_EDGES[][12] =	{{0, 0, 0, 0, 1, 1, -1, -1, 1, -1, -1, -1},
 ////////////////////////////////////////////////////////////////////////////////
 
 /**	returns an array of integers, which contains the indices of the objects
- * resulting from the refinement of a pyramid.
+ * resulting from the refinement of a hexahedron.
  *
  *
  * \param newIndsOut	Array which has to be of size MAX_NUM_INDS_OUT.

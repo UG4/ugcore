@@ -117,19 +117,20 @@ small files once like your script files.
 The
 <a href="https://wickie.hlrs.de/platforms/index.php/Workspace_mechanism">Workspace Mechanism</a>
 lets you create a directory on a specialized parallel file system.
-First create a workspace in ug4/bin:
+First create a workspace in ug4:
 \verbatim
-cd bin
-ln -s $`ws_allocate ug4ws 31` workspace
+ln -s `ws_allocate ug4ws 31` workspace
 \endverbatim
 Before each time you run ugshell, you'll have to run a script like the following:
 \verbatim
-rsync -a -W --exclude=.svn ../scripts/ workspace/scripts/
-rsync -a -W --exclude=.svn ../data/ workspace/data/
-rsync -a -W --exclude=.svn ../apps/ workspace/apps/
+mkdir -p workspace/ugcore
+rsync -a -W --exclude=.git ugcore/scripts/ workspace/ugcore/scripts/
+rsync -a -W --exclude=.svn apps/ workspace/apps/
 export UG4_ROOT=workspace
 \endverbatim
 See also <a href="http://linux.die.net/man/1/rsync">rsync docu</a> (-a = subdirectories and keep date, -W = whole files).
+
+Now start your job with ugsubmit from inside your workspace.
 
 Be aware that also files written to can be damaged if you are not using the
 Workspace mechanism. 

@@ -181,6 +181,13 @@ class UG_API Registry {
 		                       std::string retValInfos = "", std::string paramInfos = "",
 		                       std::string tooltip = "", std::string help = "");
 
+	///	Similar to add_function but returns the added function instead of the registry.
+		template<typename TFunc>
+		ExportedFunction*
+		add_and_get_function(std::string funcName, TFunc func, std::string group = "",
+		                     std::string retValInfos = "", std::string paramInfos = "",
+		                     std::string tooltip = "", std::string help = "");
+
 	/// number of functions registered at the Registry (overloads are not counted)
 		size_t num_functions() const;
 

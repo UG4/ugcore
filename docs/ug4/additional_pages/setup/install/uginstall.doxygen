@@ -32,11 +32,7 @@
 
 
 /** \page pageUginstall uginstall - Scripts for installation
-
-\note Because of the great variety of systems, this installation guides may be outdated quickly. So if this guide is not working for you
-\em please write an email to martin.rupp@gcsc.uni-frankfurt.de explaining where you're stuck - even if you have resolved your problem.
-It's the only chance we have to keep this guides updated and correct. 
-
+\note UG4 is now longer available through SVN. Instead it is now available with git from github.com/UG4. The hints below may still be partially useful to some.
 
 uginstall is a number of small shell scripts to install some software without having root.
 By now, it is very preliminary and not guaranteed to work on all machines.

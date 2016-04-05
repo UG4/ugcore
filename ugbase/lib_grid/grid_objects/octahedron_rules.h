@@ -147,12 +147,13 @@ const int FACE_FROM_EDGES[][12] = {	{0, 0, -1, 3, 0, -1, -1, 3, -1, -1, -1, -1},
  * 						this parameter will be set to true. If not, it is set to
  * 						false.
  *
- * \param corners		(optional) List of the four corner positions of the
- * 						tetrahedron. If it is specified, it is used during full
- * 						refinement (all edges marked), to determine the best
- * 						diagonal along which inner tetrahedrons are created.
- * 						Corners are only considered during full refinement and are
- * 						thus irrelevant during recursive refinement of other elements.
+ * \param corners		(optional) List of the six corner positions of the
+ * 						octahedron. If it is specified, it is used during full
+ * 						refinement (all edges marked), to determine the best (shortest)
+ * 						diagonal along which the octahedrons are implicitly subdivided
+ * 						into tetrahedrons. Corners are only considered during full
+ * 						refinement and are thus irrelevant during recursive refinement
+ * 						of other elements.
  *
  * \returns	the number of entries written to newIndsOut or 0, if the refinement
  * 			could not be performed.

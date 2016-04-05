@@ -114,6 +114,8 @@ class GridFunctionNumberData
 
 				//	memory for shapes
 				std::vector<number> vShape;
+				//	memory for indices
+				std::vector<DoFIndex> ind;
 
 				//	loop ips
 				for(size_t ip = 0; ip < nip; ++ip)
@@ -122,7 +124,6 @@ class GridFunctionNumberData
 					rTrialSpace.shapes(vShape, vLocIP[ip]);
 
 					//	get multiindices of element
-					std::vector<DoFIndex> ind;
 					m_spGridFct->dof_indices(elem, m_fct, ind);
 
 					// 	compute solution at integration point
@@ -148,6 +149,17 @@ class GridFunctionNumberData
 					" Reference Object: "<<roid<<", Trial Space: "
 					<<m_lfeID<<", refDim="<<refDim);
 
+		}
+	
+		virtual void operator() (number& value,
+									const MathVector<dim>& globIP,
+									number time, int si,
+									Vertex* vrt) const
+		{
+			std::vector<DoFIndex> ind;
+			if (m_spGridFct->dof_indices(vrt, m_fct, ind) != 1)
+				UG_THROW ("GridFunctionNumberData: Values at vertices of the grid function are not uniquely defined.");
+			value = DoFRef(*m_spGridFct, ind[0]);
 		}
 };
 
@@ -230,6 +242,8 @@ class GridFunctionVectorData
 
 		//	memory for shapes
 		std::vector<number> vShape;
+		//	memory for indices
+		std::vector<DoFIndex> ind;
 
 		//	loop ips
 		try{
@@ -244,7 +258,6 @@ class GridFunctionVectorData
 					rTrialSpace.shapes(vShape, vLocIP[ip]);
 
 					//	get multiindices of element
-					std::vector<DoFIndex> ind;
 					m_spGridFct->dof_indices(elem, m_vfct[d], ind);
 
 					// 	compute solution at integration point
@@ -262,6 +275,20 @@ class GridFunctionVectorData
 
 		if(bDeriv)
 			UG_THROW("Not implemented.");
+	}
+	
+	virtual void operator() (MathVector<dim>& value,
+										const MathVector<dim>& globIP,
+										number time, int si,
+										Vertex* vrt) const
+	{
+		std::vector<DoFIndex> ind;
+		for(int d = 0; d < dim; ++d)
+		{
+			if (m_spGridFct->dof_indices(vrt, m_vfct[d], ind) != 1)
+				UG_THROW ("GridFunctionVectorData: Values at vertices of the grid function are not uniquely defined.");
+			value[d] = DoFRef(*m_spGridFct, ind[0]);
+		}
 	}
 };
 

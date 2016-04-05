@@ -1,20 +1,20 @@
 /*
  * Copyright (c) 2014-2015:  G-CSC, Goethe University Frankfurt
  * Author: Martin Stepniewski
- * 
+ *
  * This file is part of UG4.
- * 
+ *
  * UG4 is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License version 3 (as published by the
  * Free Software Foundation) with the following additional attribution
  * requirements (according to LGPL/GPL v3 §7):
- * 
+ *
  * (1) The following notice must be displayed in the Appropriate Legal Notices
  * of covered and combined works: "Based on UG4 (www.ug4.org/license)".
- * 
+ *
  * (2) The following notice must be displayed at a prominent place in the
  * terminal output of covered works: "Based on UG4 (www.ug4.org/license)".
- * 
+ *
  * (3) The following bibliography is recommended for citation and must be
  * preserved in all covered files:
  * "Reiter, S., Vogel, A., Heppner, I., Rupp, M., and Wittum, G. A massively
@@ -23,7 +23,7 @@
  * "Vogel, A., Reiter, S., Rupp, M., Nägel, A., and Wittum, G. UG4 -- a novel
  *   flexible software system for simulating pde based models on high performance
  *   computers. Computing and visualization in science 16, 4 (2013), 165-179"
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
@@ -38,9 +38,52 @@
 #include "lib_grid/lg_base.h"
 #include "lib_grid/algorithms/debug_util.h"
 #include "lib_grid/grid_objects/tetrahedron_rules.h"
+#include "lib_grid/algorithms/attachment_util.h"
+
+#ifdef UG_PARALLEL
+	#include "lib_grid/parallelization/util/compol_attachment_reduce.h"
+	#include "lib_grid/parallelization/util/compol_copy_attachment.h"
+	#include "lib_grid/parallelization/util/attachment_operations.hpp"
+	#include "lib_grid/parallelization/distributed_grid.h"
+	#include "pcl/pcl_interface_communicator.h"
+#endif
+
+#include "lib_disc/local_finite_element/local_finite_element_provider.h"
+#include "lib_disc/local_finite_element/local_dof_set.h"
+#include "lib_disc/reference_element/reference_mapping_provider.h"
+#include "lib_disc/reference_element/reference_element_util.h"
+
+#include  "common/profiler/profiler.h"
 
 namespace ug
 {
+
+////////////////////////////////////////////////////////////////////////////////
+//	BOUNDARY REFINEMENT RULE
+
+/// identification of boundary refinement rule to be used
+enum GlobalBoundaryRefinementRule
+{
+	LINEAR,
+	SUBDIV_LOOP,
+	SUBDIV_VOL
+};
+
+
+/// global boundary refinement rule information switching between linear and subdivision Loop refinement
+static GlobalBoundaryRefinementRule g_boundaryRefinementRule = LINEAR;
+
+
+void SetBoundaryRefinementRule(GlobalBoundaryRefinementRule refRule)
+{
+	g_boundaryRefinementRule = refRule;
+}
+
+
+GlobalBoundaryRefinementRule GetBoundaryRefinementRule()
+{
+	return g_boundaryRefinementRule;
+}
 
 
 /// Function for splitting an octahedron to 4 sub-tetrahedrons
@@ -122,7 +165,7 @@ void SplitOctahedronToTetrahedrons(	Grid& grid, Octahedron* oct, Volume* parentV
 			vTetsOut.push_back(tet3);
 			vTetsOut.push_back(tet4);
 
-		//	Tetrahedron pattern from tetrahedron_rules.cpp
+		//	compare case 0 tetrahedron pattern from tetrahedron_rules.cpp:
 			/*
 			inds[fi++] = 4;
 			inds[fi++] = NUM_VERTICES + 0;	inds[fi++] = NUM_VERTICES + 1;
@@ -169,7 +212,7 @@ void SplitOctahedronToTetrahedrons(	Grid& grid, Octahedron* oct, Volume* parentV
 			vTetsOut.push_back(tet3);
 			vTetsOut.push_back(tet4);
 
-		//	Tetrahedron pattern from tetrahedron_rules.cpp
+		//	compare case 1 tetrahedron pattern from tetrahedron_rules.cpp:
 			/*
 			inds[fi++] = 4;
 			inds[fi++] = NUM_VERTICES + 0;	inds[fi++] = NUM_VERTICES + 1;
@@ -216,7 +259,7 @@ void SplitOctahedronToTetrahedrons(	Grid& grid, Octahedron* oct, Volume* parentV
 			vTetsOut.push_back(tet3);
 			vTetsOut.push_back(tet4);
 
-		//	Tetrahedron pattern from tetrahedron_rules.cpp
+		//	compare case 2 tetrahedron pattern from tetrahedron_rules.cpp:
 			/*
 			inds[fi++] = 4;
 			inds[fi++] = NUM_VERTICES + 0;	inds[fi++] = NUM_VERTICES + 2;
@@ -243,223 +286,707 @@ void SplitOctahedronToTetrahedrons(	Grid& grid, Octahedron* oct, Volume* parentV
 }
 
 
-/// Projection function for subdivision volumes refinement
+/// Projection function for smooth subdivision (volumes+surface) refinement
 /** This function projects the vertices of all levels to their smooth limit
  * 	positions determined by the subdivision volumes refinement.
  *
  * 	@param mg			reference to MultiGrid
 **/
-void ProjectToLimitSubdivisionVolume(MultiGrid& mg)
+void ProjectHierarchyToLimitSubdivisionVolume(MultiGrid& mg)
 {
+//	Catch use of procedure for MultiGrids with just one level
+	if(mg.num_levels() == 1)
+	{
+		UG_THROW("Error in ProjectHierarchyToLimitSubdivisionVolume: "
+				 "Procedure only to be used for MultiGrids with more than one level.");
+	}
+
+	#ifdef UG_PARALLEL
+	//	Attachment communication policies COPY
+		ComPol_CopyAttachment<VertexLayout, AVector3> comPolCopyAPosition(mg, aPosition);
+
+	//	Interface communicators and distributed domain manager
+		pcl::InterfaceCommunicator<VertexLayout> com;
+		DistributedGridManager& dgm = *mg.distributed_grid_manager();
+		GridLayoutMap& glm = dgm.grid_layout_map();
+	#endif
+
 	Grid::VertexAttachmentAccessor<APosition> aaPos(mg, aPosition);
 
-//	Loop all vertices of top level
-	for(VertexIterator vrtIter = mg.begin<Vertex>(mg.top_level()); vrtIter != mg.end<Vertex>(mg.top_level()); ++vrtIter)
-	{
-		Vertex* v = *vrtIter;
+//	AttachmentCopy VSLAVE->VMASTER on mg.top_level() in case not all VMasters in toplevel don't have correct position already
+	#ifdef UG_PARALLEL
+	//	copy v_slaves to ghosts = VMASTER
+		com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopyAPosition);
+		com.communicate();
+	#endif
 
-	//	Reposition all parents according to the position on the finest level
-		while(v)
+//	Loop all levels from toplevel down to base level
+	for(int lvl = (int)mg.top_level(); lvl > 0; --lvl)
+	{
+	//	Loop all vertices of current level and submit positions to parent vertices
+		for(VertexIterator vrtIter = mg.begin<Vertex>(lvl); vrtIter != mg.end<Vertex>(lvl); ++vrtIter)
 		{
+			Vertex* v = *vrtIter;
 			Vertex* parent = dynamic_cast<Vertex*>(mg.get_parent(v));
-			if(parent){
+
+		//	Only, if parent vertex exists
+			if(parent)
+			{
 				aaPos[parent] = aaPos[v];
 			}
-			v = parent;
+		}
+
+	#ifdef UG_PARALLEL
+	//	copy v_slaves to ghosts = VMASTER
+		com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopyAPosition);
+		com.communicate();
+	#endif
+	}
+}
+
+
+/// Toplevel vertex repositioning function for subdivision surfaces refinement (by C. Loop, 1987)
+/** This function repositions all toplevel manifold vertices to their smoothed positions
+ * 	determined by the subdivision surfaces refinement.
+ *
+ * 	@param mg							reference to MultiGrid
+ * 	@param markSH						reference to SubsetHandler markSH containing marked (inner) boundary manifold
+ * 	@param linearBndManifoldSubsetsSH	reference to user-specified linearBndManifoldSubsets SubsetHandler
+ * 	@param aSmoothBndPosEvenVrt			reference to aSmoothBndPosEvenVrt
+ * 	@param aSmoothBndPosOddVrt			reference to aSmoothBndPosOddVrt
+**/
+void ApplySmoothManifoldPosToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
+											MGSubsetHandler& linearBndManifoldSubsetsSH,
+											APosition& aSmoothBndPosEvenVrt,
+											APosition& aSmoothBndPosOddVrt)
+{
+//	Catch use of procedure for MultiGrids with just one level
+	if(mg.num_levels() == 1)
+	{
+		UG_THROW("Error in CalculateSmoothManifoldPosInTopLevel: "
+				 "Procedure only to be used for MultiGrids with more than one level.");
+	}
+
+//	Define attachment accessors
+	Grid::VertexAttachmentAccessor<APosition> aaPos(mg, aPosition);
+	Grid::VertexAttachmentAccessor<APosition> aaSmoothBndPosEvenVrt(mg, aSmoothBndPosEvenVrt);
+	Grid::EdgeAttachmentAccessor<APosition> aaSmoothBndPosOddVrt(mg, aSmoothBndPosOddVrt);
+
+//	Loop all vertices of top_level
+	for(VertexIterator vrtIter = mg.begin<Vertex>(mg.top_level()); vrtIter != mg.end<Vertex>(mg.top_level()); ++vrtIter)
+	{
+		Vertex* vrt = *vrtIter;
+
+	//	Catch vertices without parent
+		if(mg.get_parent(vrt) == NULL)
+			return;
+
+	//	In case of marked manifold vertices, which do not belong to the user-specified linear boundary manifold subsets,
+	//	and activated subdivision Loop refinement apply subdivision surfaces smoothing, else linear refinement
+		if(markSH.get_subset_index(vrt) != -1 && linearBndManifoldSubsetsSH.get_subset_index(vrt) == -1)
+		{
+		//	EVEN VERTEX
+			if(mg.get_parent(vrt)->reference_object_id() == ROID_VERTEX)
+			{
+			//	Get parent vertex
+				Vertex* parentVrt = static_cast<Vertex*>(mg.get_parent(vrt));
+
+				aaPos[vrt] = aaSmoothBndPosEvenVrt[parentVrt];
+			}
+
+		//	ODD VERTEX
+			else if(mg.get_parent(vrt)->reference_object_id() == ROID_EDGE)
+			{
+			//	Get parent edge
+				Edge* parentEdge = static_cast<Edge*>(mg.get_parent(vrt));
+
+				aaPos[vrt] =  aaSmoothBndPosOddVrt[parentEdge];
+			}
 		}
 	}
 }
 
 
-/// Vertex repositioning function for subdivision volumes refinement
-/** This function repositions a vertex to its smoothed position in the current
- * 	level determined by the subdivision volumes refinement.
+/// Toplevel vertex repositioning function for subdivision volumes refinement
+/** This function repositions all toplevel inner vertices to their smoothed positions
+ * 	determined by the subdivision volumes refinement.
  *
- * 	@param mg			reference to MultiGrid
- * 	@param vrt			pointer to Vertex
- * 	@param aaPos		reference to VertexAttachmentAccessor accessing aPos
- * 	@param aaSmoothPos	reference to VertexAttachmentAccessor accessing aSmoothPos
+ * 	@param mg							reference to MultiGrid
+ * 	@param markSH						reference to SubsetHandler markSH containing marked (inner) boundary manifold
+ * 	@param linearBndManifoldSubsetsSH	reference to user-specified linearBndManifoldSubsets SubsetHandler
+ * 	@param aSmoothBndPosEvenVrt			reference to aSmoothBndPosEvenVrt
+ * 	@param aSmoothBndPosOddVrt			reference to aSmoothBndPosOddVrt
 **/
-void MoveVertexToSubdivisionVolumePosition(	MultiGrid& mg, Vertex* vrt,
-											Grid::VertexAttachmentAccessor<APosition>& aaPos,
-											Grid::VertexAttachmentAccessor<APosition>& aaSmoothPos)
+void ApplySmoothVolumePosToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
+									MGSubsetHandler& linearBndManifoldSubsetsSH,
+									APosition& aSmoothVolPos, AInt& aNumElems)
 {
-//	Declare centroid coordinate vector
-	typedef APosition::ValueType pos_type;
-	pos_type p;
+//	Define attachment accessors
+	Grid::VertexAttachmentAccessor<APosition> aaPos(mg, aPosition);
+	Grid::VertexAttachmentAccessor<APosition> aaSmoothVolPos(mg, aSmoothVolPos);
+	Grid::VertexAttachmentAccessor<AInt> aaNumElems(mg, aNumElems);
 
-//	Declare vertex volume valence
-	size_t valence = 0;
-
-//	Collect associated volumes
-	std::vector<Volume*> volumes;
-	CollectAssociated(volumes, mg, vrt);
-
-//	Iterate over all associated volumes
-	for(Grid::AssociatedVolumeIterator vIter = mg.associated_volumes_begin(vrt); vIter != mg.associated_volumes_end(vrt); ++vIter)
+//	Move vertices to their smoothed position
+	for(VertexIterator vrtIter = mg.begin<Vertex>(mg.top_level()); vrtIter != mg.end<Vertex>(mg.top_level()); ++vrtIter)
 	{
-		VecSet(p, 0);
-		Volume* vol = *vIter;
-		++valence;
+		Vertex* vrt = *vrtIter;
 
-	//	TETRAHEDRON CASE
-		if(vol->reference_object_id() == ROID_TETRAHEDRON)
+		if(aaNumElems[vrt] == 0)
+			UG_THROW("ERROR in ApplySmoothVolumePosToTopLevel: grid contains vertex not contained in any volume.");
+
+		if(g_boundaryRefinementRule == SUBDIV_VOL)
 		{
-		//	Iterate over all associated vertices inside tetrahedron
-			int vrtIndex = 0;
-			for(size_t i = 0; i < vol->num_vertices(); ++i)
-			{
-				if(vrtIndex != GetVertexIndex(vol, vrt))
-				{
-					VecAdd(p, p, aaPos[vol->vertex(i)]);
-				}
-
-				++vrtIndex;
-			}
-
-		//	TODO: refer to subdivision rules object
-			number centerWgt 	= -1.0/16;
-			number nbrWgt 		= 17.0/48;
-
-			VecScaleAppend(aaSmoothPos[vrt], centerWgt, aaPos[vrt], nbrWgt, p);
+		//	Scale smooth vertex position by the number of associated volume elements (SubdivisionVolumes smoothing)
+			VecScale(aaSmoothVolPos[vrt],  aaSmoothVolPos[vrt], 1.0/aaNumElems[vrt]);
+			VecScale(aaPos[vrt], aaSmoothVolPos[vrt], 1.0);
 		}
-
-	//	OCTAHEDRON CASE
-		else if(vol->reference_object_id() == ROID_OCTAHEDRON)
-		{
-		//	Summate positions of all other vertices inside octahedron, first associate ones and last the opposing one
-			for(Grid::AssociatedEdgeIterator eIter = mg.associated_edges_begin(vol); eIter != mg.associated_edges_end(vol); ++eIter)
-			{
-				Edge* e = *eIter;
-				if(GetConnectedVertex(e, vrt) != NULL)
-				{
-					VecAdd(p, p, aaPos[GetConnectedVertex(e, vrt)]);
-				}
-			}
-
-			Vertex* oppVrt = vol->vertex(vol->get_opposing_object(vrt).second);
-
-		//	TODO: refer to subdivision rules object
-			number centerWgt 	= 3.0/8;
-			number nbrWgt 		= 1.0/12;
-			number oppNbrWgt 	= 7.0/24;
-
-			VecScaleAppend(aaSmoothPos[vrt], centerWgt, aaPos[vrt], nbrWgt, p, oppNbrWgt, aaPos[oppVrt]);
-		}
-
-	//	UNSUPPORTED VOLUME ELEMENT CASE
 		else
 		{
-			UG_THROW("Volume type not supported for subdivision volumes refinement.");
+		//	Only in case of inner vertices
+			if(markSH.get_subset_index(vrt) == -1)
+			{
+			//	Scale smooth vertex position by the number of associated volume elements
+				VecScale(aaSmoothVolPos[vrt],  aaSmoothVolPos[vrt], 1.0/aaNumElems[vrt]);
+				VecScale(aaPos[vrt], aaSmoothVolPos[vrt], 1.0);
+			}
 		}
 	}
-
-//	Scale vertex position by the number of associated volume elements
-	VecScale(aaSmoothPos[vrt],  aaSmoothPos[vrt], 1.0/valence);
 }
 
 
-/// Vertex repositioning function for subdivision surfaces refinement (by C. Loop, 1987)
-/** This function repositions a vertex to its smoothed position in the current
- * 	level determined by the subdivision surfaces refinement.
+/// Parent level vertex smoothing function for subdivision surfaces refinement (by C. Loop, 1987)
+/** This function calculates the smoothed positions of all parent level vertices
+ * 	determined by the subdivision surfaces refinement.
  *
- * 	@param mg			reference to MultiGrid
- * 	@param vrt			pointer to Vertex
- * 	@param aaPos		reference to VertexAttachmentAccessor accessing aPos
- * 	@param aaSmoothPos	reference to VertexAttachmentAccessor accessing aSmoothPos
+ * 	@param mg							reference to MultiGrid
+ * 	@param markSH						reference to SubsetHandler markSH containing marked (inner) boundary manifold
+ * 	@param linearBndManifoldSubsetsSH	reference to user-specified linearBndManifoldSubsets SubsetHandler
+ * 	@param aSmoothBndPosEvenVrt			reference to aSmoothBndPosEvenVrt
+ * 	@param aSmoothBndPosOddVrt			reference to aSmoothBndPosOddVrt
+ * 	@param aNumManifoldEdges			reference to aNumManifoldEdges
 **/
-void MoveVertexToSubdivisionSurfacePosition(MultiGrid& mg, Vertex* vrt,
-											Grid::VertexAttachmentAccessor<APosition>& aaPos,
-											Grid::VertexAttachmentAccessor<APosition>& aaSmoothPos)
+void CalculateSmoothManifoldPosInParentLevel(MultiGrid& mg, MGSubsetHandler& markSH,
+											 MGSubsetHandler& linearBndManifoldSubsetsSH,
+											 APosition& aSmoothBndPosEvenVrt,
+											 APosition& aSmoothBndPosOddVrt,
+											 AInt& aNumManifoldEdges)
 {
-//	Check, if volumes are included in input grid
-	bool volumesExist = mg.num<Volume>() > 0;
+//	Catch use of procedure for MultiGrids with just one level
+	if(mg.num_levels() == 1)
+	{
+		UG_THROW("Error in CalculateSmoothManifoldPosInParentLevel: "
+				 "Procedure only to be used for MultiGrids with more than one level.");
+	}
+
+//	Define attachment accessors
+	Grid::VertexAttachmentAccessor<APosition> aaPos(mg, aPosition);
+	Grid::VertexAttachmentAccessor<APosition> aaSmoothBndPosEvenVrt(mg, aSmoothBndPosEvenVrt);
+	Grid::EdgeAttachmentAccessor<APosition> aaSmoothBndPosOddVrt(mg, aSmoothBndPosOddVrt);
+	Grid::VertexAttachmentAccessor<AInt> aaNumManifoldEdges(mg, aNumManifoldEdges);
+
+	#ifdef UG_PARALLEL
+		DistributedGridManager& dgm = *mg.distributed_grid_manager();
+	#endif
 
 //	Declare centroid coordinate vector
 	typedef APosition::ValueType pos_type;
 	pos_type p;
+	VecSet(p, 0);
 
 //	Load subdivision surfaces rules
 	SubdivRules_PLoop& subdiv = SubdivRules_PLoop::inst();
 
-//	Even vertex
-	if(mg.get_parent(vrt)->reference_object_id() == ROID_VERTEX)
+//	Calculate smooth position for EVEN vertices
+	for(VertexIterator vrtIter = mg.begin<Vertex>(mg.top_level()-1); vrtIter != mg.end<Vertex>(mg.top_level()-1); ++vrtIter)
 	{
-		//Vertex* parentVrt = dynamic_cast<Vertex*>(mg.get_parent(vrt));
-		Vertex* parentVrt = static_cast<Vertex*>(mg.get_parent(vrt));
-
-	//	perform loop subdivision on even surface vertices
-	//	first get neighboured vertices
-		size_t valence = 0;
-		pos_type p;
 		VecSet(p, 0);
 
-		for(Grid::AssociatedEdgeIterator iter = mg.associated_edges_begin(parentVrt); iter != mg.associated_edges_end(parentVrt); ++iter)
+		Vertex* vrt = *vrtIter;
+
+	//	Skip ghost vertices
+		#ifdef UG_PARALLEL
+			if(dgm.is_ghost(vrt))
+				continue;
+		#endif
+
+	//	In case of marked manifold vertices, which do not belong to the user-specified linear boundary manifold subsets,
+	//	and activated subdivision Loop refinement calculate subdivision surfaces smooth position
+		if(markSH.get_subset_index(vrt) != -1 && linearBndManifoldSubsetsSH.get_subset_index(vrt) == -1)
 		{
-			if((!volumesExist) || IsBoundaryEdge3D(mg, *iter))
+		//	perform loop subdivision on even manifold vertices
+		//	first get neighbored manifold vertices
+			for(Grid::AssociatedEdgeIterator eIter = mg.associated_edges_begin(vrt); eIter != mg.associated_edges_end(vrt); ++eIter)
 			{
-				VecAdd(p, p, aaPos[GetConnectedVertex(*iter, parentVrt)]);
-				++valence;
+				Edge* e = *eIter;
+
+				if(markSH.get_subset_index(e) != -1 && linearBndManifoldSubsetsSH.get_subset_index(e) == -1)
+				{
+				//	Exclude ghost and horizontal slave neighbor vertices from contributing to centroid
+					#ifdef UG_PARALLEL
+						if(dgm.is_ghost(e))
+							continue;
+
+						if(dgm.contains_status(e, ES_H_SLAVE))
+							continue;
+					#endif
+
+					VecAdd(p, p, aaPos[GetConnectedVertex(e, vrt)]);
+				}
 			}
+
+			number centerWgt 	= subdiv.ref_even_inner_center_weight(aaNumManifoldEdges[vrt]);
+			number nbrWgt 		= subdiv.ref_even_inner_nbr_weight(aaNumManifoldEdges[vrt]);
+
+		//	Exclude horizontal slaves of the currently smoothed vertex to avoid multiple contributions to centroid
+			#ifdef UG_PARALLEL
+				if(dgm.is_ghost(vrt))
+					continue;
+
+				if(dgm.contains_status(vrt, ES_H_SLAVE))
+				{
+					VecScaleAppend(aaSmoothBndPosEvenVrt[vrt], nbrWgt, p);
+					continue;
+				}
+			#endif
+
+			VecScaleAppend(aaSmoothBndPosEvenVrt[vrt], centerWgt, aaPos[vrt], nbrWgt, p);
 		}
-
-		number centerWgt 	= subdiv.ref_even_inner_center_weight(valence);
-		number nbrWgt 		= subdiv.ref_even_inner_nbr_weight(valence);
-
-		VecScaleAdd(aaSmoothPos[vrt], centerWgt, aaPos[parentVrt], nbrWgt, p);
 	}
 
-//	Odd vertex
-	else if(mg.get_parent(vrt)->reference_object_id() == ROID_EDGE)
+	/*
+	 * Smoothing of odd vertices x
+	 *
+	 * Weights of face adjacent vertices to x: 1/8
+	 * Weights of edge adjacent vertices to x: 3/8
+	 *
+				1/8
+				/ \
+			3/8--x--3/8
+				\ /
+				1/8
+	 *
+	 */
+
+//	Calculate smooth position for ODD vertices
+	for(EdgeIterator eIter = mg.begin<Edge>(mg.top_level()-1); eIter != mg.end<Edge>(mg.top_level()-1); ++eIter)
 	{
-	//	Get parent edge
-		//Edge* parentEdge = dynamic_cast<Edge*>(mg.get_parent(vrt));
-		Edge* parentEdge = static_cast<Edge*>(mg.get_parent(vrt));
+		VecSet(p, 0);
 
-	//	apply loop-subdivision on inner elements
-	//	get the neighboured triangles
-		Face* f[2];
-		int numAssociatedBndFaces = 0;
+		Edge* e = *eIter;
 
-		std::vector<Face*> faces;
-		CollectAssociated(faces, mg, parentEdge);
+	//	Skip ghost edges
+		#ifdef UG_PARALLEL
+			if(dgm.is_ghost(e))
+				continue;
+		#endif
 
-		for(size_t i = 0; i < faces.size(); ++i)
+	//	In case of marked manifold edges, which do not belong to the user-specified linear boundary manifold subsets,
+	//	and activated subdivision Loop refinement calculate subdivision surfaces smooth position
+		if(markSH.get_subset_index(e) != -1 && linearBndManifoldSubsetsSH.get_subset_index(e) == -1)
 		{
-			if(IsBoundaryFace3D(mg, faces[i]))
+		//	perform loop subdivision on odd manifold vertices
+		//	get the neighbored manifold triangles
+			std::vector<Face*> associatedFaces;
+			std::vector<Face*> associatedManifoldFaces;
+
+			CollectAssociated(associatedFaces, mg, e);
+
+			for(size_t i = 0; i < associatedFaces.size(); ++i)
 			{
-				if(numAssociatedBndFaces < 2)
+				if(markSH.get_subset_index(associatedFaces[i]) != -1 && linearBndManifoldSubsetsSH.get_subset_index(associatedFaces[i]) == -1)
 				{
-					f[numAssociatedBndFaces] = faces[i];
+				//	Exclude ghost and horizontal slave manifold faces
+					#ifdef UG_PARALLEL
+						if(dgm.is_ghost(associatedFaces[i]))
+							continue;
+
+						if(dgm.contains_status(associatedFaces[i], ES_H_SLAVE))
+							continue;
+					#endif
+
+					if(associatedManifoldFaces.size() < 2)
+					{
+						associatedManifoldFaces.push_back(associatedFaces[i]);
+					}
 				}
-				++numAssociatedBndFaces;
 			}
-		}
 
-		if(numAssociatedBndFaces == 2)
-		{
-			if(f[0]->num_vertices() == 3 && f[1]->num_vertices() == 3)
+			if(associatedManifoldFaces.size() <= 2)
 			{
-			//	the 4 vertices that are important for the calculation
-				Vertex* v[4];
-				v[0] = parentEdge->vertex(0); v[1] = parentEdge->vertex(1);
-				v[2] = GetConnectedVertex(parentEdge, f[0]);
-				v[3] = GetConnectedVertex(parentEdge, f[1]);
+			//	Check, if all faces are triangles
+				for(size_t i = 0; i < associatedManifoldFaces.size(); ++i)
+				{
+					if(associatedManifoldFaces[i]->num_vertices() != 3)
+					{
+						UG_THROW("ERROR in CalculateSmoothManifoldPosInParentLevel: Non triangular faces included in grid.");
+					}
+				}
 
-				vector4 wghts;
+			//	Summate centroid of face adjacent vertices
+				for(size_t i = 0; i < associatedManifoldFaces.size(); ++i)
+				{
+					VecAdd(p, p, aaPos[GetConnectedVertex(e, associatedManifoldFaces[i])]);
+				}
 
-				wghts = subdiv.ref_odd_inner_weights();
+			//	Exclude ghost and horizontal slaves of the parent edge vertices of the currently smoothed vertex
+			//	to avoid multiple contributions to the centroid of the edge adjacent vertices
+				#ifdef UG_PARALLEL
+					if(dgm.is_ghost(e))
+					{
+						continue;
+					}
 
-				VecScaleAdd(aaSmoothPos[vrt],
-							wghts.x(), aaPos[v[0]], wghts.y(), aaPos[v[1]],
-							wghts.z(), aaPos[v[2]], wghts.w(), aaPos[v[3]]);
+					if(dgm.contains_status(e, ES_H_SLAVE))
+					{
+						VecScaleAppend(aaSmoothBndPosOddVrt[e], 0.125, p);
+						continue;
+					}
+				#endif
+
+				VecScaleAppend(aaSmoothBndPosOddVrt[e], 0.375, aaPos[e->vertex(0)], 0.375, aaPos[e->vertex(1)], 0.125, p);
 			}
 			else
-				UG_THROW("Non triangular faces included in grid.");
+				UG_THROW("ERROR in CalculateSmoothManifoldPosInParentLevel: numAssociatedManifoldFaces > 2.");
 		}
-		else
-			UG_THROW("numAssociatedBndFaces != 2.");
 	}
+
+//	Manage vertex and edge attachment communication in parallel case -> COMMUNICATE aSmoothBndPosEvenVrt, aSmoothBndPosOddVrt
+	#ifdef UG_PARALLEL
+	//	Reduce add operations:
+	//	sum up h_slaves into h_masters
+
+	//	Copy operations:
+	//	copy h_masters to h_slaves for consistency
+		AttachmentAllReduce<Vertex>(mg, aSmoothBndPosEvenVrt, PCL_RO_SUM);
+		AttachmentAllReduce<Edge>(mg, aSmoothBndPosOddVrt, PCL_RO_SUM);
+	#endif
+}
+
+
+/// Toplevel vertex smoothing function for subdivision volumes refinement
+/** This function calculates the smoothed positions of all toplevel vertices
+ * 	determined by the subdivision volumes refinement.
+ *
+ * 	@param mg				reference to MultiGrid
+ * 	@param markSH			reference to SubsetHandler markSH containing marked (inner) boundary manifold
+ * 	@param aSmoothVolPos	reference to aSmoothVolPos
+ * 	@param aNumElems		reference to aNumElems
+**/
+void CalculateSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
+										APosition& aSmoothVolPos, AInt& aNumElems)
+{
+	#ifdef UG_PARALLEL
+		DistributedGridManager& dgm = *mg.distributed_grid_manager();
+	#endif
+
+//	Define attachment accessors
+	Grid::VertexAttachmentAccessor<APosition> aaPos(mg, aPosition);
+	Grid::VertexAttachmentAccessor<APosition> aaSmoothVolPos(mg, aSmoothVolPos);
+	Grid::VertexAttachmentAccessor<AInt> aaNumElems(mg, aNumElems);
+
+//	Declare volume centroid coordinate vector
+	typedef APosition::ValueType pos_type;
+	pos_type p;
+
+//	Loop all volumes of top_level
+	for(VolumeIterator vIter = mg.begin<Volume>(mg.top_level()); vIter != mg.end<Volume>(mg.top_level()); ++vIter)
+	{
+		Volume* vol = *vIter;
+
+	//	Skip ghost volumes
+		#ifdef UG_PARALLEL
+			if(dgm.is_ghost(vol))
+				continue;
+		#endif
+
+	//	Iterate over all volume vertices, calculate and apply local centroid masks
+		for(size_t i = 0; i < vol->num_vertices(); ++i)
+		{
+		//	Init
+			Vertex* vrt = vol->vertex(i);
+			VecSet(p, 0);
+
+		//	In case of linear or subdivision Loop boundary manifold refinement:
+		//	handle vertices of separating manifolds separately
+			if(markSH.get_subset_index(vrt) != -1 && g_boundaryRefinementRule != SUBDIV_VOL)
+			{
+				continue;
+			}
+
+		//	TETRAHEDRON CASE
+			if(vol->reference_object_id() == ROID_TETRAHEDRON)
+			{
+			//	Summate coordinates of neighbor vertices to vrt inside tetrahedron
+				for(size_t j = 0; j < vol->num_vertices(); ++j)
+				{
+					if(j != i)
+					{
+						VecAdd(p, p, aaPos[vol->vertex(j)]);
+					}
+				}
+
+			//	Smooth vertex position
+				VecScaleAppend(aaSmoothVolPos[vrt], -1.0/16, aaPos[vrt], 17.0/48, p);
+			}
+
+		//	OCTAHEDRON CASE
+			else if(vol->reference_object_id() == ROID_OCTAHEDRON)
+			{
+			//	Get cell-adjacent vertex
+				Vertex* oppVrt = vol->vertex(vol->get_opposing_object(vrt).second);
+
+			//	Summate coordinates of DIRECT neighbor vertices to vrt inside octahedron
+				for(size_t j = 0; j < vol->num_vertices(); ++j)
+				{
+					if(GetVertexIndex(vol, oppVrt) == -1)
+					{
+						UG_THROW("ERROR in CalculateSmoothVolumePosInTopLevel: identified opposing vertex actually not included in current volume.");
+					}
+
+					if(j != i && j != (size_t)GetVertexIndex(vol, oppVrt))
+					{
+						VecAdd(p, p, aaPos[vol->vertex(j)]);
+					}
+				}
+
+			//	Smooth vertex position
+				VecScaleAppend(aaSmoothVolPos[vrt], 3.0/8, aaPos[vrt], 1.0/12, p, 7.0/24, aaPos[oppVrt]);
+			}
+
+		//	UNSUPPORTED VOLUME ELEMENT CASE
+			else
+			{
+				UG_THROW("ERROR in CalculateSmoothVolumePosInTopLevel: Volume type not supported for subdivision volumes refinement.");
+			}
+
+		//	Scale smooth vertex position by the number of associated volume elements (SubdivisionVolumes smoothing)
+			//VecScale(aaSmoothVolPos[vrt],  aaSmoothVolPos[vrt], 1.0/aaNumElems[vrt]);
+		}
+	}
+
+//	Manage vertex attachment communication in parallel case -> COMMUNICATE aSmoothVolPos
+	#ifdef UG_PARALLEL
+	//	Reduce add operations:
+	//	sum up h_slaves into h_masters
+
+	//	Copy operations:
+	//	copy h_masters to h_slaves for consistency
+		AttachmentAllReduce<Vertex>(mg, aSmoothVolPos, PCL_RO_SUM);
+	#endif
+}
+
+
+/// Function for calculating the number of associated volumes of all toplevel vertices
+/** This function calculates the number of associated volumes
+ * 	for all toplevel vertices.
+ *
+ * 	@param mg				reference to MultiGrid
+ * 	@param markSH			reference to SubsetHandler markSH containing marked (inner) boundary manifold
+ * 	@param aNumElems		reference to aNumElems
+**/
+void CalculateNumElemsVertexAttachment(MultiGrid& mg, MGSubsetHandler& markSH, AInt& aNumElems)
+{
+	#ifdef UG_PARALLEL
+		DistributedGridManager& dgm = *mg.distributed_grid_manager();
+	#endif
+
+//	Define attachment accessor
+	Grid::VertexAttachmentAccessor<AInt> aaNumElems(mg, aNumElems);
+
+//	Loop all volumes of top level and calculate number of volumes each vertex is contained by
+	for(VolumeIterator vIter = mg.begin<Volume>(mg.top_level()); vIter != mg.end<Volume>(mg.top_level()); ++vIter)
+	{
+		Volume* vol = *vIter;
+
+	//	Skip ghosts
+		#ifdef UG_PARALLEL
+			if(dgm.is_ghost(vol))
+				continue;
+		#endif
+
+		for(size_t i = 0; i < vol->num_vertices(); ++i)
+		{
+			++aaNumElems[vol->vertex(i)];
+		}
+	}
+
+//	Manage vertex attachment communication in parallel case -> COMMUNICATE aNumElems
+	#ifdef UG_PARALLEL
+	//	Reduce add operations:
+	//	sum up h_slaves into h_masters
+
+	//	Copy operations:
+	//	copy h_masters to h_slaves for consistency
+		AttachmentAllReduce<Vertex>(mg, aNumElems, PCL_RO_SUM);
+	#endif
+}
+
+
+/// Function for calculating the number of associated manifold edges of all parent level vertices
+/** This function calculates the number of associated manifold edges
+ * 	for all parent level vertices.
+ *
+ * 	@param mg							reference to MultiGrid
+ * 	@param markSH						reference to SubsetHandler markSH containing marked (inner) boundary manifold
+ * 	@param linearBndManifoldSubsetsSH	reference to user-specified linearBndManifoldSubsets SubsetHandler
+ * 	@param aNumManifoldEdges			reference to aNumManifoldEdges
+**/
+void CalculateNumManifoldEdgesVertexAttachmentInParentLevel(MultiGrid& mg, MGSubsetHandler& markSH,
+															MGSubsetHandler& linearBndManifoldSubsetsSH, AInt& aNumManifoldEdges)
+{
+#ifdef UG_PARALLEL
+	DistributedGridManager& dgm = *mg.distributed_grid_manager();
+#endif
+
+//	Define attachment accessor
+	Grid::VertexAttachmentAccessor<AInt> aaNumManifoldEdges(mg, aNumManifoldEdges);
+
+//	Catch use of CalculateNumManifoldEdgesVertexAttachmentInParentLevel on MultiGrids with just one level
+	if(mg.num_levels() == 1)
+		UG_THROW("CalculateNumManifoldEdgesVertexAttachmentInParentLevel: method may not be used in base level 0.");
+
+//	Loop all edges of parent level and calculate number of associated manifold edges of each vertex
+	for(EdgeIterator eIter = mg.begin<Edge>(mg.top_level()-1); eIter != mg.end<Edge>(mg.top_level()-1); ++eIter)
+	{
+		Edge* e = *eIter;
+
+	// 	Check, if edge is contained in subset with marked manifold elements which do not belong to the
+	//	user-specified linear boundary manifold subsets
+		if (markSH.get_subset_index(e) != -1 && linearBndManifoldSubsetsSH.get_subset_index(e) == -1)
+		{
+		//	Skip ghost and horizontal slave edges
+			#ifdef UG_PARALLEL
+				if(dgm.is_ghost(e))
+					continue;
+
+				if(dgm.contains_status(e, ES_H_SLAVE))
+					continue;
+			#endif
+
+		   ++aaNumManifoldEdges[e->vertex(0)];
+		   ++aaNumManifoldEdges[e->vertex(1)];
+		}
+	}
+
+//	Manage vertex attachment communication in parallel case -> COMMUNICATE aNumManifoldEdges
+	#ifdef UG_PARALLEL
+	//	Reduce add operations:
+	//	sum up h_slaves into h_masters
+
+	//	Copy operations:
+	//	copy h_masters to h_slaves for consistency
+		AttachmentAllReduce<Vertex>(mg, aNumManifoldEdges, PCL_RO_SUM);
+	#endif
+}
+
+
+/// Procedure to initialize the linear boundary manifold subsets SubsetHandler with user-specified subsets
+/** This procedure initializes the referenced linear boundary manifold subsets SubsetHandler
+ * 	s.t. user-specified subsets
+ *
+ * 	@param dom							reference to Domain
+ * 	@param linearBndManifoldSubsetsSH	reference to user-specified linearBndManifoldSubsets SubsetHandler
+**/
+void InitLinearBndManifoldSubsetsSubsetHandler(MultiGrid& mg, MGSubsetHandler& sh,
+											   MGSubsetHandler& linearBndManifoldSubsetsSH,
+											   const char* linearBndManifoldSubsets)
+{
+//	Catch use of procedure for MultiGrids with just one level
+	if(mg.num_levels() == 1)
+	{
+		UG_THROW("Error in InitLinearBndManifoldSubsetsSubsetHandler: "
+				 "Procedure only to be used for MultiGrids with more than one level.");
+	}
+
+//	tokenize user input
+	std::vector<std::string> linearBndManifoldSubsetsString = TokenizeString(linearBndManifoldSubsets);
+
+//	remove white space
+	for(size_t i = 0; i < linearBndManifoldSubsetsString.size(); ++i)
+	{
+		RemoveWhitespaceFromString(linearBndManifoldSubsetsString[i]);
+	}
+
+//	if no subset passed, clear subsets
+	if(linearBndManifoldSubsetsString.size() == 1 && linearBndManifoldSubsetsString[0].empty())
+	{
+		linearBndManifoldSubsetsString.clear();
+	}
+
+//	if subsets passed with separator, but not all tokens filled, throw error
+	for(size_t i = 0; i < linearBndManifoldSubsetsString.size(); ++i)
+	{
+		if(linearBndManifoldSubsetsString.empty())
+		{
+			UG_THROW(	"ERROR in InitLinearBndManifoldSubsetsSubsetHandler: "
+						"linear boundary manifold subsets string passed lacks a "
+						"subset specification at position "<<i<<"(of "
+						<<linearBndManifoldSubsetsString.size()-1<<")");
+		}
+	}
+
+// 	assign all user specified vertices to linear boundary manifold subsets SubsetHandler
+	for(size_t i = 0; i < linearBndManifoldSubsetsString.size(); ++i)
+	{
+		int j = sh.get_subset_index(linearBndManifoldSubsetsString[i].c_str());
+
+		for(VertexIterator vrtIter = sh.begin<Vertex>(j, mg.top_level()); vrtIter != sh.end<Vertex>(j, mg.top_level()); ++vrtIter)
+		{
+			Vertex* vrt = *vrtIter;
+			linearBndManifoldSubsetsSH.assign_subset(vrt, 0);
+		}
+
+		for(VertexIterator vrtIter = sh.begin<Vertex>(j, mg.top_level()-1); vrtIter != sh.end<Vertex>(j, mg.top_level()-1); ++vrtIter)
+		{
+			Vertex* vrt = *vrtIter;
+			linearBndManifoldSubsetsSH.assign_subset(vrt, 0);
+		}
+	}
+
+// 	assign all user specified edges to linear boundary manifold subsets SubsetHandler
+	for(size_t i = 0; i < linearBndManifoldSubsetsString.size(); ++i)
+	{
+		int j = sh.get_subset_index(linearBndManifoldSubsetsString[i].c_str());
+
+		for(EdgeIterator eIter = sh.begin<Edge>(j, mg.top_level()); eIter != sh.end<Edge>(j, mg.top_level()); ++eIter)
+		{
+			Edge* e = *eIter;
+			linearBndManifoldSubsetsSH.assign_subset(e, 0);
+		}
+
+		for(EdgeIterator eIter = sh.begin<Edge>(j, mg.top_level()-1); eIter != sh.end<Edge>(j, mg.top_level()-1); ++eIter)
+		{
+			Edge* e = *eIter;
+			linearBndManifoldSubsetsSH.assign_subset(e, 0);
+		}
+	}
+
+// 	assign all user specified faces to linear boundary manifold subsets SubsetHandler
+	for(size_t i = 0; i < linearBndManifoldSubsetsString.size(); ++i)
+	{
+		int j = sh.get_subset_index(linearBndManifoldSubsetsString[i].c_str());
+
+		for(FaceIterator fIter = sh.begin<Face>(j, mg.top_level()); fIter != sh.end<Face>(j, mg.top_level()); ++fIter)
+		{
+			Face* f = *fIter;
+			linearBndManifoldSubsetsSH.assign_subset(f, 0);
+		}
+
+		for(FaceIterator fIter = sh.begin<Face>(j, mg.top_level()-1); fIter != sh.end<Face>(j, mg.top_level()-1); ++fIter)
+		{
+			Face* f = *fIter;
+			linearBndManifoldSubsetsSH.assign_subset(f, 0);
+		}
+	}
+
+//	Debug log
+//	UG_LOG("InitLinearBndManifoldSubsetsSubsetHandler:" << std::endl);
+//	UG_LOG(">> Applying linear subdivision on the following boundary manifold subsets:" << std::endl);
+//
+//	for(size_t i = 0; i < linearBndManifoldSubsetsString.size(); ++i)
+//	{
+//		UG_LOG("Subset # " << sh.get_subset_index(linearBndManifoldSubsetsString[i].c_str()) << ": " << linearBndManifoldSubsetsString[i] << std::endl);
+//	}
 }
 
 
@@ -468,74 +995,268 @@ void MoveVertexToSubdivisionSurfacePosition(MultiGrid& mg, Vertex* vrt,
  * 	grid hierarchy into a smoothed subdivision volumes hierarchy
  * 	(s. Schaefer et al, "Smooth subdivision of tetrahedral meshes", 2004)
  *
- * 	@param mg					reference to MultiGrid
- * 	@param bPreserveBnd			bool flag to preserve boundary
- * 	@param bSubdivisionLoopBnd	bool flag to apply subdivision surfaces smoothing
- * 								on the preserved boundary
+ * 	@param mg							reference to MultiGrid
+ * 	@param sh							reference to standard SubsetHandler
+ * 	@param markSH						reference to SubsetHandler containing marked (inner) boundary manifold
+ * 	@param linearBndManifoldSubsets 	user-specified linearBndManifoldSubsets
 **/
-void SubdivisionVolumes(MultiGrid& mg, bool bPreserveBnd, bool bSubdivisionLoopBnd)
+void ApplySmoothSubdivisionToTopLevel(MultiGrid& mg, MGSubsetHandler& sh, MGSubsetHandler& markSH, const char* linearBndManifoldSubsets)
 {
+	PROFILE_FUNC_GROUP("subdivision_volumes");
+
 //	Ensure, that hybrid tet-/oct refinement is used as refinement rule for tetrahedrons
 	if(tet_rules::GetRefinementRule() != tet_rules::HYBRID_TET_OCT)
-		UG_THROW("ERROR in SubdivisionVolumes: Set necessary refinement rule by SetTetRefinementRule(hybrid_tet_oct).");
+		UG_THROW("ERROR in ApplySubdivisionVolumesToTopLevel: Set necessary refinement rule by SetTetRefinementRule('hybrid_tet_oct').");
 
-//	Ensure correct user input
-	if(!bPreserveBnd)
-		bSubdivisionLoopBnd = false;
+//	Catch wrong specification of markSH SubsetHandler containing ALL MultiGrid manifolds
+	if(!(markSH.contains_edges(0) && markSH.contains_faces(0) && markSH.contains_vertices(1)))
+		UG_THROW("ERROR in ApplySubdivisionVolumesToTopLevel: wrong specification of markSH.");
 
-//	Position attachment management
+//	Catch use of procedure for MultiGrids with just one level
+	if(mg.num_levels() == 1)
+	{
+		UG_THROW("Error in ApplySmoothSubdivisionToTopLevel: "
+				 "Procedure only to be used for MultiGrids with more than one level.");
+	}
+
+//	Init linear boundary manifold subsets SubsetHandler from domain and user-specified subsets
+	MGSubsetHandler linearBndManifoldSubsetsSH(mg);
+	InitLinearBndManifoldSubsetsSubsetHandler(mg, sh, linearBndManifoldSubsetsSH, linearBndManifoldSubsets);
+
+//	Vertex attachments for associated number of elements, number of manifold edges and smooth position
+//	(distinguish between volume and boundary smooth vertex positions
+//	 and in case of boundary between EVEN and ODD smooth vertex positions)
+	AInt aNumElems;
+	AInt aNumManifoldEdges;
+	APosition aSmoothVolPos;
+	APosition aSmoothBndPosEvenVrt;
+	APosition aSmoothBndPosOddVrt;
+
+//	attach previously declared vertex attachments with initial value 0
+	mg.attach_to_vertices_dv(aNumElems, 0);
+	mg.attach_to_vertices_dv(aNumManifoldEdges, 0);
+	mg.attach_to_vertices_dv(aSmoothVolPos, vector3(0, 0, 0));
+	mg.attach_to_vertices_dv(aSmoothBndPosEvenVrt, vector3(0, 0, 0));
+	mg.attach_to_edges_dv(aSmoothBndPosOddVrt, vector3(0, 0, 0));
+
+//	Define attachment accessors
 	Grid::VertexAttachmentAccessor<APosition> aaPos(mg, aPosition);
+	Grid::VertexAttachmentAccessor<AInt> aaNumElems(mg, aNumElems);
+	Grid::VertexAttachmentAccessor<AInt> aaNumManifoldEdges(mg, aNumManifoldEdges);
+	Grid::VertexAttachmentAccessor<APosition> aaSmoothVolPos(mg, aSmoothVolPos);
+	Grid::VertexAttachmentAccessor<APosition> aaSmoothBndPosEvenVrt(mg, aSmoothBndPosEvenVrt);
+	Grid::EdgeAttachmentAccessor<APosition> aaSmoothBndPosOddVrt(mg, aSmoothBndPosOddVrt);
 
-//	Smooth position attachment plus (default) initialization with zero
-	APosition aSmoothPos;
-	mg.attach_to_vertices_dv(aSmoothPos, vector3(0, 0, 0));
-	Grid::VertexAttachmentAccessor<APosition> aaSmoothPos(mg, aSmoothPos);
+//	Manage vertex attachment communication in parallel case:
+//	- Setup communication policies for the above attachments
+//	- Setup interface communicator
+//	- Setup distributed grid manager
+//	- Setup grid layout map
+	#ifdef UG_PARALLEL
+	//	Attachment communication policies COPY
+		ComPol_CopyAttachment<VertexLayout, AInt> comPolCopyNumElems(mg, aNumElems);
+		ComPol_CopyAttachment<VertexLayout, AInt> comPolCopyNumManifoldEdges(mg, aNumManifoldEdges);
+		ComPol_CopyAttachment<VertexLayout, AVector3> comPolCopySmoothVolPos(mg, aSmoothVolPos);
+		ComPol_CopyAttachment<VertexLayout, AVector3> comPolCopyAPosition(mg, aPosition);
 
-//	Load subdivision surfaces rules
-	//SubdivRules_PLoop& subdiv = SubdivRules_PLoop::inst();
+	//	Interface communicators and distributed domain manager
+		pcl::InterfaceCommunicator<VertexLayout> com;
+		DistributedGridManager& dgm = *mg.distributed_grid_manager();
+		GridLayoutMap& glm = dgm.grid_layout_map();
+	#endif
 
-//	Check, if volumes are included in input grid
-	bool volumesExist = mg.num<Volume>() > 0;
-	if(!volumesExist)
-		UG_THROW("SubdivisionVolumes: No volumes included in input grid for smooth TetGrid subdivision refinement.");
 
-// 	Loop all vertices of top_level
-	for(VertexIterator vrtIter = mg.begin<Vertex>(mg.top_level()); vrtIter != mg.end<Vertex>(mg.top_level()); ++vrtIter)
+/*****************************************
+ *
+ *	(1) DETERMINE aNumElems
+ *
+ *****************************************/
+
+	CalculateNumElemsVertexAttachment(mg, markSH, aNumElems);
+
+
+/*****************************************
+ *
+ *	(2) DETERMINE aNumManifoldEdges
+ *
+ *****************************************/
+
+	CalculateNumManifoldEdgesVertexAttachmentInParentLevel(mg, markSH, linearBndManifoldSubsetsSH, aNumManifoldEdges);
+
+
+/*****************************************
+ *
+ *	(3) COMMUNICATE aNumElems,
+ *					aNumManifoldEdges
+ *
+ *****************************************/
+
+//	Manage vertex attachment communication in parallel case -> COMMUNICATE (1) aNumElems and (2) aNumManifoldEdges
+	#ifdef UG_PARALLEL
+	//	copy v_slaves to ghosts = VMASTER
+		com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopyNumElems);
+		com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopyNumManifoldEdges);
+		com.communicate();
+	#endif
+
+
+/*****************************************
+ *
+ *	(4) SUBDIVISION SURFACES
+ *
+ *****************************************/
+
+	if(g_boundaryRefinementRule == SUBDIV_LOOP)
 	{
-		Vertex* vrt = *vrtIter;
+	//	(4.1) Calculate aSmoothBndPosEvenVrt, aSmoothBndPosOddVrt
+		CalculateSmoothManifoldPosInParentLevel(mg, markSH, linearBndManifoldSubsetsSH, aSmoothBndPosEvenVrt, aSmoothBndPosOddVrt, aNumManifoldEdges);
 
-		if(!bPreserveBnd)
-		{
-			MoveVertexToSubdivisionVolumePosition(mg, vrt, aaPos, aaSmoothPos);
-		}
+	//	(4.2) Apply SUBDIVISION SURFACES to aPosition
+		ApplySmoothManifoldPosToTopLevel(mg, markSH, linearBndManifoldSubsetsSH, aSmoothBndPosEvenVrt, aSmoothBndPosOddVrt);
 
-	//	Surface preservation
-		else
-		{
-		//	BOUNDARY VERTEX
-			if(IsBoundaryVertex3D(mg, vrt))
-			{
-				if(bSubdivisionLoopBnd)
-					MoveVertexToSubdivisionSurfacePosition(mg, vrt, aaPos, aaSmoothPos);
-				else
-					aaSmoothPos[vrt] = aaPos[vrt];
-			}
-
-		//	INNER VERTEX
-			else
-			{
-				MoveVertexToSubdivisionVolumePosition(mg, vrt, aaPos, aaSmoothPos);
-			}
-		}
+	//	(4.3) Communicate aPosition in parallel case
+		#ifdef UG_PARALLEL
+		//	copy v_slaves to ghosts = VMASTER
+			com.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, comPolCopyAPosition);
+			com.communicate();
+		#endif
 	}
 
-//	Move vertices to their smoothed position
-	for(VertexIterator vrtIter = mg.begin<Vertex>(mg.top_level()); vrtIter != mg.end<Vertex>(mg.top_level()); ++vrtIter)
-	{
-		Vertex* vrt = *vrtIter;
-		VecScale(aaPos[vrt], aaSmoothPos[vrt], 1.0);
-	}
 
+/*****************************************
+ *
+ *	(5) SUBDIVISION VOLUMES
+ *
+ *****************************************/
+
+//	(5.1) Calculate aSmoothVolPos
+	CalculateSmoothVolumePosInTopLevel(mg, markSH, aSmoothVolPos, aNumElems);
+
+//	(5.2) Apply SUBDIVISION VOLUMES to aPosition
+	ApplySmoothVolumePosToTopLevel(mg, markSH, linearBndManifoldSubsetsSH, aSmoothVolPos, aNumElems);
+
+//	(5.3) Communicate aPosition in parallel case
+	#ifdef UG_PARALLEL
+	//	copy v_slaves to ghosts = VMASTER
+		com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopyAPosition);
+		com.communicate();
+	#endif
+
+
+/*****************************************
+ *
+ *	(6) CLEAN UP
+ *
+ *****************************************/
+
+//	detach vertex attachments
+	mg.detach_from_vertices(aNumElems);
+	mg.detach_from_vertices(aNumManifoldEdges);
+	mg.detach_from_vertices(aSmoothVolPos);
+	mg.detach_from_vertices(aSmoothBndPosEvenVrt);
+	mg.detach_from_edges(aSmoothBndPosOddVrt);
+}
+
+
+//	Experimental reference mapping test procedures
+void OctReferenceMappingTest(std::vector<number> vCornerCoord0, std::vector<number> vCornerCoord1, std::vector<number> vCornerCoord2,
+						  	 std::vector<number> vCornerCoord3, std::vector<number> vCornerCoord4, std::vector<number> vCornerCoord5,
+							 std::vector<number> vGlobPos)
+{
+	UG_LOG(">> Starting OctReferenceMappingTest: " << std::endl);
+
+	std::vector<MathVector<3, number> > vCornerCoords;
+	std::vector<MathVector<3, number> > vLocPos(1, 0.0);
+	std::vector<MathVector<3, number> > vGlobPositions;
+
+	MathVector<3> GlobPos(vGlobPos[0], vGlobPos[1], vGlobPos[2]);
+	vGlobPositions.push_back(GlobPos);
+
+	MathVector<3> CornerCoord0(vCornerCoord0[0], vCornerCoord0[1], vCornerCoord0[2]);
+	MathVector<3> CornerCoord1(vCornerCoord1[0], vCornerCoord1[1], vCornerCoord1[2]);
+	MathVector<3> CornerCoord2(vCornerCoord2[0], vCornerCoord2[1], vCornerCoord2[2]);
+	MathVector<3> CornerCoord3(vCornerCoord3[0], vCornerCoord3[1], vCornerCoord3[2]);
+	MathVector<3> CornerCoord4(vCornerCoord4[0], vCornerCoord4[1], vCornerCoord4[2]);
+	MathVector<3> CornerCoord5(vCornerCoord5[0], vCornerCoord5[1], vCornerCoord5[2]);
+
+	vCornerCoords.push_back(CornerCoord0);
+	vCornerCoords.push_back(CornerCoord1);
+	vCornerCoords.push_back(CornerCoord2);
+	vCornerCoords.push_back(CornerCoord3);
+	vCornerCoords.push_back(CornerCoord4);
+	vCornerCoords.push_back(CornerCoord5);
+
+	try
+	{
+		DimReferenceMapping<3, 3>& map = ReferenceMappingProvider::get<3, 3>(ROID_OCTAHEDRON, vCornerCoords);
+		map.global_to_local(vLocPos, vGlobPositions);
+	}
+	UG_CATCH_THROW("OctReferenceMappingTest() could not map global to local.");
+
+	UG_LOG("Calculated vLocPos: " << vLocPos[0] << std::endl);
+}
+
+
+void TetReferenceMappingTest(std::vector<number> vCornerCoord0, std::vector<number> vCornerCoord1, std::vector<number> vCornerCoord2,
+						  	 std::vector<number> vCornerCoord3, std::vector<number> vGlobPos)
+{
+	UG_LOG(">> Starting TetReferenceMappingTest: " << std::endl);
+
+	std::vector<MathVector<3, number> > vCornerCoords;
+	std::vector<MathVector<3, number> > vLocPos(1, 0.0);
+	std::vector<MathVector<3, number> > vGlobPositions;
+
+	MathVector<3> GlobPos(vGlobPos[0], vGlobPos[1], vGlobPos[2]);
+	vGlobPositions.push_back(GlobPos);
+
+	MathVector<3> CornerCoord0(vCornerCoord0[0], vCornerCoord0[1], vCornerCoord0[2]);
+	MathVector<3> CornerCoord1(vCornerCoord1[0], vCornerCoord1[1], vCornerCoord1[2]);
+	MathVector<3> CornerCoord2(vCornerCoord2[0], vCornerCoord2[1], vCornerCoord2[2]);
+	MathVector<3> CornerCoord3(vCornerCoord3[0], vCornerCoord3[1], vCornerCoord3[2]);
+
+	vCornerCoords.push_back(CornerCoord0);
+	vCornerCoords.push_back(CornerCoord1);
+	vCornerCoords.push_back(CornerCoord2);
+	vCornerCoords.push_back(CornerCoord3);
+
+	try
+	{
+		DimReferenceMapping<3, 3>& map = ReferenceMappingProvider::get<3, 3>(ROID_TETRAHEDRON, vCornerCoords);
+		map.global_to_local(vLocPos, vGlobPositions);
+	}
+	UG_CATCH_THROW("TetReferenceMappingTest() could not map global to local.");
+
+	UG_LOG("Calculated vLocPos: " << vLocPos[0] << std::endl);
+	UG_LOG("PointIsInsideTetrahedron: " << PointIsInsideTetrahedron(GlobPos, CornerCoord0, CornerCoord1, CornerCoord2, CornerCoord3) << std::endl);
+}
+
+
+void EdgeReferenceMappingTest(std::vector<number> vCornerCoord0, std::vector<number> vCornerCoord1,
+							  std::vector<number> vGlobPos)
+{
+	UG_LOG(">> Starting EdgeReferenceMappingTest: " << std::endl);
+
+	std::vector<MathVector<3, number> > vCornerCoords;
+	std::vector<MathVector<1, number> > vLocPos(1, 0.0);
+	std::vector<MathVector<3, number> > vGlobPositions;
+
+	MathVector<3> GlobPos(vGlobPos[0], vGlobPos[1], vGlobPos[2]);
+	vGlobPositions.push_back(GlobPos);
+
+	MathVector<3> CornerCoord0(vCornerCoord0[0], vCornerCoord0[1], vCornerCoord0[2]);
+	MathVector<3> CornerCoord1(vCornerCoord1[0], vCornerCoord1[1], vCornerCoord1[2]);
+
+	vCornerCoords.push_back(CornerCoord0);
+	vCornerCoords.push_back(CornerCoord1);
+
+	try
+	{
+		DimReferenceMapping<1, 3>& map = ReferenceMappingProvider::get<1, 3>(ROID_EDGE, vCornerCoords);
+		map.global_to_local(vLocPos, vGlobPositions);
+	}
+	UG_CATCH_THROW("EdgeReferenceMappingTest() could not map global to local.");
+
+	UG_LOG("Calculated vLocPos: " << vLocPos[0] << std::endl);
 }
 
 

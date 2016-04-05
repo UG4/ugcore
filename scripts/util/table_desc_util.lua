@@ -29,7 +29,7 @@
 -- GNU Lesser General Public License for more details.
 
 -- This script contains some simple helper methods that assist in parsing
--- descriptor tables. Use-examples are e.g. solver_util_2.lua and
+-- descriptor tables. Use-examples are e.g. solver_util.lua and
 -- load_balancing_util_2.lua
 
 util = util or {}

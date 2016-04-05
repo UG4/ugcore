@@ -35,6 +35,7 @@
 
 #include "attachments/attachment_info_traits.h"
 #include "attachments/attachment_io_traits.h"
+#include "algorithms/serialization.h"
 
 namespace ug{
 

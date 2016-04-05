@@ -51,6 +51,10 @@ namespace bridge
 
 const char* UG4_GRP = "/ug4";
 
+///	the dimension to which ug was initialized through InitUG
+/** This dimension can be accessed through GetUGDim()*/
+static int UG4_DIM = -1;
+
 Registry & GetUGRegistry()
 {
 	static Registry ugReg;
@@ -73,11 +77,13 @@ void InitBridge()
 void InitUG(int dim, const AlgebraType& algType, bool verbose)
 {
 	PROFILE_FUNC();
+	UG4_DIM = dim;
+
 //	get tag of algebra type
 	const std::string& algTag = GetAlgebraTag(algType);
 	int blocksize = algType.blocksize();
-	if( (blocksize < 0 || blocksize > 5) && blocksize != AlgebraType::VariableBlockSize)
-		UG_THROW("ERROR in InitUG: Only Algebra Blocksizes '1x1', '2x2', '3x3', '4x4', '5x5' and 'variable' are supported.");
+	if( (blocksize < 0 || blocksize > 6) && blocksize != AlgebraType::VariableBlockSize)
+		UG_THROW("ERROR in InitUG: Only Algebra Blocksizes '1x1', '2x2', '3x3', '4x4', '5x5', 6x6 and 'variable' are supported.");
 	
 	#ifdef UG_ALGEBRA
 			if(algType.type() == AlgebraType::CPU)
@@ -101,6 +107,10 @@ void InitUG(int dim, const AlgebraType& algType, bool verbose)
 		#ifndef UG_CPU_5
 			if(blocksize == 5)
 				UG_THROW("ERROR in InitUG: Requested Algebra CPU, Blocksize '5x5' is not compiled into binary.");
+		#endif
+		#ifndef UG_CPU_6
+			if(blocksize == 6)
+				UG_THROW("ERROR in InitUG: Requested Algebra CPU, Blocksize '6x6' is not compiled into binary.");
 		#endif
 		#ifndef UG_CPU_VAR
 			if(blocksize == AlgebraType::VariableBlockSize)
@@ -192,6 +202,11 @@ void InitUG(int dim, const AlgebraType& algType)
 }
 
 
+int GetUGDim()
+{
+	return UG4_DIM;
+}
+
 void RegisterStandardBridges(Registry& reg, string parentGroup)
 {
 	try
@@ -205,6 +220,7 @@ void RegisterStandardBridges(Registry& reg, string parentGroup)
 
 		RegisterBridge_Profiler(reg, parentGroup);
 		RegisterBridge_Misc(reg, parentGroup);
+		RegisterBridge_Raster(reg, parentGroup);
 
 		#ifdef UG_GRID
 			RegisterBridge_Grid(reg, parentGroup);
@@ -232,6 +248,7 @@ void RegisterStandardBridges(Registry& reg, string parentGroup)
 			RegisterBridge_Solver(reg, parentGroup);
 			RegisterBridge_Eigensolver(reg, parentGroup);
 			RegisterBridge_DomainDependentPreconditioner(reg, parentGroup);
+			RegisterBridge_ConstrainedLinearIterator(reg, parentGroup);
 
 			RegisterBridge_Restart(reg, parentGroup);
 
@@ -276,6 +293,7 @@ void RegisterStandardBridges(Registry& reg, string parentGroup)
 		reg.add_function("InitUG", static_cast<void (*)(int, const AlgebraType&)>(&InitUG), "/ug4/Init",
 		                 "", string("Dimension|selection|value=[").append(availDims.str()).
 		                 	 append("]#AlgebraType"));
+		reg.add_function("GetUGDim", &GetUGDim, "/ug4", "dimension", "", "Returns the dimension to which UG was initialized.");
 
 	// 	AlgebraType Interface
 		reg.add_class_<AlgebraType>("AlgebraType", "/ug4/Init")

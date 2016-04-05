@@ -117,14 +117,6 @@ class MultiStepTimeDiscretization
 		void calc_error(const vector_type& u) {calc_error(u, NULL);};
 		void calc_error(const vector_type& u, vector_type& u_vtk){calc_error(u, &u_vtk);};
 
-	/// marks elements for refinement
-		void mark_for_refinement(IRefiner& refiner, number TOL, number refineFrac, int maxLevel)
-		{this->m_spDomDisc->mark_for_refinement(refiner, TOL, refineFrac, maxLevel);};
-
-	/// marks elements for coarsening
-		void mark_for_coarsening(IRefiner& refiner, number TOL, number coarseFrac, int maxLevel)
-		{this->m_spDomDisc->mark_for_coarsening(refiner, TOL, coarseFrac, maxLevel);};
-
 	/// marks error indicators as invalid; in order to revalidate them,
 	/// they will have to be newly calculated by a call to calc_error
 		void invalidate_error() {this->m_spDomDisc->invalidate_error();};

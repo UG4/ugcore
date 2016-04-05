@@ -41,7 +41,7 @@
 #include "common/error.h"
 #include "common/assert.h"
 #include "common/profiler/profiler.h"
-
+#include "path_provider.h"
 #include <vector>
 #include <cstring>
 
@@ -186,6 +186,27 @@ string MakeTmpFile(string filename, const string &extension, bool &bSuccess)
 		if(!FileExists(name)) return name;
 	}	
 	bSuccess = false;
+	return "";
+}
+
+////////////////////////////////////////////////////////////////////////////////
+std::string FindFileInStandardPaths(const char* filename)
+{
+//	first check whether the file can be loaded (e.g. absolute path or relative to woring-directory)
+	std::string filenameOut = filename;
+	if(FileExists(filenameOut.c_str()))
+		return filenameOut;
+
+
+//	Now check whether the file was specified relative to the current
+//	scripting-directory
+	filenameOut = PathProvider::get_current_path();
+	filenameOut.append("/").append(filename);
+
+	if(FileExists(filenameOut.c_str()))
+		return filenameOut;
+
+//	filename couldn't be located
 	return "";
 }
 

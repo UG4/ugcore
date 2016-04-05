@@ -144,4 +144,13 @@ void ChangeDirectory(std::string dir)
 	}
 }
 
+std::string CurrentWorkingDirectory()
+{
+	char p_w_d [PATH_MAX];
+
+	if (getcwd (p_w_d, sizeof (p_w_d)) == NULL)
+		UG_THROW ("CurrentWorkingDirectory: Failed to get the current working path!");
+	return std::string (p_w_d);
+}
+
 }// end of namespace

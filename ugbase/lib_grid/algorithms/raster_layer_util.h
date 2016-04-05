@@ -144,6 +144,11 @@ class RasterLayers{
 	 * was found.*/
 		std::pair<int, number> trace_line_up(const vector2& c, size_t firstLayer) const;
 
+	///	returns an index-pair of the layers above and below the specified point
+	/** If there is no layer above or below, the associated component of the
+	 *	returned is set to -1.*/
+		std::pair<int, int> get_layer_indices(const vector3& c) const;
+
 	private:
 		std::vector<SmartPtr<layer_t> >	m_layers;
 };

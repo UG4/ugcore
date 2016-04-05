@@ -291,9 +291,8 @@ static bool PerformTetrahedralization(Grid& grid,
 	return true;
 
 #else
-	UG_LOG("WARNING in PerformTetrahedralization: Tetgen is not available in the "
-			"current build. Please consider recompiling with Tetgen support enabled.\n");
-	return false;
+	UG_THROW("\nPerformTetrahedralization: Tetgen is not available in the "
+			"current build.\nRecompile with Tetgen support to use tetrahedralization.\n");
 #endif
 
 }

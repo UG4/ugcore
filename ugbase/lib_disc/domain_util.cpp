@@ -33,6 +33,7 @@
 #include "domain_util.h"
 #include "domain_traits.h"
 #include "common/util/string_util.h"
+ #include "common/util/file_util.h"
 #include "lib_grid/file_io/file_io.h"
 #include "lib_grid/file_io/file_io_ugx.h"
 #include "lib_grid/algorithms/geom_obj_util/misc_util.h"
@@ -63,8 +64,8 @@ void LoadDomain(TDomain& domain, const char* filename, int procId)
 		#endif
 
 		if(loadingGrid){
-			string nfilename;
-			if(FindFileInStandardGridPaths(nfilename, filename)){
+			string nfilename = FindFileInStandardPaths(filename);
+			if(!nfilename.empty()){
 				GridReaderUGX ugxReader;
 				if(!ugxReader.parse_file(nfilename.c_str())){
 					UG_THROW("An error occured while parsing '" << nfilename << "'");

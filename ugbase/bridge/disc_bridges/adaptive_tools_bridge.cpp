@@ -236,15 +236,46 @@ static void Domain(Registry& reg, string grp)
 	}
 
 
-	//  StdMarkingStrategy
+	//  StdRefinementStrategy
 	{
-		typedef StdMarkingStrategy<TDomain> T;
+		typedef StdRefinementMarkingStrategy<TDomain> T;
 		typedef IElementMarkingStrategy<TDomain> TBase;
-		string name = string("StdMarkingStrategy").append(suffix);
+		string name = string("StdRefinementMarking").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
-							   .template add_constructor<void (*)(number, number, int)>("tol#ratio#max level")
-							   .set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "StdMarkingStrategy", tag);
+			.template add_constructor<void (*)(number, int)>("tolerated max error#max level")
+			.add_method("set_tolerance", &T::set_tolerance)
+			.add_method("set_max_level", &T::set_max_level)
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "StdRefinementMarking", tag);
+	}
+
+
+	//  GlobalMarking
+	{
+		typedef GlobalMarking<TDomain> T;
+		typedef IElementMarkingStrategy<TDomain> TBase;
+		string name = string("GlobalMarking").append(suffix);
+		reg.add_class_<T, TBase>(name, grp)
+			.template add_constructor<void (*)(number, int)>("tolerated max error#max level")
+			.add_method("set_tolerance", &T::set_tolerance)
+			.add_method("set_max_level", &T::set_max_level)
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "GlobalMarking", tag);
+	}
+
+
+	//  StdCoarseningStrategy
+	{
+		typedef StdCoarseningMarkingStrategy<TDomain> T;
+		typedef IElementMarkingStrategy<TDomain> TBase;
+		string name = string("StdCoarseningMarking").append(suffix);
+		reg.add_class_<T, TBase>(name, grp)
+			.template add_constructor<void (*)(number, number)>("tolerated max error#safety factor")
+			.template add_constructor<void (*)(number)>("tolerated max error")
+			.add_method("set_tolerance", &T::set_tolerance)
+			.add_method("set_safety_factor", &T::set_safety_factor)
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "StdCoarseningMarking", tag);
 	}
 
 	//  MaximumMarking

@@ -303,20 +303,6 @@ class DomainDiscretizationBase
 					   vScaleMass, vScaleStiff, u_vtk);
 		}
 
-		virtual void mark_for_refinement
-		(	IRefiner& refiner,
-			number TOL,
-			number refineFrac,
-			int maxLevel
-		);
-
-		virtual void mark_for_coarsening
-		(	IRefiner& refiner,
-			number TOL,
-			number coarseFrac,
-			int maxLevel
-		);
-
 		virtual void mark_with_strategy
 		(	IRefiner& refiner,
 			SmartPtr <IElementMarkingStrategy<TDomain> > strategy
@@ -370,6 +356,30 @@ class DomainDiscretizationBase
 
 		//	add it
 			m_vDomainElemDisc.push_back(elem);
+		}
+
+	/// removes a element discretization from the assembling process
+	/**
+	 * This function removes a previously added IElemDisc from the assembling.
+	 * The element-wise assemblings are no longer called.
+	 *
+	 * \param[in] 	elem		elem disc to be removed
+	 */
+		void remove(SmartPtr<IElemDisc<TDomain> > elem)
+		{
+			// check that already registered
+			for (size_t i = 0; i < m_vDomainElemDisc.size(); i++)
+			{
+				if (m_vDomainElemDisc[i] == elem)
+				{
+					// remove constraint
+					m_vDomainElemDisc.erase(m_vDomainElemDisc.begin()+i);
+					return;
+				}
+			}
+
+			UG_LOG("Tried to remove ElemDisc from DomainDisc"
+					", but could not find it there.");
 		}
 
 	/// adds a constraint to the assembling process

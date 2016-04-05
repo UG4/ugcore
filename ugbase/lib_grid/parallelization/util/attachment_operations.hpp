@@ -43,8 +43,15 @@ namespace ug{
  * Syncronizes a given attachment using a given reduction operation.
  * Note that the syncronization takes place only for the horizontal
  * masters and slaves.
+ * Use e.g. like this:
+ *
+ * \code
+ * AttachmentAllReduce<Vertex>(grid, aValue, PCL_RO_ADD)
+ * \endcode
+ *
+ * see pcl_methods.h for more PCL_RO_... reduce operations.
  */
-template <typename AType>
+template <typename TElem, typename AType>
 void AttachmentAllReduce
 (
 	Grid& grid,
@@ -52,7 +59,7 @@ void AttachmentAllReduce
 	pcl::ReduceOperation op
 )
 {
-	typedef typename GridLayoutMap::Types<Vertex>::Layout layout_t;
+	typedef typename GridLayoutMap::Types<TElem>::Layout layout_t;
 	
 	GridLayoutMap& glm = grid.distributed_grid_manager()->grid_layout_map();
 	pcl::InterfaceCommunicator<layout_t> icom;

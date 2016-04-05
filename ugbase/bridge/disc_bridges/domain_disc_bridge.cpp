@@ -95,6 +95,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("add", static_cast<void (T::*)(SmartPtr<IDomainConstraint<TDomain, TAlgebra> >)>(&T::add), "", "Post Process")
 			.add_method("remove", static_cast<void (T::*)(SmartPtr<IDomainConstraint<TDomain, TAlgebra> >)>(&T::remove), "", "Post Process")
 			.add_method("add", static_cast<void (T::*)(SmartPtr<IElemDisc<TDomain> >)>(&T::add), "", "Element Discretization")
+			.add_method("remove", static_cast<void (T::*)(SmartPtr<IElemDisc<TDomain> >)>(&T::remove), "", "Element Discretization")
 			.add_method("add", static_cast<void (T::*)(SmartPtr<IDiscretizationItem<TDomain, TAlgebra> >)>(&T::add), "", "DiscItem")
 			.add_method("assemble_linear", static_cast<void (T::*)(typename TAlgebra::matrix_type&, GridFunction<TDomain, TAlgebra>&)>(&T::assemble_linear))
 			.add_method("assemble_rhs", static_cast<void (T::*)(typename TAlgebra::vector_type&, GridFunction<TDomain, TAlgebra>&)>(&T::assemble_rhs))
@@ -102,10 +103,6 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("adjust_solution", static_cast<void (T::*)(GridFunction<TDomain, TAlgebra>&)>(&T::adjust_solution))
 			.add_method("calc_error", static_cast<void (T::*)(const GridFunction<TDomain, TAlgebra>&)>(&T::calc_error), "", "Calculate element-wise error indicators from error estimator")
 			.add_method("calc_error", static_cast<void (T::*)(const GridFunction<TDomain, TAlgebra>&, typename TAlgebra::vector_type*)>(&T::calc_error), "", "Calculate element-wise error indicators from error estimator")
-			.add_method("mark_for_refinement", static_cast<void (T::*)(IRefiner&, number, number, int)>(&T::mark_for_refinement), "",
-				"mark elements for refinement according to calculated error indicators")
-			.add_method("mark_for_coarsening", static_cast<void (T::*)(IRefiner&, number, number, int)>(&T::mark_for_coarsening), "",
-				"mark elements for coarsening according to calculated error indicators")
 			.add_method("mark_with_strategy", &T::mark_with_strategy)
 			.add_method("invalidate_error", &T::invalidate_error, "", "Marks error indicators as invalid, "
 				"which will prohibit refining and coarsening before a new call to calc_error.")
@@ -176,6 +173,7 @@ static void Domain(Registry& reg, string grp)
 				("integration order for sides#integration order for elements#subsets considered", "", "", "")
 			.template add_constructor<void (*) (std::size_t, std::size_t, std::vector<std::string>)>
 				("integration order for sides#integration order for elements#subsets considered", "", "", "")
+			.add_method("set_type", &T::set_type, "", "", "", "")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "SideAndElemErrEstData", tag);
 	}

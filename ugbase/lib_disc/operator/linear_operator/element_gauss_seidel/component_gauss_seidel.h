@@ -77,16 +77,16 @@ class ComponentGaussSeidel : public IPreconditioner<TAlgebra>
 	public:
 	///	default constructor
 		ComponentGaussSeidel(const std::vector<std::string>& vFullRowCmp)
-			: m_bInit(false), m_relax(1), m_vFullRowCmp(vFullRowCmp) {}
+			: m_bInit(false), m_relax(1), m_alpha(1.0), m_beta(1.0), m_bWeighted(false), m_vFullRowCmp(vFullRowCmp) {}
 
 	///	constructor setting relaxation and type
 		ComponentGaussSeidel(number relax, const std::vector<std::string>& vFullRowCmp)
-			: m_bInit(false), m_relax(relax), m_vFullRowCmp(vFullRowCmp){}
+			: m_bInit(false), m_relax(relax),  m_alpha(1.0), m_beta(1.0), m_bWeighted(false), m_vFullRowCmp(vFullRowCmp){}
 
 	///	constructor setting relaxation and type
 		ComponentGaussSeidel(number relax, const std::vector<std::string>& vFullRowCmp,
 		                     const std::vector<int>& vSmooth, const std::vector<number>& vDamp)
-		: m_bInit(false), m_relax(relax), m_vFullRowCmp(vFullRowCmp),
+		: m_bInit(false), m_relax(relax),  m_alpha(1.0), m_beta(1.0), m_bWeighted(false), m_vFullRowCmp(vFullRowCmp),
 		  m_vGroupObj(vSmooth), m_vDamp(vDamp) {};
 
 	///	Clone
@@ -94,6 +94,15 @@ class ComponentGaussSeidel : public IPreconditioner<TAlgebra>
 
 	///	returns if parallel solving is supported
 		virtual bool supports_parallel() const {return true;}
+
+		void set_alpha(number alpha)
+		{m_alpha = alpha;}
+
+		void set_beta(number beta)
+		{m_beta = beta;}
+
+		void set_weights(bool b)
+		{m_bWeighted = b;}
 
 	protected:
 	///	Name of preconditioner
@@ -111,6 +120,11 @@ class ComponentGaussSeidel : public IPreconditioner<TAlgebra>
 		                  const vector_type& d, number relax,
 		                  const DimCache& dimCache,
 		                  bool bReverse);
+
+		void apply_blocks_weighted(const matrix_type& A, GF& c,
+				                  const vector_type& d, number relax,
+				                  const DimCache& dimCache,
+				                  bool bReverse);
 
 		template<typename TGroupObj>
 		void extract_by_grouping(std::vector<std::vector<DoFIndex> >& vvDoFIndex,
@@ -136,6 +150,11 @@ class ComponentGaussSeidel : public IPreconditioner<TAlgebra>
 
 	///	relaxing parameter
 		number m_relax;
+		number m_alpha;
+		number m_beta;
+
+		bool m_bWeighted;
+		SmartPtr<GF> m_weight;
 
 	///	components, whose matrix row must be fulfilled completely on gs-block
 		std::vector<std::string> m_vFullRowCmp;
@@ -218,6 +237,69 @@ apply_blocks(const matrix_type& A, GF& c,
 	}
 }
 
+
+template <typename TDomain, typename TAlgebra>
+void ComponentGaussSeidel<TDomain, TAlgebra>::
+apply_blocks_weighted(const matrix_type& A, GF& c,
+             const vector_type& d, number relax,
+             const DimCache& dimCache,
+             bool bReverse)
+{
+// 	memory for local algebra
+	DenseVector< VariableArray1<number> > s;
+	DenseVector< VariableArray1<number> > x;
+
+//	get caches
+	const std::vector<std::vector<DoFIndex> >& vvDoFIndex = dimCache.vvDoFIndex;
+	const std::vector<DenseMatrix< VariableArray2<number> > >& vBlockInverse = dimCache.vBlockInverse;
+
+//	loop blocks
+	for(size_t b = 0; b < vvDoFIndex.size(); ++b)
+	{
+		size_t block = (!bReverse) ? b : (vvDoFIndex.size()-1 - b);
+
+	//	get storage
+		const std::vector<DoFIndex>& vDoFIndex = vvDoFIndex[block];
+		const DenseMatrix<VariableArray2<number> >& BlockInv = vBlockInverse[block];
+		const size_t numIndex = vDoFIndex.size();
+
+	// 	compute s[i] := d[i] - sum_k A(i,k)*c[k]
+	// 	note: the loop over k is the whole matrix row (not only selected indices)
+		typedef typename matrix_type::const_row_iterator const_row_iterator;
+		const static int blockSize = TAlgebra::blockSize;
+		s.resize(numIndex);
+		for (size_t i = 0; i<numIndex; i++)
+		{
+			typename vector_type::value_type si = d[vDoFIndex[i][0]];
+			for(const_row_iterator it = A.begin_row(vDoFIndex[i][0]);
+									it != A.end_row(vDoFIndex[i][0]) ; ++it)
+			{
+				MatMultAdd(si, 1.0, si, -1.0, it.value(), c[it.index()]);
+			}
+			s.subassign(i*blockSize, si);
+		}
+
+	// restrict
+		for (size_t i = 0; i<numIndex; ++i)
+		{
+			number wi = sqrt(DoFRef(*m_weight, vDoFIndex[i]));
+			UG_ASSERT(wi!=0.0, "Huhh: Zero weights found!" << i << "dofIndex" << vDoFIndex[i])
+			s[i] /= wi;
+		}
+
+	// 	solve block
+		x.resize(numIndex);
+		MatMult(x, relax, BlockInv, s);
+
+	//	add to global correction
+		for (size_t i=0; i<numIndex;i++)
+		{
+			number wi = sqrt(DoFRef(*m_weight, vDoFIndex[i]));
+			DoFRef(c, vDoFIndex[i]) += x[i]/wi;
+		}
+	}
+}
+
 template <typename TDomain, typename TAlgebra>
 template<typename TGroupObj>
 void ComponentGaussSeidel<TDomain, TAlgebra>::
@@ -276,7 +358,7 @@ extract_by_grouping(std::vector<std::vector<DoFIndex> >& vvDoFIndex,
 			for(size_t f = 0; f < vRemainCmp.size(); ++f)
 				c.dof_indices(vElem[i], vRemainCmp[f], vDoFIndex, false, false);
 
-	// 	check for doublicates
+	// 	check for dublicates
 		if(vElem.size() > 1){
 		    std::sort(vDoFIndex.begin(), vDoFIndex.end());
 		    vDoFIndex.erase(std::unique(vDoFIndex.begin(), vDoFIndex.end()), vDoFIndex.end());
@@ -350,7 +432,31 @@ extract_blocks(const matrix_type& A, const GF& c)
 		}
 	}
 
-//	extract local matrices
+	// compute weights v(i) (= number of groups j that i belongs to)
+
+	if (m_bWeighted)
+	{
+		m_weight = c.clone_without_values();
+		m_weight->set(0.0);
+		for(int d = VERTEX; d <= VOLUME; ++d)
+		{
+			std::vector<std::vector<DoFIndex> >& vvDoFIndex = m_vDimCache[d].vvDoFIndex;
+
+			for(size_t j = 0; j < vvDoFIndex.size(); ++j)
+			{
+
+				std::vector<DoFIndex>& vDoFIndex = vvDoFIndex[j];
+				const size_t numIndex = vDoFIndex.size();
+
+					// count number of connections for this row
+					DoFRef(*m_weight, vDoFIndex[numIndex-1]) = 1.0;
+					for (size_t i =0; i<numIndex-1; ++i)
+						DoFRef(*m_weight, vDoFIndex[i]) += 1.0;
+			}
+
+		}
+	}
+	//	extract local matrices
 	for(int d = VERTEX; d <= VOLUME; ++d)
 	{
 		std::vector<std::vector<DoFIndex> >& vvDoFIndex = m_vDimCache[d].vvDoFIndex;
@@ -365,15 +471,59 @@ extract_blocks(const matrix_type& A, const GF& c)
 
 		// 	get number of indices on patch
 			const size_t numIndex = vDoFIndex.size();
+			//std::cerr << "locSize" << numIndex << std::endl;
 
 		// 	fill local block matrix
 			BlockInv.resize(numIndex, numIndex);
 			BlockInv = 0.0;
 
 		// 	copy matrix rows (only including cols of selected indices)
-			for (size_t j = 0; j < numIndex; j++)
-				for (size_t k = 0; k < numIndex; k++)
-					BlockInv(j,k) = DoFRef(A, vDoFIndex[j], vDoFIndex[k]);
+			for (size_t i = 0; i < numIndex; i++)
+			{
+				// Diag (A)
+				BlockInv(i,i) = m_alpha*DoFRef(A, vDoFIndex[i], vDoFIndex[i]);
+				BlockInv(numIndex-1,i) = DoFRef(A, vDoFIndex[numIndex-1], vDoFIndex[i]);
+				BlockInv(i,numIndex-1) = DoFRef(A, vDoFIndex[i], vDoFIndex[numIndex-1]);
+			}
+
+
+			// schur complement correction
+
+
+			number schur = 0.0;
+			if (m_weight.invalid())
+			{
+				for (size_t i = 0; i < numIndex-1; i++)
+				{
+					schur += BlockInv(numIndex-1,i)/BlockInv(i,i)*BlockInv(i,numIndex-1);
+				}
+				// std::cerr << "unweighted:" << schur << " " << BlockInv(numIndex-1, numIndex-1)<< m_beta<<  "=>";
+
+				BlockInv(numIndex-1, numIndex-1) = schur + (BlockInv(numIndex-1, numIndex-1)-schur)/m_beta;
+
+				//std::cerr << BlockInv(numIndex-1, numIndex-1) << std::endl;
+
+			} else {
+				for (size_t i = 0; i < numIndex-1; i++)
+				{
+					number wi2 = DoFRef(*m_weight, vDoFIndex[i]);
+					schur += wi2*BlockInv(numIndex-1,i)/BlockInv(i,i)*BlockInv(i,numIndex-1);
+				}
+			   //std::cerr <<  "weighted:"<< schur << " " << BlockInv(numIndex-1, numIndex-1)<< m_beta<<  "=>";
+
+			   //  BlockInv(numIndex-1, numIndex-1) = - schur - (BlockInv(numIndex-1, numIndex-1)-schur)/m_beta; // worked with alpha=1, beta=-2.0
+			   BlockInv(numIndex-1, numIndex-1) =  schur + (BlockInv(numIndex-1, numIndex-1) - schur)/m_beta;
+
+			   //std::cerr << BlockInv(numIndex-1, numIndex-1) << std::endl;
+			}
+
+
+			//BlockInv(numIndex-1, numIndex-1) = - 2.0*schur;
+
+
+
+				/*for (size_t k = 0; k < numIndex; k++)
+					BlockInv(j,k) = DoFRef(A, vDoFIndex[j], vDoFIndex[k]);*/
 
 		//	get inverse
 			if(!Invert(BlockInv)){
@@ -439,8 +589,14 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 		if(d < (int)m_vDamp.size()) damp *= m_vDamp[d];
 
 	//	apply
-		apply_blocks(*pMat, *pC, *pD, damp, m_vDimCache[d], false);
-		apply_blocks(*pMat, *pC, *pD, damp, m_vDimCache[d], true);
+		if (m_weight.invalid()) {
+			apply_blocks(*pMat, *pC, *pD, damp, m_vDimCache[d], false);
+			apply_blocks(*pMat, *pC, *pD, damp, m_vDimCache[d], true);
+		} else {
+			apply_blocks_weighted(*pMat, *pC, *pD, damp, m_vDimCache[d], false);
+			apply_blocks_weighted(*pMat, *pC, *pD, damp, m_vDimCache[d], true);
+		}
+
 	}
 
 #ifdef UG_PARALLEL
@@ -459,6 +615,9 @@ ComponentGaussSeidel<TDomain, TAlgebra>::clone()
 					newInst(new ComponentGaussSeidel<TDomain, TAlgebra>(m_relax, m_vFullRowCmp, m_vGroupObj, m_vDamp));
 	newInst->set_debug(debug_writer());
 	newInst->set_damp(this->damping());
+	newInst->set_alpha(this->m_alpha);
+	newInst->set_beta(this->m_beta);
+	newInst->set_weights(this->m_bWeighted);
 	return newInst;
 }
 

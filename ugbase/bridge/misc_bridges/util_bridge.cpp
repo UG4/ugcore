@@ -59,17 +59,11 @@ namespace bridge{
 static string GetRootPath()
 {return PathProvider::get_path(ROOT_PATH);}
 
-static string GetGridPath()
-{return PathProvider::get_path(GRID_PATH);}
-
 static string GetAppsPath()
 {return PathProvider::get_path(APPS_PATH);}
 
 static string GetBinPath()
 {return PathProvider::get_path(BIN_PATH);}
-
-static string GetDataPath()
-{return PathProvider::get_path(DATA_PATH);}
 
 static string GetScriptPath()
 {return PathProvider::get_path(SCRIPT_PATH);}
@@ -124,17 +118,11 @@ void RegisterBridge_Util(Registry& reg, string parentGroup)
 	reg.add_function("ug_get_root_path", &GetRootPath, grp,
 	                 "pathName", "", "Returns ug's root path");
 
-	reg.add_function("ug_get_grid_path", &GetGridPath, grp,
-	                 "pathName", "", "Returns the path in which ug's standard grids are stored.");
-
 	reg.add_function("ug_get_apps_path", &GetAppsPath, grp,
 	                 "pathName", "", "Returns the path in which ug's apps are stored");
 
 	reg.add_function("ug_get_bin_path", &GetBinPath, grp,
 	                 "pathName", "", "Returns the path in which the ug executable lies");
-
-	reg.add_function("ug_get_data_path", &GetDataPath, grp,
-	                 "pathName", "", "Returns the data path");
 
 	reg.add_function("ug_get_script_path", &GetScriptPath, grp,
 	                 "pathName", "", "Returns the script path");
@@ -164,6 +152,7 @@ void RegisterBridge_Util(Registry& reg, string parentGroup)
 	reg.add_function("GetDirsInDir", GetDirsInDir);
 	reg.add_function("GetTmpPath", GetTmpPath);
 	reg.add_function("ChangeDirectory", ChangeDirectory);
+	reg.add_function("CurrentWorkingDirectory", CurrentWorkingDirectory);
 	reg.add_function("FileCompare", FileCompare);
 	reg.add_function("SetMinSecondsUntilProgress", SetMinSecondsUntilProgress, grp, "", "seconds", "determines after which time a progress bar can show up");
 

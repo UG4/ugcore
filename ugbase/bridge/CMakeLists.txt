@@ -43,6 +43,7 @@ set(srcUGBridge    	bridge.cpp
 					misc_bridges/profiler_bridge.cpp
 					misc_bridges/util_bridge.cpp
 					misc_bridges/misc_bridge.cpp
+					misc_bridges/raster_bridge.cpp
 					misc_bridges/vec_math_bridge.cpp)
 
 set(srcUGBridge     ${srcUGBridge}
@@ -61,9 +62,6 @@ if(buildGrid)
 						grid_bridges/selector_bridge.cpp
 						grid_bridges/subset_handler_bridge.cpp)
 endif(buildGrid)
-
-set(srcUGBridge     ${srcUGBridge}
-					misc_bridges/pcl_bridge.cpp)
 
 # if algebra is enabled, we have to add additional src-files and link with the
 # discretization module.
@@ -84,6 +82,7 @@ if(buildAlgebra)
 					algebra_bridges/solver_bridge.cpp
 					algebra_bridges/eigensolver_bridge.cpp
 					algebra_bridges/domain_dependent_preconditioner_bridge.cpp
+					algebra_bridges/constrained_linear_iterator_bridge.cpp
 					algebra_bridges/pilut_bridge.cpp
 					algebra_bridges/obstacle_bridge.cpp
 					algebra_bridges/restart_bridge.cpp

@@ -123,6 +123,9 @@ public VectorDebugWritingObject <typename TAlgebra::vector_type>
 	/// specify bounds for random initial guess (optional)
 		void set_random_bounds(double a, double b){from =a; to=b;}
 
+		void set_solution(SmartPtr<vector_type> sol)
+		{m_spSolVector = sol;}
+
 	protected:
 	/// get reference to 'real' preconditioner
 		SmartPtr<base_type> get_preconditioner() {return m_pprecond;}
@@ -135,39 +138,40 @@ public VectorDebugWritingObject <typename TAlgebra::vector_type>
 		{return "DebugIterator";}
 
 
-	/// init (expensive)
+		/// init (expensive)
 		virtual bool init(SmartPtr<ILinearOperator<vector_type> > J,
-				                  const vector_type& u)
-				{
-				//	cast to matrix based operator
-					SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp =
-							J.template cast_dynamic<MatrixOperator<matrix_type, vector_type> >();
+				const vector_type& u)
+		{
+			//	cast to matrix based operator
+			SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp =
+					J.template cast_dynamic<MatrixOperator<matrix_type, vector_type> >();
 
-				//	Check that matrix if of correct type
-					if(pOp.invalid())
-						UG_THROW(name() << "::init': Passed Operator is "
-								"not based on matrix. This Preconditioner can only "
-								"handle matrix-based operators.");
+			//	Check that matrix if of correct type
+			if(pOp.invalid())
+				UG_THROW(name() << "::init': Passed Operator is "
+						"not based on matrix. This Preconditioner can only "
+						"handle matrix-based operators.");
 
-				//	forward request to matrix based implementation
-					return init(pOp);
-				}
-	/// init (expensive)
+			//	forward request to matrix based implementation
+			return init(pOp);
+		}
+
+		/// init (expensive)
 		virtual bool init(SmartPtr<ILinearOperator<vector_type> > L)
-				{
-				//	cast to matrix based operator
-					SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp =
-							L.template cast_dynamic<MatrixOperator<matrix_type, vector_type> >();
+		{
+			//	cast to matrix based operator
+			SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp =
+					L.template cast_dynamic<MatrixOperator<matrix_type, vector_type> >();
 
-				//	Check that matrix if of correct type
-					if(pOp.invalid())
-						UG_THROW(name() << "::init': Passed Operator is "
-								"not based on matrix. This Preconditioner can only "
-								"handle matrix-based operators.");
+			//	Check that matrix if of correct type
+			if(pOp.invalid())
+				UG_THROW(name() << "::init': Passed Operator is "
+						"not based on matrix. This Preconditioner can only "
+						"handle matrix-based operators.");
 
-				//	forward request to matrix based implementation
-					return init(pOp);
-				}
+			//	forward request to matrix based implementation
+			return init(pOp);
+		}
 
 		/// init (expensive, since it calls \sa find_smooth_error)
 		bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
@@ -196,18 +200,23 @@ public VectorDebugWritingObject <typename TAlgebra::vector_type>
 					return false;
 				}
 
-			vector_type myRhs(m_pOperator->get_matrix().num_rows());
-			vector_type myError(m_pOperator->get_matrix().num_rows());
 
-			myError.set(0.0);
-			myError.set_random(from, to);
-			myRhs.set(0.0);
+			//vector_type myRhs(m_pOperator->get_matrix().num_rows());
+			//vector_type myError(m_pOperator->get_matrix().num_rows());
+			
+			SmartPtr<vector_type> myError = m_spSolVector;
+			SmartPtr<vector_type> myRhs = m_spSolVector->clone_without_values();
 
-			this->write_debug(myError, "DebugIterError0");
+			myError->set(0.0);
+			myError->set_random(from, to);
+
+			myRhs->set(0.0);
+
+			this->write_debug(*myError, "DebugIterError0");
 			m_solver->init(m_pOperator);
-			m_solver->apply(myError, myRhs);
+			m_solver->apply(*myError, *myRhs);
 
-			this->write_debug(myError, "DebugIterErrorS");
+			this->write_debug(*myError, "DebugIterErrorS");
 
 			return true;
 		}
@@ -230,6 +239,7 @@ public VectorDebugWritingObject <typename TAlgebra::vector_type>
 
 		SmartPtr<solver_type> m_solver;
 		SmartPtr<MatrixOperator<matrix_type, vector_type> > m_pOperator;
+		SmartPtr<vector_type> m_spSolVector;
 
 		double from, to;
 
