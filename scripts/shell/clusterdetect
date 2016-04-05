@@ -18,8 +18,12 @@ if [ -z "$UGSUBMIT_TYPE" ]; then
 	elif [[ "$HOSTNAME" == "eslogin"* ]]; then
 		if [ "$SITE_PLATFORM_NAME" == "hornet" ]; then
 			UGSUBMIT_TYPE=Hornet
-		else
+		elif [ "$SITE_PLATFORM_NAME" == "hazelhen" ]; then
+			UGSUBMIT_TYPE=Hazelhen
+		elif [ "$SITE_PLATFORM_NAME" == "hermit" ]; then
 			UGSUBMIT_TYPE=Hermit
+		else
+			echo "WARNING: couldn't detect cluster type!"
 		fi
 	else
 		unamestr=`uname`
