@@ -122,7 +122,8 @@ refine(std::vector<Face*>& vNewFacesOut,
 		Vertex** newFaceVertexOut,
 		Vertex** newEdgeVertices,
 		Vertex* newFaceVertex,
-		Vertex** pSubstituteVertices)
+		Vertex** pSubstituteVertices,
+		int snapPointIndex)
 {
 //TODO: complete triangle refine
 
@@ -442,7 +443,8 @@ refine(std::vector<Face*>& vNewFacesOut,
 		Vertex** newFaceVertexOut,
 		Vertex** edgeVrts,
 		Vertex* newFaceVertex,
-		Vertex** pSubstituteVertices)
+		Vertex** pSubstituteVertices,
+		int snapPointIndex)
 {
 //TODO: complete quad refine
 	*newFaceVertexOut = newFaceVertex;
@@ -488,15 +490,35 @@ refine(std::vector<Face*>& vNewFacesOut,
 					break;
 				}
 			}
+
+			if(snapPointIndex != -1 && (snapPointIndex == iNew || snapPointIndex == (iNew + 1) % 4))
+				snapPointIndex = -1;
 			
 		//	the corners in a local ordering relative to iNew. Keeping ccw order.
 			Vertex* corner[4];
-			ReorderCornersCCW(corner, vrts, 4, (iNew + 3) % 4);
+			const int rot = (iNew + 3) % 4;
+			ReorderCornersCCW(corner, vrts, 4, rot);
 
 		//	create the new elements
-			vNewFacesOut.push_back(new Triangle(corner[0], corner[1], edgeVrts[iNew]));
-			vNewFacesOut.push_back(new Triangle(corner[0], edgeVrts[iNew], corner[3]));
-			vNewFacesOut.push_back(new Triangle(corner[3], edgeVrts[iNew], corner[2]));
+			if(snapPointIndex == -1){
+				vNewFacesOut.push_back(new Triangle(corner[0], corner[1], edgeVrts[iNew]));
+				vNewFacesOut.push_back(new Triangle(corner[0], edgeVrts[iNew], corner[3]));
+				vNewFacesOut.push_back(new Triangle(corner[3], edgeVrts[iNew], corner[2]));
+			}
+			else{
+				snapPointIndex = (snapPointIndex + 4 - rot) % 4;
+				if(snapPointIndex == 0){
+					vNewFacesOut.push_back(new Triangle(corner[0], corner[1], edgeVrts[iNew]));
+					vNewFacesOut.push_back(new Quadrilateral(corner[0], edgeVrts[iNew], corner[2], corner[3]));
+				}
+				else if(snapPointIndex == 3){
+					vNewFacesOut.push_back(new Quadrilateral(corner[0], corner[1], edgeVrts[iNew], corner[3]));
+					vNewFacesOut.push_back(new Triangle(corner[3], edgeVrts[iNew], corner[2]));
+				}
+				else{
+					UG_THROW("Unexpected snap-point index: " << snapPointIndex << ". This is an implementation error!");
+				}
+			}
 
 			return true;
 		}
@@ -541,13 +563,25 @@ refine(std::vector<Face*>& vNewFacesOut,
 					swap(iNew[0], iNew[1]);
 			
 			//	the corners in a local ordering relative to iNew[0]. Keeping ccw order.
-				ReorderCornersCCW(corner, vrts, 4, (iNew[0] + 3) % 4);
+				const int rot = (iNew[0] + 3) % 4;
+				ReorderCornersCCW(corner, vrts, 4, rot);
+
+				if(snapPointIndex != -1 && ((snapPointIndex + 4 - rot) % 4) != 0)
+					snapPointIndex = -1;
+
 
 			//	create new faces
-				vNewFacesOut.push_back(new Triangle(corner[0], corner[1], edgeVrts[iNew[0]]));
-				vNewFacesOut.push_back(new Triangle(edgeVrts[iNew[0]], corner[2], edgeVrts[iNew[1]]));
-				vNewFacesOut.push_back(new Triangle(corner[3], corner[0], edgeVrts[iNew[1]]));
-				vNewFacesOut.push_back(new Triangle(corner[0], edgeVrts[iNew[0]], edgeVrts[iNew[1]]));
+				if(snapPointIndex == -1){
+					vNewFacesOut.push_back(new Triangle(corner[0], corner[1], edgeVrts[iNew[0]]));
+					vNewFacesOut.push_back(new Triangle(edgeVrts[iNew[0]], corner[2], edgeVrts[iNew[1]]));
+					vNewFacesOut.push_back(new Triangle(corner[3], corner[0], edgeVrts[iNew[1]]));
+					vNewFacesOut.push_back(new Triangle(corner[0], edgeVrts[iNew[0]], edgeVrts[iNew[1]]));
+				}
+				else{
+					vNewFacesOut.push_back(new Triangle(corner[0], corner[1], edgeVrts[iNew[0]]));
+					vNewFacesOut.push_back(new Triangle(corner[3], corner[0], edgeVrts[iNew[1]]));
+					vNewFacesOut.push_back(new Quadrilateral(corner[0], edgeVrts[iNew[0]], corner[2], edgeVrts[iNew[1]]));
+				}
 			}
 
 			return true;

@@ -536,12 +536,17 @@ class UG_API Face : public GridObject, public FaceVertices
 	 * - If you specify pvSubstituteVertices, the created faces will reference the vertices in
 	 * pvSubstituteVertices. Note that pvSubstituteVertices has to contain exactly as many
 	 * vertices as the refined Face. Vertices with the same index correlate.
+	 * - You may optionally specify a 'snapPointIndex'. Default is -1. If an index >= 0
+	 *   is specifed, then new inner edges will always be created between new edge vertices
+	 *   and the vertex specified through the snap-point-index. Note that a snap-point
+	 *   may not be a corner of a refined edge.
 	 */
 		virtual bool refine(std::vector<Face*>& vNewFacesOut,
 							Vertex** newFaceVertexOut,
 							Vertex** newEdgeVertices,
 							Vertex* newFaceVertex = NULL,
-							Vertex** pSubstituteVertices = NULL)	{return false;}
+							Vertex** pSubstituteVertices = NULL,
+							int snapPointIndex = -1)	{return false;}
 
 	/**
 	 * The collapse_edge method creates new geometric objects by collapsing the specified edge.
@@ -789,6 +794,10 @@ class UG_API Volume : public GridObject, public VolumeVertices
 	 * 	 only (only if all edges are refined). They are used to choose the best
 	 * 	 refinement rule for interior child tetrahedrons, thus improving interior
 	 * 	 angles.
+	 * - You may optionally specify 'snapPoint', a list of booleans of length 'num_vertices()'.
+	 *   Each quadrilateral side may contain at most one snap-point. New edges on quadrilateral
+	 *   faces will then connect the snap-point and the newly introduced edge-vertex.
+	 *   Note that a snap-point may not be a corner of a refined edge.
 	 */
 		virtual bool refine(std::vector<Volume*>& vNewVolumesOut,
 							Vertex** ppNewVertexOut,
@@ -797,7 +806,8 @@ class UG_API Volume : public GridObject, public VolumeVertices
 							Vertex* newVolumeVertex,
 							const Vertex& prototypeVertex,
 							Vertex** pSubstituteVertices = NULL,
-							vector3* corners = NULL)	{return false;}
+							vector3* corners = NULL/*,
+							bool* snapPoint = NULL*/)	{return false;}
 
 	/**
 	 * The collapse_edge method creates new geometric objects by collapsing the specified edge.
