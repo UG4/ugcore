@@ -46,9 +46,11 @@ if(PARALLEL)
 		# Depreciated case: In order to support cmake versions < 2.8.6, 
 		#                   where MPI_CXX_LIBRARIES cannot be used
 		else(MPI_CXX_LIBRARIES)				
-			set(linkLibraries ${linkLibraries} ${MPI_LIBRARY})
+			if(MPI_LIBRARY)
+				set(linkLibraries ${linkLibraries} ${MPI_LIBRARY})
+			endif(MPI_LIBRARY)
 			if(MPI_EXTRA_LIBRARY)
-			set(linkLibraries ${linkLibraries} ${MPI_EXTRA_LIBRARY})
+				set(linkLibraries ${linkLibraries} ${MPI_EXTRA_LIBRARY})
 			endif(MPI_EXTRA_LIBRARY)
 		endif(MPI_CXX_LIBRARIES)				
 	else(MPI_FOUND)
