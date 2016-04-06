@@ -998,8 +998,8 @@ void ApplySmoothSubdivisionToTopLevel(MultiGrid& mg, MGSubsetHandler& sh, MGSubs
 		UG_THROW("ERROR in ApplySubdivisionVolumesToTopLevel: Set necessary refinement rule by SetTetRefinementRule('hybrid_tet_oct').");
 
 //	Catch wrong specification of markSH SubsetHandler containing ALL MultiGrid manifolds
-	if(!(markSH.contains_edges(0) && markSH.contains_faces(0) && markSH.contains_vertices(1)))
-		UG_THROW("ERROR in ApplySubdivisionVolumesToTopLevel: wrong specification of markSH.");
+//	if(!(markSH.contains_edges(0) && markSH.contains_faces(0) && markSH.contains_vertices(1)))
+//		UG_THROW("ERROR in ApplySubdivisionVolumesToTopLevel: wrong specification of markSH.");
 
 //	Catch use of procedure for MultiGrids with just one level
 	if(mg.num_levels() == 1)
