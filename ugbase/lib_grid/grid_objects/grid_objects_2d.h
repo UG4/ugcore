@@ -122,7 +122,8 @@ class UG_API CustomTriangle : public BaseClass
 							Vertex** newFaceVertexOut,
 							Vertex** newEdgeVertices,
 							Vertex* newFaceVertex = NULL,
-							Vertex** pSubstituteVertices = NULL);
+							Vertex** pSubstituteVertices = NULL,
+							int snapPointIndex = -1);
 
 		virtual bool collapse_edge(std::vector<Face*>& vNewFacesOut,
 								int edgeIndex, Vertex* newVertex,
@@ -264,7 +265,8 @@ class UG_API CustomQuadrilateral : public BaseClass
 							Vertex** newFaceVertexOut,
 							Vertex** newEdgeVertices,
 							Vertex* newFaceVertex = NULL,
-							Vertex** pSubstituteVertices = NULL);
+							Vertex** pSubstituteVertices = NULL,
+							int snapPointIndex = -1);
 
 		virtual bool collapse_edge(std::vector<Face*>& vNewFacesOut,
 								int edgeIndex, Vertex* newVertex,

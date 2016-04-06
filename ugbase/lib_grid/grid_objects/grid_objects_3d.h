@@ -137,7 +137,8 @@ class UG_API Tetrahedron : public Volume
 							Vertex* newVolumeVertex,
 							const Vertex& prototypeVertex,
 							Vertex** pSubstituteVertices = NULL,
-							vector3* corners = NULL);
+							vector3* corners = NULL,
+							bool* isSnapPoint = NULL);
 
 		virtual bool collapse_edge(std::vector<Volume*>& vNewVolumesOut,
 								int edgeIndex, Vertex* newVertex,
@@ -254,7 +255,8 @@ class UG_API Octahedron : public Volume
 							Vertex* newVolumeVertex,
 							const Vertex& prototypeVertex,
 							Vertex** pSubstituteVertices = NULL,
-							vector3* corners = NULL);
+							vector3* corners = NULL,
+							bool* isSnapPoint = NULL);
 
 		virtual bool collapse_edge(std::vector<Volume*>& vNewVolumesOut,
 								int edgeIndex, Vertex* newVertex,
@@ -371,7 +373,8 @@ class UG_API Hexahedron : public Volume
 							Vertex* newVolumeVertex,
 							const Vertex& prototypeVertex,
 							Vertex** pSubstituteVertices = NULL,
-							vector3* corners = NULL);
+							vector3* corners = NULL,
+							bool* isSnapPoint = NULL);
 
 		virtual bool collapse_edge(std::vector<Volume*>& vNewVolumesOut,
 								int edgeIndex, Vertex* newVertex,
@@ -488,7 +491,8 @@ class UG_API Prism : public Volume
 							Vertex* newVolumeVertex,
 							const Vertex& prototypeVertex,
 							Vertex** pSubstituteVertices = NULL,
-							vector3* corners = NULL);
+							vector3* corners = NULL,
+							bool* isSnapPoint = NULL);
 
 		virtual bool collapse_edge(std::vector<Volume*>& vNewVolumesOut,
 								int edgeIndex, Vertex* newVertex,
@@ -603,7 +607,8 @@ class UG_API Pyramid : public Volume
 							Vertex* newVolumeVertex,
 							const Vertex& prototypeVertex,
 							Vertex** pSubstituteVertices = NULL,
-							vector3* corners = NULL);
+							vector3* corners = NULL,
+							bool* isSnapPoint = NULL);
 
 		virtual bool collapse_edge(std::vector<Volume*>& vNewVolumesOut,
 								int edgeIndex, Vertex* newVertex,

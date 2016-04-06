@@ -67,11 +67,16 @@ namespace ug
  * the overloaded version of Refine, which only takes a Grid and a 
  * Selector.
  *
+ * If 'useSnapPoints' is set to 'true' (default is 'false'), selected vertices
+ * are used as snap-points. They play a role during refinement of quadrilaterals
+ * and of volume-elements with quadrilateral sides.
+ *
  * \sa ug::RegularRefiner, ug::HangingNodeRefiner
  */
 UG_API
 bool Refine(Grid& grid, Selector& sel, AInt& aInt,
-			IRefinementCallback* refCallback = NULL);
+			IRefinementCallback* refCallback = NULL,
+			bool useSnapPoints = false);
 
 ///	refines selected faces and edges regularily and builds a closure on adjacent unselected faces.
 /**
@@ -87,7 +92,8 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
  */
 UG_API
 bool Refine(Grid& grid, Selector& sel,
-			IRefinementCallback* refCallback = NULL);
+			IRefinementCallback* refCallback = NULL,
+			bool useSnapPoints = false);
 
 /// @}
 }// end of namespace
