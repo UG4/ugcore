@@ -776,10 +776,9 @@ void CalculateSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
  * 	for all toplevel vertices.
  *
  * 	@param mg				reference to MultiGrid
- * 	@param markSH			reference to SubsetHandler markSH containing marked (inner) boundary manifold
  * 	@param aNumElems		reference to aNumElems
 **/
-void CalculateNumElemsVertexAttachment(MultiGrid& mg, MGSubsetHandler& markSH, AInt& aNumElems)
+void CalculateNumElemsVertexAttachment(MultiGrid& mg, AInt& aNumElems)
 {
 	#ifdef UG_PARALLEL
 		DistributedGridManager& dgm = *mg.distributed_grid_manager();
@@ -1067,7 +1066,7 @@ void ApplySmoothSubdivisionToTopLevel(MultiGrid& mg, MGSubsetHandler& sh, MGSubs
  *
  *****************************************/
 
-	CalculateNumElemsVertexAttachment(mg, markSH, aNumElems);
+	CalculateNumElemsVertexAttachment(mg, aNumElems);
 
 
 /*****************************************
