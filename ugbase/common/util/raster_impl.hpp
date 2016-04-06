@@ -788,20 +788,14 @@ interpolate_linear (
 		Coordinate& localCoord,
 		int curDim) const
 {
+	if(curDim == 0)
+		return node_value(minNodeInd);
+
 	MultiIndex miMax = minNodeInd;
 	miMax[curDim - 1] += 1;
 
-	T val0;
-	T val1;
-
-	if(curDim == 0){
-		val0 = node_value(minNodeInd);
-		val1 = node_value(miMax);
-	}
-	else{
-		val0 = interpolate_linear(minNodeInd, localCoord, curDim - 1);
-		val1 = interpolate_linear(miMax, localCoord, curDim - 1);
-	}
+	T val0 = interpolate_linear(minNodeInd, localCoord, curDim - 1);
+	T val1 = interpolate_linear(miMax, localCoord, curDim - 1);
 
 //	perform linear interpolation
 	val0 *= (1. - localCoord[curDim]);
