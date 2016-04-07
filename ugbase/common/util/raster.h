@@ -78,6 +78,19 @@ class Raster{
 				void 		set (size_t i);
 				size_t&		operator[] (int d);
 				size_t		operator[] (int d) const;
+
+				friend std::ostream& operator << (std::ostream& o, const MultiIndex& mi)
+				{
+					o << "(";
+					for(size_t d = 0; d < TDIM; ++d){
+						o << mi[d];
+						if(d + 1 < TDIM)
+							o << ", ";
+					}
+					o << ")";
+					return o;
+				}
+
 			private:
 				size_t	m_ind[TDIM];
 		};
@@ -93,6 +106,19 @@ class Raster{
 				Coordinate& operator+= (const Coordinate& c);
 				Coordinate& operator-= (const Coordinate& c);
 				Coordinate& operator*= (number s);
+				
+				friend std::ostream& operator << (std::ostream& o, const Coordinate& coord)
+				{
+					o << "(";
+					for(size_t d = 0; d < TDIM; ++d){
+						o << coord[d];
+						if(d + 1 < TDIM)
+							o << ", ";
+					}
+					o << ")";
+					return o;
+				}
+
 			private:
 				number	m_coord[TDIM];
 		};
@@ -149,7 +175,7 @@ class Raster{
 		T& node_value (const MultiIndex& mi);
 
 	///	returns the value at the given multi-index (read only)
-		const T& node_value (const MultiIndex& mi) const;
+		T node_value (const MultiIndex& mi) const;
 
 	///	sets the min corner of the raster. Used for interpolation at cursor.
 	/** \{ */
@@ -179,7 +205,7 @@ class Raster{
 		void set_no_data_value(const T& val);
 
 	///	returns the value that shall be considered 'no-data-value'
-		const T& no_data_value() const;
+		T no_data_value() const;
 
 	///	interpolates the value with the given order at the given coordinate
 		T interpolate (const Coordinate& coord, int order) const;
@@ -198,10 +224,10 @@ class Raster{
 	/** \} */
 
 	///	sets the value of the selected node
-		void set_selected_node_value (const T& val);
+		void set_selected_node_value (T val);
 
 	///	returns the value of the selected node
-		const T& selected_node_value () const;
+		T selected_node_value () const;
 
 	///	Set the coordinate of the cursor. The cursor can be used to interpolate values.
 	/** \{ */
@@ -225,7 +251,7 @@ class Raster{
 		T interpolate_linear (
 				const MultiIndex& minNodeInd,
 				Coordinate& localCoord,
-				int curDim = TDIM - 1) const;
+				int curDim = TDIM) const;
 
 		T*			m_data;
 		MultiIndex	m_numNodes;

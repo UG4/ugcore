@@ -203,7 +203,7 @@ util.solver.defaults =
 	{
 		standard = {
 			iterations	= 100,		-- number of iterations
-			absolute		= 1e-12,	-- absolute value of defect to be reached;
+			absolute	= 1e-12,	-- absolute value of defect to be reached;
 			reduction	= 1e-6,		-- reduction factor of defect to be reached;
 			verbose		= true
 		}

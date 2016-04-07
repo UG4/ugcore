@@ -48,11 +48,6 @@
 	#include "pcl/pcl_interface_communicator.h"
 #endif
 
-#include "lib_disc/local_finite_element/local_finite_element_provider.h"
-#include "lib_disc/local_finite_element/local_dof_set.h"
-#include "lib_disc/reference_element/reference_mapping_provider.h"
-#include "lib_disc/reference_element/reference_element_util.h"
-
 #include  "common/profiler/profiler.h"
 
 namespace ug
@@ -414,8 +409,8 @@ void ApplySmoothManifoldPosToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
  * 	@param mg							reference to MultiGrid
  * 	@param markSH						reference to SubsetHandler markSH containing marked (inner) boundary manifold
  * 	@param linearBndManifoldSubsetsSH	reference to user-specified linearBndManifoldSubsets SubsetHandler
- * 	@param aSmoothBndPosEvenVrt			reference to aSmoothBndPosEvenVrt
- * 	@param aSmoothBndPosOddVrt			reference to aSmoothBndPosOddVrt
+ * 	@param aSmoothVolPos				reference to aSmoothVolPos
+ * 	@param aNumElems					reference to aNumElems
 **/
 void ApplySmoothVolumePosToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
 									MGSubsetHandler& linearBndManifoldSubsetsSH,
@@ -670,10 +665,9 @@ void CalculateSmoothManifoldPosInParentLevel(MultiGrid& mg, MGSubsetHandler& mar
  * 	@param mg				reference to MultiGrid
  * 	@param markSH			reference to SubsetHandler markSH containing marked (inner) boundary manifold
  * 	@param aSmoothVolPos	reference to aSmoothVolPos
- * 	@param aNumElems		reference to aNumElems
 **/
 void CalculateSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
-										APosition& aSmoothVolPos, AInt& aNumElems)
+										APosition& aSmoothVolPos)
 {
 	#ifdef UG_PARALLEL
 		DistributedGridManager& dgm = *mg.distributed_grid_manager();
@@ -682,7 +676,6 @@ void CalculateSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
 //	Define attachment accessors
 	Grid::VertexAttachmentAccessor<APosition> aaPos(mg, aPosition);
 	Grid::VertexAttachmentAccessor<APosition> aaSmoothVolPos(mg, aSmoothVolPos);
-	Grid::VertexAttachmentAccessor<AInt> aaNumElems(mg, aNumElems);
 
 //	Declare volume centroid coordinate vector
 	typedef APosition::ValueType pos_type;
@@ -758,9 +751,6 @@ void CalculateSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
 			{
 				UG_THROW("ERROR in CalculateSmoothVolumePosInTopLevel: Volume type not supported for subdivision volumes refinement.");
 			}
-
-		//	Scale smooth vertex position by the number of associated volume elements (SubdivisionVolumes smoothing)
-			//VecScale(aaSmoothVolPos[vrt],  aaSmoothVolPos[vrt], 1.0/aaNumElems[vrt]);
 		}
 	}
 
@@ -781,10 +771,9 @@ void CalculateSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
  * 	for all toplevel vertices.
  *
  * 	@param mg				reference to MultiGrid
- * 	@param markSH			reference to SubsetHandler markSH containing marked (inner) boundary manifold
  * 	@param aNumElems		reference to aNumElems
 **/
-void CalculateNumElemsVertexAttachment(MultiGrid& mg, MGSubsetHandler& markSH, AInt& aNumElems)
+void CalculateNumElemsVertexAttachment(MultiGrid& mg, AInt& aNumElems)
 {
 	#ifdef UG_PARALLEL
 		DistributedGridManager& dgm = *mg.distributed_grid_manager();
@@ -1009,8 +998,8 @@ void ApplySmoothSubdivisionToTopLevel(MultiGrid& mg, MGSubsetHandler& sh, MGSubs
 		UG_THROW("ERROR in ApplySubdivisionVolumesToTopLevel: Set necessary refinement rule by SetTetRefinementRule('hybrid_tet_oct').");
 
 //	Catch wrong specification of markSH SubsetHandler containing ALL MultiGrid manifolds
-	if(!(markSH.contains_edges(0) && markSH.contains_faces(0) && markSH.contains_vertices(1)))
-		UG_THROW("ERROR in ApplySubdivisionVolumesToTopLevel: wrong specification of markSH.");
+//	if(!(markSH.contains_edges(0) && markSH.contains_faces(0) && markSH.contains_vertices(1)))
+//		UG_THROW("ERROR in ApplySubdivisionVolumesToTopLevel: wrong specification of markSH.");
 
 //	Catch use of procedure for MultiGrids with just one level
 	if(mg.num_levels() == 1)
@@ -1072,7 +1061,7 @@ void ApplySmoothSubdivisionToTopLevel(MultiGrid& mg, MGSubsetHandler& sh, MGSubs
  *
  *****************************************/
 
-	CalculateNumElemsVertexAttachment(mg, markSH, aNumElems);
+	CalculateNumElemsVertexAttachment(mg, aNumElems);
 
 
 /*****************************************
@@ -1130,7 +1119,7 @@ void ApplySmoothSubdivisionToTopLevel(MultiGrid& mg, MGSubsetHandler& sh, MGSubs
  *****************************************/
 
 //	(5.1) Calculate aSmoothVolPos
-	CalculateSmoothVolumePosInTopLevel(mg, markSH, aSmoothVolPos, aNumElems);
+	CalculateSmoothVolumePosInTopLevel(mg, markSH, aSmoothVolPos);
 
 //	(5.2) Apply SUBDIVISION VOLUMES to aPosition
 	ApplySmoothVolumePosToTopLevel(mg, markSH, linearBndManifoldSubsetsSH, aSmoothVolPos, aNumElems);
@@ -1158,105 +1147,148 @@ void ApplySmoothSubdivisionToTopLevel(MultiGrid& mg, MGSubsetHandler& sh, MGSubs
 }
 
 
-//	Experimental reference mapping test procedures
-void OctReferenceMappingTest(std::vector<number> vCornerCoord0, std::vector<number> vCornerCoord1, std::vector<number> vCornerCoord2,
-						  	 std::vector<number> vCornerCoord3, std::vector<number> vCornerCoord4, std::vector<number> vCornerCoord5,
-							 std::vector<number> vGlobPos)
+//	OCT-TET subdivision mask
+void mask()
 {
-	UG_LOG(">> Starting OctReferenceMappingTest: " << std::endl);
+//	size_t n = 3;
+//
+//	double lin[n][n][n];
+//	double m[2*n-1][2*n-1][2*n-1];
+//
+//	for(size_t i = 0; i < n; ++i)
+//	{
+//		for(size_t j = 0; j < n; ++j)
+//		{
+//			for(size_t k = 0; k < n; ++k)
+//			{
+//				lin[i][j][k] = 0.0;
+//			}
+//		}
+//	}
+//
+//	for(size_t i = 0; i < 2*n-1; ++i)
+//	{
+//		for(size_t j = 0; j < 2*n-1; ++j)
+//		{
+//			for(size_t k = 0; k < 2*n-1; ++k)
+//			{
+//				m[i][j][k] = 0.0;
+//			}
+//		}
+//	}
+//
+//	lin[0][2][0] = 1.0;
+//	lin[1][1][0] = 3.0;
+//	lin[1][2][0] = 3.0;
+//	lin[2][0][0] = 1.0;
+//	lin[2][1][0] = 3.0;
+//	lin[2][2][0] = 1.0;
+//
+//	lin[0][1][1] = 3.0;
+//	lin[0][2][1] = 3.0;
+//	lin[1][0][1] = 3.0;
+//	lin[1][1][1] = 6.0;
+//	lin[1][2][1] = 3.0;
+//	lin[2][0][1] = 3.0;
+//	lin[2][1][1] = 3.0;
+//
+//	lin[0][0][2] = 1.0;
+//	lin[0][1][2] = 3.0;
+//	lin[0][2][2] = 1.0;
+//	lin[1][0][2] = 3.0;
+//	lin[1][1][2] = 3.0;
+//	lin[2][0][2] = 1.0;
+//
+//	for(size_t i = 0; i < n; ++i)
+//	{
+//		for(size_t j = 0; j < n; ++j)
+//		{
+//			for(size_t k = 0; k < n; ++k)
+//			{
+//				for(size_t a = 0; a < n; ++a)
+//				{
+//					for(size_t b = 0; b < n; ++b)
+//					{
+//						for(size_t c = 0; c < n; ++c)
+//						{
+//							m[i+a][j+b][k+c] += lin[i][j][k]*lin[a][b][c];
+//						}
+//					}
+//				}
+//			}
+//		}
+//	}
+//
+//	for(size_t i = 0; i < 2*n-1; ++i)
+//	{
+//		for(size_t k = 0; k < 2*n-1; ++k)
+//		{
+//			for(size_t j = 0; j < 2*n-1; ++j)
+//			{
+//				UG_LOG(m[i][j][k] << "\t ");
+//			}
+//
+//			UG_LOG(" | ");
+//		}
+//
+//		UG_LOG(std::endl);
+//	}
 
-	std::vector<MathVector<3, number> > vCornerCoords;
-	std::vector<MathVector<3, number> > vLocPos(1, 0.0);
-	std::vector<MathVector<3, number> > vGlobPositions;
+//
+// -----------------------------------------------------------------------------
+//
+	size_t n = 3;
 
-	MathVector<3> GlobPos(vGlobPos[0], vGlobPos[1], vGlobPos[2]);
-	vGlobPositions.push_back(GlobPos);
+	double lin[n][n];
+	double m[2*n-1][2*n-1];
 
-	MathVector<3> CornerCoord0(vCornerCoord0[0], vCornerCoord0[1], vCornerCoord0[2]);
-	MathVector<3> CornerCoord1(vCornerCoord1[0], vCornerCoord1[1], vCornerCoord1[2]);
-	MathVector<3> CornerCoord2(vCornerCoord2[0], vCornerCoord2[1], vCornerCoord2[2]);
-	MathVector<3> CornerCoord3(vCornerCoord3[0], vCornerCoord3[1], vCornerCoord3[2]);
-	MathVector<3> CornerCoord4(vCornerCoord4[0], vCornerCoord4[1], vCornerCoord4[2]);
-	MathVector<3> CornerCoord5(vCornerCoord5[0], vCornerCoord5[1], vCornerCoord5[2]);
-
-	vCornerCoords.push_back(CornerCoord0);
-	vCornerCoords.push_back(CornerCoord1);
-	vCornerCoords.push_back(CornerCoord2);
-	vCornerCoords.push_back(CornerCoord3);
-	vCornerCoords.push_back(CornerCoord4);
-	vCornerCoords.push_back(CornerCoord5);
-
-	try
+	for(size_t i = 0; i < n; ++i)
 	{
-		DimReferenceMapping<3, 3>& map = ReferenceMappingProvider::get<3, 3>(ROID_OCTAHEDRON, vCornerCoords);
-		map.global_to_local(vLocPos, vGlobPositions);
+		for(size_t j = 0; j < n; ++j)
+		{
+			lin[i][j] = 0.0;
+		}
 	}
-	UG_CATCH_THROW("OctReferenceMappingTest() could not map global to local.");
 
-	UG_LOG("Calculated vLocPos: " << vLocPos[0] << std::endl);
-}
-
-
-void TetReferenceMappingTest(std::vector<number> vCornerCoord0, std::vector<number> vCornerCoord1, std::vector<number> vCornerCoord2,
-						  	 std::vector<number> vCornerCoord3, std::vector<number> vGlobPos)
-{
-	UG_LOG(">> Starting TetReferenceMappingTest: " << std::endl);
-
-	std::vector<MathVector<3, number> > vCornerCoords;
-	std::vector<MathVector<3, number> > vLocPos(1, 0.0);
-	std::vector<MathVector<3, number> > vGlobPositions;
-
-	MathVector<3> GlobPos(vGlobPos[0], vGlobPos[1], vGlobPos[2]);
-	vGlobPositions.push_back(GlobPos);
-
-	MathVector<3> CornerCoord0(vCornerCoord0[0], vCornerCoord0[1], vCornerCoord0[2]);
-	MathVector<3> CornerCoord1(vCornerCoord1[0], vCornerCoord1[1], vCornerCoord1[2]);
-	MathVector<3> CornerCoord2(vCornerCoord2[0], vCornerCoord2[1], vCornerCoord2[2]);
-	MathVector<3> CornerCoord3(vCornerCoord3[0], vCornerCoord3[1], vCornerCoord3[2]);
-
-	vCornerCoords.push_back(CornerCoord0);
-	vCornerCoords.push_back(CornerCoord1);
-	vCornerCoords.push_back(CornerCoord2);
-	vCornerCoords.push_back(CornerCoord3);
-
-	try
+	for(size_t i = 0; i < 2*n-1; ++i)
 	{
-		DimReferenceMapping<3, 3>& map = ReferenceMappingProvider::get<3, 3>(ROID_TETRAHEDRON, vCornerCoords);
-		map.global_to_local(vLocPos, vGlobPositions);
+		for(size_t j = 0; j < 2*n-1; ++j)
+		{
+			m[i][j] = 0.0;
+		}
 	}
-	UG_CATCH_THROW("TetReferenceMappingTest() could not map global to local.");
 
-	UG_LOG("Calculated vLocPos: " << vLocPos[0] << std::endl);
-	UG_LOG("PointIsInsideTetrahedron: " << PointIsInsideTetrahedron(GlobPos, CornerCoord0, CornerCoord1, CornerCoord2, CornerCoord3) << std::endl);
-}
+	lin[0][1] = 1.0;
+	lin[0][2] = 1.0;
+	lin[1][0] = 1.0;
+	lin[1][1] = 2.0;
+	lin[1][2] = 1.0;
+	lin[2][0] = 1.0;
+	lin[2][1] = 1.0;
 
-
-void EdgeReferenceMappingTest(std::vector<number> vCornerCoord0, std::vector<number> vCornerCoord1,
-							  std::vector<number> vGlobPos)
-{
-	UG_LOG(">> Starting EdgeReferenceMappingTest: " << std::endl);
-
-	std::vector<MathVector<3, number> > vCornerCoords;
-	std::vector<MathVector<1, number> > vLocPos(1, 0.0);
-	std::vector<MathVector<3, number> > vGlobPositions;
-
-	MathVector<3> GlobPos(vGlobPos[0], vGlobPos[1], vGlobPos[2]);
-	vGlobPositions.push_back(GlobPos);
-
-	MathVector<3> CornerCoord0(vCornerCoord0[0], vCornerCoord0[1], vCornerCoord0[2]);
-	MathVector<3> CornerCoord1(vCornerCoord1[0], vCornerCoord1[1], vCornerCoord1[2]);
-
-	vCornerCoords.push_back(CornerCoord0);
-	vCornerCoords.push_back(CornerCoord1);
-
-	try
+	for(size_t i = 0; i < n; ++i)
 	{
-		DimReferenceMapping<1, 3>& map = ReferenceMappingProvider::get<1, 3>(ROID_EDGE, vCornerCoords);
-		map.global_to_local(vLocPos, vGlobPositions);
+		for(size_t j = 0; j < n; ++j)
+		{
+			for(size_t k = 0; k < n; ++k)
+			{
+				for(size_t l = 0; l < n; ++l)
+				{
+					m[i+k][j+l] += lin[i][j]*lin[k][l];
+				}
+			}
+		}
 	}
-	UG_CATCH_THROW("EdgeReferenceMappingTest() could not map global to local.");
 
-	UG_LOG("Calculated vLocPos: " << vLocPos[0] << std::endl);
+	for(size_t i = 0; i < 2*n-1; ++i)
+	{
+		for(size_t j = 0; j < 2*n-1; ++j)
+		{
+			UG_LOG(m[i][j] << "\t");
+		}
+
+		UG_LOG(std::endl);
+	}
 }
 
 
