@@ -38,7 +38,6 @@
 #include "lib_grid/algorithms/refinement/hanging_node_refiner_multi_grid.h"
 #include "lib_grid/algorithms/refinement/refinement_projectors/loop_subdivision_projectors.h"
 #include "lib_grid/algorithms/subdivision/subdivision_loop.h"
-#include "lib_grid/algorithms/subdivision/subdivision_volumes.h"
 #include "lib_grid/file_io/file_io.h"
 
 #ifdef UG_PARALLEL
@@ -121,26 +120,6 @@ bool CreateSmoothHierarchy(MultiGrid& mg, size_t numRefs)
 	return true;
 }
 
-bool CreateSmoothVolumeHierarchy(MultiGrid& mg, MGSubsetHandler& sh, MGSubsetHandler& markSH,
-								 size_t numRefs, const char* linearBndManifoldSubsets)
-{
-	PROFILE_FUNC_GROUP("grid");
-
-	GlobalMultiGridRefiner ref(mg);
-
-	for(size_t lvl = 0; lvl < numRefs; ++lvl){
-		ref.refine();
-		ApplySmoothSubdivisionToTopLevel(mg, sh, markSH, linearBndManifoldSubsets);
-	}
-
-	//if(g_boundaryRefinementRule == SUBDIV_LOOP)
-		//ProjectToLimitPLoop(mg, aPosition, aPosition);
-
-	ProjectHierarchyToLimitSubdivisionVolume(mg);
-
-	return true;
-}
-
 bool CreateSemiSmoothHierarchy(MultiGrid& mg, size_t numRefs)
 {
 	PROFILE_FUNC_GROUP("grid");
@@ -174,19 +153,6 @@ bool CreateSemiSmoothHierarchy(MultiGrid& mg, size_t numRefs)
 
 	delete refCallback;
 	return true;
-}
-
-void SetBoundaryRefinementRule(std::string bndRefRule)
-{
-	bndRefRule = ToLower(bndRefRule);
-	if(bndRefRule.compare("linear") == 0)
-		SetBoundaryRefinementRule(LINEAR);
-	else if(bndRefRule.compare("subdiv_loop") == 0)
-		SetBoundaryRefinementRule(SUBDIV_LOOP);
-	else if(bndRefRule.compare("subdiv_vol") == 0)
-		SetBoundaryRefinementRule(SUBDIV_VOL);
-	else
-		UG_THROW("ERROR in SetBoundaryRefinementRule: Unknown boundary refinement rule! Known rules are: 'linear', 'subdiv_loop' or 'subdiv_vol'.");
 }
 
 void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
@@ -276,16 +242,7 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 	reg.add_function("TestSubdivision", &TestSubdivision, grp)
 		.add_function("CreateHierarchy", &CreateHierarchy, grp)
 		.add_function("CreateSmoothHierarchy", &CreateSmoothHierarchy, grp)
-		.add_function("CreateSmoothVolumeHierarchy", &CreateSmoothVolumeHierarchy, grp)
 		.add_function("CreateSemiSmoothHierarchy", &CreateSemiSmoothHierarchy, grp);
-
-//	smooth volume subdivision
-	reg.add_function("ApplySmoothSubdivisionToTopLevel", &ApplySmoothSubdivisionToTopLevel, grp);
-	reg.add_function("ProjectHierarchyToLimitSubdivisionVolume", &ProjectHierarchyToLimitSubdivisionVolume, grp);
-
-//	register boundary refinement rule switch function for Subdivision Volumes smoothing
-	reg.add_function("SetBoundaryRefinementRule", &SetBoundaryRefinementRule, grp, "", "bndRefRule",
-			"Sets the boundary refinement rule used during Subdivision Volumes smoothing. Possible parameters: 'linear', 'subdiv_loop");
 }
 
 }//	end of namespace

@@ -54,6 +54,7 @@
 #include "lib_grid/algorithms/refinement/refinement_projectors/loop_subdivision_projectors.h"
 #include "lib_grid/algorithms/refinement/refinement_projectors/fractal_projector.h"
 #include "lib_grid/algorithms/refinement/ref_mark_adjusters/horizontal_anisotropy_adjuster.h"
+#include "lib_grid/algorithms/subdivision/subdivision_volumes.h"
 #include "lib_grid/grid_objects/tetrahedron_rules.h"
 
 using namespace std;
@@ -1232,6 +1233,21 @@ void SetTetRefinementRule(std::string ruleName)
 	}
 }
 
+void SetSmoothSubdivisionVolumesBoundaryRefinementRule(std::string bndRefRule)
+{
+	bndRefRule = ToLower(bndRefRule);
+	if(bndRefRule.compare("linear") == 0)
+		SetBoundaryRefinementRule(LINEAR);
+	else if(bndRefRule.compare("subdiv_surf_loop_scheme") == 0)
+		SetBoundaryRefinementRule(SUBDIV_SURF_LOOP_SCHEME);
+	else if(bndRefRule.compare("subdiv_surf_averaging_scheme") == 0)
+		SetBoundaryRefinementRule(SUBDIV_SURF_AVERAGING_SCHEME);
+	else if(bndRefRule.compare("subdiv_vol") == 0)
+		SetBoundaryRefinementRule(SUBDIV_VOL);
+	else
+		UG_THROW("ERROR in SetBoundaryRefinementRule: Unknown boundary refinement rule! Known rules are: 'linear', 'subdiv_surf_loop_scheme', 'subdiv_surf_averaging_scheme' or 'subdiv_vol'.");
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -1263,6 +1279,12 @@ static void Common(Registry& reg, string grp)
 //	register refinement rule switch function
 	reg.add_function("SetTetRefinementRule", &SetTetRefinementRule, grp, "", "refRuleName",
 			"Sets the refinement rule which is used to refine tetrahedrons. Possible parameters: 'standard', 'hybrid_tet_oct");
+//	register boundary refinement rule switch function for Subdivision Volumes smoothing
+	reg.add_function("SetSmoothSubdivisionVolumesBoundaryRefinementRule", &SetSmoothSubdivisionVolumesBoundaryRefinementRule, grp, "", "bndRefRule",
+			"Sets the boundary refinement rule used during Subdivision Volumes smoothing. Possible parameters: 'linear', 'subdiv_surf_loop_scheme', 'subdiv_surf_averaging_scheme' or 'subdiv_vol'.");
+//	smooth volume subdivision
+	reg.add_function("ApplySmoothSubdivisionVolumesToTopLevel", &ApplySmoothSubdivisionVolumesToTopLevel, grp);
+	reg.add_function("ProjectHierarchyToLimitSubdivisionVolume", &ProjectHierarchyToLimitSubdivisionVolume, grp);
 
 	reg.add_function("MarkNeighborsForFullRefinement",
 				&MarkNeighborsForFullRefinement,

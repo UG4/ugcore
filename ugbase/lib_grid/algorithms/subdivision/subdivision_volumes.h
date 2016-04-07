@@ -60,7 +60,8 @@ namespace ug
 enum GlobalBoundaryRefinementRule
 {
 	LINEAR,
-	SUBDIV_LOOP,
+	SUBDIV_SURF_LOOP_SCHEME,
+	SUBDIV_SURF_AVERAGING_SCHEME,
 	SUBDIV_VOL
 };
 
@@ -989,7 +990,7 @@ void InitLinearBndManifoldSubsetsSubsetHandler(MultiGrid& mg, MGSubsetHandler& s
  * 	@param markSH						reference to SubsetHandler containing marked (inner) boundary manifold
  * 	@param linearBndManifoldSubsets 	user-specified linearBndManifoldSubsets
 **/
-void ApplySmoothSubdivisionToTopLevel(MultiGrid& mg, MGSubsetHandler& sh, MGSubsetHandler& markSH, const char* linearBndManifoldSubsets)
+void ApplySmoothSubdivisionVolumesToTopLevel(MultiGrid& mg, MGSubsetHandler& sh, MGSubsetHandler& markSH, const char* linearBndManifoldSubsets)
 {
 	PROFILE_FUNC_GROUP("subdivision_volumes");
 
@@ -1095,7 +1096,7 @@ void ApplySmoothSubdivisionToTopLevel(MultiGrid& mg, MGSubsetHandler& sh, MGSubs
  *
  *****************************************/
 
-	if(g_boundaryRefinementRule == SUBDIV_LOOP)
+	if(g_boundaryRefinementRule == SUBDIV_SURF_LOOP_SCHEME)
 	{
 	//	(4.1) Calculate aSmoothBndPosEvenVrt, aSmoothBndPosOddVrt
 		CalculateSmoothManifoldPosInParentLevel(mg, markSH, linearBndManifoldSubsetsSH, aSmoothBndPosEvenVrt, aSmoothBndPosOddVrt, aNumManifoldEdges);
