@@ -60,7 +60,8 @@ namespace ug
 enum GlobalBoundaryRefinementRule
 {
 	LINEAR,
-	SUBDIV_LOOP,
+	SUBDIV_SURF_LOOP_SCHEME,
+	SUBDIV_SURF_AVERAGING_SCHEME,
 	SUBDIV_VOL
 };
 
@@ -409,8 +410,8 @@ void ApplySmoothManifoldPosToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
  * 	@param mg							reference to MultiGrid
  * 	@param markSH						reference to SubsetHandler markSH containing marked (inner) boundary manifold
  * 	@param linearBndManifoldSubsetsSH	reference to user-specified linearBndManifoldSubsets SubsetHandler
- * 	@param aSmoothBndPosEvenVrt			reference to aSmoothBndPosEvenVrt
- * 	@param aSmoothBndPosOddVrt			reference to aSmoothBndPosOddVrt
+ * 	@param aSmoothVolPos				reference to aSmoothVolPos
+ * 	@param aNumElems					reference to aNumElems
 **/
 void ApplySmoothVolumePosToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
 									MGSubsetHandler& linearBndManifoldSubsetsSH,
@@ -665,10 +666,9 @@ void CalculateSmoothManifoldPosInParentLevel(MultiGrid& mg, MGSubsetHandler& mar
  * 	@param mg				reference to MultiGrid
  * 	@param markSH			reference to SubsetHandler markSH containing marked (inner) boundary manifold
  * 	@param aSmoothVolPos	reference to aSmoothVolPos
- * 	@param aNumElems		reference to aNumElems
 **/
 void CalculateSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
-										APosition& aSmoothVolPos, AInt& aNumElems)
+										APosition& aSmoothVolPos)
 {
 	#ifdef UG_PARALLEL
 		DistributedGridManager& dgm = *mg.distributed_grid_manager();
@@ -677,7 +677,6 @@ void CalculateSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
 //	Define attachment accessors
 	Grid::VertexAttachmentAccessor<APosition> aaPos(mg, aPosition);
 	Grid::VertexAttachmentAccessor<APosition> aaSmoothVolPos(mg, aSmoothVolPos);
-	Grid::VertexAttachmentAccessor<AInt> aaNumElems(mg, aNumElems);
 
 //	Declare volume centroid coordinate vector
 	typedef APosition::ValueType pos_type;
@@ -753,9 +752,6 @@ void CalculateSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
 			{
 				UG_THROW("ERROR in CalculateSmoothVolumePosInTopLevel: Volume type not supported for subdivision volumes refinement.");
 			}
-
-		//	Scale smooth vertex position by the number of associated volume elements (SubdivisionVolumes smoothing)
-			//VecScale(aaSmoothVolPos[vrt],  aaSmoothVolPos[vrt], 1.0/aaNumElems[vrt]);
 		}
 	}
 
@@ -776,10 +772,9 @@ void CalculateSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
  * 	for all toplevel vertices.
  *
  * 	@param mg				reference to MultiGrid
- * 	@param markSH			reference to SubsetHandler markSH containing marked (inner) boundary manifold
  * 	@param aNumElems		reference to aNumElems
 **/
-void CalculateNumElemsVertexAttachment(MultiGrid& mg, MGSubsetHandler& markSH, AInt& aNumElems)
+void CalculateNumElemsVertexAttachment(MultiGrid& mg, AInt& aNumElems)
 {
 	#ifdef UG_PARALLEL
 		DistributedGridManager& dgm = *mg.distributed_grid_manager();
@@ -995,7 +990,7 @@ void InitLinearBndManifoldSubsetsSubsetHandler(MultiGrid& mg, MGSubsetHandler& s
  * 	@param markSH						reference to SubsetHandler containing marked (inner) boundary manifold
  * 	@param linearBndManifoldSubsets 	user-specified linearBndManifoldSubsets
 **/
-void ApplySmoothSubdivisionToTopLevel(MultiGrid& mg, MGSubsetHandler& sh, MGSubsetHandler& markSH, const char* linearBndManifoldSubsets)
+void ApplySmoothSubdivisionVolumesToTopLevel(MultiGrid& mg, MGSubsetHandler& sh, MGSubsetHandler& markSH, const char* linearBndManifoldSubsets)
 {
 	PROFILE_FUNC_GROUP("subdivision_volumes");
 
@@ -1004,8 +999,8 @@ void ApplySmoothSubdivisionToTopLevel(MultiGrid& mg, MGSubsetHandler& sh, MGSubs
 		UG_THROW("ERROR in ApplySubdivisionVolumesToTopLevel: Set necessary refinement rule by SetTetRefinementRule('hybrid_tet_oct').");
 
 //	Catch wrong specification of markSH SubsetHandler containing ALL MultiGrid manifolds
-	if(!(markSH.contains_edges(0) && markSH.contains_faces(0) && markSH.contains_vertices(1)))
-		UG_THROW("ERROR in ApplySubdivisionVolumesToTopLevel: wrong specification of markSH.");
+//	if(!(markSH.contains_edges(0) && markSH.contains_faces(0) && markSH.contains_vertices(1)))
+//		UG_THROW("ERROR in ApplySubdivisionVolumesToTopLevel: wrong specification of markSH.");
 
 //	Catch use of procedure for MultiGrids with just one level
 	if(mg.num_levels() == 1)
@@ -1067,7 +1062,7 @@ void ApplySmoothSubdivisionToTopLevel(MultiGrid& mg, MGSubsetHandler& sh, MGSubs
  *
  *****************************************/
 
-	CalculateNumElemsVertexAttachment(mg, markSH, aNumElems);
+	CalculateNumElemsVertexAttachment(mg, aNumElems);
 
 
 /*****************************************
@@ -1101,7 +1096,7 @@ void ApplySmoothSubdivisionToTopLevel(MultiGrid& mg, MGSubsetHandler& sh, MGSubs
  *
  *****************************************/
 
-	if(g_boundaryRefinementRule == SUBDIV_LOOP)
+	if(g_boundaryRefinementRule == SUBDIV_SURF_LOOP_SCHEME)
 	{
 	//	(4.1) Calculate aSmoothBndPosEvenVrt, aSmoothBndPosOddVrt
 		CalculateSmoothManifoldPosInParentLevel(mg, markSH, linearBndManifoldSubsetsSH, aSmoothBndPosEvenVrt, aSmoothBndPosOddVrt, aNumManifoldEdges);
@@ -1125,7 +1120,7 @@ void ApplySmoothSubdivisionToTopLevel(MultiGrid& mg, MGSubsetHandler& sh, MGSubs
  *****************************************/
 
 //	(5.1) Calculate aSmoothVolPos
-	CalculateSmoothVolumePosInTopLevel(mg, markSH, aSmoothVolPos, aNumElems);
+	CalculateSmoothVolumePosInTopLevel(mg, markSH, aSmoothVolPos);
 
 //	(5.2) Apply SUBDIVISION VOLUMES to aPosition
 	ApplySmoothVolumePosToTopLevel(mg, markSH, linearBndManifoldSubsetsSH, aSmoothVolPos, aNumElems);
