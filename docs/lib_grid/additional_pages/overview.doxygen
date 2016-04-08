@@ -201,7 +201,7 @@ for(TriangleIterator iter = mgsh.begin<Triangle>(i, l);
 \endcode
 
 There are even more classes that support this way of geometric-object iteration.
-\sa ug::GeometricObjectCollection
+\sa ug::GridObjectCollection
 
 <br>
 <hr>
