@@ -137,7 +137,7 @@ prep_elem(TElem* elem, const LocalVector& u,
 // 	Load corners of this element
 	for(size_t i = 0; i < m_vCornerCoords.size(); ++i)
 	{
-		VertexBase* vert = elem->vertex(i);
+		Vertex* vert = elem->vertex(i);
 		m_vCornerCoords[i] = m_aaPos[vert];
 	}
 

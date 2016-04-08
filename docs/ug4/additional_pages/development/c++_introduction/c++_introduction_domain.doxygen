@@ -96,17 +96,17 @@ number of grid-vertices to retrieve the center.
 	
 	VecSet(center, 0);
 	
-	if(grid.num<VertexBase>() == 0)
+	if(grid.num<Vertex>() == 0)
 		return center;
 		
-	for(VertexBaseIterator iter = grid.begin<VertexBase>();
-		iter != grid.end<VertexBase>(); ++iter)
+	for(VertexIterator iter = grid.begin<Vertex>();
+		iter != grid.end<Vertex>(); ++iter)
 	{
-		VertexBase* vrt = *iter;
+		Vertex* vrt = *iter;
 		VecAdd(center, center, aaPos[vrt]);
 	}
 	
-	VecScale(center, center, 1. / (number)grid.num<VertexBase>());
+	VecScale(center, center, 1. / (number)grid.num<Vertex>());
 	return center;
 \endcode
 
