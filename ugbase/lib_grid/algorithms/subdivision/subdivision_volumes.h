@@ -554,7 +554,8 @@ void CalculateSmoothManifoldPosInParentLevelLoopScheme(MultiGrid& mg, MGSubsetHa
 			{
 				Edge* e = *eIter;
 
-				if(markSH.get_subset_index(e) != -1 && linearManifoldSubsetsSH.get_subset_index(e) == -1)
+			//	Only consider associated edges, which are marked as manifold edges
+				if(markSH.get_subset_index(e) != -1)
 				{
 				//	Exclude ghost and horizontal slave neighbor vertices from contributing to centroid
 					#ifdef UG_PARALLEL
@@ -628,7 +629,9 @@ void CalculateSmoothManifoldPosInParentLevelLoopScheme(MultiGrid& mg, MGSubsetHa
 
 			for(size_t i = 0; i < associatedFaces.size(); ++i)
 			{
-				if(markSH.get_subset_index(associatedFaces[i]) != -1 && linearManifoldSubsetsSH.get_subset_index(associatedFaces[i]) == -1)
+
+			//	Only consider associated faces, which are marked as manifold faces
+				if(markSH.get_subset_index(associatedFaces[i]) != -1)
 				{
 				//	Exclude ghost and horizontal slave manifold faces
 					#ifdef UG_PARALLEL
@@ -742,7 +745,7 @@ void CalculateSmoothManifoldPosInTopLevelAveragingScheme(MultiGrid& mg, MGSubset
 		if(markSH.get_subset_index(f) != -1 && linearManifoldSubsetsSH.get_subset_index(f) == -1)
 		{
 			if(f->num_vertices() != 3)
-				UG_THROW("ERROR in CalculateSmoothManifoldPosInTopLevelAveragingScheme: only triangles supported.");
+				UG_THROW("ERROR in CalculateSmoothManifoldPosInTopLevelAveragingScheme: Non triangular faces included in grid.");
 
 		//	Iterate over all face vertices, calculate and apply local centroid masks
 			for(size_t i = 0; i < f->num_vertices(); ++i)
@@ -1010,6 +1013,9 @@ void CalculateNumManifoldFacesVertexAttachment(MultiGrid& mg, MGSubsetHandler& m
 	for(FaceIterator fIter = mg.begin<Face>(mg.top_level()); fIter != mg.end<Face>(mg.top_level()); ++fIter)
 	{
 		Face* f = *fIter;
+
+		if(f->num_vertices() != 3)
+			UG_THROW("ERROR in CalculateNumManifoldFacesVertexAttachment: Non triangular faces included in grid.");
 
 	//	Only consider boundary manifold faces
 		if(markSH.get_subset_index(f) != -1)
