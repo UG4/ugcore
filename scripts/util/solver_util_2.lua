@@ -383,10 +383,14 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 		gmg:set_gathered_base_solver_if_ambiguous (
 				desc.gatheredBaseSolverIfAmbiguous or
 				defaults.gatheredBaseSolverIfAmbiguous)
-
+    
+    if desc.debug then gmg:set_debug(desc.debug) end
+    
 		if desc.adaptive == true then
 			local transfer = StdTransfer()
+			print(">>>> Non std. approximation")
 			transfer:enable_p1_lagrange_optimization(false)
+			if (desc.debug) then transfer:set_debug(desc.debug) end
 			gmg:set_transfer(transfer)
 		end
 
