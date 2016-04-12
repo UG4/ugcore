@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2011-2016:  G-CSC, Goethe University Frankfurt
- * Author: Sebastian Reiter
+ * Copyright (c) 2013:  G-CSC, Goethe University Frankfurt
  * 
  * This file is part of UG4.
  * 
@@ -30,22 +29,20 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef __H__UG__rule_util__
-#define __H__UG__rule_util__
+//  This file is parsed from UG 3.9.
+//  It provides the Gauss Quadratures for a reference vertex.
 
-namespace ug{
-namespace shared_rules{
 
-const int MAX_NUM_INDS_OUT = 256;
+#include "../quadrature.h"
+#include "gauss_quad_vertex.h"
 
-/**
- * \todo	add support for snap-vertices.*/
-int RecursiveRefine(int* newIndsOut, int* newEdgeVrts,
-					const int faceVrtInds[][4],
-					const int faceEdgeInds[][4],
-					int numVrts, int numEdges, int numFaces);
+namespace ug {
 
-}//	end of namespace
-}//	end of namespace
+template <>
+number GaussQuadBase<GaussQuadrature<ReferenceVertex, 0>, 0, 0, 1>::m_vWeight[1] = {1.0};
 
-#endif
+template <>
+MathVector<0> GaussQuadBase<GaussQuadrature<ReferenceVertex, 0>, 0, 0, 1>::m_vPoint[1] = {MathVector<0>(0.0)};
+
+}; // namespace ug
+

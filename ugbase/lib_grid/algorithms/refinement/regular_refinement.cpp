@@ -31,6 +31,7 @@
  */
 
 #include <vector>
+#include "boost/container/vector.hpp"	// for bool-vectors
 #include "regular_refinement.h"
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 #include "lib_grid/algorithms/selection_util.h"
@@ -42,7 +43,8 @@ namespace ug
 {
 
 bool Refine(Grid& grid, Selector& sel,
-			IRefinementCallback* refCallback)
+			IRefinementCallback* refCallback,
+			bool useSnapPoints)
 {
 	AInt aInt;
 	if(grid.num<Face>() > 0)
@@ -50,7 +52,7 @@ bool Refine(Grid& grid, Selector& sel,
 	if(grid.num<Volume>() > 0)
 		grid.attach_to_faces(aInt);
 		
-	bool bSuccess = Refine(grid, sel, aInt, refCallback);
+	bool bSuccess = Refine(grid, sel, aInt, refCallback, useSnapPoints);
 
 	if(grid.num<Face>() > 0)
 		grid.detach_from_edges(aInt);
@@ -97,7 +99,8 @@ static void AdjustSelection(Grid& grid, Selector& sel)
 
 
 bool Refine(Grid& grid, Selector& sel, AInt& aInt,
-			IRefinementCallback* refCallback)
+			IRefinementCallback* refCallback,
+			bool useSnapPoints)
 {
 //	position data is required
 	if(!grid.has_vertex_attachment(aPosition)){
@@ -137,16 +140,31 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 		grid.enable_options(VOLOPT_AUTOGENERATE_FACES);
 	}
 	
+//	snap-points are recorded here, since we alter the vertex selection and have
+//	to restore them later on.
+	vector<Vertex*> snapPoints;
+	if(useSnapPoints)
+		snapPoints.insert(snapPoints.end(), sel.begin<Vertex>(), sel.end<Vertex>());
+
 //	adjust selection
 	AdjustSelection(grid, sel);
 
 //	we will select associated vertices, too, since we have to
 //	notify the refinement-callback, that they are involved in refinement.
 	sel.clear<Vertex>();
-	SelectAssociatedVertices(sel, sel.begin<Edge>(), sel.end<Edge>());
-	SelectAssociatedVertices(sel, sel.begin<Face>(), sel.end<Face>());
-	SelectAssociatedVertices(sel, sel.begin<Volume>(), sel.end<Volume>());
+	SelectAssociatedVertices(sel, sel.begin<Edge>(), sel.end<Edge>(), ISelector::SELECTED);
+	SelectAssociatedVertices(sel, sel.begin<Face>(), sel.end<Face>(), ISelector::SELECTED);
+	SelectAssociatedVertices(sel, sel.begin<Volume>(), sel.end<Volume>(), ISelector::SELECTED);
 	
+//	select snap-vertices with a special mark
+	const ISelector::status_t snapSelVal = ISelector::SELECTED + 1;
+	if(useSnapPoints){
+		for(vector<Vertex*>::iterator iter = snapPoints.begin();
+			iter != snapPoints.end(); ++iter)
+		{
+			sel.select(*iter, snapSelVal);
+		}
+	}
 
 //	aInt has to be attached to the edges of the grid
 	if(sel.num<Face>() > 0 && (!grid.has_edge_attachment(aInt))){
@@ -270,7 +288,24 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 				faceEdgeVrts.push_back(NULL);
 		}
 
-		if(f->refine(newFaces, &newVrt, &faceEdgeVrts.front())){
+		int snapPointIndex = -1;
+		if(useSnapPoints){
+			Face::ConstVertexArray vrts = f->vertices();
+			const size_t numVrts = f->num_vertices();
+			for(size_t s = 0; s < numVrts; ++s){
+				if(sel.get_selection_status(vrts[s]) == snapSelVal){
+					if(snapPointIndex != -1){
+						UG_LOG("WARNING: Only one snap-point per face is allowed, "
+							"but more are present. Ignoring snap-points for this face.\n");
+						snapPointIndex = -1;
+						break;
+					}
+					snapPointIndex = static_cast<int>(s);
+				}
+			}
+		}
+
+		if(f->refine(newFaces, &newVrt, &faceEdgeVrts.front(), NULL, NULL, snapPointIndex)){
 		//	if a new vertex was generated, we have to register it
 			if(newVrt){
 				grid.register_element(newVrt, f);
@@ -325,6 +360,9 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 // 	UG_LOG("> DEBUG-ACCESSOR...\n");
 // 	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPosition);
 
+	boost::container::vector<bool> isSnapPoint;
+	if(useSnapPoints)
+		isSnapPoint.reserve(8);
 
 	for(size_t i = 0; i < vols.size(); ++i){
 		Volume* v = vols[i];
@@ -361,10 +399,26 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 			pCorners = &corners.front();
 		}
 
-		// UG_LOG("v " << CalculateCenter(v, aaPos) << "\n");
+		bool* pIsSnapPoint = NULL;
+		if(useSnapPoints){
+			Volume::ConstVertexArray vrts = v->vertices();
+			const size_t numVrts = v->num_vertices();
+			isSnapPoint.clear();
+
+			bool gotOne = false;
+			for(size_t s = 0; s < numVrts; ++s){
+				const bool val = sel.get_selection_status(vrts[s]) == snapSelVal;
+				isSnapPoint.push_back(val);
+				gotOne = gotOne | val;
+			}
+
+			if(gotOne)
+				pIsSnapPoint = &isSnapPoint.front();
+		}
 
 		if(v->refine(newVols, &newVrt, &volEdgeVrts.front(),
-					&volFaceVrts.front(), NULL, RegularVertex(), NULL, pCorners))
+					&volFaceVrts.front(), NULL, RegularVertex(), NULL,
+					pCorners, pIsSnapPoint))
 		{
 		//	if a new vertex was generated, we have to register it
 			if(newVrt){

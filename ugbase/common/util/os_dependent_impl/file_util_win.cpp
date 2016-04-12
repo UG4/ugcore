@@ -32,11 +32,13 @@
 
 #define _WIN32_IE 0x0501 //0x0400 //required so that SHGetSpecialFolderPath is exposed by shlobj.h
 #include <windows.h>
+#include <direct.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include "shlobj.h"
 #include "common/util/file_util.h"
 #include "common/error.h"
 #include "common/log.h"
-#include <direct.h>
 
 using namespace std;
 
@@ -160,6 +162,19 @@ void ChangeDirectory(std::string dir)
 	if(chdir(dir.c_str()) != 0){
 		UG_THROW("ChangeDirectory failed.");
 	}
+}
+
+std::string CurrentWorkingDirectory()
+{
+	char * p_w_d;
+	
+	if ((p_w_d = _getcwd (NULL, 0)) == NULL )
+		UG_THROW ("CurrentWorkingDirectory: Failed to get the current working path!");
+	
+	std::string the_pwd (p_w_d);
+	free (p_w_d);
+	
+	return the_pwd;
 }
 
 }// end of namespace

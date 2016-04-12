@@ -55,8 +55,8 @@ The class MultiGrid is derived from Grid, and adds a hierarchical structure to t
 <hr>
 Geometric Objects are the building blocks of a grid.
 There are four different basic geometric objects:
-	- ug::VertexBase
-	- ug::EdgeBase
+	- ug::Vertex
+	- ug::Edge
 	- ug::Face
 	- ug::Volume
 	
@@ -71,7 +71,7 @@ For hanging-node support the following objects are introduced:
 	- ug::ConstrainingEdge. ug::ConstrainingEdge
 	- ug::ConstrainingTriangle, ug::ConstrainingQuadrilateral, ug::ConstrainedTriangle, ug::ConstrainedQuadrilateral
 	
-All geometric objects deriving from EdgeBase, Face or Volume feature methods to
+All geometric objects deriving from Edge, Face or Volume feature methods to
 access the vertices of an element:
 	- ug::Face::num_vertices (the number of vertices / corners of the geometric object)
 	- ug::Face::vertex (returns the i-th vertex of the geometric object)
@@ -119,8 +119,8 @@ All those beahviours can be enabled / disabled in the respective classes.
 <hr>
 libGrid uses the technique of iterators for geometric-object access.
 A separate iterator-type exists for each object-type:
-	- ug::VertexBaseIterator, ug::VertexIterator, ...
-	- ug::EdgeBaseIterator, ug::EdgeIterator, ...
+	- ug::VertexIterator, ug::RegularVertexIterator, ...
+	- ug::EdgeIterator, ug::RegularEdgeIterator, ...
 	- ug::FaceIterator, ug::TriangleIterator, ug::QuadrilateralIterator, ...
 	- ug::TetrahedronIterator, ug::HexahedronIterator, ug::PrismIterator, ug::PyramidIterator
 	
@@ -131,10 +131,10 @@ specifies the type of geometric-object over which you want to iterate.
 \code
 // Let g be a grid that already contains some geometric objects 
 // iterate over all vertices 
-for(VertexBaseIterator iter = g.begin<VertexBase>();
-	iter != g.end<VertexBase>(); ++iter)
+for(VertexIterator iter = g.begin<Vertex>();
+	iter != g.end<Vertex>(); ++iter)
 {
-	VertexBase* v = *iter;
+	Vertex* v = *iter;
 	...
 }
 
@@ -201,7 +201,7 @@ for(TriangleIterator iter = mgsh.begin<Triangle>(i, l);
 \endcode
 
 There are even more classes that support this way of geometric-object iteration.
-\sa ug::GeometricObjectCollection
+\sa ug::GridObjectCollection
 
 <br>
 <hr>
@@ -209,7 +209,7 @@ There are even more classes that support this way of geometric-object iteration.
 <hr>
 Through attachments custom data can be associated with the geometric objects in a ug::Grid
 or a subset of a ug::GridSubsetHandler or ug::MultiGridSubsetHandler.
-Data is attached to all objects of the same basic type at once (ug::VertexBase, ug::EdgeBase,
+Data is attached to all objects of the same basic type at once (ug::Vertex, ug::Edge,
 ug::Face, ug::Volume).
 
 Lets say we wanted to associate an integer with each vertex in a grid g. This could be done as follows:
@@ -235,7 +235,7 @@ To access the integer-value that is associated with each vertex, an attachment-a
 Grid::VertexAttachmentAccessor<AInt> aaInt(g, aInt);
 
 // iterate over all vertices of the grid and assign 12 to the attached integer-value 
-for(VertexBaseIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); ++iter)
+for(VertexIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); ++iter)
 	aaInt[*iter] = 12;
 \endcode
 
@@ -281,12 +281,12 @@ grid.associated_elements(edges, vol);
 
 //	one could now iterate over the received edges
 for(size_t i = 0; i < edges.size(); ++i){
-	EdgeBase* e = edges[i];
+	Edge* e = edges[i];
 	//...
 }
 \endcode
 
-The code works for all combinations of VertexBase, EdgeBase, Face and Volume.
+The code works for all combinations of Vertex, Edge, Face and Volume.
 Note however, that the method does not guarantee, that the order of the elements
 in the returned container is the same as the order of the reference element, e.g.,
 when collecting sides of a volume. Since some methods rely on the order, a second

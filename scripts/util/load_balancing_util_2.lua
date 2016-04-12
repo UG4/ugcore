@@ -118,13 +118,15 @@ util.balancer.defaults =
 		standard = {
 			minElemsPerProcPerLevel		= 32,
 			maxRedistProcs				= 64,
-			qualityRedistLevelOffset	= 2
+			qualityRedistLevelOffset	= 2,
+			intermediateRedistributions	= true
 		},
 
 		lessRedists = {
 			minElemsPerProcPerLevel		= 32,
 			maxRedistProcs				= 256,
-			qualityRedistLevelOffset	= 3
+			qualityRedistLevelOffset	= 3,
+			intermediateRedistributions	= true
 		}
 	}
 }
@@ -186,11 +188,16 @@ function util.balancer.CreateLoadBalancer(dom, desc)
 
 		rebalance =	function (recordName)
 						local hierarchyDesc = desc.hierarchy or util.balancer.defaults.hierarchy
-						local ph = util.balancer.CreateProcessHierarchy(dom, hierarchyDesc)
+						local ph, et, redistRequired = util.balancer.CreateProcessHierarchy(dom, hierarchyDesc)
 						print("new prochess hierarchy:")
 						print(ph:to_string())
 						loadBalancer:set_next_process_hierarchy(ph)
-						loadBalancer:rebalance()
+
+						if redistRequired then
+							loadBalancer:rebalance()
+						else
+							print("NOTE: skipping rebalance.")
+						end
 						if recordName == nil then recordName = "def-rebal" end
 						loadBalancer:create_quality_record(recordName)
 					end,
@@ -363,6 +370,7 @@ function util.balancer.CreateProcessHierarchy(dom, hierarchyDesc)
 					--	overwrite values from this section
 						maxProcs = val.maxProcs or maxProcs
 						redistProcs = val.maxRedistProcs or redistProcs
+
 						if type(val.hints) == "table" then
 							hints = val.hints
 						end
@@ -408,7 +416,7 @@ function util.balancer.CreateProcessHierarchy(dom, hierarchyDesc)
 
 	if lastDistLvl < 0 then
 		procH:add_hierarchy_level(0, 1)
-		return procH, elemThreshold
+		return procH, elemThreshold, false
 	end
 
 	if curProcs == numComputeProcs then
@@ -422,5 +430,27 @@ function util.balancer.CreateProcessHierarchy(dom, hierarchyDesc)
 			end
 		end
 	end
-	return procH, elemThreshold
+
+--	check if redistribution is required, e.g. because intermediate redists are activated
+--	or because a new dist level has been reached.
+	local toplvl = domInfo:num_levels() - 1
+	local interRedists = desc.intermediateRedistributions
+	if interRedists == nil then
+		interRedists = defaults.intermediateRedistributions
+	end
+	for name, val in pairs(desc) do
+		if type(val) == "table" then
+			if val.upperLvl == nil or val.upperLvl >= toplvl then
+				if val.intermediateRedistributions ~= nil then
+					interRedists = val.intermediateRedistributions
+				end
+				break
+			end
+		end
+	end
+	local redistRequired = interRedists
+ 				or procH:grid_base_level(procH:hierarchy_level_from_grid_level(toplvl)) == toplvl
+
+
+	return procH, elemThreshold, redistRequired
 end

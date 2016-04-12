@@ -1,4 +1,4 @@
--- Copyright (c) 2015:  G-CSC, Goethe University Frankfurt
+-- Copyright (c) 2016:  G-CSC, Goethe University Frankfurt
 -- Author: Sebastian Reiter
 -- 
 -- This file is part of UG4.
@@ -28,44 +28,37 @@
 -- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 -- GNU Lesser General Public License for more details.
 
--- This script contains some simple helper methods that assist in parsing
--- descriptor tables. Use-examples are e.g. solver_util.lua and
--- load_balancing_util_2.lua
+ug_load_script("load_balancing_util_2.lua")
 
 util = util or {}
-util.tableDesc = util.tableDesc or {}
+util.refinement = util.refinement or {}
 
-function util.tableDesc.CondAbort(condition, message)
-	if condition == true then
-		print("ERROR in util.tableDesc: " .. message)
-		exit()
-	end
-end
+--! Creates a regular hierarchy through global refinement. Redistribution
+--! is handled through 'load_balancing_util_2.lua'. To this end a balancerDesc
+--! may optionally be specified, which is used to create the invloved balancer.
+--!
+--! @param dom			(Domain) the domain on which a hierarchy shall be created
+--! @param numRefs		(integer) the number of refinements that shall be performed
+--! @param verbose		(boolean)(optional)	if 'true', information on refinements and
+--!							distribution-qualities are printed.
+--! @param balancerDesc	(string or table)(optional) a descriptor according to
+--!							"load_balancing_util_2.lua"
+function util.refinement.CreateRegularHierarchy(dom, numRefs, verbose, balancerDesc)
+	local ref = GlobalDomainRefiner(dom)
+	local bal = util.balancer.CreateLoadBalancer(dom, balancerDesc)
 
-function util.tableDesc.IsPreset(desc)
-	if type(desc) == "userdata" then
-		return true
-	else
-		return false
-	end
-end
+	bal.rebalance()
 
-function util.tableDesc.ToNameAndDesc(descOrName)
-	if type(descOrName) == "string" then
-		return descOrName, nil
-	elseif type(descOrName) == "table" then
-		if descOrName.type then
-			util.tableDesc.CondAbort(type(descOrName.type) ~= "string",
-									 "'type' entry in table has to be of type 'string'")
-			return descOrName.type, descOrName
-		elseif descOrName.name then
-			util.tableDesc.CondAbort(type(descOrName.name) ~= "string",
-									 "'name' entry in table has to be of type 'string'")
-			return descOrName.name, descOrName
-		else
-			print("Either 'type' or 'name' have to be specified in a descriptor-table")
-			exit()
+	for i = 1, numRefs do
+		if verbose then
+			print("- refining level " .. i-1)
 		end
+		ref:refine()
+		bal.rebalance("adaption-"..i)
 	end
-	util.tableDesc.CondAbort(true, "Invalid name or descriptor specified!")
+
+	if verbose and NumProcs() > 1 then
+		print("\nDistribution quality statistics:")
+		bal.print_quality_records()
+	end
 end

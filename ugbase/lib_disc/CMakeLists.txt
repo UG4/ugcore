@@ -67,6 +67,7 @@ set(srcDiscretization	domain.cpp
 						quadrature/gauss_jacobi/gauss_jacobi20.cpp
 						quadrature/gauss_jacobi/gauss_jacobi10.cpp
 						quadrature/gauss_tensor_prod/gauss_tensor_prod.cpp
+						quadrature/gauss/gauss_quad_vertex.cpp
 						quadrature/gauss/gauss_quad_edge.cpp
 						quadrature/gauss/gauss_quad_triangle.cpp
 						quadrature/gauss/gauss_quad_quadrilateral.cpp

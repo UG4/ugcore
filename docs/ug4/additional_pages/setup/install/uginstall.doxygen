@@ -32,7 +32,7 @@
 
 
 /** \page pageUginstall uginstall - Scripts for installation
-\note UG4 is now longer available through SVN. Instead it is now available with git from github.com/UG4. The hints below may still be partially useful to some.
+\note UG4 is no longer available through SVN. Instead it is now available with git from github.com/UG4. The hints below may still be partially useful to some.
 
 uginstall is a number of small shell scripts to install some software without having root.
 By now, it is very preliminary and not guaranteed to work on all machines.

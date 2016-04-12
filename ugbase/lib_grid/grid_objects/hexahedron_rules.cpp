@@ -48,7 +48,8 @@ void RotateQuad(int vrtsOut[4], const int quad[4], int steps)
 		vrtsOut[(i + steps) % 4] = quad[i];
 }
 
-int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
+int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*,
+		   bool* isSnapPoint)
 {
 	newCenterOut = false;
 //	If a refinement rule is not implemented, fillCount will stay at 0.
@@ -76,6 +77,17 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 			++cornerStatus[evi[1]];
 		}
 	}
+
+//	snap-point handling
+	int numSnapPoints = 0;
+	if(isSnapPoint){
+		for(int i = 0; i < NUM_VERTICES; ++i){
+			if(isSnapPoint[i])
+				++numSnapPoints;
+		}
+	}
+
+	bool snapPointsProcessed = numSnapPoints == 0 ? true : false;
 
 //	the fillCount tells how much data has already been written to newIndsOut.
 	int fillCount = 0;
@@ -176,17 +188,43 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 			int& fi = fillCount;
 			int* inds = newIndsOut;
 
-			inds[fi++] = GOID_PRISM;
-			inds[fi++] = f[0];	inds[fi++] = f[1];	inds[fi++] = v0;
-			inds[fi++] = of[0];	inds[fi++] = of[1];	inds[fi++] = v1;
+			if(numSnapPoints == 2){
+			//	two cases are supported.
+				if(isSnapPoint[f[0]] && isSnapPoint[of[0]]){
+					inds[fi++] = GOID_PRISM;
+					inds[fi++] = f[0];	inds[fi++] = f[1];	inds[fi++] = v0;
+					inds[fi++] = of[0];	inds[fi++] = of[1];	inds[fi++] = v1;
 
-			inds[fi++] = GOID_PRISM;
-			inds[fi++] = f[0];	inds[fi++] = v0;	inds[fi++] = f[3];
-			inds[fi++] = of[0];	inds[fi++] = v1;	inds[fi++] = of[3];
+					inds[fi++] = GOID_HEXAHEDRON;
+					inds[fi++] = f[0];	inds[fi++] = v0;	inds[fi++] = f[2];	inds[fi++] = f[3];
+					inds[fi++] = of[0];	inds[fi++] = v1;	inds[fi++] = of[2];	inds[fi++] = of[3];
+					snapPointsProcessed = true;
+				}
+				else if(isSnapPoint[f[3]] && isSnapPoint[of[3]]){
+					inds[fi++] = GOID_PRISM;
+					inds[fi++] = f[2];	inds[fi++] = f[3];	inds[fi++] = v0;
+					inds[fi++] = of[2];	inds[fi++] = of[3];	inds[fi++] = v1;
 
-			inds[fi++] = GOID_PRISM;
-			inds[fi++] = f[2];	inds[fi++] = f[3];	inds[fi++] = v0;
-			inds[fi++] = of[2];	inds[fi++] = of[3];	inds[fi++] = v1;
+					inds[fi++] = GOID_HEXAHEDRON;
+					inds[fi++] = f[0];	inds[fi++] = f[1];	inds[fi++] = v0;	inds[fi++] = f[3];
+					inds[fi++] = of[0];	inds[fi++] = of[1];	inds[fi++] = v1;	inds[fi++] = of[3];
+					snapPointsProcessed = true;
+				}
+			}
+
+			if(numSnapPoints == 0 || !snapPointsProcessed){
+				inds[fi++] = GOID_PRISM;
+				inds[fi++] = f[0];	inds[fi++] = f[1];	inds[fi++] = v0;
+				inds[fi++] = of[0];	inds[fi++] = of[1];	inds[fi++] = v1;
+
+				inds[fi++] = GOID_PRISM;
+				inds[fi++] = f[0];	inds[fi++] = v0;	inds[fi++] = f[3];
+				inds[fi++] = of[0];	inds[fi++] = v1;	inds[fi++] = of[3];
+
+				inds[fi++] = GOID_PRISM;
+				inds[fi++] = f[2];	inds[fi++] = f[3];	inds[fi++] = v0;
+				inds[fi++] = of[2];	inds[fi++] = of[3];	inds[fi++] = v1;
+			}
 		}break;
 
 		case 4:
@@ -397,6 +435,10 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 		//	the rule requires a new center vertex
 			newCenterOut = true;
 		}break;
+	}
+
+	if(!snapPointsProcessed){
+		UG_LOG("WARNING: Invalid or unsupported snap-point distribution detected. Ignoring snap-points for this element.\n");
 	}
 
 	if(fillCount == 0){

@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2011-2016:  G-CSC, Goethe University Frankfurt
- * Author: Sebastian Reiter
+ * Copyright (c) 2012-2015:  G-CSC, Goethe University Frankfurt
+ * Author: Martin Stepniewski
  * 
  * This file is part of UG4.
  * 
@@ -30,22 +30,32 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef __H__UG__rule_util__
-#define __H__UG__rule_util__
+// extern headers
+#include <iostream>
+#include <sstream>
+#include <string>
+
+// include bridge
+#include "bridge/bridge.h"
+#include "bridge/util.h"
+
+// lib_disc includes
+#include "lib_disc/reference_element/reference_mapping_test.h"
+
+using namespace std;
 
 namespace ug{
-namespace shared_rules{
+namespace bridge{
 
-const int MAX_NUM_INDS_OUT = 256;
+/// \addtogroup ordering_bridge
+void RegisterBridge_ReferenceMappingTest(Registry& reg, string grp)
+{
+	grp.append("/Discretization");
 
-/**
- * \todo	add support for snap-vertices.*/
-int RecursiveRefine(int* newIndsOut, int* newEdgeVrts,
-					const int faceVrtInds[][4],
-					const int faceEdgeInds[][4],
-					int numVrts, int numEdges, int numFaces);
+	reg.add_function("OctReferenceMappingTest", &OctReferenceMappingTest, grp)
+	   .add_function("TetReferenceMappingTest", &TetReferenceMappingTest, grp)
+	   .add_function("EdgeReferenceMappingTest", &EdgeReferenceMappingTest, grp);
+}
 
-}//	end of namespace
-}//	end of namespace
-
-#endif
+}//	end of namespace bridge
+}//	end of namespace ug

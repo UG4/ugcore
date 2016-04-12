@@ -348,7 +348,7 @@ node_value (const MultiIndex& mi)
 }
 
 template <class T, int TDIM>
-const T& Raster<T, TDIM>::
+T Raster<T, TDIM>::
 node_value (const MultiIndex& mi) const
 {
 	return m_data[data_index(mi)];
@@ -476,7 +476,7 @@ set_no_data_value(const T& val)
 }
 
 template <class T, int TDIM>
-const T& Raster<T, TDIM>::
+T Raster<T, TDIM>::
 no_data_value() const
 {
 	return m_noDataValue;
@@ -500,13 +500,13 @@ select_node (const MultiIndex& mi)
 
 template <class T, int TDIM>
 void Raster<T, TDIM>::
-set_selected_node_value (const T& val)
+set_selected_node_value (T val)
 {
 	node_value(m_selNode) = val;
 }
 
 template <class T, int TDIM>
-const T& Raster<T, TDIM>::
+T Raster<T, TDIM>::
 selected_node_value () const
 {
 	return node_value(m_selNode);
@@ -788,24 +788,18 @@ interpolate_linear (
 		Coordinate& localCoord,
 		int curDim) const
 {
+	if(curDim == 0)
+		return node_value(minNodeInd);
+
 	MultiIndex miMax = minNodeInd;
 	miMax[curDim - 1] += 1;
 
-	T val0;
-	T val1;
-
-	if(curDim == 0){
-		val0 = node_value(minNodeInd);
-		val1 = node_value(miMax);
-	}
-	else{
-		val0 = interpolate_linear(minNodeInd, localCoord, curDim - 1);
-		val1 = interpolate_linear(miMax, localCoord, curDim - 1);
-	}
+	T val0 = interpolate_linear(minNodeInd, localCoord, curDim - 1);
+	T val1 = interpolate_linear(miMax, localCoord, curDim - 1);
 
 //	perform linear interpolation
-	val0 *= (1. - localCoord[curDim]);
-	val1 *= localCoord[curDim];
+	val0 *= (1. - localCoord[curDim - 1]);
+	val1 *= localCoord[curDim - 1];
 	val0 += val1;
 	return val0;
 }

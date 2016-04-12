@@ -173,11 +173,20 @@ const int FACE_FROM_EDGES[][9] =
  *
  * \param corners		Ignored.
  *
+ * \param isSnapPoint	(optional) An array of size NUM_VERTICES. If all entries
+ *						are set to 'false' the behaviour is the same as if the
+ *						array wasn't specified.
+ *						If a corner of a quadrilateral is a snap-point and if
+ *						edges of that quadrilateral are refined, then only new
+ *						edges connected to the snap-point are introduced.
+ *						Note that only special snap-point constellations
+ *						are supported.
+ *
  * \returns	the number of entries written to newIndsOut or 0, if the refinement
  * 			could not be performed.
  */
 int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut,
-		   vector3* corners = NULL);
+		   vector3* corners = NULL, bool* isSnapPoint = NULL);
 
 
 /// fills an array of integers describing tetrahedra that shall replace the prism

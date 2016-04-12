@@ -52,7 +52,7 @@ void RotatePrism(int vrtsOut[NUM_VERTICES], int steps)
 }
 
 
-int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
+int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*, bool* isSnapPoint)
 {
 	newCenterOut = false;
 //	If a refinement rule is not implemented, fillCount will stay at 0.
@@ -80,6 +80,17 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 			++cornerStatus[evi[1]];
 		}
 	}
+
+//	snap-point handling
+	int numSnapPoints = 0;
+	if(isSnapPoint){
+		for(int i = 0; i < NUM_VERTICES; ++i){
+			if(isSnapPoint[i])
+				++numSnapPoints;
+		}
+	}
+
+	bool snapPointsProcessed = numSnapPoints == 0 ? true : false;
 
 //	the fillCount tells how much data has already been written to newIndsOut.
 	int fillCount = 0;
@@ -158,24 +169,50 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 				int& fi = fillCount;
 				int* inds = newIndsOut;
 
+				const int e3 = EDGE_FROM_VRTS[p[0]][p[3]] + E;
+				const int e5 = EDGE_FROM_VRTS[p[2]][p[5]] + E;
+
 			//	check whether the cut is horizontal or vertical (ignore others)
 				if(IS_SIDE_EDGE[re0] && IS_SIDE_EDGE[re1]){
 				//	horizontal cut
-				//	build two pyramids and a tetrahedron.
-					const int e3 = EDGE_FROM_VRTS[p[0]][p[3]] + E;
-					const int e5 = EDGE_FROM_VRTS[p[2]][p[5]] + E;
+					if(numSnapPoints == 1){
+					//	build a pyramid and a prism
+						if(isSnapPoint[p[1]]){
+							inds[fi++] = GOID_PYRAMID;
+							inds[fi++] = p[0];	inds[fi++] = p[2];	inds[fi++] = e5;
+							inds[fi++] = e3;	inds[fi++] = p[1];
 
-					inds[fi++] = GOID_PYRAMID;
-					inds[fi++] = p[0];	inds[fi++] = p[2];	inds[fi++] = e5;
-					inds[fi++] = e3;	inds[fi++] = p[1];
+							inds[fi++] = GOID_PRISM;
+							inds[fi++] = e3;	inds[fi++] = p[1];	inds[fi++] = e5;
+							inds[fi++] = p[3];	inds[fi++] = p[4];	inds[fi++] = p[5];
+							snapPointsProcessed = true;
+						}
+						else if(isSnapPoint[p[4]]){
+							inds[fi++] = GOID_PYRAMID;
+							inds[fi++] = e3;	inds[fi++] = e5;	inds[fi++] = p[5];
+							inds[fi++] = p[3];	inds[fi++] = p[4];
 
-					inds[fi++] = GOID_PYRAMID;
-					inds[fi++] = e3;	inds[fi++] = e5;	inds[fi++] = p[5];
-					inds[fi++] = p[3];	inds[fi++] = p[4];
+							inds[fi++] = GOID_PRISM;
+							inds[fi++] = p[0];	inds[fi++] = p[1];	inds[fi++] = p[2];
+							inds[fi++] = e3;	inds[fi++] = p[4];	inds[fi++] = e5;
+							snapPointsProcessed = true;
+						}
+					}
 
-					inds[fi++] = GOID_TETRAHEDRON;
-					inds[fi++] = p[1];	inds[fi++] = e3;
-					inds[fi++] = p[4];	inds[fi++] = e5;
+					if(numSnapPoints == 0 || !snapPointsProcessed){
+					//	build two pyramids and a tetrahedron.
+						inds[fi++] = GOID_PYRAMID;
+						inds[fi++] = p[0];	inds[fi++] = p[2];	inds[fi++] = e5;
+						inds[fi++] = e3;	inds[fi++] = p[1];
+
+						inds[fi++] = GOID_PYRAMID;
+						inds[fi++] = e3;	inds[fi++] = e5;	inds[fi++] = p[5];
+						inds[fi++] = p[3];	inds[fi++] = p[4];
+
+						inds[fi++] = GOID_TETRAHEDRON;
+						inds[fi++] = p[1];	inds[fi++] = e3;
+						inds[fi++] = p[4];	inds[fi++] = e5;
+					}
 				}
 				else if(!IS_SIDE_EDGE[re0] && !IS_SIDE_EDGE[re1]){
 				//	vertical cut
@@ -371,6 +408,10 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 			inds[fi++] = F + 2;		inds[fi++] = F + 3;		inds[fi++] = F + 1;
 			inds[fi++] = E + 7;		inds[fi++] = E + 8;		inds[fi++] = E + 6;
 		}break;
+	}
+
+	if(!snapPointsProcessed){
+		UG_LOG("WARNING: Invalid or unsupported snap-point distribution detected. Ignoring snap-points for this element.\n");
 	}
 
 	if(fillCount == 0){
