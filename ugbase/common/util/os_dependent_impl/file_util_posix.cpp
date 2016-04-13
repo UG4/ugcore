@@ -32,11 +32,19 @@
 
 #include <dirent.h>
 #include <unistd.h>
+#include <limits.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "common/util/file_util.h"
 #include "common/profiler/profiler.h"
 #include "common/error.h"
+
+#ifndef PATH_MAX
+// Normally, this should not happen: PATH_MAX is a POSIX constant.
+// But if it happens, 1024 should be enough.
+// Try to avoid this constant where possible!
+#define PATH_MAX 1024
+#endif
 
 using namespace std;
 
