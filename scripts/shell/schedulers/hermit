@@ -7,6 +7,8 @@
 
 function UJS_Submit
 {
+	UJS_GetOptions
+
 	if [ $walltime == "unlimited" ]; then
 		walltime=01:00:00
 	fi
@@ -27,7 +29,11 @@ function UJS_Submit
 	else
 		echo "Cluster: Hermit/Cray XE6. Scheduler: qsub"
 		PBSnodes="-l mppwidth=$npe -l mppnppn=$nppn"
-		qsubrun="aprun -n $npe -N $nppn $executable $args"
+		if [ $nppn -gt $nppnmaxSingleThread ]; then
+			qsubrun="aprun -n $npe -N $nppn -j2 $executable $args"
+		else
+			qsubrun="aprun -n $npe -N $nppn -j1 $executable $args"
+		fi
 		if [ -z "$queue" ]; then
 			qsubqueue=""
 		else
@@ -79,19 +85,24 @@ function UJS_GetOptions
 	if [ $UGSUBMIT_TYPE == "NecNehalem" ]; then
 		nppnmax=4
 		pemax=1024
+		nppnmaxSingleThread=4
 	elif [ $UGSUBMIT_TYPE == "Hazelhen" ]; then
-		nppnmax=24
-		pemax=185088
+		nppnmax=48
+		pemax=370176
+		nppnmaxSingleThread=24
 	elif [ $UGSUBMIT_TYPE == "Hornet" ]; then
 		nppnmax=24
 		pemax=94656
+		nppnmaxSingleThread=24
 	elif [ $UGSUBMIT_TYPE == "Hermit" ]; then
 		nppnmax=32
 		pemax=113664
+		nppnmaxSingleThread=32
 	else
 		echo "WARNING: Unknown platform. guessed default values for MaxNumProcsPerNode (nppnmax) and MaxProcs (pemax) may be wrong."
 		nppnmax=32
 		pemax=113664
+		nppnmaxSingleThread=32
 	fi
 }
 
