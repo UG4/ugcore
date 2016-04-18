@@ -1092,6 +1092,21 @@ void ApplySmoothManifoldPosToTopLevelLoopScheme(MultiGrid& mg, MGSubsetHandler& 
 	Grid::VertexAttachmentAccessor<APosition> aaSmoothBndPosEvenVrt(mg, aSmoothBndPosEvenVrt);
 	Grid::EdgeAttachmentAccessor<APosition> aaSmoothBndPosOddVrt(mg, aSmoothBndPosOddVrt);
 
+//	Manage vertex attachment communication in parallel case:
+//	- Setup communication policy for the above attachment aPosition
+//	- Setup interface communicator
+//	- Setup distributed grid manager
+//	- Setup grid layout map
+	#ifdef UG_PARALLEL
+	//	Attachment communication policies COPY
+		ComPol_CopyAttachment<VertexLayout, AVector3> comPolCopyAPosition(mg, aPosition);
+
+	//	Interface communicators and distributed domain manager
+		pcl::InterfaceCommunicator<VertexLayout> com;
+		DistributedGridManager& dgm = *mg.distributed_grid_manager();
+		GridLayoutMap& glm = dgm.grid_layout_map();
+	#endif
+
 
 /*****************************************
  *
@@ -1155,6 +1170,21 @@ void ApplySmoothManifoldPosToTopLevelLoopScheme(MultiGrid& mg, MGSubsetHandler& 
 
 /*****************************************
  *
+ *	(5) COMMUNICATE VERTICALLY
+ *	    AFTER SUBDIVISION SURFACES
+ *
+ *****************************************/
+
+//	Communicate aPosition in parallel case
+	#ifdef UG_PARALLEL
+	//	copy v_slaves to ghosts = VMASTER
+		com.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, comPolCopyAPosition);
+		com.communicate();
+	#endif
+
+
+/*****************************************
+ *
  *	(6) CLEAN UP
  *
  *****************************************/
@@ -1197,6 +1227,21 @@ void ApplySmoothManifoldPosToTopLevelAveragingScheme(MultiGrid& mg, MGSubsetHand
 	Grid::VertexAttachmentAccessor<APosition> aaPos(mg, aPosition);
 	Grid::VertexAttachmentAccessor<AInt> aaNumManifoldFaces(mg, aNumManifoldFaces);
 	Grid::VertexAttachmentAccessor<APosition> aaSmoothBndPos(mg, aSmoothBndPos);
+
+//	Manage vertex attachment communication in parallel case:
+//	- Setup communication policy for the above attachment aPosition
+//	- Setup interface communicator
+//	- Setup distributed grid manager
+//	- Setup grid layout map
+	#ifdef UG_PARALLEL
+	//	Attachment communication policies COPY
+		ComPol_CopyAttachment<VertexLayout, AVector3> comPolCopyAPosition(mg, aPosition);
+
+	//	Interface communicators and distributed domain manager
+		pcl::InterfaceCommunicator<VertexLayout> com;
+		DistributedGridManager& dgm = *mg.distributed_grid_manager();
+		GridLayoutMap& glm = dgm.grid_layout_map();
+	#endif
 
 
 /*****************************************
@@ -1245,6 +1290,21 @@ void ApplySmoothManifoldPosToTopLevelAveragingScheme(MultiGrid& mg, MGSubsetHand
 
 /*****************************************
  *
+ *	(5) COMMUNICATE VERTICALLY
+ *	    AFTER SUBDIVISION SURFACES
+ *
+ *****************************************/
+
+//	Communicate aPosition in parallel case
+	#ifdef UG_PARALLEL
+	//	copy v_slaves to ghosts = VMASTER
+		com.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, comPolCopyAPosition);
+		com.communicate();
+	#endif
+
+
+/*****************************************
+ *
  *	(6) CLEAN UP
  *
  *****************************************/
@@ -1286,6 +1346,21 @@ void ApplySmoothVolumePosToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
 	Grid::VertexAttachmentAccessor<APosition> aaPos(mg, aPosition);
 	Grid::VertexAttachmentAccessor<AInt> aaNumElems(mg, aNumElems);
 	Grid::VertexAttachmentAccessor<APosition> aaSmoothVolPos(mg, aSmoothVolPos);
+
+//	Manage vertex attachment communication in parallel case:
+//	- Setup communication policy for the above attachment aPosition
+//	- Setup interface communicator
+//	- Setup distributed grid manager
+//	- Setup grid layout map
+	#ifdef UG_PARALLEL
+	//	Attachment communication policies COPY
+		ComPol_CopyAttachment<VertexLayout, AVector3> comPolCopyAPosition(mg, aPosition);
+
+	//	Interface communicators and distributed domain manager
+		pcl::InterfaceCommunicator<VertexLayout> com;
+		DistributedGridManager& dgm = *mg.distributed_grid_manager();
+		GridLayoutMap& glm = dgm.grid_layout_map();
+	#endif
 
 
 /*****************************************
@@ -1342,6 +1417,21 @@ void ApplySmoothVolumePosToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
 
 /*****************************************
  *
+ *	(5) COMMUNICATE VERTICALLY
+ *	    AFTER SUBDIVISION VOLUMES
+ *
+ *****************************************/
+
+//	Communicate aPosition in parallel case
+	#ifdef UG_PARALLEL
+	//	copy v_slaves to ghosts = VMASTER
+		com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopyAPosition);
+		com.communicate();
+	#endif
+
+
+/*****************************************
+ *
  *	(6) CLEAN UP
  *
  *****************************************/
@@ -1387,21 +1477,6 @@ void ApplySmoothSubdivisionVolumesToTopLevel(MultiGrid& mg, MGSubsetHandler& sh,
 	MGSubsetHandler linearManifoldSH(mg);
 	InitLinearManifoldSubsetHandler(mg, sh, linearManifoldSH, linearManifoldSubsets);
 
-//	Manage vertex attachment communication in parallel case:
-//	- Setup communication policy for the above attachment aPosition
-//	- Setup interface communicator
-//	- Setup distributed grid manager
-//	- Setup grid layout map
-	#ifdef UG_PARALLEL
-	//	Attachment communication policies COPY
-		ComPol_CopyAttachment<VertexLayout, AVector3> comPolCopyAPosition(mg, aPosition);
-
-	//	Interface communicators and distributed domain manager
-		pcl::InterfaceCommunicator<VertexLayout> com;
-		DistributedGridManager& dgm = *mg.distributed_grid_manager();
-		GridLayoutMap& glm = dgm.grid_layout_map();
-	#endif
-
 
 /*****************************************
  *
@@ -1421,41 +1496,11 @@ void ApplySmoothSubdivisionVolumesToTopLevel(MultiGrid& mg, MGSubsetHandler& sh,
 
 /*****************************************
  *
- *	(3) COMMUNICATE VERTICALLY
- *	    AFTER SUBDIVISION SURFACES
- *
- *****************************************/
-
-//	Communicate aPosition in parallel case
-	#ifdef UG_PARALLEL
-	//	copy v_slaves to ghosts = VMASTER
-		com.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, comPolCopyAPosition);
-		com.communicate();
-	#endif
-
-
-/*****************************************
- *
- *	(4) SUBDIVISION VOLUMES
+ *	(3) SUBDIVISION VOLUMES
  *
  *****************************************/
 
 	ApplySmoothVolumePosToTopLevel(mg, markSH, linearManifoldSH);
-
-
-/*****************************************
- *
- *	(5) COMMUNICATE VERTICALLY
- *	    AFTER SUBDIVISION VOLUMES
- *
- *****************************************/
-
-//	Communicate aPosition in parallel case
-	#ifdef UG_PARALLEL
-	//	copy v_slaves to ghosts = VMASTER
-		com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopyAPosition);
-		com.communicate();
-	#endif
 }
 
 
