@@ -1126,7 +1126,7 @@ void ApplySmoothManifoldPosToTopLevelLoopScheme(MultiGrid& mg, MGSubsetHandler& 
 
 	//	Catch vertices without parent
 		if(mg.get_parent(vrt) == NULL)
-			return;
+			continue;
 
 	//	In case of marked manifold vertices, which do not belong to the user-specified linear boundary manifold subsets,
 	//	and activated Loop scheme refinement apply subdivision surfaces smoothing, else linear refinement
