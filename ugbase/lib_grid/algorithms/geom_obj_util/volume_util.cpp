@@ -304,7 +304,7 @@ number CalculateTetrahedronAspectRatio(Grid& grid, Tetrahedron* tet,
 	minTetrahedronHeight = CalculateMinVolumeHeight(tet, aaPos);
 
 //	Calculate the aspect ratio
-	AspectRatio = minTetrahedronHeight / maxEdgelength;
+	AspectRatio =  maxEdgelength / minTetrahedronHeight;
 
 	return AspectRatio;
 }
