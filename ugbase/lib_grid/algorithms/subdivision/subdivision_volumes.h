@@ -1444,6 +1444,53 @@ void ApplySmoothVolumePosToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
 
 /// Function to create a smooth subdivision volumes hierarchy
 /** This function transforms a linearly refined hybrid tetra-/octahedral volume
+ * 	grid hierarchy into a hierarchy with smoothed boundary manifold
+ * 	(s. Schaefer et al, "Smooth subdivision of tetrahedral meshes", 2004)
+ *
+ * 	@param mg						reference to MultiGrid
+ * 	@param sh						reference to standard SubsetHandler
+ * 	@param markSH					reference to SubsetHandler containing marked (inner) boundary manifold
+ * 	@param linearManifoldSubsets 	user-specified linearManifoldSubsets
+**/
+void ApplySmoothSubdivisionSurfacesToTopLevel(MultiGrid& mg, MGSubsetHandler& sh, MGSubsetHandler& markSH, const char* linearManifoldSubsets)
+{
+/*****************************************
+ *
+ *	(1) SETUP
+ *
+ *****************************************/
+
+//	Catch use of procedure for MultiGrids with just one level
+	if(mg.num_levels() == 1)
+	{
+		UG_THROW("Error in ApplySmoothSubdivisionToTopLevel: "
+				 "Procedure only to be used for MultiGrids with more than one level.");
+	}
+
+//	Init linear boundary manifold subsets SubsetHandler from domain and user-specified subsets
+	MGSubsetHandler linearManifoldSH(mg);
+	InitLinearManifoldSubsetHandler(mg, sh, linearManifoldSH, linearManifoldSubsets);
+
+
+/*****************************************
+ *
+ *	(2) SUBDIVISION SURFACES
+ *
+ *****************************************/
+
+	if(g_boundaryRefinementRule == SUBDIV_SURF_LOOP_SCHEME)
+		ApplySmoothManifoldPosToTopLevelLoopScheme(mg, markSH, linearManifoldSH);
+	else if(g_boundaryRefinementRule == SUBDIV_SURF_AVERAGING_SCHEME)
+		ApplySmoothManifoldPosToTopLevelAveragingScheme(mg, markSH, linearManifoldSH);
+	else if(g_boundaryRefinementRule == SUBDIV_VOL){}
+	else if(g_boundaryRefinementRule == LINEAR){}
+	else
+		UG_THROW("ERROR in ApplySubdivisionSurfacesToTopLevel: Unknown boundary refinement rule. Known rules are 'subdiv_surf_loop_scheme', 'subdiv_surf_averaging_scheme' or 'linear'.");
+}
+
+
+/// Function to create a smooth subdivision volumes hierarchy
+/** This function transforms a linearly refined hybrid tetra-/octahedral volume
  * 	grid hierarchy into a smoothed subdivision volumes hierarchy
  * 	(s. Schaefer et al, "Smooth subdivision of tetrahedral meshes", 2004)
  *
