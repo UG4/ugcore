@@ -1177,7 +1177,7 @@ void ApplySmoothManifoldPosToTopLevelLoopScheme(MultiGrid& mg, MGSubsetHandler& 
 
 //	Communicate aPosition in parallel case
 	#ifdef UG_PARALLEL
-	//	copy v_slaves to ghosts = VMASTER
+	//	copy ghosts = VMASTER to v_slaves
 		com.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, comPolCopyAPosition);
 		com.communicate();
 	#endif
@@ -1298,7 +1298,7 @@ void ApplySmoothManifoldPosToTopLevelAveragingScheme(MultiGrid& mg, MGSubsetHand
 //	Communicate aPosition in parallel case
 	#ifdef UG_PARALLEL
 	//	copy v_slaves to ghosts = VMASTER
-		com.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, comPolCopyAPosition);
+		com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopyAPosition);
 		com.communicate();
 	#endif
 
