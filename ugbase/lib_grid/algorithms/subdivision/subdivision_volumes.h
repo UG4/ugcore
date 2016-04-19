@@ -107,24 +107,27 @@ GlobalBoundaryRefinementRule GetBoundaryRefinementRule()
 
 **/
 void SplitOctahedronToTetrahedrons(	Grid& grid, Octahedron* oct, Volume* parentVol,
-									std::vector<Tetrahedron*>& vTetsOut)
+									std::vector<Tetrahedron*>& vTetsOut, int bestDiag)
 {
 //	Position attachment management
 	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPosition);
 
 //	Determine the shortest diagonal to split upon the octahedron
-	int bestDiag = 2;
+	if(bestDiag != 1 || bestDiag != 2 || bestDiag != 3)
+	{
+		bestDiag = 2;
 
-	number d05 = VecDistanceSq(aaPos[oct->vertex(1)], aaPos[oct->vertex(3)]);
-	number d13 = VecDistanceSq(aaPos[oct->vertex(0)], aaPos[oct->vertex(5)]);
-	number d   = VecDistanceSq(aaPos[oct->vertex(2)], aaPos[oct->vertex(4)]);
+		number d05 = VecDistanceSq(aaPos[oct->vertex(1)], aaPos[oct->vertex(3)]);
+		number d13 = VecDistanceSq(aaPos[oct->vertex(0)], aaPos[oct->vertex(5)]);
+		number d   = VecDistanceSq(aaPos[oct->vertex(2)], aaPos[oct->vertex(4)]);
 
-	if(d13 < d){
-		bestDiag = 1;
-		d = d13;
-	}
-	if(d05 < d){
-		bestDiag = 0;
+		if(d13 < d){
+			bestDiag = 1;
+			d = d13;
+		}
+		if(d05 < d){
+			bestDiag = 0;
+		}
 	}
 
 	Tetrahedron* tet1;
@@ -276,9 +279,44 @@ void SplitOctahedronToTetrahedrons(	Grid& grid, Octahedron* oct, Volume* parentV
 
 			break;
 	}
+}
 
-//	Erase original octahedron
-	grid.erase(oct);
+
+/// Conversion function for hybrid tetra-/octahedral multigrids
+/** This function converts each octahedron in all levels to
+ * 	four tetrahedra and deletes the original octahedra
+ * 	from the multigrid.
+ *
+ * 	WARNING: correct parent <-> childhood relationships won't persist
+ *
+ * 	@param mg			reference to MultiGrid
+**/
+void TetrahedralizeHybridTetOctGrid(MultiGrid& mg)
+{
+//	Position attachment management
+	Grid::VertexAttachmentAccessor<APosition> aaPos(mg, aPosition);
+
+	std::vector<Tetrahedron*> vTetsOut;
+
+//	Loop over all levels and split octahedrons
+	for(size_t i = mg.num_levels()-1; i > 0; --i)
+	{
+	//	Loop over all octahedrons on each level
+		for(VolumeIterator octIter = mg.begin<Octahedron>(i); octIter != mg.end<Octahedron>(i); ++octIter)
+		{
+			Octahedron* oct 	= dynamic_cast<Octahedron*>(*octIter);
+			Volume* parentVol 	= dynamic_cast<Volume*>(mg.get_parent(oct));
+
+			SplitOctahedronToTetrahedrons(mg, oct, parentVol, vTetsOut, 1);
+		}
+	}
+
+//	Erase all octahedrons in multigrid
+	while(mg.begin<Octahedron>() != mg.end<Octahedron>())
+	{
+		Octahedron* oct = *mg.begin<Octahedron>();
+		mg.erase(oct);
+	}
 }
 
 
