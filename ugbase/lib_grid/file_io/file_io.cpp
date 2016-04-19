@@ -624,6 +624,95 @@ bool SaveSurfaceViewTransformed(MultiGrid& mg, const SurfaceView& sv,
 	return writeSuccess;
 }
 
+template<class TElem>
+void CopyGridLevelElements(MultiGrid& srcMG, Grid& destGrid,
+				           ISubsetHandler& srcSH, ISubsetHandler& destSH,
+						   int lvl, AVertex& aNewVrt)
+{
+	Grid::VertexAttachmentAccessor<AVertex> aaNewVrt(srcMG, aNewVrt);
+	GridObjectCollection goc = srcMG.get_grid_objects();
+	CustomVertexGroup vrts;
+
+	typedef typename Grid::traits<TElem>::iterator iter_t;
+
+	for(iter_t eIter = goc.begin<TElem>(lvl); eIter != goc.end<TElem>(lvl); ++eIter)
+	{
+		TElem* e = *eIter;
+		vrts.resize(e->num_vertices());
+
+		for(size_t iv = 0; iv < e->num_vertices(); ++iv)
+		{
+			vrts.set_vertex(iv, aaNewVrt[e->vertex(iv)]);
+		}
+
+		TElem* ne = *destGrid.create_by_cloning(e, vrts);
+		destSH.assign_subset(ne, srcSH.get_subset_index(e));
+	}
+}
+
+template <class TAPos>
+void CopyGridLevel(MultiGrid& srcMG, Grid& destGrid,
+				   ISubsetHandler& srcSH, ISubsetHandler& destSH,
+				   int lvl, TAPos aPos)
+{
+	Grid::VertexAttachmentAccessor<TAPos> aaPos(destGrid, aPos);
+	Grid::VertexAttachmentAccessor<TAPos> aaSrcPos(srcMG, aPos);
+	GridObjectCollection goc = srcMG.get_grid_objects();
+
+	AVertex aNewVrt;
+	srcMG.attach_to_vertices(aNewVrt);
+	Grid::VertexAttachmentAccessor<AVertex> aaNewVrt(srcMG, aNewVrt);
+
+	for(int si = destSH.num_subsets(); si < srcSH.num_subsets(); ++si)
+	{
+		destSH.subset_info(si) = srcSH.subset_info(si);
+	}
+
+	for(VertexIterator vrtIter = goc.begin<Vertex>(lvl); vrtIter != goc.end<Vertex>(lvl); ++vrtIter)
+	{
+		Vertex* srcVrt  = *vrtIter;
+		Vertex* destVrt = *destGrid.create_by_cloning(srcVrt);
+
+		aaNewVrt[srcVrt] = destVrt;
+		aaPos[destVrt] = aaSrcPos[srcVrt];
+		destSH.assign_subset(destVrt, srcSH.get_subset_index(srcVrt));
+	}
+
+	CopyGridLevelElements<Edge>(srcMG, destGrid, srcSH, destSH, lvl, aNewVrt);
+	CopyGridLevelElements<Face>(srcMG, destGrid, srcSH, destSH, lvl, aNewVrt);
+	CopyGridLevelElements<Volume>(srcMG, destGrid, srcSH, destSH, lvl, aNewVrt);
+
+	srcMG.detach_from_vertices(aNewVrt);
+}
+
+template <class TAPos>
+bool SaveGridLevel(MultiGrid& srcMG, ISubsetHandler& srcSH, int lvl, const char* filename, TAPos aPos)
+{
+	Grid destGrid;
+	SubsetHandler destSH(destGrid);
+
+	destGrid.attach_to_vertices(aPos);
+
+	CopyGridLevel(srcMG, destGrid, srcSH, destSH, lvl, aPos);
+	SaveGridToFile(destGrid, destSH, filename);
+
+	return true;
+}
+
+bool SaveGridLevelToFile(MultiGrid& srcMG, ISubsetHandler& srcSH, int lvl, const char* filename)
+{
+//	check whether one of the standard attachments is attached and call
+//	SaveGridLevel with that attachment
+	if(srcMG.has_vertex_attachment(aPosition))
+		return SaveGridLevel(srcMG, srcSH, lvl, filename, aPosition);
+	if(srcMG.has_vertex_attachment(aPosition2))
+		return SaveGridLevel(srcMG, srcSH, lvl, filename, aPosition2);
+	if(srcMG.has_vertex_attachment(aPosition1))
+		return SaveGridLevel(srcMG, srcSH, lvl, filename, aPosition1);
+
+	return false;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 //	explicit template instantiation
