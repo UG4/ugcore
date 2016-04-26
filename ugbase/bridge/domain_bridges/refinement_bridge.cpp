@@ -1282,9 +1282,11 @@ static void Common(Registry& reg, string grp)
 //	register boundary refinement rule switch function for Subdivision Volumes smoothing
 	reg.add_function("SetSmoothSubdivisionVolumesBoundaryRefinementRule", &SetSmoothSubdivisionVolumesBoundaryRefinementRule, grp, "", "bndRefRule",
 			"Sets the boundary refinement rule used during Subdivision Volumes smoothing. Possible parameters: 'linear', 'subdiv_surf_loop_scheme', 'subdiv_surf_averaging_scheme' or 'subdiv_vol'.");
-//	smooth volume subdivision
+//	smooth volume/surface subdivision
 	reg.add_function("ApplySmoothSubdivisionVolumesToTopLevel", &ApplySmoothSubdivisionVolumesToTopLevel, grp);
+	reg.add_function("ApplySmoothSubdivisionSurfacesToTopLevel", &ApplySmoothSubdivisionSurfacesToTopLevel, grp);
 	reg.add_function("ProjectHierarchyToLimitSubdivisionVolume", &ProjectHierarchyToLimitSubdivisionVolume, grp);
+	reg.add_function("TetrahedralizeHybridTetOctGrid", &TetrahedralizeHybridTetOctGrid, grp);
 
 	reg.add_function("MarkNeighborsForFullRefinement",
 				&MarkNeighborsForFullRefinement,

@@ -151,6 +151,38 @@ bool SaveParallelGridLayout(MultiGrid& mg, const char* filename,
 bool SaveSurfaceViewTransformed(MultiGrid& mg, const SurfaceView& sv,
 								const char* filename, number offset = 0.1);
 
+
+////////////////////////////////////////////////////////////////////////////////
+///	Copies a grid level to a separate grid.
+/**
+ * Extracts a specified level from a given MultiGrid with a given SubsetHandler
+ * and copies it to a new grid. Position data is read from aPos.
+ */
+template <class TAPos>
+void CopyGridLevel(MultiGrid& srcMG, Grid& destGrid,
+				   ISubsetHandler& srcSH, ISubsetHandler& destSH,
+				   int lvl, TAPos aPos);
+
+
+///	Saves a grid level to a file.
+/**
+ * Extracts a specified level from a given MultiGrid with a given SubsetHandler
+ * and saves it to a file. Position data is read from aPos.
+ */
+template <class TAPos>
+bool SaveGridLevel(MultiGrid& srcMG, ISubsetHandler& srcSH, int lvl,
+				   const char* filename, TAPos aPos);
+
+
+///	Saves a grid level to a file.
+/**
+ * Extracts a specified level from a given MultiGrid with a given SubsetHandler
+ * and saves it to a file. Position data is read from MultiGrid.
+ */
+bool SaveGridLevelToFile(MultiGrid& srcMG, ISubsetHandler& srcSH, int lvl,
+		  	  	  	     const char* filename);
+
+
 };
 
 #endif

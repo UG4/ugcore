@@ -128,7 +128,8 @@ void RegisterGridBridge_FileIO(Registry& reg, string parentGroup)
 					  grp, "", "mg#filename#offset")
 		.add_function("SaveParallelGridLayout", &SaveParallelGridLayout,
 				grp, "", "mg#filename#offset")
-		.add_function("SaveSurfaceViewTransformed", &SaveSurfaceViewTransformed);
+		.add_function("SaveSurfaceViewTransformed", &SaveSurfaceViewTransformed)
+		.add_function("SaveGridLevelToFile", &SaveGridLevelToFile);
 }
 
 }//	end of namespace

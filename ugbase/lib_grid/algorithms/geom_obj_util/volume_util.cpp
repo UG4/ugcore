@@ -283,31 +283,32 @@ number CalculateMinTetrahedronHeight(const vector3& a, const vector3& b,
 ////////////////////////////////////////////////////////////////////////////////////////////
 //	CalculateTetrahedronAspectRatio - mstepnie
 number CalculateTetrahedronAspectRatio(Grid& grid, Tetrahedron* tet,
-							Grid::VertexAttachmentAccessor<AVector3>& aaPos)
+									   Grid::VertexAttachmentAccessor<AVector3>& aaPos)
 {
 	/*
 	 * optimal Aspect Ratio of a regular tetrahedron
-	 * Q = sqrt(2/3) * a / a = 0.81...
+	 * Q = a / a / sqrt(2/3) = 1.22...
 	 */
 
-	number AspectRatio;
-	number maxEdgelength;
+	number aspectRatio;
+	number maxEdgeLength;
 	number minTetrahedronHeight;
 
 //	Collect tetrahedron edges, find longest edge and calculate its length
 	vector<Edge*> edges;
 	CollectAssociated(edges, grid, tet);
 	Edge* longestEdge = FindLongestEdge(edges.begin(), edges.end(), aaPos);
-	maxEdgelength = EdgeLength(longestEdge, aaPos);
+	maxEdgeLength = EdgeLength(longestEdge, aaPos);
 
 //	Calculate the minimal tetrahedron height
 	minTetrahedronHeight = CalculateMinVolumeHeight(tet, aaPos);
 
 //	Calculate the aspect ratio
-	AspectRatio = minTetrahedronHeight / maxEdgelength;
+	aspectRatio =  maxEdgeLength / minTetrahedronHeight;
 
-	return AspectRatio;
+	return aspectRatio;
 }
+
 
 ////////////////////////////////////////////////////////////////////////
 // IntersectPlaneWithTetrahedron
