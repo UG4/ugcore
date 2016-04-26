@@ -34,11 +34,24 @@ namespace ug{
 
 template<class TAPosition>
 inline RefinementProjectionHandler<TAPosition>::
+RefinementProjectionHandler(ISubsetHandler* sh, TAPosition aPos)
+{
+	UG_ASSERT(sh, "Invalid subset handler specified (null pointer)");
+	UG_ASSERT(sh->grid(), "Specified subset handler has to operate on a grid!");
+	m_sh = sh;
+	m_aaPos.access(*m_sh->grid(), aPos);
+	m_defaultCallback = SmartPtr<IRefinementCallback>(
+					new RefinementCallbackLinear<TAPosition>(*m_sh->grid(), aPos));
+}
+
+template<class TAPosition>
+inline RefinementProjectionHandler<TAPosition>::
 RefinementProjectionHandler(SmartPtr<ISubsetHandler> sh, TAPosition aPos)
 {
-	m_sh = sh;
-	UG_ASSERT(m_sh.valid(), "Invalid smart pointer specified");
-	UG_ASSERT(m_sh->grid(), "Specified subset handler has to operate on a grid!");
+	UG_ASSERT(sh.valid(), "Invalid subset handler specified (through invalid SmartPtr)");
+	UG_ASSERT(sh->grid(), "Specified subset handler has to operate on a grid!");
+	m_spSH = sh;
+	m_sh = m_spSH.get();
 	m_aaPos.access(*m_sh->grid(), aPos);
 	m_defaultCallback = SmartPtr<IRefinementCallback>(
 					new RefinementCallbackLinear<TAPosition>(*m_sh->grid(), aPos));
@@ -74,7 +87,6 @@ template<class TAPosition>
 inline void RefinementProjectionHandler<TAPosition>::
 set_callback(std::string subsetName, SmartPtr<IRefinementCallback> callback)
 {
-	UG_ASSERT(m_sh.valid(), "Invalid smart pointer specified");
 	set_callback(m_sh->get_subset_index(subsetName.c_str()), callback);
 }
 
