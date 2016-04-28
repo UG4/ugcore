@@ -442,6 +442,7 @@ include(${UG_ROOT_CMAKE_PATH}/ug/opencl.cmake)
 #  Note: If INTERNAL_BOOST is enabled and system installations are available,
 #        the internal one has precedence.
 if(INTERNAL_BOOST)
+	add_definitions( -DBOOST_ALL_NO_LIB )
 	set(INTERNAL_BOOST_PATH ${UG_ROOT_PATH}/externals/BoostForUG4/)
 	set(BOOST_ROOT ${INTERNAL_BOOST_PATH})
 endif(INTERNAL_BOOST)
