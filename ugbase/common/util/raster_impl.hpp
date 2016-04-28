@@ -293,7 +293,7 @@ set_num_nodes (int dim, size_t num)
 
 template <class T, int TDIM>
 void Raster<T, TDIM>::
-set_num_nodes (const Raster::MultiIndex& mi)
+set_num_nodes (const typename Raster<T, TDIM>::MultiIndex& mi)
 {
 	m_numNodes = mi;
 	update_num_nodes_total();

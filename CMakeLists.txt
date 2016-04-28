@@ -97,7 +97,6 @@ if(BUILD_ONE_LIB)
 	get_property(ug4libSingleFileDefinitionsFiles GLOBAL PROPERTY ugSingleFileDefinitionFiles)
 	get_property(ug4libSingleFileDefinitionsDefs GLOBAL PROPERTY ugSingleFileDefinitionDefs)
 	
-	
 	if(buildEmbeddedPlugins)
 		add_definitions(${ug4libDefinitions})
 		include_directories(${ug4libIncludes})
