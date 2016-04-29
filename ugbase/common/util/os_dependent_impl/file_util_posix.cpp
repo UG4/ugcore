@@ -50,6 +50,27 @@ using namespace std;
 
 namespace ug{
 
+//todo:	implement with ftello and fseeko
+size_t FileSize( const char *filename )
+{
+	PROFILE_FUNC(); // since i/o
+
+	if( !FileExists( filename ) ) {
+		UG_THROW( "The file " << filename << " could not be found." );
+	}
+
+	ifstream ifs;
+	ifs.open( filename, ios_base::in );
+
+	if( !ifs.good() ) {
+		UG_THROW( "The file " << filename << " could not be opened." );
+	}
+	ifs.seekg( 0, ios_base::end );
+	size_t length = ifs.tellg();
+	ifs.close();
+	return length;
+}
+
 bool DirectoryExists(const char* dirname)
 {
 	DIR* curDir = opendir(dirname);
