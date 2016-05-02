@@ -429,8 +429,6 @@ int DegeneratedLayerManager<dim>::assign_middle_subset
 				outer_side, outer_side_idx, outer_side_corners,
 				ass_co);
 			
-			UG_COND_THROW(!inner_side, "Couldn't find inner side of degenerated fracture element");
-
 		//	assign the subset
 			m_spSH->assign_subset (inner_side, middle_si);
 		}
