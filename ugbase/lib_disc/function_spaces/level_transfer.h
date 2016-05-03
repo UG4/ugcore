@@ -474,10 +474,10 @@ void RestrictElemwise(GridFunction<TDomain, TAlgebra>& uCoarse,
 		UG_THROW("RestrictElemwise: Spaces must contain same number of functions.")
 
 //	get flag if all trial spaces are equal
-	bool bSameLFEID = true;
+//	bool bSameLFEID = true;
 	for(size_t fct = 0; fct < vFineLFEID.size(); ++fct){
-		if(vFineLFEID[fct] != vCoarseLFEID[fct])
-			bSameLFEID = false;
+//		if(vFineLFEID[fct] != vCoarseLFEID[fct])
+//			bSameLFEID = false;
 
 		if (vCoarseLFEID[fct].type() == LFEID::PIECEWISE_CONSTANT ||
 			vFineLFEID[fct].type() == LFEID::PIECEWISE_CONSTANT)
