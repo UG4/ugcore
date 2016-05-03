@@ -102,13 +102,62 @@ struct NTreeDesc{
 	size_t splitThreshold;
 	//todo:	split-strategy (center-of-space, center-of-mass)
 
-	NTreeDesc() : maxDepth(24), splitThreshold(16)	{}
+	NTreeDesc() : maxDepth(32), splitThreshold(16)	{}
 };
 
 
-///	The n-tree class can be used to construct e.g. loose quadtrees (tree_dim = 2)
-///	or octrees (tree_dim = 3)
-/**	world_dim has to be at least as large as tree_dim*/
+///	The n-tree class can be used to construct space partitioning trees of dimensions 1, 2, and 3.
+/** The ntree class provides spatial partitioning through binary- (tree_dim=1),
+ * quad- (tree_dim=2), and octrees (tree_dim=3). It is designed as a template class to
+ * support both different types of underlying math libraries and also arbitrary objects
+ * that shall be partitioned. The element type is specified through TElem. It
+ * does not have to fulfill any concepts but should be lightweight, since it is
+ * copied during tree creation.
+ *
+ * The tree furthermore features a common_data object whose type is determined
+ * through a template argument again. This common_data object is passed to
+ * traversers and traits. Required objects such as data-accessors can be stored
+ * in this common_data object as required by a specialization of ntree_traits.
+ * It does not have to fulfill any concepts in regard to the ntree itself.
+ *
+ * Usage:
+ *	- Add elements to your tree-instance through the 'add_element' method.
+ *	- Call 'rebalance' once all elements have been added.
+ *	- Use traversers to query the tree for elements, e.g.
+ *	  'Traverser_FindContainingElement', 'Traverser_FindElementsInIntersectingNodes',
+ *	  or 'Traverser_RayElementIntersection'.
+ *
+ * \note	Whether a node is refined into child-nodes during 'rebalance' is
+ *			determined by the 'splitThreshold' of the associated 'NTreeDesc'
+ *			instance. It can be adjusted through 'set_desc'.
+ *			Only if a node contains more than 'splitThreshold' elements, a split
+ *			of that node will be performed. Default is 16.
+ *
+ * \note	Each tree has a maximum tree depth. It defaults to 32 and can be
+ *			adjusted through the 'set_desc' method. If this tree depth is
+ *			reached, the tree won't be splitted any further and a warning
+ *			is printed. Note that a tree of this depth often results from a bad
+ *			underlying geometry and may lead to performance issues.		
+ *
+ * \param tree_dim		Dimension of the tree: binary-trees (tree_dim=1),
+ * 						quad-trees (tree_dim=2), and octrees (tree_dim=3)
+ *						are supported.
+ *
+ * \param world_dim		Dimension of the space in which the tree is embedded.
+ *						This primarily affects underlying mathematical structures
+ *						(i.e. vectors). Please note that world_dim has to be at
+ *						least as large as tree_dim.
+ *
+ * \param TElem			The element type for which the tree is constructed. It
+ *						should be lightweight, since it is copied during tree
+ *						creation. There are no special concepts that TElem has
+ *						to fullfill.
+ *
+ * \param TCommonData	User provided data that is stored in the tree (one instance only)
+ *						but not used by the tree. It is passed to functions in
+ *						ntree_traits. The concrete type for TCommonData depends on
+ *						the concrete ntree_traits that shall be used.
+ */
 template <int tree_dim, int world_dim, class TElem, class TCommonData>
 class ntree
 {
@@ -128,9 +177,14 @@ class ntree
 
 		void clear();
 
-	///	sets the balancing-parameters of the tree. Triggers a rebalance
-	/** \todo	Only trigger a rebalance if new values require it.*/
+	///	sets the balancing-parameters of the tree.
+	/** \note	The method has no effect until the next call to 'rebalance',
+	 *			i.e., it will not affect an existing tree if one has already
+	 *			been built.*/
 		void set_desc(const NTreeDesc& desc);
+
+	///	returns the balancing-parameters of the tree.
+		const NTreeDesc& desc() const;
 
 	///	sets the common-data which the tree passes on to callback methods
 		void set_common_data(const common_data_t& commonData);
@@ -207,6 +261,9 @@ class ntree
 
 
 	///	An Entry combines an element with the index to the next entry in a leaf-node's entry list.
+	/** Note that exactly one 'Entry' object per element exists. Since 'Entry'
+	 * also serves as a linked list, this means that an element can only be contained
+	 * in one node at a time.*/
 		struct Entry{
 				elem_t		elem;
 			/** index into m_entries. s_invalidIndex: no next entry.
@@ -246,7 +303,7 @@ class ntree
 			}
 		};
 
-	///	splits a node into two child nodes and assigns entries to those children.
+	///	splits a node into 2^tree_dim child nodes and assigns entries to those children.
 	/**	If the node-threshold of a child node is surpassed, then the child will
 	 * be splitted recursively.
 	 * Make sure that the given node is a leaf node and thus hasn't got children.*/

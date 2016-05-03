@@ -434,7 +434,6 @@ int DegeneratedLayerManager<dim>::assign_middle_subset
 		}
 	}
 	pMG->message_hub()->post_message (GridMessage_Creation (GMCT_CREATION_STOPS, 0));
-	
 	return middle_si;
 }
 
@@ -465,8 +464,9 @@ int DegeneratedLayerManager<dim>::assign_middle_subset
 	middle_si = assign_middle_subset (layer_si, middle_si);
 	
 //	Set the name
-	if (new_ss)
+	if (new_ss){
 		m_spSH->set_subset_name (middle_ss_name, middle_si);
+	}
 	
 	return middle_si;
 }
@@ -483,6 +483,7 @@ int DegeneratedLayerManager<dim>::assign_middle_subset
 	const char* middle_ss_name ///< name of the subset to assign
 )
 {
+	
 //	Look for the subset of the layer
 	for (int si = 0; si < m_spSH->num_subsets (); si++)
 	if (strcmp (layer_ss_name, m_spSH->get_subset_name (si)) == 0)

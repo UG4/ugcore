@@ -72,6 +72,16 @@ class FractalProjector : public RefinementCallbackLinear<APosition>
 
 	protected:
 		number m_scaleFac;
+
+	private:
+		friend class boost::serialization::access;
+
+		template <class Archive>
+		void serialize( Archive& ar, const unsigned int version)
+		{
+			ar & make_nvp("scaleFac", m_scaleFac);
+			UG_EMPTY_BASE_CLASS_SERIALIZATION(FractalProjector, IRefinementCallback);
+		}
 };
 
 /// @}

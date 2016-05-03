@@ -48,6 +48,12 @@ namespace ug{
  *	of the grid.
  *
  *	An uninitialized refinement-callback may not be used during refinement.
+ *
+ *	Please note that the radius property is ignored during refinement, since
+ *	the new distance to the central axis is computed as the average of distances
+ *	of connected old vertices. The radius property is only useful to project
+ *	a set of vertices onto the cylinder hull. If you don't need that, you may
+ *	choose an arbitrary value for radius.
  */
 template <class TAPosition>
 class CylinderProjector : public IRefinementCallback
@@ -57,8 +63,14 @@ class CylinderProjector : public IRefinementCallback
 
 	///	make sure that aPos is attached to the vertices of the grid.
 		CylinderProjector(Grid& grid, TAPosition& aPos,
-								   const typename TAPosition::ValueType& center,
-								   const typename TAPosition::ValueType& axis);
+						  const typename TAPosition::ValueType& center,
+						  const typename TAPosition::ValueType& axis);
+
+	///	make sure that aPos is attached to the vertices of the grid.
+		CylinderProjector(Grid& grid, TAPosition& aPos,
+						  const typename TAPosition::ValueType& center,
+						  const typename TAPosition::ValueType& axis,
+						  number radius);
 
 		virtual ~CylinderProjector();
 
@@ -80,6 +92,19 @@ class CylinderProjector : public IRefinementCallback
 		Grid::VertexAttachmentAccessor<TAPosition>	m_aaPos;
 		pos_type									m_center;
 		pos_type									m_axis;
+		number										m_radius;
+
+	private:
+		friend class boost::serialization::access;
+
+		template <class Archive>
+		void serialize( Archive& ar, const unsigned int version)
+		{
+			ar & make_nvp("center", m_center);
+			ar & make_nvp("axis", m_axis);
+			ar & make_nvp("radius", m_radius);
+			UG_EMPTY_BASE_CLASS_SERIALIZATION(CylinderProjector, IRefinementCallback);
+		}
 };
 
 /// @}

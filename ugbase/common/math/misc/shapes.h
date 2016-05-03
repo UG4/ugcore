@@ -34,7 +34,8 @@
 #define __H__UG_shapes__
 
 #include "math_util.h"
-
+#include <iostream>
+ 
 namespace ug{
 
 template <class vector_t>
@@ -87,6 +88,13 @@ struct AABox{
 	vector_t min;
 	vector_t max;
 };
+
+
+template <class vector_t>
+std::ostream& operator << (std::ostream& out, const AABox<vector_t>& box) {
+	out << box.min << "-" << box.max;
+	return out;
+}
 
 }//	end of namespace
 

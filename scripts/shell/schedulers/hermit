@@ -28,12 +28,16 @@ function UJS_Submit
 		fi		
 	else
 		echo "Cluster: Hermit/Cray XE6. Scheduler: qsub"
-		PBSnodes="-l mppwidth=$npe -l mppnppn=$nppn"
 		if [ $nppn -gt $nppnmaxSingleThread ]; then
 			qsubrun="aprun -n $npe -N $nppn -j2 $executable $args"
+			#qsub doesn't know about hyperthreading. Only specify used procs. Round up.
+			nppnRaw=$(((nppn+1)/2))
 		else
 			qsubrun="aprun -n $npe -N $nppn -j1 $executable $args"
+			nppnRaw=$((nppn))
 		fi
+		PBSnodes="-l nodes=$nnodes:ppn=$nppnRaw"
+
 		if [ -z "$queue" ]; then
 			qsubqueue=""
 		else

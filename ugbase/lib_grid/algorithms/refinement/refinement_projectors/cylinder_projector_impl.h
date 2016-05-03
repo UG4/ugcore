@@ -52,7 +52,8 @@ CylinderProjector(Grid& grid, TAPosition& aPos,
 						 const typename TAPosition::ValueType& axis) :
 	m_pGrid(&grid),
 	m_center(center),
-	m_axis(axis)
+	m_axis(axis),
+	m_radius(-1)
 {
 //	we have to make sure that aPos is attached at the grid.
 //	This is important to avoid crashes later on.
@@ -60,6 +61,25 @@ CylinderProjector(Grid& grid, TAPosition& aPos,
 		grid.attach_to_vertices(aPos);
 	m_aaPos.access(grid, aPos);
 }
+
+template <class TAPosition>
+CylinderProjector<TAPosition>::
+CylinderProjector(Grid& grid, TAPosition& aPos,
+						 const typename TAPosition::ValueType& center,
+						 const typename TAPosition::ValueType& axis,
+						 number radius) :
+	m_pGrid(&grid),
+	m_center(center),
+	m_axis(axis),
+	m_radius(radius)
+{
+//	we have to make sure that aPos is attached at the grid.
+//	This is important to avoid crashes later on.
+	if(!grid.has_vertex_attachment(aPos))
+		grid.attach_to_vertices(aPos);
+	m_aaPos.access(grid, aPos);
+}
+
 
 ////////////////////////////////////////////////////////////////////////
 template <class TAPosition>

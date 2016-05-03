@@ -35,6 +35,7 @@
 
 #include <functional>
 #include <cstring>
+#include <boost/pointee.hpp>
 
 /// \addtogroup ugbase_common_util
 /// \{
@@ -828,6 +829,21 @@ template <typename T>
 SmartPtr<T> make_sp(T* inst)
 {
 	return SmartPtr<T>(inst);
+}
+
+namespace boost
+{
+  template <class T>
+  struct pointee<SmartPtr<T> >
+  {
+      typedef T type;
+  };
+
+  template <class T>
+  struct pointee<ConstSmartPtr<T> >
+  {
+      typedef T type;
+  };
 }
 
 // end group ugbase_common_util

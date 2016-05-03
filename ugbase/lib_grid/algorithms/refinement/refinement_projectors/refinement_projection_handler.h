@@ -33,8 +33,8 @@
 #ifndef __H__UG__REFINEMENT_PROJECTION_HANDLER__
 #define __H__UG__REFINEMENT_PROJECTION_HANDLER__
 
-#include "../refinement_callbacks.h"
 #include "lib_grid/tools/subset_handler_interface.h"
+#include "../refinement_callbacks.h"
 
 namespace ug{
 
@@ -48,10 +48,16 @@ namespace ug{
  *
  * Use IRefiner::set_refinement_callback to set an instance of this class as
  * the refinement callback of a refiner.
+ *
+ * The recommended way to pass a subset handler to the constructor is through a SmartPtr.
+ * If your subset handler is not encapsulated in a SmartPtr, you may also choose
+ * to pass a raw pointer instead. In this case please make sure that the specified
+ * subset handler will exist until the projection handler is destroyed.
  */
 template <class TAPosition>
 class RefinementProjectionHandler : public IRefinementCallback {
 	public:
+		RefinementProjectionHandler(ISubsetHandler* sh, TAPosition aPos);
 		RefinementProjectionHandler(SmartPtr<ISubsetHandler> sh, TAPosition aPos);
 
 		virtual ~RefinementProjectionHandler();
@@ -59,6 +65,14 @@ class RefinementProjectionHandler : public IRefinementCallback {
 		void set_default_callback(SmartPtr<IRefinementCallback> callback);
 		void set_callback(int subsetIndex, SmartPtr<IRefinementCallback> callback);
 		void set_callback(std::string subsetName, SmartPtr<IRefinementCallback> callback);
+
+		size_t num_callbacks() const	{return m_callbacks.size();}
+		
+		SmartPtr<IRefinementCallback>
+		refinement_callback(size_t i)	{return m_callbacks.at(i);}
+
+		SmartPtr<IRefinementCallback>
+		default_refinement_callback()	{return m_defaultCallback;}
 
 	////////////////////////////////////////
 	//	IMPLEMENTATION OF IRefinementCallback
@@ -78,10 +92,13 @@ class RefinementProjectionHandler : public IRefinementCallback {
 		virtual int current_pos(number* coordsOut, Vertex* vrt, int maxCoords);
 
 	private:
+		friend class boost::serialization::access;
+
 		template <class TParent>
 		void handle_new_vertex(Vertex* vrt, TParent* parent);
 
-		SmartPtr<ISubsetHandler>					m_sh;
+		ISubsetHandler*								m_sh;
+		SmartPtr<ISubsetHandler>					m_spSH;
 		Grid::VertexAttachmentAccessor<TAPosition>	m_aaPos;
 		std::vector<SmartPtr<IRefinementCallback> >	m_callbacks;
 		SmartPtr<IRefinementCallback>				m_defaultCallback;

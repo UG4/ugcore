@@ -88,6 +88,19 @@ class CylindricalFalloffProjector : public IRefinementCallback
 		pos_type									m_axis;
 		number										m_innerRadius;
 		number										m_outerRadius;
+
+	private:
+		friend class boost::serialization::access;
+
+		template <class Archive>
+		void serialize( Archive& ar, const unsigned int version)
+		{
+			ar & make_nvp("center", m_center);
+			ar & make_nvp("axis", m_axis);
+			ar & make_nvp("innerRadius", m_innerRadius);
+			ar & make_nvp("outerRadius", m_outerRadius);
+			UG_EMPTY_BASE_CLASS_SERIALIZATION(CylindricalFalloffProjector, IRefinementCallback);
+		}
 };
 
 /// @}

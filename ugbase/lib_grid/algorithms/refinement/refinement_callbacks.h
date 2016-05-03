@@ -35,6 +35,7 @@
 
 #include <vector>
 #include "lib_grid/lg_base.h"
+#include "common/boost_serialization.h"
 
 namespace ug
 {
@@ -76,8 +77,15 @@ class IRefinementCallback
 		template <class TAttachmentAccessor>
 		int current_pos_helper(number* coordsOut, Vertex* vrt, int maxCoords,
 							   TAttachmentAccessor& aaPos);
-};
 
+	private:
+		friend class boost::serialization::access;
+
+		template <class Archive>
+		void serialize( Archive& ar, const unsigned int version)
+		{
+		}
+};
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -112,6 +120,15 @@ class RefinementCallbackLinear : public IRefinementCallback
 		
 		Grid* 										m_pGrid;
 		Grid::VertexAttachmentAccessor<TAPosition>	m_aaPos;
+
+	private:
+		friend class boost::serialization::access;
+
+		template <class Archive>
+		void serialize( Archive& ar, const unsigned int version)
+		{
+			UG_EMPTY_BASE_CLASS_SERIALIZATION(RefinementCallbackLinear, IRefinementCallback);
+		}
 };
 
 /// @}

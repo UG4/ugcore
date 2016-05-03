@@ -39,10 +39,30 @@
 #include "common/util/file_util.h"
 #include "common/error.h"
 #include "common/log.h"
+#include "common/profiler/profiler.h"
 
 using namespace std;
 
 namespace ug{
+
+size_t FileSize( const char *filename )
+{
+//	see 'https://www.securecoding.cert.org/confluence/display/c/FIO19-C.+Do+not+use+fseek%28%29+and+ftell%28%29+to+compute+the+size+of+a+regular+file'
+//	for more information on the chosen implementation.
+	PROFILE_FUNC();
+
+	HANDLE file;
+	LARGE_INTEGER fileSize;
+
+	file = CreateFile(TEXT(filename), GENERIC_READ, FILE_SHARE_READ, NULL,
+					  OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	UG_COND_THROW(INVALID_HANDLE_VALUE == file, "The file " << filename
+	              << " could not be opened. Error " << GetLastError() );
+	UG_COND_THROW(!GetFileSizeEx(file, &fileSize),
+	              "Couldn't compute file size of file " << filename);
+	CloseHandle(file);
+	return static_cast<size_t>(fileSize.QuadPart);
+}
 
 bool DirectoryExists(const char* dirname)
 {
