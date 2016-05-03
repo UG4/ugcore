@@ -231,7 +231,10 @@ static void Domain(Registry& reg, string grp)
 	{
 		typedef IElementMarkingStrategy<TDomain> T;
 		string name = string("IElementMarkingStrategy").append(suffix);
-		reg.add_class_<T>(name, grp);
+		reg.add_class_<T>(name, grp)
+			.add_method("global_estimated_error", &T::global_estimated_error)
+			.add_method("global_estimated_error_per_elem_max", &T::global_estimated_error_per_elem_max)
+			.add_method("global_estimated_error_per_elem_min", &T::global_estimated_error_per_elem_min);
 		reg.add_class_to_group(name, "IElementMarkingStrategy", tag);
 	}
 
