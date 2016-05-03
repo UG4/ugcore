@@ -36,7 +36,7 @@
 #include <vector>
 #include "lib_grid/lg_base.h"
 #include "lib_grid/multi_grid.h"
-#include "refinement_callbacks.h"
+#include "refinement_projectors_old/refinement_callbacks.h"
 #include "hanging_node_refiner_multi_grid.h"
 #include "lib_grid/tools/bool_marker.h"
 

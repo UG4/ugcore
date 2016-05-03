@@ -33,7 +33,7 @@
 #ifndef __H__UG__loop_subdivision_projectors__
 #define __H__UG__loop_subdivision_projectors__
 
-#include "../refinement_callbacks.h"
+#include "refinement_callbacks.h"
 
 namespace ug{
 

@@ -34,7 +34,7 @@
 #define __H__UG__REFINEMENT_PROJECTION_HANDLER__
 
 #include "lib_grid/tools/subset_handler_interface.h"
-#include "../refinement_callbacks.h"
+#include "refinement_callbacks.h"
 
 namespace ug{
 

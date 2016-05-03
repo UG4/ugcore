@@ -36,7 +36,7 @@
 #include <queue>
 #include <vector>
 #include "lib_grid/lg_base.h"
-#include "refinement_callbacks.h"
+#include "refinement_projectors_old/refinement_callbacks.h"
 #include "refiner_interface.h"
 #include "ref_mark_adjuster_interface.h"
 

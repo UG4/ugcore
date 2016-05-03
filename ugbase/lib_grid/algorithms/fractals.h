@@ -34,7 +34,7 @@
 #define __H__UG__LIB_GRID__FRACTALS__
 
 #include "lib_grid/algorithms/refinement/hanging_node_refiner_grid.h"
-#include "lib_grid/algorithms/refinement/refinement_projectors/fractal_projector.h"
+#include "lib_grid/algorithms/refinement/refinement_projectors_old//fractal_projector.h"
 
 namespace ug
 {

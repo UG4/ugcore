@@ -30,49 +30,39 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef __H__UG__cylinder_projector__
-#define __H__UG__cylinder_projector__
+#ifndef __H__UG__spherical_falloff_projector__
+#define __H__UG__spherical_falloff_projector__
 
-#include "../refinement_callbacks.h"
+#include "refinement_callbacks.h"
 
 namespace ug{
 
 ///	\addtogroup lib_grid_algorithms_refinement
 ///	@{
-
 ////////////////////////////////////////////////////////////////////////
-///	calculates new positions of vertices by projecting on a cylinder
-/**	Make sure to initialize the callback correctly. Use the same grid
+///	calculates new positions of vertices by projecting on a sphere
+/**	In the range between innerRadius and outerRadius, the projection
+ * gradually moves from spherical-projection to normal linear interpolation.
+ *
+ * Make sure to initialize the callback correctly. Use the same grid
  *	on which the refinement-operations will be performed. Make sure
  *	that aPos (given in the constructor) is attached to the vertices
  *	of the grid.
  *
  *	An uninitialized refinement-callback may not be used during refinement.
- *
- *	Please note that the radius property is ignored during refinement, since
- *	the new distance to the central axis is computed as the average of distances
- *	of connected old vertices. The radius property is only useful to project
- *	a set of vertices onto the cylinder hull. If you don't need that, you may
- *	choose an arbitrary value for radius.
  */
 template <class TAPosition>
-class CylinderProjector : public IRefinementCallback
+class SphericalFalloffProjector : public IRefinementCallback
 {
 	public:
-		CylinderProjector();
+		SphericalFalloffProjector();
 
 	///	make sure that aPos is attached to the vertices of the grid.
-		CylinderProjector(Grid& grid, TAPosition& aPos,
-						  const typename TAPosition::ValueType& center,
-						  const typename TAPosition::ValueType& axis);
+		SphericalFalloffProjector(Grid& grid, TAPosition& aPos,
+								 const typename TAPosition::ValueType& center,
+								 number innerRadius, number outerRadius);
 
-	///	make sure that aPos is attached to the vertices of the grid.
-		CylinderProjector(Grid& grid, TAPosition& aPos,
-						  const typename TAPosition::ValueType& center,
-						  const typename TAPosition::ValueType& axis,
-						  number radius);
-
-		virtual ~CylinderProjector();
+		virtual ~SphericalFalloffProjector();
 
 		virtual void new_vertex(Vertex* vrt, Vertex* parent);
 		virtual void new_vertex(Vertex* vrt, Edge* parent);
@@ -91,8 +81,8 @@ class CylinderProjector : public IRefinementCallback
 		Grid* 										m_pGrid;
 		Grid::VertexAttachmentAccessor<TAPosition>	m_aaPos;
 		pos_type									m_center;
-		pos_type									m_axis;
-		number										m_radius;
+		number										m_innerRadius;
+		number										m_outerRadius;
 
 	private:
 		friend class boost::serialization::access;
@@ -101,16 +91,15 @@ class CylinderProjector : public IRefinementCallback
 		void serialize( Archive& ar, const unsigned int version)
 		{
 			ar & make_nvp("center", m_center);
-			ar & make_nvp("axis", m_axis);
-			ar & make_nvp("radius", m_radius);
-			UG_EMPTY_BASE_CLASS_SERIALIZATION(CylinderProjector, IRefinementCallback);
+			ar & make_nvp("innerRadius", m_innerRadius);
+			ar & make_nvp("outerRadius", m_outerRadius);
+			UG_EMPTY_BASE_CLASS_SERIALIZATION(SphericalFalloffProjector, IRefinementCallback);
 		}
 };
-
 /// @}
 
 }// end of namespace
 
-#include "cylinder_projector_impl.h"
+#include "spherical_falloff_projector_impl.h"
 
 #endif

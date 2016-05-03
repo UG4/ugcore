@@ -1123,115 +1123,115 @@ void MarkForRefinement_AnisotropicDirection (
 
 ////////////////////////////////////////////////////////////////////////////////
 //	REFINEMENT PROJECTORS
-template <class TDomain>
-SmartPtr<RefinementProjectionHandler<typename TDomain::position_attachment_type> >
-DomainRefinementProjectionHandler(TDomain* dom)
-{
-	typedef RefinementProjectionHandler<typename TDomain::position_attachment_type>	TRefProj;
-	return SmartPtr<TRefProj>(
-			new TRefProj(dom->subset_handler(), dom->position_attachment()));
-}
+// template <class TDomain>
+// SmartPtr<RefinementProjectionHandler<typename TDomain::position_attachment_type> >
+// DomainRefinementProjectionHandler(TDomain* dom)
+// {
+// 	typedef RefinementProjectionHandler<typename TDomain::position_attachment_type>	TRefProj;
+// 	return SmartPtr<TRefProj>(
+// 			new TRefProj(dom->subset_handler(), dom->position_attachment()));
+// }
 
-template <class TDomain>
-SmartPtr<IRefinementCallback>
-LinearProjectorFactory(TDomain* dom)
-{
-	typedef RefinementCallbackLinear<typename TDomain::position_attachment_type>	TRefProj;
-	return SmartPtr<TRefProj>(
-			new TRefProj(*dom->grid(), dom->position_attachment()));
-}
+// template <class TDomain>
+// SmartPtr<IRefinementCallback>
+// LinearProjectorFactory(TDomain* dom)
+// {
+// 	return	make_sp(new LinearProjector(
+// 				make_sp(new Geometry<3, TDomain::dim>(
+// 					*dom->grid(), dom->position_attachment()))));
+// }
 
-template <class vector_t>
-static
-vector_t StdVecToMathVec(const std::vector<number>& v)
-{
-	vector_t mv;
-	VecSet(mv, 0);
-	for(size_t i = 0; (i < vector_t::Size) && (i < v.size()); ++i)
-		mv[i] = v[i];
-	return mv;
-}
+// template <class vector_t>
+// static
+// vector_t StdVecToMathVec(const std::vector<number>& v)
+// {
+// 	vector_t mv;
+// 	VecSet(mv, 0);
+// 	for(size_t i = 0; (i < vector_t::Size) && (i < v.size()); ++i)
+// 		mv[i] = v[i];
+// 	return mv;
+// }
 
-///	Creates a refinement projector which projects new vertices onto a sphere
-/** Specify a domain, the center of the sphere (cx, cy, cz), and the sphere's radius.
- */
-template <class TDomain>
-SmartPtr<IRefinementCallback>
-SphereProjectorFactory(TDomain* dom, std::vector<number> center)
-{
-	typedef SphereProjector<typename TDomain::position_attachment_type>	TRefProj;
-	return SmartPtr<TRefProj>(
-			new TRefProj(*dom->grid(), dom->position_attachment(),
-						 StdVecToMathVec<typename TDomain::position_type>(center)));
-}
+// ///	Creates a refinement projector which projects new vertices onto a sphere
+// /** Specify a domain, the center of the sphere (cx, cy, cz), and the sphere's radius.
+//  */
+// template <class TDomain>
+// SmartPtr<IRefinementCallback>
+// SphereProjectorFactory(TDomain* dom, std::vector<number> center)
+// {
+// 	typedef SphereProjector<typename TDomain::position_attachment_type>	TRefProj;
+// 	return SmartPtr<TRefProj>(
+// 			new TRefProj(*dom->grid(), dom->position_attachment(),
+// 						 StdVecToMathVec<typename TDomain::position_type>(center)));
+// }
 
-///	Creates a refinement projector which projects new vertices onto a sphere
-/** An outer radius can also be specified. Vertices outside this outer radius will
- * be projected linear.
- * Specify a domain, the center of the sphere (cx, cy, cz), an inner and an outer radius.
- */
-template <class TDomain>
-SmartPtr<IRefinementCallback>
-SphericalFalloffProjectorFactory(TDomain* dom, std::vector<number> center,
-						  number innerRadius, number outerRadius)
-{
-	typedef SphericalFalloffProjector<typename TDomain::position_attachment_type>	TRefProj;
-	return SmartPtr<TRefProj>(
-			new TRefProj(*dom->grid(), dom->position_attachment(),
-						 StdVecToMathVec<typename TDomain::position_type>(center),
-						 innerRadius, outerRadius));
-}
+// ///	Creates a refinement projector which projects new vertices onto a sphere
+// /** An outer radius can also be specified. Vertices outside this outer radius will
+//  * be projected linear.
+//  * Specify a domain, the center of the sphere (cx, cy, cz), an inner and an outer radius.
+//  */
+// template <class TDomain>
+// SmartPtr<IRefinementCallback>
+// SphericalFalloffProjectorFactory(TDomain* dom, std::vector<number> center,
+// 						  number innerRadius, number outerRadius)
+// {
+// 	typedef SphericalFalloffProjector<typename TDomain::position_attachment_type>	TRefProj;
+// 	return SmartPtr<TRefProj>(
+// 			new TRefProj(*dom->grid(), dom->position_attachment(),
+// 						 StdVecToMathVec<typename TDomain::position_type>(center),
+// 						 innerRadius, outerRadius));
+// }
 
-///	Creates a refinement projector which projects new vertices onto a cylinder
-/** Specify a domain, a point on the cylinder's axis c, the direction
- * of the axis
- */
-template <class TDomain>
-SmartPtr<IRefinementCallback>
-CylinderProjectorFactory(TDomain* dom, std::vector<number> c, std::vector<number> axis)
-{
-	typedef CylinderProjector<typename TDomain::position_attachment_type>	TRefProj;
-	return SmartPtr<TRefProj>(
-			new TRefProj(*dom->grid(), dom->position_attachment(),
-						StdVecToMathVec<typename TDomain::position_type>(c),
-						StdVecToMathVec<typename TDomain::position_type>(axis)));
-}
+// ///	Creates a refinement projector which projects new vertices onto a cylinder
+// /** Specify a domain, a point on the cylinder's axis c, the direction
+//  * of the axis
+//  */
+// template <class TDomain>
+// SmartPtr<IRefinementCallback>
+// CylinderProjectorFactory(TDomain* dom, std::vector<number> c, std::vector<number> axis)
+// {
+// 	typedef CylinderProjector<typename TDomain::position_attachment_type>	TRefProj;
+// 	return SmartPtr<TRefProj>(
+// 			new TRefProj(*dom->grid(), dom->position_attachment(),
+// 						StdVecToMathVec<typename TDomain::position_type>(c),
+// 						StdVecToMathVec<typename TDomain::position_type>(axis)));
+// }
 
-template <class TDomain>
-SmartPtr<IRefinementCallback>
-CylindricalFalloffProjectorFactory(TDomain* dom, std::vector<number> c,
-				  	  	  	  	   std::vector<number> a,
-				  	  	  	  	   number innerRadius, number outerRadius)
-{
-	typedef CylindricalFalloffProjector<typename TDomain::position_attachment_type>	TRefProj;
-	return SmartPtr<TRefProj>(
-			new TRefProj(*dom->grid(), dom->position_attachment(),
-						StdVecToMathVec<typename TDomain::position_type>(c),
-						StdVecToMathVec<typename TDomain::position_type>(a),
-						innerRadius, outerRadius));
-}
+// template <class TDomain>
+// SmartPtr<IRefinementCallback>
+// CylindricalFalloffProjectorFactory(TDomain* dom, std::vector<number> c,
+// 				  	  	  	  	   std::vector<number> a,
+// 				  	  	  	  	   number innerRadius, number outerRadius)
+// {
+// 	typedef CylindricalFalloffProjector<typename TDomain::position_attachment_type>	TRefProj;
+// 	return SmartPtr<TRefProj>(
+// 			new TRefProj(*dom->grid(), dom->position_attachment(),
+// 						StdVecToMathVec<typename TDomain::position_type>(c),
+// 						StdVecToMathVec<typename TDomain::position_type>(a),
+// 						innerRadius, outerRadius));
+// }
 
-template <class TDomain>
-SmartPtr<IRefinementCallback>
-SubdivisionLoopProjectorFactory(TDomain* dom)
-{
-	typedef SubdivisionLoopProjector<typename TDomain::position_attachment_type>	TRefProj;
-	return SmartPtr<TRefProj>(
-			new TRefProj(*dom->grid(), dom->position_attachment(),
-						 dom->position_attachment()));
-}
+// template <class TDomain>
+// SmartPtr<IRefinementCallback>
+// SubdivisionLoopProjectorFactory(TDomain* dom)
+// {
+// 	typedef SubdivisionLoopProjector<typename TDomain::position_attachment_type>	TRefProj;
+// 	return SmartPtr<TRefProj>(
+// 			new TRefProj(*dom->grid(), dom->position_attachment(),
+// 						 dom->position_attachment()));
+// }
 
-void SetTetRefinementRule(std::string ruleName)
-{
-	ruleName = ToLower(ruleName);
-	if(ruleName.compare("standard") == 0)
-		tet_rules::SetRefinementRule(tet_rules::STANDARD);
-	else if(ruleName.compare("hybrid_tet_oct") == 0)
-			tet_rules::SetRefinementRule(tet_rules::HYBRID_TET_OCT);
-	else{
-		UG_THROW("Unknown refinement rule! Known rules are: standard, hybrid_tet_oct");
-	}
-}
+// void SetTetRefinementRule(std::string ruleName)
+// {
+// 	ruleName = ToLower(ruleName);
+// 	if(ruleName.compare("standard") == 0)
+// 		tet_rules::SetRefinementRule(tet_rules::STANDARD);
+// 	else if(ruleName.compare("hybrid_tet_oct") == 0)
+// 			tet_rules::SetRefinementRule(tet_rules::HYBRID_TET_OCT);
+// 	else{
+// 		UG_THROW("Unknown refinement rule! Known rules are: standard, hybrid_tet_oct");
+// 	}
+// }
 
 void SetSmoothSubdivisionVolumesBoundaryRefinementRule(std::string bndRefRule)
 {
@@ -1404,35 +1404,35 @@ static void Domain(Registry& reg, string grp)
 
 
 //	register refinement projection handler and factories
-	{
-		typedef RefinementProjectionHandler<apos_type> T;
-		string name = string("RefinementProjectionHandler").append(suffix);
-		reg.add_class_<T, IRefinementCallback>(name, grp)
-				.add_method("set_default_callback", &T::set_default_callback, grp)
-				.add_method("set_callback",
-						static_cast<void (T::*)(int, SmartPtr<IRefinementCallback>) >
-							(&T::set_callback), grp)
-				.add_method("set_callback",
-						static_cast<void (T::*)(std::string, SmartPtr<IRefinementCallback>) >
-							(&T::set_callback), grp);
-		reg.add_class_to_group(name, "RefinementProjectionHandler", tag);
-	}
+	// {
+	// 	typedef RefinementProjectionHandler<apos_type> T;
+	// 	string name = string("RefinementProjectionHandler").append(suffix);
+	// 	reg.add_class_<T, IRefinementCallback>(name, grp)
+	// 			.add_method("set_default_callback", &T::set_default_callback, grp)
+	// 			.add_method("set_callback",
+	// 					static_cast<void (T::*)(int, SmartPtr<IRefinementCallback>) >
+	// 						(&T::set_callback), grp)
+	// 			.add_method("set_callback",
+	// 					static_cast<void (T::*)(std::string, SmartPtr<IRefinementCallback>) >
+	// 						(&T::set_callback), grp);
+	// 	reg.add_class_to_group(name, "RefinementProjectionHandler", tag);
+	// }
 
-	reg.add_function("DomainRefinementProjectionHandler",
-					&DomainRefinementProjectionHandler<TDomain>, grp,
-					"RefinementProjectionHandler", "domain")
-		.add_function("LinearProjector", &LinearProjectorFactory<TDomain>, grp,
-					"IRefinementCallback", "domain")
-		.add_function("SphereProjector", &SphereProjectorFactory<TDomain>, grp,
-					"IRefinementCallback", "domain#centerX#centerY#centerZ#radius")
-		.add_function("SphericalFalloffProjector", &SphericalFalloffProjectorFactory<TDomain>, grp,
-					"IRefinementCallback", "domain#centerX#centerY#centerZ#innerRadius#outerRadius")
-		.add_function("CylinderProjector", &CylinderProjectorFactory<TDomain>, grp,
-					"IRefinementCallback", "domain#centerX#centerY#centerZ#axisX#axisY#axisZ")
-		.add_function("CylindricalFalloffProjector", &CylindricalFalloffProjectorFactory<TDomain>, grp,
-					"IRefinementCallback", "domain#centerX#centerY#centerZ#axisX#axisY#axisZ#innerRadius#outerRadius")
-		.add_function("SubdivisionLoopProjector", &SubdivisionLoopProjectorFactory<TDomain>, grp,
-					"IRefinementCallback", "domain");
+	// reg.add_function("DomainRefinementProjectionHandler",
+	// 				&DomainRefinementProjectionHandler<TDomain>, grp,
+	// 				"RefinementProjectionHandler", "domain")
+	// 	.add_function("LinearProjector", &LinearProjectorFactory<TDomain>, grp,
+	// 				"IRefinementCallback", "domain")
+	// 	.add_function("SphereProjector", &SphereProjectorFactory<TDomain>, grp,
+	// 				"IRefinementCallback", "domain#centerX#centerY#centerZ#radius")
+	// 	.add_function("SphericalFalloffProjector", &SphericalFalloffProjectorFactory<TDomain>, grp,
+	// 				"IRefinementCallback", "domain#centerX#centerY#centerZ#innerRadius#outerRadius")
+	// 	.add_function("CylinderProjector", &CylinderProjectorFactory<TDomain>, grp,
+	// 				"IRefinementCallback", "domain#centerX#centerY#centerZ#axisX#axisY#axisZ")
+	// 	.add_function("CylindricalFalloffProjector", &CylindricalFalloffProjectorFactory<TDomain>, grp,
+	// 				"IRefinementCallback", "domain#centerX#centerY#centerZ#axisX#axisY#axisZ#innerRadius#outerRadius")
+	// 	.add_function("SubdivisionLoopProjector", &SubdivisionLoopProjectorFactory<TDomain>, grp,
+	// 				"IRefinementCallback", "domain");
 }
 
 }; // end Functionality

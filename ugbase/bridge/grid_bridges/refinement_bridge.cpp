@@ -36,7 +36,7 @@
 #include "lib_grid/algorithms/refinement/global_multi_grid_refiner.h"
 #include "lib_grid/algorithms/refinement/hanging_node_refiner_grid.h"
 #include "lib_grid/algorithms/refinement/hanging_node_refiner_multi_grid.h"
-#include "lib_grid/algorithms/refinement/refinement_projectors/loop_subdivision_projectors.h"
+#include "lib_grid/algorithms/refinement/refinement_projectors_old/loop_subdivision_projectors.h"
 #include "lib_grid/algorithms/subdivision/subdivision_loop.h"
 #include "lib_grid/file_io/file_io.h"
 

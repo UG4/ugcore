@@ -32,7 +32,7 @@
 
 #include "icosahedron.h"
 #include "lib_grid/algorithms/refinement/regular_refinement.h"
-#include "../refinement/refinement_projectors/sphere_projector.h"
+#include "../refinement/refinement_projectors_old/sphere_projector.h"
 
 namespace ug{
 

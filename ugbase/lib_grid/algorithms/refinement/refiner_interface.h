@@ -34,7 +34,7 @@
 #define __H__UG__REFINER_INTERFACE__
 
 #include <string>
-#include "refinement_callbacks.h"
+#include "refinement_projectors_old/refinement_callbacks.h"
 
 namespace ug
 {

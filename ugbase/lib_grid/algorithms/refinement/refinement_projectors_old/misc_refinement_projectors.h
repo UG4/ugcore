@@ -30,19 +30,46 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef __H__UG__fractal_projector__
-#define __H__UG__fractal_projector__
+#ifndef __H__UG__misc_refinement_projectors__
+#define __H__UG__misc_refinement_projectors__
 
-#include "../refinement_callbacks.h"
+#include "refinement_callbacks.h"
 
 namespace ug{
 
 ///	\addtogroup lib_grid_algorithms_refinement
 ///	@{
 
+///	If a refined edge intersects the given cylinder, the new vertex will be placed at the intersection.
+class RefinementCallback_IntersectCylinder : public RefinementCallbackLinear<APosition>
+{
+	public:
+		using RefinementCallbackLinear<APosition>::new_vertex;
+
+	public:
+		RefinementCallback_IntersectCylinder();
+
+	///	make sure that aPos is attached to the vertices of the grid.
+		RefinementCallback_IntersectCylinder(Grid& grid, const vector3& center,
+											 const vector3& axis, number radius,
+											 APosition& aPos = aPosition);
+
+		virtual ~RefinementCallback_IntersectCylinder();
+
+		virtual void new_vertex(Vertex* vrt, Edge* parent);
+
+	protected:
+		vector3 m_center;
+		vector3 m_axis;
+		number m_radius;
+};
+
 ////////////////////////////////////////////////////////////////////////
-///	calculates new positions by offsetting new vertices to along its parents normal.
-/**
+///	calculates new positions by cutting parent edges with a plane
+/**	For each edge the intersection of the edge with the initially
+ *	given plane is calculated and used as new point. Vertices
+ *	created on other geometric objects are treated as in the linear case.
+ *
  *	Make sure to initialise the callback correctly. Use the same grid
  *	on which the refinement-operations will be performed. Make sure
  *	that aPos (given in the constructor) is attached to the vertices
@@ -50,39 +77,30 @@ namespace ug{
  *
  *	An uninitialized refinement-callback may not be used during refinement.
  */
-class FractalProjector : public RefinementCallbackLinear<APosition>
+class RefinementCallbackEdgePlaneCut : public RefinementCallbackLinear<APosition>
 {
 	public:
 		using RefinementCallbackLinear<APosition>::new_vertex;
 
 	public:
-		FractalProjector();
+		RefinementCallbackEdgePlaneCut();
 
 	///	make sure that aPos is attached to the vertices of the grid.
-		FractalProjector(Grid& grid, number scaleFac,
-								  APosition& aPos = aPosition);
+		RefinementCallbackEdgePlaneCut(Grid& grid, const vector3& p,
+										const vector3& n,
+										APosition& aPos = aPosition);
 
-		virtual ~FractalProjector();
+		virtual ~RefinementCallbackEdgePlaneCut();
 
 		virtual void new_vertex(Vertex* vrt, Edge* parent);
-		virtual void new_vertex(Vertex* vrt, Face* parent);
-
-		inline void set_scale_fac(number scaleFac)	{m_scaleFac = scaleFac;}
-		inline number get_scale_fac()				{return m_scaleFac;}
 
 	protected:
-		number m_scaleFac;
-
-	private:
-		friend class boost::serialization::access;
-
-		template <class Archive>
-		void serialize( Archive& ar, const unsigned int version)
-		{
-			ar & make_nvp("scaleFac", m_scaleFac);
-			UG_EMPTY_BASE_CLASS_SERIALIZATION(FractalProjector, IRefinementCallback);
-		}
+		vector3 m_p;
+		vector3 m_n;
 };
+
+
+
 
 /// @}
 
