@@ -448,7 +448,8 @@ if(INTERNAL_BOOST)
 endif(INTERNAL_BOOST)
 find_package(Boost 1.40 REQUIRED)
 message(STATUS "Info: Including Boost from ${Boost_INCLUDE_DIRS}")
-include_directories(${Boost_INCLUDE_DIRS})
+# Suppress diagnostic warnings in the boost headers: declare them to be "system headers"
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
 
 ########################################
