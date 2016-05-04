@@ -397,7 +397,7 @@ void VarianceMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaEr
 	ComputeMinMax(aaError, dd, minElemErr, maxElemErr, errTotal, numElem,
 				minElemErrLocal, maxElemErrLocal, errLocal, numElemLocal);
 
-	this->m_latest_error = errTotal;
+	this->m_latest_error = sqrt(errTotal);
 	this->m_latest_error_per_elem_max = maxElemErr;
 	this->m_latest_error_per_elem_min = minElemErr;
 
@@ -911,7 +911,7 @@ void AbsoluteMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaEr
 		}
 #endif
 
-		this->m_latest_error = errTotal;
+		this->m_latest_error = sqrt(errTotal);
 
 		UG_LOG("  +++ AbsoluteMarking: Error**2 = "<<errTotal <<"; marked "<< numMarkedRefine << " elements for refinement "<<std::endl);
 
