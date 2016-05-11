@@ -30,50 +30,33 @@
  * GNU Lesser General Public License for more details.
  */
 
-/* Include this file if you want to perform serialization, since it defines
- * basic serialization routines for common types. You won't need this include
- * if you're just writing serialization routines for your own types. Include
- * 'boost_serialization.h' in this case.*/
+#ifndef __H__UG_register_type_pair_functor
+#define __H__UG_register_type_pair_functor
 
-#ifndef __H__UG_boost_serialization_routines
-#define __H__UG_boost_serialization_routines
+namespace ug{
+namespace detail{
 
-#include "boost_serialization.h"
+template <typename TRegistry>
+struct RegisterTypePairFunctor
+{
+	RegisterTypePairFunctor(TRegistry* reg) : m_reg(reg) {}
 
-namespace boost{
-namespace serialization{
-
-	template <typename Archive>
-	void serialize(Archive& ar, ug::vector1& v, const unsigned int version)
+///	inserts classes into the set of known classes
+/**	This function allows for the usage of boost::mpl::for_each.
+ * It assumes that the template type 'TPair' is a boost::mpl::pair which
+ * contains an arbitrary type as first entry and a boost::mpl::string as
+ * second entry.*/
+	template <typename TPair> void operator()(TPair)
 	{
-		ar & ug::make_nvp("x", v[0]);
+		m_reg->template register_class <typename TPair::first>(
+					boost::mpl::c_str<typename TPair::second>::value);
 	}
 
-	template <typename Archive>
-	void serialize(Archive& ar, ug::vector2& v, const unsigned int version)
-	{
-		ar & ug::make_nvp("x", v[0]);
-		ar & ug::make_nvp("y", v[1]);
-	}
-
-	template <typename Archive>
-	void serialize(Archive& ar, ug::vector3& v, const unsigned int version)
-	{
-		ar & ug::make_nvp("x", v[0]);
-		ar & ug::make_nvp("y", v[1]);
-		ar & ug::make_nvp("z", v[2]);
-	}
-
-	template <typename Archive>
-	void serialize(Archive& ar, ug::vector4& v, const unsigned int version)
-	{
-		ar & ug::make_nvp("x", v[0]);
-		ar & ug::make_nvp("y", v[1]);
-		ar & ug::make_nvp("z", v[2]);
-		ar & ug::make_nvp("w", v[3]);
-	}
-}
+	private:
+	TRegistry* m_reg;
+};
 
 }//	end of namespace
+}//	end of namespace
 
-#endif	//__H__UG_boost_serialization_routines
+#endif	//__H__UG_register_type_pair_functor

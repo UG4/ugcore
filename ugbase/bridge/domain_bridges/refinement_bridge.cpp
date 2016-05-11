@@ -46,13 +46,13 @@
 #include "lib_grid/algorithms/refinement_mark_util.h"
 #include "lib_grid/algorithms/refinement/adaptive_regular_mg_refiner.h"
 #include "lib_grid/algorithms/refinement/hanging_node_refiner_multi_grid.h"
-#include "lib_grid/algorithms/refinement/refinement_projectors/refinement_projection_handler.h"
-#include "lib_grid/algorithms/refinement/refinement_projectors/sphere_projector.h"
-#include "lib_grid/algorithms/refinement/refinement_projectors/spherical_falloff_projector.h"
-#include "lib_grid/algorithms/refinement/refinement_projectors/cylinder_projector.h"
-#include "lib_grid/algorithms/refinement/refinement_projectors/cylindrical_falloff_projector.h"
-#include "lib_grid/algorithms/refinement/refinement_projectors/loop_subdivision_projectors.h"
-#include "lib_grid/algorithms/refinement/refinement_projectors/fractal_projector.h"
+#include "lib_grid/algorithms/refinement/refinement_projectors_old/refinement_projection_handler.h"
+#include "lib_grid/algorithms/refinement/refinement_projectors_old/sphere_projector.h"
+#include "lib_grid/algorithms/refinement/refinement_projectors_old/spherical_falloff_projector.h"
+#include "lib_grid/algorithms/refinement/refinement_projectors_old/cylinder_projector.h"
+#include "lib_grid/algorithms/refinement/refinement_projectors_old/cylindrical_falloff_projector.h"
+#include "lib_grid/algorithms/refinement/refinement_projectors_old/loop_subdivision_projectors.h"
+#include "lib_grid/algorithms/refinement/refinement_projectors_old/fractal_projector.h"
 #include "lib_grid/algorithms/refinement/ref_mark_adjusters/horizontal_anisotropy_adjuster.h"
 #include "lib_grid/algorithms/subdivision/subdivision_volumes.h"
 #include "lib_grid/grid_objects/tetrahedron_rules.h"
@@ -1221,17 +1221,17 @@ void MarkForRefinement_AnisotropicDirection (
 // 						 dom->position_attachment()));
 // }
 
-// void SetTetRefinementRule(std::string ruleName)
-// {
-// 	ruleName = ToLower(ruleName);
-// 	if(ruleName.compare("standard") == 0)
-// 		tet_rules::SetRefinementRule(tet_rules::STANDARD);
-// 	else if(ruleName.compare("hybrid_tet_oct") == 0)
-// 			tet_rules::SetRefinementRule(tet_rules::HYBRID_TET_OCT);
-// 	else{
-// 		UG_THROW("Unknown refinement rule! Known rules are: standard, hybrid_tet_oct");
-// 	}
-// }
+void SetTetRefinementRule(std::string ruleName)
+{
+	ruleName = ToLower(ruleName);
+	if(ruleName.compare("standard") == 0)
+		tet_rules::SetRefinementRule(tet_rules::STANDARD);
+	else if(ruleName.compare("hybrid_tet_oct") == 0)
+			tet_rules::SetRefinementRule(tet_rules::HYBRID_TET_OCT);
+	else{
+		UG_THROW("Unknown refinement rule! Known rules are: standard, hybrid_tet_oct");
+	}
+}
 
 void SetSmoothSubdivisionVolumesBoundaryRefinementRule(std::string bndRefRule)
 {
@@ -1309,7 +1309,7 @@ template <typename TDomain>
 static void Domain(Registry& reg, string grp)
 {
 	typedef TDomain 							domain_type;
-	typedef typename TDomain::position_attachment_type apos_type;
+	// typedef typename TDomain::position_attachment_type apos_type;
 
 	string suffix = GetDomainSuffix<TDomain>();
 	string tag = GetDomainTag<TDomain>();

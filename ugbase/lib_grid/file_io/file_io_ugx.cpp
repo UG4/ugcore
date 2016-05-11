@@ -35,6 +35,7 @@
 #include "file_io_ugx.h"
 #include "common/parser/rapidxml/rapidxml_print.hpp"
 #include "lib_grid/algorithms/attachment_util.h"
+#include "lib_grid/algorithms/refinement/projectors.h"
 
 using namespace std;
 using namespace rapidxml;
@@ -285,6 +286,32 @@ add_selector(ISelector& sel, const char* name, size_t refGridIndex)
 		ndSel->append_node(create_selector_element_node<Face>("faces", sel));
 	if(sel.contains_volumes())
 		ndSel->append_node(create_selector_element_node<Volume>("volumes", sel));
+}
+
+
+void GridWriterUGX::
+add_projection_handler(ProjectionHandler& ph, const char* name, size_t refGridIndex)
+{
+//	get the node of the referenced grid
+	if(refGridIndex >= m_vEntries.size()){
+		UG_LOG("GridWriterUGX::add_selector: bad refGridIndex. Aborting.\n");
+		return;
+	}
+
+	xml_node<>* parentNode = m_vEntries[refGridIndex].node;
+
+//	create the selector node
+	xml_node<>* ndSel = m_doc.allocate_node(node_element, "projection_handler");
+	ndSel->append_attribute(m_doc.allocate_attribute("name", name));
+
+//	add the selector node to the grid-node.
+	parentNode->append_node(ndSel);
+
+//	fill the content of the selector-node
+	for(size_t i = 0; i < ph.num_projectors(); ++i){
+
+		// ndSel.append_node(create_projector_node(i));
+	}
 }
 
 

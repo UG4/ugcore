@@ -33,12 +33,12 @@
 #ifndef __H__UG_boost_class_serialization_exports
 #define __H__UG_boost_class_serialization_exports
 
-#include "algorithms/refinement/refinement_callbacks.h"
-#include "algorithms/refinement/refinement_projectors/cylinder_projector.h"
-#include "algorithms/refinement/refinement_projectors/cylindrical_falloff_projector.h"
-#include "algorithms/refinement/refinement_projectors/fractal_projector.h"
-#include "algorithms/refinement/refinement_projectors/sphere_projector.h"
-#include "algorithms/refinement/refinement_projectors/spherical_falloff_projector.h"
+#include "algorithms/refinement/refinement_projectors_old/refinement_callbacks.h"
+#include "algorithms/refinement/refinement_projectors_old/cylinder_projector.h"
+#include "algorithms/refinement/refinement_projectors_old/cylindrical_falloff_projector.h"
+#include "algorithms/refinement/refinement_projectors_old/fractal_projector.h"
+#include "algorithms/refinement/refinement_projectors_old/sphere_projector.h"
+#include "algorithms/refinement/refinement_projectors_old/spherical_falloff_projector.h"
 
 #include "common_attachments.h"
 
@@ -67,6 +67,13 @@ BOOST_CLASS_EXPORT(ug::SphereProjector<ug::AVector3>);
 BOOST_CLASS_EXPORT(ug::SphericalFalloffProjector<ug::AVector1>);
 BOOST_CLASS_EXPORT(ug::SphericalFalloffProjector<ug::AVector2>);
 BOOST_CLASS_EXPORT(ug::SphericalFalloffProjector<ug::AVector3>);
+
+#include "algorithms/refinement/refinement_projector.h"
+#include "algorithms/refinement/projectors/sphere_projector.h"
+#include "algorithms/refinement/projectors/cylinder_projector.h"
+BOOST_CLASS_EXPORT(ug::RefinementProjector);
+BOOST_CLASS_EXPORT(ug::SphereProjectorNew);
+BOOST_CLASS_EXPORT(ug::CylinderProjectorNew);
 
 
 // Provider<std::map<std::string, boost::function< SmartPtr<IRefinementCallback*> () > >::get()["None3d"] = RefinementCallbackLinear

@@ -51,6 +51,8 @@
 namespace ug
 {
 
+class ProjectionHandler;
+
 ////////////////////////////////////////////////////////////////////////
 ///	Writes a grid to an ugx file. internally uses GridWriterUGX.
 /**	The position attachment can be specified. Since the type of the
@@ -122,6 +124,9 @@ class GridWriterUGX
 
 		void add_selector(ISelector& sel, const char* name,
 						  size_t refGridIndex);
+
+		void add_projection_handler(ProjectionHandler& ph, const char* name,
+									size_t refGridIndex);
 
 		template <class TElem, class TAttachment>
 		void add_attachment(TAttachment attachment,

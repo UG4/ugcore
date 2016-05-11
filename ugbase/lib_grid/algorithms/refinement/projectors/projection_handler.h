@@ -118,10 +118,7 @@ public:
 					   "Bad subset-index in ProjectionHandler::set_projector: "
 					   << subsetIndex << ". Indices have to be >= -1");
 
-	//	in order to automatically treat subset '-1' correctly, internally we add 1 
-	//	to each subset-index
-		if(subsetIndex + 1 >= (int)m_projectors.size())
-			m_projectors.resize (subsetIndex + 2, m_defaultProjector);
+		projector_required(subsetIndex);
 
 		m_projectors [subsetIndex + 1] = projector;
 
@@ -149,16 +146,16 @@ public:
 	size_t num_projectors () const				{return m_projectors.size();}
 	
 	SPRefinementProjector
-	refinement_projector (size_t i)				{return m_projectors.at(i + 1);}
+	projector (size_t i)						{projector_required(i); return m_projectors.at(i + 1);}
 
 	ConstSmartPtr<RefinementProjector>
-	refinement_projector (size_t i)	const		{return m_projectors.at(i + 1);}
+	projector (size_t i)	const				{return m_projectors.at(i + 1);}
 
 	SPRefinementProjector
-	default_refinement_projector ()				{return m_defaultProjector;}
+	default_projector ()						{return m_defaultProjector;}
 
 	ConstSmartPtr<RefinementProjector>
-	default_refinement_projector ()	const		{return m_defaultProjector;}
+	default_projector ()	const				{return m_defaultProjector;}
 
 ////////////////////////////////////////
 //	IMPLEMENTATION OF RefinementProjector
@@ -171,10 +168,8 @@ public:
 					  "'ProjectionHandler' before using it during refinement.");
 
 	//	make sure that the internal vector of projectors is at least as large
-	//	as there are subsets in the associated subset handler (+1 to treat subset
-	//	'-1' correctly)
-		if(m_sh->num_subsets() + 1 > (int)m_projectors.size())
-			m_projectors.resize(m_sh->num_subsets() + 1, m_defaultProjector);
+	//	as there are subsets in the associated subset handler
+		projector_required((int)m_sh->num_subsets()-1);
 
 	//	make sure that all projectors have a valid geometry, if possible.
 		UG_COND_THROW (geometry().invalid(), "Please make sure that a geometry "
@@ -226,6 +221,13 @@ public:
 
 private:
 	friend class boost::serialization::access;
+
+	void projector_required(int index) {
+	//	in order to automatically treat subset '-1' correctly, internally we add 1 
+	//	to each subset-index
+		if(index + 1 >= (int)m_projectors.size())
+			m_projectors.resize(index + 2, m_defaultProjector);
+	}
 
 	template <class TParent>
 	void handle_new_vertex (Vertex* vrt, TParent* parent)

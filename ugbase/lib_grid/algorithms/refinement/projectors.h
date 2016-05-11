@@ -30,50 +30,41 @@
  * GNU Lesser General Public License for more details.
  */
 
-/* Include this file if you want to perform serialization, since it defines
- * basic serialization routines for common types. You won't need this include
- * if you're just writing serialization routines for your own types. Include
- * 'boost_serialization.h' in this case.*/
+#ifndef __H__UG_projectors
+#define __H__UG_projectors
 
-#ifndef __H__UG_boost_serialization_routines
-#define __H__UG_boost_serialization_routines
+#include <boost/mpl/pair.hpp>
+#include <boost/mpl/string.hpp>
+#include <boost/mpl/vector.hpp>
 
-#include "boost_serialization.h"
+#include "refinement_projector.h"
+#include "projectors/cylinder_projector.h"
+#include "projectors/projection_handler.h"
+#include "projectors/sphere_projector.h"
 
-namespace boost{
-namespace serialization{
+namespace boost {
+namespace mpl {
+namespace tmp {
 
-	template <typename Archive>
-	void serialize(Archive& ar, ug::vector1& v, const unsigned int version)
-	{
-		ar & ug::make_nvp("x", v[0]);
-	}
-
-	template <typename Archive>
-	void serialize(Archive& ar, ug::vector2& v, const unsigned int version)
-	{
-		ar & ug::make_nvp("x", v[0]);
-		ar & ug::make_nvp("y", v[1]);
-	}
-
-	template <typename Archive>
-	void serialize(Archive& ar, ug::vector3& v, const unsigned int version)
-	{
-		ar & ug::make_nvp("x", v[0]);
-		ar & ug::make_nvp("y", v[1]);
-		ar & ug::make_nvp("z", v[2]);
-	}
-
-	template <typename Archive>
-	void serialize(Archive& ar, ug::vector4& v, const unsigned int version)
-	{
-		ar & ug::make_nvp("x", v[0]);
-		ar & ug::make_nvp("y", v[1]);
-		ar & ug::make_nvp("z", v[2]);
-		ar & ug::make_nvp("w", v[3]);
-	}
+//	ATTENTION:	unfortunately, multi-chars may have a length of at most 4 to be
+//				compatible with different compilers
+//
+//	NOTE:		ug::ProjectionHandler is not contained in this list on purpose,
+//				since it isn't used for serialization.
+typedef vector<
+			pair <ug::RefinementProjector,	string<'defa','ult'> >,
+			pair <ug::CylinderProjectorNew,	string<'cyli','nder'> >,
+			pair <ug::SphereProjectorNew,	string<'sphe','re'> > >
+	ProjectorTypes;	
 }
+}
+}
+
+
+namespace ug{
+
+typedef boost::mpl::tmp::ProjectorTypes	ProjectorTypes;
 
 }//	end of namespace
 
-#endif	//__H__UG_boost_serialization_routines
+#endif	//__H__UG_projectors
