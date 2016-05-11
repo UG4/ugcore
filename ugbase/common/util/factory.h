@@ -35,6 +35,7 @@
 
 #include <boost/static_assert.hpp>
 #include <boost/mpl/for_each.hpp>
+#include <boost/mpl/vector.hpp>
 #include <boost/type_traits/is_base_of.hpp>
 #include "../boost_serialization.h"
 #include "detail/register_type_pair_functor.h"
@@ -43,7 +44,7 @@ namespace ug{
 
 namespace detail{
 namespace factory{
-	///	used internally to construct new derived classes of a given type
+	///	used internally to construct derived classes of a given type
 	template <class TBase, class TDerived>
 	TBase* DerivedClassFactory ()
 	{
@@ -52,7 +53,24 @@ namespace factory{
 }
 }
 
-template <class TBase, class TPairSeq>
+
+///	A factory class which creates instances given a class-name
+/** Given a base-class 'TBase' and an optional boost::mpl sequence of pairs of
+ * derived classes and strings 'TPairSeq', the ug::Factory class allows for the
+ * creation of instances ofderived classes given a name. Additionally to the
+ * classes contained in 'TPairSeq', one may register derived classes at runtime
+ * through the 'register_class' method.
+ *
+ * Besides creation of registered classes through the 'create' method,
+ * one can iterate over all registered classes or obtain a registered class-name
+ * given a pointer to the base class.
+ *
+ * \note	This factory class is somewhat limited compared to e.g. to boost::factory and
+ * 			is not meant as a replacement. It's main purpose is to allow iteration
+ *			over registered classes and to perform automatic registration through
+ *			a type list.
+ */
+template <class TBase, class TPairSeq = boost::mpl::vector<> >
 class Factory
 {
 public:
