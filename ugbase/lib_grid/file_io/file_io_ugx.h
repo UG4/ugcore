@@ -335,6 +335,15 @@ class GridReaderUGX
 	///	fills the given selector
 		bool selector(ISelector& selOut, size_t selectorIndex, size_t refGridIndex);
 
+	///	returns the number of projection-handlers for the given grid
+		size_t num_projection_handlers(size_t refGridIndex) const;
+
+	///	returns the name of the given projection-handler
+		const char* get_projection_handler_name(size_t refGridIndex, size_t phIndex) const;
+
+	///	fills the given projection-handler
+		bool projection_handler(ProjectionHandler& phOut, size_t phIndex, size_t refGridIndex);
+		
 	protected:
 		struct SubsetHandlerEntry
 		{
@@ -361,6 +370,7 @@ class GridReaderUGX
 			MultiGrid* 	mg;
 			std::vector<SubsetHandlerEntry>	subsetHandlerEntries;
 			std::vector<SelectorEntry>		selectorEntries;
+			std::vector<rapidxml::xml_node<>*>	projectionHandlerEntries;
 			std::vector<Vertex*> 		vertices;
 			std::vector<Edge*> 			edges;
 			std::vector<Face*>				faces;

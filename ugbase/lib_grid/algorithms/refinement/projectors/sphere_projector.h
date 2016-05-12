@@ -151,4 +151,6 @@ private:
 
 }//	end of namespace
 
+BOOST_CLASS_IMPLEMENTATION(ug::SphereProjectorNew, boost::serialization::object_serializable);
+
 #endif	//__H__UG_sphere_projector_new

@@ -157,4 +157,6 @@ private:
 
 }//	end of namespace
 
+BOOST_CLASS_IMPLEMENTATION(ug::CylinderProjectorNew, boost::serialization::object_serializable);
+
 #endif	//__H__UG_cylinder_projector_new

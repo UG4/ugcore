@@ -143,7 +143,7 @@ public:
 		set_projector (si, projector);
 	}
 
-	size_t num_projectors () const				{return m_projectors.size();}
+	size_t num_projectors () const				{return m_projectors.size() > 0 ? m_projectors.size() - 1 : 0;}
 	
 	SPRefinementProjector
 	projector (size_t i)						{projector_required(i); return m_projectors.at(i + 1);}

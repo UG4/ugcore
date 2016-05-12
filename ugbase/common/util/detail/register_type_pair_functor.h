@@ -33,6 +33,8 @@
 #ifndef __H__UG_register_type_pair_functor
 #define __H__UG_register_type_pair_functor
 
+#include <boost/mpl/string.hpp>
+
 namespace ug{
 namespace detail{
 

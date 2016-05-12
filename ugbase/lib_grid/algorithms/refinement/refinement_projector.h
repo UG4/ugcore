@@ -135,10 +135,10 @@ private:
 	SPIGeometry3d	m_geometry;
 };
 
-
 typedef SmartPtr<RefinementProjector>	SPRefinementProjector;
 
-
 }//	end of namespace
+
+BOOST_CLASS_IMPLEMENTATION(ug::RefinementProjector, boost::serialization::object_serializable);
 
 #endif	//__H__UG_refinement_projector
