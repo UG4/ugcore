@@ -60,7 +60,8 @@ public:
  * SubsetHandler exists.*/
 	ProjectionHandler (SPIGeometry3d geometry, ISubsetHandler* psh) :
 		RefinementProjector (geometry),
-		m_sh (psh)
+		m_sh (psh),
+		m_linearProjector (geometry)
 	{
 		m_defaultProjector = make_sp(new RefinementProjector);
 	}
@@ -68,12 +69,19 @@ public:
 	ProjectionHandler (SPIGeometry3d geometry, SmartPtr<ISubsetHandler> psh) :
 		RefinementProjector (geometry),
 		m_sh (psh.get()),
-		m_spSH (psh)
+		m_spSH (psh),
+		m_linearProjector (geometry)
 	{
 		m_defaultProjector = make_sp(new RefinementProjector);
 	}
 
 	virtual ~ProjectionHandler ()	{}
+
+	virtual void set_geometry (SPIGeometry3d geometry)
+	{
+		RefinementProjector::set_geometry (geometry);
+		m_linearProjector.set_geometry (geometry);
+	}
 
 ///	Sets the geometry of the ProjectionHandler and of all associated projectors
 /** \note	If you'd like to change the geometry of the ProjectionHandler only,
@@ -195,27 +203,27 @@ public:
 	}
 
 ///	called when a new vertex was created from an old vertex.
-	virtual void new_vertex (Vertex* vrt, Vertex* parent)
+	virtual number new_vertex (Vertex* vrt, Vertex* parent)
 	{
-		handle_new_vertex (vrt, parent);
+		return handle_new_vertex (vrt, parent);
 	}
 
 ///	called when a new vertex was created from an old edge.
-	virtual void new_vertex (Vertex* vrt, Edge* parent)
+	virtual number new_vertex (Vertex* vrt, Edge* parent)
 	{
-		handle_new_vertex (vrt, parent);
+		return handle_new_vertex (vrt, parent);
 	}
 
 ///	called when a new vertex was created from an old face.
-	virtual void new_vertex (Vertex* vrt, Face* parent)
+	virtual number new_vertex (Vertex* vrt, Face* parent)
 	{
-		handle_new_vertex (vrt, parent);
+		return handle_new_vertex (vrt, parent);
 	}
 
 ///	called when a new vertex was created from an old volume.
-	virtual void new_vertex (Vertex* vrt, Volume* parent)
+	virtual number new_vertex (Vertex* vrt, Volume* parent)
 	{
-		handle_new_vertex (vrt, parent);
+		return handle_new_vertex (vrt, parent);
 	}
 
 
@@ -230,7 +238,7 @@ private:
 	}
 
 	template <class TParent>
-	void handle_new_vertex (Vertex* vrt, TParent* parent)
+	number handle_new_vertex (Vertex* vrt, TParent* parent)
 	{
 		int si = m_sh->get_subset_index(parent);
 
@@ -238,13 +246,24 @@ private:
 				   "Please make sure to call 'refinement_begins' before calling "
 				   "'new_vertex' for the first time for a given subset-assignment.");
 		
-		m_projectors [si + 1]->new_vertex (vrt, parent);
+		number ia = m_projectors [si + 1]->new_vertex (vrt, parent);
+		if(ia < 1){
+			vector3 p = pos (vrt);
+			m_linearProjector.new_vertex (vrt, parent);
+			vector3 lp = pos (vrt);
+			p *= ia;
+			lp *= (1. - ia);
+			p += lp;
+			set_pos(vrt, p);
+		}
+		return 1;
 	}
 
 	ISubsetHandler*								m_sh;
 	SmartPtr<ISubsetHandler>					m_spSH;
 	std::vector<SmartPtr<RefinementProjector> >	m_projectors;
 	SmartPtr<RefinementProjector>				m_defaultProjector;
+	RefinementProjector							m_linearProjector;
 };
 
 }//	end of namespace

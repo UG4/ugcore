@@ -1202,14 +1202,21 @@ projection_handler(ProjectionHandler& phOut, size_t phIndex, size_t refGridIndex
 		xml_attribute<>* attribType = projNode->first_attribute("type");
 		xml_attribute<>* attribSI = projNode->first_attribute("subset");
 		if(attribType && attribSI){
-			SPRefinementProjector proj = projFac.create(attribType->value());
+			try {
+				SPRefinementProjector proj = projFac.create(attribType->value());
 
-			string str(projNode->value(), projNode->value_size());
-			stringstream ss(str, ios_base::in);
-			boost::archive::text_iarchive ar(ss, boost::archive::no_header);
-			archivar.archive(ar, *proj);
+				string str(projNode->value(), projNode->value_size());
+				stringstream ss(str, ios_base::in);
+				boost::archive::text_iarchive ar(ss, boost::archive::no_header);
+				archivar.archive(ar, *proj);
 
-			phOut.set_projector(atoi(attribSI->value()), proj);
+				phOut.set_projector(atoi(attribSI->value()), proj);
+			}
+			catch(boost::archive::archive_exception e){
+				UG_LOG("WARNING: Couldn't read projector of type '" <<
+						attribType->value() << "' for subset '" <<
+						attribSI->value() << "'." << std::endl);
+			}
 		}
 		projNode = projNode->next_sibling("projector");
 	}

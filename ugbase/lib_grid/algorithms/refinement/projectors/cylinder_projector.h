@@ -33,6 +33,8 @@
 #ifndef __H__UG_cylinder_projector_new
 #define __H__UG_cylinder_projector_new
 
+#include "common/math/misc/math_util.h"
+
 namespace ug{
 ///	Projects new vertices onto a sphere during refinement
 /** For projection during refinement the radius property is ignored. Instead
@@ -48,25 +50,30 @@ public:
 	CylinderProjectorNew () :
 		m_center (0, 0, 0),
 		m_axis (0, 0, 1),
-		m_radius (-1)
+		m_radius (-1),
+		m_influenceRadius (-1)
 	{}
 	
 	CylinderProjectorNew (const vector3& center,
 						  const vector3& axis,
-					 	  number radius) :
+					 	  number radius,
+					 	  number influenceRadius) :
 		m_center (center),
 		m_axis (axis),
-		m_radius (radius)
+		m_radius (radius),
+		m_influenceRadius (influenceRadius)
 	{}
 
 	CylinderProjectorNew (SPIGeometry3d geometry,
 						  const vector3& center,
 						  const vector3& axis,
-						  number radius) :
+						  number radius,
+						  number influenceRadius) :
 		RefinementProjector (geometry),
 		m_center (center),
 		m_axis (axis),
-		m_radius (radius)
+		m_radius (radius),
+		m_influenceRadius (influenceRadius)
 	{}
 
 	virtual ~CylinderProjectorNew ()					{}
@@ -80,28 +87,31 @@ public:
 	void set_radius (number radius)				{m_radius = radius;}
 	number radius () const						{return m_radius;}
 
+	void set_influence_radius (number influenceRadius)	{m_influenceRadius = influenceRadius;}
+	number influence_radius () const					{return m_influenceRadius;}
+
 ///	called when a new vertex was created from an old edge.
-	virtual void new_vertex(Vertex* vrt, Edge* parent)
+	virtual number new_vertex(Vertex* vrt, Edge* parent)
 	{
-		perform_projection(vrt, parent);
+		return perform_projection(vrt, parent);
 	}
 
 ///	called when a new vertex was created from an old face.
-	virtual void new_vertex(Vertex* vrt, Face* parent)
+	virtual number new_vertex(Vertex* vrt, Face* parent)
 	{
-		perform_projection(vrt, parent);
+		return perform_projection(vrt, parent);
 	}
 
 ///	called when a new vertex was created from an old volume.
-	virtual void new_vertex(Vertex* vrt, Volume* parent)
+	virtual number new_vertex(Vertex* vrt, Volume* parent)
 	{
-		perform_projection(vrt, parent);
+		return perform_projection(vrt, parent);
 	}
 
 private:
 
 	template <class TElem>
-	void perform_projection(Vertex* vrt, TElem* parent)
+	number perform_projection(Vertex* vrt, TElem* parent)
 	{
 	//	calculate the new position by linear interpolation and project that point
 	//	onto the cylinder.
@@ -110,7 +120,7 @@ private:
 
 		if(numVrts == 0){
 			set_pos(vrt, vector3(0, 0, 0));
-			return;
+			return 1;
 		}
 
 		number avDist = 0;
@@ -136,6 +146,24 @@ private:
 		}
 		else
 			set_pos(vrt, parentCenter);
+
+		if(m_influenceRadius > 0) {
+			if(m_radius > m_influenceRadius){
+				const number dist = m_radius - m_influenceRadius;
+				if(dist > 0)
+					return clip<number>((len - m_influenceRadius) / dist, 0, 1);
+				return len > m_radius ? 1 : 0;
+			}
+			else if(m_radius >= 0){
+				const number dist = m_influenceRadius - m_radius;
+				if(dist > 0)
+					return clip<number>(1 - (len - m_radius) / dist, 0, 1);
+				return len < m_radius ? 1 : 0;
+			}
+			else
+				return clip<number>(1 - len / m_influenceRadius, 0, 1);
+		}
+		return 1;
 	}
 
 
@@ -147,16 +175,16 @@ private:
 		ar & make_nvp("center", m_center);
 		ar & make_nvp("axis", m_axis);
 		ar & make_nvp("radius", m_radius);
+		ar & make_nvp("influence radius", m_influenceRadius);
 		UG_EMPTY_BASE_CLASS_SERIALIZATION(CylinderProjectorNew, RefinementProjector);
 	}
 
 	vector3	m_center;
 	vector3	m_axis;
 	number	m_radius;
+	number	m_influenceRadius;
 };
 
 }//	end of namespace
-
-BOOST_CLASS_IMPLEMENTATION(ug::CylinderProjectorNew, boost::serialization::object_serializable);
 
 #endif	//__H__UG_cylinder_projector_new

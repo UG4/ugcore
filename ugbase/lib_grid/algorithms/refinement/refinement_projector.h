@@ -81,27 +81,31 @@ public:
 	virtual void refinement_ends(const ISubGrid& sg)	{}
 
 ///	called when a new vertex was created from an old vertex.
-	virtual void new_vertex(Vertex* vrt, Vertex* parent)
+	virtual number new_vertex(Vertex* vrt, Vertex* parent)
 	{
 		set_pos(vrt, pos(parent));
+		return 1;
 	}
 
 ///	called when a new vertex was created from an old edge.
-	virtual void new_vertex(Vertex* vrt, Edge* parent)
+	virtual number new_vertex(Vertex* vrt, Edge* parent)
 	{
 		set_pos(vrt, geom().element_center(parent));
+		return 1;
 	}
 
 ///	called when a new vertex was created from an old face.
-	virtual void new_vertex(Vertex* vrt, Face* parent)
+	virtual number new_vertex(Vertex* vrt, Face* parent)
 	{
 		set_pos(vrt, geom().element_center(parent));
+		return 1;
 	}
 
 ///	called when a new vertex was created from an old volume.
-	virtual void new_vertex(Vertex* vrt, Volume* parent)
+	virtual number new_vertex(Vertex* vrt, Volume* parent)
 	{
 		set_pos(vrt, geom().element_center(parent));
+		return 1;
 	}
 
 protected:
@@ -138,7 +142,5 @@ private:
 typedef SmartPtr<RefinementProjector>	SPRefinementProjector;
 
 }//	end of namespace
-
-BOOST_CLASS_IMPLEMENTATION(ug::RefinementProjector, boost::serialization::object_serializable);
 
 #endif	//__H__UG_refinement_projector
