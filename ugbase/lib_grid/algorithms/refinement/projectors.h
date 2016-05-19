@@ -40,6 +40,7 @@
 #include "refinement_projector.h"
 #include "projectors/cylinder_projector.h"
 #include "projectors/projection_handler.h"
+#include "projectors/smooth_projector.h"
 #include "projectors/sphere_projector.h"
 
 namespace boost {
@@ -54,6 +55,7 @@ namespace tmp {
 typedef vector<
 			pair <ug::RefinementProjector,	string<'defa','ult'> >,
 			pair <ug::CylinderProjectorNew,	string<'cyli','nder'> >,
+			pair <ug::SmoothProjector,		string<'smoo','th'> >,
 			pair <ug::SphereProjectorNew,	string<'sphe','re'> > >
 	ProjectorTypes;	
 }
