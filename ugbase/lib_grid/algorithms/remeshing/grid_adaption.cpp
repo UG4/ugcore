@@ -34,8 +34,9 @@
 #include <stack>
 #include "lib_grid/lg_base.h"
 #include "../geom_obj_util/geom_obj_util.h"
-#include "../refinement/regular_refinement.h"
-#include "../refinement/refinement_projectors_old/misc_refinement_projectors.h"
+#include "../refinement/regular_refinement_new.h"
+// #include "../refinement/refinement_projectors_old/misc_refinement_projectors.h"
+#include "../refinement/projectors/cylinder_cut_projector.h"
 #include "grid_adaption.h"
 
 using namespace std;
@@ -147,8 +148,9 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 
 //	refine selected edges and use a special refinement callback, which places
 //	new vertices on edges which intersect a cylinder on the cylinders hull.
-	RefinementCallback_IntersectCylinder refCallback(grid, center, axis, radius, aPos);
-	Refine(grid, sel, aInt, &refCallback);
+	CylinderCutProjector refCallback(MakeGeometry3d(grid, aPos),
+									 center, axis, radius);
+	RefineNew(grid, sel, aInt, &refCallback);
 
 //	finally select all triangles which lie in the cylinder
 	sel.clear();

@@ -36,8 +36,8 @@
 #include "vertex_util.h"
 #include "face_util.h"
 #include "lib_grid/algorithms/debug_util.h"
-#include "lib_grid/algorithms/refinement/regular_refinement.h"
-#include "../refinement/refinement_projectors_old/misc_refinement_projectors.h"
+#include "lib_grid/algorithms/refinement/regular_refinement_new.h"
+#include "../refinement/projectors/plane_cut_projector.h"
 #include "common/util/vec_for_each.h"
 #include "common/util/vec_for_each.h"
 
@@ -896,8 +896,8 @@ bool CutEdgesWithPlane(Selector& sel, const vector3& p, const vector3& n,
 	
 //	refine all selected edges. RefinementCallbackEdgePlaneCut will insert
 //	new vertices on the plane.
-	RefinementCallbackEdgePlaneCut refCallbackEdgePlaneCut(grid, p, n, aPos);
-	return Refine(grid, sel, &refCallbackEdgePlaneCut);
+	PlaneCutProjector planeCutProjector(MakeGeometry3d(grid, aPos), p, n);
+	return RefineNew(grid, sel, &planeCutProjector);
 }
 
 }//	end of namespace

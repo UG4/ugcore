@@ -156,6 +156,14 @@ private:
 };
 
 
+
+///	Utility method to construct an IGeometry3d for a given grid and position attachment
+template <class TAPos>
+SPIGeometry3d
+MakeGeometry3d (Grid& grid, TAPos aPos)
+{
+	return make_sp(new Geometry<3, TAPos::ValueType::Size>(grid, aPos));
+}
 }//	end of namespace
 
 #endif	//__H__UG_geometry

@@ -77,6 +77,7 @@ set(srcAlgorithms	algorithms/debug_util.cpp
 					algorithms/extrusion/cylinder_extrusion.cpp
 					algorithms/extrusion/expand_layers.cpp
 					algorithms/refinement/projectors/smooth_projector.cpp
+					algorithms/refinement/projectors/subdivision_projector.cpp
 					algorithms/refinement/ref_mark_adjusters/horizontal_anisotropy_adjuster.cpp
 					algorithms/refinement/ref_mark_adjusters/mg_hnode_adjuster.cpp
 					algorithms/refinement/ref_mark_adjusters/std_hnode_adjuster.cpp

@@ -42,6 +42,7 @@
 #include "projectors/projection_handler.h"
 #include "projectors/smooth_projector.h"
 #include "projectors/sphere_projector.h"
+#include "projectors/subdivision_projector.h"
 
 namespace boost {
 namespace mpl {
@@ -52,11 +53,16 @@ namespace tmp {
 //
 //	NOTE:		ug::ProjectionHandler is not contained in this list on purpose,
 //				since it isn't used for serialization.
+//
+//	NOTE:		ug::CylinderCutProjector and ug::PlaneCutProjector are not contained
+//				in this list, since they are only usable in specialized algorithms.
 typedef vector<
 			pair <ug::RefinementProjector,	string<'defa','ult'> >,
 			pair <ug::CylinderProjectorNew,	string<'cyli','nder'> >,
-			pair <ug::SmoothProjector,		string<'smoo','th'> >,
-			pair <ug::SphereProjectorNew,	string<'sphe','re'> > >
+			pair <ug::SphereProjectorNew,	string<'sphe','re'> >,
+			pair <ug::SubdivisionProjector,	string<'subd','ivis', 'ion'> >,
+			pair <ug::SmoothProjector,		string<'smoo','th'> >
+			>
 	ProjectorTypes;	
 }
 }
