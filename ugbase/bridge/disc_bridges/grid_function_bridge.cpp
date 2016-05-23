@@ -189,6 +189,18 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "GlobalGridFunctionNumberData", tag);
 	}
 
+//	GlobalGridFunctionGradientData
+	{
+		string name = string("GlobalGridFunctionGradientData").append(suffix);
+		typedef GlobalGridFunctionGradientData<TFct> T;
+		typedef CplUserData<MathVector<dim>, dim> TBase;
+		reg.add_class_<T, TBase>(name, grp)
+			.template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridFunction#Component")
+			.add_method("evaluate", static_cast<std::vector<number> (T::*)(std::vector<number>)>(&T::evaluate))
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "GlobalGridFunctionGradientData", tag);
+	}
+
 //	AverageFunctionDifference
 	{
 		string name = string("AverageFunctionDifference");
