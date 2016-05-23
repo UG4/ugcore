@@ -54,6 +54,19 @@ public:
 		m_influenceRadius (-1)
 	{}
 	
+	SphereProjectorNew (const vector3& center) :
+		m_center (center),
+		m_radius (-1),
+		m_influenceRadius (-1)
+	{}
+
+	SphereProjectorNew (const vector3& center,
+						number radius) :
+		m_center (center),
+		m_radius (radius),
+		m_influenceRadius (-1)
+	{}
+
 	SphereProjectorNew (const vector3& center,
 						number radius,
 						number influenceRadius) :

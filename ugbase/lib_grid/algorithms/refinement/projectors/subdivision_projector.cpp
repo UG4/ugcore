@@ -38,8 +38,11 @@ using namespace std;
 namespace ug{
 
 void SubdivisionProjector::
-refinement_begins(const ISubGrid& sg)
+refinement_begins(const ISubGrid* psg)
 {
+	RefinementProjector::refinement_begins(psg);
+	const ISubGrid& sg = *psg;
+
 	m_newPositions.clear();
 
 //	calculate new positions of all selected vertices and store them in m_newPositions
@@ -114,7 +117,7 @@ refinement_begins(const ISubGrid& sg)
 }
 
 void SubdivisionProjector::
-refinement_ends(const ISubGrid& sg)
+refinement_ends()
 {
 //	we have to adjust positions of old vertices (no multigrid) or vertex children
 //	(multigrid) here.

@@ -67,8 +67,7 @@ public:
 	void set_change_rate (number changeRate)	{m_changeRate = changeRate;}
 
 ///	called before refinement begins
-/**	The specified sub-grid contains all elements that will be refined.*/
-	virtual void refinement_begins(const ISubGrid& sg)
+	virtual void refinement_begins(const ISubGrid* sg)
 	{
 		RefinementProjector::refinement_begins(sg);
 		m_newVrts.clear();
@@ -76,7 +75,7 @@ public:
 
 ///	called when refinement is done.
 /**	The actual smoothing is performed here*/
-	virtual void refinement_ends(const ISubGrid& sg);
+	virtual void refinement_ends();
 
 ///	called when a new vertex was created from an old edge.
 	virtual number new_vertex(Vertex* vrt, Edge* parent)

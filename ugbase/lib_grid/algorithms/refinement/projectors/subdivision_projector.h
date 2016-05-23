@@ -67,8 +67,10 @@ public:
 		m_cbIsCrease (cbIsCrease)
 	{}
 
-	virtual void refinement_begins(const ISubGrid& sg);
-	virtual void refinement_ends(const ISubGrid& sg);
+	virtual bool refinement_begins_requires_subgrid () const	{return true;}
+	
+	virtual void refinement_begins(const ISubGrid* sg);
+	virtual void refinement_ends();
 
 	virtual number new_vertex(Vertex* vrt, Edge* parent);
 	// virtual number new_vertex(Vertex* vrt, Face* parent);

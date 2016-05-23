@@ -35,7 +35,7 @@
 namespace ug{
 
 void SmoothProjector::
-refinement_ends (const ISubGrid& sg)	
+refinement_ends ()	
 {
 	Grid::edge_traits::secure_container		edges;
 	Grid::face_traits::secure_container		faces;

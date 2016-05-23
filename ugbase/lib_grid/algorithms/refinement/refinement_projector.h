@@ -67,18 +67,38 @@ public:
 
 	virtual SPIGeometry3d geometry () const				{return m_geometry;}
 
+/**	returns 'true' if a specialized projector requires the subgrid during its
+ * 'refinement_begins' method.
+ *
+ * \note	Implementers of derived classes should overload this method and
+ *			return 'true' if their 'refinement_begins' method requires a subgrid.
+ *			Please have a look at the documentation of 
+ *			'RefinementProjector::refinement_begins' for more information.
+ */
+	virtual bool refinement_begins_requires_subgrid () const	{return false;}
+
 ///	called before refinement begins
-/**	The specified sub-grid contains all elements that will be refined.*/
-	virtual void refinement_begins(const ISubGrid& sg)
+/**	if not NULL, the specified sub-grid will contains all elements that will be
+ * refined and are affected by the given projector.
+ *
+ * If the specialized implementation of refinement_begins requires this subgrid,
+ * the method 'refinement_begins_requires_subgrid' should be specialized and should
+ * return 'true'. In this case the subgrid should always be provided by the caller.
+ * If you call 'RefinementProjector::refinement_begins(sg);' at the beginning of
+ * your specialization, an error will be thrown if this is not the case.
+ */
+	virtual void refinement_begins(const ISubGrid* sg)
 	{
 		UG_COND_THROW(m_geometry.invalid(),
 					  "Please set a valid geometry to RefinementProjectors"
 					  "before using them during refinement.");
+		UG_COND_THROW(refinement_begins_requires_subgrid() && !sg,
+					  "subgrid required in 'RefinementProjector::refinement_begins' "
+					  "but not provided.");
 	}
 
 ///	called when refinement is done
-/**	The specified sub-grid contains all elements which resulted from refinement.*/
-	virtual void refinement_ends(const ISubGrid& sg)	{}
+	virtual void refinement_ends()	{}
 
 ///	called when a new vertex was created from an old vertex.
 	virtual number new_vertex(Vertex* vrt, Vertex* parent)

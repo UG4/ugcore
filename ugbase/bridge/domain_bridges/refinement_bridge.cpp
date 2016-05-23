@@ -1124,12 +1124,10 @@ void MarkForRefinement_AnisotropicDirection (
 ////////////////////////////////////////////////////////////////////////////////
 //	REFINEMENT PROJECTORS
 // template <class TDomain>
-// SmartPtr<RefinementProjectionHandler<typename TDomain::position_attachment_type> >
-// DomainRefinementProjectionHandler(TDomain* dom)
+// SmartPtr<ProjectionHandler>
+// DomainProjectionHandler (TDomain& dom)
 // {
-// 	typedef RefinementProjectionHandler<typename TDomain::position_attachment_type>	TRefProj;
-// 	return SmartPtr<TRefProj>(
-// 			new TRefProj(dom->subset_handler(), dom->position_attachment()));
+// 	return make_sp(new ProjectionHandler(dom.geometry3d(), dom.subset_handler()));
 // }
 
 // template <class TDomain>
@@ -1220,6 +1218,11 @@ void MarkForRefinement_AnisotropicDirection (
 // 			new TRefProj(*dom->grid(), dom->position_attachment(),
 // 						 dom->position_attachment()));
 // }
+
+
+namespace domain_wrappers {
+
+}//	end of namespace
 
 void SetTetRefinementRule(std::string ruleName)
 {

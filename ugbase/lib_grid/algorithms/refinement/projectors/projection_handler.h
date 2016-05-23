@@ -37,6 +37,7 @@
 #include "common/assert.h"
 #include "../refinement_projector.h"
 #include "lib_grid/tools/subset_handler_interface.h"
+#include "lib_grid/callbacks/selection_callbacks.h"
 
 namespace ug{
 
@@ -167,11 +168,22 @@ public:
 
 ////////////////////////////////////////
 //	IMPLEMENTATION OF RefinementProjector
+	virtual bool refinement_begins_requires_subgrid () const
+	{
+		for(size_t i = 0; i < m_projectors.size(); ++i){
+			if(m_projectors[i]->refinement_begins_requires_subgrid())
+				return true;
+		}
+		return false;
+	}
+
 ///	prepares associated projectors for refinement
 /**	If an associated projector hasn't got an associated geometry, the geometry
  * of the ProjectionHandler will automatically be assigned.*/
-	virtual void refinement_begins (const ISubGrid& sg)
+	virtual void refinement_begins (const ISubGrid* psg)
 	{
+		RefinementProjector::refinement_begins(psg);
+
 		UG_COND_THROW(!m_sh, "Please set a valid SubsetHandler to "
 					  "'ProjectionHandler' before using it during refinement.");
 
@@ -179,27 +191,109 @@ public:
 	//	as there are subsets in the associated subset handler
 		projector_required((int)m_sh->num_subsets()-1);
 
-	//	make sure that all projectors have a valid geometry, if possible.
-		UG_COND_THROW (geometry().invalid(), "Please make sure that a geometry "
-					   "was assigned to the ProjectionHandler before calling "
-					   "'refinement_begins' or using the handler in a refinement method.");
+	//	this selector will be used if we have to pass sub-grids to individual projectors
+		Selector sel;
 
 		for(size_t i = 0; i < m_projectors.size(); ++i){
 			RefinementProjector& proj = *m_projectors[i];
 			if(!proj.geometry().valid())
 				proj.set_geometry(geometry());
-			proj.refinement_begins(sg);
-		}
 
-		RefinementProjector::refinement_begins(sg);
+			if(!proj.refinement_begins_requires_subgrid()) {
+				UG_LOG("DEBUG: REF-PATH-0\n");
+				proj.refinement_begins(NULL);
+			}
+			else{
+				const ISubGrid& sg = *psg;
+
+				if(!sel.grid())
+					sel.assign_grid(geom().grid());
+				
+				sel.clear();
+				bool selectionPerformed = false;
+
+			//	this is a small optimization. We can either iterate over the elements
+			//	of sg or of subset (i-1), i>0. Choose the one with less elements.
+				GridObjectCollection subsetGoc;
+				if(i > 0){
+					subsetGoc = m_sh->get_grid_objects_in_subset(i - 1);
+				//	todo:	this check would be more precise if only those element-types
+				//			were considered which exist in both goc's
+					if(subsetGoc.num_vertices() + subsetGoc.num_edges()
+							+ subsetGoc.num_faces() + subsetGoc.num_volumes()
+						< sg.goc().num_vertices() + sg.goc().num_edges()
+							+ sg.goc().num_faces() + sg.goc().num_volumes())
+					{
+						if(sg.goc().num_vertices() > 0){
+							lg_for_each_const(Vertex, e, subsetGoc){
+								if(sg.is_contained(e))
+									sel.select(e);
+							}lg_end_for;
+						}
+						if(sg.goc().num_edges() > 0){
+							lg_for_each_const(Edge, e, subsetGoc){
+								if(sg.is_contained(e))
+									sel.select(e);
+							}lg_end_for;
+						}
+						if(sg.goc().num_faces() > 0){
+							lg_for_each_const(Face, e, subsetGoc){
+								if(sg.is_contained(e))
+									sel.select(e);
+							}lg_end_for;
+						}
+						if(sg.goc().num_volumes() > 0){
+							lg_for_each_const(Volume, e, subsetGoc){
+								if(sg.is_contained(e))
+									sel.select(e);
+							}lg_end_for;
+						}
+
+						selectionPerformed = true;
+						UG_LOG("DEBUG: REF-PATH-1-1\n");
+					}
+				}
+				
+				if(!selectionPerformed){
+					if(i == 0 || subsetGoc.num_vertices() > 0){
+						lg_for_each_const(Vertex, e, sg.goc()){
+							if(m_sh->get_subset_index(e) + 1 == (int)i)
+								sel.select(e);
+						}lg_end_for;
+					}
+					if(i == 0 || subsetGoc.num_edges() > 0){
+						lg_for_each_const(Edge, e, sg.goc()){
+							if(m_sh->get_subset_index(e) + 1 == (int)i)
+								sel.select(e);
+						}lg_end_for;
+					}
+					if(i == 0 || subsetGoc.num_faces() > 0){
+						lg_for_each_const(Face, e, sg.goc()){
+							if(m_sh->get_subset_index(e) + 1 == (int)i)
+								sel.select(e);
+						}lg_end_for;
+					}
+					if(i == 0 || subsetGoc.num_volumes() > 0){
+						lg_for_each_const(Volume, e, sg.goc()){
+							if(m_sh->get_subset_index(e) + 1 == (int)i)
+								sel.select(e);
+						}lg_end_for;
+					}
+					selectionPerformed = true;
+					UG_LOG("DEBUG: REF-PATH-1-2\n");
+				}
+				
+				SubGrid<IsSelected> tsg(sel.get_grid_objects(), IsSelected(sel));
+				proj.refinement_begins(&tsg);
+			}
+		}
 	}
 
-	virtual void refinement_ends(const ISubGrid& sg)
+	virtual void refinement_ends()
 	{
+		RefinementProjector::refinement_ends();
 		for(size_t i = 0; i < m_projectors.size(); ++i)
-			m_projectors[i]->refinement_ends(sg);
-
-		RefinementProjector::refinement_ends(sg);
+			m_projectors[i]->refinement_ends();
 	}
 
 ///	called when a new vertex was created from an old vertex.

@@ -55,6 +55,23 @@ public:
 	{}
 	
 	CylinderProjectorNew (const vector3& center,
+						  const vector3& axis) :
+		m_center (center),
+		m_axis (axis),
+		m_radius (-1),
+		m_influenceRadius (-1)
+	{}
+
+	CylinderProjectorNew (const vector3& center,
+						  const vector3& axis,
+					 	  number radius) :
+		m_center (center),
+		m_axis (axis),
+		m_radius (radius),
+		m_influenceRadius (-1)
+	{}
+
+	CylinderProjectorNew (const vector3& center,
 						  const vector3& axis,
 					 	  number radius,
 					 	  number influenceRadius) :

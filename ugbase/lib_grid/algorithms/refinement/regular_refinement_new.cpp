@@ -212,9 +212,8 @@ bool RefineNew(Grid& grid, Selector& sel, AInt& aInt,
 
 
 //	notify refinement projector about the start of refinement
-	projector->refinement_begins(
-				SubGrid<IsSelected>(
-					sel.get_grid_objects(), IsSelected(sel)));
+	SubGrid<IsSelected> sg(sel.get_grid_objects(), IsSelected(sel));
+	projector->refinement_begins(&sg);
 
 //	store the geometry
 	IGeometry3d& geom = *projector->geometry();
@@ -450,9 +449,7 @@ bool RefineNew(Grid& grid, Selector& sel, AInt& aInt,
 	grid.erase(edges.begin(), edges.end());
 
 //	notify refinement projector about the end of refinement
-	projector->refinement_ends(
-				SubGrid<IsSelected>(
-					sel.get_grid_objects(), IsSelected(sel)));
+	projector->refinement_ends();
 	return true;
 }
 
