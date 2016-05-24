@@ -222,6 +222,12 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_function("AdjustMeanValue", static_cast<void (*)(SmartPtr<GF>, const std::string&, number)>(&AdjustMeanValue<GF>), grp);
 		reg.add_function("AdjustMeanValue", static_cast<void (*)(SmartPtr<GF>, const std::string&)>(&AdjustMeanValue<GF>), grp);
 	}
+	
+//	SumGFValuesAt
+	{
+		typedef ug::GridFunction<TDomain, TAlgebra> GF;
+		reg.add_function ("SumGFValuesAtVertices", static_cast<number (*) (GF*, const char *, const char *)> (&SumGFValuesAt<GF,Vertex>), grp);
+	}
 }
 
 /**

@@ -67,6 +67,13 @@ namespace ug {
 // 	AverageComponent
 ////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * Subtracts a given value from all DoFs of a given grid function associated with
+ * a given element type.
+ *
+ * \tparam TGridFunction	grid function type
+ * \tparam TBaseElem		type of the elements the DoFs are associated with
+ */
 template<typename TGridFunction, typename TBaseElem>
 void SubtractValueFromComponent(SmartPtr<TGridFunction> spGF, size_t fct, number sub)
 {
@@ -99,8 +106,23 @@ void SubtractValueFromComponent(SmartPtr<TGridFunction> spGF, size_t fct, number
 	}
 }
 
+/**
+ * Subtracts the average of a given grid function (computed by taking into account
+ * the shape functions), shifted by the value of 'mean', from all the DoFs of this
+ * grid function. Typically, it should result in a grid function with the average
+ * equal to 'mean'.
+ *
+ * \remark Note that mean is not the desired average but the one multiplied by the area of the domain.
+ *
+ * \tparam TGridFunction	type of the grid function
+ */
 template<typename TGridFunction>
-void AdjustMeanValue(SmartPtr<TGridFunction> spGF, const std::vector<std::string>& vCmp, number mean)
+void AdjustMeanValue
+(
+	SmartPtr<TGridFunction> spGF, ///< the grid function
+	const std::vector<std::string>& vCmp, ///< the component to adjust the average for
+	number mean ///< the desired mean value
+)
 {
 	typedef TGridFunction GF;
 	PROFILE_FUNC_GROUP("gmg");
@@ -135,22 +157,134 @@ void AdjustMeanValue(SmartPtr<TGridFunction> spGF, const std::vector<std::string
 	}
 }
 
+/**
+ * Subtracts the average of a given grid function (computed by taking into account
+ * the shape functions) from all the DoFs of this grid function. Typically, it
+ * should result in a grid function with the zero average.
+ *
+ * \tparam TGridFunction	type of the grid function
+ */
 template<typename TGridFunction>
 void AdjustMeanValue(SmartPtr<TGridFunction> spGF, const std::vector<std::string>& vCmp)
 {
 	AdjustMeanValue(spGF, vCmp, 0.0);
 }
 
+/**
+ * Subtracts the average of a given grid function (computed by taking into account
+ * the shape functions) from all the DoFs of this grid function. Typically, it
+ * should result in a grid function with the zero average.
+ *
+ * \tparam TGridFunction	type of the grid function
+ */
 template<typename TGridFunction>
 void AdjustMeanValue(SmartPtr<TGridFunction> spGF, const std::string& fcts)
 {
 	AdjustMeanValue(spGF, TokenizeTrimString(fcts), 0.0);
 }
 
+/**
+ * Subtracts the average of a given grid function (computed by taking into account
+ * the shape functions), shifted by the value of 'mean', from all the DoFs of this
+ * grid function. Typically, it should result in a grid function with the average
+ * equal to 'mean'.
+ *
+ * \remark Note that mean is not the desired average but the one multiplied by the area of the domain.
+ *
+ * \tparam TGridFunction	type of the grid function
+ */
 template<typename TGridFunction>
 void AdjustMeanValue(SmartPtr<TGridFunction> spGF, const std::string& fcts, number mean)
 {
 	AdjustMeanValue(spGF, TokenizeTrimString(fcts), mean);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// 	Summing up components
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Sums values of a grid function at given elements (like vertices) in given subsets
+ *
+ * \tparam TGridFunction	the grid function type
+ * \tparam TBaseElem		the given element type (like 'Vertex')
+ */
+template <typename TGridFunction, typename TBaseElem>
+number SumGFValuesAt
+(
+	TGridFunction * u, ///< the grid function
+	size_t fct, ///< index of the function
+	SubsetGroup & ssGroup ///< the subsets
+)
+{
+	typedef typename TGridFunction::template traits<TBaseElem>::const_iterator t_elem_iter;
+	
+	std::vector<DoFIndex> ind;
+	number sum (1);
+	
+//	Loop the selected subsets
+	sum = 0;
+	for (size_t i = 0; i < ssGroup.size (); i++)
+	{
+		int ssi = ssGroup [i];
+		
+	//	Loop the vertices in the subset
+		for (t_elem_iter vi = u->template begin<TBaseElem> (ssi);
+					vi != u->template end<TBaseElem> (ssi); ++vi)
+		{
+		    TBaseElem * vert = *vi;
+		    
+		//	indices at this vertex
+			u->inner_dof_indices (vert, fct, ind);
+			
+			if (ind.size () != 1)
+				UG_THROW ("SumGridFuncValuesAt: The function must be scalar!");
+		
+		//	add the contribution
+			sum += DoFRef (*u, ind [0]);
+		}
+	}
+	
+#ifdef UG_PARALLEL
+	pcl::ProcessCommunicator procComm;
+	sum = procComm.allreduce (sum, PCL_RO_SUM);
+#endif
+	
+	return sum;
+}
+
+/**
+ * Sums values of a grid function at vertices in given subsets.
+ *
+ * This version takes symbolic data.
+ *
+ * \tparam TGridFunction	the grid function type
+ * \tparam TBaseElem		the given element type (like 'Vertex')
+ */
+template <typename TGridFunction, typename TBaseElem>
+number SumGFValuesAt
+(
+	TGridFunction * u, ///< the grid function
+	const char * fct_names, ///< index of the function
+	const char * subset_names ///< the subsets
+)
+{
+//	Get the function index
+	std::vector<std::string> vfctNames;
+	TokenizeString (fct_names, vfctNames);
+	if (vfctNames.size () != 1)
+		UG_THROW ("SumGridFuncValuesAt: Exactly one function name must be specified.");
+	FunctionGroup fctGroup (u->function_pattern ());
+	fctGroup.add (vfctNames [0]);
+
+//	Get the subset indices
+	std::vector<std::string> vssNames;
+	TokenizeString (subset_names, vssNames);
+	SubsetGroup ssGroup (u->domain()->subset_handler ());
+	ssGroup.add (vssNames);
+	
+//	Compute the sum
+	return SumGFValuesAt<TGridFunction, TBaseElem> (u, fctGroup[0], ssGroup);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
