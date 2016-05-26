@@ -359,8 +359,8 @@ void MaximumMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaErr
 
 }
 
-/// marks elements above $\theta * (\mu + width * \sigma)$
-//! where $\mu = E[\eta^2], \sigma^2 = Var[\eta^2]$
+/// marks elements above \f$ \theta * (\mu + width * \sigma) \f$
+//! where \f$ \mu = E[\eta^2], \sigma^2 = Var[\eta^2] \f$
 template <typename TDomain>
 class VarianceMarking : public IElementMarkingStrategy<TDomain>{
 
@@ -488,8 +488,8 @@ void VarianceMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaEr
 }
 
 
-/// marks elements above $\theta * (\mu + width * \sigma)$
-//! where $\mu = E[\eta^2], \sigma^2 = Var[\eta^2]$
+/// marks elements above \f$ \theta * (\mu + width * \sigma) \f$
+//! where \f$ \mu = E[\eta^2], \sigma^2 = Var[\eta^2] \f$
 template <typename TDomain>
 class VarianceMarkingEta : public IElementMarkingStrategy<TDomain>{
 

@@ -70,7 +70,7 @@ void CopyOffDiagEntries(const TMatrixType &A, size_t i, TRowType &row, bool enfo
 }
 
 //! Adds 'strong negative connections' to graph.
-/*! Criterion: $$-a_{ij} \ge \epsilon \max_{a_{ik}<0} |a_{ik}|$$ */
+/*! Criterion: \f$ -a_{ij} \ge \epsilon \max_{a_{ik}<0} |a_{ik}| \f$ */
 class StrongNegativeConnectionsByBlockNorm
 {
 protected:

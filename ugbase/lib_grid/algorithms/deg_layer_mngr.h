@@ -164,7 +164,7 @@ public:
 	///	Number of subsets in the manager
 		size_t num_subsets () {return m_layerSsGrp.size ();};
 		
-	/// Subset #i in the manager (only if the manager is closed)
+	/// Subset no. i in the manager (only if the manager is closed)
 		int subset (size_t i)
 		{
 			if (! is_closed ()) UG_THROW ("DegeneratedLayerManager: The manager is not closed.");

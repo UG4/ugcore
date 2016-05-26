@@ -583,7 +583,7 @@ void SaveVectorCSV(TGridFunction& b, const char* filename) {
  *   of \c fct1 and \c fct2 and computes arithmetic mean of the differences at
  *   all vertices (grid points).
  * \note \c fct1 and \c fct2 must both be defined on \c subset !
- * \param[in] spGridFct GridFunction holding functions \c fct1 and \c fct2 defined on subset \subset
+ * \param[in] spGridFct GridFunction holding functions \c fct1 and \c fct2 defined on subset \c subset
  * \param[in] subset name of the subset to compare on
  * \param[in] fct1 name of the first function
  * \param[in] fct2 name of the second function
