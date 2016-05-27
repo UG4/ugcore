@@ -69,17 +69,17 @@ class SubdivRules_PLoop
 
 	////////////////////////////////
 	//	WEIGHTS
-		number ref_even_inner_center_weight(size_t valence)
+		number ref_even_inner_center_weight(size_t valence) const
 			{return 1. - (number)valence * get_beta(valence);}
 		
-		number ref_even_inner_nbr_weight(size_t valence)
+		number ref_even_inner_nbr_weight(size_t valence) const
 			{return get_beta(valence);}
 		
 	///	returns weights for center, nbr1 and nbr2.
-		vector3 ref_even_crease_weights()
+		vector3 ref_even_crease_weights() const
 			{return vector3(0.75, 0.125, 0.125);}
 			
-		vector4 ref_odd_inner_weights()
+		vector4 ref_odd_inner_weights() const
 			{return vector4(0.375, 0.375, 0.125, 0.125);}
 		
 	///	weights of an odd vertex on an inner edge that is connected to a crease.
@@ -90,7 +90,7 @@ class SubdivRules_PLoop
 	 *	Rules are taken from:
 	 *	"Piecewise Smooth Subdivision Surfaces with Normal Control",
 	 *	H. Biermann, Adi Levin, Denis Zorin.*/
-		vector4 ref_odd_inner_weights(size_t creaseValence)
+		vector4 ref_odd_inner_weights(size_t creaseValence) const
 		{
 			assert(creaseValence > 2 && "Bad crease valence. Underlying grid is not a surface grid.");
 			if(creaseValence == 4)
@@ -102,21 +102,21 @@ class SubdivRules_PLoop
 			//return vector4(0.5 - c, 0.25 + c, 0.125, 0.125);
 		}
 		
-		vector2 ref_odd_crease_weights()
+		vector2 ref_odd_crease_weights() const
 			{return vector2(0.5, 0.5);}
 
-		number proj_inner_center_weight(size_t valence)
+		number proj_inner_center_weight(size_t valence) const
 			{return 1.0 - (number)valence / (0.375 / get_beta(valence) + valence);}
 		
-		number proj_inner_nbr_weight(size_t valence)
+		number proj_inner_nbr_weight(size_t valence) const
 			{return 1.0 / (0.375 / get_beta(valence) + valence);}
 			
-		vector3 proj_crease_weights()
+		vector3 proj_crease_weights() const
 			{return vector3(2./3., 1./6., 1./6.);}
 
 	/**	nbrInfos have to be specified in clockwise or counter-clockwise order.*/
 		void proj_inner_crease_nbr_weights(number& centerWgtOut, number* nbrWgtsOut,
-										   NeighborInfo* nbrInfos, size_t numNbrs)
+										   NeighborInfo* nbrInfos, size_t numNbrs) const
 		{
 			number wcntrProj = proj_inner_center_weight(numNbrs);
 			number wnbrProj = proj_inner_nbr_weight(numNbrs);
@@ -158,7 +158,7 @@ class SubdivRules_PLoop
 	///	returns beta as it is used in the subdivision masks.
 	/**	performs a lookup if the valency is small enough.
 	 *	calculates a fresh beta else.*/
-		number get_beta(size_t valency);
+		number get_beta(size_t valency) const;
 /*
 	////////////////////////////////
 	//	EVEN MASKS
@@ -209,7 +209,7 @@ class SubdivRules_PLoop
 */
 	private:
 	///	calculates beta as it is used in the subdivision masks.
-		number calculate_beta(size_t valency);
+		number calculate_beta(size_t valency) const;
 		
 	private:
 	///	private constructor prohibits multiple instantiation.
@@ -222,9 +222,9 @@ class SubdivRules_PLoop
 		SubdivRules_PLoop& operator=(const SubdivRules_PLoop& src);
 		
 	///	returns the next index in a cyclic index set
-		inline size_t next_ind(size_t ind, size_t numInds)	{return (ind + 1) % numInds;}
+		inline size_t next_ind(size_t ind, size_t numInds) const	{return (ind + 1) % numInds;}
 	///	returns the previous index in a cyclic index set
-		inline size_t prev_ind(size_t ind, size_t numInds)	{return (ind + numInds - 1) % numInds;}
+		inline size_t prev_ind(size_t ind, size_t numInds) const	{return (ind + numInds - 1) % numInds;}
 		
 		
 	private:

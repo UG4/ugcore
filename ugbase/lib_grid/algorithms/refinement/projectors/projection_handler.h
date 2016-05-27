@@ -38,6 +38,7 @@
 #include "../refinement_projector.h"
 #include "lib_grid/tools/subset_handler_interface.h"
 #include "lib_grid/callbacks/selection_callbacks.h"
+#include "lib_grid/callbacks/subset_callbacks.h"
 
 namespace ug{
 
@@ -199,8 +200,11 @@ public:
 			if(!proj.geometry().valid())
 				proj.set_geometry(geometry());
 
+		//todo:	move this somewhere where it is only triggered if required.
+		//		e.g. to 'set_subset_handler' and 'add_projector'
+			proj.set_concerned_elements(make_sp(new IsInSubset(*m_sh, i-1)));
+
 			if(!proj.refinement_begins_requires_subgrid()) {
-				UG_LOG("DEBUG: REF-PATH-0\n");
 				proj.refinement_begins(NULL);
 			}
 			else{
@@ -250,7 +254,6 @@ public:
 						}
 
 						selectionPerformed = true;
-						UG_LOG("DEBUG: REF-PATH-1-1\n");
 					}
 				}
 				
@@ -280,7 +283,6 @@ public:
 						}lg_end_for;
 					}
 					selectionPerformed = true;
-					UG_LOG("DEBUG: REF-PATH-1-2\n");
 				}
 				
 				SubGrid<IsSelected> tsg(sel.get_grid_objects(), IsSelected(sel));

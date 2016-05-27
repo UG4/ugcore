@@ -37,6 +37,7 @@
 #include <vector>
 #include "../refinement_projector.h"
 #include "lib_grid/callbacks/basic_callbacks.h"
+#include "lib_grid/callbacks/topology_callbacks.h"
 
 namespace ug{
 
@@ -49,23 +50,42 @@ namespace ug{
 class SubdivisionProjector : public RefinementProjector {
 public:
 	SubdivisionProjector ()	:
-		m_cbIsCrease (Grid::edge_traits::callback(ConsiderAll()))
+		m_cbIsCrease (Grid::edge_traits::callback(ConsiderNone())),
+		m_customConcernedElementsCallbackUsed (false)
 	{}
 	
 	SubdivisionProjector (Grid::edge_traits::callback cbIsCrease) :
-		m_cbIsCrease (cbIsCrease)
+		m_cbIsCrease (cbIsCrease),
+		m_customConcernedElementsCallbackUsed (false)
 	{}
 
 	SubdivisionProjector (SPIGeometry3d geometry) :
-		RefinementProjector (geometry),
-		m_cbIsCrease (Grid::edge_traits::callback(ConsiderAll()))
+		RefinementProjector (geometry, make_sp(new IsBoundaryOrManifodFace(geometry->grid()))),
+		m_cbIsCrease (Grid::edge_traits::callback(ConsiderNone())),
+		m_customConcernedElementsCallbackUsed (false)
 	{}
 
 	SubdivisionProjector (SPIGeometry3d geometry,
 						  Grid::edge_traits::callback cbIsCrease) :
-		RefinementProjector (geometry),
-		m_cbIsCrease (cbIsCrease)
+		RefinementProjector (geometry, make_sp(new IsBoundaryOrManifodFace(geometry->grid()))),
+		m_cbIsCrease (cbIsCrease),
+		m_customConcernedElementsCallbackUsed (false)
 	{}
+
+	virtual void set_geometry (SPIGeometry3d geometry)
+	{
+		RefinementProjector::set_geometry (geometry);
+		if(!m_customConcernedElementsCallbackUsed){
+			RefinementProjector::set_concerned_elements(
+				make_sp(new IsBoundaryOrManifodFace(geometry->grid())));
+		}
+	}
+
+	virtual void set_concerned_elements (SPElementCallback cb)
+	{
+		RefinementProjector::set_concerned_elements (cb);
+		m_customConcernedElementsCallbackUsed = true;
+	}
 
 	virtual bool refinement_begins_requires_subgrid () const	{return true;}
 	
@@ -82,8 +102,13 @@ public:
 	}
 
 protected:
-	virtual bool is_crease_vertex(Vertex* vrt);
-	virtual bool is_crease_edge(Edge* edge);
+	size_t nbr_crease_edges (Vertex* vrt,
+							 Grid::edge_traits::secure_container* assEdges = NULL,
+							 Edge* creaseEdgesOut[2] = NULL);
+
+	size_t concerned_nbr_faces (Edge* edge,
+								Grid::face_traits::secure_container* assFaces = NULL,
+								Face* facesOut[2] = NULL);
 
 private:
 	friend class boost::serialization::access;
@@ -99,6 +124,7 @@ private:
 
 	Grid::edge_traits::callback	m_cbIsCrease;
 	new_pos_vec_t				m_newPositions;
+	bool						m_customConcernedElementsCallbackUsed;
 };
 
 }//	end of namespace

@@ -40,6 +40,9 @@ namespace ug{
 void SubdivisionProjector::
 refinement_begins(const ISubGrid* psg)
 {
+//	PLEASE NOTE:	The implementation below is able to perform subdivision on
+//					manifolds which consist of sides of volume-elements, even
+//					if volume-elements are on both sides of those manifolds.
 	RefinementProjector::refinement_begins(psg);
 	const ISubGrid& sg = *psg;
 
@@ -50,57 +53,36 @@ refinement_begins(const ISubGrid* psg)
 	Grid& g = geom().grid();
 	Grid::edge_traits::secure_container edges;
 
-	bool volumesExist = g.num<Volume>() > 0;
-
 	lg_for_each_const (Vertex, vrt, sg.goc())
 	{
-		if(volumesExist) {
-			if(!IsBoundaryVertex3D(g, vrt)){
-				m_newPositions.push_back(make_pair(vrt, pos(vrt)));
-				continue;
-			}
-		}
-
 		g.associated_elements (edges, vrt);
 
-		if(is_crease_vertex(vrt)){
-		//	get the neighboured crease edges
-			Edge* nbrs[2];
-			size_t numNbrs = 0;
-			for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
-				Edge* e = edges[i_edge];
-				if(is_crease_edge(e)){
-					nbrs[numNbrs] = e;
-					++numNbrs;
-					if(numNbrs == 2)
-						break;
-				}
-			}
+		Edge* creaseNbrs[2];
+		const size_t numCreaseNbrs = nbr_crease_edges(vrt, &edges, creaseNbrs);
+		if(numCreaseNbrs == 2){
+			vector3 p0 = pos(GetConnectedVertex(creaseNbrs[0], vrt));
+			vector3 p1 = pos(GetConnectedVertex(creaseNbrs[1], vrt));
+			vector3 w = subdiv.ref_even_crease_weights();
 
-			if(numNbrs == 2){
-				vector3 p0 = pos(GetConnectedVertex(nbrs[0], vrt));
-				vector3 p1 = pos(GetConnectedVertex(nbrs[1], vrt));
-				vector3 w = subdiv.ref_even_crease_weights();
-
-				vector3 p;
-				VecScaleAdd(p, w.x(), pos(vrt),
-							w.y(), p0, w.z(), p1);
-				m_newPositions.push_back(make_pair(vrt, p));
-			}
-			else{
-				m_newPositions.push_back(make_pair(vrt, pos(vrt)));
-			}
+			vector3 p;
+			VecScaleAdd(p, w.x(), pos(vrt),
+						w.y(), p0, w.z(), p1);
+			m_newPositions.push_back(make_pair(vrt, p));
+		}
+		else if(numCreaseNbrs > 0){
+			m_newPositions.push_back(make_pair(vrt, pos(vrt)));
 		}
 		else{
 		//	perform loop subdivision on even vertices
-		//	first get neighboured vertices
 			size_t valence = 0;
 			vector3 p;
 			VecSet(p, 0);
 
+			Grid::face_traits::secure_container faces;
 			for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
 				Edge* e = edges[i_edge];
-				if((!volumesExist) || IsBoundaryEdge3D(g, e)){
+				g.associated_elements(faces, e);
+				if(concerned_nbr_faces(e, &faces)){
 					VecAdd(p, p, pos(GetConnectedVertex(e, vrt)));
 					++valence;
 				}
@@ -148,122 +130,156 @@ refinement_ends()
 number SubdivisionProjector::
 new_vertex(Vertex* vrt, Edge* parent)
 {
-	SubdivRules_PLoop& subdiv = SubdivRules_PLoop::inst();
+//todo: Adjust to new helper methods.
+	
+	const SubdivRules_PLoop& subdiv = SubdivRules_PLoop::inst();
 
 //	check whether the parent edge lies inside a volume geometry. If it does,
 //	perform linear refinement.
 	Grid& g = geom().grid();
 
-	if(g.num<Volume>() > 0){
-		if(!IsBoundaryEdge3D(g, parent)){
-			set_pos(vrt, geom().element_center(parent));
-			return 1;
-		}
-	}
+	const bool parentIsCrease = m_cbIsCrease(parent);
+	Face* concernedNbrs[2];
+	size_t numConcernedFaces = 0;
 
-	if(is_crease_edge(parent)){
+	if(!parentIsCrease)
+		numConcernedFaces = concerned_nbr_faces (parent, NULL, concernedNbrs);
+
+	if(parentIsCrease || numConcernedFaces != 2){
 		vector2 wghts = subdiv.ref_odd_crease_weights();
 		vector3 p;
 		VecScaleAdd(p, wghts.x(), pos(parent->vertex(0)),
 					wghts.y(), pos(parent->vertex(1)));
 		set_pos(vrt, p);
+		return 1;
 	}
-	else{
-	//	apply loop-subdivision on inner elements
-	//	get the neighboured triangles
-		Face* f[2];
-		int numAssociatedBndFaces = 0;
-		if(g.num<Volume>() > 0){
-			vector<Face*> faces;
-			CollectAssociated(faces, g, parent);
-			for(size_t i = 0; i < faces.size(); ++i){
-				if(IsBoundaryFace3D(g, faces[i])){
-					if(numAssociatedBndFaces < 2){
-						f[numAssociatedBndFaces] = faces[i];
-					}
-					++numAssociatedBndFaces;
-				}
-			}
+	
+	if(concernedNbrs[0]->num_vertices() == 3 && concernedNbrs[1]->num_vertices() == 3){
+	//	the 4 vertices that are important for the calculation
+		Vertex* v[4];
+		v[0] = parent->vertex(0); v[1] = parent->vertex(1);
+		v[2] = GetConnectedVertex(parent, concernedNbrs[0]);
+		v[3] = GetConnectedVertex(parent, concernedNbrs[1]);
+
+		vector4 wghts;
+
+		bool isCrease0 = nbr_crease_edges(v[0]) > 0;
+		bool isCrease1 = nbr_crease_edges(v[1]) > 0;
+	//	if exactly one of the two is a crease vertex, special
+	//	weighting has to be performed
+	//todo: this does not yet work for inner creases.
+		if((isCrease0 && !isCrease1) || (!isCrease0 && isCrease1))
+		{
+		//	the crease vertex has to be in v[0]
+			if(isCrease1)
+				swap(v[0], v[1]);
+
+		//	get the number of edges that are connected to v[0]
+		//	todo: only count edges that are on the correct side of the crease.
+			Grid::edge_traits::secure_container edges;
+			g.associated_elements(edges, v[0]);
+
+			wghts = subdiv.ref_odd_inner_weights(edges.size());
 		}
 		else{
-			numAssociatedBndFaces = GetAssociatedFaces(f, g, parent, 2);
+			wghts = subdiv.ref_odd_inner_weights();
 		}
-		if(numAssociatedBndFaces == 2){
-			if(f[0]->num_vertices() == 3 && f[1]->num_vertices() == 3){
-			//	the 4 vertices that are important for the calculation
-				Vertex* v[4];
-				v[0] = parent->vertex(0); v[1] = parent->vertex(1);
-				v[2] = GetConnectedVertex(parent, f[0]);
-				v[3] = GetConnectedVertex(parent, f[1]);
 
-				vector4 wghts;
-
-				bool isCrease0 = is_crease_vertex(v[0]);
-				bool isCrease1 = is_crease_vertex(v[1]);
-			//	if exactly one of the two is a crease vertex, special
-			//	weighting has to be performed
-			//todo: this does not yet work for inner creases.
-				if((isCrease0 && !isCrease1) || (!isCrease0 && isCrease1))
-				{
-				//	the crease vertex has to be in v[0]
-					if(isCrease1)
-						swap(v[0], v[1]);
-
-				//	get the number of edges that are connected to v[0]
-				//	todo: only count edges that are on the correct side of the crease.
-					Grid::edge_traits::secure_container edges;
-					g.associated_elements(edges, v[0]);
-
-					wghts = subdiv.ref_odd_inner_weights(edges.size());
-				}
-				else{
-					wghts = subdiv.ref_odd_inner_weights();
-				}
-
-				vector3 p;
-				VecScaleAdd(p, wghts.x(), pos(v[0]), wghts.y(), pos(v[1]),
-							   wghts.z(), pos(v[2]), wghts.w(), pos(v[3]));
-				set_pos(vrt, p);
-			}
-			else
-				RefinementProjector::new_vertex(vrt, parent);
-		}
-		else
-			RefinementProjector::new_vertex(vrt, parent);
+		vector3 p;
+		VecScaleAdd(p, wghts.x(), pos(v[0]), wghts.y(), pos(v[1]),
+					   wghts.z(), pos(v[2]), wghts.w(), pos(v[3]));
+		set_pos(vrt, p);
 	}
+	else
+		RefinementProjector::new_vertex(vrt, parent);
 
 	return 1;
 }
 
-bool SubdivisionProjector::
-is_crease_vertex(Vertex* vrt)
+size_t SubdivisionProjector::
+nbr_crease_edges (Vertex* vrt,
+				  Grid::edge_traits::secure_container* assEdges,
+				  Edge* creaseEdgesOut[2])
 {
 	Grid& grid = geom().grid();
-	if(grid.num<Volume>() > 0)
-		return false;
 
-	if(!IsRegularSurfaceVertex(grid, vrt))
-		return true;
-
-	Grid::edge_traits::secure_container edges;
-	grid.associated_elements(edges, vrt);
-
-	for(size_t i = 0; i < edges.size(); ++i){
-		if(is_crease_edge(edges[i]))
-			return true;
+	Grid::edge_traits::secure_container	localAssEdges;
+	if(!assEdges){
+		grid.associated_elements(localAssEdges, vrt);
+		assEdges = &localAssEdges;
 	}
 
-	return false;
+	size_t creaseEdges = 0;
+	Grid::face_traits::secure_container faces;
+	if(creaseEdgesOut){
+		for(size_t i = 0; i < assEdges->size(); ++i){
+			Edge* edge = (*assEdges)[i];
+			if(m_cbIsCrease(edge)){
+				if(creaseEdges < 2)
+					creaseEdgesOut[creaseEdges] = edge;
+				++creaseEdges;
+			}
+			else{
+				grid.associated_elements(faces, edge);
+				size_t num = 0;
+				if(!faces.size() == 0)
+					num = concerned_nbr_faces(edge, &faces);
+				if(faces.size() == 0 || ((num > 0) && (num!= 2))){
+					if(creaseEdges < 2)
+						creaseEdgesOut[creaseEdges] = edge;
+					++creaseEdges;
+				}
+			}
+		}
+	}
+	else{
+		for(size_t i = 0; i < assEdges->size(); ++i){
+			Edge* edge = (*assEdges)[i];
+			if(m_cbIsCrease(edge))
+				++creaseEdges;
+			else{
+				grid.associated_elements(faces, edge);
+				if(faces.size() == 0)
+					++creaseEdges;
+				else{
+					size_t num = concerned_nbr_faces(edge, &faces);
+					creaseEdges += int((num > 0) && (num != 2));
+				}
+			}
+		}
+	}
+
+	return creaseEdges;
 }
 
-bool SubdivisionProjector::
-is_crease_edge(Edge* edge)
+size_t SubdivisionProjector::
+concerned_nbr_faces (Edge* edge,
+					 Grid::face_traits::secure_container* assFaces,
+					 Face* facesOut[2])
 {
-	Grid& grid = geom().grid();
-	if(grid.num<Volume>() > 0)
-		return false;
-	return (NumAssociatedFaces(grid, edge) != 2 ||
-			m_cbIsCrease(edge));
+	Grid::face_traits::secure_container	localAssFaces;
+	if(!assFaces){
+		Grid& grid = geom().grid();
+		grid.associated_elements(localAssFaces, edge);
+		assFaces = &localAssFaces;
+	}
+
+	size_t numConcernedFaces = 0;
+	if(facesOut){
+		for(size_t i = 0; i < assFaces->size(); ++i){
+			if(is_concerned((*assFaces)[i])){
+				if(numConcernedFaces < 2)
+					facesOut[numConcernedFaces] = (*assFaces)[i];
+				++numConcernedFaces;
+			}
+		}
+	}
+	else{
+		for(size_t i = 0; i < assFaces->size(); ++i)
+			numConcernedFaces += (size_t)is_concerned((*assFaces)[i]);
+	}
+
+	return numConcernedFaces;
 }
 
 }//	end of namespace

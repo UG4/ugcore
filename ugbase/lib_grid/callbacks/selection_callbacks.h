@@ -34,13 +34,14 @@
 #define __H__UG_selection_callbacks
 
 #include "lib_grid/tools/selector_interface.h"
+#include "element_callback_interface.h"
 
 namespace ug{
 /** \ingroup lib_grid_element_callbacks
  * \{ */
 
 ///	Element callback that returns true, if an element is selected
-class IsSelected
+class IsSelected : public ElementCallback
 {
 	public:
 		IsSelected(const ISelector& sel) :
@@ -60,7 +61,7 @@ class IsSelected
 };
 
 ///	Element callback that returns true, if an element is not selected
-class IsNotSelected
+class IsNotSelected : public ElementCallback
 {
 	public:
 		IsNotSelected(const ISelector& sel) :

@@ -37,6 +37,7 @@
 #include "common/error.h"
 #include "lib_grid/grid/geometry.h"
 #include "lib_grid/grid/sub_grid.h"
+#include "lib_grid/callbacks/element_callback_interface.h"
 
 namespace ug{
 
@@ -49,13 +50,24 @@ namespace ug{
  * of lower dimension can still be treated since they are wrapped in a
  * IGeometry3d class. While this adds a small overhead it simplifies implementation
  * and usability considerably, since no additional template dependencies have to
- * be considered.*/
+ * be considered.
+ */
 class RefinementProjector {
 public:
 	RefinementProjector ()			{}
 	
 	RefinementProjector (SPIGeometry3d geometry) :
-		m_geometry (geometry)
+		m_geometry (geometry),
+		m_concernedElementsCallback (make_sp(new ConsiderAll()))
+	{}
+
+	RefinementProjector (SPElementCallback cb) :
+		m_concernedElementsCallback (cb)
+	{}
+
+	RefinementProjector (SPIGeometry3d geometry, SPElementCallback concernedElems) :
+		m_geometry (geometry),
+		m_concernedElementsCallback (concernedElems)
 	{}
 
 	virtual ~RefinementProjector ()	{}
@@ -66,6 +78,10 @@ public:
 	}
 
 	virtual SPIGeometry3d geometry () const				{return m_geometry;}
+
+
+	virtual void set_concerned_elements (SPElementCallback cb)
+	{m_concernedElementsCallback = cb;}
 
 /**	returns 'true' if a specialized projector requires the subgrid during its
  * 'refinement_begins' method.
@@ -148,6 +164,11 @@ protected:
 	IGeometry3d& geom ()				{return *m_geometry;}
 	const IGeometry3d& geom () const	{return *m_geometry;}
 
+	template <class TElem>
+	bool is_concerned (TElem* e) {
+		return (*m_concernedElementsCallback)(e);
+	}
+
 private:
 	friend class boost::serialization::access;
 
@@ -156,7 +177,8 @@ private:
 	{
 	}
 
-	SPIGeometry3d	m_geometry;
+	SPIGeometry3d		m_geometry;
+	SPElementCallback	m_concernedElementsCallback;
 };
 
 typedef SmartPtr<RefinementProjector>	SPRefinementProjector;
