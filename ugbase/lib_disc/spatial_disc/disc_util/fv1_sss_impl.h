@@ -34,11 +34,11 @@
  * Singular sources and sinks for the FV discretizations: Implementation of the functions
  */
 
-namespace ug{
-
 // ug4 headers
 #include "lib_grid/algorithms/ray_element_intersection_util.h"
 #include "lib_disc/reference_element/reference_element_util.h"
+
+namespace ug{
 
 /**
  * Test whether a source/sink point corresponds to a given corner of the element.
