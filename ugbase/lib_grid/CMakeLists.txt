@@ -90,7 +90,6 @@ set(srcAlgorithms	algorithms/debug_util.cpp
 					# (unmaintained) refinement/hanging_node_refiner_2d_irn.cpp
 					# (unmaintained) refinement/multi_grid_refiner.cpp
 					refinement/regular_refinement.cpp
-					refinement/regular_refinement_new.cpp
 					refinement/regular_refiner_multi_grid.cpp
 					refinement/global_multi_grid_refiner.cpp
 					refinement/global_fractured_media_refiner.cpp
