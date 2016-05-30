@@ -31,7 +31,9 @@
  */
 
 #include "grid_bridges.h"
+#include "../suffix_tag.h"
 #include "lib_grid/grid/grid.h"
+#include "lib_grid/grid/geometry.h"
 #include "lib_grid/grid_objects/grid_objects.h"
 #include "lib_grid/multi_grid.h"
 using namespace std;
@@ -45,6 +47,17 @@ bool IsValidPtr(T* o){
 	return o != NULL;
 }
 
+template <int dim>
+void RegisterGeometry(Registry& reg, string grp)
+{
+	typedef IGeometry<dim>	T;
+	string suffix = GetDimensionSuffix<dim>();
+	string tag = GetDimensionTag<dim>();
+
+	string name = mkstr("IGeometry" << suffix);
+	reg.add_class_<T>(name, grp);
+	reg.add_class_to_group(name, "IGeometry", tag);
+}
 
 void RegisterGridBridge_Grid(Registry& reg, string parentGroup)
 {
@@ -109,6 +122,11 @@ void RegisterGridBridge_Grid(Registry& reg, string parentGroup)
 	reg.add_class_<APosition1>("APosition1");
 	reg.add_class_<APosition2>("APosition2");
 	reg.add_class_<APosition3>("APosition3");
+
+//	geometry
+	RegisterGeometry<1>(reg, grp);
+	RegisterGeometry<2>(reg, grp);
+	RegisterGeometry<3>(reg, grp);
 }
 
 }//	end of namespace

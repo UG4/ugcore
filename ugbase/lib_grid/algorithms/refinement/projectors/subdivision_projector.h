@@ -35,7 +35,7 @@
 
 #include <algorithm>
 #include <vector>
-#include "../refinement_projector.h"
+#include "refinement_projector.h"
 #include "lib_grid/callbacks/basic_callbacks.h"
 #include "lib_grid/callbacks/topology_callbacks.h"
 
@@ -59,13 +59,17 @@ public:
 		m_customConcernedElementsCallbackUsed (false)
 	{}
 
-	SubdivisionProjector (SPIGeometry3d geometry) :
+/**	\sa ug::RefinementProjector::RefinementProjector*/
+	template <class TGeomProvider>
+	SubdivisionProjector (TGeomProvider& geometry) :
 		RefinementProjector (geometry, make_sp(new IsBoundaryOrManifodFace(geometry->grid()))),
 		m_cbIsCrease (Grid::edge_traits::callback(ConsiderNone())),
 		m_customConcernedElementsCallbackUsed (false)
 	{}
 
-	SubdivisionProjector (SPIGeometry3d geometry,
+/**	\sa ug::RefinementProjector::RefinementProjector*/
+	template <class TGeomProvider>
+	SubdivisionProjector (const TGeomProvider& geometry,
 						  Grid::edge_traits::callback cbIsCrease) :
 		RefinementProjector (geometry, make_sp(new IsBoundaryOrManifodFace(geometry->grid()))),
 		m_cbIsCrease (cbIsCrease),

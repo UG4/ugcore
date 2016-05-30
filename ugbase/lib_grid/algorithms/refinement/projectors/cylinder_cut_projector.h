@@ -33,7 +33,7 @@
 #ifndef __H__UG_cylinder_cut_projector
 #define __H__UG_cylinder_cut_projector
 
-#include "../refinement_projector.h"
+#include "refinement_projector.h"
 
 namespace ug{
 
@@ -62,7 +62,9 @@ public:
 		m_radius (radius)
 	{}
 
-	CylinderCutProjector (SPIGeometry3d geometry,
+/**	\sa ug::RefinementProjector::RefinementProjector*/
+	template <class TGeomProvider>
+	CylinderCutProjector (const TGeomProvider& geometry,
 						  const vector3& center,
 						  const vector3& axis,
 						  number radius) :
@@ -71,6 +73,8 @@ public:
 		m_axis (axis),
 		m_radius (radius)
 	{}
+
+
 
 	virtual ~CylinderCutProjector ()			{}
 

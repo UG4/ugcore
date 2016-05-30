@@ -38,11 +38,13 @@
 #include <boost/mpl/vector.hpp>
 
 #include "refinement_projector.h"
-#include "projectors/cylinder_projector.h"
-#include "projectors/projection_handler.h"
-#include "projectors/smooth_projector.h"
-#include "projectors/sphere_projector.h"
-#include "projectors/subdivision_projector.h"
+#include "cylinder_cut_projector.h"
+#include "cylinder_projector.h"
+#include "plane_cut_projector.h"
+#include "projection_handler.h"
+#include "smooth_projector.h"
+#include "sphere_projector.h"
+#include "subdivision_projector.h"
 
 namespace boost {
 namespace mpl {

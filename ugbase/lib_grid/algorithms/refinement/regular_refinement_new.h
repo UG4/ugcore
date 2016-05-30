@@ -34,7 +34,7 @@
 #define __H__LIB_GRID__REGULAR_REFINER_NEW__
 
 #include "lib_grid/lg_base.h"
-#include "refinement_projector.h"
+#include "projectors/refinement_projector.h"
 #include "common/ug_config.h"
 
 namespace ug

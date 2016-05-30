@@ -33,6 +33,8 @@
 #ifndef __H__UG_plane_cut_projector
 #define __H__UG_plane_cut_projector
 
+#include "refinement_projector.h"
+
 namespace ug{
 
 ///	calculates new positions by cutting parent edges with a plane
@@ -53,9 +55,11 @@ public:
 		m_n (normal)
 	{}
 
-	PlaneCutProjector (SPIGeometry3d geometry,
-						const vector3& position,
-						const vector3& normal) :
+/**	\sa ug::RefinementProjector::RefinementProjector*/
+	template <class TGeomProvider>
+	PlaneCutProjector (const TGeomProvider& geometry,
+					   const vector3& position,
+					   const vector3& normal) :
 		RefinementProjector (geometry),
 		m_p (position),
 		m_n (normal)

@@ -34,6 +34,7 @@
 #define __H__UG_cylinder_projector_new
 
 #include "common/math/misc/math_util.h"
+#include "refinement_projector.h"
 
 namespace ug{
 ///	Projects new vertices onto a sphere during refinement
@@ -81,7 +82,9 @@ public:
 		m_influenceRadius (influenceRadius)
 	{}
 
-	CylinderProjectorNew (SPIGeometry3d geometry,
+/**	\sa ug::RefinementProjector::RefinementProjector*/
+	template <class TGeomProvider>
+	CylinderProjectorNew (const TGeomProvider& geometry,
 						  const vector3& center,
 						  const vector3& axis,
 						  number radius,

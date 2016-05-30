@@ -33,7 +33,7 @@
 #ifndef __H__UG_sphere_projector_new
 #define __H__UG_sphere_projector_new
 
-#include "../refinement_projector.h"
+#include "refinement_projector.h"
 
 namespace ug{
 
@@ -75,7 +75,9 @@ public:
 		m_influenceRadius (influenceRadius)
 	{}
 
-	SphereProjectorNew (SPIGeometry3d geometry,
+/**	\sa ug::RefinementProjector::RefinementProjector*/
+	template <class TGeomProvider>
+	SphereProjectorNew (const TGeomProvider& geometry,
 						const vector3& center,
 						number radius,
 					 	number influenceRadius) :

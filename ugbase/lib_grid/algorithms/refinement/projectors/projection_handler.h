@@ -35,7 +35,7 @@
 
 #include <vector>
 #include "common/assert.h"
-#include "../refinement_projector.h"
+#include "refinement_projector.h"
 #include "lib_grid/tools/subset_handler_interface.h"
 #include "lib_grid/callbacks/selection_callbacks.h"
 #include "lib_grid/callbacks/subset_callbacks.h"
@@ -59,8 +59,11 @@ public:
 
 /**	Please makre sure that the given subset-handler outlives the ProjectionHandler.
  * Please note that an alternative constructor taking a smart-pointer to a
- * SubsetHandler exists.*/
-	ProjectionHandler (SPIGeometry3d geometry, ISubsetHandler* psh) :
+ * SubsetHandler exists.
+ * \sa ug::RefinementProjector::RefinementProjector*/
+	template <class TGeomProvider>
+	ProjectionHandler (const TGeomProvider& geometry,
+					   ISubsetHandler* psh) :
 		RefinementProjector (geometry),
 		m_sh (psh),
 		m_linearProjector (geometry)
@@ -68,7 +71,10 @@ public:
 		m_defaultProjector = make_sp(new RefinementProjector);
 	}
 
-	ProjectionHandler (SPIGeometry3d geometry, SmartPtr<ISubsetHandler> psh) :
+/**	\sa ug::RefinementProjector::RefinementProjector*/
+	template <class TGeomProvider>
+	ProjectionHandler (const TGeomProvider& geometry,
+					   SmartPtr<ISubsetHandler> psh) :
 		RefinementProjector (geometry),
 		m_sh (psh.get()),
 		m_spSH (psh),

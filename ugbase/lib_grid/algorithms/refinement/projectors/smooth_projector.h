@@ -33,7 +33,7 @@
 #ifndef __H__UG_smooth_projector
 #define __H__UG_smooth_projector
 
-#include "../refinement_projector.h"
+#include "refinement_projector.h"
 
 namespace ug{
 
@@ -52,7 +52,9 @@ public:
 		m_changeRate (changeRate)
 	{}
 
-	SmoothProjector (SPIGeometry3d geometry,
+/**	\sa ug::RefinementProjector::RefinementProjector*/
+	template <class TGeomProvider>
+	SmoothProjector (const TGeomProvider& geometry,
 					int iterations,
 					number changeRate) :
 		RefinementProjector (geometry),

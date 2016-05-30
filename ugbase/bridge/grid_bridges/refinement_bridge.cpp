@@ -37,6 +37,7 @@
 #include "lib_grid/algorithms/refinement/hanging_node_refiner_grid.h"
 #include "lib_grid/algorithms/refinement/hanging_node_refiner_multi_grid.h"
 #include "lib_grid/algorithms/refinement/refinement_projectors_old/loop_subdivision_projectors.h"
+#include "lib_grid/algorithms/refinement/projectors/projectors.h"
 #include "lib_grid/algorithms/subdivision/subdivision_loop.h"
 #include "lib_grid/file_io/file_io.h"
 
@@ -243,6 +244,115 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 		.add_function("CreateHierarchy", &CreateHierarchy, grp)
 		.add_function("CreateSmoothHierarchy", &CreateSmoothHierarchy, grp)
 		.add_function("CreateSemiSmoothHierarchy", &CreateSemiSmoothHierarchy, grp);
+
+//	refinement projectors
+	{
+		typedef RefinementProjector T;
+		reg.add_class_<T>("RefinementProjector", grp)
+			.add_method("set_geometry", &T::set_geometry, "", "geometry")
+			.add_method("geometry", &T::geometry, "geometry", "");
+	}
+
+	{
+		typedef CylinderCutProjector T;
+		reg.add_class_<T>("CylinderCutProjector", grp)
+			.add_constructor()
+			.add_constructor<void (T::*)(const vector3&, const vector3&, number)>()
+			.add_constructor<void (T::*)(const SPIGeometry3d&, const vector3&, const vector3&, number)>()
+			.add_method("set_center", &T::set_center, "", "center")
+			.add_method("center", &T::center, "center")
+			.add_method("set_axis", &T::set_axis, "", "axis")
+			.add_method("axis", &T::axis, "axis")
+			.add_method("set_radius", &T::set_radius, "", "radius")
+			.add_method("radius", &T::radius, "radius")
+			.set_construct_as_smart_pointer(true);
+	}
+
+	{
+		typedef CylinderProjectorNew T;
+		reg.add_class_<T>("CylinderProjector", grp)
+			.add_constructor()
+			.add_constructor<void (T::*)(const vector3&, const vector3&)>()
+			.add_constructor<void (T::*)(const vector3&, const vector3&, number)>()
+			.add_constructor<void (T::*)(const vector3&, const vector3&, number,
+										 number)>()
+			.add_constructor<void (T::*)(const SPIGeometry3d&, const vector3&,
+										 const vector3&, number, number)>()
+			.add_method("set_center", &T::set_center, "", "center")
+			.add_method("center", &T::center, "center")
+			.add_method("set_axis", &T::set_axis, "", "axis")
+			.add_method("axis", &T::axis, "axis")
+			.add_method("set_radius", &T::set_radius, "", "radius")
+			.add_method("radius", &T::radius, "radius")
+			.add_method("set_influence_radius", &T::set_influence_radius, "", "influenceRadius")
+			.add_method("influence_radius", &T::influence_radius, "influenceRadius")
+			.set_construct_as_smart_pointer(true);
+	}
+
+	{
+		typedef PlaneCutProjector T;
+		reg.add_class_<T>("PlaneCutProjector", grp)
+			.add_constructor()
+			.add_constructor<void (T::*)(const vector3&, const vector3&)>()
+			.add_constructor<void (T::*)(const SPIGeometry3d&, const vector3&,
+										 const vector3&)>()
+			.add_method("set_position", &T::set_position, "", "position")
+			.add_method("position", &T::position, "position")
+			.add_method("set_normal", &T::set_normal, "", "normal")
+			.add_method("normal", &T::normal, "normal")
+			.set_construct_as_smart_pointer(true);
+	}
+
+	{
+		typedef ProjectionHandler T;
+		reg.add_class_<T>("ProjectionHandler", grp)
+			.add_constructor()
+			.add_constructor<void (T::*)(const SPIGeometry3d&,
+										 ISubsetHandler*)>()
+			.add_constructor<void (T::*)(const SPIGeometry3d&,
+										 SmartPtr<ISubsetHandler>)>()
+			.add_method("set_geometry_all", &T::set_geometry_all, "", "geometry")
+			.set_construct_as_smart_pointer(true);
+	}
+
+	{
+		typedef SmoothProjector T;
+		reg.add_class_<T>("SmoothProjector", grp)
+			.add_constructor()
+			.add_constructor<void (T::*)(int, number)>()
+			.add_constructor<void (T::*)(const SPIGeometry3d&, int, number)>()
+			.add_method("set_iterations", &T::set_iterations, "", "iterations")
+			.add_method("iterations", &T::iterations, "iterations")
+			.add_method("set_change_rate", &T::set_change_rate, "", "changeRate")
+			.add_method("change_rate", &T::change_rate, "changeRate")
+			.set_construct_as_smart_pointer(true);
+	}
+
+	{
+		typedef SphereProjectorNew T;
+		reg.add_class_<T>("SphereProjectorNew", grp)
+			.add_constructor()
+			.add_constructor<void (T::*)(const vector3&)>()
+			.add_constructor<void (T::*)(const vector3&, number)>()
+			.add_constructor<void (T::*)(const vector3&, number, number)>()
+			.add_constructor<void (T::*)(const SPIGeometry3d&, const vector3&,
+										 number, number)>()
+			.add_method("set_center", &T::set_center, "", "center")
+			.add_method("center", &T::center, "center")
+			.add_method("set_radius", &T::set_radius, "", "radius")
+			.add_method("radius", &T::radius, "radius")
+			.add_method("set_influence_radius", &T::set_influence_radius, "", "influenceRadius")
+			.add_method("influence_radius", &T::influence_radius, "influenceRadius")
+			.set_construct_as_smart_pointer(true);
+	}
+
+	{
+		typedef SubdivisionProjector T;
+		reg.add_class_<T>("SubdivisionProjector", grp)
+			.add_constructor()
+			.add_constructor<void (T::*)(const SPIGeometry3d&)>()
+			.set_construct_as_smart_pointer(true);
+	}
 }
 
 }//	end of namespace
