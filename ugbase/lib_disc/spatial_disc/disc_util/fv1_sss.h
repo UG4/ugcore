@@ -69,6 +69,17 @@ public:
 	)
 	: TData(_data), point(_point) {}
 
+///	class constructor (with the default constructor for data)
+	FVPointSourceOrSink
+	(
+		const std::vector<number>& _point ///< coordinates of the source/sink
+	)
+	{
+		if (_point.size () != dim)
+			UG_THROW ("FVPointSourceOrSink: Number of coordinates does not match the dimension.");
+		for (size_t i = 0; i < dim; i++) point[i] = _point[i];
+	}
+
 ///	returns the point of the source/sink
 	const MathVector<dim>& position () {return point;}
 	
@@ -110,6 +121,21 @@ public:
 		const TData& _data ///< the data to copy
 	)
 	: TData(_data), point1(_point1), point2(_point2) {}
+
+///	class constructor (with the default constructor for data)
+    FVLineSourceOrSink
+    (
+    	const std::vector<number>& _point1, ///< beginning of the line segment
+		const std::vector<number>& _point2 ///< end of the line segment
+	)
+	{
+		if (_point1.size () != dim || _point2.size () != dim)
+			UG_THROW ("FVLineSourceOrSink: Number of coordinates does not match the dimension.");
+		for (size_t i = 0; i < dim; i++)
+		{
+			point1[i] = _point1[i]; point1[i] = _point1[i];
+		}
+	}
 
 ///	returns the beginning of the line segment
 	const MathVector<dim>& from_position () {return point1;}
