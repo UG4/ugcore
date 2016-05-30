@@ -46,9 +46,9 @@ LUA2VM creates special code which can be interpreted with a special virtual mach
 
 Keep in mind that LUA2C/LUA2VM only implement a subset of LUA's functionality. Some restrictions are:
 
-- Global variables: They work, but they are assume to be \emph constant.
-- All other variables have to be declared \emph local (if they are not a paramter of the function).
-- all variables are assumed to be \emph doubles or convertible to doubles (like ints). That means: no strings, no tables.
+- Global variables: They work, but they are assume to be \em constant.
+- All other variables have to be declared \em local (if they are not a paramter of the function).
+- all variables are assumed to be \em doubles or convertible to doubles (like ints). That means: no strings, no tables.
 so if you have code like <tt> if Modell == "1" then ...</tt> you should replace it with something like <tt>if Modell == 1.0 then </tt>.
 - A lot of other fancy stuff like Closures are not possible.
 - Calling other C functions is not possible at the moment.

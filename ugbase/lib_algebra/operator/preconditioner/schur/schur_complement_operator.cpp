@@ -171,7 +171,7 @@ init()
 } /* end 'SchurComplementOperator::init()' */
 
 
-/// apply schur complement f_{\Gamma} = (A_{\Gamma, \Gamma} -  A_{\Gamma, I}  A_{I, I}^{-1}  A_{I, \Gamma} )u_{\Gamma}
+/// apply schur complement \f$ f_{\Gamma} = (A_{\Gamma, \Gamma} -  A_{\Gamma, I}  A_{I, I}^{-1}  A_{I, \Gamma} )u_{\Gamma} \f$
 template <typename TAlgebra>
 void SchurComplementOperator<TAlgebra>::
 apply(vector_type& fskeleton, const vector_type& uskeleton)

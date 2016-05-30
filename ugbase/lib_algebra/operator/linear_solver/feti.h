@@ -955,9 +955,9 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::matrix_type
 			return true;
 		}
 
-	///	function which applies matrix \f$ M^{-1}^{(i)} \f$ to a vector \f$ r \f$
+	///	function which applies matrix \f$ M^{-1,(i)} \f$ to a vector \f$ r \f$
 	/**
-	 * This function applies matrix \f$M^{-1}^{(i)} := D_{\Delta}^{(i)} B_{\Delta}^{(i)} S_{\Delta}^{(i)} {B_{\Delta}^{(i)}}^T D_{\Delta}^{(i)}\f$
+	 * This function applies matrix \f$M^{-1,(i)} := D_{\Delta}^{(i)} B_{\Delta}^{(i)} S_{\Delta}^{(i)} {B_{\Delta}^{(i)}}^T D_{\Delta}^{(i)}\f$
 	 * to a vector \f$r\f$.
 	 *
 	 * \param[in]		r				vector \f$r\f$ living on "Dual layout"
