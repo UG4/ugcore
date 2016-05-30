@@ -133,7 +133,7 @@ public:
 			UG_THROW ("FVLineSourceOrSink: Number of coordinates does not match the dimension.");
 		for (size_t i = 0; i < dim; i++)
 		{
-			point1[i] = _point1[i]; point1[i] = _point1[i];
+			point1[i] = _point1[i]; point2[i] = _point2[i];
 		}
 	}
 
