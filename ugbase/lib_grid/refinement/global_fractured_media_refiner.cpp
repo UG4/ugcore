@@ -58,8 +58,8 @@ namespace ug
 //template <class TAPosition>
 //GlobalFracturedMediaRefiner<TAPosition>::
 GlobalFracturedMediaRefiner::
-GlobalFracturedMediaRefiner(IRefinementCallback* refCallback) :
-	IRefiner(refCallback),
+GlobalFracturedMediaRefiner(SPRefinementProjector projector) :
+	IRefiner(projector),
 	m_pMG(NULL),
 	m_pSH(NULL)
 {
@@ -71,8 +71,8 @@ GlobalFracturedMediaRefiner(IRefinementCallback* refCallback) :
 //template <class TAPosition>
 //GlobalFracturedMediaRefiner<TAPosition>::
 GlobalFracturedMediaRefiner::
-GlobalFracturedMediaRefiner(MultiGrid& mg, IRefinementCallback* refCallback) :
-	IRefiner(refCallback),
+GlobalFracturedMediaRefiner(MultiGrid& mg, SPRefinementProjector projector) :
+	IRefiner(projector),
 	m_pSH(NULL)
 {
 	m_pMG = NULL;
@@ -207,24 +207,6 @@ perform_refinement()
 	if(!m_adjustedMarksDebugFilename.empty())
 		save_marks_to_file(m_adjustedMarksDebugFilename.c_str());
 
-//	check if a refinement-callback is set.
-//	if not, we'll automatically set one, if a position attachment is available
-	bool localRefCallbackSet = false;
-	if(!m_refCallback){
-		if(mg.has_vertex_attachment(aPosition)){
-			localRefCallbackSet = true;
-			m_refCallback = new RefinementCallbackLinear<APosition>(mg, aPosition);
-		}
-		else if(mg.has_vertex_attachment(aPosition2)){
-			localRefCallbackSet = true;
-			m_refCallback = new RefinementCallbackLinear<APosition2>(mg, aPosition2);
-		}
-		else if(mg.has_vertex_attachment(aPosition1)){
-			localRefCallbackSet = true;
-			m_refCallback = new RefinementCallbackLinear<APosition1>(mg, aPosition1);
-		}		
-	}
-
 //	make sure that the required options are enabled.
 	if(mg.num_volumes() > 0){
 		if(!mg.option_is_enabled(VOLOPT_AUTOGENERATE_FACES))
@@ -330,8 +312,8 @@ perform_refinement()
 		Vertex* nVrt = *mg.create_by_cloning(v, v);
 
 	//	allow refCallback to calculate a new position
-		if(m_refCallback)
-			m_refCallback->new_vertex(nVrt, v);
+		if(m_projector.valid())
+			m_projector->new_vertex(nVrt, v);
 		//GFDR_PROFILE_END();
 	}
 
@@ -370,8 +352,8 @@ perform_refinement()
 		RegularVertex* nVrt = *mg.create<RegularVertex>(e);
 
 	//	allow refCallback to calculate a new position
-		if(m_refCallback)
-			m_refCallback->new_vertex(nVrt, e);
+		if(m_projector.valid())
+			m_projector->new_vertex(nVrt, e);
 		//GFDR_PROFILE_END();
 
 	//	split the edge
@@ -423,8 +405,8 @@ perform_refinement()
 				//GFDR_PROFILE(GFDR_Refine_CreatingVertices);
 				mg.register_element(newVrt, f);
 			//	allow refCallback to calculate a new position
-				if(m_refCallback)
-					m_refCallback->new_vertex(newVrt, f);
+				if(m_projector.valid())
+					m_projector->new_vertex(newVrt, f);
 				//GFDR_PROFILE_END();
 			}
 
@@ -480,9 +462,9 @@ perform_refinement()
 	//	the corner coordinates, so that the refinement algorithm may choose
 	//	the best interior diagonal.
 		vector3* pCorners = NULL;
-		if((v->num_vertices() == 4) && m_refCallback){
+		if((v->num_vertices() == 4) && m_projector.valid()){
 			for(size_t i = 0; i < 4; ++i){
-				m_refCallback->current_pos(&corners[i].x(), v->vertex(i), 3);
+				corners[i] = m_projector->geometry()->pos(v->vertex(i));
 			}
 			pCorners = &corners.front();
 		}
@@ -494,8 +476,8 @@ perform_refinement()
 			if(newVrt){
 				mg.register_element(newVrt, v);
 			//	allow refCallback to calculate a new position
-				if(m_refCallback)
-					m_refCallback->new_vertex(newVrt, v);
+				if(m_projector.valid())
+					m_projector->new_vertex(newVrt, v);
 			}
 
 		//	register the new faces and assign status
@@ -515,12 +497,6 @@ perform_refinement()
 //	notify derivates that refinement ends
 	refinement_step_ends();
 	
-//	clear the refinement-callback if necessary
-	if(localRefCallbackSet){
-		delete m_refCallback;
-		m_refCallback = NULL;
-	}
-
 	m_messageHub->post_message(GridMessage_Adaption(GMAT_GLOBAL_REFINEMENT_ENDS,
 													mg.get_grid_objects(oldTopLevel)));
 

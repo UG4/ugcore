@@ -31,13 +31,12 @@
  */
 
 #include "grid_bridges.h"
-#include "lib_grid/algorithms/refinement/adaptive_regular_mg_refiner.h"
-#include "lib_grid/algorithms/refinement/global_fractured_media_refiner.h"
-#include "lib_grid/algorithms/refinement/global_multi_grid_refiner.h"
-#include "lib_grid/algorithms/refinement/hanging_node_refiner_grid.h"
-#include "lib_grid/algorithms/refinement/hanging_node_refiner_multi_grid.h"
-#include "lib_grid/algorithms/refinement/refinement_projectors_old/loop_subdivision_projectors.h"
-#include "lib_grid/algorithms/refinement/projectors/projectors.h"
+#include "lib_grid/refinement/adaptive_regular_mg_refiner.h"
+#include "lib_grid/refinement/global_fractured_media_refiner.h"
+#include "lib_grid/refinement/global_multi_grid_refiner.h"
+#include "lib_grid/refinement/hanging_node_refiner_grid.h"
+#include "lib_grid/refinement/hanging_node_refiner_multi_grid.h"
+#include "lib_grid/refinement/projectors/projectors.h"
 #include "lib_grid/algorithms/subdivision/subdivision_loop.h"
 #include "lib_grid/file_io/file_io.h"
 
@@ -49,30 +48,6 @@ using namespace std;
 
 namespace ug{
 namespace bridge{
-
-void TestSubdivision(const char* fileIn, const char* fileOut, int numRefs)
-{
-	PROFILE_FUNC_GROUP("grid");
-//todo: Callbacks have to make sure that their attachment is accessible in the grid.
-//		even if they were initialized before the attachment was attached to the grid.
-	MultiGrid mg;
-	SubsetHandler sh(mg);
-	SubdivisionLoopProjector<APosition> refCallback(mg, aPosition, aPosition);
-	GlobalMultiGridRefiner ref(mg, &refCallback);
-	
-	if(LoadGridFromFile(mg, sh, fileIn)){
-		for(int lvl = 0; lvl < numRefs; ++lvl){
-			ref.refine();
-		}
-
-		ProjectToLimitPLoop(mg, aPosition, aPosition);
-		SaveGridToFile(mg, mg.get_hierarchy_handler(), fileOut);
-
-	}
-	else{
-		UG_LOG("Load failed. aborting...\n");
-	}
-}
 
 bool CreateHierarchy(MultiGrid& mg, size_t numRefs)
 {
@@ -89,22 +64,23 @@ bool CreateHierarchy(MultiGrid& mg, size_t numRefs)
 bool CreateSmoothHierarchy(MultiGrid& mg, size_t numRefs)
 {
 	PROFILE_FUNC_GROUP("grid");
-	IRefinementCallback* refCallback = NULL;
+
 //	we're only checking for the main attachments here.
 //todo: improve this - add a domain-based hierarchy creator.
+	SPRefinementProjector projector;
 	if(mg.has_vertex_attachment(aPosition1))
-		refCallback = new SubdivisionLoopProjector<APosition1>(mg, aPosition1, aPosition1);
+		projector = make_sp(new SubdivisionProjector(MakeGeometry3d(mg, aPosition1)));
 	else if(mg.has_vertex_attachment(aPosition2))
-		refCallback = new SubdivisionLoopProjector<APosition2>(mg, aPosition2, aPosition2);
+		projector = make_sp(new SubdivisionProjector(MakeGeometry3d(mg, aPosition2)));
 	else if(mg.has_vertex_attachment(aPosition))
-		refCallback = new SubdivisionLoopProjector<APosition>(mg, aPosition, aPosition);
+		projector = make_sp(new SubdivisionProjector(MakeGeometry3d(mg, aPosition)));
 		
-	if(!refCallback){
+	if(!projector.valid()){
 		UG_LOG("No standard position attachment found. Aborting.\n");
 		return false;
 	}
 	
-	GlobalMultiGridRefiner ref(mg, refCallback);
+	GlobalMultiGridRefiner ref(mg, projector);
 
 	for(size_t lvl = 0; lvl < numRefs; ++lvl){
 		ref.refine();
@@ -117,51 +93,123 @@ bool CreateSmoothHierarchy(MultiGrid& mg, size_t numRefs)
 	else if(mg.has_vertex_attachment(aPosition))
 		ProjectToLimitPLoop(mg, aPosition, aPosition);
 
-	delete refCallback;
-	return true;
-}
-
-bool CreateSemiSmoothHierarchy(MultiGrid& mg, size_t numRefs)
-{
-	PROFILE_FUNC_GROUP("grid");
-	IRefinementCallback* refCallback = NULL;
-//	we're only checking for the main attachments here.
-//todo: improve this - add a domain-based hierarchy creator.
-	if(mg.has_vertex_attachment(aPosition1))
-		refCallback = new SubdivisionLoopBoundaryProjector<APosition1>(mg, aPosition1, aPosition1);
-	else if(mg.has_vertex_attachment(aPosition2))
-		refCallback = new SubdivisionLoopBoundaryProjector<APosition2>(mg, aPosition2, aPosition2);
-	else if(mg.has_vertex_attachment(aPosition))
-		refCallback = new SubdivisionLoopBoundaryProjector<APosition>(mg, aPosition, aPosition);
-		
-	if(!refCallback){
-		UG_LOG("No standard position attachment found. Aborting.\n");
-		return false;
-	}
-	
-	GlobalMultiGridRefiner ref(mg, refCallback);
-
-	for(size_t lvl = 0; lvl < numRefs; ++lvl){
-		ref.refine();
-	}
-
-	if(mg.has_vertex_attachment(aPosition1))
-		ProjectToLimitSubdivBoundary(mg, aPosition1, aPosition1);
-	else if(mg.has_vertex_attachment(aPosition2))
-		ProjectToLimitSubdivBoundary(mg, aPosition2, aPosition2);
-	else if(mg.has_vertex_attachment(aPosition))
-		ProjectToLimitSubdivBoundary(mg, aPosition, aPosition);
-
-	delete refCallback;
 	return true;
 }
 
 void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 {
 	string grp = parentGroup;
+//	refinement projectors
+	{
+		typedef RefinementProjector T;
+		reg.add_class_<T>("RefinementProjector", grp)
+			.add_method("set_geometry", &T::set_geometry, "", "geometry")
+			.add_method("geometry", &T::geometry, "geometry", "");
+	}
 
-	reg.add_class_<IRefinementCallback>("IRefinementCallback", grp);
+	{
+		typedef CylinderCutProjector T;
+		reg.add_class_<T>("CylinderCutProjector", grp)
+			.add_constructor()
+			.add_constructor<void (T::*)(const vector3&, const vector3&, number)>()
+			.add_constructor<void (T::*)(const SPIGeometry3d&, const vector3&, const vector3&, number)>()
+			.add_method("set_center", &T::set_center, "", "center")
+			.add_method("center", &T::center, "center")
+			.add_method("set_axis", &T::set_axis, "", "axis")
+			.add_method("axis", &T::axis, "axis")
+			.add_method("set_radius", &T::set_radius, "", "radius")
+			.add_method("radius", &T::radius, "radius")
+			.set_construct_as_smart_pointer(true);
+	}
 
+	{
+		typedef CylinderProjectorNew T;
+		reg.add_class_<T>("CylinderProjector", grp)
+			.add_constructor()
+			.add_constructor<void (T::*)(const vector3&, const vector3&)>()
+			.add_constructor<void (T::*)(const vector3&, const vector3&, number)>()
+			.add_constructor<void (T::*)(const vector3&, const vector3&, number,
+										 number)>()
+			.add_constructor<void (T::*)(const SPIGeometry3d&, const vector3&,
+										 const vector3&, number, number)>()
+			.add_method("set_center", &T::set_center, "", "center")
+			.add_method("center", &T::center, "center")
+			.add_method("set_axis", &T::set_axis, "", "axis")
+			.add_method("axis", &T::axis, "axis")
+			.add_method("set_radius", &T::set_radius, "", "radius")
+			.add_method("radius", &T::radius, "radius")
+			.add_method("set_influence_radius", &T::set_influence_radius, "", "influenceRadius")
+			.add_method("influence_radius", &T::influence_radius, "influenceRadius")
+			.set_construct_as_smart_pointer(true);
+	}
+
+	{
+		typedef PlaneCutProjector T;
+		reg.add_class_<T>("PlaneCutProjector", grp)
+			.add_constructor()
+			.add_constructor<void (T::*)(const vector3&, const vector3&)>()
+			.add_constructor<void (T::*)(const SPIGeometry3d&, const vector3&,
+										 const vector3&)>()
+			.add_method("set_position", &T::set_position, "", "position")
+			.add_method("position", &T::position, "position")
+			.add_method("set_normal", &T::set_normal, "", "normal")
+			.add_method("normal", &T::normal, "normal")
+			.set_construct_as_smart_pointer(true);
+	}
+
+	{
+		typedef ProjectionHandler T;
+		reg.add_class_<T>("ProjectionHandler", grp)
+			.add_constructor()
+			.add_constructor<void (T::*)(ISubsetHandler*)>()
+			.add_constructor<void (T::*)(SmartPtr<ISubsetHandler>)>()
+			.add_constructor<void (T::*)(const SPIGeometry3d&,
+										 ISubsetHandler*)>()
+			.add_constructor<void (T::*)(const SPIGeometry3d&,
+										 SmartPtr<ISubsetHandler>)>()
+			.add_method("set_geometry_all", &T::set_geometry_all, "", "geometry")
+			.set_construct_as_smart_pointer(true);
+	}
+
+	{
+		typedef SmoothProjector T;
+		reg.add_class_<T>("SmoothProjector", grp)
+			.add_constructor()
+			.add_constructor<void (T::*)(int, number)>()
+			.add_constructor<void (T::*)(const SPIGeometry3d&, int, number)>()
+			.add_method("set_iterations", &T::set_iterations, "", "iterations")
+			.add_method("iterations", &T::iterations, "iterations")
+			.add_method("set_change_rate", &T::set_change_rate, "", "changeRate")
+			.add_method("change_rate", &T::change_rate, "changeRate")
+			.set_construct_as_smart_pointer(true);
+	}
+
+	{
+		typedef SphereProjectorNew T;
+		reg.add_class_<T>("SphereProjectorNew", grp)
+			.add_constructor()
+			.add_constructor<void (T::*)(const vector3&)>()
+			.add_constructor<void (T::*)(const vector3&, number)>()
+			.add_constructor<void (T::*)(const vector3&, number, number)>()
+			.add_constructor<void (T::*)(const SPIGeometry3d&, const vector3&,
+										 number, number)>()
+			.add_method("set_center", &T::set_center, "", "center")
+			.add_method("center", &T::center, "center")
+			.add_method("set_radius", &T::set_radius, "", "radius")
+			.add_method("radius", &T::radius, "radius")
+			.add_method("set_influence_radius", &T::set_influence_radius, "", "influenceRadius")
+			.add_method("influence_radius", &T::influence_radius, "influenceRadius")
+			.set_construct_as_smart_pointer(true);
+	}
+
+	{
+		typedef SubdivisionProjector T;
+		reg.add_class_<T>("SubdivisionProjector", grp)
+			.add_constructor()
+			.add_constructor<void (T::*)(const SPIGeometry3d&)>()
+			.set_construct_as_smart_pointer(true);
+	}
+	
 //	IRefiner
 	reg.add_class_<IRefiner>("IRefiner", grp)
 		.add_method("refine", &IRefiner::refine)
@@ -240,119 +288,8 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 #endif
 
 //	refinement
-	reg.add_function("TestSubdivision", &TestSubdivision, grp)
-		.add_function("CreateHierarchy", &CreateHierarchy, grp)
-		.add_function("CreateSmoothHierarchy", &CreateSmoothHierarchy, grp)
-		.add_function("CreateSemiSmoothHierarchy", &CreateSemiSmoothHierarchy, grp);
-
-//	refinement projectors
-	{
-		typedef RefinementProjector T;
-		reg.add_class_<T>("RefinementProjector", grp)
-			.add_method("set_geometry", &T::set_geometry, "", "geometry")
-			.add_method("geometry", &T::geometry, "geometry", "");
-	}
-
-	{
-		typedef CylinderCutProjector T;
-		reg.add_class_<T>("CylinderCutProjector", grp)
-			.add_constructor()
-			.add_constructor<void (T::*)(const vector3&, const vector3&, number)>()
-			.add_constructor<void (T::*)(const SPIGeometry3d&, const vector3&, const vector3&, number)>()
-			.add_method("set_center", &T::set_center, "", "center")
-			.add_method("center", &T::center, "center")
-			.add_method("set_axis", &T::set_axis, "", "axis")
-			.add_method("axis", &T::axis, "axis")
-			.add_method("set_radius", &T::set_radius, "", "radius")
-			.add_method("radius", &T::radius, "radius")
-			.set_construct_as_smart_pointer(true);
-	}
-
-	{
-		typedef CylinderProjectorNew T;
-		reg.add_class_<T>("CylinderProjector", grp)
-			.add_constructor()
-			.add_constructor<void (T::*)(const vector3&, const vector3&)>()
-			.add_constructor<void (T::*)(const vector3&, const vector3&, number)>()
-			.add_constructor<void (T::*)(const vector3&, const vector3&, number,
-										 number)>()
-			.add_constructor<void (T::*)(const SPIGeometry3d&, const vector3&,
-										 const vector3&, number, number)>()
-			.add_method("set_center", &T::set_center, "", "center")
-			.add_method("center", &T::center, "center")
-			.add_method("set_axis", &T::set_axis, "", "axis")
-			.add_method("axis", &T::axis, "axis")
-			.add_method("set_radius", &T::set_radius, "", "radius")
-			.add_method("radius", &T::radius, "radius")
-			.add_method("set_influence_radius", &T::set_influence_radius, "", "influenceRadius")
-			.add_method("influence_radius", &T::influence_radius, "influenceRadius")
-			.set_construct_as_smart_pointer(true);
-	}
-
-	{
-		typedef PlaneCutProjector T;
-		reg.add_class_<T>("PlaneCutProjector", grp)
-			.add_constructor()
-			.add_constructor<void (T::*)(const vector3&, const vector3&)>()
-			.add_constructor<void (T::*)(const SPIGeometry3d&, const vector3&,
-										 const vector3&)>()
-			.add_method("set_position", &T::set_position, "", "position")
-			.add_method("position", &T::position, "position")
-			.add_method("set_normal", &T::set_normal, "", "normal")
-			.add_method("normal", &T::normal, "normal")
-			.set_construct_as_smart_pointer(true);
-	}
-
-	{
-		typedef ProjectionHandler T;
-		reg.add_class_<T>("ProjectionHandler", grp)
-			.add_constructor()
-			.add_constructor<void (T::*)(const SPIGeometry3d&,
-										 ISubsetHandler*)>()
-			.add_constructor<void (T::*)(const SPIGeometry3d&,
-										 SmartPtr<ISubsetHandler>)>()
-			.add_method("set_geometry_all", &T::set_geometry_all, "", "geometry")
-			.set_construct_as_smart_pointer(true);
-	}
-
-	{
-		typedef SmoothProjector T;
-		reg.add_class_<T>("SmoothProjector", grp)
-			.add_constructor()
-			.add_constructor<void (T::*)(int, number)>()
-			.add_constructor<void (T::*)(const SPIGeometry3d&, int, number)>()
-			.add_method("set_iterations", &T::set_iterations, "", "iterations")
-			.add_method("iterations", &T::iterations, "iterations")
-			.add_method("set_change_rate", &T::set_change_rate, "", "changeRate")
-			.add_method("change_rate", &T::change_rate, "changeRate")
-			.set_construct_as_smart_pointer(true);
-	}
-
-	{
-		typedef SphereProjectorNew T;
-		reg.add_class_<T>("SphereProjectorNew", grp)
-			.add_constructor()
-			.add_constructor<void (T::*)(const vector3&)>()
-			.add_constructor<void (T::*)(const vector3&, number)>()
-			.add_constructor<void (T::*)(const vector3&, number, number)>()
-			.add_constructor<void (T::*)(const SPIGeometry3d&, const vector3&,
-										 number, number)>()
-			.add_method("set_center", &T::set_center, "", "center")
-			.add_method("center", &T::center, "center")
-			.add_method("set_radius", &T::set_radius, "", "radius")
-			.add_method("radius", &T::radius, "radius")
-			.add_method("set_influence_radius", &T::set_influence_radius, "", "influenceRadius")
-			.add_method("influence_radius", &T::influence_radius, "influenceRadius")
-			.set_construct_as_smart_pointer(true);
-	}
-
-	{
-		typedef SubdivisionProjector T;
-		reg.add_class_<T>("SubdivisionProjector", grp)
-			.add_constructor()
-			.add_constructor<void (T::*)(const SPIGeometry3d&)>()
-			.set_construct_as_smart_pointer(true);
-	}
+	reg.add_function("CreateHierarchy", &CreateHierarchy, grp)
+		.add_function("CreateSmoothHierarchy", &CreateSmoothHierarchy, grp);
 }
 
 }//	end of namespace

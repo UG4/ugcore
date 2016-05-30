@@ -34,7 +34,7 @@
 #define __H__LIB_GRID__REGULAR_REFINER__
 
 #include "lib_grid/lg_base.h"
-#include "refinement_projectors_old/refinement_callbacks.h"
+#include "projectors/refinement_projector.h"
 #include "common/ug_config.h"
 
 namespace ug
@@ -75,7 +75,7 @@ namespace ug
  */
 UG_API
 bool Refine(Grid& grid, Selector& sel, AInt& aInt,
-			IRefinementCallback* refCallback = NULL,
+			RefinementProjector* projector = NULL,
 			bool useSnapPoints = false);
 
 ///	refines selected faces and edges regularily and builds a closure on adjacent unselected faces.
@@ -92,7 +92,7 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
  */
 UG_API
 bool Refine(Grid& grid, Selector& sel,
-			IRefinementCallback* refCallback = NULL,
+			RefinementProjector* projector = NULL,
 			bool useSnapPoints = false);
 
 /// @}

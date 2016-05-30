@@ -62,9 +62,9 @@ class AdaptiveRegularRefiner_MultiGrid : public HangingNodeRefiner_MultiGrid
 		using HangingNodeRefiner_MultiGrid::mark;
 
 	public:
-		AdaptiveRegularRefiner_MultiGrid(IRefinementCallback* refCallback = NULL);
+		AdaptiveRegularRefiner_MultiGrid(SPRefinementProjector projector = SPNULL);
 		AdaptiveRegularRefiner_MultiGrid(MultiGrid& mg,
-										 IRefinementCallback* refCallback = NULL);
+										 SPRefinementProjector projector = SPNULL);
 
 		virtual ~AdaptiveRegularRefiner_MultiGrid();
 

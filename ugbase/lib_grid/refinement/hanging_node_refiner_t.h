@@ -47,24 +47,24 @@ template <>
 class THangingNodeRefiner<Grid> : public HangingNodeRefiner_Grid
 {
 	public:
-		THangingNodeRefiner(IRefinementCallback* refCallback = NULL) :
-			HangingNodeRefiner_Grid(refCallback)	{}
+		THangingNodeRefiner(SPRefinementProjector projector = SPNULL) :
+			HangingNodeRefiner_Grid(projector)	{}
 
 		THangingNodeRefiner(Grid& grid,
-							IRefinementCallback* refCallback = NULL) :
-			HangingNodeRefiner_Grid(grid, refCallback)	{}
+							SPRefinementProjector projector = SPNULL) :
+			HangingNodeRefiner_Grid(grid, projector)	{}
 };
 
 template <>
 class THangingNodeRefiner<MultiGrid> : public HangingNodeRefiner_MultiGrid
 {
 	public:
-		THangingNodeRefiner(IRefinementCallback* refCallback = NULL) :
-			HangingNodeRefiner_MultiGrid(refCallback)	{}
+		THangingNodeRefiner(SPRefinementProjector projector = SPNULL) :
+			HangingNodeRefiner_MultiGrid(projector)	{}
 
 		THangingNodeRefiner(MultiGrid& mg,
-							IRefinementCallback* refCallback = NULL) :
-			HangingNodeRefiner_MultiGrid(mg, refCallback)	{}
+							SPRefinementProjector projector = SPNULL) :
+			HangingNodeRefiner_MultiGrid(mg, projector)	{}
 };
 
 }//	end of namespace

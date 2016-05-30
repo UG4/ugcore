@@ -38,15 +38,15 @@ using namespace std;
 namespace ug{
 
 AdaptiveRegularRefiner_MultiGrid::
-AdaptiveRegularRefiner_MultiGrid(IRefinementCallback* refCallback) :
-	HangingNodeRefiner_MultiGrid(refCallback)
+AdaptiveRegularRefiner_MultiGrid(SPRefinementProjector projector) :
+	HangingNodeRefiner_MultiGrid(projector)
 {
 }
 
 AdaptiveRegularRefiner_MultiGrid::
 AdaptiveRegularRefiner_MultiGrid(MultiGrid& mg,
-								 IRefinementCallback* refCallback) :
-	HangingNodeRefiner_MultiGrid(refCallback)
+								 SPRefinementProjector projector) :
+	HangingNodeRefiner_MultiGrid(projector)
 {
 	set_grid(&mg);
 }
@@ -97,34 +97,10 @@ create_closure_elements()
 
 	MultiGrid& mg = *multi_grid();
 
-//	temporarily create refinement callback, if none is available.
-//todo:	A better solution should be used for this!
-	bool localRefCallbackSet = false;
-	if(!m_refCallback){
-		if(mg.has_vertex_attachment(aPosition)){
-			localRefCallbackSet = true;
-			m_refCallback = new RefinementCallbackLinear<APosition>(mg, aPosition);
-		}
-		else if(mg.has_vertex_attachment(aPosition2)){
-			localRefCallbackSet = true;
-			m_refCallback = new RefinementCallbackLinear<APosition2>(mg, aPosition2);
-		}
-		else if(mg.has_vertex_attachment(aPosition1)){
-			localRefCallbackSet = true;
-			m_refCallback = new RefinementCallbackLinear<APosition1>(mg, aPosition1);
-		}
-	}
-
 	if(mg.num<Volume>() > 0)
 		create_closure_elements_3d();
 	else if(mg.num<Face>() > 0)
 		create_closure_elements_2d();
-
-//	clear the refinement-callback if necessary
-	if(localRefCallbackSet){
-		delete m_refCallback;
-		m_refCallback = NULL;
-	}
 }
 
 
@@ -184,8 +160,8 @@ create_closure_elements_2d()
 				Vertex* vrt = vrts[i_vrt];
 				if(!mg.has_children(vrt)){
 					newVrtVrts.push_back(*mg.create<RegularVertex>(vrt));
-					if(m_refCallback)
-						m_refCallback->new_vertex(newVrtVrts.back(), vrt);
+					if(m_projector.valid())
+						m_projector->new_vertex(newVrtVrts.back(), vrt);
 				}
 				else
 					newVrtVrts.push_back(mg.get_child_vertex(vrt));
@@ -211,8 +187,8 @@ create_closure_elements_2d()
 			{
 				if(newFaceVrt){
 					mg.register_element(newFaceVrt, elem);
-					if(m_refCallback)
-						m_refCallback->new_vertex(newFaceVrt, elem);
+					if(m_projector.valid())
+						m_projector->new_vertex(newFaceVrt, elem);
 				}
 				for(size_t i = 0; i < newFaces.size(); ++i)
 					mg.register_element(newFaces[i], elem);
@@ -291,8 +267,8 @@ create_closure_elements_3d()
 				Vertex* vrt = vrts[i_vrt];
 				if(!mg.has_children(vrt)){
 					newVolVrtVrts.push_back(*mg.create<RegularVertex>(vrt));
-					if(m_refCallback)
-						m_refCallback->new_vertex(newVolVrtVrts.back(), vrt);
+					if(m_projector.valid())
+						m_projector->new_vertex(newVolVrtVrts.back(), vrt);
 				}
 				else
 					newVolVrtVrts.push_back(mg.get_child_vertex(vrt));
@@ -343,8 +319,8 @@ create_closure_elements_3d()
 					{
 						if(newFaceVrt){
 							mg.register_element(newFaceVrt, f);
-							if(m_refCallback)
-								m_refCallback->new_vertex(newFaceVrt, f);
+							if(m_projector.valid())
+								m_projector->new_vertex(newFaceVrt, f);
 						}
 						for(size_t i = 0; i < newFaces.size(); ++i)
 							mg.register_element(newFaces[i], f);
@@ -376,9 +352,9 @@ create_closure_elements_3d()
 		//	the best interior diagonal.
 			vector3 corners[4];
 			vector3* pCorners = NULL;
-			if((elem->num_vertices() == 4) && m_refCallback){
+			if((elem->num_vertices() == 4) && m_projector.valid()){
 				for(size_t i = 0; i < 4; ++i){
-					m_refCallback->current_pos(&corners[i].x(), vrts[i], 3);
+					corners[i] = m_projector->geometry()->pos(vrts[i]);
 				}
 				pCorners = corners;
 			}
@@ -390,8 +366,8 @@ create_closure_elements_3d()
 			{
 				if(newVolVrt){
 					mg.register_element(newVolVrt, elem);
-					if(m_refCallback)
-						m_refCallback->new_vertex(newVolVrt, elem);
+					if(m_projector.valid())
+						m_projector->new_vertex(newVolVrt, elem);
 				}
 
 				for(size_t i = 0; i < newVols.size(); ++i)

@@ -134,19 +134,19 @@ public:
 
 
 	virtual vector_t element_center (Vertex* e) const {
-		return m_aaPos[e];
+		return vector_t::from(m_aaPos[e]);
 	}
 
 	virtual vector_t element_center (Edge* e) const {
-		return CalculateCenter(e, m_aaPos);
+		return vector_t::from(CalculateCenter(e, m_aaPos));
 	}
 
 	virtual vector_t element_center (Face* e) const {
-		return CalculateCenter(e, m_aaPos);
+		return vector_t::from(CalculateCenter(e, m_aaPos));
 	}
 
 	virtual vector_t element_center (Volume* e) const {
-		return CalculateCenter(e, m_aaPos);
+		return vector_t::from(CalculateCenter(e, m_aaPos));
 	}
 
 

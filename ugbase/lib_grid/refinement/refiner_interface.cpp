@@ -105,6 +105,19 @@ void IRefiner::refine()
 	PROFILE_BEGIN_GROUP(IRefiner_refine, "grid");
 	try
 	{
+		if(m_projector.invalid() && grid()){
+			Grid& g = *grid();
+			if(g.has_vertex_attachment(aPosition)){
+				m_projector = make_sp(new RefinementProjector(MakeGeometry3d(g, aPosition)));
+			}
+			else if(g.has_vertex_attachment(aPosition2)){
+				m_projector = make_sp(new RefinementProjector(MakeGeometry3d(g, aPosition2)));
+			}
+			else if(g.has_vertex_attachment(aPosition1)){
+				m_projector = make_sp(new RefinementProjector(MakeGeometry3d(g, aPosition1)));
+			}
+		}
+
 		if(!m_messageHub.valid()){
 			UG_THROW("A message-hub has to be assigned to IRefiner before refine may be called. "
 					"Make sure that you assigned a grid to the refiner you're using.");

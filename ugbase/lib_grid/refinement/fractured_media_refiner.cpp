@@ -41,16 +41,16 @@ namespace ug{
 
 template <class TGrid, class TAPosition>
 FracturedMediaRefiner<TGrid, TAPosition>::
-FracturedMediaRefiner(IRefinementCallback* refCallback) :
-	BaseClass(refCallback),
+FracturedMediaRefiner(SPRefinementProjector projector) :
+	BaseClass(projector),
 	m_aspectRatioThreshold(SMALL)
 {
 }
 
 template <class TGrid, class TAPosition>
 FracturedMediaRefiner<TGrid, TAPosition>::
-FracturedMediaRefiner(TGrid& g, IRefinementCallback* refCallback) :
-	BaseClass(g, refCallback),
+FracturedMediaRefiner(TGrid& g, SPRefinementProjector projector) :
+	BaseClass(g, projector),
 	m_aspectRatioThreshold(SMALL)
 {
 }

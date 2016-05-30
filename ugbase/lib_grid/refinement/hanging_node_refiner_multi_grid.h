@@ -82,9 +82,9 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase<MGSelector>
 		};
 
 	public:
-		HangingNodeRefiner_MultiGrid(IRefinementCallback* refCallback = NULL);
+		HangingNodeRefiner_MultiGrid(SPRefinementProjector projector = SPNULL);
 		HangingNodeRefiner_MultiGrid(MultiGrid& mg,
-									IRefinementCallback* refCallback = NULL);
+									SPRefinementProjector projector = SPNULL);
 
 		virtual ~HangingNodeRefiner_MultiGrid();
 

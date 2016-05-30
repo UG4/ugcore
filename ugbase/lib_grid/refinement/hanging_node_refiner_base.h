@@ -36,7 +36,6 @@
 #include <queue>
 #include <vector>
 #include "lib_grid/lg_base.h"
-#include "refinement_projectors_old/refinement_callbacks.h"
 #include "refiner_interface.h"
 #include "ref_mark_adjuster_interface.h"
 
@@ -106,7 +105,7 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 		};
 
 	public:
-		HangingNodeRefinerBase(IRefinementCallback* refCallback = NULL);
+		HangingNodeRefinerBase(SPRefinementProjector projector = SPNULL);
 		virtual ~HangingNodeRefinerBase();
 
 		virtual void grid_to_be_destroyed(Grid* grid);

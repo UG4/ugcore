@@ -40,7 +40,7 @@
 #include "common/util/archivar.h"
 #include "common/util/factory.h"
 #include "lib_grid/algorithms/attachment_util.h"
-#include "lib_grid/algorithms/refinement/projectors/projectors.h"
+#include "lib_grid/refinement/projectors/projectors.h"
 
 
 using namespace std;

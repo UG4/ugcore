@@ -57,9 +57,9 @@ class FracturedMediaRefiner : public THangingNodeRefiner<TGrid>
 		using BaseClass::mark;
 
 	public:
-		FracturedMediaRefiner(IRefinementCallback* refCallback = NULL);
+		FracturedMediaRefiner(SPRefinementProjector projector = SPNULL);
 		FracturedMediaRefiner(TGrid& g,
-							  IRefinementCallback* refCallback = NULL);
+							  SPRefinementProjector projector = SPNULL);
 
 		virtual ~FracturedMediaRefiner();
 

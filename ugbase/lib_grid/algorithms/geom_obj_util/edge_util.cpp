@@ -36,8 +36,8 @@
 #include "vertex_util.h"
 #include "face_util.h"
 #include "lib_grid/algorithms/debug_util.h"
-#include "lib_grid/algorithms/refinement/regular_refinement_new.h"
-#include "../refinement/projectors/plane_cut_projector.h"
+#include "lib_grid/refinement/regular_refinement_new.h"
+#include "lib_grid/refinement/projectors/plane_cut_projector.h"
 #include "common/util/vec_for_each.h"
 #include "common/util/vec_for_each.h"
 

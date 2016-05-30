@@ -39,8 +39,8 @@ using namespace std;
 namespace ug{
 
 HangingNodeRefiner_Grid::
-HangingNodeRefiner_Grid(IRefinementCallback* refCallback) :
-	BaseClass(refCallback),
+HangingNodeRefiner_Grid(SPRefinementProjector projector) :
+	BaseClass(projector),
 	m_pGrid(NULL),
 	m_aVertex(false)
 {
@@ -49,8 +49,8 @@ HangingNodeRefiner_Grid(IRefinementCallback* refCallback) :
 
 HangingNodeRefiner_Grid::
 HangingNodeRefiner_Grid(Grid& grid,
-						IRefinementCallback* refCallback) :
-	BaseClass(refCallback),
+						SPRefinementProjector projector) :
+	BaseClass(projector),
 	m_pGrid(NULL),
 	m_aVertex(false)
 {

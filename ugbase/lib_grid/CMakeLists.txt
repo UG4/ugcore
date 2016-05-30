@@ -76,26 +76,24 @@ set(srcAlgorithms	algorithms/debug_util.cpp
 					algorithms/extrusion/extrude.cpp
 					algorithms/extrusion/cylinder_extrusion.cpp
 					algorithms/extrusion/expand_layers.cpp
-					algorithms/refinement/projectors/smooth_projector.cpp
-					algorithms/refinement/projectors/subdivision_projector.cpp
-					algorithms/refinement/ref_mark_adjusters/horizontal_anisotropy_adjuster.cpp
-					algorithms/refinement/ref_mark_adjusters/mg_hnode_adjuster.cpp
-					algorithms/refinement/ref_mark_adjusters/std_hnode_adjuster.cpp
-					algorithms/refinement/refinement_projectors_old/misc_refinement_projectors.cpp
-					algorithms/refinement/refinement_projectors_old/fractal_projector.cpp
-					algorithms/refinement/adaptive_regular_mg_refiner.cpp
-					algorithms/refinement/fractured_media_refiner.cpp
-					algorithms/refinement/hanging_node_refiner_base.cpp
-					algorithms/refinement/hanging_node_refiner_grid.cpp
-					algorithms/refinement/hanging_node_refiner_multi_grid.cpp
-					algorithms/refinement/refiner_interface.cpp
-					# (unmaintained) algorithms/refinement/hanging_node_refiner_2d_irn.cpp
-					# (unmaintained) algorithms/refinement/multi_grid_refiner.cpp
-					algorithms/refinement/regular_refinement.cpp
-					algorithms/refinement/regular_refinement_new.cpp
-					algorithms/refinement/regular_refiner_multi_grid.cpp
-					algorithms/refinement/global_multi_grid_refiner.cpp
-					algorithms/refinement/global_fractured_media_refiner.cpp
+					refinement/projectors/smooth_projector.cpp
+					refinement/projectors/subdivision_projector.cpp
+					refinement/ref_mark_adjusters/horizontal_anisotropy_adjuster.cpp
+					refinement/ref_mark_adjusters/mg_hnode_adjuster.cpp
+					refinement/ref_mark_adjusters/std_hnode_adjuster.cpp
+					refinement/adaptive_regular_mg_refiner.cpp
+					refinement/fractured_media_refiner.cpp
+					refinement/hanging_node_refiner_base.cpp
+					refinement/hanging_node_refiner_grid.cpp
+					refinement/hanging_node_refiner_multi_grid.cpp
+					refinement/refiner_interface.cpp
+					# (unmaintained) refinement/hanging_node_refiner_2d_irn.cpp
+					# (unmaintained) refinement/multi_grid_refiner.cpp
+					refinement/regular_refinement.cpp
+					refinement/regular_refinement_new.cpp
+					refinement/regular_refiner_multi_grid.cpp
+					refinement/global_multi_grid_refiner.cpp
+					refinement/global_fractured_media_refiner.cpp
 					algorithms/subdivision/subdivision_loop.cpp
 					algorithms/subdivision/subdivision_rules_piecewise_loop.cpp
 					algorithms/unit_tests/check_associated_elements.cpp)

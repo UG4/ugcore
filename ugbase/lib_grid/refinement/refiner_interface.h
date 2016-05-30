@@ -34,7 +34,7 @@
 #define __H__UG__REFINER_INTERFACE__
 
 #include <string>
-#include "refinement_projectors_old/refinement_callbacks.h"
+#include "projectors/refinement_projector.h"
 
 namespace ug
 {
@@ -62,17 +62,17 @@ enum RefinementMark{
 class IRefiner
 {
 	public:
-		IRefiner(IRefinementCallback* refCallback = NULL) :
-			m_msgIdAdaption(-1), m_refCallback(refCallback),
+		IRefiner(SPRefinementProjector projector = SPNULL) :
+			m_msgIdAdaption(-1), m_projector(projector),
 			m_adaptionIsActive(false), m_debuggingEnabled(false)	{}
 
 		virtual ~IRefiner()	{}
 
-		void set_refinement_callback(IRefinementCallback* refCallback)
-			{m_refCallback = refCallback;}
+		void set_refinement_callback(SPRefinementProjector projector)
+			{m_projector = projector;}
 
-		IRefinementCallback* get_refinement_callback()
-			{return m_refCallback;}
+		SPRefinementProjector get_refinement_callback()
+			{return m_projector;}
 
 	///	DEPRECIATED! Use grid(). Has to return the associated grid. Pure virtual
 		virtual Grid* get_associated_grid() = 0;
@@ -232,7 +232,7 @@ class IRefiner
 	protected:
 		SPMessageHub			m_messageHub;
 		int						m_msgIdAdaption;
-		IRefinementCallback*	m_refCallback;
+		SPRefinementProjector	m_projector;
 		bool					m_adaptionIsActive;
 		bool					m_debuggingEnabled;
 		std::string				m_adjustedMarksDebugFilename;

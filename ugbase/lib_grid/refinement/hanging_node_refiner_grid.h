@@ -58,9 +58,9 @@ class HangingNodeRefiner_Grid : public HangingNodeRefinerBase<Selector>
 		using HangingNodeRefinerBase<Selector>::mark;
 
 	public:
-		HangingNodeRefiner_Grid(IRefinementCallback* refCallback = NULL);
+		HangingNodeRefiner_Grid(SPRefinementProjector projector = SPNULL);
 		HangingNodeRefiner_Grid(Grid& grid,
-								IRefinementCallback* refCallback = NULL);
+								SPRefinementProjector projector = SPNULL);
 
 		virtual ~HangingNodeRefiner_Grid();
 

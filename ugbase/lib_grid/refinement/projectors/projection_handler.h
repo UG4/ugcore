@@ -61,6 +61,24 @@ public:
  * Please note that an alternative constructor taking a smart-pointer to a
  * SubsetHandler exists.
  * \sa ug::RefinementProjector::RefinementProjector*/
+	ProjectionHandler (ISubsetHandler* psh) :
+		m_sh (psh)
+	{
+		m_defaultProjector = make_sp(new RefinementProjector);
+	}
+
+/**	\sa ug::RefinementProjector::RefinementProjector*/
+	ProjectionHandler (SmartPtr<ISubsetHandler> psh) :
+		m_sh (psh.get()),
+		m_spSH (psh)
+	{
+		m_defaultProjector = make_sp(new RefinementProjector);
+	}
+
+/**	Please makre sure that the given subset-handler outlives the ProjectionHandler.
+ * Please note that an alternative constructor taking a smart-pointer to a
+ * SubsetHandler exists.
+ * \sa ug::RefinementProjector::RefinementProjector*/
 	template <class TGeomProvider>
 	ProjectionHandler (const TGeomProvider& geometry,
 					   ISubsetHandler* psh) :

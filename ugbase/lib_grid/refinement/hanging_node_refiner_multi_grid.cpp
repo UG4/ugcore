@@ -65,8 +65,8 @@ using namespace std;
 namespace ug{
 
 HangingNodeRefiner_MultiGrid::
-HangingNodeRefiner_MultiGrid(IRefinementCallback* refCallback) :
-	BaseClass(refCallback),
+HangingNodeRefiner_MultiGrid(SPRefinementProjector projector) :
+	BaseClass(projector),
 	m_pMG(NULL)
 {
 	add_ref_mark_adjuster(MGHNodeAdjuster::create());
@@ -74,8 +74,8 @@ HangingNodeRefiner_MultiGrid(IRefinementCallback* refCallback) :
 
 HangingNodeRefiner_MultiGrid::
 HangingNodeRefiner_MultiGrid(MultiGrid& mg,
-						IRefinementCallback* refCallback) :
-	BaseClass(refCallback),
+						SPRefinementProjector projector) :
+	BaseClass(projector),
 	m_pMG(NULL)
 {
 	add_ref_mark_adjuster(MGHNodeAdjuster::create());
@@ -228,8 +228,8 @@ pre_refine()
 	{
 		if(marked_refine(*iter) && refinement_is_allowed(*iter)){
 			Vertex* vrt = *mg.create<RegularVertex>(*iter);
-			if(m_refCallback)
-				m_refCallback->new_vertex(vrt, *iter);
+			if(m_projector.valid())
+				m_projector->new_vertex(vrt, *iter);
 		}
 	}
 }

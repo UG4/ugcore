@@ -48,7 +48,7 @@
 #include "lib_grid/tools/subset_handler_multi_grid.h"
 #include "lib_grid/algorithms/subset_dim_util.h"
 #include "lib_grid/grid_objects/grid_dim_traits.h"
-#include "lib_grid/algorithms/refinement/global_fractured_media_refiner.h"
+#include "lib_grid/refinement/global_fractured_media_refiner.h"
 
 namespace ug {
 

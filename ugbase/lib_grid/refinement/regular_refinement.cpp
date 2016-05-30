@@ -36,6 +36,7 @@
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 #include "lib_grid/algorithms/selection_util.h"
 #include "lib_grid/algorithms/debug_util.h"
+#include "lib_grid/callbacks/selection_callbacks.h"
 
 using namespace std;
 
@@ -43,7 +44,7 @@ namespace ug
 {
 
 bool Refine(Grid& grid, Selector& sel,
-			IRefinementCallback* refCallback,
+			RefinementProjector* projector,
 			bool useSnapPoints)
 {
 	AInt aInt;
@@ -52,7 +53,7 @@ bool Refine(Grid& grid, Selector& sel,
 	if(grid.num<Volume>() > 0)
 		grid.attach_to_faces(aInt);
 		
-	bool bSuccess = Refine(grid, sel, aInt, refCallback, useSnapPoints);
+	bool bSuccess = Refine(grid, sel, aInt, projector, useSnapPoints);
 
 	if(grid.num<Face>() > 0)
 		grid.detach_from_edges(aInt);
@@ -99,7 +100,7 @@ static void AdjustSelection(Grid& grid, Selector& sel)
 
 
 bool Refine(Grid& grid, Selector& sel, AInt& aInt,
-			IRefinementCallback* refCallback,
+			RefinementProjector* projector,
 			bool useSnapPoints)
 {
 //	position data is required
@@ -109,9 +110,11 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 	}
 
 //	if the refinement-callback is empty, use a linear one.
-	RefinementCallbackLinear<APosition> LinRefCallback(grid, aPosition);
-	if(!refCallback)
-		refCallback = &LinRefCallback;
+	RefinementProjector defaultProjector;
+	if(!projector){
+		defaultProjector.set_geometry(make_sp(new Geometry<3, 3>(grid, aPosition)));
+		projector = &defaultProjector;
+	}
 		
 //	make sure that GRIDOPT_VERTEXCENTRIC_INTERCONNECTION is enabled
 	if(grid.num_edges() && (!grid.option_is_enabled(VRTOPT_STORE_ASSOCIATED_EDGES))){
@@ -206,13 +209,14 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 		aaIntEDGE.access(grid, aInt);
 	if(numRefVols > 0)
 		aaIntFACE.access(grid, aInt);
-	
-//	notify refinement callbacks about encountered vertices
-	for(VertexIterator iter = sel.begin<Vertex>();
-		iter != sel.end<Vertex>(); ++iter)
-	{
-		refCallback->flat_grid_vertex_encountered(*iter);
-	}
+
+
+//	notify refinement projector about the start of refinement
+	SubGrid<IsSelected> sg(sel.get_grid_objects(), IsSelected(sel));
+	projector->refinement_begins(&sg);
+
+//	store the geometry
+	IGeometry3d& geom = *projector->geometry();
 
 ////////////////////////////////
 //	fill the edges- and edgeVrts-array and assign indices to selected edges
@@ -231,7 +235,7 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 			edgeVrts[i] = *grid.create<RegularVertex>(*iter);
 			sel.select(edgeVrts[i]);
 		//	calculate new position
-			refCallback->new_vertex(edgeVrts[i], *iter);
+			projector->new_vertex(edgeVrts[i], *iter);
 		}
 	}
 
@@ -309,7 +313,7 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 		//	if a new vertex was generated, we have to register it
 			if(newVrt){
 				grid.register_element(newVrt, f);
-				refCallback->new_vertex(newVrt, f);
+				projector->new_vertex(newVrt, f);
 				sel.select(newVrt);
 			}
 			
@@ -392,9 +396,9 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 	//	the corner coordinates, so that the refinement algorithm may choose
 	//	the best interior diagonal.
 		vector3* pCorners = NULL;
-		if((v->num_vertices() == 4) && refCallback){
+		if((v->num_vertices() == 4)){
 			for(size_t i = 0; i < 4; ++i){
-				refCallback->current_pos(&corners[i].x(), v->vertex(i), 3);
+				corners[i] = geom.pos(v->vertex(i));
 			}
 			pCorners = &corners.front();
 		}
@@ -423,7 +427,7 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 		//	if a new vertex was generated, we have to register it
 			if(newVrt){
 				grid.register_element(newVrt, v);
-				refCallback->new_vertex(newVrt, v);
+				projector->new_vertex(newVrt, v);
 				sel.select(newVrt);
 			}
 				
@@ -444,6 +448,8 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 //	erase old edges
 	grid.erase(edges.begin(), edges.end());
 
+//	notify refinement projector about the end of refinement
+	projector->refinement_ends();
 	return true;
 }
 

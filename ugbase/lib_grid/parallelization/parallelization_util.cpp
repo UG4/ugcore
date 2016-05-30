@@ -34,7 +34,7 @@
 #include "parallelization_util.h"
 #include "load_balancing.h"
 #include "distribution.h"
-#include "lib_grid/algorithms/refinement/global_multi_grid_refiner.h"
+#include "lib_grid/refinement/global_multi_grid_refiner.h"
 #include "lib_grid/file_io/file_io.h"
 #include "lib_grid/algorithms/subset_util.h"
 #include "pcl/pcl_layout_tests.h"

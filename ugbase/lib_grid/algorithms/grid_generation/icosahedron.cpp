@@ -31,8 +31,8 @@
  */
 
 #include "icosahedron.h"
-#include "lib_grid/algorithms/refinement/regular_refinement.h"
-#include "../refinement/refinement_projectors_old/sphere_projector.h"
+#include "lib_grid/refinement/regular_refinement_new.h"
+#include "lib_grid/refinement/projectors/sphere_projector.h"
 
 namespace ug{
 
@@ -103,10 +103,10 @@ void GenerateIcosphere(Grid& grid, const vector3& center, number radius,
 	grid.attach_to_edges(aInt);
 
 //	use a refinement callback to project the new vertices to the sphere
-	SphereProjector<APosition> sphereProjecton(grid, aPos, center);
+	SphereProjectorNew sphereProjecton(MakeGeometry3d(grid, aPos), center);
 
 	for(int i = 0; i < numRefinements; ++i)
-		Refine(grid, sel, aInt, &sphereProjecton);
+		RefineNew(grid, sel, aInt, &sphereProjecton);
 
 //	remove attachments
 	grid.detach_from_edges(aInt);

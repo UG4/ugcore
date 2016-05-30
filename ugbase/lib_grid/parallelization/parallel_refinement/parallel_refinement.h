@@ -37,8 +37,8 @@
 #include "parallel_global_fractured_media_refiner.h"
 #include "parallel_global_refiner_t.h"
 
-#include "lib_grid/algorithms/refinement/global_multi_grid_refiner.h"
-#include "lib_grid/algorithms/refinement/hanging_node_refiner_multi_grid.h"
+#include "lib_grid/refinement/global_multi_grid_refiner.h"
+#include "lib_grid/refinement/hanging_node_refiner_multi_grid.h"
 
 namespace ug
 {

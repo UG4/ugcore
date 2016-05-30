@@ -31,7 +31,7 @@
  */
 
 #include "subdivision_projector.h"
-#include "../../subdivision/subdivision_rules_piecewise_loop.h"
+#include "../../algorithms/subdivision/subdivision_rules_piecewise_loop.h"
 
 using namespace std;
 

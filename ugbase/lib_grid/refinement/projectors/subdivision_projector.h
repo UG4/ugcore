@@ -60,16 +60,14 @@ public:
 	{}
 
 /**	\sa ug::RefinementProjector::RefinementProjector*/
-	template <class TGeomProvider>
-	SubdivisionProjector (TGeomProvider& geometry) :
+	SubdivisionProjector (SPIGeometry3d geometry) :
 		RefinementProjector (geometry, make_sp(new IsBoundaryOrManifodFace(geometry->grid()))),
 		m_cbIsCrease (Grid::edge_traits::callback(ConsiderNone())),
 		m_customConcernedElementsCallbackUsed (false)
 	{}
 
 /**	\sa ug::RefinementProjector::RefinementProjector*/
-	template <class TGeomProvider>
-	SubdivisionProjector (const TGeomProvider& geometry,
+	SubdivisionProjector (SPIGeometry3d geometry,
 						  Grid::edge_traits::callback cbIsCrease) :
 		RefinementProjector (geometry, make_sp(new IsBoundaryOrManifodFace(geometry->grid()))),
 		m_cbIsCrease (cbIsCrease),

@@ -34,9 +34,8 @@
 #include <stack>
 #include "lib_grid/lg_base.h"
 #include "../geom_obj_util/geom_obj_util.h"
-#include "../refinement/regular_refinement_new.h"
-// #include "../refinement/refinement_projectors_old/misc_refinement_projectors.h"
-#include "../refinement/projectors/cylinder_cut_projector.h"
+#include "lib_grid/refinement/regular_refinement_new.h"
+#include "lib_grid/refinement/projectors/cylinder_cut_projector.h"
 #include "grid_adaption.h"
 
 using namespace std;

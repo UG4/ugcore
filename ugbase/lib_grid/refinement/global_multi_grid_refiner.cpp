@@ -55,15 +55,15 @@ namespace ug
 {
 
 GlobalMultiGridRefiner::
-GlobalMultiGridRefiner(IRefinementCallback* refCallback) :
-	IRefiner(refCallback),
+GlobalMultiGridRefiner(SPRefinementProjector projector) :
+	IRefiner(projector),
 	m_pMG(NULL)
 {
 }
 
 GlobalMultiGridRefiner::
-GlobalMultiGridRefiner(MultiGrid& mg, IRefinementCallback* refCallback) :
-	IRefiner(refCallback)
+GlobalMultiGridRefiner(MultiGrid& mg, SPRefinementProjector projector) :
+	IRefiner(projector)
 {
 	m_pMG = NULL;
 	assign_grid(mg);
@@ -144,24 +144,6 @@ void GlobalMultiGridRefiner::perform_refinement()
 
 //	the multi-grid
 	MultiGrid& mg = *m_pMG;
-
-//	check if a refinement-callback is set.
-//	if not, we'll automatically set one, if a position attachment is available
-	bool localRefCallbackSet = false;
-	if(!m_refCallback){
-		if(mg.has_vertex_attachment(aPosition)){
-			localRefCallbackSet = true;
-			m_refCallback = new RefinementCallbackLinear<APosition>(mg, aPosition);
-		}
-		else if(mg.has_vertex_attachment(aPosition2)){
-			localRefCallbackSet = true;
-			m_refCallback = new RefinementCallbackLinear<APosition2>(mg, aPosition2);
-		}
-		else if(mg.has_vertex_attachment(aPosition1)){
-			localRefCallbackSet = true;
-			m_refCallback = new RefinementCallbackLinear<APosition1>(mg, aPosition1);
-		}		
-	}
 
 //	make sure that the required options are enabled.
 	if(mg.num_volumes() > 0){
@@ -269,8 +251,8 @@ void GlobalMultiGridRefiner::perform_refinement()
 		Vertex* nVrt = *mg.create_by_cloning(v, v);
 
 	//	allow refCallback to calculate a new position
-		if(m_refCallback)
-			m_refCallback->new_vertex(nVrt, v);
+		if(m_projector.valid())
+			m_projector->new_vertex(nVrt, v);
 		//GMGR_PROFILE_END();
 	}
 
@@ -318,8 +300,8 @@ void GlobalMultiGridRefiner::perform_refinement()
 		RegularVertex* nVrt = *mg.create<RegularVertex>(e);
 
 	//	allow refCallback to calculate a new position
-		if(m_refCallback)
-			m_refCallback->new_vertex(nVrt, e);
+		if(m_projector.valid())
+			m_projector->new_vertex(nVrt, e);
 		//GMGR_PROFILE_END();
 
 	//	split the edge
@@ -365,8 +347,8 @@ void GlobalMultiGridRefiner::perform_refinement()
 				//GMGR_PROFILE(GMGR_Refine_CreatingVertices);
 				mg.register_element(newVrt, f);
 			//	allow refCallback to calculate a new position
-				if(m_refCallback)
-					m_refCallback->new_vertex(newVrt, f);
+				if(m_projector.valid())
+					m_projector->new_vertex(newVrt, f);
 				//GMGR_PROFILE_END();
 			}
 
@@ -422,15 +404,15 @@ void GlobalMultiGridRefiner::perform_refinement()
 	//	the corner coordinates, so that the refinement algorithm may choose
 	//	the best interior diagonal.
 		vector3* pCorners = NULL;
-		if((v->num_vertices() == 4) && m_refCallback){
+		if((v->num_vertices() == 4) && m_projector.valid()){
 			for(size_t i = 0; i < 4; ++i){
-				m_refCallback->current_pos(&corners[i].x(), v->vertex(i), 3);
+				corners[i] = m_projector->geometry()->pos(v->vertex(i));
 			}
 			pCorners = &corners.front();
 		}
-		if((v->reference_object_id() == ROID_OCTAHEDRON) && m_refCallback){
+		if((v->reference_object_id() == ROID_OCTAHEDRON) && m_projector.valid()){
 			for(size_t i = 0; i < 6; ++i){
-				m_refCallback->current_pos(&corners[i].x(), v->vertex(i), 3);
+				corners[i] = m_projector->geometry()->pos(v->vertex(i));
 			}
 			pCorners = &corners.front();
 		}
@@ -442,8 +424,8 @@ void GlobalMultiGridRefiner::perform_refinement()
 			if(newVrt){
 				mg.register_element(newVrt, v);
 			//	allow refCallback to calculate a new position
-				if(m_refCallback)
-					m_refCallback->new_vertex(newVrt, v);
+				if(m_projector.valid())
+					m_projector->new_vertex(newVrt, v);
 			}
 
 		//	register the new faces and assign status
@@ -462,12 +444,6 @@ void GlobalMultiGridRefiner::perform_refinement()
 
 //	notify derivates that refinement ends
 	refinement_step_ends();
-	
-//	clear the refinement-callback if necessary
-	if(localRefCallbackSet){
-		delete m_refCallback;
-		m_refCallback = NULL;
-	}
 
 	m_messageHub->post_message(GridMessage_Adaption(GMAT_GLOBAL_REFINEMENT_ENDS,
 													mg.get_grid_objects(oldTopLevel)));

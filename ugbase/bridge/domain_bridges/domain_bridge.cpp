@@ -48,7 +48,7 @@
 
 #include "lib_disc/parallelization/domain_distribution.h"
 
-#include "lib_grid/algorithms/refinement/global_multi_grid_refiner.h"
+#include "lib_grid/refinement/global_multi_grid_refiner.h"
 #include "lib_grid/algorithms/geom_obj_util/misc_util.h"
 #include "lib_grid/algorithms/grid_statistics.h"
 

@@ -752,7 +752,7 @@ EXCLUDE                = ../ugbase/lib_grid/externals \
                          ../ugbase/bindings/lua/externals \
                          ../ugbase/ug_shell/externals \
                          ../ug3layer \
-                         ../ugbase/lib_grid/algorithms/refinement/unmaintained \
+                         ../ugbase/lib_grid/refinement/unmaintained \
                          ../ugbase/lib_grid/parallelization/parallel_refinement/unmaintained \
                          ../ugbase/common/parser/rapidxml \
                          ../ugbase/common/profiler/src

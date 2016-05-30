@@ -63,8 +63,8 @@ using namespace std;
 namespace ug{
 template <class TSelector>
 HangingNodeRefinerBase<TSelector>::
-HangingNodeRefinerBase(IRefinementCallback* refCallback) :
-	IRefiner(refCallback),
+HangingNodeRefinerBase(SPRefinementProjector projector) :
+	IRefiner(projector),
 	m_pGrid(NULL),
 	m_nodeDependencyOrder1(true),
 	m_adjustingRefMarks(false)
@@ -605,24 +605,6 @@ void HangingNodeRefinerBase<TSelector>::perform_refinement()
 
 	Grid& grid = *m_pGrid;
 
-//	check if a refinement-callback is set.
-//	if not, we'll automatically set one, if a position attachment is available
-	bool localRefCallbackSet = false;
-	if(!m_refCallback){
-		if(grid.has_vertex_attachment(aPosition)){
-			localRefCallbackSet = true;
-			m_refCallback = new RefinementCallbackLinear<APosition>(grid, aPosition);
-		}
-		else if(grid.has_vertex_attachment(aPosition2)){
-			localRefCallbackSet = true;
-			m_refCallback = new RefinementCallbackLinear<APosition2>(grid, aPosition2);
-		}
-		else if(grid.has_vertex_attachment(aPosition1)){
-			localRefCallbackSet = true;
-			m_refCallback = new RefinementCallbackLinear<APosition1>(grid, aPosition1);
-		}
-	}
-
 //	check grid options.
 	if(!grid.option_is_enabled(GRIDOPT_AUTOGENERATE_SIDES))
 	{
@@ -932,10 +914,6 @@ void HangingNodeRefinerBase<TSelector>::perform_refinement()
 //	Clean up
 //	clear the refinement-callback if necessary
 	HNODE_PROFILE_BEGIN(href_CleanUp);
-	if(localRefCallbackSet){
-		delete m_refCallback;
-		m_refCallback = NULL;
-	}
 	clear_marks();
 	HNODE_PROFILE_END();
 
@@ -1387,9 +1365,9 @@ refine_edge_with_normal_vertex(Edge* e, Vertex** newCornerVrts)
 	RegularVertex* nVrt = *grid.create<RegularVertex>(e);
 	set_center_vertex(e, nVrt);
 
-//	allow refCallback to calculate a new position
-	if(m_refCallback)
-		m_refCallback->new_vertex(nVrt, e);
+//	allow projector to calculate a new position
+	if(m_projector.valid())
+		m_projector->new_vertex(nVrt, e);
 
 //	split the edge
 	vector<Edge*> vEdges(2);
@@ -1415,9 +1393,9 @@ refine_edge_with_hanging_vertex(Edge* e, Vertex** newCornerVrts)
 
 	ConstrainedVertex* hv = *grid.create<ConstrainedVertex>(ce);
 
-//	allow refCallback to calculate a new position
-	if(m_refCallback)
-		m_refCallback->new_vertex(hv, ce);
+//	allow projector to calculate a new position
+	if(m_projector.valid())
+		m_projector->new_vertex(hv, ce);
 
 	set_center_vertex(ce, hv);
 	hv->set_constraining_object(ce);
@@ -1491,9 +1469,9 @@ refine_face_with_normal_vertex(Face* f, Vertex** newCornerVrts)
 	{
 		grid.register_element(nVrt, f);
 
-	//	allow refCallback to calculate a new position
-		if(m_refCallback)
-			m_refCallback->new_vertex(nVrt, f);
+	//	allow projector to calculate a new position
+		if(m_projector.valid())
+			m_projector->new_vertex(nVrt, f);
 	}
 
 	for(uint i = 0; i < vFaces.size(); ++i)
@@ -1584,9 +1562,9 @@ refine_face_with_hanging_vertex(Face* f, Vertex** newCornerVrts)
 			//	a central hanging vertex is required
 				hv = *grid.create<ConstrainedVertex>(cgf);
 
-			//	allow refCallback to calculate a new position
-				if(m_refCallback)
-					m_refCallback->new_vertex(hv, cgf);
+			//	allow projector to calculate a new position
+				if(m_projector.valid())
+					m_projector->new_vertex(hv, cgf);
 
 				set_center_vertex(cgf, hv);
 				hv->set_constraining_object(cgf);
@@ -1856,9 +1834,9 @@ refine_volume_with_normal_vertex(Volume* v, Vertex** newCornerVrts)
 //	the best interior diagonal.
 	vector3 corners[4];
 	vector3* pCorners = NULL;
-	if((v->num_vertices() == 4) && m_refCallback){
+	if((v->num_vertices() == 4) && m_projector.valid()){
 		for(size_t i = 0; i < 4; ++i){
-			m_refCallback->current_pos(&corners[i].x(), v->vertex(i), 3);
+			corners[i] = m_projector->geometry()->pos(v->vertex(i));
 		}
 		pCorners = corners;
 	}
@@ -1872,9 +1850,9 @@ refine_volume_with_normal_vertex(Volume* v, Vertex** newCornerVrts)
 	//	register the new vertex
 		grid.register_element(createdVrt, v);
 
-	//	allow refCallback to calculate a new position
-		if(m_refCallback)
-			m_refCallback->new_vertex(createdVrt, v);
+	//	allow projector to calculate a new position
+		if(m_projector.valid())
+			m_projector->new_vertex(createdVrt, v);
 	}
 
 	for(uint i = 0; i < vVolumes.size(); ++i)

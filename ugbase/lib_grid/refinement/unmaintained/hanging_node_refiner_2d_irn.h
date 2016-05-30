@@ -84,8 +84,8 @@ class HangingNodeRefiner2D_IRN : public IRefiner, public GridObserver
 		using IRefiner::mark_for_refinement;
 
 	public:
-		HangingNodeRefiner2D_IRN(IRefinementCallback* refCallback = NULL);
-		HangingNodeRefiner2D_IRN(Grid& grid, IRefinementCallback* refCallback = NULL);
+		HangingNodeRefiner2D_IRN(SPRefinementProjector projector);
+		HangingNodeRefiner2D_IRN(Grid& grid, SPRefinementProjector projector);
 	//todo: make copy-constructor public
 		virtual ~HangingNodeRefiner2D_IRN();
 
