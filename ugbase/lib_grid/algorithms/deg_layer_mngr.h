@@ -181,11 +181,11 @@ public:
 			size_t & num_fract_co, ///< [out] number of corners of the inner/outer sides
 			side_type * & inner_side, ///< [out] its fracture inner side
 			size_t & inner_side_idx, ///< [out] index of the inner side in the reference element
-			size_t inner_side_corners [], ///< [out] inner side corner idx -> elem. corner idx
+			size_t inner_side_corners [], ///< [out] inner side corner idx -> elem. corner idx (maxLayerSideCorners elements)
 			side_type * & outer_side, ///< [out] its fracture outer side
 			size_t & outer_side_idx, ///< [out] index of the outer side in the reference element
-			size_t outer_side_corners [], ///< [out] outer side corner idx -> elem. corner idx
-			size_t ass_co [] ///< [out] correspondence of the corners of the sides
+			size_t outer_side_corners [], ///< [out] outer side corner idx -> elem. corner idx (maxLayerSideCorners elements)
+			size_t ass_co [] = NULL ///< [out] correspondence of the corners of the sides (2 * maxLayerSideCorners elements or NULL)
 		);
 		
 	///	Assigns a different subset index to the inner sides of a layer

@@ -264,11 +264,11 @@ void DegeneratedLayerManager<dim>::get_layer_sides
 	size_t & num_side_co, ///< [out] number of corners of the inner/outer sides
 	side_type * & inner_side, ///< [out] its fracture inner side
 	size_t & inner_side_idx, ///< [out] index of the inner side in the reference element
-	size_t inner_side_corners [], ///< [out] inner side corner idx -> elem. corner idx
+	size_t inner_side_corners [], ///< [out] inner side corner idx -> elem. corner idx (maxLayerSideCorners elements)
 	side_type * & outer_side, ///< [out] its fracture outer side
 	size_t & outer_side_idx, ///< [out] index of the outer side in the reference element
-	size_t outer_side_corners [], ///< [out] outer side corner idx -> elem. corner idx
-	size_t ass_co [] ///< [out] correspondence of the corners of the sides
+	size_t outer_side_corners [], ///< [out] outer side corner idx -> elem. corner idx (maxLayerSideCorners elements)
+	size_t ass_co [] ///< [out] correspondence of the corners of the sides (2 * maxLayerSideCorners elements or NULL)
 )
 {
 	size_t n_inner, n_outer;
@@ -284,8 +284,8 @@ void DegeneratedLayerManager<dim>::get_layer_sides
 	{
 		side_type * side = pMG->get_side (elem, i);
 		bool has_inner = false, has_outer = false;
-		size_t n_co = side->num_vertices ();
-		for (size_t co = 0; co < n_co; co++)
+		size_t side_n_co = side->num_vertices ();
+		for (size_t co = 0; co < side_n_co; co++)
 		{
 			int mark = vert_mark (side->vertex (co));
 			if (mark == D_LAYER_OUTER)
@@ -304,7 +304,7 @@ void DegeneratedLayerManager<dim>::get_layer_sides
 				UG_THROW ("DegeneratedLayerManager: Two inner sides of a degenerated layer element found!");
 			inner_side = side;
 			inner_side_idx = i;
-			n_inner = n_co;
+			n_inner = side_n_co;
 		}
 		else
 		{	// this is the outer side
@@ -312,7 +312,7 @@ void DegeneratedLayerManager<dim>::get_layer_sides
 				UG_THROW ("DegeneratedLayerManager: Two outer sides of a degenerated layer element found!");
 			outer_side = side;
 			outer_side_idx = i;
-			n_outer = n_co;
+			n_outer = side_n_co;
 		}
 	}
 	if (n_inner != n_outer || 2 * n_inner != n_co)
@@ -339,52 +339,60 @@ void DegeneratedLayerManager<dim>::get_layer_sides
 			outer_i++;
 		}
 	}
+	if (inner_i != n_inner || outer_i != n_outer)
+		UG_THROW ("DegeneratedLayerManager: Failed to get the vertex-side correspondence!");
 	
 //	Order the corner indices according to the corners of the sides
 	for (size_t i = 0; i < n_inner; i++)
 	{
 		size_t co;
 		
-		for (co = 0; inner_side->vertex (co) != inner_vert_ptr [i]; co++)
-			UG_ASSERT (co < n_inner, "missing vertex?");
+		co = 0;
+		while (inner_side->vertex (co) != inner_vert_ptr [i])
+			if (++co == n_inner)
+				UG_THROW ("DegeneratedLayerManager: Failed! Missing inner vertex?");
 		inner_side_corners [co] = inner_corners [i];
 		
-		for (co = 0; outer_side->vertex (co) != outer_vert_ptr [i]; co++)
-			UG_ASSERT (co < n_inner, "missing vertex?");
+		co = 0;
+		while (outer_side->vertex (co) != outer_vert_ptr [i])
+			if (++co == n_outer)
+				UG_THROW ("DegeneratedLayerManager: Failed! Missing outer vertex?");
 		outer_side_corners [co] = outer_corners [i];
 	}
 	
 //	Loop over the edges: Find out the associated corners
-	pMG->associated_elements (edge_list, elem);
-	for (size_t i = 0; i < edge_list.size (); i++)
+	if (ass_co != NULL)
 	{
-		Edge * e = edge_list [i];
-		Vertex * v_1 = e->vertex (0); int mark_1 = vert_mark (v_1);
-		Vertex * v_2 = e->vertex (1); int mark_2 = vert_mark (v_2);
-		Vertex * t;
-		size_t co_1, co_2;
+		pMG->associated_elements (edge_list, elem);
+		for (size_t i = 0; i < edge_list.size (); i++)
+		{
+			Edge * e = edge_list [i];
+			Vertex * v_1 = e->vertex (0); int mark_1 = vert_mark (v_1);
+			Vertex * v_2 = e->vertex (1); int mark_2 = vert_mark (v_2);
+			Vertex * t;
+			size_t co_1, co_2;
+			
+			if (mark_1 == mark_2)
+				continue; // an edge of the inner or the outer size
+			
+			if (mark_1 == D_LAYER_OUTER)
+			{	// Vertex # 1 must be inner, vertex # 2 must be outer
+				t = v_1; v_1 = v_2; v_2 = t;
+			}
 		
-		if (mark_1 == mark_2)
-			continue; // an edge of the inner or the outer size
-		
-		if (mark_1 == D_LAYER_OUTER)
-		{	// Vertex # 1 must be inner, vertex # 2 must be outer
-			t = v_1; v_1 = v_2; v_2 = t;
+			co_1 = 0;
+			while (inner_vert_ptr[co_1] != v_1)
+				if (++co_1 == n_inner)
+					UG_THROW ("DegeneratedLayerManager: Cannot find an inner node by vertex!");
+			
+			co_2 = 0;
+			while (outer_vert_ptr[co_2] != v_2)
+				if (++co_2 == n_outer)
+					UG_THROW ("DegeneratedLayerManager: Cannot find an outer node by vertex!");
+			
+			ass_co [inner_corners [co_1]] = outer_corners [co_2];
+			ass_co [outer_corners [co_2]] = inner_corners [co_1];
 		}
-		
-		co_1 = 0;
-		while (inner_vert_ptr[co_1] != v_1)
-			if (++co_1 == n_inner)
-				UG_THROW ("DegeneratedLayerManager: Cannot find an inner node by vertex!");
-		
-		
-		co_2 = 0;
-		while (outer_vert_ptr[co_2] != v_2)
-			if (++co_2 == n_outer)
-				UG_THROW ("DegeneratedLayerManager: Cannot find an outer node by vertex!");
-		
-		ass_co [inner_corners [co_1]] = outer_corners [co_2];
-		ass_co [outer_corners [co_2]] = inner_corners [co_1];
 	}
 }
 
@@ -421,19 +429,18 @@ int DegeneratedLayerManager<dim>::assign_middle_subset
 			side_type * inner_side, * outer_side;
 			size_t inner_side_idx, outer_side_idx;
 			size_t inner_side_corners [maxLayerSideCorners], outer_side_corners [maxLayerSideCorners];
-			size_t ass_co [maxLayerSideCorners];
 			
 		//	get the inner side
 			get_layer_sides (elem, num_side_co,
 				inner_side, inner_side_idx, inner_side_corners,
-				outer_side, outer_side_idx, outer_side_corners,
-				ass_co);
+				outer_side, outer_side_idx, outer_side_corners);
 			
 		//	assign the subset
 			m_spSH->assign_subset (inner_side, middle_si);
 		}
 	}
 	pMG->message_hub()->post_message (GridMessage_Creation (GMCT_CREATION_STOPS, 0));
+	
 	return middle_si;
 }
 
@@ -464,9 +471,8 @@ int DegeneratedLayerManager<dim>::assign_middle_subset
 	middle_si = assign_middle_subset (layer_si, middle_si);
 	
 //	Set the name
-	if (new_ss){
+	if (new_ss)
 		m_spSH->set_subset_name (middle_ss_name, middle_si);
-	}
 	
 	return middle_si;
 }
@@ -483,7 +489,6 @@ int DegeneratedLayerManager<dim>::assign_middle_subset
 	const char* middle_ss_name ///< name of the subset to assign
 )
 {
-	
 //	Look for the subset of the layer
 	for (int si = 0; si < m_spSH->num_subsets (); si++)
 	if (strcmp (layer_ss_name, m_spSH->get_subset_name (si)) == 0)
