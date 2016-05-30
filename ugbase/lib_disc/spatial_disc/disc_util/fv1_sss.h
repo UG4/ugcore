@@ -157,6 +157,69 @@ public:
 	);
 };
 
+/// Partial specialization of for 1d: No line sources and sinks in 1d
+/// Base class for line sources and sinks
+template<typename TData>
+class FVLineSourceOrSink<1, TData> : public TData
+{
+private:
+	static const int dim = 1;
+    MathVector<dim> point1; ///< beginning of the line segment
+    MathVector<dim> point2; ///< end of the line segment
+
+public:
+	
+///	class constructor (with the default constructor for data)
+    FVLineSourceOrSink
+    (
+    	const MathVector<dim>& _point1, ///< beginning of the line segment
+		const MathVector<dim>& _point2 ///< end of the line segment
+	)
+	: point1(_point1), point2(_point2) {}
+
+///	class constructor (with the copy constructor for data)
+    FVLineSourceOrSink
+    (
+    	const MathVector<dim>& _point1, ///< beginning of the line segment
+		const MathVector<dim>& _point2, ///< end of the line segment
+		const TData& _data ///< the data to copy
+	)
+	: TData(_data), point1(_point1), point2(_point2) {}
+
+///	class constructor (with the default constructor for data)
+    FVLineSourceOrSink
+    (
+    	const std::vector<number>& _point1, ///< beginning of the line segment
+		const std::vector<number>& _point2 ///< end of the line segment
+	)
+	{
+		UG_THROW ("FVLineSourceOrSink: Line sources and sinks are not supported in 1d.");
+	}
+
+///	returns the beginning of the line segment
+	const MathVector<dim>& from_position () {return point1;}
+	
+///	returns the end of the line segment
+	const MathVector<dim>& to_position () {return point2;}
+	
+///	test whether a source/sink point corresponds to a given corner of the element
+    template <typename TElem, typename TAAPos, typename TFVGeom>
+    bool corresponds_to
+    (
+		TElem* elem, ///< [in] the element
+		Grid& grid, ///< [in] the grid
+		TAAPos& aaPos, ///< [in] position of the vertices
+		const TFVGeom& geo, ///< [in] FV geometry (initialized for 'elem')
+		size_t co, ///< [in] corner to get the contribution for
+		MathVector<dim>& ls, ///< [out] beginning of the subsegment
+		MathVector<dim>& le ///< [out] end of the subsegment
+	)
+	{
+		UG_THROW ("FVLineSourceOrSink: Line sources and sinks are not supported in 1d.");
+		return false;
+	}
+};
+
 /// Manager class for point and line sources and sinks
 template <int dim, typename TPointData, typename TLineData = TPointData>
 class FVSingularSourcesAndSinks
