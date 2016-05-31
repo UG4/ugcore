@@ -112,7 +112,7 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 		reg.add_class_<T>("CylinderCutProjector", grp)
 			.add_constructor()
 			.add_constructor<void (T::*)(const vector3&, const vector3&, number)>()
-			.add_constructor<void (T::*)(const SPIGeometry3d&, const vector3&, const vector3&, number)>()
+			.add_constructor<void (T::*)(SPIGeometry3d, const vector3&, const vector3&, number)>()
 			.add_method("set_center", &T::set_center, "", "center")
 			.add_method("center", &T::center, "center")
 			.add_method("set_axis", &T::set_axis, "", "axis")
@@ -130,7 +130,7 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 			.add_constructor<void (T::*)(const vector3&, const vector3&, number)>()
 			.add_constructor<void (T::*)(const vector3&, const vector3&, number,
 										 number)>()
-			.add_constructor<void (T::*)(const SPIGeometry3d&, const vector3&,
+			.add_constructor<void (T::*)(SPIGeometry3d, const vector3&,
 										 const vector3&, number, number)>()
 			.add_method("set_center", &T::set_center, "", "center")
 			.add_method("center", &T::center, "center")
@@ -148,7 +148,7 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 		reg.add_class_<T>("PlaneCutProjector", grp)
 			.add_constructor()
 			.add_constructor<void (T::*)(const vector3&, const vector3&)>()
-			.add_constructor<void (T::*)(const SPIGeometry3d&, const vector3&,
+			.add_constructor<void (T::*)(SPIGeometry3d, const vector3&,
 										 const vector3&)>()
 			.add_method("set_position", &T::set_position, "", "position")
 			.add_method("position", &T::position, "position")
@@ -163,9 +163,9 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 			.add_constructor()
 			.add_constructor<void (T::*)(ISubsetHandler*)>()
 			.add_constructor<void (T::*)(SmartPtr<ISubsetHandler>)>()
-			.add_constructor<void (T::*)(const SPIGeometry3d&,
+			.add_constructor<void (T::*)(SPIGeometry3d,
 										 ISubsetHandler*)>()
-			.add_constructor<void (T::*)(const SPIGeometry3d&,
+			.add_constructor<void (T::*)(SPIGeometry3d,
 										 SmartPtr<ISubsetHandler>)>()
 			.add_method("set_geometry_all", &T::set_geometry_all, "", "geometry")
 			.set_construct_as_smart_pointer(true);
@@ -176,7 +176,7 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 		reg.add_class_<T>("SmoothProjector", grp)
 			.add_constructor()
 			.add_constructor<void (T::*)(int, number)>()
-			.add_constructor<void (T::*)(const SPIGeometry3d&, int, number)>()
+			.add_constructor<void (T::*)(SPIGeometry3d, int, number)>()
 			.add_method("set_iterations", &T::set_iterations, "", "iterations")
 			.add_method("iterations", &T::iterations, "iterations")
 			.add_method("set_change_rate", &T::set_change_rate, "", "changeRate")
@@ -191,7 +191,7 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 			.add_constructor<void (T::*)(const vector3&)>()
 			.add_constructor<void (T::*)(const vector3&, number)>()
 			.add_constructor<void (T::*)(const vector3&, number, number)>()
-			.add_constructor<void (T::*)(const SPIGeometry3d&, const vector3&,
+			.add_constructor<void (T::*)(SPIGeometry3d, const vector3&,
 										 number, number)>()
 			.add_method("set_center", &T::set_center, "", "center")
 			.add_method("center", &T::center, "center")
@@ -206,7 +206,7 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 		typedef SubdivisionProjector T;
 		reg.add_class_<T>("SubdivisionProjector", grp)
 			.add_constructor()
-			.add_constructor<void (T::*)(const SPIGeometry3d&)>()
+			.add_constructor<void (T::*)(SPIGeometry3d)>()
 			.set_construct_as_smart_pointer(true);
 	}
 	
@@ -220,7 +220,7 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 					static_cast<void (IRefiner::*)(size_t)>(&IRefiner::mark_neighborhood),
 					"", "numIterations")
 		.add_method("clear_marks", &IRefiner::clear_marks)
-		.add_method("set_refinement_callback", &IRefiner::set_refinement_callback)
+		.add_method("set_projector", &IRefiner::set_projector)
 		.add_method("enable_debugging", &IRefiner::enable_debugging)
 		.add_method("num_marked_edges", static_cast<size_t (IRefiner::*)()>(&IRefiner::num_marked_edges))
 		.add_method("num_marked_faces", static_cast<size_t (IRefiner::*)()>(&IRefiner::num_marked_faces))

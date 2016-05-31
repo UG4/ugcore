@@ -83,8 +83,7 @@ public:
 	{}
 
 /**	\sa ug::RefinementProjector::RefinementProjector*/
-	template <class TGeomProvider>
-	CylinderProjectorNew (const TGeomProvider& geometry,
+	CylinderProjectorNew (SPIGeometry3d geometry,
 						  const vector3& center,
 						  const vector3& axis,
 						  number radius,

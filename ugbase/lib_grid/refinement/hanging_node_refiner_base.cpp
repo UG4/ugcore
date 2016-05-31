@@ -640,6 +640,13 @@ void HangingNodeRefinerBase<TSelector>::perform_refinement()
 
 	m_messageHub->post_message(GridMessage_Adaption(GMAT_HNODE_REFINEMENT_BEGINS,
 										m_selMarkedElements.get_grid_objects()));
+	if(projector()->refinement_begins_requires_subgrid()){
+		SubGrid<IsSelected> sg(m_selMarkedElements.get_grid_objects(),
+								IsSelected(m_selMarkedElements));
+		projector()->refinement_begins(&sg);
+	}
+	else
+		projector()->refinement_begins(NULL);
 
 //	call pre_refine to allow derived classes to perform some actions
 	HNODE_PROFILE_BEGIN(href_PreRefine);
@@ -904,6 +911,8 @@ void HangingNodeRefinerBase<TSelector>::perform_refinement()
 	// 	++refselCount;
 	// }
 
+	projector()->refinement_ends();
+	
 //	notify the grid's message hub that refinement ends
 	HNODE_PROFILE_BEGIN(href_AdaptionEndsMessage);
 	m_messageHub->post_message(GridMessage_Adaption(GMAT_HNODE_REFINEMENT_ENDS,

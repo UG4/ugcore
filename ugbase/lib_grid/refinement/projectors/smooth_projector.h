@@ -53,8 +53,7 @@ public:
 	{}
 
 /**	\sa ug::RefinementProjector::RefinementProjector*/
-	template <class TGeomProvider>
-	SmoothProjector (const TGeomProvider& geometry,
+	SmoothProjector (SPIGeometry3d geometry,
 					int iterations,
 					number changeRate) :
 		RefinementProjector (geometry),

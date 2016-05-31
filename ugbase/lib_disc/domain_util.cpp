@@ -33,10 +33,11 @@
 #include "domain_util.h"
 #include "domain_traits.h"
 #include "common/util/string_util.h"
- #include "common/util/file_util.h"
+#include "common/util/file_util.h"
 #include "lib_grid/file_io/file_io.h"
 #include "lib_grid/file_io/file_io_ugx.h"
 #include "lib_grid/algorithms/geom_obj_util/misc_util.h"
+#include "lib_grid/refinement/projectors/projection_handler.h"
 #include "common/profiler/profiler.h"
 
 using namespace std;
@@ -88,6 +89,13 @@ void LoadDomain(TDomain& domain, const char* filename, int procId)
 							ugxReader.subset_handler(*domain.additional_subset_handler(shName), i_sh, 0);
 						}
 					}
+				}
+
+				if(ugxReader.num_projection_handlers(0) > 0){
+					SPProjectionHandler ph = make_sp(
+							new ProjectionHandler(domain.geometry3d(), domain.subset_handler()));
+					ugxReader.projection_handler(*ph, 0, 0);
+					domain.set_refinement_projector(ph);
 				}
 			}
 			else{

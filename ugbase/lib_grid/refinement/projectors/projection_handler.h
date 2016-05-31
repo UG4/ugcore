@@ -79,8 +79,7 @@ public:
  * Please note that an alternative constructor taking a smart-pointer to a
  * SubsetHandler exists.
  * \sa ug::RefinementProjector::RefinementProjector*/
-	template <class TGeomProvider>
-	ProjectionHandler (const TGeomProvider& geometry,
+	ProjectionHandler (SPIGeometry3d geometry,
 					   ISubsetHandler* psh) :
 		RefinementProjector (geometry),
 		m_sh (psh),
@@ -385,6 +384,8 @@ private:
 	SmartPtr<RefinementProjector>				m_defaultProjector;
 	RefinementProjector							m_linearProjector;
 };
+
+typedef SmartPtr<ProjectionHandler>	SPProjectionHandler;
 
 }//	end of namespace
 

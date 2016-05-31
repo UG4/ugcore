@@ -56,12 +56,8 @@ class RefinementProjector {
 public:
 	RefinementProjector ()			{}
 
-/**	\param	geometry	Either an instance of 'ug::SPIGeometry3d' or any other type
- *						which supports the 'ug::GetGeometry3d' method. You may overload
- *						'ug::GetGeometry3d' for your own types, too.*/
-	template <class TGeomProvider>
-	RefinementProjector (const TGeomProvider& geometry) :
-		m_geometry (GetGeometry3d(geometry)),
+	RefinementProjector (SPIGeometry3d geometry) :
+		m_geometry (geometry),
 		m_concernedElementsCallback (make_sp(new ConsiderAll()))
 	{}
 	
@@ -69,13 +65,9 @@ public:
 		m_concernedElementsCallback (cb)
 	{}
 
-/**	\param	geometry	Either an instance of 'ug::SPIGeometry3d' or any other type
- *						which supports the 'ug::GetGeometry3d' method. You may overload
- *						'ug::GetGeometry3d' for your own types, too.*/
-	template <class TGeomProvider>
-	RefinementProjector (const TGeomProvider& geometry,
+	RefinementProjector (SPIGeometry3d geometry,
 						 SPElementCallback concernedElems) :
-		m_geometry (GetGeometry3d(geometry)),
+		m_geometry (geometry),
 		m_concernedElementsCallback (concernedElems)
 	{}
 
@@ -191,19 +183,6 @@ private:
 };
 
 typedef SmartPtr<RefinementProjector>	SPRefinementProjector;
-
-
-///	Overload this method if your geometry provider type doesn't feature a 'geometry' method
-template <class TGeomProvider>
-SPIGeometry3d GetGeometry3d(const TGeomProvider& geomProvider)
-{
-	return geomProvider.geometry();
-}
-
-inline SPIGeometry3d GetGeometry3d(const SPIGeometry3d& geometry)
-{
-	return geometry;
-}
 
 }//	end of namespace
 

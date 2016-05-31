@@ -85,11 +85,17 @@ static SmartPtr<IRefiner> GlobalDomainRefiner(TDomain* dom)
 
 	#ifdef UG_PARALLEL
 		if(pcl::NumProcs() > 1){
-			return SmartPtr<IRefiner>(new ParallelGlobalRefiner_MultiGrid(*dom->distributed_grid_manager()));
+			return SmartPtr<IRefiner>(
+					new ParallelGlobalRefiner_MultiGrid(
+							*dom->distributed_grid_manager(),
+							dom->refinement_projector()));
 		}
 	#endif
 
-	return SmartPtr<IRefiner>(new GlobalMultiGridRefiner(*dom->grid()));
+	return SmartPtr<IRefiner>(
+				new GlobalMultiGridRefiner(
+						*dom->grid(),
+						dom->refinement_projector()));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -106,11 +112,17 @@ static SmartPtr<IRefiner> HangingNodeDomainRefiner(TDomain* dom)
 //todo: support normal grids, too!
 	#ifdef UG_PARALLEL
 		if(pcl::NumProcs() > 1){
-			return SmartPtr<IRefiner>(new ParallelHangingNodeRefiner_MultiGrid(*dom->distributed_grid_manager()));
+			return SmartPtr<IRefiner>(
+					new ParallelHangingNodeRefiner_MultiGrid(
+							*dom->distributed_grid_manager(),
+							dom->refinement_projector()));
 		}
 	#endif
 
-	return SmartPtr<IRefiner>(new HangingNodeRefiner_MultiGrid(*dom->grid()));
+	return SmartPtr<IRefiner>(
+				new HangingNodeRefiner_MultiGrid(
+						*dom->grid(),
+						dom->refinement_projector()));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -132,7 +144,10 @@ static SmartPtr<IRefiner> CreateAdaptiveRegularDomainRefiner(TDomain* dom)
 		}
 	#endif*/
 
-	return SmartPtr<IRefiner>(new AdaptiveRegularRefiner_MultiGrid(*dom->grid()));
+	return SmartPtr<IRefiner>(
+				new AdaptiveRegularRefiner_MultiGrid(
+						*dom->grid(),
+						dom->refinement_projector()));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -149,12 +164,16 @@ CreateGlobalFracturedDomainRefiner(TDomain* dom)
 	GlobalFracturedMediaRefiner* ref = NULL;
 	#ifdef UG_PARALLEL
 		if(pcl::NumProcs() > 1){
-			ref = new ParallelGlobalFracturedMediaRefiner(*dom->distributed_grid_manager());
+			ref = new ParallelGlobalFracturedMediaRefiner(
+							*dom->distributed_grid_manager(),
+							dom->refinement_projector());
 		}
 	#endif
 
 	if(!ref)
-		ref = new GlobalFracturedMediaRefiner(*dom->grid());
+		ref = new GlobalFracturedMediaRefiner(
+						*dom->grid(),
+						dom->refinement_projector());
 
 	ref->set_subset_handler(*dom->subset_handler());
 

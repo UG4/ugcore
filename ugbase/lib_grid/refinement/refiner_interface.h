@@ -68,10 +68,10 @@ class IRefiner
 
 		virtual ~IRefiner()	{}
 
-		void set_refinement_callback(SPRefinementProjector projector)
+		void set_projector(SPRefinementProjector projector)
 			{m_projector = projector;}
 
-		SPRefinementProjector get_refinement_callback()
+		SPRefinementProjector projector()
 			{return m_projector;}
 
 	///	DEPRECIATED! Use grid(). Has to return the associated grid. Pure virtual

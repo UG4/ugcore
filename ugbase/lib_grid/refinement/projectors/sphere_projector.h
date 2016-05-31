@@ -76,8 +76,7 @@ public:
 	{}
 
 /**	\sa ug::RefinementProjector::RefinementProjector*/
-	template <class TGeomProvider>
-	SphereProjectorNew (const TGeomProvider& geometry,
+	SphereProjectorNew (SPIGeometry3d geometry,
 						const vector3& center) :
 		RefinementProjector (geometry),
 		m_center (center),
@@ -86,8 +85,7 @@ public:
 	{}
 
 	/**	\sa ug::RefinementProjector::RefinementProjector*/
-	template <class TGeomProvider>
-	SphereProjectorNew (const TGeomProvider& geometry,
+	SphereProjectorNew (SPIGeometry3d geometry,
 						const vector3& center,
 						number radius) :
 		RefinementProjector (geometry),

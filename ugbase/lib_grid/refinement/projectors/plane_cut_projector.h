@@ -56,8 +56,7 @@ public:
 	{}
 
 /**	\sa ug::RefinementProjector::RefinementProjector*/
-	template <class TGeomProvider>
-	PlaneCutProjector (const TGeomProvider& geometry,
+	PlaneCutProjector (SPIGeometry3d geometry,
 					   const vector3& position,
 					   const vector3& normal) :
 		RefinementProjector (geometry),

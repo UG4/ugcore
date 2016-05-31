@@ -231,6 +231,13 @@ perform_refinement()
 	int oldTopLevel = mg.num_levels() - 1;
 	m_messageHub->post_message(GridMessage_Adaption(GMAT_GLOBAL_REFINEMENT_BEGINS,
 													mg.get_grid_objects(oldTopLevel)));
+	
+	if(projector()->refinement_begins_requires_subgrid()){
+		SubGrid<ConsiderAll> sg(mg.get_grid_objects(), ConsiderAll());
+		projector()->refinement_begins(&sg);
+	}
+	else
+		projector()->refinement_begins(NULL);
 
 	UG_DLOG(LIB_GRID, 1, "REFINER: reserving memory...");
 
@@ -497,6 +504,7 @@ perform_refinement()
 //	notify derivates that refinement ends
 	refinement_step_ends();
 	
+	projector()->refinement_ends();
 	m_messageHub->post_message(GridMessage_Adaption(GMAT_GLOBAL_REFINEMENT_ENDS,
 													mg.get_grid_objects(oldTopLevel)));
 
