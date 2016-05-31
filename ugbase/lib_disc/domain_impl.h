@@ -347,6 +347,22 @@ additional_subset_handler(std::string name) const
 	return sp;
 }
 
+template <typename TGrid, typename TSubsetHandler>
+void IDomain<TGrid, TSubsetHandler>::
+set_refinement_projector(SPRefinementProjector proj)
+{
+	m_refinementProjector = proj;
+	if(proj.valid())
+		proj->set_geometry(geometry3d());
+}
+
+template <typename TGrid, typename TSubsetHandler>
+SPRefinementProjector IDomain<TGrid, TSubsetHandler>::
+refinement_projector() const
+{
+	return m_refinementProjector;
+}
+
 
 #ifdef UG_PARALLEL
 template <typename TGrid, typename TSubsetHandler>
@@ -422,6 +438,9 @@ Domain(bool isAdaptive) : IDomain<TGrid, TSubsetHandler>(isAdaptive)
 	if(!this->grid()->template has_attachment<Vertex>(m_aPos))
 		this->grid()->template attach_to<Vertex>(m_aPos);
 	m_aaPos.access(*(this->grid()), m_aPos);
+
+	m_geometry3d = MakeGeometry3d(*(this->grid()), m_aPos);
+	this->m_refinementProjector = make_sp(new RefinementProjector(m_geometry3d));
 }
 
 
