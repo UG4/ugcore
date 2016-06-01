@@ -34,6 +34,7 @@
 #define __H__UG_projection_handler_new
 
 #include <vector>
+#include <algorithm>
 #include "common/assert.h"
 #include "refinement_projector.h"
 #include "lib_grid/tools/subset_handler_interface.h"
@@ -218,7 +219,10 @@ public:
 	//	this selector will be used if we have to pass sub-grids to individual projectors
 		Selector sel;
 
-		for(size_t i = 0; i < m_projectors.size(); ++i){
+		for(size_t i = 0;
+			i < std::min<size_t>(m_projectors.size(), m_sh->num_subsets() + 1);
+			++i)
+		{
 			RefinementProjector& proj = *m_projectors[i];
 			if(!proj.geometry().valid())
 				proj.set_geometry(geometry());

@@ -33,6 +33,16 @@
 #include "domain.h"
 #include "common/util/table.h"
 
+#ifdef UG_PARALLEL
+	#include "lib_grid/refinement/projectors/projectors.h"
+	#include "common/boost_serialization_routines.h"
+	#include "common/util/archivar.h"
+	#include "common/util/factory.h"
+	#include <boost/archive/text_oarchive.hpp>
+	#include <boost/archive/text_iarchive.hpp>
+#endif
+
+
 using namespace std;
 
 namespace ug{
@@ -73,4 +83,135 @@ to_string() const
 	return t.to_string();
 }
 
+
+#ifdef UG_PARALLEL
+namespace detail{
+
+SPRefinementProjector
+BroadcastRefinementProjector(
+		int rootProc,
+		pcl::ProcessCommunicator& procCom,
+		SmartPtr<ISubsetHandler> subsetHandler,
+		SPIGeometry3d geometry,
+		SPRefinementProjector projector)
+{
+	BinaryBuffer 	buf;
+	const int		magicNumber	= 3243578;
+	const bool 		isRoot		= (pcl::ProcRank() == rootProc);
+
+	static Factory<RefinementProjector, ProjectorTypes>	projFac;
+
+	if(isRoot){
+		Archivar<boost::archive::text_oarchive,
+				RefinementProjector,
+				ProjectorTypes>
+			archivar;
+
+	//	if the specified projector is a projection handler, we'll perform a
+	//	special operation.
+		ProjectionHandler* ph = NULL;
+		int projectorType = -1;// -1: none, 0: normal projector, 1: projection handler
+		if(projector.valid()){
+			ph = dynamic_cast<ProjectionHandler*>(projector.get());
+			if(ph)
+				projectorType = 1;
+			else
+				projectorType = 0;
+		}
+
+		Serialize(buf, projectorType);
+		if(ph){
+			size_t numProjectors = ph->num_projectors();
+			Serialize(buf, numProjectors);
+			for(size_t iproj = 0; iproj < numProjectors; ++iproj){
+				SPRefinementProjector	proj		= ph->projector(iproj);
+				const string&			projName 	= projFac.class_name(*proj);
+				Serialize(buf, projName);
+
+				stringstream ss;
+				boost::archive::text_oarchive ar(ss, boost::archive::no_header);
+				archivar.archive(ar, *proj);
+				Serialize(buf, ss.str());
+			}
+		}
+		else if(projector.valid()){
+			RefinementProjector&	proj		= *projector;
+			const string&			projName 	= projFac.class_name(proj);
+			Serialize(buf, projName);
+
+			stringstream ss;
+			boost::archive::text_oarchive ar(ss, boost::archive::no_header);
+			archivar.archive(ar, proj);
+			Serialize(buf, ss.str());
+		}
+
+		Serialize(buf, magicNumber);
+	}
+
+	procCom.broadcast(buf, rootProc);
+
+	if(!isRoot){
+		Archivar<boost::archive::text_iarchive,
+				RefinementProjector,
+				ProjectorTypes>
+			archivar;
+
+		int projectorType;
+		Deserialize(buf, projectorType);
+		if(projectorType == 1){
+			ProjectionHandler* ph = new ProjectionHandler(geometry, subsetHandler);
+			SPProjectionHandler projHandler = make_sp(ph);
+
+			size_t numProjectors;
+			Deserialize(buf, numProjectors);
+
+			for(size_t iproj = 0; iproj < numProjectors; ++iproj){
+				string name;
+				Deserialize(buf, name);
+				SPRefinementProjector proj = projFac.create(name);
+
+				string data;
+				Deserialize(buf, data);
+				stringstream ss(data, ios_base::in);
+				boost::archive::text_iarchive ar(ss, boost::archive::no_header);
+				archivar.archive(ar, *proj);
+
+				ph->set_projector(iproj, proj);
+			}
+
+			projector = projHandler;
+		}
+		else if(projectorType == 0){
+			string name;
+			Deserialize(buf, name);
+			SPRefinementProjector proj = projFac.create(name);
+
+			string data;
+			Deserialize(buf, data);
+			stringstream ss(data, ios_base::in);
+			boost::archive::text_iarchive ar(ss, boost::archive::no_header);
+			archivar.archive(ar, *proj);
+
+			projector = proj;
+		}
+		else if(projectorType == -1){
+			projector = SPNULL;
+		}
+		else{
+			UG_THROW("Invalid projector type in 'BroadcastRefinementProjector': "
+					 << projectorType);
+		}
+
+		int tmp;
+		Deserialize(buf, tmp);
+		UG_COND_THROW(tmp != magicNumber, "Magic number mismatch in "
+					  "'BroadcastRefinementProjector'. Received "
+					  << tmp << ", but expected " << magicNumber);
+	}
+
+	return projector;
+}
+}// end of namespace detail
+
+#endif
 }//	end of namespace

@@ -48,6 +48,21 @@ namespace ug{
 // IDomain
 ////////////////////////////////////////////////////////////////////////////////
 
+#ifdef UG_PARALLEL
+namespace detail {
+///	Helper method to broadcast ug::RefinementProjectors to different processes.
+/* NOTE: This method is implemented in a .cpp file to avoid header pollution and to
+ * speed up compile times.*/
+SPRefinementProjector
+BroadcastRefinementProjector(
+		int rootProc,
+		pcl::ProcessCommunicator& procCom,
+		SmartPtr<ISubsetHandler> subsetHandler,
+		SPIGeometry3d geometry,
+		SPRefinementProjector projector = SPNULL);
+}// end of namespace detail
+#endif
+
 template <typename TGrid, typename TSubsetHandler>
 IDomain<TGrid,TSubsetHandler>::IDomain(bool isAdaptive)
 	:
@@ -131,6 +146,15 @@ update_subset_infos(int rootProc)
 			sh.subset_info(i).set_property("dim", dim);
 		}
 	}
+
+//todo:	distribute projectors from rootProc to all other processors.
+//note:	first check whether source-proc has a ProjectionHandler. If so,
+//		create a local projection handler first and perform serialization
+//		afterwards.
+	m_refinementProjector = 
+			detail::BroadcastRefinementProjector(
+						rootProc, procCom, subset_handler(),
+						geometry3d(), m_refinementProjector);
 #endif
 
 }
