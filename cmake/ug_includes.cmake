@@ -362,8 +362,10 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 	add_cxx_flag("/bigobj")
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 	add_cxx_flag("-Wall")
+	add_cxx_flag("-Wno-multichar")
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	add_cxx_flag("-Wall")
+	add_cxx_flag("-Wno-multichar")
 	# When building on MacOS >10.8, code using sin(x) _and_ cos(x) with the same argument x,
 	# a dynamic library will be used which is not available on older systems; this will lead to
 	# the VRL crashing on this code. In order to suppress usage of this dyld:

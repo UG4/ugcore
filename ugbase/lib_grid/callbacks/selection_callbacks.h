@@ -34,46 +34,47 @@
 #define __H__UG_selection_callbacks
 
 #include "lib_grid/tools/selector_interface.h"
+#include "element_callback_interface.h"
 
 namespace ug{
 /** \ingroup lib_grid_element_callbacks
  * \{ */
 
 ///	Element callback that returns true, if an element is selected
-class IsSelected
+class IsSelected : public ElementCallback
 {
 	public:
 		IsSelected(const ISelector& sel) :
 			m_sel(sel)	{}
 
-		bool operator() (Vertex* v)	{return callback(v);}
-		bool operator() (Edge* e)	{return callback(e);}
-		bool operator() (Face* f)		{return callback(f);}
-		bool operator() (Volume* v)		{return callback(v);}
+		bool operator() (Vertex* v) const	{return callback(v);}
+		bool operator() (Edge* e) const		{return callback(e);}
+		bool operator() (Face* f) const		{return callback(f);}
+		bool operator() (Volume* v) const	{return callback(v);}
 
 	private:
 		template <class TElem>
-		bool callback(TElem* e)			{return m_sel.is_selected(e);}
+		bool callback(TElem* e) const		{return m_sel.is_selected(e);}
 
 	private:
 		const ISelector&	m_sel;
 };
 
 ///	Element callback that returns true, if an element is not selected
-class IsNotSelected
+class IsNotSelected : public ElementCallback
 {
 	public:
 		IsNotSelected(const ISelector& sel) :
 			m_sel(sel)	{}
 
-		bool operator() (Vertex* v)	{return callback(v);}
-		bool operator() (Edge* e)	{return callback(e);}
-		bool operator() (Face* f)		{return callback(f);}
-		bool operator() (Volume* v)		{return callback(v);}
+		bool operator() (Vertex* v) const	{return callback(v);}
+		bool operator() (Edge* e) const		{return callback(e);}
+		bool operator() (Face* f) const		{return callback(f);}
+		bool operator() (Volume* v) const	{return callback(v);}
 
 	private:
 		template <class TElem>
-		bool callback(TElem* e)			{return !m_sel.is_selected(e);}
+		bool callback(TElem* e) const		{return !m_sel.is_selected(e);}
 
 	private:
 		const ISelector&	m_sel;

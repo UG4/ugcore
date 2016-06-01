@@ -37,7 +37,7 @@
 #include <limits>
 #include "refinement_mark_util.h"
 #include "lib_grid/lg_base.h"
-#include "lib_grid/algorithms/refinement/refiner_interface.h"
+#include "lib_grid/refinement/refiner_interface.h"
 
 namespace ug{
 

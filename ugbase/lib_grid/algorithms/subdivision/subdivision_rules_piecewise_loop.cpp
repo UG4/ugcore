@@ -64,7 +64,7 @@ operator=(const SubdivRules_PLoop& src)
 
 
 number SubdivRules_PLoop::
-get_beta(size_t valency)
+get_beta(size_t valency) const
 {
 	if(valency < m_betas.size())
 		return m_betas[valency];
@@ -73,7 +73,7 @@ get_beta(size_t valency)
 }
 
 number SubdivRules_PLoop::
-calculate_beta(size_t valency)
+calculate_beta(size_t valency) const
 {
 	if(valency == 6)
 		return 0.0625;

@@ -34,7 +34,7 @@
 #define __H__UG_DISC__ERROR_INDICATOR_UTIL__
 
 #include "lib_grid/multi_grid.h"
-#include "lib_grid/algorithms/refinement/refiner_interface.h"
+#include "lib_grid/refinement/refiner_interface.h"
 #include "lib_disc/dof_manager/dof_distribution.h"
 
 namespace ug{

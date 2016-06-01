@@ -33,40 +33,12 @@
 #ifndef __H__UG_boost_class_serialization_exports
 #define __H__UG_boost_class_serialization_exports
 
-#include "algorithms/refinement/refinement_callbacks.h"
-#include "algorithms/refinement/refinement_projectors/cylinder_projector.h"
-#include "algorithms/refinement/refinement_projectors/cylindrical_falloff_projector.h"
-#include "algorithms/refinement/refinement_projectors/fractal_projector.h"
-#include "algorithms/refinement/refinement_projectors/sphere_projector.h"
-#include "algorithms/refinement/refinement_projectors/spherical_falloff_projector.h"
-
-#include "common_attachments.h"
-
-/* This file is required to perform serialization through an archive.
- * Please include this file in your source module after the inclusion of the
- * archive you want to use for serialization.*/
-
-BOOST_CLASS_EXPORT(ug::RefinementCallbackLinear<ug::AVector1>);
-BOOST_CLASS_EXPORT(ug::RefinementCallbackLinear<ug::AVector2>);
-BOOST_CLASS_EXPORT(ug::RefinementCallbackLinear<ug::AVector3>);
-
-BOOST_CLASS_EXPORT(ug::CylinderProjector<ug::AVector1>);
-BOOST_CLASS_EXPORT(ug::CylinderProjector<ug::AVector2>);
-BOOST_CLASS_EXPORT(ug::CylinderProjector<ug::AVector3>);
-
-BOOST_CLASS_EXPORT(ug::CylindricalFalloffProjector<ug::AVector1>);
-BOOST_CLASS_EXPORT(ug::CylindricalFalloffProjector<ug::AVector2>);
-BOOST_CLASS_EXPORT(ug::CylindricalFalloffProjector<ug::AVector3>);
-
-BOOST_CLASS_EXPORT(ug::FractalProjector);
-
-BOOST_CLASS_EXPORT(ug::SphereProjector<ug::AVector1>);
-BOOST_CLASS_EXPORT(ug::SphereProjector<ug::AVector2>);
-BOOST_CLASS_EXPORT(ug::SphereProjector<ug::AVector3>);
-
-BOOST_CLASS_EXPORT(ug::SphericalFalloffProjector<ug::AVector1>);
-BOOST_CLASS_EXPORT(ug::SphericalFalloffProjector<ug::AVector2>);
-BOOST_CLASS_EXPORT(ug::SphericalFalloffProjector<ug::AVector3>);
+#include "refinement/refinement_projector.h"
+#include "refinement/projectors/sphere_projector.h"
+#include "refinement/projectors/cylinder_projector.h"
+BOOST_CLASS_EXPORT(ug::RefinementProjector);
+BOOST_CLASS_EXPORT(ug::SphereProjectorNew);
+BOOST_CLASS_EXPORT(ug::CylinderProjectorNew);
 
 
 // Provider<std::map<std::string, boost::function< SmartPtr<IRefinementCallback*> () > >::get()["None3d"] = RefinementCallbackLinear

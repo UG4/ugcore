@@ -49,7 +49,8 @@ template <class TRefiner>
 class TParallelGlobalRefiner : public TRefiner
 {
 	public:
-		TParallelGlobalRefiner(DistributedGridManager& distGridMgr);
+		TParallelGlobalRefiner(DistributedGridManager& distGridMgr,
+							   SPRefinementProjector projector = SPNULL);
 		virtual ~TParallelGlobalRefiner();
 
 	protected:

@@ -34,7 +34,7 @@
 #define __H__UG__parallel_hanging_node_refiner_multi_grid__
 
 
-#include "lib_grid/algorithms/refinement/hanging_node_refiner_multi_grid.h"
+#include "lib_grid/refinement/hanging_node_refiner_multi_grid.h"
 #include "../distributed_grid.h"
 #include "pcl/pcl_interface_communicator.h"
 
@@ -56,11 +56,11 @@ class ParallelHangingNodeRefiner_MultiGrid : public HangingNodeRefiner_MultiGrid
 		using BaseClass::copy_marks_to_vmasters;
 		using BaseClass::copy_marks_to_vslaves;
 
-		ParallelHangingNodeRefiner_MultiGrid(IRefinementCallback* refCallback = NULL);
+		ParallelHangingNodeRefiner_MultiGrid(SPRefinementProjector projector = SPNULL);
 
 		ParallelHangingNodeRefiner_MultiGrid(
 				DistributedGridManager& distGridMgr,
-				IRefinementCallback* refCallback = NULL);
+				SPRefinementProjector projector = SPNULL);
 
 		virtual ~ParallelHangingNodeRefiner_MultiGrid();
 

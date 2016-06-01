@@ -40,7 +40,7 @@ INPUT                  = lib_grid/additional_pages \
                          ../ugbase/pcl \
                          ../ugbase/lib_grid
 EXCLUDE                = ../ugbase/common/profiler \
-<                        ../ugbase/lib_grid/algorithms/refinement/unmaintained \
+<                        ../ugbase/lib_grid/refinement/unmaintained \
 <                        ../ugbase/lib_grid/parallelization/parallel_refinement/unmaintained
 # the doxygen mainpage is a .txt file
 FILE_PATTERNS         += *.txt

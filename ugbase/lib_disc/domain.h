@@ -34,6 +34,8 @@
 #define __H__UG__LIB_DISC__DOMAIN__
 
 #include "lib_grid/algorithms/subset_util.h"
+#include "lib_grid/refinement/projectors/refinement_projector.h"
+
 #include <map>
 
 #ifdef UG_PARALLEL
@@ -205,14 +207,25 @@ class IDomain
 	///	const access to Subset Handler
 		const ConstSmartPtr<TSubsetHandler> additional_subset_handler(std::string name) const;
 
+	///	sets the ug::RefinementProjector which can be used by refiners during refinement
+		void set_refinement_projector(SPRefinementProjector proj);
+
+	///	returns the domain's ug::RefinementProjector. The pointer may be invalid.
+		SPRefinementProjector refinement_projector() const;
+
+	///	returns the geometry of the domain
+		virtual SPIGeometry3d geometry3d() const = 0;
+
 	protected:
 		SmartPtr<TGrid> m_spGrid;			///< Grid
 		SmartPtr<TSubsetHandler> m_spSH;	///< Subset Handler
 		std::map<std::string, SmartPtr<TSubsetHandler> >	m_additionalSH; ///< additional subset handlers
 
-		MessageHub::SPCallbackId m_spGridAdaptionCallbackID;
-		MessageHub::SPCallbackId m_spGridCreationCallbackID;
-		MessageHub::SPCallbackId m_spGridDistributionCallbackID;
+		SPRefinementProjector		m_refinementProjector;
+
+		MessageHub::SPCallbackId 	m_spGridAdaptionCallbackID;
+		MessageHub::SPCallbackId 	m_spGridCreationCallbackID;
+		MessageHub::SPCallbackId 	m_spGridDistributionCallbackID;
 
 		DomainInfo	m_domainInfo;
 
@@ -294,9 +307,12 @@ class Domain : public IDomain<TGrid, TSubsetHandler>
 	///	const access to Position Accessor
 		inline const position_accessor_type& position_accessor() const{return m_aaPos;}
 
+		virtual SPIGeometry3d geometry3d() const	{return m_geometry3d;}
+
 	protected:
 		position_attachment_type m_aPos;	///<Position Attachment
-		position_accessor_type m_aaPos;		///<Accessor
+		position_accessor_type	m_aaPos;		///<Accessor
+		SPIGeometry3d			m_geometry3d;
 };
 
 typedef Domain<1, MultiGrid, MGSubsetHandler> Domain1d;

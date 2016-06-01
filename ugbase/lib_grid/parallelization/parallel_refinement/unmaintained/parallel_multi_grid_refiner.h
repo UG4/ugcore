@@ -36,7 +36,7 @@
 #include <vector>
 #include "lib_grid/lg_base.h"
 #include "lib_grid/multi_grid.h"
-#include "lib_grid/algorithms/refinement/multi_grid_refiner.h"
+#include "lib_grid/refinement/multi_grid_refiner.h"
 #include "../distributed_grid.h"
 
 namespace ug

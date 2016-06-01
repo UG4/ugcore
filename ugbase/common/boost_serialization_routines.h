@@ -39,6 +39,12 @@
 #define __H__UG_boost_serialization_routines
 
 #include "boost_serialization.h"
+#include "math/ugmath_types.h"
+ 
+BOOST_CLASS_IMPLEMENTATION(ug::vector1, boost::serialization::object_serializable);
+BOOST_CLASS_IMPLEMENTATION(ug::vector2, boost::serialization::object_serializable);
+BOOST_CLASS_IMPLEMENTATION(ug::vector3, boost::serialization::object_serializable);
+BOOST_CLASS_IMPLEMENTATION(ug::vector4, boost::serialization::object_serializable);
 
 namespace boost{
 namespace serialization{
@@ -62,7 +68,6 @@ namespace serialization{
 		ar & ug::make_nvp("x", v[0]);
 		ar & ug::make_nvp("y", v[1]);
 		ar & ug::make_nvp("z", v[2]);
-		UG_LOG("    serialized vector " << v << std::endl);
 	}
 
 	template <typename Archive>

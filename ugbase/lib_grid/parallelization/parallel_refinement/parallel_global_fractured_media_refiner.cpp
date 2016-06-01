@@ -39,8 +39,9 @@ namespace ug
 {
 
 ParallelGlobalFracturedMediaRefiner::
-ParallelGlobalFracturedMediaRefiner(DistributedGridManager& distGridMgr) :
-	GlobalFracturedMediaRefiner(*distGridMgr.get_assigned_grid()),
+ParallelGlobalFracturedMediaRefiner(DistributedGridManager& distGridMgr,
+									SPRefinementProjector projector) :
+	GlobalFracturedMediaRefiner(*distGridMgr.get_assigned_grid(), projector),
 	m_distGridMgr(distGridMgr)
 {
 }
