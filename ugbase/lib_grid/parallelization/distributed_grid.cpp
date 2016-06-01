@@ -48,7 +48,8 @@ DistributedGridManager() :
 	m_aElemInfoVrt("DistributedGridManager_ElemInfoVrt", false),
 	m_aElemInfoEdge("DistributedGridManager_ElemInfoEdge", false),
 	m_aElemInfoFace("DistributedGridManager_ElemInfoFace", false),
-	m_aElemInfoVol("DistributedGridManager_ElemInfoVol", false)
+	m_aElemInfoVol("DistributedGridManager_ElemInfoVol", false),
+	m_spDistroAdjuster(SPNULL)
 {
 	m_interfaceManagementEnabled = true;
 	m_bOrderedInsertionMode = false;
@@ -61,7 +62,8 @@ DistributedGridManager(MultiGrid& grid) :
 	m_aElemInfoVrt("DistributedGridManager_ElemInfoVrt", false),
 	m_aElemInfoEdge("DistributedGridManager_ElemInfoEdge", false),
 	m_aElemInfoFace("DistributedGridManager_ElemInfoFace", false),
-	m_aElemInfoVol("DistributedGridManager_ElemInfoVol", false)
+	m_aElemInfoVol("DistributedGridManager_ElemInfoVol", false),
+	m_spDistroAdjuster(SPNULL)
 {
 	m_interfaceManagementEnabled = true;
 	m_bOrderedInsertionMode = false;

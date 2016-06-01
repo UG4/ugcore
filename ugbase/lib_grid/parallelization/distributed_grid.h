@@ -38,6 +38,7 @@
 #include "parallel_grid_layout.h"
 #include "lib_grid/multi_grid.h"
 #include "common/util/owned_pointer.h"
+#include "distro_adjuster.h"
 
 namespace ug
 {
@@ -185,7 +186,24 @@ class DistributedGridManager : public GridObserver
 	 * grid_layouts_changed to inform the DistributedGridManager that you
 	 * modified the interfaces externally.*/
 		void enable_interface_management(bool bEnable)	{m_interfaceManagementEnabled = bEnable;}
+
+
+	/// set a global distribution adjuster
+	/** A distribution adjuster may be used to manually adjust how elements are distributed
+	 *  by the domain distribution. For example, in the circumstances that led to the implementation
+	 *  of this feature, it was necessary to distribute certain vertices to all processes which held
+	 *  elements of a specific subset (regardless of whether those processes had any elements
+	 *  connected to these vertices or not).
+	 *  During the distribution process, the adjuster's adjust() method is called at the end of
+	 *  SelectElementsForTargetPartition() in distribution.cpp.
+	 *
+	 * @warning This is a highly experimental feature and as such not guaranteed to work properly.
+	 */
+		void set_distro_adjuster(SmartPtr<DistroAdjuster> adj) {m_spDistroAdjuster = adj;}
 		
+	/// get the distribution adjuster
+		SmartPtr<DistroAdjuster> distro_adjuster() {return m_spDistroAdjuster;}
+
 	////////////////////////////////
 	//	grid callbacks
 		virtual void grid_to_be_destroyed(Grid* grid);
@@ -459,6 +477,8 @@ class DistributedGridManager : public GridObserver
 		std::vector<Vertex*>	m_newConstrainedVerticalVrts;
 		std::vector<Edge*>		m_newConstrainedVerticalEdges;
 		std::vector<Face*>			m_newConstrainedVerticalFaces;
+
+		SmartPtr<DistroAdjuster> m_spDistroAdjuster;
 };
 
 /// @}
