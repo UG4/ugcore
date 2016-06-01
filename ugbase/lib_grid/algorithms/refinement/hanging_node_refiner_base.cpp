@@ -514,7 +514,7 @@ save_marks_to_file(const char* filename)
 	Grid& g = *m_pGrid;
 	SubsetHandler sh(g);
 
-	AssignGridToSubset(g, sh, 4);
+	AssignGridToSubset(g, sh, 6);
 
 	selector_t& sel = get_refmark_selector();
 
@@ -524,9 +524,10 @@ save_marks_to_file(const char* filename)
 			case RM_NONE: break;
 			case RM_REFINE: sh.assign_subset(*iter, 0); break;
 			case RM_ANISOTROPIC: sh.assign_subset(*iter, 1); break;
-			case RM_CLOSURE: sh.assign_subset(*iter, 2); break;
-			case RM_COARSEN: sh.assign_subset(*iter, 3); break;
-			default: sh.assign_subset(*iter, 4); break;
+			case RM_COPY: sh.assign_subset(*iter, 2); break;
+			case RM_CLOSURE: sh.assign_subset(*iter, 3); break;
+			case RM_COARSEN: sh.assign_subset(*iter, 4); break;
+			default: sh.assign_subset(*iter, 5); break;
 		}
 	}
 
@@ -536,9 +537,10 @@ save_marks_to_file(const char* filename)
 			case RM_NONE: break;
 			case RM_REFINE: sh.assign_subset(*iter, 0); break;
 			case RM_ANISOTROPIC: sh.assign_subset(*iter, 1); break;
-			case RM_CLOSURE: sh.assign_subset(*iter, 2); break;
-			case RM_COARSEN: sh.assign_subset(*iter, 3); break;
-			default: sh.assign_subset(*iter, 4); break;
+			case RM_COPY: sh.assign_subset(*iter, 2); break;
+			case RM_CLOSURE: sh.assign_subset(*iter, 3); break;
+			case RM_COARSEN: sh.assign_subset(*iter, 4); break;
+			default: sh.assign_subset(*iter, 5); break;
 		}
 	}
 
@@ -548,9 +550,10 @@ save_marks_to_file(const char* filename)
 			case RM_NONE: break;
 			case RM_REFINE: sh.assign_subset(*iter, 0); break;
 			case RM_ANISOTROPIC: sh.assign_subset(*iter, 1); break;
-			case RM_CLOSURE: sh.assign_subset(*iter, 2); break;
-			case RM_COARSEN: sh.assign_subset(*iter, 3); break;
-			default: sh.assign_subset(*iter, 4); break;
+			case RM_COPY: sh.assign_subset(*iter, 2); break;
+			case RM_CLOSURE: sh.assign_subset(*iter, 3); break;
+			case RM_COARSEN: sh.assign_subset(*iter, 4); break;
+			default: sh.assign_subset(*iter, 5); break;
 		}
 	}
 
@@ -560,18 +563,20 @@ save_marks_to_file(const char* filename)
 			case RM_NONE: break;
 			case RM_REFINE: sh.assign_subset(*iter, 0); break;
 			case RM_ANISOTROPIC: sh.assign_subset(*iter, 1); break;
-			case RM_CLOSURE: sh.assign_subset(*iter, 2); break;
-			case RM_COARSEN: sh.assign_subset(*iter, 3); break;
-			default: sh.assign_subset(*iter, 4); break;
+			case RM_COPY: sh.assign_subset(*iter, 2); break;
+			case RM_CLOSURE: sh.assign_subset(*iter, 3); break;
+			case RM_COARSEN: sh.assign_subset(*iter, 4); break;
+			default: sh.assign_subset(*iter, 5); break;
 		}
 	}
 
 	sh.subset_info(0).name = "refine regular";
 	sh.subset_info(1).name = "refine anisotropic";
-	sh.subset_info(2).name = "refine closure";
-	sh.subset_info(3).name = "coarsen";
-	sh.subset_info(4).name = "combi-mark";
-	sh.subset_info(5).name = "no marks";
+	sh.subset_info(2).name = "refine copy";
+	sh.subset_info(3).name = "refine closure";
+	sh.subset_info(4).name = "coarsen";
+	sh.subset_info(5).name = "combi-mark";
+	sh.subset_info(6).name = "no marks";
 
 	AssignSubsetColors(sh);
 
@@ -1147,12 +1152,15 @@ assign_hnode_marks()
 			Edge* e = *iter;
 			CollectAssociated(faces, grid, e);
 			for(size_t i = 0; i < faces.size(); ++i){
-				if(marked_to_constraining(faces[i])){
+				if(marked_to_constraining(faces[i])
+				   && marked_refine(e))
+				{
 					add_hmark(e, HNRM_TO_CONSTRAINING);
 					break;
 				}
 				else if(refinement_is_allowed(faces[i])
-						&& (!m_selMarkedElements.is_selected(faces[i])))
+						&& (!m_selMarkedElements.is_selected(faces[i]))
+						&& marked_refine(e))
 				{
 					add_hmark(e, HNRM_TO_CONSTRAINING);
 					break;
@@ -1541,16 +1549,19 @@ refine_face_with_hanging_vertex(Face* f, Vertex** newCornerVrts)
 	vector<Face*>		vFaces(f->num_vertices());// heuristic
 
 	size_t numEdges = f->num_edges();
+	size_t numMarkedEdges = 0;
 	for(size_t i = 0; i < numEdges; ++i){
 		Edge* e = grid.get_edge(f, i);
 
 	//	if the face is refined with a regular rule, then every edge has to have
 	//	an associated center vertex
 		assert(marked_adaptive(f) ||
-				((get_mark(f) == RM_REFINE) && (get_center_vertex(e) != NULL)));
+				((get_mark(f) == RM_REFINE)));
 
 	//	assign the center vertex
 		vNewEdgeVertices[i] = get_center_vertex(e);
+		if(vNewEdgeVertices[i])
+			++numMarkedEdges;
 	}
 
 	ConstrainingFace* cgf = NULL;
@@ -1582,16 +1593,18 @@ refine_face_with_hanging_vertex(Face* f, Vertex** newCornerVrts)
 				cgf = *grid.create_and_replace<ConstrainingQuadrilateral>(f);
 
 			//	a central hanging vertex is required
-				hv = *grid.create<ConstrainedVertex>(cgf);
+				if(numMarkedEdges == 4){
+					hv = *grid.create<ConstrainedVertex>(cgf);
 
-			//	allow refCallback to calculate a new position
-				if(m_refCallback)
-					m_refCallback->new_vertex(hv, cgf);
+				//	allow refCallback to calculate a new position
+					if(m_refCallback)
+						m_refCallback->new_vertex(hv, cgf);
+					set_center_vertex(cgf, hv);
 
-				set_center_vertex(cgf, hv);
-				hv->set_constraining_object(cgf);
-				cgf->add_constrained_object(hv);
-				hv->set_local_coordinates(0.5, 0.5);
+					hv->set_constraining_object(cgf);
+					cgf->add_constrained_object(hv);
+					hv->set_local_coordinates(0.5, 0.5);
+				}
 
 			//	create the constrained faces.
 			//	the following quadrilateral will not be registered at the grid. Just a temporary one.
@@ -1601,6 +1614,8 @@ refine_face_with_hanging_vertex(Face* f, Vertex** newCornerVrts)
 			//	refine the constrained quad
 				Vertex* tmpVrt;
 				cdf.refine(vFaces, &tmpVrt, vNewEdgeVertices, hv, newCornerVrts);
+
+				UG_COND_THROW(tmpVrt != hv, "Internal refinement error.");
 			}
 			break;
 		default:
@@ -1628,10 +1643,9 @@ refine_face_with_hanging_vertex(Face* f, Vertex** newCornerVrts)
 	//	have to be linked with the constraining face, the following algorithm will be ok for
 	//	triangles and quadrilaterals.
 	//	Check for each new edge-vertex, if an edge exists with the new center vertex or with it's next neighbor.
-		for(size_t i = 0; i < numEdges; ++i)
+		if(hv)
 		{
-			if(hv)
-			{
+			for(size_t i = 0; i < numEdges; ++i) {
 				ConstrainedEdge* e = dynamic_cast<ConstrainedEdge*>(grid.get_edge(vNewEdgeVertices[i], hv));
 				if(e)
 				{
@@ -1640,7 +1654,9 @@ refine_face_with_hanging_vertex(Face* f, Vertex** newCornerVrts)
 					cgf->add_constrained_object(e);
 				}
 			}
-			else{
+		}
+		else if(numVrts == 3 && numMarkedEdges == 3){
+			for(size_t i = 0; i < numEdges; ++i) {
 			//	check if a constrained edge exists between the vertex and its next neighbor
 				Vertex* vNext = vNewEdgeVertices[(i + 1) % numEdges];
 				ConstrainedEdge* e = dynamic_cast<ConstrainedEdge*>(grid.get_edge(vNewEdgeVertices[i], vNext));
@@ -1649,6 +1665,44 @@ refine_face_with_hanging_vertex(Face* f, Vertex** newCornerVrts)
 				//	link e with the constraining face
 					e->set_constraining_object(cgf);
 					cgf->add_constrained_object(e);
+				}
+			}
+		}
+		else{
+			for(size_t i = 0; i < numEdges; ++i) {
+				Vertex* vCur = vNewEdgeVertices[i];
+				if(!vCur)
+					continue;
+
+			//	check if constrained edges exist between pairs of new edge vertices
+			//	and pairs of new edge vertices and normal vertices
+				for(size_t j = i + 1; j < numEdges; ++j){
+					Vertex* vNext = vNewEdgeVertices[j];
+					if(vNext){
+						ConstrainedEdge* e = dynamic_cast<ConstrainedEdge*>(grid.get_edge(vCur, vNext));
+						if(e)
+						{
+						//	link e with the constraining face
+							e->set_constraining_object(cgf);
+							cgf->add_constrained_object(e);
+						}
+					}
+				}
+
+				for(size_t j = i + 2; j < i + 2 + numVrts - 2; ++j){
+					Vertex* vNext;
+					if(newCornerVrts)
+						vNext = newCornerVrts[j%numVrts];
+					else
+						vNext = cgf->vertex(j%numVrts);
+
+					ConstrainedEdge* e = dynamic_cast<ConstrainedEdge*>(grid.get_edge(vCur, vNext));
+					if(e)
+					{
+					//	link e with the constraining face
+						e->set_constraining_object(cgf);
+						cgf->add_constrained_object(e);
+					}
 				}
 			}
 		}
