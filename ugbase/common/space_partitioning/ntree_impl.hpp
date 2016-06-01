@@ -71,9 +71,14 @@ void ntree<tree_dim, world_dim, elem_t, common_data_t>::
 set_desc(const NTreeDesc& desc)
 {
 	m_desc = desc;
-	rebalance();
 }
 
+template <int tree_dim, int world_dim, class elem_t, class common_data_t>
+const NTreeDesc& ntree<tree_dim, world_dim, elem_t, common_data_t>::
+desc() const
+{
+	return m_desc;
+}
 
 template <int tree_dim, int world_dim, class elem_t, class common_data_t>
 void ntree<tree_dim, world_dim, elem_t, common_data_t>::
@@ -182,9 +187,17 @@ void ntree<tree_dim, world_dim, elem_t, common_data_t>::
 split_leaf_node(size_t nodeIndex)
 {
 
-	assert((m_nodes[nodeIndex].numEntries >= 2)
-		   && "Not enough elements in a node during split_leaf_node");
+	if(m_nodes[nodeIndex].numEntries <= 1)
+		return;
 
+	if(m_nodes[nodeIndex].level >= m_desc.maxDepth){
+		UG_LOG("WARNING in ntree::split_leaf_node(): maximum tree depth "
+			<< m_desc.maxDepth << " reached. No further splits are performed for "
+			" this node. Note that too many elements per node may lead to performance issues.\n"
+			<< "  Number of elements in this node: " << m_nodes[nodeIndex].numEntries << std::endl
+			<< "  Corner coordinates of this node: " << m_nodes[nodeIndex].tightBox << std::endl);
+		return;
+	}
 
 	if(m_nodes[nodeIndex].childNodeInd[0] != s_invalidIndex)
 		return;
@@ -195,10 +208,14 @@ split_leaf_node(size_t nodeIndex)
 //	ATTENTION: Be careful not to resize m_nodes while using node, since this would invalidate the reference!
 	Node& node = m_nodes[nodeIndex];
 
+//	calculate center of mass and use the traits class to split the box of
+//	the current node into 's_numChildren' child boxes. Each child box thereby
+//	spanned by one of the corners of the original box and 'centerOfMass'.
 	vector_t centerOfMass = calculate_center_of_mass(node);
 	box_t childBoxes[s_numChildren];
 	traits::split_box(childBoxes, node.tightBox, centerOfMass);
 
+//	iterate over all entries in the current node and assign them to child nodes.
 	size_t numEntriesAssigned = 0;
 	for(size_t entryInd = node.firstEntryInd; entryInd != s_invalidIndex;){
 		Entry& entry = m_entries[entryInd];
@@ -217,8 +234,11 @@ split_leaf_node(size_t nodeIndex)
 		entryInd = nextEntryInd;
 	}
 
-	assert((numEntriesAssigned == node.numEntries)
-		   && "Couldn't find a matching child node for some elements during split_leaf_node:");
+//	all elements of the current box now should be assigned to child boxes.
+//	we thus clear element lists and entry-count from the current node.
+	UG_COND_THROW(numEntriesAssigned != node.numEntries, "Couldn't find a matching "
+				  "child node for some elements during split_leaf_node in "
+				  "ntree::split_leaf_node");
 
 	node.firstEntryInd = node.lastEntryInd = s_invalidIndex;
 	node.numEntries = 0;

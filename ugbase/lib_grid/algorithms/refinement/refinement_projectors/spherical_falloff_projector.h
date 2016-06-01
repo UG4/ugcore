@@ -83,6 +83,18 @@ class SphericalFalloffProjector : public IRefinementCallback
 		pos_type									m_center;
 		number										m_innerRadius;
 		number										m_outerRadius;
+
+	private:
+		friend class boost::serialization::access;
+
+		template <class Archive>
+		void serialize( Archive& ar, const unsigned int version)
+		{
+			ar & make_nvp("center", m_center);
+			ar & make_nvp("innerRadius", m_innerRadius);
+			ar & make_nvp("outerRadius", m_outerRadius);
+			UG_EMPTY_BASE_CLASS_SERIALIZATION(SphericalFalloffProjector, IRefinementCallback);
+		}
 };
 /// @}
 

@@ -47,18 +47,19 @@ namespace ug{
  * Supporting both left- and right transformations
  *
  * Given
- *
- * $$ A = T_L**{-1} \hat A T_R $$
- *
+ * \f{eqnarray*}{
+ *  A = T_L^{-1} \hat{A} T_R
+ * \f}
  * this implements a subspace correction based on a defect correction:
- *
- *  $$ x := x +  T_R**{-1} (\hat A)**{-1} T_L (b-Ax)$$
- *
- *  If inversion is to expensive, we replace may replace this by a (single step) iterative solver.
+ * \f{eqnarray*}{
+ *  x := x +  T_R^{-1} {\hat{A}}^{-1} T_L (b-Ax)
+ * \f}
+ * If inversion is to expensive, we replace may replace this by a (single step) iterative solver.
  *
  * In order
  *
- *  */
+ *
+ */
 template<typename TAlgebra, typename TDerived>
 class ITransformingIteration :
 	public ILinearIterator<typename TAlgebra::vector_type>,

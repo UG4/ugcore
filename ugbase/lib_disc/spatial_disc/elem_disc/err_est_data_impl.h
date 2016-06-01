@@ -30,8 +30,6 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include "err_est_data.h"
-
 namespace ug{
 
 // ******** class SideFluxErrEstData ********

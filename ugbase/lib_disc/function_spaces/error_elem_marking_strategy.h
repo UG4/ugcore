@@ -52,11 +52,26 @@ struct IElementMarkingStrategy
 	typedef typename domain_traits<dim>::element_type elem_type;
 	typedef typename MultiGrid::AttachmentAccessor<elem_type, ug::Attachment<number> > elem_accessor_type;
 
+	IElementMarkingStrategy() :
+		m_latest_error(-1),
+		m_latest_error_per_elem_max(-1),
+		m_latest_error_per_elem_min(-1)
+	{}
 	virtual ~IElementMarkingStrategy(){};
 
 	virtual void mark(elem_accessor_type& aaError,
 			IRefiner& refiner,
 			ConstSmartPtr<DoFDistribution> dd) = 0;
+
+	protected:
+		number m_latest_error;
+		number m_latest_error_per_elem_max;
+		number m_latest_error_per_elem_min;
+
+	public:
+		number global_estimated_error() const {return m_latest_error;}
+		number global_estimated_error_per_elem_max() const {return m_latest_error_per_elem_max;}
+		number global_estimated_error_per_elem_min() const {return m_latest_error_per_elem_min;}
 };
 
 /// M. Breit's standard refinement strategy
@@ -344,8 +359,8 @@ void MaximumMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaErr
 
 }
 
-/// marks elements above $\theta * (\mu + width * \sigma)$
-//! where $\mu = E[\eta^2], \sigma^2 = Var[\eta^2]$
+/// marks elements above \f$ \theta * (\mu + width * \sigma) \f$
+//! where \f$ \mu = E[\eta^2], \sigma^2 = Var[\eta^2] \f$
 template <typename TDomain>
 class VarianceMarking : public IElementMarkingStrategy<TDomain>{
 
@@ -382,6 +397,9 @@ void VarianceMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaEr
 	ComputeMinMax(aaError, dd, minElemErr, maxElemErr, errTotal, numElem,
 				minElemErrLocal, maxElemErrLocal, errLocal, numElemLocal);
 
+	this->m_latest_error = sqrt(errTotal);
+	this->m_latest_error_per_elem_max = maxElemErr;
+	this->m_latest_error_per_elem_min = minElemErr;
 
 //	number elemMean =  sqrt(errTotal) / numElem;
 	number elemMean =  errTotal / numElem;
@@ -470,8 +488,8 @@ void VarianceMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaEr
 }
 
 
-/// marks elements above $\theta * (\mu + width * \sigma)$
-//! where $\mu = E[\eta^2], \sigma^2 = Var[\eta^2]$
+/// marks elements above \f$ \theta * (\mu + width * \sigma) \f$
+//! where \f$ \mu = E[\eta^2], \sigma^2 = Var[\eta^2] \f$
 template <typename TDomain>
 class VarianceMarkingEta : public IElementMarkingStrategy<TDomain>{
 
@@ -502,14 +520,19 @@ void VarianceMarkingEta<TDomain>::mark(typename base_type::elem_accessor_type& a
 
 	number minElemErr, minElemErrLocal;
 	number maxElemErr, maxElemErrLocal;
-	number errTotal, errLocal;
+	number errSum, errTotalSq, errLocal;
 	size_t numElem, numElemLocal;
 
-	const number elemMean = ComputeAvg(aaError, dd, minElemErr, maxElemErr, errTotal, numElem,
+	const number elemMean = ComputeAvg(aaError, dd, minElemErr, maxElemErr, errSum, errTotalSq, numElem,
 									minElemErrLocal, maxElemErrLocal, errLocal, numElemLocal);
 
-//	number elemMean =  sqrt(errTotal) / numElem;
-	//number elemMean =  errTotal / numElem;
+
+	this->m_latest_error = sqrt(errTotalSq);
+	this->m_latest_error_per_elem_max = maxElemErr;
+	this->m_latest_error_per_elem_min = minElemErr;
+
+//	number elemMean =  sqrt(errSum) / numElem;
+	//number elemMean =  errSum / numElem;
 
 	UG_LOG("  +++ VarianceMarkingEta: Mean error : " << elemMean << " on "<< numElem << " elements.\n");
 
@@ -887,6 +910,8 @@ void AbsoluteMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaEr
 			errTotal = com.allreduce(errLocal, PCL_RO_SUM);
 		}
 #endif
+
+		this->m_latest_error = sqrt(errTotal);
 
 		UG_LOG("  +++ AbsoluteMarking: Error**2 = "<<errTotal <<"; marked "<< numMarkedRefine << " elements for refinement "<<std::endl);
 

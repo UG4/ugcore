@@ -47,6 +47,12 @@ namespace ug{
  *	of the grid.
  *
  *	An uninitialized refinement-callback may not be used during refinement.
+ *
+ *	Please note that the radius property is ignored during refinement, since
+ *	the new distance to the center is computed as the average of distances
+ *	of connected old vertices. The radius property is only useful to project
+ *	a set of vertices onto the sphere's hull. If you don't need that, you may
+ *	choose an arbitrary value for radius.
  */
 template <class TAPosition>
 class SphereProjector : public IRefinementCallback
@@ -56,7 +62,11 @@ class SphereProjector : public IRefinementCallback
 
 	///	make sure that aPos is attached to the vertices of the grid.
 		SphereProjector(Grid& grid, TAPosition& aPos,
-								 const typename TAPosition::ValueType& center);
+						const typename TAPosition::ValueType& center);
+
+		SphereProjector(Grid& grid, TAPosition& aPos,
+						const typename TAPosition::ValueType& center,
+						number radius);
 
 		virtual ~SphereProjector();
 
@@ -77,6 +87,18 @@ class SphereProjector : public IRefinementCallback
 		Grid* 										m_pGrid;
 		Grid::VertexAttachmentAccessor<TAPosition>	m_aaPos;
 		pos_type									m_center;
+		number										m_radius;
+
+	private:
+		friend class boost::serialization::access;
+
+		template <class Archive>
+		void serialize( Archive& ar, const unsigned int version)
+		{
+			ar & make_nvp("center", m_center);
+			ar & make_nvp("radius", m_radius);
+			UG_EMPTY_BASE_CLASS_SERIALIZATION(SphereProjector, IRefinementCallback);
+		}
 };
 /// @}
 

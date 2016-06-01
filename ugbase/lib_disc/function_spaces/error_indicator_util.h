@@ -45,7 +45,7 @@ template<typename TElem>
 number ComputeAvg
 (	MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >& aaError,
 	ConstSmartPtr<DoFDistribution> dd,
-	number& min, number& max, number& sum, size_t& numElem,
+	number& min, number& max, number& sum, number& errSq, size_t& numElem,
 	number& minLocal, number& maxLocal, number& sumLocal, size_t& numElemLocal
 )
 {
@@ -54,7 +54,7 @@ number ComputeAvg
 //	reset maximum of error
 	max = 0.0, min = std::numeric_limits<number>::max();
 	sum = 0.0;
-	number err = 0.0;
+	errSq = 0.0;
 	numElem = 0;
 
 //	get element iterator
@@ -82,7 +82,7 @@ number ComputeAvg
 
 	//	sum up total error
 		sum += elemEta;
-		err += elemEta2;
+		errSq += elemEta2;
 		++numElem;
 	}
 
@@ -91,7 +91,7 @@ number ComputeAvg
 	minLocal = min;
 	sumLocal = sum;
 #ifdef UG_PARALLEL
-	number errLocal = err;
+	number errLocal = errSq;
 #endif
 	numElemLocal = numElem;
 
@@ -102,13 +102,13 @@ number ComputeAvg
 		max = com.allreduce(maxLocal, PCL_RO_MAX);
 		min = com.allreduce(minLocal, PCL_RO_MIN);
 		sum = com.allreduce(sumLocal, PCL_RO_SUM);
-		err = com.allreduce(errLocal, PCL_RO_SUM);
+		errSq = com.allreduce(errLocal, PCL_RO_SUM);
 		numElem = com.allreduce(numElemLocal, PCL_RO_SUM);
 	}
 #endif
 	UG_LOG("  +++++  Error indicator on " << numElem << " elements +++++\n");
 	UG_LOG("  +++ Element errors: maximum=" << max << ", minimum="
-			<< min << ", sum=" << sum << ", error=" << err << ".\n");
+			<< min << ", sum=" << sum << ", error=" << errSq << ".\n");
 
 	return (sum/numElem);
 }
@@ -201,7 +201,7 @@ void ComputeMinMaxTotal
  * \param[in]		dd			dof distribution
  * \param[in]		TOL			Minimum error, such that an element is marked
  * \param[in]		scale		scaling factor indicating lower bound for marking
- * \param[in]		aaError		Error value attachment to elements (\eta_i^2)
+ * \param[in]		aaError		Error value attachment to elements (\f$ \eta_i^2 \f$)
  */
 template<typename TElem>
 void MarkElements(MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >& aaError,
@@ -286,7 +286,7 @@ void MarkElements(MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >&
  * error of err >= tol / #elems are marked for refinement if and only if their
  * multigrid level is below the tolerated maximum of maxLevel.
  *
- * \param[in]		aaError		error value attachment to elements (\eta_i^2)
+ * \param[in]		aaError		error value attachment to elements (\f$ \eta_i^2 \f$)
  * \param[in, out]	refiner		refiner, elements marked on exit
  * \param[in]		dd			dof distribution
  * \param[in]		tol			tolerated global error (no refinement if error below)
@@ -369,7 +369,7 @@ void MarkElementsForRefinement
  * supposed to ensure that elements are not refined and coarsened back and
  * forth in a dynamic adaptive simulation.
  *
- * \param[in]		aaError		error value attachment to elements (\eta_i^2)
+ * \param[in]		aaError		error value attachment to elements (\f$ \eta_i^2 \f$)
  * \param[in, out]	refiner		refiner, elements marked on exit
  * \param[in]		dd			dof distribution
  * \param[in]		tol			tolerated global error

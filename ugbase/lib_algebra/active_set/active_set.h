@@ -44,41 +44,43 @@ namespace ug {
 /**
  *	The active Set method is a well-known method in constrained optimization theory.
  *	A general formulation for these problems reads
- *
+ *  \f{eqnarray*}{
  *		min_{x \in \mathbb{R}^n} f(x)
+ *  \f}
+ *	s.t.
+ *  \f{eqnarray*}{
+ *			c_i(x) = 0, \qquad i \in E \\
+ *			c_i(x) \ge 0 \qquad i \in I,
+ *  \f}
  *
- *		s.t.
- *			c_i(x) = 0, 	i \in E
- *			c_i(x) >= 0		i \in I,
+ *	where \f$ f \f$, \f$ c_i \f$ are smooth, real-valued functions on a subset of \f$ \mathbb{R}^n \f$.
+ *	\f$ I \f$ (set of inequality constraints) and \f$ E \f$ (set of equality constraints)
+ *	are two finite sets of indices. \f$ f \f$ is called objective function.
  *
- *	where f, c_i are smooth, real-valued functions on a subset of \mathbb{R}^n.
- *	I (set of inequality constraints) and E (set of equality constraints)
- *	are two finite sets of indices. f is called objective function.
- *
- *	The active Set A is defined as:
- *
- *		A(x) := E \cup { i \in I | c_i(x) = 0},
- *
- *	i.e. for i \in I the inequality constraint is said to be active, if c_i(x) = 0.
- *	Otherwise (c_i(x) > 0) it is called inactive.
+ *	The active Set \f$ A \f$ is defined as:
+ *  \f{eqnarray*}{
+ *		A(x) := E \cup \{ i \in I | c_i(x) = 0 \},
+ *  \f}
+ *	i.e. for \f$ i \in I \f$ the inequality constraint is said to be active, if \f$ c_i(x) = 0 \f$.
+ *	Otherwise (\f$ c_i(x) > 0 \f$) it is called inactive.
  *
  *	A common approach to treat the inequality constraints is its reformulation as
  *	equations by using so called complementarity functions, see e.g. C.Hager und B. I. Wohlmuth:
  *	"Hindernis- und Kontaktprobleme" for a simple introduction into this topic.
  *	By means of complementarity functions, constraints of the form
- *
- *		a >= 0, b >= 0, a * b = 0
- *
- *	with a, b \in \mathbb{R}^n can be reformulated as
- *
+ *  \f{eqnarray*}{
+ *		a \ge 0, \, b \ge 0, \, a b = 0
+ *  \f}
+ *	with \f$ a, b \in \mathbb{R}^n \f$ can be reformulated as
+ *  \f{eqnarray*}{
  *		C(a,b) = 0,
- *
- *	with C: \mathbb{R}^n x \mathbb{R}^n -> \mathbb{R}^n being an appropriate complementarity function.
- *	The value of C indicates, whether the index is active or inactive (see method 'active_index').
+ *  \f}
+ *	with \f$ C: \mathbb{R}^n x \mathbb{R}^n \to \mathbb{R}^n \f$ being an appropriate complementarity function.
+ *	The value of \f$ C \f$ indicates, whether the index is active or inactive (see method 'active_index').
  *	Thus, it determines in every step the set of active indices, for which the original system
  *	of equations needs to be adapted. The influence of these active indices on the original system
- *	of equations ( K * u = f, with K: system-matrix; u, f vectors) can be modelled by means of a
- *	lagrange multiplier '\lambda'. \lambda can either be defined by the residual ( \lambda := f - K * u,
+ *	of equations ( \f$ K u = f \f$, with \f$ K \f$: system-matrix; \f$ u, f \f$ vectors) can be modelled by means of a
+ *	lagrange multiplier '\f$ \lambda \f$'. \f$ \lambda \f$ can either be defined by the residual ( \f$ \lambda := f - K u \f$,
  *	see method 'residual_lagrange_mult') or by a problem-dependent computation (see method 'lagrange_multiplier').
  *
  *	In every Active Set step a linear or linearized system is solved. The algorithm stops when the active

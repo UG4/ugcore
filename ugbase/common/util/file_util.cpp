@@ -63,25 +63,25 @@ UG_API bool FileExists( const char *filename )
 }
 
 /// !!! Serial i/o version !!!
-UG_API size_t FileSize( const char *filename )
-{
-  PROFILE_FUNC(); // since i/o
+// UG_API size_t FileSize( const char *filename )
+// {
+//   PROFILE_FUNC(); // since i/o
 
-  if( !FileExists( filename ) ) {
-    UG_THROW( "The file " << filename << " could not be found." );
-  }
+//   if( !FileExists( filename ) ) {
+//     UG_THROW( "The file " << filename << " could not be found." );
+//   }
 
-  ifstream ifs;
-  ifs.open( filename, ios_base::in );
+//   ifstream ifs;
+//   ifs.open( filename, ios_base::in );
 
-  if( !ifs.good() ) {
-    UG_THROW( "The file " << filename << " could not be opened." );
-  }
-  ifs.seekg( 0, ios_base::end );
-  size_t length = ifs.tellg();
-  ifs.close();
-  return length;
-}
+//   if( !ifs.good() ) {
+//     UG_THROW( "The file " << filename << " could not be opened." );
+//   }
+//   ifs.seekg( 0, ios_base::end );
+//   size_t length = ifs.tellg();
+//   ifs.close();
+//   return length;
+// }
 
 bool FileTypeIs( const char* filename, const char* extension )
 {
@@ -150,24 +150,27 @@ UG_API bool FileCompare( const char *file1, const char *file2 )
 /// in parallel, see ParallelReadFile.
 bool ReadFile(const char* filename, vector<char> &file, bool bText)
 {
-	PROFILE_FUNC();
-	FILE *f = fopen(filename, bText ? "r" : "rb");
-	if(f==NULL)	return false;
-	fseek(f, 0, SEEK_END);
-	long filesize=ftell(f);
-	fseek(f, 0, SEEK_SET);
+  PROFILE_FUNC();
+  
+  size_t fileSize = FileSize(filename);
 
-	long actualFilesize=filesize;
-	if(bText) actualFilesize++;
-	file.resize(actualFilesize);
+  FILE *f = fopen(filename, "rb");
+  if(f==NULL) return false;
 
-	size_t readSize = fread(&file[0], 1, filesize, f);
-	UG_COND_THROW(static_cast<long>(readSize) != filesize,
-				  "Read mismatch in ReadFile. Wrong number of bytes read.");
 
-	fclose(f);
-	if(bText) file[filesize]=0x00;
-	return true;
+  if(bText)
+    file.resize(fileSize + 1);
+  else
+    file.resize(fileSize);
+
+  size_t readSize = fread(&file[0], 1, fileSize, f);
+  UG_COND_THROW(static_cast<long>(readSize) != fileSize,
+  			  "Read mismatch in ReadFile. Wrong number of bytes read: "
+          << readSize << ", expected: " << fileSize);
+
+  fclose(f);
+  if(bText) file[fileSize]=0x00;
+  return true;
 }
 
 /// !!! Serial i/o version !!!

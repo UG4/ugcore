@@ -77,7 +77,8 @@ util.balancer.defaults =
 			enableYCuts = true,
 			enableZCuts = true,
 			clusteredSiblings = true,
-			balanceThreshold = 0.9
+			balanceThreshold = 0.9,
+			numSplitImprovements = 10
 		},
 
 		staticBisection =
@@ -87,7 +88,8 @@ util.balancer.defaults =
 			enableYCuts = true,
 			enableZCuts = true,
 			clusteredSiblings = true,
-			balanceThreshold = 0.9
+			balanceThreshold = 0.9,
+			numSplitImprovements = 10
 		},
 
 		parmetis =
@@ -230,6 +232,7 @@ function util.balancer.CreatePartitioner(dom, partitionerDesc)
 	if(name == "dynamicBisection") then
 		partitioner = Partitioner_DynamicBisection(dom)
 		partitioner:set_verbose(verbose)
+		partitioner:set_num_split_improvement_iterations(desc.numSplitImprovements or defaults.numSplitImprovements)
 		if desc.enableXCuts == false then partitioner:enable_split_axis(0, false) end
 		if desc.enableYCuts == false then partitioner:enable_split_axis(1, false) end
 		if desc.enableZCuts == false then partitioner:enable_split_axis(2, false) end
@@ -237,6 +240,7 @@ function util.balancer.CreatePartitioner(dom, partitionerDesc)
 		partitioner = Partitioner_DynamicBisection(dom)
 		partitioner:set_verbose(verbose)
 		partitioner:enable_static_partitioning(true)
+		partitioner:set_num_split_improvement_iterations(desc.numSplitImprovements or defaults.numSplitImprovements)
 		if desc.enableXCuts == false then partitioner:enable_split_axis(0, false) end
 		if desc.enableYCuts == false then partitioner:enable_split_axis(1, false) end
 		if desc.enableZCuts == false then partitioner:enable_split_axis(2, false) end
