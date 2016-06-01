@@ -249,6 +249,40 @@ class OrderedInterface
 									(InterfaceEntry(elem, get_free_id())));
 		}
 
+		/**
+		 * @brief Insert an element before the passed iterator.
+		 *
+		 * The insertion iterator is best determined using the find_insert_pos_sorted()
+		 * method designed for this purpose.
+		 *
+		 * @return iterator to inserted element
+		 * @note The method is intended for manipulation of the interface
+		 *       after it has been ordered and only suited for a small
+		 *       number of insertions (typically a single insertion).
+		 *       For more insertions, consider push_back() and re-ordering.
+		 * @warning This method is highly experimental. Use with extreme caution!
+		 */
+		inline iterator insert(const Element& elem, iterator insertBefore)
+		{
+			++m_size;
+
+			size_t startNumber = 0;
+			if (insertBefore != end())
+				startNumber = insertBefore->localID;
+
+			iterator it = m_elements.insert(insertBefore, (InterfaceEntry(elem, get_free_id())));
+
+			if (startNumber)
+			{
+				//	we have to reset all local indices
+				--startNumber;
+				for (iterator iter = it; iter != m_elements.end(); ++iter)
+						(*iter).localID = ++startNumber;
+			}
+
+			return it;
+		}
+
 		inline iterator erase(iterator iter)
 		{
 			--m_size;
@@ -304,6 +338,23 @@ class OrderedInterface
 			m_idCounter = 1;
 			for(iterator iter = m_elements.begin(); iter != m_elements.end(); ++iter)
 				(*iter).localID = m_idCounter++;
+		}
+
+	/**
+	 * @brief find insertion position for an element to be inserted
+	 * @return iterator to insertion position if found; end-iterator otherwise
+	 * @warning This method implicitly requires the interface to be sorted
+	 *          w.r.t. the passed compare object. If it is not, the position
+	 *          might not be correct.
+	 */
+		template <class TCompare>
+		iterator find_insert_pos_sorted(const Element e, TCompare cmp)
+		{
+			InterfaceEntryCmp<TCompare> ieCmp(cmp);
+			iterator it_begin = m_elements.begin();
+			iterator it_end = m_elements.end();
+			InterfaceEntry iEntry(e, 0);
+			return std::lower_bound(it_begin, it_end, iEntry, ieCmp);
 		}
 
 
