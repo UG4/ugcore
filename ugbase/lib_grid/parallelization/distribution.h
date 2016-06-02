@@ -40,6 +40,17 @@
 
 namespace ug{
 
+
+enum InterfaceStates{
+	IS_UNASSIGNED = 0,
+	IS_NORMAL = 1,
+	IS_VMASTER = 1<<1,
+	IS_VSLAVE = 1<<2,
+	IS_DUMMY = 1<<3,
+	HAS_PARENT = 1<<4 // only used for dummies currently
+};
+
+
 ///	distributes/redistributes parts of possibly distributed grids.
 /**	This method is still in development... Use with care!
  *

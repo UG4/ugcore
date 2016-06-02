@@ -300,6 +300,8 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 		template <class TElem>
 		inline bool marked_copy(TElem* elem)				{return (m_selMarkedElements.get_selection_status(elem) & RM_COPY) == RM_COPY;}
 
+		inline bool marked_refine(Edge* elem)				{return (m_selMarkedElements.get_selection_status(elem) & RM_REFINE) != 0;}
+
 		template <class TElem>
 		inline bool marked_refine(TElem* elem)				{return (m_selMarkedElements.get_selection_status(elem) & (RM_REFINE | RM_ANISOTROPIC | RM_CLOSURE)) != 0;}
 

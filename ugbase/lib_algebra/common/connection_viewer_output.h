@@ -37,6 +37,7 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <limits>
 #include "common/progress.h"
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"
@@ -406,10 +407,14 @@ void WriteVector(std::string filename, const Vector_type &b, const postype *posi
 	// write connections
 	if(compareVec == NULL)
 		for(size_t i=0; i < rows; i++)
-			file << i << " " << i << " " << b[i] <<		std::endl;
+			file << i << " " << i << " "
+				 << std::setprecision(std::numeric_limits<number>::digits10 + 1)
+				 << b[i] <<		std::endl;
 	else
 		for(size_t i=0; i < rows; i++)
-			file << i << " " << i << " " << b[i]-(*compareVec)[i] << std::endl;
+			file << i << " " << i << " "
+				 << std::setprecision(std::numeric_limits<number>::digits10 + 1)
+				 << b[i]-(*compareVec)[i] << std::endl;
 }
 
 template<typename Vector_type, typename postype>
@@ -441,7 +446,9 @@ void WriteVector(std::string filename, const Matrix_type &A, const Vector_type &
 		PROGRESS_UPDATE(prog, i);
 		for(typename Matrix_type::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
 			if(conn.value() != 0.0)
-				file << i << " " << conn.index() << " " << conn.value() <<		std::endl;
+				file << i << " " << conn.index() << " "
+					 << std::setprecision(std::numeric_limits<number>::digits10 + 1)
+					 << conn.value() <<		std::endl;
 			else
 				file << i << " " << conn.index() << " 0" <<	std::endl;
 	}

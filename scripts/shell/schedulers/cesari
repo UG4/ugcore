@@ -72,7 +72,7 @@ function UJS_Submit
 		fi
 	else
 		echo "Submit: $commandline"
-		nohup $commandline > $outdir/job.output &
+		nohup $commandline > job.output &
 		sleep 1
 		jobid=`cat job.output | sed -n 1p | sed 's/.* \([0-9]*\).*/\1/'`
 		

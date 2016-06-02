@@ -1587,8 +1587,8 @@ init_level_memory(int baseLev, int topLev)
 					" to avoid this error.");
 
 		if(bHasVertSlave && (ld.t->layouts()->vertical_slave().num_interface_elements() != ld.t->size()))
-			UG_THROW("GMG: Gathered base solver expects that all indices"
-					"are sent to exactly on master. But not all indices are "
+			UG_THROW("GMG: Gathered base solver expects that all indices "
+					"are sent to exactly one master. But not all indices are "
 					"v-slaves. Use gmg:set_gathered_base_solver_if_ambiguous(false)"
 					" to avoid this error.");
 #endif
@@ -1781,7 +1781,7 @@ prolongation_and_postsmooth(int lev)
 		//	in the adaptive case there is a small part of the coarse coupling that
 		//	has not been used to update the defect. In order to ensure, that the
 		//	defect on this level still corresponds to the updated defect, we need
-		//	to add if here.
+		//	to add it here.
 		GMG_PROFILE_BEGIN(GMG_UpdateRimDefect);
 		lc.RimCpl_Fine_Coarse.matmul_minus(*lf.sd, *lc.sc);
 		GMG_PROFILE_END();
