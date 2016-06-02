@@ -45,6 +45,7 @@
 //todo: include this in algorithms.h
 #include "lib_grid/algorithms/refinement_mark_util.h"
 #include "lib_grid/refinement/adaptive_regular_mg_refiner.h"
+#include "lib_grid/refinement/global_multi_grid_refiner.h"
 #include "lib_grid/refinement/hanging_node_refiner_multi_grid.h"
 #include "lib_grid/refinement/ref_mark_adjusters/horizontal_anisotropy_adjuster.h"
 #include "lib_grid/algorithms/subdivision/subdivision_volumes.h"
