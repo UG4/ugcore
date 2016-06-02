@@ -222,7 +222,7 @@ nbr_crease_edges (Vertex* vrt,
 			else{
 				grid.associated_elements(faces, edge);
 				size_t num = 0;
-				if(!faces.size() == 0)
+				if(faces.size() != 0)
 					num = concerned_nbr_faces(edge, &faces);
 				if(faces.size() == 0 || ((num > 0) && (num!= 2))){
 					if(creaseEdges < 2)
