@@ -151,10 +151,10 @@ update_subset_infos(int rootProc)
 //note:	first check whether source-proc has a ProjectionHandler. If so,
 //		create a local projection handler first and perform serialization
 //		afterwards.
-	m_refinementProjector = 
+	set_refinement_projector(
 			detail::BroadcastRefinementProjector(
 						rootProc, procCom, subset_handler(),
-						geometry3d(), m_refinementProjector);
+						geometry3d(), m_refinementProjector));
 #endif
 
 }
