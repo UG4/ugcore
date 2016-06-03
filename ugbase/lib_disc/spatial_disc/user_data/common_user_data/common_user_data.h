@@ -37,5 +37,6 @@
 #include "rotating_cone.h"
 #include "rotating_velocity.h"
 #include "invdist_user_data.h"
+#include "subset_indicator_user_data.h"
 
 #endif // __H__UG__LIB_DISC__SPATIAL_DISC__COMMON_USER_DATA__
