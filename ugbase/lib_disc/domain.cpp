@@ -185,7 +185,8 @@ BroadcastRefinementProjector(
 			string name;
 			Deserialize(buf, name);
 			SPRefinementProjector proj = projFac.create(name);
-
+			proj->set_geometry(geometry);
+			
 			string data;
 			Deserialize(buf, data);
 			stringstream ss(data, ios_base::in);
