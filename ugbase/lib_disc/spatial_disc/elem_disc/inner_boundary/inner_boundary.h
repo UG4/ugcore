@@ -122,14 +122,14 @@ class FV1InnerBoundaryElemDisc
 
 	/// Constructor with c-strings
 		FV1InnerBoundaryElemDisc(const char* functions = "", const char* subsets = "")
-			: IElemDisc<TDomain>(functions, subsets), m_bNonRegularGrid(false)
+			: IElemDisc<TDomain>(functions, subsets), m_bNonRegularGrid(false), m_bCurrElemIsHSlave(false)
 		{
 			register_all_fv1_funcs();
 		}
 
 	/// Constructor with functions
 		FV1InnerBoundaryElemDisc(const std::vector<std::string>& functions, const std::vector<std::string>& subsets)
-			: IElemDisc<TDomain>(functions, subsets), m_bNonRegularGrid(false)
+			: IElemDisc<TDomain>(functions, subsets), m_bNonRegularGrid(false), m_bCurrElemIsHSlave(false)
 		{
 			register_all_fv1_funcs();
 		}
@@ -263,6 +263,7 @@ class FV1InnerBoundaryElemDisc
 
 	private:
 		bool m_bNonRegularGrid;
+		bool m_bCurrElemIsHSlave;
 };
 
 }
