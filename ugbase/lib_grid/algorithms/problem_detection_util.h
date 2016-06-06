@@ -37,6 +37,7 @@
 #include "common/math/ugmath_types.h"
 
 namespace ug{
+class Grid;
 
 /**	Checks for all edges of the given tetrahedron whether the distance to the
  *	opposite edge is smaller than the given ratio of the length of the
@@ -53,6 +54,9 @@ template <class TIter, class TAAPos>
 size_t FindSlivers(std::vector<typename TIter::value_type>& sliversOut,
 				 TIter elemsBegin, TIter elemsEnd, number thresholdRatio,
 				 TAAPos aaPos, bool clearContainer = true);
+
+///	Logs all unconnected sides to UG_ERR_LOG and returns true if an unconnected side was found
+bool CheckForUnconnectedSides(Grid& grid);
 
 }//	end of namespace
 

@@ -464,6 +464,11 @@ string GetOperatingSystem()
 #endif
 }
 
+static void errlog(const char* msg)
+{
+	UG_ERR_LOG(msg);
+}
+
 void RegisterBridge_Misc(Registry &reg, string parentGroup)
 {
 
@@ -494,6 +499,8 @@ void RegisterBridge_Misc(Registry &reg, string parentGroup)
 		//reg.add_function("SetDebugLevel", &SetDebugLevel, grp);
 		reg.add_function("GetClockS", &GetClockS, grp, "seconds since 1970", "", "use this instead of os.clock() since os.clock only returns CPU time.");
 		reg.add_function("PrintLUA", &PrintLUA, grp);
+		reg.add_function("errlog", &errlog, grp, "", "msg",
+						 "prints the specified message to the error-stream.");
 	}
 
 	{

@@ -33,6 +33,9 @@
 #include "problem_detection_util.h"
 #include "lib_grid/grid_objects/tetrahedron_rules.h"
 #include "common/math/misc/math_util.h"
+#include "lib_grid/grid/grid.h"
+#include "debug_util.h"
+#include "isolated_elements.h"
 
 namespace ug{
 
@@ -60,6 +63,39 @@ int IsSliver(const vector3& v0, const vector3& v1, const vector3& v2,
 	}
 
 	return -1;
+}
+
+
+template <class TSide>
+static bool CheckForUnconnectedSidesIMPL(Grid& grid)
+{
+	bool gotOne = false;
+	std::vector<TSide*> sides;
+	if( CollectUnconnectedSides( sides,
+								 grid,
+								 grid.begin<TSide>(),
+								 grid.end<TSide>()))
+	{
+		gotOne = true;
+		UG_LOG("WARNING: Found unconnected sides (those may lead to solver issues!): \n");
+		UG_ERR_LOG("Found unconnected sides (those may lead to solver issues!): \n");
+		for(size_t i = 0; i < sides.size(); ++i){
+			UG_LOG("  - " << ElementDebugInfo(grid, sides[i]) << std::endl);
+			UG_ERR_LOG("  - " << ElementDebugInfo(grid, sides[i]) << std::endl);
+		}
+	}
+	return gotOne;
+}
+
+bool CheckForUnconnectedSides(Grid& grid)
+{
+	if(grid.num<Edge>() > 0 && CheckForUnconnectedSidesIMPL<Vertex>(grid))
+		return true;
+	if(grid.num<Face>() > 0 && CheckForUnconnectedSidesIMPL<Edge>(grid))
+		return true;
+	if(grid.num<Volume>() > 0 && CheckForUnconnectedSidesIMPL<Face>(grid))
+		return true;
+	return false;
 }
 
 }//	end of namespace

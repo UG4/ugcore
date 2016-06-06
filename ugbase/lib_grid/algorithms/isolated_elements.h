@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015:  G-CSC, Goethe University Frankfurt
+ * Copyright (c) 2016:  G-CSC, Goethe University Frankfurt
  * Author: Sebastian Reiter
  * 
  * This file is part of UG4.
@@ -30,31 +30,40 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include "grid_bridges.h"
-#include "lib_grid/algorithms/debug_util.h"
-#include "lib_grid/algorithms/problem_detection_util.h"
+#ifndef __H__UG_isolated_elements
+#define __H__UG_isolated_elements
 
-using namespace std;
+#include <vector>
+#include "lib_grid/grid/grid.h"
 
 namespace ug{
-namespace bridge{
 
-void RegisterGridBridge_Debug(Registry& reg, string parentGroup)
+/**	Writes all elements between 'begin' and 'end' which are not sides of
+ * elements in 'grid' to 'elemsOut'. This method only makes sense if called
+ * on a sequence of vertices, edges, or faces.*/
+template <class TSideIterator>
+size_t CollectUnconnectedSides (
+			std::vector<typename TSideIterator::value_type>& elemsOut,
+			Grid& grid,
+			TSideIterator begin,
+			TSideIterator end)
 {
-	string grp = parentGroup;
+	typedef typename PtrToValueType<typename TSideIterator::value_type>::base_type side_t;
+	typedef typename side_t::sideof	sideof_t;
 
-	reg.add_function("CheckHangingNodeConsistency", static_cast<bool (*)(MultiGrid&)>(&CheckHangingNodeConsistency), grp)
-		.add_function("CheckMultiGridConsistency", &CheckMultiGridConsistency, grp)
-		.add_function("CheckDistributedObjectConstraintTypes", &CheckDistributedObjectConstraintTypes, grp)
-		.add_function("CheckDistributedParentTypes", &CheckDistributedParentTypes, grp)
-		.add_function("CheckElementConsistency", static_cast<bool (*)(MultiGrid&, Vertex*)>(&CheckElementConsistency), grp)
-		.add_function("CheckElementConsistency", static_cast<bool (*)(MultiGrid&, Edge*)>(&CheckElementConsistency), grp)
-		.add_function("CheckElementConsistency", static_cast<bool (*)(MultiGrid&, Face*)>(&CheckElementConsistency), grp);
+	elemsOut.clear();
 
-	reg.add_function("CheckForUnconnectedSides", &CheckForUnconnectedSides,
-					 grp, "foundUnconnectedSides", "grid",
-					 "Checks whether unconnected sides exist in the given grid.");
+	typename Grid::traits<sideof_t>::secure_container	con;
+
+	for(TSideIterator i = begin; i != end; ++i) {
+		grid.associated_elements(con, *i);
+		if(con.size() == 0)
+			elemsOut.push_back(*i);
+	}
+
+	return elemsOut.size();
 }
 
 }//	end of namespace
-}//	end of namespace
+
+#endif	//__H__UG_isolated_elements

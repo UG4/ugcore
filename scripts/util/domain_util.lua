@@ -70,7 +70,8 @@ end
 --! @param neededSubsets	(optional, list of strings) The subsets that are required
 --!							by the simulation. If not all those subsets are present,
 --!							the method aborts. Default is an empty list.
-function util.CreateDomain(gridName, numRefs, neededSubsets)
+--! @param noIntegrityCheck	(optional, bool) Disables integrity check if 'true'.
+function util.CreateDomain(gridName, numRefs, neededSubsets, noIntegrityCheck)
 
 	-- create Instance of a Domain
 	local dom = Domain()
@@ -78,8 +79,20 @@ function util.CreateDomain(gridName, numRefs, neededSubsets)
 	-- load domain
 	write("Loading Domain "..gridName.." ... ") 
 	LoadDomain(dom, gridName)
-	write("done. ")
-	
+	write("done.\n")
+
+	if noIntegrityCheck ~= true then
+		write("Performing integrity check on domain ... ")
+		if CheckForUnconnectedSides(dom:grid()) == true then
+			write("WARNING: unconnected sides found (see above).\n")
+			local note = "NOTE: You may disable this check by passing 'true' "..
+				  		 "to 'noIntegrityCheck' in 'util.CreateDomain'.\n"
+			write(note)
+			errlog(note)
+		end
+		write("done.\n")
+	end
+
 	-- Create a refiner instance. This is a factory method
 	-- which automatically creates a parallel refiner if required.
 	if numRefs > 0 then
@@ -90,10 +103,9 @@ function util.CreateDomain(gridName, numRefs, neededSubsets)
 			refiner:refine()
 			write(i .. " ")
 		end
-		write("done.")
+		write("done.\n")
 		delete(refiner)
 	end
-	write("\n")
 	
 	-- check whether required subsets are present
 	if neededSubsets ~= nil then
@@ -149,17 +161,18 @@ end
 --!								(in UG_BASE/scripts/util/domain_distribution.lua)
 --! @param wFct 			(optional SmartPtr\<EdgeWeighting\>) Sets the weighting function for the
 --!							'metisReweigh' partitioning method.
+--! @param noIntegrityCheck	(optional, bool) Disables integrity check if 'true'.
 function util.CreateAndDistributeDomain(gridName, numRefs, numPreRefs,
 										neededSubsets, distributionMethod,
 										verticalInterfaces, numTargetProcs,
-										distributionLevel, wFct)
+										distributionLevel, wFct, noIntegrityCheck)
 
 	-- create Instance of a Domain
 	local dom = Domain()
 	
 	-- load domain
 	write("Loading Domain "..gridName.." ... ") 
-	LoadDomain(dom, gridName)
+	LoadDomain(dom, gridName, nil, noIntegrityCheck)
 	write("done. ")
 	
 	-- create Refiner
