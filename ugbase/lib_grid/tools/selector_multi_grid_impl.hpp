@@ -116,7 +116,7 @@ MGSelector::num() const
 {
 	size_t n = 0;
 	for(size_t i = 0; i < num_levels(); ++i)
-		n += num<TElem>(i);
+		n += num<TElem>((int)i);
 	return n;
 }
 

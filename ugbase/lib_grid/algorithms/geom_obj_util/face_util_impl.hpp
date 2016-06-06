@@ -165,7 +165,7 @@ template<class TVertexPositionAttachmentAccessor>
 typename TVertexPositionAttachmentAccessor::ValueType
 CalculateCenter(const FaceVertices* f, TVertexPositionAttachmentAccessor& aaPosVRT)
 {
-	uint numVrts = f->num_vertices();
+	const size_t numVrts = f->num_vertices();
 	typename TVertexPositionAttachmentAccessor::ValueType v;
 //	init v with 0.
 	VecSet(v, 0);
@@ -173,7 +173,7 @@ CalculateCenter(const FaceVertices* f, TVertexPositionAttachmentAccessor& aaPosV
 	FaceVertices::ConstVertexArray vrts = f->vertices();
 
 //	sum up
-	for(uint i = 0; i < numVrts; ++i)
+	for(size_t i = 0; i < numVrts; ++i)
 	{
 		VecAdd(v, v, aaPosVRT[vrts[i]]);
 	}

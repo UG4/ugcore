@@ -68,7 +68,7 @@ int ArrayEraseEntry(TType* array, const TType& entry, size_t size)
 		array[i] = array[i+1];
 
 //	done
-	return size - 1;
+	return (int)size - 1;
 }
 
 ///	Swaps the first entry with the given value with the last entry in the list
@@ -103,8 +103,8 @@ void ArraySwapWithLast(TType* array, const TType& entry, size_t size)
  * \return true if oldEntry was found, false if not.
  */
 template <class TType>
-int ArrayReplaceEntry(TType* array, const TType& newEntry,
-					  const TType& oldEntry, size_t size)
+bool ArrayReplaceEntry(TType* array, const TType& newEntry,
+					   const TType& oldEntry, size_t size)
 {
 //	find the entry
 	size_t i;

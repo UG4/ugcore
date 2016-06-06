@@ -185,12 +185,12 @@ num(int subsetIndex) const
 	if(sectionInd < 0)
 	{
 		for(size_t i = 0; i < m_levels.size(); ++i)
-			numElems += section_container<TElem>(subsetIndex, i).num_elements();
+			numElems += section_container<TElem>(subsetIndex, (int)i).num_elements();
 	}
 	else
 	{
 		for(size_t i = 0; i < m_levels.size(); ++i)
-			numElems += section_container<TElem>(subsetIndex, i).num_elements(sectionInd);
+			numElems += section_container<TElem>(subsetIndex, (int)i).num_elements(sectionInd);
 	}
 
 	return numElems;
