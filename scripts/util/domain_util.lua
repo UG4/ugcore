@@ -172,9 +172,21 @@ function util.CreateAndDistributeDomain(gridName, numRefs, numPreRefs,
 	
 	-- load domain
 	write("Loading Domain "..gridName.." ... ") 
-	LoadDomain(dom, gridName, nil, noIntegrityCheck)
-	write("done. ")
+	LoadDomain(dom, gridName)
+	write("done.\n")
 	
+	if noIntegrityCheck ~= true then
+		write("Performing integrity check on domain ... ")
+		if CheckForUnconnectedSides(dom:grid()) == true then
+			write("WARNING: unconnected sides found (see above).\n")
+			local note = "NOTE: You may disable this check by passing 'true' "..
+				  		 "to 'noIntegrityCheck' in 'util.CreateAndDistributeDomain'.\n"
+			write(note)
+			errlog(note)
+		end
+		write("done.\n")
+	end
+
 	-- create Refiner
 	ug_assert(numPreRefs <= numRefs, "numPreRefs must be smaller than numRefs. Aborting.");
 	
@@ -196,12 +208,12 @@ function util.CreateAndDistributeDomain(gridName, numRefs, numPreRefs,
 		write(i .. " ")
 		refiner:refine()
 	end
-	write("done. Distributing...")
+	write("done.\nDistributing...")
 	-- Distribute the domain to all involved processes
 	if util.DistributeDomain(dom, distributionMethod, verticalInterfaces, numTargetProcs, distributionLevel, wFct) == false then
 		ug_error("Error while Distributing Grid. Aborting.")
 	end
-	write(" done. Post-Refining("..(numRefs-numPreRefs).."): ")
+	write(" done.\nPost-Refining("..(numRefs-numPreRefs).."): ")
 	
 	if numRefs > 0 then
 		-- Perform post-refine
