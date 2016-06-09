@@ -123,7 +123,7 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 	}
 
 	{
-		typedef CylinderProjectorNew T;
+		typedef CylinderProjector T;
 		reg.add_class_<T, RefinementProjector>("CylinderProjector", grp)
 			.add_constructor()
 			.add_constructor<void (T::*)(const vector3&, const vector3&)>()
@@ -193,7 +193,7 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 	}
 
 	{
-		typedef SphereProjectorNew T;
+		typedef SphereProjector T;
 		reg.add_class_<T, RefinementProjector>("SphereProjector", grp)
 			.add_constructor()
 			.add_constructor<void (T::*)(const vector3&)>()

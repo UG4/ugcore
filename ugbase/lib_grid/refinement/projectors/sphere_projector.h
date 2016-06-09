@@ -46,28 +46,28 @@ namespace ug{
  * You may still specify a radius. This radius can be used for auto-fitting of
  * the center and for reprojecting a set of vertices onto the sphere.
  */
-class SphereProjectorNew : public RefinementProjector {
+class SphereProjector : public RefinementProjector {
 public:
-	SphereProjectorNew () :
+	SphereProjector () :
 		m_center (0, 0, 0),
 		m_radius (-1),
 		m_influenceRadius (-1)
 	{}
 	
-	SphereProjectorNew (const vector3& center) :
+	SphereProjector (const vector3& center) :
 		m_center (center),
 		m_radius (-1),
 		m_influenceRadius (-1)
 	{}
 
-	SphereProjectorNew (const vector3& center,
+	SphereProjector (const vector3& center,
 						number radius) :
 		m_center (center),
 		m_radius (radius),
 		m_influenceRadius (-1)
 	{}
 
-	SphereProjectorNew (const vector3& center,
+	SphereProjector (const vector3& center,
 						number radius,
 						number influenceRadius) :
 		m_center (center),
@@ -76,7 +76,7 @@ public:
 	{}
 
 /**	\sa ug::RefinementProjector::RefinementProjector*/
-	SphereProjectorNew (SPIGeometry3d geometry,
+	SphereProjector (SPIGeometry3d geometry,
 						const vector3& center) :
 		RefinementProjector (geometry),
 		m_center (center),
@@ -85,7 +85,7 @@ public:
 	{}
 
 	/**	\sa ug::RefinementProjector::RefinementProjector*/
-	SphereProjectorNew (SPIGeometry3d geometry,
+	SphereProjector (SPIGeometry3d geometry,
 						const vector3& center,
 						number radius) :
 		RefinementProjector (geometry),
@@ -96,7 +96,7 @@ public:
 
 /**	\sa ug::RefinementProjector::RefinementProjector*/
 	template <class TGeomProvider>
-	SphereProjectorNew (const TGeomProvider& geometry,
+	SphereProjector (const TGeomProvider& geometry,
 						const vector3& center,
 						number radius,
 					 	number influenceRadius) :
@@ -106,7 +106,7 @@ public:
 		m_influenceRadius (influenceRadius)
 	{}
 
-	virtual ~SphereProjectorNew ()					{}
+	virtual ~SphereProjector ()					{}
 
 	void set_center (const vector3& center)		{m_center = center;}
 	const vector3& center () const				{return m_center;}
@@ -203,7 +203,7 @@ private:
 		ar & make_nvp("center", m_center);
 		ar & make_nvp("radius", m_radius);
 		ar & make_nvp("influence radius", m_influenceRadius);
-		UG_EMPTY_BASE_CLASS_SERIALIZATION(SphereProjectorNew, RefinementProjector);
+		UG_EMPTY_BASE_CLASS_SERIALIZATION(SphereProjector, RefinementProjector);
 	}
 
 	vector3	m_center;
