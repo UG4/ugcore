@@ -109,7 +109,7 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 
 	{
 		typedef CylinderCutProjector T;
-		reg.add_class_<T>("CylinderCutProjector", grp)
+		reg.add_class_<T, RefinementProjector>("CylinderCutProjector", grp)
 			.add_constructor()
 			.add_constructor<void (T::*)(const vector3&, const vector3&, number)>()
 			.add_constructor<void (T::*)(SPIGeometry3d, const vector3&, const vector3&, number)>()
@@ -124,7 +124,7 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 
 	{
 		typedef CylinderProjectorNew T;
-		reg.add_class_<T>("CylinderProjector", grp)
+		reg.add_class_<T, RefinementProjector>("CylinderProjector", grp)
 			.add_constructor()
 			.add_constructor<void (T::*)(const vector3&, const vector3&)>()
 			.add_constructor<void (T::*)(const vector3&, const vector3&, number)>()
@@ -145,7 +145,7 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 
 	{
 		typedef PlaneCutProjector T;
-		reg.add_class_<T>("PlaneCutProjector", grp)
+		reg.add_class_<T, RefinementProjector>("PlaneCutProjector", grp)
 			.add_constructor()
 			.add_constructor<void (T::*)(const vector3&, const vector3&)>()
 			.add_constructor<void (T::*)(SPIGeometry3d, const vector3&,
@@ -159,7 +159,7 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 
 	{
 		typedef ProjectionHandler T;
-		reg.add_class_<T>("ProjectionHandler", grp)
+		reg.add_class_<T, RefinementProjector>("ProjectionHandler", grp)
 			.add_constructor()
 			.add_constructor<void (T::*)(ISubsetHandler*)>()
 			.add_constructor<void (T::*)(SmartPtr<ISubsetHandler>)>()
@@ -168,12 +168,20 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 			.add_constructor<void (T::*)(SPIGeometry3d,
 										 SmartPtr<ISubsetHandler>)>()
 			.add_method("set_geometry_all", &T::set_geometry_all, "", "geometry")
+			.add_method("set_projector",
+						static_cast<void (T::*)(int, SPRefinementProjector)>(
+								&T::set_projector),
+						"", "subsetIndex # projector")
+			.add_method("set_projector",
+						static_cast<void (T::*)(const char*, SPRefinementProjector)>(
+								&T::set_projector),
+						"", "subsetName # projector")
 			.set_construct_as_smart_pointer(true);
 	}
 
 	{
 		typedef SmoothProjector T;
-		reg.add_class_<T>("SmoothProjector", grp)
+		reg.add_class_<T, RefinementProjector>("SmoothProjector", grp)
 			.add_constructor()
 			.add_constructor<void (T::*)(int, number)>()
 			.add_constructor<void (T::*)(SPIGeometry3d, int, number)>()
@@ -186,7 +194,7 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 
 	{
 		typedef SphereProjectorNew T;
-		reg.add_class_<T>("SphereProjectorNew", grp)
+		reg.add_class_<T, RefinementProjector>("SphereProjector", grp)
 			.add_constructor()
 			.add_constructor<void (T::*)(const vector3&)>()
 			.add_constructor<void (T::*)(const vector3&, number)>()
@@ -204,7 +212,7 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 
 	{
 		typedef SubdivisionProjector T;
-		reg.add_class_<T>("SubdivisionProjector", grp)
+		reg.add_class_<T, RefinementProjector>("SubdivisionProjector", grp)
 			.add_constructor()
 			.add_constructor<void (T::*)(SPIGeometry3d)>()
 			.set_construct_as_smart_pointer(true);
