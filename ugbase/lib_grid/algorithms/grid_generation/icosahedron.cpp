@@ -103,7 +103,7 @@ void GenerateIcosphere(Grid& grid, const vector3& center, number radius,
 	grid.attach_to_edges(aInt);
 
 //	use a refinement callback to project the new vertices to the sphere
-	SphereProjectorNew sphereProjecton(MakeGeometry3d(grid, aPos), center);
+	SphereProjector sphereProjecton(MakeGeometry3d(grid, aPos), center);
 
 	for(int i = 0; i < numRefinements; ++i)
 		Refine(grid, sel, aInt, &sphereProjecton);

@@ -37,8 +37,8 @@
 #include "refinement/projectors/sphere_projector.h"
 #include "refinement/projectors/cylinder_projector.h"
 BOOST_CLASS_EXPORT(ug::RefinementProjector);
-BOOST_CLASS_EXPORT(ug::SphereProjectorNew);
-BOOST_CLASS_EXPORT(ug::CylinderProjectorNew);
+BOOST_CLASS_EXPORT(ug::SphereProjector);
+BOOST_CLASS_EXPORT(ug::CylinderProjector);
 
 
 // Provider<std::map<std::string, boost::function< SmartPtr<IRefinementCallback*> () > >::get()["None3d"] = RefinementCallbackLinear

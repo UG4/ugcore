@@ -60,8 +60,8 @@ namespace tmp {
 //				in this list, since they are only usable in specialized algorithms.
 typedef vector<
 			pair <ug::RefinementProjector,	string<'defa','ult'> >,
-			pair <ug::CylinderProjectorNew,	string<'cyli','nder'> >,
-			pair <ug::SphereProjectorNew,	string<'sphe','re'> >,
+			pair <ug::CylinderProjector,	string<'cyli','nder'> >,
+			pair <ug::SphereProjector,		string<'sphe','re'> >,
 			pair <ug::SubdivisionProjector,	string<'subd','ivis', 'ion'> >,
 			pair <ug::SmoothProjector,		string<'smoo','th'> >
 			>

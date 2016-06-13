@@ -46,16 +46,16 @@ namespace ug{
  * You may still specify a radius. This radius can be used for auto-fitting of
  * the center and for reprojecting a set of vertices onto the sphere.
  */
-class CylinderProjectorNew : public RefinementProjector {
+class CylinderProjector : public RefinementProjector {
 public:
-	CylinderProjectorNew () :
+	CylinderProjector () :
 		m_center (0, 0, 0),
 		m_axis (0, 0, 1),
 		m_radius (-1),
 		m_influenceRadius (-1)
 	{}
 	
-	CylinderProjectorNew (const vector3& center,
+	CylinderProjector (const vector3& center,
 						  const vector3& axis) :
 		m_center (center),
 		m_axis (axis),
@@ -63,7 +63,7 @@ public:
 		m_influenceRadius (-1)
 	{}
 
-	CylinderProjectorNew (const vector3& center,
+	CylinderProjector (const vector3& center,
 						  const vector3& axis,
 					 	  number radius) :
 		m_center (center),
@@ -72,7 +72,7 @@ public:
 		m_influenceRadius (-1)
 	{}
 
-	CylinderProjectorNew (const vector3& center,
+	CylinderProjector (const vector3& center,
 						  const vector3& axis,
 					 	  number radius,
 					 	  number influenceRadius) :
@@ -83,7 +83,7 @@ public:
 	{}
 
 /**	\sa ug::RefinementProjector::RefinementProjector*/
-	CylinderProjectorNew (SPIGeometry3d geometry,
+	CylinderProjector (SPIGeometry3d geometry,
 						  const vector3& center,
 						  const vector3& axis,
 						  number radius,
@@ -95,7 +95,7 @@ public:
 		m_influenceRadius (influenceRadius)
 	{}
 
-	virtual ~CylinderProjectorNew ()					{}
+	virtual ~CylinderProjector ()					{}
 
 	void set_center (const vector3& center)		{m_center = center;}
 	const vector3& center () const				{return m_center;}
@@ -195,7 +195,7 @@ private:
 		ar & make_nvp("axis", m_axis);
 		ar & make_nvp("radius", m_radius);
 		ar & make_nvp("influence radius", m_influenceRadius);
-		UG_EMPTY_BASE_CLASS_SERIALIZATION(CylinderProjectorNew, RefinementProjector);
+		UG_EMPTY_BASE_CLASS_SERIALIZATION(CylinderProjector, RefinementProjector);
 	}
 
 	vector3	m_center;
