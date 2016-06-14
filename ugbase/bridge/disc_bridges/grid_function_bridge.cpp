@@ -176,7 +176,6 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GridFunctionGradientComponentData", tag);
 	}
-
 //	GlobalGridFunctionNumberData
 	{
 		string name = string("GlobalGridFunctionNumberData").append(suffix);
@@ -188,6 +187,20 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GlobalGridFunctionNumberData", tag);
 	}
+
+//	GlobalGridFunctionNumberData for lower-dim elem geometries (here: edges)
+	if (dim > EDGE)
+	{
+		string name = string("GlobalEdgeGridFunctionNumberData").append(suffix);
+		typedef GlobalGridFunctionNumberData<TFct, 1> T;
+		typedef CplUserData<number, dim> TBase;
+		reg.add_class_<T, TBase>(name, grp)
+			.template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridFunction#Component")
+			.add_method("evaluate", static_cast<number (T::*)(std::vector<number>)>(&T::evaluate))
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "GlobalEdgeGridFunctionNumberData", tag);
+	}
+
 
 //	GlobalGridFunctionGradientData
 	{
