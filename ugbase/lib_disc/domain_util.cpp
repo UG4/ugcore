@@ -51,6 +51,7 @@ void LoadDomain(TDomain& domain, const char* filename)
 }
 
 
+// Use procId = -2 (i.e., 4294967294 for 32bit int) to achieve loading on all procs.
 template <typename TDomain>
 void LoadDomain(TDomain& domain, const char* filename, int procId)
 {
@@ -60,7 +61,7 @@ void LoadDomain(TDomain& domain, const char* filename, int procId)
 
 		bool loadingGrid = true;
 		#ifdef UG_PARALLEL
-			if((procId != -1) && (pcl::ProcRank() != procId))
+			if((procId != -1) && (procId != -2) && (pcl::ProcRank() != procId))
 				loadingGrid = false;
 		#endif
 

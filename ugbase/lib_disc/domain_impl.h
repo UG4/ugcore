@@ -118,6 +118,9 @@ update_subset_infos(int rootProc)
 		sh.subset_info(i).set_property("dim", dim);
 	}
 
+	// do not communicate if geom is created on all procs
+	if (rootProc == -2) return;
+
 #ifdef UG_PARALLEL
 	pcl::ProcessCommunicator procCom;
 
