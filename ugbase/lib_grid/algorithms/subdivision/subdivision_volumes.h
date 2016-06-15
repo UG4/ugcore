@@ -100,6 +100,11 @@ GlobalBoundaryRefinementRule GetBoundaryRefinementRule()
  *	the diagonal between edge-centers 2-4 of the tetrahedron equals
  *	a segment between vertices 2 and 4 of the octahedron
  *
+ *	HINT: preferably use bestDiag = 0, as it is the inherent diagonal
+ *		  along which the octahedron was adaptively orientated according to
+ *		  tetrahedron_rules.cpp
+ *
+ *
  *	@param grid			reference to grid
  * 	@param oct			pointer to octahedron
  * 	@param parentVol	pointer to parent volume
@@ -113,7 +118,7 @@ void SplitOctahedronToTetrahedrons(	Grid& grid, Octahedron* oct, Volume* parentV
 	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPosition);
 
 //	Determine the shortest diagonal to split upon the octahedron
-	if(bestDiag != 1 || bestDiag != 2 || bestDiag != 3)
+	if(bestDiag != 0 && bestDiag != 1 && bestDiag != 2)
 	{
 		bestDiag = 2;
 
@@ -290,9 +295,15 @@ void SplitOctahedronToTetrahedrons(	Grid& grid, Octahedron* oct, Volume* parentV
  * 	WARNING: correct parent <-> childhood relationships won't persist
  *
  * 	@param mg			reference to MultiGrid
+ * 	@param bestDiag		specify fixed or adaptive diagonal for octahedral split
 **/
-void TetrahedralizeHybridTetOctGrid(MultiGrid& mg)
+void TetrahedralizeHybridTetOctGrid(MultiGrid& mg, int bestDiag)
 {
+	if(bestDiag != 0 && bestDiag != 1 && bestDiag != 2)
+	{
+		bestDiag = -1;
+	}
+
 //	Position attachment management
 	Grid::VertexAttachmentAccessor<APosition> aaPos(mg, aPosition);
 
@@ -307,7 +318,7 @@ void TetrahedralizeHybridTetOctGrid(MultiGrid& mg)
 			Octahedron* oct 	= dynamic_cast<Octahedron*>(*octIter);
 			Volume* parentVol 	= dynamic_cast<Volume*>(mg.get_parent(oct));
 
-			SplitOctahedronToTetrahedrons(mg, oct, parentVol, vTetsOut, 1);
+			SplitOctahedronToTetrahedrons(mg, oct, parentVol, vTetsOut, bestDiag);
 		}
 	}
 
