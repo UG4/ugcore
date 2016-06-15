@@ -178,7 +178,7 @@ class IObstacleConstraint:
 
 	/// sets a unity row for all dirichlet indices
 		void adjust_jacobian(matrix_type& J, const vector_type& u,
-		                     ConstSmartPtr<DoFDistribution> dd, number time = 0.0,
+		                     ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0,
                              ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = NULL,
 							 const number s_a0 = 1.0){
 			UG_LOG("IObstacleConstraint::adjust_jacobian() \n");
@@ -186,7 +186,7 @@ class IObstacleConstraint:
 
 	/// sets a zero value in the defect for all dirichlet indices
 		void adjust_defect(vector_type& d, const vector_type& u,
-		                   ConstSmartPtr<DoFDistribution> dd, number time = 0.0,
+		                   ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0,
                            ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = NULL,
 						   const std::vector<number>* vScaleMass = NULL,
 						   const std::vector<number>* vScaleStiff = NULL){
@@ -195,19 +195,19 @@ class IObstacleConstraint:
 
 	/// sets the dirichlet value in the solution for all dirichlet indices
 		void adjust_solution(vector_type& u,
-		                     ConstSmartPtr<DoFDistribution> dd, number time = 0.0){
+		                     ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0){
 			UG_LOG("IObstacleConstraint::adjust_solution() \n");
 		};
 
 	///	sets unity rows in A and dirichlet values in right-hand side b
 		void adjust_linear(matrix_type& A, vector_type& b,
-		                   ConstSmartPtr<DoFDistribution> dd, number time = 0.0){
+		                   ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0){
 			UG_LOG("IObstacleConstraint::adjust_linear() \n");
 		};
 
 	///	sets the dirichlet value in the right-hand side
 		void adjust_rhs(vector_type& b, const vector_type& u,
-		                ConstSmartPtr<DoFDistribution> dd, number time = 0.0){
+		                ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0){
 			UG_LOG("IObstacleConstraint::adjust_rhs() \n");
 		};
 
@@ -215,6 +215,7 @@ class IObstacleConstraint:
 		virtual void adjust_prolongation(matrix_type& P,
 										 ConstSmartPtr<DoFDistribution> ddFine,
 										 ConstSmartPtr<DoFDistribution> ddCoarse,
+										 int type,
 										 number time = 0.0){
 			UG_LOG("IObstacleConstraint::adjust_prolongationP() \n");
 		};
@@ -223,6 +224,7 @@ class IObstacleConstraint:
 		virtual void adjust_restriction(matrix_type& R,
 										ConstSmartPtr<DoFDistribution> ddCoarse,
 										ConstSmartPtr<DoFDistribution> ddFine,
+										int type,
 										number time = 0.0);
 
 	///	returns the type of the constraints

@@ -639,8 +639,13 @@ prolongation(const GridLevel& fineGL, const GridLevel& coarseGL,
 			assemble_prolongation(*P, *spFineDD, *spCoarseDD, spApproxSpace->domain());
 		}
 
-		for(size_t i = 0; i < m_vConstraint.size(); ++i){
-			m_vConstraint[i]->adjust_prolongation(*P, spFineDD, spCoarseDD);
+		for (int type = 1; type < CT_ALL; type = type << 1)
+		{
+			for (size_t i = 0; i < m_vConstraint.size(); ++i)
+			{
+				if (m_vConstraint[i]->type() & type)
+					m_vConstraint[i]->adjust_prolongation(*P, spFineDD, spCoarseDD, type);
+			}
 		}
 
 		#ifdef UG_PARALLEL
@@ -692,8 +697,13 @@ restriction(const GridLevel& coarseGL, const GridLevel& fineGL,
 		R->set_storage_type(PST_CONSISTENT);
 		#endif
 
-		for(size_t i = 0; i < m_vConstraint.size(); ++i){
-			m_vConstraint[i]->adjust_restriction(*R, spCoarseDD, spFineDD);
+		for (int type = 1; type < CT_ALL; type = type << 1)
+		{
+			for (size_t i = 0; i < m_vConstraint.size(); ++i)
+			{
+				if (m_vConstraint[i]->type() & type)
+					m_vConstraint[i]->adjust_restriction(*R, spCoarseDD, spFineDD, type);
+			}
 		}
 
 		write_debug(*R, "R", coarseGL, fineGL);
@@ -723,8 +733,14 @@ prolongate(GF& uFine, const GF& uCoarse)
 		prolongation(fineGL, coarseGL, spApproxSpace)->apply(uFine, uCoarse);
 
 	// 	adjust using constraints
-		for(size_t i = 0; i < m_vConstraint.size(); ++i)
-			m_vConstraint[i]->adjust_prolongation(uFine, fineGL, uCoarse, coarseGL);
+		for (int type = 1; type < CT_ALL; type = type << 1)
+		{
+			for (size_t i = 0; i < m_vConstraint.size(); ++i)
+			{
+				if (m_vConstraint[i]->type() & type)
+					m_vConstraint[i]->adjust_prolongation(uFine, fineGL, uCoarse, coarseGL, type);
+			}
+		}
 
 	}
 	UG_CATCH_THROW("StdTransfer:prolongation: Failed for fine = "<<fineGL<<" and "
@@ -768,8 +784,14 @@ do_restrict(GF& uCoarse, const GF& uFine)
 				apply_ignore_zero_rows(uCoarse, m_dampRes, uFine);
 
 	// 	adjust using constraints
-		for(size_t i = 0; i < m_vConstraint.size(); ++i)
-			m_vConstraint[i]->adjust_restriction(uCoarse, coarseGL, uFine, fineGL);
+		for (int type = 1; type < CT_ALL; type = type << 1)
+		{
+			for (size_t i = 0; i < m_vConstraint.size(); ++i)
+			{
+				if (m_vConstraint[i]->type() & type)
+					m_vConstraint[i]->adjust_restriction(uCoarse, coarseGL, uFine, fineGL, type);
+			}
+		}
 
 	} UG_CATCH_THROW("StdTransfer:do_restrict: Failed for fine = "<<fineGL<<" and "
 	                 " coarse = "<<coarseGL);

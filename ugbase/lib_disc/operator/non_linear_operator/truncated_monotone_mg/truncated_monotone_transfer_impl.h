@@ -100,7 +100,7 @@ restriction(const GridLevel& coarseGL, const GridLevel& fineGL,
 			if(m_vConstraint[i]->type() == CT_CONSTRAINTS)
 			{
 				UG_LOG("is CT_CONSTRAINT")
-				m_vConstraint[i]->adjust_restriction(*stdR, spCoarseDD, spFineDD);
+				m_vConstraint[i]->adjust_restriction(*stdR, spCoarseDD, spFineDD, CT_CONSTRAINTS);
 			}
 	}
 

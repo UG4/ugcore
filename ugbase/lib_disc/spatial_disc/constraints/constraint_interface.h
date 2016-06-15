@@ -74,67 +74,77 @@ class IConstraint
 	public:
 	///	adapts jacobian to enforce constraints
 		virtual void adjust_jacobian(matrix_type& J, const vector_type& u,
-		                             ConstSmartPtr<DoFDistribution> dd, number time = 0.0,
+		                             ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0,
 		                             ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = SPNULL,
 									 const number s_a0 = 1.0) = 0;
 
 	///	adapts defect to enforce constraints
 		virtual void adjust_defect(vector_type& d, const vector_type& u,
-								   ConstSmartPtr<DoFDistribution> dd, number time = 0.0,
+								   ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0,
 								   ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = SPNULL,
 								   const std::vector<number>* vScaleMass = NULL,
 								   const std::vector<number>* vScaleStiff = NULL) = 0;
 
 	///	adapts matrix and rhs (linear case) to enforce constraints
 		virtual void adjust_linear(matrix_type& mat, vector_type& rhs,
-		                           ConstSmartPtr<DoFDistribution> dd, number time = 0.0)  = 0;
+		                           ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0)  = 0;
 
 	///	adapts a rhs to enforce constraints
 		virtual void adjust_rhs(vector_type& rhs, const vector_type& u,
-		                        ConstSmartPtr<DoFDistribution> dd, number time = 0.0)  = 0;
+		                        ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0)  = 0;
 
 	///	sets the constraints in a solution vector
-		virtual void adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd,
+		virtual void adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd, int type,
 									 number time = 0.0)  = 0;
 
 	///	adapts correction to enforce constraints
 	/// for additive constraints (e.g. linear constraints, but NOT Dirichlet other than Dirichlet-0!),
 	/// this is the same as adjust_solution, therefore default implementation
-		virtual void adjust_correction(vector_type& c, ConstSmartPtr<DoFDistribution> dd,
-									   number time = 0.0) {adjust_solution(c, dd, time);}
+		virtual void adjust_correction(vector_type& c, ConstSmartPtr<DoFDistribution> dd, int type,
+									   number time = 0.0) {adjust_solution(c, dd, type, time);}
+
+	///	adjust linear residual
+		virtual void adjust_linear_residual(vector_type& d, const vector_type& u,
+				   	   	   	   	   	   	   ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0)
+		{adjust_correction(d, dd, type, time);}
 
 	///	adjusts the assembled error estimator values in the attachments according to the constraint
-		virtual void adjust_error(const vector_type& u, ConstSmartPtr<DoFDistribution> dd,
+		virtual void adjust_error(const vector_type& u, ConstSmartPtr<DoFDistribution> dd, int type,
 								  number time = 0.0) {};
 
 	///	sets constraints in prolongation
 		virtual void adjust_prolongation(matrix_type& P,
 		                                 ConstSmartPtr<DoFDistribution> ddFine,
 		                                 ConstSmartPtr<DoFDistribution> ddCoarse,
+										 int type,
 		                                 number time = 0.0) {};
 
 	///	sets constraints in restriction
 		virtual void adjust_restriction(matrix_type& R,
 		                                ConstSmartPtr<DoFDistribution> ddCoarse,
 		                                ConstSmartPtr<DoFDistribution> ddFine,
+										int type,
 		                                number time = 0.0) {};
 
 	///	sets the constraints in a solution vector
 		virtual void adjust_restriction(vector_type& uCoarse, GridLevel coarseLvl,
-										const vector_type& uFine, GridLevel fineLvl) {};
+										const vector_type& uFine, GridLevel fineLvl,
+										int type) {};
 
 	///	sets the constraints in a solution vector
 		virtual void adjust_prolongation(vector_type& uFine, GridLevel fineLvl,
-										const vector_type& uCoarse, GridLevel coarseLvl) {};
+										const vector_type& uCoarse, GridLevel coarseLvl,
+										int type) {};
 
 	///	modifies solution vector before calling the assembling routine
 		virtual void modify_solution(vector_type& uMod, const vector_type& u,
-										ConstSmartPtr<DoFDistribution> dd) {};
+										ConstSmartPtr<DoFDistribution> dd, int type) {};
 
 	///	modify_solution for instationary case
 		virtual void modify_solution(SmartPtr<VectorTimeSeries<vector_type> > vSolMod,
 				ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
-				ConstSmartPtr<DoFDistribution> dd) {};
+				ConstSmartPtr<DoFDistribution> dd,
+				int type) {};
 
 	///	returns the type of constraints
 		virtual int type() const = 0;

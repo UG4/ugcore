@@ -42,7 +42,8 @@ namespace ug {
 template <typename TMatrix>
 void SetInterpolation(TMatrix& A,
                       std::vector<size_t> & constrainedIndex,
-                      std::vector<std::vector<size_t> >& vConstrainingIndex)
+                      std::vector<std::vector<size_t> >& vConstrainingIndex,
+					  bool assembleLinearProblem = true)
 {
 	typedef typename TMatrix::row_iterator row_iterator;
 
@@ -64,11 +65,15 @@ void SetInterpolation(TMatrix& A,
 	//	set diag of row to identity
 		A(constrainedIndex[i], constrainedIndex[i]) = 1.0;
 
-	//	set coupling to all contraining dofs the inverse of the
-	//	number of contraining dofs
-		const number frac = -1.0/(vConstrainingIndex.size());
-		for(size_t j=0; j < vConstrainingIndex.size();++j)
-			A(constrainedIndex[i], vConstrainingIndex[j][i]) = frac;
+	//	set coupling to all constraining dofs the inverse of the
+	//	number of constraining dofs
+	//	This is only required if assembling for a linear problem.
+		if (assembleLinearProblem)
+		{
+			const number frac = -1.0/(vConstrainingIndex.size());
+			for(size_t j=0; j < vConstrainingIndex.size();++j)
+				A(constrainedIndex[i], vConstrainingIndex[j][i]) = frac;
+		}
 	}
 }
 
@@ -122,7 +127,7 @@ void SplitAddRow_Symmetric(TMatrix& A,
 //	scaling factor
 	const number frac = 1./(vConstrainingIndex.size());
 
-//	handle each contrained index
+//	handle each constrained index
 	for(size_t i = 0; i < constrainedIndex.size(); ++i)
 	{
 	//	add coupling constrained dof -> constrained dof
@@ -211,6 +216,8 @@ void SplitAddRow_OneSide(TMatrix& A,
 			const size_t j = conn.index();
 			if(j == constrainedIndex[i]) continue;
 
+		// FIXME: This will only work properly if there is an entry A(i,j) for any entry
+		//        A(j,i) in the matrix! Is this always the case!?
 		//	get transposed coupling entry
 			block_type blockT = A(j, constrainedIndex[i]);
 			blockT *= frac;
@@ -343,7 +350,7 @@ template <typename TDomain, typename TAlgebra>
 void
 SymP1Constraints<TDomain,TAlgebra>::
 adjust_defect(vector_type& d, const vector_type& u,
-              ConstSmartPtr<DoFDistribution> dd, number time,
+              ConstSmartPtr<DoFDistribution> dd, int type, number time,
               ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 			  const std::vector<number>* vScaleMass,
 			  const std::vector<number>* vScaleStiff)
@@ -381,7 +388,7 @@ template <typename TDomain, typename TAlgebra>
 void
 SymP1Constraints<TDomain,TAlgebra>::
 adjust_rhs(vector_type& rhs, const vector_type& u,
-           ConstSmartPtr<DoFDistribution> dd, number time)
+           ConstSmartPtr<DoFDistribution> dd, int type, number time)
 {
 	if(this->m_spAssTuner->single_index_assembling_enabled())
 		UG_THROW("index-wise assemble routine is not "
@@ -415,7 +422,7 @@ template <typename TDomain, typename TAlgebra>
 void
 SymP1Constraints<TDomain,TAlgebra>::
 adjust_jacobian(matrix_type& J, const vector_type& u,
-                ConstSmartPtr<DoFDistribution> dd, number time,
+                ConstSmartPtr<DoFDistribution> dd, int type, number time,
                 ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 				const number s_a0)
 {
@@ -446,7 +453,7 @@ adjust_jacobian(matrix_type& J, const vector_type& u,
 		SplitAddRow_Symmetric(J, constrainedInd, vConstrainingInd);
 
 	//	set interpolation
-		SetInterpolation(J, constrainedInd, vConstrainingInd);
+		SetInterpolation(J, constrainedInd, vConstrainingInd, m_bAssembleLinearProblem);
 	}
 }
 
@@ -454,8 +461,10 @@ template <typename TDomain, typename TAlgebra>
 void
 SymP1Constraints<TDomain,TAlgebra>::
 adjust_linear(matrix_type& mat, vector_type& rhs,
-              ConstSmartPtr<DoFDistribution> dd, number time)
+              ConstSmartPtr<DoFDistribution> dd, int type, number time)
 {
+	m_bAssembleLinearProblem = true;
+
 	if(this->m_spAssTuner->single_index_assembling_enabled())
 		UG_THROW("index-wise assemble routine is not "
 				"implemented for SymP1Constraints \n");
@@ -483,7 +492,7 @@ adjust_linear(matrix_type& mat, vector_type& rhs,
 		SplitAddRow_Symmetric(mat, constrainedInd, vConstrainingInd);
 
 	//	set interpolation
-		SetInterpolation(mat, constrainedInd, vConstrainingInd);
+		SetInterpolation(mat, constrainedInd, vConstrainingInd, true);
 
 	//	adapt rhs
 		SplitAddRhs_Symmetric(rhs, constrainedInd, vConstrainingInd);
@@ -494,7 +503,7 @@ template <typename TDomain, typename TAlgebra>
 void
 SymP1Constraints<TDomain,TAlgebra>::
 adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd,
-                number time)
+				int type, number time)
 {
 	if(this->m_spAssTuner->single_index_assembling_enabled())
 		UG_THROW("index-wise assemble routine is not "
@@ -525,7 +534,108 @@ adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd,
 }
 
 
+template <typename TDomain, typename TAlgebra>
+void
+SymP1Constraints<TDomain,TAlgebra>::
+adjust_prolongation
+(
+	matrix_type& P,
+	ConstSmartPtr<DoFDistribution> ddFine,
+	ConstSmartPtr<DoFDistribution> ddCoarse,
+	int type,
+	number time
+)
+{
+	if (m_bAssembleLinearProblem) return;
 
+	if (this->m_spAssTuner->single_index_assembling_enabled())
+			UG_THROW("index-wise assemble routine is not "
+					"implemented for SymP1Constraints \n");
+
+//	storage for indices and vertices
+	std::vector<std::vector<size_t> > vConstrainingInd;
+	std::vector<size_t>  constrainedInd;
+	std::vector<Vertex*> vConstrainingVrt;
+
+//	get begin end of hanging vertices
+	DoFDistribution::traits<ConstrainedVertex>::const_iterator iter, iterEnd;
+	iter = ddFine->begin<ConstrainedVertex>();
+	iterEnd = ddFine->end<ConstrainedVertex>();
+
+//	loop constrained vertices
+	for(; iter != iterEnd; ++iter)
+	{
+	//	get hanging vert
+		ConstrainedVertex* hgVrt = *iter;
+
+	// get algebra indices for constrained and constraining vertices
+		get_algebra_indices(ddFine, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
+
+	//	set zero row
+		size_t sz = constrainedInd.size();
+		for (size_t i = 0; i < sz; ++i)
+			SetRow(P, constrainedInd[i], 0.0);
+	}
+}
+
+
+template <typename TDomain, typename TAlgebra>
+void
+SymP1Constraints<TDomain,TAlgebra>::
+adjust_restriction
+(
+	matrix_type& R,
+	ConstSmartPtr<DoFDistribution> ddCoarse,
+	ConstSmartPtr<DoFDistribution> ddFine,
+	int type,
+	number time
+)
+{
+
+}
+
+
+
+template <typename TDomain, typename TAlgebra>
+void
+SymP1Constraints<TDomain,TAlgebra>::
+adjust_correction
+(	vector_type& u,
+	ConstSmartPtr<DoFDistribution> dd,
+	int type,
+	number time
+)
+{
+	typedef typename vector_type::value_type block_type;
+
+	if (this->m_spAssTuner->single_index_assembling_enabled())
+		UG_THROW("index-wise assemble routine is not "
+				"implemented for OneSideP1Constraints \n");
+
+	// storage for indices and vertices
+	std::vector<std::vector<size_t> > vConstrainingInd;
+	std::vector<size_t>  constrainedInd;
+	std::vector<Vertex*> vConstrainingVrt;
+
+	// get begin end of hanging vertices
+	DoFDistribution::traits<ConstrainedVertex>::const_iterator iter, iterEnd;
+	iter = dd->begin<ConstrainedVertex>();
+	iterEnd = dd->end<ConstrainedVertex>();
+
+	// loop constrained vertices
+	for (; iter != iterEnd; ++iter)
+	{
+		// get hanging vert
+		ConstrainedVertex* hgVrt = *iter;
+
+		// get algebra indices for constrained and constraining vertices
+		get_algebra_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
+
+		// set all entries corresponding to constrained dofs to zero
+		for (size_t i = 0; i < constrainedInd.size(); ++i)
+			u[constrainedInd[i]] = 0.0;
+	}
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -646,7 +756,7 @@ template <typename TDomain, typename TAlgebra>
 void
 OneSideP1Constraints<TDomain,TAlgebra>::
 adjust_defect(vector_type& d, const vector_type& u,
-              ConstSmartPtr<DoFDistribution> dd, number time,
+              ConstSmartPtr<DoFDistribution> dd, int type, number time,
               ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
      		  const std::vector<number>* vScaleMass,
               const std::vector<number>* vScaleStiff)
@@ -692,7 +802,7 @@ template <typename TDomain, typename TAlgebra>
 void
 OneSideP1Constraints<TDomain,TAlgebra>::
 adjust_rhs(vector_type& rhs, const vector_type& u,
-           ConstSmartPtr<DoFDistribution> dd, number time)
+           ConstSmartPtr<DoFDistribution> dd, int type, number time)
 {
 	if(this->m_spAssTuner->single_index_assembling_enabled())
 		UG_THROW("index-wise assemble routine is not "
@@ -734,7 +844,7 @@ template <typename TDomain, typename TAlgebra>
 void
 OneSideP1Constraints<TDomain,TAlgebra>::
 adjust_jacobian(matrix_type& J, const vector_type& u,
-                ConstSmartPtr<DoFDistribution> dd, number time,
+                ConstSmartPtr<DoFDistribution> dd, int type, number time,
                 ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 				const number s_a0)
 {
@@ -773,7 +883,7 @@ adjust_jacobian(matrix_type& J, const vector_type& u,
 		SplitAddRow_OneSide(J, constrainedInd, vConstrainingInd);
 
 	//	set interpolation
-		SetInterpolation(J, constrainedInd, vConstrainingInd);
+		SetInterpolation(J, constrainedInd, vConstrainingInd, m_bAssembleLinearProblem);
 	}
 }
 
@@ -781,8 +891,10 @@ template <typename TDomain, typename TAlgebra>
 void
 OneSideP1Constraints<TDomain,TAlgebra>::
 adjust_linear(matrix_type& mat, vector_type& rhs,
-              ConstSmartPtr<DoFDistribution> dd, number time)
+              ConstSmartPtr<DoFDistribution> dd, int type, number time)
 {
+	m_bAssembleLinearProblem = true;
+
 	if(this->m_spAssTuner->single_index_assembling_enabled())
 		UG_THROW("index-wise assemble routine is not "
 				"implemented for OneSideP1Constraints \n");
@@ -818,7 +930,7 @@ adjust_linear(matrix_type& mat, vector_type& rhs,
 		SplitAddRow_OneSide(mat, constrainedInd, vConstrainingInd);
 
 	//	Set interpolation
-		SetInterpolation(mat, constrainedInd, vConstrainingInd);
+		SetInterpolation(mat, constrainedInd, vConstrainingInd, true);
 
 	//	adapt rhs
 		SplitAddRhs_OneSide(rhs, constrainedInd, vConstrainingInd);
@@ -829,7 +941,7 @@ template <typename TDomain, typename TAlgebra>
 void
 OneSideP1Constraints<TDomain,TAlgebra>::
 adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd,
-                number time)
+				int type, number time)
 {
 	if(this->m_spAssTuner->single_index_assembling_enabled())
 		UG_THROW("index-wise assemble routine is not "
@@ -856,6 +968,110 @@ adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd,
 
 	// 	Interpolate values
 		InterpolateValues(u, constrainedInd, vConstrainingInd);
+	}
+}
+
+
+
+template <typename TDomain, typename TAlgebra>
+void
+OneSideP1Constraints<TDomain,TAlgebra>::
+adjust_prolongation
+(
+	matrix_type& P,
+	ConstSmartPtr<DoFDistribution> ddFine,
+	ConstSmartPtr<DoFDistribution> ddCoarse,
+	int type,
+	number time
+)
+{
+	if (m_bAssembleLinearProblem) return;
+
+	if (this->m_spAssTuner->single_index_assembling_enabled())
+			UG_THROW("index-wise assemble routine is not "
+					"implemented for SymP1Constraints \n");
+
+//	storage for indices and vertices
+	std::vector<std::vector<size_t> > vConstrainingInd;
+	std::vector<size_t>  constrainedInd;
+	std::vector<Vertex*> vConstrainingVrt;
+
+//	get begin end of hanging vertices
+	DoFDistribution::traits<ConstrainedVertex>::const_iterator iter, iterEnd;
+	iter = ddFine->begin<ConstrainedVertex>();
+	iterEnd = ddFine->end<ConstrainedVertex>();
+
+//	loop constrained vertices
+	for(; iter != iterEnd; ++iter)
+	{
+	//	get hanging vert
+		ConstrainedVertex* hgVrt = *iter;
+
+	// get algebra indices for constrained and constraining vertices
+		get_algebra_indices(ddFine, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
+
+	//	set zero row
+		size_t sz = constrainedInd.size();
+		for (size_t i = 0; i < sz; ++i)
+			SetRow(P, constrainedInd[i], 0.0);
+	}
+}
+
+
+template <typename TDomain, typename TAlgebra>
+void
+OneSideP1Constraints<TDomain,TAlgebra>::
+adjust_restriction
+(
+	matrix_type& R,
+	ConstSmartPtr<DoFDistribution> ddCoarse,
+	ConstSmartPtr<DoFDistribution> ddFine,
+	int type,
+	number time
+)
+{}
+
+
+
+
+template <typename TDomain, typename TAlgebra>
+void
+OneSideP1Constraints<TDomain,TAlgebra>::
+adjust_correction
+(	vector_type& u,
+	ConstSmartPtr<DoFDistribution> dd,
+	int type,
+	number time
+)
+{
+	typedef typename vector_type::value_type block_type;
+
+	if (this->m_spAssTuner->single_index_assembling_enabled())
+		UG_THROW("index-wise assemble routine is not "
+				"implemented for OneSideP1Constraints \n");
+
+	// storage for indices and vertices
+	std::vector<std::vector<size_t> > vConstrainingInd;
+	std::vector<size_t>  constrainedInd;
+	std::vector<Vertex*> vConstrainingVrt;
+
+	// get begin end of hanging vertices
+	DoFDistribution::traits<ConstrainedVertex>::const_iterator iter, iterEnd;
+	iter = dd->begin<ConstrainedVertex>();
+	iterEnd = dd->end<ConstrainedVertex>();
+
+	// loop constrained vertices
+	for (; iter != iterEnd; ++iter)
+	{
+		// get hanging vert
+		ConstrainedVertex* hgVrt = *iter;
+
+		// get algebra indices for constrained and constraining vertices
+		get_algebra_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
+
+		// set all entries corresponding to constrained dofs to zero
+		for (size_t i = 0; i < constrainedInd.size(); ++i)
+			u[constrainedInd[i]] = 0.0;
 	}
 }
 
