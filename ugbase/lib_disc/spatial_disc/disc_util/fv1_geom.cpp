@@ -975,15 +975,20 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 	// 	compute volume of scv
 		m_vSCV[i].Vol = ElementSize<scv_type, worldDim>(m_vSCV[i].vGloPos);
 
-		MathVector<dim> baryCenter(0.0);
-		for(size_t j = 0; j < 8; ++j)
-		{
-			baryCenter += m_vSCV[i].vLocPos[j];
-		}
+		/*
+		 *	Only for debug purposes testing octahedral FV1 discretization
+		 *
+			MathVector<dim> baryCenter(0.0);
+			for(size_t j = 0; j < 8; ++j)
+			{
+				baryCenter += m_vSCV[i].vLocPos[j];
+			}
 
-		baryCenter *= 1.0/8.0;
+			baryCenter *= 1.0/8.0;
+		*
+		*/
 
-		UG_DLOG(DID_FV1_GEOM, 2, "	scv # " << i << ": " << "m_vSCV[i].vGloPos: " << m_vSCV[i].vGloPos[0] << "; m_vSCV[i].vLocPos: " << m_vSCV[i].vLocPos[0] << "; m_vSCV[i].Vol: " << m_vSCV[i].Vol << "; baryCenter: " << baryCenter << std::endl);
+		UG_DLOG(DID_FV1_GEOM, 2, "	scv # " << i << ": " << "m_vSCV[i].vGloPos: " << m_vSCV[i].vGloPos[0] << "; m_vSCV[i].vLocPos: " << m_vSCV[i].vLocPos[0] << "; m_vSCV[i].Vol: " << m_vSCV[i].Vol << /*"; baryCenter: " << baryCenter <<*/ std::endl);
 	}
 
 // 	Shapes and Derivatives
