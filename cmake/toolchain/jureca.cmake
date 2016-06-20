@@ -46,13 +46,14 @@ SET(enableDynamicOption OFF)
 SET(enableNoStrictAliasingOption ON)
 
 # Some variables for pathes
-set(GCC_ROOT  "/usr/local/software/jureca/Stage3/software/Core/icc/2015.3.187-GCC-bare-4.9.3")
-set(MPI_ROOT  "/usr/local/software/jureca/Stage3/software/Toolchain/iccifort/2015.3.187-GCC-bare-4.9.3/psmpi/5.1.4-1")
+set(GCC_ROOT  "/usr/local/software/jureca/Stages/2016a/software/icc/2016.2.181-GCC-4.9.3-2.25/compilers_and_libraries_2016.2.181/linux")
+set(MPI_ROOT  "/usr/local/software/jureca/Stages/2016a/software/psmpi/5.1.5-1-iccifort-2016.2.181-GCC-4.9.3-2.25")
+set(FTR_ROOT  "/usr/local/software/jureca/Stages/2016a/software/ifort/2016.2.181-GCC-4.9.3-2.25/compilers_and_libraries_2016.2.181/linux")
 
 # The serial GNU compilers
-set(CMAKE_C_COMPILER       ${GCC_ROOT}/bin/icc)
-set(CMAKE_CXX_COMPILER     ${GCC_ROOT}/bin/icpc)
-set(CMAKE_Fortran_COMPILER ${GCC_ROOT}/bin/ifort)
+set(CMAKE_C_COMPILER       ${GCC_ROOT}/bin/intel64/icc)
+set(CMAKE_CXX_COMPILER     ${GCC_ROOT}/bin/intel64/icpc)
+set(CMAKE_Fortran_COMPILER ${FTR_ROOT}/bin/intel64/ifort)
 
 # The MPI wrappers for the GNU compilers
 set(MPI_C_COMPILER       ${MPI_ROOT}/bin/mpicc)
