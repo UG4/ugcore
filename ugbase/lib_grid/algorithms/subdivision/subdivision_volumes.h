@@ -299,6 +299,8 @@ void SplitOctahedronToTetrahedrons(	Grid& grid, Octahedron* oct, Volume* parentV
 **/
 void TetrahedralizeHybridTetOctGrid(MultiGrid& mg, int bestDiag)
 {
+	PROFILE_FUNC_GROUP("subdivision_volumes");
+
 	if(bestDiag != 0 && bestDiag != 1 && bestDiag != 2)
 	{
 		bestDiag = -1;
@@ -339,6 +341,8 @@ void TetrahedralizeHybridTetOctGrid(MultiGrid& mg, int bestDiag)
 **/
 void ProjectHierarchyToLimitSubdivisionVolume(MultiGrid& mg)
 {
+	PROFILE_FUNC_GROUP("subdivision_volumes");
+
 //	Catch use of procedure for MultiGrids with just one level
 	if(mg.num_levels() == 1)
 	{
@@ -1508,6 +1512,8 @@ void ApplySmoothSubdivisionSurfacesToTopLevel(MultiGrid& mg, MGSubsetHandler& sh
  *	(1) SETUP
  *
  *****************************************/
+
+	PROFILE_FUNC_GROUP("subdivision_volumes");
 
 //	Catch use of procedure for MultiGrids with just one level
 	if(mg.num_levels() == 1)
