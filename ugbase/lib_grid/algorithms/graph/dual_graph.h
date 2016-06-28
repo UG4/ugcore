@@ -321,6 +321,21 @@ void ConstructDualGraphMG(std::vector<TIndexType>& adjacencyMapStructureOut,
 }
 
 
+class IDualGraphNeighborCollector
+{
+	public:
+		virtual ~IDualGraphNeighborCollector() {}
+};
+
+template <typename TBaseElem>
+class DualGraphNeighborCollector
+: public IDualGraphNeighborCollector
+{
+	public:
+		virtual ~DualGraphNeighborCollector() {}
+		virtual void collect_neighbors(std::vector<TBaseElem*>& neighborsOut, TBaseElem* elem) = 0;
+};
+
 ////////////////////////////////////////////////////////////////////////
 /** This method creates a dual graph for the given level only.
  *
@@ -365,7 +380,8 @@ void ConstructDualGraphMGLevel(
 		MultiGrid& mg, size_t level,
 		Attachment<TIndexType>* paIndex = NULL,
 		TGeomBaseObj** pGeomObjsOut = NULL,
-		NeighborhoodType nbhType = NHT_DEFAULT)
+		NeighborhoodType nbhType = NHT_DEFAULT,
+		DualGraphNeighborCollector<TGeomBaseObj>* neighborCollector = NULL)
 {
 	using namespace std;
 	typedef TGeomBaseObj Elem;
@@ -408,7 +424,10 @@ void ConstructDualGraphMGLevel(
 		Elem* elem = *iter;
 
 	//	get all neighbours
-		CollectNeighbors(vNeighbours, elem, mg, nbhType);
+		if (neighborCollector)
+			neighborCollector->collect_neighbors(vNeighbours, elem);
+		else
+			CollectNeighbors(vNeighbours, elem, mg, nbhType);
 
 	//	store first entry at which the connections will be written to the map
 		adjacencyMapStructureOut[ind] = adjacencyMapOut.size();
