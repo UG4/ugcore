@@ -2764,7 +2764,7 @@ write_time_pvd(const char* filename, TFunction& u)
 					fprintf(file, "  <DataSet timestep=\"%g\" part=\"%d\" file=\"%s\"/>\n",
 					        	vTimestep[step], si, name.c_str());
 				}
-			}
+		}
 
 	//	close file
 		fprintf(file, "  </Collection>\n");
@@ -2803,6 +2803,73 @@ write_time_pvd(const char* filename, TFunction& u)
 				}
 
 	//	end file
+		fprintf(file, "  </Collection>\n");
+		fprintf(file, "</VTKFile>\n");
+		fclose(file);
+	}
+
+// restore old locale
+	setlocale(LC_NUMERIC, oldLocale);
+
+	#ifdef UG_PARALLEL
+		PCL_DEBUG_BARRIER_ALL();
+	#endif
+}
+
+
+
+template <int TDim>
+template <typename TFunction>
+void VTKOutput<TDim>::
+write_time_pvd_subset(const char* filename, TFunction& u, int si)
+{
+//	File
+	FILE* file;
+
+//	filename
+	std::string name;
+
+// 	get some numbers
+	bool isOutputProc = GetLogAssistant().is_output_process();
+	int numProcs = 1;
+#ifdef UG_PARALLEL
+	numProcs = pcl::NumProcs();
+#endif
+
+//	get time steps
+	std::vector<number>& vTimestep = m_mTimestep[filename];
+
+//	change locale to ensure decimal . is really a .
+	char* oldLocale = setlocale (LC_ALL, NULL);
+	setlocale(LC_NUMERIC, "C");
+
+	if (isOutputProc)
+	{
+	//	get file name
+		pvd_filename(name, filename);
+
+	//	open file
+		file = fopen(name.c_str(), "w");
+		if (file == NULL)
+			UG_THROW("Cannot print to file.");
+
+	// 	Write to file
+		fprintf(file, "<?xml version=\"1.0\"?>\n");
+		fprintf(file, "<VTKFile type=\"Collection\" version=\"0.1\">\n");
+		fprintf(file, "  <Collection>\n");
+
+	// 	include files from all procs
+		for(int step = 0; step < (int)vTimestep.size(); ++step)
+		{
+			vtu_filename(name, filename, 0, si, u.num_subsets()-1, step);
+			if(numProcs > 1) pvtu_filename(name, filename, si, u.num_subsets()-1, step);
+
+			name = FilenameWithoutPath(name);
+			fprintf(file, "  <DataSet timestep=\"%g\" part=\"%d\" file=\"%s\"/>\n",
+						vTimestep[step], si, name.c_str());
+		}
+
+	//	close file
 		fprintf(file, "  </Collection>\n");
 		fprintf(file, "</VTKFile>\n");
 		fclose(file);

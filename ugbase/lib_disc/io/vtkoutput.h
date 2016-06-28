@@ -424,6 +424,17 @@ class VTKOutput
 	 */
 		template <typename TFunction>
 		void write_time_pvd(const char* filename, TFunction& u);
+
+	/**
+	 * When a time series has been computed, this function can be used to procduce
+	 * a grouping *.pvd file for paraview visualization.
+	 *
+	 * \param[in]		filename		filename used in time series
+	 * \param[in]		u				grid function
+	 * \param[in]		si				subset index
+	 */
+		template <typename TFunction>
+		void write_time_pvd_subset(const char* filename, TFunction& u, int si);
 protected:
 	/**
 	 * This function counts the number of vertices, elements and connections for
