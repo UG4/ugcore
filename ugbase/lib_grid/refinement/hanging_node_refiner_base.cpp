@@ -1374,8 +1374,10 @@ refine_edge_with_normal_vertex(Edge* e, Vertex** newCornerVrts)
 //	the grid
 	Grid& grid = *m_pGrid;
 
-	if((marked_copy(e) || marked_adaptive(e)) && newCornerVrts){
-		grid.create_by_cloning(e, EdgeDescriptor(newCornerVrts[0], newCornerVrts[1]), e);
+	if(marked_copy(e) || marked_adaptive(e)){
+		if(newCornerVrts){
+			grid.create_by_cloning(e, EdgeDescriptor(newCornerVrts[0], newCornerVrts[1]), e);
+		}
 		return;
 	}
 
@@ -1467,11 +1469,13 @@ refine_face_with_normal_vertex(Face* f, Vertex** newCornerVrts)
 			noEdgeVrts = false;
 	}
 
-	if((marked_copy(f) || (marked_adaptive(f) && noEdgeVrts)) && newCornerVrts){
-		FaceDescriptor desc(numVrts);
-		for(size_t i = 0; i < numVrts; ++i)
-			desc.set_vertex(i, newCornerVrts[i]);
-		grid.create_by_cloning(f, desc, f);
+	if(marked_copy(f) || (marked_adaptive(f) && noEdgeVrts)){
+		if(newCornerVrts){
+			FaceDescriptor desc(numVrts);
+			for(size_t i = 0; i < numVrts; ++i)
+				desc.set_vertex(i, newCornerVrts[i]);
+			grid.create_by_cloning(f, desc, f);
+		}
 		return;
 	}
 
@@ -1841,12 +1845,14 @@ refine_volume_with_normal_vertex(Volume* v, Vertex** newCornerVrts)
 					"to contain a new vertex!");
 	}
 
-	if((marked_copy(v) || (marked_adaptive(v) && noEdgeVrts)) && newCornerVrts){
-		size_t numVrts = v->num_vertices();
-		VolumeDescriptor desc(numVrts);
-		for(size_t i = 0; i < numVrts; ++i)
-			desc.set_vertex(i, newCornerVrts[i]);
-		grid.create_by_cloning(v, desc, v);
+	if(marked_copy(v) || (marked_adaptive(v) && noEdgeVrts)){
+		if(newCornerVrts){
+			size_t numVrts = v->num_vertices();
+			VolumeDescriptor desc(numVrts);
+			for(size_t i = 0; i < numVrts; ++i)
+				desc.set_vertex(i, newCornerVrts[i]);
+			grid.create_by_cloning(v, desc, v);
+		}
 		return;
 	}
 
