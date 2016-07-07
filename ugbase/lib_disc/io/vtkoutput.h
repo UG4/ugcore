@@ -147,7 +147,17 @@ class VTKOutput
 {
 		public:
 	///	clears the selected output
-		void clear_selection() {m_vSymbFctNodal.clear(); m_vSymbFct.clear();}
+		void clear_selection() {m_vSymbFct.clear(); m_vSymbFctNodal.clear(); m_vSymbFctElem.clear();}
+
+	///	clears the selected output
+		void clear_data_selection()
+		{
+			m_vScalarNodalData.clear();
+			m_vScalarElemData.clear();
+
+			m_vVectorNodalData.clear();
+			m_vVectorElemData.clear();
+		}
 
 	///	schedules that all components of the passed discrete functions will be written to file
 		void select_all(bool bAll) {m_bSelectAll = bAll;}
@@ -327,8 +337,8 @@ class VTKOutput
 	 */
 		template <typename TFunction>
 		void print_subset(const char* filename, TFunction& u,
-		                  int si, int step = -1, number time = 0.0,
-						  bool makeConsistent = true);
+		                  int si, int step, number time,
+						  bool makeConsistent);
 
 	/**	Calls print_subset with makeConsistent enabled.*/
 		template <typename TFunction>

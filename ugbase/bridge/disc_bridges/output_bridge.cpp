@@ -251,6 +251,7 @@ static void Dimension(Registry& reg, string grp)
 		reg.add_class_<T>(name, grp)
 			.add_constructor()
 			.add_method("clear_selection", &T::clear_selection, "", "", "clears the selected output")
+			.add_method("clear_data_selection", &T::clear_data_selection, "", "", "clears the selected UserData output")
 			.add_method("select_all", &T::select_all, "", "", "schedules that all components of the passed discrete functions will be written to file")
 			.add_method("select", static_cast<void (T::*)(const char*, const char*)>(&T::select), "", "fctName#name",
 					"selects a value of a grid function value to be written. example:\nfctName = \"p\"; name = \"pressure\"\nfctNames = \"u,v,w\"; name = \"velocity\"")
