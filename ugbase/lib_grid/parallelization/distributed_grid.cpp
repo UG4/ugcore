@@ -572,7 +572,7 @@ handle_created_element(TElem* pElem, GridObject* pParent,
 {
 	if(replacesParent){
 	//	we have to replace the parent entry. To do this
-	//	we'll replace all occurences of the parent in all interfaces.
+	//	we'll replace all occurrences of the parent in all interfaces.
 	//	If a replace takes place, the parent has to be of the same type
 	//	as pElem.
 		TElem* parent = dynamic_cast<TElem*>(pParent);
@@ -594,7 +594,7 @@ handle_created_element(TElem* pElem, GridObject* pParent,
 		//	clear the parent-info.
 			elem_info(parent).reset();
 
-		//	we also have to check wheter the new element has been converted
+		//	we also have to check whether the new element has been converted
 		//	from normal to constrained while lying in a v-interface during coarsening
 			if(m_bElementDeletionMode && pElem->is_constrained()
 				&& (!pParent->is_constrained()) && is_in_vertical_interface(pElem))
