@@ -34,9 +34,11 @@
 
 -- 	hierarchy =
 -- 	{
+--		type						= "standard",
 -- 		minElemsPerProcPerLevel		= 32,
 -- 		maxRedistProcs				= 256,
 -- 		qualityRedistLevelOffset	= 2,
+--		intermediateRedistributions	= true
 
 -- 		{-- levels 0 to 1
 -- 			upperLvl = 1,
