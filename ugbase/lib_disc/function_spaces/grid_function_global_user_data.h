@@ -369,7 +369,7 @@ class GlobalGridFunctionGradientData
 				VecSet(locPos, 0.5);
 				map.global_to_local(locPos, x);
 
-
+				
 				MathMatrix<refDim, dim> JT;
 				try{
 					DimReferenceMapping<refDim, dim>& mapping
@@ -385,6 +385,7 @@ class GlobalGridFunctionGradientData
 						LocalFiniteElementProvider::get<dim>(roid, m_lfeID);
 				std::vector<MathVector<refDim> > vLocGrad;
 				rTrialSpace.grads(vLocGrad, locPos);
+
 
 			//	Reference Mapping
 				MathMatrix<dim, refDim> JTInv;

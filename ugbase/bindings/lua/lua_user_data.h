@@ -245,6 +245,8 @@ class LuaUserFunction
 	 */ 
 		LuaUserFunction(const char* luaCallback, size_t numArgs);
 		LuaUserFunction(const char* luaCallback, size_t numArgs, bool bPosTimeNeed);
+		LuaUserFunction(LuaFunctionHandle handle, size_t numArgs);
+		LuaUserFunction(LuaFunctionHandle handle, size_t numArgs, bool bPosTimeNeed);
 	/// \}
 
 	///	destructor frees the reference
@@ -304,6 +306,7 @@ class LuaUserFunction
 	protected:
 	///	sets the Lua function used to compute the data
 		void set_lua_value_callback(const char* luaCallback, size_t numArgs);
+		void set_lua_value_callback(LuaFunctionHandle handle, size_t numArgs);
 
 	///	frees the callback-reference, if a callback was set.
 		void free_callback_ref();

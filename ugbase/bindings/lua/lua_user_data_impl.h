@@ -468,6 +468,42 @@ LuaUserFunction(const char* luaCallback, size_t numArgs, bool bPosTimeNeed)
 	#endif
 }
 
+
+template <typename TData, int dim, typename TDataIn>
+LuaUserFunction<TData,dim,TDataIn>::
+LuaUserFunction(LuaFunctionHandle handle, size_t numArgs)
+	: m_numArgs(numArgs), m_bPosTimeNeed(false)
+{
+	m_L = ug::script::GetDefaultLuaState();
+	m_cbValueRef = LUA_NOREF;
+	m_cbDerivRef.clear();
+	m_cbDerivName.clear();
+	set_lua_value_callback(handle, numArgs);
+	#ifdef USE_LUA2C
+		if(useLuaCompiler){
+			UG_LOG("WARNING (in LuaUserFunction): LUA2C compiler "
+					"can't be executed for FunctionHandle.\n");
+		}
+	#endif
+}
+
+template <typename TData, int dim, typename TDataIn>
+LuaUserFunction<TData,dim,TDataIn>::
+LuaUserFunction(LuaFunctionHandle handle, size_t numArgs, bool bPosTimeNeed)
+	: m_numArgs(numArgs), m_bPosTimeNeed(bPosTimeNeed)
+{
+	m_L = ug::script::GetDefaultLuaState();
+	m_cbValueRef = LUA_NOREF;
+	m_cbDerivRef.clear();
+	m_cbDerivName.clear();
+	set_lua_value_callback(handle, numArgs);
+	#ifdef USE_LUA2C
+		m_luaComp_Deriv.clear();
+	#endif
+}
+
+
+
 template <typename TData, int dim, typename TDataIn>
 LuaUserFunction<TData,dim,TDataIn>::~LuaUserFunction()
 {
@@ -533,6 +569,31 @@ void LuaUserFunction<TData,dim,TDataIn>::set_lua_value_callback(const char* luaC
 	#endif
 }
 
+template <typename TData, int dim, typename TDataIn>
+void LuaUserFunction<TData,dim,TDataIn>::
+set_lua_value_callback(LuaFunctionHandle handle, size_t numArgs)
+{
+//	store name (string) of callback
+	m_cbValueName = "__anonymous__lua__function__";
+
+//	if a callback was already set, we have to free the old one
+	free_callback_ref();
+
+//	store reference to lua function
+	m_cbValueRef = handle.ref;
+
+//	remember number of arguments to be used
+	m_numArgs = numArgs;
+	m_cbDerivName.resize(numArgs);
+	m_cbDerivRef.resize(numArgs, LUA_NOREF);
+
+//	set num inputs for linker
+	set_num_input(numArgs);
+
+	#ifdef USE_LUA2C
+		m_luaComp_Deriv.resize(numArgs);
+	#endif
+}
 
 template <typename TData, int dim, typename TDataIn>
 void LuaUserFunction<TData,dim,TDataIn>::set_deriv(size_t arg, const char* luaCallback)
