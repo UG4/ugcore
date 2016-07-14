@@ -228,17 +228,17 @@ number SumGFValuesAt
 	{
 		int ssi = ssGroup [i];
 		
-	//	Loop the vertices in the subset
+	//	Loop the elements in the subset
 		for (t_elem_iter vi = u->template begin<TBaseElem> (ssi);
 					vi != u->template end<TBaseElem> (ssi); ++vi)
 		{
 		    TBaseElem * vert = *vi;
 		    
-		//	indices at this vertex
+		//	indices at this element
 			u->inner_dof_indices (vert, fct, ind);
 			
 			if (ind.size () != 1)
-				UG_THROW ("SumGridFuncValuesAt: The function must be scalar!");
+				UG_THROW ("SumGFValuesAt: The function must be scalar!");
 		
 		//	add the contribution
 			sum += DoFRef (*u, ind [0]);
@@ -254,7 +254,7 @@ number SumGFValuesAt
 }
 
 /**
- * Sums values of a grid function at vertices in given subsets.
+ * Sums values of a grid function at given elements (like vertices) in given subsets.
  *
  * This version takes symbolic data.
  *
@@ -273,7 +273,7 @@ number SumGFValuesAt
 	std::vector<std::string> vfctNames;
 	TokenizeString (fct_names, vfctNames);
 	if (vfctNames.size () != 1)
-		UG_THROW ("SumGridFuncValuesAt: Exactly one function name must be specified.");
+		UG_THROW ("SumGFValuesAt: Exactly one function name must be specified.");
 	FunctionGroup fctGroup (u->function_pattern ());
 	fctGroup.add (vfctNames [0]);
 
@@ -285,6 +285,99 @@ number SumGFValuesAt
 	
 //	Compute the sum
 	return SumGFValuesAt<TGridFunction, TBaseElem> (u, fctGroup[0], ssGroup);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// 	Checking components for nan and inf
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Checks values of a grid function at given elements (like vertices) for nan and inf
+ *
+ * \tparam TGridFunction	the grid function type
+ * \tparam TBaseElem		the given element type (like 'Vertex')
+ */
+template <typename TGridFunction, typename TBaseElem>
+bool CheckGFforNaN
+(
+	const TGridFunction * u, ///< the grid function
+	size_t fct ///< index of the function
+)
+{
+	typedef typename TGridFunction::template traits<TBaseElem>::const_iterator t_elem_iter;
+	
+	std::vector<DoFIndex> ind;
+	
+//	Loop the elements in the subset
+	for (t_elem_iter vi = u->template begin<TBaseElem> ();
+				vi != u->template end<TBaseElem> (); ++vi)
+	{
+		TBaseElem * vert = *vi;
+		
+	//	indices at this element
+		u->inner_dof_indices (vert, fct, ind);
+		
+		if (ind.size () != 1)
+			UG_THROW ("CheckGFforNaN: The function must be scalar!");
+	
+	//	check the value
+		number value = DoFRef (*u, ind [0]);
+		if (isnan (value))
+		{
+			int si = u->domain()->subset_handler()->get_subset_index (vert);
+			UG_LOG ("nan at index " << ind [0] << ", grid data idx " << vert->grid_data_index ());
+			if (si >= 0)
+				UG_LOG (", subset " << u->domain()->subset_handler()->get_subset_name (si))
+			UG_LOG ('\n');
+			return true;
+		}
+		if (isinf (value))
+		{
+			int si = u->domain()->subset_handler()->get_subset_index (vert);
+			UG_LOG ("inf at index " << ind [0] << ", grid data idx " << vert->grid_data_index ());
+			if (si >= 0)
+				UG_LOG (", subset " << u->domain()->subset_handler()->get_subset_name (si))
+			UG_LOG ('\n');
+			return true;
+		}
+	}
+	
+	return false;
+}
+
+/**
+ * Checks values of a grid function at given elements (like vertices) for nan and inf
+ *
+ * This version takes symbolic data.
+ *
+ * \tparam TGridFunction	the grid function type
+ * \tparam TBaseElem		the given element type (like 'Vertex')
+ */
+template <typename TGridFunction, typename TBaseElem>
+bool CheckGFforNaN
+(
+	const TGridFunction * u, ///< the grid function
+	const char * fct_names ///< index of the function
+)
+{
+//	Get the function index
+	std::vector<std::string> vfctNames;
+	TokenizeString (fct_names, vfctNames);
+	FunctionGroup fctGroup (u->function_pattern ());
+	for (size_t i = 0; i < vfctNames.size (); i++)
+		fctGroup.add (vfctNames [i]);
+
+//	Check the functions
+	bool result = false;
+	for (size_t i = 0; i < vfctNames.size (); i++)
+	{
+		UG_LOG ("Checking " << vfctNames[i] << " ... ");
+		if (CheckGFforNaN<TGridFunction, TBaseElem> (u, fctGroup[i]))
+			result = true;
+		else
+			UG_LOG ("OK\n");
+	}
+	return result;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
