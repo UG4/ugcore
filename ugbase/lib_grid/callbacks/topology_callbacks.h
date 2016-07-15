@@ -34,6 +34,7 @@
 #define __H__UG_topology_callbacks
 
 #include "lib_grid/algorithms/geom_obj_util/vertex_util.h"
+#include "element_callback_interface.h"
 
 namespace ug{
 
@@ -41,43 +42,86 @@ namespace ug{
  * \{ */
 
 ///	Element callback that returns true, if an element lies on the grids boundary
-class IsOnBoundary
+class IsOnBoundary : public ElementCallback
 {
 	public:
 		IsOnBoundary(Grid& g) :
 			m_grid(g)	{}
 
-		bool operator() (Vertex* v)	{return callback(v);}
-		bool operator() (Edge* e)	{return callback(e);}
-		bool operator() (Face* f)	{return callback(f);}
+		bool operator() (Vertex* v) const	{return callback(v);}
+		bool operator() (Edge* e) const		{return callback(e);}
+		bool operator() (Face* f) const		{return callback(f);}
+		bool operator()	(Volume*) const		{return false;}
 
 	private:
 		template <class TElem>
-		bool callback(TElem* e)		{return LiesOnBoundary(m_grid, e);}
+		bool callback(TElem* e)	 const		{return LiesOnBoundary(m_grid, e);}
 
 	private:
 		Grid&	m_grid;
 };
 
 ///	Element callback that returns true, if an element does not lie on the grids boundary
-class IsNotOnBoundary
+class IsNotOnBoundary : public ElementCallback
 {
 	public:
 		IsNotOnBoundary(Grid& g) :
 			m_grid(g)	{}
 
-		bool operator() (Vertex* v)	{return callback(v);}
-		bool operator() (Edge* e)	{return callback(e);}
-		bool operator() (Face* f)	{return callback(f);}
-
+		bool operator() (Vertex* v) const	{return callback(v);}
+		bool operator() (Edge* e) const		{return callback(e);}
+		bool operator() (Face* f) const		{return callback(f);}
+		bool operator()	(Volume*) const		{return true;}
 	private:
 		template <class TElem>
-		bool callback(TElem* e)		{return !LiesOnBoundary(m_grid, e);}
+		bool callback(TElem* e) const		{return !LiesOnBoundary(m_grid, e);}
 
 	private:
 		Grid&	m_grid;
 };
 
+
+class IsBoundaryOrManifodFace : public ElementCallback
+{
+	public:
+		IsBoundaryOrManifodFace(Grid& g) :
+			m_grid(g)	{}
+
+		bool operator() (Vertex* v) const	{return false;}
+		bool operator() (Edge* e) const		{return false;}
+		bool operator() (Face* f) const		{return callback(f);}
+		bool operator()	(Volume*) const		{return true;}
+
+	private:
+		template <class TElem>
+		bool callback(TElem* e) const	
+		{
+		//todo:	mutex?
+		//todo: m_grid.num_associated_elements<Volume>(e)...
+			const_cast<Grid&>(m_grid).associated_elements(
+				const_cast<IsBoundaryOrManifodFace*>(this)->m_tmpVols, e);
+			return m_tmpVols.size() < 2;
+		}
+
+	private:
+		Grid&	m_grid;
+		Grid::volume_traits::secure_container	m_tmpVols;// optimization for single-thread
+};
+
+class IsNotBoundaryOrManifodFace : public ElementCallback
+{
+	public:
+		IsNotBoundaryOrManifodFace(Grid& g) :
+			m_callback(g)	{}
+
+		bool operator() (Vertex* v) const	{return !m_callback(v);}
+		bool operator() (Edge* e) const		{return !m_callback(e);}
+		bool operator() (Face* f) const		{return !m_callback(f);}
+		bool operator()	(Volume* v) const	{return !m_callback(v);}
+
+	private:
+		IsBoundaryOrManifodFace	m_callback;
+};
 /** \} */ //lib_grid_element_callbacks
 
 }//	end of namespace

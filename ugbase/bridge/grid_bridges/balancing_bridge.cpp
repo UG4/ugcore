@@ -33,6 +33,7 @@
 #include "grid_bridges.h"
 #include "lib_grid/parallelization/util/partition_weighting_callbacks.h"
 #include "lib_grid/tools/partition_map.h"
+#include "lib_grid/algorithms/graph/dual_graph.h"	// DualGraphNeighborCollector
 
 using namespace std;
 
@@ -68,6 +69,13 @@ void RegisterGridBridge_Balancing(Registry& reg, string parentGroup)
 		.add_method("get_target_proc", &PartitionMap::get_target_proc)
 		.add_method("shift_target_procs", &PartitionMap::shift_target_procs)
 		.set_construct_as_smart_pointer(true);
+
+//	dual graph neighbor collector
+	{
+		string name = string("IDualGraphNeighborCollector");
+		typedef IDualGraphNeighborCollector T;
+		reg.add_class_<T>(name, grp);
+	}
 }
 
 }//	end of namespace

@@ -215,6 +215,29 @@ class GridFunctionVectorData
 				"name in '"<<cmp<<"'.");
 	};
 
+	GridFunctionVectorData(SmartPtr<TGridFunction> spGridFct, std::vector<std::string> vCmp)
+	: m_spGridFct(spGridFct)
+	{
+		this->set_functions(vCmp);
+
+		//	create function group of this elem disc
+		try
+		{
+			if ((int)vCmp.size() != dim)
+				UG_THROW("GridFunctionVectorData: Needed "<<dim<<" components "
+						 "in symbolic function names, but given: "<< (int) vCmp.size());
+
+			//	get function id of name
+			for (size_t i = 0; i < (size_t) dim; ++i)
+			{
+				m_vfct[i] = spGridFct->fct_id_by_name(vCmp[i].c_str());
+				m_vlfeID[i] = spGridFct->local_finite_element_id(m_vfct[i]);
+			}
+
+		}UG_CATCH_THROW("GridFunctionVectorData: Cannot find some symbolic function "
+				"name in component vector.");
+	}
+
 	virtual bool continuous() const
 	{
 		for(int i = 0; i < dim; ++i)

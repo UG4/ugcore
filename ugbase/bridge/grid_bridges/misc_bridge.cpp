@@ -33,8 +33,7 @@
 #include "grid_bridges.h"
 #include "common/space_partitioning/ntree_traverser.h"
 #include "lib_grid/algorithms/debug_util.h"
-#include "lib_grid/algorithms/fractals.h"
-#include "lib_grid/algorithms/refinement/hanging_node_refiner_grid.h"
+#include "lib_grid/refinement/hanging_node_refiner_grid.h"
 #include "lib_grid/algorithms/space_partitioning/lg_ntree.h"
 #include "lib_grid/file_io/file_io.h"
 
@@ -42,16 +41,6 @@ using namespace std;
 
 namespace ug{
 namespace bridge{
-
-bool CreateFractal(Grid& grid, HangingNodeRefiner_Grid& href,
-					number scaleFac, size_t numIterations)
-{
-	PROFILE_FUNC_GROUP("grid");
-//	HangingNodeRefiner_IR1 href(grid);
-	return CreateFractal_NormalScale(grid, href, scaleFac, numIterations);
-//	return true;
-}
-
 
 bool TestNTree(const char* filename)
 {
@@ -109,8 +98,6 @@ bool TestNTree(const char* filename)
 void RegisterGridBridge_Misc(Registry& reg, string parentGroup)
 {
 	string grp = parentGroup;
-	reg.add_function("CreateFractal", &CreateFractal, grp);
-
 	reg.add_function("PrintGridElementNumbers", static_cast<void (*)(MultiGrid&)>(&PrintGridElementNumbers), grp)
 		.add_function("PrintGridElementNumbers", static_cast<void (*)(Grid&)>(&PrintGridElementNumbers), grp)
 		.add_function("PrintAttachmentInfo", &PrintAttachmentInfo, grp);

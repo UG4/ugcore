@@ -50,8 +50,8 @@ namespace ug{
 
 ParallelHangingNodeRefiner_MultiGrid::
 ParallelHangingNodeRefiner_MultiGrid(
-		IRefinementCallback* refCallback) :
-	BaseClass(refCallback),
+		SPRefinementProjector projector) :
+	BaseClass(projector),
 	m_pDistGridMgr(NULL),
 	m_pMG(NULL)
 {
@@ -61,8 +61,8 @@ ParallelHangingNodeRefiner_MultiGrid(
 ParallelHangingNodeRefiner_MultiGrid::
 ParallelHangingNodeRefiner_MultiGrid(
 		DistributedGridManager& distGridMgr,
-		IRefinementCallback* refCallback) :
-	BaseClass(*distGridMgr.get_assigned_grid(), refCallback),
+		SPRefinementProjector projector) :
+	BaseClass(*distGridMgr.get_assigned_grid(), projector),
 	m_pDistGridMgr(&distGridMgr),
 	m_pMG(distGridMgr.get_assigned_grid())
 {

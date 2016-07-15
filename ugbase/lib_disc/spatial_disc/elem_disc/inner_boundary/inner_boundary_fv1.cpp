@@ -84,6 +84,14 @@ template<typename TElem, typename TFVGeom>
 void FV1InnerBoundaryElemDisc<TDomain>::
 prep_elem(const LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[])
 {
+#ifdef UG_PARALLEL
+	DistributedGridManager& dgm = *this->approx_space()->domain()->grid()->distributed_grid_manager();
+	m_bCurrElemIsHSlave = dgm.get_status(elem) & ES_H_SLAVE;
+#endif
+
+	// on horizontal interfaces: only treat hmasters
+	if (m_bCurrElemIsHSlave) return;
+
 	// update Geometry for this element
 	static TFVGeom& geo = GeomProvider<TFVGeom>::get();
 	try
@@ -100,6 +108,9 @@ template<typename TElem, typename TFVGeom>
 void FV1InnerBoundaryElemDisc<TDomain>::
 add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
+	// on horizontal interfaces: only treat hmasters
+	if (m_bCurrElemIsHSlave) return;
+
 	// get finite volume geometry
 	const static TFVGeom& fvgeom = GeomProvider<TFVGeom>::get();
 
@@ -157,6 +168,9 @@ template<typename TElem, typename TFVGeom>
 void FV1InnerBoundaryElemDisc<TDomain>::
 add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
+	// on horizontal interfaces: only treat hmasters
+	if (m_bCurrElemIsHSlave) return;
+
 	// get finite volume geometry
 	static TFVGeom& fvgeom = GeomProvider<TFVGeom>::get();
 
@@ -221,6 +235,9 @@ template <typename TElem, typename TFVGeom>
 void FV1InnerBoundaryElemDisc<TDomain>::
 prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
 {
+	// on horizontal interfaces: only treat hmasters
+	if (m_bCurrElemIsHSlave) return;
+
 	//	get the error estimator data object and check that it is of the right type
 	//	we check this at this point in order to be able to dispense with this check later on
 	//	(i.e. in prep_err_est_elem and compute_err_est_A_elem())
@@ -279,6 +296,9 @@ template<typename TElem, typename TFVGeom>
 void FV1InnerBoundaryElemDisc<TDomain>::
 prep_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
+	// on horizontal interfaces: only treat hmasters
+	if (m_bCurrElemIsHSlave) return;
+
 	// get error estimator
 	err_est_type* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
 
@@ -313,6 +333,9 @@ template <typename TElem, typename TFVGeom>
 void FV1InnerBoundaryElemDisc<TDomain>::
 compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale)
 {
+	// on horizontal interfaces: only treat hmasters
+	if (m_bCurrElemIsHSlave) return;
+
 	// get error estimator
 	err_est_type* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
 

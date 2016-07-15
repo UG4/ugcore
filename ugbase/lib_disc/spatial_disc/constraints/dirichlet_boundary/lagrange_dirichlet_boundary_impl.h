@@ -453,6 +453,7 @@ void DirichletBoundary<TDomain, TAlgebra>::
 adjust_prolongation(matrix_type& P,
                     ConstSmartPtr<DoFDistribution> ddFine,
                     ConstSmartPtr<DoFDistribution> ddCoarse,
+					int type,
                     number time)
 {
 	extract_data();
@@ -575,6 +576,7 @@ void DirichletBoundary<TDomain, TAlgebra>::
 adjust_restriction(matrix_type& R,
 					ConstSmartPtr<DoFDistribution> ddCoarse,
 					ConstSmartPtr<DoFDistribution> ddFine,
+					int type,
 					number time)
 {
 	extract_data();
@@ -699,7 +701,7 @@ adjust_restriction(const std::vector<TUserData*>& vUserData, int si,
 template <typename TDomain, typename TAlgebra>
 void DirichletBoundary<TDomain, TAlgebra>::
 adjust_jacobian(matrix_type& J, const vector_type& u,
-		ConstSmartPtr<DoFDistribution> dd, number time,
+		ConstSmartPtr<DoFDistribution> dd, int type, number time,
 		ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		const number s_a0)
 {
@@ -863,7 +865,7 @@ adjust_jacobian(const std::vector<TUserData*>& vUserData, int si,
 template <typename TDomain, typename TAlgebra>
 void DirichletBoundary<TDomain, TAlgebra>::
 adjust_defect(vector_type& d, const vector_type& u,
-              ConstSmartPtr<DoFDistribution> dd, number time,
+              ConstSmartPtr<DoFDistribution> dd, int type, number time,
               ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 			  const std::vector<number>* vScaleMass,
 			  const std::vector<number>* vScaleStiff)
@@ -982,7 +984,7 @@ adjust_defect(const std::vector<TUserData*>& vUserData, int si,
 
 template <typename TDomain, typename TAlgebra>
 void DirichletBoundary<TDomain, TAlgebra>::
-adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd, number time)
+adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd, int type, number time)
 {
 	extract_data();
 
@@ -1096,6 +1098,7 @@ void DirichletBoundary<TDomain, TAlgebra>::adjust_correction
 (
 	vector_type& c,
 	ConstSmartPtr<DoFDistribution> dd,
+	int type,
 	number time
 )
 {
@@ -1207,7 +1210,7 @@ adjust_correction(const std::vector<TUserData*>& vUserData, int si,
 template <typename TDomain, typename TAlgebra>
 void DirichletBoundary<TDomain, TAlgebra>::
 adjust_linear(matrix_type& A, vector_type& b,
-              ConstSmartPtr<DoFDistribution> dd, number time)
+              ConstSmartPtr<DoFDistribution> dd, int type, number time)
 {
 	extract_data();
 
@@ -1388,7 +1391,7 @@ adjust_linear(const std::vector<TUserData*>& vUserData, int si,
 template <typename TDomain, typename TAlgebra>
 void DirichletBoundary<TDomain, TAlgebra>::
 adjust_rhs(vector_type& b, const vector_type& u,
-           ConstSmartPtr<DoFDistribution> dd, number time)
+           ConstSmartPtr<DoFDistribution> dd, int type, number time)
 {
 	extract_data();
 
@@ -1531,7 +1534,7 @@ adjust_rhs(const std::vector<TUserData*>& vUserData, int si,
 
 template <typename TDomain, typename TAlgebra>
 void DirichletBoundary<TDomain, TAlgebra>::
-adjust_error(const vector_type& u, ConstSmartPtr<DoFDistribution> dd, number time)
+adjust_error(const vector_type& u, ConstSmartPtr<DoFDistribution> dd, int type, number time)
 {
 	//	get the error estimator data object and check that it is of the right type
 	//	we check this at this point in order to be able to dispense with this check later on

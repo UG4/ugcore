@@ -204,7 +204,7 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 			if(m_vConstraint[i]->type() & type)
 			{
 				m_vConstraint[i]->set_ass_tuner(m_spAssTuner);
-				m_vConstraint[i]->adjust_jacobian(M, u, dd);
+				m_vConstraint[i]->adjust_jacobian(M, u, dd, type);
 			}
 	}
 	post_assemble_loop(m_vElemDisc);
@@ -360,7 +360,7 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 			if(m_vConstraint[i]->type() & type)
 			{
 				m_vConstraint[i]->set_ass_tuner(m_spAssTuner);
-				m_vConstraint[i]->adjust_jacobian(A, u, dd);
+				m_vConstraint[i]->adjust_jacobian(A, u, dd, type);
 			}
 	}
 	post_assemble_loop(m_vElemDisc);
@@ -455,7 +455,7 @@ assemble_jacobian(matrix_type& J,
 			if(!(m_spAssTuner->constraint_type_enabled(type))) continue;
 			for(size_t i = 0; i < m_vConstraint.size(); ++i)
 				if(m_vConstraint[i]->type() & type)
-					m_vConstraint[i]->modify_solution(*pModifyMemory, u, dd);
+					m_vConstraint[i]->modify_solution(*pModifyMemory, u, dd, type);
 		}
 		} UG_CATCH_THROW("Cannot modify solution.");
 	}
@@ -541,7 +541,7 @@ assemble_jacobian(matrix_type& J,
 			if(m_vConstraint[i]->type() & type)
 			{
 				m_vConstraint[i]->set_ass_tuner(m_spAssTuner);
-				m_vConstraint[i]->adjust_jacobian(J, *pModifyU, dd);
+				m_vConstraint[i]->adjust_jacobian(J, *pModifyU, dd, type);
 			}
 	}
 	post_assemble_loop(m_vElemDisc);
@@ -628,7 +628,7 @@ assemble_defect(vector_type& d,
 			if(!(m_spAssTuner->constraint_type_enabled(type))) continue;
 			for(size_t i = 0; i < m_vConstraint.size(); ++i)
 				if(m_vConstraint[i]->type() & type)
-					m_vConstraint[i]->modify_solution(*pModifyMemory, u, dd);
+					m_vConstraint[i]->modify_solution(*pModifyMemory, u, dd, type);
 		}
 		} UG_CATCH_THROW("Cannot modify solution.");
 	}
@@ -706,13 +706,27 @@ assemble_defect(vector_type& d,
 
 //	post process
 	try{
+
+	// Dirichlet first, since hanging nodes might be constrained by Dirichlet nodes
+	if (m_spAssTuner->constraint_type_enabled(CT_DIRICHLET))
+	{
+		for (size_t i = 0; i < m_vConstraint.size(); ++i)
+		{
+			if (m_vConstraint[i]->type() & CT_DIRICHLET)
+			{
+				m_vConstraint[i]->set_ass_tuner(m_spAssTuner);
+				m_vConstraint[i]->adjust_defect(d, *pModifyU, dd, CT_DIRICHLET);
+			}
+		}
+	}
+
 	for(int type = 1; type < CT_ALL; type = type << 1){
 		if(!(m_spAssTuner->constraint_type_enabled(type))) continue;
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
 				m_vConstraint[i]->set_ass_tuner(m_spAssTuner);
-				m_vConstraint[i]->adjust_defect(d, *pModifyU, dd);
+				m_vConstraint[i]->adjust_defect(d, *pModifyU, dd, type);
 			}
 	}
 	post_assemble_loop(m_vElemDisc);
@@ -867,7 +881,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 			if(m_vConstraint[i]->type() & type)
 			{
 				m_vConstraint[i]->set_ass_tuner(m_spAssTuner);
-				m_vConstraint[i]->adjust_linear(mat, rhs, dd);
+				m_vConstraint[i]->adjust_linear(mat, rhs, dd, type);
 			}
 	}
 	post_assemble_loop(m_vElemDisc);
@@ -1024,7 +1038,7 @@ assemble_rhs(vector_type& rhs,
 			if(m_vConstraint[i]->type() & type)
 			{
 				m_vConstraint[i]->set_ass_tuner(m_spAssTuner);
-				m_vConstraint[i]->adjust_rhs(rhs, u, dd);
+				m_vConstraint[i]->adjust_rhs(rhs, u, dd, type);
 			}
 	}
 	post_assemble_loop(m_vElemDisc);
@@ -1090,15 +1104,17 @@ adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd)
 
 	// NOTE: it is crucial, that dirichlet pp are processed before constraints.
 	// 	 	 otherwise we may start with an inconsistent solution in the solvers
-	std::vector<int> vType(2);
-	vType[0] = CT_DIRICHLET;
+	std::vector<int> vType(5);
+	vType[0] = CT_DIRICHLET;	// hanging (or other constrained) nodes might depend on Dirichlet nodes
 	vType[1] = CT_CONSTRAINTS;
+	vType[2] = CT_HANGING;
+	vType[3] = CT_MAY_DEPEND_ON_HANGING;
+	vType[4] = CT_DIRICHLET;	// hanging DoFs might be Dirichlet (Dirichlet overrides)
 
 	// if assembling is carried out at one DoF only, u needs to be resized
 	if (m_spAssTuner->single_index_assembling_enabled()) u.resize(1);
 
 	try{
-//	constraints
 	for(size_t i = 0; i < vType.size(); ++i){
 		int type = vType[i];
 		if(!(m_spAssTuner->constraint_type_enabled(type))) continue;
@@ -1106,7 +1122,7 @@ adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd)
 			if(m_vConstraint[i]->type() & type)
 			{
 				m_vConstraint[i]->set_ass_tuner(m_spAssTuner);
-				m_vConstraint[i]->adjust_solution(u, dd);
+				m_vConstraint[i]->adjust_solution(u, dd, type);
 			}
 	}
 
@@ -1247,7 +1263,7 @@ calc_error
 				if ((m_vConstraint[i]->type() & type) && m_vConstraint[i]->err_est_enabled())
 				{
 					m_vConstraint[i]->set_ass_tuner(m_spAssTuner);
-					m_vConstraint[i]->adjust_error(u, dd);
+					m_vConstraint[i]->adjust_error(u, dd, type);
 				}
 		}
 	}
@@ -1584,7 +1600,7 @@ assemble_jacobian(matrix_type& J,
 			if(!(m_spAssTuner->constraint_type_enabled(type))) continue;
 			for(size_t i = 0; i < m_vConstraint.size(); ++i)
 				if(m_vConstraint[i]->type() & type)
-					m_vConstraint[i]->modify_solution(pModifyMemory, vSol, dd);
+					m_vConstraint[i]->modify_solution(pModifyMemory, vSol, dd, type);
 		}
 		} UG_CATCH_THROW("'DomainDiscretization': Cannot modify solution.");
 	}
@@ -1663,7 +1679,7 @@ assemble_jacobian(matrix_type& J,
 			if(m_vConstraint[i]->type() & type)
 			{
 				m_vConstraint[i]->set_ass_tuner(m_spAssTuner);
-				m_vConstraint[i]->adjust_jacobian(J, *pModifyU->solution(0), dd, time, pModifyU,s_a0);
+				m_vConstraint[i]->adjust_jacobian(J, *pModifyU->solution(0), dd, type, time, pModifyU,s_a0);
 			}
 	}
 	post_assemble_loop(m_vElemDisc);
@@ -1759,7 +1775,7 @@ assemble_defect(vector_type& d,
 			if(!(m_spAssTuner->constraint_type_enabled(type))) continue;
 			for(size_t i = 0; i < m_vConstraint.size(); ++i)
 				if(m_vConstraint[i]->type() & type)
-					m_vConstraint[i]->modify_solution(pModifyMemory, vSol, dd);
+					m_vConstraint[i]->modify_solution(pModifyMemory, vSol, dd, type);
 		}
 		} UG_CATCH_THROW("'DomainDiscretization: Cannot modify solution.");
 	}
@@ -1838,7 +1854,7 @@ assemble_defect(vector_type& d,
 			if(m_vConstraint[i]->type() & type)
 			{
 				m_vConstraint[i]->set_ass_tuner(m_spAssTuner);
-				m_vConstraint[i]->adjust_defect(d, *pModifyU->solution(0), dd, pModifyU->time(0), pModifyU, &vScaleMass, &vScaleStiff);
+				m_vConstraint[i]->adjust_defect(d, *pModifyU->solution(0), dd, type, pModifyU->time(0), pModifyU, &vScaleMass, &vScaleStiff);
 			}
 	}
 	post_assemble_loop(m_vElemDisc);
@@ -1999,7 +2015,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 			if(m_vConstraint[i]->type() & type)
 			{
 				m_vConstraint[i]->set_ass_tuner(m_spAssTuner);
-				m_vConstraint[i]->adjust_linear(mat, rhs, dd, vSol->time(0));
+				m_vConstraint[i]->adjust_linear(mat, rhs, dd, type, vSol->time(0));
 			}
 	}
 	} UG_CATCH_THROW("Cannot adjust linear.");
@@ -2164,7 +2180,7 @@ assemble_rhs(vector_type& rhs,
 			if(m_vConstraint[i]->type() & type)
 			{
 				m_vConstraint[i]->set_ass_tuner(m_spAssTuner);
-				m_vConstraint[i]->adjust_rhs(rhs, rhs, dd, vSol->time(0));
+				m_vConstraint[i]->adjust_rhs(rhs, rhs, dd, type, vSol->time(0));
 			}
 	}
 	} UG_CATCH_THROW("Cannot adjust linear.");
@@ -2233,9 +2249,12 @@ adjust_solution(vector_type& u, number time, ConstSmartPtr<DoFDistribution> dd)
 
 	// NOTE: it is crucial, that dirichlet pp are processed before constraints.
 	// 	 	 otherwise we may start with an inconsistent solution in the solvers
-	std::vector<int> vType(2);
-	vType[0] = CT_DIRICHLET;
+	std::vector<int> vType(5);
+	vType[0] = CT_DIRICHLET;	// hanging (or other constrained) nodes might depend on Dirichlet nodes
 	vType[1] = CT_CONSTRAINTS;
+	vType[2] = CT_HANGING;
+	vType[3] = CT_MAY_DEPEND_ON_HANGING;
+	vType[4] = CT_DIRICHLET;	// hanging DoFs might be Dirichlet (Dirichlet overrides)
 
 	// if assembling is carried out at one DoF only, u needs to be resized
 	if (m_spAssTuner->single_index_assembling_enabled()) u.resize(1);
@@ -2250,7 +2269,7 @@ adjust_solution(vector_type& u, number time, ConstSmartPtr<DoFDistribution> dd)
 			if(m_vConstraint[i]->type() & type)
 			{
 				m_vConstraint[i]->set_ass_tuner(m_spAssTuner);
-				m_vConstraint[i]->adjust_solution(u, dd, time);
+				m_vConstraint[i]->adjust_solution(u, dd, type, time);
 			}
 	}
 	} UG_CATCH_THROW(" Cannot adjust solution.");
@@ -2389,7 +2408,7 @@ calc_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 				if ((m_vConstraint[i]->type() & type) && m_vConstraint[i]->err_est_enabled())
 				{
 					m_vConstraint[i]->set_ass_tuner(m_spAssTuner);
-					m_vConstraint[i]->adjust_error(*vSol->solution(0), dd, vSol->time(0));
+					m_vConstraint[i]->adjust_error(*vSol->solution(0), dd, type, vSol->time(0));
 				}
 		}
 	}

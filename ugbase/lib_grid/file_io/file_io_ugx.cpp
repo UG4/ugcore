@@ -31,10 +31,17 @@
  */
 
 #include <sstream>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
 #include "common/common.h"
 #include "file_io_ugx.h"
+#include "common/boost_serialization_routines.h"
 #include "common/parser/rapidxml/rapidxml_print.hpp"
+#include "common/util/archivar.h"
+#include "common/util/factory.h"
 #include "lib_grid/algorithms/attachment_util.h"
+#include "lib_grid/refinement/projectors/projectors.h"
+
 
 using namespace std;
 using namespace rapidxml;
@@ -285,6 +292,48 @@ add_selector(ISelector& sel, const char* name, size_t refGridIndex)
 		ndSel->append_node(create_selector_element_node<Face>("faces", sel));
 	if(sel.contains_volumes())
 		ndSel->append_node(create_selector_element_node<Volume>("volumes", sel));
+}
+
+
+void GridWriterUGX::
+add_projection_handler(ProjectionHandler& ph, const char* name, size_t refGridIndex)
+{
+//	get the node of the referenced grid
+	if(refGridIndex >= m_vEntries.size()){
+		UG_LOG("GridWriterUGX::add_selector: bad refGridIndex. Aborting.\n");
+		return;
+	}
+
+	xml_node<>* parentNode = m_vEntries[refGridIndex].node;
+
+//	create the selector node
+	xml_node<>* ndHandler = m_doc.allocate_node(node_element, "projection_handler");
+	ndHandler->append_attribute(m_doc.allocate_attribute("name", name));
+
+//	add the selector node to the grid-node.
+	parentNode->append_node(ndHandler);
+
+	static Factory<RefinementProjector, ProjectorTypes>	projFac;
+	static Archivar<boost::archive::text_oarchive, RefinementProjector, ProjectorTypes>	archivar;
+
+//	fill the content of the selector-node
+	for(int i = -1; i < (int)ph.num_projectors(); ++i){
+		RefinementProjector&	proj 		= *ph.projector(i);
+		const string&			projName 	= projFac.class_name(proj);
+
+		stringstream ss;
+		boost::archive::text_oarchive ar(ss, boost::archive::no_header);
+		archivar.archive(ar, proj);
+
+		xml_node<>* ndProj = m_doc.allocate_node(node_element, "projector",
+										m_doc.allocate_string(ss.str().c_str()));
+
+		ndProj->append_attribute(m_doc.allocate_attribute("type", projName.c_str()));
+		ndProj->append_attribute(m_doc.allocate_attribute("subset",
+								 m_doc.allocate_string(mkstr(i).c_str())));
+
+		ndHandler->append_node(ndProj);
+	}
 }
 
 
@@ -1001,11 +1050,8 @@ read_subset_handler_elements(ISubsetHandler& shOut,
 size_t GridReaderUGX::
 num_selectors(size_t refGridIndex) const
 {
-//	access the referred grid-entry
-	if(refGridIndex >= m_entries.size()){
-		UG_LOG("GridReaderUGX::num_selectors: bad refGridIndex. Aborting.\n");
-		return 0;
-	}
+	UG_COND_THROW(refGridIndex >= m_entries.size(),
+				  "Bad refGridIndex: " << refGridIndex);
 
 	return m_entries[refGridIndex].selectorEntries.size();
 }
@@ -1014,7 +1060,8 @@ num_selectors(size_t refGridIndex) const
 const char* GridReaderUGX::
 get_selector_name(size_t refGridIndex, size_t selectorIndex) const
 {
-	assert(refGridIndex < num_grids() && "Bad refGridIndex!");
+	UG_COND_THROW(refGridIndex >= m_entries.size(),
+				  "Bad refGridIndex: " << refGridIndex);
 	const GridEntry& ge = m_entries[refGridIndex];
 	assert(selectorIndex < ge.selectorEntries.size() && "Bad selectorIndex!");
 
@@ -1110,6 +1157,74 @@ read_selector_elements(ISelector& selOut, const char* elemNodeName,
 }
 
 
+size_t GridReaderUGX::
+num_projection_handlers(size_t refGridIndex) const
+{
+	UG_COND_THROW(refGridIndex >= m_entries.size(),
+				  "Bad refGridIndex: " << refGridIndex);
+
+	return m_entries[refGridIndex].projectionHandlerEntries.size();
+}
+
+const char* GridReaderUGX::
+get_projection_handler_name(size_t refGridIndex, size_t phIndex) const
+{
+	UG_COND_THROW(refGridIndex >= m_entries.size(),
+			  "Bad refGridIndex: " << refGridIndex);
+	
+	const GridEntry& ge = m_entries[refGridIndex];
+	UG_COND_THROW(phIndex >= ge.projectionHandlerEntries.size(),
+			  "Bad projection-handler-index: " << phIndex);
+
+	xml_attribute<>* attrib = ge.projectionHandlerEntries[phIndex]->first_attribute("name");
+	if(attrib)
+		return attrib->value();
+	return "";
+}
+
+bool GridReaderUGX::
+projection_handler(ProjectionHandler& phOut, size_t phIndex, size_t refGridIndex)
+{
+	UG_COND_THROW(refGridIndex >= m_entries.size(),
+			  "Bad refGridIndex: " << refGridIndex);
+	
+	const GridEntry& ge = m_entries[refGridIndex];
+	UG_COND_THROW(phIndex >= ge.projectionHandlerEntries.size(),
+			  "Bad projection-handler-index: " << phIndex);
+
+	xml_node<>* phNode = ge.projectionHandlerEntries[phIndex];
+	
+	static Factory<RefinementProjector, ProjectorTypes>	projFac;
+	static Archivar<boost::archive::text_iarchive, RefinementProjector, ProjectorTypes>	archivar;
+
+	xml_node<>* projNode = phNode->first_node("projector");
+	while(projNode){
+		xml_attribute<>* attribType = projNode->first_attribute("type");
+		xml_attribute<>* attribSI = projNode->first_attribute("subset");
+		if(attribType && attribSI){
+			try {
+				SPRefinementProjector proj = projFac.create(attribType->value());
+
+				string str(projNode->value(), projNode->value_size());
+				stringstream ss(str, ios_base::in);
+				boost::archive::text_iarchive ar(ss, boost::archive::no_header);
+				archivar.archive(ar, *proj);
+
+				phOut.set_projector(atoi(attribSI->value()), proj);
+			}
+			catch(boost::archive::archive_exception e){
+				UG_LOG("WARNING: Couldn't read projector of type '" <<
+						attribType->value() << "' for subset '" <<
+						attribSI->value() << "'." << std::endl);
+			}
+		}
+		projNode = projNode->next_sibling("projector");
+	}
+
+	return true;
+}
+
+
 bool GridReaderUGX::
 parse_file(const char* filename)
 {
@@ -1163,6 +1278,13 @@ new_document_parsed()
 		while(curSelNode){
 			gridEntry.selectorEntries.push_back(SelectorEntry(curSelNode));
 			curSelNode = curSelNode->next_sibling("selector");
+		}
+
+	//	collect associated projectionHandlers
+		xml_node<>* curPHNode = curNode->first_node("projection_handler");
+		while(curPHNode){
+			gridEntry.projectionHandlerEntries.push_back(curPHNode);
+			curPHNode = curPHNode->next_sibling("projection_handler");
 		}
 
 		curNode = curNode->next_sibling("grid");

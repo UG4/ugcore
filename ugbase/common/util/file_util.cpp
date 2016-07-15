@@ -164,7 +164,7 @@ bool ReadFile(const char* filename, vector<char> &file, bool bText)
     file.resize(fileSize);
 
   size_t readSize = fread(&file[0], 1, fileSize, f);
-  UG_COND_THROW(static_cast<long>(readSize) != fileSize,
+  UG_COND_THROW(readSize != fileSize,
   			  "Read mismatch in ReadFile. Wrong number of bytes read: "
           << readSize << ", expected: " << fileSize);
 

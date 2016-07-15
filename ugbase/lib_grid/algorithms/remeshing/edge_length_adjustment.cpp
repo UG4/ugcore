@@ -36,7 +36,7 @@
 #include "common/profiler/profiler.h"
 #include "simple_grid.h"
 #include "edge_length_adjustment.h"
-#include "lib_grid/algorithms/refinement/regular_refinement.h"
+#include "lib_grid/refinement/regular_refinement.h"
 #include "common/node_tree/node_tree.h"
 #include "lib_grid/algorithms/trees/octree.h"
 #include "lib_grid/callbacks/callbacks.h"

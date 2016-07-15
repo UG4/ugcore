@@ -54,15 +54,6 @@ namespace ug{
 
 static DebugID LG_DIST("LG_DIST");
 
-enum InterfaceStates{
-	IS_UNASSIGNED = 0,
-	IS_NORMAL = 1,
-	IS_VMASTER = 1<<1,
-	IS_VSLAVE = 1<<2,
-	IS_DUMMY = 1<<3,
-	HAS_PARENT = 1<<4 // only used for dummies currently
-};
-
 
 struct TargetProcInfo
 {
@@ -1113,6 +1104,11 @@ static void SelectElementsForTargetPartition(MGSelector& msel,
 			AssignVerticalMasterAndSlaveStates<Vertex>(msel, partitionForLocalProc);
 	//	no sides to assign...
 	}
+
+	// adjust distribution
+	DistributedGridManager& dgm = *mg.distributed_grid_manager();
+	SmartPtr<DistroAdjuster> spDA = dgm.distro_adjuster();
+	if (spDA.valid()) spDA->adjust(msel, partitionForLocalProc, createVerticalInterfaces);
 
 //	select associated constraining elements first, since they may reference
 //	additional unselected constrained elements.

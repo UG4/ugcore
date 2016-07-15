@@ -52,9 +52,11 @@ class IDomainConstraint;
 enum ConstraintType
 {
 	CT_NONE = 0,
-	CT_CONSTRAINTS = 1 << 0,
-	CT_DIRICHLET = 1 << 1,
-	CT_ALL = CT_NONE | CT_CONSTRAINTS | CT_DIRICHLET
+	CT_MAY_DEPEND_ON_HANGING = 1,	// constraints which may depend on hanging DoFs; but NOT vice-versa
+	CT_HANGING = 1 << 1,			// constraint defined for hanging DoFs
+	CT_CONSTRAINTS = 1 << 2,		// any other constraint which MUST NOT depend on a hanging DoF
+	CT_DIRICHLET = 1 << 3,			// Dirichlet constraints
+	CT_ALL = CT_NONE | CT_MAY_DEPEND_ON_HANGING | CT_HANGING | CT_CONSTRAINTS | CT_DIRICHLET
 };
 
 template <typename TAlgebra>

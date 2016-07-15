@@ -199,63 +199,155 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 			///////////
 			if(vFaces[i]->container_section() == CSFACE_CONSTRAINING_QUADRILATERAL)
 			{
-				// insert hanging node in list of nodes
-				const size_t newNodeId = m_gloMid[0].size();
-				m_gloMid[0].resize(newNodeId + 1);
-				m_locMid[0].resize(newNodeId + 1);
-
-				// compute position of new (hanging) node
-				compute_side_midpoints(i, m_locMid[0][newNodeId], m_gloMid[0][newNodeId]);
-
-				// loop constrained faces
-				for(size_t j = 0; j < m_rRefElem.num(2, i, 1); ++j)
+				// decide how many edges are constraining
+				size_t nEdge = m_rRefElem.num(2, i, 1);
+				std::vector<bool> edgeIsConstraining(nEdge);
+				size_t nConstraining = 0;
+				for (size_t j = 0; j < nEdge; ++j)
 				{
-					const size_t jplus1 = (j+1)%4;
-
-					// natural edges
-					const size_t natEdId1 = m_rRefElem.id(2, i, 1, j);
-					const size_t natEdId2 = m_rRefElem.id(2, i, 1, jplus1);
-
-					// corner of the face
-					const size_t cornerId = m_rRefElem.id(2,i, 0, jplus1);
-
-					// refined edges that belong to this face
-					const size_t edId1 = get_child_edge_of_corner(natEdId1, cornerId);
-					const size_t edId2 = get_child_edge_of_corner(natEdId2, cornerId);
-
-					// nodes of hanging edges
-					const size_t hangEdNodeId1 = m_vNatEdgeInfo[natEdId1].node_id();
-					const size_t hangEdNodeId2 = m_vNatEdgeInfo[natEdId2].node_id();
-
-					// mid point of hanging side
-					compute_side_midpoints(	cornerId, newNodeId,
-											hangEdNodeId1, hangEdNodeId2,
-											locSideMid, gloSideMid);
-
-					// add side midpoint to already existing scvf of this side
-					const size_t numSCVF = m_vSCVF.size();
-					m_vSCVF.resize(numSCVF + 4);
-
-					m_vSCVF[numSCVF].m_from = m_vNewEdgeInfo[edId1].from();
-					m_vSCVF[numSCVF].m_to = m_vNewEdgeInfo[edId1].to();
-					m_vSCVF[numSCVF].m_vLocPos[2] = locSideMid;
-					m_vSCVF[numSCVF].m_vGloPos[2] = gloSideMid;
-
-					m_vSCVF[numSCVF+1].m_from = m_vNewEdgeInfo[edId2].from();
-					m_vSCVF[numSCVF+1].m_to = m_vNewEdgeInfo[edId2].to();
-					m_vSCVF[numSCVF+1].m_vLocPos[2] = locSideMid;
-					m_vSCVF[numSCVF+1].m_vGloPos[2] = gloSideMid;
-
-					m_vSCVF[numSCVF+2].m_from = hangEdNodeId1;
-					m_vSCVF[numSCVF+2].m_to = newNodeId;
-					m_vSCVF[numSCVF+2].m_vLocPos[2] = locSideMid;
-					m_vSCVF[numSCVF+2].m_vGloPos[2] = gloSideMid;
-
-					m_vSCVF[numSCVF+3].m_from = hangEdNodeId2;
-					m_vSCVF[numSCVF+3].m_to = newNodeId;
-					m_vSCVF[numSCVF+3].m_vLocPos[2] = locSideMid;
-					m_vSCVF[numSCVF+3].m_vGloPos[2] = gloSideMid;
+					const size_t natEdID = m_rRefElem.id(2, i, 1, j);
+					if ((edgeIsConstraining[j] = m_vNatEdgeInfo[natEdID].is_hanging()))
+						++nConstraining;
 				}
+
+				switch (nConstraining)
+				{
+					case 0:
+					case 1:
+						UG_THROW("Constraining quadrilateral with less than two "
+								 "constraining edges not implemented.")
+					case 2:
+					{
+						// two sub-cases: refined opposing sides, refined adjacent sides
+
+						// adjacent sides not implemented
+						if ((!edgeIsConstraining[0] || !edgeIsConstraining[2])
+							&& (!edgeIsConstraining[1] || !edgeIsConstraining[3]))
+							UG_THROW("Constraining quadrilateral with two adjacent"
+									 "constraining edges not implemented.")
+
+
+						// now the opposing sides case: treat the two sub-quadrilaterals
+						size_t edgeID = 0;
+						if (edgeIsConstraining[edgeID]) ++edgeID;
+
+						for (size_t k = 0; k < 2; ++k, edgeID = (edgeID+2)%nEdge)
+						{
+							size_t nextEdgeID = (edgeID+1)%nEdge;
+							size_t prevEdgeID = (edgeID+nEdge-1)%nEdge;
+
+							const size_t cornerID1 = m_rRefElem.id(2,i, 0, edgeID);
+							const size_t cornerID2 = m_rRefElem.id(2,i, 0, nextEdgeID);
+
+							// natural edges
+							const size_t natEdId1 = m_rRefElem.id(2, i, 1, nextEdgeID);
+							const size_t natEdId2 = m_rRefElem.id(2, i, 1, prevEdgeID);
+
+							// nodes of hanging edges
+							const size_t hangEdNodeId1 = m_vNatEdgeInfo[natEdId1].node_id();
+							const size_t hangEdNodeId2 = m_vNatEdgeInfo[natEdId2].node_id();
+
+							// mid point of constrained side
+							compute_side_midpoints(cornerID1, cornerID2,
+												   hangEdNodeId1, hangEdNodeId2,
+												   locSideMid, gloSideMid);
+
+							// add side midpoint to already existing scvf of this side
+							const size_t numSCVF = m_vSCVF.size();
+							m_vSCVF.resize(numSCVF + 4);
+
+							m_vSCVF[numSCVF].m_from = cornerID1;
+							m_vSCVF[numSCVF].m_to = cornerID2;
+							m_vSCVF[numSCVF].m_vLocPos[2] = locSideMid;
+							m_vSCVF[numSCVF].m_vGloPos[2] = gloSideMid;
+
+							m_vSCVF[numSCVF+1].m_from = cornerID2;
+							m_vSCVF[numSCVF+1].m_to = hangEdNodeId1;
+							m_vSCVF[numSCVF+1].m_vLocPos[2] = locSideMid;
+							m_vSCVF[numSCVF+1].m_vGloPos[2] = gloSideMid;
+
+							m_vSCVF[numSCVF+2].m_from = hangEdNodeId1;
+							m_vSCVF[numSCVF+2].m_to = hangEdNodeId2;
+							m_vSCVF[numSCVF+2].m_vLocPos[2] = locSideMid;
+							m_vSCVF[numSCVF+2].m_vGloPos[2] = gloSideMid;
+
+							m_vSCVF[numSCVF+3].m_from = hangEdNodeId2;
+							m_vSCVF[numSCVF+3].m_to = cornerID1;
+							m_vSCVF[numSCVF+3].m_vLocPos[2] = locSideMid;
+							m_vSCVF[numSCVF+3].m_vGloPos[2] = gloSideMid;
+						}
+
+						break;
+					}
+					case 3:
+						UG_THROW("Constraining quadrilateral with three "
+								 "constraining edges not implemented.")
+					case 4:
+					{
+						// insert hanging node in list of nodes
+						const size_t newNodeId = m_gloMid[0].size();
+						m_gloMid[0].resize(newNodeId + 1);
+						m_locMid[0].resize(newNodeId + 1);
+
+						// compute position of new (hanging) node
+						compute_side_midpoints(i, m_locMid[0][newNodeId], m_gloMid[0][newNodeId]);
+
+						// loop constrained edges
+						for(size_t j = 0; j < m_rRefElem.num(2, i, 1); ++j)
+						{
+							const size_t jplus1 = (j+1)%4;
+
+							// natural edges
+							const size_t natEdId1 = m_rRefElem.id(2, i, 1, j);
+							const size_t natEdId2 = m_rRefElem.id(2, i, 1, jplus1);
+
+
+							// corner of the face
+							const size_t cornerId = m_rRefElem.id(2,i, 0, jplus1);
+
+							// refined edges that belong to this face
+							const size_t edId1 = get_child_edge_of_corner(natEdId1, cornerId);
+							const size_t edId2 = get_child_edge_of_corner(natEdId2, cornerId);
+
+							// nodes of hanging edges
+							const size_t hangEdNodeId1 = m_vNatEdgeInfo[natEdId1].node_id();
+							const size_t hangEdNodeId2 = m_vNatEdgeInfo[natEdId2].node_id();
+
+							// mid point of hanging side
+							compute_side_midpoints(	cornerId, newNodeId,
+													hangEdNodeId1, hangEdNodeId2,
+													locSideMid, gloSideMid);
+
+							// add side midpoint to already existing scvf of this side
+							const size_t numSCVF = m_vSCVF.size();
+							m_vSCVF.resize(numSCVF + 4);
+
+							m_vSCVF[numSCVF].m_from = m_vNewEdgeInfo[edId1].from();
+							m_vSCVF[numSCVF].m_to = m_vNewEdgeInfo[edId1].to();
+							m_vSCVF[numSCVF].m_vLocPos[2] = locSideMid;
+							m_vSCVF[numSCVF].m_vGloPos[2] = gloSideMid;
+
+							m_vSCVF[numSCVF+1].m_from = m_vNewEdgeInfo[edId2].from();
+							m_vSCVF[numSCVF+1].m_to = m_vNewEdgeInfo[edId2].to();
+							m_vSCVF[numSCVF+1].m_vLocPos[2] = locSideMid;
+							m_vSCVF[numSCVF+1].m_vGloPos[2] = gloSideMid;
+
+							m_vSCVF[numSCVF+2].m_from = hangEdNodeId1;
+							m_vSCVF[numSCVF+2].m_to = newNodeId;
+							m_vSCVF[numSCVF+2].m_vLocPos[2] = locSideMid;
+							m_vSCVF[numSCVF+2].m_vGloPos[2] = gloSideMid;
+
+							m_vSCVF[numSCVF+3].m_from = hangEdNodeId2;
+							m_vSCVF[numSCVF+3].m_to = newNodeId;
+							m_vSCVF[numSCVF+3].m_vLocPos[2] = locSideMid;
+							m_vSCVF[numSCVF+3].m_vGloPos[2] = gloSideMid;
+						}
+						break;
+					}
+
+					default: UG_THROW("This cannot happen.");
+				}
+
 			}
 			///////////
 			// case TRIANGLE with all edges hanging, that matches a refined element on other side

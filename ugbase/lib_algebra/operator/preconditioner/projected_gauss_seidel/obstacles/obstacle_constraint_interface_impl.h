@@ -443,7 +443,7 @@ template <typename TDomain, typename TAlgebra>
 void
 IObstacleConstraint<TDomain,TAlgebra>::
 adjust_restriction(matrix_type& R, ConstSmartPtr<DoFDistribution> ddCoarse,
-	ConstSmartPtr<DoFDistribution> ddFine, number time)
+	ConstSmartPtr<DoFDistribution> ddFine, int type, number time)
 {
 	UG_LOG("IObstacleConstraint<TDomain,TAlgebra>::adjust_restrictionR \n");
 

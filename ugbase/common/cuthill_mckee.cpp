@@ -79,6 +79,15 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 		}
 	}
 
+	// also sort vvConnection itself, this is extremely useful if there are many
+	// identity rows, as finding the "start" index again and again will take
+	// REALLY much time in that case
+	std::vector<size_t> sorting(vvConnection.size());
+	size_t szSort = sorting.size();
+	for (size_t i = 0; i < szSort; ++i)
+		sorting[i] = i;
+	std::stable_sort(sorting.begin(), sorting.end(), myCompDegree);
+
 //	start with first index
 	size_t firstNonHandled = 0;
 
@@ -87,12 +96,15 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 	{
 	//	find first unhandled index
 		size_t i_notHandled = firstNonHandled;
-		for(; i_notHandled < vHandled.size(); ++i_notHandled){
-			if(!vHandled[i_notHandled]) {firstNonHandled = i_notHandled; break;}
+		for(; i_notHandled < szSort; ++i_notHandled){
+			if(!vHandled[sorting[i_notHandled]]) {firstNonHandled = i_notHandled; break;}
 		}
-	//	check if one unhandled vertex left
-		if(i_notHandled == vHandled.size()) break;
 
+	//	check if one unhandled vertex left
+		if(i_notHandled == szSort) break;
+
+/* // This is no longer necessary as firstUnhandled automatically
+      has smallest degree due to sorting.
 	//	Find node with smallest degree for all remaining indices
 		size_t start = firstNonHandled;
 		for(size_t i = start+1; i < vHandled.size(); ++i)
@@ -100,6 +112,8 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 			if(!vHandled[i] && vvConnection[i].size() < vvConnection[start].size())
 				start = i;
 		}
+*/
+		size_t start = sorting[firstNonHandled];
 
 	//	Create queue of adjacent vertices
 		std::queue<size_t> qAdjacent;

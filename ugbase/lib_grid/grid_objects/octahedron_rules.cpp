@@ -157,201 +157,197 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3* corne
 
 			int bestDiag[6];
 
-			for(int i = 0; i < 6; ++i)
-				bestDiag[i] = 2;
+//			for(int i = 0; i < 6; ++i)
+//				bestDiag[i] = 2;
+//
+//			if(corners){
+//			//
+//			//	Calculate edge centers and element center
+//			//
+//
+//				vector3 c06, c07, c08, c09;
+//				vector3 c10, c11, c12, c13;
+//				vector3 c14, c15, c16, c17;
+//				vector3 c18;
+//
+//			//	Bottom hemisphere edges
+//				VecAdd(c06, corners[0], corners[1]);
+//				VecScale(c06, c06, 0.5);
+//
+//				VecAdd(c07, corners[0], corners[2]);
+//				VecScale(c07, c07, 0.5);
+//
+//				VecAdd(c08, corners[0], corners[3]);
+//				VecScale(c08, c08, 0.5);
+//
+//				VecAdd(c09, corners[0], corners[4]);
+//				VecScale(c09, c09, 0.5);
+//
+//			//	Middle ring edges
+//				VecAdd(c10, corners[1], corners[2]);
+//				VecScale(c10, c10, 0.5);
+//
+//				VecAdd(c11, corners[2], corners[3]);
+//				VecScale(c11, c11, 0.5);
+//
+//				VecAdd(c12, corners[3], corners[4]);
+//				VecScale(c12, c12, 0.5);
+//
+//				VecAdd(c13, corners[4], corners[1]);
+//				VecScale(c13, c13, 0.5);
+//
+//			//	Top hemisphere edges
+//				VecAdd(c14, corners[1], corners[5]);
+//				VecScale(c14, c14, 0.5);
+//
+//				VecAdd(c15, corners[2], corners[5]);
+//				VecScale(c15, c15, 0.5);
+//
+//				VecAdd(c16, corners[3], corners[5]);
+//				VecScale(c16, c16, 0.5);
+//
+//				VecAdd(c17, corners[4], corners[5]);
+//				VecScale(c17, c17, 0.5);
+//
+//			//	Element center
+//				VecAdd(c18, corners[0], corners[5]);
+//				VecAppend(c18, corners[1], corners[2], corners[3], corners[4]);
+//				VecScale(c18, c18, 1.0/6.0);
+//
+//
+//			//
+//			//	Calculate the three diagonals of all 6 sub-octahedrons
+//			//
+//
+//			//	Sub-octahedron 0
+//				number oct0_d0_0608 = VecDistanceSq(c06, c08);
+//				number oct0_d1_0709 = VecDistanceSq(c07, c09);
+//				number oct0_d2_0018 = VecDistanceSq(corners[0], c18);
+//
+//				number d = oct0_d2_0018;
+//
+//				if(oct0_d1_0709 < d)
+//				{
+//					bestDiag[0] = 1;
+//					d = oct0_d1_0709;
+//				}
+//
+//				if(oct0_d0_0608 < d)
+//				{
+//					bestDiag[0] = 0;
+//				}
+//
+//				//UG_LOG("oct0_d0_0608: " << oct0_d0_0608 << "; \t oct0_d1_0709: " << oct0_d1_0709 << "; \t oct0_d2_0018: " << oct0_d2_0018 << "; \t bestDiag0: " << bestDiag[0] << std::endl);
+//
+//			//	Sub-octahedron 1
+//				number oct1_d0_0118 = VecDistanceSq(corners[1], c18);
+//				number oct1_d1_1013 = VecDistanceSq(c10, c13);
+//				number oct1_d2_0614 = VecDistanceSq(c06, c14);
+//
+//				d = oct1_d2_0614;
+//
+//				if(oct1_d1_1013 < d)
+//				{
+//					bestDiag[1] = 1;
+//					d = oct1_d1_1013;
+//				}
+//
+//				if(oct1_d0_0118 < d)
+//				{
+//					bestDiag[1] = 0;
+//				}
+//
+//				//UG_LOG("oct1_d0_0118: " << oct1_d0_0118 << "; \t oct1_d1_1013: " << oct1_d1_1013 << ";  \t oct1_d2_0614: " << oct1_d2_0614 << "; \t bestDiag1: " << bestDiag[1] << std::endl);
+//
+//			//	Sub-octahedron 2
+//				number oct2_d0_1011 = VecDistanceSq(c10, c11);
+//				number oct2_d1_0218 = VecDistanceSq(corners[2], c18);
+//				number oct2_d2_0715 = VecDistanceSq(c07, c15);
+//
+//				d = oct2_d2_0715;
+//
+//				if(oct2_d1_0218 < d)
+//				{
+//					bestDiag[2] = 1;
+//					d = oct2_d1_0218;
+//				}
+//
+//				if(oct2_d0_1011 < d)
+//				{
+//					bestDiag[2] = 0;
+//				}
+//
+//				//UG_LOG("oct2_d0_1011: " << oct2_d0_1011 << "; \t oct2_d1_0218: " << oct2_d1_0218 << "; \t oct2_d2_0715: " << oct2_d2_0715 << "; \t bestDiag2: " << bestDiag[2] << std::endl);
+//
+//			//	Sub-octahedron 3
+//				number oct3_d0_1803 = VecDistanceSq(c18, corners[3]);
+//				number oct3_d1_1112 = VecDistanceSq(c11, c12);
+//				number oct3_d2_0816 = VecDistanceSq(c08, c16);
+//
+//				d = oct3_d2_0816;
+//
+//				if(oct3_d1_1112 < d)
+//				{
+//					bestDiag[3] = 1;
+//					d = oct3_d1_1112;
+//				}
+//
+//				if(oct3_d0_1803 < d)
+//				{
+//					bestDiag[3] = 0;
+//				}
+//
+//				//UG_LOG("oct3_d0_1803: " << oct3_d0_1803 << "; \t oct3_d1_1112: " << oct3_d1_1112 << "; \t oct3_d2_0816: " << oct3_d2_0816 << "; \t bestDiag3: " << bestDiag[3] << std::endl);
+//
+//			//	Sub-octahedron 4
+//				number oct4_d0_1312 = VecDistanceSq(c13, c12);
+//				number oct4_d1_1804 = VecDistanceSq(c18, corners[4]);
+//				number oct4_d2_0917 = VecDistanceSq(c09, c17);
+//
+//				d = oct4_d2_0917;
+//
+//				if(oct4_d1_1804 < d)
+//				{
+//					bestDiag[4] = 1;
+//					d = oct4_d1_1804;
+//				}
+//
+//				if(oct4_d0_1312 < d)
+//				{
+//					bestDiag[4] = 0;
+//				}
+//
+//				//UG_LOG("oct4_d0_1312: " << oct4_d0_1312 << "; \t oct4_d1_1804: " << oct4_d1_1804 << "; \t oct4_d2_0917: " << oct4_d2_0917 << "; \t bestDiag4: " << bestDiag[4] << std::endl);
+//
+//
+//			//	Sub-octahedron 5
+//				number oct5_d0_1416 = VecDistanceSq(c14, c16);
+//				number oct5_d1_1517 = VecDistanceSq(c15, c17);
+//				number oct5_d2_1805 = VecDistanceSq(c18, corners[5]);
+//
+//				d = oct5_d0_1416;
+//
+//				if(oct5_d1_1517 < d)
+//				{
+//					bestDiag[5] = 1;
+//					d = oct5_d1_1517;
+//				}
+//
+//				if(oct5_d2_1805 < d)
+//				{
+//					bestDiag[5] = 0;
+//				}
+//
+//				//UG_LOG("oct5_d0_1416: " << oct5_d0_1416 << "; \t oct5_d1_1517: " << oct5_d1_1517 << "; \t oct5_d2_1805: " << oct5_d2_1805 << "; \t bestDiag5: " << bestDiag[5] << std::endl);
+//			}
 
-			if(corners){
-			//
-			//	Calculate edge centers and element center
-			//
-
-				vector3 c06, c07, c08, c09;
-				vector3 c10, c11, c12, c13;
-				vector3 c14, c15, c16, c17;
-				vector3 c18;
-
-			//	Bottom hemisphere edges
-				VecAdd(c06, corners[0], corners[1]);
-				VecScale(c06, c06, 0.5);
-
-				VecAdd(c07, corners[0], corners[2]);
-				VecScale(c07, c07, 0.5);
-
-				VecAdd(c08, corners[0], corners[3]);
-				VecScale(c08, c08, 0.5);
-
-				VecAdd(c09, corners[0], corners[4]);
-				VecScale(c09, c09, 0.5);
-
-			//	Middle ring edges
-				VecAdd(c10, corners[1], corners[2]);
-				VecScale(c10, c10, 0.5);
-
-				VecAdd(c11, corners[2], corners[3]);
-				VecScale(c11, c11, 0.5);
-
-				VecAdd(c12, corners[3], corners[4]);
-				VecScale(c12, c12, 0.5);
-
-				VecAdd(c13, corners[4], corners[1]);
-				VecScale(c13, c13, 0.5);
-
-			//	Top hemisphere edges
-				VecAdd(c14, corners[1], corners[5]);
-				VecScale(c14, c14, 0.5);
-
-				VecAdd(c15, corners[2], corners[5]);
-				VecScale(c15, c15, 0.5);
-
-				VecAdd(c16, corners[3], corners[5]);
-				VecScale(c16, c16, 0.5);
-
-				VecAdd(c17, corners[4], corners[5]);
-				VecScale(c17, c17, 0.5);
-
-			//	Element center
-				VecAdd(c18, corners[0], corners[5]);
-				VecAppend(c18, corners[1], corners[2], corners[3], corners[4]);
-				VecScale(c18, c18, 1.0/6.0);
-
-
-			//
-			//	Calculate the three diagonals of all 6 sub-octahedrons
-			//
-
-			//	Sub-octahedron 0
-				number oct0_d0_0608 = VecDistanceSq(c06, c08);
-				number oct0_d1_0709 = VecDistanceSq(c07, c09);
-				number oct0_d2_0018 = VecDistanceSq(corners[0], c18);
-
-				number d = oct0_d2_0018;
-
-				if(oct0_d1_0709 < d)
-				{
-					bestDiag[0] = 1;
-					d = oct0_d1_0709;
-				}
-
-				if(oct0_d0_0608 < d)
-				{
-					bestDiag[0] = 0;
-				}
-
-				//UG_LOG("oct0_d0_0608: " << oct0_d0_0608 << "; \t oct0_d1_0709: " << oct0_d1_0709 << "; \t oct0_d2_0018: " << oct0_d2_0018 << "; \t bestDiag0: " << bestDiag[0] << std::endl);
-
-			//	Sub-octahedron 1
-				number oct1_d0_0118 = VecDistanceSq(corners[1], c18);
-				number oct1_d1_1013 = VecDistanceSq(c10, c13);
-				number oct1_d2_0614 = VecDistanceSq(c06, c14);
-
-				d = oct1_d2_0614;
-
-				if(oct1_d1_1013 < d)
-				{
-					bestDiag[1] = 1;
-					d = oct1_d1_1013;
-				}
-
-				if(oct1_d0_0118 < d)
-				{
-					bestDiag[1] = 0;
-				}
-
-				//UG_LOG("oct1_d0_0118: " << oct1_d0_0118 << "; \t oct1_d1_1013: " << oct1_d1_1013 << ";  \t oct1_d2_0614: " << oct1_d2_0614 << "; \t bestDiag1: " << bestDiag[1] << std::endl);
-
-			//	Sub-octahedron 2
-				number oct2_d0_1011 = VecDistanceSq(c10, c11);
-				number oct2_d1_0218 = VecDistanceSq(corners[2], c18);
-				number oct2_d2_0715 = VecDistanceSq(c07, c15);
-
-				d = oct2_d2_0715;
-
-				if(oct2_d1_0218 < d)
-				{
-					bestDiag[2] = 1;
-					d = oct2_d1_0218;
-				}
-
-				if(oct2_d0_1011 < d)
-				{
-					bestDiag[2] = 0;
-				}
-
-				//UG_LOG("oct2_d0_1011: " << oct2_d0_1011 << "; \t oct2_d1_0218: " << oct2_d1_0218 << "; \t oct2_d2_0715: " << oct2_d2_0715 << "; \t bestDiag2: " << bestDiag[2] << std::endl);
-
-			//	Sub-octahedron 3
-				number oct3_d0_1803 = VecDistanceSq(c18, corners[3]);
-				number oct3_d1_1112 = VecDistanceSq(c11, c12);
-				number oct3_d2_0816 = VecDistanceSq(c08, c16);
-
-				d = oct3_d2_0816;
-
-				if(oct3_d1_1112 < d)
-				{
-					bestDiag[3] = 1;
-					d = oct3_d1_1112;
-				}
-
-				if(oct3_d0_1803 < d)
-				{
-					bestDiag[3] = 0;
-				}
-
-				//UG_LOG("oct3_d0_1803: " << oct3_d0_1803 << "; \t oct3_d1_1112: " << oct3_d1_1112 << "; \t oct3_d2_0816: " << oct3_d2_0816 << "; \t bestDiag3: " << bestDiag[3] << std::endl);
-
-			//	Sub-octahedron 4
-				number oct4_d0_1312 = VecDistanceSq(c13, c12);
-				number oct4_d1_1804 = VecDistanceSq(c18, corners[4]);
-				number oct4_d2_0917 = VecDistanceSq(c09, c17);
-
-				d = oct4_d2_0917;
-
-				if(oct4_d1_1804 < d)
-				{
-					bestDiag[4] = 1;
-					d = oct4_d1_1804;
-				}
-
-				if(oct4_d0_1312 < d)
-				{
-					bestDiag[4] = 0;
-				}
-
-				//UG_LOG("oct4_d0_1312: " << oct4_d0_1312 << "; \t oct4_d1_1804: " << oct4_d1_1804 << "; \t oct4_d2_0917: " << oct4_d2_0917 << "; \t bestDiag4: " << bestDiag[4] << std::endl);
-
-
-			//	Sub-octahedron 5
-				number oct5_d0_1416 = VecDistanceSq(c14, c16);
-				number oct5_d1_1517 = VecDistanceSq(c15, c17);
-				number oct5_d2_1805 = VecDistanceSq(c18, corners[5]);
-
-				d = oct5_d0_1416;
-
-				if(oct5_d1_1517 < d)
-				{
-					bestDiag[5] = 1;
-					d = oct5_d1_1517;
-				}
-
-				if(oct5_d2_1805 < d)
-				{
-					bestDiag[5] = 0;
-				}
-
-				//UG_LOG("oct5_d0_1416: " << oct5_d0_1416 << "; \t oct5_d1_1517: " << oct5_d1_1517 << "; \t oct5_d2_1805: " << oct5_d2_1805 << "; \t bestDiag5: " << bestDiag[5] << std::endl);
-			}
-
-		//	Experimental fixed choice of the bestDiag
+		//	Fixed choice of the bestDiag (same as father's)
 			for(int i = 0; i < 6; ++i)
 				bestDiag[i] = 0;
 
 		//
 		//	define octahedrons
 		//
-
-//			for(int i = 0; i < 6; ++i)
-//				UG_LOG(bestDiag[i] << "; ");
-//			UG_LOG(std::endl);
 
 		//	Sub-octahedron 0
 			switch(bestDiag[0]){

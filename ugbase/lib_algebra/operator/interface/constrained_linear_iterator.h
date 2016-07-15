@@ -117,17 +117,22 @@ class ConstrainedLinearIterator : public TLinIt
 				// first Dirichlet (hanging nodes might be constrained by Dirichlet nodes)
 				for (size_t i = 0; i < nConstr; i++)
 					if (m_spDomDisc->constraint(i)->type() & CT_DIRICHLET)
-						m_spDomDisc->constraint(i)->adjust_correction(c, gf->dof_distribution(), m_time);
+						m_spDomDisc->constraint(i)->adjust_correction(c, gf->dof_distribution(), CT_DIRICHLET, m_time);
 
-				// then hanging nodes and other interpolation
+				// then other interpolation
 				for (size_t i = 0; i < nConstr; i++)
 					if (m_spDomDisc->constraint(i)->type() & CT_CONSTRAINTS)
-						m_spDomDisc->constraint(i)->adjust_correction(c, gf->dof_distribution(), m_time);
+						m_spDomDisc->constraint(i)->adjust_correction(c, gf->dof_distribution(), CT_CONSTRAINTS, m_time);
+
+				// then hanging nodes
+				for (size_t i = 0; i < nConstr; i++)
+					if (m_spDomDisc->constraint(i)->type() & CT_HANGING)
+						m_spDomDisc->constraint(i)->adjust_correction(c, gf->dof_distribution(), CT_HANGING, m_time);
 
 				// and Dirichlet again (Dirichlet nodes might also be hanging)
 				for (size_t i = 0; i < nConstr; i++)
 					if (m_spDomDisc->constraint(i)->type() & CT_DIRICHLET)
-						m_spDomDisc->constraint(i)->adjust_correction(c, gf->dof_distribution(), m_time);
+						m_spDomDisc->constraint(i)->adjust_correction(c, gf->dof_distribution(), CT_DIRICHLET, m_time);
 			}
 			else UG_THROW("Vector is not a grid function. This is not supported.")
 
@@ -136,6 +141,16 @@ class ConstrainedLinearIterator : public TLinIt
 
 		virtual bool apply_update_defect(vector_type& c, vector_type& d)
 		{
+			// TODO: This implementation is not correct.
+			// As the defect is calculated from possibly erroneous corrections, there is no telling
+			// how to adjust the defect. Except for setting it to zero everywhere, which, by the way,
+			// is NOT what adjust_defect does, in general. We would need something like
+			// adjust_defect_linearSolver() here to distinguish between the non-linear defect and
+			// the residual in the linear solver.
+			// We CANNOT use our own apply() here and then update the defect ourselves as the
+			// ILinearIterator does not have an update method nor any way of applying the underlying
+			// linear operator.
+
 			// perform normal step
 			if (!base_type::apply_update_defect(c, d)) return false;
 
@@ -149,35 +164,43 @@ class ConstrainedLinearIterator : public TLinIt
 			{
 				size_t nConstr = m_spDomDisc->num_constraints();
 
+			// corrections
 				// first Dirichlet (hanging nodes might be constrained by Dirichlet nodes)
 				for (size_t i = 0; i < nConstr; i++)
-				{
 					if (m_spDomDisc->constraint(i)->type() & CT_DIRICHLET)
-					{
-						m_spDomDisc->constraint(i)->adjust_correction(c, gf->dof_distribution(), m_time);
-						m_spDomDisc->constraint(i)->adjust_defect(d, c, gf->dof_distribution(), m_time);
-					}
-				}
+						m_spDomDisc->constraint(i)->adjust_correction(c, gf->dof_distribution(), CT_DIRICHLET, m_time);
 
-				// then hanging nodes and other interpolation
+				// then other interpolation
 				for (size_t i = 0; i < nConstr; i++)
-				{
 					if (m_spDomDisc->constraint(i)->type() & CT_CONSTRAINTS)
-					{
-						m_spDomDisc->constraint(i)->adjust_correction(c, gf->dof_distribution(), m_time);
-						m_spDomDisc->constraint(i)->adjust_defect(d, c, gf->dof_distribution(), m_time);
-					}
-				}
+						m_spDomDisc->constraint(i)->adjust_correction(c, gf->dof_distribution(), CT_CONSTRAINTS, m_time);
+
+				// then hanging nodes
+				for (size_t i = 0; i < nConstr; i++)
+					if (m_spDomDisc->constraint(i)->type() & CT_HANGING)
+						m_spDomDisc->constraint(i)->adjust_correction(c, gf->dof_distribution(), CT_HANGING, m_time);
 
 				// and Dirichlet again (Dirichlet nodes might also be hanging)
 				for (size_t i = 0; i < nConstr; i++)
-				{
 					if (m_spDomDisc->constraint(i)->type() & CT_DIRICHLET)
-					{
-						m_spDomDisc->constraint(i)->adjust_correction(c, gf->dof_distribution(), m_time);
-						m_spDomDisc->constraint(i)->adjust_defect(d, c, gf->dof_distribution(), m_time);
-					}
-				}
+						m_spDomDisc->constraint(i)->adjust_correction(c, gf->dof_distribution(), CT_DIRICHLET, m_time);
+
+			// residuals
+				// hanging nodes first
+				for (size_t i = 0; i < nConstr; i++)
+					if (m_spDomDisc->constraint(i)->type() & CT_HANGING)
+						m_spDomDisc->constraint(i)->adjust_linear_residual(d, c, gf->dof_distribution(), CT_HANGING, m_time);
+
+				// then other constraints
+				for (size_t i = 0; i < nConstr; i++)
+					if (m_spDomDisc->constraint(i)->type() & CT_CONSTRAINTS)
+						m_spDomDisc->constraint(i)->adjust_linear_residual(d, c, gf->dof_distribution(), CT_CONSTRAINTS, m_time);
+
+				// and Dirichlet last
+				for (size_t i = 0; i < nConstr; i++)
+					if (m_spDomDisc->constraint(i)->type() & CT_DIRICHLET)
+						m_spDomDisc->constraint(i)->adjust_linear_residual(d, c, gf->dof_distribution(), CT_DIRICHLET, m_time);
+
 			}
 			else UG_THROW("Vector is not a grid function. This is not supported.")
 

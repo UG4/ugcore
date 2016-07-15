@@ -48,7 +48,7 @@
 #include "lib_grid/tools/subset_handler_multi_grid.h"
 #include "lib_grid/algorithms/subset_dim_util.h"
 #include "lib_grid/grid_objects/grid_dim_traits.h"
-#include "lib_grid/algorithms/refinement/global_fractured_media_refiner.h"
+#include "lib_grid/refinement/global_fractured_media_refiner.h"
 
 namespace ug {
 
@@ -164,7 +164,7 @@ public:
 	///	Number of subsets in the manager
 		size_t num_subsets () {return m_layerSsGrp.size ();};
 		
-	/// Subset #i in the manager (only if the manager is closed)
+	/// Subset no. i in the manager (only if the manager is closed)
 		int subset (size_t i)
 		{
 			if (! is_closed ()) UG_THROW ("DegeneratedLayerManager: The manager is not closed.");

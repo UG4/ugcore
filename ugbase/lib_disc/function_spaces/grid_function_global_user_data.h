@@ -52,14 +52,14 @@ namespace ug{
 
 
 
-template <typename TGridFunction>
+template <typename TGridFunction, int elemDim = TGridFunction::dim>
 class GlobalGridFunctionNumberData
-	: public StdGlobPosData<GlobalGridFunctionNumberData<TGridFunction>, number, TGridFunction::dim>
+	: public StdGlobPosData<GlobalGridFunctionNumberData<TGridFunction, elemDim>, number, TGridFunction::dim>
 {
 	public:
 	///	world dimension of grid function
 		static const int dim = TGridFunction::dim;
-		typedef typename TGridFunction::element_type  element_t;
+		typedef typename TGridFunction::template dim_traits<elemDim>::grid_base_object element_t;
 
 		private:
 	/// grid function
@@ -103,7 +103,7 @@ class GlobalGridFunctionNumberData
 			std::vector<size_t> subsetsOfGridFunction;
 			std::vector<element_t*> elemsWithGridFunctions;
 
-			typename TGridFunction::const_element_iterator iterEnd, iter;
+			typename TGridFunction::template dim_traits<elemDim>::const_iterator iterEnd, iter;
 
 
 			for(size_t si = 0; si < ssGrp.size(); si++){
@@ -147,9 +147,8 @@ class GlobalGridFunctionNumberData
 		///	evaluates the data at a given point, returns false if point not found
 		inline bool evaluate(number& value, const MathVector<dim>& x) const
 		{
-
 			element_t* elem = NULL;
-			try{
+			//try{
 
 				if(!FindContainingElement(elem, m_tree, x)){
 					return false;
@@ -163,15 +162,15 @@ class GlobalGridFunctionNumberData
 				const ReferenceObjectID roid = elem->reference_object_id();
 
 			//	get local position of DoF
-				DimReferenceMapping<dim, dim>& map
-					= ReferenceMappingProvider::get<dim, dim>(roid, vCornerCoords);
-				MathVector<dim> locPos;
+				DimReferenceMapping<elemDim, dim>& map
+					= ReferenceMappingProvider::get<elemDim, dim>(roid, vCornerCoords);
+				MathVector<elemDim> locPos;
 				VecSet(locPos, 0.5);
 				map.global_to_local(locPos, x);
 
 			//	evaluate at shapes at ip
-				const LocalShapeFunctionSet<dim>& rTrialSpace =
-						LocalFiniteElementProvider::get<dim>(roid, m_lfeID);
+				const LocalShapeFunctionSet<elemDim>& rTrialSpace =
+						LocalFiniteElementProvider::get<elemDim>(roid, m_lfeID);
 				std::vector<number> vShape;
 				rTrialSpace.shapes(vShape, locPos);
 
@@ -189,10 +188,10 @@ class GlobalGridFunctionNumberData
 
 			//	point is found
 				return true;
-			}
-			UG_CATCH_THROW("GlobalGridFunctionNumberData: Evaluation failed."
-						   << "Point: " << x << ", Element: "
-						   << ElementDebugInfo(*m_spGridFct->domain()->grid(), elem));
+			//}
+			//UG_CATCH_THROW("GlobalGridFunctionNumberData: Evaluation failed."
+			//			   << "Point: " << x << ", Element: "
+			//			   << ElementDebugInfo(*m_spGridFct->domain()->grid(), elem));
 		}
 
 		/// evaluate value on all procs

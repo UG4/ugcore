@@ -35,6 +35,7 @@
 
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/export.hpp>
+#include <boost/serialization/level.hpp>
 #include <boost/serialization/nvp.hpp>
 
 /* Include this file if you want to add serialization functionality to your types.

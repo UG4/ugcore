@@ -33,7 +33,7 @@
 #ifndef __H__UG__balance_weights_ref_marks__
 #define __H__UG__balance_weights_ref_marks__
 
-#include "lib_grid/algorithms/refinement/refiner_interface.h"
+#include "lib_grid/refinement/refiner_interface.h"
 #include "load_balancer.h"
 
 namespace ug{

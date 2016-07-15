@@ -95,7 +95,7 @@ class ILineSearch
 		virtual ~ILineSearch() {}
 };
 
-/// standard implementation for line search
+/// standard implementation of the line search based on the "sufficient descent"
 template <typename TVector>
 class StandardLineSearch : public ILineSearch<TVector>
 {
@@ -106,19 +106,19 @@ class StandardLineSearch : public ILineSearch<TVector>
 	public:
 	///	default constructor (setting default values)
 		StandardLineSearch()
-		 :	 m_maxSteps(10), m_lambdaStart(1.0), m_lambdaReduce(0.5),
+		 :	 m_maxSteps(10), m_lambdaStart(1.0), m_lambdaReduce(0.5), m_alpha(0.25),
 		  	 m_maxDefect(1e+10), m_verbose(true), m_bAcceptBest(false), m_bCheckAll(false), m_offset("")
 			 {};
 
 	///	constructor
 		StandardLineSearch(int maxSteps, number lambdaStart, number lambdaReduce, bool bAcceptBest)
-		 :	 m_maxSteps(maxSteps), m_lambdaStart(lambdaStart), m_lambdaReduce(lambdaReduce),
+		 :	 m_maxSteps(maxSteps), m_lambdaStart(lambdaStart), m_lambdaReduce(lambdaReduce), m_alpha(0.25),
 			 m_maxDefect(1e+10), m_verbose(true), m_bAcceptBest(bAcceptBest), m_bCheckAll(false), m_offset("")
 			 {};
 
 	///	constructor
 		StandardLineSearch(int maxSteps, number lambdaStart, number lambdaReduce, bool bAcceptBest, bool bCheckAll)
-		 :	 m_maxSteps(maxSteps), m_lambdaStart(lambdaStart), m_lambdaReduce(lambdaReduce),
+		 :	 m_maxSteps(maxSteps), m_lambdaStart(lambdaStart), m_lambdaReduce(lambdaReduce), m_alpha(0.25),
 			 m_maxDefect(1e+10), m_verbose(true), m_bAcceptBest(bAcceptBest), m_bCheckAll(bCheckAll), m_offset("")
 			 {};
 
@@ -140,14 +140,17 @@ class StandardLineSearch : public ILineSearch<TVector>
 
 	///	sets factor by which line search factor is multiplied in each step
 		void set_reduce_factor(number factor) {m_lambdaReduce = factor;}
+		
+	///	sets the factor controlling the sufficient descent
+		void set_suff_descent_factor(number factor) {m_alpha = factor;}
 
 	///	sets iff after max_steps the best try is used
 		void set_accept_best(bool bAcceptBest) {m_bAcceptBest = bAcceptBest;}
 
-	///	sets iff after max_steps the best try is used
+	///	sets iff all the max_steps line search steps must be tested even if the sufficient descent is achieved
 		void set_check_all(bool bCheckAll) {m_bCheckAll = bCheckAll;}
 
-	///	sets maximum allowed defect
+	///	sets maximum allowed norm of the defect (an exception is thrown if this value if exceeded)
 		void set_maximum_defect(number maxDef) {m_maxDefect = maxDef;}
 
 	///	sets if info should be printed
@@ -167,7 +170,6 @@ class StandardLineSearch : public ILineSearch<TVector>
 
 		//	start factor
 			number lambda = m_lambdaStart;
-			number alpha = 0.25;
 
 		//	some values
 			number norm, norm_old = defect;
@@ -177,21 +179,10 @@ class StandardLineSearch : public ILineSearch<TVector>
 		// remember u
 			s = u;
 
-
-
-		// check if defect-norm is already smaller than maximum allowed defect value
-		/*if (norm_old < m_maxDefect)
-		{
-			UG_LOG("ERROR in 'StandardLineSearch::search':"
-					" no computation required.\n");
-									return true;
-		}
-*/
-
 		//	print heading line
 		if(m_verbose)
-			UG_LOG(m_offset << "   ++++ Line Search:\n");
-			UG_LOG(m_offset << "   +  Iter       lambda        Defect          Rate \n");
+			UG_LOG(m_offset << "   ++++ Line Search:\n"
+							<< "   +  Iter       lambda        Defect          Rate \n");
 
 
 		//	loop line search steps
@@ -219,7 +210,7 @@ class StandardLineSearch : public ILineSearch<TVector>
 							<< std::scientific << norm << "   " << vRho.back() <<"\n");
 
 			// 	check if reduction fits
-				if(vRho.back() <= 1 - alpha * fabs(lambda))
+				if(vRho.back() <= 1 - m_alpha * std::fabs(lambda))
 				{
 					converged = true;
 					if(!m_bCheckAll) break;
@@ -308,16 +299,19 @@ class StandardLineSearch : public ILineSearch<TVector>
 	/// maximum number of steps to be performed
 		int m_maxSteps;
 
-	/// lambda start
+	/// initial step length scaling
 		number m_lambdaStart;
 
-	/// lambda reduce
+	/// reduction factor for the step length
 		number m_lambdaReduce;
+		
+	///	sufficient descent factor
+		number m_alpha;
 
 	/// maximum allowed defect
 		number m_maxDefect;
 
-	/// verbose level
+	/// verbosity level
 		bool m_verbose;
 
 	///	accept best

@@ -42,8 +42,9 @@ namespace ug
 
 template <class TRefiner>
 TParallelGlobalRefiner<TRefiner>::
-TParallelGlobalRefiner(DistributedGridManager& distGridMgr) :
-	TRefiner(*distGridMgr.get_assigned_grid()),
+TParallelGlobalRefiner(DistributedGridManager& distGridMgr,
+						SPRefinementProjector projector) :
+	TRefiner(*distGridMgr.get_assigned_grid(), projector),
 	m_distGridMgr(distGridMgr)
 {
 }

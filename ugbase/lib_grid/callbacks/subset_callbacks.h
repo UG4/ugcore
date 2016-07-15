@@ -34,6 +34,7 @@
 #define __H__UG_subset_callbacks
 
 #include "lib_grid/tools/subset_handler_interface.h"
+#include "element_callback_interface.h"
 
 namespace ug{
 
@@ -41,21 +42,21 @@ namespace ug{
  * \{ */
 
 ///	Element callback that returns true, if an element is contained in a subset
-class IsInSubset
+class IsInSubset : public ElementCallback
 {
 	public:
 		IsInSubset(const ISubsetHandler& sh, int subsetIndex) :
 			m_sh(sh),
 			m_si(subsetIndex)	{}
 
-		bool operator() (Vertex* v)	{return callback(v);}
-		bool operator() (Edge* e)	{return callback(e);}
-		bool operator() (Face* f)		{return callback(f);}
-		bool operator() (Volume* v)		{return callback(v);}
+		bool operator() (Vertex* v) const	{return callback(v);}
+		bool operator() (Edge* e) const		{return callback(e);}
+		bool operator() (Face* f) const		{return callback(f);}
+		bool operator() (Volume* v) const	{return callback(v);}
 
 	private:
 		template <class TElem>
-		bool callback(TElem* e)			{return m_sh.get_subset_index(e) == m_si;}
+		bool callback(TElem* e) const		{return m_sh.get_subset_index(e) == m_si;}
 
 	private:
 		const ISubsetHandler& m_sh;
@@ -63,21 +64,21 @@ class IsInSubset
 };
 
 ///	Element callback that returns true, if an element is not contained in a subset
-class IsNotInSubset
+class IsNotInSubset : public ElementCallback
 {
 	public:
 		IsNotInSubset(const ISubsetHandler& sh, int subsetIndex) :
 			m_sh(sh),
 			m_si(subsetIndex)	{}
 
-		bool operator() (Vertex* v)	{return callback(v);}
-		bool operator() (Edge* e)	{return callback(e);}
-		bool operator() (Face* f)		{return callback(f);}
-		bool operator() (Volume* v)		{return callback(v);}
+		bool operator() (Vertex* v) const	{return callback(v);}
+		bool operator() (Edge* e) const		{return callback(e);}
+		bool operator() (Face* f) const		{return callback(f);}
+		bool operator() (Volume* v) const	{return callback(v);}
 
 	private:
 		template <class TElem>
-		bool callback(TElem* e)			{return m_sh.get_subset_index(e) != m_si;}
+		bool callback(TElem* e) const		{return m_sh.get_subset_index(e) != m_si;}
 
 	private:
 		const ISubsetHandler& m_sh;

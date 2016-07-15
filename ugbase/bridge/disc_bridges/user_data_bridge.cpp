@@ -38,6 +38,7 @@
 // include bridge
 #include "bridge/bridge.h"
 #include "bridge/util.h"
+#include "bridge/util_domain_dependent.h"
 
 #include "common/common.h"
 #include "lib_disc/spatial_disc/user_data/const_user_data.h"
@@ -363,6 +364,36 @@ static void Dimension(Registry& reg, string grp)
 }
 
 /**
+ * Function called for the registration of Domain dependent parts.
+ * All Functions and Classes depending on the Domain
+ * are to be placed here when registering. The method is called for all
+ * available Domain types, based on the current build options.
+ *
+ * @param reg	registry
+ * @param grp	group for sorting of functionality
+ */
+template <typename TDomain>
+static void Domain(Registry& reg, string grp)
+{
+	static const int dim = TDomain::dim;
+	
+	string suffix = GetDomainSuffix<TDomain>();
+	string tag = GetDomainTag<TDomain>();
+	
+//	User data of a subset indicator (1 in the subset, 0 everywhere else)
+	{
+		string name = string("SubsetIndicatorUserData").append(suffix);
+		typedef SubsetIndicatorUserData<TDomain> T;
+		typedef UserData<number, dim> TBase;
+		
+		reg.add_class_<T, TBase> (name, grp)
+			.template add_constructor<void (*)(ConstSmartPtr<TDomain>, const char*)>("Domain#Subsets")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "SubsetIndicatorUserData", tag);
+	}
+}
+		
+/**
  * Function called for the registration of Domain and Algebra independent parts.
  * All Functions and Classes not depending on Domain and Algebra
  * are to be placed here when registering.
@@ -410,6 +441,7 @@ void RegisterBridge_UserData(Registry& reg, string grp)
 	try{
 		RegisterCommon<Functionality>(reg,grp);
 		RegisterDimensionDependent<Functionality>(reg,grp);
+		RegisterDomainDependent<Functionality>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }

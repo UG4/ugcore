@@ -34,7 +34,7 @@
 #define __H__UG_DISC__ERROR_INDICATOR_UTIL__
 
 #include "lib_grid/multi_grid.h"
-#include "lib_grid/algorithms/refinement/refiner_interface.h"
+#include "lib_grid/refinement/refiner_interface.h"
 #include "lib_disc/dof_manager/dof_distribution.h"
 
 namespace ug{
@@ -201,7 +201,7 @@ void ComputeMinMaxTotal
  * \param[in]		dd			dof distribution
  * \param[in]		TOL			Minimum error, such that an element is marked
  * \param[in]		scale		scaling factor indicating lower bound for marking
- * \param[in]		aaError		Error value attachment to elements (\eta_i^2)
+ * \param[in]		aaError		Error value attachment to elements (\f$ \eta_i^2 \f$)
  */
 template<typename TElem>
 void MarkElements(MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >& aaError,
@@ -286,7 +286,7 @@ void MarkElements(MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >&
  * error of err >= tol / #elems are marked for refinement if and only if their
  * multigrid level is below the tolerated maximum of maxLevel.
  *
- * \param[in]		aaError		error value attachment to elements (\eta_i^2)
+ * \param[in]		aaError		error value attachment to elements (\f$ \eta_i^2 \f$)
  * \param[in, out]	refiner		refiner, elements marked on exit
  * \param[in]		dd			dof distribution
  * \param[in]		tol			tolerated global error (no refinement if error below)
@@ -369,7 +369,7 @@ void MarkElementsForRefinement
  * supposed to ensure that elements are not refined and coarsened back and
  * forth in a dynamic adaptive simulation.
  *
- * \param[in]		aaError		error value attachment to elements (\eta_i^2)
+ * \param[in]		aaError		error value attachment to elements (\f$ \eta_i^2 \f$)
  * \param[in, out]	refiner		refiner, elements marked on exit
  * \param[in]		dd			dof distribution
  * \param[in]		tol			tolerated global error

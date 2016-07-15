@@ -32,6 +32,7 @@
 
 #include "grid_bridges.h"
 #include "lib_grid/algorithms/debug_util.h"
+#include "lib_grid/algorithms/problem_detection_util.h"
 
 using namespace std;
 
@@ -49,6 +50,10 @@ void RegisterGridBridge_Debug(Registry& reg, string parentGroup)
 		.add_function("CheckElementConsistency", static_cast<bool (*)(MultiGrid&, Vertex*)>(&CheckElementConsistency), grp)
 		.add_function("CheckElementConsistency", static_cast<bool (*)(MultiGrid&, Edge*)>(&CheckElementConsistency), grp)
 		.add_function("CheckElementConsistency", static_cast<bool (*)(MultiGrid&, Face*)>(&CheckElementConsistency), grp);
+
+	reg.add_function("CheckForUnconnectedSides", &CheckForUnconnectedSides,
+					 grp, "foundUnconnectedSides", "grid",
+					 "Checks whether unconnected sides exist in the given grid.");
 }
 
 }//	end of namespace

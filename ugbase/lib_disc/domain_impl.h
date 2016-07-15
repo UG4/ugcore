@@ -48,6 +48,21 @@ namespace ug{
 // IDomain
 ////////////////////////////////////////////////////////////////////////////////
 
+#ifdef UG_PARALLEL
+namespace detail {
+///	Helper method to broadcast ug::RefinementProjectors to different processes.
+/* NOTE: This method is implemented in a .cpp file to avoid header pollution and to
+ * speed up compile times.*/
+SPRefinementProjector
+BroadcastRefinementProjector(
+		int rootProc,
+		pcl::ProcessCommunicator& procCom,
+		SmartPtr<ISubsetHandler> subsetHandler,
+		SPIGeometry3d geometry,
+		SPRefinementProjector projector = SPNULL);
+}// end of namespace detail
+#endif
+
 template <typename TGrid, typename TSubsetHandler>
 IDomain<TGrid,TSubsetHandler>::IDomain(bool isAdaptive)
 	:
@@ -103,6 +118,9 @@ update_subset_infos(int rootProc)
 		sh.subset_info(i).set_property("dim", dim);
 	}
 
+	// do not communicate if geom is created on all procs
+	if (rootProc == -2) return;
+
 #ifdef UG_PARALLEL
 	pcl::ProcessCommunicator procCom;
 
@@ -131,6 +149,15 @@ update_subset_infos(int rootProc)
 			sh.subset_info(i).set_property("dim", dim);
 		}
 	}
+
+//todo:	distribute projectors from rootProc to all other processors.
+//note:	first check whether source-proc has a ProjectionHandler. If so,
+//		create a local projection handler first and perform serialization
+//		afterwards.
+	set_refinement_projector(
+			detail::BroadcastRefinementProjector(
+						rootProc, procCom, subset_handler(),
+						geometry3d(), m_refinementProjector));
 #endif
 
 }
@@ -347,6 +374,22 @@ additional_subset_handler(std::string name) const
 	return sp;
 }
 
+template <typename TGrid, typename TSubsetHandler>
+void IDomain<TGrid, TSubsetHandler>::
+set_refinement_projector(SPRefinementProjector proj)
+{
+	m_refinementProjector = proj;
+	if(proj.valid())
+		proj->set_geometry(geometry3d());
+}
+
+template <typename TGrid, typename TSubsetHandler>
+SPRefinementProjector IDomain<TGrid, TSubsetHandler>::
+refinement_projector() const
+{
+	return m_refinementProjector;
+}
+
 
 #ifdef UG_PARALLEL
 template <typename TGrid, typename TSubsetHandler>
@@ -422,6 +465,9 @@ Domain(bool isAdaptive) : IDomain<TGrid, TSubsetHandler>(isAdaptive)
 	if(!this->grid()->template has_attachment<Vertex>(m_aPos))
 		this->grid()->template attach_to<Vertex>(m_aPos);
 	m_aaPos.access(*(this->grid()), m_aPos);
+
+	m_geometry3d = MakeGeometry3d(*(this->grid()), m_aPos);
+	this->m_refinementProjector = make_sp(new RefinementProjector(m_geometry3d));
 }
 
 

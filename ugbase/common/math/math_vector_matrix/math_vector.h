@@ -43,6 +43,7 @@
 
 #include <cstddef>
 #include <iostream>
+#include <algorithm>
 #include "../../ug_config.h"
 #include "../../types.h"
 #include "common/math/misc/math_constants.h"
@@ -63,6 +64,31 @@ namespace ug
 ///	a mathematical Vector with N entries.
 template <std::size_t N, typename T = number> class MathVector;
 
+///	helper method which creates a vector from another vector of different dimensionality
+/** Typically, the method isn't invoked directly but serves as an implementation
+ * helper for MathVector<toN, T>::from(v).
+ * \{ */
+template <std::size_t fromN, std::size_t toN, typename T>
+MathVector<toN, T> MathVectorFrom (const MathVector<fromN, T>& v)
+{
+	MathVector<toN, T> r;
+	static const size_t minN = std::min(toN, fromN);
+	static const size_t maxN = std::max(toN, fromN);
+	for(size_t i = 0; i < minN; ++i)
+		r[i] = v[i];
+	for(size_t i = minN; i < maxN; ++i)
+		r[i] = 0;
+	return r;
+}
+
+template <std::size_t N, typename T>
+MathVector<N, T> MathVectorFrom (const MathVector<N, T>& v)
+{
+	return v;
+}
+/** \} */
+
+
 /**
  * A mathematical Vector with N entries and static storage
  */
@@ -78,6 +104,12 @@ class MathVector
 		MathVector() {}
 		MathVector(const value_type& val) {for(std::size_t i = 0; i < N; ++i) m_data[i] =  val;}
 		MathVector(const MathVector& v)	{assign(v);}
+
+		template <std::size_t fromN>
+		static inline MathVector from(const MathVector<fromN, T>& v)
+		{
+			return MathVectorFrom<N, fromN, T>(v);
+		}
 
 		// operations with other vectors
 		MathVector& operator=  (const MathVector& v)
@@ -137,6 +169,17 @@ class MathVector<0, T>
 		}
 		MathVector(const MathVector<0, T>& v)	{assign(v);}
 
+		static inline MathVector from(const MathVector<0, T>& v)	{return v;}
+		static inline MathVector from(const MathVector<1, T>& v)	{return MathVector();}
+		static inline MathVector from(const MathVector<2, T>& v)	{return MathVector();}
+		static inline MathVector from(const MathVector<3, T>& v)	{return MathVector();}
+		static inline MathVector from(const MathVector<4, T>& v)	{return MathVector();}
+		template <std::size_t fromN>
+		static inline MathVector from(const MathVector<fromN, T>& v)
+		{
+			return MathVectorFrom<0, fromN, T>(v);
+		}
+
 		// operations with other vectors
 		MathVector& operator=  (const MathVector& v) {assign(v); return *this;}
 		MathVector& operator+= (const MathVector& v) {m_data[0] += v.x(); return *this;}
@@ -187,6 +230,17 @@ class MathVector<1, T>
 			m_data[0] = x;
 		}
 		MathVector(const MathVector<1, T>& v)	{assign(v);}
+
+		static inline MathVector from(const MathVector<0, T>& v)	{return MathVector(0);}
+		static inline MathVector from(const MathVector<1, T>& v)	{return v;}
+		static inline MathVector from(const MathVector<2, T>& v)	{return MathVector(v[0]);}
+		static inline MathVector from(const MathVector<3, T>& v)	{return MathVector(v[0]);}
+		static inline MathVector from(const MathVector<4, T>& v)	{return MathVector(v[0]);}
+		template <std::size_t fromN>
+		static inline MathVector from(const MathVector<fromN, T>& v)
+		{
+			return MathVectorFrom<1, fromN, T>(v);
+		}
 
 		// operations with other vectors
 		MathVector& operator=  (const MathVector& v) {assign(v); return *this;}
@@ -240,6 +294,17 @@ class MathVector<2, T>
 			m_data[1] = y;
 		}
 		MathVector(const MathVector<2,T>& v)	{assign(v);}
+
+		static inline MathVector from(const MathVector<0, T>& v)	{return MathVector(0, 0);}
+		static inline MathVector from(const MathVector<1, T>& v)	{return MathVector(v[0], 0);}
+		static inline MathVector from(const MathVector<2, T>& v)	{return v;}
+		static inline MathVector from(const MathVector<3, T>& v)	{return MathVector(v[0], v[1]);}
+		static inline MathVector from(const MathVector<4, T>& v)	{return MathVector(v[0], v[1]);}
+		template <std::size_t fromN>
+		static inline MathVector from(const MathVector<fromN, T>& v)
+		{
+			return MathVectorFrom<2, fromN, T>(v);
+		}
 
 		// operations with other vectors
 		MathVector& operator=  (const MathVector& v) {assign(v); return *this;}
@@ -297,6 +362,17 @@ class MathVector<3, T>
 			m_data[2] = z;
 		}
 		MathVector(const MathVector<3,T>& v)	{assign(v);}
+
+		static inline MathVector from(const MathVector<0, T>& v)	{return MathVector(0, 0, 0);}
+		static inline MathVector from(const MathVector<1, T>& v)	{return MathVector(v[0], 0, 0);}
+		static inline MathVector from(const MathVector<2, T>& v)	{return MathVector(v[0], v[1], 0);}
+		static inline MathVector from(const MathVector<3, T>& v)	{return v;}
+		static inline MathVector from(const MathVector<4, T>& v)	{return MathVector(v[0], v[1], v[2]);}
+		template <std::size_t fromN>
+		static inline MathVector from(const MathVector<fromN, T>& v)
+		{
+			return MathVectorFrom<3, fromN, T>(v);
+		}
 
 		// operations with other vectors
 		MathVector& operator=  (const MathVector& v) {assign(v); return *this;}
@@ -360,6 +436,17 @@ class MathVector<4, T>
 			m_data[3] = w;
 		}
 		MathVector(const MathVector<4,T>& v)	{assign(v);}
+
+		static inline MathVector from(const MathVector<0, T>& v)	{return MathVector(0, 0, 0, 0);}
+		static inline MathVector from(const MathVector<1, T>& v)	{return MathVector(v[0], 0, 0, 0);}
+		static inline MathVector from(const MathVector<2, T>& v)	{return MathVector(v[0], v[1], 0, 0);}
+		static inline MathVector from(const MathVector<3, T>& v)	{return MathVector(v[0], v[1], v[2], 0);}
+		static inline MathVector from(const MathVector<4, T>& v)	{return v;}
+		template <std::size_t fromN>
+		static inline MathVector from(const MathVector<fromN, T>& v)
+		{
+			return MathVectorFrom<4, fromN, T>(v);
+		}
 
 		// operations with other vectors
 		MathVector& operator=  (const MathVector& v) {assign(v); return *this;}
