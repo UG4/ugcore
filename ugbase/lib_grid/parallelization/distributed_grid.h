@@ -50,7 +50,7 @@ namespace ug
 /**	Note that the constants are directly related to the constants enumerated
  * in InterfaceNodeTypes.
  * Please also note that the constants are currently stored in bytes. No
- * value usig more thatn 8 bits is thus allowed.
+ * value using more than 8 bits is thus allowed.
  */
 enum ElementStatusTypes
 {

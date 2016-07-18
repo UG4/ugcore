@@ -241,6 +241,12 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef ug::GridFunction<TDomain, TAlgebra> GF;
 		reg.add_function ("SumGFValuesAtVertices", static_cast<number (*) (GF*, const char *, const char *)> (&SumGFValuesAt<GF,Vertex>), grp);
 	}
+	
+//	CheckGFforNaN
+	{
+		typedef ug::GridFunction<TDomain, TAlgebra> GF;
+		reg.add_function ("CheckGFValuesAtVertices", static_cast<bool (*) (const GF*, const char *)> (&CheckGFforNaN<GF,Vertex>), grp);
+	}
 }
 
 /**
