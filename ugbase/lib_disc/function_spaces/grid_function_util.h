@@ -33,21 +33,24 @@
 #ifndef __H__UG__LIB_DISC__FUNCTION_SPACE__GRID_FUNCTION_UTIL__
 #define __H__UG__LIB_DISC__FUNCTION_SPACE__GRID_FUNCTION_UTIL__
 
+#include <vector>
+#include <string>
+#include <cmath>  // for isinf, isnan
 #include <boost/function.hpp>
+
+
 #include "common/util/file_util.h"
 
 #include "lib_algebra/cpu_algebra/sparsematrix_print.h"
 #include "lib_algebra/operator/interface/matrix_operator.h"
 #include "lib_algebra/operator/debug_writer.h"
 #include "lib_algebra/operator/vector_writer.h"
-#include "lib_disc/io/vtkoutput.h"
-#include "lib_disc/spatial_disc/constraints/constraint_interface.h"
-#include "lib_disc/dof_manager/dof_distribution.h"
-#include <vector>
-#include <string>
 #include "lib_algebra/common/matrixio/matrix_io_mtx.h"
 #include "lib_algebra/common/connection_viewer_output.h"
 #include "lib_algebra/common/csv_gnuplot_output.h"
+#include "lib_disc/io/vtkoutput.h"
+#include "lib_disc/spatial_disc/constraints/constraint_interface.h"
+#include "lib_disc/dof_manager/dof_distribution.h"
 #include "lib_disc/spatial_disc/user_data/user_data.h"
 #include "lib_disc/common/groups_util.h"
 #include "lib_disc/common/geometry_util.h"
@@ -62,6 +65,14 @@
 #endif
 
 namespace ug {
+
+#ifndef isnan
+using boost::math::isnan;
+#endif
+
+#ifndef isinf
+using boost::math::isinf;
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // 	AverageComponent
