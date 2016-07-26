@@ -946,7 +946,7 @@ protected:
 		vtkFunc.resize_values(vec.size());
 		vtkFunc.assign(vec);
 		VTKOutput<dim> out;
-		out.print(filename, vtkFunc, m_printConsistent);
+		out.print(name.c_str(), vtkFunc, m_printConsistent);
 	}
 
 protected:
