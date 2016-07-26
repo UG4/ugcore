@@ -119,6 +119,9 @@ class IConvectionShapes
 			m_vUpShapeDiffusion.clear();
 		}
 
+	/// destructor
+		virtual ~IConvectionShapes() {};
+
 	///	returns number of shapes
 		size_t num_sh() const {return m_numSh;}
 
