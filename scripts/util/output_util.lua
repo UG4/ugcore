@@ -111,6 +111,7 @@ function util.Balance(DataToBeWrittenTable)
 	local PosEvals = {}
 	local Integrals = {}
 	local Fluxes = {}
+	local FuncValues = {}
 	local PrintFreq = DataToBeWrittenTable.datafreq or 1
 	
 	----------------------------------
@@ -341,6 +342,31 @@ function util.Balance(DataToBeWrittenTable)
 			-- append to integral datas
 			table.insert(Fluxes, FluxData)			
 		end
+
+		----------------------------------
+		-- check for values of user-defined functions data
+		----------------------------------
+		if DataSet.func_data ~= nil then
+			-- create a container for the object
+			local FuncValue = {}
+			FuncValue.func = DataSet.func_data
+			FuncValue.data = DataSet.data
+			FuncValue.file = file
+			
+			if FuncValue.comment ~= nil then
+				-- create the file
+				local thefile = io.open (file, "w+")
+				thefile:write("# "..FuncValue.comment.."\n")
+				io.close(thefile)
+			else
+				-- clean the file
+				local thefile = io.open (file, "w+")
+				io.close(thefile)
+			end
+			
+			-- append to the other objects
+			table.insert(FuncValues, FuncValue)
+		end
 		
 	end -- end DataSet loop
 	
@@ -390,6 +416,8 @@ function util.Balance(DataToBeWrittenTable)
 			end
 			file:write("\n")
 			io.close(file)
+			
+			if verbose then print("done.") end
 		end
 
 		-- evaluate Integrals
@@ -416,6 +444,8 @@ function util.Balance(DataToBeWrittenTable)
 			file:write(val)
 			file:write("\n")
 			io.close(file)
+			
+			if verbose then print("done.") end
 		end
 
 		-- evaluate Fluxes
@@ -438,6 +468,26 @@ function util.Balance(DataToBeWrittenTable)
 			file:write(val)
 			file:write("\n")
 			io.close(file)
+			
+			if verbose then print("done.") end
+		end
+		
+		-- evaluate the user-defined function data
+		for _, FuncValue in ipairs(FuncValues) do
+			local filename = FuncValue.file
+			local func = FuncValue.func
+			local data = FuncValue.data
+	
+			if verbose then write(" * Write Function Values to '"..filename.."' ... ") end
+		
+			local file = io.open (filename, "a")
+			file:write(time)
+			file:write("\t")
+			file:write(func(data))
+			file:write("\n")
+			io.close(file)
+			
+			if verbose then print("done.") end
 		end
 		
 		if verbose then print(" ******** End   Balancing ********")	end		
