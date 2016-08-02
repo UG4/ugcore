@@ -352,11 +352,18 @@ function util.Balance(DataToBeWrittenTable)
 			FuncValue.func = DataSet.func_data
 			FuncValue.data = DataSet.data
 			FuncValue.file = file
+
+			-- separator 
+			FuncValue.sep = DataSet.sep
+			if type(FuncValue.sep) ~= "string" then
+				FuncValue.sep = "\t"
+			end
 			
-			if FuncValue.comment ~= nil then
+			-- a comment to write at the beginning of the file
+			if DataSet.comment ~= nil then
 				-- create the file
 				local thefile = io.open (file, "w+")
-				thefile:write("# "..FuncValue.comment.."\n")
+				thefile:write("# "..DataSet.comment.."\n")
 				io.close(thefile)
 			else
 				-- clean the file
@@ -477,12 +484,13 @@ function util.Balance(DataToBeWrittenTable)
 			local filename = FuncValue.file
 			local func = FuncValue.func
 			local data = FuncValue.data
+			local sep = FuncValue.sep
 	
 			if verbose then write(" * Write Function Values to '"..filename.."' ... ") end
 		
 			local file = io.open (filename, "a")
 			file:write(time)
-			file:write("\t")
+			file:write(sep)
 			file:write(func(data))
 			file:write("\n")
 			io.close(file)
