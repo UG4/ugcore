@@ -630,7 +630,7 @@ communicate_and_resume(int tag)
 
 	UG_DLOG(ug::LIB_PCL, 1, "receiving from procs:");
 
-//	first shedule receives
+//	first schedule receives
 	int counter = 0;
 	for(std::set<int>::iterator iter = m_curInProcs.begin();
 		iter != m_curInProcs.end(); ++iter, ++counter)
