@@ -849,12 +849,110 @@ static void SelectAssociatedConstrainedElements(MGSelector& msel,
 //}
 
 
+
+
+static void SelectChildrenOfSelectedShadowRimFaces
+(
+	MGSelector& msel,
+	ISelector::status_t status = ISelector::SELECTED
+)
+{
+	UG_DLOG(LG_DIST, 3, "dist-start: SelectChildrenOfSelectedShadowVertices\n");
+	GDIST_PROFILE_FUNC();
+
+	UG_ASSERT(msel.multi_grid(), "The selector has to operate on a grid!");
+	MultiGrid& mg = *msel.multi_grid();
+	DistributedGridManager& distGridMgr = *mg.distributed_grid_manager();
+
+	Grid::volume_traits::secure_container vols;
+
+	for (size_t lvl = 0; lvl < msel.num_levels(); ++lvl)
+	{
+		MGSelector::traits<Face>::level_iterator iter = msel.begin<Face>(lvl);
+		for (; iter != msel.end<Face>(lvl); ++iter)
+		{
+			Face* face = *iter;
+			if (msel.get_selection_status(face) == IS_VMASTER)
+				continue;
+
+			size_t numCh = mg.num_child_faces(face);
+			if (!numCh) continue;
+
+			// check whether edge has an associated face which does not have children
+			mg.associated_elements(vols, face);
+			for (size_t i = 0; i < vols.size(); ++i)
+			{
+				if (!(distGridMgr.is_ghost(vols[i]) || mg.has_children(vols[i])))
+				{
+					for (size_t ch = 0; ch < numCh; ++ch)
+					{
+						Face* child = mg.get_child_face(face, ch);
+						msel.select(child, msel.get_selection_status(child) | status);
+					}
+					break;
+				}
+			}
+		}
+	}
+	UG_DLOG(LG_DIST, 3, "dist-stop: SelectChildrenOfSelectedShadowVertices\n");
+}
+
+
+static void SelectChildrenOfSelectedShadowRimEdges
+(
+	MGSelector& msel,
+	ISelector::status_t status = ISelector::SELECTED
+)
+{
+	UG_DLOG(LG_DIST, 3, "dist-start: SelectChildrenOfSelectedShadowVertices\n");
+	GDIST_PROFILE_FUNC();
+
+	UG_ASSERT(msel.multi_grid(), "The selector has to operate on a grid!");
+	MultiGrid& mg = *msel.multi_grid();
+	DistributedGridManager& distGridMgr = *mg.distributed_grid_manager();
+
+	Grid::face_traits::secure_container faces;
+
+	for (size_t lvl = 0; lvl < msel.num_levels(); ++lvl)
+	{
+		MGSelector::traits<Edge>::level_iterator iter = msel.begin<Edge>(lvl);
+		for (; iter != msel.end<Edge>(lvl); ++iter)
+		{
+			Edge* edge = *iter;
+			if (msel.get_selection_status(edge) == IS_VMASTER)
+				continue;
+
+			size_t numCh = mg.num_child_edges(edge);
+			if (!numCh) continue;
+
+			// check whether edge has an associated face which does not have children
+			mg.associated_elements(faces, edge);
+			for (size_t i = 0; i < faces.size(); ++i)
+			{
+				// TODO: This is not a correct criterion for surface rim.
+				// In 3d, we would have to check for associated volumes instead of faces.
+				if (!(distGridMgr.is_ghost(faces[i]) || mg.has_children(faces[i])))
+				{
+					for (size_t ch = 0; ch < numCh; ++ch)
+					{
+						Edge* child = mg.get_child_edge(edge, ch);
+						msel.select(child, msel.get_selection_status(child) | status);
+					}
+					break;
+				}
+			}
+		}
+	}
+	UG_DLOG(LG_DIST, 3, "dist-stop: SelectChildrenOfSelectedShadowVertices\n");
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 ///	Recursively selects all children of selected vertices
 /**	This method is required, since if a distributed vertex has a child which
  * is not connected to other distributed elements, then the child wouldn't be selected.
  * Note that for edges and faces the methods SelectAssociatedConstrainedElements
- * takes care of this.
+ * takes care of this. (This is only true if there is no anisotropic refinement!)
  * Children of pure vertical masters won't be selected, since those mustn't have
  * children.
  */
@@ -1115,6 +1213,8 @@ static void SelectElementsForTargetPartition(MGSelector& msel,
 //	UG_LOG("DEBUG: SELECTING CONSTRAINING ELEMENTS...\n");
 //	SelectAssociatedConstrainingElements(msel, IS_DUMMY);
 	SelectAssociatedConstrainedElements(msel, IS_DUMMY | HAS_PARENT);
+	SelectChildrenOfSelectedShadowRimFaces(msel, IS_DUMMY | HAS_PARENT);
+	SelectChildrenOfSelectedShadowRimEdges(msel, IS_DUMMY | HAS_PARENT);
 	SelectChildrenOfSelectedShadowVertices(msel, IS_DUMMY | HAS_PARENT);
 	UG_DLOG(LG_DIST, 3, "dist-stop: SelectElementsForTargetPartition\n");
 }
