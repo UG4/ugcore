@@ -201,11 +201,22 @@ function util.SolveNonlinearTimeProblem(
 		util.PrintUsageOfSolveTimeProblem()
 		exit()
 	end
+	
+	if postProcess ~= nil then
+		if type(postProcess) ~= "function" then
+			print("SolveNonlinearTimeProblem: Illegal parameters: postProcess must be a function.")
+			exit()
+		end
+	end
 
 	-- check parameters
 	if filename == nil then filename = "sol" end
 	if minStepSize == nil then minStepSize = maxStepSize end
 	if reductionFactor == nil then reductionFactor = 0.5 end
+	if reductionFactor >= 1 then
+		print("SolveNonlinearTimeProblem: Illegal parameters: reductionFactor must be < 1.")
+		exit()
+	end
 	
 	-- create time disc
 	local timeDisc = util.CreateTimeDisc(domainDisc, timeScheme, orderOrTheta)
@@ -234,8 +245,9 @@ function util.SolveNonlinearTimeProblem(
 	
 	-- write start solution
 	print(">> Writing start values")
-	if type(out) == "function" then out(u, step, time) end
-	if type(out) == "userdata" then out:print(filename, u, step, time) end
+	if type(out) == "function" then out(u, step, time)
+	elseif type(out) == "userdata" then out:print(filename, u, step, time)
+	end
 
 	-- store grid function in vector of  old solutions
 	local solTimeSeries = SolutionTimeSeries()
@@ -246,7 +258,7 @@ function util.SolveNonlinearTimeProblem(
 
 	-- store old solution (used for reinit in multistep)
 	local uOld
-	if timeDisc:num_stages() > 1 then uOld = u:clone() end			
+	if minStepSize <= maxStepSize * reductionFactor then uOld = u:clone() end			
 
 	-- set order for bdf to 1 (initially)
 	if timeScheme:lower() == "bdf" then timeDisc:set_order(1) end
@@ -273,9 +285,9 @@ function util.SolveNonlinearTimeProblem(
 
 			print("++++++ Time step size: "..currdt);
 
-			-- get old solution if multistage
-			if timeDisc:num_stages() > 1 then
-				VecScaleAssign(u, 1.0, uOld)
+			-- get old solution if the restart with a smaller time step is possible
+			if uOld ~= nil then
+				VecAssign(u, uOld)
 			end			
 
 			for stage = 1, timeDisc:num_stages() do
@@ -323,8 +335,8 @@ function util.SolveNonlinearTimeProblem(
 					timeDisc:set_order(step+1)
 					solTimeSeries:push(u:clone(), time)
 				else 
-					oldestSol = solTimeSeries:oldest()
-					VecScaleAssign(oldestSol, 1.0, u)
+					local oldestSol = solTimeSeries:oldest()
+					VecAssign(oldestSol, u)
 					solTimeSeries:push_discard_oldest(oldestSol, time)
 				end
 				
@@ -336,19 +348,30 @@ function util.SolveNonlinearTimeProblem(
 					print("      +++ STAGE " .. stage .. " END   ++++++")
 				end
 			end
-		end
+			
+			-- call post process
+			if postProcess ~= nil then
+				local pp_res
+				pp_res = postProcess(u, step, time, currdt)
+				if type(pp_res) == "boolean" and pp_res == false then -- i.e. not nil, not something else, but "false"!
+					currdt = currdt * reductionFactor;
+					write("\n++++++ PostProcess failed. "); 
+					write("Trying decreased stepsize " .. currdt .. ".\n");					
+					bSuccess = false
+				end
+			end
+		
+		end -- while bSuccess == false
 
-		-- save this solution if multistage
-		if timeDisc:num_stages() > 1 then
-			uOld = u
+		-- save this solution if the restard with a smaller time step is possible
+		if uOld ~= nil then
+			VecAssign (uOld, u)
 		end			
 		
-		-- call post process
-		if type(postProcess) == "function" then postProcess(u, step, time, currdt) end
-		
 		-- plot solution
-		if type(out) == "function" then out(u, step, time) end
-		if type(out) == "userdata" then out:print(filename, u, step, time) end
+		if type(out) == "function" then out(u, step, time)
+		elseif type(out) == "userdata" then out:print(filename, u, step, time)
+		end
 	
 		print("++++++ TIMESTEP "..step.." END   (current time: " .. time .. ") ++++++");
 		
