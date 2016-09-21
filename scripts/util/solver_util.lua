@@ -349,6 +349,8 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 
 	local precond = nil
 
+	local approxSpace = desc.approxSpace or util.solver.defaults.approxSpace
+
 	if name == "ilu"  then
 		precond = ILU ()
 		precond:set_beta (desc.beta or defaults.beta)
@@ -371,7 +373,6 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 				util.solver.CreateLinearSolver(
 					desc.baseSolver or defaults.baseSolver, solverutil)
 
-		local approxSpace = desc.approxSpace or util.solver.defaults.approxSpace
 		if approxSpace == nil then
 			print("An ApproximationSpace is required to create a 'gmg' solver.")
 			print("Please specify one through the gmg-descriptor (member 'approxSpace')")
@@ -420,6 +421,21 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 	end
 
 	util.solver.CondAbort(precond == nil, "Invalid preconditioner specified: " .. name)
+
+	if desc.debug == true then
+		if approxSpace == nil then
+			print("An ApproximationSpace is required to create a DebugWriter for the '" .. name .. "'' preconditioner.")
+			print("Consider setting the 'approxSpace' property of your preconditioner,")
+			print("or alternatively the util.solver.defaults.approxSpace property or")
+			print("alternatively set the option 'debug=false' in your preconditioner.")
+			exit()
+		end
+
+		local dbgWriter = GridFunctionDebugWriter(approxSpace)
+		dbgWriter:set_vtk_output(false)
+		precond:set_debug(dbgWriter)
+	end
+
 	if desc then desc.instance = precond end
 
 	return precond
