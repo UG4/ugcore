@@ -121,7 +121,7 @@ public:
 		}
 	}
 
-/**	Please makre sure that the given subset-handler outlives the ProjectionHandler.
+/**	Please make sure that the given subset-handler outlives the ProjectionHandler.
  * Please note that an alternative 'set_subset_handler' exists, which takes a
  * smart-pointer to a SubsetHandler.*/
 	void set_subset_handler (ISubsetHandler* psh)
@@ -135,6 +135,14 @@ public:
 	{
 		m_spSH = psh;
 		m_sh = psh.get();
+	}
+
+/**
+ * @return the subset handler that the projection handler is based on
+ */
+	const ISubsetHandler* subset_handler() const
+	{
+		return m_sh;
 	}
 
 	void set_default_projector (SPRefinementProjector projector)
