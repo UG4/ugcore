@@ -425,7 +425,7 @@ class ILU : public IPreconditioner<TAlgebra>
 			SetDirichletRow(m_ILU, vIndex);
 #endif
 
-			write_debug(mat, "ILU_prep_02_AfterMakeUnique");
+			write_debug(m_ILU, "ILU_prep_02_AfterMakeUnique");
 
 			if(m_bSort)
 				calc_cuthill_mckee();
