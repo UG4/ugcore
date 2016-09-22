@@ -146,11 +146,10 @@ static void Algebra(Registry& reg, string grp)
 		.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "Vector", tag);
 
-		reg.add_function("VecScaleAssign",
-				(void (*)(vector_type&, number, const vector_type &)) &VecScaleAssign<vector_type>
-		, grp);
 		reg.add_function("VecAssign",
-				(void (*)(vector_type&,const vector_type &)) &VecAssign<vector_type>, grp, "", "dest#vec", "calculates dest <- vec");
+				(void (*)(vector_type&,const vector_type &)) &VecAssign<vector_type>, grp, "", "dest#vec", "dest <- vec");
+		reg.add_function("VecScaleAssign",
+				(void (*)(vector_type&, number, const vector_type &)) &VecScaleAssign<vector_type>, grp, "", "dest#alpha#vec", "dest <- alpha * vec");
 		reg.add_function("VecScaleAdd2", /*(void (*)(vector_type&, number, const vector_type&, number, const vector_type &)) */
 				&VecScaleAdd2<vector_type>, grp, "alpha1*vec1 + alpha2*vec2",
 				"dest#alpha1#vec1#alpha2#vec2");

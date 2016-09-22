@@ -413,7 +413,7 @@ class ILU : public IPreconditioner<TAlgebra>
 			matrix_type &mat = *pOp;
 			PROFILE_BEGIN_GROUP(ILU_preprocess, "algebra ILU");
 		//	Debug output of matrices
-			write_debug(mat, "ILU_BeforeMakeConsistent");
+			write_debug(mat, "ILU_prep_01_BeforeMakeUnique");
 
 			m_ILU = mat;
 #ifdef 	UG_PARALLEL
@@ -425,12 +425,13 @@ class ILU : public IPreconditioner<TAlgebra>
 			SetDirichletRow(m_ILU, vIndex);
 #endif
 
+			write_debug(m_ILU, "ILU_prep_02_AfterMakeUnique");
 
 			if(m_bSort)
 				calc_cuthill_mckee();
 
 		//	Debug output of matrices
-			write_debug(m_ILU, "ILU_BeforeFactorize");
+			write_debug(m_ILU, "ILU_prep_03_BeforeFactorize");
 
 		//	resize help vector
 			m_h.resize(mat.num_cols());
@@ -442,7 +443,7 @@ class ILU : public IPreconditioner<TAlgebra>
 			m_ILU.defragment();
 
 		//	Debug output of matrices
-			write_debug(m_ILU, "ILU_AfterFactorize");
+			write_debug(m_ILU, "ILU_prep_04_AfterFactorize");
 
 		//	we're done
 			return true;

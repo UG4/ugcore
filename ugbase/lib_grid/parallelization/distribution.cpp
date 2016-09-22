@@ -878,7 +878,8 @@ static void SelectChildrenOfSelectedShadowRimFaces
 			size_t numCh = mg.num_child_faces(face);
 			if (!numCh) continue;
 
-			// check whether edge has an associated face which does not have children
+			// check whether face has an associated volume which does not have children
+			// TODO: This is not a correct criterion for surface rim.
 			mg.associated_elements(vols, face);
 			for (size_t i = 0; i < vols.size(); ++i)
 			{
@@ -926,11 +927,10 @@ static void SelectChildrenOfSelectedShadowRimEdges
 			if (!numCh) continue;
 
 			// check whether edge has an associated face which does not have children
+			// TODO: This is not a correct criterion for surface rim.
 			mg.associated_elements(faces, edge);
 			for (size_t i = 0; i < faces.size(); ++i)
 			{
-				// TODO: This is not a correct criterion for surface rim.
-				// In 3d, we would have to check for associated volumes instead of faces.
 				if (!(distGridMgr.is_ghost(faces[i]) || mg.has_children(faces[i])))
 				{
 					for (size_t ch = 0; ch < numCh; ++ch)
