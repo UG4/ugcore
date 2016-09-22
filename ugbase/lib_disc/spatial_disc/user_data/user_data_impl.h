@@ -208,7 +208,7 @@ int ICplUserData<dim>::time_point_specification(size_t s) const
 template <int dim>
 size_t ICplUserData<dim>::time_point(size_t s) const
 {
-	UG_ASSERT(s < num_series(), "Wrong series id");
+	UG_ASSERT(s < num_series(), "Wrong series id:" << s << ">=" << num_series());
 
 //	size_t time_spec;
 //	if ((time_spec = m_vTimePoint[s]) >= 0)
@@ -220,7 +220,7 @@ size_t ICplUserData<dim>::time_point(size_t s) const
 template <int dim>
 bool ICplUserData<dim>::at_current_time(size_t s) const
 {
-	UG_ASSERT(s < num_series(), "Wrong series id");
+	UG_ASSERT(s < num_series(), "Wrong series id:" << s << ">=" << num_series());
 	
 	int time_spec;
 	if ((time_spec = m_vTimePoint[s]) >= 0)
