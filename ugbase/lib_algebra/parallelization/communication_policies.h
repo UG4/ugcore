@@ -1065,14 +1065,20 @@ class ComPol_MatDistributeDiag
 				const size_t index = interface.get_element(iter);
 				block_type& a_ii = m_rMat(index, index);
 
+			// send rescaled diagonal entry
 				block_type out_ii = a_ii;
 				out_ii = out_ii * (1.0/BlockRef(m_rWeight[index], 0));
 				//	write diagonal entry to stream
 				Serialize(buff, out_ii);
 
 			//	std::cerr << "Sending(" << index << ")=" << out_ii <<  " "<< BlockRef(m_rWeight[index], 0) << std::endl;
-				// store average
+			// store average
 				a_ii = out_ii;
+
+			// after the first call, we need to reset the weight (on master)
+			// in order to communicate correct entries in subsequent if calls
+				m_rWeight[index] = 1.0;
+
 			}
 
 		///	done
