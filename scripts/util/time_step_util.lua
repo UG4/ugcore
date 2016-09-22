@@ -258,7 +258,12 @@ function util.SolveNonlinearTimeProblem(
 
 	-- store old solution (used for reinit in multistep)
 	local uOld
-	if minStepSize <= maxStepSize * reductionFactor then uOld = u:clone() end			
+	if minStepSize <= maxStepSize * reductionFactor then uOld = u:clone() end
+	-- TODO: This can be optimized because the "old" solution is stored in
+	-- solTimeSeries. Note that 'u' keeps not (always) the new solution but
+	-- an iterate of the Newton method. If the Newton method fails, one should
+	-- reset this iterate from the old solution: The Newton method needs a good
+	-- initial approximation and its convergence depends on it strongly!
 
 	-- set order for bdf to 1 (initially)
 	if timeScheme:lower() == "bdf" then timeDisc:set_order(1) end
