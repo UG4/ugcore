@@ -514,6 +514,46 @@ save_marks_to_file(const char* filename)
 	Grid& g = *m_pGrid;
 	SubsetHandler sh(g);
 
+	AssignGridToSubset(g, sh, 0);
+	selector_t& sel = get_refmark_selector();
+
+	for(VertexIterator iter = g.vertices_begin(); iter != g.vertices_end(); ++iter){
+		typename selector_t::status_t status = sel.get_selection_status(*iter);
+		sh.assign_subset(*iter, status);
+	}
+	for(EdgeIterator iter = g.edges_begin(); iter != g.edges_end(); ++iter){
+		typename selector_t::status_t status = sel.get_selection_status(*iter);
+		sh.assign_subset(*iter, status);
+	}
+	for(FaceIterator iter = g.faces_begin(); iter != g.faces_end(); ++iter){
+		typename selector_t::status_t status = sel.get_selection_status(*iter);
+		sh.assign_subset(*iter, status);
+	}
+	for(VolumeIterator iter = g.volumes_begin(); iter != g.volumes_end(); ++iter){
+		typename  selector_t::status_t status = sel.get_selection_status(*iter);
+		sh.assign_subset(*iter, status);
+	}
+
+	sh.subset_info(0).name = "_NONE_";
+	for (byte si = 1; si > 0; ++si)
+	{
+		sh.subset_info(si).name = "_";
+		for (byte b = 1; b != 0; b = b << 1)
+			if (si & b)
+				switch (b)
+				{
+					case RM_COPY: sh.subset_info(si).name.append("COPY_"); break;
+					case RM_CLOSURE: sh.subset_info(si).name.append("CLOSURE_"); break;
+					case RM_ANISOTROPIC: sh.subset_info(si).name.append("ANISOTROPIC_"); break;
+					case RM_REFINE: sh.subset_info(si).name.append("REFINE_"); break;
+					case RM_COARSEN: sh.subset_info(si).name.append("COARSEN_"); break;
+					case HNRM_TO_NORMAL: sh.subset_info(si).name.append("TONORMAL_"); break;
+					case HNRM_TO_CONSTRAINED: sh.subset_info(si).name.append("TOCONSTRAINED_"); break;
+					case HNRM_TO_CONSTRAINING: sh.subset_info(si).name.append("TOCONSTRAINING_"); break;
+					default: UG_THROW("Invalid status.")
+				}
+	}
+#if 0
 	AssignGridToSubset(g, sh, 6);
 
 	selector_t& sel = get_refmark_selector();
@@ -578,7 +618,10 @@ save_marks_to_file(const char* filename)
 	sh.subset_info(5).name = "combi-mark";
 	sh.subset_info(6).name = "no marks";
 
+#endif
+
 	AssignSubsetColors(sh);
+	EraseEmptySubsets(sh);
 
 	if(MultiGrid* pmg = dynamic_cast<MultiGrid*>(&g))
 		return SaveGridHierarchyTransformed(*pmg, sh, filename, 0.1);
@@ -725,6 +768,7 @@ void HangingNodeRefinerBase<TSelector>::perform_refinement()
 
 		//	a normal edge may have previously been created by replacing a
 		//	constrained or constraining edge. Those edges won't be considered here
+			// FIXME: This is not correct at least for constrained edges! Remove marked_to_normal()!
 			if((!refinement_is_allowed(e)) || marked_to_normal(e)){
 				continue;
 			}
@@ -1460,8 +1504,9 @@ refine_face_with_normal_vertex(Face* f, Vertex** newCornerVrts)
 
 	//	if the face is refined with a regular rule, then every edge has to have
 	//	an associated center vertex
-		assert(marked_adaptive(f) ||
-			   (get_mark(f) == RM_REFINE && get_center_vertex(e) != NULL));
+		UG_ASSERT(marked_adaptive(f) ||
+			   (get_mark(f) == RM_REFINE && get_center_vertex(e) != NULL),
+			   "violated for " << ElementDebugInfo(grid, f));
 
 	//	assign the center vertex
 		vNewEdgeVertices[i] = get_center_vertex(e);

@@ -382,7 +382,7 @@ function util.Balance(DataToBeWrittenTable)
 	-------------------------------------------------------------------
 	return function(u, step, time)
 		
-		if math.fmod(step, PrintFreq) == 0 then
+		if (step < 0) or (math.fmod(step, PrintFreq) == 0) then
 		if verbose then print(" ******** Start Balancing ********") end		
 		
 		-- write VTK datas

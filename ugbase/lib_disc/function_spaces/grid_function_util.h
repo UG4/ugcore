@@ -767,6 +767,8 @@ public:
 		reset();
 	}
 
+	virtual ~GridFunctionDebugWriter() {};
+
 	///	sets the grid level
 	void set_grid_level(const GridLevel& gridLevel) {
 		m_glFrom = gridLevel; m_glTo = gridLevel;

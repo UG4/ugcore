@@ -197,6 +197,17 @@ UG_API void ChangeDirectory(std::string dir);
  */
 std::string FindFileInStandardPaths(const char* filename);
 
+////////////////////////////////////////////////////////////////////////////////
+///	searches the directory in the standard paths.
+/**	The checking order is the following:
+ *		- absolute or relative path to working directory
+ * 		- relative path regarding the current script path (PathProvider::get_current_path())
+ *
+ * \return	the full path (including the dir name) at which the dir was found, or an
+ *			empty string if no matching file was found.
+ */
+std::string FindDirInStandardPaths(const char* dirname);
+
 /** Current working directory
  *
  * \return	the current working directory as a string

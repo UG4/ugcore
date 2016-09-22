@@ -156,6 +156,9 @@ add_subset_handler(ISubsetHandler& sh, const char* name,
 		return;
 	}
 
+//	add the subset handler to the grid entry
+	m_vEntries[refGridIndex].subsetHandlers.push_back(&sh);
+
 	xml_node<>* parentNode = m_vEntries[refGridIndex].node;
 
 //	create the subset-handler node
@@ -309,6 +312,22 @@ add_projection_handler(ProjectionHandler& ph, const char* name, size_t refGridIn
 //	create the selector node
 	xml_node<>* ndHandler = m_doc.allocate_node(node_element, "projection_handler");
 	ndHandler->append_attribute(m_doc.allocate_attribute("name", name));
+
+//	find subset handler index in subset handler array
+	size_t i = 0;
+	const std::vector<const ISubsetHandler*>& vSH = m_vEntries[refGridIndex].subsetHandlers;
+	size_t nSH = vSH.size();
+	for (; i < nSH; ++i)
+		if (vSH[i] == ph.subset_handler())
+			break;
+
+	UG_COND_THROW(i == nSH, "ERROR in 'GridWriterUGX::add_projection_handler': "
+		"No matching SubsetHandler could be found.\n"
+		"Please make sure to add the associated SubsetHandler before adding a ProjectionHandler");
+
+// append subset handler index attribute to node
+	ndHandler->append_attribute(m_doc.allocate_attribute("subset_handler",
+		m_doc.allocate_string(mkstr(i).c_str())));
 
 //	add the selector node to the grid-node.
 	parentNode->append_node(ndHandler);
@@ -1183,7 +1202,7 @@ get_projection_handler_name(size_t refGridIndex, size_t phIndex) const
 }
 
 bool GridReaderUGX::
-projection_handler(ProjectionHandler& phOut, size_t phIndex, size_t refGridIndex)
+projection_handler(ProjectionHandler& phOut, const char** shNameOut, size_t& shiOut, size_t phIndex, size_t refGridIndex)
 {
 	UG_COND_THROW(refGridIndex >= m_entries.size(),
 			  "Bad refGridIndex: " << refGridIndex);
@@ -1197,6 +1216,15 @@ projection_handler(ProjectionHandler& phOut, size_t phIndex, size_t refGridIndex
 	static Factory<RefinementProjector, ProjectorTypes>	projFac;
 	static Archivar<boost::archive::text_iarchive, RefinementProjector, ProjectorTypes>	archivar;
 
+	xml_attribute<>* attribSH = phNode->first_attribute("subset_handler");
+	if (attribSH) shiOut = atoi(attribSH->value());
+	else shiOut = 0;
+
+	if (num_subset_handlers(refGridIndex))
+		*shNameOut = get_subset_handler_name(refGridIndex, shiOut);
+	else
+		*shNameOut = NULL;
+
 	xml_node<>* projNode = phNode->first_node("projector");
 	while(projNode){
 		xml_attribute<>* attribType = projNode->first_attribute("type");
@@ -1209,7 +1237,6 @@ projection_handler(ProjectionHandler& phOut, size_t phIndex, size_t refGridIndex
 				stringstream ss(str, ios_base::in);
 				boost::archive::text_iarchive ar(ss, boost::archive::no_header);
 				archivar.archive(ar, *proj);
-
 				phOut.set_projector(atoi(attribSI->value()), proj);
 			}
 			catch(boost::archive::archive_exception e){

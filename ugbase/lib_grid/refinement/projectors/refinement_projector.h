@@ -107,7 +107,7 @@ public:
 	virtual void refinement_begins(const ISubGrid* sg)
 	{
 		UG_COND_THROW(m_geometry.invalid(),
-					  "Please set a valid geometry to RefinementProjectors"
+					  "Please set a valid geometry to RefinementProjectors "
 					  "before using them during refinement.");
 		UG_COND_THROW(refinement_begins_requires_subgrid() && !sg,
 					  "subgrid required in 'RefinementProjector::refinement_begins' "
