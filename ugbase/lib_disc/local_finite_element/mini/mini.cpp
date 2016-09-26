@@ -34,8 +34,8 @@
 
 namespace ug{
 
-const double MiniBubbleLSFS<ReferenceQuadrilateral>::SQRT_FIVE= 2.2360679774997896964091736687312762354406;
+	const double MiniBubbleLSFS<ReferenceQuadrilateral>::SQRT_FIVE= 2.2360679774997896964091736687312762354406;
 
-const double MiniBubbleLSFS<ReferenceQuadrilateral>::SQRT_FIVTH = 2.2360679774997896964091736687312762354406/5.0;
+	const double MiniBubbleLSFS<ReferenceQuadrilateral>::SQRT_FIVTH = 2.2360679774997896964091736687312762354406/5.0;
 
 }
