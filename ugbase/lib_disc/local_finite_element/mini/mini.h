@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2015:  G-CSC, Goethe University Frankfurt
+ * Copyright (c) 2012-2016:  G-CSC, Goethe University Frankfurt
  * Author: Arne Nägel
  * 
  * This file is part of UG4.
@@ -318,8 +318,9 @@ class MiniBubbleLSFS<ReferenceQuadrilateral>
   public BaseLSFS<MiniBubbleLSFS<ReferenceQuadrilateral>, 2>
 {
 	protected:
-	static const double SQRT_FIVE = 2.2360679774997896964091736687312762354406;
-	static const double SQRT_FIVTH = 2.2360679774997896964091736687312762354406/5.0;
+		static const double SQRT_FIVE;
+		static const double SQRT_FIVTH;
+
 	public:
 	///	Order of Shape functions
 		static const size_t order = 1;
