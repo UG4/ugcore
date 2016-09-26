@@ -45,6 +45,7 @@
 #include "lib_disc/reference_element/reference_element_util.h"
 #include "lib_disc/common/multi_index.h"
 
+
 namespace ug{
 
 /// Lagrange Shape Function Set without virtual functions and fixed order
@@ -318,9 +319,11 @@ class MiniBubbleLSFS<ReferenceQuadrilateral>
   public BaseLSFS<MiniBubbleLSFS<ReferenceQuadrilateral>, 2>
 {
 	protected:
-	static const double SQRT_FIVE = 2.2360679774997896964091736687312762354406;
-	static const double SQRT_FIVTH = 2.2360679774997896964091736687312762354406/5.0;
-	public:
+ /// some constants 
+	static const double SQRT_FIVE;
+	static const double SQRT_FIVTH;
+
+  public:
 	///	Order of Shape functions
 		static const size_t order = 1;
 
@@ -673,6 +676,7 @@ class MiniBubbleLSFS<ReferenceHexahedron>
 };
 
 } //namespace ug
+#include "mini.cpp"
 
 #endif /* __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__CROUZEIX_RAVIART__CROUZEIX_RAVIART__ */
 
