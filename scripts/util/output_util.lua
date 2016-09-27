@@ -113,6 +113,8 @@ function util.Balance(DataToBeWrittenTable)
 	local Fluxes = {}
 	local FuncValues = {}
 	local PrintFreq = DataToBeWrittenTable.datafreq or 1
+	local PrintPVD = DataToBeWrittenTable.write_pvd or false
+	local PrintProcesswisePVD = DataToBeWrittenTable.write_processwise_pvd or false
 	
 	----------------------------------
 	-- loop "Data-to-be-written"-Table
@@ -390,15 +392,17 @@ function util.Balance(DataToBeWrittenTable)
 			local vtkOut = vtkData[1]
 			local file = vtkData[2]
 			local subsets = vtkData[3]
-
+			
 			if verbose then write(" * Write VTK-data to '"..file.."' ... ") end
 			
 			if type(subsets) == "string" then
-				vtkOut:print_subsets(file, u, subsets, step, time) 
-				vtkOut:write_time_pvd(file, u) 				
+				vtkOut:print_subsets(file, u, subsets, step, time)
+				if PrintPVD then vtkOut:write_time_pvd(file, u) end
+				if PrintProcesswisePVD then vtkOut:write_time_processwise_pvd(file, u) end
 			else
 				vtkOut:print(file, u, step, time) 
-				vtkOut:write_time_pvd(file, u) 
+				if PrintPVD then vtkOut:write_time_pvd(file, u) end
+				if PrintProcesswisePVD then vtkOut:write_time_processwise_pvd(file, u) end
 			end
 			
 			if verbose then print("done.") end

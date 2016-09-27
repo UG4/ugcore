@@ -111,6 +111,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef VTKOutput<dim> T;
 		reg.get_class_<T>()
 			.add_method("write_time_pvd", static_cast<void (T::*)(const char*, function_type&)>(&T::write_time_pvd))
+			.add_method("write_time_processwise_pvd", static_cast<void (T::*)(const char*, function_type&)>(&T::write_time_processwise_pvd))
 			.add_method("write_time_pvd_subset", static_cast<void (T::*)(const char*, function_type&, int)>(&T::write_time_pvd_subset), "", "name # printed grid function # subset index", "", "")
 			.add_method("print", static_cast<void (T::*)(const char*, function_type&, int, number, bool)>(&T::print))
 			.add_method("print", static_cast<void (T::*)(const char*, function_type&, int, number)>(&T::print))
