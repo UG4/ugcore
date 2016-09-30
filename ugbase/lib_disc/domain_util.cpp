@@ -95,10 +95,11 @@ void LoadDomain(TDomain& domain, const char* filename, int procId)
 				if(ugxReader.num_projection_handlers(0) > 0){
 					SPProjectionHandler ph = make_sp(
 							new ProjectionHandler(domain.geometry3d(), domain.subset_handler()));
-					const char* shName = NULL;
-					size_t shi;
-					ugxReader.projection_handler(*ph, &shName, shi, 0, 0);
-					if (shi > 0)
+					ugxReader.projection_handler(*ph, 0, 0);
+					size_t shIndex = ugxReader.get_projection_handler_subset_handler_index(0, 0);
+					std::string shName;
+					shName = std::string(ugxReader.get_subset_handler_name(0, shIndex));
+					if (shIndex > 0)
 					{
 						try {ph->set_subset_handler(domain.additional_subset_handler(shName));}
 						UG_CATCH_THROW("Additional subset handler '"<< shName << "' has not been added to the domain.\n"

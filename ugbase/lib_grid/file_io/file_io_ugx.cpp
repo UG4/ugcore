@@ -1201,8 +1201,28 @@ get_projection_handler_name(size_t refGridIndex, size_t phIndex) const
 	return "";
 }
 
+
+size_t GridReaderUGX::get_projection_handler_subset_handler_index(size_t phIndex, size_t refGridIndex)
+{
+	UG_COND_THROW(refGridIndex >= m_entries.size(),
+			  "Bad refGridIndex: " << refGridIndex);
+
+	const GridEntry& ge = m_entries[refGridIndex];
+	UG_COND_THROW(phIndex >= ge.projectionHandlerEntries.size(),
+			  "Bad projection-handler-index: " << phIndex);
+
+	xml_node<>* phNode = ge.projectionHandlerEntries[phIndex];
+
+	size_t shi = 0;
+	xml_attribute<>* attribSH = phNode->first_attribute("subset_handler");
+	if (attribSH) shi = atoi(attribSH->value());
+
+	return shi;
+}
+
+
 bool GridReaderUGX::
-projection_handler(ProjectionHandler& phOut, const char** shNameOut, size_t& shiOut, size_t phIndex, size_t refGridIndex)
+projection_handler(ProjectionHandler& phOut, size_t phIndex, size_t refGridIndex)
 {
 	UG_COND_THROW(refGridIndex >= m_entries.size(),
 			  "Bad refGridIndex: " << refGridIndex);
@@ -1216,15 +1236,6 @@ projection_handler(ProjectionHandler& phOut, const char** shNameOut, size_t& shi
 	static Factory<RefinementProjector, ProjectorTypes>	projFac;
 	static Archivar<boost::archive::text_iarchive, RefinementProjector, ProjectorTypes>	archivar;
 
-	xml_attribute<>* attribSH = phNode->first_attribute("subset_handler");
-	if (attribSH) shiOut = atoi(attribSH->value());
-	else shiOut = 0;
-
-	if (num_subset_handlers(refGridIndex))
-		*shNameOut = get_subset_handler_name(refGridIndex, shiOut);
-	else
-		*shNameOut = NULL;
-
 	xml_node<>* projNode = phNode->first_node("projector");
 	while(projNode){
 		xml_attribute<>* attribType = projNode->first_attribute("type");
@@ -1237,6 +1248,7 @@ projection_handler(ProjectionHandler& phOut, const char** shNameOut, size_t& shi
 				stringstream ss(str, ios_base::in);
 				boost::archive::text_iarchive ar(ss, boost::archive::no_header);
 				archivar.archive(ar, *proj);
+				
 				phOut.set_projector(atoi(attribSI->value()), proj);
 			}
 			catch(boost::archive::archive_exception e){
