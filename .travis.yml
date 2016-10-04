@@ -24,4 +24,4 @@ before_script:
   - mkdir build && cd build && cmake ../ -DTARGET=ugshell -DLAPACK=OFF -DBLAS=OFF -DDIM="1;2;3" -DCOMPILE_INFO=OFF
 
 # compile ug
-script: travis_wait 640 make 
+#script: travis_wait 640 make 
