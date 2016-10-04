@@ -25,3 +25,4 @@ before_script:
 
 # compile ug
 #script: travis_wait 640 make 
+make
