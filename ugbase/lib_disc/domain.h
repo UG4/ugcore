@@ -213,6 +213,17 @@ class IDomain
 	///	returns the domain's ug::RefinementProjector. The pointer may be invalid.
 		SPRefinementProjector refinement_projector() const;
 
+#ifdef UG_PARALLEL
+	/// helper method to broadcast ug::RefinementProjectors to different processes
+		SPRefinementProjector broadcast_refinement_projector
+		(
+			int rootProc,
+			pcl::ProcessCommunicator& procCom,
+			SPIGeometry3d geometry,
+			SPRefinementProjector projector = SPNULL
+		);
+#endif
+
 	///	returns the geometry of the domain
 		virtual SPIGeometry3d geometry3d() const = 0;
 
