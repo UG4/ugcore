@@ -123,12 +123,12 @@ my_download_file()
 	
 	if [ $success == false ] && ( [ $downloadMethod == "macServer" ] || [ $downloadMethod == "all" ] ); then
 		echo ""
-		echo "Trying software server now: software@$softwareServer:Software/uginstall/$filename ."
+		echo "Trying software server now: software@$softwareServer:/Volumes/macheath 1/software/Software/uginstall/$filename ."
 		echo " --- Please enter software server password: ---"
 
 		if [ -e $filename.part ]; then rm $filename.part; fi
 
-		scp -r software@$softwareServer:Software/uginstall/$filename $destination
+		scp -r software@$softwareServer:"/Volumes/macheath\ 1/software/Software/uginstall/$filename" $destination
 		if [ ! $? == 0 ]; then 			
 			echo "Error downloading from Software Server.";
 		else
@@ -741,6 +741,18 @@ install_ninja()
 	fi
 }
 
+install_tetgen15()
+{
+	# force mac server download as direct download needs filling out form
+	downloadMethod="macServer"
+	
+	my_install \
+	tetgen "1.5.0" \
+	"http://wias-berlin.de/software/tetgen/download2.jsp"\
+	tetgen-1.5.0.tar.gz tetgen-1.5.0 \
+	"PREDCXXFLAGS=\"-O0 -fPIC\" CXXFLAGS=\"-O3 -fPIC\" make tetlib"
+}
+
 ######################################################################################################################################################
 
 install_all()
@@ -892,5 +904,6 @@ case $param1 in
 	libevent) install_libevent ;;
 	thrift) install_thrift ;;
 	ninja) install_ninja ;;
+	tetgen) install_tetgen15 ;;
 	*) print_usage ;;
 esac

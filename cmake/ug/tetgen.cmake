@@ -30,6 +30,7 @@
 
 # included from ug_includes.cmake
 if(TETGEN)
+	unset(TETGEN_LIBS CACHE)
 	find_library(TETGEN_LIBS NAMES tet PATHS ${TETGEN})
 	if(TETGEN_LIBS-NOTFOUND)
 		message(FATAL_ERROR "ERROR: Couldn't find TETGEN in the specified path.")
