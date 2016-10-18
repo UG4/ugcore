@@ -360,6 +360,8 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 	# The following flag is necessary for gigantic .obj files
         # which cause problems on Windows
 	add_cxx_flag("/bigobj")
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+	add_cxx_flag("-Wno-multichar")
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 	add_cxx_flag("-Wall")
 	add_cxx_flag("-Wno-multichar")
