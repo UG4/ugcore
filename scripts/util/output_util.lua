@@ -111,7 +111,10 @@ function util.Balance(DataToBeWrittenTable)
 	local PosEvals = {}
 	local Integrals = {}
 	local Fluxes = {}
+	local FuncValues = {}
 	local PrintFreq = DataToBeWrittenTable.datafreq or 1
+	local PrintPVD = DataToBeWrittenTable.write_pvd or false
+	local PrintProcesswisePVD = DataToBeWrittenTable.write_processwise_pvd or false
 	
 	----------------------------------
 	-- loop "Data-to-be-written"-Table
@@ -341,6 +344,38 @@ function util.Balance(DataToBeWrittenTable)
 			-- append to integral datas
 			table.insert(Fluxes, FluxData)			
 		end
+
+		----------------------------------
+		-- check for values of user-defined functions data
+		----------------------------------
+		if DataSet.func_data ~= nil then
+			-- create a container for the object
+			local FuncValue = {}
+			FuncValue.func = DataSet.func_data
+			FuncValue.data = DataSet.data
+			FuncValue.file = file
+
+			-- separator 
+			FuncValue.sep = DataSet.sep
+			if type(FuncValue.sep) ~= "string" then
+				FuncValue.sep = "\t"
+			end
+			
+			-- a comment to write at the beginning of the file
+			if DataSet.comment ~= nil then
+				-- create the file
+				local thefile = io.open (file, "w+")
+				thefile:write("# "..DataSet.comment.."\n")
+				io.close(thefile)
+			else
+				-- clean the file
+				local thefile = io.open (file, "w+")
+				io.close(thefile)
+			end
+			
+			-- append to the other objects
+			table.insert(FuncValues, FuncValue)
+		end
 		
 	end -- end DataSet loop
 	
@@ -349,7 +384,7 @@ function util.Balance(DataToBeWrittenTable)
 	-------------------------------------------------------------------
 	return function(u, step, time)
 		
-		if math.fmod(step, PrintFreq) == 0 then
+		if (step < 0) or (math.fmod(step, PrintFreq) == 0) then
 		if verbose then print(" ******** Start Balancing ********") end		
 		
 		-- write VTK datas
@@ -357,15 +392,17 @@ function util.Balance(DataToBeWrittenTable)
 			local vtkOut = vtkData[1]
 			local file = vtkData[2]
 			local subsets = vtkData[3]
-
+			
 			if verbose then write(" * Write VTK-data to '"..file.."' ... ") end
 			
 			if type(subsets) == "string" then
-				vtkOut:print_subsets(file, u, subsets, step, time) 
-				vtkOut:write_time_pvd(file, u) 				
+				vtkOut:print_subsets(file, u, subsets, step, time)
+				if PrintPVD then vtkOut:write_time_pvd(file, u) end
+				if PrintProcesswisePVD then vtkOut:write_time_processwise_pvd(file, u) end
 			else
 				vtkOut:print(file, u, step, time) 
-				vtkOut:write_time_pvd(file, u) 
+				if PrintPVD then vtkOut:write_time_pvd(file, u) end
+				if PrintProcesswisePVD then vtkOut:write_time_processwise_pvd(file, u) end
 			end
 			
 			if verbose then print("done.") end
@@ -390,6 +427,8 @@ function util.Balance(DataToBeWrittenTable)
 			end
 			file:write("\n")
 			io.close(file)
+			
+			if verbose then print("done.") end
 		end
 
 		-- evaluate Integrals
@@ -416,6 +455,8 @@ function util.Balance(DataToBeWrittenTable)
 			file:write(val)
 			file:write("\n")
 			io.close(file)
+			
+			if verbose then print("done.") end
 		end
 
 		-- evaluate Fluxes
@@ -438,6 +479,27 @@ function util.Balance(DataToBeWrittenTable)
 			file:write(val)
 			file:write("\n")
 			io.close(file)
+			
+			if verbose then print("done.") end
+		end
+		
+		-- evaluate the user-defined function data
+		for _, FuncValue in ipairs(FuncValues) do
+			local filename = FuncValue.file
+			local func = FuncValue.func
+			local data = FuncValue.data
+			local sep = FuncValue.sep
+	
+			if verbose then write(" * Write Function Values to '"..filename.."' ... ") end
+		
+			local file = io.open (filename, "a")
+			file:write(time)
+			file:write(sep)
+			file:write(func(data))
+			file:write("\n")
+			io.close(file)
+			
+			if verbose then print("done.") end
 		end
 		
 		if verbose then print(" ******** End   Balancing ********")	end		

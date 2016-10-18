@@ -213,6 +213,28 @@ std::string FindFileInStandardPaths(const char* filename)
 	return "";
 }
 
+
+std::string FindDirInStandardPaths(const char* dirname)
+{
+//	first check whether the file can be loaded (e.g. absolute path or relative to woring-directory)
+	std::string dirNameOut = dirname;
+	if (DirectoryExists(dirNameOut.c_str()))
+		return dirNameOut;
+
+//	Now check whether the file was specified relative to the current
+//	scripting-directory
+	dirNameOut = PathProvider::get_current_path();
+	dirNameOut.append("/").append(dirname);
+
+	if(DirectoryExists(dirNameOut.c_str()))
+		return dirNameOut;
+
+//	filename couldn't be located
+	return "";
+}
+
+
+
 } // namespace ug
 
 // EOF

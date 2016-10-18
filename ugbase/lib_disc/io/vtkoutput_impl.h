@@ -2772,6 +2772,40 @@ write_time_pvd(const char* filename, TFunction& u)
 		fclose(file);
 	}
 
+// restore old locale
+	setlocale(LC_NUMERIC, oldLocale);
+
+	#ifdef UG_PARALLEL
+		PCL_DEBUG_BARRIER_ALL();
+	#endif
+}
+
+
+template <int TDim>
+template <typename TFunction>
+void VTKOutput<TDim>::
+write_time_processwise_pvd(const char* filename, TFunction& u)
+{
+//	File
+	FILE* file;
+
+//	filename
+	std::string name;
+
+// 	get some numbers
+	bool isOutputProc = GetLogAssistant().is_output_process();
+	int numProcs = 1;
+#ifdef UG_PARALLEL
+	numProcs = pcl::NumProcs();
+#endif
+
+//	get time steps
+	std::vector<number>& vTimestep = m_mTimestep[filename];
+
+//	change locale to ensure decimal . is really a .
+	char* oldLocale = setlocale (LC_ALL, NULL);
+	setlocale(LC_NUMERIC, "C");
+
 	if (isOutputProc && numProcs > 1)
 	{
 	//	adjust filename

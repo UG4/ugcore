@@ -25,10 +25,10 @@ function UJS_Submit
 	
 	if [ $interactive == true ]; then
 		echo "Start: $commandline"
-		$commandline | tee $outdir/job.output
+		$commandline | tee job.output
 	else
 		echo "Submit: $commandline"
-		nohup $commandline > $outdir/job.output &
+		nohup $commandline > job.output &
 	fi
 }
 

@@ -84,7 +84,7 @@ bool WriteMarkers(std::string markfilename, std::vector<bool> markers, float r, 
 template<typename TPosition>
 bool WriteGridHeader(std::ostream &f, const TPosition &positions, size_t N, int dimension)
 {
-	assert(dimension == 2 || dimension == 3);
+	// assert(dimension == 2 || dimension == 3);
 	f << 1 << "\n";
 	f << dimension << "\n";
 	f << N << "\n";

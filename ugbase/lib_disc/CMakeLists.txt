@@ -83,6 +83,7 @@ set(srcDiscretization	domain.cpp
 						local_finite_element/local_finite_element_id.cpp
 						local_finite_element/local_finite_element_provider.cpp
 						local_finite_element/local_dof_set.cpp
+						local_finite_element/mini/mini.cpp
 						
 						operator/linear_operator/multi_grid_solver/mg_solver.cpp
 						

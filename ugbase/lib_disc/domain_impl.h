@@ -38,6 +38,15 @@
 #include "common/profiler/profiler.h"
 
 #ifdef UG_PARALLEL
+	#include "lib_grid/refinement/projectors/projectors.h"
+	#include "common/boost_serialization_routines.h"
+	#include "common/util/archivar.h"
+	#include "common/util/factory.h"
+	#include <boost/archive/text_oarchive.hpp>
+	#include <boost/archive/text_iarchive.hpp>
+#endif
+
+#ifdef UG_PARALLEL
 #include "pcl/pcl_process_communicator.h"
 #endif
 
@@ -47,21 +56,6 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////
 // IDomain
 ////////////////////////////////////////////////////////////////////////////////
-
-#ifdef UG_PARALLEL
-namespace detail {
-///	Helper method to broadcast ug::RefinementProjectors to different processes.
-/* NOTE: This method is implemented in a .cpp file to avoid header pollution and to
- * speed up compile times.*/
-SPRefinementProjector
-BroadcastRefinementProjector(
-		int rootProc,
-		pcl::ProcessCommunicator& procCom,
-		SmartPtr<ISubsetHandler> subsetHandler,
-		SPIGeometry3d geometry,
-		SPRefinementProjector projector = SPNULL);
-}// end of namespace detail
-#endif
 
 template <typename TGrid, typename TSubsetHandler>
 IDomain<TGrid,TSubsetHandler>::IDomain(bool isAdaptive)
@@ -155,9 +149,9 @@ update_subset_infos(int rootProc)
 //		create a local projection handler first and perform serialization
 //		afterwards.
 	set_refinement_projector(
-			detail::BroadcastRefinementProjector(
-						rootProc, procCom, subset_handler(),
-						geometry3d(), m_refinementProjector));
+			broadcast_refinement_projector(
+						rootProc, procCom, geometry3d(), m_refinementProjector));
+
 #endif
 
 }
@@ -389,6 +383,177 @@ refinement_projector() const
 {
 	return m_refinementProjector;
 }
+
+
+#ifdef UG_PARALLEL
+template <typename TGrid, typename TSubsetHandler>
+SPRefinementProjector IDomain<TGrid, TSubsetHandler>::broadcast_refinement_projector
+(
+	int rootProc,
+	pcl::ProcessCommunicator& procCom,
+	SPIGeometry3d geometry,
+	SPRefinementProjector projector
+)
+{
+	BinaryBuffer 	buf;
+	const int		magicNumber	= 3243578;
+	const bool 		isRoot		= (pcl::ProcRank() == rootProc);
+
+	static Factory<RefinementProjector, ProjectorTypes>	projFac;
+
+	if(isRoot){
+		Archivar<boost::archive::text_oarchive,
+				RefinementProjector,
+				ProjectorTypes>
+			archivar;
+
+	//	if the specified projector is a projection handler, we'll perform a
+	//	special operation.
+		ProjectionHandler* ph = NULL;
+		int projectorType = -1;// -1: none, 0: normal projector, 1: projection handler
+		if(projector.valid()){
+			ph = dynamic_cast<ProjectionHandler*>(projector.get());
+			if(ph)
+				projectorType = 1;
+			else
+				projectorType = 0;
+		}
+
+		Serialize(buf, projectorType);
+		if(ph){
+			const ISubsetHandler* psh = ph->subset_handler();
+			if (psh == subset_handler().get())
+				Serialize(buf, std::string(""));
+			else
+			{
+				typedef typename std::map<std::string, SmartPtr<TSubsetHandler> >::const_iterator map_it_t;
+				map_it_t it = m_additionalSH.begin();
+				map_it_t it_end = m_additionalSH.end();
+				for (; it != it_end; ++it)
+				{
+					if (it->second.get() == psh)
+					{
+						Serialize(buf, it->first);
+						break;
+					}
+				}
+				UG_COND_THROW(it == it_end, "Subset handler for projection handler not found "
+											"in list of available subset handlers.");
+			}
+
+			size_t numProjectors = ph->num_projectors();
+			Serialize(buf, numProjectors);
+			for(size_t iproj = 0; iproj < numProjectors; ++iproj){
+				SPRefinementProjector	proj		= ph->projector(iproj);
+				const std::string&			projName 	= projFac.class_name(*proj);
+				Serialize(buf, projName);
+
+				std::stringstream ss;
+				boost::archive::text_oarchive ar(ss, boost::archive::no_header);
+				archivar.archive(ar, *proj);
+				Serialize(buf, ss.str());
+			}
+		}
+		else if(projector.valid()){
+			RefinementProjector&	proj		= *projector;
+			const std::string&			projName 	= projFac.class_name(proj);
+			Serialize(buf, projName);
+
+			std::stringstream ss;
+			boost::archive::text_oarchive ar(ss, boost::archive::no_header);
+			archivar.archive(ar, proj);
+			Serialize(buf, ss.str());
+		}
+
+		Serialize(buf, magicNumber);
+	}
+
+	procCom.broadcast(buf, rootProc);
+
+	if(!isRoot){
+		Archivar<boost::archive::text_iarchive,
+				RefinementProjector,
+				ProjectorTypes>
+			archivar;
+
+		int projectorType;
+		Deserialize(buf, projectorType);
+		if(projectorType == 1){
+			std::string sh_name;
+			Deserialize(buf, sh_name);
+			ProjectionHandler* ph;
+			if (sh_name == std::string(""))
+				ph = new ProjectionHandler(geometry, subset_handler());
+			else
+			{
+				typedef typename std::map<std::string, SmartPtr<TSubsetHandler> >::const_iterator map_it_t;
+				map_it_t it = m_additionalSH.begin();
+				map_it_t it_end = m_additionalSH.end();
+				for (; it != it_end; ++it)
+				{
+					if (it->first == sh_name)
+					{
+						ph = new ProjectionHandler(geometry, it->second);
+						break;
+					}
+				}
+				UG_COND_THROW(it == it_end, "Subset handler name for projection handler not found "
+											"in list of available names.");
+			}
+			SPProjectionHandler projHandler = make_sp(ph);
+
+			size_t numProjectors;
+			Deserialize(buf, numProjectors);
+
+			for(size_t iproj = 0; iproj < numProjectors; ++iproj){
+				std::string name;
+				Deserialize(buf, name);
+				SPRefinementProjector proj = projFac.create(name);
+
+				std::string data;
+				Deserialize(buf, data);
+				std::stringstream ss(data, std::ios_base::in);
+				boost::archive::text_iarchive ar(ss, boost::archive::no_header);
+				archivar.archive(ar, *proj);
+
+				ph->set_projector(iproj, proj);
+			}
+
+			projector = projHandler;
+		}
+		else if(projectorType == 0){
+			std::string name;
+			Deserialize(buf, name);
+			SPRefinementProjector proj = projFac.create(name);
+			proj->set_geometry(geometry);
+
+			std::string data;
+			Deserialize(buf, data);
+			std::stringstream ss(data, std::ios_base::in);
+			boost::archive::text_iarchive ar(ss, boost::archive::no_header);
+			archivar.archive(ar, *proj);
+
+			projector = proj;
+		}
+		else if(projectorType == -1){
+			projector = SPNULL;
+		}
+		else{
+			UG_THROW("Invalid projector type in 'BroadcastRefinementProjector': "
+					 << projectorType);
+		}
+
+		int tmp;
+		Deserialize(buf, tmp);
+		UG_COND_THROW(tmp != magicNumber, "Magic number mismatch in "
+					  "'BroadcastRefinementProjector'. Received "
+					  << tmp << ", but expected " << magicNumber);
+	}
+
+	return projector;
+}
+
+#endif
 
 
 #ifdef UG_PARALLEL

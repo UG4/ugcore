@@ -184,6 +184,7 @@ static void Algebra(Registry& reg, string grp)
 		.add_method("set_solver", &T::set_solver)
 		.add_method("set_debug", &T::set_debug)
 		.add_method("set_solution", &T::set_solution)
+		.add_method("set_random_bounds", &T::set_random_bounds)
 		.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "DebugIterator", tag);
 	}

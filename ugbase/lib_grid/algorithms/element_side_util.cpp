@@ -35,7 +35,7 @@
 
 namespace ug {
 
-inline bool vertexGroupsMatch(const IVertexGroup* elem, const IVertexGroup& desc)
+bool vertexGroupsMatch(const IVertexGroup* elem, const IVertexGroup& desc)
 {
 	size_t n = elem->num_vertices();
 	if (desc.num_vertices() != n) return false;

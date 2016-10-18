@@ -110,6 +110,7 @@ function usage
 	echo "        -tail                  : display the output (as tail -f. job runs even if you hit Ctrl-C)"
 	echo "        -i                     : interactive (not fully supported)"
 	echo "        -dir                   : directory to use"
+	echo "        -mkdirs <dir1;dir2;..> : sub-directories to create within working directory"
 	echo "        -queue                 : the queue to use"
 	echo "        -nosubdir              : don't create job in a subdir, but in dir (default .) directly. (warning: might be dangerous)"
 	echo " "
@@ -277,6 +278,9 @@ do
 	elif [ $1 == "-dir" ]; then
 		workDir=$2
 		shift 2
+	elif [ $1 == "-mkdirs" ]; then
+		mkdirs=$2
+		shift 2
 	elif [ $1 == "-queue" ]; then
 		queue=$2
 		shift 2	
@@ -430,6 +434,12 @@ export UGS_NP=$npe
 export UGS_NPPN=$nppn
 export UGS_MYDIR=$execpath
 
+## make subdirs
+subdirs=$(echo $mkdirs | tr ";" "\n")
+for sdir in $subdirs; do
+    mkdir $sdir
+done
+
 #### now call job schedulers ####
 UJS_Submit
 
@@ -478,5 +488,5 @@ if [ $interactive == false ]; then
 fi
 
 if [ $verbose == true ]; then
-	cat $outdir/info.txt
+	cat info.txt
 fi

@@ -31,7 +31,7 @@ elif [ $UGSUBMIT_TYPE == "Jureca" ]; then
 	
 elif [ $UGSUBMIT_TYPE == "mpi" ] || [ $UGSUBMIT_TYPE == "mpi-foreground" ]; then
 
-	source $scriptpath/schedulers/mpi-foreground
+	source $scriptpath/schedulers/mpi
 
 elif [ $UGSUBMIT_TYPE == "mpi-background" ]; then
 

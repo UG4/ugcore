@@ -87,16 +87,19 @@ template<typename T> inline size_t GetCols(const T &t);
 
 ///////////////////////////////////////////////////////////////////
 // traits: information for numbers
+// Here, the template parameter(s) correspond(s) to type 'number'
+// (i.e. 'double' or 'float'). Definitions for matrices are placed
+// in other headers.
 
 
 template<typename T>
 struct block_traits<T>
 {
-	typedef T1 vec_type;
+	typedef T vec_type;
 
 	// inverse_type: specify this type so we know what type to use
 	// INSTEAD of inverting the matrix (e.g. can be LU decomposition or Jacobi)
-	typedef T2 inverse_type;
+	typedef T inverse_type;
 
 	// is_static is used in several functions. if so,
 	// the type has static number of rows/cols and can be copied via memcpy

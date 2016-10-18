@@ -33,9 +33,13 @@
 # specified files when building with EMBEDDED_PLUGINS=ON #
 ##########################################################
 
-# Usage:
-# exportSingleFileDefinitions(file oneDefinition)
-# exportSingleFileDefinitions(file "def1 def2 ...")
+# USAGE
+# variant 1:
+# exportSingleFileDefinitions(file "def1;def2;def3;...")
+# 
+# variant 2:
+# set(defList def1 def2 def3 ...)
+# exportSingleFileDefinitions(file "${defList}")
 #
 # file must be a valid file, prepended by its path, typically ${CMAKE_CURRENT_SOURCE_DIR};
 # definitions for preprocessor need to be exactly like used in preprocessor macros, i.e.,
@@ -44,8 +48,13 @@
 # @param file the file definitions are to be exported for
 # @param definitions a list of definitions to be exported
 function(exportSingleFileDefinitions file definitions)
-	get_property(currFileList GLOBAL PROPERTY ugSingleFileDefinitionFiles)
-	set_property(GLOBAL PROPERTY ugSingleFileDefinitionFiles ${currFileList} ${file})
-	get_property(currDefList GLOBAL PROPERTY ugSingleFileDefinitionDefs)
-	set_property(GLOBAL PROPERTY ugSingleFileDefinitionDefs ${currDefList} "${definitions}")
+	list(LENGTH definitions len)
+	if (${len} GREATER 0)
+		math(EXPR len "${len} - 1")
+		foreach (idx RANGE ${len})
+			list(GET definitions ${idx} def)
+			set_property(GLOBAL APPEND PROPERTY ugSingleFileDefinitionFiles ${file})
+			set_property(GLOBAL APPEND PROPERTY ugSingleFileDefinitionDefs "${def}")
+		endforeach()
+	endif()
 endfunction(exportSingleFileDefinitions)

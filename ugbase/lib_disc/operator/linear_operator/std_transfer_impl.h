@@ -37,6 +37,7 @@
 #include "lib_disc/reference_element/reference_mapping_provider.h"
 #include "lib_disc/local_finite_element/local_finite_element_provider.h"
 #include "lib_disc/function_spaces/grid_function_util.h"
+#include "lib_grid/algorithms/debug_util.h"								// ElementDebugInfo
 
 namespace ug{
 
@@ -155,8 +156,9 @@ assemble_prolongation_p1(matrix_type& P,
 						DoFRef(P, vChildDoF[0], vParentDoF[0]) = 0.125;
 					}
 					break;
-					default: UG_THROW("AssembleStdProlongationForP1Lagrange: Element Father"
-									 "is of unsupported type "<<roid);
+					default: UG_THROW("AssembleStdProlongationForP1Lagrange: Element father"
+									 " is of unsupported type "<< roid << " for "
+									 << ElementDebugInfo(mg, child) << ".");
 				}
 			}
 		}

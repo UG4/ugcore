@@ -437,6 +437,16 @@ class VTKOutput
 
 	/**
 	 * When a time series has been computed, this function can be used to procduce
+	 * a grouping *_processwise.pvd file for paraview visualization.
+	 *
+	 * \param[in]		filename		filename used in time series
+	 * \param[in]		u				grid function
+	 */
+		template <typename TFunction>
+		void write_time_processwise_pvd(const char* filename, TFunction& u);
+
+	/**
+	 * When a time series has been computed, this function can be used to procduce
 	 * a grouping *.pvd file for paraview visualization.
 	 *
 	 * \param[in]		filename		filename used in time series

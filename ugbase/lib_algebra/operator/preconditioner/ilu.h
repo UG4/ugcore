@@ -413,7 +413,7 @@ class ILU : public IPreconditioner<TAlgebra>
 			matrix_type &mat = *pOp;
 			PROFILE_BEGIN_GROUP(ILU_preprocess, "algebra ILU");
 		//	Debug output of matrices
-			write_debug(mat, "ILU_BeforeMakeConsistent");
+			write_debug(mat, "ILU_prep_01_BeforeMakeUnique");
 
 			m_ILU = mat;
 #ifdef 	UG_PARALLEL
@@ -423,14 +423,47 @@ class ILU : public IPreconditioner<TAlgebra>
 			std::vector<IndexLayout::Element> vIndex;
 			CollectUniqueElements(vIndex,  m_ILU.layouts()->slave());
 			SetDirichletRow(m_ILU, vIndex);
+
+		//DEBUG: find dirichlet master rows
+			// vIndex.clear();
+			// CollectUniqueElements(vIndex,  m_ILU.layouts()->master());
+			// typedef typename matrix_type::row_iterator row_iterator;
+			// typedef typename matrix_type::value_type block_type;
+
+			// // for all rows
+			// UG_LOG("Dirichlet Masters: ");
+			// for(size_t i_index=0; i_index < vIndex.size(); i_index++)
+			// {
+			// 	const size_t i = vIndex[i_index];
+
+			// 	size_t numNonzero = 0;
+			// 	size_t lastNonzero = 0;
+			// 	for(row_iterator it_k = m_ILU.begin_row(i); it_k != m_ILU.end_row(i); ++it_k)
+			// 	{
+			// 		const size_t k = it_k.index();
+			// 		block_type &a = it_k.value();
+
+			// 	//todo:	Use a block-compatible comparison
+			// 		if(a != 0){
+			// 			++numNonzero;
+			// 			lastNonzero = k;
+			// 		}
+			// 	}
+
+			// 	if(numNonzero == 1){
+			// 		m_ILU(i, lastNonzero) = 1;
+			// 	}
+			// }
+			// UG_LOG("\n");
 #endif
 
+			write_debug(m_ILU, "ILU_prep_02_AfterMakeUnique");
 
 			if(m_bSort)
 				calc_cuthill_mckee();
 
 		//	Debug output of matrices
-			write_debug(m_ILU, "ILU_BeforeFactorize");
+			write_debug(m_ILU, "ILU_prep_03_BeforeFactorize");
 
 		//	resize help vector
 			m_h.resize(mat.num_cols());
@@ -442,7 +475,7 @@ class ILU : public IPreconditioner<TAlgebra>
 			m_ILU.defragment();
 
 		//	Debug output of matrices
-			write_debug(m_ILU, "ILU_AfterFactorize");
+			write_debug(m_ILU, "ILU_prep_04_AfterFactorize");
 
 		//	we're done
 			return true;

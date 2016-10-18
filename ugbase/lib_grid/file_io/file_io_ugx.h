@@ -271,6 +271,7 @@ class GridWriterUGX
 				grid(g), node(n)	{}
 
 			Grid* grid;
+			std::vector<const ISubsetHandler*> subsetHandlers;
 			rapidxml::xml_node<>* node;
 		};
 
@@ -340,6 +341,9 @@ class GridReaderUGX
 
 	///	returns the name of the given projection-handler
 		const char* get_projection_handler_name(size_t refGridIndex, size_t phIndex) const;
+
+	///	returns the subset handler index for a projection handler
+		size_t get_projection_handler_subset_handler_index(size_t phIndex, size_t refGridIndex);
 
 	///	fills the given projection-handler
 		bool projection_handler(ProjectionHandler& phOut, size_t phIndex, size_t refGridIndex);
