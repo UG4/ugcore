@@ -105,6 +105,14 @@ Coordinate(number c)
 }
 
 template <class T, int TDIM>
+Raster<T, TDIM>::Coordinate::
+Coordinate(const MathVector<TDIM, number>& v)
+{
+	for(int d = 0; d < TDIM; ++d)
+		m_coord[d] = v[d];
+}
+
+template <class T, int TDIM>
 const int Raster<T, TDIM>::Coordinate::
 dim () const
 {
