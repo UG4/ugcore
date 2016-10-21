@@ -203,18 +203,16 @@ void ExtrudeLayers (
 			Vertex* v = curVrts[icur];
 			vector2 c(aaPos[v].x(), aaPos[v].y());
 			pair<int, number> val = layers.trace_line_down(c, ilayer);
-			pair<int, number> upperVal = layers.trace_line_up(c, ilayer+1);
-			UG_COND_THROW(upperVal.first == -1, "An upper layer has to exist");
-
-			number height;
 
 			if(val.first >= 0){
+				pair<int, number> upperVal = layers.trace_line_up(c, val.first+1);
+				UG_COND_THROW(upperVal.first == -1, "An upper layer has to exist");
 			//	if val.first == ilayer height will equal val.second. If not,
 			//	a linear interpolation is performed, considering the height-val
 			//	of the current vertex, the layer distance and the target value.
 			//	This height-value will be corrected later on after extrusion
 				number ia = 1. / ((number)ilayer - (number)val.first + 1.);
-				height = (1. - ia) * aaPos[v].z() + ia * val.second;
+				number height = (1. - ia) * aaPos[v].z() + ia * val.second;
 				tmpVrts.push_back(v);
 				vrtHeightVals.push_back(height);
 				aaHeight[v] = upperVal.second - val.second;//total height of ilayer
@@ -224,6 +222,8 @@ void ExtrudeLayers (
 			else if(allowForTetsAndPyras){
 			//	we insert a dummy-vertex which will later on allow for easier
 			//	edge-collapses of inner vertical rim edges
+				pair<int, number> upperVal = layers.trace_line_up(c, ilayer+1);
+				UG_COND_THROW(upperVal.first == -1, "An upper layer has to exist");
 				tmpVrts.push_back(v);
 				number height = aaPos[v].z() - layers.min_height(ilayer);
 				vrtHeightVals.push_back(height);
@@ -235,9 +235,7 @@ void ExtrudeLayers (
 	//	now find the faces which connect those vertices
 		for(size_t iface = 0; iface < curFaces.size(); ++iface){
 			Face* f = curFaces[iface];
-		//	trace a line from the x-y-center of the face downwards starting at
-		//	the current layer to determine the layer in which the face has to
-		//	be placed.
+
 			vector3 center = CalculateCenter(f, aaPos);
 			vector2 c(center.x(), center.y());
 			pair<int, number> val = layers.trace_line_down(c, ilayer);
