@@ -206,7 +206,7 @@ class Raster{
 		number extension (int dim) const;
 
 	///	sets the value that shall be considered as 'no-data-value'
-		void set_no_data_value(const T& val);
+		void set_no_data_value(T val);
 
 	///	returns the value that shall be considered 'no-data-value'
 		T no_data_value() const;

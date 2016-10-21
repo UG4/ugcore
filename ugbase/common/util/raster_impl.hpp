@@ -478,7 +478,7 @@ interpolate (const Coordinate& coord, int order) const
 
 template <class T, int TDIM>
 void Raster<T, TDIM>::
-set_no_data_value(const T& val)
+set_no_data_value(T val)
 {
 	m_noDataValue = val;
 }
