@@ -349,7 +349,10 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 
 	local precond = nil
 
-	local approxSpace = desc.approxSpace or util.solver.defaults.approxSpace
+	local approxSpace = nil
+	if desc then
+		approxSpace = desc.approxSpace or util.solver.defaults.approxSpace
+	end
 
 	if name == "ilu"  then
 		precond = ILU ()
@@ -422,7 +425,7 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 
 	util.solver.CondAbort(precond == nil, "Invalid preconditioner specified: " .. name)
 
-	if desc.debug == true then
+	if desc and desc.debug == true then
 		if approxSpace == nil then
 			print("An ApproximationSpace is required to create a DebugWriter for the '" .. name .. "'' preconditioner.")
 			print("Consider setting the 'approxSpace' property of your preconditioner,")

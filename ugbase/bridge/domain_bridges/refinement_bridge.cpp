@@ -272,6 +272,18 @@ static void MarkForRefinement_All(SmartPtr<IRefiner> ref)
 	ref->mark(g->volumes_begin(), g->volumes_end());
 }
 
+template <class TElem>
+static void MarkForRefinement_AllAnisotropic(SmartPtr<IRefiner> ref)
+{
+	PROFILE_FUNC_GROUP("grid");
+	Grid* g = ref->get_associated_grid();
+	if(!g){
+		UG_LOG("Refiner is not registered at a grid. Aborting.\n");
+		return;
+	}
+	ref->mark(g->begin<TElem>(), g->end<TElem>(), RM_ANISOTROPIC);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 ///	Marks all vertices in the given d-dimensional sphere.
 template <class TDomain>
@@ -1293,6 +1305,7 @@ static void Common(Registry& reg, string grp)
 {
 //	register domain independent mark methods
 	reg.add_function("MarkForRefinement_All", &MarkForRefinement_All, grp, "", "ref");
+	reg.add_function("MarkForRefinement_AllVolumesAnisotropic", &MarkForRefinement_AllAnisotropic<Volume>, grp, "", "ref");
 //	register refinement rule switch function
 	reg.add_function("SetTetRefinementRule", &SetTetRefinementRule, grp, "", "refRuleName",
 			"Sets the refinement rule which is used to refine tetrahedrons. Possible parameters: 'standard', 'hybrid_tet_oct");
