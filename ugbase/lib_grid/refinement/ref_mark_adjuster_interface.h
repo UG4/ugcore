@@ -61,6 +61,7 @@ class IRefMarkAdjuster
 {
 	public:
 		IRefMarkAdjuster() :
+			m_enabled(true),
 			m_nodeDependencyOrder1(true)
 		{}
 
@@ -80,6 +81,9 @@ class IRefMarkAdjuster
 										const std::vector<Volume*>& vols)
 		{return;}
 
+		virtual void enable(bool enable)	{m_enabled = enable;}
+		virtual bool enabled() const		{return m_enabled;}
+
 	///	enables or disables node-dependency-order-1.
 	/**	\{
 	 * If enabled, hanging nodes may only depend on non-hanging nodes.
@@ -92,6 +96,7 @@ class IRefMarkAdjuster
 	/**	\} */
 
 	private:
+		bool	m_enabled;
 		bool	m_nodeDependencyOrder1;
 };
 

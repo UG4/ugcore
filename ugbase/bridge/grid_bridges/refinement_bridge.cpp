@@ -235,6 +235,11 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 		.add_method("num_marked_volumes", static_cast<size_t (IRefiner::*)()>(&IRefiner::num_marked_volumes))
 		.add_method("num_marked_elements", static_cast<size_t (IRefiner::*)()>(&IRefiner::num_marked_elements));
 
+//	RefMarkAdjusters
+	reg.add_class_<IRefMarkAdjuster>("IRefMarkAdjuster", grp)
+		.add_method("enable", &IRefMarkAdjuster::enable, "", "enable")
+		.add_method("enabled", &IRefMarkAdjuster::enabled, "enabled", "");
+
 //	HangingNodeRefiner
 	reg.add_class_<HangingNodeRefiner_Grid, IRefiner>("HangingNodeRefiner_Grid", grp)
 		.add_constructor()
