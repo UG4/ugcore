@@ -175,6 +175,8 @@ util.solver.defaults =
 			preSmooth = 3,
 			postSmooth = 3,
 			rap = false,
+			rim = false,
+			emulateFullRefined = false,
 			smoother = "gs"
 		},
 
@@ -384,21 +386,26 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 		end
 
 		local gmg = GeometricMultiGrid(approxSpace)
-		gmg:set_base_solver		(baseSolver)
-		gmg:set_smoother 		(smoother)
-		gmg:set_base_level		(desc.baseLevel or defaults.baseLevel)
-		gmg:set_cycle_type		(desc.cycle or defaults.cycle)
-		gmg:set_num_presmooth	(desc.preSmooth or defaults.preSmooth)
-		gmg:set_num_postsmooth	(desc.postSmooth or defaults.postSmooth)
-		gmg:set_rap 			(desc.rap or defaults.rap)
+		gmg:set_base_solver					(baseSolver)
+		gmg:set_smoother 					(smoother)
+		gmg:set_base_level					(desc.baseLevel or defaults.baseLevel)
+		gmg:set_cycle_type					(desc.cycle or defaults.cycle)
+		gmg:set_num_presmooth				(desc.preSmooth or defaults.preSmooth)
+		gmg:set_num_postsmooth				(desc.postSmooth or defaults.postSmooth)
+		gmg:set_rap 						(desc.rap or defaults.rap)
+		gmg:set_smooth_on_surface_rim		(desc.rim or defaults.rim)
+		gmg:set_emulate_full_refined_grid	(desc.emulateFullRefined or defaults.emulateFullRefined)
 		gmg:set_gathered_base_solver_if_ambiguous (
 				desc.gatheredBaseSolverIfAmbiguous or
 				defaults.gatheredBaseSolverIfAmbiguous)
 
 		if desc.adaptive == true then
 			local transfer = StdTransfer()
+			local project = StdTransfer()
 			transfer:enable_p1_lagrange_optimization(false)
+			project:enable_p1_lagrange_optimization(false)
 			gmg:set_transfer(transfer)
+			gmg:set_projection(project)
 		end
 
 		local discretization = desc.discretization or util.solver.defaults.discretization
