@@ -130,28 +130,85 @@ class RasterLayers{
 		void eliminate_invalid_cells();
 
 	///	smoothens the values in each layer by averaging with neighboured values
-		void blur_layers(number alpha, size_t numIterations);
+		void blur_layers (number alpha, size_t numIterations);
 
 	///	finds the first valid value at the given x-y-coordinate starting at the specified layer moving downwards.
 	/** returns a pair containing the layer-index in which the valid value was found (first)
 	 * and the value at the given coordinate in that layer. Returns -1 if no such layer
 	 * was found.*/
-		std::pair<int, number> trace_line_down(const vector2& c, size_t firstLayer) const;
+		std::pair<int, number> trace_line_down (const vector2& c, size_t firstLayer) const;
 
 	///	finds the first valid value at the given x-y-coordinate starting at the specified layer moving downwards.
 	/** returns a pair containing the layer-index in which the valid value was found (first)
 	 * and the value at the given coordinate in that layer. Returns -1 if no such layer
 	 * was found.*/
-		std::pair<int, number> trace_line_up(const vector2& c, size_t firstLayer) const;
+		std::pair<int, number> trace_line_up (const vector2& c, size_t firstLayer) const;
 
 	///	returns an index-pair of the layers above and below the specified point
 	/** If there is no layer above or below, the associated component of the
 	 *	returned is set to -1.*/
-		std::pair<int, int> get_layer_indices(const vector3& c) const;
+		std::pair<int, int> get_layer_indices (const vector3& c) const;
+
+	///	transforms a relative height to an absolute height for a given x-y-coordinate.
+	/**	relative height is a value between 0 and #numLayers-1. if it is an integer
+	 * value the returned height will match the height of the associated layer.
+	 * If not or if the value would be invalid, it the non-integer fraction is used
+	 * to interpolate between the next higher and the next lower level.
+	 *
+	 * \note	if 'construct_relative_to_global_height_table' was called before
+	 *			this method, a more sophisticated height-value computation is
+	 *			performed in inner invalid cells. This is especially useful if
+	 *			a pure prism geometry was constructed from layers with holes.*/
+		number relative_to_global_height (const vector2& c, number relHeight) const;
+
+	///	transforms a relative height to an absolute height for a given x-y-coordinate.
+	/**	This method works similar to the original 'relative_to_global_height',
+	 * however, it always works on the orignal layer data and follows an equal
+	 * distances approach for no-data-cells. It thus ignores tables constructed
+	 * through 'construct_relative_to_global_height_table'. If the former method
+	 * hasn't been called or if 'invalidate_relative_to_global_height_table' has been
+	 * called, this method will do the same as 'relative_to_global_height'.*/
+		number relative_to_global_height_simple (const vector2& c, number relHeight) const;
+
+	///	Prepares a table for better 'relative_to_global_height' values in invalid inner regions.
+	/** Constructs a table in which interior no-data-values are replaced by a
+	 * a relaxed value, computed through smoothing the relative distances to
+	 * the upper and lower layers of local neighbor cells.
+	 *
+	 * \note	if the underlying layers have been changed or new ones have been added,
+	 *			this method has to be called again to reflect those changes in
+	 *			the constructed table.
+	 *
+	 * \param iterations	the number of relaxation iterations (e.g. 1000)
+	 * \param alpha			the relative amount of how much a value may change in
+	 *						each iteration (between 0 and 1, e.g. 0.5)*/
+		void construct_relative_to_global_height_table (size_t iterations, number alpha);
+
+	///	invalidates the table construced by 'construct_relative_to_global_height_table'
+	/**	Use this method if you want to make sure that no special table is used
+	 * during 'relative_to_global_height'.*/
+		void invalidate_relative_to_global_height_table ();
 
 	private:
+	///	returns dist(middle, upper, ix, iy) / dist(lower, upper, ix, iy)
+	/**	If dist(lower, upper, ix, iy) == 0, 0 is returned.*/
+		number upper_lower_dist_relation (	Field<number>&lower,
+											Field<number>& middle,
+											Field<number>& upper,
+											size_t ix,
+											size_t iy);
+
 		std::vector<SmartPtr<layer_t> >	m_layers;
+
+	/**	In this array, interior pixels with no-data-value are replaced by a
+	 * relaxed value, computed through smoothing the relative distances to
+	 * the upper and lower layers of local neighbor cells.
+	 * This array has to be constructed explicitely through a call to
+	 * 'construct_relative_to_global_height_table'.*/
+		std::vector<SmartPtr<Heightfield> >	m_relativeToGlobalHeights;
 };
+
+typedef SmartPtr<RasterLayers>	SPRasterLayers;
 
 }//	end of namespace
 

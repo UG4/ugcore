@@ -63,18 +63,35 @@ interpolate(number x, number y, int interpOrder) const
 		case 1:{
 			int cx = int((x - m_offset.x()) / m_cellSize.x());
 			int cy = int((y - m_offset.y()) / m_cellSize.y());
+			
+			const number vx = (x - ((number)cx * m_cellSize.x() + m_offset.x()))
+							  / m_cellSize.x();
+			const number vy = (y - ((number)cy * m_cellSize.y() + m_offset.y()))
+							  / m_cellSize.y();
+			const number ux = 1-vx;
+			const number uy = 1-vy;
+
 			if(		(cx >= 0)
-				&& (cy >= 0)
-				&& (cx + 1 < (int)m_field.width())
-				&& (cy + 1 < (int)m_field.height()) )
+				&&	(cy >= 0)
+				&&	(cx + 1 < (int)m_field.width())
+				&&	(cy + 1 < (int)m_field.height()) )
 			{
-				float vx = (x - ((number)cx * m_cellSize.x() + m_offset.x())) / m_cellSize.x();
-				float vy = (y - ((number)cy * m_cellSize.y() + m_offset.y())) / m_cellSize.y();
-				float ux = 1-vx;
-				float uy = 1-vy;
 
 				return	ux*uy*m_field.at(cx, cy) + vx*uy*m_field.at(cx+1,cy)
 					  + ux*vy*m_field.at(cx, cy+1) + vx*vy*m_field.at(cx+1, cy+1);
+			}
+			else{
+				const int x0 = max(cx, 0);
+				const int x1 = min(cx + 1, (int)m_field.width() - 1);
+				const int y0 = max(cy, 0);
+				const int y1 = min(cy + 1, (int)m_field.height() - 1);
+
+				if(x0 >= m_field.width() || x1 < 0 || y0 >= m_field.height() || y1 < 0)
+					return m_noDataValue;
+
+				return	ux*uy*m_field.at(x0, y0) + vx*uy*m_field.at(x1,y0)
+					  + ux*vy*m_field.at(x0, y1) + vx*vy*m_field.at(x1, y1);
+
 			}
 		}break;
 

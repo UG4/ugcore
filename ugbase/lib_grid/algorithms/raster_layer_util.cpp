@@ -30,6 +30,7 @@
  * GNU Lesser General Public License for more details.
  */
 
+#include <vector>
 #include "raster_layer_util.h"
 #include "field_util.h"
 #include "lib_grid/file_io/file_io_asc.h"
@@ -37,6 +38,14 @@
 using namespace std;
 
 namespace ug{
+
+//	initialize all values with simple-values and record a list of all invalid ones
+struct CellIdx {
+	CellIdx()	{}
+	CellIdx(size_t x, size_t y) : ix(x), iy(y)	{}
+	size_t ix;
+	size_t iy;
+};
 
 void RasterLayers::
 load_from_files(const std::vector<LayerDesc>& layerDescs)
@@ -335,5 +344,179 @@ get_layer_indices(const vector3& c) const
 
 	return make_pair(upperLayer, lowerLayer);
 }
+
+number RasterLayers::
+relative_to_global_height(const vector2& c, number relHeight) const
+{
+	static const int order = 1;
+
+	if(m_relativeToGlobalHeights.empty())
+		return relative_to_global_height_simple(c, relHeight);
+	else{
+		const int relHeightLow = (int)(relHeight + SMALL);
+		const int topLvl = (int)m_relativeToGlobalHeights.size() - 1;
+		if((relHeightLow >= 0)
+			&& (relHeightLow + 1 <= topLvl))
+		{
+			number rel = relHeight - (number)relHeightLow;
+			return (1. - rel) * m_relativeToGlobalHeights[relHeightLow]
+									->interpolate(c, order)
+					+ rel * m_relativeToGlobalHeights[relHeightLow + 1]
+									->interpolate(c, order);
+		}
+		else if(relHeightLow >= topLvl)
+			return m_relativeToGlobalHeights[topLvl]->interpolate(c, order);
+		else
+			return m_relativeToGlobalHeights[0]->interpolate(c, order);
+	}
+}
+
+number RasterLayers::
+relative_to_global_height_simple(const vector2& c, number relHeight) const
+{
+	const int relHeightLower = max((int)(relHeight + SMALL), 0);
+	const int relHeightUpper = min(relHeightLower + 1, (int)num_layers() - 1);
+	const std::pair<int, number> lower = trace_line_down(c, relHeightLower);
+	const std::pair<int, number> upper = trace_line_up(c, relHeightUpper);
+	
+	UG_COND_THROW(lower.first < 0, "Invalid lower layer for coordinate " << c
+				  << " and relative height " << relHeight);
+	UG_COND_THROW(upper.first < 0, "Invalid upper layer for coordinate " << c
+				  << " and relative height " << relHeight);
+
+	number layerDiff = max(1, upper.first - lower.first);
+	number rel = (clip<number>(relHeight - (number)relHeightLower, 0, 1)
+				  + relHeightLower - lower.first)
+				/ layerDiff;
+	return (1. - rel) * lower.second + rel * upper.second;
+}
+
+void RasterLayers::
+construct_relative_to_global_height_table(size_t iterations, number alpha)
+{
+	m_relativeToGlobalHeights.clear();
+	for(size_t i = 0; i < m_layers.size(); ++i){
+		m_relativeToGlobalHeights.push_back(
+				make_sp(new Heightfield(m_layers[i]->heightfield)));
+	}
+
+
+//	make sure that the bottom-layer has no holes (compared to the top layer).
+//	we'll set it to the same height as its local upper layer.
+	{
+		Heightfield& baseHF = *m_relativeToGlobalHeights[0];
+		Field<number>& baseField = baseHF.field();
+
+		for(size_t iy = 0; iy < baseField.height(); ++iy){
+			for(size_t ix = 0; ix < baseField.width(); ++ix){
+				if(baseField.at(ix, iy) == baseHF.no_data_value()){
+					vector2 c = baseHF.index_to_coordinate(ix, iy);
+					std::pair<int, number> upper = trace_line_up(c, 0);
+					if(upper.first != -1)
+						baseField.at(ix, iy) = upper.second;
+				}
+			}
+		}
+	}
+
+
+	std::vector<std::vector<CellIdx> > allCells;
+	allCells.resize(m_relativeToGlobalHeights.size());
+
+	for(int lvl = 1; lvl + 1 < (int)m_relativeToGlobalHeights.size(); ++lvl){
+		Heightfield& curHF = *m_relativeToGlobalHeights[lvl];
+		Field<number>& curField = curHF.field();
+
+		std::vector<CellIdx>& cells = allCells[lvl];
+
+		for(size_t iy = 0; iy < curField.height(); ++iy){
+			for(size_t ix = 0; ix < curField.width(); ++ix){
+				if(curField.at(ix, iy) == curHF.no_data_value()){
+					vector2 c = curHF.index_to_coordinate(ix, iy);
+					if(trace_line_up(c, lvl).first != -1){
+						curField.at(ix, iy) = relative_to_global_height_simple(c, lvl);
+						cells.push_back(CellIdx(ix, iy));
+					}
+				}
+			}
+		}
+	}
+
+//	now iterate over all recorded cells and perform relaxation
+	for(size_t iteration = 0; iteration < iterations; ++iteration){
+		for(int lvl = 1; lvl + 1 < (int)m_relativeToGlobalHeights.size(); ++lvl){
+			Field<number>& cur = m_relativeToGlobalHeights[lvl]->field();
+			Field<number>& lower = m_relativeToGlobalHeights[lvl-1]->field();
+			Field<number>& upper = m_relativeToGlobalHeights[lvl+1]->field();
+
+			std::vector<CellIdx>& cells = allCells[lvl];
+			for(size_t icell = 0; icell < cells.size(); ++icell){
+				const CellIdx ci = cells[icell];
+			//	average dist-relations of neighbors
+				number nbrVal = 0;
+				number numNbrs = 0;
+
+				if(ci.ix > 0){
+					nbrVal += upper_lower_dist_relation(
+									lower, cur,
+									upper, ci.ix - 1, ci.iy);
+					++numNbrs;
+				}
+				if(ci.ix + 1 < cur.width()){
+
+					nbrVal += upper_lower_dist_relation(
+									lower, cur,
+									upper, ci.ix + 1, ci.iy);
+					++numNbrs;
+				}
+				if(ci.iy > 0){
+					nbrVal += upper_lower_dist_relation(
+									lower, cur,
+									upper, ci.ix, ci.iy - 1);
+					++numNbrs;
+				}
+				if(ci.iy + 1 < cur.height()){
+					nbrVal += upper_lower_dist_relation(
+									lower, cur,
+									upper, ci.ix, ci.iy + 1);
+					++numNbrs;
+				}
+
+				if(numNbrs > 0){
+					number locVal = upper_lower_dist_relation(
+											lower, cur,
+											upper, ci.ix, ci.iy);
+
+					locVal = (1. - alpha) * locVal + alpha * nbrVal / numNbrs;
+
+				//	reconstruct height value from dist-relation
+					number dirTotal = upper.at(ci.ix, ci.iy) - lower.at(ci.ix, ci.iy);
+					cur.at(ci.ix, ci.iy) = upper.at(ci.ix, ci.iy) - locVal * dirTotal;
+				}
+			}
+		}
+	}
+}
+
+
+void RasterLayers::
+invalidate_relative_to_global_height_table ()
+{
+	m_relativeToGlobalHeights.clear();
+}
+
+number RasterLayers::
+upper_lower_dist_relation (	Field<number>&lower,
+							Field<number>& middle,
+							Field<number>& upper,
+							size_t ix,
+							size_t iy)
+{
+	number totalDist = fabs(upper.at(ix, iy) - lower.at(ix, iy));
+	if(totalDist > 0)
+		return (upper.at(ix, iy) - middle.at(ix, iy)) / totalDist;
+	return 0;
+}
+
 
 }//	end of namespace

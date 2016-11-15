@@ -140,7 +140,10 @@ void ExtrudeLayers (
 	const int topLayerInd = (int)layers.num_layers() - 1;
 	for(VertexIterator i = grid.begin<Vertex>(); i != grid.end<Vertex>(); ++i){
 		Vertex* v = *i;
-		number val = top.heightfield.interpolate(vector2(aaPos[v].x(), aaPos[v].y()));
+		vector2 c(aaPos[v].x(), aaPos[v].y());
+		// number val = top.heightfield.interpolate(c);
+		number val = layers.relative_to_global_height(c, topLayerInd);
+
 		if(val != top.heightfield.no_data_value()){
 			aaPos[v].z() = val;
 			curVrts.push_back(v);
@@ -202,6 +205,7 @@ void ExtrudeLayers (
 		for(size_t icur = 0; icur < curVrts.size(); ++icur){
 			Vertex* v = curVrts[icur];
 			vector2 c(aaPos[v].x(), aaPos[v].y());
+			number height = layers.relative_to_global_height(c, (number) ilayer);
 			pair<int, number> val = layers.trace_line_down(c, ilayer);
 
 			if(val.first >= 0){
@@ -211,8 +215,6 @@ void ExtrudeLayers (
 			//	a linear interpolation is performed, considering the height-val
 			//	of the current vertex, the layer distance and the target value.
 			//	This height-value will be corrected later on after extrusion
-				number ia = 1. / ((number)ilayer - (number)val.first + 1.);
-				number height = (1. - ia) * aaPos[v].z() + ia * val.second;
 				tmpVrts.push_back(v);
 				vrtHeightVals.push_back(height);
 				aaHeight[v] = upperVal.second - val.second;//total height of ilayer
@@ -225,7 +227,6 @@ void ExtrudeLayers (
 				pair<int, number> upperVal = layers.trace_line_up(c, ilayer+1);
 				UG_COND_THROW(upperVal.first == -1, "An upper layer has to exist");
 				tmpVrts.push_back(v);
-				number height = aaPos[v].z() - layers.min_height(ilayer);
 				vrtHeightVals.push_back(height);
 				aaHeight[v] = upperVal.second - val.second;//total height of ilayer
 				sh.assign_subset(v, invalidSub);
