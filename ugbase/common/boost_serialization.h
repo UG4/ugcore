@@ -59,6 +59,20 @@ namespace ug{
  */
 using boost::serialization::make_nvp;
 
+
+///	different types of archives
+enum ArchiveType {
+	AT_DATA,
+	AT_GUI
+};
+
+///	Provides custom information for different archives
+template <class TArchive>
+struct ArchiveInfo {
+	static const ArchiveType TYPE = AT_DATA;
+};
+
+
 }//	end of namespace
 
 #endif	//__H__UG_boost_serialization

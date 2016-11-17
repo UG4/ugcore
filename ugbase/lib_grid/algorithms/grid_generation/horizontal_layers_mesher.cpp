@@ -101,7 +101,8 @@ void ExtrudeLayers (
 		const RasterLayers& layers,
 		Grid::VertexAttachmentAccessor<AVector3> aaPos,
 		ISubsetHandler& sh,
-		bool allowForTetsAndPyras)
+		bool allowForTetsAndPyras,
+		const ANumber* aRelZOut)
 {
 	UG_COND_THROW(layers.size() < 2, "At least 2 layers are required to perform extrusion!");
 
@@ -128,10 +129,18 @@ void ExtrudeLayers (
 	grid.reserve<Vertex>(grid.num_vertices() * layers.size());
 	grid.reserve<Volume>(grid.num_faces() * layers.size() - 1);
 
-//	this accessor is used during smoothing only
+//	todo: this accessor is primarily used during smoothing. Maybe it can be removed?
 	ANumber aHeight;
 	grid.attach_to_vertices(aHeight);
 	Grid::VertexAttachmentAccessor<ANumber> aaHeight(grid, aHeight);
+
+	Grid::VertexAttachmentAccessor<ANumber> aaRelZOut;
+	if(aRelZOut){
+		ANumber aRelZ = *aRelZOut;
+		if(!grid.has_vertex_attachment(aRelZ))
+			grid.attach_to_vertices(aRelZ);
+		aaRelZOut.access(grid, aRelZ);
+	}
 
 //	we have to determine the vertices that can be projected onto the top of the
 //	given layers-stack. Only those will be used during extrusion
@@ -155,6 +164,11 @@ void ExtrudeLayers (
 	if(curVrts.size() < 3){
 		UG_LOG("Not enough vertices lie in the region of the surface layer\n");
 		return;
+	}
+
+	if(aaRelZOut.valid()){
+		for(size_t ivrt = 0; ivrt < curVrts.size(); ++ivrt)
+			aaRelZOut[curVrts[ivrt]] = topLayerInd;
 	}
 
 //	all faces of the initial triangulation that are only connected to marked
@@ -307,6 +321,11 @@ void ExtrudeLayers (
 	//	set the precalculated height of new vertices
 		for(size_t ivrt = 0; ivrt < curVrts.size(); ++ivrt){
 			aaPos[curVrts[ivrt]].z() = vrtHeightVals[ivrt];
+		}
+
+		if(aaRelZOut.valid()){
+			for(size_t ivrt = 0; ivrt < curVrts.size(); ++ivrt)
+				aaRelZOut[curVrts[ivrt]] = ilayer;
 		}
 
 

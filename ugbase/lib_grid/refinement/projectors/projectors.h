@@ -42,6 +42,7 @@
 #include "cylinder_projector.h"
 #include "plane_cut_projector.h"
 #include "projection_handler.h"
+#include "raster_layers_projector.h"
 #include "smooth_projector.h"
 #include "sphere_projector.h"
 #include "subdivision_projector.h"
@@ -63,7 +64,8 @@ typedef vector<
 			pair <ug::CylinderProjector,	string<'cyli','nder'> >,
 			pair <ug::SphereProjector,		string<'sphe','re'> >,
 			pair <ug::SubdivisionProjector,	string<'subd','ivis', 'ion'> >,
-			pair <ug::SmoothProjector,		string<'smoo','th'> >
+			pair <ug::SmoothProjector,		string<'smoo','th'> >,
+			pair <ug::RasterLayersProjector,string<'rast','er'> >
 			>
 	ProjectorTypes;	
 }
