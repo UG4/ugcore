@@ -337,6 +337,9 @@ add_projection_handler(ProjectionHandler& ph, const char* name, size_t refGridIn
 
 //	fill the content of the selector-node
 	for(int i = -1; i < (int)ph.num_projectors(); ++i){
+		if(!ph.projector(i).valid())
+			continue;
+		
 		RefinementProjector&	proj 		= *ph.projector(i);
 		const string&			projName 	= projFac.class_name(proj);
 
