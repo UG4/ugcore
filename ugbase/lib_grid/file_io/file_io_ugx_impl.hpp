@@ -203,6 +203,12 @@ add_attachment(TAttachment attachment,
 			m_doc.allocate_string(
 				attachment_info_traits<TAttachment>::type_name().c_str())));
 
+//todo:	only default pass-on is stored, not the actual used one!
+	node->append_attribute(
+		m_doc.allocate_attribute(
+			"passOn",
+			m_doc.allocate_string(mkstr(int(attachment.default_pass_on_behaviour())).c_str())));
+
 	m_vEntries[refGridIndex].node->append_node(node);
 }
 
@@ -346,6 +352,17 @@ process_global_attachments(Grid& grid, rapidxml::xml_node<>* gridNode)
 				"type",
 				m_doc.allocate_string(
 					GlobalAttachments::type_name(name))));
+
+		node->append_attribute(
+			m_doc.allocate_attribute(
+				"passOn",
+				m_doc.allocate_string(mkstr(int(
+					GlobalAttachments::attachment_pass_on_behaviour(name))).c_str())));
+
+		node->append_attribute(
+			m_doc.allocate_attribute(
+				"global",
+				m_doc.allocate_string("1")));
 
 		gridNode->append_node(node);
 	}
@@ -853,8 +870,23 @@ read_attachment(Grid& grid, rapidxml::xml_node<>* node)
 	UG_COND_THROW(!attribType, "Invalid attachment entry: No 'type' attribute was supplied!");
 	string type = attribType->value();
 
-	if(!GlobalAttachments::is_declared(name))
-		return true;
+	bool global = false;
+	if (xml_attribute<>* attrib = node->first_attribute("global")){
+		global = bool(atoi(attrib->value()));
+	}
+
+	bool passOn = false;
+	if (xml_attribute<>* attrib = node->first_attribute("passOn")){
+		passOn = bool(atoi(attrib->value()));
+	}
+	
+	if(global && !GlobalAttachments::is_declared(name)){
+		if(GlobalAttachments::type_is_registered(type)){
+			GlobalAttachments::declare_attachment(name, type, passOn);
+		}
+		else
+			return true;
+	}
 
 	UG_COND_THROW(type.compare(GlobalAttachments::type_name(name)) != 0,
 				  "Attachment type mismatch. Expecting type: " << 

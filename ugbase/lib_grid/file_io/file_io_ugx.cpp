@@ -1275,8 +1275,9 @@ projection_handler(ProjectionHandler& phOut, size_t phIndex, size_t refGridIndex
 	xml_node<>* defProjNode = phNode->first_node("default");
 	if(defProjNode){
 		SPRefinementProjector proj = read_projector(defProjNode);
-		if(proj.valid())
+		if(proj.valid()){
 			phOut.set_default_projector(proj);
+		}
 	}
 
 	xml_node<>* projNode = phNode->first_node("projector");

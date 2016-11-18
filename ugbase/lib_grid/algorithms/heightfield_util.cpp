@@ -86,7 +86,7 @@ interpolate(number x, number y, int interpOrder) const
 				const int y0 = max(cy, 0);
 				const int y1 = min(cy + 1, (int)m_field.height() - 1);
 
-				if(x0 >= m_field.width() || x1 < 0 || y0 >= m_field.height() || y1 < 0)
+				if(x0 >= (int)m_field.width() || x1 < 0 || y0 >= (int)m_field.height() || y1 < 0)
 					return m_noDataValue;
 
 				return	ux*uy*m_field.at(x0, y0) + vx*uy*m_field.at(x1,y0)

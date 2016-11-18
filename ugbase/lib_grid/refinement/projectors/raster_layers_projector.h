@@ -33,6 +33,7 @@
 #ifndef __H__UG_raster_layers_projector
 #define __H__UG_raster_layers_projector
 
+#include "lib_grid/global_attachments.h"
 #include "refinement_projector.h"
 #include "lib_grid/algorithms/raster_layer_util.h"
 
@@ -54,10 +55,13 @@ public:
 	{add_attachments();
 	 set_layers(layers);}
 
-	void set_geometry(SPIGeometry3d geometry)
+	void set_geometry(SPIGeometry3d g)
 	{
+		if(g == geometry())
+			return;
+
 		remove_attachments();
-		RefinementProjector::set_geometry(geometry);
+		RefinementProjector::set_geometry(g);
 		add_attachments();
 	}
 
@@ -120,8 +124,17 @@ private:
 
 	void add_attachments ()
 	{
+		static const std::string attName("RasterLayersProjector_ARelZ");
+		if(!GlobalAttachments::is_declared(attName)){
+			GlobalAttachments::declare_attachment<rel_z_attachment_t>(attName);
+		}
+
+		m_aRelZ = GlobalAttachments::attachment<rel_z_attachment_t>(attName);
+
 		IGeometry3d& g = geom();
-		g.grid().attach_to_vertices(m_aRelZ);
+		if(!g.grid().has_attachment<Vertex>(m_aRelZ)){
+			g.grid().attach_to_vertices(m_aRelZ);
+		}
 		m_aaRelZ.access(g.grid(), m_aRelZ);
 	}
 
@@ -141,10 +154,11 @@ private:
 	{
 		using namespace ug;
 		if(ArchiveInfo<Archive>::TYPE == AT_DATA){
-			UG_LOG("AT_DATA\n");
+			if(m_layers.invalid())
+				m_layers = make_sp(new RasterLayers());
+			ar & *m_layers;
 		}
 		else if (ArchiveInfo<Archive>::TYPE == AT_GUI){
-			UG_LOG("AT_GUI\n");
 		}
 
 		UG_EMPTY_BASE_CLASS_SERIALIZATION(RasterLayersProjector, RefinementProjector);

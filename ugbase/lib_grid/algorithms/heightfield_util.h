@@ -35,6 +35,7 @@
 
 #include "lib_grid/lg_base.h"
 #include "common/util/field.h"
+#include "common/boost_serialization.h"
 
 namespace ug{
 
@@ -112,6 +113,39 @@ UG_API class Heightfield{
 		bool eliminate_invalid_cells();
 	
 	private:
+	//	BEGIN SERIALIZATION
+		friend class boost::serialization::access;
+
+		template <class Archive>
+		void save( Archive& ar, const unsigned int version) const
+		{
+			ar & m_cellSize;
+			ar & m_offset;
+			ar & m_noDataValue;
+			size_t w = m_field.width();
+			size_t h = m_field.height();
+			ar & w;
+			ar & h;
+			ar.save_binary(m_field.data(), m_field.size() * sizeof(number));
+		}
+
+		template <class Archive>
+		void load( Archive& ar, const unsigned int version)
+		{
+			ar & m_cellSize;
+			ar & m_offset;
+			ar & m_noDataValue;
+			size_t w = 0, h = 0;
+			ar & w;
+			ar & h;
+			m_field.resize_no_copy(w, h);
+			ar.load_binary(m_field.data(), m_field.size() * sizeof(number));
+		}
+		
+		BOOST_SERIALIZATION_SPLIT_MEMBER()
+	//	END SERIALIZATION
+
+
 		Field<number>	m_field;
 		vector2			m_cellSize;
 		vector2			m_offset;

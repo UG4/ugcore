@@ -37,6 +37,7 @@
 #include <string>
 #include <vector>
 #include "lib_grid/algorithms/heightfield_util.h"
+#include "common/boost_serialization.h"
 
 namespace ug{
 
@@ -62,6 +63,15 @@ class RasterLayers{
 
 			Heightfield heightfield;
 			number		minHeight;
+
+			private:
+			friend class boost::serialization::access;
+			template <class Archive>
+			void serialize( Archive& ar, const unsigned int version)
+			{
+				ar & minHeight;
+				ar & heightfield;
+			}
 		};
 
 
@@ -197,6 +207,48 @@ class RasterLayers{
 											Field<number>& upper,
 											size_t ix,
 											size_t iy);
+
+	//	BEGIN SERIALIZATION
+		friend class boost::serialization::access;
+
+		template <class Archive>
+		void save( Archive& ar, const unsigned int version) const
+		{
+			size_t numLayers = m_layers.size();
+			ar & numLayers;
+			for(size_t i = 0; i < m_layers.size(); ++i){
+				ar & *m_layers[i];
+			}
+
+			size_t numRelToGlob = m_relativeToGlobalHeights.size();
+			ar & numRelToGlob;
+			for(size_t i = 0; i < m_relativeToGlobalHeights.size(); ++i){
+				ar & *m_relativeToGlobalHeights[i];
+			}
+		}
+
+		template <class Archive>
+		void load( Archive& ar, const unsigned int version)
+		{
+			size_t numLayers = 0;
+			ar & numLayers;
+			m_layers.resize(numLayers);
+			for(size_t i = 0; i < numLayers; ++i){
+				m_layers[i] = make_sp(new layer_t);
+				ar & *m_layers[i];
+			}
+
+			size_t numRelToGlob = 0;
+			ar & numRelToGlob;
+			m_relativeToGlobalHeights.resize(numRelToGlob);
+			for(size_t i = 0; i < numRelToGlob; ++i){
+				m_relativeToGlobalHeights[i] = make_sp(new Heightfield);
+				ar & *m_relativeToGlobalHeights[i];
+			}
+		}
+		
+		BOOST_SERIALIZATION_SPLIT_MEMBER()
+	//	END SERIALIZATION
 
 		std::vector<SmartPtr<layer_t> >	m_layers;
 

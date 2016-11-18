@@ -156,6 +156,10 @@ refinement_begins (const ISubGrid* psg)
 	UG_COND_THROW(!m_sh, "Please set a valid SubsetHandler to "
 				  "'ProjectionHandler' before using it during refinement.");
 
+
+	if(!m_defaultProjector->geometry().valid())
+		m_defaultProjector->set_geometry(geometry());
+
 //	make sure that the internal vector of projectors is at least as large
 //	as there are subsets in the associated subset handler
 	projector_required((int)m_sh->num_subsets()-1);
