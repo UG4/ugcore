@@ -518,5 +518,21 @@ upper_lower_dist_relation (	Field<number>&lower,
 	return 0;
 }
 
+// void RasterLayers::
+// save_to_files(const char* filenamePrefix_cstr)
+// {
+// 	std::string filenamePrefix = filenamePrefix_cstr;
+// 	for(size_t i = 0; i < m_layers.size(); ++i){
+		
+// 	}
+// }
+
+// void RasterLayers::
+// save_rel_to_glob_table_to_files(const char* filenamePrefix_cstr)
+// {
+
+// }
+
+
 
 }//	end of namespace

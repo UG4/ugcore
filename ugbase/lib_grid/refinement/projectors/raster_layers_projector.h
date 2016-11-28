@@ -92,6 +92,7 @@ public:
 	virtual number new_vertex(Vertex* vrt, Vertex* parent)
 	{
 		m_aaRelZ[vrt] = m_aaRelZ[parent];
+		set_pos(vrt, pos(parent));
 		return 1;
 	}
 

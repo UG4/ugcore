@@ -100,6 +100,9 @@ class RasterLayers{
 		void load_from_files(const std::vector<std::string>& filenames,
 							 number minLayerHeight);
 
+		// void save_to_files(const char* filenamePrefix);
+		// void save_rel_to_glob_table_to_files(const char* filenamePrefix);
+
 
 		void resize(size_t newSize);
 		
