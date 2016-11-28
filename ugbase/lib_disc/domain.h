@@ -213,21 +213,26 @@ class IDomain
 	///	returns the domain's ug::RefinementProjector. The pointer may be invalid.
 		SPRefinementProjector refinement_projector() const;
 
-#ifdef UG_PARALLEL
-	/// helper method to broadcast ug::RefinementProjectors to different processes
-		SPRefinementProjector broadcast_refinement_projector
-		(
-			int rootProc,
-			pcl::ProcessCommunicator& procCom,
-			SPIGeometry3d geometry,
-			SPRefinementProjector projector = SPNULL
-		);
-#endif
-
 	///	returns the geometry of the domain
 		virtual SPIGeometry3d geometry3d() const = 0;
 
 	protected:
+		#ifdef UG_PARALLEL
+		/// helper method to broadcast ug::RefinementProjectors to different processes
+			SPRefinementProjector
+			broadcast_refinement_projector (
+					int rootProc,
+					pcl::ProcessCommunicator& procCom,
+					SPIGeometry3d geometry,
+					SPRefinementProjector projector = SPNULL);
+
+			void serialize_projector (
+					BinaryBuffer& bufOut,
+					SPRefinementProjector proj);
+
+			SPRefinementProjector deserialize_projector (BinaryBuffer& buf);
+		#endif
+			
 		SmartPtr<TGrid> m_spGrid;			///< Grid
 		SmartPtr<TSubsetHandler> m_spSH;	///< Subset Handler
 		std::map<std::string, SmartPtr<TSubsetHandler> >	m_additionalSH; ///< additional subset handlers

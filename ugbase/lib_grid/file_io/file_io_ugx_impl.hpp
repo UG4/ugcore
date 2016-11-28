@@ -883,6 +883,7 @@ read_attachment(Grid& grid, rapidxml::xml_node<>* node)
 	if(global && !GlobalAttachments::is_declared(name)){
 		if(GlobalAttachments::type_is_registered(type)){
 			GlobalAttachments::declare_attachment(name, type, passOn);
+			// GlobalAttachments::mark_attachment_as_locally_declared(name);
 		}
 		else
 			return true;
