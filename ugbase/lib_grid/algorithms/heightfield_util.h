@@ -117,32 +117,13 @@ UG_API class Heightfield{
 		friend class boost::serialization::access;
 
 		template <class Archive>
-		void save( Archive& ar, const unsigned int version) const
+		void serialize( Archive& ar, const unsigned int version)
 		{
 			ar & m_cellSize;
 			ar & m_offset;
 			ar & m_noDataValue;
-			size_t w = m_field.width();
-			size_t h = m_field.height();
-			ar & w;
-			ar & h;
-			ar.save_binary(m_field.data(), m_field.size() * sizeof(number));
+			ar & m_field;
 		}
-
-		template <class Archive>
-		void load( Archive& ar, const unsigned int version)
-		{
-			ar & m_cellSize;
-			ar & m_offset;
-			ar & m_noDataValue;
-			size_t w = 0, h = 0;
-			ar & w;
-			ar & h;
-			m_field.resize_no_copy(w, h);
-			ar.load_binary(m_field.data(), m_field.size() * sizeof(number));
-		}
-		
-		BOOST_SERIALIZATION_SPLIT_MEMBER()
 	//	END SERIALIZATION
 
 
