@@ -253,8 +253,10 @@ static void DomainAlgebra(Registry& reg, string grp)
 	{
 		typedef ug::GridFunction<TDomain, TAlgebra> GF;
 		reg.add_function (
-			"AddFunctionValuesToGridCoordinatesP1",
-			static_cast<void (*) (SmartPtr<GF>, const char*, size_t)>
+			"AddFunctionValuesToGridCoordinatesP1", static_cast<void (*) (SmartPtr<GF>, const char*, size_t)>
+				(&AddFunctionValuesToGridCoordinatesP1<GF>), grp);
+		reg.add_function (
+			"AddFunctionValuesToGridCoordinatesP1", static_cast<void (*) (SmartPtr<GF>, const char*, size_t, number)>
 				(&AddFunctionValuesToGridCoordinatesP1<GF>), grp);
 	}
 }
