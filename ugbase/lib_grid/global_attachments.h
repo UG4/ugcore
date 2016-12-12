@@ -67,6 +67,25 @@ class GlobalAttachments {
 			functions<Volume>().push_back(FunctionEntry<Volume, TAttachment>());
 		}
 
+		static void declare_attachment (const std::string& name,
+										const std::string& typeName,
+										bool passOnBehaviour = false)
+		{
+			UG_COND_THROW(attachment_types()[typeName].declareFunc == 0,
+						  "Unregistered attachment type used in "
+						  << "GlobalAttachments::declare_attachment: '"
+						  << typeName << "' during declaration of attachment '"
+						  << name << "'.");
+			attachment_types()[typeName].declareFunc(name, passOnBehaviour);
+		}
+
+		template <class TAttachment>
+		static void register_attachment_type ()
+		{
+			std::string typeName = attachment_info_traits<TAttachment>::type_name();
+			attachment_types()[typeName] = AttachmentType<TAttachment>();
+		}
+
 		static const std::vector<std::string>&
 		declared_attachment_names ()
 		{
@@ -77,6 +96,19 @@ class GlobalAttachments {
 		bool is_declared(const std::string& name)
 		{
 			return attachments().find(name) != attachments().end();
+		}
+
+		static
+		bool attachment_pass_on_behaviour(const std::string& name)
+		{
+			UG_COND_THROW(!is_declared(name), "Undeclared attachment queried: " << name);
+			return attachments()[name].attachment->default_pass_on_behaviour();
+		}
+
+		static
+		bool type_is_registered(const std::string& typeName)
+		{
+			return attachment_types().find(typeName) != attachment_types().end();
 		}
 
 		template <class TElem>
@@ -179,7 +211,22 @@ class GlobalAttachments {
 			}
 		};
 
+
+		struct IAttachmentType {
+			IAttachmentType() : declareFunc(0)	{}
+			void (*declareFunc)	(const std::string&, bool);
+		};
+
+		template <class TAttachment>
+		struct AttachmentType : public IAttachmentType {
+			AttachmentType() {
+				declareFunc =	&declare_attachment<TAttachment>;
+			}
+		};
+
+
 		typedef std::map<std::string, AttachmentEntry>	AttachmentMap;
+		typedef std::map<std::string, IAttachmentType>	AttachmentTypeMap;
 		typedef std::vector<IFunctionEntry>				FunctionVec;
 
 
@@ -192,8 +239,7 @@ class GlobalAttachments {
 			return h;
 		}
 
-		GlobalAttachments ()
-		{}
+		GlobalAttachments ()	{}
 
 		~GlobalAttachments ()
 		{
@@ -212,6 +258,16 @@ class GlobalAttachments {
 		static
 		AttachmentMap& attachments() {
 			return inst().m_attachmentMap;
+		}
+
+		static
+		AttachmentTypeMap& attachment_types() {
+			static bool initialized = false;
+			if(!initialized){
+				initialized = true;
+				register_standard_attachment_types();
+			}
+			return inst().m_attachmentTypeMap;
 		}
 
 		template <class TElem>
@@ -316,10 +372,30 @@ class GlobalAttachments {
 				grid.attach_to<TElem>(a);
 		}
 
+		static
+		void register_standard_attachment_types()
+		{
+		//todo:	explicit registration of common types in
+		//		GlobalAttachments itself isn't really the best way to go
+		//		(e.g. requires inclusion of 'ugmath_types.h').
+			register_attachment_type<Attachment<bool> >();
+			register_attachment_type<Attachment<char> >();
+			register_attachment_type<Attachment<byte> >();
+			register_attachment_type<Attachment<int> >();
+			register_attachment_type<Attachment<uint> >();
+			register_attachment_type<Attachment<float> >();
+			register_attachment_type<Attachment<double> >();
+
+			register_attachment_type<Attachment<vector1> >();
+			register_attachment_type<Attachment<vector2> >();
+			register_attachment_type<Attachment<vector3> >();
+			register_attachment_type<Attachment<vector4> >();
+		}
 	////////////////////////////////////////
 	//	VARIABLES
 		std::vector<std::string>	m_attachmentNames;
 		AttachmentMap				m_attachmentMap;
+		AttachmentTypeMap			m_attachmentTypeMap;
 		FunctionVec					m_functionVecs[4];
 };
 

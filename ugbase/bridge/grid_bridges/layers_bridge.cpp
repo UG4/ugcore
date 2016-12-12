@@ -174,6 +174,10 @@ void RegisterGridBridge_Layers(Registry& reg, string parentGroup)
 		.add_method("blur_layers", &RasterLayers::blur_layers, "",
 			"alpha # num iterations", "Blurs the values in each layer by averaging between "
 			"neighbored cells on the same layer.")
+		.add_method("construct_relative_to_global_height_table",
+					&RasterLayers::construct_relative_to_global_height_table,
+					"", "iterations # alpha",
+					"Prepares a table for improved height value reconstructions in no-data-regions.")
 		.set_construct_as_smart_pointer(true);
 
 }

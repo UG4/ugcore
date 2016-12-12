@@ -46,6 +46,7 @@
 #include "lib_grid/tools/selector_interface.h"
 #include "lib_grid/common_attachments.h"
 #include "lib_grid/grid_objects/grid_objects.h"
+#include "lib_grid/refinement/projectors/refinement_projector.h"
 #include "common/math/misc/shapes.h"	// AABox
 
 namespace ug
@@ -255,6 +256,9 @@ class GridWriterUGX
 		rapidxml::xml_node<>*
 		create_selector_element_node(const char* name, const ISelector& sel);
 
+
+		rapidxml::xml_node<>*
+		create_projector_node(RefinementProjector& proj, const char* nodeName);
 
 		template <class TElem>
 		void process_global_attachments(Grid& grid, rapidxml::xml_node<>* gridNode);
@@ -477,6 +481,9 @@ class GridReaderUGX
 
 		template <class TElem>
 		bool read_attachment(Grid& grid, rapidxml::xml_node<>* node);
+
+		SPRefinementProjector
+		read_projector(rapidxml::xml_node<>* projNode);
 
 	protected:
 	///	the xml_document which stores the data

@@ -34,7 +34,7 @@
 #define __H__UG_attachment_info_traits
 
 #include <typeinfo>
-#include "lib_grid/common_attachments.h"
+#include "common/math/ugmath_types.h"
 
 namespace ug{
 
@@ -52,8 +52,8 @@ DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<char>, "char");
 DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<byte>, "byte");
 DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<int>, "int");
 DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<uint>, "uint");
-DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<float>, "number");
-DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<double>, "number");
+DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<float>, "float");
+DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<double>, "double");
 
 DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<vector1>, "vector1");
 DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<vector2>, "vector2");
