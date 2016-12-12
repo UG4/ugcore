@@ -231,6 +231,9 @@ template <typename TDomain>
 void OrderLex(ApproximationSpace<TDomain>& approxSpace, const char *order)
 {
 	// TODO: decode order input
+	if(strcmp(order, "x")){
+		UG_THROW("OrderLex: Currently only lexicographic in x-Direction implemented.");
+	}
 
 	std::vector<SmartPtr<DoFDistribution> > vDD = approxSpace.dof_distributions();
 
