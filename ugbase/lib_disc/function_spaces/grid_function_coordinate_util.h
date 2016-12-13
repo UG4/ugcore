@@ -50,7 +50,8 @@ void AddFunctionValuesToGridCoordinatesP1(
 		SmartPtr<TGridFunction> spGridFct,
         size_t fct,
         size_t coordInd,
-        const SubsetGroup& ssGrp)
+        const SubsetGroup& ssGrp,
+        number timestep)
 {
 //	check if fast P1 interpolation may be used
 	UG_COND_THROW(
@@ -67,15 +68,13 @@ void AddFunctionValuesToGridCoordinatesP1(
 
 	std::vector<DoFIndex> ind;
 	typename TGridFunction::template dim_traits<0>::const_iterator iterEnd, iter;
-
+				
 	for(size_t i = 0; i < ssGrp.size(); ++i)
 	{
 	//	get subset index
 		const int si = ssGrp[i];
-
 	//	skip if function is not defined in subset
 		if(!spGridFct->is_def_in_subset(fct, si)) continue;
-
 	// 	iterate over all elements
 		iterEnd = spGridFct->template end<Vertex>(si);
 		iter = spGridFct->template begin<Vertex>(si);
@@ -90,8 +89,8 @@ void AddFunctionValuesToGridCoordinatesP1(
 		// 	loop all dofs
 			for(size_t i = 0; i < ind.size(); ++i)
 			{
-			//	set value
-				aaPos[vrt][coordInd] += DoFRef(*spGridFct, ind[i]);
+			//	set value#
+				aaPos[vrt][coordInd] += DoFRef(*spGridFct, ind[i]) * timestep;
 			}
 		}
 	}
@@ -103,16 +102,35 @@ void AddFunctionValuesToGridCoordinatesP1(
         const char* cmp,
         size_t coordInd)
 {
-//	get function id of name
+		AddFunctionValuesToGridCoordinatesP1(spGridFct, cmp, coordInd, 1.0);
+}
+
+
+template <typename TGridFunction>
+void AddFunctionValuesToGridCoordinatesP1(
+		SmartPtr<TGridFunction> spGridFct,
+        const char* cmp,
+        size_t coordInd,
+        number timestep)
+{
+	//	get function id of name
 	const size_t fct = spGridFct->fct_id_by_name(cmp);
 
 //	check that function found
 	if(fct > spGridFct->num_fct())
 		UG_THROW("Interpolate: Name of component '"<<cmp<<"' not found.");
-	
-	SubsetGroup ssGrp(spGridFct->domain()->subset_handler());
 
-	AddFunctionValuesToGridCoordinatesP1(spGridFct, fct, coordInd, ssGrp);
+	const bool bAllowManyfoldInterpolation =
+			(spGridFct->local_finite_element_id(fct).type() == LFEID::LAGRANGE);
+
+//	create subset group
+	SubsetGroup ssGrp(spGridFct->domain()->subset_handler());
+	//	add all subsets and remove lower dim subsets afterwards
+	ssGrp.add_all();
+	if(!bAllowManyfoldInterpolation)
+		RemoveLowerDimSubsets(ssGrp);
+
+	AddFunctionValuesToGridCoordinatesP1(spGridFct, fct, coordInd, ssGrp, timestep);
 }
 
 }//	end of namespace

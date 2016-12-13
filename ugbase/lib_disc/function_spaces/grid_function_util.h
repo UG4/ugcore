@@ -368,7 +368,7 @@ template <typename TGridFunction, typename TBaseElem>
 bool CheckGFforNaN
 (
 	const TGridFunction * u, ///< the grid function
-	const char * fct_names ///< index of the function
+	const char * fct_names ///< names of the functions
 )
 {
 //	Get the function index
@@ -383,6 +383,34 @@ bool CheckGFforNaN
 	for (size_t i = 0; i < vfctNames.size (); i++)
 	{
 		UG_LOG ("Checking " << vfctNames[i] << " ... ");
+		if (CheckGFforNaN<TGridFunction, TBaseElem> (u, fctGroup[i]))
+			result = true;
+		else
+			UG_LOG ("OK\n");
+	}
+	return result;
+}
+
+/**
+ * Checks values of a grid function at given elements (like vertices) for nan and inf
+ *
+ * This version takes a function group.
+ *
+ * \tparam TGridFunction	the grid function type
+ * \tparam TBaseElem		the given element type (like 'Vertex')
+ */
+template <typename TGridFunction, typename TBaseElem>
+bool CheckGFforNaN
+(
+	const TGridFunction * u, ///< the grid function
+	const FunctionGroup & fctGroup ///< names of the functions
+)
+{
+//	Check the functions
+	bool result = false;
+	for (size_t i = 0; i < fctGroup.size (); i++)
+	{
+		UG_LOG ("Checking fct #" << i << " ... ");
 		if (CheckGFforNaN<TGridFunction, TBaseElem> (u, fctGroup[i]))
 			result = true;
 		else

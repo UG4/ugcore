@@ -247,14 +247,19 @@ static void DomainAlgebra(Registry& reg, string grp)
 	{
 		typedef ug::GridFunction<TDomain, TAlgebra> GF;
 		reg.add_function ("CheckGFValuesAtVertices", static_cast<bool (*) (const GF*, const char *)> (&CheckGFforNaN<GF,Vertex>), grp);
+		reg.add_function ("CheckGFValuesAtEdges", static_cast<bool (*) (const GF*, const char *)> (&CheckGFforNaN<GF,Edge>), grp);
+		reg.add_function ("CheckGFValuesAtFaces", static_cast<bool (*) (const GF*, const char *)> (&CheckGFforNaN<GF,Face>), grp);
+		reg.add_function ("CheckGFValuesAtVolumes", static_cast<bool (*) (const GF*, const char *)> (&CheckGFforNaN<GF,Volume>), grp);
 	}
 
 //	Move Domain by GridFunction
 	{
 		typedef ug::GridFunction<TDomain, TAlgebra> GF;
 		reg.add_function (
-			"AddFunctionValuesToGridCoordinatesP1",
-			static_cast<void (*) (SmartPtr<GF>, const char*, size_t)>
+			"AddFunctionValuesToGridCoordinatesP1", static_cast<void (*) (SmartPtr<GF>, const char*, size_t)>
+				(&AddFunctionValuesToGridCoordinatesP1<GF>), grp);
+		reg.add_function (
+			"AddFunctionValuesToGridCoordinatesP1", static_cast<void (*) (SmartPtr<GF>, const char*, size_t, number)>
 				(&AddFunctionValuesToGridCoordinatesP1<GF>), grp);
 	}
 }
