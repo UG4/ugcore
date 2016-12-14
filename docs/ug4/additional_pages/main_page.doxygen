@@ -47,7 +47,7 @@ Scientific Computing</em> at the <em>University of Frankfurt, Germany </em>
 <hr>
 \section secWhatIsIt What is ug4?
 
-\ug4 is a simulation framework, targetted at the solution of
+\ug4 is a simulation framework, targeted at the solution of
 differential equations on unstructured hybrid grids in 1, 2 and 3 dimensions
 on systems reaching from laptops to massively parallel systems.
 \ug4 is written in C++, striving for a flexible, yet fast and robust simulation 
