@@ -90,6 +90,24 @@ number CalculateTetrahedronAspectRatio(Grid& grid, Tetrahedron* tet,
 							Grid::VertexAttachmentAccessor<APosition>& aaPos);
 
 
+////////////////////////////////////////////////////////////////////////////////////////////
+//	CalculateTetrahedronRootMeanSquareFaceArea - mstepnie
+////////////////////////////////////////////////////////////////////////////////////////////
+UG_API
+number CalculateTetrahedronRootMeanSquareFaceArea(Grid& grid,
+												  Tetrahedron* tet,
+												  Grid::VertexAttachmentAccessor<APosition>& aaPos);
+
+
+////////////////////////////////////////////////////////////////////////////////////////////
+//	CalculateTetrahedronVolToRMSFaceAreaRatio - mstepnie
+////////////////////////////////////////////////////////////////////////////////////////////
+UG_API
+number CalculateTetrahedronVolToRMSFaceAreaRatio(Grid& grid,
+											  	 Tetrahedron* tet,
+												 Grid::VertexAttachmentAccessor<APosition>& aaPos);
+
+
 ////////////////////////////////////////////////////////////////////////
 //	PointIsInsideTetrahedron - sreiter
 ///	returns true if the point lies inside the tetrahedron

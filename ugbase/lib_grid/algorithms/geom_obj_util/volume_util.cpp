@@ -286,8 +286,11 @@ number CalculateTetrahedronAspectRatio(Grid& grid, Tetrahedron* tet,
 									   Grid::VertexAttachmentAccessor<AVector3>& aaPos)
 {
 	/*
-	 * optimal Aspect Ratio of a regular tetrahedron
-	 * Q = a / a / sqrt(2/3) = 1.22...
+	 * optimal Aspect Ratio of a regular tetrahedron with edge lengths a:
+	 * Q = hmin/lmax = sqrt(2/3)*a / a = 0.8164...
+	 *
+	 * Info: return value is normalized by factor sqrt(3/2)
+	 * (s. Shewchuk 2002)
 	 */
 
 	number aspectRatio;
@@ -304,9 +307,66 @@ number CalculateTetrahedronAspectRatio(Grid& grid, Tetrahedron* tet,
 	minTetrahedronHeight = CalculateMinVolumeHeight(tet, aaPos);
 
 //	Calculate the aspect ratio
-	aspectRatio =  maxEdgeLength / minTetrahedronHeight;
+	aspectRatio =  std::sqrt(3/2.0) * minTetrahedronHeight / maxEdgeLength;
 
 	return aspectRatio;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////
+//	CalculateTetrahedronRootMeanSquareFaceArea - mstepnie
+////////////////////////////////////////////////////////////////////////////////////////////
+UG_API
+number CalculateTetrahedronRootMeanSquareFaceArea(Grid& grid,
+												  Tetrahedron* tet,
+												  Grid::VertexAttachmentAccessor<APosition>& aaPos)
+{
+//	Collect tetrahedron faces
+	vector<Face*> faces;
+	CollectAssociated(faces, grid, tet);
+
+	number A;
+	number A_rms = 0.0;
+
+	for(size_t i = 0; i < faces.size(); ++i)
+	{
+		A = FaceArea(faces[i], aaPos);
+		A_rms += A*A;
+	}
+
+	A_rms *= 0.25;
+	A_rms = std::sqrt(A_rms);
+
+	return A_rms;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////
+//	CalculateTetrahedronVolToRMSFaceAreaRatio - mstepnie
+////////////////////////////////////////////////////////////////////////////////////////////
+UG_API
+number CalculateTetrahedronVolToRMSFaceAreaRatio(Grid& grid,
+										  	  	 Tetrahedron* tet,
+												 Grid::VertexAttachmentAccessor<APosition>& aaPos)
+{
+	/*
+	 * optimal volume to root-mean-square face area ratio of a
+	 * regular tetrahedron with edge lengths a:
+	 * Q = V/A_rms^(3/2)
+	 *
+	 * Info: return value is normalized by factor pow(3, 7/4.0) / 2.0 / sqrt(2);
+	 * (s. Shewchuk 2002)
+	 */
+
+	number vol = CalculateTetrahedronVolume(aaPos[tet->vertex(0)],
+											aaPos[tet->vertex(1)],
+											aaPos[tet->vertex(2)],
+											aaPos[tet->vertex(3)]);
+
+	number A_rms = CalculateTetrahedronRootMeanSquareFaceArea(grid, tet, aaPos);
+	number normalization = std::pow(3, 7/4.0) / 2.0 / std::sqrt(2);
+
+	return normalization * vol / std::pow(A_rms, 3/2.0);
 }
 
 

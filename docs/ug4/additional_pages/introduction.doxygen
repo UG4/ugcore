@@ -32,7 +32,7 @@
 
 /** \page pageUG4Introduction Introduction
 
-\ug4 is a simulation framework, targetted at the solution of differential 
+\ug4 is a simulation framework, targeted at the solution of differential 
 equations on unstructured hybrid grids in 1, 2 and 3 dimensions on systems 
 reaching from laptops to massively parallel systems.
 \ug4 is written in C++, striving for a flexible, yet fast and robust simulation 
@@ -53,10 +53,10 @@ Features are:
   - An efficient extensible grid manager supporting distributed adaptive hybrid
     multigrids in 1, 2 and 3 dimensions.
     Supported element types are vertices, edges, triangles, quadrilaterals, 
-    tetrahedrons, hexahedrons, prisms and pyramids. 
+    tetrahedra, hexahedra, prisms and pyramids. 
     
   - A flexible algebra independent from grid and discretization designed to
-  	swap the core functions to support double/single precission, 
+  	swap the core functions to support double/single precision, 
   	systems of equations and GPGPUs. A flexible Sparse Matrix with the ability
   	to change the structure and do efficient computations at any time allowing
   	easy integration of very flexible discretization strategies and numerical

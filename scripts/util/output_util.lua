@@ -115,7 +115,7 @@ function util.Balance(DataToBeWrittenTable)
 	local PrintFreq = DataToBeWrittenTable.datafreq or 1
 	local PrintPVD = DataToBeWrittenTable.write_pvd or false
 	local PrintProcesswisePVD = DataToBeWrittenTable.write_processwise_pvd or false
-	
+	local vecOutput = nil
 	----------------------------------
 	-- loop "Data-to-be-written"-Table
 	----------------------------------
@@ -136,6 +136,9 @@ function util.Balance(DataToBeWrittenTable)
 		end
 		table.insert(Filenames, file)
 		
+		if DataSet.vecOutput ~= nil then
+			vecOutput = DataSet.vecOutput
+		end
 		----------------------------------
 		-- check for vtk-data
 		----------------------------------
@@ -387,6 +390,11 @@ function util.Balance(DataToBeWrittenTable)
 		if (step < 0) or (math.fmod(step, PrintFreq) == 0) then
 		if verbose then print(" ******** Start Balancing ********") end		
 		
+		-- write ascii-vector
+		if type(vecOutput) == "table" and vecOutput.filename and vecOutput.data then
+			SaveVectorForConnectionViewer(vecOutput.data, vecOutput.filename.."-"..step..".vec")
+		end
+
 		-- write VTK datas
 		for _, vtkData in ipairs(VTK) do
 			local vtkOut = vtkData[1]

@@ -1068,10 +1068,12 @@ void HangingNodeRefinerBase<TSelector>::collect_objects_for_refine()
 
 	//	call the adjusters
 		for(size_t i = 0; i < m_refMarkAdjusters.size(); ++i){
-			m_refMarkAdjusters[i]->ref_marks_changed(*this, newlyMarkedVrts,
-														newlyMarkedEdges,
-														newlyMarkedFaces,
-														newlyMarkedVols);
+			if(m_refMarkAdjusters[i]->enabled()){
+				m_refMarkAdjusters[i]->ref_marks_changed(*this, newlyMarkedVrts,
+															newlyMarkedEdges,
+															newlyMarkedFaces,
+															newlyMarkedVols);
+			}
 		}
 
 		bool continueRequired =	(!m_newlyMarkedRefVrts.empty())

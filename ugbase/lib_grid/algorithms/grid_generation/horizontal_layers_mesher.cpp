@@ -101,7 +101,8 @@ void ExtrudeLayers (
 		const RasterLayers& layers,
 		Grid::VertexAttachmentAccessor<AVector3> aaPos,
 		ISubsetHandler& sh,
-		bool allowForTetsAndPyras)
+		bool allowForTetsAndPyras,
+		const ANumber* aRelZOut)
 {
 	UG_COND_THROW(layers.size() < 2, "At least 2 layers are required to perform extrusion!");
 
@@ -128,10 +129,18 @@ void ExtrudeLayers (
 	grid.reserve<Vertex>(grid.num_vertices() * layers.size());
 	grid.reserve<Volume>(grid.num_faces() * layers.size() - 1);
 
-//	this accessor is used during smoothing only
+//	todo: this accessor is primarily used during smoothing. Maybe it can be removed?
 	ANumber aHeight;
 	grid.attach_to_vertices(aHeight);
 	Grid::VertexAttachmentAccessor<ANumber> aaHeight(grid, aHeight);
+
+	Grid::VertexAttachmentAccessor<ANumber> aaRelZOut;
+	if(aRelZOut){
+		ANumber aRelZ = *aRelZOut;
+		if(!grid.has_vertex_attachment(aRelZ))
+			grid.attach_to_vertices(aRelZ);
+		aaRelZOut.access(grid, aRelZ);
+	}
 
 //	we have to determine the vertices that can be projected onto the top of the
 //	given layers-stack. Only those will be used during extrusion
@@ -140,7 +149,10 @@ void ExtrudeLayers (
 	const int topLayerInd = (int)layers.num_layers() - 1;
 	for(VertexIterator i = grid.begin<Vertex>(); i != grid.end<Vertex>(); ++i){
 		Vertex* v = *i;
-		number val = top.heightfield.interpolate(vector2(aaPos[v].x(), aaPos[v].y()));
+		vector2 c(aaPos[v].x(), aaPos[v].y());
+		// number val = top.heightfield.interpolate(c);
+		number val = layers.relative_to_global_height(c, topLayerInd);
+
 		if(val != top.heightfield.no_data_value()){
 			aaPos[v].z() = val;
 			curVrts.push_back(v);
@@ -152,6 +164,11 @@ void ExtrudeLayers (
 	if(curVrts.size() < 3){
 		UG_LOG("Not enough vertices lie in the region of the surface layer\n");
 		return;
+	}
+
+	if(aaRelZOut.valid()){
+		for(size_t ivrt = 0; ivrt < curVrts.size(); ++ivrt)
+			aaRelZOut[curVrts[ivrt]] = topLayerInd;
 	}
 
 //	all faces of the initial triangulation that are only connected to marked
@@ -202,6 +219,7 @@ void ExtrudeLayers (
 		for(size_t icur = 0; icur < curVrts.size(); ++icur){
 			Vertex* v = curVrts[icur];
 			vector2 c(aaPos[v].x(), aaPos[v].y());
+			number height = layers.relative_to_global_height(c, (number) ilayer);
 			pair<int, number> val = layers.trace_line_down(c, ilayer);
 
 			if(val.first >= 0){
@@ -211,8 +229,6 @@ void ExtrudeLayers (
 			//	a linear interpolation is performed, considering the height-val
 			//	of the current vertex, the layer distance and the target value.
 			//	This height-value will be corrected later on after extrusion
-				number ia = 1. / ((number)ilayer - (number)val.first + 1.);
-				number height = (1. - ia) * aaPos[v].z() + ia * val.second;
 				tmpVrts.push_back(v);
 				vrtHeightVals.push_back(height);
 				aaHeight[v] = upperVal.second - val.second;//total height of ilayer
@@ -225,7 +241,6 @@ void ExtrudeLayers (
 				pair<int, number> upperVal = layers.trace_line_up(c, ilayer+1);
 				UG_COND_THROW(upperVal.first == -1, "An upper layer has to exist");
 				tmpVrts.push_back(v);
-				number height = aaPos[v].z() - layers.min_height(ilayer);
 				vrtHeightVals.push_back(height);
 				aaHeight[v] = upperVal.second - val.second;//total height of ilayer
 				sh.assign_subset(v, invalidSub);
@@ -306,6 +321,11 @@ void ExtrudeLayers (
 	//	set the precalculated height of new vertices
 		for(size_t ivrt = 0; ivrt < curVrts.size(); ++ivrt){
 			aaPos[curVrts[ivrt]].z() = vrtHeightVals[ivrt];
+		}
+
+		if(aaRelZOut.valid()){
+			for(size_t ivrt = 0; ivrt < curVrts.size(); ++ivrt)
+				aaRelZOut[curVrts[ivrt]] = ilayer;
 		}
 
 

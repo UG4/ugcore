@@ -46,7 +46,7 @@
 
 //#define LG_DISTRIBUTION_DEBUG
 //#define LG_DISTRIBUTION_Z_OUTPUT_TRANSFORM 40
-
+// #define UG_DLOG(id, idx, msg)	UG_LOG("DLOG: " << msg)
 
 using namespace std;
 
@@ -1747,9 +1747,20 @@ static void SynchronizeAttachedGlobalAttachments (
 				Grid& g,
 				const pcl::ProcessCommunicator& procComm)
 {
+	UG_DLOG(LG_DIST, 1, "SynchronizeAttachedGlobalAttachments start\n");
+
+//	now make sure that the same global attachments are attached everywhere
 	const vector<string>&  names = GlobalAttachments::declared_attachment_names();
-	if(names.empty())
+
+//	make sure that the same number of attachments is declared on all processes
+	const size_t maxNumAttachmentNames = procComm.allreduce(names.size(), PCL_RO_MAX);
+	UG_COND_THROW(pcl::OneProcTrue(maxNumAttachmentNames != names.size(), procComm),
+				  "Different number of global attachments declared on different processes!");
+
+	if(maxNumAttachmentNames == 0)
 		return;
+
+	vector<string>	attachedNamesAndTypes;
 
 	vector<byte> locAttached(names.size(), 0);
 	for(size_t i = 0; i < names.size(); ++i){
@@ -1781,6 +1792,7 @@ static void SynchronizeAttachedGlobalAttachments (
 		if((b & 1<<3) && !GlobalAttachments::is_attached<Volume>(g, names[i]))
 			GlobalAttachments::attach<Volume>(g, names[i]);
 	}
+	UG_DLOG(LG_DIST, 1, "SynchronizeAttachedGlobalAttachments end\n");
 }
 
 

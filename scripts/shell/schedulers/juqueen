@@ -31,6 +31,7 @@ function UJS_Submit
 # @ output = job.output
 # @ environment = COPY_ALL
 # @ wall_clock_limit = $walltime
+# @ group = $(q_cpuquota | grep -Po "Project:[ ]*\K[^ ]+" -m 1 | tr '[:upper:]' '[:lower:]')
 EOF
 
 	JuqueenNotification="never"
