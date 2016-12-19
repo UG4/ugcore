@@ -731,8 +731,8 @@ prolongate(GF& uFine, const GF& uCoarse)
 				"different approximation spaces.");
 
 	try{
-
-		prolongation(fineGL, coarseGL, spApproxSpace)->apply(uFine, uCoarse);
+		//prolongation(fineGL, coarseGL, spApproxSpace)->apply(uFine, uCoarse);
+		prolongation(fineGL, coarseGL, spApproxSpace)->axpy(uFine, 0.0, uFine, m_dampProl, uCoarse);
 
 	// 	adjust using constraints
 		for (int type = 1; type < CT_ALL; type = type << 1)
@@ -807,6 +807,7 @@ StdTransfer<TDomain, TAlgebra>::clone()
 	for(size_t i = 0; i < m_vConstraint.size(); ++i)
 		op->add_constraint(m_vConstraint[i]);
 	op->set_restriction_damping(m_dampRes);
+	op->set_prolongation_damping(m_dampProl);
 	op->set_debug(m_spDebugWriter);
 	op->enable_p1_lagrange_optimization(p1_lagrange_optimization_enabled());
 	op->set_use_transposed(m_bUseTransposed);
