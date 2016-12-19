@@ -55,9 +55,9 @@ void AddFunctionValuesToGridCoordinatesP1(
 {
 //	check if fast P1 interpolation may be used
 	UG_COND_THROW(
-		!spGridFct->local_finite_element_id(fct).type() == LFEID::LAGRANGE
+		spGridFct->local_finite_element_id(fct).type() != LFEID::LAGRANGE
 		|| spGridFct->local_finite_element_id(fct).order() != 1,
-		"Fast P1 interpolation may only be used for lagrange P1 functions.");
+		"Fast P1 interpolation may only be used for Lagrange P1 functions.");
 
 //	domain type and position_type
 	typedef typename TGridFunction::domain_type domain_type;

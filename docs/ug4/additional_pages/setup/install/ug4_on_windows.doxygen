@@ -44,12 +44,12 @@ is required to build \ug4.
 <hr>
 \section secWindowsCompiler Compiler
 
-The Microsoft Visual C++ 2013 compiler is recommended for compilation of \ug4
+The Microsoft Visual C++ 2015 compiler is recommended for compilation of \ug4
 on windows. It can be downloaded as part of the free
-"Express 2013 for Windows Desktop" edition of Visual Studio
-(https://www.visualstudio.com/en-us/products/visual-studio-express-vs.aspx).
+"Express 2015 for Windows Desktop" edition of Visual Studio
+(https://www.visualstudio.com/downloads/#visual-studio-express-2015-for-windows-desktop).
 
-To allow for parallel compilation in the terminal one can use the tool "jom"
+To allow for parallel compilation in the terminal one can optionally use the tool "jom"
 (https://wiki.qt.io/Jom). Extract it and add the path in which the executable
 lies to your path environment variable.
 
@@ -66,10 +66,10 @@ the command-line tools, too.
 <hr>
 \section secWindowsBuild	Building
 
-	-	Open 'VS2013 x64 Cross Tools-Eingabeaufforderung'
-		(Start -> All Programs -> Visual Studio 2013 -> Visual Studio-Tools)
+	-	Open 'VS2015 x64 Cross Tools Command Prompt'
+		(Start -> All Programs -> Visual Studio 2015)
 		if you want to compile a 64bit version of \ug4. If you only want to
-		compile for 32bit, use 'VS2013 x86 Native Tools-Eingabeaufforderung'.
+		compile for 32bit, use 'VS2015 x86 Native Tools Command Prompt'.
 	
 	-	Navigate to your ug4-source-code root folder
 
@@ -89,11 +89,11 @@ the command-line tools, too.
 
 \note	If you want to embed the build-process in your favorite IDE (e.g. Eclipse or Sublime)
 		you most likely have to initialize the build environment before executing jom.
-		You can do this by calling '"C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" x86_amd64'
+		You can do this by calling, e.g. '"C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" x86_amd64'
 		before calling jom.
 
 \note	If you want to compile directly using the VisualStudio IDE, you should specify another
-		builder for cmake. Create a new build directory and call 'cmake -G"Visual Studio 2013" ...'
+		builder for cmake. Create a new build directory and call, e.g. 'cmake -G"Visual Studio 2013" ...'
 		(rest as above). This creates a visual-studio project which you can edit and compile
 		using the Visual Studio IDE.
 */
