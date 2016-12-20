@@ -732,8 +732,11 @@ prolongate(GF& uFine, const GF& uCoarse)
 
 	try{
 		//prolongation(fineGL, coarseGL, spApproxSpace)->apply(uFine, uCoarse);
+#ifdef UG_PARALLEL
 		MatMultDirect(uFine, m_dampProl, *prolongation(fineGL, coarseGL, spApproxSpace), uCoarse);
-		//prolongation(fineGL, coarseGL, spApproxSpace)->axpy(uFine, 0.0, uFine, m_dampProl, uCoarse);
+#else
+		prolongation(fineGL, coarseGL, spApproxSpace)->axpy(uFine, 0.0, uFine, m_dampProl, uCoarse);
+#endif
 
 	// 	adjust using constraints
 		for (int type = 1; type < CT_ALL; type = type << 1)
