@@ -367,10 +367,10 @@ function util.solver.CreateTransfer(transferDesc)
 
 	transfer:enable_p1_lagrange_optimization(desc.enableP1LagrangeOptimization or defaults.enableP1LagrangeOptimization)
 
-	if desc.restrictionDamp then	
+	if type(desc.restrictionDamp) == "number" and desc.restrictionDamp ~= 1.0 then	
 		transfer:set_restriction_damping(desc.restrictionDamp)
 	end
-	if desc.prolongationDamp then	
+	if type(desc.prolongationDamp) == "number" and desc.restrictionDamp ~= 1.0 then	
 		transfer:set_prolongation_damping(desc.prolongationDamp)
 	end
 	
