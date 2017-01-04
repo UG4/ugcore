@@ -80,15 +80,19 @@ class StdTransfer :
 	/// Default constructor
 		StdTransfer() : ITransferOperator<TDomain, TAlgebra>(),
 						m_p1LagrangeOptimizationEnabled(true),
-						m_dampRes(1.0), bCached(true), m_bUseTransposed(true),
+						m_dampRes(1.0), m_dampProl(1.0),
+						bCached(true), m_bUseTransposed(true),
 						m_spDebugWriter(NULL)
 		{};
 
 	/// virtual destructor
 		virtual ~StdTransfer(){};
 
-	///	set interpolation damping
+	///	set restriction damping (only applied on vector operation, not (!!) in assembled matrices)
 		void set_restriction_damping(number damp) {m_dampRes = damp;}
+
+	///	set prolongation damping (only applied on vector operation, not (!!) in assembled matrices)
+		void set_prolongation_damping(number damp) {m_dampProl = damp;}
 
 	///	set debug writer
 		void set_debug(SmartPtr<IDebugWriter<TAlgebra> > spDebugWriter) {
@@ -228,6 +232,7 @@ class StdTransfer :
 
 	///	damping parameter
 		number m_dampRes;
+		number m_dampProl;
 
 	///	flag if cached (matrix) transfer used
 		bool bCached;

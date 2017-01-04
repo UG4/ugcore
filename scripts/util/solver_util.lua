@@ -177,7 +177,9 @@ util.solver.defaults =
 			rap = false,
 			rim = false,
 			emulateFullRefined = false,
-			smoother = "gs"
+			smoother = "gs",
+			transfer = "std",
+			debug = false
 		},
 
 		ilu = {
@@ -198,6 +200,16 @@ util.solver.defaults =
 		schur = {
 			dirichletSolver	= "lu",
 			skeletonSolver	= "lu"
+		}
+	},
+	
+	transfer = 
+	{
+		std = {
+			restrictionDamp = 1.0,
+			prolongationDamp = 1.0,
+			enableP1LagrangeOptimization = true,
+			debug = false
 		}
 	},
 
@@ -340,6 +352,34 @@ function util.solver.CreateLinearSolver(solverDesc, solverutil)
 	return linSolver
 end
 
+function util.solver.CreateTransfer(transferDesc)
+
+	local name, desc = util.tableDesc.ToNameAndDesc(transferDesc)
+	local defaults   = util.solver.defaults.transfer[name]
+	if desc == nil then desc = defaults end
+
+	local transfer = nil
+	if name == "std" then
+		transfer = StdTransfer()
+	end
+
+	util.solver.CondAbort(transfer == nil, "Invalid transfer specified: " .. name)
+
+	transfer:enable_p1_lagrange_optimization(desc.enableP1LagrangeOptimization or defaults.enableP1LagrangeOptimization)
+
+	if type(desc.restrictionDamp) == "number" and desc.restrictionDamp ~= 1.0 then	
+		transfer:set_restriction_damping(desc.restrictionDamp)
+	end
+	if type(desc.prolongationDamp) == "number" and desc.restrictionDamp ~= 1.0 then	
+		transfer:set_prolongation_damping(desc.prolongationDamp)
+	end
+	
+	if (desc.debug or defaults.debug) then
+		transfer:set_debug(GridFunctionDebugWriter(approxSpace))
+	end
+	
+	return transfer
+end
 
 function util.solver.CreatePreconditioner(precondDesc, solverutil)
 	solverutil = util.solver.PrepareSolverUtil(solverDesc, solverutil)
@@ -399,13 +439,18 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 				desc.gatheredBaseSolverIfAmbiguous or
 				defaults.gatheredBaseSolverIfAmbiguous)
 
+		local transfer = util.solver.CreateTransfer(desc.transfer or defaults.transfer)
 		if desc.adaptive == true then
-			local transfer = StdTransfer()
 			local project = StdTransfer()
-			transfer:enable_p1_lagrange_optimization(false)
 			project:enable_p1_lagrange_optimization(false)
-			gmg:set_transfer(transfer)
 			gmg:set_projection(project)
+
+			transfer:enable_p1_lagrange_optimization(false)
+		end
+		gmg:set_transfer(transfer)
+
+		if (desc.debug or defaults.debug) then
+			gmg:set_debug(GridFunctionDebugWriter(approxSpace))
 		end
 
 		local discretization = desc.discretization or util.solver.defaults.discretization
