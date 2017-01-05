@@ -196,7 +196,7 @@ class GridFunction
 	///	assigns another grid function
 		this_type& operator=(const this_type& v) 
 		{ 
-		  if (this!=v) assign(v); 
+		  if (this!= &v) assign(v); 
 		  return *this;
 		}
 
