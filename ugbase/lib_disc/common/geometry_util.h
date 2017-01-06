@@ -997,6 +997,91 @@ bool SCVFofSCVRayIntersection(	size_t& sideOut, number& bc,
 }
 
 
+
+///////////////////////////////////////////////////////////////
+/// Extension of an element (in a given dimension)
+///////////////////////////////////////////////////////////////
+
+
+template <typename TVector>
+inline void ComputeElementExtensionsSqForEdges(const TVector* vCornerCoords, TVector &ext)
+{
+	VecElemProd(ext, vCornerCoords[0], vCornerCoords[1]);
+}
+
+
+template <int TWorldDim, int ncorners>
+inline void ComputeElementExtensionsSq(const MathVector<TWorldDim>* vCornerCoords, MathVector<TWorldDim> &ext)
+{
+	// compute center
+	MathVector<TWorldDim> mid;
+	for (int i=ncorners-1; i>=0; --i){
+		VecAppend(mid, vCornerCoords[i]);
+	}
+	VecScale(mid, mid, 1.0/ncorners);
+
+	// compute
+	ext = 0.0;
+	MathVector<TWorldDim> aux;
+	for (int i=ncorners-1; i>=0; --i){
+		VecSubtract(aux, mid, vCornerCoords[i]);
+		VecElemProd(aux, aux, aux);
+		VecAppend(ext, aux);
+	}
+	VecScale(ext, ext, 1.0/ncorners);
+}
+
+///////////////////////////////////////////////////////////////
+//	extensions of an element
+///////////////////////////////////////////////////////////////
+
+
+template <int dim>
+inline void ElementExtensionsSq(ReferenceObjectID roid, MathVector<dim>& ext, const MathVector<dim>* vCornerCoords);
+
+template <>
+inline void ElementExtensionsSq<1>(ReferenceObjectID roid, MathVector<1>& ext, const MathVector<1>* vCornerCoords)
+{
+	switch(roid)
+	{
+		case ROID_VERTEX: 			ext = 0; return;
+		case ROID_EDGE: 			ComputeElementExtensionsSqForEdges(vCornerCoords,ext); return;
+		default: UG_THROW("ReferenceObject "<<roid<<" not found in dim 1.");
+	}
+}
+
+template <>
+inline void ElementExtensionsSq<2>(ReferenceObjectID roid, MathVector<2>& ext, const MathVector<2>* vCornerCoords)
+{
+	switch(roid)
+	{
+		case ROID_VERTEX: 			ext = 0; return;
+		case ROID_EDGE: 			ComputeElementExtensionsSqForEdges(vCornerCoords,ext); return;
+		case ROID_TRIANGLE: 		ComputeElementExtensionsSq<2,3>(vCornerCoords,ext); return;
+		case ROID_QUADRILATERAL: 	ComputeElementExtensionsSq<2,4>(vCornerCoords,ext); return;
+		default: UG_THROW("ReferenceObject "<<roid<<" not found in dim 2.");
+	}
+}
+
+template <>
+inline void ElementExtensionsSq<3>(ReferenceObjectID roid, MathVector<3>& ext, const MathVector<3>* vCornerCoords)
+{
+	switch(roid)
+	{
+		case ROID_VERTEX: 			ext = 0; return;
+		case ROID_EDGE: 			ComputeElementExtensionsSqForEdges(vCornerCoords,ext); return; return;
+		case ROID_TRIANGLE: 		ComputeElementExtensionsSq<3,3>(vCornerCoords,ext); return;
+		case ROID_QUADRILATERAL: 	ComputeElementExtensionsSq<3,4>(vCornerCoords,ext); return;
+		case ROID_TETRAHEDRON: 		ComputeElementExtensionsSq<3,4>(vCornerCoords,ext); return;
+		case ROID_PYRAMID: 			ComputeElementExtensionsSq<3,5>(vCornerCoords,ext); return;
+		case ROID_PRISM: 			ComputeElementExtensionsSq<3,6>(vCornerCoords,ext); return;
+		case ROID_HEXAHEDRON: 		ComputeElementExtensionsSq<3,8>(vCornerCoords,ext); return;
+		case ROID_OCTAHEDRON: 		ComputeElementExtensionsSq<3,6>(vCornerCoords,ext); return;
+		default: UG_THROW("ReferenceObject "<<roid<<" not found in dim 3.");
+	}
+}
+
+
 } // end namespace ug
 
 #endif /* __H__UG__LIB_DISC__COMMON__GEOMETRY_UTIL__ */

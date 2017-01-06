@@ -370,6 +370,22 @@ VecInftyNorm(const vector_t& v);
 // end group vectors
 /// \}
 
+
+////////////////////////////////////////////////////////////////
+// Elementwise operations
+
+// component-wise product: vOut_i = v1_i*v2_i
+template <typename vector_t>
+inline
+void
+VecElemProd(vector_t& vOut, const vector_t& v1, const vector_t& v2);
+
+///	component-wise square root: o_i=\sqrt v_i
+template <typename vector_t>
+inline
+void
+VecElemSqrt(vector_t& vOut, const vector_t& v1);
+
 }//	end of namespace
 
 ////////////////////////////////////////////////////////////////////////
