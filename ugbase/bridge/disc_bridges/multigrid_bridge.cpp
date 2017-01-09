@@ -199,6 +199,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 		.template add_constructor<void (*)(const std::string&)>("patch_type")
 		.template add_constructor<void (*)(number, const std::string&)>("relax#patch_type")
 		.add_method("set_relax", &T::set_relax, "", "relax")
+		.add_method("select_schur_cmp", &T::select_schur_cmp, "", "")
+		.add_method("set_elim_offdiag", &T::set_elim_offdiag, "", "")
 		.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ElementGaussSeidel", tag);
 	}
