@@ -301,6 +301,8 @@ void TetrahedralizeHybridTetOctGrid(MultiGrid& mg, int bestDiag)
 {
 	PROFILE_FUNC_GROUP("subdivision_volumes");
 
+	DistributedGridManager* dgm = mg.distributed_grid_manager();
+
 	if(bestDiag != 0 && bestDiag != 1 && bestDiag != 2)
 	{
 		bestDiag = -1;
@@ -319,6 +321,20 @@ void TetrahedralizeHybridTetOctGrid(MultiGrid& mg, int bestDiag)
 		{
 			Octahedron* oct 	= dynamic_cast<Octahedron*>(*octIter);
 			Volume* parentVol 	= dynamic_cast<Volume*>(mg.get_parent(oct));
+
+			#ifdef UG_PARALLEL
+				/*
+				 * In case of parallel distribution e.g. in level 2
+				 * there can be subsequently be elements which
+				 * locally don’t have a parent (esp. V_SLAVES),
+				 * i.e. parentVol = NULL. And elements with
+				 * parent = NULL are associated to mg.level = 0.
+				 * Therefore, if(dgm->is_ghost(oct)) is not
+				 * sufficient.
+				 */
+				if(dgm->contains_status(oct, ES_V_SLAVE))
+					continue;
+			#endif
 
 			SplitOctahedronToTetrahedrons(mg, oct, parentVol, vTetsOut, bestDiag);
 		}
