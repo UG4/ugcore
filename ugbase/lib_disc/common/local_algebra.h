@@ -224,7 +224,7 @@ class LocalVector
 			for(size_t fct = 0; fct < m_vvValue.size(); ++fct)
 				for(size_t dof = 0; dof < m_vvValue[fct].size(); ++dof)
 					m_vvValue[fct][dof] = val;
-				return *this;
+			return *this;
 		}
 
 	/// multiply all components of the vector
