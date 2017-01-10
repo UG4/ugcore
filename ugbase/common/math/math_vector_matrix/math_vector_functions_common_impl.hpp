@@ -618,6 +618,32 @@ VecInftyNorm(const vector_t& v)
 }
 
 
+///	component-wise product
+template <typename vector_t>
+inline
+void
+VecElemProd(vector_t& vOut, const vector_t& v1, const vector_t& v2)
+{
+	typedef typename vector_t::size_type size_type;
+	for(size_type i = 0; i < vOut.size(); ++i)
+	{
+		vOut[i] = v1[i] * v2[i];
+	}
+}
+
+///	component-wise square root
+template <typename vector_t>
+inline
+void
+VecElemSqrt(vector_t& vOut, const vector_t& v1)
+{
+	typedef typename vector_t::size_type size_type;
+	for(size_type i = 0; i < vOut.size(); ++i)
+	{
+		vOut[i] = sqrt(v1[i]);
+	}
+}
+
 }//	end of namespace
 
 #endif /* __H__COMMON__MathVector_FUNCTIONS_COMMON_IMPL__ */
