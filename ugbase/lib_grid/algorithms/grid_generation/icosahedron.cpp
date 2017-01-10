@@ -115,4 +115,26 @@ void GenerateIcosphere(Grid& grid, const vector3& center, number radius,
 	sel.enable_autoselection(autoselectionEnabled);
 }
 
+
+void GenerateIcosphere(	std::vector<vector3>& trisOut,
+						const vector3& center,
+						number radius,
+						size_t refinements)
+{
+	Grid g;
+	APosition aPos;
+	g.attach_to_vertices(aPos);
+	Grid::VertexAttachmentAccessor<APosition> aaPos(g, aPos);
+
+	GenerateIcosphere(g, center, radius, refinements, aPos);
+
+	for(FaceIterator f_iter = g.begin<Face>(); f_iter != g.end<Face>(); ++f_iter)
+	{
+		Face* f = *f_iter;
+		for(size_t i_vrt = 0; i_vrt < f->num_vertices(); ++i_vrt){
+			trisOut.push_back(aaPos[f->vertex(i_vrt)]);
+		}
+	}
+}
+
 }// end of namespace

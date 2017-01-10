@@ -57,6 +57,19 @@ void GenerateIcosahedron(Grid& grid, const vector3& center,
 void GenerateIcosphere(Grid& grid, const vector3& center, number radius,
 						int numRefinements, AVector3& aPos, Selector* psel = NULL);
 
+///	Generates a list of triangle-corners for the given Ico-Sphere
+/**
+ * \param trisOut	std::vector of points. Contents are not cleared!
+ *					Computed vertices are written to this vector.
+ *					Three consecutive points form a triangle.
+ * \param center	Center of the sphere.
+ * \param radius	Radius of the sphere.
+ * \param refinements	number of refinements used to generate the Icosphere.
+ */
+void GenerateIcosphere(	std::vector<vector3>& trisOut,
+						const vector3& center,
+						number radius,
+						size_t refinements);
 }//	end of namespace
 
 #endif
