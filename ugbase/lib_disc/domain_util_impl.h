@@ -94,6 +94,22 @@ void CollectCornerCoordinates(	std::vector<typename TDomain::position_type>& vCo
 }
 
 ///	returns the corner coordinates of a geometric object
+template <typename TDomain>
+void CollectCornerCoordinates(int base_object_id,
+			std::vector<typename TDomain::position_type>& vCornerCoordsOut,
+			GridObject& elem, const TDomain& domain, bool clearContainer)
+{
+	switch(base_object_id)
+	{
+		case VERTEX: CollectCornerCoordinates<Vertex, TDomain>(vCornerCoordsOut, *dynamic_cast< Vertex*>(&elem), domain, clearContainer); return;
+		case EDGE: CollectCornerCoordinates<Edge, TDomain>(vCornerCoordsOut, *dynamic_cast< Edge*>(&elem), domain, clearContainer); return;
+		case FACE: CollectCornerCoordinates<Face, TDomain>(vCornerCoordsOut, *dynamic_cast< Face*>(&elem), domain, clearContainer); return;
+		case VOLUME: CollectCornerCoordinates<Volume, TDomain>(vCornerCoordsOut, *dynamic_cast< Volume*>(&elem), domain, clearContainer); return;
+		default: UG_THROW("CollectCornerCoordinates, base_object_id " << base_object_id << "unknown.");
+	}
+}
+
+///	returns the corner coordinates of a geometric object
 template <typename TElem, typename TDomain>
 void FillCornerCoordinates(	typename TDomain::position_type vCornerCoordsOut[],
                            	const TElem& elem, const TDomain& domain)
