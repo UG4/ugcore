@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2015:  G-CSC, Goethe University Frankfurt
- * Authors: Sebastian Reiter, Andreas Vogel
+ * Authors: Sebastian Reiter, Andreas Vogel, Jan Friebertshäuser
  * 
  * This file is part of UG4.
  * 
@@ -93,6 +93,24 @@ template <typename TElem, typename TDomain>
 void CollectCornerCoordinates(	std::vector<typename TDomain::position_type>& vCornerCoordsOut,
 								const TElem& elem, const TDomain& domain,
 								bool clearContainer = true);
+
+////////////////////////////////////////////////////////////////////////
+///	returns the corner coordinates of a geometric object
+///////////////////////////////////////////////////////////////////////////
+/** Returns the corner coordinates for a given geometric object in a vector
+ *
+ * This function calls CollectCornerCoordinates based on the base object id
+ *
+ * @param[out] vCornerCoordsOut
+ * @param[in] base_object_id
+ * @param[in] elem
+ * @param[in] domain
+ * @param[in] clearContainer
+ */
+template <typename TDomain>
+void CollectCornerCoordinates(int base_object_id,
+			std::vector<typename TDomain::position_type>& vCornerCoordsOut,
+			GridObject& elem, const TDomain& domain, bool clearContainer);
 
 ////////////////////////////////////////////////////////////////////////
 ///	returns the size of a geometric object

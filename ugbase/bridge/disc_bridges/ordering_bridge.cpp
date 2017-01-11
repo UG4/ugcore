@@ -44,6 +44,7 @@
 #include "lib_disc/domain.h"
 #include "lib_disc/dof_manager/ordering/cuthill_mckee.h"
 #include "lib_disc/dof_manager/ordering/lexorder.h"
+#include "lib_disc/dof_manager/ordering/downwindorder.h"
 
 using namespace std;
 
@@ -107,6 +108,16 @@ static void Domain(Registry& reg, string grp)
 //	Order lexicographically
 	{
 		reg.add_function("OrderLex", static_cast<void (*)(approximation_space_type&, const char*)>(&OrderLex<TDomain>), grp);
+	}
+//	Order in downwind direction
+	{
+		reg.add_function("OrderDownwind", static_cast<void (*)(approximation_space_type&, SmartPtr<UserData<MathVector<TDomain::dim>, TDomain::dim> >)> (&ug::OrderDownwind<TDomain>), grp);
+		reg.add_function("OrderDownwind", static_cast<void (*)(approximation_space_type&, const std::vector<number>&)>(&ug::OrderDownwind<TDomain>), grp);
+		reg.add_function("OrderDownwind", static_cast<void (*)(approximation_space_type&, const char*)>(&ug::OrderDownwind<TDomain>), grp);
+
+		reg.add_function("OrderDownwind", static_cast<void (*)(approximation_space_type&, SmartPtr<UserData<MathVector<TDomain::dim>, TDomain::dim> >, number)> (&ug::OrderDownwind<TDomain>), grp);
+		reg.add_function("OrderDownwind", static_cast<void (*)(approximation_space_type&, const std::vector<number>&, number)>(&ug::OrderDownwind<TDomain>), grp);
+		reg.add_function("OrderDownwind", static_cast<void (*)(approximation_space_type&, const char*, number)>(&ug::OrderDownwind<TDomain>), grp);
 	}
 
 }
