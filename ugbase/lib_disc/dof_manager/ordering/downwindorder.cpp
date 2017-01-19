@@ -137,7 +137,7 @@ void OrderDownwindForDofDist(SmartPtr<DoFDistribution> dd, ConstSmartPtr<TDomain
 				number anglex1_2 = VecAngle(vDir1_2, vVel1);
 
 				// if angle is smaller then threshold continue else remove connection
-				if (anglex1_2 <= threshold and i != *AdjIter)
+				if (anglex1_2 <= threshold && i != *AdjIter)
 				{
 					vAncestorsCount.at(*AdjIter) += 1;
 					++AdjIter;
@@ -156,7 +156,7 @@ void OrderDownwindForDofDist(SmartPtr<DoFDistribution> dd, ConstSmartPtr<TDomain
 	size_t v,N;
 	for (v=0, N=0; v < vvConnections.size(); v++)
 	{
-		if (vAncestorsCount[v] == 0 and not vVisited[v])
+		if (vAncestorsCount[v] == 0 && !vVisited[v])
 		{
 			NumeriereKnoten(vvConnections, vVisited, vAncestorsCount, vNewIndex, N, v);
 		}
@@ -166,7 +166,7 @@ void OrderDownwindForDofDist(SmartPtr<DoFDistribution> dd, ConstSmartPtr<TDomain
 	if (N < vvConnections.size()){
 		size_t fails = 0;
 		for (v=0; v < vvConnections.size(); v++) {
-			if (not vVisited[v]) {
+			if (!vVisited[v]) {
 				UG_DLOG(LIB_DISC_ORDER, 2, v << "was not visited, has unresolved ancestors: " << vAncestorsCount[v] << std::endl);
 				fails ++;
 			}
