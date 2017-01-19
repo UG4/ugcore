@@ -34,7 +34,10 @@
 #define LIB_GRID__COPY_ATTACHMENT_HANDLER_H_
 
 
-#include "lib_grid/lib_grid.h"
+#include "lib_grid/parallelization/util/compol_copy_attachment.h" // ComPol_CopyAttachment
+#ifdef UG_PARALLEL
+    #include "lib_grid/parallelization/distributed_grid.h"        // DistributedGridManager
+#endif
 
 namespace ug{
 
