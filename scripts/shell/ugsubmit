@@ -487,6 +487,8 @@ if [ $interactive == false ]; then
 	fi	
 fi
 
+cd $execpath
+
 if [ $verbose == true ]; then
-	cat info.txt
+	cat ${outdir}/info.txt
 fi
