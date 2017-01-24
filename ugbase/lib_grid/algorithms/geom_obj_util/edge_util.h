@@ -129,7 +129,22 @@ int GetAssociatedFaces(Face** facesOut, Grid& grid,
  */
 UG_API 
 int NumAssociatedFaces(Grid& grid, Edge* e);
-						
+
+////////////////////////////////////////////////////////////////////////		
+///	returns the first edge found which is shared by both faces or NULL if no such edge exists.
+UG_API
+Edge* GetConnectingEdge(Grid& grid, Face* f1, Face* f2);
+
+
+////////////////////////////////////////////////////////////////////////		
+///	pushes all edges which are connected to at least 2 faces from the specified sequence to edgesOut
+template <class face_iter_t>
+void GetInnerEdgesOfFaceSoup(
+			std::vector<Edge*>& edgesOut,
+			Grid& g,
+			face_iter_t facesBegin,
+			face_iter_t facesEnd);
+
 ////////////////////////////////////////////////////////////////////////
 ///	Calculates the squared length of the given edge
 /**	The specified accessor has to access a MathVector compatible type
