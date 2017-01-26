@@ -113,11 +113,14 @@ static void Domain(Registry& reg, string grp)
 	{
 		reg.add_function("OrderDownwind", static_cast<void (*)(approximation_space_type&, SmartPtr<UserData<MathVector<TDomain::dim>, TDomain::dim> >)> (&ug::OrderDownwind<TDomain>), grp);
 		reg.add_function("OrderDownwind", static_cast<void (*)(approximation_space_type&, const std::vector<number>&)>(&ug::OrderDownwind<TDomain>), grp);
-		reg.add_function("OrderDownwind", static_cast<void (*)(approximation_space_type&, const char*)>(&ug::OrderDownwind<TDomain>), grp);
 
-		reg.add_function("OrderDownwind", static_cast<void (*)(approximation_space_type&, SmartPtr<UserData<MathVector<TDomain::dim>, TDomain::dim> >, number)> (&ug::OrderDownwind<TDomain>), grp);
-		reg.add_function("OrderDownwind", static_cast<void (*)(approximation_space_type&, const std::vector<number>&, number)>(&ug::OrderDownwind<TDomain>), grp);
-		reg.add_function("OrderDownwind", static_cast<void (*)(approximation_space_type&, const char*, number)>(&ug::OrderDownwind<TDomain>), grp);
+        reg.add_function("OrderDownwind", static_cast<void (*)(approximation_space_type&, SmartPtr<UserData<MathVector<TDomain::dim>, TDomain::dim> >, number)> (&ug::OrderDownwind<TDomain>), grp);
+        reg.add_function("OrderDownwind", static_cast<void (*)(approximation_space_type&, const std::vector<number>&, number)>(&ug::OrderDownwind<TDomain>), grp);
+
+#ifdef UG_FOR_LUA
+		reg.add_function("OrderDownwind", static_cast<void (*)(approximation_space_type&, const char*)>(&ug::OrderDownwind<TDomain>), grp);
+        reg.add_function("OrderDownwind", static_cast<void (*)(approximation_space_type&, const char*, number)>(&ug::OrderDownwind<TDomain>), grp);
+#endif
 	}
 
 }

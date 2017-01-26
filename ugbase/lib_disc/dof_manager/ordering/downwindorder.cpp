@@ -272,18 +272,21 @@ template void OrderDownwind<Domain3d>(ApproximationSpace<Domain3d>& approxSpace,
 
 #ifdef UG_DIM_1
 template void OrderDownwind<Domain1d>(ApproximationSpace<Domain1d>& approxSpace, SmartPtr<UserData<MathVector<Domain1d::dim>, Domain1d::dim> > spVelocity);
+template void OrderDownwind<Domain1d>(ApproximationSpace<Domain1d>& approxSpace, SmartPtr<UserData<MathVector<Domain1d::dim>, Domain1d::dim> > spVelocity, number threshold);
 template void OrderDownwind<Domain1d>(ApproximationSpace<Domain1d>& approxSpace, const std::vector<number>& vVel);
 template void OrderDownwind<Domain1d>(ApproximationSpace<Domain1d>& approxSpace, const std::vector<number>& vVel, number threshold);
 #endif
 
 #ifdef UG_DIM_2
 template void OrderDownwind<Domain2d>(ApproximationSpace<Domain2d>& approxSpace, SmartPtr<UserData<MathVector<Domain2d::dim>, Domain2d::dim> > spVelocity);
+template void OrderDownwind<Domain2d>(ApproximationSpace<Domain2d>& approxSpace, SmartPtr<UserData<MathVector<Domain2d::dim>, Domain2d::dim> > spVelocity, number threshold);
 template void OrderDownwind<Domain2d>(ApproximationSpace<Domain2d>& approxSpace, const std::vector<number>& vVel);
 template void OrderDownwind<Domain2d>(ApproximationSpace<Domain2d>& approxSpace, const std::vector<number>& vVel, number threshold);
 #endif
 
 #ifdef UG_DIM_3
 template void OrderDownwind<Domain3d>(ApproximationSpace<Domain3d>& approxSpace, SmartPtr<UserData<MathVector<Domain3d::dim>, Domain3d::dim> > spVelocity);
+template void OrderDownwind<Domain3d>(ApproximationSpace<Domain3d>& approxSpace, SmartPtr<UserData<MathVector<Domain3d::dim>, Domain3d::dim> > spVelocity, number threshold);
 template void OrderDownwind<Domain3d>(ApproximationSpace<Domain3d>& approxSpace, const std::vector<number>& vVel);
 template void OrderDownwind<Domain3d>(ApproximationSpace<Domain3d>& approxSpace, const std::vector<number>& vVel, number threshold);
 #endif
