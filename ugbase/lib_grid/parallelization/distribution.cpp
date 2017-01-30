@@ -1820,14 +1820,15 @@ bool DistributeGrid(MultiGrid& mg,
 	UG_DLOG(LG_DIST, 2, "dist: Informing msg-hub that distribution starts\n");
 	GDIST_PROFILE(gdist_distStartsCallback);
 	GridDataSerializationHandler	userDataSerializer;
-	SPMessageHub msgHub = mg.message_hub();
-	msgHub->post_message(GridMessage_Distribution(GMDT_DISTRIBUTION_STARTS, userDataSerializer));
 //	add global attachments to the user-data-serializer
 	SynchronizeAttachedGlobalAttachments(mg, procComm);
 	AddGlobalAttachmentsToSerializer<Vertex>(userDataSerializer, mg);
 	AddGlobalAttachmentsToSerializer<Edge>(userDataSerializer, mg);
 	AddGlobalAttachmentsToSerializer<Face>(userDataSerializer, mg);
 	AddGlobalAttachmentsToSerializer<Volume>(userDataSerializer, mg);
+
+	SPMessageHub msgHub = mg.message_hub();
+	msgHub->post_message(GridMessage_Distribution(GMDT_DISTRIBUTION_STARTS, userDataSerializer));
 
 	PCL_DEBUG_BARRIER(procComm);
 	GDIST_PROFILE_END();

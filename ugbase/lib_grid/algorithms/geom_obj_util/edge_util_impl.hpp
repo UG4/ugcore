@@ -36,10 +36,36 @@
 //#include "edge_util.h"
 #include <stack>
 #include <queue>
+#include <map>
 #include "lib_grid/grid/grid_util.h"
 #include "vertex_util.h"
 namespace ug
 {
+
+template <class face_iter_t>
+void GetInnerEdgesOfFaceSoup(
+			std::vector<Edge*>& edgesOut,
+			Grid& g,
+			face_iter_t facesBegin,
+			face_iter_t facesEnd)
+{
+	using namespace std;
+	map<Edge*, int>	m;
+
+	Grid::edge_traits::secure_container edges;
+	for(face_iter_t fiter = facesBegin; fiter != facesEnd; ++fiter)
+	{
+		g.associated_elements(edges, *fiter);
+		for(size_t i = 0; i < edges.size(); ++i)
+			++m[edges[i]];
+	}
+
+	for(map<Edge*, int>::iterator iter = m.begin(); iter != m.end(); ++iter)
+	{
+		if(iter->second > 1)
+			edgesOut.push_back(iter->first);
+	}
+}
 
 ////////////////////////////////////////////////////////////////////////
 template <class TAAPosVRT>

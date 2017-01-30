@@ -122,12 +122,14 @@ void GenerateIcosphere(	std::vector<vector3>& trisOut,
 						size_t refinements)
 {
 	Grid g;
-	APosition aPos;
+	APosition aPos = aPosition;
 	g.attach_to_vertices(aPos);
 	Grid::VertexAttachmentAccessor<APosition> aaPos(g, aPos);
 
 	GenerateIcosphere(g, center, radius, refinements, aPos);
 
+	trisOut.reserve(trisOut.size() + g.num<Face>() * 3);
+	
 	for(FaceIterator f_iter = g.begin<Face>(); f_iter != g.end<Face>(); ++f_iter)
 	{
 		Face* f = *f_iter;

@@ -196,7 +196,7 @@ bool IsVolumeBoundaryFace(Grid& grid, ConstrainingFace* f)
 
 ////////////////////////////////////////////////////////////////////////
 //	FaceQuality
-number FaceQuality(Face* f,
+number FaceQuality(FaceVertices* f,
 				Grid::VertexAttachmentAccessor<APosition> aaPos)
 {
 //	take dot-products at the corners.

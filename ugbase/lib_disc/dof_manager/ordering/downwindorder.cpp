@@ -137,7 +137,7 @@ void OrderDownwindForDofDist(SmartPtr<DoFDistribution> dd, ConstSmartPtr<TDomain
 				number anglex1_2 = VecAngle(vDir1_2, vVel1);
 
 				// if angle is smaller then threshold continue else remove connection
-				if (anglex1_2 <= threshold and i != *AdjIter)
+				if (anglex1_2 <= threshold && i != *AdjIter)
 				{
 					vAncestorsCount.at(*AdjIter) += 1;
 					++AdjIter;
@@ -156,7 +156,7 @@ void OrderDownwindForDofDist(SmartPtr<DoFDistribution> dd, ConstSmartPtr<TDomain
 	size_t v,N;
 	for (v=0, N=0; v < vvConnections.size(); v++)
 	{
-		if (vAncestorsCount[v] == 0 and not vVisited[v])
+		if (vAncestorsCount[v] == 0 && !vVisited[v])
 		{
 			NumeriereKnoten(vvConnections, vVisited, vAncestorsCount, vNewIndex, N, v);
 		}
@@ -166,7 +166,7 @@ void OrderDownwindForDofDist(SmartPtr<DoFDistribution> dd, ConstSmartPtr<TDomain
 	if (N < vvConnections.size()){
 		size_t fails = 0;
 		for (v=0; v < vvConnections.size(); v++) {
-			if (not vVisited[v]) {
+			if (!vVisited[v]) {
 				UG_DLOG(LIB_DISC_ORDER, 2, v << "was not visited, has unresolved ancestors: " << vAncestorsCount[v] << std::endl);
 				fails ++;
 			}
@@ -272,18 +272,21 @@ template void OrderDownwind<Domain3d>(ApproximationSpace<Domain3d>& approxSpace,
 
 #ifdef UG_DIM_1
 template void OrderDownwind<Domain1d>(ApproximationSpace<Domain1d>& approxSpace, SmartPtr<UserData<MathVector<Domain1d::dim>, Domain1d::dim> > spVelocity);
+template void OrderDownwind<Domain1d>(ApproximationSpace<Domain1d>& approxSpace, SmartPtr<UserData<MathVector<Domain1d::dim>, Domain1d::dim> > spVelocity, number threshold);
 template void OrderDownwind<Domain1d>(ApproximationSpace<Domain1d>& approxSpace, const std::vector<number>& vVel);
 template void OrderDownwind<Domain1d>(ApproximationSpace<Domain1d>& approxSpace, const std::vector<number>& vVel, number threshold);
 #endif
 
 #ifdef UG_DIM_2
 template void OrderDownwind<Domain2d>(ApproximationSpace<Domain2d>& approxSpace, SmartPtr<UserData<MathVector<Domain2d::dim>, Domain2d::dim> > spVelocity);
+template void OrderDownwind<Domain2d>(ApproximationSpace<Domain2d>& approxSpace, SmartPtr<UserData<MathVector<Domain2d::dim>, Domain2d::dim> > spVelocity, number threshold);
 template void OrderDownwind<Domain2d>(ApproximationSpace<Domain2d>& approxSpace, const std::vector<number>& vVel);
 template void OrderDownwind<Domain2d>(ApproximationSpace<Domain2d>& approxSpace, const std::vector<number>& vVel, number threshold);
 #endif
 
 #ifdef UG_DIM_3
 template void OrderDownwind<Domain3d>(ApproximationSpace<Domain3d>& approxSpace, SmartPtr<UserData<MathVector<Domain3d::dim>, Domain3d::dim> > spVelocity);
+template void OrderDownwind<Domain3d>(ApproximationSpace<Domain3d>& approxSpace, SmartPtr<UserData<MathVector<Domain3d::dim>, Domain3d::dim> > spVelocity, number threshold);
 template void OrderDownwind<Domain3d>(ApproximationSpace<Domain3d>& approxSpace, const std::vector<number>& vVel);
 template void OrderDownwind<Domain3d>(ApproximationSpace<Domain3d>& approxSpace, const std::vector<number>& vVel, number threshold);
 #endif

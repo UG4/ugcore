@@ -189,7 +189,7 @@ Face* FindSmallestFace(TIterator facesBegin, TIterator facesEnd, TAAPosVRT& aaPo
  * \sa TriangleQuality
  */
 UG_API 
-number FaceQuality(Face* f, Grid::VertexAttachmentAccessor<APosition> aaPos);
+number FaceQuality(FaceVertices* f, Grid::VertexAttachmentAccessor<APosition> aaPos);
 
 ////////////////////////////////////////////////////////////////////////
 //	AreaFaceQuality

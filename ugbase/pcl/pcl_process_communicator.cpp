@@ -635,7 +635,7 @@ void ProcessCommunicator::broadcast(size_t &s, int root) const
 {
 	if(is_local()) return;
 	unsigned long l = s;
-	broadcast(l);
+	broadcast<unsigned long>(l);
 	s = l;
 }
 

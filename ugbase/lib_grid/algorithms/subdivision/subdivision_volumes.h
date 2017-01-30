@@ -663,27 +663,52 @@ void CalculateSmoothManifoldPosInTopLevelAveragingScheme(MultiGrid& mg, MGSubset
 	//	and activated Averaging scheme calculate subdivision surfaces smooth position
 		if(markSH.get_subset_index(f) != -1 && linearManifoldSH.get_subset_index(f) == -1)
 		{
-			if(f->num_vertices() != 3)
-				UG_THROW("ERROR in CalculateSmoothManifoldPosInTopLevelAveragingScheme: Non triangular faces included in grid.");
+			if(f->num_vertices() != 3 && f->num_vertices() != 4)
+				UG_THROW("ERROR in CalculateSmoothManifoldPosInTopLevelAveragingScheme: Non triangular/quadrilateral faces included in grid.");
 
-		//	Iterate over all face vertices, calculate and apply local centroid masks
-			for(size_t i = 0; i < f->num_vertices(); ++i)
+			if(f->reference_object_id() == ROID_TRIANGLE)
 			{
-			//	Init
-				Vertex* vrt = f->vertex(i);
-				VecSet(p, 0);
-
-			//	Summate coordinates of neighbor vertices to vrt inside face
-				for(size_t j = 0; j < f->num_vertices(); ++j)
+			//	Iterate over all face vertices, calculate and apply local centroid masks
+				for(size_t i = 0; i < f->num_vertices(); ++i)
 				{
-					if(j != i)
-					{
-						VecAdd(p, p, aaPos[f->vertex(j)]);
-					}
-				}
+				//	Init
+					Vertex* vrt = f->vertex(i);
+					VecSet(p, 0);
 
-			//	Smooth vertex position
-				VecScaleAppend(aaSmoothBndPos[vrt], 2.0/8, aaPos[vrt], 3.0/8, p);
+				//	Summate coordinates of neighbor vertices to vrt inside face
+					for(size_t j = 0; j < f->num_vertices(); ++j)
+					{
+						if(j != i)
+						{
+							VecAdd(p, p, aaPos[f->vertex(j)]);
+						}
+					}
+
+				//	Smooth vertex position
+					VecScaleAppend(aaSmoothBndPos[vrt], 2.0/8, aaPos[vrt], 3.0/8, p);
+				}
+			}
+			else if(f->reference_object_id() == ROID_QUADRILATERAL)
+			{
+			//	Iterate over all face vertices, calculate and apply local centroid masks
+				for(size_t i = 0; i < f->num_vertices(); ++i)
+				{
+				//	Init
+					Vertex* vrt = f->vertex(i);
+					VecSet(p, 0);
+
+				//	Summate coordinates of neighbor vertices to vrt inside face
+					for(size_t j = 0; j < f->num_vertices(); ++j)
+					{
+						if(j != i)
+						{
+							VecAdd(p, p, aaPos[f->vertex(j)]);
+						}
+					}
+
+				//	Smooth vertex position
+					VecScaleAppend(aaSmoothBndPos[vrt], 1.0/4, aaPos[vrt], 1.0/4, p);
+				}
 			}
 		}
 	}
@@ -972,8 +997,8 @@ void CalculateNumManifoldFacesVertexAttachmentInTopLevel(MultiGrid& mg, MGSubset
 	{
 		Face* f = *fIter;
 
-		if(f->num_vertices() != 3)
-			UG_THROW("ERROR in CalculateNumManifoldFacesVertexAttachment: Non triangular faces included in grid.");
+		if(f->num_vertices() != 3 && f->num_vertices() != 4)
+			UG_THROW("ERROR in CalculateNumManifoldFacesVertexAttachment: Non triangular/quadrilateral faces included in grid.");
 
 	//	Only consider boundary manifold faces
 		if(markSH.get_subset_index(f) != -1)

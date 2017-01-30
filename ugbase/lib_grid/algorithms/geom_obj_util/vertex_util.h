@@ -93,6 +93,7 @@ UG_API Vertex* GetConnectedVertex(EdgeVertices* e, Face* f);
 //	GetConnectedVertexIndex
 ///	returns the index of the first vertex that is contained in the specified face and is not contained in the given edge.
 UG_API int GetConnectedVertexIndex(Face* f, const EdgeDescriptor& ed);
+UG_API int GetConnectedVertexIndex(Face* f, const EdgeVertices* e);
 
 ////////////////////////////////////////////////////////////////////////
 ///	returns the edge in the triangle tri, which does not contain vrt.

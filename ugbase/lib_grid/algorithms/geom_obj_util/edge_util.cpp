@@ -295,6 +295,22 @@ int NumAssociatedFaces(Grid& grid, Edge* e)
 }
 
 ////////////////////////////////////////////////////////////////////////
+Edge* GetConnectingEdge(Grid& grid, Face* f1, Face* f2)
+{
+	Grid::edge_traits::secure_container edges1, edges2;
+	grid.associated_elements(edges1, f1);
+	grid.associated_elements(edges2, f2);
+
+	for(size_t i = 0; i < edges1.size(); ++i){
+		for(size_t j = 0; j < edges2.size(); ++j){
+			if(edges1[i] == edges2[j])
+				return edges1[i];
+		}
+	}
+	return NULL;
+}
+
+////////////////////////////////////////////////////////////////////////
 int CalculateNormal(vector3& vNormOut, Grid& grid, Edge* e,
 					Grid::AttachmentAccessor<Vertex, APosition>& aaPos,
 					Grid::AttachmentAccessor<Face, ANormal>* paaNormFACE)
