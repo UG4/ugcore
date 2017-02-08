@@ -13,8 +13,8 @@ language: cpp
 
 # test with gcc and clang
 compiler:
-#  - gcc
-  - clang
+  - gcc
+#  - clang
 
 # prepare compilation  
 before_script:
