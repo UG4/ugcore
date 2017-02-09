@@ -306,11 +306,11 @@ void Extrude(Grid& grid,
 	}
 
 //	if faces were extruded from edges, we have to fix the orientation now
-	if(bRecordNewFaces){
-		UG_DLOG(LIB_GRID, 1, "  reordering faces...\n");
-		FixFaceOrientation(grid, vNewFaces.begin(), vNewFaces.end());
-		UG_DLOG(LIB_GRID, 1, "  reordering faces done.\n");
-	}
+	// if(bRecordNewFaces){
+	// 	UG_DLOG(LIB_GRID, 1, "  reordering faces...\n");
+	// 	FixFaceOrientation(grid, vNewFaces.begin(), vNewFaces.end());
+	// 	UG_DLOG(LIB_GRID, 1, "  reordering faces done.\n");
+	// }
 }
 
 template void Extrude<vector1>(Grid&,

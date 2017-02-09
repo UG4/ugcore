@@ -131,7 +131,14 @@ util.balancer.defaults =
 			maxRedistProcs				= 256,
 			qualityRedistLevelOffset	= 3,
 			intermediateRedistributions	= true
-		}
+		},
+
+		noRedists = {
+			minElemsPerProcPerLevel		= 32,
+			maxRedistProcs				= 64,
+			qualityRedistLevelOffset	= 100000,
+			intermediateRedistributions	= false
+		},
 	}
 }
 
