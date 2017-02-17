@@ -442,6 +442,7 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 
 		local transfer = util.solver.CreateTransfer(desc.transfer or defaults.transfer)
 		if desc.adaptive == true then
+		--	next three lines are obsolete, since gmg:set_transfer overwrites gmg:set_projection, anyways!?
 			local project = StdTransfer()
 			project:enable_p1_lagrange_optimization(false)
 			gmg:set_projection(project)
