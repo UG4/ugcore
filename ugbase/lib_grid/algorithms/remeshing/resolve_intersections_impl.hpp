@@ -36,6 +36,7 @@
 #include <map>
 #include "resolve_intersections.h"
 #include "common/math/misc/shapes.h"
+#include "lib_grid/algorithms/debug_util.h"
 #include "lib_grid/algorithms/space_partitioning/lg_ntree.h"
 #include "lib_grid/algorithms/remove_duplicates_util.h"
 #include "common/space_partitioning/ntree_traverser.h"
