@@ -245,7 +245,6 @@ bool EdgeCollapseIsValid(Grid& grid, Edge* e);
  * geometry by the newly generated geometry.
  */
 template<class TVertex>
-UG_API 
 TVertex* SplitEdge(Grid& grid, Edge* e, bool bConservative = false);
 
 ////////////////////////////////////////////////////////////////////////
@@ -266,7 +265,6 @@ TVertex* SplitEdge(Grid& grid, Edge* e, bool bConservative = false);
  * constructed in this case.
  */
 template<class TVertex>
-UG_API 
 TVertex* SplitEdge(Grid& destGrid, Grid& srcGrid, Edge* e,
 						AVertex* paAssociatedVertices = NULL,
 						bool bConservative = false);
