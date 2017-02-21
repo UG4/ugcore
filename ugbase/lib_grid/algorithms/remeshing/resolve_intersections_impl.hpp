@@ -34,6 +34,7 @@
 #define __H__UG__resolve_intersections_impl__
 
 #include <map>
+#include <limits>
 #include "resolve_intersections.h"
 #include "common/math/misc/shapes.h"
 #include "lib_grid/algorithms/debug_util.h"
@@ -593,6 +594,15 @@ void MultiEdgeSplit(Grid& grid, Edge* edge,
  *	it is not guaranteed, that no degenerated triangles will remain
  *	(indeed, new degenerated triangles may be introduced).
  */
+namespace impl{
+namespace ProjectVerticesToCloseEdges{
+	struct Record{
+		Record() : closestEdge(-1), distanceSq(std::numeric_limits<number>::max()) {}
+		int closestEdge;
+		number distanceSq;
+	};
+}}
+
 template <class TAPos>
 bool ProjectVerticesToCloseEdges(Grid& grid,
 								 GridObjectCollection elems,
@@ -631,11 +641,53 @@ bool ProjectVerticesToCloseEdges(Grid& grid,
 		}
 	}
 
+	using impl::ProjectVerticesToCloseEdges::Record;
+	std::map<Vertex*, Record>	snapVrtMap;
 	std::vector<Edge*> edges;
 	edges.reserve(elems.num<Edge>());
 	for(EdgeIterator eIter = elems.begin<Edge>(); eIter != elems.end<Edge>(); ++eIter)
 		edges.push_back(*eIter);
 
+//	find the closest edge for each vertex first and store it in snapVrtMap
+	for(size_t iEdge = 0; iEdge < edges.size(); ++iEdge){
+		Edge* e = edges[iEdge];
+
+		vector_t corner[2];
+		corner[0] = aaPos[e->vertex(0)];
+		corner[1] = aaPos[e->vertex(1)];
+
+	//	get all close vertices from the tree and do the projection
+		if(useOctree){
+			box_t bbox(corner, 2);
+			bbox.min -= offset;
+			bbox.max += offset;
+			FindElementsInIntersectingNodes(closeVrts, octree, bbox);
+		}
+
+	//	find all vertices which have to be inserted by traversing closeVrts
+		for(size_t i = 0; i < closeVrts.size(); ++i){
+			Vertex* vrt = closeVrts[i];
+			if(EdgeContains(e, vrt))
+				continue;
+
+			vector_t p;
+			number s = ProjectPointToLine(p, aaPos[vrt], corner[0], corner[1]);
+		//	we do an exact comparision here, since all other matches should be
+		//	handled by a remove-doubles anyways
+			if(s > 0 && s < 1.){
+				const number distSq = VecDistanceSq(p, aaPos[vrt]);
+				if(distSq <= snapThresholdSq){
+					Record& rec = snapVrtMap[vrt];
+					if(distSq < rec.distanceSq){
+						rec.closestEdge = (int)iEdge;
+						rec.distanceSq = distSq;
+					}
+				}
+			}
+		}
+	}
+
+//	split edges by finding associated vertices in snapVrtMap
 	for(size_t iEdge = 0; iEdge < edges.size(); ++iEdge){
 		Edge* e = edges[iEdge];
 
@@ -654,17 +706,15 @@ bool ProjectVerticesToCloseEdges(Grid& grid,
 	//	find all vertices which have to be inserted by traversing closeVrts
 		insertVrts.clear();
 		for(size_t i = 0; i < closeVrts.size(); ++i){
-			if(EdgeContains(e, closeVrts[i]))
+			Vertex* vrt = closeVrts[i];
+			if(EdgeContains(e, vrt))
 				continue;
 
-			vector_t p;
-			number s = ProjectPointToLine(p, aaPos[closeVrts[i]], corner[0], corner[1]);
-		//	we do an exact comparision here, since all other matches should be
-		//	handled by a remove-doubles anyways
-			if(s > 0 && s < 1.){
-				if(VecDistanceSq(p, aaPos[closeVrts[i]]) <= snapThresholdSq){
-					insertVrts.push_back(closeVrts[i]);
-				}
+			std::map<Vertex*, Record>::iterator imap = snapVrtMap.find(vrt);
+			if(imap != snapVrtMap.end()){
+				Record& rec = imap->second;
+				if(rec.closestEdge == (int)iEdge)
+					insertVrts.push_back(vrt);
 			}
 		}
 
@@ -1339,8 +1389,9 @@ bool ResolveTriangleIntersections(Grid& grid, TriangleIterator trisBegin,
 			if(TriangleTriangleIntersection(aaPos[t1->vertex(0)], aaPos[t1->vertex(1)],
 											aaPos[t1->vertex(2)], aaPos[t2->vertex(0)],
 											aaPos[t2->vertex(1)], aaPos[t2->vertex(2)],
-											&ip[0], &ip[1], snapThreshold) == 1)
+											&ip[0], &ip[1], SMALL) == 1)
 			{
+				// UG_LOG("> DBG < Intersection points: " << ip[0] << ", " << ip[1] << endl);
 			//	add an edge between the two points
 			//	to avoid insertion of double points, we first check whether the point
 			//	already exists in the triangle. Do this for both triangles.
@@ -1352,14 +1403,45 @@ bool ResolveTriangleIntersections(Grid& grid, TriangleIterator trisBegin,
 				for(size_t i_tri = 0; i_tri < 2; ++i_tri){
 				//	If it is encountered for the first time,
 				//	we'll add its corner-vertices to its list of vertices.
-					vector<Vertex*>& vrts = aaVrtVec[t[i_tri]];
+					Face* tri = t[i_tri];
+					vector<Vertex*>& vrts = aaVrtVec[tri];
 					if(vrts.empty()){
-						for(size_t i = 0; i < t[i_tri]->num_vertices(); ++i)
-							vrts.push_back(t[i_tri]->vertex(i));
+						for(size_t i = 0; i < tri->num_vertices(); ++i)
+							vrts.push_back(tri->vertex(i));
 					}
+
+				// (a)	this version only checks for close vertices in the list
+				//		of vertices of the currently processed triangle. This
+				//		version will introduce more (and possibly very close)
+				//		vertices, but should be more robust.
+				// todo: only create vertices for each point once, for both tris!
+
+					// int edgeInd[2] = {-1, -1};
+					// for(size_t i_point = 0; i_point < 2; ++i_point){
+					// 	const vector3& point = ip[i_point];
+					// 	int closeInd = FindCloseVertexInArray(aaVrtVec[tri], point,
+					// 								   		  aaPos, snapThreshold);
+							
+					// 	if(closeInd == -1){
+					// 		Vertex* vrt = *grid.create<RegularVertex>();
+					// 		aaPos[vrt] = point;
+					// 		closeInd = (int)aaVrtVec[tri].size();
+					// 		aaVrtVec[tri].push_back(vrt);
+					// 	}
+
+					// 	edgeInd[i_point] = closeInd;
+					// }
+
+					// if(edgeInd[0] != edgeInd[1])
+					// 	aaEdgeDescVec[tri].push_back(
+					// 			make_pair(edgeInd[0], edgeInd[1]));
 				}
 
-				//	now check whether the vertex already exists
+			//	(b) the version below also checks for existing vertices in other tris.
+			//	however, this can lead to vertices which do not lie in the plane
+			//	of an intersecting triangle. This in turn may lead to problems
+			//	during triangulation.
+
 				int inds1[2];
 				int inds2[2];
 				for(size_t i = 0; i < 2; ++i){
@@ -1492,20 +1574,34 @@ bool ResolveTriangleIntersections(Grid& grid, TriangleIterator trisBegin,
 			// 	}
 			// }
 
+			// //DEBUGGING BEGIN
+			// {
+			// 	UG_LOG("STORING TEST GRID\n");
+			// 	static int dbgCounter = 0;
+			// 	std::stringstream name;
+			// 	name << "/home/sreiter/Desktop/_grids/failure-"
+			// 		 << dbgCounter << ".ugx";
+			// 	SaveGridToFile(tgrid, name.str().c_str(), aPos);
+
+			// 	++dbgCounter;
+			// }
+			// //DEBUGGING END
+
 		//	if there are only 3 vertices left, there's nothing to do...
 			if(tgrid.num_vertices() <= 3)
 				continue;
 		//	now resolve edge/edge intersections
 			//IntersectCloseEdges(tgrid, tgrid, taaPos, SMALL);
-			if(!IntersectCloseEdges(tgrid, tgrid, taaPos, snapThreshold)){
-				static int dbgCounter = 0;
-				std::stringstream name;
-				name << "/home/sreiter/Desktop/failed_sweeplines/failed_intersect_close_edges_"
-					 << dbgCounter << ".ugx";
-				SaveGridToFile(tgrid, name.str().c_str(), aPos);
+			IntersectCloseEdges(tgrid, tgrid, taaPos, snapThreshold);
+			// if(!IntersectCloseEdges(tgrid, tgrid, taaPos, snapThreshold)){
+			// 	static int dbgCounter = 0;
+			// 	std::stringstream name;
+			// 	name << "/home/sreiter/Desktop/failed_sweeplines/failed_intersect_close_edges_"
+			// 		 << dbgCounter << ".ugx";
+			// 	SaveGridToFile(tgrid, name.str().c_str(), aPos);
 
-				++dbgCounter;
-			}
+			// 	++dbgCounter;
+			// }
 
 		//	make sure that all vertices have an associated aaVrt
 			for(VertexIterator viter = tgrid.vertices_begin();
@@ -1521,18 +1617,6 @@ bool ResolveTriangleIntersections(Grid& grid, TriangleIterator trisBegin,
 				}
 			}
 
-			//DEBUGGING BEGIN
-			// {
-			// 	UG_LOG("STORING TEST GRID\n");
-			// 	static int dbgCounter = 0;
-			// 	std::stringstream name;
-			// 	name << "/home/sreiter/Desktop/failed_sweeplines/test-"
-			// 		 << dbgCounter << ".ugx";
-			// 	SaveGridToFile(tgrid, name.str().c_str(), aPos);
-
-			// 	++dbgCounter;
-			// }
-			//DEBUGGING END
 
 		//	ok. Everything is prepared. We can now triangulate the grid.
 			if(TriangleFill_SweepLine(tgrid, tgrid.edges_begin(), tgrid.edges_end(),
@@ -1571,6 +1655,9 @@ bool ResolveTriangleIntersections(Grid& grid, TriangleIterator trisBegin,
 						UG_LOG(" " << taaPos[*iter]);
 					}
 					UG_LOG(std::endl);
+
+					// UG_THROW("ResolveTriangleIntersections failed!");
+
 			// 	static int fileCounter = 1;
 			// 	string filenamePrefix = "/home/sreiter/Desktop/failed_sweeplines/failed_sweepline_";
 			// 	stringstream ss2d, ss3d;
