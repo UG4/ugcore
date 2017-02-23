@@ -530,4 +530,27 @@ void ExtrudeLayers (
 	grid.detach_from_vertices(aHeight);
 }
 
+
+///	projects the given (surface-) grid to the specified raster
+void ProjectToLayer(
+		Grid& grid,
+		const RasterLayers& layers,
+		int layerIndex,
+		Grid::VertexAttachmentAccessor<AVector3> aaPos)
+{
+	UG_COND_THROW(layerIndex < 0 || layerIndex >= (int)layers.size(),
+				  "Bad layerIndex in ProjectToLayer");
+
+	const RasterLayers::layer_t& layer = layers.layer(layerIndex);
+	for(VertexIterator i = grid.begin<Vertex>(); i != grid.end<Vertex>(); ++i){
+		Vertex* v = *i;
+		vector2 c(aaPos[v].x(), aaPos[v].y());
+		number val = layers.relative_to_global_height(c, layerIndex);
+
+		if(val != layer.heightfield.no_data_value()){
+			aaPos[v].z() = val;
+		}
+	}
+}
+
 }//	end of namespace

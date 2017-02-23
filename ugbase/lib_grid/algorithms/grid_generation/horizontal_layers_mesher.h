@@ -82,6 +82,13 @@ void ExtrudeLayers(
 		bool allowForTetsAndPyras,
 		const ANumber* aRelZOut = NULL);
 
+///	projects the given (surface-) grid to the specified raster
+void ProjectToLayer(
+		Grid& grid,
+		const RasterLayers& layers,
+		int layerIndex,
+		Grid::VertexAttachmentAccessor<AVector3> aaPos);
+
 }//	end of namespace
 
 #endif	//__H__UG_horizontal_layers_mesher
