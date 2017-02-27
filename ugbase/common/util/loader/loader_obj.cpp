@@ -165,9 +165,12 @@ bool LoaderObj::load_file(const char* strFilename, bool convertQuadsToTris)
 	ParameterList	lstParams;
 	ParameterList::iterator PIter;
 
+	int lineNumber = 0;
+
 	while(!in.eof())
 	{
 		in.getline(BUFFER, 256);
+		++lineNumber;
 		if(BUFFER[255] != 0)
 			return false;
 
@@ -216,6 +219,7 @@ bool LoaderObj::load_file(const char* strFilename, bool convertQuadsToTris)
 			while(!mtlIn.eof())
 			{
 				mtlIn.getline(BUFFER, 256);
+				++lineNumber;
 				if(BUFFER[255] != 0)
 					return false;
 
@@ -413,7 +417,11 @@ bool LoaderObj::load_file(const char* strFilename, bool convertQuadsToTris)
 						pActiveObject->m_vQuadListTex.push_back(tIndTex[3] - 1);
 					}
 				}
-
+			}
+			else {
+				UG_LOG("WARNING: Couldn't read face in line " << lineNumber 
+						<< ". Bad number of vertices: " << lstParams.size()
+						<< ". Only 3 and 4 supported.\n");
 			}
 		}
 		else if(strCommand == strMtrl)

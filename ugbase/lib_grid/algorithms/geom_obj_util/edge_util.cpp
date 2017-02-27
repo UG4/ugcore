@@ -913,7 +913,33 @@ bool CutEdgesWithPlane(Selector& sel, const vector3& p, const vector3& n,
 //	refine all selected edges. RefinementCallbackEdgePlaneCut will insert
 //	new vertices on the plane.
 	PlaneCutProjector planeCutProjector(MakeGeometry3d(grid, aPos), p, n);
-	return Refine(grid, sel, &planeCutProjector);
+	const bool success = Refine(grid, sel, &planeCutProjector);
+
+//	deselect all elements and edges which do not connect two selected vertices
+	if(success){
+	//	deselect all vertices which are not very close to the plane
+		VertexIterator vrtIter = sel.begin<Vertex>();
+		while(vrtIter != sel.end<Vertex>()){
+			Vertex* vrt = *vrtIter;
+			++vrtIter;
+			if(DistancePointToPlane(aaPos[vrt], p, n) > SMALL)
+				sel.deselect(vrt);
+		}
+
+		EdgeIterator iter = sel.begin<Edge>();
+		while(iter != sel.end<Edge>()){
+			Edge* e = *iter;
+			iter++;
+			if(!(sel.is_selected(e->vertex(0)) && sel.is_selected(e->vertex(1)))){
+				sel.deselect(e);
+			}
+		}
+
+		sel.clear<Face>();
+		sel.clear<Volume>();
+	}
+
+	return success;
 }
 
 }//	end of namespace

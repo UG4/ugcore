@@ -381,6 +381,7 @@ function util.solver.CreateTransfer(transferDesc)
 	return transfer
 end
 
+-- create a preconditioner 
 function util.solver.CreatePreconditioner(precondDesc, solverutil)
 	solverutil = util.solver.PrepareSolverUtil(solverDesc, solverutil)
 	if util.tableDesc.IsPreset(precondDesc) then return precondDesc end
@@ -441,6 +442,7 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 
 		local transfer = util.solver.CreateTransfer(desc.transfer or defaults.transfer)
 		if desc.adaptive == true then
+		--	next three lines are obsolete, since gmg:set_transfer overwrites gmg:set_projection, anyways!?
 			local project = StdTransfer()
 			project:enable_p1_lagrange_optimization(false)
 			gmg:set_projection(project)
@@ -462,11 +464,11 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 
 	elseif name == "schur" 	then
 		local dirichletSolver =
-				solver.util.CreateLinearSolver(
+				util.solver.CreateLinearSolver(
 					desc.dirichletSolver or defaults.dirichletSolver, solverutil)
 
 		local skeletonSolver =
-				solver.util.CreateLinearSolver(
+				util.solver.CreateLinearSolver(
 					desc.skeletonSolver or defaults.skeletonSolver, solverutil)
 
 		local schur = SchurComplement()
@@ -476,24 +478,44 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 	end
 
 	util.solver.CondAbort(precond == nil, "Invalid preconditioner specified: " .. name)
+  
+  
 
-	if desc and desc.debug == true then
-		if approxSpace == nil then
-			print("An ApproximationSpace is required to create a DebugWriter for the '" .. name .. "'' preconditioner.")
-			print("Consider setting the 'approxSpace' property of your preconditioner,")
-			print("or alternatively the util.solver.defaults.approxSpace property or")
-			print("alternatively set the option 'debug=false' in your preconditioner.")
-			exit()
-		end
+  -- check:   
+  local rprecond  = precond
+  if desc and desc.debugSolver then
+    print(solver)
+    local dsolver = 
+      util.solver.CreateLinearSolver(
+          desc.debugSolver, solverutil)
+          
+    local err = GridFunction(approxSpace)
+    rprecond = DebugIterator(precond, dsolver)
+    rprecond:set_solution(err)
+  else  
+  
+  
+   
+  end
+  
+  -- create debug writer (optional)
+  if desc and ((desc.debug == true) or (desc.debugSolver and desc.debugSolver.debug==true)) then
+    if approxSpace == nil then
+      print("An ApproximationSpace is required to create a DebugWriter for the '" .. name .. "'' preconditioner.")
+      print("Consider setting the 'approxSpace' property of your preconditioner,")
+      print("or alternatively the util.solver.defaults.approxSpace property or")
+      print("alternatively set the option 'debug=false' in your preconditioner.")
+      exit()
+    end
 
-		local dbgWriter = GridFunctionDebugWriter(approxSpace)
-		dbgWriter:set_vtk_output(false)
-		precond:set_debug(dbgWriter)
-	end
-
-	if desc then desc.instance = precond end
-
-	return precond
+    local dbgWriter = GridFunctionDebugWriter(approxSpace)
+    dbgWriter:set_vtk_output(true)
+    rprecond:set_debug(dbgWriter)
+  end
+  
+  if desc then desc.instance = rprecond end
+  
+	return rprecond
 end
 
 
