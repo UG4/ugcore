@@ -1,5 +1,5 @@
 -- Copyright (c) 2015:  G-CSC, Goethe University Frankfurt
--- Author: Sebastian Reiter
+-- Author: Sebastian Reiter, Jan Friebertshäuser
 -- 
 -- This file is part of UG4.
 -- 
