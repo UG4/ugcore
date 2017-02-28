@@ -1,5 +1,5 @@
 -- Copyright (c) 2015:  G-CSC, Goethe University Frankfurt
--- Author: Sebastian Reiter
+-- Author: Sebastian Reiter, Jan Friebertshäuser
 -- 
 -- This file is part of UG4.
 -- 
@@ -98,6 +98,7 @@ util.balancer.defaults =
 		{
 			balanceWeights = nil,
 			communicationWeights = nil,
+			options = nil,
 			childWeight		= 2,
 			siblingWeight	= 2,
 			itrFactor		= 1000,
@@ -268,6 +269,15 @@ function util.balancer.CreatePartitioner(dom, partitionerDesc)
 		end
 		if util.tableDesc.IsPreset(desc.communicationWeights) then
 			partitioner:set_communication_weights(desc.communicationWeights)
+		end
+		-- create parmetis options if none were specified.
+		if desc.options ~= nil then
+			partitioner:set_options(desc.options)
+		elseif defaults.options ~= nil then
+			partitioner:set_options(default.options)
+	  	else
+	   		options = ParmetisOptions()
+			partitioner:set_options(options)
 		end
 	else
 		print("ERROR: Unknown partitioner specified in balancer.CreateLoadBalancer: " .. name)
