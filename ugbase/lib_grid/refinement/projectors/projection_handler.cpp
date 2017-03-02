@@ -326,17 +326,21 @@ handle_new_vertex (Vertex* vrt, TParent* parent)
 
 	number ia = 0;
 	if(m_projectors [si + 1].valid())
-		ia = m_projectors [si + 1]->new_vertex (vrt, parent);
+	{
+	    ia = m_projectors [si + 1]->new_vertex (vrt, parent);
 
-	if(ia < 1){
-		vector3 p = pos (vrt);
-		m_defaultProjector->new_vertex (vrt, parent);
-		vector3 lp = pos (vrt);
-		p *= ia;
-		lp *= (1. - ia);
-		p += lp;
-		set_pos(vrt, p);
+	    if(ia < 1){
+	        vector3 p = pos (vrt);
+	        m_defaultProjector->new_vertex (vrt, parent);
+	        vector3 lp = pos (vrt);
+	        p *= ia;
+	        lp *= (1. - ia);
+	        p += lp;
+	        set_pos(vrt, p);
+	    }
 	}
+	else m_defaultProjector->new_vertex (vrt, parent);
+
 	return 1;
 }
 
