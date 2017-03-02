@@ -108,7 +108,7 @@ class MathVector
 		template <std::size_t fromN>
 		static inline MathVector from(const MathVector<fromN, T>& v)
 		{
-			return MathVectorFrom<N, fromN, T>(v);
+			return MathVectorFrom<fromN, N, T>(v);
 		}
 
 		// operations with other vectors
