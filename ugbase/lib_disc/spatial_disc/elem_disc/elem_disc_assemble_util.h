@@ -1541,6 +1541,7 @@ public:
 		ConstSmartPtr<DoFDistribution> dd,
 		bool bNonRegularGrid,
 		ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+		number future_time,
 		ConstSmartPtr<AssemblingTuner<TAlgebra> > spAssTuner
 	)
 	{
@@ -1563,7 +1564,7 @@ public:
 			{
 				VectorProxy<vector_type> vp(u);
 				size_t algebra_index = bridge::AlgebraTypeIDProvider::instance().id<algebra_type>();
-				Eval.prepare_timestep(vSol->time(0), &vp, algebra_index);
+				Eval.prepare_timestep(future_time, vSol->time(0), &vp, algebra_index);
 			}
 			UG_CATCH_THROW("(instationary) PrepareTimestep: Cannot prepare timestep.");
 

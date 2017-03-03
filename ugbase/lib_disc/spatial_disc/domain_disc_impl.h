@@ -1396,6 +1396,7 @@ void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
 prepare_timestep
 (
 	ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+	number future_time,
 	ConstSmartPtr<DoFDistribution> dd
 )
 {
@@ -1417,7 +1418,7 @@ prepare_timestep
 //	call assembler's PrepareTimestep
 	try
 	{
-		gass_type::PrepareTimestep(m_vElemDisc, dd, bNonRegularGrid, vSol, m_spAssTuner);
+		gass_type::PrepareTimestep(m_vElemDisc, dd, bNonRegularGrid, vSol, future_time, m_spAssTuner);
 	}
 	UG_CATCH_THROW("DomainDiscretization::prepare_timestep (instationary):" <<
 				   " Preparing time step failed.");

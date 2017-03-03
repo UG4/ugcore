@@ -381,12 +381,12 @@ void DataEvaluator<TDomain>::clear_positions_in_user_data()
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain>
-void DataEvaluator<TDomain>::prepare_timestep(const number time, VectorProxyBase* u, size_t algebra_id)
+void DataEvaluator<TDomain>::prepare_timestep(number future_time, const number time, VectorProxyBase* u, size_t algebra_id)
 {
 	try
 	{
 		for (size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
-			m_vElemDisc[PT_ALL][i]->do_prep_timestep(time, u, algebra_id);
+			m_vElemDisc[PT_ALL][i]->do_prep_timestep(future_time, time, u, algebra_id);
 	}
 	UG_CATCH_THROW("DataEvaluator::prep_timestep: Cannot prepare time step.");
 }

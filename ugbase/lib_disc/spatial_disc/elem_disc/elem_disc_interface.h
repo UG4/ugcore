@@ -413,7 +413,7 @@ class IElemDisc
 		virtual void post_assemble_loop() {}
 
 	/// prepare the time step
-		virtual void prep_timestep(number time, VectorProxyBase* u);
+		virtual void prep_timestep(number future_time, number time, VectorProxyBase* u);
 
 	/// prepare the time step element-wise
 		virtual void prep_timestep_elem(const number time, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
@@ -471,7 +471,7 @@ class IElemDisc
 		
 	///	function dispatching call to implementation
 	/// \{
-		void do_prep_timestep(const number time, VectorProxyBase* u, size_t algebra_id);
+		void do_prep_timestep(number future_time, const number time, VectorProxyBase* u, size_t algebra_id);
 		void do_prep_timestep_elem(const number time, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 		void do_prep_elem_loop(const ReferenceObjectID roid, const int si);
 		void do_prep_elem(LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[]);
@@ -497,7 +497,7 @@ class IElemDisc
 		typedef IElemDisc<TDomain> T;
 
 	// 	types of timestep function pointers
-		typedef void (T::*PrepareTimestepFct)(number, VectorProxyBase*);
+		typedef void (T::*PrepareTimestepFct)(number, number, VectorProxyBase*);
 		typedef void (T::*PrepareTimestepElemFct)(number, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 		typedef void (T::*FinishTimestepFct)(number, VectorProxyBase*);
 		typedef void (T::*FinishTimestepElemFct)(number, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);

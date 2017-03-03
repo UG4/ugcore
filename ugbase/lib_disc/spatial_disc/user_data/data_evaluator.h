@@ -81,7 +81,7 @@ class DataEvaluator
 		////////////////////////////////////////////
 
 	///	prepares all time-dependent IElemDiscs
-		void prepare_timestep(const number time, VectorProxyBase* u, size_t algebra_id);
+		void prepare_timestep(number future_time, const number time, VectorProxyBase* u, size_t algebra_id);
 
 	///	prepares the elements of all time-dependent IElemDiscs
 		void prepare_timestep_elem(const number time, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);

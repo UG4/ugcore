@@ -348,11 +348,11 @@ void IElemDisc<TDomain>::set_time_independent()
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
-do_prep_timestep(const number time, VectorProxyBase* u, size_t algebra_id)
+do_prep_timestep(number future_time, const number time, VectorProxyBase* u, size_t algebra_id)
 {
 	//	call assembling routine
 	if (this->m_vPrepareTimestepFct[algebra_id] != NULL)
-		(this->*(m_vPrepareTimestepFct[algebra_id]))(time, u);
+		(this->*(m_vPrepareTimestepFct[algebra_id]))(future_time, time, u);
 }
 
 template <typename TDomain>
@@ -639,7 +639,7 @@ inline void ThrowMissingVirtualMethod(const char* method){
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
-prep_timestep(number time, VectorProxyBase* u)
+prep_timestep(number future_time, number time, VectorProxyBase* u)
 {
 	// do nothing
 }

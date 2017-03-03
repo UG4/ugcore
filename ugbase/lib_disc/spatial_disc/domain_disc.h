@@ -169,9 +169,9 @@ class DomainDiscretizationBase
 	// Time dependent part
 	///////////////////////
 	///	\copydoc IDomainDiscretization::prepare_timestep()
-		virtual void prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, ConstSmartPtr<DoFDistribution> dd);
-		virtual	void prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, const GridLevel& gl)
-		{prepare_timestep(vSol, dd(gl));}
+		virtual void prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, number future_time, ConstSmartPtr<DoFDistribution> dd);
+		virtual	void prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, number future_time, const GridLevel& gl)
+		{prepare_timestep(vSol, future_time, dd(gl));}
 
 
 	/// \copydoc IDomainDiscretization::prepare_timestep_elem()
