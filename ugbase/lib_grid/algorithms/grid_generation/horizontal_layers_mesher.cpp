@@ -115,6 +115,7 @@ void ExtrudeLayers (
 	vector<Face*> tmpFaces;		// used to determine the set of faces that can be extruded
 	vector<number> vrtHeightVals;	// here we'll record height-values at which new vertices will be placed
 	vector<number> volHeightVals;	// here we'll record height-values at the center of new volumes
+	vector<number> curUpperLayerHeight;
 	vector<int> volSubsetInds;
 	vector<Volume*> newVols;
 	queue<Volume*> volCandidates;
@@ -152,10 +153,10 @@ void ExtrudeLayers (
 		vector2 c(aaPos[v].x(), aaPos[v].y());
 		// number val = top.heightfield.interpolate(c);
 		number val = layers.relative_to_global_height(c, topLayerInd);
-
 		if(val != top.heightfield.no_data_value()){
 			aaPos[v].z() = val;
 			curVrts.push_back(v);
+			curUpperLayerHeight.push_back(val);
 			grid.mark(v);
 			sh.assign_subset(v, topLayerInd);
 		}
@@ -196,7 +197,7 @@ void ExtrudeLayers (
 
 	tmpVrts.reserve(curVrts.size());
 	smoothVrts.reserve(curVrts.size());
-	vrtHeightVals.reserve(curVrts.size());
+	curUpperLayerHeight.reserve(curVrts.size());
 	tmpFaces.reserve(curFaces.size());
 	newVols.reserve(curFaces.size());
 	volHeightVals.reserve(curFaces.size());
@@ -219,33 +220,54 @@ void ExtrudeLayers (
 		for(size_t icur = 0; icur < curVrts.size(); ++icur){
 			Vertex* v = curVrts[icur];
 			vector2 c(aaPos[v].x(), aaPos[v].y());
+			number upperVal = curUpperLayerHeight[icur];
 			number height = layers.relative_to_global_height(c, (number) ilayer);
-			pair<int, number> val = layers.trace_line_down(c, ilayer);
 
-			if(val.first >= 0){
-				pair<int, number> upperVal = layers.trace_line_up(c, val.first+1);
-				UG_COND_THROW(upperVal.first == -1, "An upper layer has to exist");
-			//	if val.first == ilayer height will equal val.second. If not,
-			//	a linear interpolation is performed, considering the height-val
-			//	of the current vertex, the layer distance and the target value.
-			//	This height-value will be corrected later on after extrusion
-				tmpVrts.push_back(v);
-				vrtHeightVals.push_back(height);
-				aaHeight[v] = upperVal.second - val.second;//total height of ilayer
-				sh.assign_subset(v, val.first);
-				grid.mark(v);
-			}
-			else if(allowForTetsAndPyras){
-			//	we insert a dummy-vertex which will later on allow for easier
-			//	edge-collapses of inner vertical rim edges
-				pair<int, number> upperVal = layers.trace_line_up(c, ilayer+1);
-				UG_COND_THROW(upperVal.first == -1, "An upper layer has to exist");
-				tmpVrts.push_back(v);
-				vrtHeightVals.push_back(height);
-				aaHeight[v] = upperVal.second - val.second;//total height of ilayer
-				sh.assign_subset(v, invalidSub);
-				grid.mark(v);
-			}
+			// bool searching = true;
+			int curLayer = ilayer;
+
+			// while(searching && curLayer >= 0){
+				// searching = false;
+				pair<int, number> val = layers.trace_line_down(c, curLayer);
+				number lowerVal = 0;
+				if(val.first >= 0)
+					lowerVal = layers.relative_to_global_height(c, (number) val.first);
+
+				// if(curLayer == 0 && val.first >= 0
+				// 	&& upperVal - lowerVal < layers.min_height(curLayer))
+				// {
+				// 	val.first = -1;
+				// }
+				
+				if(val.first >= 0){
+					// if(upperVal - lowerVal < layers.min_height(curLayer)){
+					// 	searching = true;
+					// 	--curLayer;
+					// 	continue;
+					// }
+				//	if val.first == curLayer height will equal lowerVal. If not,
+				//	a linear interpolation is performed, considering the height-val
+				//	of the current vertex, the layer distance and the target value.
+					tmpVrts.push_back(v);
+					vrtHeightVals.push_back(height);
+					aaHeight[v] = upperVal - lowerVal;//total height of curLayer
+					sh.assign_subset(v, val.first);
+					grid.mark(v);
+					if(val.first == ilayer){
+						// UG_LOG("DBG: setting upper value: " << lowerVal << "(old: " << upperVal << ")\n");
+						curUpperLayerHeight[icur] = lowerVal;
+					}
+				}
+				else if(allowForTetsAndPyras){
+				//	we insert a dummy-vertex which will later on allow for easier
+				//	edge-collapses of inner vertical rim edges
+					tmpVrts.push_back(v);
+					vrtHeightVals.push_back(height);
+					aaHeight[v] = upperVal - val.second;//total height of ilayer
+					sh.assign_subset(v, invalidSub);
+					grid.mark(v);
+				}
+			// }
 		}
 	//	now find the faces which connect those vertices
 		for(size_t iface = 0; iface < curFaces.size(); ++iface){
