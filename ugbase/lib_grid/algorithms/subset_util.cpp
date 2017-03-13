@@ -37,6 +37,8 @@
 #include "subset_util.h"
 #include "geom_obj_util/geom_obj_util.h"
 #include "polychain_util.h"
+#include "orientation_util.h"
+
 using namespace std;
 
 namespace ug

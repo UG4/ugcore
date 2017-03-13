@@ -54,6 +54,7 @@ set(srcAlgorithms	algorithms/debug_util.cpp
 					algorithms/selection_util.cpp
 					algorithms/serialization.cpp
 					algorithms/grid_statistics.cpp
+					algorithms/orientation_util.cpp
 					algorithms/polychain_util.cpp
 					algorithms/problem_detection_util.cpp
 					algorithms/quadrilateral_util.cpp

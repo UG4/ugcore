@@ -351,30 +351,6 @@ void GetNeighbours(std::vector<Face*>& vFacesOut, Grid& grid, Face* f,
 	}
 }
 
-bool EdgeOrientationMatches(EdgeVertices* ev, Face* f)
-{
-//	find the first vertex of ed in f
-	size_t i;
-	for(i = 0; i < f->num_vertices(); ++i)
-	{
-		if(f->vertex(i) == ev->vertex(0))
-			break;
-	}
-
-	if(i < f->num_vertices())
-	{
-	//	the first one has been found.
-	//	check whether the second vertex of ed is the
-	//	same as the next vertex of f
-		if(ev->vertex(1) == f->vertex((i+1)%f->num_vertices()))
-			return true;//	the orientation is the same
-	}
-
-//	the orientation is not the same.
-	return false;
-}
-
-
 void InsertCenterVertex(Grid& g, Face* f, Vertex* vrt, bool eraseOldFace)
 {
 //	get the sides of the face and create new elements

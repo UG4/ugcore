@@ -1022,7 +1022,7 @@ void DeselectBoundarySelectionFaces(TSelector& sel)
 ////////////////////////////////////////////////////////////////////////
 // SelectLinkedFlatFaces
 void SelectLinkedFlatFaces(Selector& sel, number maxDeviationAngle,
-						   bool traverseFlipped, bool stopAtSelectedEdges,
+						   bool ignoreOrientation, bool stopAtSelectedEdges,
 						   APosition& aPos)
 {
 	if(!sel.grid())
@@ -1081,7 +1081,7 @@ void SelectLinkedFlatFaces(Selector& sel, number maxDeviationAngle,
 
 				//	check dots
 					number d = VecDot(n, nNbr);
-					if(traverseFlipped)
+					if(ignoreOrientation)
 						d = fabs(d);
 
 					if(d >= thresholdDot){
@@ -1098,7 +1098,7 @@ void SelectLinkedFlatFaces(Selector& sel, number maxDeviationAngle,
 
 void SelectLinkedFlatAndDegeneratedFaces(Selector& sel,
 										 number maxDeviationAngle,
-										 bool traverseFlipped,
+										 bool ignoreOrientation,
 										 bool stopAtSelectedEdges,
 										 number degThreshold,
 						   	   	   	     APosition& aPos)
@@ -1180,7 +1180,7 @@ void SelectLinkedFlatAndDegeneratedFaces(Selector& sel,
 
 					//	check dots
 						number d = VecDot(n, nNbr);
-						if(traverseFlipped)
+						if(ignoreOrientation)
 							d = fabs(d);
 
 						if(d >= thresholdDot){

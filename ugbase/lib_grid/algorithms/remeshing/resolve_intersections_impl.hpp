@@ -39,8 +39,9 @@
 #include "common/math/misc/shapes.h"
 #include "lib_grid/algorithms/debug_util.h"
 #include "lib_grid/algorithms/grid_generation/triangle_fill_sweep_line.h"
-#include "lib_grid/algorithms/space_partitioning/lg_ntree.h"
+#include "lib_grid/algorithms/orientation_util.h"
 #include "lib_grid/algorithms/remove_duplicates_util.h"
+#include "lib_grid/algorithms/space_partitioning/lg_ntree.h"
 #include "common/space_partitioning/ntree_traverser.h"
 
 namespace ug{

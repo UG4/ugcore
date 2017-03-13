@@ -166,42 +166,6 @@ UG_API
 typename TAAPosVRT::ValueType
 CalculateCenter(const VolumeVertices* vol, TAAPosVRT& aaPos, TAAWeightVRT& aaWeight);
 
-////////////////////////////////////////////////////////////////////////
-///	returns true if the volume is oriented so that all sides point to this outside.
-/**
- * Please note that special cases may exist in which the current implementation
- * may not return the correct result. This could be true for badly shaped
- * Hexahedrons or for degenerated elements (elements which have a side-face,
- * which has no height and thus resembles a line-segment).
- *
- * The current implementation checks if all face-normals point away from
- * the geometrical center.
- *
- * \todo this method could be improved by adding specialised versions for
- *		 the different volume types.
- */
-template<class TAAPosVRT>
-UG_API 
-bool
-CheckOrientation(Volume* vol, TAAPosVRT& aaPosVRT);
-
-////////////////////////////////////////////////////////////////////////
-///	Changes orientation of badly oriented volumes
-/**
- * changes the orientation of volumes so that CheckOrientation returns
- * true for all volumes between volsBegin and volsEnd.
- *
- * Make sure that all volumes between volsBegin and volsEnd are registerd
- * volumes of the specified grid.
- *
- * \return number of reoriented volumes.
- */
-template<class TVolIterator, class TAAPosVRT>
-UG_API 
-int
-FixOrientation(Grid& grid, TVolIterator volsBegin, TVolIterator volsEnd,
-			   TAAPosVRT& aaPosVRT);
-
 
 ////////////////////////////////////////////////////////////////////////
 ///	Refines the volume by connecting its sides with the new center.

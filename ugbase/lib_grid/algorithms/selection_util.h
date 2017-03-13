@@ -488,13 +488,13 @@ void SelectLinkedElements(ISelector& sel,
 /**
  * \param sel: Selector
  * \param maxDeviationAngle: in degree. Maximal angle between normals of faces considered as flat.
- * \param traverseFlipped (default false): If true, neighboured faces which have
+ * \param ignoreOrientation (default false): If true, neighboured faces which have
  * 							inverted orientation are traversed anyways.
  * \param aPos: Position attachment
  */
 UG_API
 void SelectLinkedFlatFaces(Selector& sel, number maxDeviationAngle,
-						   bool traverseFlipped = false,
+						   bool ignoreOrientation = false,
 						   bool stopAtSelectedEdges = false,
 						   APosition& aPos = aPosition);
 
@@ -507,14 +507,14 @@ void SelectLinkedFlatFaces(Selector& sel, number maxDeviationAngle,
  *
  * \param sel: Selector
  * \param maxDeviationAngle: in degree. Maximal angle between normals of faces considered as flat.
- * \param traverseFlipped (default false): If true, neighboured faces which have
+ * \param ignoreOrientation (default false): If true, neighboured faces which have
  * 							inverted orientation are traversed anyways.
  * \param aPos: Position attachment
  */
 UG_API
 void SelectLinkedFlatAndDegeneratedFaces(Selector& sel,
 										 number maxDeviationAngle,
-										 bool traverseFlipped = false,
+										 bool ignoreOrientation = false,
 										 bool stopAtSelectedEdges = false,
 										 number degThreshold = SMALL,
 						   	   	   	     APosition& aPos = aPosition);
