@@ -86,6 +86,9 @@ set_grid(Grid* grid)
 	{
 		m_pGrid->detach_from_edges(m_aVertex);
 		m_pGrid->detach_from_faces(m_aVertex);
+		m_pGrid->detach_from_faces(m_aAnisoMark);
+		m_pGrid->detach_from_volumes(m_aAnisoMark);
+		m_aaAnisoMark.invalidate();
 		m_pGrid = NULL;
 	}
 
@@ -128,6 +131,53 @@ bool HangingNodeRefiner_Grid::mark(Volume* v, RefinementMark refMark)
 		return BaseClass::mark(v, refMark);
 	return false;
 }
+
+
+void HangingNodeRefiner_Grid::
+mark_aniso(Face* e, int anisoMark)
+{
+	if(!m_aaAnisoMark.is_valid_face_accessor())
+		attach_aniso_marks();
+	
+	m_aaAnisoMark[e] = anisoMark;
+	mark(e, RM_ANISOTROPIC);
+}
+
+void HangingNodeRefiner_Grid::
+mark_aniso(Volume* e, int anisoMark)
+{
+	if(!m_aaAnisoMark.is_valid_volume_accessor())
+		attach_aniso_marks();
+	
+	m_aaAnisoMark[e] = anisoMark;
+	mark(e, RM_ANISOTROPIC);
+}
+
+
+int HangingNodeRefiner_Grid::
+get_aniso_mark(Face* e) const
+{
+	if(m_aaAnisoMark.is_valid_face_accessor())
+		return m_aaAnisoMark[e];
+	return 0;
+}
+
+int HangingNodeRefiner_Grid::
+get_aniso_mark(Volume* e) const
+{
+	if(m_aaAnisoMark.is_valid_volume_accessor())
+		return m_aaAnisoMark[e];
+	return 0;
+}
+
+void HangingNodeRefiner_Grid::
+attach_aniso_marks()
+{
+	m_pGrid->attach_to_faces_dv(m_aAnisoMark, 0);
+	m_pGrid->attach_to_volumes_dv(m_aAnisoMark, 0);
+	m_aaAnisoMark.access(*m_pGrid, m_aAnisoMark, false, false, true, true);
+}
+
 
 void HangingNodeRefiner_Grid::
 num_marked_edges_local(std::vector<int>& numMarkedEdgesOut)

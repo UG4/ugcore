@@ -89,6 +89,12 @@ void ProjectToLayer(
 		int layerIndex,
 		Grid::VertexAttachmentAccessor<AVector3> aaPos);
 
+///	horizontally snaps vertices of the given (surface-) grid to the specified raster
+void SnapToHorizontalRaster(
+		Grid& grid,
+		const RasterLayers& layers,
+		Grid::VertexAttachmentAccessor<AVector3> aaPos);
+
 }//	end of namespace
 
 #endif	//__H__UG_horizontal_layers_mesher

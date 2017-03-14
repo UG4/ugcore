@@ -84,6 +84,14 @@ class MultiElementAttachmentAccessor
 			return ok;
 		}
 
+		void invalidate()
+		{
+			m_aaVrt.invalidate();
+			m_aaEdge.invalidate();
+			m_aaFace.invalidate();
+			m_aaVol.invalidate();
+		}
+
 		bool is_valid_vertex_accessor() const		{return m_aaVrt.valid();}
 		bool is_valid_edge_accessor() const			{return m_aaEdge.valid();}
 		bool is_valid_face_accessor() const			{return m_aaFace.valid();}

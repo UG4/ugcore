@@ -84,8 +84,19 @@ class HangingNodeRefiner_Grid : public HangingNodeRefinerBase<Selector>
 
 	///	Marks a volume for refinement (ignores RM_COARSEN).
 		virtual bool mark(Volume* v, RefinementMark refMark = RM_REFINE);
-		
+
+
+		virtual bool ansio_marks_supported() const 	{return true;}
+
+		virtual void mark_aniso(Face* f, int anisoMark);
+		virtual void mark_aniso(Volume* f, int anisoMark);
+
+		virtual int get_aniso_mark(Face* f) const;
+		virtual int get_aniso_mark(Volume* f) const;
+
 	protected:
+		void attach_aniso_marks();
+
 	///	returns the number of (globally) marked edges on this level of the hierarchy
 		virtual void num_marked_edges_local(std::vector<int>& numMarkedEdgesOut);
 	///	returns the number of (globally) marked faces on this level of the hierarchy
@@ -133,9 +144,11 @@ class HangingNodeRefiner_Grid : public HangingNodeRefinerBase<Selector>
 
 	private:
 		Grid* 			m_pGrid;
-		AVertex		m_aVertex;
+		AVertex			m_aVertex;
+		AInt			m_aAnisoMark;
 		Grid::EdgeAttachmentAccessor<AVertex>		m_aaVertexEDGE;
 		Grid::FaceAttachmentAccessor<AVertex>		m_aaVertexFACE;
+		MultiElementAttachmentAccessor<AInt>		m_aaAnisoMark;
 };
 
 /// @}	// end of add_to_group command

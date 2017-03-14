@@ -1183,20 +1183,32 @@ assign_hnode_marks()
 			iter != m_selMarkedElements.template end<Edge>(); ++iter)
 		{
 			Edge* e = *iter;
+			if(!marked_refine(e))
+				continue;
+			
 			CollectAssociated(faces, grid, e);
 			for(size_t i = 0; i < faces.size(); ++i){
-				if(marked_to_constraining(faces[i])
-				   && marked_refine(e))
+				Face* f = faces[i];
+				if(marked_to_constraining(f))
 				{
 					add_hmark(e, HNRM_TO_CONSTRAINING);
 					break;
 				}
-				else if(refinement_is_allowed(faces[i])
-						&& (!m_selMarkedElements.is_selected(faces[i]))
-						&& marked_refine(e))
+
+				if(!refinement_is_allowed(f))
+					continue;
+
+				if(!m_selMarkedElements.is_selected(f))
 				{
 					add_hmark(e, HNRM_TO_CONSTRAINING);
 					break;
+				}
+				else if(int anisoMark = get_aniso_mark(f)){
+					int ei = GetEdgeIndex(f, e);
+					if(!(anisoMark & 1<<ei)){
+						add_hmark(e, HNRM_TO_CONSTRAINING);
+						break;
+					}
 				}
 			}
 		}
@@ -1498,22 +1510,37 @@ refine_face_with_normal_vertex(Face* f, Vertex** newCornerVrts)
 	Vertex* vNewEdgeVertices[MAX_FACE_VERTICES];
 	vector<Face*>		vFaces(f->num_vertices());// heuristic
 
-	size_t numVrts = f->num_vertices();
-	size_t numEdges = f->num_edges();
+	const size_t numVrts = f->num_vertices();
+	const size_t numEdges = f->num_edges();
 	bool noEdgeVrts = true;
-	for(size_t i = 0; i < numEdges; ++i){
-		Edge* e = grid.get_edge(f, i);
 
-	//	if the face is refined with a regular rule, then every edge has to have
-	//	an associated center vertex
-		UG_ASSERT(marked_adaptive(f) ||
-			   (get_mark(f) == RM_REFINE && get_center_vertex(e) != NULL),
-			   "violated for " << ElementDebugInfo(grid, f));
+	const int anisoMark = get_aniso_mark(f);
+	if(anisoMark && marked_adaptive(f)){
+		for(size_t i = 0; i < numEdges; ++i){
+			if(anisoMark & (1<<i)){
+				vNewEdgeVertices[i] = get_center_vertex(grid.get_edge(f, i));
+				if(vNewEdgeVertices[i])
+					noEdgeVrts = false;
+			}
+			else
+				vNewEdgeVertices[i] = NULL;
+		}
+	}
+	else{
+		for(size_t i = 0; i < numEdges; ++i){
+			Edge* e = grid.get_edge(f, i);
 
-	//	assign the center vertex
-		vNewEdgeVertices[i] = get_center_vertex(e);
-		if(vNewEdgeVertices[i])
-			noEdgeVrts = false;
+		//	if the face is refined with a regular rule, then every edge has to have
+		//	an associated center vertex
+			UG_ASSERT(marked_adaptive(f) ||
+				   (get_mark(f) == RM_REFINE && get_center_vertex(e) != NULL),
+				   "violated for " << ElementDebugInfo(grid, f));
+
+		//	assign the center vertex
+			vNewEdgeVertices[i] = get_center_vertex(e);
+			if(vNewEdgeVertices[i])
+				noEdgeVrts = false;
+		}
 	}
 
 	if(marked_copy(f) || (marked_adaptive(f) && noEdgeVrts)){

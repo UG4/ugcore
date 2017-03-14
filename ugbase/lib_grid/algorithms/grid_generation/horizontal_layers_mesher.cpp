@@ -575,4 +575,26 @@ void ProjectToLayer(
 	}
 }
 
+
+void SnapToHorizontalRaster(
+		Grid& grid,
+		const RasterLayers& layers,
+		Grid::VertexAttachmentAccessor<AVector3> aaPos)
+{
+	UG_COND_THROW(layers.empty(), "Can't snap to empty raster!");
+
+	const Heightfield& field = layers.top().heightfield;
+
+	for(VertexIterator ivrt = grid.vertices_begin();
+		ivrt != grid.vertices_end(); ++ivrt)
+	{
+		Vertex* vrt = *ivrt;
+		vector3& v = aaPos[vrt];
+		pair<int, int> ci = field.coordinate_to_index(v.x(), v.y());
+		vector2 nv = field.index_to_coordinate(ci.first, ci.second);
+		v.x() = nv.x();
+		v.y() = nv.y();
+	}
+}
+
 }//	end of namespace

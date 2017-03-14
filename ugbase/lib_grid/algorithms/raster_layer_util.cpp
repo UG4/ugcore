@@ -490,8 +490,23 @@ construct_relative_to_global_height_table(size_t iterations, number alpha)
 					locVal = (1. - alpha) * locVal + alpha * nbrVal / numNbrs;
 
 				//	reconstruct height value from dist-relation
-					number dirTotal = upper.at(ci.ix, ci.iy) - lower.at(ci.ix, ci.iy);
-					cur.at(ci.ix, ci.iy) = upper.at(ci.ix, ci.iy) - locVal * dirTotal;
+					const number upperVal = upper.at(ci.ix, ci.iy);
+					const number lowerVal = lower.at(ci.ix, ci.iy);
+
+					number dirTotal = upperVal - lowerVal;
+					cur.at(ci.ix, ci.iy) = upperVal - locVal * dirTotal;
+
+				//	enforce minWidth constraints
+					const number upperDist = upperVal - cur.at(ci.ix, ci.iy);
+					const number lowerDist = cur.at(ci.ix, ci.iy) - lowerVal;
+					if(upperDist < layer(lvl).minHeight)
+						if(lowerDist < layer(lvl-1).minHeight)
+							cur.at(ci.ix, ci.iy)
+								= 0.5 * (upperVal - upperDist + lowerVal + lowerDist);
+						else
+							cur.at(ci.ix, ci.iy) = upperVal - upperDist;
+					else if(lowerDist < layer(lvl-1).minHeight)
+						cur.at(ci.ix, ci.iy) = lowerVal + lowerDist;
 				}
 			}
 		}

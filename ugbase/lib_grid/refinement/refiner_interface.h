@@ -91,7 +91,10 @@ class IRefiner
 	/**	pure virtual!*/
 		virtual bool coarsening_supported() const = 0;
 
-	///	Marks a element for refinement. Default implementation is empty
+	///	returns true, if the refiner supports aniso marks.
+		virtual bool ansio_marks_supported() const 	{return false;}
+
+	///	Marks an element for refinement. Default implementation is empty
 	/**	\{ */
 		virtual bool mark(Vertex* v, RefinementMark refMark = RM_REFINE)	{return false;}
 		virtual bool mark(Edge* e, RefinementMark refMark = RM_REFINE)		{return false;}
@@ -103,6 +106,28 @@ class IRefiner
 	/**	The default implementation casts the object to a more concrete type
 	 * (Vertex, Edge, Face, Volume) and calls the appropriate mark method.*/
 		virtual bool mark(GridObject* o, RefinementMark refMark = RM_REFINE);
+
+
+	///	Marks a face or volume for anisotropic refinement.
+	/**	The passed mark is an or combination. If the i-th edge of the element
+	 * shall be refined, it should hold true: 'mark & 1<<i != 0'
+	 * \note	aniso-marks differ from mark(e, RM_ANISOTROPIC). The former will
+	 *			refine an element according to the marks of associated edges.
+	 *			Elements marked with mark_aniso, however, will only be refined
+	 *			according to their local mark.
+	 * \{ */
+		virtual void mark_aniso(Face* e, int mark)		{UG_THROW("mark_aniso not supported by this refiner!");}
+		virtual void mark_aniso(Volume* e, int mark)	{UG_THROW("mark_aniso not supported by this refiner!");}
+	/** \} */
+
+	///	returns the aniso mark of the specified face or volume.
+	/** If the i-th edge of the element shall be refined, it holds true:
+	 * 'get_aniso_mark(e) & 1<<i != 0'
+	 * \{ */
+		virtual int get_aniso_mark(Face* e) const	{return 0;}
+		virtual int get_aniso_mark(Volume* e) const	{return 0;}
+	/** \} */
+
 
 	///	marks the neighborhood of currently marked elements.
 	/**	In each step direct neighbors of currently marked elements are selected.
