@@ -116,6 +116,8 @@ class HangingNodeRefiner_Grid : public HangingNodeRefinerBase<Selector>
 	 *  during construction and destruction.*/
 		void set_grid(Grid* grid);
 
+		virtual void collect_objects_for_refine();
+
 	///	erases unused refined elements
 		virtual void post_refine();
 

@@ -33,6 +33,7 @@
 #include <vector>
 #include "hanging_node_refiner_grid.h"
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
+#include "ref_mark_adjusters/aniso_mark_adjuster.h"
 
 using namespace std;
 
@@ -170,12 +171,17 @@ get_aniso_mark(Volume* e) const
 	return 0;
 }
 
+
 void HangingNodeRefiner_Grid::
 attach_aniso_marks()
 {
-	m_pGrid->attach_to_faces_dv(m_aAnisoMark, 0);
-	m_pGrid->attach_to_volumes_dv(m_aAnisoMark, 0);
-	m_aaAnisoMark.access(*m_pGrid, m_aAnisoMark, false, false, true, true);
+//todo: more elaborate check that the method is not executed multiple times per object
+	if(!m_aaAnisoMark.is_valid_face_accessor()){
+		add_ref_mark_adjuster(AnisoMarkAdjuster::create());
+		m_pGrid->attach_to_faces_dv(m_aAnisoMark, 0);
+		m_pGrid->attach_to_volumes_dv(m_aAnisoMark, 0);
+		m_aaAnisoMark.access(*m_pGrid, m_aAnisoMark, false, false, true, true);
+	}
 }
 
 
@@ -206,6 +212,38 @@ num_marked_elems(std::vector<int>& numMarkedElemsOut)
 	numMarkedElemsOut.resize(1, 0);
 	if(m_pGrid)
 		numMarkedElemsOut[0] = get_refmark_selector().num<TElem>();
+}
+
+void HangingNodeRefiner_Grid::
+collect_objects_for_refine()
+{
+	BaseClass::collect_objects_for_refine();
+
+	Selector& sel = get_refmark_selector();
+
+	for(ConstrainingEdgeIterator iter = sel.begin<ConstrainingEdge>();
+		iter != sel.end<ConstrainingEdge>(); ++iter)
+	{
+		ConstrainingEdge* cge = *iter;
+		if(cge->num_constrained_vertices() > 0)
+			set_center_vertex(cge, cge->constrained_vertex(0));
+	}
+
+	for(ConstrainingTriangleIterator iter = sel.begin<ConstrainingTriangle>();
+		iter != sel.end<ConstrainingTriangle>(); ++iter)
+	{
+		ConstrainingTriangle* cgt = *iter;
+		if(cgt->num_constrained_vertices() > 0)
+			set_center_vertex(cgt, cgt->constrained_vertex(0));
+	}
+
+	for(ConstrainingQuadrilateralIterator iter = sel.begin<ConstrainingQuadrilateral>();
+		iter != sel.end<ConstrainingQuadrilateral>(); ++iter)
+	{
+		ConstrainingQuadrilateral* cgq = *iter;
+		if(cgq->num_constrained_vertices() > 0)
+			set_center_vertex(cgq, cgq->constrained_vertex(0));
+	}
 }
 
 /* pre-refine
