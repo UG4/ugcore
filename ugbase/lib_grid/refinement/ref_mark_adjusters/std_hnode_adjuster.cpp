@@ -110,6 +110,9 @@ ref_marks_changed(IRefiner& ref,
 	for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
 		Edge* e = edges[i_edge];
 
+		if(ref.get_mark(e) != RM_REFINE)
+			continue;
+
 	//	check whether hangingNodeOrder1 is enabled. If so, we have to check
 	//	for associated hanging vertices and push them to qHVrts.
 		if(node_dependency_order_1_enabled()){
@@ -178,11 +181,23 @@ ref_marks_changed(IRefiner& ref,
 			}
 		}
 
-	//	we have to make sure that all associated edges are marked.
+	//	we have to make sure that associated edges are marked.
 		grid.associated_elements(assEdges, f);
-		for(size_t i = 0; i < assEdges.size(); ++i){
-			if(refMark > ref.get_mark(assEdges[i]))
-				ref.mark(assEdges[i], refMark);
+		const int anisoMark = ref.get_aniso_mark(f);
+		if(anisoMark && (refMark == RM_ANISOTROPIC)){
+			for(size_t i = 0; i < assEdges.size(); ++i){
+				if(		(anisoMark & (1<<i))
+					&&	(ref.get_mark(assEdges[i]) != RM_REFINE))
+				{
+					ref.mark(assEdges[i], RM_REFINE);
+				}
+			}
+		}
+		else{
+			for(size_t i = 0; i < assEdges.size(); ++i){
+				if(refMark > ref.get_mark(assEdges[i]))
+					ref.mark(assEdges[i], refMark);
+			}
 		}
 
 	//	constrained and constraining faces require special treatment
