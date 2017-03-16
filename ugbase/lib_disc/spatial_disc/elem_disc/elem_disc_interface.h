@@ -238,9 +238,6 @@ protected:
 	///	sets all assemble functions to NULL (for all ReferenceObjectID's)
 	void clear_add_fct();
 
-	/// check, if all inputs have been set
-	void check_roid(ReferenceObjectID roid, int discType);
-
 private:
 //	abbreviation for own type
 	typedef IElemAssembleFuncs<TLeaf, TDomain> T;
@@ -291,7 +288,27 @@ private:
 
 // 	Rhs function pointers
 	ElemRHSFct 	m_vElemRHSFct[NUM_REFERENCE_OBJECTS];
+
+public:
+/// sets the geometric object type
+/**
+ * This functions set the geometric object type of the object, that is
+ * assembled next. The user has to call this function before most of the
+ * assembling routines can be called. Keep in mind, that the elements are
+ * looped type by type, thus this function has to be called very few times.
+ */
+	void set_roid(ReferenceObjectID id, int discType);
+
+	/// check, if all inputs have been set
+	void check_roid(ReferenceObjectID roid, int discType);
+
+protected:
+/// current Geometric Object
+	ReferenceObjectID m_roid;
 };
+
+
+
 
 /// This class encapsulates all functions related to error estimation
 template <typename TLeaf, typename TDomain>
@@ -316,7 +333,6 @@ public:
 
 	///	World dimension
 	static const int dim = TDomain::dim;
-
 
 	void do_prep_err_est_elem_loop(const ReferenceObjectID roid, const int si);
 	void do_prep_err_est_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
@@ -368,8 +384,7 @@ protected:
 		///	sets all assemble functions to the corresponding virtual ones
 		void set_default_add_fct();
 
-		/// check, if all inputs have been set
-		void check_roid(ReferenceObjectID roid, int discType);
+
 
 private:
 	//	abbreviation for own type
@@ -420,6 +435,23 @@ private:
 protected:
 	/// error estimation object associated to the element discretization
 	SmartPtr<IErrEstData<TDomain> > m_spErrEstData;
+
+public:
+/// sets the geometric object type
+/**
+ * This functions set the geometric object type of the object, that is
+ * assembled next. The user has to call this function before most of the
+ * assembling routines can be called. Keep in mind, that the elements are
+ * looped type by type, thus this function has to be called very few times.
+ */
+	void set_roid(ReferenceObjectID id, int discType);
+
+	/// check, if all inputs have been set
+	void check_roid(ReferenceObjectID roid, int discType);
+
+protected:
+/// current Geometric Object
+	ReferenceObjectID m_roid;
 };
 
 ///	base class for all element-wise discretizations
@@ -431,9 +463,8 @@ protected:
  */
 
 template <typename TDomain>
-class IElemDisc :
-		public IElemAssembleFuncs<IElemDisc<TDomain>, TDomain>,
-		public IElemEstimatorFuncs<IElemDisc<TDomain>, TDomain>
+class IElemDiscBase
+
 {
 	public:
 	///	Domain type
@@ -442,26 +473,18 @@ class IElemDisc :
 	///	Position type
 		typedef typename TDomain::position_type position_type;
 
-	/// real base class
-		friend class IElemAssembleFuncs<IElemDisc<TDomain>, TDomain>;
-		typedef IElemAssembleFuncs<IElemDisc<TDomain>, TDomain> assemble_base_type;
-
-		friend class IElemEstimatorFuncs<IElemDisc<TDomain>, TDomain>;
-		typedef IElemEstimatorFuncs<IElemDisc<TDomain>, TDomain> estimator_base_type;
-
-
 	///	World dimension
 		static const int dim = TDomain::dim;
 		
 	public:
 	///	Constructor
-		IElemDisc(const char* functions = "", const char* subsets = "");
+		IElemDiscBase(const char* functions = "", const char* subsets = "");
 
 	///	Constructor
-		IElemDisc(const std::vector<std::string>& vFct, const std::vector<std::string>& vSubset);
+		IElemDiscBase(const std::vector<std::string>& vFct, const std::vector<std::string>& vSubset);
 
 	/// Virtual destructor
-		virtual ~IElemDisc(){}
+		virtual ~IElemDiscBase(){}
 
 	public:
 	///	sets the approximation space
@@ -495,13 +518,14 @@ class IElemDisc :
 			UG_ASSERT(m_spApproxSpace.valid(), "ApproxSpace not set.");
 			return *m_spApproxSpace->domain()->subset_handler();
 		}
-
+/*
 		void add_elem_modifier(SmartPtr<IElemDiscModifier<TDomain> > elemModifier )
 		{
 			m_spElemModifier.push_back(elemModifier);
 			elemModifier->set_elem_disc(this);
 		}
 		std::vector<SmartPtr<IElemDiscModifier<TDomain> > >& get_elem_modifier(){ return m_spElemModifier;}
+		*/
 
 	protected:
 	///	callback invoked, when approximation space is changed
@@ -511,7 +535,7 @@ class IElemDisc :
 		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
 
 	///	Approximation Space
-		std::vector<SmartPtr<IElemDiscModifier<TDomain> > > m_spElemModifier;
+	//	std::vector<SmartPtr<IElemDiscModifier<TDomain> > > m_spElemModifier;
 
 	////////////////////////////
 	// Functions and Subsets
@@ -721,37 +745,113 @@ class IElemDisc :
 	 * element assemblings but is needed for finite volumes
 	 */
 		virtual bool use_hanging() const {return false;}
+};
 
+
+template <typename TDomain>
+class IElemError :
+	public IElemDiscBase<TDomain>,
+	public IElemEstimatorFuncs<IElemDisc<TDomain>, TDomain>
+{
+public:
+	typedef TDomain domain_type;
+	static const int dim = TDomain::dim;
+
+	friend class IElemEstimatorFuncs<IElemDisc<TDomain>, TDomain>;
+	typedef IElemEstimatorFuncs<IElemDisc<TDomain>, TDomain> estimator_base_type;
+
+	IElemError(const char* functions, const char* subsets)
+	: IElemDiscBase<TDomain>(functions, subsets), estimator_base_type()  {}
+
+	IElemError(const std::vector<std::string>& vFct, const std::vector<std::string>& vSubset)
+	: IElemDiscBase<TDomain>(vFct, vSubset), estimator_base_type()  {}
 
 
 protected:
 
 	///	sets all assemble functions to NULL for a given ReferenceObjectID
-		void clear_add_fct(ReferenceObjectID id);
+	void clear_add_fct(ReferenceObjectID id)
+	{ estimator_base_type::clear_add_fct(id); }
 
 	///	sets all assemble functions to NULL (for all ReferenceObjectID's)
-		void clear_add_fct();
+	void clear_add_fct()
+	{ estimator_base_type::clear_add_fct(); }
 
 	///	sets all assemble functions to the corresponding virtual ones
-		void set_default_add_fct();
+	//void set_default_add_fct();
+	using estimator_base_type::set_default_add_fct;
 
-	public:
-	/// sets the geometric object type
-	/**
-	 * This functions set the geometric object type of the object, that is
-	 * assembled next. The user has to call this function before most of the
-	 * assembling routines can be called. Keep in mind, that the elements are
-	 * looped type by type, thus this function has to be called very few times.
-	 */
-		void set_roid(ReferenceObjectID id, int discType);
-
-
-
-	protected:
-	/// current Geometric Object
-		ReferenceObjectID m_id;
 };
 
+
+/**
+ * Element discretization (including error indicator)
+ * TODO: Should be separated!!!
+ * */
+template <typename TDomain>
+class IElemDisc :
+		public IElemError<TDomain>,
+		public IElemAssembleFuncs<IElemDisc<TDomain>, TDomain>
+{
+public:
+	typedef TDomain domain_type;
+	static const int dim = TDomain::dim;
+
+	/// real base class
+	typedef IElemError<TDomain> base_type;
+	typedef IElemEstimatorFuncs<IElemDisc<TDomain>, TDomain> estimator_base_type;
+	typedef IElemAssembleFuncs<IElemDisc<TDomain>, TDomain> assemble_base_type;
+
+	friend class IElemEstimatorFuncs<IElemDisc<TDomain>, TDomain>;
+	friend class IElemAssembleFuncs<IElemDisc<TDomain>, TDomain>;
+
+
+	IElemDisc(const char* functions, const char* subsets)
+	: IElemError<TDomain>(functions, subsets), assemble_base_type() {}
+
+	IElemDisc(const std::vector<std::string>& vFct, const std::vector<std::string>& vSubset)
+	: IElemError<TDomain>(vFct, vSubset), assemble_base_type() {}
+
+protected:
+
+	///	sets all assemble functions to NULL for a given ReferenceObjectID
+		void clear_add_fct(ReferenceObjectID id)
+		{
+			base_type::clear_add_fct(id);
+			assemble_base_type::clear_add_fct(id);
+		}
+
+	///	sets all assemble functions to NULL (for all ReferenceObjectID's)
+		void clear_add_fct()
+		{
+			base_type::clear_add_fct();
+			assemble_base_type::clear_add_fct();
+		}
+
+	///	sets all assemble functions to the corresponding virtual ones
+		void set_default_add_fct()
+		{
+			base_type::set_default_add_fct();
+			assemble_base_type::set_default_add_fct();
+		}
+
+
+public:
+	void add_elem_modifier(SmartPtr<IElemDiscModifier<TDomain> > elemModifier )
+	{
+			m_spElemModifier.push_back(elemModifier);
+			elemModifier->set_elem_disc(this);
+	}
+
+	std::vector<SmartPtr<IElemDiscModifier<TDomain> > >& get_elem_modifier()
+	{ return m_spElemModifier;}
+
+protected:
+	///	Approximation Space
+	std::vector<SmartPtr<IElemDiscModifier<TDomain> > > m_spElemModifier;
+
+
+};
 
 
 
