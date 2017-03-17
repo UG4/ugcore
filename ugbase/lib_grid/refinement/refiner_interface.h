@@ -43,15 +43,19 @@ namespace ug
 
 ///	refinement-marks allow to specify how an element shall be processed during refinement.
 //	Make sure not to use refinement marks with a value of 128 or higher! Those
+
+///< Fully refines an element and all associated sides and edges
 enum RefinementMark{
-	RM_NONE = 0,							///< no refinement is performed
-	RM_COPY = 1,							///< EXPERIMENTAL! Copy-elements are copied to the next level during refinement. Ignored during coarsening.
-	RM_CLOSURE = 1 << 1,					///< EXPERIMENTAL! refines the element so that only marked edges are refined.
-	RM_ANISOTROPIC = 1 << 2,				///< EXPERIMENTAL! anisotropic refinement is performed
-	RM_REFINE = 1 << 3,						///< regular refinement is performed
-	RM_COARSEN = 1 << 4,					///< the element is coarsened (only valid for adaptive multi-grid refinement)
-	RM_DUMMY = 1 << 5,						///< used internally during mark-adjustment
-	RM_MAX									///< the highest constant in RefinementMark. Should always be smaller than 128!
+	RM_NONE = 0,					///< no refinement is performed
+	RM_CLOSURE = 1,					///< Refines elements according to associated marked edges
+	RM_COPY = RM_CLOSURE,			///< DEPRECATED. Use RM_CLOSURE or RM_LOCAL with localMark = 0 instead.
+	RM_ANISOTROPIC = RM_CLOSURE,	///< DEPRECATED. Use RM_CLOSURE instead.
+	RM_LOCAL = 1 << 1,				///< Refines elements according to a local refinement mark (use 'mark_local')
+	RM_FULL = 1 << 2,				///< Fully refines an element and all associated sides and edges
+	RM_REFINE = RM_FULL,			///< DEPRECATED. Use RM_FULL instead.
+	RM_COARSEN = 1 << 3,			///< the element is coarsened (only valid for adaptive multi-grid refinement)
+	RM_DUMMY = 1 << 4,				///< used internally during mark-adjustment
+	RM_MAX							///< the highest constant in RefinementMark. Should always be smaller than 128!
 };
 
 ///	The refiner interface allows to mark elements for refinement and to call refine.
@@ -91,8 +95,8 @@ class IRefiner
 	/**	pure virtual!*/
 		virtual bool coarsening_supported() const = 0;
 
-	///	returns true, if the refiner supports aniso marks.
-		virtual bool ansio_marks_supported() const 	{return false;}
+	///	returns true, if the refiner supports local marks.
+		virtual bool local_marks_supported() const 	{return false;}
 
 	///	Marks an element for refinement. Default implementation is empty
 	/**	\{ */
@@ -108,24 +112,25 @@ class IRefiner
 		virtual bool mark(GridObject* o, RefinementMark refMark = RM_REFINE);
 
 
-	///	Marks a face or volume for anisotropic refinement.
+	///	Marks a face or volume for local refinement.
 	/**	The passed mark is an or combination. If the i-th edge of the element
-	 * shall be refined, it should hold true: 'mark & 1<<i != 0'
-	 * \note	aniso-marks differ from mark(e, RM_ANISOTROPIC). The former will
+	 * shall be refined, it should hold true: 'mark & 1<<i != 0'.
+	 * The passed element will also receive the RM_LOCAL flag.
+	 * \note	local-marks differ from mark(e, RM_CLOSURE). The former will
 	 *			refine an element according to the marks of associated edges.
-	 *			Elements marked with mark_aniso, however, will only be refined
+	 *			Elements marked with mark_local, however, will only be refined
 	 *			according to their local mark.
 	 * \{ */
-		virtual void mark_aniso(Face* e, int mark)		{UG_THROW("mark_aniso not supported by this refiner!");}
-		virtual void mark_aniso(Volume* e, int mark)	{UG_THROW("mark_aniso not supported by this refiner!");}
+		virtual void mark_local(Face* e, int mark)		{UG_THROW("mark_local not supported by this refiner!");}
+		virtual void mark_local(Volume* e, int mark)	{UG_THROW("mark_local not supported by this refiner!");}
 	/** \} */
 
-	///	returns the aniso mark of the specified face or volume.
+	///	returns the local mark of the specified face or volume.
 	/** If the i-th edge of the element shall be refined, it holds true:
-	 * 'get_aniso_mark(e) & 1<<i != 0'
+	 * 'get_local_mark(e) & 1<<i != 0'
 	 * \{ */
-		virtual int get_aniso_mark(Face* e) const	{return 0;}
-		virtual int get_aniso_mark(Volume* e) const	{return 0;}
+		virtual int get_local_mark(Face* e) const	{return 0;}
+		virtual int get_local_mark(Volume* e) const	{return 0;}
 	/** \} */
 
 

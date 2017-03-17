@@ -30,25 +30,25 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef __H__UG_aniso_mark_adjuster
-#define __H__UG_aniso_mark_adjuster
+#ifndef __H__UG_local_mark_adjuster
+#define __H__UG_local_mark_adjuster
 
 #include "../ref_mark_adjuster_interface.h"
 
 namespace ug{
 
-class AnisoMarkAdjuster;
-typedef SmartPtr<AnisoMarkAdjuster> SPAnisoMarkAdjuster;
+class LocalMarkAdjuster;
+typedef SmartPtr<LocalMarkAdjuster> SPLocalMarkAdjuster;
 
-///	Use this adjuster on top of StdHNodeAdjuster if aniso-marks are present.
-/**	If an element with an aniso-mark is connected to a constraining edge/face which
+///	Use this adjuster on top of StdHNodeAdjuster if local-marks are present.
+/**	If an element with a local-mark is connected to a constraining edge/face which
  * will be refined, then the element has to be fully refined.*/
-class AnisoMarkAdjuster : public IRefMarkAdjuster
+class LocalMarkAdjuster : public IRefMarkAdjuster
 {
 	public:
-		static SPAnisoMarkAdjuster create()	{return SPAnisoMarkAdjuster(new AnisoMarkAdjuster);}
+		static SPLocalMarkAdjuster create()	{return SPLocalMarkAdjuster(new LocalMarkAdjuster);}
 
-		virtual ~AnisoMarkAdjuster()	{}
+		virtual ~LocalMarkAdjuster()	{}
 
 		virtual void ref_marks_changed(IRefiner& ref,
 										const std::vector<Vertex*>& vrts,
@@ -59,4 +59,4 @@ class AnisoMarkAdjuster : public IRefMarkAdjuster
 
 }//	end of namespace
 
-#endif	//__H__UG_aniso_mark_adjuster
+#endif	//__H__UG_local_mark_adjuster

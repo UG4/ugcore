@@ -137,7 +137,7 @@ mark(Vertex* v, RefinementMark refMark)
 	//	of non-surface vertices
 		if(refinement_is_allowed(v) || m_adjustingRefMarks){
 			m_selMarkedElements.select(v, refMark);
-			if(m_adjustingRefMarks && (refMark & (RM_REFINE | RM_ANISOTROPIC | RM_CLOSURE | RM_DUMMY)))
+			if(m_adjustingRefMarks && (refMark & (RM_REFINE | RM_LOCAL | RM_CLOSURE | RM_DUMMY)))
 				m_newlyMarkedRefVrts.push_back(v);
 			return true;
 		}
@@ -152,7 +152,7 @@ bool HangingNodeRefinerBase<TSelector>::mark(Edge* e, RefinementMark refMark)
 	if(get_mark(e) != refMark){
 		if(refinement_is_allowed(e)){
 			m_selMarkedElements.select(e, refMark);
-			if(m_adjustingRefMarks && (refMark & (RM_REFINE | RM_ANISOTROPIC | RM_CLOSURE | RM_DUMMY)))
+			if(m_adjustingRefMarks && (refMark & (RM_REFINE | RM_LOCAL | RM_CLOSURE | RM_DUMMY)))
 				m_newlyMarkedRefEdges.push_back(e);
 			return true;
 		}
@@ -168,7 +168,7 @@ bool HangingNodeRefinerBase<TSelector>::mark(Face* f, RefinementMark refMark)
 	if(get_mark(f) != refMark){
 		if(refinement_is_allowed(f)){
 			m_selMarkedElements.select(f, refMark);
-			if(m_adjustingRefMarks && (refMark & (RM_REFINE | RM_ANISOTROPIC | RM_CLOSURE | RM_DUMMY)))
+			if(m_adjustingRefMarks && (refMark & (RM_REFINE | RM_LOCAL | RM_CLOSURE | RM_DUMMY)))
 				m_newlyMarkedRefFaces.push_back(f);
 			return true;
 		}
@@ -183,7 +183,7 @@ bool HangingNodeRefinerBase<TSelector>::mark(Volume* v, RefinementMark refMark)
 	if(get_mark(v) != refMark){
 		if(refinement_is_allowed(v)){
 			m_selMarkedElements.select(v, refMark);
-			if(m_adjustingRefMarks && (refMark & (RM_REFINE | RM_ANISOTROPIC | RM_CLOSURE | RM_DUMMY)))
+			if(m_adjustingRefMarks && (refMark & (RM_REFINE | RM_LOCAL | RM_CLOSURE | RM_DUMMY)))
 				m_newlyMarkedRefVols.push_back(v);
 			return true;
 		}
@@ -321,8 +321,8 @@ mark_neighborhood(size_t numIterations, RefinementMark refMark, bool sideNbrsOnl
 									if(rm == RM_NONE){
 										switch(sSide){
 											case RM_REFINE:	rm = RM_REFINE; break;
-											case RM_ANISOTROPIC: rm = RM_ANISOTROPIC; break;
 											case RM_CLOSURE: rm = RM_CLOSURE; break;
+											case RM_LOCAL: rm = RM_LOCAL; break;
 											case RM_COARSEN: rm = RM_COARSEN; break;
 											default: break;
 										}
@@ -377,8 +377,8 @@ mark_neighborhood(size_t numIterations, RefinementMark refMark, bool sideNbrsOnl
 									if(rm == RM_NONE){
 										switch(sSide){
 											case RM_REFINE:	rm = RM_REFINE; break;
-											case RM_ANISOTROPIC: rm = RM_ANISOTROPIC; break;
 											case RM_CLOSURE: rm = RM_CLOSURE; break;
+											case RM_LOCAL: rm = RM_LOCAL; break;
 											case RM_COARSEN: rm = RM_COARSEN; break;
 											default: break;
 										}
@@ -406,8 +406,8 @@ mark_neighborhood(size_t numIterations, RefinementMark refMark, bool sideNbrsOnl
 									if(rm == RM_NONE){
 										switch(sSide){
 											case RM_REFINE:	rm = RM_REFINE; break;
-											case RM_ANISOTROPIC: rm = RM_ANISOTROPIC; break;
 											case RM_CLOSURE: rm = RM_CLOSURE; break;
+											case RM_LOCAL: rm = RM_LOCAL; break;
 											case RM_COARSEN: rm = RM_COARSEN; break;
 											default: break;
 										}
@@ -430,8 +430,8 @@ mark_neighborhood(size_t numIterations, RefinementMark refMark, bool sideNbrsOnl
 				if(rm == RM_NONE){
 					switch(s){
 						case RM_REFINE:	rm = RM_REFINE; break;
-						case RM_ANISOTROPIC: rm = RM_ANISOTROPIC; break;
 						case RM_CLOSURE: rm = RM_CLOSURE; break;
+						case RM_LOCAL: rm = RM_LOCAL; break;
 						case RM_COARSEN: rm = RM_COARSEN; break;
 						default: break;
 					}
@@ -475,7 +475,7 @@ RefinementMark HangingNodeRefinerBase<TSelector>::
 get_mark(Vertex* v)
 {
 	return (RefinementMark)(m_selMarkedElements.get_selection_status(v)
-							& (RM_REFINE | RM_ANISOTROPIC | RM_CLOSURE | RM_COARSEN | RM_DUMMY));
+							& (RM_REFINE | RM_LOCAL | RM_CLOSURE | RM_COARSEN | RM_DUMMY));
 }
 
 template <class TSelector>
@@ -483,7 +483,7 @@ RefinementMark HangingNodeRefinerBase<TSelector>::
 get_mark(Edge* e)
 {
 	return (RefinementMark)(m_selMarkedElements.get_selection_status(e)
-							& (RM_REFINE | RM_ANISOTROPIC | RM_CLOSURE | RM_COARSEN | RM_DUMMY));
+							& (RM_REFINE | RM_LOCAL | RM_CLOSURE | RM_COARSEN | RM_DUMMY));
 }
 
 template <class TSelector>
@@ -491,7 +491,7 @@ RefinementMark HangingNodeRefinerBase<TSelector>::
 get_mark(Face* f)
 {
 	return (RefinementMark)(m_selMarkedElements.get_selection_status(f)
-							& (RM_REFINE | RM_ANISOTROPIC | RM_CLOSURE | RM_COARSEN | RM_DUMMY));
+							& (RM_REFINE | RM_LOCAL | RM_CLOSURE | RM_COARSEN | RM_DUMMY));
 }
 
 template <class TSelector>
@@ -499,7 +499,7 @@ RefinementMark HangingNodeRefinerBase<TSelector>::
 get_mark(Volume* v)
 {
 	return (RefinementMark)(m_selMarkedElements.get_selection_status(v)
-							& (RM_REFINE | RM_ANISOTROPIC | RM_CLOSURE | RM_COARSEN | RM_DUMMY));
+							& (RM_REFINE | RM_LOCAL | RM_CLOSURE | RM_COARSEN | RM_DUMMY));
 }
 
 template <class TSelector>
@@ -542,11 +542,11 @@ save_marks_to_file(const char* filename)
 			if (si & b)
 				switch (b)
 				{
-					case RM_COPY: sh.subset_info(si).name.append("COPY_"); break;
 					case RM_CLOSURE: sh.subset_info(si).name.append("CLOSURE_"); break;
-					case RM_ANISOTROPIC: sh.subset_info(si).name.append("ANISOTROPIC_"); break;
-					case RM_REFINE: sh.subset_info(si).name.append("REFINE_"); break;
+					case RM_LOCAL: sh.subset_info(si).name.append("LOCAL_"); break;
+					case RM_FULL: sh.subset_info(si).name.append("FULL_"); break;
 					case RM_COARSEN: sh.subset_info(si).name.append("COARSEN_"); break;
+					case RM_DUMMY: sh.subset_info(si).name.append("DUMMY_"); break;
 					case HNRM_TO_NORMAL: sh.subset_info(si).name.append("TONORMAL_"); break;
 					case HNRM_TO_CONSTRAINED: sh.subset_info(si).name.append("TOCONSTRAINED_"); break;
 					case HNRM_TO_CONSTRAINING: sh.subset_info(si).name.append("TOCONSTRAINING_"); break;
@@ -776,7 +776,7 @@ void HangingNodeRefinerBase<TSelector>::perform_refinement()
 			if(marked_to_constraining(e)){
 				refine_edge_with_hanging_vertex(e);
 			}
-			else if(marked_refine(e) || marked_copy(e)){
+			else if(marked_refine(e)){
 				refine_edge_with_normal_vertex(e);
 			}
 		}
@@ -865,7 +865,7 @@ void HangingNodeRefinerBase<TSelector>::perform_refinement()
 
 			if(marked_to_constraining(f))
 				refine_face_with_hanging_vertex(f);
-			else if(marked_refine(f) || marked_copy(f))
+			else if(marked_refine(f))
 				refine_face_with_normal_vertex(f);
 		}
 	}
@@ -887,7 +887,7 @@ void HangingNodeRefinerBase<TSelector>::perform_refinement()
 
 			if(marked_to_constraining(f))
 				refine_face_with_hanging_vertex(f);
-			else if(marked_refine(f) || marked_copy(f))
+			else if(marked_refine(f))
 				refine_face_with_normal_vertex(f);
 		}
 	}
@@ -929,7 +929,7 @@ void HangingNodeRefinerBase<TSelector>::perform_refinement()
 	{
 		Vertex* e = *iter;
 		++iter;
-		if(!(marked_refine(e) || marked_copy(e)))
+		if(!(marked_refine(e)))
 			m_selMarkedElements.deselect(e);
 	}
 	for(typename selector_t::template traits<Edge>::iterator
@@ -938,7 +938,7 @@ void HangingNodeRefinerBase<TSelector>::perform_refinement()
 	{
 		Edge* e = *iter;
 		++iter;
-		if(!(marked_refine(e) || marked_copy(e)))
+		if(!(marked_refine(e)))
 			m_selMarkedElements.deselect(e);
 	}
 	for(typename selector_t::template traits<Face>::iterator
@@ -947,7 +947,7 @@ void HangingNodeRefinerBase<TSelector>::perform_refinement()
 	{
 		Face* e = *iter;
 		++iter;
-		if(!(marked_refine(e) || marked_copy(e)))
+		if(!(marked_refine(e)))
 			m_selMarkedElements.deselect(e);
 	}
 
@@ -1203,9 +1203,9 @@ assign_hnode_marks()
 					add_hmark(e, HNRM_TO_CONSTRAINING);
 					break;
 				}
-				else if(int anisoMark = get_aniso_mark(f)){
+				else if(int localMark = get_local_mark(f)){
 					int ei = GetEdgeIndex(f, e);
-					if(!(anisoMark & 1<<ei)){
+					if(!(localMark & 1<<ei)){
 						add_hmark(e, HNRM_TO_CONSTRAINING);
 						break;
 					}
@@ -1432,7 +1432,7 @@ refine_edge_with_normal_vertex(Edge* e, Vertex** newCornerVrts)
 //	the grid
 	Grid& grid = *m_pGrid;
 
-	if(marked_copy(e) || marked_adaptive(e)){
+	if(marked_adaptive(e)){
 		if(newCornerVrts){
 			grid.create_by_cloning(e, EdgeDescriptor(newCornerVrts[0], newCornerVrts[1]), e);
 		}
@@ -1514,10 +1514,10 @@ refine_face_with_normal_vertex(Face* f, Vertex** newCornerVrts)
 	const size_t numEdges = f->num_edges();
 	bool noEdgeVrts = true;
 
-	const int anisoMark = get_aniso_mark(f);
-	if(anisoMark && marked_adaptive(f)){
+	const int localMark = get_local_mark(f);
+	if(localMark && marked_adaptive(f)){
 		for(size_t i = 0; i < numEdges; ++i){
-			if(anisoMark & (1<<i)){
+			if(localMark & (1<<i)){
 				vNewEdgeVertices[i] = get_center_vertex(grid.get_edge(f, i));
 				if(vNewEdgeVertices[i])
 					noEdgeVrts = false;
@@ -1543,7 +1543,7 @@ refine_face_with_normal_vertex(Face* f, Vertex** newCornerVrts)
 		}
 	}
 
-	if(marked_copy(f) || (marked_adaptive(f) && noEdgeVrts)){
+	if(marked_adaptive(f) && noEdgeVrts){
 		if(newCornerVrts){
 			FaceDescriptor desc(numVrts);
 			for(size_t i = 0; i < numVrts; ++i)
@@ -1911,10 +1911,10 @@ refine_volume_with_normal_vertex(Volume* v, Vertex** newCornerVrts)
 	bool noEdgeVrts = true;
 
 
-	const int anisoMark = get_aniso_mark(v);
-	if(anisoMark && marked_adaptive(v)){
+	const int localMark = get_local_mark(v);
+	if(localMark && marked_adaptive(v)){
 		for(size_t i = 0; i < numEdges; ++i){
-			if(anisoMark & (1<<i)){
+			if(localMark & (1<<i)){
 				vNewEdgeVertices[i] = get_center_vertex(grid.get_edge(v, i));
 				if(vNewEdgeVertices[i])
 					noEdgeVrts = false;
@@ -1935,7 +1935,7 @@ refine_volume_with_normal_vertex(Volume* v, Vertex** newCornerVrts)
 		}
 	}
 
-	if(marked_copy(v) || (marked_adaptive(v) && noEdgeVrts)){
+	if(marked_adaptive(v) && noEdgeVrts){
 		if(newCornerVrts){
 			size_t numVrts = v->num_vertices();
 			VolumeDescriptor desc(numVrts);

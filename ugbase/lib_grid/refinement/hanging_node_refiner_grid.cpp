@@ -33,7 +33,7 @@
 #include <vector>
 #include "hanging_node_refiner_grid.h"
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
-#include "ref_mark_adjusters/aniso_mark_adjuster.h"
+#include "ref_mark_adjusters/local_mark_adjuster.h"
 
 using namespace std;
 
@@ -87,9 +87,9 @@ set_grid(Grid* grid)
 	{
 		m_pGrid->detach_from_edges(m_aVertex);
 		m_pGrid->detach_from_faces(m_aVertex);
-		m_pGrid->detach_from_faces(m_aAnisoMark);
-		m_pGrid->detach_from_volumes(m_aAnisoMark);
-		m_aaAnisoMark.invalidate();
+		m_pGrid->detach_from_faces(m_aLocalMark);
+		m_pGrid->detach_from_volumes(m_aLocalMark);
+		m_aaLocalMark.invalidate();
 		m_pGrid = NULL;
 	}
 
@@ -135,52 +135,52 @@ bool HangingNodeRefiner_Grid::mark(Volume* v, RefinementMark refMark)
 
 
 void HangingNodeRefiner_Grid::
-mark_aniso(Face* e, int anisoMark)
+mark_local(Face* e, int localMark)
 {
-	if(!m_aaAnisoMark.is_valid_face_accessor())
-		attach_aniso_marks();
+	if(!m_aaLocalMark.is_valid_face_accessor())
+		attach_local_marks();
 	
-	m_aaAnisoMark[e] = anisoMark;
-	mark(e, RM_ANISOTROPIC);
+	m_aaLocalMark[e] = localMark;
+	mark(e, RM_LOCAL);
 }
 
 void HangingNodeRefiner_Grid::
-mark_aniso(Volume* e, int anisoMark)
+mark_local(Volume* e, int localMark)
 {
-	if(!m_aaAnisoMark.is_valid_volume_accessor())
-		attach_aniso_marks();
+	if(!m_aaLocalMark.is_valid_volume_accessor())
+		attach_local_marks();
 	
-	m_aaAnisoMark[e] = anisoMark;
-	mark(e, RM_ANISOTROPIC);
+	m_aaLocalMark[e] = localMark;
+	mark(e, RM_LOCAL);
 }
 
 
 int HangingNodeRefiner_Grid::
-get_aniso_mark(Face* e) const
+get_local_mark(Face* e) const
 {
-	if(m_aaAnisoMark.is_valid_face_accessor())
-		return m_aaAnisoMark[e];
+	if(m_aaLocalMark.is_valid_face_accessor())
+		return m_aaLocalMark[e];
 	return 0;
 }
 
 int HangingNodeRefiner_Grid::
-get_aniso_mark(Volume* e) const
+get_local_mark(Volume* e) const
 {
-	if(m_aaAnisoMark.is_valid_volume_accessor())
-		return m_aaAnisoMark[e];
+	if(m_aaLocalMark.is_valid_volume_accessor())
+		return m_aaLocalMark[e];
 	return 0;
 }
 
 
 void HangingNodeRefiner_Grid::
-attach_aniso_marks()
+attach_local_marks()
 {
 //todo: more elaborate check that the method is not executed multiple times per object
-	if(!m_aaAnisoMark.is_valid_face_accessor()){
-		add_ref_mark_adjuster(AnisoMarkAdjuster::create());
-		m_pGrid->attach_to_faces_dv(m_aAnisoMark, 0);
-		m_pGrid->attach_to_volumes_dv(m_aAnisoMark, 0);
-		m_aaAnisoMark.access(*m_pGrid, m_aAnisoMark, false, false, true, true);
+	if(!m_aaLocalMark.is_valid_face_accessor()){
+		add_ref_mark_adjuster(LocalMarkAdjuster::create());
+		m_pGrid->attach_to_faces_dv(m_aLocalMark, 0);
+		m_pGrid->attach_to_volumes_dv(m_aLocalMark, 0);
+		m_aaLocalMark.access(*m_pGrid, m_aLocalMark, false, false, true, true);
 	}
 }
 

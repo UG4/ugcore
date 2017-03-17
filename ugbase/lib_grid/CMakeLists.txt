@@ -82,7 +82,7 @@ set(srcAlgorithms	algorithms/debug_util.cpp
 					refinement/projectors/projection_handler.cpp
 					refinement/projectors/smooth_projector.cpp
 					refinement/projectors/subdivision_projector.cpp
-					refinement/ref_mark_adjusters/aniso_mark_adjuster.cpp
+					refinement/ref_mark_adjusters/local_mark_adjuster.cpp
 					refinement/ref_mark_adjusters/horizontal_anisotropy_adjuster.cpp
 					refinement/ref_mark_adjusters/mg_hnode_adjuster.cpp
 					refinement/ref_mark_adjusters/std_hnode_adjuster.cpp
@@ -92,10 +92,7 @@ set(srcAlgorithms	algorithms/debug_util.cpp
 					refinement/hanging_node_refiner_grid.cpp
 					refinement/hanging_node_refiner_multi_grid.cpp
 					refinement/refiner_interface.cpp
-					# (unmaintained) refinement/hanging_node_refiner_2d_irn.cpp
-					# (unmaintained) refinement/multi_grid_refiner.cpp
 					refinement/regular_refinement.cpp
-					refinement/regular_refiner_multi_grid.cpp
 					refinement/global_multi_grid_refiner.cpp
 					refinement/global_fractured_media_refiner.cpp
 					algorithms/subdivision/subdivision_loop.cpp

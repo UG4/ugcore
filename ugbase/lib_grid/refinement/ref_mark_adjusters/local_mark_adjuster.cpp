@@ -30,11 +30,11 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include "aniso_mark_adjuster.h"
+#include "local_mark_adjuster.h"
 
 namespace ug{
 	
-void AnisoMarkAdjuster::
+void LocalMarkAdjuster::
 ref_marks_changed(IRefiner& ref,
 			   	  const std::vector<Vertex*>& vrts,
 			   	  const std::vector<Edge*>& edges,
@@ -50,24 +50,23 @@ ref_marks_changed(IRefiner& ref,
 	for(size_t iface = 0; iface < faces.size(); ++iface){
 		Face* f = faces[iface];
 		const RefinementMark refMark = ref.get_mark(f);
-		const int anisoMark = ref.get_aniso_mark(f);
-
-		if((refMark != RM_NONE) && (refMark < RM_REFINE) && anisoMark){
+		const int localMark = ref.get_local_mark(f);
+		if(refMark == RM_LOCAL && localMark){
 			grid.associated_elements_sorted(assEdges, f);
 			for(size_t iedge = 0; iedge < assEdges.size(); ++iedge){
 				Edge* e = assEdges[iedge];
 				const RefinementMark edgeMark = ref.get_mark(e);
 
-				if(		(anisoMark & (1<<iedge))
+				if(		(localMark & (1<<iedge))
 					&&	(edgeMark != RM_REFINE))
 				{
 					ref.mark(e, RM_REFINE);
 				}
 				
-				if(e->is_constraining() && (edgeMark == RM_REFINE)){
-					ref.mark(f, RM_REFINE);
-					break;
-				}
+				// if(e->is_constraining() && (edgeMark == RM_REFINE)){
+				// 	ref.mark(f, RM_REFINE);
+				// 	break;
+				// }
 			}
 		}
 	}
@@ -80,7 +79,7 @@ ref_marks_changed(IRefiner& ref,
 
 	for(size_t ivol = 0; ivol < vols.size(); ++ivol){
 		Volume* vol = vols[ivol];
-		const int volAnisoMark = ref.get_aniso_mark(vol);
+		const int volAnisoMark = ref.get_local_mark(vol);
 		if(!volAnisoMark || !(ref.get_mark(vol) & RM_ANISOTROPIC))
 			continue;
 
@@ -108,12 +107,12 @@ ref_marks_changed(IRefiner& ref,
 
 			if(sideMark){
 				Face* f = grid.get_face(fd);
-				int curAnisoMark = ref.get_aniso_mark(f);
+				int curAnisoMark = ref.get_local_mark(f);
 
 				if(curAnisoMark != sideMark){
 					if((curAnisoMark & sideMark) == curAnisoMark){
 					//	curAnisoMark is contained in sideMark
-						ref.mark_aniso(f, sideMark);
+						ref.mark_local(f, sideMark);
 					}
 					else if((curAnisoMark & sideMark) != sideMark){
 					//	we have to fully refine the face, since aniso-marks do not match
