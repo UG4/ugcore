@@ -752,6 +752,12 @@ class UG_API Volume : public GridObject, public VolumeVertices
 												size_t side) const
 		{UG_THROW("Base method not implemented.");}
 
+	///	returns the local index of the edge which connects the two vertex indices.
+	/**	Default implementation throws a UGError*/
+		virtual int get_edge_index_from_vertices(	const size_t vi0,
+													const size_t vi1) const
+		{UG_THROW("Base method not implemented.");};
+
 	///	returns the local index of the j-th edge of the i-th face of the volume
 	/**	Default implementation throws a UGError*/
 		virtual int get_face_edge_index (	const size_t faceInd,

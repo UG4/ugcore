@@ -182,10 +182,12 @@ ref_marks_changed(IRefiner& ref,
 		}
 
 	//	we have to make sure that associated edges are marked.
-		grid.associated_elements(assEdges, f);
-		for(size_t i = 0; i < assEdges.size(); ++i){
-			if(refMark > ref.get_mark(assEdges[i]))
-				ref.mark(assEdges[i], refMark);
+		if(refMark != RM_LOCAL){
+			grid.associated_elements(assEdges, f);
+			for(size_t i = 0; i < assEdges.size(); ++i){
+				if(refMark > ref.get_mark(assEdges[i]))
+					ref.mark(assEdges[i], refMark);
+			}
 		}
 
 	//	constrained and constraining faces require special treatment
@@ -221,16 +223,18 @@ ref_marks_changed(IRefiner& ref,
 		Volume* v = vols[i_vol];
 		RefinementMark refMark = ref.get_mark(v);
 	//	we have to make sure that all associated edges and faces are marked.
-		grid.associated_elements(assEdges, v);
-		for(size_t i = 0; i < assEdges.size(); ++i){
-			if(refMark > ref.get_mark(assEdges[i]))
-				ref.mark(assEdges[i], refMark);
-		}
+		if(refMark != RM_LOCAL){
+			grid.associated_elements(assEdges, v);
+			for(size_t i = 0; i < assEdges.size(); ++i){
+				if(refMark > ref.get_mark(assEdges[i]))
+					ref.mark(assEdges[i], refMark);
+			}
 
-		grid.associated_elements(assFaces, v);
-		for(size_t i = 0; i < assFaces.size(); ++i){
-			if(refMark > ref.get_mark(assFaces[i]))
-				ref.mark(assFaces[i], refMark);
+			grid.associated_elements(assFaces, v);
+			for(size_t i = 0; i < assFaces.size(); ++i){
+				if(refMark > ref.get_mark(assFaces[i]))
+					ref.mark(assFaces[i], refMark);
+			}
 		}
 	}
 

@@ -125,6 +125,9 @@ class UG_API Tetrahedron : public Volume
 		virtual void get_vertex_indices_of_face(std::vector<size_t>& indsOut,
 												size_t side) const;
 
+		virtual int get_edge_index_from_vertices(	const size_t vi0,
+													const size_t vi1) const;
+
 		virtual int get_face_edge_index (	const size_t faceInd,
 											const size_t faceEdgeInd) const;
 
@@ -259,6 +262,9 @@ class UG_API Hexahedron : public Volume
 		virtual void get_vertex_indices_of_face(std::vector<size_t>& indsOut,
 												size_t side) const;
 
+		virtual int get_edge_index_from_vertices(	const size_t vi0,
+													const size_t vi1) const;
+
 		virtual int get_face_edge_index (	const size_t faceInd,
 											const size_t faceEdgeInd) const;
 
@@ -388,6 +394,9 @@ class UG_API Prism : public Volume
 
 		virtual void get_vertex_indices_of_face(std::vector<size_t>& indsOut,
 												size_t side) const;
+
+		virtual int get_edge_index_from_vertices(	const size_t vi0,
+													const size_t vi1) const;
 
 		virtual int get_face_edge_index (	const size_t faceInd,
 											const size_t faceEdgeInd) const;
@@ -519,6 +528,9 @@ class UG_API Pyramid : public Volume
 		virtual void get_vertex_indices_of_face(std::vector<size_t>& indsOut,
 												size_t side) const;
 
+		virtual int get_edge_index_from_vertices(	const size_t vi0,
+													const size_t vi1) const;
+
 		virtual int get_face_edge_index (	const size_t faceInd,
 											const size_t faceEdgeInd) const;
 
@@ -647,6 +659,9 @@ class UG_API Octahedron : public Volume
 
 		virtual void get_vertex_indices_of_face(std::vector<size_t>& indsOut,
 												size_t side) const;
+
+		virtual int get_edge_index_from_vertices(	const size_t vi0,
+													const size_t vi1) const;
 
 		virtual int get_face_edge_index (	const size_t faceInd,
 											const size_t faceEdgeInd) const;

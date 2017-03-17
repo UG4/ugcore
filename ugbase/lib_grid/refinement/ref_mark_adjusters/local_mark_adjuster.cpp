@@ -51,20 +51,20 @@ ref_marks_changed(IRefiner& ref,
 		Face* f = faces[iface];
 		const RefinementMark refMark = ref.get_mark(f);
 		const int localMark = ref.get_local_mark(f);
-		if(refMark == RM_LOCAL && localMark){
+		if((refMark == RM_LOCAL) && localMark){
 			grid.associated_elements_sorted(assEdges, f);
 			for(size_t iedge = 0; iedge < assEdges.size(); ++iedge){
 				Edge* e = assEdges[iedge];
 				const RefinementMark edgeMark = ref.get_mark(e);
 
 				if(		(localMark & (1<<iedge))
-					&&	(edgeMark != RM_REFINE))
+					&&	(edgeMark != RM_FULL))
 				{
-					ref.mark(e, RM_REFINE);
+					ref.mark(e, RM_FULL);
 				}
 				
-				// if(e->is_constraining() && (edgeMark == RM_REFINE)){
-				// 	ref.mark(f, RM_REFINE);
+				// if(e->is_constraining() && (edgeMark == RM_FULL)){
+				// 	ref.mark(f, RM_FULL);
 				// 	break;
 				// }
 			}
@@ -75,48 +75,67 @@ ref_marks_changed(IRefiner& ref,
 //todo: iterate over faces and check whether volume-aniso-marks and
 //		associated face-aniso-marks mismatch
 
-	FaceDescriptor fd;
+	Grid::face_traits::secure_container		assFaces;
+	std::vector<int>	vinds;
+	vinds.reserve(4);
 
 	for(size_t ivol = 0; ivol < vols.size(); ++ivol){
 		Volume* vol = vols[ivol];
-		const int volAnisoMark = ref.get_local_mark(vol);
-		if(!volAnisoMark || !(ref.get_mark(vol) & RM_ANISOTROPIC))
+		const int volLocalMark = ref.get_local_mark(vol);
+		if(!volLocalMark || !(ref.get_mark(vol) & RM_LOCAL))
 			continue;
 
 		const size_t numEdges = vol->num_edges();
 		for(size_t iedge = 0; iedge < numEdges; ++iedge){
-			if(!(volAnisoMark & (1<<iedge)))
+			if(!(volLocalMark & (1<<iedge)))
 				continue;
 
 			Edge* e = grid.get_edge(vol, iedge);
 			const RefinementMark edgeMark = ref.get_mark(e);
 
-			if(edgeMark != RM_REFINE)
-				ref.mark(e, RM_REFINE);
+			if(edgeMark != RM_FULL)
+				ref.mark(e, RM_FULL);
 		}
 
-		const size_t numFaces = vol->num_faces();
-		for(size_t iface = 0; iface < numFaces; ++iface){
+		grid.associated_elements(assFaces, vol);
+		for(size_t iface = 0; iface < assFaces.size(); ++iface){
+			Face* f = assFaces[iface];
+			Face::ConstVertexArray vrts = f->vertices();
+			const size_t numVrts = f->num_vertices();
+
+			vinds.resize(numVrts);
+			for(size_t i = 0; i < numVrts; ++i){
+				vinds[i] = GetVertexIndex(vol, vrts[i]);
+			}
+
+
 			int sideMark = 0;
-			vol->face_desc(iface, fd);
-			const size_t numFaceEdges = fd.num_vertices();
-			for(size_t i = 0; i < numFaceEdges; ++i){
-				const int volEdgeIndex = vol->get_face_edge_index(iface, i);
-				sideMark |= ((volAnisoMark >> volEdgeIndex) & 1) << i;
+
+			for(size_t i = 0; i < numVrts; ++i){
+				const int edgeInd =
+						vol->get_edge_index_from_vertices(
+								vinds[i], vinds[(i+1)%numVrts]);
+				
+				sideMark |= ((volLocalMark >> edgeInd) & 1) << i;
 			}
 
 			if(sideMark){
-				Face* f = grid.get_face(fd);
-				int curAnisoMark = ref.get_local_mark(f);
+				const int curMark = ref.get_mark(f);
+				if(curMark == RM_FULL)
+					continue;
+				else if(curMark < RM_LOCAL)
+					ref.mark_local(f, sideMark);
 
-				if(curAnisoMark != sideMark){
-					if((curAnisoMark & sideMark) == curAnisoMark){
-					//	curAnisoMark is contained in sideMark
+				int curLocal = ref.get_local_mark(f);
+
+				if(curLocal != sideMark){
+					if((curLocal & sideMark) == curLocal){
+					//	curLocal is contained in sideMark
 						ref.mark_local(f, sideMark);
 					}
-					else if((curAnisoMark & sideMark) != sideMark){
+					else if((curLocal & sideMark) != sideMark){
 					//	we have to fully refine the face, since aniso-marks do not match
-						ref.mark(f, RM_REFINE);
+						ref.mark(f, RM_FULL);
 					}
 				}
 			}

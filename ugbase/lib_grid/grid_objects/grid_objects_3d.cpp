@@ -406,10 +406,17 @@ get_vertex_indices_of_face (std::vector<size_t>& indsOut,
 }
 
 int Tetrahedron::
+get_edge_index_from_vertices(	const size_t vi0,
+								const size_t vi1) const
+{
+	return tet_rules::EDGE_FROM_VRTS[vi0][vi1];
+}
+
+int Tetrahedron::
 get_face_edge_index(const size_t faceInd,
 					const size_t faceEdgeInd) const
 {
-	return tet_rules::FACE_EDGE_INDS[faceInd][faceEdgeInd];
+	return tet_rules::FACE_EDGE_INDS[faceInd][2 - faceEdgeInd];
 }
 
 bool Tetrahedron::collapse_edge(std::vector<Volume*>& vNewVolumesOut,
@@ -633,10 +640,17 @@ get_vertex_indices_of_face (std::vector<size_t>& indsOut,
 }
 
 int Hexahedron::
+get_edge_index_from_vertices(	const size_t vi0,
+								const size_t vi1) const
+{
+	return hex_rules::EDGE_FROM_VRTS[vi0][vi1];
+}
+
+int Hexahedron::
 get_face_edge_index(const size_t faceInd,
 					const size_t faceEdgeInd) const
 {
-	return hex_rules::FACE_EDGE_INDS[faceInd][faceEdgeInd];
+	return hex_rules::FACE_EDGE_INDS[faceInd][3 - faceEdgeInd];
 }
 
 bool Hexahedron::get_opposing_side(FaceVertices* f, FaceDescriptor& fdOut) const
@@ -889,10 +903,20 @@ get_vertex_indices_of_face (std::vector<size_t>& indsOut,
 }
 
 int Prism::
+get_edge_index_from_vertices(	const size_t vi0,
+								const size_t vi1) const
+{
+	return prism_rules::EDGE_FROM_VRTS[vi0][vi1];
+}
+
+int Prism::
 get_face_edge_index(const size_t faceInd,
 					const size_t faceEdgeInd) const
 {
-	return prism_rules::FACE_EDGE_INDS[faceInd][faceEdgeInd];
+	if(prism_rules::FACE_EDGE_INDS[faceInd][3] == -1)
+		return prism_rules::FACE_EDGE_INDS[faceInd][2 - faceEdgeInd];
+	else
+		return prism_rules::FACE_EDGE_INDS[faceInd][3 - faceEdgeInd];
 }
 
 bool Prism::get_opposing_side(FaceVertices* f, FaceDescriptor& fdOut) const
@@ -1161,10 +1185,20 @@ get_vertex_indices_of_face (std::vector<size_t>& indsOut,
 }
 
 int Pyramid::
+get_edge_index_from_vertices(	const size_t vi0,
+								const size_t vi1) const
+{
+	return pyra_rules::EDGE_FROM_VRTS[vi0][vi1];
+}
+
+int Pyramid::
 get_face_edge_index(const size_t faceInd,
 					const size_t faceEdgeInd) const
 {
-	return pyra_rules::FACE_EDGE_INDS[faceInd][faceEdgeInd];
+	if(pyra_rules::FACE_EDGE_INDS[faceInd][3] == -1)
+		return pyra_rules::FACE_EDGE_INDS[faceInd][2 - faceEdgeInd];
+	else
+		return pyra_rules::FACE_EDGE_INDS[faceInd][3 - faceEdgeInd];
 }
 
 std::pair<GridBaseObjectId, int> Pyramid::
@@ -1392,10 +1426,17 @@ get_vertex_indices_of_face (std::vector<size_t>& indsOut,
 }
 
 int Octahedron::
+get_edge_index_from_vertices(	const size_t vi0,
+								const size_t vi1) const
+{
+	return oct_rules::EDGE_FROM_VRTS[vi0][vi1];
+}
+
+int Octahedron::
 get_face_edge_index(const size_t faceInd,
 					const size_t faceEdgeInd) const
 {
-	return oct_rules::FACE_EDGE_INDS[faceInd][faceEdgeInd];
+	return oct_rules::FACE_EDGE_INDS[faceInd][2 - faceEdgeInd];
 }
 
 std::pair<GridBaseObjectId, int> Octahedron::
