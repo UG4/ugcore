@@ -1847,7 +1847,7 @@ prolongation_and_postsmooth(int lev)
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - prolongation on level "<<lev<<"\n");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - postsmooth on level "<<lev<<"\n");
-	log_debug_data(lev, "BeforePostSmooth");
+	// log_debug_data(lev, "BeforePostSmooth");
 
 // 	POST-SMOOTH:
 	GMG_PROFILE_BEGIN(GMG_PostSmooth);
@@ -1857,6 +1857,9 @@ prolongation_and_postsmooth(int lev)
 		{
 		//	update defect
 			lf.A->apply_sub(*lf.sd, *lf.st);
+
+			if(nu == 0)
+				log_debug_data(lev, "BeforePostSmooth");
 
 		//	a)  Compute t = B*d with some iterator B
 			if(!lf.PostSmoother->apply(*lf.st, *lf.sd))

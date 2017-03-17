@@ -73,52 +73,56 @@ ref_marks_changed(IRefiner& ref,
 	}
 
 
-	// FaceDescriptor fd;
+//todo: iterate over faces and check whether volume-aniso-marks and
+//		associated face-aniso-marks mismatch
 
-	// for(size_t ivol = 0; ivol < vols.size(); ++ivol){
-	// 	Volume* vol = vols[ivol];
-	// 	const int volAnisoMark = ref.get_aniso_mark(vol);
-	// 	if(!volAnisoMark || !(ref.get_mark(v) & RM_ANISOTROPIC))
-	// 		continue;
+	FaceDescriptor fd;
 
-	// 	const size_t numFaces = vol->num_faces();
-	// 	for(size_t iface = 0; iface < numFaces; ++iface){
-	// 		int sideMark = 0;
-	// 		vol->face_desc(iface, fd);
-	// 		const size_t numFaceEdges = fd.num_vertices();
-	// 		for(size_t i = 0; i < numFaceEdges; ++i){
-	// 			const int volEdgeIndex = vol->get_face_edge_index(iface, i);
-	// 			sideMark |= ((volAnisoMark >> volEdgeIndex) & 1) << i;
-	// 		}
+	for(size_t ivol = 0; ivol < vols.size(); ++ivol){
+		Volume* vol = vols[ivol];
+		const int volAnisoMark = ref.get_aniso_mark(vol);
+		if(!volAnisoMark || !(ref.get_mark(vol) & RM_ANISOTROPIC))
+			continue;
 
-	// 		Face* f = grid.get_face(&fd);
-	// 		if(ref.get_mark(f) == RM_REFINE){
-	// 			ref.mark(vol, RM_REFINE);
-	// 			break;
-	// 		}
+		const size_t numEdges = vol->num_edges();
+		for(size_t iedge = 0; iedge < numEdges; ++iedge){
+			if(!(volAnisoMark & (1<<iedge)))
+				continue;
 
-	// 		const int oldAnisoMark = ref.get_aniso_mark(f);
+			Edge* e = grid.get_edge(vol, iedge);
+			const RefinementMark edgeMark = ref.get_mark(e);
 
-	// 		if(oldAnisoMark != sideMark){
-	// 			if((oldAnisoMark & sideMark) == oldAnisoMark){
-	// 			//	oldAnisoMark is contained in sideMark
-	// 				ref.mark_aniso(f, sideMark);
-	// 			}
-	// 			else{
+			if(edgeMark != RM_REFINE)
+				ref.mark(e, RM_REFINE);
+		}
 
-	// 			}
-	// 		}
+		const size_t numFaces = vol->num_faces();
+		for(size_t iface = 0; iface < numFaces; ++iface){
+			int sideMark = 0;
+			vol->face_desc(iface, fd);
+			const size_t numFaceEdges = fd.num_vertices();
+			for(size_t i = 0; i < numFaceEdges; ++i){
+				const int volEdgeIndex = vol->get_face_edge_index(iface, i);
+				sideMark |= ((volAnisoMark >> volEdgeIndex) & 1) << i;
+			}
 
-	// 		if(		(ref.get_mark(f) == RM_REFINE)
-	// 			||	(oldAnisoMark && (oldAnisoMark != sideMark)))
-	// 		{
-	// 			ref.mark(vol, RM_REFINE);
-	// 			break;
-	// 		}
-	// 		else
-	// 			ref.mark_aniso(f, sideMark);
-	// 	}
-	// }
+			if(sideMark){
+				Face* f = grid.get_face(fd);
+				int curAnisoMark = ref.get_aniso_mark(f);
+
+				if(curAnisoMark != sideMark){
+					if((curAnisoMark & sideMark) == curAnisoMark){
+					//	curAnisoMark is contained in sideMark
+						ref.mark_aniso(f, sideMark);
+					}
+					else if((curAnisoMark & sideMark) != sideMark){
+					//	we have to fully refine the face, since aniso-marks do not match
+						ref.mark(f, RM_REFINE);
+					}
+				}
+			}
+		}
+	}
 }
 
 }//	end of namespace
