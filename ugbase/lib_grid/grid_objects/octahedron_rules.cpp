@@ -513,5 +513,11 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3* corne
 }
 
 
+bool IsRegularRefRule(const int edgeMarks)
+{
+//todo:	Think about regular octahedron ref rules.
+	return false;
+}
+
 }//	end of namespace oct_rules
 }//	end of namespace ug

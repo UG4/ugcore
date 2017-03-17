@@ -1139,7 +1139,7 @@ bool ExpandFractures3d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 			//	If at least one has an associated new vertex and if no edge between the
 			//	new vertices already exists, we'll create the new edge.
 				size_t ind0, ind1;
-				sv->get_local_vertex_indices_of_edge(ind0, ind1, i_edge);
+				sv->get_vertex_indices_of_edge(ind0, ind1, i_edge);
 				Vertex* nv0 = (aaVrtVecVOL[sv])[ind0];
 				Vertex* nv1 = (aaVrtVecVOL[sv])[ind1];
 
@@ -1172,7 +1172,7 @@ bool ExpandFractures3d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 			if(sel.is_selected(sf)){
 			//	check the associated vertices through the volumes aaVrtVecVol attachment.
 			//	If no face between the new vertices already exists, we'll create the new face.
-				sv->get_local_vertex_indices_of_face(locVrtInds, i_face);
+				sv->get_vertex_indices_of_face(locVrtInds, i_face);
 				fd.set_num_vertices(sf->num_vertices());
 
 				for(size_t i = 0; i < sf->num_vertices(); ++i){
@@ -1202,7 +1202,7 @@ bool ExpandFractures3d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 	//	now expand the fracture faces of sv to volumes.
 		for(size_t i_side = 0; i_side < sv->num_sides(); ++i_side){
 		//	get the local vertex indices of the side of the volume
-			sv->get_local_vertex_indices_of_face(locVrtInds, i_side);
+			sv->get_vertex_indices_of_face(locVrtInds, i_side);
 
 			Face* tFace = grid.get_side(sv, i_side);
 

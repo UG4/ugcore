@@ -59,6 +59,14 @@ enum FaceContainerSections
 };
 
 
+//	predeclarations
+class Triangle;
+class Quadrilateral;
+class ConstrainedTriangle;
+class ConstrainedQuadrilateral;
+class ConstrainingTriangle;
+class ConstrainingQuadrilateral;
+
 ////////////////////////////////////////////////////////////////////////////////
 //	NORMAL FACES
 ////////////////////////////////////////////////////////////////////////////////
@@ -90,8 +98,12 @@ class UG_API TriangleDescriptor
  * BaseClass has to be derived from Face (or simply should be Face).
  * The ConcreteTriangleType is used in methods like refine, etc. as the type
  * of newly created objects.
+ *
+ * RefTriType and RefQuadType are used to create new elements during refinement
+ * operations.
  */
-template <class ConcreteTriangleType, class BaseClass>
+template <class ConcreteTriangleType, class BaseClass,
+		  class RefTriType, class RefQuadType>
 class UG_API CustomTriangle : public BaseClass
 {
 	public:
@@ -125,6 +137,8 @@ class UG_API CustomTriangle : public BaseClass
 							Vertex** pSubstituteVertices = NULL,
 							int snapPointIndex = -1);
 
+		virtual bool is_regular_ref_rule(int edgeMarks) const;
+
 		virtual bool collapse_edge(std::vector<Face*>& vNewFacesOut,
 								int edgeIndex, Vertex* newVertex,
 								Vertex** pSubstituteVertices = NULL);
@@ -155,9 +169,10 @@ class UG_API CustomTriangle : public BaseClass
  *
  * \ingroup lib_grid_grid_objects
  */
-class UG_API Triangle : public CustomTriangle<Triangle, Face>
+class UG_API Triangle :
+	public CustomTriangle<Triangle, Face, Triangle, Quadrilateral>
 {
-	typedef CustomTriangle<Triangle, Face> BaseClass;
+	typedef CustomTriangle<Triangle, Face, Triangle, Quadrilateral> BaseClass;
 	public:
 		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Triangle*>(pObj) != NULL;}
 
@@ -225,8 +240,12 @@ class UG_API QuadrilateralDescriptor
  * BaseClass has to be derived from Face (or simply should be Face).
  * The ConcreteQuadrilateralType is used in methods like refine, etc. as the type
  * of newly created objects.
+ *
+ * RefTriType and RefQuadType are used to create new elements during refinement
+ * operations.
  */
-template <class ConcreteQuadrilateralType, class BaseClass>
+template <class ConcreteQuadrilateralType, class BaseClass,
+		  class RefTriType, class RefQuadType>
 class UG_API CustomQuadrilateral : public BaseClass
 {
 	public:
@@ -268,6 +287,8 @@ class UG_API CustomQuadrilateral : public BaseClass
 							Vertex** pSubstituteVertices = NULL,
 							int snapPointIndex = -1);
 
+		virtual bool is_regular_ref_rule(int edgeMarks) const;
+		
 		virtual bool collapse_edge(std::vector<Face*>& vNewFacesOut,
 								int edgeIndex, Vertex* newVertex,
 								Vertex** pSubstituteVertices = NULL);
@@ -297,12 +318,15 @@ class UG_API CustomQuadrilateral : public BaseClass
 /**
  * \ingroup lib_grid_grid_objects
  */
-class UG_API Quadrilateral : public CustomQuadrilateral<Quadrilateral, Face>
+class UG_API Quadrilateral :
+	public CustomQuadrilateral<Quadrilateral, Face, Triangle, Quadrilateral>
 {
 	public:
-		typedef CustomQuadrilateral<Quadrilateral, Face> BaseClass;
+		typedef CustomQuadrilateral<Quadrilateral, Face, Triangle, Quadrilateral>
+				BaseClass;
 
-		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Quadrilateral*>(pObj) != NULL;}
+		inline static bool type_match(GridObject* pObj)
+		{return dynamic_cast<Quadrilateral*>(pObj) != NULL;}
 
 		Quadrilateral()	{}
 		Quadrilateral(const QuadrilateralDescriptor& td) : BaseClass(td)	{}
@@ -322,9 +346,11 @@ template <>
 class geometry_traits<Quadrilateral>
 {
 	public:
-		typedef GenericGridObjectIterator<Quadrilateral*, FaceIterator>		iterator;
+		typedef GenericGridObjectIterator<Quadrilateral*, FaceIterator>
+				iterator;
 		typedef ConstGenericGridObjectIterator<Quadrilateral*, FaceIterator,
-																ConstFaceIterator>	const_iterator;
+											   ConstFaceIterator>
+				const_iterator;
 
 		typedef QuadrilateralDescriptor Descriptor;	///< Faces can't be created directly
 		typedef Face	grid_base_object;
@@ -356,7 +382,8 @@ typedef geometry_traits<Quadrilateral>::const_iterator	ConstQuadrilateralIterato
 class UG_API ConstrainedFace : public Face
 {
 	public:
-		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<ConstrainedFace*>(pObj) != NULL;}
+		inline static bool type_match(GridObject* pObj)
+		{return dynamic_cast<ConstrainedFace*>(pObj) != NULL;}
 
 		ConstrainedFace() : m_pConstrainingObject(NULL), m_parentBaseObjectId(-1)	{}
 		virtual ~ConstrainedFace()	{}
@@ -368,9 +395,9 @@ class UG_API ConstrainedFace : public Face
 				m_parentBaseObjectId = pObj->base_object_id();
 		}
 
-		inline GridObject* get_constraining_object()			{return m_pConstrainingObject;}
+		inline GridObject* get_constraining_object()	{return m_pConstrainingObject;}
 
-		inline int get_parent_base_object_id()				{return m_parentBaseObjectId;}
+		inline int get_parent_base_object_id()			{return m_parentBaseObjectId;}
 		inline void set_parent_base_object_id(int id)
 		{
 			if((m_parentBaseObjectId != -1) && (m_parentBaseObjectId != id)){
@@ -382,11 +409,11 @@ class UG_API ConstrainedFace : public Face
 			m_parentBaseObjectId = id;
 		}
 
-		virtual bool is_constrained() const							{return true;}
+		virtual bool is_constrained() const	{return true;}
 
 	protected:
 		GridObject*	m_pConstrainingObject;
-		int					m_parentBaseObjectId;
+		int			m_parentBaseObjectId;
 };
 
 
@@ -396,9 +423,13 @@ class UG_API ConstrainedFace : public Face
 /**
  * \ingroup lib_grid_grid_objects
  */
-class UG_API ConstrainedTriangle : public CustomTriangle<ConstrainedTriangle, ConstrainedFace>
+class UG_API ConstrainedTriangle :
+	public CustomTriangle	<ConstrainedTriangle, ConstrainedFace,
+							 ConstrainedTriangle, ConstrainedQuadrilateral>
 {
-	typedef CustomTriangle<ConstrainedTriangle, ConstrainedFace> BaseTriangle;
+	typedef CustomTriangle<ConstrainedTriangle, ConstrainedFace,
+							ConstrainedTriangle, ConstrainedQuadrilateral>
+			BaseTriangle;
 
 	public:
 		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<ConstrainedTriangle*>(pObj) != NULL;}
@@ -425,9 +456,11 @@ template <>
 class geometry_traits<ConstrainedTriangle>
 {
 	public:
-		typedef GenericGridObjectIterator<ConstrainedTriangle*, FaceIterator>		iterator;
+		typedef GenericGridObjectIterator<ConstrainedTriangle*, FaceIterator>
+				iterator;
 		typedef ConstGenericGridObjectIterator<ConstrainedTriangle*, FaceIterator,
-																	ConstFaceIterator>	const_iterator;
+											   ConstFaceIterator>
+				const_iterator;
 
 		typedef TriangleDescriptor Descriptor;	///< Faces can't be created directly
 		typedef Face	grid_base_object;
@@ -451,9 +484,13 @@ typedef geometry_traits<ConstrainedTriangle>::const_iterator	ConstConstrainedTri
 /**
  * \ingroup lib_grid_grid_objects
  */
-class UG_API ConstrainedQuadrilateral : public CustomQuadrilateral<ConstrainedQuadrilateral, ConstrainedFace>
+class UG_API ConstrainedQuadrilateral :
+	public CustomQuadrilateral	<ConstrainedQuadrilateral, ConstrainedFace,
+							 	 ConstrainedTriangle, ConstrainedQuadrilateral>
 {
-	typedef CustomQuadrilateral<ConstrainedQuadrilateral, ConstrainedFace> BaseClass;
+	typedef CustomQuadrilateral<ConstrainedQuadrilateral, ConstrainedFace,
+								ConstrainedTriangle, ConstrainedQuadrilateral>
+			BaseClass;
 
 	public:
 		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<ConstrainedQuadrilateral*>(pObj) != NULL;}
@@ -477,9 +514,11 @@ template <>
 class geometry_traits<ConstrainedQuadrilateral>
 {
 	public:
-		typedef GenericGridObjectIterator<ConstrainedQuadrilateral*, FaceIterator>	iterator;
+		typedef GenericGridObjectIterator<ConstrainedQuadrilateral*, FaceIterator>
+				iterator;
 		typedef ConstGenericGridObjectIterator<ConstrainedQuadrilateral*,
-													FaceIterator, ConstFaceIterator>	const_iterator;
+											   FaceIterator, ConstFaceIterator>
+				const_iterator;
 
 		typedef QuadrilateralDescriptor Descriptor;	///< Faces can't be created directly
 		typedef Face	grid_base_object;
@@ -520,20 +559,23 @@ class UG_API ConstrainingFace : public Face
 
 		inline void add_constrained_object(Vertex* pObj)
 			{
-				UG_ASSERT(!is_constrained_object(pObj), "vertex is already registered at constraining face");
-					m_constrainedVertices.push_back(pObj);
+				UG_ASSERT(!is_constrained_object(pObj),
+						  "vertex is already registered at constraining face");
+				m_constrainedVertices.push_back(pObj);
 			}
 
 		inline void add_constrained_object(Edge* pObj)
 			{
-				UG_ASSERT(!is_constrained_object(pObj), "edge is already registered at constraining face");
-					m_constrainedEdges.push_back(pObj);
+				UG_ASSERT(!is_constrained_object(pObj),
+						  "edge is already registered at constraining face");
+				m_constrainedEdges.push_back(pObj);
 			}
 
 		inline void add_constrained_object(Face* pObj)
 			{
-				UG_ASSERT(!is_constrained_object(pObj), "face is already registered at constraining face");
-					m_constrainedFaces.push_back(pObj);
+				UG_ASSERT(!is_constrained_object(pObj),
+						  "face is already registered at constraining face");
+				m_constrainedFaces.push_back(pObj);
 			}
 
 		inline bool is_constrained_object(Vertex* vrt)
@@ -567,8 +609,10 @@ class UG_API ConstrainingFace : public Face
 
 		inline void unconstrain_object(const Edge* edge)
 			{
-				std::vector<Edge*>::iterator iter = find(m_constrainedEdges.begin(),
-															m_constrainedEdges.end(), edge);
+				std::vector<Edge*>::iterator iter
+					= find(m_constrainedEdges.begin(),
+						   m_constrainedEdges.end(), edge);
+
 				if(iter != m_constrainedEdges.end())
 					m_constrainedEdges.erase(iter);
 			}
@@ -591,9 +635,15 @@ class UG_API ConstrainingFace : public Face
 				clear_constrained_faces();
 			}
 
-		inline size_t num_constrained_vertices() const	{return m_constrainedVertices.size();}
-		inline size_t num_constrained_edges() const		{return m_constrainedEdges.size();}
-		inline size_t num_constrained_faces() const		{return m_constrainedFaces.size();}
+		inline size_t num_constrained_vertices() const
+		{return m_constrainedVertices.size();}
+
+		inline size_t num_constrained_edges() const
+		{return m_constrainedEdges.size();}
+
+		inline size_t num_constrained_faces() const
+		{return m_constrainedFaces.size();}
+
 
 		template <class TElem> size_t num_constrained() const;
 
@@ -632,12 +682,17 @@ class UG_API ConstrainingFace : public Face
 /**
  * \ingroup lib_grid_grid_objects
  */
-class UG_API ConstrainingTriangle : public CustomTriangle<ConstrainingTriangle, ConstrainingFace>
+class UG_API ConstrainingTriangle :
+	public CustomTriangle	<ConstrainingTriangle, ConstrainingFace,
+							 ConstrainingTriangle, ConstrainingQuadrilateral>
 {
-	typedef CustomTriangle<ConstrainingTriangle, ConstrainingFace> BaseTriangle;
+	typedef CustomTriangle<ConstrainingTriangle, ConstrainingFace,
+							ConstrainingTriangle, ConstrainingQuadrilateral>
+			BaseTriangle;
 
 	public:
-		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<ConstrainingTriangle*>(pObj) != NULL;}
+		inline static bool type_match(GridObject* pObj)
+		{return dynamic_cast<ConstrainingTriangle*>(pObj) != NULL;}
 
 		ConstrainingTriangle() :
 			BaseTriangle()	{reserve_memory();}
@@ -665,9 +720,11 @@ template <>
 class geometry_traits<ConstrainingTriangle>
 {
 	public:
-		typedef GenericGridObjectIterator<ConstrainingTriangle*, FaceIterator>		iterator;
+		typedef GenericGridObjectIterator<ConstrainingTriangle*, FaceIterator>
+				iterator;
 		typedef ConstGenericGridObjectIterator<ConstrainingTriangle*, FaceIterator,
-																	ConstFaceIterator>	const_iterator;
+												ConstFaceIterator>
+				const_iterator;
 
 		typedef TriangleDescriptor Descriptor;	///< Faces can't be created directly
 		typedef Face	grid_base_object;
@@ -680,8 +737,10 @@ class geometry_traits<ConstrainingTriangle>
 		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_TRIANGLE;
 };
 
-typedef geometry_traits<ConstrainingTriangle>::iterator			ConstrainingTriangleIterator;
-typedef geometry_traits<ConstrainingTriangle>::const_iterator	ConstConstrainingTriangleIterator;
+typedef geometry_traits<ConstrainingTriangle>::iterator
+		ConstrainingTriangleIterator;
+typedef geometry_traits<ConstrainingTriangle>::const_iterator
+		ConstConstrainingTriangleIterator;
 
 
 
@@ -691,9 +750,13 @@ typedef geometry_traits<ConstrainingTriangle>::const_iterator	ConstConstrainingT
 /**
  * \ingroup lib_grid_grid_objects
  */
-class UG_API ConstrainingQuadrilateral : public CustomQuadrilateral<ConstrainingQuadrilateral, ConstrainingFace>
+class UG_API ConstrainingQuadrilateral :
+	public CustomQuadrilateral	<ConstrainingQuadrilateral, ConstrainingFace,
+							 	 ConstrainingTriangle, ConstrainingQuadrilateral>
 {
-	typedef CustomQuadrilateral<ConstrainingQuadrilateral, ConstrainingFace> BaseClass;
+	typedef CustomQuadrilateral<ConstrainingQuadrilateral, ConstrainingFace,
+								ConstrainingTriangle, ConstrainingQuadrilateral>
+			BaseClass;
 
 	public:
 		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<ConstrainingQuadrilateral*>(pObj) != NULL;}
@@ -726,9 +789,12 @@ template <>
 class geometry_traits<ConstrainingQuadrilateral>
 {
 	public:
-		typedef GenericGridObjectIterator<ConstrainingQuadrilateral*, FaceIterator>	iterator;
+		typedef GenericGridObjectIterator<ConstrainingQuadrilateral*, FaceIterator>
+				iterator;
+
 		typedef ConstGenericGridObjectIterator<ConstrainingQuadrilateral*,
-														FaceIterator, ConstFaceIterator>	const_iterator;
+											FaceIterator, ConstFaceIterator>
+				const_iterator;
 
 		typedef QuadrilateralDescriptor Descriptor;	///< Faces can't be created directly
 		typedef Face	grid_base_object;
@@ -741,8 +807,10 @@ class geometry_traits<ConstrainingQuadrilateral>
 		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_QUADRILATERAL;
 };
 
-typedef geometry_traits<ConstrainingQuadrilateral>::iterator		ConstrainingQuadrilateralIterator;
-typedef geometry_traits<ConstrainingQuadrilateral>::const_iterator	ConstConstrainingQuadrilateralIterator;
+typedef geometry_traits<ConstrainingQuadrilateral>::iterator
+		ConstrainingQuadrilateralIterator;
+typedef geometry_traits<ConstrainingQuadrilateral>::const_iterator
+		ConstConstrainingQuadrilateralIterator;
 
 
 }//	end of namespace

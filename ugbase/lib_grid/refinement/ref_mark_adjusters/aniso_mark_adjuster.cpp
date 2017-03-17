@@ -46,16 +46,24 @@ ref_marks_changed(IRefiner& ref,
 	Grid& grid = *ref.grid();
 
 	Grid::edge_traits::secure_container		assEdges;
-
+	
 	for(size_t iface = 0; iface < faces.size(); ++iface){
 		Face* f = faces[iface];
 		const RefinementMark refMark = ref.get_mark(f);
 		const int anisoMark = ref.get_aniso_mark(f);
+
 		if((refMark != RM_NONE) && (refMark < RM_REFINE) && anisoMark){
-			grid.associated_elements(assEdges, f);
+			grid.associated_elements_sorted(assEdges, f);
 			for(size_t iedge = 0; iedge < assEdges.size(); ++iedge){
 				Edge* e = assEdges[iedge];
 				const RefinementMark edgeMark = ref.get_mark(e);
+
+				if(		(anisoMark & (1<<iedge))
+					&&	(edgeMark != RM_REFINE))
+				{
+					ref.mark(e, RM_REFINE);
+				}
+				
 				if(e->is_constraining() && (edgeMark == RM_REFINE)){
 					ref.mark(f, RM_REFINE);
 					break;
@@ -63,6 +71,54 @@ ref_marks_changed(IRefiner& ref,
 			}
 		}
 	}
+
+
+	// FaceDescriptor fd;
+
+	// for(size_t ivol = 0; ivol < vols.size(); ++ivol){
+	// 	Volume* vol = vols[ivol];
+	// 	const int volAnisoMark = ref.get_aniso_mark(vol);
+	// 	if(!volAnisoMark || !(ref.get_mark(v) & RM_ANISOTROPIC))
+	// 		continue;
+
+	// 	const size_t numFaces = vol->num_faces();
+	// 	for(size_t iface = 0; iface < numFaces; ++iface){
+	// 		int sideMark = 0;
+	// 		vol->face_desc(iface, fd);
+	// 		const size_t numFaceEdges = fd.num_vertices();
+	// 		for(size_t i = 0; i < numFaceEdges; ++i){
+	// 			const int volEdgeIndex = vol->get_face_edge_index(iface, i);
+	// 			sideMark |= ((volAnisoMark >> volEdgeIndex) & 1) << i;
+	// 		}
+
+	// 		Face* f = grid.get_face(&fd);
+	// 		if(ref.get_mark(f) == RM_REFINE){
+	// 			ref.mark(vol, RM_REFINE);
+	// 			break;
+	// 		}
+
+	// 		const int oldAnisoMark = ref.get_aniso_mark(f);
+
+	// 		if(oldAnisoMark != sideMark){
+	// 			if((oldAnisoMark & sideMark) == oldAnisoMark){
+	// 			//	oldAnisoMark is contained in sideMark
+	// 				ref.mark_aniso(f, sideMark);
+	// 			}
+	// 			else{
+
+	// 			}
+	// 		}
+
+	// 		if(		(ref.get_mark(f) == RM_REFINE)
+	// 			||	(oldAnisoMark && (oldAnisoMark != sideMark)))
+	// 		{
+	// 			ref.mark(vol, RM_REFINE);
+	// 			break;
+	// 		}
+	// 		else
+	// 			ref.mark_aniso(f, sideMark);
+	// 	}
+	// }
 }
 
 }//	end of namespace

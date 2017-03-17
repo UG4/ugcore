@@ -183,21 +183,9 @@ ref_marks_changed(IRefiner& ref,
 
 	//	we have to make sure that associated edges are marked.
 		grid.associated_elements(assEdges, f);
-		const int anisoMark = ref.get_aniso_mark(f);
-		if(anisoMark && (refMark == RM_ANISOTROPIC)){
-			for(size_t i = 0; i < assEdges.size(); ++i){
-				if(		(anisoMark & (1<<i))
-					&&	(ref.get_mark(assEdges[i]) != RM_REFINE))
-				{
-					ref.mark(assEdges[i], RM_REFINE);
-				}
-			}
-		}
-		else{
-			for(size_t i = 0; i < assEdges.size(); ++i){
-				if(refMark > ref.get_mark(assEdges[i]))
-					ref.mark(assEdges[i], refMark);
-			}
+		for(size_t i = 0; i < assEdges.size(); ++i){
+			if(refMark > ref.get_mark(assEdges[i]))
+				ref.mark(assEdges[i], refMark);
 		}
 
 	//	constrained and constraining faces require special treatment

@@ -548,6 +548,22 @@ class UG_API Face : public GridObject, public FaceVertices
 							Vertex** pSubstituteVertices = NULL,
 							int snapPointIndex = -1)	{return false;}
 
+
+	///	returns true if the specified edgeMarks would lead to a regular refinement
+	/**	A regular refinement leads to new elements which are all similar to the
+	 * original element. I.e. which are of the same type and which have similar
+	 * angles.
+	 *
+	 * \note	this method does not perform refinement. Use 'refine' with the
+	 *			specified edges instead.
+	 *
+	 * \param edgeMarks	If the i-th edge shall be refined, the expression
+	 *					'edgeMarks & (1<<i) != 0' has to be true. You can
+	 *					specify multiple refine-edges using or-combinations:
+	 *					'edgeMarks = (1<<i) | (1<<j)' would indicate that the
+	 *					i-th and the j-th edge shall be refined.*/
+		virtual bool is_regular_ref_rule(int edgeMarks) const	{return false;}
+
 	/**
 	 * The collapse_edge method creates new geometric objects by collapsing the specified edge.
 	 * The user that calls this function is responsible to either register the new
@@ -724,25 +740,23 @@ class UG_API Volume : public GridObject, public VolumeVertices
 		virtual Face* create_face(int index)		{return NULL;}	///< create the face with index i and return it.
 		
 	///	returns the local indices of an edge of the volume.
-	/**	Default implementation throws an instance of int.
-	 *	This should be changed by making the method pure virtual.*/
-		virtual void get_local_vertex_indices_of_edge(size_t& ind1Out,
-													  size_t& ind2Out,
-													  size_t edgeInd) const
-		{
-		//	("Missing implementation of get_local_vertex_indices_of_face.")
-			UG_THROW("Base method not implemented.");
-		};
+	/**	Default implementation throws a UGError*/
+		virtual void get_vertex_indices_of_edge(size_t& ind1Out,
+												size_t& ind2Out,
+												size_t edgeInd) const
+		{UG_THROW("Base method not implemented.");};
 		
 	///	returns the local indices of a face of the volume.
-	/**	Default implementation throws an instance of int.
-	 *	This should be changed by making the method pure virtual.*/
-		virtual void get_local_vertex_indices_of_face(std::vector<size_t>& indsOut,
-													  size_t side) const
-		{
-		//	("Missing implementation of get_local_vertex_indices_of_face.")
-			UG_THROW("Base method not implemented.");
-		};
+	/**	Default implementation throws a UGError*/
+		virtual void get_vertex_indices_of_face(std::vector<size_t>& indsOut,
+												size_t side) const
+		{UG_THROW("Base method not implemented.");}
+
+	///	returns the local index of the j-th edge of the i-th face of the volume
+	/**	Default implementation throws a UGError*/
+		virtual int get_face_edge_index (	const size_t faceInd,
+											const size_t faceEdgeInd) const
+		{UG_THROW("Base method not implemented.");};
 
 	///	retrieves the face-descriptor for the opposing side to the specified one.
 	/**	If no opposing side exists false is returned. If an opposing side exists,
@@ -754,7 +768,8 @@ class UG_API Volume : public GridObject, public VolumeVertices
 	 * is either VERTEX, EDGE, or FACE and where the second entry specifies the local index
 	 * of the object in the given volume.*/
 		virtual std::pair<GridBaseObjectId, int>
-		get_opposing_object(Vertex* vrt) const	{UG_THROW("Base method not implemented.");}
+		get_opposing_object(Vertex* vrt) const
+		{UG_THROW("Base method not implemented.");}
 
 	///	returns the local index of the given face or -1, if the face is not part of the volume.
 		int get_local_side_index(FaceVertices* f) const;
@@ -809,17 +824,33 @@ class UG_API Volume : public GridObject, public VolumeVertices
 							vector3* corners = NULL,
 							bool* isSnapPoint = NULL)	{return false;}
 
+		
+	///	returns true if the specified edgeMarks would lead to a regular refinement
+	/**	A regular refinement leads to new elements which are all similar to the
+	 * original element. I.e. which are of the same type and which have similar
+	 * angles.
+	 *
+	 * \note	this method does not perform refinement. Use 'refine' with the
+	 *			specified edges instead.
+	 *
+	 * \param edgeMarks	If the i-th edge shall be refined, the expression
+	 *					'edgeMarks & (1<<i) != 0' has to be true. You can
+	 *					specify multiple refine-edges using or-combinations:
+	 *					'edgeMarks = (1<<i) | (1<<j)' would indicate that the
+	 *					i-th and the j-th edge shall be refined.*/
+		virtual bool is_regular_ref_rule(int edgeMarks) const	{return false;}
+
 	/**
 	 * The collapse_edge method creates new geometric objects by collapsing the specified edge.
 	 * The user that calls this function is responsible to either register the new
-	 * faces with a grid (the grid from which the vertices are), or to take responsibility
+	 * volumes with a grid (the grid from which the vertices are), or to take responsibility
 	 * for deletion of the acquired memory (delete each element in vNewFacesOut).
 	 * - edgeIndex specifies the edge which shall be collapsed. edgeIndex has to lie
 	 *   between 0 and this->num_edges().
 	 * - Vertices adjacent to the collapsed edge will be replaced by newVertex.
-	 * - If you specify pvSubstituteVertices, the created faces will reference the vertices in
+	 * - If you specify pvSubstituteVertices, the created volumes will reference the vertices in
 	 * pvSubstituteVertices. Note that pvSubstituteVertices has to contain exactly as many
-	 * vertices as the face in which you collapse the edge. Vertices with the same index correlate.
+	 * vertices as the volume in which you collapse the edge. Vertices with the same index correlate.
 	 */
 		virtual bool collapse_edge(std::vector<Volume*>& vNewVolumesOut,
 								int edgeIndex, Vertex* newVertex,

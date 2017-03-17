@@ -1185,7 +1185,7 @@ assign_hnode_marks()
 			Edge* e = *iter;
 			if(!marked_refine(e))
 				continue;
-			
+
 			CollectAssociated(faces, grid, e);
 			for(size_t i = 0; i < faces.size(); ++i){
 				Face* f = faces[i];
@@ -1907,16 +1907,32 @@ refine_volume_with_normal_vertex(Volume* v, Vertex** newCornerVrts)
 	vector<Volume*>		vVolumes(8);// heuristic
 //	collect all associated edges.
 
-	size_t numEdges = v->num_edges();
+	const size_t numEdges = v->num_edges();
 	bool noEdgeVrts = true;
-	for(size_t i = 0; i < numEdges; ++i){
-		Edge* e = grid.get_edge(v, i);
-		vNewEdgeVertices[i] = get_center_vertex(e);
-		if(vNewEdgeVertices[i])
-			noEdgeVrts = false;
-		UG_ASSERT(marked_adaptive(v) || vNewEdgeVertices[i],
-					"In order to fully refine a volume, all edges have"
-					"to contain a new vertex!");
+
+
+	const int anisoMark = get_aniso_mark(v);
+	if(anisoMark && marked_adaptive(v)){
+		for(size_t i = 0; i < numEdges; ++i){
+			if(anisoMark & (1<<i)){
+				vNewEdgeVertices[i] = get_center_vertex(grid.get_edge(v, i));
+				if(vNewEdgeVertices[i])
+					noEdgeVrts = false;
+			}
+			else
+				vNewEdgeVertices[i] = NULL;
+		}
+	}
+	else{
+		for(size_t i = 0; i < numEdges; ++i){
+			Edge* e = grid.get_edge(v, i);
+			vNewEdgeVertices[i] = get_center_vertex(e);
+			if(vNewEdgeVertices[i])
+				noEdgeVrts = false;
+			UG_COND_THROW(!(marked_adaptive(v) || vNewEdgeVertices[i]),
+						"In order to fully refine a volume, all edges have"
+						"to contain a new vertex!");
+		}
 	}
 
 	if(marked_copy(v) || (marked_adaptive(v) && noEdgeVrts)){
@@ -1955,7 +1971,7 @@ refine_volume_with_normal_vertex(Volume* v, Vertex** newCornerVrts)
 			vNewFaceVertices[i] = NULL;
 		else{
 			vNewFaceVertices[i] = get_center_vertex(f);
-			UG_ASSERT(marked_adaptive(v) || vNewFaceVertices[i],
+			UG_COND_THROW(!(marked_adaptive(v) || vNewFaceVertices[i]),
 					"In order to fully refine a volume, all quadrilateral sides have"
 					" to contain a new vertex!"
 					<< ", vol-center " << GetGridObjectCenter(grid, v)
