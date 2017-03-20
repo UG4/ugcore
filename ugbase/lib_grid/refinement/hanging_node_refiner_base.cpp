@@ -1220,8 +1220,13 @@ assign_hnode_marks()
 			ConstrainingEdge* cge = *iter;
 			if(marked_refine(cge)){
 				add_hmark(cge, HNRM_TO_NORMAL);
-				for(size_t i = 0; i < cge->num_constrained_vertices(); ++i)
-					add_hmark(cge->constrained_vertex(i), HNRM_TO_NORMAL);
+				if(!marked_to_constraining(cge)){
+				//	this happens in volume geometries, where only some of the
+				//	associated volumes are refined
+					for(size_t i = 0; i < cge->num_constrained_vertices(); ++i)
+						add_hmark(cge->constrained_vertex(i), HNRM_TO_NORMAL);
+				}
+
 				for(size_t i = 0; i < cge->num_constrained_edges(); ++i){
 					Edge* cde = cge->constrained_edge(i);
 					if(marked_refine(cde))
