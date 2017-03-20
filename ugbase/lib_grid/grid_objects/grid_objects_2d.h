@@ -386,7 +386,11 @@ class UG_API ConstrainedFace : public Face
 		{return dynamic_cast<ConstrainedFace*>(pObj) != NULL;}
 
 		ConstrainedFace() : m_pConstrainingObject(NULL), m_parentBaseObjectId(-1)	{}
-		virtual ~ConstrainedFace()	{}
+		virtual ~ConstrainedFace()
+		{
+			if(m_pConstrainingObject)
+				m_pConstrainingObject->remove_constraint_link(this);
+		}
 
 		inline void set_constraining_object(GridObject* pObj)
 		{
@@ -410,6 +414,13 @@ class UG_API ConstrainedFace : public Face
 		}
 
 		virtual bool is_constrained() const	{return true;}
+
+		virtual void remove_constraint_link(const Face* f)
+		{
+			if(m_pConstrainingObject == static_cast<const GridObject*>(f))
+				m_pConstrainingObject = NULL;
+		}
+
 
 	protected:
 		GridObject*	m_pConstrainingObject;
@@ -553,7 +564,20 @@ class UG_API ConstrainingFace : public Face
 	public:
 		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<ConstrainingFace*>(pObj) != NULL;}
 
-		virtual ~ConstrainingFace()	{}
+		virtual ~ConstrainingFace()
+		{
+			for(size_t i = 0; i < m_constrainedVertices.size(); ++i){
+				m_constrainedVertices[i]->remove_constraint_link(this);
+			}
+
+			for(size_t i = 0; i < m_constrainedEdges.size(); ++i){
+				m_constrainedEdges[i]->remove_constraint_link(this);
+			}
+
+			for(size_t i = 0; i < m_constrainedFaces.size(); ++i){
+				m_constrainedFaces[i]->remove_constraint_link(this);
+			}
+		}
 
 		virtual bool is_constraining() const					{return true;}
 
@@ -598,6 +622,21 @@ class UG_API ConstrainingFace : public Face
 														m_constrainedFaces.end(), face);
 				return iter != m_constrainedFaces.end();
 			}
+
+		virtual void remove_constraint_link(const Vertex* vrt)
+		{
+			unconstrain_object(vrt);
+		}
+
+		virtual void remove_constraint_link(const Edge* e)
+		{
+			unconstrain_object(e);
+		}
+
+		virtual void remove_constraint_link(const Face* f)
+		{
+			unconstrain_object(f);
+		}
 
 		inline void unconstrain_object(const Vertex* vrt)
 			{
@@ -671,7 +710,7 @@ class UG_API ConstrainingFace : public Face
 	protected:
 		std::vector<Vertex*>	m_constrainedVertices;
 		std::vector<Edge*>		m_constrainedEdges;
-		std::vector<Face*>			m_constrainedFaces;
+		std::vector<Face*>		m_constrainedFaces;
 };
 
 

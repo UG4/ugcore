@@ -2044,141 +2044,141 @@ bool DistributeGrid(MultiGrid& mg,
 	//	make sure that constrained/constraining connections won't be harmed
 	//	this is a little cumbersome in the moment. Ideally constrained/constraining
 	//	elements should unregister from each other automatically on destruction.
-		for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
-			for(ConstrainedVertexIterator iter = msel.begin<ConstrainedVertex>(lvl);
-				iter != msel.end<ConstrainedVertex>(lvl); ++iter)
-			{
-				GridObject* co = (*iter)->get_constraining_object();
-				if(co && !msel.is_selected(co)){
-					switch(co->base_object_id()){
-						case EDGE:{
-							if(ConstrainingEdge* ce = dynamic_cast<ConstrainingEdge*>(co))
-								ce->unconstrain_object(*iter);
-						}break;
-						case FACE:{
-							if(co->reference_object_id() == ROID_TRIANGLE){
-								if(ConstrainingTriangle* ce = dynamic_cast<ConstrainingTriangle*>(co))
-									ce->unconstrain_object(*iter);
-							}
-							else{
-								if(ConstrainingQuadrilateral* ce = dynamic_cast<ConstrainingQuadrilateral*>(co))
-									ce->unconstrain_object(*iter);
-							}
-						}break;
-						default: break;
-					}
-				}
-			}
+		// for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
+		// 	for(ConstrainedVertexIterator iter = msel.begin<ConstrainedVertex>(lvl);
+		// 		iter != msel.end<ConstrainedVertex>(lvl); ++iter)
+		// 	{
+		// 		GridObject* co = (*iter)->get_constraining_object();
+		// 		if(co && !msel.is_selected(co)){
+		// 			switch(co->base_object_id()){
+		// 				case EDGE:{
+		// 					if(ConstrainingEdge* ce = dynamic_cast<ConstrainingEdge*>(co))
+		// 						ce->unconstrain_object(*iter);
+		// 				}break;
+		// 				case FACE:{
+		// 					if(co->reference_object_id() == ROID_TRIANGLE){
+		// 						if(ConstrainingTriangle* ce = dynamic_cast<ConstrainingTriangle*>(co))
+		// 							ce->unconstrain_object(*iter);
+		// 					}
+		// 					else{
+		// 						if(ConstrainingQuadrilateral* ce = dynamic_cast<ConstrainingQuadrilateral*>(co))
+		// 							ce->unconstrain_object(*iter);
+		// 					}
+		// 				}break;
+		// 				default: break;
+		// 			}
+		// 		}
+		// 	}
 
-			for(ConstrainedEdgeIterator iter = msel.begin<ConstrainedEdge>(lvl);
-				iter != msel.end<ConstrainedEdge>(lvl); ++iter)
-			{
-				GridObject* co = (*iter)->get_constraining_object();
-				if(co && !msel.is_selected(co)){
-					switch(co->base_object_id()){
-						case EDGE:{
-							if(ConstrainingEdge* ce = dynamic_cast<ConstrainingEdge*>(co))
-								ce->unconstrain_object(*iter);
-						}break;
-						case FACE:{
-							if(co->reference_object_id() == ROID_TRIANGLE){
-								if(ConstrainingTriangle* ce = dynamic_cast<ConstrainingTriangle*>(co))
-									ce->unconstrain_object(*iter);
-							}
-							else{
-								if(ConstrainingQuadrilateral* ce = dynamic_cast<ConstrainingQuadrilateral*>(co))
-									ce->unconstrain_object(*iter);
-							}
-						}break;
-						default: break;
-					}
-				}
-			}
+		// 	for(ConstrainedEdgeIterator iter = msel.begin<ConstrainedEdge>(lvl);
+		// 		iter != msel.end<ConstrainedEdge>(lvl); ++iter)
+		// 	{
+		// 		GridObject* co = (*iter)->get_constraining_object();
+		// 		if(co && !msel.is_selected(co)){
+		// 			switch(co->base_object_id()){
+		// 				case EDGE:{
+		// 					if(ConstrainingEdge* ce = dynamic_cast<ConstrainingEdge*>(co))
+		// 						ce->unconstrain_object(*iter);
+		// 				}break;
+		// 				case FACE:{
+		// 					if(co->reference_object_id() == ROID_TRIANGLE){
+		// 						if(ConstrainingTriangle* ce = dynamic_cast<ConstrainingTriangle*>(co))
+		// 							ce->unconstrain_object(*iter);
+		// 					}
+		// 					else{
+		// 						if(ConstrainingQuadrilateral* ce = dynamic_cast<ConstrainingQuadrilateral*>(co))
+		// 							ce->unconstrain_object(*iter);
+		// 					}
+		// 				}break;
+		// 				default: break;
+		// 			}
+		// 		}
+		// 	}
 
-			for(ConstrainingEdgeIterator iter = msel.begin<ConstrainingEdge>(lvl);
-				iter != msel.end<ConstrainingEdge>(lvl); ++iter)
-			{
-				ConstrainingEdge* e = *iter;
-				for(size_t i = 0; i < e->num_constrained_vertices(); ++i){
-					ConstrainedVertex* cv = dynamic_cast<ConstrainedVertex*>(e->constrained_vertex(i));
-					UG_ASSERT(cv, "Constrained vertices have to be of the type ConstrainedVertex");
-					cv->set_constraining_object(NULL);
-				}
+		// 	for(ConstrainingEdgeIterator iter = msel.begin<ConstrainingEdge>(lvl);
+		// 		iter != msel.end<ConstrainingEdge>(lvl); ++iter)
+		// 	{
+		// 		ConstrainingEdge* e = *iter;
+		// 		for(size_t i = 0; i < e->num_constrained_vertices(); ++i){
+		// 			ConstrainedVertex* cv = dynamic_cast<ConstrainedVertex*>(e->constrained_vertex(i));
+		// 			UG_ASSERT(cv, "Constrained vertices have to be of the type ConstrainedVertex");
+		// 			cv->set_constraining_object(NULL);
+		// 		}
 
-				for(size_t i = 0; i < e->num_constrained_edges(); ++i){
-					ConstrainedEdge* cde = dynamic_cast<ConstrainedEdge*>(e->constrained_edge(i));
-					UG_ASSERT(cde, "Constrained edges have to be of the type ConstrainedEdge");
-					cde->set_constraining_object(NULL);
-				}
-			}
+		// 		for(size_t i = 0; i < e->num_constrained_edges(); ++i){
+		// 			ConstrainedEdge* cde = dynamic_cast<ConstrainedEdge*>(e->constrained_edge(i));
+		// 			UG_ASSERT(cde, "Constrained edges have to be of the type ConstrainedEdge");
+		// 			cde->set_constraining_object(NULL);
+		// 		}
+		// 	}
 
 
-			for(ConstrainedTriangleIterator iter = msel.begin<ConstrainedTriangle>(lvl);
-				iter != msel.end<ConstrainedTriangle>(lvl); ++iter)
-			{
-				GridObject* co = (*iter)->get_constraining_object();
-				if(co && !msel.is_selected(co)){
-					if(ConstrainingTriangle* ce = dynamic_cast<ConstrainingTriangle*>(co))
-						ce->unconstrain_object(*iter);
-				}
-			}
+		// 	for(ConstrainedTriangleIterator iter = msel.begin<ConstrainedTriangle>(lvl);
+		// 		iter != msel.end<ConstrainedTriangle>(lvl); ++iter)
+		// 	{
+		// 		GridObject* co = (*iter)->get_constraining_object();
+		// 		if(co && !msel.is_selected(co)){
+		// 			if(ConstrainingTriangle* ce = dynamic_cast<ConstrainingTriangle*>(co))
+		// 				ce->unconstrain_object(*iter);
+		// 		}
+		// 	}
 
-			for(ConstrainedQuadrilateralIterator iter = msel.begin<ConstrainedQuadrilateral>(lvl);
-				iter != msel.end<ConstrainedQuadrilateral>(lvl); ++iter)
-			{
-				GridObject* co = (*iter)->get_constraining_object();
-				if(co && !msel.is_selected(co)){
-					if(ConstrainingQuadrilateral* ce = dynamic_cast<ConstrainingQuadrilateral*>(co))
-						ce->unconstrain_object(*iter);
-				}
-			}
+		// 	for(ConstrainedQuadrilateralIterator iter = msel.begin<ConstrainedQuadrilateral>(lvl);
+		// 		iter != msel.end<ConstrainedQuadrilateral>(lvl); ++iter)
+		// 	{
+		// 		GridObject* co = (*iter)->get_constraining_object();
+		// 		if(co && !msel.is_selected(co)){
+		// 			if(ConstrainingQuadrilateral* ce = dynamic_cast<ConstrainingQuadrilateral*>(co))
+		// 				ce->unconstrain_object(*iter);
+		// 		}
+		// 	}
 
-			for(ConstrainingTriangleIterator iter = msel.begin<ConstrainingTriangle>(lvl);
-				iter != msel.end<ConstrainingTriangle>(lvl); ++iter)
-			{
-				ConstrainingFace* e = *iter;
-				for(size_t i = 0; i < e->num_constrained_vertices(); ++i){
-					ConstrainedVertex* cv = dynamic_cast<ConstrainedVertex*>(e->constrained_vertex(i));
-					UG_ASSERT(cv, "Constrained vertices have to be of the type ConstrainedVertex");
-					cv->set_constraining_object(NULL);
-				}
+		// 	for(ConstrainingTriangleIterator iter = msel.begin<ConstrainingTriangle>(lvl);
+		// 		iter != msel.end<ConstrainingTriangle>(lvl); ++iter)
+		// 	{
+		// 		ConstrainingFace* e = *iter;
+		// 		for(size_t i = 0; i < e->num_constrained_vertices(); ++i){
+		// 			ConstrainedVertex* cv = dynamic_cast<ConstrainedVertex*>(e->constrained_vertex(i));
+		// 			UG_ASSERT(cv, "Constrained vertices have to be of the type ConstrainedVertex");
+		// 			cv->set_constraining_object(NULL);
+		// 		}
 
-				for(size_t i = 0; i < e->num_constrained_edges(); ++i){
-					ConstrainedEdge* cde = dynamic_cast<ConstrainedEdge*>(e->constrained_edge(i));
-					UG_ASSERT(cde, "Constrained edges have to be of the type ConstrainedEdge");
-					cde->set_constraining_object(NULL);
-				}
+		// 		for(size_t i = 0; i < e->num_constrained_edges(); ++i){
+		// 			ConstrainedEdge* cde = dynamic_cast<ConstrainedEdge*>(e->constrained_edge(i));
+		// 			UG_ASSERT(cde, "Constrained edges have to be of the type ConstrainedEdge");
+		// 			cde->set_constraining_object(NULL);
+		// 		}
 
-				for(size_t i = 0; i < e->num_constrained_faces(); ++i){
-					ConstrainedFace* cdf = dynamic_cast<ConstrainedFace*>(e->constrained_face(i));
-					UG_ASSERT(cdf, "Constrained faces have to be of the type ConstrainedFace");
-					cdf->set_constraining_object(NULL);
-				}
-			}
+		// 		for(size_t i = 0; i < e->num_constrained_faces(); ++i){
+		// 			ConstrainedFace* cdf = dynamic_cast<ConstrainedFace*>(e->constrained_face(i));
+		// 			UG_ASSERT(cdf, "Constrained faces have to be of the type ConstrainedFace");
+		// 			cdf->set_constraining_object(NULL);
+		// 		}
+		// 	}
 
-			for(ConstrainingQuadrilateralIterator iter = msel.begin<ConstrainingQuadrilateral>(lvl);
-				iter != msel.end<ConstrainingQuadrilateral>(lvl); ++iter)
-			{
-				ConstrainingFace* e = *iter;
-				for(size_t i = 0; i < e->num_constrained_vertices(); ++i){
-					ConstrainedVertex* cv = dynamic_cast<ConstrainedVertex*>(e->constrained_vertex(i));
-					UG_ASSERT(cv, "Constrained vertices have to be of the type ConstrainedVertex");
-					cv->set_constraining_object(NULL);
-				}
+		// 	for(ConstrainingQuadrilateralIterator iter = msel.begin<ConstrainingQuadrilateral>(lvl);
+		// 		iter != msel.end<ConstrainingQuadrilateral>(lvl); ++iter)
+		// 	{
+		// 		ConstrainingFace* e = *iter;
+		// 		for(size_t i = 0; i < e->num_constrained_vertices(); ++i){
+		// 			ConstrainedVertex* cv = dynamic_cast<ConstrainedVertex*>(e->constrained_vertex(i));
+		// 			UG_ASSERT(cv, "Constrained vertices have to be of the type ConstrainedVertex");
+		// 			cv->set_constraining_object(NULL);
+		// 		}
 
-				for(size_t i = 0; i < e->num_constrained_edges(); ++i){
-					ConstrainedEdge* cde = dynamic_cast<ConstrainedEdge*>(e->constrained_edge(i));
-					UG_ASSERT(cde, "Constrained edges have to be of the type ConstrainedEdge");
-					cde->set_constraining_object(NULL);
-				}
+		// 		for(size_t i = 0; i < e->num_constrained_edges(); ++i){
+		// 			ConstrainedEdge* cde = dynamic_cast<ConstrainedEdge*>(e->constrained_edge(i));
+		// 			UG_ASSERT(cde, "Constrained edges have to be of the type ConstrainedEdge");
+		// 			cde->set_constraining_object(NULL);
+		// 		}
 
-				for(size_t i = 0; i < e->num_constrained_faces(); ++i){
-					ConstrainedFace* cdf = dynamic_cast<ConstrainedFace*>(e->constrained_face(i));
-					UG_ASSERT(cdf, "Constrained faces have to be of the type ConstrainedFace");
-					cdf->set_constraining_object(NULL);
-				}
-			}
-		}
+		// 		for(size_t i = 0; i < e->num_constrained_faces(); ++i){
+		// 			ConstrainedFace* cdf = dynamic_cast<ConstrainedFace*>(e->constrained_face(i));
+		// 			UG_ASSERT(cdf, "Constrained faces have to be of the type ConstrainedFace");
+		// 			cdf->set_constraining_object(NULL);
+		// 		}
+		// 	}
+		// }
 
 		GDIST_PROFILE(gdist_ErasingObjects);
 		EraseSelectedObjects(msel);

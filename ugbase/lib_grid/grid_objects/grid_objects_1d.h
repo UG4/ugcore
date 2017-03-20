@@ -165,7 +165,11 @@ class UG_API ConstrainedEdge : public Edge
 				m_vertices[1] = descriptor.vertex(1);
 			}
 
-		virtual ~ConstrainedEdge()	{}
+		virtual ~ConstrainedEdge()
+		{
+			if(m_pConstrainingObject)
+				m_pConstrainingObject->remove_constraint_link(this);
+		}
 
 		virtual GridObject* create_empty_instance() const	{return new ConstrainedEdge;}
 
@@ -173,6 +177,20 @@ class UG_API ConstrainedEdge : public Edge
 		virtual ReferenceObjectID reference_object_id() const {return ROID_EDGE;}
 
 		virtual bool is_constrained() const			{return true;}
+
+		virtual void remove_constraint_link(const Edge* e)
+		{
+			if(m_pConstrainingObject == static_cast<const GridObject*>(e)){
+				m_pConstrainingObject = NULL;
+			}
+		}
+
+		virtual void remove_constraint_link(const Face* f)
+		{
+			if(m_pConstrainingObject == static_cast<const GridObject*>(f)){
+				m_pConstrainingObject = NULL;
+			}
+		}
 
 	///	virtual refine. Returns pointers to Edge.
 	/**
@@ -221,7 +239,7 @@ class UG_API ConstrainedEdge : public Edge
 
 	protected:
 		GridObject*	m_pConstrainingObject;
-		int					m_parentBaseObjectId;
+		int			m_parentBaseObjectId;
 };
 
 template <>
@@ -280,7 +298,16 @@ class UG_API ConstrainingEdge : public Edge
 				m_constrainedEdges.reserve(2);
 			}
 
-		virtual ~ConstrainingEdge()	{}
+		virtual ~ConstrainingEdge()
+		{
+			for(size_t i = 0; i < m_constrainedVertices.size(); ++i){
+				m_constrainedVertices[i]->remove_constraint_link(this);
+			}
+
+			for(size_t i = 0; i < m_constrainedEdges.size(); ++i){
+				m_constrainedEdges[i]->remove_constraint_link(this);
+			}
+		}
 
 		virtual GridObject* create_empty_instance() const	{return new ConstrainingEdge;}
 
@@ -288,6 +315,18 @@ class UG_API ConstrainingEdge : public Edge
 		virtual ReferenceObjectID reference_object_id() const {return ROID_EDGE;}
 
 		virtual bool is_constraining() const	{return true;}
+
+		
+		virtual void remove_constraint_link(const Vertex* vrt)
+		{
+			unconstrain_object(vrt);
+		}
+
+		virtual void remove_constraint_link(const Edge* e)
+		{
+			unconstrain_object(e);
+		}
+
 
 	///	virtual refine. Returns pointers to Edge.
 	/**

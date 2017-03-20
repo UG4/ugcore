@@ -184,6 +184,15 @@ class UG_API GridObject/* : public SmallObject<>*/
 	 * The default implementation returns false.*/
 		virtual bool is_constrained() const						{return false;}
 
+	///	removes a constraint link to the grid object.
+	/**	This method is e.g. called on the constraining edges of a constrained
+	 * vertex as soon as the constrained vertex is deleted.
+	 * \{ */
+		virtual void remove_constraint_link(const Vertex* vrt)		{}
+		virtual void remove_constraint_link(const Edge* e)			{}
+		virtual void remove_constraint_link(const Face* f)			{}
+	/** \} */
+
 	///	Returns the grid attachment data index of a geometric object.
 	/** Beware that this index is for internal use in the grid management and can
 	 * be changed by some operations (e.g. by Grid::defragment). But this function
