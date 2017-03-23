@@ -140,6 +140,10 @@ mark_local(Face* e, int localMark)
 	if(!m_aaLocalMark.is_valid_face_accessor())
 		attach_local_marks();
 	
+//	make sure that the local mark is considered a new mark
+	if(adjusting_ref_marks() && marked_local(e) && (localMark != m_aaLocalMark[e]))
+		mark(e, RM_NONE);
+
 	m_aaLocalMark[e] = localMark;
 	mark(e, RM_LOCAL);
 }
@@ -150,6 +154,10 @@ mark_local(Volume* e, int localMark)
 	if(!m_aaLocalMark.is_valid_volume_accessor())
 		attach_local_marks();
 	
+//	make sure that the local mark is considered a new mark
+	if(adjusting_ref_marks() && marked_local(e) && (localMark != m_aaLocalMark[e]))
+		mark(e, RM_NONE);
+
 	m_aaLocalMark[e] = localMark;
 	mark(e, RM_LOCAL);
 }

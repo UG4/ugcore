@@ -223,6 +223,7 @@ ref_marks_changed(IRefiner& ref,
 			if(grid.num_volumes() > 0){
 				grid.associated_elements(assVols, cgf);
 				for(size_t i = 0; i < assVols.size(); ++i){
+				//todo:	also check whether the local mark matches
 					if (!(ref.get_mark(assVols[i]) & RM_ANISOTROPIC)) // do not mark RM_REFINE if already marked anisotropic
 						ref.mark(assVols[i]);
 				}

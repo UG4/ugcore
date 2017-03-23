@@ -137,7 +137,7 @@ mark(Vertex* v, RefinementMark refMark)
 	//	of non-surface vertices
 		if(refinement_is_allowed(v) || m_adjustingRefMarks){
 			m_selMarkedElements.select(v, refMark);
-			if(m_adjustingRefMarks && (refMark & (RM_REFINE | RM_LOCAL | RM_CLOSURE | RM_DUMMY)))
+			if(m_adjustingRefMarks && (refMark & (RM_FULL | RM_LOCAL | RM_CLOSURE | RM_DUMMY)))
 				m_newlyMarkedRefVrts.push_back(v);
 			return true;
 		}
@@ -467,12 +467,11 @@ mark_neighborhood(size_t numIterations, RefinementMark refMark, bool sideNbrsOnl
 		}
 		
 	}
-
 }
 
 template <class TSelector>
 RefinementMark HangingNodeRefinerBase<TSelector>::
-get_mark(Vertex* v)
+get_mark(Vertex* v) const
 {
 	return (RefinementMark)(m_selMarkedElements.get_selection_status(v)
 							& (RM_REFINE | RM_LOCAL | RM_CLOSURE | RM_COARSEN | RM_DUMMY));
@@ -480,7 +479,7 @@ get_mark(Vertex* v)
 
 template <class TSelector>
 RefinementMark HangingNodeRefinerBase<TSelector>::
-get_mark(Edge* e)
+get_mark(Edge* e) const
 {
 	return (RefinementMark)(m_selMarkedElements.get_selection_status(e)
 							& (RM_REFINE | RM_LOCAL | RM_CLOSURE | RM_COARSEN | RM_DUMMY));
@@ -488,7 +487,7 @@ get_mark(Edge* e)
 
 template <class TSelector>
 RefinementMark HangingNodeRefinerBase<TSelector>::
-get_mark(Face* f)
+get_mark(Face* f) const
 {
 	return (RefinementMark)(m_selMarkedElements.get_selection_status(f)
 							& (RM_REFINE | RM_LOCAL | RM_CLOSURE | RM_COARSEN | RM_DUMMY));
@@ -496,11 +495,12 @@ get_mark(Face* f)
 
 template <class TSelector>
 RefinementMark HangingNodeRefinerBase<TSelector>::
-get_mark(Volume* v)
+get_mark(Volume* v) const
 {
 	return (RefinementMark)(m_selMarkedElements.get_selection_status(v)
 							& (RM_REFINE | RM_LOCAL | RM_CLOSURE | RM_COARSEN | RM_DUMMY));
 }
+
 
 template <class TSelector>
 bool HangingNodeRefinerBase<TSelector>::
@@ -1099,8 +1099,12 @@ assign_hnode_marks()
 //	or add conversion marks (HNRM_TO_NORMAL etc).
 //	Note also that we won't remove any marks during this algorithm (neither normal
 //	nor hnode marks).
+	Grid::edge_traits::secure_container edges;
 	vector<Face*> faces;
 	vector<Volume*> vols;
+
+	std::vector<int>	vinds;
+	vinds.reserve(4);
 
 //	the grid
 	UG_ASSERT(m_pGrid, "A grid is required to perform this operation!");
@@ -1112,14 +1116,90 @@ assign_hnode_marks()
 		{
 			Face* f = *iter;
 			CollectAssociated(vols, grid, f);
+		//	if one of the volumes is marked with RM_LOCAL, we'll have to
+		//	set up a local mark for the face and compare it.
+			bool gotLocal = false;
 			for(size_t i = 0; i < vols.size(); ++i){
-				if(refinement_is_allowed(vols[i])
-				   && (!m_selMarkedElements.is_selected(vols[i])))
-				{
-					add_hmark(f, HNRM_TO_CONSTRAINING);
+				if(marked_local(vols[i])){
+					gotLocal = true;
 					break;
 				}
 			}
+
+			if(gotLocal){
+				int localFaceMark = 0;
+				if(marked_full(f)){
+					if(f->num_vertices() == 3)
+						localFaceMark = 7;
+					else if(f->num_vertices() == 4)
+						localFaceMark = 15;
+					else{
+						UG_THROW("Unsupported face type with too many vertices: " << f->num_vertices());
+					}
+				}
+				else if(marked_local(f))
+					localFaceMark = get_local_mark(f);
+				else if(marked_closure(f)){
+					grid.associated_elements_sorted(edges, f);
+					for(size_t i = 0; i < edges.size(); ++i){
+						if(marked_full(edges[i]))
+							localFaceMark |= (1<<i);
+					}
+				}
+
+				for(size_t i_vol = 0; i_vol < vols.size(); ++i_vol){
+					Volume* v = vols[i_vol];
+					if(!refinement_is_allowed(v))
+						continue;
+
+					if(!m_selMarkedElements.is_selected(v))
+					{
+						add_hmark(f, HNRM_TO_CONSTRAINING);
+						break;
+					}
+					else{
+						if(!marked_local(v))
+							continue;
+
+						int volLocalMark = get_local_mark(v);
+						int sideMark = 0;
+
+						Face::ConstVertexArray vrts = f->vertices();
+						const size_t numVrts = f->num_vertices();
+
+						vinds.resize(numVrts);
+						for(size_t j = 0; j < numVrts; ++j){
+							vinds[j] = GetVertexIndex(v, vrts[j]);
+						}
+
+
+						for(size_t j = 0; j < numVrts; ++j){
+							const int edgeInd =
+									v->get_edge_index_from_vertices(
+											vinds[j], vinds[(j+1)%numVrts]);
+							
+							sideMark |= ((volLocalMark >> edgeInd) & 1) << j;
+						}
+
+
+						if(sideMark != localFaceMark){
+							add_hmark(f, HNRM_TO_CONSTRAINING);
+							break;
+						}
+					}
+				}
+			}
+			else{
+				for(size_t i = 0; i < vols.size(); ++i){
+					if(refinement_is_allowed(vols[i])
+					   && (!m_selMarkedElements.is_selected(vols[i])))
+					{
+						add_hmark(f, HNRM_TO_CONSTRAINING);
+						break;
+					}
+				}
+			}
+
 		}
 
 	//	make sure, that constrained faces, edges and vertices of selected
@@ -1203,7 +1283,8 @@ assign_hnode_marks()
 					add_hmark(e, HNRM_TO_CONSTRAINING);
 					break;
 				}
-				else if(int localMark = get_local_mark(f)){
+				else if(marked_local(f)){
+					int localMark = get_local_mark(f);
 					int ei = GetEdgeIndex(f, e);
 					if(!(localMark & 1<<ei)){
 						add_hmark(e, HNRM_TO_CONSTRAINING);
@@ -1225,14 +1306,14 @@ assign_hnode_marks()
 				//	associated volumes are refined
 					for(size_t i = 0; i < cge->num_constrained_vertices(); ++i)
 						add_hmark(cge->constrained_vertex(i), HNRM_TO_NORMAL);
-				}
 
-				for(size_t i = 0; i < cge->num_constrained_edges(); ++i){
-					Edge* cde = cge->constrained_edge(i);
-					if(marked_refine(cde))
-						add_hmark(cde, HNRM_TO_CONSTRAINING);
-					else
-						add_hmark(cde, HNRM_TO_NORMAL);
+					for(size_t i = 0; i < cge->num_constrained_edges(); ++i){
+						Edge* cde = cge->constrained_edge(i);
+						if(marked_refine(cde))
+							add_hmark(cde, HNRM_TO_CONSTRAINING);
+						else
+							add_hmark(cde, HNRM_TO_NORMAL);
+					}
 				}
 			}
 		}
@@ -1520,7 +1601,7 @@ refine_face_with_normal_vertex(Face* f, Vertex** newCornerVrts)
 	bool noEdgeVrts = true;
 
 	const int localMark = get_local_mark(f);
-	if(localMark && marked_adaptive(f)){
+	if(localMark && marked_local(f)){
 		for(size_t i = 0; i < numEdges; ++i){
 			if(localMark & (1<<i)){
 				vNewEdgeVertices[i] = get_center_vertex(grid.get_edge(f, i));
@@ -1620,18 +1701,33 @@ refine_face_with_hanging_vertex(Face* f, Vertex** newCornerVrts)
 
 	size_t numEdges = f->num_edges();
 	size_t numMarkedEdges = 0;
-	for(size_t i = 0; i < numEdges; ++i){
-		Edge* e = grid.get_edge(f, i);
 
-	//	if the face is refined with a regular rule, then every edge has to have
-	//	an associated center vertex
-		assert(marked_adaptive(f) ||
-				((get_mark(f) == RM_REFINE)));
+	const int localMark = get_local_mark(f);
+	if(localMark && marked_local(f)){
+		for(size_t i = 0; i < numEdges; ++i){
+			if(localMark & (1<<i)){
+				vNewEdgeVertices[i] = get_center_vertex(grid.get_edge(f, i));
+				if(vNewEdgeVertices[i])
+					++numMarkedEdges;
+			}
+			else
+				vNewEdgeVertices[i] = NULL;
+		}
+	}
+	else{
+		for(size_t i = 0; i < numEdges; ++i){
+			Edge* e = grid.get_edge(f, i);
 
-	//	assign the center vertex
-		vNewEdgeVertices[i] = get_center_vertex(e);
-		if(vNewEdgeVertices[i])
-			++numMarkedEdges;
+		//	if the face is refined with a regular rule, then every edge has to have
+		//	an associated center vertex
+			assert(marked_adaptive(f) ||
+					((get_mark(f) == RM_REFINE)));
+
+		//	assign the center vertex
+			vNewEdgeVertices[i] = get_center_vertex(e);
+			if(vNewEdgeVertices[i])
+				++numMarkedEdges;
+		}
 	}
 
 	ConstrainingFace* cgf = NULL;
@@ -1917,7 +2013,7 @@ refine_volume_with_normal_vertex(Volume* v, Vertex** newCornerVrts)
 
 
 	const int localMark = get_local_mark(v);
-	if(localMark && marked_adaptive(v)){
+	if(localMark && marked_local(v)){
 		for(size_t i = 0; i < numEdges; ++i){
 			if(localMark & (1<<i)){
 				vNewEdgeVertices[i] = get_center_vertex(grid.get_edge(v, i));

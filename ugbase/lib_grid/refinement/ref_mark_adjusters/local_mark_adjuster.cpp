@@ -49,31 +49,41 @@ ref_marks_changed(IRefiner& ref,
 	
 	for(size_t iface = 0; iface < faces.size(); ++iface){
 		Face* f = faces[iface];
-		const RefinementMark refMark = ref.get_mark(f);
-		const int localMark = ref.get_local_mark(f);
-		if((refMark == RM_LOCAL) && localMark){
+		if(ref.marked_local(f)){
 			grid.associated_elements_sorted(assEdges, f);
-			for(size_t iedge = 0; iedge < assEdges.size(); ++iedge){
+			const size_t numEdges = f->num_edges();
+			for(size_t iedge = 0; iedge < numEdges; ++iedge){
 				Edge* e = assEdges[iedge];
-				const RefinementMark edgeMark = ref.get_mark(e);
-
-				if(		(localMark & (1<<iedge))
-					&&	(edgeMark != RM_FULL))
-				{
-					ref.mark(e, RM_FULL);
+				if(ref.get_local_edge_mark(f, e)){
+					if(!ref.marked_full(e))
+						ref.mark(e, RM_FULL);
 				}
-				
-				// if(e->is_constraining() && (edgeMark == RM_FULL)){
-				// 	ref.mark(f, RM_FULL);
-				// 	break;
-				// }
+			}
+
+			if(f->is_constraining()){
+			//	check which edges are also constraining and have a constrained
+			//	vertex. If the local mark does not match those constraints,
+			//	we have to perform a full refine.
+			//todo: instead of a full refine, only regularize associated vol-marks?
+				int constraintMark = 0;
+				for(size_t iedge = 0; iedge < numEdges; ++iedge){
+					if(ConstrainingEdge* cge =
+							dynamic_cast<ConstrainingEdge*>(assEdges[iedge]))
+					{
+						if(cge->num_constrained_vertices())
+							constraintMark |= (1<<iedge);
+					}
+				}
+
+				if((constraintMark & ref.get_local_mark(f)) != constraintMark){
+					ref.mark(f, RM_FULL);
+				}
 			}
 		}
+
 	}
 
 
-//todo: iterate over faces and check whether volume-aniso-marks and
-//		associated face-aniso-marks mismatch
 
 	Grid::face_traits::secure_container		assFaces;
 	std::vector<int>	vinds;
@@ -81,16 +91,15 @@ ref_marks_changed(IRefiner& ref,
 
 	for(size_t ivol = 0; ivol < vols.size(); ++ivol){
 		Volume* vol = vols[ivol];
-		const int volLocalMark = ref.get_local_mark(vol);
-		if(!volLocalMark || !(ref.get_mark(vol) & RM_LOCAL))
+		if(!ref.marked_local(vol))
 			continue;
 
 		const size_t numEdges = vol->num_edges();
 		for(size_t iedge = 0; iedge < numEdges; ++iedge){
-			if(!(volLocalMark & (1<<iedge)))
+			Edge* e = grid.get_edge(vol, iedge);
+			if(!ref.get_local_edge_mark(vol, e))
 				continue;
 
-			Edge* e = grid.get_edge(vol, iedge);
 			const RefinementMark edgeMark = ref.get_mark(e);
 
 			if(edgeMark != RM_FULL)
@@ -100,42 +109,26 @@ ref_marks_changed(IRefiner& ref,
 		grid.associated_elements(assFaces, vol);
 		for(size_t iface = 0; iface < assFaces.size(); ++iface){
 			Face* f = assFaces[iface];
-			Face::ConstVertexArray vrts = f->vertices();
-			const size_t numVrts = f->num_vertices();
-
-			vinds.resize(numVrts);
-			for(size_t i = 0; i < numVrts; ++i){
-				vinds[i] = GetVertexIndex(vol, vrts[i]);
-			}
-
-
-			int sideMark = 0;
-
-			for(size_t i = 0; i < numVrts; ++i){
-				const int edgeInd =
-						vol->get_edge_index_from_vertices(
-								vinds[i], vinds[(i+1)%numVrts]);
-				
-				sideMark |= ((volLocalMark >> edgeInd) & 1) << i;
-			}
-
+			const int sideMark = ref.get_local_face_mark(vol, f);
 			if(sideMark){
 				const int curMark = ref.get_mark(f);
 				if(curMark == RM_FULL)
 					continue;
-				else if(curMark < RM_LOCAL)
+				else if(curMark < RM_LOCAL){
 					ref.mark_local(f, sideMark);
+				}
+				else{
+					int curLocal = ref.get_local_mark(f);
 
-				int curLocal = ref.get_local_mark(f);
-
-				if(curLocal != sideMark){
-					if((curLocal & sideMark) == curLocal){
-					//	curLocal is contained in sideMark
-						ref.mark_local(f, sideMark);
-					}
-					else if((curLocal & sideMark) != sideMark){
-					//	we have to fully refine the face, since aniso-marks do not match
-						ref.mark(f, RM_FULL);
+					if(curLocal != sideMark){
+						if((curLocal & sideMark) == curLocal){
+						//	curLocal is contained in sideMark
+							ref.mark_local(f, sideMark);
+						}
+						else if((curLocal & sideMark) != sideMark){
+						//	we have to fully refine the face, since aniso-marks do not match
+							ref.mark(f, RM_FULL);
+						}
 					}
 				}
 			}

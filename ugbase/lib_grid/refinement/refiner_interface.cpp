@@ -55,7 +55,7 @@ bool IRefiner::mark(GridObject* o, RefinementMark refMark)
 	return false;
 }
 
-RefinementMark IRefiner::get_mark(GridObject* o)
+RefinementMark IRefiner::get_mark(GridObject* o) const
 {
 	switch(o->base_object_id()){
 		case VERTEX:	return get_mark(static_cast<Vertex*>(o));
@@ -221,6 +221,95 @@ void IRefiner::set_adjusted_marks_debug_filename(const char* filename)
 	else
 		m_adjustedMarksDebugFilename = filename;
 }
+
+
+int IRefiner::
+get_local_edge_mark(Face* f, Edge* e) const
+{
+	const int edgeInd = GetEdgeIndex(f, e);
+	UG_COND_THROW(edgeInd == -1, "Given edge is not an edge of the given face.");
+
+	if(marked_local(f)){
+		const int faceLocalMark = get_local_mark(f);
+		return (faceLocalMark >> edgeInd) & 1;
+	}
+	else if(marked_full(f)){
+		return 1;
+	}
+	else if(marked_closure(f)){
+
+		return static_cast<int>(marked_full(e));
+	}
+	return 0;
+}
+
+int IRefiner::
+get_local_edge_mark(Volume* vol, Edge* e) const
+{
+	const int edgeInd = GetEdgeIndex(vol, e);
+	UG_COND_THROW(edgeInd == -1, "Given edge is not an edge of the given volume.");
+
+	if(marked_local(vol)){
+		const int volLocalMark = get_local_mark(vol);
+		return (volLocalMark >> edgeInd) & 1;
+	}
+	else if(marked_full(vol)){
+		return 1;
+	}
+	else if(marked_closure(vol)){
+		return static_cast<int>(marked_full(e));
+	}
+	return 0;
+}
+
+int IRefiner::
+get_local_face_mark(Volume* vol, Face* f) const
+{
+	int sideInd = GetFaceIndex(vol, f);
+	UG_COND_THROW(sideInd == -1, "Given face is not a side of the given volume.");
+
+	if(marked_local(vol)){
+		const int volLocalMark = get_local_mark(vol);
+		const size_t numFaceVrts = f->num_vertices();
+		Face::ConstVertexArray vrts = f->vertices();
+
+		int vinds[MAX_FACE_VERTICES];
+		for(size_t i = 0; i < numFaceVrts; ++i){
+			vinds[i] = GetVertexIndex(vol, vrts[i]);
+		}
+
+		int sideMark = 0;
+
+		for(size_t i = 0; i < numFaceVrts; ++i){
+			const int edgeInd =
+					vol->get_edge_index_from_vertices(
+							vinds[i], vinds[(i+1)%numFaceVrts]);
+			
+			sideMark |= ((volLocalMark >> edgeInd) & 1) << i;
+		}
+
+		return sideMark;
+	}
+	else if(marked_full(vol)){
+		int sideMark = 0;
+		const size_t numFaceVrts = f->num_vertices();
+		for(size_t i = 0; i < numFaceVrts; ++i)
+			sideMark |= 1 << i;
+		return sideMark;
+	}
+	else if(marked_closure(vol)){
+		int sideMark = 0;
+		const size_t numFaceEdges = f->num_edges();
+		for(size_t iedge = 0; iedge < numFaceEdges; ++iedge){
+			if(marked_full(const_cast<IRefiner*>(this)->grid()->get_edge(f, iedge)))
+				sideMark |= 1 << iedge;
+		}
+
+		return sideMark;
+	}
+	return 0;
+}
+
 
 size_t IRefiner::num_marked_edges(std::vector<int>& numMarkedEdgesOut)
 {

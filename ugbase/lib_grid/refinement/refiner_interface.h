@@ -112,6 +112,24 @@ class IRefiner
 		virtual bool mark(GridObject* o, RefinementMark refMark = RM_REFINE);
 
 
+		template <class TElem>
+		inline bool marked_closure(TElem* elem) const
+		{
+			return (get_mark(elem) == RM_CLOSURE);
+		}
+
+		template <class TElem>
+		inline bool marked_local(TElem* elem) const
+		{
+			return (get_mark(elem) == RM_LOCAL);
+		}
+
+		template <class TElem>
+		inline bool marked_full(TElem* elem) const
+		{
+			return (get_mark(elem) == RM_FULL);
+		}
+
 	///	Marks a face or volume for local refinement.
 	/**	The passed mark is an or combination. If the i-th edge of the element
 	 * shall be refined, it should hold true: 'mark & 1<<i != 0'.
@@ -132,6 +150,25 @@ class IRefiner
 		virtual int get_local_mark(Face* e) const	{return 0;}
 		virtual int get_local_mark(Volume* e) const	{return 0;}
 	/** \} */
+
+
+	///	returns the local mark of the specified edge of the given face
+	/**	Note that this is not necessarily the mark of the edge itself. Instead
+	 * the mark of the edge as induced by the local mark of the face is returned.
+	 * The method also considers marks RM_FULL and RM_CLOSURE.*/
+		int get_local_edge_mark(Face* f, Edge* e) const;
+		
+	///	returns the local mark of the specified edge of the given volume
+	/**	Note that this is not necessarily the mark of the edge itself. Instead
+	 * the mark of the edge as induced by the local mark of the volume is returned.
+	 * The method also considers marks RM_FULL and RM_CLOSURE.*/
+		int get_local_edge_mark(Volume* vol, Edge* e) const;
+
+	///	returns the local mark of the specified face of the given volume
+	/**	Note that this is not necessarily the mark of the face itself. Instead
+	 * the mark of the face as induced by the local mark of the volume is returned.
+	 * The method also considers marks RM_FULL and RM_CLOSURE.*/
+		int get_local_face_mark(Volume* vol, Face* f) const;
 
 
 	///	marks the neighborhood of currently marked elements.
@@ -158,16 +195,16 @@ class IRefiner
 
 	///	Returns the mark of a given element. Default returns RM_REFINE
 	/**	\{ */
-		virtual RefinementMark get_mark(Vertex* v)	{return RM_REFINE;}
-		virtual RefinementMark get_mark(Edge* e)	{return RM_REFINE;}
-		virtual RefinementMark get_mark(Face* f)		{return RM_REFINE;}
-		virtual RefinementMark get_mark(Volume* v)		{return RM_REFINE;}
+		virtual RefinementMark get_mark(Vertex* v) const	{return RM_REFINE;}
+		virtual RefinementMark get_mark(Edge* e) const		{return RM_REFINE;}
+		virtual RefinementMark get_mark(Face* f) const		{return RM_REFINE;}
+		virtual RefinementMark get_mark(Volume* v) const	{return RM_REFINE;}
 	/**	\} */
 
 	///	returns the mark of the specified geometric object
 	/**	The default implementation casts the object to a more concrete type
 	 * (Vertex, Edge, Face, Volume) and calls the appropriate get_mark method.*/
-		virtual RefinementMark get_mark(GridObject* o);
+		virtual RefinementMark get_mark(GridObject* o) const;
 
 	///	marks all elements between iterBegin and iterEnd.
 	/**	the value-type of TIterator has to be a pointer to a type derived
