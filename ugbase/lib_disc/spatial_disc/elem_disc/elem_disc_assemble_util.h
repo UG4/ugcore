@@ -1842,7 +1842,7 @@ public:
 	static void
 	AssembleErrorEstimator
 	(
-		const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+		const std::vector<IElemError<domain_type>*>& vElemDisc,
 		ConstSmartPtr<domain_type> spDomain,
 		ConstSmartPtr<DoFDistribution> dd,
 		TIterator iterBegin,
@@ -1864,7 +1864,7 @@ public:
 	//	prepare for given elem discs
 		try
 		{
-		DataEvaluator<domain_type> Eval(STIFF | RHS,
+		ErrorEvaluator<domain_type> Eval(STIFF | RHS,
 						   vElemDisc, dd->function_pattern(), bNonRegularGrid);
 
 	//	prepare element loop
@@ -1950,7 +1950,7 @@ public:
 	static void
 	AssembleErrorEstimator
 	(
-		const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+		const std::vector<IElemError<domain_type>*>& vElemDisc,
 		ConstSmartPtr<domain_type> spDomain,
 		ConstSmartPtr<DoFDistribution> dd,
 		TIterator iterBegin,
@@ -1987,7 +1987,7 @@ public:
 	//	prepare for given elem discs
 		try
 		{
-			DataEvaluator<domain_type> Eval(MASS | STIFF | RHS,
+			ErrorEvaluator<domain_type> Eval(MASS | STIFF | RHS,
 							   vElemDisc, dd->function_pattern(), bNonRegularGrid,
 							   &locTimeSeries, &vScaleMass, &vScaleStiff);
 

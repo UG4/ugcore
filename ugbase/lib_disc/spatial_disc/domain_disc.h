@@ -264,49 +264,32 @@ class DomainDiscretizationBase
 
 	///////////////////////////////////////////////////////////
 	// Error estimator										///
-
+public:
 	/// \copydoc IDomainDiscretization::mark_error()
 	// stationary
-		virtual void calc_error
-		(	const vector_type& u,
-			ConstSmartPtr<DoFDistribution> dd,
-			vector_type* u_vtk = NULL
-		);
-		virtual	void calc_error
-		(	const vector_type& u,
-			const GridLevel& gl,
-			vector_type* u_vtk = NULL
-		)
+		virtual void calc_error(const vector_type& u, ConstSmartPtr<DoFDistribution> dd, vector_type* u_vtk = NULL);
+		virtual	void calc_error(const vector_type& u, const GridLevel& gl, vector_type* u_vtk = NULL)
 		{calc_error(u, dd(gl));}
+
 		virtual	void calc_error(const GridFunction<TDomain,TAlgebra>& u)
 		{calc_error(u, u.dd(), NULL);}
 		virtual	void calc_error(const GridFunction<TDomain,TAlgebra>& u, vector_type* u_vtk)
 		{calc_error(u, u.dd(), u_vtk);}
 
 	// instationary
-		virtual void calc_error
-		(	ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
-			ConstSmartPtr<DoFDistribution> dd,
-			std::vector<number> vScaleMass,
-			std::vector<number> vScaleStiff,
-			vector_type* u_vtk
-		);
-		virtual void calc_error
-		(	ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
-			std::vector<number> vScaleMass,
-			std::vector<number> vScaleStiff,
-			const GridLevel& gl,
-			vector_type* u_vtk
-		)
+		virtual void calc_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+								ConstSmartPtr<DoFDistribution> dd,
+								std::vector<number> vScaleMass, std::vector<number> vScaleStiff,
+								vector_type* u_vtk);
+		virtual void calc_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+								std::vector<number> vScaleMass, std::vector<number> vScaleStiff,
+								const GridLevel& gl,vector_type* u_vtk)
 		{
 			calc_error((ConstSmartPtr<VectorTimeSeries<vector_type> >) vSol, dd(gl),
 					   vScaleMass, vScaleStiff, u_vtk);
 		}
 
-		virtual void mark_with_strategy
-		(	IRefiner& refiner,
-			SmartPtr <IElementMarkingStrategy<TDomain> > strategy
-		);
+		virtual void mark_with_strategy(IRefiner& refiner, SmartPtr <IElementMarkingStrategy<TDomain> > strategy);
 
 		/// marks error indicators as invalid; in order to revalidate them,
 		/// they will have to be newly calculated by a call to calc_error
@@ -382,6 +365,54 @@ class DomainDiscretizationBase
 					", but could not find it there.");
 		}
 
+		/// adds an element error indicator to the assembling process
+		/**
+		 * This function adds an Element Discretization to the assembling. During
+		 * the assembling process the elem disc will assemble a given group of
+		 * subsets and add the output to the passed vectors and matrices.
+		 * For each Elem Disc one loop over all elements of the subset will be
+		 * performed.
+		 *
+		 * \param[in] 	elem		Element error indicator to be added
+		 */
+		void add_elem_error_indicator(SmartPtr<IElemError<TDomain> > elem)
+		{
+			//	check that not already registered
+			for(size_t i = 0; i < m_vDomainElemError.size(); ++i)
+				if(m_vDomainElemError[i] == elem) return;
+
+			//	set approximation space
+			elem->set_approximation_space(m_spApproxSpace);
+
+			//	add it
+			m_vDomainElemError.push_back(elem);
+		}
+
+		/// removes a element discretization from the assembling process
+		/**
+		 * This function removes a previously added IElemDisc from the assembling.
+		 * The element-wise assemblings are no longer called.
+		 *
+		 * \param[in] 	elem		elem disc to be removed
+		 */
+		void remove_elem_error_indicator(SmartPtr<IElemError<TDomain> > elem)
+		{
+			// check that 'elem' already registered
+			for (size_t i = 0; i < m_vDomainElemError.size(); i++)
+			{
+				if (m_vDomainElemError[i] == elem)
+				{
+					// remove constraint
+					m_vDomainElemError.erase(m_vDomainElemError.begin()+i);
+					return;
+				}
+			}
+
+			UG_LOG("Tried to remove ElemError from DomainDisc"
+					", but could not find it there.");
+		}
+
+
 	/// adds a constraint to the assembling process
 	/**
 	 * This function adds a IConstraint to the assembling. The constraint is
@@ -454,8 +485,10 @@ class DomainDiscretizationBase
 	protected:
 	///	set the approximation space in the elem discs and extract IElemDiscs
 		void update_elem_discs();
+		void update_elem_errors();
 		void update_constraints();
 		void update_disc_items();
+		void update_error_items();
 
 	protected:
 	///	returns the level dof distribution
@@ -467,6 +500,12 @@ class DomainDiscretizationBase
 
 	///	vector holding all registered elem discs
 		std::vector<IElemDisc<TDomain>*> m_vElemDisc;
+
+	///	vector holding all registered elem discs
+		std::vector<SmartPtr<IElemError<TDomain> > > m_vDomainElemError;
+
+	///	vector holding all registered elem discs
+		std::vector<IElemError<TDomain>*> m_vElemError;
 
 	//	vector holding all registered constraints
 		std::vector<SmartPtr<IDomainConstraint<TDomain, TAlgebra> > > m_vConstraint;
@@ -518,7 +557,7 @@ class DomainDiscretizationBase
 									vector_type& rhs,
 									const vector_type& u);
 	template <typename TElem>
-	void AssembleErrorEstimator(	const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+	void AssembleErrorEstimator(	const std::vector<IElemError<domain_type>*>& vElemDisc,
 									ConstSmartPtr<DoFDistribution> dd,
 									int si, bool bNonRegularGrid,
 									const vector_type& u);
@@ -561,16 +600,16 @@ class DomainDiscretizationBase
 									const std::vector<number>& vScaleMass,
 									const std::vector<number>& vScaleStiff);
 	template <typename TElem>
-	void AssembleErrorEstimator(	const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+	void FinishTimestepElem(			const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+									ConstSmartPtr<DoFDistribution> dd,
+									int si, bool bNonRegularGrid,
+									ConstSmartPtr<VectorTimeSeries<vector_type> > vSol);
+	template <typename TElem>
+	void AssembleErrorEstimator(	const std::vector<IElemError<domain_type>*>& vElemDisc,
 									ConstSmartPtr<DoFDistribution> dd,
 									int si, bool bNonRegularGrid,
 									std::vector<number> vScaleMass,
 									std::vector<number> vScaleStiff,
-									ConstSmartPtr<VectorTimeSeries<vector_type> > vSol);
-	template <typename TElem>
-	void FinishTimestepElem(			const std::vector<IElemDisc<domain_type>*>& vElemDisc,
-									ConstSmartPtr<DoFDistribution> dd,
-									int si, bool bNonRegularGrid,
 									ConstSmartPtr<VectorTimeSeries<vector_type> > vSol);
 };
 
