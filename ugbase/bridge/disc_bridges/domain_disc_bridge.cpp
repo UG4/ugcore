@@ -100,6 +100,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("assemble_linear", static_cast<void (T::*)(typename TAlgebra::matrix_type&, GridFunction<TDomain, TAlgebra>&)>(&T::assemble_linear))
 			.add_method("assemble_rhs", static_cast<void (T::*)(typename TAlgebra::vector_type&, GridFunction<TDomain, TAlgebra>&)>(&T::assemble_rhs))
 			.add_method("assemble_rhs", static_cast<void (T::*)(GridFunction<TDomain, TAlgebra>&)>(&T::assemble_rhs))
+			.add_method("adjust_solution", static_cast<void (T::*)(GridFunction<TDomain, TAlgebra>&)>(&T::adjust_solution))
 			// error indicator
 			.add_method("add_elem_error_indicator", &T::add_elem_error_indicator, "","OPTIONAL: Add element-wise error indicator")
 			.add_method("remove_elem_error_indicator", &T::remove_elem_error_indicator, "","OPTIONAL: Remove element-wise error indicator")
