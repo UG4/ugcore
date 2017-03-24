@@ -564,7 +564,8 @@ load_from_asc (const char* filename)
 	ifstream in(fullFileName.c_str());
 	UG_COND_THROW(!in, LFA_ERR_WHERE << "Couldn't access file.");
 
-	MultiIndex numNodes(0);
+	MultiIndex numNodes(1);
+	numNodes[0] = 0;
 
 //	indicate whether minCoord was specified as cell-center
 	MultiIndex minCoordIsCenter(0);
@@ -583,6 +584,9 @@ load_from_asc (const char* filename)
 	if(TDIM == 1)		headerLen = 4;
 	else if(TDIM == 2)	headerLen = 6;
 	else if(TDIM == 3)	headerLen = 8;
+	else{
+		UG_THROW("Raster::load_from_asc only supports 1, 2, and 3 dimensions\n");
+	}
 	
 	for(int i = 0; i < headerLen; ++i){
 		string name;
@@ -685,10 +689,18 @@ load_from_asc (const char* filename)
 	create();
 
 //	parse values
-	const size_t numNodesTotal = num_nodes_total();
-	for(size_t i = 0; i < numNodesTotal; ++i){
-		in >> m_data[i];
-		UG_COND_THROW(!in, LFA_ERR_WHERE << "Couldn't read value for node " << i);
+//	y and z are inverted
+	for(size_t iz = 0; iz < m_numNodes[2]; ++iz){
+		for(size_t iy = 0; iy < m_numNodes[1]; ++iy){
+			for(size_t ix = 0; ix < m_numNodes[0]; ++ix)
+			{
+				const size_t ty = m_numNodes[1] - iy;
+				const size_t tz = m_numNodes[2] - iz;
+				in >> m_data[ix + m_numNodes[0] * (ty + m_numNodes[1] * tz)];
+				UG_COND_THROW(!in, LFA_ERR_WHERE << "Couldn't read value for at ("
+							  << ix << ", " << iy << ", " << iz << ")");
+			}
+		}
 	}
 }
 
