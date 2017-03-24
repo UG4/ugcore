@@ -564,8 +564,7 @@ load_from_asc (const char* filename)
 	ifstream in(fullFileName.c_str());
 	UG_COND_THROW(!in, LFA_ERR_WHERE << "Couldn't access file.");
 
-	MultiIndex numNodes(1);
-	numNodes[0] = 0;
+	MultiIndex numNodes(0);
 
 //	indicate whether minCoord was specified as cell-center
 	MultiIndex minCoordIsCenter(0);
@@ -690,13 +689,17 @@ load_from_asc (const char* filename)
 
 //	parse values
 //	y and z are inverted
-	for(size_t iz = 0; iz < m_numNodes[2]; ++iz){
-		for(size_t iy = 0; iy < m_numNodes[1]; ++iy){
-			for(size_t ix = 0; ix < m_numNodes[0]; ++ix)
+	size_t num[3] = {0, 1, 1};
+	for(size_t i = 0; i < TDIM; ++i)
+		num[i] = m_numNodes[i];
+		
+	for(size_t iz = 0; iz < num[2]; ++iz){
+		for(size_t iy = 0; iy < num[1]; ++iy){
+			for(size_t ix = 0; ix < num[0]; ++ix)
 			{
-				const size_t ty = m_numNodes[1] - iy;
-				const size_t tz = m_numNodes[2] - iz;
-				in >> m_data[ix + m_numNodes[0] * (ty + m_numNodes[1] * tz)];
+				const size_t ty = num[1] - 1 - iy;
+				const size_t tz = num[2] - 1 - iz;
+				in >> m_data[ix + num[0] * (ty + num[1] * tz)];
 				UG_COND_THROW(!in, LFA_ERR_WHERE << "Couldn't read value for at ("
 							  << ix << ", " << iy << ", " << iz << ")");
 			}
