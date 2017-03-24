@@ -78,6 +78,33 @@ if(buildPlugins)
 	endif(buildEmbeddedPlugins)
 endif(buildPlugins)
 
+
+if(buildTools)
+	set(toolDir ${UG_ROOT_PATH}/tools)
+	set(FOUND_TOOLS 0)
+	FILE(GLOB children RELATIVE ${toolDir} ${toolDir}/*)
+	FOREACH(child ${children})
+		IF(IS_DIRECTORY ${toolDir}/${child})
+
+			if(NOT ${FOUND_TOOLS})
+				message(STATUS "")
+				message(STATUS "Tools:")
+				set(FOUND_TOOLS 1)
+			endif()
+
+			option(${child} "  -${child}" OFF)
+			
+			if(${child})
+				message(STATUS "  - " ${child} " (ON)" )
+				add_subdirectory(${toolDir}/${child} tools/${child})
+			else()
+				message(STATUS "  - " ${child} " (OFF)" )
+			endif()
+		ENDIF()
+	ENDFOREACH()
+endif(buildTools)
+
+
 ########################
 # ugbase
 add_subdirectory(ugbase)
