@@ -97,6 +97,7 @@ set(srcAlgorithms	algorithms/debug_util.cpp
 					refinement/global_fractured_media_refiner.cpp
 					algorithms/subdivision/subdivision_loop.cpp
 					algorithms/subdivision/subdivision_rules_piecewise_loop.cpp
+					algorithms/subdivision/subdivision_volumes.cpp
 					algorithms/unit_tests/check_associated_elements.cpp)
 					
 set(srcFileIO	file_io/file_io_art.cpp
