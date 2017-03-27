@@ -1409,6 +1409,7 @@ static void Common(Registry& reg, string grp)
 	reg.add_function("ApplySmoothSubdivisionSurfacesToTopLevel", &ApplySmoothSubdivisionSurfacesToTopLevel, grp);
 	reg.add_function("ProjectHierarchyToLimitSubdivisionVolume", &ProjectHierarchyToLimitSubdivisionVolume, grp);
 	reg.add_function("TetrahedralizeHybridTetOctGrid", &TetrahedralizeHybridTetOctGrid, grp);
+	reg.add_function("CheckEdgeValence", &CheckValences, grp);
 
 	reg.add_function("MarkNeighborsForFullRefinement",
 				&MarkNeighborsForFullRefinement,

@@ -1840,6 +1840,88 @@ void ApplyConstrainedSmoothSubdivisionVolumesToTopLevel(MultiGrid& mg, MGSubsetH
 }
 
 
+/// Function for checking the number of associated volumes of all edges
+/** This function calculates the number of associated volumes
+ * 	for all edges.
+ *
+ * 	@param mg			reference to MultiGrid
+ * 	@param sh			reference to SubsetHandler
+ * 	@param sh			filename specification for output
+**/
+void CheckValences(MultiGrid& mg, MGSubsetHandler& markSH, const char* filename)
+{
+//	Output file SubsetHandler
+	SubsetHandler sh(mg);
+
+//	Attachments for associated number of elements
+	AInt aEdgeValence;
+	AInt aVertexValence;
+
+//	attach previously declared attachments with initial value 0
+	mg.attach_to_edges_dv(aEdgeValence, 0);
+	mg.attach_to_vertices_dv(aVertexValence, 0);
+
+//	Define attachment accessors
+	Grid::EdgeAttachmentAccessor<AInt> aaEdgeValence(mg, aEdgeValence);
+	Grid::VertexAttachmentAccessor<AInt> aaVertexValence(mg, aVertexValence);
+
+//	Calculate edge valence
+	for(VolumeIterator vIter = mg.begin<Volume>(mg.top_level()); vIter != mg.end<Volume>(mg.top_level()); ++vIter)
+	{
+		Volume* v = *vIter;
+
+		Grid::edge_traits::secure_container edges;
+		mg.associated_elements(edges, v);
+
+		for(size_t i = 0; i < edges.size(); ++i)
+		{
+			if(markSH.get_subset_index(edges[i]) != -1)
+				continue;
+
+			++aaEdgeValence[edges[i]];
+		}
+	}
+
+//	Calculate vertex valence
+	CalculateNumElemsVertexAttachmentInTopLevel(mg, aVertexValence);
+
+//	Assign subset indices by valence
+	for(EdgeIterator eIter = mg.begin<Edge>(mg.top_level()); eIter != mg.end<Edge>(mg.top_level()); ++eIter)
+	{
+		Edge* e = *eIter;
+
+		if(markSH.get_subset_index(e) != -1)
+			continue;
+
+		if(aaEdgeValence[e] < 4)
+		{
+			sh.assign_subset(e, aaEdgeValence[e]);
+		}
+	}
+
+//	Assign subset indices by valence
+	for(VertexIterator vIter = mg.begin<Vertex>(mg.top_level()); vIter != mg.end<Vertex>(mg.top_level()); ++vIter)
+	{
+		Vertex* v = *vIter;
+
+		if(markSH.get_subset_index(v) != -1)
+			continue;
+
+		if(aaVertexValence[v] < 4)
+		{
+			sh.assign_subset(v, aaVertexValence[v]);
+		}
+	}
+
+//	Output grid with valence SubsetHandler
+	SaveGridToFile(mg, sh, filename);
+
+//	Clean up
+	mg.detach_from_edges(aEdgeValence);
+	mg.detach_from_vertices(aVertexValence);
+}
+
+
 //	OCT-TET subdivision mask
 void mask()
 {
