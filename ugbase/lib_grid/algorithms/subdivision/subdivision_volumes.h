@@ -833,6 +833,174 @@ void CalculateSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
 }
 
 
+/// Toplevel vertex smoothing function for subdivision volumes refinement
+/** This function calculates the smoothed positions of all toplevel vertices
+ * 	determined by the constrained subdivision volumes refinement.
+ *
+ * 	@param mg				reference to MultiGrid
+ * 	@param markSH			reference to SubsetHandler markSH containing marked (inner) boundary manifold
+ * 	@param aSmoothVolPos	reference to aSmoothVolPos
+**/
+void CalculateConstrainedSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
+												   APosition& aSmoothVolPos)
+{
+	#ifdef UG_PARALLEL
+		DistributedGridManager& dgm = *mg.distributed_grid_manager();
+	#endif
+
+//	Define attachment accessors
+	Grid::VertexAttachmentAccessor<APosition> aaPos(mg, aPosition);
+	Grid::VertexAttachmentAccessor<APosition> aaSmoothVolPos(mg, aSmoothVolPos);
+
+//	Declare volume centroid coordinate vector
+	typedef APosition::ValueType pos_type;
+	pos_type p;
+
+//	boundary neighbor counter
+	size_t bndNbrCnt;
+
+//	Loop all volumes of top_level
+	for(VolumeIterator vIter = mg.begin<Volume>(mg.top_level()); vIter != mg.end<Volume>(mg.top_level()); ++vIter)
+	{
+		Volume* vol = *vIter;
+
+	//	Skip ghost volumes
+		#ifdef UG_PARALLEL
+			if(dgm.is_ghost(vol))
+				continue;
+		#endif
+
+	//	Iterate over all volume vertices, calculate and apply local centroid masks
+		for(size_t i = 0; i < vol->num_vertices(); ++i)
+		{
+		//	Init
+			Vertex* vrt = vol->vertex(i);
+			VecSet(p, 0);
+			bndNbrCnt = 0;
+
+		//	In case of linear or subdivision Loop boundary manifold refinement:
+		//	handle vertices of separating manifolds separately
+			if(markSH.get_subset_index(vrt) != -1 && g_boundaryRefinementRule != SUBDIV_VOL)
+			{
+				continue;
+			}
+
+		//	TETRAHEDRON CASE
+			if(vol->reference_object_id() == ROID_TETRAHEDRON)
+			{
+			//	Summate coordinates of neighbor vertices to vrt inside tetrahedron
+				for(size_t j = 0; j < vol->num_vertices(); ++j)
+				{
+					if(j != i)
+					{
+					//	Only consider non-manifold neighbors
+						if(markSH.get_subset_index(vol->vertex(j)) == -1)
+						{
+							VecAdd(p, p, aaPos[vol->vertex(j)]);
+						}
+						else
+						{
+							bndNbrCnt++;
+						}
+					}
+				}
+
+			//	Smooth vertex position
+				//VecScaleAppend(aaSmoothVolPos[vrt], -1.0/16 + bndNbrCnt*17.0/48, aaPos[vrt], 17.0/48, p);
+
+				if(bndNbrCnt == 3)
+					VecScaleAppend(aaSmoothVolPos[vrt], 1.0, aaPos[vrt]);
+				else if(bndNbrCnt == 0)
+					VecScaleAppend(aaSmoothVolPos[vrt], -1.0/16, aaPos[vrt], 17.0/48, p);
+				else if(bndNbrCnt == 1)
+					VecScaleAppend(aaSmoothVolPos[vrt], -1.0/16, aaPos[vrt], 17.0/48 + 17.0/(48*2), p);
+				else
+					VecScaleAppend(aaSmoothVolPos[vrt], -1.0/16, aaPos[vrt], 51.0/48, p);
+			}
+
+		//	OCTAHEDRON CASE
+			else if(vol->reference_object_id() == ROID_OCTAHEDRON)
+			{
+			//	Get cell-adjacent vertex
+				Vertex* oppVrt = vol->vertex(vol->get_opposing_object(vrt).second);
+
+			//	Summate coordinates of DIRECT neighbor vertices to vrt inside octahedron
+				for(size_t j = 0; j < vol->num_vertices(); ++j)
+				{
+					if(GetVertexIndex(vol, oppVrt) == -1)
+					{
+						UG_THROW("ERROR in CalculateSmoothVolumePosInTopLevel: identified opposing vertex actually not included in current volume.");
+					}
+
+					if(j != i && j != (size_t)GetVertexIndex(vol, oppVrt))
+					{
+					//	Only consider non-manifold direct neighbors
+						if(markSH.get_subset_index(vol->vertex(j)) == -1)
+						{
+							VecAdd(p, p, aaPos[vol->vertex(j)]);
+						}
+						else
+						{
+							bndNbrCnt++;
+						}
+					}
+				}
+
+			//	Smooth vertex position
+
+			//	if opposing vertex is a non-manifold vertex
+				if(markSH.get_subset_index(oppVrt) == -1)
+				{
+					//VecScaleAppend(aaSmoothVolPos[vrt], 3.0/8 + bndNbrCnt*1.0/12, aaPos[vrt], 1.0/12, p, 7.0/24, aaPos[oppVrt]);
+
+					if(bndNbrCnt == 4)
+						VecScaleAppend(aaSmoothVolPos[vrt], 3.0/8, aaPos[vrt], 15.0/24, aaPos[oppVrt]);
+					else if(bndNbrCnt == 0)
+						VecScaleAppend(aaSmoothVolPos[vrt], 3.0/8, aaPos[vrt], 1.0/12, p, 7.0/24, aaPos[oppVrt]);
+					else if(bndNbrCnt == 1)
+						VecScaleAppend(aaSmoothVolPos[vrt], 3.0/8, aaPos[vrt], 1.0/12 + 1.0/(12*3), p, 7.0/24, aaPos[oppVrt]);
+					else if(bndNbrCnt == 2)
+						VecScaleAppend(aaSmoothVolPos[vrt], 3.0/8, aaPos[vrt], 2.0/12, p, 7.0/24, aaPos[oppVrt]);
+					else
+						VecScaleAppend(aaSmoothVolPos[vrt], 3.0/8, aaPos[vrt], 4.0/12, p, 7.0/24, aaPos[oppVrt]);
+				}
+				else
+				{
+					//VecScaleAppend(aaSmoothVolPos[vrt], 3.0/8 + bndNbrCnt*1.0/12 + 7.0/24, aaPos[vrt], 1.0/12, p);
+
+					if(bndNbrCnt == 4)
+						VecScaleAppend(aaSmoothVolPos[vrt], 1.0, aaPos[vrt]);
+					else if(bndNbrCnt == 0)
+						VecScaleAppend(aaSmoothVolPos[vrt], 3.0/8, aaPos[vrt], 1.0/12 + 7.0/(24*4), p);
+					else if(bndNbrCnt == 1)
+						VecScaleAppend(aaSmoothVolPos[vrt], 3.0/8, aaPos[vrt], 1.0/12 + 1.0/(12*3) + 7.0/(24*3), p);
+					else if(bndNbrCnt == 2)
+						VecScaleAppend(aaSmoothVolPos[vrt], 3.0/8, aaPos[vrt], 2.0/12 + 7.0/(24*2), p);
+					else
+						VecScaleAppend(aaSmoothVolPos[vrt], 3.0/8, aaPos[vrt], 4.0/12 + 7.0/24, p);
+				}
+			}
+
+		//	UNSUPPORTED VOLUME ELEMENT CASE
+			else
+			{
+				UG_THROW("ERROR in CalculateSmoothVolumePosInTopLevel: Volume type not supported for subdivision volumes refinement.");
+			}
+		}
+	}
+
+//	Manage vertex attachment communication in parallel case -> COMMUNICATE aSmoothVolPos
+	#ifdef UG_PARALLEL
+	//	Reduce add operations:
+	//	sum up h_slaves into h_masters
+
+	//	Copy operations:
+	//	copy h_masters to h_slaves for consistency
+		AttachmentAllReduce<Vertex>(mg, aSmoothVolPos, PCL_RO_SUM);
+	#endif
+}
+
+
 /// Function for calculating the number of associated volumes of all toplevel vertices
 /** This function calculates the number of associated volumes
  * 	for all toplevel vertices.
@@ -1416,11 +1584,10 @@ void ApplySmoothManifoldPosToTopLevelAveragingScheme(MultiGrid& mg, MGSubsetHand
  * 	@param mg					reference to MultiGrid
  * 	@param markSH				reference to SubsetHandler markSH containing marked (inner) boundary manifold
  * 	@param linearManifoldSH		reference to user-specified linearManifoldSubsets SubsetHandler
- * 	@param aSmoothVolPos		reference to aSmoothVolPos
- * 	@param aNumElems			reference to aNumElems
+ * 	@param bConstrained			bool switch for constrained smooth subdivision volumes scheme
 **/
 void ApplySmoothVolumePosToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
-									MGSubsetHandler& linearManifoldSH)
+									MGSubsetHandler& linearManifoldSH, bool bConstrained)
 {
 /*****************************************
  *
@@ -1473,7 +1640,10 @@ void ApplySmoothVolumePosToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
  *****************************************/
 
 //	Calculate aSmoothVolPos
-	CalculateSmoothVolumePosInTopLevel(mg, markSH, aSmoothVolPos);
+	if(bConstrained)
+		CalculateConstrainedSmoothVolumePosInTopLevel(mg, markSH, aSmoothVolPos);
+	else
+		CalculateSmoothVolumePosInTopLevel(mg, markSH, aSmoothVolPos);
 
 
 /*****************************************
@@ -1594,8 +1764,10 @@ void ApplySmoothSubdivisionSurfacesToTopLevel(MultiGrid& mg, MGSubsetHandler& sh
  * 	@param sh						reference to standard SubsetHandler
  * 	@param markSH					reference to SubsetHandler containing marked (inner) boundary manifold
  * 	@param linearManifoldSubsets 	user-specified linearManifoldSubsets
+ * 	@param bConstrained				bool switch for constrained smooth subdivision volumes scheme
 **/
-void ApplySmoothSubdivisionVolumesToTopLevel(MultiGrid& mg, MGSubsetHandler& sh, MGSubsetHandler& markSH, const char* linearManifoldSubsets)
+void ApplySmoothSubdivisionVolumesToTopLevel(MultiGrid& mg, MGSubsetHandler& sh, MGSubsetHandler& markSH,
+											 const char* linearManifoldSubsets, bool bConstrained)
 {
 /*****************************************
  *
@@ -1643,7 +1815,28 @@ void ApplySmoothSubdivisionVolumesToTopLevel(MultiGrid& mg, MGSubsetHandler& sh,
  *
  *****************************************/
 
-	ApplySmoothVolumePosToTopLevel(mg, markSH, linearManifoldSH);
+	ApplySmoothVolumePosToTopLevel(mg, markSH, linearManifoldSH, bConstrained);
+}
+
+
+/// Wrapper smooth subdivision volumes hierarchy creation
+/** These functions call the actual ApplySmoothSubdivisionVolumesToTopLevel procedure
+ *
+ * 	@param mg						reference to MultiGrid
+ * 	@param markSH					reference to SubsetHandler markSH containing marked (inner) boundary manifold
+* 	@param linearManifoldSubsets 	user-specified linearManifoldSubsets
+ * 	@param bConstrained				bool switch for constrained smooth subdivision volumes scheme
+**/
+void ApplySmoothSubdivisionVolumesToTopLevel(MultiGrid& mg, MGSubsetHandler& sh, MGSubsetHandler& markSH,
+											 const char* linearManifoldSH)
+{
+	ApplySmoothSubdivisionVolumesToTopLevel(mg, sh, markSH, linearManifoldSH, false);
+}
+
+void ApplyConstrainedSmoothSubdivisionVolumesToTopLevel(MultiGrid& mg, MGSubsetHandler& sh, MGSubsetHandler& markSH,
+														const char* linearManifoldSH)
+{
+	ApplySmoothSubdivisionVolumesToTopLevel(mg, sh, markSH, linearManifoldSH, true);
 }
 
 
