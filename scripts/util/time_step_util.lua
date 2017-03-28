@@ -830,7 +830,7 @@ function util.SolveNonlinearProblemAdaptiveTimestep(
 					timex:set_solution(u, 0)
 					timex:set_solution(u2, 1)
 					timex:apply()
-					eps = timex:get_error_estimate()
+					eps = timex:get_error_estimate(1)
 		
 				else
 					-- no extrapolation (less accurate)
@@ -844,6 +844,7 @@ function util.SolveNonlinearProblemAdaptiveTimestep(
 				-------------------------
 				-- Adaptive step control
 				-------------------------
+				local dtold = currdt
 				local lambda = math.pow(safety_fac*tol/eps, 0.5) -- (eps<=tol) implies (tol/eps >= 1) 
 				dtEst = lambda*currdt  
 				print("dtEst= "..dtEst..", eps="..eps..", tol = " ..tol..", fac = "..lambda)
@@ -853,13 +854,14 @@ function util.SolveNonlinearProblemAdaptiveTimestep(
 
 				if (eps <= tol) then 
 					-- accept
-					print ("ACCEPTING solution, dtnew="..currdt);
+
+					print ("EULEX-ACCEPTING:\t".. time .."\t"..dtold.."\t"..currdt.."\tq=\t2");
 					bAcceptStep = true;
 					bSuccess =true;
 		 			
 				else
 	    			-- discard
-	    			print ("DISCARDING solution, dtnew="..currdt);
+	    			print ("EULEX-REJECTING:\t".. time .."\t"..dtold.."\t"..currdt.."\tq=\t2");
 	    			bAcceptStep = false;
 	    			bSuccess = false;
 	    			
@@ -1130,7 +1132,7 @@ function util.SolveNonlinearProblemAdaptiveLimex(
 					timex:set_solution(u, 0)
 					timex:set_solution(u2, 1)
 					timex:apply()
-					eps = timex:get_error_estimate()
+					eps = timex:get_error_estimate(1)
 					--out:print("ExSol.vtu", u2, step, time) 
 					
 				else
