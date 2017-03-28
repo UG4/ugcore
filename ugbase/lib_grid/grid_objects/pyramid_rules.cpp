@@ -489,6 +489,12 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*, bool
 }
 
 
+bool IsRegularRefRule(const int edgeMarks)
+{
+	return false;
+}
+
+
 int CollapseEdge (int* newIndsOut, int v0, int v1)
 {
 //	get the edge which is connected by v0 and v1

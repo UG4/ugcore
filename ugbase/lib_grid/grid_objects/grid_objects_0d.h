@@ -113,7 +113,11 @@ class UG_API ConstrainedVertex : public Vertex
 		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<ConstrainedVertex*>(pObj) != NULL;}
 
 		ConstrainedVertex()	: m_constrainingObj(NULL), m_parentBaseObjectId(-1)	{}
-		virtual ~ConstrainedVertex()	{}
+		virtual ~ConstrainedVertex()
+		{
+			if(m_constrainingObj)
+				m_constrainingObj->remove_constraint_link(this);
+		}
 
 		virtual GridObject* create_empty_instance() const	{return new ConstrainedVertex;}
 
@@ -121,6 +125,20 @@ class UG_API ConstrainedVertex : public Vertex
 		virtual ReferenceObjectID reference_object_id() const {return ROID_VERTEX;}
 
 		virtual bool is_constrained() const			{return true;}
+
+		virtual void remove_constraint_link(const Edge* e)
+		{
+			if(m_constrainingObj == static_cast<const GridObject*>(e)){
+				m_constrainingObj = NULL;
+			}
+		}
+
+		virtual void remove_constraint_link(const Face* f)
+		{
+			if(m_constrainingObj == static_cast<const GridObject*>(f)){
+				m_constrainingObj = NULL;
+			}
+		}
 
 		inline void set_constraining_object(GridObject* constrObj)
 		{
@@ -153,10 +171,8 @@ class UG_API ConstrainedVertex : public Vertex
 
 	protected:
 		GridObject*	m_constrainingObj;
-		vector2				m_localCoord;
-		int					m_parentBaseObjectId;
-
-
+		vector2		m_localCoord;
+		int			m_parentBaseObjectId;
 };
 
 template <>

@@ -110,6 +110,9 @@ ref_marks_changed(IRefiner& ref,
 	for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
 		Edge* e = edges[i_edge];
 
+		if(ref.get_mark(e) != RM_REFINE)
+			continue;
+
 	//	check whether hangingNodeOrder1 is enabled. If so, we have to check
 	//	for associated hanging vertices and push them to qHVrts.
 		if(node_dependency_order_1_enabled()){
@@ -162,6 +165,42 @@ ref_marks_changed(IRefiner& ref,
 				}
 			}
 		}
+//NOTE: The check below was intended to replace the one above to reduce element refinement.
+//		However, since constrained edges may be marked after this check has
+//		been performed for a constraining edge, at least in parallel environments,
+//		this implementation leads to problems (segfaults!)
+		// else if(ConstrainingEdge* cge = dynamic_cast<ConstrainingEdge*>(e))
+		// {
+		// //	if one of the constrained objects is marked, then all associated faces
+		// //	and volumes have to be marked, too
+		// 	const size_t nce = cge->num_constrained_edges();
+		// 	bool oneIsMarked = false;
+		// 	for(size_t i = 0; i < nce; ++i){
+		// 		const RefinementMark rm = ref.get_mark(cge->constrained_edge(i));
+		// 		if(rm & RM_REFINE){
+		// 			oneIsMarked = true;
+		// 			break;
+		// 		}
+		// 	}
+
+		// 	if(oneIsMarked){
+		// 		if(grid.num_faces() > 0){
+		// 			grid.associated_elements(assFaces, cge);
+		// 			for(size_t i = 0; i < assFaces.size(); ++i){
+		// 				if (!(ref.get_mark(assFaces[i]) & RM_ANISOTROPIC)) // do not mark RM_REFINE if already marked anisotropic
+		// 					ref.mark(assFaces[i]);
+		// 			}
+		// 		}
+
+		// 		if(grid.num_volumes() > 0){
+		// 			grid.associated_elements(assVols, cge);
+		// 			for(size_t i = 0; i < assVols.size(); ++i){
+		// 				if (!(ref.get_mark(assVols[i]) & RM_ANISOTROPIC)) // do not mark RM_REFINE if already marked anisotropic
+		// 					ref.mark(assVols[i]);
+		// 			}
+		// 		}
+		// 	}
+		// }
 	}
 
 ////////////////////////////////
@@ -178,11 +217,13 @@ ref_marks_changed(IRefiner& ref,
 			}
 		}
 
-	//	we have to make sure that all associated edges are marked.
-		grid.associated_elements(assEdges, f);
-		for(size_t i = 0; i < assEdges.size(); ++i){
-			if(refMark > ref.get_mark(assEdges[i]))
-				ref.mark(assEdges[i], refMark);
+	//	we have to make sure that associated edges are marked.
+		if(refMark != RM_LOCAL){
+			grid.associated_elements(assEdges, f);
+			for(size_t i = 0; i < assEdges.size(); ++i){
+				if(refMark > ref.get_mark(assEdges[i]))
+					ref.mark(assEdges[i], refMark);
+			}
 		}
 
 	//	constrained and constraining faces require special treatment
@@ -205,6 +246,7 @@ ref_marks_changed(IRefiner& ref,
 			if(grid.num_volumes() > 0){
 				grid.associated_elements(assVols, cgf);
 				for(size_t i = 0; i < assVols.size(); ++i){
+				//todo:	also check whether the local mark matches
 					if (!(ref.get_mark(assVols[i]) & RM_ANISOTROPIC)) // do not mark RM_REFINE if already marked anisotropic
 						ref.mark(assVols[i]);
 				}
@@ -218,16 +260,18 @@ ref_marks_changed(IRefiner& ref,
 		Volume* v = vols[i_vol];
 		RefinementMark refMark = ref.get_mark(v);
 	//	we have to make sure that all associated edges and faces are marked.
-		grid.associated_elements(assEdges, v);
-		for(size_t i = 0; i < assEdges.size(); ++i){
-			if(refMark > ref.get_mark(assEdges[i]))
-				ref.mark(assEdges[i], refMark);
-		}
+		if(refMark != RM_LOCAL){
+			grid.associated_elements(assEdges, v);
+			for(size_t i = 0; i < assEdges.size(); ++i){
+				if(refMark > ref.get_mark(assEdges[i]))
+					ref.mark(assEdges[i], refMark);
+			}
 
-		grid.associated_elements(assFaces, v);
-		for(size_t i = 0; i < assFaces.size(); ++i){
-			if(refMark > ref.get_mark(assFaces[i]))
-				ref.mark(assFaces[i], refMark);
+			grid.associated_elements(assFaces, v);
+			for(size_t i = 0; i < assFaces.size(); ++i){
+				if(refMark > ref.get_mark(assFaces[i]))
+					ref.mark(assFaces[i], refMark);
+			}
 		}
 	}
 
