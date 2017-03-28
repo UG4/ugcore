@@ -148,36 +148,59 @@ ref_marks_changed(IRefiner& ref,
 		}
 		else if(ConstrainingEdge* cge = dynamic_cast<ConstrainingEdge*>(e))
 		{
-		//	if one of the constrained objects is marked, then all associated faces
-		//	and volumes have to be marked, too
-			const size_t nce = cge->num_constrained_edges();
-			bool oneIsMarked = false;
-			for(size_t i = 0; i < nce; ++i){
-				const RefinementMark rm = ref.get_mark(cge->constrained_edge(i));
-				if(rm & RM_REFINE){
-					oneIsMarked = true;
-					break;
+		//	associated faces and volumes have to be marked
+			if(grid.num_faces() > 0){
+				grid.associated_elements(assFaces, cge);
+				for(size_t i = 0; i < assFaces.size(); ++i){
+					if (!(ref.get_mark(assFaces[i]) & RM_ANISOTROPIC)) // do not mark RM_REFINE if already marked anisotropic
+						ref.mark(assFaces[i]);
 				}
 			}
 
-			if(oneIsMarked){
-				if(grid.num_faces() > 0){
-					grid.associated_elements(assFaces, cge);
-					for(size_t i = 0; i < assFaces.size(); ++i){
-						if (!(ref.get_mark(assFaces[i]) & RM_ANISOTROPIC)) // do not mark RM_REFINE if already marked anisotropic
-							ref.mark(assFaces[i]);
-					}
-				}
-
-				if(grid.num_volumes() > 0){
-					grid.associated_elements(assVols, cge);
-					for(size_t i = 0; i < assVols.size(); ++i){
-						if (!(ref.get_mark(assVols[i]) & RM_ANISOTROPIC)) // do not mark RM_REFINE if already marked anisotropic
-							ref.mark(assVols[i]);
-					}
+			if(grid.num_volumes() > 0){
+				grid.associated_elements(assVols, cge);
+				for(size_t i = 0; i < assVols.size(); ++i){
+					if (!(ref.get_mark(assVols[i]) & RM_ANISOTROPIC)) // do not mark RM_REFINE if already marked anisotropic
+						ref.mark(assVols[i]);
 				}
 			}
 		}
+//NOTE: The check below was intended to replace the one above to reduce element refinement.
+//		However, since constrained edges may be marked after this check has
+//		been performed for a constraining edge, at least in parallel environments,
+//		this implementation leads to problems (segfaults!)
+		// else if(ConstrainingEdge* cge = dynamic_cast<ConstrainingEdge*>(e))
+		// {
+		// //	if one of the constrained objects is marked, then all associated faces
+		// //	and volumes have to be marked, too
+		// 	const size_t nce = cge->num_constrained_edges();
+		// 	bool oneIsMarked = false;
+		// 	for(size_t i = 0; i < nce; ++i){
+		// 		const RefinementMark rm = ref.get_mark(cge->constrained_edge(i));
+		// 		if(rm & RM_REFINE){
+		// 			oneIsMarked = true;
+		// 			break;
+		// 		}
+		// 	}
+
+		// 	if(oneIsMarked){
+		// 		if(grid.num_faces() > 0){
+		// 			grid.associated_elements(assFaces, cge);
+		// 			for(size_t i = 0; i < assFaces.size(); ++i){
+		// 				if (!(ref.get_mark(assFaces[i]) & RM_ANISOTROPIC)) // do not mark RM_REFINE if already marked anisotropic
+		// 					ref.mark(assFaces[i]);
+		// 			}
+		// 		}
+
+		// 		if(grid.num_volumes() > 0){
+		// 			grid.associated_elements(assVols, cge);
+		// 			for(size_t i = 0; i < assVols.size(); ++i){
+		// 				if (!(ref.get_mark(assVols[i]) & RM_ANISOTROPIC)) // do not mark RM_REFINE if already marked anisotropic
+		// 					ref.mark(assVols[i]);
+		// 			}
+		// 		}
+		// 	}
+		// }
 	}
 
 ////////////////////////////////
