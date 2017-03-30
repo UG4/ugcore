@@ -29,99 +29,369 @@
 -- GNU Lesser General Public License for more details.
 
 
--- todo: enhance 'CreateSolver', which can also create a NewtonSolver and similar
---		 if requested.
 
--- Given a (possibly nested) solver description, e.g.,
--- 
--- 	solver = {
---		type = "bicgstab",
---		precond = "ilu"
---		convCheck = "standard"
--- 	}
---
--- a call e.g. to util.solver.CreateSolver(solver)
--- creates and returns the requested solver.
---
--- For conveniance, all the methods will add an 'instance' entry to their respective
--- descriptor tables, assigning the created solver component.
--- If you thus setup a solver, e.g.
---
--- 	solver = {
---		type = "bicgstab",
---		precond = {
---			type = "ilu"
---		}
--- 	}
---
--- you may later access 'solver.instance' and 'solver.precond.instance'.
--- Note that this is only possible if you specified a component through a descriptor.
--- If you use the short form, e.g.
---
--- solver = {
---		type = "bicgstab",
---		precond = "ilu"
--- 	}
---
--- you will still be able to access 'solver.instance', but you can't access
--- 'solver.precond.instance'.
---
---
--- All components may either be specified through a string-id or through a
--- descriptor. You only have to specify those components which deviate from
--- the defaults (solver.util.defaults), the rest will be ammended.
---
---
--- If you want to use a geometric multigrid preconditioner, you either have
--- to specify an approxSpace entry in its descriptor or set
--- 'util.solver.defaults.approxSpace' before calling any 'util.solver.Create...'
--- method.
---
---
--- Two not necessarily meaningful examples follow:
--- (here someApproxSpace points to a previously created approximation space)
---
---  -- EXAMPLE 1
---	solverDesc = 
---	{
---		type = "bicgstab",			-- linear solver type ["bicgstab", "cg", "linear"]
---		precond = 
---		{	
---			type 		= "gmg",	-- preconditioner ["gmg", "ilu", "ilut", "jac", "gs", "sgs"]
---			smoother 	= "gs",		-- gmg-smoother ["ilu", "ilut", "jac", "gs", "sgs"]
---			cycle		= "V",		-- gmg-cycle ["V", "F", "W"]
---			preSmooth	= 3,		-- number presmoothing steps
---			postSmooth 	= 3,		-- number postsmoothing steps
---			rap			= false,	-- comutes RAP-product instead of assembling if true 
---			baseLevel	= 0,		-- gmg - baselevel
---			baseSolver	= {			-- better options are most likely "lu" or "superlu"
---				type	  = "bicgstab",
---				precond	  = "gs",
---				convCheck = {
---					type		= "standard"
---					iterations	= 1000,
---					absolute	= 1e-12,
---					reduction	= 1e-10,
---					verbose		= false
---				}
---			}
---			approxSpace	= someApproxSpace,
---		},
---	
---		convCheck = "standard"
---	}
---
---	solver = util.solver.CreateSolver(solverDesc)
---
---
---  -- EXAMPLE 2
---	solverDesc =
---	{
---		type = "linear",
---		precond = ILU()		-- for each component one can optionally supply a custom instance
---	}
---
---	solver = util.solver.CreateSolver(solverDesc)
+--[[!
+\defgroup solver_util Solver Util
+\ingroup scripts
+\brief Table based solver creation
+
+Given a (possibly nested) solver description, e.g.,
+\code
+	solver = {
+		type = "bicgstab",
+		precond = "ilu"
+		convCheck = "standard"
+	}
+\endcode
+a call e.g. to util.solver.CreateSolver(solver)
+creates and returns the requested solver.
+
+All components may either be specified through a string-id or through a
+descriptor. You only have to specify those components which deviate from
+the defaults (solver.util.defaults), the rest will be ammended.
+
+To use a geometric multigrid preconditioner, you either have
+to specify an approxSpace entry in its descriptor or set
+'util.solver.defaults.approxSpace' before calling any 'util.solver.Create...'
+method.
+
+
+<br>
+<h2>Examples</h2>
+Several examples follow:
+
+<h3>Example: Creating an exact solver</h3>
+\code
+	solver = util.solver.CreateSolver("lu")
+\endcode
+
+
+<br>
+<h3>Example: Creating a simple iterative jacobi solver</h3>
+\code
+	solverDesc = {
+		type = "linear",
+		precond = "jac"
+	}
+
+	solver = util.solver.CreateSolver(solverDesc)
+\endcode
+
+
+<br>
+<h3>Example: Creating a simple iterative jacobi solver with custom parameters</h3>
+\code
+	solverDesc = {
+		type = "linear",
+		precond = {
+			type = "jac",
+			damping = 0.5
+		}
+	}
+
+	solver = util.solver.CreateSolver(solverDesc)
+\endcode
+
+
+<br>
+<h3>Example: Creation of a bicgstab solver with geometric multigrid preconditioner</h3>
+here someApproxSpace points to a previously created approximation space
+\code
+	solverDesc = 
+	{
+		type = "bicgstab",			-- linear solver type ["bicgstab", "cg", "linear"]
+		precond = 
+		{	
+			type 		= "gmg",	-- preconditioner ["gmg", "ilu", "ilut", "jac", "gs", "sgs"]
+			smoother 	= "gs",		-- gmg-smoother ["ilu", "ilut", "jac", "gs", "sgs"]
+			cycle		= "V",		-- gmg-cycle ["V", "F", "W"]
+			preSmooth	= 3,		-- number presmoothing steps
+			postSmooth 	= 3,		-- number postsmoothing steps
+			rap			= false,	-- comutes RAP-product instead of assembling if true 
+			baseLevel	= 0,		-- gmg - baselevel
+			baseSolver	= {			-- better options are most likely "lu" or "superlu"
+				type	  = "bicgstab",
+				precond	  = "gs",
+				convCheck = {
+					type		= "standard"
+					iterations	= 1000,
+					absolute	= 1e-12,
+					reduction	= 1e-10,
+					verbose		= false
+				}
+			}
+			approxSpace	= someApproxSpace,
+		},
+
+		convCheck = "standard"
+	}
+	solver = util.solver.CreateSolver(solverDesc)
+\endcode
+
+
+<br>
+<h3>Example: Providing custom solver and preconditioner objects (advanced)</h3>
+You may also provide instances of preconditioners instead of descriptor tables:
+\code
+	solverDesc =
+	{
+		type = "linear",
+		precond = ILU()		-- for each component one can optionally supply a custom instance
+	}
+	solver = util.solver.CreateSolver(solverDesc)
+\endcode
+
+
+<br>
+<h3>Example: Accessing the created solvers and preconditioners (advanced)</h3>
+For conveniance, all the methods will add an 'instance' entry to their respective
+descriptor tables, assigning the created solver component.
+If you thus setup a solver, e.g.
+\code
+	solver = {
+		type = "bicgstab",
+		precond = {
+			type = "ilu"
+		}
+	}
+\endcode
+you may later access 'solver.instance' and 'solver.precond.instance'.
+Note that this is only possible if you specified a component through a descriptor.
+If you use the short form, e.g.
+\code
+	solver = {
+		type = "bicgstab",
+		precond = "ilu"
+	}
+\endcode
+you will still be able to access 'solver.instance', but you can't access
+'solver.precond.instance'.
+
+
+<br>
+<h2>Non-Linear Solvers</h2>
+The following listing gives an overview over available non-linear solvers and their default
+parameters. Pass the descriptor of a non-linear solver to
+\code
+	util.solver.CreateSolver(...)
+\endcode
+to obtain the described solved.
+
+\b linSolver can be any linear solver listed in the <b>Linear Solvers</b> section.
+
+\b convCheck can be any convergence check listed in the <b>Convergence Checks</b> section.
+
+\b lineSearch can be any line search method listed in the <b>Line Search</b> section.
+
+Currently only the Newton method is available as non-linear solver.
+
+<h3>Newton Method</h3>
+\code
+{
+	type		= "newton",
+	convCheck	= "standard",
+	linSolver	= "bicgstab",
+	lineSearch	= nil
+}
+\endcode
+
+
+<br>
+<h2>Linear Solvers</h2>
+The following listing gives an overview over available linear-solvers and their default
+parameters. Pass the descriptor of a linear solver to
+\code
+	util.solver.CreateSolver(...)
+\endcode
+to obtain the described solved.
+
+\b precond can be any preconditioner listed in the \b Preconditioners section.
+
+\b convCheck can be any convergence check listed in the <b>Convergence Checks</b> section.
+
+<h3>Linear Solver</h3>
+\code
+{
+	type		= "linear",
+	precond		= "ilu",
+	convCheck	= "standard"
+}
+\endcode
+
+<h3>Conjugate Gradients</h3>
+\code
+{
+	type		= "cg",
+	precond		= "ilu",
+	convCheck	= "standard"
+}
+\endcode
+
+<h3>BiCGStab</h3>
+\code
+{
+	type		= "bicgstab",
+	precond		= "ilu",
+	convCheck	= "standard"
+}
+\endcode
+
+
+<br>
+<h2>Preconditioners</h2>
+The following listing gives an overview over available preconditioners and their default
+parameters.
+
+<h3>Geometric Multigrid</h3>
+\code
+{
+	type 							= "gmg",
+	adaptive 						= false,
+	approxSpace 					= nil,
+	baseLevel 						= 0,
+	baseSolver 						= "lu",		-- any solver listed in the 'Solvers' section
+	cycle 							= "V",
+	discretization 					= nil,		-- only necessary if the underlying matrix is not of type AssembledLinearOperator
+	gatheredBaseSolverIfAmbiguous	= false,
+	preSmooth 						= 3,
+	postSmooth 						= 3,
+	rap 							= false,
+	rim 							= false,
+	emulateFullRefined 				= false,
+	smoother 						= "gs",		-- any preconditioner listed in the 'Preconditioners' section
+	transfer 						= "std",	-- any transfer listed in the 'Transfers' section
+	debug 							= false
+}
+\endcode
+
+<br>
+<h3>ILU</h3>
+\code
+{
+	type 			= "ilu",
+	beta 			= 0,
+	damping 		= 1,
+	sortEps 		= 1.e-50,
+	inversionEps 	= 1.e-8
+}
+\endcode
+
+<br>
+<h3>ILUT</h3>
+\code
+{
+	type 		= "ilut",
+	threshold 	= 1e-6
+}
+\endcode
+
+<br>
+<h3>Jacobi</h3>
+\code
+{
+	type 	= "jac",
+	damping = 0.66
+}
+\endcode
+
+
+<br>
+<h3>Gauss Seidel</h3>
+\code
+{
+	type = "gs"
+}
+\endcode
+
+<br>
+<h3>Block Gauss Seidel</h3>
+\code
+{
+	type = "bgs"
+}
+\endcode
+
+<br>
+<h3>Symmetric Gauss Seidel</h3>
+\code
+{
+	type = "sgs"
+}
+\endcode
+
+<br>
+<h3>Element Gauss Seidel</h3>
+\code
+{
+	type = "egs"
+}
+\endcode
+
+<br>
+<h3>Schur</h3>
+\code
+{
+	type 			= "schur",
+	dirichletSolver	= "lu",
+	skeletonSolver	= "lu"
+}
+\endcode
+
+
+<br>
+<h2>Convergence Checks</h2>
+The following listing gives an overview over available convergence checks and their
+default parameters.
+
+<h3>Standard convergence check</h3>
+\code
+{
+	type		= "standard",
+	iterations	= 100,
+	absolute	= 1e-12,
+	reduction	= 1e-6,
+	verbose		= true
+}
+\endcode
+
+
+<br>
+<h2>Transfer Operators</h2>
+The following listing gives an overview over available transfer operators and their
+default parameters.
+<h3>Standard Transfer Operator</h3>
+\code
+{
+	type				= "std",
+	restrictionDamp 	= 1.0,
+	prolongationDamp 	= 1.0,
+	enableP1LagrangeOptimization = true,
+	debug 				= false
+}
+\endcode
+
+
+<br>
+<h2>Line Search Methods</h2>
+The following listing gives an overview over available line search methods and their
+default parameters.
+
+<h3>Standard Line Search Method</h3>
+\code
+{
+	type			= "standard",
+	maxSteps		= 10,
+	lambdaStart		= 1,
+	lambdaReduce	= 0.5,
+	acceptBest 		= true,
+	checkAll		= false
+}
+\endcode
+
+
+\{
+]]--	
+
 
 ug_load_script("util/table_desc_util.lua")
 ug_load_script("util/table_util.lua")
