@@ -32,7 +32,7 @@
 
 --[[!
 \defgroup solver_util Solver Util
-\ingroup scripts
+\ingroup scripts_util
 \brief Table based solver creation
 
 Given a (possibly nested) solver description, e.g.,
