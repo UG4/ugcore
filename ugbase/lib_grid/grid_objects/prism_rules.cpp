@@ -367,8 +367,64 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*, bool
 		case 7:
 		{
 		//	only the case in which two quads are completly refined is regarded.
+		//	In this case corresponding edges of the bottom and top triangle are
+		//	marked/unmarked.
+		//	order bv so, that the one connected to two marked base-edges
+		//	is bv[0].
+			int bv[3], tv[3];
+			bool twoQuadsMarked = false;
+			for(int iedge = 0; iedge < 3; ++iedge){
+				if(!newEdgeVrts[iedge]){
+					if(!newEdgeVrts[iedge + 6]){
+						twoQuadsMarked = true;
 
-		//	todo ...
+						bv[0] = (iedge + 2) % 3;
+						bv[1] = (iedge + 3) % 3;
+						bv[2] = (iedge + 4) % 3;
+
+						tv[0] = bv[0] + 3;
+						tv[1] = bv[1] + 3;
+						tv[2] = bv[2] + 3;
+					}
+					break;
+				}
+			}
+
+
+			if(twoQuadsMarked){
+				int& fi = fillCount;
+				int* inds = newIndsOut;
+
+				inds[fi++] = GOID_PRISM;
+				inds[fi++] = bv[0];		inds[fi++] = E + bv[0];
+				inds[fi++] = E + bv[2];
+				
+				inds[fi++] = E + bv[0] + 3;		inds[fi++] = F + QUADS[bv[0]];
+				inds[fi++] = F + QUADS[bv[2]];
+
+
+				inds[fi++] = GOID_HEXAHEDRON;
+				inds[fi++] = E + bv[0]; inds[fi++] = bv[1];
+				inds[fi++] = bv[2];		inds[fi++] = E + bv[2];
+
+				inds[fi++] = F + QUADS[bv[0]];	inds[fi++] = E + bv[1] + 3;
+				inds[fi++] = E + bv[2] + 3;		inds[fi++] = F + QUADS[bv[2]];
+
+				inds[fi++] = GOID_PRISM;
+				inds[fi++] = E + bv[0] + 3;	inds[fi++] = F + QUADS[bv[0]];
+				inds[fi++] = F + QUADS[bv[2]];
+
+				inds[fi++] = tv[0];		inds[fi++] = E + 3 + tv[0];
+				inds[fi++] = E + 3 + tv[2];
+
+
+				inds[fi++] = GOID_HEXAHEDRON;
+				inds[fi++] = F + QUADS[bv[0]];	inds[fi++] = E + bv[1] + 3;
+				inds[fi++] = E + bv[2] + 3;	inds[fi++] = F + QUADS[bv[2]];
+
+				inds[fi++] = E + 3 + tv[0]; inds[fi++] = tv[1];
+				inds[fi++] = tv[2];			inds[fi++] = E + 3 + tv[2];
+			}
 		}break;
 
 		case 9:	// regular refine
