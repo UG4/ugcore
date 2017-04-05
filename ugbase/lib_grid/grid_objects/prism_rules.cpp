@@ -51,6 +51,17 @@ void RotatePrism(int vrtsOut[NUM_VERTICES], int steps)
 		vrtsOut[3 + (i + steps) % 3] = i;
 }
 
+//	fips the prism upside down and leaves face0 where it is
+void FlipPrism(int vrtsOut[NUM_VERTICES], const int vrts[NUM_VERTICES])
+{
+	vrtsOut[0] = vrts[5];
+	vrtsOut[1] = vrts[4];
+	vrtsOut[2] = vrts[3];
+	vrtsOut[3] = vrts[2];
+	vrtsOut[4] = vrts[1];
+	vrtsOut[5] = vrts[0];
+}
+
 
 int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*, bool* isSnapPoint)
 {
@@ -83,14 +94,19 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*, bool
 
 //	snap-point handling
 	int numSnapPoints = 0;
+	int snapPointIndex[NUM_VERTICES];
 	if(isSnapPoint){
 		for(int i = 0; i < NUM_VERTICES; ++i){
-			if(isSnapPoint[i])
+			if(isSnapPoint[i]){
+				snapPointIndex[numSnapPoints] = i;
 				++numSnapPoints;
+			}
 		}
 	}
 
-	bool snapPointsProcessed = numSnapPoints == 0 ? true : false;
+//	set to true if the algorithm already tried to find a special rule for the
+//	specified snap-points. Always true if no snap points were provided.
+	bool snapPointsProcessed = (numSnapPoints == 0);
 
 //	the fillCount tells how much data has already been written to newIndsOut.
 	int fillCount = 0;
@@ -125,24 +141,87 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*, bool
 			int& fi = fillCount;
 			int* inds = newIndsOut;
 
-			for(int i = 0; i < NUM_FACES; ++i){
-				if(!FACE_CONTAINS_EDGE[i][refEdge]){
-					const int* f = FACE_VRT_INDS[i];
-
-				//	if f is a tri, then we'll create a tetrahedron, if it is a
-				//	quad, then we'll create a pyramid.
-					if(f[3] == -1){
-					//	create a tetrahedron
-						inds[fi++] = GOID_TETRAHEDRON;
-						inds[fi++] = f[0];	inds[fi++] = f[1];
-						inds[fi++] = f[2];	inds[fi++] = nVrt;
+			if(numSnapPoints == 2){
+				const int snapEdge = EDGE_FROM_VRTS[snapPointIndex[0]][snapPointIndex[1]];
+				if(snapEdge != -1
+					&& !IS_SIDE_EDGE[snapEdge]
+					&& IS_SIDE_EDGE[refEdge]
+					&& !isSnapPoint[EDGE_VRT_INDS[refEdge][0]]
+					&& !isSnapPoint[EDGE_VRT_INDS[refEdge][1]])
+				{
+				//	find the quad which contains the snapEdge
+					int snapQuad = -1;
+					for(int iquad = 0; iquad < 3; ++iquad){
+						if(FACE_CONTAINS_EDGE[QUADS[iquad]][snapEdge]){
+							snapQuad = QUADS[iquad];
+							break;
+						}
 					}
-					else{
-					//	create a prism
-						inds[fi++] = GOID_PYRAMID;
-						inds[fi++] = f[0];	inds[fi++] = f[1];
-						inds[fi++] = f[2];	inds[fi++] = f[3];
-						inds[fi++] = nVrt;
+
+					UG_ASSERT(snapQuad != -1, "The corresponding quad has to exist!");
+
+					int p[NUM_VERTICES];
+					if(IS_BOTTOM_EDGE[snapEdge]){
+						int tp[NUM_VERTICES];
+						RotatePrism(tp, 3 - snapQuad);
+						FlipPrism(p, tp);
+					}
+					else
+						RotatePrism(p, 3 - snapQuad);
+
+
+					// UG_LOG("snapEdge: " << snapEdge << "\n");
+					// UG_LOG("refEdge: " << refEdge << "\n");
+					// UG_LOG("snapPointIndex[0]: " << snapPointIndex[0] << "\n");
+					// UG_LOG("snapPointIndex[1]: " << snapPointIndex[1] << "\n");
+					// UG_LOG("snapQuad: " << snapQuad << "\n");
+					
+					// UG_LOG("p: ");
+					// for(int ivrt = 0; ivrt < NUM_VERTICES; ++ivrt){
+					// 	UG_LOG(p[ivrt] << ", ");
+					// }
+					// UG_LOG(std::endl);
+
+
+
+					const int e14 = E + EDGE_FROM_VRTS[p[1]][p[4]];
+
+					//	we have to create two new prisms
+					int& fi = fillCount;
+					int* inds = newIndsOut;
+
+					inds[fi++] = GOID_PRISM;
+					inds[fi++] = p[0];	inds[fi++] = p[1];	inds[fi++] = p[2];
+					inds[fi++] = p[3];	inds[fi++] = e14;	inds[fi++] = p[5];
+
+					inds[fi++] = GOID_TETRAHEDRON;
+					inds[fi++] = p[3];	inds[fi++] = e14;	inds[fi++] = p[5];
+					inds[fi++] = p[4];
+
+					snapPointsProcessed = true;
+				}
+			}
+
+			if(numSnapPoints == 0 || !snapPointsProcessed){
+				for(int i = 0; i < NUM_FACES; ++i){
+					if(!FACE_CONTAINS_EDGE[i][refEdge]){
+						const int* f = FACE_VRT_INDS[i];
+
+					//	if f is a tri, then we'll create a tetrahedron, if it is a
+					//	quad, then we'll create a pyramid.
+						if(f[3] == -1){
+						//	create a tetrahedron
+							inds[fi++] = GOID_TETRAHEDRON;
+							inds[fi++] = f[0];	inds[fi++] = f[1];
+							inds[fi++] = f[2];	inds[fi++] = nVrt;
+						}
+						else{
+						//	create a prism
+							inds[fi++] = GOID_PYRAMID;
+							inds[fi++] = f[0];	inds[fi++] = f[1];
+							inds[fi++] = f[2];	inds[fi++] = f[3];
+							inds[fi++] = nVrt;
+						}
 					}
 				}
 			}
@@ -230,7 +309,53 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*, bool
 			}
 			else{
 			//	refined face is a triangle - either top or bottom.
-			//	this should be implemented somewhen...
+			//	some cases still missing...
+				if(numSnapPoints == 2){
+				//	get the non-marked edge of refFace
+					int nonRefEdge = -1;
+					for(int iedge = 0; iedge < 3; ++iedge){
+						if(!newEdgeVrts[FACE_EDGE_INDS[refFaceInd][iedge]]){
+							nonRefEdge = FACE_EDGE_INDS[refFaceInd][iedge];
+							break;
+						}
+					}
+					UG_ASSERT(nonRefEdge == -1, "A non-ref edge has to exist!");
+
+				//	get the edge which connects the two snap points
+					int snapEdge = EDGE_FROM_VRTS[snapPointIndex[0]][snapPointIndex[1]];
+					if(snapEdge == -1 || IS_SIDE_EDGE[snapEdge])
+						break;
+
+					int snapQuad = FACE_FROM_EDGES[nonRefEdge][snapEdge];
+					if(snapQuad == -1 || snapQuad == refFaceInd)
+						break;
+
+
+					int p[NUM_VERTICES];
+					if(refFaceInd == BOTTOM_FACE){
+						int tp[NUM_VERTICES];
+						RotatePrism(tp, 3 - snapQuad);
+						FlipPrism(p, tp);
+					}
+					else
+						RotatePrism(p, 3 - snapQuad);
+
+					const int e34 = E + EDGE_FROM_VRTS[p[3]][p[4]];
+					const int e45 = E + EDGE_FROM_VRTS[p[4]][p[5]];
+					//	we have to create two new prisms
+					int& fi = fillCount;
+					int* inds = newIndsOut;
+
+					inds[fi++] = GOID_PRISM;
+					inds[fi++] = p[0];	inds[fi++] = p[3];	inds[fi++] = e34;
+					inds[fi++] = p[2];	inds[fi++] = p[5];	inds[fi++] = e45;
+
+					inds[fi++] = GOID_PRISM;
+					inds[fi++] = p[0];	inds[fi++] = p[1];	inds[fi++] = p[2];
+					inds[fi++] = e34;	inds[fi++] = p[4];	inds[fi++] = e45;
+
+					snapPointsProcessed = true;
+				}
 			}
 		}break;
 

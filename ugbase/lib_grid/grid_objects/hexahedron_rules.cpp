@@ -80,14 +80,17 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*,
 
 //	snap-point handling
 	int numSnapPoints = 0;
+	// int snapPointIndex[NUM_VERTICES];
 	if(isSnapPoint){
 		for(int i = 0; i < NUM_VERTICES; ++i){
-			if(isSnapPoint[i])
+			if(isSnapPoint[i]){
+				// snapPointIndex[numSnapPoints] = i;
 				++numSnapPoints;
+			}
 		}
 	}
 
-	bool snapPointsProcessed = numSnapPoints == 0 ? true : false;
+	bool snapPointsProcessed = (numSnapPoints == 0);
 
 //	the fillCount tells how much data has already been written to newIndsOut.
 	int fillCount = 0;
