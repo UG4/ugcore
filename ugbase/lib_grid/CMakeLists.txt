@@ -48,12 +48,13 @@ set(srcGrid		grid/grid.cpp
 set(srcAlgorithms	algorithms/debug_util.cpp
 					algorithms/element_side_util.cpp
 					algorithms/field_util.cpp
+					algorithms/grid_statistics.cpp
 					algorithms/heightfield_util.cpp
+					algorithms/hexahedron_util.cpp
 					algorithms/subset_util.cpp
 					algorithms/subset_dim_util.cpp
 					algorithms/selection_util.cpp
 					algorithms/serialization.cpp
-					algorithms/grid_statistics.cpp
 					algorithms/orientation_util.cpp
 					algorithms/polychain_util.cpp
 					algorithms/problem_detection_util.cpp
