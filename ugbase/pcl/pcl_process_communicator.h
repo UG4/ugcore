@@ -207,6 +207,9 @@ class ProcessCommunicator
 						void* recBuf, int* recCounts, int* displs,
 						DataType recType) const;
 
+		void alltoall(const void* sendBuf, int sendCount, DataType sendType,
+		    		  void* recBuf, int recCount, DataType recType);
+
 	///	gathers variable arrays on all processes.
 	/**	The arrays specified in sendBuf will be copied to all processes
 	 * in the ProcessCommunicator. The order of the arrays in recBufOut

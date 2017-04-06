@@ -407,6 +407,19 @@ allgatherv(const void* sendBuf, int sendCount, DataType sendType,
 
 void
 ProcessCommunicator::
+alltoall(const void* sendBuf, int sendCount, DataType sendType,
+    void* recBuf, int recCount, DataType recType)
+{
+	PCL_PROFILE(pcl_ProcCom_alltoall);
+	if(is_local()) {memcpy(recBuf, sendBuf, recCount*GetSize(recType)); return;}
+
+	UG_COND_THROW(empty(), "ERROR in ProcessCommunicator::alltoall: empty communicator.");
+
+	MPI_Alltoall(sendBuf, sendCount, sendType, recBuf, recCount, recType, m_comm->m_mpiComm);
+}
+
+void
+ProcessCommunicator::
 send_data(void* pBuffer, int bufferSize, int destProc, int tag) const
 {
 	if(is_local()) return;
