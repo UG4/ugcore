@@ -415,7 +415,7 @@ alltoall(const void* sendBuf, int sendCount, DataType sendType,
 
 	UG_COND_THROW(empty(), "ERROR in ProcessCommunicator::alltoall: empty communicator.");
 
-	MPI_Alltoall(sendBuf, sendCount, sendType, recBuf, recCount, recType, m_comm->m_mpiComm);
+	MPI_Alltoall(const_cast<void*>(sendBuf), sendCount, sendType, recBuf, recCount, recType, m_comm->m_mpiComm);
 }
 
 void
