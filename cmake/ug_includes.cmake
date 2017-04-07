@@ -269,6 +269,7 @@ message(STATUS "Info: INTERNAL_BOOST:    ${INTERNAL_BOOST} (options are: ON, OFF
 message(STATUS "Info: EMBEDDED_PLUGINS   ${EMBEDDED_PLUGINS} (options are: ON, OFF)")
 message(STATUS "Info: COMPILE_INFO       ${COMPILE_INFO} (options are: ON, OFF)")
 message(STATUS "Info: USE_LUA2C          ${USE_LUA2C} (options are: ON, OFF)")
+message(STATUS "Info: USE_LUAJIT         ${USE_LUAJIT} (options are: ON, OFF)")
 message(STATUS "")
 message(STATUS "Info: External libraries (path which contains the library or ON if you used uginstall):")
 message(STATUS "Info: TETGEN:   ${TETGEN}")
@@ -421,6 +422,8 @@ include(${UG_ROOT_CMAKE_PATH}/ug/cpp11.cmake)
 include(${UG_ROOT_CMAKE_PATH}/ug/cuda.cmake)
 # LUA2C
 include(${UG_ROOT_CMAKE_PATH}/ug/lua2c.cmake)
+# LUAJIT
+include(${UG_ROOT_CMAKE_PATH}/ug/luajit.cmake)
 
 ########################################
 # buildAlgebra

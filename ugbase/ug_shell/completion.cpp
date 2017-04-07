@@ -46,10 +46,16 @@
 #include "registry/registry.h"
 #include "registry/class_helper.h"
 
-extern "C"
-{
+#ifndef USE_LUAJIT
+// internal lua (default)
+extern "C" {
 #include "bindings/lua/externals/lua/lstate.h"
 }
+#else
+// luajit
+#include <lua.hpp>
+#endif
+
 
 using namespace std;
 
@@ -351,7 +357,7 @@ static size_t GetGlobalsCompletitions(char *buf, int len, std::vector<string> &m
 
 	lua_State* L = script::GetDefaultLuaState();
 	LUA_STACK_CHECK(L, 0);
-
+#ifndef USE_LUAJIT
 	// iterate through all of lua's global string table
 	for(int i=0; i<G(L)->strt.size; i++)
 	{
@@ -379,6 +385,27 @@ static size_t GetGlobalsCompletitions(char *buf, int len, std::vector<string> &m
 
 		}
 	}
+#else
+	// traversal using API according to
+	// cf. http://stackoverflow.com/questions/20527659/how-to-filter-out-user-defined-globals-in-lua-from-c
+
+	lua_pushvalue(L, LUA_GLOBALSINDEX); // lua_pushglobaltable(L);
+	lua_pushnil(L);
+	while (lua_next(L,-2) != 0)
+	{
+		const char* luastr = lua_tostring(L,-2);
+
+		if ((luastr) && (strchr(luastr, ' ') == NULL) &&
+			strncmp(luastr, snip, sniplen) == 0)
+		{
+			 // std::cerr << "Matches global: " << luastr << std::endl;
+			 matches.push_back(luastr);
+		}
+
+		lua_pop(L,1);  // pop value
+	}
+	lua_pop(L,1); // global table
+#endif
 
 	if(iPrintCompletionList == 2 && matches.size() == 1 && sniplen == matches[0].size())
 	{

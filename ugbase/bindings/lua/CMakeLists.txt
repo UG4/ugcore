@@ -48,6 +48,8 @@ if(UNIX)
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DLUA_USE_POSIX")
 endif(UNIX)
 
+if (NOT USE_LUAJIT) 
+# use default version (shipped with ug4) 
 set(srcLua	externals/lua/lapi.c
 			externals/lua/lauxlib.c
 			externals/lua/lbaselib.c
@@ -101,6 +103,10 @@ set(headersLua	externals/lua/lapi.h
 				externals/lua/lundump.h
 				externals/lua/lvm.h
 				externals/lua/lzio.h)
+else (NOT USE_LUAJIT)
+# not need to compile when using luajit library 
+set(srcLua )
+endif(NOT USE_LUAJIT)
 
 #find_package(BISON)
 #find_package(FLEX)

@@ -52,10 +52,13 @@
 #include "common/profiler/runtime_profile_info.h"
 #include "common/util/string_util.h"
 
-extern "C" {
+#ifndef USE_LUAJIT
+extern "C" { // lua default
 #include "externals/lua/lstate.h"
 }
-
+#else
+#include <lua.h>
+#endif
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using namespace std;

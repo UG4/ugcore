@@ -33,7 +33,12 @@
 #ifndef LUA_PARSING_H_
 #define LUA_PARSING_H_
 
+#ifdef USE_LUAJIT
+#include <lua.h>
+#else
 #include "externals/lua/lua.h"
+#endif
+
 #include "bindings_lua.h"
 #include "bindings/lua/lua_function_handle.h"
 
