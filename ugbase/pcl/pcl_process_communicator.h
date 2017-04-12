@@ -207,6 +207,15 @@ class ProcessCommunicator
 						void* recBuf, int* recCounts, int* displs,
 						DataType recType) const;
 
+	///	performs MPI_Alltoall on the processes of the communicator.
+	/** All processes send (the same amount of) data to all processes.
+	 *  The receive buffer needs to have the appropriate size.
+	 * \param sendBuf    starting address of send buffer (choice)
+	 * \param sendCount  number of elements to send to each process (integer)
+	 * \param sendType   data type of send buffer elements (handle)
+	 * \param recBuf     starting address of receive buffer (choice)
+	 * \param recCount   number of elements to receive from each process (integer)
+	 * \param recType    data type of receive buffer elements (handle) */
 		void alltoall(const void* sendBuf, int sendCount, DataType sendType,
 		    		  void* recBuf, int recCount, DataType recType);
 
