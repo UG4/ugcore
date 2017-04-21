@@ -35,6 +35,7 @@
 
 #include "composite_conv_check.h"
 #include "common/util/string_util.h"
+#include <boost/core/enable_if.hpp>
 
 namespace ug{
 
@@ -407,6 +408,20 @@ void CompositeConvCheck<TVector, TDomain>::start_defect(number initialDefect)
 }
 
 
+template <typename TVector, typename Enable = void>
+struct MyVectorTraits
+{
+	static const size_t block_size = 1;
+};
+
+// specialization for all blocked vector types
+template <typename TVector>
+struct MyVectorTraits<TVector, typename boost::enable_if_c<TVector::value_type::is_static>::type>
+{
+	static const size_t block_size = TVector::value_type::static_size;
+};
+
+
 template <class TVector, class TDomain>
 void CompositeConvCheck<TVector, TDomain>::start(const TVector& vec)
 {
@@ -415,7 +430,7 @@ void CompositeConvCheck<TVector, TDomain>::start(const TVector& vec)
 		set_level(GridLevel::TOP);
 
 	// assert correct number of dofs
-	if (vec.size() != m_numAllDoFs)
+	if (vec.size() * MyVectorTraits<TVector>::block_size != m_numAllDoFs)
 	{
 		UG_THROW("Number of dofs in CompositeConvCheck does not match "
 				 "number of dofs given in vector from algorithm (" << m_numAllDoFs
@@ -519,7 +534,7 @@ template <class TVector, class TDomain>
 void CompositeConvCheck<TVector, TDomain>::update(const TVector& vec)
 {
 	// assert correct number of dofs
-	if (vec.size() != m_numAllDoFs)
+	if (vec.size() * MyVectorTraits<TVector>::block_size != m_numAllDoFs)
 	{
 		UG_THROW("Number of dofs in CompositeConvCheck does not match"
 				 "number of dofs given in vector from algorithm (" << m_numAllDoFs <<
