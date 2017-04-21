@@ -132,7 +132,7 @@ bool FactorizeILUBeta(Matrix_type &A, number beta)
 			for (row_iterator it_kj=A.begin_row(k); it_kj != it_kEnd ;++it_kj)
 			{
 				const size_t j = it_kj.index();
-				if (j<i) continue;  // index j belongs L part?
+				if (j<=k) continue;  // index j belongs L part?
 
 				// this index j belongs U part
 				const block_type& a_kj = it_kj.value();
@@ -142,7 +142,7 @@ bool FactorizeILUBeta(Matrix_type &A, number beta)
 				if(aijFound) {
 					// entry belongs to pattern
 					// -> proceed with standard elimination
-					block_type a_ij = pij.value();
+					block_type& a_ij = pij.value();
 					a_ij -= a_ik *a_kj ;
 
 				} else {
