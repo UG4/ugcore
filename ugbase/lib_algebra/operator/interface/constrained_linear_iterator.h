@@ -37,7 +37,10 @@
 #include "lib_algebra/operator/interface/linear_iterator.h"
 #include "lib_disc/function_spaces/grid_function.h"
 #include "lib_disc/spatial_disc/domain_disc_interface.h"
+#include "preconditioner.h"
 
+#include <boost/core/enable_if.hpp>
+#include <boost/type_traits/is_base_of.hpp>
 
 namespace ug {
 
@@ -52,7 +55,7 @@ namespace ug {
  *     adjust_correction(),
  *     adjust_defect().
  */
-template <typename TDomain, typename TAlgebra, typename TLinIt>
+template <typename TDomain, typename TAlgebra, typename TLinIt, typename = void>
 class ConstrainedLinearIterator : public TLinIt
 {
 	public:
@@ -70,7 +73,7 @@ class ConstrainedLinearIterator : public TLinIt
 
 		/// clone constructor
 		ConstrainedLinearIterator(const ConstrainedLinearIterator<TDomain, TAlgebra, TLinIt> &parent)
-		: base_type(), m_spDomDisc(parent.m_spDomDisc), m_time(parent.m_time)
+		: base_type(parent), m_spDomDisc(parent.m_spDomDisc), m_time(parent.m_time)
 		{}
 
 		///	clone
@@ -141,71 +144,112 @@ class ConstrainedLinearIterator : public TLinIt
 
 		virtual bool apply_update_defect(vector_type& c, vector_type& d)
 		{
-			// TODO: This implementation is not correct.
-			// As the defect is calculated from possibly erroneous corrections, there is no telling
-			// how to adjust the defect. Except for setting it to zero everywhere, which, by the way,
-			// is NOT what adjust_defect does, in general. We would need something like
-			// adjust_defect_linearSolver() here to distinguish between the non-linear defect and
-			// the residual in the linear solver.
-			// We CANNOT use our own apply() here and then update the defect ourselves as the
-			// ILinearIterator does not have an update method nor any way of applying the underlying
-			// linear operator.
-
-			// perform normal step
-			if (!base_type::apply_update_defect(c, d)) return false;
-
-			// apply constraints on correction and defect
-			if (!m_spDomDisc.valid())
-				UG_THROW("Domain discretization passed to ConstrainedLinearIterator is not valid.\n"
-						 "Cannot apply any constraints.")
-
-			gf_type* gf = dynamic_cast<gf_type*>(&c);
-			if (gf && gf->dof_distribution().valid())
-			{
-				size_t nConstr = m_spDomDisc->num_constraints();
-
-			// corrections
-				// first Dirichlet (hanging nodes might be constrained by Dirichlet nodes)
-				for (size_t i = 0; i < nConstr; i++)
-					if (m_spDomDisc->constraint(i)->type() & CT_DIRICHLET)
-						m_spDomDisc->constraint(i)->adjust_correction(c, gf->dof_distribution(), CT_DIRICHLET, m_time);
-
-				// then other interpolation
-				for (size_t i = 0; i < nConstr; i++)
-					if (m_spDomDisc->constraint(i)->type() & CT_CONSTRAINTS)
-						m_spDomDisc->constraint(i)->adjust_correction(c, gf->dof_distribution(), CT_CONSTRAINTS, m_time);
-
-				// then hanging nodes
-				for (size_t i = 0; i < nConstr; i++)
-					if (m_spDomDisc->constraint(i)->type() & CT_HANGING)
-						m_spDomDisc->constraint(i)->adjust_correction(c, gf->dof_distribution(), CT_HANGING, m_time);
-
-				// and Dirichlet again (Dirichlet nodes might also be hanging)
-				for (size_t i = 0; i < nConstr; i++)
-					if (m_spDomDisc->constraint(i)->type() & CT_DIRICHLET)
-						m_spDomDisc->constraint(i)->adjust_correction(c, gf->dof_distribution(), CT_DIRICHLET, m_time);
-
-			// residuals
-				// hanging nodes first
-				for (size_t i = 0; i < nConstr; i++)
-					if (m_spDomDisc->constraint(i)->type() & CT_HANGING)
-						m_spDomDisc->constraint(i)->adjust_linear_residual(d, c, gf->dof_distribution(), CT_HANGING, m_time);
-
-				// then other constraints
-				for (size_t i = 0; i < nConstr; i++)
-					if (m_spDomDisc->constraint(i)->type() & CT_CONSTRAINTS)
-						m_spDomDisc->constraint(i)->adjust_linear_residual(d, c, gf->dof_distribution(), CT_CONSTRAINTS, m_time);
-
-				// and Dirichlet last
-				for (size_t i = 0; i < nConstr; i++)
-					if (m_spDomDisc->constraint(i)->type() & CT_DIRICHLET)
-						m_spDomDisc->constraint(i)->adjust_linear_residual(d, c, gf->dof_distribution(), CT_DIRICHLET, m_time);
-
-			}
-			else UG_THROW("Vector is not a grid function. This is not supported.")
-
-			return true;
+			apply_update_defect_impl<TLinIt> impl(*this);
+			return impl(c, d);
 		}
+
+	private:
+		template <typename S, typename = void>//, typename otherDummy = void>
+		struct apply_update_defect_impl
+		{
+			ConstrainedLinearIterator& cli;
+
+			explicit apply_update_defect_impl(ConstrainedLinearIterator& _cli)
+			: cli(_cli) {}
+
+			bool operator()(vector_type& c, vector_type& d)
+			{
+				// FIXME: This implementation is not correct.
+				// As the defect is calculated from possibly erroneous corrections, there is no telling
+				// how to adjust the defect. Except for setting it to zero everywhere, which, by the way,
+				// is NOT what adjust_defect does, in general. We would need something like
+				// adjust_defect_linearSolver() here to distinguish between the non-linear defect and
+				// the residual in the linear solver.
+				// We CANNOT use our own apply() here and then update the defect ourselves as the
+				// ILinearIterator does not have an update method nor any way of applying the underlying
+				// linear operator.
+
+				// perform normal step
+				if (!cli.base_type::apply_update_defect(c, d)) return false;
+
+				// apply constraints on correction and defect
+				if (!cli.m_spDomDisc.valid())
+					UG_THROW("Domain discretization passed to ConstrainedLinearIterator is not valid.\n"
+							 "Cannot apply any constraints.")
+
+				gf_type* gf = dynamic_cast<gf_type*>(&c);
+				if (gf && gf->dof_distribution().valid())
+				{
+					size_t nConstr = cli.m_spDomDisc->num_constraints();
+
+				// corrections
+					// first Dirichlet (hanging nodes might be constrained by Dirichlet nodes)
+					for (size_t i = 0; i < nConstr; i++)
+						if (cli.m_spDomDisc->constraint(i)->type() & CT_DIRICHLET)
+							cli.m_spDomDisc->constraint(i)->adjust_correction(c, gf->dof_distribution(), CT_DIRICHLET, cli.m_time);
+
+					// then other interpolation
+					for (size_t i = 0; i < nConstr; i++)
+						if (cli.m_spDomDisc->constraint(i)->type() & CT_CONSTRAINTS)
+							cli.m_spDomDisc->constraint(i)->adjust_correction(c, gf->dof_distribution(), CT_CONSTRAINTS, cli.m_time);
+
+					// then hanging nodes
+					for (size_t i = 0; i < nConstr; i++)
+						if (cli.m_spDomDisc->constraint(i)->type() & CT_HANGING)
+							cli.m_spDomDisc->constraint(i)->adjust_correction(c, gf->dof_distribution(), CT_HANGING, cli.m_time);
+
+					// and Dirichlet again (Dirichlet nodes might also be hanging)
+					for (size_t i = 0; i < nConstr; i++)
+						if (cli.m_spDomDisc->constraint(i)->type() & CT_DIRICHLET)
+							cli.m_spDomDisc->constraint(i)->adjust_correction(c, gf->dof_distribution(), CT_DIRICHLET, cli.m_time);
+
+				// residuals
+					// hanging nodes first
+					for (size_t i = 0; i < nConstr; i++)
+						if (cli.m_spDomDisc->constraint(i)->type() & CT_HANGING)
+							cli.m_spDomDisc->constraint(i)->adjust_linear_residual(d, c, gf->dof_distribution(), CT_HANGING, cli.m_time);
+
+					// then other constraints
+					for (size_t i = 0; i < nConstr; i++)
+						if (cli.m_spDomDisc->constraint(i)->type() & CT_CONSTRAINTS)
+							cli.m_spDomDisc->constraint(i)->adjust_linear_residual(d, c, gf->dof_distribution(), CT_CONSTRAINTS, cli.m_time);
+
+					// and Dirichlet last
+					for (size_t i = 0; i < nConstr; i++)
+						if (cli.m_spDomDisc->constraint(i)->type() & CT_DIRICHLET)
+							cli.m_spDomDisc->constraint(i)->adjust_linear_residual(d, c, gf->dof_distribution(), CT_DIRICHLET, cli.m_time);
+
+				}
+				else UG_THROW("Vector is not a grid function. This is not supported.")
+
+				return true;
+			}
+		};
+
+
+		// special implementation for IPreconditioner
+		template <typename S>
+		struct apply_update_defect_impl<S, typename boost::enable_if<boost::is_base_of<IPreconditioner<TAlgebra>, S> >::type>
+		{
+			ConstrainedLinearIterator& cli;
+
+			explicit apply_update_defect_impl(ConstrainedLinearIterator& _cli)
+			: cli(_cli) {}
+
+			bool operator()(vector_type& c, vector_type& d)
+			{
+				// apply precond and constraints
+				if (!cli.apply(c, d)) return false;
+
+				// calculate new defect from preconditioner defect operator
+				cli.m_spDefectOperator->apply_sub(d, c);
+
+				return true;
+			}
+		};
+
+		friend struct apply_update_defect_impl<TLinIt>;
+
 
 	public:
 		/// @copydoc ILinearIterator::supports_parallel()
@@ -221,11 +265,12 @@ class ConstrainedLinearIterator : public TLinIt
 		};
 
 	protected:
-		///	storage for factorization
 		SmartPtr<ILinearIterator<vector_type> > m_spLinIt;
 		SmartPtr<IDomainDiscretization<TAlgebra> > m_spDomDisc;
 		number m_time;
 };
+
+
 
 
 } // end namespace ug
