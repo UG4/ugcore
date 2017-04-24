@@ -45,21 +45,21 @@ namespace ug{
 
 
 // Order for 1D
-template<int dim>
+template<int dim, size_t orderDim>
 bool ComparePosDim(const std::pair<MathVector<dim>, size_t> &p1,
                    const std::pair<MathVector<dim>, size_t> &p2)
 {return false;}
 
 template<>
-bool ComparePosDim<1>(const std::pair<MathVector<1>, size_t> &p1,
-                      const std::pair<MathVector<1>, size_t> &p2)
+bool ComparePosDim<1, 0>(const std::pair<MathVector<1>, size_t> &p1,
+                                const std::pair<MathVector<1>, size_t> &p2)
 {
 	return (p1.first[0]<p2.first[0]);
 };
 
 // Order for 2D
 template<>
-bool ComparePosDim<2>(const std::pair<MathVector<2>, size_t> &p1,
+bool ComparePosDim<2,0>(const std::pair<MathVector<2>, size_t> &p1,
                       const std::pair<MathVector<2>, size_t> &p2)
 {
 	if (p1.first[1]==p2.first[1]) {
@@ -69,10 +69,21 @@ bool ComparePosDim<2>(const std::pair<MathVector<2>, size_t> &p1,
 		return (p1.first[1] < p2.first[1]);
 	}
 };
+template<>
+bool ComparePosDim<2,1>(const std::pair<MathVector<2>, size_t> &p1,
+                      const std::pair<MathVector<2>, size_t> &p2)
+{
+	if (p1.first[0]==p2.first[0]) {
+		return (p1.first[1] < p2.first[1]);
+	}
+	else {
+		return (p1.first[0] < p2.first[0]);
+	}
+};
 
 // Order for 3D
 template<>
-bool ComparePosDim<3>(const std::pair<MathVector<3>, size_t> &p1,
+bool ComparePosDim<3,0>(const std::pair<MathVector<3>, size_t> &p1,
                       const std::pair<MathVector<3>, size_t> &p2)
 {
 	if (p1.first[2]==p2.first[2]){
@@ -87,16 +98,55 @@ bool ComparePosDim<3>(const std::pair<MathVector<3>, size_t> &p1,
 		return (p1.first[2] < p2.first[2]);
 	}
 };
+template<>
+bool ComparePosDim<3,1>(const std::pair<MathVector<3>, size_t> &p1,
+                      const std::pair<MathVector<3>, size_t> &p2)
+{
+	if (p1.first[0]==p2.first[0]){
+		if (p1.first[2]==p2.first[2]) {
+			return p1.first[1] < p2.first[1];
+		}
+		else {
+			return (p1.first[2] < p2.first[2]);
+		}
+	}
+	else{
+		return (p1.first[0] < p2.first[0]);
+	}
+};
+template<>
+bool ComparePosDim<3,2>(const std::pair<MathVector<3>, size_t> &p1,
+                      const std::pair<MathVector<3>, size_t> &p2)
+{
+	if (p1.first[1]==p2.first[1]){
+		if (p1.first[0]==p2.first[0]) {
+			return p1.first[2] < p2.first[2];
+		}
+		else {
+			return (p1.first[0] < p2.first[0]);
+		}
+	}
+	else{
+		return (p1.first[1] < p2.first[1]);
+	}
+};
 
 
 template<int dim>
 void ComputeLexicographicOrder(std::vector<size_t>& vNewIndex,
-                               std::vector<std::pair<MathVector<dim>, size_t> >& vPos)
+                               std::vector<std::pair<MathVector<dim>, size_t> >& vPos,
+							   size_t orderDim)
 {
 //	a) order all indices
 	if(vNewIndex.size() == vPos.size()){
 	//  sort indices based on their position
-		std::sort(vPos.begin(), vPos.end(), ComparePosDim<dim>);
+		if (orderDim == 0)
+			std::sort(vPos.begin(), vPos.end(), ComparePosDim<dim, 0>);
+		else if (orderDim == 1)
+			std::sort(vPos.begin(), vPos.end(), ComparePosDim<dim, 1>);
+		else if (orderDim == 2)
+			std::sort(vPos.begin(), vPos.end(), ComparePosDim<dim, 2>);
+		else UG_THROW("Invalid sorting direction.");
 
 	//	write mapping
 		for (size_t i=0; i < vPos.size(); ++i)
@@ -108,7 +158,13 @@ void ComputeLexicographicOrder(std::vector<size_t>& vNewIndex,
 		std::vector<std::pair<MathVector<dim>, size_t> > vPosOrig(vPos);
 
 	//  sort indices based on their position
-		std::sort(vPos.begin(), vPos.end(), ComparePosDim<dim>);
+		if (orderDim == 0)
+			std::sort(vPos.begin(), vPos.end(), ComparePosDim<dim, 0>);
+		else if (orderDim == 1)
+			std::sort(vPos.begin(), vPos.end(), ComparePosDim<dim, 1>);
+		else if (orderDim == 2)
+			std::sort(vPos.begin(), vPos.end(), ComparePosDim<dim, 2>);
+		else UG_THROW("Invalid sorting direction.");
 
 	//	write mapping
 		for (size_t i=0; i < vNewIndex.size(); ++i)
@@ -120,7 +176,7 @@ void ComputeLexicographicOrder(std::vector<size_t>& vNewIndex,
 
 /// orders the dof distribution using Cuthill-McKee
 template <typename TDomain>
-void OrderLexForDofDist(SmartPtr<DoFDistribution> dd, ConstSmartPtr<TDomain> domain)
+void OrderLexForDofDist(SmartPtr<DoFDistribution> dd, ConstSmartPtr<TDomain> domain, size_t orderDim)
 {
 //	Lex Ordering is only possible in this cases:
 //	b) Same number of DoFs on each geometric object (or no DoFs on object)
@@ -196,7 +252,18 @@ void OrderLexForDofDist(SmartPtr<DoFDistribution> dd, ConstSmartPtr<TDomain> dom
 
 	//	get mapping: old -> new index
 		std::vector<size_t> vNewIndex(dd->num_indices());
-		ComputeLexicographicOrder<TDomain::dim>(vNewIndex, vPositions);
+		ComputeLexicographicOrder<TDomain::dim>(vNewIndex, vPositions, orderDim);
+
+/*
+		std::vector<bool> vCheck(dd->num_indices(), false);
+		for (size_t i = 0; i < vNewIndex.size(); ++i)
+		{
+			UG_COND_THROW(vCheck.at(vNewIndex[i]), "Double mapping to index " << vNewIndex[i] << ".");
+			vCheck.at(vNewIndex[i]) = true;
+		}
+		for (size_t i = 0; i < vCheck.size(); ++i)
+			UG_COND_THROW(!vCheck[i], "Nothing maps to index " << i << ".");
+*/
 
 	//	reorder indices
 		dd->permute_indices(vNewIndex);
@@ -215,7 +282,7 @@ void OrderLexForDofDist(SmartPtr<DoFDistribution> dd, ConstSmartPtr<TDomain> dom
 
 		//	get mapping: old -> new index
 			std::vector<size_t> vNewIndex(dd->num_indices());
-			ComputeLexicographicOrder<TDomain::dim>(vNewIndex, vPositions);
+			ComputeLexicographicOrder<TDomain::dim>(vNewIndex, vPositions, orderDim);
 
 		//	reorder indices
 			dd->permute_indices(vNewIndex);
@@ -230,30 +297,34 @@ void OrderLexForDofDist(SmartPtr<DoFDistribution> dd, ConstSmartPtr<TDomain> dom
 template <typename TDomain>
 void OrderLex(ApproximationSpace<TDomain>& approxSpace, const char *order)
 {
-	// TODO: decode order input
-	if(strcmp(order, "x")){
-		UG_THROW("OrderLex: Currently only lexicographic in x-Direction implemented.");
-	}
-
 	std::vector<SmartPtr<DoFDistribution> > vDD = approxSpace.dof_distributions();
 
-	for(size_t i = 0; i < vDD.size(); ++i)
-		OrderLexForDofDist<TDomain>(vDD[i], approxSpace.domain());
+	if (strcmp(order, "x") == 0)
+		for (size_t i = 0; i < vDD.size(); ++i)
+			OrderLexForDofDist<TDomain>(vDD[i], approxSpace.domain(), 0);
+	else if (strcmp(order, "y") == 0)
+		for (size_t i = 0; i < vDD.size(); ++i)
+			OrderLexForDofDist<TDomain>(vDD[i], approxSpace.domain(), 1);
+	else if (strcmp(order, "z") == 0)
+		for (size_t i = 0; i < vDD.size(); ++i)
+			OrderLexForDofDist<TDomain>(vDD[i], approxSpace.domain(), 2);
+	else UG_THROW("OrderLex: Currently only lexicographic order in direction x, y or z implemented.");
+
 }
 
 #ifdef UG_DIM_1
-template void ComputeLexicographicOrder<1>(std::vector<size_t>& vNewIndex, std::vector<std::pair<MathVector<1>, size_t> >& vPos);
-template void OrderLexForDofDist<Domain1d>(SmartPtr<DoFDistribution> dd, ConstSmartPtr<Domain1d> domain);
+template void ComputeLexicographicOrder<1>(std::vector<size_t>& vNewIndex, std::vector<std::pair<MathVector<1>, size_t> >& vPos, size_t);
+template void OrderLexForDofDist<Domain1d>(SmartPtr<DoFDistribution> dd, ConstSmartPtr<Domain1d> domain, size_t);
 template void OrderLex<Domain1d>(ApproximationSpace<Domain1d>& approxSpace, const char *order);
 #endif
 #ifdef UG_DIM_2
-template void ComputeLexicographicOrder<2>(std::vector<size_t>& vNewIndex, std::vector<std::pair<MathVector<2>, size_t> >& vPos);
-template void OrderLexForDofDist<Domain2d>(SmartPtr<DoFDistribution> dd, ConstSmartPtr<Domain2d> domain);
+template void ComputeLexicographicOrder<2>(std::vector<size_t>& vNewIndex, std::vector<std::pair<MathVector<2>, size_t> >& vPos, size_t);
+template void OrderLexForDofDist<Domain2d>(SmartPtr<DoFDistribution> dd, ConstSmartPtr<Domain2d> domain, size_t);
 template void OrderLex<Domain2d>(ApproximationSpace<Domain2d>& approxSpace, const char *order);
 #endif
 #ifdef UG_DIM_3
-template void ComputeLexicographicOrder<3>(std::vector<size_t>& vNewIndex, std::vector<std::pair<MathVector<3>, size_t> >& vPos);
-template void OrderLexForDofDist<Domain3d>(SmartPtr<DoFDistribution> dd, ConstSmartPtr<Domain3d> domain);
+template void ComputeLexicographicOrder<3>(std::vector<size_t>& vNewIndex, std::vector<std::pair<MathVector<3>, size_t> >& vPos, size_t);
+template void OrderLexForDofDist<Domain3d>(SmartPtr<DoFDistribution> dd, ConstSmartPtr<Domain3d> domain, size_t);
 template void OrderLex<Domain3d>(ApproximationSpace<Domain3d>& approxSpace, const char *order);
 #endif
 
