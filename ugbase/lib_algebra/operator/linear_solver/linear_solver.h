@@ -37,6 +37,7 @@
 
 #include "lib_algebra/operator/interface/preconditioned_linear_operator_inverse.h"
 #include "lib_algebra/operator/interface/linear_solver_profiling.h"
+#include "lib_algebra/operator/interface/pprocess.h"
 #ifdef UG_PARALLEL
 	#include "lib_algebra/parallelization/parallelization.h"
 #endif
@@ -132,7 +133,7 @@ class LinearSolver
 		// 	rename b as d (for convenience)
 			vector_type& d = b;
 
-		// 	build defect:  d := b - J(u)*x
+		// 	build defect:  d := b - J*x
 			LS_PROFILE_BEGIN(LS_BuildDefect);
 			linear_operator()->apply_sub(d, x);
 			LS_PROFILE_END(LS_BuildDefect);
@@ -160,11 +161,14 @@ class LinearSolver
 			{
 				if( !compute_correction(c, d) ) return false;
 
+			//	post-process the correction
+				m_corr_post_process.apply (c);
+
 			// 	add correction to solution: x += c
 				LS_PROFILE_BEGIN(LS_AddCorrection);
 				x += c;
 				LS_PROFILE_END(LS_AddCorrection);
-
+				
 				write_debugXCD(x, c, d, ++loopCnt, true);
 
 			// 	compute norm of new defect (in parallel)
@@ -187,6 +191,18 @@ class LinearSolver
 		//	we're done
 			return true;
 		}
+		
+	///	adds a post-process for the iterates
+		void add_postprocess_corr (SmartPtr<IPProcessVector<vector_type> > p)
+		{
+			m_corr_post_process.add (p);
+		}
+
+	///	removes a post-process for the iterates
+		void remove_postprocess_corr (SmartPtr<IPProcessVector<vector_type> > p)
+		{
+			m_corr_post_process.remove (p);
+		}
 
 	protected:
 	///	prepares the convergence check output
@@ -204,6 +220,10 @@ class LinearSolver
                 convergence_check()->set_info(s);
             }
 		}
+	
+	protected:
+	///	postprocessor for the correction in the iterations
+		PProcessChain<vector_type> m_corr_post_process;
 };
 
 } // end namespace ug

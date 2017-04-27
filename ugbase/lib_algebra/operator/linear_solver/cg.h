@@ -38,6 +38,7 @@
 
 #include "lib_algebra/operator/interface/operator.h"
 #include "common/profiler/profiler.h"
+#include "lib_algebra/operator/interface/pprocess.h"
 #ifdef UG_PARALLEL
 	#include "lib_algebra/parallelization/parallelization.h"
 #endif
@@ -131,14 +132,16 @@ class CG
 				}
 			}
 			else z = r;
-
-
+			
 		// 	make z consistent
 			#ifdef UG_PARALLEL
 			if(!z.change_storage_type(PST_CONSISTENT))
 				UG_THROW("CG::apply_return_defect: "
 								"Cannot convert z to consistent vector.");
 			#endif
+
+		//	post-process the correction
+			m_corr_post_process.apply (z);
 
 		//	compute start defect
 			prepare_conv_check();
@@ -200,6 +203,9 @@ class CG
 									"Cannot convert z to consistent vector.");
 				#endif
 
+			//	post-process the correction
+				m_corr_post_process.apply (z);
+
 			// 	new rho = (z,r)
 				rho = VecProd(z, r);
 
@@ -215,6 +221,18 @@ class CG
 
 		//	post output
 			return convergence_check()->post();
+		}
+		
+	///	adds a post-process for the iterates
+		void add_postprocess_corr (SmartPtr<IPProcessVector<vector_type> > p)
+		{
+			m_corr_post_process.add (p);
+		}
+
+	///	removes a post-process for the iterates
+		void remove_postprocess_corr (SmartPtr<IPProcessVector<vector_type> > p)
+		{
+			m_corr_post_process.remove (p);
 		}
 
 	protected:
@@ -239,6 +257,15 @@ class CG
 		{
 			return a.dotprod(b);
 		}
+	
+	protected:
+	///	postprocessor for the correction in the iterations
+		/**
+		 * These postprocess operations are applied to the preconditioned
+		 * defect before the orthogonalization. The goal is to prevent the
+		 * useless kernel parts to prevail in the (floating point) arithmetics.
+		 */
+		PProcessChain<vector_type> m_corr_post_process;
 };
 
 } // end namespace ug
