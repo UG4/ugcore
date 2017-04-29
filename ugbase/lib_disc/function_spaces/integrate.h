@@ -1926,7 +1926,7 @@ number H1Norm(SmartPtr<TGridFunction> spGridFct, const char* cmp,
 				" a function with name " << cmp << ".");
 
 	SmartPtr<IIntegrand<number, TGridFunction::dim> > spIntegrand
-		= make_sp(new H1SemiNormFuncIntegrand<TGridFunction>(spGridFct, fct));
+		= make_sp(new H1NormFuncIntegrand<TGridFunction>(spGridFct, fct));
 
 	return sqrt(IntegrateSubsets(spIntegrand, spGridFct, subsets, quadOrder));
 }
