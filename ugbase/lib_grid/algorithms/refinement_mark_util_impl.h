@@ -99,16 +99,18 @@ void MarkForRefinementByDirection (
 			TAAPos aaPos,
 			TEdgeIter edgesBegin,
 			TEdgeIter edgesEnd,
-			const vector3& dir,
+			const typename TAAPos::ValueType& dir,
 			number minDeviationAngle,
 			number maxDeviationAngle,
 			bool selectFlipped)
 {
 	UG_COND_THROW(!ref.grid(), "The given refiner has to operate on a grid");
 
+	typedef typename TAAPos::ValueType	vector_t;
+
 	Grid& g = *ref.grid();
 
-	vector3 n;
+	vector_t n;
 	VecNormalize(n, dir);
 
 	number maxDot = cos(deg_to_rad(minDeviationAngle));
@@ -119,7 +121,7 @@ void MarkForRefinementByDirection (
 
 	for(TEdgeIter eIter = edgesBegin; eIter != edgesEnd; ++eIter){
 		Edge* e = *eIter;
-		vector3 dir;
+		vector_t dir;
 		VecSubtract(dir, aaPos[e->vertex(1)], aaPos[e->vertex(0)]);
 		VecNormalize(dir, dir);
 		number d = VecDot(dir, n);

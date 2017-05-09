@@ -71,7 +71,7 @@ void MarkForRefinementByDirection (
 			TAAPos aaPos,
 			TEdgeIter edgesBegin,
 			TEdgeIter edgesEnd,
-			const vector3& dir,
+			const typename TAAPos::ValueType& dir,
 			number minDeviationAngle,
 			number maxDeviationAngle,
 			bool selectFlipped);
