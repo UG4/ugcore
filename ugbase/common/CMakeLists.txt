@@ -116,7 +116,7 @@ set(sources ${sources} profiler/profile_node.cpp)
 ################################################################################
 # Platform dependend code
 ################################################################################
-if(UNIX AND NOT CYGWIN)
+if(UNIX)
 	set(sources ${sources}	util/os_dependent_impl/file_util_posix.cpp)
 	
 	#if(NOT STATIC)
@@ -129,7 +129,7 @@ if(UNIX AND NOT CYGWIN)
 		set(sources ${sources} util/os_dependent_impl/os_info_linux.cpp)
 	endif(APPLE)
 
-elseif(WIN32 OR CYGWIN)
+elseif(WIN32)
 	set(sources ${sources}	util/os_dependent_impl/os_info_win.cpp)
 	
 	#if(NOT STATIC)
@@ -142,11 +142,11 @@ elseif(WIN32 OR CYGWIN)
 		set(sources ${sources} util/os_dependent_impl/file_util_win.cpp)
 	#endif(MINGW)
 	
-else(UNIX AND NOT CYGWIN)
+else(UNIX)
 	message(STATUS "YOUR OS MAY NOT BE FULLY SUPPORTED (NOT UNIX???). File functions may be not working.")
 	set(sources ${sources}	util/os_dependent_impl/file_util_posix.cpp)
 	set(sources ${sources} util/os_dependent_impl/os_info_linux.cpp)
-endif(UNIX AND NOT CYGWIN)
+endif(UNIX)
 
 
 ################################################################################

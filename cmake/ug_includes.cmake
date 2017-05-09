@@ -143,14 +143,15 @@ endif(BUILTIN_MPI)
 set(posixDefault OFF)
 if(WIN32)
 	add_definitions(-DUG_WIN32)
-	if(CYGWIN)
-		add_definitions(-DUG_CYGWIN)
-	endif(CYGWIN)
 else(WIN32)
 	if(UNIX)
 		set(posixDefault ON)
 	endif(UNIX)
 endif(WIN32)
+
+if(CYGWIN)
+	add_definitions(-DUG_CYGWIN)
+endif(CYGWIN)
 
 add_definitions(-DUG_PROFILER_SHINY_CHECK_CONSISTENCY)
 
