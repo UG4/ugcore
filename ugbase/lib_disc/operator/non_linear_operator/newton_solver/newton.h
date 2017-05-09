@@ -89,6 +89,7 @@ class NewtonSolver
 	///	sets the line search
 		void set_line_search(SmartPtr<ILineSearch<vector_type> > spLineSearch) {m_spLineSearch = spLineSearch;}
 		void disable_line_search() {m_spLineSearch = SPNULL;}
+		SmartPtr<ILineSearch<vector_type> > line_search()	{return m_spLineSearch;}
 
 	/// This operator inverts the Operator N: Y -> X
 		virtual bool init(SmartPtr<IOperator<vector_type> > N);
