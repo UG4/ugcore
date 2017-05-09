@@ -93,6 +93,53 @@ void MarkForAnisotropicRefinement (
 	}
 }
 
+template <class TRef, class TEdgeIter, class TAAPos>
+void MarkForRefinementByDirection (
+			TRef& ref,
+			TAAPos aaPos,
+			TEdgeIter edgesBegin,
+			TEdgeIter edgesEnd,
+			const vector3& dir,
+			number minDeviationAngle,
+			number maxDeviationAngle,
+			bool selectFlipped)
+{
+	UG_COND_THROW(!ref.grid(), "The given refiner has to operate on a grid");
+
+	Grid& g = *ref.grid();
+
+	vector3 n;
+	VecNormalize(n, dir);
+
+	number maxDot = cos(deg_to_rad(minDeviationAngle));
+	number minDot = cos(deg_to_rad(maxDeviationAngle));
+
+	Grid::face_traits::secure_container faces;
+	Grid::volume_traits::secure_container vols;
+
+	for(TEdgeIter eIter = edgesBegin; eIter != edgesEnd; ++eIter){
+		Edge* e = *eIter;
+		vector3 dir;
+		VecSubtract(dir, aaPos[e->vertex(1)], aaPos[e->vertex(0)]);
+		VecNormalize(dir, dir);
+		number d = VecDot(dir, n);
+		if((d >= minDot - SMALL && d <= maxDot + SMALL) ||
+			(selectFlipped && (-d >= minDot - SMALL && -d <= maxDot + SMALL)))
+		{
+			ref.mark(e);
+			
+			g.associated_elements(faces, e);
+			for(size_t i = 0; i < faces.size(); ++i)
+				ref.mark(faces[i], RM_CLOSURE);
+
+			g.associated_elements(vols, e);
+			for(size_t i = 0; i < vols.size(); ++i)
+				ref.mark(vols[i], RM_CLOSURE);
+			
+		}
+	}
+}
+
 }//	end of namespace
 
 #endif	//__H__UG_refinement_mark_util_impl

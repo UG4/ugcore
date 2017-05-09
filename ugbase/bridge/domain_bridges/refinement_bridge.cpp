@@ -1235,6 +1235,26 @@ void MarkForRefinement_AnisotropicDirection (
 	}lg_end_for;
 }
 
+template <class TDomain>
+void MarkForRefinement_EdgeDirection (
+		TDomain& dom,
+		IRefiner& refiner,
+		MathVector<TDomain::dim>& dir,
+		number minDeviationAngle,
+		number maxDeviationAngle,
+		bool selectFlipped)
+{
+	MultiGrid& mg = *dom.grid();
+	MarkForRefinementByDirection(	refiner,
+	                             	dom.position_accessor(),
+	                             	mg.begin<Edge>(),
+	                             	mg.end<Edge>(),
+	                             	dir,
+	                             	minDeviationAngle,
+	                             	maxDeviationAngle,
+	                             	selectFlipped);
+}
+
 // end group refinement_bridge
 /// \}
 
@@ -1523,7 +1543,10 @@ static void Domain(Registry& reg, string grp)
 				grp, "", "dom#refiner#minEdgeRatio")
 		.add_function("MarkForRefinement_AnisotropicDirection",
 				&MarkForRefinement_AnisotropicDirection<domain_type>,
-				grp, "", "dom#refiner#dir#minEdgeRatio");
+				grp, "", "dom#refiner#dir#minEdgeRatio")
+		.add_function("MarkForRefinement_EdgeDirection",
+				&MarkForRefinement_EdgeDirection<domain_type>,
+				grp, "", "dom#refiner#dir#minDeviationAngle#maxDeviationAngle#selectFlipped");
 //		.add_function("MarkForAdaption_EdgesContainingPoint",
 //				&MarkForAdaption_ElementsContainingPoint<domain_type, Edge>,
 //				grp, "", "dom#refiner#x#y#z#markType")

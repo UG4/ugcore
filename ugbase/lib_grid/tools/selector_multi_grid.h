@@ -141,7 +141,8 @@ class UG_API MGSelector : public ISelector
 				bool operator ==(const this_type& iter) const {return equal(iter);}
 				bool operator !=(const this_type& iter) const {return !equal(iter);}
 
-				value_type operator *()	{return dereference();}
+				value_type operator *()			{return dereference();}
+				value_type operator *() const	{return dereference();}
 
 			private:
 				friend class MGSelector;

@@ -64,6 +64,18 @@ void MarkForAnisotropicRefinement (
 			TIter elemsEnd,
 			TAAPos aaPos);
 
+
+template <class TRef, class TEdgeIter, class TAAPos>
+void MarkForRefinementByDirection (
+			TRef& ref,
+			TAAPos aaPos,
+			TEdgeIter edgesBegin,
+			TEdgeIter edgesEnd,
+			const vector3& dir,
+			number minDeviationAngle,
+			number maxDeviationAngle,
+			bool selectFlipped);
+
 }//	end of namespace
 
 ////////////////////////////////////////
