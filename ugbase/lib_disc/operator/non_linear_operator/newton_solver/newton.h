@@ -122,6 +122,7 @@ class NewtonSolver
 		int total_linsolver_calls() const;
 		int total_linsolver_steps() const;
 		double total_average_linear_steps() const;
+		int last_num_newton_steps() const	{return m_lastNumSteps;}
 	/// \}
 
 	/// resets average linear solver convergence
@@ -180,6 +181,7 @@ class NewtonSolver
 
 	///	call counter
 		int m_dgbCall;
+		int m_lastNumSteps;
 
 	/// convergence history of linear solver
 	/// \{

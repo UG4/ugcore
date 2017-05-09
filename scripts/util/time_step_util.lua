@@ -322,7 +322,6 @@ function util.SolveNonlinearTimeProblem(
 					end 
 					
 					-- apply newton solver
-					local numNewtonStepsAtStart = newtonSolver:num_newton_steps()
 					newtonSuccess = newtonSolver:apply(u)
 						
 					-- start over again if failed
@@ -364,7 +363,7 @@ function util.SolveNonlinearTimeProblem(
 				end
 
 				if newtonSuccess == false and newtonLineSearchFallbacks ~= nil then
-					if newtonLineSearchFallbacks[newtonTry] == nil or newtonSolver:num_newton_steps() == numNewtonStepsAtStart then
+					if newtonLineSearchFallbacks[newtonTry] == nil or newtonSolver:last_num_newton_steps() == 0 then
 						write("\n++++++ Adaptive Newton failed.")
 						break
 					else
