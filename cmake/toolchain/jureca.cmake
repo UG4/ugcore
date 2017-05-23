@@ -46,9 +46,9 @@ SET(enableDynamicOption OFF)
 SET(enableNoStrictAliasingOption ON)
 
 # Some variables for pathes
-set(GCC_ROOT  "/usr/local/software/jureca/Stages/2016b/software/icc/2017.0.098-GCC-5.4.0/compilers_and_libraries_2017.0.098/linux")
-set(MPI_ROOT  "/usr/local/software/jureca/Stages/2016b/software/psmpi/5.1.5-1-iccifort-2017.0.098-GCC-5.4.0")
-set(FTR_ROOT  "/usr/local/software/jureca/Stages/2016b/software/ifort/2017.0.098-GCC-5.4.0/compilers_and_libraries_2017.0.098/linux")
+set(GCC_ROOT  "/usr/local/software/jureca/Stages/2017a/software/icc/2017.2.174-GCC-5.4.0/compilers_and_libraries_2017.2.174/linux")
+set(MPI_ROOT  "/usr/local/software/jureca/Stages/2017a/software/psmpi/5.1.9-1-iccifort-2017.2.174-GCC-5.4.0")
+set(FTR_ROOT  "/usr/local/software/jureca/Stages/2017a/software/ifort/2017.2.174-GCC-5.4.0/compilers_and_libraries_2017.2.174/linux")
 
 # The serial GNU compilers
 set(CMAKE_C_COMPILER       ${GCC_ROOT}/bin/intel64/icc)
