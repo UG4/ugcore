@@ -483,6 +483,11 @@ if(buildGrid)
 endif(buildGrid)
 
 ########################################
+if(buildDisc)
+	add_definitions(-DUG_DISC)
+endif(buildDisc)
+
+########################################
 set(buildCompileInfo ${COMPILE_INFO})
 if(buildCompileInfo)
 	message(STATUS "Info: COMPILE_INFO enabled. Causes relinking on each run of make.")

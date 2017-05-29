@@ -38,6 +38,7 @@
 #include <queue>
 #include <map>
 #include "lib_grid/grid/grid_util.h"
+#include "../orientation_util.h"
 #include "vertex_util.h"
 namespace ug
 {

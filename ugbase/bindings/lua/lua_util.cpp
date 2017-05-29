@@ -46,7 +46,9 @@
 #include "bridge/bridge.h"
 #include "registry/class_helper.h"
 #include "info_commands.h"
-#include "lua_user_data.h"
+#ifdef UG_DISC
+	#include "lua_user_data.h"
+#endif
 #include "registry/class_name_provider.h"
 #include "registry/registry.h"
 #include "lua_debug.h"

@@ -35,8 +35,8 @@
 
 // include declarations
 #include "periodic_boundary_manager.h"
-#include "lib_disc/domain.h"
 #include "lib_grid/algorithms/debug_util.h"
+#include "lib_grid/grid_objects/grid_dim_traits.h"
 #include "common/assert.h"
 #include "common/error.h"
 #include "pcl/pcl_base.h"
@@ -664,12 +664,13 @@ void IdentifySubsets(TDomain& dom, int sInd1, int sInd2) {
 
 	// map start type of recursion dependent to TDomain
 	// in 3d start with faces, in 2d with edges, in 1d with vertices
-	namespace mpl = boost::mpl;
-	typedef		mpl::map<mpl::pair<Domain1d, Vertex>,
-						 mpl::pair<Domain2d, Edge>,
-						 mpl::pair<Domain3d, Face> > m;
+	// namespace mpl = boost::mpl;
+	// typedef		mpl::map<mpl::pair<Domain1d, Vertex>,
+	// 					 mpl::pair<Domain2d, Edge>,
+	// 					 mpl::pair<Domain3d, Face> > m;
 
-	typedef typename mpl::at<m, TDomain>::type TElem;
+	// typedef typename mpl::at<m, TDomain>::type TElem;
+	typedef typename grid_dim_traits<TDomain::dim>::side_type	TElem;
 	typedef typename ElementStorage<TElem>::SectionContainer::iterator gocIter;
 
 	// calculate shift vector for top level
