@@ -218,6 +218,16 @@ UG_API std::string PathFromFilename(const std::string &str);
 UG_API std::string FilenameWithoutExtension(std::string str);
 
 /**
+ * \brief returns the best guess of the filename and path from given string
+ * \details returns the part of the string without extension
+ *   (e.g. `/sw/bla.txt` -> `bla`)
+ * \param[in] str to retrieve filename from
+ * \returns best guess of the filename without extension; if no guess
+ *   can be made, the whole string is returned
+ */
+UG_API std::string FilenameAndPathWithoutExtension(std::string str);
+
+/**
  * \brief returns the best guess of a file extensions from given string
  * \details returns the extension of the filename (e.g. `/sw/bla.txt` -> `txt`).
  *   Everything after the last dot ('.') of \c str is considered the file extension.

@@ -131,8 +131,13 @@ function UJS_Submit
 				return
 			fi
 		elif [ "$jureca_part" == "batch" ]; then
-			if [ "$jureca_gres" == "mem512" ]; then
-				echo "The Jureca devel partition can only be used with 128G or 256G memory nodes."
+			if [ ! "$jureca_gres" == "mem128" ]; then
+				echo "The Jureca batch partition can only be used with 128G memory nodes."
+				return
+			fi
+		elif [ "$jureca_part" == "mem256" ]; then 
+			if [ ! "$jureca_gres" == "mem256" ]; then
+				echo "The Jureca mem256 partition can only be used with 256G nodes. Set -Jureca-memory 256."
 				return
 			fi
 		elif [ "$jureca_part" == "mem512" ]; then 

@@ -364,6 +364,18 @@ UG_API
 void SelectAssociatedGenealogy(MGSelector& msel, bool selectAssociatedElements);
 
 ////////////////////////////////////////////////////////////////////////
+///	Selects all edges that face a given direction
+template <class TAAPos>
+void SelectEdgesByDirection(
+				Selector& sel,
+				TAAPos& aaPos,
+				const vector3& dir,
+				number minDeviationAngle,
+				number maxDeviationAngle,
+				bool selectFlipped);
+
+
+////////////////////////////////////////////////////////////////////////
 //	SelectSmoothEdgePath
 ///	selects for each selected edge all edges that can be reached by a smooth path.
 /**
