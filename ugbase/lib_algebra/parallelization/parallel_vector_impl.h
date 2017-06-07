@@ -458,6 +458,17 @@ inline double VecProd(const ParallelVector<T> &a, const ParallelVector<T> &b)
 	return const_cast<ParallelVector<T>* >(&a)->dotprod(b);
 }
 
+// Elementwise (Hadamard) product of two vectors
+template<typename T>
+inline void VecHadamardProd(ParallelVector<T> &dest, const ParallelVector<T> &v1, const ParallelVector<T> &v2)
+{
+	uint mask = v1.get_storage_mask() & v2.get_storage_mask();
+	UG_COND_THROW(mask == 0, "VecHadamardProd: cannot multiply vectors v1 and v2");
+	dest.set_storage_type(mask);
+
+	VecHadamardProd(*dynamic_cast<T*>(&dest), *dynamic_cast<const T*>(&v1), *dynamic_cast<const T*>(&v2));
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename TVector>
