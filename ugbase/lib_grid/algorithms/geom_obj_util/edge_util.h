@@ -354,11 +354,37 @@ void FixEdgeOrientation(Grid& grid, TEdgeIterator edgesBegin,
 ///	Orientates boundary edges in the given edge set to the orientation of associated faces.
 /**	The orientation of boundary edges will match the orientation of associated
  * faces, after this algorithm terminates.
+ *
+ * One may optionally specify a callback defines whether a face should be considered
+ * during oriantation adjustment. This can e.g. be used if an interior interface
+ * has to be oriented. One could select the faces on one side of the interface,
+ * select their associated edges (e.g. using CloseSelection) and then call
+ *
+ * \code
+ * AdjustEdgeOrientationToFaceOrientation(
+ *			grid,
+ *			sel.begin<Edge>(),
+ *			sel.end<Edge>(),
+ *			IsSelected(sel));
+ * \endcode
+ *
+ * where 'sel' is an instance of the Selector class containing the selection
+ * performed above.
+ * \{
  */
 template <class TEdgeIterator>
 UG_API
 void AdjustEdgeOrientationToFaceOrientation(Grid& grid, TEdgeIterator edgesBegin,
 						   	   	   	   	    TEdgeIterator edgesEnd);
+
+template <class TEdgeIterator>
+UG_API
+void AdjustEdgeOrientationToFaceOrientation(Grid& grid, TEdgeIterator edgesBegin,
+						   	   	   	   	    TEdgeIterator edgesEnd,
+						   	   	   	   	    Grid::face_traits::callback considerFace);
+
+/** \} */
+
 
 ////////////////////////////////////////////////////////////////////////////////
 ///	Returns the shortest edge in a list of edges

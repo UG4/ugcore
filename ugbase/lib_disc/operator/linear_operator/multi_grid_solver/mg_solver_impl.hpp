@@ -1643,6 +1643,7 @@ presmooth_and_restriction(int lev)
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - presmooth on level "<<lev<<"\n");
 	log_debug_data(lev, "BeforePreSmooth");
+	mg_stats_defect(*lf.sd, lev, mg_stats_type::BEFORE_PRE_SMOOTH);
 
 //	PRESMOOTH
 	GMG_PROFILE_BEGIN(GMG_PreSmooth);
@@ -1682,6 +1683,7 @@ presmooth_and_restriction(int lev)
 	GMG_PROFILE_END();
 
 	log_debug_data(lev, "AfterPreSmooth_BeforeCom");
+	mg_stats_defect(*lf.sd, lev, mg_stats_type::AFTER_PRE_SMOOTH);
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - presmooth on level "<<lev<<"\n");
 
 //	PARALLEL CASE:
@@ -1858,8 +1860,10 @@ prolongation_and_postsmooth(int lev)
 		//	update defect
 			lf.A->apply_sub(*lf.sd, *lf.st);
 
-			if(nu == 0)
+			if(nu == 0){
 				log_debug_data(lev, "BeforePostSmooth");
+				mg_stats_defect(*lf.sd, lev, mg_stats_type::BEFORE_POST_SMOOTH);
+			}
 
 		//	a)  Compute t = B*d with some iterator B
 			if(!lf.PostSmoother->apply(*lf.st, *lf.sd))
@@ -1884,14 +1888,16 @@ prolongation_and_postsmooth(int lev)
 
 //	update the defect if required. In full-ref case, the defect is not needed
 //	anymore, since it will be restricted anyway. For adaptive case, however,
-//	we must keep track of the defect on the surface
-	if(lev >= m_LocalFullRefLevel){
+//	we must keep track of the defect on the surface.
+//	We also need it if we want to write stats or debug data
+	if(lev >= m_LocalFullRefLevel || m_mgstats.valid() || m_spDebugWriter.valid()){
 		GMG_PROFILE_BEGIN(GMG_UpdateDefectAfterPostSmooth);
 		lf.A->apply_sub(*lf.sd, *lf.st);
 		GMG_PROFILE_END();
 	}
 
 	log_debug_data(lev, "AfterPostSmooth");
+	mg_stats_defect(*lf.sd, lev, mg_stats_type::AFTER_POST_SMOOTH);
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - postsmooth on level "<<lev<<"\n");
 }
 
@@ -2185,6 +2191,14 @@ log_debug_data(int lvl, std::string name)
 */
 	#endif
 	}
+}
+
+template <typename TDomain, typename TAlgebra>
+void AssembledMultiGridCycle<TDomain, TAlgebra>::
+mg_stats_defect(GF& gf, int lvl, typename mg_stats_type::Stage stage)
+{
+	if(m_mgstats.valid())
+		m_mgstats->set_defect(gf, lvl, stage);
 }
 
 template <typename TDomain, typename TAlgebra>

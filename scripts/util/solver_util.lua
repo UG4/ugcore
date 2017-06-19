@@ -260,7 +260,8 @@ parameters.
 	emulateFullRefined 				= false,
 	smoother 						= "gs",		-- any preconditioner listed in the 'Preconditioners' section
 	transfer 						= "std",	-- any transfer listed in the 'Transfers' section
-	debug 							= false
+	debug 							= false,
+	mgStats							= nil		-- any mgStats listed in the 'MGStats' section
 }
 \endcode
 
@@ -389,6 +390,24 @@ default parameters.
 \endcode
 
 
+<br>
+<h2>MGStats</h2>
+The following listing gives an overview over available MGStats objects.
+MGStats objects are used to record statistics on individual multigrid cycles.
+They add some overhead, so one should only use them for debugging.
+
+<h3>MGStats</h3>
+\code
+{
+	type			= "standard",
+	filenamePrefix	= "mgstats",
+	exitOnError		= false,
+	writeErrVecs	= false,
+	writeErrDiffs	= false,
+	activeStages	= nil
+}
+\endcode
+
 \{
 ]]--	
 
@@ -449,7 +468,8 @@ util.solver.defaults =
 			emulateFullRefined = false,
 			smoother = "gs",
 			transfer = "std",
-			debug = false
+			debug = false,
+			mgStats = nil
 		},
 
 		ilu = {
@@ -502,6 +522,17 @@ util.solver.defaults =
 			acceptBest 		= true,
 			checkAll		= false
 		}
+	},
+
+	mgStats =
+	{
+		standard = {
+			filenamePrefix	= "mgstats",
+			exitOnError		= false,
+			writeErrVecs	= false,
+    		writeErrDiffs	= false,
+			activeStages	= nil
+		}
 	}
 }
 
@@ -553,7 +584,7 @@ function util.solver.CreateSolver(solverDesc, solverutil)
 		local lineSearch = desc.lineSearch or defaults.lineSearch
 		if lineSearch and lineSearch ~= "none" then
 			newtonSolver:set_line_search(
-				util.solver.CreateLineSearch(lineSearch, solverutil))
+				util.solver.CreateLineSearch(lineSearch))
 		end
 
 		return newtonSolver
@@ -651,7 +682,8 @@ function util.solver.CreateTransfer(transferDesc)
 	return transfer
 end
 
--- create a preconditioner 
+-- create a preconditioner
+-- solverutil may be nil
 function util.solver.CreatePreconditioner(precondDesc, solverutil)
 	solverutil = util.solver.PrepareSolverUtil(solverDesc, solverutil)
 	if util.tableDesc.IsPreset(precondDesc) then return precondDesc end
@@ -730,6 +762,11 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 			gmg:set_discretization(discretization)
 		end
 
+		local mgStats = util.solver.CreateMGStats(desc.mgStats or defaults.mgStats)
+		if(mgStats) then
+			gmg:set_mg_stats(mgStats)
+		end
+
 		precond = gmg
 
 	elseif name == "schur" 	then
@@ -788,7 +825,7 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 	return rprecond
 end
 
-
+-- solverutil may be nil
 function util.solver.CreateConvCheck(convCheckDesc, solverutil)
 	solverutil = util.solver.PrepareSolverUtil(convCheckDesc, solverutil)
 	if util.tableDesc.IsPreset(convCheckDesc) then return convCheckDesc end
@@ -839,9 +876,7 @@ function util.solver.CreateConvCheck(convCheckDesc, solverutil)
 	return cc
 end
 
-
-function util.solver.CreateLineSearch(lineSearchDesc, solverutil)
-	solverutil = util.solver.PrepareSolverUtil(lineSearchDesc, solverutil)
+function util.solver.CreateLineSearch(lineSearchDesc)
 	if util.tableDesc.IsPreset(lineSearchDesc) then return lineSearchDesc end
 
 	local name, desc = util.tableDesc.ToNameAndDesc(lineSearchDesc)
@@ -869,10 +904,45 @@ function util.solver.CreateLineSearch(lineSearchDesc, solverutil)
 	return ls
 end
 
+
+function util.solver.CreateMGStats(mgStatsDesc)
+	if mgStatsDesc == nil then return nil end
+	
+	if util.tableDesc.IsPreset(mgStatsDesc) then return mgStatsDesc end
+
+	local name, desc = util.tableDesc.ToNameAndDesc(mgStatsDesc)
+	local defaults	 = util.solver.defaults.mgStats[name]
+	if desc == nil then desc = defaults end
+	
+	local mgStats = nil
+	if name == "standard" then
+		if desc.exitOnError == nil then desc.exitOnError = defaults.exitOnError end
+		if desc.writeErrVecs == nil then desc.writeErrVecs = defaults.writeErrVecs end
+		if desc.writeErrDiffs == nil then desc.writeErrDiffs = defaults.writeErrDiffs end
+
+		mgStats = MGStats()
+		mgStats:set_filename_prefix(desc.filenamePrefix or defaults.filenamePrefix)
+		mgStats:set_exit_on_error(desc.exitOnError)
+		mgStats:set_write_err_vecs(desc.writeErrVecs)
+		mgStats:set_write_err_diffs(desc.writeErrDiffs)
+		if desc.activeStages or defaults.activeStages then
+			mgStats:set_active_stages(desc.activeStages or defaults.activeStages)
+		end
+	end
+	
+	util.solver.CondAbort(mgStats == nil, "Invalid mgStats specified: " .. name)
+	if desc then
+		desc.instance = mgStats
+	end
+
+	return mgStats
+end
+
+
 --! Prepares a solution step, e.g. during nested iterations.
 --! @param desc			a solver-desc which was used during solver-creation in one of
---! 					the solver_util_2 methods or a solverutil table, which is was 
---! 					also created in one of the solver_util_2 methods or simply
+--! 					the solver_util methods or a solverutil table, which is was 
+--! 					also created in one of the solver_util methods or simply
 --!						a table which holds a bunch of Convergence-Check descriptor tables.
 --!
 --! @param nestedStep	(optional) the step of the nested iteration (default: 1)

@@ -150,6 +150,28 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "AverageComponent", tag);
 	}
 
+//	MGStats
+	{
+		typedef MGStats<TDomain, TAlgebra> T;
+		string name = string("MGStats").append(suffix);
+		reg.add_class_<T>(name, grp)
+			.add_constructor()
+			.add_method("set_exit_on_error", &T::set_exit_on_error, "", "exitOnError")
+			.add_method("set_write_err_vecs", &T::set_write_err_vecs, "", "writeErrVecs")
+			.add_method("set_write_err_diffs", &T::set_write_err_diffs, "", "writeErrDiffs")
+			.add_method("set_filename_prefix", &T::set_filename_prefix, "", "filename")
+			.add_method("set_active_stages", &T::set_active_stages, "", "activeStages")
+			.add_method("save_stats_to_file",
+			    static_cast<void (T::*)()>(&T::save_stats_to_file), "", "")
+			.add_method("save_stats_to_file",
+			    static_cast<void (T::*)(const char*)>(&T::save_stats_to_file),
+			    "", "filename")
+			.add_method("print", &T::print, "", "")
+			.add_method("clear", &T::clear, "", "")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "MGStats", tag);
+	}
+
 //	AssembledMultiGridCycle
 	{
 		typedef AssembledMultiGridCycle<TDomain, TAlgebra> T;
@@ -158,6 +180,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_<T, TBase>(name, grp)
 					.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >)>("Approximation Space")
 					.template add_constructor<void (*)()>()
+			.add_method("set_mg_stats", &T::set_mg_stats, "", "MGStats")
 			.add_method("set_approximation_space", &T::set_approximation_space, "", "Approximation space")
 			.add_method("set_discretization", &T::set_discretization, "", "Discretization")
 			.add_method("set_base_level", &T::set_base_level, "", "Base Level")
