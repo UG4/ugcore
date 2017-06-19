@@ -163,8 +163,8 @@ end
  
 
 --! util.GetParamNumber
---! use with CommandLine to get option, like -useAMG
---! if parameter is not a number, returns default
+--! use with CommandLine to get a number, like -numRefs 4
+--! if parameter is not specified, returns default
 --! @param name parameter in ugargv to search for
 --! @param default returned value if 'name' is not present (default nil)
 --! @param description description for 'name' (default nil)
@@ -195,6 +195,39 @@ function util.GetParamNumber(name, default, description, options)
 	
 	-- return value
 	return value
+end
+
+--! util.GetParamNumber
+--! use with CommandLine to get an array of numbers, like -proc "1;4;9"
+--! if parameter is not specified, returns default
+--! @param name parameter in ugargv to search for
+--! @param default returned value if 'name' is not present (default nil)
+--! @param description description for 'name' (default nil)
+--! @return the number after the parameter 'name' or default if 'name' was not present/no number
+function util.GetParamNumberArray(name, default, description)
+	
+	-- read in
+	local param = util.GetParam(name, default, description)
+	if param == nil and default == nil then
+		return nil
+	end
+
+	ug_assert(param ~= nil, "ERROR in GetParamNumberArray: Parameter "..name.." not set and no default value given.")
+	if param == default then
+		return default
+	end
+	
+	local array = {}
+	local i = 1
+	for str in string.gmatch(param, "([^;]+)") do
+		local value = tonumber(str)
+		ug_assert(value ~= nil, "ERROR in GetParamNumberArray: passed '"..param.."' for Parameter '"
+			..name.."' is not an array of numbers.")
+		array[i] = value
+		i = i + 1
+	end
+	
+	return array
 end
 
 --! util.GetParamBool
@@ -277,7 +310,7 @@ function util.HasParamOption(name, description)
 	return false 
 end
 
---! util.HasParamOption
+--! util.CheckForParam
 --! Checks whether a paramneter was specified in the command line
 --! @param name of the parameter to search for in argv
 --! @return true if the parameter was found, false if not

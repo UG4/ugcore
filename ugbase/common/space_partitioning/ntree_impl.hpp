@@ -221,15 +221,22 @@ split_leaf_node(size_t nodeIndex)
 		Entry& entry = m_entries[entryInd];
 		size_t nextEntryInd = entry.nextEntryInd;
 
+		size_t i_child;
 		vector_t center;
 		traits::calculate_center(center, entry.elem, m_commonData);
-		for(size_t i_child = 0; i_child < s_numChildren; ++i_child){
+		for(i_child = 0; i_child < s_numChildren; ++i_child){
 			if(traits::box_contains_point(childBoxes[i_child], center)){
 				add_entry_to_node(m_nodes[firstChild + i_child], entryInd);
 				++numEntriesAssigned;
 				break;
 			}
 		}
+		/*-- For debugging only: --*
+		if(i_child == s_numChildren){
+			UG_LOG ("ERROR in ntree::split_leaf_node(): Element with center @ " << center
+				<< " does not belong to any child of the box " << node.tightBox << std::endl);
+		}
+		 *--*/
 
 		entryInd = nextEntryInd;
 	}
@@ -322,6 +329,10 @@ update_loose_bounding_box(Node& node)
 		entryInd = entry.nextEntryInd;
 	}
 	
+//todo: Solve box-growing in a more portable way!
+	typename traits::vector_t offset;
+	offset = SMALL;
+	traits::grow_box(node.looseBox, node.looseBox, offset);
 }
 
 

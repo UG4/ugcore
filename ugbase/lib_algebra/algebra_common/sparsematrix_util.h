@@ -305,7 +305,7 @@ void CreateAsMultiplyOf(AB_type &M, const A_type &A, const B_type &B)
  * note: A and/or B may be equal to M.
  */
 template<typename matrix_type>
-void MatAdd(matrix_type &M, number &alpha1, const matrix_type &A, number &alpha2, const matrix_type &B)
+void MatAdd(matrix_type &M, number alpha1, const matrix_type &A, number alpha2, const matrix_type &B)
 {
 	PROFILE_FUNC_GROUP("algebra");
 	UG_ASSERT(A.num_rows() == B.num_rows() && A.num_cols() == B.num_cols(), "sizes must match");
@@ -360,6 +360,101 @@ void MatAdd(matrix_type &M, number &alpha1, const matrix_type &A, number &alpha2
 		while(itB != endB)
 		{
 			c.dValue = itB.value();
+			c.dValue *= alpha2;
+			c.iIndex = itB.index();
+			++itB;
+			con.push_back(c);
+		}
+
+		M.set_matrix_row(i, &con[0], con.size());
+	}
+	M.defragment();
+}
+
+/**
+ * \brief Calculates M = A + B
+ * \param M (out) Matrix M, M = A + B
+ * \param A (in) Matrix A
+ * \param B (in) Matrix B
+ * note: A and/or B may be equal to M.
+ */
+template<typename matrix_type>
+void MatAddNonDirichlet(matrix_type &M, number alpha1, const matrix_type &A, number alpha2, const matrix_type &B)
+{
+	PROFILE_FUNC_GROUP("algebra");
+	UG_ASSERT(A.num_rows() == B.num_rows() && A.num_cols() == B.num_cols(), "sizes must match");
+	typedef typename matrix_type::const_row_iterator criterator;
+
+	// create output matrix M
+	if(&M != &A)
+		M.resize_and_clear(A.num_rows(), A.num_cols());
+
+	// types
+	std::vector<typename matrix_type::connection > con; con.reserve(10);
+
+	typename matrix_type::connection c;
+	for(size_t i=0; i < A.num_rows(); i++)
+	{
+		con.clear();
+		criterator itA = A.begin_row(i), endA = A.end_row(i);
+		criterator itB = B.begin_row(i), endB = B.end_row(i);
+
+		// copy only A for dirichlet rows
+		// -> create a pattern Pii
+		typedef typename matrix_type::value_type value_type;
+		const value_type &Aii = A(i,i);
+		value_type Pii = 1.0;
+
+
+		UG_ASSERT (GetRows(Aii)==GetRows(Pii), "Huhh: Numbers of rows does not match!");
+ 		for(size_t alpha = 0; alpha < (size_t) GetRows(Aii); ++alpha)
+ 		{
+ 			if (IsDirichletRow(A, i, alpha)) BlockRef(Pii, alpha, alpha) =  0.0;
+ 		}
+
+
+		// proceed as usual
+		while(itA != endA && itB != endB)
+		{
+			// add this value: Bij:=Pii*Bij
+			value_type Bij(Pii*itB.value());
+			// UG_LOG("Bij =" << Bij << "," << "Pii=" << Pii);
+
+			if(itA.index() == itB.index())
+			{
+				c.dValue = alpha1 * itA.value() + alpha2 * Bij;
+				c.iIndex = itA.index();
+				++itA; ++itB;
+			}
+			else if (itA.index() < itB.index())
+			{
+				c.dValue = itA.value();
+				c.dValue *= alpha1;
+				c.iIndex = itA.index();
+				++itA;
+			}
+			else
+			{
+				c.dValue = Bij;
+				c.dValue *= alpha2;
+				c.iIndex = itB.index();
+				++itB;
+			}
+			con.push_back(c);
+		}
+		while(itA != endA)
+		{
+			c.dValue = itA.value();
+			c.dValue *= alpha1;
+			c.iIndex = itA.index();
+			++itA;
+			con.push_back(c);
+		}
+		while(itB != endB)
+		{
+			value_type Bij(Pii*itB.value());
+
+			c.dValue = Bij;
 			c.dValue *= alpha2;
 			c.iIndex = itB.index();
 			++itB;
@@ -713,6 +808,31 @@ void SetDirichletRow(TSparseMatrix &A, size_t i, size_t alpha)
 			else if(beta != alpha) BlockRef(block, alpha, beta) = 0.0;
 		}
 	}
+}
+
+//! Evaluates 'true', iff corresponding row is Dirichlet
+template <typename TSparseMatrix>
+bool IsDirichletRow(const TSparseMatrix &A, size_t i, size_t alpha)
+{
+	typedef typename TSparseMatrix::const_row_iterator iterator;
+	typedef typename TSparseMatrix::value_type value_type;
+
+	// no Dirichlet row,
+	if (BlockRef(A(i,i), alpha, alpha) != 1.0) return false;
+
+	// check, if row sum equals 1
+	number sum=0.0;
+	iterator itEnd = A.end_row(i);
+	for(iterator conn = A.begin_row(i); conn != itEnd; ++conn)
+	{
+		const value_type& block = conn.value();
+		// block : 1x1 (CPU=1), 3x3 (CPU=3)
+		for(size_t beta = 0; beta < (size_t) GetCols(block); ++beta)
+		{
+			sum += BlockRef(block, alpha, beta) * BlockRef(block, alpha, beta);
+		}
+	}
+	return (sum==1.0);
 }
 
 
