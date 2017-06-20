@@ -257,9 +257,9 @@ void AdjustEdgeOrientationToFaceOrientation(Grid& grid, TEdgeIterator edgesBegin
 						   	   	   	   	    TEdgeIterator edgesEnd)
 {
 	using namespace std;
-	Face* nbr;
 
 	for(TEdgeIterator iter = edgesBegin; iter != edgesEnd; ++iter){
+		Face* nbr;
 		int numNbrs = GetAssociatedFaces(&nbr, grid, *iter, 1);
 		if(numNbrs != 1)
 			continue;
@@ -277,7 +277,6 @@ void AdjustEdgeOrientationToFaceOrientation(Grid& grid, TEdgeIterator edgesBegin
 						   	   	   	   	    Grid::face_traits::callback considerFace)
 {
 	using namespace std;
-	Face* nbr;
 
 	Grid::face_traits::secure_container faces;
 
