@@ -36,9 +36,13 @@
 #ifdef UG_PARALLEL
 
 
-#include "schur.h"
-#include "slicing.h"
+
 #include "lib_algebra/operator/linear_solver/auto_linear_solver.h"
+
+
+#include "schur.h"
+#include "schur_complement_inverse_interface.h"
+
 
 namespace ug{
 

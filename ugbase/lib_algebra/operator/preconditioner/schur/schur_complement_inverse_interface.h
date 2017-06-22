@@ -34,12 +34,13 @@
 #define SCHUR_COMPLEMENT_INVERSE_INTERFACE_H_
 
 #include "common/util/smart_pointer.h"
+#include "schur_complement_operator.h"
 
 namespace ug{
 
-template <typename TAlgebra>
+/*template <typename TAlgebra>
 class SchurComplementOperator;
-
+*/
 template<typename TAlgebra>
 class ISchurComplementInverse
 {

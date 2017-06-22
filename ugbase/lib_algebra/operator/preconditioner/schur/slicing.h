@@ -34,15 +34,17 @@
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__SCHUR_SLICING_H_
 
 
-#ifdef UG_PARALLEL
+
 
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <set>
 
+#ifdef UG_PARALLEL
 #include "lib_algebra/parallelization/parallelization.h"
 #include "pcl/pcl.h"
+#endif
 
 #include "common/log.h"
 
@@ -51,18 +53,19 @@ namespace ug{
 
 extern DebugID SchurDebug;
 
-enum slice_desc_type {SD_INNER=0, SD_SKELETON, SLICE_DESC_SIZE};
 
+
+template <class TVec, size_t N>
 class SlicingData{
 
 public:
-	typedef std::vector<slice_desc_type> slice_desc_type_vector;
 	typedef std::vector<int> slice_desc_set;
-	//typedef std::set<int> slice_desc_set;
+	typedef TVec slice_desc_type_vector;
+	typedef typename TVec::value_type slice_desc_type;
 
 protected:
 	slice_desc_type_vector m_slice_types;
-	slice_desc_set m_slice_set[(int) SLICE_DESC_SIZE]; //!< mapping islice -> iglobal
+	slice_desc_set m_slice_set[N]; //!< N mappings: islice -> iglobal
 
 
 public:
@@ -77,8 +80,9 @@ public:
 	void set_types(const slice_desc_type_vector &types)
 	{ m_slice_types = types; }
 
+protected:
 	/// auto fill for sets
-	/// assigns every i=0.. m_slice_types.size()-1 to exactly one set
+	/// assigns every index i=0.. m_slice_types.size()-1 to exactly one set
 	void auto_fill_sets()
 	{
 		const size_t ntypes = m_slice_types.size();
@@ -91,8 +95,10 @@ public:
 			set.push_back(i);
 		}
 
-		UG_DLOG(SchurDebug, 5,"SlicingData::auto_fill_sets:" << ntypes << " "<< slice(SD_INNER).size() << " "<< slice(SD_SKELETON).size() << std::endl);
-
+		UG_DLOG(SchurDebug, 5,"SlicingData::auto_fill_sets:" << ntypes);
+		for (size_t i=0; i<N; ++i)
+			UG_DLOG(SchurDebug, 5, "  " << m_slice_set[i].size());
+		UG_DLOG(SchurDebug, 5, 	std::endl);
 
 		/*
 
@@ -115,7 +121,8 @@ public:
 
 	}
 
-
+public:
+#ifdef UG_PARALLEL
 	SmartPtr<AlgebraLayouts> get_slice_layouts(ConstSmartPtr<AlgebraLayouts> layouts, slice_desc_type type) const
 	{
 		// convert layouts (vector->slice)
@@ -127,6 +134,7 @@ public:
 		//UG_LOG(*slice_layouts);
 		return slice_layouts;
 	}
+#endif
 
 
 	template<class VT>
@@ -137,9 +145,9 @@ public:
 		//slice_clone->resize(slice_desc.size());
 
 		SmartPtr<VT> slice_clone(new VT(slice_desc.size()));
-
+#ifdef UG_PARALLEL
 		slice_clone->set_layouts(get_slice_layouts(full_src.layouts(), type));
-
+#endif
 		return slice_clone;
 
 	}
@@ -219,17 +227,18 @@ public:
 
 	}
 
+	//! Number of elements for each type
 	size_t get_num_elems(slice_desc_type type) const
 	{return slice(type).size();}
 
 protected:
 
-	/// returns type for a global index
+	//! returns type for a global index
 	slice_desc_type get_type(int index)
 	{return m_slice_types[index];}
 
 
-	/// returns the set of global indices for a given type
+	//! returns the set of global indices for a given type
 	const slice_desc_set &slice(slice_desc_type type) const
 	{return m_slice_set[type];}
 
@@ -237,7 +246,7 @@ protected:
 	{return m_slice_set[type];}
 
 
-	/// returns local index for a global index
+	//! returns local index for a global index
 	bool find_index(slice_desc_type type, int gindex, int &index) const
 	{
 		// WARNING int index < size_t myset.size() WARNING
@@ -258,7 +267,7 @@ protected:
 	//	}
 		return found;
 	}
-
+#ifdef UG_PARALLEL
 	void replace_indices_in_layout(slice_desc_type type, IndexLayout &il) const
 	{
 		IndexLayout::iterator iter;
@@ -283,9 +292,11 @@ protected:
 		}
 	}
 
+#endif /* UG_PARALLEL */
+
 };
 
 }
 
-#endif /* UG_PARALLEL */
+
 #endif /* __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__SCHUR_SLICING_H_ */

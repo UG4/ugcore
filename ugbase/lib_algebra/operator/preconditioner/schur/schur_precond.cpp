@@ -60,6 +60,8 @@
 
 // own header
 #include "schur.h"
+#include "schur_precond.h"
+#include "schur_complement_inverse_interface.h"
 
 namespace ug{
 
@@ -93,7 +95,7 @@ postprocess()
 template <typename TAlgebra>
 bool SchurPrecond<TAlgebra>::
 create_and_init_local_schur_complement(SmartPtr<MatrixOperator<matrix_type, vector_type> > A,
-		std::vector<slice_desc_type> &skeletonMark)
+		std::vector<schur_slice_desc_type> &skeletonMark)
 {
 	try{
 	SCHUR_PROFILE_BEGIN(SchurPrecondInit_CreateInitLocalSchurComplement);
@@ -178,7 +180,7 @@ check_requirements()
 template <typename TAlgebra>
 void SchurPrecond<TAlgebra>::
 get_skeleton_slicing(SmartPtr<MatrixOperator<matrix_type, vector_type> > A,
-		std::vector<slice_desc_type> &skeletonMark)
+		std::vector<schur_slice_desc_type> &skeletonMark)
 {
 	matrix_type &Amat = A->get_matrix();
 	const int N = Amat.num_rows();
@@ -186,7 +188,7 @@ get_skeleton_slicing(SmartPtr<MatrixOperator<matrix_type, vector_type> > A,
 
 	skeletonMark.clear();
 	skeletonMark.resize(N, SD_INNER);
-	MarkAllFromLayout<slice_desc_type> (skeletonMark, layouts->master(), SD_SKELETON);
+	MarkAllFromLayout<schur_slice_desc_type> (skeletonMark, layouts->master(), SD_SKELETON);
 	m_myMasterSkeleton = 0;
 	for(size_t i=0; i<skeletonMark.size(); i++) if(skeletonMark[i]==SD_SKELETON)
 		m_myMasterSkeleton++;
@@ -209,7 +211,7 @@ preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > A)
 		return false;
 
 //	Determine slicing for SchurComplementOperator
-	std::vector<slice_desc_type> skeletonMark;
+	std::vector<schur_slice_desc_type> skeletonMark;
 	get_skeleton_slicing(A, skeletonMark);
 
 //	create & init local Schur complement object
@@ -235,7 +237,7 @@ template <typename TAlgebra>
 void SchurPrecond<TAlgebra>::
 create_aux_vectors(const vector_type& d)
 {
-	const SlicingData sd    = m_spSchurComplementOp->slicing();
+	const SchurSlicingData sd    = m_spSchurComplementOp->slicing();
 	const size_t n_inner    = m_spSchurComplementOp->sub_size(SD_INNER);
 	const size_t n_skeleton = m_spSchurComplementOp->sub_size(SD_SKELETON);
 	(void) n_skeleton; // warning fix
@@ -369,7 +371,7 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 
 
 	// create short cuts
-	const SlicingData &slicing = m_spSchurComplementOp->slicing();
+	const SchurSlicingData &slicing = m_spSchurComplementOp->slicing();
 
 	vector_type &f_skeleton=*m_aux_rhs[SD_SKELETON];
 	vector_type &u_skeleton=*m_aux_sol[SD_SKELETON];
