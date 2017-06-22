@@ -56,7 +56,7 @@
 #include "common/log.h"
 
 #include "slicing.h"
-
+#include "schur.h"
 
 namespace ug{
 
@@ -80,10 +80,11 @@ class SchurComplementOperator
 		typedef typename TAlgebra::matrix_type matrix_type;
 
 
+
 	public:
 	///	constructor
 	SchurComplementOperator(SmartPtr<MatrixOperator<matrix_type, vector_type> > Alocal,
-							SlicingData::slice_desc_type_vector &sdv)
+							SchurSlicingData::slice_desc_type_vector &sdv)
 	: m_spOperator(Alocal),
 	  m_slicing(sdv)
 	{
@@ -129,10 +130,10 @@ class SchurComplementOperator
 	SmartPtr<MatrixOperator<matrix_type, vector_type> > sub_operator(int r, int c)
 	{return m_op[r][c];}
 
-	size_t sub_size(slice_desc_type type)
+	size_t sub_size(schur_slice_desc_type type)
 	{return m_slicing.get_num_elems(type);}
 
-	const SlicingData &slicing() const
+	const SchurSlicingData &slicing() const
 	{return m_slicing;}
 
 
@@ -167,7 +168,7 @@ protected:
 	SmartPtr<MatrixOperator<matrix_type,vector_type> > m_spOperator;
 
 	// slices from matrix
-	const SlicingData m_slicing;
+	const SchurSlicingData m_slicing;
 
 	// 	Linear Solver to invert the local Dirichlet problems
 	SmartPtr<ILinearOperatorInverse<vector_type> > m_spDirichletSolver;
