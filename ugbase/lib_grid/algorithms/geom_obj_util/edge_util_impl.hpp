@@ -277,7 +277,6 @@ void AdjustEdgeOrientationToFaceOrientation(Grid& grid, TEdgeIterator edgesBegin
 						   	   	   	   	    Grid::face_traits::callback considerFace)
 {
 	using namespace std;
-	Face* nbr;
 
 	Grid::face_traits::secure_container faces;
 
