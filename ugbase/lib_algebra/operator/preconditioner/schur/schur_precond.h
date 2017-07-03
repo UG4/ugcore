@@ -54,7 +54,6 @@
 
 #include "common/log.h"
 
-#include "slicing.h"
 #include "schur.h"
 
 
