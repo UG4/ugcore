@@ -57,7 +57,7 @@ extern DebugID SchurDebug;
 } // end namespace ug
 
 
-#include "slicing.h"
+#include "lib_algebra/adapter/slicing.h"
 
 namespace ug{
 enum schur_slice_desc_type {SD_INNER=0, SD_SKELETON, SLICE_DESC_SIZE};
