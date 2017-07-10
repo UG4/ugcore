@@ -59,15 +59,21 @@ void CheckValences(MultiGrid& mg, MGSubsetHandler& markSH, const char* filename)
 
 //	Attachments for associated number of elements
 	AInt aEdgeValence;
-	AInt aVertexValence;
+	AInt aVertexValence_toc;
+	AInt aVertexValence_prism;
+	AInt aVertexValence_hex;
 
 //	attach previously declared attachments with initial value 0
 	mg.attach_to_edges_dv(aEdgeValence, 0);
-	mg.attach_to_vertices_dv(aVertexValence, 0);
+	mg.attach_to_vertices_dv(aVertexValence_toc, 0);
+	mg.attach_to_vertices_dv(aVertexValence_prism, 0);
+	mg.attach_to_vertices_dv(aVertexValence_hex, 0);
 
 //	Define attachment accessors
 	Grid::EdgeAttachmentAccessor<AInt> aaEdgeValence(mg, aEdgeValence);
-	Grid::VertexAttachmentAccessor<AInt> aaVertexValence(mg, aVertexValence);
+	Grid::VertexAttachmentAccessor<AInt> aaVertexValence_toc(mg, aVertexValence_toc);
+	Grid::VertexAttachmentAccessor<AInt> aaVertexValence_prism(mg, aVertexValence_prism);
+	Grid::VertexAttachmentAccessor<AInt> aaVertexValence_hex(mg, aVertexValence_hex);
 
 //	Calculate edge valence
 	for(VolumeIterator vIter = mg.begin<Volume>(mg.top_level()); vIter != mg.end<Volume>(mg.top_level()); ++vIter)
@@ -87,7 +93,7 @@ void CheckValences(MultiGrid& mg, MGSubsetHandler& markSH, const char* filename)
 	}
 
 //	Calculate vertex valence
-	CalculateNumElemsVertexAttachmentInTopLevel(mg, aVertexValence);
+	CalculateNumElemsVertexAttachmentInTopLevel(mg, aVertexValence_toc, aVertexValence_prism, aVertexValence_hex);
 
 //	Assign subset indices by valence
 	for(EdgeIterator eIter = mg.begin<Edge>(mg.top_level()); eIter != mg.end<Edge>(mg.top_level()); ++eIter)
@@ -111,9 +117,9 @@ void CheckValences(MultiGrid& mg, MGSubsetHandler& markSH, const char* filename)
 		if(markSH.get_subset_index(v) != -1)
 			continue;
 
-		if(aaVertexValence[v] < 4)
+		if(aaVertexValence_toc[v] < 4)
 		{
-			sh.assign_subset(v, aaVertexValence[v]);
+			sh.assign_subset(v, aaVertexValence_toc[v]);
 		}
 	}
 
@@ -122,7 +128,9 @@ void CheckValences(MultiGrid& mg, MGSubsetHandler& markSH, const char* filename)
 
 //	Clean up
 	mg.detach_from_edges(aEdgeValence);
-	mg.detach_from_vertices(aVertexValence);
+	mg.detach_from_vertices(aVertexValence_toc);
+	mg.detach_from_vertices(aVertexValence_prism);
+	mg.detach_from_vertices(aVertexValence_hex);
 }
 
 
@@ -762,11 +770,13 @@ void CalculateSmoothManifoldPosInParentLevelLoopScheme(MultiGrid& mg, MGSubsetHa
 ////////////////////////////////////////////////////////////////////////////////
 void CalculateSmoothManifoldPosInTopLevelAveragingScheme(MultiGrid& mg, MGSubsetHandler& markSH,
 														 MGSubsetHandler& linearManifoldSH,
-										  	  	  	     APosition& aSmoothBndPos)
+										  	  	  	     APosition& aSmoothBndPos_tri,
+														 APosition& aSmoothBndPos_quad)
 {
 //	Define attachment accessors
 	Grid::VertexAttachmentAccessor<APosition> aaPos(mg, aPosition);
-	Grid::VertexAttachmentAccessor<APosition> aaSmoothBndPos(mg, aSmoothBndPos);
+	Grid::VertexAttachmentAccessor<APosition> aaSmoothBndPos_tri(mg, aSmoothBndPos_tri);
+	Grid::VertexAttachmentAccessor<APosition> aaSmoothBndPos_quad(mg, aSmoothBndPos_quad);
 
 	#ifdef UG_PARALLEL
 		DistributedGridManager& dgm = *mg.distributed_grid_manager();
@@ -792,9 +802,7 @@ void CalculateSmoothManifoldPosInTopLevelAveragingScheme(MultiGrid& mg, MGSubset
 	//	and activated Averaging scheme calculate subdivision surfaces smooth position
 		if(markSH.get_subset_index(f) != -1 && linearManifoldSH.get_subset_index(f) == -1)
 		{
-			if(f->num_vertices() != 3 && f->num_vertices() != 4)
-				UG_THROW("ERROR in CalculateSmoothManifoldPosInTopLevelAveragingScheme: Non triangular/quadrilateral faces included in grid.");
-
+		//	TRIANGLE CASE
 			if(f->reference_object_id() == ROID_TRIANGLE)
 			{
 			//	Iterate over all face vertices, calculate and apply local centroid masks
@@ -814,9 +822,11 @@ void CalculateSmoothManifoldPosInTopLevelAveragingScheme(MultiGrid& mg, MGSubset
 					}
 
 				//	Smooth vertex position
-					VecScaleAppend(aaSmoothBndPos[vrt], 2.0/8, aaPos[vrt], 3.0/8, p);
+					VecScaleAppend(aaSmoothBndPos_tri[vrt], 2.0/8, aaPos[vrt], 3.0/8, p);
 				}
 			}
+
+		//	QUADRILATERAL CASE
 			else if(f->reference_object_id() == ROID_QUADRILATERAL)
 			{
 			//	Iterate over all face vertices, calculate and apply local centroid masks
@@ -836,9 +846,13 @@ void CalculateSmoothManifoldPosInTopLevelAveragingScheme(MultiGrid& mg, MGSubset
 					}
 
 				//	Smooth vertex position
-					VecScaleAppend(aaSmoothBndPos[vrt], 1.0/4, aaPos[vrt], 1.0/4, p);
+					VecScaleAppend(aaSmoothBndPos_quad[vrt], 1.0/4, aaPos[vrt], 1.0/4, p);
 				}
 			}
+
+		//	UNSUPPORTED MANIFOLD ELEMENT CASE
+			else
+				UG_THROW("ERROR in CalculateSmoothManifoldPosInTopLevelAveragingScheme: Non triangular/quadrilateral faces included in grid.");
 		}
 	}
 
@@ -849,14 +863,17 @@ void CalculateSmoothManifoldPosInTopLevelAveragingScheme(MultiGrid& mg, MGSubset
 
 	//	Copy operations:
 	//	copy h_masters to h_slaves for consistency
-		AttachmentAllReduce<Vertex>(mg, aSmoothBndPos, PCL_RO_SUM);
+		AttachmentAllReduce<Vertex>(mg, aSmoothBndPos_tri, PCL_RO_SUM);
+		AttachmentAllReduce<Vertex>(mg, aSmoothBndPos_quad, PCL_RO_SUM);
 	#endif
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////
 void CalculateSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
-										APosition& aSmoothVolPos)
+										APosition& aSmoothVolPos_toc,
+										APosition& aSmoothVolPos_prism,
+										APosition& aSmoothVolPos_hex)
 {
 	#ifdef UG_PARALLEL
 		DistributedGridManager& dgm = *mg.distributed_grid_manager();
@@ -864,7 +881,9 @@ void CalculateSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
 
 //	Define attachment accessors
 	Grid::VertexAttachmentAccessor<APosition> aaPos(mg, aPosition);
-	Grid::VertexAttachmentAccessor<APosition> aaSmoothVolPos(mg, aSmoothVolPos);
+	Grid::VertexAttachmentAccessor<APosition> aaSmoothVolPos_toc(mg, aSmoothVolPos_toc);
+	Grid::VertexAttachmentAccessor<APosition> aaSmoothVolPos_prism(mg, aSmoothVolPos_prism);
+	Grid::VertexAttachmentAccessor<APosition> aaSmoothVolPos_hex(mg, aSmoothVolPos_hex);
 
 //	Declare volume centroid coordinate vector
 	typedef APosition::ValueType pos_type;
@@ -908,7 +927,7 @@ void CalculateSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
 				}
 
 			//	Smooth vertex position
-				VecScaleAppend(aaSmoothVolPos[vrt], -1.0/16, aaPos[vrt], 17.0/48, p);
+				VecScaleAppend(aaSmoothVolPos_toc[vrt], -1.0/16, aaPos[vrt], 17.0/48, p);
 			}
 
 		//	OCTAHEDRON CASE
@@ -932,7 +951,55 @@ void CalculateSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
 				}
 
 			//	Smooth vertex position
-				VecScaleAppend(aaSmoothVolPos[vrt], 3.0/8, aaPos[vrt], 1.0/12, p, 7.0/24, aaPos[oppVrt]);
+				VecScaleAppend(aaSmoothVolPos_toc[vrt], 3.0/8, aaPos[vrt], 1.0/12, p, 7.0/24, aaPos[oppVrt]);
+			}
+
+		//	PRISM CASE
+			else if(vol->reference_object_id() == ROID_PRISM)
+			{
+			//	Get cell-adjacent vertex
+				Vertex* oppVrt;
+
+				if(i == 0)
+					oppVrt = vol->vertex(3);
+				else if(i == 1)
+					oppVrt = vol->vertex(4);
+				else if(i == 2)
+					oppVrt = vol->vertex(5);
+				else if(i == 3)
+					oppVrt = vol->vertex(0);
+				else if(i == 4)
+					oppVrt = vol->vertex(1);
+				else
+					oppVrt = vol->vertex(2);
+
+			//	Summate coordinates of DIRECT neighbor vertices to vrt inside octahedron
+				for(size_t j = 0; j < vol->num_vertices(); ++j)
+				{
+					if(j != i && j != (size_t)GetVertexIndex(vol, oppVrt))
+					{
+						VecAdd(p, p, aaPos[vol->vertex(j)]);
+					}
+				}
+
+			//	Smooth vertex position
+				VecScaleAppend(aaSmoothVolPos_prism[vrt], 1.0/8, aaPos[vrt], 3.0/16, p, 1.0/8, aaPos[oppVrt]);
+			}
+
+		//	HEXAHEDRON CASE
+			else if(vol->reference_object_id() == ROID_HEXAHEDRON)
+			{
+			//	Summate coordinates of neighbor vertices to vrt inside hexahedron
+				for(size_t j = 0; j < vol->num_vertices(); ++j)
+				{
+					if(j != i)
+					{
+						VecAdd(p, p, aaPos[vol->vertex(j)]);
+					}
+				}
+
+			//	Smooth vertex position
+				VecScaleAppend(aaSmoothVolPos_hex[vrt], 1.0/8, aaPos[vrt], 1.0/8, p);
 			}
 
 		//	UNSUPPORTED VOLUME ELEMENT CASE
@@ -943,6 +1010,7 @@ void CalculateSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
 		}
 	}
 
+
 //	Manage vertex attachment communication in parallel case -> COMMUNICATE aSmoothVolPos
 	#ifdef UG_PARALLEL
 	//	Reduce add operations:
@@ -950,14 +1018,16 @@ void CalculateSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
 
 	//	Copy operations:
 	//	copy h_masters to h_slaves for consistency
-		AttachmentAllReduce<Vertex>(mg, aSmoothVolPos, PCL_RO_SUM);
+		AttachmentAllReduce<Vertex>(mg, aSmoothVolPos_toc, PCL_RO_SUM);
+		AttachmentAllReduce<Vertex>(mg, aSmoothVolPos_prism, PCL_RO_SUM);
+		AttachmentAllReduce<Vertex>(mg, aSmoothVolPos_hex, PCL_RO_SUM);
 	#endif
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////
 void CalculateConstrainedSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
-												   APosition& aSmoothVolPos)
+												   APosition& aSmoothVolPos_toc)
 {
 	#ifdef UG_PARALLEL
 		DistributedGridManager& dgm = *mg.distributed_grid_manager();
@@ -965,7 +1035,7 @@ void CalculateConstrainedSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandle
 
 //	Define attachment accessors
 	Grid::VertexAttachmentAccessor<APosition> aaPos(mg, aPosition);
-	Grid::VertexAttachmentAccessor<APosition> aaSmoothVolPos(mg, aSmoothVolPos);
+	Grid::VertexAttachmentAccessor<APosition> aaSmoothVolPos_toc(mg, aSmoothVolPos_toc);
 
 //	Declare volume centroid coordinate vector
 	typedef APosition::ValueType pos_type;
@@ -1021,16 +1091,16 @@ void CalculateConstrainedSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandle
 				}
 
 			//	Smooth vertex position
-				//VecScaleAppend(aaSmoothVolPos[vrt], -1.0/16 + bndNbrCnt*17.0/48, aaPos[vrt], 17.0/48, p);
+				//VecScaleAppend(aaSmoothVolPos_toc[vrt], -1.0/16 + bndNbrCnt*17.0/48, aaPos[vrt], 17.0/48, p);
 
 				if(bndNbrCnt == 3)
-					VecScaleAppend(aaSmoothVolPos[vrt], 1.0, aaPos[vrt]);
+					VecScaleAppend(aaSmoothVolPos_toc[vrt], 1.0, aaPos[vrt]);
 				else if(bndNbrCnt == 0)
-					VecScaleAppend(aaSmoothVolPos[vrt], -1.0/16, aaPos[vrt], 17.0/48, p);
+					VecScaleAppend(aaSmoothVolPos_toc[vrt], -1.0/16, aaPos[vrt], 17.0/48, p);
 				else if(bndNbrCnt == 1)
-					VecScaleAppend(aaSmoothVolPos[vrt], -1.0/16, aaPos[vrt], 17.0/48 + 17.0/(48*2), p);
+					VecScaleAppend(aaSmoothVolPos_toc[vrt], -1.0/16, aaPos[vrt], 17.0/48 + 17.0/(48*2), p);
 				else
-					VecScaleAppend(aaSmoothVolPos[vrt], -1.0/16, aaPos[vrt], 51.0/48, p);
+					VecScaleAppend(aaSmoothVolPos_toc[vrt], -1.0/16, aaPos[vrt], 51.0/48, p);
 			}
 
 		//	OCTAHEDRON CASE
@@ -1066,40 +1136,40 @@ void CalculateConstrainedSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandle
 			//	if opposing vertex is a non-manifold vertex
 				if(markSH.get_subset_index(oppVrt) == -1)
 				{
-					//VecScaleAppend(aaSmoothVolPos[vrt], 3.0/8 + bndNbrCnt*1.0/12, aaPos[vrt], 1.0/12, p, 7.0/24, aaPos[oppVrt]);
+					//VecScaleAppend(aaSmoothVolPos_toc[vrt], 3.0/8 + bndNbrCnt*1.0/12, aaPos[vrt], 1.0/12, p, 7.0/24, aaPos[oppVrt]);
 
 					if(bndNbrCnt == 4)
-						VecScaleAppend(aaSmoothVolPos[vrt], 3.0/8, aaPos[vrt], 15.0/24, aaPos[oppVrt]);
+						VecScaleAppend(aaSmoothVolPos_toc[vrt], 3.0/8, aaPos[vrt], 15.0/24, aaPos[oppVrt]);
 					else if(bndNbrCnt == 0)
-						VecScaleAppend(aaSmoothVolPos[vrt], 3.0/8, aaPos[vrt], 1.0/12, p, 7.0/24, aaPos[oppVrt]);
+						VecScaleAppend(aaSmoothVolPos_toc[vrt], 3.0/8, aaPos[vrt], 1.0/12, p, 7.0/24, aaPos[oppVrt]);
 					else if(bndNbrCnt == 1)
-						VecScaleAppend(aaSmoothVolPos[vrt], 3.0/8, aaPos[vrt], 1.0/12 + 1.0/(12*3), p, 7.0/24, aaPos[oppVrt]);
+						VecScaleAppend(aaSmoothVolPos_toc[vrt], 3.0/8, aaPos[vrt], 1.0/12 + 1.0/(12*3), p, 7.0/24, aaPos[oppVrt]);
 					else if(bndNbrCnt == 2)
-						VecScaleAppend(aaSmoothVolPos[vrt], 3.0/8, aaPos[vrt], 2.0/12, p, 7.0/24, aaPos[oppVrt]);
+						VecScaleAppend(aaSmoothVolPos_toc[vrt], 3.0/8, aaPos[vrt], 2.0/12, p, 7.0/24, aaPos[oppVrt]);
 					else
-						VecScaleAppend(aaSmoothVolPos[vrt], 3.0/8, aaPos[vrt], 4.0/12, p, 7.0/24, aaPos[oppVrt]);
+						VecScaleAppend(aaSmoothVolPos_toc[vrt], 3.0/8, aaPos[vrt], 4.0/12, p, 7.0/24, aaPos[oppVrt]);
 				}
 				else
 				{
-					//VecScaleAppend(aaSmoothVolPos[vrt], 3.0/8 + bndNbrCnt*1.0/12 + 7.0/24, aaPos[vrt], 1.0/12, p);
+					//VecScaleAppend(aaSmoothVolPos_toc[vrt], 3.0/8 + bndNbrCnt*1.0/12 + 7.0/24, aaPos[vrt], 1.0/12, p);
 
 					if(bndNbrCnt == 4)
-						VecScaleAppend(aaSmoothVolPos[vrt], 1.0, aaPos[vrt]);
+						VecScaleAppend(aaSmoothVolPos_toc[vrt], 1.0, aaPos[vrt]);
 					else if(bndNbrCnt == 0)
-						VecScaleAppend(aaSmoothVolPos[vrt], 3.0/8, aaPos[vrt], 1.0/12 + 7.0/(24*4), p);
+						VecScaleAppend(aaSmoothVolPos_toc[vrt], 3.0/8, aaPos[vrt], 1.0/12 + 7.0/(24*4), p);
 					else if(bndNbrCnt == 1)
-						VecScaleAppend(aaSmoothVolPos[vrt], 3.0/8, aaPos[vrt], 1.0/12 + 1.0/(12*3) + 7.0/(24*3), p);
+						VecScaleAppend(aaSmoothVolPos_toc[vrt], 3.0/8, aaPos[vrt], 1.0/12 + 1.0/(12*3) + 7.0/(24*3), p);
 					else if(bndNbrCnt == 2)
-						VecScaleAppend(aaSmoothVolPos[vrt], 3.0/8, aaPos[vrt], 2.0/12 + 7.0/(24*2), p);
+						VecScaleAppend(aaSmoothVolPos_toc[vrt], 3.0/8, aaPos[vrt], 2.0/12 + 7.0/(24*2), p);
 					else
-						VecScaleAppend(aaSmoothVolPos[vrt], 3.0/8, aaPos[vrt], 4.0/12 + 7.0/24, p);
+						VecScaleAppend(aaSmoothVolPos_toc[vrt], 3.0/8, aaPos[vrt], 4.0/12 + 7.0/24, p);
 				}
 			}
 
 		//	UNSUPPORTED VOLUME ELEMENT CASE
 			else
 			{
-				UG_THROW("ERROR in CalculateSmoothVolumePosInTopLevel: Volume type not supported for subdivision volumes refinement.");
+				UG_THROW("ERROR in CalculateConstrainedSmoothVolumePosInTopLevel: Volume type not supported for subdivision volumes refinement, only tetrahedra and octahedra.");
 			}
 		}
 	}
@@ -1111,16 +1181,18 @@ void CalculateConstrainedSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandle
 
 	//	Copy operations:
 	//	copy h_masters to h_slaves for consistency
-		AttachmentAllReduce<Vertex>(mg, aSmoothVolPos, PCL_RO_SUM);
+		AttachmentAllReduce<Vertex>(mg, aSmoothVolPos_toc, PCL_RO_SUM);
 	#endif
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////
-void CalculateNumElemsVertexAttachmentInTopLevel(MultiGrid& mg, AInt& aNumElems)
+void CalculateNumElemsVertexAttachmentInTopLevel(MultiGrid& mg, AInt& aNumElems_toc, AInt& aNumElems_prism, AInt& aNumElems_hex)
 {
 //	Define attachment accessor
-	Grid::VertexAttachmentAccessor<AInt> aaNumElems(mg, aNumElems);
+	Grid::VertexAttachmentAccessor<AInt> aaNumElems_toc(mg, aNumElems_toc);
+	Grid::VertexAttachmentAccessor<AInt> aaNumElems_prism(mg, aNumElems_prism);
+	Grid::VertexAttachmentAccessor<AInt> aaNumElems_hex(mg, aNumElems_hex);
 
 //	Manage vertex attachment communication in parallel case:
 //	- Setup communication policy for the above attachment
@@ -1129,7 +1201,9 @@ void CalculateNumElemsVertexAttachmentInTopLevel(MultiGrid& mg, AInt& aNumElems)
 //	- Setup grid layout map
 	#ifdef UG_PARALLEL
 	//	Attachment communication policies COPY
-		ComPol_CopyAttachment<VertexLayout, AInt> comPolCopyNumElems(mg, aNumElems);
+		ComPol_CopyAttachment<VertexLayout, AInt> comPolCopyNumElems_toc(mg, aNumElems_toc);
+		ComPol_CopyAttachment<VertexLayout, AInt> comPolCopyNumElems_prism(mg, aNumElems_prism);
+		ComPol_CopyAttachment<VertexLayout, AInt> comPolCopyNumElems_hex(mg, aNumElems_hex);
 
 	//	Interface communicators and distributed domain manager
 		pcl::InterfaceCommunicator<VertexLayout> com;
@@ -1150,7 +1224,14 @@ void CalculateNumElemsVertexAttachmentInTopLevel(MultiGrid& mg, AInt& aNumElems)
 
 		for(size_t i = 0; i < vol->num_vertices(); ++i)
 		{
-			++aaNumElems[vol->vertex(i)];
+			if(vol->reference_object_id() == ROID_TETRAHEDRON || vol->reference_object_id() == ROID_OCTAHEDRON)
+				++aaNumElems_toc[vol->vertex(i)];
+			else if(vol->reference_object_id() == ROID_PRISM)
+				++aaNumElems_prism[vol->vertex(i)];
+			else if(vol->reference_object_id() == ROID_HEXAHEDRON)
+				++aaNumElems_hex[vol->vertex(i)];
+			else
+				UG_THROW("ERROR in CalculateNumElemsVertexAttachmentInTopLevel: not supported element type included in grid.");
 		}
 	}
 
@@ -1161,10 +1242,14 @@ void CalculateNumElemsVertexAttachmentInTopLevel(MultiGrid& mg, AInt& aNumElems)
 
 	//	Copy operations:
 	//	copy h_masters to h_slaves for consistency
-		AttachmentAllReduce<Vertex>(mg, aNumElems, PCL_RO_SUM);
+		AttachmentAllReduce<Vertex>(mg, aNumElems_toc, PCL_RO_SUM);
+		AttachmentAllReduce<Vertex>(mg, aNumElems_prism, PCL_RO_SUM);
+		AttachmentAllReduce<Vertex>(mg, aNumElems_hex, PCL_RO_SUM);
 
 	//	copy v_slaves to ghosts = VMASTER
-		com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopyNumElems);
+		com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopyNumElems_toc);
+		com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopyNumElems_prism);
+		com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopyNumElems_hex);
 		com.communicate();
 	#endif
 }
@@ -1235,10 +1320,11 @@ void CalculateNumManifoldEdgesVertexAttachmentInParentLevel(MultiGrid& mg, MGSub
 
 
 ////////////////////////////////////////////////////////////////////////////////
-void CalculateNumManifoldFacesVertexAttachmentInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH, AInt& aNumManifoldFaces)
+void CalculateNumManifoldFacesVertexAttachmentInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH, AInt& aNumManifoldFaces_tri, AInt& aNumManifoldFaces_quad)
 {
 //	Define attachment accessor
-	Grid::VertexAttachmentAccessor<AInt> aaNumManifoldFaces(mg, aNumManifoldFaces);
+	Grid::VertexAttachmentAccessor<AInt> aaNumManifoldFaces_tri(mg, aNumManifoldFaces_tri);
+	Grid::VertexAttachmentAccessor<AInt> aaNumManifoldFaces_quad(mg, aNumManifoldFaces_quad);
 
 //	Manage vertex attachment communication in parallel case:
 //	- Setup communication policy for the above attachment
@@ -1247,7 +1333,8 @@ void CalculateNumManifoldFacesVertexAttachmentInTopLevel(MultiGrid& mg, MGSubset
 //	- Setup grid layout map
 	#ifdef UG_PARALLEL
 	//	Attachment communication policies COPY
-		ComPol_CopyAttachment<VertexLayout, AInt> comPolCopyNumManifoldFaces(mg, aNumManifoldFaces);
+		ComPol_CopyAttachment<VertexLayout, AInt> comPolCopyNumManifoldFaces_tri(mg, aNumManifoldFaces_tri);
+		ComPol_CopyAttachment<VertexLayout, AInt> comPolCopyNumManifoldFaces_quad(mg, aNumManifoldFaces_quad);
 
 	//	Interface communicators and distributed domain manager
 		pcl::InterfaceCommunicator<VertexLayout> com;
@@ -1260,9 +1347,6 @@ void CalculateNumManifoldFacesVertexAttachmentInTopLevel(MultiGrid& mg, MGSubset
 	{
 		Face* f = *fIter;
 
-		if(f->num_vertices() != 3 && f->num_vertices() != 4)
-			UG_THROW("ERROR in CalculateNumManifoldFacesVertexAttachment: Non triangular/quadrilateral faces included in grid.");
-
 	//	Only consider boundary manifold faces
 		if(markSH.get_subset_index(f) != -1)
 		{
@@ -1274,7 +1358,12 @@ void CalculateNumManifoldFacesVertexAttachmentInTopLevel(MultiGrid& mg, MGSubset
 
 			for(size_t i = 0; i < f->num_vertices(); ++i)
 			{
-				++aaNumManifoldFaces[f->vertex(i)];
+				if(f->reference_object_id() == ROID_TRIANGLE)
+					++aaNumManifoldFaces_tri[f->vertex(i)];
+				else if(f->reference_object_id() == ROID_QUADRILATERAL)
+					++aaNumManifoldFaces_quad[f->vertex(i)];
+				else
+					UG_THROW("ERROR in CalculateNumManifoldFacesVertexAttachmentInTopLevel: Non triangular/quadrilateral faces included in grid.");
 			}
 		}
 	}
@@ -1286,10 +1375,12 @@ void CalculateNumManifoldFacesVertexAttachmentInTopLevel(MultiGrid& mg, MGSubset
 
 	//	Copy operations:
 	//	copy h_masters to h_slaves for consistency
-		AttachmentAllReduce<Vertex>(mg, aNumManifoldFaces, PCL_RO_SUM);
+		AttachmentAllReduce<Vertex>(mg, aNumManifoldFaces_tri, PCL_RO_SUM);
+		AttachmentAllReduce<Vertex>(mg, aNumManifoldFaces_quad, PCL_RO_SUM);
 
 	//	copy v_slaves to ghosts = VMASTER
-		com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopyNumManifoldFaces);
+		com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopyNumManifoldFaces_tri);
+		com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopyNumManifoldFaces_quad);
 		com.communicate();
 	#endif
 }
@@ -1549,17 +1640,23 @@ void ApplySmoothManifoldPosToTopLevelAveragingScheme(MultiGrid& mg, MGSubsetHand
  *****************************************/
 
 //	Vertex attachments for associated number of manifold faces and smooth position
-	AInt aNumManifoldFaces;
-	APosition aSmoothBndPos;
+	AInt aNumManifoldFaces_tri;
+	AInt aNumManifoldFaces_quad;
+	APosition aSmoothBndPos_tri;
+	APosition aSmoothBndPos_quad;
 
 //	attach previously declared vertex attachments with initial value 0
-	mg.attach_to_vertices_dv(aNumManifoldFaces, 0);
-	mg.attach_to_vertices_dv(aSmoothBndPos, vector3(0, 0, 0));
+	mg.attach_to_vertices_dv(aNumManifoldFaces_tri, 0);
+	mg.attach_to_vertices_dv(aNumManifoldFaces_quad, 0);
+	mg.attach_to_vertices_dv(aSmoothBndPos_tri, vector3(0, 0, 0));
+	mg.attach_to_vertices_dv(aSmoothBndPos_quad, vector3(0, 0, 0));
 
 //	Define attachment accessors
 	Grid::VertexAttachmentAccessor<APosition> aaPos(mg, aPosition);
-	Grid::VertexAttachmentAccessor<AInt> aaNumManifoldFaces(mg, aNumManifoldFaces);
-	Grid::VertexAttachmentAccessor<APosition> aaSmoothBndPos(mg, aSmoothBndPos);
+	Grid::VertexAttachmentAccessor<AInt> aaNumManifoldFaces_tri(mg, aNumManifoldFaces_tri);
+	Grid::VertexAttachmentAccessor<AInt> aaNumManifoldFaces_quad(mg, aNumManifoldFaces_quad);
+	Grid::VertexAttachmentAccessor<APosition> aaSmoothBndPos_tri(mg, aSmoothBndPos_tri);
+	Grid::VertexAttachmentAccessor<APosition> aaSmoothBndPos_quad(mg, aSmoothBndPos_quad);
 
 //	Manage vertex attachment communication in parallel case:
 //	- Setup communication policy for the above attachment aPosition
@@ -1583,7 +1680,7 @@ void ApplySmoothManifoldPosToTopLevelAveragingScheme(MultiGrid& mg, MGSubsetHand
  *
  *****************************************/
 
-	CalculateNumManifoldFacesVertexAttachmentInTopLevel(mg, markSH, aNumManifoldFaces);
+	CalculateNumManifoldFacesVertexAttachmentInTopLevel(mg, markSH, aNumManifoldFaces_tri, aNumManifoldFaces_quad);
 
 
 /*****************************************
@@ -1593,7 +1690,7 @@ void ApplySmoothManifoldPosToTopLevelAveragingScheme(MultiGrid& mg, MGSubsetHand
  *****************************************/
 
 //	Calculate aSmoothBndPosEvenVrt, aSmoothBndPosOddVrt
-	CalculateSmoothManifoldPosInTopLevelAveragingScheme(mg, markSH, linearManifoldSH, aSmoothBndPos);
+	CalculateSmoothManifoldPosInTopLevelAveragingScheme(mg, markSH, linearManifoldSH, aSmoothBndPos_tri, aSmoothBndPos_quad);
 
 
 /*****************************************
@@ -1611,12 +1708,13 @@ void ApplySmoothManifoldPosToTopLevelAveragingScheme(MultiGrid& mg, MGSubsetHand
 	//	and activated averaging scheme apply subdivision surfaces smoothing, else linear refinement
 		if(markSH.get_subset_index(vrt) != -1 && linearManifoldSH.get_subset_index(vrt) == -1)
 		{
-			if(aaNumManifoldFaces[vrt] == 0)
+			if(aaNumManifoldFaces_tri[vrt] == 0 && aaNumManifoldFaces_quad[vrt] == 0)
 				UG_THROW("ERROR in ApplySmoothManifoldPosToTopLevelAveragingScheme: grid contains manifold vertex not contained in any manifold face.");
 
 		//	Scale smooth vertex position by the number of associated volume elements (SubdivisionVolumes smoothing)
-			VecScale(aaSmoothBndPos[vrt],  aaSmoothBndPos[vrt], 1.0/aaNumManifoldFaces[vrt]);
-			VecScale(aaPos[vrt], aaSmoothBndPos[vrt], 1.0);
+			VecScale(aaSmoothBndPos_tri[vrt],  aaSmoothBndPos_tri[vrt], 1.0/6.0/(aaNumManifoldFaces_tri[vrt]/6.0 + aaNumManifoldFaces_quad[vrt]/4.0));
+			VecScale(aaSmoothBndPos_quad[vrt],  aaSmoothBndPos_quad[vrt], 1.0/4.0/(aaNumManifoldFaces_tri[vrt]/6.0 + aaNumManifoldFaces_quad[vrt]/4.0));
+			VecScaleAdd(aaPos[vrt], 1.0, aaSmoothBndPos_tri[vrt], 1.0, aaSmoothBndPos_quad[vrt]);
 		}
 	}
 
@@ -1643,8 +1741,10 @@ void ApplySmoothManifoldPosToTopLevelAveragingScheme(MultiGrid& mg, MGSubsetHand
  *****************************************/
 
 //	detach vertex attachments
-	mg.detach_from_vertices(aNumManifoldFaces);
-	mg.detach_from_vertices(aSmoothBndPos);
+	mg.detach_from_vertices(aNumManifoldFaces_tri);
+	mg.detach_from_vertices(aNumManifoldFaces_quad);
+	mg.detach_from_vertices(aSmoothBndPos_tri);
+	mg.detach_from_vertices(aSmoothBndPos_quad);
 }
 
 
@@ -1659,17 +1759,29 @@ void ApplySmoothVolumePosToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
  *****************************************/
 
 //	Vertex attachments for associated number of elements and smooth position
-	AInt aNumElems;
-	APosition aSmoothVolPos;
+	AInt aNumElems_toc;
+	AInt aNumElems_prism;
+	AInt aNumElems_hex;
+	APosition aSmoothVolPos_toc;
+	APosition aSmoothVolPos_prism;
+	APosition aSmoothVolPos_hex;
 
 //	attach previously declared vertex attachments with initial value 0
-	mg.attach_to_vertices_dv(aNumElems, 0);
-	mg.attach_to_vertices_dv(aSmoothVolPos, vector3(0, 0, 0));
+	mg.attach_to_vertices_dv(aNumElems_toc, 0);
+	mg.attach_to_vertices_dv(aNumElems_prism, 0);
+	mg.attach_to_vertices_dv(aNumElems_hex, 0);
+	mg.attach_to_vertices_dv(aSmoothVolPos_toc, vector3(0, 0, 0));
+	mg.attach_to_vertices_dv(aSmoothVolPos_prism, vector3(0, 0, 0));
+	mg.attach_to_vertices_dv(aSmoothVolPos_hex, vector3(0, 0, 0));
 
 //	Define attachment accessors
 	Grid::VertexAttachmentAccessor<APosition> aaPos(mg, aPosition);
-	Grid::VertexAttachmentAccessor<AInt> aaNumElems(mg, aNumElems);
-	Grid::VertexAttachmentAccessor<APosition> aaSmoothVolPos(mg, aSmoothVolPos);
+	Grid::VertexAttachmentAccessor<AInt> aaNumElems_toc(mg, aNumElems_toc);
+	Grid::VertexAttachmentAccessor<AInt> aaNumElems_prism(mg, aNumElems_prism);
+	Grid::VertexAttachmentAccessor<AInt> aaNumElems_hex(mg, aNumElems_hex);
+	Grid::VertexAttachmentAccessor<APosition> aaSmoothVolPos_toc(mg, aSmoothVolPos_toc);
+	Grid::VertexAttachmentAccessor<APosition> aaSmoothVolPos_prism(mg, aSmoothVolPos_prism);
+	Grid::VertexAttachmentAccessor<APosition> aaSmoothVolPos_hex(mg, aSmoothVolPos_hex);
 
 //	Manage vertex attachment communication in parallel case:
 //	- Setup communication policy for the above attachment aPosition
@@ -1693,7 +1805,7 @@ void ApplySmoothVolumePosToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
  *
  *****************************************/
 
-	CalculateNumElemsVertexAttachmentInTopLevel(mg, aNumElems);
+	CalculateNumElemsVertexAttachmentInTopLevel(mg, aNumElems_toc, aNumElems_prism, aNumElems_hex);
 
 
 /*****************************************
@@ -1704,9 +1816,9 @@ void ApplySmoothVolumePosToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
 
 //	Calculate aSmoothVolPos
 	if(bConstrained)
-		CalculateConstrainedSmoothVolumePosInTopLevel(mg, markSH, aSmoothVolPos);
+		CalculateConstrainedSmoothVolumePosInTopLevel(mg, markSH, aSmoothVolPos_toc);
 	else
-		CalculateSmoothVolumePosInTopLevel(mg, markSH, aSmoothVolPos);
+		CalculateSmoothVolumePosInTopLevel(mg, markSH, aSmoothVolPos_toc, aSmoothVolPos_prism, aSmoothVolPos_hex);
 
 
 /*****************************************
@@ -1720,14 +1832,16 @@ void ApplySmoothVolumePosToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
 	{
 		Vertex* vrt = *vrtIter;
 
-		if(aaNumElems[vrt] == 0)
+		if(aaNumElems_toc[vrt] == 0 &&  aaNumElems_prism[vrt] == 0 && aaNumElems_hex[vrt] == 0)
 			UG_THROW("ERROR in ApplySmoothVolumePosToTopLevel: grid contains vertex not contained in any volume.");
 
 		if(g_boundaryRefinementRule == SUBDIV_VOL)
 		{
 		//	Scale smooth vertex position by the number of associated volume elements (SubdivisionVolumes smoothing)
-			VecScale(aaSmoothVolPos[vrt],  aaSmoothVolPos[vrt], 1.0/aaNumElems[vrt]);
-			VecScale(aaPos[vrt], aaSmoothVolPos[vrt], 1.0);
+			VecScale(aaSmoothVolPos_toc[vrt],  aaSmoothVolPos_toc[vrt], 1.0/14.0/(aaNumElems_toc[vrt]/14.0 + aaNumElems_prism[vrt]/12.0 + aaNumElems_hex[vrt]/8.0));
+			VecScale(aaSmoothVolPos_prism[vrt],  aaSmoothVolPos_prism[vrt], 1.0/12.0/(aaNumElems_toc[vrt]/14.0 + aaNumElems_prism[vrt]/12.0 + aaNumElems_hex[vrt]/8.0));
+			VecScale(aaSmoothVolPos_hex[vrt],  aaSmoothVolPos_hex[vrt], 1.0/8.0/(aaNumElems_toc[vrt]/14.0 + aaNumElems_prism[vrt]/12.0 + aaNumElems_hex[vrt]/8.0));
+			VecScaleAdd(aaPos[vrt], 1.0, aaSmoothVolPos_toc[vrt], 1.0, aaSmoothVolPos_prism[vrt], 1.0, aaSmoothVolPos_hex[vrt]);
 		}
 		else
 		{
@@ -1735,8 +1849,10 @@ void ApplySmoothVolumePosToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
 			if(markSH.get_subset_index(vrt) == -1)
 			{
 			//	Scale smooth vertex position by the number of associated volume elements
-				VecScale(aaSmoothVolPos[vrt],  aaSmoothVolPos[vrt], 1.0/aaNumElems[vrt]);
-				VecScale(aaPos[vrt], aaSmoothVolPos[vrt], 1.0);
+				VecScale(aaSmoothVolPos_toc[vrt],  aaSmoothVolPos_toc[vrt], 1.0/14.0/(aaNumElems_toc[vrt]/14.0 + aaNumElems_prism[vrt]/12.0 + aaNumElems_hex[vrt]/8.0));
+				VecScale(aaSmoothVolPos_prism[vrt],  aaSmoothVolPos_prism[vrt], 1.0/12.0/(aaNumElems_toc[vrt]/14.0 + aaNumElems_prism[vrt]/12.0 + aaNumElems_hex[vrt]/8.0));
+				VecScale(aaSmoothVolPos_hex[vrt],  aaSmoothVolPos_hex[vrt], 1.0/8.0/(aaNumElems_toc[vrt]/14.0 + aaNumElems_prism[vrt]/12.0 + aaNumElems_hex[vrt]/8.0));
+				VecScaleAdd(aaPos[vrt], 1.0, aaSmoothVolPos_toc[vrt], 1.0, aaSmoothVolPos_prism[vrt], 1.0, aaSmoothVolPos_hex[vrt]);
 			}
 		}
 	}
@@ -1764,8 +1880,12 @@ void ApplySmoothVolumePosToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
  *****************************************/
 
 //	detach vertex attachments
-	mg.detach_from_vertices(aNumElems);
-	mg.detach_from_vertices(aSmoothVolPos);
+	mg.detach_from_vertices(aNumElems_toc);
+	mg.detach_from_vertices(aNumElems_prism);
+	mg.detach_from_vertices(aNumElems_hex);
+	mg.detach_from_vertices(aSmoothVolPos_toc);
+	mg.detach_from_vertices(aSmoothVolPos_prism);
+	mg.detach_from_vertices(aSmoothVolPos_hex);
 }
 
 

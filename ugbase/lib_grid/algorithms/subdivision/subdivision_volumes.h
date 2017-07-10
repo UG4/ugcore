@@ -177,35 +177,41 @@ void CalculateSmoothManifoldPosInParentLevelLoopScheme(MultiGrid& mg, MGSubsetHa
  * 	@param mg					reference to MultiGrid
  * 	@param markSH				reference to SubsetHandler markSH containing marked (inner) boundary manifold
  * 	@param linearManifoldSH		reference to user-specified linearManifoldSubsets SubsetHandler
- * 	@param aSmoothBndPos		reference to aSmoothBndPos
+ * 	@param aSmoothBndPos_tri	reference to aSmoothBndPos_tri
+ *	@param aSmoothBndPos_quad	reference to aSmoothBndPos_quad
 **/
 void CalculateSmoothManifoldPosInTopLevelAveragingScheme(MultiGrid& mg, MGSubsetHandler& markSH,
 														 MGSubsetHandler& linearManifoldSH,
-										  	  	  	     APosition& aSmoothBndPos);
+										  	  	  	     APosition& aSmoothBndPos_tri,
+														 APosition& aSmoothBndPos_quad);
 
 
 /// Toplevel vertex smoothing function for subdivision volumes refinement
 /** This function calculates the smoothed positions of all toplevel vertices
  * 	determined by the subdivision volumes refinement.
  *
- * 	@param mg				reference to MultiGrid
- * 	@param markSH			reference to SubsetHandler markSH containing marked (inner) boundary manifold
- * 	@param aSmoothVolPos	reference to aSmoothVolPos
+ * 	@param mg					reference to MultiGrid
+ * 	@param markSH				reference to SubsetHandler markSH containing marked (inner) boundary manifold
+ * 	@param aSmoothVolPos_toc	reference to aSmoothVolPos_toc
+ * 	@param aSmoothVolPos_prism	reference to aSmoothVolPos_prism
+ * 	@param aSmoothVolPos_hex	reference to aSmoothVolPos_hex
 **/
 void CalculateSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
-										APosition& aSmoothVolPos);
+										APosition& aSmoothVolPos_toc,
+										APosition& aSmoothVolPos_prism,
+										APosition& aSmoothVolPos_hex);
 
 
 /// Toplevel vertex smoothing function for subdivision volumes refinement
 /** This function calculates the smoothed positions of all toplevel vertices
  * 	determined by the constrained subdivision volumes refinement.
  *
- * 	@param mg				reference to MultiGrid
- * 	@param markSH			reference to SubsetHandler markSH containing marked (inner) boundary manifold
- * 	@param aSmoothVolPos	reference to aSmoothVolPos
+ * 	@param mg					reference to MultiGrid
+ * 	@param markSH				reference to SubsetHandler markSH containing marked (inner) boundary manifold
+ * 	@param aSmoothVolPos_toc	reference to aSmoothVolPos_toc
 **/
 void CalculateConstrainedSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
-												   APosition& aSmoothVolPos);
+												   APosition& aSmoothVolPos_toc);
 
 
 /// Function for calculating the number of associated volumes of all toplevel vertices
@@ -213,9 +219,11 @@ void CalculateConstrainedSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandle
  * 	for all toplevel vertices.
  *
  * 	@param mg				reference to MultiGrid
- * 	@param aNumElems		reference to aNumElems
+ * 	@param aNumElems_toc	reference to aNumElems_toc
+ * 	@param aNumElems_prism	reference to aNumElems_prism
+ * 	@param aNumElems_hex	reference to aNumElems_hex
 **/
-void CalculateNumElemsVertexAttachmentInTopLevel(MultiGrid& mg, AInt& aNumElems);
+void CalculateNumElemsVertexAttachmentInTopLevel(MultiGrid& mg, AInt& aNumElems_toc, AInt& aNumElems_prism, AInt& aNumElems_hex);
 
 
 /// Function for calculating the number of associated manifold edges of all parent level vertices
