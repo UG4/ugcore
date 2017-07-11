@@ -61,7 +61,7 @@ int ArrayEraseEntry(TType* array, const TType& entry, size_t size)
 
 //	proceed if the entry has been found
 	if(i >= size)
-		return size;
+		return (int)size;
 
 //	copy elements
 	for(; i < size - 1; ++i)

@@ -91,7 +91,7 @@ class UG_API ExportedFunctionBase
 		size_t num_infos(size_t i) const {return m_vvParamInfo.at(i).size();}
 
 	/// class name of parameter i
-		const char* parameter_class_name(size_t i) const	{return params_in().class_name(i);}
+		const char* parameter_class_name(size_t i) const	{return params_in().class_name((int)i);}
 		
 	/// name of parameter i
 		const std::string& parameter_name(size_t i) const {return parameter_info(i, 0);}

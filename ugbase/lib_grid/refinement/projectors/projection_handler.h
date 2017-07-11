@@ -122,7 +122,7 @@ public:
 	inline size_t num_projectors () const		{return m_projectors.size() > 0 ? m_projectors.size() - 1 : 0;}
 	
 	inline SPRefinementProjector
-	projector (size_t i)						{projector_required(i); return m_projectors.at(i + 1);}
+	projector (size_t i)						{projector_required((int)i); return m_projectors.at(i + 1);}
 
 	inline ConstSmartPtr<RefinementProjector>
 	projector (size_t i)	const				{return m_projectors.at(i + 1);}

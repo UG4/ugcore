@@ -436,7 +436,7 @@ class MGWrapper<MultiGrid>
 		MGWrapper(MultiGrid& grid) : m_grid(grid)	{}
 		
 		inline uint num_levels() const
-		{return m_grid.num_levels();}
+		{return (uint)m_grid.num_levels();}
 
 		template <class TElem> inline
 		uint num(int level) const

@@ -501,7 +501,7 @@ class UG_API Face : public GridObject, public FaceVertices
 		virtual void edge_desc(int index, EdgeDescriptor& edOut) const
 			{edOut.set_vertices(vertex(index), vertex((index+1) % size()));}
 
-		inline uint num_edges() const	{return num_vertices();}
+		inline uint num_edges() const	{return (uint)num_vertices();}
 		inline uint num_sides() const	{return num_edges();}
 
 		virtual int container_section() const	{return -1;}

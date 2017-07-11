@@ -247,7 +247,7 @@ class UG_API GridSubsetHandler : public ISubsetHandler
 		using ISubsetHandler::VolumeSectionContainer;
 
 	///	returns the number of subsets in the local list
-		inline uint num_subsets_in_list() const	{return m_subsets.size();}
+		inline uint num_subsets_in_list() const	{return (uint)m_subsets.size();}
 		
 	///	detaches all attached data.
 		void detach_data();
