@@ -66,28 +66,10 @@ bool LoadGridFromELE(Grid& grid, const char* filename, ISubsetHandler* pSH,
 
 ////////////////////////////////////////////////////////////////////////					
 bool SaveGridToELE(Grid& grid, const char* filename, ISubsetHandler* pSH,
-					APosition& aPos)
+					APosition& aPos, ANumber* paVolumeConstraint)
 {
-//	build the correct filenames
-	string sElements = filename;
-	string sNodes, sFaces;
-	if(sElements.find(".ele", sElements.size() - 4) != string::npos)
-	{
-	//	the filename ends as we would expect
-		sNodes = sFaces = sElements.substr(0, sElements.size() - 4);
-		sNodes.append(".node");
-		sFaces.append(".face");
-	}
-	else
-	{
-		sNodes = sFaces = sElements;
-		sElements.append(".ele");
-		sNodes.append(".node");
-		sFaces.append(".face");
-	}
-	
 //	give a warning if the grid doesn't consist of tetrahedrons only.
-	if(grid.num<Tetrahedron>() < grid.num<Face>()){
+	if(grid.num<Tetrahedron>() < grid.num<Volume>()){
 		UG_LOG("  INFO in SaveGridToELE: Non-tetrahedral elements will be skipped.\n");
 	}
 	
@@ -108,8 +90,8 @@ bool SaveGridToELE(Grid& grid, const char* filename, ISubsetHandler* pSH,
 		for(FaceIterator iter = grid.begin<Face>(); iter != grid.end<Face>(); ++iter)
 			aaIntFace[*iter] = pSH->get_subset_index(*iter);	
 
-		bool retVal = ExportGridToTETGEN(grid, sNodes.c_str(), sFaces.c_str(),
-								sElements.c_str(), aPos, NULL, NULL, &aInt, &aInt);
+		bool retVal = ExportGridToTETGEN(grid, filename, aPos, NULL, NULL, &aInt, &aInt,
+										 paVolumeConstraint);
 								
 		grid.detach_from_faces(aInt);
 		grid.detach_from_volumes(aInt);
@@ -117,7 +99,8 @@ bool SaveGridToELE(Grid& grid, const char* filename, ISubsetHandler* pSH,
 		return retVal;
 	}
 	
-	return ExportGridToTETGEN(grid, sNodes.c_str(), sFaces.c_str(), sElements.c_str(), aPos);
+	return ExportGridToTETGEN(grid, filename, aPos,
+	                          NULL, NULL, NULL, NULL, paVolumeConstraint);
 	
 }
 					
@@ -920,20 +903,31 @@ bool LoadGridFromSMESH(Grid& grid, const char* filename, AVector3& aPos,
 
 ////////////////////////////////////////////////////////////////////////
 //	ExportGridToTETGEN
-bool ExportGridToTETGEN(Grid& grid, const char* nodesFilename,
-						const char* facesFilename, const char* elemsFilename,
+bool ExportGridToTETGEN(Grid& grid, const char* filename,
 						AVector3& aPos, std::vector<AFloat>* pvNodeAttributes,
 						AInt* paNodeBoundaryMarker,
 						AInt* paFaceBoundaryMarker,
-						AInt* paElementAttribute)
+						AInt* paElementAttribute,
+						ANumber* paVolumeConstraint)
 {
 	if(!grid.has_vertex_attachment(aPos))
 			return false;
 
+//	set up filenames
+	string eleName = filename;
+	if(eleName.find(".ele", eleName.size() - 4) == string::npos)
+		eleName.append(".ele");
+	string baseName = eleName.substr(0, eleName.size() - 4);
+	string nodeName = baseName + string(".node");
+	string edgeName = baseName + string(".edge");
+	string faceName = baseName + string(".face");
+	string volName = baseName + string(".vol");
+
+
 //	write nodes
 	Grid::VertexAttachmentAccessor<AInt> aaIntVRT;
 	{
-		ofstream out(nodesFilename);
+		ofstream out(nodeName.c_str());
 
 		if(!out)
 			return false;
@@ -994,9 +988,8 @@ bool ExportGridToTETGEN(Grid& grid, const char* nodesFilename,
 	}
 
 //	write facets
-	if(facesFilename != NULL)
 	{
-		ofstream out(facesFilename);
+		ofstream out(faceName);
 		if(out)
 		{
 			Grid::FaceAttachmentAccessor<AInt> aaBMFACE;
@@ -1026,9 +1019,8 @@ bool ExportGridToTETGEN(Grid& grid, const char* nodesFilename,
 	}
 
 //	write tetrahedrons
-	if(elemsFilename != NULL)
 	{
-		ofstream out(elemsFilename);
+		ofstream out(eleName);
 		if(out)
 		{
 			Grid::VolumeAttachmentAccessor<AInt> aaElementAttributeVOL;
@@ -1054,6 +1046,25 @@ bool ExportGridToTETGEN(Grid& grid, const char* nodesFilename,
 					out << " " << aaElementAttributeVOL[tet];
 
 				out << endl;
+			}
+		}
+
+		out.close();
+	}
+
+//	write volume constraints
+	if(paVolumeConstraint)
+	{
+		ofstream out(volName);
+		if(out)
+		{
+			Grid::VolumeAttachmentAccessor<ANumber> aaVolCon(grid, *paVolumeConstraint);
+			out << grid.num<Tetrahedron>() << endl;
+			int counter = 0;
+			for(TetrahedronIterator iter = grid.begin<Tetrahedron>();
+									iter != grid.end<Tetrahedron>(); iter++, counter++)
+			{
+				out << counter << " " << aaVolCon[*iter] << endl;
 			}
 		}
 
