@@ -989,7 +989,7 @@ bool ExportGridToTETGEN(Grid& grid, const char* filename,
 
 //	write facets
 	{
-		ofstream out(faceName);
+		ofstream out(faceName.c_str());
 		if(out)
 		{
 			Grid::FaceAttachmentAccessor<AInt> aaBMFACE;
@@ -1020,7 +1020,7 @@ bool ExportGridToTETGEN(Grid& grid, const char* filename,
 
 //	write tetrahedrons
 	{
-		ofstream out(eleName);
+		ofstream out(eleName.c_str());
 		if(out)
 		{
 			Grid::VolumeAttachmentAccessor<AInt> aaElementAttributeVOL;
@@ -1055,7 +1055,7 @@ bool ExportGridToTETGEN(Grid& grid, const char* filename,
 //	write volume constraints
 	if(paVolumeConstraint)
 	{
-		ofstream out(volName);
+		ofstream out(volName.c_str());
 		if(out)
 		{
 			Grid::VolumeAttachmentAccessor<ANumber> aaVolCon(grid, *paVolumeConstraint);
