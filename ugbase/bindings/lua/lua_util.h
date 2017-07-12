@@ -35,11 +35,17 @@
 #include <vector>
 #include <string>
 
+#ifndef USE_LUAJIT
+// default lua
 extern "C" {
 #include "externals/lua/lua.h"
 #include "externals/lua/lauxlib.h"
 #include "externals/lua/lualib.h"
 }
+#else
+// luajit
+#include <lua.hpp>
+#endif
 
 #include "common/common.h"
 #include "common/util/path_provider.h"

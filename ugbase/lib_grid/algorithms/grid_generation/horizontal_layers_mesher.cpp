@@ -101,7 +101,8 @@ void ExtrudeLayers (
 		const RasterLayers& layers,
 		Grid::VertexAttachmentAccessor<AVector3> aaPos,
 		ISubsetHandler& sh,
-		bool allowForTetsAndPyras)
+		bool allowForTetsAndPyras,
+		const ANumber* aRelZOut)
 {
 	UG_COND_THROW(layers.size() < 2, "At least 2 layers are required to perform extrusion!");
 
@@ -114,6 +115,7 @@ void ExtrudeLayers (
 	vector<Face*> tmpFaces;		// used to determine the set of faces that can be extruded
 	vector<number> vrtHeightVals;	// here we'll record height-values at which new vertices will be placed
 	vector<number> volHeightVals;	// here we'll record height-values at the center of new volumes
+	vector<number> curUpperLayerHeight;
 	vector<int> volSubsetInds;
 	vector<Volume*> newVols;
 	queue<Volume*> volCandidates;
@@ -128,10 +130,18 @@ void ExtrudeLayers (
 	grid.reserve<Vertex>(grid.num_vertices() * layers.size());
 	grid.reserve<Volume>(grid.num_faces() * layers.size() - 1);
 
-//	this accessor is used during smoothing only
+//	todo: this accessor is primarily used during smoothing. Maybe it can be removed?
 	ANumber aHeight;
 	grid.attach_to_vertices(aHeight);
 	Grid::VertexAttachmentAccessor<ANumber> aaHeight(grid, aHeight);
+
+	Grid::VertexAttachmentAccessor<ANumber> aaRelZOut;
+	if(aRelZOut){
+		ANumber aRelZ = *aRelZOut;
+		if(!grid.has_vertex_attachment(aRelZ))
+			grid.attach_to_vertices(aRelZ);
+		aaRelZOut.access(grid, aRelZ);
+	}
 
 //	we have to determine the vertices that can be projected onto the top of the
 //	given layers-stack. Only those will be used during extrusion
@@ -140,10 +150,13 @@ void ExtrudeLayers (
 	const int topLayerInd = (int)layers.num_layers() - 1;
 	for(VertexIterator i = grid.begin<Vertex>(); i != grid.end<Vertex>(); ++i){
 		Vertex* v = *i;
-		number val = top.heightfield.interpolate(vector2(aaPos[v].x(), aaPos[v].y()));
+		vector2 c(aaPos[v].x(), aaPos[v].y());
+		// number val = top.heightfield.interpolate(c);
+		number val = layers.relative_to_global_height(c, topLayerInd);
 		if(val != top.heightfield.no_data_value()){
 			aaPos[v].z() = val;
 			curVrts.push_back(v);
+			curUpperLayerHeight.push_back(val);
 			grid.mark(v);
 			sh.assign_subset(v, topLayerInd);
 		}
@@ -152,6 +165,11 @@ void ExtrudeLayers (
 	if(curVrts.size() < 3){
 		UG_LOG("Not enough vertices lie in the region of the surface layer\n");
 		return;
+	}
+
+	if(aaRelZOut.valid()){
+		for(size_t ivrt = 0; ivrt < curVrts.size(); ++ivrt)
+			aaRelZOut[curVrts[ivrt]] = topLayerInd;
 	}
 
 //	all faces of the initial triangulation that are only connected to marked
@@ -179,7 +197,7 @@ void ExtrudeLayers (
 
 	tmpVrts.reserve(curVrts.size());
 	smoothVrts.reserve(curVrts.size());
-	vrtHeightVals.reserve(curVrts.size());
+	curUpperLayerHeight.reserve(curVrts.size());
 	tmpFaces.reserve(curFaces.size());
 	newVols.reserve(curFaces.size());
 	volHeightVals.reserve(curFaces.size());
@@ -202,42 +220,59 @@ void ExtrudeLayers (
 		for(size_t icur = 0; icur < curVrts.size(); ++icur){
 			Vertex* v = curVrts[icur];
 			vector2 c(aaPos[v].x(), aaPos[v].y());
-			pair<int, number> val = layers.trace_line_down(c, ilayer);
-			pair<int, number> upperVal = layers.trace_line_up(c, ilayer+1);
-			UG_COND_THROW(upperVal.first == -1, "An upper layer has to exist");
+			number upperVal = curUpperLayerHeight[icur];
+			number height = layers.relative_to_global_height(c, (number) ilayer);
 
-			number height;
+			// bool searching = true;
+			int curLayer = ilayer;
 
-			if(val.first >= 0){
-			//	if val.first == ilayer height will equal val.second. If not,
-			//	a linear interpolation is performed, considering the height-val
-			//	of the current vertex, the layer distance and the target value.
-			//	This height-value will be corrected later on after extrusion
-				number ia = 1. / ((number)ilayer - (number)val.first + 1.);
-				height = (1. - ia) * aaPos[v].z() + ia * val.second;
-				tmpVrts.push_back(v);
-				vrtHeightVals.push_back(height);
-				aaHeight[v] = upperVal.second - val.second;//total height of ilayer
-				sh.assign_subset(v, val.first);
-				grid.mark(v);
-			}
-			else if(allowForTetsAndPyras){
-			//	we insert a dummy-vertex which will later on allow for easier
-			//	edge-collapses of inner vertical rim edges
-				tmpVrts.push_back(v);
-				number height = aaPos[v].z() - layers.min_height(ilayer);
-				vrtHeightVals.push_back(height);
-				aaHeight[v] = upperVal.second - val.second;//total height of ilayer
-				sh.assign_subset(v, invalidSub);
-				grid.mark(v);
-			}
+			// while(searching && curLayer >= 0){
+				// searching = false;
+				pair<int, number> val = layers.trace_line_down(c, curLayer);
+				number lowerVal = 0;
+				if(val.first >= 0)
+					lowerVal = layers.relative_to_global_height(c, (number) val.first);
+
+				// if(curLayer == 0 && val.first >= 0
+				// 	&& upperVal - lowerVal < layers.min_height(curLayer))
+				// {
+				// 	val.first = -1;
+				// }
+				
+				if(val.first >= 0){
+					// if(upperVal - lowerVal < layers.min_height(curLayer)){
+					// 	searching = true;
+					// 	--curLayer;
+					// 	continue;
+					// }
+				//	if val.first == curLayer height will equal lowerVal. If not,
+				//	a linear interpolation is performed, considering the height-val
+				//	of the current vertex, the layer distance and the target value.
+					tmpVrts.push_back(v);
+					vrtHeightVals.push_back(height);
+					aaHeight[v] = upperVal - lowerVal;//total height of curLayer
+					sh.assign_subset(v, val.first);
+					grid.mark(v);
+					if(val.first == ilayer){
+						// UG_LOG("DBG: setting upper value: " << lowerVal << "(old: " << upperVal << ")\n");
+						curUpperLayerHeight[icur] = lowerVal;
+					}
+				}
+				else if(allowForTetsAndPyras){
+				//	we insert a dummy-vertex which will later on allow for easier
+				//	edge-collapses of inner vertical rim edges
+					tmpVrts.push_back(v);
+					vrtHeightVals.push_back(height);
+					aaHeight[v] = upperVal - val.second;//total height of ilayer
+					sh.assign_subset(v, invalidSub);
+					grid.mark(v);
+				}
+			// }
 		}
 	//	now find the faces which connect those vertices
 		for(size_t iface = 0; iface < curFaces.size(); ++iface){
 			Face* f = curFaces[iface];
-		//	trace a line from the x-y-center of the face downwards starting at
-		//	the current layer to determine the layer in which the face has to
-		//	be placed.
+
 			vector3 center = CalculateCenter(f, aaPos);
 			vector2 c(center.x(), center.y());
 			pair<int, number> val = layers.trace_line_down(c, ilayer);
@@ -310,116 +345,9 @@ void ExtrudeLayers (
 			aaPos[curVrts[ivrt]].z() = vrtHeightVals[ivrt];
 		}
 
-
-	//	finally adjust the height of new vertices which do not belong to the
-	//	current layer
-		grid.clear_marks();
-		grid.mark(curVrts.begin(), curVrts.end());
-	//	Consider all current-layer-volumes and apply a minHeight constraint to
-	//	those edges which do not lie in the current layer.
-	//	We'll also assign subset-indices of vertices connected to volumes of
-	//	the current layer to the current layer index
-		for(size_t ivol = 0; ivol < newVols.size(); ++ivol){
-			Volume* vol = newVols[ivol];
-			if(volSubsetInds[ivol] != ilayer)
-				continue;
-
-			const number shrinkConst = 1;
-			const number minHeight = shrinkConst * volHeightVals[ivol];
-
-			for(assocVolEdgeIter.reinit(grid, vol); assocVolEdgeIter.valid();
-				++assocVolEdgeIter)
-			{
-				Edge* e = *assocVolEdgeIter;
-				Vertex* from, *to;
-				if(grid.is_marked(e->vertex(0))){
-					from = e->vertex(1); to = e->vertex(0);
-				}
-				else{
-					from = e->vertex(0); to = e->vertex(1);
-				}
-
-				if(sh.get_subset_index(to) != ilayer){
-					aaPos[to].z() = max(aaPos[to].z(), aaPos[from].z() - minHeight);
-					sh.assign_subset(to, ilayer);
-				}
-			}
-		}
-	//	prepare smoothing
-	//	Push all new vertices which do not belong to the current layer to smoothVrts
-	//	and the vertices directly above them to tmpVrts.
-	//	Calculate height for each new vertex on the fly
-		const bool performSmoothing = false;
-		if(performSmoothing){
-			smoothVrts.clear();
-			tmpVrts.clear();
-			for(size_t ivrt = 0; ivrt < curVrts.size(); ++ivrt){
-				Vertex* v = curVrts[ivrt];
-				Vertex* conVrt = NULL;
-				for(assocVrtEdgeIterOneMarked.reinit(grid, v);
-					assocVrtEdgeIterOneMarked.valid(); ++assocVrtEdgeIterOneMarked)
-				{
-					conVrt = GetConnectedVertex(*assocVrtEdgeIterOneMarked, v);
-					aaHeight[v] = aaPos[conVrt].z() - aaPos[v].z();
-				}
-				if((sh.get_subset_index(v) != ilayer) && conVrt){
-					smoothVrts.push_back(v);
-					tmpVrts.push_back(conVrt);
-				}
-			}
-
-
-		//	to perform smoothing we need different marks again
-			grid.clear_marks();
-
-		//	we'll mark all smoothing vertices
-			grid.mark(smoothVrts.begin(), smoothVrts.end());
-
-		//	and we'll mark all those edges along which we'll smooth
-			for(size_t iface = 0; iface < curFaces.size(); ++iface){
-				for(assocFaceEdgeIter.reinit(grid, curFaces[iface]); assocFaceEdgeIter.valid();
-					++assocFaceEdgeIter)
-				{
-					grid.mark(*assocFaceEdgeIter);
-				}
-			}
-
-		//	during smoothing, the height of non-marked vertices will be weighted stronger
-		//	than the height of marked ones
-			const size_t numSmoothIterations = 100;
-			const number markedWeight = 1.0;
-			const number smoothAlpha = 0.5;
-			for(size_t iSmoothIter = 0; iSmoothIter < numSmoothIterations; ++iSmoothIter){
-				for(size_t ivrt = 0; ivrt < smoothVrts.size(); ++ivrt){
-					Vertex* v = smoothVrts[ivrt];
-					number totalNbrWeight = 0;
-					number avHeight = 0;
-					for(assocVrtEdgeIterMarkedEdge.reinit(grid, v); assocVrtEdgeIterMarkedEdge.valid();
-						++assocVrtEdgeIterMarkedEdge)
-					{
-						Vertex* conVrt = GetConnectedVertex(*assocVrtEdgeIterMarkedEdge, v);
-						if(grid.is_marked(conVrt)){
-							avHeight += markedWeight * aaHeight[conVrt];
-							totalNbrWeight += markedWeight;
-						}
-						else{
-							avHeight += aaHeight[conVrt];
-							totalNbrWeight += 1;
-						}
-					}
-
-					UG_COND_THROW(totalNbrWeight == 0, "No neighbors found");
-					avHeight /= totalNbrWeight;
-					
-					aaHeight[v] = (1. - smoothAlpha) * aaHeight[v] + smoothAlpha * avHeight;
-				}
-			}
-
-		//	move vertices upwards only, to avoid invalid volumes in lower layers
-			for(size_t ivrt = 0; ivrt < smoothVrts.size(); ++ivrt){
-				Vertex* v = smoothVrts[ivrt];
-				aaPos[v].z() = max(aaPos[v].z(), aaPos[tmpVrts[ivrt]].z() - aaHeight[v]);
-			}
+		if(aaRelZOut.valid()){
+			for(size_t ivrt = 0; ivrt < curVrts.size(); ++ivrt)
+				aaRelZOut[curVrts[ivrt]] = ilayer;
 		}
 	}
 	
@@ -510,6 +438,51 @@ void ExtrudeLayers (
 	}
 	grid.end_marking();
 	grid.detach_from_vertices(aHeight);
+}
+
+
+///	projects the given (surface-) grid to the specified raster
+void ProjectToLayer(
+		Grid& grid,
+		const RasterLayers& layers,
+		int layerIndex,
+		Grid::VertexAttachmentAccessor<AVector3> aaPos)
+{
+	UG_COND_THROW(layerIndex < 0 || layerIndex >= (int)layers.size(),
+				  "Bad layerIndex in ProjectToLayer");
+
+	const RasterLayers::layer_t& layer = layers.layer(layerIndex);
+	for(VertexIterator i = grid.begin<Vertex>(); i != grid.end<Vertex>(); ++i){
+		Vertex* v = *i;
+		vector2 c(aaPos[v].x(), aaPos[v].y());
+		number val = layers.relative_to_global_height(c, layerIndex);
+
+		if(val != layer.heightfield.no_data_value()){
+			aaPos[v].z() = val;
+		}
+	}
+}
+
+
+void SnapToHorizontalRaster(
+		Grid& grid,
+		const RasterLayers& layers,
+		Grid::VertexAttachmentAccessor<AVector3> aaPos)
+{
+	UG_COND_THROW(layers.empty(), "Can't snap to empty raster!");
+
+	const Heightfield& field = layers.top().heightfield;
+
+	for(VertexIterator ivrt = grid.vertices_begin();
+		ivrt != grid.vertices_end(); ++ivrt)
+	{
+		Vertex* vrt = *ivrt;
+		vector3& v = aaPos[vrt];
+		pair<int, int> ci = field.coordinate_to_index(v.x(), v.y());
+		vector2 nv = field.index_to_coordinate(ci.first, ci.second);
+		v.x() = nv.x();
+		v.y() = nv.y();
+	}
 }
 
 }//	end of namespace

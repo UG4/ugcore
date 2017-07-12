@@ -173,6 +173,35 @@ array_index(size_t x, size_t y) const{
 	return x + y * m_width;
 }
 
+
+template <class T>
+template <class Archive>
+void Field<T>::
+save( Archive& ar, const unsigned int version) const
+{
+	ar & m_width;
+	ar & m_height;
+	const size_t s = size();
+	for(size_t i = 0; i < s; ++i){
+		ar & m_data[i];
+	}
+}
+
+template <class T>
+template <class Archive>
+void Field<T>::
+load( Archive& ar, const unsigned int version)
+{
+	size_t w = 0, h = 0;
+	ar & w;
+	ar & h;
+	resize_no_copy(w, h);
+	const size_t s = size();
+	for(size_t i = 0; i < s; ++i){
+		ar & m_data[i];
+	}
+}
+
 }//	end of namespace
 
 #endif	//__H__UG_field_impl__

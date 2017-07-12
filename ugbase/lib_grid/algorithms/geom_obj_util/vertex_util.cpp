@@ -100,11 +100,16 @@ Vertex* GetConnectedVertex(EdgeVertices* e, Face* f)
 ////////////////////////////////////////////////////////////////////////
 int GetConnectedVertexIndex(Face* f, const EdgeDescriptor& ed)
 {
+	return GetConnectedVertexIndex(f, &ed);
+}
+
+int GetConnectedVertexIndex(Face* f, const EdgeVertices* e)
+{
 	uint numVrts = f->num_vertices();
 	for(uint i = 0; i < numVrts; ++i)
 	{
-		if((f->vertex(i) != ed.vertex(0)) &&
-			(f->vertex(i) != ed.vertex(1)))
+		if((f->vertex(i) != e->vertex(0)) &&
+			(f->vertex(i) != e->vertex(1)))
 		{
 			return i;
 		}

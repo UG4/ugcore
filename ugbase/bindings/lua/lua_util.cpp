@@ -46,7 +46,9 @@
 #include "bridge/bridge.h"
 #include "registry/class_helper.h"
 #include "info_commands.h"
-#include "lua_user_data.h"
+#ifdef UG_DISC
+	#include "lua_user_data.h"
+#endif
 #include "registry/class_name_provider.h"
 #include "registry/registry.h"
 #include "lua_debug.h"
@@ -59,6 +61,9 @@
 #include "pcl/pcl_util.h"
 #endif
 
+#ifdef USE_LUAJIT
+#include <lua.hpp>
+#endif
 
 using namespace std;
 
@@ -248,6 +253,10 @@ lua_State* GetDefaultLuaState()
 		
 	//	open a lua state
 		theLuaState = lua_open();
+#ifdef USE_LUAJIT
+		UG_ASSERT(theLuaState!=NULL, "FATAL ERROR: Not enough memory for lua?")
+#endif
+
 	//	open standard libs
 		luaL_openlibs(theLuaState);
 

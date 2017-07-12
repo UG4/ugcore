@@ -44,6 +44,7 @@ sub writeFunction()
 	{
 		$result .= "$resultcode$line\n\\endcode\n";
 	}
+	# $result .= "**/\n";
 	$result .= "**/\n".$functionLine."\n";
 }
 
@@ -126,9 +127,24 @@ for ($i=0;$i<=$#document;$i++)
         {
         	$result .= $functionComment."\n";
         }		
-        $resultcode = "\\code\n".$originalLine."\n\n";
+        $resultcode = "\\code\n".$originalLine."\n";
         $functionComment = "";
 		$fromline = $i;
+
+		if ( $line =~ /^.*end/ )
+		{
+		# This code tries to avoid problems with non-closed comments for one-liner functions.
+		# Not that it is not really safe (as the rest of the script seems to be),
+		# since opening and closed blocks are not counted. It would e.g. fail for:
+		# 	function a (b) if(b) print("c") end
+		# 	end
+		# Nevertheless it helps to parse most scripts.
+			$bInFunction = 0;
+			$result .= "location: ".dirname($input)." / ".basename($input)." :$fromline\n";
+			$result .= "\\code\n".$originalLine."\n\\endcode\n**/\n";
+			$result .= $functionLine."\n";
+        }
+
         next
     }
     elsif ( $line =~ /^\s*(\w*)\s+=\s+function\s*\(([^\)]*)/ ) 
@@ -145,6 +161,7 @@ for ($i=0;$i<=$#document;$i++)
         $resultcode = "\\code\n".$originalLine."\n\n";
         $functionComment = "";
 		$fromline = $i;
+
         next
     }
         

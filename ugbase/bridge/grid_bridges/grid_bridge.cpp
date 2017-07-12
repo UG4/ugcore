@@ -119,6 +119,8 @@ void RegisterGridBridge_Grid(Registry& reg, string parentGroup)
 		.set_construct_as_smart_pointer(true);
 
 //	standard attachments
+	reg.add_class_<AInt>("AInt");
+	reg.add_class_<ANumber>("ANumber");
 	reg.add_class_<APosition1>("APosition1");
 	reg.add_class_<APosition2>("APosition2");
 	reg.add_class_<APosition3>("APosition3");

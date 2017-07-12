@@ -98,14 +98,27 @@ static void Domain(Registry& reg, string grp)
 		reg.add_class_to_group(name, "IElemDiscModifier", tag);
 	}
 
-//	DomainElemDisc base class
+	//	IElemError base class
+	{
+			typedef IElemError<TDomain> T;
+			string name = string("IElemError").append(suffix);
+			reg.add_class_<T>(name, elemGrp)
+	 			.add_method("set_stationary", static_cast<void (T::*)()>(&T::set_stationary))
+	 		//	.add_method("add_elem_modifier", &T::add_elem_modifier, "", "")
+	 			.add_method("set_error_estimator", static_cast<void (T::*)(SmartPtr<IErrEstData<TDomain> >)>(&T::set_error_estimator));
+	 		reg.add_class_to_group(name, "IElemError", tag);
+	}
+
+
+//	IElemDisc base class
 	{
 		typedef IElemDisc<TDomain> T;
+		typedef IElemError<TDomain> TBase;
 		string name = string("IElemDisc").append(suffix);
-		reg.add_class_<T>(name, elemGrp)
- 			.add_method("set_stationary", static_cast<void (T::*)()>(&T::set_stationary))
- 			.add_method("add_elem_modifier", &T::add_elem_modifier, "", "")
- 			.add_method("set_error_estimator", static_cast<void (T::*)(SmartPtr<IErrEstData<TDomain> >)>(&T::set_error_estimator));
+		reg.add_class_<T, TBase>(name, elemGrp)
+ 		//	.add_method("set_stationary", static_cast<void (T::*)()>(&T::set_stationary))
+ 			.add_method("add_elem_modifier", &T::add_elem_modifier, "", "");
+ 		//	.add_method("set_error_estimator", static_cast<void (T::*)(SmartPtr<IErrEstData<TDomain> >)>(&T::set_error_estimator));
  		reg.add_class_to_group(name, "IElemDisc", tag);
 	}
 

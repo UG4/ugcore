@@ -45,17 +45,22 @@
 #include "bindings_lua.h"
 #include "bridge/bridge.h"
 #include "registry/class_helper.h"
-#include "lua_user_data.h"
+#ifdef UG_DISC
+	#include "lua_user_data.h"
+#endif
 #include "registry/registry.h"
 #include "info_commands.h"
 #include "lua_debug.h"
 #include "common/profiler/runtime_profile_info.h"
 #include "common/util/string_util.h"
 
-extern "C" {
+#ifndef USE_LUAJIT
+extern "C" { // lua default
 #include "externals/lua/lstate.h"
 }
-
+#else
+#include <lua.h>
+#endif
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using namespace std;

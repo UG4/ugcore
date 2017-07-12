@@ -56,6 +56,8 @@ TAGFILES               = ugbase.tags=.. \
                          plugins.tags=../../plugins \
                          regdocu.tags=../regdocu
 
+IMAGE_PATH             = ../../apps/Examples/img
+
 # When a file name is specified after GENERATE_TAGFILE, doxygen will create
 # a tag file that is based on the input files it reads.
 

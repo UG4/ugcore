@@ -271,7 +271,7 @@ OPTIMIZE_OUTPUT_VHDL   = NO
 # that for custom extensions you also need to set FILE_PATTERNS otherwise the
 # files are not read by doxygen.
 
-EXTENSION_MAPPING      =
+EXTENSION_MAPPING      = lua=C
 
 # If MARKDOWN_SUPPORT is enabled (the default) then doxygen pre-processes all
 # comments according to the Markdown format, which allows for more readable
@@ -755,7 +755,9 @@ EXCLUDE                = ../ugbase/lib_grid/externals \
                          ../ugbase/lib_grid/refinement/unmaintained \
                          ../ugbase/lib_grid/parallelization/parallel_refinement/unmaintained \
                          ../ugbase/common/parser/rapidxml \
-                         ../ugbase/common/profiler/src
+                         ../ugbase/common/profiler/src \
+                         ../scripts/deprecated \
+                         ../scripts/solver_util
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded

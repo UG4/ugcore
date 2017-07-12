@@ -83,8 +83,8 @@ TriangleDescriptor::TriangleDescriptor(Vertex* v1, Vertex* v2, Vertex* v3)
 
 ////////////////////////////////////////////////////////////////////////
 //	CustomTriangle
-template <class ConcreteTriangleType, class BaseClass>
-CustomTriangle<ConcreteTriangleType, BaseClass>::
+template <class ConcreteTriangleType, class BaseClass, class RefTriType, class RefQuadType>
+CustomTriangle<ConcreteTriangleType, BaseClass, RefTriType, RefQuadType>::
 CustomTriangle(const TriangleDescriptor& td)
 {
 	m_vertices[0] = td.vertex(0);
@@ -92,8 +92,8 @@ CustomTriangle(const TriangleDescriptor& td)
 	m_vertices[2] = td.vertex(2);
 }
 
-template <class ConcreteTriangleType, class BaseClass>
-CustomTriangle<ConcreteTriangleType, BaseClass>::
+template <class ConcreteTriangleType, class BaseClass, class RefTriType, class RefQuadType>
+CustomTriangle<ConcreteTriangleType, BaseClass, RefTriType, RefQuadType>::
 CustomTriangle(Vertex* v1, Vertex* v2, Vertex* v3)
 {
 	m_vertices[0] = v1;
@@ -101,9 +101,9 @@ CustomTriangle(Vertex* v1, Vertex* v2, Vertex* v3)
 	m_vertices[2] = v3;
 }
 
-template <class ConcreteTriangleType, class BaseClass>
+template <class ConcreteTriangleType, class BaseClass, class RefTriType, class RefQuadType>
 std::pair<GridBaseObjectId, int>
-CustomTriangle<ConcreteTriangleType, BaseClass>::
+CustomTriangle<ConcreteTriangleType, BaseClass, RefTriType, RefQuadType>::
 get_opposing_object(Vertex* vrt) const
 {
 	for(int i = 0; i < 3; ++i){
@@ -115,9 +115,9 @@ get_opposing_object(Vertex* vrt) const
 	UG_THROW("The given vertex is not contained in the given face.");
 }
 
-template <class ConcreteTriangleType, class BaseClass>
+template <class ConcreteTriangleType, class BaseClass, class RefTriType, class RefQuadType>
 bool
-CustomTriangle<ConcreteTriangleType, BaseClass>::
+CustomTriangle<ConcreteTriangleType, BaseClass, RefTriType, RefQuadType>::
 refine(std::vector<Face*>& vNewFacesOut,
 		Vertex** newFaceVertexOut,
 		Vertex** newEdgeVertices,
@@ -155,9 +155,9 @@ refine(std::vector<Face*>& vNewFacesOut,
 		}
 
 	//	create three new triangles
-		vNewFacesOut.push_back(new ConcreteTriangleType(vrts[0], vrts[1], newFaceVertex));
-		vNewFacesOut.push_back(new ConcreteTriangleType(vrts[1], vrts[2], newFaceVertex));
-		vNewFacesOut.push_back(new ConcreteTriangleType(vrts[2], vrts[0], newFaceVertex));
+		vNewFacesOut.push_back(new RefTriType(vrts[0], vrts[1], newFaceVertex));
+		vNewFacesOut.push_back(new RefTriType(vrts[1], vrts[2], newFaceVertex));
+		vNewFacesOut.push_back(new RefTriType(vrts[2], vrts[0], newFaceVertex));
 		return true;
 	}
 	else
@@ -183,9 +183,9 @@ refine(std::vector<Face*>& vNewFacesOut,
 				iCorner[2] = (iCorner[1] + 1) % 3;
 					
 			//	create the new triangles.
-				vNewFacesOut.push_back(new ConcreteTriangleType(vrts[iCorner[0]], vrts[iCorner[1]],
+				vNewFacesOut.push_back(new RefTriType(vrts[iCorner[0]], vrts[iCorner[1]],
 																newEdgeVertices[iNew]));
-				vNewFacesOut.push_back(new ConcreteTriangleType(vrts[iCorner[0]], newEdgeVertices[iNew],
+				vNewFacesOut.push_back(new RefTriType(vrts[iCorner[0]], newEdgeVertices[iNew],
 																vrts[iCorner[2]]));
 																
 				return true;
@@ -214,10 +214,10 @@ refine(std::vector<Face*>& vNewFacesOut,
 				iCorner[2] = (iFree + 2) % 3;
 				
 			//	create the faces
-				vNewFacesOut.push_back(new ConcreteTriangleType(newEdgeVertices[iNew[0]],
+				vNewFacesOut.push_back(new RefTriType(newEdgeVertices[iNew[0]],
 																vrts[iCorner[2]],
 																newEdgeVertices[iNew[1]]));
-				vNewFacesOut.push_back(new Quadrilateral(vrts[iCorner[0]], vrts[iCorner[1]],
+				vNewFacesOut.push_back(new RefQuadType(vrts[iCorner[0]], vrts[iCorner[1]],
 														newEdgeVertices[iNew[0]], newEdgeVertices[iNew[1]]));
 				return true;
 			}
@@ -225,10 +225,10 @@ refine(std::vector<Face*>& vNewFacesOut,
 			case 3:
 			{
 			//	perform regular refine.
-				vNewFacesOut.push_back(new ConcreteTriangleType(vrts[0], newEdgeVertices[0], newEdgeVertices[2]));
-				vNewFacesOut.push_back(new ConcreteTriangleType(vrts[1], newEdgeVertices[1], newEdgeVertices[0]));
-				vNewFacesOut.push_back(new ConcreteTriangleType(vrts[2], newEdgeVertices[2], newEdgeVertices[1]));
-				vNewFacesOut.push_back(new ConcreteTriangleType(newEdgeVertices[0], newEdgeVertices[1], newEdgeVertices[2]));
+				vNewFacesOut.push_back(new RefTriType(vrts[0], newEdgeVertices[0], newEdgeVertices[2]));
+				vNewFacesOut.push_back(new RefTriType(vrts[1], newEdgeVertices[1], newEdgeVertices[0]));
+				vNewFacesOut.push_back(new RefTriType(vrts[2], newEdgeVertices[2], newEdgeVertices[1]));
+				vNewFacesOut.push_back(new RefTriType(newEdgeVertices[0], newEdgeVertices[1], newEdgeVertices[2]));
 				return true;
 			}
 
@@ -238,9 +238,17 @@ refine(std::vector<Face*>& vNewFacesOut,
 	return false;
 }
 
-template <class ConcreteTriangleType, class BaseClass>
+template <class ConcreteTriangleType, class BaseClass, class RefTriType, class RefQuadType>
 bool
-CustomTriangle<ConcreteTriangleType, BaseClass>::
+CustomTriangle<ConcreteTriangleType, BaseClass, RefTriType, RefQuadType>::
+is_regular_ref_rule(int edgeMarks) const
+{
+	return edgeMarks == 7;
+}
+
+template <class ConcreteTriangleType, class BaseClass, class RefTriType, class RefQuadType>
+bool
+CustomTriangle<ConcreteTriangleType, BaseClass, RefTriType, RefQuadType>::
 collapse_edge(std::vector<Face*>& vNewFacesOut,
 				int edgeIndex, Vertex* newVertex,
 				Vertex** pSubstituteVertices)
@@ -250,9 +258,9 @@ collapse_edge(std::vector<Face*>& vNewFacesOut,
 	return true;
 }
 
-template <class ConcreteTriangleType, class BaseClass>
+template <class ConcreteTriangleType, class BaseClass, class RefTriType, class RefQuadType>
 bool
-CustomTriangle<ConcreteTriangleType, BaseClass>::
+CustomTriangle<ConcreteTriangleType, BaseClass, RefTriType, RefQuadType>::
 collapse_edges(std::vector<Face*>& vNewFacesOut,
 				std::vector<Vertex*>& vNewEdgeVertices,
 				Vertex** pSubstituteVertices)
@@ -288,9 +296,9 @@ collapse_edges(std::vector<Face*>& vNewFacesOut,
 }
 
 //	BEGIN Depreciated
-template <class ConcreteTriangleType, class BaseClass>
+template <class ConcreteTriangleType, class BaseClass, class RefTriType, class RefQuadType>
 void
-CustomTriangle<ConcreteTriangleType, BaseClass>::
+CustomTriangle<ConcreteTriangleType, BaseClass, RefTriType, RefQuadType>::
 create_faces_by_edge_split(int splitEdgeIndex,
 								Vertex* newVertex,
 								std::vector<Face*>& vNewFacesOut,
@@ -347,8 +355,8 @@ QuadrilateralDescriptor::QuadrilateralDescriptor(Vertex* v1, Vertex* v2, Vertex*
 ////////////////////////////////////////////////////////////////////////
 //	Quad
 
-template <class ConcreteQuadrilateralType, class BaseClass>
-CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass>::
+template <class ConcreteQuadrilateralType, class BaseClass, class RefTriType, class RefQuadType>
+CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass, RefTriType, RefQuadType>::
 CustomQuadrilateral(const QuadrilateralDescriptor& qd)
 {
 	m_vertices[0] = qd.vertex(0);
@@ -357,8 +365,8 @@ CustomQuadrilateral(const QuadrilateralDescriptor& qd)
 	m_vertices[3] = qd.vertex(3);
 }
 
-template <class ConcreteQuadrilateralType, class BaseClass>
-CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass>::
+template <class ConcreteQuadrilateralType, class BaseClass, class RefTriType, class RefQuadType>
+CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass, RefTriType, RefQuadType>::
 CustomQuadrilateral(Vertex* v1, Vertex* v2, Vertex* v3, Vertex* v4)
 {
 	m_vertices[0] = v1;
@@ -367,9 +375,9 @@ CustomQuadrilateral(Vertex* v1, Vertex* v2, Vertex* v3, Vertex* v4)
 	m_vertices[3] = v4;
 }
 
-template <class ConcreteQuadrilateralType, class BaseClass>
+template <class ConcreteQuadrilateralType, class BaseClass, class RefTriType, class RefQuadType>
 bool
-CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass>::
+CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass, RefTriType, RefQuadType>::
 get_opposing_side(EdgeVertices* e, EdgeDescriptor& edOut) const
 {
 	int localInd = Face::get_local_side_index(e);
@@ -381,9 +389,9 @@ get_opposing_side(EdgeVertices* e, EdgeDescriptor& edOut) const
 	return true;
 }
 
-template <class ConcreteQuadrilateralType, class BaseClass>
+template <class ConcreteQuadrilateralType, class BaseClass, class RefTriType, class RefQuadType>
 std::pair<GridBaseObjectId, int>
-CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass>::
+CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass, RefTriType, RefQuadType>::
 get_opposing_object(Vertex* vrt) const
 {
 	for(int i = 0; i < 4; ++i){
@@ -395,9 +403,9 @@ get_opposing_object(Vertex* vrt) const
 	UG_THROW("The given vertex is not contained in the given face.");
 }
 
-template <class ConcreteQuadrilateralType, class BaseClass>
+template <class ConcreteQuadrilateralType, class BaseClass, class RefTriType, class RefQuadType>
 void
-CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass>::
+CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass, RefTriType, RefQuadType>::
 create_faces_by_edge_split(int splitEdgeIndex,
 							Vertex* newVertex,
 							std::vector<Face*>& vNewFacesOut,
@@ -427,18 +435,18 @@ create_faces_by_edge_split(int splitEdgeIndex,
 	TriangleDescriptor td;
 
 //	edge-split generates 3 triangles
-	vNewFacesOut.push_back(new Triangle(vrts[ind0], newVertex, vrts[ind3]));
-	vNewFacesOut.push_back(new Triangle(newVertex, vrts[ind1], vrts[ind2]));
-	vNewFacesOut.push_back(new Triangle(vrts[ind3], newVertex, vrts[ind2]));
+	vNewFacesOut.push_back(new RefTriType(vrts[ind0], newVertex, vrts[ind3]));
+	vNewFacesOut.push_back(new RefTriType(newVertex, vrts[ind1], vrts[ind2]));
+	vNewFacesOut.push_back(new RefTriType(vrts[ind3], newVertex, vrts[ind2]));
 
 //	we're done.
 }
 
 ////////////////////////////////////////////////////////////////////////
 //	Quadrilateral::refine
-template <class ConcreteQuadrilateralType, class BaseClass>
+template <class ConcreteQuadrilateralType, class BaseClass, class RefTriType, class RefQuadType>
 bool
-CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass>::
+CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass, RefTriType, RefQuadType>::
 refine(std::vector<Face*>& vNewFacesOut,
 		Vertex** newFaceVertexOut,
 		Vertex** edgeVrts,
@@ -470,10 +478,10 @@ refine(std::vector<Face*>& vNewFacesOut,
 	{
 		case 0:
 		//	create four new triangles
-			vNewFacesOut.push_back(new Triangle(vrts[0], vrts[1], newFaceVertex));
-			vNewFacesOut.push_back(new Triangle(vrts[1], vrts[2], newFaceVertex));
-			vNewFacesOut.push_back(new Triangle(vrts[2], vrts[3], newFaceVertex));
-			vNewFacesOut.push_back(new Triangle(vrts[3], vrts[0], newFaceVertex));
+			vNewFacesOut.push_back(new RefTriType(vrts[0], vrts[1], newFaceVertex));
+			vNewFacesOut.push_back(new RefTriType(vrts[1], vrts[2], newFaceVertex));
+			vNewFacesOut.push_back(new RefTriType(vrts[2], vrts[3], newFaceVertex));
+			vNewFacesOut.push_back(new RefTriType(vrts[3], vrts[0], newFaceVertex));
 			return true;
 			
 		case 1:
@@ -503,19 +511,19 @@ refine(std::vector<Face*>& vNewFacesOut,
 
 		//	create the new elements
 			if(snapPointIndex == -1){
-				vNewFacesOut.push_back(new Triangle(corner[0], corner[1], edgeVrts[iNew]));
-				vNewFacesOut.push_back(new Triangle(corner[0], edgeVrts[iNew], corner[3]));
-				vNewFacesOut.push_back(new Triangle(corner[3], edgeVrts[iNew], corner[2]));
+				vNewFacesOut.push_back(new RefTriType(corner[0], corner[1], edgeVrts[iNew]));
+				vNewFacesOut.push_back(new RefTriType(corner[0], edgeVrts[iNew], corner[3]));
+				vNewFacesOut.push_back(new RefTriType(corner[3], edgeVrts[iNew], corner[2]));
 			}
 			else{
 				snapPointIndex = (snapPointIndex + 4 - rot) % 4;
 				if(snapPointIndex == 0){
-					vNewFacesOut.push_back(new Triangle(corner[0], corner[1], edgeVrts[iNew]));
-					vNewFacesOut.push_back(new Quadrilateral(corner[0], edgeVrts[iNew], corner[2], corner[3]));
+					vNewFacesOut.push_back(new RefTriType(corner[0], corner[1], edgeVrts[iNew]));
+					vNewFacesOut.push_back(new RefQuadType(corner[0], edgeVrts[iNew], corner[2], corner[3]));
 				}
 				else if(snapPointIndex == 3){
-					vNewFacesOut.push_back(new Quadrilateral(corner[0], corner[1], edgeVrts[iNew], corner[3]));
-					vNewFacesOut.push_back(new Triangle(corner[3], edgeVrts[iNew], corner[2]));
+					vNewFacesOut.push_back(new RefQuadType(corner[0], corner[1], edgeVrts[iNew], corner[3]));
+					vNewFacesOut.push_back(new RefTriType(corner[3], edgeVrts[iNew], corner[2]));
 				}
 				else{
 					UG_THROW("Unexpected snap-point index: " << snapPointIndex << ". This is an implementation error!");
@@ -552,10 +560,10 @@ refine(std::vector<Face*>& vNewFacesOut,
 				ReorderCornersCCW(corner, vrts, 4, (iNew[0] + 3) % 4);
 				
 			//	create new faces
-				vNewFacesOut.push_back(new ConcreteQuadrilateralType(corner[0], corner[1],
+				vNewFacesOut.push_back(new RefQuadType(corner[0], corner[1],
 													edgeVrts[iNew[0]], edgeVrts[iNew[1]]));
 
-				vNewFacesOut.push_back(new ConcreteQuadrilateralType(edgeVrts[iNew[1]], edgeVrts[iNew[0]],
+				vNewFacesOut.push_back(new RefQuadType(edgeVrts[iNew[1]], edgeVrts[iNew[0]],
 														corner[2], corner[3]));
 			}
 			else{
@@ -576,15 +584,15 @@ refine(std::vector<Face*>& vNewFacesOut,
 
 			//	create new faces
 				if(snapPointIndex == -1){
-					vNewFacesOut.push_back(new Triangle(corner[0], corner[1], edgeVrts[iNew[0]]));
-					vNewFacesOut.push_back(new Triangle(edgeVrts[iNew[0]], corner[2], edgeVrts[iNew[1]]));
-					vNewFacesOut.push_back(new Triangle(corner[3], corner[0], edgeVrts[iNew[1]]));
-					vNewFacesOut.push_back(new Triangle(corner[0], edgeVrts[iNew[0]], edgeVrts[iNew[1]]));
+					vNewFacesOut.push_back(new RefTriType(corner[0], corner[1], edgeVrts[iNew[0]]));
+					vNewFacesOut.push_back(new RefTriType(edgeVrts[iNew[0]], corner[2], edgeVrts[iNew[1]]));
+					vNewFacesOut.push_back(new RefTriType(corner[3], corner[0], edgeVrts[iNew[1]]));
+					vNewFacesOut.push_back(new RefTriType(corner[0], edgeVrts[iNew[0]], edgeVrts[iNew[1]]));
 				}
 				else{
-					vNewFacesOut.push_back(new Triangle(corner[0], corner[1], edgeVrts[iNew[0]]));
-					vNewFacesOut.push_back(new Triangle(corner[3], corner[0], edgeVrts[iNew[1]]));
-					vNewFacesOut.push_back(new Quadrilateral(corner[0], edgeVrts[iNew[0]], corner[2], edgeVrts[iNew[1]]));
+					vNewFacesOut.push_back(new RefTriType(corner[0], corner[1], edgeVrts[iNew[0]]));
+					vNewFacesOut.push_back(new RefTriType(corner[3], corner[0], edgeVrts[iNew[1]]));
+					vNewFacesOut.push_back(new RefQuadType(corner[0], edgeVrts[iNew[0]], corner[2], edgeVrts[iNew[1]]));
 				}
 			}
 
@@ -617,10 +625,10 @@ refine(std::vector<Face*>& vNewFacesOut,
 			ReorderCornersCCW(corner, vrts, 4, (iFree + 1) % 4);
 
 		//	create the faces
-			vNewFacesOut.push_back(new ConcreteQuadrilateralType(corner[0], nvrts[0], nvrts[2], corner[3]));
-			vNewFacesOut.push_back(new Triangle(corner[1], nvrts[1], nvrts[0]));
-			vNewFacesOut.push_back(new Triangle(corner[2], nvrts[2], nvrts[1]));
-			vNewFacesOut.push_back(new Triangle(nvrts[0], nvrts[1], nvrts[2]));
+			vNewFacesOut.push_back(new RefQuadType(corner[0], nvrts[0], nvrts[2], corner[3]));
+			vNewFacesOut.push_back(new RefTriType(corner[1], nvrts[1], nvrts[0]));
+			vNewFacesOut.push_back(new RefTriType(corner[2], nvrts[2], nvrts[1]));
+			vNewFacesOut.push_back(new RefTriType(nvrts[0], nvrts[1], nvrts[2]));
 
 			return true;
 		}
@@ -633,10 +641,10 @@ refine(std::vector<Face*>& vNewFacesOut,
 
 			*newFaceVertexOut = newFaceVertex;
 		
-			vNewFacesOut.push_back(new ConcreteQuadrilateralType(vrts[0], edgeVrts[0], newFaceVertex, edgeVrts[3]));
-			vNewFacesOut.push_back(new ConcreteQuadrilateralType(vrts[1], edgeVrts[1], newFaceVertex, edgeVrts[0]));
-			vNewFacesOut.push_back(new ConcreteQuadrilateralType(vrts[2], edgeVrts[2], newFaceVertex, edgeVrts[1]));
-			vNewFacesOut.push_back(new ConcreteQuadrilateralType(vrts[3], edgeVrts[3], newFaceVertex, edgeVrts[2]));
+			vNewFacesOut.push_back(new RefQuadType(vrts[0], edgeVrts[0], newFaceVertex, edgeVrts[3]));
+			vNewFacesOut.push_back(new RefQuadType(vrts[1], edgeVrts[1], newFaceVertex, edgeVrts[0]));
+			vNewFacesOut.push_back(new RefQuadType(vrts[2], edgeVrts[2], newFaceVertex, edgeVrts[1]));
+			vNewFacesOut.push_back(new RefQuadType(vrts[3], edgeVrts[3], newFaceVertex, edgeVrts[2]));
 			return true;
 		}
 	}
@@ -644,9 +652,24 @@ refine(std::vector<Face*>& vNewFacesOut,
 	return false;
 }
 
-template <class ConcreteQuadrilateralType, class BaseClass>
+template <class ConcreteQuadrilateralType, class BaseClass, class RefTriType, class RefQuadType>
 bool
-CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass>::
+CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass, RefTriType, RefQuadType>::
+is_regular_ref_rule(int edgeMarks) const
+{
+	static const int allEdges = 15;	// 1111
+	static const int hEdges = 5;	// 0101
+	static const int vEdges = 10;	// 1010
+
+	return 		(edgeMarks == allEdges)
+			||	(edgeMarks == hEdges)
+			||	(edgeMarks == vEdges);
+}
+
+
+template <class ConcreteQuadrilateralType, class BaseClass, class RefTriType, class RefQuadType>
+bool
+CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass, RefTriType, RefQuadType>::
 collapse_edge(std::vector<Face*>& vNewFacesOut,
 				int edgeIndex, Vertex* newVertex,
 				Vertex** pSubstituteVertices)
@@ -668,13 +691,13 @@ collapse_edge(std::vector<Face*>& vNewFacesOut,
 	int ind3 = (ind2 + 1) % 4;
 
 //	ind0 and ind1 will be replaced by newVertex.
-	vNewFacesOut.push_back(new Triangle(newVertex, vrts[ind2], vrts[ind3]));
+	vNewFacesOut.push_back(new RefTriType(newVertex, vrts[ind2], vrts[ind3]));
 	return true;
 }
 
-template <class ConcreteQuadrilateralType, class BaseClass>
+template <class ConcreteQuadrilateralType, class BaseClass, class RefTriType, class RefQuadType>
 bool
-CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass>::
+CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass, RefTriType, RefQuadType>::
 collapse_edges(std::vector<Face*>& vNewFacesOut,
 				std::vector<Vertex*>& vNewEdgeVertices,
 				Vertex** pSubstituteVertices)
@@ -720,13 +743,17 @@ collapse_edges(std::vector<Face*>& vNewFacesOut,
 }
 
 //	explicit instantiation
-template class CustomTriangle<Triangle, Face>;
-template class CustomTriangle<ConstrainedTriangle, ConstrainedFace>;
-template class CustomTriangle<ConstrainingTriangle, ConstrainingFace>;
+template class CustomTriangle<Triangle, Face, Triangle, Quadrilateral>;
+template class CustomTriangle<ConstrainedTriangle, ConstrainedFace,
+							  ConstrainedTriangle, ConstrainedQuadrilateral>;
+template class CustomTriangle<ConstrainingTriangle, ConstrainingFace,
+							  ConstrainingTriangle, ConstrainingQuadrilateral>;
 
-template class CustomQuadrilateral<Quadrilateral, Face>;
-template class CustomQuadrilateral<ConstrainedQuadrilateral, ConstrainedFace>;
-template class CustomQuadrilateral<ConstrainingQuadrilateral, ConstrainingFace>;
+template class CustomQuadrilateral<Quadrilateral, Face, Triangle, Quadrilateral>;
+template class CustomQuadrilateral<ConstrainedQuadrilateral, ConstrainedFace,
+								   ConstrainedTriangle, ConstrainedQuadrilateral>;
+template class CustomQuadrilateral<ConstrainingQuadrilateral, ConstrainingFace,
+								   ConstrainingTriangle, ConstrainingQuadrilateral>;
 
 
 ////////////////////////////////////////////////////////////////////////////////

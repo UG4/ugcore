@@ -33,6 +33,7 @@
 #include <vector>
 #include "hanging_node_refiner_grid.h"
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
+#include "ref_mark_adjusters/local_mark_adjuster.h"
 
 using namespace std;
 
@@ -86,6 +87,9 @@ set_grid(Grid* grid)
 	{
 		m_pGrid->detach_from_edges(m_aVertex);
 		m_pGrid->detach_from_faces(m_aVertex);
+		m_pGrid->detach_from_faces(m_aLocalMark);
+		m_pGrid->detach_from_volumes(m_aLocalMark);
+		m_aaLocalMark.invalidate();
 		m_pGrid = NULL;
 	}
 
@@ -129,6 +133,66 @@ bool HangingNodeRefiner_Grid::mark(Volume* v, RefinementMark refMark)
 	return false;
 }
 
+
+void HangingNodeRefiner_Grid::
+mark_local(Face* e, int localMark)
+{
+	if(!m_aaLocalMark.is_valid_face_accessor())
+		attach_local_marks();
+	
+//	make sure that the local mark is considered a new mark
+	if(adjusting_ref_marks() && marked_local(e) && (localMark != m_aaLocalMark[e]))
+		mark(e, RM_NONE);
+
+	m_aaLocalMark[e] = localMark;
+	mark(e, RM_LOCAL);
+}
+
+void HangingNodeRefiner_Grid::
+mark_local(Volume* e, int localMark)
+{
+	if(!m_aaLocalMark.is_valid_volume_accessor())
+		attach_local_marks();
+	
+//	make sure that the local mark is considered a new mark
+	if(adjusting_ref_marks() && marked_local(e) && (localMark != m_aaLocalMark[e]))
+		mark(e, RM_NONE);
+
+	m_aaLocalMark[e] = localMark;
+	mark(e, RM_LOCAL);
+}
+
+
+int HangingNodeRefiner_Grid::
+get_local_mark(Face* e) const
+{
+	if(m_aaLocalMark.is_valid_face_accessor())
+		return m_aaLocalMark[e];
+	return 0;
+}
+
+int HangingNodeRefiner_Grid::
+get_local_mark(Volume* e) const
+{
+	if(m_aaLocalMark.is_valid_volume_accessor())
+		return m_aaLocalMark[e];
+	return 0;
+}
+
+
+void HangingNodeRefiner_Grid::
+attach_local_marks()
+{
+//todo: more elaborate check that the method is not executed multiple times per object
+	if(!m_aaLocalMark.is_valid_face_accessor()){
+		add_ref_mark_adjuster(LocalMarkAdjuster::create());
+		m_pGrid->attach_to_faces_dv(m_aLocalMark, 0);
+		m_pGrid->attach_to_volumes_dv(m_aLocalMark, 0);
+		m_aaLocalMark.access(*m_pGrid, m_aLocalMark, false, false, true, true);
+	}
+}
+
+
 void HangingNodeRefiner_Grid::
 num_marked_edges_local(std::vector<int>& numMarkedEdgesOut)
 {
@@ -156,6 +220,38 @@ num_marked_elems(std::vector<int>& numMarkedElemsOut)
 	numMarkedElemsOut.resize(1, 0);
 	if(m_pGrid)
 		numMarkedElemsOut[0] = get_refmark_selector().num<TElem>();
+}
+
+void HangingNodeRefiner_Grid::
+collect_objects_for_refine()
+{
+	BaseClass::collect_objects_for_refine();
+
+	Selector& sel = get_refmark_selector();
+
+	for(ConstrainingEdgeIterator iter = sel.begin<ConstrainingEdge>();
+		iter != sel.end<ConstrainingEdge>(); ++iter)
+	{
+		ConstrainingEdge* cge = *iter;
+		if(cge->num_constrained_vertices() > 0)
+			set_center_vertex(cge, cge->constrained_vertex(0));
+	}
+
+	for(ConstrainingTriangleIterator iter = sel.begin<ConstrainingTriangle>();
+		iter != sel.end<ConstrainingTriangle>(); ++iter)
+	{
+		ConstrainingTriangle* cgt = *iter;
+		if(cgt->num_constrained_vertices() > 0)
+			set_center_vertex(cgt, cgt->constrained_vertex(0));
+	}
+
+	for(ConstrainingQuadrilateralIterator iter = sel.begin<ConstrainingQuadrilateral>();
+		iter != sel.end<ConstrainingQuadrilateral>(); ++iter)
+	{
+		ConstrainingQuadrilateral* cgq = *iter;
+		if(cgq->num_constrained_vertices() > 0)
+			set_center_vertex(cgq, cgq->constrained_vertex(0));
+	}
 }
 
 /* pre-refine

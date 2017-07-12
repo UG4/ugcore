@@ -66,10 +66,16 @@
 #include <signal.h>
 #endif
 
-extern "C"
+#ifndef USE_LUAJIT
+extern "C" // default lua
 {
 #include "bindings/lua/externals/lua/lstate.h"
 }
+#else
+// luajit
+#include <lua.hpp>
+#endif
+
 
 #include "info_commands.h"
 
@@ -571,6 +577,7 @@ bool ClassInstantiations(const char *classname)
 	LUA_STACK_CHECK(L, 0);
 	bool bFound = false;
 
+#ifndef USE_LUAJIT
 	// iterate through all of lua's global string table
 	for(int i=0; i<G(L)->strt.size; i++)
 	{
@@ -602,6 +609,28 @@ bool ClassInstantiations(const char *classname)
 			}
 		}
 	}
+#else
+	// traversal using API
+	// cf. http://stackoverflow.com/questions/20527659/how-to-filter-out-user-defined-globals-in-lua-from-c
+
+	lua_pushvalue(L, LUA_GLOBALSINDEX); 	//lua_pushglobaltable(L);
+	lua_pushnil(L);
+	while (lua_next(L,-2) != 0)
+	{
+	  const char* luastr = lua_tostring(L,-2);
+
+	  if (luastr) {
+		  std::cerr << "Found global: " << luastr << std::endl;
+	  }
+
+	  lua_pop(L,1); // pop value
+	}
+	lua_pop(L,1); // pop global table
+
+	// Check required!
+	UG_ASSERT(0, "ERROR: Implement for LuaJit!");
+
+#endif
 	if(!bFound) UG_LOG("No instantiations of " << classname << " or subclasses found.");
 	UG_LOG(endl);
 	return true;

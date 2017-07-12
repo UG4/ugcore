@@ -116,6 +116,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.add_method("set_restriction_damping", &T::set_restriction_damping)
+			.add_method("set_prolongation_damping", &T::set_prolongation_damping)
 			.add_method("add_constraint", &T::add_constraint)
 			.add_method("set_debug", &T::set_debug)
 			.add_method("set_use_transposed", &T::set_use_transposed)
@@ -149,6 +150,28 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "AverageComponent", tag);
 	}
 
+//	MGStats
+	{
+		typedef MGStats<TDomain, TAlgebra> T;
+		string name = string("MGStats").append(suffix);
+		reg.add_class_<T>(name, grp)
+			.add_constructor()
+			.add_method("set_exit_on_error", &T::set_exit_on_error, "", "exitOnError")
+			.add_method("set_write_err_vecs", &T::set_write_err_vecs, "", "writeErrVecs")
+			.add_method("set_write_err_diffs", &T::set_write_err_diffs, "", "writeErrDiffs")
+			.add_method("set_filename_prefix", &T::set_filename_prefix, "", "filename")
+			.add_method("set_active_stages", &T::set_active_stages, "", "activeStages")
+			.add_method("save_stats_to_file",
+			    static_cast<void (T::*)()>(&T::save_stats_to_file), "", "")
+			.add_method("save_stats_to_file",
+			    static_cast<void (T::*)(const char*)>(&T::save_stats_to_file),
+			    "", "filename")
+			.add_method("print", &T::print, "", "")
+			.add_method("clear", &T::clear, "", "")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "MGStats", tag);
+	}
+
 //	AssembledMultiGridCycle
 	{
 		typedef AssembledMultiGridCycle<TDomain, TAlgebra> T;
@@ -157,6 +180,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_<T, TBase>(name, grp)
 					.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >)>("Approximation Space")
 					.template add_constructor<void (*)()>()
+			.add_method("set_mg_stats", &T::set_mg_stats, "", "MGStats")
 			.add_method("set_approximation_space", &T::set_approximation_space, "", "Approximation space")
 			.add_method("set_discretization", &T::set_discretization, "", "Discretization")
 			.add_method("set_base_level", &T::set_base_level, "", "Base Level")
@@ -174,6 +198,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("set_prolongation", &T::set_prolongation,"", "Prolongation")
 			.add_method("set_restriction", &T::set_restriction,"", "Restriction")
 			.add_method("set_projection", &T::set_projection,"", "Projection")
+			.add_method("clear_transfer_post_process", &T::clear_transfer_post_process,"", "Remove all the Post Process routines")
 			.add_method("add_prolongation_post_process", &T::add_prolongation_post_process,"", "Prolongation Post Process")
 			.add_method("add_restriction_post_process", &T::add_restriction_post_process,"", "Restriction Post Process")
 			.add_method("set_debug", &T::set_debug)
@@ -198,6 +223,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 		.template add_constructor<void (*)(const std::string&)>("patch_type")
 		.template add_constructor<void (*)(number, const std::string&)>("relax#patch_type")
 		.add_method("set_relax", &T::set_relax, "", "relax")
+		.add_method("select_schur_cmp", &T::select_schur_cmp, "", "")
+		.add_method("set_elim_offdiag", &T::set_elim_offdiag, "", "")
 		.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ElementGaussSeidel", tag);
 	}

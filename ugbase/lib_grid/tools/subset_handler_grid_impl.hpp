@@ -179,7 +179,7 @@ GridSubsetHandler::
 num() const
 {
 	uint n = 0;
-	for(size_t i = 0; i < num_subsets_in_list(); ++i)
+	for(uint i = 0; i < num_subsets_in_list(); ++i)
 		n += num<TElem>(i);
 		
 	return n;

@@ -38,7 +38,8 @@
 #include <sstream>
 
 #include "lib_algebra/operator/interface/operator.h"
- #include "lib_algebra/operator/interface/linear_solver_profiling.h"
+#include "lib_algebra/operator/interface/linear_solver_profiling.h"
+#include "lib_algebra/operator/interface/pprocess.h"
 #ifdef UG_PARALLEL
 	#include "lib_algebra/parallelization/parallelization.h"
 #endif
@@ -93,9 +94,6 @@ class BiCGStab
 			: base_type(spPrecond, spConvCheck),
 			  m_numRestarts(0), m_minOrtho(0.0)
 		{};
-
-
-
 
 	///	name of solver
 		virtual const char* name() const {return "BiCGStab";}
@@ -154,7 +152,8 @@ class BiCGStab
 			{
 			//	check for restart based on fixed step number restart
 				if(m_numRestarts > 0 &&
-					(convergence_check()->step() % m_numRestarts == 0)){
+					(convergence_check()->step() % m_numRestarts == 0))
+				{
 					std::stringstream ss; ss <<
 					"Restarting: at every "<<m_numRestarts<<" Iterations";
 					convergence_check()->print_line(ss.str());
@@ -199,7 +198,8 @@ class BiCGStab
 
 			//	check for restart compare (r, r0) > m_minOrtho * ||r|| ||r0||
 				const number norm_r = convergence_check()->defect();
-				if(fabs(rho)/(norm_r * norm_r0) <= m_minOrtho){
+				if(fabs(rho)/(norm_r * norm_r0) <= m_minOrtho)
+				{
 					std::stringstream ss; ss <<
 					"Restarting: Min Orthogonality "<<m_minOrtho<<" missed: "
 					<<"(r,r0)="<<fabs(rho)<<", ||r||="<<norm_r<<", ||r0||= "
@@ -209,7 +209,8 @@ class BiCGStab
 				}
 
 			//	check that rhoOld valid
-				if(rhoOld == 0.0){
+				if(rhoOld == 0.0)
+				{
 					UG_LOG("BiCGStab: Method breakdown with rhoOld = "<<rhoOld<<
 						   ". Aborting iteration.\n");
 					return false;
@@ -222,13 +223,17 @@ class BiCGStab
 				VecScaleAdd(p, 1.0, r, beta, p, -beta*omega, v);
 
 			// 	apply q = M^-1 * p ...
-				if(preconditioner().valid()){
-					if(!preconditioner()->apply(q, p)){
+				if(preconditioner().valid())
+				{
+					if(!preconditioner()->apply(q, p))
+					{
 						UG_LOG("BiCGStab: Cannot apply preconditioner. Aborting.\n");
 						return false;
 					}
 			// 	... or copy q = p
-				} else{
+				}
+				else
+				{
 					q = p;
 
 				// 	make q consistent
@@ -237,6 +242,9 @@ class BiCGStab
 						UG_THROW("BiCGStab: Cannot convert q to consistent vector.");
 					#endif
 				}
+
+			//	post-process the correction
+				m_corr_post_process.apply (q);
 
 			// 	compute v := A*q
 				linear_operator()->apply(v, q);
@@ -273,18 +281,23 @@ class BiCGStab
 				convergence_check()->update(s);
 
 			//	if finished: set output to last defect and exist loop
-				if(convergence_check()->iteration_ended()){
+				if(convergence_check()->iteration_ended())
+				{
 					r = s; break;
 				}
 
-			// 	apply q = M^-1 * t ...
-				if(preconditioner().valid()){
-					if(!preconditioner()->apply(q, s)){
+			// 	apply q = M^-1 * s ...
+				if(preconditioner().valid())
+				{
+					if(!preconditioner()->apply(q, s))
+					{
 						UG_LOG("BiCGStab: Cannot apply preconditioner. Aborting.\n");
 						return false;
 					}
 			// 	... or set q:=s
-				}else{
+				}
+				else
+				{
 					q = s;
 
 				// 	make q consistent
@@ -293,6 +306,9 @@ class BiCGStab
 						UG_THROW("BiCGStab: Cannot convert q to consistent vector.");
 					#endif
 				}
+
+			//	post-process the correction
+				m_corr_post_process.apply (q);
 
 			// 	compute t := A*q
 				linear_operator()->apply(t, q);
@@ -317,7 +333,8 @@ class BiCGStab
 					omega = VecProd(s, t);
 
 			//	check tt
-				if(tt == 0.0){
+				if(tt == 0.0)
+				{
 					UG_LOG("BiCGStab: Method breakdown tt = "<<tt<<" is an "
 							"invalid value. Aborting iteration.\n");
 					return false;
@@ -336,7 +353,8 @@ class BiCGStab
 				convergence_check()->update(r);
 
 			//	check values
-				if(omega == 0.0){
+				if(omega == 0.0)
+				{
 					UG_LOG("BiCGStab: Method breakdown with omega = "<<omega<<
 					       ". Aborting iteration.\n");
 					return false;
@@ -353,6 +371,18 @@ class BiCGStab
 
 	///	sets to restart if given orthogonality missed
 		void set_min_orthogonality(number minOrtho) {m_minOrtho = minOrtho;}
+		
+	///	adds a post-process for the iterates
+		void add_postprocess_corr (SmartPtr<IPProcessVector<vector_type> > p)
+		{
+			m_corr_post_process.add (p);
+		}
+
+	///	removes a post-process for the iterates
+		void remove_postprocess_corr (SmartPtr<IPProcessVector<vector_type> > p)
+		{
+			m_corr_post_process.remove (p);
+		}
 
 	protected:
 	///	prepares the output of the convergence check
@@ -386,6 +416,13 @@ class BiCGStab
 	///	minimal value in (0,1) accepted for Orthoginality before restart
 		number m_minOrtho;
 
+	///	postprocessor for the correction in the iterations
+		/**
+		 * These postprocess operations are applied to the preconditioned
+		 * defect before the orthogonalization. The goal is to prevent the
+		 * useless kernel parts to prevail in the (floating point) arithmetics.
+		 */
+		PProcessChain<vector_type> m_corr_post_process;
 };
 
 } // end namespace ug

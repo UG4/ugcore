@@ -56,8 +56,19 @@ extern DebugID SchurDebug;
 
 } // end namespace ug
 
-#include "schur_complement_operator.h"
-#include "schur_precond.h"
+
+#include "lib_algebra/adapter/slicing.h"
+
+namespace ug{
+enum schur_slice_desc_type {SD_INNER=0, SD_SKELETON, SLICE_DESC_SIZE};
+
+typedef std::vector<schur_slice_desc_type> SchurSliceDescVector;
+typedef SlicingData<SchurSliceDescVector, 2> SchurSlicingData;
+
+}
+
+//#include "schur_complement_operator.h"
+//#include "schur_precond.h"
 
 #endif /* UG_PARALLEL */
 

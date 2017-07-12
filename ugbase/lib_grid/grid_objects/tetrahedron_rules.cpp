@@ -713,6 +713,10 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut,
 }
 
 
+bool IsRegularRefRule(const int edgeMarks)
+{
+	return false;
+}
 
 }//	end of namespace tet_rules
 }//	end of namespace ug

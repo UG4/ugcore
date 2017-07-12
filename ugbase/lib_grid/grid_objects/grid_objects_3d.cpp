@@ -385,9 +385,9 @@ Face* Tetrahedron::create_face(int index)
 }
 
 void Tetrahedron::
-get_local_vertex_indices_of_edge(size_t& ind1Out,
-								  size_t& ind2Out,
-								  size_t edgeInd) const
+get_vertex_indices_of_edge (size_t& ind1Out,
+							size_t& ind2Out,
+							size_t edgeInd) const
 {
 	assert(edgeInd >= 0 && edgeInd < 6);
 	ind1Out = tet_rules::EDGE_VRT_INDS[edgeInd][0];
@@ -395,14 +395,28 @@ get_local_vertex_indices_of_edge(size_t& ind1Out,
 }
 											  
 void Tetrahedron::
-get_local_vertex_indices_of_face(std::vector<size_t>& indsOut,
-								 size_t side) const
+get_vertex_indices_of_face (std::vector<size_t>& indsOut,
+							size_t side) const
 {
 	assert(side >= 0 && side < 4);
 	indsOut.resize(3);
 	indsOut[0] = tet_rules::FACE_VRT_INDS[side][0];
 	indsOut[1] = tet_rules::FACE_VRT_INDS[side][2];
 	indsOut[2] = tet_rules::FACE_VRT_INDS[side][1];
+}
+
+int Tetrahedron::
+get_edge_index_from_vertices(	const size_t vi0,
+								const size_t vi1) const
+{
+	return tet_rules::EDGE_FROM_VRTS[vi0][vi1];
+}
+
+int Tetrahedron::
+get_face_edge_index(const size_t faceInd,
+					const size_t faceEdgeInd) const
+{
+	return tet_rules::FACE_EDGE_INDS[faceInd][2 - faceEdgeInd];
 }
 
 bool Tetrahedron::collapse_edge(std::vector<Volume*>& vNewVolumesOut,
@@ -452,6 +466,13 @@ bool Tetrahedron::refine(std::vector<Volume*>& vNewVolumesOut,
 									isSnapPoint);
 }
 
+
+bool Tetrahedron::is_regular_ref_rule(int edgeMarks) const
+{
+	return tet_rules::IsRegularRefRule(edgeMarks);
+}
+
+
 void Tetrahedron::get_flipped_orientation(VolumeDescriptor& vdOut)  const
 {
 //	in order to flip a tetrahedrons orientation, we have to invert the order
@@ -463,177 +484,6 @@ void Tetrahedron::get_flipped_orientation(VolumeDescriptor& vdOut)  const
 	vdOut.set_vertex(3, vertex(3));
 }
 
-////////////////////////////////////////////////////////////////////////
-//	OctahedronDescriptor
-OctahedronDescriptor::OctahedronDescriptor(const OctahedronDescriptor& td)
-{
-	m_vertex[0] = td.vertex(0);
-	m_vertex[1] = td.vertex(1);
-	m_vertex[2] = td.vertex(2);
-	m_vertex[3] = td.vertex(3);
-   	m_vertex[4] = td.vertex(4);
-  	m_vertex[5] = td.vertex(5);
-}
-
-OctahedronDescriptor::OctahedronDescriptor(const VolumeVertices& vv)
-{
-	assert((vv.num_vertices() == 6) &&	"Bad number of vertices in volume-descriptor. Should be 6.");
-	m_vertex[0] = vv.vertex(0);
-	m_vertex[1] = vv.vertex(1);
-	m_vertex[2] = vv.vertex(2);
-	m_vertex[3] = vv.vertex(3);
-   	m_vertex[4] = vv.vertex(4);
-   	m_vertex[5] = vv.vertex(5);
-}
-
-OctahedronDescriptor::OctahedronDescriptor(Vertex* v1, Vertex* v2, Vertex* v3, Vertex* v4, Vertex* v5, Vertex* v6)
-{
-	m_vertex[0] = v1;
-	m_vertex[1] = v2;
-	m_vertex[2] = v3;
-	m_vertex[3] = v4;
-   	m_vertex[4] = v5;
-   	m_vertex[5] = v6;
-}
-
-////////////////////////////////////////////////////////////////////////
-//	Octahedron
-Octahedron::Octahedron(const OctahedronDescriptor& td)
-{
-	m_vertices[0] = td.vertex(0);
-	m_vertices[1] = td.vertex(1);
-	m_vertices[2] = td.vertex(2);
-	m_vertices[3] = td.vertex(3);
-   	m_vertices[4] = td.vertex(4);
-   	m_vertices[5] = td.vertex(5);
-}
-
-Octahedron::Octahedron(Vertex* v1, Vertex* v2, Vertex* v3, Vertex* v4, Vertex* v5, Vertex* v6)
-{
-	m_vertices[0] = v1;
-	m_vertices[1] = v2;
-	m_vertices[2] = v3;
-	m_vertices[3] = v4;
-    m_vertices[4] = v5;
-	m_vertices[5] = v6;
-}
-
-EdgeDescriptor Octahedron::edge_desc(int index) const
-{
-	EdgeDescriptor ed;
-	edge_desc(index, ed);
-	return ed;
-}
-
-void Octahedron::edge_desc(int index, EdgeDescriptor& edOut) const
-{
-	using namespace oct_rules;
-	assert(index >= 0 && index <= NUM_EDGES);
-	edOut.set_vertices(m_vertices[EDGE_VRT_INDS[index][0]],
-					   m_vertices[EDGE_VRT_INDS[index][1]]);
-}
-
-uint Octahedron::num_edges() const
-{
-	return 12;
-}
-
-FaceDescriptor Octahedron::face_desc(int index) const
-{
-	FaceDescriptor fd;
-	face_desc(index, fd);
-	return fd;
-}
-
-void Octahedron::face_desc(int index, FaceDescriptor& fdOut) const
-{
-	using namespace oct_rules;
-	assert(index >= 0 && index < NUM_FACES);
-
-	fdOut.set_num_vertices(3);
-	fdOut.set_vertex(0, m_vertices[FACE_VRT_INDS[index][0]]);
-	fdOut.set_vertex(1, m_vertices[FACE_VRT_INDS[index][2]]);
-	fdOut.set_vertex(2, m_vertices[FACE_VRT_INDS[index][1]]);
-}
-
-uint Octahedron::num_faces() const
-{
-	return 8;
-}
-
-Edge* Octahedron::create_edge(int index)
-{
-	using namespace oct_rules;
-	assert(index >= 0 && index < NUM_EDGES);
-	const int* e = EDGE_VRT_INDS[index];
-	return new RegularEdge(m_vertices[e[0]], m_vertices[e[1]]);
-}
-
-Face* Octahedron::create_face(int index)
-{
-	using namespace oct_rules;
-	assert(index >= 0 && index < NUM_FACES);
-
-	const int* f = FACE_VRT_INDS[index];
-    return new Triangle(m_vertices[f[0]], m_vertices[f[2]], m_vertices[f[1]]);
-}
-
-std::pair<GridBaseObjectId, int> Octahedron::
-get_opposing_object(Vertex* vrt) const
-{
-	using namespace oct_rules;
-	for(int i = 0; i < oct_rules::NUM_VERTICES; ++i){
-		if(vrt == m_vertices[i]){
-			return make_pair(static_cast<GridBaseObjectId>(OPPOSED_OBJECT[i][0]),
-							 OPPOSED_OBJECT[i][1]);
-		}
-	}
-
-	UG_THROW("Specified vertex is not part of this element.");
-}
-
-bool Octahedron::collapse_edge(std::vector<Volume*>& vNewVolumesOut,
-                                int edgeIndex, Vertex* newVertex,
-                                std::vector<Vertex*>* pvSubstituteVertices)
-{
-//	NOT YET SUPPORTED!
-//TODO: implement octahedron::collapse_edge
-	vNewVolumesOut.clear();
-	UG_LOG("edge-collapse for octahedrons not yet implemented... sorry\n");
-	return false;
-}
-
-
-bool Octahedron::refine(std::vector<Volume*>& vNewVolumesOut,
-							Vertex** ppNewVertexOut,
-							Vertex** newEdgeVertices,
-							Vertex** newFaceVertices,
-							Vertex* newVolumeVertex,
-							const Vertex& prototypeVertex,
-							Vertex** pSubstituteVertices,
-							vector3* corners,
-							bool* isSnapPoint)
-{
-//	handle substitute vertices.
-	Vertex** vrts;
-	if(pSubstituteVertices)
-		vrts = pSubstituteVertices;
-	else
-		vrts = m_vertices;
-
-	return Refine<OctahedronClass>(vNewVolumesOut, ppNewVertexOut,
-									newEdgeVertices, newFaceVertices,
-									newVolumeVertex, prototypeVertex,
-									vrts, oct_rules::Refine, corners,
-									isSnapPoint);
-}
-
-void Octahedron::get_flipped_orientation(VolumeDescriptor& vdOut)  const
-{
-//	NOT YET SUPPORTED!
-//TODO: implement octahedron::get_flipped_orientation
-	UG_LOG("get_flipped_orientation for octahedrons not yet implemented... sorry\n");
-}
 
 ////////////////////////////////////////////////////////////////////////
 //	HexahedronDescriptor
@@ -767,6 +617,42 @@ Face* Hexahedron::create_face(int index)
 							 m_vertices[f[2]], m_vertices[f[1]]);
 }
 
+void Hexahedron::
+get_vertex_indices_of_edge (size_t& ind1Out,
+							size_t& ind2Out,
+							size_t edgeInd) const
+{
+	assert(edgeInd >= 0 && edgeInd < hex_rules::NUM_EDGES);
+	ind1Out = hex_rules::EDGE_VRT_INDS[edgeInd][0];
+	ind2Out = hex_rules::EDGE_VRT_INDS[edgeInd][1];
+}
+											  
+void Hexahedron::
+get_vertex_indices_of_face (std::vector<size_t>& indsOut,
+							size_t side) const
+{
+	assert(side >= 0 && side < hex_rules::NUM_FACES);
+	indsOut.resize(4);
+	indsOut[0] = hex_rules::FACE_VRT_INDS[side][0];
+	indsOut[1] = hex_rules::FACE_VRT_INDS[side][3];
+	indsOut[2] = hex_rules::FACE_VRT_INDS[side][2];
+	indsOut[3] = hex_rules::FACE_VRT_INDS[side][1];
+}
+
+int Hexahedron::
+get_edge_index_from_vertices(	const size_t vi0,
+								const size_t vi1) const
+{
+	return hex_rules::EDGE_FROM_VRTS[vi0][vi1];
+}
+
+int Hexahedron::
+get_face_edge_index(const size_t faceInd,
+					const size_t faceEdgeInd) const
+{
+	return hex_rules::FACE_EDGE_INDS[faceInd][3 - faceEdgeInd];
+}
+
 bool Hexahedron::get_opposing_side(FaceVertices* f, FaceDescriptor& fdOut) const
 {
 	using namespace hex_rules;
@@ -825,6 +711,11 @@ bool Hexahedron::refine(std::vector<Volume*>& vNewVolumesOut,
 								   newVolumeVertex, prototypeVertex,
 								   vrts, hex_rules::Refine, corners,
 								   isSnapPoint);
+}
+
+bool Hexahedron::is_regular_ref_rule(int edgeMarks) const
+{
+	return hex_rules::IsRegularRefRule(edgeMarks);
 }
 
 void Hexahedron::get_flipped_orientation(VolumeDescriptor& vdOut)  const
@@ -980,6 +871,54 @@ Face* Prism::create_face(int index)
 	}
 }
 
+void Prism::
+get_vertex_indices_of_edge (size_t& ind1Out,
+							size_t& ind2Out,
+							size_t edgeInd) const
+{
+	assert(edgeInd >= 0 && edgeInd < prism_rules::NUM_EDGES);
+	ind1Out = prism_rules::EDGE_VRT_INDS[edgeInd][0];
+	ind2Out = prism_rules::EDGE_VRT_INDS[edgeInd][1];
+}
+											  
+void Prism::
+get_vertex_indices_of_face (std::vector<size_t>& indsOut,
+							size_t side) const
+{
+	assert(side >= 0 && side < prism_rules::NUM_FACES);
+
+	if(prism_rules::FACE_VRT_INDS[side][3] == -1){
+		indsOut.resize(3);
+		indsOut[0] = prism_rules::FACE_VRT_INDS[side][0];
+		indsOut[1] = prism_rules::FACE_VRT_INDS[side][2];
+		indsOut[2] = prism_rules::FACE_VRT_INDS[side][1];
+	}
+	else{
+		indsOut.resize(4);
+		indsOut[0] = prism_rules::FACE_VRT_INDS[side][0];
+		indsOut[1] = prism_rules::FACE_VRT_INDS[side][3];
+		indsOut[2] = prism_rules::FACE_VRT_INDS[side][2];
+		indsOut[3] = prism_rules::FACE_VRT_INDS[side][1];
+	}
+}
+
+int Prism::
+get_edge_index_from_vertices(	const size_t vi0,
+								const size_t vi1) const
+{
+	return prism_rules::EDGE_FROM_VRTS[vi0][vi1];
+}
+
+int Prism::
+get_face_edge_index(const size_t faceInd,
+					const size_t faceEdgeInd) const
+{
+	if(prism_rules::FACE_EDGE_INDS[faceInd][3] == -1)
+		return prism_rules::FACE_EDGE_INDS[faceInd][2 - faceEdgeInd];
+	else
+		return prism_rules::FACE_EDGE_INDS[faceInd][3 - faceEdgeInd];
+}
+
 bool Prism::get_opposing_side(FaceVertices* f, FaceDescriptor& fdOut) const
 {
 	using namespace prism_rules;
@@ -1062,6 +1001,11 @@ bool Prism::refine(std::vector<Volume*>& vNewVolumesOut,
 							  newVolumeVertex, prototypeVertex,
 							  vrts, prism_rules::Refine, corners,
 							  isSnapPoint);
+}
+
+bool Prism::is_regular_ref_rule(int edgeMarks) const
+{
+	return prism_rules::IsRegularRefRule(edgeMarks);
 }
 
 void Prism::get_flipped_orientation(VolumeDescriptor& vdOut) const
@@ -1209,6 +1153,54 @@ Face* Pyramid::create_face(int index)
 	}
 }
 
+void Pyramid::
+get_vertex_indices_of_edge (size_t& ind1Out,
+							size_t& ind2Out,
+							size_t edgeInd) const
+{
+	assert(edgeInd >= 0 && edgeInd < pyra_rules::NUM_EDGES);
+	ind1Out = pyra_rules::EDGE_VRT_INDS[edgeInd][0];
+	ind2Out = pyra_rules::EDGE_VRT_INDS[edgeInd][1];
+}
+											  
+void Pyramid::
+get_vertex_indices_of_face (std::vector<size_t>& indsOut,
+							size_t side) const
+{
+	assert(side >= 0 && side < pyra_rules::NUM_FACES);
+
+	if(pyra_rules::FACE_VRT_INDS[side][3] == -1){
+		indsOut.resize(3);
+		indsOut[0] = pyra_rules::FACE_VRT_INDS[side][0];
+		indsOut[1] = pyra_rules::FACE_VRT_INDS[side][2];
+		indsOut[2] = pyra_rules::FACE_VRT_INDS[side][1];
+	}
+	else{
+		indsOut.resize(4);
+		indsOut[0] = pyra_rules::FACE_VRT_INDS[side][0];
+		indsOut[1] = pyra_rules::FACE_VRT_INDS[side][3];
+		indsOut[2] = pyra_rules::FACE_VRT_INDS[side][2];
+		indsOut[3] = pyra_rules::FACE_VRT_INDS[side][1];
+	}
+}
+
+int Pyramid::
+get_edge_index_from_vertices(	const size_t vi0,
+								const size_t vi1) const
+{
+	return pyra_rules::EDGE_FROM_VRTS[vi0][vi1];
+}
+
+int Pyramid::
+get_face_edge_index(const size_t faceInd,
+					const size_t faceEdgeInd) const
+{
+	if(pyra_rules::FACE_EDGE_INDS[faceInd][3] == -1)
+		return pyra_rules::FACE_EDGE_INDS[faceInd][2 - faceEdgeInd];
+	else
+		return pyra_rules::FACE_EDGE_INDS[faceInd][3 - faceEdgeInd];
+}
+
 std::pair<GridBaseObjectId, int> Pyramid::
 get_opposing_object(Vertex* vrt) const
 {
@@ -1278,6 +1270,11 @@ bool Pyramid::refine(std::vector<Volume*>& vNewVolumesOut,
 									isSnapPoint);
 }
 
+bool Pyramid::is_regular_ref_rule(int edgeMarks) const
+{
+	return pyra_rules::IsRegularRefRule(edgeMarks);
+}
+
 void Pyramid::get_flipped_orientation(VolumeDescriptor& vdOut) const
 {
 //	in order to flip a pyramids orientation, we have to invert the order
@@ -1288,6 +1285,226 @@ void Pyramid::get_flipped_orientation(VolumeDescriptor& vdOut) const
 	vdOut.set_vertex(2, vertex(1));
 	vdOut.set_vertex(3, vertex(0));
 	vdOut.set_vertex(4, vertex(4));
+}
+
+
+////////////////////////////////////////////////////////////////////////
+//	OctahedronDescriptor
+OctahedronDescriptor::OctahedronDescriptor(const OctahedronDescriptor& td)
+{
+	m_vertex[0] = td.vertex(0);
+	m_vertex[1] = td.vertex(1);
+	m_vertex[2] = td.vertex(2);
+	m_vertex[3] = td.vertex(3);
+   	m_vertex[4] = td.vertex(4);
+  	m_vertex[5] = td.vertex(5);
+}
+
+OctahedronDescriptor::OctahedronDescriptor(const VolumeVertices& vv)
+{
+	assert((vv.num_vertices() == 6) &&	"Bad number of vertices in volume-descriptor. Should be 6.");
+	m_vertex[0] = vv.vertex(0);
+	m_vertex[1] = vv.vertex(1);
+	m_vertex[2] = vv.vertex(2);
+	m_vertex[3] = vv.vertex(3);
+   	m_vertex[4] = vv.vertex(4);
+   	m_vertex[5] = vv.vertex(5);
+}
+
+OctahedronDescriptor::OctahedronDescriptor(Vertex* v1, Vertex* v2, Vertex* v3, Vertex* v4, Vertex* v5, Vertex* v6)
+{
+	m_vertex[0] = v1;
+	m_vertex[1] = v2;
+	m_vertex[2] = v3;
+	m_vertex[3] = v4;
+   	m_vertex[4] = v5;
+   	m_vertex[5] = v6;
+}
+
+////////////////////////////////////////////////////////////////////////
+//	Octahedron
+Octahedron::Octahedron(const OctahedronDescriptor& td)
+{
+	m_vertices[0] = td.vertex(0);
+	m_vertices[1] = td.vertex(1);
+	m_vertices[2] = td.vertex(2);
+	m_vertices[3] = td.vertex(3);
+   	m_vertices[4] = td.vertex(4);
+   	m_vertices[5] = td.vertex(5);
+}
+
+Octahedron::Octahedron(Vertex* v1, Vertex* v2, Vertex* v3, Vertex* v4, Vertex* v5, Vertex* v6)
+{
+	m_vertices[0] = v1;
+	m_vertices[1] = v2;
+	m_vertices[2] = v3;
+	m_vertices[3] = v4;
+    m_vertices[4] = v5;
+	m_vertices[5] = v6;
+}
+
+EdgeDescriptor Octahedron::edge_desc(int index) const
+{
+	EdgeDescriptor ed;
+	edge_desc(index, ed);
+	return ed;
+}
+
+void Octahedron::edge_desc(int index, EdgeDescriptor& edOut) const
+{
+	using namespace oct_rules;
+	assert(index >= 0 && index <= NUM_EDGES);
+	edOut.set_vertices(m_vertices[EDGE_VRT_INDS[index][0]],
+					   m_vertices[EDGE_VRT_INDS[index][1]]);
+}
+
+uint Octahedron::num_edges() const
+{
+	return 12;
+}
+
+FaceDescriptor Octahedron::face_desc(int index) const
+{
+	FaceDescriptor fd;
+	face_desc(index, fd);
+	return fd;
+}
+
+void Octahedron::face_desc(int index, FaceDescriptor& fdOut) const
+{
+	using namespace oct_rules;
+	assert(index >= 0 && index < NUM_FACES);
+
+	fdOut.set_num_vertices(3);
+	fdOut.set_vertex(0, m_vertices[FACE_VRT_INDS[index][0]]);
+	fdOut.set_vertex(1, m_vertices[FACE_VRT_INDS[index][2]]);
+	fdOut.set_vertex(2, m_vertices[FACE_VRT_INDS[index][1]]);
+}
+
+uint Octahedron::num_faces() const
+{
+	return 8;
+}
+
+Edge* Octahedron::create_edge(int index)
+{
+	using namespace oct_rules;
+	assert(index >= 0 && index < NUM_EDGES);
+	const int* e = EDGE_VRT_INDS[index];
+	return new RegularEdge(m_vertices[e[0]], m_vertices[e[1]]);
+}
+
+Face* Octahedron::create_face(int index)
+{
+	using namespace oct_rules;
+	assert(index >= 0 && index < NUM_FACES);
+
+	const int* f = FACE_VRT_INDS[index];
+    return new Triangle(m_vertices[f[0]], m_vertices[f[2]], m_vertices[f[1]]);
+}
+
+void Octahedron::
+get_vertex_indices_of_edge (size_t& ind1Out,
+							size_t& ind2Out,
+							size_t edgeInd) const
+{
+	assert(edgeInd >= 0 && edgeInd < oct_rules::NUM_EDGES);
+	ind1Out = oct_rules::EDGE_VRT_INDS[edgeInd][0];
+	ind2Out = oct_rules::EDGE_VRT_INDS[edgeInd][1];
+}
+											  
+void Octahedron::
+get_vertex_indices_of_face (std::vector<size_t>& indsOut,
+							size_t side) const
+{
+	assert(side >= 0 && side < oct_rules::NUM_FACES);
+
+	indsOut.resize(3);
+	indsOut[0] = oct_rules::FACE_VRT_INDS[side][0];
+	indsOut[1] = oct_rules::FACE_VRT_INDS[side][2];
+	indsOut[2] = oct_rules::FACE_VRT_INDS[side][1];
+}
+
+int Octahedron::
+get_edge_index_from_vertices(	const size_t vi0,
+								const size_t vi1) const
+{
+	return oct_rules::EDGE_FROM_VRTS[vi0][vi1];
+}
+
+int Octahedron::
+get_face_edge_index(const size_t faceInd,
+					const size_t faceEdgeInd) const
+{
+	return oct_rules::FACE_EDGE_INDS[faceInd][2 - faceEdgeInd];
+}
+
+std::pair<GridBaseObjectId, int> Octahedron::
+get_opposing_object(Vertex* vrt) const
+{
+	using namespace oct_rules;
+	for(int i = 0; i < oct_rules::NUM_VERTICES; ++i){
+		if(vrt == m_vertices[i]){
+			return make_pair(static_cast<GridBaseObjectId>(OPPOSED_OBJECT[i][0]),
+							 OPPOSED_OBJECT[i][1]);
+		}
+	}
+
+	UG_THROW("Specified vertex is not part of this element.");
+}
+
+bool Octahedron::collapse_edge(std::vector<Volume*>& vNewVolumesOut,
+                                int edgeIndex, Vertex* newVertex,
+                                std::vector<Vertex*>* pvSubstituteVertices)
+{
+//	NOT YET SUPPORTED!
+//TODO: implement octahedron::collapse_edge
+	vNewVolumesOut.clear();
+	UG_LOG("edge-collapse for octahedrons not yet implemented... sorry\n");
+	return false;
+}
+
+
+bool Octahedron::refine(std::vector<Volume*>& vNewVolumesOut,
+							Vertex** ppNewVertexOut,
+							Vertex** newEdgeVertices,
+							Vertex** newFaceVertices,
+							Vertex* newVolumeVertex,
+							const Vertex& prototypeVertex,
+							Vertex** pSubstituteVertices,
+							vector3* corners,
+							bool* isSnapPoint)
+{
+//	handle substitute vertices.
+	Vertex** vrts;
+	if(pSubstituteVertices)
+		vrts = pSubstituteVertices;
+	else
+		vrts = m_vertices;
+
+	return Refine<OctahedronClass>(vNewVolumesOut, ppNewVertexOut,
+									newEdgeVertices, newFaceVertices,
+									newVolumeVertex, prototypeVertex,
+									vrts, oct_rules::Refine, corners,
+									isSnapPoint);
+}
+
+bool Octahedron::is_regular_ref_rule(int edgeMarks) const
+{
+	return oct_rules::IsRegularRefRule(edgeMarks);
+}
+
+void Octahedron::get_flipped_orientation(VolumeDescriptor& vdOut)  const
+{
+//	in order to flip a pyramids orientation, we have to invert the order
+//	of the base-vertices
+	vdOut.set_num_vertices(6);
+	vdOut.set_vertex(0, vertex(0));
+	vdOut.set_vertex(1, vertex(4));
+	vdOut.set_vertex(2, vertex(3));
+	vdOut.set_vertex(3, vertex(2));
+	vdOut.set_vertex(4, vertex(1));
+	vdOut.set_vertex(5, vertex(5));
 }
 
 }//	end of namespace

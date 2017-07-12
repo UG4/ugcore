@@ -106,7 +106,7 @@ class SectionContainer
 			
 		uint num_elements(int sectionIndex) const;
 		inline uint num_elements() const	{return m_numElements;}
-		inline int num_sections() const		{return m_vSections.size();}
+		inline int num_sections() const		{return (int)m_vSections.size();}
 
 	///	returns the container for raw access.
 	/**	Use this method with extreme care. Changes to the elements

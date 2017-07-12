@@ -52,6 +52,10 @@
 #include "lib_grid/algorithms/subdivision/subdivision_volumes.h"
 #include "lib_grid/grid_objects/tetrahedron_rules.h"
 
+#ifdef UG_PARALLEL
+#include "lib_grid/parallelization/util/attachment_operations.hpp"
+#endif
+
 using namespace std;
 
 namespace ug{
@@ -189,16 +193,20 @@ CreateGlobalFracturedDomainRefiner(TDomain* dom)
  *
  * \note	ref has to be derived from HangingNodeRefinerBase*/
 template <class TDomain>
-static void
+static SPIRefMarkAdjuster
 AddHorizontalAnisotropyAdjuster(IRefiner* ref, TDomain* dom)
 {
 	HangingNodeRefiner_MultiGrid* href = dynamic_cast<HangingNodeRefiner_MultiGrid*>(ref);
 	UG_COND_THROW(!href, "A horizontal anisotropy adjuster can only be added to an instance of HangingNodeRefiner_MultiGrid.");
 
-	href->add_ref_mark_adjuster(
-			make_sp(new HorizontalAnisotropyAdjuster<
-							typename TDomain::position_attachment_type>
-						(dom->position_attachment())));
+	SmartPtr<HorizontalAnisotropyAdjuster<
+			typename TDomain::position_attachment_type> >
+		haa = make_sp(new HorizontalAnisotropyAdjuster<
+						typename TDomain::position_attachment_type>
+						(dom->position_attachment()));
+
+	href->add_ref_mark_adjuster(haa);
+	return haa;
 }
 
 
@@ -270,6 +278,18 @@ static void MarkForRefinement_All(SmartPtr<IRefiner> ref)
 	ref->mark(g->edges_begin(), g->edges_end());
 	ref->mark(g->faces_begin(), g->faces_end());
 	ref->mark(g->volumes_begin(), g->volumes_end());
+}
+
+template <class TElem>
+static void MarkForRefinement_AllAnisotropic(SmartPtr<IRefiner> ref)
+{
+	PROFILE_FUNC_GROUP("grid");
+	Grid* g = ref->get_associated_grid();
+	if(!g){
+		UG_LOG("Refiner is not registered at a grid. Aborting.\n");
+		return;
+	}
+	ref->mark(g->begin<TElem>(), g->end<TElem>(), RM_ANISOTROPIC);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1043,6 +1063,89 @@ void MarkForAdaption_ElementsTouchingSubsets(TDomain& dom, IRefiner& refiner,
 }
 
 
+template <class elem_t>
+void MarkForRefinement_SubsetInterfaceElements(IRefiner& refiner, ISubsetHandler& sh)
+{
+//	ALGORITHM
+//	- store max subset index of associated higher-dim elements in elem_t.
+//	- AllReduce (max)
+//	- Check if an associated higher-dim elem exists with a different subset index
+//	- if so: set attachment value to -2
+//	- AllReduce (min)
+//	- Mark all elems with attachment value -2
+//
+//	NOTE: a serial implementation could do without the attachment by iterating
+//		  over associated higher-dim elements of elem_t and directly checking
+//		  for different subsets!
+
+	AInt aSI;
+	UG_COND_THROW(!refiner.grid(), "A grid has to be associated with the given refiner.");
+	UG_COND_THROW(refiner.grid() != sh.grid(), "Grid of supplied refiner and subset handler have to match");
+	Grid& grid = *refiner.grid();
+
+	grid.attach_to<elem_t> (aSI);
+	Grid::AttachmentAccessor<elem_t, AInt> aaSI(grid, aSI);
+
+	SetAttachmentValues (aaSI, grid.begin<elem_t>(), grid.end<elem_t>(), -1);
+
+	typedef typename elem_t::sideof						hdelem_t;
+	typedef typename Grid::traits<elem_t>::iterator		iter_t;
+	typedef typename Grid::traits<hdelem_t>::iterator	hditer_t;
+	
+	typename Grid::traits<elem_t>::secure_container	sides;
+
+	for(hditer_t i_hd = grid.begin<hdelem_t>();
+		i_hd != grid.end<hdelem_t>(); ++i_hd)
+	{
+		hdelem_t* elem = *i_hd;
+		int si = sh.get_subset_index(elem);
+		grid.associated_elements(sides, elem);
+
+		for(size_t i_side = 0; i_side < sides.size(); ++i_side){
+			elem_t* side = sides[i_side];
+			aaSI[side] = max(aaSI[side], si);
+		}
+	}
+
+	#ifdef UG_PARALLEL
+		AttachmentAllReduce<elem_t>(grid, aSI, PCL_RO_MAX);
+	#endif
+
+	for(hditer_t i_hd = grid.begin<hdelem_t>();
+		i_hd != grid.end<hdelem_t>(); ++i_hd)
+	{
+		hdelem_t* elem = *i_hd;
+		int si = sh.get_subset_index(elem);
+		grid.associated_elements(sides, elem);
+
+		for(size_t i_side = 0; i_side < sides.size(); ++i_side){
+			elem_t* side = sides[i_side];
+			if(aaSI[side] != si){
+				aaSI[side] = -2;
+			}
+		}
+	}
+
+	#ifdef UG_PARALLEL
+		AttachmentAllReduce<elem_t>(grid, aSI, PCL_RO_MIN);
+	#endif
+
+	for(iter_t i_elem = grid.begin<elem_t>();
+		i_elem != grid.end<elem_t>(); ++i_elem)
+	{
+		if(aaSI[*i_elem] == -2)
+			refiner.mark(*i_elem);
+	}
+
+	grid.detach_from<elem_t> (aSI);
+}
+
+template <class TDomain, class TElem>
+void MarkForRefinement_SubsetInterfaceElements(TDomain& dom, IRefiner& refiner)
+{
+	MarkForRefinement_SubsetInterfaceElements<TElem>(refiner, *dom.subset_handler());
+}
+
 
 template <class TDomain>
 void MarkForRefinement_AnisotropicElements(TDomain& dom, IRefiner& refiner,
@@ -1130,6 +1233,26 @@ void MarkForRefinement_AnisotropicDirection (
 			}
 		}
 	}lg_end_for;
+}
+
+template <class TDomain>
+void MarkForRefinement_EdgeDirection (
+		TDomain& dom,
+		IRefiner& refiner,
+		MathVector<TDomain::dim>& dir,
+		number minDeviationAngle,
+		number maxDeviationAngle,
+		bool selectFlipped)
+{
+	MultiGrid& mg = *dom.grid();
+	MarkForRefinementByDirection(	refiner,
+	                             	dom.position_accessor(),
+	                             	mg.begin<Edge>(),
+	                             	mg.end<Edge>(),
+	                             	dir,
+	                             	minDeviationAngle,
+	                             	maxDeviationAngle,
+	                             	selectFlipped);
 }
 
 // end group refinement_bridge
@@ -1293,6 +1416,7 @@ static void Common(Registry& reg, string grp)
 {
 //	register domain independent mark methods
 	reg.add_function("MarkForRefinement_All", &MarkForRefinement_All, grp, "", "ref");
+	reg.add_function("MarkForRefinement_AllVolumesAnisotropic", &MarkForRefinement_AllAnisotropic<Volume>, grp, "", "ref");
 //	register refinement rule switch function
 	reg.add_function("SetTetRefinementRule", &SetTetRefinementRule, grp, "", "refRuleName",
 			"Sets the refinement rule which is used to refine tetrahedrons. Possible parameters: 'standard', 'hybrid_tet_oct");
@@ -1300,10 +1424,12 @@ static void Common(Registry& reg, string grp)
 	reg.add_function("SetSmoothSubdivisionVolumesBoundaryRefinementRule", &SetSmoothSubdivisionVolumesBoundaryRefinementRule, grp, "", "bndRefRule",
 			"Sets the boundary refinement rule used during Subdivision Volumes smoothing. Possible parameters: 'linear', 'subdiv_surf_loop_scheme', 'subdiv_surf_averaging_scheme' or 'subdiv_vol'.");
 //	smooth volume/surface subdivision
-	reg.add_function("ApplySmoothSubdivisionVolumesToTopLevel", &ApplySmoothSubdivisionVolumesToTopLevel, grp);
+	reg.add_function("ApplySmoothSubdivisionVolumesToTopLevel", (void (*)(ug::MultiGrid&, ug::MGSubsetHandler&, ug::MGSubsetHandler&, const char*)) (&ug::ApplySmoothSubdivisionVolumesToTopLevel), grp);
+	reg.add_function("ApplyConstrainedSmoothSubdivisionVolumesToTopLevel", &ApplyConstrainedSmoothSubdivisionVolumesToTopLevel, grp);
 	reg.add_function("ApplySmoothSubdivisionSurfacesToTopLevel", &ApplySmoothSubdivisionSurfacesToTopLevel, grp);
 	reg.add_function("ProjectHierarchyToLimitSubdivisionVolume", &ProjectHierarchyToLimitSubdivisionVolume, grp);
 	reg.add_function("TetrahedralizeHybridTetOctGrid", &TetrahedralizeHybridTetOctGrid, grp);
+	reg.add_function("CheckValences", &CheckValences, grp);
 
 	reg.add_function("MarkNeighborsForFullRefinement",
 				&MarkNeighborsForFullRefinement,
@@ -1326,7 +1452,7 @@ template <typename TDomain>
 static void Domain(Registry& reg, string grp)
 {
 	typedef TDomain 							domain_type;
-	// typedef typename TDomain::position_attachment_type apos_type;
+	typedef typename TDomain::position_attachment_type apos_type;
 
 	string suffix = GetDomainSuffix<TDomain>();
 	string tag = GetDomainTag<TDomain>();
@@ -1403,12 +1529,24 @@ static void Domain(Registry& reg, string grp)
 		.add_function("MarkForAdaption_ElementsTouchingSubsets",
 				&MarkForAdaption_ElementsTouchingSubsets<domain_type>,
 				grp, "", "dom#refiner#subsetHandler#subsetNames#strMark")
+		.add_function("MarkForRefinement_SubsetInterfaceVertices",
+					&MarkForRefinement_SubsetInterfaceElements<TDomain, Vertex>,
+					grp, "dom#refiner")
+		.add_function("MarkForRefinement_SubsetInterfaceEdges",
+					&MarkForRefinement_SubsetInterfaceElements<TDomain, Edge>,
+					grp, "dom#refiner")
+		.add_function("MarkForRefinement_SubsetInterfaceFaces",
+					&MarkForRefinement_SubsetInterfaceElements<TDomain, Face>,
+					grp, "dom#refiner")
 		.add_function("MarkForRefinement_AnisotropicElements",
 				&MarkForRefinement_AnisotropicElements<domain_type>,
 				grp, "", "dom#refiner#minEdgeRatio")
 		.add_function("MarkForRefinement_AnisotropicDirection",
 				&MarkForRefinement_AnisotropicDirection<domain_type>,
-				grp, "", "dom#refiner#dir#minEdgeRatio");
+				grp, "", "dom#refiner#dir#minEdgeRatio")
+		.add_function("MarkForRefinement_EdgeDirection",
+				&MarkForRefinement_EdgeDirection<domain_type>,
+				grp, "", "dom#refiner#dir#minDeviationAngle#maxDeviationAngle#selectFlipped");
 //		.add_function("MarkForAdaption_EdgesContainingPoint",
 //				&MarkForAdaption_ElementsContainingPoint<domain_type, Edge>,
 //				grp, "", "dom#refiner#x#y#z#markType")

@@ -45,7 +45,8 @@ bool LoadGridFromELE(Grid& grid, const char* filename, ISubsetHandler* pSH = NUL
 					APosition& aPos = aPosition);
 					
 bool SaveGridToELE(Grid& grid, const char* filename, ISubsetHandler* pSH = NULL,
-					APosition& aPos = aPosition);
+					APosition& aPos = aPosition,
+					ANumber* paVolumeConstraint = NULL);
 					
 					
 bool ImportGridFromTETGEN(Grid& grid,
@@ -125,12 +126,12 @@ bool ExportGridToSMESH(Grid& grid, const char* filename, AVector3& aPos,
 bool LoadGridFromSMESH(Grid& grid, const char* filename, AVector3& aPos,
 						ISubsetHandler* psh = NULL);
 
-bool ExportGridToTETGEN(Grid& grid, const char* nodesFilename,
-						const char* facesFilename, const char* elemsFilename,
+bool ExportGridToTETGEN(Grid& grid, const char* filename,
 						AVector3& aPos, std::vector<AFloat>* pvNodeAttributes = NULL,
 						AInt* paNodeBoundaryMarker = NULL,
 						AInt* paFaceBoundaryMarker = NULL,
-						AInt* paElementAttribute = NULL);
+						AInt* paElementAttribute = NULL,
+						ANumber* paVolumeConstraint = NULL);
 
 }//	end of namespace
 

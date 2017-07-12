@@ -129,7 +129,22 @@ int GetAssociatedFaces(Face** facesOut, Grid& grid,
  */
 UG_API 
 int NumAssociatedFaces(Grid& grid, Edge* e);
-						
+
+////////////////////////////////////////////////////////////////////////		
+///	returns the first edge found which is shared by both faces or NULL if no such edge exists.
+UG_API
+Edge* GetConnectingEdge(Grid& grid, Face* f1, Face* f2);
+
+
+////////////////////////////////////////////////////////////////////////		
+///	pushes all edges which are connected to at least 2 faces from the specified sequence to edgesOut
+template <class face_iter_t>
+void GetInnerEdgesOfFaceSoup(
+			std::vector<Edge*>& edgesOut,
+			Grid& g,
+			face_iter_t facesBegin,
+			face_iter_t facesEnd);
+
 ////////////////////////////////////////////////////////////////////////
 ///	Calculates the squared length of the given edge
 /**	The specified accessor has to access a MathVector compatible type
@@ -230,7 +245,6 @@ bool EdgeCollapseIsValid(Grid& grid, Edge* e);
  * geometry by the newly generated geometry.
  */
 template<class TVertex>
-UG_API 
 TVertex* SplitEdge(Grid& grid, Edge* e, bool bConservative = false);
 
 ////////////////////////////////////////////////////////////////////////
@@ -251,7 +265,6 @@ TVertex* SplitEdge(Grid& grid, Edge* e, bool bConservative = false);
  * constructed in this case.
  */
 template<class TVertex>
-UG_API 
 TVertex* SplitEdge(Grid& destGrid, Grid& srcGrid, Edge* e,
 						AVertex* paAssociatedVertices = NULL,
 						bool bConservative = false);
@@ -341,11 +354,37 @@ void FixEdgeOrientation(Grid& grid, TEdgeIterator edgesBegin,
 ///	Orientates boundary edges in the given edge set to the orientation of associated faces.
 /**	The orientation of boundary edges will match the orientation of associated
  * faces, after this algorithm terminates.
+ *
+ * One may optionally specify a callback defines whether a face should be considered
+ * during oriantation adjustment. This can e.g. be used if an interior interface
+ * has to be oriented. One could select the faces on one side of the interface,
+ * select their associated edges (e.g. using CloseSelection) and then call
+ *
+ * \code
+ * AdjustEdgeOrientationToFaceOrientation(
+ *			grid,
+ *			sel.begin<Edge>(),
+ *			sel.end<Edge>(),
+ *			IsSelected(sel));
+ * \endcode
+ *
+ * where 'sel' is an instance of the Selector class containing the selection
+ * performed above.
+ * \{
  */
 template <class TEdgeIterator>
 UG_API
 void AdjustEdgeOrientationToFaceOrientation(Grid& grid, TEdgeIterator edgesBegin,
 						   	   	   	   	    TEdgeIterator edgesEnd);
+
+template <class TEdgeIterator>
+UG_API
+void AdjustEdgeOrientationToFaceOrientation(Grid& grid, TEdgeIterator edgesBegin,
+						   	   	   	   	    TEdgeIterator edgesEnd,
+						   	   	   	   	    Grid::face_traits::callback considerFace);
+
+/** \} */
+
 
 ////////////////////////////////////////////////////////////////////////////////
 ///	Returns the shortest edge in a list of edges

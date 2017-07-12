@@ -189,7 +189,7 @@ Face* FindSmallestFace(TIterator facesBegin, TIterator facesEnd, TAAPosVRT& aaPo
  * \sa TriangleQuality
  */
 UG_API 
-number FaceQuality(Face* f, Grid::VertexAttachmentAccessor<APosition> aaPos);
+number FaceQuality(FaceVertices* f, Grid::VertexAttachmentAccessor<APosition> aaPos);
 
 ////////////////////////////////////////////////////////////////////////
 //	AreaFaceQuality
@@ -259,46 +259,6 @@ UG_API
 void GetNeighbours(std::vector<Face*>& vFacesOut, Grid& grid, Face* f,
 					int side, bool clearContainer = true);
 					
-////////////////////////////////////////////////////////////////////////
-//	EdgeOrientationMatches
-///	checks if the edge-orientation of the edge and the face matches.
-/**
- * the match is positive if the face contains the vertices of 'ev'
- * in the same order as ev.
- * please note: if the edge is contained by two faces and both
- * faces have the same edge-orientation as ed, then the face-orientation
- * of the faces differ.
- */
-UG_API 
-bool EdgeOrientationMatches(EdgeVertices* ev, Face* f);
-
-////////////////////////////////////////////////////////////////////////
-//	FixOrientation
-///	creates uniform orientation of neighboured faces.
-/** This algorithm uses Grid::mark
- *
- * swaps orientation of faces so that all neighboured
- * faces share the same.
- *
- * Value type of TFaceIterator has to be compatible with Face*.
- *
- * Note that all faces between faceBegin and facesEnd have to be members
- * of the specified grid.
- */
-template <class TFaceIterator>
-UG_API 
-void FixFaceOrientation(Grid& grid, TFaceIterator facesBegin,
-						TFaceIterator facesEnd);
-
-////////////////////////////////////////////////////////////////////////
-//	InvertOrientation
-///	inverts the orientation of all faces between facesBegin and facesEnd
-/**	Make sure that TFaceIterator::value_type is castable to Face*.
- *	TFaceIterator has to be compatible with stl-iterators.*/
-template <class TFaceIterator>
-UG_API 
-void InvertOrientation(Grid& grid, TFaceIterator facesBegin,
-					   TFaceIterator facesEnd);
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////

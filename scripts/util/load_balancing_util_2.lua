@@ -1,5 +1,5 @@
 -- Copyright (c) 2015:  G-CSC, Goethe University Frankfurt
--- Author: Sebastian Reiter
+-- Author: Sebastian Reiter, Jan Friebertshäuser
 -- 
 -- This file is part of UG4.
 -- 
@@ -78,6 +78,7 @@ util.balancer.defaults =
 			enableXCuts = true,
 			enableYCuts = true,
 			enableZCuts = true,
+			longestSplitAxis = false,
 			clusteredSiblings = true,
 			balanceThreshold = 0.9,
 			numSplitImprovements = 10
@@ -89,6 +90,7 @@ util.balancer.defaults =
 			enableXCuts = true,
 			enableYCuts = true,
 			enableZCuts = true,
+			longestSplitAxis = false,
 			clusteredSiblings = true,
 			balanceThreshold = 0.9,
 			numSplitImprovements = 10
@@ -98,6 +100,7 @@ util.balancer.defaults =
 		{
 			balanceWeights = nil,
 			communicationWeights = nil,
+			options = nil,
 			childWeight		= 2,
 			siblingWeight	= 2,
 			itrFactor		= 1000,
@@ -131,7 +134,14 @@ util.balancer.defaults =
 			maxRedistProcs				= 256,
 			qualityRedistLevelOffset	= 3,
 			intermediateRedistributions	= true
-		}
+		},
+
+		noRedists = {
+			minElemsPerProcPerLevel		= 32,
+			maxRedistProcs				= 64,
+			qualityRedistLevelOffset	= 100000,
+			intermediateRedistributions	= false
+		},
 	}
 }
 
@@ -235,6 +245,7 @@ function util.balancer.CreatePartitioner(dom, partitionerDesc)
 		partitioner = Partitioner_DynamicBisection(dom)
 		partitioner:set_verbose(verbose)
 		partitioner:set_num_split_improvement_iterations(desc.numSplitImprovements or defaults.numSplitImprovements)
+		partitioner:enable_longest_split_axis(desc.longestSplitAxis or defaults.longestSplitAxis)
 		if desc.enableXCuts == false then partitioner:enable_split_axis(0, false) end
 		if desc.enableYCuts == false then partitioner:enable_split_axis(1, false) end
 		if desc.enableZCuts == false then partitioner:enable_split_axis(2, false) end
@@ -243,6 +254,7 @@ function util.balancer.CreatePartitioner(dom, partitionerDesc)
 		partitioner:set_verbose(verbose)
 		partitioner:enable_static_partitioning(true)
 		partitioner:set_num_split_improvement_iterations(desc.numSplitImprovements or defaults.numSplitImprovements)
+		partitioner:enable_longest_split_axis(desc.longestSplitAxis or defaults.longestSplitAxis)
 		if desc.enableXCuts == false then partitioner:enable_split_axis(0, false) end
 		if desc.enableYCuts == false then partitioner:enable_split_axis(1, false) end
 		if desc.enableZCuts == false then partitioner:enable_split_axis(2, false) end
@@ -261,6 +273,15 @@ function util.balancer.CreatePartitioner(dom, partitionerDesc)
 		end
 		if util.tableDesc.IsPreset(desc.communicationWeights) then
 			partitioner:set_communication_weights(desc.communicationWeights)
+		end
+		-- create parmetis options if none were specified.
+		if desc.options ~= nil then
+			partitioner:set_options(desc.options)
+		elseif defaults.options ~= nil then
+			partitioner:set_options(default.options)
+	  	else
+	   		options = ParmetisOptions()
+			partitioner:set_options(options)
 		end
 	else
 		print("ERROR: Unknown partitioner specified in balancer.CreateLoadBalancer: " .. name)

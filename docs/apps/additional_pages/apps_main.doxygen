@@ -32,6 +32,7 @@
 
 /**
 \mainpage Apps
+\defgroup apps Apps
 
 This is the documentation of the apps for ug4.
 

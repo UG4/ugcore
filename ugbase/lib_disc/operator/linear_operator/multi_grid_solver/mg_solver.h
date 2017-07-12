@@ -57,6 +57,8 @@
 #include "lib_disc/function_spaces/grid_function_util.h"
 #include "lib_disc/operator/linear_operator/assembled_linear_operator.h"
 
+#include "mg_stats.h"
+
 namespace ug{
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -96,6 +98,9 @@ class AssembledMultiGridCycle :
 	///	Grid Function type
 		typedef GridFunction<TDomain, TAlgebra> GF;
 
+	///	MGStats type
+		typedef MGStats<TDomain, TAlgebra> mg_stats_type;
+
 	///////////////////////////////////////////////////////////////////////////
 	//	Setup
 	///////////////////////////////////////////////////////////////////////////
@@ -106,6 +111,13 @@ class AssembledMultiGridCycle :
 
 	/// constructor setting approximation space
 		AssembledMultiGridCycle(SmartPtr<ApproximationSpace<TDomain> > approxSpace);
+
+	///	sets MGStats, an object which records statistics for individual iterations
+	/**	Setting MGStats is optional. If set, a runtime overhead is incurred. Only
+	 * useful for debugging.
+	 * \sa MGStats*/
+		void set_mg_stats(SmartPtr<mg_stats_type> mgstats)
+			{m_mgstats = mgstats;}
 
 	/// sets the approximation space
 		void set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace);
@@ -528,11 +540,17 @@ class AssembledMultiGridCycle :
 	///	logs a level-data-struct to the terminal
 		void log_debug_data(int lvl, std::string name);
 
+	///	Calls MGStats::set_defect (if available) with the given parameters
+		void mg_stats_defect(GF& gf, int lvl, typename mg_stats_type::Stage stage);
+
 	///	Debug Writer
 		SmartPtr<GridFunctionDebugWriter<TDomain, TAlgebra> > m_spDebugWriter;
 
 	///	counter for debug, to distinguish the iterations
 		int m_dbgIterCnt;
+
+	///	MGStats are used for debugging to record statistics on individual iterations
+		SmartPtr<mg_stats_type>	m_mgstats;
 };
 
 ////////////////////////////////////////////////////////////////////////////////

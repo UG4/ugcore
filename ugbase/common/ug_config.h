@@ -42,7 +42,7 @@
 /// \addtogroup ugbase_common
 /// \{
 
-#if defined UG_WIN32 || defined UG_CYGWIN
+#if defined UG_WIN32
 	#ifdef __GNUC__
 		#define EXPORT_IMPL __attribute__ ((dllexport))
 		#define IMPORT_IMPL __attribute__ ((dllimport))

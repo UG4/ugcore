@@ -126,6 +126,15 @@ static void Algebra(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "MinimalEnergyDamping", tag);
 	}
+	
+//	Pre- and postprocess operations
+	{
+		typedef IPProcessVector<vector_type> T;
+		string name = string("IPProcessVector").append(suffix);
+		reg.add_class_<T>(name, grp)
+			.add_method("apply", &T::apply, "applies the operation", "vector");
+		reg.add_class_to_group(name, "IPProcessVector", tag);
+	}
 
 // 	LinearSolver
 	{
@@ -136,6 +145,8 @@ static void Algebra(Registry& reg, string grp)
 			.add_constructor()
 			. ADD_CONSTRUCTOR( (SmartPtr<ILinearIterator<vector_type,vector_type> > ) )("precond")
 			. ADD_CONSTRUCTOR( (SmartPtr<ILinearIterator<vector_type,vector_type> >, SmartPtr<IConvergenceCheck<vector_type> >) )("precond#convCheck")
+			.add_method("add_postprocess_corr", &T::add_postprocess_corr, "adds a postprocess of the corrections", "op")
+			.add_method("remove_postprocess_corr", &T::remove_postprocess_corr, "removes a postprocess of the corrections", "op")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "LinearSolver", tag);
 	}
@@ -199,6 +210,8 @@ static void Algebra(Registry& reg, string grp)
 			.add_constructor()
 			. ADD_CONSTRUCTOR( (SmartPtr<ILinearIterator<vector_type,vector_type> > ) )("precond")
 			. ADD_CONSTRUCTOR( (SmartPtr<ILinearIterator<vector_type,vector_type> >, SmartPtr<IConvergenceCheck<vector_type> >) )("precond#convCheck")
+			.add_method("add_postprocess_corr", &T::add_postprocess_corr, "adds a postprocess of the corrections", "op")
+			.add_method("remove_postprocess_corr", &T::remove_postprocess_corr, "removes a postprocess of the corrections", "op")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "CG", tag);
 	}
@@ -214,6 +227,8 @@ static void Algebra(Registry& reg, string grp)
 			. ADD_CONSTRUCTOR( (SmartPtr<ILinearIterator<vector_type,vector_type> >, SmartPtr<IConvergenceCheck<vector_type> >) )("precond#convCheck")
 			.add_method("set_restart", &T::set_restart)
 			.add_method("set_min_orthogonality", &T::set_min_orthogonality)
+			.add_method("add_postprocess_corr", &T::add_postprocess_corr, "adds a postprocess of the corrections", "op")
+			.add_method("remove_postprocess_corr", &T::remove_postprocess_corr, "removes a postprocess of the corrections", "op")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "BiCGStab", tag);
 	}
@@ -225,6 +240,8 @@ static void Algebra(Registry& reg, string grp)
 		string name = string("GMRES").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "GMRES Solver")
 			.ADD_CONSTRUCTOR( (size_t restar) )("restart")
+			.add_method("add_postprocess_corr", &T::add_postprocess_corr, "adds a postprocess of the corrections", "op")
+			.add_method("remove_postprocess_corr", &T::remove_postprocess_corr, "removes a postprocess of the corrections", "op")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GMRES", tag);
 	}

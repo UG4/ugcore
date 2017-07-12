@@ -54,26 +54,82 @@ namespace ug {
  * \param[in]		vElemDisc	Vector of element discs, defined for subsets
  * \param[in]		clearGroup	flag if group should be cleared
  */
-template <typename TDomain>
+
+template <typename TElemIn>
 void CreateSubsetGroups(std::vector<SubsetGroup>& vSSGrp,
                         SubsetGroup& unionSSGrp,
-                        std::vector<IElemDisc<TDomain>* > vElemDisc,
-                        ConstSmartPtr<ISubsetHandler> pSH);
+                        std::vector<TElemIn*> vElemDisc,
+                        ConstSmartPtr<ISubsetHandler> pSH)
+{
+	PROFILE_FUNC_GROUP("discretization");
+//	resize subset group vector
+	vSSGrp.resize(vElemDisc.size());
+
+//	if empty, nothing to do
+	if(vSSGrp.empty()) {unionSSGrp.clear(); return;}
+
+//	create subset group for each elem disc
+	for(size_t i = 0; i < vSSGrp.size(); ++i)
+	{
+		vSSGrp[i].set_subset_handler(pSH);
+		vSSGrp[i].add(vElemDisc[i]->symb_subsets());
+	}
+
+//	set underlying subsetHandler
+	unionSSGrp.set_subset_handler(pSH);
+
+//	add all Subset groups of the element discs
+	for(size_t i = 0; i < vSSGrp.size(); ++i)
+	{
+		//	add subset group of elem disc
+		try{
+			unionSSGrp.add(vSSGrp[i]);
+		}UG_CATCH_THROW("Cannot add subsets of the Elem Disc "<<i<<" to union of Subsets.");
+	}
+}
+
+
+
 
 /**
  * This function selects from a given set of element discretizations those
- * who work on a given subset
+ * who work on a given subset.
  *
- * \param[out]		vSubsetElemDisc		Elem Disc working on subset
- * \param[in]		vElemDisc			Elem Disc to select from
+ *  At the same time, pointers are converted
+ *  e.g. from TElemIn=IElemDisc<TDomain> to typename TElemOut=IElemError<TDomain>
+ *
+ * \param[out]		vSubsetElemDisc		Elem Disc items  working on subset (pointers type of type TElemOut)
+ * \param[in]		vElemDisc			Elem Disc items to select from (pointers type of type TElemIn)
  * \param[in]		si					Subset index
  * \param[in]		clearVec			flag if vector should be cleared
+ */
+template <typename TElemOut, typename TElemIn>
+void GetElemDiscItemOnSubset(std::vector<TElemOut*>& vSubsetElemDiscOut,
+                         const std::vector<TElemIn*>& vElemDiscIn,
+                         const std::vector<SubsetGroup>& vSSGrp,
+                         int si, bool clearVec=true)
+{
+//	clear Vector
+	if(clearVec) vSubsetElemDiscOut.clear();
+
+//	loop elem discs
+	for(size_t i = 0; i < vElemDiscIn.size(); ++i)
+	{
+	//	if subset is used, add elem disc to Subset Elem Discs
+		if(vSSGrp[i].contains(si))
+			vSubsetElemDiscOut.push_back(static_cast<TElemOut*>(vElemDiscIn[i]));
+	}
+}
+
+/**
+ * Legacy version of 'GetElemDiscItemOnSubset' for TElemOut=TElemIn=IElemDisc<TDomain>
  */
 template <typename TDomain>
 void GetElemDiscOnSubset(std::vector<IElemDisc<TDomain>*>& vSubsetElemDisc,
                          const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                          const std::vector<SubsetGroup>& vSSGrp,
                          int si, bool clearVec = true);
+
 
 } // end namespace ug
 

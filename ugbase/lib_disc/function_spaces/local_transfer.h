@@ -201,37 +201,6 @@ class StdLagrangeElemTransfer
 			return true;
 		}
 
-		template <typename TElem>
-		void prolongate(TElem* parent,
-		                TransferValueAccessor& vValueChild,
-		                TransferValueAccessor& vValueParent)
-		{
-			static const int pdim = TElem::dim;
-
-		//	get reference object ids
-			const ReferenceObjectID parentRoid = parent->reference_object_id();
-
-		//	access the values
-			vValueParent.access_closure(parent);
-
-		//	get vertices if required by some prolongation
-			std::vector<MathVector<dim> > vCornerParent;
-			CollectCornerCoordinates(vCornerParent, *parent, *IElemProlongation<TDomain>::m_spDomain);
-
-		//	get local finite element trial spaces
-			const LocalShapeFunctionSet<pdim>& lsfs =
-					LocalFiniteElementProvider::get<pdim>(parentRoid, m_lfeid);
-
-		//	prolongate to all children with dimension pdim and lower
-			switch(pdim){
-				case 3: prolongate<TElem,Volume>(parent, vValueChild, vValueParent, lsfs, vCornerParent, parentRoid);
-				case 2: prolongate<TElem,Face>(parent, vValueChild, vValueParent, lsfs, vCornerParent, parentRoid);
-				case 1: prolongate<TElem,Edge>(parent, vValueChild, vValueParent, lsfs, vCornerParent, parentRoid);
-						prolongate<TElem,Vertex>(parent, vValueChild, vValueParent, lsfs, vCornerParent, parentRoid);
-				break;
-				default: UG_THROW("Dimension "<<pdim<<" not supported");
-			}
-		}
 
 		template <typename TParent, typename TChild>
 		void prolongate(TParent* parent,
@@ -281,6 +250,38 @@ class StdLagrangeElemTransfer
 			}
 		}
 
+
+		template <typename TElem>
+		void prolongate(TElem* parent,
+		                TransferValueAccessor& vValueChild,
+		                TransferValueAccessor& vValueParent)
+		{
+			static const int pdim = TElem::dim;
+
+		//	get reference object ids
+			const ReferenceObjectID parentRoid = parent->reference_object_id();
+
+		//	access the values
+			vValueParent.access_closure(parent);
+
+		//	get vertices if required by some prolongation
+			std::vector<MathVector<dim> > vCornerParent;
+			CollectCornerCoordinates(vCornerParent, *parent, *IElemProlongation<TDomain>::m_spDomain);
+
+		//	get local finite element trial spaces
+			const LocalShapeFunctionSet<pdim>& lsfs =
+					LocalFiniteElementProvider::get<pdim>(parentRoid, m_lfeid);
+
+		//	prolongate to all children with dimension pdim and lower
+			switch(pdim){
+				case 3: prolongate<TElem,Volume>(parent, vValueChild, vValueParent, lsfs, vCornerParent, parentRoid);
+				case 2: prolongate<TElem,Face>(parent, vValueChild, vValueParent, lsfs, vCornerParent, parentRoid);
+				case 1: prolongate<TElem,Edge>(parent, vValueChild, vValueParent, lsfs, vCornerParent, parentRoid);
+						prolongate<TElem,Vertex>(parent, vValueChild, vValueParent, lsfs, vCornerParent, parentRoid);
+				break;
+				default: UG_THROW("Dimension "<<pdim<<" not supported");
+			}
+		}
 
 		virtual void prolongate(Vertex* parent)
 		{
@@ -419,61 +420,7 @@ class CrouzeixRaviartElemTransfer
 			UG_THROW("No implementation for Vertex and Crouzeix-Raviart.")
 		}
 
-		template <typename TParent>
-		void prolongate(TParent* parent,
-						TransferValueAccessor& vValueChild,
-						TransferValueAccessor& vValueParent)
-		{
-			const MultiGrid* mg = IElemProlongation<TDomain>::m_spGrid.get();
-		//	a) prolongation from a side
-			if(TParent::dim == m_lfeid.dim()-1){
-				typedef typename TParent::sideof TElem;
-				typedef TParent TSide;
-
-			//	get child sides
-				const int numChild = mg->num_children<TParent>(parent);
-				if(numChild == 0) return;
-
-			//	get childs
-				std::vector<TSide*> vChildSide(numChild);
-				for(int c = 0; c < numChild; ++c)
-					vChildSide[c] = mg->get_child<TParent>(parent, c);
-
-			// 	get associated macro elements, this elem is a side of
-				typename Grid::traits<TElem>::secure_container vElem;
-				const_cast<MultiGrid*>(mg)->associated_elements(vElem, parent);
-				std::vector<TElem*> vParentElem(vElem.size());
-				for(size_t p = 0; p < vElem.size(); ++p)
-					vParentElem[p] = vElem[p];
-
-			//	call prolongation
-				prolongate<TSide>(vParentElem, vChildSide, vValueChild, vValueParent);
-			}
-
-		//	b) prolongation from a element
-			if(TParent::dim == m_lfeid.dim()){
-				typedef TParent TElem;
-				typedef typename TParent::side TSide;
-
-			//	get child sides
-				const int numChild = mg->num_children<TSide>(parent);
-				if(numChild == 0) return;
-
-			//	get childs
-				std::vector<TSide*> vChildSide(numChild);
-				for(int c = 0; c < numChild; ++c)
-					vChildSide[c] = mg->get_child<TSide>(parent, c);
-
-			// 	get associated macro elements, this elem is a side of
-				std::vector<TElem*> vParentElem(1);
-				vParentElem[0] = parent;
-
-			//	call prolongation
-				prolongate<TSide>(vParentElem, vChildSide, vValueChild, vValueParent);
-			}
-		};
-
-		template <typename TSide>
+				template <typename TSide>
 		void prolongate(const std::vector<typename TSide::sideof*>& vParentElem,
 						const std::vector<TSide*>& vChildSide,
 						TransferValueAccessor& vValueChild,
@@ -546,6 +493,60 @@ class CrouzeixRaviartElemTransfer
 				}
 			}
 		}
+		
+		template <typename TParent>
+		void prolongate(TParent* parent,
+						TransferValueAccessor& vValueChild,
+						TransferValueAccessor& vValueParent)
+		{
+			const MultiGrid* mg = IElemProlongation<TDomain>::m_spGrid.get();
+		//	a) prolongation from a side
+			if(TParent::dim == m_lfeid.dim()-1){
+				typedef typename TParent::sideof TElem;
+				typedef TParent TSide;
+
+			//	get child sides
+				const int numChild = mg->num_children<TParent>(parent);
+				if(numChild == 0) return;
+
+			//	get childs
+				std::vector<TSide*> vChildSide(numChild);
+				for(int c = 0; c < numChild; ++c)
+					vChildSide[c] = mg->get_child<TParent>(parent, c);
+
+			// 	get associated macro elements, this elem is a side of
+				typename Grid::traits<TElem>::secure_container vElem;
+				const_cast<MultiGrid*>(mg)->associated_elements(vElem, parent);
+				std::vector<TElem*> vParentElem(vElem.size());
+				for(size_t p = 0; p < vElem.size(); ++p)
+					vParentElem[p] = vElem[p];
+
+			//	call prolongation
+				prolongate<TSide>(vParentElem, vChildSide, vValueChild, vValueParent);
+			}
+
+		//	b) prolongation from a element
+			if(TParent::dim == m_lfeid.dim()){
+				typedef TParent TElem;
+				typedef typename TParent::side TSide;
+
+			//	get child sides
+				const int numChild = mg->num_children<TSide>(parent);
+				if(numChild == 0) return;
+
+			//	get childs
+				std::vector<TSide*> vChildSide(numChild);
+				for(int c = 0; c < numChild; ++c)
+					vChildSide[c] = mg->get_child<TSide>(parent, c);
+
+			// 	get associated macro elements, this elem is a side of
+				std::vector<TElem*> vParentElem(1);
+				vParentElem[0] = parent;
+
+			//	call prolongation
+				prolongate<TSide>(vParentElem, vChildSide, vValueChild, vValueParent);
+			}
+		};
 
 		virtual bool perform_restriction_on(GridBaseObjectId gbo) {
 		//	restriction only on sides

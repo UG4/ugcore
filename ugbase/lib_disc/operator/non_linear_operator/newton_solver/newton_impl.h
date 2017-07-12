@@ -64,7 +64,8 @@ NewtonSolver(SmartPtr<ILinearOperatorInverse<vector_type> > LinearSolver,
 			m_N(NULL),
 			m_J(NULL),
 			m_spAss(NULL),
-			m_dgbCall(0)
+			m_dgbCall(0),
+			m_lastNumSteps(0)
 {};
 
 template <typename TAlgebra>
@@ -76,7 +77,8 @@ NewtonSolver() :
 	m_N(NULL),
 	m_J(NULL),
 	m_spAss(NULL),
-	m_dgbCall(0)
+	m_dgbCall(0),
+	m_lastNumSteps(0)
 {};
 
 template <typename TAlgebra>
@@ -88,7 +90,8 @@ NewtonSolver(SmartPtr<IOperator<vector_type> > N) :
 	m_N(NULL),
 	m_J(NULL),
 	m_spAss(NULL),
-	m_dgbCall(0)
+	m_dgbCall(0),
+	m_lastNumSteps(0)
 {
 	init(N);
 };
@@ -102,7 +105,8 @@ NewtonSolver(SmartPtr<IAssemble<TAlgebra> > spAss) :
 	m_N(NULL),
 	m_J(NULL),
 	m_spAss(NULL),
-	m_dgbCall(0)
+	m_dgbCall(0),
+	m_lastNumSteps(0)
 {
 	m_spAss = spAss;
 	m_N = SmartPtr<AssembledOperator<TAlgebra> >(new AssembledOperator<TAlgebra>(m_spAss));
@@ -173,6 +177,7 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 
 //	write start defect for debug
 	int loopCnt = 0;
+	m_lastNumSteps = 0;
 	char ext[20]; sprintf(ext, "_iter%03d", loopCnt);
 	std::string name("NEWTON_Defect");
 	name.append(ext);
@@ -196,6 +201,8 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 //	loop iteration
 	while(!m_spConvCheck->iteration_ended())
 	{
+		m_lastNumSteps = loopCnt;
+
 	// 	set c = 0
 		NEWTON_PROFILE_BEGIN(NewtonSetCorretionZero);
 		spC->set(0.0);

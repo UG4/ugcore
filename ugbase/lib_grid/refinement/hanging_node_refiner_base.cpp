@@ -137,7 +137,7 @@ mark(Vertex* v, RefinementMark refMark)
 	//	of non-surface vertices
 		if(refinement_is_allowed(v) || m_adjustingRefMarks){
 			m_selMarkedElements.select(v, refMark);
-			if(m_adjustingRefMarks && (refMark & (RM_REFINE | RM_ANISOTROPIC | RM_CLOSURE | RM_DUMMY)))
+			if(m_adjustingRefMarks && (refMark & (RM_FULL | RM_LOCAL | RM_CLOSURE | RM_DUMMY)))
 				m_newlyMarkedRefVrts.push_back(v);
 			return true;
 		}
@@ -152,7 +152,7 @@ bool HangingNodeRefinerBase<TSelector>::mark(Edge* e, RefinementMark refMark)
 	if(get_mark(e) != refMark){
 		if(refinement_is_allowed(e)){
 			m_selMarkedElements.select(e, refMark);
-			if(m_adjustingRefMarks && (refMark & (RM_REFINE | RM_ANISOTROPIC | RM_CLOSURE | RM_DUMMY)))
+			if(m_adjustingRefMarks && (refMark & (RM_REFINE | RM_LOCAL | RM_CLOSURE | RM_DUMMY)))
 				m_newlyMarkedRefEdges.push_back(e);
 			return true;
 		}
@@ -168,7 +168,7 @@ bool HangingNodeRefinerBase<TSelector>::mark(Face* f, RefinementMark refMark)
 	if(get_mark(f) != refMark){
 		if(refinement_is_allowed(f)){
 			m_selMarkedElements.select(f, refMark);
-			if(m_adjustingRefMarks && (refMark & (RM_REFINE | RM_ANISOTROPIC | RM_CLOSURE | RM_DUMMY)))
+			if(m_adjustingRefMarks && (refMark & (RM_REFINE | RM_LOCAL | RM_CLOSURE | RM_DUMMY)))
 				m_newlyMarkedRefFaces.push_back(f);
 			return true;
 		}
@@ -183,7 +183,7 @@ bool HangingNodeRefinerBase<TSelector>::mark(Volume* v, RefinementMark refMark)
 	if(get_mark(v) != refMark){
 		if(refinement_is_allowed(v)){
 			m_selMarkedElements.select(v, refMark);
-			if(m_adjustingRefMarks && (refMark & (RM_REFINE | RM_ANISOTROPIC | RM_CLOSURE | RM_DUMMY)))
+			if(m_adjustingRefMarks && (refMark & (RM_REFINE | RM_LOCAL | RM_CLOSURE | RM_DUMMY)))
 				m_newlyMarkedRefVols.push_back(v);
 			return true;
 		}
@@ -321,8 +321,8 @@ mark_neighborhood(size_t numIterations, RefinementMark refMark, bool sideNbrsOnl
 									if(rm == RM_NONE){
 										switch(sSide){
 											case RM_REFINE:	rm = RM_REFINE; break;
-											case RM_ANISOTROPIC: rm = RM_ANISOTROPIC; break;
 											case RM_CLOSURE: rm = RM_CLOSURE; break;
+											case RM_LOCAL: rm = RM_LOCAL; break;
 											case RM_COARSEN: rm = RM_COARSEN; break;
 											default: break;
 										}
@@ -377,8 +377,8 @@ mark_neighborhood(size_t numIterations, RefinementMark refMark, bool sideNbrsOnl
 									if(rm == RM_NONE){
 										switch(sSide){
 											case RM_REFINE:	rm = RM_REFINE; break;
-											case RM_ANISOTROPIC: rm = RM_ANISOTROPIC; break;
 											case RM_CLOSURE: rm = RM_CLOSURE; break;
+											case RM_LOCAL: rm = RM_LOCAL; break;
 											case RM_COARSEN: rm = RM_COARSEN; break;
 											default: break;
 										}
@@ -406,8 +406,8 @@ mark_neighborhood(size_t numIterations, RefinementMark refMark, bool sideNbrsOnl
 									if(rm == RM_NONE){
 										switch(sSide){
 											case RM_REFINE:	rm = RM_REFINE; break;
-											case RM_ANISOTROPIC: rm = RM_ANISOTROPIC; break;
 											case RM_CLOSURE: rm = RM_CLOSURE; break;
+											case RM_LOCAL: rm = RM_LOCAL; break;
 											case RM_COARSEN: rm = RM_COARSEN; break;
 											default: break;
 										}
@@ -430,8 +430,8 @@ mark_neighborhood(size_t numIterations, RefinementMark refMark, bool sideNbrsOnl
 				if(rm == RM_NONE){
 					switch(s){
 						case RM_REFINE:	rm = RM_REFINE; break;
-						case RM_ANISOTROPIC: rm = RM_ANISOTROPIC; break;
 						case RM_CLOSURE: rm = RM_CLOSURE; break;
+						case RM_LOCAL: rm = RM_LOCAL; break;
 						case RM_COARSEN: rm = RM_COARSEN; break;
 						default: break;
 					}
@@ -467,40 +467,40 @@ mark_neighborhood(size_t numIterations, RefinementMark refMark, bool sideNbrsOnl
 		}
 		
 	}
-
 }
 
 template <class TSelector>
 RefinementMark HangingNodeRefinerBase<TSelector>::
-get_mark(Vertex* v)
+get_mark(Vertex* v) const
 {
 	return (RefinementMark)(m_selMarkedElements.get_selection_status(v)
-							& (RM_REFINE | RM_ANISOTROPIC | RM_CLOSURE | RM_COARSEN | RM_DUMMY));
+							& (RM_REFINE | RM_LOCAL | RM_CLOSURE | RM_COARSEN | RM_DUMMY));
 }
 
 template <class TSelector>
 RefinementMark HangingNodeRefinerBase<TSelector>::
-get_mark(Edge* e)
+get_mark(Edge* e) const
 {
 	return (RefinementMark)(m_selMarkedElements.get_selection_status(e)
-							& (RM_REFINE | RM_ANISOTROPIC | RM_CLOSURE | RM_COARSEN | RM_DUMMY));
+							& (RM_REFINE | RM_LOCAL | RM_CLOSURE | RM_COARSEN | RM_DUMMY));
 }
 
 template <class TSelector>
 RefinementMark HangingNodeRefinerBase<TSelector>::
-get_mark(Face* f)
+get_mark(Face* f) const
 {
 	return (RefinementMark)(m_selMarkedElements.get_selection_status(f)
-							& (RM_REFINE | RM_ANISOTROPIC | RM_CLOSURE | RM_COARSEN | RM_DUMMY));
+							& (RM_REFINE | RM_LOCAL | RM_CLOSURE | RM_COARSEN | RM_DUMMY));
 }
 
 template <class TSelector>
 RefinementMark HangingNodeRefinerBase<TSelector>::
-get_mark(Volume* v)
+get_mark(Volume* v) const
 {
 	return (RefinementMark)(m_selMarkedElements.get_selection_status(v)
-							& (RM_REFINE | RM_ANISOTROPIC | RM_CLOSURE | RM_COARSEN | RM_DUMMY));
+							& (RM_REFINE | RM_LOCAL | RM_CLOSURE | RM_COARSEN | RM_DUMMY));
 }
+
 
 template <class TSelector>
 bool HangingNodeRefinerBase<TSelector>::
@@ -542,11 +542,11 @@ save_marks_to_file(const char* filename)
 			if (si & b)
 				switch (b)
 				{
-					case RM_COPY: sh.subset_info(si).name.append("COPY_"); break;
 					case RM_CLOSURE: sh.subset_info(si).name.append("CLOSURE_"); break;
-					case RM_ANISOTROPIC: sh.subset_info(si).name.append("ANISOTROPIC_"); break;
-					case RM_REFINE: sh.subset_info(si).name.append("REFINE_"); break;
+					case RM_LOCAL: sh.subset_info(si).name.append("LOCAL_"); break;
+					case RM_FULL: sh.subset_info(si).name.append("FULL_"); break;
 					case RM_COARSEN: sh.subset_info(si).name.append("COARSEN_"); break;
+					case RM_DUMMY: sh.subset_info(si).name.append("DUMMY_"); break;
 					case HNRM_TO_NORMAL: sh.subset_info(si).name.append("TONORMAL_"); break;
 					case HNRM_TO_CONSTRAINED: sh.subset_info(si).name.append("TOCONSTRAINED_"); break;
 					case HNRM_TO_CONSTRAINING: sh.subset_info(si).name.append("TOCONSTRAINING_"); break;
@@ -776,7 +776,7 @@ void HangingNodeRefinerBase<TSelector>::perform_refinement()
 			if(marked_to_constraining(e)){
 				refine_edge_with_hanging_vertex(e);
 			}
-			else if(marked_refine(e) || marked_copy(e)){
+			else if(marked_refine(e)){
 				refine_edge_with_normal_vertex(e);
 			}
 		}
@@ -865,7 +865,7 @@ void HangingNodeRefinerBase<TSelector>::perform_refinement()
 
 			if(marked_to_constraining(f))
 				refine_face_with_hanging_vertex(f);
-			else if(marked_refine(f) || marked_copy(f))
+			else if(marked_refine(f))
 				refine_face_with_normal_vertex(f);
 		}
 	}
@@ -887,7 +887,7 @@ void HangingNodeRefinerBase<TSelector>::perform_refinement()
 
 			if(marked_to_constraining(f))
 				refine_face_with_hanging_vertex(f);
-			else if(marked_refine(f) || marked_copy(f))
+			else if(marked_refine(f))
 				refine_face_with_normal_vertex(f);
 		}
 	}
@@ -929,7 +929,7 @@ void HangingNodeRefinerBase<TSelector>::perform_refinement()
 	{
 		Vertex* e = *iter;
 		++iter;
-		if(!(marked_refine(e) || marked_copy(e)))
+		if(!(marked_refine(e)))
 			m_selMarkedElements.deselect(e);
 	}
 	for(typename selector_t::template traits<Edge>::iterator
@@ -938,7 +938,7 @@ void HangingNodeRefinerBase<TSelector>::perform_refinement()
 	{
 		Edge* e = *iter;
 		++iter;
-		if(!(marked_refine(e) || marked_copy(e)))
+		if(!(marked_refine(e)))
 			m_selMarkedElements.deselect(e);
 	}
 	for(typename selector_t::template traits<Face>::iterator
@@ -947,7 +947,7 @@ void HangingNodeRefinerBase<TSelector>::perform_refinement()
 	{
 		Face* e = *iter;
 		++iter;
-		if(!(marked_refine(e) || marked_copy(e)))
+		if(!(marked_refine(e)))
 			m_selMarkedElements.deselect(e);
 	}
 
@@ -1068,10 +1068,12 @@ void HangingNodeRefinerBase<TSelector>::collect_objects_for_refine()
 
 	//	call the adjusters
 		for(size_t i = 0; i < m_refMarkAdjusters.size(); ++i){
-			m_refMarkAdjusters[i]->ref_marks_changed(*this, newlyMarkedVrts,
-														newlyMarkedEdges,
-														newlyMarkedFaces,
-														newlyMarkedVols);
+			if(m_refMarkAdjusters[i]->enabled()){
+				m_refMarkAdjusters[i]->ref_marks_changed(*this, newlyMarkedVrts,
+															newlyMarkedEdges,
+															newlyMarkedFaces,
+															newlyMarkedVols);
+			}
 		}
 
 		bool continueRequired =	(!m_newlyMarkedRefVrts.empty())
@@ -1097,8 +1099,12 @@ assign_hnode_marks()
 //	or add conversion marks (HNRM_TO_NORMAL etc).
 //	Note also that we won't remove any marks during this algorithm (neither normal
 //	nor hnode marks).
+	Grid::edge_traits::secure_container edges;
 	vector<Face*> faces;
 	vector<Volume*> vols;
+
+	std::vector<int>	vinds;
+	vinds.reserve(4);
 
 //	the grid
 	UG_ASSERT(m_pGrid, "A grid is required to perform this operation!");
@@ -1110,14 +1116,90 @@ assign_hnode_marks()
 		{
 			Face* f = *iter;
 			CollectAssociated(vols, grid, f);
+		//	if one of the volumes is marked with RM_LOCAL, we'll have to
+		//	set up a local mark for the face and compare it.
+			bool gotLocal = false;
 			for(size_t i = 0; i < vols.size(); ++i){
-				if(refinement_is_allowed(vols[i])
-				   && (!m_selMarkedElements.is_selected(vols[i])))
-				{
-					add_hmark(f, HNRM_TO_CONSTRAINING);
+				if(marked_local(vols[i])){
+					gotLocal = true;
 					break;
 				}
 			}
+
+			if(gotLocal){
+				int localFaceMark = 0;
+				if(marked_full(f)){
+					if(f->num_vertices() == 3)
+						localFaceMark = 7;
+					else if(f->num_vertices() == 4)
+						localFaceMark = 15;
+					else{
+						UG_THROW("Unsupported face type with too many vertices: " << f->num_vertices());
+					}
+				}
+				else if(marked_local(f))
+					localFaceMark = get_local_mark(f);
+				else if(marked_closure(f)){
+					grid.associated_elements_sorted(edges, f);
+					for(size_t i = 0; i < edges.size(); ++i){
+						if(marked_full(edges[i]))
+							localFaceMark |= (1<<i);
+					}
+				}
+
+				for(size_t i_vol = 0; i_vol < vols.size(); ++i_vol){
+					Volume* v = vols[i_vol];
+					if(!refinement_is_allowed(v))
+						continue;
+
+					if(!m_selMarkedElements.is_selected(v))
+					{
+						add_hmark(f, HNRM_TO_CONSTRAINING);
+						break;
+					}
+					else{
+						if(!marked_local(v))
+							continue;
+
+						int volLocalMark = get_local_mark(v);
+						int sideMark = 0;
+
+						Face::ConstVertexArray vrts = f->vertices();
+						const size_t numVrts = f->num_vertices();
+
+						vinds.resize(numVrts);
+						for(size_t j = 0; j < numVrts; ++j){
+							vinds[j] = GetVertexIndex(v, vrts[j]);
+						}
+
+
+						for(size_t j = 0; j < numVrts; ++j){
+							const int edgeInd =
+									v->get_edge_index_from_vertices(
+											vinds[j], vinds[(j+1)%numVrts]);
+							
+							sideMark |= ((volLocalMark >> edgeInd) & 1) << j;
+						}
+
+
+						if(sideMark != localFaceMark){
+							add_hmark(f, HNRM_TO_CONSTRAINING);
+							break;
+						}
+					}
+				}
+			}
+			else{
+				for(size_t i = 0; i < vols.size(); ++i){
+					if(refinement_is_allowed(vols[i])
+					   && (!m_selMarkedElements.is_selected(vols[i])))
+					{
+						add_hmark(f, HNRM_TO_CONSTRAINING);
+						break;
+					}
+				}
+			}
+
 		}
 
 	//	make sure, that constrained faces, edges and vertices of selected
@@ -1181,20 +1263,33 @@ assign_hnode_marks()
 			iter != m_selMarkedElements.template end<Edge>(); ++iter)
 		{
 			Edge* e = *iter;
+			if(!marked_refine(e))
+				continue;
+
 			CollectAssociated(faces, grid, e);
 			for(size_t i = 0; i < faces.size(); ++i){
-				if(marked_to_constraining(faces[i])
-				   && marked_refine(e))
+				Face* f = faces[i];
+				if(marked_to_constraining(f))
 				{
 					add_hmark(e, HNRM_TO_CONSTRAINING);
 					break;
 				}
-				else if(refinement_is_allowed(faces[i])
-						&& (!m_selMarkedElements.is_selected(faces[i]))
-						&& marked_refine(e))
+
+				if(!refinement_is_allowed(f))
+					continue;
+
+				if(!m_selMarkedElements.is_selected(f))
 				{
 					add_hmark(e, HNRM_TO_CONSTRAINING);
 					break;
+				}
+				else if(marked_local(f)){
+					int localMark = get_local_mark(f);
+					int ei = GetEdgeIndex(f, e);
+					if(!(localMark & 1<<ei)){
+						add_hmark(e, HNRM_TO_CONSTRAINING);
+						break;
+					}
 				}
 			}
 		}
@@ -1206,14 +1301,19 @@ assign_hnode_marks()
 			ConstrainingEdge* cge = *iter;
 			if(marked_refine(cge)){
 				add_hmark(cge, HNRM_TO_NORMAL);
-				for(size_t i = 0; i < cge->num_constrained_vertices(); ++i)
-					add_hmark(cge->constrained_vertex(i), HNRM_TO_NORMAL);
-				for(size_t i = 0; i < cge->num_constrained_edges(); ++i){
-					Edge* cde = cge->constrained_edge(i);
-					if(marked_refine(cde))
-						add_hmark(cde, HNRM_TO_CONSTRAINING);
-					else
-						add_hmark(cde, HNRM_TO_NORMAL);
+				if(!marked_to_constraining(cge)){
+				//	this happens in volume geometries, where only some of the
+				//	associated volumes are refined
+					for(size_t i = 0; i < cge->num_constrained_vertices(); ++i)
+						add_hmark(cge->constrained_vertex(i), HNRM_TO_NORMAL);
+
+					for(size_t i = 0; i < cge->num_constrained_edges(); ++i){
+						Edge* cde = cge->constrained_edge(i);
+						if(marked_refine(cde))
+							add_hmark(cde, HNRM_TO_CONSTRAINING);
+						else
+							add_hmark(cde, HNRM_TO_NORMAL);
+					}
 				}
 			}
 		}
@@ -1418,7 +1518,7 @@ refine_edge_with_normal_vertex(Edge* e, Vertex** newCornerVrts)
 //	the grid
 	Grid& grid = *m_pGrid;
 
-	if(marked_copy(e) || marked_adaptive(e)){
+	if(marked_adaptive(e)){
 		if(newCornerVrts){
 			grid.create_by_cloning(e, EdgeDescriptor(newCornerVrts[0], newCornerVrts[1]), e);
 		}
@@ -1496,25 +1596,40 @@ refine_face_with_normal_vertex(Face* f, Vertex** newCornerVrts)
 	Vertex* vNewEdgeVertices[MAX_FACE_VERTICES];
 	vector<Face*>		vFaces(f->num_vertices());// heuristic
 
-	size_t numVrts = f->num_vertices();
-	size_t numEdges = f->num_edges();
+	const size_t numVrts = f->num_vertices();
+	const size_t numEdges = f->num_edges();
 	bool noEdgeVrts = true;
-	for(size_t i = 0; i < numEdges; ++i){
-		Edge* e = grid.get_edge(f, i);
 
-	//	if the face is refined with a regular rule, then every edge has to have
-	//	an associated center vertex
-		UG_ASSERT(marked_adaptive(f) ||
-			   (get_mark(f) == RM_REFINE && get_center_vertex(e) != NULL),
-			   "violated for " << ElementDebugInfo(grid, f));
+	const int localMark = get_local_mark(f);
+	if(localMark && marked_local(f)){
+		for(size_t i = 0; i < numEdges; ++i){
+			if(localMark & (1<<i)){
+				vNewEdgeVertices[i] = get_center_vertex(grid.get_edge(f, i));
+				if(vNewEdgeVertices[i])
+					noEdgeVrts = false;
+			}
+			else
+				vNewEdgeVertices[i] = NULL;
+		}
+	}
+	else{
+		for(size_t i = 0; i < numEdges; ++i){
+			Edge* e = grid.get_edge(f, i);
 
-	//	assign the center vertex
-		vNewEdgeVertices[i] = get_center_vertex(e);
-		if(vNewEdgeVertices[i])
-			noEdgeVrts = false;
+		//	if the face is refined with a regular rule, then every edge has to have
+		//	an associated center vertex
+			UG_ASSERT(marked_adaptive(f) ||
+				   (get_mark(f) == RM_REFINE && get_center_vertex(e) != NULL),
+				   "violated for " << ElementDebugInfo(grid, f));
+
+		//	assign the center vertex
+			vNewEdgeVertices[i] = get_center_vertex(e);
+			if(vNewEdgeVertices[i])
+				noEdgeVrts = false;
+		}
 	}
 
-	if(marked_copy(f) || (marked_adaptive(f) && noEdgeVrts)){
+	if(marked_adaptive(f) && noEdgeVrts){
 		if(newCornerVrts){
 			FaceDescriptor desc(numVrts);
 			for(size_t i = 0; i < numVrts; ++i)
@@ -1586,18 +1701,33 @@ refine_face_with_hanging_vertex(Face* f, Vertex** newCornerVrts)
 
 	size_t numEdges = f->num_edges();
 	size_t numMarkedEdges = 0;
-	for(size_t i = 0; i < numEdges; ++i){
-		Edge* e = grid.get_edge(f, i);
 
-	//	if the face is refined with a regular rule, then every edge has to have
-	//	an associated center vertex
-		assert(marked_adaptive(f) ||
-				((get_mark(f) == RM_REFINE)));
+	const int localMark = get_local_mark(f);
+	if(localMark && marked_local(f)){
+		for(size_t i = 0; i < numEdges; ++i){
+			if(localMark & (1<<i)){
+				vNewEdgeVertices[i] = get_center_vertex(grid.get_edge(f, i));
+				if(vNewEdgeVertices[i])
+					++numMarkedEdges;
+			}
+			else
+				vNewEdgeVertices[i] = NULL;
+		}
+	}
+	else{
+		for(size_t i = 0; i < numEdges; ++i){
+			Edge* e = grid.get_edge(f, i);
 
-	//	assign the center vertex
-		vNewEdgeVertices[i] = get_center_vertex(e);
-		if(vNewEdgeVertices[i])
-			++numMarkedEdges;
+		//	if the face is refined with a regular rule, then every edge has to have
+		//	an associated center vertex
+			assert(marked_adaptive(f) ||
+					((get_mark(f) == RM_REFINE)));
+
+		//	assign the center vertex
+			vNewEdgeVertices[i] = get_center_vertex(e);
+			if(vNewEdgeVertices[i])
+				++numMarkedEdges;
+		}
 	}
 
 	ConstrainingFace* cgf = NULL;
@@ -1878,19 +2008,35 @@ refine_volume_with_normal_vertex(Volume* v, Vertex** newCornerVrts)
 	vector<Volume*>		vVolumes(8);// heuristic
 //	collect all associated edges.
 
-	size_t numEdges = v->num_edges();
+	const size_t numEdges = v->num_edges();
 	bool noEdgeVrts = true;
-	for(size_t i = 0; i < numEdges; ++i){
-		Edge* e = grid.get_edge(v, i);
-		vNewEdgeVertices[i] = get_center_vertex(e);
-		if(vNewEdgeVertices[i])
-			noEdgeVrts = false;
-		UG_ASSERT(marked_adaptive(v) || vNewEdgeVertices[i],
-					"In order to fully refine a volume, all edges have"
-					"to contain a new vertex!");
+
+
+	const int localMark = get_local_mark(v);
+	if(localMark && marked_local(v)){
+		for(size_t i = 0; i < numEdges; ++i){
+			if(localMark & (1<<i)){
+				vNewEdgeVertices[i] = get_center_vertex(grid.get_edge(v, i));
+				if(vNewEdgeVertices[i])
+					noEdgeVrts = false;
+			}
+			else
+				vNewEdgeVertices[i] = NULL;
+		}
+	}
+	else{
+		for(size_t i = 0; i < numEdges; ++i){
+			Edge* e = grid.get_edge(v, i);
+			vNewEdgeVertices[i] = get_center_vertex(e);
+			if(vNewEdgeVertices[i])
+				noEdgeVrts = false;
+			UG_COND_THROW(!(marked_adaptive(v) || vNewEdgeVertices[i]),
+						"In order to fully refine a volume, all edges have"
+						"to contain a new vertex!");
+		}
 	}
 
-	if(marked_copy(v) || (marked_adaptive(v) && noEdgeVrts)){
+	if(marked_adaptive(v) && noEdgeVrts){
 		if(newCornerVrts){
 			size_t numVrts = v->num_vertices();
 			VolumeDescriptor desc(numVrts);
@@ -1926,7 +2072,7 @@ refine_volume_with_normal_vertex(Volume* v, Vertex** newCornerVrts)
 			vNewFaceVertices[i] = NULL;
 		else{
 			vNewFaceVertices[i] = get_center_vertex(f);
-			UG_ASSERT(marked_adaptive(v) || vNewFaceVertices[i],
+			UG_COND_THROW(!(marked_adaptive(v) || vNewFaceVertices[i]),
 					"In order to fully refine a volume, all quadrilateral sides have"
 					" to contain a new vertex!"
 					<< ", vol-center " << GetGridObjectCenter(grid, v)

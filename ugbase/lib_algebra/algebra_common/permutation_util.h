@@ -104,10 +104,10 @@ void GetCuthillMcKeeOrder(const TSparseMatrix &mat, std::vector<size_t> &newInde
 
 		// make sure there are no disconnected DoFs
 		//UG_ASSERT(neighbors[i].size(), "Index "<< i << " does not have any connections. This will most probably "
-		//		"lead to problems and is therefore disallowed.");
+		//	"lead to problems and is therefore disallowed.");
 	}
 
-	ComputeCuthillMcKeeOrder(newIndex, neighbors, false, false);
+	ComputeCuthillMcKeeOrder(newIndex, neighbors, true, false);
 }
 /// @}
 } // end namespace ug

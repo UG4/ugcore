@@ -80,14 +80,17 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*,
 
 //	snap-point handling
 	int numSnapPoints = 0;
+	// int snapPointIndex[NUM_VERTICES];
 	if(isSnapPoint){
 		for(int i = 0; i < NUM_VERTICES; ++i){
-			if(isSnapPoint[i])
+			if(isSnapPoint[i]){
+				// snapPointIndex[numSnapPoints] = i;
 				++numSnapPoints;
+			}
 		}
 	}
 
-	bool snapPointsProcessed = numSnapPoints == 0 ? true : false;
+	bool snapPointsProcessed = (numSnapPoints == 0);
 
 //	the fillCount tells how much data has already been written to newIndsOut.
 	int fillCount = 0;
@@ -452,6 +455,23 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*,
 	}
 
 	return fillCount;
+}
+
+bool IsRegularRefRule(const int edgeMarks)
+{
+	// static const int edges[3][4] = {{0, 2, 8, 10}, {4, 5, 6, 7}, {1, 3, 9, 11}};
+	static const int allEdges[3] = {	1285,	//010100000101}
+										240,	//000011110000
+										2570};	//101000001010
+	int clearedMarks = 0;
+	for(int i = 0; i < 3; ++i){
+		int t = edgeMarks & allEdges[i];
+		if(t != 0 && t != allEdges[i])
+			return false;
+		clearedMarks |= t;
+	}
+
+	return clearedMarks != 0;
 }
 
 }// end of namespace

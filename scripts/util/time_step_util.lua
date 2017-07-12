@@ -141,6 +141,9 @@ end
 --! @param postProcess		(optional) if passed, will be called after every time step.
 --! @param startTSNo		(optional) time step number of the initial condition (normally 0).
 --! @param endTSNo			(optional) if passed, stop after the time step with this number.
+--! @param newtonLineSearchFallbacks	(optional) Sequence of line-search objects.
+--!										Each time the newton-solver fails in a time-step,
+--!										the next line-search object from the sequence is used.
 function util.SolveNonlinearTimeProblem(
 	u,
 	domainDisc,
@@ -158,7 +161,8 @@ function util.SolveNonlinearTimeProblem(
 	useCheckpointing,
 	postProcess,
 	startTSNo,
-	endTSNo)
+	endTSNo,
+	newtonLineSearchFallbacks)
 	
 	if u == nil then
 		print("SolveNonlinearTimeProblem: Illegal parameters: No grid function for the solution specified.")
@@ -271,6 +275,8 @@ function util.SolveNonlinearTimeProblem(
 	-- bound on t-stepper from machine precision (conservative)
 	relPrecisionBound = 1e-12
 
+	local defaultLineSearch = newtonSolver:line_search()
+
 	-- stop if size of remaining t-domain (relative to `maxStepSize`) lies below `relPrecisionBound`
 	while (endTime == nil or ((time < endTime) and ((endTime-time)/maxStepSize > relPrecisionBound))) and ((endTSNo == nil) or (step < endTSNo)) do
 		step = step+1
@@ -290,80 +296,99 @@ function util.SolveNonlinearTimeProblem(
 
 			print("++++++ Time step size: "..currdt);
 
-			-- get old solution if the restart with a smaller time step is possible
-			if uOld ~= nil then
-				VecAssign(u, uOld)
-			end			
+			local newtonSuccess = false
+			local newtonTry = 1
+			newtonSolver:set_line_search(defaultLineSearch)
 
-			for stage = 1, timeDisc:num_stages() do
-				if timeDisc:num_stages() > 1 then
-					print("      +++ STAGE " .. stage .. " BEGIN ++++++")
-				end
+			while newtonSuccess == false do
+				-- get old solution if the restart with a smaller time step is possible
+				if uOld ~= nil then
+					VecAssign(u, uOld)
+				end			
+
+				for stage = 1, timeDisc:num_stages() do
+					if timeDisc:num_stages() > 1 then
+						print("      +++ STAGE " .. stage .. " BEGIN ++++++")
+					end
+							
+					timeDisc:set_stage(stage)
+				
+					-- setup time Disc for old solutions and timestep size
+					timeDisc:prepare_step(solTimeSeries, currdt)
+					
+					-- prepare newton solver
+					if newtonSolver:prepare(u) == false then 
+						print ("\n++++++ Newton solver failed."); exit();
+					end 
+					
+					-- apply newton solver
+					newtonSuccess = newtonSolver:apply(u)
 						
-				timeDisc:set_stage(stage)
-			
-				-- setup time Disc for old solutions and timestep size
-				timeDisc:prepare_step(solTimeSeries, currdt)
+					-- start over again if failed
+					if newtonSuccess == false then break end
+					
+					-- update new time
+					time = timeDisc:future_time()
+					nlsteps = nlsteps + newtonSolver:num_newton_steps() 	 
+					--total_linsolver_calls()
 				
-				-- prepare newton solver
-				if newtonSolver:prepare(u) == false then 
-					print ("\n++++++ Newton solver failed."); exit();
-				end 
-				
-				-- apply newton solver
-				if newtonSolver:apply(u) == false then 
-					currdt = currdt * reductionFactor;
-					write("\n++++++ Newton solver failed. "); 
-					write("Trying decreased stepsize " .. currdt .. ".\n");
-				else
-					bSuccess = true; 
+					-- push oldest solutions with new values to front, oldest sol pointer is poped from end	
+					if timeScheme:lower() == "bdf" and step < orderOrTheta then
+						print("++++++ BDF: Increasing order to "..step+1)
+						timeDisc:set_order(step+1)
+						solTimeSeries:push(u:clone(), time)
+					else 
+						local oldestSol = solTimeSeries:oldest()
+						VecAssign(oldestSol, u)
+						solTimeSeries:push_discard_oldest(oldestSol, time)
+					end
+					
+					if not (bFinishTimeStep == nil) and bFinishTimeStep then 
+						timeDisc:finish_step_elem(solTimeSeries, u:grid_level()) 
+					end
+					
+					if timeDisc:num_stages() > 1 then
+						print("      +++ STAGE " .. stage .. " END   ++++++")
+					end
 				end
-		
-				-- check valid step size			
+
+				-- call post process
+				if newtonSuccess == true and postProcess ~= nil then
+					local pp_res
+					pp_res = postProcess(u, step, time, currdt)
+					if type(pp_res) == "boolean" and pp_res == false then -- i.e. not nil, not something else, but "false"!
+						write("\n++++++ PostProcess failed. ")
+						newtonSuccess = false
+					end
+				end
+
+				if newtonSuccess == false and newtonLineSearchFallbacks ~= nil then
+					if newtonLineSearchFallbacks[newtonTry] == nil or newtonSolver:last_num_newton_steps() == 0 then
+						write("\n++++++ Adaptive Newton failed.")
+						break
+					else
+						newtonSolver:set_line_search(newtonLineSearchFallbacks[newtonTry])
+						write("Restarting Newton method with line search fallback " .. newtonTry .. ".\n");
+						newtonTry = newtonTry + 1
+					end
+				else
+					break
+				end
+			end -- newtonLineSearchFallbacks
+
+			-- call post process
+			if newtonSuccess == false then
+				currdt = currdt * reductionFactor;
+				write("\n++++++ Newton method failed. ");
+				write("Trying decreased stepsize " .. currdt .. ".\n");					
 				if(bSuccess == false and currdt < minStepSize) then
 					write("++++++ Time Step size "..currdt.." below minimal step ")
 					write("size "..minStepSize..". Cannot solve problem. Aborting.");
 					test.require(false, "Time Solver failed.")
 				end
-				
-				-- start over again if failed
-				if bSuccess == false then break end
-				
-				-- update new time
-				time = timeDisc:future_time()
-				nlsteps = nlsteps + newtonSolver:num_newton_steps() 	 
-				--total_linsolver_calls()
-			
-				-- push oldest solutions with new values to front, oldest sol pointer is poped from end	
-				if timeScheme:lower() == "bdf" and step < orderOrTheta then
-					print("++++++ BDF: Increasing order to "..step+1)
-					timeDisc:set_order(step+1)
-					solTimeSeries:push(u:clone(), time)
-				else 
-					local oldestSol = solTimeSeries:oldest()
-					VecAssign(oldestSol, u)
-					solTimeSeries:push_discard_oldest(oldestSol, time)
-				end
-				
-				if not (bFinishTimeStep == nil) and bFinishTimeStep then 
-					timeDisc:finish_step_elem(solTimeSeries, u:grid_level()) 
-				end
-				
-				if timeDisc:num_stages() > 1 then
-					print("      +++ STAGE " .. stage .. " END   ++++++")
-				end
-			end
-			
-			-- call post process
-			if postProcess ~= nil then
-				local pp_res
-				pp_res = postProcess(u, step, time, currdt)
-				if type(pp_res) == "boolean" and pp_res == false then -- i.e. not nil, not something else, but "false"!
-					currdt = currdt * reductionFactor;
-					write("\n++++++ PostProcess failed. "); 
-					write("Trying decreased stepsize " .. currdt .. ".\n");					
-					bSuccess = false
-				end
+				bSuccess = false
+			else
+				bSuccess = true
 			end
 		
 		end -- while bSuccess == false
@@ -830,7 +855,7 @@ function util.SolveNonlinearProblemAdaptiveTimestep(
 					timex:set_solution(u, 0)
 					timex:set_solution(u2, 1)
 					timex:apply()
-					eps = timex:get_error_estimate()
+					eps = timex:get_error_estimate(1)
 		
 				else
 					-- no extrapolation (less accurate)
@@ -844,6 +869,7 @@ function util.SolveNonlinearProblemAdaptiveTimestep(
 				-------------------------
 				-- Adaptive step control
 				-------------------------
+				local dtold = currdt
 				local lambda = math.pow(safety_fac*tol/eps, 0.5) -- (eps<=tol) implies (tol/eps >= 1) 
 				dtEst = lambda*currdt  
 				print("dtEst= "..dtEst..", eps="..eps..", tol = " ..tol..", fac = "..lambda)
@@ -853,13 +879,14 @@ function util.SolveNonlinearProblemAdaptiveTimestep(
 
 				if (eps <= tol) then 
 					-- accept
-					print ("ACCEPTING solution, dtnew="..currdt);
+
+					print ("EULEX-ACCEPTING:\t".. time .."\t"..dtold.."\t"..currdt.."\tq=\t2");
 					bAcceptStep = true;
 					bSuccess =true;
 		 			
 				else
 	    			-- discard
-	    			print ("DISCARDING solution, dtnew="..currdt);
+	    			print ("EULEX-REJECTING:\t".. time .."\t"..dtold.."\t"..currdt.."\tq=\t2");
 	    			bAcceptStep = false;
 	    			bSuccess = false;
 	    			
@@ -1130,7 +1157,7 @@ function util.SolveNonlinearProblemAdaptiveLimex(
 					timex:set_solution(u, 0)
 					timex:set_solution(u2, 1)
 					timex:apply()
-					eps = timex:get_error_estimate()
+					eps = timex:get_error_estimate(1)
 					--out:print("ExSol.vtu", u2, step, time) 
 					
 				else

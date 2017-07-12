@@ -33,6 +33,8 @@
 #ifndef __H__UG_field__
 #define __H__UG_field__
 
+#include "common/boost_serialization.h"
+
 namespace ug{
 
 template <class T>
@@ -65,6 +67,18 @@ class Field{
 
 	private:
 		inline size_t array_index(size_t x, size_t y) const;
+
+	//	BEGIN SERIALIZATION
+		friend class boost::serialization::access;
+
+		template <class Archive>
+		void save( Archive& ar, const unsigned int version) const;
+
+		template <class Archive>
+		void load( Archive& ar, const unsigned int version);
+		
+		BOOST_SERIALIZATION_SPLIT_MEMBER()
+	//	END SERIALIZATION
 
 		size_t	m_width;
 		size_t	m_height;

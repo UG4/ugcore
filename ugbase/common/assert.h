@@ -75,6 +75,11 @@ UG_API void ug_assert_failed();
 														"    File:        " << __FILE__ << "\n"\
 														"    Line:        " << __LINE__ << "\n\n"); \
 									ug_assert_failed(); \
+									UG_LOG_ALL_PROCS(	"\n  UG_ASSERT failed:\n"\
+														"    Condition:   " << UG_TO_STRING(expr) << "\n"\
+														"    Description: " << msg << "\n"\
+														"    File:        " << __FILE__ << "\n"\
+														"    Line:        " << __LINE__ << "\n\n"); \
 									assert(expr);\
 								}}
 #else /* NDEBUG */

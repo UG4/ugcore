@@ -97,11 +97,17 @@ class VectorTimeSeries
 	/// const access to oldest solution
 		ConstSmartPtr<vector_type> oldest() const {return m_vTimeSol.back().solution();}
 
+	/// time associated with oldest solution
+		number oldest_time() const {return m_vTimeSol.back().time();}
+
 	///	returns latest solution
 		SmartPtr<vector_type> latest() {return m_vTimeSol.front().solution();}
 
 	///	const access to latest solution
 		ConstSmartPtr<vector_type> latest() const {return m_vTimeSol.front().solution();}
+
+	/// time associated with latest solution
+		number latest_time() const {return m_vTimeSol.front().time();}
 
 	///	adds new time point, not discarding the oldest
 		void push(SmartPtr<vector_type> vec, number time) {m_vTimeSol.push_front(TimeSol(vec, time));}

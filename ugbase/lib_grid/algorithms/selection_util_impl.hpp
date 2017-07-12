@@ -354,6 +354,40 @@ void SelectInnerElements(ISelector& sel, TElemIterator elemsBegin,
 
 
 ////////////////////////////////////////////////////////////////////////
+template <class TAAPos>
+void SelectEdgesByDirection(
+				Selector& sel,
+				TAAPos& aaPos,
+				const vector3& dir,
+				number minDeviationAngle,
+				number maxDeviationAngle,
+				bool selectFlipped)
+{
+
+	UG_COND_THROW(!sel.grid(), "A grid has to be assigned to the given selector");
+
+	Grid& g = *sel.grid();
+	vector3 n;
+	VecNormalize(n, dir);
+
+	number maxDot = cos(deg_to_rad(minDeviationAngle));
+	number minDot = cos(deg_to_rad(maxDeviationAngle));
+
+	lg_for_each(Edge, e, g){
+		vector3 dir;
+		VecSubtract(dir, aaPos[e->vertex(1)], aaPos[e->vertex(0)]);
+		VecNormalize(dir, dir);
+		number d = VecDot(dir, n);
+		if((d >= minDot - SMALL && d <= maxDot + SMALL) ||
+			(selectFlipped && (-d >= minDot - SMALL && -d <= maxDot + SMALL)))
+		{
+			sel.select(e);
+		}
+	}lg_end_for;
+}
+
+
+////////////////////////////////////////////////////////////////////////
 template <class TEdgeIterator>
 void SelectCreaseEdges(ISelector& sel, TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
 						number minAngle, APosition aPos,

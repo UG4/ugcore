@@ -185,7 +185,7 @@ num_levels() const
 inline uint Selector::
 num(size_t) const
 {
-	return num();
+	return (uint)num();
 }
 
 template <class TElem>

@@ -144,10 +144,10 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 	 * \param[in]  vSol			vector of previous and current (iterated) solution
 	 * \param[in]  dd 			DoF distribution
 	 */
-		virtual void prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, ConstSmartPtr<DoFDistribution> dd) = 0;
-		virtual void prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, const GridLevel& gl) = 0;
-		virtual void prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol)
-		{prepare_timestep(vSol, GridLevel());}
+		virtual void prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, number future_time, ConstSmartPtr<DoFDistribution> dd) = 0;
+		virtual void prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, number future_time, const GridLevel& gl) = 0;
+		virtual void prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, number future_time)
+		{prepare_timestep(vSol, future_time, GridLevel());}
 
 	/// prepares time step element-wise
 	/**

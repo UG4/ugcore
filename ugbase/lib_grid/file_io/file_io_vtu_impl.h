@@ -36,6 +36,7 @@
 #include <sstream>
 #include <cstring>
 #include "lib_grid/algorithms/debug_util.h"
+#include "lib_grid/callbacks/subset_callbacks.h"
 
 namespace ug{
 

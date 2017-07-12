@@ -78,9 +78,16 @@ inline void VecProdAdd(const vector_t &a, const vector_t &b, double &s)
 
 
 //! returns scal<a, b>
-inline double VecProd(const double &a, const double &b, double &s)
+inline double VecProd(const double &a, const double &b)
 {
 	return a*b;
+}
+
+
+//! computes scal<a, b>
+inline void VecProd(const double &a, const double &b, double &s)
+{
+	s = a*b;
 }
 
 
@@ -98,6 +105,13 @@ inline void VecNormSquaredAdd(const double &a, double &s)
 	s += a*a;
 }
 
+// Elementwise (Hadamard) product of two vectors
+
+//! calculates s = a * b (the Hadamard product)
+inline void VecHadamardProd(double &dest, const double &v1, const double &v2)
+{
+	dest = v1 * v2;
+}
 
 // templated
 
@@ -180,6 +194,13 @@ inline double VecNormSquared(const vector_t &a)
 	return sum;
 }
 
+// Elementwise (Hadamard) product of two vectors
+template<typename vector_t>
+inline void VecHadamardProd(vector_t &dest, const vector_t &v1, const vector_t &v2)
+{
+	for(size_t i=0; i<dest.size(); i++)
+		VecHadamardProd(dest[i], v1[i], v2[i]);
+}
 
 } // namespace ug
 

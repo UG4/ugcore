@@ -340,9 +340,17 @@ class lg_ntree : public ntree<tree_dim, world_dim, grid_elem_t*, NTreeGridData<w
 		typedef ntree<tree_dim, world_dim, grid_elem_t*, NTreeGridData<world_dim> >	base_t;
 		typedef typename NTreeGridData<world_dim>::position_attachment_t	position_attachment_t;
 
+		lg_ntree()
+		{}
+
 		lg_ntree(Grid& grid, position_attachment_t aPos) :
 			m_gridData(grid, aPos)
 		{}
+
+		void set_grid(Grid& grid, position_attachment_t aPos)
+		{
+			m_gridData = NTreeGridData<world_dim>(grid, aPos);
+		}
 
 		template <class TIterator>
 		void create_tree(TIterator elemsBegin, TIterator elemsEnd)

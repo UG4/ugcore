@@ -38,6 +38,7 @@
 
 #include "lib_algebra/operator/interface/operator.h"
 #include "common/profiler/profiler.h"
+#include "lib_algebra/operator/interface/pprocess.h"
 #ifdef UG_PARALLEL
 	#include "lib_algebra/parallelization/parallelization.h"
 #endif
@@ -154,6 +155,9 @@ class GMRES
 					UG_THROW("GMRES: Cannot convert v0 to consistent vector.");
 				#endif
 
+			//	post-process the correction
+				m_corr_post_process.apply (*v[0]);
+
 			// 	Compute norm of inital residuum:
 				oldNorm = gamma[0] = v[0]->norm();
 
@@ -196,6 +200,9 @@ class GMRES
 					if(!v[j+1]->change_storage_type(PST_UNIQUE))
 						UG_THROW("GMRES: Cannot convert v["<<j<<"] to consistent vector.");
 					#endif
+
+				//	post-process the correction
+					m_corr_post_process.apply (*v[j+1]);
 
 				//	loop previous steps
 					for(size_t i = 0; i <= j; ++i)
@@ -280,6 +287,18 @@ class GMRES
 			ss << base_type::config_string_preconditioner_convergence_check();
 			return ss.str();
 		}
+		
+	///	adds a post-process for the iterates
+		void add_postprocess_corr (SmartPtr<IPProcessVector<vector_type> > p)
+		{
+			m_corr_post_process.add (p);
+		}
+
+	///	removes a post-process for the iterates
+		void remove_postprocess_corr (SmartPtr<IPProcessVector<vector_type> > p)
+		{
+			m_corr_post_process.remove (p);
+		}
 
 	protected:
 	///	prepares the output of the convergence check
@@ -301,6 +320,14 @@ class GMRES
 	protected:
 	///	restart parameter
 		size_t m_restart;
+
+	///	postprocessor for the correction in the iterations
+		/**
+		 * These postprocess operations are applied to the preconditioned
+		 * defect before the orthogonalization. The goal is to prevent the
+		 * useless kernel parts to prevail in the (floating point) arithmetics.
+		 */
+		PProcessChain<vector_type> m_corr_post_process;
 
 	///	adds a scaled vector to a second one
 		bool VecScaleAppend(vector_type& a, vector_type& b, number s)

@@ -141,7 +141,7 @@ namespace Shiny {
 
 		uint32_t allocMemInBytes(void) {
 			return _tableSize * sizeof(ProfileNode*)
-				 + (_firstNodePool)? _firstNodePool->memoryUsageChain() : 0;
+				 + ((_firstNodePool)? _firstNodePool->memoryUsageChain() : 0);
 		}
 
 		SHINY_INLINE void _beginNode(ProfileNodeCache* a_cache, ProfileZone* a_zone) {

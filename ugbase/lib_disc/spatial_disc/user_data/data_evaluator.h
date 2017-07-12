@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2015:  G-CSC, Goethe University Frankfurt
+ * Copyright (c) 2011-2017:  G-CSC, Goethe University Frankfurt
  * Author: Andreas Vogel
  * 
  * This file is part of UG4.
@@ -50,8 +50,8 @@ enum ProcessType {PT_ALL=0, PT_STATIONARY, PT_INSTATIONARY, MAX_PROCESS};
  * contributions due to Import/Exports are computed by this class and can be
  * added to the local jacobian/defect.
  */
-template <typename TDomain>
-class DataEvaluator
+template <typename TDomain, typename TElemDisc> // TElemDisc = IElemDisc<TDomain>
+class DataEvaluatorBase
 {
 	public:
 	///	world dimension
@@ -59,8 +59,8 @@ class DataEvaluator
 		
 	public:
 	///	sets the elem discs to evaluate
-		DataEvaluator(int discPart,
-		              const std::vector<IElemDisc<TDomain>*>& vElemDisc,
+		DataEvaluatorBase(int discPart,
+		              const std::vector<TElemDisc*>& vElemDisc,
 		              ConstSmartPtr<FunctionPattern> fctPat,
 		              const bool bNonRegularGrid,
 		              LocalVectorTimeSeries* locTimeSeries = NULL,
@@ -76,50 +76,8 @@ class DataEvaluator
 	///	returns if one of the element discs needs hanging dofs
 		bool use_hanging() const {return m_bUseHanging;}
 
-		////////////////////////////////////////////
-		// Regular assembling
-		////////////////////////////////////////////
-
-	///	prepares all time-dependent IElemDiscs
-		void prepare_timestep(const number time, VectorProxyBase* u, size_t algebra_id);
-
-	///	prepares the elements of all time-dependent IElemDiscs
-		void prepare_timestep_elem(const number time, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-
-	///	prepares the element loop for all IElemDiscs
-		void prepare_elem_loop(const ReferenceObjectID id, int si);
-
-	///	prepares the element for all IElemDiscs
-		void prepare_elem(LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[],
-		                  const LocalIndices& ind, bool bDeriv = false);
-
-	///	finishes the element loop for all IElemDiscs
-		void finish_elem_loop();
-
-	/// finishes all time-dependent IElemDiscs
-		void finish_timestep(const number time, VectorProxyBase* u, size_t algebra_id);
-
-	///	finishes the elements of all time-dependent IElemDiscs
-		void finish_timestep_elem(const number time, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-
-	///	compute local stiffness matrix for all IElemDiscs
-		void add_jac_A_elem(LocalMatrix& A, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
-
-	///	compute local mass matrix for all IElemDiscs
-		void add_jac_M_elem(LocalMatrix& M, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
-
-	///	compute local stiffness defect for all IElemDiscs
-		void add_def_A_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
-
-	///	compute local stiffness defect for all IElemDiscs explicit
-		void add_def_A_expl_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
-
-	///	compute local mass defect for all IElemDiscs
-		void add_def_M_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
-
-	///	compute local rhs for all IElemDiscs
-		void add_rhs_elem(LocalVector& rhs, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
 		
+
 	///	prepares the element loop for all IElemDiscs for the computation of the error estimator
 		void prepare_err_est_elem_loop(const ReferenceObjectID id, int si);
 
@@ -161,7 +119,7 @@ class DataEvaluator
 		int m_discPart;
 
 	///	elem disc data
-		std::vector<IElemDisc<TDomain>*> m_vElemDisc[MAX_PROCESS];
+		std::vector<TElemDisc*> m_vElemDisc[MAX_PROCESS];
 
 	///	underlying function pattern
 		ConstSmartPtr<FunctionPattern> m_spFctPattern;
@@ -186,6 +144,109 @@ class DataEvaluator
 	/// \}
 };
 
+
+/// Evaluation for IElemError
+template <typename TDomain>
+class ErrorEvaluator : public DataEvaluatorBase<TDomain, IElemError<TDomain> >
+{
+public:
+	///	sets the elem discs to evaluate
+	ErrorEvaluator(int discPart,
+		              const std::vector<IElemError<TDomain> *>& vElemDisc,
+		              ConstSmartPtr<FunctionPattern> fctPat,
+		              const bool bNonRegularGrid,
+		              LocalVectorTimeSeries* locTimeSeries = NULL,
+		              const std::vector<number>* vScaleMass = NULL,
+		              const std::vector<number>* vScaleStiff = NULL)
+	: DataEvaluatorBase<TDomain, IElemError<TDomain> > (discPart, vElemDisc, fctPat, bNonRegularGrid, locTimeSeries, vScaleMass, vScaleStiff) {}
+};
+
+
+
+/// Evaluation for IElemDisc
+template <typename TDomain>
+class DataEvaluator : public DataEvaluatorBase<TDomain, IElemDisc<TDomain> >
+{
+
+public:
+	typedef DataEvaluatorBase<TDomain, IElemDisc<TDomain> > base_type;
+	using base_type::dim;
+
+	///	sets the elem discs to evaluate
+	DataEvaluator(int discPart,
+		              const std::vector<IElemDisc<TDomain> *>& vElemDisc,
+		              ConstSmartPtr<FunctionPattern> fctPat,
+		              const bool bNonRegularGrid,
+		              LocalVectorTimeSeries* locTimeSeries = NULL,
+		              const std::vector<number>* vScaleMass = NULL,
+		              const std::vector<number>* vScaleStiff = NULL)
+	: DataEvaluatorBase<TDomain, IElemDisc<TDomain> > (discPart, vElemDisc, fctPat, bNonRegularGrid, locTimeSeries, vScaleMass, vScaleStiff) {}
+
+
+	////////////////////////////////////////////
+	// Regular assembling
+	///////////////////////////////////////////
+
+		///	prepares all time-dependent IElemDiscs
+			void prepare_timestep(number future_time, const number time, VectorProxyBase* u, size_t algebra_id);
+
+		///	prepares the elements of all time-dependent IElemDiscs
+			void prepare_timestep_elem(const number time, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+
+		///	prepares the element loop for all IElemDiscs
+			void prepare_elem_loop(const ReferenceObjectID id, int si);
+
+		///	prepares the element for all IElemDiscs
+			void prepare_elem(LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[],
+			                  const LocalIndices& ind, bool bDeriv = false);
+
+		///	finishes the element loop for all IElemDiscs
+			void finish_elem_loop();
+
+		/// finishes all time-dependent IElemDiscs
+			void finish_timestep(const number time, VectorProxyBase* u, size_t algebra_id);
+
+		///	finishes the elements of all time-dependent IElemDiscs
+			void finish_timestep_elem(const number time, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+
+		///	compute local stiffness matrix for all IElemDiscs
+			void add_jac_A_elem(LocalMatrix& A, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
+
+		///	compute local mass matrix for all IElemDiscs
+			void add_jac_M_elem(LocalMatrix& M, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
+
+		///	compute local stiffness defect for all IElemDiscs
+			void add_def_A_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
+
+		///	compute local stiffness defect for all IElemDiscs explicit
+			void add_def_A_expl_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
+
+		///	compute local mass defect for all IElemDiscs
+			void add_def_M_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
+
+		///	compute local rhs for all IElemDiscs
+			void add_rhs_elem(LocalVector& rhs, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
+
+			using base_type::time_series_needed;
+protected:
+
+	using base_type::m_vElemDisc;
+	using base_type::m_vImport;
+	using base_type::m_vDependentData;
+	using base_type::m_vConstData;
+	using base_type::m_vPosData;
+	using base_type::m_discPart;
+	using base_type::m_pLocTimeSeries;
+
+	using base_type::clear_positions_in_user_data;
+	using base_type::extract_imports_and_userdata;
+
+};
+
+
+
 } // end namespace ug
+
+#include "data_evaluator_impl.h"
 
 #endif /* __H__UG__LIB_DISC__SPATIAL_DISC__DATA_EVALUATOR__ */

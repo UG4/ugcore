@@ -87,6 +87,372 @@ struct VectorProxy : public VectorProxyBase
 
 /// \ingroup lib_disc_elem_disc
 /// @{
+/*
+template <typename TDomain>
+class IElemDiscBaseData
+{
+public:
+	///	Domain type
+	typedef TDomain domain_type;
+
+	///	World dimension
+	static const int dim = TDomain::dim;
+};
+*/
+/// This class encapsulates all functions related to error estimation
+template <typename TLeaf, typename TDomain>
+class IElemAssembleFuncs
+{
+public:
+	/// constructor
+	IElemAssembleFuncs() { set_default_add_fct(); }
+
+	/// Virtual destructor
+	virtual ~IElemAssembleFuncs(){}
+
+	/// Barton Nackman trick (TODO: needed?)
+	typedef TLeaf leaf_type;
+
+	TLeaf& asLeaf()
+	{ return static_cast<TLeaf&>(*this); }
+
+	///	Domain type
+	typedef TDomain domain_type;
+
+	///	World dimension
+	static const int dim = TDomain::dim;
+
+	////////////////////////////
+	// assembling functions
+	////////////////////////////
+public:
+	///	virtual prepares the loop over all elements of one type
+	virtual void prep_assemble_loop() {}
+
+	///	virtual prepares the loop over all elements of one type
+	virtual void post_assemble_loop() {}
+
+	/// prepare the time step
+	virtual void prep_timestep(number future_time, number time, VectorProxyBase* u);
+
+	/// prepare the time step element-wise
+	virtual void prep_timestep_elem(const number time, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+
+	///	virtual prepares the loop over all elements of one type
+	virtual void prep_elem_loop(const ReferenceObjectID roid, const int si);
+
+	///	virtual prepare one elements for assembling
+	virtual void prep_elem(const LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[]);
+
+	///	virtual postprocesses the loop over all elements of one type
+	virtual void fsh_elem_loop();
+
+	/// finish the time step
+	virtual void fsh_timestep(number time, VectorProxyBase* u);
+
+	/// virtual finish the time step element-wise
+	virtual void fsh_timestep_elem(const number time, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+
+	/// Assembling of Jacobian (Stiffness part)
+	virtual void add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+
+	/// Assembling of Jacobian (Mass part)
+	virtual void add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+
+	/// virtual Assembling of Defect (Stiffness part)
+	virtual void add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+
+	/// defect for explicit terms
+	virtual void add_def_A_expl_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+
+	/// virtual Assembling of Defect (Mass part)
+	virtual void add_def_M_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+
+	/// virtual Assembling of Right-Hand Side
+	virtual void add_rhs_elem(LocalVector& rhs, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+
+
+	///	function dispatching call to implementation
+	/// \{
+	void do_prep_timestep(number future_time, const number time, VectorProxyBase* u, size_t algebra_id);
+	void do_prep_timestep_elem(const number time, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+	void do_prep_elem_loop(const ReferenceObjectID roid, const int si);
+	void do_prep_elem(LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[]);
+	void do_fsh_elem_loop();
+	void do_fsh_timestep(const number time, VectorProxyBase* u, size_t algebra_id);
+	void do_fsh_timestep_elem(const number time, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+	void do_add_jac_A_elem(LocalMatrix& J, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+	void do_add_jac_M_elem(LocalMatrix& J, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+	void do_add_def_A_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+	void do_add_def_A_expl_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+	void do_add_def_M_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+	void do_add_rhs_elem(LocalVector& rhs, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+
+
+
+
+protected:
+	// 	register the functions
+	template <typename TAssFunc> void set_prep_timestep_fct(size_t algebra_id, TAssFunc func);
+	template <typename TAssFunc> void set_prep_timestep_elem_fct(ReferenceObjectID id, TAssFunc func);
+	template <typename TAssFunc> void set_fsh_timestep_fct(size_t algebra_id, TAssFunc func);
+	template <typename TAssFunc> void set_fsh_timestep_elem_fct(ReferenceObjectID id, TAssFunc func);
+
+	template <typename TAssFunc> void set_prep_elem_loop_fct(ReferenceObjectID id, TAssFunc func);
+	template <typename TAssFunc> void set_prep_elem_fct(ReferenceObjectID id, TAssFunc func);
+	template <typename TAssFunc> void set_fsh_elem_loop_fct(ReferenceObjectID id, TAssFunc func);
+
+	template <typename TAssFunc> void set_add_jac_A_elem_fct(ReferenceObjectID id, TAssFunc func);
+	template <typename TAssFunc> void set_add_jac_M_elem_fct(ReferenceObjectID id, TAssFunc func);
+	template <typename TAssFunc> void set_add_def_A_elem_fct(ReferenceObjectID id, TAssFunc func);
+	template <typename TAssFunc> void set_add_def_A_expl_elem_fct(ReferenceObjectID id, TAssFunc func);
+	template <typename TAssFunc> void set_add_def_M_elem_fct(ReferenceObjectID id, TAssFunc func);
+	template <typename TAssFunc> void set_add_rhs_elem_fct(ReferenceObjectID id, TAssFunc func);
+
+
+
+	//	unregister functions
+	void remove_prep_timestep_fct(size_t algebra_id);
+	void remove_prep_timestep_elem_fct(ReferenceObjectID id);
+	void remove_fsh_timestep_fct(size_t algebra_id);
+	void remove_fsh_timestep_elem_fct(ReferenceObjectID id);
+
+	void remove_prep_elem_loop_fct(ReferenceObjectID id);
+	void remove_prep_elem_fct(ReferenceObjectID id);
+	void remove_fsh_elem_loop_fct(ReferenceObjectID id);
+
+	void remove_add_jac_A_elem_fct(ReferenceObjectID id);
+	void remove_add_jac_M_elem_fct(ReferenceObjectID id);
+	void remove_add_def_A_elem_fct(ReferenceObjectID id);
+	void remove_add_def_A_expl_elem_fct(ReferenceObjectID id);
+	void remove_add_def_M_elem_fct(ReferenceObjectID id);
+	void remove_add_rhs_elem_fct(ReferenceObjectID id);
+
+protected:
+	///	sets all assemble functions to the corresponding virtual ones
+	void set_default_add_fct();
+
+	///	sets all assemble functions to NULL for a given ReferenceObjectID
+	void clear_add_fct(ReferenceObjectID id);
+
+	///	sets all assemble functions to NULL (for all ReferenceObjectID's)
+	void clear_add_fct();
+
+private:
+//	abbreviation for own type
+	typedef IElemAssembleFuncs<TLeaf, TDomain> T;
+
+// 	types of timestep function pointers
+	typedef void (T::*PrepareTimestepFct)(number, number, VectorProxyBase*);
+	typedef void (T::*PrepareTimestepElemFct)(number, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+	typedef void (T::*FinishTimestepFct)(number, VectorProxyBase*);
+	typedef void (T::*FinishTimestepElemFct)(number, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+
+// 	types of loop function pointers
+	typedef void (T::*PrepareElemLoopFct)(ReferenceObjectID roid, int si);
+	typedef void (T::*PrepareElemFct)(const LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[]);
+	typedef void (T::*FinishElemLoopFct)();
+
+// 	types of Jacobian assemble functions
+	typedef void (T::*ElemJAFct)(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+	typedef void (T::*ElemJMFct)(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+
+// 	types of Defect assemble functions
+	typedef void (T::*ElemdAFct)(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+	typedef void (T::*ElemdMFct)(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+
+// 	types of right hand side assemble functions
+	typedef void (T::*ElemRHSFct)(LocalVector& rhs, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+
+
+private:
+// 	timestep function pointers
+	PrepareTimestepFct			m_vPrepareTimestepFct[bridge::NUM_ALGEBRA_TYPES];
+	PrepareTimestepElemFct 		m_vPrepareTimestepElemFct[NUM_REFERENCE_OBJECTS];
+	FinishTimestepFct			m_vFinishTimestepFct[bridge::NUM_ALGEBRA_TYPES];
+	FinishTimestepElemFct 		m_vFinishTimestepElemFct[NUM_REFERENCE_OBJECTS];
+
+// 	loop function pointers
+	PrepareElemLoopFct 	m_vPrepareElemLoopFct[NUM_REFERENCE_OBJECTS];
+	PrepareElemFct 		m_vPrepareElemFct[NUM_REFERENCE_OBJECTS];
+	FinishElemLoopFct 	m_vFinishElemLoopFct[NUM_REFERENCE_OBJECTS];
+
+// 	Jacobian function pointers
+	ElemJAFct 	m_vElemJAFct[NUM_REFERENCE_OBJECTS];
+	ElemJMFct 	m_vElemJMFct[NUM_REFERENCE_OBJECTS];
+
+// 	Defect function pointers
+	ElemdAFct 	m_vElemdAFct[NUM_REFERENCE_OBJECTS];
+	ElemdAFct 	m_vElemdAExplFct[NUM_REFERENCE_OBJECTS];
+	ElemdMFct 	m_vElemdMFct[NUM_REFERENCE_OBJECTS];
+
+// 	Rhs function pointers
+	ElemRHSFct 	m_vElemRHSFct[NUM_REFERENCE_OBJECTS];
+
+public:
+/// sets the geometric object type
+/**
+ * This functions set the geometric object type of the object, that is
+ * assembled next. The user has to call this function before most of the
+ * assembling routines can be called. Keep in mind, that the elements are
+ * looped type by type, thus this function has to be called very few times.
+ */
+	void set_roid(ReferenceObjectID id, int discType);
+
+	/// check, if all inputs have been set
+	void check_roid(ReferenceObjectID roid, int discType);
+
+protected:
+/// current Geometric Object
+	ReferenceObjectID m_roid;
+};
+
+
+
+
+/// This class encapsulates all functions related to error estimation
+template <typename TLeaf, typename TDomain>
+class IElemEstimatorFuncs
+{
+public:
+	/// constructor
+	IElemEstimatorFuncs() : m_bDoErrEst(false), m_spErrEstData(SPNULL)
+	{ set_default_add_fct(); }
+
+	/// Virtual destructor
+	virtual ~IElemEstimatorFuncs(){}
+
+	/// Barton Nackman trick (TODO: needed?)
+	typedef TLeaf leaf_type;
+
+	TLeaf& asLeaf()
+	{ return static_cast<TLeaf&>(*this); }
+
+	///	Domain type
+	typedef TDomain domain_type;
+
+	///	World dimension
+	static const int dim = TDomain::dim;
+
+	void do_prep_err_est_elem_loop(const ReferenceObjectID roid, const int si);
+	void do_prep_err_est_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+	void do_compute_err_est_A_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale);
+	void do_compute_err_est_M_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale);
+	void do_compute_err_est_rhs_elem(GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale);
+	void do_fsh_err_est_elem_loop();
+
+public:
+	///	virtual prepares the loop over all elements of one type for the computation of the error estimator
+		virtual void prep_err_est_elem_loop(const ReferenceObjectID roid, const int si);
+
+	///	virtual prepares the loop over all elements of one type for the computation of the error estimator
+		virtual void prep_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+
+	///	virtual compute the error estimator (stiffness part) contribution for one element
+		virtual void compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale);
+
+	///	virtual compute the error estimator (mass part) contribution for one element
+		virtual void compute_err_est_M_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale);
+
+	///	virtual compute the error estimator (rhs part) contribution for one element
+		virtual void compute_err_est_rhs_elem(GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale);
+
+	///	virtual postprocesses the loop over all elements of one type in the computation of the error estimator
+		virtual void fsh_err_est_elem_loop();
+
+protected:
+		template <typename TAssFunc> void set_prep_err_est_elem_loop(ReferenceObjectID id, TAssFunc func);
+		template <typename TAssFunc> void set_prep_err_est_elem(ReferenceObjectID id, TAssFunc func);
+		template <typename TAssFunc> void set_compute_err_est_A_elem(ReferenceObjectID id, TAssFunc func);
+		template <typename TAssFunc> void set_compute_err_est_M_elem(ReferenceObjectID id, TAssFunc func);
+		template <typename TAssFunc> void set_compute_err_est_rhs_elem(ReferenceObjectID id, TAssFunc func);
+		template <typename TAssFunc> void set_fsh_err_est_elem_loop(ReferenceObjectID id, TAssFunc func);
+
+		void remove_prep_err_est_elem_loop(ReferenceObjectID id);
+		void remove_prep_err_est_elem(ReferenceObjectID id);
+		void remove_compute_err_est_A_elem(ReferenceObjectID id);
+		void remove_compute_err_est_M_elem(ReferenceObjectID id);
+		void remove_compute_err_est_rhs_elem(ReferenceObjectID id);
+		void remove_fsh_err_est_elem_loop(ReferenceObjectID id);
+
+		///	sets all assemble functions to NULL for a given ReferenceObjectID
+		void clear_add_fct(ReferenceObjectID id);
+
+		///	sets all assemble functions to NULL (for all ReferenceObjectID's)
+		void clear_add_fct();
+
+		///	sets all assemble functions to the corresponding virtual ones
+		void set_default_add_fct();
+
+
+
+private:
+	//	abbreviation for own type
+	typedef IElemEstimatorFuncs<TLeaf, TDomain> T;
+
+	//	types of the error estimator assembler
+	typedef void (T::*PrepareErrEstElemLoopFct)(ReferenceObjectID roid, int si);
+	typedef void (T::*PrepareErrEstElemFct)(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+	typedef void (T::*ElemComputeErrEstAFct)(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number&);
+	typedef void (T::*ElemComputeErrEstMFct)(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number&);
+	typedef void (T::*ElemComputeErrEstRhsFct)(GridObject* elem, const MathVector<dim> vCornerCoords[], const number&);
+	typedef void (T::*FinishErrEstElemLoopFct)();
+
+	//	Error estimator functions
+	PrepareErrEstElemLoopFct	m_vPrepareErrEstElemLoopFct[NUM_REFERENCE_OBJECTS];
+	PrepareErrEstElemFct		m_vPrepareErrEstElemFct[NUM_REFERENCE_OBJECTS];
+	ElemComputeErrEstAFct		m_vElemComputeErrEstAFct[NUM_REFERENCE_OBJECTS];
+	ElemComputeErrEstMFct		m_vElemComputeErrEstMFct[NUM_REFERENCE_OBJECTS];
+	ElemComputeErrEstRhsFct		m_vElemComputeErrEstRhsFct[NUM_REFERENCE_OBJECTS];
+	FinishErrEstElemLoopFct		m_vFinishErrEstElemLoopFct[NUM_REFERENCE_OBJECTS];
+
+
+	// //////////////////////////
+	// Error estimator
+	// //////////////////////////
+public:
+	///	sets the pointer to an error estimator data object (or NULL)
+	/**
+	 * This function sets the pointer to an error estimator data object
+	 * that should be used for this discretization. Note that the ElemDisc
+	 * object must use RTTI to try to convert this pointer to the type
+	 * of the objects accepted by it for this purpose. If the conversion
+	 * fails than an exception must be thrown since this situation is not
+	 * allowed.
+	 */
+	void set_error_estimator(SmartPtr<IErrEstData<TDomain> > ee) {m_spErrEstData = ee; m_bDoErrEst = true;}
+
+	/// find out whether or not a posteriori error estimation is to be performed for this disc
+	bool err_est_enabled() const {return m_bDoErrEst;}
+
+	///	returns the pointer to the error estimator data object (or NULL)
+	virtual SmartPtr<IErrEstData<TDomain> > err_est_data() {return m_spErrEstData;}
+
+private:
+	/// flag indicating whether or not a posteriori error estimation is to be performed for this disc
+	bool m_bDoErrEst;
+
+protected:
+	/// error estimation object associated to the element discretization
+	SmartPtr<IErrEstData<TDomain> > m_spErrEstData;
+
+public:
+/// sets the geometric object type
+/**
+ * This functions set the geometric object type of the object, that is
+ * assembled next. The user has to call this function before most of the
+ * assembling routines can be called. Keep in mind, that the elements are
+ * looped type by type, thus this function has to be called very few times.
+ */
+	void set_roid(ReferenceObjectID id, int discType);
+
+	/// check, if all inputs have been set
+	void check_roid(ReferenceObjectID roid, int discType);
+
+protected:
+/// current Geometric Object
+	ReferenceObjectID m_roid;
+};
 
 ///	base class for all element-wise discretizations
 /**
@@ -95,28 +461,30 @@ struct VectorProxy : public VectorProxyBase
  * contribution of one element to the global jacobian and local contributions
  * of one element to the local defect.
  */
+
 template <typename TDomain>
-class IElemDisc
+class IElemDiscBase
+
 {
 	public:
 	///	Domain type
 		typedef TDomain domain_type;
 
-	///	World dimension
-		static const int dim = TDomain::dim;
-
 	///	Position type
 		typedef typename TDomain::position_type position_type;
+
+	///	World dimension
+		static const int dim = TDomain::dim;
 		
 	public:
 	///	Constructor
-		IElemDisc(const char* functions = "", const char* subsets = "");
+		IElemDiscBase(const char* functions = "", const char* subsets = "");
 
 	///	Constructor
-		IElemDisc(const std::vector<std::string>& vFct, const std::vector<std::string>& vSubset);
+		IElemDiscBase(const std::vector<std::string>& vFct, const std::vector<std::string>& vSubset);
 
 	/// Virtual destructor
-		virtual ~IElemDisc(){}
+		virtual ~IElemDiscBase(){}
 
 	public:
 	///	sets the approximation space
@@ -150,13 +518,14 @@ class IElemDisc
 			UG_ASSERT(m_spApproxSpace.valid(), "ApproxSpace not set.");
 			return *m_spApproxSpace->domain()->subset_handler();
 		}
-
+/*
 		void add_elem_modifier(SmartPtr<IElemDiscModifier<TDomain> > elemModifier )
 		{
 			m_spElemModifier.push_back(elemModifier);
 			elemModifier->set_elem_disc(this);
 		}
 		std::vector<SmartPtr<IElemDiscModifier<TDomain> > >& get_elem_modifier(){ return m_spElemModifier;}
+		*/
 
 	protected:
 	///	callback invoked, when approximation space is changed
@@ -166,7 +535,7 @@ class IElemDisc
 		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
 
 	///	Approximation Space
-		std::vector<SmartPtr<IElemDiscModifier<TDomain> > > m_spElemModifier;
+	//	std::vector<SmartPtr<IElemDiscModifier<TDomain> > > m_spElemModifier;
 
 	////////////////////////////
 	// Functions and Subsets
@@ -300,9 +669,11 @@ class IElemDisc
 		size_t time_point() const {return m_timePoint;}
 
 	///	returns currently set timepoint
-		number time() const {if(m_pLocalVectorTimeSeries)
-								return m_pLocalVectorTimeSeries->time(m_timePoint);
-							else return 0.0;}
+		number time() const
+		{
+			if(m_pLocalVectorTimeSeries) return m_pLocalVectorTimeSeries->time(m_timePoint);
+			else return 0.0;
+		}
 
 	///	returns the local time solutions
 	/**
@@ -315,7 +686,7 @@ class IElemDisc
 	 * \returns vLocalTimeSol		vector of local time Solutions
 	 */
 		const LocalVectorTimeSeries* local_time_solutions() const
-			{return m_pLocalVectorTimeSeries;}
+		{return m_pLocalVectorTimeSeries;}
 
 	///	returns the weight factors of the time-disc scheme
 	///	\{
@@ -345,34 +716,7 @@ class IElemDisc
 	///	flag if stationary assembling is to be used even in instationary assembling
 		bool m_bStationaryForced;
 
-	// //////////////////////////
-	// Error estimator
-	// //////////////////////////
-	public:
-	///	sets the pointer to an error estimator data object (or NULL)
-	/**
-	 * This function sets the pointer to an error estimator data object
-	 * that should be used for this discretization. Note that the ElemDisc
-	 * object must use RTTI to try to convert this pointer to the type
-	 * of the objects accepted by it for this purpose. If the conversion
-	 * fails than an exception must be thrown since this situation is not
-	 * allowed.
-	 */
-		void set_error_estimator(SmartPtr<IErrEstData<TDomain> > ee) {m_spErrEstData = ee; m_bDoErrEst = true;}
-
-	/// find out whether or not a posteriori error estimation is to be performed for this disc
-		bool err_est_enabled() const {return m_bDoErrEst;}
-
-	///	returns the pointer to the error estimator data object (or NULL)
-		virtual SmartPtr<IErrEstData<TDomain> > err_est_data() {return m_spErrEstData;}
 	
-	private:
-	/// flag indicating whether or not a posteriori error estimation is to be performed for this disc
-		bool m_bDoErrEst;
-
-	protected:
-	/// error estimation object associated to the element discretization
-		SmartPtr<IErrEstData<TDomain> > m_spErrEstData;
 
 	////////////////////////////
 	// general info
@@ -401,235 +745,116 @@ class IElemDisc
 	 * element assemblings but is needed for finite volumes
 	 */
 		virtual bool use_hanging() const {return false;}
+};
 
-	////////////////////////////
-	// assembling functions
-	////////////////////////////
-	public:
-	///	virtual prepares the loop over all elements of one type
-		virtual void prep_assemble_loop() {}
 
-	///	virtual prepares the loop over all elements of one type
-		virtual void post_assemble_loop() {}
+template <typename TDomain>
+class IElemError :
+	public IElemDiscBase<TDomain>,
+	public IElemEstimatorFuncs<IElemDisc<TDomain>, TDomain>
+{
+public:
+	typedef TDomain domain_type;
+	static const int dim = TDomain::dim;
 
-	/// prepare the time step
-		virtual void prep_timestep(number time, VectorProxyBase* u);
+	friend class IElemEstimatorFuncs<IElemDisc<TDomain>, TDomain>;
+	typedef IElemEstimatorFuncs<IElemDisc<TDomain>, TDomain> estimator_base_type;
 
-	/// prepare the time step element-wise
-		virtual void prep_timestep_elem(const number time, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+	IElemError(const char* functions, const char* subsets)
+	: IElemDiscBase<TDomain>(functions, subsets), estimator_base_type()  {}
 
-	///	virtual prepares the loop over all elements of one type
-		virtual void prep_elem_loop(const ReferenceObjectID roid, const int si);
+	IElemError(const std::vector<std::string>& vFct, const std::vector<std::string>& vSubset)
+	: IElemDiscBase<TDomain>(vFct, vSubset), estimator_base_type()  {}
 
-	///	virtual prepare one elements for assembling
-		virtual void prep_elem(const LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[]);
 
-	///	virtual postprocesses the loop over all elements of one type
-		virtual void fsh_elem_loop();
-
-	/// finish the time step
-		virtual void fsh_timestep(number time, VectorProxyBase* u);
-
-	/// virtual finish the time step element-wise
-		virtual void fsh_timestep_elem(const number time, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-
-	/// Assembling of Jacobian (Stiffness part)
-		virtual void add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-
-	/// Assembling of Jacobian (Mass part)
-		virtual void add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-
-	/// virtual Assembling of Defect (Stiffness part)
-		virtual void add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-
-    /// defect for explicit terms
-		virtual void add_def_A_expl_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-
-	/// virtual Assembling of Defect (Mass part)
-		virtual void add_def_M_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-
-	/// virtual Assembling of Right-Hand Side
-		virtual void add_rhs_elem(LocalVector& rhs, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-		
-	///	virtual prepares the loop over all elements of one type for the computation of the error estimator
-		virtual void prep_err_est_elem_loop(const ReferenceObjectID roid, const int si);
-
-	///	virtual prepares the loop over all elements of one type for the computation of the error estimator
-		virtual void prep_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-
-	///	virtual compute the error estimator (stiffness part) contribution for one element
-		virtual void compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale);
-
-	///	virtual compute the error estimator (mass part) contribution for one element
-		virtual void compute_err_est_M_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale);
-
-	///	virtual compute the error estimator (rhs part) contribution for one element
-		virtual void compute_err_est_rhs_elem(GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale);
-		
-	///	virtual postprocesses the loop over all elements of one type in the computation of the error estimator
-		virtual void fsh_err_est_elem_loop();
-		
-	///	function dispatching call to implementation
-	/// \{
-		void do_prep_timestep(const number time, VectorProxyBase* u, size_t algebra_id);
-		void do_prep_timestep_elem(const number time, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-		void do_prep_elem_loop(const ReferenceObjectID roid, const int si);
-		void do_prep_elem(LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[]);
-		void do_fsh_elem_loop();
-		void do_fsh_timestep(const number time, VectorProxyBase* u, size_t algebra_id);
-		void do_fsh_timestep_elem(const number time, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-		void do_add_jac_A_elem(LocalMatrix& J, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-		void do_add_jac_M_elem(LocalMatrix& J, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-		void do_add_def_A_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-   	    void do_add_def_A_expl_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-		void do_add_def_M_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-		void do_add_rhs_elem(LocalVector& rhs, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-		void do_prep_err_est_elem_loop(const ReferenceObjectID roid, const int si);
-		void do_prep_err_est_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-		void do_compute_err_est_A_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale);
-		void do_compute_err_est_M_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale);
-		void do_compute_err_est_rhs_elem(GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale);
-		void do_fsh_err_est_elem_loop();
-	/// \}
-
-	private:
-	//	abbreviation for own type
-		typedef IElemDisc<TDomain> T;
-
-	// 	types of timestep function pointers
-		typedef void (T::*PrepareTimestepFct)(number, VectorProxyBase*);
-		typedef void (T::*PrepareTimestepElemFct)(number, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-		typedef void (T::*FinishTimestepFct)(number, VectorProxyBase*);
-		typedef void (T::*FinishTimestepElemFct)(number, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-
-	// 	types of loop function pointers
-		typedef void (T::*PrepareElemLoopFct)(ReferenceObjectID roid, int si);
-		typedef void (T::*PrepareElemFct)(const LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[]);
-		typedef void (T::*FinishElemLoopFct)();
-
-	// 	types of Jacobian assemble functions
-		typedef void (T::*ElemJAFct)(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-		typedef void (T::*ElemJMFct)(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-
-	// 	types of Defect assemble functions
-		typedef void (T::*ElemdAFct)(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-		typedef void (T::*ElemdMFct)(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-
-	// 	types of right hand side assemble functions
-		typedef void (T::*ElemRHSFct)(LocalVector& rhs, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-	
-	//	types of the error estimator assembler
-		typedef void (T::*PrepareErrEstElemLoopFct)(ReferenceObjectID roid, int si);
-		typedef void (T::*PrepareErrEstElemFct)(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-		typedef void (T::*ElemComputeErrEstAFct)(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number&);
-		typedef void (T::*ElemComputeErrEstMFct)(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number&);
-		typedef void (T::*ElemComputeErrEstRhsFct)(GridObject* elem, const MathVector<dim> vCornerCoords[], const number&);
-		typedef void (T::*FinishErrEstElemLoopFct)();
-
-	protected:
-	// 	register the functions
-		template <typename TAssFunc> void set_prep_timestep_fct(size_t algebra_id, TAssFunc func);
-		template <typename TAssFunc> void set_prep_timestep_elem_fct(ReferenceObjectID id, TAssFunc func);
-		template <typename TAssFunc> void set_fsh_timestep_fct(size_t algebra_id, TAssFunc func);
-		template <typename TAssFunc> void set_fsh_timestep_elem_fct(ReferenceObjectID id, TAssFunc func);
-
-		template <typename TAssFunc> void set_prep_elem_loop_fct(ReferenceObjectID id, TAssFunc func);
-		template <typename TAssFunc> void set_prep_elem_fct(ReferenceObjectID id, TAssFunc func);
-		template <typename TAssFunc> void set_fsh_elem_loop_fct(ReferenceObjectID id, TAssFunc func);
-
-		template <typename TAssFunc> void set_add_jac_A_elem_fct(ReferenceObjectID id, TAssFunc func);
-		template <typename TAssFunc> void set_add_jac_M_elem_fct(ReferenceObjectID id, TAssFunc func);
-		template <typename TAssFunc> void set_add_def_A_elem_fct(ReferenceObjectID id, TAssFunc func);
-		template <typename TAssFunc> void set_add_def_A_expl_elem_fct(ReferenceObjectID id, TAssFunc func);
-		template <typename TAssFunc> void set_add_def_M_elem_fct(ReferenceObjectID id, TAssFunc func);
-		template <typename TAssFunc> void set_add_rhs_elem_fct(ReferenceObjectID id, TAssFunc func);
-
-		template <typename TAssFunc> void set_prep_err_est_elem_loop(ReferenceObjectID id, TAssFunc func);
-		template <typename TAssFunc> void set_prep_err_est_elem(ReferenceObjectID id, TAssFunc func);
-		template <typename TAssFunc> void set_compute_err_est_A_elem(ReferenceObjectID id, TAssFunc func);
-		template <typename TAssFunc> void set_compute_err_est_M_elem(ReferenceObjectID id, TAssFunc func);
-		template <typename TAssFunc> void set_compute_err_est_rhs_elem(ReferenceObjectID id, TAssFunc func);
-		template <typename TAssFunc> void set_fsh_err_est_elem_loop(ReferenceObjectID id, TAssFunc func);
-		
-	//	unregister functions
-		void remove_prep_timestep_fct(size_t algebra_id);
-		void remove_prep_timestep_elem_fct(ReferenceObjectID id);
-		void remove_fsh_timestep_fct(size_t algebra_id);
-		void remove_fsh_timestep_elem_fct(ReferenceObjectID id);
-
-		void remove_prep_elem_loop_fct(ReferenceObjectID id);
-		void remove_prep_elem_fct(ReferenceObjectID id);
-		void remove_fsh_elem_loop_fct(ReferenceObjectID id);
-
-		void remove_add_jac_A_elem_fct(ReferenceObjectID id);
-		void remove_add_jac_M_elem_fct(ReferenceObjectID id);
-		void remove_add_def_A_elem_fct(ReferenceObjectID id);
-		void remove_add_def_A_expl_elem_fct(ReferenceObjectID id);
-		void remove_add_def_M_elem_fct(ReferenceObjectID id);
-		void remove_add_rhs_elem_fct(ReferenceObjectID id);
-
-		void remove_prep_err_est_elem_loop(ReferenceObjectID id);
-		void remove_prep_err_est_elem(ReferenceObjectID id);
-		void remove_compute_err_est_A_elem(ReferenceObjectID id);
-		void remove_compute_err_est_M_elem(ReferenceObjectID id);
-		void remove_compute_err_est_rhs_elem(ReferenceObjectID id);
-		void remove_fsh_err_est_elem_loop(ReferenceObjectID id);
+protected:
 
 	///	sets all assemble functions to NULL for a given ReferenceObjectID
-		void clear_add_fct(ReferenceObjectID id);
+	void clear_add_fct(ReferenceObjectID id)
+	{ estimator_base_type::clear_add_fct(id); }
 
 	///	sets all assemble functions to NULL (for all ReferenceObjectID's)
-		void clear_add_fct();
+	void clear_add_fct()
+	{ estimator_base_type::clear_add_fct(); }
 
 	///	sets all assemble functions to the corresponding virtual ones
-		void set_default_add_fct();
+	//void set_default_add_fct();
+	using estimator_base_type::set_default_add_fct;
 
-	public:
-	/// sets the geometric object type
-	/**
-	 * This functions set the geometric object type of the object, that is
-	 * assembled next. The user has to call this function before most of the
-	 * assembling routines can be called. Keep in mind, that the elements are
-	 * looped type by type, thus this function has to be called very few times.
-	 */
-		void set_roid(ReferenceObjectID id, int discType);
-
-	private:
-	// 	timestep function pointers
-		PrepareTimestepFct			m_vPrepareTimestepFct[bridge::NUM_ALGEBRA_TYPES];
-		PrepareTimestepElemFct 		m_vPrepareTimestepElemFct[NUM_REFERENCE_OBJECTS];
-		FinishTimestepFct			m_vFinishTimestepFct[bridge::NUM_ALGEBRA_TYPES];
-		FinishTimestepElemFct 		m_vFinishTimestepElemFct[NUM_REFERENCE_OBJECTS];
-
-	// 	loop function pointers
-		PrepareElemLoopFct 	m_vPrepareElemLoopFct[NUM_REFERENCE_OBJECTS];
-		PrepareElemFct 		m_vPrepareElemFct[NUM_REFERENCE_OBJECTS];
-		FinishElemLoopFct 	m_vFinishElemLoopFct[NUM_REFERENCE_OBJECTS];
-
-	// 	Jacobian function pointers
-		ElemJAFct 	m_vElemJAFct[NUM_REFERENCE_OBJECTS];
-		ElemJMFct 	m_vElemJMFct[NUM_REFERENCE_OBJECTS];
-
-	// 	Defect function pointers
-		ElemdAFct 	m_vElemdAFct[NUM_REFERENCE_OBJECTS];
-		ElemdAFct 	m_vElemdAExplFct[NUM_REFERENCE_OBJECTS];
-		ElemdMFct 	m_vElemdMFct[NUM_REFERENCE_OBJECTS];
-
-	// 	Rhs function pointers
-		ElemRHSFct 	m_vElemRHSFct[NUM_REFERENCE_OBJECTS];
-		
-	//	Error estimator functions
-		PrepareErrEstElemLoopFct	m_vPrepareErrEstElemLoopFct[NUM_REFERENCE_OBJECTS];
-		PrepareErrEstElemFct		m_vPrepareErrEstElemFct[NUM_REFERENCE_OBJECTS];
-		ElemComputeErrEstAFct		m_vElemComputeErrEstAFct[NUM_REFERENCE_OBJECTS];
-		ElemComputeErrEstMFct		m_vElemComputeErrEstMFct[NUM_REFERENCE_OBJECTS];
-		ElemComputeErrEstRhsFct		m_vElemComputeErrEstRhsFct[NUM_REFERENCE_OBJECTS];
-		FinishErrEstElemLoopFct		m_vFinishErrEstElemLoopFct[NUM_REFERENCE_OBJECTS];
-
-	protected:
-	/// current Geometric Object
-		ReferenceObjectID m_id;
 };
+
+
+/**
+ * Element discretization (including error indicator)
+ * TODO: Should be separated!!!
+ * */
+template <typename TDomain>
+class IElemDisc :
+		public IElemError<TDomain>,
+		public IElemAssembleFuncs<IElemDisc<TDomain>, TDomain>
+{
+public:
+	typedef TDomain domain_type;
+	static const int dim = TDomain::dim;
+
+	/// real base class
+	typedef IElemError<TDomain> base_type;
+	typedef IElemEstimatorFuncs<IElemDisc<TDomain>, TDomain> estimator_base_type;
+	typedef IElemAssembleFuncs<IElemDisc<TDomain>, TDomain> assemble_base_type;
+
+	friend class IElemEstimatorFuncs<IElemDisc<TDomain>, TDomain>;
+	friend class IElemAssembleFuncs<IElemDisc<TDomain>, TDomain>;
+
+
+	IElemDisc(const char* functions, const char* subsets)
+	: IElemError<TDomain>(functions, subsets), assemble_base_type() {}
+
+	IElemDisc(const std::vector<std::string>& vFct, const std::vector<std::string>& vSubset)
+	: IElemError<TDomain>(vFct, vSubset), assemble_base_type() {}
+
+protected:
+
+	///	sets all assemble functions to NULL for a given ReferenceObjectID
+		void clear_add_fct(ReferenceObjectID id)
+		{
+			base_type::clear_add_fct(id);
+			assemble_base_type::clear_add_fct(id);
+		}
+
+	///	sets all assemble functions to NULL (for all ReferenceObjectID's)
+		void clear_add_fct()
+		{
+			base_type::clear_add_fct();
+			assemble_base_type::clear_add_fct();
+		}
+
+	///	sets all assemble functions to the corresponding virtual ones
+		void set_default_add_fct()
+		{
+			base_type::set_default_add_fct();
+			assemble_base_type::set_default_add_fct();
+		}
+
+
+public:
+	void add_elem_modifier(SmartPtr<IElemDiscModifier<TDomain> > elemModifier )
+	{
+			m_spElemModifier.push_back(elemModifier);
+			elemModifier->set_elem_disc(this);
+	}
+
+	std::vector<SmartPtr<IElemDiscModifier<TDomain> > >& get_elem_modifier()
+	{ return m_spElemModifier;}
+
+protected:
+	///	Approximation Space
+	std::vector<SmartPtr<IElemDiscModifier<TDomain> > > m_spElemModifier;
+
+
+};
+
+
+
 /// @}
 
 } // end namespace ug

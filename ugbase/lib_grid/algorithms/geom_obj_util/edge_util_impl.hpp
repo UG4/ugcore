@@ -36,10 +36,37 @@
 //#include "edge_util.h"
 #include <stack>
 #include <queue>
+#include <map>
 #include "lib_grid/grid/grid_util.h"
+#include "../orientation_util.h"
 #include "vertex_util.h"
 namespace ug
 {
+
+template <class face_iter_t>
+void GetInnerEdgesOfFaceSoup(
+			std::vector<Edge*>& edgesOut,
+			Grid& g,
+			face_iter_t facesBegin,
+			face_iter_t facesEnd)
+{
+	using namespace std;
+	map<Edge*, int>	m;
+
+	Grid::edge_traits::secure_container edges;
+	for(face_iter_t fiter = facesBegin; fiter != facesEnd; ++fiter)
+	{
+		g.associated_elements(edges, *fiter);
+		for(size_t i = 0; i < edges.size(); ++i)
+			++m[edges[i]];
+	}
+
+	for(map<Edge*, int>::iterator iter = m.begin(); iter != m.end(); ++iter)
+	{
+		if(iter->second > 1)
+			edgesOut.push_back(iter->first);
+	}
+}
 
 ////////////////////////////////////////////////////////////////////////
 template <class TAAPosVRT>
@@ -230,9 +257,9 @@ void AdjustEdgeOrientationToFaceOrientation(Grid& grid, TEdgeIterator edgesBegin
 						   	   	   	   	    TEdgeIterator edgesEnd)
 {
 	using namespace std;
-	Face* nbr;
 
 	for(TEdgeIterator iter = edgesBegin; iter != edgesEnd; ++iter){
+		Face* nbr;
 		int numNbrs = GetAssociatedFaces(&nbr, grid, *iter, 1);
 		if(numNbrs != 1)
 			continue;
@@ -242,6 +269,36 @@ void AdjustEdgeOrientationToFaceOrientation(Grid& grid, TEdgeIterator edgesBegin
 		}
 	}
 }
+
+template <class TEdgeIterator>
+UG_API
+void AdjustEdgeOrientationToFaceOrientation(Grid& grid, TEdgeIterator edgesBegin,
+						   	   	   	   	    TEdgeIterator edgesEnd,
+						   	   	   	   	    Grid::face_traits::callback considerFace)
+{
+	using namespace std;
+
+	Grid::face_traits::secure_container faces;
+
+	for(TEdgeIterator iter = edgesBegin; iter != edgesEnd; ++iter){
+		Edge* e = *iter;
+		grid.associated_elements(faces, e);
+
+		size_t numConsidered = 0;
+		Face* nbr = NULL;
+		for(size_t i = 0; i < faces.size(); ++i){
+			if(considerFace(faces[i])){
+				++numConsidered;
+				nbr = faces[i];
+			}
+		}
+
+		if((numConsidered == 1) && (!EdgeOrientationMatches(e, nbr))){
+			grid.flip_orientation(e);
+		}
+	}
+}
+
 
 template <class TEdgeIterator, class TAAPosVRT>
 Edge* FindShortestEdge(TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,

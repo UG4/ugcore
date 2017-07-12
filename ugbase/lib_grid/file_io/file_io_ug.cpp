@@ -40,8 +40,9 @@
 #include <set>
 #include "file_io_ug.h"
 #include "lib_grid/lg_base.h"
-#include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 #include "lib_grid/algorithms/attachment_util.h"
+#include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
+#include "lib_grid/algorithms/orientation_util.h"
 #include "lib_grid/algorithms/polychain_util.h"
 #include "lib_grid/callbacks/callbacks.h"
 

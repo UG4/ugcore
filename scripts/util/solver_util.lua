@@ -29,99 +29,388 @@
 -- GNU Lesser General Public License for more details.
 
 
--- todo: enhance 'CreateSolver', which can also create a NewtonSolver and similar
---		 if requested.
 
--- Given a (possibly nested) solver description, e.g.,
--- 
--- 	solver = {
---		type = "bicgstab",
---		precond = "ilu"
---		convCheck = "standard"
--- 	}
---
--- a call e.g. to util.solver.CreateSolver(solver)
--- creates and returns the requested solver.
---
--- For conveniance, all the methods will add an 'instance' entry to their respective
--- descriptor tables, assigning the created solver component.
--- If you thus setup a solver, e.g.
---
--- 	solver = {
---		type = "bicgstab",
---		precond = {
---			type = "ilu"
---		}
--- 	}
---
--- you may later access 'solver.instance' and 'solver.precond.instance'.
--- Note that this is only possible if you specified a component through a descriptor.
--- If you use the short form, e.g.
---
--- solver = {
---		type = "bicgstab",
---		precond = "ilu"
--- 	}
---
--- you will still be able to access 'solver.instance', but you can't access
--- 'solver.precond.instance'.
---
---
--- All components may either be specified through a string-id or through a
--- descriptor. You only have to specify those components which deviate from
--- the defaults (solver.util.defaults), the rest will be ammended.
---
---
--- If you want to use a geometric multigrid preconditioner, you either have
--- to specify an approxSpace entry in its descriptor or set
--- 'util.solver.defaults.approxSpace' before calling any 'util.solver.Create...'
--- method.
---
---
--- Two not necessarily meaningful examples follow:
--- (here someApproxSpace points to a previously created approximation space)
---
---  -- EXAMPLE 1
---	solverDesc = 
---	{
---		type = "bicgstab",			-- linear solver type ["bicgstab", "cg", "linear"]
---		precond = 
---		{	
---			type 		= "gmg",	-- preconditioner ["gmg", "ilu", "ilut", "jac", "gs", "sgs"]
---			smoother 	= "gs",		-- gmg-smoother ["ilu", "ilut", "jac", "gs", "sgs"]
---			cycle		= "V",		-- gmg-cycle ["V", "F", "W"]
---			preSmooth	= 3,		-- number presmoothing steps
---			postSmooth 	= 3,		-- number postsmoothing steps
---			rap			= false,	-- comutes RAP-product instead of assembling if true 
---			baseLevel	= 0,		-- gmg - baselevel
---			baseSolver	= {			-- better options are most likely "lu" or "superlu"
---				type	  = "bicgstab",
---				precond	  = "gs",
---				convCheck = {
---					type		= "standard"
---					iterations	= 1000,
---					absolute	= 1e-12,
---					reduction	= 1e-10,
---					verbose		= false
---				}
---			}
---			approxSpace	= someApproxSpace,
---		},
---	
---		convCheck = "standard"
---	}
---
---	solver = util.solver.CreateSolver(solverDesc)
---
---
---  -- EXAMPLE 2
---	solverDesc =
---	{
---		type = "linear",
---		precond = ILU()		-- for each component one can optionally supply a custom instance
---	}
---
---	solver = util.solver.CreateSolver(solverDesc)
+--[[!
+\defgroup solver_util Solver Util
+\ingroup scripts_util
+\brief Table based solver creation
+
+Given a (possibly nested) solver description, e.g.,
+\code
+	solver = {
+		type = "bicgstab",
+		precond = "ilu"
+		convCheck = "standard"
+	}
+\endcode
+a call e.g. to util.solver.CreateSolver(solver)
+creates and returns the requested solver.
+
+All components may either be specified through a string-id or through a
+descriptor. You only have to specify those components which deviate from
+the defaults (solver.util.defaults), the rest will be ammended.
+
+To use a geometric multigrid preconditioner, you either have
+to specify an approxSpace entry in its descriptor or set
+'util.solver.defaults.approxSpace' before calling any 'util.solver.Create...'
+method.
+
+
+<br>
+<h2>Examples</h2>
+Several examples follow:
+
+<h3>Example: Creating an exact solver</h3>
+\code
+	solver = util.solver.CreateSolver("lu")
+\endcode
+
+
+<br>
+<h3>Example: Creating a simple iterative jacobi solver</h3>
+\code
+	solverDesc = {
+		type = "linear",
+		precond = "jac"
+	}
+
+	solver = util.solver.CreateSolver(solverDesc)
+\endcode
+
+
+<br>
+<h3>Example: Creating a simple iterative jacobi solver with custom parameters</h3>
+\code
+	solverDesc = {
+		type = "linear",
+		precond = {
+			type = "jac",
+			damping = 0.5
+		}
+	}
+
+	solver = util.solver.CreateSolver(solverDesc)
+\endcode
+
+
+<br>
+<h3>Example: Creation of a bicgstab solver with geometric multigrid preconditioner</h3>
+here someApproxSpace points to a previously created approximation space
+\code
+	solverDesc = 
+	{
+		type = "bicgstab",			-- linear solver type ["bicgstab", "cg", "linear"]
+		precond = 
+		{	
+			type 		= "gmg",	-- preconditioner ["gmg", "ilu", "ilut", "jac", "gs", "sgs"]
+			smoother 	= "gs",		-- gmg-smoother ["ilu", "ilut", "jac", "gs", "sgs"]
+			cycle		= "V",		-- gmg-cycle ["V", "F", "W"]
+			preSmooth	= 3,		-- number presmoothing steps
+			postSmooth 	= 3,		-- number postsmoothing steps
+			rap			= false,	-- comutes RAP-product instead of assembling if true 
+			baseLevel	= 0,		-- gmg - baselevel
+			baseSolver	= {			-- better options are most likely "lu" or "superlu"
+				type	  = "bicgstab",
+				precond	  = "gs",
+				convCheck = {
+					type		= "standard"
+					iterations	= 1000,
+					absolute	= 1e-12,
+					reduction	= 1e-10,
+					verbose		= false
+				}
+			}
+			approxSpace	= someApproxSpace,
+		},
+
+		convCheck = "standard"
+	}
+	solver = util.solver.CreateSolver(solverDesc)
+\endcode
+
+
+<br>
+<h3>Example: Providing custom solver and preconditioner objects (advanced)</h3>
+You may also provide instances of preconditioners instead of descriptor tables:
+\code
+	solverDesc =
+	{
+		type = "linear",
+		precond = ILU()		-- for each component one can optionally supply a custom instance
+	}
+	solver = util.solver.CreateSolver(solverDesc)
+\endcode
+
+
+<br>
+<h3>Example: Accessing the created solvers and preconditioners (advanced)</h3>
+For conveniance, all the methods will add an 'instance' entry to their respective
+descriptor tables, assigning the created solver component.
+If you thus setup a solver, e.g.
+\code
+	solver = {
+		type = "bicgstab",
+		precond = {
+			type = "ilu"
+		}
+	}
+\endcode
+you may later access 'solver.instance' and 'solver.precond.instance'.
+Note that this is only possible if you specified a component through a descriptor.
+If you use the short form, e.g.
+\code
+	solver = {
+		type = "bicgstab",
+		precond = "ilu"
+	}
+\endcode
+you will still be able to access 'solver.instance', but you can't access
+'solver.precond.instance'.
+
+
+<br>
+<h2>Non-Linear Solvers</h2>
+The following listing gives an overview over available non-linear solvers and their default
+parameters. Pass the descriptor of a non-linear solver to
+\code
+	util.solver.CreateSolver(...)
+\endcode
+to obtain the described solved.
+
+\b linSolver can be any linear solver listed in the <b>Linear Solvers</b> section.
+
+\b convCheck can be any convergence check listed in the <b>Convergence Checks</b> section.
+
+\b lineSearch can be any line search method listed in the <b>Line Search</b> section.
+
+Currently only the Newton method is available as non-linear solver.
+
+<h3>Newton Method</h3>
+\code
+{
+	type		= "newton",
+	convCheck	= "standard",
+	linSolver	= "bicgstab",
+	lineSearch	= nil
+}
+\endcode
+
+
+<br>
+<h2>Linear Solvers</h2>
+The following listing gives an overview over available linear-solvers and their default
+parameters. Pass the descriptor of a linear solver to
+\code
+	util.solver.CreateSolver(...)
+\endcode
+to obtain the described solved.
+
+\b precond can be any preconditioner listed in the \b Preconditioners section.
+
+\b convCheck can be any convergence check listed in the <b>Convergence Checks</b> section.
+
+<h3>Linear Solver</h3>
+\code
+{
+	type		= "linear",
+	precond		= "ilu",
+	convCheck	= "standard"
+}
+\endcode
+
+<h3>Conjugate Gradients</h3>
+\code
+{
+	type		= "cg",
+	precond		= "ilu",
+	convCheck	= "standard"
+}
+\endcode
+
+<h3>BiCGStab</h3>
+\code
+{
+	type		= "bicgstab",
+	precond		= "ilu",
+	convCheck	= "standard"
+}
+\endcode
+
+
+<br>
+<h2>Preconditioners</h2>
+The following listing gives an overview over available preconditioners and their default
+parameters.
+
+<h3>Geometric Multigrid</h3>
+\code
+{
+	type 							= "gmg",
+	adaptive 						= false,
+	approxSpace 					= nil,
+	baseLevel 						= 0,
+	baseSolver 						= "lu",		-- any solver listed in the 'Solvers' section
+	cycle 							= "V",
+	discretization 					= nil,		-- only necessary if the underlying matrix is not of type AssembledLinearOperator
+	gatheredBaseSolverIfAmbiguous	= false,
+	preSmooth 						= 3,
+	postSmooth 						= 3,
+	rap 							= false,
+	rim 							= false,
+	emulateFullRefined 				= false,
+	smoother 						= "gs",		-- any preconditioner listed in the 'Preconditioners' section
+	transfer 						= "std",	-- any transfer listed in the 'Transfers' section
+	debug 							= false,
+	mgStats							= nil		-- any mgStats listed in the 'MGStats' section
+}
+\endcode
+
+<br>
+<h3>ILU</h3>
+\code
+{
+	type 			= "ilu",
+	beta 			= 0,
+	damping 		= 1,
+	sortEps 		= 1.e-50,
+	inversionEps 	= 1.e-8
+}
+\endcode
+
+<br>
+<h3>ILUT</h3>
+\code
+{
+	type 		= "ilut",
+	threshold 	= 1e-6
+}
+\endcode
+
+<br>
+<h3>Jacobi</h3>
+\code
+{
+	type 	= "jac",
+	damping = 0.66
+}
+\endcode
+
+
+<br>
+<h3>Gauss Seidel</h3>
+\code
+{
+	type = "gs"
+}
+\endcode
+
+<br>
+<h3>Block Gauss Seidel</h3>
+\code
+{
+	type = "bgs"
+}
+\endcode
+
+<br>
+<h3>Symmetric Gauss Seidel</h3>
+\code
+{
+	type = "sgs"
+}
+\endcode
+
+<br>
+<h3>Element Gauss Seidel</h3>
+\code
+{
+	type = "egs"
+}
+\endcode
+
+<br>
+<h3>Schur</h3>
+\code
+{
+	type 			= "schur",
+	dirichletSolver	= "lu",
+	skeletonSolver	= "lu"
+}
+\endcode
+
+
+<br>
+<h2>Convergence Checks</h2>
+The following listing gives an overview over available convergence checks and their
+default parameters.
+
+<h3>Standard convergence check</h3>
+\code
+{
+	type		= "standard",
+	iterations	= 100,
+	absolute	= 1e-12,
+	reduction	= 1e-6,
+	verbose		= true
+}
+\endcode
+
+
+<br>
+<h2>Transfer Operators</h2>
+The following listing gives an overview over available transfer operators and their
+default parameters.
+<h3>Standard Transfer Operator</h3>
+\code
+{
+	type				= "std",
+	restrictionDamp 	= 1.0,
+	prolongationDamp 	= 1.0,
+	enableP1LagrangeOptimization = true,
+	debug 				= false
+}
+\endcode
+
+
+<br>
+<h2>Line Search Methods</h2>
+The following listing gives an overview over available line search methods and their
+default parameters.
+
+<h3>Standard Line Search Method</h3>
+\code
+{
+	type			= "standard",
+	maxSteps		= 10,
+	lambdaStart		= 1,
+	lambdaReduce	= 0.5,
+	acceptBest 		= true,
+	checkAll		= false
+}
+\endcode
+
+
+<br>
+<h2>MGStats</h2>
+The following listing gives an overview over available MGStats objects.
+MGStats objects are used to record statistics on individual multigrid cycles.
+They add some overhead, so one should only use them for debugging.
+
+<h3>MGStats</h3>
+\code
+{
+	type			= "standard",
+	filenamePrefix	= "mgstats",
+	exitOnError		= false,
+	writeErrVecs	= false,
+	writeErrDiffs	= false,
+	activeStages	= nil
+}
+\endcode
+
+\{
+]]--	
+
 
 ug_load_script("util/table_desc_util.lua")
 ug_load_script("util/table_util.lua")
@@ -175,7 +464,12 @@ util.solver.defaults =
 			preSmooth = 3,
 			postSmooth = 3,
 			rap = false,
-			smoother = "gs"
+			rim = false,
+			emulateFullRefined = false,
+			smoother = "gs",
+			transfer = "std",
+			debug = false,
+			mgStats = nil
 		},
 
 		ilu = {
@@ -198,6 +492,16 @@ util.solver.defaults =
 			skeletonSolver	= "lu"
 		}
 	},
+	
+	transfer = 
+	{
+		std = {
+			restrictionDamp = 1.0,
+			prolongationDamp = 1.0,
+			enableP1LagrangeOptimization = true,
+			debug = false
+		}
+	},
 
 	convCheck =
 	{
@@ -217,6 +521,17 @@ util.solver.defaults =
 			lambdaReduce	= 0.5,
 			acceptBest 		= true,
 			checkAll		= false
+		}
+	},
+
+	mgStats =
+	{
+		standard = {
+			filenamePrefix	= "mgstats",
+			exitOnError		= false,
+			writeErrVecs	= false,
+    		writeErrDiffs	= false,
+			activeStages	= nil
 		}
 	}
 }
@@ -269,7 +584,7 @@ function util.solver.CreateSolver(solverDesc, solverutil)
 		local lineSearch = desc.lineSearch or defaults.lineSearch
 		if lineSearch and lineSearch ~= "none" then
 			newtonSolver:set_line_search(
-				util.solver.CreateLineSearch(lineSearch, solverutil))
+				util.solver.CreateLineSearch(lineSearch))
 		end
 
 		return newtonSolver
@@ -338,7 +653,37 @@ function util.solver.CreateLinearSolver(solverDesc, solverutil)
 	return linSolver
 end
 
+function util.solver.CreateTransfer(transferDesc)
 
+	local name, desc = util.tableDesc.ToNameAndDesc(transferDesc)
+	local defaults   = util.solver.defaults.transfer[name]
+	if desc == nil then desc = defaults end
+
+	local transfer = nil
+	if name == "std" then
+		transfer = StdTransfer()
+	end
+
+	util.solver.CondAbort(transfer == nil, "Invalid transfer specified: " .. name)
+
+	transfer:enable_p1_lagrange_optimization(desc.enableP1LagrangeOptimization or defaults.enableP1LagrangeOptimization)
+
+	if type(desc.restrictionDamp) == "number" and desc.restrictionDamp ~= 1.0 then	
+		transfer:set_restriction_damping(desc.restrictionDamp)
+	end
+	if type(desc.prolongationDamp) == "number" and desc.restrictionDamp ~= 1.0 then	
+		transfer:set_prolongation_damping(desc.prolongationDamp)
+	end
+	
+	if (desc.debug or defaults.debug) then
+		transfer:set_debug(GridFunctionDebugWriter(approxSpace))
+	end
+	
+	return transfer
+end
+
+-- create a preconditioner
+-- solverutil may be nil
 function util.solver.CreatePreconditioner(precondDesc, solverutil)
 	solverutil = util.solver.PrepareSolverUtil(solverDesc, solverutil)
 	if util.tableDesc.IsPreset(precondDesc) then return precondDesc end
@@ -349,7 +694,10 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 
 	local precond = nil
 
-	local approxSpace = desc.approxSpace or util.solver.defaults.approxSpace
+	local approxSpace = nil
+	if desc then
+		approxSpace = desc.approxSpace or util.solver.defaults.approxSpace
+	end
 
 	if name == "ilu"  then
 		precond = ILU ()
@@ -381,21 +729,32 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 		end
 
 		local gmg = GeometricMultiGrid(approxSpace)
-		gmg:set_base_solver		(baseSolver)
-		gmg:set_smoother 		(smoother)
-		gmg:set_base_level		(desc.baseLevel or defaults.baseLevel)
-		gmg:set_cycle_type		(desc.cycle or defaults.cycle)
-		gmg:set_num_presmooth	(desc.preSmooth or defaults.preSmooth)
-		gmg:set_num_postsmooth	(desc.postSmooth or defaults.postSmooth)
-		gmg:set_rap 			(desc.rap or defaults.rap)
+		gmg:set_base_solver					(baseSolver)
+		gmg:set_smoother 					(smoother)
+		gmg:set_base_level					(desc.baseLevel or defaults.baseLevel)
+		gmg:set_cycle_type					(desc.cycle or defaults.cycle)
+		gmg:set_num_presmooth				(desc.preSmooth or defaults.preSmooth)
+		gmg:set_num_postsmooth				(desc.postSmooth or defaults.postSmooth)
+		gmg:set_rap 						(desc.rap or defaults.rap)
+		gmg:set_smooth_on_surface_rim		(desc.rim or defaults.rim)
+		gmg:set_emulate_full_refined_grid	(desc.emulateFullRefined or defaults.emulateFullRefined)
 		gmg:set_gathered_base_solver_if_ambiguous (
 				desc.gatheredBaseSolverIfAmbiguous or
 				defaults.gatheredBaseSolverIfAmbiguous)
 
+		local transfer = util.solver.CreateTransfer(desc.transfer or defaults.transfer)
 		if desc.adaptive == true then
-			local transfer = StdTransfer()
+		--	next three lines are obsolete, since gmg:set_transfer overwrites gmg:set_projection, anyways!?
+			local project = StdTransfer()
+			project:enable_p1_lagrange_optimization(false)
+			gmg:set_projection(project)
+
 			transfer:enable_p1_lagrange_optimization(false)
-			gmg:set_transfer(transfer)
+		end
+		gmg:set_transfer(transfer)
+
+		if (desc.debug or defaults.debug) then
+			gmg:set_debug(GridFunctionDebugWriter(approxSpace))
 		end
 
 		local discretization = desc.discretization or util.solver.defaults.discretization
@@ -403,15 +762,20 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 			gmg:set_discretization(discretization)
 		end
 
+		local mgStats = util.solver.CreateMGStats(desc.mgStats or defaults.mgStats)
+		if(mgStats) then
+			gmg:set_mg_stats(mgStats)
+		end
+
 		precond = gmg
 
 	elseif name == "schur" 	then
 		local dirichletSolver =
-				solver.util.CreateLinearSolver(
+				util.solver.CreateLinearSolver(
 					desc.dirichletSolver or defaults.dirichletSolver, solverutil)
 
 		local skeletonSolver =
-				solver.util.CreateLinearSolver(
+				util.solver.CreateLinearSolver(
 					desc.skeletonSolver or defaults.skeletonSolver, solverutil)
 
 		local schur = SchurComplement()
@@ -421,27 +785,47 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 	end
 
 	util.solver.CondAbort(precond == nil, "Invalid preconditioner specified: " .. name)
+  
+  
 
-	if desc.debug == true then
-		if approxSpace == nil then
-			print("An ApproximationSpace is required to create a DebugWriter for the '" .. name .. "'' preconditioner.")
-			print("Consider setting the 'approxSpace' property of your preconditioner,")
-			print("or alternatively the util.solver.defaults.approxSpace property or")
-			print("alternatively set the option 'debug=false' in your preconditioner.")
-			exit()
-		end
+  -- check:   
+  local rprecond  = precond
+  if desc and desc.debugSolver then
+    print(solver)
+    local dsolver = 
+      util.solver.CreateLinearSolver(
+          desc.debugSolver, solverutil)
+          
+    local err = GridFunction(approxSpace)
+    rprecond = DebugIterator(precond, dsolver)
+    rprecond:set_solution(err)
+  else  
+  
+  
+   
+  end
+  
+  -- create debug writer (optional)
+  if desc and ((desc.debug == true) or (desc.debugSolver and desc.debugSolver.debug==true)) then
+    if approxSpace == nil then
+      print("An ApproximationSpace is required to create a DebugWriter for the '" .. name .. "'' preconditioner.")
+      print("Consider setting the 'approxSpace' property of your preconditioner,")
+      print("or alternatively the util.solver.defaults.approxSpace property or")
+      print("alternatively set the option 'debug=false' in your preconditioner.")
+      exit()
+    end
 
-		local dbgWriter = GridFunctionDebugWriter(approxSpace)
-		dbgWriter:set_vtk_output(false)
-		precond:set_debug(dbgWriter)
-	end
-
-	if desc then desc.instance = precond end
-
-	return precond
+    local dbgWriter = GridFunctionDebugWriter(approxSpace)
+    dbgWriter:set_vtk_output(true)
+    rprecond:set_debug(dbgWriter)
+  end
+  
+  if desc then desc.instance = rprecond end
+  
+	return rprecond
 end
 
-
+-- solverutil may be nil
 function util.solver.CreateConvCheck(convCheckDesc, solverutil)
 	solverutil = util.solver.PrepareSolverUtil(convCheckDesc, solverutil)
 	if util.tableDesc.IsPreset(convCheckDesc) then return convCheckDesc end
@@ -492,9 +876,7 @@ function util.solver.CreateConvCheck(convCheckDesc, solverutil)
 	return cc
 end
 
-
-function util.solver.CreateLineSearch(lineSearchDesc, solverutil)
-	solverutil = util.solver.PrepareSolverUtil(lineSearchDesc, solverutil)
+function util.solver.CreateLineSearch(lineSearchDesc)
 	if util.tableDesc.IsPreset(lineSearchDesc) then return lineSearchDesc end
 
 	local name, desc = util.tableDesc.ToNameAndDesc(lineSearchDesc)
@@ -522,10 +904,45 @@ function util.solver.CreateLineSearch(lineSearchDesc, solverutil)
 	return ls
 end
 
+
+function util.solver.CreateMGStats(mgStatsDesc)
+	if mgStatsDesc == nil then return nil end
+	
+	if util.tableDesc.IsPreset(mgStatsDesc) then return mgStatsDesc end
+
+	local name, desc = util.tableDesc.ToNameAndDesc(mgStatsDesc)
+	local defaults	 = util.solver.defaults.mgStats[name]
+	if desc == nil then desc = defaults end
+	
+	local mgStats = nil
+	if name == "standard" then
+		if desc.exitOnError == nil then desc.exitOnError = defaults.exitOnError end
+		if desc.writeErrVecs == nil then desc.writeErrVecs = defaults.writeErrVecs end
+		if desc.writeErrDiffs == nil then desc.writeErrDiffs = defaults.writeErrDiffs end
+
+		mgStats = MGStats()
+		mgStats:set_filename_prefix(desc.filenamePrefix or defaults.filenamePrefix)
+		mgStats:set_exit_on_error(desc.exitOnError)
+		mgStats:set_write_err_vecs(desc.writeErrVecs)
+		mgStats:set_write_err_diffs(desc.writeErrDiffs)
+		if desc.activeStages or defaults.activeStages then
+			mgStats:set_active_stages(desc.activeStages or defaults.activeStages)
+		end
+	end
+	
+	util.solver.CondAbort(mgStats == nil, "Invalid mgStats specified: " .. name)
+	if desc then
+		desc.instance = mgStats
+	end
+
+	return mgStats
+end
+
+
 --! Prepares a solution step, e.g. during nested iterations.
 --! @param desc			a solver-desc which was used during solver-creation in one of
---! 					the solver_util_2 methods or a solverutil table, which is was 
---! 					also created in one of the solver_util_2 methods or simply
+--! 					the solver_util methods or a solverutil table, which is was 
+--! 					also created in one of the solver_util methods or simply
 --!						a table which holds a bunch of Convergence-Check descriptor tables.
 --!
 --! @param nestedStep	(optional) the step of the nested iteration (default: 1)

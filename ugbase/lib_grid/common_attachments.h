@@ -40,6 +40,7 @@
 
 #include "common/types.h"
 #include "lib_grid/attachments/attachment_pipe.h"
+#include "lib_grid/attachments/attachment_info_traits.h"
 #include "common/math/ugmath_types.h"
 #include "grid/grid_base_objects.h"
 
@@ -74,6 +75,7 @@ typedef AVector2	ATexCoord;
 
 typedef APosition3	APosition;
 typedef ANormal3	ANormal;
+
 
 ////////////////////////////////////////////////////////////////////////
 //	concrete attachments
@@ -116,6 +118,7 @@ inline int GetPositionAttachmentDimension();
 
 
 }//	end of namespace
+
 
 ////////////////////////////////
 //	include implementation

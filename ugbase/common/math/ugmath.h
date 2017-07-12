@@ -57,6 +57,9 @@
 #include "math_vector_matrix/math_vector_functions.h"
 #include "math_vector_matrix/math_matrix_functions.h"
 #include "math_vector_matrix/math_matrix_vector_functions.h"
-#include "math_vector_matrix/math_tensor_functions.h"
+#ifdef UG_DISC
+//todo: math_tensor_functions really shouldn't depend on LIB_DISC
+	#include "math_vector_matrix/math_tensor_functions.h"
+#endif
 
 #endif

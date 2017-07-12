@@ -33,6 +33,8 @@
 #ifndef __H__UG_raster
 #define __H__UG_raster
 
+#include "common/math/ugmath_types.h"
+
 namespace ug{
 
 ///	Generic raster for arbitrary dimensions.
@@ -99,6 +101,8 @@ class Raster{
 			public:
 				Coordinate();
 				Coordinate(number c);
+				Coordinate(const MathVector<TDIM, number>& v);
+
 				const int	dim () const;
 				void 		set (number c);
 				number&		operator[] (int d);
@@ -202,7 +206,7 @@ class Raster{
 		number extension (int dim) const;
 
 	///	sets the value that shall be considered as 'no-data-value'
-		void set_no_data_value(const T& val);
+		void set_no_data_value(T val);
 
 	///	returns the value that shall be considered 'no-data-value'
 		T no_data_value() const;

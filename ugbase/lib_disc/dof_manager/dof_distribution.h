@@ -519,13 +519,13 @@ class DoFDistribution : public DoFDistributionInfoProvider
 		public:
 		///	returns algebra layouts
 		///	\{
-		ConstSmartPtr<AlgebraLayouts> layouts() const 	{return spAlgebraLayouts;}
-		SmartPtr<AlgebraLayouts> layouts() 				{return spAlgebraLayouts;}
+		ConstSmartPtr<AlgebraLayouts> layouts() const 	{return m_spAlgebraLayouts;}
+		SmartPtr<AlgebraLayouts> layouts() 				{return m_spAlgebraLayouts;}
 		///	\}
 
 	protected:
 		///	algebra layouts
-		SmartPtr<AlgebraLayouts> spAlgebraLayouts;
+		SmartPtr<AlgebraLayouts> m_spAlgebraLayouts;
 
 		void reinit_layouts_and_communicator();
 

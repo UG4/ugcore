@@ -296,6 +296,7 @@ class CompositeConvCheck : public IConvergenceCheck<TVector>
 		/// a stopwatch
 		Stopwatch m_stopwatch;
 
+		// TODO: maybe solve this using an adaption/distribution event listener
 		/// adaptivity flag
 		bool m_bAdaptive;
 };

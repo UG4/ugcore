@@ -213,6 +213,13 @@ string FilenameWithoutExtension(string str)
 	else return str;
 }
 
+string FilenameAndPathWithoutExtension(string str)
+{
+	string::size_type pos = str.rfind(".");
+	if( pos != string::npos ) return str.substr(0, pos );
+	else return str;
+}
+
 string GetFilenameExtension(const string &str)
 {
 	string::size_type pos = str.rfind(".");

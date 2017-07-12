@@ -297,6 +297,24 @@ add_selector(ISelector& sel, const char* name, size_t refGridIndex)
 		ndSel->append_node(create_selector_element_node<Volume>("volumes", sel));
 }
 
+xml_node<>* GridWriterUGX::
+create_projector_node(RefinementProjector& proj, const char* nodeName)
+{
+	static Factory<RefinementProjector, ProjectorTypes>	projFac;
+	static Archivar<boost::archive::text_oarchive, RefinementProjector, ProjectorTypes>	archivar;
+	
+	const string& projName = projFac.class_name(proj);
+
+	stringstream ss;
+	boost::archive::text_oarchive ar(ss, boost::archive::no_header);
+	archivar.archive(ar, proj);
+
+	xml_node<>* ndProj = m_doc.allocate_node(node_element, nodeName,
+									m_doc.allocate_string(ss.str().c_str()));
+
+	ndProj->append_attribute(m_doc.allocate_attribute("type", projName.c_str()));
+	return ndProj;
+}
 
 void GridWriterUGX::
 add_projection_handler(ProjectionHandler& ph, const char* name, size_t refGridIndex)
@@ -327,30 +345,26 @@ add_projection_handler(ProjectionHandler& ph, const char* name, size_t refGridIn
 
 // append subset handler index attribute to node
 	ndHandler->append_attribute(m_doc.allocate_attribute("subset_handler",
-		m_doc.allocate_string(mkstr(i).c_str())));
+									m_doc.allocate_string(mkstr(i).c_str())));
 
 //	add the selector node to the grid-node.
 	parentNode->append_node(ndHandler);
 
-	static Factory<RefinementProjector, ProjectorTypes>	projFac;
-	static Archivar<boost::archive::text_oarchive, RefinementProjector, ProjectorTypes>	archivar;
+//	fill the content of the projector-node
+	if(ph.default_projector().valid()){
+		ndHandler->append_node (create_projector_node(
+									*ph.default_projector(), "default"));
+	}
 
-//	fill the content of the selector-node
 	for(int i = -1; i < (int)ph.num_projectors(); ++i){
-		RefinementProjector&	proj 		= *ph.projector(i);
-		const string&			projName 	= projFac.class_name(proj);
+		if(!ph.projector(i).valid())
+			continue;
 
-		stringstream ss;
-		boost::archive::text_oarchive ar(ss, boost::archive::no_header);
-		archivar.archive(ar, proj);
+		RefinementProjector& proj= *ph.projector(i);
 
-		xml_node<>* ndProj = m_doc.allocate_node(node_element, "projector",
-										m_doc.allocate_string(ss.str().c_str()));
-
-		ndProj->append_attribute(m_doc.allocate_attribute("type", projName.c_str()));
+		xml_node<>* ndProj = create_projector_node(proj, "projector");
 		ndProj->append_attribute(m_doc.allocate_attribute("subset",
 								 m_doc.allocate_string(mkstr(i).c_str())));
-
 		ndHandler->append_node(ndProj);
 	}
 }
@@ -1221,6 +1235,31 @@ size_t GridReaderUGX::get_projection_handler_subset_handler_index(size_t phIndex
 }
 
 
+SPRefinementProjector GridReaderUGX::
+read_projector(xml_node<>* projNode)
+{
+	static Factory<RefinementProjector, ProjectorTypes>	projFac;
+	static Archivar<boost::archive::text_iarchive, RefinementProjector, ProjectorTypes>	archivar;
+
+	xml_attribute<>* attribType = projNode->first_attribute("type");
+	if(attribType){
+		try {
+			SPRefinementProjector proj = projFac.create(attribType->value());
+
+			string str(projNode->value(), projNode->value_size());
+			stringstream ss(str, ios_base::in);
+			boost::archive::text_iarchive ar(ss, boost::archive::no_header);
+			archivar.archive(ar, *proj);
+			return proj;
+		}
+		catch(boost::archive::archive_exception e){
+			UG_LOG("WARNING: Couldn't read projector of type '" <<
+					attribType->value() << "'." << std::endl);
+		}
+	}
+	return SPRefinementProjector();
+}
+
 bool GridReaderUGX::
 projection_handler(ProjectionHandler& phOut, size_t phIndex, size_t refGridIndex)
 {
@@ -1233,30 +1272,25 @@ projection_handler(ProjectionHandler& phOut, size_t phIndex, size_t refGridIndex
 
 	xml_node<>* phNode = ge.projectionHandlerEntries[phIndex];
 	
-	static Factory<RefinementProjector, ProjectorTypes>	projFac;
-	static Archivar<boost::archive::text_iarchive, RefinementProjector, ProjectorTypes>	archivar;
+	xml_node<>* defProjNode = phNode->first_node("default");
+	if(defProjNode){
+		SPRefinementProjector proj = read_projector(defProjNode);
+		if(proj.valid()){
+			phOut.set_default_projector(proj);
+		}
+	}
 
 	xml_node<>* projNode = phNode->first_node("projector");
 	while(projNode){
-		xml_attribute<>* attribType = projNode->first_attribute("type");
-		xml_attribute<>* attribSI = projNode->first_attribute("subset");
-		if(attribType && attribSI){
-			try {
-				SPRefinementProjector proj = projFac.create(attribType->value());
+		SPRefinementProjector proj = read_projector(projNode);
+		if(!proj.valid())
+			continue;
 
-				string str(projNode->value(), projNode->value_size());
-				stringstream ss(str, ios_base::in);
-				boost::archive::text_iarchive ar(ss, boost::archive::no_header);
-				archivar.archive(ar, *proj);
-				
-				phOut.set_projector(atoi(attribSI->value()), proj);
-			}
-			catch(boost::archive::archive_exception e){
-				UG_LOG("WARNING: Couldn't read projector of type '" <<
-						attribType->value() << "' for subset '" <<
-						attribSI->value() << "'." << std::endl);
-			}
+		xml_attribute<>* attribSI = projNode->first_attribute("subset");
+		if(attribSI){
+			phOut.set_projector(atoi(attribSI->value()), proj);
 		}
+
 		projNode = projNode->next_sibling("projector");
 	}
 

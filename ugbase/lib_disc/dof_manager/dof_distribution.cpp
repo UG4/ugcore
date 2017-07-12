@@ -80,7 +80,7 @@ DoFDistribution(SmartPtr<MultiGrid> spMG,
 	m_vNumIndexOnSubset.resize(num_subsets(), 0);
 
 #ifdef UG_PARALLEL
-	spAlgebraLayouts = SmartPtr<AlgebraLayouts>(new AlgebraLayouts);
+	m_spAlgebraLayouts = SmartPtr<AlgebraLayouts>(new AlgebraLayouts);
 #endif
 
 	reinit();

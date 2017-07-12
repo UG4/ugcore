@@ -105,6 +105,14 @@ Coordinate(number c)
 }
 
 template <class T, int TDIM>
+Raster<T, TDIM>::Coordinate::
+Coordinate(const MathVector<TDIM, number>& v)
+{
+	for(int d = 0; d < TDIM; ++d)
+		m_coord[d] = v[d];
+}
+
+template <class T, int TDIM>
 const int Raster<T, TDIM>::Coordinate::
 dim () const
 {
@@ -470,7 +478,7 @@ interpolate (const Coordinate& coord, int order) const
 
 template <class T, int TDIM>
 void Raster<T, TDIM>::
-set_no_data_value(const T& val)
+set_no_data_value(T val)
 {
 	m_noDataValue = val;
 }
@@ -575,6 +583,9 @@ load_from_asc (const char* filename)
 	if(TDIM == 1)		headerLen = 4;
 	else if(TDIM == 2)	headerLen = 6;
 	else if(TDIM == 3)	headerLen = 8;
+	else{
+		UG_THROW("Raster::load_from_asc only supports 1, 2, and 3 dimensions\n");
+	}
 	
 	for(int i = 0; i < headerLen; ++i){
 		string name;
@@ -677,10 +688,22 @@ load_from_asc (const char* filename)
 	create();
 
 //	parse values
-	const size_t numNodesTotal = num_nodes_total();
-	for(size_t i = 0; i < numNodesTotal; ++i){
-		in >> m_data[i];
-		UG_COND_THROW(!in, LFA_ERR_WHERE << "Couldn't read value for node " << i);
+//	y and z are inverted
+	size_t num[3] = {0, 1, 1};
+	for(size_t i = 0; i < TDIM; ++i)
+		num[i] = m_numNodes[i];
+		
+	for(size_t iz = 0; iz < num[2]; ++iz){
+		for(size_t iy = 0; iy < num[1]; ++iy){
+			for(size_t ix = 0; ix < num[0]; ++ix)
+			{
+				const size_t ty = num[1] - 1 - iy;
+				const size_t tz = num[2] - 1 - iz;
+				in >> m_data[ix + num[0] * (ty + num[1] * tz)];
+				UG_COND_THROW(!in, LFA_ERR_WHERE << "Couldn't read value for at ("
+							  << ix << ", " << iy << ", " << iz << ")");
+			}
+		}
 	}
 }
 

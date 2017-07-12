@@ -84,8 +84,19 @@ class HangingNodeRefiner_Grid : public HangingNodeRefinerBase<Selector>
 
 	///	Marks a volume for refinement (ignores RM_COARSEN).
 		virtual bool mark(Volume* v, RefinementMark refMark = RM_REFINE);
-		
+
+
+		virtual bool local_marks_supported() const 	{return true;}
+
+		virtual void mark_local(Face* f, int localMark);
+		virtual void mark_local(Volume* f, int localMark);
+
+		virtual int get_local_mark(Face* f) const;
+		virtual int get_local_mark(Volume* f) const;
+
 	protected:
+		void attach_local_marks();
+
 	///	returns the number of (globally) marked edges on this level of the hierarchy
 		virtual void num_marked_edges_local(std::vector<int>& numMarkedEdgesOut);
 	///	returns the number of (globally) marked faces on this level of the hierarchy
@@ -104,6 +115,8 @@ class HangingNodeRefiner_Grid : public HangingNodeRefinerBase<Selector>
 	 *  it is not declared virtual. This is because we want to call it
 	 *  during construction and destruction.*/
 		void set_grid(Grid* grid);
+
+		virtual void collect_objects_for_refine();
 
 	///	erases unused refined elements
 		virtual void post_refine();
@@ -133,9 +146,11 @@ class HangingNodeRefiner_Grid : public HangingNodeRefinerBase<Selector>
 
 	private:
 		Grid* 			m_pGrid;
-		AVertex		m_aVertex;
+		AVertex			m_aVertex;
+		AInt			m_aLocalMark;
 		Grid::EdgeAttachmentAccessor<AVertex>		m_aaVertexEDGE;
 		Grid::FaceAttachmentAccessor<AVertex>		m_aaVertexFACE;
+		MultiElementAttachmentAccessor<AInt>		m_aaLocalMark;
 };
 
 /// @}	// end of add_to_group command

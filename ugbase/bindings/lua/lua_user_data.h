@@ -38,9 +38,18 @@
 #include <string>
 #include "registry/registry.h"
 
+
+
+
+#ifndef USE_LUAJIT
 extern "C" {
 #include "externals/lua/lua.h"
 }
+#else
+#include <lua.hpp>
+#endif
+
+
 
 #include "lua_util.h"
 

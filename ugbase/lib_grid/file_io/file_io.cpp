@@ -56,6 +56,7 @@
 #include "file_io_stl.h"
 #include "file_io_tikz.h"
 #include "file_io_vtu.h"
+#include "file_io_swc.h"
 
 #ifdef UG_PARALLEL
 	#include "pcl/pcl_process_communicator.h"
@@ -117,6 +118,9 @@ static bool LoadGrid3d_IMPL(Grid& grid, ISubsetHandler* pSH,
 	else if(strExt.compare("asc") == 0){
 		bSuccess = LoadGridFromASC(grid, filename, aPos);
 		bAutoassignFaces = true;
+	}
+	else if(strExt.compare("swc") == 0){
+		bSuccess = LoadGridFromSWC(grid, pSH, filename, aPos);
 	}
 
 	if(bAutoassignFaces && pSH)
@@ -285,6 +289,8 @@ static bool SaveGrid3d_IMPL(Grid& grid, ISubsetHandler* pSH,
 	{
 		return ExportGridToTIKZ(grid, filename, pSH, aPos);
 	}
+	else if (strName.find(".swc") != string::npos)
+		return ExportGridToSWC(grid, pSH, filename, aPos);
 
 	return false;
 }

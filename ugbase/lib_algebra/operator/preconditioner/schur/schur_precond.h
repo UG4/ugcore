@@ -54,7 +54,8 @@
 
 #include "common/log.h"
 
-#include "slicing.h"
+#include "schur.h"
+
 
 #define PROFILE_SCHUR
 #ifdef PROFILE_SCHUR
@@ -198,12 +199,12 @@ public:
 
 private:
 		bool create_and_init_local_schur_complement(SmartPtr<MatrixOperator<matrix_type, vector_type> > A,
-				std::vector<slice_desc_type> &skeletonMark);
+				std::vector<schur_slice_desc_type> &skeletonMark);
 
 		void init_skeleton_solver();
 		bool check_requirements();
 		void get_skeleton_slicing(SmartPtr<MatrixOperator<matrix_type, vector_type> > A,
-				std::vector<slice_desc_type> &skeletonMark);
+				std::vector<schur_slice_desc_type> &skeletonMark);
 
 		void create_aux_vectors(const vector_type& d);
 		void schur_solver_forward(vector_type &u_inner, vector_type &f_inner);

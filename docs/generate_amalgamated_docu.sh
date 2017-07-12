@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# call e.g. like this: 'generate_amalgamated_docu doxylog.log 1'
+# call e.g. like this: 'generate_amalgamated_docu.sh doxylog.log 1'
 # Please make sure that the DocuGen plugin is installed.
 doxylog="${1:-"doxylog.log"}"
 with_regdocu="${2:-0}"
@@ -67,14 +67,12 @@ function prepare_amalgamate {
 function amalgamate {
 	echo "Step 8/8: Amalgamate html of ubgase, plugins and apps"
 	if [ "$with_regdocu" -eq "1" ]; then
-		#mv -fu apps/html/* ug4/html/apps/. \
-		#	&& mv -fu plugins/html/* ug4/html/plugins/. \
-		mv -fu plugins/html/* ug4/html/plugins/. \
+		mv -fu apps/html/* ug4/html/apps/.\
+			&& mv -fu plugins/html/* ug4/html/plugins/. \
 			&& mv -fu regdocu/html/* ug4/html/regdocu/. &> "${doxylog}8"
 	else
-		#mv -fu apps/html/* ug4/html/apps/. \
-		#	&& mv -fu plugins/html/* ug4/html/plugins/. &> "${doxylog}8"
-		mv -fu plugins/html/* ug4/html/plugins/. &> "${doxylog}8"
+		mv -fu apps/html/* ug4/html/apps/.\
+			&& mv -fu plugins/html/* ug4/html/plugins/. &> "${doxylog}8"
 	fi
 }
 
@@ -84,6 +82,7 @@ cleanup_old_docu \
 && generate_ugbase \
 && generate_plugins \
 && generate_regdocu \
+&& generate_apps \
 && generate_ug4 \
 && prepare_amalgamate \
 && amalgamate

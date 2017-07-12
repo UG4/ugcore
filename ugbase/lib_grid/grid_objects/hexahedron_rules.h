@@ -212,6 +212,22 @@ const int FACE_FROM_EDGES[][12] =	{{0, 0, 0, 0, 1, 1, -1, -1, 1, -1, -1, -1},
 int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut,
 		   vector3* corners = NULL, bool* isSnapPoint = NULL);
 
+
+///	returns true if the specified edgeMarks would lead to a regular refinement
+/**	A regular refinement leads to new elements which are all similar to the
+ * original element. I.e. which are of the same type and which have similar
+ * angles.
+ *
+ * \note	this method does not perform refinement. Use 'Refine' with the
+ *			specified edges instead.
+ *
+ * \param edgeMarks	If the i-th edge shall be refined, the expression
+ *					'edgeMarks & (1<<i) != 0' has to be true. You can
+ *					specify multiple refine-edges using or-combinations. E.g.,
+ *					'edgeMarks = (1<<i) | (1<<j)' would indicate that the
+ *					i-th and the j-th edge shall be refined.*/
+bool IsRegularRefRule(const int edgeMarks);
+
 }//	end of namespace
 }//	end of namespace
 
