@@ -39,7 +39,7 @@ Given a (possibly nested) solver description, e.g.,
 \code
 	solver = {
 		type = "bicgstab",
-		precond = "ilu"
+		precond = "ilu",
 		convCheck = "standard"
 	}
 \endcode
@@ -113,13 +113,14 @@ here someApproxSpace points to a previously created approximation space
 				type	  = "bicgstab",
 				precond	  = "gs",
 				convCheck = {
-					type		= "standard"
+					type		= "standard",
 					iterations	= 1000,
 					absolute	= 1e-12,
-					reduction	= 1e-10,
+					reduction	= 1e-10,	-- higher values may suffice and may be much
+											-- more efficent (e.g. 1e-2, 1e-4, ...).
 					verbose		= false
 				}
-			}
+			},
 			approxSpace	= someApproxSpace,
 		},
 
