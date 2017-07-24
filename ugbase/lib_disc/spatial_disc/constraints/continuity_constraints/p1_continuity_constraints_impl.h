@@ -41,11 +41,12 @@ namespace ug {
 ///	sets a matrix row corresponding to averaging the constrained index
 template <typename TMatrix>
 void SetInterpolation(TMatrix& A,
-                      std::vector<size_t> & constrainedIndex,
-                      std::vector<std::vector<size_t> >& vConstrainingIndex,
+                      std::vector<DoFIndex> & constrainedIndex,
+                      std::vector<std::vector<DoFIndex> >& vConstrainingIndex,
 					  bool assembleLinearProblem = true)
 {
 	typedef typename TMatrix::row_iterator row_iterator;
+	typedef typename TMatrix::value_type block_type;
 
 	//	check number of indices passed
 	for(size_t i = 0; i < vConstrainingIndex.size(); ++i)
@@ -55,15 +56,13 @@ void SetInterpolation(TMatrix& A,
 //	loop all constrained dofs
 	for(size_t i = 0; i < constrainedIndex.size(); ++i)
 	{
+		const DoFIndex di = constrainedIndex[i];
+
 	//	remove all couplings
-		{
-		const row_iterator iterEnd = A.end_row(constrainedIndex[i]);
-		for(row_iterator conn = A.begin_row(constrainedIndex[i]); conn != iterEnd; ++conn)
-			conn.value() = 0.0;
-		}
+		SetRow(A, di, 0.0);
 
 	//	set diag of row to identity
-		A(constrainedIndex[i], constrainedIndex[i]) = 1.0;
+		DoFRef(A, di, di) = 1.0;
 
 	//	set coupling to all constraining dofs the inverse of the
 	//	number of constraining dofs
@@ -71,16 +70,16 @@ void SetInterpolation(TMatrix& A,
 		if (assembleLinearProblem)
 		{
 			const number frac = -1.0/(vConstrainingIndex.size());
-			for(size_t j=0; j < vConstrainingIndex.size();++j)
-				A(constrainedIndex[i], vConstrainingIndex[j][i]) = frac;
+			for(size_t j=0; j < vConstrainingIndex.size(); ++j)
+				DoFRef(A, di, vConstrainingIndex[j][i]) = frac;
 		}
 	}
 }
 
 template <typename TVector>
 void InterpolateValues(TVector& u,
-                       std::vector<size_t> & constrainedIndex,
-                       std::vector<std::vector<size_t> >& vConstrainingIndex)
+                       std::vector<DoFIndex>& constrainedIndex,
+                       std::vector<std::vector<DoFIndex> >& vConstrainingIndex)
 {
 	typedef typename TVector::value_type block_type;
 
@@ -96,14 +95,14 @@ void InterpolateValues(TVector& u,
 	for(size_t i = 0; i < constrainedIndex.size(); ++i)
 	{
 	//	get value to be interpolated
-		block_type& val = u[constrainedIndex[i]];
+		number& val = DoFRef(u, constrainedIndex[i]);
 
 	//	reset value
 		val = 0.0;
 
 	// 	add equally from all constraining indices
 		for(size_t j=0; j < vConstrainingIndex.size(); ++j)
-			VecScaleAdd(val, 1.0, val, frac, u[vConstrainingIndex[j][i]]);
+			val += frac * DoFRef(u, vConstrainingIndex[j][i]);
 	}
 }
 
@@ -111,8 +110,8 @@ void InterpolateValues(TVector& u,
 
 template <typename TMatrix>
 void SplitAddRow_Symmetric(TMatrix& A,
-                           std::vector<size_t> & constrainedIndex,
-                           std::vector<std::vector<size_t> >& vConstrainingIndex)
+                           std::vector<DoFIndex>& constrainedIndex,
+                           std::vector<std::vector<DoFIndex> >& vConstrainingIndex)
 {
 	typedef typename TMatrix::value_type block_type;
 	typedef typename TMatrix::row_iterator row_iterator;
@@ -130,62 +129,73 @@ void SplitAddRow_Symmetric(TMatrix& A,
 //	handle each constrained index
 	for(size_t i = 0; i < constrainedIndex.size(); ++i)
 	{
+		const DoFIndex di = constrainedIndex[i];
+		const size_t algInd = di[0];
+		const size_t blockInd = di[1];
+
 	//	add coupling constrained dof -> constrained dof
 	//	we don't have to adjust the block itself, since the row of
 	//	constraints will be set to interpolation afterwards
-		block_type block = A(constrainedIndex[i], constrainedIndex[i]);
+		number& diagEntry = DoFRef(A, di, di);
 
 	//	scale by weight
-		block *= frac*frac;
+		diagEntry *= frac*frac;
 
 	//	add coupling
 		for(size_t k = 0; k < vConstrainingIndex.size(); ++k)
 			for(size_t m = 0; m < vConstrainingIndex.size(); ++m)
+				DoFRef(A, vConstrainingIndex[k][i], vConstrainingIndex[m][i]) += diagEntry;
+
+	//	loop coupling between constrained dof -> any other dof
+		for(row_iterator conn = A.begin_row(algInd); conn != A.end_row(algInd); ++conn)
 		{
-			A(vConstrainingIndex[k][i],
-			  vConstrainingIndex[m][i]) += block;
-		}
+			const size_t algIndConn = conn.index();
+			block_type& block = conn.value();
+			block_type& blockT = A(algIndConn, algInd);
 
-	//	loop coupling between constrained dof -> constraining dof
-		for(row_iterator conn = A.begin_row(constrainedIndex[i]);
-							conn != A.end_row(constrainedIndex[i]); ++conn)
-		{
-		//	skip self-coupling (already handled)
-			const size_t j = conn.index();
-			if(j == constrainedIndex[i]) continue;
-
-		//	get coupling entry
-			block_type block = conn.value();
-			block_type blockT = A(j, constrainedIndex[i]);
-
-		//	multiply the cpl value by the inverse number of constraining
-			block *= frac;
-			blockT *= frac;
-
-		//	add the coupling to the constraining indices rows
-			for(size_t k = 0; k < vConstrainingIndex.size(); ++k)
+			// loop block row for constrained index
+			for (size_t blockIndConn = 0; blockIndConn < (size_t) GetCols(block); ++blockIndConn)
 			{
-				UG_ASSERT(vConstrainingIndex[k][i]!=constrainedIndex[i],
-						"Modifying 'this' (=conn referenced) matrix row is invalid!" << constrainedIndex[i]);
-				A(vConstrainingIndex[k][i], j) += block;
-				A(j, vConstrainingIndex[k][i]) += blockT;
-			}
+				const DoFIndex diConn(algIndConn, blockIndConn);
 
-		//	set the splitted coupling to zero
-		//	this must only be done in columns, since the row associated to
-		//	the contrained index will be set to an interpolation.
-			A(j, constrainedIndex[i]) = 0.0;
+			//	skip self-coupling (already handled)
+				if (di == diConn) continue;
+
+			//	get coupling entry
+				number& val = BlockRef(block, blockInd, blockIndConn);
+				number& valT = BlockRef(blockT, blockIndConn, blockInd);
+
+			//	multiply the cpl value by the inverse number of constraining
+				val *= frac;
+				valT *= frac;
+
+			//	add the coupling to the constraining indices rows
+				for(size_t k = 0; k < vConstrainingIndex.size(); ++k)
+				{
+					UG_ASSERT(vConstrainingIndex[k][i] != constrainedIndex[i],
+							"Modifying 'this' (=conn referenced) matrix row is invalid!" << constrainedIndex[i]);
+					DoFRef(A, vConstrainingIndex[k][i], diConn) += val;
+					DoFRef(A, diConn, vConstrainingIndex[k][i]) += valT;
+				}
+
+			//	set the split coupling to zero
+			//	this needs to be done only in columns, since the row associated to
+			//	the constrained index will be set to unity (or interpolation).
+				DoFRef(A, diConn, di) = 0.0;
+			}
 		}
 	}
 }
 
 template <typename TMatrix>
 void SplitAddRow_OneSide(TMatrix& A,
-                         std::vector<size_t> & constrainedIndex,
-                         std::vector<std::vector<size_t> >& vConstrainingIndex)
+                         std::vector<DoFIndex>& constrainedIndex,
+                         std::vector<std::vector<DoFIndex> >& vConstrainingIndex)
 {
-	typedef typename TMatrix::row_iterator row_iterator;
 	typedef typename TMatrix::value_type block_type;
+	typedef typename TMatrix::row_iterator row_iterator;
+
+	UG_ASSERT(!vConstrainingIndex.empty(), "There have to be constraining indices!");
 
 	//	check number of indices passed
 	for(size_t i = 0; i < vConstrainingIndex.size(); ++i)
@@ -197,51 +207,64 @@ void SplitAddRow_OneSide(TMatrix& A,
 
 	for(size_t i = 0; i < constrainedIndex.size(); ++i)
 	{
-	// choose randomly the first dof to add whole row
-		const size_t addTo = vConstrainingIndex[0][i];
+		const DoFIndex di = constrainedIndex[i];
+		const size_t algInd = di[0];
+		const size_t blockInd = di[1];
 
-		block_type block = A(constrainedIndex[i], constrainedIndex[i]);
+	// choose randomly the first dof to add whole row
+		const DoFIndex addTo = vConstrainingIndex[0][i];
+
+		number& diagEntry = DoFRef(A, di, di);
 
 	//	scale by weight
-		block *= frac;
+		diagEntry *= frac;
 
 	//	add coupling
 		for(size_t k = 0; k < vConstrainingIndex.size(); ++k)
-			A(addTo, vConstrainingIndex[k][i]) += block;
+			DoFRef(A, addTo, vConstrainingIndex[k][i]) += diagEntry;
 
-		for(row_iterator conn = A.begin_row(constrainedIndex[i]);
-				conn != A.end_row(constrainedIndex[i]); ++conn)
+	//	loop coupling between constrained dof -> any other dof
+		for(row_iterator conn = A.begin_row(algInd); conn != A.end_row(algInd); ++conn)
 		{
-		//	skip self-coupling (already handled)
-			const size_t j = conn.index();
-			if(j == constrainedIndex[i]) continue;
+			const size_t algIndConn = conn.index();
+			block_type& block = conn.value();
+			block_type& blockT = A(algIndConn, algInd);
 
-		// FIXME: This will only work properly if there is an entry A(i,j) for any entry
-		//        A(j,i) in the matrix! Is this always the case!?
-		//	get transposed coupling entry
-			block_type blockT = A(j, constrainedIndex[i]);
-			blockT *= frac;
+			// loop block row for constrained index
+			for (size_t blockIndConn = 0; blockIndConn < (size_t) GetCols(block); ++blockIndConn)
+			{
+				const DoFIndex diConn(algIndConn, blockIndConn);
 
-		//	add the coupling to the constraining indices rows
-			for(size_t k = 0; k < vConstrainingIndex.size(); ++k)
-				A(j, vConstrainingIndex[k][i]) += blockT;
+			//	skip self-coupling (already handled)
+				if (di == diConn) continue;
 
-		//	coupling due to one side adding
-			block_type block = conn.value();
-			A(addTo, j) += block;
+			// FIXME: This will only work properly if there is an entry A(i,j) for any entry
+			//        A(j,i) in the matrix! Is this always the case!?
+			//	get transposed coupling entry
+				number& valT = BlockRef(blockT, blockIndConn, blockInd);
+				valT *= frac;
 
-		//	set the splitted coupling to zero
-		//	this must only be done in columns, since the row associated to
-		//	the contrained index will be set to an interpolation.
-			A(j, constrainedIndex[i]) = 0.0;
+			//	add the coupling to the constraining indices rows
+				for(size_t k = 0; k < vConstrainingIndex.size(); ++k)
+					DoFRef(A, diConn, vConstrainingIndex[k][i]) += valT;
+
+			//	coupling due to one side adding
+				const number& val = BlockRef(block, blockInd, blockIndConn);
+				DoFRef(A, addTo, diConn) += val;
+
+			//	set the split coupling to zero
+			//	this must only be done in columns, since the row associated to
+			//	the constrained index will be set to an interpolation.
+				DoFRef(A, diConn, di) = 0.0;
+			}
 		}
 	}
 }
 
 template <typename TVector>
 void SplitAddRhs_Symmetric(TVector& rhs,
-                         std::vector<size_t> & constrainedIndex,
-                         std::vector<std::vector<size_t> >& vConstrainingIndex)
+                         std::vector<DoFIndex> & constrainedIndex,
+                         std::vector<std::vector<DoFIndex> >& vConstrainingIndex)
 {
 	typedef typename TVector::value_type block_type;
 
@@ -258,12 +281,12 @@ void SplitAddRhs_Symmetric(TVector& rhs,
 	{
 	//	get constrained rhs
 	//	modify block directly since set to zero afterwards
-		block_type& val = rhs[constrainedIndex[i]];
+		number& val = DoFRef(rhs, constrainedIndex[i]);
 		val *= frac;
 
 	// 	split equally on all constraining indices
 		for(size_t j=0; j < vConstrainingIndex.size(); ++j)
-			rhs[vConstrainingIndex[j][i]] += val;
+			DoFRef(rhs, vConstrainingIndex[j][i]) += val;
 
 	//	set rhs to zero for constrained index
 		val = 0.0;
@@ -272,8 +295,8 @@ void SplitAddRhs_Symmetric(TVector& rhs,
 
 template <typename TVector>
 void SplitAddRhs_OneSide(TVector& rhs,
-                       std::vector<size_t> & constrainedIndex,
-                       std::vector<std::vector<size_t> >& vConstrainingIndex)
+                       std::vector<DoFIndex> & constrainedIndex,
+                       std::vector<std::vector<DoFIndex> >& vConstrainingIndex)
 {
 	typedef typename TVector::value_type block_type;
 
@@ -286,20 +309,33 @@ void SplitAddRhs_OneSide(TVector& rhs,
 	{
 		// choose randomly the first dof to add whole
 		// (must be the same as for row)
-		const size_t addTo = vConstrainingIndex[0][i];
+		const DoFIndex& addTo = vConstrainingIndex[0][i];
 
-		block_type& val = rhs[constrainedIndex[i]];
-		rhs[addTo] += val;
+		number& val = DoFRef(rhs, constrainedIndex[i]);
+		DoFRef(rhs, addTo) += val;
 		val = 0.0;
 	}
 }
 
 
-inline void get_algebra_indices(ConstSmartPtr<DoFDistribution> dd,
+/**
+ * @brief Extract DoF indices for constrained and constraining indices from DoF distribution
+ *
+ * One cannot simply use algebra indices as constrainers and constrained vertices
+ * might not have the same number of functions defined on them. Mapping correct
+ * indices is only possible through DoF indices.
+ *
+ * @param dd                DoF distribution
+ * @param hgVrt             the hanging vertex
+ * @param vConstrainingVrt  vector of constraining vertices
+ * @param constrainedInd    vector of DoFs indices on hanging vertex
+ * @param vConstrainingInd  vector of (vector of constraining DoF indices) for constraining vertices
+ */
+inline void get_dof_indices(ConstSmartPtr<DoFDistribution> dd,
 						 ConstrainedVertex* hgVrt,
 						 std::vector<Vertex*>& vConstrainingVrt,
-						 std::vector<size_t>& constrainedInd,
-						 std::vector<std::vector<size_t> >& vConstrainingInd)
+						 std::vector<DoFIndex>& constrainedInd,
+						 std::vector<std::vector<DoFIndex> >& vConstrainingInd)
 {
 // get subset index
 	const int si = dd->subset_handler()->get_subset_index(hgVrt);
@@ -321,7 +357,7 @@ inline void get_algebra_indices(ConstSmartPtr<DoFDistribution> dd,
 		if (!dd->is_def_in_subset(fct, si)) continue;
 
 	//	get indices for constrained vertex
-		dd->inner_algebra_indices_for_fct(hgVrt, constrainedInd, false, fct);
+		dd->inner_dof_indices(hgVrt, fct, constrainedInd, false);
 
 	//	get indices for constraining vertices
 		for (size_t i = 0; i < vConstrainingVrt.size(); ++i)
@@ -329,13 +365,11 @@ inline void get_algebra_indices(ConstSmartPtr<DoFDistribution> dd,
 			const int siC = dd->subset_handler()->get_subset_index(vConstrainingVrt[i]);
 
 		//	check that function is defined on subset
-			if (!dd->is_def_in_subset(fct, siC))
-			{
-				UG_THROW("Function " << fct << " is defined for a constrained vertex, "
-						 "but not for one of its constraining vertices!");
-			}
+			UG_COND_THROW(!dd->is_def_in_subset(fct, siC),
+				"Function " << fct << " is defined for a constrained vertex, "
+				"but not for one of its constraining vertices!");
 
-			dd->inner_algebra_indices_for_fct(vConstrainingVrt[i], vConstrainingInd[i], false, fct);
+			dd->inner_dof_indices(vConstrainingVrt[i], fct, vConstrainingInd[i], false);
 		}
 	}
 }
@@ -360,8 +394,8 @@ adjust_defect(vector_type& d, const vector_type& u,
 				"implemented for SymP1Constraints \n");
 
 //	storage for indices and vertices
-	std::vector<std::vector<size_t> > vConstrainingInd;
-	std::vector<size_t>  constrainedInd;
+	std::vector<std::vector<DoFIndex> > vConstrainingInd;
+	std::vector<DoFIndex> constrainedInd;
 	std::vector<Vertex*> vConstrainingVrt;
 
 //	get begin end of hanging vertices
@@ -376,7 +410,7 @@ adjust_defect(vector_type& d, const vector_type& u,
 		ConstrainedVertex* hgVrt = *iter;
 
 	// get algebra indices for constrained and constraining vertices
-		get_algebra_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
+		get_dof_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
 
 	//	adapt rhs
 		SplitAddRhs_Symmetric(d, constrainedInd, vConstrainingInd);
@@ -395,8 +429,8 @@ adjust_rhs(vector_type& rhs, const vector_type& u,
 				"implemented for SymP1Constraints \n");
 
 //	storage for indices and vertices
-	std::vector<std::vector<size_t> > vConstrainingInd;
-	std::vector<size_t>  constrainedInd;
+	std::vector<std::vector<DoFIndex> > vConstrainingInd;
+	std::vector<DoFIndex>  constrainedInd;
 	std::vector<Vertex*> vConstrainingVrt;
 
 //	get begin end of hanging vertices
@@ -411,7 +445,7 @@ adjust_rhs(vector_type& rhs, const vector_type& u,
 		ConstrainedVertex* hgVrt = *iter;
 
 	// get algebra indices for constrained and constraining vertices
-		get_algebra_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
+		get_dof_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
 
 	//	adapt rhs
 		SplitAddRhs_Symmetric(rhs, constrainedInd, vConstrainingInd);
@@ -431,8 +465,8 @@ adjust_jacobian(matrix_type& J, const vector_type& u,
 				"implemented for SymP1Constraints \n");
 
 //	storage for indices and vertices
-	std::vector<std::vector<size_t> > vConstrainingInd;
-	std::vector<size_t>  constrainedInd;
+	std::vector<std::vector<DoFIndex> > vConstrainingInd;
+	std::vector<DoFIndex>  constrainedInd;
 	std::vector<Vertex*> vConstrainingVrt;
 
 //	get begin end of hanging vertices
@@ -447,7 +481,7 @@ adjust_jacobian(matrix_type& J, const vector_type& u,
 		ConstrainedVertex* hgVrt = *iter;
 
 	// get algebra indices for constrained and constraining vertices
-		get_algebra_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
+		get_dof_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
 
 	// 	Split using indices
 		SplitAddRow_Symmetric(J, constrainedInd, vConstrainingInd);
@@ -470,8 +504,8 @@ adjust_linear(matrix_type& mat, vector_type& rhs,
 				"implemented for SymP1Constraints \n");
 
 //	storage for indices and vertices
-	std::vector<std::vector<size_t> > vConstrainingInd;
-	std::vector<size_t>  constrainedInd;
+	std::vector<std::vector<DoFIndex> > vConstrainingInd;
+	std::vector<DoFIndex> constrainedInd;
 	std::vector<Vertex*> vConstrainingVrt;
 
 //	get begin end of hanging vertices
@@ -486,7 +520,7 @@ adjust_linear(matrix_type& mat, vector_type& rhs,
 		ConstrainedVertex* hgVrt = *iter;
 
 	// get algebra indices for constrained and constraining vertices
-		get_algebra_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
+		get_dof_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
 
 	// 	Split using indices
 		SplitAddRow_Symmetric(mat, constrainedInd, vConstrainingInd);
@@ -510,8 +544,8 @@ adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd,
 				"implemented for SymP1Constraints \n");
 
 //	storage for indices and vertices
-	std::vector<std::vector<size_t> > vConstrainingInd;
-	std::vector<size_t>  constrainedInd;
+	std::vector<std::vector<DoFIndex> > vConstrainingInd;
+	std::vector<DoFIndex>  constrainedInd;
 	std::vector<Vertex*> vConstrainingVrt;
 
 //	get begin end of hanging vertices
@@ -526,7 +560,7 @@ adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd,
 		ConstrainedVertex* hgVrt = *iter;
 
 	// get algebra indices for constrained and constraining vertices
-		get_algebra_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
+		get_dof_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
 
 	// 	Interpolate values
 		InterpolateValues(u, constrainedInd, vConstrainingInd);
@@ -553,8 +587,8 @@ adjust_prolongation
 					"implemented for SymP1Constraints \n");
 
 //	storage for indices and vertices
-	std::vector<std::vector<size_t> > vConstrainingInd;
-	std::vector<size_t>  constrainedInd;
+	std::vector<std::vector<DoFIndex> > vConstrainingInd;
+	std::vector<DoFIndex>  constrainedInd;
 	std::vector<Vertex*> vConstrainingVrt;
 
 //	get begin end of hanging vertices
@@ -569,7 +603,7 @@ adjust_prolongation
 		ConstrainedVertex* hgVrt = *iter;
 
 	// get algebra indices for constrained and constraining vertices
-		get_algebra_indices(ddFine, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
+		get_dof_indices(ddFine, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
 
 	//	set zero row
 		size_t sz = constrainedInd.size();
@@ -613,8 +647,8 @@ adjust_correction
 				"implemented for OneSideP1Constraints \n");
 
 	// storage for indices and vertices
-	std::vector<std::vector<size_t> > vConstrainingInd;
-	std::vector<size_t>  constrainedInd;
+	std::vector<std::vector<DoFIndex> > vConstrainingInd;
+	std::vector<DoFIndex>  constrainedInd;
 	std::vector<Vertex*> vConstrainingVrt;
 
 	// get begin end of hanging vertices
@@ -629,11 +663,11 @@ adjust_correction
 		ConstrainedVertex* hgVrt = *iter;
 
 		// get algebra indices for constrained and constraining vertices
-		get_algebra_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
+		get_dof_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
 
 		// set all entries corresponding to constrained dofs to zero
 		for (size_t i = 0; i < constrainedInd.size(); ++i)
-			u[constrainedInd[i]] = 0.0;
+			DoFRef(u, constrainedInd[i]) = 0.0;
 	}
 }
 
@@ -700,12 +734,26 @@ inline bool SortVertexPos<3>::operator() (Vertex* vrt1, Vertex* vrt2)
 }
 
 
+/**
+ * @brief Extract DoF indices for constrained and constraining indices from DoF distribution
+ *
+ * One cannot simply use algebra indices as constrainers and constrained vertices
+ * might not have the same number of functions defined on them. Mapping correct
+ * indices is only possible through DoF indices.
+ *
+ * @param dd                DoF distribution
+ * @param hgVrt             the hanging vertex
+ * @param vConstrainingVrt  vector of constraining vertices
+ * @param constrainedInd    vector of DoFs indices on hanging vertex
+ * @param vConstrainingInd  vector of (vector of constraining DoF indices) for constraining vertices
+ * @param sortVertexPos     sorting functional for constrainers
+ */
 template <typename TDomain>
-inline void get_algebra_indices(ConstSmartPtr<DoFDistribution> dd,
+inline void get_dof_indices(ConstSmartPtr<DoFDistribution> dd,
 						 ConstrainedVertex* hgVrt,
 						 std::vector<Vertex*>& vConstrainingVrt,
-						 std::vector<size_t>& constrainedInd,
-						 std::vector<std::vector<size_t> >& vConstrainingInd,
+						 std::vector<DoFIndex>& constrainedInd,
+						 std::vector<std::vector<DoFIndex> >& vConstrainingInd,
 						 const SortVertexPos<TDomain::dim>& sortVertexPos)
 {
 // get subset index
@@ -732,7 +780,7 @@ inline void get_algebra_indices(ConstSmartPtr<DoFDistribution> dd,
 		if (!dd->is_def_in_subset(fct, si)) continue;
 
 	//	get indices for constrained vertex
-		dd->inner_algebra_indices_for_fct(hgVrt, constrainedInd, false, fct);
+		dd->inner_dof_indices(hgVrt, fct, constrainedInd, false);
 
 	//	get indices for constraining vertices
 		for (size_t i = 0; i < vConstrainingVrt.size(); ++i)
@@ -740,13 +788,11 @@ inline void get_algebra_indices(ConstSmartPtr<DoFDistribution> dd,
 			const int siC = dd->subset_handler()->get_subset_index(vConstrainingVrt[i]);
 
 		//	check that function is defined on subset
-			if (!dd->is_def_in_subset(fct, siC))
-			{
-				UG_THROW("Function " << fct << " is defined for a constrained vertex, "
-						 "but not for one of its constraining vertices!");
-			}
+			UG_COND_THROW(!dd->is_def_in_subset(fct, siC),
+				"Function " << fct << " is defined for a constrained vertex, "
+				 "but not for one of its constraining vertices!");
 
-			dd->inner_algebra_indices_for_fct(vConstrainingVrt[i], vConstrainingInd[i], false, fct);
+			dd->inner_dof_indices(vConstrainingVrt[i], fct, vConstrainingInd[i], false);
 		}
 	}
 }
@@ -766,8 +812,8 @@ adjust_defect(vector_type& d, const vector_type& u,
 				"implemented for OneSideP1Constraints \n");
 
 //	storage for indices and vertices
-	std::vector<std::vector<size_t> > vConstrainingInd;
-	std::vector<size_t>  constrainedInd;
+	std::vector<std::vector<DoFIndex> > vConstrainingInd;
+	std::vector<DoFIndex>  constrainedInd;
 	std::vector<Vertex*> vConstrainingVrt;
 
 #ifdef UG_PARALLEL
@@ -787,9 +833,9 @@ adjust_defect(vector_type& d, const vector_type& u,
 
 	// get algebra indices for constrained and constraining vertices
 #ifdef UG_PARALLEL
-		get_algebra_indices<TDomain>(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd, sortVertexPos);
+		get_dof_indices<TDomain>(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd, sortVertexPos);
 #else
-		get_algebra_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
+		get_dof_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
 #endif
 
 	//	adapt rhs
@@ -809,8 +855,8 @@ adjust_rhs(vector_type& rhs, const vector_type& u,
 				"implemented for OneSideP1Constraints \n");
 
 //	storage for indices and vertices
-	std::vector<std::vector<size_t> > vConstrainingInd;
-	std::vector<size_t>  constrainedInd;
+	std::vector<std::vector<DoFIndex> > vConstrainingInd;
+	std::vector<DoFIndex>  constrainedInd;
 	std::vector<Vertex*> vConstrainingVrt;
 
 #ifdef UG_PARALLEL
@@ -830,9 +876,9 @@ adjust_rhs(vector_type& rhs, const vector_type& u,
 
 	// get algebra indices for constrained and constraining vertices
 #ifdef UG_PARALLEL
-		get_algebra_indices<TDomain>(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd, sortVertexPos);
+		get_dof_indices<TDomain>(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd, sortVertexPos);
 #else
-		get_algebra_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
+		get_dof_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
 #endif
 
 	//	adapt rhs
@@ -853,8 +899,8 @@ adjust_jacobian(matrix_type& J, const vector_type& u,
 				"implemented for OneSideP1Constraints \n");
 
 //	storage for indices and vertices
-	std::vector<std::vector<size_t> > vConstrainingInd;
-	std::vector<size_t>  constrainedInd;
+	std::vector<std::vector<DoFIndex> > vConstrainingInd;
+	std::vector<DoFIndex>  constrainedInd;
 	std::vector<Vertex*> vConstrainingVrt;
 
 #ifdef UG_PARALLEL
@@ -874,9 +920,9 @@ adjust_jacobian(matrix_type& J, const vector_type& u,
 
 	// get algebra indices for constrained and constraining vertices
 #ifdef UG_PARALLEL
-		get_algebra_indices<TDomain>(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd, sortVertexPos);
+		get_dof_indices<TDomain>(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd, sortVertexPos);
 #else
-		get_algebra_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
+		get_dof_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
 #endif
 
 	// 	Split using indices
@@ -900,8 +946,8 @@ adjust_linear(matrix_type& mat, vector_type& rhs,
 				"implemented for OneSideP1Constraints \n");
 
 //	storage for indices and vertices
-	std::vector<std::vector<size_t> > vConstrainingInd;
-	std::vector<size_t>  constrainedInd;
+	std::vector<std::vector<DoFIndex> > vConstrainingInd;
+	std::vector<DoFIndex>  constrainedInd;
 	std::vector<Vertex*> vConstrainingVrt;
 
 #ifdef UG_PARALLEL
@@ -921,9 +967,9 @@ adjust_linear(matrix_type& mat, vector_type& rhs,
 
 	// get algebra indices for constrained and constraining vertices
 #ifdef UG_PARALLEL
-		get_algebra_indices<TDomain>(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd, sortVertexPos);
+		get_dof_indices<TDomain>(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd, sortVertexPos);
 #else
-		get_algebra_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
+		get_dof_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
 #endif
 
 	// 	Split using indices
@@ -948,8 +994,8 @@ adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd,
 				"implemented for OneSideP1Constraints \n");
 
 //	storage for indices and vertices
-	std::vector<std::vector<size_t> > vConstrainingInd;
-	std::vector<size_t>  constrainedInd;
+	std::vector<std::vector<DoFIndex> > vConstrainingInd;
+	std::vector<DoFIndex>  constrainedInd;
 	std::vector<Vertex*> vConstrainingVrt;
 
 //	get begin end of hanging vertices
@@ -964,7 +1010,7 @@ adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd,
 		ConstrainedVertex* hgVrt = *iter;
 
 	// get algebra indices for constrained and constraining vertices
-		get_algebra_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
+		get_dof_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
 
 	// 	Interpolate values
 		InterpolateValues(u, constrainedInd, vConstrainingInd);
@@ -992,8 +1038,8 @@ adjust_prolongation
 					"implemented for SymP1Constraints \n");
 
 //	storage for indices and vertices
-	std::vector<std::vector<size_t> > vConstrainingInd;
-	std::vector<size_t>  constrainedInd;
+	std::vector<std::vector<DoFIndex> > vConstrainingInd;
+	std::vector<DoFIndex>  constrainedInd;
 	std::vector<Vertex*> vConstrainingVrt;
 
 //	get begin end of hanging vertices
@@ -1008,7 +1054,7 @@ adjust_prolongation
 		ConstrainedVertex* hgVrt = *iter;
 
 	// get algebra indices for constrained and constraining vertices
-		get_algebra_indices(ddFine, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
+		get_dof_indices(ddFine, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
 
 	//	set zero row
 		size_t sz = constrainedInd.size();
@@ -1051,8 +1097,8 @@ adjust_correction
 				"implemented for OneSideP1Constraints \n");
 
 	// storage for indices and vertices
-	std::vector<std::vector<size_t> > vConstrainingInd;
-	std::vector<size_t>  constrainedInd;
+	std::vector<std::vector<DoFIndex> > vConstrainingInd;
+	std::vector<DoFIndex>  constrainedInd;
 	std::vector<Vertex*> vConstrainingVrt;
 
 	// get begin end of hanging vertices
@@ -1067,11 +1113,11 @@ adjust_correction
 		ConstrainedVertex* hgVrt = *iter;
 
 		// get algebra indices for constrained and constraining vertices
-		get_algebra_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
+		get_dof_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
 
 		// set all entries corresponding to constrained dofs to zero
 		for (size_t i = 0; i < constrainedInd.size(); ++i)
-			u[constrainedInd[i]] = 0.0;
+			DoFRef(u, constrainedInd[i]) = 0.0;
 	}
 }
 
