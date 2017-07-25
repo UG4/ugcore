@@ -227,8 +227,8 @@ void SplitAddRow_OneSide(TMatrix& A,
 		for(row_iterator conn = A.begin_row(algInd); conn != A.end_row(algInd); ++conn)
 		{
 			const size_t algIndConn = conn.index();
-			block_type& block = conn.value();
-			block_type& blockT = A(algIndConn, algInd);
+			const block_type& block = conn.value();
+			const block_type& blockT = A(algIndConn, algInd);
 
 			// loop block row for constrained index
 			for (size_t blockIndConn = 0; blockIndConn < (size_t) GetCols(block); ++blockIndConn)
@@ -241,7 +241,7 @@ void SplitAddRow_OneSide(TMatrix& A,
 			// FIXME: This will only work properly if there is an entry A(i,j) for any entry
 			//        A(j,i) in the matrix! Is this always the case!?
 			//	get transposed coupling entry
-				number& valT = BlockRef(blockT, blockIndConn, blockInd);
+				number valT = BlockRef(blockT, blockIndConn, blockInd);
 				valT *= frac;
 
 			//	add the coupling to the constraining indices rows
@@ -249,7 +249,7 @@ void SplitAddRow_OneSide(TMatrix& A,
 					DoFRef(A, diConn, vConstrainingIndex[k][i]) += valT;
 
 			//	coupling due to one side adding
-				const number& val = BlockRef(block, blockInd, blockIndConn);
+				const number val = BlockRef(block, blockInd, blockIndConn);
 				DoFRef(A, addTo, diConn) += val;
 
 			//	set the split coupling to zero
