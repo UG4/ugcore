@@ -42,6 +42,7 @@
 #include "lib_disc/operator/linear_operator/std_transfer.h"
 #include "lib_disc/operator/linear_operator/std_injection.h"
 #include "lib_grid/tools/periodic_boundary_manager.h"
+#include "lib_disc/operator/linear_operator/level_preconditioner_interface.h"
 #include "mg_solver.h"
 
 #ifdef UG_PARALLEL
@@ -1520,6 +1521,12 @@ init_level_memory(int baseLev, int topLev)
 			ld.PostSmoother = ld.PreSmoother;
 		else
 			ld.PostSmoother = m_spPostSmootherPrototype->clone();
+
+		// let the smoothers know the grid level they are on if they need to know
+		ILevelPreconditioner<TAlgebra>* lpre = dynamic_cast<ILevelPreconditioner<TAlgebra>*>(ld.PreSmoother.get());
+		ILevelPreconditioner<TAlgebra>* lpost = dynamic_cast<ILevelPreconditioner<TAlgebra>*>(ld.PostSmoother.get());
+		if (lpre) lpre->set_grid_level(gl);
+		if (lpost) lpost->set_grid_level(gl);
 
 		ld.Projection = m_spProjectionPrototype->clone();
 
