@@ -327,9 +327,6 @@ function util.SolveNonlinearTimeProblem(
 					-- start over again if failed
 					if newtonSuccess == false then break end
 					
-					-- update new time
-					time = timeDisc:future_time()
-					nlsteps = nlsteps + newtonSolver:num_newton_steps() 	 
 					--total_linsolver_calls()
 				
 					-- push oldest solutions with new values to front, oldest sol pointer is poped from end	
@@ -388,6 +385,9 @@ function util.SolveNonlinearTimeProblem(
 				end
 				bSuccess = false
 			else
+				-- update new time
+				time = timeDisc:future_time()
+				nlsteps = nlsteps + newtonSolver:num_newton_steps() 	 
 				bSuccess = true
 			end
 		
