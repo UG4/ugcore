@@ -1675,8 +1675,8 @@ presmooth_and_restriction(int lev)
 			lf.A->apply_sub(*lf.sd, *lf.st);
 
 		//	d) ... and add the correction to the overall correction
-		//	if(nu < m_numPreSmooth-1)  // why would you do this!?
-			(*lf.sc) += (*lf.st);
+			if(nu < m_numPreSmooth-1)
+				(*lf.sc) += (*lf.st);
 		}
 	}
 	UG_CATCH_THROW("GMG: Pre-Smoothing on level "<<lev<<" failed.");
@@ -1728,8 +1728,8 @@ presmooth_and_restriction(int lev)
 	lc.sc->set(0.0);
 
 //	update last correction
-	//if(m_numPreSmooth > 0)
-	//	(*lf.sc) += (*lf.st);
+	if(m_numPreSmooth > 0)
+		(*lf.sc) += (*lf.st);
 	GMG_PROFILE_END();
 
 	#ifdef UG_PARALLEL
