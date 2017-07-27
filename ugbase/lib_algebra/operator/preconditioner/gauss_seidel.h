@@ -154,7 +154,7 @@ class GaussSeidelBase : public IPreconditioner<TAlgebra>
 		matrix_type m_A;
 #endif
 
-	private:
+	protected:
 		//	relaxation parameter
 		number m_relax;
 };

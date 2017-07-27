@@ -315,7 +315,7 @@ class IPreconditioner :
 			}
 
 		//	Correction is always consistent
-			#ifdef 	UG_PARALLEL
+			#ifdef UG_PARALLEL
 			if(!c.change_storage_type(PST_CONSISTENT))
 				UG_THROW(name() << "::apply': Cannot change "
 						"parallel storage type of correction to consistent.");
@@ -385,8 +385,8 @@ class IPreconditioner :
 		bool m_bInit;
 
 		bool m_bOtherApproxOperator;
-
 };
+
 
 
 }  // end namespace ug
