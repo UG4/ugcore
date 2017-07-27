@@ -193,7 +193,8 @@ DenseMatrix<TStorage> &
 DenseMatrix<TStorage>::operator /= (this_type &other)
 {
 	this_type tmp = other;
-	Invert(tmp);
+	bool success = Invert(tmp);
+	UG_COND_THROW(!success, "Failed to invert dense matrix.");
 	(*this) = (*this) * tmp;
 	return *this;
 }
