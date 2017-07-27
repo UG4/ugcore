@@ -11,7 +11,7 @@
 #include "common/types.h"
 #include "lib_grid/refinement/projectors/refinement_projector.h"
 #include "lib_grid/tools/copy_attachment_handler.h"
-#include "lib_disc/quadrature/gauss_legendre/gauss_legendre.h"
+//#include "lib_disc/quadrature/gauss_legendre/gauss_legendre.h"
 
 #include <boost/serialization/split_member.hpp> // for separate load/save methods
 
@@ -88,8 +88,15 @@ class NeuriteProjector
             {
                 ar << tstart;
                 ar << tend;
-                if (tstart != 0.0)
-                    ar << *bp;
+
+                // the following won't work:
+                //bool owns_bp = bp->vRegions[0] == this;
+                // pointers are not identical if constructed outside of projector
+            	// but this is unsafe:
+                bool owns_bp = tstart == bp->vRegions[0]->tstart && tend == bp->vRegions[0]->tend;
+                ar << owns_bp;
+                if (owns_bp)
+                	ar << *bp;
             }
 
             template<class Archive>
@@ -98,7 +105,10 @@ class NeuriteProjector
                 // invoke serialization of the base class
                 ar >> tstart;
                 ar >> tend;
-                if (tstart != 0.0)
+
+                bool owns_bp;
+                ar >> owns_bp;
+                if (owns_bp)
                 {
                     bp = make_sp(new BranchingPoint());
                     ar >> *bp;
@@ -182,18 +192,23 @@ class NeuriteProjector
             std::vector<Section>::const_iterator sec_start;
         };
 
+        void debug_neurites() const;
+
 	public:
         void add_neurite(const Neurite& n);
         const Neurite& neurite(size_t nid) const;
 
         Grid::VertexAttachmentAccessor<Attachment<SurfaceParams> >& surface_params_accessor();
+        const Grid::VertexAttachmentAccessor<Attachment<SurfaceParams> >& surface_params_accessor() const;
 
         const std::vector<std::pair<number, number> >& quadrature_points() const;
 
         void average_pos_from_parent(vector3& posOut, const IVertexGroup* parent) const;
 
+        vector3 position(Vertex* vrt) const;
+
     protected:
-        std::vector<Section>::const_iterator get_section_it(uint32 nid, float t) const;
+        const Section& get_section(uint32 nid, float t) const;
 
         void prepare_quadrature();
 
@@ -218,7 +233,7 @@ class NeuriteProjector
 		std::vector<Neurite> m_vNeurites;
 
 		/// for quadrature when projecting within branching points
-		size_t m_quadOrder;
+		//size_t m_quadOrder;
 
         std::vector<std::pair<number, number> > m_qPoints;
 
@@ -235,7 +250,7 @@ class NeuriteProjector
             for (size_t i = 0; i < sz; ++i)
                 ar << m_vNeurites[i];
 
-            ar << m_quadOrder;
+            //ar << m_quadOrder;
         }
 
         template<class Archive>
@@ -249,7 +264,7 @@ class NeuriteProjector
             for (size_t i = 0; i < sz; ++i)
                 ar >> m_vNeurites[i];
 
-            ar >> m_quadOrder;
+            //ar >> m_quadOrder;
 
             // reconstruct uninitialized pointers in branching points/ranges
             size_t nNeurites = m_vNeurites.size();
@@ -261,11 +276,12 @@ class NeuriteProjector
                 {
                     BranchingRegion& br = neurite.vBR[b];
                     SmartPtr<BranchingPoint> bp = br.bp;
-                    if (bp.valid())
+                    if (bp.valid() && !bp->vRegions.size())
                     {
                         size_t nReg = bp->vNid.size();
                         bp->vRegions.resize(nReg);
-                        for (size_t r = 0; r < nReg; ++r)
+                        bp->vRegions[0] = &br;
+                        for (size_t r = 1; r < nReg; ++r)
                         {
                             UG_ASSERT(m_vNeurites[bp->vNid[r]].vBR.size(),
                                 "No branching region in neurite where there should be one.")
@@ -275,6 +291,8 @@ class NeuriteProjector
                     }
                 }
             }
+
+            //debug_neurites();
         }
 
         BOOST_SERIALIZATION_SPLIT_MEMBER();
