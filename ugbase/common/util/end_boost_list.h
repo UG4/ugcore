@@ -83,6 +83,13 @@ struct empty<list1<ug::end_boost_list> >
 	enum { value = true };
 };
 
+/// lists that contain nothing but ug::end_boost_list from the start need also be regarded as empty
+template<>
+struct empty<list<ug::end_boost_list> >
+{
+	enum { value = true };
+};
+
 }
 }
 
