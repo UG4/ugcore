@@ -380,6 +380,7 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	add_cxx_flag("-Wsign-compare")
 	add_cxx_flag(-Wno-unused-local-typedef)
 	add_cxx_flag(-Wno-unknown-warning-option)
+	add_cxx_flag(-Wno-undefined-var-template)
 	#set(CMAKE_CPP_FLAGS	"${CMAKE_CPP_FLAGS} -Wno-overloaded-virtual -Wno-autological-compare" CACHE STRING "overriden flags!" FORCE)
 endif()
 

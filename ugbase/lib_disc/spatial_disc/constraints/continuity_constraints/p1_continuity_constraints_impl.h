@@ -136,7 +136,7 @@ void SplitAddRow_Symmetric(TMatrix& A,
 	//	add coupling constrained dof -> constrained dof
 	//	we don't have to adjust the block itself, since the row of
 	//	constraints will be set to interpolation afterwards
-		number& diagEntry = DoFRef(A, di, di);
+		number diagEntry = DoFRef(A, di, di);
 
 	//	scale by weight
 		diagEntry *= frac*frac;
@@ -150,8 +150,8 @@ void SplitAddRow_Symmetric(TMatrix& A,
 		for(row_iterator conn = A.begin_row(algInd); conn != A.end_row(algInd); ++conn)
 		{
 			const size_t algIndConn = conn.index();
-			block_type& block = conn.value();
-			block_type& blockT = A(algIndConn, algInd);
+			const block_type& block = conn.value();
+			const block_type& blockT = A(algIndConn, algInd);
 
 			// loop block row for constrained index
 			for (size_t blockIndConn = 0; blockIndConn < (size_t) GetCols(block); ++blockIndConn)
@@ -162,8 +162,8 @@ void SplitAddRow_Symmetric(TMatrix& A,
 				if (di == diConn) continue;
 
 			//	get coupling entry
-				number& val = BlockRef(block, blockInd, blockIndConn);
-				number& valT = BlockRef(blockT, blockIndConn, blockInd);
+				number val = BlockRef(block, blockInd, blockIndConn);
+				number valT = BlockRef(blockT, blockIndConn, blockInd);
 
 			//	multiply the cpl value by the inverse number of constraining
 				val *= frac;
@@ -214,7 +214,7 @@ void SplitAddRow_OneSide(TMatrix& A,
 	// choose randomly the first dof to add whole row
 		const DoFIndex addTo = vConstrainingIndex[0][i];
 
-		number& diagEntry = DoFRef(A, di, di);
+		number diagEntry = DoFRef(A, di, di);
 
 	//	scale by weight
 		diagEntry *= frac;
@@ -227,8 +227,8 @@ void SplitAddRow_OneSide(TMatrix& A,
 		for(row_iterator conn = A.begin_row(algInd); conn != A.end_row(algInd); ++conn)
 		{
 			const size_t algIndConn = conn.index();
-			block_type& block = conn.value();
-			block_type& blockT = A(algIndConn, algInd);
+			const block_type& block = conn.value();
+			const block_type& blockT = A(algIndConn, algInd);
 
 			// loop block row for constrained index
 			for (size_t blockIndConn = 0; blockIndConn < (size_t) GetCols(block); ++blockIndConn)
@@ -241,7 +241,7 @@ void SplitAddRow_OneSide(TMatrix& A,
 			// FIXME: This will only work properly if there is an entry A(i,j) for any entry
 			//        A(j,i) in the matrix! Is this always the case!?
 			//	get transposed coupling entry
-				number& valT = BlockRef(blockT, blockIndConn, blockInd);
+				number valT = BlockRef(blockT, blockIndConn, blockInd);
 				valT *= frac;
 
 			//	add the coupling to the constraining indices rows
@@ -249,7 +249,7 @@ void SplitAddRow_OneSide(TMatrix& A,
 					DoFRef(A, diConn, vConstrainingIndex[k][i]) += valT;
 
 			//	coupling due to one side adding
-				const number& val = BlockRef(block, blockInd, blockIndConn);
+				const number val = BlockRef(block, blockInd, blockIndConn);
 				DoFRef(A, addTo, diConn) += val;
 
 			//	set the split coupling to zero
@@ -430,7 +430,7 @@ adjust_rhs(vector_type& rhs, const vector_type& u,
 
 //	storage for indices and vertices
 	std::vector<std::vector<DoFIndex> > vConstrainingInd;
-	std::vector<DoFIndex>  constrainedInd;
+	std::vector<DoFIndex> constrainedInd;
 	std::vector<Vertex*> vConstrainingVrt;
 
 //	get begin end of hanging vertices
@@ -466,7 +466,7 @@ adjust_jacobian(matrix_type& J, const vector_type& u,
 
 //	storage for indices and vertices
 	std::vector<std::vector<DoFIndex> > vConstrainingInd;
-	std::vector<DoFIndex>  constrainedInd;
+	std::vector<DoFIndex> constrainedInd;
 	std::vector<Vertex*> vConstrainingVrt;
 
 //	get begin end of hanging vertices
@@ -545,7 +545,7 @@ adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd,
 
 //	storage for indices and vertices
 	std::vector<std::vector<DoFIndex> > vConstrainingInd;
-	std::vector<DoFIndex>  constrainedInd;
+	std::vector<DoFIndex> constrainedInd;
 	std::vector<Vertex*> vConstrainingVrt;
 
 //	get begin end of hanging vertices
@@ -588,7 +588,7 @@ adjust_prolongation
 
 //	storage for indices and vertices
 	std::vector<std::vector<DoFIndex> > vConstrainingInd;
-	std::vector<DoFIndex>  constrainedInd;
+	std::vector<DoFIndex> constrainedInd;
 	std::vector<Vertex*> vConstrainingVrt;
 
 //	get begin end of hanging vertices

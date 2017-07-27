@@ -42,6 +42,7 @@
 #include "lib_disc/operator/linear_operator/std_transfer.h"
 #include "lib_disc/operator/linear_operator/std_injection.h"
 #include "lib_grid/tools/periodic_boundary_manager.h"
+#include "lib_disc/operator/linear_operator/level_preconditioner_interface.h"
 #include "mg_solver.h"
 
 #ifdef UG_PARALLEL
@@ -1521,6 +1522,12 @@ init_level_memory(int baseLev, int topLev)
 		else
 			ld.PostSmoother = m_spPostSmootherPrototype->clone();
 
+		// let the smoothers know the grid level they are on if they need to know
+		ILevelPreconditioner<TAlgebra>* lpre = dynamic_cast<ILevelPreconditioner<TAlgebra>*>(ld.PreSmoother.get());
+		ILevelPreconditioner<TAlgebra>* lpost = dynamic_cast<ILevelPreconditioner<TAlgebra>*>(ld.PostSmoother.get());
+		if (lpre) lpre->set_grid_level(gl);
+		if (lpost) lpost->set_grid_level(gl);
+
 		ld.Projection = m_spProjectionPrototype->clone();
 
 		ld.Prolongation = m_spProlongationPrototype->clone();
@@ -1675,8 +1682,8 @@ presmooth_and_restriction(int lev)
 			lf.A->apply_sub(*lf.sd, *lf.st);
 
 		//	d) ... and add the correction to the overall correction
-		//	if(nu < m_numPreSmooth-1)  // why would you do this!?
-			(*lf.sc) += (*lf.st);
+			if(nu < m_numPreSmooth-1)
+				(*lf.sc) += (*lf.st);
 		}
 	}
 	UG_CATCH_THROW("GMG: Pre-Smoothing on level "<<lev<<" failed.");
@@ -1728,8 +1735,8 @@ presmooth_and_restriction(int lev)
 	lc.sc->set(0.0);
 
 //	update last correction
-	//if(m_numPreSmooth > 0)
-	//	(*lf.sc) += (*lf.st);
+	if(m_numPreSmooth > 0)
+		(*lf.sc) += (*lf.st);
 	GMG_PROFILE_END();
 
 	#ifdef UG_PARALLEL

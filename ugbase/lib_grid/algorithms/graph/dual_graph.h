@@ -41,11 +41,11 @@ namespace ug
 
 ////////////////////////////////////////////////////////////////////////
 /**
- * The created dual graph ist described in the following form.
+ * The created dual graph is described in the following form.
  * the adjacency-map-structure holds for each node an index to where
  * associated nodes are written in the adjacency-map.
  * The adjacency-map holds indices to the adjacent
- * elements for a node. The indices in the adjaceny-map are ordered so
+ * elements for a node. The indices in the adjacency-map are ordered so
  * that first all adjacent nodes of the first node appear, then the
  * adjacent nodes of the second node and so forth.
  *
@@ -321,15 +321,8 @@ void ConstructDualGraphMG(std::vector<TIndexType>& adjacencyMapStructureOut,
 }
 
 
-class IDualGraphNeighborCollector
-{
-	public:
-		virtual ~IDualGraphNeighborCollector() {}
-};
-
 template <typename TBaseElem>
 class DualGraphNeighborCollector
-: public IDualGraphNeighborCollector
 {
 	public:
 		virtual ~DualGraphNeighborCollector() {}
@@ -455,6 +448,7 @@ void ConstructDualGraphMGLevel(
 	if(!paIndex)
 		mg.detach_from<Elem>(aIndex);
 }
+
 
 }//	end of namespace
 

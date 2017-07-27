@@ -189,7 +189,9 @@ bool FactorizeILUSorted(Matrix_type &A, const number eps = 1e-50)
 				         " with eps: "<< eps <<", ||A_kk||="<<fabs(BlockNorm(A(k,k)))
 				         <<", ||A_ik||="<<BlockNorm(A(i,k)));
 
-			a_ik /= a_kk;
+			try {a_ik /= a_kk;}
+			UG_CATCH_THROW("Failed to calculate A_ik /= A_kk "
+				"with i = " << i << " and k = " << k << ".");
 
 
 			typename Matrix_type::row_iterator it_ij = it_k; // of row i
@@ -386,7 +388,7 @@ class ILU : public IPreconditioner<TAlgebra>
 	//	Name of preconditioner
 		virtual const char* name() const {return "ILU";}
 
-	private:
+	protected:
 		// cuthill-mckee sorting
 		void calc_cuthill_mckee()
 		{
@@ -407,7 +409,7 @@ class ILU : public IPreconditioner<TAlgebra>
 	//	Preprocess routine
 		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
 		{
-			// no not do a thing if preprocessing disabled
+			// do not do a thing if preprocessing disabled
 			if (m_bDisablePreprocessing) return true;
 
 			matrix_type &mat = *pOp;

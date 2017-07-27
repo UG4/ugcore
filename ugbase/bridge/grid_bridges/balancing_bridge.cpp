@@ -69,13 +69,6 @@ void RegisterGridBridge_Balancing(Registry& reg, string parentGroup)
 		.add_method("get_target_proc", &PartitionMap::get_target_proc)
 		.add_method("shift_target_procs", &PartitionMap::shift_target_procs)
 		.set_construct_as_smart_pointer(true);
-
-//	dual graph neighbor collector
-	{
-		string name = string("IDualGraphNeighborCollector");
-		typedef IDualGraphNeighborCollector T;
-		reg.add_class_<T>(name, grp);
-	}
 }
 
 }//	end of namespace
