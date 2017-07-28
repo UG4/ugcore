@@ -126,8 +126,12 @@ function util.Balance(DataToBeWrittenTable)
 		local defFileCnt = 1
 		if type(DataSet.file) == "string" then file = DataSet.file
 		else
-			if type(DataSet.file) ~= "nil" then print("util.Balance: file must be string"); exit(); end
-			file = "file"..defFileCnt; defFileCnt = defFileCnt + 1;
+			if DataSet.vecOutput ~= nil then
+				file = DataSet.vecOutput.filename
+			else
+				if type(DataSet.file) ~= "nil" then print("util.Balance: file must be string"); exit(); end
+				file = "file"..defFileCnt; defFileCnt = defFileCnt + 1;
+			end
 		end 
 
 		if table.contains(Filenames, file) then
