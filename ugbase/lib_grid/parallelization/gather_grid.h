@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016:  G-CSC, Goethe University Frankfurt
+ * Copyright (c) 2017:  G-CSC, Goethe University Frankfurt
  * Author: Sebastian Reiter
  * 
  * This file is part of UG4.
@@ -30,8 +30,8 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef __H__UG_broadcast
-#define __H__UG_broadcast
+#ifndef __H__UG_gather_grid
+#define __H__UG_gather_grid
 
 #include "lib_grid/selector.h"
 #include "lib_grid/algorithms/serialization.h"
@@ -39,27 +39,29 @@
 
 namespace ug{
 
-///	Broadcasts the specified Selection from 'root' to all processes in procCom
-/** Selected elements and associated attachments are broadcasted from
- * 'root' to all processes in procCom (including 'root').
- *
- * @param serializer	Has to operate on 'sel.grid()'. It is responsible to serialize
- *						e.g. attachments, subset-handlers or selectors.
- *
- * @param deserializer	Has to operate on 'gridOut'. It has to contain exactly the same
- *						components as 'serializer', except that all components have
- *						to operate on 'gridOut', too.
-
- * \note	In order to make sure that all required sides and vertices of selected
- *			elements are broadcasted, the given selector may be adjusted.*/
-void BroadcastGrid(	Grid& gridOut,
+///	Gathers selected parts of a grid into 'gridOut' on 'rootProc'
+/**	After the operation completes, 'gridOut' on 'rootProc' will contain the
+ * selected grid parts of all processes in procCom. Note that double vertices
+ * may exist after this operation in gridOut.*/
+void GatherGrid(	Grid& gridOut,
 					Selector& sel,
 					GridDataSerializationHandler& serializer,
 					GridDataSerializationHandler& deserializer,
 					int root,
 					const pcl::ProcessCommunicator& procCom =
 												pcl::ProcessCommunicator());
- 
+
+///	AllGathers selected parts of a grid into 'gridOut'
+/**	After the operation completes, 'gridOut' on will contain the
+ * selected grid parts of all processes in procCom on all processes in procCom.
+ * Note that double vertices may exist after this operation in 'gridOut'.*/
+void AllGatherGrid(	Grid& gridOut,
+					Selector& sel,
+					GridDataSerializationHandler& serializer,
+					GridDataSerializationHandler& deserializer,
+					const pcl::ProcessCommunicator& procCom =
+												pcl::ProcessCommunicator());
+
 }//	end of namespace
 
-#endif	//__H__UG_broadcast
+#endif	//__H__UG_gather_grid

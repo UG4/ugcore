@@ -348,6 +348,46 @@ gather(const void* sendBuf, int sendCount, DataType sendType,
 			   recCount, recType, root, m_comm->m_mpiComm);
 }
 
+
+void ProcessCommunicator::
+gather(ug::BinaryBuffer &buf, int root) const
+{
+	if(is_local()) return;
+
+	int localSize;
+	localSize = (int)buf.write_pos();
+	
+	if(pcl::ProcRank() == root) {
+		std::vector<int> recvSizes(size());
+
+		gather(&localSize, 1, PCL_DT_INT,
+		       &recvSizes.front(), 1, PCL_DT_INT, root);
+
+		std::vector<int> displacements(size());
+		size_t totalSize = 0;
+		for(size_t i = 0; i < recvSizes.size(); ++i){
+			displacements[i] = (int)totalSize;
+			totalSize += (size_t)recvSizes[i];
+		}
+
+		buf.reserve(totalSize);
+		gatherv(buf.buffer(), localSize, PCL_DT_CHAR,
+		        buf.buffer(), &recvSizes.front(), &displacements.front(),
+		        PCL_DT_CHAR, root);
+
+		buf.set_write_pos(totalSize);
+	}
+	else{
+		gather(&localSize, 1, PCL_DT_INT,
+		       NULL, 1, PCL_DT_INT, root);
+
+		gatherv(buf.buffer(), localSize, PCL_DT_CHAR,
+		        NULL, NULL, NULL,
+		        PCL_DT_CHAR, root);
+	}
+}
+
+
 void ProcessCommunicator::
 scatter(const void* sendBuf, int sendCount, DataType sendType,
 		 void* recBuf, int recCount, DataType recType, int root) const
@@ -388,6 +428,14 @@ allgather(const void* sendBuf, int sendCount, DataType sendType,
 	
 	MPI_Allgather(const_cast<void*>(sendBuf), sendCount, sendType, recBuf,
 				  recCount, recType, m_comm->m_mpiComm);
+}
+
+void
+ProcessCommunicator::
+allgather(ug::BinaryBuffer &buf) const
+{
+	gather(buf, 0);
+	broadcast(buf, 0);
 }
 
 void

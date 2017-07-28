@@ -153,6 +153,7 @@ if(PARALLEL)
 	set(srcParallelization	parallelization/broadcast.cpp
 							parallelization/distribution.cpp
 							parallelization/distributed_grid.cpp
+							parallelization/gather_grid.cpp
 							parallelization/parallelization_util.cpp
 							parallelization/parallel_grid_layout.cpp
 							parallelization/load_balancer.cpp

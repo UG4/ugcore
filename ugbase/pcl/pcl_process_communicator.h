@@ -130,6 +130,11 @@ class ProcessCommunicator
 		void gather(const void* sendBuf, int sendCount, DataType sendType,
 					void* recBuf, int recCount, DataType recType, int root) const;
 
+	/** gather of BinaryBuffers
+	 * @param buf	Binary buffer in/out
+	 * @param root	root processor*/
+		void gather(ug::BinaryBuffer &buf, int root=0) const;
+
 	///	performs MPI_Scatter on the processes of the communicator
 	/** \param sendBuf starting address of send buffer (choice)
 	 * \param sendCount number of elements in send buffer (integer)
@@ -206,6 +211,11 @@ class ProcessCommunicator
 		void allgatherv(const void* sendBuf, int sendCount, DataType sendType,
 						void* recBuf, int* recCounts, int* displs,
 						DataType recType) const;
+
+	/** allgather of BinaryBuffers
+	 * @param buf	Binary buffer in/out
+	 * @param root	root processor*/
+		void allgather(ug::BinaryBuffer &buf) const;
 
 	///	performs MPI_Alltoall on the processes of the communicator.
 	/** All processes send (the same amount of) data to all processes.
