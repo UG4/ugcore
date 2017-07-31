@@ -177,6 +177,12 @@ class ntree
 
 		void clear();
 
+	///	enabled or disable warning messages
+	/** warnings are enabled by default. If a problem is detected and warnings
+	 * are enabled, a warning message will be written to stdout.*/
+		void enable_warnings(bool enable)	{m_warningsEnabled = enable;}
+		bool warnings_enabled () const		{return m_warningsEnabled;}
+
 	///	sets the balancing-parameters of the tree.
 	/** \note	The method has no effect until the next call to 'rebalance',
 	 *			i.e., it will not affect an existing tree if one has already
@@ -328,6 +334,7 @@ class ntree
 		std::vector<Node>		m_nodes; ///< m_nodes[0] is always considered to be the root node.
 		std::vector<Entry>		m_entries;
 		size_t					m_numDelayedElements;
+		bool					m_warningsEnabled;
 };
 
 

@@ -40,7 +40,8 @@ namespace ug{
 
 template <int tree_dim, int world_dim, class elem_t, class common_data_t>
 ntree<tree_dim, world_dim, elem_t, common_data_t>::
-ntree()
+ntree() :
+	m_warningsEnabled (true)
 {
 	m_nodes.resize(1);
 }
@@ -191,11 +192,13 @@ split_leaf_node(size_t nodeIndex)
 		return;
 
 	if(m_nodes[nodeIndex].level >= m_desc.maxDepth){
-		UG_LOG("WARNING in ntree::split_leaf_node(): maximum tree depth "
-			<< m_desc.maxDepth << " reached. No further splits are performed for "
-			" this node. Note that too many elements per node may lead to performance issues.\n"
-			<< "  Number of elements in this node: " << m_nodes[nodeIndex].numEntries << std::endl
-			<< "  Corner coordinates of this node: " << m_nodes[nodeIndex].tightBox << std::endl);
+		if(m_warningsEnabled){
+			UG_LOG("WARNING in ntree::split_leaf_node(): maximum tree depth "
+				<< m_desc.maxDepth << " reached. No further splits are performed for "
+				" this node. Note that too many elements per node may lead to performance issues.\n"
+				<< "  Number of elements in this node: " << m_nodes[nodeIndex].numEntries << std::endl
+				<< "  Corner coordinates of this node: " << m_nodes[nodeIndex].tightBox << std::endl);
+		}
 		return;
 	}
 
