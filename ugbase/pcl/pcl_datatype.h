@@ -132,6 +132,15 @@ public:
 	enum { directlySupported = true };
 };
 
+template<>
+class DataTypeTraits<unsigned long long>
+{
+public:
+	static DataType get_data_type() {return PCL_DT_UNSIGNED_LONG_LONG; }
+	typedef DataTypeDirectlySupported supported;
+	enum { directlySupported = true };
+};
+
 inline size_t GetSize(const DataType &t)
 {
 	if(t == PCL_DT_UNSIGNED_CHAR) return sizeof(unsigned char);
@@ -141,6 +150,7 @@ inline size_t GetSize(const DataType &t)
 	else if(t == PCL_DT_INT) return sizeof(int);
 	else if(t == PCL_DT_LONG) return sizeof(long);
 	else if(t == PCL_DT_UNSIGNED_LONG) return sizeof(unsigned long);
+	else if(t == PCL_DT_UNSIGNED_LONG_LONG) return sizeof(unsigned long long);
 	UG_THROW("Datatype not supported: " << t << " ???");
 	return 1;
 }
