@@ -43,19 +43,19 @@ namespace pcl
 /// \{
 
 //	DataType
-#define PCL_DT_NULL				MPI_DATATYPE_NULL
+#define PCL_DT_NULL					MPI_DATATYPE_NULL
 #define PCL_DT_BYTE 				MPI_BYTE
 #define PCL_DT_PACKED 				MPI_PACKED
 #define PCL_DT_CHAR 				MPI_CHAR
 #define PCL_DT_SHORT 				MPI_SHORT
-#define PCL_DT_INT 				MPI_INT
+#define PCL_DT_INT 					MPI_INT
 #define PCL_DT_LONG 				MPI_LONG
 #define PCL_DT_UNSIGNED_LONG		MPI_UNSIGNED_LONG
 #define PCL_DT_LONG_LONG_INT		MPI_LONG_LONG_INT
 #define PCL_DT_UNSIGNED_LONG_LONG	MPI_UNSIGNED_LONG_LONG
 #define PCL_DT_FLOAT 				MPI_FLOAT
 #define PCL_DT_DOUBLE 				MPI_DOUBLE
-#define PCL_DT_LONG_DOUBLE 		MPI_LONG_DOUBLE
+#define PCL_DT_LONG_DOUBLE 			MPI_LONG_DOUBLE
 #define PCL_DT_UNSIGNED_CHAR 		MPI_UNSIGNED_CHAR
 
 typedef MPI_Datatype DataType;
@@ -77,6 +77,15 @@ class DataTypeTraits<unsigned long>
 {
 public:
 	static DataType get_data_type() {return PCL_DT_UNSIGNED_LONG; }
+	typedef DataTypeDirectlySupported supported;
+	enum { directlySupported = true };
+};
+
+template<>
+class DataTypeTraits<unsigned long long>
+{
+public:
+	static DataType get_data_type() {return PCL_DT_UNSIGNED_LONG_LONG; }
 	typedef DataTypeDirectlySupported supported;
 	enum { directlySupported = true };
 };
@@ -141,6 +150,7 @@ inline size_t GetSize(const DataType &t)
 	else if(t == PCL_DT_INT) return sizeof(int);
 	else if(t == PCL_DT_LONG) return sizeof(long);
 	else if(t == PCL_DT_UNSIGNED_LONG) return sizeof(unsigned long);
+	else if(t == PCL_DT_UNSIGNED_LONG_LONG) return sizeof(unsigned long long);
 	UG_THROW("Datatype not supported: " << t << " ???");
 	return 1;
 }

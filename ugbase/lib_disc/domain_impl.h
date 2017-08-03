@@ -252,7 +252,7 @@ update_domain_info()
 	std::vector<int_t>	subsetDims;
 	subsetDims.reserve(sh.num_subsets());
 	for(int i = 0; i < sh.num_subsets(); ++i)
-		subsetDims.push_back(sh.subset_info(i).get_property("dim").to_size_t());
+		subsetDims.push_back(sh.subset_info(i).get_property("dim").to_int());
 
 	std::vector<int_t> numLocalGhosts;
 	#ifdef UG_PARALLEL

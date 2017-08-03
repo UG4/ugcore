@@ -61,30 +61,30 @@ class DomainInfo
 		typedef unsigned long long int_t;
 
 		inline int element_type() const									{return m_elementType;}
-		inline int_t num_levels() const									{return (int_t)m_numElems.size();}
+		inline size_t num_levels() const									{return m_numElems.size();}
 	///	returns the global number of elements on the given level (excluding ghosts...)
-		inline int_t num_elements_on_level(size_t lvl) const			{return m_numElems[lvl];}
+		inline size_t num_elements_on_level(size_t lvl) const			{return (size_t)m_numElems[lvl];}
 	///	returns the local number of elements on the given level (excluding ghosts...)
-		inline int_t num_local_elements_on_level(size_t lvl) const		{return m_numLocalElems[lvl];}
+		inline size_t num_local_elements_on_level(size_t lvl) const		{return (size_t)m_numLocalElems[lvl];}
 	///	returns the minimum number of elements a process has on a given leven (excluding ghosts)
-		inline int_t min_num_local_elements_on_level(size_t lvl) const	{return m_minNumLocalElems[lvl];}
+		inline size_t min_num_local_elements_on_level(size_t lvl) const	{return (size_t)m_minNumLocalElems[lvl];}
 	///	returns the maximum number of elements a process has on a given leven (excluding ghosts)
-		inline int_t max_num_local_elements_on_level(size_t lvl) const	{return m_maxNumLocalElems[lvl];}
+		inline size_t max_num_local_elements_on_level(size_t lvl) const	{return (size_t)m_maxNumLocalElems[lvl];}
 	///	returns the local number of ghosts on the given level
-		inline int_t num_local_ghosts_on_level(size_t lvl) const		{return m_numLocalGhosts[lvl];}
+		inline size_t num_local_ghosts_on_level(size_t lvl) const		{return (size_t)m_numLocalGhosts[lvl];}
 
-		inline int_t num_subsets() const
-			{return (int_t)m_subsetDims.size();}
-		inline int_t subset_dim(int si) const
-			{return (int_t)m_subsetDims[si];}
+		inline size_t num_subsets() const
+			{return m_subsetDims.size();}
+		inline size_t subset_dim(int si) const
+			{return m_subsetDims[si];}
 
-		inline int_t num_elements() const
+		inline size_t num_elements() const
 			{
 				int_t total = 0;
 				for(size_t i = 0; i < m_numElems.size(); ++i){
 					total += m_numElems[i];
 				}
-				return total;
+				return (size_t)total;
 			}
 
 		inline void set_info(GridBaseObjectId elemType,
