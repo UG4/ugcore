@@ -58,27 +58,29 @@ namespace ug{
 class DomainInfo
 {
 	public:
-		inline int element_type()	const							{return m_elementType;}
-		inline size_t num_levels() const							{return m_numElems.size();}
+		typedef unsigned long long int_t;
+
+		inline int element_type() const									{return m_elementType;}
+		inline int_t num_levels() const									{return (int_t)m_numElems.size();}
 	///	returns the global number of elements on the given level (excluding ghosts...)
-		inline int num_elements_on_level(size_t lvl) const			{return m_numElems[lvl];}
+		inline int_t num_elements_on_level(size_t lvl) const			{return m_numElems[lvl];}
 	///	returns the local number of elements on the given level (excluding ghosts...)
-		inline int num_local_elements_on_level(size_t lvl) const	{return m_numLocalElems[lvl];}
+		inline int_t num_local_elements_on_level(size_t lvl) const		{return m_numLocalElems[lvl];}
 	///	returns the minimum number of elements a process has on a given leven (excluding ghosts)
-		inline int min_num_local_elements_on_level(size_t lvl) const	{return m_minNumLocalElems[lvl];}
+		inline int_t min_num_local_elements_on_level(size_t lvl) const	{return m_minNumLocalElems[lvl];}
 	///	returns the maximum number of elements a process has on a given leven (excluding ghosts)
-		inline int max_num_local_elements_on_level(size_t lvl) const	{return m_maxNumLocalElems[lvl];}
+		inline int_t max_num_local_elements_on_level(size_t lvl) const	{return m_maxNumLocalElems[lvl];}
 	///	returns the local number of ghosts on the given level
-		inline int num_local_ghosts_on_level(size_t lvl) const		{return m_numLocalGhosts[lvl];}
+		inline int_t num_local_ghosts_on_level(size_t lvl) const		{return m_numLocalGhosts[lvl];}
 
-		inline int num_subsets() const
-			{return (int)m_subsetDims.size();}
-		inline int subset_dim(int si) const
-			{return m_subsetDims[si];}
+		inline int_t num_subsets() const
+			{return (int_t)m_subsetDims.size();}
+		inline int_t subset_dim(int si) const
+			{return (int_t)m_subsetDims[si];}
 
-		inline int num_elements() const
+		inline int_t num_elements() const
 			{
-				int total = 0;
+				int_t total = 0;
 				for(size_t i = 0; i < m_numElems.size(); ++i){
 					total += m_numElems[i];
 				}
@@ -86,12 +88,12 @@ class DomainInfo
 			}
 
 		inline void set_info(GridBaseObjectId elemType,
-								const std::vector<int>& numElems,
-								const std::vector<int>& numLocalElems,
-								const std::vector<int>& minNumLocalElems,
-								const std::vector<int>& maxNumLocalElems,
-								const std::vector<int>& numLocalGhosts,
-								const std::vector<int>& subsetDims)
+								const std::vector<int_t>& numElems,
+								const std::vector<int_t>& numLocalElems,
+								const std::vector<int_t>& minNumLocalElems,
+								const std::vector<int_t>& maxNumLocalElems,
+								const std::vector<int_t>& numLocalGhosts,
+								const std::vector<int_t>& subsetDims)
 			{m_elementType = elemType;
 			 m_numElems = numElems;
 			 m_numLocalElems = numLocalElems;
@@ -104,12 +106,12 @@ class DomainInfo
 
 	private:
 		GridBaseObjectId	m_elementType;
-		std::vector<int>	m_numElems;
-		std::vector<int>	m_numLocalElems;///< local number of elements excluding ghosts.
-		std::vector<int>	m_minNumLocalElems;
-		std::vector<int>	m_maxNumLocalElems;
-		std::vector<int>	m_numLocalGhosts;
-		std::vector<int>	m_subsetDims;
+		std::vector<int_t>	m_numElems;
+		std::vector<int_t>	m_numLocalElems;///< local number of elements excluding ghosts.
+		std::vector<int_t>	m_minNumLocalElems;
+		std::vector<int_t>	m_maxNumLocalElems;
+		std::vector<int_t>	m_numLocalGhosts;
+		std::vector<int_t>	m_subsetDims;
 };
 
 
@@ -265,7 +267,7 @@ class IDomain
 	/**	make sure that elements of the given type are contained in at most one
 	 * vmaster interface. This is always the case for highest dimensional elements.*/
 		template <class TElem>
-		void count_ghosts(std::vector<int>& numGhostsOnLvlOut);
+		void count_ghosts(std::vector<DomainInfo::int_t>& numGhostsOnLvlOut);
 #endif
 };
 

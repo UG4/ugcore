@@ -247,13 +247,14 @@ update_domain_info()
 	#endif
 
 //	the number of levels of the multi-grid is now equal on all processes
+	typedef DomainInfo::int_t int_t;
 
-	std::vector<int>	subsetDims;
+	std::vector<int_t>	subsetDims;
 	subsetDims.reserve(sh.num_subsets());
 	for(int i = 0; i < sh.num_subsets(); ++i)
-		subsetDims.push_back(sh.subset_info(i).get_property("dim").to_int());
+		subsetDims.push_back(sh.subset_info(i).get_property("dim").to_size_t());
 
-	std::vector<int> numLocalGhosts;
+	std::vector<int_t> numLocalGhosts;
 	#ifdef UG_PARALLEL
 		switch(elemType){
 			case VOLUME:
@@ -276,7 +277,7 @@ update_domain_info()
 		numLocalGhosts.resize(mg.num_levels(), 0);
 	#endif
 
-	std::vector<int>	numLocalElems;
+	std::vector<int_t>	numLocalElems;
 	numLocalElems.reserve(mg.num_levels());
 
 	switch(elemType){
@@ -301,7 +302,7 @@ update_domain_info()
 			break;
 	}
 
-	std::vector<int>	numGlobalElems, minNumLocalElems, maxNumLocalElems;
+	std::vector<int_t>	numGlobalElems, minNumLocalElems, maxNumLocalElems;
 	#ifdef UG_PARALLEL
 	//	we have to sum local element counts excluding ghosts.
 		numGlobalElems.resize(numLocalElems.size());
@@ -573,7 +574,7 @@ broadcast_refinement_projector (
 template <typename TGrid, typename TSubsetHandler>
 template <class TElem>
 void IDomain<TGrid,TSubsetHandler>::
-count_ghosts(std::vector<int>& numGhostsOnLvlOut)
+count_ghosts(std::vector<DomainInfo::int_t>& numGhostsOnLvlOut)
 {
 	TGrid& mg = *m_spGrid;
 	DistributedGridManager& dgm = *mg.distributed_grid_manager();
