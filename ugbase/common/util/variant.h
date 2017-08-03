@@ -85,21 +85,20 @@ namespace ug{
 class UG_API Variant{
 	public:
 		enum Type{
-			VT_INVALID,
-			VT_BOOL,
-			VT_INT,
-			VT_SIZE_T,
-			VT_UNSIGNED_LONG_LONG,
-			VT_FLOAT,
-			VT_DOUBLE,
-			VT_CSTRING,
-			VT_STDSTRING,
-			VT_POINTER,
-			VT_CONST_POINTER,
-			VT_SMART_POINTER ,
-			VT_CONST_SMART_POINTER
+			VT_INVALID = 0,
+			VT_BOOL = 1,
+			VT_INT = 2,
+			VT_SIZE_T = 3,
+			VT_FLOAT = 4,
+			VT_DOUBLE = 5,
+			VT_CSTRING = 6,
+			VT_STDSTRING = 7,
+			VT_POINTER = 8,
+			VT_CONST_POINTER = 9,
+			VT_SMART_POINTER = 10,
+			VT_CONST_SMART_POINTER = 11
 #ifdef UG_FOR_LUA
-			,VT_LUA_FUNCTION_HANDLE
+			,VT_LUA_FUNCTION_HANDLE = 12
 #endif
 		};
 
@@ -108,7 +107,6 @@ class UG_API Variant{
 		Variant(bool val);
 		Variant(int val);
 		Variant(size_t val);
-		Variant(unsigned long long val);
 		Variant(float val);
 		Variant(double val);
 		Variant(const char* val);
@@ -135,7 +133,6 @@ class UG_API Variant{
 		bool to_bool() const;
 		int to_int() const;
 		size_t to_size_t() const;
-		unsigned long long to_unsigned_long_long() const;
 		float to_float() const;
 		number to_number() const;
 		double to_double() const;
@@ -164,7 +161,6 @@ class UG_API Variant{
 			bool					m_bool;
 			int						m_int;
 			size_t					m_size_t;
-			unsigned long long		m_unsigned_long_long;
 			float					m_float;
 			double					m_double;
 			const char*				m_cstring;
@@ -184,7 +180,6 @@ class UG_API Variant{
 template <> inline bool 				Variant::to<bool>() const 					{return to_bool();}
 template <> inline int 					Variant::to<int>() const 					{return to_int();}
 template <> inline size_t 				Variant::to<size_t>() const 				{return to_size_t();}
-template <> inline unsigned long long	Variant::to<unsigned long long>() const		{return to_unsigned_long_long();}
 template <> inline float 				Variant::to<float>() const 					{return to_float();}
 template <> inline double 				Variant::to<double>() const 				{return to_double();}
 template <> inline const char* 			Variant::to<const char*>() const 			{return to_c_string();}
@@ -201,7 +196,6 @@ template <> inline LuaFunctionHandle 	Variant::to<LuaFunctionHandle>() const 		{
 template <> inline Variant::Type Variant::type<bool>() 					{return VT_BOOL;}
 template <> inline Variant::Type Variant::type<int>() 					{return VT_INT;}
 template <> inline Variant::Type Variant::type<size_t>() 				{return VT_SIZE_T;}
-template <> inline Variant::Type Variant::type<unsigned long long>()	{return VT_UNSIGNED_LONG_LONG;}
 template <> inline Variant::Type Variant::type<float>() 				{return VT_FLOAT;}
 template <> inline Variant::Type Variant::type<double>() 				{return VT_DOUBLE;}
 template <> inline Variant::Type Variant::type<const char*>() 			{return VT_CSTRING;}

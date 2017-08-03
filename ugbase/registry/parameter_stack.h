@@ -186,7 +186,6 @@ class ParameterInfo
 template <> struct ParameterInfo::PushType<bool>				{static void push(ParameterInfo* This){This->_push_type<bool>();}};
 template <> struct ParameterInfo::PushType<int>					{static void push(ParameterInfo* This){This->_push_type<int>();}};
 template <> struct ParameterInfo::PushType<size_t>				{static void push(ParameterInfo* This){This->_push_type<size_t>();}};
-template <> struct ParameterInfo::PushType<unsigned long long>	{static void push(ParameterInfo* This){This->_push_type<unsigned long long>();}};
 template <> struct ParameterInfo::PushType<float>				{static void push(ParameterInfo* This){This->_push_type<float>();}};
 template <> struct ParameterInfo::PushType<double>				{static void push(ParameterInfo* This){This->_push_type<double>();}};
 template <> struct ParameterInfo::PushType<const char*>			{static void push(ParameterInfo* This){This->_push_type<const char*>();}};
@@ -208,7 +207,6 @@ template <typename TClass> struct ParameterInfo::PushType<ConstSmartPtr<TClass> 
 template <> struct ParameterInfo::PushType<std::vector<bool> >			{static void push(ParameterInfo* This){This->_push_vector_type<bool>();}};
 template <> struct ParameterInfo::PushType<std::vector<int> >			{static void push(ParameterInfo* This){This->_push_vector_type<int>();}};
 template <> struct ParameterInfo::PushType<std::vector<size_t> >		{static void push(ParameterInfo* This){This->_push_vector_type<size_t>();}};
-template <> struct ParameterInfo::PushType<std::vector<unsigned long long> >	{static void push(ParameterInfo* This){This->_push_vector_type<unsigned long long>();}};
 template <> struct ParameterInfo::PushType<std::vector<float> >			{static void push(ParameterInfo* This){This->_push_vector_type<float>();}};
 template <> struct ParameterInfo::PushType<std::vector<double> >		{static void push(ParameterInfo* This){This->_push_vector_type<double>();}};
 template <> struct ParameterInfo::PushType<std::vector<const char*> >	{static void push(ParameterInfo* This){This->_push_vector_type<const char*>();}};
@@ -227,7 +225,6 @@ template <> struct ParameterInfo::PushType<std::vector<std::string>&>	{static vo
 template <> struct ParameterInfo::PushType<const std::vector<bool>&>		{static void push(ParameterInfo* This){This->_push_vector_type<bool>();}};
 template <> struct ParameterInfo::PushType<const std::vector<int>&>			{static void push(ParameterInfo* This){This->_push_vector_type<int>();}};
 template <> struct ParameterInfo::PushType<const std::vector<size_t>&>		{static void push(ParameterInfo* This){This->_push_vector_type<size_t>();}};
-template <> struct ParameterInfo::PushType<const std::vector<unsigned long long>&>	{static void push(ParameterInfo* This){This->_push_vector_type<unsigned long long>();}};
 template <> struct ParameterInfo::PushType<const std::vector<float>&>		{static void push(ParameterInfo* This){This->_push_vector_type<float>();}};
 template <> struct ParameterInfo::PushType<const std::vector<double>&>		{static void push(ParameterInfo* This){This->_push_vector_type<double>();}};
 template <> struct ParameterInfo::PushType<const std::vector<const char*>&>	{static void push(ParameterInfo* This){This->_push_vector_type<const char*>();}};
@@ -494,7 +491,6 @@ class ParameterStack : public ParameterInfo
 template <> struct ParameterStack::PushType<bool>			{static void push(ParameterStack* This, bool data)					{This->_push_native<bool>(data);}};
 template <> struct ParameterStack::PushType<int>			{static void push(ParameterStack* This, int data)					{This->_push_native<int>(data);}};
 template <> struct ParameterStack::PushType<size_t>			{static void push(ParameterStack* This, size_t data)				{This->_push_native<size_t>(data);}};
-template <> struct ParameterStack::PushType<unsigned long long>	{static void push(ParameterStack* This, unsigned long long data)	{This->_push_native<unsigned long long>(data);}};
 template <> struct ParameterStack::PushType<float>			{static void push(ParameterStack* This, float data)					{This->_push_native<float>(data);}};
 template <> struct ParameterStack::PushType<double>			{static void push(ParameterStack* This, double data)				{This->_push_native<double>(data);}};
 template <> struct ParameterStack::PushType<const char*>		{static void push(ParameterStack* This, const char* data)		{This->_push_native<const char*>(data);}};
@@ -508,7 +504,6 @@ template <> struct ParameterStack::PushType<LuaFunctionHandle>	{static void push
 template <> struct ParameterStack::PushType<std::vector<bool> >			{static void push(ParameterStack* This, const std::vector<bool>& spVec)			{This->push(SmartPtr<std::vector<bool> >(new std::vector<bool>(spVec)));}};
 template <> struct ParameterStack::PushType<std::vector<int> >			{static void push(ParameterStack* This, const std::vector<int>& spVec)			{This->push(SmartPtr<std::vector<int> >(new std::vector<int>(spVec)));}};
 template <> struct ParameterStack::PushType<std::vector<size_t> >		{static void push(ParameterStack* This, const std::vector<size_t>& spVec)		{This->push(SmartPtr<std::vector<size_t> >(new std::vector<size_t>(spVec)));}};
-template <> struct ParameterStack::PushType<std::vector<unsigned long long> >	{static void push(ParameterStack* This, const std::vector<unsigned long long>& spVec)	{This->push(SmartPtr<std::vector<unsigned long long> >(new std::vector<unsigned long long>(spVec)));}};
 template <> struct ParameterStack::PushType<std::vector<float> >		{static void push(ParameterStack* This, const std::vector<float>& spVec)		{This->push(SmartPtr<std::vector<float> >(new std::vector<float>(spVec)));}};
 template <> struct ParameterStack::PushType<std::vector<double> >		{static void push(ParameterStack* This, const std::vector<double>& spVec)		{This->push(SmartPtr<std::vector<double> >(new std::vector<double>(spVec)));}};
 template <> struct ParameterStack::PushType<std::vector<const char*> >	{static void push(ParameterStack* This, const std::vector<const char*>& spVec)	{This->push(SmartPtr<std::vector<const char*> >(new std::vector<const char*>(spVec)));}};
@@ -527,7 +522,6 @@ template <> struct ParameterStack::PushType<std::vector<std::string>& >	{static 
 template <> struct ParameterStack::PushType<const std::vector<bool>& >			{static void push(ParameterStack* This, const std::vector<bool>& spVec)			{This->push(SmartPtr<std::vector<bool> >(new std::vector<bool>(spVec)));}};
 template <> struct ParameterStack::PushType<const std::vector<int>& >			{static void push(ParameterStack* This, const std::vector<int>& spVec)			{This->push(SmartPtr<std::vector<int> >(new std::vector<int>(spVec)));}};
 template <> struct ParameterStack::PushType<const std::vector<size_t>& >		{static void push(ParameterStack* This, const std::vector<size_t>& spVec)		{This->push(SmartPtr<std::vector<size_t> >(new std::vector<size_t>(spVec)));}};
-template <> struct ParameterStack::PushType<const std::vector<unsigned long long>& >		{static void push(ParameterStack* This, const std::vector<unsigned long long>& spVec)		{This->push(SmartPtr<std::vector<unsigned long long> >(new std::vector<unsigned long long>(spVec)));}};
 template <> struct ParameterStack::PushType<const std::vector<float>& >			{static void push(ParameterStack* This, const std::vector<float>& spVec)		{This->push(SmartPtr<std::vector<float> >(new std::vector<float>(spVec)));}};
 template <> struct ParameterStack::PushType<const std::vector<double>& >		{static void push(ParameterStack* This, const std::vector<double>& spVec)		{This->push(SmartPtr<std::vector<double> >(new std::vector<double>(spVec)));}};
 template <> struct ParameterStack::PushType<const std::vector<const char*>& >	{static void push(ParameterStack* This, const std::vector<const char*>& spVec)	{This->push(SmartPtr<std::vector<const char*> >(new std::vector<const char*>(spVec)));}};
@@ -567,7 +561,6 @@ template<class T> struct ParameterStack::PushType<const std::vector<ConstSmartPt
 template <> struct ParameterStack::ToType<bool>				{static bool to(const ParameterStack* This, int index)					{return This->_to_native<bool>(index);}};
 template <> struct ParameterStack::ToType<int>				{static int to(const ParameterStack* This, int index)					{return This->_to_native<int>(index);}};
 template <> struct ParameterStack::ToType<size_t>			{static size_t to(const ParameterStack* This, int index)				{return This->_to_native<size_t>(index);}};
-template <> struct ParameterStack::ToType<unsigned long long>	{static unsigned long long to(const ParameterStack* This, int index)	{return This->_to_native<unsigned long long>(index);}};
 template <> struct ParameterStack::ToType<float>			{static float to(const ParameterStack* This, int index)					{return This->_to_native<float>(index);}};
 template <> struct ParameterStack::ToType<double>			{static double to(const ParameterStack* This, int index)				{return This->_to_native<double>(index);}};
 template <> struct ParameterStack::ToType<const char*>		{static const char* to(const ParameterStack* This, int index)			{return This->_to_native<const char*>(index);}};
@@ -595,7 +588,6 @@ template <class T> struct ParameterStack::ToType<ConstSmartPtr<T> >	{static Cons
 template<> struct ParameterStack::ToType<std::vector<bool> >		{static std::vector<bool> to(const ParameterStack* This, int index)			{return This->_to_native_vector<bool>(index);}};
 template<> struct ParameterStack::ToType<std::vector<int> >			{static std::vector<int> to(const ParameterStack* This, int index)			{return This->_to_native_vector<int>(index);}};
 template<> struct ParameterStack::ToType<std::vector<size_t> >		{static std::vector<size_t> to(const ParameterStack* This, int index)		{return This->_to_native_vector<size_t>(index);}};
-template<> struct ParameterStack::ToType<std::vector<unsigned long long> >	{static std::vector<unsigned long long> to(const ParameterStack* This, int index)	{return This->_to_native_vector<unsigned long long>(index);}};
 template<> struct ParameterStack::ToType<std::vector<float> >		{static std::vector<float> to(const ParameterStack* This, int index)		{return This->_to_native_vector<float>(index);}};
 template<> struct ParameterStack::ToType<std::vector<double> >		{static std::vector<double> to(const ParameterStack* This, int index)		{return This->_to_native_vector<double>(index);}};
 template<> struct ParameterStack::ToType<std::vector<const char*> >	{static std::vector<const char*> to(const ParameterStack* This, int index)	{return This->_to_native_vector<const char*>(index);}};
@@ -614,7 +606,6 @@ template<> struct ParameterStack::ToType<std::vector<std::string>&>	{static std:
 template<> struct ParameterStack::ToType<const std::vector<bool>&>			{static const std::vector<bool>& to(const ParameterStack* This, int index)			{return This->_to_native_vector<bool>(index);}};
 template<> struct ParameterStack::ToType<const std::vector<int>&>			{static const std::vector<int>& to(const ParameterStack* This, int index)			{return This->_to_native_vector<int>(index);}};
 template<> struct ParameterStack::ToType<const std::vector<size_t>&>		{static const std::vector<size_t>& to(const ParameterStack* This, int index)		{return This->_to_native_vector<size_t>(index);}};
-template<> struct ParameterStack::ToType<const std::vector<unsigned long long>&>		{static const std::vector<unsigned long long>& to(const ParameterStack* This, int index)		{return This->_to_native_vector<unsigned long long>(index);}};
 template<> struct ParameterStack::ToType<const std::vector<float>&>			{static const std::vector<float>& to(const ParameterStack* This, int index)			{return This->_to_native_vector<float>(index);}};
 template<> struct ParameterStack::ToType<const std::vector<double>&>		{static const std::vector<double>& to(const ParameterStack* This, int index)		{return This->_to_native_vector<double>(index);}};
 template<> struct ParameterStack::ToType<const std::vector<const char*>&>	{static const std::vector<const char*>& to(const ParameterStack* This, int index)	{return This->_to_native_vector<const char*>(index);}};

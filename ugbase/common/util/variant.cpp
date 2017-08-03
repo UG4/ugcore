@@ -56,11 +56,6 @@ Variant::Variant(size_t val) :
 	m_type(VT_SIZE_T)
 {}
 
-Variant::Variant(unsigned long long val) :
-	m_unsigned_long_long(val),
-	m_type(VT_UNSIGNED_LONG_LONG)
-{}
-
 Variant::Variant(float val) :
 	m_float(val),
 	m_type(VT_FLOAT)
@@ -154,9 +149,6 @@ void Variant::assign_variant(const Variant& v)
 		case VT_SIZE_T:
 			m_size_t = v.m_size_t;
 			break;
-		case VT_UNSIGNED_LONG_LONG:
-			m_unsigned_long_long = v.m_unsigned_long_long;
-			break;
 		case VT_FLOAT:
 			m_float = v.m_float;
 			break;
@@ -200,7 +192,6 @@ bool Variant::to_bool() const
 		case VT_BOOL:	return m_bool;
 		case VT_INT:	return m_int != 0;
 		case VT_SIZE_T:	return m_size_t != 0;
-		case VT_UNSIGNED_LONG_LONG:	return m_unsigned_long_long != 0;
 		case VT_FLOAT:	return m_float != 0;
 		case VT_DOUBLE:	return m_double != 0;
 		default: break;
@@ -217,7 +208,6 @@ int Variant::to_int() const
 		case VT_BOOL:	return (int)m_bool;
 		case VT_INT:	return m_int;
 		case VT_SIZE_T:	return (int)m_size_t;
-		case VT_UNSIGNED_LONG_LONG:	return (int)m_unsigned_long_long;
 		case VT_FLOAT:	return (int)m_float;
 		case VT_DOUBLE:	return (int)m_double;
 		default: break;
@@ -234,26 +224,10 @@ size_t Variant::to_size_t() const
 	switch(m_type){
 		case VT_BOOL:	return (size_t)m_bool;
 		case VT_SIZE_T:	return m_size_t;
-		case VT_UNSIGNED_LONG_LONG:	return (size_t)m_unsigned_long_long;
 		default: break;
 	}
 
-	UG_THROW("Variant: can't convert " << type_name() << " to size_t.");
-//	this should never be reached
-	return 0;
-}
-
-unsigned long long Variant::to_unsigned_long_long() const
-{
-	// note: we only allow save casts, i.e. not int->unsigned long long
-	switch(m_type){
-		case VT_BOOL:	return (unsigned long long)m_bool;
-		case VT_SIZE_T:	return (unsigned long long)m_size_t;
-		case VT_UNSIGNED_LONG_LONG:	return m_unsigned_long_long;
-		default: break;
-	}
-
-	UG_THROW("Variant: can't convert " << type_name() << " to unsigned long long.");
+	UG_THROW("Variant: can't convert " << type_name() << " to int.");
 //	this should never be reached
 	return 0;
 }
@@ -264,7 +238,6 @@ float Variant::to_float() const
 		case VT_BOOL:	return (float)m_bool;
 		case VT_INT:	return (float)m_int;
 		case VT_SIZE_T:	return (float)m_size_t;
-		case VT_UNSIGNED_LONG_LONG:	return (float)m_unsigned_long_long;
 		case VT_FLOAT:	return m_float;
 		case VT_DOUBLE:	return (float)m_double;
 		default: break;
@@ -281,7 +254,6 @@ number Variant::to_number() const
 		case VT_BOOL:	return (number)m_bool;
 		case VT_INT:	return (number)m_int;
 		case VT_SIZE_T:	return (number)m_size_t;
-		case VT_UNSIGNED_LONG_LONG:	return (number)m_unsigned_long_long;
 		case VT_FLOAT:	return (number)m_float;
 		case VT_DOUBLE:	return (number)m_double;
 		default: break;
@@ -298,7 +270,6 @@ double Variant::to_double() const
 		case VT_BOOL:	return (double)m_bool;
 		case VT_INT:	return (double)m_int;
 		case VT_SIZE_T:	return (double)m_size_t;
-		case VT_UNSIGNED_LONG_LONG:	return (double)m_unsigned_long_long;
 		case VT_FLOAT:	return (double)m_float;
 		case VT_DOUBLE:	return m_double;
 		default: break;
@@ -383,7 +354,6 @@ const char* Variant::type_name() const
 		case VT_INVALID:	return "invalid_type";
 		case VT_BOOL:		return "bool";
 		case VT_SIZE_T:		return "size_t";
-		case VT_UNSIGNED_LONG_LONG:		return "unsigned_long_long";
 		case VT_INT:		return "int";
 		case VT_FLOAT:		return "float";
 		case VT_DOUBLE:		return "double";
@@ -415,9 +385,6 @@ std::ostream& operator<< (std::ostream& outStream, const ug::Variant& v)
 			break;
 		case Variant::VT_SIZE_T:
 			outStream << v.to_size_t();
-			break;
-		case Variant::VT_UNSIGNED_LONG_LONG:
-			outStream << v.to_unsigned_long_long();
 			break;
 		case Variant::VT_FLOAT:
 			outStream << v.to_float();

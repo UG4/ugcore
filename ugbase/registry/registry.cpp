@@ -61,7 +61,6 @@ Registry::Registry()
 #ifdef UG_FOR_LUA
 	add_class_<LuaFunctionHandle>("c_LuaFunctionHandle");
 #endif
-	add_class_<unsigned long long>("c_unsigned_long_long");
 }
 
 Registry::Registry(const Registry& reg)
