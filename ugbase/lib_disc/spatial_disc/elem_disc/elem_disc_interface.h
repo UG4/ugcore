@@ -50,6 +50,7 @@
 #include "elem_modifier.h"
 #include "lib_disc/spatial_disc/elem_disc/err_est_data.h"
 #include "bridge/util_algebra_dependent.h"
+#include "lib_disc/common/multi_index.h"
 
 namespace ug{
 
@@ -68,14 +69,18 @@ enum ElemDiscType
 struct VectorProxyBase
 {
 	virtual ~VectorProxyBase() {};
+	virtual number evaluate(const DoFIndex& di) const = 0;
 };
 
 template <typename TVector>
 struct VectorProxy : public VectorProxyBase
 {
-	public:
-		VectorProxy(const TVector& v) : m_v(v) {}
-		const TVector& m_v;
+	VectorProxy(const TVector& v) : m_v(v) {}
+
+	virtual number evaluate(const DoFIndex& di) const {return DoFRef(m_v, di);}
+
+	const TVector& m_v;
+
 };
 
 /**
