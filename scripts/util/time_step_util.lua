@@ -352,7 +352,7 @@ function util.SolveNonlinearTimeProblem(
 				-- call post process
 				if newtonSuccess == true and postProcess ~= nil then
 					local pp_res
-					pp_res = postProcess(u, step, time, currdt)
+					pp_res = postProcess(u, step, timeDisc:future_time(), currdt)
 					if type(pp_res) == "boolean" and pp_res == false then -- i.e. not nil, not something else, but "false"!
 						write("\n++++++ PostProcess failed. ")
 						newtonSuccess = false
