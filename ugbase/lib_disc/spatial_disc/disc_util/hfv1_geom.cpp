@@ -1777,6 +1777,7 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 	}
 
 	// copy ip positions in list
+	m_vLocBFIP.clear();
 	m_vGlobBFIP.clear();
 	for (size_t i = 0; i < num_bf(); i++)
 	{
