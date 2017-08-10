@@ -44,6 +44,33 @@ namespace ug
 
 template<typename TDomain>
 void FV1InnerBoundaryElemDisc<TDomain>::
+set_flux_scale(number scale)
+{
+	set_flux_scale(make_sp(new ConstUserNumber<dim>(scale)));
+}
+
+
+template<typename TDomain>
+void FV1InnerBoundaryElemDisc<TDomain>::
+set_flux_scale(SmartPtr<CplUserData<number, dim> > scaleFct)
+{
+	m_fluxScale.set_data(scaleFct);
+	this->register_import(m_fluxScale);
+}
+
+#ifdef UG_FOR_LUA
+template<typename TDomain>
+void FV1InnerBoundaryElemDisc<TDomain>::
+set_flux_scale(const char* luaScaleFctName)
+{
+	set_flux_scale(LuaUserDataFactory<number,dim>::create(luaScaleFctName));
+}
+#endif
+
+
+
+template<typename TDomain>
+void FV1InnerBoundaryElemDisc<TDomain>::
 prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid)
 {
 	// check that Lagrange 1st order
@@ -69,7 +96,18 @@ template<typename TDomain>
 template<typename TElem, typename TFVGeom>
 void FV1InnerBoundaryElemDisc<TDomain>::
 prep_elem_loop(const ReferenceObjectID roid, const int si)
-{}
+{
+	//	set local positions
+	if (!TFVGeom::usesHangingNodes)
+	{
+		static const int refDim = TElem::dim;
+		static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
+		const MathVector<refDim>* vBFip = geo.bf_local_ips();
+		const size_t numBFip = geo.num_bf_local_ips();
+
+		m_fluxScale.template set_local_ips<refDim>(vBFip, numBFip, false);
+	}
+}
 
 
 template<typename TDomain>
@@ -94,12 +132,25 @@ prep_elem(const LocalVector& u, GridObject* elem, const ReferenceObjectID roid, 
 
 	// update Geometry for this element
 	static TFVGeom& geo = GeomProvider<TFVGeom>::get();
-	try
-	{
-		geo.update(elem, vCornerCoords, &(this->subset_handler()));
-	}
+	try {geo.update(elem, vCornerCoords, &(this->subset_handler()));}
 	UG_CATCH_THROW("FV1InnerBoundaryElemDisc::prep_elem: "
 						"Cannot update Finite Volume Geometry.");
+
+	// set local positions
+	if (TFVGeom::usesHangingNodes)
+	{
+		const int refDim = TElem::dim;
+		const MathVector<refDim>* vBFip = geo.bf_local_ips();
+		const size_t numBFip = geo.num_bf_local_ips();
+
+		m_fluxScale.template set_local_ips<refDim>(vBFip, numBFip);
+	}
+
+	//	set global positions
+	const MathVector<dim>* vBFip = geo.bf_global_ips();
+	const size_t numBFip = geo.num_bf_global_ips();
+
+	m_fluxScale.set_global_ips(vBFip, numBFip);
 }
 
 // assemble stiffness part of Jacobian
@@ -137,10 +188,14 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 			UG_THROW("FV1InnerBoundaryElemDisc::add_jac_A_elem:"
 							" Call to fluxDensityDerivFct resulted did not succeed.");
 		
-		// scale with volume of BF
+		// scale with volume of BF and flux scale (if applicable)
+		number scale = bf.volume();
+		if (m_fluxScale.data_given())
+			scale *= m_fluxScale[i];
+
 		for (size_t j=0; j<fdc.fluxDeriv.size(); j++)
 			for (size_t k=0; k<fdc.fluxDeriv[j].size(); k++)
-				fdc.fluxDeriv[j][k].second *= bf.volume();
+				fdc.fluxDeriv[j][k].second *= scale;
 		
 		// add to Jacobian
 		for (size_t j=0; j<fdc.fluxDeriv.size(); j++)
@@ -201,8 +256,13 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 						" Call to fluxDensityFct did not succeed.");
 		}
 
-		// scale with volume of BF
-		for (size_t j=0; j<fc.flux.size(); j++) fc.flux[j] *= bf.volume();
+		// scale with volume of BF and flux scale (if applicable)
+		number scale = bf.volume();
+		if (m_fluxScale.data_given())
+			scale *= m_fluxScale[i];
+
+		for (size_t j=0; j<fc.flux.size(); j++)
+			fc.flux[j] *= scale;
 
 		// add to defect
 		for (size_t j=0; j<fc.flux.size(); j++)
@@ -281,6 +341,9 @@ prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
 		}
 		UG_CATCH_THROW("Integration points for error estimator cannot be set.");
 
+		// set local IPs in import
+		m_fluxScale.template set_local_ips<refDim>(sideIPs, numSideIPs, false);
+
 		// store values of shape functions in local IPs
 		LagrangeP1<typename reference_element_traits<TElem>::reference_element_type> trialSpace
 					= Provider<LagrangeP1<typename reference_element_traits<TElem>::reference_element_type> >::get();
@@ -302,11 +365,13 @@ prep_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> 
 	// get error estimator
 	err_est_type* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
 
+	// roid
+	ReferenceObjectID roid = elem->reference_object_id();
+
 	// set local positions
 	if (TFVGeom::usesHangingNodes)
 	{
 		static const int refDim = TElem::dim;
-		ReferenceObjectID roid = elem->reference_object_id();
 
 		size_t numSideIPs;
 		const MathVector<refDim>* sideIPs;
@@ -317,6 +382,9 @@ prep_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> 
 		}
 		UG_CATCH_THROW("Integration points for error estimator cannot be set.");
 
+		// set local IPs in import
+		m_fluxScale.template set_local_ips<refDim>(sideIPs, numSideIPs);
+
 		// store values of shape functions in local IPs
 		LagrangeP1<typename reference_element_traits<TElem>::reference_element_type> trialSpace
 					= Provider<LagrangeP1<typename reference_element_traits<TElem>::reference_element_type> >::get();
@@ -325,6 +393,20 @@ prep_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> 
 		for (size_t ip = 0; ip < numSideIPs; ip++)
 			trialSpace.shapes(m_shapeValues.shapesAtSideIP(ip), sideIPs[ip]);
 	}
+
+	// set global positions
+	size_t numSideIPs;
+	MathVector<dim>* sideIPs;
+
+	try
+	{
+		numSideIPs = err_est_data->get(0)->num_side_ips(roid);
+		sideIPs = err_est_data->get(0)->side_global_ips(elem, vCornerCoords);
+	}
+	UG_CATCH_THROW("Global integration points for error estimator cannot be set.");
+
+	// set local IPs in import
+	m_fluxScale.set_global_ips(&sideIPs[0], numSideIPs);
 }
 
 //	computes the error estimator contribution for one element
@@ -381,6 +463,12 @@ compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<
 				UG_THROW("FV1InnerBoundaryElemDisc::compute_err_est_A_elem:"
 							" Call to fluxDensityFct did not succeed.");
 			}
+
+			// scale fluxes if applicable
+			if (m_fluxScale.data_given())
+				for (size_t j = 0; j < fc.flux.size(); ++j)
+					fc.flux[j] *= m_fluxScale[sip];
+
 
 			// subtract from estimator values
 			// sign must be opposite of that in add_def_A_elem

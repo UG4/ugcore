@@ -185,7 +185,16 @@ static void Domain(Registry& reg, string grp)
 		typedef FV1InnerBoundaryElemDisc<TDomain> T;
 		typedef IElemDisc<TDomain> TBase;
 		string name = string("FV1InnerBoundary").append(suffix);
-		reg.add_class_<T, TBase >(name, elemGrp);
+		reg.add_class_<T, TBase >(name, elemGrp)
+			.add_method("set_flux_scale", static_cast<void (T::*)(number)>(&T::set_flux_scale),
+				"", "scale", "Set scale to scale (all) fluxes with.")
+			.add_method("set_flux_scale", static_cast<void (T::*)(SmartPtr<CplUserData<number, dim> >)>(&T::set_flux_scale),
+				"", "scale", "Set scale to scale (all) fluxes with.")
+#ifdef UG_FOR_LUA
+			.add_method("set_flux_scale", static_cast<void (T::*)(const char*)>(&T::set_flux_scale),
+				"", "scale", "Set scale to scale (all) fluxes with.")
+#endif
+			;
 		reg.add_class_to_group(name, "FV1InnerBoundary", tag);
 	}
 

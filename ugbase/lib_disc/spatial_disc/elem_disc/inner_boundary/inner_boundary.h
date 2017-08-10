@@ -140,6 +140,13 @@ class FV1InnerBoundaryElemDisc
     /// Setting the flux function
         //void set_fluxFunction(UserData<number, dim>& fluxFct) {m_fluxFct.set_data(fluxFct);}
 	
+	/// Setting a scaling factor for the flux
+		void set_flux_scale(number scale);
+		void set_flux_scale(SmartPtr<CplUserData<number, dim> > scaleFct);
+#ifdef UG_FOR_LUA
+		void set_flux_scale(const char* luaScaleFctName);
+#endif
+
 	public:	// inherited from IElemDisc
 	///	type of trial space for each function used
 		virtual void prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid);
@@ -221,6 +228,9 @@ class FV1InnerBoundaryElemDisc
 	///	postprocesses the loop over all elements of one type in the computation of the error estimator
 		template <typename TElem, typename TFVGeom>
 		void fsh_err_est_elem_loop();
+
+	private:
+		DataImport<number, dim> m_fluxScale;  // data import for scaling of fluxes
 
 	private:
 		void register_all_fv1_funcs();
