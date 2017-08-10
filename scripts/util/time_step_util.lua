@@ -333,11 +333,11 @@ function util.SolveNonlinearTimeProblem(
 					if timeScheme:lower() == "bdf" and step < orderOrTheta then
 						print("++++++ BDF: Increasing order to "..step+1)
 						timeDisc:set_order(step+1)
-						solTimeSeries:push(u:clone(), time)
+						solTimeSeries:push(u:clone(), timeDisc:future_time())
 					else 
 						local oldestSol = solTimeSeries:oldest()
 						VecAssign(oldestSol, u)
-						solTimeSeries:push_discard_oldest(oldestSol, time)
+						solTimeSeries:push_discard_oldest(oldestSol, timeDisc:future_time())
 					end
 					
 					if not (bFinishTimeStep == nil) and bFinishTimeStep then 
