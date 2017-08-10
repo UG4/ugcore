@@ -722,7 +722,8 @@ void CalculateSmoothManifoldPosInParentLevelLoopScheme(MultiGrid& mg, MGSubsetHa
 				{
 					if(associatedManifoldFaces[i]->num_vertices() != 3)
 					{
-						UG_THROW("ERROR in CalculateSmoothManifoldPosInParentLevel: Non triangular faces included in grid.");
+						UG_THROW("ERROR in CalculateSmoothManifoldPosInParentLevel: "
+							"Non triangular faces included in grid: " << ElementDebugInfo(mg, associatedManifoldFaces[i]));
 					}
 				}
 
@@ -1429,6 +1430,8 @@ void InitLinearManifoldSubsetHandler(MultiGrid& mg, MGSubsetHandler& sh,
 	for(size_t i = 0; i < linearManifoldSubsetsString.size(); ++i)
 	{
 		int j = sh.get_subset_index(linearManifoldSubsetsString[i].c_str());
+		UG_COND_THROW(j < 0, "Linear manifold subset named '"
+			<< linearManifoldSubsetsString[i] << "' could not be identified.");
 
 		for(VertexIterator vrtIter = sh.begin<Vertex>(j, mg.top_level()); vrtIter != sh.end<Vertex>(j, mg.top_level()); ++vrtIter)
 		{
