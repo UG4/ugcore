@@ -459,8 +459,9 @@ static void DomainAlgebra(Registry& reg, string grp)
 						"", "")
 			.add_method("set_rest_check", &T::set_rest_check,
 						"", "minDefect#relReduction")
-			.add_method("set_verbose", &T::set_verbose, 
-						"", "Verbosity")
+			.add_method("set_verbose", &T::set_verbose, "", "verbosity")
+			.add_method("set_supress_unsuccessful", &T::set_supress_unsuccessful,
+						"", "", "whether to always report success when iteration is finished")
 			.add_method("defect", (number (T::*)(size_t) const) &T::defect, 
 			            "defect", "function index", "returns the current defect")
 			.add_method("step", &T::step,  

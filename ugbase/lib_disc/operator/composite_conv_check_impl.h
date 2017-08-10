@@ -49,7 +49,8 @@ CompositeConvCheck(SmartPtr<ApproximationSpace<TDomain> > spApproxSpace)
  :	m_spApprox(spApproxSpace),
   	m_bCheckRest(true), m_restMinDefect(1-12), m_restRelReduction(1-10),
 	m_currentStep(0), m_maxSteps(100),
-	m_verbose(true), m_offset(0), m_symbol('%'), m_name("Iteration"), m_info(""),
+	m_verbose(true), m_supress_unsuccessful(false),
+	m_offset(0), m_symbol('%'), m_name("Iteration"), m_info(""),
 	m_bTimeMeas(true), m_bAdaptive(false)
 {
 	set_level(GridLevel::TOP);
@@ -62,7 +63,8 @@ CompositeConvCheck(SmartPtr<ApproximationSpace<TDomain> > spApproxSpace,
  :	m_spApprox(spApproxSpace),
   	m_bCheckRest(true), m_restMinDefect(minDefect), m_restRelReduction(relReduction),
 	m_currentStep(0), m_maxSteps(maxSteps),
-	m_verbose(true), m_offset(0), m_symbol('%'), m_name("Iteration"), m_info(""),
+	m_verbose(true), m_supress_unsuccessful(false),
+	m_offset(0), m_symbol('%'), m_name("Iteration"), m_info(""),
 	m_bTimeMeas(true), m_bAdaptive(false)
 {
 	set_level(GridLevel::TOP);
@@ -691,7 +693,7 @@ bool CompositeConvCheck<TVector, TDomain>::post()
 		UG_LOG("\n\n");
 	}
 
-	return success;
+	return success || m_supress_unsuccessful;
 }
 
 

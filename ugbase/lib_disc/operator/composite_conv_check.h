@@ -151,6 +151,9 @@ class CompositeConvCheck : public IConvergenceCheck<TVector>
 	///	sets if verbose
 		void set_verbose(bool level) {m_verbose = level;};
 
+	/// set whether always to report success when max iter is reached (useful for LIMEX)
+		void set_supress_unsuccessful(bool bsupress) {m_supress_unsuccessful = bsupress;}
+
 	///	enables time measurement
 		void set_time_measurement(bool yesOrNo) {m_bTimeMeas = yesOrNo;};
 
@@ -276,6 +279,9 @@ class CompositeConvCheck : public IConvergenceCheck<TVector>
 	protected:
 		/// verbose level
 		bool m_verbose;
+
+		/// whether to always report success once max iter is reached
+		bool m_supress_unsuccessful;
 
 		/// number of spaces inserted before output
 		int m_offset;
