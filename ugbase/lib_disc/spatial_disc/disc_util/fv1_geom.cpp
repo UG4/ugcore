@@ -631,7 +631,11 @@ static void ComputeBFMidID(const TRefElem& rRefElem, int side,
 	const int coOfSide = rRefElem.num(dim-1, side, 0);
 
 	// 	set mid ids
-	if(dim == 2)
+	if (dim == 1)
+	{
+		vMidID[0] = MidID(0, rRefElem.id(0, side, 0, co));
+	}
+	else if(dim == 2)
 	{
 		vMidID[co%2] = MidID(0, rRefElem.id(1, side, 0, co)); // corner of side
 		vMidID[(co+1)%2] = MidID(1, side); // side midpoint
