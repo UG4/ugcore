@@ -54,6 +54,7 @@
 #include "lib_disc/operator/linear_operator/assembled_linear_operator.h"
 #include "lib_disc/operator/non_linear_operator/assembled_non_linear_operator.h"
 #include "lib_disc/operator/non_linear_operator/line_search.h"
+#include "lib_disc/operator/linear_operator/nested_iteration/nested_iteration.h"
 #include "lib_disc/operator/non_linear_operator/newton_solver/newton.h"
 #include "lib_disc/operator/non_linear_operator/nl_gauss_seidel/nl_gauss_seidel.h"
 #include "lib_disc/operator/non_linear_operator/nl_jacobi/nl_jacobi.h"
@@ -247,6 +248,7 @@ static void Algebra(Registry& reg, string parentGroup)
 		reg.add_class_to_group(name, "AssembledLinearOperator", tag);
 	}
 	
+
 //	NewtonSolver
 	{
 		std::string grp = parentGroup; grp.append("/Discretization/Nonlinear");
@@ -417,7 +419,7 @@ static void Algebra(Registry& reg, string parentGroup)
  * @param parentGroup		group for sorting of functionality
  */
 template <typename TDomain, typename TAlgebra>
-static void DomainAlgebra(Registry& reg, string grp)
+static void DomainAlgebra(Registry& reg, string parentGroup)
 {
 	//	typedefs for Vector and Matrix
 	typedef typename TAlgebra::vector_type vector_type;
@@ -427,6 +429,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 	// 	CompositeConvCheck
 	{
+		std::string &grp = parentGroup;
 		typedef CompositeConvCheck<vector_type, TDomain> T;
 		typedef IConvergenceCheck<vector_type> TBase;
 		string name = string("CompositeConvCheck").append(suffix);
@@ -479,7 +482,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 	//	NonlinearGaussSeidelSolver
 	{
-		grp.append("/Discretization/Nonlinear");
+		std::string grp = parentGroup; grp.append("/Discretization/Nonlinear");
 		typedef NLGaussSeidelSolver<TDomain, TAlgebra> T;
 		typedef IOperatorInverse<vector_type> TBase;
 		typedef DebugWritingObject<TAlgebra> TBase2;
@@ -500,9 +503,46 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "NLGaussSeidelSolver", tag);
 	}
 
+	//	NestedIterationSolver
+	{
+		std::string grp = parentGroup; grp.append("/Discretization");
+		typedef NestedIterationSolver<TDomain, TAlgebra> T;
+		typedef IOperatorInverse<vector_type> TBase;
+		typedef DebugWritingObject<TAlgebra> TBase2;
+		string name = string("NestedIterationSolver").append(suffix);
+		reg.add_class_<T, TBase, TBase2>(name, grp)
+							.add_constructor()
+							.template add_constructor<void (*)(SmartPtr<IOperator<vector_type> >)>("Operator")
+							.template add_constructor<void (*)(SmartPtr<IAssemble<TAlgebra> >)>("AssemblingRoutine")
+							.template add_constructor<void (*)(SmartPtr<IAssemble<TAlgebra> >, SmartPtr<IAssemble<TAlgebra> >)>("AssemblingRoutine#ErrorRoutine")
+							.add_method("set_linear_solver", &T::set_linear_solver, "", "linSolver")
+						// 	.add_method("set_convergence_check", &T::set_convergence_check, "", "convCheck")
+							.add_method("init", &T::init, "success", "op")
+							.add_method("prepare", &T::prepare, "success", "u")
+							.add_method("apply", &T::apply, "success", "u")
+							.add_method("top_level", &T::top_level)
+							.add_method("set_top_level", &T::set_top_level)
+							.add_method("base_level", &T::base_level)
+							.add_method("set_base_level", &T::set_base_level)
+							.add_method("set_refiner", &T::set_refiner)
+							.add_method("set_refinement_marking", &T::set_refinement_marking)
+							.add_method("set_tolerance", &T::set_tolerance)
+							.add_method("set_max_steps", &T::set_max_steps)
+							.add_method("last_error", &T::last_error)
+							.add_method("set_debug_elem_error", &T::set_debug_elem_error)
+
+							.add_method("use_adaptive_refinement", &T::use_adaptive_refinement)
+							.add_method("enable_adaptive_refinement", &T::enable_adaptive_refinement)
+							.add_method("disable_adaptive_refinement", &T::disable_adaptive_refinement)
+							.add_method("config_string", &T::config_string)
+							.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "NestedIterationSolver", tag);
+	}
+
 	//	LagrangeMultiplierDisc base class
 	typedef GridFunction<TDomain, TAlgebra> function_type;
 	{
+		std::string &grp = parentGroup;
 		typedef ILagrangeMultiplierDisc<TDomain, function_type> T;
 		string name = string("ILagrangeMultiplierDisc").append(suffix);
 		reg.add_class_<T>(name, grp)
@@ -512,6 +552,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 	//	ActiveSet
 	{
+		std::string &grp = parentGroup;
 		typedef ActiveSet<TDomain, TAlgebra> T;
 		string name = string("ActiveSet").append(suffix);
 		reg.add_class_<T>(name, grp)
@@ -539,9 +580,9 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 }
 
-static void Common(Registry& reg, string parentgroup)
+static void Common(Registry& reg, string parentGroup)
 {
-	std::string grp = parentgroup; grp.append("/Discretization/Nonlinear");
+	std::string grp = parentGroup; grp.append("/Discretization/Nonlinear");
 	//  INewtonUpdate
 	{
 		typedef INewtonUpdate T;
