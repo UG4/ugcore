@@ -428,10 +428,25 @@ void LocalFiniteElementProvider::create_mini_bubble_set(const LFEID& id)
 
 //	if refdim == dim create the space
 	if(dim == id.dim()){
+
 		if(id == LFEID(LFEID::MINI, dim, 1))
 			register_set(id,  ConstSmartPtr<LocalShapeFunctionSet<dim> >(
 						 new LocalShapeFunctionSetWrapper<MiniBubbleLSFS<TRefElem> >));
 		return;
+
+		/*
+		ConstSmartPtr<LocalShapeFunctionSet<dim> > set;
+
+		switch(id.order()){
+			case 1: set = ConstSmartPtr<LocalShapeFunctionSet<dim> >
+						(new LocalShapeFunctionSetWrapper<MiniBubbleLSFS<TRefElem> >);
+					break;
+			case 2: set = ConstSmartPtr<LocalShapeFunctionSet<dim> >
+						(new LocalShapeFunctionSetWrapper<MiniBubbleLSFS<TRefElem,2> >);
+					break;
+
+		}*/
+
 	}
 //	if refdim < dim, the restriction of to the subelement is the lagrange space
 //	of the refdim

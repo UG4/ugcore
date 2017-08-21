@@ -109,6 +109,7 @@ LFEID ConvertStringToLFEID(const char* type, int dim)
 	}
 	else if(typeStr == "mini"){
 		eType = LFEID::MINI;
+		// order = 1;
 		UG_THROW("Unspecified order for MINI approximation space.\n");
 	}
 	else if(typeStr == "nedelec"){
