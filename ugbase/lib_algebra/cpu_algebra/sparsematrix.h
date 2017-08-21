@@ -639,6 +639,7 @@ protected:
     mutable int iIterators;
 
 #ifdef CHECK_ROW_ITERATORS
+public:
     mutable std::vector<int> nrOfRowIterators;
 #endif
 };
