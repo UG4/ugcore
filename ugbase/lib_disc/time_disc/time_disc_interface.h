@@ -53,7 +53,7 @@ namespace ug{
 /**
  * Defines the time discretization interface.
  *
- * This class uses a ISpatialDiscratization in order to implement the
+ * This class uses a ISpatialDiscretization in order to implement the
  * IAssemble interface.
  *
  * After the method prepare step has been called, Jacobian/Defect can be computed.
