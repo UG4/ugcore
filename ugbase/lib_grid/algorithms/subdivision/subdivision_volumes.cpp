@@ -221,9 +221,6 @@ void PrintSubdivisionVolumesRefinementMask()
 //		UG_LOG(std::endl);
 //	}
 
-//
-// -----------------------------------------------------------------------------
-//
 	const size_t n = 3;
 
 	double lin[n][n];
