@@ -41,7 +41,6 @@
 #include "common/util/metaprogramming_util.h"
 #include "lib_grid/grid/grid_base_objects.h"
 #include "common/util/provider.h"
-#include "../local_dof_set.h"
 #include "lib_disc/reference_element/reference_element_util.h"
 #include "lib_disc/common/multi_index.h"
 
@@ -116,7 +115,7 @@ class MiniBubbleLDS : public LocalDoFSet
 		size_t nsh;
 
 	///	order
-		size_t p;
+	///	size_t p;
 
 	///	association to elements
 		std::vector<LocalDoF> m_vLocalDoF;
@@ -222,7 +221,7 @@ class MiniBubbleLSFS<ReferenceTriangle>
 {
 	public:
 	///	Order of Shape functions
-		static const size_t order = 1;
+		static const size_t order = 2;
 
 	///	Dimension, where shape functions are defined
 		static const int dim = 2;
@@ -297,7 +296,9 @@ class MiniBubbleLSFS<ReferenceTriangle>
 				case 2:	g[0] = 0.0;
 						g[1] = 1.0; return;
 				case 3: g[0] = 27*x[1]*(1.0-x[1]-2.0*x[0]);
-						g[1] = 27*x[0]*(1.0-x[0]-2.0*x[1]); return;
+						g[1] = 27*x[0]*(1.0-x[0]-2.0*x[1]);
+						std::cout << "MiniGrad: " << g[0] << ","<< g[1] << "at"<< x[0]<< ","<< x[1]<< std::endl;
+						return;
 				default: UG_THROW("MiniLSFS: shape function "<<i<<
 									" not found. Only "<<nsh<<" shapes present.");
 			}
@@ -308,7 +309,7 @@ class MiniBubbleLSFS<ReferenceTriangle>
 ////////////////////////////////////////////////////////////////////////////////
 //	ReferenceQuadrilateral
 //
-//  function space: span {1,x,y,x^2-y^2}+ 2 bubbles
+//  function space: span {1,x,y,x^2-y^2} + 2 bubbles
 //  ref: Wen Bai, CMAME 143 (1997), 41-47
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -323,13 +324,13 @@ class MiniBubbleLSFS<ReferenceQuadrilateral>
 
 	public:
 	///	Order of Shape functions
-		static const size_t order = 1;
+		static const size_t order = 2;
 
 	///	Dimension, where shape functions are defined
 		static const int dim = 2;
 
 	/// Number of shape functions
-		static const size_t nsh = 6;
+		static const size_t nsh = 5;
 
 	public:
 	///	Shape type
@@ -356,16 +357,16 @@ class MiniBubbleLSFS<ReferenceQuadrilateral>
 		{
 			switch(i)
 			{
-				case 0:	pos[0] = -1.0;
-						pos[1] = -1.0; return true;
+				case 0:	pos[0] = 0.0;
+						pos[1] = 0.0; return true;
 				case 1:	pos[0] = 1.0;
-						pos[1] = -1.0; return true;
+						pos[1] = 0.0; return true;
 				case 2:	pos[0] = 1.0;
 						pos[1] = 1.0; return true;
-				case 3: pos[0] = -1.0;
+				case 3: pos[0] = 0.0;
 						pos[1] = 1.0; return true;
-				case 4: pos[0] = 0.0;
-						pos[1] = 0.0; return true;
+				case 4: pos[0] = 0.5;
+						pos[1] = 0.5; return true;
 				case 5: pos[0] = SQRT_FIVTH;
 						pos[1] = SQRT_FIVTH; return true;
 
@@ -381,12 +382,13 @@ class MiniBubbleLSFS<ReferenceQuadrilateral>
 
 			switch(i)
 			{
-				case 0:	return (1.0-x[0])*(1.0-x[1])*0.25;
-				case 1:	return (1.0+x[0])*(1.0-x[1])*0.25;
-				case 2:	return (1.0+x[0])*(1.0+x[1])*0.25;
-				case 3:	return (1.0+x[1])*(1.0-x[0])*0.25;
-				// two (condensable) bubbles
-				case 4:	return (1.0-x[0]*x[0])*(1.0-x[1]*x[1]);
+				case 0:	return (1.0-x[0])*(1.0-x[1]);
+				case 1:	return x[0]*(1.0-x[1]);
+				case 2:	return x[0]*x[1];
+				case 3:	return x[1]*(1.0-x[0]);
+
+				// two bubbles (condensable)
+				case 4:	return x[0]*(1.0-x[0])*x[1]*(1.0-x[1]);
 				case 5:	return (1.0-x[0]*x[0])*(1.0-x[1]*x[1])*(x[0]+x[1])/(0.8*0.8*2.0)*SQRT_FIVTH; // max: sqrt(1/5) = sqrt(5)/5
 
 				default: UG_THROW("MiniLSFS: shape function "<<i<<
@@ -401,17 +403,17 @@ class MiniBubbleLSFS<ReferenceQuadrilateral>
 
 			switch(i)
 			{
-				case 0:	g[0] = -0.25*(1.0-x[1]);
-						g[1] = -0.25*(1.0-x[0]); return;
-				case 1:	g[0] = 0.25*(1.0-x[1]);
-						g[1] = -0.25*(1.0+x[0]); return;
-				case 2:	g[0] = 0.25*(1.0+x[1]);
-						g[1] = 0.25*(1.0+x[0]); return;
-				case 3: g[0] = -0.25*(1.0+x[1]);
-						g[1] = 0.25*(1.0-x[0]); return;
+				case 0:	g[0] = -(1.0-x[1]);
+						g[1] = -(1.0-x[0]); return;
+				case 1:	g[0] = (1.0-x[1]);
+						g[1] = -(0.0+x[0]); return;
+				case 2:	g[0] = (0.0+x[1]);
+						g[1] = (0.0+x[0]); return;
+				case 3: g[0] = -(0.0+x[1]);
+						g[1] = (1.0-x[0]); return;
 				// bubble 1
-				case 4: g[0] = 2.0*(x[1]*x[1]-1.0)*x[0];
-						g[1] = 2.0*(x[0]*x[0]-1.0)*x[1]; return;
+				case 4: g[0] = (1.0-2.0*x[0])*x[1]*(1.0-x[1]);
+						g[1] = x[0]*(1.0-x[0])*(1.0-2.0*x[1]); return;
 				// bubble 2, grad = 3*x^2*(y^2-1) + 2xy*(y^2-1) -(y^2-1) = (y^2-1)*(3*x^2+2xy-1)
 				case 5: g[0] =(x[1]*x[1]-1.0)*(3.0*x[0]*x[0]+2.0*x[0]*x[1]-1.0)/(0.8*0.8*2.0)*SQRT_FIVTH;
 						g[1] =(x[0]*x[0]-1.0)*(3.0*x[1]*x[1]+2.0*x[1]*x[0]-1.0)/(0.8*0.8*2.0)*SQRT_FIVTH; return;

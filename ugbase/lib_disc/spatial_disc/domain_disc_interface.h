@@ -44,7 +44,72 @@ namespace ug {
 /// \ingroup lib_disc_domain_assemble
 /// @{
 
-/// Interface for domain disretization
+/// Interface for an object that can estimate the (global) error
+template <typename TAlgebra>
+class IDomainErrorIndicator
+{
+public:
+	/// Type of algebra vector
+	typedef typename TAlgebra::vector_type vector_type;
+
+	// (virtual) destructor
+	virtual ~IDomainErrorIndicator() {};
+
+	/// computes the error estimator
+		/**
+		 * Computes the error estimator.
+		 *
+		 * \param[in]  u			vector of the solution to estimate the error for
+		 * \param[in]  dd 			DoF Distribution
+		 */
+			virtual	void calc_error
+			(	const vector_type& u,
+				const GridLevel& gl,
+				vector_type* u_vtk = NULL
+			) = 0;
+			virtual void calc_error
+			(	const vector_type& u,
+				ConstSmartPtr<DoFDistribution> dd,
+				vector_type* u_vtk = NULL
+			) = 0;
+			virtual void calc_error
+			(	ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+				ConstSmartPtr<DoFDistribution> dd, std::vector<number> vScaleMass,
+				std::vector<number> vScaleStiff,
+				vector_type* u_vtk
+			) = 0;
+			virtual void calc_error
+			(	ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+				std::vector<number> vScaleMass,
+				std::vector<number> vScaleStiff,
+				const GridLevel& gl,
+				vector_type* u_vtk
+			) = 0;
+
+	/// marks error indicators as invalid
+	virtual void invalidate_error() = 0;
+
+	/// returns whether current error values are valid
+	virtual bool is_error_valid() = 0;
+};
+
+/// Interface for an object that can mark elements based on a strategy
+template <typename TDomain>
+class IDomainMarker
+{
+public:
+	/// Type of algebra vector
+	typedef IElementMarkingStrategy<TDomain> element_marking_strategy_type;
+
+	// (virtual) destructor
+	virtual ~IDomainMarker() {};
+
+	virtual void mark_with_strategy
+	(	IRefiner& refiner,
+		SmartPtr<element_marking_strategy_type> spMarkingStrategy
+	) = 0 ;
+};
+/// Interface for domain discretization
 /**
  * This class is the interface for spatial discretizations. It can be used
  * in the stationary case as well as for the domain dependent part of an
@@ -58,7 +123,7 @@ namespace ug {
  * \tparam		TAlgebra			Algebra Type
  */
 template <typename TAlgebra>
-class IDomainDiscretization : public IAssemble<TAlgebra>
+class IDomainDiscretization : public IAssemble<TAlgebra>, public IDomainErrorIndicator<TAlgebra>
 {
 	using IAssemble<TAlgebra>::assemble_rhs;
 	
@@ -315,42 +380,8 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 		void finish_timestep_elem(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol)
 			{finish_timestep_elem(vSol, GridLevel());}
 
-	/// computes the error estimator
-	/**
-	 * Computes the error estimator.
-	 *
-	 * \param[in]  u			vector of the solution to estimate the error for
-	 * \param[in]  dd 			DoF Distribution
-	 */
-		virtual	void calc_error
-		(	const vector_type& u,
-			const GridLevel& gl,
-			vector_type* u_vtk = NULL
-		) = 0;
-		virtual void calc_error
-		(	const vector_type& u,
-			ConstSmartPtr<DoFDistribution> dd,
-			vector_type* u_vtk = NULL
-		) = 0;
-		virtual void calc_error
-		(	ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
-			ConstSmartPtr<DoFDistribution> dd, std::vector<number> vScaleMass,
-			std::vector<number> vScaleStiff,
-			vector_type* u_vtk
-		) = 0;
-		virtual void calc_error
-		(	ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
-			std::vector<number> vScaleMass,
-			std::vector<number> vScaleStiff,
-			const GridLevel& gl,
-			vector_type* u_vtk
-		) = 0;
 
-	/// marks error indicators as invalid
-		virtual void invalidate_error() = 0;
 
-	/// returns whether current error values are valid
-		virtual bool is_error_valid() = 0;
 
 	///	returns the number of post processes
 		virtual size_t num_constraints() const = 0;

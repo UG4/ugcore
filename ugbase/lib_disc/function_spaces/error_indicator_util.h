@@ -41,6 +41,14 @@ namespace ug{
 
 
 /// helper function that computes min/max and total of error indicators
+/**
+ * @param[out] min		minimal eta_i
+ * @param[out] max		maximal eta_i
+ * @param[out] sum		sum of eta_i
+ * @param[out] errSq	sum of eta_i^2
+ * @param[out] numElem	number of elements
+ * @return				average eta
+ */
 template<typename TElem>
 number ComputeAvg
 (	MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >& aaError,
@@ -115,6 +123,13 @@ number ComputeAvg
 
 
 /// helper function that computes min/max and total of error indicators
+/**
+ * @param[out] min		minimal eta_i^2
+ * @param[out] max		maximal eta_i^2
+ * @param[out] totalErr	sum of eta_i^2
+ * @param[out] numElem	number of elements
+ *
+ */
 template<typename TElem>
 void ComputeMinMax
 (	MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >& aaError,

@@ -396,6 +396,7 @@ void MatAddNonDirichlet(matrix_type &M, number alpha1, const matrix_type &A, num
 	for(size_t i=0; i < A.num_rows(); i++)
 	{
 		con.clear();
+		{
 		criterator itA = A.begin_row(i), endA = A.end_row(i);
 		criterator itB = B.begin_row(i), endB = B.end_row(i);
 
@@ -460,7 +461,7 @@ void MatAddNonDirichlet(matrix_type &M, number alpha1, const matrix_type &A, num
 			++itB;
 			con.push_back(c);
 		}
-
+	}
 		M.set_matrix_row(i, &con[0], con.size());
 	}
 	M.defragment();
@@ -1070,6 +1071,23 @@ size_t GetMaxConnections(const TSparseMatrix &A)
 	return m;
 }
 
+
+template<typename TSparseMatrix>
+bool CheckRowIterators(const TSparseMatrix &A)
+{
+#ifndef NDEBUG
+	bool iIter=0;
+
+	for(size_t i=0; i<A.num_rows(); i++)
+	{
+		if (A.nrOfRowIterators[i] !=0) UG_LOG ("CheckRowIterators: Failed for row " << i << std::endl);
+		iIter += A.nrOfRowIterators[i];
+	}
+	return iIter==0;
+#else
+	return true;
+#endif
+}
 
 template<typename TSparseMatrix>
 bool CheckDiagonalInvertible(const TSparseMatrix &A)

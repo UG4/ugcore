@@ -50,6 +50,7 @@
 #include "lib_disc/operator/linear_operator/multi_grid_solver/mg_solver.h"
 #include "lib_disc/operator/linear_operator/element_gauss_seidel/element_gauss_seidel.h"
 #include "lib_disc/operator/linear_operator/element_gauss_seidel/component_gauss_seidel.h"
+#include "lib_disc/operator/linear_operator/uzawa/uzawa.h"
 
 using namespace std;
 
@@ -244,6 +245,27 @@ static void DomainAlgebra(Registry& reg, string grp)
 		.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ComponentGaussSeidel", tag);
 	}
+
+	// Uzawa (smoother/iteration)
+	    {
+	        typedef UzawaBase<TDomain, TAlgebra> T;
+	        typedef ILinearIterator<typename TAlgebra::vector_type> TBase;
+	        typedef DebugWritingObject<TAlgebra> TBase2;
+	        string name = string("UzawaBase").append(suffix);
+
+	        reg.add_class_<T, TBase, TBase2>(name, grp)
+	        .ADD_CONSTRUCTOR( (const std::vector<std::string>&) ) ("String ID for Schur")
+			.ADD_CONSTRUCTOR( (const char *) ) ("String ID for Schur")
+	    	.add_method("set_forward_iter", &T::set_forward_iter, "forward iteration", "beta")
+			.add_method("set_schur_iter", &T::set_schur_iter, "Schur iteration", "beta")
+			.add_method("set_backward_iter", &T::set_backward_iter, "backward iteration", "beta")
+			.add_method("set_schur_operator_update", &T::set_schur_operator_update, "update for Schur", "beta")
+	        .set_construct_as_smart_pointer(true);
+
+	        reg.add_class_to_group(name, "UzawaBase", tag);
+	        //std::cout <<"Registered "<< name << std::endl;
+	    }
+
 
 }
 

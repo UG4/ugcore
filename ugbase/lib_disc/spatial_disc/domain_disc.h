@@ -75,6 +75,7 @@ namespace ug {
 template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
 class DomainDiscretizationBase
 :   public IDomainDiscretization<TAlgebra>,
+	public IDomainMarker<TDomain>,
     protected TGlobAssembler
 {
     /// Type of the global assembler

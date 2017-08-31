@@ -195,6 +195,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 			reg.add_function("MarkForAdaption_ResidualErrorP1Relative",
 						 	 &MarkForAdaption_ResidualErrorP1RelativeLUA<TDomain, TAlgebra>, grp);
 		#endif
+			reg.add_function("MarkForCoarsenening_SurfaceLayer",
+					&MarkForCoarsenening_SurfaceLayer<TDomain, TAlgebra>, grp);
 	}
 
 //	Prolongate
@@ -289,6 +291,9 @@ static void Domain(Registry& reg, string grp)
 			reg.add_class_<T, TBase>(name, grp)
 								   .template add_constructor<void (*)(number)>("theta")
 								   .template add_constructor<void (*)(number, number)>("theta#eps")
+								   .template add_constructor<void (*)(number, number, number)>("theta#eps")
+								   .add_method("set_max_level", &T::set_max_level)
+								   .add_method("set_min_level", &T::set_min_level)
 								   .set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "MaximumMarking", tag);
 	}
@@ -304,7 +309,7 @@ static void Domain(Registry& reg, string grp)
 			reg.add_class_to_group(name, "MeanValueMarking", tag);
 	}
 
-	//  VarianceMarking
+	//  VarianceMarking  (with eta^2)
 	{
 			typedef VarianceMarking<TDomain> T;
 			typedef IElementMarkingStrategy<TDomain> TBase;
@@ -317,7 +322,7 @@ static void Domain(Registry& reg, string grp)
 	}
 
 
-	//  VarianceMarking2
+	//  VarianceMarking (with eta)
 	{
 			typedef VarianceMarkingEta<TDomain> T;
 			typedef IElementMarkingStrategy<TDomain> TBase;
@@ -325,6 +330,8 @@ static void Domain(Registry& reg, string grp)
 			reg.add_class_<T, TBase>(name, grp)
 						.template add_constructor<void (*)(number)>("theta")
 						.template add_constructor<void (*)(number, number)>("theta#eps")
+						.add_method("init_refinement", &T::init_refinement)
+						.add_method("init_coarsening", &T::init_coarsening)
 						.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "VarianceMarkingEta", tag);
 	}
