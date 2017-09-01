@@ -791,7 +791,7 @@ void GetLuaGlobals(std::vector<std::string>  *functions,
 		const char *luastr = lua_tostring(L, -2);
 		if(luastr && strcmp(luastr, "_G") != 0 && strcmp(luastr, "package") != 0)
 		{
-			if(reg.get_class(luastr)==false)
+			if(!reg.get_class(luastr))
 			{
 				if(FindFunction(reg, luastr))
 				{
@@ -1038,7 +1038,8 @@ string GetLuaTypeString(lua_State* L, int index)
 		}
 		const ClassNameNode* classNameNode = GetClassNameNode(L, index);
 		if(classNameNode == NULL || classNameNode->empty()) str.append("userdata/");
-		else str.append(classNameNode->name()); str.append("*/");
+		else str.append(classNameNode->name());
+		str.append("*/");
 	}
 
 	if(lua_type(L, index) == LUA_TNONE)	str.append("none/");
