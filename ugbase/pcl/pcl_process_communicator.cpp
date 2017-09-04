@@ -371,7 +371,7 @@ gather(ug::BinaryBuffer &buf, int root) const
 		}
 
 		buf.reserve(totalSize);
-		gatherv(buf.buffer(), localSize, PCL_DT_CHAR,
+		gatherv(MPI_IN_PLACE, localSize, PCL_DT_CHAR,
 		        buf.buffer(), &recvSizes.front(), &displacements.front(),
 		        PCL_DT_CHAR, root);
 
