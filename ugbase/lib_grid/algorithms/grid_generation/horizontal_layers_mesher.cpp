@@ -291,20 +291,29 @@ void ExtrudeLayers (
 			}
 
 			if(allMarked){
-			//	the highest valid side of the volume determines its subset.
-				number maxHeight = 0;
 				int subsetIndex = invalidSub;
-				for(size_t i = 0; i < numVrts; ++i){
-					int si = sh.get_subset_index(vrts[i]);
-					if(si == invalidSub)
-						continue;
 
-					number vh = aaHeight[vrts[i]];
-					if(vh > maxHeight){
-						maxHeight = vh;
-						subsetIndex = si;
+				// if(val.first >= 0) {
+				// //	subset from center trace down
+				// 	subsetIndex = val.first;
+				// }
+				// else {
+				//	the highest valid side of the volume determines its subset.
+					number maxHeight = 0;
+					for(size_t i = 0; i < numVrts; ++i){
+						int si = sh.get_subset_index(vrts[i]);
+						if(si == invalidSub)
+							continue;
+
+						number vh = aaHeight[vrts[i]];
+						if(vh > maxHeight){
+							maxHeight = vh;
+							subsetIndex = si;
+						}
 					}
-				}
+				// }
+
+
 
 				pair<int, number> upVal = layers.trace_line_up(c, ilayer+1);
 				if(val.first < 0 || upVal.first < 0){
