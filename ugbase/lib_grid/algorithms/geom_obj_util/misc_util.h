@@ -168,9 +168,29 @@ number ElementDiameter(Grid& grid,
 					   TElem* elem);
 
 ///	returns the maximal diameter of all elements between iterBegin and iterEnd.
+/** In parallel, the global max diameter is returned.*/
 template <class TAAPos, class TIterator>
 number MaxElementDiameter(Grid& grid, TAAPos& aaPos,
                           TIterator iterBegin, TIterator iterEnd);
+
+
+///	Returns the direction from the center of e1 to the center of e2
+template <class TElem1, class TElem2, class TAAPos>
+typename TAAPos::ValueType
+GetDirection (TElem1* e1, TElem2* e2, const TAAPos& aaPos);
+
+///	Checks whether the center of e2 can be reached from the center of e1 in the given direction
+/**
+ * \param minAngle	minimal allowed deviation angle from 'dir' in degrees. Normally set to 0.
+ * \param maxAngle	maximal allowed deviation angle from 'dir' in degrees */
+template <class TElem1, class TElem2, class TAAPos>
+bool CheckDirection (TElem1* e1,
+                     TElem2* e2,
+                     const TAAPos& aaPos,
+                     const typename TAAPos::ValueType& dir,
+                     number minAngle,
+                     number maxAngle);
+
 
 /// @}				
 }//	end of namespace

@@ -301,6 +301,35 @@ number MaxElementDiameter(Grid& grid, TAAPos& aaPos,
 	return std::sqrt(max);
 }
 
+
+template <class TElem1, class TElem2, class TAAPos>
+typename TAAPos::ValueType
+GetDirection (TElem1* e1, TElem2* e2, const TAAPos& aaPos)
+{
+	typedef typename TAAPos::ValueType vector_t;
+
+	vector_t c1 = CalculateCenter (e1, aaPos);
+	vector_t c2 = CalculateCenter (e2, aaPos);
+
+	c2 -= c1;
+	return c2;
+}
+
+template <class TElem1, class TElem2, class TAAPos>
+bool CheckDirection (TElem1* e1,
+                     TElem2* e2,
+                     const TAAPos& aaPos,
+                     const typename TAAPos::ValueType& dir,
+                     number minAngle,
+                     number maxAngle)
+{
+	typedef typename TAAPos::ValueType vector_t;
+
+	const vector_t v = GetDirection (e1, e2, aaPos);
+	const number angle = rad_to_deg(VecAngle(v, dir));
+	return (minAngle <= angle) && (maxAngle >= angle);
+}
+
 }//	end of namespace
 
 #endif

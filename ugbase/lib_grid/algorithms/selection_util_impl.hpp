@@ -353,6 +353,79 @@ void SelectInnerElements(ISelector& sel, TElemIterator elemsBegin,
 }
 
 
+
+template <class TSelector, class TAAPos>
+void ExtendSelectionInDirection(
+		TSelector& sel,
+        size_t extSize,
+        const typename TAAPos::ValueType& dir,
+        number minAngle,
+        number maxAngle,
+      	const TAAPos& aaPos,
+		ISelector::status_t status)
+{
+	if(!sel.grid()){
+		UG_LOG("ERROR in ExtendSelection: Selector has to be assigned to a grid.\n");
+		return;
+	}
+	
+	Grid& grid = *sel.grid();
+	
+//	first select associated elements of volumes, faces and edges.
+//	then select associated elements of selected vertices.
+//	do this extSize times.
+//	elements that have already been processed are marked.
+	
+	grid.begin_marking();
+	
+//	perform iteration
+	for(size_t extIters = 0; extIters < extSize; ++extIters)
+	{
+//TODO: speed-up by only calling SelectAssociatedGridObjects once before the loop.
+//		During the loop only newly selected elements should be checked for associated elements.
+
+	//	select associated elements
+		SelectAssociatedGridObjects(sel, status);
+
+	//	iterate over all selected vertices.
+		for(size_t lvl = 0; lvl < sel.num_levels(); ++lvl){
+			for(VertexIterator iter = sel.template begin<Vertex>(lvl);
+				iter != sel.template end<Vertex>(lvl); ++iter)
+			{
+				Vertex* vrt = *iter;
+			//	all marked vertices have already been processed.
+				if(!grid.is_marked(vrt)){
+					grid.mark(vrt);
+
+				//	select associated volumes, faces and edges.
+					for(Grid::AssociatedEdgeIterator asIter = grid.associated_edges_begin(vrt);
+						asIter != grid.associated_edges_end(vrt); ++asIter)
+					{
+						if(CheckDirection(vrt, *asIter, aaPos, dir, minAngle, maxAngle))
+							sel.select(*asIter, status);
+					}
+
+					for(Grid::AssociatedFaceIterator asIter = grid.associated_faces_begin(vrt);
+						asIter != grid.associated_faces_end(vrt); ++asIter)
+					{
+						if(CheckDirection(vrt, *asIter, aaPos, dir, minAngle, maxAngle))
+							sel.select(*asIter, status);
+					}
+
+					for(Grid::AssociatedVolumeIterator asIter = grid.associated_volumes_begin(vrt);
+						asIter != grid.associated_volumes_end(vrt); ++asIter)
+					{
+						if(CheckDirection(vrt, *asIter, aaPos, dir, minAngle, maxAngle))
+							sel.select(*asIter, status);
+					}
+				}
+			}
+		}
+	}
+	
+	grid.end_marking();
+}
+
 ////////////////////////////////////////////////////////////////////////
 template <class TAAPos>
 void SelectEdgesByDirection(
