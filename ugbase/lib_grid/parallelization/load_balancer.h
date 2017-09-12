@@ -50,6 +50,8 @@ class ProcessHierarchy;
 typedef SmartPtr<ProcessHierarchy> SPProcessHierarchy;
 typedef ConstSmartPtr<ProcessHierarchy> ConstSPProcessHierarchy;
 
+class IPartitioner;
+
 /// \addtogroup lib_grid_parallelization_distribution
 ///	\{
 
@@ -152,6 +154,24 @@ class IBalanceWeights{
 typedef SmartPtr<IBalanceWeights>		SPBalanceWeights;
 
 
+///	allows to pre-process data before partitioning starts
+/**	If supported by a partitioner, a pre-processor is called before partitioning
+ * starts. This may e.g. be useful to provide an alternative coordinate set.
+ */
+class IPartitionPreProcessor{
+	public:
+		virtual ~IPartitionPreProcessor()	{}
+		
+		virtual void partitioning_starts (	MultiGrid* mg,
+		                                 	IPartitioner* partitioner) = 0;
+		virtual void partitioning_done (	MultiGrid* mg,
+		                                	IPartitioner* partitioner) = 0;
+};
+
+typedef SmartPtr<IPartitionPreProcessor>	SPPartitionPreProcessor;
+
+
+
 ///	allows to post-process partitions
 /**	If supported by a partitioner, a post-processor is called for each partitioned level
  * to allow for the adjustment of partitions following some specific rules.
@@ -169,12 +189,14 @@ class IPartitionPostProcessor{
 	public:
 		virtual ~IPartitionPostProcessor()	{}
 		
-		virtual void init_post_processing(MultiGrid* mg, SubsetHandler* partitions) = 0;
+		virtual void init_post_processing(	MultiGrid* mg,
+		                                  	SubsetHandler* partitions) = 0;
 		virtual void post_process(int lvl) = 0;
 		virtual void partitioning_done() = 0;
 };
 
 typedef SmartPtr<IPartitionPostProcessor>	SPPartitionPostProcessor;
+
 
 
 ///	Partitioners can be used inside a LoadBalancer or separately to create partition maps
@@ -191,6 +213,10 @@ class IPartitioner{
 		virtual void set_next_process_hierarchy(SPProcessHierarchy procHierarchy) = 0;
 		virtual void set_balance_weights(SPBalanceWeights balanceWeights) = 0;
 //		virtual void set_connection_weights(SmartPtr<ConnectionWeights<dim> > conWeights) = 0;
+
+		virtual void set_partition_pre_processor(SPPartitionPreProcessor){
+			UG_THROW("Partition-Pre-Processing is currently not supported by the chosen partitioner.");
+		}
 
 		virtual void set_partition_post_processor(SPPartitionPostProcessor){
 			UG_THROW("Partition-Post-Processing is currently not supported by the chosen partitioner.");

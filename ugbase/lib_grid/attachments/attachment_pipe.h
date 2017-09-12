@@ -509,17 +509,20 @@ template <class TElem, class TAttachment, class TElemHandler>
 class UG_API AttachmentAccessor
 {
 	public:
+		typedef TAttachment							attachment;
 		typedef TElem								element;
 		typedef typename TAttachment::ValueType		ValueType;
 		typedef typename TAttachment::ContainerType	ContainerType;
+		typedef TElemHandler						ElemHandler;
 		typedef attachment_traits<TElem, TElemHandler>	atraits;
+		typedef AttachmentPipe<TElem, TElemHandler>	attachment_pipe;
 
 	public:
 		AttachmentAccessor();
 		AttachmentAccessor(const AttachmentAccessor& aa);
 		AttachmentAccessor(AttachmentPipe<TElem, TElemHandler>& attachmentPipe, TAttachment& attachment);
 
-		bool access(AttachmentPipe<TElem, TElemHandler>& attachmentPipe, TAttachment& attachment);
+		bool access(attachment_pipe& attachmentPipe, TAttachment& attachment);
 
 		inline typename attachment_value_traits<ValueType>::reference
 		operator[](typename atraits::ConstElemPtr elem)

@@ -138,6 +138,13 @@ set_balance_weights(SPBalanceWeights balanceWeights)
 
 template <class TElem, int dim>
 void Partitioner_DynamicBisection<TElem, dim>::
+set_partition_pre_processor(SPPartitionPreProcessor ppp)
+{
+	m_partitionPreProcessor = ppp;
+}
+
+template <class TElem, int dim>
+void Partitioner_DynamicBisection<TElem, dim>::
 set_partition_post_processor(SPPartitionPostProcessor ppp)
 {
 	m_partitionPostProcessor = ppp;
@@ -238,6 +245,10 @@ partition(size_t baseLvl, size_t elementThreshold)
 
 	ANumber aWeight;
 	mg.attach_to<elem_t>(aWeight);
+	
+	if(m_partitionPreProcessor.valid())
+		m_partitionPreProcessor->partitioning_starts(m_mg, this);
+
 	if(m_partitionPostProcessor.valid())
 		m_partitionPostProcessor->init_post_processing(m_mg, m_sh.get());
 
@@ -367,6 +378,10 @@ partition(size_t baseLvl, size_t elementThreshold)
 	}
 
 	mg.detach_from<elem_t>(aWeight);
+
+	if(m_partitionPreProcessor.valid())
+		m_partitionPreProcessor->partitioning_done(m_mg, this);
+
 	if(m_partitionPostProcessor.valid())
 		m_partitionPostProcessor->partitioning_done();
 
