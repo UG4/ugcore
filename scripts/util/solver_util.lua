@@ -477,7 +477,8 @@ util.solver.defaults =
 			beta 			= 0,
 			damping 		= 1,
 			sortEps 		= 1.e-50,
-			inversionEps 	= 1.e-8
+			inversionEps 	= 1.e-8,
+			newParallelization = false
 		},
 
 		ilut = {
@@ -706,6 +707,7 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 		precond:set_damp(desc.damping or defaults.damping)
 		precond:set_sort_eps(desc.sortEps or defaults.sortEps)
 		precond:set_inversion_eps(desc.inversionEps or defaults.inversionEps)
+		precond:enable_new_parallelization(desc.newParallelization or defaults.newParallelization)
 	elseif name == "ilut" then precond = ILUT (desc.threshold or defaults.threshold);
 	elseif name == "jac"  then precond = Jacobi (desc.damping or defaults.damping);
 	elseif name == "bgs"  then precond = BlockGaussSeidel ();

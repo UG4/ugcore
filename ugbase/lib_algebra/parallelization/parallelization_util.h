@@ -90,6 +90,31 @@ void MatAddSlaveRowsToMasterRowOverlap0(TMatrix& mat)
 	comm.communicate();
 }
 
+
+template <typename TMatrix>
+void MatMakeConsistentOverlap0(TMatrix& mat)
+{
+	PROFILE_FUNC_GROUP("algebra parallelization");
+	using namespace std;
+	vector<AlgebraID> globalIDs;
+	const IndexLayout& masters = mat.layouts()->master();
+	const IndexLayout& slaves = mat.layouts()->slave();
+	pcl::InterfaceCommunicator<IndexLayout>& comm = mat.layouts()->comm();
+
+	GenerateGlobalAlgebraIDs(comm, globalIDs, mat.num_rows(), masters, slaves);
+
+//	global ids are applied, now communicate...
+	ComPol_MatAddRowsOverlap0<TMatrix> comPolMatAdd(mat, globalIDs);
+	comm.send_data(slaves, comPolMatAdd);
+	comm.receive_data(masters, comPolMatAdd);
+	comm.communicate();
+
+	ComPol_MatCopyRowsOverlap0<TMatrix> comPolMatCopy(mat, globalIDs);
+	comm.send_data(masters, comPolMatCopy);
+	comm.receive_data(slaves, comPolMatCopy);
+	comm.communicate();
+}
+
 /// changes parallel storage type from additive to consistent
 /**
  * This function changes the storage type of a parallel vector from additive
