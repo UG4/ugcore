@@ -520,27 +520,25 @@ class ILU : public IPreconditioner<TAlgebra>
 		//	for debug output (only for application is written)
 			static bool first = true;
 
-		//	make defect unique
-			SmartPtr<vector_type> spDtmp = d.clone();
 
-			if(m_newParallelization)
-				spDtmp->change_storage_type(PST_CONSISTENT);
-			else
+			if(m_newParallelization){
+				UG_COND_THROW(d.has_storage_type(PST_CONSISTENT),
+				              "additive or unique defect expected");
+				applyLU(c, d, m_h);
+			}
+			else{
+			//	make defect unique
+				SmartPtr<vector_type> spDtmp = d.clone();
 				spDtmp->change_storage_type(PST_UNIQUE);
+				applyLU(c, *spDtmp, m_h);
+			}
 
-			applyLU(c, *spDtmp, m_h);
-
-		//	Correction is always consistent
-			if(m_newParallelization)
-				c.set_storage_type(PST_CONSISTENT);
-			else
-				c.set_storage_type(PST_ADDITIVE);
+			c.set_storage_type(PST_ADDITIVE);
 
 		//	write debug
 			if(first) write_debug(c, "ILU_c");
 
-			if(!m_newParallelization)
-				c.change_storage_type(PST_CONSISTENT);
+			c.change_storage_type(PST_CONSISTENT);
 
 		//	write debug
 			if(first) {write_debug(c, "ILU_cConsistent"); first = false;}
