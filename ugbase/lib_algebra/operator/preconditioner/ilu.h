@@ -533,6 +533,8 @@ class ILU : public IPreconditioner<TAlgebra>
 		//	Correction is always consistent
 			if(m_newParallelization)
 				c.set_storage_type(PST_CONSISTENT);
+			else
+				c.set_storage_type(PST_ADDITIVE);
 
 		//	write debug
 			if(first) write_debug(c, "ILU_c");
