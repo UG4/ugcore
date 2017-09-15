@@ -416,7 +416,7 @@ class DirichletBoundary
 
 	/// maps a column dirichlet index to the
 	/// row and its corresponding matrix entry.
-		std::map<int, std::map<int, value_type> > m_dirichletMap;
+		std::map<int, std::map<int, std::map<int, value_type> > > m_dirichletMap;
 	///
 		matrix_type* m_A;
 

@@ -1314,6 +1314,9 @@ adjust_linear(const std::vector<TUserData*>& vUserData, int si,
 					if(!(*vUserData[i])(val, vPos[j], time, si)) continue;
 
 					this->m_spAssTuner->set_dirichlet_row(A, multInd[j]);
+
+					// FIXME: Beware, this is dangerous!
+					//        It will not work for blocked algebras.
 					if(m_bDirichletColumns)
 						dirichletDoFIndices.insert(multInd[j][0]);
 
@@ -1333,14 +1336,17 @@ adjust_linear(const std::vector<TUserData*>& vUserData, int si,
 
 		typename std::set<size_t>::iterator currentDIndex;
 
-		// run over all rows of the local matrix J and save the colums
+		// run over all rows of the local matrix J and save the column
 		// entries for the Dirichlet indices in the map
 
 		for(size_t i = 0; i<nr; i++)
 		{
-			for(typename matrix_type::row_iterator it = A.begin_row(i); it!=A.end_row(i); ++it){
+			// do not save any entries in Dirichlet rows!
+			if (dirichletDoFIndices.find(i) != dirichletDoFIndices.end())
+				continue;
 
-
+			for(typename matrix_type::row_iterator it = A.begin_row(i); it!=A.end_row(i); ++it)
+			{
 				currentDIndex = dirichletDoFIndices.find(it.index());
 
 				// fill dirichletMap & set corresponding entry to zero
@@ -1348,40 +1354,29 @@ adjust_linear(const std::vector<TUserData*>& vUserData, int si,
 
 					// the dirichlet-dof-index it.index is assigned
 					// the row i and the matrix entry it.value().
-					m_dirichletMap[it.index()][i] = it.value();
-
-					// the corresponding entry at column it.index() is set zero
-					// this corresponds to a dirichlet column.
-					if(i!=it.index())
-						it.value() = 0.0;
+					m_dirichletMap[si][it.index()][i] = it.value();
+					it.value() = 0.0;
 				}
-
 			}
 		}
 
 		typename std::map<int, std::map<int, value_type> >::iterator itdirichletMap;
 		for(size_t i = 0; i<nr; i++)
 		{
+			// do not change rhs entries in Dirichlet rows!
+			if (m_dirichletMap[si].find(i) != m_dirichletMap[si].end())
+				continue;
+
 			for(typename matrix_type::row_iterator it = m_A->begin_row(i); it!=m_A->end_row(i); ++it){
 
-				itdirichletMap = m_dirichletMap.find(it.index());
+				itdirichletMap = m_dirichletMap[si].find(it.index());
 
 				// current column index is a dirichlet index
-				if(itdirichletMap != m_dirichletMap.end()){
-
-					// just non-diagonal entries need do be considered
-					// by this the dirichlet entries of b remain unchanged.
-					if(i!=it.index()){
-					//	UG_LOG("Hallo\n");
-						b[i] -= itdirichletMap->second[i]*b[it.index()];
-					}
-				}
-
+				if(itdirichletMap != m_dirichletMap[si].end())
+					b[i] -= itdirichletMap->second[i]*b[it.index()];
 			}
 		}
-
 	}
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1444,9 +1439,6 @@ adjust_rhs(const std::vector<TUserData*>& vUserData, int si,
            vector_type& b, const vector_type& u,
            ConstSmartPtr<DoFDistribution> dd, number time)
 {
-
-	UG_LOG("Entered dirichlet adjust right hand side\n");
-
 //	create Multiindex
 	std::vector<DoFIndex> multInd;
 
@@ -1507,21 +1499,17 @@ adjust_rhs(const std::vector<TUserData*>& vUserData, int si,
 		size_t nr = m_A->num_rows();
 		for(size_t i = 0; i<nr; i++)
 		{
+			// do not change rhs entries in Dirichlet rows!
+			if (m_dirichletMap[i].find(i) != m_dirichletMap[i].end())
+				continue;
+
 			for(typename matrix_type::row_iterator it = m_A->begin_row(i); it!=m_A->end_row(i); ++it){
 
-				itdirichletMap = m_dirichletMap.find(it.index());
+				itdirichletMap = m_dirichletMap[i].find(it.index());
 
 				// current column index is a dirichlet index
-				if(itdirichletMap != m_dirichletMap.end()){
-
-					// just non-diagonal entries need do be considered
-					// by this the dirichlet entries of b remain unchanged.
-					if(i!=it.index()){
-						//UG_LOG("Hallo\n");
-						b[i] -= itdirichletMap->second[i]*b[it.index()];
-					}
-				}
-
+				if(itdirichletMap != m_dirichletMap[i].end())
+					b[i] -= itdirichletMap->second[i]*b[it.index()];
 			}
 		}
 	}
