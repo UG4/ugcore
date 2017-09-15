@@ -114,10 +114,13 @@ class AssemblingTuner
 		m_bSingleAssIndex(false), m_SingleAssIndex(0),
 		m_bForceRegGrid(false), m_bModifySolutionImplemented(false),
 		m_ConstraintTypesEnabled(CT_ALL), m_ElemTypesEnabled(EDT_ALL),
-		m_bMatrixIsConst(false)
+		m_bMatrixIsConst(false), m_bClearOnResize(true)
 		{
 			m_pMapper = &m_pMapperCommon;
 		}
+
+	/// destructor
+		virtual ~AssemblingTuner() {}
 
 	/// set local to global mapping
 		void set_mapping(ILocalToGlobalMapper<TAlgebra>* pMapper = NULL)
@@ -188,7 +191,7 @@ class AssemblingTuner
 
 
 	/// forces the assembling to consider the grid as regular
-		void set_force_regular_grid(bool bForce) {m_bForceRegGrid = bForce;}
+		virtual void set_force_regular_grid(bool bForce) {m_bForceRegGrid = bForce;}
 
 	/// returns if assembling is to considered as regular grid
 		bool regular_grid_forced() const {return m_bForceRegGrid;}
@@ -233,6 +236,11 @@ class AssemblingTuner
 	///	instead of setting a complete matrix row to Dirichlet
 		void set_dirichlet_row(matrix_type& mat, const DoFIndex& ind) const;
 		void set_dirichlet_val(vector_type& vec, const DoFIndex& ind, const double val) const;
+
+	/// Disable clearing of matrix/vector when resizing.
+	/// This is useful when an IAssemble object consists of more than one
+	/// domain disc, e.g., CombinedTimeDisc.
+		void disable_clear_on_resize() {m_bClearOnResize = false;}
 
 	/**
 	 * specify whether matrix will be modified by assembling
@@ -281,6 +289,9 @@ class AssemblingTuner
 
 	/// disables matrix assembling if set to false
 		bool m_bMatrixIsConst;
+
+	/// disables clearing of vector/matrix on resize
+		bool m_bClearOnResize;
 };
 
 } // end namespace ug

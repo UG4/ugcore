@@ -51,6 +51,7 @@
 #include "lib_disc/spatial_disc/constraints/constraint_interface.h"
 #include "lib_disc/time_disc/time_disc_interface.h"
 #include "lib_disc/time_disc/theta_time_step.h"
+#include "lib_disc/time_disc/combined_time_disc.h"
 #include "lib_disc/operator/linear_operator/assembled_linear_operator.h"
 #include "lib_disc/operator/non_linear_operator/assembled_non_linear_operator.h"
 #include "lib_disc/operator/non_linear_operator/line_search.h"
@@ -228,6 +229,19 @@ static void Algebra(Registry& reg, string parentGroup)
 		reg.add_class_to_group(name, "SDIRK", tag);
 	}
 
+//	CombinedTimeDiscretization
+	{
+		std::string grp = parentGroup; grp.append("/Discretization/TimeDisc");
+		typedef IAssemble<TAlgebra> TBase;
+		typedef CombinedTimeDiscretization<TAlgebra> T;
+		string name = string("CombinedTimeDiscretization").append(suffix);
+		reg.add_class_<T, TBase>(name, grp)
+			.add_constructor()
+			.add_method("add_time_disc", &T::add_time_disc, "", "time discretization")
+			.add_method("prepare_step", &T::prepare_step, "", "", "prepares the assembling of defect/Jacobian for a time step")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "CombinedTimeDiscretization", tag);
+	}
 
 //	AssembledLinearOperator
 	{

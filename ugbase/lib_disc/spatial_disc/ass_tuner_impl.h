@@ -46,18 +46,24 @@ void AssemblingTuner<TAlgebra>::resize(ConstSmartPtr<DoFDistribution> dd,
 		const size_t numIndex = dd->num_indices();
 		vec.resize(numIndex);
 	}
-	vec.set(0.0);
+
+	if (m_bClearOnResize)
+		vec.set(0.0);
 }
 
 template <typename TAlgebra>
 void AssemblingTuner<TAlgebra>::resize(ConstSmartPtr<DoFDistribution> dd,
 								  matrix_type& mat) const
 {
-	if (single_index_assembling_enabled()){ mat.resize_and_clear(1, 1);
+	if (single_index_assembling_enabled())
+	{
+		if (m_bClearOnResize) mat.resize_and_clear(1, 1);
+		else mat.resize_and_keep_values(1,1);
 	}
 	else{
 		const size_t numIndex = dd->num_indices();
-		mat.resize_and_clear(numIndex, numIndex);
+		if (m_bClearOnResize) mat.resize_and_clear(numIndex, numIndex);
+		else mat.resize_and_keep_values(numIndex, numIndex);
 	}
 }
 

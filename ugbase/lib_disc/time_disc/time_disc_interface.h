@@ -153,6 +153,10 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 	///	sets the stage
 		virtual void set_stage(size_t stage) = 0;
 
+	/// return underlying domain disc
+		SmartPtr<IDomainDiscretization<TAlgebra> > domain_disc() const
+		{return m_spDomDisc;}
+
 	///	returns the number of constraint
 		virtual size_t num_constraints() const
 		{
