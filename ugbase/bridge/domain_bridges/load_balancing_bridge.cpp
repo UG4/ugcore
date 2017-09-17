@@ -48,6 +48,7 @@
 	#include "lib_grid/parallelization/load_balancer_util.h"
 	#include "lib_grid/parallelization/partitioner_dynamic_bisection.h"
 	#include "lib_grid/parallelization/balance_weights_ref_marks.h"
+	#include "lib_grid/parallelization/partition_pre_processors/replace_coordinate.h"
 	#include "lib_grid/parallelization/partition_post_processors/smooth_partition_bounds.h"
 	#include "lib_grid/parallelization/partition_post_processors/cluster_element_stacks.h"
 #endif
@@ -63,6 +64,49 @@ namespace ug{
  */
 
 #ifdef UG_PARALLEL
+
+	template <int dim>
+	class PartPreProc_RasterProjectorCoordinates : public IPartitionPreProcessor
+	{
+	private:
+		typedef PPP_ReplaceCoordinate <dim> 	PPP_RC;
+		SmartPtr<PPP_RC>						m_ppp;
+
+	public:
+		typedef MathVector<dim>	vector_t;
+
+		PartPreProc_RasterProjectorCoordinates (const Attachment<vector_t> aPos)
+		{
+			typedef RasterLayersProjector::rel_z_attachment_t attachment_t;
+
+			static const std::string attName("RasterLayersProjector_ARelZ");
+			if(!GlobalAttachments::is_declared(attName)){
+				GlobalAttachments::declare_attachment<attachment_t>(attName);
+			}
+
+			attachment_t aRelZ = GlobalAttachments::attachment<attachment_t>(attName);
+
+			typedef PPP_ReplaceCoordinate <dim> 	PPP_RC;
+
+			m_ppp = make_sp(new PPP_RC (aPos, aRelZ, dim - 1));
+		}
+
+		virtual void partitioning_starts (	MultiGrid* mg,
+		                                 	IPartitioner* partitioner)
+		{
+			m_ppp->partitioning_starts (mg, partitioner);
+		}
+
+
+		virtual void partitioning_done (	MultiGrid* mg,
+		                                	IPartitioner* partitioner)
+		{
+			m_ppp->partitioning_done (mg, partitioner);
+		}
+
+	};
+
+
 	template <class TDomain>
 	class BalanceWeightsLuaCallback : public IBalanceWeights
 	{
@@ -227,6 +271,11 @@ static void Common(Registry& reg, string grp) {
 	}
 
 	{
+		typedef IPartitionPreProcessor T;
+		reg.add_class_<T>("IPartitionPreProcessor", grp);
+	}
+
+	{
 		typedef IPartitionPostProcessor T;
 		reg.add_class_<T>("IPartitionPostProcessor", grp);
 	}
@@ -239,6 +288,7 @@ static void Common(Registry& reg, string grp) {
 			.add_method("set_next_process_hierarchy", &T::set_next_process_hierarchy)
 			.add_method("enable_clustered_siblings", &T::enable_clustered_siblings)
 			.add_method("clustered_siblings_enabled", &T::clustered_siblings_enabled)
+			.add_method("set_partition_pre_processor", &T::set_partition_pre_processor)
 			.add_method("set_partition_post_processor", &T::set_partition_post_processor);
 	}
 
@@ -476,6 +526,16 @@ static void Domain(Registry& reg, string grp)
 	string tag = GetDomainTag<TDomain>();
 
 	#ifdef UG_PARALLEL
+
+		{
+			typedef PartPreProc_RasterProjectorCoordinates<TDomain::dim> T;
+			string name = string("PartPreProc_RasterProjectorCoordinates").append(suffix);
+			reg.add_class_<T, IPartitionPreProcessor>(name, grp)
+				.template add_constructor<void (*)(const Attachment<MathVector<TDomain::dim> >&)>()
+				.set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, "PartPreProc_RasterProjectorCoordinates", tag);
+		}
+
 		{
 			typedef DomainBalanceWeights<TDomain, AnisotropicBalanceWeights<TDomain::dim> > T;
 			string name = string("AnisotropicBalanceWeights").append(suffix);
@@ -514,17 +574,17 @@ static void Domain(Registry& reg, string grp)
 						 									size_t, size_t, int,
 						 									int)>
 						 	(&CreateProcessHierarchy<TDomain>),
-						 grp, "ProcessHierarchy", "Domain, minNumElemsPerProcPerLvl, "
-						 "maxNumRedistProcs, maxNumProcs, minDistLvl, "
+						 grp, "ProcessHierarchy", "Domain # minNumElemsPerProcPerLvl # "
+						 "maxNumRedistProcs # maxNumProcs # minDistLvl # "
 						 "maxLvlsWithoutRedist");
 		reg.add_function("CreateProcessHierarchy",
 						 static_cast<SPProcessHierarchy (*)(TDomain&, size_t,
 						 									size_t, size_t, int,
 						 									int, IRefiner*)>
 						 	(&CreateProcessHierarchy<TDomain>),
-						 grp, "ProcessHierarchy", "Domain, minNumElemsPerProcPerLvl, "
-						 "maxNumRedistProcs, maxNumProcs, minDistLvl, "
-						 "maxLvlsWithoutRedist, refiner");
+						 grp, "ProcessHierarchy", "Domain # minNumElemsPerProcPerLvl # "
+						 "maxNumRedistProcs # maxNumProcs # minDistLvl # "
+						 "maxLvlsWithoutRedist # refiner");
 
 	#endif
 }

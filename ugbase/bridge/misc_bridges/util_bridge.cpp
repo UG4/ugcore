@@ -156,6 +156,8 @@ void RegisterBridge_Util(Registry& reg, string parentGroup)
 	reg.add_function("FileCompare", FileCompare);
 	reg.add_function("SetMinSecondsUntilProgress", SetMinSecondsUntilProgress, grp, "", "seconds", "determines after which time a progress bar can show up");
 
+	reg.add_function("FindFileInStandardPaths", FindFileInStandardPaths);
+
 	{
 		typedef Variant T;
 		reg.add_class_<T>("Variant", grp)

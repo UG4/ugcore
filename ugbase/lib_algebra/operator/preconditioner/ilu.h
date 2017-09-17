@@ -342,7 +342,8 @@ class ILU : public IPreconditioner<TAlgebra>
 			m_sortEps(1.e-50),
 			m_invEps(1.e-8),
 			m_bSort(false),
-			m_bDisablePreprocessing(false) {};
+			m_bDisablePreprocessing(false),
+			m_newParallelization(false) {};
 
 	/// clone constructor
 		ILU( const ILU<TAlgebra> &parent )
@@ -351,7 +352,8 @@ class ILU : public IPreconditioner<TAlgebra>
 			  m_sortEps(parent.m_sortEps),
 			  m_invEps(parent.m_invEps),
 			  m_bSort(parent.m_bSort),
-			  m_bDisablePreprocessing(parent.m_bDisablePreprocessing)
+			  m_bDisablePreprocessing(parent.m_bDisablePreprocessing),
+			  m_newParallelization(parent.m_newParallelization)
 		{	}
 
 	///	Clone
@@ -383,6 +385,9 @@ class ILU : public IPreconditioner<TAlgebra>
 
 	///	sets the smallest allowed value for the Aii/Bi quotient
 		void set_inversion_eps(number eps)				{m_invEps = eps;}
+
+	///	activates the new parallelization approach (disabled by default)
+		void enable_new_parallelization (bool enable)	{m_newParallelization = enable;}
 
 	protected:
 	//	Name of preconditioner
@@ -419,12 +424,16 @@ class ILU : public IPreconditioner<TAlgebra>
 
 			m_ILU = mat;
 #ifdef 	UG_PARALLEL
-			MatAddSlaveRowsToMasterRowOverlap0(m_ILU);
+			if(m_newParallelization)
+				MatMakeConsistentOverlap0(m_ILU);
+			else {
+				MatAddSlaveRowsToMasterRowOverlap0(m_ILU);
+			//	set zero on slaves
+				std::vector<IndexLayout::Element> vIndex;
+				CollectUniqueElements(vIndex,  m_ILU.layouts()->slave());
+				SetDirichletRow(m_ILU, vIndex);
+			}
 
-		//	set zero on slaves
-			std::vector<IndexLayout::Element> vIndex;
-			CollectUniqueElements(vIndex,  m_ILU.layouts()->slave());
-			SetDirichletRow(m_ILU, vIndex);
 
 		//DEBUG: find dirichlet master rows
 			// vIndex.clear();
@@ -511,13 +520,19 @@ class ILU : public IPreconditioner<TAlgebra>
 		//	for debug output (only for application is written)
 			static bool first = true;
 
-		//	make defect unique
-			SmartPtr<vector_type> spDtmp = d.clone();
-			spDtmp->change_storage_type(PST_UNIQUE);
 
-			applyLU(c, *spDtmp, m_h);
+			if(m_newParallelization){
+				UG_COND_THROW(d.has_storage_type(PST_CONSISTENT),
+				              "additive or unique defect expected");
+				applyLU(c, d, m_h);
+			}
+			else{
+			//	make defect unique
+				SmartPtr<vector_type> spDtmp = d.clone();
+				spDtmp->change_storage_type(PST_UNIQUE);
+				applyLU(c, *spDtmp, m_h);
+			}
 
-		//	Correction is always consistent
 			c.set_storage_type(PST_ADDITIVE);
 
 		//	write debug
@@ -562,6 +577,8 @@ class ILU : public IPreconditioner<TAlgebra>
 
 	/// whether or not to disable preprocessing
 		bool m_bDisablePreprocessing;
+
+		bool m_newParallelization;
 };
 
 } // end namespace ug
