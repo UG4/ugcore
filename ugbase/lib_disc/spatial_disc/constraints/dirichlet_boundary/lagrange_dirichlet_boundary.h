@@ -85,10 +85,18 @@ class DirichletBoundary
 	/// The default ist without Dirichlet columns.
 
 	///	constructor
-		DirichletBoundary() {m_bDirichletColumns = false; m_A = NULL; clear();}
+		DirichletBoundary()
+			:	m_bInvertSubsetSelection(false),
+				m_bDirichletColumns(false),
+				m_A(NULL) 
+			{clear();}
 
 	/// constructor with flag for Dirichlet-Columns.
-		DirichletBoundary(bool DirichletColumns){m_bDirichletColumns = DirichletColumns; m_A = NULL; clear();}
+		DirichletBoundary(bool DirichletColumns)
+			:	m_bInvertSubsetSelection(false),
+				m_bDirichletColumns(DirichletColumns),
+				m_A(NULL) 
+			{clear();}
 
 	///	destructor
 		~DirichletBoundary() {}
@@ -117,6 +125,13 @@ class DirichletBoundary
 		void add(SmartPtr<UserData<MathVector<dim>, dim> > func, const char* functions, const char* subsets);
 		void add(SmartPtr<UserData<MathVector<dim>, dim> > func, const std::vector<std::string>& Fcts, const std::vector<std::string>& Subsets);
 
+	///	adds a number Dirichlet condition whose value is taken from the solution vector itself
+		void add(const char* functions, const char* subsets);
+		void add(const std::vector<std::string>& Fcts, const std::vector<std::string>& Subsets);
+		
+	///	inverts the subset selection making the conditions be imposed on the rest of the domain
+		void invert_subset_selection() {m_bInvertSubsetSelection = true;};
+	
 	///	sets the approximation space to work on
 		void set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace);
 
@@ -303,6 +318,7 @@ class DirichletBoundary
 		struct NumberData
 		{
 			const static bool isConditional = false;
+			const static bool setSolValue = true;
 			const static size_t numFct = 1;
 			typedef MathVector<1> value_type;
 			NumberData(SmartPtr<UserData<number, dim> > functor_,
@@ -327,6 +343,7 @@ class DirichletBoundary
 		struct CondNumberData
 		{
 			const static bool isConditional = true;
+			const static bool setSolValue = true;
 			const static size_t numFct = 1;
 			typedef MathVector<1> value_type;
 			CondNumberData(SmartPtr<UserData<number, dim, bool> > functor_,
@@ -346,10 +363,11 @@ class DirichletBoundary
 			SubsetGroup ssGrp;
 		};
 
-	///	grouping for subset and conditional data
+	///	grouping for subset and constant data
 		struct ConstNumberData
 		{
 			const static bool isConditional = false;
+			const static bool setSolValue = true;
 			const static size_t numFct = 1;
 			typedef MathVector<1> value_type;
 			ConstNumberData(number value_,
@@ -369,10 +387,11 @@ class DirichletBoundary
 			SubsetGroup ssGrp;
 		};
 
-	///	grouping for subset and non-conditional data
+	///	grouping for subset and non-conditional vector data
 		struct VectorData
 		{
 			const static bool isConditional = false;
+			const static bool setSolValue = true;
 			const static size_t numFct = dim;
 			typedef MathVector<dim> value_type;
 			VectorData(SmartPtr<UserData<MathVector<dim>, dim> > value_,
@@ -392,12 +411,37 @@ class DirichletBoundary
 			SubsetGroup ssGrp;
 		};
 
+	///	grouping for subset and the data already stored in the solution
+		struct OldNumberData
+		{
+			const static bool isConditional = false;
+			const static bool setSolValue = false;
+			const static size_t numFct = 1;
+			typedef MathVector<1> value_type;
+			OldNumberData(std::string fctName_, std::string ssName_)
+				: fctName(fctName_), ssName(ssName_)
+			{}
+			inline bool operator()(MathVector<1>& val, const MathVector<dim> x,
+			                       number time, int si) const
+			{
+				return true; // note that we do not set val because setSolValue == false
+			}
+
+			number functor;
+			std::string fctName;
+			std::string ssName;
+			size_t fct[numFct];
+			SubsetGroup ssGrp;
+		};
+
 		std::vector<CondNumberData> m_vBNDNumberData;
 		std::vector<NumberData> m_vNumberData;
 		std::vector<ConstNumberData> m_vConstNumberData;
 
 		std::vector<VectorData> m_vVectorData;
 
+		std::vector<OldNumberData> m_vOldNumberData;
+		
 	///	non-conditional boundary values for all subsets
 		std::map<int, std::vector<NumberData*> > m_mNumberBndSegment;
 
@@ -410,7 +454,13 @@ class DirichletBoundary
 	///	non-conditional boundary values for all subsets
 		std::map<int, std::vector<VectorData*> > m_mVectorBndSegment;
 
+	///	non-conditional boundary values for all subsets
+		std::map<int, std::vector<OldNumberData*> > m_mOldNumberBndSegment;
+
 	protected:
+	///	flag for inverting the subset selection: use Dirichlet throughout except for the given subsets
+		bool m_bInvertSubsetSelection;
+	
 	/// flag for setting dirichlet columns
 		bool m_bDirichletColumns;
 
