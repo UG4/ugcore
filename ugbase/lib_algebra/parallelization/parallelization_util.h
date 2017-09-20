@@ -71,6 +71,37 @@ namespace ug{
 /// @{
 
 
+///	Generates a set of unique global algebra ids.
+/**	Horizontal slaves have the same algebra-id as their associated
+ * horizontal masters.
+ * Make sure that masterLayout and slaveLayout do not reference
+ * indices >= numIDs.
+ */
+template <class TLayout>
+void GenerateGlobalAlgebraIDs(pcl::InterfaceCommunicator<TLayout>& communicator,
+		std::vector<AlgebraID>& idsOut,
+		size_t numIDs,
+		const TLayout& masterLayout,
+		const TLayout& slaveLayout)
+{
+	PROFILE_FUNC_GROUP("algebra parallelization");
+//	generate an id for each entry.
+	idsOut.resize(numIDs);
+	int localProc = pcl::ProcRank();
+	for(size_t i = 0; i < numIDs; ++i)
+		idsOut[i] = AlgebraID(localProc, i);
+
+//	copy all ids from master to slave interfaces
+	ComPol_VecCopy<std::vector<AlgebraID> >	copyPol(&idsOut);
+
+	communicator.send_data(masterLayout, copyPol);
+	communicator.receive_data(slaveLayout, copyPol);
+	communicator.communicate();
+
+//	a set of global ids has now been generated.
+}
+
+
 template <typename TMatrix>
 void MatAddSlaveRowsToMasterRowOverlap0(TMatrix& mat)
 {
@@ -175,20 +206,44 @@ void UniqueToConsistent(	TVector* pVec,
 							pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
-	//	create a new communicator if required.
-		pcl::InterfaceCommunicator<IndexLayout> tCom;
-		if(!pCom)
-			pCom = &tCom;
-		pcl::InterfaceCommunicator<IndexLayout>& com = *pCom;
+//	create a new communicator if required.
+	pcl::InterfaceCommunicator<IndexLayout> tCom;
+	if(!pCom)
+		pCom = &tCom;
+	pcl::InterfaceCommunicator<IndexLayout>& com = *pCom;
 
-	//	step 1: copy master values to slaves
-	//	create the required communication policies
-		ComPol_VecCopy<TVector> cpVecCopy(pVec);
+//	step 1: copy master values to slaves
+//	create the required communication policies
+	ComPol_VecCopy<TVector> cpVecCopy(pVec);
 
-	//	perform communication
-		com.send_data(masterLayout, cpVecCopy);
-		com.receive_data(slaveLayout, cpVecCopy);
-		com.communicate();
+//	perform communication
+	com.send_data(masterLayout, cpVecCopy);
+	com.receive_data(slaveLayout, cpVecCopy);
+	com.communicate();
+}
+
+
+///	Copies values from the source to the target layout
+template <typename TVector>
+void CopyValues(	TVector* pVec,
+					const IndexLayout& sourceLayout, const IndexLayout& targetLayout,
+					pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
+{
+	PROFILE_FUNC_GROUP("algebra parallelization");
+//	create a new communicator if required.
+	pcl::InterfaceCommunicator<IndexLayout> tCom;
+	if(!pCom)
+		pCom = &tCom;
+	pcl::InterfaceCommunicator<IndexLayout>& com = *pCom;
+
+//	step 1: copy master values to slaves
+//	create the required communication policies
+	ComPol_VecCopy<TVector> cpVecCopy(pVec);
+
+//	perform communication
+	com.send_data(sourceLayout, cpVecCopy);
+	com.receive_data(targetLayout, cpVecCopy);
+	com.communicate();
 }
 
 
@@ -729,42 +784,23 @@ typename TLayout::iterator find_pid(TLayout &layout, int pid)
 SmartPtr<AlgebraLayouts> CreateLocalAlgebraLayouts();
 
 
-///	Generates a set of unique global algebra ids.
-/**	Horizontal slaves have the same algebra-id as their associated
- * horizontal masters.
- * Make sure that masterLayout and slaveLayout do not reference
- * indices >= numIDs.
- */
-template <class TLayout>
-void GenerateGlobalAlgebraIDs(pcl::InterfaceCommunicator<TLayout>& communicator,
-		std::vector<AlgebraID>& idsOut,
-		size_t numIDs,
-		const TLayout& masterLayout,
-		const TLayout& slaveLayout)
-{
-	PROFILE_FUNC_GROUP("algebra parallelization");
-//	generate an id for each entry.
-	idsOut.resize(numIDs);
-	int localProc = pcl::ProcRank();
-	for(size_t i = 0; i < numIDs; ++i)
-		idsOut[i] = AlgebraID(localProc, i);
-
-//	copy all ids from master to slave interfaces
-	ComPol_VecCopy<std::vector<AlgebraID> >	copyPol(&idsOut);
-
-	communicator.send_data(masterLayout, copyPol);
-	communicator.receive_data(slaveLayout, copyPol);
-	communicator.communicate();
-
-//	a set of global ids has now been generated.
-}
-
-
 ///	Generates a set of global consecutive indices
 /**	TIndVec has to be an std::vector compatible type, e.g. std::vector<size_t>.*/
 template <class TIndVec>
 void GenerateGlobalConsecutiveIndices(TIndVec& indsOut, size_t numLocalInds,
 									  const AlgebraLayouts& layouts);
+
+///	Tests layouts by matching master and slave interfaces and by comparing global id's
+/**	Checks normal H-Master and H-Slave interfaces as well as H-Master-Overlap and
+ * H-Slave-Overlap interfaces.
+ *
+ * \param mat			A parallel matrix.
+ * \param algebraIDs	may be specified optionally. Make sure that those are global
+ *						consistent algebraID's-*/
+template <class TMatrix>
+void TestHorizontalAlgebraLayouts(
+			const TMatrix& mat,
+			std::vector<AlgebraID>* algebraIDs = NULL);
 }//	end of namespace
 
 

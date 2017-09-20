@@ -142,7 +142,6 @@ change_storage_type(ParallelStorageType type)
 				                   &layouts()->comm());
 				set_storage_type(PST_CONSISTENT);
 				PARVEC_PROFILE_END(); //ParVec_CSTUnique2Consistent
-				break;
 			}
 			else if(has_storage_type(PST_ADDITIVE)){
 				PARVEC_PROFILE_BEGIN(ParVec_CSTAdditive2Consistent);
@@ -150,43 +149,69 @@ change_storage_type(ParallelStorageType type)
 				                     &layouts()->comm());
 				set_storage_type(PST_CONSISTENT);
 				PARVEC_PROFILE_END(); //ParVec_CSTAdditive2Consistent
-				break;
 			}
 			else return false;
+
+			if(layouts()->overlap_enabled()){
+				PARVEC_PROFILE_BEGIN(ParVec_CSTAdditive2Consistent_CopyOverlap);
+				CopyValues(this, layouts()->slave_overlap(),
+				           layouts()->master_overlap(), &layouts()->comm());
+			}
+
+			break;
+
 		case PST_ADDITIVE:
 			if(has_storage_type(PST_UNIQUE)){
 				PARVEC_PROFILE_BEGIN(ParVec_CSTUnique2Additive);
 				add_storage_type(PST_ADDITIVE);
 				PARVEC_PROFILE_END(); //ParVec_CSTUnique2Additive
-				break;
 			}
 			else if(has_storage_type(PST_CONSISTENT)){
 				PARVEC_PROFILE_BEGIN(ParVec_CSTConsistent2Additive);
 				ConsistentToUnique(this, layouts()->slave());
+				if(layouts()->overlap_enabled())
+					SetLayoutValues(this, layouts()->master_overlap(), 0);
 				set_storage_type(PST_ADDITIVE);
 				add_storage_type(PST_UNIQUE);
 				PARVEC_PROFILE_END(); //ParVec_CSTConsistent2Additive
-				break;
 			}
 			else return false;
+			break;
+
 		case PST_UNIQUE:
 			if(has_storage_type(PST_ADDITIVE)){
 				PARVEC_PROFILE_BEGIN(ParVec_CSTAdditive2Unique);
-				AdditiveToUnique(this, layouts()->master(), layouts()->slave(),
-				                 &layouts()->comm());
+				if(layouts()->overlap_enabled()){
+					AdditiveToConsistent(this, layouts()->master(), layouts()->slave(),
+				                     	 &layouts()->comm());
+					CopyValues(this, layouts()->slave_overlap(),
+				           	   layouts()->master_overlap(), &layouts()->comm());
+					ConsistentToUnique(this, layouts()->slave());
+				}
+				else{
+					AdditiveToUnique(this, layouts()->master(), layouts()->slave(),
+					                 &layouts()->comm());
+				}
 				add_storage_type(PST_UNIQUE);
 				PARVEC_PROFILE_END(); //ParVec_CSTAdditive2Unique
-				break;
 			}
 			else if(has_storage_type(PST_CONSISTENT)){
 				PARVEC_PROFILE_BEGIN(ParVec_CSTConsistent2Unique);
+				if(layouts()->overlap_enabled()){
+					CopyValues(this, layouts()->slave_overlap(),
+				           	   layouts()->master_overlap(), &layouts()->comm());
+				}
 				ConsistentToUnique(this, layouts()->slave());
 				set_storage_type(PST_ADDITIVE);
 				add_storage_type(PST_UNIQUE);
 				PARVEC_PROFILE_END(); //ParVec_CSTConsistent2Unique
-				break;
 			}
 			else return false;
+
+			if(layouts()->overlap_enabled()){
+				SetLayoutValues(this, layouts()->slave_overlap(), 0);
+			}
+			break;
 		default: return false;
 	}
 	return true;

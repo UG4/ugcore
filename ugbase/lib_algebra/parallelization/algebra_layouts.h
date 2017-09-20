@@ -47,6 +47,8 @@ namespace ug{
 class HorizontalAlgebraLayouts
 {
 	public:
+		HorizontalAlgebraLayouts() : m_overlapEnabled(false) 	{}
+
 	///	clears the struct
 		void clear()
 		{
@@ -57,11 +59,13 @@ class HorizontalAlgebraLayouts
 	/// returns the horizontal slave/master index layout
 	/// \{
 		const IndexLayout& master() const 				{return masterLayout;}
+		const IndexLayout& master_overlap() const 		{return masterOverlapLayout;}
 		const IndexLayout& slave() const 				{return slaveLayout;}
+		const IndexLayout& slave_overlap() const		{return slaveOverlapLayout;}
 	/// \}
 
 	///	returns process communicator
-		const pcl::ProcessCommunicator& proc_comm() const 				{return processCommunicator;}
+		const pcl::ProcessCommunicator& proc_comm() const 	{return processCommunicator;}
 
 	///	returns (non-const !!!) communicator
 	/**
@@ -73,31 +77,43 @@ class HorizontalAlgebraLayouts
 	 */
 		pcl::InterfaceCommunicator<IndexLayout>& comm() const  	{return const_cast<HorizontalAlgebraLayouts*>(this)->communicator;}
 
+	/**	It is important to enable or disable overlap on all involved processes
+	 * at the same time. Otherwise communication issues may arise.*/
+		void enable_overlap(bool enable)	{m_overlapEnabled = enable;}
+	///	Tells whether overlap interfaces should be considered
+		bool overlap_enabled() const		{return m_overlapEnabled;}
+
 	public:
 	/// returns the horizontal slave/master index layout
 	/// \{
-		IndexLayout& master()	{return masterLayout;}
-		IndexLayout& slave()	{return slaveLayout;}
+		IndexLayout& master()			{return masterLayout;}
+		IndexLayout& master_overlap() 	{return masterOverlapLayout;}
+		IndexLayout& slave()			{return slaveLayout;}
+		IndexLayout& slave_overlap() 	{return slaveOverlapLayout;}
 	/// \}
 
 	///	returns communicator
 	/// \{
 		pcl::InterfaceCommunicator<IndexLayout>& comm() 	{return communicator;}
-		pcl::ProcessCommunicator& proc_comm()			{return processCommunicator;}
+		pcl::ProcessCommunicator& proc_comm()				{return processCommunicator;}
 	/// \}
 
 	protected:
 		///	(horizontal) master index layout
 		IndexLayout masterLayout;
+		IndexLayout masterOverlapLayout;
 
 		///	(horizontal) slave index layout
 		IndexLayout slaveLayout;
+		IndexLayout slaveOverlapLayout;
 
 		///	process communicator
 		pcl::ProcessCommunicator processCommunicator;
 
 		///	communicator
 		pcl::InterfaceCommunicator<IndexLayout> communicator;
+
+		bool m_overlapEnabled;
 };
 
 ///	Extends the HorizontalAlgebraLayouts by vertical layouts.

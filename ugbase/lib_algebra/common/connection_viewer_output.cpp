@@ -33,6 +33,8 @@
 #include <string>
 #include <fstream>
 #include <vector>
+#include "common/error.h"
+
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"
 #endif
@@ -55,8 +57,13 @@ string GetParallelName(string name, const pcl::ProcessCommunicator &pc, bool bWr
 	int rank = pcl::ProcRank();
 
 	size_t iExtPos = name.find_last_of(".");
+	UG_COND_THROW(iExtPos == string::npos,
+	              "Filename extension missing. "
+	              "Maybe you want to add '.vec' or '.mat'?")
+
 	string ext = name.substr(iExtPos+1);
 	name.resize(iExtPos);
+
 	if(bWriteHeader && pc.size() > 1 && rank == pc.get_proc_id(0))
 	{
 		size_t iSlashPos = name.find_last_of("/");
