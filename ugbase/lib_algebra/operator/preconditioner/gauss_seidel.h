@@ -69,11 +69,11 @@ class GaussSeidelBase : public IPreconditioner<TAlgebra>
 
 	public:
 	//	Constructor
-		GaussSeidelBase() : m_relax(1.0), m_newParallelization(false) {}
+		GaussSeidelBase() : m_relax(1.0), m_bConsistentInterfaces(false) {}
 
 	/// clone constructor
 		GaussSeidelBase( const GaussSeidelBase<TAlgebra> &parent )
-			: base_type(parent), m_newParallelization(parent.m_newParallelization)
+			: base_type(parent), m_bConsistentInterfaces(parent.m_bConsistentInterfaces)
 		{
 			set_sor_relax(parent.m_relax);
 		}
@@ -82,7 +82,7 @@ class GaussSeidelBase : public IPreconditioner<TAlgebra>
 		void set_sor_relax(number relaxFactor){ m_relax = relaxFactor;}
 
 	///	activates the new parallelization approach (disabled by default)
-		void enable_new_parallelization(bool enable) {m_newParallelization = enable;}
+		void enable_consistent_interfaces(bool enable) {m_bConsistentInterfaces = enable;}
 
 		virtual const char* name() const = 0;
 	protected:
@@ -97,7 +97,7 @@ class GaussSeidelBase : public IPreconditioner<TAlgebra>
 #ifdef UG_PARALLEL
 			if(pcl::NumProcs() > 1)
 			{
-				if (m_newParallelization)
+				if (m_bConsistentInterfaces)
 				{
 					m_A = *pOp;
 					MatMakeConsistentOverlap0(m_A);
@@ -137,7 +137,7 @@ class GaussSeidelBase : public IPreconditioner<TAlgebra>
 #ifdef UG_PARALLEL
 			if(pcl::NumProcs() > 1)
 			{
-				if (m_newParallelization)
+				if (m_bConsistentInterfaces)
 				{
 					UG_COND_THROW(!d.has_storage_type(PST_ADDITIVE), "Additive or unique defect expected.");
 					step(m_A, c, d, m_relax);
@@ -182,7 +182,7 @@ class GaussSeidelBase : public IPreconditioner<TAlgebra>
 		//	relaxation parameter
 		number m_relax;
 
-		bool m_newParallelization;
+		bool m_bConsistentInterfaces;
 };
 
 /// Gauss-Seidel preconditioner for the 'forward' ordering of the dofs

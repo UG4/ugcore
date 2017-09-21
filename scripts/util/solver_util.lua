@@ -486,6 +486,14 @@ util.solver.defaults =
 		ilut = {
 			threshold = 1e-6
 		},
+		
+		gs = {
+			consistentInterfaces = false
+		},
+
+		sgs = {
+			consistentInterfaces = false
+		},
 
 		jac = {
 			damping = 0.66
@@ -717,8 +725,12 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 	elseif name == "ilut" then precond = ILUT (desc.threshold or defaults.threshold);
 	elseif name == "jac"  then precond = Jacobi (desc.damping or defaults.damping);
 	elseif name == "bgs"  then precond = BlockGaussSeidel ();
-	elseif name == "gs"   then precond = GaussSeidel ();
-	elseif name == "sgs"  then precond = SymmetricGaussSeidel ();
+	elseif name == "gs"   then
+		precond = GaussSeidel ()
+		precond:enable_consistent_interfaces(desc.consistentInterfaces or defaults.consistentInterfaces)
+	elseif name == "sgs"  then
+		precond = SymmetricGaussSeidel ()
+		precond:enable_consistent_interfaces(desc.consistentInterfaces or defaults.consistentInterfaces)
 	elseif name == "egs"  then precond = ElementGaussSeidel ();
 
 	elseif name == "gmg"  then 
