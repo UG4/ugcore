@@ -187,6 +187,7 @@ static void Algebra(Registry& reg, string grp)
 		string name = string("GaussSeidel").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "Gauss-Seidel Preconditioner")
 			.add_constructor()
+			.add_method("enable_new_parallelization", &T::enable_new_parallelization, "", "enable", "TEMPORARY")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GaussSeidel", tag);
 	}
