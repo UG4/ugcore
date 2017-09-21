@@ -144,6 +144,12 @@ static void DomainAlgebra(Registry& reg, string grp)
 						"", "ConstantValue#Function#Subsets")
 			.add_method("add",static_cast<void (T::*)(number, const std::vector<std::string>&, const std::vector<std::string>&)>(&T::add),
 						"", "ConstantValue#Function#Subsets")
+			.add_method("add",static_cast<void (T::*)(const char*, const char*)>(&T::add),
+						"", "Function#Subsets")
+			.add_method("add",static_cast<void (T::*)(const std::vector<std::string>&, const std::vector<std::string>&)>(&T::add),
+						"", "Function#Subsets")
+			.add_method("invert_subset_selection",static_cast<void (T::*)()>(&T::invert_subset_selection),
+						"", "")
 			.add_method("set_approximation_space",static_cast<void (T::*)(SmartPtr<ApproximationSpace<TDomain> >)>(&T::set_approximation_space),
 						"", "ApproximationSpace")
 #ifdef UG_FOR_LUA
