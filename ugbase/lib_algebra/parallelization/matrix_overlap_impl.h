@@ -389,7 +389,7 @@ void CreateOverlap (TMatrix& mat)
 
 //	todo: 	Remove this once Overlap creation is stable. Check for redistributed grids
 //			which have h-masters and h-slaves on one process!
-	TestHorizontalAlgebraLayouts(mat, NULL, false);
+	// TestHorizontalAlgebraLayouts(mat, NULL, false);
 
 //	Make matrix partialy consistent on slave interfaces
 	ComPol_MatCopyRowsOverlap0<TMatrix> comPolMatCopy(mat, globalIDs);
