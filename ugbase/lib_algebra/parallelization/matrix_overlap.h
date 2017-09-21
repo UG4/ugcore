@@ -42,22 +42,28 @@ namespace ug{
  */
 
 ///	Adds coefficients and connections to create an overlapping matrix
-/**	The overlap is realized by creating new interfaces: For each H-Master interface
- * a new H-Master-Overlap interface is created and for each H-Slave interface a
- * new H-Slave-Overlap interface is created. Those interfaces are written to
- * masterOverlapOut and slaveOverlapOut.
+/**	The overlap is realized by first adding new entries to processes with H-Master
+ * interfaces so that the full matrix can be stored with each H-Master. New entries
+ * are appended at the end of the matrix.
  *
- * For each H-Slave-DOF we also set a Dirichlet-Row
+ * For the new entries a new H-Master-Overlap interface is created and for associated
+ * entries connected to H-Slave nodes a new H-Slave-Overlap interface is created.
+ *
+ * For each H-Slave entry we make the matrix row partially consistent, so that all
+ * existing connections which connect two slave entries have the same value as
+ * the associated connection between respective masters.
+ *
+ * H-Masters contain the full matrix row once the method is done.
+ *
+ * Rows of H-Master-Overlap entries are DirichletRows (a_ii=1, a_ij=0 for i!=j).
+ *
+ * The methods replaces the AlgebraLayout in matInOut with a new one which
+ * contains master_overlap and slave_overlap interfaces.
  *
  * \param matInOut	An additive parallel square matrix without overlap.
- *
- * \returns	A parralel 'consistent' matrix (x=Ay with x,y consistent). H-Slave
- * 			and H-Master-Overlap rows are Dirichlet Rows (a_ii=1, a_ij=0 for i!=j).
  */
 template <class TMatrix>
-void CreateOverlap (TMatrix& matInOut,
-                    IndexLayout& masterOverlapOut,
-                    IndexLayout& slaveOverlapOut);
+void CreateOverlap (TMatrix& matInOut);
 
 }//	end of namespace
 

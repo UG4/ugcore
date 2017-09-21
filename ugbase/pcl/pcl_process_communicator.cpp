@@ -588,6 +588,7 @@ distribute_data(ug::BinaryBuffer& recvBufOut, int* segSizesOut,
 	int totalSize = 0;
 	for(int i = 0; i < numRecvFroms; ++i){
 		totalSize += bufferSizes[i];
+		segSizesOut[i] = bufferSizes[i];
 	}
 
 	recvBufOut.reserve(totalSize);

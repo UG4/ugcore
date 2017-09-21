@@ -800,7 +800,8 @@ void GenerateGlobalConsecutiveIndices(TIndVec& indsOut, size_t numLocalInds,
 template <class TMatrix>
 void TestHorizontalAlgebraLayouts(
 			const TMatrix& mat,
-			std::vector<AlgebraID>* algebraIDs = NULL);
+			std::vector<AlgebraID>* algebraIDs = NULL,
+			bool verbose = false);
 }//	end of namespace
 
 

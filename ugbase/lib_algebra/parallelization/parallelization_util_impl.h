@@ -120,7 +120,8 @@ void GenerateGlobalConsecutiveIndices(TIndVec& indsOut, size_t numLocalInds,
 template <class TMatrix>
 void TestHorizontalAlgebraLayouts(
 			const TMatrix& mat,
-			std::vector<AlgebraID>* algebraIDs)
+			std::vector<AlgebraID>* algebraIDs,
+			bool verbose)
 {
 	const AlgebraLayouts& layouts = *mat.layouts();
 
@@ -147,7 +148,7 @@ void TestHorizontalAlgebraLayouts(
 							layouts.comm(),
 							layouts.master(),
 							layouts.slave(),
-							false,
+							verbose,
 							idByIndex,
 							true);
 	UG_COND_THROW(!ok, "H-Master <-> H-Slave mismatch in matrix layout");
@@ -157,7 +158,8 @@ void TestHorizontalAlgebraLayouts(
 							layouts.proc_comm(),
 							layouts.comm(),
 							layouts.master_overlap(),
-							layouts.slave_overlap());
+							layouts.slave_overlap(),
+							verbose);
 	UG_COND_THROW(!ok, "H-Master-Overlap <-> H-Slave-Overlap mismatch in matrix layout");
 }
 

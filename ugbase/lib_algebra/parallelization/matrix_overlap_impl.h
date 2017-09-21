@@ -39,9 +39,30 @@
 
 namespace ug{
 
-/// Extends the matrix with connections to other processes
-/** This policy is only intended to be used for slave->master communication.
- */
+template <class TLayout>
+void GetLayoutTargetProcs(std::vector<int>& procsOut, const TLayout& layout)
+{	
+	procsOut.clear();
+	typedef typename TLayout::const_iterator const_iter_t;
+	for(const_iter_t iter = layout.begin(); iter != layout.end(); ++iter)
+	{
+		procsOut.push_back(layout.interface(iter).get_target_proc());
+	}
+}
+
+
+
+/// Highly specialized communication policy for matrix overlap creation
+/** \note	This policy is only intended to be used for slave->master communication.
+ * \note 	This policy is only used for internal implementation for overlap creation,
+ * 			e.g. in CreateOverlap.
+ *
+ * After communicating from slave->master, call post_process() to create the actual
+ * overlap. GlobalIDs will also be updated for new entries.
+ *
+ * \warning	Please make sure that the matrix and the array of globalIDs passed to
+ *			the constructor exist until the instance of this class is destroyed.
+ * \sa CreateOverlap*/
 template <class TMatrix>
 class ComPol_MatCreateOverlap
 	: public pcl::ICommunicationPolicy<IndexLayout>
@@ -53,18 +74,11 @@ class ComPol_MatCreateOverlap
 	 * vGlobalID must have size >= mat.num_rows()
 	 */
 		ComPol_MatCreateOverlap(TMatrix& rMat, AlgebraIDVec& vGlobalID)
-			: m_mat(rMat), m_vGlobalID(vGlobalID)
+			: m_mat(rMat), m_globalIDs(vGlobalID)
 		{
-			UG_ASSERT(vGlobalID.size() >= m_mat.num_rows(), "too few Global ids");
-			m_tmpConProcs.resize(vGlobalID.size(), -1);
-
-		//	we create a new layout, since the old one may be shared between many
-		//	different vectors and matrices. H-Master and H-Slave layouts are still
-		//	the same.
-			m_newLayout = make_sp(new AlgebraLayouts);
-			*m_newLayout = *m_mat.layouts();
-			m_newLayout->enable_overlap(true);
-			m_mat.set_layouts (m_newLayout);
+			UG_COND_THROW(vGlobalID.size() < m_mat.num_rows(), "Not enough GlobalIDs");
+		//	fill the map global->local
+			GenerateAlgebraIDHashList(m_algIDHash, m_globalIDs);
 		}
 
 	///	writes the interface values into a buffer that will be sent
@@ -72,16 +86,6 @@ class ComPol_MatCreateOverlap
 		{
 			PROFILE_BEGIN_GROUP(ComPol_MatAddRowsOverlap0_collect, "algebra parallelization");
 			typedef typename TMatrix::row_iterator row_iterator;
-
-		//	mark all entries in this interface
-			const int targetProc = interface.get_target_proc ();
-
-			for(typename Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
-			{
-				m_tmpConProcs [interface.get_element(iter)] = targetProc;
-			}
-
 
 		//	loop interface
 			for(typename Interface::const_iterator iter = interface.begin();
@@ -106,16 +110,10 @@ class ComPol_MatCreateOverlap
 					block_t& a_ik = it_k.value();
 
 				//	write global entry to buffer
-					Serialize(buff, m_vGlobalID[k]);
+					Serialize(buff, m_globalIDs[k]);
 
 				//	write entry into buffer
 					Serialize(buff, a_ik);
-
-				//	store as sent new connection if the connection did not yet
-				//	exist on the target proc
-					if (m_tmpConProcs [k] != targetProc) {
-						m_sentNewIDs.insert(SentID(k, m_vGlobalID[k], targetProc));
-					}
 				}
 			}
 
@@ -123,54 +121,6 @@ class ComPol_MatCreateOverlap
 			return true;
 		}
 
-		virtual bool
-		end_layout_collection(const Layout* pLayout)	
-		{
-			using namespace std;
-
-		//	create new slave-overlap
-			{
-				IndexLayout::Interface* itfc = NULL;
-
-				for (typename set<SentID>::iterator iter = m_sentNewIDs.begin();
-				     iter != m_sentNewIDs.end(); ++iter)
-				{
-					const SentID& curSentID = *iter;
-					const int targetProc = curSentID.conProc;
-					if (!itfc || targetProc != itfc->get_target_proc())
-						itfc = &m_newLayout->slave_overlap().interface(targetProc);
-
-					itfc->push_back(curSentID.ind);
-				}
-			}
-
-		//	set h-slave rows to dirichlet rows
-			IndexLayout& slaveLayout = m_newLayout->slave();
-			for(size_t lvl = 0; lvl < slaveLayout.num_levels(); ++lvl){
-				for(IndexLayout::const_iterator interfaceIter = slaveLayout.begin(lvl);
-					interfaceIter != slaveLayout.end(lvl); ++interfaceIter)
-				{
-					const IndexLayout::Interface& interface = slaveLayout.interface(interfaceIter);
-					for(IndexLayout::Interface::const_iterator iter = interface.begin();
-						iter != interface.end(); ++iter)
-					{
-						SetDirichletRow(m_mat, interface.get_element(iter));
-					}
-				}
-			}
-
-			return true;
-		}
-
-
-
-		virtual bool
-		begin_layout_extraction(const Layout* pLayout)
-		{
-		//	fill the map global->local
-			GenerateAlgebraIDHashList(m_algIDHash, m_vGlobalID);
-			return true;
-		}
 
 	///	writes values from a buffer into the interface
 		virtual bool extract(ug::BinaryBuffer& buff, const Interface& interface)
@@ -208,7 +158,7 @@ class ComPol_MatCreateOverlap
 						m_mat(index, conInd) += block;
 					}
 					else {
-						const ExtCon ec(index, m_vGlobalID[index], gID, targetProc);
+						const ExtCon ec(index, m_globalIDs[index], gID, targetProc);
 						m_recvNewCons [ec] = block;
 						m_recvNewIDs.insert (gID);
 					}
@@ -219,35 +169,56 @@ class ComPol_MatCreateOverlap
 			return true;
 		}
 
-		virtual bool
-		end_layout_extraction(const Layout* pLayout)
+
+		/// After communication is done, this method should be called to create the overlap
+		virtual void post_process()
 		{
 		//	create new master overlap
 			using namespace std;
+
+		//	we create a new layout, since the old one may be shared between many
+		//	different vectors and matrices. H-Master and H-Slave layouts are still
+		//	the same.
+			SmartPtr <AlgebraLayouts> newLayout = make_sp(new AlgebraLayouts);
+			*newLayout = *m_mat.layouts();
+			newLayout->enable_overlap(true);
+			m_mat.set_layouts (newLayout);
 
 			const size_t oldSize = m_mat.num_rows();
 			const size_t numNewInds = m_recvNewIDs.size();
 			const size_t newSize = oldSize + numNewInds;
 
-			if(newSize == oldSize)
-				return true;
-
-		//	add new entries to the algebra hash
+		//	add new entries to the algebra hash and to the globalID array
 			{
+				m_globalIDs.reserve(newSize);
 				size_t i = oldSize;
 				for(set<AlgebraID>::iterator iter = m_recvNewIDs.begin();
 				    iter != m_recvNewIDs.end(); ++iter, ++i)
 				{
 					m_algIDHash.insert(*iter, i);
+					m_globalIDs.push_back(*iter);
+				}
+			}
+
+			if(newSize != oldSize) {
+			//	For each new DoF we set a DirichletRow
+				m_mat.resize_and_keep_values (newSize, newSize);
+				for(size_t i = oldSize; i < newSize; ++i){
+					SetDirichletRow(m_mat, i);
 				}
 			}
 
 
-		//	For each new DoF we set a DirichletRow
-			m_mat.resize_and_keep_values (newSize, newSize);
-			for(size_t i = oldSize; i < newSize; ++i){
-				SetDirichletRow(m_mat, i);
-			}
+			vector<int> slaveProcs; // process ranks of processes with associated slave interfaces
+			GetLayoutTargetProcs(slaveProcs, newLayout->master());
+
+		//	the following buffers and vectors are used to collect globalIDs of
+		//	newly created entries sorted by the slave process from which they
+		//	were received.
+			BinaryBuffer sendBuf;
+			// size of the message for the i-th process in slaveProcs
+			vector<int> msgSizeForSlaveProcs(slaveProcs.size(), 0);
+			int slaveInd = -1;
 
 		//	create new master-overlap and add connections to matrix
 			{
@@ -260,60 +231,108 @@ class ComPol_MatCreateOverlap
 					const ExtCon& curExtCon = iter->first;
 					const int targetProc = curExtCon.conProc;
 					if (!itfc || targetProc != itfc->get_target_proc()){
-						itfc = &m_newLayout->master_overlap().interface(targetProc);
+						itfc = &newLayout->master_overlap().interface(targetProc);
 						added.clear();
 						added.resize(numNewInds, false);
+
+					//	find the index of the corresponding slave proc
+						slaveInd = -1;
+						for(size_t islave = 0; islave < slaveProcs.size(); ++islave){
+							if(slaveProcs[islave] == targetProc){
+								slaveInd = int(islave);
+								break;
+							}
+						}
+						UG_COND_THROW(slaveInd == -1, "slaveProcs doas not contain referenced slave rank");
 					}
 
 					size_t toInd;
 					UG_COND_THROW(!m_algIDHash.get_entry(toInd, curExtCon.toID),
 					              "Expected AlgebraID not found in Hash");
 
-					if(!added[toInd - oldSize])
+					if(!added[toInd - oldSize]){
 						itfc->push_back(toInd);
+						const size_t oldWritePos = sendBuf.write_pos();
+						Serialize(sendBuf, curExtCon.toID);
+						msgSizeForSlaveProcs[slaveInd] += int(sendBuf.write_pos() - oldWritePos);
+					}
 					added[toInd - oldSize] = true;
 
 					m_mat(curExtCon.fromInd, toInd) += iter->second;
 				}
 			}
 
-			return true;
+			if(!msgSizeForSlaveProcs.empty()){
+				UG_LOG("msgSizeForSlaveProcs: " << msgSizeForSlaveProcs[0] << endl);
+			}
+
+		//	master processing done!
+		//	now find all processes which contain master interfaces to local slave interfaces
+			vector<int> masterProcs;
+			GetLayoutTargetProcs(masterProcs, newLayout->slave());
+			
+			UG_LOG("masterProcs: " << masterProcs.size() << endl);
+			if(masterProcs.size())
+				UG_LOG("masterProcs[0]: " << masterProcs[0] << endl);
+
+			vector<int> recvSizes (masterProcs.size());
+			BinaryBuffer recvBuf;
+
+			newLayout->proc_comm().distribute_data(
+					recvBuf, &recvSizes.front(), &masterProcs.front(),
+					(int)masterProcs.size(),
+					sendBuf.buffer(), &msgSizeForSlaveProcs.front(),
+					&slaveProcs.front(), (int)slaveProcs.size(), 7553173);
+
+			if(!recvSizes.empty()){
+				UG_LOG("recvSizes: " << recvSizes[0] << endl);
+			}
+
+		//	Extract content of recvBuf and create new slave-overlap
+			for(size_t i = 0; i < masterProcs.size(); ++i)
+			{
+				IndexLayout::Interface& itfc = newLayout->slave_overlap()
+													.interface(masterProcs[i]);
+
+				size_t oldReadPos = recvBuf.read_pos();
+				while(recvBuf.read_pos() < oldReadPos + recvSizes[i]){
+					AlgebraID globID;
+					Deserialize(recvBuf, globID);
+					size_t locID;
+					if(m_algIDHash.get_entry(locID, globID)){
+						itfc.push_back(locID);
+					}
+					else{
+						UG_THROW("GlobalID " << globID << " expected on this process "
+						         "but not found.");
+					}
+				}
+			}
+
+		//	set h-slave rows to dirichlet rows
+			// IndexLayout& slaveLayout = newLayout->slave();
+			// for(size_t lvl = 0; lvl < slaveLayout.num_levels(); ++lvl){
+			// 	for(IndexLayout::const_iterator interfaceIter = slaveLayout.begin(lvl);
+			// 		interfaceIter != slaveLayout.end(lvl); ++interfaceIter)
+			// 	{
+			// 		const IndexLayout::Interface& interface = slaveLayout.interface(interfaceIter);
+			// 		for(IndexLayout::Interface::const_iterator iter = interface.begin();
+			// 			iter != interface.end(); ++iter)
+			// 		{
+			// 			SetDirichletRow(m_mat, interface.get_element(iter));
+			// 		}
+			// 	}
+			// }
 		}
 
 	private:
 		TMatrix& m_mat;
 
 	///	map localID->globalID
-		AlgebraIDVec&		m_vGlobalID;
+		AlgebraIDVec&		m_globalIDs;
 
 	///	map globalID->localID
 		AlgebraIDHashList	m_algIDHash;
-
-	///	helper array to identify whether a coefficient is contained in an interface to a specific process
-		std::vector<int>	m_tmpConProcs;
-
-	///	In this fresh layout we'll combine old and new interfaces
-		SmartPtr <AlgebraLayouts> m_newLayout;
-
-
-		struct SentID {
-			SentID (size_t _ind, const AlgebraID& _ID, int _conProc) :
-				ind (_ind),
-				ID (_ID),
-				conProc (_conProc)
-			{}
-
-			size_t		ind;
-			AlgebraID	ID;
-			int			conProc;
-
-			bool operator < (const SentID& ec) const
-			{
-				if(conProc < ec.conProc) return true;
-			 	else if(conProc > ec.conProc) return false;
-			 	return (ID < ec.ID);
-			}
-		};
 
 		struct ExtCon {
 			ExtCon (size_t _fromInd, const AlgebraID& _fromID,
@@ -339,12 +358,10 @@ class ComPol_MatCreateOverlap
 			}
 		};
 
-	///	Internal DoF indices to whom connections were sent to other processes.
-		std::set<SentID>	m_sentNewIDs;
 	///	New connections received from other processes.
 		std::map<ExtCon, block_t>	m_recvNewCons;
 	///	Here we just collect the new IDs which are added to the local matrix
-		std::set<AlgebraID>	m_recvNewIDs;
+		std::set<AlgebraID>			m_recvNewIDs;
 };
 
 
@@ -368,9 +385,17 @@ void CreateOverlap (TMatrix& mat)
 	mat.layouts()->comm().receive_data(mat.layouts()->master(), comPolOverlap);
 	mat.layouts()->comm().communicate();
 
+	comPolOverlap.post_process();
+
 //	todo: 	Remove this once Overlap creation is stable. Check for redistributed grids
 //			which have h-masters and h-slaves on one process!
-	TestHorizontalAlgebraLayouts(mat);
+	TestHorizontalAlgebraLayouts(mat, NULL, false);
+
+//	Make matrix partialy consistent on slave interfaces
+	ComPol_MatCopyRowsOverlap0<TMatrix> comPolMatCopy(mat, globalIDs);
+	mat.layouts()->comm().send_data(mat.layouts()->master(), comPolMatCopy);
+	mat.layouts()->comm().receive_data(mat.layouts()->slave(), comPolMatCopy);
+	mat.layouts()->comm().communicate();
 }
 	
 }//	end of namespace

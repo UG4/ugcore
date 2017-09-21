@@ -815,12 +815,14 @@ class ICommunicationPolicy
 	////////////////////////////////
 	//	COLLECT
 	///	signals the beginning of a layout collection.
-	/**	the default implementation returns true and does nothing else.*/
+	/**	the default implementation returns true and does nothing else.
+	 * This method is only called on processes which collect data.*/
 		virtual bool
 		begin_layout_collection(const Layout* pLayout)			{return true;}
 
 	///	signals the end of a layout collection
-	/**	the default implementation returns true and does nothing else.*/
+	/**	the default implementation returns true and does nothing else.
+	 * This method is only called on processes which collect data.*/
 		virtual bool
 		end_layout_collection(const Layout* pLayout)			{return true;}
 
@@ -831,12 +833,14 @@ class ICommunicationPolicy
 	////////////////////////////////
 	//	EXTRACT
 	///	signals the beginning of a layout extraction.
-	/**	the default implementation returns true and does nothing else.*/
+	/**	the default implementation returns true and does nothing else.
+	 * This method is only called on processes which extract data.*/
 		virtual bool
 		begin_layout_extraction(const Layout* pLayout) 			{return true;}
 
 	///	signals the end of a layout extraction
-	/**	the default implementation returns true and does nothing else.*/
+	/**	the default implementation returns true and does nothing else.
+	 * This method is only called on processes which extract data.*/
 		virtual bool
 		end_layout_extraction(const Layout* pLayout)			{return true;}
 
