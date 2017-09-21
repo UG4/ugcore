@@ -243,7 +243,8 @@ static void Algebra(Registry& reg, string grp)
 			.add_method("set_sort", &T::set_sort, "", "bSort", "if bSort=true, use a cuthill-mckey sorting to reduce fill-in. default false")
 			.add_method("set_disable_preprocessing", &T::set_disable_preprocessing, "", "disable",
 						"set whether preprocessing (notably, LU factorization) is to be disabled - usable when the operator has not changed; use with care")
-			.add_method("enable_new_parallelization", &T::enable_new_parallelization, "", "enable", "TEMPORARY")
+			.add_method("enable_consistent_interfaces", &T::enable_consistent_interfaces, "", "enable", "Make Matrix consistent for connections in interfaces.")
+			.add_method("enable_overlap", &T::enable_overlap, "", "enable", "Enables matrix overlap. This also means that interfaces are consistent.")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ILU", tag);
 	}

@@ -34,13 +34,15 @@
 #ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__ILU__
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__ILU__
 
+#include "common/error.h"
 #include "common/util/smart_pointer.h"
 #include "lib_algebra/operator/interface/preconditioner.h"
 
 #ifdef UG_PARALLEL
 	#include "pcl/pcl_util.h"
 	#include "lib_algebra/parallelization/parallelization_util.h"
-	#include "lib_algebra/parallelization/parallel_matrix_overlap_impl.h"
+	#include "lib_algebra/parallelization/matrix_overlap.h"
+	#include "lib_algebra/parallelization/overlap_writer.h"
 #endif
 #include "lib_algebra/algebra_common/permutation_util.h"
 
@@ -333,7 +335,7 @@ class ILU : public IPreconditioner<TAlgebra>
 	protected:
 		using base_type::set_debug;
 		using base_type::debug_writer;
-		using base_type::write_debug;
+		// using base_type::write_debug;
 
 	public:
 	//	Constructor
@@ -343,7 +345,8 @@ class ILU : public IPreconditioner<TAlgebra>
 			m_invEps(1.e-8),
 			m_bSort(false),
 			m_bDisablePreprocessing(false),
-			m_newParallelization(false) {};
+			m_useConsistentInterfaces(false),
+			m_useOverlap(false) {};
 
 	/// clone constructor
 		ILU( const ILU<TAlgebra> &parent )
@@ -353,7 +356,8 @@ class ILU : public IPreconditioner<TAlgebra>
 			  m_invEps(parent.m_invEps),
 			  m_bSort(parent.m_bSort),
 			  m_bDisablePreprocessing(parent.m_bDisablePreprocessing),
-			  m_newParallelization(parent.m_newParallelization)
+			  m_useConsistentInterfaces(parent.m_useConsistentInterfaces),
+			  m_useOverlap(parent.m_useOverlap)
 		{	}
 
 	///	Clone
@@ -386,8 +390,12 @@ class ILU : public IPreconditioner<TAlgebra>
 	///	sets the smallest allowed value for the Aii/Bi quotient
 		void set_inversion_eps(number eps)				{m_invEps = eps;}
 
-	///	activates the new parallelization approach (disabled by default)
-		void enable_new_parallelization (bool enable)	{m_newParallelization = enable;}
+	///	enables consistent interfaces.
+	/**	Connections between coefficients which lie in the same parallel interface
+	 * are made consistent between processes.*/
+		void enable_consistent_interfaces (bool enable)	{m_useConsistentInterfaces = enable;}
+
+		void enable_overlap (bool enable)				{m_useOverlap = enable;}
 
 	protected:
 	//	Name of preconditioner
@@ -420,64 +428,46 @@ class ILU : public IPreconditioner<TAlgebra>
 			matrix_type &mat = *pOp;
 			PROFILE_BEGIN_GROUP(ILU_preprocess, "algebra ILU");
 		//	Debug output of matrices
-			write_debug(mat, "ILU_prep_01_BeforeMakeUnique");
+			write_debug(mat, "ILU_prep_01_A_BeforeMakeUnique");
 
 			m_ILU = mat;
-#ifdef 	UG_PARALLEL
-			if(m_newParallelization)
-				MatMakeConsistentOverlap0(m_ILU);
-			else {
-				MatAddSlaveRowsToMasterRowOverlap0(m_ILU);
-			//	set zero on slaves
-				std::vector<IndexLayout::Element> vIndex;
-				CollectUniqueElements(vIndex,  m_ILU.layouts()->slave());
-				SetDirichletRow(m_ILU, vIndex);
-			}
+			
+			#ifdef 	UG_PARALLEL
+				if(m_useOverlap){
+					CreateOverlap(m_ILU);
+					m_oD.set_layouts(m_ILU.layouts());
+					m_oC.set_layouts(m_ILU.layouts());
+					m_oD.resize(m_ILU.num_rows(), false);
+					m_oC.resize(m_ILU.num_rows(), false);
 
+					if(debug_writer().valid()){
+						m_overlapWriter = make_sp(new OverlapWriter<TAlgebra>());
+						m_overlapWriter->init (*m_ILU.layouts(),
+					                     	   *debug_writer(),
+				                      		   m_ILU.num_rows());
+					}
+				}
+				else if(m_useConsistentInterfaces){
+					MatMakeConsistentOverlap0(m_ILU);
+				}
+				else {
+					MatAddSlaveRowsToMasterRowOverlap0(m_ILU);
+				//	set dirichlet rows on slaves
+					std::vector<IndexLayout::Element> vIndex;
+					CollectUniqueElements(vIndex,  m_ILU.layouts()->slave());
+					SetDirichletRow(m_ILU, vIndex);
+				}
+			#endif
 
-		//DEBUG: find dirichlet master rows
-			// vIndex.clear();
-			// CollectUniqueElements(vIndex,  m_ILU.layouts()->master());
-			// typedef typename matrix_type::row_iterator row_iterator;
-			// typedef typename matrix_type::value_type block_type;
+			m_h.resize(m_ILU.num_cols());
 
-			// // for all rows
-			// UG_LOG("Dirichlet Masters: ");
-			// for(size_t i_index=0; i_index < vIndex.size(); i_index++)
-			// {
-			// 	const size_t i = vIndex[i_index];
-
-			// 	size_t numNonzero = 0;
-			// 	size_t lastNonzero = 0;
-			// 	for(row_iterator it_k = m_ILU.begin_row(i); it_k != m_ILU.end_row(i); ++it_k)
-			// 	{
-			// 		const size_t k = it_k.index();
-			// 		block_type &a = it_k.value();
-
-			// 	//todo:	Use a block-compatible comparison
-			// 		if(a != 0){
-			// 			++numNonzero;
-			// 			lastNonzero = k;
-			// 		}
-			// 	}
-
-			// 	if(numNonzero == 1){
-			// 		m_ILU(i, lastNonzero) = 1;
-			// 	}
-			// }
-			// UG_LOG("\n");
-#endif
-
-			write_debug(m_ILU, "ILU_prep_02_AfterMakeUnique");
+			write_debug(m_ILU, "ILU_prep_02_A_AfterMakeUnique");
 
 			if(m_bSort)
 				calc_cuthill_mckee();
 
 		//	Debug output of matrices
-			write_debug(m_ILU, "ILU_prep_03_BeforeFactorize");
-
-		//	resize help vector
-			m_h.resize(mat.num_cols());
+			write_debug(m_ILU, "ILU_prep_03_A_BeforeFactorize");
 
 		// 	Compute ILU Factorization
 			if (m_beta!=0.0) FactorizeILUBeta(m_ILU, m_beta);
@@ -486,7 +476,7 @@ class ILU : public IPreconditioner<TAlgebra>
 			m_ILU.defragment();
 
 		//	Debug output of matrices
-			write_debug(m_ILU, "ILU_prep_04_AfterFactorize");
+			write_debug(m_ILU, "ILU_prep_04_A_AfterFactorize");
 
 		//	we're done
 			return true;
@@ -494,7 +484,7 @@ class ILU : public IPreconditioner<TAlgebra>
 
 
 		void applyLU(vector_type &c, const vector_type &d, vector_type &tmp)
-		{
+		{	
 			if(!m_bSort || m_bSortIsIdentity)
 			{
 				// 	apply iterator: c = LU^{-1}*d
@@ -512,40 +502,62 @@ class ILU : public IPreconditioner<TAlgebra>
 		}
 
 	//	Stepping routine
-		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
+		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp,
+		                  vector_type& c,
+		                  const vector_type& d)
 		{
 			PROFILE_BEGIN_GROUP(ILU_step, "algebra ILU");
+
+			
 		//	\todo: introduce damping
-#ifdef UG_PARALLEL
-		//	for debug output (only for application is written)
-			static bool first = true;
+			#ifdef UG_PARALLEL
+			//	for debug output (only for application is written)
+				static bool first = true;
 
+				if(first) write_debug(d, "ILU_step_1_d");
+				if(m_useOverlap){
+					for(size_t i = 0; i < d.size(); ++i)
+						m_oD[i] = d[i];
+					for(size_t i = d.size(); i < m_oD.size(); ++i)
+						m_oD[i] = 0;
+					m_oD.set_storage_type(PST_ADDITIVE);
+					m_oD.change_storage_type(PST_CONSISTENT);
 
-			if(m_newParallelization){
-				UG_COND_THROW(d.has_storage_type(PST_CONSISTENT),
-				              "additive or unique defect expected");
+					if(first) write_debug(m_oD, "ILU_step_2_oD_consistent");
+
+					applyLU(m_oC, m_oD, m_h);
+
+					for(size_t i = 0; i < c.size(); ++i)
+						c[i] = m_oC[i];
+					SetLayoutValues(&c, c.layouts()->slave(), 0);
+					c.set_storage_type(PST_UNIQUE);
+				}
+				else if(m_useConsistentInterfaces){
+					UG_COND_THROW(d.has_storage_type(PST_CONSISTENT),
+					              "additive or unique defect expected");
+					applyLU(c, d, m_h);
+					c.set_storage_type(PST_ADDITIVE);
+				}
+				else{
+				//	make defect unique
+					SmartPtr<vector_type> spDtmp = d.clone();
+					spDtmp->change_storage_type(PST_UNIQUE);
+					if(first) write_debug(*spDtmp, "ILU_step_2_d_unique");
+					applyLU(c, *spDtmp, m_h);
+					c.set_storage_type(PST_ADDITIVE);
+				}
+
+			//	write debug
+				if(first) write_debug(c, "ILU_step_3_c");
+
+				c.change_storage_type(PST_CONSISTENT);
+
+			//	write debug
+				if(first) {write_debug(c, "ILU_step_4_c_consistent"); first = false;}
+
+			#else
 				applyLU(c, d, m_h);
-			}
-			else{
-			//	make defect unique
-				SmartPtr<vector_type> spDtmp = d.clone();
-				spDtmp->change_storage_type(PST_UNIQUE);
-				applyLU(c, *spDtmp, m_h);
-			}
-
-			c.set_storage_type(PST_ADDITIVE);
-
-		//	write debug
-			if(first) write_debug(c, "ILU_c");
-
-			c.change_storage_type(PST_CONSISTENT);
-
-		//	write debug
-			if(first) {write_debug(c, "ILU_cConsistent"); first = false;}
-
-#else
-			applyLU(c, d, m_h);
-#endif
+			#endif
 
 		//	we're done
 			return true;
@@ -554,13 +566,29 @@ class ILU : public IPreconditioner<TAlgebra>
 	///	Postprocess routine
 		virtual bool postprocess() {return true;}
 
+	private:
+		template <class T> void write_debug(const T& t, std::string name)
+		{
+			if(debug_writer().valid()){
+				if(m_useOverlap && m_overlapWriter.valid() && t.layouts()->overlap_enabled())
+					m_overlapWriter->write(t, name);
+				else
+					base_type::write_debug(t, name.c_str());
+			}
+		}
+
 	protected:
 	///	storage for factorization
 		matrix_type m_ILU;
 
 	///	help vector
 		vector_type m_h;
-		
+
+	///	for overlaps only
+		vector_type m_oD;
+		vector_type m_oC;
+		SmartPtr<OverlapWriter<TAlgebra> >	m_overlapWriter;
+
 	/// Factor for ILU-beta
 		number m_beta;
 
@@ -578,7 +606,8 @@ class ILU : public IPreconditioner<TAlgebra>
 	/// whether or not to disable preprocessing
 		bool m_bDisablePreprocessing;
 
-		bool m_newParallelization;
+		bool m_useConsistentInterfaces;
+		bool m_useOverlap;
 };
 
 } // end namespace ug
