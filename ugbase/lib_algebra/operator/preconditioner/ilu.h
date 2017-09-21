@@ -469,6 +469,7 @@ class ILU : public IPreconditioner<TAlgebra>
 
 			m_ILU = mat;
 
+		//	this is an experimental trigger. Best to leav it false for now.
 			const bool sortSlaveToEnd = false;
 
 			#ifdef 	UG_PARALLEL
