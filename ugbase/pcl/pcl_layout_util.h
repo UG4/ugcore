@@ -122,12 +122,12 @@ void CollectElements(std::vector<typename TLayout::Element>& elemsOut,
 
 //	iterate over all interfaces
 	for(size_t lvl = 0; lvl < layout.num_levels(); ++lvl){
-		for(typename TLayout::iterator interfaceIter = layout.begin(lvl);
+		for(typename TLayout::const_iterator interfaceIter = layout.begin(lvl);
 			interfaceIter != layout.end(lvl); ++interfaceIter)
 		{
 		//	iterate over the entries of the interface
-			Interface& interface = layout.interface(interfaceIter);
-			for(typename Interface::iterator iter = interface.begin();
+			const Interface& interface = layout.interface(interfaceIter);
+			for(typename Interface::const_iterator iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 			//	add elem to vector

@@ -51,6 +51,51 @@ void GetLayoutTargetProcs(std::vector<int>& procsOut, const TLayout& layout)
 }
 
 
+template <class TMatrix>
+class ComPol_MatCopyDiag : public pcl::ICommunicationPolicy<IndexLayout>
+{
+	public:
+		ComPol_MatCopyDiag(TMatrix& mat): m_mat(mat)	{}
+
+		int get_required_buffer_size (const Interface& interface)
+		{
+			if(block_traits<typename TMatrix::value_type>::is_static)
+				return interface.size() * sizeof(typename TMatrix::value_type);
+			else
+				return -1;
+		}
+
+		bool collect (ug::BinaryBuffer& buff, const Interface& interface)
+		{
+			PROFILE_BEGIN_GROUP(ComPol_MatCopyDiag_collect, "algebra parallelization");
+
+			for(typename Interface::const_iterator iter = interface.begin();
+				iter != interface.end(); ++iter)
+			{
+				const size_t index = interface.get_element(iter);
+				Serialize(buff, m_mat(index, index));
+			}
+			return true;
+		}
+
+		bool extract (ug::BinaryBuffer& buff, const Interface& interface)
+		{
+			PROFILE_BEGIN_GROUP(ComPol_MatCopyDiag_extract, "algebra parallelization");
+
+			for(typename Interface::const_iterator iter = interface.begin();
+				iter != interface.end(); ++iter)
+			{
+				const size_t index = interface.get_element(iter);
+				Deserialize(buff, m_mat(index, index));
+			}
+			return true;
+		}
+
+	private:
+		TMatrix& m_mat;
+};
+
+
 
 /// Highly specialized communication policy for matrix overlap creation
 /** \note	This policy is only intended to be used for slave->master communication.
@@ -262,19 +307,11 @@ class ComPol_MatCreateOverlap
 				}
 			}
 
-			if(!msgSizeForSlaveProcs.empty()){
-				UG_LOG("msgSizeForSlaveProcs: " << msgSizeForSlaveProcs[0] << endl);
-			}
-
 		//	master processing done!
 		//	now find all processes which contain master interfaces to local slave interfaces
 			vector<int> masterProcs;
 			GetLayoutTargetProcs(masterProcs, newLayout->slave());
 			
-			UG_LOG("masterProcs: " << masterProcs.size() << endl);
-			if(masterProcs.size())
-				UG_LOG("masterProcs[0]: " << masterProcs[0] << endl);
-
 			vector<int> recvSizes (masterProcs.size());
 			BinaryBuffer recvBuf;
 
@@ -283,10 +320,6 @@ class ComPol_MatCreateOverlap
 					(int)masterProcs.size(),
 					sendBuf.buffer(), &msgSizeForSlaveProcs.front(),
 					&slaveProcs.front(), (int)slaveProcs.size(), 7553173);
-
-			if(!recvSizes.empty()){
-				UG_LOG("recvSizes: " << recvSizes[0] << endl);
-			}
 
 		//	Extract content of recvBuf and create new slave-overlap
 			for(size_t i = 0; i < masterProcs.size(); ++i)
@@ -309,19 +342,41 @@ class ComPol_MatCreateOverlap
 				}
 			}
 
-		//	set h-slave rows to dirichlet rows
-			// IndexLayout& slaveLayout = newLayout->slave();
-			// for(size_t lvl = 0; lvl < slaveLayout.num_levels(); ++lvl){
-			// 	for(IndexLayout::const_iterator interfaceIter = slaveLayout.begin(lvl);
-			// 		interfaceIter != slaveLayout.end(lvl); ++interfaceIter)
-			// 	{
-			// 		const IndexLayout::Interface& interface = slaveLayout.interface(interfaceIter);
-			// 		for(IndexLayout::Interface::const_iterator iter = interface.begin();
-			// 			iter != interface.end(); ++iter)
+			{
+			//	Make matrix partialy consistent on slave interfaces and on h-master-overlap
+				ComPol_MatCopyRowsOverlap0<TMatrix> comPolMatCopy(m_mat, m_globalIDs);
+				newLayout->comm().send_data(newLayout->master(), comPolMatCopy);
+				newLayout->comm().receive_data(newLayout->slave(), comPolMatCopy);
+				newLayout->comm().communicate();
+
+				newLayout->comm().send_data(newLayout->slave_overlap(), comPolMatCopy);
+				newLayout->comm().receive_data(newLayout->master_overlap(), comPolMatCopy);
+				newLayout->comm().communicate();
+			}
+
+			// {
+			// //	set h-slave rows and h-master-overlap rows to diagonal-only
+			// 	IndexLayout& slaveLayout = newLayout->slave();
+			// 	for(size_t lvl = 0; lvl < slaveLayout.num_levels(); ++lvl){
+			// 		for(IndexLayout::const_iterator interfaceIter = slaveLayout.begin(lvl);
+			// 			interfaceIter != slaveLayout.end(lvl); ++interfaceIter)
 			// 		{
-			// 			SetDirichletRow(m_mat, interface.get_element(iter));
+			// 			const IndexLayout::Interface& interface = slaveLayout.interface(interfaceIter);
+			// 			for(IndexLayout::Interface::const_iterator iter = interface.begin();
+			// 				iter != interface.end(); ++iter)
+			// 			{
+			// 				const size_t index = interface.get_element(iter);
+			// 				typename TMatrix::value_type diag = m_mat(index, index);
+			// 				SetDirichletRow(m_mat, index);
+			// 				m_mat(index, index) = diag;
+			// 			}
 			// 		}
 			// 	}
+
+			// 	ComPol_MatCopyDiag<TMatrix> comPolMatCopyDiag(m_mat);
+			// 	newLayout->comm().send_data(newLayout->slave_overlap(), comPolMatCopyDiag);
+			// 	newLayout->comm().receive_data(newLayout->master_overlap(), comPolMatCopyDiag);
+			// 	newLayout->comm().communicate();
 			// }
 		}
 
@@ -390,12 +445,6 @@ void CreateOverlap (TMatrix& mat)
 //	todo: 	Remove this once Overlap creation is stable. Check for redistributed grids
 //			which have h-masters and h-slaves on one process!
 	// TestHorizontalAlgebraLayouts(mat, NULL, false);
-
-//	Make matrix partialy consistent on slave interfaces
-	ComPol_MatCopyRowsOverlap0<TMatrix> comPolMatCopy(mat, globalIDs);
-	mat.layouts()->comm().send_data(mat.layouts()->master(), comPolMatCopy);
-	mat.layouts()->comm().receive_data(mat.layouts()->slave(), comPolMatCopy);
-	mat.layouts()->comm().communicate();
 }
 	
 }//	end of namespace

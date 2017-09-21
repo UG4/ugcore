@@ -34,6 +34,7 @@
 #ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__ILU__
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__ILU__
 
+#include <limits>
 #include "common/error.h"
 #include "common/util/smart_pointer.h"
 #include "lib_algebra/operator/interface/preconditioner.h"
@@ -312,6 +313,42 @@ bool invert_U(const Matrix_type &A, Vector_type &x, const Vector_type &b,
 	return true;
 }
 
+
+#ifdef UG_PARALLEL
+inline void
+LayoutEntriesToEndPermutation(std::vector<size_t>& newIndexOut,
+                              const IndexLayout& layout,
+                       		  const size_t numRows)
+{
+	using namespace std;
+	vector<size_t> inds;
+	CollectElements(inds, layout);
+
+	newIndexOut.clear();
+	newIndexOut.resize(numRows, 0);
+
+	size_t numUniqueInds = 0;
+	for(size_t i = 0; i < inds.size(); ++i){
+		if(newIndexOut[inds[i]] != 1){
+			newIndexOut[inds[i]] = 1;
+			++numUniqueInds;
+		}
+	}
+
+	size_t curNormalInd = 0;
+	size_t curSlaveInd = numRows - numUniqueInds;
+
+//	0 marks normal index, 1 marks layout index
+	for(size_t irow = 0; irow < numRows; ++irow){
+		if(newIndexOut[irow] == 0)
+			newIndexOut[irow] = curNormalInd++;
+		else
+			newIndexOut[irow] = curSlaveInd++;
+	}
+}
+#endif
+
+
 ///	ILU / ILU(beta) preconditioner
 template <typename TAlgebra>
 class ILU : public IPreconditioner<TAlgebra>
@@ -431,7 +468,9 @@ class ILU : public IPreconditioner<TAlgebra>
 			write_debug(mat, "ILU_prep_01_A_BeforeMakeUnique");
 
 			m_ILU = mat;
-			
+
+			const bool sortSlaveToEnd = false;
+
 			#ifdef 	UG_PARALLEL
 				if(m_useOverlap){
 					CreateOverlap(m_ILU);
@@ -445,6 +484,22 @@ class ILU : public IPreconditioner<TAlgebra>
 						m_overlapWriter->init (*m_ILU.layouts(),
 					                     	   *debug_writer(),
 				                      		   m_ILU.num_rows());
+					}
+
+				//	slave-overlap rows shall be at the end of the matrix
+					if(sortSlaveToEnd){
+						m_bSort = true;
+						LayoutEntriesToEndPermutation(	m_newIndex,
+						                              	m_ILU.layouts()->slave(),
+						                       			m_ILU.num_rows());
+						m_bSortIsIdentity = GetInversePermutation(m_newIndex, m_oldIndex);
+
+						if(!m_bSortIsIdentity)
+						{
+							matrix_type mat;
+							mat = m_ILU;
+							SetMatrixAsPermutation(m_ILU, mat, m_newIndex);
+						}
 					}
 				}
 				else if(m_useConsistentInterfaces){
@@ -463,7 +518,8 @@ class ILU : public IPreconditioner<TAlgebra>
 
 			write_debug(m_ILU, "ILU_prep_02_A_AfterMakeUnique");
 
-			if(m_bSort)
+		//	if using overlap we already sort in a different way
+			if(m_bSort && !(m_useOverlap && sortSlaveToEnd))
 				calc_cuthill_mckee();
 
 		//	Debug output of matrices

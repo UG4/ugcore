@@ -476,6 +476,7 @@ util.solver.defaults =
 		ilu = {
 			beta 			= 0,
 			damping 		= 1,
+			sort			= false,
 			sortEps 		= 1.e-50,
 			inversionEps 	= 1.e-8,
 			consistentInterfaces = false,
@@ -708,6 +709,7 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 		precond = ILU ()
 		precond:set_beta (desc.beta or defaults.beta)
 		precond:set_damp(desc.damping or defaults.damping)
+		precond:set_sort(desc.sort or defaults.sort)
 		precond:set_sort_eps(desc.sortEps or defaults.sortEps)
 		precond:set_inversion_eps(desc.inversionEps or defaults.inversionEps)
 		precond:enable_consistent_interfaces(desc.consistentInterfaces or defaults.consistentInterfaces)
