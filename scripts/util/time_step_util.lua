@@ -697,22 +697,22 @@ function util.SolveNonlinearProblemAdaptiveTimestep(
 	end
 
 	-- read adaptive stuff
-	local tol = adaptiveStepInfo["TOLERANCE"]
-	local red = adaptiveStepInfo["REDUCTION"]
-	local inc_fac = adaptiveStepInfo["INCREASE"]
-	local safety_fac = adaptiveStepInfo["SAFETY"]
+	local tol = adaptiveStepInfo["TOLERANCE"] or 1e-3	-- tolerance
+	local red = adaptiveStepInfo["REDUCTION"] or 0.5 	-- reduction
+	local inc_fac = adaptiveStepInfo["INCREASE"] or 1.5	-- increase of time step
+	local safety_fac = adaptiveStepInfo["SAFETY"] or 0.8   	-- safety factor
 	local errorEst = adaptiveStepInfo["ESTIMATOR"]
 
 	-- check parameters
 	if filename == nil then filename = "sol" end
 	if minStepSize == nil then minStepSize = maxStepSize end
 	
-	if red == nil then red = 0.5 end   -- reduction of time step
-	if inc_fac == nil then inc_fac = 1.5 end   -- increase of time step
+	-- if red == nil then red = 0.5 end   -- reduction of time step
+	-- if inc_fac == nil then inc_fac = 1.5 end   
 	
-	if errorEst == nil then errorEst = Norm2Estimator() end
-	if tol == nil then tol = 1e-3 end
-	if safety_fac == nil then safety_fac = 0.8 end   -- safety factor
+	-- if errorEst == nil then errorEst = Norm2Estimator() end
+	-- if tol == nil then 
+	-- if safety_fac == nil then safety_fac = 0.8 end   
 	
 	
 	-- create time disc
@@ -789,6 +789,9 @@ function util.SolveNonlinearProblemAdaptiveTimestep(
 			TerminateAbortedRun()
 			print("++++++ Time step size: "..currdt);
 
+
+			local dtold = currdt
+			
 			-- setup time Disc for old solutions and timestep size
 			timeDisc:prepare_step(solTimeSeries, currdt)
 			newtonSolver:init(nlop)
@@ -869,24 +872,25 @@ function util.SolveNonlinearProblemAdaptiveTimestep(
 				-------------------------
 				-- Adaptive step control
 				-------------------------
-				local dtold = currdt
+				
 				local lambda = math.pow(safety_fac*tol/eps, 0.5) -- (eps<=tol) implies (tol/eps >= 1) 
 				dtEst = lambda*currdt  
 				print("dtEst= "..dtEst..", eps="..eps..", tol = " ..tol..", fac = "..lambda)
 		
 				-- determine potential new step size
+				print ("EULEX-DT:\t".. dtEst .."\t"..inc_fac*currdt.."\t"..maxStepSize);
 				currdt = math.min(dtEst, inc_fac*currdt, maxStepSize)
+				
 
 				if (eps <= tol) then 
 					-- accept
-
 					print ("EULEX-ACCEPTING:\t".. time .."\t"..dtold.."\t"..currdt.."\tq=\t2");
 					bAcceptStep = true;
 					bSuccess =true;
 		 			
 				else
 	    			-- discard
-	    			print ("EULEX-REJECTING:\t".. time .."\t"..dtold.."\t"..currdt.."\tq=\t2");
+	    		
 	    			bAcceptStep = false;
 	    			bSuccess = false;
 	    			
@@ -909,13 +913,17 @@ function util.SolveNonlinearProblemAdaptiveTimestep(
 			end
 				
 			-- start over again if failed
-			if bSuccess == false then break end
+			if bSuccess == false then 
+			   print ("EULEX-REJECTING:\t".. time .."\t"..dtold.."\t"..currdt.."\tq=\t2");
+			   break 
+			end
 				
 			-- update new time
 			time = timeDisc:future_time()
 			nlsteps = nlsteps + newtonSolver:num_newton_steps() 	 
 			
-			-- push oldest solutions with new values to front, oldest sol pointer is poped from end		
+			-- push oldest solutions with new values to front, and 
+			-- pop oldest sol pointer from end		
 			oldestSol = solTimeSeries:oldest()
 			VecScaleAssign(oldestSol, 1.0, u2)
 			solTimeSeries:push_discard_oldest(oldestSol, time)
@@ -927,12 +935,14 @@ function util.SolveNonlinearProblemAdaptiveTimestep(
 				solTimeSeries2:push_discard_oldest(oldestSol, time)
 			end
 				
-			if not (bFinishTimeStep == nil) and bFinishTimeStep then 
+			if not (bFinishTimeStep == nil) and (bFinishTimeStep) then 
 				timeDisc:finish_step_elem(solTimeSeries, u:grid_level()) 
 			end
 				
-		end	-- while bSuccess == false
+		end	-- while bSuccess == false -- aka 'try time step'
 		
+		-- step was executed successfully
+
 		-- call post process
 		if type(postProcess) == "function" then postProcess(u, step, time, currdt) end
 		
