@@ -626,12 +626,16 @@ class ILU : public IPreconditioner<TAlgebra>
 	private:
 		template <class T> void write_debug(const T& t, std::string name)
 		{
-			if(debug_writer().valid()){
-				if(m_useOverlap && m_overlapWriter.valid() && t.layouts()->overlap_enabled())
-					m_overlapWriter->write(t, name);
-				else
-					base_type::write_debug(t, name.c_str());
-			}
+			#ifdef UG_PARALLEL
+				if(debug_writer().valid()){
+					if(m_useOverlap && m_overlapWriter.valid() && t.layouts()->overlap_enabled())
+						m_overlapWriter->write(t, name);
+					else
+						base_type::write_debug(t, name.c_str());
+				}
+			#else
+				base_type::write_debug(t, name.c_str());
+			#endif
 		}
 
 	protected:
