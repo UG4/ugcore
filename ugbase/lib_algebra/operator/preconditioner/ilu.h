@@ -648,7 +648,9 @@ class ILU : public IPreconditioner<TAlgebra>
 	///	for overlaps only
 		vector_type m_oD;
 		vector_type m_oC;
-		SmartPtr<OverlapWriter<TAlgebra> >	m_overlapWriter;
+		#ifdef UG_PARALLEL
+			SmartPtr<OverlapWriter<TAlgebra> >	m_overlapWriter;
+		#endif
 
 	/// Factor for ILU-beta
 		number m_beta;

@@ -319,7 +319,7 @@ class ComPol_MatCreateOverlap
 					recvBuf, &recvSizes.front(), &masterProcs.front(),
 					(int)masterProcs.size(),
 					sendBuf.buffer(), &msgSizeForSlaveProcs.front(),
-					&slaveProcs.front(), (int)slaveProcs.size(), 7553173);
+					&slaveProcs.front(), (int)slaveProcs.size());
 
 		//	Extract content of recvBuf and create new slave-overlap
 			for(size_t i = 0; i < masterProcs.size(); ++i)
