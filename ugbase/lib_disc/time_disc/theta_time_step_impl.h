@@ -190,22 +190,16 @@ assemble_linear(matrix_type& A, vector_type& b, const GridLevel& gl)
 				" Number of previous solutions must be at least "<<
 				m_prevSteps <<", but only "<< m_pPrevSol->size() << " passed.");
 
-//	push unknown solution to solution time series
-//	ATTENTION: Here, we must cast away the constness of the solution, but note,
-//			   that we pass pPrevSol as a const object in assemble_... Thus,
-//			   the solution will not be changed there and we pop it from the
-//			   Solution list afterwards, such that nothing happens to u
-	// \todo: avoid this hack, use smart ptr properly
-	int DummyRefCount = 2;
-	SmartPtr<vector_type> pU(const_cast<vector_type*>(&b), &DummyRefCount);
-	m_pPrevSol->push(pU, m_futureTime);
+
+//	push unknown solution to solution time series (not used, but formally needed)
+	m_pPrevSol->push(m_pPrevSol->latest(), m_futureTime);
 
 //	assemble jacobian using current iterate
 	try{
 		this->m_spDomDisc->assemble_linear(A, b, m_pPrevSol, m_vScaleMass, m_vScaleStiff, gl);
 	}UG_CATCH_THROW("ThetaTimeStep: Cannot assemble jacobian.");
 
-//	pop unknown solution to solution time series
+//	pop unknown solution from solution time series
 	m_pPrevSol->remove_latest();
 }
 
@@ -220,22 +214,15 @@ assemble_rhs(vector_type& b, const GridLevel& gl)
 				" Number of previous solutions must be at least "<<
 				m_prevSteps <<", but only "<< m_pPrevSol->size() << " passed.");
 
-//	push unknown solution to solution time series
-//	ATTENTION: Here, we must cast away the constness of the solution, but note,
-//			   that we pass pPrevSol as a const object in assemble_... Thus,
-//			   the solution will not be changed there and we pop it from the
-//			   Solution list afterwards, such that nothing happens to u
-	// \todo: avoid this hack, use smart ptr properly
-	int DummyRefCount = 2;
-	SmartPtr<vector_type> pU(const_cast<vector_type*>(&b), &DummyRefCount);
-	m_pPrevSol->push(pU, m_futureTime);
+//	push unknown solution to solution time series (not used, but formally needed)
+	m_pPrevSol->push(m_pPrevSol->latest(), m_futureTime);
 
 //	assemble jacobian using current iterate
 	try{
 		this->m_spDomDisc->assemble_rhs(b, m_pPrevSol, m_vScaleMass, m_vScaleStiff, gl);
 	}UG_CATCH_THROW("ThetaTimeStep: Cannot assemble jacobian.");
 
-//	pop unknown solution to solution time series
+//	pop unknown solution from solution time series
 	m_pPrevSol->remove_latest();
 }
 

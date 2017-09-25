@@ -206,6 +206,9 @@ class DoFDistributionInfoProvider{
 		///	returns subset group by name
 		SubsetGroup subset_grp_by_name(const char* names) const;
 
+		///	returns subset group of all the subsets except for (by name)
+		SubsetGroup all_subsets_grp_except_for(const char* names) const;
+
 		///	returns a function group to a string of functions
 		FunctionGroup fct_grp_by_name(const char* names) const;
 

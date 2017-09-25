@@ -306,7 +306,7 @@ public:
 
 
 				const GridLevel clevel =  c.grid_level();
-				write_debug(K, "init_KFull_ForSchurUpdate", clevel, clevel);
+				my_write_debug(K, "init_KFull_ForSchurUpdate", clevel, clevel);
 
 				///	assembling auxiliary matrix
 				SmartPtr<IAssemble<TAlgebra> > m_spAss = m_spSchurUpdateOp->discretization();
@@ -317,7 +317,7 @@ public:
 				m_spAss->assemble_mass_matrix(tmpM, c, clevel);
 				//m_spAss->ass_tuner()->set_force_regular_grid(false);
 
-				write_debug(tmpM, "init_MFull_ForSchurUpdate", clevel, clevel);
+				my_write_debug(tmpM, "init_MFull_ForSchurUpdate", clevel, clevel);
 				UG_LOG("extract_schur_update on level "<<  clevel << ", " << tmpM);
 
 
@@ -424,12 +424,12 @@ protected:
 		SmartPtr<matrix_operator_type> m_auxMat[AUX_ARRAY_SIZE];			/// auxiliary matrices (not cloned!)
 
 
-		void write_debug(const matrix_type& mat, std::string name, const TGridFunction& rTo, const TGridFunction& rFrom)
+		void my_write_debug(const matrix_type& mat, std::string name, const TGridFunction& rTo, const TGridFunction& rFrom)
 		{
-			write_debug(mat, name, rTo.grid_level(), rFrom.grid_level());
+			my_write_debug(mat, name, rTo.grid_level(), rFrom.grid_level());
 		}
 
-		void write_debug(const matrix_type& mat, std::string name, const GridLevel& glTo, const GridLevel& glFrom)
+		void my_write_debug(const matrix_type& mat, std::string name, const GridLevel& glTo, const GridLevel& glFrom)
 		{
 			PROFILE_FUNC_GROUP("debug");
 
@@ -448,7 +448,7 @@ protected:
 			m_spGridFunctionDebugWriter->set_grid_level(currGL);
 		}
 
-		virtual void write_debug(const TGridFunction& rGF, std::string name)
+		virtual void my_write_debug(const TGridFunction& rGF, std::string name)
 		{
 			int m_dbgIterCnt = 0;
 			PROFILE_FUNC_GROUP("debug");
@@ -579,13 +579,13 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 	cRegular->set(0.0);
 	cSchur->set(0.0);
 
-	write_debug(*pC, "UZAWA_Correction0");
+	my_write_debug(*pC, "UZAWA_Correction0");
 	if (m_spForwardInverse.valid()) {
 		// solve problem \tilde A uDelta ^* = f- AUX_A11 u^k -B12 p^p
 		UG_ASSERT(m_spForwardInverse.valid(), "Need valid iteration!");
 		m_spForwardInverse->apply_update_defect(*cRegular, *ff);
 		m_slicing.template set_vector_slice<vector_type>(*cRegular, *pC, UZAWA_CMP_DEFAULT);
-		write_debug(*pC, "UZAWA_Correction1");
+		my_write_debug(*pC, "UZAWA_Correction1");
 	}
 
 	if (m_SpSchurComplementInverse.valid()) {
@@ -594,7 +594,7 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 		m_auxMat[AUX_C22]->apply_sub(*gg, *cRegular);
 		m_SpSchurComplementInverse->apply(*cSchur, *gg);
 		m_slicing.template set_vector_slice<vector_type>(*cSchur, *pC, UZAWA_CMP_SCHUR);
-		write_debug(*pC, "UZAWA_Correction2");
+		my_write_debug(*pC, "UZAWA_Correction2");
 	}
 
 	if (m_spBackwardInverse.valid()) {
@@ -602,7 +602,7 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 		m_auxMat[B12]->apply_sub(*ff, *cSchur);
 		m_spBackwardInverse->apply(*cRegular, *ff);
 		m_slicing.template add_vector_slice<vector_type>(*cRegular, *pC, UZAWA_CMP_DEFAULT);
-		write_debug(*pC, "UZAWA_Correction3");
+		my_write_debug(*pC, "UZAWA_Correction3");
 	}
 
 

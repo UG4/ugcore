@@ -281,6 +281,31 @@ add(LuaFunctionHandle fct, const std::vector<std::string>& Fcts, const std::vect
 
 template <typename TDomain, typename TAlgebra>
 void DirichletBoundary<TDomain, TAlgebra>::
+add(const char* functions, const char* subsets)
+{
+	m_vOldNumberData.push_back(OldNumberData(functions, subsets));
+}
+
+template <typename TDomain, typename TAlgebra>
+void DirichletBoundary<TDomain, TAlgebra>::
+add(const std::vector<std::string>& Fcts, const std::vector<std::string>& Subsets)
+{
+	std::string function;
+	for(size_t i = 0; i < Fcts.size(); ++i){
+		if(i > 0) function.append(",");
+		function.append(Fcts[i]);
+	}
+	std::string subsets;
+	for(size_t i = 0; i < Subsets.size(); ++i){
+		if(i > 0) subsets.append(",");
+		subsets.append(Subsets[i]);
+	}
+
+	add(function.c_str(), subsets.c_str());
+}
+
+template <typename TDomain, typename TAlgebra>
+void DirichletBoundary<TDomain, TAlgebra>::
 check_functions_and_subsets(FunctionGroup& functionGroup, SubsetGroup& subsetGroup, size_t numFct) const
 {
 //	only number of functions allowed
@@ -337,9 +362,16 @@ extract_data(std::map<int, std::vector<TUserData*> >& mvUserDataBndSegment,
 	for(size_t i = 0; i < vUserData.size(); ++i)
 	{
 	//	create Function Group and Subset Group
-		try{
-			vUserData[i].ssGrp = m_spApproxSpace->subset_grp_by_name(vUserData[i].ssName.c_str());
-		}UG_CATCH_THROW(" Subsets '"<<vUserData[i].ssName<<"' not"
+		try
+		{
+			if (! m_bInvertSubsetSelection)
+				vUserData[i].ssGrp = m_spApproxSpace->subset_grp_by_name
+					(vUserData[i].ssName.c_str());
+			else
+				vUserData[i].ssGrp = m_spApproxSpace->all_subsets_grp_except_for
+					(vUserData[i].ssName.c_str());
+		}
+		UG_CATCH_THROW(" Subsets '"<<vUserData[i].ssName<<"' not"
 		                " all contained in ApproximationSpace.");
 
 		FunctionGroup fctGrp;
@@ -386,6 +418,7 @@ extract_data()
 	extract_data(m_mBNDNumberBndSegment, m_vBNDNumberData);
 	extract_data(m_mConstNumberBndSegment, m_vConstNumberData);
 	extract_data(m_mVectorBndSegment, m_vVectorData);
+	extract_data(m_mOldNumberBndSegment, m_vOldNumberData);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -463,6 +496,8 @@ adjust_prolongation(matrix_type& P,
 	adjust_prolongation<ConstNumberData>(m_mConstNumberBndSegment, P, ddFine, ddCoarse, time);
 
 	adjust_prolongation<VectorData>(m_mVectorBndSegment, P, ddFine, ddCoarse, time);
+
+	adjust_prolongation<OldNumberData>(m_mOldNumberBndSegment, P, ddFine, ddCoarse, time);
 }
 
 template <typename TDomain, typename TAlgebra>
@@ -586,6 +621,8 @@ adjust_restriction(matrix_type& R,
 	adjust_restriction<ConstNumberData>(m_mConstNumberBndSegment, R, ddCoarse, ddFine, time);
 
 	adjust_restriction<VectorData>(m_mVectorBndSegment, R, ddCoarse, ddFine, time);
+
+	adjust_restriction<OldNumberData>(m_mOldNumberBndSegment, R, ddCoarse, ddFine, time);
 }
 
 template <typename TDomain, typename TAlgebra>
@@ -712,6 +749,8 @@ adjust_jacobian(matrix_type& J, const vector_type& u,
 	adjust_jacobian<ConstNumberData>(m_mConstNumberBndSegment, J, u, dd, time);
 
 	adjust_jacobian<VectorData>(m_mVectorBndSegment, J, u, dd, time);
+
+	adjust_jacobian<OldNumberData>(m_mOldNumberBndSegment, J, u, dd, time);
 }
 
 
@@ -877,6 +916,8 @@ adjust_defect(vector_type& d, const vector_type& u,
 	adjust_defect<ConstNumberData>(m_mConstNumberBndSegment, d, u, dd, time);
 
 	adjust_defect<VectorData>(m_mVectorBndSegment, d, u, dd, time);
+
+	adjust_defect<OldNumberData>(m_mOldNumberBndSegment, d, u, dd, time);
 }
 
 
@@ -993,6 +1034,8 @@ adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd, int type, num
 	adjust_solution<ConstNumberData>(m_mConstNumberBndSegment, u, dd, time);
 
 	adjust_solution<VectorData>(m_mVectorBndSegment, u, dd, time);
+
+	adjust_solution<OldNumberData>(m_mOldNumberBndSegment, u, dd, time);
 }
 
 
@@ -1035,6 +1078,10 @@ void DirichletBoundary<TDomain, TAlgebra>::
 adjust_solution(const std::vector<TUserData*>& vUserData, int si,
                 vector_type& u, ConstSmartPtr<DoFDistribution> dd, number time)
 {
+//	check if the solution is to be adjusted
+	if (! TUserData::setSolValue)
+		return;
+	
 //	create Multiindex
 	std::vector<DoFIndex> multInd;
 
@@ -1109,6 +1156,8 @@ void DirichletBoundary<TDomain, TAlgebra>::adjust_correction
 	adjust_correction<ConstNumberData>(m_mConstNumberBndSegment, c, dd, time);
 
 	adjust_correction<VectorData>(m_mVectorBndSegment, c, dd, time);
+
+	adjust_correction<OldNumberData>(m_mOldNumberBndSegment, c, dd, time);
 }
 
 template <typename TDomain, typename TAlgebra>
@@ -1219,6 +1268,8 @@ adjust_linear(matrix_type& A, vector_type& b,
 	adjust_linear<ConstNumberData>(m_mConstNumberBndSegment, A, b, dd, time);
 
 	adjust_linear<VectorData>(m_mVectorBndSegment, A, b, dd, time);
+
+	adjust_linear<OldNumberData>(m_mOldNumberBndSegment, A, b, dd, time);
 }
 
 
@@ -1314,10 +1365,14 @@ adjust_linear(const std::vector<TUserData*>& vUserData, int si,
 					if(!(*vUserData[i])(val, vPos[j], time, si)) continue;
 
 					this->m_spAssTuner->set_dirichlet_row(A, multInd[j]);
+
+					// FIXME: Beware, this is dangerous!
+					//        It will not work for blocked algebras.
 					if(m_bDirichletColumns)
 						dirichletDoFIndices.insert(multInd[j][0]);
 
-					this->m_spAssTuner->set_dirichlet_val(b, multInd[j], val[f]);
+					if (TUserData::setSolValue)
+						this->m_spAssTuner->set_dirichlet_val(b, multInd[j], val[f]);
 				}
 			}
 		}
@@ -1333,14 +1388,17 @@ adjust_linear(const std::vector<TUserData*>& vUserData, int si,
 
 		typename std::set<size_t>::iterator currentDIndex;
 
-		// run over all rows of the local matrix J and save the colums
+		// run over all rows of the local matrix J and save the column
 		// entries for the Dirichlet indices in the map
 
 		for(size_t i = 0; i<nr; i++)
 		{
-			for(typename matrix_type::row_iterator it = A.begin_row(i); it!=A.end_row(i); ++it){
+			// do not save any entries in Dirichlet rows!
+			if (dirichletDoFIndices.find(i) != dirichletDoFIndices.end())
+				continue;
 
-
+			for(typename matrix_type::row_iterator it = A.begin_row(i); it!=A.end_row(i); ++it)
+			{
 				currentDIndex = dirichletDoFIndices.find(it.index());
 
 				// fill dirichletMap & set corresponding entry to zero
@@ -1348,40 +1406,29 @@ adjust_linear(const std::vector<TUserData*>& vUserData, int si,
 
 					// the dirichlet-dof-index it.index is assigned
 					// the row i and the matrix entry it.value().
-					m_dirichletMap[it.index()][i] = it.value();
-
-					// the corresponding entry at column it.index() is set zero
-					// this corresponds to a dirichlet column.
-					if(i!=it.index())
-						it.value() = 0.0;
+					m_dirichletMap[si][it.index()][i] = it.value();
+					it.value() = 0.0;
 				}
-
 			}
 		}
 
 		typename std::map<int, std::map<int, value_type> >::iterator itdirichletMap;
 		for(size_t i = 0; i<nr; i++)
 		{
+			// do not change rhs entries in Dirichlet rows!
+			if (m_dirichletMap[si].find(i) != m_dirichletMap[si].end())
+				continue;
+
 			for(typename matrix_type::row_iterator it = m_A->begin_row(i); it!=m_A->end_row(i); ++it){
 
-				itdirichletMap = m_dirichletMap.find(it.index());
+				itdirichletMap = m_dirichletMap[si].find(it.index());
 
 				// current column index is a dirichlet index
-				if(itdirichletMap != m_dirichletMap.end()){
-
-					// just non-diagonal entries need do be considered
-					// by this the dirichlet entries of b remain unchanged.
-					if(i!=it.index()){
-					//	UG_LOG("Hallo\n");
-						b[i] -= itdirichletMap->second[i]*b[it.index()];
-					}
-				}
-
+				if(itdirichletMap != m_dirichletMap[si].end())
+					b[i] -= itdirichletMap->second[i]*b[it.index()];
 			}
 		}
-
 	}
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1400,6 +1447,8 @@ adjust_rhs(vector_type& b, const vector_type& u,
 	adjust_rhs<ConstNumberData>(m_mConstNumberBndSegment, b, u, dd, time);
 
 	adjust_rhs<VectorData>(m_mVectorBndSegment, b, u, dd, time);
+
+	adjust_rhs<OldNumberData>(m_mOldNumberBndSegment, b, u, dd, time);
 }
 
 
@@ -1444,9 +1493,6 @@ adjust_rhs(const std::vector<TUserData*>& vUserData, int si,
            vector_type& b, const vector_type& u,
            ConstSmartPtr<DoFDistribution> dd, number time)
 {
-
-	UG_LOG("Entered dirichlet adjust right hand side\n");
-
 //	create Multiindex
 	std::vector<DoFIndex> multInd;
 
@@ -1492,8 +1538,10 @@ adjust_rhs(const std::vector<TUserData*>& vUserData, int si,
 				// 	check if function is dirichlet and read value
 					if(!(*vUserData[i])(val, vPos[j], time, si)) continue;
 
-					this->m_spAssTuner->set_dirichlet_val(b, multInd[j], val[f]);
-
+					if (TUserData::setSolValue)
+						this->m_spAssTuner->set_dirichlet_val(b, multInd[j], val[f]);
+					else
+						this->m_spAssTuner->set_dirichlet_val(b, multInd[j], DoFRef(u, multInd[j]));
 				}
 			}
 		}
@@ -1507,21 +1555,17 @@ adjust_rhs(const std::vector<TUserData*>& vUserData, int si,
 		size_t nr = m_A->num_rows();
 		for(size_t i = 0; i<nr; i++)
 		{
+			// do not change rhs entries in Dirichlet rows!
+			if (m_dirichletMap[i].find(i) != m_dirichletMap[i].end())
+				continue;
+
 			for(typename matrix_type::row_iterator it = m_A->begin_row(i); it!=m_A->end_row(i); ++it){
 
-				itdirichletMap = m_dirichletMap.find(it.index());
+				itdirichletMap = m_dirichletMap[i].find(it.index());
 
 				// current column index is a dirichlet index
-				if(itdirichletMap != m_dirichletMap.end()){
-
-					// just non-diagonal entries need do be considered
-					// by this the dirichlet entries of b remain unchanged.
-					if(i!=it.index()){
-						//UG_LOG("Hallo\n");
-						b[i] -= itdirichletMap->second[i]*b[it.index()];
-					}
-				}
-
+				if(itdirichletMap != m_dirichletMap[i].end())
+					b[i] -= itdirichletMap->second[i]*b[it.index()];
 			}
 		}
 	}
@@ -1558,7 +1602,10 @@ adjust_error(const vector_type& u, ConstSmartPtr<DoFDistribution> dd, int type, 
 	adjust_error<CondNumberData>(m_mBNDNumberBndSegment, u, dd, time);
 	adjust_error<NumberData>(m_mNumberBndSegment, u, dd, time);
 	adjust_error<ConstNumberData>(m_mConstNumberBndSegment, u, dd, time);
+	
 	adjust_error<VectorData>(m_mVectorBndSegment, u, dd, time);
+	
+	adjust_error<OldNumberData>(m_mOldNumberBndSegment, u, dd, time);
 }
 
 template <typename TDomain, typename TAlgebra>
@@ -1646,6 +1693,13 @@ adjust_error
 						{
 							// get Dirichlet value (and do nothing, if conditional D value is false)
 							if (!(*vUserData[i])(val, sideGlobIPs[ip], time, si)) continue;
+							
+							// check if we take the values directly from the solution
+							if (! TUserData::setSolValue)
+							{
+								(*err_est_data->get(fct))(elem,ip) = 0;
+								continue;
+							}
 
 							// evaluate shapes at ip
 							LFEID new_lfeID(lfeID.type(), lfeID.dim()-1, lfeID.order());

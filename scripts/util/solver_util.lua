@@ -476,12 +476,23 @@ util.solver.defaults =
 		ilu = {
 			beta 			= 0,
 			damping 		= 1,
+			sort			= false,
 			sortEps 		= 1.e-50,
-			inversionEps 	= 1.e-8
+			inversionEps 	= 1.e-8,
+			consistentInterfaces = false,
+			overlap 		= false
 		},
 
 		ilut = {
 			threshold = 1e-6
+		},
+		
+		gs = {
+			consistentInterfaces = false
+		},
+
+		sgs = {
+			consistentInterfaces = false
 		},
 
 		jac = {
@@ -587,6 +598,8 @@ function util.solver.CreateSolver(solverDesc, solverutil)
 			newtonSolver:set_line_search(
 				util.solver.CreateLineSearch(lineSearch))
 		end
+		
+		util.solver.SetDebugWriter(newtonSolver, solverDesc, defaults)
 
 		return newtonSolver
 	else
@@ -649,6 +662,8 @@ function util.solver.CreateLinearSolver(solverDesc, solverutil)
 		linSolver:set_convergence_check(
 			util.solver.CreateConvCheck(desc.convCheck or defaults.convCheck, solverutil))
 	end
+	
+	util.solver.SetDebugWriter(linSolver, solverDesc, defaults)
 
 	if desc then desc.instance = linSolver end
 	return linSolver
@@ -676,9 +691,7 @@ function util.solver.CreateTransfer(transferDesc)
 		transfer:set_prolongation_damping(desc.prolongationDamp)
 	end
 	
-	if (desc.debug or defaults.debug) then
-		transfer:set_debug(GridFunctionDebugWriter(approxSpace))
-	end
+	util.solver.SetDebugWriter(transfer, transferDesc, defaults)
 	
 	return transfer
 end
@@ -704,13 +717,20 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 		precond = ILU ()
 		precond:set_beta (desc.beta or defaults.beta)
 		precond:set_damp(desc.damping or defaults.damping)
+		precond:set_sort(desc.sort or defaults.sort)
 		precond:set_sort_eps(desc.sortEps or defaults.sortEps)
 		precond:set_inversion_eps(desc.inversionEps or defaults.inversionEps)
+		precond:enable_consistent_interfaces(desc.consistentInterfaces or defaults.consistentInterfaces)
+		precond:enable_overlap(desc.overlap or defaults.overlap)
 	elseif name == "ilut" then precond = ILUT (desc.threshold or defaults.threshold);
 	elseif name == "jac"  then precond = Jacobi (desc.damping or defaults.damping);
 	elseif name == "bgs"  then precond = BlockGaussSeidel ();
-	elseif name == "gs"   then precond = GaussSeidel ();
-	elseif name == "sgs"  then precond = SymmetricGaussSeidel ();
+	elseif name == "gs"   then
+		precond = GaussSeidel ()
+		precond:enable_consistent_interfaces(desc.consistentInterfaces or defaults.consistentInterfaces)
+	elseif name == "sgs"  then
+		precond = SymmetricGaussSeidel ()
+		precond:enable_consistent_interfaces(desc.consistentInterfaces or defaults.consistentInterfaces)
 	elseif name == "egs"  then precond = ElementGaussSeidel ();
 
 	elseif name == "gmg"  then 
@@ -937,6 +957,53 @@ function util.solver.CreateMGStats(mgStatsDesc)
 	end
 
 	return mgStats
+end
+
+function util.solver.SetDebugWriter(obj, desc, defaults)
+	
+	local dbgDesc = desc.debug
+	if dbgDesc == nil then
+		if defaults then dbgDesc = defaults.debug end
+	end
+	
+	if dbgDesc then
+		local debug = false
+		local vtk = true
+		local conn_viewer = false
+	
+		if type (dbgDesc) == "boolean" then
+			debug = dbgDesc
+		elseif type (dbgDesc) == "table" then
+			debug = true
+			if dbgDesc.vtk ~= nil then vtk = dbgDesc.vtk end
+			if dbgDesc.conn_viewer ~= nil then conn_viewer = dbgDesc.conn_viewer end
+		else
+			print("An unrecognized type of the debug writer specification.")
+			exit()
+		end
+	
+		if debug then
+	
+			local approxSpace = nil
+			if desc then
+				approxSpace = desc.approxSpace or util.solver.defaults.approxSpace
+			end
+	
+			if approxSpace == nil then
+			  print("An ApproximationSpace is required to create a DebugWriter.")
+			  print("Consider setting the 'approxSpace' property of of the object to debug,")
+			  print("or alternatively the util.solver.defaults.approxSpace property.")
+			  print("Otherwiese set the option 'debug=false' for the object.")
+			  exit()
+			end
+	
+			local dbgWriter = GridFunctionDebugWriter(approxSpace)
+			dbgWriter:set_vtk_output(vtk)
+			dbgWriter:set_conn_viewer_output(conn_viewer)
+			obj:set_debug(dbgWriter)
+		
+		end
+	end
 end
 
 

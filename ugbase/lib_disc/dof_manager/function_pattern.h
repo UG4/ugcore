@@ -115,9 +115,19 @@ class FunctionPattern
 	///	number of subsets
 		int num_subsets() const {return m_spSH->num_subsets();}
 
+	///	returns a subset group consisting of the subsets specified by their names
 		SubsetGroup subset_grp_by_name(const char* names) const
 		{
 			return SubsetGroup(subset_handler(), TokenizeString(names));
+		}
+
+	/// returns a subset group consisting of all the subsets in the domain except for the specified ones
+		SubsetGroup all_subsets_grp_except_for(const char* names) const
+		{
+			SubsetGroup subset_grp(subset_handler());
+			subset_grp.add_all();
+			subset_grp.remove(TokenizeString(names));
+			return subset_grp;
 		}
 
 	/// returns the subset id

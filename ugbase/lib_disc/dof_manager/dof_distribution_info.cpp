@@ -285,5 +285,9 @@ SubsetGroup DoFDistributionInfoProvider::subset_grp_by_name(const char* names) c
 	return m_spDDI->subset_grp_by_name(names);
 }
 
+SubsetGroup DoFDistributionInfoProvider::all_subsets_grp_except_for(const char* names) const
+{
+	return m_spDDI->all_subsets_grp_except_for(names);
+}
 
 } // end namespace ug

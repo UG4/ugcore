@@ -327,6 +327,17 @@ function util.SolveNonlinearTimeProblem(
 					-- start over again if failed
 					if newtonSuccess == false then break end
 					
+					-- call post process
+					if postProcess ~= nil then
+						local pp_res
+						pp_res = postProcess(u, step, timeDisc:future_time(), currdt)
+						if type(pp_res) == "boolean" and pp_res == false then -- i.e. not nil, not something else, but "false"!
+							write("\n++++++ PostProcess failed. ")
+							newtonSuccess = false
+							break
+						end
+					end
+
 					--total_linsolver_calls()
 				
 					-- push oldest solutions with new values to front, oldest sol pointer is poped from end	
@@ -346,16 +357,6 @@ function util.SolveNonlinearTimeProblem(
 					
 					if timeDisc:num_stages() > 1 then
 						print("      +++ STAGE " .. stage .. " END   ++++++")
-					end
-				end
-
-				-- call post process
-				if newtonSuccess == true and postProcess ~= nil then
-					local pp_res
-					pp_res = postProcess(u, step, timeDisc:future_time(), currdt)
-					if type(pp_res) == "boolean" and pp_res == false then -- i.e. not nil, not something else, but "false"!
-						write("\n++++++ PostProcess failed. ")
-						newtonSuccess = false
 					end
 				end
 

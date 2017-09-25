@@ -35,6 +35,7 @@
 #define __H__LIB_ALGEBRA__PARALLELIZATION__PARALLELIZATION_UTIL_IMPL__
 
 #include <vector>
+#include "common/error.h"
 #include "parallelization_util.h"
 
 namespace ug{
@@ -113,6 +114,53 @@ void GenerateGlobalConsecutiveIndices(TIndVec& indsOut, size_t numLocalInds,
 	// icom.send_data(layouts.vertical_slave(), compolCopy);
 	// icom.receive_data(layouts.vertical_master(), compolCopy);
 	// icom.communicate();
+}
+
+
+template <class TMatrix>
+void TestHorizontalAlgebraLayouts(
+			const TMatrix& mat,
+			std::vector<AlgebraID>* algebraIDs,
+			bool verbose)
+{
+	const AlgebraLayouts& layouts = *mat.layouts();
+
+	std::vector<AlgebraID> fallbackAlgebraIDs;
+	if(!algebraIDs) {
+		GenerateGlobalAlgebraIDs(layouts.comm(),
+		                         fallbackAlgebraIDs,
+		                         mat.num_rows(),
+		                         layouts.master(),
+		                         layouts.slave());
+		algebraIDs = &fallbackAlgebraIDs;
+	}
+
+	struct IDByIndex {
+		IDByIndex (const std::vector<AlgebraID>* algIDs) : m_algIDs(*algIDs) {}
+		const AlgebraID& operator () (size_t idx) const 	{return m_algIDs[idx];}
+		const std::vector<AlgebraID>&	m_algIDs;
+	};
+
+	IDByIndex idByIndex(algebraIDs);
+
+	bool ok = pcl::TestLayout<IndexLayout, AlgebraID> (
+							layouts.proc_comm(),
+							layouts.comm(),
+							layouts.master(),
+							layouts.slave(),
+							verbose,
+							idByIndex,
+							true);
+	UG_COND_THROW(!ok, "H-Master <-> H-Slave mismatch in matrix layout");
+
+//	Global IDs do of course not match in overlap interfaces	
+	ok = pcl::TestLayout<IndexLayout> (
+							layouts.proc_comm(),
+							layouts.comm(),
+							layouts.master_overlap(),
+							layouts.slave_overlap(),
+							verbose);
+	UG_COND_THROW(!ok, "H-Master-Overlap <-> H-Slave-Overlap mismatch in matrix layout");
 }
 
 }//	end of namespace

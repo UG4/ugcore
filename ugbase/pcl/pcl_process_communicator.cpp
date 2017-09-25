@@ -371,7 +371,7 @@ gather(ug::BinaryBuffer &buf, int root) const
 		}
 
 		buf.reserve(totalSize);
-		gatherv(buf.buffer(), localSize, PCL_DT_CHAR,
+		gatherv(MPI_IN_PLACE, localSize, PCL_DT_CHAR,
 		        buf.buffer(), &recvSizes.front(), &displacements.front(),
 		        PCL_DT_CHAR, root);
 
@@ -588,6 +588,7 @@ distribute_data(ug::BinaryBuffer& recvBufOut, int* segSizesOut,
 	int totalSize = 0;
 	for(int i = 0; i < numRecvFroms; ++i){
 		totalSize += bufferSizes[i];
+		segSizesOut[i] = bufferSizes[i];
 	}
 
 	recvBufOut.reserve(totalSize);

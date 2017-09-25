@@ -65,6 +65,7 @@ typedef Hash<AlgebraID, size_t>	AlgebraIDHashList;
 
 std::ostream& operator<<(std::ostream &out, const AlgebraID &ID);
 
+
 ///	Creates a hash which allows a algebraID->localIndex mapping
 inline void GenerateAlgebraIDHashList(AlgebraIDHashList &hash, AlgebraIDVec& algebraIDs)
 {

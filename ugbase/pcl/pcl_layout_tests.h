@@ -252,17 +252,15 @@ bool TestSizeOfInterfacesInLayoutsMatch(pcl::InterfaceCommunicator<TLayout> &com
 			}
 			broken =true;
 		}
-		if(bPrint)
+		
+		if(onMaster!=onSlave)
 		{
-			if(onMaster!=onSlave)
-			{
-				UG_LOG("   Interface sizes do not match:\n");
-				UG_LOG("   - Slave Interface " << pid << " -> " << pcl::ProcRank() << ", size = " << onSlave << "\n");
-				UG_LOG("   - Master Interface " << pcl::ProcRank() << " -> " << pid << ", size = " << onMaster << "\n");
-			}
-			else
-			{	UG_LOG("      In total " << std::setw(9) << onMaster << " entries in this interface." << std::endl);	}
+			UG_LOG("   Interface sizes do not match:\n");
+			UG_LOG("   - Slave Interface " << pid << " -> " << pcl::ProcRank() << ", size = " << onSlave << "\n");
+			UG_LOG("   - Master Interface " << pcl::ProcRank() << " -> " << pid << ", size = " << onMaster << "\n");
 		}
+		else if(bPrint)
+		{	UG_LOG("      In total " << std::setw(9) << onMaster << " entries in this interface." << std::endl);	}
 
 		if(broken)
 		{

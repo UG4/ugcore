@@ -1257,6 +1257,135 @@ class ComPol_MatAddRowsOverlap0
 };
 
 
+/// Communication Policy to copy couplings between interfaces
+/**
+ * This Communication policy copies the row entries of the source interface
+ * corresponding master interface. Connections are only copied if they connect indices
+ * which lie in the same interface. This means
+ * that couplings to inner indices or to other slave/master interfaces,
+ * are not taken into account.
+ *
+ * \tparam TMatrix	matrix type
+ */
+template <class TMatrix>
+class ComPol_MatCopyRowsOverlap0
+	: public pcl::ICommunicationPolicy<IndexLayout>
+{
+	public:
+	///	Constructor setting the vector
+	/**
+	 * vGlobalID must have size >= mat.num_rows()
+	 */
+		ComPol_MatCopyRowsOverlap0(TMatrix& rMat, AlgebraIDVec& vGlobalID)
+			: m_rMat(rMat), m_vGlobalID(vGlobalID)
+		{
+			UG_ASSERT(vGlobalID.size() >= m_rMat.num_rows(), "too few Global ids");
+		}
+
+	///	writes the interface values into a buffer that will be sent
+		virtual bool collect(ug::BinaryBuffer& buff, const Interface& interface)
+		{
+			PROFILE_BEGIN_GROUP(ComPol_MatAddRowsOverlap0_collect, "algebra parallelization");
+			typedef typename TMatrix::row_iterator row_iterator;
+			typedef typename TMatrix::value_type block_type;
+
+		//	loop interface
+			for(typename Interface::const_iterator iter = interface.begin();
+				iter != interface.end(); ++iter)
+			{
+			//	get index
+				const size_t index = interface.get_element(iter);
+
+			//	count number of row entries
+				const row_iterator rowEnd = m_rMat.end_row(index);
+				size_t numRowEntry = 0;
+				for(row_iterator it_k = m_rMat.begin_row(index); it_k != rowEnd; ++it_k)
+					numRowEntry++;
+
+			//	write number of row entries to stream
+				Serialize(buff, numRowEntry);
+
+			//	write entries and global id to stream
+				for(row_iterator it_k = m_rMat.begin_row(index); it_k != rowEnd; ++it_k)
+				{
+					const size_t k = it_k.index();
+					block_type& a_ik = it_k.value();
+
+				//	write global entry to buffer
+					Serialize(buff, m_vGlobalID[k]);
+
+				//	write entry into buffer
+					Serialize(buff, a_ik);
+				}
+			}
+
+		///	done
+			return true;
+		}
+
+		virtual bool
+		begin_layout_extraction(const Layout* pLayout)
+		{
+		//	fill the map global->local
+			GenerateAlgebraIDHashList(m_algIDHash, m_vGlobalID);
+			return true;
+		}
+
+	///	writes values from a buffer into the interface
+		virtual bool extract(ug::BinaryBuffer& buff, const Interface& interface)
+		{
+			PROFILE_BEGIN_GROUP(ComPol_MatAddRowsOverlap0_extract, "algebra parallelization");
+		//	block type of associated matrix
+			typedef typename TMatrix::value_type block_type;
+
+		//	we'll read global ids into this variable
+			AlgebraID gID;
+
+		//	we'll read blocks into this var
+			block_type block;
+
+		//	loop interface
+			for(typename Interface::const_iterator iter = interface.begin();
+				iter != interface.end(); ++iter)
+			{
+			//	get index
+				const size_t index = interface.get_element(iter);
+
+			//	read the number of connections
+				size_t numConnections = 0;
+				Deserialize(buff, numConnections);
+
+			//	read each connection
+				for(size_t i_conn = 0; i_conn < numConnections; ++i_conn){
+					Deserialize(buff, gID);
+					Deserialize(buff, block);
+
+				//	if gID exists on this process, then set the connection to
+				//	the new value.
+					size_t conInd;
+					if(m_algIDHash.get_entry(conInd, gID)){
+						m_rMat(index, conInd) = block;
+					}
+				}
+			}
+
+		///	done
+			return true;
+		}
+
+	private:
+	//	pointer to current vector
+		TMatrix& m_rMat;
+
+	//	map localID->globalID
+		AlgebraIDVec& m_vGlobalID;
+
+	//	map globalID->localID
+		AlgebraIDHashList	m_algIDHash;
+
+};
+
+
 /// Comm-Pol to add matrix rows of inner-interface couplings
 /**
  * \tparam TMatrix	matrix type

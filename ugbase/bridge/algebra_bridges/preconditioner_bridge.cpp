@@ -175,6 +175,7 @@ static void Algebra(Registry& reg, string grp)
 		typedef IPreconditioner<TAlgebra> TBase;
 		string name = string("GaussSeidelBase").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "Gauss-Seidel Base")
+			.add_method("enable_consistent_interfaces", &T::enable_consistent_interfaces, "", "enable", "makes the matrix and defect consistent at the proc. interfaces")
 			.add_method("set_sor_relax", &T::set_sor_relax,
 					"", "sor relaxation", "sets sor relaxation parameter");
 		reg.add_class_to_group(name, "GaussSeidelBase", tag);
@@ -197,23 +198,23 @@ static void Algebra(Registry& reg, string grp)
 		typedef GaussSeidelBase<TAlgebra> TBase;
 		string name = string("SymmetricGaussSeidel").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "Symmetric Gauss Seidel Preconditioner")
-				.add_constructor()
-				.set_construct_as_smart_pointer(true);
+			.add_constructor()
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "SymmetricGaussSeidel", tag);
 	}
 
 //	Backward GaussSeidel
 	{
 		typedef BackwardGaussSeidel<TAlgebra> T;
-		typedef IPreconditioner<TAlgebra> TBase;
+		typedef GaussSeidelBase<TAlgebra> TBase;
 		string name = string("BackwardGaussSeidel").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "Backward Gauss Seidel Preconditioner")
-				.add_constructor()
-				.set_construct_as_smart_pointer(true);
+			.add_constructor()
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "BackwardGaussSeidel", tag);
 	}
 
-	//	BlockGaussSeidel
+//	BlockGaussSeidel
 	{
 		RegisterBlockGaussSeidel<TAlgebra, BlockGaussSeidel<TAlgebra, true, false> >(reg, grp, "BlockGaussSeidel");
 		RegisterBlockGaussSeidel<TAlgebra, BlockGaussSeidel<TAlgebra, false, true> >(reg, grp, "BackwardBlockGaussSeidel");
@@ -226,7 +227,8 @@ static void Algebra(Registry& reg, string grp)
 
 		RegisterBlockGaussSeidelIterative<TAlgebra, true, false>(reg, grp, "BlockGaussSeidelIterative");
 		RegisterBlockGaussSeidelIterative<TAlgebra, false, true>(reg, grp, "BackwardBlockGaussSeidelIterative");
-		RegisterBlockGaussSeidelIterative<TAlgebra, true, true>(reg, grp, "SymmetricBlockGaussSeidelIterative");	}
+		RegisterBlockGaussSeidelIterative<TAlgebra, true, true>(reg, grp, "SymmetricBlockGaussSeidelIterative");
+	}
 
 
 
@@ -243,6 +245,8 @@ static void Algebra(Registry& reg, string grp)
 			.add_method("set_sort", &T::set_sort, "", "bSort", "if bSort=true, use a cuthill-mckey sorting to reduce fill-in. default false")
 			.add_method("set_disable_preprocessing", &T::set_disable_preprocessing, "", "disable",
 						"set whether preprocessing (notably, LU factorization) is to be disabled - usable when the operator has not changed; use with care")
+			.add_method("enable_consistent_interfaces", &T::enable_consistent_interfaces, "", "enable", "Make Matrix consistent for connections in interfaces.")
+			.add_method("enable_overlap", &T::enable_overlap, "", "enable", "Enables matrix overlap. This also means that interfaces are consistent.")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ILU", tag);
 	}

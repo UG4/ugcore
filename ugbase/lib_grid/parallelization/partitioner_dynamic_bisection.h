@@ -96,6 +96,8 @@ class Partitioner_DynamicBisection : public IPartitioner{
 		virtual void set_next_process_hierarchy(SPProcessHierarchy procHierarchy);
 		virtual void set_balance_weights(SPBalanceWeights balanceWeights);
 //		virtual void set_connection_weights(SmartPtr<ConnectionWeights<dim> >);
+
+		virtual void set_partition_pre_processor(SPPartitionPreProcessor ppp);
 		virtual void set_partition_post_processor(SPPartitionPostProcessor ppp);
 
 		virtual ConstSPProcessHierarchy current_process_hierarchy() const;
@@ -259,6 +261,7 @@ class Partitioner_DynamicBisection : public IPartitioner{
 		std::vector<Entry>						m_entries;
 
 		SPBalanceWeights						m_balanceWeights;
+		SPPartitionPreProcessor					m_partitionPreProcessor;
 		SPPartitionPostProcessor				m_partitionPostProcessor;
 
 		bool	m_staticPartitioning;

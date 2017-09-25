@@ -302,6 +302,37 @@ UG_API
 void ExtendSelection(TSelector& sel, size_t extSize,
 					 ISelector::status_t status = ISelector::SELECTED);
 
+
+////////////////////////////////////////////////////////////////////////
+///	extends the selection to neighbours of selected elements in the given direction.
+/**	
+ * This algorithm uses Grid::mark.
+ *
+ * Extension is performed extSize times.
+ *
+ * Only elements which can be reached in the given direction (centers are compared)
+ * are selected.
+ *
+ * by setting minAngle to 0 and maxAngle to 10 you may e.g. extend only in
+ * roughly the given direction.
+ *
+ * By setting minAngle to 89 and maxAngle to 91 you may e.g. extend only orthogonal
+ * to the given direction
+ *
+ * \todo: Performance can be improved. See implementation.
+ */
+template <class TSelector, class TAAPos>
+UG_API
+void ExtendSelectionInDirection(
+        TSelector& sel,
+        size_t extSize,
+        const typename TAAPos::ValueType& dir,
+        number minAngle,
+        number maxAngle,
+      	const TAAPos& aaPos,
+		ISelector::status_t status = ISelector::SELECTED);
+
+
 ////////////////////////////////////////////////////////////////////////
 ///	Extends the selection around selected objects until selected sides are reached.
 /**	Selects all elements of the given base-type which are reachable

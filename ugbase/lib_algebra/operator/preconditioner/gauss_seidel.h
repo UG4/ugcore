@@ -69,17 +69,20 @@ class GaussSeidelBase : public IPreconditioner<TAlgebra>
 
 	public:
 	//	Constructor
-		GaussSeidelBase() { m_relax = 1.0; };
+		GaussSeidelBase() : m_relax(1.0), m_bConsistentInterfaces(false) {}
 
 	/// clone constructor
 		GaussSeidelBase( const GaussSeidelBase<TAlgebra> &parent )
-			: base_type(parent)
+			: base_type(parent), m_bConsistentInterfaces(parent.m_bConsistentInterfaces)
 		{
 			set_sor_relax(parent.m_relax);
 		}
 
-	//	set relaxation parameter to define a SOR-method
+	///	set relaxation parameter to define a SOR-method
 		void set_sor_relax(number relaxFactor){ m_relax = relaxFactor;}
+
+	///	activates the new parallelization approach (disabled by default)
+		void enable_consistent_interfaces(bool enable) {m_bConsistentInterfaces = enable;}
 
 		virtual const char* name() const = 0;
 	protected:
@@ -94,12 +97,20 @@ class GaussSeidelBase : public IPreconditioner<TAlgebra>
 #ifdef UG_PARALLEL
 			if(pcl::NumProcs() > 1)
 			{
-				//	copy original matrix
-				MakeConsistent(*pOp, m_A);
-				//	set zero on slaves
-				std::vector<IndexLayout::Element> vIndex;
-				CollectUniqueElements(vIndex,  m_A.layouts()->slave());
-				SetDirichletRow(m_A, vIndex);
+				if (m_bConsistentInterfaces)
+				{
+					m_A = *pOp;
+					MatMakeConsistentOverlap0(m_A);
+				}
+				else
+				{
+					//	copy original matrix
+					MakeConsistent(*pOp, m_A);
+					//	set zero on slaves
+					std::vector<IndexLayout::Element> vIndex;
+					CollectUniqueElements(vIndex,  m_A.layouts()->slave());
+					SetDirichletRow(m_A, vIndex);
+				}
 				pA = &m_A;
 			}
 			else
@@ -126,14 +137,27 @@ class GaussSeidelBase : public IPreconditioner<TAlgebra>
 #ifdef UG_PARALLEL
 			if(pcl::NumProcs() > 1)
 			{
-				// todo: do not clone every time
-			//	make defect unique
-				SmartPtr<vector_type> spDtmp = d.clone();
-				spDtmp->change_storage_type(PST_UNIQUE);
+				if (m_bConsistentInterfaces)
+				{
+					UG_COND_THROW(!d.has_storage_type(PST_ADDITIVE), "Additive or unique defect expected.");
+					step(m_A, c, d, m_relax);
+					c.set_storage_type(PST_ADDITIVE);
+				}
+				else
+				{
+					// todo: do not clone every time
+				//	make defect unique
+					SmartPtr<vector_type> spDtmp = d.clone();
+					spDtmp->change_storage_type(PST_UNIQUE);
 
-				THROW_IF_NOT_EQUAL_3(c.size(), spDtmp->size(), m_A.num_rows());
-				step(m_A, c, *spDtmp, m_relax);
-				c.set_storage_type(PST_UNIQUE);
+					THROW_IF_NOT_EQUAL_3(c.size(), spDtmp->size(), m_A.num_rows());
+					step(m_A, c, *spDtmp, m_relax);
+					c.set_storage_type(PST_UNIQUE);
+				}
+
+				// make correction consistent
+				c.change_storage_type(PST_CONSISTENT);
+
 				return true;
 			}
 			else
@@ -143,7 +167,7 @@ class GaussSeidelBase : public IPreconditioner<TAlgebra>
 				THROW_IF_NOT_EQUAL_4(c.size(), d.size(), A.num_rows(), A.num_cols());
 				step(A, c, d, m_relax);
 #ifdef UG_PARALLEL
-				c.set_storage_type(PST_UNIQUE);
+				c.set_storage_type(PST_CONSISTENT);
 #endif
 				return true;
 			}
@@ -157,6 +181,8 @@ class GaussSeidelBase : public IPreconditioner<TAlgebra>
 	protected:
 		//	relaxation parameter
 		number m_relax;
+
+		bool m_bConsistentInterfaces;
 };
 
 /// Gauss-Seidel preconditioner for the 'forward' ordering of the dofs

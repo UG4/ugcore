@@ -110,6 +110,12 @@ util.balancer.defaults =
 		}
 	},
 
+	partitionPreProcessors =
+	{
+		rasterProjectorCoordinates = {
+		},
+	},
+
 	partitionPostProcessors =
 	{
 		smoothPartitionBounds = {
@@ -174,6 +180,12 @@ function util.balancer.CreateLoadBalancer(dom, desc)
 	print("  util.balancer: creating partitioner...")
 	local partitionerDesc = desc.partitioner or defaults.partitioner
 	local part = util.balancer.CreatePartitioner(dom, partitionerDesc)
+
+	if desc.partitionPreProcessor ~= nil then
+		print("  util.balancer: creating partition pre processor...")
+		local preProc = util.balancer.CreatePreProcessor(dom, desc.partitionPreProcessor)
+		part:set_partition_pre_processor(preProc)
+	end
 
 	if desc.partitionPostProcessor ~= nil then
 		print("  util.balancer: creating partition post processor...")
@@ -299,6 +311,27 @@ function util.balancer.CreatePartitioner(dom, partitionerDesc)
 	if desc then desc.instance = partitioner end
 
 	return partitioner
+end
+
+
+function util.balancer.CreatePreProcessor(dom, preProcDesc)
+	if util.tableDesc.IsPreset(preProcDesc) then return preProcDesc end
+
+	local name, desc = util.tableDesc.ToNameAndDesc(preProcDesc)
+	local defaults = util.balancer.defaults.partitionPreProcessors[name]
+	if desc == nil then desc = defaults end
+
+	local preProc = nil
+	if name == "rasterProjectorCoordinates" then
+		preProc = PartPreProc_RasterProjectorCoordinates(dom:position_attachment())
+	else
+		print("ERROR: Unknown partitionPreProcessor specified in " ..
+			  " util.balancer. CreatePreProcessor: " .. name)
+		exit()
+	end
+
+	if desc then desc.instance = preProc end
+	return preProc
 end
 
 
