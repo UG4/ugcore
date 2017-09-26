@@ -35,12 +35,12 @@
 
 #include "domain_distribution.h"
 #include "lib_grid/algorithms/attachment_util.h"
-#include "lib_grid/parallelization/load_balancing.h"
+#include "lib_grid/parallelization/deprecated/load_balancing.h"
 #include "common/serialization.h"
 
 #ifdef UG_PARALLEL
 	#include "pcl/pcl.h"
-	#include "lib_grid/parallelization/parallelization.h"
+	#include "lib_grid/parallelization/distribution.h"
 #endif
 
 

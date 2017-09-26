@@ -36,7 +36,7 @@
 #include <utility>
 #include <vector>
 #include "parallel_grid_layout.h"
-#include "load_balancer.h"
+#include "partitioner.h"
 #include "pcl/pcl_interface_communicator.h"
 
 namespace ug{

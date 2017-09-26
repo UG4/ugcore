@@ -33,7 +33,7 @@
 #ifndef __H__UG_broadcast
 #define __H__UG_broadcast
 
-#include "lib_grid/selector.h"
+#include "lib_grid/tools/selector_grid.h"
 #include "lib_grid/algorithms/serialization.h"
 #include "pcl/pcl_process_communicator.h"
 

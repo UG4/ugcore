@@ -33,6 +33,8 @@
 #ifndef __H__UG__volume_calculation__
 #define __H__UG__volume_calculation__
 
+#include "lib_grid/grid_objects/grid_objects_3d.h"
+
 namespace ug{
 
 /**

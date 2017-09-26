@@ -33,7 +33,7 @@
 #ifndef __H__UG_smooth_partition_bounds
 #define __H__UG_smooth_partition_bounds
 
-#include "../load_balancing.h"
+#include "../partitioner.h"
 #include "lib_grid/iterators/lg_for_each.h"
 
 namespace ug{

@@ -263,6 +263,11 @@ static void Common(Registry& reg, string grp) {
 	}
 
 	{
+		string name = string("ICommunicationWeights");
+		reg.add_class_<ICommunicationWeights>(name, grp);
+	}
+
+	{
 		string name("BalanceWeightsRefMarks");
 		typedef BalanceWeightsRefMarks	T;
 		reg.add_class_<T, IBalanceWeights>(name, grp)
@@ -285,6 +290,10 @@ static void Common(Registry& reg, string grp) {
 		reg.add_class_<T>("IPartitioner", grp)
 			.add_method("set_verbose", &T::set_verbose)
 			.add_method("partition", &T::partition)
+			.add_method("set_balance_weights", &T::set_balance_weights)
+			.add_method("supports_balance_weights", &T::supports_balance_weights)
+			.add_method("set_communication_weights", &T::set_communication_weights)
+			.add_method("supports_communication_weights", &T::supports_communication_weights)
 			.add_method("set_next_process_hierarchy", &T::set_next_process_hierarchy)
 			.add_method("enable_clustered_siblings", &T::enable_clustered_siblings)
 			.add_method("clustered_siblings_enabled", &T::clustered_siblings_enabled)

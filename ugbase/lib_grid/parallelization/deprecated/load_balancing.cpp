@@ -37,7 +37,7 @@
 #ifdef UG_PARALLEL
 #include "pcl/pcl_base.h"
 #include "pcl/pcl_interface_communicator.h"
-#include "util/parallel_dual_graph.h"
+#include "lib_grid/parallelization/util/parallel_dual_graph.h"
 #include "lib_grid/parallelization/util/compol_subset.h"
 #endif
 

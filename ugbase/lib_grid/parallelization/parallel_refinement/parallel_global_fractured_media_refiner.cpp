@@ -32,7 +32,6 @@
 
 #include <vector>
 #include "parallel_global_fractured_media_refiner.h"
-#include "pcl/pcl.h"
 #include "lib_grid/parallelization/util/compol_boolmarker.h"
 
 namespace ug

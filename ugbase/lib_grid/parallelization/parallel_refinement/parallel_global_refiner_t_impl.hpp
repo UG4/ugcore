@@ -35,7 +35,6 @@
 
 #include <vector>
 #include "parallel_global_refiner_t.h"
-#include "pcl/pcl.h"
 
 namespace ug
 {

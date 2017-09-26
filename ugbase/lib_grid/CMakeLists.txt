@@ -158,14 +158,14 @@ if(PARALLEL)
 							parallelization/parallel_grid_layout.cpp
 							parallelization/load_balancer.cpp
 							parallelization/load_balancer_util.cpp
-							parallelization/load_balancing.cpp
+							parallelization/deprecated/load_balancing.cpp
 							parallelization/partitioner_dynamic_bisection.cpp
 							parallelization/parallel_refinement/parallel_global_fractured_media_refiner.cpp
 							parallelization/parallel_refinement/parallel_hanging_node_refiner_multi_grid.cpp
 							parallelization/parallel_refinement/parallel_hnode_adjuster.cpp)
 	
 else(PARALLEL)
-	set(srcParallelization	parallelization/load_balancing.cpp
+	set(srcParallelization	parallelization/deprecated/load_balancing.cpp
 							parallelization/parallel_grid_layout.cpp)
 endif(PARALLEL)
 
