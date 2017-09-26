@@ -407,6 +407,7 @@ number IntegrateSubsets(SmartPtr<IIntegrand<number, TGridFunction::dim> > spInte
 // UserData Integrand
 ////////////////////////////////////////////////////////////////////////////////
 
+//! For arbitrary UserData $\rho$, this class defines the integrand $\rho(u)$.
 template <typename TData, typename TGridFunction>
 class UserDataIntegrand
 	: public StdIntegrand<TData, TGridFunction::dim, UserDataIntegrand<TData, TGridFunction> >
@@ -444,13 +445,118 @@ class UserDataIntegrand
 		: m_spData(spData), m_spGridFct(NULL), m_time(time)
 		{
 			if(m_spData->requires_grid_fct())
-				UG_THROW("DirectUserDataIntegrand: Missing GridFunction, but "
+				UG_THROW("UserDataIntegrand: Missing GridFunction, but "
 						" data requires grid function.")
 		};
 
 	/// \copydoc IIntegrand::values
 		template <int elemDim>
 		void evaluate(TData vValue[],
+		              const MathVector<worldDim> vGlobIP[],
+		              GridObject* pElem,
+		              const MathVector<worldDim> vCornerCoords[],
+		              const MathVector<elemDim> vLocIP[],
+		              const MathMatrix<elemDim, worldDim> vJT[],
+		              const size_t numIP)
+		{
+		//	get local solution if needed
+			if(m_spData->requires_grid_fct())
+			{
+			//	create storage
+				LocalIndices ind;
+				LocalVector u;
+
+			// 	get global indices
+				m_spGridFct->indices(pElem, ind);
+
+			// 	adapt local algebra
+				u.resize(ind);
+
+			// 	read local values of u
+				GetLocalVector(u, *m_spGridFct);
+
+			//	compute data
+				try{
+					(*m_spData)(vValue, vGlobIP, m_time, this->m_si, pElem,
+								vCornerCoords, vLocIP, numIP, &u, &vJT[0]);
+				}
+				UG_CATCH_THROW("UserDataIntegrand: Cannot evaluate data.");
+			}
+			else
+			{
+			//	compute data
+				try{
+					(*m_spData)(vValue, vGlobIP, m_time, this->m_si, numIP);
+				}
+				UG_CATCH_THROW("UserDataIntegrand: Cannot evaluate data.");
+			}
+
+		};
+};
+
+
+/*!
+ * For arbitrary $\rho$, this class defines the integrand $|\rho(u_1)- \rho(u_2)|^2$.
+ * If the grid function $u_2$ is not provided, the class returns $|\rho(u_1)|^2$
+ * */
+template <typename TDataIn, typename TGridFunction>
+class UserDataDeltaIntegrand
+	: public StdIntegrand<number, TGridFunction::dim, UserDataDeltaIntegrand<TDataIn, TGridFunction> >
+{
+	public:
+	//	world dimension of grid function
+		static const int worldDim = TGridFunction::dim;
+
+	//	data type
+		typedef TDataIn data_type;
+
+	private:
+
+		static number product(const number &x, const number &y)
+		{return x*y;}
+
+		static number product(const MathVector<worldDim> &x, const MathVector<worldDim> &y)
+		{return VecDot(x,y);}
+
+
+	//  data to integrate
+		SmartPtr<UserData<TDataIn, worldDim> > m_spData;
+
+	// 	grid function
+		SmartPtr<TGridFunction> m_spGridFct;
+		SmartPtr<TGridFunction> m_spGridFct2;
+
+	//	time
+		number m_time;
+
+	public:
+	/// constructor
+		UserDataDeltaIntegrand(SmartPtr<UserData<TDataIn, worldDim> > spData,
+		                SmartPtr<TGridFunction> spGridFct,
+						SmartPtr<TGridFunction> spGridFct2,
+		                number time)
+		: m_spData(spData), m_spGridFct(spGridFct), m_spGridFct2(spGridFct2), m_time(time)
+		{
+			m_spData->set_function_pattern(spGridFct->function_pattern());
+		};
+
+	/// constructor
+		UserDataDeltaIntegrand(SmartPtr<UserData<TDataIn, worldDim> > spData,
+							  number time)
+		: m_spData(spData), m_spGridFct(NULL), m_spGridFct2(NULL), m_time(time)
+		{
+			if(m_spData->requires_grid_fct())
+				UG_THROW("DirectUserDataIntegrand: Missing GridFunction, but "
+						" data requires grid function.")
+		};
+
+
+
+
+		template <int elemDim>
+		void get_values(TDataIn vValue[],
+					  ConstSmartPtr<UserData<TDataIn, worldDim> > m_spData,
+					  ConstSmartPtr<TGridFunction> m_spGridFct,
 		              const MathVector<worldDim> vGlobIP[],
 		              GridObject* pElem,
 		              const MathVector<worldDim> vCornerCoords[],
@@ -491,8 +597,41 @@ class UserDataIntegrand
 			}
 
 		};
-};
 
+
+		/// \copydoc IIntegrand::values
+			template <int elemDim>
+			void evaluate(number vValue[],
+			              const MathVector<worldDim> vGlobIP[],
+			              GridObject* pElem,
+			              const MathVector<worldDim> vCornerCoords[],
+			              const MathVector<elemDim> vLocIP[],
+			              const MathMatrix<elemDim, worldDim> vJT[],
+			              const size_t numIP)
+			{
+				std::vector<TDataIn> v1(numIP);
+
+				get_values<elemDim>(&v1[0], m_spData, m_spGridFct, vGlobIP, pElem, vCornerCoords, vLocIP, vJT, numIP);
+
+				if (m_spGridFct2.valid())
+				{
+					std::vector<TDataIn> v2(numIP);
+					get_values<elemDim>(&v2[0], m_spData, m_spGridFct2, vGlobIP, pElem, vCornerCoords, vLocIP, vJT, numIP);
+
+					for (size_t ip=0; ip<numIP; ++ip)
+					{
+						//TDataIn delta(v1[ip]);
+						v1[ip] -= v2[ip];
+						vValue[ip] = this->product(v1[ip], v1[ip]);
+					}
+				} else {
+
+					for (size_t ip=0; ip<numIP; ++ip)
+					{ vValue[ip] = this->product(v1[ip], v1[ip]); }
+
+				}
+			};
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
