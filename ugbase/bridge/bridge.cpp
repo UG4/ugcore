@@ -221,6 +221,7 @@ void RegisterStandardBridges(Registry& reg, string parentGroup)
 		RegisterBridge_Profiler(reg, parentGroup);
 		RegisterBridge_Misc(reg, parentGroup);
 		RegisterBridge_Raster(reg, parentGroup);
+		RegisterBridge_OrthoPoly(reg, parentGroup);
 
 		#ifdef UG_GRID
 			RegisterBridge_Grid(reg, parentGroup);
