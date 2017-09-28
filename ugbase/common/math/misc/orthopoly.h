@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2016:  G-CSC, Goethe University Frankfurt
- * Author: Sebastian Reiter
+ * Copyright (c) 2009-2015:  G-CSC, Goethe University Frankfurt
+ * Author: Dmitry Logashenko
  * 
  * This file is part of UG4.
  * 
@@ -30,36 +30,34 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef __H__UG_broadcast
-#define __H__UG_broadcast
+#ifndef __H__UGMATH__ORTHO_POLY__
+#define __H__UGMATH__ORTHO_POLY__
 
-#include "lib_grid/tools/selector_grid.h"
-#include "lib_grid/algorithms/serialization.h"
-#include "pcl/pcl_process_communicator.h"
+#include "common/types.h"
 
-namespace ug{
+namespace ug
+{
 
-///	Broadcasts the specified Selection from 'root' to all processes in procCom
-/** Selected elements and associated attachments are broadcasted from
- * 'root' to all processes in procCom (including 'root').
- *
- * @param serializer	Has to operate on 'sel.grid()'. It is responsible to serialize
- *						e.g. attachments, subset-handlers or selectors.
- *
- * @param deserializer	Has to operate on 'gridOut'. It has to contain exactly the same
- *						components as 'serializer', except that all components have
- *						to operate on 'gridOut', too.
+/// computes the (unscaled) Legendre polynomials
+number LegendrePoly (size_t k, number x);
 
- * \note	In order to make sure that all required sides and vertices of selected
- *			elements are broadcasted, the given selector may be adjusted.*/
-void BroadcastGrid(	Grid& gridOut,
-					Selector& sel,
-					GridDataSerializationHandler& serializer,
-					GridDataSerializationHandler& deserializer,
-					int root,
-					const pcl::ProcessCommunicator& procCom =
-												pcl::ProcessCommunicator());
- 
-}//	end of namespace
+/// computes the scaled Legendre polynomials
+number ScaledLegendrePoly (size_t k, number x);
 
-#endif	//__H__UG_broadcast
+/// computes the (unscaled) Chebyshev polynomials of the first kind
+number Chebyshev1Poly (size_t k, number x);
+
+/// computes the scaled Chebyshev polynomials of the first kind
+number ScaledChebyshev1Poly (size_t k, number x);
+
+/// computes the (unscaled) Chebyshev polynomials of the second kind
+number Chebyshev2Poly (size_t k, number x);
+
+/// computes the scaled Chebyshev polynomials of the second kind
+number ScaledChebyshev2Poly (size_t k, number x);
+
+} // namespace ug
+
+#endif // __H__UGMATH__ORTHO_POLY__
+
+/* End of File */

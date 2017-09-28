@@ -32,7 +32,6 @@
 
 #include <sstream>
 #include "parallelization_util.h"
-#include "load_balancing.h"
 #include "distribution.h"
 #include "lib_grid/refinement/global_multi_grid_refiner.h"
 #include "lib_grid/file_io/file_io.h"

@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2011-2015:  G-CSC, Goethe University Frankfurt
- * Author: Sebastian Reiter
+ * Author: Dmitry Logashenko
  * 
  * This file is part of UG4.
  * 
@@ -30,73 +30,48 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef __H__LIB_GRID__PARALLEL_GLOBAL_REFINER_T_IMPL__
-#define __H__LIB_GRID__PARALLEL_GLOBAL_REFINER_T_IMPL__
+#include "../util_overloaded.h"
+#include "ug.h"
+#include "bridge/bridge.h"
+#include "common/math/misc/orthopoly.h"
+#include "registry/registry.h"
 
-#include <vector>
-#include "parallel_global_refiner_t.h"
+#include <cstdlib>
+#include <string>
 
-namespace ug
+using namespace std;
+
+namespace ug{
+
+namespace bridge{
+
+/// \ingroup misc_bridge
+/// \{
+
+void RegisterBridge_OrthoPoly(Registry& reg, string parentGroup)
 {
+	string grp(parentGroup);
+	grp.append("/OrthoPoly");
 
-template <class TRefiner>
-TParallelGlobalRefiner<TRefiner>::
-TParallelGlobalRefiner(DistributedGridManager& distGridMgr,
-						SPRefinementProjector projector) :
-	TRefiner(*distGridMgr.get_assigned_grid(), projector),
-	m_distGridMgr(distGridMgr)
-{
+	reg.add_function("LegendrePoly", &LegendrePoly, grp,
+	                 "n#x", "", "Returns the value of the n-th Legendre polynomial at x");
+	reg.add_function("ScaledLegendrePoly", &ScaledLegendrePoly, grp,
+	                 "n#x", "", "Returns the value of the scaled n-th Legendre polynomial at x");
+
+	reg.add_function("Chebyshev1Poly", &Chebyshev1Poly, grp,
+	                 "n#x", "", "Returns the value of the n-th Chebyshev polynomial of the first kind at x");
+	reg.add_function("ScaledChebyshev1Poly", &ScaledChebyshev1Poly, grp,
+	                 "n#x", "", "Returns the value of the scaled n-th Chebyshev polynomial of the first kind at x");
+
+	reg.add_function("Chebyshev2Poly", &Chebyshev2Poly, grp,
+	                 "n#x", "", "Returns the value of the n-th Chebyshev polynomial of the second kind at x");
+	reg.add_function("ScaledChebyshev2Poly", &ScaledChebyshev2Poly, grp,
+	                 "n#x", "", "Returns the value of the scaled n-th Chebyshev polynomial of the second kind at x");
+
 }
 
-template <class TRefiner>
-TParallelGlobalRefiner<TRefiner>::
-~TParallelGlobalRefiner()
-{
-}
+// end group util_bridge
+/// \}
 
-template <class TRefiner>
-bool
-TParallelGlobalRefiner<TRefiner>::
-refinement_is_allowed(Vertex* elem)
-{
-	return !m_distGridMgr.is_ghost(elem);
-}
-
-template <class TRefiner>
-bool TParallelGlobalRefiner<TRefiner>::
-refinement_is_allowed(Edge* elem)
-{
-	return !m_distGridMgr.is_ghost(elem);
-}
-
-template <class TRefiner>
-bool TParallelGlobalRefiner<TRefiner>::
-refinement_is_allowed(Face* elem)
-{
-	return !m_distGridMgr.is_ghost(elem);
-}
-
-template <class TRefiner>
-bool TParallelGlobalRefiner<TRefiner>::
-refinement_is_allowed(Volume* elem)
-{
-	return !m_distGridMgr.is_ghost(elem);
-}
-
-template <class TRefiner>
-void TParallelGlobalRefiner<TRefiner>::
-refinement_step_begins()
-{
-	m_distGridMgr.begin_ordered_element_insertion();
-}
-
-template <class TRefiner>
-void TParallelGlobalRefiner<TRefiner>::
-refinement_step_ends()
-{
-	m_distGridMgr.end_ordered_element_insertion();
-}
-
-}//	end of namespace
-
-#endif
+}// end of namespace bridge
+}// end of namespace ug

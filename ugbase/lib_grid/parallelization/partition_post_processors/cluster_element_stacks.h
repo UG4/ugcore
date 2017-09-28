@@ -34,7 +34,7 @@
 #define __H__UG_cluster_element_stacks
 
 #include <stack>
-#include "../load_balancing.h"
+#include "../partitioner.h"
 #include "lib_grid/iterators/lg_for_each.h"
 #include "lib_grid/algorithms/normal_calculation.h"
 

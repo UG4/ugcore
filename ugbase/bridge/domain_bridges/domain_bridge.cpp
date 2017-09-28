@@ -55,12 +55,12 @@
 #include "lib_grid/algorithms/subset_util.h"
 
 #ifdef UG_PARALLEL
-	#include "lib_grid/parallelization/load_balancing.h"
-	#include "lib_grid/parallelization/parallelization.h"
 	#include "lib_disc/parallelization/domain_load_balancer.h"
+	#include "lib_grid/parallelization/deprecated/load_balancing.h"
+	#include "lib_grid/parallelization/parallelization_util.h"
+	#include "lib_grid/parallelization/util/partition_weighting_callbacks.h"
 #endif
 
-#include "lib_grid/parallelization/util/partition_weighting_callbacks.h"
 
 using namespace std;
 

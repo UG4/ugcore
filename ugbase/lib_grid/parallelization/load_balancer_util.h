@@ -33,9 +33,8 @@
 #ifndef __H__UG__load_balancer_util__
 #define __H__UG__load_balancer_util__
 
-#include "load_balancer.h"
+#include "partitioner.h"
 #include "lib_grid/algorithms/volume_calculation.h"
-#include "lib_grid/lib_grid.h"
 
 namespace ug{
 

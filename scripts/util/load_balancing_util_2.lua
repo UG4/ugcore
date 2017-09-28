@@ -107,6 +107,15 @@ util.balancer.defaults =
 			verbose = false,
 			clusteredSiblings = true,
 			balanceThreshold = 0.9
+		},
+
+		streamline =
+		{
+			balanceWeights = nil,
+			communicationWeights = nil,
+			verbose = false,
+			refine = false,
+			balanceThreshold = 0.9
 		}
 	},
 
@@ -294,6 +303,18 @@ function util.balancer.CreatePartitioner(dom, partitionerDesc)
 	  	else
 	   		options = ParmetisOptions()
 			partitioner:set_options(options)
+		end
+	elseif(name == "streamline") then
+		RequiredPlugins({"StreamlinePartitioner"})
+
+		partitioner = StreamlinePartitioner(dom:grid())
+		partitioner:set_verbose(verbose)
+		partitioner:set_refine(refine or defaults.refine)
+		if util.tableDesc.IsPreset(desc.balanceWeights) then
+			partitioner:set_balance_weights(desc.balanceWeights)
+		end
+		if util.tableDesc.IsPreset(desc.communicationWeights) then
+			partitioner:set_communication_weights(desc.communicationWeights)
 		end
 	else
 		print("ERROR: Unknown partitioner specified in balancer.CreateLoadBalancer: " .. name)

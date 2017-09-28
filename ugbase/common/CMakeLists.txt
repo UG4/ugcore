@@ -67,7 +67,8 @@ set(srcCommon	log.cpp
 				math/misc/tritri.cpp
 				math/misc/lineintersect_utils.cpp
 				math/misc/eigenvalues.cpp
-				math/misc/math_util.cpp)
+				math/misc/math_util.cpp
+				math/misc/orthopoly.cpp)
 				
 if(PROFILE_MEMORY)
     message(STATUS "Info: Using Memory Profiler (disable with -DPROFILE_MEMORY=OFF).")

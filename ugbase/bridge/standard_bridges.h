@@ -100,6 +100,9 @@ void RegisterBridge_LoadBalancing(Registry& reg, std::string grp = UG4_GRP);
 ///	registers rasters, e.g. for 1,2,3 dimensional image data or density distributions
 void RegisterBridge_Raster(Registry& reg, std::string grp = UG4_GRP);
 
+///	registers orthogonal polynomials
+void RegisterBridge_OrthoPoly(Registry& reg, std::string grp = UG4_GRP);
+
 /// registers reference mapping test functionality (common)
 void RegisterBridge_ReferenceMappingTest(Registry& reg, std::string grp = UG4_GRP);
 

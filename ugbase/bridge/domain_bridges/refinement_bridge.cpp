@@ -51,9 +51,9 @@
 #include "lib_grid/refinement/ref_mark_adjusters/horizontal_anisotropy_adjuster.h"
 #include "lib_grid/algorithms/subdivision/subdivision_volumes.h"
 #include "lib_grid/grid_objects/tetrahedron_rules.h"
-
 #ifdef UG_PARALLEL
 #include "lib_grid/parallelization/util/attachment_operations.hpp"
+#include "lib_grid/parallelization/parallel_refinement/parallel_refinement.h"
 #endif
 
 using namespace std;
