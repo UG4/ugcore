@@ -1368,6 +1368,8 @@ adjust_linear(const std::vector<TUserData*>& vUserData, int si,
 
 					// FIXME: Beware, this is dangerous!
 					//        It will not work for blocked algebras.
+					UG_COND_THROW(multInd[j][1] != 0,
+						"adjust_linear() is not implemented for block matrices and the symmetric case!");
 					if(m_bDirichletColumns)
 						dirichletDoFIndices.insert(multInd[j][0]);
 
@@ -1406,26 +1408,26 @@ adjust_linear(const std::vector<TUserData*>& vUserData, int si,
 
 					// the dirichlet-dof-index it.index is assigned
 					// the row i and the matrix entry it.value().
-					m_dirichletMap[si][it.index()][i] = it.value();
+					m_dirichletMap[si][i][it.index()] = it.value();
 					it.value() = 0.0;
 				}
 			}
 		}
 
+		// TODO: for better efficiency use vectors instead of maps (rows and columns are ordered!)
 		typename std::map<int, std::map<int, value_type> >::iterator itdirichletMap;
+		typename std::map<int, value_type>::iterator itdirichletRowMap;
 		for(size_t i = 0; i<nr; i++)
 		{
-			// do not change rhs entries in Dirichlet rows!
-			if (m_dirichletMap[si].find(i) != m_dirichletMap[si].end())
+			// step over if this row did not contain any connections to Dirichlet nodes
+			if ((itdirichletMap = m_dirichletMap[si].find(i)) == m_dirichletMap[si].end())
 				continue;
 
 			for(typename matrix_type::row_iterator it = m_A->begin_row(i); it!=m_A->end_row(i); ++it){
 
-				itdirichletMap = m_dirichletMap[si].find(it.index());
-
 				// current column index is a dirichlet index
-				if(itdirichletMap != m_dirichletMap[si].end())
-					b[i] -= itdirichletMap->second[i]*b[it.index()];
+				if ((itdirichletRowMap = itdirichletMap->second.find(it.index())) != itdirichletMap->second.end())
+					b[i] -= itdirichletRowMap->second*b[it.index()];
 			}
 		}
 	}
@@ -1552,20 +1554,19 @@ adjust_rhs(const std::vector<TUserData*>& vUserData, int si,
 	// adjust the right hand side
 	if(m_bDirichletColumns){
 		typename std::map<int, std::map<int, value_type> >::iterator itdirichletMap;
+		typename std::map<int, value_type>::iterator itdirichletRowMap;
 		size_t nr = m_A->num_rows();
 		for(size_t i = 0; i<nr; i++)
 		{
-			// do not change rhs entries in Dirichlet rows!
-			if (m_dirichletMap[i].find(i) != m_dirichletMap[i].end())
+			// step over if this row did not contain any connections to Dirichlet nodes
+			if ((itdirichletMap = m_dirichletMap[si].find(i)) == m_dirichletMap[si].end())
 				continue;
 
 			for(typename matrix_type::row_iterator it = m_A->begin_row(i); it!=m_A->end_row(i); ++it){
 
-				itdirichletMap = m_dirichletMap[i].find(it.index());
-
 				// current column index is a dirichlet index
-				if(itdirichletMap != m_dirichletMap[i].end())
-					b[i] -= itdirichletMap->second[i]*b[it.index()];
+				if ((itdirichletRowMap = itdirichletMap->second.find(it.index())) != itdirichletMap->second.end())
+					b[i] -= itdirichletRowMap->second*b[it.index()];
 			}
 		}
 	}

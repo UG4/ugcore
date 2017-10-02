@@ -48,7 +48,7 @@ namespace ug{
  * l = s_1 * i_1 + ... + s_k * i_k
  *
  * where, l, i_1, ..., i_k are of the same data type and the s_i are some
- * scaling factor of a (possibly) different type, that is applyable to the
+ * scaling factor of a (possibly) different type, that is applicable to the
  * data type
  *
  * \tparam		TData		exported and combined Data type

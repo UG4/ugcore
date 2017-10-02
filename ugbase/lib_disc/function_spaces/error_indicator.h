@@ -634,12 +634,12 @@ void MarkForAdaption_L2ErrorExact(IRefiner& refiner,
 	MultiGrid::AttachmentAccessor<elem_t, ANumber> aaError(mg, aError);
 
 //	create integrand and perform integration
-	SmartPtr<IIntegrand<number, dim> > spIntegrand
-		= make_sp(new L2ErrorIntegrand<TFunction>(spExactSol, u, fct, time));
-
+	/*SmartPtr<IIntegrand<number, dim> > spIntegrand
+		= make_sp(new L2ErrorIntegrand<TFunction>(spExactSol, u, fct, time));*/
+	L2ErrorIntegrand<TFunction> integrand(spExactSol, *u, fct, time);
 	number l2Error =
 		Integrate<dim, dim>(u->template begin<elem_t>(), u->template end<elem_t>(),
-				  			aaPos, *spIntegrand, quadOrder, "best", &aaError);
+				  			aaPos, integrand, quadOrder, "best", &aaError);
 
 	#ifdef UG_PARALLEL
 		pcl::ProcessCommunicator com;
@@ -1098,11 +1098,11 @@ void EvaluateResidualErrorP1(SmartPtr<TFunction> u,
 		aaPos = u->domain()->position_accessor();
 	
 //	evaluate L2-Norm of f and store element contributions in aaError
-	SmartPtr<IIntegrand<number, dim> > spIntegrand
-		= make_sp(new UserDataIntegrand<number, TFunction>(f, u, time));
-
+	/*SmartPtr<IIntegrand<number, dim> > spIntegrand
+		= make_sp(new UserDataIntegrand<number, TFunction>(f, u, time));*/
+	UserDataIntegrand<number, TFunction> integrand(f, u, time);
 	Integrate<dim, dim>(u->template begin<elem_t>(), u->template end<elem_t>(),
-			  			aaPos, *spIntegrand, quadOrder, quadType, &aaError);
+			  			aaPos, integrand, quadOrder, quadType, &aaError);
 
 //	we have to square contributions in aaError and multiply them with the
 //	square of the element-diameter
