@@ -158,7 +158,7 @@ void ReceiveMatrix(const matrix_type &A, matrix_type &M, IndexLayout &verticalMa
 		UG_DLOG(LIB_ALG_AMG, 3, srcprocs[i] << " ");
 		communicator.receive_raw(srcprocs[i], streams[srcprocs[i]]);
 	}
-	UG_LOG("\n");
+	UG_DLOG(LIB_ALG_AMG, 3, "\n");
 	communicator.communicate();
 
 	AlgebraID globalRowIndex, globalColIndex;;
