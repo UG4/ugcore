@@ -436,6 +436,31 @@ function util.GetUniqueFilenameFromCommandLine()
 	end
 end
 
+
+--	For each entry in 'params' this method will check for a user parameter with
+--	the same name and type and overwrite the entry in 'params' if such a user parameter
+--	is found.
+--	Make sure that entries in 'params' are either of type 'boolean', 'string', or 'number'.
+--	'descriptors' is optional and may contain descriptions for each parameter in 'params'.
+function util.GetUserParameters(params, descriptors)
+	for k, v in pairs(params) do
+		local t = type(v)
+		local descriptor = descriptors and descriptors[k] or ""
+
+		if t == "boolean" then
+			params[k] = v or util.HasParamOption("-"..k, descriptor)
+		elseif t == "string" then
+			params[k] = util.GetParam("-"..k, v, descriptor)
+		elseif t == "number" then
+			params[k] = util.GetParamNumber("-"..k, v, descriptor)
+		else
+			print("WARNING in util.GetUserParameters: Unsupported type '"
+			      .. t .. "' of key '" .. k .. "' in params table")
+		end
+	end
+end
+
+
 util.HasParamOption("-noquit", "Runs the interactive shell after specified script")
 util.HasParamOption("-noterm", "Terminal logging will be disabled")
 util.HasParamOption("-profile", "Shows profile-output when the application terminates")
