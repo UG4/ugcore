@@ -1205,7 +1205,7 @@ void GetSelectedElementIndices (const ISelector& sel, std::vector<size_t>& indsO
 	Grid& g = *sel.grid();
 	indsOut.clear();
 
-	typedef Grid::traits<elem_t>::iterator iter_t;
+	typedef typename Grid::traits<elem_t>::iterator iter_t;
 	size_t counter = 0;
 	for(iter_t ielem = g.begin<elem_t>(); ielem != g.end<elem_t>();
 	    ++ielem, ++counter)
@@ -1236,7 +1236,7 @@ void SelectElementsByIndex (ISelector& sel, const std::vector<size_t>& inds)
 	
 	Grid& g = *sel.grid();
 
-	typedef Grid::traits<elem_t>::iterator iter_t;
+	typedef typename Grid::traits<elem_t>::iterator iter_t;
 	size_t elemCounter = 0;
 	iter_t ielem = g.begin<elem_t>();
 
