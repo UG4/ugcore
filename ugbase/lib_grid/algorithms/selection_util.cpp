@@ -1196,4 +1196,77 @@ void SelectLinkedFlatAndDegeneratedFaces(Selector& sel,
 	}
 }
 
+
+template <class elem_t>
+void GetSelectedElementIndices (const ISelector& sel, std::vector<size_t>& indsOut)
+{
+	UG_COND_THROW(!sel.grid(), "The specified selector has to operate on a grid!");
+	
+	Grid& g = *sel.grid();
+	indsOut.clear();
+
+	typedef Grid::traits<elem_t>::iterator iter_t;
+	size_t counter = 0;
+	for(iter_t ielem = g.begin<elem_t>(); ielem != g.end<elem_t>();
+	    ++ielem, ++counter)
+	{
+		if(sel.is_selected(*ielem))
+			indsOut.push_back(counter);
+	}
+}
+
+
+void GetSelectedElementIndices (const ISelector& sel,
+                                std::vector<size_t>& vrtIndsOut,
+                                std::vector<size_t>& edgeIndsOut,
+                                std::vector<size_t>& faceIndsOut,
+                                std::vector<size_t>& volIndsOut)
+{
+	GetSelectedElementIndices<Vertex> (sel, vrtIndsOut);
+	GetSelectedElementIndices<Edge> (sel, edgeIndsOut);
+	GetSelectedElementIndices<Face> (sel, faceIndsOut);
+	GetSelectedElementIndices<Volume> (sel, volIndsOut);
+}
+
+
+template <class elem_t>
+void SelectElementsByIndex (ISelector& sel, const std::vector<size_t>& inds)
+{
+	UG_COND_THROW(!sel.grid(), "The specified selector has to operate on a grid!");
+	
+	Grid& g = *sel.grid();
+
+	typedef Grid::traits<elem_t>::iterator iter_t;
+	size_t elemCounter = 0;
+	iter_t ielem = g.begin<elem_t>();
+
+	for(size_t iind = 0; iind < inds.size(); ++iind) {
+		const size_t ind = inds[iind];
+		if(ind < elemCounter){
+			elemCounter = 0;
+			ielem = g.begin<elem_t>();
+		}
+
+		for(; ielem != g.end<elem_t>(); ++ielem, ++elemCounter) {
+			if(elemCounter == ind) {
+				sel.select(*ielem);
+				break;
+			}
+		}
+	}
+}
+
+
+void SelectElementsByIndex (ISelector& sel,
+                            const std::vector<size_t>& vrtInds,
+                            const std::vector<size_t>& edgeInds,
+                            const std::vector<size_t>& faceInds,
+                            const std::vector<size_t>& volInds)
+{
+	SelectElementsByIndex<Vertex> (sel, vrtInds);
+	SelectElementsByIndex<Edge> (sel, edgeInds);
+	SelectElementsByIndex<Face> (sel, faceInds);
+	SelectElementsByIndex<Volume> (sel, volInds);
+}
+
 }//	end of namespace
