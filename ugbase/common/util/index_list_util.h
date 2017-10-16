@@ -92,7 +92,7 @@ void RangeStringToIndexList (std::vector<ind_t>& indsOut, const char* rangeStrin
 
 		if(readingRange){
 			readingRange = false;
-			for(ind_t i = lastInd; i < ind; ++i)
+			for(ind_t i = lastInd; i <= ind; ++i)
 				indsOut.push_back (i);
 		}
 		else{

@@ -594,12 +594,7 @@ void GetSelectedElementIndices (const ISelector& sel,
 
 
 ///	Selects elements with the specified indices
-/**
- * \note	For best performance, the indices should be sorted in ascending order.
- *			In this case the method has linear complexity. If the indices are not
- *			sorted, then complexity can raise to O(n*n)
- * 
- * \warning 	this method has at least linear complexity and should be avoided
+/** \warning 	this method has linear complexity and should be avoided
  *				unless required to exchange selection states with external
  *				programs or scripts.
  * \{ */

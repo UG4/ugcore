@@ -1205,14 +1205,22 @@ void GetSelectedElementIndices (const ISelector& sel, std::vector<size_t>& indsO
 	Grid& g = *sel.grid();
 	indsOut.clear();
 
-	typedef typename Grid::traits<elem_t>::iterator iter_t;
-	size_t counter = 0;
-	for(iter_t ielem = g.begin<elem_t>(); ielem != g.end<elem_t>();
-	    ++ielem, ++counter)
-	{
-		if(sel.is_selected(*ielem))
-			indsOut.push_back(counter);
+//	NOTE:	We have to keep the order in which the elements were selected.
+//			That's why an index attachment is required here.
+	AInt aIndex;
+	g.attach_to<elem_t>(aIndex);
+	Grid::AttachmentAccessor<elem_t, AInt>	aaIndex (g, aIndex);
+	AssignIndices (g.begin<elem_t>(), g.end<elem_t>(), aaIndex);
+
+	GridObjectCollection goc = sel.get_grid_objects ();
+	typedef GridObjectCollection::traits<elem_t>::iterator iter_t;
+	for(size_t ilvl = 0; ilvl < goc.num_levels(); ++ilvl){
+		for(iter_t ielem = goc.begin<elem_t>(ilvl); ielem != goc.end<elem_t>(ilvl); ++ielem)
+		{
+			indsOut.push_back(aaIndex[*ielem]);
+		}
 	}
+	g.detach_from<elem_t>(aIndex);
 }
 
 
@@ -1232,27 +1240,32 @@ void GetSelectedElementIndices (const ISelector& sel,
 template <class elem_t>
 void SelectElementsByIndex (ISelector& sel, const std::vector<size_t>& inds)
 {
+//	NOTE: 	If we could hope that 'inds' is always sorted, this could be
+//			implemented in a more efficient way. However, 'inds' is not sorted
+//			generally. Since we have to maintain the order of indices (important!)
+//			the present implementation should be the fastest one in worst
+//			case scenarios.
 	UG_COND_THROW(!sel.grid(), "The specified selector has to operate on a grid!");
 	
 	Grid& g = *sel.grid();
 
 	typedef typename Grid::traits<elem_t>::iterator iter_t;
-	size_t elemCounter = 0;
-	iter_t ielem = g.begin<elem_t>();
+
+	const size_t numElems = g.num<elem_t>();
+	if(numElems == 0)
+		return;
+
+	vector<elem_t*>	elems;
+	elems.reserve(numElems);
+	for(iter_t ielem = g.begin<elem_t>(); ielem != g.end<elem_t>(); ++ielem)
+		elems.push_back(*ielem);
 
 	for(size_t iind = 0; iind < inds.size(); ++iind) {
 		const size_t ind = inds[iind];
-		if(ind < elemCounter){
-			elemCounter = 0;
-			ielem = g.begin<elem_t>();
-		}
+		UG_COND_THROW (ind >= numElems, "Invalid element index encountered: "
+		               << ind << "! (max is " << numElems - 1 << ")");
 
-		for(; ielem != g.end<elem_t>(); ++ielem, ++elemCounter) {
-			if(elemCounter == ind) {
-				sel.select(*ielem);
-				break;
-			}
-		}
+		sel.select(elems[ind]);
 	}
 }
 
