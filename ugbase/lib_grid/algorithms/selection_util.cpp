@@ -261,9 +261,9 @@ template void SelectAssociatedGridObjects<MGSelector>(MGSelector& sel,
 template <class TSelector>
 void CloseSelection (TSelector& sel)
 {
-	SelectAssociatedFaces(sel, sel.begin<Volume>(), sel.end<Volume>());
-	SelectAssociatedEdges(sel, sel.begin<Face>(), sel.end<Face>());
-	SelectAssociatedVertices(sel, sel.begin<Edge>(), sel.end<Edge>());
+	SelectAssociatedFaces(sel, sel.template begin<Volume>(), sel.template end<Volume>());
+	SelectAssociatedEdges(sel, sel.template begin<Face>(), sel.template end<Face>());
+	SelectAssociatedVertices(sel, sel.template begin<Edge>(), sel.template end<Edge>());
 }
 
 template void CloseSelection<Selector>(Selector& sel);
@@ -1225,7 +1225,7 @@ void GetSelectedElementIndices (const ISelector& sel, std::vector<size_t>& indsO
 	AssignIndices (g.begin<elem_t>(), g.end<elem_t>(), aaIndex);
 
 	GridObjectCollection goc = sel.get_grid_objects ();
-	typedef GridObjectCollection::traits<elem_t>::iterator iter_t;
+	typedef typename GridObjectCollection::traits<elem_t>::iterator iter_t;
 	for(size_t ilvl = 0; ilvl < goc.num_levels(); ++ilvl){
 		for(iter_t ielem = goc.begin<elem_t>(ilvl); ielem != goc.end<elem_t>(ilvl); ++ielem)
 		{
