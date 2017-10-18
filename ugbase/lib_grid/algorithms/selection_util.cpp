@@ -257,6 +257,18 @@ template void SelectAssociatedGridObjects<MGSelector>(MGSelector& sel,
 													ISelector::status_t status);
 
 
+////////////////////////////////////////////////////////////////////////
+template <class TSelector>
+void CloseSelection (TSelector& sel)
+{
+	SelectAssociatedFaces(sel, sel.begin<Volume>(), sel.end<Volume>());
+	SelectAssociatedEdges(sel, sel.begin<Face>(), sel.end<Face>());
+	SelectAssociatedVertices(sel, sel.begin<Edge>(), sel.end<Edge>());
+}
+
+template void CloseSelection<Selector>(Selector& sel);
+template void CloseSelection<MGSelector>(MGSelector& sel);
+
 
 ////////////////////////////////////////////////////////////////////////
 //	SelectParents

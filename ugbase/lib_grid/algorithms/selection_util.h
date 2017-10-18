@@ -223,6 +223,13 @@ void SelectAssociatedGridObjects(TSelector& sel,
 
 
 ////////////////////////////////////////////////////////////////////////
+/// Selects all associated elements of lower dimensions
+template <class TSelector>
+UG_API
+void CloseSelection (TSelector& sel);
+
+
+////////////////////////////////////////////////////////////////////////
 ///	Assigns the selection state of selected elements to associated sides.
 /**	If recursive is set to true, the method will recursively call itself, to
  * copy the state to sides of sides and so on.
