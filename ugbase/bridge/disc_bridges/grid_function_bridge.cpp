@@ -49,7 +49,7 @@
 #include "lib_disc/function_spaces/grid_function_global_user_data.h"
 #include "lib_disc/function_spaces/grid_function_user_data_explicit.h"
 #include "lib_disc/function_spaces/grid_function_coordinate_util.h"
-
+#include "lib_disc/function_spaces/metric_spaces.h"
 using namespace std;
 
 namespace ug{
@@ -213,6 +213,71 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("evaluate", static_cast<std::vector<number> (T::*)(std::vector<number>)>(&T::evaluate))
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GlobalGridFunctionGradientData", tag);
+	}
+
+	// IGridFunctionSpace (abstract base class)
+	{
+			typedef IGridFunctionSpace<TFct> T;
+			string name = string("IGridFunctionSpace").append(suffix);
+			reg.add_class_<T>(name, grp);
+			reg.add_class_to_group(name, "IGridFunctionSpace", tag);
+	}
+
+	// IComponentSpace (abstract base class for scalar component)
+	{
+		typedef IComponentSpace<TFct> T;
+		typedef IGridFunctionSpace<TFct> TBase;
+
+		string name = string("IComponentSpace").append(suffix);
+		reg.add_class_<T, TBase>(name, grp);
+		reg.add_class_to_group(name, "IComponentSpace", tag);
+	}
+
+	// L2ComponentSpace
+	{
+		typedef L2ComponentSpace<TFct> T;
+		typedef IComponentSpace<TFct> TBase;
+
+		string name = string("L2ComponentSpace").append(suffix);
+		reg.add_class_<T, TBase>(name, grp)
+		   .template add_constructor<void (*)(const char *) >("fctNames")
+		   .template add_constructor<void (*)(const char *, int) >("fctNames, order")
+		   .template add_constructor<void (*)(const char *, int, number) >("fctNames, order, scale")
+		   .template add_constructor<void (*)(const char *, const char *, int, number) >("fctNames, subsetNames, order, scale")
+		   .set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "L2ComponentSpace", tag);
+	}
+
+	// H1SemiComponentSpace
+	{
+		typedef H1SemiComponentSpace<TFct> T;
+		typedef IComponentSpace<TFct> TBase;
+		typedef UserData<number, TFct::dim> TWeight;
+
+		string name = string("H1SemiComponentSpace").append(suffix);
+		reg.add_class_<T, TBase>(name, grp)
+		   .template add_constructor<void (*)(const char *) >("fctNames")
+		   .template add_constructor<void (*)(const char *, int) >("fctNames, order")
+		   .template add_constructor<void (*)(const char *, int, number) >("fctNames, order, scale")
+		   .template add_constructor<void (*)(const char *, int, number, SmartPtr<TWeight>) >("fctNames, order, scale, weights")
+		   .add_method("set_weight", &T::set_weight)
+		   .add_method("get_weight", &T::get_weight)
+		   .set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "H1SemiComponentSpace", tag);
+	}
+
+	// H1ComponentSpace
+	{
+		typedef H1ComponentSpace<TFct> T;
+		typedef IComponentSpace<TFct> TBase;
+
+		string name = string("H1ComponentSpace").append(suffix);
+		reg.add_class_<T, TBase>(name, grp)
+		   .template add_constructor<void (*)(const char *) >("fctNames")
+		   .template add_constructor<void (*)(const char *, int) >("fctNames, order")
+		   .template add_constructor<void (*)(const char *, int, number) >("fctNames, order, scale")
+		   .set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "H1ComponentSpace", tag);
 	}
 
 //	AverageFunctionDifference
