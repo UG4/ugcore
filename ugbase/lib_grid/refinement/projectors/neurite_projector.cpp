@@ -28,11 +28,15 @@ number VecNormSquared(const vector3& a)
 NeuriteProjector::NeuriteProjector()
 //: m_quadOrder(80)
 {
+	typedef Attachment<NeuriteProjector::SurfaceParams> NPSurfParam;
+	if (!GlobalAttachments::is_declared("npSurfParams"))
+		GlobalAttachments::declare_attachment<NPSurfParam>("npSurfParams", true);
+
     // If branching points extend 5r in each direction and we integrate over twice that size
     // we add around quadOrder/2 Gaussians with sigma=r over a total length of 20r.
     // So we should use about quadOrder=80 to ensure a smooth surface
     // that does not look like a pearl necklace.
-    prepare_quadrature();
+	prepare_quadrature();
 }
 
 
@@ -40,6 +44,10 @@ NeuriteProjector::NeuriteProjector(SPIGeometry3d geometry)
 : RefinementProjector(geometry)
   //m_quadOrder(80)
 {
+	typedef Attachment<NeuriteProjector::SurfaceParams> NPSurfParam;
+	if (!GlobalAttachments::is_declared("npSurfParams"))
+		GlobalAttachments::declare_attachment<NPSurfParam>("npSurfParams", true);
+
     attach_surf_params();
     prepare_quadrature();
 }
