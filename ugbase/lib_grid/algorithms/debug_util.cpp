@@ -460,13 +460,13 @@ bool CheckHangingNodeConsistency(MultiGrid& mg)
 			}
 		}
 	}
-UG_LOG("2\n");
+// UG_LOG("2\n");
 //	check faces
 	for(FaceIterator iter = g.begin<Face>(); iter != g.end<Face>(); ++iter){
 		Face* f = *iter;
 		
 		if(f->is_constraining()){
-			UG_LOG("2.1/n");
+			// UG_LOG("2.1/n");
 			ConstrainingFace* cf = dynamic_cast<ConstrainingFace*>(f);
 			UG_ASSERT(cf, "All constraining faces should derive from ConstrainingFace");
 			
@@ -535,14 +535,14 @@ UG_LOG("2\n");
 		}
 		
 		else if(f->is_constrained()){
-			UG_LOG("2.2.0/n");
+			// UG_LOG("2.2.0/n");
 			ConstrainedFace* cdf = dynamic_cast<ConstrainedFace*>(f);
 			UG_ASSERT(cdf, "All constrained faces should derive from ConstrainedFace");
-			UG_LOG("2.2.1/n");
+			// UG_LOG("2.2.1/n");
 		//	we don't have to check all interconnections, since we already checked a lot of
 		//	stuff for constraining faces. So just do the rest now.
 			ConstrainingFace* cf = dynamic_cast<ConstrainingFace*>(cdf->get_constraining_object());
-			UG_LOG("2.2.2/n");
+			// UG_LOG("2.2.2/n");
 			if(!cf){
 				FAILED_CHECK(cdf, "No constraining face found for given constrained face."); 
 			}
@@ -552,7 +552,7 @@ UG_LOG("2\n");
 			}
 		}
 	}
-UG_LOG("3\n");
+// UG_LOG("3\n");
 	return isConsistent;
 }
 
