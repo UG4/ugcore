@@ -150,8 +150,11 @@ void SplitAddRow_Symmetric(TMatrix& A,
 		for(row_iterator conn = A.begin_row(algInd); conn != A.end_row(algInd); ++conn)
 		{
 			const size_t algIndConn = conn.index();
-			const block_type& block = conn.value();
-			const block_type& blockT = A(algIndConn, algInd);
+
+			// warning: do NOT use references here!
+			// they might become invalid when A is accessed at an entry that does not exist yet
+			const block_type block = conn.value();
+			const block_type blockT = A(algIndConn, algInd);
 
 			// loop block row for constrained index
 			for (size_t blockIndConn = 0; blockIndConn < (size_t) GetCols(block); ++blockIndConn)
@@ -227,8 +230,11 @@ void SplitAddRow_OneSide(TMatrix& A,
 		for(row_iterator conn = A.begin_row(algInd); conn != A.end_row(algInd); ++conn)
 		{
 			const size_t algIndConn = conn.index();
-			const block_type& block = conn.value();
-			const block_type& blockT = A(algIndConn, algInd);
+
+			// warning: do NOT use references here!
+			// they might become invalid when A is accessed at an entry that does not exist yet
+			const block_type block = conn.value();
+			const block_type blockT = A(algIndConn, algInd);
 
 			// loop block row for constrained index
 			for (size_t blockIndConn = 0; blockIndConn < (size_t) GetCols(block); ++blockIndConn)
