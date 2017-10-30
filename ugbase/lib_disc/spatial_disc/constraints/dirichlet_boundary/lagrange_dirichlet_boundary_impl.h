@@ -1366,12 +1366,14 @@ adjust_linear(const std::vector<TUserData*>& vUserData, int si,
 
 					this->m_spAssTuner->set_dirichlet_row(A, multInd[j]);
 
-					// FIXME: Beware, this is dangerous!
-					//        It will not work for blocked algebras.
-					UG_COND_THROW(multInd[j][1] != 0,
-						"adjust_linear() is not implemented for block matrices and the symmetric case!");
 					if(m_bDirichletColumns)
+					{
+						// FIXME: Beware, this is dangerous!
+						//        It will not work for blocked algebras.
+						UG_COND_THROW(multInd[j][1] != 0,
+							"adjust_linear() is not implemented for block matrices and the symmetric case!");
 						dirichletDoFIndices.insert(multInd[j][0]);
+					}
 
 					if (TUserData::setSolValue)
 						this->m_spAssTuner->set_dirichlet_val(b, multInd[j], val[f]);

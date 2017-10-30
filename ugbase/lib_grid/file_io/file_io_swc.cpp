@@ -244,8 +244,9 @@ bool ExportGridToSWC(Grid& g, ISubsetHandler* pSH, const char* fileName, AVector
 	ANumber aDiam = GlobalAttachments::attachment<ANumber>("diameter");
 	if (!g.has_vertex_attachment(aDiam))
 	{
-		UG_LOGN("No diameter attachment attached to grid.");
-		return false;
+		UG_LOGN("WARNING: No diameter attachment attached to grid. "
+			"Will use 1.0 as default diameter.");
+		g.attach_to_vertices_dv(aDiam, 1.0);
 	}
 	Grid::AttachmentAccessor<Vertex, ANumber> aaDiam(g, aDiam);
 
