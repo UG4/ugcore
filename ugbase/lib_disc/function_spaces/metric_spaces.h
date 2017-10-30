@@ -108,9 +108,6 @@ public:
 	virtual double distance(vector_type &x, vector_type &y) const
 	{ return distance(static_cast<TGridFunction &>(x), static_cast<TGridFunction &>(y)); }
 
-
-
-
 };
 
 
@@ -163,6 +160,9 @@ public:
 	double distance(SmartPtr<TGridFunction> uFine, SmartPtr<TGridFunction> uCoarse) const
 	{ return distance(*uFine, *uCoarse); }
 
+	double scaling()
+	{ return m_scale; }
+
 	/// print config string
 	std::string config_string() const
 	{
@@ -198,6 +198,7 @@ public:
 
 	using IComponentSpace<TGridFunction>::norm;
 	using IComponentSpace<TGridFunction>::distance;
+	using IComponentSpace<TGridFunction>::scaling;
 
 	/// \copydoc IComponentSpace<TGridFunction>::norm
 	double norm(TGridFunction& uFine) const
@@ -228,6 +229,7 @@ public:
 
 	using IComponentSpace<TGridFunction>::norm;
 	using IComponentSpace<TGridFunction>::distance;
+	using IComponentSpace<TGridFunction>::scaling;
 
 	/// \copydoc IComponentSpace<TGridFunction>::norm
 	double norm(TGridFunction& uFine) const
@@ -263,6 +265,7 @@ public:
 
 	using IComponentSpace<TGridFunction>::norm;
 	using IComponentSpace<TGridFunction>::distance;
+	using IComponentSpace<TGridFunction>::scaling;
 
 	/// \copydoc IComponentSpace<TGridFunction>::norm
 	double norm(SmartPtr<TGridFunction> uFine) const
