@@ -30,7 +30,7 @@
  * GNU Lesser General Public License for more details.
  */
 #include <cmath>
-
+#include "math_constants.h"
 // own header
 #include "orthopoly.h"
 
@@ -95,9 +95,9 @@ number Chebyshev1Poly (size_t k, number x)
  */
 number ScaledChebyshev1Poly (size_t k, number x)
 {
-	if (k == 0) return Chebyshev1Poly (0, x) / M_PI;
+	if (k == 0) return Chebyshev1Poly (0, x) / PI;
 	
-	return Chebyshev1Poly (k, x) * 2 / M_PI;
+	return Chebyshev1Poly (k, x) * 2 / PI;
 }
 
 /** computes the (unscaled) Chebyshev polynomials of the second kind
@@ -126,7 +126,7 @@ number Chebyshev2Poly (size_t k, number x)
  */
 number ScaledChebyshev2Poly (size_t k, number x)
 {
-	return Chebyshev2Poly (k, x) * 2 / M_PI;
+	return Chebyshev2Poly (k, x) * 2 / PI;
 }
 
 } // namespace ug

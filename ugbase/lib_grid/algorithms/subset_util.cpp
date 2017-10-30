@@ -332,6 +332,13 @@ void CopySubsetIndicesToSides(
 	}
 }
 
+void CopySubsetIndicesToSides(ISubsetHandler& sh, ISelector& sel,
+							  bool toUnassignedOnly)
+{
+	CopySubsetIndicesToSides (sh, sel.get_grid_objects(), toUnassignedOnly);
+}
+
+
 ////////////////////////////////////////////////////////////////////////
 void CopySubsetIndicesToSides(ISubsetHandler& sh, bool toUnassignedOnly)
 {

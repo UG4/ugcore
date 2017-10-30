@@ -68,7 +68,7 @@ struct LuaParsing<int>{
 		return lua_isnumber(L, index);
 	}
 	static int get(lua_State* L, int index){
-		return lua_tointeger(L, index);
+		return (int)lua_tointeger(L, index);
 	}
 	static void push(lua_State* L, int data){
 		lua_pushnumber(L, data);
@@ -84,7 +84,7 @@ struct LuaParsing<size_t>{
 		return lua_tointeger(L, index);
 	}
 	static void push(lua_State* L, size_t data){
-		lua_pushnumber(L, data);
+		lua_pushnumber(L, (lua_Number)data);
 	}
 };
 
@@ -94,7 +94,7 @@ struct LuaParsing<float>{
 		return lua_isnumber(L, index);
 	}
 	static float get(lua_State* L, int index){
-		return lua_tonumber(L, index);
+		return (float)lua_tonumber(L, index);
 	}
 	static void push(lua_State* L, float data){
 		lua_pushnumber(L, data);

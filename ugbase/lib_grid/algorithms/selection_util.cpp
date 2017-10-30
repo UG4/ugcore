@@ -257,6 +257,18 @@ template void SelectAssociatedGridObjects<MGSelector>(MGSelector& sel,
 													ISelector::status_t status);
 
 
+////////////////////////////////////////////////////////////////////////
+template <class TSelector>
+void CloseSelection (TSelector& sel)
+{
+	SelectAssociatedFaces(sel, sel.template begin<Volume>(), sel.template end<Volume>());
+	SelectAssociatedEdges(sel, sel.template begin<Face>(), sel.template end<Face>());
+	SelectAssociatedVertices(sel, sel.template begin<Edge>(), sel.template end<Edge>());
+}
+
+template void CloseSelection<Selector>(Selector& sel);
+template void CloseSelection<MGSelector>(MGSelector& sel);
+
 
 ////////////////////////////////////////////////////////////////////////
 //	SelectParents
@@ -1194,6 +1206,92 @@ void SelectLinkedFlatAndDegeneratedFaces(Selector& sel,
 			}
 		}
 	}
+}
+
+
+template <class elem_t>
+void GetSelectedElementIndices (const ISelector& sel, std::vector<size_t>& indsOut)
+{
+	UG_COND_THROW(!sel.grid(), "The specified selector has to operate on a grid!");
+	
+	Grid& g = *sel.grid();
+	indsOut.clear();
+
+//	NOTE:	We have to keep the order in which the elements were selected.
+//			That's why an index attachment is required here.
+	AInt aIndex;
+	g.attach_to<elem_t>(aIndex);
+	Grid::AttachmentAccessor<elem_t, AInt>	aaIndex (g, aIndex);
+	AssignIndices (g.begin<elem_t>(), g.end<elem_t>(), aaIndex);
+
+	GridObjectCollection goc = sel.get_grid_objects ();
+	typedef typename GridObjectCollection::traits<elem_t>::iterator iter_t;
+	for(size_t ilvl = 0; ilvl < goc.num_levels(); ++ilvl){
+		for(iter_t ielem = goc.begin<elem_t>(ilvl); ielem != goc.end<elem_t>(ilvl); ++ielem)
+		{
+			indsOut.push_back(aaIndex[*ielem]);
+		}
+	}
+	g.detach_from<elem_t>(aIndex);
+}
+
+
+void GetSelectedElementIndices (const ISelector& sel,
+                                std::vector<size_t>& vrtIndsOut,
+                                std::vector<size_t>& edgeIndsOut,
+                                std::vector<size_t>& faceIndsOut,
+                                std::vector<size_t>& volIndsOut)
+{
+	GetSelectedElementIndices<Vertex> (sel, vrtIndsOut);
+	GetSelectedElementIndices<Edge> (sel, edgeIndsOut);
+	GetSelectedElementIndices<Face> (sel, faceIndsOut);
+	GetSelectedElementIndices<Volume> (sel, volIndsOut);
+}
+
+
+template <class elem_t>
+void SelectElementsByIndex (ISelector& sel, const std::vector<size_t>& inds)
+{
+//	NOTE: 	If we could hope that 'inds' is always sorted, this could be
+//			implemented in a more efficient way. However, 'inds' is not sorted
+//			generally. Since we have to maintain the order of indices (important!)
+//			the present implementation should be the fastest one in worst
+//			case scenarios.
+	UG_COND_THROW(!sel.grid(), "The specified selector has to operate on a grid!");
+	
+	Grid& g = *sel.grid();
+
+	typedef typename Grid::traits<elem_t>::iterator iter_t;
+
+	const size_t numElems = g.num<elem_t>();
+	if(numElems == 0)
+		return;
+
+	vector<elem_t*>	elems;
+	elems.reserve(numElems);
+	for(iter_t ielem = g.begin<elem_t>(); ielem != g.end<elem_t>(); ++ielem)
+		elems.push_back(*ielem);
+
+	for(size_t iind = 0; iind < inds.size(); ++iind) {
+		const size_t ind = inds[iind];
+		UG_COND_THROW (ind >= numElems, "Invalid element index encountered: "
+		               << ind << "! (max is " << numElems - 1 << ")");
+
+		sel.select(elems[ind]);
+	}
+}
+
+
+void SelectElementsByIndex (ISelector& sel,
+                            const std::vector<size_t>& vrtInds,
+                            const std::vector<size_t>& edgeInds,
+                            const std::vector<size_t>& faceInds,
+                            const std::vector<size_t>& volInds)
+{
+	SelectElementsByIndex<Vertex> (sel, vrtInds);
+	SelectElementsByIndex<Edge> (sel, edgeInds);
+	SelectElementsByIndex<Face> (sel, faceInds);
+	SelectElementsByIndex<Volume> (sel, volInds);
 }
 
 }//	end of namespace

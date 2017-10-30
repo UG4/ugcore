@@ -250,8 +250,9 @@ class StandardLineSearch : public ILineSearch<TVector>
 					}*/
 
 				//	accept best
-					UG_LOG(m_offset << "   ++++ Accept Best: Accepting step " <<
-					       best+1 << ", Rate = "<< vRho[best] <<".\n");
+					if(m_verbose)
+						UG_LOG(m_offset << "   ++++ Accept Best: Accepting step " <<
+							best+1 << ", Rate = "<< vRho[best] <<".\n");
 
 				// 	try on line u := u - lambda*p
 					VecScaleAdd(u, 1.0, s, (-1)*m_lambdaStart*std::pow(m_lambdaReduce, (number)best), p);

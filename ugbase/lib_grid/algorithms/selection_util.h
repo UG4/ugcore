@@ -223,6 +223,13 @@ void SelectAssociatedGridObjects(TSelector& sel,
 
 
 ////////////////////////////////////////////////////////////////////////
+/// Selects all associated elements of lower dimensions
+template <class TSelector>
+UG_API
+void CloseSelection (TSelector& sel);
+
+
+////////////////////////////////////////////////////////////////////////
 ///	Assigns the selection state of selected elements to associated sides.
 /**	If recursive is set to true, the method will recursively call itself, to
  * copy the state to sides of sides and so on.
@@ -575,6 +582,39 @@ void SelectLinkedFlatAndDegeneratedFaces(Selector& sel,
 template <class TAAPosVRT>
 UG_API
 number FaceArea(ISelector& sel, TAAPosVRT& aaPos);
+
+
+///	Returns indices of selected elements in ascending order
+/** \warning 	this method has linear complexity and should be avoided unless
+ *				required to exchange selection states with external programs
+ *				or scripts.
+ * \{ */
+template <class elem_t>
+void GetSelectedElementIndices (const ISelector& sel, std::vector<int>& indsOut);
+
+void GetSelectedElementIndices (const ISelector& sel,
+                                std::vector<size_t>& vrtIndsOut,
+                                std::vector<size_t>& edgeIndsOut,
+                                std::vector<size_t>& faceIndsOut,
+                                std::vector<size_t>& volIndsOut);
+/** \} */
+
+
+///	Selects elements with the specified indices
+/** \warning 	this method has linear complexity and should be avoided
+ *				unless required to exchange selection states with external
+ *				programs or scripts.
+ * \{ */
+template <class elem_t>
+void SelectElementsByIndex (ISelector& sel, const std::vector<size_t>& inds);
+
+void SelectElementsByIndex (ISelector& sel,
+                            const std::vector<size_t>& vrtInds,
+                            const std::vector<size_t>& edgeInds,
+                            const std::vector<size_t>& faceInds,
+                            const std::vector<size_t>& volInds);
+
+/** \} */
 
 /**@}*/ // end of doxygen defgroup command
 }// end of namespace

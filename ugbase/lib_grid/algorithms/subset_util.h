@@ -141,6 +141,16 @@ void CopySubsetIndicesToSides(ISubsetHandler& sh, GridObjectCollection goc,
 							  bool toUnassignedOnly);
 
 ////////////////////////////////////////////////////////////////////////
+///	copies subset-indices to sides of the elements selected in 'sel'
+/**	Lower dimensional elements have higher priority during assignment
+ * (e.g. if toUnnassignedOnly == 'true' and the unassigned edge e is connected
+ * to a face and a to volume element of different subsets, then it will
+ * be assigned to the subset of the connected face).*/
+UG_API
+void CopySubsetIndicesToSides(ISubsetHandler& sh, ISelector& sel,
+							  bool toUnassignedOnly);
+
+////////////////////////////////////////////////////////////////////////
 ///	copies subset-indices to sides of all elements in the subset handler
 /**	Lower dimensional elements have higher priority during assignment
  * (e.g. if toUnnassignedOnly == 'true' and the unassigned edge e is connected

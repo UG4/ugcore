@@ -915,6 +915,9 @@ function util.solver.CreateLineSearch(lineSearchDesc)
 								desc.lambdaReduce or defaults.lambdaReduce,
 								desc.acceptBest,
 								desc.checkAll)
+		if desc.verbose ~= nil then ls:set_verbose(desc.verbose) end
+		if desc.suffDesc ~= nil then ls:set_suff_descent_factor(desc.suffDesc) end
+		if desc.maxDefect ~= nil then ls:set_maximum_defect(desc.maxDefect) end
 	end
 	
 	util.solver.CondAbort(ls == nil, "Invalid line-search specified: " .. name)
