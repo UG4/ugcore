@@ -61,9 +61,11 @@ class DomainInfo
 		typedef unsigned long long int_t;
 
 		inline int element_type() const									{return m_elementType;}
-		inline size_t num_levels() const									{return m_numElems.size();}
+		inline size_t num_levels() const								{return m_numElems.size();}
 	///	returns the global number of elements on the given level (excluding ghosts...)
 		inline size_t num_elements_on_level(size_t lvl) const			{return (size_t)m_numElems[lvl];}
+	///	returns the global number of surface elements (elements without children)
+		inline size_t num_surface_elements() const						{return (size_t)m_numSurfElems;}
 	///	returns the local number of elements on the given level (excluding ghosts...)
 		inline size_t num_local_elements_on_level(size_t lvl) const		{return (size_t)m_numLocalElems[lvl];}
 	///	returns the minimum number of elements a process has on a given leven (excluding ghosts)
@@ -93,14 +95,17 @@ class DomainInfo
 								const std::vector<int_t>& minNumLocalElems,
 								const std::vector<int_t>& maxNumLocalElems,
 								const std::vector<int_t>& numLocalGhosts,
-								const std::vector<int_t>& subsetDims)
+								const std::vector<int_t>& subsetDims,
+								int_t numSurfElems)
 			{m_elementType = elemType;
 			 m_numElems = numElems;
 			 m_numLocalElems = numLocalElems;
 			 m_minNumLocalElems = minNumLocalElems;
 			 m_maxNumLocalElems = maxNumLocalElems;
 			 m_numLocalGhosts = numLocalGhosts;
-			 m_subsetDims = subsetDims;}
+			 m_subsetDims = subsetDims;
+			 m_numSurfElems = numSurfElems;
+			}
 
 		std::string to_string() const;
 
@@ -112,6 +117,7 @@ class DomainInfo
 		std::vector<int_t>	m_maxNumLocalElems;
 		std::vector<int_t>	m_numLocalGhosts;
 		std::vector<int_t>	m_subsetDims;
+		int_t				m_numSurfElems;
 };
 
 
@@ -269,6 +275,10 @@ class IDomain
 		template <class TElem>
 		void count_ghosts(std::vector<DomainInfo::int_t>& numGhostsOnLvlOut);
 #endif
+
+	///	counts local surface elements which are not ghosts or h-slaves
+		template <class TElem>
+		size_t count_local_unique_surface_elements();
 };
 
 

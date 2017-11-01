@@ -277,6 +277,7 @@ update_domain_info()
 		numLocalGhosts.resize(mg.num_levels(), 0);
 	#endif
 
+	int_t numLocalSurfElems = 0;
 	std::vector<int_t>	numLocalElems;
 	numLocalElems.reserve(mg.num_levels());
 
@@ -284,25 +285,32 @@ update_domain_info()
 		case VOLUME:
 			for(size_t i = 0; i < mg.num_levels(); ++i)
 				numLocalElems.push_back(mg.template num<Volume>(i) - numLocalGhosts[i]);
+			numLocalSurfElems = count_local_unique_surface_elements<Volume>();
 			break;
 		case FACE:
 			for(size_t i = 0; i < mg.num_levels(); ++i)
 				numLocalElems.push_back(mg.template num<Face>(i) - numLocalGhosts[i]);
+			numLocalSurfElems = count_local_unique_surface_elements<Face>();
 			break;
 		case EDGE:
 			for(size_t i = 0; i < mg.num_levels(); ++i)
 				numLocalElems.push_back(mg.template num<Edge>(i) - numLocalGhosts[i]);
+			numLocalSurfElems = count_local_unique_surface_elements<Edge>();
 			break;
 		case VERTEX:
 			for(size_t i = 0; i < mg.num_levels(); ++i)
 				numLocalElems.push_back(mg.template num<Vertex>(i) - numLocalGhosts[i]);
+			numLocalSurfElems = count_local_unique_surface_elements<Vertex>();
 			break;
 		default:
 			UG_THROW("Unknown base object type");
 			break;
 	}
 
+
+
 	std::vector<int_t>	numGlobalElems, minNumLocalElems, maxNumLocalElems;
+	int_t numGlobalSurfElems = 0;
 	#ifdef UG_PARALLEL
 	//	we have to sum local element counts excluding ghosts.
 		numGlobalElems.resize(numLocalElems.size());
@@ -311,14 +319,16 @@ update_domain_info()
 		commWorld.allreduce(numLocalElems, numGlobalElems, PCL_RO_SUM);
 		commWorld.allreduce(numLocalElems, minNumLocalElems, PCL_RO_MIN);
 		commWorld.allreduce(numLocalElems, maxNumLocalElems, PCL_RO_MAX);
+		numGlobalSurfElems = commWorld.allreduce(numLocalSurfElems, PCL_RO_SUM);
 	#else
 		numGlobalElems = numLocalElems;
 		minNumLocalElems = numLocalElems;
 		maxNumLocalElems = numLocalElems;
+		numGlobalSurfElems = numLocalSurfElems;
 	#endif
 
 	m_domainInfo.set_info(elemType, numGlobalElems, numLocalElems, minNumLocalElems,
-						  maxNumLocalElems, numLocalGhosts, subsetDims);
+						  maxNumLocalElems, numLocalGhosts, subsetDims, numGlobalSurfElems);
 }
 
 template <typename TGrid, typename TSubsetHandler>
@@ -607,6 +617,36 @@ count_ghosts(std::vector<DomainInfo::int_t>& numGhostsOnLvlOut)
 	}
 }
 #endif
+
+
+template <typename TGrid, typename TSubsetHandler>
+template <class TElem>
+size_t IDomain<TGrid,TSubsetHandler>::
+count_local_unique_surface_elements()
+{
+	TGrid& mg = *m_spGrid;
+	DistributedGridManager* dgm = mg.distributed_grid_manager();
+
+	size_t numLoc = 0;
+
+	typedef typename TGrid::template traits<TElem>::iterator	iter_t;
+	for(iter_t ielem = mg.template begin<TElem>(); ielem != mg.template end<TElem>(); ++ielem)
+	{
+		TElem* e = *ielem;
+
+		if(!mg.has_children(e)){
+			#ifdef UG_PARALLEL
+				if(!(dgm->is_ghost(e) || dgm->contains_status(e, ES_H_SLAVE)))
+					++numLoc;
+			#else
+				++numLoc;
+			#endif
+		}
+	}
+
+	return numLoc;
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Domain
