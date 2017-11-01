@@ -280,6 +280,19 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "H1ComponentSpace", tag);
 	}
 
+	// CompositeSpace
+	{
+			typedef CompositeSpace<TFct> T;
+			typedef IComponentSpace<TFct> TBase;
+
+			string name = string("CompositeSpace").append(suffix);
+			reg.add_class_<T, TBase>(name, grp)
+			   .template add_constructor<void (*)(const char *) >("fctNames")
+			   .add_method("add", &T::add)
+			   .set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, "CompositeSpace", tag);
+	}
+
 //	AverageFunctionDifference
 	{
 		string name = string("AverageFunctionDifference");
