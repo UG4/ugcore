@@ -102,6 +102,45 @@ function util.PrintProfiles_MaxTotalTimes(profNames)
 	end
 end
 
+
+--[[
+Returns a table with the maximum total time spent in the given profile nodes.
+The table contains keys from 'profNames' and associated values representing
+the time spent in the associated code section.
+profName has to be a table with profilenames (string) starting at index 1.
+One global allreduce is performed to obtain the max-times on all procs.
+]]--
+function util.GetProfiles_MaxTotalTimes(profNames)
+	local maxLen = 0
+	local profTimes = {}
+
+	for i, name in ipairs(profNames) do
+		local len = string.len(name)
+		if len > maxLen then maxLen = len; end
+
+		local rawName = string.gsub(name, "^%s*(.-)%s*$", "%1")
+		local pn = GetProfileNode(rawName)
+		if pn:is_valid() == true then
+			profTimes[i] = pn:get_avg_total_time_ms() / 1000
+		else
+			profTimes[i] = 0
+		end
+	end
+
+	maxLen = maxLen + 3
+	profTimes = ParallelVecMax(profTimes)
+
+	local out = {}
+	for i, time in ipairs(profTimes) do
+		local name = profNames[i]
+		local rawName = string.gsub(name, "^%s*(.-)%s*$", "%1")
+		out[rawName] = profTimes[i]
+	end
+
+	return out
+end
+
+
 --[[!
 \}
 ]]--

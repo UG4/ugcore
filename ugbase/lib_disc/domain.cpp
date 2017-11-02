@@ -56,6 +56,7 @@ to_string() const
 	t(0, 4) << "#local-ghosts";
 	t(0, 5) << "#min-local-elems";
 	t(0, 6) << "#max-local-elems";
+	t(0, 7) << "#surf-elems";
 
 	for(size_t i = 0; i < m_numElems.size(); ++i){
 		int r = i+1;
@@ -69,6 +70,11 @@ to_string() const
 		t(r, 4) << m_numLocalGhosts[i];
 		t(r, 5) << m_minNumLocalElems[i];
 		t(r, 6) << m_maxNumLocalElems[i];
+		
+		if(r < (int)m_numElems.size())
+			t(r, 7) << "-";
+		else
+			t(r, 7) << m_numSurfElems;
 	}
 
 	return t.to_string();

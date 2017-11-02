@@ -160,7 +160,7 @@ public:
 	double distance(SmartPtr<TGridFunction> uFine, SmartPtr<TGridFunction> uCoarse) const
 	{ return distance(*uFine, *uCoarse); }
 
-	double scaling()
+	double scaling() const
 	{ return m_scale; }
 
 	/// print config string
@@ -250,7 +250,7 @@ protected:
 	SmartPtr<weight_type> m_spWeight;
 };
 
-/** Evaluates difference between two grid functions in H1 semi-norm */
+/** Defines a H1 space for single component */
 template <typename TGridFunction>
 class H1ComponentSpace :
 		public IComponentSpace<TGridFunction>
@@ -274,6 +274,55 @@ public:
 	/// \copydoc IComponentSpace<TGridFunction>::norm
 	double distance(SmartPtr<TGridFunction> uFine, SmartPtr<TGridFunction> uCoarse) const
 	{ return H1Error<TGridFunction>(uFine, base_type::m_fctNames.c_str(), uCoarse, base_type::m_fctNames.c_str(), base_type::m_quadorder); }
+
+};
+
+//! Defines a composite space, (i.e., additive composition of other spaces)
+/*! Employs a L2-type extension*/
+template <typename TGridFunction>
+class CompositeSpace
+		: public IComponentSpace<TGridFunction>
+{
+public:
+	typedef IComponentSpace<TGridFunction> base_type;
+
+	CompositeSpace(const char *fctNames) : base_type(fctNames, -1) {};
+	~CompositeSpace() {};
+
+	using IComponentSpace<TGridFunction>::norm;
+	using IComponentSpace<TGridFunction>::distance;
+	using IComponentSpace<TGridFunction>::scaling;
+
+	/// \copydoc IComponentSpace<TGridFunction>::norm
+	double norm(SmartPtr<TGridFunction> uFine) const
+	{
+		number unorm2 = 0.0;
+		for (typename std::vector<SmartPtr<base_type> >::const_iterator it = m_spSubspaces.begin(); it!= m_spSubspaces.end(); ++it)
+		{
+			double snorm =  (*it)->scaling() * (*it)->norm(uFine);
+			unorm2 += snorm*snorm;
+		}
+		return sqrt(unorm2);
+	}
+
+	/// \copydoc IComponentSpace<TGridFunction>::distance
+	double distance(SmartPtr<TGridFunction> uFine, SmartPtr<TGridFunction> uCoarse) const
+	{
+		number unorm2 = 0.0;
+		for (typename std::vector<SmartPtr<base_type> >::const_iterator it = m_spSubspaces.begin(); it!= m_spSubspaces.end(); ++it)
+		{
+				double snorm =  (*it)->scaling() * (*it)->distance(uFine, uCoarse);
+				unorm2 += snorm*snorm;
+		}
+		return sqrt(unorm2);
+	}
+
+	/// add spaces to composite
+	void add(SmartPtr<base_type> spSubSpace)
+	{ m_spSubspaces.push_back(spSubSpace); }
+
+protected:
+	std::vector<SmartPtr<base_type> > m_spSubspaces;
 
 };
 
