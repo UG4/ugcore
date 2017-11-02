@@ -207,7 +207,7 @@ class StdLagrangeElemTransfer
 		                TransferValueAccessor& vValueChild,
 		                TransferValueAccessor& vValueParent,
 		                const LocalShapeFunctionSet<TParent::dim>& lsfs,
-		                std::vector<MathVector<dim> > vCornerParent,
+		                const std::vector<MathVector<dim> >& vCornerParent,
 		                const ReferenceObjectID parentRoid)
 		{
 			const MultiGrid* mg = IElemProlongation<TDomain>::m_spGrid.get();
