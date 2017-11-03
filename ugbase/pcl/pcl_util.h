@@ -37,6 +37,7 @@
 #include <vector>
 #include <algorithm>
 #include <string>
+#include <functional>  // for std::less
 #include "pcl_layout_util.h"
 #include "pcl_base.h"
 #include "pcl_communication_structs.h"
@@ -333,9 +334,33 @@ void AddLayout(TLayout &destLayout, const TLayout &sourceLayout)
  */
 bool ParallelReadFile(std::string &filename, std::vector<char> &file, bool bText, bool bDistributedLoad, const ProcessCommunicator& pc = ProcessCommunicator());
 
+
+/**
+ * @brief Find minimal key/value pair across processes
+ * This function will receive one key/value pair from each process.
+ * They will be gathered on proc 0, where the minimal key (w.r.t. given Compare object, e.g., std::less<TKey> )
+ * and corresponding value will be determined.
+ * The minimal pair will be made known to all procs and returned.
+ *
+ * This is a procedure that is required fairly often, e.g., when position-attached
+ * data is to be located by a nearest-neighbor search.
+ *
+ * Key and value types must be serializable in a binary buffer.
+ *
+ * @param keyInOut  each proc's key (used as input and as output)
+ * @param valInOut  each proc's value (used as input and as output)
+ * @param cmp       object to use for key comparison (typically std::less<Key>)
+ */
+template <typename TKey, typename TValue, typename Compare>
+void MinimalKeyValuePairAcrossAllProcs(TKey& keyInOut, TValue& valInOut, const Compare& cmp = Compare());
+
+
 // end group pcl
 /// \}
 
 }//	end of namespace
+
+
+#include "pcl_util_impl.h"
 
 #endif
