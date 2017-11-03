@@ -1631,7 +1631,7 @@ class H1DistIntegrand
 template <typename TGridFunction>
 number H1Error(TGridFunction& spGridFct1, const char* cmp1,
                TGridFunction& spGridFct2, const char* cmp2,
-               int quadOrder, const char* subsets)
+               int quadOrder, const char* subsets=NULL)
 {
 	return GridFunctionDistance<H1DistIntegrand<TGridFunction>, TGridFunction>
 		(spGridFct1, cmp1, spGridFct2, cmp2, quadOrder, subsets);
@@ -1652,7 +1652,7 @@ number H1Error(SmartPtr<TGridFunction> spGridFct1, const char* cmp1,
                SmartPtr<TGridFunction> spGridFct2, const char* cmp2,
                int quadOrder)
 {
-	return H1Error(spGridFct1, cmp1, spGridFct2, cmp2, quadOrder, NULL);
+	return H1Error(*spGridFct1, cmp1, *spGridFct2, cmp2, quadOrder, NULL);
 }
 
 
@@ -2061,7 +2061,7 @@ class H1NormIntegrand
 
 template <typename TGridFunction>
 number H1Norm(TGridFunction& u, const char* cmp,
-			   int quadOrder, const char* subsets)
+			   int quadOrder, const char* subsets=NULL)
 {
 //	get function id of name
 	const size_t fct = u.fct_id_by_name(cmp);
@@ -2085,7 +2085,7 @@ number H1Norm(SmartPtr<TGridFunction> spGridFct, const char* cmp,
 template <typename TGridFunction>
 number H1Norm( SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOrder)
 {
-	return H1Norm(spGridFct, cmp, quadOrder, NULL);
+	return H1Norm(*spGridFct, cmp, quadOrder, NULL);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

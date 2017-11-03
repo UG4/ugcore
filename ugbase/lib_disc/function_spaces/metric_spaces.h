@@ -108,6 +108,9 @@ public:
 	virtual double distance(vector_type &x, vector_type &y) const
 	{ return distance(static_cast<TGridFunction &>(x), static_cast<TGridFunction &>(y)); }
 
+
+	virtual std::string config_string() const
+	  {return std::string("IBanachSpace");}
 };
 
 
@@ -153,18 +156,18 @@ public:
 	using IGridFunctionSpace<TGridFunction>::distance;
 
 	/// norm (for SmartPtr)
-	virtual double norm(SmartPtr<TGridFunction> u) const
+	/*	virtual double norm(SmartPtr<TGridFunction> u) const
 	{ return norm(*u); }
 
 	/// distance (for SmartPtr)
 	double distance(SmartPtr<TGridFunction> uFine, SmartPtr<TGridFunction> uCoarse) const
 	{ return distance(*uFine, *uCoarse); }
-
+	*/
 	double scaling() const
 	{ return m_scale; }
 
 	/// print config string
-	std::string config_string() const
+	virtual std::string config_string() const
 	{
 		std::stringstream ss;
 
@@ -268,11 +271,11 @@ public:
 	using IComponentSpace<TGridFunction>::scaling;
 
 	/// \copydoc IComponentSpace<TGridFunction>::norm
-	double norm(SmartPtr<TGridFunction> uFine) const
+	double norm(TGridFunction& uFine) const
 	{ return H1Norm<TGridFunction>(uFine, base_type::m_fctNames.c_str(), base_type::m_quadorder); }
 
 	/// \copydoc IComponentSpace<TGridFunction>::norm
-	double distance(SmartPtr<TGridFunction> uFine, SmartPtr<TGridFunction> uCoarse) const
+	double distance(TGridFunction& uFine, TGridFunction& uCoarse) const
 	{ return H1Error<TGridFunction>(uFine, base_type::m_fctNames.c_str(), uCoarse, base_type::m_fctNames.c_str(), base_type::m_quadorder); }
 
 };
@@ -294,25 +297,28 @@ public:
 	using IComponentSpace<TGridFunction>::scaling;
 
 	/// \copydoc IComponentSpace<TGridFunction>::norm
-	double norm(SmartPtr<TGridFunction> uFine) const
+	double norm(TGridFunction& uFine) const
 	{
 		number unorm2 = 0.0;
 		for (typename std::vector<SmartPtr<base_type> >::const_iterator it = m_spSubspaces.begin(); it!= m_spSubspaces.end(); ++it)
 		{
 			double snorm =  (*it)->scaling() * (*it)->norm(uFine);
 			unorm2 += snorm*snorm;
+			//		std::cerr << "norm2:" << snorm*snorm << std::endl;
 		}
 		return sqrt(unorm2);
 	}
 
 	/// \copydoc IComponentSpace<TGridFunction>::distance
-	double distance(SmartPtr<TGridFunction> uFine, SmartPtr<TGridFunction> uCoarse) const
+	double distance(TGridFunction& uFine, TGridFunction& uCoarse) const
 	{
 		number unorm2 = 0.0;
 		for (typename std::vector<SmartPtr<base_type> >::const_iterator it = m_spSubspaces.begin(); it!= m_spSubspaces.end(); ++it)
 		{
 				double snorm =  (*it)->scaling() * (*it)->distance(uFine, uCoarse);
 				unorm2 += snorm*snorm;
+				//	std::cerr << "distance:" << snorm*snorm << std::endl;
+				
 		}
 		return sqrt(unorm2);
 	}
@@ -320,6 +326,18 @@ public:
 	/// add spaces to composite
 	void add(SmartPtr<base_type> spSubSpace)
 	{ m_spSubspaces.push_back(spSubSpace); }
+
+	/// print config string                                                                                                                                                                              
+	virtual std::string config_string() const
+	{
+	    std::stringstream ss;
+	    ss << "CompositeSpace:" << std::endl;
+
+	    for (typename std::vector<SmartPtr<base_type> >::const_iterator it = m_spSubspaces.begin(); it!= m_spSubspaces.end(); ++it)
+	    { ss << (*it)->config_string(); }
+
+	    return ss.str();
+	}
 
 protected:
 	std::vector<SmartPtr<base_type> > m_spSubspaces;
