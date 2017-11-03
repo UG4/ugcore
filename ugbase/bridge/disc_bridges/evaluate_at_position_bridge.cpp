@@ -45,6 +45,11 @@
 #include "lib_disc/dof_manager/dof_distribution.h"
 #include "lib_disc/function_spaces/grid_function.h"
 
+// pcl includes
+#ifdef UG_PARALLEL
+	#include "pcl/pcl_util.h"
+#endif
+
 #ifdef UG_PARALLEL
 	#include "lib_grid/parallelization/distributed_grid.h"
 #endif
@@ -125,10 +130,11 @@ bool CloseVertexExists(const MathVector<TDomain::dim>& globPos,
 
 template <typename TGridFunction>
 number EvaluateAtVertex(const MathVector<TGridFunction::dim>& globPos,
-                           SmartPtr<TGridFunction> spGridFct,
-                           size_t fct,
-                           const SubsetGroup& ssGrp,
-                           typename TGridFunction::domain_type::subset_handler_type* sh)
+						SmartPtr<TGridFunction> spGridFct,
+						size_t fct,
+						const SubsetGroup& ssGrp,
+						typename TGridFunction::domain_type::subset_handler_type* sh,
+						bool minimizeOverAllProcs = false)
 {
 
 //	domain type
@@ -145,14 +151,15 @@ number EvaluateAtVertex(const MathVector<TGridFunction::dim>& globPos,
 										= dom->position_accessor();
 
 	std::vector<DoFIndex> ind;
-	typename subset_handler_type::template traits<Vertex>::const_iterator iterEnd, iter,chosen;
-	double minDistanceSq = 0;
+	Vertex* chosen = NULL;
+
+	typename subset_handler_type::template traits<Vertex>::const_iterator iterEnd, iter;
+	number minDistanceSq = std::numeric_limits<double>::max();
 
 	#ifdef UG_PARALLEL
 		DistributedGridManager* dgm = grid->distributed_grid_manager();
 	#endif
 
-	bool bInit = false;
 	for(size_t i = 0; i < ssGrp.size(); ++i)
 	{
 	//	get subset index
@@ -180,37 +187,50 @@ number EvaluateAtVertex(const MathVector<TGridFunction::dim>& globPos,
 				if(!spGridFct->is_def_in_subset(fct, domSI)) continue;
 
 			//	global position
-				if(!bInit)
+				number buffer = VecDistanceSq(globPos, aaPos[vrt]);
+				if(buffer < minDistanceSq)
 				{
-					bInit = true;
-					minDistanceSq = VecDistanceSq(globPos, aaPos[vrt]);
-					chosen = iter;
-				}
-				else
-				{
-					double buffer = VecDistanceSq(globPos, aaPos[vrt]);
-					if(buffer < minDistanceSq)
-					{
-						minDistanceSq = buffer;
-						chosen = iter;
-					}
+					minDistanceSq = buffer;
+					chosen = *iter;
 				}
 			}
 		}
 	}
 
-	Vertex* vrt = *chosen;
-	spGridFct->inner_dof_indices(vrt, fct, ind);
-	return 	DoFRef(*spGridFct, ind[0]);
+	// get corresponding value (if vertex found, otherwise take 0)
+	number value = 0.0;
+	if (chosen)
+	{
+		spGridFct->inner_dof_indices(chosen, fct, ind);
+		value = DoFRef(*spGridFct, ind[0]);
+	}
 
+	// in parallel environment, find global minimal distance and corresponding value
+#ifdef UG_PARALLEL
+	if (minimizeOverAllProcs)
+	{
+		pcl::MinimalKeyValuePairAcrossAllProcs<number, number, std::less<number> >(minDistanceSq, value);
+
+		// check that a vertex has been found
+		UG_COND_THROW(minDistanceSq == std::numeric_limits<double>::max(),
+		"No vertex of given subsets could be located on any process.");
+
+		return value;
+	}
+#endif
+
+	// check that a vertex has been found
+	UG_COND_THROW(!chosen, "No vertex of given subsets could be located.");
+
+	return value;
 }
 
 
 template <typename TGridFunction>
 number EvaluateAtClosestVertex(const MathVector<TGridFunction::dim>& pos,
-                                  SmartPtr<TGridFunction> spGridFct, const char* cmp,
-                                  const char* subsets,
-                                  SmartPtr<typename TGridFunction::domain_type::subset_handler_type> sh)
+							  SmartPtr<TGridFunction> spGridFct, const char* cmp,
+							  const char* subsets,
+							  SmartPtr<typename TGridFunction::domain_type::subset_handler_type> sh)
 {
 //	get function id of name
 	const size_t fct = spGridFct->fct_id_by_name(cmp);
@@ -233,6 +253,38 @@ number EvaluateAtClosestVertex(const MathVector<TGridFunction::dim>& pos,
 	}
 
 	return EvaluateAtVertex<TGridFunction>(pos, spGridFct, fct, ssGrp, sh.get());
+}
+
+
+template <typename TGridFunction>
+number EvaluateAtClosestVertexAllProcs
+(
+	const MathVector<TGridFunction::dim>& pos,
+	SmartPtr<TGridFunction> spGridFct,
+	const char* cmp,
+	const char* subsets,
+	SmartPtr<typename TGridFunction::domain_type::subset_handler_type> sh
+)
+{
+	// get function id of name
+	const size_t fct = spGridFct->fct_id_by_name(cmp);
+
+	// check that function found
+	if (fct > spGridFct->num_fct())
+		UG_THROW("Evaluate: Name of component '"<<cmp<<"' not found.");
+
+
+	// create subset group
+	SubsetGroup ssGrp(sh);
+	if (subsets != NULL)
+		ssGrp.add(TokenizeString(subsets));
+	else
+	{
+	//	add all subsets and remove lower dim subsets afterwards
+		ssGrp.add_all();
+	}
+
+	return EvaluateAtVertex<TGridFunction>(pos, spGridFct, fct, ssGrp, sh.get(), true);
 }
 
 
@@ -266,7 +318,12 @@ static void DomainAlgebra(Registry& reg, string grp)
 	//	reg.add_function("Integral", static_cast<number (*)(SmartPtr<UserData<number,dim> >, SmartPtr<TFct>, const char*, number, int)>(&Integral<TFct>), grp, "Integral", "Data#GridFunction#Subsets#Time#QuadOrder");
 
 		//reg.add_function("EvaluateAtClosestVertex", static_cast<number (*)(const std::vector<number>&, SmartPtr<TFct>, const char*, const char*)>(&EvaluateAtClosestVertex<TFct>),grp, "Evaluate_at_closest_vertex", "Position#GridFunction#Component#Subsets");
-		reg.add_function("EvaluateAtClosestVertex", &EvaluateAtClosestVertex<TFct>, grp, "Evaluate_at_closest_vertex", "Position#GridFunction#Component#Subsets");
+		reg.add_function("EvaluateAtClosestVertex",
+						 &EvaluateAtClosestVertex<TFct>,
+						 grp, "Evaluate_at_closest_vertex", "Position#GridFunction#Component#Subsets#SubsetHandler");
+		reg.add_function("EvaluateAtClosestVertexAllProcs",
+						 &EvaluateAtClosestVertexAllProcs<TFct>,
+						 grp, "Evaluate_at_closest_vertex", "Position#GridFunction#Component#Subsets#SubsetHandler");
 	}
 }
 
