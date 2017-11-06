@@ -97,6 +97,7 @@ class geometry_traits<GridObject>
 		};
 };
 
+
 template <>
 class geometry_traits<Vertex>
 {
@@ -105,7 +106,8 @@ class geometry_traits<Vertex>
 		typedef ConstVertexIterator	const_iterator;
 
 		typedef Vertex	grid_base_object;
-
+		typedef VertexDescriptor GeneralDescriptor;
+		
 		enum
 		{
 			CONTAINER_SECTION = -1,
@@ -113,6 +115,7 @@ class geometry_traits<Vertex>
 		};
 		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_VERTEX;
 };
+
 
 template <>
 class geometry_traits<Edge>
@@ -131,6 +134,7 @@ class geometry_traits<Edge>
 		};
 		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_EDGE;
 };
+
 
 template <>
 class geometry_traits<Face>

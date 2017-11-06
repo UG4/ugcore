@@ -611,10 +611,14 @@ class UG_API Grid
 	 * A special overload exists for Vertex*, which simply returns the
 	 * specified vertex. Useful for template programming...
 	 * \{ */
-		Edge* get_element(const EdgeVertices& ev)	{return get_edge(ev);}
+		Edge* get_element(const EdgeVertices& ev)		{return get_edge(ev);}
 		Face* get_element(const FaceVertices& fv)		{return get_face(fv);}
 		Volume* get_element(const VolumeVertices& vv)	{return get_volume(vv);}
 	/**	\} */
+
+	///	This overload is only useful to avoid compile issues in templated code
+		Vertex* get_element(const VertexDescriptor& vd)	{return vd.vertex();}
+		
 
 	////////////////////////////////////////////////
 	//	access to the sides of an geometric object

@@ -273,6 +273,42 @@ class UG_API Vertex : public GridObject
 };
 
 
+///	This descriptor is mainly useful to avoid compilation errors in templated code
+/** \note	Most methods here are only provided to avoid issues with other descriptors
+ *			in templated code.
+ *	\note	The only valid index is '0' for any method taking indices. If a higher
+ *			index is passed, the index is ignored and '0' is used instead.
+ */
+class UG_API VertexDescriptor {
+public:
+	typedef Vertex* const* ConstVertexArray;
+
+	VertexDescriptor()	{}
+	VertexDescriptor(Vertex* v) : m_v(v)	{}
+	VertexDescriptor(const VertexDescriptor& d) : m_v (d.m_v)	{}
+
+	VertexDescriptor& operator = (const VertexDescriptor& d)
+	{m_v = d.m_v; return *this;}
+
+	inline void set_vertex(Vertex* v)		{m_v = v;}
+	inline void set_vertex(uint, Vertex* v)	{m_v = v;}
+
+	inline Vertex* vertex () const 				{return m_v;}
+	virtual Vertex* vertex(size_t) const		{return m_v;}
+	Vertex* operator[](size_t) const	 		{return m_v;}
+
+	virtual ConstVertexArray vertices() const	{return &m_v;}
+	virtual size_t num_vertices() const			{return 1;}
+
+//	compatibility with std::vector for some template routines
+///	returns the number of vertices.
+	inline size_t size() const					{return 1;}
+
+private:
+	Vertex* m_v;
+};
+
+
 ///	Base class for all classes which consist of a group of vertices
 class UG_API IVertexGroup
 {
@@ -393,6 +429,8 @@ class UG_API Edge : public GridObject, public EdgeVertices
 	/**	If the specified vertex is not part of the edge, false is returned.
 	 * If it is, then vrtOut is filled with the opposing vertex and true is returned.*/
 		bool get_opposing_side(Vertex* v, Vertex** vrtOut);
+
+		bool get_opposing_side(Vertex* v, VertexDescriptor& vrtOut);
 
 	/**
 	 * create 2 new edges, connecting the original edges end-points with vrtNew.
