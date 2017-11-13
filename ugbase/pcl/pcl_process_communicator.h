@@ -99,7 +99,7 @@ class ProcessCommunicator
 		int get_local_proc_id(int globalProcID = pcl::ProcRank()) const;
 
 	///	returns the mpi-communicator, in case someone needs it
-		MPI_Comm get_mpi_communicator()	{return m_comm->m_mpiComm;}
+		MPI_Comm get_mpi_communicator() const	{return m_comm->m_mpiComm;}
 
 	///	creates a new communicator containing a subset of the current communicator
 	/**	Note that this method has to be called by all processes in the current
