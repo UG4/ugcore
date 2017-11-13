@@ -101,7 +101,21 @@ allgatherv(std::vector<TValue>& recBufOut,
 			std::vector<int>* pSizesOut,
 			std::vector<int>* pOffsetsOut) const
 {
-	if(is_local()) return;
+	if(is_local()) {
+		recBufOut.resize (sendBuf.size());
+		for(size_t i = 0; i < sendBuf.size(); ++i){
+			recBufOut[i] = sendBuf[i];
+		}
+		if(pSizesOut){
+			pSizesOut->resize (1);
+			pSizesOut->at(0) = sendBuf.size();
+		}
+		if(pOffsetsOut){
+			pOffsetsOut->resize (1);
+			pOffsetsOut->at(0) = 0;
+		}
+		return;
+	}
 	using namespace ug;
 
 //todo: One could declare a special MPI_Datatype and could thus
