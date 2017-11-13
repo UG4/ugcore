@@ -39,6 +39,7 @@
 #include "lib_grid/algorithms/attachment_util.h"
 #include "lib_grid/algorithms/subset_util.h"
 #include "lib_grid/iterators/lg_for_each.h"
+#include "pcl/pcl_multi_group_communicator.h"
 
 using namespace std;
 
@@ -1145,28 +1146,52 @@ improve_split_values(vector<TreeNode>& treeNodes,
 					 size_t maxIterations, ANumber aWeight,
 					 pcl::ProcessCommunicator& com)
 {
+	GDIST_PROFILE_FUNC();
 	vector<bool> gotSplitValue(treeNodes.size(), false);
+	vector<bool> participates (treeNodes.size(), false);
+
 	for(size_t iNode = 0; iNode < treeNodes.size(); ++iNode){
-		if(treeNodes[iNode].firstChildNode == s_invalidIndex)
+		if((treeNodes[iNode].firstChildNode == s_invalidIndex)
+		   || treeNodes[iNode].elems.empty())
+		{
 			gotSplitValue[iNode] = true;
+		}
+		else{
+			participates[iNode] = true;
+		}
 	}
 
+
+
 	Grid::AttachmentAccessor<elem_t, ANumber> aaWeight(*m_mg, aWeight);
+	
+//	each group corresponds to a node in 'treeNodes'. Each process only participates
+//	in those groups in which it has elements in the corresponding nodes.
+	pcl::MultiGroupCommunicator mgcom (participates, com);
+
 	vector<double> weights, gWeights;
-	weights.reserve(treeNodes.size() * NUM_CONSTANTS);
 
+	weights.resize (mgcom.num_memberships() * NUM_CONSTANTS);
+	gWeights.resize (weights.size());
+
+	
 	for(size_t iteration = 0; iteration < maxIterations; ++iteration){
-		weights.assign(treeNodes.size() * NUM_CONSTANTS, 0);
+		weights.assign(weights.size(), 0);
 
-		for(size_t iNode = 0; iNode < treeNodes.size(); ++iNode){
+		bool allAreDone = true;
+		
+		for(size_t imem = 0; imem < mgcom.num_memberships(); ++imem)
+		{
+			const size_t iNode = mgcom.membership_group_index (imem);
+
 			if(gotSplitValue[iNode])
 				continue;
 
-			TreeNode& tn = treeNodes[iNode];
-//			UG_LOG(">node " << iNode << " sv: " << tn.splitValue
-//					<< ", svmin: " << tn.minSplitValue << ", svmax: " << tn.maxSplitValue << "\n");
+			allAreDone = false;
 
-			size_t firstWgt = iNode * NUM_CONSTANTS;
+			TreeNode& tn = treeNodes[iNode];
+
+			size_t firstWgt = imem * NUM_CONSTANTS;
 			ElemList& elems = tn.elems;
 
 			for(size_t i = elems.first(); i != s_invalidIndex; i = elems.next(i)){
@@ -1183,7 +1208,13 @@ improve_split_values(vector<TreeNode>& treeNodes,
 			}
 		}
 
-		com.allreduce(weights, gWeights, PCL_RO_SUM);
+	//todo:	this should probably be replaced by 'mgcom.allreduce'
+		if (com.allreduce (char(allAreDone), PCL_RO_LAND)){
+			UG_LOG("improve_split_values done after " << iteration + 1 << " iterations.\n");
+			break;
+		}
+
+		mgcom.allreduce(&weights.front(), &gWeights.front(), NUM_CONSTANTS, PCL_RO_SUM);
 
 	//		UG_LOG("weights unclassified: " << gWeights[UNCLASSIFIED] << endl);
 	//		UG_LOG("weights left: " << gWeights[LEFT] << endl);
@@ -1194,8 +1225,9 @@ improve_split_values(vector<TreeNode>& treeNodes,
 	//		UG_LOG("weights total: " << gWeights[TOTAL] << endl);
 
 	//	check whether both sides are below the splitRatio
-		for(size_t iNode = 0; iNode < treeNodes.size(); ++iNode){
-//			UG_LOG("NODE " << iNode << "\n");
+		for(size_t imem = 0; imem < mgcom.num_memberships(); ++imem)
+		{
+			const size_t iNode = mgcom.membership_group_index (imem);
 			if(gotSplitValue[iNode])
 				continue;
 
@@ -1203,7 +1235,7 @@ improve_split_values(vector<TreeNode>& treeNodes,
 			TreeNode& tn = treeNodes[iNode];
 //			UG_LOG("Node ratio left: " << tn.ratioLeft << endl);
 
-			size_t firstWgt = iNode * NUM_CONSTANTS;
+			size_t firstWgt = imem * NUM_CONSTANTS;
 			if(gWeights[firstWgt + TOTAL] > 0){
 				bool leftOk = (gWeights[firstWgt + LEFT] / gWeights[firstWgt + TOTAL] <= tn.ratioLeft);
 				bool rightOk = (gWeights[firstWgt + RIGHT] / gWeights[firstWgt + TOTAL] <= (1. - tn.ratioLeft));
