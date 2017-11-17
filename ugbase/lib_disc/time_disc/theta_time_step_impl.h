@@ -49,7 +49,7 @@ prepare_step(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
 	PROFILE_BEGIN_GROUP(MultiStepTimeDiscretization_prepare_step, "discretization MultiStepTimeDiscretization");
 //	perform checks
 	if(prevSol->size() < m_prevSteps)
-		UG_THROW("ThetaTimeStep::prepare_step:"
+		UG_THROW("MultiStepTimeDiscretization::prepare_step:"
 						" Number of previous solutions must be at least "<<
 						m_prevSteps <<", but only "<< prevSol->size() << " passed.\n");
 
@@ -69,7 +69,7 @@ prepare_step(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
 	{
 		this->m_spDomDisc->prepare_timestep(m_pPrevSol, m_futureTime);
 	}
-	UG_CATCH_THROW("ThetaTimeStep: Cannot prepare time step.");
+	UG_CATCH_THROW("MultiStepTimeDiscretization: Cannot prepare time step.");
 }
 
 template <typename TAlgebra>
@@ -80,7 +80,7 @@ prepare_step_elem(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
 	PROFILE_BEGIN_GROUP(MultiStepTimeDiscretization_step_elem, "discretization MultiStepTimeDiscretization");
 //	perform checks
 	if(prevSol->size() < m_prevSteps)
-		UG_THROW("ThetaTimeStep::prepare_step_elem:"
+		UG_THROW("MultiStepTimeDiscretization::prepare_step_elem:"
 						" Number of previous solutions must be at least "<<
 						m_prevSteps <<", but only "<< prevSol->size() << " passed.\n");
 
@@ -100,12 +100,12 @@ prepare_step_elem(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
 	{
 		this->m_spDomDisc->prepare_timestep(m_pPrevSol, m_futureTime, gl);
 	}
-	UG_CATCH_THROW("ThetaTimeStep: Cannot prepare time step.");
+	UG_CATCH_THROW("MultiStepTimeDiscretization: Cannot prepare time step.");
 
 // 	prepare timestep element-wise
 	try{
 		this->m_spDomDisc->prepare_timestep_elem(m_pPrevSol, gl);
-	}UG_CATCH_THROW("ThetaTimeStep: Cannot prepare timestep element-wise.");
+	}UG_CATCH_THROW("MultiStepTimeDiscretization: Cannot prepare timestep element-wise.");
 }
 
 template <typename TAlgebra>
@@ -115,7 +115,7 @@ assemble_jacobian(matrix_type& J, const vector_type& u, const GridLevel& gl)
 	PROFILE_BEGIN_GROUP(MultiStepTimeDiscretization_assemble_jacobian, "discretization MultiStepTimeDiscretization");
 //	perform checks
 	if(m_pPrevSol->size() < m_prevSteps)
-		UG_THROW("ThetaTimeStep::assemble_jacobian:"
+		UG_THROW("MultiStepTimeDiscretization::assemble_jacobian:"
 				" Number of previous solutions must be at least "<<
 				m_prevSteps <<", but only "<< m_pPrevSol->size() << " passed.");
 
@@ -132,7 +132,7 @@ assemble_jacobian(matrix_type& J, const vector_type& u, const GridLevel& gl)
 //	assemble jacobian using current iterate
 	try{
 		this->m_spDomDisc->assemble_jacobian(J, m_pPrevSol, m_vScaleStiff[0], gl);
-	}UG_CATCH_THROW("ThetaTimeStep: Cannot assemble jacobian.");
+	}UG_CATCH_THROW("MultiStepTimeDiscretization: Cannot assemble jacobian.");
 
 //	pop unknown solution to solution time series
 	m_pPrevSol->remove_latest();
@@ -145,7 +145,7 @@ assemble_defect(vector_type& d, const vector_type& u, const GridLevel& gl)
 	PROFILE_BEGIN_GROUP(MultiStepTimeDiscretization_assemble_defect, "discretization MultiStepTimeDiscretization");
 //	perform checks
 	if(m_pPrevSol->size() < m_prevSteps)
-		UG_THROW("ThetaTimeStep::assemble_defect:"
+		UG_THROW("MultiStepTimeDiscretization::assemble_defect:"
 				" Number of previous solutions must be at least "<<
 				m_prevSteps <<", but only "<< m_pPrevSol->size() << " passed.");
 
@@ -176,7 +176,7 @@ adjust_solution(vector_type& u, const GridLevel& gl)
 //	adjust solution
 	try{
 		this->m_spDomDisc->adjust_solution(u, m_futureTime, gl);
-	}UG_CATCH_THROW("ThetaTimeStep: Cannot adjust solution.");
+	}UG_CATCH_THROW("MultiStepTimeDiscretization: Cannot adjust solution.");
 }
 
 template <typename TAlgebra>
@@ -186,7 +186,7 @@ assemble_linear(matrix_type& A, vector_type& b, const GridLevel& gl)
 	PROFILE_BEGIN_GROUP(MultiStepTimeDiscretization_assemble_linear, "discretization MultiStepTimeDiscretization");
 //	perform checks
 	if(m_pPrevSol->size() < m_prevSteps)
-		UG_THROW("ThetaTimeStep::assemble_linear:"
+		UG_THROW("MultiStepTimeDiscretization::assemble_linear:"
 				" Number of previous solutions must be at least "<<
 				m_prevSteps <<", but only "<< m_pPrevSol->size() << " passed.");
 
@@ -197,7 +197,7 @@ assemble_linear(matrix_type& A, vector_type& b, const GridLevel& gl)
 //	assemble jacobian using current iterate
 	try{
 		this->m_spDomDisc->assemble_linear(A, b, m_pPrevSol, m_vScaleMass, m_vScaleStiff, gl);
-	}UG_CATCH_THROW("ThetaTimeStep: Cannot assemble jacobian.");
+	}UG_CATCH_THROW("MultiStepTimeDiscretization: Cannot assemble jacobian.");
 
 //	pop unknown solution from solution time series
 	m_pPrevSol->remove_latest();
@@ -210,7 +210,7 @@ assemble_rhs(vector_type& b, const GridLevel& gl)
 	PROFILE_BEGIN_GROUP(MultiStepTimeDiscretization_assemble_rhs, "discretization MultiStepTimeDiscretization");
 //	perform checks
 	if(m_pPrevSol->size() < m_prevSteps)
-		UG_THROW("ThetaTimeStep::assemble_linear:"
+		UG_THROW("MultiStepTimeDiscretization::assemble_linear:"
 				" Number of previous solutions must be at least "<<
 				m_prevSteps <<", but only "<< m_pPrevSol->size() << " passed.");
 
@@ -220,7 +220,7 @@ assemble_rhs(vector_type& b, const GridLevel& gl)
 //	assemble jacobian using current iterate
 	try{
 		this->m_spDomDisc->assemble_rhs(b, m_pPrevSol, m_vScaleMass, m_vScaleStiff, gl);
-	}UG_CATCH_THROW("ThetaTimeStep: Cannot assemble jacobian.");
+	}UG_CATCH_THROW("MultiStepTimeDiscretization: Cannot assemble jacobian.");
 
 //	pop unknown solution from solution time series
 	m_pPrevSol->remove_latest();
@@ -233,7 +233,7 @@ assemble_rhs(vector_type& b, const vector_type& u, const GridLevel& gl)
 	PROFILE_BEGIN_GROUP(MultiStepTimeDiscretization_assemble_rhs, "discretization MultiStepTimeDiscretization");
 //	perform checks
 	if(m_pPrevSol->size() < m_prevSteps)
-		UG_THROW("ThetaTimeStep::assemble_linear:"
+		UG_THROW("MultiStepTimeDiscretization::assemble_linear:"
 				" Number of previous solutions must be at least "<<
 				m_prevSteps <<", but only "<< m_pPrevSol->size() << " passed.");
 
@@ -263,7 +263,7 @@ calc_error(const vector_type& u, vector_type* u_vtk)
 	PROFILE_BEGIN_GROUP(MultiStepTimeDiscretization_calc_error, "discretization MultiStepTimeDiscretization");
 //	perform checks
 	if(m_pPrevSol->size() < m_prevSteps)
-		UG_THROW("ThetaTimeStep::calc_error:"
+		UG_THROW("MultiStepTimeDiscretization::calc_error:"
 				" Number of previous solutions must be at least "<<
 				m_prevSteps <<", but only "<< m_pPrevSol->size() << " passed.");
 
@@ -283,7 +283,7 @@ calc_error(const vector_type& u, vector_type* u_vtk)
 		GridLevel gl = GridLevel();	// new TOP-SURFACE grid level
 		this->m_spDomDisc->calc_error(m_pPrevSol, m_vScaleMass, m_vScaleStiff, gl, u_vtk);
 	}
-	UG_CATCH_THROW("ThetaTimeStep: Cannot assemble error estimators.");
+	UG_CATCH_THROW("MultiStepTimeDiscretization: Cannot assemble error estimators.");
 
 //	pop unknown solution to solution time series
 	m_pPrevSol->remove_latest();
@@ -296,7 +296,7 @@ finish_step(SmartPtr<VectorTimeSeries<vector_type> > currSol)
 {
 //	perform checks whether 'currSol' is a solutionTimeSeries only with the new values
 	if (currSol->time(0) != m_futureTime)
-		UG_THROW("ThetaTimeStep::finish_step:"
+		UG_THROW("MultiStepTimeDiscretization::finish_step:"
 				" The solution of the SolutionTimeSeries used in this function"
 				" does not coincide with the current solution! ");
 
@@ -305,7 +305,7 @@ finish_step(SmartPtr<VectorTimeSeries<vector_type> > currSol)
 	{
 		this->m_spDomDisc->finish_timestep(currSol);
 	}
-	UG_CATCH_THROW("ThetaTimeStep: Cannot finish timestep.");
+	UG_CATCH_THROW("MultiStepTimeDiscretization: Cannot finish timestep.");
 }
 
 template <typename TAlgebra>
@@ -315,7 +315,7 @@ finish_step_elem(SmartPtr<VectorTimeSeries<vector_type> > currSol,
 {
 //	perform checks whether 'currSol' is a solutionTimeSeries only with the new values
 	if(currSol->time(0) != m_futureTime)
-		UG_THROW("ThetaTimeStep::finish_step_elem:"
+		UG_THROW("MultiStepTimeDiscretization::finish_step_elem:"
 				" The solution of the SolutionTimeSeries used in this function"
 				" does not coincide with the current solution! ");
 
@@ -324,12 +324,12 @@ finish_step_elem(SmartPtr<VectorTimeSeries<vector_type> > currSol,
 	{
 		this->m_spDomDisc->finish_timestep(currSol, gl);
 	}
-	UG_CATCH_THROW("ThetaTimeStep: Cannot finish timestep.");
+	UG_CATCH_THROW("MultiStepTimeDiscretization: Cannot finish timestep.");
 
 // 	finish timestep element-wise using the current solution
 	try{
 		this->m_spDomDisc->finish_timestep_elem(currSol, gl);
-	}UG_CATCH_THROW("ThetaTimeStep: Cannot finish timestep element-wise.");
+	}UG_CATCH_THROW("MultiStepTimeDiscretization: Cannot finish timestep element-wise.");
 }
 
 //////////////////////////////////////////////////////////////////////////////
