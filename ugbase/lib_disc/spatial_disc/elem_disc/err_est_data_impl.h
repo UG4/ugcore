@@ -858,10 +858,10 @@ number SideAndElemErrEstData<TDomain>::get_elem_error_indicator(GridObject* pEle
 	for (size_t ip = 0; ip < nIPs; ip++)
 		sum += quadRuleElem[roid]->weight(ip) * std::pow(integrand[ip], 2.0) * det[ip];
 
-	// scale by diam^2(elem) (= h^2)
+	// scale by diam^2(elem) (= h_T^2)
 	// c* vol(elem) >= diam^3(elem) >= vol(elem)
 	// therefore, up to a constant, error estimator can calculate diam(elem) as (vol(elem))^(1/3)
-	number diamSq = std::pow(ElementSize<dim>(roid, &vCornerCoords[0]), 2./dim);
+	number diamSq = std::pow(ElementSize<dim>(roid, &vCornerCoords[0]), 2.0/dim);
 
 	// add to error indicator
 	etaSq += diamSq * sum;
@@ -873,7 +873,7 @@ number SideAndElemErrEstData<TDomain>::get_elem_error_indicator(GridObject* pEle
 	pErrEstGrid->associated_elements(side_list, pElem);
 
 	// loop sides
-	number diam;
+	number diamE;
 	for (size_t side = 0; side < side_list.size(); side++)
 	{
 		side_type* pSide = side_list[side];
@@ -905,18 +905,16 @@ number SideAndElemErrEstData<TDomain>::get_elem_error_indicator(GridObject* pEle
 		for (size_t ip = 0; ip < nsIPs; ip++)
 			sum += quadRuleSide[side_roid]->weight(ip) * std::pow(m_aaSide[pSide][ip], 2.0) * det[ip];
 
-		// scale by diam(side) (= h)
+		// scale by diam(side) (= $h_E$)
 		// c* vol(side) >= diam^2(side) >= vol(side)
 		// therefore, up to a constant, error estimator can calculate diam as sqrt(vol(side))
-		if (dim == 1)
-			diam = 1.0;
-		else
-		{
-			number exponent = dim-1;
-			diam = std::pow(ElementSize<dim>(side_roid, &vSideCornerCoords[0]), 1.0/exponent);
-		}
+		if (dim==1)      { diamE = 1.0; }
+		else if (dim==2) { diamE = ElementSize<dim>(side_roid, &vSideCornerCoords[0]); }
+		else if (dim==2) { diamE = std::sqrt(ElementSize<dim>(side_roid, &vSideCornerCoords[0])); }
+		else { UG_THROW("Unknown dimension!!!"); }
+
 		// add to error indicator
-		etaSq += diam * sum;
+		etaSq += diamE * sum;
 	}
 	etaSq = (m_type == SideAndElemErrEstData<TDomain>::L2_ERROR_TYPE) ? etaSq*diamSq : etaSq;
 	return etaSq;
