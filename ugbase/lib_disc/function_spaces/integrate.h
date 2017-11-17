@@ -1003,14 +1003,240 @@ number H1Error(const char* ExactSol, const char* ExactGrad,
 #endif
 
 
+
+/// computes an (abstract) distance between two functions
+/**
+ * This function computes the (abstract) TDiffError-difference between two grid functions that
+ * may be defined on different grids. The element loop is performed over the
+ * finer level.
+ *
+ * \param[in]		spGridFct1	grid function 1
+ * \param[in]		cmp1		symbolic name of component function
+ * \param[in]		spGridFct2	grid function 2
+ * \param[in]		cmp2		symbolic name of component function
+ * \param[in]		quadOrder	order of quadrature rule
+ * \param[in]		subsets		subsets, where to compute
+ * \returns			number 		H1-norm of difference
+ */
+template <typename TDistIntegrand, typename TGridFunction>
+number GridFunctionDistance(TGridFunction& spGridFct1, const char* cmp1,
+							TGridFunction& spGridFct2, const char* cmp2,
+							int quadOrder, const char* subsets)
+{
+//	get function id of name
+	const size_t fct1 = spGridFct1.fct_id_by_name(cmp1);
+	const size_t fct2 = spGridFct2.fct_id_by_name(cmp2);
+
+//	check that function exists
+	if(fct1 >= spGridFct1.num_fct())
+		UG_THROW("GridFunctionDistance: Function space does not contain"
+				" a function with name " << cmp1 << ".");
+	if(fct2 >= spGridFct2.num_fct())
+		UG_THROW("GridFunctionDistance: Function space does not contain"
+				" a function with name " << cmp2 << ".");
+
+//	get top level of grid functions
+	const int level1 = spGridFct1.dof_distribution()->grid_level().level();
+	const int level2 = spGridFct2.dof_distribution()->grid_level().level();
+
+	if(level1 > level2){
+		// level check
+		TDistIntegrand spIntegrand(spGridFct1, fct1, spGridFct2, fct2);
+		return sqrt(IntegrateSubsets(spIntegrand, spGridFct1, subsets, quadOrder));
+	}else{
+		TDistIntegrand spIntegrand(spGridFct2, fct2, spGridFct1, fct1);
+		return sqrt(IntegrateSubsets(spIntegrand, spGridFct2, subsets, quadOrder));
+	}
+
+}
+
+//! Computes (weighted) distance
+template <typename TDistIntegrand, typename TGridFunction>
+number GridFunctionDistance(TGridFunction& spGridFct1, const char* cmp1,
+               TGridFunction& spGridFct2, const char* cmp2,
+               int quadOrder, const char* subsets, ConstSmartPtr<typename TDistIntegrand::weight_type> spWeights)
+{
+//	get function id of name
+	const size_t fct1 = spGridFct1.fct_id_by_name(cmp1);
+	const size_t fct2 = spGridFct2.fct_id_by_name(cmp2);
+
+//	check that function exists
+	if(fct1 >= spGridFct1.num_fct())
+		UG_THROW("GridFunctionDistance: Function space does not contain"
+				" a function with name " << cmp1 << ".");
+	if(fct2 >= spGridFct2.num_fct())
+		UG_THROW("GridFunctionDistance: Function space does not contain"
+				" a function with name " << cmp2 << ".");
+
+//	get top level of gridfunctions
+	const int level1 = spGridFct1.dof_distribution()->grid_level().level();
+	const int level2 = spGridFct2.dof_distribution()->grid_level().level();
+
+
+	// w/ weights
+	if(level1 > level2){
+		TDistIntegrand spIntegrand(spGridFct1, fct1, spGridFct2, fct2, spWeights);
+		return sqrt(IntegrateSubsets(spIntegrand, spGridFct1, subsets, quadOrder));
+	}else{
+		TDistIntegrand spIntegrand(spGridFct2, fct2, spGridFct1, fct1, spWeights);
+		return sqrt(IntegrateSubsets(spIntegrand, spGridFct2, subsets, quadOrder));
+	}
+
+
+
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// L2 Integrand
+////////////////////////////////////////////////////////////////////////////////
+
+/// Grid function as L2 integrand
+template <typename TGridFunction>
+class L2Integrand
+	: public StdIntegrand<number, TGridFunction::dim, L2Integrand<TGridFunction> >
+{
+	public:
+	//	world dimension of grid function
+		static const int worldDim = TGridFunction::dim;
+		typedef UserData<number, worldDim> weight_type;
+
+	protected:
+	// grid function data
+		ScalarGridFunctionData<TGridFunction> m_scalarData;
+	/// scalar weight (optional)
+		SmartPtr<weight_type> m_spWeight;
+
+	public:
+	/// CTOR
+		L2Integrand(TGridFunction& spGridFct, size_t cmp)
+		: m_scalarData(spGridFct, cmp)
+		{};
+
+	/// DTOR
+		virtual ~L2Integrand() {};
+
+	///	sets subset
+		virtual void set_subset(int si)
+		{
+			if(!m_scalarData.is_def_in_subset(si))
+				UG_THROW("L2ErrorIntegrand: Grid function component"
+						<<m_scalarData.fct() <<" not defined on subset "<<si);
+			IIntegrand<number, worldDim>::set_subset(si);
+		}
+
+	/// \copydoc IIntegrand::values
+		template <int elemDim>
+		void evaluate(number vValue[],
+		              const MathVector<worldDim> vGlobIP[],
+		              GridObject* pElem,
+		              const MathVector<worldDim> vCornerCoords[],
+		              const MathVector<elemDim> vLocIP[],
+		              const MathMatrix<elemDim, worldDim> vJT[],
+		              const size_t numIP)
+		{
+		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
+			ReferenceObjectID roid = (ReferenceObjectID) pElem->reference_object_id();
+
+			try{
+		//	get trial space
+			const LocalShapeFunctionSet<elemDim>& rTrialSpace =
+							LocalFiniteElementProvider::get<elemDim>(roid, m_scalarData.id());
+
+		//	number of dofs on element
+			const size_t num_sh = rTrialSpace.num_sh();
+
+		//	get multiindices of element
+			std::vector<DoFIndex> ind;  // 	aux. index array
+			m_scalarData.dof_indices(pElem, ind);
+
+		//	check multi indices
+			if(ind.size() != num_sh)
+				UG_THROW("L2FuncIntegrand::values: Wrong number of"
+						" multi indices.");
+
+		//	loop all integration points
+			for(size_t ip = 0; ip < numIP; ++ip)
+			{
+
+			// 	compute approximated solution at integration point
+				number approxSolIP = 0.0;
+				for(size_t sh = 0; sh < num_sh; ++sh)
+				{
+					//	get value at shape point (e.g. corner for P1 fct)
+					//	and add shape fct at ip * value at shape
+					const number valSH = DoFRef(m_scalarData.grid_function(), ind[sh]);
+					approxSolIP += valSH * rTrialSpace.shape(sh, vLocIP[ip]);
+				}
+
+				//	get square
+				vValue[ip] = approxSolIP*approxSolIP;
+
+			}
+
+			}
+			UG_CATCH_THROW("L2FuncIntegrand::values: trial space missing.");
+		};
+};
+
+/**
+ * This function computes the L2-norm of a grid function.
+ *
+ * \param[in]		spGridFct	grid function
+ * \param[in]		cmp			symbolic name of function
+ * \param[in]		quadOrder	order of quadrature rule
+ * \param[in]		subsets		subsets, where to interpolate
+ * 								(NULL indicates that all full-dimensional subsets
+ * 								shall be considered)
+ * \returns			number 		l2-norm
+ */
+template <typename TGridFunction>
+number L2Norm(TGridFunction& u, const char* cmp,
+              int quadOrder, const char* subsets)
+{
+//	get function id of name
+	const size_t fct = u.fct_id_by_name(cmp);
+
+//	check that function exists
+	if(fct >= u.num_fct())
+		UG_THROW("L2Norm: Function space does not contain"
+				" a function with name " << cmp << ".");
+
+	L2Integrand<TGridFunction> integrandL2(u, fct);
+	return sqrt(IntegrateSubsets(integrandL2, u, subsets, quadOrder));
+}
+
+/**
+ * This function computes the L2-norm of a grid function on all full-dim subsets.
+ *
+ * \param[in]		spGridFct	grid function
+ * \param[in]		cmp			symbolic name of function
+ * \param[in]		quadOrder	order of quadrature rule
+ * \returns			number 		l2-norm
+ */
+template <typename TGridFunction>
+number L2Norm(TGridFunction& gridFct, const char* cmp, int quadOrder)
+{ return L2Norm(gridFct, cmp, quadOrder, NULL); }
+
+template <typename TGridFunction>
+number L2Norm(SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOrder, const char* subsets)
+{ return L2Norm(*spGridFct, cmp, quadOrder, subsets); }
+
+template <typename TGridFunction>
+number L2Norm(SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOrder)
+{ return L2Norm(spGridFct, cmp, quadOrder, NULL); }
+
+
 /// Integrand for the distance of two grid functions - evaluated in the (weighted) H1-semi norm
 template <typename TGridFunction>
 class L2DistIntegrand
-	: public StdIntegrand<number, TGridFunction::dim, L2DistIntegrand<TGridFunction> >
+		: public StdIntegrand<number, TGridFunction::dim, L2DistIntegrand<TGridFunction> >
 {
 	public:
 	///	world dimension of grid function
 		static const int worldDim = TGridFunction::dim;
+		typedef typename L2Integrand<TGridFunction>::weight_type weight_type;
 
 	private:
 		ScalarGridFunctionData<TGridFunction> m_fineData;
@@ -1141,93 +1367,9 @@ class L2DistIntegrand
 
 
 
-
-/// computes an (abstract) error between two functions
-/**
- * This function computes the (abstract) TDiffError-difference between two grid functions that
- * may be defined on different grids. The element loop is performed over the
- * finer level.
- *
- * \param[in]		spGridFct1	grid function 1
- * \param[in]		cmp1		symbolic name of component function
- * \param[in]		spGridFct2	grid function 2
- * \param[in]		cmp2		symbolic name of component function
- * \param[in]		quadOrder	order of quadrature rule
- * \param[in]		subsets		subsets, where to compute
- * \returns			number 		H1-norm of difference
- */
-template <typename TDistIntegrand, typename TGridFunction>
-number GridFunctionDistance(TGridFunction& spGridFct1, const char* cmp1,
-							TGridFunction& spGridFct2, const char* cmp2,
-							int quadOrder, const char* subsets)
-{
-//	get function id of name
-	const size_t fct1 = spGridFct1.fct_id_by_name(cmp1);
-	const size_t fct2 = spGridFct2.fct_id_by_name(cmp2);
-
-//	check that function exists
-	if(fct1 >= spGridFct1.num_fct())
-		UG_THROW("GridFunctionDistance: Function space does not contain"
-				" a function with name " << cmp1 << ".");
-	if(fct2 >= spGridFct2.num_fct())
-		UG_THROW("GridFunctionDistance: Function space does not contain"
-				" a function with name " << cmp2 << ".");
-
-//	get top level of grid functions
-	const int level1 = spGridFct1.dof_distribution()->grid_level().level();
-	const int level2 = spGridFct2.dof_distribution()->grid_level().level();
-
-	if(level1 > level2){
-		// level check
-		TDistIntegrand spIntegrand(spGridFct1, fct1, spGridFct2, fct2);
-		return sqrt(IntegrateSubsets(spIntegrand, spGridFct1, subsets, quadOrder));
-	}else{
-		TDistIntegrand spIntegrand(spGridFct2, fct2, spGridFct1, fct1);
-		return sqrt(IntegrateSubsets(spIntegrand, spGridFct2, subsets, quadOrder));
-	}
-
-}
-
-//! Computes (weighted) distance
-template <typename TDistIntegrand, typename TGridFunction>
-number GridFunctionDistance(TGridFunction& spGridFct1, const char* cmp1,
-               TGridFunction& spGridFct2, const char* cmp2,
-               int quadOrder, const char* subsets, ConstSmartPtr<typename TDistIntegrand::weight_type> spWeights)
-{
-//	get function id of name
-	const size_t fct1 = spGridFct1.fct_id_by_name(cmp1);
-	const size_t fct2 = spGridFct2.fct_id_by_name(cmp2);
-
-//	check that function exists
-	if(fct1 >= spGridFct1.num_fct())
-		UG_THROW("GridFunctionDistance: Function space does not contain"
-				" a function with name " << cmp1 << ".");
-	if(fct2 >= spGridFct2.num_fct())
-		UG_THROW("GridFunctionDistance: Function space does not contain"
-				" a function with name " << cmp2 << ".");
-
-//	get top level of gridfunctions
-	const int level1 = spGridFct1.dof_distribution()->grid_level().level();
-	const int level2 = spGridFct2.dof_distribution()->grid_level().level();
-
-
-	// w/ weights
-	if(level1 > level2){
-		TDistIntegrand spIntegrand(spGridFct1, fct1, spGridFct2, fct2, spWeights);
-		return sqrt(IntegrateSubsets(spIntegrand, spGridFct1, subsets, quadOrder));
-	}else{
-		TDistIntegrand spIntegrand(spGridFct2, fct2, spGridFct1, fct1, spWeights);
-		return sqrt(IntegrateSubsets(spIntegrand, spGridFct2, subsets, quadOrder));
-	}
-
-
-
-}
-
-
 /// computes the l2 error function between to function
 template <typename TGridFunction>
-number L2Error(TGridFunction& spGridFct1, const char* cmp1,
+number L2Distance(TGridFunction& spGridFct1, const char* cmp1,
                TGridFunction& spGridFct2, const char* cmp2,
                int quadOrder, const char* subsets)
 {
@@ -1240,7 +1382,7 @@ number L2Error(SmartPtr<TGridFunction> spGridFct1, const char* cmp1,
                SmartPtr<TGridFunction> spGridFct2, const char* cmp2,
                int quadOrder)
 {
-	return L2Error(*spGridFct1, cmp1, *spGridFct2, cmp2, quadOrder, NULL);
+	return L2Distance(*spGridFct1, cmp1, *spGridFct2, cmp2, quadOrder, NULL);
 }
 
 template <typename TGridFunction>
@@ -1248,7 +1390,175 @@ number L2Error(SmartPtr<TGridFunction> spGridFct1, const char* cmp1,
                SmartPtr<TGridFunction> spGridFct2, const char* cmp2,
                int quadOrder, const char* subsets)
 {
-	return L2Error (*spGridFct1, cmp1, *spGridFct2, cmp2, quadOrder, subsets);
+	return L2Distance(*spGridFct1, cmp1, *spGridFct2, cmp2, quadOrder, subsets);
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// H1 semi-norm Integrand
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+//! Norm of a grid function, evaluated in (weighted) H1-semi norm
+template <typename TGridFunction>
+class H1SemiIntegrand
+	: public StdIntegrand<number, TGridFunction::dim, H1SemiIntegrand<TGridFunction> >
+{
+	public:
+	///	world dimension of grid function
+		static const int worldDim = TGridFunction::dim;
+		typedef UserData<number, worldDim> weight_type;
+
+	protected:
+	/// grid function data
+		ScalarGridFunctionData<TGridFunction> m_scalarData;
+
+	/// scalar weight (optional)
+		ConstSmartPtr<weight_type> m_spWeight;
+
+	public:
+	/// constructor
+		H1SemiIntegrand(TGridFunction& gridFct, size_t cmp)
+		: m_scalarData(gridFct, cmp), m_spWeight(make_sp(new ConstUserNumber<worldDim>(1.0)))
+		{}
+
+	/// constructor
+		H1SemiIntegrand(TGridFunction& gridFct, size_t cmp, ConstSmartPtr<weight_type> spWeight)
+		: m_scalarData(gridFct, cmp), m_spWeight(spWeight)
+		{}
+
+	///	sets subset
+		virtual void set_subset(int si)
+		{
+			if(!m_scalarData.is_def_in_subset(si))
+				UG_THROW("H1Error: Grid function component"
+						<<m_scalarData.fct()<<" not defined on subset "<<si);
+			IIntegrand<number, worldDim>::set_subset(si);
+		}
+
+	/// \copydoc IIntegrand::values
+		template <int elemDim>
+		void evaluate(number vValue[],
+		              const MathVector<worldDim> vGlobIP[],
+		              GridObject* pElem,
+		              const MathVector<worldDim> vCornerCoords[],
+		              const MathVector<elemDim> vLocIP[],
+		              const MathMatrix<elemDim, worldDim> vJT[],
+		              const size_t numIP)
+		{
+		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
+			const ReferenceObjectID roid = pElem->reference_object_id();
+			const TGridFunction &gridFct= m_scalarData.grid_function();
+			try{
+
+		// get IP weights
+			std::vector<number> elemWeights(numIP, 1.0);
+			(*m_spWeight)(&elemWeights[0], vGlobIP, 0.0, IIntegrand<number, worldDim>::subset(), numIP);
+
+		//	get trial space
+			const LocalShapeFunctionSet<elemDim>& rTrialSpace =
+							LocalFiniteElementProvider::get<elemDim>(roid, m_scalarData.id());
+
+		//	number of dofs on element
+			const size_t num_sh = rTrialSpace.num_sh();
+
+		//	get multiindices of element
+			std::vector<DoFIndex> ind;  // 	aux. index array
+			gridFct.dof_indices(pElem, m_scalarData.fct(), ind);
+
+		//	check multi indices
+			if(ind.size() != num_sh)
+				UG_THROW("H1SemiNormFuncIntegrand::evaluate: Wrong number of multi-)indices.");
+
+		//	loop all integration points
+			std::vector<MathVector<elemDim> > vLocGradient(num_sh);
+			for(size_t ip = 0; ip < numIP; ++ip)
+			{
+			//	compute shape gradients at ip
+				rTrialSpace.grads(&vLocGradient[0], vLocIP[ip]);
+
+			// 	compute approximated solution at integration point
+				number approxSolIP = 0.0;
+				MathVector<elemDim> locTmp; VecSet(locTmp, 0.0);
+				for(size_t sh = 0; sh < num_sh; ++sh)
+				{
+				//	get value at shape point (e.g. corner for P1 fct)
+					const number valSH = DoFRef(gridFct, ind[sh]);
+
+				//	add shape fct at ip * value at shape
+					approxSolIP += valSH * rTrialSpace.shape(sh, vLocIP[ip]);
+
+				//	add gradient at ip
+					VecScaleAppend(locTmp, valSH, vLocGradient[sh]);
+				}
+
+			//	compute gradient
+				MathVector<worldDim> approxGradIP;
+				MathMatrix<worldDim, elemDim> JTInv;
+				Inverse(JTInv, vJT[ip]);
+				MatVecMult(approxGradIP, JTInv, locTmp);
+
+			//	get norm squared
+				vValue[ip] = elemWeights[ip]*VecDot(approxGradIP, approxGradIP);
+			}
+
+			}
+			UG_CATCH_THROW("H1ErrorIntegrand::evaluate: trial space missing.");
+		};
+};
+
+
+/// compute H1 semi-norm of a function on the whole domain (or on selected subsets)
+/**
+ * This function computes the H1 semi-norm of a grid function
+ *
+ * \param[in]		spGridFct	grid function
+ * \param[in]		cmp			symbolic name of component function
+ * \param[in]		time		time point
+ * \param[in]		quadOrder	order of quadrature rule
+ * \param[in]		subsets		subsets, where to compute (OPTIONAL)
+ * \param[in]		weights		element-wise weights (OPTIONAL)
+ * \returns			number 		l2-norm
+ */
+template <typename TGridFunction>
+number H1SemiNorm(TGridFunction& gridFct, const char* cmp, int quadOrder, const char* subsets=NULL,
+				ConstSmartPtr<typename H1SemiIntegrand<TGridFunction>::weight_type> weights = SPNULL)
+{
+//	get function id of name
+	const size_t fct = gridFct.fct_id_by_name(cmp);
+
+//	check that function exists
+	if(fct >= gridFct.num_fct())
+		UG_THROW("H1SemiNorm: Function space does not contain"
+				" a function with name " << cmp << ".");
+	if  (weights.invalid()) {
+		H1SemiIntegrand<TGridFunction> integrand(gridFct, fct);
+		return sqrt(IntegrateSubsets(integrand, gridFct, subsets, quadOrder));
+	} else {
+		H1SemiIntegrand<TGridFunction> integrand(gridFct, fct, weights);
+		return sqrt(IntegrateSubsets(integrand, gridFct, subsets, quadOrder));
+	}
+}
+
+template <typename TGridFunction>
+number H1SemiNorm(SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOrder,
+		const char* subsets, ConstSmartPtr<typename H1SemiIntegrand<TGridFunction>::weight_type> weights = SPNULL)
+{ return H1SemiNorm(*spGridFct, cmp, quadOrder, subsets, weights); }
+
+template <typename TGridFunction>
+number H1SemiNorm( SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOrder)
+{
+	return H1SemiNorm(spGridFct, cmp, quadOrder, NULL);
+}
+
+
+template <typename TGridFunction>
+number H1SemiNorm( SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOrder,
+				SmartPtr<UserData<number, TGridFunction::dim> > weights)
+{
+	return H1SemiNorm(spGridFct, cmp, quadOrder, NULL, weights);
 }
 
 /// Integrand for the distance of two grid functions - evaluated in the (weighted) H1-semi norm
@@ -1258,7 +1568,7 @@ class H1SemiDistIntegrand : public StdIntegrand<number, TGridFunction::dim, H1Se
 	public:
 	///	world dimension of grid function
 		static const int worldDim = TGridFunction::dim;
-		typedef UserData<number, worldDim> weight_type;
+		typedef typename H1SemiIntegrand<TGridFunction>::weight_type weight_type;
 
 	private:
 		ScalarGridFunctionData<TGridFunction> m_fineData;
@@ -1334,7 +1644,7 @@ class H1SemiDistIntegrand : public StdIntegrand<number, TGridFunction::dim, H1Se
 		{
 			typedef typename TGridFunction::template dim_traits<elemDim>::grid_base_object Element;
 
-			
+
 			const TGridFunction &fineGridFct  = m_fineData.grid_function();
 			const TGridFunction &coarseGridFct  = m_coarseData.grid_function();
 
@@ -1459,7 +1769,8 @@ number H1SemiError(SmartPtr<TGridFunction> spGridFct1, const char* cmp1,
 template <typename TGridFunction>
 number H1SemiDistance(TGridFunction& spGridFct1, const char* cmp1,
 		TGridFunction& spGridFct2, const char* cmp2,
-               int quadOrder, const char* subsets, ConstSmartPtr<UserData<number, TGridFunction::dim> > weights)
+        int quadOrder, const char* subsets,
+		ConstSmartPtr<UserData<number, TGridFunction::dim> > weights)
 {
 	return GridFunctionDistance<H1SemiDistIntegrand<TGridFunction>, TGridFunction>
 		(spGridFct1, cmp1, spGridFct2, cmp2, quadOrder, subsets, weights);
@@ -1473,6 +1784,141 @@ number H1SemiDistance(TGridFunction& spGridFct1, const char* cmp1,
 {
 	return H1SemiDistance(spGridFct1, cmp1, spGridFct2, cmp2, quadOrder, NULL, weights);
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// H1 norm integrand
+////////////////////////////////////////////////////////////////////////////////
+template <typename TGridFunction>
+class H1NormIntegrand
+	: public StdIntegrand<number, TGridFunction::dim, H1NormIntegrand<TGridFunction> >
+{
+	public:
+	///	world dimension of grid function
+		static const int worldDim = TGridFunction::dim;
+
+	private:
+		ScalarGridFunctionData<TGridFunction> m_scalarData;
+
+	public:
+	/// CTOR
+		H1NormIntegrand(TGridFunction& gridFct, size_t cmp)
+		: m_scalarData(gridFct, cmp) {}
+
+	/// DTOR
+		virtual ~H1NormIntegrand() {}
+
+	///	sets subset
+		virtual void set_subset(int si)
+		{
+			if(!m_scalarData.is_def_in_subset(si))
+				UG_THROW("H1Norm: Grid function component"
+						<<m_scalarData.fct()<<" not defined on subset "<<si);
+			IIntegrand<number, worldDim>::set_subset(si);
+		}
+
+	/// \copydoc IIntegrand::values
+		template <int elemDim>
+		void evaluate(number vValue[],
+		              const MathVector<worldDim> vGlobIP[],
+		              GridObject* pElem,
+		              const MathVector<worldDim> vCornerCoords[],
+		              const MathVector<elemDim> vLocIP[],
+		              const MathMatrix<elemDim, worldDim> vJT[],
+		              const size_t numIP)
+		{
+		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
+			const ReferenceObjectID roid = pElem->reference_object_id();
+
+			try{
+		//	get trial space
+			const LocalShapeFunctionSet<elemDim>& rTrialSpace =
+							LocalFiniteElementProvider::get<elemDim>(roid, m_scalarData.id());
+
+		//	number of dofs on element
+			const size_t num_sh = rTrialSpace.num_sh();
+
+		//	get multiindices of element
+			std::vector<DoFIndex> ind;  // 	aux. index array
+			m_scalarData.dof_indices(pElem, ind);
+
+		//	check multi indices
+			if(ind.size() != num_sh)
+				UG_THROW("H1ErrorIntegrand::evaluate: Wrong number of"
+						" multi indices.");
+
+		//	loop all integration points
+			std::vector<MathVector<elemDim> > vLocGradient(num_sh);
+			for(size_t ip = 0; ip < numIP; ++ip)
+			{
+
+			//	compute shape gradients at ip
+				rTrialSpace.grads(&vLocGradient[0], vLocIP[ip]);
+
+			// 	compute approximated solution at integration point
+				number approxSolIP = 0.0;
+				MathVector<elemDim> locTmp; VecSet(locTmp, 0.0);
+				for(size_t sh = 0; sh < num_sh; ++sh)
+				{
+				//	get value at shape point (e.g. corner for P1 fct)
+					const number valSH = DoFRef(m_scalarData.grid_function(), ind[sh]);
+
+				//	add shape fct at ip * value at shape
+					approxSolIP += valSH * rTrialSpace.shape(sh, vLocIP[ip]);
+
+				//	add gradient at ip
+					VecScaleAppend(locTmp, valSH, vLocGradient[sh]);
+				}
+
+			//	compute global gradient
+				MathVector<worldDim> approxGradIP;
+				MathMatrix<worldDim, elemDim> JTInv;
+				Inverse(JTInv, vJT[ip]);
+				MatVecMult(approxGradIP, JTInv, locTmp);
+
+			//	get squared of difference
+				vValue[ip] = approxSolIP * approxSolIP;
+				vValue[ip] += VecDot(approxGradIP, approxGradIP);
+			}
+
+			}
+			UG_CATCH_THROW("H1SemiNormFuncIntegrand::evaluate: trial space missing.");
+		};
+};
+
+
+
+
+template <typename TGridFunction>
+number H1Norm(TGridFunction& u, const char* cmp,
+			   int quadOrder, const char* subsets=NULL)
+{
+//	get function id of name
+	const size_t fct = u.fct_id_by_name(cmp);
+
+//	check that function exists
+	if(fct >= u.num_fct())
+		UG_THROW("H1Norm: Function space does not contain"
+				" a function with name " << cmp << ".");
+
+	H1NormIntegrand<TGridFunction> spIntegrand(u, fct);
+	return sqrt(IntegrateSubsets(spIntegrand, u, subsets, quadOrder));
+}
+
+template <typename TGridFunction>
+number H1Norm(SmartPtr<TGridFunction> spGridFct, const char* cmp,
+			   int quadOrder, const char* subsets)
+{
+	return H1Norm(*spGridFct, cmp, quadOrder, subsets);
+}
+
+template <typename TGridFunction>
+number H1Norm(SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOrder)
+{
+	return H1Norm(*spGridFct, cmp, quadOrder, NULL);
+}
+
 
 
 /// Integrand for the distance of two grid functions - evaluated in the H1 norm
@@ -1655,438 +2101,6 @@ number H1Error(SmartPtr<TGridFunction> spGridFct1, const char* cmp1,
 	return H1Error(*spGridFct1, cmp1, *spGridFct2, cmp2, quadOrder, NULL);
 }
 
-
-////////////////////////////////////////////////////////////////////////////////
-// L2 Integrand
-////////////////////////////////////////////////////////////////////////////////
-
-/// Grid function as L2 integrand
-template <typename TGridFunction>
-class L2Integrand
-	: public StdIntegrand<number, TGridFunction::dim, L2Integrand<TGridFunction> >
-{
-	public:
-	//	world dimension of grid function
-		static const int worldDim = TGridFunction::dim;
-
-	private:
-	// grid function data
-		ScalarGridFunctionData<TGridFunction> m_scalarData;
-
-	public:
-	/// CTOR
-		L2Integrand(TGridFunction& spGridFct, size_t cmp)
-		: m_scalarData(spGridFct, cmp)
-		{};
-
-	/// DTOR
-		virtual ~L2Integrand() {};
-
-	///	sets subset
-		virtual void set_subset(int si)
-		{
-			if(!m_scalarData.is_def_in_subset(si))
-				UG_THROW("L2ErrorIntegrand: Grid function component"
-						<<m_scalarData.fct() <<" not defined on subset "<<si);
-			IIntegrand<number, worldDim>::set_subset(si);
-		}
-
-	/// \copydoc IIntegrand::values
-		template <int elemDim>
-		void evaluate(number vValue[],
-		              const MathVector<worldDim> vGlobIP[],
-		              GridObject* pElem,
-		              const MathVector<worldDim> vCornerCoords[],
-		              const MathVector<elemDim> vLocIP[],
-		              const MathMatrix<elemDim, worldDim> vJT[],
-		              const size_t numIP)
-		{
-		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
-			ReferenceObjectID roid = (ReferenceObjectID) pElem->reference_object_id();
-
-			try{
-		//	get trial space
-			const LocalShapeFunctionSet<elemDim>& rTrialSpace =
-							LocalFiniteElementProvider::get<elemDim>(roid, m_scalarData.id());
-
-		//	number of dofs on element
-			const size_t num_sh = rTrialSpace.num_sh();
-
-		//	get multiindices of element
-			std::vector<DoFIndex> ind;  // 	aux. index array
-			m_scalarData.dof_indices(pElem, ind);
-
-		//	check multi indices
-			if(ind.size() != num_sh)
-				UG_THROW("L2FuncIntegrand::values: Wrong number of"
-						" multi indices.");
-
-		//	loop all integration points
-			for(size_t ip = 0; ip < numIP; ++ip)
-			{
-
-			// 	compute approximated solution at integration point
-				number approxSolIP = 0.0;
-				for(size_t sh = 0; sh < num_sh; ++sh)
-				{
-					//	get value at shape point (e.g. corner for P1 fct)
-					//	and add shape fct at ip * value at shape
-					const number valSH = DoFRef(m_scalarData.grid_function(), ind[sh]);
-					approxSolIP += valSH * rTrialSpace.shape(sh, vLocIP[ip]);
-				}
-
-				//	get square
-				vValue[ip] = approxSolIP*approxSolIP;
-
-			}
-
-			}
-			UG_CATCH_THROW("L2FuncIntegrand::values: trial space missing.");
-		};
-};
-
-/**
- * This function computes the L2-norm of a grid function.
- *
- * \param[in]		spGridFct	grid function
- * \param[in]		cmp			symbolic name of function
- * \param[in]		quadOrder	order of quadrature rule
- * \param[in]		subsets		subsets, where to interpolate
- * 								(NULL indicates that all full-dimensional subsets
- * 								shall be considered)
- * \returns			number 		l2-norm
- */
-template <typename TGridFunction>
-number L2Norm(TGridFunction& u, const char* cmp,
-              int quadOrder, const char* subsets)
-{
-//	get function id of name
-	const size_t fct = u.fct_id_by_name(cmp);
-
-//	check that function exists
-	if(fct >= u.num_fct())
-		UG_THROW("L2Norm: Function space does not contain"
-				" a function with name " << cmp << ".");
-
-	L2Integrand<TGridFunction> integrandL2(u, fct);
-	return sqrt(IntegrateSubsets(integrandL2, u, subsets, quadOrder));
-}
-
-/**
- * This function computes the L2-norm of a grid function on all full-dim subsets.
- *
- * \param[in]		spGridFct	grid function
- * \param[in]		cmp			symbolic name of function
- * \param[in]		quadOrder	order of quadrature rule
- * \returns			number 		l2-norm
- */
-template <typename TGridFunction>
-number L2Norm(TGridFunction& gridFct, const char* cmp, int quadOrder)
-{ return L2Norm(gridFct, cmp, quadOrder, NULL); }
-
-template <typename TGridFunction>
-number L2Norm(SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOrder, const char* subsets)
-{ return L2Norm(*spGridFct, cmp, quadOrder, subsets); }
-
-template <typename TGridFunction>
-number L2Norm(SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOrder)
-{ return L2Norm(spGridFct, cmp, quadOrder, NULL); }
-
-////////////////////////////////////////////////////////////////////////////////
-// H1 semi-norm Integrand
-////////////////////////////////////////////////////////////////////////////////
-
-
-
-//! Norm of a grid function, evaluated in (weighted) H1-semi norm
-template <typename TGridFunction>
-class H1SemiIntegrand
-	: public StdIntegrand<number, TGridFunction::dim, H1SemiIntegrand<TGridFunction> >
-{
-	public:
-	///	world dimension of grid function
-		static const int worldDim = TGridFunction::dim;
-		typedef UserData<number, worldDim> weight_type;
-
-	private:
-	/// grid function data
-		ScalarGridFunctionData<TGridFunction> m_scalarData;
-
-	/// scalar weight (optional)
-		SmartPtr<weight_type> m_spWeight;
-
-	public:
-	/// constructor
-		H1SemiIntegrand(TGridFunction& gridFct, size_t cmp)
-		: m_scalarData(gridFct, cmp),
-		  m_spWeight(new ConstUserNumber<worldDim>(1.0))
-		{}
-
-	/// constructor
-		H1SemiIntegrand(TGridFunction& gridFct, size_t cmp, SmartPtr<weight_type> spWeight)
-		: m_scalarData(gridFct, cmp),
-		  m_spWeight(spWeight)
-		{}
-
-	///	sets subset
-		virtual void set_subset(int si)
-		{
-			if(!m_scalarData.is_def_in_subset(si))
-				UG_THROW("H1Error: Grid function component"
-						<<m_scalarData.fct()<<" not defined on subset "<<si);
-			IIntegrand<number, worldDim>::set_subset(si);
-		}
-
-	/// \copydoc IIntegrand::values
-		template <int elemDim>
-		void evaluate(number vValue[],
-		              const MathVector<worldDim> vGlobIP[],
-		              GridObject* pElem,
-		              const MathVector<worldDim> vCornerCoords[],
-		              const MathVector<elemDim> vLocIP[],
-		              const MathMatrix<elemDim, worldDim> vJT[],
-		              const size_t numIP)
-		{
-		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
-			const ReferenceObjectID roid = pElem->reference_object_id();
-			const TGridFunction &gridFct= m_scalarData.grid_function();
-			try{
-
-		// get IP weights
-			std::vector<number> elemWeights(numIP, 1.0);
-			(*m_spWeight)(&elemWeights[0], vGlobIP, 0.0, IIntegrand<number, worldDim>::subset(), numIP);
-
-		//	get trial space
-			const LocalShapeFunctionSet<elemDim>& rTrialSpace =
-							LocalFiniteElementProvider::get<elemDim>(roid, m_scalarData.id());
-
-		//	number of dofs on element
-			const size_t num_sh = rTrialSpace.num_sh();
-
-		//	get multiindices of element
-			std::vector<DoFIndex> ind;  // 	aux. index array
-			gridFct.dof_indices(pElem, m_scalarData.fct(), ind);
-
-		//	check multi indices
-			if(ind.size() != num_sh)
-				UG_THROW("H1SemiNormFuncIntegrand::evaluate: Wrong number of multi-)indices.");
-
-		//	loop all integration points
-			std::vector<MathVector<elemDim> > vLocGradient(num_sh);
-			for(size_t ip = 0; ip < numIP; ++ip)
-			{
-			//	compute shape gradients at ip
-				rTrialSpace.grads(&vLocGradient[0], vLocIP[ip]);
-
-			// 	compute approximated solution at integration point
-				number approxSolIP = 0.0;
-				MathVector<elemDim> locTmp; VecSet(locTmp, 0.0);
-				for(size_t sh = 0; sh < num_sh; ++sh)
-				{
-				//	get value at shape point (e.g. corner for P1 fct)
-					const number valSH = DoFRef(gridFct, ind[sh]);
-
-				//	add shape fct at ip * value at shape
-					approxSolIP += valSH * rTrialSpace.shape(sh, vLocIP[ip]);
-
-				//	add gradient at ip
-					VecScaleAppend(locTmp, valSH, vLocGradient[sh]);
-				}
-
-			//	compute gradient
-				MathVector<worldDim> approxGradIP;
-				MathMatrix<worldDim, elemDim> JTInv;
-				Inverse(JTInv, vJT[ip]);
-				MatVecMult(approxGradIP, JTInv, locTmp);
-
-			//	get norm squared
-				vValue[ip] = elemWeights[ip]*VecDot(approxGradIP, approxGradIP);
-			}
-
-			}
-			UG_CATCH_THROW("H1ErrorIntegrand::evaluate: trial space missing.");
-		};
-};
-
-
-/// compute H1 semi-norm of a function on the whole domain (or on selected subsets)
-/**
- * This function computes the H1 semi-norm of a grid function
- *
- * \param[in]		spGridFct	grid function
- * \param[in]		cmp			symbolic name of component function
- * \param[in]		time		time point
- * \param[in]		quadOrder	order of quadrature rule
- * \param[in]		subsets		subsets, where to compute (OPTIONAL)
- * \param[in]		weights		element-wise weights (OPTIONAL)
- * \returns			number 		l2-norm
- */
-template <typename TGridFunction>
-number H1SemiNorm(TGridFunction& gridFct, const char* cmp, int quadOrder, const char* subsets=NULL,
-				SmartPtr<typename H1SemiIntegrand<TGridFunction>::weight_type> weights = SPNULL)
-{
-//	get function id of name
-	const size_t fct = gridFct.fct_id_by_name(cmp);
-
-//	check that function exists
-	if(fct >= gridFct.num_fct())
-		UG_THROW("H1SemiNorm: Function space does not contain"
-				" a function with name " << cmp << ".");
-	if  (weights.invalid()) {
-		H1SemiIntegrand<TGridFunction> integrand(gridFct, fct);
-		return sqrt(IntegrateSubsets(integrand, gridFct, subsets, quadOrder));
-	} else {
-		H1SemiIntegrand<TGridFunction> integrand(gridFct, fct, weights);
-		return sqrt(IntegrateSubsets(integrand, gridFct, subsets, quadOrder));
-	}
-}
-
-template <typename TGridFunction>
-number H1SemiNorm(SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOrder,
-		const char* subsets, SmartPtr<typename H1SemiIntegrand<TGridFunction>::weight_type> weights = SPNULL)
-{ return H1SemiNorm(*spGridFct, cmp, quadOrder, subsets, weights); }
-
-template <typename TGridFunction>
-number H1SemiNorm( SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOrder)
-{
-	return H1SemiNorm(spGridFct, cmp, quadOrder, NULL);
-}
-
-
-template <typename TGridFunction>
-number H1SemiNorm( SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOrder,
-				SmartPtr<UserData<number, TGridFunction::dim> > weights)
-{
-	return H1SemiNorm(spGridFct, cmp, quadOrder, NULL, weights);
-}
-////////////////////////////////////////////////////////////////////////////////
-// H1 norm integrand
-////////////////////////////////////////////////////////////////////////////////
-template <typename TGridFunction>
-class H1NormIntegrand
-	: public StdIntegrand<number, TGridFunction::dim, H1NormIntegrand<TGridFunction> >
-{
-	public:
-	///	world dimension of grid function
-		static const int worldDim = TGridFunction::dim;
-
-	private:
-		ScalarGridFunctionData<TGridFunction> m_scalarData;
-
-	public:
-	/// CTOR
-		H1NormIntegrand(TGridFunction& gridFct, size_t cmp)
-		: m_scalarData(gridFct, cmp) {}
-
-	/// DTOR
-		virtual ~H1NormIntegrand() {}
-
-	///	sets subset
-		virtual void set_subset(int si)
-		{
-			if(!m_scalarData.is_def_in_subset(si))
-				UG_THROW("H1Norm: Grid function component"
-						<<m_scalarData.fct()<<" not defined on subset "<<si);
-			IIntegrand<number, worldDim>::set_subset(si);
-		}
-
-	/// \copydoc IIntegrand::values
-		template <int elemDim>
-		void evaluate(number vValue[],
-		              const MathVector<worldDim> vGlobIP[],
-		              GridObject* pElem,
-		              const MathVector<worldDim> vCornerCoords[],
-		              const MathVector<elemDim> vLocIP[],
-		              const MathMatrix<elemDim, worldDim> vJT[],
-		              const size_t numIP)
-		{
-		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
-			const ReferenceObjectID roid = pElem->reference_object_id();
-
-			try{
-		//	get trial space
-			const LocalShapeFunctionSet<elemDim>& rTrialSpace =
-							LocalFiniteElementProvider::get<elemDim>(roid, m_scalarData.id());
-
-		//	number of dofs on element
-			const size_t num_sh = rTrialSpace.num_sh();
-
-		//	get multiindices of element
-			std::vector<DoFIndex> ind;  // 	aux. index array
-			m_scalarData.dof_indices(pElem, ind);
-
-		//	check multi indices
-			if(ind.size() != num_sh)
-				UG_THROW("H1ErrorIntegrand::evaluate: Wrong number of"
-						" multi indices.");
-
-		//	loop all integration points
-			std::vector<MathVector<elemDim> > vLocGradient(num_sh);
-			for(size_t ip = 0; ip < numIP; ++ip)
-			{
-
-			//	compute shape gradients at ip
-				rTrialSpace.grads(&vLocGradient[0], vLocIP[ip]);
-
-			// 	compute approximated solution at integration point
-				number approxSolIP = 0.0;
-				MathVector<elemDim> locTmp; VecSet(locTmp, 0.0);
-				for(size_t sh = 0; sh < num_sh; ++sh)
-				{
-				//	get value at shape point (e.g. corner for P1 fct)
-					const number valSH = DoFRef(m_scalarData.grid_function(), ind[sh]);
-
-				//	add shape fct at ip * value at shape
-					approxSolIP += valSH * rTrialSpace.shape(sh, vLocIP[ip]);
-
-				//	add gradient at ip
-					VecScaleAppend(locTmp, valSH, vLocGradient[sh]);
-				}
-
-			//	compute global gradient
-				MathVector<worldDim> approxGradIP;
-				MathMatrix<worldDim, elemDim> JTInv;
-				Inverse(JTInv, vJT[ip]);
-				MatVecMult(approxGradIP, JTInv, locTmp);
-
-			//	get squared of difference
-				vValue[ip] = approxSolIP * approxSolIP;
-				vValue[ip] += VecDot(approxGradIP, approxGradIP);
-			}
-
-			}
-			UG_CATCH_THROW("H1SemiNormFuncIntegrand::evaluate: trial space missing.");
-		};
-};
-
-template <typename TGridFunction>
-number H1Norm(TGridFunction& u, const char* cmp,
-			   int quadOrder, const char* subsets=NULL)
-{
-//	get function id of name
-	const size_t fct = u.fct_id_by_name(cmp);
-
-//	check that function exists
-	if(fct >= u.num_fct())
-		UG_THROW("H1Norm: Function space does not contain"
-				" a function with name " << cmp << ".");
-
-	H1NormIntegrand<TGridFunction> spIntegrand(u, fct);
-	return sqrt(IntegrateSubsets(spIntegrand, u, subsets, quadOrder));
-}
-
-template <typename TGridFunction>
-number H1Norm(SmartPtr<TGridFunction> spGridFct, const char* cmp,
-			   int quadOrder, const char* subsets)
-{
-	return H1Norm(*spGridFct, cmp, quadOrder, subsets);
-}
-
-template <typename TGridFunction>
-number H1Norm( SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOrder)
-{
-	return H1Norm(*spGridFct, cmp, quadOrder, NULL);
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Standard Integrand

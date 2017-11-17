@@ -230,6 +230,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 		string name = string("IComponentSpace").append(suffix);
 		reg.add_class_<T, TBase>(name, grp);
+
 		reg.add_class_to_group(name, "IComponentSpace", tag);
 	}
 
@@ -262,6 +263,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 		   .template add_constructor<void (*)(const char *, int, number, SmartPtr<TWeight>) >("fctNames, order, scale, weights")
 		   .add_method("set_weight", &T::set_weight)
 		   .add_method("get_weight", &T::get_weight)
+		   .add_method("norm", static_cast<number (T::*)(TFct&) const> (&T::norm))
+		   .add_method("distance", static_cast<number (T::*)(TFct&, TFct&) const> (&T::distance))
 		   .set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "H1SemiComponentSpace", tag);
 	}
@@ -280,15 +283,33 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "H1ComponentSpace", tag);
 	}
 
+	// TimeDependentSpace
+	{
+		typedef TimeDependentSpace<TFct> T;
+		typedef IGridFunctionSpace<TFct> TBase;
+
+		typedef IComponentSpace<TFct> TCompSpace;
+
+		string name = string("TimeDependentSpace").append(suffix);
+		reg.add_class_<T, TBase>(name, grp)
+				.template add_constructor<void (*)(SmartPtr<TCompSpace>, number) >("component space")
+				.add_method("update_time_data", &T::update_time_data)
+				.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "TimeDependentSpace", tag);
+	}
+
+
 	// CompositeSpace
 	{
 			typedef CompositeSpace<TFct> T;
-			typedef IComponentSpace<TFct> TBase;
+			typedef IGridFunctionSpace<TFct> TBase;
 
 			string name = string("CompositeSpace").append(suffix);
 			reg.add_class_<T, TBase>(name, grp)
-			   .template add_constructor<void (*)(const char *) >("fctNames")
+			   .template add_constructor<void (*)() >("")
 			   .add_method("add", &T::add)
+			   .add_method("update_time_data", &T::update_time_data)
+			   .add_method("is_time_dependent", &T::is_time_dependent)
 			   .set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "CompositeSpace", tag);
 	}
