@@ -71,7 +71,7 @@ class NestedIterationSolver
 	///	Matrix type
 		typedef typename TAlgebra::matrix_type matrix_type;
 
-	///	Grid Function type
+	///	GridFunction type
 		typedef GridFunction<TDomain, TAlgebra> grid_function_type;
 
 	public:
