@@ -124,6 +124,8 @@ NestedIterationSolver(SmartPtr<IAssemble<TAlgebra> > spAss, SmartPtr<IAssemble<T
 	m_N = SmartPtr<AssembledOperator<TAlgebra> >(new AssembledOperator<TAlgebra>(m_spAss));
 };
 
+
+/*! Requires an AssembledOperator */
 template <typename TDomain, typename TAlgebra>
 bool NestedIterationSolver<TDomain,TAlgebra>::init(SmartPtr<IOperator<vector_type> > N)
 {
@@ -145,14 +147,15 @@ bool NestedIterationSolver<TDomain,TAlgebra>::prepare(vector_type& u)
 }
 
 
-//! Performs refinement and provides error estimate
+//! Refines domain and provides error estimate.
+/*! Values depend on m_spDomErr */
 template <typename TDomain, typename TAlgebra>
 number NestedIterationSolver<TDomain,TAlgebra>::refine_domain(const grid_function_type& u)
 {
 	  UG_LOG("Computing error... "<< std::endl);
 
 	  typedef DomainDiscretization<TDomain, TAlgebra> domain_disc_type;
-	  typedef IDomainErrorIndicator<TAlgebra> domain_indicator_type;
+	//  typedef IDomainErrorIndicator<TAlgebra> domain_indicator_type;
 
 	  SmartPtr<domain_disc_type> spDomainEstimator = m_spDomErr.template cast_dynamic<domain_disc_type>();
 
@@ -189,7 +192,7 @@ number NestedIterationSolver<TDomain,TAlgebra>::coarsen_domain(const grid_functi
 }
 
 
-//! apply solver for top level grid function
+//! Apply solver for top level grid function
 /*! returns: approximation by nested iteration. Input values are ignored.
  *
  * */
@@ -200,7 +203,8 @@ bool NestedIterationSolver<TDomain,TAlgebra>::apply(vector_type& u)
 	// UG_ASSERT(0, "Not implemented!")
 #endif
 	NESTED_ITER_PROFILE_BEGIN(NestedIterationSolver_apply);
-//	increase call count
+
+	//	increase call count
 	m_dgbCall++;
 	grid_function_type &usol = dynamic_cast<grid_function_type&>(u);
 
@@ -208,11 +212,11 @@ bool NestedIterationSolver<TDomain,TAlgebra>::apply(vector_type& u)
 	UG_ASSERT (usol.grid_level().top(), "Must supply top level grid function");
 	const GridLevel& surfGridLevel = usol.grid_level();
 
-//	Check for linear solver
+	// Check for linear solver.
 	if(m_spLinearSolver.invalid())
 		UG_THROW("NestedIterationSolver::apply: Linear Solver not set.");
 
-//	Jacobian
+	// Check for Jacobian.
 	if(m_J.invalid() || m_J->discretization() != m_spAss) {
 		m_J = make_sp(new AssembledLinearOperator<TAlgebra>(m_spAss));
 	}
@@ -221,13 +225,12 @@ bool NestedIterationSolver<TDomain,TAlgebra>::apply(vector_type& u)
 	UG_LOG("N level: "<<m_N->level()<< std::endl);
 	UG_LOG("u level: "<< usol.grid_level() << std::endl);
 
-//	create tmp vectors
+	// Create tmp vectors
 	SmartPtr<vector_type> spD = u.clone_without_values();
 
 	char ext[50];
 	int loopCnt = 0;
 	m_lastNumSteps = 0;
-
 	{
 		//	write start defect for debug
 		sprintf(ext, "_call%03d", m_dgbCall);
@@ -236,21 +239,20 @@ bool NestedIterationSolver<TDomain,TAlgebra>::apply(vector_type& u)
 		write_debug(u, name.c_str());
 	}
 
-	// assemble (loop over all levels)
+	// Assembly loop (from some coarse level to TOP)
 	int surfLevel = usol.grid_level().level();  // todo: should start on coarse(r) levels
 	m_topLevel = surfLevel+m_maxSteps;
 	for (int lev=surfLevel; lev<m_topLevel; ++lev)
 	{
+		/* OLD LUA CODE:
+		 *  globalDisc:assemble_linear(A, b)
+		 * 	globalDisc:adjust_solution(u)
+		 * 	solver:init(A)
+		 * 	solver:apply_return_defect(u,b)
+		 * 	// globalDisc:adjust_solution(u)
+		 */
 
-	//  assemble
-	/*
-	 *  globalDisc:assemble_linear(A, b)
-	 * 	globalDisc:adjust_solution(u)
-	 * 	solver:init(A)
-	 * 	solver:apply_return_defect(u,b)
-	 * 	// globalDisc:adjust_solution(u)
-	 *
-	 */
+		// Assemble.
 		NESTED_ITER_PROFILE_BEGIN(NestedIterationAssemble);
 		m_spAss->assemble_linear(*m_J, *spD, surfGridLevel);   // todo: replace for non-linear problems
 		m_spAss->adjust_solution(u, surfGridLevel);
@@ -270,7 +272,7 @@ bool NestedIterationSolver<TDomain,TAlgebra>::apply(vector_type& u)
 			write_debug(m_J->get_matrix(), matname.c_str());
 		}
 
-	// 	Init Jacobi Inverse
+		// Initialize inverse of Jacobian.
 		try{
 			NESTED_ITER_PROFILE_BEGIN(NestedIterationPrepareLinSolver);
 			if(!m_spLinearSolver->init(m_J, u))
@@ -282,7 +284,7 @@ bool NestedIterationSolver<TDomain,TAlgebra>::apply(vector_type& u)
 			NESTED_ITER_PROFILE_END();
 		}UG_CATCH_THROW("NestedIterationSolver::apply: Initialization of Linear Solver failed.");
 
-	// 	Solve Linearized System
+		// Solve linearized system.
 		try{
 		NESTED_ITER_PROFILE_BEGIN(NewtonApplyLinSolver);
 		if(!m_spLinearSolver->apply(u, *spD))
@@ -294,9 +296,8 @@ bool NestedIterationSolver<TDomain,TAlgebra>::apply(vector_type& u)
 		NESTED_ITER_PROFILE_END();
 		}UG_CATCH_THROW("NestedIterationSolver::apply: Application of Linear Solver failed.");
 
-
+		// Adjust solution.
 		m_spAss->adjust_solution(u, surfGridLevel);
-
 		{
 			//	write defect for debug
 			std::string name("NESTED_ITER_FinalDefect"); name.append(ext);
@@ -305,15 +306,16 @@ bool NestedIterationSolver<TDomain,TAlgebra>::apply(vector_type& u)
 			write_debug(u, name3.c_str());
 		}
 
-		//	update counter
+		// Update counter.
 		loopCnt++;
 
+		// Quit?
 		if (use_adaptive_refinement() == false) {
 			UG_LOG("SUCCESS: Non-adaptive version!" <<  std::endl);
 			break;
 		}
 
-		// check error
+		// Refine domain and check error.
 		number err = this->refine_domain(usol);
 
 		 if (m_spElemError.valid())
@@ -325,7 +327,7 @@ bool NestedIterationSolver<TDomain,TAlgebra>::apply(vector_type& u)
 			 outError.print(name.c_str(), *m_spElemError);
 		}
 
-		// quit or continue?
+		// Quit or continue?
 		if(err < m_TOL)
 		{
 			UG_LOG("SUCCESS: Error smaller than tolerance: " << err << " < "<< m_TOL << std::endl);
