@@ -138,7 +138,8 @@ inline void Waitall(std::vector<MPI_Request> &requests, std::vector<MPI_Status> 
 //	StartWait();
 	PROFILE_FUNC_GROUP("mpi");
 	assert(requests.size() == statuses.size());
-	pcl::MPI_Waitall(requests.size(), &requests[0], &statuses[0]);
+	if(requests.size() > 0)
+		pcl::MPI_Waitall(requests.size(), &requests[0], &statuses[0]);
 //	StopWait();
 }
 

@@ -55,14 +55,15 @@ MultiGroupCommunicator (const std::vector<bool>& participates,
 void MultiGroupCommunicator::
 reinit (const std::vector<bool>& participates)
 {
+// UG_LOG("<dbg> REINIT STARTS\n");
 	m_participates = participates;
 
 //	build group list
-	vector<int>	memIndFromGrpInd (participates.size(), -1);
+	vector<int>	memIndFromGrpInd (m_participates.size(), -1);
 
 	m_memberships.clear();
-	for(size_t i = 0; i < participates.size(); ++i){
-		if(participates[i]){
+	for(size_t i = 0; i < m_participates.size(); ++i){
+		if(m_participates[i]){
 			memIndFromGrpInd [i] = (int) m_memberships.size();
 			m_memberships.push_back (i);
 		}
@@ -76,15 +77,28 @@ reinit (const std::vector<bool>& participates)
 	m_com.allgatherv (memLists, m_memberships, &memListSizes, &memListOffsets);
 
 
-//	collect sizes of all groups in which this process participates
+	if(m_memberships.empty()){
+		m_groupMembers.clear();
+		m_groupOffsets.resize(1, 0);
+		// UG_LOG("<dbg> REINIT ENDS EARLY\n");
+		return;
+	}
+
+//	collect sizes of all groups in which this process m_participates
 	vector<size_t>	grpSizes (m_memberships.size(), 0);
+
+	// UG_LOG("  m_memberships.size() = " << m_memberships.size() << std::endl);
+	// UG_LOG("  memLists.size() = " << memLists.size() << std::endl);
+	// UG_LOG("  memListSizes.size() = " << memListSizes.size() << std::endl);
+	// UG_LOG("  memListOffsets.size() = " << memListOffsets.size() << std::endl);
+	// UG_LOG("  m_com.size() = " << m_com.size() << std::endl);
 
 	for(size_t iproc = 0; iproc < m_com.size(); ++iproc){
 		const int numMems = memListSizes [iproc];
 		const int o = memListOffsets [iproc];
 		for(int i = 0; i < numMems; ++i){
 			const size_t igrp = memLists [o + i];
-			if (participates [igrp]){
+			if (m_participates [igrp]){
 				++ grpSizes[memIndFromGrpInd[igrp]];
 			}
 		}
@@ -110,13 +124,14 @@ reinit (const std::vector<bool>& participates)
 
 		for(size_t i = 0; i < s; ++i){
 			const size_t igrp = memLists [o + i];
-			if(participates [igrp]) {
+			if(m_participates [igrp]) {
 				const int imem = memIndFromGrpInd [igrp];
 				m_groupMembers [m_groupOffsets [imem] + grpMemFillCount [imem]] = iproc;
 				++ grpMemFillCount [imem];
 			}
 		}
 	}
+// UG_LOG("<dbg> REINIT ENDS\n");
 }
 
 bool MultiGroupCommunicator::

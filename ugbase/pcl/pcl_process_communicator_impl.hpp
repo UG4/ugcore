@@ -135,6 +135,15 @@ allgatherv(std::vector<TValue>& recBufOut,
 		totalSize += sizes[i];
 	}
 
+	if(totalSize == 0){
+		recBufOut.resize(0);
+		if(pSizesOut)
+			pSizesOut->resize (0);
+		if(pOffsetsOut)
+			pOffsetsOut->resize (0);
+		return;
+	}
+
 	//	all procs now know all sizes. We can now gather the connections.
 	recBufOut.resize(totalSize / sizeof(TValue));
 	allgatherv(GetDataPtr(sendBuf), localSize, PCL_DT_BYTE,

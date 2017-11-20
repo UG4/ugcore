@@ -44,12 +44,18 @@ void MultiGroupCommunicator::
 allreduce (const T *sendBuf, T *recvBuf,
 		   size_t countPerGroup, ReduceOperation op) const
 {
+// UG_LOG("<dbg> allreduce STARTS\n");
 //todo: If groups are big (e.g. >= 0.25*m_com.size()) an MPI allreduce
 //		possibly on sub-communicators could be beneficial.
 
 //todo:	Performance may be gained if multiple sends from one proc to another
 //		would be handled in just one send.
 	using namespace std;
+
+	if(m_memberships.empty()){
+		// UG_LOG("<dbg> allreduce ENDS EARLY\n");
+		return;
+	}
 
 	const int tag = 4378;
 	const int procRank = m_com.get_local_proc_id ();
@@ -58,6 +64,7 @@ allreduce (const T *sendBuf, T *recvBuf,
 	size_t numSends = 0;
 	size_t numRecvs = 0;
 
+// UG_LOG("<dbg> 1\n");
 //	(1) collect values of all procs on the root of each group (first proc in group)
 //	get number of requried sends/receives
 	{
@@ -115,7 +122,7 @@ allreduce (const T *sendBuf, T *recvBuf,
 		Waitall (sendRequests);
 		Waitall (recvRequests);
 	}
-
+// UG_LOG("<dbg> 2\n");
 //	(2) apply the reduce operation
 	{
 		Reducer<T> reducer (op);
@@ -146,7 +153,7 @@ allreduce (const T *sendBuf, T *recvBuf,
 			}
 		}
 	}
-
+// UG_LOG("<dbg> 3\n");
 //	(3) send values from group-roots to all group members
 	{
 	//	we have to send data to each process from which we received data and vice versa
@@ -192,6 +199,7 @@ allreduce (const T *sendBuf, T *recvBuf,
 		Waitall (sendRequests);
 		Waitall (recvRequests);
 	}
+// UG_LOG("<dbg> allreduce ENDS\n");
 }
 
 }//	end of namespace

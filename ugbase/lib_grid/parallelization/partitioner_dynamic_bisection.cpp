@@ -1171,6 +1171,8 @@ improve_split_values(vector<TreeNode>& treeNodes,
 
 	vector<double> weights, gWeights;
 
+	// UG_LOG("  mgcom.num_memberships() = " << mgcom.num_memberships() << std::endl);
+
 	weights.resize (mgcom.num_memberships() * NUM_CONSTANTS);
 	gWeights.resize (weights.size());
 
@@ -1210,7 +1212,7 @@ improve_split_values(vector<TreeNode>& treeNodes,
 
 	//todo:	this should probably be replaced by 'mgcom.allreduce'
 		if (com.allreduce (char(allAreDone), PCL_RO_LAND)){
-			UG_LOG("improve_split_values done after " << iteration + 1 << " iterations.\n");
+			// UG_LOG("improve_split_values done after " << iteration + 1 << " iterations.\n");
 			break;
 		}
 
