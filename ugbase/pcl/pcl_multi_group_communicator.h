@@ -41,7 +41,11 @@ namespace pcl {
 
 ///	communicator for simultaneous data exchange between many small groups
 /**	The MultiGroupCommunicator allows for a process to be member in various small groups
- * and to perform collective operations on those groups.*/
+ * and to perform collective operations on those groups.
+ *
+ * \warning The communicator is currently in development and not ready to use!
+ *			Segfaults may arise during or after application. Debugging required!
+ */
 class MultiGroupCommunicator {
 public:
 	MultiGroupCommunicator (ProcessCommunicator com = ProcessCommunicator());

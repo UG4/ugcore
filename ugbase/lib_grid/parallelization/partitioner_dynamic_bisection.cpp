@@ -39,7 +39,6 @@
 #include "lib_grid/algorithms/attachment_util.h"
 #include "lib_grid/algorithms/subset_util.h"
 #include "lib_grid/iterators/lg_for_each.h"
-#include "pcl/pcl_multi_group_communicator.h"
 
 using namespace std;
 
@@ -1146,6 +1145,124 @@ improve_split_values(vector<TreeNode>& treeNodes,
 					 size_t maxIterations, ANumber aWeight,
 					 pcl::ProcessCommunicator& com)
 {
+	vector<bool> gotSplitValue(treeNodes.size(), false);
+	for(size_t iNode = 0; iNode < treeNodes.size(); ++iNode){
+		if(treeNodes[iNode].firstChildNode == s_invalidIndex)
+			gotSplitValue[iNode] = true;
+	}
+
+	Grid::AttachmentAccessor<elem_t, ANumber> aaWeight(*m_mg, aWeight);
+	vector<double> weights, gWeights;
+	weights.reserve(treeNodes.size() * NUM_CONSTANTS);
+
+	for(size_t iteration = 0; iteration < maxIterations; ++iteration){
+		weights.assign(treeNodes.size() * NUM_CONSTANTS, 0);
+
+		for(size_t iNode = 0; iNode < treeNodes.size(); ++iNode){
+			if(gotSplitValue[iNode])
+				continue;
+
+			TreeNode& tn = treeNodes[iNode];
+//			UG_LOG(">node " << iNode << " sv: " << tn.splitValue
+//					<< ", svmin: " << tn.minSplitValue << ", svmax: " << tn.maxSplitValue << "\n");
+
+			size_t firstWgt = iNode * NUM_CONSTANTS;
+			ElemList& elems = tn.elems;
+
+			for(size_t i = elems.first(); i != s_invalidIndex; i = elems.next(i)){
+				elem_t* e = elems.elem(i);
+				int location = classify_elem(e, tn.splitAxis, tn.splitValue);
+				weights[firstWgt + location] += aaWeight[e];
+				weights[firstWgt + TOTAL] += aaWeight[e];
+				if(location == CUTTING){
+					if(CalculateCenter(e, m_aaPos)[tn.splitAxis] < tn.splitValue)
+						weights[firstWgt + CUTTING_CENTER_LEFT] += aaWeight[e];
+					else
+						weights[firstWgt + CUTTING_CENTER_RIGHT] += aaWeight[e];
+				}
+			}
+		}
+
+		com.allreduce(weights, gWeights, PCL_RO_SUM);
+
+	//		UG_LOG("weights unclassified: " << gWeights[UNCLASSIFIED] << endl);
+	//		UG_LOG("weights left: " << gWeights[LEFT] << endl);
+	//		UG_LOG("weights right: " << gWeights[RIGHT] << endl);
+	//		UG_LOG("weights cutting: " << gWeights[CUTTING] << endl);
+	//		UG_LOG("weights cutting-center-left: " << gWeights[CUTTING_CENTER_LEFT] << endl);
+	//		UG_LOG("weights cutting-center-right: " << gWeights[CUTTING_CENTER_RIGHT] << endl);
+	//		UG_LOG("weights total: " << gWeights[TOTAL] << endl);
+
+	//	check whether both sides are below the splitRatio
+		for(size_t iNode = 0; iNode < treeNodes.size(); ++iNode){
+//			UG_LOG("NODE " << iNode << "\n");
+			if(gotSplitValue[iNode])
+				continue;
+
+//			UG_LOG("improving split value of node " << iNode << endl);
+			TreeNode& tn = treeNodes[iNode];
+//			UG_LOG("Node ratio left: " << tn.ratioLeft << endl);
+
+			size_t firstWgt = iNode * NUM_CONSTANTS;
+			if(gWeights[firstWgt + TOTAL] > 0){
+				bool leftOk = (gWeights[firstWgt + LEFT] / gWeights[firstWgt + TOTAL] <= tn.ratioLeft);
+				bool rightOk = (gWeights[firstWgt + RIGHT] / gWeights[firstWgt + TOTAL] <= (1. - tn.ratioLeft));
+
+				if(!(leftOk && rightOk)){
+				//	check if the ratio would be good if we also considered those with CENTER_LEFT and CENTER_RIGHT
+					number ratioLeft = (gWeights[firstWgt + LEFT] + gWeights[firstWgt + CUTTING_CENTER_LEFT])
+										/ (gWeights[firstWgt + TOTAL] * tn.ratioLeft);
+					number ratioRight = (gWeights[firstWgt + RIGHT] + gWeights[firstWgt + CUTTING_CENTER_RIGHT])
+										/ (gWeights[firstWgt + TOTAL] * (1. - tn.ratioLeft));
+
+					if((ratioLeft > m_tolerance) && (ratioRight > m_tolerance)){
+//						UG_LOG(" ratio-for-center-split: " << ratio << endl);
+//						UG_LOG(" center split\n");
+					//	the split-value is fine!
+						gotSplitValue[iNode] = true;
+						continue;
+					}
+				}
+
+				if(!leftOk){
+//					UG_LOG("left with ratio: " << (number)gWeights[firstWgt + LEFT] / (number)gWeights[firstWgt + TOTAL] << endl);
+				//	move the split-value to the left
+					tn.maxSplitValue = tn.splitValue;
+					tn.splitValue = (tn.minSplitValue + tn.splitValue) / 2.;
+				}
+				else if(!rightOk){
+//					UG_LOG("right with ratio: " << (number)gWeights[firstWgt + RIGHT] / (number)gWeights[firstWgt + TOTAL] << endl);
+				//	move the split-value to the right
+					tn.minSplitValue = tn.splitValue;
+					tn.splitValue = (tn.splitValue + tn.maxSplitValue) / 2.;
+				}
+				else{
+//					UG_LOG("Got good split value: " << tn.splitValue << "\n");
+				//	the split value seems to be fine
+					gotSplitValue[iNode] = true;
+				}
+			}
+		}
+	}
+}
+
+
+// The code below uses the new pcl::MultiGroupCommunicator.
+// Since the MultiGroupCommunicator seems to have some flaws, it is currently left
+// here.
+//
+// The following code lead to a segfault early on (cesari):
+// salloc -n 3 mpirun -n 3 ugshell -ex skin/skin.lua -adaptive
+//
+// Mid term goal: Debug MultiGroupCommunicator and use the code below instead
+// of the code above (date: Nov 17, author: sreiter)
+/*
+template <class TElem, int dim>
+void Partitioner_DynamicBisection<TElem, dim>::
+improve_split_values(vector<TreeNode>& treeNodes,
+					 size_t maxIterations, ANumber aWeight,
+					 pcl::ProcessCommunicator& com)
+{
 	GDIST_PROFILE_FUNC();
 	vector<bool> gotSplitValue(treeNodes.size(), false);
 	vector<bool> participates (treeNodes.size(), false);
@@ -1279,7 +1396,7 @@ improve_split_values(vector<TreeNode>& treeNodes,
 		}
 	}
 }
-
+*/
 
 template class Partitioner_DynamicBisection<Edge, 1>;
 template class Partitioner_DynamicBisection<Edge, 2>;
