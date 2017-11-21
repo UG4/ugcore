@@ -114,8 +114,12 @@ util.balancer.defaults =
 			balanceWeights = nil,
 			communicationWeights = nil,
 			verbose = false,
+			numLevels = 0,
 			refine = false,
-			balanceThreshold = 0.9
+			tolerance = 0.1,
+			reductionFactor = 2, -- only applied if numLevels = 0
+			thresholdStrategy = "heaviest_edge_weight",
+			thresholdValue = 0.0
 		}
 	},
 
@@ -308,14 +312,47 @@ function util.balancer.CreatePartitioner(dom, partitionerDesc)
 		RequiredPlugins({"StreamlinePartitioner"})
 
 		partitioner = StreamlinePartitioner(dom:grid())
-		partitioner:set_verbose(verbose)
-		partitioner:set_refine(refine or defaults.refine)
+		-- Balance and communication weights
 		if util.tableDesc.IsPreset(desc.balanceWeights) then
 			partitioner:set_balance_weights(desc.balanceWeights)
 		end
 		if util.tableDesc.IsPreset(desc.communicationWeights) then
 			partitioner:set_communication_weights(desc.communicationWeights)
 		end
+
+		partitioner:set_verbose(verbose)
+		-- Apply refinement strategy
+		partitioner:set_refine(desc.refine or defaults.refine)
+		-- Number of levels for coarsening
+		if desc.numLevels ~= nil then
+			partitioner:set_num_levels(desc.numLevels)
+		else
+			partitioner:set_num_levels(defaults.numLevels)
+		end
+		-- Tolerance for node size during coarsening
+		if desc.tolerance ~= nil then
+			partitioner:set_tolerance(desc.tolerance)
+		else
+			partitioner:set_tolerance(defaults.tolerance)
+		end
+		-- Reduction factor, if numLevels = 0
+		if desc.reductionFactor ~= nil then
+			partitioner:set_reduction_factor(desc.reductionFactor)
+		else
+			partitioner:set_reduction_factor(defaults.reductionFactor)
+		end
+		-- Threshold strategy and value for merging nodes during coarsening
+		if desc.thresholdStrategy ~= nil then
+			partitioner:set_threshold_strategy(desc.thresholdStrategy)
+		else
+			partitioner:set_threshold_strategy(defaults.thresholdStrategy)
+		end
+		if desc.thresholdValue ~= nil then
+			partitioner:set_threshold_value(desc.thresholdValue)
+		else
+			partitioner:set_threshold_value(defaults.thresholdValue)
+		end
+		
 	else
 		print("ERROR: Unknown partitioner specified in balancer.CreateLoadBalancer: " .. name)
 		exit()
