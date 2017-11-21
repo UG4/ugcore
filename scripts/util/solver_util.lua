@@ -488,11 +488,13 @@ util.solver.defaults =
 		},
 		
 		gs = {
-			consistentInterfaces = false
+			consistentInterfaces = false,
+			overlap 			 = false
 		},
 
 		sgs = {
-			consistentInterfaces = false
+			consistentInterfaces = false,
+			overlap 			 = false
 		},
 
 		jac = {
@@ -728,9 +730,11 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 	elseif name == "gs"   then
 		precond = GaussSeidel ()
 		precond:enable_consistent_interfaces(desc.consistentInterfaces or defaults.consistentInterfaces)
+		precond:enable_overlap(desc.overlap or defaults.overlap)
 	elseif name == "sgs"  then
 		precond = SymmetricGaussSeidel ()
 		precond:enable_consistent_interfaces(desc.consistentInterfaces or defaults.consistentInterfaces)
+		precond:enable_overlap(desc.overlap or defaults.overlap)
 	elseif name == "egs"  then precond = ElementGaussSeidel ();
 
 	elseif name == "gmg"  then 

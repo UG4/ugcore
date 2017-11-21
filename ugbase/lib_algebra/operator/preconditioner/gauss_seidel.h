@@ -38,6 +38,7 @@
 #include "lib_algebra/algebra_common/sparsematrix_util.h"
 #ifdef UG_PARALLEL
 	#include "lib_algebra/parallelization/parallelization.h"
+	#include "lib_algebra/parallelization/matrix_overlap.h"
 	#include "lib_algebra/parallelization/parallel_matrix_overlap_impl.h"
 #endif
 
@@ -69,7 +70,10 @@ class GaussSeidelBase : public IPreconditioner<TAlgebra>
 
 	public:
 	//	Constructor
-		GaussSeidelBase() : m_relax(1.0), m_bConsistentInterfaces(false) {}
+		GaussSeidelBase() :
+			m_relax(1.0),
+			m_bConsistentInterfaces(false),
+			m_useOverlap(false) {};
 
 	/// clone constructor
 		GaussSeidelBase( const GaussSeidelBase<TAlgebra> &parent )
@@ -84,6 +88,8 @@ class GaussSeidelBase : public IPreconditioner<TAlgebra>
 	///	activates the new parallelization approach (disabled by default)
 		void enable_consistent_interfaces(bool enable) {m_bConsistentInterfaces = enable;}
 
+		void enable_overlap (bool enable) {m_useOverlap = enable;}
+
 		virtual const char* name() const = 0;
 	protected:
 
@@ -97,7 +103,15 @@ class GaussSeidelBase : public IPreconditioner<TAlgebra>
 #ifdef UG_PARALLEL
 			if(pcl::NumProcs() > 1)
 			{
-				if (m_bConsistentInterfaces)
+				if(m_useOverlap){
+					m_A = *pOp;
+					CreateOverlap(m_A);
+					m_oD.set_layouts(m_A.layouts());
+					m_oC.set_layouts(m_A.layouts());
+					m_oD.resize(m_A.num_rows(), false);
+					m_oC.resize(m_A.num_rows(), false);
+				}
+				else if (m_bConsistentInterfaces)
 				{
 					m_A = *pOp;
 					MatMakeConsistentOverlap0(m_A);
@@ -137,7 +151,22 @@ class GaussSeidelBase : public IPreconditioner<TAlgebra>
 #ifdef UG_PARALLEL
 			if(pcl::NumProcs() > 1)
 			{
-				if (m_bConsistentInterfaces)
+				if(m_useOverlap){
+					for(size_t i = 0; i < d.size(); ++i)
+						m_oD[i] = d[i];
+					for(size_t i = d.size(); i < m_oD.size(); ++i)
+						m_oD[i] = 0;
+					m_oD.set_storage_type(PST_ADDITIVE);
+					m_oD.change_storage_type(PST_CONSISTENT);
+
+					step(m_A, m_oC, m_oD, m_relax);
+
+					for(size_t i = 0; i < c.size(); ++i)
+						c[i] = m_oC[i];
+					SetLayoutValues(&c, c.layouts()->slave(), 0);
+					c.set_storage_type(PST_UNIQUE);
+				}
+				else if (m_bConsistentInterfaces)
 				{
 					UG_COND_THROW(!d.has_storage_type(PST_ADDITIVE), "Additive or unique defect expected.");
 					step(m_A, c, d, m_relax);
@@ -179,10 +208,15 @@ class GaussSeidelBase : public IPreconditioner<TAlgebra>
 #endif
 
 	protected:
-		//	relaxation parameter
+	///	relaxation parameter
 		number m_relax;
 
+	///	for overlaps only
+		vector_type m_oD;
+		vector_type m_oC;
+
 		bool m_bConsistentInterfaces;
+		bool m_useOverlap;
 };
 
 /// Gauss-Seidel preconditioner for the 'forward' ordering of the dofs

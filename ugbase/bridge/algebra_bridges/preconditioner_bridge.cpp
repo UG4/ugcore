@@ -176,6 +176,7 @@ static void Algebra(Registry& reg, string grp)
 		string name = string("GaussSeidelBase").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "Gauss-Seidel Base")
 			.add_method("enable_consistent_interfaces", &T::enable_consistent_interfaces, "", "enable", "makes the matrix and defect consistent at the proc. interfaces")
+			.add_method("enable_overlap", &T::enable_overlap, "", "enable", "Enables matrix overlap. This also means that interfaces are consistent.")
 			.add_method("set_sor_relax", &T::set_sor_relax,
 					"", "sor relaxation", "sets sor relaxation parameter");
 		reg.add_class_to_group(name, "GaussSeidelBase", tag);
