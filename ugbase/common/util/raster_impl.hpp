@@ -490,6 +490,101 @@ no_data_value() const
 	return m_noDataValue;
 }
 
+// template <class T, int TDIM>
+// void Raster<T, TDIM>::
+// blur(number alpha, size_t iterations)
+// {
+// 	const MultiIndex start(0);
+// 	for(size_t iiter = 0; iiter < iterations; ++iiter){
+// 		for(int idim = 0; idim < TDIM; ++idim){
+// 			blur_recursion(alpha, start, TDIM - 1, idim);
+// 		}
+
+// 	//	normalize blur sums
+// 		blur_normalize_recursion(alpha, MultiIndex(0), TDIM - 1);
+// 	}
+// }
+
+// template <class T, int TDIM>
+// void Raster<T, TDIM>::
+// blur_sum_recursion(number alpha, const MultiIndex& start, int curDim, int blurDim)
+// {
+// 	if(curDim == blurDim){
+// 		if(curDim == 0) {
+// 			blur_sum(alpha, start, blurDim);
+// 		}
+// 		else {
+// 			blur_sum_recursion(alpha, start, curDim - 1, blurDim);
+// 			return;
+// 		}
+// 	}
+// 	else if(curDim > 0) {
+// 		const size_t numNodes = num_nodes(curDim);
+// 		for(MultiIndex cur = start; cur[curDim] < numNodes; ++cur[curDim]){
+// 			blur_sum_recursion(alpha, cur, curDim - 1, blurDim);
+// 		}
+// 	}
+// 	else {
+// 		const size_t numNodes = num_nodes(0);
+// 		for(MultiIndex cur = start; cur[0] < numNodes; ++cur[0]){
+// 			blur_sum(alpha, cur, blurDim);
+// 		}
+// 	}
+// }
+
+// template <class T, int TDIM>
+// void Raster<T, TDIM>::
+// blur_sum(number alpha, const MultiIndex& start, int dim)
+// {
+// 	using namespace std;
+// 	const size_t numNodes = num_nodes(dim);
+
+// 	MultiIndex center = start;
+// 	MultiIndex left = start;
+// 	MultiIndex right = start;		
+// 	++right[dim];
+
+// //	blur first
+// 	node_value(center) += alpha * node_value(right);
+
+// //	blur inner values
+// 	for(size_t i = 1; i + 1< numNodes; ++i){
+// 	//	next value
+// 		left = center;
+// 		center = right;
+// 		++right[dim]
+
+// 		node_value(center) += alpha * node_value(left);
+// 		node_value(center) += alpha * node_value(right);
+// 	}
+
+// //	blur last
+// 	node_value(center) += alpha * node_value(left);
+// }
+
+// template <class T, int TDIM>
+// void Raster<T, TDIM>::
+// blur_normalize_recursion(number alpha, const MultiIndex& start, int curDim)
+// {
+// 	else if(curDim > 0) {
+// 		const size_t numNodes = num_nodes(curDim);
+// 		for(MultiIndex cur = start; cur[curDim] < numNodes; ++cur[curDim]){
+// 			blur_normalize_recursion(alpha, cur, curDim - 1);
+// 		}
+// 	}
+// 	else {
+// 		const size_t numNodes = num_nodes(0);
+// 		for(MultiIndex cur = start; cur[0] < numNodes; ++cur[0]){
+// 		//	count valid neighbors
+// 			number counter = 0;
+// 			for(int idim = 0; idim < TDIM; ++idim){
+// 				if(cur[idim] != 0)
+// 					++counter;
+// 				if(cur[idim] )
+// 			}
+// 		}
+// 	}
+// }
 
 template <class T, int TDIM>
 void Raster<T, TDIM>::

@@ -214,8 +214,8 @@ class Raster{
 	///	interpolates the value with the given order at the given coordinate
 		T interpolate (const Coordinate& coord, int order) const;
 
-	// ///	blurs (smoothens) the values by repeatedly averaging between direct neighbors
-	// 	void blur(number alpha, size_t iterations);
+	///	blurs (smoothens) the values by repeatedly averaging between direct neighbors
+		// void blur(number alpha, size_t iterations);
 
 
 	////////////////////////////////////////////////////////////////////////////
@@ -243,6 +243,13 @@ class Raster{
 		T interpolate_at_cursor (int order) const;
 
 	private:
+	// ///	blurs by repeatedly averaging between direct neighbors in one dimension only
+	// 	void blur_recursion(number alpha, size_t iterations, int maxDim, int blurDim);
+
+	// ///	blurs by repeatedly averaging between direct neighbors in one dimension only
+	// 	void blur(number alpha, size_t iterations, const MultiIndex& start, int dim);
+
+
 		size_t data_index (
 					const MultiIndex& mi,
 					int curDim = TDIM - 1,
