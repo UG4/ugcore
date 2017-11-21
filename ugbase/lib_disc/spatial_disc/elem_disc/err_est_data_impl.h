@@ -910,7 +910,7 @@ number SideAndElemErrEstData<TDomain>::get_elem_error_indicator(GridObject* pEle
 		// therefore, up to a constant, error estimator can calculate diam as sqrt(vol(side))
 		if (dim==1)      { diamE = 1.0; }
 		else if (dim==2) { diamE = ElementSize<dim>(side_roid, &vSideCornerCoords[0]); }
-		else if (dim==2) { diamE = std::sqrt(ElementSize<dim>(side_roid, &vSideCornerCoords[0])); }
+		else if (dim==3) { diamE = std::sqrt(ElementSize<dim>(side_roid, &vSideCornerCoords[0])); }
 		else { UG_THROW("Unknown dimension!!!"); }
 
 		// add to error indicator
