@@ -215,8 +215,69 @@ class Raster{
 		T interpolate (const Coordinate& coord, int order) const;
 
 	///	blurs (smoothens) the values by repeatedly averaging between direct neighbors
-		// void blur(number alpha, size_t iterations);
+		void blur(T alpha, size_t iterations);
 
+
+	/// Creates and runs the specified kernel on all nodes and returns its result
+	/** The class TKernel has to feature a default constructor, a typedef 'result_t',
+	 * and a method 'result_t result() const'.
+	 *
+	 * Like all kernels, it furthermore has to specify a method
+	 * \code
+	 * void operator () (Raster<T, TDIM>& raster,
+	 *			   		 const typename Raster<T, TDIM>::MultiIndex& cur);
+	 * \endcode
+	 */
+		template <class TKernel>
+		typename TKernel::result_t
+		run_on_all();
+
+	/// Runs the specified kernel on all nodes
+	/** TKernel can either be a function or a class with an 'operator()'.
+	 * The signature should be as follows:
+	 * \code
+	 * void Func (Raster<T, TDIM>& raster,
+	 *			  const typename Raster<T, TDIM>::MultiIndex& cur);
+	 * \endcode
+	 * or
+	 * \code
+	 * void operator () (Raster<T, TDIM>& raster,
+	 *			   		 const typename Raster<T, TDIM>::MultiIndex& cur);
+	 * \endcode
+	 */
+		template <class TKernel>
+		void run_on_all(TKernel& kernel);
+
+
+	/// Creates and runs the specified kernel on all direct neighbors of a node and returns its result
+	/** The class TKernel has to feature a default constructor, a typedef 'result_t',
+	 * and a method 'result_t result() const'.
+	 *
+	 * Like all kernels, it furthermore has to specify a method
+	 * \code
+	 * void operator () (Raster<T, TDIM>& raster,
+	 *			   		 const typename Raster<T, TDIM>::MultiIndex& cur);
+	 * \endcode
+	 */
+		template <class TKernel>
+		typename TKernel::result_t
+		run_on_nbrs(const MultiIndex& center);
+
+	/// Runs the specified kernel on all direct neighbors of a node
+	/** TKernel can either be a function or a class with an 'operator()'.
+	 * The signature should be as follows:
+	 * \code
+	 * void Func (Raster<T, TDIM>& raster,
+	 *			  const typename Raster<T, TDIM>::MultiIndex& cur);
+	 * \endcode
+	 * or
+	 * \code
+	 * void operator () (Raster<T, TDIM>& raster,
+	 *			   		 const typename Raster<T, TDIM>::MultiIndex& cur);
+	 * \endcode
+	 */
+		template <class TKernel>
+		void run_on_nbrs(const MultiIndex& center, TKernel& kernel);
 
 	////////////////////////////////////////////////////////////////////////////
 	//	Convenience methods for easy scripting below.
@@ -243,11 +304,15 @@ class Raster{
 		T interpolate_at_cursor (int order) const;
 
 	private:
-	// ///	blurs by repeatedly averaging between direct neighbors in one dimension only
-	// 	void blur_recursion(number alpha, size_t iterations, int maxDim, int blurDim);
+		template <class TKernel>
+		void run_on_all(const MultiIndex& start, TKernel& kernel, int curDim);
 
-	// ///	blurs by repeatedly averaging between direct neighbors in one dimension only
-	// 	void blur(number alpha, size_t iterations, const MultiIndex& start, int dim);
+		template <class TKernel>
+		void run_on_nbrs(const MultiIndex& center, TKernel& kernel, int curDim);
+
+		void blur_sum_recursion(number alpha, const MultiIndex& start, int curDim, int blurDim);
+		void blur_sum(number alpha, const MultiIndex& start, int dim);
+		void blur_normalize_recursion(number alpha, const MultiIndex& start, int curDim);
 
 
 		size_t data_index (

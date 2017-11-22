@@ -54,6 +54,11 @@ static void RegisterRaster(Registry& reg, string name, string grp)
 		.template add_constructor<void (*)()>()
 		.add_method("dim", &T::dim, "dimension", "", "Returns the dimension of the raster.")
 		.add_method(
+			"blur",
+			&T::blur,
+			"", "alpha || min=0.D, max=1.D, val=0.5D # iterations || min=0, val=10",
+			"Blurs the raster data by repeatedly averaging between neighbored cells.")
+		.add_method(
 			"load_from_asc",
 			&T::load_from_asc,
 			"", "filename", "Loads the given file and creates the raster accordingly.")

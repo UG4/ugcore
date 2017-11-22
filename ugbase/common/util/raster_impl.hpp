@@ -40,7 +40,7 @@
 #include "common/error.h"
 #include "common/util/file_util.h"
 #include "common/util/string_util.h"
-
+#include "raster_kernels.h"
 
 namespace ug{
 
@@ -490,101 +490,99 @@ no_data_value() const
 	return m_noDataValue;
 }
 
-// template <class T, int TDIM>
-// void Raster<T, TDIM>::
-// blur(number alpha, size_t iterations)
-// {
-// 	const MultiIndex start(0);
-// 	for(size_t iiter = 0; iiter < iterations; ++iiter){
-// 		for(int idim = 0; idim < TDIM; ++idim){
-// 			blur_recursion(alpha, start, TDIM - 1, idim);
-// 		}
 
-// 	//	normalize blur sums
-// 		blur_normalize_recursion(alpha, MultiIndex(0), TDIM - 1);
-// 	}
-// }
+template <class T, int TDIM>
+void Raster<T, TDIM>::
+blur(T alpha, size_t iterations)
+{
+	raster_kernels::Blur<T, TDIM> blurKernel (alpha);
+	const MultiIndex start(0);
 
-// template <class T, int TDIM>
-// void Raster<T, TDIM>::
-// blur_sum_recursion(number alpha, const MultiIndex& start, int curDim, int blurDim)
-// {
-// 	if(curDim == blurDim){
-// 		if(curDim == 0) {
-// 			blur_sum(alpha, start, blurDim);
-// 		}
-// 		else {
-// 			blur_sum_recursion(alpha, start, curDim - 1, blurDim);
-// 			return;
-// 		}
-// 	}
-// 	else if(curDim > 0) {
-// 		const size_t numNodes = num_nodes(curDim);
-// 		for(MultiIndex cur = start; cur[curDim] < numNodes; ++cur[curDim]){
-// 			blur_sum_recursion(alpha, cur, curDim - 1, blurDim);
-// 		}
-// 	}
-// 	else {
-// 		const size_t numNodes = num_nodes(0);
-// 		for(MultiIndex cur = start; cur[0] < numNodes; ++cur[0]){
-// 			blur_sum(alpha, cur, blurDim);
-// 		}
-// 	}
-// }
+	for(size_t iiter = 0; iiter < iterations; ++iiter)
+		run_on_all (blurKernel);
+}
 
-// template <class T, int TDIM>
-// void Raster<T, TDIM>::
-// blur_sum(number alpha, const MultiIndex& start, int dim)
-// {
-// 	using namespace std;
-// 	const size_t numNodes = num_nodes(dim);
 
-// 	MultiIndex center = start;
-// 	MultiIndex left = start;
-// 	MultiIndex right = start;		
-// 	++right[dim];
+template <class T, int TDIM>
+template <class TKernel>
+typename TKernel::result_t Raster<T, TDIM>::
+run_on_all()
+{
+	TKernel kernel;
+	run_on_all (MultiIndex(0), kernel, TDIM - 1);
+	return kernel.result();
+}
 
-// //	blur first
-// 	node_value(center) += alpha * node_value(right);
+template <class T, int TDIM>
+template <class TKernel>
+void Raster<T, TDIM>::
+run_on_all(TKernel& kernel)
+{
+	run_on_all (MultiIndex(0), kernel, TDIM - 1);
+}
 
-// //	blur inner values
-// 	for(size_t i = 1; i + 1< numNodes; ++i){
-// 	//	next value
-// 		left = center;
-// 		center = right;
-// 		++right[dim]
 
-// 		node_value(center) += alpha * node_value(left);
-// 		node_value(center) += alpha * node_value(right);
-// 	}
+template <class T, int TDIM>
+template <class TKernel>
+void Raster<T, TDIM>::
+run_on_all(const MultiIndex& start, TKernel& kernel, int curDim)
+{
+	if(curDim > 0) {
+		const size_t numNodes = num_nodes(curDim);
+		for(MultiIndex cur = start; cur[curDim] < numNodes; ++cur[curDim]){
+			run_on_all(cur, kernel, curDim - 1);
+		}
+	}
+	else {
+		const size_t numNodes = num_nodes(0);
+		for(MultiIndex cur = start; cur[0] < numNodes; ++cur[0]){
+			kernel (*this, cur);
+		}
+	}
+}
 
-// //	blur last
-// 	node_value(center) += alpha * node_value(left);
-// }
 
-// template <class T, int TDIM>
-// void Raster<T, TDIM>::
-// blur_normalize_recursion(number alpha, const MultiIndex& start, int curDim)
-// {
-// 	else if(curDim > 0) {
-// 		const size_t numNodes = num_nodes(curDim);
-// 		for(MultiIndex cur = start; cur[curDim] < numNodes; ++cur[curDim]){
-// 			blur_normalize_recursion(alpha, cur, curDim - 1);
-// 		}
-// 	}
-// 	else {
-// 		const size_t numNodes = num_nodes(0);
-// 		for(MultiIndex cur = start; cur[0] < numNodes; ++cur[0]){
-// 		//	count valid neighbors
-// 			number counter = 0;
-// 			for(int idim = 0; idim < TDIM; ++idim){
-// 				if(cur[idim] != 0)
-// 					++counter;
-// 				if(cur[idim] )
-// 			}
-// 		}
-// 	}
-// }
+template <class T, int TDIM>
+template <class TKernel>
+typename TKernel::result_t Raster<T, TDIM>::
+run_on_nbrs(const MultiIndex& center)
+{
+	TKernel kernel;
+	run_on_nbrs(center, kernel, TDIM - 1);
+	return kernel.result();
+}
+
+
+template <class T, int TDIM>
+template <class TKernel>
+void Raster<T, TDIM>::
+run_on_nbrs(const MultiIndex& center, TKernel& kernel)
+{
+	run_on_nbrs(center, kernel, TDIM - 1);
+}
+
+
+template <class T, int TDIM>
+template <class TKernel>
+void Raster<T, TDIM>::
+run_on_nbrs(const MultiIndex& center, TKernel& kernel, int curDim)
+{
+	if(curDim > 0)
+		run_on_nbrs(center, kernel, curDim - 1);
+
+	if(center[curDim] > 0){
+		MultiIndex c = center;
+		--c[curDim];
+		kernel(*this, c);
+	}
+
+	if(center[curDim] + 1 < num_nodes(curDim)){
+		MultiIndex c = center;
+		++c[curDim];
+		kernel(*this, c);
+	}
+}
+
 
 template <class T, int TDIM>
 void Raster<T, TDIM>::
@@ -847,15 +845,27 @@ save_to_asc (const char* filename) const
 
 	out << "NODATA_value  " << no_data_value() << endl;
 
-	const size_t numNodesTotal = num_nodes_total();
-	const size_t numNodes0 = num_nodes(0);
-	for(size_t i = 0; i < numNodesTotal; ++i){
-		out << m_data[i];
-		if((i+1) % numNodes0 != 0)
-			out << " ";
-		else
+//	write values
+//	y and z are inverted
+	size_t num[3] = {0, 1, 1};
+	for(size_t i = 0; i < TDIM; ++i)
+		num[i] = num_nodes(i);
+		
+	for(size_t iz = 0; iz < num[2]; ++iz){
+		for(size_t iy = 0; iy < num[1]; ++iy){
+			for(size_t ix = 0; ix < num[0]; ++ix)
+			{
+				if(ix > 0)
+					out << " ";
+				const size_t ty = num[1] - 1 - iy;
+				const size_t tz = num[2] - 1 - iz;
+				out << m_data[ix + num[0] * (ty + num[1] * tz)];
+			}
 			out << endl;
+		}
+		out << endl;
 	}
+	out << endl;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
