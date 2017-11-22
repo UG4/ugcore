@@ -1013,7 +1013,6 @@ class DimFV1Geometry : public FVGeometryBase
 	///	returns reference object id
 		ReferenceObjectID roid() const {return m_roid;}
 
-	protected:
 	///	update local data
 		void update_local(ReferenceObjectID roid);
 
