@@ -108,7 +108,8 @@ allreduce (const T *sendBuf, T *recvBuf,
 				}
 			}
 			else {
-				MPI_Isend(sendBuf + imem * countPerGroup,
+				//note: const_cast required for some MPI implementations...
+				MPI_Isend(const_cast<T*>(sendBuf) + imem * countPerGroup,
 				          (int) countPerGroup * sizeof (T),
 				          MPI_UNSIGNED_CHAR,
 				  		  m_com.get_proc_id ((size_t)m_groupMembers [0]),
