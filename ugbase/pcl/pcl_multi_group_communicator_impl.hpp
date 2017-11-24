@@ -73,10 +73,10 @@ allreduce (const T *sendBuf, T *recvBuf,
 			const size_t o = m_groupOffsets [imem];
 			const size_t s = m_groupOffsets [imem + 1] - o;
 
-			if (s == 1)	continue;
+			if (s <= 1)	continue;
 
-			if (m_groupMembers [0] == procRank)
-				++ numRecvs;
+			if (m_groupMembers [o] == procRank)
+				numRecvs += (s - 1);
 			else
 				++ numSends;
 		}
@@ -95,7 +95,7 @@ allreduce (const T *sendBuf, T *recvBuf,
 
 			if (s == 1)	continue;
 
-			if (m_groupMembers [0] == procRank){
+			if (m_groupMembers [o] == procRank){
 				for(size_t i = 1; i < s; ++i){
 					MPI_Irecv(&receivedVals.front() + recvCount * countPerGroup,
 					          (int) countPerGroup * sizeof (T),
@@ -112,13 +112,19 @@ allreduce (const T *sendBuf, T *recvBuf,
 				MPI_Isend(const_cast<T*>(sendBuf) + imem * countPerGroup,
 				          (int) countPerGroup * sizeof (T),
 				          MPI_UNSIGNED_CHAR,
-				  		  m_com.get_proc_id ((size_t)m_groupMembers [0]),
+				  		  m_com.get_proc_id ((size_t)m_groupMembers [o]),
 				  		  tag,
 				  		  m_com.get_mpi_communicator(),
 				  		  &sendRequests[sendCount]);
 				++sendCount;
 			}
 		}
+
+		UG_COND_THROW(sendCount != sendRequests.size(),
+		              "sendCount != sendRequests.size()");
+		
+		UG_COND_THROW(recvCount != recvRequests.size(),
+		              "recvCount != recvRequests.size()");
 
 		Waitall (sendRequests);
 		Waitall (recvRequests);
@@ -134,7 +140,7 @@ allreduce (const T *sendBuf, T *recvBuf,
 			const size_t o = m_groupOffsets [imem];
 			const size_t s = m_groupOffsets [imem + 1] - o;
 
-			if (m_groupMembers [0] == procRank){
+			if (m_groupMembers [o] == procRank){
 			//	copy data local data to recvBuf
 				const size_t targetBaseInd = imem * countPerGroup;
 
@@ -146,8 +152,9 @@ allreduce (const T *sendBuf, T *recvBuf,
 					size_t srcBaseInd = recvHandled * countPerGroup;
 
 					for(size_t i = 0; i < countPerGroup; ++i){
-						reducer (recvBuf[targetBaseInd + i],
-						         receivedVals[srcBaseInd + i]);
+						recvBuf[targetBaseInd + i] =
+							reducer (recvBuf[targetBaseInd + i],
+						        	 receivedVals[srcBaseInd + i]);
 					}
 					++recvHandled;
 				}
@@ -173,7 +180,7 @@ allreduce (const T *sendBuf, T *recvBuf,
 
 			if (s == 1)	continue;
 
-			if (m_groupMembers [0] == procRank){
+			if (m_groupMembers [o] == procRank){
 				for(size_t i = 1; i < s; ++i){
 					MPI_Isend(recvBuf + imem * countPerGroup,
 				          (int) countPerGroup * sizeof (T),
@@ -189,13 +196,19 @@ allreduce (const T *sendBuf, T *recvBuf,
 				MPI_Irecv(recvBuf + imem * countPerGroup,
 				          (int) countPerGroup * sizeof (T),
 				          MPI_UNSIGNED_CHAR,
-				  		  m_com.get_proc_id ((size_t)m_groupMembers [0]),
+				  		  m_com.get_proc_id ((size_t)m_groupMembers [o]),
 				  		  tag,
 				  		  m_com.get_mpi_communicator(),
 				  		  &recvRequests[recvCount]);
 				++recvCount;
 			}
 		}
+
+		UG_COND_THROW(sendCount != sendRequests.size(),
+		              "sendCount != sendRequests.size()");
+		
+		UG_COND_THROW(recvCount != recvRequests.size(),
+		              "recvCount != recvRequests.size()");
 
 		Waitall (sendRequests);
 		Waitall (recvRequests);
