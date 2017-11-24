@@ -1139,6 +1139,11 @@ class L2Integrand
 		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
 			ReferenceObjectID roid = (ReferenceObjectID) pElem->reference_object_id();
 
+		// element weights
+			typedef typename weight_type::data_type ipdata_type;
+			std::vector<ipdata_type> locElemWeights(numIP, 1.0);
+			(*m_spWeight)(&locElemWeights[0], vGlobIP, 0.0, IIntegrand<number, worldDim>::subset(), numIP);
+
 			try{
 		//	get trial space
 			const LocalShapeFunctionSet<elemDim>& rTrialSpace =
@@ -1171,7 +1176,7 @@ class L2Integrand
 				}
 
 				//	get square
-				vValue[ip] = approxSolIP*approxSolIP;
+				vValue[ip] = locElemWeights[ip]*approxSolIP*approxSolIP;
 
 			}
 
@@ -1238,7 +1243,7 @@ class L2DistIntegrand
 		static const int worldDim = TGridFunction::dim;
 		typedef typename L2Integrand<TGridFunction>::weight_type weight_type;
 
-	private:
+	protected:
 		ScalarGridFunctionData<TGridFunction> m_fineData;
 		const int m_fineTopLevel;
 
@@ -1247,6 +1252,8 @@ class L2DistIntegrand
 
 	///	multigrid
 		SmartPtr<MultiGrid> m_spMG;
+
+		SmartPtr<weight_type> m_spWeight;
 
 	public:
 
@@ -1257,7 +1264,8 @@ class L2DistIntegrand
 		  m_fineTopLevel(fineGridFct.dof_distribution()->grid_level().level()),
 		  m_coarseData(coarseGridFct, coarseCmp),
 		  m_coarseTopLevel(coarseGridFct.dof_distribution()->grid_level().level()),
-		  m_spMG(m_fineData.domain()->grid())
+		  m_spMG(m_fineData.domain()->grid()),
+		  m_spWeight(make_sp(new ConstUserNumber<TGridFunction::dim>(1.0)))
 		{
 			if(m_fineTopLevel < m_coarseTopLevel)
 				UG_THROW("L2DiffIntegrand: fine and top level inverted.");
@@ -1320,7 +1328,12 @@ class L2DistIntegrand
 			for(size_t ip = 0; ip < vCoarseLocIP.size(); ++ip) VecSet(vCoarseLocIP[ip], 0.0);
 			map.global_to_local(&vCoarseLocIP[0], vFineGlobIP, numIP);
 
-			try{
+		// element weights
+			typedef typename weight_type::data_type ipdata_type;
+			std::vector<ipdata_type> fineElemWeights(numIP, 1.0);
+			(*m_spWeight)(&fineElemWeights[0], vFineGlobIP, 0.0, IIntegrand<number, worldDim>::subset(), numIP);
+
+		try{
 		//	get trial space
 			const LocalShapeFunctionSet<elemDim>& rFineLSFS =
 					LocalFiniteElementProvider::get<elemDim>(fineROID, m_fineData.id());
@@ -1356,8 +1369,7 @@ class L2DistIntegrand
 				}
 
 			//	get squared of difference
-				vValue[ip] = (coarseSolIP - fineSolIP);
-				vValue[ip] *= vValue[ip];
+				vValue[ip] = fineElemWeights[ip]*(coarseSolIP - fineSolIP)*(coarseSolIP - fineSolIP);
 			}
 
 			}
@@ -1409,7 +1421,7 @@ class H1SemiIntegrand
 	public:
 	///	world dimension of grid function
 		static const int worldDim = TGridFunction::dim;
-		typedef UserData<number, worldDim> weight_type;
+		typedef UserData<MathMatrix<worldDim, worldDim>, worldDim> weight_type;
 
 	protected:
 	/// grid function data
@@ -1421,7 +1433,7 @@ class H1SemiIntegrand
 	public:
 	/// constructor
 		H1SemiIntegrand(TGridFunction& gridFct, size_t cmp)
-		: m_scalarData(gridFct, cmp), m_spWeight(make_sp(new ConstUserNumber<worldDim>(1.0)))
+		: m_scalarData(gridFct, cmp), m_spWeight(make_sp(new ConstUserMatrix<worldDim>(1.0)))
 		{}
 
 	/// constructor
@@ -1451,10 +1463,13 @@ class H1SemiIntegrand
 		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
 			const ReferenceObjectID roid = pElem->reference_object_id();
 			const TGridFunction &gridFct= m_scalarData.grid_function();
+
+			typedef typename weight_type::data_type ipdata_type;
+
 			try{
 
 		// get IP weights
-			std::vector<number> elemWeights(numIP, 1.0);
+			std::vector<ipdata_type> elemWeights(numIP, MathMatrix<worldDim, worldDim>());
 			(*m_spWeight)(&elemWeights[0], vGlobIP, 0.0, IIntegrand<number, worldDim>::subset(), numIP);
 
 		//	get trial space
@@ -1481,7 +1496,7 @@ class H1SemiIntegrand
 
 			// 	compute approximated solution at integration point
 				number approxSolIP = 0.0;
-				MathVector<elemDim> locTmp; VecSet(locTmp, 0.0);
+				MathVector<elemDim> tmpVec(0.0);
 				for(size_t sh = 0; sh < num_sh; ++sh)
 				{
 				//	get value at shape point (e.g. corner for P1 fct)
@@ -1491,17 +1506,19 @@ class H1SemiIntegrand
 					approxSolIP += valSH * rTrialSpace.shape(sh, vLocIP[ip]);
 
 				//	add gradient at ip
-					VecScaleAppend(locTmp, valSH, vLocGradient[sh]);
+					VecScaleAppend(tmpVec, valSH, vLocGradient[sh]);
 				}
 
 			//	compute gradient
 				MathVector<worldDim> approxGradIP;
 				MathMatrix<worldDim, elemDim> JTInv;
 				Inverse(JTInv, vJT[ip]);
-				MatVecMult(approxGradIP, JTInv, locTmp);
+				MatVecMult(approxGradIP, JTInv, tmpVec);
 
 			//	get norm squared
-				vValue[ip] = elemWeights[ip]*VecDot(approxGradIP, approxGradIP);
+				MathVector<worldDim> approxDGradIP;
+				MatVecMult(approxDGradIP, elemWeights[ip], approxGradIP);
+				vValue[ip] = VecDot(approxDGradIP, approxGradIP);
 			}
 
 			}
@@ -1556,7 +1573,7 @@ number H1SemiNorm( SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadO
 
 template <typename TGridFunction>
 number H1SemiNorm( SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOrder,
-				SmartPtr<UserData<number, TGridFunction::dim> > weights)
+		ConstSmartPtr<typename H1SemiIntegrand<TGridFunction>::weight_type> weights)
 {
 	return H1SemiNorm(spGridFct, cmp, quadOrder, NULL, weights);
 }
@@ -1679,7 +1696,7 @@ class H1SemiDistIntegrand : public StdIntegrand<number, TGridFunction::dim, H1Se
 			try{
 
 		// determine weights
-			std::vector<number> elemWeights(numIP, 1.0);
+			std::vector<typename weight_type::data_type> elemWeights(numIP, MathMatrix<worldDim, worldDim>());
 			(*m_spWeight)(&elemWeights[0], vFineGlobIP, 0.0, IIntegrand<number, worldDim>::subset(), numIP);
 
 		//	get trial space
@@ -1705,7 +1722,7 @@ class H1SemiDistIntegrand : public StdIntegrand<number, TGridFunction::dim, H1Se
 
 			// 	compute approximated solutions at integration point
 				number fineSolIP = 0.0;
-				MathVector<elemDim> fineLocTmp; VecSet(fineLocTmp, 0.0);
+				MathVector<elemDim> fineLocTmp(0.0);
 				for(size_t sh = 0; sh < vFineMI.size(); ++sh)
 				{
 					const number val = DoFRef(fineGridFct, vFineMI[sh]);
@@ -1714,7 +1731,7 @@ class H1SemiDistIntegrand : public StdIntegrand<number, TGridFunction::dim, H1Se
 				}
 
 				number coarseSolIP = 0.0;
-				MathVector<elemDim> coarseLocTmp; VecSet(coarseLocTmp, 0.0);
+				MathVector<elemDim> coarseLocTmp(0.0);
 				for(size_t sh = 0; sh < vCoarseMI.size(); ++sh)
 				{
 					const number val = DoFRef(coarseGridFct, vCoarseMI[sh]);
@@ -1737,7 +1754,7 @@ class H1SemiDistIntegrand : public StdIntegrand<number, TGridFunction::dim, H1Se
 			//	get squared of difference
 				/*vValue[ip] = (coarseSolIP - fineSolIP);
 				vValue[ip] *= vValue[ip]; */
-				vValue[ip] = elemWeights[ip]*VecDistanceSq(coarseGradIP, fineGradIP);
+				vValue[ip] = VecDistanceSq(coarseGradIP, fineGradIP, elemWeights[ip]);
 			}
 
 			}
@@ -1770,7 +1787,7 @@ template <typename TGridFunction>
 number H1SemiDistance(TGridFunction& spGridFct1, const char* cmp1,
 		TGridFunction& spGridFct2, const char* cmp2,
         int quadOrder, const char* subsets,
-		ConstSmartPtr<UserData<number, TGridFunction::dim> > weights)
+		ConstSmartPtr<typename H1SemiDistIntegrand<TGridFunction>::weight_type> weights)
 {
 	return GridFunctionDistance<H1SemiDistIntegrand<TGridFunction>, TGridFunction>
 		(spGridFct1, cmp1, spGridFct2, cmp2, quadOrder, subsets, weights);
@@ -1780,7 +1797,7 @@ number H1SemiDistance(TGridFunction& spGridFct1, const char* cmp1,
 template <typename TGridFunction>
 number H1SemiDistance(TGridFunction& spGridFct1, const char* cmp1,
 					  TGridFunction& spGridFct2, const char* cmp2,
-               int quadOrder, ConstSmartPtr<UserData<number, TGridFunction::dim> > weights)
+               int quadOrder, ConstSmartPtr<typename H1SemiDistIntegrand<TGridFunction>::weight_type > weights)
 {
 	return H1SemiDistance(spGridFct1, cmp1, spGridFct2, cmp2, quadOrder, NULL, weights);
 }

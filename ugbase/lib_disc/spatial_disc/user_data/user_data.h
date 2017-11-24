@@ -116,6 +116,9 @@ template <typename TData, int dim, typename TRet = void>
 class UserData : virtual public UserDataInfo
 {
 	public:
+		typedef TData data_type;
+		typedef TRet return_type;
+
 	///	returns dimension
 		int get_dim() const {return dim;}
 

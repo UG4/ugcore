@@ -238,6 +238,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 	{
 		typedef L2ComponentSpace<TFct> T;
 		typedef IComponentSpace<TFct> TBase;
+		typedef typename L2Integrand<TFct>::weight_type TWeight;
 
 		string name = string("L2ComponentSpace").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
@@ -253,7 +254,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 	{
 		typedef H1SemiComponentSpace<TFct> T;
 		typedef IComponentSpace<TFct> TBase;
-		typedef UserData<number, TFct::dim> TWeight;
+		typedef typename H1SemiIntegrand<TFct>::weight_type TWeight;
 
 		string name = string("H1SemiComponentSpace").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)

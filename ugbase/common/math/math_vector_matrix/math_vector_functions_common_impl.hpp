@@ -342,6 +342,19 @@ VecDistanceSq(const vector_t& v1, const vector_t& v2)
 	return VecLengthSq(v);
 }
 
+///	returns the squared distance of two MathVector<N>s.
+template <typename TVector, typename TMatrix>
+inline
+typename TVector::value_type
+VecDistanceSq(const TVector& v1, const TVector& v2, const TMatrix& M)
+{
+	TVector delta;
+	TVector deltaM;
+	VecSubtract(delta, v1, v2);
+	MatVecMult(deltaM, M, delta);
+	return VecDot(deltaM, delta);
+}
+
 ///	returns the distance of two MathVector<N>s.
 template <typename vector_t>
 inline
