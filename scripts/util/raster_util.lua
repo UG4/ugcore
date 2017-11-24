@@ -31,6 +31,85 @@
 util = util or {}
 util.raster = util.raster or {}
 
+-- Returns a callback function and a raster object.
+-- Argument is a descriptor (table) with the following content:
+-- - file (string): filename of the .asc raster file
+-- - order (integer, optional): interpolation order 0 or 1. Defaults to 1
+-- - blurIterations (integer, optional): number of blur iterations. Defaults to 0
+-- - blurAlpha (number, optional): value between 0 and 1. The higher, the more visible the blur effect will be
+--
+-- Please note: blurIterations and blurAlpha both have to be specified if blurring
+--				shall be applied.
+--
+-- The returned callback has the following signature depending on dim
+-- 1d: 'number callback (x)'
+-- 2d: 'number callback (x, y)'
+-- 3d: 'number callback (x, y, z)'
+-- if dim is not specified (dim == nil) then dim defaults to GetUGDim().
+function util.raster.CreateRasterValueCallbackFromDesc (desc, dim)
+	if dim == nil then
+		dim = GetUGDim()
+	end
+
+	local order = 1
+	if desc.interpolationOrder and type(desc.interpolationOrder) == "number" then
+		order = desc.interpolationOrder
+	end
+
+	local func, raster = util.raster.CreateRasterValueCallback (desc.file, dim, order)
+
+	if desc.blurIterations and desc.blurAlpha
+	and type(desc.blurIterations) == "number" and type(desc.blurAlpha) == "number"
+	then
+		raster:blur(desc.blurAlpha, desc.blurIterations)
+	elseif desc.blurIterations or desc.blurAlpha then
+		print("Bad blur parameters. Please specify either both numbers 'blurAlpha' and 'blurIterations' in your descriptor or none."); exit();
+	end
+
+	return func, raster
+end
+
+
+-- Returns a callback function and a raster object.
+-- Argument is a descriptor (table) with the following content:
+-- - file (string): filename of the .asc raster file
+-- - order (integer, optional): interpolation order 0 or 1. Defaults to 1
+-- - blurIterations (integer, optional): number of blur iterations. Defaults to 0
+-- - blurAlpha (number, optional): value between 0 and 1. The higher, the more visible the blur effect will be
+--
+-- Please note: blurIterations and blurAlpha both have to be specified if blurring
+--				shall be applied.
+--
+-- The returned callback has the following signature depending on 'dim'
+-- 1d: 'mat1x1 callback (x)'
+-- 2d: 'mat2x2 callback (x, y)'
+-- 3d: 'mat3x3 callback (x, y, z)'
+--
+-- where matNxN stands for a sequence (not a table) of N*N number values.
+-- If 'dim' is not specified (dim == nil) then 'dim' defaults to GetUGDim().
+function util.raster.CreateRasterMatrixCallbackFromDesc (desc, dim)
+	if dim == nil then
+		dim = GetUGDim()
+	end
+
+	local order = 1
+	if desc.interpolationOrder and type(desc.interpolationOrder) == "number" then
+		order = desc.interpolationOrder
+	end
+
+	local func, raster = util.raster.CreateRasterMatrixCallback (desc.file, dim, order)
+
+	if desc.blurIterations and desc.blurAlpha
+	and type(desc.blurIterations) == "number" and type(desc.blurAlpha) == "number"
+	then
+		raster:blur(desc.blurAlpha, desc.blurIterations)
+	elseif desc.blurIterations or desc.blurAlpha then
+		print("Bad blur parameters. Please specify either both numbers 'blurAlpha' and 'blurIterations' in your descriptor or none."); exit();
+	end
+
+	return func, raster
+end
+
 
 -- Returns a callback function and a raster object.
 -- Arguments of the callback depend on the specified dimension:
