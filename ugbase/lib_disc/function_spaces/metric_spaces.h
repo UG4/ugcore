@@ -323,16 +323,16 @@ public:
 
 
 	H1SemiComponentSpace(const char *fctNames)
-	: base_type(fctNames) {};
+	: base_type(fctNames), weighted_obj_type(make_sp(new ConstUserMatrix<TGridFunction::dim>(1.0))) {};
 
 	H1SemiComponentSpace(const char *fctNames, int order)
-	: base_type(fctNames, order) {};
+	: base_type(fctNames, order), weighted_obj_type(make_sp(new ConstUserMatrix<TGridFunction::dim>(1.0))) {};
 
 	/*H1SemiComponentSpace(const char *fctNames, int order, number scale)
 	: base_type(fctNames, order, scale) {};
 */
 	H1SemiComponentSpace(const char *fctNames, const char* ssNames, int order)
-	: base_type(fctNames, ssNames, order)  {};
+	: base_type(fctNames, ssNames, order), weighted_obj_type(make_sp(new ConstUserMatrix<TGridFunction::dim>(1.0)))  {};
 
 	H1SemiComponentSpace(const char *fctNames, const char* ssNames, int order, /*number scale,*/ SmartPtr<weight_type> spWeight)
 	: base_type(fctNames, ssNames, order /*, scale*/), weighted_obj_type(spWeight) {};
