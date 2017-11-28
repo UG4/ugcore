@@ -276,37 +276,38 @@ public:
 
 	/// CTOR
 	L2ComponentSpace(const char *fctNames)
-	: base_type(fctNames) {};
+	: base_type(fctNames), weighted_obj_type(make_sp(new ConstUserNumber<TGridFunction::dim>(1.0))) {};
 
 	L2ComponentSpace(const char *fctNames, int order)
-	: base_type(fctNames, order) {};
+	: base_type(fctNames, order), weighted_obj_type(make_sp(new ConstUserNumber<TGridFunction::dim>(1.0))) {};
 /*
 	L2ComponentSpace(const char *fctNames, int order, number scale)
 	: base_type(fctNames, order, scale) {};
 */
 	L2ComponentSpace(const char *fctNames, const char* ssNames, int order/*, number scale*/)
-	: base_type(fctNames, ssNames, order  /*, scale*/) {};
+	: base_type(fctNames, ssNames, order), weighted_obj_type(make_sp(new ConstUserNumber<TGridFunction::dim>(1.0))) {};
 
 	/// DTOR
 	~L2ComponentSpace() {};
 
 	using IComponentSpace<TGridFunction>::norm;
 	using IComponentSpace<TGridFunction>::distance;
-	// using IComponentSpace<TGridFunction>::scaling;
-
-	/// \copydoc IComponentSpace<TGridFunction>::norm
-	double norm2(TGridFunction& uFine) const
-	{ return L2Norm2(uFine, base_type::m_fctNames.c_str(), base_type::m_quadorder, base_type::m_ssNames); }
-
-	/// \copydoc IComponentSpace<TGridFunction>::distance
-	double distance2(TGridFunction& uFine, TGridFunction& uCoarse) const
-	{ return L2Distance2(uFine, base_type::m_fctNames.c_str(), uCoarse, base_type::m_fctNames.c_str(),
-		base_type::m_quadorder, base_type::m_ssNames);}
 
 	/// for weighted norms
 	using weighted_obj_type::set_weight;
 	using weighted_obj_type::get_weight;
 	using weighted_obj_type::m_spWeight;
+
+	/// \copydoc IComponentSpace<TGridFunction>::norm
+	double norm2(TGridFunction& uFine) const
+	{ return L2Norm2(uFine, base_type::m_fctNames.c_str(), base_type::m_quadorder, base_type::m_ssNames, weighted_obj_type::m_spWeight); }
+
+	/// \copydoc IComponentSpace<TGridFunction>::distance
+	double distance2(TGridFunction& uFine, TGridFunction& uCoarse) const
+	{ return L2Distance2(uFine, base_type::m_fctNames.c_str(), uCoarse, base_type::m_fctNames.c_str(),
+		base_type::m_quadorder, base_type::m_ssNames, weighted_obj_type::m_spWeight);}
+
+
 
 };
 

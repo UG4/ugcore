@@ -768,7 +768,7 @@ class L2ErrorIntegrand
  * \returns			number 		l2-norm of difference
  */
 template <typename TGridFunction>
-number L2Error2(SmartPtr<UserData<number, TGridFunction::dim> > spExactSol,
+number L2Error(SmartPtr<UserData<number, TGridFunction::dim> > spExactSol,
                SmartPtr<TGridFunction> spGridFct, const char* cmp,
                number time, int quadOrder, const char* subsets)
 {
@@ -783,15 +783,6 @@ number L2Error2(SmartPtr<UserData<number, TGridFunction::dim> > spExactSol,
 	L2ErrorIntegrand<TGridFunction> spIntegrand(spExactSol, *spGridFct, fct, time);
 	return sqrt(IntegrateSubsets(spIntegrand, *spGridFct, subsets, quadOrder));
 }
-
-template <typename TGridFunction>
-number L2Error(SmartPtr<UserData<number, TGridFunction::dim> > spExactSol,
-               SmartPtr<TGridFunction> spGridFct, const char* cmp,
-               number time, int quadOrder, const char* subsets)
-{
-	return sqrt(L2Error2(spExactSol, spGridFct, cmp, time, quadOrder, subsets));
-}
-
 
 template <typename TGridFunction>
 number L2Error(SmartPtr<UserData<number, TGridFunction::dim> > spExactSol,
@@ -1116,12 +1107,16 @@ class L2Integrand
 		ScalarGridFunctionData<TGridFunction> m_scalarData;
 
 	/// scalar weight (optional, default is 1.0)
-		SmartPtr<weight_type> m_spWeight;
+		ConstSmartPtr<weight_type> m_spWeight;
 
 	public:
 	/// CTOR
 		L2Integrand(TGridFunction& spGridFct, size_t cmp)
 		: m_scalarData(spGridFct, cmp), m_spWeight(make_sp(new ConstUserNumber<worldDim>(1.0)))
+		{};
+
+		L2Integrand(TGridFunction& spGridFct, size_t cmp, ConstSmartPtr<weight_type> spWeight)
+		: m_scalarData(spGridFct, cmp), m_spWeight(spWeight)
 		{};
 
 	/// DTOR
@@ -1205,6 +1200,24 @@ class L2Integrand
  * 								shall be considered)
  * \returns			number 		l2-norm
  */
+
+template <typename TGridFunction>
+number L2Norm2(TGridFunction& u, const char* cmp,
+              int quadOrder, const char* subsets,
+			  ConstSmartPtr<typename L2Integrand<TGridFunction>::weight_type> spWeight)
+{
+//	get function id of name
+	const size_t fct = u.fct_id_by_name(cmp);
+
+//	check that function exists
+	if(fct >= u.num_fct())
+		UG_THROW("L2Norm: Function space does not contain"
+				" a function with name " << cmp << ".");
+
+	L2Integrand<TGridFunction> integrandL2(u, fct, spWeight);
+	return IntegrateSubsets(integrandL2, u, subsets, quadOrder);
+}
+
 template <typename TGridFunction>
 number L2Norm2(TGridFunction& u, const char* cmp,
               int quadOrder, const char* subsets)
@@ -1268,25 +1281,35 @@ class L2DistIntegrand
 	///	multigrid
 		SmartPtr<MultiGrid> m_spMG;
 
-		SmartPtr<weight_type> m_spWeight;
+		ConstSmartPtr<weight_type> m_spWeight;
 
 	public:
 
-	/// constructor (1st is fine grid function)
+		/// constructor (1st is fine grid function)
 		L2DistIntegrand(TGridFunction& fineGridFct, size_t fineCmp,
-		                TGridFunction& coarseGridFct, size_t coarseCmp)
-		: m_fineData(fineGridFct, fineCmp),
-		  m_fineTopLevel(fineGridFct.dof_distribution()->grid_level().level()),
-		  m_coarseData(coarseGridFct, coarseCmp),
-		  m_coarseTopLevel(coarseGridFct.dof_distribution()->grid_level().level()),
-		  m_spMG(m_fineData.domain()->grid()),
-		  m_spWeight(make_sp(new ConstUserNumber<TGridFunction::dim>(1.0)))
+					TGridFunction& coarseGridFct, size_t coarseCmp)
+		: m_fineData(fineGridFct, fineCmp), m_fineTopLevel(fineGridFct.dof_distribution()->grid_level().level()),
+		  m_coarseData(coarseGridFct, coarseCmp), m_coarseTopLevel(coarseGridFct.dof_distribution()->grid_level().level()),
+		  m_spMG(m_fineData.domain()->grid()), m_spWeight(make_sp(new ConstUserNumber<TGridFunction::dim>(1.0)))
 		{
 			if(m_fineTopLevel < m_coarseTopLevel)
 				UG_THROW("L2DiffIntegrand: fine and top level inverted.");
 
-			if(m_fineData.domain().get() !=
-				m_coarseData.domain().get())
+			if(m_fineData.domain().get() != m_coarseData.domain().get())
+				UG_THROW("L2DiffIntegrand: grid functions defined on different domains.");
+		};
+
+		/// constructor (1st is fine grid function)
+		L2DistIntegrand(TGridFunction& fineGridFct, size_t fineCmp,
+					TGridFunction& coarseGridFct, size_t coarseCmp, ConstSmartPtr<weight_type> spWeight)
+		: m_fineData(fineGridFct, fineCmp), m_fineTopLevel(fineGridFct.dof_distribution()->grid_level().level()),
+		  m_coarseData(coarseGridFct, coarseCmp), m_coarseTopLevel(coarseGridFct.dof_distribution()->grid_level().level()),
+		  m_spMG(m_fineData.domain()->grid()), m_spWeight(spWeight)
+		{
+			if(m_fineTopLevel < m_coarseTopLevel)
+				UG_THROW("L2DiffIntegrand: fine and top level inverted.");
+
+			if(m_fineData.domain().get() != m_coarseData.domain().get())
 				UG_THROW("L2DiffIntegrand: grid functions defined on different domains.");
 		};
 
@@ -1393,6 +1416,17 @@ class L2DistIntegrand
 		};
 };
 
+
+/// computes the squared l2 distance between two functions
+template <typename TGridFunction>
+number L2Distance2(TGridFunction& spGridFct1, const char* cmp1,
+               TGridFunction& spGridFct2, const char* cmp2,
+               int quadOrder, const char* subsets,
+			   ConstSmartPtr<typename L2Integrand<TGridFunction>::weight_type> spWeight)
+{
+	return GridFunctionDistance2<L2DistIntegrand<TGridFunction>, TGridFunction>
+		(spGridFct1, cmp1, spGridFct2, cmp2, quadOrder, subsets, spWeight);
+}
 
 
 /// computes the squared l2 distance between two functions
