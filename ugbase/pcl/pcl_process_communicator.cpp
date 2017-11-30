@@ -528,7 +528,7 @@ distribute_data(void* recvBufOut, int* recvBufSegSizesOut,
 				void* sendBuf, int* sendBufSegSizes,
 			  	int* sendToRanks, int numSends, int tag) const
 {
-	if(is_local()) return;
+	if(is_local() || ((numSends == 0) && (numRecvs == 0))) return;
 	PCL_PROFILE(pcl_ProcCom_distribute_data);
 
 	UG_COND_THROW(empty(),	"ERROR in ProcessCommunicator::distribute_data: empty communicator.");
@@ -568,7 +568,7 @@ distribute_data(ug::BinaryBuffer& recvBufOut, int* segSizesOut,
 				void* sendBuf, int* sendSegSizes,
 				int* sendToRanks, int numSendTos, int tag) const
 {
-	if(is_local()) return;
+	if(is_local() || ((sendToRanks == 0) && (numRecvFroms == 0))) return;
 	PCL_PROFILE(pcl_ProcCom_distribute_data__flex);
 
 //	small helper arrays
@@ -606,7 +606,7 @@ distribute_data(ug::BinaryBuffer* recvBufs, int* recvFromRanks, int numRecvs,
 				ug::BinaryBuffer* sendBufs, int* sendToRanks, int numSends,
 				int tag) const
 {
-	if(is_local()) return;
+	if(is_local() || ((numSends == 0) && (numRecvs == 0))) return;
 	PCL_PROFILE(pcl_ProcCom_distribute_data__multi_buf);
 
 //	small helper arrays
