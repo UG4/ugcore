@@ -343,19 +343,26 @@ class ComPol_MatCreateOverlap
 			}
 
 			{
-			//	Make matrix partialy consistent on slave interfaces and on h-master-overlap
+			//	Make matrix partialy consistent on slave interfaces
 				ComPol_MatCopyRowsOverlap0<TMatrix> comPolMatCopy(m_mat, m_globalIDs);
 				newLayout->comm().send_data(newLayout->master(), comPolMatCopy);
 				newLayout->comm().receive_data(newLayout->slave(), comPolMatCopy);
 				newLayout->comm().communicate();
 
-				newLayout->comm().send_data(newLayout->slave_overlap(), comPolMatCopy);
-				newLayout->comm().receive_data(newLayout->master_overlap(), comPolMatCopy);
-				newLayout->comm().communicate();
+			//WARNING:	THE CODE BELOW DOESN'T WORK WELL E.G. WITH ILU-OVERLAP
+			//			INSTEAD ONLY THE DIAGONAL ENTRIES ARE COPIED TO MASTER_OVERLAP NODES
+			//			(SEE BELOW)
+			//			MAYBE SOME INVESTIGATIONS WOULD BE NICE REGARDING THIS BEHAVIOR...
+			//	Make matrix partialy consistent on h-master-overlap
+				// newLayout->comm().send_data(newLayout->slave_overlap(), comPolMatCopy);
+				// newLayout->comm().receive_data(newLayout->master_overlap(), comPolMatCopy);
+				// newLayout->comm().communicate();
 			}
 
 			// {
-			// //	set h-slave rows and h-master-overlap rows to diagonal-only
+			//NOTE: THIS CODE IS DISABLED BECAUSE THE MATRIX IS ALREADY MADE
+			//		PARTIALLY CONSISTENT ABOVE. IT CURRENTLY REMAINS FOR DEBUG PURPOSES
+			// //	set h-slave rows to diagonal-only
 			// 	IndexLayout& slaveLayout = newLayout->slave();
 			// 	for(size_t lvl = 0; lvl < slaveLayout.num_levels(); ++lvl){
 			// 		for(IndexLayout::const_iterator interfaceIter = slaveLayout.begin(lvl);
@@ -373,11 +380,13 @@ class ComPol_MatCreateOverlap
 			// 		}
 			// 	}
 
-			// 	ComPol_MatCopyDiag<TMatrix> comPolMatCopyDiag(m_mat);
-			// 	newLayout->comm().send_data(newLayout->slave_overlap(), comPolMatCopyDiag);
-			// 	newLayout->comm().receive_data(newLayout->master_overlap(), comPolMatCopyDiag);
-			// 	newLayout->comm().communicate();
-			// }
+			{
+			//	Copy diagonal entries to master-overlap entries
+				ComPol_MatCopyDiag<TMatrix> comPolMatCopyDiag(m_mat);
+				newLayout->comm().send_data(newLayout->slave_overlap(), comPolMatCopyDiag);
+				newLayout->comm().receive_data(newLayout->master_overlap(), comPolMatCopyDiag);
+				newLayout->comm().communicate();
+			}
 		}
 
 	private:
