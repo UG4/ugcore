@@ -253,7 +253,7 @@ public:
 	{
 		std::stringstream ss;
 		ss << "TimeDependentSpace for " <<  std::endl;
-		ss <<  config_string() << std::endl;
+		ss <<  m_spSpatialSpace->config_string() << std::endl;
 		return ss.str();
 	}
 
@@ -280,13 +280,17 @@ public:
 
 	L2ComponentSpace(const char *fctNames, int order)
 	: base_type(fctNames, order), weighted_obj_type(make_sp(new ConstUserNumber<TGridFunction::dim>(1.0))) {};
-/*
-	L2ComponentSpace(const char *fctNames, int order, number scale)
-	: base_type(fctNames, order, scale) {};
-*/
-	L2ComponentSpace(const char *fctNames, const char* ssNames, int order/*, number scale*/)
+
+	L2ComponentSpace(const char *fctNames, const char* ssNames, int order)
 	: base_type(fctNames, ssNames, order), weighted_obj_type(make_sp(new ConstUserNumber<TGridFunction::dim>(1.0))) {};
 
+	L2ComponentSpace(const char *fctNames, const char* ssNames, int order, double weight)
+	: base_type(fctNames, ssNames, order), weighted_obj_type(make_sp(new ConstUserNumber<TGridFunction::dim>(weight))) {};
+
+	/*
+	L2ComponentSpace(const char *fctNames, const char* ssNames, int order, ConstSmartPtr<ConstUserNumber<TGridFunction::dim> > spWeight)
+	: base_type(fctNames, ssNames, order), weighted_obj_type(spWeight) {};
+	 */
 	/// DTOR
 	~L2ComponentSpace() {};
 
@@ -329,14 +333,17 @@ public:
 	H1SemiComponentSpace(const char *fctNames, int order)
 	: base_type(fctNames, order), weighted_obj_type(make_sp(new ConstUserMatrix<TGridFunction::dim>(1.0))) {};
 
-	/*H1SemiComponentSpace(const char *fctNames, int order, number scale)
-	: base_type(fctNames, order, scale) {};
-*/
-	H1SemiComponentSpace(const char *fctNames, const char* ssNames, int order)
+	/*H1SemiComponentSpace(const char *fctNames, int order, const char* ssNames=0)
 	: base_type(fctNames, ssNames, order), weighted_obj_type(make_sp(new ConstUserMatrix<TGridFunction::dim>(1.0)))  {};
+*/
+	H1SemiComponentSpace(const char *fctNames, int order, double weight, const char* ssNames=0)
+	: base_type(fctNames, ssNames, order), weighted_obj_type(make_sp(new ConstUserMatrix<TGridFunction::dim>(weight)))  {};
 
-	H1SemiComponentSpace(const char *fctNames, const char* ssNames, int order, /*number scale,*/ SmartPtr<weight_type> spWeight)
-	: base_type(fctNames, ssNames, order /*, scale*/), weighted_obj_type(spWeight) {};
+	H1SemiComponentSpace(const char *fctNames, int order, ConstSmartPtr<weight_type> spWeight, const char* ssNames=0)
+	: base_type(fctNames, ssNames, order), weighted_obj_type(spWeight) {};
+
+	H1SemiComponentSpace(const char *fctNames, int order, const char* ssNames, ConstSmartPtr<weight_type> spWeight)
+	: base_type(fctNames, ssNames, order), weighted_obj_type(spWeight) {};
 
 	/// DTOR
 	~H1SemiComponentSpace() {};

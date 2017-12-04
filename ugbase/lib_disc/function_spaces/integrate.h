@@ -1315,7 +1315,7 @@ class L2DistIntegrand
 
 		virtual ~L2DistIntegrand() {}
 
-	///	sets subset
+		///	sets subset
 		virtual void set_subset(int si)
 		{
 			if(!m_fineData.is_def_in_subset(si))

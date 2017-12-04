@@ -219,7 +219,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 	{
 			typedef IGridFunctionSpace<TFct> T;
 			string name = string("IGridFunctionSpace").append(suffix);
-			reg.add_class_<T>(name, grp);
+			reg.add_class_<T>(name, grp)
+			   .add_method("config_string", &T::config_string);
 			reg.add_class_to_group(name, "IGridFunctionSpace", tag);
 	}
 
@@ -244,8 +245,9 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_<T, TBase>(name, grp)
 		   .template add_constructor<void (*)(const char *) >("fctNames")
 		   .template add_constructor<void (*)(const char *, int) >("fctNames, order")
-		 //  .template add_constructor<void (*)(const char *, int, number) >("fctNames, order, scale")
-		   .template add_constructor<void (*)(const char *, const char *, int /*, number*/) >("fctNames, subsetNames, order")
+		   .template add_constructor<void (*)(const char *, const char *, int) >("fctNames, subsetNames, order")
+		   .template add_constructor<void (*)(const char *, const char *, int, double) >("fctNames, ssNames, order, weight")
+		 //  .template add_constructor<void (*)(const char *, const char *, int, ConstSmartPtr<TWeight>) >("fctNames, ssNames, order, weight")
 		   .set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "L2ComponentSpace", tag);
 	}
@@ -260,9 +262,10 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_<T, TBase>(name, grp)
 		   .template add_constructor<void (*)(const char *) >("fctNames")
 		   .template add_constructor<void (*)(const char *, int) >("fctNames, order")
-		   .template add_constructor<void (*)(const char *, const char *, int) >("fctNames, ssNames, order")
-		  // .template add_constructor<void (*)(const char *, int, number) >("fctNames, order, scale")
-		   .template add_constructor<void (*)(const char *, const char *, int, /*number,*/ SmartPtr<TWeight>) >("fctNames, ssNames, order, weights")
+		   .template add_constructor<void (*)(const char *, int, number) >("fctNames, order, weight")
+		   .template add_constructor<void (*)(const char *, int, number, const char *) >("fctNames, order, weight, ssNames")
+		   .template add_constructor<void (*)(const char *, int, ConstSmartPtr<TWeight>) >("fctNames, order, weight")
+		   .template add_constructor<void (*)(const char *, int, const char *, ConstSmartPtr<TWeight>) >("fctNames, order, weight, ssNames")
 		   .add_method("set_weight", &T::set_weight)
 		   .add_method("get_weight", &T::get_weight)
 		   .add_method("norm", static_cast<number (T::*)(TFct&) const> (&T::norm))
