@@ -333,10 +333,7 @@ public:
 	H1SemiComponentSpace(const char *fctNames, int order)
 	: base_type(fctNames, order), weighted_obj_type(make_sp(new ConstUserMatrix<TGridFunction::dim>(1.0))) {};
 
-	/*H1SemiComponentSpace(const char *fctNames, int order, const char* ssNames=0)
-	: base_type(fctNames, ssNames, order), weighted_obj_type(make_sp(new ConstUserMatrix<TGridFunction::dim>(1.0)))  {};
-*/
-	H1SemiComponentSpace(const char *fctNames, int order, double weight, const char* ssNames=0)
+	H1SemiComponentSpace(const char *fctNames, int order, number weight, const char* ssNames=0)
 	: base_type(fctNames, ssNames, order), weighted_obj_type(make_sp(new ConstUserMatrix<TGridFunction::dim>(weight)))  {};
 
 	H1SemiComponentSpace(const char *fctNames, int order, ConstSmartPtr<weight_type> spWeight, const char* ssNames=0)
@@ -400,7 +397,9 @@ public:
 
 
 //! Defines a composite space, (i.e., additive composition of other spaces)
-/*! Employs a l2-type extension: \| u \|^2 := \sum \sigma_i \| u \|_i^2 */
+/*! Employs a l2-type extension: \| u \|^2 := \sum_I \sigma_I \| u \|_I^2
+ *  TODO: Merge with ApproximationSpace?
+ * */
 template <typename TGridFunction>
 class CompositeSpace
 		: public IGridFunctionSpace<TGridFunction>
@@ -497,6 +496,9 @@ public:
 		}
 		return false;
 	}
+
+	const std::vector<weighted_obj_type> &get_subspaces() const
+	{ return m_spWeightedSubspaces; }
 
 protected:
 	std::vector<weighted_obj_type> m_spWeightedSubspaces;
