@@ -59,6 +59,7 @@ set(srcAlgorithms	algorithms/debug_util.cpp
 					algorithms/polychain_util.cpp
 					algorithms/problem_detection_util.cpp
 					algorithms/quadrilateral_util.cpp
+					algorithms/quality_util.cpp
 					algorithms/raster_layer_util.cpp
 					algorithms/ray_element_intersection_util.cpp
 					algorithms/remeshing/delaunay_info.cpp

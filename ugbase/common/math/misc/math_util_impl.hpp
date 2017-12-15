@@ -920,6 +920,13 @@ number TriangleArea(const vector_t& p1, const vector_t& p2, const vector_t& p3)
 	return 0.5 * VecLength(e[2]);
 }
 
+template <class vector_t>
+number QuadrilateralArea(const vector_t& p1, const vector_t& p2,
+						 const vector_t& p3, const vector_t& p4)
+{
+	return TriangleArea(p1, p2, p3) + TriangleArea(p3, p4, p1);
+}
+
 ////////////////////////////////////////////////////////////////////////
 template <class vector_t>
 number GeometricApproximationDegree(vector_t& n1, vector_t& n2, vector_t& n3,

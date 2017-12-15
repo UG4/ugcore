@@ -571,7 +571,13 @@ bool BoxBoundProbe(const vector_t& v, const vector_t& boxMin,
 ///	calculates the are of the triangle defined by p1, p2 and p3
 template <class vector_t>
 number TriangleArea(const vector_t& p1, const vector_t& p2,
-							 const vector_t& p3);
+					const vector_t& p3);
+
+////////////////////////////////////////////////////////////////////////
+///	calculates the are of the triangle defined by p1, p2 and p3
+template <class vector_t>
+number QuadrilateralArea(const vector_t& p1, const vector_t& p2,
+						 const vector_t& p3, const vector_t& p4);
 
 ////////////////////////////////////////////////////////////////////////
 ///	the returned degree lies between 0 and 1. The closer to 1 the better.
