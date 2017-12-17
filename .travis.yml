@@ -15,13 +15,17 @@ language: cpp
 compiler:
   - gcc
 #  - clang
-
+env:
+  matrix:
+    - DIM=1
+    - DIM=2
+    - DIM=3 
 # prepare compilation  
 before_script:
   - git clone https://www.github.com/UG4/ughub
   - ughub/ughub init
   - ughub/ughub install ugcore LuaShell
-  - mkdir build && cd build && cmake ../ -DTARGET=ugshell -DLAPACK=OFF -DBLAS=OFF -DDIM="1;2;3" -DCOMPILE_INFO=OFF
+  - mkdir build && cd build && cmake ../ -DTARGET=ugshell -DLAPACK=OFF -DBLAS=OFF -DDIM="${DIM}" -DCOMPILE_INFO=OFF
 
 # compile ug
-script: travis_wait 640 make 
+script: V=1 make
