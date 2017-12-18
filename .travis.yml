@@ -19,7 +19,7 @@ env:
   global:
     - PATH=/usr/lib/ccache:${PATH}
   matrix:
-    - DIM=1
+    - DIM=1;2;3
       #- DIM=2
       #- DIM=3 
 cache: ccache
