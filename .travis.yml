@@ -18,8 +18,8 @@ compiler:
 env:
   matrix:
     - DIM=1
-    - DIM=2
-    - DIM=3 
+      #- DIM=2
+      #- DIM=3 
 # prepare compilation  
 before_script:
   - git clone https://www.github.com/UG4/ughub
@@ -28,4 +28,4 @@ before_script:
   - mkdir build && cd build && cmake ../ -DTARGET=ugshell -DLAPACK=OFF -DBLAS=OFF -DDIM="${DIM}" -DCOMPILE_INFO=OFF
 
 # compile ug
-script: V=1 make
+script: V=1 make -j2
