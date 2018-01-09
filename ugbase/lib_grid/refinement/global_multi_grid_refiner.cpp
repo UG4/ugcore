@@ -181,7 +181,9 @@ void GlobalMultiGridRefiner::perform_refinement()
 
 	UG_DLOG(LIB_GRID, 1, "REFINER: reserving memory...");
 
-//	reserve enough memory to speed up the algo
+//todo: Adjust for parallel computations with ghost elements!
+//		In that case the algorithm reserves too much memory.
+//		Use e.g. a virtual method GlobalMultiGridRefiner::reserve_memory
 	GMGR_PROFILE(GMGR_Reserve);
 	{
 		int l = oldTopLevel;

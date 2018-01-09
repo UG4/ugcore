@@ -38,6 +38,7 @@
 #include "geom_obj_util/geom_obj_util.h"
 #include "polychain_util.h"
 #include "orientation_util.h"
+#include "subset_color_util.h"
 
 using namespace std;
 
@@ -1078,52 +1079,17 @@ void AssignInnerAndBoundarySubsets(Grid& grid, ISubsetHandler& shOut,
 	}
 }
 
+
+////////////////////////////////////////////////////////////////////////
 vector3 GetColorFromStandardPalette(int index)
 {
-//	values taken from http://en.wikipedia.org/wiki/Web_colors
-	float stdColors[][3] = {{150, 150, 255},//My blue
-							{255, 0, 0},	//Red
-							{0, 255, 0},	//Lime
-							{0, 0, 255},	//Blue
-							{255, 0, 255},	//Magenta
-							{255, 255, 0},	//Yellow
-							{0, 255, 255},	//Aqua
-							{255, 192, 203},//Pink
-							{152, 251, 152},//PaleGreen
-							{176, 224, 230},//PowderBlue
-							{240, 230, 140},//Khaki
-							{255, 99, 71},	//Tomato
-							{0, 191, 255},	//DeepSkyBlue
-							{255, 160, 122}	//LightSalmon
-							};
-
-	const int numCols = 14;
-
-	if(index >= 0 && index < numCols)
-		return vector3(stdColors[index][0] / 255.f, stdColors[index][1] / 255.f, stdColors[index][2] / 255.f);
-
-	index -= numCols;
-
-	float val = 2.f* 3.14159265 * (float)index / 3.148 + (float)index / 15.f;
-	vector3 vCol(1.f + cos(val), 1.f + sin(0.6* val), 1.f - cos(0.373*val));
-
-	VecNormalize(vCol, vCol);
-	return vCol;
+	return GetColorFromDefaultPalette (index);
 }
 
 ////////////////////////////////////////////////////////////////////////
-//	AssignSubsetColors
 void AssignSubsetColors(ISubsetHandler& sh)
 {
-	for(int i = 0; i < sh.num_subsets(); ++i)
-	{
-		SubsetInfo& si = sh.subset_info(i);
-		vector3 col = GetColorFromStandardPalette(i);
-		si.color.x() = col.x();
-		si.color.y() = col.y();
-		si.color.z() = col.z();
-		si.color.w() = 1.f;
-	}
+	AssignDefaultSubsetColors (sh);
 }
 
 
