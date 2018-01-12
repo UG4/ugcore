@@ -77,7 +77,9 @@ class GaussSeidelBase : public IPreconditioner<TAlgebra>
 
 	/// clone constructor
 		GaussSeidelBase( const GaussSeidelBase<TAlgebra> &parent )
-			: base_type(parent), m_bConsistentInterfaces(parent.m_bConsistentInterfaces)
+			: base_type(parent),
+			  m_bConsistentInterfaces(parent.m_bConsistentInterfaces),
+			  m_useOverlap(parent.m_useOverlap)
 		{
 			set_sor_relax(parent.m_relax);
 		}
