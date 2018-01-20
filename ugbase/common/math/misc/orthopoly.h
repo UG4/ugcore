@@ -38,23 +38,32 @@
 namespace ug
 {
 
-/// computes the (unscaled) Legendre polynomials
+// computes the Legendre polynomials
 number LegendrePoly (size_t k, number x);
 
-/// computes the scaled Legendre polynomials
-number ScaledLegendrePoly (size_t k, number x);
+// computes the scalar square of the Legendre polynomials
+number SqNormOfLegendrePoly (size_t k);
 
-/// computes the (unscaled) Chebyshev polynomials of the first kind
+// computes the normalized Legendre polynomials
+number NormalizedLegendrePoly (size_t k, number x);
+
+// computes the Chebyshev polynomials of the first kind
 number Chebyshev1Poly (size_t k, number x);
 
-/// computes the scaled Chebyshev polynomials of the first kind
-number ScaledChebyshev1Poly (size_t k, number x);
+// computes the scalar square of the Chebyshev polynomials of the first kind
+number SqNormOfChebyshev1Poly (size_t k);
 
-/// computes the (unscaled) Chebyshev polynomials of the second kind
+// computes the normalized Chebyshev polynomials of the first kind
+number NormalizedChebyshev1Poly (size_t k, number x);
+
+// computes the Chebyshev polynomials of the second kind
 number Chebyshev2Poly (size_t k, number x);
 
-/// computes the scaled Chebyshev polynomials of the second kind
-number ScaledChebyshev2Poly (size_t k, number x);
+// computes the scalar square of the Chebyshev polynomials of the second kind
+number SqNormOfChebyshev2Poly (size_t k);
+
+// computes the normalized Chebyshev polynomials of the second kind
+number NormalizedChebyshev2Poly (size_t k, number x);
 
 } // namespace ug
 

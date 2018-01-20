@@ -55,18 +55,24 @@ void RegisterBridge_OrthoPoly(Registry& reg, string parentGroup)
 
 	reg.add_function("LegendrePoly", &LegendrePoly, grp,
 	                 "n#x", "", "Returns the value of the n-th Legendre polynomial at x");
-	reg.add_function("ScaledLegendrePoly", &ScaledLegendrePoly, grp,
-	                 "n#x", "", "Returns the value of the scaled n-th Legendre polynomial at x");
+	reg.add_function("SqNormOfLegendrePoly", &SqNormOfLegendrePoly, grp,
+	                 "n", "", "Returns the scalar square of the n-th Legendre polynomial");
+	reg.add_function("NormalizedLegendrePoly", &NormalizedLegendrePoly, grp,
+	                 "n#x", "", "Returns the value of the normalized n-th Legendre polynomial at x");
 
 	reg.add_function("Chebyshev1Poly", &Chebyshev1Poly, grp,
 	                 "n#x", "", "Returns the value of the n-th Chebyshev polynomial of the first kind at x");
-	reg.add_function("ScaledChebyshev1Poly", &ScaledChebyshev1Poly, grp,
-	                 "n#x", "", "Returns the value of the scaled n-th Chebyshev polynomial of the first kind at x");
+	reg.add_function("SqNormOfChebyshev1Poly", &SqNormOfChebyshev1Poly, grp,
+	                 "n", "", "Returns the scalar square of the n-th Chebyshev polynomial of the first kind");
+	reg.add_function("NormalizedChebyshev1Poly", &NormalizedChebyshev1Poly, grp,
+	                 "n#x", "", "Returns the value of the normalized n-th Chebyshev polynomial of the first kind at x");
 
 	reg.add_function("Chebyshev2Poly", &Chebyshev2Poly, grp,
 	                 "n#x", "", "Returns the value of the n-th Chebyshev polynomial of the second kind at x");
-	reg.add_function("ScaledChebyshev2Poly", &ScaledChebyshev2Poly, grp,
-	                 "n#x", "", "Returns the value of the scaled n-th Chebyshev polynomial of the second kind at x");
+	reg.add_function("SqNormOfChebyshev2Poly", &SqNormOfChebyshev2Poly, grp,
+	                 "n", "", "Returns the scalar square of the n-th Chebyshev polynomial of the second kind");
+	reg.add_function("NormalizedChebyshev2Poly", &NormalizedChebyshev2Poly, grp,
+	                 "n#x", "", "Returns the value of the normalized n-th Chebyshev polynomial of the second kind at x");
 
 }
 

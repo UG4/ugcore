@@ -37,14 +37,18 @@
 namespace ug
 {
 
-/** computes the (unscaled) Legendre polynomials
+/** returns the values of the Legendre polynomials
  *
  * The polynomials are \f$L_2\f$-orthogonal on \f$[-1, 1]\f$. They satisfy
  * the recursion \f$P_0 (x) = 1\f$, \f$P_1 (1) = x\f$,
  * \f$P_k (x) = ((2 k - 1) x P_{k-1} (x) - (k - 1) P_{k-2} (x)) / k\f$.
  * The \f$L_2\f$-norm of \f$P_k\f$ is \f$\sqrt {2 / (2 k + 1)}\f$.
  */
-number LegendrePoly (size_t k, number x)
+number LegendrePoly
+(
+	size_t k, ///< index of the polynomial, \f$k \ge 0\f$
+	number x ///< argument of the polynomial
+)
 {
 	if (k == 0) return 1;
 	else if (k == 1) return x;
@@ -52,7 +56,22 @@ number LegendrePoly (size_t k, number x)
 	return ((2 * k - 1) * x * LegendrePoly (k-1, x) - (k - 1) * LegendrePoly (k - 2, x)) / k;
 }
 
-/** computes the scaled Legendre polynomials
+/** returns the scalar square of the Legendre polynomials (the squared norm)
+ *
+ * The polynomials are \f$L_2\f$-orthogonal on \f$[-1, 1]\f$. They satisfy
+ * the recursion \f$P_0 (x) = 1\f$, \f$P_1 (1) = x\f$,
+ * \f$P_k (x) = ((2 k - 1) x P_{k-1} (x) - (k - 1) P_{k-2} (x)) / k\f$.
+ * The \f$L_2\f$-square of \f$P_k\f$ is \f$2 / (2 k + 1)\f$.
+ */
+number SqNormOfLegendrePoly
+(
+	size_t k ///< index of the polynomial, \f$k \ge 0\f$
+)
+{
+	return (number) 2 / (2 * k + 1);
+}
+
+/** returns the values of the normalized Legendre polynomials
  *
  * The Legendre polynomials are \f$L_2\f$-orthogonal on \f$[-1, 1]\f$.
  * They satisfy the recursion \f$P_0 (x) = 1\f$, \f$P_1 (1) = x\f$,
@@ -60,12 +79,16 @@ number LegendrePoly (size_t k, number x)
  * The \f$L_2\f$-norm of \f$P_k\f$ is \f$\sqrt {2 / (2 k + 1)}\f$.
  * This function returns \f$\sqrt {(2 k + 1) / 2} P_k (x)\f$.
  */
-number ScaledLegendrePoly (size_t k, number x)
+number NormalizedLegendrePoly
+(
+	size_t k, ///< index of the polynomial, \f$k \ge 0\f$
+	number x ///< argument of the polynomial
+)
 {
 	return sqrt (((number) (2 * k + 1)) / 2) * LegendrePoly (k, x);
 }
 
-/** computes the (unscaled) Chebyshev polynomials of the first kind
+/** returns the values of the Chebyshev polynomials of the first kind
  *
  * The polynomials are orthogonal on \f$[-1, 1]\f$ w.r.t. the scalar product
  * \f$ \int_{-1}^1 \phi (x) \cdot \psi (x) \frac{1}{\sqrt {1 - x^2}} \, dx \f$
@@ -74,7 +97,11 @@ number ScaledLegendrePoly (size_t k, number x)
  * The corresponding norm of \f$T_k\f$ is \f$\tfrac{\pi}{2}\f$ for \f$k > 0\f$
  * and \f$\pi\f$ for \f$k = 0\f$.
  */
-number Chebyshev1Poly (size_t k, number x)
+number Chebyshev1Poly
+(
+	size_t k, ///< index of the polynomial, \f$k \ge 0\f$
+	number x ///< argument of the polynomial
+)
 {
 	if (k == 0) return 1;
 	else if (k == 1) return x;
@@ -82,7 +109,25 @@ number Chebyshev1Poly (size_t k, number x)
 	return 2 * x * Chebyshev1Poly (k-1, x) - Chebyshev1Poly (k - 2, x);
 }
 
-/** computes the scaled Chebyshev polynomials of the first kind
+/** returns the scalar square of the Chebyshev polynomials of the first kind (the squared norm)
+ *
+ * The polynomials are orthogonal on \f$[-1, 1]\f$ w.r.t. the scalar product
+ * \f$ \int_{-1}^1 \phi (x) \cdot \psi (x) \frac{1}{\sqrt {1 - x^2}} \, dx \f$
+ * They satisfy the recursion \f$T_0 (x) = 1\f$, \f$T_1 (1) = x\f$,
+ * \f$T_k (x) = 2 x P_{k-1} (x) - P_{k-2} (x)\f$.
+ * The corresponding norm of \f$T_k\f$ is \f$\tfrac{\pi}{2}\f$ for \f$k > 0\f$
+ * and \f$\pi\f$ for \f$k = 0\f$.
+ */
+number SqNormOfChebyshev1Poly
+(
+	size_t k ///< index of the polynomial, \f$k \ge 0\f$
+)
+{
+	if (k == 0) return PI * PI;
+	return PI * PI / 4;
+}
+
+/** returns the values the normalized Chebyshev polynomials of the first kind
  *
  * The polynomials are orthogonal on \f$[-1, 1]\f$ w.r.t. the scalar product
  * \f$ \int_{-1}^1 \phi (x) \cdot \psi (x) \frac{1}{\sqrt {1 - x^2}} \, dx \f$
@@ -93,14 +138,18 @@ number Chebyshev1Poly (size_t k, number x)
  *
  * This function returns \f$T_k (x)\f$ divided by its norm.
  */
-number ScaledChebyshev1Poly (size_t k, number x)
+number NormalizedChebyshev1Poly
+(
+	size_t k, ///< index of the polynomial, \f$k \ge 0\f$
+	number x ///< argument of the polynomial
+)
 {
 	if (k == 0) return Chebyshev1Poly (0, x) / PI;
 	
 	return Chebyshev1Poly (k, x) * 2 / PI;
 }
 
-/** computes the (unscaled) Chebyshev polynomials of the second kind
+/** returns the values of the Chebyshev polynomials of the second kind
  *
  * The polynomials are orthogonal on \f$[-1, 1]\f$ w.r.t. the scalar product
  * \f$ \int_{-1}^1 \phi (x) \cdot \psi (x) \sqrt {1 - x^2} \, dx \f$
@@ -108,7 +157,11 @@ number ScaledChebyshev1Poly (size_t k, number x)
  * \f$U_k (x) = 2 x U_{k-1} (x) - U_{k-2} (x)\f$.
  * The corresponding norm of \f$T_k\f$ is \f$\tfrac{\pi}{2}\f$.
  */
-number Chebyshev2Poly (size_t k, number x)
+number Chebyshev2Poly
+(
+	size_t k, ///< index of the polynomial, \f$k \ge 0\f$
+	number x ///< argument of the polynomial
+)
 {
 	if (k == 0) return 1;
 	else if (k == 1) return 2 * x;
@@ -116,7 +169,7 @@ number Chebyshev2Poly (size_t k, number x)
 	return 2 * x * Chebyshev2Poly (k-1, x) - Chebyshev2Poly (k - 2, x);
 }
 
-/** computes the scaled Chebyshev polynomials of the second kind
+/** returns the scalar square of the Chebyshev polynomials of the second kind (the squared norm)
  *
  * The polynomials are orthogonal on \f$[-1, 1]\f$ w.r.t. the scalar product
  * \f$ \int_{-1}^1 \phi (x) \cdot \psi (x) \sqrt {1 - x^2} \, dx \f$
@@ -124,7 +177,27 @@ number Chebyshev2Poly (size_t k, number x)
  * \f$U_k (x) = 2 x U_{k-1} (x) - U_{k-2} (x)\f$.
  * The corresponding norm of \f$T_k\f$ is \f$\tfrac{\pi}{2}\f$.
  */
-number ScaledChebyshev2Poly (size_t k, number x)
+number SqNormOfChebyshev2Poly
+(
+	size_t k ///< index of the polynomial, \f$k \ge 0\f$
+)
+{
+	return PI * PI / 4;
+}
+
+/** returns the values the normalized Chebyshev polynomials of the second kind
+ *
+ * The polynomials are orthogonal on \f$[-1, 1]\f$ w.r.t. the scalar product
+ * \f$ \int_{-1}^1 \phi (x) \cdot \psi (x) \sqrt {1 - x^2} \, dx \f$
+ * They satisfy the recursion \f$U_0 (x) = 1\f$, \f$U_1 (1) = 2 x\f$,
+ * \f$U_k (x) = 2 x U_{k-1} (x) - U_{k-2} (x)\f$.
+ * The corresponding norm of \f$T_k\f$ is \f$\tfrac{\pi}{2}\f$.
+ */
+number NormalizedChebyshev2Poly
+(
+	size_t k, ///< index of the polynomial, \f$k \ge 0\f$
+	number x ///< argument of the polynomial
+)
 {
 	return Chebyshev2Poly (k, x) * 2 / PI;
 }
