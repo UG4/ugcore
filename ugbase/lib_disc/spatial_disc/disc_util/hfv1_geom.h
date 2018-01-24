@@ -106,9 +106,11 @@ class HFV1Geometry : public FVGeometryBase{
 				SCVF() {};
 
 			/// index of SubControlVolume on one side of the scvf
+			/// NO! return value is the associated NODE_ID; this is not the same!
 				inline size_t from() const {return m_from;}
 
 			/// index of SubControlVolume on one side of the scvf
+			/// NO! return value is the associated NODE_ID; this is not the same!
 				inline size_t to() const {return m_to;}
 
 			/// number of integration points on scvf
@@ -292,6 +294,20 @@ class HFV1Geometry : public FVGeometryBase{
 
 	/// returns all ips of scv as they appear in scv loop
 		const MathVector<dim>* scv_local_ips() const {return &m_vLocSCVIP[0];}
+
+	/// return local coords for node ID
+		const MathVector<dim>& local_node_position(size_t nodeID) const
+		{
+			UG_ASSERT(nodeID < m_locMid[0].size(), "Invalid node id.");
+			return m_locMid[0][nodeID];
+		}
+
+	/// return global coords for node ID
+		const MathVector<worldDim>& global_node_position(size_t nodeID) const
+		{
+			UG_ASSERT(nodeID < m_gloMid[0].size(), "Invalid node id.");
+			return m_gloMid[0][nodeID];
+		}
 
 	protected:
 		std::vector<MathVector<worldDim> > m_vGlobSCVFIP;
@@ -1196,7 +1212,7 @@ class HFV1ManifoldGeometry
 
 	private:
 	// 	pointer to current element
-		TElem* m_pElem;
+		GridObject* m_pElem;
 
 	// 	local and global geom object midpoints for each dimension
 		std::vector<MathVector<dim> > m_locMid[dim+1];
