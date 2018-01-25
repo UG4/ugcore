@@ -40,6 +40,7 @@
 #include "lib_grid/algorithms/subset_util.h"
 #include "lib_grid/tools/surface_view.h"
 
+#include "file_io_2df.h"
 #include "file_io_art.h"
 #include "file_io_asc.h"
 #include "file_io_txt.h"
@@ -262,6 +263,8 @@ static bool SaveGrid3d_IMPL(Grid& grid, ISubsetHandler* pSH,
 	string strName = filename;
 	if(strName.find(".txt") != string::npos)
 		return SaveGridToTXT(grid, filename, aPos);
+	if(strName.find(".2df") != string::npos)
+		return SaveGridTo2DF(grid, filename, pSH, aPos);
 	else if(strName.find(".obj") != string::npos)
 		return SaveGridToOBJ(grid, filename, aPos, NULL, pSH);
 	else if(strName.find(".lgb") != string::npos)
