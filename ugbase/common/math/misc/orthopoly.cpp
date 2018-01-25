@@ -56,19 +56,22 @@ number LegendrePoly
 	return ((2 * k - 1) * x * LegendrePoly (k-1, x) - (k - 1) * LegendrePoly (k - 2, x)) / k;
 }
 
-/** returns the scalar square of the Legendre polynomials (the squared norm)
+/** returns the scalar square of the Legendre polynomials (the squared weighted norm)
  *
  * The polynomials are \f$L_2\f$-orthogonal on \f$[-1, 1]\f$. They satisfy
  * the recursion \f$P_0 (x) = 1\f$, \f$P_1 (1) = x\f$,
  * \f$P_k (x) = ((2 k - 1) x P_{k-1} (x) - (k - 1) P_{k-2} (x)) / k\f$.
  * The \f$L_2\f$-square of \f$P_k\f$ is \f$2 / (2 k + 1)\f$.
+ * Note that this function returns not the \f$L_2\f$ norm but the weighted
+ * norm \f$\sqrt {\frac{1}{b-a} \int_a^b P_k^2 (x) \, dx}\f$, where
+ * \f$a=-1\f$, \f$b=1\f$.
  */
 number SqNormOfLegendrePoly
 (
 	size_t k ///< index of the polynomial, \f$k \ge 0\f$
 )
 {
-	return (number) 2 / (2 * k + 1);
+	return (number) 1 / (2 * k + 1);
 }
 
 /** returns the values of the normalized Legendre polynomials
@@ -85,7 +88,7 @@ number NormalizedLegendrePoly
 	number x ///< argument of the polynomial
 )
 {
-	return sqrt (((number) (2 * k + 1)) / 2) * LegendrePoly (k, x);
+	return sqrt (((number) (2 * k + 1))) * LegendrePoly (k, x);
 }
 
 /** returns the values of the Chebyshev polynomials of the first kind
