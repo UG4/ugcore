@@ -57,7 +57,7 @@ bool LoadGridFromTXT(Grid& grid, const char* filename, AVector3& aPos)
 //	create points
 //	store pointers to the vertices on the fly in a vector.
 	vector<Vertex*>	vVrts;
-	vVrts.reserve(numVrts);
+	vVrts.resize(numVrts);
 
 	for(int i = 0; i < numVrts; ++i)
 		vVrts[i] = *grid.create<RegularVertex>();

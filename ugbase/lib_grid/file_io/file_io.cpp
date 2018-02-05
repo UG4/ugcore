@@ -94,6 +94,8 @@ static bool LoadGrid3d_IMPL(Grid& grid, ISubsetHandler* pSH,
 
 		bSuccess = LoadGridFromLGB(grid, filename, &pSH, numSHs, aPos);
 	}
+	else if(strExt.compare("2df") == 0)
+		bSuccess = LoadGridFrom2DF(grid, filename, pSH, aPos);
 	else if(strExt.compare("stl") == 0)
 		bSuccess = LoadGridFromSTL(grid, filename, pSH, aPos);
 	else if(strExt.compare("net") == 0)

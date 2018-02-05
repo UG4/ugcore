@@ -34,10 +34,118 @@
 #include <fstream>
 #include <vector>
 #include "../lg_base.h"
+#include "common/util/string_util.h"
 
 using namespace std;
 
 namespace ug {
+
+static inline std::string NextValid2DFLine(ifstream& in)
+{
+	string line;
+	while(!in.eof()){
+		getline(in, line);
+		size_t pos = line.find('#');
+		if(pos != string::npos)
+			line.erase(pos);
+
+		line = TrimString(line);
+		if(!line.empty()){
+			return line;
+		}
+	}
+	return string();
+}
+
+bool LoadGridFrom2DF(Grid& grid, const char* filename, ISubsetHandler* psh, AVector3& aPos)
+{
+	ifstream file(filename);
+
+	if(!file)
+		return false;
+
+	int numVrts, numTris;
+	{
+		stringstream in (NextValid2DFLine(file));
+		in >> numVrts;
+		in >> numTris;
+	}
+
+
+//	create points
+//	store pointers to the vertices on the fly in a vector.
+	vector<Vertex*>	vVrts;
+	vVrts.resize(numVrts);
+
+	vector<Face*> vTris;
+	vTris.reserve(numTris);
+
+	for(int i = 0; i < numVrts; ++i)
+		vVrts[i] = *grid.create<RegularVertex>();
+
+	if(!grid.has_vertex_attachment(aPos))
+		grid.attach_to_vertices(aPos);
+	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPos);
+
+
+//	read the points
+	{
+		for(size_t i = 0; i < vVrts.size(); ++i)
+		{
+			stringstream in (NextValid2DFLine(file));
+			Vertex* vrt = vVrts[i];
+			double x, y;
+			in >> x;
+			in >> y;
+			if(!in.fail())
+				aaPos[vrt] = vector3(x, y, 0);
+		}
+	}
+
+//	read the triangles
+	{
+		for(int i = 0; i < numTris; ++i)
+		{
+			stringstream in (NextValid2DFLine(file));
+			int i1, i2, i3;
+			in >> i1;
+			in >> i2;
+			in >> i3;
+			if(!in.fail()){
+				Face* t = *grid.create<Triangle>(TriangleDescriptor(vVrts[i1], vVrts[i2], vVrts[i3]));
+				vTris.push_back(t);
+			}
+		}
+	}
+
+	if(psh){
+		for(size_t i = 0; i < vVrts.size(); ++i)
+		{
+			stringstream in (NextValid2DFLine(file));
+			int mark;
+			in >> mark;
+			if(!in.fail())
+				psh->assign_subset(vVrts[i], mark);
+			else
+				psh->assign_subset(vVrts[i], 0);
+		}
+
+		for(size_t i = 0; i < vTris.size(); ++i)
+		{
+			stringstream in (NextValid2DFLine(file));
+			int mark;
+			in >> mark;
+			if(!in.fail())
+				psh->assign_subset(vTris[i], mark);
+			else
+				psh->assign_subset(vTris[i], 0);
+		}
+	}
+
+	file.close();
+	return true;
+}
+
 
 bool SaveGridTo2DF(Grid& grid, const char* filename, ISubsetHandler* psh, AVector3& aPos)
 {
