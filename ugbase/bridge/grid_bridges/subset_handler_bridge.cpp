@@ -36,7 +36,35 @@
 #include "lib_grid/tools/surface_view.h"
 using namespace std;
 
+
 namespace ug{
+
+template <class TElem>
+static void AssignSubsetsByLevel(SubsetHandler& sh, MultiGrid& mg)
+{
+	for(size_t lvl = 0; lvl < mg.num_levels(); ++lvl){
+		std::stringstream ss;
+		ss << "Level " << lvl;
+		sh.subset_info(lvl).name = ss.str().c_str();
+
+		typedef typename Grid::traits<TElem>::iterator TIter;
+		for(TIter iter = mg.begin<TElem>(lvl); iter != mg.end<TElem>(lvl); ++iter){
+			sh.assign_subset(*iter, lvl);
+		}
+	}
+}
+
+void AssignSubsetsByLevel(SubsetHandler& sh, MultiGrid& mg)
+{
+	AssignSubsetsByLevel<Vertex>(sh, mg);
+	AssignSubsetsByLevel<Edge>(sh, mg);
+	AssignSubsetsByLevel<Face>(sh, mg);
+	AssignSubsetsByLevel<Volume>(sh, mg);
+
+	AssignSubsetColors(sh);
+	EraseEmptySubsets(sh);
+}
+
 namespace bridge{
 
 void RegisterGridBridge_SubsetHandler(Registry& reg, string parentGroup)
@@ -89,7 +117,8 @@ void RegisterGridBridge_SubsetHandler(Registry& reg, string parentGroup)
 					&AdjustSubsetsForSimulation<MGSubsetHandler>), grp)
 		.add_function("AssignSubsetsByElementType",
 					static_cast<void (*)(ISubsetHandler&)>(&AssignSubsetsByElementType))
-		.add_function("AssignSubsetColors", &AssignSubsetColors);
+		.add_function("AssignSubsetColors", &AssignSubsetColors)
+		.add_function("AssignSubsetsByLevel", static_cast<void (*)(SubsetHandler&, MultiGrid&)>(&AssignSubsetsByLevel));
 }
 
 }//	end of namespace
