@@ -56,6 +56,8 @@
 #include "lib_grid/parallelization/parallel_refinement/parallel_refinement.h"
 #endif
 
+#include "common/math/misc/math_util.h"
+
 using namespace std;
 
 namespace ug{
@@ -837,6 +839,148 @@ void MarkAnisotropic_LongEdges(TDomain& dom, IRefiner& refiner, number minLen)
 // 	refiner->mark(volumes.begin(), volumes.end(), RM_ANISOTROPIC);
 // }
 
+static number DistanceToSurfaceDomain(MathVector<1>& tpos, const Vertex* vrt, 
+									  Grid::VertexAttachmentAccessor<Attachment<MathVector<1> > >& aaPosSurf)
+{
+	UG_THROW("Not implemented");
+}
+static number DistanceToSurfaceDomain(MathVector<2>& tpos, const Edge* edge, 
+									  Grid::VertexAttachmentAccessor<Attachment<MathVector<2> > >& aaPosSurf)
+{
+	return DistancePointToLine(tpos , aaPosSurf[edge->vertex(0)], aaPosSurf[edge->vertex(1)]);
+}
+static number DistanceToSurfaceDomain(MathVector<3>& tpos, const Face* face, 
+									  Grid::VertexAttachmentAccessor<Attachment<MathVector<3> > >& aaPosSurf)
+{
+
+	MathVector<3> a, b, n;
+	VecSubtract(a, aaPosSurf[face->vertex(1)], aaPosSurf[face->vertex(0)]);
+	VecSubtract(b, aaPosSurf[face->vertex(2)], aaPosSurf[face->vertex(0)]);
+	VecCross(n, a,b);
+
+	number bc1Out, bc2Out;
+	return DistancePointToTriangle(	a, bc1Out, bc2Out, 
+									tpos, 
+									aaPosSurf[face->vertex(0)], aaPosSurf[face->vertex(1)], aaPosSurf[face->vertex(2)], n);
+}
+
+template <class TDomain>
+void MarkForRefinement_CloseToSurface(TDomain& dom, SmartPtr<IRefiner> refiner,
+									  double time, size_t maxLvl,
+										const TDomain& surfaceDomain)
+{
+	PROFILE_FUNC();
+	typedef typename TDomain::grid_type TGrid;
+	typedef typename TDomain::subset_handler_type TSubsetHandler;
+	typedef typename TDomain::position_type TPos;
+	typedef typename TDomain::position_accessor_type TAAPos;
+	typedef typename domain_traits<TDomain::dim>::element_type TElem;
+	typedef typename domain_traits<TDomain::dim>::side_type TSide;
+	typedef typename TGrid::template traits<TElem>::iterator TIter;
+
+	TGrid& g = *dom.grid();
+	//TSubsetHandler& sh = *dom.subset_handler();
+	TAAPos aaPos = dom.position_accessor();
+	TAAPos aaPosSurf = surfaceDomain.position_accessor();
+	const TGrid& surface = *surfaceDomain.grid();
+	Grid::edge_traits::secure_container	edges;
+
+	for(TIter iter = g.template begin<TElem>(); iter != g.template end<TElem>(); ++iter)
+	{
+		TElem* e = *iter;
+		size_t lvl = g.get_level(e);
+		if(lvl >= maxLvl)
+			continue;
+
+		if(!g.has_children(e)){
+		//	calculate the element center and the length of the longest edge
+			TPos tpos = CalculateCenter(e, aaPos);
+			vector3 pos;
+			VecCopy(pos, tpos, 0);
+
+
+		//	the minimal edge defines h for this element
+			number h = numeric_limits<number>::max();
+			g.associated_elements(edges, e);
+			for(size_t i = 0; i < edges.size(); ++i){
+				number l = EdgeLengthSq(edges[i], aaPos);
+				if(l < h){
+					h = l;
+				}
+			}
+			h = sqrt(h);
+
+
+			int refine = 0;
+
+			for( typename TGrid::template traits<TSide>::const_iterator it = surface.template begin<TSide>(); 
+					it != surface.template end<TSide>(); ++it){
+				const TSide* side = *it;
+
+				number distance = DistanceToSurfaceDomain(tpos, side, aaPosSurf);
+
+				if(distance < h)
+					refine = 1;
+			}
+
+			if(refine)
+				refiner->mark(e);
+		}
+	}
+}
+
+
+template <class TDomain>
+void MarkForRefinement_ContainsSurfaceNode(TDomain& dom, SmartPtr<IRefiner> refiner,
+									  	double time, size_t maxLvl,
+										const TDomain& surfaceDomain)
+{
+	PROFILE_FUNC();
+	typedef typename TDomain::grid_type TGrid;
+	typedef typename TDomain::subset_handler_type TSubsetHandler;
+	typedef typename TDomain::position_type TPos;
+	typedef typename TDomain::position_accessor_type TAAPos;
+	typedef typename domain_traits<TDomain::dim>::element_type TElem;
+	typedef typename domain_traits<TDomain::dim>::side_type TSide;
+	typedef typename TGrid::template traits<TElem>::iterator TIter;
+
+	TGrid& g = *dom.grid();
+	//TSubsetHandler& sh = *dom.subset_handler();
+	TAAPos aaPos = dom.position_accessor();
+	TAAPos aaPosSurf = surfaceDomain.position_accessor();
+	const TGrid& surface = *surfaceDomain.grid();
+	Grid::edge_traits::secure_container	edges;
+
+	for(TIter iter = g.template begin<TElem>(); iter != g.template end<TElem>(); ++iter)
+	{
+		TElem* e = *iter;
+		size_t lvl = g.get_level(e);
+		if(lvl >= maxLvl)
+			continue;
+
+		if(!g.has_children(e)){
+		//	calculate the element center and the length of the longest edge
+
+			int refine = 0;
+
+			for( typename TGrid::template traits<TSide>::const_iterator it = surface.template begin<TSide>(); 
+					it != surface.template end<TSide>(); ++it){
+				TSide* side = const_cast<TSide*>(*it);
+
+				for(size_t co = 0; co < NumVertices(side); ++co){
+
+					if(ContainsPoint(e, aaPosSurf[GetVertex(side,co)], aaPos))
+						refine = 1;
+				}
+			}
+
+			if(refine)
+				refiner->mark(e);
+		}
+	}
+}
+
+
 
 template <class TDomain>
 void MarkForRefinement_ElementsByLuaCallback(TDomain& dom, SmartPtr<IRefiner> refiner,
@@ -854,11 +998,11 @@ void MarkForRefinement_ElementsByLuaCallback(TDomain& dom, SmartPtr<IRefiner> re
 	TGrid& g = *dom.grid();
 	TSubsetHandler& sh = *dom.subset_handler();
 	TAAPos aaPos = dom.position_accessor();
-	Grid::edge_traits::secure_container	edges;
+//	Grid::edge_traits::secure_container	edges;
 
 	LuaFunction<int, number>	callback;
-//	we'll pass the following arguments: x, y, z, h, lvl, si, time
-	callback.set_lua_callback(luaCallbackName, 7);
+//	we'll pass the following arguments: x, y, z, /*h,*/ lvl, si, time
+	callback.set_lua_callback(luaCallbackName, /*7*/6);
 
 	for(TIter iter = g.template begin<TElem>(); iter != g.template end<TElem>(); ++iter)
 	{
@@ -872,6 +1016,11 @@ void MarkForRefinement_ElementsByLuaCallback(TDomain& dom, SmartPtr<IRefiner> re
 			TPos tpos = CalculateCenter(e, aaPos);
 			vector3 pos;
 			VecCopy(pos, tpos, 0);
+
+			// note: this part had been inserted, but the lua callbacks rely on 6 arguments 
+			//       if you need the mesh size in the lua callback you may add it AT THE END of the parameter list
+			//       HOWEVER, please contact the author of this file BEFORE inserting it
+			/*
 		//	the longest edge defines h for this element
 			number h = numeric_limits<number>::max();
 			g.associated_elements(edges, e);
@@ -882,9 +1031,10 @@ void MarkForRefinement_ElementsByLuaCallback(TDomain& dom, SmartPtr<IRefiner> re
 				}
 			}
 			h = sqrt(h);
+			*/
 
 			int refine = 0;
-			callback(refine, 7, pos.x(), pos.y(), pos.z(), h, (number)lvl,
+			callback(refine, 6, pos.x(), pos.y(), pos.z(), /*h,*/ (number)lvl,
 					 (number)sh.get_subset_index(e), (number)time);
 			if(refine)
 				refiner->mark(e);
@@ -1546,7 +1696,15 @@ static void Domain(Registry& reg, string grp)
 				grp, "", "dom#refiner#dir#minEdgeRatio")
 		.add_function("MarkForRefinement_EdgeDirection",
 				&MarkForRefinement_EdgeDirection<domain_type>,
-				grp, "", "dom#refiner#dir#minDeviationAngle#maxDeviationAngle#selectFlipped");
+				grp, "", "dom#refiner#dir#minDeviationAngle#maxDeviationAngle#selectFlipped")
+		.add_function("MarkForRefinement_CloseToSurface",
+				&MarkForRefinement_CloseToSurface<domain_type>,
+				grp, "", "")
+		.add_function("MarkForRefinement_ContainsSurfaceNode",
+				&MarkForRefinement_ContainsSurfaceNode<domain_type>,
+				grp, "", "");
+
+
 //		.add_function("MarkForAdaption_EdgesContainingPoint",
 //				&MarkForAdaption_ElementsContainingPoint<domain_type, Edge>,
 //				grp, "", "dom#refiner#x#y#z#markType")
