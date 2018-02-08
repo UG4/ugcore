@@ -334,7 +334,7 @@ void SplitAddRhs_OneSide(TVector& rhs,
  * @param dd                DoF distribution
  * @param hgVrt             the hanging vertex
  * @param vConstrainingVrt  vector of constraining vertices
- * @param constrainedInd    vector of DoFs indices on hanging vertex
+ * @param constrainedInd    vector of DoF indices on hanging vertex
  * @param vConstrainingInd  vector of (vector of constraining DoF indices) for constraining vertices
  */
 inline void get_dof_indices(ConstSmartPtr<DoFDistribution> dd,
@@ -357,7 +357,7 @@ inline void get_dof_indices(ConstSmartPtr<DoFDistribution> dd,
 	vConstrainingInd.resize(vConstrainingVrt.size());
 
 // 	get algebra indices for constrained and constraining vertices
-	for (size_t fct = 0; fct < dd->num_fct(si); fct++)
+	for (size_t fct = 0; fct < dd->num_fct(); ++fct)
 	{
 	//	check that function is defined on subset
 		if (!dd->is_def_in_subset(fct, si)) continue;
