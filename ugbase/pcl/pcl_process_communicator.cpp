@@ -536,12 +536,8 @@ distribute_data(void* recvBufOut, int* recvBufSegSizesOut,
 //	used for mpi-communication.
 	std::vector<MPI_Request> vSendRequests(numSends);
 	std::vector<MPI_Request> vReceiveRequests(numRecvs);
-	
-//	wait until data has been received
-	std::vector<MPI_Status> vSendStates(numSends);
-	std::vector<MPI_Status> vReceiveStates(numRecvs);
 
-//	shedule receives first
+//	schedule receives first
 	for(int i = 0; i < numRecvs; ++i)
 	{
 		MPI_Irecv(recvBufOut, recvBufSegSizesOut[i], MPI_UNSIGNED_CHAR,	
@@ -559,7 +555,29 @@ distribute_data(void* recvBufOut, int* recvBufSegSizesOut,
 		sendBuf = (byte*)sendBuf + sendBufSegSizes[i];
 	}
 
-	Waitall(vReceiveRequests, vSendRequests);	
+	//	wait until data has been received
+#ifdef UG_DEBUG
+	std::vector<MPI_Status> vSendStates(numSends);
+	std::vector<MPI_Status> vReceiveStates(numRecvs);
+	Waitall(vReceiveRequests, vReceiveStates);
+	Waitall(vSendRequests, vSendStates);
+
+	/* We usually use distribute data to distribute exactly as much data
+	 * as indicated in recvBufferSegsizes. This small piece of code can check
+	 * whether all of it has been received.
+	 * However, in general, the MPI routines used here allow that less data is
+	 * actually received. Which is why the assert is not active by default.
+	// check how much data was actually received
+	int numRcvd = 0;
+	for (int i = 0; i < numRecvs; ++i)
+	{
+		MPI_Get_count(&vReceiveStates[i], MPI_UNSIGNED_CHAR, &numRcvd);
+		UG_ASSERT(numRcvd == recvBufSegSizesOut[i], "Received less data than scheduled.");
+	}
+	*/
+#else
+	Waitall(vReceiveRequests, vSendRequests);
+#endif
 }
 
 void ProcessCommunicator::
