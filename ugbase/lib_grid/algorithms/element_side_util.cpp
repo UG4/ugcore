@@ -102,4 +102,30 @@ Vertex* GetOpposingSide(Grid& g, Edge* elem, Vertex* side)
 }
 
 
+template <typename TBaseElem>
+TBaseElem* GetOpposingSide(Grid& g, typename TBaseElem::side* face, TBaseElem* elem)
+{
+	typedef typename Grid::traits<TBaseElem>::secure_container elem_list_type;
+	elem_list_type el;
+	g.associated_elements(el, face);
+	size_t el_sz = el.size();
+	UG_COND_THROW(el_sz > 2, "More than two volumes associated with face.")
+	for (size_t e = 0; e < el_sz; ++e)
+	{
+		if (el[e] != elem)
+			return el[e];
+	}
+
+	return (TBaseElem*) NULL;
+}
+
+#ifdef UG_DIM_3
+	template Volume* GetOpposingSide<Volume>(Grid&, Face*, Volume*);
+#endif
+#if defined UG_DIM_2 || defined UG_DIM_3
+	template Face* GetOpposingSide<Face>(Grid&, Edge*, Face*);
+#endif
+#if defined UG_DIM_1 || defined UG_DIM_2 || defined UG_DIM_3
+	template Edge* GetOpposingSide<Edge>(Grid&, Vertex*, Edge*);
+#endif
 } // namespace ug

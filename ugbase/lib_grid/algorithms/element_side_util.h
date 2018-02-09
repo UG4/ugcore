@@ -55,6 +55,8 @@ Face* GetOpposingSide(Grid& g, Volume* elem, Face* side);
 Edge* GetOpposingSide(Grid& g, Face* elem, Edge* side);
 Vertex* GetOpposingSide(Grid& g, Edge* elem, Vertex* side);
 
+template <typename TBaseElem>
+TBaseElem* GetOpposingSide(Grid&g, typename TBaseElem::side* face, TBaseElem* elem);
 
 } // namespace ug
 
