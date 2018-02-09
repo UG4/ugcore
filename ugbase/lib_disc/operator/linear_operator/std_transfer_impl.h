@@ -104,9 +104,11 @@ assemble_prolongation_p1(matrix_type& P,
 				if(!parent) continue;
 
 				if(!coarseDD.is_contained(parent)){
-					UG_THROW("StdTransfer: A parent element is not contained in "
-							" coarse-dd nor the child element in the coarse-dd. "
-							"This should not happen.")
+					UG_THROW("StdTransfer: Parent element \n"
+							<< ElementDebugInfo(mg, parent) <<
+							"is not contained in coarse-dd nor the child element\n"
+							<< ElementDebugInfo(mg, child) <<
+							" in the coarse-dd. This should not happen.")
 				}
 			}
 
