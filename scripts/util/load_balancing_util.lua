@@ -181,8 +181,6 @@ function balancer.CreateLoadBalancer(domain)
 			if balancer.communicationWeights ~= nil then
 				partitioner:set_communication_weights(balancer.communicationWeights)
 			end
-			partitioner:set_child_weight(balancer.childWeight)
-			partitioner:set_sibling_weight(balancer.siblingWeight)
 			partitioner:set_itr_factor(balancer.itrFactor)
 			partitioner:set_allowed_imbalance_factor(balancer.imbalanceFactor)
 			partitioner:set_verbose(false)
