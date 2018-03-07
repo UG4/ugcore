@@ -49,20 +49,21 @@ void WriteCombinedParallelFile(ug::BinaryBuffer &buffer, std::string strFilename
 
 	char filename[1024];
 	strcpy(filename, strFilename.c_str());
+
 	if(MPI_File_open(m_mpiComm, filename, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &fh))
 		UG_THROW("could not open "<<filename);
 
-	int mySize = buffer.write_pos();
-	int myNextOffset = 0;
-	MPI_Scan(&mySize, &myNextOffset, 1, MPI_INT, MPI_SUM, m_mpiComm);
+	long long mySize = buffer.write_pos();
+	long long myNextOffset = 0;
+	MPI_Scan(&mySize, &myNextOffset, 1, MPI_LONG_LONG, MPI_SUM, m_mpiComm);
 
 
-	std::vector<int> allNextOffsets;
+	std::vector<long long> allNextOffsets;
 	allNextOffsets.resize(pc.size(), 0);
 	//else allNextOffsets.resize(1);
 
-	myNextOffset += (pc.size()+1)*sizeof(int);
-	MPI_Gather(&myNextOffset, 1, MPI_INT, &allNextOffsets[0], 1, MPI_INT, pc.get_proc_id(0), m_mpiComm);
+	myNextOffset += (pc.size())*sizeof(long long) + sizeof(int);
+	MPI_Gather(&myNextOffset, 1, MPI_LONG_LONG, &allNextOffsets[0], 1, MPI_LONG_LONG, pc.get_proc_id(0), m_mpiComm);
 
 	if(bFirst)
 	{
@@ -75,13 +76,13 @@ void WriteCombinedParallelFile(ug::BinaryBuffer &buffer, std::string strFilename
 		}
 	}
 
-	int myOffset = myNextOffset - buffer.write_pos();
+	long long myOffset = myNextOffset - mySize;
 	MPI_File_seek(fh, myOffset, MPI_SEEK_SET);
 
 //	UG_LOG_ALL_PROCS("MySize = " << mySize << "\n" << " myOffset = " << myOffset << "\n");
 //	UG_LOG_ALL_PROCS("buffer.write_pos() = " << buffer.write_pos() << "\n" << "(pc.size()+1)*sizeof(size_t) = " << (pc.size()+1)*sizeof(size_t) << "\n");
 
-	MPI_File_write(fh, buffer.buffer(), buffer.write_pos(), MPI_BYTE, &status);
+	MPI_File_write(fh, buffer.buffer(), mySize, MPI_BYTE, &status);
 
 	MPI_File_close(&fh);
 }
@@ -94,15 +95,15 @@ void ReadCombinedParallelFile(ug::BinaryBuffer &buffer, std::string strFilename,
 
 	char filename[1024];
 	strcpy(filename, strFilename.c_str());
-	if(MPI_File_open(m_mpiComm, filename, MPI_MODE_CREATE | MPI_MODE_RDWR, MPI_INFO_NULL, &fh))
+	if(MPI_File_open(m_mpiComm, filename, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh))
 		UG_THROW("could not open "<<filename);
 
-	std::vector<int> allNextOffsets;
+	std::vector<long long> allNextOffsets;
 	allNextOffsets.resize(pc.size()+1);
 
-	allNextOffsets[0] = (pc.size()+1)*sizeof(int);
-	bool bFirst = pc.get_proc_id(0) == pcl::ProcRank();
-	if(bFirst)
+	allNextOffsets[0] = (pc.size())*sizeof(long long) + sizeof(int);
+	bool bFirst = (pc.get_proc_id(0) == pcl::ProcRank());
+	if (bFirst)
 	{
 		int numProcs;
 		MPI_File_read(fh, &numProcs, sizeof(numProcs), MPI_BYTE, &status);
@@ -114,11 +115,11 @@ void ReadCombinedParallelFile(ug::BinaryBuffer &buffer, std::string strFilename,
 //			UG_LOG("allNextOffsets[" << i << "] = " << allNextOffsets[i] << "\n");
 		}
 	}
-	int myNextOffset, myNextOffset2;
-	MPI_Scatter(&allNextOffsets[0], 1, MPI_INT, &myNextOffset, 1, MPI_INT, pc.get_proc_id(0), m_mpiComm);
-	MPI_Scatter(&allNextOffsets[1], 1, MPI_INT, &myNextOffset2, 1, MPI_INT, pc.get_proc_id(0), m_mpiComm);
+	long long myNextOffset, myNextOffset2;
+	MPI_Scatter(&allNextOffsets[0], 1, MPI_LONG_LONG, &myNextOffset, 1, MPI_LONG_LONG, pc.get_proc_id(0), m_mpiComm);
+	MPI_Scatter(&allNextOffsets[1], 1, MPI_LONG_LONG, &myNextOffset2, 1, MPI_LONG_LONG, pc.get_proc_id(0), m_mpiComm);
 
-	int mySize = myNextOffset2-myNextOffset;
+	long long mySize = myNextOffset2-myNextOffset;
 
 //	UG_LOG_ALL_PROCS("MySize = " << mySize << "\n" << "myNextOffset = " << myNextOffset << " - " << myNextOffset2 << "\n");
 
