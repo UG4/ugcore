@@ -39,6 +39,7 @@
 namespace ug {
 
 bool vertexGroupsMatch(const IVertexGroup* elem, const IVertexGroup& desc);
+bool vertexGroupsMatch(const Vertex* elem, const IVertexGroup& desc);
 
 /*
 template <int dim>

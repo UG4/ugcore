@@ -53,6 +53,13 @@ bool vertexGroupsMatch(const IVertexGroup* elem, const IVertexGroup& desc)
 	return true;
 }
 
+// specialization for single Vertex
+bool vertexGroupsMatch(const Vertex* elem, const IVertexGroup& desc)
+{
+	if (desc.num_vertices() != 1) return false;
+	return desc.vertex(0) == elem;
+}
+
 
 Face* GetOpposingSide(Grid& g, Volume* elem, Face* side)
 {
