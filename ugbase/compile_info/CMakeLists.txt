@@ -61,6 +61,7 @@ if(${infoFileFound} STREQUAL "infoFileFound-NOTFOUND")
 		"namespace ug\n"
 		"{\n"
 		"const char *UG_SVN_REVISION=\"UNKNOWN\";\n"
+		"const char *UG_GIT_REVISION=\"UNKNOWN\";\n"
 		"const char *UG_BUILD_HOST=\"UNKNOWN\";\n"
 		"const char *UG_COMPILE_DATE=\"UNKNOWN\";\n"
 		"}\n")
