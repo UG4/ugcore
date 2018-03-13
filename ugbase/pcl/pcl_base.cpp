@@ -39,19 +39,29 @@
 namespace pcl
 {
 
+static bool PERFORM_MPI_INITIALIZATION = true;
+
+////////////////////////////////////////////////////////////////////////
+void DisableMPIInit ()
+{
+	PERFORM_MPI_INITIALIZATION = false;
+}
+
 ////////////////////////////////////////////////////////////////////////
 void Init(int *argcp, char ***argvp)
 {
 	PCL_PROFILE(MPI_Init);
 
-	//	init mpi /* was: MPI_Init(argcp, argvp);*/
-	int flag;
-	MPI_Initialized(&flag);
-	if (!flag) MPI_Init(argcp, argvp);
+	if(PERFORM_MPI_INITIALIZATION){
+		//	init mpi /* was: MPI_Init(argcp, argvp);*/
+		int flag;
+		MPI_Initialized(&flag);
+		if (!flag) MPI_Init(argcp, argvp);
+		SetErrHandler();
+	}
 
 	// default to MPI_COMM_WORLD
 	if  (PCL_COMM_WORLD == MPI_COMM_NULL) {PCL_COMM_WORLD= MPI_COMM_WORLD;}
-	SetErrHandler();
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -65,7 +75,8 @@ void Abort(int errorcode)
 void Finalize()
 {
 	PCL_PROFILE(pclFinalize);
-	MPI_Finalize();
+	if(PERFORM_MPI_INITIALIZATION)
+		MPI_Finalize();
 }
 
 ////////////////////////////////////////////////////////////////////////
