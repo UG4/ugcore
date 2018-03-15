@@ -38,26 +38,9 @@
 
 namespace ug {
 
-bool vertexGroupsMatch(const IVertexGroup* elem, const IVertexGroup& desc);
-bool vertexGroupsMatch(const Vertex* elem, const IVertexGroup& desc);
-
-/*
-template <int dim>
-typename domain_traits<dim>::side_type
-GetOpposingSide
-(
-	Grid&,
-	const typename domain_traits<dim>::element_type*,
-	const typename domain_traits<dim>::side_type*,
-);
-*/
-
 Face* GetOpposingSide(Grid& g, Volume* elem, Face* side);
 Edge* GetOpposingSide(Grid& g, Face* elem, Edge* side);
 Vertex* GetOpposingSide(Grid& g, Edge* elem, Vertex* side);
-
-template <typename TBaseElem>
-TBaseElem* GetOpposingSide(Grid&g, typename TBaseElem::side* face, TBaseElem* elem);
 
 } // namespace ug
 

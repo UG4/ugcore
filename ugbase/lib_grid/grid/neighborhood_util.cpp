@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2015:  G-CSC, Goethe University Frankfurt
+ * Copyright (c) 2010-2015:  G-CSC, Goethe University Frankfurt
  * Author: Markus Breit
  *
  * This file is part of UG4.
@@ -30,60 +30,31 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include "element_side_util.h"
-
-#include "lib_grid/grid/grid_util.h"  // for CompareVertices
-
+#include "neighborhood_util.h"
 
 namespace ug {
 
-
-Face* GetOpposingSide(Grid& g, Volume* elem, Face* side)
+template <typename TBaseElem>
+TBaseElem* GetConnectedNeighbor(Grid& g, typename TBaseElem::side* face, TBaseElem* elem)
 {
-	FaceDescriptor fd;
-	elem->get_opposing_side(side, fd);
-
-	// compare descriptor to actual sides of the elem
-	typedef Grid::traits<Face>::secure_container side_list_type;
-	side_list_type sl;
-	g.associated_elements(sl, elem);
-	size_t sl_sz = sl.size();
-	for (size_t s = 0; s < sl_sz; ++s)
+	typedef typename Grid::traits<TBaseElem>::secure_container elem_list_type;
+	elem_list_type el;
+	g.associated_elements(el, face);
+	size_t el_sz = el.size();
+	UG_COND_THROW(el_sz > 2, "More than two " << elem->reference_object_id()
+		<< "s associated with " << face->reference_object_id() << ".");
+	for (size_t e = 0; e < el_sz; ++e)
 	{
-		if (CompareVertices(sl[s], &fd))
-			return sl[s];
+		if (el[e] != elem)
+			return el[e];
 	}
 
-	return (Face*) NULL;
+	return (TBaseElem*) NULL;
 }
 
-
-Edge* GetOpposingSide(Grid& g, Face* elem, Edge* side)
-{
-	EdgeDescriptor ed;
-	elem->get_opposing_side(side, ed);
-
-	// compare descriptor to actual sides of the elem
-	typedef Grid::traits<Edge>::secure_container side_list_type;
-	side_list_type sl;
-	g.associated_elements(sl, elem);
-	size_t sl_sz = sl.size();
-	for (size_t s = 0; s < sl_sz; ++s)
-	{
-		if (CompareVertices(sl[s], &ed))
-			return sl[s];
-	}
-
-	return (Edge*) NULL;
-}
-
-
-Vertex* GetOpposingSide(Grid& g, Edge* elem, Vertex* side)
-{
-	Vertex* out;
-	elem->get_opposing_side(side, &out);
-	return out;
-}
-
+template Volume* GetConnectedNeighbor<Volume>(Grid&, Face*, Volume*);
+template Face* GetConnectedNeighbor<Face>(Grid&, Edge*, Face*);
+template Edge* GetConnectedNeighbor<Edge>(Grid&, Vertex*, Edge*);
 
 } // namespace ug
+

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2015:  G-CSC, Goethe University Frankfurt
+ * Copyright (c) 2010-2015:  G-CSC, Goethe University Frankfurt
  * Author: Markus Breit
  *
  * This file is part of UG4.
@@ -30,60 +30,22 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include "element_side_util.h"
+#ifndef __H__LIB_GRID__NEIGHBORHOOD_UTIL__
+#define __H__LIB_GRID__NEIGHBORHOOD_UTIL__
 
-#include "lib_grid/grid/grid_util.h"  // for CompareVertices
-
+#include "../grid/grid.h"
 
 namespace ug {
 
-
-Face* GetOpposingSide(Grid& g, Volume* elem, Face* side)
-{
-	FaceDescriptor fd;
-	elem->get_opposing_side(side, fd);
-
-	// compare descriptor to actual sides of the elem
-	typedef Grid::traits<Face>::secure_container side_list_type;
-	side_list_type sl;
-	g.associated_elements(sl, elem);
-	size_t sl_sz = sl.size();
-	for (size_t s = 0; s < sl_sz; ++s)
-	{
-		if (CompareVertices(sl[s], &fd))
-			return sl[s];
-	}
-
-	return (Face*) NULL;
-}
-
-
-Edge* GetOpposingSide(Grid& g, Face* elem, Edge* side)
-{
-	EdgeDescriptor ed;
-	elem->get_opposing_side(side, ed);
-
-	// compare descriptor to actual sides of the elem
-	typedef Grid::traits<Edge>::secure_container side_list_type;
-	side_list_type sl;
-	g.associated_elements(sl, elem);
-	size_t sl_sz = sl.size();
-	for (size_t s = 0; s < sl_sz; ++s)
-	{
-		if (CompareVertices(sl[s], &ed))
-			return sl[s];
-	}
-
-	return (Edge*) NULL;
-}
-
-
-Vertex* GetOpposingSide(Grid& g, Edge* elem, Vertex* side)
-{
-	Vertex* out;
-	elem->get_opposing_side(side, &out);
-	return out;
-}
+/**
+ * @brief Finds the neighbor connected through a side.
+ * If such a neighbor does not exist
+ *
+ */
+template <typename TBaseElem>
+TBaseElem* GetConnectedNeighbor(Grid& g, typename TBaseElem::side* face, TBaseElem* elem);
 
 
 } // namespace ug
+
+#endif // __H__LIB_GRID__NEIGHBORHOOD_UTIL__
