@@ -46,7 +46,7 @@ namespace ug {
 
 /// combine several time discretizations into one
 template <typename TAlgebra>
-class CombinedTimeDiscretization
+class CompositeTimeDiscretization
 	: public IAssemble<TAlgebra>
 {
 	public:
@@ -65,7 +65,7 @@ class CombinedTimeDiscretization
 		 *        set_force_regular_grid() on it, this call must be handed down
 		 *        to the individual time discs here.
 		 */
-		class CombinedAssTuner
+		class CompositeAssTuner
 			: public AssemblingTuner<TAlgebra>
 		{
 			public:
@@ -159,6 +159,6 @@ class CombinedTimeDiscretization
 /// }
 
 // include implementation
-#include "combined_time_disc_impl.h"
+#include "composite_time_disc_impl.h"
 
 #endif // __H__UG__LIB_DISC__TIME_DISC__COMBINED_TIME_DISC__

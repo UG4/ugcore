@@ -239,7 +239,7 @@ class AssemblingTuner
 
 	/// Disable clearing of matrix/vector when resizing.
 	/// This is useful when an IAssemble object consists of more than one
-	/// domain disc, e.g., CombinedTimeDisc.
+	/// domain disc, e.g., CompositeTimeDisc.
 		void disable_clear_on_resize() {m_bClearOnResize = false;}
 
 	/**

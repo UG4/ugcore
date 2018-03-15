@@ -36,7 +36,7 @@ namespace ug {
 
 
 template <typename TAlgebra>
-void CombinedTimeDiscretization<TAlgebra>::
+void CompositeTimeDiscretization<TAlgebra>::
 prepare_step(SmartPtr<VectorTimeSeries<vector_type> > prevSol, number dt)
 {
 	for (size_t i = 0; i < m_vTimeDisc.size(); ++i)
@@ -44,7 +44,7 @@ prepare_step(SmartPtr<VectorTimeSeries<vector_type> > prevSol, number dt)
 }
 
 template <typename TAlgebra>
-void CombinedTimeDiscretization<TAlgebra>::prepare_step_elem
+void CompositeTimeDiscretization<TAlgebra>::prepare_step_elem
 (
 	SmartPtr<VectorTimeSeries<vector_type> > prevSol,
 	number dt,
@@ -56,7 +56,7 @@ void CombinedTimeDiscretization<TAlgebra>::prepare_step_elem
 }
 
 template <typename TAlgebra>
-void CombinedTimeDiscretization<TAlgebra>::
+void CompositeTimeDiscretization<TAlgebra>::
 finish_step(SmartPtr<VectorTimeSeries<vector_type> > currSol)
 {
 	for (size_t i = 0; i < m_vTimeDisc.size(); ++i)
@@ -64,7 +64,7 @@ finish_step(SmartPtr<VectorTimeSeries<vector_type> > currSol)
 }
 
 template <typename TAlgebra>
-void CombinedTimeDiscretization<TAlgebra>::finish_step_elem
+void CompositeTimeDiscretization<TAlgebra>::finish_step_elem
 (
 	SmartPtr<VectorTimeSeries<vector_type> > currSol,
 	const GridLevel& gl
@@ -75,15 +75,15 @@ void CombinedTimeDiscretization<TAlgebra>::finish_step_elem
 }
 
 template <typename TAlgebra>
-number CombinedTimeDiscretization<TAlgebra>::future_time() const
+number CompositeTimeDiscretization<TAlgebra>::future_time() const
 {
 	if (m_vTimeDisc.size())
 		return m_vTimeDisc[0]->future_time();
-	UG_THROW("At least one time disc must be added to CombinedTimeDiscretization.")
+	UG_THROW("At least one time disc must be added to CompositeTimeDiscretization.")
 }
 
 template <typename TAlgebra>
-size_t CombinedTimeDiscretization<TAlgebra>::num_prev_steps() const
+size_t CompositeTimeDiscretization<TAlgebra>::num_prev_steps() const
 {
 	size_t nSteps = 0;
 	for (size_t i = 0; i < m_vTimeDisc.size(); ++i)
@@ -93,7 +93,7 @@ size_t CombinedTimeDiscretization<TAlgebra>::num_prev_steps() const
 }
 
 template <typename TAlgebra>
-size_t CombinedTimeDiscretization<TAlgebra>::num_stages() const
+size_t CompositeTimeDiscretization<TAlgebra>::num_stages() const
 {
 	size_t nStages = 0;
 	for (size_t i = 0; i < m_vTimeDisc.size(); ++i)
@@ -103,7 +103,7 @@ size_t CombinedTimeDiscretization<TAlgebra>::num_stages() const
 }
 
 template <typename TAlgebra>
-void CombinedTimeDiscretization<TAlgebra>::set_stage(size_t stage)
+void CompositeTimeDiscretization<TAlgebra>::set_stage(size_t stage)
 {
 	for (size_t i = 0; i < m_vTimeDisc.size(); ++i)
 		m_vTimeDisc[i]->set_stage(stage);
@@ -111,7 +111,7 @@ void CombinedTimeDiscretization<TAlgebra>::set_stage(size_t stage)
 
 
 template <typename TAlgebra>
-void CombinedTimeDiscretization<TAlgebra>::assemble_jacobian
+void CompositeTimeDiscretization<TAlgebra>::assemble_jacobian
 (
 	matrix_type& J,
 	const vector_type& u,
@@ -119,7 +119,7 @@ void CombinedTimeDiscretization<TAlgebra>::assemble_jacobian
 )
 {
 	UG_COND_THROW(!m_vTimeDisc.size(),
-		"At least one time disc must be added to CombinedTimeDiscretization.")
+		"At least one time disc must be added to CompositeTimeDiscretization.")
 
 	m_vTimeDisc[0]->assemble_jacobian(J, u, gl);
 	for (size_t i = 1; i < m_vTimeDisc.size(); ++i)
@@ -132,7 +132,7 @@ void CombinedTimeDiscretization<TAlgebra>::assemble_jacobian
 }
 
 template <typename TAlgebra>
-void CombinedTimeDiscretization<TAlgebra>::assemble_defect
+void CompositeTimeDiscretization<TAlgebra>::assemble_defect
 (
 	vector_type& d,
 	const vector_type& u,
@@ -140,7 +140,7 @@ void CombinedTimeDiscretization<TAlgebra>::assemble_defect
 )
 {
 	UG_COND_THROW(!m_vTimeDisc.size(),
-		"At least one time disc must be added to CombinedTimeDiscretization.")
+		"At least one time disc must be added to CompositeTimeDiscretization.")
 
 	m_vTimeDisc[0]->assemble_defect(d, u, gl);
 	for (size_t i = 1; i < m_vTimeDisc.size(); ++i)
@@ -153,7 +153,7 @@ void CombinedTimeDiscretization<TAlgebra>::assemble_defect
 }
 
 template <typename TAlgebra>
-void CombinedTimeDiscretization<TAlgebra>::assemble_linear
+void CompositeTimeDiscretization<TAlgebra>::assemble_linear
 (
 	matrix_type& A,
 	vector_type& b,
@@ -161,7 +161,7 @@ void CombinedTimeDiscretization<TAlgebra>::assemble_linear
 )
 {
 	UG_COND_THROW(!m_vTimeDisc.size(),
-		"At least one time disc must be added to CombinedTimeDiscretization.")
+		"At least one time disc must be added to CompositeTimeDiscretization.")
 
 	m_vTimeDisc[0]->assemble_linear(A, b, gl);
 	for (size_t i = 1; i < m_vTimeDisc.size(); ++i)
@@ -174,7 +174,7 @@ void CombinedTimeDiscretization<TAlgebra>::assemble_linear
 }
 
 template <typename TAlgebra>
-void CombinedTimeDiscretization<TAlgebra>::assemble_rhs
+void CompositeTimeDiscretization<TAlgebra>::assemble_rhs
 (
 	vector_type& b,
 	const vector_type& u,
@@ -182,7 +182,7 @@ void CombinedTimeDiscretization<TAlgebra>::assemble_rhs
 )
 {
 	UG_COND_THROW(!m_vTimeDisc.size(),
-		"At least one time disc must be added to CombinedTimeDiscretization.")
+		"At least one time disc must be added to CompositeTimeDiscretization.")
 
 	m_vTimeDisc[0]->assemble_rhs(b, u, gl);
 	for (size_t i = 1; i < m_vTimeDisc.size(); ++i)
@@ -195,10 +195,10 @@ void CombinedTimeDiscretization<TAlgebra>::assemble_rhs
 }
 
 template <typename TAlgebra>
-void CombinedTimeDiscretization<TAlgebra>::assemble_rhs(vector_type& b, const GridLevel& gl)
+void CompositeTimeDiscretization<TAlgebra>::assemble_rhs(vector_type& b, const GridLevel& gl)
 {
 	UG_COND_THROW(!m_vTimeDisc.size(),
-		"At least one time disc must be added to CombinedTimeDiscretization.")
+		"At least one time disc must be added to CompositeTimeDiscretization.")
 
 	m_vTimeDisc[0]->assemble_rhs(b, gl);
 	for (size_t i = 1; i < m_vTimeDisc.size(); ++i)
@@ -211,16 +211,16 @@ void CombinedTimeDiscretization<TAlgebra>::assemble_rhs(vector_type& b, const Gr
 }
 
 template <typename TAlgebra>
-void CombinedTimeDiscretization<TAlgebra>::adjust_solution(vector_type& u, const GridLevel& gl)
+void CompositeTimeDiscretization<TAlgebra>::adjust_solution(vector_type& u, const GridLevel& gl)
 {
 	for (size_t i = 1; i < m_vTimeDisc.size(); ++i)
 		m_vTimeDisc[i]->adjust_solution(u, gl);
 }
 
 template <typename TAlgebra>
-SmartPtr<AssemblingTuner<TAlgebra> > CombinedTimeDiscretization<TAlgebra>::ass_tuner()
+SmartPtr<AssemblingTuner<TAlgebra> > CompositeTimeDiscretization<TAlgebra>::ass_tuner()
 {
-	SmartPtr<CombinedAssTuner> sp = make_sp(new CombinedAssTuner());
+	SmartPtr<CompositeAssTuner> sp = make_sp(new CompositeAssTuner());
 	for (size_t i = 1; i < m_vTimeDisc.size(); ++i)
 		sp->add_ass_tuner(((IAssemble<TAlgebra>*)m_vTimeDisc[i].get())->ass_tuner());
 
@@ -228,13 +228,13 @@ SmartPtr<AssemblingTuner<TAlgebra> > CombinedTimeDiscretization<TAlgebra>::ass_t
 }
 
 template <typename TAlgebra>
-ConstSmartPtr<AssemblingTuner<TAlgebra> > CombinedTimeDiscretization<TAlgebra>::ass_tuner() const
+ConstSmartPtr<AssemblingTuner<TAlgebra> > CompositeTimeDiscretization<TAlgebra>::ass_tuner() const
 {
-	UG_THROW("Unique const AssemblingTuner cannot be provided by CombinedTimeDiscretization.")
+	UG_THROW("Unique const AssemblingTuner cannot be provided by CompositeTimeDiscretization.")
 }
 
 template <typename TAlgebra>
-size_t CombinedTimeDiscretization<TAlgebra>::num_constraints() const
+size_t CompositeTimeDiscretization<TAlgebra>::num_constraints() const
 {
 	size_t n = 0;
 	for (size_t i = 1; i < m_vTimeDisc.size(); ++i)
@@ -244,7 +244,7 @@ size_t CombinedTimeDiscretization<TAlgebra>::num_constraints() const
 }
 
 template <typename TAlgebra>
-SmartPtr<IConstraint<TAlgebra> > CombinedTimeDiscretization<TAlgebra>::constraint(size_t i)
+SmartPtr<IConstraint<TAlgebra> > CompositeTimeDiscretization<TAlgebra>::constraint(size_t i)
 {
 	UG_COND_THROW(i >= num_constraints(), "Requested constraint " << i << ", but only "
 		<< num_constraints() << " constraints available.");
