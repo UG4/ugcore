@@ -1503,10 +1503,10 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 
 				if(tpi.interfaceState & (IS_NORMAL)){
 					createNormalHInterface = true;
-					if(tpi.procID < minRegularHMasterProc){
+					if(tpi.procID < minRegularHMasterProc)
 						minRegularHMasterProc = tpi.procID;
+					if(tpi.procID < minNormalProc)
 						minNormalProc = tpi.procID;
-					}
 					if(tpi.procID == localProcID)
 						isNormal = true;
 				}
