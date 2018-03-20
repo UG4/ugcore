@@ -49,6 +49,8 @@
 #include "lib_disc/function_spaces/grid_function_user_data.h"
 #include "lib_disc/function_spaces/integrate.h"
 
+#include "lib_disc/spatial_disc/user_data/linker/darcy_velocity_linker.h"  // required for Darcy velocity linker
+
 namespace ug {
 /// Abstract base class for (algebraic) vectors
 template<typename TVector>
@@ -59,10 +61,10 @@ public:
 	virtual ~IBanachSpace() {}
 
 	/// euclidean norm (default)
-	virtual double norm(TVector &x) const
+	virtual double norm(TVector &x)
 	{ return x.norm(); }
 
-	virtual double distance(TVector& x, TVector& y) const
+	virtual double distance(TVector& x, TVector& y)
 	{
 		SmartPtr<TVector> delta = x.clone();
 		*delta -= y;
@@ -86,11 +88,11 @@ public:
 	virtual ~IGridFunctionSpace() {}
 
 	/// norm (for grid functions)
-	virtual double norm(TGridFunction& x) const
+	virtual double norm(TGridFunction& x)
 	{ return x.norm(); }
 
 	/// distance (for grid functions)
-	virtual double distance(TGridFunction& x, TGridFunction& y) const
+	virtual double distance(TGridFunction& x, TGridFunction& y)
 	{
 		SmartPtr<TGridFunction> delta = x.clone();
 		*delta -= y;
@@ -98,7 +100,7 @@ public:
 	}
 
 	/// norm (for vectors)
-	virtual double norm(vector_type &x) const
+	virtual double norm(vector_type &x)
 	{
 		TGridFunction* gfX=dynamic_cast< TGridFunction*>(&x);
 		UG_ASSERT(gfX!=NULL, "Huhh: GridFunction required!");
@@ -106,7 +108,7 @@ public:
 	}
 
 	/// distance (for vectors)
-	virtual double distance(vector_type &x, vector_type &y) const
+	virtual double distance(vector_type &x, vector_type &y)
 	{ return distance(static_cast<TGridFunction &>(x), static_cast<TGridFunction &>(y)); }
 
 	virtual double scaling() const
@@ -189,15 +191,15 @@ public:
 	virtual ~IComponentSpace() {};
 
 	// per convention, norm must return sqrt of norm2
-	virtual double norm(TGridFunction& uFine) const
+	virtual double norm(TGridFunction& uFine)
 	{ return sqrt(norm2(uFine)); }
 
 	// per convention, distance must return sqrt of distance2
-	virtual double distance(TGridFunction& uFine, TGridFunction& uCoarse) const
+	virtual double distance(TGridFunction& uFine, TGridFunction& uCoarse)
 	{ return sqrt(distance2(uFine, uCoarse)); }
 
-	virtual double norm2(TGridFunction& uFine) const = 0;
-	virtual double distance2(TGridFunction& uFine, TGridFunction& uCoarse) const = 0;
+	virtual double norm2(TGridFunction& uFine)  = 0;
+	virtual double distance2(TGridFunction& uFine, TGridFunction& uCoarse)  = 0;
 
 
 public:
@@ -281,16 +283,12 @@ public:
 	L2ComponentSpace(const char *fctNames, int order)
 	: base_type(fctNames, order), weighted_obj_type(make_sp(new ConstUserNumber<TGridFunction::dim>(1.0))) {};
 
-	L2ComponentSpace(const char *fctNames, const char* ssNames, int order)
-	: base_type(fctNames, ssNames, order), weighted_obj_type(make_sp(new ConstUserNumber<TGridFunction::dim>(1.0))) {};
-
-	L2ComponentSpace(const char *fctNames, const char* ssNames, int order, double weight)
+	L2ComponentSpace(const char *fctNames,  int order, double weight, const char* ssNames=0)
 	: base_type(fctNames, ssNames, order), weighted_obj_type(make_sp(new ConstUserNumber<TGridFunction::dim>(weight))) {};
 
-	/*
-	L2ComponentSpace(const char *fctNames, const char* ssNames, int order, ConstSmartPtr<ConstUserNumber<TGridFunction::dim> > spWeight)
+	L2ComponentSpace(const char *fctNames, int order, ConstSmartPtr<weight_type> spWeight, const char* ssNames=0)
 	: base_type(fctNames, ssNames, order), weighted_obj_type(spWeight) {};
-	 */
+
 	/// DTOR
 	~L2ComponentSpace() {};
 
@@ -303,11 +301,11 @@ public:
 	using weighted_obj_type::m_spWeight;
 
 	/// \copydoc IComponentSpace<TGridFunction>::norm
-	double norm2(TGridFunction& uFine) const
+	double norm2(TGridFunction& uFine)
 	{ return L2Norm2(uFine, base_type::m_fctNames.c_str(), base_type::m_quadorder, base_type::m_ssNames, weighted_obj_type::m_spWeight); }
 
 	/// \copydoc IComponentSpace<TGridFunction>::distance
-	double distance2(TGridFunction& uFine, TGridFunction& uCoarse) const
+	double distance2(TGridFunction& uFine, TGridFunction& uCoarse)
 	{ return L2Distance2(uFine, base_type::m_fctNames.c_str(), uCoarse, base_type::m_fctNames.c_str(),
 		base_type::m_quadorder, base_type::m_ssNames, weighted_obj_type::m_spWeight);}
 
@@ -352,11 +350,11 @@ public:
 	using IComponentSpace<TGridFunction>::distance;
 
 	/// \copydoc IComponentSpace<TGridFunction>::norm2
-	double norm2(TGridFunction& uFine) const
+	double norm2(TGridFunction& uFine)
 	{ return H1SemiNorm2<TGridFunction>(uFine, base_type::m_fctNames.c_str(), base_type::m_quadorder, NULL, weighted_obj_type::m_spWeight); }
 
 	/// \copydoc IComponentSpace<TGridFunction>::distance2
-	double distance2(TGridFunction& uFine, TGridFunction& uCoarse) const
+	double distance2(TGridFunction& uFine, TGridFunction& uCoarse)
 	{ return H1SemiDistance2<TGridFunction>(uFine, base_type::m_fctNames.c_str(), uCoarse, base_type::m_fctNames.c_str(), base_type::m_quadorder, m_spWeight); }
 
 	/// for weighted norms
@@ -366,6 +364,142 @@ public:
 
 };
 
+
+
+/*
+//! Evaluates distance w.r.t kinetic energy
+template <typename TGridFunction>
+class KineticEnergyComponentSpace
+: public IComponentSpace<TGridFunction>,
+  public IObjectWithWeights<typename L2Integrand<TGridFunction>::weight_type >
+{
+public:
+	typedef IComponentSpace<TGridFunction> base_type;
+	typedef typename L2Integrand<TGridFunction>::weight_type weight_type;
+	typedef IObjectWithWeights<weight_type> weighted_obj_type;
+	typedef DarcyVelocityLinker<TGridFunction::dim> velocity_type;
+
+
+	KineticEnergyComponentSpace(SmartPtr<velocity_type> spVelocity, const char *fctNames)
+	: base_type(fctNames), weighted_obj_type(make_sp(new ConstUserNumber<TGridFunction::dim>(1.0))), m_spVelocity(spVelocity) {};
+
+	KineticEnergyComponentSpace(SmartPtr<velocity_type> spVelocity, const char *fctNames, int order)
+	: base_type(fctNames, order), weighted_obj_type(make_sp(new ConstUserNumber<TGridFunction::dim>(1.0))), m_spVelocity(spVelocity)  {};
+
+	KineticEnergyComponentSpace(SmartPtr<velocity_type> spVelocity, const char *fctNames, int order, number weight, const char* ssNames=0)
+	: base_type(fctNames, ssNames, order), weighted_obj_type(make_sp(new ConstUserNumber<TGridFunction::dim>(weight))), m_spVelocity(spVelocity)   {};
+
+	KineticEnergyComponentSpace(SmartPtr<velocity_type> spVelocity, const char *fctNames, int order, ConstSmartPtr<weight_type> spWeight, const char* ssNames=0)
+	: base_type(fctNames, ssNames, order), weighted_obj_type(spWeight), m_spVelocity(spVelocity)  {};
+
+	KineticEnergyComponentSpace(SmartPtr<velocity_type> spVelocity, const char *fctNames, int order, const char* ssNames, ConstSmartPtr<weight_type> spWeight)
+	: base_type(fctNames, ssNames, order), weighted_obj_type(spWeight), m_spVelocity(spVelocity) {};
+
+	/// DTOR
+	~KineticEnergyComponentSpace() {};
+
+
+	using IComponentSpace<TGridFunction>::m_quadorder;
+	using IComponentSpace<TGridFunction>::norm;
+	using IComponentSpace<TGridFunction>::distance;
+
+	/// \copydoc IComponentSpace<TGridFunction>::norm2
+	double norm2(TGridFunction& u)
+	{
+		const char* subsets = NULL;
+		UserDataIntegrandSq<MathVector<TGridFunction::dim>, TGridFunction> integrand2(m_spVelocity, &u, 0.0);
+		return IntegrateSubsets(integrand2, u, subsets, m_quadorder);
+	}
+
+	/// \copydoc IComponentSpace<TGridFunction>::distance2
+	double distance2(TGridFunction& uFine, TGridFunction& uCoarse)
+	{
+		// UG_THROW("Not implemented!");
+		const char* subsets = NULL;
+		UserDataDistIntegrandSq<MathVector<TGridFunction::dim>, TGridFunction> integrand2(m_spVelocity, uFine, 0, uCoarse, 0);
+		return IntegrateSubsets(integrand2, uFine, subsets, m_quadorder);
+	}
+
+	/// for weighted norms
+	using weighted_obj_type::set_weight;
+	using weighted_obj_type::get_weight;
+	using weighted_obj_type::m_spWeight;
+
+	void set_velocity(SmartPtr<velocity_type> spVelocity)
+	{ m_spVelocity = spVelocity;}
+
+protected:
+	SmartPtr<velocity_type> m_spVelocity;
+
+};
+*/
+
+//!
+/** Evaluates distance between two grid functions in H1 semi-norm */
+template <typename TGridFunction>
+class H1EnergyComponentSpace
+: public IComponentSpace<TGridFunction>,
+  public IObjectWithWeights<typename H1EnergyDistIntegrand<TGridFunction>::weight_type >
+{
+public:
+	typedef IComponentSpace<TGridFunction> base_type;
+	typedef typename H1SemiDistIntegrand<TGridFunction>::weight_type weight_type;
+	typedef IObjectWithWeights<weight_type> weighted_obj_type;
+	typedef DarcyVelocityLinker<TGridFunction::dim> velocity_type;
+
+	H1EnergyComponentSpace(const char *fctNames)
+	: base_type(fctNames), weighted_obj_type(make_sp(new ConstUserMatrix<TGridFunction::dim>(1.0))), m_spVelocity(SPNULL) {};
+
+	H1EnergyComponentSpace(const char *fctNames, int order)
+	: base_type(fctNames, order), weighted_obj_type(make_sp(new ConstUserMatrix<TGridFunction::dim>(1.0))), m_spVelocity(SPNULL) {};
+
+	H1EnergyComponentSpace(const char *fctNames, int order, number weight, const char* ssNames=0)
+	: base_type(fctNames, ssNames, order), weighted_obj_type(make_sp(new ConstUserMatrix<TGridFunction::dim>(weight))), m_spVelocity(SPNULL)  {};
+
+	H1EnergyComponentSpace(const char *fctNames, int order, ConstSmartPtr<weight_type> spWeight, const char* ssNames=0)
+	: base_type(fctNames, ssNames, order), weighted_obj_type(spWeight), m_spVelocity(SPNULL) {};
+
+	H1EnergyComponentSpace(const char *fctNames, int order, const char* ssNames, ConstSmartPtr<weight_type> spWeight)
+	: base_type(fctNames, ssNames, order), weighted_obj_type(spWeight), m_spVelocity(SPNULL) {};
+
+	/// DTOR
+	~H1EnergyComponentSpace() {};
+
+
+	/// \copydoc IComponentSpace<TGridFunction>::norm
+	/// \copydoc IComponentSpace<TGridFunction>::distance
+	using IComponentSpace<TGridFunction>::m_quadorder;
+	using IComponentSpace<TGridFunction>::norm;
+	using IComponentSpace<TGridFunction>::distance;
+
+	/// \copydoc IComponentSpace<TGridFunction>::norm2
+	double norm2(TGridFunction& uFine)
+	{
+		if (m_spVelocity.valid()) {
+			const char* subsets = NULL;
+			UserDataIntegrandSq<MathVector<TGridFunction::dim>, TGridFunction> integrand2(m_spVelocity, &uFine, 0.0);
+			return IntegrateSubsets(integrand2, uFine, subsets, m_quadorder);
+		} else {
+			return H1EnergyNorm2<TGridFunction>(uFine, base_type::m_fctNames.c_str(), base_type::m_quadorder, NULL, weighted_obj_type::m_spWeight);
+		}
+	}
+
+	/// \copydoc IComponentSpace<TGridFunction>::distance2
+	double distance2(TGridFunction& uFine, TGridFunction& uCoarse)
+	{ return H1EnergyDistance2<TGridFunction>(uFine, base_type::m_fctNames.c_str(), uCoarse, base_type::m_fctNames.c_str(), base_type::m_quadorder, m_spWeight); }
+
+	/// for weighted norms
+	using weighted_obj_type::set_weight;
+	using weighted_obj_type::get_weight;
+	using weighted_obj_type::m_spWeight;
+
+	void set_velocity(SmartPtr<velocity_type> spVelocity)
+	{ m_spVelocity = spVelocity;}
+
+protected:
+		SmartPtr<velocity_type> m_spVelocity;
+
+};
 
 /** Defines a H1 space for single component */
 template <typename TGridFunction>
@@ -378,25 +512,24 @@ public:
 	H1ComponentSpace(const char *fctNames) : base_type(fctNames) {};
 	H1ComponentSpace(const char *fctNames, int order) : base_type(fctNames, order) {};
 	H1ComponentSpace(const char *fctNames,  const char* ssNames, int order) : base_type(fctNames, ssNames, order) {};
-	//H1ComponentSpace(const char *fctNames, int order, number scale) : base_type(fctNames, order, scale) {};
 	~H1ComponentSpace() {};
 
 	using IComponentSpace<TGridFunction>::norm;
 	using IComponentSpace<TGridFunction>::distance;
 
 	/// \copydoc IComponentSpace<TGridFunction>::norm
-	double norm2(TGridFunction& uFine) const
+	double norm2(TGridFunction& uFine)
 	{ return H1Norm2<TGridFunction>(uFine, base_type::m_fctNames.c_str(), base_type::m_quadorder); }
 
 	/// \copydoc IComponentSpace<TGridFunction>::norm
-	double distance2(TGridFunction& uFine, TGridFunction& uCoarse) const
+	double distance2(TGridFunction& uFine, TGridFunction& uCoarse)
 	{ return H1Distance2<TGridFunction>(uFine, base_type::m_fctNames.c_str(), uCoarse, base_type::m_fctNames.c_str(), base_type::m_quadorder); }
 
 };
 
 
 
-//! Defines a composite space, (i.e., additive composition of other spaces)
+//! Defines a composite space, (i.e., additive composition from other spaces)
 /*! Employs a l2-type extension: \| u \|^2 := \sum_I \sigma_I \| u \|_I^2
  *  TODO: Merge with ApproximationSpace?
  * */
@@ -417,14 +550,14 @@ public:
 	using base_type::distance;
 
 	/// \copydoc IComponentSpace<TGridFunction>::norm
-	double norm(TGridFunction& uFine) const
+	double norm(TGridFunction& uFine)
 	{ return(sqrt(norm2(uFine))); }
 
 	/// \copydoc IComponentSpace<TGridFunction>::norm2
-	double norm2(TGridFunction& uFine) const
+	double norm2(TGridFunction& uFine)
 	{
 		number unorm2 = 0.0;
-		for (typename std::vector<weighted_obj_type>::const_iterator it = m_spWeightedSubspaces.begin();
+		for (typename std::vector<weighted_obj_type>::iterator it = m_spWeightedSubspaces.begin();
 				it!= m_spWeightedSubspaces.end(); ++it)
 		{
 			double snorm2 = it->first->norm2(uFine);
@@ -435,21 +568,21 @@ public:
 	}
 
 	/// \copydoc IComponentSpace<TGridFunction>::distance2
-	double distance2(TGridFunction& uFine, TGridFunction& uCoarse) const
+	double distance2(TGridFunction& uFine, TGridFunction& uCoarse)
 	{
 		number unorm2 = 0.0;
-		for (typename std::vector<weighted_obj_type>::const_iterator it = m_spWeightedSubspaces.begin();
+		for (typename std::vector<weighted_obj_type>::iterator it = m_spWeightedSubspaces.begin();
 					it!= m_spWeightedSubspaces.end(); ++it)
 		{
 			double sdist2 = it->first->distance2(uFine, uCoarse);
 			unorm2 += it->second * sdist2;
 			//	std::cerr << "distance:" << sdist2 << std::endl;
 		}
-		return sqrt(unorm2);
+		return unorm2;
 	}
 
 	/// \copydoc IComponentSpace<TGridFunction>::distance2
-	double distance(TGridFunction& uFine, TGridFunction& uCoarse) const
+	double distance(TGridFunction& uFine, TGridFunction& uCoarse)
 	{ return sqrt(distance2(uFine, uCoarse)); }
 
 	/// add space to composite (with weight 1.0)
