@@ -37,6 +37,7 @@ namespace ug
 //	the following variables are defined through a script at build-time
 //	and are stored in a file in your build folder (compile_info_vars.cpp)
 extern const char *UG_SVN_REVISION;
+extern const char *UG_GIT_REVISION;
 extern const char *UG_BUILD_HOST;
 extern const char *UG_COMPILE_DATE;
 
@@ -44,6 +45,11 @@ extern const char *UG_COMPILE_DATE;
 const char* UGSvnRevision()
 {
 	return UG_SVN_REVISION;
+}
+
+const char* UGGitRevision()
+{
+	return UG_GIT_REVISION;
 }
 
 const char* UGBuildHost()

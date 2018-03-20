@@ -217,6 +217,20 @@ else()
       )
     endif ( NOT LAPACK_LIBRARIES )
 
+    # ATLAS 3.x LAPACK library?
+    if ( NOT LAPACK_LIBRARIES )
+      check_lapack_libraries(
+      LAPACK_DEFINITIONS
+      LAPACK_LIBRARIES
+      LAPACK
+      cheev
+      ""
+      "satlas"
+      "${BLAS_LIBRARIES}"
+      "${CGAL_TAUCS_LIBRARIES_DIR} ENV LAPACK_LIB_DIR"
+      )
+    endif ( NOT LAPACK_LIBRARIES )
+
     # Generic LAPACK library?
     # This configuration *must* be the last try as this library is notably slow.
     if ( NOT LAPACK_LIBRARIES )

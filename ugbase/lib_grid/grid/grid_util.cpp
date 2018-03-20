@@ -106,6 +106,44 @@ bool CompareVertices(const VolumeVertices* vv1,
 	return true;
 }
 
+
+bool VertexGroupsMatch(const IVertexGroup* elem, const IVertexGroup& desc)
+{
+	size_t n = elem->num_vertices();
+	if (desc.num_vertices() != n) return false;
+
+	size_t numVrts = elem->num_vertices();
+
+	if (numVrts != desc.num_vertices())
+		return false;
+
+	IVertexGroup::ConstVertexArray vrts1 = elem->vertices();
+	IVertexGroup::ConstVertexArray vrts2 = desc.vertices();
+
+	for (size_t i = 0; i < numVrts; ++i)
+	{
+		size_t j;
+		for (j = 0; j < numVrts; ++j)
+		{
+			if (vrts1[i] == vrts2[j])
+				break;
+		}
+
+		// check whether we found a matching vertex
+		if (j == numVrts)
+			return false;
+	}
+
+	return true;
+}
+
+bool VertexGroupsMatch(const Vertex* elem, const IVertexGroup& desc)
+{
+	if (desc.num_vertices() != 1) return false;
+	return desc.vertex(0) == elem;
+}
+
+
 ////////////////////////////////////////////////////////////////////////
 //	CollectVertices
 ///	Collects all vertices.

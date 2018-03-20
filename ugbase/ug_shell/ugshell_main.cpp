@@ -184,7 +184,7 @@ int main(int argc, char* argv[])
 	LOG("********************************************************************************\n");
 	std::string aux_str(""); // for nicer output we need some padding with spaces ...
 
-	aux_str.append("* ugshell - ug").append(UGGetVersionString()).append(", head revision '").append(UGSvnRevision()).append("',");
+	aux_str.append("* ugshell - ug").append(UGGetVersionString()).append(", head revision '").append(UGGitRevision()).append("',");
 	LOG(AppendSpacesToString(aux_str,80-1).append("*\n"));
 
 	aux_str = "";

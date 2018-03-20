@@ -152,7 +152,7 @@ else()
       "${CGAL_TAUCS_LIBRARIES_DIR} $ENV{BLAS_LIB_DIR}")
   
   set(BLAS_UNIX_SEARCH_PATHS
-      "/usr/local/lib;/usr/lib;/usr/local/lib64;/usr/lib64")
+      "/usr/local/lib;/usr/lib/atlas;/usr/lib;/usr/local/lib64;/usr/lib64/atlas;/usr/lib64")
 
     #
     # If Unix, search for BLAS function in possible libraries
@@ -181,6 +181,19 @@ else()
       sgemm
       ""
       "cblas;f77blas;atlas;gfortran;m"
+      "${BLAS_SEARCH_PATHS}" "${BLAS_UNIX_SEARCH_PATHS}"
+      )
+    endif()
+
+    # BLAS in ATLAS 3.x library?
+    if(NOT BLAS_LIBRARIES)
+      check_fortran_libraries(
+      BLAS_DEFINITIONS
+      BLAS_LIBRARIES
+      BLAS
+      sgemm
+      ""
+      "satlas"
       "${BLAS_SEARCH_PATHS}" "${BLAS_UNIX_SEARCH_PATHS}"
       )
     endif()

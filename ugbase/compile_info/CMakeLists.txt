@@ -53,18 +53,19 @@ set(infoFileName ${CMAKE_BINARY_DIR}/compile_info_vars.cpp)
 #	on windows we currently don't support updated compile-infos.
 #	check out, whether this can be improved using special windows-scripting...
 
-set(infoFileFound "infoFileFound-NOTFOUND")
-find_file(infoFileFound compile_info_vars.cpp PATHS ${CMAKE_BINARY_DIR})
+#set(infoFileFound "infoFileFound-NOTFOUND")
+#find_file(infoFileFound compile_info_vars.cpp PATHS ${CMAKE_BINARY_DIR})
 
-if(${infoFileFound} STREQUAL "infoFileFound-NOTFOUND")
+#if(${infoFileFound} STREQUAL "infoFileFound-NOTFOUND")
 	file(WRITE ${infoFileName} 
 		"namespace ug\n"
 		"{\n"
 		"const char *UG_SVN_REVISION=\"UNKNOWN\";\n"
+		"const char *UG_GIT_REVISION=\"UNKNOWN\";\n"
 		"const char *UG_BUILD_HOST=\"UNKNOWN\";\n"
 		"const char *UG_COMPILE_DATE=\"UNKNOWN\";\n"
 		"}\n")
-endif(${infoFileFound} STREQUAL "infoFileFound-NOTFOUND")	
+#endif(${infoFileFound} STREQUAL "infoFileFound-NOTFOUND")	
 
 if(UNIX AND buildCompileInfo)
 #	The custom target is always considered out of date and will be rebuilt
