@@ -146,7 +146,8 @@ end
 --!										prepareTimeStep to call before the time step,
 --!										preProcess to call before the non-linear solver in EVERY STAGE,
 --!										postProcess as in a),
---!										finalizeTimeStep to call after the time step.
+--!										finalizeTimeStep to call after the time step,
+--!										rewindTimeStep to call if some of the computations of the time step failed,
 --!										Arguments of the functions are: (u, step, time, dt)
 --!										u, time: old before the solver, new after it
 --! @param startTSNo		(optional) time step number of the initial condition (normally 0).
@@ -219,6 +220,7 @@ function util.SolveNonlinearTimeProblem(
 	local prepareTimeStep = nil
 	local preProcess = nil
 	local finalizeTimeStep = nil
+	local rewindTimeStep = nil
 	if postProcess ~= nil then
 		if type(postProcess) ~= "function" then
 			if type(postProcess) ~= "table" then
@@ -228,6 +230,7 @@ function util.SolveNonlinearTimeProblem(
 			prepareTimeStep = postProcess.prepareTimeStep
 			preProcess = postProcess.preProcess
 			finalizeTimeStep = postProcess.finalizeTimeStep
+			rewindTimeStep = postProcess.rewindTimeStep
 			postProcess = postProcess.postProcess
 		end
 	end
@@ -437,6 +440,9 @@ function util.SolveNonlinearTimeProblem(
 					test.require(false, "Time Solver failed.")
 				end
 				bSuccess = false
+				if rewindTimeStep ~= nil  then
+					rewindTimeStep(u, step, time, currdt)
+				end
 			else
 				-- update new time
 				time = timeDisc:future_time()
