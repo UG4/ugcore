@@ -33,6 +33,7 @@
 #include <vector>
 #include <stack>
 #include <cassert>
+#include "vertex_util.h"
 #include "face_util.h"
 #include "../attachment_util.h"
 
@@ -279,14 +280,50 @@ void Triangulate(Grid& grid, Quadrilateral* q,
 	else
 	{
 		Grid::VertexAttachmentAccessor<APosition>& aaPos = *paaPos;
-	//	check which way produces the better triangles.
-		number q1 = std::min(
-				TriangleQuality(aaPos[q->vertex(0)], aaPos[q->vertex(1)], aaPos[q->vertex(2)]),
-				TriangleQuality(aaPos[q->vertex(2)], aaPos[q->vertex(3)], aaPos[q->vertex(0)]));
 
-		number q2 = std::min(
-				TriangleQuality(aaPos[q->vertex(1)], aaPos[q->vertex(2)], aaPos[q->vertex(3)]),
-				TriangleQuality(aaPos[q->vertex(3)], aaPos[q->vertex(0)], aaPos[q->vertex(1)]));
+		number q1 = 0;
+		number q2 = 0;
+
+	//	first check whether normals in the corners should affect the direction of the edge
+		vector3 n[4];
+		for(int i = 0; i < 4; ++i)
+			CalculateVertexNormal(n[i], grid, q->vertex(i), aaPos);
+		
+		// vector3 dir[2];
+		// VecSubtract(dir[0], aaPos[q->vertex(2)], aaPos[q->vertex(0)]);
+		// VecNormalize(dir[0], dir[0]);
+		// VecSubtract(dir[1], aaPos[q->vertex(3)], aaPos[q->vertex(1)]);
+		// VecNormalize(dir[1], dir[1]);
+
+		// number maxDot[2] = {0, 0};
+		// for(int i = 0; i < 4; ++i){
+		// 	for(int j = 0; j < 2; ++j){
+		// 		maxDot[j] = std::max(maxDot[j], fabs(VecDot(dir[j], n[i])));
+		// 	}
+		// }
+
+		// int imin = maxDot[0] < maxDot[1] ? 0 : 1;
+		// int imax = maxDot[0] < maxDot[1] ? 1 : 0;
+
+		// if(maxDot[imax] > 0 && maxDot[imax] - maxDot[imin] > SMALL){
+		// 	q1 = 1. - maxDot[0];
+		// 	q2 = 1. - maxDot[1];
+		// }
+
+		q1 = VecDot(n[0], n[2]);
+		q2 = VecDot(n[1], n[3]);
+		
+		if(fabs(q1-q2) < SMALL)
+		{
+		//	if normals are equal we check which way produces the better triangles.
+			q1 = std::min(
+					TriangleQuality(aaPos[q->vertex(0)], aaPos[q->vertex(1)], aaPos[q->vertex(2)]),
+					TriangleQuality(aaPos[q->vertex(2)], aaPos[q->vertex(3)], aaPos[q->vertex(0)]));
+
+			q2 = std::min(
+					TriangleQuality(aaPos[q->vertex(1)], aaPos[q->vertex(2)], aaPos[q->vertex(3)]),
+					TriangleQuality(aaPos[q->vertex(3)], aaPos[q->vertex(0)], aaPos[q->vertex(1)]));
+		}
 
 		if(q1 >= q2)
 		{
