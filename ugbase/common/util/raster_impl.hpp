@@ -469,12 +469,6 @@ interpolate (const Coordinate& coord, int order) const
 	return m_noDataValue;
 }
 
-// template <class T, int TDIM>
-// void Raster<T, TDIM>::
-// void blur(number alpha, size_t iterations)
-// {
-	
-// }
 
 template <class T, int TDIM>
 void Raster<T, TDIM>::

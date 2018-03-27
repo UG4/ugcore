@@ -310,11 +310,6 @@ class Raster{
 		template <class TKernel>
 		void run_on_nbrs(const MultiIndex& center, TKernel& kernel, int curDim);
 
-		void blur_sum_recursion(number alpha, const MultiIndex& start, int curDim, int blurDim);
-		void blur_sum(number alpha, const MultiIndex& start, int dim);
-		void blur_normalize_recursion(number alpha, const MultiIndex& start, int curDim);
-
-
 		size_t data_index (
 					const MultiIndex& mi,
 					int curDim = TDIM - 1,
