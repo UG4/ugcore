@@ -549,6 +549,9 @@ static void DomainAlgebra(Registry& reg, string parentGroup)
 							.add_method("enable_adaptive_refinement", &T::enable_adaptive_refinement)
 							.add_method("disable_adaptive_refinement", &T::disable_adaptive_refinement)
 							.add_method("config_string", &T::config_string)
+
+							.add_method("set_associated_space", &T::set_associated_space)
+							.add_method("set_absolute_tolerance", &T::set_absolute_tolerance)
 							.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "NestedIterationSolver", tag);
 	}

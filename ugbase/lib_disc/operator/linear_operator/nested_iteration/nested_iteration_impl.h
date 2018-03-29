@@ -62,7 +62,7 @@ NestedIterationSolver(SmartPtr<ILinearOperatorInverse<vector_type> > LinearSolve
 			m_spAss(NULL),
 			m_dgbCall(0),
 			m_lastNumSteps(0),
-			m_bUseAdaptiveRefinement(true)
+			m_bUseAdaptiveRefinement(true), m_TOL(1e-3), m_absTOL(1e-12), m_maxSteps(100)
 {};
 
 template <typename TDomain, typename TAlgebra>
@@ -74,7 +74,8 @@ NestedIterationSolver() :
 	m_spAss(NULL),
 	m_dgbCall(0),
 	m_lastNumSteps(0),
-	m_bUseAdaptiveRefinement(true)
+	m_bUseAdaptiveRefinement(true),
+	m_TOL(1e-3), m_absTOL(1e-12), m_maxSteps(100)
 {};
 
 template <typename TDomain, typename TAlgebra>
@@ -86,7 +87,7 @@ NestedIterationSolver(SmartPtr<IOperator<vector_type> > N) :
 	m_spAss(NULL),
 	m_dgbCall(0),
 	m_lastNumSteps(0),
-	m_bUseAdaptiveRefinement(true)
+	m_bUseAdaptiveRefinement(true),	m_TOL(1e-3), m_absTOL(1e-12), m_maxSteps(100)
 {
 	init(N);
 };
@@ -102,7 +103,7 @@ NestedIterationSolver(SmartPtr<IAssemble<TAlgebra> > spAss) :
 	m_dgbCall(0),
 	m_lastNumSteps(0),
 	m_baseLevel(0),
-	m_bUseAdaptiveRefinement(true)
+	m_bUseAdaptiveRefinement(true),	m_TOL(1e-3), m_absTOL(1e-12), m_maxSteps(100)
 {
 	m_N = SmartPtr<AssembledOperator<TAlgebra> >(new AssembledOperator<TAlgebra>(m_spAss));
 };
@@ -150,12 +151,12 @@ bool NestedIterationSolver<TDomain,TAlgebra>::prepare(vector_type& u)
 //! Refines domain and provides error estimate.
 /*! Values depend on m_spDomErr */
 template <typename TDomain, typename TAlgebra>
-number NestedIterationSolver<TDomain,TAlgebra>::refine_domain(const grid_function_type& u)
+void NestedIterationSolver<TDomain,TAlgebra>::estimate_and_mark_domain(const grid_function_type& u, SmartPtr<IElementMarkingStrategy<TDomain> > spMarking, bool bClearMarks)
 {
 	  UG_LOG("Computing error... "<< std::endl);
 
 	  typedef DomainDiscretization<TDomain, TAlgebra> domain_disc_type;
-	//  typedef IDomainErrorIndicator<TAlgebra> domain_indicator_type;
+	 //  typedef IDomainErrorIndicator<TAlgebra> domain_indicator_type;
 
 	  SmartPtr<domain_disc_type> spDomainEstimator = m_spDomErr.template cast_dynamic<domain_disc_type>();
 
@@ -165,19 +166,21 @@ number NestedIterationSolver<TDomain,TAlgebra>::refine_domain(const grid_functio
 
 	  // compute error
 	  if (m_spElemError.valid()) {
+		  // debug version
 		  spDomainEstimator->calc_error(u, u.dd(), &(*m_spElemError));
 	  } else {
+		  // standard version
 		  spDomainEstimator->calc_error(u, u.dd());
 	  }
+
 	  // set (new) marks
-	  m_spRefiner->clear_marks();
-	  spDomainEstimator->mark_with_strategy(*m_spRefiner, m_spRefinementMarking);
-	  UG_LOG("Estimated error: " << m_spRefinementMarking->global_estimated_error());
+	  if (bClearMarks) m_spRefiner->clear_marks();
+	  spDomainEstimator->mark_with_strategy(*m_spRefiner, spMarking);
+	  UG_LOG("Estimated error: " << spMarking->global_estimated_error());
 
-	  const number err = m_spRefinementMarking->global_estimated_error();
-	  if(err >= m_TOL) {m_spRefiner->refine();}
 
-	  return err;
+
+
 }
 
 
@@ -286,14 +289,14 @@ bool NestedIterationSolver<TDomain,TAlgebra>::apply(vector_type& u)
 
 		// Solve linearized system.
 		try{
-		NESTED_ITER_PROFILE_BEGIN(NewtonApplyLinSolver);
-		if(!m_spLinearSolver->apply(u, *spD))
-		{
-			UG_LOG("ERROR in 'NestedIterationSolver::apply': Cannot apply Inverse Linear "
-					"Operator for Jacobi-Operator.\n");
-			return false;
-		}
-		NESTED_ITER_PROFILE_END();
+			NESTED_ITER_PROFILE_BEGIN(NewtonApplyLinSolver);
+			if(!m_spLinearSolver->apply(u, *spD))
+			{
+				UG_LOG("ERROR in 'NestedIterationSolver::apply': Cannot apply Inverse Linear "
+						"Operator for Jacobi-Operator.\n");
+				return false;
+			}
+			NESTED_ITER_PROFILE_END();
 		}UG_CATCH_THROW("NestedIterationSolver::apply: Application of Linear Solver failed.");
 
 		// Adjust solution.
@@ -315,25 +318,34 @@ bool NestedIterationSolver<TDomain,TAlgebra>::apply(vector_type& u)
 			break;
 		}
 
-		// Refine domain and check error.
-		number err = this->refine_domain(usol);
+		// Estimate and mark domain.
+		this->estimate_and_mark_domain(usol, m_spRefinementMarking);
 
-		 if (m_spElemError.valid())
-		 {
-			 //	write defect for debug
-			 std::string name("NESTED_ITER_Error");
-			 name.append(ext);
-			 VTKOutput<TDomain::dim> outError;
-			 outError.print(name.c_str(), *m_spElemError);
+		//	OPTIONAL: write defect for debug
+		if (m_spElemError.valid())
+		{
+			std::string name("NESTED_ITER_Error");
+			name.append(ext);
+			VTKOutput<TDomain::dim> outError;
+			outError.print(name.c_str(), *m_spElemError);
 		}
 
+		// Check error.
+		const number err = m_spRefinementMarking->global_estimated_error();
+		double desiredTOL = (m_spAssociatedSpace.valid()) ? m_TOL*m_spAssociatedSpace->norm(usol) + m_absTOL : m_TOL;
+
+		UG_LOG("NI *** Desired tolerance: " << m_TOL << " * "<<  m_spAssociatedSpace->norm(usol) <<  " + "<< m_absTOL <<std::endl);
+
 		// Quit or continue?
-		if(err < m_TOL)
+		if(err < desiredTOL)
 		{
-			UG_LOG("SUCCESS: Error smaller than tolerance: " << err << " < "<< m_TOL << std::endl);
+			// Quit.
+			UG_LOG("SUCCESS: Error smaller than tolerance: " << err << " < "<< desiredTOL << std::endl);
 			break;
 		} else {
-			UG_LOG("FAILED: Error (still) greater than tolerance: " << err << " > "<< m_TOL << std::endl);
+			// Refine and continue.
+			UG_LOG("FAILED: Error (still) greater than tolerance: " << err << " > "<< desiredTOL << std::endl);
+			m_spRefiner->refine();
 		}
 	}
 
