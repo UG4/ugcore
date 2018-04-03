@@ -336,13 +336,13 @@ function util.SolveNonlinearTimeProblem(
 				if prepareTimeStep ~= nil then
 					pp_res = prepareTimeStep(u, step, time, currdt)
 					if type(pp_res) == "boolean" and pp_res == false then -- i.e. not nil, not something else, but "false"!
-						write("\n++++++ Preparation of the time step failed. ")
+						print("\n++++++ Preparation of the time step failed.")
 					else
 						pp_res = true
 					end
 				end
-
-				if pp_res then
+				if pp_res == false then break end
+				
 				for stage = 1, timeDisc:num_stages() do
 					if timeDisc:num_stages() > 1 then
 						print("      +++ STAGE " .. stage .. " BEGIN ++++++")
@@ -352,7 +352,7 @@ function util.SolveNonlinearTimeProblem(
 					if preProcess ~= nil then
 						pp_res = preProcess(u, step, time, currdt)
 						if type(pp_res) == "boolean" and pp_res == false then -- i.e. not nil, not something else, but "false"!
-							write("\n++++++ PreProcess failed. ")
+							print("\n++++++ PreProcess failed.")
 							newtonSuccess = false
 							break
 						end
@@ -378,7 +378,7 @@ function util.SolveNonlinearTimeProblem(
 					if postProcess ~= nil then
 						pp_res = postProcess(u, step, timeDisc:future_time(), currdt)
 						if type(pp_res) == "boolean" and pp_res == false then -- i.e. not nil, not something else, but "false"!
-							write("\n++++++ PostProcess failed. ")
+							print("\n++++++ PostProcess failed.")
 							newtonSuccess = false
 							break
 						end
@@ -405,15 +405,17 @@ function util.SolveNonlinearTimeProblem(
 						print("      +++ STAGE " .. stage .. " END   ++++++")
 					end
 				end -- loop over the stages
-				end -- if preparation succeeded
 
-				if finalizeTimeStep ~= nil then
+				if newtonSuccess and finalizeTimeStep ~= nil then
 					pp_res = finalizeTimeStep(u, step, time, currdt)
 					if type(pp_res) == "boolean" and pp_res == false then -- i.e. not nil, not something else, but "false"!
 						write("\n++++++ Finalization of the time step failed. ")
 						newtonSuccess = false
+					else
+						pp_res = true
 					end
 				end
+				if pp_res == false then break end
 				
 				if newtonSuccess == false and newtonLineSearchFallbacks ~= nil then
 					if newtonLineSearchFallbacks[newtonTry] == nil or newtonSolver:last_num_newton_steps() == 0 then
