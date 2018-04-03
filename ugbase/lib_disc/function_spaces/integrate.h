@@ -461,7 +461,7 @@ number IntegrateSubsets(IIntegrand<number, TGridFunction::dim> &spIntegrand,
 // UserData Integrand
 ////////////////////////////////////////////////////////////////////////////////
 
-//! For arbitrary UserData $\rho$, this class defines the integrand $\rho(u)$.
+//! For arbitrary UserData \f$\rho\f$, this class defines the integrand \f$\rho(u)\f$.
 template <typename TData, typename TGridFunction>
 class UserDataIntegrand
 	: public StdIntegrand<TData, TGridFunction::dim, UserDataIntegrand<TData, TGridFunction> >
@@ -551,7 +551,7 @@ class UserDataIntegrand
 
 
 
-//! For arbitrary UserData $f$ (of type TData), this class defines the integrand $\f^2(u)$.
+//! For arbitrary UserData \f$f\f$ (of type TData), this class defines the integrand \f$f^2(u)\f$.
 template <typename TData, typename TGridFunction>
 class UserDataIntegrandSq
 	: public StdIntegrand<number, TGridFunction::dim, UserDataIntegrandSq<TData, TGridFunction> >
