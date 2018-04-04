@@ -35,10 +35,14 @@
 
 #include "lib_grid/grid/grid.h"
 #include "lib_grid/tools/subset_handler_interface.h"
+#include "lib_grid/tools/selector_interface.h"
 #include "lib_grid/common_attachments.h"
 
 namespace ug
 {
+
+class ProjectionHandler;
+
 /**
  * Saves a grid to LibGridBinary-format.
  * Awaits a list of subset-handler-pointers and the number
@@ -46,6 +50,13 @@ namespace ug
  */
 bool SaveGridToLGB(Grid& grid, const char* filename,
 				   ISubsetHandler** ppSH, int numSHs,
+				   ISelector** ppSel, int numSels,
+				   ProjectionHandler* pPH = NULL,
+				   APosition aPos = aPosition);
+
+bool SaveGridToLGB(Grid& grid, const char* filename,
+				   ISubsetHandler** ppSH, int numSHs,
+				   ProjectionHandler* pPH = NULL,
 				   APosition aPos = aPosition);
 
 
@@ -58,6 +69,14 @@ bool SaveGridToLGB(Grid& grid, const char* filename,
  */
 bool LoadGridFromLGB(Grid& grid, const char* filename,
 				   ISubsetHandler** ppSH, int numSHs,
+				   ISelector** ppSel, int numSels,
+				   ProjectionHandler* pPH = NULL,
+				   APosition aPos = aPosition);
+
+
+bool LoadGridFromLGB(Grid& grid, const char* filename,
+				   ISubsetHandler** ppSH, int numSHs,
+				   ProjectionHandler* pPH = NULL,
 				   APosition aPos = aPosition);
 
 }//	end of namespace
