@@ -203,22 +203,26 @@ assign_subset_impl(TElem* elem, int subsetIndex)
 
 void GridSubsetHandler::assign_subset(Vertex* elem, int subsetIndex)
 {
-	assign_subset_impl(elem, subsetIndex);
+	if(elements_are_supported(SHE_VERTEX))
+		assign_subset_impl(elem, subsetIndex);
 }
 
 void GridSubsetHandler::assign_subset(Edge* elem, int subsetIndex)
 {
-	assign_subset_impl(elem, subsetIndex);
+	if(elements_are_supported(SHE_EDGE))
+		assign_subset_impl(elem, subsetIndex);
 }
 
 void GridSubsetHandler::assign_subset(Face* elem, int subsetIndex)
 {
-	assign_subset_impl(elem, subsetIndex);
+	if(elements_are_supported(SHE_FACE))
+		assign_subset_impl(elem, subsetIndex);
 }
 
 void GridSubsetHandler::assign_subset(Volume* elem, int subsetIndex)
 {
-	assign_subset_impl(elem, subsetIndex);
+	if(elements_are_supported(SHE_VOLUME))
+		assign_subset_impl(elem, subsetIndex);
 }
 
 void GridSubsetHandler::
