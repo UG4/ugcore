@@ -184,7 +184,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef CplUserData<number, dim> TBase;
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridFunction#Component")
-			.add_method("evaluate", static_cast<number (T::*)(std::vector<number>)>(&T::evaluate))
+			.add_method("evaluate", static_cast<number (T::*)(const MathVector<dim>&) const>(&T::evaluate))
+			.add_method("evaluate_global", static_cast<number (T::*)(std::vector<number>)>(&T::evaluate_global))
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GlobalGridFunctionNumberData", tag);
 	}
@@ -197,7 +198,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef CplUserData<number, dim> TBase;
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridFunction#Component")
-			.add_method("evaluate", static_cast<number (T::*)(std::vector<number>)>(&T::evaluate))
+			.add_method("evaluate", static_cast<number (T::*)(const MathVector<dim>&) const>(&T::evaluate))
+			.add_method("evaluate_global", static_cast<number (T::*)(std::vector<number>)>(&T::evaluate_global))
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GlobalEdgeGridFunctionNumberData", tag);
 	}
@@ -210,7 +212,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef CplUserData<MathVector<dim>, dim> TBase;
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridFunction#Component")
-			.add_method("evaluate", static_cast<std::vector<number> (T::*)(std::vector<number>)>(&T::evaluate))
+			.add_method("evaluate_global", static_cast<std::vector<number> (T::*)(std::vector<number>)>(&T::evaluate_global))
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GlobalGridFunctionGradientData", tag);
 	}

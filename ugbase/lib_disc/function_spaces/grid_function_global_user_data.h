@@ -144,6 +144,14 @@ class GlobalGridFunctionNumberData
 				UG_THROW("For function "<<m_fct<<" couldn't find an element containing the specified point: " << x);
 		}
 
+		inline number evaluate(const MathVector<dim>& x) const
+		{
+			number value;
+			if(!evaluate(value, x))
+				UG_THROW("For function "<<m_fct<<" couldn't find an element containing the specified point: " << x);
+			return value;
+		}
+
 		///	evaluates the data at a given point, returns false if point not found
 		inline bool evaluate(number& value, const MathVector<dim>& x) const
 		{
@@ -233,7 +241,7 @@ class GlobalGridFunctionNumberData
 		}
 
 		// evaluates at given position
-		number evaluate(std::vector<number> vPos)
+		number evaluate_global(std::vector<number> vPos)
 		{
 			if((int)vPos.size() != dim)
 				UG_THROW("Expected "<<dim<<" components, but given "<<vPos.size());
@@ -429,7 +437,7 @@ class GlobalGridFunctionGradientData
 		}
 
 		// evaluates at given position
-		std::vector<number> evaluate(std::vector<number> vPos)
+		std::vector<number> evaluate_global(std::vector<number> vPos)
 		{
 			if((int)vPos.size() != dim)
 				UG_THROW("Expected "<<dim<<" components, but given "<<vPos.size());
