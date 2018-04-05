@@ -144,6 +144,8 @@ void DeserializeProjectionHandler(BinaryBuffer& in, ProjectionHandler& ph)
 	UG_COND_THROW(tmpMagicNumber != magicNumber,
 	              "Magic number mismatch in DeserializeProjectionHandler (1)!");
 
+	ph.clear();
+	
 	byte b;
 	in.read((char*)&b, sizeof(b));
 	if(b){
@@ -158,8 +160,9 @@ void DeserializeProjectionHandler(BinaryBuffer& in, ProjectionHandler& ph)
 	for(int i = -1; i < numProjectors; ++i){
 		int index;
 		in.read((char*)& index, sizeof(int));
-		if(index == -2)
+		if(index == -2){
 			continue;
+		}
 
 		ph.set_projector(index, DeserializeProjector(in));
 	}
@@ -409,6 +412,21 @@ bool LoadGridFromLGB(Grid& grid, const char* filename,
 		{
 			Selector sel(grid);
 			DeserializeSelector(grid, sel, tbuf);
+		}
+	}
+
+
+	if((opts & LGBC_PROJECTION_HANDLER) == LGBC_PROJECTION_HANDLER)
+	{
+	//	read number of subset handlers
+		int shIndex;
+		tbuf.read((char*)&shIndex, sizeof(int));
+		
+		if(pPH)
+			DeserializeProjectionHandler(tbuf, *pPH);
+		else{
+			ProjectionHandler ph;
+			DeserializeProjectionHandler(tbuf, ph);
 		}
 	}
 
