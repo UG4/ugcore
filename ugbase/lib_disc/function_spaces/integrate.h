@@ -605,7 +605,8 @@ class UserDataIntegrandSq
 		              const size_t numIP)
 		{
 
-			TData tmpValues[numIP];
+			std::vector<TData> tmpValues(numIP);
+
 		//	get local solution if needed
 			if(m_spData->requires_grid_fct())
 			{
@@ -625,7 +626,7 @@ class UserDataIntegrandSq
 
 			//	compute data
 				try{
-					(*m_spData)(tmpValues, vGlobIP, m_time, this->m_si, pElem,
+					(*m_spData)(&tmpValues.front(), vGlobIP, m_time, this->m_si, pElem,
 								vCornerCoords, vLocIP, numIP, &u, &vJT[0]);
 				}
 				UG_CATCH_THROW("UserDataIntegrand: Cannot evaluate data.");
@@ -634,7 +635,7 @@ class UserDataIntegrandSq
 			{
 			//	compute data
 				try{
-					(*m_spData)(tmpValues, vGlobIP, m_time, this->m_si, numIP);
+					(*m_spData)(&tmpValues.front(), vGlobIP, m_time, this->m_si, numIP);
 				}
 				UG_CATCH_THROW("UserDataIntegrand: Cannot evaluate data.");
 			}
