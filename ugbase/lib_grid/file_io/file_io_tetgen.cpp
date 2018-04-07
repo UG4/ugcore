@@ -159,7 +159,7 @@ bool ImportGridFromTETGEN(Grid& grid,
 
 		//	read index and coords
 			in >> index;
-			if(index > vVertices.size())
+			if(index > (int) vVertices.size())
 				vVertices.resize(index, NULL);
 			in >> aaPosVRT[v].x();
 			in >> aaPosVRT[v].y();
@@ -332,7 +332,7 @@ bool ImportGridFromTETGEN(Grid& grid,
 
 		//	read index and coords
 			in >> index;
-			if(index > vVertices.size())
+			if(index > (int) vVertices.size())
 				vVertices.resize(index, NULL);
 			vVertices.push_back(v);
 			in >> aaPosVRT[v].x();
