@@ -74,13 +74,12 @@ public:
 
 protected:
 	bool m_valid;
-	slice_desc_type_vector m_slice_types;
-	slice_desc_set m_slice_set[N]; //!< N mappings: islice -> iglobal
+	slice_desc_type_vector m_slice_types; //!< global vector with mappings iglobal -> type(iglobal)
+	slice_desc_set m_slice_set[N]; 		  //!< N mappings: islice(type) -> iglobal
 
 
 public:
 	//! Constructor
-
 	SlicingData() : m_valid(false)
 	{}
 
@@ -91,9 +90,10 @@ public:
 		reset_set_mappings();
 	}
 
-	/// copy types
+	/// Copy types.
 	void set_types(const slice_desc_type_vector &types, bool bClear=false)
 	{
+		UG_DLOG(SchurDebug, 5,"SlicingData::set_types:" << bClear);
 		m_slice_types = types;
 		reset_set_mappings();
 	}
@@ -104,45 +104,48 @@ public:
 
 protected:
 
+	//! Clear all sets.
 	void clear_set_mappings()
 	{
 		const size_t ntypes = m_slice_types.size();
 		for (size_t i=0; i< ntypes; ++i)
 		{
 			slice_desc_type tt = get_type(i);
-				slice_desc_set &set =slice(tt);
-				set.clear();
+			slice(tt).clear();
 		}
 	}
 
-	/// auto fill for sets
-	/// assigns every index i=0.. m_slice_types.size()-1 to exactly one set
+	//! Auto fill for sets.
+	/*! Assigns every index i=0.. m_slice_types.size()-1 to exactly one set. */
 	void fill_set_mappings()
 	{
+		UG_DLOG(SchurDebug, 5, "SlicingData::fill_set_mappings" << std::endl);
 		const size_t ntypes = m_slice_types.size();
 		for (size_t i=0; i< ntypes; ++i)
 		{
 			slice_desc_type tt = get_type(i);
-			slice_desc_set &set =slice(tt);
-
+			slice_desc_set &set= slice(tt);
+			UG_DLOG(SchurDebug, 8, i << "->" << tt <<  std::endl);
 			set.push_back(i);
 		}
 
-		UG_DLOG(SchurDebug, 5,"SlicingData::fill_set_mappings:" << ntypes);
-		//UG_LOG("SlicingData::fill_set_mappings:" << ntypes);
-		for (size_t i=0; i<N; ++i)
-			UG_DLOG(SchurDebug, 0, "  " << m_slice_set[i].size());
-			//UG_LOG("  " << slice(get_type(i)).size());
-		UG_DLOG(SchurDebug, 0, 	std::endl);
+
+		UG_DLOG(SchurDebug, 5, "SlicingData::fill_set_mappings:" << ntypes);
+		for (size_t tt=0; tt<N; ++tt)
+			UG_DLOG(SchurDebug, 6, "  " << m_slice_set[tt].size());
+			//UG_LOG("  " << slice(get_type(tt)).size());
+		UG_DLOG(SchurDebug, 6, 	std::endl);
 		//UG_LOG(std::endl);
 
 
 		m_valid = true;
 	}
 
-
+	//! Clear & auto fill
 	void reset_set_mappings()
 	{
+		// UG_DLOG(SchurDebug, 5,"SlicingData::reset_set_mappings");
+		UG_LOG("SlicingData::reset_set_mappings"<< std::endl);
 		clear_set_mappings();
 		fill_set_mappings();
 	}
@@ -151,11 +154,10 @@ public:
 
 
 
-    /// copy: slice of vector -> small vector
+    /// Copy: slice of vector -> small vector.
 	template<class VT>
 	void get_vector_slice(const VT &full_src, slice_desc_type desc, VT &small_dst) const
 	{
-
 		const slice_desc_set &slice_desc = slice(desc);
 
 		// UG_DLOG("get_vector_slice:" << slice_desc.size());
@@ -167,7 +169,7 @@ public:
 
 
 
-	/// copy: small vector -> slice of a vector
+	/// Copy: small vector -> slice of a vector.
 	template<class VT>
 	void set_vector_slice(const VT &small_src, VT &full_dst, slice_desc_type desc) const
 	{
@@ -175,10 +177,13 @@ public:
 		//UG_LOG("get_vector_slice:" << slice_desc.size());
 		slice_desc_set::const_iterator elem = slice_desc.begin();
 		for (size_t i=0; i<slice_desc.size(); ++i, ++elem)
-			{ full_dst[*elem] = small_src[i]; }
+			{
+				// UG_DLOG(SchurDebug, 8, "Copy: "<< i << "->" << *elem << "v=" << small_src[i] << std::endl)
+				full_dst[*elem] = small_src[i];
+			}
 	}
 
-	 /// add: slice of vector -> small vector
+	 /// Add: slice of vector -> small vector
 	template<class VT>
 	void add_vector_slice(const VT &full_src, slice_desc_type desc, VT &small_dst, double sigma=1.0) const
 	{
@@ -189,15 +194,15 @@ public:
 			{ small_dst[i] += sigma*full_src[*elem]; }
 	}
 
-	/// add: small vector -> slice of a vector
-		template<class VT>
-		void add_vector_slice(const VT &small_src, VT &full_dst, slice_desc_type desc, double sigma=1.0) const
-		{
-			const slice_desc_set &slice_desc = slice(desc);
-			slice_desc_set::const_iterator elem = slice_desc.begin();
-			for (size_t i=0; i<slice_desc.size(); ++i, ++elem)
-				{ full_dst[*elem] += sigma*small_src[i]; }
-		}
+	/// Add: small vector -> slice of a vector
+	template<class VT>
+	void add_vector_slice(const VT &small_src, VT &full_dst, slice_desc_type desc, double sigma=1.0) const
+	{
+		const slice_desc_set &slice_desc = slice(desc);
+		slice_desc_set::const_iterator elem = slice_desc.begin();
+		for (size_t i=0; i<slice_desc.size(); ++i, ++elem)
+			{ full_dst[*elem] += sigma*small_src[i]; }
+	}
 
 
 	 /// substract: slice of vector -> small vector
@@ -246,7 +251,7 @@ public:
 	{return slice(type).size();}
 
 
-	//! Create a (partial) clone, without copying values
+	//! Create a (partial) clone of the vector, without copying values
 	template<class VT>
 	SmartPtr<VT> slice_clone_without_values(const VT &full_src, slice_desc_type type) const
 	{
@@ -255,7 +260,7 @@ public:
 		SmartPtr<VT> clone(new VT(slice_desc.size()));
 #ifdef UG_PARALLEL
 		// set layout
-		clone->set_layouts(get_slice_layouts(full_src.layouts(), type));
+		clone->set_layouts(create_slice_layouts(full_src.layouts(), type));
 
 		// set mask
 		uint mask = full_src.get_storage_mask();
@@ -291,7 +296,7 @@ protected:
 	{return m_slice_set[type];}
 
 
-	//! returns local index for a global index
+	//! returns: local index for a global index (if found) or undefined else.
 	bool find_index(slice_desc_type type, int gindex, int &index) const
 	{
 		// WARNING int index < size_t myset.size() WARNING
@@ -314,21 +319,29 @@ protected:
 	}
 #ifdef UG_PARALLEL
 public:
-	SmartPtr<AlgebraLayouts> get_slice_layouts(ConstSmartPtr<AlgebraLayouts> layouts, slice_desc_type type) const
+	//! Create new slice layouts (as a subset from full layouts).
+	SmartPtr<AlgebraLayouts> create_slice_layouts(ConstSmartPtr<AlgebraLayouts> fullLayouts, slice_desc_type type) const
 	{
-		// convert layouts (vector->slice)
-		SmartPtr<AlgebraLayouts> slice_layouts(new AlgebraLayouts(*layouts));
+		UG_DLOG(SchurDebug, 4, "SlicingData::create_slice_layouts" << std::endl);
+		// Copy layouts.
+		SmartPtr<AlgebraLayouts> slice_layouts = make_sp(new AlgebraLayouts(*fullLayouts));
+
+		// Convert layouts (vector->slice)
 		replace_indices_in_layout(type, slice_layouts->master());
 		replace_indices_in_layout(type, slice_layouts->slave());
 
-
-		//UG_LOG(*slice_layouts);
+		UG_DLOG(SchurDebug, 3, "BEFORE:")
+		UG_DLOG(SchurDebug, 3, *fullLayouts);
+		UG_DLOG(SchurDebug, 3, "AFTER:")
+		UG_DLOG(SchurDebug, 3, *slice_layouts);
 		return slice_layouts;
 	}
 
 protected:
 	void replace_indices_in_layout(slice_desc_type type, IndexLayout &il) const
 	{
+
+		UG_DLOG(SchurDebug, 5, "SlicingData::replace_indices_in_layout" << std::endl);
 		IndexLayout::iterator iter;
 		for (iter = il.begin(); iter!=il.end(); ++iter)
 		{
@@ -340,12 +353,21 @@ protected:
 			for (eiter = interf.begin(); eiter!=interf.end(); ++eiter)
 			{
 				// replace elements in interface
-				size_t &elem = interf.get_element(eiter);
-				int newind;
+				size_t myindex = interf.get_element(eiter);
+				int newindex;
+				bool found=find_index(type, myindex, newindex);
+				// UG_COND_THROW(!found, "SlicingData:: Did not find "<< myindex << "in typelist for type="<< type << std::endl);
 
-				bool found=find_index(type, elem, newind);
-				UG_COND_THROW(!found, "SlicingData:: Did not find index???");
-				interf.get_element(eiter) = newind;
+				// Replace or remove from IF
+				if (found) {
+					UG_DLOG(SchurDebug, 7, "Replacing:" << myindex << "->" <<newindex << std::endl);
+					interf.get_element(eiter) = newindex;
+				}
+				else {
+					UG_DLOG(SchurDebug, 7, "Deleting:" << myindex << std::endl);
+					interf.erase(eiter);
+					eiter--;
+				}
 
 			}
 		}
