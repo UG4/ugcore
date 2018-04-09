@@ -122,7 +122,7 @@ init()
 		m_slicing.get_matrix(mat, SD_SKELETON, SD_INNER, sub_matrix(SD_SKELETON, SD_INNER));
 		m_slicing.get_matrix(mat, SD_SKELETON, SD_SKELETON, sub_matrix(SD_SKELETON, SD_SKELETON));
 
-		sub_matrix(SD_SKELETON, SD_SKELETON).set_layouts(m_slicing.get_slice_layouts(mat.layouts(), SD_SKELETON));
+		sub_matrix(SD_SKELETON, SD_SKELETON).set_layouts(m_slicing.create_slice_layouts(mat.layouts(), SD_SKELETON));
 		sub_matrix(SD_SKELETON, SD_SKELETON).set_storage_type(PST_ADDITIVE);
 
 		IF_DEBUG(SchurDebug, 5)
@@ -345,7 +345,7 @@ compute_matrix(matrix_type &schur_matrix, double threshold)
 //	schur_matrix.resize_and_clear(n_skeleton, n_skeleton);
 
 	matrix_type &mat = m_spOperator->get_matrix();
-	schur_matrix.set_layouts(m_slicing.get_slice_layouts(mat.layouts(), SD_SKELETON));
+	schur_matrix.set_layouts(m_slicing.create_slice_layouts(mat.layouts(), SD_SKELETON));
 	schur_matrix.set_storage_type(PST_ADDITIVE);
 
 	UG_DLOG(SchurDebug, 2, "SchurMatrix Layouts: " << *schur_matrix.layouts());

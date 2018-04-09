@@ -133,10 +133,8 @@ protected:
 		UG_DLOG(SchurDebug, 5, "SlicingData::fill_set_mappings:" << ntypes);
 		for (size_t tt=0; tt<N; ++tt)
 			UG_DLOG(SchurDebug, 6, "  " << m_slice_set[tt].size());
-			//UG_LOG("  " << slice(get_type(tt)).size());
-		UG_DLOG(SchurDebug, 6, 	std::endl);
-		//UG_LOG(std::endl);
 
+		UG_DLOG(SchurDebug, 6, 	std::endl);
 
 		m_valid = true;
 	}
@@ -144,8 +142,7 @@ protected:
 	//! Clear & auto fill
 	void reset_set_mappings()
 	{
-		// UG_DLOG(SchurDebug, 5,"SlicingData::reset_set_mappings");
-		UG_LOG("SlicingData::reset_set_mappings"<< std::endl);
+		UG_DLOG(SchurDebug, 5,"SlicingData::reset_set_mappings");
 		clear_set_mappings();
 		fill_set_mappings();
 	}

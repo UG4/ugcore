@@ -99,7 +99,7 @@ template <typename TGridFunction>
 void UzawaSlicing <TGridFunction>::
 init(const TGridFunction &u, const std::vector<std::string>& vSchurCmps)
 {
-	UG_LOG("UzawaSlicing::init" << std::endl);
+	UG_DLOG(SchurDebug, 3, "UzawaSlicing::init" << std::endl);
 
 	ConstSmartPtr<DoFDistributionInfo> ddinfo =
 			u.approx_space()->dof_distribution_info();
@@ -147,7 +147,7 @@ init(const TGridFunction &u, const std::vector<std::string>& vSchurCmps)
 		default: UG_THROW("wrong dim");
 		}
 
-		UG_LOG("Found "<< vIndex.size() << " indices ( out of "<< u.size() << ") for Schur block after dimension "<< d << std::endl) ;
+		UG_DLOG(SchurDebug, 4, "Found "<< vIndex.size() << " indices ( out of "<< u.size() << ") for Schur block after dimension "<< d << std::endl) ;
 	}
 
 
@@ -160,7 +160,7 @@ init(const TGridFunction &u, const std::vector<std::string>& vSchurCmps)
 		mapping[vIndex[i][0]] = true;
 	}
 
-	UG_LOG("UzawaSlicing::init::set_types" << std::endl);
+	UG_DLOG(SchurDebug, 3, "UzawaSlicing::init::set_types" << std::endl);
 	base_type::set_types(mapping, true);
 
 }
@@ -222,7 +222,7 @@ class UzawaBase : public IPreconditioner<TAlgebra>
 		/// Overriding base type
 		virtual bool init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 		{
-			UG_LOG("UzawaBase::init(J,u)")
+			UG_DLOG(SchurDebug, 4, "UzawaBase::init(J,u)")
 
 			SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp =
 					J.template cast_dynamic<MatrixOperator<matrix_type, vector_type> >();
@@ -319,7 +319,7 @@ public:
 				//m_spAss->ass_tuner()->set_force_regular_grid(false);
 
 				my_write_debug(tmpM, "init_MFull_ForSchurUpdate", clevel, clevel);
-				UG_LOG("extract_schur_update on level "<<  clevel << ", " << tmpM);
+				UG_DLOG(SchurDebug, 5, "extract_schur_update on level "<<  clevel << ", " << tmpM);
 
 
 				/* Matrices C22 and M22 are both additive. Thus, we add both.
@@ -332,8 +332,8 @@ public:
 															"UZAWA_init_M22_ForSchurUpdate.mat");
 				}
 
-				UG_LOG("AUX_C22:"); CheckRowIterators(*m_auxMat[AUX_C22]);
-				UG_LOG("AUX_M22:"); CheckRowIterators(*m_auxMat[AUX_M22]);
+				UG_DLOG(SchurDebug, 4, "AUX_C22:"); CheckRowIterators(*m_auxMat[AUX_C22]);
+				UG_DLOG(SchurDebug, 4, "AUX_M22:"); CheckRowIterators(*m_auxMat[AUX_M22]);
 
 				// add matrix
 				MatAddNonDirichlet<matrix_type>(*m_auxMat[AUX_C22], 1.0, *m_auxMat[AUX_C22], m_dSchurUpdateWeight, *m_auxMat[AUX_M22]);
@@ -381,7 +381,7 @@ public:
 protected:
 			void init_in_first_step(const matrix_type &pMat, const TGridFunction &pC)
 			{
-				UG_LOG("step-init: Size=" << m_vSchurCmp.size() << std::endl);
+				UG_DLOG(SchurDebug, 4, "step-init: Size=" << m_vSchurCmp.size() << std::endl);
 				m_slicing.init(pC, m_vSchurCmp);
 
 				if (debug_writer().valid())
@@ -632,10 +632,10 @@ extract_sub_matrices(const matrix_type& K, const TGridFunction& c)
 	m_slicing.get_matrix(K, UZAWA_CMP_SCHUR,   UZAWA_CMP_DEFAULT, *(m_auxMat[B21].template cast_static<matrix_type>()) );
 	m_slicing.get_matrix(K, UZAWA_CMP_SCHUR,   UZAWA_CMP_SCHUR,   *(m_auxMat[AUX_C22].template cast_static<matrix_type>()) );
 
-	UG_LOG("A11 =" << *m_auxMat[AUX_A11] << ", ");
-	UG_LOG("B12 =" << *m_auxMat[B12] << ", ");
-	UG_LOG("B21 =" << *m_auxMat[B21] << ", ");
-	UG_LOG("C22 =" << *m_auxMat[AUX_C22] << std::endl);
+	UG_DLOG(SchurDebug, 4, "A11 =" << *m_auxMat[AUX_A11] << ", ");
+	UG_DLOG(SchurDebug, 4, "B12 =" << *m_auxMat[B12] << ", ");
+	UG_DLOG(SchurDebug, 4, "B21 =" << *m_auxMat[B21] << ", ");
+	UG_DLOG(SchurDebug, 4, "C22 =" << *m_auxMat[AUX_C22] << std::endl);
 
 #ifdef UG_PARALLEL
 	// Copy storage mask.
