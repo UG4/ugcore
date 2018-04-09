@@ -230,7 +230,9 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef IGridFunctionSpace<TFct> TBase;
 
 		string name = string("IComponentSpace").append(suffix);
-		reg.add_class_<T, TBase>(name, grp);
+		reg.add_class_<T, TBase>(name, grp)
+		   .add_method("norm", static_cast<number (T::*)(TFct&) > (&T::norm))
+		   .add_method("distance", static_cast<number (T::*)(TFct&, TFct&) > (&T::distance));
 
 		reg.add_class_to_group(name, "IComponentSpace", tag);
 	}
@@ -250,6 +252,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		   .template add_constructor<void (*)(const char *, int, ConstSmartPtr<TWeight>) >("fctNames, order, weight")
 		   .template add_constructor<void (*)(const char *, int, ConstSmartPtr<TWeight>, const char *) >("fctNames, order, weight, ssNames")
 		 //  .template add_constructor<void (*)(const char *, const char *, int, ConstSmartPtr<TWeight>) >("fctNames, ssNames, order, weight")
+
 		   .set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "L2ComponentSpace", tag);
 	}
