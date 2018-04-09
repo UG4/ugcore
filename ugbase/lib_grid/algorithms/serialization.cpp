@@ -38,6 +38,15 @@
 #include "debug_util.h"
 #include "common/util/hash.h"
 
+// #include <sstream>
+// #include "lib_grid/refinement/projectors/projectors.h"
+
+// #include <boost/archive/text_oarchive.hpp>
+// #include <boost/archive/text_iarchive.hpp>
+// #include "common/boost_serialization_routines.h"
+// #include "common/util/archivar.h"
+// #include "common/util/factory.h"
+
 using namespace std;
 
 #define PROFILE_GRID_SERIALIZATION
@@ -2499,13 +2508,10 @@ bool DeserializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
 //	read a magic number at the beginning and at the end.
 	int magicNumber = 654664;
 	int tInd;
-
 //	make sure that the magic number matches
 	in.read((char*)&tInd, sizeof(int));
-	if(tInd != magicNumber){
-		UG_LOG(" WARNING: magic-number mismatch before read in DeserializeSubsetHandler. Data-salad possible!\n");
-		return false;
-	}
+	UG_COND_THROW(tInd != magicNumber,
+				  " magic-number mismatch after read in DeserializeSubsetHandler (1).\n");
 
 //	deserialize subset-infos
 	int numSubsets;
@@ -2537,6 +2543,7 @@ bool DeserializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
 			Deserialize(in, si.m_propertyMap);
 	}
 
+
 	for(size_t i = 0; i < goc.num_levels(); ++i)
 	{
 	//	serialize vertex-subsets
@@ -2562,10 +2569,8 @@ bool DeserializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
 
 	//	make sure that the magic number matches
 	in.read((char*)&tInd, sizeof(int));
-	if(tInd != magicNumber){
-				UG_LOG(" WARNING: magic-number mismatch after read in DeserializeSubsetHandler. Data-salad possible!\n");
-		return false;
-	}
+	UG_COND_THROW(tInd != magicNumber,
+				  " magic-number mismatch after read in DeserializeSubsetHandler (2).\n");
 
 	return true;
 }
@@ -2579,5 +2584,247 @@ bool DeserializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
 							grid.get_grid_objects(),
 							in, readPropertyMap);
 }
+
+
+
+template <class TElemIter>
+static
+void WriteSelectionStatesToStream(TElemIter iterBegin, TElemIter iterEnd,
+								  ISelector& sel, BinaryBuffer& out)
+{
+	for(;iterBegin != iterEnd; ++iterBegin)
+	{
+		int s = sel.get_selection_status(*iterBegin);
+		out.write((char*)&s, sizeof(byte));
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
+bool SerializeSelector(Grid& grid, ISelector& sel,
+					   GridObjectCollection goc,
+					   BinaryBuffer& out)
+{
+//	write a magic number at the beginning and at the end.
+	int magicNumber = 654664;
+	out.write((char*)&magicNumber, sizeof(int));
+
+	for(size_t i = 0; i < goc.num_levels(); ++i)
+	{
+	//	serialize vertex-subsets
+		WriteSelectionStatesToStream(goc.begin<Vertex>(i),
+									 goc.end<Vertex>(i),
+									 sel, out);
+
+	//	serialize edge-subsets
+		WriteSelectionStatesToStream(goc.begin<Edge>(i),
+									 goc.end<Edge>(i),
+									 sel, out);
+
+	//	serialize face-subsets
+		WriteSelectionStatesToStream(goc.begin<Face>(i),
+									 goc.end<Face>(i),
+									 sel, out);
+
+	//	serialize volume-subsets
+		WriteSelectionStatesToStream(goc.begin<Volume>(i),
+									 goc.end<Volume>(i),
+									 sel, out);
+	}
+	
+	out.write((char*)&magicNumber, sizeof(int));
+
+	return true;
+
+}
+
+////////////////////////////////////////////////////////////////////////
+//	SerializeSelector
+bool SerializeSelector(Grid& grid, ISelector& sel,
+					   BinaryBuffer& out)
+{
+	return SerializeSelector(grid, sel,
+							 grid.get_grid_objects(),
+							 out);
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TElemIter>
+static
+void ReadSelectionStatesFromStream(TElemIter iterBegin, TElemIter iterEnd,
+								   ISelector& sel, BinaryBuffer& in)
+{
+	for(;iterBegin != iterEnd; ++iterBegin)
+	{
+		byte s;
+		in.read((char*)&s, sizeof(byte));
+		sel.select(*iterBegin, s);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
+//	DeserializeSelector
+bool DeserializeSelector(Grid& grid, ISelector& sel,
+						 GridObjectCollection goc,
+						 BinaryBuffer& in)
+{
+//	read a magic number at the beginning and at the end.
+	int magicNumber = 654664;
+	int tInd;
+//	make sure that the magic number matches
+	in.read((char*)&tInd, sizeof(int));
+	UG_COND_THROW(tInd != magicNumber,
+				  " magic-number mismatch after read in DeserializeSelector (1).\n");
+
+	for(size_t i = 0; i < goc.num_levels(); ++i)
+	{
+	//	serialize vertex-subsets
+		ReadSelectionStatesFromStream(goc.begin<Vertex>(i),
+									  goc.end<Vertex>(i),
+									  sel, in);
+
+	//	serialize edge-subsets
+		ReadSelectionStatesFromStream(goc.begin<Edge>(i),
+									  goc.end<Edge>(i),
+									  sel, in);
+
+	//	serialize face-subsets
+		ReadSelectionStatesFromStream(goc.begin<Face>(i),
+									  goc.end<Face>(i),
+									  sel, in);
+
+	//	serialize volume-subsets
+		ReadSelectionStatesFromStream(goc.begin<Volume>(i),
+									  goc.end<Volume>(i),
+									  sel, in);
+	}
+
+	//	make sure that the magic number matches
+	in.read((char*)&tInd, sizeof(int));
+	UG_COND_THROW(tInd != magicNumber,
+				  " magic-number mismatch after read in DeserializeSelector (2).\n");
+
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////
+//	DeserializeSelector
+bool DeserializeSelector(Grid& grid, ISelector& sel,
+						 BinaryBuffer& in)
+{
+	return DeserializeSelector(grid, sel,
+							   grid.get_grid_objects(),
+							   in);
+}
+
+
+// void SerializeProjector(BinaryBuffer& out, RefinementProjector& proj)
+// {
+// 	static Factory<RefinementProjector, ProjectorTypes>	projFac;
+// 	static Archivar<boost::archive::text_oarchive, RefinementProjector, ProjectorTypes>	archivar;
+	
+// 	const string& projName = projFac.class_name(proj);
+
+// 	Serialize(out, projName);
+
+// 	stringstream ss;
+// 	boost::archive::text_oarchive ar(ss, boost::archive::no_header);
+// 	archivar.archive(ar, proj);
+
+// 	Serialize(out, ss.str());
+// }
+
+
+// void SerializeProjectionHandler(BinaryBuffer& out, ProjectionHandler& ph)
+// {
+// 	const int magicNumber = 978523;
+// 	out.write((char*)&magicNumber, sizeof(int));
+
+// 	if(ph.default_projector().valid()){
+// 		byte b = 1;
+// 		out.write((char*)&b, sizeof(b));
+// 		SerializeProjector(out, *ph.default_projector());
+// 	}
+// 	else{
+// 		byte b = 0;
+// 		out.write((char*)&b, sizeof(b));
+// 	}
+
+// 	int numProjectors = (int)ph.num_projectors();
+// 	out.write((char*)&numProjectors, sizeof(int));
+
+// 	for(int i = -1; i < numProjectors; ++i){
+// 		if(!ph.projector(i).valid()){
+// 			const int invInd = -2;
+// 			out.write((char*)& invInd, sizeof(int));
+// 			continue;
+// 		}
+
+// 		RefinementProjector& proj= *ph.projector(i);
+
+// 		out.write((char*)& i, sizeof(int));
+// 		SerializeProjector(out, proj);
+// 	}
+// 	out.write((char*)&magicNumber, sizeof(int));
+// }
+
+
+// SPRefinementProjector DeserializeProjector(BinaryBuffer& in)
+// {
+// 	static Archivar<boost::archive::text_iarchive,
+// 				RefinementProjector,
+// 				ProjectorTypes>
+// 			archivar;
+
+// 	static Factory<RefinementProjector, ProjectorTypes>	projFac;
+
+// 	std::string name;
+// 	Deserialize(in, name);
+
+// 	if(name.empty())
+// 		return SPRefinementProjector();
+	
+// 	SPRefinementProjector proj = projFac.create(name);
+
+// 	std::string data;
+// 	Deserialize(in, data);
+// 	std::stringstream ss(data, std::ios_base::in);
+// 	boost::archive::text_iarchive ar(ss, boost::archive::no_header);
+// 	archivar.archive(ar, *proj);
+// 	return proj;
+// }
+
+
+// void DeserializeProjectionHandler(BinaryBuffer& in, ProjectionHandler& ph)
+// {
+// 	const int magicNumber = 978523;
+// 	int tmpMagicNumber;
+// 	in.read((char*)&tmpMagicNumber, sizeof(int));
+// 	UG_COND_THROW(tmpMagicNumber != magicNumber,
+// 	              "Magic number mismatch in DeserializeProjectionHandler (1)!");
+
+// 	byte b;
+// 	in.read((char*)&b, sizeof(b));
+// 	if(b){
+// 		ph.set_default_projector(DeserializeProjector(in));
+// 	}
+// 	else
+// 		ph.set_default_projector(SPRefinementProjector());
+
+// 	int numProjectors;
+// 	in.read((char*)&numProjectors, sizeof(int));
+
+// 	for(int i = -1; i < numProjectors; ++i){
+// 		int index;
+// 		in.read((char*)& index, sizeof(int));
+// 		if(index == -2)
+// 			continue;
+
+// 		ph.set_projector(index, DeserializeProjector(in));
+// 	}
+
+// 	in.read((char*)&tmpMagicNumber, sizeof(int));
+// 	UG_COND_THROW(tmpMagicNumber != magicNumber,
+// 	              "Magic number mismatch in DeserializeProjectionHandler (2)!");
+// }
 
 }//	end of namespace

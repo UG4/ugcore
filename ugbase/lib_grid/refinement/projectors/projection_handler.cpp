@@ -69,6 +69,13 @@ ProjectionHandler::
 ~ProjectionHandler ()	{}
 
 void ProjectionHandler::
+clear()
+{
+	m_projectors.clear();
+	m_defaultProjector = make_sp(new RefinementProjector);
+}
+
+void ProjectionHandler::
 set_geometry (SPIGeometry3d geometry)
 {
 	RefinementProjector::set_geometry (geometry);

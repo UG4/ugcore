@@ -461,7 +461,7 @@ number IntegrateSubsets(IIntegrand<number, TGridFunction::dim> &spIntegrand,
 // UserData Integrand
 ////////////////////////////////////////////////////////////////////////////////
 
-//! For arbitrary UserData $\rho$, this class defines the integrand $\rho(u)$.
+//! For arbitrary UserData \f$\rho\f$, this class defines the integrand \f$\rho(u)\f$.
 template <typename TData, typename TGridFunction>
 class UserDataIntegrand
 	: public StdIntegrand<TData, TGridFunction::dim, UserDataIntegrand<TData, TGridFunction> >
@@ -551,7 +551,7 @@ class UserDataIntegrand
 
 
 
-//! For arbitrary UserData $f$ (of type TData), this class defines the integrand $\f^2(u)$.
+//! For arbitrary UserData \f$f\f$ (of type TData), this class defines the integrand \f$f^2(u)\f$.
 template <typename TData, typename TGridFunction>
 class UserDataIntegrandSq
 	: public StdIntegrand<number, TGridFunction::dim, UserDataIntegrandSq<TData, TGridFunction> >
@@ -605,7 +605,8 @@ class UserDataIntegrandSq
 		              const size_t numIP)
 		{
 
-			TData tmpValues[numIP];
+			std::vector<TData> tmpValues(numIP);
+
 		//	get local solution if needed
 			if(m_spData->requires_grid_fct())
 			{
@@ -625,7 +626,7 @@ class UserDataIntegrandSq
 
 			//	compute data
 				try{
-					(*m_spData)(tmpValues, vGlobIP, m_time, this->m_si, pElem,
+					(*m_spData)(&tmpValues.front(), vGlobIP, m_time, this->m_si, pElem,
 								vCornerCoords, vLocIP, numIP, &u, &vJT[0]);
 				}
 				UG_CATCH_THROW("UserDataIntegrand: Cannot evaluate data.");
@@ -634,7 +635,7 @@ class UserDataIntegrandSq
 			{
 			//	compute data
 				try{
-					(*m_spData)(tmpValues, vGlobIP, m_time, this->m_si, numIP);
+					(*m_spData)(&tmpValues.front(), vGlobIP, m_time, this->m_si, numIP);
 				}
 				UG_CATCH_THROW("UserDataIntegrand: Cannot evaluate data.");
 			}

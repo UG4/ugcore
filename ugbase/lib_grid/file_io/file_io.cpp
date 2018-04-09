@@ -92,7 +92,7 @@ static bool LoadGrid3d_IMPL(Grid& grid, ISubsetHandler* pSH,
 		if(pSH)
 			numSHs = 1;
 
-		bSuccess = LoadGridFromLGB(grid, filename, &pSH, numSHs, aPos);
+		bSuccess = LoadGridFromLGB(grid, filename, &pSH, numSHs, NULL, aPos);
 	}
 	else if(strExt.compare("2df") == 0)
 		bSuccess = LoadGridFrom2DF(grid, filename, pSH, aPos);
@@ -275,7 +275,7 @@ static bool SaveGrid3d_IMPL(Grid& grid, ISubsetHandler* pSH,
 		if(pSH)
 			numSHs = 1;
 
-		return SaveGridToLGB(grid, filename, &pSH, numSHs, aPos);
+		return SaveGridToLGB(grid, filename, &pSH, numSHs, NULL, aPos);
 	}
 	else if(strName.find(".ele") != string::npos)
 		return SaveGridToELE(grid, filename, pSH, aPos);

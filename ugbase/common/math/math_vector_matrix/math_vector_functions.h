@@ -380,7 +380,7 @@ inline
 void
 VecElemProd(vector_t& vOut, const vector_t& v1, const vector_t& v2);
 
-///	component-wise square root: o_i=\sqrt v_i
+///	component-wise square root: \f$o_i=\sqrt {v_i}\f$
 template <typename vector_t>
 inline
 void

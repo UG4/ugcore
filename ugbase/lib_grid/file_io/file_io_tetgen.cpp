@@ -159,7 +159,7 @@ bool ImportGridFromTETGEN(Grid& grid,
 
 		//	read index and coords
 			in >> index;
-			if(index > vVertices.size())
+			if(index > (int) vVertices.size())
 				vVertices.resize(index, NULL);
 			in >> aaPosVRT[v].x();
 			in >> aaPosVRT[v].y();
@@ -289,10 +289,12 @@ bool ImportGridFromTETGEN(Grid& grid,
 						ISubsetHandler* psh,
 						std::vector<AFloat>* pvNodeAttributes)
 {
+	PROFILE_FUNC();
 //	read nodes and store them in an array for index access
 	vector<RegularVertex*>	vVertices;
 
 	{
+		PROFILE_BEGIN(read_vertices);
 		ifstream in(nodesFilename);
 		if(!in)
 		{
@@ -330,7 +332,7 @@ bool ImportGridFromTETGEN(Grid& grid,
 
 		//	read index and coords
 			in >> index;
-			if(index > vVertices.size())
+			if(index > (int) vVertices.size())
 				vVertices.resize(index, NULL);
 			vVertices.push_back(v);
 			in >> aaPosVRT[v].x();
@@ -365,6 +367,7 @@ bool ImportGridFromTETGEN(Grid& grid,
 //	read faces
 	if(facesFilename != NULL)
 	{
+		PROFILE_BEGIN(read_faces);
 		ifstream in(facesFilename);
 		if(in)
 		{
@@ -405,6 +408,7 @@ bool ImportGridFromTETGEN(Grid& grid,
 //	read volumes
 	if(elemsFilename != NULL)
 	{
+		PROFILE_BEGIN(read_volumes);
 		ifstream in(elemsFilename);
 		if(in)
 		{

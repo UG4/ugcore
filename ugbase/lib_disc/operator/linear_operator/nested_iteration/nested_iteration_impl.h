@@ -62,7 +62,8 @@ NestedIterationSolver(SmartPtr<ILinearOperatorInverse<vector_type> > LinearSolve
 			m_spAss(NULL),
 			m_dgbCall(0),
 			m_lastNumSteps(0),
-			m_bUseAdaptiveRefinement(true), m_TOL(1e-3), m_absTOL(1e-12), m_maxSteps(100)
+			m_bUseAdaptiveRefinement(true),
+			m_maxSteps(100), m_TOL(1e-3), m_absTOL(1e-12)
 {};
 
 template <typename TDomain, typename TAlgebra>
@@ -75,7 +76,7 @@ NestedIterationSolver() :
 	m_dgbCall(0),
 	m_lastNumSteps(0),
 	m_bUseAdaptiveRefinement(true),
-	m_TOL(1e-3), m_absTOL(1e-12), m_maxSteps(100)
+	m_maxSteps(100), m_TOL(1e-3), m_absTOL(1e-12)
 {};
 
 template <typename TDomain, typename TAlgebra>
@@ -87,7 +88,8 @@ NestedIterationSolver(SmartPtr<IOperator<vector_type> > N) :
 	m_spAss(NULL),
 	m_dgbCall(0),
 	m_lastNumSteps(0),
-	m_bUseAdaptiveRefinement(true),	m_TOL(1e-3), m_absTOL(1e-12), m_maxSteps(100)
+	m_bUseAdaptiveRefinement(true),
+	m_maxSteps(100), m_TOL(1e-3), m_absTOL(1e-12)
 {
 	init(N);
 };
@@ -103,7 +105,8 @@ NestedIterationSolver(SmartPtr<IAssemble<TAlgebra> > spAss) :
 	m_dgbCall(0),
 	m_lastNumSteps(0),
 	m_baseLevel(0),
-	m_bUseAdaptiveRefinement(true),	m_TOL(1e-3), m_absTOL(1e-12), m_maxSteps(100)
+	m_bUseAdaptiveRefinement(true),
+	m_maxSteps(100), m_TOL(1e-3), m_absTOL(1e-12)
 {
 	m_N = SmartPtr<AssembledOperator<TAlgebra> >(new AssembledOperator<TAlgebra>(m_spAss));
 };

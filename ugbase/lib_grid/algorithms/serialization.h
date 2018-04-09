@@ -39,10 +39,13 @@
 #include "common/serialization.h"
 #include "lib_grid/grid_objects/grid_objects.h"
 #include "lib_grid/tools/subset_handler_interface.h"
+#include "lib_grid/tools/selector_interface.h"
 #include "lib_grid/multi_grid.h"
 #include "lib_grid/common_attachments.h"
 #include "lib_grid/algorithms/attachment_util.h"
 #include "lib_grid/parallelization/grid_object_id.h"
+// #include "lib_grid/refinement/projectors/refinement_projector.h"
+// #include "lib_grid/refinement/projectors/projection_handler.h"
 
 namespace ug
 {
@@ -595,11 +598,57 @@ bool DeserializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
 							BinaryBuffer& in,
 							bool readPropertyMap = true);
 
-/*
-bool SerializeSelector(Grid& grid, Selector& sel, BinaryBuffer& out);
 
-bool DeserializeSelector(Grid& grid, Selector& sel, BinaryBuffer& in);
-*/
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+//	SELECTOR
+
+////////////////////////////////////////////////////////////////////////
+///	writes the subset-indices of all elements in the goc to a stream.
+bool SerializeSelector(Grid& grid, ISelector& sel,
+					   GridObjectCollection goc,
+					   BinaryBuffer& out);
+							
+////////////////////////////////////////////////////////////////////////
+///	writes the subset-indices of all elements in the grid to a stream.
+bool SerializeSelector(Grid& grid, ISelector& sel,
+					   BinaryBuffer& out);
+
+////////////////////////////////////////////////////////////////////////
+///	assigns subset-indices to all elements in the goc from a stream.
+/**	One has to be very careful that the given goc only contains
+ * the elements that were passed to the serialization routine.
+ * Problems could be caused by automatic element creation.
+ * consider to set grid.set_option(GRIDOPT_NONE) before loading
+ * the grid.
+ *
+ * readPropertyMap should always be true. It is only contained for backwards
+ * compatibility with older binary files, which did not support property maps.
+ */
+bool DeserializeSelector(Grid& grid, ISelector& sel,
+						 GridObjectCollection goc,
+						 BinaryBuffer& in);
+
+							
+////////////////////////////////////////////////////////////////////////
+///	assigns subset-indices to all elements in the grid from a stream.
+/**	One has to be very careful that the given grid only contains
+ * the elements that were passed to the serialization routine.
+ * Problems could be caused by automatic element creation.
+ * consider to set grid.set_option(GRIDOPT_NONE) before loading
+ * the grid.
+ *
+ * readPropertyMap should always be true. It is only contained for backwards
+ * compatibility with older binary files, which did not support property maps.
+ */
+bool DeserializeSelector(Grid& grid, ISelector& sel,
+						 BinaryBuffer& in);
+
+
+// void SerializeProjector(BinaryBuffer& out, RefinementProjector& proj);
+// void SerializeProjectionHandler(BinaryBuffer& out, ProjectionHandler& ph);
+// SPRefinementProjector DeserializeProjector(BinaryBuffer& in);
+// void DeserializeProjectionHandler(BinaryBuffer& in, ProjectionHandler& ph);
 
 /**@}*/ // end of doxygen defgroup command
 
