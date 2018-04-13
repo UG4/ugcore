@@ -63,10 +63,11 @@ namespace Shiny {
 
 #if SHINY_COMPILER == SHINY_COMPILER_MSVC
 #	pragma warning(disable: 4311)
+#	pragma warning(disable: 4302)
 #endif
 
 	inline uint32_t ptr32(const void *a_Ptr) {
-		unsigned long int tmp = (unsigned long int)a_Ptr;//sreiter
+		unsigned long int tmp = reinterpret_cast<unsigned long int>(a_Ptr);//sreiter
 		//uint32_t u = (uint32_t)tmp; //variable u has not been used, commented out by avogel, Dec 18 2009//sreiter
 		return tmp;//sreiter
 	}
