@@ -64,6 +64,9 @@ enum GridBaseObjectId
 	NUM_GEOMETRIC_BASE_OBJECTS		//always last!!!
 };
 
+extern const char* GRID_BASE_OBJECT_SINGULAR_NAMES[];
+extern const char* GRID_BASE_OBJECT_PLURAL_NAMES[];
+
 ////////////////////////////////////////////////////////////////////////
 //	Reference-Object IDs
 ///	these ids are used to identify the shape of a geometric object.
