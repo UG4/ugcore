@@ -144,7 +144,7 @@ void CalculateFaceNormals(Grid& grid, const FaceIterator& facesBegin,
 }
 
 ////////////////////////////////////////////////////////////////////////
-bool IsVolumeBoundaryFace(Grid& grid, Face* f)
+int NumAssociatedVolumes(Grid& grid, Face* f)
 {
 //	check if FACEOPT_STORE_ASSOCIATED_VOLUMES is enabled.
 //	if so, use it to count the number of adjacent volumes.
@@ -154,7 +154,7 @@ bool IsVolumeBoundaryFace(Grid& grid, Face* f)
 		for(Grid::AssociatedVolumeIterator iter = grid.associated_volumes_begin(f);
 			iter != grid.associated_volumes_end(f); iter++)
 		{
-			counter++;
+			++counter;
 		}
 	}
 	else
@@ -166,14 +166,17 @@ bool IsVolumeBoundaryFace(Grid& grid, Face* f)
 			iter != iterEnd; iter++)
 		{
 			if(VolumeContains(*iter, f))
-				counter++;
+				++counter;
 		}
 	}
 
-//	if there is only one adjacent volume, the triangle is a boundary triangle
-	if(counter == 1)
-		return true;
-	return false;
+	return counter;
+}
+
+////////////////////////////////////////////////////////////////////////
+bool IsVolumeBoundaryFace(Grid& grid, Face* f)
+{
+	return NumAssociatedVolumes(grid, f) == 1;
 }
 
 bool IsVolumeBoundaryFace(Grid& grid, ConstrainedFace* f)
