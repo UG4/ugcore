@@ -109,10 +109,10 @@ void GetNeighbours(std::vector<Volume*>& vVolsOut, Grid& grid, Volume* v,
 number CalculateMinVolumeHeight(Tetrahedron* tet,
 								Grid::VertexAttachmentAccessor<APosition>& aaPos)
 {
-	vector3& a = aaPos[tet->vertex(0)];
-	vector3& b = aaPos[tet->vertex(1)];
-	vector3& c = aaPos[tet->vertex(2)];
-	vector3& d = aaPos[tet->vertex(3)];
+	const vector3& a = aaPos[tet->vertex(0)];
+	const vector3& b = aaPos[tet->vertex(1)];
+	const vector3& c = aaPos[tet->vertex(2)];
+	const vector3& d = aaPos[tet->vertex(3)];
 
 	return CalculateMinTetrahedronHeight(a, b, c, d);
 }
