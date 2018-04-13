@@ -433,7 +433,7 @@ function util.Balance(DataToBeWrittenTable)
 			file:write(time)
 			file:write(sep)
 			for _, point in ipairs(points) do
-				local val = value:evaluate(point)
+				local val = value:evaluate_global(point)
 				--print("Point data is: "..val)
 				file:write(val, sep)
 			end
