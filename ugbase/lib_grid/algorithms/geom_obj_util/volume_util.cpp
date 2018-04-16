@@ -121,7 +121,6 @@ number CalculateMinVolumeHeight(Tetrahedron* tet,
 		FaceDescriptor fd = tet->face_desc(tet->get_opposing_object(vrt).second);
 
 		CalculateNormal(vfaceNormal, &fd, aaPos);
-		UG_LOG(vfaceNormal);
 		tmpMinHeight = DistancePointToPlane(aaPos[vrt], aaPos[fd.vertex(0)], vfaceNormal);
 
 		if(tmpMinHeight < minHeight)
