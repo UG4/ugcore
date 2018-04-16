@@ -129,22 +129,15 @@ number GetMaxEdgeLength (Volume* vol, TAAPos& aaPos)
 }
 
 template <class TAAPos>
-number CalculateMinTetrahedronHeight (Volume* tet, TAAPos& aaPos)
+number CalculateMinTetrahedronHeight (Volume* vol, TAAPos& aaPos)
 {
-	UG_COND_THROW(tet->num_vertices() != 4,
+	UG_COND_THROW(vol->num_vertices() != 4,
 	              "CalculateMinTetrahedronHeight called on a volume with "
-	              << tet->num_vertices());
+	              << vol->num_vertices());
 
-	const vector3& a = aaPos[tet->vertex(0)];
-	const vector3& b = aaPos[tet->vertex(1)];
-	const vector3& c = aaPos[tet->vertex(2)];
-	const vector3& d = aaPos[tet->vertex(3)];
+	Tetrahedron* tet = static_cast<Tetrahedron*>(vol);
 
-	return CalculateMinTetrahedronHeight(a, b, c, d);
-
-//	TODO: CalculateMinTetrahedronHeight is a bit cumbersome. Should use a more
-//	efficient method...
-	// number minHeight = std::numeric_limits<number>::max();
+	return CalculateMinVolumeHeight(tet, aaPos);
 }
 
 template <class TAAPos>
