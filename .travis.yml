@@ -50,14 +50,14 @@ before_script:
   - ../ughub/ughub install ugcore
   - rm -rf ugcore
   
-  -|
-    echo "--------------------------------------------------------------------------------"
-    echo $TRAVIS_COMMIT
-    echo $TRAVIS_TAG
-    echo $TRAVIS_BRANCH
-    echo $TRAVIS_BUILD_NUMBER
-    echo $TRAVIS_REPO_SLUG
-    echo "--------------------------------------------------------------------------------"
+  - |
+     echo "--------------------------------------------------------------------------------"
+     echo $TRAVIS_COMMIT
+     echo $TRAVIS_TAG
+     echo $TRAVIS_BRANCH
+     echo $TRAVIS_BUILD_NUMBER
+     echo $TRAVIS_REPO_SLUG
+     echo "--------------------------------------------------------------------------------"
     
   - git clone https://github.com/$TRAVIS_REPO_SLUG.git ugcore
   - git checkout -qf $TRAVIS_COMMIT
