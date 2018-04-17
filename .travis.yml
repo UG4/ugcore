@@ -12,14 +12,13 @@ addons:
 # we compile a c++ project
 language: cpp
 
-matrix:
-    include:
-    - os: linux
-      compiler:
-        - gcc
-        - clang
-    - os: osx
-      osx_image: xcode9.2
+compiler:
+    - gcc
+    - clang
+
+os:
+  - linux
+  - osx
   
 env:
   global:
@@ -31,8 +30,6 @@ env:
     - DIM=2 CPU=1 TARGET=ugshell STATIC_BUILD=ON
     - DIM=2 CPU=1 TARGET=vrl STATIC_BUILD=OFF
       
-    
-
       
 cache:
   ccache: true
