@@ -25,7 +25,7 @@ environment:
   MSBUILD_FLAGS: /verbosity:minimal /maxcpucount
   matrix:
     
-    - generator: "NMake Makefiles JOM"
+    - generator: "Visual Studio 15 2017 Win64" 
       DIM: 2 
       CPU: 1
       TARGET: ugshell
@@ -89,7 +89,7 @@ build_script:
   - dir
   - if not exist build mkdir build
   - cd build && cmake ..\ -G "%generator%" -DTARGET="%TARGET%" -DLAPACK=OFF -DBLAS=OFF -DDIM="%DIM%" -DCPU="%CPU%" -DCOMPILE_INFO=OFF -DEMBEDDED_PLUGINS=ON -DSTATIC_BUILD="%STATIC_BUILD%"
-  - jom
+  - MSBuild .\ug4.sln  /property:Configuration=Release /property:Platform=x64
  
   
   
