@@ -68,8 +68,8 @@ install:
   - if not exist ug4\ugcore cd ug4 && ..\ughub\ughub install ugcore && cd ..
       
   - cd ug4    
-  #- if %UG4_FOLDER_SURVIVED_CACHE%==false rm -rf ugcore
-  - rm -rf ugcore
+  - if %UG4_FOLDER_SURVIVED_CACHE%==false rm -rf ugcore
+  #- rm -rf ugcore
   
   - |-
      echo "--------------------------------------------------------------------------------"
@@ -83,8 +83,9 @@ install:
      echo "UG4 dir survived cache: %UG4_FOLDER_SURVIVED_CACHE%"
      echo "--------------------------------------------------------------------------------"
       
-  #- if %UG4_FOLDER_SURVIVED_CACHE%==false git clone --depth=50 https://github.com/%APPVEYOR_REPO_NAME%.git ugcore
-  - git clone --depth=50 https://github.com/%APPVEYOR_REPO_NAME%.git ugcore
+  - if %UG4_FOLDER_SURVIVED_CACHE%==false git clone --depth=50 https://github.com/%APPVEYOR_REPO_NAME%.git ugcore
+  - if %UG4_FOLDER_SURVIVED_CACHE%==true cd ugcore && git pull & cd ..
+  #- git clone --depth=50 https://github.com/%APPVEYOR_REPO_NAME%.git ugcore
   - cd ugcore
   - git checkout -qf %APPVEYOR_REPO_COMMIT%
 
