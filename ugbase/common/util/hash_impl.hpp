@@ -158,7 +158,6 @@ TValue& Hash<TKey, TValue>::
 get_entry(const key_t& key)
 {
 	size_t eind = find_entry(key);
-	assert((eind != invalid_index()) && "No such entry. Check existance with has_entry first!");
 
 	if(eind == invalid_index()){
 		UG_THROW("No entry exists for the specified key. Please call 'has_entry' first"
@@ -173,7 +172,6 @@ const TValue& Hash<TKey, TValue>::
 get_entry(const key_t& key) const
 {
 	size_t eind = find_entry(key);
-	assert((eind != invalid_index()) && "No such entry. Check existance with has_entry first!");
 
 	if(eind == invalid_index()){
 		UG_THROW("No entry exists for the specified key. Please call 'has_entry' first"
