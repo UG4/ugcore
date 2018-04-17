@@ -88,7 +88,7 @@ build_script:
   - cd %APPVEYOR_BUILD_FOLDER%\appveyor_root\ug4
   - dir
   - if not exist build mkdir build
-  - cd build && cmake ..\ -DTARGET="%TARGET%" -DLAPACK=OFF -DBLAS=OFF -DDIM="%DIM%" -DCPU="%CPU%" -DCOMPILE_INFO=OFF -DEMBEDDED_PLUGINS=ON -DSTATIC_BUILD="%STATIC_BUILD%"
+  - cd build && cmake ..\ -G "%generator%" -DTARGET="%TARGET%" -DLAPACK=OFF -DBLAS=OFF -DDIM="%DIM%" -DCPU="%CPU%" -DCOMPILE_INFO=OFF -DEMBEDDED_PLUGINS=ON -DSTATIC_BUILD="%STATIC_BUILD%"
   - jom
  
   
