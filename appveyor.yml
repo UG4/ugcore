@@ -74,14 +74,14 @@ install:
      echo "--------------------------------------------------------------------------------"
      echo "TRAVIS BUILD-INFO FOR UGCORE
      echo "--------------------------------------------------------------------------------"
-     echo "REPOSITORY:...........%APPVEYOR_PROJECT_SLUG%"
+     echo "REPOSITORY:...........%APPVEYOR_REPO_NAME%"
      echo "COMMIT:...............%APPVEYOR_REPO_COMMIT%"
      echo "TAG:..................%APPVEYOR_REPO_TAG_NAME%"
      echo "BRANCH:...............%APPVEYOR_REPO_BRANCH%"
      echo "TRAVIS-BUILD-NUMBER:..%APPVEYOR_BUILD_NUMBER"
      echo "--------------------------------------------------------------------------------"
       
-  - git clone https://github.com/%APPVEYOR_PROJECT_SLUG%.git ugcore
+  - git clone https://github.com/%APPVEYOR_REPO_NAME%.git ugcore
   - cd ugcore
   - git checkout -qf %APPVEYOR_REPO_COMMIT%
 
