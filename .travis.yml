@@ -49,6 +49,4 @@ before_script:
 # compile ug
 script:
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then timeout -s SIGTERM $TIMEOUT_BUILD make -j4 install > install_out.txt || export BUILD_SUCCESS=false ; fi
-    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then make -j8 install > install_out.txt || export BUILD_SUCCESS=false; fi
-    # show last 30 lines of install output
-    - tail -n 30 install_out.txt
+    - make -j8
