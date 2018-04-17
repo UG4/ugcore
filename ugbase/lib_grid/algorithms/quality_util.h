@@ -128,17 +128,6 @@ number GetMaxEdgeLength (Volume* vol, TAAPos& aaPos)
 	return sqrt (maxEdgeLenSq);
 }
 
-template <class TAAPos>
-number CalculateMinTetrahedronHeight (Volume* vol, TAAPos& aaPos)
-{
-	UG_COND_THROW(vol->num_vertices() != 4,
-	              "CalculateMinTetrahedronHeight called on a volume with "
-	              << vol->num_vertices());
-
-	Tetrahedron* tet = static_cast<Tetrahedron*>(vol);
-
-	return CalculateMinVolumeHeight(tet, aaPos);
-}
 
 template <class TAAPos>
 number TetrahedronAspectRatio(Volume* vol, TAAPos& aaPos)
@@ -150,7 +139,11 @@ number TetrahedronAspectRatio(Volume* vol, TAAPos& aaPos)
 	 * (s. Shewchuk 2002)
 	 */
 
-	const number minTetHeight = CalculateMinTetrahedronHeight(vol, aaPos);
+	Tetrahedron* tet = dynamic_cast<Tetrahedron*>(vol);
+
+	UG_COND_THROW(!tet, "Expected volume of type Tetrahedron");
+
+	const number minTetHeight = CalculateMinVolumeHeight(tet, aaPos);
 	const number maxEdgeLength = GetMaxEdgeLength(vol, aaPos);
 
 	if(maxEdgeLength > 0)
