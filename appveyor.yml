@@ -1,0 +1,99 @@
+# Build worker image (VM template)
+image: Visual Studio 2017
+
+# scripts that are called at very beginning, before repo cloning
+init:
+  - date /T & time /T
+  - git config --global core.autocrlf input
+  - cmake --version
+
+#branches:
+#  only:
+#  - master
+
+clone_depth: 5
+
+version: '{build}'
+
+platform:
+  - x64
+
+configuration:
+  - Release
+
+environment:
+  MSBUILD_FLAGS: /verbosity:minimal /maxcpucount
+  matrix:
+    
+    - generator: "NMake Makefiles JOM"
+      DIM: 2 
+      CPU: 1
+      TARGET: ugshell
+      STATIC_BUILD: ON
+      
+    - generator: "NMake Makefiles JOM"
+      DIM: 2 
+      CPU: 1
+      TARGET: vrl
+      STATIC_BUILD: OFF
+
+    - generator: "NMake Makefiles JOM"
+      DIM: ALL 
+      CPU: ALL
+      TARGET: ugshell
+      STATIC_BUILD: ON
+
+    - generator: "NMake Makefiles JOM"
+      DIM: ALL 
+      CPU: ALL
+      TARGET: vrl
+      STATIC_BUILD: OFF
+
+matrix:
+  fast_finish: true
+
+cache:
+  - %APPVEYOR_BUILD_FOLDER%
+
+install:
+  - if not exist appveyor_root mkdir appveyor_root
+  - cd appveyor_root
+  - if exist ughub rmdir /S /Q ughub
+  - git clone https://www.github.com/UG4/ughub
+  - | 
+      if not exist ug4 (
+        mkdir ug4
+        cd ug4
+        ..\ughub\ughub init .
+        ..\ughub\ughub install ugcore
+      )
+      
+  - cd ug4    
+  - rm -rf ugcore
+  
+  - |
+     echo "--------------------------------------------------------------------------------"
+     echo "TRAVIS BUILD-INFO FOR UGCORE
+     echo "--------------------------------------------------------------------------------"
+     echo "REPOSITORY:...........%APPVEYOR_PROJECT_SLUG%"
+     echo "COMMIT:...............%APPVEYOR_REPO_COMMIT%"
+     echo "TAG:..................%APPVEYOR_REPO_TAG_NAME%"
+     echo "BRANCH:...............%APPVEYOR_REPO_BRANCH%"
+     echo "TRAVIS-BUILD-NUMBER:..%APPVEYOR_BUILD_NUMBER"
+     echo "--------------------------------------------------------------------------------"
+      
+  - git clone https://github.com/%APPVEYOR_PROJECT_SLUG%.git ugcore
+  - cd ugcore
+  - git checkout -qf %APPVEYOR_REPO_COMMIT%
+
+build_script:
+  - cd %APPVEYOR_BUILD_FOLDER%
+  - dir
+  - if not exist build mkdir build
+  - cd build && cmake ..\ -DTARGET="%TARGET%" -DLAPACK=OFF -DBLAS=OFF -DDIM="%DIM%" -DCPU="%CPU%" -DCOMPILE_INFO=OFF -DEMBEDDED_PLUGINS=ON -DSTATIC_BUILD="%STATIC_BUILD%"
+  - jom
+ 
+  
+  
+  
+  
