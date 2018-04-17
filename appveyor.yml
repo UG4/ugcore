@@ -62,7 +62,9 @@ install:
   - if exist ughub rmdir /S /Q ughub
   - git clone https://www.github.com/UG4/ughub
   
-  - if not exist ug4 mkdir ug4 && ..\ughub\ughub init ug4 cd ug4 && ..\ughub\ughub install ugcore && cd ..
+  - if not exist ug4 mkdir ug4
+  - if not exist ug4\.ughub ..\ughub\ughub init
+  - if not exist ug4\ugcore cd ug4 && ..\ughub\ughub install ugcore && cd ..
       
   - cd ug4    
   - rm -rf ugcore
