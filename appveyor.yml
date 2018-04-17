@@ -31,23 +31,23 @@ environment:
       TARGET: ugshell
       STATIC_BUILD: ON
       
-#    - generator: "NMake Makefiles JOM"
-#      DIM: 2 
-#      CPU: 1
-#      TARGET: vrl
-#      STATIC_BUILD: OFF
+    - generator: "Visual Studio 15 2017 Win64" 
+      DIM: 2 
+      CPU: 1
+      TARGET: vrl
+      STATIC_BUILD: OFF
 
-#    - generator: "NMake Makefiles JOM"
-#      DIM: ALL 
-#      CPU: ALL
-#      TARGET: ugshell
-#      STATIC_BUILD: ON
+    - generator: "Visual Studio 15 2017 Win64" 
+      DIM: ALL 
+      CPU: 1;2;3
+      TARGET: ugshell
+      STATIC_BUILD: ON
 
-#    - generator: "NMake Makefiles JOM"
-#      DIM: ALL 
-#      CPU: ALL
-#      TARGET: vrl
-#      STATIC_BUILD: OFF
+    - generator: "Visual Studio 15 2017 Win64" 
+      DIM: ALL 
+      CPU: 1;2;3
+      TARGET: vrl
+      STATIC_BUILD: OFF
 
 matrix:
   fast_finish: true
