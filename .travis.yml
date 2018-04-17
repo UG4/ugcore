@@ -49,6 +49,10 @@ before_script:
   - ../ughub/ughub init .
   - ../ughub/ughub install ugcore
   - rm -rf ugcore
+  - echo "--------------------------------------------------------------------------------"
+  - echo "> TRAVIS-REPO:   $TRAVIS_REPO_SLUG"
+  - echo "> TRAVIS-COMMIT: $TRAVIS_COMMIT"
+  - echo "--------------------------------------------------------------------------------"
   - git clone https://github.com/$TRAVIS_REPO_SLUG.git ugcore
   - git checkout -qf $TRAVIS_COMMIT
   - mkdir -p build && cd build && cmake ../ -DTARGET="${TARGET}" -DLAPACK=OFF -DBLAS=OFF -DDIM="${DIM}" -DCPU="${CPU}" -DCOMPILE_INFO=OFF -DEMBEDDED_PLUGINS=ON -DSTATIC_BUILD="${STATIC_BUILD}"
