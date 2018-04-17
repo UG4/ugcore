@@ -39,6 +39,7 @@ before_script:
   - mkdir -p travis_root && cd travis_root
   - git clone https://www.github.com/UG4/ughub
   - mkdir ug4 && cd ug4
+  - ls ughub/
   - ughub/ughub init .
   - ughub/ughub install ugcore LuaShell
   - rm -rf ugcore
