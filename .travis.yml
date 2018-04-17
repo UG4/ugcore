@@ -44,9 +44,9 @@ before_script:
   - git clone https://github.com/$TRAVIS_REPO_SLUG.git ugcore
   - git checkout -qf $TRAVIS_COMMIT
   - mkdir -p build && cd build && cmake ../ -DTARGET="${TARGET}" -DLAPACK=OFF -DBLAS=OFF -DDIM="${DIM}" -DCPU="${CPU}" -DCOMPILE_INFO=OFF -DEMBEDDED_PLUGINS=ON -DSTATIC_BUILD="${STATIC_BUILD}"
-  - ../bin/ugshell -call "print(\"it works\")"
   
 # compile ug
 script:
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then timeout -s SIGTERM $TIMEOUT_BUILD make -j4 install > install_out.txt || export BUILD_SUCCESS=false ; fi
     - make -j8
+    - ../bin/ugshell -call "print(\"it works\")"
