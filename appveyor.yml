@@ -62,25 +62,28 @@ install:
   - if exist ughub rmdir /S /Q ughub
   - git clone https://www.github.com/UG4/ughub
   
-  - if not exist ug4 mkdir ug4
+  SET UG4_FOLDER_SURVIVED_CACHE="false"
+  
+  - if not exist ug4 mkdir ug4 && SET UG4_FOLDER_SURVIVED_CACHE="true"
   - if not exist ug4\.ughub ughub\ughub init ug4
   - if not exist ug4\ugcore cd ug4 && ..\ughub\ughub install ugcore && cd ..
       
   - cd ug4    
-  - rm -rf ugcore
+  - if %UG4_FOLDER_SURVIVED_CACHE%=="false" rm -rf ugcore
   
   - |-
      echo "--------------------------------------------------------------------------------"
      echo "TRAVIS BUILD-INFO FOR UGCORE
      echo "--------------------------------------------------------------------------------"
-     echo "REPOSITORY:...........%APPVEYOR_REPO_NAME%"
-     echo "COMMIT:...............%APPVEYOR_REPO_COMMIT%"
-     echo "TAG:..................%APPVEYOR_REPO_TAG_NAME%"
-     echo "BRANCH:...............%APPVEYOR_REPO_BRANCH%"
-     echo "TRAVIS-BUILD-NUMBER:..%APPVEYOR_BUILD_NUMBER%"
+     echo "REPOSITORY:.............%APPVEYOR_REPO_NAME%"
+     echo "COMMIT:.................%APPVEYOR_REPO_COMMIT%"
+     echo "TAG:....................%APPVEYOR_REPO_TAG_NAME%"
+     echo "BRANCH:.................%APPVEYOR_REPO_BRANCH%"
+     echo "TRAVIS-BUILD-NUMBER:....%APPVEYOR_BUILD_NUMBER%"
+     echo "UG4 dir survived cache: %UG4_FOLDER_SURVIVED_CACHE%"
      echo "--------------------------------------------------------------------------------"
       
-  - git clone --depth=50 https://github.com/%APPVEYOR_REPO_NAME%.git ugcore
+  - if %UG4_FOLDER_SURVIVED_CACHE%=="false" git clone --depth=50 https://github.com/%APPVEYOR_REPO_NAME%.git ugcore
   - cd ugcore
   - git checkout -qf %APPVEYOR_REPO_COMMIT%
 
