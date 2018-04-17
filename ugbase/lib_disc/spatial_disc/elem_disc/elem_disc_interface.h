@@ -795,8 +795,8 @@ protected:
  * */
 template <typename TDomain>
 class IElemDisc :
-		public IElemError<TDomain>,
-		public IElemAssembleFuncs<IElemDisc<TDomain>, TDomain>
+		public IElemAssembleFuncs<IElemDisc<TDomain>, TDomain>,
+		public IElemError<TDomain>
 {
 public:
 	typedef TDomain domain_type;
