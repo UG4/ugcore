@@ -22,8 +22,7 @@ env:
     - TIMEOUT_BUILD='30m'
     - BUILD_SUCCESS=true
   matrix:
-    - DIM=2
-    - CPU=1
+    - DIM=2 CPU=1
       #- DIM=2
       #- DIM=3 
       
