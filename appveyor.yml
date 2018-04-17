@@ -84,7 +84,7 @@ install:
      echo "--------------------------------------------------------------------------------"
       
   - if %UG4_FOLDER_SURVIVED_CACHE%==false git clone --depth=50 https://github.com/%APPVEYOR_REPO_NAME%.git ugcore
-  - if %UG4_FOLDER_SURVIVED_CACHE%==true cd ugcore && git pull & cd ..
+  - if %UG4_FOLDER_SURVIVED_CACHE%==true cd ugcore && git fetch && cd ..
   #- git clone --depth=50 https://github.com/%APPVEYOR_REPO_NAME%.git ugcore
   - cd ugcore
   - git checkout -qf %APPVEYOR_REPO_COMMIT%
