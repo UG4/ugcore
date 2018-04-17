@@ -31,23 +31,23 @@ environment:
       TARGET: ugshell
       STATIC_BUILD: ON
       
-    - generator: "NMake Makefiles JOM"
-      DIM: 2 
-      CPU: 1
-      TARGET: vrl
-      STATIC_BUILD: OFF
+#    - generator: "NMake Makefiles JOM"
+#      DIM: 2 
+#      CPU: 1
+#      TARGET: vrl
+#      STATIC_BUILD: OFF
 
-    - generator: "NMake Makefiles JOM"
-      DIM: ALL 
-      CPU: ALL
-      TARGET: ugshell
-      STATIC_BUILD: ON
+#    - generator: "NMake Makefiles JOM"
+#      DIM: ALL 
+#      CPU: ALL
+#      TARGET: ugshell
+#      STATIC_BUILD: ON
 
-    - generator: "NMake Makefiles JOM"
-      DIM: ALL 
-      CPU: ALL
-      TARGET: vrl
-      STATIC_BUILD: OFF
+#    - generator: "NMake Makefiles JOM"
+#      DIM: ALL 
+#      CPU: ALL
+#      TARGET: vrl
+#      STATIC_BUILD: OFF
 
 matrix:
   fast_finish: true
@@ -72,7 +72,7 @@ install:
   - cd ug4    
   - rm -rf ugcore
   
-  - |
+  - |-
      echo "--------------------------------------------------------------------------------"
      echo "TRAVIS BUILD-INFO FOR UGCORE
      echo "--------------------------------------------------------------------------------"
