@@ -62,10 +62,8 @@ install:
   - if exist ughub rmdir /S /Q ughub
   - git clone https://www.github.com/UG4/ughub
   
-  set "UG4_FOLDER_SURVIVED_CACHE=false"
-  
-  - if not exist ug4 mkdir ug4
-  - if not exist ug4 set "UG4_FOLDER_SURVIVED_CACHE=true"
+  - set "UG4_FOLDER_SURVIVED_CACHE=false"
+  - if not exist ug4 mkdir ug4 && set "UG4_FOLDER_SURVIVED_CACHE=true"
   - if not exist ug4\.ughub ughub\ughub init ug4
   - if not exist ug4\ugcore cd ug4 && ..\ughub\ughub install ugcore && cd ..
       
