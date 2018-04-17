@@ -54,7 +54,7 @@ matrix:
 
 cache:
   #- %APPVEYOR_BUILD_FOLDER%
-  - C:\projects\ugcore
+  - appveyor_root
   
 install:
   - if not exist appveyor_root mkdir appveyor_root
