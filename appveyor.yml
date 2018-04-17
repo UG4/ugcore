@@ -61,13 +61,11 @@ install:
   - cd appveyor_root
   - if exist ughub rmdir /S /Q ughub
   - git clone https://www.github.com/UG4/ughub
-  - | 
-      if not exist ug4 (
-        mkdir ug4
-        cd ug4
-        ..\ughub\ughub init .
-        ..\ughub\ughub install ugcore
-      )
+  
+  - if not exist ug4 mkdir ug4
+  - if not exist ug4 cd ug4
+  - if not exist ug4 ..\ughub\ughub init .
+  - if not exist ug4 ..\ughub\ughub install ugcore && cd ..
       
   - cd ug4    
   - rm -rf ugcore
@@ -88,7 +86,7 @@ install:
   - git checkout -qf %APPVEYOR_REPO_COMMIT%
 
 build_script:
-  - cd %APPVEYOR_BUILD_FOLDER%
+  - cd %APPVEYOR_BUILD_FOLDER%\appveyor_root
   - dir
   - if not exist build mkdir build
   - cd build && cmake ..\ -DTARGET="%TARGET%" -DLAPACK=OFF -DBLAS=OFF -DDIM="%DIM%" -DCPU="%CPU%" -DCOMPILE_INFO=OFF -DEMBEDDED_PLUGINS=ON -DSTATIC_BUILD="%STATIC_BUILD%"
