@@ -36,10 +36,10 @@ env:
 cache:
   ccache: true
   directories:
-   - $HOME/Library/Caches/Homebrew
+   #- $HOME/Library/Caches/Homebrew
    # TODO: how can we do conditional caching of directories (depending on OS)
    #- /home/travis/build/miho/OCC-CSG/oce-OCE-0.18.3
-   - /Users/travis/build/miho/ugcore/
+   #- /Users/travis/build/miho/ugcore/
 
 # prepare compilation  
 before_script:
