@@ -1,11 +1,12 @@
 # run in container
 sudo: false
 
-# install dependencies
-# addons:
-#  apt:
-#    packages:
-#    - libboost-all-dev
+addons:
+    apt:
+      packages:
+       - make
+       - cmake-data
+       - cmake
   
 
 # we compile a c++ project
@@ -17,18 +18,38 @@ compiler:
 #  - clang
 env:
   global:
-    - PATH=/usr/lib/ccache:${PATH}
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then PATH=/usr/lib/ccache:${PATH}; fi
+    - TIMEOUT_BUILD='30m'
+    - BUILD_SUCCESS=true
   matrix:
-    - DIM=1;2;3
+    - DIM=2
+    - CPU=1
       #- DIM=2
       #- DIM=3 
-cache: ccache
+      
+cache:
+  ccache: true
+  directories:
+   - $HOME/Library/Caches/Homebrew
+   # TODO: how can we do conditional caching of directories (depending on OS)
+   #- /home/travis/build/miho/OCC-CSG/oce-OCE-0.18.3
+   - /Users/travis/build/miho/OCC-CSG/oce-OCE-0.18.3 
+
 # prepare compilation  
 before_script:
+  - mkdir -p travis_root && cd travis_root
   - git clone https://www.github.com/UG4/ughub
+  - mkdir ug4 && cd ug4
   - ughub/ughub init
   - ughub/ughub install ugcore LuaShell
-  - mkdir build && cd build && cmake ../ -DTARGET=ugshell -DLAPACK=OFF -DBLAS=OFF -DDIM="${DIM}" -DCOMPILE_INFO=OFF
+  - rm -rf ugcore
+  - git clone git clone https://github.com/$TRAVIS_REPO_SLUG.git ugcore
+  - git checkout -qf $TRAVIS_COMMIT
+  - mkdir -p build && cd build && cmake ../ -DTARGET=ugshell -DLAPACK=OFF -DBLAS=OFF -DDIM="${DIM}" --DCPU="${CPU}" -DCOMPILE_INFO=OFF
 
 # compile ug
-script: V=1 make -j2
+script:
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then timeout -s SIGTERM $TIMEOUT_BUILD make -j4 install > install_out.txt || export BUILD_SUCCESS=false ; fi
+    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then make -j8 install > install_out.txt || export BUILD_SUCCESS=false; fi
+    # show last 30 lines of install output
+    - tail -n 30 install_out.txt
