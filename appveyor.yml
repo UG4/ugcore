@@ -86,7 +86,7 @@ install:
   - git checkout -qf %APPVEYOR_REPO_COMMIT%
 
 build_script:
-  - cd %APPVEYOR_BUILD_FOLDER%\appveyor_root
+  - cd %APPVEYOR_BUILD_FOLDER%\appveyor_root\ugcore
   - dir
   - if not exist build mkdir build
   - cd build && cmake ..\ -DTARGET="%TARGET%" -DLAPACK=OFF -DBLAS=OFF -DDIM="%DIM%" -DCPU="%CPU%" -DCOMPILE_INFO=OFF -DEMBEDDED_PLUGINS=ON -DSTATIC_BUILD="%STATIC_BUILD%"
