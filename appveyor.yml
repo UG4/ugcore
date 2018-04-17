@@ -53,8 +53,9 @@ matrix:
   fast_finish: true
 
 cache:
-  - %APPVEYOR_BUILD_FOLDER%
-
+  #- %APPVEYOR_BUILD_FOLDER%
+  - C:\projects\ugcore
+  
 install:
   - if not exist appveyor_root mkdir appveyor_root
   - cd appveyor_root
