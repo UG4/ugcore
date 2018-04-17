@@ -15,16 +15,15 @@ language: cpp
 # test with gcc and clang
 compiler:
   - gcc
-#  - clang
+  - clang
 env:
   global:
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then PATH=/usr/lib/ccache:${PATH}; fi
     - TIMEOUT_BUILD='30m'
     - BUILD_SUCCESS=true
   matrix:
-    - DIM=2 CPU=1
-      #- DIM=2
-      #- DIM=3 
+    - DIM=2 CPU=1 TARGET=ugshell STATIC_BUILD=ON
+    - DIM=2 CPU=1 TARGET=vrl STATIC_BUILD=OFF
       
 cache:
   ccache: true
@@ -44,8 +43,9 @@ before_script:
   - rm -rf ugcore
   - git clone https://github.com/$TRAVIS_REPO_SLUG.git ugcore
   - git checkout -qf $TRAVIS_COMMIT
-  - mkdir -p build && cd build && cmake ../ -DTARGET=ugshell -DLAPACK=OFF -DBLAS=OFF -DDIM="${DIM}" -DCPU="${CPU}" -DCOMPILE_INFO=OFF
-
+  - mkdir -p build && cd build && cmake ../ -DTARGET="${TARGET}" -DLAPACK=OFF -DBLAS=OFF -DDIM="${DIM}" -DCPU="${CPU}" -DCOMPILE_INFO=OFF -DEMBEDDED_PLUGINS=ON -DSTATIC_BUILD="${STATIC_BUILD}"
+  - ../bin/ugshell -call "print(\"it works\")"
+  
 # compile ug
 script:
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then timeout -s SIGTERM $TIMEOUT_BUILD make -j4 install > install_out.txt || export BUILD_SUCCESS=false ; fi
