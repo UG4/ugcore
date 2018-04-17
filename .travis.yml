@@ -24,6 +24,12 @@ env:
   matrix:
     - DIM=2 CPU=1 TARGET=ugshell STATIC_BUILD=ON
     - DIM=2 CPU=1 TARGET=vrl STATIC_BUILD=OFF
+  include:
+    - os: linux
+      install: true
+    - os: osx
+      osx_image: xcode9.2
+      install: true
       
 cache:
   ccache: true
