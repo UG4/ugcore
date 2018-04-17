@@ -90,6 +90,8 @@ build_script:
   - if not exist build mkdir build
   - cd build && cmake ..\ -G "%generator%" -DTARGET="%TARGET%" -DLAPACK=OFF -DBLAS=OFF -DDIM="%DIM%" -DCPU="%CPU%" -DCOMPILE_INFO=OFF -DEMBEDDED_PLUGINS=ON -DSTATIC_BUILD="%STATIC_BUILD%"
   - MSBuild .\ug4.sln  /property:Configuration=Release /property:Platform=x64
+  - cd ..\bin
+  - dir
  
   
   
