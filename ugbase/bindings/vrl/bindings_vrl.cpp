@@ -418,21 +418,33 @@ JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug_UG__1getExportedClassPtrByName(
 
 JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getDefaultClassNameFromGroup(
 		JNIEnv *env, jobject obj, jstring grpName) {
+    try {
+        const ug::bridge::ClassGroupDesc* grpDesc =
+                ug::vrl::vrlRegistry->get_class_group(
+                        ug::vrl::stringJ2C(env, grpName).c_str());
 
+        if (grpDesc == NULL) {
+            return ug::vrl::stringC2J(env, "");
+        }
 
-	const ug::bridge::ClassGroupDesc* grpDesc =
-			ug::vrl::vrlRegistry->get_class_group(
-					ug::vrl::stringJ2C(env, grpName).c_str());
+        if (grpDesc->get_default_class() == NULL) {
+            return ug::vrl::stringC2J(env, "");
+        }
 
-	if (grpDesc == NULL) {
-		return ug::vrl::stringC2J(env, "");
+        return ug::vrl::stringC2J(env, grpDesc->get_default_class()->name().c_str());
+
+    } catch (ug::UGError& ex) {
+		ug::vrl::throwUgErrorAsJavaException(env, ex);
+	} catch (...) {
+		std::stringstream ss;
+
+		ss << "Unknown exception thrown while" << " trying to get default classname from group: "
+		<< ug::vrl::stringJ2C(env, grpName) << "().";
+
+		ug::vrl::throwUgErrorAsJavaException(env, ss.str());
 	}
 
-	if (grpDesc->get_default_class() == NULL) {
-		return ug::vrl::stringC2J(env, "");
-	}
-
-	return ug::vrl::stringC2J(env, grpDesc->get_default_class()->name().c_str());
+	return (jlong) NULL;
 }
 
 JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getSvnRevision(JNIEnv *env,
