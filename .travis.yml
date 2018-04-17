@@ -52,11 +52,13 @@ before_script:
   
   - |
      echo "--------------------------------------------------------------------------------"
-     echo $TRAVIS_COMMIT
-     echo $TRAVIS_TAG
-     echo $TRAVIS_BRANCH
-     echo $TRAVIS_BUILD_NUMBER
-     echo $TRAVIS_REPO_SLUG
+     echo "TRAVIS BUILD-INFO FOR UGCORE
+     echo "--------------------------------------------------------------------------------"
+     echo "REPOSITORY:...........$TRAVIS_REPO_SLUG"
+     echo "COMMIT:...............$TRAVIS_COMMIT"
+     echo "TAG:..................$TRAVIS_TAG"
+     echo "BRANCH:...............$TRAVIS_BRANCH"
+     echo "TRAVIS-BUILD-NUMBER:..$TRAVIS_BUILD_NUMBER
      echo "--------------------------------------------------------------------------------"
     
   - git clone https://github.com/$TRAVIS_REPO_SLUG.git ugcore
