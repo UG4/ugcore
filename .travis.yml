@@ -29,6 +29,8 @@ env:
   matrix:
     - DIM=2 CPU=1 TARGET=ugshell STATIC_BUILD=ON
     - DIM=2 CPU=1 TARGET=vrl STATIC_BUILD=OFF
+    - DIM=ALL CPU=ALL TARGET=ugshell STATIC_BUILD=ON
+    - DIM=ALL CPU=ALL TARGET=vrl STATIC_BUILD=OFF
       
       
 cache:
