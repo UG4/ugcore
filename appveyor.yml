@@ -64,7 +64,7 @@ install:
   
   - if not exist ug4 mkdir ug4
   - if not exist ug4\.ughub ..\ughub\ughub init
-  - if not exist ug4\ugcore cd ug4 && ..\ughub\ughub install ugcore && cd ..
+  - if not exist ug4\ugcore cd ug4 && ..\..\ughub\ughub install ugcore && cd ..
       
   - cd ug4    
   - rm -rf ugcore
