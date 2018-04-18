@@ -59,11 +59,12 @@ before_script:
      echo "--------------------------------------------------------------------------------"
      echo "TRAVIS BUILD-INFO FOR UGCORE
      echo "--------------------------------------------------------------------------------"
-     echo "REPOSITORY:...........$TRAVIS_REPO_SLUG"
-     echo "COMMIT:...............$TRAVIS_COMMIT"
-     echo "TAG:..................$TRAVIS_TAG"
-     echo "BRANCH:...............$TRAVIS_BRANCH"
-     echo "TRAVIS-BUILD-NUMBER:..$TRAVIS_BUILD_NUMBER
+     echo "REPOSITORY:..............$TRAVIS_REPO_SLUG"
+     echo "COMMIT:..................$TRAVIS_COMMIT"
+     echo "TAG:.....................$TRAVIS_TAG"
+     echo "BRANCH:..................$TRAVIS_BRANCH"
+     echo "TRAVIS-BUILD-NUMBER:.....$TRAVIS_BUILD_NUMBER"
+     echo "UG4 dir survived cache:..$UG4_FOLDER_SURVIVED_CACHE"
      echo "--------------------------------------------------------------------------------"
     
   - if [[ "$UG4_FOLDER_SURVIVED_CACHE" == "false" ]]; then git clone https://github.com/$TRAVIS_REPO_SLUG.git ugcore; fi
