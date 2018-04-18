@@ -66,7 +66,8 @@ before_script:
      echo "--------------------------------------------------------------------------------"
     
   - if [[ "$UG4_FOLDER_SURVIVED_CACHE" == "false" ]]; then git clone https://github.com/$TRAVIS_REPO_SLUG.git ugcore; fi
-  - echo "HERE: $(pwd)"
+  - echo HERE
+  - pwd
   - ls .
   - cd ugcore
   - if [[ "$UG4_FOLDER_SURVIVED_CACHE" == "true" ]]; then git fetch; fi
