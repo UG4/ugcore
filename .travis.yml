@@ -29,8 +29,8 @@ env:
   matrix:
     - DIM=2 CPU=1       TARGET=ugshell STATIC_BUILD=ON  BUILD_VARIANT="build1"
     - DIM=2 CPU=1       TARGET=vrl     STATIC_BUILD=OFF BUILD_VARIANT="build2"
-    - DIM=ALL CPU=1;2;3 TARGET=ugshell STATIC_BUILD=ON  BUILD_VARIANT="build3"
-    - DIM=ALL CPU=1;2;3 TARGET=vrl     STATIC_BUILD=OFF BUILD_VARIANT="build4"
+    - DIM=ALL CPU=1;2   TARGET=ugshell STATIC_BUILD=ON  BUILD_VARIANT="build3"
+    - DIM=ALL CPU=1;2   TARGET=vrl     STATIC_BUILD=OFF BUILD_VARIANT="build4"
       
       
 cache:
@@ -75,8 +75,9 @@ before_script:
   - if [[ "$UG4_FOLDER_SURVIVED_CACHE" == "true" ]]; then git fetch; fi
   - git checkout -qf $TRAVIS_COMMIT
   - mkdir -p $BUILD_VARIANT && cd $BUILD_VARIANT && cmake ../ -DTARGET="${TARGET}" -DLAPACK=OFF -DBLAS=OFF -DDIM="${DIM}" -DCPU="${CPU}" -DCOMPILE_INFO=OFF -DEMBEDDED_PLUGINS=ON -DSTATIC_BUILD="${STATIC_BUILD}"
+  - rm -rf ../bin/ugshell
   
-# compile ug
+# finally compile ug
 script:
     # - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then timeout -s SIGTERM $TIMEOUT_BUILD make -j4 install > install_out.txt || export BUILD_SUCCESS=false ; fi
     # ccache fixes global build time of ~ 50 minutes
