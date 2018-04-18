@@ -42,19 +42,19 @@ environment:
     - BUILD_VARIANT: "build3"
       generator: "Visual Studio 15 2017 Win64" 
       DIM: ALL 
-      CPU: 1;2;3
+      CPU: 1;2
       TARGET: ugshell
       STATIC_BUILD: ON
 
     - BUILD_VARIANT: "build4"
       generator: "Visual Studio 15 2017 Win64" 
       DIM: ALL 
-      CPU: 1;2;3
+      CPU: 1;2
       TARGET: vrl
       STATIC_BUILD: OFF
 
-matrix:
-  fast_finish: true
+#matrix:
+#  fast_finish: true
 
 cache:
   #- %APPVEYOR_BUILD_FOLDER%
