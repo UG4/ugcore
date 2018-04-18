@@ -11,7 +11,7 @@ init:
 #  only:
 #  - master
 
-clone_depth: 5
+clone_depth: 50
 
 version: '{build}'
 
