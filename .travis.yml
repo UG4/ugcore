@@ -48,7 +48,7 @@ before_script:
   - rm -rf ughub
   - git clone https://www.github.com/UG4/ughub
   - export UG4_FOLDER_SURVIVED_CACHE=false
-  - if [ -f ug4 ]; then export UG4_FOLDER_SURVIVED_CACHE=true; fi
+  - if [ -e ug4 ]; then export UG4_FOLDER_SURVIVED_CACHE=true; fi
   - if [[ "$UG4_FOLDER_SURVIVED_CACHE" == "false" ]]; then mkdir ug4 && cd ug4; fi
   - if [[ "$UG4_FOLDER_SURVIVED_CACHE" == "false" ]]; then ../ughub/ughub init .; fi
   - if [[ "$UG4_FOLDER_SURVIVED_CACHE" == "false" ]]; then ../ughub/ughub install ugcore; fi
