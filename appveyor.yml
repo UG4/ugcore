@@ -25,25 +25,29 @@ environment:
   MSBUILD_FLAGS: /verbosity:minimal /maxcpucount
   matrix:
     
-    - generator: "Visual Studio 15 2017 Win64" 
+    - BUILD_VARIANT: "build1"
+      generator: "Visual Studio 15 2017 Win64" 
       DIM: 2 
       CPU: 1
       TARGET: ugshell
       STATIC_BUILD: ON
-      
-    - generator: "Visual Studio 15 2017 Win64" 
+    
+    - BUILD_VARIANT: "build2"
+      generator: "Visual Studio 15 2017 Win64" 
       DIM: 2 
       CPU: 1
       TARGET: vrl
       STATIC_BUILD: OFF
 
-    - generator: "Visual Studio 15 2017 Win64" 
+    - BUILD_VARIANT: "build3"
+      generator: "Visual Studio 15 2017 Win64" 
       DIM: ALL 
       CPU: 1;2;3
       TARGET: ugshell
       STATIC_BUILD: ON
 
-    - generator: "Visual Studio 15 2017 Win64" 
+    - BUILD_VARIANT: "build4"
+      generator: "Visual Studio 15 2017 Win64" 
       DIM: ALL 
       CPU: 1;2;3
       TARGET: vrl
@@ -92,8 +96,8 @@ install:
 build_script:
   - cd %APPVEYOR_BUILD_FOLDER%\appveyor_root\ug4
   - dir
-  - if not exist build mkdir build
-  - cd build && cmake ..\ -G "%generator%" -DTARGET="%TARGET%" -DLAPACK=OFF -DBLAS=OFF -DDIM="%DIM%" -DCPU="%CPU%" -DCOMPILE_INFO=OFF -DEMBEDDED_PLUGINS=ON -DSTATIC_BUILD="%STATIC_BUILD%"
+  - if not exist %BUILD_VARIANT% mkdir %BUILD_VARIANT%
+  - cd %BUILD_VARIANT% && cmake ..\ -G "%generator%" -DTARGET="%TARGET%" -DLAPACK=OFF -DBLAS=OFF -DDIM="%DIM%" -DCPU="%CPU%" -DCOMPILE_INFO=OFF -DEMBEDDED_PLUGINS=ON -DSTATIC_BUILD="%STATIC_BUILD%"
   - MSBuild .\ug4.sln  /property:Configuration=Release /property:Platform=x64
   - cd ..\bin
   - dir
