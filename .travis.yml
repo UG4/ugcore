@@ -67,7 +67,7 @@ before_script:
     
   - if [[ "$UG4_FOLDER_SURVIVED_CACHE" == "false" ]]; then git clone https://github.com/$TRAVIS_REPO_SLUG.git ugcore; fi
   - cd ugcore
-  - if [[ "$UG4_FOLDER_SURVIVED_CACHE" == "true" ]]; then git fetch 
+  - if [[ "$UG4_FOLDER_SURVIVED_CACHE" == "true" ]]; then git fetch; fi
   - git checkout -qf $TRAVIS_COMMIT
   - mkdir -p $BUILD_VARIANT && cd $BUILD_VARIANT && cmake ../ -DTARGET="${TARGET}" -DLAPACK=OFF -DBLAS=OFF -DDIM="${DIM}" -DCPU="${CPU}" -DCOMPILE_INFO=OFF -DEMBEDDED_PLUGINS=ON -DSTATIC_BUILD="${STATIC_BUILD}"
   
