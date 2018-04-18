@@ -45,7 +45,7 @@ cache:
 # prepare compilation  
 before_script:
   - mkdir -p travis_root && cd travis_root
-  - if [ -f ughub ]; then rm -rf ughub; fi
+  - rm -rf ughub
   - git clone https://www.github.com/UG4/ughub
   - export UG4_FOLDER_SURVIVED_CACHE=false
   - if [ -f ug4 ]; then export UG4_FOLDER_SURVIVED_CACHE=true; fi
