@@ -1068,13 +1068,17 @@ end
 --! @param outFilePrefix	(optional) .vtk and .vec files of the solution are stored.
 --! @return					A, u, b, where A is the system matrix, u is the solution
 --!							and b is the right hand side
-function util.solver.SolveLinearProblem(domDisc, solverDesc, outFilePrefix)
+function util.solver.SolveLinearProblem(domDisc, solverDesc, outFilePrefix, startValueCB)
 	print("")
 	print("util.solver: setting up linear system ...")
 	local A = AssembledLinearOperator(domainDisc)
 	local u = GridFunction(domainDisc:approximation_space())
 	local b = GridFunction(domainDisc:approximation_space())
-	u:set(0.0)
+	if startValueCB == nil then
+		u:set(0.0)
+	else
+		startValueCB (u)
+	end
 
 	domainDisc:adjust_solution(u)
 	domainDisc:assemble_linear(A, b)
@@ -1094,7 +1098,7 @@ function util.solver.SolveLinearProblem(domDisc, solverDesc, outFilePrefix)
 	return A, u, b
 end
 
-function util.solver.SolveLinearTimeProblem(domDisc, solverDesc, timeDesc, outFilePrefix)
+function util.solver.SolveLinearTimeProblem(domDisc, solverDesc, timeDesc, outFilePrefix, startValueCB)
 	local name, desc = util.tableDesc.ToNameAndDesc(timeDesc)
 	local defaults   = util.solver.defaults.timeSolver[name]
 	if desc == nil then desc = defaults end
@@ -1105,7 +1109,11 @@ function util.solver.SolveLinearTimeProblem(domDisc, solverDesc, timeDesc, outFi
 
 	print("util.solver: solving linear time problem...")
 	local u = GridFunction(domainDisc:approximation_space())
-	u:set(0.0)
+	if startValueCB == nil then
+		u:set(0.0)
+	else
+		startValueCB (u)
+	end
 
 	return util.SolveLinearTimeProblem(	u,
 				                            domDisc,
@@ -1120,7 +1128,7 @@ function util.solver.SolveLinearTimeProblem(domDisc, solverDesc, timeDesc, outFi
 end
 
 
-function util.solver.SolveNonLinearTimeProblem(domDisc, solverDesc, timeDesc, outFilePrefix)
+function util.solver.SolveNonLinearTimeProblem(domDisc, solverDesc, timeDesc, outFilePrefix, startValueCB)
 	local name, desc = util.tableDesc.ToNameAndDesc(timeDesc)
 	local defaults   = util.solver.defaults.timeSolver[name]
 	if desc == nil then desc = defaults end
@@ -1130,10 +1138,14 @@ function util.solver.SolveNonLinearTimeProblem(domDisc, solverDesc, timeDesc, ou
 	local solver = util.solver.CreateSolver(solverDesc)
 
 	print("util.solver: solving linear time problem...")
-	local u = GridFunction(domainDisc:approximation_space())
-	u:set(0.0)
+	local u = GridFunction(domDisc:approximation_space())
+	if startValueCB == nil then
+		u:set(0.0)
+	else
+		startValueCB (u)
+	end
 	
-	return util.SolveNonLinearTimeProblem(	u,
+	return util.SolveNonlinearTimeProblem(	u,
 				                            domDisc,
 				                            solver,
 				                            VTKOutput(),
