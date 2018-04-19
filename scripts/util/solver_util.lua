@@ -415,6 +415,7 @@ They add some overhead, so one should only use them for debugging.
 
 ug_load_script("util/table_desc_util.lua")
 ug_load_script("util/table_util.lua")
+ug_load_script("util/time_step_util.lua")
 
 util = util or {}
 util.solver = util.solver or {}
@@ -546,6 +547,16 @@ util.solver.defaults =
 			writeErrVecs	= false,
     		writeErrDiffs	= false,
 			activeStages	= nil
+		}
+	},
+
+	timeSolver = 
+	{
+		fixed = {
+			scheme = "ImplEuler",
+			dt = 0.1,
+			start = 0,
+			stop = 1
 		}
 	}
 }
@@ -1048,4 +1059,89 @@ function util.solver.PrepareStep(desc, nestedStep, timeStep)
 			end
 		end
 	end
+end
+
+
+--! Solves a linear problem given as a domain discretization
+--! @param domDisc			the domain discretization object
+--! @param solverDesc		a valid solver descriptor or solver object
+--! @param outFilePrefix	(optional) .vtk and .vec files of the solution are stored.
+--! @return					A, u, b, where A is the system matrix, u is the solution
+--!							and b is the right hand side
+function util.solver.SolveLinearProblem(domDisc, solverDesc, outFilePrefix)
+	print("")
+	print("util.solver: setting up linear system ...")
+	local A = AssembledLinearOperator(domainDisc)
+	local u = GridFunction(domainDisc:approximation_space())
+	local b = GridFunction(domainDisc:approximation_space())
+	u:set(0.0)
+
+	domainDisc:adjust_solution(u)
+	domainDisc:assemble_linear(A, b)
+
+	print("util.solver: applying solver...")
+	local solver = util.solver.CreateSolver(solverDesc)
+	solver:init(A, u)
+	solver:apply(u, b)
+
+
+	if outFilePrefix ~= nil then
+		print("util.solver: writing solution to '" .. outFilePrefix .. "'...")
+		WriteGridFunctionToVTK(u, outFilePrefix)
+		SaveVectorForConnectionViewer(u, outFilePrefix .. ".vec")
+	end
+
+	return A, u, b
+end
+
+function util.solver.SolveLinearTimeProblem(domDisc, solverDesc, timeDesc, outFilePrefix)
+	local name, desc = util.tableDesc.ToNameAndDesc(timeDesc)
+	local defaults   = util.solver.defaults.timeSolver[name]
+	if desc == nil then desc = defaults end
+
+	print("")
+	print("util.solver: creating linear solver...")
+	local solver = util.solver.CreateSolver(solverDesc)
+
+	print("util.solver: solving linear time problem...")
+	local u = GridFunction(domainDisc:approximation_space())
+	u:set(0.0)
+
+	return util.SolveLinearTimeProblem(	u,
+				                            domDisc,
+				                            solver,
+				                            VTKOutput(),
+				                            outFilePrefix,
+											desc.scheme or defaults.scheme,
+											1,
+											desc.start or defaults.start,
+											desc.stop or defaults.stop,
+											desc.dt or defaults.dt)
+end
+
+
+function util.solver.SolveNonLinearTimeProblem(domDisc, solverDesc, timeDesc, outFilePrefix)
+	local name, desc = util.tableDesc.ToNameAndDesc(timeDesc)
+	local defaults   = util.solver.defaults.timeSolver[name]
+	if desc == nil then desc = defaults end
+
+	print("")
+	print("util.solver: creating linear solver...")
+	local solver = util.solver.CreateSolver(solverDesc)
+
+	print("util.solver: solving linear time problem...")
+	local u = GridFunction(domainDisc:approximation_space())
+	u:set(0.0)
+	
+	return util.SolveNonLinearTimeProblem(	u,
+				                            domDisc,
+				                            solver,
+				                            VTKOutput(),
+				                            outFilePrefix,
+											desc.scheme or defaults.scheme,
+											1,
+											desc.start or defaults.start,
+											desc.stop or defaults.stop,
+											desc.dt or defaults.dt,
+											(desc.dt or defaults.dt) / 16)
 end
