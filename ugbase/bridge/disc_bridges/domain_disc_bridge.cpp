@@ -111,6 +111,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 				"which will prohibit refining and coarsening before a new call to calc_error.")
 			.add_method("is_error_valid", &T::is_error_valid, "", "Returns whether error values are valid")
 			.add_method("ass_tuner", static_cast<SmartPtr<AssemblingTuner<TAlgebra> > (T::*) ()> (&T::ass_tuner), "assembling tuner", "", "get this domain discretization's assembling tuner")
+			.add_method("approximation_space", static_cast<SmartPtr<ApproximationSpace<TDomain> > (T::*) ()> (&T::approximation_space), "approximation space", "", "get this domain discretization's approximation space")
+			.add_method("approximation_space", static_cast<ConstSmartPtr<ApproximationSpace<TDomain> > (T::*) () const> (&T::approximation_space), "approximation space", "", "get this domain discretization's approximation space")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "DomainDiscretization", tag);
 	}
