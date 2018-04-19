@@ -68,10 +68,10 @@ install:
   
   - set "UG4_FOLDER_SURVIVED_CACHE=true"
   - if not exist ug4 mkdir ug4 && set "UG4_FOLDER_SURVIVED_CACHE=false"
-  - if not exist ug4\.ughub ughub\ughub init ug4
-  - if not exist ug4\ugcore cd ug4 && ..\ughub\ughub install ugcore && cd ..
+  - if not exist ug4\.ughub ughub\ughub init
+  - cd ug4 
+  - if not exist ugcore ..\ughub\ughub install ugcore
       
-  - cd ug4    
   - if %UG4_FOLDER_SURVIVED_CACHE%==false rm -rf ugcore
   #- rm -rf ugcore
   
