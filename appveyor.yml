@@ -61,7 +61,7 @@ cache:
   - appveyor_root
   
 install:
-  - if not exist appveyor_root mkdir appveyor_root
+  - if not exist appveyor_root mkdir appveyor_root && echo "appveyor root does not exist"
   - cd appveyor_root
   - if exist ughub rmdir /S /Q ughub
   - git clone https://www.github.com/UG4/ughub
