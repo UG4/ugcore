@@ -42,14 +42,14 @@ environment:
     - BUILD_VARIANT: "build3"
       generator: "Visual Studio 15 2017 Win64" 
       DIM: ALL 
-      CPU: 1;2
+      CPU: 1;2;3
       TARGET: ugshell
       STATIC_BUILD: ON
 
     - BUILD_VARIANT: "build4"
       generator: "Visual Studio 15 2017 Win64" 
       DIM: ALL 
-      CPU: 1;2
+      CPU: 1;2;3
       TARGET: vrl
       STATIC_BUILD: OFF
 
