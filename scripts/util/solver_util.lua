@@ -1098,7 +1098,8 @@ function util.solver.SolveLinearProblem(domDisc, solverDesc, outFilePrefix, star
 	return A, u, b
 end
 
-function util.solver.SolveLinearTimeProblem(domDisc, solverDesc, timeDesc, outFilePrefix, startValueCB)
+
+function util.solver.SolveLinearTimeProblem(domDisc, solverDesc, timeDesc, outDesc, startValueCB)
 	local name, desc = util.tableDesc.ToNameAndDesc(timeDesc)
 	local defaults   = util.solver.defaults.timeSolver[name]
 	if desc == nil then desc = defaults end
@@ -1115,10 +1116,20 @@ function util.solver.SolveLinearTimeProblem(domDisc, solverDesc, timeDesc, outFi
 		startValueCB (u)
 	end
 
+	local outFilePrefix = nil
+	local vtkOut = VTKOutput()
+	if type(outDesc) == "string" then
+		outFilePrefix = outDesc
+	elseif type(outDesc) == "table" then
+		outFilePrefix = outDesc.prefix
+		vtkOut = outDesc.vtkOut or vtkOut
+	end
+
+
 	return util.SolveLinearTimeProblem(	u,
 				                            domDisc,
 				                            solver,
-				                            VTKOutput(),
+				                            vtkOut,
 				                            outFilePrefix,
 											desc.scheme or defaults.scheme,
 											1,
@@ -1128,7 +1139,7 @@ function util.solver.SolveLinearTimeProblem(domDisc, solverDesc, timeDesc, outFi
 end
 
 
-function util.solver.SolveNonLinearTimeProblem(domDisc, solverDesc, timeDesc, outFilePrefix, startValueCB)
+function util.solver.SolveNonLinearTimeProblem(domDisc, solverDesc, timeDesc, outDesc, startValueCB)
 	local name, desc = util.tableDesc.ToNameAndDesc(timeDesc)
 	local defaults   = util.solver.defaults.timeSolver[name]
 	if desc == nil then desc = defaults end
@@ -1144,11 +1155,20 @@ function util.solver.SolveNonLinearTimeProblem(domDisc, solverDesc, timeDesc, ou
 	else
 		startValueCB (u)
 	end
+
+	local outFilePrefix = nil
+	local vtkOut = VTKOutput()
+	if type(outDesc) == "string" then
+		outFilePrefix = outDesc
+	elseif type(outDesc) == "table" then
+		outFilePrefix = outDesc.prefix
+		vtkOut = outDesc.vtkOut or vtkOut
+	end
 	
 	return util.SolveNonlinearTimeProblem(	u,
 				                            domDisc,
 				                            solver,
-				                            VTKOutput(),
+				                            vtkOut,
 				                            outFilePrefix,
 											desc.scheme or defaults.scheme,
 											1,
