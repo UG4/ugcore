@@ -28,6 +28,36 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU Lesser General Public License for more details.
 
+
+################################################################################
+# ALTERNATE_MAIN / UNSET_ALTERNATE_MAIN										   #
+################################################################################
+# A lightweight wrapper for ugshell_main is provided in main.cpp.
+# It simply calls ugshell_main with the provided arguments.
+#
+# If you'd like to do something before ugshell_main is executed, you may
+# write your own alternate_main.cpp and compile ug with the
+# \code
+#	-DALTERNATE_MAIN=PATH_TO_YOUR_MAIN/alternate_main.cpp
+# \endcode
+# option.
+#
+# Alternatively, you may also create a plugin or enhance your existing one. To this end,
+# add an 'alternate_main.cpp' file and a CMakeLists.txt to your plugin which contains the line:
+# \code
+#	set(ALTERNATE_MAIN "${CMAKE_CURRENT_SOURCE_DIR}/alternate_main.cpp" CACHE PATH "Wrapper to ugshell_main." FORCE)
+# \endcode
+#
+# In that case, the alternate_main.cpp is automatically activated as soon as you enable your plugin.
+#
+# If you want to return to the original main, please deactivate the plugin in question and
+# once call:
+# \code
+#	cmake -DUNSET_ALTERNATE_MAIN=ON .
+# \endcode
+################################################################################
+
+
 cmake_minimum_required(VERSION 2.6)
 
 ####
@@ -71,6 +101,22 @@ set(srcUGShell	    ugshell_main.cpp
                     shell.cpp)
                     #algebra_test.cpp)
                     #signal_handler.cpp)
+
+
+if(UNSET_ALTERNATE_MAIN)
+	unset(UNSET_ALTERNATE_MAIN CACHE)
+	unset(ALTERNATE_MAIN CACHE)
+endif(UNSET_ALTERNATE_MAIN)
+
+
+if(ALTERNATE_MAIN)
+	set (srcUGShell	${srcUGShell}
+	     			${ALTERNATE_MAIN})
+else(ALTERNATE_MAIN)
+	set (srcUGShell	${srcUGShell}
+	     			main.cpp)
+endif(ALTERNATE_MAIN)
+
 
 if(CLOCK_FIX)
     set(srcUGShell	    ${srcUGShell} clock_fix.cpp)
