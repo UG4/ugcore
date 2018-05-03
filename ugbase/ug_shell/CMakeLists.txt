@@ -95,7 +95,6 @@ endif(NOT SHELLTYPE)
 message(STATUS "")
 message(STATUS "Info: SHELLTYPE: ${SHELLTYPE} (options are: ${shelltypeOptions})")
 
-
 # set the main sources
 set(srcUGShell	    ugshell_main.cpp
                     shell.cpp)
@@ -156,14 +155,20 @@ endif(buildDynamicLibrary)
 
 remove_definitions(-DLUA_BUILD_AS_DLL)
 
+get_property(ug4libIncludes GLOBAL PROPERTY ugIncludes)
+include_directories(${ug4libIncludes})
+
+get_property(ug4LinkPaths GLOBAL PROPERTY ugLinkPaths)
+link_directories(${ug4LinkPaths})
+
 add_executable(${targetExecutableName} ${srcUGShell})
 
 if("${SHELLTYPE}" STREQUAL "readline")
 	target_link_libraries(${targetExecutableName} readline)
 endif("${SHELLTYPE}" STREQUAL "readline")
 
-get_property(ug4ShellDependencies GLOBAL PROPERTY ugShellDependencies)
-target_link_libraries(${targetExecutableName} ${ugShellDependencies})
+get_property(shellDependencies GLOBAL PROPERTY ugShellDependencies)
+target_link_libraries(${targetExecutableName} ${shellDependencies})
 
 if(STATIC_BUILD)
     # some compiler introduce -Wl,-Bdynamic and -Wl,-Bstatic in order to 
