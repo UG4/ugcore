@@ -162,6 +162,9 @@ if("${SHELLTYPE}" STREQUAL "readline")
 	target_link_libraries(${targetExecutableName} readline)
 endif("${SHELLTYPE}" STREQUAL "readline")
 
+get_property(ug4ShellDependencies GLOBAL PROPERTY ugShellDependencies)
+target_link_libraries(${targetExecutableName} ${ugShellDependencies})
+
 if(STATIC_BUILD)
     # some compiler introduce -Wl,-Bdynamic and -Wl,-Bstatic in order to 
     # distinguish linkage type for libraries. In cmake, dynamic is default.
@@ -176,7 +179,9 @@ if(STATIC_BUILD)
     
     # we have to link against the ug4_s static library
 	target_link_libraries(${targetExecutableName} ${targetLibraryName})
+	target_link_libraries(${targetExecutableName} ${ugShellDependencies})
 else(STATIC_BUILD)
     # link the dynamic library
 	target_link_libraries (${targetExecutableName} ${targetLibraryName})
+	target_link_libraries(${targetExecutableName} ${ugShellDependencies})
 endif(STATIC_BUILD)
