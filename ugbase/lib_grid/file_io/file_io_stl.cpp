@@ -53,7 +53,7 @@ bool LoadGridFromSTL(Grid& grid, const char* filename,
 	vector<number> coords, normals;
 	vector<unsigned int> tris, solids;
 
-	if(!ReadStlFile(filename, coords, normals, tris, solids))
+	if(!stl_reader::ReadStlFile(filename, coords, normals, tris, solids))
 		return false;
 
 	if(!grid.has_vertex_attachment(aPos))
