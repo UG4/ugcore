@@ -330,10 +330,23 @@ static void Domain(Registry& reg, string grp)
 			reg.add_class_<T, TBase>(name, grp)
 						.template add_constructor<void (*)(number)>("theta")
 						.template add_constructor<void (*)(number, number)>("theta#eps")
+						.template add_constructor<void (*)(number, number,number)>("theta#eps#threshlow")
 						.add_method("init_refinement", &T::init_refinement)
 						.add_method("init_coarsening", &T::init_coarsening)
 						.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "VarianceMarkingEta", tag);
+	}
+
+
+	//  APosterioriCoarsening  (with eta^2)
+	{
+			typedef APosterioriCoarsening<TDomain> T;
+			typedef IElementMarkingStrategy<TDomain> TBase;
+			string name = string("APosterioriCoarsening").append(suffix);
+			reg.add_class_<T, TBase>(name, grp)
+										.template add_constructor<void (*)(number)>("theta")
+										 .set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, "APosterioriCoarsening", tag);
 	}
 
 	//  EquilibrationMarking
