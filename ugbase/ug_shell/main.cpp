@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2014-2015:  G-CSC, Goethe University Frankfurt
- * Author: Arne Nägel
+ * Copyright (c) 2018:  G-CSC, Goethe University Frankfurt
+ * Author: Sebastian Reiter
  * 
  * This file is part of UG4.
  * 
@@ -30,10 +30,36 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include "schur.h"
 
-namespace ug{
+/** @file
+ * This is a lightweight wrapper for ugshell_main. It simply calls ugshell_main
+ * with the provided arguments.
+ *
+ * If you'd like to do something before ugshell_main is executed, you may
+ * write your own main.cpp and compile ug with the
+ * \code
+ *	-DALTERNATE_MAIN=PATH_TO_YOUR_MAIN/main.cpp
+ * \endcode
+ * option.
+ *
+ * Alternatively, you may also create a plugin or enhance your existing one. To this end
+ * add an 'alternate_main.cpp' file and a CMakeLists.txt to your plugin which contains the line:
+ * \code
+ *	set(ALTERNATE_MAIN "${CMAKE_CURRENT_SOURCE_DIR}/alternate_main.cpp" CACHE PATH "Wrapper to ugshell_main." FORCE)
+ * \endcode
+ *
+ * In that case, the alternate_main.cpp is automatically activated as soon as you enable your plugin.
+ *
+ * If you want to return to the original main, please deactivate the plugin in question and
+ * once call:
+ * \code
+ *	cmake -DUNSET_ALTERNATE_MAIN=ON .
+ * \endcode
+ */
 
-DebugID SchurDebug("SchurComplementDebug");
+#include "ug_shell/ugshell_main.h"
 
-};  // end of namespace
+int main (int argc, char** argv)
+{
+	return ugshell_main (argc, argv);
+}

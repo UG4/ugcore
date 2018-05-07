@@ -35,6 +35,10 @@
 
 namespace ug
 {
+
+const char* GRID_BASE_OBJECT_SINGULAR_NAMES[] = {"vertex", "edge", "face", "volume"};
+const char* GRID_BASE_OBJECT_PLURAL_NAMES[] = {"vertices", "edges", "faces", "volume"};
+
 ////////////////////////////////////////////////////////////////////////
 //	implementation of edge
 bool Edge::get_opposing_side(Vertex* v, Vertex** vrtOut)

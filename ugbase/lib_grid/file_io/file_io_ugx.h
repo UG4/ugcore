@@ -516,13 +516,13 @@ class UGXFileInfo{
 	///	Returns the physical dimension of the given grid.
 	/** We define the 'maximal range' as the maximum of the ranges of the
 	 * 	the particular coordinates. Then the result is
-	 * 	3 - iff the z-coordinate are in a range that is larger than
+	 * 	3 - if the z-coordinate are in a range that is larger than
 	 * 		SMALL times the maximal range;
-	 * 	2 - iff it is not 3 and the y-coordinate are in a range that is
+	 * 	2 - if it is not 3 and the y-coordinate are in a range that is
 	 * 		larger than SMALL times the maximal range;
-	 * 	1 - iff it is not 0 or 1 and the x-coordinate are in a range that is
+	 * 	1 - if it is not 0 or 1 and the x-coordinate are in a range that is
 	 * 		larger than SMALL times the maximal range;
-	 * 	0 - iff it is not 3 or 2 or 1 (i.e. iff the geometry resides in one point).
+	 * 	0 - if it is not 3 or 2 or 1 (i.e. if the geometry resides in one point).
 	 */
 		size_t physical_grid_dimension(size_t gridInd) const;
 
@@ -534,13 +534,13 @@ class UGXFileInfo{
 	///	Returns the dimension of the world-coordinates required for the given grid.
 	/** We define the 'maximal range' as the maximum of the ranges of the
 	 * 	the particular coordinates. Then the result is
-	 * 	3 - iff the z-coordinate are in a range that is larger than
+	 * 	3 - if the z-coordinate are in a range that is larger than
 	 * 		SMALL times the maximal range;
-	 * 	2 - iff it is not 3 and the y-coordinate are in a range that is
+	 * 	2 - if it is not 3 and the y-coordinate are in a range that is
 	 * 		larger than SMALL times the maximal range;
-	 * 	1 - iff it is not 0 or 1 and the x-coordinate are in a range that is
+	 * 	1 - if it is not 0 or 1 and the x-coordinate are in a range that is
 	 * 		larger than SMALL times the maximal range;
-	 * 	0 - iff it is not 3 or 2 or 1 (i.e. iff the geometry resides in one point).
+	 * 	0 - if it is not 3 or 2 or 1 (i.e. if the geometry resides in one point).
 	 *
 	 *	@note		The functionality of this method has been changed slightly as of
 	 *				2015-03-13 and is the same as in physical_grid_dimension(size_t gridInd);
@@ -603,7 +603,7 @@ class UGXFileInfo{
 	 * @param[in] vrtNode	node in the xml file (containing vertex information)
 	 * @param[out] bb		output bounding box
 	 *
-	 * @return true iff at least one valid (coordinate dimension in {0,1,2,3}) vertex is contained
+	 * @return true if at least one valid (coordinate dimension in {0,1,2,3}) vertex is contained
 	 */
 		bool calculate_vertex_node_bbox(rapidxml::xml_node<>* vrtNode, AABox<vector3>& bb) const;
 };

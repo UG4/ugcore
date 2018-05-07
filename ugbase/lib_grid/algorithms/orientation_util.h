@@ -53,17 +53,26 @@ void InvertOrientation(Grid& grid, iter_t elemsBegin,
  * please note: if the edge is contained by two faces and both
  * faces have the same edge-orientation as ed, then the face-orientation
  * of the faces differ.
+ * \{
  */
 UG_API 
 bool EdgeOrientationMatches(EdgeVertices* ev, Face* f);
 
+UG_API 
+bool OrientationMatches(EdgeVertices* ev, Face* f);
+/** \} */
+
+UG_API 
+bool OrientationMatches(FaceVertices* fv, Volume* v);
+
 ////////////////////////////////////////////////////////////////////////
 //	FixOrientation
-///	creates uniform orientation of neighboured faces.
+///	creates uniform orientation of neighboured and boundary faces.
 /** This algorithm uses Grid::mark
  *
  * swaps orientation of faces so that all neighboured
- * faces share the same.
+ * faces share the same orientation and boundary faces are oriented with
+ * an outward normal
  *
  * Value type of TFaceIterator has to be compatible with Face*.
  *

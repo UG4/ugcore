@@ -33,10 +33,12 @@
 #ifndef __H__UG_quality_util
 #define __H__UG_quality_util
 
+#include <limits>
 #include <algorithm>
 #include <string>
 #include <vector>
 #include "common/math/misc/math_util.h"
+#include "lib_grid/algorithms/geom_obj_util/volume_util.h"
 #include "lib_grid/grid/grid_base_objects.h"
 #include "lib_grid/grid/grid.h"
 
@@ -100,14 +102,66 @@ number QuadrilateralAspectRatio (FaceVertices* f, TAAPos& aaPos)
  * QuadrilateralAspectRatio is called.
  */
 template <class TAAPos>
-number FaceAspectRatio (FaceVertices* f, TAAPos& aaPos)
+number AspectRatio (FaceVertices* f, TAAPos& aaPos)
 {
 	switch(f->num_vertices()){
 		case 3:	return TriangleAspectRatio (f, aaPos);
 		case 4:	return QuadrilateralAspectRatio (f, aaPos);
-		default: UG_THROW("FaceAspectRatio only supports faces with 3 or 4 vertices.");
+		default: UG_THROW("AspectRatio only supports faces with 3 or 4 vertices.");
 	}
 }
+
+
+template <class TAAPos>
+number GetMaxEdgeLength (Volume* vol, TAAPos& aaPos)
+{
+	using std::max;
+	number maxEdgeLenSq = 0;
+	EdgeDescriptor ed;
+	const size_t numEdges = vol->num_edges();
+	for(size_t i = 0; i < numEdges; ++i){
+		vol->edge_desc (i, ed);
+		EdgeDescriptor::ConstVertexArray vrts = ed.vertices();
+		const number edgeLenSq = VecDistanceSq (aaPos[vrts[0]], aaPos[vrts[1]]);
+		maxEdgeLenSq = max (maxEdgeLenSq, edgeLenSq);
+	}
+	return sqrt (maxEdgeLenSq);
+}
+
+
+template <class TAAPos>
+number TetrahedronAspectRatio(Volume* vol, TAAPos& aaPos)
+{
+	/* optimal Aspect Ratio of a regular tetrahedron with edge lengths a:
+	 * Q = hmin/lmax = sqrt(2/3)*a / a = 0.8164...
+	 *
+	 * Info: return value is normalized by factor sqrt(3/2)
+	 * (s. Shewchuk 2002)
+	 */
+
+	Tetrahedron* tet = dynamic_cast<Tetrahedron*>(vol);
+
+	UG_COND_THROW(!tet, "Expected volume of type Tetrahedron");
+
+	const number minTetHeight = CalculateMinVolumeHeight(tet, aaPos);
+	const number maxEdgeLength = GetMaxEdgeLength(vol, aaPos);
+
+	if(maxEdgeLength > 0)
+		return std::sqrt(3/2.0) * minTetHeight / maxEdgeLength;
+	else
+		return 0;
+}
+
+
+template <class TAAPos>
+number AspectRatio(Volume* vol, TAAPos& aaPos)
+{
+	switch(vol->num_vertices()){
+		case 4:	return TetrahedronAspectRatio (vol, aaPos);
+		default: UG_THROW("AspectRatio only supports volumes with 4 vertices.");
+	}
+}
+
 
 
 ///	Holds information on the min, max, mean, and standard deviation of a sample
@@ -122,9 +176,9 @@ struct AspectRatioInfo {
 
 
 ///	Computes the AspectRatioInfo for a sample of elements
-template <class TFaceIter, class TAAPos>
+template <class TElemIter, class TAAPos>
 AspectRatioInfo
-GetFaceAspectRatioInfo (TFaceIter facesBegin, TFaceIter facesEnd, TAAPos& aaPos)
+GetAspectRatioInfo (TElemIter elemsBegin, TElemIter elemsEnd, TAAPos& aaPos)
 {
 	using std::min;
 	using std::max;
@@ -135,14 +189,14 @@ GetFaceAspectRatioInfo (TFaceIter facesBegin, TFaceIter facesEnd, TAAPos& aaPos)
 	ari.max = 0;
 	ari.sd = 0;
 
-	if(facesBegin == facesEnd)
+	if(elemsBegin == elemsEnd)
 		return ari;
 
 	ari.min = 1;
 	number counter = 0;
 
-	for(TFaceIter iface = facesBegin; iface != facesEnd; ++iface) {
-		number ar = FaceAspectRatio (*iface, aaPos);
+	for(TElemIter ielem = elemsBegin; ielem != elemsEnd; ++ielem) {
+		number ar = AspectRatio (*ielem, aaPos);
 		ari.min = min (ari.min, ar);
 		ari.max = max (ari.max, ar);
 		ari.mean += ar;
@@ -152,8 +206,8 @@ GetFaceAspectRatioInfo (TFaceIter facesBegin, TFaceIter facesEnd, TAAPos& aaPos)
 	ari.mean /= counter;
 
 	if(counter > 1){
-		for(TFaceIter iface = facesBegin; iface != facesEnd; ++iface) {
-			number ar = FaceAspectRatio (*iface, aaPos);
+		for(TElemIter ielem = elemsBegin; ielem != elemsEnd; ++ielem) {
+			number ar = AspectRatio (*ielem, aaPos);
 			ari.sd += sq(ar - ari.mean);
 		}
 
@@ -164,15 +218,18 @@ GetFaceAspectRatioInfo (TFaceIter facesBegin, TFaceIter facesEnd, TAAPos& aaPos)
 }
 
 
-template <class TFaceIter, class TAAPos>
+template <class TElemIter, class TAAPos>
 void
-GetFaceAspectRatioHistogram (
+GetAspectRatioHistogram (
 		std::vector<int>& histoOut,
-		TFaceIter facesBegin,
-		TFaceIter facesEnd,
+		TElemIter elemsBegin,
+		TElemIter elemsEnd,
 		int histoSecs,
 		TAAPos& aaPos,
-		Grid::FaceAttachmentAccessor<Attachment<int> >* paaHistoSec = NULL)
+		Grid::AttachmentAccessor<
+			typename PtrToValueType <typename TElemIter::value_type>::base_type,
+			Attachment<int> >
+			*paaHistoSec = NULL)
 {
 	using std::min;
 	using std::max;
@@ -187,14 +244,14 @@ GetFaceAspectRatioHistogram (
 	UG_COND_THROW(paaHistoSec && (!paaHistoSec->valid()),
 	              "Invalid paaHistoSec supplied to 'GetFaceAspectRatioHistogram'");
 
-	for(TFaceIter iface = facesBegin; iface != facesEnd; ++iface) {
-		number ar = FaceAspectRatio (*iface, aaPos);
+	for(TElemIter ielem = elemsBegin; ielem != elemsEnd; ++ielem) {
+		number ar = AspectRatio (*ielem, aaPos);
 		int sec = static_cast<int> (ar * histoSecs);
 		sec = min (sec, histoSecs - 1);
 		sec = max (sec, 0);
 		++histoOut[sec];
 		if(paaHistoSec)
-			(*paaHistoSec)[*iface] = sec;
+			(*paaHistoSec)[*ielem] = sec;
 	}
 }
 

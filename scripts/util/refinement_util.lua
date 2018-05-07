@@ -47,18 +47,20 @@ function util.refinement.CreateRegularHierarchy(dom, numRefs, verbose, balancerD
 	local ref = GlobalDomainRefiner(dom)
 	local bal = util.balancer.CreateLoadBalancer(dom, balancerDesc)
 
+	if verbose then print("") end
+	
 	bal.rebalance()
 
 	for i = 1, numRefs do
 		if verbose then
-			print("- refining level " .. i-1)
+			print("util.refinement: - refining level " .. i-1)
 		end
 		ref:refine()
-		bal.rebalance("adaption-"..i)
+		bal.rebalance("util.refinement: adaption-"..i)
 	end
 
 	if verbose and NumProcs() > 1 then
-		print("\nDistribution quality statistics:")
+		print("\nutil.refinement: Distribution quality statistics:")
 		bal.print_quality_records()
 	end
 end

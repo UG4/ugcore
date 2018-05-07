@@ -31,9 +31,11 @@
  */
 
 #include <sstream>
+#include <fstream>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 #include "common/common.h"
+#include "common/util/file_util.h"
 #include "file_io_ugx.h"
 #include "common/boost_serialization_routines.h"
 #include "common/parser/rapidxml/rapidxml_print.hpp"
@@ -1950,9 +1952,10 @@ UGXFileInfo::UGXFileInfo() :
 bool UGXFileInfo::parse_file(const char* filename)
 {
 	PROFILE_FUNC_GROUP("UGXFileInfo");
-	ifstream in(filename, ios::binary);
-	if(!in)
-		return false;
+	string tfile = FindFileInStandardPaths(filename);
+
+	ifstream in(tfile.c_str(), ios::binary);
+	UG_COND_THROW(!in, "UGXFileInfo: couldn't find file '" << filename << "'");
 
 //	get the length of the file
 	streampos posStart = in.tellg();

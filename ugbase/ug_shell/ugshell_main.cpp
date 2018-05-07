@@ -108,7 +108,7 @@ void quit_all_mpi_procs_in_parallel()
  *	- option -call:				no interactive shell
  *	- else:						interactive shell
  */
-int main(int argc, char* argv[])
+int ugshell_main(int argc, char* argv[])
 {	
 
 //	ATTENTION
