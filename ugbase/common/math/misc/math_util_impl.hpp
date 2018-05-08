@@ -982,8 +982,9 @@ bool PointIsInsideTriangle(const vector_t& v, const vector_t& v0,
 //	Note: If we do not do this in a relative fashion, sufficiently
 //	small-scale triangles will always return true!
 	VecSubtract(e, v1, v0);
-	number locSmall = VecTwoNormSq(e);
-	locSmall = locSmall * locSmall * SMALL;
+	// number locSmall = VecTwoNormSq(e);
+	// locSmall = locSmall * locSmall * SMALL;
+	const number locSmall = VecTwoNorm(e) * SMALL;
 
 	//VecSubtract(e, v1, v0);
 	edgeNorm.x() = e.y();

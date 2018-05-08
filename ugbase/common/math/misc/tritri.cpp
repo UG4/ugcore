@@ -25,8 +25,8 @@ using namespace ug;
 */
 //  change by sreiter: Note that a new variable snapThreshold was added to
 //  tri_tri_intersect. EPSILON is now only used for the coplanarity check...
-#define USE_EPSILON_TEST TRUE  
-#define EPSILON 1.e-20
+#define USE_EPSILON_TEST TRUE
+#define EPSILON 1.e-12
 
 
 /* some macros */
@@ -273,9 +273,9 @@ int tri_tri_intersect(number V0[3],number V1[3],number V2[3],
 
   /* coplanarity robustness check */
 #if USE_EPSILON_TEST==TRUE
-  if(fabs(du0)<EPSILON) du0=0.0;
-  if(fabs(du1)<EPSILON) du1=0.0;
-  if(fabs(du2)<EPSILON) du2=0.0;
+  if(fabs(du0)<snapThreshold) du0=0.0;
+  if(fabs(du1)<snapThreshold) du1=0.0;
+  if(fabs(du2)<snapThreshold) du2=0.0;
 #endif
   du0du1=du0*du1;
   du0du2=du0*du2;
@@ -294,11 +294,11 @@ int tri_tri_intersect(number V0[3],number V1[3],number V2[3],
   dv1=DOT(N2,V1)+d2;
   dv2=DOT(N2,V2)+d2;
 
-//#if USE_EPSILON_TEST==TRUE
+#if USE_EPSILON_TEST==TRUE
   if(fabs(dv0)<snapThreshold) dv0=0.0;
   if(fabs(dv1)<snapThreshold) dv1=0.0;
   if(fabs(dv2)<snapThreshold) dv2=0.0;
-//#endif
+#endif
 
   dv0dv1=dv0*dv1;
   dv0dv2=dv0*dv2;
