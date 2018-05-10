@@ -148,6 +148,7 @@ static void Algebra(Registry& reg, string grp)
 			.add_method("calculate_min_eigenvalue", &T::calculate_min_eigenvalue, "", "")
 			.add_method("get_max_eigenvalue", &T::get_max_eigenvalue, "", "")
 			.add_method("get_min_eigenvalue", &T::get_min_eigenvalue, "", "")
+			.add_method("get_iterations", &T::get_iterations)
 			.add_method("print_matrix_A", &T::print_matrix_A, "", "")
 			.add_method("print_matrix_B", &T::print_matrix_B, "", "")
 			.add_method("print_eigenvector", &T::print_eigenvector, "", "");

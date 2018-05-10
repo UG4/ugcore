@@ -173,9 +173,12 @@ class PowerMethod
 				m_spEigenvectorOld = m_spEigenvector->clone();
 
 			//	residual = A v
+				UG_COND_THROW(m_spLinOpA == SPNULL, "PowerMethod::calculate_max_eigenvalue(): Linear operator A not set, please specify.");
 				m_spLinOpA->apply(*m_spResidual, *m_spEigenvector);
 
 			//	v = B^-1 A v
+//				UG_COND_THROW(m_spLinOpB == SPNULL, "PowerMethod::calculate_max_eigenvalue(): Linear operator B not set, please specify.");
+				UG_COND_THROW(m_spSolver == SPNULL, "PowerMethod::calculate_max_eigenvalue(): Solver not set, please specify.");
 				m_spSolver->init(m_spLinOpB);
 				m_spSolver->apply(*m_spEigenvector, *m_spResidual);
 
@@ -213,9 +216,12 @@ class PowerMethod
 				m_spEigenvectorOld = m_spEigenvector->clone();
 
 			//	residual = B v
+				UG_COND_THROW(m_spSolver == SPNULL, "PowerMethod::calculate_max_eigenvalue(): Solver not set, please specify.");
 				m_spLinOpB->apply(*m_spResidual, *m_spEigenvector);
 
 			//	v = A^-1 B v
+				UG_COND_THROW(m_spLinOpA == SPNULL, "PowerMethod::calculate_max_eigenvalue(): Linear operator A not set, please specify.");
+				UG_COND_THROW(m_spSolver == SPNULL, "PowerMethod::calculate_max_eigenvalue(): Solver not set, please specify.");
 				m_spSolver->init(m_spLinOpA);
 				m_spSolver->apply(*m_spEigenvector, *m_spResidual);
 
@@ -250,6 +256,11 @@ class PowerMethod
 		double get_min_eigenvalue()
 		{
 			return m_dMinEigenvalue;
+		}
+
+		size_t get_iterations()
+		{
+			return m_iteration;
 		}
 
 		void print_matrix_A()
