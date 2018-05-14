@@ -109,6 +109,9 @@ private:
 #define PROGRESS_START(progVarName, dSize, msg) \
 	ug::Progress progVarName; { std::stringstream ss; ss << msg; progVarName.start(dSize, ss.str()); }
 
+#define PROGRESS_START_WITH(progVarName, dSize, msg) \
+	{ std::stringstream ss; ss << msg; progVarName.start(dSize, ss.str()); }
+
 #define PROGRESS_UPDATE(progVarName, d) progVarName.set(d);
 #define PROGRESS_FINISH(progVarName) progVarName.stop();
 

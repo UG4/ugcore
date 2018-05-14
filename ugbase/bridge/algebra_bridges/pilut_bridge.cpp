@@ -98,6 +98,8 @@ static void Algebra(Registry& reg, string grp)
 						"", "threshold", "sets threshold of incomplete LU factorisation")
 			.add_method("set_info", &T::set_info,
 						"", "info", "sets storage information output")
+			.add_method("set_show_progress", &T::set_show_progress,
+						"", "onoff", "switches the progress indicator on/off")
 			//.add_method("set_group_size", &T::set_group_size,"", "groupSize", "sets group size")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "PILUT", tag);
