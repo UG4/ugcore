@@ -195,11 +195,16 @@ public VectorDebugWritingObject <typename TAlgebra::vector_type>
 		bool find_smooth_error()
 		{
 			if (m_solver.invalid())
-				{
-					UG_LOG("WARNING: cannot find smooth error; no solver supplied!");
-					return false;
-				}
+			{
+				UG_LOG("WARNING: cannot find smooth error; no solver supplied!");
+				return false;
+			}
 
+			if (m_spSolVector.invalid())
+			{
+				UG_LOG("WARNING: cannot find smooth error; no valid vector !");
+				return false;
+			}
 
 			//vector_type myRhs(m_pOperator->get_matrix().num_rows());
 			//vector_type myError(m_pOperator->get_matrix().num_rows());

@@ -50,7 +50,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 	public:
 	///	Constructor
 		ILUTPreconditioner(double eps=1e-6)
-			: m_eps(eps), m_info(false), m_bSort(true), m_bSortIsIdentity(false)
+			: m_eps(eps), m_info(false), m_show_progress(true), m_bSort(true), m_bSortIsIdentity(false)
 		{};
 
 	/// clone constructor
@@ -89,6 +89,12 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 			m_info = info;
 		}
 		
+	///	set whether the progress meter should be shown
+		void set_show_progress(bool s)
+		{
+			m_show_progress = s;
+		}
+
 		virtual std::string config_string() const
 		{
 			std::stringstream ss;
@@ -211,12 +217,14 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 					con.push_back(matrix_connection(i_it.index(), i_it.value()));
 				m_U.set_matrix_row(0, &con[0], con.size());
 
-				PROGRESS_START(prog, A->num_rows(),
+				Progress prog;
+				if(m_show_progress)
+					PROGRESS_START_WITH(prog, A->num_rows(),
 						"Using ILUT(" << m_eps << ") on " << A->num_rows() << " x " << A->num_rows() << " matrix...");
-
+				
 				for(size_t i=1; i<A->num_rows(); i++)
 				{
-					PROGRESS_UPDATE(prog, i);
+					if(m_show_progress) {PROGRESS_UPDATE(prog, i);}
 					con.resize(0);
 					size_t u_part=0;
 
@@ -308,7 +316,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 					m_U.set_matrix_row(i, &con[u_part], con.size()-u_part);
 
 				}
-				PROGRESS_FINISH(prog);
+				if(m_show_progress) {PROGRESS_FINISH(prog);}
 
 				m_L.defragment();
 				m_U.defragment();
@@ -536,6 +544,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 		matrix_type m_U;
 		double m_eps;
 		bool m_info;
+		bool m_show_progress;
 		static const number m_small;
 		std::vector<size_t> newIndex, oldIndex;
 		bool m_bSort;

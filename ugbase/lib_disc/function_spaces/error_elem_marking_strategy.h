@@ -204,32 +204,68 @@ void StdCoarseningMarkingStrategy<TDomain>::mark(typename base_type::elem_access
 }
 
 
+/* Generate an ordered list of \eta_k^2 (in descending order, ie. largest first) */
 template<class TElem>
 number CreateListOfElemWeights(
 		MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> > &aaError,
 		typename DoFDistribution::traits<TElem>::const_iterator iterBegin,
 		const typename DoFDistribution::traits<TElem>::const_iterator iterEnd,
-		std::vector<double> &eta)
+		std::vector<double> &etaSq)
 {
-	number localErr=0;
-	typename DoFDistribution::traits<TElem>::const_iterator iter; // = iterBegin;
+	number localErrSq=0;
+	typename DoFDistribution::traits<TElem>::const_iterator iter;
 	size_t i=0;
 	for (iter = iterBegin; iter != iterEnd; ++iter)
 	{
-		const double elemErr = aaError[*iter];
+		const double elemErrSq = aaError[*iter];
 
-			//	if no error value exists: ignore (might be newly added by refinement);
-			//	newly added elements are supposed to have a negative error estimator
-			if (elemErr < 0) continue;
+		//	If no error value exists: ignore (might be newly added by refinement);
+		//	newly added elements are supposed to have a negative error estimator
+		if (elemErrSq < 0) continue;
 
-			eta[i++]  = elemErr;
-			localErr += elemErr;
+		etaSq[i++]  = elemErrSq;
+		localErrSq += elemErrSq;
 	}
 
-	// sort descending using default comparison
-	std::sort (eta.begin(), eta.end(), std::greater<double>());
-	return localErr;
+	// Sort in descending order (using default comparison).
+	std::sort (etaSq.begin(), etaSq.end(), std::greater<double>());
+	return localErrSq;
 };
+
+
+
+/* Generate an ordered list of \eta_k^2 (in descending order, ie. largest first) */
+template<class TElem>
+number CreateSortedListOfElems(
+		MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> > &aaError,
+		typename DoFDistribution::traits<TElem>::const_iterator iterBegin,
+		const typename DoFDistribution::traits<TElem>::const_iterator iterEnd,
+		std::vector< std::pair<double, TElem*> > &etaSqList)
+{
+
+	typedef typename std::pair<double, TElem*> TPair;
+	typename DoFDistribution::traits<TElem>::const_iterator iter;
+
+	number localErrSq=0;
+	size_t i=0;
+	for (iter = iterBegin; iter != iterEnd; ++iter)
+	{
+		const double elemErrSq = aaError[*iter];
+
+		//	If no error value exists: ignore (might be newly added by refinement);
+		//	newly added elements are supposed to have a negative error estimator
+		if (elemErrSq < 0) continue;
+
+		etaSqList[i++]  = std::make_pair<>(elemErrSq, *iter);
+		localErrSq += elemErrSq;
+	}
+
+	// Sort in descending order (using default comparison).
+	std::sort (etaSqList.begin(), etaSqList.end());
+	return localErrSq;
+};
+
+
 
 /// Marks elements with \eta_K >= \theta  \max_{K'} \eta_{K'} for refinement
 //! (cf. Verfuerth script)
@@ -245,7 +281,7 @@ public:
 	MaximumMarking(number theta_max, number theta_min, number eps)
 	: m_theta(theta_max), m_theta_min(theta_min), m_eps (eps), m_max_level(100), m_min_level(0) {};
 
-	void mark(typename base_type::elem_accessor_type& aaError, IRefiner& refiner, ConstSmartPtr<DoFDistribution> dd);
+	void mark(typename base_type::elem_accessor_type& aaErrorSq, IRefiner& refiner, ConstSmartPtr<DoFDistribution> dd);
 	void set_max_level(int lvl) {m_max_level = lvl;}
 	void set_min_level(int lvl) {m_min_level = lvl;}
 
@@ -259,7 +295,7 @@ protected:
 
 
 template <typename TDomain>
-void MaximumMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaError,
+void MaximumMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaErrorSq,
 				IRefiner& refiner,
 				ConstSmartPtr<DoFDistribution> dd)
 {
@@ -273,7 +309,7 @@ void MaximumMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaErr
 	number errTotal, errLocal;
 	size_t numElem, numElemLocal;
 
-	ComputeMinMax(aaError, dd, minElemErr, maxElemErr, errTotal, numElem,
+	ComputeMinMax(aaErrorSq, dd, minElemErr, maxElemErr, errTotal, numElem,
 				minElemErrLocal, maxElemErrLocal, errLocal, numElemLocal);
 
 	this->m_latest_error = sqrt(errTotal);
@@ -291,12 +327,12 @@ void MaximumMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaErr
 	if (numElemLocal > 0)
 	{
 		// create sorted array of elem weights
-		std::vector<double> eta;
-		eta.resize(numElemLocal);
-		CreateListOfElemWeights<TElem>(aaError,dd->template begin<TElem>(), iterEnd, eta);
-		UG_ASSERT(numElemLocal==eta.size(), "Huhh: number of elements does not match!");
+		std::vector<double> etaSq;
+		etaSq.resize(numElemLocal);
+		CreateListOfElemWeights<TElem>(aaErrorSq,dd->template begin<TElem>(), iterEnd, etaSq);
+		UG_ASSERT(numElemLocal==etaSq.size(), "Huhh: number of elements does not match!");
 		UG_ASSERT(numElemLocal > ndiscard, "Huhh: number of elements does not match!");
-		maxElemErr = eta[ndiscard];
+		maxElemErr = etaSq[ndiscard];
 	}
 
 	// compute parallel threshold
@@ -332,17 +368,17 @@ void MaximumMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaErr
 
 		//	if no error value exists: ignore (might be newly added by refinement);
 		//	newly added elements are supposed to have a negative error estimator
-		if (aaError[elem] < 0) continue;
+		if (aaErrorSq[elem] < 0) continue;
 
 		//	mark for refinement
-		if ((aaError[elem] > top_threshold) && (dd->multi_grid()->get_level(elem) <= m_max_level))
+		if ((aaErrorSq[elem] > top_threshold) && (dd->multi_grid()->get_level(elem) <= m_max_level))
 		{
 				refiner.mark(elem, RM_REFINE);
 				numMarkedRefine++;
 		}
 
 		//	mark for coarsening
-		if ((aaError[elem] < bot_threshold) && (dd->multi_grid()->get_level(elem) >= m_min_level))
+		if ((aaErrorSq[elem] < bot_threshold) && (dd->multi_grid()->get_level(elem) >= m_min_level))
 		{
 				refiner.mark(elem, RM_COARSEN);
 				numMarkedCoarse++;
@@ -365,6 +401,110 @@ void MaximumMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaErr
 }
 
 
+
+/// Marks element with smallest \eta_i^2
+//! (cf. Verfuerth script)
+template <typename TDomain>
+class APosterioriCoarsening : public IElementMarkingStrategy<TDomain>{
+
+public:
+	typedef IElementMarkingStrategy<TDomain> base_type;
+	APosterioriCoarsening(number theta=0.1)
+	: m_theta(theta), m_max_level(100), m_min_level(0) {};
+
+	void mark(typename base_type::elem_accessor_type& aaErrorSq, IRefiner& refiner, ConstSmartPtr<DoFDistribution> dd);
+	void set_max_level(int lvl) {m_max_level = lvl;}
+	void set_min_level(int lvl) {m_min_level = lvl;}
+
+protected:
+
+	number m_theta;
+	int m_max_level, m_min_level;
+};
+
+
+
+template <typename TDomain>
+void APosterioriCoarsening<TDomain>::mark(typename base_type::elem_accessor_type& aaErrorSq,
+				IRefiner& refiner,
+				ConstSmartPtr<DoFDistribution> dd)
+{
+	typedef typename base_type::elem_type TElem;
+	typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
+	typedef typename std::pair<double, TElem*> TPair;
+	typedef typename std::vector<TPair> TPairVector;
+
+	// Compute minimal/maximal/ total error and number of elements.
+	number minElemErrSq, minElemErrSqLocal;
+	number maxElemErrSq, maxElemErrSqLocal;
+	number errSqTotal, errSqLocal;
+	size_t numElem, numElemLocal;
+
+	size_t numCoarsened=0;
+
+
+	ComputeMinMax(aaErrorSq, dd, minElemErrSq, maxElemErrSq, errSqTotal, numElem,
+				minElemErrSqLocal, maxElemErrSqLocal, errSqLocal, numElemLocal);
+
+	this->m_latest_error = sqrt(errSqTotal);
+	this->m_latest_error_per_elem_max = maxElemErrSq;
+	this->m_latest_error_per_elem_min = minElemErrSq;
+
+
+
+	if (numElemLocal > 0)
+	{
+		// Create sorted array of elem weights.
+		TPairVector etaSqVec;
+		etaSqVec.resize(numElemLocal);
+		CreateSortedListOfElems<TElem>(aaErrorSq,dd->template begin<TElem>(),  dd->template end<TElem>(), etaSqVec);
+
+
+		UG_ASSERT(numElemLocal==etaSqVec.size(), "Huhh: number of elements does not match!");
+
+		{
+
+			const double mySumSq = errSqLocal*m_theta;
+			double localSumSq = 0.0;
+
+			typename TPairVector::const_iterator iterEnd = etaSqVec.end();
+
+			for (typename TPairVector::iterator iter = etaSqVec.begin();
+				(iter != iterEnd) && (localSumSq < mySumSq); ++iter)
+			{
+
+				localSumSq += iter->first;
+				if (localSumSq < mySumSq) {
+					refiner.mark(iter->second, RM_COARSEN);
+					numCoarsened++;
+				}
+
+			}
+			UG_LOG("  +++ APosterioriCoarsening: localSumSq = "<< localSumSq << " >" << mySumSq << std::endl);
+
+		}
+
+
+
+	}
+
+
+#ifdef UG_PARALLEL
+	if (pcl::NumProcs() > 1)
+	{
+		pcl::ProcessCommunicator com;
+		std::size_t numCoarsenedLocal = numCoarsened;
+		numCoarsened = com.allreduce(numCoarsenedLocal, PCL_RO_SUM);
+		UG_LOG("  +++ APosterioriCoarsening: Marked for coarsening: " << numCoarsened << " ("<< numCoarsenedLocal << ") elements.\n");
+	}
+	else
+#endif
+	{ UG_LOG("  +++ APosterioriCoarsening: coarsening" << numCoarsened <<  " elements.\n") }
+
+
+}
+
+
 //! marks elements above a certain fraction of the maximum
 /*! Cf. Verfuerth' scriptum */
 template <typename TDomain>
@@ -377,7 +517,7 @@ public:
 	EquilibrationMarkingStrategy(number theta_top, number theta_bot)
 	: m_theta_top(theta_top), m_theta_bot(theta_bot) {} ;// , m_max_level(100) {};
 
-	void mark(typename base_type::elem_accessor_type& aaError,
+	void mark(typename base_type::elem_accessor_type& aaErrorSq,
 					IRefiner& refiner,
 					ConstSmartPtr<DoFDistribution> dd);
 protected:
@@ -393,7 +533,7 @@ protected:
 
 
 template <typename TDomain>
-void EquilibrationMarkingStrategy<TDomain>::mark(typename base_type::elem_accessor_type& aaError,
+void EquilibrationMarkingStrategy<TDomain>::mark(typename base_type::elem_accessor_type& aaErrorSq,
 				IRefiner& refiner,
 				ConstSmartPtr<DoFDistribution> dd)
 {
@@ -407,18 +547,18 @@ void EquilibrationMarkingStrategy<TDomain>::mark(typename base_type::elem_access
 	size_t numElem= 0, numElemLocal;
 
 	// compute weights
-	ComputeMinMax(aaError, dd, minElemErr, maxElemErr, errTotal, numElem,
+	ComputeMinMax(aaErrorSq, dd, minElemErr, maxElemErr, errTotal, numElem,
 					minElemErrLocal, maxElemErrLocal, errLocal, numElemLocal);
 
 	// init iterators
 	const const_iterator iterEnd = dd->template end<TElem>();
 	const_iterator iter;
 
-	// create and fill sorted array of $\eta^2_i$ for all (local) elements
-	std::vector<double> eta;
-	eta.resize(numElemLocal);
-	CreateListOfElemWeights<TElem>(aaError,dd->template begin<TElem>(), iterEnd, eta);
-	UG_ASSERT(numElemLocal==eta.size(), "Huhh: number of elements does not match!");
+	// create and fill sorted array of $\etaSq^2_i$ for all (local) elements
+	std::vector<double> etaSq;
+	etaSq.resize(numElemLocal);
+	CreateListOfElemWeights<TElem>(aaErrorSq,dd->template begin<TElem>(), iterEnd, etaSq);
+	UG_ASSERT(numElemLocal==etaSq.size(), "Huhh: number of elements does not match!");
 
 	// compute thresholds
 	UG_ASSERT( ((m_theta_top>=0.0) && (m_theta_top<=1.0)), "Huhh: m_theta_top invalid!");
@@ -427,22 +567,22 @@ void EquilibrationMarkingStrategy<TDomain>::mark(typename base_type::elem_access
 
 	// discard a fraction of elements
 	// a) largest elements
-	typename std::vector<double>::const_iterator top = eta.begin();
-	for (number sum=0.0;
-		(sum<m_theta_top*errLocal) && (top !=(eta.end()-1));
-		++top) { sum += *top; }
-	number top_threshold = (top != eta.begin()) ? (*top + *(top-1))/2.0 : *top;
+	typename std::vector<double>::const_iterator top = etaSq.begin();
+	for (number sumSq=0.0;
+		(sumSq<m_theta_top*errLocal) && (top !=(etaSq.end()-1));
+		++top) { sumSq += *top; }
+	number top_threshold = (top != etaSq.begin()) ? (*top + *(top-1))/2.0 : *top;
 
 	// a) smallest elements
-	typename std::vector<double>::const_iterator bot = eta.end()-1;
-		for (number sum=0.0;
-			(sum<m_theta_bot*errLocal) && (bot !=eta.begin() );
-			--bot) { sum += *bot; }
-	number bot_threshold = (bot != (eta.end()-1)) ? (*bot + *(bot+1))/2.0 : 0.0;
+	typename std::vector<double>::const_iterator bot = etaSq.end()-1;
+		for (number sumSq=0.0;
+			(sumSq<m_theta_bot*errLocal) && (bot !=etaSq.begin() );
+			--bot) { sumSq += *bot; }
+	number bot_threshold = (bot != (etaSq.end()-1)) ? (*bot + *(bot+1))/2.0 : 0.0;
 
 	UG_LOG("  +++  error = "<<  errLocal << std::endl);
-	UG_LOG("  +++  top_threshold= "<< top_threshold <<"( "<< top - eta.begin() << " cells)" << std::endl);
-	UG_LOG("  +++  bot_threshold= "<< bot_threshold <<"( "<< eta.end()-bot << " cells)" << std::endl);
+	UG_LOG("  +++  top_threshold= "<< top_threshold <<"( "<< top - etaSq.begin() << " cells)" << std::endl);
+	UG_LOG("  +++  bot_threshold= "<< bot_threshold <<"( "<< etaSq.end()-bot << " cells)" << std::endl);
 
 	//	mark elements with maximal contribution
 	size_t numMarkedRefine = 0;
@@ -450,7 +590,7 @@ void EquilibrationMarkingStrategy<TDomain>::mark(typename base_type::elem_access
 	for (iter = dd->template begin<TElem>(); iter != iterEnd; ++iter)
 	{
 
-		const double elemErr = aaError[*iter];		// get element
+		const double elemErr = aaErrorSq[*iter];		// get element
 		if (elemErr < 0) continue;					// skip invalid
 
 		if (elemErr > top_threshold)
@@ -483,7 +623,7 @@ public:
 	VarianceMarking(number theta) : m_theta(theta), m_width(3.0), m_max_level(100) {};
 	VarianceMarking(number theta, number width) : m_theta(theta), m_width (width), m_max_level(100) {};
 
-	void mark(typename base_type::elem_accessor_type& aaError,
+	void mark(typename base_type::elem_accessor_type& aaError2,
 					IRefiner& refiner,
 					ConstSmartPtr<DoFDistribution> dd);
 protected:
@@ -494,7 +634,7 @@ protected:
 };
 
 template <typename TDomain>
-void VarianceMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaError,
+void VarianceMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaError2,
 				IRefiner& refiner,
 				ConstSmartPtr<DoFDistribution> dd)
 {
@@ -508,7 +648,7 @@ void VarianceMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaEr
 	number errTotal, errLocal;
 	size_t numElem, numElemLocal;
 
-	ComputeMinMax(aaError, dd, minElemErr, maxElemErr, errTotal, numElem,
+	ComputeMinMax(aaError2, dd, minElemErr, maxElemErr, errTotal, numElem,
 				minElemErrLocal, maxElemErrLocal, errLocal, numElemLocal);
 
 	this->m_latest_error = sqrt(errTotal);
@@ -528,7 +668,7 @@ void VarianceMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaEr
 	for (iter = dd->template begin<TElem>(); iter != iterEnd; ++iter)
 	{
 		TElem* elem = *iter;
-		number elemError = aaError[elem];  // eta_i^2
+		number elemError = aaError2[elem];  // eta_i^2
 
 		if (elemError < 0) continue;
 		elemVar += (elemMean-elemError) * (elemMean-elemError);
@@ -575,10 +715,10 @@ void VarianceMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaEr
 
 		//	if no error value exists: ignore (might be newly added by refinement);
 		//	newly added elements are supposed to have a negative error estimator
-		if (aaError[elem] < 0) continue;
+		if (aaError2[elem] < 0) continue;
 
 		//	marks for refinement
-		if (aaError[elem] >= minErrToRefine)
+		if (aaError2[elem] >= minErrToRefine)
 			if (dd->multi_grid()->get_level(elem) <= m_max_level)
 			{
 				refiner.mark(elem, RM_REFINE);
@@ -619,6 +759,9 @@ public:
 	VarianceMarkingEta(number theta, number width) :
 		m_theta(theta), m_width (width), m_max_level(100), m_theta_coarse(0.0), m_min_level(0)
 	{};
+	VarianceMarkingEta(number theta, number width, number theta_coarse) :
+			m_theta(theta), m_width (width), m_max_level(100), m_theta_coarse(theta_coarse), m_min_level(0)
+	{};
 
 	void init_refinement(number theta, int max_level)
 	{m_theta = theta; m_max_level=max_level;}
@@ -626,7 +769,7 @@ public:
 	void init_coarsening(number theta, int min_level)
 	{m_theta_coarse = theta; m_min_level=min_level;}
 
-	void mark(typename base_type::elem_accessor_type& aaError,
+	void mark(typename base_type::elem_accessor_type& aaError2,
 					IRefiner& refiner,
 					ConstSmartPtr<DoFDistribution> dd);
 protected:
@@ -640,7 +783,7 @@ protected:
 };
 
 template <typename TDomain>
-void VarianceMarkingEta<TDomain>::mark(typename base_type::elem_accessor_type& aaError,
+void VarianceMarkingEta<TDomain>::mark(typename base_type::elem_accessor_type& aaError2,
 				IRefiner& refiner,
 				ConstSmartPtr<DoFDistribution> dd)
 {
@@ -654,7 +797,7 @@ void VarianceMarkingEta<TDomain>::mark(typename base_type::elem_accessor_type& a
 	number errSum, errTotalSq, errLocal;
 	size_t numElem, numElemLocal;
 
-	const number elemMean = ComputeAvg(aaError, dd, minElemErr, maxElemErr, errSum, errTotalSq, numElem,
+	const number elemMean = ComputeAvg(aaError2, dd, minElemErr, maxElemErr, errSum, errTotalSq, numElem,
 									minElemErrLocal, maxElemErrLocal, errLocal, numElemLocal);
 
 
@@ -662,7 +805,7 @@ void VarianceMarkingEta<TDomain>::mark(typename base_type::elem_accessor_type& a
 	this->m_latest_error_per_elem_max = maxElemErr;
 	this->m_latest_error_per_elem_min = minElemErr;
 
-	UG_LOG("  +++ VarianceMarkingEta: error : "<< this->m_latest_error << " (mean : " << elemMean << " on "<< numElem << " elements).\n");
+	UG_LOG("  +++ VarianceMarkingEta: error : "<< this->m_latest_error << " (meanEta : " << elemMean << " on "<< numElem << " elements).\n");
 
 	// init iterators
 	const_iterator iter;
@@ -673,14 +816,14 @@ void VarianceMarkingEta<TDomain>::mark(typename base_type::elem_accessor_type& a
 	{
 		TElem* elem = *iter;
 
-		if (aaError[elem] < 0) continue;
+		if (aaError2[elem] < 0) continue;
 
-		number elemError =  sqrt(aaError[elem]); // eta_i
+		number elemError =  sqrt(aaError2[elem]); // eta_i
 
 		elemVar += (elemMean-elemError) * (elemMean-elemError);
 	}
 
-	UG_LOG("  +++ VarianceMarkingEta: Est. variance (1) : " << elemVar << " on "<< numElem << " elements.\n");
+	UG_LOG("  +++ VarianceMarkingEta: Est. variance (1) : " << (elemVar / (numElem -1.0)) << " on "<< numElem << " elements.\n");
 #ifdef UG_PARALLEL
 	if (pcl::NumProcs() > 1)
 	{
@@ -697,20 +840,20 @@ void VarianceMarkingEta<TDomain>::mark(typename base_type::elem_accessor_type& a
 	// refine all element above threshold
 	const number sigma = sqrt(elemVar);
 	const number maxError = elemMean + sigma*m_width;
-	UG_LOG("  +++ Refining elements if error greater " << elemMean << " + "<< sigma << "*" << m_width <<
+	UG_LOG("  +++ Refining elements if error > " << elemMean << " + "<< sigma << "*" << m_width <<
 			" = " << maxError << ".\n");
 
 	const number elemErrorRefine = maxError*m_theta;
-	UG_LOG("  +++ Refining elements if error greater " << maxError << "*" << m_theta <<
+	UG_LOG("  +++ Refining elements if error > " << maxError << "*" << m_theta <<
 				" = " << elemErrorRefine << ".\n");
 
-	// coarsen all element above threshold
-	const number minError = std::max(elemMean /*- sigma*m_width*/, 0.0);
-	UG_LOG("  +++ Coarsening elements if error greater " << elemMean << " - "<< sigma << "*" << m_width <<
-				" = " << minError << ".\n");
+	// coarsen all element not contributing significantly
+	//const number minError = std::max(elemMean /*- sigma*m_width*/, 0.0);
+	//UG_LOG("  +++ Coarsening elements if error greater " << elemMean << " - "<< sigma << "*" << m_width <<
+	//			" = " << minError << ".\n");
 
-	const number elemErrorCoarsen = minError*m_theta_coarse;
-	UG_LOG("  +++ Coarsening elements if error greater " << maxError << "*" << m_theta_coarse <<
+	const number elemErrorCoarsen = elemMean*m_theta_coarse;
+	UG_LOG("  +++ Coarsening elements if error < " << elemMean << "*" << m_theta_coarse <<
 					" = " << elemErrorCoarsen << ".\n");
 
 
@@ -727,9 +870,9 @@ void VarianceMarkingEta<TDomain>::mark(typename base_type::elem_accessor_type& a
 
 		//	if no error value exists: ignore (might be newly added by refinement);
 		//	newly added elements are supposed to have a negative error estimator
-		if (aaError[elem] < 0) continue;
+		if (aaError2[elem] < 0) continue;
 
-		const number elemError =  sqrt(aaError[elem]); // eta_i
+		const number elemError =  sqrt(aaError2[elem]); // eta_i
 
 		//	mark for refinement
 		if ((elemError >= elemErrorRefine) && (dd->multi_grid()->get_level(elem) <= m_max_level))
@@ -755,11 +898,11 @@ void VarianceMarkingEta<TDomain>::mark(typename base_type::elem_accessor_type& a
 		numMarkedRefine = com.allreduce(numMarkedRefineLocal, PCL_RO_SUM);
 		UG_LOG("  +++ VarianceMarkingEta: Marked for refinement: " << numMarkedRefine << " ("<< numMarkedRefineLocal << ") elements.\n");
 	} else
-#else
-	UG_LOG("  +++ VarianceMarkingEta: Marked for refinement: " << numMarkedRefine << " elements.\n");
 #endif
-	UG_LOG("  +++ VarianceMarkingEta: Marked for coarsening: " << numMarkedCoarsen << " elements.\n");
-
+	{
+		UG_LOG("  +++ VarianceMarkingEta: Marked for refinement: " << numMarkedRefine << " elements.\n");
+		UG_LOG("  +++ VarianceMarkingEta: Marked for coarsening: " << numMarkedCoarsen << " elements.\n");
+	}
 }
 
 
@@ -858,7 +1001,7 @@ void MeanValueMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaE
 
 
 
-/// marks elements above an absolute threshold (based on S. Reister's idea)
+/// marks elements above an absolute threshold (based on S. Reiter's idea)
 template <typename TDomain>
 class AbsoluteMarking : public IElementMarkingStrategy<TDomain>{
 
