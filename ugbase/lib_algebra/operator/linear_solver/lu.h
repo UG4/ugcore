@@ -75,7 +75,7 @@ class LU
 
 	public:
 	///	constructor
-		LU() : m_spOperator(NULL), m_mat(), m_bSortSparse(true), m_bInfo(false)
+		LU() : m_spOperator(NULL), m_mat(), m_bSortSparse(true), m_bInfo(false), m_bShowProgress(true)
 		{
 #ifdef LAPACK_AVAILABLE
 			m_iMinimumForSparse = 4000;
@@ -101,6 +101,11 @@ class LU
 		void set_info(bool b)
 		{
 			m_bInfo = b;
+		}
+		
+		void set_show_progress(bool b)
+		{
+			m_bShowProgress = b;
 		}
 
 		virtual const char* name() const {return "LU";}
@@ -188,6 +193,7 @@ class LU
 			ilut_scalar = make_sp(new ILUTScalarPreconditioner<algebra_type>(0.0));
 			ilut_scalar->set_sort(m_bSortSparse);
 			ilut_scalar->set_info(m_bInfo);
+			ilut_scalar->set_show_progress(m_bShowProgress);
 			ilut_scalar->preprocess(A);
 
 			}UG_CATCH_THROW("LU::" << __FUNCTION__ << " failed")
@@ -404,7 +410,7 @@ class LU
 		bool m_bDense;
 		SmartPtr<ILUTScalarPreconditioner<algebra_type> > ilut_scalar;
 		size_t m_iMinimumForSparse;
-		bool m_bSortSparse, m_bInfo;
+		bool m_bSortSparse, m_bInfo, m_bShowProgress;
 };
 
 } // end namespace ug
