@@ -665,14 +665,26 @@ function util.solver.CreateLinearSolver(solverDesc, solverutil)
 			linSolver = AgglomeratingSolver(SuperLU());
 		else
 			local LU_solver = LU()
-			LU_solver:set_show_progress(desc.show_progress or defaults.show_progress)
+			local showProgress
+			if desc.showProgress ~= nil then
+				showProgress = desc.showProgress
+			else
+				showProgress = defaults.showProgress
+			end
+			LU_solver:set_show_progress(showProgress)
 			LU_solver:set_info(desc.info or defaults.info)
 			linSolver = AgglomeratingSolver(LU_solver)
 		end
 
 	elseif name == "uglu" then
 		local LU_solver = LU()
-		LU_solver:set_show_progress(desc.show_progress or defaults.show_progress)
+		local showProgress
+		if desc.showProgress ~= nil then
+			showProgress = desc.showProgress
+		else
+			showProgress = defaults.showProgress
+		end
+		LU_solver:set_show_progress(showProgress)
 		LU_solver:set_info(desc.info or defaults.info)
 		linSolver = AgglomeratingSolver(LU_solver)
 		
