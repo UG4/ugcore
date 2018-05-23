@@ -80,7 +80,7 @@ Edge* GetOpposingSide(Grid& g, Face* elem, Edge* side)
 
 Vertex* GetOpposingSide(Grid& g, Edge* elem, Vertex* side)
 {
-	Vertex* out;
+	Vertex* out = NULL;
 	elem->get_opposing_side(side, &out);
 	return out;
 }
