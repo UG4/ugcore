@@ -61,7 +61,7 @@ class SymP1Constraints
 		typedef typename algebra_type::vector_type vector_type;
 
 	public:
-		SymP1Constraints() : IDomainConstraint<TDomain, TAlgebra>(), m_bAssembleLinearProblem(false) {}
+		SymP1Constraints() : IDomainConstraint<TDomain, TAlgebra>() {}
 		virtual ~SymP1Constraints() {}
 
 		virtual int type() const {return CT_HANGING;}
@@ -104,9 +104,6 @@ class SymP1Constraints
 			int type,
 			number time = 0.0
 		);
-
-	protected:
-		bool m_bAssembleLinearProblem;
 };
 
 
@@ -129,7 +126,7 @@ class OneSideP1Constraints
 		typedef IDomainConstraint<TDomain, TAlgebra> base_type;
 
 	public:
-		OneSideP1Constraints() : IDomainConstraint<TDomain, TAlgebra>(), m_bAssembleLinearProblem(false) {}
+		OneSideP1Constraints() : IDomainConstraint<TDomain, TAlgebra>() {}
 		virtual ~OneSideP1Constraints() {}
 
 		virtual int type() const {return CT_HANGING;}
@@ -172,9 +169,6 @@ class OneSideP1Constraints
 			int type,
 			number time = 0.0
 		);
-
-	protected:
-		bool m_bAssembleLinearProblem;
 };
 
 }; // namespace ug

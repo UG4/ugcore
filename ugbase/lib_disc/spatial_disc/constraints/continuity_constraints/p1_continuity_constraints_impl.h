@@ -42,8 +42,7 @@ namespace ug {
 template <typename TMatrix>
 void SetInterpolation(TMatrix& A,
                       std::vector<size_t> & constrainedIndex,
-                      std::vector<std::vector<size_t> >& vConstrainingIndex,
-					  bool assembleLinearProblem = true)
+                      std::vector<std::vector<size_t> >& vConstrainingIndex)
 {
 	typedef typename TMatrix::row_iterator row_iterator;
 	typedef typename TMatrix::value_type block_type;
@@ -66,13 +65,17 @@ void SetInterpolation(TMatrix& A,
 
 	//	set coupling to all constraining dofs the inverse of the
 	//	number of constraining dofs
-	//	This is only required if assembling for a linear problem.
-		if (assembleLinearProblem)
+	//	This is not required, not even for a linear problem.
+	//	Constraints in the solution need to be enforced by a final call to
+	//	AssembledLinearOperator::set_dirichlet_values().
+		/*
+		if (false)
 		{
 			const number frac = -1.0/(vConstrainingIndex.size());
 			for(size_t j=0; j < vConstrainingIndex.size(); ++j)
 				A(ai, vConstrainingIndex[j][i]) = frac;
 		}
+		*/
 	}
 }
 
@@ -500,7 +503,7 @@ adjust_jacobian(matrix_type& J, const vector_type& u,
 		SplitAddRow_Symmetric(J, constrainedInd, vConstrainingInd);
 
 	//	set interpolation
-		SetInterpolation(J, constrainedInd, vConstrainingInd, m_bAssembleLinearProblem);
+		SetInterpolation(J, constrainedInd, vConstrainingInd);
 	}
 }
 
@@ -510,8 +513,6 @@ SymP1Constraints<TDomain,TAlgebra>::
 adjust_linear(matrix_type& mat, vector_type& rhs,
               ConstSmartPtr<DoFDistribution> dd, int type, number time)
 {
-	m_bAssembleLinearProblem = true;
-
 	if(this->m_spAssTuner->single_index_assembling_enabled())
 		UG_THROW("index-wise assemble routine is not "
 				"implemented for SymP1Constraints \n");
@@ -539,7 +540,7 @@ adjust_linear(matrix_type& mat, vector_type& rhs,
 		SplitAddRow_Symmetric(mat, constrainedInd, vConstrainingInd);
 
 	//	set interpolation
-		SetInterpolation(mat, constrainedInd, vConstrainingInd, true);
+		SetInterpolation(mat, constrainedInd, vConstrainingInd);
 
 	//	adapt rhs
 		SplitAddRhs_Symmetric(rhs, constrainedInd, vConstrainingInd);
@@ -593,8 +594,6 @@ adjust_prolongation
 	number time
 )
 {
-	if (m_bAssembleLinearProblem) return;
-
 	if (this->m_spAssTuner->single_index_assembling_enabled())
 			UG_THROW("index-wise assemble routine is not "
 					"implemented for SymP1Constraints \n");
@@ -954,7 +953,7 @@ adjust_jacobian(matrix_type& J, const vector_type& u,
 		SplitAddRow_OneSide(J, constrainedInd, vConstrainingInd);
 
 	//	set interpolation
-		SetInterpolation(J, constrainedInd, vConstrainingInd, m_bAssembleLinearProblem);
+		SetInterpolation(J, constrainedInd, vConstrainingInd);
 	}
 }
 
@@ -964,8 +963,6 @@ OneSideP1Constraints<TDomain,TAlgebra>::
 adjust_linear(matrix_type& mat, vector_type& rhs,
               ConstSmartPtr<DoFDistribution> dd, int type, number time)
 {
-	m_bAssembleLinearProblem = true;
-
 	if(this->m_spAssTuner->single_index_assembling_enabled())
 		UG_THROW("index-wise assemble routine is not "
 				"implemented for OneSideP1Constraints \n");
@@ -1001,7 +998,7 @@ adjust_linear(matrix_type& mat, vector_type& rhs,
 		SplitAddRow_OneSide(mat, constrainedInd, vConstrainingInd);
 
 	//	Set interpolation
-		SetInterpolation(mat, constrainedInd, vConstrainingInd, true);
+		SetInterpolation(mat, constrainedInd, vConstrainingInd);
 
 	//	adapt rhs
 		SplitAddRhs_OneSide(rhs, constrainedInd, vConstrainingInd);
@@ -1056,8 +1053,6 @@ adjust_prolongation
 	number time
 )
 {
-	if (m_bAssembleLinearProblem) return;
-
 	if (this->m_spAssTuner->single_index_assembling_enabled())
 			UG_THROW("index-wise assemble routine is not "
 					"implemented for SymP1Constraints \n");
