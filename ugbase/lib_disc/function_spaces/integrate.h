@@ -7,7 +7,7 @@
  * UG4 is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License version 3 (as published by the
  * Free Software Foundation) with the following additional attribution
- * requirements (according to LGPL/GPL v3 §7):
+ * requirements (according to LGPL/GPL v3):
  * 
  * (1) The following notice must be displayed in the Appropriate Legal Notices
  * of covered and combined works: "Based on UG4 (www.ug4.org/license)".
@@ -2857,6 +2857,151 @@ number IntegralNormalComponentOnManifold(
 ////////////////////////////////////////////////////////////////////////////////
 // Boundary Integral
 ////////////////////////////////////////////////////////////////////////////////
+/// Integrates a component over some boundary subsets
+/**
+ * This function integrates \f$ -c \cdot \vec{n} \f$ over some selected
+ * boundary subsets, where c is a component of the grid function u. The
+ * integral is taken over all boundary subset manifold geometric objects
+ *
+ * @param u				a grid function
+ * @param cmp			the component c which should be integrated
+ * @param BndSubset		a comma-separated string of symbolic boundary subset names
+ * @return	the integral
+ */
+
+template <typename TGridFunction>
+number IntegrateNormalComponentOnManifold(TGridFunction& u, const char* cmp,
+                                   const char* BndSubset)
+{
+//	get function id of name
+	const size_t fct = u.fct_id_by_name(cmp);
+
+//	check that function exists
+	if(fct >= u.num_fct())
+		UG_THROW("IntegrateNormalComponentOnManifold: Function space does not contain"
+				" a function with name " << cmp << ".");
+
+	if(u.local_finite_element_id(fct) != LFEID(LFEID::LAGRANGE, TGridFunction::dim, 1))
+		UG_THROW("IntegrateNormalComponentOnManifold:"
+				 "Only implemented for Lagrange P1 functions.");
+
+//	read bnd subsets
+	SubsetGroup bndSSGrp(u.domain()->subset_handler());
+	bndSSGrp.add(TokenizeString(BndSubset));
+
+//	reset value
+	number value = 0;
+
+//	loop subsets
+	for(size_t i = 0; i < bndSSGrp.size(); ++i)
+	{
+	//	get subset index
+		const int si = bndSSGrp[i];
+
+	//	skip if function is not defined in subset
+		if(!u.is_def_in_subset(fct, si)) continue;
+
+	//	create integration kernel
+		static const int dim = TGridFunction::dim;
+
+	//	integrate elements of subset
+		typedef typename domain_traits<dim>::grid_base_object grid_base_object;
+
+	//	get iterators for all elems on subset
+		typedef typename TGridFunction::template dim_traits<dim>::const_iterator const_iterator;
+		const_iterator iter = u.template begin<grid_base_object>();
+		const_iterator iterEnd = u.template end<grid_base_object>();
+
+	//	create a FV1 Geometry
+		DimFV1Geometry<dim> geo;
+
+	//	specify, which subsets are boundary
+		for(size_t s = 0; s < bndSSGrp.size(); ++s)
+		{
+		//	get subset index
+			const int bndSubset = bndSSGrp[s];
+
+		//	request this subset index as boundary subset. This will force the
+		//	creation of boundary subsets when calling geo.update
+			geo.add_boundary_subset(bndSubset);
+		}
+
+	//	vector of corner coordinates of element corners (to be filled for each elem)
+		std::vector<MathVector<dim> > vCorner;
+
+	//	loop elements of subset
+		for( ; iter != iterEnd; ++iter)
+		{
+		//	get element
+			grid_base_object* elem = *iter;
+
+		//	get all corner coordinates
+			CollectCornerCoordinates(vCorner, *elem, u.domain()->position_accessor(), true);
+
+		//	compute bf and grads at bip for element
+			try{
+				geo.update(elem, &vCorner[0], u.domain()->subset_handler().get());
+			}
+			UG_CATCH_THROW("IntegrateNormalComponenOnManifold: "
+						"Cannot update Finite Volume Geometry.");
+
+		//	get fct multi-indices of element
+			std::vector<DoFIndex> ind;
+			u.dof_indices(elem, fct, ind);
+
+		//	specify, which subsets are boundary
+			for(size_t s = 0; s < bndSSGrp.size(); ++s)
+			{
+			//	get subset index
+				const int bndSubset = bndSSGrp[s];
+
+			//	get all bf of this subset
+				typedef typename DimFV1Geometry<dim>::BF BF;
+				const std::vector<BF>& vBF = geo.bf(bndSubset);
+
+			//	loop boundary faces
+				for(size_t b = 0; b < vBF.size(); ++b)
+				{
+				//	get bf
+					const BF& bf = vBF[b];
+
+				//	get normal on bf
+					const MathVector<dim>& normal = bf.normal();
+
+				//	check multi indices
+					UG_ASSERT(ind.size() == bf.num_sh(),
+					          "IntegrateNormalComponentOnManifold::values: Wrong number of"
+							  " multi indices, ind: "<<ind.size() << ", bf.num_sh: "
+							  << bf.num_sh());
+
+					MathVector<dim> val; VecSet(val, 0.0);
+					for(size_t sh = 0; sh < bf.num_sh(); ++sh)
+					{
+						const number fctVal = DoFRef(u, ind[sh]);
+					    const MathVector<dim>& ip = bf.global_ip();
+						VecScaleAdd(val, 1.0, val, fctVal, ip);
+					}
+
+					//	sum up contributions
+					value -= VecDot(val, normal);
+				}
+			}
+		}
+	}
+
+#ifdef UG_PARALLEL
+	// sum over processes
+	if(pcl::NumProcs() > 1)
+	{
+		pcl::ProcessCommunicator com;
+		number local = value;
+		com.allreduce(&local, &value, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
+	}
+#endif
+
+//	return the result
+	return value;
+}
 
 /// Integrates the Flux of a component over some boundary subsets
 /**
