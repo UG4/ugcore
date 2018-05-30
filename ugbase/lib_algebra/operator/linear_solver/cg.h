@@ -37,6 +37,7 @@
 #include <string>
 
 #include "lib_algebra/operator/interface/operator.h"
+#include "lib_algebra/operator/interface/preconditioned_linear_operator_inverse.h"
 #include "common/profiler/profiler.h"
 #include "lib_algebra/operator/interface/pprocess.h"
 #ifdef UG_PARALLEL
@@ -160,14 +161,21 @@ class CG
 				linear_operator()->apply(q, p);
 
 			// 	lambda = (q,p)
-				const number lambda = VecProd(q, p);
+				number lambda = VecProd(q, p);
 
 			//	check lambda
 				if(lambda == 0.0)
 				{
-					UG_LOG("ERROR in 'CG::apply_return_defect': lambda=" <<
-					       lambda<< " is not admitted. Aborting solver.\n");
-					return false;
+				    if (p.size())
+				    {
+				        UG_LOG("ERROR in 'CG::apply_return_defect': lambda=" <<
+				            lambda<< " is not admitted. Aborting solver.\n");
+				        return false;
+				    }
+				    // in cases where a proc has no geometry, we do not want to fail here
+				    // so we set lambda = 1, this is not harmful
+				    else
+				        lambda = 1.0;
 				}
 
 			//	alpha = rho / (q,p)

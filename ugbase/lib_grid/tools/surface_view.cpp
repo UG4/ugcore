@@ -303,7 +303,9 @@ adjust_parallel_surface_states()
 		com.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, cpCopyStates);
 		com.communicate();
 
-	//todo:	communicate final marks to v-masters? (if one wants to iterate over ghosts...)
+	//  communicate final marks to v-masters (if one wants to iterate over ghosts...)
+		com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, cpCopyStates);
+		com.communicate();
 	#endif
 }
 

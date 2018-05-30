@@ -47,3 +47,44 @@ function(ExportDependencies deps)
             set_property(GLOBAL PROPERTY ugDependencies ${tmp} "${l}")
     endforeach(l)
 endfunction(ExportDependencies)
+
+
+################################################################################
+# Declare a method that allows all sub-cmake-files to add their dependencies
+# to the generated shell.
+#######################
+# Export shell dependencies to global variable.
+# PURPOSE: use this function to add local package lib dependencies to global
+#          ugShellDependencies property which is used to build ugshell
+# @param sources sources list to export
+function(ExportShellDependencies deps)
+    # iterate over all arguments and insert given prefix
+    foreach(l ${ARGV})
+            # retrieve the global property ugShellDependencies and store it
+            # in tmp variable
+            # NOTE: properties must be assigned to variables before being used
+            get_property(tmp GLOBAL PROPERTY ugShellDependencies)
+            # append tmp to the global ugShellDependencies property using the correct prefix
+            set_property(GLOBAL PROPERTY ugShellDependencies ${tmp} "${l}")
+    endforeach(l)
+endfunction(ExportShellDependencies)
+
+################################################################################
+# Declare a method that allows all sub-cmake-files to add their link paths
+# to a common library.
+#######################
+# Export link paths to global variable.
+# PURPOSE: use this function to add local package link directories to global
+#          ug4LinkPaths property which is used to build libug4
+# @param includes list of link directories to be exported
+function(ExportLinkPaths linkPaths)
+    # iterate over all arguments and insert given prefix
+    foreach(linkPath ${ARGV})
+            # retrieve the global property ugLinkPaths and store its values
+            # in a temp variable
+            # NOTE: properties must be assigned to variables before being used
+            get_property(temp GLOBAL PROPERTY ugLinkPaths)
+            # append tmp to the global ugLinkPaths property using the correct prefix
+            set_property(GLOBAL PROPERTY ugLinkPaths ${temp} "${linkPath}")
+    endforeach(linkPath)
+endfunction(ExportLinkPaths)

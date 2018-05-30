@@ -795,8 +795,8 @@ protected:
  * */
 template <typename TDomain>
 class IElemDisc :
-		public IElemError<TDomain>,
-		public IElemAssembleFuncs<IElemDisc<TDomain>, TDomain>
+		public IElemAssembleFuncs<IElemDisc<TDomain>, TDomain>,
+		public IElemError<TDomain>
 {
 public:
 	typedef TDomain domain_type;
@@ -812,10 +812,10 @@ public:
 
 
 	IElemDisc(const char* functions, const char* subsets)
-	: IElemError<TDomain>(functions, subsets), assemble_base_type() {}
+	: assemble_base_type(), IElemError<TDomain>(functions, subsets) {}
 
 	IElemDisc(const std::vector<std::string>& vFct, const std::vector<std::string>& vSubset)
-	: IElemError<TDomain>(vFct, vSubset), assemble_base_type() {}
+	: assemble_base_type(), IElemError<TDomain>(vFct, vSubset) {}
 
 protected:
 

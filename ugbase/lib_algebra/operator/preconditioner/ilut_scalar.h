@@ -71,7 +71,7 @@ class ILUTScalarPreconditioner : public IPreconditioner<TAlgebra>
 	public:
 	//	Constructor
 		ILUTScalarPreconditioner(double eps=1e-6) :
-			m_eps(eps), m_info(false), m_bSort(true)
+			m_eps(eps), m_info(false), m_show_progress(true), m_bSort(true)
 		{};
 
 	/// clone constructor
@@ -80,6 +80,7 @@ class ILUTScalarPreconditioner : public IPreconditioner<TAlgebra>
 		{
 			m_eps = parent.m_eps;
 			set_info(parent.m_info);
+			set_show_progress(parent.m_show_progress);
 			set_sort(parent.m_bSort);
 		}
 
@@ -109,6 +110,12 @@ class ILUTScalarPreconditioner : public IPreconditioner<TAlgebra>
 			m_info = info;
 		}
 		
+	///	sets the indication of the progress to true or false
+		void set_show_progress(bool b)
+		{
+			m_show_progress = b;
+		}
+		
 		void set_sort(bool b)
 		{
 			m_bSort = b;
@@ -135,6 +142,7 @@ class ILUTScalarPreconditioner : public IPreconditioner<TAlgebra>
 
 			ilut = make_sp(new ILUTPreconditioner<CPUAlgebra>(m_eps));
 			ilut->set_info(m_info);
+			ilut->set_show_progress(m_show_progress);
 			ilut->set_sort(m_bSort);
 
 			mo = make_sp(new MatrixOperator<CPUAlgebra::matrix_type, CPUAlgebra::vector_type>);
@@ -271,7 +279,7 @@ protected:
 	LinearSolver<CPUAlgebra::vector_type> linearSolver;
 	CPUAlgebra::vector_type m_c, m_d;
 	double m_eps;
-	bool m_info, m_bSort;
+	bool m_info, m_show_progress, m_bSort;
 	size_t m_size;
 };
 

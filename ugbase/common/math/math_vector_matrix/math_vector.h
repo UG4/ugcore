@@ -137,9 +137,11 @@ class MathVector
 
 		inline value_type& coord(size_t index)				{return m_data[index];}
 		inline value_type coord(size_t index) const			{return m_data[index];}
-
+		
 		inline value_type& operator[](size_t index)				{return m_data[index];}
 		inline const value_type& operator[](size_t index) const	{return m_data[index];}
+
+		inline void set_coord(std::size_t index, value_type v)	{m_data[index] = v;}
 
 	protected:
 		value_type	m_data[N];
@@ -203,6 +205,8 @@ class MathVector<0, T>
 		inline value_type& operator[](std::size_t index)				{return m_data[0];}
 		inline const value_type& operator[](std::size_t index) const	{return m_data[0];}
 
+		inline void set_coord(std::size_t index, value_type v)	{m_data[0] = v;}
+
 		inline value_type& x()						{return m_data[0];}
 		inline const value_type& x() const			{return m_data[0];}
 
@@ -264,6 +268,8 @@ class MathVector<1, T>
 
 		inline value_type& operator[](std::size_t index)				{return m_data[0];}
 		inline const value_type& operator[](std::size_t index) const	{return m_data[0];}
+
+		inline void set_coord(std::size_t index, value_type v)	{m_data[0] = v;}
 
 		inline value_type& x()						{return m_data[0];}
 		inline const value_type& x() const			{return m_data[0];}
@@ -328,6 +334,8 @@ class MathVector<2, T>
 
 		inline value_type& operator[](std::size_t index)				{return m_data[index];}
 		inline const value_type& operator[](std::size_t index) const	{return m_data[index];}
+
+		inline void set_coord(std::size_t index, value_type v)	{m_data[index] = v;}
 
 		inline value_type& x()						{return m_data[0];}
 		inline const value_type& x() const			{return m_data[0];}
@@ -396,6 +404,8 @@ class MathVector<3, T>
 
 		inline value_type& operator[](std::size_t index)				{return m_data[index];}
 		inline const value_type& operator[](std::size_t index) const	{return m_data[index];}
+
+		inline void set_coord(std::size_t index, value_type v)	{m_data[index] = v;}
 
 		inline value_type& x()						{return m_data[0];}
 		inline const value_type& x() const			{return m_data[0];}
@@ -470,6 +480,8 @@ class MathVector<4, T>
 
 		inline value_type& operator[](std::size_t index)				{return m_data[index];}
 		inline const value_type& operator[](std::size_t index) const	{return m_data[index];}
+
+		inline void set_coord(std::size_t index, value_type v)	{m_data[index] = v;}
 
 		inline value_type& x()						{return m_data[0];}
 		inline const value_type& x() const			{return m_data[0];}

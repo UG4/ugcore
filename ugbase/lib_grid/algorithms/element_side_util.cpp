@@ -31,27 +31,11 @@
  */
 
 #include "element_side_util.h"
-#include <set>
+
+#include "lib_grid/grid/grid_util.h"  // for CompareVertices
+
 
 namespace ug {
-
-bool vertexGroupsMatch(const IVertexGroup* elem, const IVertexGroup& desc)
-{
-	size_t n = elem->num_vertices();
-	if (desc.num_vertices() != n) return false;
-
-	// to avoid complicated order checks, put elem's vertices in a set
-	// and look for desc's vertices in the set
-	std::set<Vertex*> verts;
-
-	for (size_t i = 0; i < n; ++i)
-		verts.insert(elem->vertex(i));
-
-	for (size_t i = 0; i < n; ++i)
-		if (verts.find(desc.vertex(i)) == verts.end()) return false;
-
-	return true;
-}
 
 
 Face* GetOpposingSide(Grid& g, Volume* elem, Face* side)
@@ -66,7 +50,7 @@ Face* GetOpposingSide(Grid& g, Volume* elem, Face* side)
 	size_t sl_sz = sl.size();
 	for (size_t s = 0; s < sl_sz; ++s)
 	{
-		if (vertexGroupsMatch(sl[s], fd))
+		if (CompareVertices(sl[s], &fd))
 			return sl[s];
 	}
 
@@ -86,7 +70,7 @@ Edge* GetOpposingSide(Grid& g, Face* elem, Edge* side)
 	size_t sl_sz = sl.size();
 	for (size_t s = 0; s < sl_sz; ++s)
 	{
-		if (vertexGroupsMatch(sl[s], ed))
+		if (CompareVertices(sl[s], &ed))
 			return sl[s];
 	}
 
@@ -96,36 +80,10 @@ Edge* GetOpposingSide(Grid& g, Face* elem, Edge* side)
 
 Vertex* GetOpposingSide(Grid& g, Edge* elem, Vertex* side)
 {
-	Vertex* out;
+	Vertex* out = NULL;
 	elem->get_opposing_side(side, &out);
 	return out;
 }
 
 
-template <typename TBaseElem>
-TBaseElem* GetOpposingSide(Grid& g, typename TBaseElem::side* face, TBaseElem* elem)
-{
-	typedef typename Grid::traits<TBaseElem>::secure_container elem_list_type;
-	elem_list_type el;
-	g.associated_elements(el, face);
-	size_t el_sz = el.size();
-	UG_COND_THROW(el_sz > 2, "More than two volumes associated with face.")
-	for (size_t e = 0; e < el_sz; ++e)
-	{
-		if (el[e] != elem)
-			return el[e];
-	}
-
-	return (TBaseElem*) NULL;
-}
-
-#ifdef UG_DIM_3
-	template Volume* GetOpposingSide<Volume>(Grid&, Face*, Volume*);
-#endif
-#if defined UG_DIM_2 || defined UG_DIM_3
-	template Face* GetOpposingSide<Face>(Grid&, Edge*, Face*);
-#endif
-#if defined UG_DIM_1 || defined UG_DIM_2 || defined UG_DIM_3
-	template Edge* GetOpposingSide<Edge>(Grid&, Vertex*, Edge*);
-#endif
 } // namespace ug

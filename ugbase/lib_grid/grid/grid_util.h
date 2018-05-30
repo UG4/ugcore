@@ -87,6 +87,24 @@ bool CompareVertices(const VolumeVertices* vv1,
 					const VolumeVertices* vv2);
 
 
+/**
+ * @brief Checks whether two vertex groups contain the same vertices.
+ *
+ * Typical use case: The first vertex group is an element, the other
+ * is a descriptor. In that capacity, this function works like the
+ * CompareVertex functions; but it is a tad more general and works
+ * also with, e.g., CustomVertexGroups.
+ *
+ * @note One might think about merging VertexGroupsMatch and CompareVertices.
+ */
+UG_API
+bool VertexGroupsMatch(const IVertexGroup* elem, const IVertexGroup& desc);
+
+/// specialization of VertexGroupsMatch for single Vertex
+UG_API
+bool VertexGroupsMatch(const Vertex* elem, const IVertexGroup& desc);
+
+
 ////////////////////////////////////////////////////////////////////////
 //	CompareVertexContainer
 ///	compares vertices in a container

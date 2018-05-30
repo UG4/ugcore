@@ -115,7 +115,6 @@ bool ImportGridFromTETGEN(Grid& grid,
 						AInt* paElementAttribute)
 {
 //	read nodes and store them in an array for index access
-
 	vector<RegularVertex*>	vVertices;
 
 	{
@@ -131,6 +130,8 @@ bool ImportGridFromTETGEN(Grid& grid,
 		in >> dim;
 		in >> numAttribs;
 		in >> numBoundaryMarkers;
+
+		vVertices.reserve(numNodes + 1);
 
 	//	set up attachment accessors
 		if(!grid.has_vertex_attachment(aPos))
@@ -158,6 +159,8 @@ bool ImportGridFromTETGEN(Grid& grid,
 
 		//	read index and coords
 			in >> index;
+			if(index > (int) vVertices.size())
+				vVertices.resize(index, NULL);
 			in >> aaPosVRT[v].x();
 			in >> aaPosVRT[v].y();
 			in >> aaPosVRT[v].z();
@@ -275,7 +278,6 @@ bool ImportGridFromTETGEN(Grid& grid,
 
 		in.close();
 	}
-
 	return true;
 }
 
@@ -287,11 +289,12 @@ bool ImportGridFromTETGEN(Grid& grid,
 						ISubsetHandler* psh,
 						std::vector<AFloat>* pvNodeAttributes)
 {
+	PROFILE_FUNC();
 //	read nodes and store them in an array for index access
-
 	vector<RegularVertex*>	vVertices;
 
 	{
+		PROFILE_BEGIN(read_vertices);
 		ifstream in(nodesFilename);
 		if(!in)
 		{
@@ -304,6 +307,9 @@ bool ImportGridFromTETGEN(Grid& grid,
 		in >> dim;
 		in >> numAttribs;
 		in >> numBoundaryMarkers;
+
+		vVertices.reserve(numNodes + 1);
+		grid.reserve<Vertex>(numNodes);
 
 	//	set up attachment accessors
 		if(!grid.has_vertex_attachment(aPos))
@@ -323,10 +329,12 @@ bool ImportGridFromTETGEN(Grid& grid,
 		for(uint i = 0; i < numNodes; ++i)
 		{
 			RegularVertex* v = *grid.create<RegularVertex>();
-			vVertices.push_back(v);
 
 		//	read index and coords
 			in >> index;
+			if(index > (int) vVertices.size())
+				vVertices.resize(index, NULL);
+			vVertices.push_back(v);
 			in >> aaPosVRT[v].x();
 			in >> aaPosVRT[v].y();
 			in >> aaPosVRT[v].z();
@@ -349,7 +357,7 @@ bool ImportGridFromTETGEN(Grid& grid,
 				int bm;
 				in >> bm;
 				if(psh != NULL)
-					psh->assign_subset(v, bm);
+					psh->assign_subset(v, abs(bm));
 			}
 		}
 
@@ -359,12 +367,15 @@ bool ImportGridFromTETGEN(Grid& grid,
 //	read faces
 	if(facesFilename != NULL)
 	{
+		PROFILE_BEGIN(read_faces);
 		ifstream in(facesFilename);
 		if(in)
 		{
 			int numFaces, numBoundaryMarkers;
 			in >> numFaces;
 			in >> numBoundaryMarkers;
+
+			grid.reserve<Face>(numFaces);
 
 			for(int i = 0; i < numFaces; ++i)
 			{
@@ -380,8 +391,11 @@ bool ImportGridFromTETGEN(Grid& grid,
 					int bm;
 					in >> bm;
 					if(psh != NULL){
-						psh->assign_subset(t, bm);
+						psh->assign_subset(t, abs(bm));
 					}
+				}
+				else if(psh != NULL){
+					psh->assign_subset(t, 0);
 				}
 			}
 		}
@@ -394,6 +408,7 @@ bool ImportGridFromTETGEN(Grid& grid,
 //	read volumes
 	if(elemsFilename != NULL)
 	{
+		PROFILE_BEGIN(read_volumes);
 		ifstream in(elemsFilename);
 		if(in)
 		{
@@ -402,11 +417,14 @@ bool ImportGridFromTETGEN(Grid& grid,
 			in >> numNodesPerTet;
 			in >> numAttribs;
 
+			grid.reserve<Volume>(numTets);
+
 			vector<int> vTetNodes(numNodesPerTet);
 			for(int i = 0; i < numTets; ++i)
 			{
 				int index;
 				in >> index;
+				// UG_LOG("  index = " << index << std::endl);
 				for(int j = 0; j < numNodesPerTet; ++j)
 					in >> vTetNodes[j];
 

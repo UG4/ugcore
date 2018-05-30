@@ -99,7 +99,7 @@ template <typename TGridFunction>
 void UzawaSlicing <TGridFunction>::
 init(const TGridFunction &u, const std::vector<std::string>& vSchurCmps)
 {
-	UG_LOG("UzawaSlicing::init" << std::endl);
+	UG_DLOG(SchurDebug, 3, "UzawaSlicing::init" << std::endl);
 
 	ConstSmartPtr<DoFDistributionInfo> ddinfo =
 			u.approx_space()->dof_distribution_info();
@@ -114,24 +114,21 @@ init(const TGridFunction &u, const std::vector<std::string>& vSchurCmps)
 	std::vector<size_t> vRemainCmp;
 
 	// tokenize passed functions
-	/*if(vSchurCmps.empty())
-		UG_THROW("UzawaBase::init: No components set.")
-	*/
 	UG_ASSERT(!vSchurCmps.empty(), "UzawaBase::init: No components set.");
 
-		// get ids of selected functions
+	// get ids of selected functions
 	for(size_t i = 0; i < vSchurCmps.size(); ++i)
 		vFullRowCmp.push_back(ddinfo->fct_id_by_name(vSchurCmps[i].c_str()));
 
 
-	// compute remaining functions
+	// Obtain remaining (non-Schur) functions.
 	for(size_t f = 0; f < ddinfo->num_fct(); ++f)
 		if(std::find(vFullRowCmp.begin(), vFullRowCmp.end(), f) == vFullRowCmp.end())
 			vRemainCmp.push_back(f);
 
 
 
-	//	extract for each dim-grouping objects
+	// Extract for each dim-grouping objects.
 	for(int d = VERTEX; d <= VOLUME; ++d)
 	{
 
@@ -150,7 +147,7 @@ init(const TGridFunction &u, const std::vector<std::string>& vSchurCmps)
 		default: UG_THROW("wrong dim");
 		}
 
-		UG_LOG("Found "<< vIndex.size() << " indices ( out of "<< u.size() << ") for Schur block after dimension "<< d << std::endl) ;
+		UG_DLOG(SchurDebug, 4, "Found "<< vIndex.size() << " indices ( out of "<< u.size() << ") for Schur block after dimension "<< d << std::endl) ;
 	}
 
 
@@ -162,6 +159,8 @@ init(const TGridFunction &u, const std::vector<std::string>& vSchurCmps)
 		UG_ASSERT(vIndex[i][1]==0, "Assuming CPUAlgebra...")
 		mapping[vIndex[i][0]] = true;
 	}
+
+	UG_DLOG(SchurDebug, 3, "UzawaSlicing::init::set_types" << std::endl);
 	base_type::set_types(mapping, true);
 
 }
@@ -170,8 +169,6 @@ init(const TGridFunction &u, const std::vector<std::string>& vSchurCmps)
 
 
 /*! Base class for an Uzawa iteration */
-
-
 
 template <typename TDomain, typename TAlgebra>
 class UzawaBase : public IPreconditioner<TAlgebra>
@@ -225,7 +222,7 @@ class UzawaBase : public IPreconditioner<TAlgebra>
 		/// Overriding base type
 		virtual bool init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 		{
-			UG_LOG("UzawaBase::init(J,u)")
+			UG_DLOG(SchurDebug, 4, "UzawaBase::init(J,u)")
 
 			SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp =
 					J.template cast_dynamic<MatrixOperator<matrix_type, vector_type> >();
@@ -234,10 +231,14 @@ class UzawaBase : public IPreconditioner<TAlgebra>
 
 			UG_ASSERT(pOp.valid(),  "Need a matrix based operator here!");
 			UG_ASSERT(pVecU!=NULL,  "Need a GridFunction here!");
+			base_type::init(J,u);   // calls preprocess
 
+			// Extract sub-matrices afterwards.
 			init_in_first_step(*pOp, *pVecU);
 			m_bInit = true;
-			return base_type::init(J,u);
+
+			return true;
+
 
 		}
 
@@ -299,7 +300,7 @@ public:
 			/// extract block matrix operators (called once)
 			void extract_sub_matrices(const matrix_type& K, const TGridFunction& c);
 
-			/// update C22 block by matrix
+			/// Update C22 block by matrix.
 			void extract_schur_update(const matrix_type& K, const TGridFunction& c)
 			{
 				if (m_spSchurUpdateOp.invalid()) return;
@@ -308,7 +309,7 @@ public:
 				const GridLevel clevel =  c.grid_level();
 				my_write_debug(K, "init_KFull_ForSchurUpdate", clevel, clevel);
 
-				///	assembling auxiliary matrix
+				//Assembling auxiliary matrix
 				SmartPtr<IAssemble<TAlgebra> > m_spAss = m_spSchurUpdateOp->discretization();
 				matrix_type tmpM;
 
@@ -318,11 +319,12 @@ public:
 				//m_spAss->ass_tuner()->set_force_regular_grid(false);
 
 				my_write_debug(tmpM, "init_MFull_ForSchurUpdate", clevel, clevel);
-				UG_LOG("extract_schur_update on level "<<  clevel << ", " << tmpM);
+				UG_DLOG(SchurDebug, 5, "extract_schur_update on level "<<  clevel << ", " << tmpM);
 
 
-
-				m_slicing.get_matrix(tmpM, UZAWA_CMP_SCHUR,   UZAWA_CMP_SCHUR,
+				/* Matrices C22 and M22 are both additive. Thus, we add both.
+				 * (Note, that preconds requiring a consistent diagonal must be called afterwards!)*/
+				m_slicing.get_matrix(tmpM, UZAWA_CMP_SCHUR,  UZAWA_CMP_SCHUR,
 									*(m_auxMat[AUX_M22].template cast_static<matrix_type>()) );
 
 				if (m_spSliceDebugWriter[UZAWA_CMP_SCHUR].valid()) {
@@ -330,14 +332,12 @@ public:
 															"UZAWA_init_M22_ForSchurUpdate.mat");
 				}
 
-				UG_LOG("AUX_C22:")
-				CheckRowIterators(*m_auxMat[AUX_C22]);
+				UG_DLOG(SchurDebug, 4, "AUX_C22:"); CheckRowIterators(*m_auxMat[AUX_C22]);
+				UG_DLOG(SchurDebug, 4, "AUX_M22:"); CheckRowIterators(*m_auxMat[AUX_M22]);
 
-				UG_LOG("AUX_M22:")
-				CheckRowIterators(*m_auxMat[AUX_M22]);
 				// add matrix
 				MatAddNonDirichlet<matrix_type>(*m_auxMat[AUX_C22], 1.0, *m_auxMat[AUX_C22], m_dSchurUpdateWeight, *m_auxMat[AUX_M22]);
-				//MatAdd(*m_auxMat[AUX_C22], 1.0, *m_auxMat[AUX_C22], m_dSchurUpdateWeight, *m_auxMat[AUX_M22]);
+
 				if (m_spSliceDebugWriter[UZAWA_CMP_SCHUR].valid()) {
 					m_spSliceDebugWriter[UZAWA_CMP_SCHUR]->write_matrix(*m_auxMat[AUX_C22],
 																		"UZAWA_init_C22_AfterSchurUpdate.mat");
@@ -351,17 +351,37 @@ public:
 				if (m_spBackwardInverse.valid()) { m_spBackwardInverse->init(m_auxMat[AUX_A11]); }
 			}
 
+/*
+			void power_iteration(ConstSmartPtr<vector_type> usol, ConstSmartPtr<vector_type> dsol)
+			{
+				SmartPtr<vector_type> uschur(m_slicing.template slice_clone<vector_type>(*usol, UZAWA_CMP_SCHUR) );
+				SmartPtr<vector_type> dschur(m_slicing.template slice_clone<vector_type>(*dsol, UZAWA_CMP_SCHUR) )
+				SmartPtr<vector_type> ueigen(m_slicing.template slice_clone<vector_type>(*usol, UZAWA_CMP_DEFAULT) );
+				SmartPtr<vector_type> deigen(m_slicing.template slice_clone<vector_type>(*usol, UZAWA_CMP_DEFAULT) );
+
+				// Initialize with random guess
+				ueigen->set_random(-0.5, 0.5);
+
+				// dschur = B12*ueigen
+
+
+				//
+				m_spForwardInverse->apply(*uschur, *dschur);
+
+			    // deigen = B21 * uschur
+
+			}
+*/
 
 			void postprocess_block_iterations()
 			{
-				/*
-				*/
+
 			}
 
 protected:
 			void init_in_first_step(const matrix_type &pMat, const TGridFunction &pC)
 			{
-				UG_LOG("step-init: Size=" << m_vSchurCmp.size() << std::endl);
+				UG_DLOG(SchurDebug, 4, "step-init: Size=" << m_vSchurCmp.size() << std::endl);
 				m_slicing.init(pC, m_vSchurCmp);
 
 				if (debug_writer().valid())
@@ -390,6 +410,7 @@ protected:
 				extract_sub_matrices(pMat, pC);
 				extract_schur_update(pMat, pC);
 
+				// Initialize preconditioners.
 				init_block_iterations();
 			}
 protected:
@@ -469,9 +490,7 @@ protected:
 		};
 
 protected:
-	// using base_type::set_debug;
 	using base_type::debug_writer;
-	// using base_type::write_debug;
 
 	void set_debug(SmartPtr<IDebugWriter<algebra_type> > spDebugWriter);
 
@@ -511,12 +530,12 @@ preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
 }
 
 
-
+//! Single step of an (inexact) Uzawa iteration
 template <typename TDomain, typename TAlgebra>
 bool UzawaBase<TDomain, TAlgebra>::
 step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
 {
-	//	check that grid function passed
+	// Check that grid function was passed.
 	GridFunction<TDomain, TAlgebra>* pC = dynamic_cast<GridFunction<TDomain, TAlgebra>*>(&c);
 	if(pC == NULL) UG_THROW("UzawaBase: expects correction to be a GridFunction.");
 
@@ -527,7 +546,7 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 	SmartPtr<vector_type> spDtmp;
 	if(pcl::NumProcs() > 1)
 	{
-		//	make defect unique
+		// Make defect unique
 		spDtmp = d.clone();
 		spDtmp->change_storage_type(PST_UNIQUE);
 		pD = spDtmp.get();
@@ -535,73 +554,62 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 	}
 #endif
 
-	//	check, if initialized
+	//	Check, if initialized.
 	if(!m_bInit)
 	{
 		init_in_first_step(*pMat, *pC);
-		/*
-		UG_LOG("step-init: Size=" << m_vSchurCmp.size() << std::endl);
-		m_slicing.init(*pC, m_vSchurCmp);
-
-		if (debug_writer().valid())
-		{
-
-			debug_writer()->update_positions();
-			switch(debug_writer()->get_dim())
-			{
-				case 1:	reset_slice_debug_writers<1>(); break;
-				case 2:	reset_slice_debug_writers<2>(); break;
-				case 3:	reset_slice_debug_writers<3>(); break;
-				default: UG_LOG("Invalid dimension for debug_write ???");
-			}
-		}
-
-
-		extract_sub_matrices(*pMat, *pC);
-		extract_schur_update(*pMat, *pC);
-
-		init_block_iterations();
-
-*/
 		m_bInit = true;
 
 	}
 
-	// 	clear correction
-
+	// Obtain defects.
 	SmartPtr<vector_type> ff(m_slicing.template slice_clone<vector_type>(*pD, UZAWA_CMP_DEFAULT) );
 	SmartPtr<vector_type> gg(m_slicing.template slice_clone<vector_type>(*pD, UZAWA_CMP_SCHUR) );
 
-	SmartPtr<vector_type> cRegular(m_slicing.template slice_clone_without_values<vector_type>(*pC, UZAWA_CMP_DEFAULT) );
-	SmartPtr<vector_type> cSchur(m_slicing.template slice_clone_without_values<vector_type>(*pC, UZAWA_CMP_SCHUR) );
+	// Clear corrections.
+	SmartPtr<vector_type> cRegular(m_slicing.template slice_clone_without_values<vector_type>(*pC, UZAWA_CMP_DEFAULT));
+	SmartPtr<vector_type> cSchur(m_slicing.template slice_clone_without_values<vector_type>(*pC, UZAWA_CMP_SCHUR));
 
 	pC->set(0.0);
 	cRegular->set(0.0);
 	cSchur->set(0.0);
 
+	// Step 1: Solve problem \tilde A11 \tilde u = f
 	my_write_debug(*pC, "UZAWA_Correction0");
-	if (m_spForwardInverse.valid()) {
-		// solve problem \tilde A uDelta ^* = f- AUX_A11 u^k -B12 p^p
-		UG_ASSERT(m_spForwardInverse.valid(), "Need valid iteration!");
-		m_spForwardInverse->apply_update_defect(*cRegular, *ff);
+	my_write_debug(*(GridFunction<TDomain, TAlgebra>*) pD, "UZAWA_Defect0");
+	if (m_spForwardInverse.valid())
+	{
+		// Solve problem, also compute  g:=(f - A11 \tilde u)
+		// WARNING: Should use exact A11.
+	   // m_spForwardInverse->apply_update_defect(*cRegular, *ff);
+		m_spForwardInverse->apply(*cRegular, *ff);
+
 		m_slicing.template set_vector_slice<vector_type>(*cRegular, *pC, UZAWA_CMP_DEFAULT);
 		my_write_debug(*pC, "UZAWA_Correction1");
+
+		// Update g:= (g - B21 \tilde u^k)
+		m_auxMat[B21]->apply_sub(*gg, *cRegular);
 	}
 
+	// Step 2: Solve problem: (\tilde S22) pDelta = (g - B21 \tilde u)
 	if (m_SpSchurComplementInverse.valid()) {
-		// solve problem \tilde S pDelta = g - B12 uDelta
-		UG_ASSERT(m_SpSchurComplementInverse.valid(), "Need valid iteration!");
-		m_auxMat[AUX_C22]->apply_sub(*gg, *cRegular);
+
+		//m_auxMat[AUX_C22]->apply_sub(*gg, *cRegular);
 		m_SpSchurComplementInverse->apply(*cSchur, *gg);
 		m_slicing.template set_vector_slice<vector_type>(*cSchur, *pC, UZAWA_CMP_SCHUR);
 		my_write_debug(*pC, "UZAWA_Correction2");
+
+	    // update defect
+		m_auxMat[B12]->apply_sub(*ff, *cSchur);
 	}
 
+	// Step 3: Solve problem \tilde A11 uDelta^{k+1} = (f - \tilde A11 u^k) - B12 p^k
 	if (m_spBackwardInverse.valid()) {
-		// solve problem \tilde A uDelta^{k+1} = f- A11 u^k -B12 p^p
-		m_auxMat[B12]->apply_sub(*ff, *cSchur);
+
+		// ff has been updated
 		m_spBackwardInverse->apply(*cRegular, *ff);
-		m_slicing.template add_vector_slice<vector_type>(*cRegular, *pC, UZAWA_CMP_DEFAULT);
+		// m_slicing.template add_vector_slice<vector_type>(*cRegular, *pC, UZAWA_CMP_DEFAULT);
+		m_slicing.template set_vector_slice<vector_type>(*cRegular, *pC, UZAWA_CMP_DEFAULT);
 		my_write_debug(*pC, "UZAWA_Correction3");
 	}
 
@@ -610,6 +618,7 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 	 pC->set_storage_type(PST_UNIQUE);
 #endif
 
+	 // UG_ASSERT(0, "STOP HERE!")
 	return true;
 }
 
@@ -617,24 +626,36 @@ template <typename TDomain, typename TAlgebra>
 void UzawaBase<TDomain, TAlgebra>::
 extract_sub_matrices(const matrix_type& K, const TGridFunction& c)
 {
+	// Copy matrices.
 	m_slicing.get_matrix(K, UZAWA_CMP_DEFAULT, UZAWA_CMP_DEFAULT, *(m_auxMat[AUX_A11].template cast_static<matrix_type>()) );
 	m_slicing.get_matrix(K, UZAWA_CMP_DEFAULT, UZAWA_CMP_SCHUR,   *(m_auxMat[B12].template cast_static<matrix_type>()) );
 	m_slicing.get_matrix(K, UZAWA_CMP_SCHUR,   UZAWA_CMP_DEFAULT, *(m_auxMat[B21].template cast_static<matrix_type>()) );
 	m_slicing.get_matrix(K, UZAWA_CMP_SCHUR,   UZAWA_CMP_SCHUR,   *(m_auxMat[AUX_C22].template cast_static<matrix_type>()) );
 
-	UG_LOG("A11 =" << *m_auxMat[AUX_A11] << ", ");
-	UG_LOG("B12 =" << *m_auxMat[B12] << ", ");
-	UG_LOG("B21 =" << *m_auxMat[B21] << ", ");
-	UG_LOG("C22 =" << *m_auxMat[AUX_C22] << std::endl);
+	UG_DLOG(SchurDebug, 4, "A11 =" << *m_auxMat[AUX_A11] << ", ");
+	UG_DLOG(SchurDebug, 4, "B12 =" << *m_auxMat[B12] << ", ");
+	UG_DLOG(SchurDebug, 4, "B21 =" << *m_auxMat[B21] << ", ");
+	UG_DLOG(SchurDebug, 4, "C22 =" << *m_auxMat[AUX_C22] << std::endl);
 
 #ifdef UG_PARALLEL
+	// Copy storage mask.
 	uint mask_K = K.get_storage_mask();
 	m_auxMat[AUX_A11]->set_storage_type(mask_K);
 	m_auxMat[B12]->set_storage_type(mask_K);
 	m_auxMat[B21]->set_storage_type(mask_K);
 	m_auxMat[AUX_C22]->set_storage_type(mask_K);
+
+	// Extract and set layouts.
+	SmartPtr<AlgebraLayouts> defaultLayouts = m_slicing.create_slice_layouts(K.layouts(), UZAWA_CMP_DEFAULT);
+	SmartPtr<AlgebraLayouts> schurLayouts   = m_slicing.create_slice_layouts(K.layouts(), UZAWA_CMP_SCHUR);
+
+	m_auxMat[AUX_A11]->set_layouts(defaultLayouts);
+	m_auxMat[AUX_C22]->set_layouts(schurLayouts);
+
 #endif
 
+
+	// Write matrices for debug, if applicable.
 	if (m_spSliceDebugWriter[UZAWA_CMP_DEFAULT].valid()) {
 		m_spSliceDebugWriter[UZAWA_CMP_DEFAULT]->write_matrix(*m_auxMat[AUX_A11], "UZAWA_init_A11_AfterExtract.mat");
 	}

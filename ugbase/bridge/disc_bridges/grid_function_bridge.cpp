@@ -184,7 +184,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef CplUserData<number, dim> TBase;
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridFunction#Component")
-			.add_method("evaluate", static_cast<number (T::*)(std::vector<number>)>(&T::evaluate))
+			.add_method("evaluate", static_cast<number (T::*)(const MathVector<dim>&) const>(&T::evaluate))
+			.add_method("evaluate_global", static_cast<number (T::*)(std::vector<number>)>(&T::evaluate_global))
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GlobalGridFunctionNumberData", tag);
 	}
@@ -197,7 +198,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef CplUserData<number, dim> TBase;
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridFunction#Component")
-			.add_method("evaluate", static_cast<number (T::*)(std::vector<number>)>(&T::evaluate))
+			.add_method("evaluate", static_cast<number (T::*)(const MathVector<dim>&) const>(&T::evaluate))
+			.add_method("evaluate_global", static_cast<number (T::*)(std::vector<number>)>(&T::evaluate_global))
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GlobalEdgeGridFunctionNumberData", tag);
 	}
@@ -210,7 +212,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef CplUserData<MathVector<dim>, dim> TBase;
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridFunction#Component")
-			.add_method("evaluate", static_cast<std::vector<number> (T::*)(std::vector<number>)>(&T::evaluate))
+			.add_method("evaluate_global", static_cast<std::vector<number> (T::*)(std::vector<number>)>(&T::evaluate_global))
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GlobalGridFunctionGradientData", tag);
 	}
@@ -230,7 +232,9 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef IGridFunctionSpace<TFct> TBase;
 
 		string name = string("IComponentSpace").append(suffix);
-		reg.add_class_<T, TBase>(name, grp);
+		reg.add_class_<T, TBase>(name, grp)
+		   .add_method("norm", static_cast<number (T::*)(TFct&) > (&T::norm))
+		   .add_method("distance", static_cast<number (T::*)(TFct&, TFct&) > (&T::distance));
 
 		reg.add_class_to_group(name, "IComponentSpace", tag);
 	}
@@ -245,9 +249,12 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_<T, TBase>(name, grp)
 		   .template add_constructor<void (*)(const char *) >("fctNames")
 		   .template add_constructor<void (*)(const char *, int) >("fctNames, order")
-		   .template add_constructor<void (*)(const char *, const char *, int) >("fctNames, subsetNames, order")
-		   .template add_constructor<void (*)(const char *, const char *, int, double) >("fctNames, ssNames, order, weight")
+		   .template add_constructor<void (*)(const char *, int, double) >("fctNames, order, weight")
+		   .template add_constructor<void (*)(const char *, int, double, const char *) >("fctNames, order, weight, ssNames")
+		   .template add_constructor<void (*)(const char *, int, ConstSmartPtr<TWeight>) >("fctNames, order, weight")
+		   .template add_constructor<void (*)(const char *, int, ConstSmartPtr<TWeight>, const char *) >("fctNames, order, weight, ssNames")
 		 //  .template add_constructor<void (*)(const char *, const char *, int, ConstSmartPtr<TWeight>) >("fctNames, ssNames, order, weight")
+
 		   .set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "L2ComponentSpace", tag);
 	}
@@ -268,11 +275,55 @@ static void DomainAlgebra(Registry& reg, string grp)
 		   .template add_constructor<void (*)(const char *, int, const char *, ConstSmartPtr<TWeight>) >("fctNames, order, weight, ssNames")
 		   .add_method("set_weight", &T::set_weight)
 		   .add_method("get_weight", &T::get_weight)
-		   .add_method("norm", static_cast<number (T::*)(TFct&) const> (&T::norm))
-		   .add_method("distance", static_cast<number (T::*)(TFct&, TFct&) const> (&T::distance))
+		   .add_method("norm", static_cast<number (T::*)(TFct&) > (&T::norm))
+		   .add_method("distance", static_cast<number (T::*)(TFct&, TFct&) > (&T::distance))
 		   .set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "H1SemiComponentSpace", tag);
 	}
+/*
+	// KineticEnergyComponentSpace
+			{
+				typedef KineticEnergyComponentSpace<TFct> T;
+				typedef IComponentSpace<TFct> TBase;
+				typedef typename T::weight_type TWeight;
+				typedef typename T::velocity_type TVelocity;
+
+				string name = string("KineticEnergyComponentSpace").append(suffix);
+				reg.add_class_<T, TBase>(name, grp)
+				   .template add_constructor<void (*)(SmartPtr<TVelocity>, const char *) >("fctNames")
+				   .template add_constructor<void (*)(SmartPtr<TVelocity>,const char *, int) >("fctNames, order")
+				   .template add_constructor<void (*)(SmartPtr<TVelocity>,const char *, int, number) >("fctNames, order, weight")
+				   .template add_constructor<void (*)(SmartPtr<TVelocity>,const char *, int, number, const char *) >("fctNames, order, weight, ssNames")
+				   .template add_constructor<void (*)(SmartPtr<TVelocity>,const char *, int, ConstSmartPtr<TWeight>) >("fctNames, order, weight")
+				   .template add_constructor<void (*)(SmartPtr<TVelocity>,const char *, int, const char *, ConstSmartPtr<TWeight>) >("fctNames, order, weight, ssNames")
+				   .add_method("set_weight", &T::set_weight)
+				   .add_method("get_weight", &T::get_weight)
+				   .set_construct_as_smart_pointer(true);
+				reg.add_class_to_group(name, "KineticEnergyComponentSpace", tag);
+			}
+*/
+	// H1EnergyComponentSpace
+		{
+			typedef H1EnergyComponentSpace<TFct> T;
+			typedef IComponentSpace<TFct> TBase;
+			typedef typename H1EnergyIntegrand<TFct>::weight_type TWeight;
+
+			string name = string("VelEnergyComponentSpace").append(suffix);
+			reg.add_class_<T, TBase>(name, grp)
+			   .template add_constructor<void (*)(const char *) >("fctNames")
+			   .template add_constructor<void (*)(const char *, int) >("fctNames, order")
+			   .template add_constructor<void (*)(const char *, int, number) >("fctNames, order, weight")
+			   .template add_constructor<void (*)(const char *, int, number, const char *) >("fctNames, order, weight, ssNames")
+			   .template add_constructor<void (*)(const char *, int, ConstSmartPtr<TWeight>) >("fctNames, order, weight")
+			   .template add_constructor<void (*)(const char *, int, const char *, ConstSmartPtr<TWeight>) >("fctNames, order, weight, ssNames")
+			   .add_method("set_weight", &T::set_weight)
+			   .add_method("get_weight", &T::get_weight)
+			   .add_method("norm", static_cast<number (T::*)(TFct&) > (&T::norm))
+			   .add_method("distance", static_cast<number (T::*)(TFct&, TFct&) > (&T::distance))
+			   .add_method("set_velocity", &T::set_velocity)
+			   .set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, "VelEnergyComponentSpace", tag);
+		}
 
 	// H1ComponentSpace
 	{

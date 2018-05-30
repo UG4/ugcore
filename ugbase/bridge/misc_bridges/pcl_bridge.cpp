@@ -122,6 +122,9 @@ void RegisterBridge_PCL(Registry& reg, string parentGroup)
 	string grp(parentGroup);
 	grp.append("/pcl");
 
+	reg.add_function("DisableMPIInit", &pcl::DisableMPIInit, grp, "", "",
+	                 "Tells PCL to not call MPI_Init and MPI_Finalize.");
+
 	reg.add_function("PclDebugBarrierEnabled", &PclDebugBarrierEnabled, grp,
 					"Enabled", "", "Returns the whether debug barriers are enabled.");
 
@@ -151,6 +154,9 @@ void RegisterBridge_PCL(Registry& reg, string parentGroup)
 }
 
 #else // UG_PARALLEL
+
+void DisableMPIInitDUMMY ()
+{}
 
 static bool PclDebugBarrierEnabledDUMMY()
 {
@@ -199,6 +205,9 @@ void RegisterBridge_PCL(Registry& reg, string parentGroup)
 {
 	string grp(parentGroup);
 	grp.append("/PCL");
+
+	reg.add_function("DisableMPIInit", &DisableMPIInitDUMMY, grp, "", "",
+	                 "Tells PCL to not call MPI_Init and MPI_Finalize.");
 
 	reg.add_function("PclDebugBarrierEnabled", &PclDebugBarrierEnabledDUMMY, grp,
 					"Enabled", "", "Returns the whether debug barriers are enabled.");

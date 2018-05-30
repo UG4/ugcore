@@ -43,7 +43,8 @@ set(srcGrid		grid/grid.cpp
 				grid/grid_connection_managment.cpp
 				grid/grid_object_collection.cpp
 				grid/grid_util.cpp
-				grid/neighborhood.cpp)
+				grid/neighborhood.cpp
+				grid/neighborhood_util.cpp)
 				
 set(srcAlgorithms	algorithms/debug_util.cpp
 					algorithms/element_side_util.cpp

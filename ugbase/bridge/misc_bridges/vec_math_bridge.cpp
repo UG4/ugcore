@@ -104,6 +104,8 @@ static void RegisterVecMathBridge_DimIndep(Registry& reg, string grp)
 			reg.add_class_<vec_type>("Vec1d", grp)
 				.add_constructor()
 				.add_constructor<void (*)(number)>()
+				.add_method("set_coord", &vec_type::set_coord, "", "index # value",
+				            "sets the value of the coordinate with the given index")
 				.add_method("coord",
 						static_cast<vec_type::value_type (vec_type::*)(size_t) const>(&vec_type::coord));
 			//reg.add_class_to_group("Vec1d", "Vec", GetDimensionTag<1>());
@@ -113,6 +115,8 @@ static void RegisterVecMathBridge_DimIndep(Registry& reg, string grp)
 			reg.add_class_<vec_type>("Vec2d", grp)
 				.add_constructor()
 				.add_constructor<void (*)(number, number)>()
+				.add_method("set_coord", &vec_type::set_coord, "", "index # value",
+				            "sets the value of the coordinate with the given index")
 				.add_method("coord",
 						static_cast<vec_type::value_type (vec_type::*)(size_t) const>(&vec_type::coord));
 			//reg.add_class_to_group("Vec2d", "Vec", GetDimensionTag<2>());
@@ -122,6 +126,8 @@ static void RegisterVecMathBridge_DimIndep(Registry& reg, string grp)
 			reg.add_class_<vec_type>("Vec3d", grp)
 				.add_constructor()
 				.add_constructor<void (*)(number, number, number)>()
+				.add_method("set_coord", &vec_type::set_coord, "", "index # value",
+				            "sets the value of the coordinate with the given index")
 				.add_method("coord",
 						static_cast<vec_type::value_type (vec_type::*)(size_t) const>(&vec_type::coord));
 			//reg.add_class_to_group("Vec3d", "Vec", GetDimensionTag<3>());
@@ -131,6 +137,8 @@ static void RegisterVecMathBridge_DimIndep(Registry& reg, string grp)
 			reg.add_class_<vec_type>("Vec4d", grp)
 				.add_constructor()
 				.add_constructor<void (*)(number, number, number, number)>()
+				.add_method("set_coord", &vec_type::set_coord, "", "index # value",
+				            "sets the value of the coordinate with the given index")
 				.add_method("coord",
 						static_cast<vec_type::value_type (vec_type::*)(size_t) const>(&vec_type::coord));
 			//reg.add_class_to_group("Vec4d", "Vec", GetDimensionTag<4>());

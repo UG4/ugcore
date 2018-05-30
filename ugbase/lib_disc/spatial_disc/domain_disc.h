@@ -483,6 +483,9 @@ public:
 	///	returns the i'th constraint
 		virtual SmartPtr<IConstraint<TAlgebra> > constraint(size_t i) {return m_vConstraint[i];}
 
+		SmartPtr<approx_space_type> approximation_space ()				{return m_spApproxSpace;}
+		ConstSmartPtr<approx_space_type> approximation_space () const	{return m_spApproxSpace;}
+
 	protected:
 	///	set the approximation space in the elem discs and extract IElemDiscs
 		void update_elem_discs();

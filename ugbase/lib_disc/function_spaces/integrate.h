@@ -56,6 +56,58 @@
 
 namespace ug{
 
+
+////////////////////////////////////////////////////////////////////////////////
+// Object encapsulating (scalar) GridFunction related data
+////////////////////////////////////////////////////////////////////////////////
+template <typename TGridFunction>
+class ScalarGridFunctionData
+{
+public:
+	typedef typename TGridFunction::domain_type domain_type;
+
+	ScalarGridFunctionData(TGridFunction& gridFct, size_t cmp)
+	: m_gridFct(gridFct), m_fct(cmp),
+	 m_id(m_gridFct.local_finite_element_id(m_fct))
+	{}
+
+	TGridFunction& grid_function()
+	{return  m_gridFct;}
+
+	const TGridFunction& grid_function() const
+	{return  m_gridFct;}
+
+	size_t fct()
+	{return m_fct;}
+
+	const LFEID &id() const
+	{return m_id;}
+
+	//! returns true, iff scalar function is defined in subset si
+	bool is_def_in_subset(int si) const
+	{ return m_gridFct.is_def_in_subset(m_fct, si); }
+
+	///	returns domain (forward)
+	SmartPtr<domain_type> domain() {return m_gridFct.domain();}
+
+	///	returns const domain (forward)
+	ConstSmartPtr<domain_type> domain() const {return m_gridFct.domain();}
+
+	template <typename TElem>
+	size_t dof_indices(TElem* elem, std::vector<DoFIndex>& ind, bool bHang = false, bool bClear = true) const
+	{return m_gridFct.dof_indices(elem, m_fct, ind, bHang, bClear);}
+
+private:
+	/// grid function
+		TGridFunction& m_gridFct;
+
+	///	component of function
+		size_t m_fct;
+
+	///	local finite element id
+		LFEID m_id;
+};
+
 ////////////////////////////////////////////////////////////////////////////////
 // Integrand Interface
 ////////////////////////////////////////////////////////////////////////////////
@@ -409,7 +461,7 @@ number IntegrateSubsets(IIntegrand<number, TGridFunction::dim> &spIntegrand,
 // UserData Integrand
 ////////////////////////////////////////////////////////////////////////////////
 
-//! For arbitrary UserData $\rho$, this class defines the integrand $\rho(u)$.
+//! For arbitrary UserData \f$\rho\f$, this class defines the integrand \f$\rho(u)\f$.
 template <typename TData, typename TGridFunction>
 class UserDataIntegrand
 	: public StdIntegrand<TData, TGridFunction::dim, UserDataIntegrand<TData, TGridFunction> >
@@ -496,6 +548,303 @@ class UserDataIntegrand
 		};
 };
 
+
+
+
+//! For arbitrary UserData \f$f\f$ (of type TData), this class defines the integrand \f$f^2(u)\f$.
+template <typename TData, typename TGridFunction>
+class UserDataIntegrandSq
+	: public StdIntegrand<number, TGridFunction::dim, UserDataIntegrandSq<TData, TGridFunction> >
+{
+	public:
+	//	world dimension of grid function
+		static const int worldDim = TGridFunction::dim;
+
+	//	data type
+		typedef TData data_type;
+
+	private:
+	//  data to integrate
+		SmartPtr<UserData<TData, worldDim> > m_spData;
+
+	// 	grid function
+		const TGridFunction* m_pGridFct;
+
+	//	time
+		number m_time;
+
+	public:
+	/// constructor
+		UserDataIntegrandSq(SmartPtr<UserData<TData, worldDim> > spData,
+		                      const TGridFunction* pGridFct,
+		                      number time)
+		: m_spData(spData), m_pGridFct(pGridFct), m_time(time)
+		{
+			m_spData->set_function_pattern(pGridFct->function_pattern());
+		};
+
+	/// constructor
+		UserDataIntegrandSq(SmartPtr<UserData<TData, worldDim> > spData,
+							  number time)
+		: m_spData(spData), m_pGridFct(NULL), m_time(time)
+		{
+			if(m_spData->requires_grid_fct())
+				UG_THROW("UserDataIntegrand: Missing GridFunction, but "
+						" data requires grid function.")
+		};
+
+
+	/// \copydoc IIntegrand::values
+		template <int elemDim>
+		void evaluate(number vValue[],
+		              const MathVector<worldDim> vGlobIP[],
+		              GridObject* pElem,
+		              const MathVector<worldDim> vCornerCoords[],
+		              const MathVector<elemDim> vLocIP[],
+		              const MathMatrix<elemDim, worldDim> vJT[],
+		              const size_t numIP)
+		{
+
+			std::vector<TData> tmpValues(numIP);
+
+		//	get local solution if needed
+			if(m_spData->requires_grid_fct())
+			{
+				UG_ASSERT(m_pGridFct!=NULL, "Error: Requires valid pointer!")
+			//	create storage
+				LocalIndices ind;
+				LocalVector u;
+
+			// 	get global indices
+				m_pGridFct->indices(pElem, ind);
+
+			// 	adapt local algebra
+				u.resize(ind);
+
+			// 	read local values of u
+				GetLocalVector(u, *m_pGridFct);
+
+			//	compute data
+				try{
+					(*m_spData)(&tmpValues.front(), vGlobIP, m_time, this->m_si, pElem,
+								vCornerCoords, vLocIP, numIP, &u, &vJT[0]);
+				}
+				UG_CATCH_THROW("UserDataIntegrand: Cannot evaluate data.");
+			}
+			else
+			{
+			//	compute data
+				try{
+					(*m_spData)(&tmpValues.front(), vGlobIP, m_time, this->m_si, numIP);
+				}
+				UG_CATCH_THROW("UserDataIntegrand: Cannot evaluate data.");
+			}
+
+			for (size_t i=0; i<numIP; ++i)
+			{
+				vValue[i]=inner_prod(tmpValues[i], tmpValues[i]);
+			}
+
+		};
+	protected:
+
+		number inner_prod(const number &d1, const number &d2)
+		{return d1*d2;}
+
+		number inner_prod(const MathVector<worldDim> &d1, const MathVector<worldDim> &d2)
+		{return VecDot(d1, d2);}
+
+		template<typename T>
+		number inner_prod(const T &d1, const T &d2)
+		{ UG_ASSERT(0, "NOT IMPLEMENTED"); return 0.0;}
+};
+
+
+
+
+//! For arbitrary UserData $f$ and grid functions u_1 and u_2, this class (should) define the integrand $ (f(u_1)- f(u_2))^2$.
+template <typename TData, typename TGridFunction>
+class UserDataDistIntegrandSq
+		: public StdIntegrand<number, TGridFunction::dim, UserDataDistIntegrandSq<TData, TGridFunction> >
+{
+	public:
+	///	world dimension of grid function
+		static const int worldDim = TGridFunction::dim;
+		// typedef typename L2Integrand<TGridFunction>::weight_type weight_type;
+
+	protected:
+		ScalarGridFunctionData<TGridFunction> m_fineData;
+		const int m_fineTopLevel;
+
+		ScalarGridFunctionData<TGridFunction> m_coarseData;
+		const int m_coarseTopLevel;
+
+	///	multigrid
+		SmartPtr<MultiGrid> m_spMG;
+
+
+
+		SmartPtr<UserData<TData, worldDim> > m_spData;
+		// ConstSmartPtr<weight_type> m_spWeight;
+
+		double m_time;
+	public:
+
+		/// constructor (1st is fine grid function)
+		UserDataDistIntegrandSq(SmartPtr<UserData<TData, worldDim> > spData, TGridFunction& fineGridFct, size_t fineCmp,
+					TGridFunction& coarseGridFct, size_t coarseCmp)
+		: m_fineData(fineGridFct, fineCmp), m_fineTopLevel(fineGridFct.dof_distribution()->grid_level().level()),
+		  m_coarseData(coarseGridFct, coarseCmp), m_coarseTopLevel(coarseGridFct.dof_distribution()->grid_level().level()),
+		  m_spMG(m_fineData.domain()->grid()), m_spData(spData), m_time(0.0) /*, m_spWeight(make_sp(new ConstUserNumber<TGridFunction::dim>(1.0)))*/
+		{
+			if(m_fineTopLevel < m_coarseTopLevel)
+				UG_THROW("UserDataDistIntegrandSq: fine and top level inverted.");
+
+			if(m_fineData.domain().get() != m_coarseData.domain().get())
+				UG_THROW("UserDataDistIntegrandSq: grid functions defined on different domains.");
+		};
+
+		virtual ~UserDataDistIntegrandSq() {}
+
+		///	sets subset
+		virtual void set_subset(int si)
+		{
+			if(!m_fineData.is_def_in_subset(si))
+				UG_THROW("UserDataDistIntegrandSq: Grid function component"
+						<<m_fineData.fct()<<" not defined on subset "<<si);
+			if(!m_coarseData.is_def_in_subset(si))
+				UG_THROW("UserDataDistIntegrandSq: Grid function component"
+						<<m_coarseData.fct()<<" not defined on subset "<<si);
+			IIntegrand<number, worldDim>::set_subset(si);
+		}
+
+	/// \copydoc IIntegrand::values
+		template <int elemDim>
+		void evaluate(number vValue[],
+		              const MathVector<worldDim> vGlobIP[],
+		              GridObject* pFineElem,
+		              const MathVector<worldDim> vCornerCoords[],
+		              const MathVector<elemDim> vFineLocIP[],
+		              const MathMatrix<elemDim, worldDim> vJT[],
+		              const size_t numIP)
+		{
+
+
+		// must return 0.0, if m_spData is independent of grid functions
+			if(!m_spData->requires_grid_fct()) {
+				for (size_t i=0; i<numIP; ++i) { vValue[i]=0.0; }
+				return;
+			}
+
+		//	get coarse element
+			GridObject* pCoarseElem = pFineElem;
+			if(m_coarseTopLevel < m_fineTopLevel){
+				int parentLevel = m_spMG->get_level(pCoarseElem);
+				while(parentLevel > m_coarseTopLevel){
+					pCoarseElem = m_spMG->get_parent(pCoarseElem);
+					parentLevel = m_spMG->get_level(pCoarseElem);
+				}
+			}
+
+		//	get corner coordinates
+			typedef typename TGridFunction::template dim_traits<elemDim>::grid_base_object TElem;
+			std::vector<MathVector<worldDim> > vCornerCoarse;
+			CollectCornerCoordinates(vCornerCoarse, *static_cast<TElem*>(pCoarseElem), *m_coarseData.domain());
+
+		//	get Reference Mapping
+			const ReferenceObjectID coarseROID = pCoarseElem->reference_object_id();
+			DimReferenceMapping<elemDim, worldDim>& map
+				= ReferenceMappingProvider::get<elemDim, worldDim>(coarseROID, vCornerCoarse);
+
+			std::vector<MathVector<elemDim> > vCoarseLocIP;
+			vCoarseLocIP.resize(numIP);
+			for(size_t ip = 0; ip < vCoarseLocIP.size(); ++ip) VecSet(vCoarseLocIP[ip], 0.0);
+			map.global_to_local(&vCoarseLocIP[0], vGlobIP, numIP);
+
+		// element weights
+		/*	typedef typename weight_type::data_type ipdata_type;
+			std::vector<ipdata_type> fineElemWeights(numIP, 1.0);
+			UG_ASSERT(m_spWeight.valid(), "L2DistIntegrand::evaluate requires valid weights! ");
+			(*m_spWeight)(&fineElemWeights[0], vFineGlobIP, 0.0, IIntegrand<number, worldDim>::subset(), numIP);*/
+
+
+		//	get trial space
+		/*	const LocalShapeFunctionSet<elemDim>& rFineLSFS =
+					LocalFiniteElementProvider::get<elemDim>(fineROID, m_fineData.id());
+			const LocalShapeFunctionSet<elemDim>& rCoarseLSFS =
+					LocalFiniteElementProvider::get<elemDim>(coarseROID, m_coarseData.id());*/
+
+		//	get multiindices of element
+			/*std::vector<DoFIndex> vFineMI, vCoarseMI;
+			m_fineData.dof_indices(pFineElem, vFineMI);
+			m_coarseData.dof_indices(pCoarseElem, vCoarseMI);*/
+
+			TData fineValues[numIP];
+			TData coarseValues[numIP];
+
+
+
+		//	compute coarse data
+			try{
+				LocalVector uCoarse;
+				LocalIndices indCoarse;
+
+				m_coarseData.grid_function().indices(pCoarseElem, indCoarse);
+				uCoarse.resize(indCoarse);
+				GetLocalVector(uCoarse, m_coarseData.grid_function());
+
+				(*m_spData)(coarseValues, vGlobIP, m_time, this->m_si, pCoarseElem,
+						&vCornerCoarse[0], &vCoarseLocIP[0], numIP, &uCoarse, &vJT[0]);
+			} UG_CATCH_THROW("UserDataDistIntegrandSq: Cannot evaluate coarse data.");
+
+
+		//	compute fine data
+			try{
+				LocalVector uFine;
+				LocalIndices indFine;
+
+				m_fineData.grid_function().indices(pFineElem, indFine);
+				uFine.resize(indFine);
+				GetLocalVector(uFine, m_fineData.grid_function());
+
+				(*m_spData)(fineValues, vGlobIP, m_time, this->m_si, pFineElem,
+						vCornerCoords, vFineLocIP, numIP, &uFine, &vJT[0]);
+			} UG_CATCH_THROW("UserDataDistIntegrandSq: Cannot evaluate fine data.");
+
+		//	loop all integration points
+			for(size_t ip = 0; ip < numIP; ++ip)
+			{
+				vValue[ip] = inner_dist2(fineValues[ip], coarseValues[ip]);
+			}
+
+		};
+
+
+	protected:
+
+			number inner_prod(const number &d1, const number &d2)
+			{return d1*d2;}
+
+			number inner_prod(const MathVector<worldDim> &d1, const MathVector<worldDim> &d2)
+			{return VecDot(d1, d2);}
+
+			template<typename T>
+			number inner_prod(const T &d1, const T &d2)
+			{ UG_ASSERT(0, "NOT IMPLEMENTED"); return 0.0;}
+
+
+
+			number inner_dist2(const number &v1, const number &v2)
+			{ return (v1-v2)*(v1-v2); }
+
+			number inner_dist2(const MathVector<worldDim> &v1, const MathVector<worldDim> &v2)
+			{ return VecDistanceSq(v1, v2); }
+
+			template<typename T>
+			number inner_dist2(const T &d1, const T &d2)
+			{ UG_ASSERT(0, "NOT IMPLEMENTED"); return 0.0;}
+
+};
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -604,56 +953,6 @@ number Integral(const char* luaFct, SmartPtr<TGridFunction> spGridFct)
 
 #endif
 
-////////////////////////////////////////////////////////////////////////////////
-// Object encapsulating (scalar) GridFunction related data
-////////////////////////////////////////////////////////////////////////////////
-template <typename TGridFunction>
-class ScalarGridFunctionData
-{
-public:
-	typedef typename TGridFunction::domain_type domain_type;
-
-	ScalarGridFunctionData(TGridFunction& gridFct, size_t cmp)
-	: m_gridFct(gridFct), m_fct(cmp),
-	 m_id(m_gridFct.local_finite_element_id(m_fct))
-	{}
-
-	TGridFunction& grid_function()
-	{return  m_gridFct;}
-
-	const TGridFunction& grid_function() const
-	{return  m_gridFct;}
-
-	size_t fct()
-	{return m_fct;}
-
-	const LFEID &id() const
-	{return m_id;}
-
-	//! returns true, iff scalar function is defined in subset si
-	bool is_def_in_subset(int si) const
-	{ return m_gridFct.is_def_in_subset(m_fct, si); }
-
-	///	returns domain (forward)
-	SmartPtr<domain_type> domain() {return m_gridFct.domain();}
-
-	///	returns const domain (forward)
-	ConstSmartPtr<domain_type> domain() const {return m_gridFct.domain();}
-
-	template <typename TElem>
-	size_t dof_indices(TElem* elem, std::vector<DoFIndex>& ind, bool bHang = false, bool bClear = true) const
-	{return m_gridFct.dof_indices(elem, m_fct, ind, bHang, bClear);}
-
-private:
-	/// grid function
-		TGridFunction& m_gridFct;
-
-	///	component of function
-		size_t m_fct;
-
-	///	local finite element id
-		LFEID m_id;
-};
 
 ////////////////////////////////////////////////////////////////////////////////
 // L2 Error Integrand
@@ -1465,8 +1764,6 @@ number L2Error(SmartPtr<TGridFunction> spGridFct1, const char* cmp1,
 	return L2Distance(*spGridFct1, cmp1, *spGridFct2, cmp2, quadOrder, subsets);
 }
 
-
-
 ////////////////////////////////////////////////////////////////////////////////
 // H1 semi-norm Integrand
 ////////////////////////////////////////////////////////////////////////////////
@@ -1527,12 +1824,38 @@ class H1SemiIntegrand
 
 			typedef typename weight_type::data_type ipdata_type;
 
-			try{
-
-		// get IP weights
 			std::vector<ipdata_type> elemWeights(numIP, MathMatrix<worldDim, worldDim>());
 			UG_ASSERT(m_spWeight.valid(), "H1SemiIntegrand::evaluate requires valid weights!");
-			(*m_spWeight)(&elemWeights[0], vGlobIP, 0.0, IIntegrand<number, worldDim>::subset(), numIP);
+
+
+			if(m_spWeight->requires_grid_fct())
+			{
+				//	get local solution if needed
+				LocalIndices ind;
+				LocalVector uloc;
+				gridFct.indices(pElem, ind);	// 	get global indices
+				uloc.resize(ind);				// 	adapt local algebra
+				GetLocalVector(uloc, gridFct);	// 	read local values of u
+
+				//	compute data
+				try{
+					(*m_spWeight)(&elemWeights[0], vGlobIP, 0.0, IIntegrand<number, worldDim>::subset(), pElem,
+							vCornerCoords, vLocIP, numIP, &uloc, NULL);
+				} UG_CATCH_THROW("H1SemiIntegrand: Cannot evaluate weight data.");
+			}
+			else
+			{
+				//	compute data
+				try{
+					(*m_spWeight)(&elemWeights[0], vGlobIP, 0.0, IIntegrand<number, worldDim>::subset(), numIP);
+				} UG_CATCH_THROW("H1SemiIntegrand: Cannot evaluate weight data.");
+			}
+
+
+			try{
+
+
+
 
 		//	get trial space
 			const LocalShapeFunctionSet<elemDim>& rTrialSpace =
@@ -1584,7 +1907,7 @@ class H1SemiIntegrand
 			}
 
 			}
-			UG_CATCH_THROW("H1ErrorIntegrand::evaluate: trial space missing.");
+			UG_CATCH_THROW("H1SemiIntegrand::evaluate: trial space missing.");
 		};
 };
 
@@ -1725,7 +2048,6 @@ class H1SemiDistIntegrand : public StdIntegrand<number, TGridFunction::dim, H1Se
 		{
 			typedef typename TGridFunction::template dim_traits<elemDim>::grid_base_object Element;
 
-
 			const TGridFunction &fineGridFct  = m_fineData.grid_function();
 			const TGridFunction &coarseGridFct  = m_coarseData.grid_function();
 
@@ -1757,12 +2079,36 @@ class H1SemiDistIntegrand : public StdIntegrand<number, TGridFunction::dim, H1Se
 			map.global_to_local(&vCoarseLocIP[0], vFineGlobIP, numIP);
 
 
-			try{
-
-		// determine weights
+			// determine weights
 			std::vector<typename weight_type::data_type> elemWeights(numIP, MathMatrix<worldDim, worldDim>());
 			UG_ASSERT(m_spWeight.valid(), "H1SemiDistIntegrand::evaluate requires valid weights!");
-			(*m_spWeight)(&elemWeights[0], vFineGlobIP, 0.0, IIntegrand<number, worldDim>::subset(), numIP);
+
+			//	get local solution (if required)
+			if(m_spWeight->requires_grid_fct())
+			{
+
+				LocalIndices ind;
+				LocalVector u;
+				fineGridFct.indices(pFineElem, ind);	// 	get global indices
+				u.resize(ind);							// 	adapt local algebra
+				GetLocalVector(u, fineGridFct);			// 	read local values of u
+
+				//	compute data
+				try{
+					(*m_spWeight)(&elemWeights[0], vFineGlobIP, 0.0, IIntegrand<number, worldDim>::subset(), pFineElem,
+							vCornerCoords, vFineLocIP, numIP, &u, NULL);
+				} UG_CATCH_THROW("H1SemiDistIntegrand: Cannot evaluate data.");
+			}
+			else
+			{
+				//	compute data
+				try{
+					(*m_spWeight)(&elemWeights[0], vFineGlobIP, 0.0, IIntegrand<number, worldDim>::subset(), numIP);
+				} UG_CATCH_THROW("H1SemiDistIntegrand: Cannot evaluate data.");
+			}
+
+			try{
+
 
 		//	get trial space
 			const LocalShapeFunctionSet<elemDim>& rFineLSFS =
@@ -1888,6 +2234,454 @@ number H1SemiDistance(TGridFunction& spGridFct1, const char* cmp1,
 					  TGridFunction& spGridFct2, const char* cmp2,
                int quadOrder, ConstSmartPtr<typename H1SemiDistIntegrand<TGridFunction>::weight_type > weights)
 { return sqrt(H1SemiDistance2(spGridFct1, cmp1, spGridFct2, cmp2, quadOrder, NULL, weights)); }
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// H1 semi-norm Integrand
+////////////////////////////////////////////////////////////////////////////////
+
+//! Norm of a grid function, evaluated in (weighted) H1-semi norm
+template <typename TGridFunction>
+class H1EnergyIntegrand
+	: public StdIntegrand<number, TGridFunction::dim, H1EnergyIntegrand<TGridFunction> >
+{
+	public:
+	///	world dimension of grid function
+		static const int worldDim = TGridFunction::dim;
+		typedef UserData<MathMatrix<worldDim, worldDim>, worldDim> weight_type;
+
+	protected:
+	/// grid function data
+		ScalarGridFunctionData<TGridFunction> m_scalarData;
+
+	/// scalar weight (optional)
+		ConstSmartPtr<weight_type> m_spWeight;
+
+	public:
+	/// constructor
+		H1EnergyIntegrand(TGridFunction& gridFct, size_t cmp)
+		: m_scalarData(gridFct, cmp), m_spWeight(make_sp(new ConstUserMatrix<worldDim>(1.0))) {}
+
+	/// constructor
+		H1EnergyIntegrand(TGridFunction& gridFct, size_t cmp, ConstSmartPtr<weight_type> spWeight)
+		: m_scalarData(gridFct, cmp), m_spWeight(spWeight) {}
+
+	/// DTOR
+		virtual ~H1EnergyIntegrand() {};
+
+	///	sets subset
+		virtual void set_subset(int si)
+		{
+			if(!m_scalarData.is_def_in_subset(si))
+				UG_THROW("H1EnergyIntegrand: Grid function component"
+						<<m_scalarData.fct()<<" not defined on subset "<<si);
+			IIntegrand<number, worldDim>::set_subset(si);
+		}
+
+	/// \copydoc IIntegrand::values
+		template <int elemDim>
+		void evaluate(number vValue[],
+		              const MathVector<worldDim> vGlobIP[],
+		              GridObject* pElem,
+		              const MathVector<worldDim> vCornerCoords[],
+		              const MathVector<elemDim> vLocIP[],
+		              const MathMatrix<elemDim, worldDim> vJT[],
+		              const size_t numIP)
+		{
+		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
+			const ReferenceObjectID roid = pElem->reference_object_id();
+			const TGridFunction &gridFct= m_scalarData.grid_function();
+
+			typedef typename weight_type::data_type ipdata_type;
+
+			std::vector<ipdata_type> elemWeights(numIP, MathMatrix<worldDim, worldDim>());
+			UG_ASSERT(m_spWeight.valid(), "H1EnergyIntegrand::evaluate requires valid weights!");
+
+
+			if(m_spWeight->requires_grid_fct())
+			{
+				//	get local solution if needed
+				LocalIndices ind;
+				LocalVector uloc;
+				gridFct.indices(pElem, ind);	// 	get global indices
+				uloc.resize(ind);				// 	adapt local algebra
+				GetLocalVector(uloc, gridFct);	// 	read local values of u
+
+				//	compute data
+				try{
+					(*m_spWeight)(&elemWeights[0], vGlobIP, 0.0, IIntegrand<number, worldDim>::subset(), pElem,
+							vCornerCoords, vLocIP, numIP, &uloc, NULL);
+				} UG_CATCH_THROW("H1EnergyIntegrand: Cannot evaluate weight data.");
+			}
+			else
+			{
+				//	compute data
+				try{
+					(*m_spWeight)(&elemWeights[0], vGlobIP, 0.0, IIntegrand<number, worldDim>::subset(), numIP);
+				} UG_CATCH_THROW("H1EnergyIntegrand: Cannot evaluate weight data.");
+			}
+
+
+			try{
+
+
+
+
+		//	get trial space
+			const LocalShapeFunctionSet<elemDim>& rTrialSpace =
+							LocalFiniteElementProvider::get<elemDim>(roid, m_scalarData.id());
+
+		//	number of dofs on element
+			const size_t num_sh = rTrialSpace.num_sh();
+
+		//	get multiindices of element
+			std::vector<DoFIndex> ind;  // 	aux. index array
+			gridFct.dof_indices(pElem, m_scalarData.fct(), ind);
+
+		//	check multi indices
+			if(ind.size() != num_sh)
+				UG_THROW("H1EnergyIntegrand::evaluate: Wrong number of multi-)indices.");
+
+		//	loop all integration points
+			std::vector<MathVector<elemDim> > vLocGradient(num_sh);
+			for(size_t ip = 0; ip < numIP; ++ip)
+			{
+			//	compute shape gradients at ip
+				rTrialSpace.grads(&vLocGradient[0], vLocIP[ip]);
+
+			// 	compute approximated solution at integration point
+				number approxSolIP = 0.0;
+				MathVector<elemDim> tmpVec(0.0);
+				for(size_t sh = 0; sh < num_sh; ++sh)
+				{
+				//	get value at shape point (e.g. corner for P1 fct)
+					const number valSH = DoFRef(gridFct, ind[sh]);
+
+				//	add shape fct at ip * value at shape
+					approxSolIP += valSH * rTrialSpace.shape(sh, vLocIP[ip]);
+
+				//	add gradient at ip
+					VecScaleAppend(tmpVec, valSH, vLocGradient[sh]);
+				}
+
+			//	compute gradient
+				MathVector<worldDim> approxGradIP;
+				MathMatrix<worldDim, elemDim> JTInv;
+				Inverse(JTInv, vJT[ip]);
+				MatVecMult(approxGradIP, JTInv, tmpVec);
+
+			//	get norm squared
+				MathVector<worldDim> approxDGradIP;
+				MatVecMult(approxDGradIP, elemWeights[ip], approxGradIP);
+				vValue[ip] = VecTwoNormSq(approxDGradIP);
+			}
+
+			}
+			UG_CATCH_THROW("H1EnergyIntegrand::evaluate: trial space missing.");
+		};
+};
+
+
+/// compute energy -norm of a function on the whole domain (or on selected subsets)
+/**
+ * This function computes the integral over  \f$ \| q  \|^2 \f where the velocity is given by \f$ q:= \kappa \nabla u\f$ of a grid function u.
+ *
+ * \param[in]		spGridFct	grid function
+ * \param[in]		cmp			symbolic name of component function
+ * \param[in]		time		time point
+ * \param[in]		quadOrder	order of quadrature rule
+ * \param[in]		subsets		subsets, where to compute (OPTIONAL)
+ * \param[in]		weights		element-wise matrix-valued weights kappa (OPTIONAL)
+ * \returns			number 		l2-norm
+ */
+template <typename TGridFunction>
+number H1EnergyNorm2(TGridFunction& gridFct, const char* cmp, int quadOrder, const char* subsets=NULL,
+				ConstSmartPtr<typename H1SemiIntegrand<TGridFunction>::weight_type> weights = SPNULL)
+{
+//	get function id of name
+	const size_t fct = gridFct.fct_id_by_name(cmp);
+
+//	check that function exists
+	if(fct >= gridFct.num_fct())
+		UG_THROW("H1SemiNorm: Function space does not contain"
+				" a function with name " << cmp << ".");
+	if  (weights.invalid()) {
+		H1EnergyIntegrand<TGridFunction> integrand(gridFct, fct);
+		return IntegrateSubsets(integrand, gridFct, subsets, quadOrder);
+	} else {
+		H1EnergyIntegrand<TGridFunction> integrand(gridFct, fct, weights);
+		return IntegrateSubsets(integrand, gridFct, subsets, quadOrder);
+	}
+}
+template <typename TGridFunction>
+number H1EnergyNorm(TGridFunction& gridFct, const char* cmp, int quadOrder, const char* subsets=NULL,
+				ConstSmartPtr<typename H1SemiIntegrand<TGridFunction>::weight_type> weights = SPNULL)
+{
+	return (sqrt(H1EnergyNorm2(gridFct, cmp, quadOrder, subsets, weights)));
+}
+
+template <typename TGridFunction>
+number H1EnergyNorm(SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOrder,
+		const char* subsets, ConstSmartPtr<typename H1SemiIntegrand<TGridFunction>::weight_type> weights = SPNULL)
+{ return H1EnergyNorm(*spGridFct, cmp, quadOrder, subsets, weights); }
+
+template <typename TGridFunction>
+number H1EnergyNorm( SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOrder)
+{ return H1EnergyNorm(spGridFct, cmp, quadOrder, NULL); }
+
+template <typename TGridFunction>
+number H1EnergyNorm( SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOrder,
+		ConstSmartPtr<typename H1SemiIntegrand<TGridFunction>::weight_type> weights)
+{ return H1EnergyNorm(spGridFct, cmp, quadOrder, NULL, weights); }
+
+
+
+
+/// Integrand for the distance of two grid functions - evaluated in the norm |D \nabla u|^2
+template <typename TGridFunction>
+class H1EnergyDistIntegrand
+		: public StdIntegrand<number, TGridFunction::dim, H1EnergyDistIntegrand<TGridFunction> >
+{
+	public:
+	///	world dimension of grid function
+		static const int worldDim = TGridFunction::dim;
+		typedef typename H1SemiIntegrand<TGridFunction>::weight_type weight_type;
+
+	private:
+		ScalarGridFunctionData<TGridFunction> m_fineData;
+		const int m_fineTopLevel;
+
+		ScalarGridFunctionData<TGridFunction> m_coarseData;
+		const int m_coarseTopLevel;
+
+	///	multigrid
+		SmartPtr<MultiGrid> m_spMG;
+
+	/// scalar weight (optional)
+		ConstSmartPtr<weight_type> m_spWeight;
+
+	public:
+		/// constructor
+		H1EnergyDistIntegrand(TGridFunction& fineGridFct, size_t fineCmp,
+							TGridFunction& coarseGridFct, size_t coarseCmp)
+		: m_fineData(fineGridFct, fineCmp),
+		  m_fineTopLevel(fineGridFct.dof_distribution()->grid_level().level()),
+		  m_coarseData(coarseGridFct, coarseCmp),
+		  m_coarseTopLevel(coarseGridFct.dof_distribution()->grid_level().level()),
+		  m_spMG(fineGridFct.domain()->grid()),
+		  m_spWeight(new ConstUserNumber<TGridFunction::dim>(1.0))
+		{
+			if(m_fineTopLevel < m_coarseTopLevel)
+				UG_THROW("H1EnergyDistIntegrand: fine and top level inverted.");
+
+			if(m_fineData.domain().get() != m_coarseData.domain().get())
+				UG_THROW("H1EnergyDistIntegrand: grid functions defined on different domains.");
+		};
+
+		/// constructor
+		H1EnergyDistIntegrand(TGridFunction& fineGridFct, size_t fineCmp,
+							TGridFunction& coarseGridFct, size_t coarseCmp,
+							ConstSmartPtr<weight_type> spWeight)
+		: m_fineData(fineGridFct, fineCmp),
+		  m_fineTopLevel(fineGridFct.dof_distribution()->grid_level().level()),
+		  m_coarseData(coarseGridFct, coarseCmp),
+		  m_coarseTopLevel(coarseGridFct.dof_distribution()->grid_level().level()),
+		  m_spMG(fineGridFct.domain()->grid()),
+		  m_spWeight(spWeight)
+		{
+			if(m_fineTopLevel < m_coarseTopLevel)
+				UG_THROW("H1EnergyDistIntegrand: fine and top level inverted.");
+
+			if(m_fineData.domain().get() != m_coarseData.domain().get())
+				UG_THROW("H1EnergyDistIntegrand: grid functions defined on different domains.");
+		}
+		virtual ~H1EnergyDistIntegrand(){}
+
+	///	sets subset
+		virtual void set_subset(int si)
+		{
+			if(!m_fineData.is_def_in_subset(si))
+				UG_THROW("H1EnergyDistIntegrand: Grid function component"
+						<<m_fineData.fct()<<" not defined on subset "<<si);
+			if(!m_coarseData.is_def_in_subset(si))
+				UG_THROW("H1EnergyDistIntegrand: Grid function component"
+						<<m_coarseData.fct()<<" not defined on subset "<<si);
+			IIntegrand<number, worldDim>::set_subset(si);
+		}
+
+	/// \copydoc IIntegrand::values
+		template <int elemDim>
+		void evaluate(number vValue[],
+		              const MathVector<worldDim> vFineGlobIP[],
+		              GridObject* pFineElem,
+		              const MathVector<worldDim> vCornerCoords[],
+		              const MathVector<elemDim> vFineLocIP[],
+		              const MathMatrix<elemDim, worldDim> vJT[],
+		              const size_t numIP)
+		{
+			typedef typename TGridFunction::template dim_traits<elemDim>::grid_base_object Element;
+
+			const TGridFunction &fineGridFct  = m_fineData.grid_function();
+			const TGridFunction &coarseGridFct  = m_coarseData.grid_function();
+
+			//	get coarse element
+			GridObject* pCoarseElem = pFineElem;
+			if(m_coarseTopLevel < m_fineTopLevel){
+				int parentLevel = m_spMG->get_level(pCoarseElem);
+				while(parentLevel > m_coarseTopLevel){
+					pCoarseElem = m_spMG->get_parent(pCoarseElem);
+					parentLevel = m_spMG->get_level(pCoarseElem);
+				}
+			}
+
+		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
+			const ReferenceObjectID fineROID = pFineElem->reference_object_id();
+			const ReferenceObjectID coarseROID = pCoarseElem->reference_object_id();
+
+		//	get corner coordinates
+			std::vector<MathVector<worldDim> > vCornerCoarse;
+			CollectCornerCoordinates(vCornerCoarse, *static_cast<Element*>(pCoarseElem), *m_coarseData.domain());
+
+		//	get reference Mapping
+			DimReferenceMapping<elemDim, worldDim>& map
+				= ReferenceMappingProvider::get<elemDim, worldDim>(coarseROID, vCornerCoarse);
+
+			std::vector<MathVector<elemDim> > vCoarseLocIP;
+			vCoarseLocIP.resize(numIP);
+			for(size_t ip = 0; ip < vCoarseLocIP.size(); ++ip) VecSet(vCoarseLocIP[ip], 0.0);
+			map.global_to_local(&vCoarseLocIP[0], vFineGlobIP, numIP);
+
+
+			// determine weights
+			std::vector<typename weight_type::data_type> elemWeights(numIP, MathMatrix<worldDim, worldDim>());
+			UG_ASSERT(m_spWeight.valid(), "H1SemiDistIntegrand::evaluate requires valid weights!");
+
+			//	get local solution if needed
+			if(m_spWeight->requires_grid_fct())
+			{
+
+				LocalIndices ind;
+				LocalVector u;
+				fineGridFct.indices(pFineElem, ind);	// 	get global indices
+				u.resize(ind);							// 	adapt local algebra
+				GetLocalVector(u, fineGridFct);			// 	read local values of u
+
+				//	compute data
+				try{
+					(*m_spWeight)(&elemWeights[0], vFineGlobIP, 0.0, IIntegrand<number, worldDim>::subset(), pFineElem,
+							vCornerCoords, vFineLocIP, numIP, &u, NULL);
+				} UG_CATCH_THROW("H1SemiDistIntegrand: Cannot evaluate data.");
+			}
+			else
+			{
+				//	compute data
+				try{
+					(*m_spWeight)(&elemWeights[0], vFineGlobIP, 0.0, IIntegrand<number, worldDim>::subset(), numIP);
+				} UG_CATCH_THROW("H1SemiDistIntegrand: Cannot evaluate data.");
+			}
+
+			try{
+
+
+		//	get trial space
+			const LocalShapeFunctionSet<elemDim>& rFineLSFS =
+					LocalFiniteElementProvider::get<elemDim>(fineROID, m_fineData.id());
+			const LocalShapeFunctionSet<elemDim>& rCoarseLSFS =
+					LocalFiniteElementProvider::get<elemDim>(coarseROID, m_coarseData.id());
+
+		//	get multiindices of element
+			std::vector<DoFIndex> vFineMI, vCoarseMI;
+			m_fineData.dof_indices(pFineElem, vFineMI);
+			m_coarseData.dof_indices(pCoarseElem, vCoarseMI);
+
+			std::vector<MathVector<elemDim> > vFineLocGradient(vFineMI.size());
+			std::vector<MathVector<elemDim> > vCoarseLocGradient(vCoarseMI.size());
+
+		//	loop all integration points
+			for(size_t ip = 0; ip < numIP; ++ip)
+			{
+			//	compute shape gradients at ip
+				rFineLSFS.grads(&vFineLocGradient[0], vFineLocIP[ip]);
+				rCoarseLSFS.grads(&vCoarseLocGradient[0], vCoarseLocIP[ip]);
+
+			// 	compute approximated solutions at integration point
+				number fineSolIP = 0.0;
+				MathVector<elemDim> fineLocTmp(0.0);
+				for(size_t sh = 0; sh < vFineMI.size(); ++sh)
+				{
+					const number val = DoFRef(fineGridFct, vFineMI[sh]);
+					fineSolIP += val * rFineLSFS.shape(sh, vFineLocIP[ip]);
+					VecScaleAppend(fineLocTmp, val, vFineLocGradient[sh]);
+				}
+
+				number coarseSolIP = 0.0;
+				MathVector<elemDim> coarseLocTmp(0.0);
+				for(size_t sh = 0; sh < vCoarseMI.size(); ++sh)
+				{
+					const number val = DoFRef(coarseGridFct, vCoarseMI[sh]);
+					coarseSolIP += val * rCoarseLSFS.shape(sh, vCoarseLocIP[ip]);
+					VecScaleAppend(coarseLocTmp, val, vCoarseLocGradient[sh]);
+				}
+
+			//	compute global D*gradient
+				MathVector<worldDim> fineGradIP;
+				MathMatrix<worldDim, elemDim> fineJTInv;
+				Inverse(fineJTInv, vJT[ip]);
+				MatVecMult(fineGradIP, fineJTInv, fineLocTmp);
+				MatVecMult(fineLocTmp, elemWeights[ip], fineGradIP);
+
+			//	compute global D*gradient
+				MathVector<worldDim> coarseGradIP;
+				MathMatrix<worldDim, elemDim> coarseJTInv;
+				map.jacobian_transposed_inverse(coarseJTInv, vCoarseLocIP[ip]);
+				MatVecMult(coarseGradIP, coarseJTInv, coarseLocTmp);
+				MatVecMult(coarseLocTmp, elemWeights[ip], coarseGradIP);
+
+			//	get squared difference
+				vValue[ip] = VecDistanceSq(fineLocTmp, coarseLocTmp);
+
+			}
+
+			}
+			UG_CATCH_THROW("H1EnergyDiffIntegrand::evaluate: trial space missing.");
+		};
+};
+
+
+//! Squared distance in H1 semi norm (with select subsets & weights)
+template <typename TGridFunction>
+number H1EnergyDistance2(TGridFunction& spGridFct1, const char* cmp1,
+		TGridFunction& spGridFct2, const char* cmp2,
+        int quadOrder, const char* subsets,
+		ConstSmartPtr<typename H1SemiDistIntegrand<TGridFunction>::weight_type> weights)
+{
+	return GridFunctionDistance2<H1EnergyDistIntegrand<TGridFunction>, TGridFunction>
+		(spGridFct1, cmp1, spGridFct2, cmp2, quadOrder, subsets, weights);
+}
+
+//! Distance in H1 semi norm (with select subsets & weights)
+template <typename TGridFunction>
+number H1EnergyDistance(TGridFunction& spGridFct1, const char* cmp1,
+		TGridFunction& spGridFct2, const char* cmp2,
+        int quadOrder, const char* subsets,
+		ConstSmartPtr<typename H1SemiDistIntegrand<TGridFunction>::weight_type> weights)
+{ return sqrt(H1EnergyDistance2(spGridFct1, cmp1, spGridFct2, cmp2, quadOrder, subsets, weights)); }
+
+//! Squared distance in H1 semi norm (all subsets, with weights)
+template <typename TGridFunction>
+number H1EnergyDistance2(TGridFunction& spGridFct1, const char* cmp1,
+					  TGridFunction& spGridFct2, const char* cmp2,
+               int quadOrder, ConstSmartPtr<typename H1SemiDistIntegrand<TGridFunction>::weight_type > weights)
+{ return H1EnergyDistance2(spGridFct1, cmp1, spGridFct2, cmp2, quadOrder, NULL, weights); }
+
+//! Distance in H1 semi norm (all subsets, with weights)
+template <typename TGridFunction>
+number H1EnergyDistance(TGridFunction& spGridFct1, const char* cmp1,
+					  TGridFunction& spGridFct2, const char* cmp2,
+               int quadOrder, ConstSmartPtr<typename H1SemiDistIntegrand<TGridFunction>::weight_type > weights)
+{ return sqrt(H1EnergyDistance2(spGridFct1, cmp1, spGridFct2, cmp2, quadOrder, NULL, weights)); }
 
 
 

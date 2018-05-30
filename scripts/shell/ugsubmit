@@ -111,6 +111,7 @@ function usage
 	echo "        -i                     : interactive (not fully supported)"
 	echo "        -dir                   : directory to use"
 	echo "        -mkdirs <dir1;dir2;..> : sub-directories to create within working directory"
+	echo "        -copyScript            : copy executed lua script to job directory and execute it there"
 	echo "        -queue                 : the queue to use"
 	echo "        -nosubdir              : don't create job in a subdir, but in dir (default .) directly. (warning: might be dangerous)"
 	echo " "
@@ -281,6 +282,9 @@ do
 	elif [ $1 == "-mkdirs" ]; then
 		mkdirs=$2
 		shift 2
+	elif [ $1 == "-copyScript" ]; then
+		copyScript=true
+		shift 1
 	elif [ $1 == "-queue" ]; then
 		queue=$2
 		shift 2	
@@ -407,7 +411,7 @@ else
 fi
 
 echo "Created directory: $outdir"
-if [ -d lastRun ]; then
+if [ -L lastRun ]; then
 	rm lastRun
 fi
 if [ $nosubdir == false ]; then
@@ -439,6 +443,39 @@ subdirs=$(echo $mkdirs | tr ";" "\n")
 for sdir in $subdirs; do
     mkdir $sdir
 done
+
+## copy executable script to output directory
+scriptCopied=false
+if [ "$copyScript" = true ]; then
+	nextArgIsScript=false
+	for curArg in $args; do
+		if [ "$nextArgIsScript" = true ]; then
+			scriptPath="$curArg"
+			origScriptPath="$curArg"
+			if [ ! -e $scriptPath ]; then
+				# test with prefix $UG4_ROOT
+				if [ -e ${UG4_ROOT}/apps/${scriptPath} ]; then
+					scriptPath="${UG4_ROOT}/apps/${scriptPath}"
+				else
+					echo "Warning: Did not find execution script '$scriptPath' nor '${UG4_ROOT}/apps/${scriptPath}'."
+					break
+				fi
+			fi
+			filename="${scriptPath##*/}"
+			cp $scriptPath $filename
+			args=$(echo "$args" | sed "s|${origScriptPath}|./${filename}|g")
+			scriptCopied=true
+			break
+		fi
+		if [ "$curArg" = "-ex" ]; then
+			nextArgIsScript=true
+		fi
+	done
+fi
+if [[ "$copyScript" = true && "$scriptCopied" = false ]]; then
+	echo "Warning: Could not find execution script. Not copied."
+fi
+
 
 #### now call job schedulers ####
 UJS_Submit

@@ -74,15 +74,6 @@ number CalculateMinVolumeHeight(Tetrahedron* tet,
 
 
 ////////////////////////////////////////////////////////////////////////
-//	CalculateMinTetrahedronHeight - mstepnie
-/// calculates the minimal height of a tetrahedral element
-//double CalculateMinTetrahedronHeight(Grid& grid, Volume& v);
-UG_API 
-number CalculateMinTetrahedronHeight(const vector3& a, const vector3& b, 
-									 const vector3& c, const vector3& d);
-
-
-////////////////////////////////////////////////////////////////////////
 //	CalculateTetrahedronAspectRatio - mstepnie
 /// calculates the aspect ratio of a tetrahedral element
 UG_API 

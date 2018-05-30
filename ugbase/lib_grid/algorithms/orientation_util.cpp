@@ -36,6 +36,11 @@ namespace ug{
 
 bool EdgeOrientationMatches(EdgeVertices* ev, Face* f)
 {
+	return OrientationMatches(ev, f);
+}
+
+bool OrientationMatches(EdgeVertices* ev, Face* f)
+{
 //	find the first vertex of ed in f
 	size_t i;
 	for(i = 0; i < f->num_vertices(); ++i)
@@ -56,5 +61,41 @@ bool EdgeOrientationMatches(EdgeVertices* ev, Face* f)
 //	the orientation is not the same.
 	return false;
 }
-	
+
+
+UG_API 
+bool OrientationMatches(FaceVertices* fv, Volume* v)
+{
+//	find the matching face desc and compare
+	FaceDescriptor fd;
+	for(size_t iface = 0; iface < v->num_faces(); ++iface){
+		v->face_desc(iface, fd);
+		if(CompareVertices(fv, &fd)){
+		//	check if their orientation matches
+		//	find the first vertex of fv in f
+			size_t i;
+			for(i = 0; i < fd.num_vertices(); ++i)
+			{
+				if(fd.vertex(i) == fv->vertex(0))
+					break;
+			}
+
+			if(i < fd.num_vertices())
+			{
+			//	the first one has been found.
+			//	check whether the second vertex of ed is the
+			//	same as the next vertex of f
+				if(fv->vertex(1) == fd.vertex((i+1) % fd.num_vertices()))
+					return true;//	the orientation is the same
+			}
+
+		//	the orientation is not the same.
+			return false;
+		}
+	}
+
+//	the orientation is not the same.
+	return false;
+}
+
 }//	end of namespace

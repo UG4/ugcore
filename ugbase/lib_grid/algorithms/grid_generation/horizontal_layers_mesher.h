@@ -82,6 +82,30 @@ void ExtrudeLayers(
 		bool allowForTetsAndPyras,
 		const ANumber* aRelZOut = NULL);
 
+
+/**	grid has to contain a triangluation of the surface grid of raster-layers.
+ * Only x- and y- coordinates of the vertices of the reference triangulation are
+ * considered, since all vertices are projected to their respective layers.
+ * The resulting mesh will contain prisms, pyramids, and tetrahedra
+ *
+ * \param grid		The grid whose surface triangulation will be extended to
+ *					a volume mesh.
+ * \param layers	A stack of rasters, defining the layered domain.
+ * \param aaPos		vertex positions
+ * \param sh		Element subsets will be assigned depending on the index of the
+ *					layer in which an element is located.
+ * \param aRelZOut	(optional) Vertex attachment to which the relative height of
+ *					each vertex will be written. This value will equal the layer
+ *					index for which a specific vertex has been created.
+ */
+void ExtrudeLayersMixed (
+		Grid& grid, 
+		const RasterLayers& layers,
+		Grid::VertexAttachmentAccessor<AVector3> aaPos,
+		ISubsetHandler& sh,
+		const ANumber* aRelZOut);
+
+
 ///	projects the given (surface-) grid to the specified raster
 void ProjectToLayer(
 		Grid& grid,

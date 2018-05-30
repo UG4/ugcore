@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2015:  G-CSC, Goethe University Frankfurt
+ * Copyright (c) 2018:  G-CSC, Goethe University Frankfurt
  * Author: Sebastian Reiter
  * 
  * This file is part of UG4.
@@ -30,41 +30,36 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef __H__PCL__PCL_BASE__
-#define __H__PCL__PCL_BASE__
 
-namespace pcl
+/** @file
+ * This is a lightweight wrapper for ugshell_main. It simply calls ugshell_main
+ * with the provided arguments.
+ *
+ * If you'd like to do something before ugshell_main is executed, you may
+ * write your own main.cpp and compile ug with the
+ * \code
+ *	-DALTERNATE_MAIN=PATH_TO_YOUR_MAIN/main.cpp
+ * \endcode
+ * option.
+ *
+ * Alternatively, you may also create a plugin or enhance your existing one. To this end
+ * add an 'alternate_main.cpp' file and a CMakeLists.txt to your plugin which contains the line:
+ * \code
+ *	set(ALTERNATE_MAIN "${CMAKE_CURRENT_SOURCE_DIR}/alternate_main.cpp" CACHE PATH "Wrapper to ugshell_main." FORCE)
+ * \endcode
+ *
+ * In that case, the alternate_main.cpp is automatically activated as soon as you enable your plugin.
+ *
+ * If you want to return to the original main, please deactivate the plugin in question and
+ * once call:
+ * \code
+ *	cmake -DUNSET_ALTERNATE_MAIN=ON .
+ * \endcode
+ */
+
+#include "ug_shell/ugshell_main.h"
+
+int main (int argc, char** argv)
 {
-
-/// \addtogroup pcl
-/// \{
-
-/// call this method before 'Init' to avoid a call to MPI_Init.
-/** This method may be useful if you use this program together with another
- * program which calls MPI_Init.
- * \note This will also stop MPI_Finalize from being called.*/
-void DisableMPIInit ();
-
-///	call this method before any other pcl-operations.
-void Init(int *argcp, char ***argvp);
-
-///	call this method to abort all mpi processes
-void Abort(int errorcode = 1);
-
-///	call this method right before quitting your application
-void Finalize();
-
-///	returns the number of processes
-int NumProcs();
-
-///	returns the rank of the process
-int ProcRank();
-
-/// sets error handler
-void SetErrHandler();
-
-// end group pcl
-/// \}
-
-}//	end of namespace
-#endif
+	return ugshell_main (argc, argv);
+}

@@ -85,7 +85,7 @@ template <typename TBaseElem>
 void CompositeConvCheck<TVector, TDomain>::
 extract_dof_indices(ConstSmartPtr<DoFDistribution> dd)
 {
-	typename DoFDistribution::traits<TBaseElem>::const_iterator iter, iterBegin, iterEnd;
+	typename DoFDistribution::traits<TBaseElem>::const_iterator iter, iterEnd;
 
 	const SurfaceView& sv = *dd->surface_view();
 	const MultiGrid& mg = *dd->multi_grid();
@@ -96,12 +96,12 @@ extract_dof_indices(ConstSmartPtr<DoFDistribution> dd)
 	// (cf. DoFDistribution::reinit() implementation comments)
 
 	// iterate all elements (including SHADOW_RIM_COPY!)
-	iterBegin = dd->template begin<TBaseElem>(SurfaceView::ALL);
+	iter = dd->template begin<TBaseElem>(SurfaceView::ALL);
 	iterEnd = dd->template end<TBaseElem>(SurfaceView::ALL);
 
 	// loop over all elements
 	std::vector<DoFIndex> vInd;
-	for (iter = iterBegin; iter != iterEnd; ++iter)
+	for (; iter != iterEnd; ++iter)
 	{
 		TBaseElem* elem = *iter;
 		if (sv.is_contained(elem, dd->grid_level(), SurfaceView::SHADOW_RIM_COPY))

@@ -83,6 +83,8 @@ public:
 
 	virtual ~ProjectionHandler ();
 
+	void clear();
+
 	virtual void set_geometry (SPIGeometry3d geometry);
 
 ///	Sets the geometry of the ProjectionHandler and of all associated projectors

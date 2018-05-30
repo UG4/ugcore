@@ -138,7 +138,18 @@ end
 --! @param bFinishTimeStep 	(optional) boolean if finish_timestep should be 
 --! 						called or not.
 --! @param useCheckpointing (optional) if true, use checkpointing.
---! @param postProcess		(optional) if passed, will be called after every time step.
+--! @param postProcess		(optional) if passed, this can be either a function or a table:
+--!									a)	If this is a function then it is called after
+--!										solving the non-linear problem in EVERY STAGE
+--!										of the time-stepping scheme;
+--!									b)	if this is a table, it can contain 4 optional functions:
+--!										prepareTimeStep to call before the time step,
+--!										preProcess to call before the non-linear solver in EVERY STAGE,
+--!										postProcess as in a),
+--!										finalizeTimeStep to call after the time step,
+--!										rewindTimeStep to call if some of the computations of the time step failed,
+--!										Arguments of the functions are: (u, step, time, dt)
+--!										u, time: old before the solver, new after it
 --! @param startTSNo		(optional) time step number of the initial condition (normally 0).
 --! @param endTSNo			(optional) if passed, stop after the time step with this number.
 --! @param newtonLineSearchFallbacks	(optional) Sequence of line-search objects.
@@ -206,10 +217,21 @@ function util.SolveNonlinearTimeProblem(
 		exit()
 	end
 	
+	local prepareTimeStep = nil
+	local preProcess = nil
+	local finalizeTimeStep = nil
+	local rewindTimeStep = nil
 	if postProcess ~= nil then
 		if type(postProcess) ~= "function" then
-			print("SolveNonlinearTimeProblem: Illegal parameters: postProcess must be a function.")
-			exit()
+			if type(postProcess) ~= "table" then
+				print("SolveNonlinearTimeProblem: Illegal parameters: postProcess must be a function.")
+				exit()
+			end
+			prepareTimeStep = postProcess.prepareTimeStep
+			preProcess = postProcess.preProcess
+			finalizeTimeStep = postProcess.finalizeTimeStep
+			rewindTimeStep = postProcess.rewindTimeStep
+			postProcess = postProcess.postProcess
 		end
 	end
 
@@ -262,7 +284,9 @@ function util.SolveNonlinearTimeProblem(
 
 	-- store old solution (used for reinit in multistep)
 	local uOld
-	if minStepSize <= maxStepSize * reductionFactor then uOld = u:clone() end
+	if minStepSize <= maxStepSize * reductionFactor or newtonLineSearchFallbacks ~= nil then
+		uOld = u:clone()
+	end
 	-- TODO: This can be optimized because the "old" solution is stored in
 	-- solTimeSeries. Note that 'u' keeps not (always) the new solution but
 	-- an iterate of the Newton method. If the Newton method fails, one should
@@ -304,13 +328,36 @@ function util.SolveNonlinearTimeProblem(
 				-- get old solution if the restart with a smaller time step is possible
 				if uOld ~= nil then
 					VecAssign(u, uOld)
-				end			
-
+				end
+				
+				local pp_res -- result of pre- and postprocess routines
+				
+				pp_res = true
+				if prepareTimeStep ~= nil then
+					pp_res = prepareTimeStep(u, step, time, currdt)
+					if type(pp_res) == "boolean" and pp_res == false then -- i.e. not nil, not something else, but "false"!
+						print("\n++++++ Preparation of the time step failed.")
+					else
+						pp_res = true
+					end
+				end
+				if pp_res == false then break end
+				
 				for stage = 1, timeDisc:num_stages() do
 					if timeDisc:num_stages() > 1 then
 						print("      +++ STAGE " .. stage .. " BEGIN ++++++")
 					end
-							
+					
+					-- call pre process
+					if preProcess ~= nil then
+						pp_res = preProcess(u, step, time, currdt)
+						if type(pp_res) == "boolean" and pp_res == false then -- i.e. not nil, not something else, but "false"!
+							print("\n++++++ PreProcess failed.")
+							newtonSuccess = false
+							break
+						end
+					end
+						
 					timeDisc:set_stage(stage)
 				
 					-- setup time Disc for old solutions and timestep size
@@ -329,10 +376,9 @@ function util.SolveNonlinearTimeProblem(
 					
 					-- call post process
 					if postProcess ~= nil then
-						local pp_res
 						pp_res = postProcess(u, step, timeDisc:future_time(), currdt)
 						if type(pp_res) == "boolean" and pp_res == false then -- i.e. not nil, not something else, but "false"!
-							write("\n++++++ PostProcess failed. ")
+							print("\n++++++ PostProcess failed.")
 							newtonSuccess = false
 							break
 						end
@@ -358,8 +404,19 @@ function util.SolveNonlinearTimeProblem(
 					if timeDisc:num_stages() > 1 then
 						print("      +++ STAGE " .. stage .. " END   ++++++")
 					end
-				end
+				end -- loop over the stages
 
+				if newtonSuccess and finalizeTimeStep ~= nil then
+					pp_res = finalizeTimeStep(u, step, time, currdt)
+					if type(pp_res) == "boolean" and pp_res == false then -- i.e. not nil, not something else, but "false"!
+						write("\n++++++ Finalization of the time step failed. ")
+						newtonSuccess = false
+					else
+						pp_res = true
+					end
+				end
+				if pp_res == false then break end
+				
 				if newtonSuccess == false and newtonLineSearchFallbacks ~= nil then
 					if newtonLineSearchFallbacks[newtonTry] == nil or newtonSolver:last_num_newton_steps() == 0 then
 						write("\n++++++ Adaptive Newton failed.")
@@ -385,6 +442,9 @@ function util.SolveNonlinearTimeProblem(
 					test.require(false, "Time Solver failed.")
 				end
 				bSuccess = false
+				if rewindTimeStep ~= nil  then
+					rewindTimeStep(u, step, time, currdt)
+				end
 			else
 				-- update new time
 				time = timeDisc:future_time()
