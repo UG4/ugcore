@@ -76,7 +76,7 @@ class Raster{
 			public:
 				MultiIndex();
 				MultiIndex(size_t i);
-				const int	dim () const;
+				int	dim () const;
 				void 		set (size_t i);
 				size_t&		operator[] (int d);
 				size_t		operator[] (int d) const;
@@ -103,7 +103,7 @@ class Raster{
 				Coordinate(number c);
 				Coordinate(const MathVector<TDIM, number>& v);
 
-				const int	dim () const;
+				int	dim () const;
 				void 		set (number c);
 				number&		operator[] (int d);
 				number		operator[] (int d) const;
