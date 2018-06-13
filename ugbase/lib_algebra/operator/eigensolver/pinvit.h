@@ -143,6 +143,7 @@ private:
 
 	bool m_bLaplacian;
 
+	bool m_bPrintEigenvaluesAndDefect;
 	bool m_bPrintProjectedEigenvalues;
 	bool m_bPrintProjectedEigenvectors;
 	bool m_bPrintProjectedEigenproblem;
@@ -198,6 +199,7 @@ public:
 		m_dMinimumDefectToCalcCorrection = 1e-8;
 		m_dPrecision = 1e-8;
 
+		m_bPrintEigenvaluesAndDefect = true;
 		m_bPrintProjectedEigenvalues = false;
 		m_bPrintProjectedEigenvectors = false;
 		m_bPrintProjectedEigenproblem = false;
@@ -336,6 +338,11 @@ public:
 	SmartPtr<vector_type> get_eigenvector(size_t i)
 	{
 		return px[i];
+	}
+
+	void set_print_eigenvalues_and_defect(bool b)
+	{
+		m_bPrintEigenvaluesAndDefect = b;
 	}
 
 	void set_print_projected_eigenvectors(bool b)
@@ -569,7 +576,8 @@ public:
 
 
 				// output
-				print_eigenvalues_and_defect(m_iteration, vDefectNorm, oldXnorm, lambda, bConverged);
+				if(m_bPrintEigenvaluesAndDefect)
+					print_eigenvalues_and_defect(m_iteration, vDefectNorm, oldXnorm, lambda, bConverged);
 
 				if(nrofconverged==nEigenvalues)
 				{

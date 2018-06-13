@@ -451,6 +451,16 @@ util.solver.defaults =
 			precond		= "ilu",
 			convCheck	= "standard"
 		},
+		
+		lu = {
+			info = false,
+			showProgress = true
+		},
+		
+		uglu = {
+			info = false,
+			showProgress = true
+		},
 	},
 
 	preconditioner =
@@ -654,11 +664,29 @@ function util.solver.CreateLinearSolver(solverDesc, solverutil)
 		if HasClassGroup("SuperLU") then
 			linSolver = AgglomeratingSolver(SuperLU());
 		else
-			linSolver = AgglomeratingSolver(LU())
+			local LU_solver = LU()
+			local showProgress
+			if desc.showProgress ~= nil then
+				showProgress = desc.showProgress
+			else
+				showProgress = defaults.showProgress
+			end
+			LU_solver:set_show_progress(showProgress)
+			LU_solver:set_info(desc.info or defaults.info)
+			linSolver = AgglomeratingSolver(LU_solver)
 		end
 
 	elseif name == "uglu" then
-		linSolver = AgglomeratingSolver(LU());
+		local LU_solver = LU()
+		local showProgress
+		if desc.showProgress ~= nil then
+			showProgress = desc.showProgress
+		else
+			showProgress = defaults.showProgress
+		end
+		LU_solver:set_show_progress(showProgress)
+		LU_solver:set_info(desc.info or defaults.info)
+		linSolver = AgglomeratingSolver(LU_solver)
 		
 	elseif name == "superlu" then
 		linSolver = AgglomeratingSolver(SuperLU());

@@ -1,34 +1,87 @@
 # run in container
 sudo: false
 
-# install dependencies
-# addons:
-#  apt:
-#    packages:
-#    - libboost-all-dev
+addons:
+    apt:
+      packages:
+       - make
+       - cmake-data
+       - cmake
   
 
 # we compile a c++ project
 language: cpp
 
-# test with gcc and clang
 compiler:
-  - gcc
-#  - clang
+    - gcc
+    - clang
+
+os:
+  - linux
+  - osx
+  
 env:
   global:
-    - PATH=/usr/lib/ccache:${PATH}
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then PATH=/usr/lib/ccache:${PATH}; fi
+    - TIMEOUT_BUILD='30m'
+    - BUILD_SUCCESS=true
+    
   matrix:
-    - DIM=1;2;3
-      #- DIM=2
-      #- DIM=3 
-cache: ccache
+    - DIM=2 CPU=1       TARGET=ugshell STATIC_BUILD=ON  BUILD_VARIANT="build1"
+    - DIM=2 CPU=1       TARGET=vrl     STATIC_BUILD=OFF BUILD_VARIANT="build2"
+    - DIM=ALL CPU=1;2   TARGET=ugshell STATIC_BUILD=ON  BUILD_VARIANT="build3"
+    - DIM=ALL CPU=1;2   TARGET=vrl     STATIC_BUILD=OFF BUILD_VARIANT="build4"
+      
+      
+cache:
+  ccache: true
+  directories:
+    - travis_root
+   #- $HOME/Library/Caches/Homebrew
+   # TODO: how can we do conditional caching of directories (depending on OS)
+   #- /home/travis/build/miho/OCC-CSG/oce-OCE-0.18.3
+   #- /Users/travis/build/miho/ugcore/
+
 # prepare compilation  
 before_script:
+  - mkdir -p travis_root && cd travis_root
+  - rm -rf ughub
   - git clone https://www.github.com/UG4/ughub
-  - ughub/ughub init
-  - ughub/ughub install ugcore LuaShell
-  - mkdir build && cd build && cmake ../ -DTARGET=ugshell -DLAPACK=OFF -DBLAS=OFF -DDIM="${DIM}" -DCOMPILE_INFO=OFF
-
-# compile ug
-script: V=1 make -j2
+  - export UG4_FOLDER_SURVIVED_CACHE=false
+  - if [ -e ug4 ]; then export UG4_FOLDER_SURVIVED_CACHE=true; fi
+  - if [[ "$UG4_FOLDER_SURVIVED_CACHE" == "false" ]]; then mkdir ug4; fi
+  - cd ug4
+  - if [[ "$UG4_FOLDER_SURVIVED_CACHE" == "false" ]]; then ../ughub/ughub init .; fi
+  - if [[ "$UG4_FOLDER_SURVIVED_CACHE" == "false" ]]; then ../ughub/ughub install ugcore; fi
+  - if [[ "$UG4_FOLDER_SURVIVED_CACHE" == "false" ]]; then rm -rf ugcore; fi
+  
+  - |
+     echo "--------------------------------------------------------------------------------"
+     echo "TRAVIS BUILD-INFO FOR UGCORE"
+     echo "--------------------------------------------------------------------------------"
+     echo "REPOSITORY:..............$TRAVIS_REPO_SLUG"
+     echo "COMMIT:..................$TRAVIS_COMMIT"
+     echo "TAG:.....................$TRAVIS_TAG"
+     echo "BRANCH:..................$TRAVIS_BRANCH"
+     echo "TRAVIS-BUILD-NUMBER:.....$TRAVIS_BUILD_NUMBER"
+     echo "UG4 dir survived cache:..$UG4_FOLDER_SURVIVED_CACHE"
+     echo "--------------------------------------------------------------------------------"
+    
+  - if [[ "$UG4_FOLDER_SURVIVED_CACHE" == "false" ]]; then git clone https://github.com/$TRAVIS_REPO_SLUG.git ugcore; fi
+  - echo HERE
+  - pwd
+  - ls .
+  - cd ugcore
+  - if [[ "$UG4_FOLDER_SURVIVED_CACHE" == "true" ]]; then git fetch; fi
+  - git checkout -qf $TRAVIS_COMMIT
+  - mkdir -p $BUILD_VARIANT && cd $BUILD_VARIANT && cmake ../ -DTARGET="${TARGET}" -DLAPACK=OFF -DBLAS=OFF -DDIM="${DIM}" -DCPU="${CPU}" -DCOMPILE_INFO=OFF -DEMBEDDED_PLUGINS=ON -DSTATIC_BUILD="${STATIC_BUILD}"
+  - rm -rf ../bin/ugshell
+  
+# finally compile ug
+script:
+    # - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then timeout -s SIGTERM $TIMEOUT_BUILD make -j4 install > install_out.txt || export BUILD_SUCCESS=false ; fi
+    # ccache fixes global build time of ~ 50 minutes
+    # we still need to use travis_wait to prevent "build error because of no output"
+    # https://docs.travis-ci.com/user/common-build-problems/#Build-times-out-because-no-output-was-received
+    - travis_wait 45 make -j3
+    - if [[ "$TARGET" == "ugshell" ]]; then ../bin/ugshell -call "print(\"it works\")"; fi

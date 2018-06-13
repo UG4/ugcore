@@ -45,6 +45,7 @@
 using namespace std;
 
 
+#include "../../lib_algebra/operator/eigensolver/power_method.h"
 #include "lib_algebra/operator/eigensolver/pinvit.h"
 #include "lib_algebra/operator/preconditioner/operator_inverse_iterator.h"
 
@@ -97,6 +98,7 @@ static void Algebra(Registry& reg, string grp)
 			.add_method("set_precision", &T::set_precision, "", "precision")
 			.add_method("set_relative_precision", &T::set_relative_precision, "", "precision")
 			.add_method("get_eigenvector", &T::get_eigenvector, "eigenvector i", "i")
+			.add_method("set_print_eigenvalues_and_defect", &T::set_print_eigenvalues_and_defect, "", "b")
 			.add_method("set_print_projected_eigenvectors", &T::set_print_projected_eigenvectors, "", "b")
 			.add_method("set_print_projected_eigenvalues", &T::set_print_projected_eigenvalues, "", "b")
 			.add_method("set_print_projected_eigenproblem", &T::set_print_projected_eigenproblem, "", "b")
@@ -130,6 +132,28 @@ static void Algebra(Registry& reg, string grp)
 			.template add_constructor<void (*)(SmartPtr<ILinearOperatorInverse<vector_type>  >)>( "opInv")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "OperatorInverseIterator", tag);
+	}
+
+	{
+		string name = string("PowerMethod").append(suffix);
+		typedef PowerMethod<TAlgebra> T;
+		reg.add_class_<T>(name, grp)
+			.add_constructor()
+			.add_method("set_solver", &T::set_solver, "", "Solver")
+			.add_method("set_linear_operator_A", &T::set_linear_operator_A,	"", "LinearOperatorA")
+			.add_method("set_linear_operator_B", &T::set_linear_operator_B,	"", "LinearOperatorB")
+			.add_method("set_start_vector", &T::set_start_vector, "", "start vector")
+			.add_method("set_max_iterations", &T::set_max_iterations, "", "iterations")
+			.add_method("set_precision", &T::set_precision, "", "precision")
+			.add_method("calculate_max_eigenvalue", &T::calculate_max_eigenvalue, "", "")
+			.add_method("calculate_min_eigenvalue", &T::calculate_min_eigenvalue, "", "")
+			.add_method("get_max_eigenvalue", &T::get_max_eigenvalue, "", "")
+			.add_method("get_min_eigenvalue", &T::get_min_eigenvalue, "", "")
+			.add_method("get_iterations", &T::get_iterations)
+			.add_method("print_matrix_A", &T::print_matrix_A, "", "")
+			.add_method("print_matrix_B", &T::print_matrix_B, "", "")
+			.add_method("print_eigenvector", &T::print_eigenvector, "", "");
+		reg.add_class_to_group(name, "PowerMethod", tag);
 	}
 }
 }; // end Functionality

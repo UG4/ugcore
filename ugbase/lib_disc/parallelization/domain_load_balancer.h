@@ -33,6 +33,7 @@
 #ifndef __H__UG__domain_load_balancer__
 #define __H__UG__domain_load_balancer__
 
+#include "lib_disc/domain.h"  // for DomainInfo
 #include "lib_grid/refinement/refiner_interface.h"
 #include "lib_grid/parallelization/load_balancer.h"
 #include "lib_grid/parallelization/load_balancer_util.h"
