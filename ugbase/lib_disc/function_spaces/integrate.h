@@ -1955,7 +1955,7 @@ number H1SemiNorm(TGridFunction& gridFct, const char* cmp, int quadOrder, const 
 // Delegating to H1SemiNorm
 template <typename TGridFunction>
 number H1SemiNorm(SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOrder, const char* subsets)
-{ return H1SemiNorm(*spGridFct, cmp, quadOrder, subsets, SPNULL); }
+{ return H1SemiNorm(*spGridFct, cmp, quadOrder, subsets); }
 
 template <typename TGridFunction>
 number H1SemiNorm(SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOrder,
