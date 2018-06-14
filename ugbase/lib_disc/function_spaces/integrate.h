@@ -1943,6 +1943,8 @@ number H1SemiNorm2(TGridFunction& gridFct, const char* cmp, int quadOrder, const
 		return IntegrateSubsets(integrand, gridFct, subsets, quadOrder);
 	}
 }
+
+/// Computes the H1SemiNorm
 template <typename TGridFunction>
 number H1SemiNorm(TGridFunction& gridFct, const char* cmp, int quadOrder, const char* subsets=NULL,
 				ConstSmartPtr<typename H1SemiIntegrand<TGridFunction>::weight_type> weights = SPNULL)
@@ -1950,6 +1952,10 @@ number H1SemiNorm(TGridFunction& gridFct, const char* cmp, int quadOrder, const 
 	return (sqrt(H1SemiNorm2(gridFct, cmp, quadOrder, subsets, weights)));
 }
 
+// Delegating to H1SemiNorm
+template <typename TGridFunction>
+number H1SemiNorm(SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOrder, const char* subsets)
+{ return H1SemiNorm(*spGridFct, cmp, quadOrder, subsets, SPNULL); }
 
 template <typename TGridFunction>
 number H1SemiNorm(SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOrder,
@@ -1958,12 +1964,12 @@ number H1SemiNorm(SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOr
 
 template <typename TGridFunction>
 number H1SemiNorm( SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOrder)
-{ return H1SemiNorm(spGridFct, cmp, quadOrder, NULL); }
+{ return H1SemiNorm(*spGridFct, cmp, quadOrder, NULL); }
 
 template <typename TGridFunction>
 number H1SemiNorm( SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOrder,
 		ConstSmartPtr<typename H1SemiIntegrand<TGridFunction>::weight_type> weights)
-{ return H1SemiNorm(spGridFct, cmp, quadOrder, NULL, weights); }
+{ return H1SemiNorm(*spGridFct, cmp, quadOrder, NULL, weights); }
 
 /// Integrand for the distance of two grid functions - evaluated in the (weighted) H1-semi norm
 template <typename TGridFunction>
