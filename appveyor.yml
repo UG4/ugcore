@@ -103,7 +103,7 @@ build_script:
   - MSBuild .\ug4.sln  /property:Configuration=Release /property:Platform=x64
   - cd ..\bin
   - dir
-  - if %TARGET%=="ugshell" Release\ugshell.exe -call "print(\"it works\")"
+  - if %TARGET% == "ugshell" Release\ugshell.exe -call "print(\"it works\")"
  
   
   
