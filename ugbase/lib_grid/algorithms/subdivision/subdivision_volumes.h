@@ -149,9 +149,9 @@ void TetrahedralizeHybridTetOctGrid(MultiGrid& mg, int bestDiag);
  *
  * 	@param mg			reference to MultiGrid
 **/
-void ProjectHierarchyToLimitSubdivisionVolume2d(MultiGrid& mg);
+void ProjectHierarchyToLimitSubdivisionSurface(MultiGrid& mg);
 
-void ProjectHierarchyToLimitSubdivisionVolume3d(MultiGrid& mg);
+void ProjectHierarchyToLimitSubdivisionVolume(MultiGrid& mg);
 
 
 /// Parent level vertex smoothing function for subdivision surfaces refinement (by C. Loop, 1987)

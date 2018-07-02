@@ -507,7 +507,7 @@ void TetrahedralizeHybridTetOctGrid(MultiGrid& mg, int bestDiag)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-void ProjectHierarchyToLimitSubdivisionVolume2d(MultiGrid& mg)
+void ProjectHierarchyToLimitSubdivisionSurface(MultiGrid& mg)
 {
 	PROFILE_FUNC_GROUP("subdivision_volumes");
 
@@ -563,7 +563,7 @@ void ProjectHierarchyToLimitSubdivisionVolume2d(MultiGrid& mg)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-void ProjectHierarchyToLimitSubdivisionVolume3d(MultiGrid& mg)
+void ProjectHierarchyToLimitSubdivisionVolume(MultiGrid& mg)
 {
 	PROFILE_FUNC_GROUP("subdivision_volumes");
 
