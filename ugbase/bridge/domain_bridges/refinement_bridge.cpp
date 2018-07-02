@@ -1576,8 +1576,10 @@ static void Common(Registry& reg, string grp)
 //	smooth volume/surface subdivision
 	reg.add_function("ApplySmoothSubdivisionVolumesToTopLevel", (void (*)(ug::MultiGrid&, ug::MGSubsetHandler&, ug::MGSubsetHandler&, const char*)) (&ug::ApplySmoothSubdivisionVolumesToTopLevel), grp);
 	reg.add_function("ApplyConstrainedSmoothSubdivisionVolumesToTopLevel", &ApplyConstrainedSmoothSubdivisionVolumesToTopLevel, grp);
-	reg.add_function("ApplySmoothSubdivisionSurfacesToTopLevel", &ApplySmoothSubdivisionSurfacesToTopLevel, grp);
-	reg.add_function("ProjectHierarchyToLimitSubdivisionVolume", &ProjectHierarchyToLimitSubdivisionVolume, grp);
+	reg.add_function("ApplySmoothSubdivisionSurfacesToTopLevel2d", &ApplySmoothSubdivisionSurfacesToTopLevel2d, grp);
+	reg.add_function("ApplySmoothSubdivisionSurfacesToTopLevel3d", &ApplySmoothSubdivisionSurfacesToTopLevel3d, grp);
+	reg.add_function("ProjectHierarchyToLimitSubdivisionVolume2d", &ProjectHierarchyToLimitSubdivisionVolume2d, grp);
+	reg.add_function("ProjectHierarchyToLimitSubdivisionVolume3d", &ProjectHierarchyToLimitSubdivisionVolume3d, grp);
 	reg.add_function("TetrahedralizeHybridTetOctGrid", &TetrahedralizeHybridTetOctGrid, grp);
 	reg.add_function("CheckValences", &CheckValences, grp);
 
