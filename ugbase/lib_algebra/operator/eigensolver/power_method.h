@@ -239,7 +239,13 @@ class PowerMethod
 					m_spLinOpB->apply(*m_spResidual, *m_spEigenvector);
 			//	in case B is not set
 				else
+				{
 					m_spResidual = m_spEigenvector->clone();
+
+					#ifdef UG_PARALLEL
+						m_spResidual->change_storage_type(PST_ADDITIVE);
+					#endif
+				}
 
 			//	v = A^-1 B v or v = A^-1 v
 				m_spSolver->apply(*m_spEigenvector, *m_spResidual);
