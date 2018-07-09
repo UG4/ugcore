@@ -166,6 +166,10 @@ class PowerMethod
 		{
 			PROFILE_FUNC_GROUP("PowerMethod");
 
+			UG_COND_THROW(m_spSolver == SPNULL && m_spLinOpB != SPNULL, "PowerMethod::calculate_max_eigenvalue(): Solver not set, please specify.");
+			if(m_spLinOpB != SPNULL)
+				m_spSolver->init(m_spLinOpB);
+
 			m_spResidual = create_approximation_vector();
 
 			for(m_iteration = 0; m_iteration < m_maxIterations; ++m_iteration)
@@ -177,13 +181,23 @@ class PowerMethod
 				m_spLinOpA->apply(*m_spResidual, *m_spEigenvector);
 
 			//	v = B^-1 A v
-//				UG_COND_THROW(m_spLinOpB == SPNULL, "PowerMethod::calculate_max_eigenvalue(): Linear operator B not set, please specify.");
-				UG_COND_THROW(m_spSolver == SPNULL, "PowerMethod::calculate_max_eigenvalue(): Solver not set, please specify.");
-				m_spSolver->init(m_spLinOpB);
-				m_spSolver->apply(*m_spEigenvector, *m_spResidual);
+				if(m_spLinOpB != SPNULL)
+					m_spSolver->apply(*m_spEigenvector, *m_spResidual);
+			//	in case B is not set: v = A v
+				else
+					m_spEigenvector = m_spResidual->clone();
 
 			//	v = v / ||v||_B
 				normalize_approximations();
+
+			//	in case B is not set, restore storage type of m_spEigenvector to PST_CONSISTENT
+			//	changed by norm calculation in normalize_approximations()
+				if(m_spLinOpB == SPNULL)
+				{
+					#ifdef UG_PARALLEL
+							m_spEigenvector->change_storage_type(PST_CONSISTENT);
+					#endif
+				}
 
 			//	residual = v - v_old
 				VecScaleAdd(*m_spResidual, 1.0, *m_spEigenvectorOld, -1.0, *m_spEigenvector);
@@ -209,24 +223,38 @@ class PowerMethod
 		{
 			PROFILE_FUNC_GROUP("PowerMethod");
 
+			UG_COND_THROW(m_spLinOpA == SPNULL, "PowerMethod::calculate_min_eigenvalue(): Linear operator A not set, please specify.");
+			UG_COND_THROW(m_spSolver == SPNULL, "PowerMethod::calculate_min_eigenvalue(): Solver not set, please specify.");
+
 			m_spResidual = create_approximation_vector();
+
+			m_spSolver->init(m_spLinOpA);
 
 			for(m_iteration = 0; m_iteration < m_maxIterations; ++m_iteration)
 			{
 				m_spEigenvectorOld = m_spEigenvector->clone();
 
 			//	residual = B v
-				UG_COND_THROW(m_spSolver == SPNULL, "PowerMethod::calculate_max_eigenvalue(): Solver not set, please specify.");
-				m_spLinOpB->apply(*m_spResidual, *m_spEigenvector);
+				if(m_spLinOpB != SPNULL)
+					m_spLinOpB->apply(*m_spResidual, *m_spEigenvector);
+			//	in case B is not set
+				else
+					m_spResidual = m_spEigenvector->clone();
 
-			//	v = A^-1 B v
-				UG_COND_THROW(m_spLinOpA == SPNULL, "PowerMethod::calculate_max_eigenvalue(): Linear operator A not set, please specify.");
-				UG_COND_THROW(m_spSolver == SPNULL, "PowerMethod::calculate_max_eigenvalue(): Solver not set, please specify.");
-				m_spSolver->init(m_spLinOpA);
+			//	v = A^-1 B v or v = A^-1 v
 				m_spSolver->apply(*m_spEigenvector, *m_spResidual);
 
 			//	v = v / ||v||_B
 				normalize_approximations();
+
+			//	in case B is not set, restore storage type of m_spEigenvector to PST_CONSISTENT
+			//	changed by norm calculation in normalize_approximations()
+				if(m_spLinOpB == SPNULL)
+				{
+					#ifdef UG_PARALLEL
+							m_spEigenvector->change_storage_type(PST_CONSISTENT);
+					#endif
+				}
 
 			//	residual = v - v_old
 				VecScaleAdd(*m_spResidual, 1.0, *m_spEigenvectorOld, -1.0, *m_spEigenvector);
