@@ -590,10 +590,14 @@ class ILU : public IPreconditioner<TAlgebra>
 					c.set_storage_type(PST_UNIQUE);
 				}
 				else if(m_useConsistentInterfaces){
-					UG_COND_THROW(d.has_storage_type(PST_CONSISTENT),
-					              "additive or unique defect expected");
-					applyLU(c, d, m_h);
-					c.set_storage_type(PST_ADDITIVE);
+					// make defect consistent
+					SmartPtr<vector_type> spDtmp = d.clone();
+					spDtmp->change_storage_type(PST_CONSISTENT);
+					applyLU(c, *spDtmp, m_h);
+
+					// declare c unique to enforce that only master correction is used
+					// when it is made consistent below
+					c.set_storage_type(PST_UNIQUE);
 				}
 				else{
 				//	make defect unique
