@@ -101,6 +101,7 @@ extern ANormal		aNormal;
  *	Valid types for TAttachment are:
  *		- APosition (AVector3)		the default 3d position type. Returns aPosition.
  *		- APosition2 (AVector2)		the default 2d position type. Returns aPosition2.
+ *		- APosition1 (AVector1)		the default 1d position type. Returns aPosition1.
  */
 template <class TAttachment>
 UG_API

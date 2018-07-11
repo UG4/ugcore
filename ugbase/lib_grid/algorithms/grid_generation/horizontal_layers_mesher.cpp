@@ -104,6 +104,11 @@ void ExtrudeLayers (
 		bool allowForTetsAndPyras,
 		const ANumber* aRelZOut)
 {
+	if(allowForTetsAndPyras){
+		ExtrudeLayersMixed(grid, layers, aaPos, sh, aRelZOut);
+		return;
+	}
+
 	UG_COND_THROW(layers.size() < 2, "At least 2 layers are required to perform extrusion!");
 
 	grid.begin_marking();
@@ -449,6 +454,208 @@ void ExtrudeLayers (
 	grid.detach_from_vertices(aHeight);
 }
 
+
+void ExtrudeLayersMixed (
+		Grid& grid, 
+		const RasterLayers& layers,
+		Grid::VertexAttachmentAccessor<AVector3> aaPos,
+		ISubsetHandler& sh,
+		const ANumber* aRelZOut)
+{
+	UG_COND_THROW(layers.size() < 2, "At least 2 layers are required to perform extrusion!");
+
+	vector<Vertex*> curVrts;	// list of vertices that are considered for extrusion
+	vector<Vertex*> nextVrts;	// used to determine the set of vertices that can be extruded
+	vector<Face*> curFaces;		// list of faces that are considered for extrusion
+	vector<Face*> nextFaces;		// used to determine the set of faces that can be extruded
+
+	grid.reserve<Vertex>(grid.num_vertices() * layers.size());
+	grid.reserve<Volume>(grid.num_faces() * layers.size() - 1);
+	
+	AInt aVrtInd;
+	grid.attach_to_vertices(aVrtInd);
+	Grid::VertexAttachmentAccessor<AInt> aaVrtInd(grid, aVrtInd);
+
+	Grid::VertexAttachmentAccessor<ANumber> aaRelZOut;
+	if(aRelZOut){
+		ANumber aRelZ = *aRelZOut;
+		if(!grid.has_vertex_attachment(aRelZ))
+			grid.attach_to_vertices(aRelZ);
+		aaRelZOut.access(grid, aRelZ);
+	}
+
+//	we have to determine the vertices that can be projected onto the top of the
+//	given layers-stack. Only those will be used during extrusion
+//	all considered vertices will be marked.
+	const RasterLayers::layer_t& top = layers.top();
+	const int topLayerInd = (int)layers.num_layers() - 1;
+	for(VertexIterator i = grid.begin<Vertex>(); i != grid.end<Vertex>(); ++i){
+		Vertex* v = *i;
+		vector2 c(aaPos[v].x(), aaPos[v].y());
+		// number val = layers.relative_to_global_height(c, topLayerInd);
+		number val = layers.heightfield(topLayerInd).interpolate(c, 1);
+		if(val != top.heightfield.no_data_value()){
+			aaPos[v].z() = val;
+			aaVrtInd[v] = (int)curVrts.size();
+			curVrts.push_back(v);
+			sh.assign_subset(v, topLayerInd);
+		}
+		else
+			aaVrtInd[v] = -1;
+	}
+
+	if(curVrts.size() < 3){
+		UG_LOG("Not enough vertices lie in the region of the surface layer\n");
+		return;
+	}
+
+	if(aaRelZOut.valid()){
+		for(size_t ivrt = 0; ivrt < curVrts.size(); ++ivrt)
+			aaRelZOut[curVrts[ivrt]] = topLayerInd;
+	}
+
+//	make sure that only triangles are used
+	if(grid.num<Quadrilateral>() > 0){
+		UG_LOG("WARNING: Converting all quadrilaterals to triangles\n");
+		Triangulate(grid, grid.begin<Quadrilateral>(), grid.end<Quadrilateral>(), &aaPos);
+	}
+
+//	all faces of the initial triangulation that are only connected to marked
+//	vertices are considered for extrusion
+	for(FaceIterator fi = grid.begin<Face>(); fi != grid.end<Face>(); ++fi){
+		Face* f = *fi;
+		bool allConsidered = true;
+		Face::ConstVertexArray vrts = f->vertices();
+		const size_t numVrts = f->num_vertices();
+		for(size_t i = 0; i < numVrts; ++i){
+			if(aaVrtInd[vrts[i]] == -1){
+				allConsidered = false;
+				break;
+			}
+		}
+		if(allConsidered)
+			curFaces.push_back(f);
+	}
+
+	if(curFaces.empty()){
+		UG_LOG("Not enough faces lie in the region of the surface layer\n");
+		return;
+	}
+
+
+	nextVrts.reserve(curVrts.size());
+	nextFaces.reserve(curFaces.size());
+
+	
+	for(int ilayer = (int)layers.size() - 2; ilayer > 0; --ilayer){
+
+		nextVrts.clear();
+		nextFaces.clear();
+
+		const int nextLayer = ilayer - 1;
+
+	//	trace rays from the current vertices down through the layers until the
+	//	next valid entry is found. If none is found, the vertex will either be ignored
+	//	from then on (allowForTetsAndPyras == false) or a dummy vertex will be inserted.
+		for(size_t icur = 0; icur < curVrts.size(); ++icur){
+			Vertex* v = curVrts[icur];
+			vector2 c(aaPos[v].x(), aaPos[v].y());
+			number curH = aaPos[v].z();
+			// number nextH = layers.relative_to_global_height(c, (number) nextLayer);
+			number nextH = layers.heightfield(nextLayer).interpolate(c, 1);
+			if(curH - nextH < layers.min_height(nextLayer)){
+				nextVrts.push_back(v);
+			}
+			else{
+				Vertex* nextVrt = *grid.create<RegularVertex>(v);
+				aaVrtInd[nextVrt] = aaVrtInd[v];
+				aaPos[nextVrt] = aaPos[v];
+				aaPos[nextVrt].z() = nextH;
+				sh.assign_subset(nextVrt, nextLayer);
+				nextVrts.push_back(nextVrt);
+
+				if(aaRelZOut.valid()){
+					aaRelZOut[nextVrt] = nextLayer;
+				}
+			}
+		}
+
+	//	now find the faces which connect those vertices
+		for(size_t iface = 0; iface < curFaces.size(); ++iface){
+			Face* f = curFaces[iface];
+			Face::ConstVertexArray vrts = f->vertices();
+			int numNew = 0;
+			int firstSame = -1;
+			int firstNew = -1;
+			TriangleDescriptor nextTriDesc;
+			for(int i = 0; i < 3; ++i){
+				int vrtInd = aaVrtInd[vrts[i]];
+				nextTriDesc.set_vertex(i, nextVrts[vrtInd]);
+				if(nextVrts[vrtInd] == curVrts[vrtInd]){
+					if(firstSame == -1)
+						firstSame = i;
+				}
+				else{
+					++numNew;
+					if(firstNew == -1)
+						firstNew = i;
+				}
+			}
+
+			Face* nextFace = f;
+			if(numNew > 0){
+				nextFace = *grid.create<Triangle>(nextTriDesc, f);
+				sh.assign_subset (nextFace, nextLayer);
+			}
+			nextFaces.push_back(nextFace);
+
+			Volume* newVol = NULL;
+
+			switch(numNew){
+				case 0:// no new volume to be built.
+					break;
+				case 1: {// build a tetrahedron
+					TetrahedronDescriptor 	tetDesc (nextTriDesc.vertex(0),
+					                                 nextTriDesc.vertex(1),
+													 nextTriDesc.vertex(2),
+													 vrts[firstNew]);
+					newVol = *grid.create<Tetrahedron>(tetDesc);
+				} break;
+
+				case 2: {// build a pyramid
+					int i0 = (firstSame + 1) % 3;
+					int i1 = (firstSame + 2) % 3;
+					PyramidDescriptor	pyrDesc (nextTriDesc.vertex(i0),
+					                             nextTriDesc.vertex(i1),
+					                             vrts[i1],
+					                             vrts[i0],
+					                             vrts[firstSame]);
+					newVol = *grid.create<Pyramid>(pyrDesc);
+				} break;
+
+				case 3: {// build a prism
+					PrismDescriptor		prismDesc (nextTriDesc.vertex(0),
+												   nextTriDesc.vertex(1),
+												   nextTriDesc.vertex(2),
+												   vrts[0],
+												   vrts[1],
+												   vrts[2]);
+					newVol = *grid.create<Prism>(prismDesc);
+				} break;
+			}
+
+			if(newVol)
+				sh.assign_subset(newVol, nextLayer);
+		}
+
+	//	swap containers and perform extrusion
+		curVrts.swap(nextVrts);
+		curFaces.swap(nextFaces);
+	}
+	
+//	clean up
+	grid.detach_from_vertices(aVrtInd);
+}
 
 ///	projects the given (surface-) grid to the specified raster
 void ProjectToLayer(

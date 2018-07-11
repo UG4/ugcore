@@ -138,6 +138,12 @@ static void DomainAlgebra(Registry& reg, string grp)
 	{
 		reg.add_function("L2Norm",static_cast<number (*)(SmartPtr<TFct>, const char*, int, const char*)>(&L2Norm<TFct>),grp);
 		reg.add_function("L2Norm",static_cast<number (*)(SmartPtr<TFct>, const char*, int)>(&L2Norm<TFct>),grp);
+
+		reg.add_function("H1SemiNorm",static_cast<number (*)(SmartPtr<TFct>, const char*, int)>(&H1SemiNorm<TFct>),grp);
+		reg.add_function("H1SemiNorm",static_cast<number (*)(SmartPtr<TFct>, const char*, int, const char*)>(&H1SemiNorm<TFct>),grp);
+
+		reg.add_function("H1Norm",static_cast<number (*)(SmartPtr<TFct>, const char*, int)>(&H1Norm<TFct>),grp);
+		reg.add_function("H1Norm",static_cast<number (*)(SmartPtr<TFct>, const char*, int, const char*)>(&H1Norm<TFct>),grp);
 	}
 
 //	IntegrateNormalGradientOnManifold

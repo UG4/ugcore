@@ -1021,7 +1021,15 @@ void jobjectArray2ParamStack
 					const ug::bridge::ClassNameNode* node =
 						ug::vrl::invocation::getClassNodePtrByName(reg,
 							jPointerGetName(env, value));
-					paramsOut.push(jObject2Pointer(env, value), node);
+
+					if (java_value_type == ug::Variant::VT_SMART_POINTER) {
+						paramsOut.push((void *) jObject2SmartPointer(env, value).get(), node);
+					} else if(java_value_type == ug::Variant::VT_POINTER) {
+						paramsOut.push(jObject2Pointer(env, value), node);
+					} else {
+						UG_THROW("Can't convert to non-const pointer.");
+					}
+
 					break;
 				}
 				case ug::Variant::VT_CONST_POINTER:
@@ -1032,17 +1040,13 @@ void jobjectArray2ParamStack
 
 					if (java_value_type == ug::Variant::VT_CONST_SMART_POINTER) {
 						paramsOut.push(
-							(void*) jObject2ConstSmartPointer(env, value).get(),
-							node);
+							(void*) jObject2ConstSmartPointer(env, value).get(), node);
 					} else if (java_value_type == ug::Variant::VT_SMART_POINTER) {
-						paramsOut.push((void*) jObject2SmartPointer(env, value).get(),
-							node);
+						paramsOut.push((void*) jObject2SmartPointer(env, value).get(), node);
 					} else {
 						paramsOut.push(jObject2Pointer(env, value), node);
 					}
 
-					//paramsOut.push_const_pointer(
-					//		jObject2Pointer(env, value), node);
 					break;
 				}
 				case ug::Variant::VT_SMART_POINTER:

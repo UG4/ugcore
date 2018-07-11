@@ -16,6 +16,12 @@ else
 	SVN_REVISION="unknown"
 fi
 
+# git commit info
+GIT_REVISION="unknown"
+if [[ -d "${1}/.git" ]]; then
+	GIT_REVISION=$(git rev-parse --short HEAD)
+fi
+
 HOSTNAME=`hostname`
 if [[ ! $? == 0 ]]; then
    HOSTNAME="unknown"
@@ -25,6 +31,7 @@ COMPILE_DATE=`date`
 cat > $2 <<EOF
 namespace ug{
 const char *UG_SVN_REVISION="$SVN_REVISION";
+const char *UG_GIT_REVISION="$GIT_REVISION";
 const char *UG_BUILD_HOST="$HOSTNAME";
 const char *UG_COMPILE_DATE="$COMPILE_DATE";
 }

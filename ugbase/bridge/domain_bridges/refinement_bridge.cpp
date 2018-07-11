@@ -839,7 +839,6 @@ void MarkAnisotropic_LongEdges(TDomain& dom, IRefiner& refiner, number minLen)
 // 	refiner->mark(volumes.begin(), volumes.end(), RM_ANISOTROPIC);
 // }
 
-
 ////////////////////////////////////////////////////////////////////////////////
 ///	Marks all elements which have vertices in the given d-dimensional cube.
 /**	Make sure that TAPos is an attachment of vector_t position types.*/
@@ -879,17 +878,24 @@ void AssignSubset_VerticesInCube(TDomain& dom,
 }
 
 
-static number DistanceToSurfaceDomain(MathVector<1>& tpos, const Vertex* vrt, 
+#ifdef UG_DIM_1
+static number DistanceToSurfaceDomain(MathVector<1>& tpos, const Vertex* vrt,
 									  Grid::VertexAttachmentAccessor<Attachment<MathVector<1> > >& aaPosSurf)
 {
 	UG_THROW("Not implemented");
 }
-static number DistanceToSurfaceDomain(MathVector<2>& tpos, const Edge* edge, 
+#endif
+
+#ifdef UG_DIM_2
+static number DistanceToSurfaceDomain(MathVector<2>& tpos, const Edge* edge,
 									  Grid::VertexAttachmentAccessor<Attachment<MathVector<2> > >& aaPosSurf)
 {
 	return DistancePointToLine(tpos , aaPosSurf[edge->vertex(0)], aaPosSurf[edge->vertex(1)]);
 }
-static number DistanceToSurfaceDomain(MathVector<3>& tpos, const Face* face, 
+#endif
+
+#ifdef UG_DIM_3
+static number DistanceToSurfaceDomain(MathVector<3>& tpos, const Face* face,
 									  Grid::VertexAttachmentAccessor<Attachment<MathVector<3> > >& aaPosSurf)
 {
 
@@ -903,6 +909,7 @@ static number DistanceToSurfaceDomain(MathVector<3>& tpos, const Face* face,
 									tpos, 
 									aaPosSurf[face->vertex(0)], aaPosSurf[face->vertex(1)], aaPosSurf[face->vertex(2)], n);
 }
+#endif
 
 template <class TDomain>
 void MarkForRefinement_CloseToSurface(TDomain& dom, SmartPtr<IRefiner> refiner,
@@ -1616,7 +1623,9 @@ static void Common(Registry& reg, string grp)
 //	smooth volume/surface subdivision
 	reg.add_function("ApplySmoothSubdivisionVolumesToTopLevel", (void (*)(ug::MultiGrid&, ug::MGSubsetHandler&, ug::MGSubsetHandler&, const char*)) (&ug::ApplySmoothSubdivisionVolumesToTopLevel), grp);
 	reg.add_function("ApplyConstrainedSmoothSubdivisionVolumesToTopLevel", &ApplyConstrainedSmoothSubdivisionVolumesToTopLevel, grp);
-	reg.add_function("ApplySmoothSubdivisionSurfacesToTopLevel", &ApplySmoothSubdivisionSurfacesToTopLevel, grp);
+	reg.add_function("ApplySmoothSubdivisionSurfacesToTopLevel2d", &ApplySmoothSubdivisionSurfacesToTopLevel2d, grp);
+	reg.add_function("ApplySmoothSubdivisionSurfacesToTopLevel3d", &ApplySmoothSubdivisionSurfacesToTopLevel3d, grp);
+	reg.add_function("ProjectHierarchyToLimitSubdivisionSurface", &ProjectHierarchyToLimitSubdivisionSurface, grp);
 	reg.add_function("ProjectHierarchyToLimitSubdivisionVolume", &ProjectHierarchyToLimitSubdivisionVolume, grp);
 	reg.add_function("TetrahedralizeHybridTetOctGrid", &TetrahedralizeHybridTetOctGrid, grp);
 	reg.add_function("CheckValences", &CheckValences, grp);

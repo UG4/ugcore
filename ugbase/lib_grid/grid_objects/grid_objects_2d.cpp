@@ -164,6 +164,11 @@ refine(std::vector<Face*>& vNewFacesOut,
 	{
 		switch(numNewVrts)
 		{
+			case 0: // this may happen when the triangle belongs to a prism being anisotropically refined
+					// and the volume on the other side is not being refined
+				vNewFacesOut.push_back(new RefTriType(vrts[0], vrts[1], vrts[2]));
+				return true;
+
 			case 1:
 			{
 			//	get the index of the edge that will be refined
@@ -477,11 +482,21 @@ refine(std::vector<Face*>& vNewFacesOut,
 	switch(numNewVrts)
 	{
 		case 0:
-		//	create four new triangles
-			vNewFacesOut.push_back(new RefTriType(vrts[0], vrts[1], newFaceVertex));
-			vNewFacesOut.push_back(new RefTriType(vrts[1], vrts[2], newFaceVertex));
-			vNewFacesOut.push_back(new RefTriType(vrts[2], vrts[3], newFaceVertex));
-			vNewFacesOut.push_back(new RefTriType(vrts[3], vrts[0], newFaceVertex));
+			// refine with mid point if it exists
+			if (newFaceVertex)
+			{
+			//	create four new triangles
+				vNewFacesOut.push_back(new RefTriType(vrts[0], vrts[1], newFaceVertex));
+				vNewFacesOut.push_back(new RefTriType(vrts[1], vrts[2], newFaceVertex));
+				vNewFacesOut.push_back(new RefTriType(vrts[2], vrts[3], newFaceVertex));
+				vNewFacesOut.push_back(new RefTriType(vrts[3], vrts[0], newFaceVertex));
+				return true;
+			}
+
+			// in case the mid point does not exists, we need a simple copy
+			// This may happen when the quad belongs to a hexahedron being anisotropically refined
+			// and the volume on the other side is not being refined.
+			vNewFacesOut.push_back(new RefQuadType(vrts[0], vrts[1], vrts[2], vrts[3]));
 			return true;
 			
 		case 1:

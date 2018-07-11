@@ -45,6 +45,8 @@ class DistroAdjuster
 	public:
 		virtual ~DistroAdjuster() {}
 
+		// The selector given here has selected all elements
+		// that are to be part of the partition currently being treated.
 		virtual void adjust
 		(
 			MGSelector& sel,

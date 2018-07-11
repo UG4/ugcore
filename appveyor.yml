@@ -1,0 +1,111 @@
+# Build worker image (VM template)
+image: Visual Studio 2017
+
+# scripts that are called at very beginning, before repo cloning
+init:
+  - date /T & time /T
+  - git config --global core.autocrlf input
+  - cmake --version
+
+#branches:
+#  only:
+#  - master
+
+clone_depth: 50
+
+version: '{build}'
+
+platform:
+  - x64
+
+configuration:
+  - Release
+
+environment:
+  MSBUILD_FLAGS: /verbosity:minimal /maxcpucount
+  matrix:
+    
+    - BUILD_VARIANT: "build1"
+      generator: "Visual Studio 15 2017 Win64" 
+      DIM: 2 
+      CPU: 1
+      TARGET: ugshell
+      STATIC_BUILD: ON
+    
+    - BUILD_VARIANT: "build2"
+      generator: "Visual Studio 15 2017 Win64" 
+      DIM: 2 
+      CPU: 1
+      TARGET: vrl
+      STATIC_BUILD: OFF
+
+    - BUILD_VARIANT: "build3"
+      generator: "Visual Studio 15 2017 Win64" 
+      DIM: ALL 
+      CPU: 1;2
+      TARGET: ugshell
+      STATIC_BUILD: ON
+
+    - BUILD_VARIANT: "build4"
+      generator: "Visual Studio 15 2017 Win64" 
+      DIM: ALL 
+      CPU: 1;2
+      TARGET: vrl
+      STATIC_BUILD: OFF
+
+#matrix:
+#  fast_finish: true
+
+cache:
+  #- %APPVEYOR_BUILD_FOLDER%
+  - appveyor_root/ug4/ 
+  
+install:
+  - if not exist appveyor_root mkdir appveyor_root && echo "appveyor root does not exist"
+  - cd appveyor_root
+  - if exist ughub rmdir /S /Q ughub
+  - git clone https://www.github.com/UG4/ughub
+  
+  - set "UG4_FOLDER_SURVIVED_CACHE=true"
+  - if not exist ug4 mkdir ug4 && set "UG4_FOLDER_SURVIVED_CACHE=false"
+  - if not exist ug4\.ughub ughub\ughub init ug4
+  - cd ug4 
+  - if not exist ugcore ..\ughub\ughub install ugcore
+      
+  - if %UG4_FOLDER_SURVIVED_CACHE%==false rm -rf ugcore
+  #- rm -rf ugcore
+  
+  - |-
+     @echo off
+     echo "--------------------------------------------------------------------------------"
+     echo "TRAVIS BUILD-INFO FOR UGCORE
+     echo "--------------------------------------------------------------------------------"
+     echo "REPOSITORY:.............%APPVEYOR_REPO_NAME%"
+     echo "COMMIT:.................%APPVEYOR_REPO_COMMIT%"
+     echo "TAG:....................%APPVEYOR_REPO_TAG_NAME%"
+     echo "BRANCH:.................%APPVEYOR_REPO_BRANCH%"
+     echo "TRAVIS-BUILD-NUMBER:....%APPVEYOR_BUILD_NUMBER%"
+     echo "TARGET:.................%TARGET%"
+     echo "UG4 dir survived cache: %UG4_FOLDER_SURVIVED_CACHE%"
+     echo "--------------------------------------------------------------------------------"
+     @echo on
+      
+  - if %UG4_FOLDER_SURVIVED_CACHE%==false git clone --depth=50 https://github.com/%APPVEYOR_REPO_NAME%.git ugcore
+  - cd ugcore
+  - if %UG4_FOLDER_SURVIVED_CACHE%==true git fetch
+  - git checkout -qf %APPVEYOR_REPO_COMMIT%
+
+build_script:
+  - cd %APPVEYOR_BUILD_FOLDER%\appveyor_root\ug4
+  - dir
+  - if not exist %BUILD_VARIANT% mkdir %BUILD_VARIANT%
+  - cd %BUILD_VARIANT% && cmake ..\ -DCMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE=X64 -G "%generator%" -DTARGET="%TARGET%" -DLAPACK=OFF -DBLAS=OFF -DDIM="%DIM%" -DCPU="%CPU%" -DCOMPILE_INFO=OFF -DEMBEDDED_PLUGINS=ON -DSTATIC_BUILD="%STATIC_BUILD%"
+  - MSBuild .\ug4.sln  /property:Configuration=Release /property:Platform=x64
+  - cd ..\bin
+  - dir
+  - if %TARGET% == "ugshell" Release\ugshell.exe -call "print(\"it works\")"
+ 
+  
+  
+  
+  

@@ -17,7 +17,7 @@ bool CheckPermutationBijective(const std::vector<size_t> &perm)
 	for(size_t i=0; i<perm.size(); i++)
 	{
 		UG_COND_THROW(invPerm[perm[i]] != (size_t) (-1), "not a bijective permutation "
-			"(double mapping to index " << perm[i] << " by indices " << invPerm[perm[i]] << " and " << i << ")!");
+				"(double mapping to index " << perm[i] << " by indices " << invPerm[perm[i]] << " and " << i << ")!");
 		bId = bId && perm[i] == i;
 		invPerm[perm[i]] = i;
 	}
@@ -47,6 +47,48 @@ private:
 	const std::vector<std::vector<size_t> >& m_vCon;
 };
 
+
+/// greatest common divisor
+static size_t gcd(size_t a, size_t b)
+{
+	while (b)
+	{
+		size_t r = a % b;
+		a = b;
+		b = r;
+	}
+	return a;
+}
+
+
+static size_t findBlockSize(const std::vector<std::vector<size_t> >& vvConnection)
+{
+	size_t nDoF = vvConnection.size();
+
+	// find first non-empty connection
+	size_t cd = 0;
+	while (cd < nDoF && !vvConnection[cd].size())
+		++cd;
+	if (cd == nDoF)
+		return nDoF;
+
+	size_t blockSize = 1;
+	for (size_t i = cd+1; i < nDoF; ++i)
+	{
+		if (!vvConnection[i].size())
+		{
+			++blockSize;
+			continue;
+		}
+
+		cd = gcd(blockSize, cd);
+		blockSize = 1;
+	}
+
+	return gcd(blockSize, cd);
+}
+
+
 // computes ordering using Cuthill-McKee algorithm
 void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
                               std::vector<std::vector<size_t> >& vvConnection,
@@ -57,12 +99,14 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 //	list of sorted (will be filled later)
 	std::vector<size_t> vNewOrder;
 
+	const std::size_t nDoF = vvConnection.size();
+
 //	create flag list to remember already handled indices
-	std::vector<bool> vHandled(vvConnection.size(), false);
+	std::vector<bool> vHandled(nDoF, false);
 
 //	Sort neighbours by degree (i.e. by number of neighbours those have)
 	CompareDegree myCompDegree(vvConnection);
-	for(size_t i = 0; i < vvConnection.size(); ++i)
+	for(size_t i = 0; i < nDoF; ++i)
 	{
 	//	indices with no adjacent indices are marked as handled (and skipped)
 		if(vvConnection[i].size() == 0){
@@ -82,7 +126,7 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 	// also sort vvConnection itself, this is extremely useful if there are many
 	// identity rows, as finding the "start" index again and again will take
 	// REALLY much time in that case
-	std::vector<size_t> sorting(vvConnection.size());
+	std::vector<size_t> sorting(nDoF);
 	size_t szSort = sorting.size();
 	for (size_t i = 0; i < szSort; ++i)
 		sorting[i] = i;
@@ -148,7 +192,7 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 	}
 
 // 	Create list of mapping
-	vNewIndex.clear(); vNewIndex.resize(vvConnection.size(), (size_t)-1);
+	vNewIndex.clear(); vNewIndex.resize(nDoF, (size_t) -1);
 
 	if (bPreserveConsec)
 	{
@@ -156,47 +200,58 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 		size_t cnt = 0;
 		if(bReverse)
 		{
-			for(size_t oldInd = 0; oldInd < vvConnection.size(); ++oldInd)
+			for(size_t newInd = 0; newInd < nDoF; ++newInd)
 			{
-			//	skip non-sorted indices
-				if(vvConnection[oldInd].size() == 0) continue;
+			//	only distribute indices that were already connected before
+				if(vvConnection[newInd].size() == 0) continue;
 
 			//	get old index
-				UG_ASSERT(cnt < vNewOrder.size(), "cnt: "<<cnt<<", ordered: "<<vNewOrder.size())
-				const size_t newInd = vNewOrder[vNewOrder.size() - 1 - cnt]; ++cnt;
-				UG_ASSERT(newInd < vNewIndex.size(), "newInd: "<<newInd<<", size: "<<vNewIndex.size())
+				UG_ASSERT(cnt < vNewOrder.size(), "cnt: " << cnt << ", ordered: " << vNewOrder.size())
+				const size_t oldInd = vNewOrder[vNewOrder.size() - 1 - cnt]; ++cnt;
+				UG_ASSERT(oldInd < nDoF, "oldInd: "<<oldInd<<", size: "<<nDoF)
 
 			//	set new index to order
-				vNewIndex[newInd] = oldInd;
+				vNewIndex[oldInd] = newInd;
 			}
 		}
 		else
 		{
-			for(size_t oldInd = 0; oldInd < vvConnection.size(); ++oldInd)
+			for(size_t newInd = 0; newInd < nDoF; ++newInd)
 			{
 			//	skip non-sorted indices
-				if(vvConnection[oldInd].size() == 0) continue;
+				if(vvConnection[newInd].size() == 0) continue;
 
 			//	get old index
-				UG_ASSERT(cnt < vNewOrder.size(), "cnt: "<<cnt<<", ordered: "<<vNewOrder.size())
-				const size_t newInd = vNewOrder[cnt++];
-				UG_ASSERT(newInd < vNewIndex.size(), "newInd: "<<newInd<<", size: "<<vNewIndex.size())
+				UG_ASSERT(cnt < vNewOrder.size(), "cnt: " << cnt << ", ordered: " << vNewOrder.size())
+				const size_t oldInd = vNewOrder[cnt++];
+				UG_ASSERT(oldInd < nDoF, "oldInd: "<<oldInd<<", size: "<<nDoF)
 
 			//	set new index to order
-				vNewIndex[newInd] = oldInd;
+				vNewIndex[oldInd] = newInd;
 			}
 		}
 
 	//	check if all ordered indices have been written
 		if(cnt != vNewOrder.size())
 			UG_THROW("OrderCuthillMcKee: Not all indices sorted that must be sorted: "
-					<<cnt<<" written, but should write: "<<vNewOrder.size());
+				<< cnt <<" written, but should write: " << vNewOrder.size());
 
 	//	fill non-sorted indices (preserving consecutive indexing)
-		for(size_t i = 1; i < vNewIndex.size(); ++i)
+		// find minimal block size (most probably the number of functions in underlying algebra)
+		size_t blockSize = findBlockSize(vvConnection);
+
+		// keep blocks, that are due to really unconnected DoFs
+		// (and not to unblocked algebra), where they were before
+		for (size_t i = 0; i < nDoF; i += blockSize)
 		{
-			if(vNewIndex[i] == (size_t)-1) vNewIndex[i] = vNewIndex[i-1] + 1;
+			if (vNewIndex[i] == (size_t) -1)
+				vNewIndex[i] = i;
 		}
+
+		// fill all blocks
+		for (size_t i = 0; i < nDoF; i += blockSize)
+			for (size_t j = 1; j < blockSize; ++j)
+				vNewIndex[i+j] = vNewIndex[i] + j;
 	}
 	else
 	{
@@ -219,14 +274,16 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 		}
 
 		// move unconnected indices to the bottom of the ordering
-		for (size_t i = 0; i < vNewIndex.size(); ++i)
+		for (size_t i = 0; i < nDoF; ++i)
 		{
 			if (vNewIndex[i] == (size_t)-1)
 				vNewIndex[i] = newOrdSz++;
 		}
 	}
 
-	//CheckPermutationBijective(vNewIndex);
+#ifdef UG_DEBUG
+	CheckPermutationBijective(vNewIndex);
+#endif
 }
 
 }

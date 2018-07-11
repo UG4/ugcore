@@ -109,172 +109,25 @@ void GetNeighbours(std::vector<Volume*>& vVolsOut, Grid& grid, Volume* v,
 number CalculateMinVolumeHeight(Tetrahedron* tet,
 								Grid::VertexAttachmentAccessor<APosition>& aaPos)
 {
-	vector3& a = aaPos[tet->vertex(0)];
-	vector3& b = aaPos[tet->vertex(1)];
-	vector3& c = aaPos[tet->vertex(2)];
-	vector3& d = aaPos[tet->vertex(3)];
-
-	return CalculateMinTetrahedronHeight(a, b, c, d);
-}
+	vector3 vfaceNormal;
+	number minHeight = std::numeric_limits<double>::max();
+	number tmpMinHeight;
 
 
-////////////////////////////////////////////////////////////////////////////////////////////
-//	CalculateMinTetrahedronHeight - mstepnie
-number CalculateMinTetrahedronHeight(const vector3& a, const vector3& b, 
-									 const vector3& c, const vector3& d)
-{
-	number minHeight, tmpMinHeight;
-
-//	Assume a tetrahedron with vertices a, b, c, d. Calculate its direction vectors
-	vector3 ab;
-	vector3 ac;
-	vector3 ad;
-	vector3 bd;
-	vector3 bc;
-
-	VecSubtract(ab, b, a);
-	VecSubtract(ac, c, a);
-	VecSubtract(ad, d, a);
-	VecSubtract(bd, d, b);
-	VecSubtract(bc, c, b);
-
-//	calculate the 4 face normals
-	vector3 nabc;
-	vector3 nabd;
-	vector3 nacd;
-	vector3 nbcd;
-
-	VecCross(nabc, ab, ac);
-	VecCross(nabd, ad, ab);
-	VecCross(nacd, ac, ad);
-	VecCross(nbcd, bd, bc);
-
-//	LOTFUSSVERFAHREN
-	vector3 CutComb;
-
-	///////////
-	// FACE ABC
-	//	set up matrix for calculating the orthogonal projection of vertex d on face abc
-	matrix33 A;
-	for(uint i = 0; i<3; ++i)
+//	Iterate over all tetrahedron vertices and calculate height to opposing face
+	for(size_t i = 0; i < 4; ++i)
 	{
-		A[i][0] = ab[i];
+		Vertex* vrt = tet->vertex(i);
+		FaceDescriptor fd = tet->face_desc(tet->get_opposing_object(vrt).second);
+
+		CalculateNormal(vfaceNormal, &fd, aaPos);
+		tmpMinHeight = DistancePointToPlane(aaPos[vrt], aaPos[fd.vertex(0)], vfaceNormal);
+
+		if(tmpMinHeight < minHeight)
+		{
+			minHeight = tmpMinHeight;
+		}
 	}
-	for(uint i = 0; i<3; ++i)
-	{
-		A[i][1] = ac[i];
-	}
-	for(uint i = 0; i<3; ++i)
-	{
-		A[i][2] = -nabc[i];
-	}
-
-	// calculate the height of d respecting abc
-	matrix33 A_inv;
-	Inverse(A_inv, A);
-
-	vector3 rhs;
-	VecSubtract(rhs, d, a);
-
-	MatVecMult(CutComb, A_inv, rhs);
-	VecScale(nabc, nabc, CutComb[2]);
-	minHeight = VecLength(nabc);
-
-
-	///////////
-	// FACE abd
-	//	set up matrix for calculating the orthogonal projection of vertex c on face abd
-	for(uint i = 0; i<3; ++i)
-	{
-		A[i][0] = ad[i];
-	}
-
-	for(uint i = 0; i<3; ++i)
-	{
-		A[i][1] = ab[i];
-	}
-
-	for(uint i = 0; i<3; ++i)
-	{
-		A[i][2] = -nabd[i];
-	}
-
-	// calculate the height of d respecting abc
-	Inverse(A_inv, A);
-
-	VecSubtract(rhs, c, a);
-
-	MatVecMult(CutComb, A_inv, rhs);
-	VecScale(nabd, nabd, CutComb[2]);
-	tmpMinHeight = VecLength(nabd);
-
-	if(tmpMinHeight > minHeight)
-	{
-		minHeight = tmpMinHeight;
-	}
-
-
-	///////////
-	// FACE acd
-	//	set up matrix for calculating the orthogonal projection of vertex b on face acd
-	for(uint i = 0; i<3; ++i)
-	{
-		A[i][0] = ac[i];
-	}
-	for(uint i = 0; i<3; ++i)
-	{
-		A[i][1] = ad[i];
-	}
-	for(uint i = 0; i<3; ++i)
-	{
-		A[i][2] = -nacd[i];
-	}
-
-	// calculate the height of b respecting acd
-	Inverse(A_inv, A);
-
-	VecSubtract(rhs, b, a);
-
-	MatVecMult(CutComb, A_inv, rhs);
-	VecScale(nacd, nacd, CutComb[2]);
-	tmpMinHeight = VecLength(nacd);
-
-	if(tmpMinHeight < minHeight)
-	{
-		minHeight = tmpMinHeight;
-	}
-
-
-	///////////
-	// FACE bcd
-	//	set up matrix for calculating the orthogonal projection of vertex c on face bcd
-	for(uint i = 0; i<3; ++i)
-	{
-		A[i][0] = bd[i];
-	}
-	for(uint i = 0; i<3; ++i)
-	{
-		A[i][1] = bc[i];
-	}
-	for(uint i = 0; i<3; ++i)
-	{
-		A[i][2] = -nbcd[i];
-	}
-
-	// calculate the height of a respecting bcd
-	Inverse(A_inv, A);
-
-	VecSubtract(rhs, a, b);
-
-	MatVecMult(CutComb, A_inv, rhs);
-	VecScale(nbcd, nbcd, CutComb[2]);
-	tmpMinHeight = VecLength(nbcd);
-
-	if(tmpMinHeight < minHeight)
-	{
-		minHeight = tmpMinHeight;
-	}
-
 
 	return minHeight;
 }

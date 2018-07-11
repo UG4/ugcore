@@ -66,7 +66,7 @@ class PILUTPreconditioner : public IPreconditioner<TAlgebra>
 	public:
 	//	Constructor
 		PILUTPreconditioner(double eps=0) :
-			m_eps(eps), m_info(false)
+			m_eps(eps), m_info(false), m_show_progress(true)
 		{};
 
 	// 	Clone
@@ -95,6 +95,12 @@ class PILUTPreconditioner : public IPreconditioner<TAlgebra>
 		void set_info(bool info)
 		{
 			m_info = info;
+		}
+	
+	///	set whether the progress meter should be shown
+		void set_show_progress(bool s)
+		{
+			m_show_progress = s;
 		}
 
 	protected:
@@ -128,13 +134,15 @@ class PILUTPreconditioner : public IPreconditioner<TAlgebra>
 
 			size_t totalentries=0;
 			size_t maxentries=0;
-			PROGRESS_START(prog, A->num_rows(),
+			Progress prog;
+			if(m_show_progress)
+				PROGRESS_START_WITH(prog, A->num_rows(),
 					"Using ILUT(" << m_eps << ") on " << A->num_rows() << " x " << A->num_rows() << " matrix...");
 
 			PROFILE_BEGIN(PILUT1);
 			for(size_t i=1; i<A->num_rows()/2; i++)
 			{
-				PROGRESS_UPDATE(prog, i);
+				if(m_show_progress) {PROGRESS_UPDATE(prog, i);}
 				con.resize(0);
 				size_t u_part=0;
 
@@ -195,7 +203,7 @@ class PILUTPreconditioner : public IPreconditioner<TAlgebra>
 			PROFILE_BEGIN(PILUT3);
 			for(size_t i=A->num_rows()/2+1; i<A->num_rows(); i++)
 			{
-				PROGRESS_UPDATE(prog, i);
+				if(m_show_progress) {PROGRESS_UPDATE(prog, i);}
 				con.resize(0);
 				size_t u_part=0;
 
@@ -223,7 +231,7 @@ class PILUTPreconditioner : public IPreconditioner<TAlgebra>
 			//m_L.print();
 			//m_U.print();
 
-			PROGRESS_FINISH(prog);
+			if(m_show_progress) {PROGRESS_FINISH(prog);}
 
 			m_L.defragment();
 			m_U.defragment();
@@ -382,6 +390,7 @@ class PILUTPreconditioner : public IPreconditioner<TAlgebra>
 		matrix_type m_U;
 		double m_eps;
 		bool m_info;
+		bool m_show_progress;
 		static const number m_small;
 };
 

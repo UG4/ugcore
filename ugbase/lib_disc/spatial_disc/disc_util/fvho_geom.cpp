@@ -1813,7 +1813,7 @@ update_boundary_faces(GridObject* pElem, const MathVector<worldDim>* vCornerCoor
 
 			//	compute global mids for vertices on this subelem
 			//	(needed to calculate normal - at least if dim < worldDim)
-				for (size_t m = 0; m < maxMid; ++m)
+				for (size_t m = 0; m < (size_t) maxMid; ++m)
 					rMapping.local_to_global(m_vSubElem[se].vvGloMid[0][m], m_vSubElem[se].vvLocMid[0][m]);
 
 			//	resize vector

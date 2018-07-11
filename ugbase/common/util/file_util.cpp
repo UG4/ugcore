@@ -195,16 +195,17 @@ string MakeTmpFile(string filename, const string &extension, bool &bSuccess)
 ////////////////////////////////////////////////////////////////////////////////
 std::string FindFileInStandardPaths(const char* filename)
 {
-//	first check whether the file can be loaded (e.g. absolute path or relative to woring-directory)
+//	first check whether the file can be loaded (e.g. absolute path or relative to working-directory)
 	std::string filenameOut = filename;
 	if(FileExists(filenameOut.c_str()))
 		return filenameOut;
 
-
 //	Now check whether the file was specified relative to the current
-//	scripting-directory
-	filenameOut = PathProvider::get_current_path();
-	filenameOut.append("/").append(filename);
+//	scripting-directory or script or apps or root paths
+	PathProvider::get_filename_relative_to_current_path(filename, filenameOut)
+		|| PathProvider::get_filename_relative_to_path(SCRIPT_PATH, filename, filenameOut)
+		|| PathProvider::get_filename_relative_to_path(APPS_PATH, filename, filenameOut)
+		|| PathProvider::get_filename_relative_to_path(ROOT_PATH, filename, filenameOut);
 
 	if(FileExists(filenameOut.c_str()))
 		return filenameOut;

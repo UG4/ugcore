@@ -39,6 +39,12 @@ namespace pcl
 /// \addtogroup pcl
 /// \{
 
+/// call this method before 'Init' to avoid a call to MPI_Init.
+/** This method may be useful if you use this program together with another
+ * program which calls MPI_Init.
+ * \note This will also stop MPI_Finalize from being called.*/
+void DisableMPIInit ();
+
 ///	call this method before any other pcl-operations.
 void Init(int *argcp, char ***argvp);
 

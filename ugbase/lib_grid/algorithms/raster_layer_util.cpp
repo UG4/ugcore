@@ -384,6 +384,9 @@ relative_to_global_height_simple(const vector2& c, number relHeight) const
 	UG_COND_THROW(upper.first < 0, "Invalid upper layer for coordinate " << c
 				  << " and relative height " << relHeight);
 
+	if(upper.second < lower.second)
+		return upper.second;
+	
 	number layerDiff = max(1, upper.first - lower.first);
 	number rel = (clip<number>(relHeight - (number)relHeightLower, 0, 1)
 				  + relHeightLower - lower.first)

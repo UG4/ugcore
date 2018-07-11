@@ -409,6 +409,11 @@ string GetSVNRevision()
 	return string(UGSvnRevision());
 }
 
+string GetGITRevision()
+{
+	return string(UGGitRevision());
+}
+
 string GetCompileDate()
 {
 	return string(UGCompileDate());
@@ -532,6 +537,7 @@ void RegisterBridge_Misc(Registry &reg, string parentGroup)
 		
 
 		reg.add_function("GetSVNRevision", &GetSVNRevision, grp);
+		reg.add_function("GetGITRevision", &GetGITRevision, grp);
 		reg.add_function("GetCompileDate", &GetCompileDate, grp);
 		reg.add_function("GetBuildHostname", &GetBuildHostname, grp);
 		reg.add_function("GetOperatingSystem", &GetOperatingSystem, grp);

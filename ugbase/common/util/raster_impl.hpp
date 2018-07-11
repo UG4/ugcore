@@ -60,7 +60,7 @@ MultiIndex(size_t i)
 }
 
 template <class T, int TDIM>
-const int Raster<T, TDIM>::MultiIndex::
+int Raster<T, TDIM>::MultiIndex::
 dim () const				
 {
 	return TDIM;
@@ -113,7 +113,7 @@ Coordinate(const MathVector<TDIM, number>& v)
 }
 
 template <class T, int TDIM>
-const int Raster<T, TDIM>::Coordinate::
+int Raster<T, TDIM>::Coordinate::
 dim () const
 {
 	return TDIM;
@@ -469,12 +469,6 @@ interpolate (const Coordinate& coord, int order) const
 	return m_noDataValue;
 }
 
-// template <class T, int TDIM>
-// void Raster<T, TDIM>::
-// void blur(number alpha, size_t iterations)
-// {
-	
-// }
 
 template <class T, int TDIM>
 void Raster<T, TDIM>::

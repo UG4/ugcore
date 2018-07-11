@@ -625,7 +625,9 @@ size_t IDomain<TGrid,TSubsetHandler>::
 count_local_unique_surface_elements()
 {
 	TGrid& mg = *m_spGrid;
+#	ifdef UG_PARALLEL
 	DistributedGridManager* dgm = mg.distributed_grid_manager();
+#	endif
 
 	size_t numLoc = 0;
 

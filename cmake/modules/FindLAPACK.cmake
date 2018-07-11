@@ -164,7 +164,7 @@ else()
       "${CGAL_TAUCS_LIBRARIES_DIR} ENV LAPACK_LIB_DIR ")
       
   set(LAPACK_UNIX_SEARCH_PATH
-      "/usr/local/lib;/usr/lib;/usr/local/lib64;/usr/lib64;/bgsys/local/lib;/bgsys/local/lapack/3.4.2/lib")
+      "/usr/local/lib;/usr/lib/atlas;/usr/lib;/usr/local/lib64;/usr/lib64/atlas;/usr/lib64;/bgsys/local/lib;/bgsys/local/lapack/3.4.2/lib")
   
   set(LAPACK_LIBNAMES
       # Intel MKL 
@@ -173,7 +173,9 @@ else()
           acml        
       # Apple
           Accelerate
-          vecLib      
+          vecLib
+      # ATLAS 3.x
+          satlas      
       # Generic LAPACK library?
       # This configuration *must* be the last try as this library is notably slow.
           lapack    

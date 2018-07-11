@@ -51,7 +51,7 @@ namespace ug{
  */
 template<typename TElem>
 number ComputeAvg
-(	MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >& aaError,
+(	MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >& aaError2,
 	ConstSmartPtr<DoFDistribution> dd,
 	number& min, number& max, number& sum, number& errSq, size_t& numElem,
 	number& minLocal, number& maxLocal, number& sumLocal, size_t& numElemLocal
@@ -75,14 +75,14 @@ number ComputeAvg
 	//	get element
 		TElem* elem = *iter;
 
-		const number elemEta2 = aaError[elem];
+		const number elemEta2 = aaError2[elem];
 
 	//	if no error value exists: ignore (might be newly added by refinement);
 	//	newly added elements are supposed to have a negative error estimator
-		if (aaError[elem] < 0) UG_THROW("error value invalid!");//continue;
+		if (aaError2[elem] < 0) UG_THROW("error value invalid!");//continue;
 
 
-		const number elemEta = sqrt(aaError[elem]);
+		const number elemEta = sqrt(aaError2[elem]);
 
 	//	search for maximum and minimum
 		if (elemEta > max) max = elemEta;
@@ -115,8 +115,8 @@ number ComputeAvg
 	}
 #endif
 	UG_LOG("  +++++  Error indicator on " << numElem << " elements +++++\n");
-	UG_LOG("  +++ Element errors: maximum=" << max << ", minimum="
-			<< min << ", sum=" << sum << ", error=" << errSq << ".\n");
+	UG_LOG("  +++ Element errors: maxEta=" << max << ", minEta="
+			<< min << ", sumEta=" << sum << ", sumEtaSq=" << errSq << ".\n");
 
 	return (sum/numElem);
 }
@@ -185,15 +185,15 @@ void ComputeMinMax
 	}
 #endif
 	UG_LOG("  +++++  Error indicator on " << numElem << " elements +++++\n");
-	UG_LOG("  +++ Element errors: maximum=" << max << ", minimum="
-			<< min << ", sum=" << totalErr << ".\n");
+	UG_LOG("  +++ Element errors: maxEtaSq=" << max << ", minEtaSq="
+			<< min << ", sumEtaSq=" << totalErr << ".\n");
 }
 
 
 /// helper function that computes min/max and total of error indicators
 template<typename TElem>
 void ComputeMinMaxTotal
-(	MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >& aaError,
+(	MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >& aaError2,
 	ConstSmartPtr<DoFDistribution> dd,
 	number& min, number& max, number& totalErr, size_t& numElem
 
@@ -201,7 +201,7 @@ void ComputeMinMaxTotal
 {
 	number minLocal, maxLocal, totalErrLocal;
 	size_t numElemLocal;
-	ComputeMinMax(aaError, dd, min, max, totalErr, numElem, minLocal, maxLocal, totalErrLocal, numElemLocal);
+	ComputeMinMax(aaError2, dd, min, max, totalErr, numElem, minLocal, maxLocal, totalErrLocal, numElemLocal);
 }
 /// marks elements according to an attached error value field
 /**

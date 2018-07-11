@@ -43,7 +43,7 @@ function(ExportIncludes includes)
             # in a temp variable
             # NOTE: properties must be assigned to variables before being used
             get_property(temp GLOBAL PROPERTY ugIncludes)
-            # append tmp to the global ugDependencies property using the correct prefix
+            # append tmp to the global ugIncludes property using the correct prefix
             set_property(GLOBAL PROPERTY ugIncludes ${temp} "${includeDir}")
     endforeach(includeDir)
 endfunction(ExportIncludes)

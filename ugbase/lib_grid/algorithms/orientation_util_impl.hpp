@@ -62,13 +62,28 @@ void FixFaceOrientation(Grid& grid, TFaceIterator facesBegin,
 						TFaceIterator facesEnd)
 {
 	using namespace std;
+
+	{
+	//	make sure that boundary faces are oriented outwards
+		Grid::volume_traits::secure_container vols;
+		for(TFaceIterator iter = facesBegin; iter != facesEnd; ++iter){
+			grid.associated_elements(vols, *iter);
+			if(vols.size() == 1 && !OrientationMatches(*iter, vols[0])){
+				grid.flip_orientation(*iter);
+			}
+		}
+	}
+
+//	the rest only considers manifold faces
 //	we use marks to differentiate between processed and unprocessed faces
 	grid.begin_marking();
 
 //	we have to mark all faces between facesBegin and facesEnd initially,
 //	to differentiate them from the other faces in the grid.
-	for(TFaceIterator iter = facesBegin; iter != facesEnd; ++iter)
-		grid.mark(*iter);
+	for(TFaceIterator iter = facesBegin; iter != facesEnd; ++iter){
+		if(NumAssociatedVolumes(grid, *iter) == 0)
+			grid.mark(*iter);
+	}
 
 //	this edge descriptor will be used multiple times
 	EdgeDescriptor ed;

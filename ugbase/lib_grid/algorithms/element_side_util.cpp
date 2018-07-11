@@ -31,27 +31,11 @@
  */
 
 #include "element_side_util.h"
-#include <set>
+
+#include "lib_grid/grid/grid_util.h"  // for CompareVertices
+
 
 namespace ug {
-
-bool vertexGroupsMatch(const IVertexGroup* elem, const IVertexGroup& desc)
-{
-	size_t n = elem->num_vertices();
-	if (desc.num_vertices() != n) return false;
-
-	// to avoid complicated order checks, put elem's vertices in a set
-	// and look for desc's vertices in the set
-	std::set<Vertex*> verts;
-
-	for (size_t i = 0; i < n; ++i)
-		verts.insert(elem->vertex(i));
-
-	for (size_t i = 0; i < n; ++i)
-		if (verts.find(desc.vertex(i)) == verts.end()) return false;
-
-	return true;
-}
 
 
 Face* GetOpposingSide(Grid& g, Volume* elem, Face* side)
@@ -66,7 +50,7 @@ Face* GetOpposingSide(Grid& g, Volume* elem, Face* side)
 	size_t sl_sz = sl.size();
 	for (size_t s = 0; s < sl_sz; ++s)
 	{
-		if (vertexGroupsMatch(sl[s], fd))
+		if (CompareVertices(sl[s], &fd))
 			return sl[s];
 	}
 
@@ -86,7 +70,7 @@ Edge* GetOpposingSide(Grid& g, Face* elem, Edge* side)
 	size_t sl_sz = sl.size();
 	for (size_t s = 0; s < sl_sz; ++s)
 	{
-		if (vertexGroupsMatch(sl[s], ed))
+		if (CompareVertices(sl[s], &ed))
 			return sl[s];
 	}
 
@@ -96,7 +80,7 @@ Edge* GetOpposingSide(Grid& g, Face* elem, Edge* side)
 
 Vertex* GetOpposingSide(Grid& g, Edge* elem, Vertex* side)
 {
-	Vertex* out;
+	Vertex* out = NULL;
 	elem->get_opposing_side(side, &out);
 	return out;
 }

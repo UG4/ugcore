@@ -46,6 +46,7 @@
 #include "lib_disc/assemble_interface.h"
 
 #include "lib_disc/spatial_disc/domain_disc.h"
+#include "lib_disc/function_spaces/metric_spaces.h"
 #include "lib_disc/function_spaces/error_elem_marking_strategy.h"
 
 #include "lib_algebra/operator/debug_writer.h"
@@ -138,7 +139,13 @@ class NestedIterationSolver
 	//! set marking strategy
 		void set_refinement_marking(SmartPtr<IElementMarkingStrategy<TDomain> > m) {m_spRefinementMarking =m; }
 		void set_coarsening_marking(SmartPtr<IElementMarkingStrategy<TDomain> > m) {m_spCoarseningMarking =m; }
-		void set_tolerance(number tol) {m_TOL = tol;}
+		void set_tolerance(number tol)
+		{
+			m_TOL = tol;
+			UG_LOG("NI::set_tolerance" << m_TOL <<std::endl);
+		}
+
+
 
 	//! indicates, if grids should be refined further (if desired accuracy has not been achieved)
 		bool use_adaptive_refinement() const {return m_bUseAdaptiveRefinement;}
@@ -150,6 +157,17 @@ class NestedIterationSolver
 
 		void set_max_steps(int steps) {m_maxSteps = steps;}
 		number last_error() const {return m_lastError;}
+
+		void set_associated_space(SmartPtr<IGridFunctionSpace<grid_function_type> > spSpace)
+		{ m_spAssociatedSpace = spSpace;}
+
+		void set_absolute_tolerance(number atol)
+		{
+
+			m_absTOL = atol;
+			UG_LOG("NI::set_absolute_tolerance" << m_absTOL <<std::endl);
+		}
+
 	///@}
 
 	/// for debug output
@@ -159,7 +177,7 @@ class NestedIterationSolver
 		{m_spElemError = spErrEta;}
 
 	protected:
-		//number estimate_error(const grid_function_type& u);
+		void estimate_and_mark_domain(const grid_function_type& u, SmartPtr<IElementMarkingStrategy<TDomain> > spMarking,  bool bClearMarks = true);
 		number refine_domain(const grid_function_type& u);
 		number coarsen_domain(const grid_function_type& u);
 
@@ -191,9 +209,17 @@ class NestedIterationSolver
 		SmartPtr<IElementMarkingStrategy<TDomain> > m_spCoarseningMarking;
 		bool m_bUseAdaptiveRefinement;
 
-		number m_TOL;
 		int m_maxSteps;
 		number m_lastError;
+
+	/// tolerance
+		number m_TOL;
+
+	/// associated norm (for relative error)
+		SmartPtr<IGridFunctionSpace<grid_function_type> > m_spAssociatedSpace;
+
+	/// absolute tolerance (for relative error)
+		number m_absTOL;
 
 	/// (optional) debug info for adaptive refinement
 		SmartPtr<grid_function_type> m_spElemError;

@@ -147,20 +147,24 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeMethod(JNIEnv *env,
 //				<< " Java_edu_gcsc_vrl_ug_UG__1invokeMethod() " << std::endl;
 //	}
 
-	std::string className = ug::vrl::stringJ2C(env, exportedClassName);
-
-	const ug::bridge::IExportedClass* clazz =
-			ug::vrl::invocation::getExportedClassPtrByName(ug::vrl::vrlRegistry,
-					className);
-
-	ug::bridge::ParameterStack paramsIn;
-	ug::bridge::ParameterStack paramsOut;
-
-	std::string name = ug::vrl::stringJ2C(env, methodName);
-
+	std::string className;
+	const ug::bridge::IExportedClass* clazz = NULL;
+	std::string name;
 	jobject result = NULL;
 
 	try {
+
+		className = ug::vrl::stringJ2C(env, exportedClassName);
+
+		clazz = ug::vrl::invocation::getExportedClassPtrByName(ug::vrl::vrlRegistry,
+						className);
+
+		ug::bridge::ParameterStack paramsIn;
+		ug::bridge::ParameterStack paramsOut;
+
+		name = ug::vrl::stringJ2C(env, methodName);
+
+
 		const ug::bridge::ExportedMethod* exMethod =
 				ug::vrl::invocation::getMethodBySignature(env,
 						ug::vrl::vrlRegistry, clazz, ug::vrl::boolJ2C(readOnly),
@@ -230,14 +234,15 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeMethod(JNIEnv *env,
 JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1newInstance(JNIEnv *env,
 		jobject obj, jlong exportedClassPointer, jobjectArray params) {
 
-	ug::bridge::IExportedClass* clazz =
-			(ug::bridge::IExportedClass*) exportedClassPointer;
 
-	ug::bridge::ParameterStack paramsIn;
-
+	ug::bridge::IExportedClass* clazz = NULL;
 	std::string name = "constructor";
 
 	try {
+		clazz = (ug::bridge::IExportedClass*) exportedClassPointer;
+
+		ug::bridge::ParameterStack paramsIn;
+
 		const ug::bridge::ExportedConstructor* constructor =
 				ug::vrl::invocation::getConstructorBySignature(env,
 						ug::vrl::vrlRegistry, clazz, params);
@@ -296,66 +301,21 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1newInstance(JNIEnv *env,
 JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeFunction(JNIEnv *env,
 		jobject obj, jstring fName, jboolean readOnly, jobjectArray params) {
 
-//	bool DEBUG = true;
-//	if (DEBUG) {
-//		std::cout << "trunk/ugbase/bindings/vrl/bindings_vrl.cpp :"
-//				<< " Java_edu_gcsc_vrl_ug_UG__1invokeFunction() " << std::endl;
-//		std::cout << "Java_edu_gcsc_vrl_ug_UG__1invokeFunction() : fName = "
-//				<< fName << std::endl;
-//	}
-
-	std::string name = ug::vrl::stringJ2C(env, fName);
-
-//	if (DEBUG) {
-//		std::cout << "trunk/ugbase/bindings/vrl/bindings_vrl.cpp :"
-//				<< " Java_edu_gcsc_vrl_ug_UG__1invokeFunction() " << std::endl;
-//
-//		std::cout << "UG__1invokeFunction(): name = " << name << std::endl;
-//
-//		std::cout << "function-parameters are: " << std::endl;
-//		jsize size = env->GetArrayLength(params);
-//
-//		std::cout << "paramCount = " << size << std::endl;
-//
-//		/*for (int i = 0; i < size; ++i) {
-//			jobject param = env->GetObjectArrayElement(params,i);
-//
-//			//std::cout << "paramName = " << ug::vrl::jPointerGetName(env, param) << std::endl;
-//
-//			    jclass argClass = env->GetObjectClass(param);
-//
-//			    std::cout << "argClass = " << argClass << std::endl;
-//
-//				jmethodID methodID = env->GetMethodID(argClass, "getName",
-//						"()Ljava/lang/String;");
-//
-//				std::cout << "methodID = " << methodID << std::endl;
-//
-//				std::string paramName = ug::vrl::stringJ2C(env,
-//						(jstring) env->CallObjectMethod(param, methodID));
-//
-//				std::cout << "paramName = " << paramName << std::endl;
-//		}*/
-//	}
-
-	const ug::bridge::ExportedFunction* func =
-			ug::vrl::invocation::getFunctionBySignature(env,
-					ug::vrl::vrlRegistry, name, params);
-
-//	if(func == NULL){
-//		std::cout << "func is null "<< std::endl;
-//	}
-//                else if (DEBUG) {
-//		std::cout << "UG__1invokeFunction(): func->m_name = " << func->name()
-//				<< std::endl;
-//	}
-
-	ug::bridge::ParameterStack paramsIn;
-	ug::bridge::ParameterStack paramsOut;
-
+	std::string name;
+	const ug::bridge::ExportedFunction* func = NULL;
 	jobject result = NULL;
 
 	try {
+
+		name = ug::vrl::stringJ2C(env, fName);
+
+		func = ug::vrl::invocation::getFunctionBySignature(env,
+						ug::vrl::vrlRegistry, name, params);
+
+
+		ug::bridge::ParameterStack paramsIn;
+		ug::bridge::ParameterStack paramsOut;
+
 
 		if (func == NULL) {
 			std::stringstream ss;
@@ -424,21 +384,33 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeFunction(JNIEnv *env,
 JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug_UG__1getExportedClassPtrByName(
 		JNIEnv *env, jobject obj, jstring name, jboolean classGrp) {
 
-	if (ug::vrl::boolJ2C(classGrp)) {
+	try {
 
-		const ug::bridge::ClassGroupDesc* grpDesc =
-				ug::vrl::vrlRegistry->get_class_group(
-						ug::vrl::stringJ2C(env, name).c_str());
+		if (ug::vrl::boolJ2C(classGrp)) {
 
-		if (grpDesc == NULL || grpDesc->get_default_class() == NULL) {
-			return (jlong) NULL;
+			const ug::bridge::ClassGroupDesc* grpDesc =
+					ug::vrl::vrlRegistry->get_class_group(
+							ug::vrl::stringJ2C(env, name).c_str());
+
+			if (grpDesc == NULL || grpDesc->get_default_class() == NULL) {
+				return (jlong) NULL;
+			}
+
+			return (jlong) grpDesc->get_default_class();
+
+		} else {
+			return (jlong) ug::vrl::invocation::getExportedClassPtrByName(
+					ug::vrl::vrlRegistry, ug::vrl::stringJ2C(env, name));
 		}
+	} catch (ug::UGError& ex) {
+		ug::vrl::throwUgErrorAsJavaException(env, ex);
+	} catch (...) {
+		std::stringstream ss;
 
-		return (jlong) grpDesc->get_default_class();
+		ss << "Unknown exception thrown while" << " trying to get classname by pointer: "
+		<< ug::vrl::stringJ2C(env, name) << "().";
 
-	} else {
-		return (jlong) ug::vrl::invocation::getExportedClassPtrByName(
-				ug::vrl::vrlRegistry, ug::vrl::stringJ2C(env, name));
+		ug::vrl::throwUgErrorAsJavaException(env, ss.str());
 	}
 
 	return (jlong) NULL;
@@ -446,19 +418,33 @@ JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug_UG__1getExportedClassPtrByName(
 
 JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getDefaultClassNameFromGroup(
 		JNIEnv *env, jobject obj, jstring grpName) {
-	const ug::bridge::ClassGroupDesc* grpDesc =
-			ug::vrl::vrlRegistry->get_class_group(
-					ug::vrl::stringJ2C(env, grpName).c_str());
+    try {
+        const ug::bridge::ClassGroupDesc* grpDesc =
+                ug::vrl::vrlRegistry->get_class_group(
+                        ug::vrl::stringJ2C(env, grpName).c_str());
 
-	if (grpDesc == NULL) {
-		return ug::vrl::stringC2J(env, "");
+        if (grpDesc == NULL) {
+            return ug::vrl::stringC2J(env, "");
+        }
+
+        if (grpDesc->get_default_class() == NULL) {
+            return ug::vrl::stringC2J(env, "");
+        }
+
+        return ug::vrl::stringC2J(env, grpDesc->get_default_class()->name().c_str());
+
+    } catch (ug::UGError& ex) {
+		ug::vrl::throwUgErrorAsJavaException(env, ex);
+	} catch (...) {
+		std::stringstream ss;
+
+		ss << "Unknown exception thrown while" << " trying to get default classname from group: "
+		<< ug::vrl::stringJ2C(env, grpName) << "().";
+
+		ug::vrl::throwUgErrorAsJavaException(env, ss.str());
 	}
 
-	if (grpDesc->get_default_class() == NULL) {
-		return ug::vrl::stringC2J(env, "");
-	}
-
-	return ug::vrl::stringC2J(env, grpDesc->get_default_class()->name().c_str());
+	return (jlong) NULL;
 }
 
 JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getSvnRevision(JNIEnv *env,

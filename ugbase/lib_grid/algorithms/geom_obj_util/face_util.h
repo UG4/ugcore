@@ -112,6 +112,10 @@ void CalculateFaceNormals(Grid& grid, const FaceIterator& facesBegin,
 						AVector3& aPos, AVector3& aNorm);
 
 ////////////////////////////////////////////////////////////////////////
+/// returns the number of associated volumes of the specified face
+int NumAssociatedVolumes(Grid& grid, Face* f);
+
+////////////////////////////////////////////////////////////////////////
 //	IsVolumeBoundaryFace
 ///	returns true if the given face is a boundary face.
 /**	A face is regarded as a boundary face if it is adjacent
