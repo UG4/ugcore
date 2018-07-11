@@ -542,7 +542,7 @@ collect_associated(std::vector<TBaseElem*>& vAssElem,
 		CollectAssociated(vCoarseElem, *m_pMG, elem, true);
 		for(size_t i = 0; i < vCoarseElem.size(); ++i)
 		{
-			if(!is_contained(vCoarseElem[i], gl, SURFACE)) continue;
+			if(!is_contained(vCoarseElem[i], gl, ALL)) continue;
 			vAssElem.push_back(vCoarseElem[i]);
 		}
 	}
