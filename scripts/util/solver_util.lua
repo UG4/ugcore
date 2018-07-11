@@ -767,6 +767,10 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 				desc.gatheredBaseSolverIfAmbiguous or
 				defaults.gatheredBaseSolverIfAmbiguous)
 
+		if desc.surfaceLevel then
+			gmg:set_surface_level			(desc.surfaceLevel)
+		end
+
 		local transfer = util.solver.CreateTransfer(desc.transfer or defaults.transfer)
 		if desc.adaptive == true then
 		--	next three lines are obsolete, since gmg:set_transfer overwrites gmg:set_projection, anyways!?
