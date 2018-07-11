@@ -839,6 +839,46 @@ void MarkAnisotropic_LongEdges(TDomain& dom, IRefiner& refiner, number minLen)
 // 	refiner->mark(volumes.begin(), volumes.end(), RM_ANISOTROPIC);
 // }
 
+
+////////////////////////////////////////////////////////////////////////////////
+///	Marks all elements which have vertices in the given d-dimensional cube.
+/**	Make sure that TAPos is an attachment of vector_t position types.*/
+template <class TDomain>
+void AssignSubset_VerticesInCube(TDomain& dom, 
+									const typename TDomain::position_type& min,
+									const typename TDomain::position_type& max, int si)
+{
+	typedef typename TDomain::position_type 			position_type;
+	typedef typename TDomain::position_accessor_type	position_accessor_type;
+
+	Grid& grid = *dom.grid();
+	position_accessor_type& aaPos = dom.position_accessor();
+	MGSubsetHandler& sh = *dom.subset_handler();
+
+//	iterate over all vertices of the grid. If a vertex is inside the given cube,
+//	then we'll mark all associated elements.
+	for(VertexIterator iter = grid.begin<Vertex>();
+		iter != grid.end<Vertex>(); ++iter)
+	{
+	//	Position
+		position_type& pos = aaPos[*iter];
+
+	//	check flag
+		bool bInside = true;
+
+	//	check node
+		for(size_t d = 0; d < pos.size(); ++d)
+			if(pos[d] < min[d] || max[d] < pos[d])
+				bInside = false;
+
+		if(bInside)
+		{
+			sh.assign_subset(*iter, si);
+		}
+	}
+}
+
+
 static number DistanceToSurfaceDomain(MathVector<1>& tpos, const Vertex* vrt, 
 									  Grid::VertexAttachmentAccessor<Attachment<MathVector<1> > >& aaPosSurf)
 {
@@ -1702,6 +1742,9 @@ static void Domain(Registry& reg, string grp)
 				grp, "", "")
 		.add_function("MarkForRefinement_ContainsSurfaceNode",
 				&MarkForRefinement_ContainsSurfaceNode<domain_type>,
+				grp, "", "")
+		.add_function("AssignSubset_VerticesInCube",
+				&AssignSubset_VerticesInCube<domain_type>,
 				grp, "", "");
 
 
