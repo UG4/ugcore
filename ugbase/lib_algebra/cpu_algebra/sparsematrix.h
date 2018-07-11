@@ -117,6 +117,10 @@ public:
 	/// destructor
 	virtual ~SparseMatrix () {}
 
+	/**
+	 * @brief Clears the matrix vectors and frees their memory
+	 */
+	void clear_and_free();
 
 	/**
 	 * \brief resizes the SparseMatrix
