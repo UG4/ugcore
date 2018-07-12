@@ -1372,7 +1372,6 @@ bool ResolveTriangleIntersections(Grid& grid, TriangleIterator trisBegin,
 
 //	iterate over all triangles and perform intersecion with other triangles
 	size_t triCounter = 0;
-	const size_t dbgTriInd(-1);
 	for(TriangleIterator triIter1 = sel.begin<Triangle>();
 		triIter1 != sel.end<Triangle>(); ++triIter1, ++triCounter)
 	{
