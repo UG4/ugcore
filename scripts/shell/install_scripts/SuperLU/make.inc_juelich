@@ -52,10 +52,10 @@ ARCH         = ar
 ARCHFLAGS    = cr
 RANLIB       = ranlib
 
-CC           = $(stagePath)/software/psmpi/5.2.1-1-iccifort-2018.2.199-GCC-5.5.0/bin/mpicc
+CC           = $(stagePath)/software/impi/2018.2.199-iccifort-2018.2.199-GCC-5.5.0/bin64/mpicc
 CFLAGS       = -O3 -fPIC
 NOOPTS       = -fPIC
-FORTRAN	     = $(stagePath)/software/psmpi/5.2.1-1-iccifort-2018.2.199-GCC-5.5.0/bin/mpif90
+FORTRAN	     = $(stagePath)/software/impi/2018.2.199-iccifort-2018.2.199-GCC-5.5.0/bin64/mpif90
 FFLAGS       = -O3 -cpu:g5 -YEXT_NAMES=LCS -s -YEXT_SFX=_
 LOADER       = $(CC)
 LOADOPTS     =

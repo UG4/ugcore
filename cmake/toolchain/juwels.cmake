@@ -37,7 +37,7 @@ SET(enableNoStrictAliasingOption ON)
 
 # Some variables for paths
 set(GCC_ROOT  "/gpfs/software/juwels/stages/2018a/software/icc/2018.2.199-GCC-5.5.0/compilers_and_libraries_2018.2.199/linux/")
-set(MPI_ROOT  "/gpfs/software/juwels/stages/2018a/software/psmpi/5.2.1-1-iccifort-2018.2.199-GCC-5.5.0/")
+set(MPI_ROOT  "/gpfs/software/juwels/stages/2018a/software/impi/2018.2.199-iccifort-2018.2.199-GCC-5.5.0/")
 set(FTR_ROOT  "/gpfs/software/juwels/stages/2018a/software/ifort/2018.2.199-GCC-5.5.0/compilers_and_libraries_2018.2.199/linux/")
 
 # The serial GNU compilers
@@ -46,9 +46,9 @@ set(CMAKE_CXX_COMPILER     ${GCC_ROOT}/bin/intel64/icpc)
 set(CMAKE_Fortran_COMPILER ${FTR_ROOT}/bin/intel64/ifort)
 
 # The MPI wrappers for the GNU compilers
-set(MPI_C_COMPILER       ${MPI_ROOT}/bin/mpicc)
-set(MPI_CXX_COMPILER     ${MPI_ROOT}/bin/mpicxx)
-set(MPI_Fortran_COMPILER ${MPI_ROOT}/bin/mpif90)
+set(MPI_C_COMPILER       ${MPI_ROOT}/bin64/mpicc)
+set(MPI_CXX_COMPILER     ${MPI_ROOT}/bin64/mpicxx)
+set(MPI_Fortran_COMPILER ${MPI_ROOT}/bin64/mpif90)
 
 #message(STATUS "TMP INFO: Value of '\${CMAKE_C_COMPILER}'       is: ${CMAKE_C_COMPILER}")       # TMP
 #message(STATUS "TMP INFO: Value of '\${CMAKE_CXX_COMPILER}'     is: ${CMAKE_CXX_COMPILER}")     # TMP
