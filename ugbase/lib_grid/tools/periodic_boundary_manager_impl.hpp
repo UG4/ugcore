@@ -605,7 +605,7 @@ void IdentifySubsets(TDomain& dom, int sInd1, int sInd2) {
 
 #ifdef UG_PARALLEL
 	//if(pcl::NumProcs() > 1)
-      //  UG_THROW("sorry, in real parallel environment periodic bnds are not impled yet.");
+      // UG_THROW("sorry, in real parallel environment periodic bnds are not impled yet.");
 #endif
 
 	if (sInd1 == -1 || sInd2 == -1) {
