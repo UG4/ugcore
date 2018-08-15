@@ -634,7 +634,7 @@ void CalculateSmoothManifoldPosInParentLevelButterflyScheme3d(MultiGrid& mg, MGS
 
 //	WARNING: Parallel implementation has to be fixed
 	UG_LOG("WARNING: CalculateSmoothManifoldPosInParentLevelButterflyScheme3d: "
-				"Parallel implementation has to be fixed.");
+				"Parallel implementation has to be fixed." << std::endl);
 
 //	Catch use of procedure for MultiGrids with just one level
 	if(mg.num_levels() == 1)
