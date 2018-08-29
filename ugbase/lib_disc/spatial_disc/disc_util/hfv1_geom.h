@@ -255,6 +255,9 @@ class HFV1Geometry : public FVGeometryBase{
 	// 	debug output
 		void print();
 
+	///	get the element
+		TElem* elem() const {return m_pElem;}
+
 	public:
 	/// number of SubControlVolumeFaces
 		inline size_t num_scvf() const {return m_vSCVF.size();}

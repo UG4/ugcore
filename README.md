@@ -1,4 +1,4 @@
-#ugcore
+# ugcore
 
 [![Build Status](https://travis-ci.org/UG4/ugcore.svg?branch=master)](https://travis-ci.org/UG4/ugcore)
 [![Build status](https://ci.appveyor.com/api/projects/status/3jor63mr5hap1b2x?svg=true)](https://ci.appveyor.com/project/miho/ugcore)
@@ -8,7 +8,7 @@
 core functionality of **UG4**. Includes sources, build-scripts,
 and utility-scripts
 
-Copyright 2009-2015 Goethe Center for Scientific Computing, University Frankfurt
+Copyright 2009-2018 Goethe Center for Scientific Computing, University Frankfurt
 
 Please install/clone this repository through UG4's package manager
 [ughub](https://github.com/UG4/ughub).

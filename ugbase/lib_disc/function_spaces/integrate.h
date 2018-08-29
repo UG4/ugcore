@@ -43,6 +43,7 @@
 
 #include "lib_disc/common/function_group.h"
 #include "lib_disc/common/groups_util.h"
+#include "lib_disc/domain_util.h"  // for CollectCornerCoordinates
 #include "lib_disc/quadrature/quadrature_provider.h"
 #include "lib_disc/local_finite_element/local_finite_element_provider.h"
 #include "lib_disc/spatial_disc/disc_util/fv1_geom.h"
@@ -1943,6 +1944,8 @@ number H1SemiNorm2(TGridFunction& gridFct, const char* cmp, int quadOrder, const
 		return IntegrateSubsets(integrand, gridFct, subsets, quadOrder);
 	}
 }
+
+/// Computes the H1SemiNorm
 template <typename TGridFunction>
 number H1SemiNorm(TGridFunction& gridFct, const char* cmp, int quadOrder, const char* subsets=NULL,
 				ConstSmartPtr<typename H1SemiIntegrand<TGridFunction>::weight_type> weights = SPNULL)
@@ -1950,6 +1953,10 @@ number H1SemiNorm(TGridFunction& gridFct, const char* cmp, int quadOrder, const 
 	return (sqrt(H1SemiNorm2(gridFct, cmp, quadOrder, subsets, weights)));
 }
 
+// Delegating to H1SemiNorm
+template <typename TGridFunction>
+number H1SemiNorm(SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOrder, const char* subsets)
+{ return H1SemiNorm(*spGridFct, cmp, quadOrder, subsets); }
 
 template <typename TGridFunction>
 number H1SemiNorm(SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOrder,
@@ -1958,12 +1965,12 @@ number H1SemiNorm(SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOr
 
 template <typename TGridFunction>
 number H1SemiNorm( SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOrder)
-{ return H1SemiNorm(spGridFct, cmp, quadOrder, NULL); }
+{ return H1SemiNorm(*spGridFct, cmp, quadOrder, NULL); }
 
 template <typename TGridFunction>
 number H1SemiNorm( SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOrder,
 		ConstSmartPtr<typename H1SemiIntegrand<TGridFunction>::weight_type> weights)
-{ return H1SemiNorm(spGridFct, cmp, quadOrder, NULL, weights); }
+{ return H1SemiNorm(*spGridFct, cmp, quadOrder, NULL, weights); }
 
 /// Integrand for the distance of two grid functions - evaluated in the (weighted) H1-semi norm
 template <typename TGridFunction>
@@ -2773,7 +2780,7 @@ class H1NormIntegrand
 			//	compute global gradient
 				MathVector<worldDim> approxGradIP;
 				MathMatrix<worldDim, elemDim> JTInv;
-				Inverse(JTInv, vJT[ip]);
+				RightInverse(JTInv, vJT[ip]);
 				MatVecMult(approxGradIP, JTInv, locTmp);
 
 			//	get squared of difference
@@ -2962,7 +2969,7 @@ class H1DistIntegrand
 			//	compute global gradient
 				MathVector<worldDim> fineGradIP;
 				MathMatrix<worldDim, elemDim> fineJTInv;
-				Inverse(fineJTInv, vJT[ip]);
+				RightInverse(fineJTInv, vJT[ip]);
 				MatVecMult(fineGradIP, fineJTInv, fineLocTmp);
 
 			//	compute global gradient

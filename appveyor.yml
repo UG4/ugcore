@@ -76,6 +76,7 @@ install:
   #- rm -rf ugcore
   
   - |-
+     @echo off
      echo "--------------------------------------------------------------------------------"
      echo "TRAVIS BUILD-INFO FOR UGCORE
      echo "--------------------------------------------------------------------------------"
@@ -84,8 +85,10 @@ install:
      echo "TAG:....................%APPVEYOR_REPO_TAG_NAME%"
      echo "BRANCH:.................%APPVEYOR_REPO_BRANCH%"
      echo "TRAVIS-BUILD-NUMBER:....%APPVEYOR_BUILD_NUMBER%"
+     echo "TARGET:.................%TARGET%"
      echo "UG4 dir survived cache: %UG4_FOLDER_SURVIVED_CACHE%"
      echo "--------------------------------------------------------------------------------"
+     @echo on
       
   - if %UG4_FOLDER_SURVIVED_CACHE%==false git clone --depth=50 https://github.com/%APPVEYOR_REPO_NAME%.git ugcore
   - cd ugcore
@@ -100,7 +103,7 @@ build_script:
   - MSBuild .\ug4.sln  /property:Configuration=Release /property:Platform=x64
   - cd ..\bin
   - dir
-  - if %TARGET%=="ugshell" Release\ugshell.exe -call "print(\"it works\")"
+  - if %TARGET% == "ugshell" Release\ugshell.exe -call "print(\"it works\")"
  
   
   

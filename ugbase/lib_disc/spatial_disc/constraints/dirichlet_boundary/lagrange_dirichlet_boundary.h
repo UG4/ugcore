@@ -45,6 +45,9 @@
 #include <map>
 #include <vector>
 
+
+#define LAGRANGE_DIRICHLET_ADJ_TRANSFER_FIX 1
+
 namespace ug{
 
 template <	typename TDomain, typename TAlgebra>
@@ -89,6 +92,9 @@ class DirichletBoundary
 			:	m_bInvertSubsetSelection(false),
 				m_bDirichletColumns(false),
 				m_A(NULL) 
+#ifdef LAGRANGE_DIRICHLET_ADJ_TRANSFER_FIX
+		 , m_bAdjustTransfers(true)
+#endif
 			{clear();}
 
 	/// constructor with flag for Dirichlet-Columns.
@@ -96,7 +102,21 @@ class DirichletBoundary
 			:	m_bInvertSubsetSelection(false),
 				m_bDirichletColumns(DirichletColumns),
 				m_A(NULL) 
+#ifdef LAGRANGE_DIRICHLET_ADJ_TRANSFER_FIX
+		 , m_bAdjustTransfers(true)
+#endif
 			{clear();}
+
+#ifdef LAGRANGE_DIRICHLET_ADJ_TRANSFER_FIX
+		/// constructor with flag for Dirichlet-Columns.
+		DirichletBoundary(bool DirichletColumns, bool bAdjustTransfers)
+			:	m_bInvertSubsetSelection(false),
+				m_bDirichletColumns(DirichletColumns),
+				m_A(NULL),
+				m_bAdjustTransfers(bAdjustTransfers)
+
+			{clear();}
+#endif
 
 	///	destructor
 		~DirichletBoundary() {}
@@ -478,6 +498,10 @@ class DirichletBoundary
 
 	///	current position accessor
 		typename domain_type::position_accessor_type m_aaPos;
+#ifdef LAGRANGE_DIRICHLET_ADJ_TRANSFER_FIX
+		/// flag for setting dirichlet columns
+		bool m_bAdjustTransfers;
+#endif
 };
 
 } // end namespace ug

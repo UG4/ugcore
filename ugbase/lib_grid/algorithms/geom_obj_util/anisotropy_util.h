@@ -1,6 +1,7 @@
 /*
- * Copyright (c) 2012-2015:  G-CSC, Goethe University Frankfurt
+ * Copyright (c) 2009-2015:  G-CSC, Goethe University Frankfurt
  * Author: Markus Breit
+ * Date: 2018-05-25
  *
  * This file is part of UG4.
  *
@@ -30,60 +31,54 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include "element_side_util.h"
+#ifndef LIB_GRID__ALGORITHMS__GEOM_OBJ_UTIL__ANISOTROPY_UTIL_H
+#define LIB_GRID__ALGORITHMS__GEOM_OBJ_UTIL__ANISOTROPY_UTIL_H
 
-#include "lib_grid/grid/grid_util.h"  // for CompareVertices
+#include "common/types.h"
+#include "lib_grid/grid/grid_base_objects.h"
+#include "lib_grid/multi_grid.h"
 
+#include <cstddef>
+#include <vector>
 
 namespace ug {
 
 
-Face* GetOpposingSide(Grid& g, Volume* elem, Face* side)
-{
-	FaceDescriptor fd;
-	elem->get_opposing_side(side, fd);
-
-	// compare descriptor to actual sides of the elem
-	typedef Grid::traits<Face>::secure_container side_list_type;
-	side_list_type sl;
-	g.associated_elements(sl, elem);
-	size_t sl_sz = sl.size();
-	for (size_t s = 0; s < sl_sz; ++s)
-	{
-		if (CompareVertices(sl[s], &fd))
-			return sl[s];
-	}
-
-	return (Face*) NULL;
-}
+template <typename TAAPos>
+bool is_anisotropic
+(
+	Edge* elem,
+	Grid& grid,
+	const TAAPos& aaPos,
+	number thresholdRatio,
+	std::vector<Vertex*>* nb = NULL
+);
 
 
-Edge* GetOpposingSide(Grid& g, Face* elem, Edge* side)
-{
-	EdgeDescriptor ed;
-	elem->get_opposing_side(side, ed);
-
-	// compare descriptor to actual sides of the elem
-	typedef Grid::traits<Edge>::secure_container side_list_type;
-	side_list_type sl;
-	g.associated_elements(sl, elem);
-	size_t sl_sz = sl.size();
-	for (size_t s = 0; s < sl_sz; ++s)
-	{
-		if (CompareVertices(sl[s], &ed))
-			return sl[s];
-	}
-
-	return (Edge*) NULL;
-}
+template <typename TAAPos>
+bool is_anisotropic
+(
+	Face* elem,
+	Grid& grid,
+	const TAAPos& aaPos,
+	number thresholdRatio,
+	std::vector<Edge*>* nb = NULL
+);
 
 
-Vertex* GetOpposingSide(Grid& g, Edge* elem, Vertex* side)
-{
-	Vertex* out = NULL;
-	elem->get_opposing_side(side, &out);
-	return out;
-}
+template <typename TAAPos>
+static bool is_anisotropic
+(
+	Volume* elem,
+	Grid& grid,
+	const TAAPos& aaPos,
+	number thresholdRatio,
+	std::vector<Face*>* nb = NULL
+);
 
 
 } // namespace ug
+
+#include "anisotropy_util_impl.h"
+
+#endif // LIB_GRID__ALGORITHMS__GEOM_OBJ_UTIL__ANISOTROPY_UTIL_H

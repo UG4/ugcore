@@ -66,6 +66,7 @@ enum GlobalBoundaryRefinementRule
 	LINEAR,
 	SUBDIV_SURF_LOOP_SCHEME,
 	SUBDIV_SURF_AVERAGING_SCHEME,
+	SUBDIV_SURF_BUTTERFLY_SCHEME,
 	SUBDIV_VOL
 };
 
@@ -149,6 +150,8 @@ void TetrahedralizeHybridTetOctGrid(MultiGrid& mg, int bestDiag);
  *
  * 	@param mg			reference to MultiGrid
 **/
+void ProjectHierarchyToLimitSubdivisionSurface(MultiGrid& mg);
+
 void ProjectHierarchyToLimitSubdivisionVolume(MultiGrid& mg);
 
 
@@ -163,9 +166,31 @@ void ProjectHierarchyToLimitSubdivisionVolume(MultiGrid& mg);
  * 	@param aSmoothBndPosOddVrt		reference to aSmoothBndPosOddVrt
  * 	@param aNumManifoldEdges		reference to aNumManifoldEdges
 **/
-void CalculateSmoothManifoldPosInParentLevelLoopScheme(MultiGrid& mg, MGSubsetHandler& markSH,
+void CalculateSmoothManifoldPosInParentLevelLoopScheme2d(MultiGrid& mg, MGSubsetHandler& markSH,
+											 	 	   MGSubsetHandler& linearManifoldSH,
+													   APosition2& aSmoothBndPosEvenVrt,
+													   APosition2& aSmoothBndPosOddVrt,
+													   AInt& aNumManifoldEdges);
+
+void CalculateSmoothManifoldPosInParentLevelLoopScheme3d(MultiGrid& mg, MGSubsetHandler& markSH,
 											 	 	   MGSubsetHandler& linearManifoldSH,
 													   APosition& aSmoothBndPosEvenVrt,
+													   APosition& aSmoothBndPosOddVrt,
+													   AInt& aNumManifoldEdges);
+
+
+/// Parent level vertex smoothing function for subdivision surfaces refinement (Butterfly scheme)
+/** This function calculates the smoothed positions of all parent level vertices
+ * 	determined by the subdivision surfaces refinement.
+ *
+ * 	@param mg						reference to MultiGrid
+ * 	@param markSH					reference to SubsetHandler markSH containing marked (inner) boundary manifold
+ * 	@param linearManifoldSH			reference to user-specified linearManifoldSubsets SubsetHandler
+ * 	@param aSmoothBndPosOddVrt		reference to aSmoothBndPosOddVrt
+ * 	@param aNumManifoldEdges		reference to aNumManifoldEdges
+**/
+void CalculateSmoothManifoldPosInParentLevelButterflyScheme3d(MultiGrid& mg, MGSubsetHandler& markSH,
+											 	 	   MGSubsetHandler& linearManifoldSH,
 													   APosition& aSmoothBndPosOddVrt,
 													   AInt& aNumManifoldEdges);
 
@@ -180,7 +205,12 @@ void CalculateSmoothManifoldPosInParentLevelLoopScheme(MultiGrid& mg, MGSubsetHa
  * 	@param aSmoothBndPos_tri	reference to aSmoothBndPos_tri
  *	@param aSmoothBndPos_quad	reference to aSmoothBndPos_quad
 **/
-void CalculateSmoothManifoldPosInTopLevelAveragingScheme(MultiGrid& mg, MGSubsetHandler& markSH,
+void CalculateSmoothManifoldPosInTopLevelAveragingScheme2d(MultiGrid& mg, MGSubsetHandler& markSH,
+														 MGSubsetHandler& linearManifoldSH,
+										  	  	  	     APosition2& aSmoothBndPos_tri,
+														 APosition2& aSmoothBndPos_quad);
+
+void CalculateSmoothManifoldPosInTopLevelAveragingScheme3d(MultiGrid& mg, MGSubsetHandler& markSH,
 														 MGSubsetHandler& linearManifoldSH,
 										  	  	  	     APosition& aSmoothBndPos_tri,
 														 APosition& aSmoothBndPos_quad);
@@ -271,7 +301,23 @@ void InitLinearManifoldSubsetHandler(MultiGrid& mg, MGSubsetHandler& sh,
  * 	@param aSmoothBndPosEvenVrt		reference to aSmoothBndPosEvenVrt
  * 	@param aSmoothBndPosOddVrt		reference to aSmoothBndPosOddVrt
 **/
-void ApplySmoothManifoldPosToTopLevelLoopScheme(MultiGrid& mg, MGSubsetHandler& markSH,
+void ApplySmoothManifoldPosToTopLevelLoopScheme2d(MultiGrid& mg, MGSubsetHandler& markSH,
+												MGSubsetHandler& linearManifoldSH);
+
+void ApplySmoothManifoldPosToTopLevelLoopScheme3d(MultiGrid& mg, MGSubsetHandler& markSH,
+												MGSubsetHandler& linearManifoldSH);
+
+
+/// Toplevel vertex repositioning function for subdivision surfaces refinement (Butterfly scheme)
+/** This function repositions all toplevel manifold vertices to their smoothed positions
+ * 	determined by the subdivision surfaces refinement.
+ *
+ * 	@param mg						reference to MultiGrid
+ * 	@param markSH					reference to SubsetHandler markSH containing marked (inner) boundary manifold
+ * 	@param linearManifoldSH			reference to user-specified linearManifoldSubsets SubsetHandler
+ * 	@param aSmoothBndPosOddVrt		reference to aSmoothBndPosOddVrt
+**/
+void ApplySmoothManifoldPosToTopLevelButterflyScheme3d(MultiGrid& mg, MGSubsetHandler& markSH,
 												MGSubsetHandler& linearManifoldSH);
 
 
@@ -285,7 +331,10 @@ void ApplySmoothManifoldPosToTopLevelLoopScheme(MultiGrid& mg, MGSubsetHandler& 
  * 	@param aSmoothBndPos		reference to aSmoothBndPos
  * 	@param aNumManifoldFaces	reference to aNumManifoldFaces
 **/
-void ApplySmoothManifoldPosToTopLevelAveragingScheme(MultiGrid& mg, MGSubsetHandler& markSH,
+void ApplySmoothManifoldPosToTopLevelAveragingScheme2d(MultiGrid& mg, MGSubsetHandler& markSH,
+													 MGSubsetHandler& linearManifoldSH);
+
+void ApplySmoothManifoldPosToTopLevelAveragingScheme3d(MultiGrid& mg, MGSubsetHandler& markSH,
 													 MGSubsetHandler& linearManifoldSH);
 
 
@@ -312,7 +361,9 @@ void ApplySmoothVolumePosToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
  * 	@param markSH					reference to SubsetHandler containing marked (inner) boundary manifold
  * 	@param linearManifoldSubsets 	user-specified linearManifoldSubsets
 **/
-void ApplySmoothSubdivisionSurfacesToTopLevel(MultiGrid& mg, MGSubsetHandler& sh, MGSubsetHandler& markSH, const char* linearManifoldSubsets);
+void ApplySmoothSubdivisionSurfacesToTopLevel2d(MultiGrid& mg, MGSubsetHandler& sh, MGSubsetHandler& markSH, const char* linearManifoldSubsets);
+
+void ApplySmoothSubdivisionSurfacesToTopLevel3d(MultiGrid& mg, MGSubsetHandler& sh, MGSubsetHandler& markSH, const char* linearManifoldSubsets);
 
 
 /// Function to create a smooth subdivision volumes hierarchy

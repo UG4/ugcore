@@ -376,6 +376,8 @@ std::vector<MathVector<refDim> >* NeumannBoundaryFV<TDomain>::NumberData::local_
 template<>
 void NeumannBoundaryFV<Domain1d>::register_all_funcs(int order)
 {
+	// Edge
+	register_func<RegularEdge, DimFVGeometry<dim, 1> >();
 }
 #endif
 
@@ -384,7 +386,7 @@ template<>
 void NeumannBoundaryFV<Domain2d>::register_all_funcs(int order)
 {
 // Edge
-	register_func<Edge, DimFVGeometry<dim, 1> >();
+	register_func<RegularEdge, DimFVGeometry<dim, 1> >();
 
 //	Triangle
 	switch(order)
@@ -418,7 +420,7 @@ template<>
 void NeumannBoundaryFV<Domain3d>::register_all_funcs(int order)
 {
 // Edge
-	register_func<Edge, DimFVGeometry<dim, 1> >();
+	register_func<RegularEdge, DimFVGeometry<dim, 1> >();
 
 //	Tetrahedron
 	switch(order)

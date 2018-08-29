@@ -10,7 +10,8 @@
 # e.g. loading of lapack/blas/compiler modules.
 ######################################################################
 
-scriptpath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+#scriptpath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+scriptpath=${UG4_ROOT}/ugcore/scripts/shell
 
 if [ -z "$UGSUBMIT_TYPE" ]; then
 	source $scriptpath/clusterdetect
@@ -21,7 +22,7 @@ fi
 
 
 
-if [ $UGSUBMIT_TYPE == "Hermit" ] || [ $UGSUBMIT_TYPE == "Hazelhen" ] || [ $UGSUBMIT_TYPE == "Hornet" ]; then
+if [ "$UGSUBMIT_TYPE" = "Hermit" ] || [ "$UGSUBMIT_TYPE" = "Hazelhen" ] || [ "$UGSUBMIT_TYPE" = "Hornet" ]; then
 	echo "ugconfig: On Hermit/Hornet/Hazelhen, loading gnu compilers" 
 	module list 2>&1 | grep PrgEnv-gnu > /dev/null
 	if [ $? == 1 ]; then
@@ -31,32 +32,40 @@ if [ $UGSUBMIT_TYPE == "Hermit" ] || [ $UGSUBMIT_TYPE == "Hazelhen" ] || [ $UGSU
 	echo PrgEnv-gnu already loaded.
 	fi
 	
-elif [ $UGSUBMIT_TYPE == "cekon" ]; then
+elif [ "$UGSUBMIT_TYPE" = "cekon" ]; then
 	echo "ugconfig: Nothing to configure on cekon. Have a nice day."
 	
-elif [ $UGSUBMIT_TYPE == "cesari" ]; then
+elif [ "$UGSUBMIT_TYPE" = "cesari" ]; then
 	echo "ugconfig: Nothing to configure on cesari. Have a nice day."
 	
-elif [ $UGSUBMIT_TYPE == "mpi" ] && [ $UGSUBMIT_MORE == "Apple" ]; then
+elif [ "$UGSUBMIT_TYPE" = "mpi" ] && [ "$UGSUBMIT_MORE" = "Apple" ]; then
 	echo "ugconfig: Nothing to configure on Apple systems. Have a nice day."
 				
-elif [ $UGSUBMIT_TYPE == "mpi" ]; then
+elif [ "$UGSUBMIT_TYPE" = "mpi" ]; then
 	echo "ugconfig: Nothing to configure on $UGSUBMIT_TYPE. Have a nice day."
 		
-elif [[ $UGSUBMIT_TYPE == "Juqueen" ]]; then
-	echo "ugconfig: On Juqueen, loading cmake and lapack."
+elif [ "$UGSUBMIT_TYPE" = "Juqueen" ]; then
+	echo "ugconfig: Loading cmake and lapack."
 	module load cmake
 	module load lapack
 	
-elif [[ $UGSUBMIT_TYPE == "Jureca" ]]; then
-	echo "ugconfig: On Jureca, loading toolchain with compilers and lapack as well as cmake."
-	module load intel-para
-	module load CMake/3.2.3
-	echo "ugconfig: export library paths for LAPACk and BLAS"
-	export LAPACK_LIB_DIR=/usr/local/software/jureca/Stage3/software/Toolchain/ipsmpi/2015.07/imkl/11.2.3.187/mkl/lib/int$
-	export BLAS_LIB_DIR=/usr/local/software/jureca/Stage3/software/Toolchain/ipsmpi/2015.07/imkl/11.2.3.187/mkl/lib/intel$
+elif [ "$UGSUBMIT_TYPE" = "Jureca" ]; then
+	echo "ugconfig: Loading toolchain with compilers and lapack as well as cmake."
+	module load Intel           # compilers
+	module load ParaStationMPI  # MPI wrappers
+	module load imkl            # BLAS / LAPACK
+	module load CMake
+	echo "ugconfig: Exporting library paths for LAPACK and BLAS"
 
-elif [ "$UGSUBMIT_TYPE" == "unknown" ]; then 
+elif [ "$UGSUBMIT_TYPE" = "Juwels" ]; then
+	echo "ugconfig: Loading toolchain with compilers and BLAS / LAPACK as well as CMake."
+	module load Intel           		# compilers
+	module load IntelMPI/2018.2.199  	# MPI wrappers
+	module load imkl            		# BLAS / LAPACK
+	module load CMake
+	echo "ugconfig: Exporting library paths for LAPACK and BLAS"
+
+elif [ "$UGSUBMIT_TYPE" = "unknown" ]; then 
     echo "Hello, this is ugconfig trying to config your cluster"
     echo "The UGSUBMIT_TYPE could not be set automatically." 
 	echo "please set UGSUBMIT_TYPE manually."

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2015:  G-CSC, Goethe University Frankfurt
+ * Copyright (c) 2011-2018:  G-CSC, Goethe University Frankfurt
  * Author: Andreas Vogel
  * 
  * This file is part of UG4.
@@ -35,6 +35,7 @@
 #include <sstream>
 #include <string>
 
+
 // include bridge
 #include "bridge/bridge.h"
 #include "bridge/util.h"
@@ -50,6 +51,7 @@
 #include "lib_disc/operator/linear_operator/multi_grid_solver/mg_solver.h"
 #include "lib_disc/operator/linear_operator/element_gauss_seidel/element_gauss_seidel.h"
 #include "lib_disc/operator/linear_operator/element_gauss_seidel/component_gauss_seidel.h"
+#include "lib_disc/operator/linear_operator/subspace_correction/sequential_subspace_correction.h"
 #include "lib_disc/operator/linear_operator/uzawa/uzawa.h"
 
 using namespace std;
@@ -246,25 +248,56 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "ComponentGaussSeidel", tag);
 	}
 
+	//	SequentialSubspaceCorrection
+	{
+		typedef SequentialSubspaceCorrection<TDomain, TAlgebra> T;
+		typedef IPreconditioner<TAlgebra> TBase;
+		string name = string("SequentialSubspaceCorrection").append(suffix);
+		reg.add_class_<T,TBase>(name, grp, "Sequential subspace correction")
+					.template add_constructor<void (*)(number)>("omega")
+					.add_method("set_vertex_subspace", &T::set_vertex_subspace, "", "subspace")
+					.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "SequentialSubspaceCorrection", tag);
+	}
+
+
+	//	ILocalSubspace (i.e. base class for any 'subspace' in subspace correction methods)
+	{
+		typedef ILocalSubspace<TDomain, TAlgebra,Vertex> TVertexSubspace;
+		string name = string("ILocalSubspace").append(suffix);
+		reg.add_class_<TVertexSubspace>(name, grp, "ILocalSubspace base");
+		reg.add_class_to_group(name, "ILocalSubspace", tag);
+
+		//	VertexBasedVankaSubspace
+		{
+			typedef VertexBasedVankaSubspace<TDomain, TAlgebra> T;
+			// typedef IPreconditioner<TAlgebra> TBase;
+			string name = string("VertexBasedVankaSubspace").append(suffix);
+			reg.add_class_<T,TVertexSubspace>(name, grp, "Vertex based Vanka")
+					.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("primary functions, secondary functions")
+					.set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, "VertexBasedVankaSubspace", tag);
+		}
+	}
+
 	// Uzawa (smoother/iteration)
-	    {
-	        typedef UzawaBase<TDomain, TAlgebra> T;
-	        typedef ILinearIterator<typename TAlgebra::vector_type> TBase;
-	        typedef DebugWritingObject<TAlgebra> TBase2;
-	        string name = string("UzawaBase").append(suffix);
+	{
+		typedef UzawaBase<TDomain, TAlgebra> T;
+		typedef ILinearIterator<typename TAlgebra::vector_type> TBase;
+		typedef DebugWritingObject<TAlgebra> TBase2;
+		string name = string("UzawaBase").append(suffix);
 
-	        reg.add_class_<T, TBase, TBase2>(name, grp)
-	        .ADD_CONSTRUCTOR( (const std::vector<std::string>&) ) ("String ID for Schur")
-			.ADD_CONSTRUCTOR( (const char *) ) ("String ID for Schur")
-	    	.add_method("set_forward_iter", &T::set_forward_iter, "forward iteration", "beta")
-			.add_method("set_schur_iter", &T::set_schur_iter, "Schur iteration", "beta")
-			.add_method("set_backward_iter", &T::set_backward_iter, "backward iteration", "beta")
-			.add_method("set_schur_operator_update", &T::set_schur_operator_update, "update for Schur", "beta")
-	        .set_construct_as_smart_pointer(true);
+		reg.add_class_<T, TBase, TBase2>(name, grp)
+	        		.ADD_CONSTRUCTOR( (const std::vector<std::string>&) ) ("String IDs for Schur complement")
+					.ADD_CONSTRUCTOR( (const char *) ) ("String ID for Schur")
+					.add_method("set_forward_iter", &T::set_forward_iter, "forward iteration", "beta")
+					.add_method("set_schur_iter", &T::set_schur_iter, "Schur iteration", "beta")
+					.add_method("set_backward_iter", &T::set_backward_iter, "backward iteration", "beta")
+					.add_method("set_schur_operator_update", &T::set_schur_operator_update, "update for Schur", "beta")
+					.set_construct_as_smart_pointer(true);
 
-	        reg.add_class_to_group(name, "UzawaBase", tag);
-	        //std::cout <<"Registered "<< name << std::endl;
-	    }
+		reg.add_class_to_group(name, "UzawaBase", tag);
+	}
 
 
 }

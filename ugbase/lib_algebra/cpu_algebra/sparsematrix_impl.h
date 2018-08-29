@@ -62,6 +62,25 @@ SparseMatrix<T>::SparseMatrix()
 }
 
 template<typename T>
+void SparseMatrix<T>::clear_and_free()
+{
+	std::vector<int>().swap(rowStart);
+	std::vector<int>().swap(rowMax);
+	std::vector<int>().swap(rowEnd);
+	m_numCols = 0;
+	nnz = 0;
+
+	std::vector<int>().swap(cols);
+	std::vector<value_type>().swap(values);
+	maxValues = 0;
+
+#ifdef CHECK_ROW_ITERATORS
+	std::vector<int>().swap(nrOfRowIterators);
+#endif
+}
+
+
+template<typename T>
 void SparseMatrix<T>::resize_and_clear(size_t newRows, size_t newCols)
 {
 	PROFILE_SPMATRIX(SparseMatrix_resize_and_clear);

@@ -47,6 +47,92 @@
 
 namespace ug{
 
+namespace grid_intersection_impl {
+// 	static int fileCounter = 1;
+// 	string filenamePrefix = "/home/sreiter/Desktop/failed_sweeplines/failed_sweepline_";
+// 	stringstream ss2d, ss3d;
+// 	ss2d << filenamePrefix << "2d_" << fileCounter << ".lgb";
+// 	ss3d << filenamePrefix << "3d_" << fileCounter << ".lgb";
+// 	++fileCounter;
+// 	UG_LOG("TriangleFill_SweepLine failed!\n");
+// 	SaveGridToFile(tgrid, ss3d.str().c_str(), aPos);
+// //	perform transformation to 2d and save that too.
+// 	std::vector<vector3> vrts;
+// 	for(VertexIterator iter = tgrid.vertices_begin();
+// 		iter != tgrid.vertices_end(); ++iter)
+// 	{
+// 		vrts.push_back(taaPos[*iter]);
+// 	}
+// 	std::vector<vector2> vrts2d(vrts.size());
+// 	TransformPointSetTo2D(&vrts2d.front(), &vrts.front(),
+// 						  vrts.size());
+
+// 	size_t counter = 0;
+// 	for(VertexIterator iter = tgrid.vertices_begin();
+// 		iter != tgrid.vertices_end(); ++iter, ++counter)
+// 	{
+// 		taaPos[*iter] = vector3(vrts2d[counter].x(), vrts2d[counter].y(), 0);
+// 	}
+
+// 	SaveGridToFile(tgrid, ss2d.str().c_str(), aPos);
+
+	template <class TAPos>
+	void DebugSave(Grid& grid, const char* filePrefix, TAPos aPos)
+	{
+	#ifdef UG_INTERSECTION_DEBUG_PATH
+		static int fileCounter = 0;
+		++fileCounter;
+		std::string pathName = UG_INTERSECTION_DEBUG_PATH;
+		std::string filename =
+				mkstr(pathName << "/" << filePrefix
+					  << "-" << fileCounter << ".ugx");
+		UG_LOG("Saving intersection debug geometry to " << filename << std::endl);
+		SaveGridToFile(grid, filename.c_str(), aPos);
+	#endif
+	}
+
+	template <class TAPos>
+	void DebugSave2d(Grid& grid, const char* filePrefix, TAPos aPos)
+	{
+	#ifdef UG_INTERSECTION_DEBUG_PATH
+		static int fileCounter = 0;
+		++fileCounter;
+		std::string pathName = UG_INTERSECTION_DEBUG_PATH;
+		std::string filename =
+				mkstr(pathName << "/" << filePrefix
+					  << "-" << fileCounter << ".ugx");
+		UG_LOG("Saving 2d intersection debug geometry to " << filename << std::endl);
+		
+		Grid::VertexAttachmentAccessor<TAPos> aaPos(grid, aPos);
+		std::vector<vector3> vrts;
+		for(VertexIterator iter = grid.vertices_begin();
+			iter != grid.vertices_end(); ++iter)
+		{
+			vrts.push_back(aaPos[*iter]);
+		}
+		std::vector<vector2> vrts2d(vrts.size());
+		TransformPointSetTo2D(&vrts2d.front(), &vrts.front(),
+							  vrts.size());
+
+		size_t counter = 0;
+		for(VertexIterator iter = grid.vertices_begin();
+			iter != grid.vertices_end(); ++iter, ++counter)
+		{
+			aaPos[*iter] = vector3(vrts2d[counter].x(), vrts2d[counter].y(), 0);
+		}
+
+		SaveGridToFile(grid, filename.c_str(), aPos);
+
+		for(VertexIterator iter = grid.vertices_begin();
+			iter != grid.vertices_end(); ++iter, ++counter)
+		{
+			aaPos[*iter] = vrts[counter];
+		}
+
+	#endif
+	}
+}
+
 template <class TAAPosVRT>
 Vertex* ResolveVertexEdgeIntersection(Grid& grid, Vertex* v,
 										   Edge* e, TAAPosVRT& aaPos,
@@ -1000,7 +1086,7 @@ inline bool IntersectCoplanarTriangles(std::vector<vector2>& edgesOut,
 			}
 
 			if(separable)
-				return true;
+				return false;
 		}
 		std::swap(t0, t1);
 	}
@@ -1285,8 +1371,9 @@ bool ResolveTriangleIntersections(Grid& grid, TriangleIterator trisBegin,
 	Grid::vertex_traits::secure_container vrts;
 
 //	iterate over all triangles and perform intersecion with other triangles
+	size_t triCounter = 0;
 	for(TriangleIterator triIter1 = sel.begin<Triangle>();
-		triIter1 != sel.end<Triangle>(); ++triIter1)
+		triIter1 != sel.end<Triangle>(); ++triIter1, ++triCounter)
 	{
 		Face* t1 = *triIter1;
 
@@ -1311,13 +1398,14 @@ bool ResolveTriangleIntersections(Grid& grid, TriangleIterator trisBegin,
 			if(grid.get_attachment_data_index(t1) >= grid.get_attachment_data_index(t2))
 				continue;
 
-			Sphere<vector3> s1 = CalculateBoundingSphere(t1, aaPos);
-			Sphere<vector3> s2 = CalculateBoundingSphere(t2, aaPos);
-			if(VecDistance(s1.center, s2.center)
-				> (s1.radius + s2.radius + snapThreshold + SMALL))
-			{
-				continue;
-			}
+		//	check is obsolete, since only close elements are considered.
+			// Sphere<vector3> s1 = CalculateBoundingSphere(t1, aaPos);
+			// Sphere<vector3> s2 = CalculateBoundingSphere(t2, aaPos);
+			// if(VecDistance(s1.center, s2.center)
+			// 	> (s1.radius + s2.radius + snapThreshold + SMALL))
+			// {
+			// 	continue;
+			// }
 
 		//todo:	Move both triangles closer to the origin to minimize rounding issues...
 			
@@ -1326,7 +1414,7 @@ bool ResolveTriangleIntersections(Grid& grid, TriangleIterator trisBegin,
 			CalculateNormal(n1, t1, aaPos);
 			CalculateNormal(n2, t2, aaPos);
 			number d = VecDot(n1, n2);
-			if(fabs(d) > 1. - SMALL){
+			if(fabs(d) > 1. - snapThreshold){
 			//	if the two triangles aren't in the same plane, there's nothing to do...
 				if(DistancePointToPlane(aaPos[t2->vertex(0)], aaPos[t1->vertex(0)], n1) > snapThreshold)
 					continue;
@@ -1334,6 +1422,10 @@ bool ResolveTriangleIntersections(Grid& grid, TriangleIterator trisBegin,
 			//	note that t1 and t2 are swapped twice - once at the end of each i_tri iteration.
 				for(int i_tri = 0; i_tri < 2; ++i_tri){
 					if(IntersectCoplanarTriangles(planarIntersections, t1, t2, aaPos)){
+						// if(triCounter == dbgTriInd){
+						// 	UG_LOG("<dbg> Coplanar Triangles Intersected\n");
+						// }
+
 					//	we have to make sure that the corners of both triangles are
 					//	contained in aVrtVec if an intersection occurs.
 						for(int j_tri = 0; j_tri < 2; ++j_tri){
@@ -1394,7 +1486,11 @@ bool ResolveTriangleIntersections(Grid& grid, TriangleIterator trisBegin,
 											aaPos[t2->vertex(1)], aaPos[t2->vertex(2)],
 											&ip[0], &ip[1], SMALL) == 1)
 			{
-				// UG_LOG("> DBG < Intersection points: " << ip[0] << ", " << ip[1] << endl);
+				// if(triCounter == dbgTriInd){
+				// 	UG_LOG("<dbg> tri " << dbgTriInd << " Intersection points: " << ip[0] << ", " << ip[1] << endl);
+				// 	UG_LOG("involved triangles: " << ElementDebugInfo(grid, t1) << std::endl);
+				// 	UG_LOG("               and: " << ElementDebugInfo(grid, t2) << std::endl);
+				// }
 			//	add an edge between the two points
 			//	to avoid insertion of double points, we first check whether the point
 			//	already exists in the triangle. Do this for both triangles.
@@ -1454,6 +1550,9 @@ bool ResolveTriangleIntersections(Grid& grid, TriangleIterator trisBegin,
 													   aaPos, snapThreshold);
 					if(tind1 == -1){
 						if(tind2 == -1){
+							// UG_LOG("<dbg> Creating a new vertex in tri intersection at " << ip[i] << std::endl);
+							// UG_LOG("involved triangles: " << ElementDebugInfo(grid, t[0]) << std::endl);
+							// UG_LOG("               and: " << ElementDebugInfo(grid, t[1]) << std::endl);
 						//	we have to create a new vertex
 							Vertex* vrt = *grid.create<RegularVertex>();
 							aaPos[vrt] = ip[i];
@@ -1511,9 +1610,9 @@ bool ResolveTriangleIntersections(Grid& grid, TriangleIterator trisBegin,
 	sel.enable_selection_inheritance(false);
 
 	std::vector<Vertex*> dblVrts;
-
+	triCounter = 0;
 	for(TriangleIterator triIter = sel.begin<Triangle>();
-		triIter != sel.end<Triangle>(); ++triIter)
+		triIter != sel.end<Triangle>(); ++triIter, ++triCounter)
 	{
 		Triangle* t = *triIter;
 	//	we only proceed if there are intersecion-edges at all
@@ -1543,6 +1642,10 @@ bool ResolveTriangleIntersections(Grid& grid, TriangleIterator trisBegin,
 				tgrid.create<RegularEdge>(EdgeDescriptor(tgridVrts[edgeDescs[i].first],
 												  tgridVrts[edgeDescs[i].second]));
 			}
+
+			// if(triCounter == 128){
+			// 	grid_intersection_impl::DebugSave (tgrid, "tri-128", aPos);
+			// }
 
 		//	due to construction there may be double-edges
 			RemoveDuplicates(tgrid, tgrid.edges_begin(), tgrid.edges_end());
@@ -1647,47 +1750,22 @@ bool ResolveTriangleIntersections(Grid& grid, TriangleIterator trisBegin,
 				}
 			}
 			else{
+				UG_LOG("TriangleFill_SweepLine failed for tri " << triCounter << "\n");
+				UG_LOG("at:")
+				size_t cnt = 0;
+				for(VertexIterator iter = tgrid.begin<Vertex>();
+					iter != tgrid.end<Vertex>(); ++iter, ++cnt)
+				{
+					if(cnt > 2)
+						break;
+					UG_LOG(" " << taaPos[*iter]);
+				}
+				UG_LOG(std::endl);
 
-					UG_LOG("at:")
-					size_t cnt = 0;
-					for(VertexIterator iter = tgrid.begin<Vertex>();
-						iter != tgrid.end<Vertex>(); ++iter, ++cnt)
-					{
-						if(cnt > 2)
-							break;
-						UG_LOG(" " << taaPos[*iter]);
-					}
-					UG_LOG(std::endl);
-
-					// UG_THROW("ResolveTriangleIntersections failed!");
-
-			// 	static int fileCounter = 1;
-			// 	string filenamePrefix = "/home/sreiter/Desktop/failed_sweeplines/failed_sweepline_";
-			// 	stringstream ss2d, ss3d;
-			// 	ss2d << filenamePrefix << "2d_" << fileCounter << ".lgb";
-			// 	ss3d << filenamePrefix << "3d_" << fileCounter << ".lgb";
-			// 	++fileCounter;
-			// 	UG_LOG("TriangleFill_SweepLine failed!\n");
-			// 	SaveGridToFile(tgrid, ss3d.str().c_str(), aPos);
-			// //	perform transformation to 2d and save that too.
-			// 	std::vector<vector3> vrts;
-			// 	for(VertexIterator iter = tgrid.vertices_begin();
-			// 		iter != tgrid.vertices_end(); ++iter)
-			// 	{
-			// 		vrts.push_back(taaPos[*iter]);
-			// 	}
-			// 	std::vector<vector2> vrts2d(vrts.size());
-			// 	TransformPointSetTo2D(&vrts2d.front(), &vrts.front(),
-			// 						  vrts.size());
-
-			// 	size_t counter = 0;
-			// 	for(VertexIterator iter = tgrid.vertices_begin();
-			// 		iter != tgrid.vertices_end(); ++iter, ++counter)
-			// 	{
-			// 		taaPos[*iter] = vector3(vrts2d[counter].x(), vrts2d[counter].y(), 0);
-			// 	}
-
-			// 	SaveGridToFile(tgrid, ss2d.str().c_str(), aPos);
+				grid_intersection_impl::DebugSave(tgrid, "failed_sweepline", aPos);
+				grid_intersection_impl::DebugSave2d(tgrid, "failed_sweepline_2d", aPos);
+				
+				// UG_THROW("ResolveTriangleIntersections failed!");
 			}
 		}
 	}
