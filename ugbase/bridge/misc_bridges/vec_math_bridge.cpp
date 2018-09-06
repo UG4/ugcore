@@ -108,7 +108,7 @@ static void RegisterVecMathBridge_DimIndep(Registry& reg, string grp)
 				            "sets the value of the coordinate with the given index")
 				.add_method("coord",
 						static_cast<vec_type::value_type (vec_type::*)(size_t) const>(&vec_type::coord));
-			//reg.add_class_to_group("Vec1d", "Vec", GetDimensionTag<1>());
+			reg.add_class_to_group("Vec1d", "Vec", GetDimensionTag<1>());
 		}
 		{
 			typedef MathVector<2, number> vec_type;
@@ -119,7 +119,7 @@ static void RegisterVecMathBridge_DimIndep(Registry& reg, string grp)
 				            "sets the value of the coordinate with the given index")
 				.add_method("coord",
 						static_cast<vec_type::value_type (vec_type::*)(size_t) const>(&vec_type::coord));
-			//reg.add_class_to_group("Vec2d", "Vec", GetDimensionTag<2>());
+			reg.add_class_to_group("Vec2d", "Vec", GetDimensionTag<2>());
 		}
 		{
 			typedef MathVector<3, number> vec_type;
@@ -130,7 +130,7 @@ static void RegisterVecMathBridge_DimIndep(Registry& reg, string grp)
 				            "sets the value of the coordinate with the given index")
 				.add_method("coord",
 						static_cast<vec_type::value_type (vec_type::*)(size_t) const>(&vec_type::coord));
-			//reg.add_class_to_group("Vec3d", "Vec", GetDimensionTag<3>());
+			reg.add_class_to_group("Vec3d", "Vec", GetDimensionTag<3>());
 		}
 		{
 			typedef MathVector<4, number> vec_type;
@@ -141,7 +141,7 @@ static void RegisterVecMathBridge_DimIndep(Registry& reg, string grp)
 				            "sets the value of the coordinate with the given index")
 				.add_method("coord",
 						static_cast<vec_type::value_type (vec_type::*)(size_t) const>(&vec_type::coord));
-			//reg.add_class_to_group("Vec4d", "Vec", GetDimensionTag<4>());
+			reg.add_class_to_group("Vec4d", "Vec", GetDimensionTag<4>());
 		}
 
 	//	register make-methods

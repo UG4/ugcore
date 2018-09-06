@@ -58,18 +58,6 @@
 
 namespace ug {
 namespace vrl {
-/**
- * DO NOT USE THIS METHOD!
- * (totally broken)
- * @param msg
- */
-void soutPrintln(std::string msg);
-/**
- * DO NOT USE THIS METHOD!
- * (totally broken)
- * @param msg
- */
-void serrPrintln(std::string msg);
 
 /**
  * Replaces each substring of <code>target</code> string that is equal to
