@@ -352,6 +352,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_<T, TBase>(name, grp)
 		   .template add_constructor<void (*)(const char *) >("fctNames")
 		   .template add_constructor<void (*)(const char *, int) >("fctNames, order")
+		   .template add_constructor<void (*)(const char *, const char*, int) >("fctNames, subsetNames, order")
 		   //.template add_constructor<void (*)(const char *, int, number) >("fctNames, order, scale")
 		   .set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "H1ComponentSpace", tag);

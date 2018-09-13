@@ -377,7 +377,7 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 					const size_t natEdId2 = m_rRefElem.id(2, i, 1, jplus1);
 
 					// corner of the face
-					const size_t cornerId = m_rRefElem.id(2,i, 0, jplus1);
+					const size_t cornerId = m_rRefElem.id(2, i, 0, jplus1);
 
 					// nodes of hanging edges
 					const size_t hangEdNodeId1 = m_vNatEdgeInfo[natEdId1].node_id();

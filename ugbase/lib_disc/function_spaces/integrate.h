@@ -2836,7 +2836,7 @@ class H1NormIntegrand
 			//	compute global gradient
 				MathVector<worldDim> approxGradIP;
 				MathMatrix<worldDim, elemDim> JTInv;
-				Inverse(JTInv, vJT[ip]);
+				RightInverse(JTInv, vJT[ip]);
 				MatVecMult(approxGradIP, JTInv, locTmp);
 
 			//	get squared of difference
@@ -3025,7 +3025,7 @@ class H1DistIntegrand
 			//	compute global gradient
 				MathVector<worldDim> fineGradIP;
 				MathMatrix<worldDim, elemDim> fineJTInv;
-				Inverse(fineJTInv, vJT[ip]);
+				RightInverse(fineJTInv, vJT[ip]);
 				MatVecMult(fineGradIP, fineJTInv, fineLocTmp);
 
 			//	compute global gradient

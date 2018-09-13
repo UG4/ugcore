@@ -592,11 +592,11 @@ public:
 
 	/// \copydoc IComponentSpace<TGridFunction>::norm
 	double norm2(TGridFunction& uFine)
-	{ return H1Norm2<TGridFunction>(uFine, base_type::m_fctNames.c_str(), base_type::m_quadorder); }
+	{ return H1Norm2<TGridFunction>(uFine, base_type::m_fctNames.c_str(), base_type::m_quadorder, base_type::m_ssNames); }
 
 	/// \copydoc IComponentSpace<TGridFunction>::norm
 	double distance2(TGridFunction& uFine, TGridFunction& uCoarse)
-	{ return H1Distance2<TGridFunction>(uFine, base_type::m_fctNames.c_str(), uCoarse, base_type::m_fctNames.c_str(), base_type::m_quadorder); }
+	{ return H1Distance2<TGridFunction>(uFine, base_type::m_fctNames.c_str(), uCoarse, base_type::m_fctNames.c_str(), base_type::m_quadorder, base_type::m_ssNames); }
 
 };
 

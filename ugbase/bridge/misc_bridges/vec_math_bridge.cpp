@@ -103,45 +103,53 @@ static void RegisterVecMathBridge_DimIndep(Registry& reg, string grp)
 			typedef MathVector<1, number> vec_type;
 			reg.add_class_<vec_type>("Vec1d", grp)
 				.add_constructor()
+#ifndef UG_FOR_VRL // TODO can we add all constructors to base class of class group? For now, use MakeVec for Java API.
 				.add_constructor<void (*)(number)>()
+#endif
 				.add_method("set_coord", &vec_type::set_coord, "", "index # value",
 				            "sets the value of the coordinate with the given index")
 				.add_method("coord",
 						static_cast<vec_type::value_type (vec_type::*)(size_t) const>(&vec_type::coord));
-			//reg.add_class_to_group("Vec1d", "Vec", GetDimensionTag<1>());
+			reg.add_class_to_group("Vec1d", "Vec", GetDimensionTag<1>());
 		}
 		{
 			typedef MathVector<2, number> vec_type;
 			reg.add_class_<vec_type>("Vec2d", grp)
 				.add_constructor()
+#ifndef UG_FOR_VRL // TODO can we add all constructors to base class of class group? For now, use MakeVec for Java API.
 				.add_constructor<void (*)(number, number)>()
+#endif
 				.add_method("set_coord", &vec_type::set_coord, "", "index # value",
 				            "sets the value of the coordinate with the given index")
 				.add_method("coord",
 						static_cast<vec_type::value_type (vec_type::*)(size_t) const>(&vec_type::coord));
-			//reg.add_class_to_group("Vec2d", "Vec", GetDimensionTag<2>());
+			reg.add_class_to_group("Vec2d", "Vec", GetDimensionTag<2>());
 		}
 		{
 			typedef MathVector<3, number> vec_type;
 			reg.add_class_<vec_type>("Vec3d", grp)
 				.add_constructor()
+#ifndef UG_FOR_VRL // TODO can we add all constructors to base class of class group? For now, use MakeVec for Java API.
 				.add_constructor<void (*)(number, number, number)>()
+#endif
 				.add_method("set_coord", &vec_type::set_coord, "", "index # value",
 				            "sets the value of the coordinate with the given index")
 				.add_method("coord",
 						static_cast<vec_type::value_type (vec_type::*)(size_t) const>(&vec_type::coord));
-			//reg.add_class_to_group("Vec3d", "Vec", GetDimensionTag<3>());
+			reg.add_class_to_group("Vec3d", "Vec", GetDimensionTag<3>());
 		}
 		{
 			typedef MathVector<4, number> vec_type;
 			reg.add_class_<vec_type>("Vec4d", grp)
 				.add_constructor()
+#ifndef UG_FOR_VRL // TODO can we add all constructors to base class of class group? For now, use MakeVec for Java API.
 				.add_constructor<void (*)(number, number, number, number)>()
+#endif
 				.add_method("set_coord", &vec_type::set_coord, "", "index # value",
 				            "sets the value of the coordinate with the given index")
 				.add_method("coord",
 						static_cast<vec_type::value_type (vec_type::*)(size_t) const>(&vec_type::coord));
-			//reg.add_class_to_group("Vec4d", "Vec", GetDimensionTag<4>());
+			reg.add_class_to_group("Vec4d", "Vec", GetDimensionTag<4>());
 		}
 
 	//	register make-methods

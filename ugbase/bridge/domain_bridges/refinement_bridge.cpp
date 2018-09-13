@@ -1540,10 +1540,12 @@ void SetSmoothSubdivisionVolumesBoundaryRefinementRule(std::string bndRefRule)
 		SetBoundaryRefinementRule(SUBDIV_SURF_LOOP_SCHEME);
 	else if(bndRefRule.compare("subdiv_surf_averaging_scheme") == 0)
 		SetBoundaryRefinementRule(SUBDIV_SURF_AVERAGING_SCHEME);
+	else if(bndRefRule.compare("subdiv_surf_butterfly_scheme") == 0)
+			SetBoundaryRefinementRule(SUBDIV_SURF_BUTTERFLY_SCHEME);
 	else if(bndRefRule.compare("subdiv_vol") == 0)
 		SetBoundaryRefinementRule(SUBDIV_VOL);
 	else
-		UG_THROW("ERROR in SetBoundaryRefinementRule: Unknown boundary refinement rule! Known rules are: 'linear', 'subdiv_surf_loop_scheme', 'subdiv_surf_averaging_scheme' or 'subdiv_vol'.");
+		UG_THROW("ERROR in SetBoundaryRefinementRule: Unknown boundary refinement rule! Known rules are: 'linear', 'subdiv_surf_loop_scheme', 'subdiv_surf_averaging_scheme', 'subdiv_surf_butterfly_scheme' or 'subdiv_vol'.");
 }
 
 
