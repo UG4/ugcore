@@ -259,6 +259,24 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "L2ComponentSpace", tag);
 	}
 
+	// L2QuotientSpace (= L2ComponentSpace which factors out constants)
+	{
+		typedef L2QuotientSpace<TFct> T;
+		typedef IComponentSpace<TFct> TBase;
+		typedef typename L2Integrand<TFct>::weight_type TWeight;
+
+		string name = string("L2QuotientSpace").append(suffix);
+		reg.add_class_<T, TBase>(name, grp)
+			.template add_constructor<void (*)(const char *) >("fctNames")
+			.template add_constructor<void (*)(const char *, int) >("fctNames, order")
+			.template add_constructor<void (*)(const char *, int, double) >("fctNames, order, weight")
+			.template add_constructor<void (*)(const char *, int, double, const char *) >("fctNames, order, weight, ssNames")
+			.template add_constructor<void (*)(const char *, int, ConstSmartPtr<TWeight>) >("fctNames, order, weight")
+			.template add_constructor<void (*)(const char *, int, ConstSmartPtr<TWeight>, const char *) >("fctNames, order, weight, ssNames")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "L2QuotientSpace", tag);
+	}
+
 	// H1SemiComponentSpace
 	{
 		typedef H1SemiComponentSpace<TFct> T;

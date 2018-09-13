@@ -313,6 +313,79 @@ public:
 
 };
 
+/** Evaluates difference between two grid functions in L2 norm */
+template <typename TGridFunction>
+class L2QuotientSpace :
+		public IComponentSpace<TGridFunction>,
+		public IObjectWithWeights<typename L2DistIntegrand<TGridFunction>::weight_type >
+{
+public:
+	typedef IComponentSpace<TGridFunction> base_type;
+	typedef typename L2DistIntegrand<TGridFunction>::weight_type weight_type;
+	typedef IObjectWithWeights<weight_type> weighted_obj_type;
+
+	/// CTOR
+	L2QuotientSpace(const char *fctNames)
+	: base_type(fctNames), weighted_obj_type(make_sp(new ConstUserNumber<TGridFunction::dim>(1.0))) {};
+
+	L2QuotientSpace(const char *fctNames, int order)
+	: base_type(fctNames, order), weighted_obj_type(make_sp(new ConstUserNumber<TGridFunction::dim>(1.0))) {};
+
+	L2QuotientSpace(const char *fctNames,  int order, double weight, const char* ssNames=0)
+	: base_type(fctNames, ssNames, order), weighted_obj_type(make_sp(new ConstUserNumber<TGridFunction::dim>(weight))) {};
+
+	L2QuotientSpace(const char *fctNames, int order, ConstSmartPtr<weight_type> spWeight, const char* ssNames=0)
+	: base_type(fctNames, ssNames, order), weighted_obj_type(spWeight) {};
+
+	/// DTOR
+	~L2QuotientSpace() {};
+
+	using IComponentSpace<TGridFunction>::norm;
+	using IComponentSpace<TGridFunction>::distance;
+
+	/// for weighted norms
+	using weighted_obj_type::set_weight;
+	using weighted_obj_type::get_weight;
+	using weighted_obj_type::m_spWeight;
+
+	/// \copydoc IComponentSpace<TGridFunction>::norm
+	double norm2(TGridFunction& u)
+	{
+		typedef ConstUserNumber<TGridFunction::dim> MyConstUserData;
+
+		SmartPtr<MyConstUserData> spConst= make_sp(new MyConstUserData(1.0));
+		number Meas = Integral(spConst, u, base_type::m_ssNames, 0.0, 1, "best");
+		number uAvg = Integral(u,  base_type::m_fctNames.c_str(), base_type::m_ssNames, base_type::m_quadorder);
+
+		std::cerr << "Average:=" << uAvg <<"/" << Meas << " = " << uAvg/Meas << std::endl;
+		SmartPtr<MyConstUserData> spAvg = make_sp(new MyConstUserData(uAvg/Meas));
+		double qnorm = L2Error(spAvg, u, base_type::m_fctNames.c_str(), 0.0, base_type::m_quadorder, base_type::m_ssNames);
+
+		return qnorm*qnorm;
+	}
+
+	/// \copydoc IComponentSpace<TGridFunction>::distance
+	double distance2(TGridFunction& uFine, TGridFunction& uCoarse)
+	{
+		typedef ConstUserNumber<TGridFunction::dim> MyConstUserData;
+
+		SmartPtr<MyConstUserData> spConst= make_sp(new MyConstUserData(1.0));
+		number Meas = Integral(spConst, uFine, base_type::m_ssNames, 0.0, 1, "best");
+		number avgFine = Integral(uFine, base_type::m_fctNames.c_str(), base_type::m_ssNames, base_type::m_quadorder);
+		number avgCoarse = Integral(uCoarse, base_type::m_fctNames.c_str(), base_type::m_ssNames, base_type::m_quadorder);
+
+		std::cerr << "Average:=(" << avgFine << "-" << avgCoarse<<")/" << Meas << " = " << (avgFine-avgCoarse)/Meas << std::endl;
+		return L2Distance2(uFine, base_type::m_fctNames.c_str(),
+						  uCoarse, base_type::m_fctNames.c_str(),
+						  base_type::m_quadorder, base_type::m_ssNames, weighted_obj_type::m_spWeight,
+						  (avgFine-avgCoarse)/Meas);
+	}
+
+
+
+};
+
+
 /** Evaluates distance between two grid functions in H1 semi-norm */
 template <typename TGridFunction>
 class H1SemiComponentSpace
