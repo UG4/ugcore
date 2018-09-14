@@ -933,7 +933,7 @@ number Integral(const char* luaFct,
 	static const int dim = TGridFunction::dim;
 	SmartPtr<UserData<number, dim> > sp =
 			LuaUserDataFactory<number, dim>::create(luaFct);
-	return Integral(sp, spGridFct, subsets, time, quadOrder, quadType);
+	return Integral(sp, *spGridFct, subsets, time, quadOrder, quadType);
 }
 
 template <typename TGridFunction>
