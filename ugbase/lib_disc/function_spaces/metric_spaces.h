@@ -352,13 +352,14 @@ public:
 	double norm2(TGridFunction& u)
 	{
 		typedef ConstUserNumber<TGridFunction::dim> MyConstUserData;
+		typedef SmartPtr<UserData<number, TGridFunction::dim> > SPUserData;
 
-		SmartPtr<MyConstUserData> spConst= make_sp(new MyConstUserData(1.0));
+		SPUserData spConst= make_sp(new MyConstUserData(1.0));
 		number Meas = Integral(spConst, u, base_type::m_ssNames, 0.0, 1, "best");
 		number uAvg = Integral(u,  base_type::m_fctNames.c_str(), base_type::m_ssNames, base_type::m_quadorder);
 
 		std::cerr << "Average:=" << uAvg <<"/" << Meas << " = " << uAvg/Meas << std::endl;
-		SmartPtr<MyConstUserData> spAvg = make_sp(new MyConstUserData(uAvg/Meas));
+		SPUserData spAvg = make_sp(new MyConstUserData(uAvg/Meas));
 		double qnorm = L2Error(spAvg, u, base_type::m_fctNames.c_str(), 0.0, base_type::m_quadorder, base_type::m_ssNames);
 
 		return qnorm*qnorm;
@@ -368,8 +369,9 @@ public:
 	double distance2(TGridFunction& uFine, TGridFunction& uCoarse)
 	{
 		typedef ConstUserNumber<TGridFunction::dim> MyConstUserData;
+		typedef SmartPtr<UserData<number, TGridFunction::dim> > SPUserData;
 
-		SmartPtr<MyConstUserData> spConst= make_sp(new MyConstUserData(1.0));
+		SPUserData spConst= make_sp(new MyConstUserData(1.0));
 		number Meas = Integral(spConst, uFine, base_type::m_ssNames, 0.0, 1, "best");
 		number avgFine = Integral(uFine, base_type::m_fctNames.c_str(), base_type::m_ssNames, base_type::m_quadorder);
 		number avgCoarse = Integral(uCoarse, base_type::m_fctNames.c_str(), base_type::m_ssNames, base_type::m_quadorder);
