@@ -1550,8 +1550,7 @@ number L2Norm2(TGridFunction& u, const char* cmp,
 	const size_t fct = u.fct_id_by_name(cmp);
 
 //	check that function exists
-	if(fct >= u.num_fct())
-		UG_THROW("L2Norm: Function space does not contain"
+	UG_COND_THROW(fct >= u.num_fct(), "L2Norm: Function space does not contain"
 				" a function with name " << cmp << ".");
 
 	L2Integrand<TGridFunction> integrandL2(u, fct, spWeight);
@@ -1566,8 +1565,7 @@ number L2Norm2(TGridFunction& u, const char* cmp,
 	const size_t fct = u.fct_id_by_name(cmp);
 
 //	check that function exists
-	if(fct >= u.num_fct())
-		UG_THROW("L2Norm: Function space does not contain"
+	UG_COND_THROW(fct >= u.num_fct(), "L2Norm: Function space does not contain"
 				" a function with name " << cmp << ".");
 
 	L2Integrand<TGridFunction> integrandL2(u, fct);
@@ -1859,8 +1857,8 @@ class H1SemiIntegrand
 	///	sets subset
 		virtual void set_subset(int si)
 		{
-			if(!m_scalarData.is_def_in_subset(si))
-				UG_THROW("H1Error: Grid function component"
+
+			UG_COND_THROW(!m_scalarData.is_def_in_subset(si), "H1Error: Grid function component"
 						<<m_scalarData.fct()<<" not defined on subset "<<si);
 			IIntegrand<number, worldDim>::set_subset(si);
 		}
@@ -1926,8 +1924,7 @@ class H1SemiIntegrand
 			gridFct.dof_indices(pElem, m_scalarData.fct(), ind);
 
 		//	check multi indices
-			if(ind.size() != num_sh)
-				UG_THROW("H1SemiNormFuncIntegrand::evaluate: Wrong number of multi-)indices.");
+			UG_COND_THROW(ind.size() != num_sh, "H1SemiNormFuncIntegrand::evaluate: Wrong number of multi-)indices.");
 
 		//	loop all integration points
 			std::vector<MathVector<elemDim> > vLocGradient(num_sh);
@@ -1989,8 +1986,7 @@ number H1SemiNorm2(TGridFunction& gridFct, const char* cmp, int quadOrder, const
 	const size_t fct = gridFct.fct_id_by_name(cmp);
 
 //	check that function exists
-	if(fct >= gridFct.num_fct())
-		UG_THROW("H1SemiNorm: Function space does not contain"
+	UG_COND_THROW(fct >= gridFct.num_fct(), "H1SemiNorm: Function space does not contain"
 				" a function with name " << cmp << ".");
 	if  (weights.invalid()) {
 		H1SemiIntegrand<TGridFunction> integrand(gridFct, fct);
@@ -2079,22 +2075,18 @@ class H1SemiDistIntegrand : public StdIntegrand<number, TGridFunction::dim, H1Se
 		  m_spMG(fineGridFct.domain()->grid()),
 		  m_spWeight(spWeight)
 		{
-			if(m_fineTopLevel < m_coarseTopLevel)
-				UG_THROW("H1SemiDiffIntegrand: fine and top level inverted.");
-
-			if(m_fineData.domain().get() != m_coarseData.domain().get())
-				UG_THROW("H1SemiDiffIntegrand: grid functions defined on different domains.");
+			UG_COND_THROW(m_fineTopLevel < m_coarseTopLevel, "H1SemiDiffIntegrand: fine and top level inverted.");
+			UG_COND_THROW(m_fineData.domain().get() != m_coarseData.domain().get(), "H1SemiDiffIntegrand: grid functions defined on different domains.");
 		}
 		virtual ~H1SemiDistIntegrand(){}
 
 	///	sets subset
 		virtual void set_subset(int si)
 		{
-			if(!m_fineData.is_def_in_subset(si))
-				UG_THROW("H1SemiDiffIntegrand: Grid function component"
-						<<m_fineData.fct()<<" not defined on subset "<<si);
-			if(!m_coarseData.is_def_in_subset(si))
-				UG_THROW("H1SemiDiffIntegrand: Grid function component"
+
+			UG_COND_THROW(!m_fineData.is_def_in_subset(si), "H1SemiDiffIntegrand: Grid function component"
+						 <<m_fineData.fct()<<" not defined on subset "<<si);
+			UG_COND_THROW(!m_coarseData.is_def_in_subset(si), "H1SemiDiffIntegrand: Grid function component"
 						<<m_coarseData.fct()<<" not defined on subset "<<si);
 			IIntegrand<number, worldDim>::set_subset(si);
 		}
@@ -2337,8 +2329,8 @@ class H1EnergyIntegrand
 	///	sets subset
 		virtual void set_subset(int si)
 		{
-			if(!m_scalarData.is_def_in_subset(si))
-				UG_THROW("H1EnergyIntegrand: Grid function component"
+
+			UG_COND_THROW(!m_scalarData.is_def_in_subset(si), "H1EnergyIntegrand: Grid function component"
 						<<m_scalarData.fct()<<" not defined on subset "<<si);
 			IIntegrand<number, worldDim>::set_subset(si);
 		}
@@ -2404,8 +2396,7 @@ class H1EnergyIntegrand
 			gridFct.dof_indices(pElem, m_scalarData.fct(), ind);
 
 		//	check multi indices
-			if(ind.size() != num_sh)
-				UG_THROW("H1EnergyIntegrand::evaluate: Wrong number of multi-)indices.");
+			UG_COND_THROW(ind.size() != num_sh, "H1EnergyIntegrand::evaluate: Wrong number of multi-)indices.");
 
 		//	loop all integration points
 			std::vector<MathVector<elemDim> > vLocGradient(num_sh);
@@ -2467,8 +2458,7 @@ number H1EnergyNorm2(TGridFunction& gridFct, const char* cmp, int quadOrder, con
 	const size_t fct = gridFct.fct_id_by_name(cmp);
 
 //	check that function exists
-	if(fct >= gridFct.num_fct())
-		UG_THROW("H1SemiNorm: Function space does not contain"
+	UG_COND_THROW(fct >= gridFct.num_fct(), "H1SemiNorm: Function space does not contain"
 				" a function with name " << cmp << ".");
 	if  (weights.invalid()) {
 		H1EnergyIntegrand<TGridFunction> integrand(gridFct, fct);
@@ -3148,9 +3138,8 @@ class StdFuncIntegrand
 			m_pGridFct->dof_indices(pElem, m_fct, ind);
 
 		//	check multi indices
-			if(ind.size() != num_sh)
-				UG_THROW("StdFuncIntegrand::evaluate: Wrong number of"
-						" multi indices.");
+			UG_COND_THROW(ind.size() != num_sh,
+						"StdFuncIntegrand::evaluate: Wrong number of multi indices.");
 
 		//	loop all integration points
 			for(size_t ip = 0; ip < numIP; ++ip)
@@ -3232,8 +3221,7 @@ number Integral(TGridFunction& gridFct, const char* cmp,
 	const size_t fct = gridFct.fct_id_by_name(cmp);
 
 //	check that function exists
-	if(fct >= gridFct.num_fct())
-		UG_THROW("L2Norm: Function space does not contain"
+	UG_COND_THROW(fct >= gridFct.num_fct(), "L2Norm: Function space does not contain"
 				" a function with name " << cmp << ".");
 
 //	read subsets
