@@ -268,15 +268,15 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_<TVertexSubspace>(name, grp, "ILocalSubspace base");
 		reg.add_class_to_group(name, "ILocalSubspace", tag);
 
-		//	VertexBasedVankaSubspace
+		//	VertexCenteredVankaSubspace
 		{
-			typedef VertexBasedVankaSubspace<TDomain, TAlgebra> T;
+			typedef VertexCenteredVankaSubspace<TDomain, TAlgebra> T;
 			// typedef IPreconditioner<TAlgebra> TBase;
-			string name = string("VertexBasedVankaSubspace").append(suffix);
-			reg.add_class_<T,TVertexSubspace>(name, grp, "Vertex based Vanka")
+			string name = string("VertexCenteredVankaSubspace").append(suffix);
+			reg.add_class_<T,TVertexSubspace>(name, grp, "Vertex centered Vanka")
 					.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("primary functions, secondary functions")
 					.set_construct_as_smart_pointer(true);
-			reg.add_class_to_group(name, "VertexBasedVankaSubspace", tag);
+			reg.add_class_to_group(name, "VertexCenteredVankaSubspace", tag);
 		}
 	}
 

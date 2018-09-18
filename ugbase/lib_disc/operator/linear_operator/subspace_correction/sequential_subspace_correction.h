@@ -45,9 +45,10 @@
 #ifdef UG_PARALLEL
 	#include "pcl/pcl_util.h"
 	#include "lib_algebra/parallelization/parallelization_util.h"
+	#include "lib_algebra/parallelization/parallelization.h"
+	#include "lib_algebra/parallelization/matrix_overlap.h"
 	#include "lib_algebra/parallelization/parallel_matrix_overlap_impl.h"
 #endif
-
 
 namespace ug{
 
@@ -389,7 +390,7 @@ public:
 
 //! Collects indices on all elements with v \in Vtx(elem)
 template <typename TDomain, typename TAlgebra>
-class VertexBasedVankaSubspace : public LocalDoFSubspace<TDomain, TAlgebra, Vertex>
+class VertexCenteredVankaSubspace : public LocalDoFSubspace<TDomain, TAlgebra, Vertex>
 {
 public:
 	///	Algebra type
@@ -405,19 +406,22 @@ public:
 	typedef LocalDoFSubspace<TDomain, TAlgebra, Vertex> base_type;
 
 	/// CTOR
-	VertexBasedVankaSubspace<TDomain, TAlgebra>(const std::vector<std::string> &vVtxCmp, const std::vector<std::string> &vElemCmp) 
+	VertexCenteredVankaSubspace<TDomain, TAlgebra>(const std::vector<std::string> &vVtxCmp, const std::vector<std::string> &vElemCmp) 
 		: m_vVtxCmp(vVtxCmp), m_vElemCmp(vElemCmp) {}
 
 	/// virtual DTOR
-	virtual ~VertexBasedVankaSubspace<TDomain, TAlgebra>(){}
-	
+	virtual ~VertexCenteredVankaSubspace<TDomain, TAlgebra>(){}
+
+	/// Extracts function IDs.
 	bool preprocess(const vector_type &cvec)
 	{
 		typedef GridFunction<TDomain, TAlgebra> TGridFunction;
-
 		const TGridFunction *c = dynamic_cast<const TGridFunction *> (&cvec);  // Need a grid function here!
+		UG_COND_THROW(c==NULL, "Requiring a grid function here!");
+
 		ConstSmartPtr<DoFDistributionInfo> ddinfo =
 						c->approx_space()->dof_distribution_info();
+		UG_COND_THROW(ddinfo.invalid(), "Requiring valid ddinfo!");
 		
 		// Vertex functions
 		m_vVtxFct.reserve(m_vVtxCmp.size());
@@ -447,7 +451,6 @@ public:
 		const TGridFunction *c = dynamic_cast<const TGridFunction *> (&cvec);  // Need a grid function here!
 		std::vector<TElement*> vElem;
 		c->collect_associated(vElem, groupObj);
-
 		
 		// Collect associated indices.
 		for(size_t i = 0; i < vElem.size(); ++i)
@@ -663,36 +666,55 @@ protected:
 	///	Preprocess routine
 	virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
 	{
+		PROFILE_BEGIN_GROUP(SSC_preprocess, "algebra ssc");
+
+		// Creating overlap 1 matrix and vectors.
+		matrix_type *pA=NULL;
 #ifdef UG_PARALLEL
 		if(pcl::NumProcs() > 1)
 		{
 			UG_ASSERT(0, "SequentialSubspaceCorrection not implemented in parallel. Need to think about this");
 			// We should work with element overlap 1 here!
+			m_A = *pOp;
+			CreateOverlap(m_A);
+			m_oD.set_layouts(m_A.layouts());
+			m_oC.set_layouts(m_A.layouts());
+			m_oD.resize(m_A.num_rows(), false);
+			m_oC.resize(m_A.num_rows(), false);
+			pA = &m_A;
 		}
+		else
 #endif
+		pA = &(*pOp);
+
+
+
+		// Checking.
+		THROW_IF_NOT_EQUAL(pA->num_rows(), pA->num_cols());
+		// UG_COND_THROW(CheckDiagonalInvertible(*pA) == false, name() << ": A has noninvertible diagonal");
+
 		return true;
 	}
 
 	virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
 	{
-		GridFunction<TDomain, TAlgebra>* pC = dynamic_cast<GridFunction<TDomain, TAlgebra>*>(&c);
-		if(pC == NULL)
-			UG_THROW("SequentialSubspaceCorrection expects correction to be a GridFunction.");
+		PROFILE_BEGIN_GROUP(SSC_step, "algebra ssc");
 
+		GridFunction<TDomain, TAlgebra>* pC = dynamic_cast<GridFunction<TDomain, TAlgebra>*>(&c);
+		UG_COND_THROW(pC == NULL, "SequentialSubspaceCorrection expects correction to be a GridFunction.");
 
 		typedef typename GridFunction<TDomain, TAlgebra>::element_type Element;
 		typedef typename GridFunction<TDomain, TAlgebra>::side_type Side;
-		m_spVertexSubspace->preprocess(c);
+		m_spVertexSubspace->preprocess(*pC);
 
 		// Set all vector entries to zero.
 		pC->set(0.0);
-#ifdef UG_PARALLEL
-		// pc->set_storage_type(PST_ADDITIVE);
-#endif
 
 #ifdef UG_PARALLEL
 		if(pcl::NumProcs() > 1){
 			UG_ASSERT(0, "SequentialSubspaceCorrection not implemented in parallel. Need to think about this");
+
+			// The key problem is that we are iterating over grid functions, not vectors !!!
 		}
 		else
 #endif
@@ -703,7 +725,7 @@ protected:
 			else UG_THROW("SequentialSubspaceCorrectionStep: wrong patch type '"<<m_type<<"'."
 					" Options: element, side, face, edge, vertex.")
 #ifdef UG_PARALLEL
-						pC->set_storage_type(PST_CONSISTENT);
+			pC->set_storage_type(PST_CONSISTENT);
 #endif
 
 			return true;
@@ -718,15 +740,20 @@ protected:
 
 
 protected:
-#ifdef UG_PARALLEL
-	matrix_type m_A;
-#endif
-
 	number m_relax;
 	std::string m_type;
 
 	SmartPtr<ILocalSubspace <TDomain, TAlgebra, Vertex> > m_spVertexSubspace;
 
+#ifdef UG_PARALLEL
+
+	/// matrix with overlap
+	matrix_type m_A;
+
+	///	for overlaps only
+	vector_type m_oD;
+	vector_type m_oC;
+#endif
 
 
 };
