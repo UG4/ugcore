@@ -191,9 +191,12 @@ Please have a look at http://ug4.github.io/docs/page_external_libraries.html for
 ```
   Reiter, S., Vogel, A., Heppner, I., Rupp, M., and Wittum, G.
   A massively parallel geometric multigrid solver on hierarchically distributed grids.
-  Computing and visualization in science 16, 4 (2013), 151-164
+  Computing and visualization in science 16, 4 (2013), 151-164,
+  DOI: 10.1007/s00791-014-0231-x
 
   Vogel, A., Reiter, S., Rupp, M., Nägel, A., and Wittum, G.
   UG4 -- a novel flexible software system for simulating pde based models on high performance computers.
-  Computing and visualization in science 16, 4 (2013), 165-179
+  Computing and visualization in science 16, 4 (2013), 165-179,
+  DOI: 10.1007/s00791-014-0232-9
 ```
+(Cf. the bib-file in the ugcore directory.)
