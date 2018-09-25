@@ -79,7 +79,7 @@ Starting from *UG4's* root directory, please execute the following:
     ugshell -ex Examples/solmech.lua
     ugshell -ex Examples/elder_adapt.lua
     ugshell -ex Examples/navier_stokes.lua
-    ugshell -ex Examples/electromagnetism_pan.lua -numRefs 4
+    ugshell -ex Examples/electromagnetism_pan.lua -numRefs 3
 
 ## Examples:
 
