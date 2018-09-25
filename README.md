@@ -79,7 +79,7 @@ Starting from *UG4's* root directory, please execute the following:
     ugshell -ex Examples/solmech.lua
     ugshell -ex Examples/elder_adapt.lua
     ugshell -ex Examples/navier_stokes.lua
-    ugshell -ex Examples/electromagnetism-pan.lua -numRefs 4
+    ugshell -ex Examples/electromagnetism_pan.lua -numRefs 4
 
 ## Examples:
 
@@ -107,7 +107,7 @@ Simulations of fluid flow in a channel with a cylindrical cutout are performed i
 ![navier_stokes](docs/ug4/img/readme/navier_stokes.png "navier_stokes")
 
 ### Electromagnetism (induction heating)
-Simulation of the eddy currents and the corresponding heat sources induced by alternating electromagnetic field in a conductive plate is represented in `apps/Examlpes/electromagnetism-pan.lua`. The stationary E-based formulation of the eddy current model for the complex-valued fields is used. The discretization of the Maxwell equations is done by the Nedelec elements on a tetrahedral grid. This example demonstrates in particular the projection of the refined elements to the curved boundaries in 3d.
+Simulation of the eddy currents and the corresponding heat sources induced by alternating electromagnetic field in a conductive plate is represented in `apps/Examlpes/electromagnetism_pan.lua`. The stationary E-based formulation of the eddy current model for the complex-valued fields is used. The discretization of the Maxwell equations is done by the Nedelec elements on a tetrahedral grid. This example demonstrates in particular the projection of the refined elements to the curved boundaries in 3d.
 
 ![heat](docs/ug4/img/readme/PanSolution3d-coil_and_pan_v3-lev4.png "pan_solution")
 
