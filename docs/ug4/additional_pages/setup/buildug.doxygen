@@ -40,7 +40,7 @@ for your system. Beginners might also want to have a look at \ref pageShellAndLi
 
 <hr>
 \section secBuildUG4Checkout Checkout ug4
-Please follow the description at https://github.com/UG4/ughub/wiki to obtain a copy of UG4.
+Please follow the description at https://github.com/UG4/ughub to obtain a copy of UG4.
 
 <hr>
 \section secBuildUG4BashTools Bash Tools

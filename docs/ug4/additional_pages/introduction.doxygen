@@ -44,7 +44,12 @@ Scientific Computing at the University of Frankfurt, Germany </em>
 (http://www.g-csc.de).
 
 
-Features are:
+https://github.com/UG4/ugcore gives a quick overview on how to obtain and to install
+\ug4. Several example applications are described and tools for pre- and
+postprocessing are linked.
+
+
+Features of \ug4 are:
   - Fast and efficient numerical solvers for serial and parallel environments.
 
   - A flexible discretization module, allowing to freely couple equations, input
@@ -96,9 +101,7 @@ Features are:
   - \ug4 is a cross-platform tool and supports \em Linux, \em MacOSX and 
     <em>Microsoft Windows</em>.
 
-
-
-Take a look at the current release for more information:
-\ref pageUG4Releases
+//Take a look at the current release for more information:
+//\ref pageUG4Releases
 
 */
