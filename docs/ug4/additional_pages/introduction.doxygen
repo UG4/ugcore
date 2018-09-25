@@ -101,7 +101,8 @@ Features of \ug4 are:
   - \ug4 is a cross-platform tool and supports \em Linux, \em MacOSX and 
     <em>Microsoft Windows</em>.
 
+*/
+
+// Removed the 'releases page' from the Overview for a lack of meaningful releases:
 //Take a look at the current release for more information:
 //\ref pageUG4Releases
-
-*/
