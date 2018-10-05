@@ -46,7 +46,7 @@
 #include <vector>
 
 
-#define LAGRANGE_DIRICHLET_ADJ_TRANSFER_FIX 1
+// #define LAGRANGE_DIRICHLET_ADJ_TRANSFER_FIX 
 
 namespace ug{
 

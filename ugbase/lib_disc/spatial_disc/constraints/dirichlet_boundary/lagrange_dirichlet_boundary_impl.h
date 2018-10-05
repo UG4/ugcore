@@ -492,7 +492,7 @@ adjust_prolongation(matrix_type& P,
 #ifdef LAGRANGE_DIRICHLET_ADJ_TRANSFER_FIX
 	 if (!m_bAdjustTransfers)
 	 {
-		// std::cerr << "Avoiding  adjust_prolongation" << std::endl;
+		 std::cerr << "Avoiding  adjust_prolongation" << std::endl;
 		 return;
 	}
 #endif
@@ -624,7 +624,7 @@ adjust_restriction(matrix_type& R,
 #ifdef LAGRANGE_DIRICHLET_ADJ_TRANSFER_FIX
 	if (!m_bAdjustTransfers)
 	{
-		// std::cerr << "Avoiding adjust_restriction" << std::endl;
+		std::cerr << "Avoiding adjust_restriction" << std::endl;
 		return;
 	}
 #endif
