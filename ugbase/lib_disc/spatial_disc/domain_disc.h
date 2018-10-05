@@ -511,7 +511,7 @@ public:
 	///	vector holding all registered elem discs
 		std::vector<IElemError<TDomain>*> m_vElemError;
 
-	//	vector holding all registered constraints
+	///	vector holding all registered constraints
 		std::vector<SmartPtr<IDomainConstraint<TDomain, TAlgebra> > > m_vConstraint;
 
 	///	current approximation space
