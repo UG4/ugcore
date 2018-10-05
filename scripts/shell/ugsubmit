@@ -150,12 +150,10 @@ function usage
 	fi
 	if [ -z "$UGSUBMIT_TYPE" ] || [ $UGSUBMIT_TYPE == "Juwels" ]; then
 		echo ""
-		echo " Juwels Parameters (not valid yet!)"
+		echo " Juwels Parameters"
 		echo "        -Juwels-partition <part>: Partition to use; default is batch:"
-		echo "                                  devel (max. 2h walltime, 8 nodes, 128G memory/node)"
-		echo "                                  batch (max. 24h walltime, 128 nodes, 128/256 memory/node)"
-		echo "                                  mem512 (512G memory/node, needs to be explicitly requested)"
-		echo "        -Juwels-memory <mem>:     Amount of memory to use (default is 128): 128, 256, 512."                   
+		echo "                                  batch (max. 24h walltime, 256 nodes, 96G memory/node)"
+		echo "                                  mem192 (192G memory/node)"
 		echo ""
 	fi
 	if [ -z "$UGSUBMIT_TYPE" ] || [ $UGSUBMIT_TYPE == "DoraCSCS" ]; then
@@ -325,9 +323,6 @@ do
 		shift 2
 	elif [ $1 == "-Juwels-partition" ]; then
 		juwels_part=$2
-		shift 2
-	elif [ $1 == "-Juwels-memory" ]; then
-		juwels_mem=$2
 		shift 2
 	elif [ $1 == "---" ]; then
 		shift
@@ -535,7 +530,7 @@ if [ $interactive == false ]; then
 		sleep 1; tail -f job.output -c +0
 	fi
 	
-	if [ $jobid != "?" ] && [ $nosubdir == false ]; then
+	if [ ! "$jobid" = "?" ] && [ $nosubdir = false ]; then
 		cd $execpath
 		ln -s $outdir jobid.$jobid
 	fi	

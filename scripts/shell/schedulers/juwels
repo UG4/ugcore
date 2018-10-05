@@ -18,6 +18,9 @@ function UJS_Submit
 	if [ $nnodes -gt 256 ]; then
 		echo "Juwels does not provide more than 256 nodes for one job atm."
 		return
+	elif [ $nnodes -gt 64 ] && [ "$juwels_part" = "mem192" ]; then
+		echo "Juwels does not provide more than 64 nodes on the mem192 partition for one job atm."
+		return
 	fi	
 	
 	## interactive (devel) jobs (not tested)
@@ -86,23 +89,23 @@ function UJS_Submit
 		
 		# mail notification handling
 		juwelsNotification="NONE"
-		if [ $mail == true ]; then 
+		if [ $mail = true ]; then 
 			if [ -z "$UGSUBMIT_EMAIL" ]; then
 				echo "please set UGSUBMIT_EMAIL or specify email with -email. Aborting."
 				exit
 			fi
 		
-			if [ $mailStart == true ]; then
+			if [ $mailStart = true ]; then
 				juwelsNotification="BEGIN"
 			fi
-			if [ $mailEnd == true ]; then
+			if [ $mailEnd = true ]; then
 				if [ $juwelsNotification == "NONE" ]; then
 					juwelsNotification="END"
 				else
 					juwelsNotification="ALL"
 				fi
 			fi
-			if [ $mailError == true ]; then
+			if [ $mailError = true ]; then
 				if [ $juwelsNotification == "NONE" ]; then
 					juwelsNotification="FAIL"
 				else
@@ -111,37 +114,11 @@ function UJS_Submit
 			fi	 
 		fi
 		
-		# generic resources
-		if [ -z "$juwels_mem" ]; then
-			juwels_gres="mem96"
-		elif [ "$juwels_mem" == "96" -o "$juwels_mem" == "192" ]; then
-			juwels_gres="mem${juwels_mem}"
-		else
-			echo "Juwels-memory parameter not set correctly (\"$juwels_mem\"). Valid values are: 96, 192."
-			return
-		fi
-		
 		# partition
 		if [ -z "$juwels_part" ]; then
 			juwels_part="batch"
-		fi
-		if [ "$juwels_part" == "devel" ]; then 
-			if [ ! "$juwels_gres" == "mem96" ]; then
-				echo "The Juwels devel partition can only be used with 96G memory nodes."
-				return
-			fi
-		elif [ "$juwels_part" == "batch" ]; then
-			if [ ! "$juwels_gres" == "mem96" ]; then
-				echo "The Juwels batch partition can only be used with 96G memory nodes."
-				return
-			fi
-		elif [ "$juwels_part" == "mem192" ]; then 
-			if [ ! "$juwels_gres" == "mem192" ]; then
-				echo "The Juwels mem192 partition can only be used with 192G nodes. Set -Juwels-memory 192."
-				return
-			fi
-		else
-			echo "Juwels-partition parameter not set correctly. Valid values are: devel, batch."
+		elif [ ! "$juwels_part" = "batch" ] && [ ! "$juwels_part" = "mem192" ]; then
+			echo "Juwels-partition parameter not set correctly. Valid values are: batch, mem192."
 			return
 		fi
 		
