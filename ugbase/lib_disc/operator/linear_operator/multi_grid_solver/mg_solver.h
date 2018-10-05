@@ -248,6 +248,9 @@ class AssembledMultiGridCycle :
 		virtual bool ignore_init_for_base_solver() const;
 	/** \\ */
 
+	/// reinit transfer operators
+		void force_reinit();
+
 	///	Compute new correction c = B*d
 		virtual bool apply(vector_type& c, const vector_type& d);
 

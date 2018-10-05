@@ -505,6 +505,14 @@ ignore_init_for_base_solver() const
 
 template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
+force_reinit()
+{
+	m_ApproxSpaceRevision.invalidate();
+}
+
+
+template <typename TDomain, typename TAlgebra>
+void AssembledMultiGridCycle<TDomain, TAlgebra>::
 assemble_level_operator()
 {
 	GMG_PROFILE_FUNC();
