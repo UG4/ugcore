@@ -11,17 +11,23 @@
 #include "lib_grid/algorithms/debug_util.h"  // ElementDebugInfo
 
 #include <boost/lexical_cast.hpp>
+#include <cmath>
 
 namespace ug {
 
-number VecProd(const vector3& a, const vector3& b)
+static number VecProd(const vector3& a, const vector3& b)
 {
 	return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
 }
 
-number VecNormSquared(const vector3& a)
+static number VecNormSquared(const vector3& a)
 {
 	return a[0]*a[0] + a[1]*a[1] + a[2]*a[2];
+}
+
+static number VecNorm(const vector3& a)
+{
+	return sqrt(a[0]*a[0] + a[1]*a[1] + a[2]*a[2]);
 }
 
 
@@ -69,13 +75,19 @@ void NeuriteProjector::set_geometry(SPIGeometry3d geometry)
 
 number NeuriteProjector::new_vertex(Vertex* vrt, Edge* parent)
 {
-    return push_onto_surface(vrt, parent);
+    return push_into_place(vrt, parent);
 }
 
 
 number NeuriteProjector::new_vertex(Vertex* vrt, Face* parent)
 {
-    return push_onto_surface(vrt, parent);
+    return push_into_place(vrt, parent);
+}
+
+
+number NeuriteProjector::new_vertex(Vertex* vrt, Volume* parent)
+{
+    return push_into_place(vrt, parent);
 }
 
 
@@ -116,8 +128,8 @@ void NeuriteProjector::direction_at_grid_object(vector3& dirOut, GridObject* o) 
     UG_COND_THROW(!vrtGrp, "Non-vertex element which is not a vertex group.");
 
     size_t nid;
-    float t, dummy;
-    average_params(nid, t, dummy, vrtGrp);
+    float t, dummy1, dummy2;
+    average_params(nid, t, dummy1, dummy2, vrtGrp);
 
     const Section& sec = get_section((uint32)nid, t);
 
@@ -476,7 +488,14 @@ static inline number compute_angle
 }
 
 
-void NeuriteProjector::average_params(size_t& neuriteID, float& t, float& angle, const IVertexGroup* parent) const
+void NeuriteProjector::average_params
+(
+	size_t& neuriteID,
+	float& t,
+	float& angle,
+	float& radius,
+	const IVertexGroup* parent
+) const
 {
     // branching vertices need to belong to parent branch
     // AND parent branch neurite index must be smaller than child's index
@@ -491,19 +510,24 @@ void NeuriteProjector::average_params(size_t& neuriteID, float& t, float& angle,
         neuriteID = std::max(neuriteID, nid);
     }
 
-    // average t and phi
+    // average t, phi, r
     t = 0.0;
     vector2 v(0.0);
+    radius = 0.0;
     for (size_t i = 0; i < nVrt; ++i)
     {
-        const SurfaceParams& surfParams = m_aaSurfParams[parent->vertex(i)];
-        size_t nid = (size_t) surfParams.neuriteID;
-        if (nid == neuriteID)
-        {
-            t += surfParams.axial;
-            float phi = surfParams.angular;
-            VecAdd(v, v, vector2(cos(phi), sin(phi)));
-        }
+		const SurfaceParams& surfParams = m_aaSurfParams[parent->vertex(i)];
+		size_t nid = (size_t) surfParams.neuriteID;
+		if (nid == neuriteID)
+		{
+			t += surfParams.axial;
+			radius += surfParams.radial;
+			if (surfParams.radial > 0)
+			{
+				const float phi = surfParams.angular;
+				VecAdd(v, v, vector2(cos(phi), sin(phi)));
+			}
+		}
         else
         {
         	// Here we are on a branching vertex that belongs to the parent.
@@ -519,8 +543,8 @@ void NeuriteProjector::average_params(size_t& neuriteID, float& t, float& angle,
         	number axPos = VecProd(pos0, pos1) / VecNormSquared(pos1) * secIt->endParam;
 
         	vector3 vel;
-        	number radDummy;
-        	compute_position_and_velocity_in_section(pos1, vel, radDummy, secIt, axPos);
+        	number surfRadius;
+        	compute_position_and_velocity_in_section(pos1, vel, surfRadius, secIt, axPos);
         	const vector3& refDir = m_vNeurites[neuriteID].refDir;
         	vector3 posRefDir, thirdDir;
         	compute_ONB(vel, posRefDir, thirdDir, vel, refDir);
@@ -530,6 +554,7 @@ void NeuriteProjector::average_params(size_t& neuriteID, float& t, float& angle,
 
         	t += axPos;
             VecAdd(v, v, vector2(cos(phi), sin(phi)));
+            radius += VecNorm(posFromAxis) / surfRadius;
         }
     }
     t /= nVrt;
@@ -537,7 +562,7 @@ void NeuriteProjector::average_params(size_t& neuriteID, float& t, float& angle,
     if (fabs(v[0]) < 1e-8)
     {
       if (fabs(v[1]) < 1e-8)
-          UG_THROW("Angle for new vertex cannot be determined.")
+          angle = 0.0;  // center angle is 0.0 by default
       else
           angle = v[1] < 0 ? 1.5*PI : 0.5*PI;
     }
@@ -545,6 +570,8 @@ void NeuriteProjector::average_params(size_t& neuriteID, float& t, float& angle,
        angle = v[0] < 0 ? PI - atan(-v[1]/v[0]) : atan(v[1]/v[0]);
 
     if (angle < 0) angle += 2.0*PI;
+
+    radius /= nVrt;
 }
 
 
@@ -571,6 +598,7 @@ static void bp_defect_and_gradient
     vector3& gradientOut,
     const std::vector<NeuriteProjector::BPProjectionHelper>& bpList,
     const vector3& x,
+	number rad,
     const NeuriteProjector* np
 )
 {
@@ -620,7 +648,7 @@ static void bp_defect_and_gradient
         }
     }
 
-    defectOut -= sqrt(PI)*exp(-1.0);
+    defectOut -= sqrt(PI)*exp(-rad*rad);
 }
 
 
@@ -656,6 +684,7 @@ static void newton_for_bp_projection
 (
     vector3& posOut,
     const std::vector<NeuriteProjector::BPProjectionHelper>& vProjHelp,
+	number rad,
     const NeuriteProjector* np
 )
 {
@@ -664,7 +693,7 @@ static void newton_for_bp_projection
     number def;
     number def_init;
     vector3 grad;
-    bp_defect_and_gradient(def, grad, vProjHelp, posOut, np);
+    bp_defect_and_gradient(def, grad, vProjHelp, posOut, rad, np);
     def_init = fabs(def);
 
     // perform some kind of Newton search for the correct position
@@ -678,7 +707,7 @@ static void newton_for_bp_projection
         vector3 gradTest;
         number defTest;
         VecScaleAdd(posTest, 1.0, posOut, -def / VecNormSquared(grad), grad);
-        bp_defect_and_gradient(defTest, gradTest, vProjHelp, posTest, np);
+        bp_defect_and_gradient(defTest, gradTest, vProjHelp, posTest, rad, np);
 
         // line search
         number lambda = 0.5;
@@ -689,7 +718,7 @@ static void newton_for_bp_projection
         {
 //UG_LOGN("    line search with lambda = " << lambda);
             VecScaleAdd(posTest, 1.0, posOut, -lambda*def / VecNormSquared(grad), grad);
-            bp_defect_and_gradient(defTest, gradTest, vProjHelp, posTest, np);
+            bp_defect_and_gradient(defTest, gradTest, vProjHelp, posTest, rad, np);
             if (fabs(defTest) < fabs(bestDef))
             {
                 bestDef = defTest;
@@ -709,13 +738,14 @@ static void newton_for_bp_projection
 }
 
 
-static void pos_on_surface_neurite
+static void pos_in_neurite
 (
     vector3& posOut,
     const NeuriteProjector::Neurite& neurite,
     size_t neuriteID,
     float& t,
-    float& angle
+    float& angle,
+    float& rad
 )
 {
     const std::vector<NeuriteProjector::Section>& vSections = neurite.vSec;
@@ -739,7 +769,7 @@ static void pos_on_surface_neurite
     compute_ONB(vel, projRefDir, thirdDir, vel, neurite.refDir);
 
     // calculate new position
-    VecScaleAdd(posOut, 1.0, posAx, radius*cos(angle), projRefDir, radius*sin(angle), thirdDir);
+    VecScaleAdd(posOut, 1.0, posAx, rad*radius*cos(angle), projRefDir, rad*radius*sin(angle), thirdDir);
 }
 
 /* does not work as well as expected
@@ -841,13 +871,14 @@ static void bp_newton_start_pos
 
 
 
-static void pos_on_surface_bp
+static void pos_in_bp
 (
     vector3& posOut,
     const NeuriteProjector::Neurite& neurite,
 	size_t neuriteID,
     float& t,
     float& angle,
+    float& rad,
     std::vector<NeuriteProjector::BranchingRegion>::const_iterator& it,
     const IVertexGroup* parent,
     const NeuriteProjector* np
@@ -893,11 +924,11 @@ static void pos_on_surface_bp
     }
 
     // determine suitable start position for Newton iteration
-    pos_on_surface_neurite(posOut, np->neurite(neuriteID), neuriteID, t, angle);
+    pos_in_neurite(posOut, np->neurite(neuriteID), neuriteID, t, angle, rad);
     //bp_newton_start_pos(posOut, vProjHelp, neuriteID, angle, parent, np);
 
     // perform Newton iteration
-    try {newton_for_bp_projection(posOut, vProjHelp, np);}
+    try {newton_for_bp_projection(posOut, vProjHelp, rad, np);}
     UG_CATCH_THROW("Newton iteration for neurite projection at branching point failed.");
 
 
@@ -914,19 +945,24 @@ static void pos_on_surface_bp
     // Then from v(t) * (s(t)-pos) = 0, we get:
     // t = t0 + v(t0) * (pos - s(t0)) / (v(t0)*v(t0))
     vector3 s, v;
-    number dummy;
+    number radius;
     std::vector<NeuriteProjector::Section>::const_iterator secIt = vSections.begin();
     while (t > secIt->endParam)
         ++secIt;
-    compute_position_and_velocity_in_section(s, v, dummy, secIt, t);
+    compute_position_and_velocity_in_section(s, v, radius, secIt, t);
     VecSubtract(s, posOut, s);
-    t += VecProd(v,s)/VecProd(v,v);
+    t += VecProd(v,s) / VecProd(v,v);
 
     // and now angle
     vector3 projRefDir;
     vector3 thirdDir;
     compute_ONB(v, projRefDir, thirdDir, v, neurite.refDir);
-    angle = compute_angle(v, projRefDir, thirdDir, s);
+    vector3 copyS = s;
+    angle = compute_angle(v, projRefDir, thirdDir, copyS);
+
+    // and radius
+    rad = VecNorm(s) / radius;
+
 
     // if we have ended up outside of the BP, then use the usual positioning
     if (t > it->tend)
@@ -934,7 +970,7 @@ static void pos_on_surface_bp
         vector3 posAx;
         number radius;
         compute_position_and_velocity_in_section(posAx, v, radius, secIt, t);
-        VecScaleAdd(posOut, 1.0, posAx, radius*cos(angle), projRefDir, radius*sin(angle), thirdDir);
+        VecScaleAdd(posOut, 1.0, posAx, rad*radius*cos(angle), projRefDir, rad*radius*sin(angle), thirdDir);
     }
 }
 
@@ -944,7 +980,8 @@ static void pos_on_surface_tip
     vector3& posOut,
     const NeuriteProjector::Neurite& neurite,
     const IVertexGroup* parent,
-    const NeuriteProjector* np
+    const NeuriteProjector* np,
+	number rad
 )
 {
     const std::vector<NeuriteProjector::Section>& vSections = neurite.vSec;
@@ -962,20 +999,27 @@ static void pos_on_surface_tip
 
     vector3 radialVec;
     VecSubtract(radialVec, posOut, tipCenter);
-    VecScale(radialVec, radialVec, radius/sqrt(VecProd(radialVec, radialVec)));
-    VecAdd(posOut, tipCenter, radialVec);
+    number radNorm = sqrt(VecProd(radialVec, radialVec));
+
+    // only project if we are not in the center of the half sphere
+    if (radNorm >= 1e-6*rad*radius)
+    {
+    	VecScale(radialVec, radialVec, rad*radius/sqrt(VecProd(radialVec, radialVec)));
+    	VecAdd(posOut, tipCenter, radialVec);
+    }
 }
 
 
 
-number NeuriteProjector::push_onto_surface(Vertex* vrt, const IVertexGroup* parent)
+number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent)
 {
     // average axial and angular params from parent;
     // also decide on neuriteID
     size_t neuriteID;
     float t;
     float angle;
-    average_params(neuriteID, t, angle, parent);
+    float rad;
+    average_params(neuriteID, t, angle, rad, parent);
     UG_COND_THROW(neuriteID >= m_vNeurites.size(), "Requested neurite ID which is not present.");
 
     const Neurite& neurite = m_vNeurites[neuriteID];
@@ -996,15 +1040,15 @@ number NeuriteProjector::push_onto_surface(Vertex* vrt, const IVertexGroup* pare
         std::upper_bound(vBR.begin(), vBR.end(), cmpBR, CompareBranchingRegionEnds());
 
     if (it != vBR.end() && it->tstart < t)
-        pos_on_surface_bp(pos, neurite, neuriteID, t, angle, it, parent, this);
+        pos_in_bp(pos, neurite, neuriteID, t, angle, rad, it, parent, this);
 
     // case 2: normal neurite position
-    else if (t < 1.0)
-        pos_on_surface_neurite(pos, neurite, neuriteID, t, angle);
+    else if (t <= 1.0)
+        pos_in_neurite(pos, neurite, neuriteID, t, angle, rad);
 
     // case 3: tip of neurite
     else
-        pos_on_surface_tip(pos, neurite, parent, this);
+        pos_on_surface_tip(pos, neurite, parent, this, rad);
 
     // case 4: soma
     // TODO: implement!
@@ -1014,6 +1058,7 @@ number NeuriteProjector::push_onto_surface(Vertex* vrt, const IVertexGroup* pare
     m_aaSurfParams[vrt].neuriteID = neuriteID;
     m_aaSurfParams[vrt].axial = t;
     m_aaSurfParams[vrt].angular = angle;
+    m_aaSurfParams[vrt].radial = rad;
 
     // set position
     set_pos(vrt, pos);
@@ -1030,7 +1075,8 @@ std::ostream& operator<<(std::ostream &os, const NeuriteProjector::SurfaceParams
     ostringstream strs;
     strs << surfParams.neuriteID << " ";
     strs << surfParams.axial << " ";
-    strs << surfParams.angular;
+    strs << surfParams.angular << " ";
+    strs << surfParams.radial;
     os << strs.str();
     return os;
 }
@@ -1048,9 +1094,12 @@ std::istream& operator>>(std::istream& in, NeuriteProjector::SurfaceParams& surf
     surfParams.axial = (lexical_cast<float>(temp));
     temp.clear();
 
-    // onset
     in >> temp;
     surfParams.angular = lexical_cast<float>(temp);
+    temp.clear();
+
+    in >> temp;
+    surfParams.radial = lexical_cast<float>(temp);
     temp.clear();
 
     return in;

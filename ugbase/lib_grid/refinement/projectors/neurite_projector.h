@@ -34,6 +34,9 @@ class NeuriteProjector
 		///	called when a new vertex was created from an old face.
 		virtual number new_vertex(Vertex* vrt, Face* parent);
 
+		///	called when a new vertex was created from an old face.
+		virtual number new_vertex(Vertex* vrt, Volume* parent);
+
 		/// spline direction at some grid object
 		void direction_at_grid_object(vector3& dirOut, GridObject* o) const;
 
@@ -169,6 +172,7 @@ class NeuriteProjector
 		    uint32 neuriteID;
 		    float axial;
 		    float angular;
+		    float radial;
 		};
 
 
@@ -212,9 +216,16 @@ class NeuriteProjector
 
         void prepare_quadrature();
 
-		void average_params(size_t& neuriteID, float& t, float& angle, const IVertexGroup* parent) const;
+		void average_params
+		(
+			size_t& neuriteID,
+			float& t,
+			float& angle,
+			float& radius,
+			const IVertexGroup* parent
+		) const;
 
-		number push_onto_surface(Vertex* vrt, const IVertexGroup* parent);
+		number push_into_place(Vertex* vrt, const IVertexGroup* parent);
 
 	private:
 		Attachment<SurfaceParams> m_aSurfParams;
@@ -245,10 +256,19 @@ class NeuriteProjector
         void save(Archive & ar, const unsigned int version) const
         {
             UG_EMPTY_BASE_CLASS_SERIALIZATION(NeuriteProjector, RefinementProjector);
-            size_t sz = m_vNeurites.size();
-            ar << sz;
-            for (size_t i = 0; i < sz; ++i)
-                ar << m_vNeurites[i];
+
+            // only write if data is to be written
+            if(ArchiveInfo<Archive>::TYPE == AT_DATA)
+            {
+				size_t sz = m_vNeurites.size();
+				ar << sz;
+				for (size_t i = 0; i < sz; ++i)
+					ar << m_vNeurites[i];
+            }
+
+            // do not do anything otherwise
+            else if (ArchiveInfo<Archive>::TYPE == AT_GUI)
+            {}
 
             //ar << m_quadOrder;
         }
