@@ -52,6 +52,7 @@
 #include "lib_algebra/operator/linear_solver/lu.h"
 #include "lib_algebra/operator/linear_solver/agglomerating_solver.h"
 #include "lib_algebra/operator/linear_solver/debug_iterator.h"
+#include "lib_algebra/operator/linear_solver/external_solvers/external_solvers.h"
 #ifdef UG_PARALLEL
 #include "lib_algebra/operator/linear_solver/feti.h"
 #endif
@@ -317,6 +318,14 @@ static void Algebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "FETI", tag);
 	}
 #endif
+
+	// ExternalSolver
+	{
+		typedef IExternalSolver<TAlgebra> T;
+		string name = string("ExternalSolver").append(suffix);
+		reg.add_class_<T>(name, grp)
+			.add_method("set_disable_preprocessing", &T::set_disable_preprocessing, "", "", "");
+	}
 
 
 }
