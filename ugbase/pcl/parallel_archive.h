@@ -154,7 +154,7 @@ public:
 	ParallelArchive(std::string filename, pcl::ProcessCommunicator pc = pcl::ProcessCommunicator(pcl::PCD_WORLD))
 		: m_filename(filename), m_pc(pc)
 	{
-		m_bWritten=false;
+		m_bWritten = false;
 		m_bUnsafe = false;
 	}
 
@@ -168,7 +168,13 @@ public:
 	{
 		if(!m_bWritten)
 		{
-			UG_COND_THROW(m_bUnsafe, "use ParallelArchive::write when using add_raw.")
+			if (m_bUnsafe)
+			{
+				UG_LOGN("ParallelArchive: Cannot write from destructor when using add_raw.\n"
+					"Use the write() method when using add_raw.");
+				return;
+			}
+
 			write();
 		}
 	}
