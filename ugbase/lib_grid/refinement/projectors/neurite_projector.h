@@ -144,6 +144,9 @@ class NeuriteProjector
 		    vector3 refDir;
             std::vector<Section> vSec;
             std::vector<BranchingRegion> vBR;
+            bool bHasER;
+            number scaleER;
+            bool bIsSoma;
 
             template <class Archive>
             void serialize(Archive& ar, const unsigned int version)
@@ -169,6 +172,7 @@ class NeuriteProjector
 		    uint32 neuriteID;
 		    float axial;
 		    float angular;
+		    float scale = 1.0;
 		};
 
 

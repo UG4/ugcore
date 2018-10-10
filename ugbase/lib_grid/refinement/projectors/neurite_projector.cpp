@@ -552,8 +552,11 @@ void NeuriteProjector::average_pos_from_parent(vector3& posOut, const IVertexGro
 {
     posOut = 0.0;
     size_t nVrt = parent->num_vertices();
-    for (size_t i = 0; i < nVrt; ++i)
+    UG_LOGN("average pos: ");
+    for (size_t i = 0; i < nVrt; ++i) {
         posOut += this->pos(parent->vertex(i));
+        UG_LOGN( this->pos(parent->vertex(i)));
+    }
     posOut /= (number) nVrt;
 }
 
@@ -715,7 +718,8 @@ static void pos_on_surface_neurite
     const NeuriteProjector::Neurite& neurite,
     size_t neuriteID,
     float& t,
-    float& angle
+    float& angle,
+    float scale
 )
 {
     const std::vector<NeuriteProjector::Section>& vSections = neurite.vSec;
@@ -738,7 +742,8 @@ static void pos_on_surface_neurite
     vector3 projRefDir, thirdDir;
     compute_ONB(vel, projRefDir, thirdDir, vel, neurite.refDir);
 
-    // calculate new position
+    VecScale(projRefDir, projRefDir, scale);
+    VecScale(thirdDir, thirdDir, scale);
     VecScaleAdd(posOut, 1.0, posAx, radius*cos(angle), projRefDir, radius*sin(angle), thirdDir);
 }
 
@@ -839,6 +844,121 @@ static void bp_newton_start_pos
 }
 */
 
+static void pos_on_surface_bp_inner
+(
+    vector3& posOut,
+    const NeuriteProjector::Neurite& neurite,
+	size_t neuriteID,
+    float& t,
+    float& angle,
+    std::vector<NeuriteProjector::BranchingRegion>::const_iterator& it,
+    const IVertexGroup* parent,
+    const NeuriteProjector* np,
+    float scale
+) {
+	/// TODO: implement: This method scales down too much still!
+	const std::vector<NeuriteProjector::Section>& vSections = neurite.vSec;
+
+    // preparations for Newton method:
+    // save integration start and end positions of all BRs of this BP,
+    // also save a section iterator to start from
+    SmartPtr<NeuriteProjector::BranchingPoint> bp = it->bp;
+    size_t nParts = bp->vRegions.size();
+    std::vector<NeuriteProjector::BPProjectionHelper> vProjHelp(nParts);
+    const std::vector<NeuriteProjector::Section>* secs;
+    for (size_t i = 0; i < nParts; ++i)
+    {
+        number& start = vProjHelp[i].start;
+        number& end = vProjHelp[i].end;
+        std::vector<NeuriteProjector::Section>::const_iterator& sec_start = vProjHelp[i].sec_start;
+
+        size_t nid = bp->vNid[i];
+        const NeuriteProjector::BranchingRegion* br = bp->vRegions[i];
+
+        UG_COND_THROW(!br, "Requested branching region not accessible.");
+
+        start = br->tstart;
+        end = br->tend;
+        secs = &np->neurite(nid).vSec;
+
+        number dt = end - start;
+        start = std::max(start - 0.5*dt, 0.0);
+        end = std::min(end + 0.5*dt, 1.0);
+
+        if (start == 0.0)
+            sec_start = secs->begin();
+        else
+        {
+            NeuriteProjector::Section cmpSec(start);
+            sec_start = std::lower_bound(secs->begin(), secs->end(), cmpSec, NeuriteProjector::CompareSections());
+            UG_COND_THROW(sec_start == secs->end(),
+                "Could not find section for start parameter t = " << start << ".");
+        }
+    }
+
+    // determine suitable start position for Newton iteration
+    pos_on_surface_neurite(posOut, np->neurite(neuriteID), neuriteID, t, angle, scale);
+    //bp_newton_start_pos(posOut, vProjHelp, neuriteID, angle, parent, np);
+
+    // perform Newton iteration
+    try {newton_for_bp_projection(posOut, vProjHelp, np);}
+    UG_CATCH_THROW("Newton iteration for neurite projection at branching point failed.");
+
+
+    // Note: This might not be completely correct; at least,
+    //        for two or more refinements, there are ripples
+    //        in refined branching points.
+    //        This becomes worse with every refinement
+    //        resulting in self-intersections.
+    // update the surface param info to the new position
+    // In order not to have to compute zeros of a 5th order polynomial,
+    // we make a linearity approximation here:
+    // s(t) = s(t0) + v(t0)*(t-t0);
+    // v(t) = v(t0)
+    // Then from v(t) * (s(t)-pos) = 0, we get:
+    // t = t0 + v(t0) * (pos - s(t0)) / (v(t0)*v(t0))
+    vector3 s, v;
+    number dummy;
+    std::vector<NeuriteProjector::Section>::const_iterator secIt = vSections.begin();
+    while (t > secIt->endParam)
+        ++secIt;
+    compute_position_and_velocity_in_section(s, v, dummy, secIt, t);
+    VecSubtract(s, posOut, s);
+    t += VecProd(v,s)/VecProd(v,v);
+
+    // and now angle
+    vector3 projRefDir;
+    vector3 thirdDir;
+    compute_ONB(v, projRefDir, thirdDir, v, neurite.refDir);
+    angle = compute_angle(v, projRefDir, thirdDir, s);
+
+    /*vector3 posAx;
+    number radius;
+    compute_position_and_velocity_in_section(posAx, v, radius, secIt, t);
+    VecScaleAdd(posOut, 1.0, posAx, scale*radius*cos(angle), projRefDir, scale*radius*sin(angle), thirdDir);
+    */
+
+    // if we have ended up outside of the BP, then use the usual positioning
+    if (t > it->tend)
+    {
+        vector3 posAx;
+        number radius;
+        compute_position_and_velocity_in_section(posAx, v, radius, secIt, t);
+        VecScaleAdd(posOut, 1.0, posAx, scale*radius*cos(angle), projRefDir, scale*radius*sin(angle), thirdDir);
+    } else {
+    	vector3 posAx;
+        number radius;
+        compute_position_and_velocity_in_section(posAx, v, radius, secIt, t);
+        VecScaleAdd(posOut, 1.0, posAx, scale*radius*cos(angle), projRefDir, scale*radius*sin(angle), thirdDir);
+    }
+
+}
+
+static void pos_on_surface_soma
+(
+) {
+	/// TODO: implement
+}
 
 
 static void pos_on_surface_bp
@@ -893,7 +1013,7 @@ static void pos_on_surface_bp
     }
 
     // determine suitable start position for Newton iteration
-    pos_on_surface_neurite(posOut, np->neurite(neuriteID), neuriteID, t, angle);
+    pos_on_surface_neurite(posOut, np->neurite(neuriteID), neuriteID, t, angle, 1.0);
     //bp_newton_start_pos(posOut, vProjHelp, neuriteID, angle, parent, np);
 
     // perform Newton iteration
@@ -901,7 +1021,7 @@ static void pos_on_surface_bp
     UG_CATCH_THROW("Newton iteration for neurite projection at branching point failed.");
 
 
-    // FIXME: This might not be completely correct; at least,
+    // Note: This might not be completely correct; at least,
     //        for two or more refinements, there are ripples
     //        in refined branching points.
     //        This becomes worse with every refinement
@@ -944,7 +1064,8 @@ static void pos_on_surface_tip
     vector3& posOut,
     const NeuriteProjector::Neurite& neurite,
     const IVertexGroup* parent,
-    const NeuriteProjector* np
+    const NeuriteProjector* np,
+    number scale
 )
 {
     const std::vector<NeuriteProjector::Section>& vSections = neurite.vSec;
@@ -953,7 +1074,7 @@ static void pos_on_surface_tip
     np->average_pos_from_parent(posOut, parent);
 
     // project to half-sphere with given radius over tip center
-    // TODO: One might think about something more sophisticated,
+    // Note: One might think about something more sophisticated,
     // as the current approach ensures only continuity of the radius
     // at tips, but not differentiability.
     const NeuriteProjector::Section& sec = vSections[vSections.size()-1];
@@ -962,7 +1083,7 @@ static void pos_on_surface_tip
 
     vector3 radialVec;
     VecSubtract(radialVec, posOut, tipCenter);
-    VecScale(radialVec, radialVec, radius/sqrt(VecProd(radialVec, radialVec)));
+    VecScale(radialVec, radialVec, scale * radius/sqrt(VecProd(radialVec, radialVec)));
     VecAdd(posOut, tipCenter, radialVec);
 }
 
@@ -986,34 +1107,48 @@ number NeuriteProjector::push_onto_surface(Vertex* vrt, const IVertexGroup* pare
 
     // FOUR CASES can occur:
     // 1. We are at a branching point.
-    // 2. We are well inside a regular piece of neurite.
-    // 3. We are at the tip of a neurite.
-    // 4. We are at the soma.
+    // 2. We are at an inner branching point
+    // 3. We are well inside a regular piece of neurite.
+    // 4. We are at the tip of a neurite.
+    // 5. We are at the soma.
 
     // case 1: branching point?
     BranchingRegion cmpBR(t);
     std::vector<BranchingRegion>::const_iterator it =
         std::upper_bound(vBR.begin(), vBR.end(), cmpBR, CompareBranchingRegionEnds());
-
-    if (it != vBR.end() && it->tstart < t)
-        pos_on_surface_bp(pos, neurite, neuriteID, t, angle, it, parent, this);
-
-    // case 2: normal neurite position
-    else if (t < 1.0)
-        pos_on_surface_neurite(pos, neurite, neuriteID, t, angle);
-
-    // case 3: tip of neurite
-    else
-        pos_on_surface_tip(pos, neurite, parent, this);
-
-    // case 4: soma
-    // TODO: implement!
-
+    if (it != vBR.end() && it->tstart < t) {
+    	float scale = m_aaSurfParams[parent->vertex(0)].scale;
+    	if (scale == 1.0) {
+    		pos_on_surface_bp(pos, neurite, neuriteID, t, angle, it, parent, this);
+    	} else {
+    		// case 2: TODO handle inner BPs: If we handle in the same way, intersections might arise (axial parameter).
+    		pos_on_surface_bp_inner(pos, neurite, neuriteID, t, angle, it, parent, this, scale);
+    		return 1; /// Use current position, for refinement method above needs to be corrected...
+    		/// TODO: Correct axial pos on surface bp inner or correct final position?
+    	}
+    // case 3: normal neurite position
+    } else if (t < 1.0) {
+    	float scale = m_aaSurfParams[parent->vertex(0)].scale;
+        pos_on_surface_neurite(pos, neurite, neuriteID, t, angle, scale);
+    // case 4: tip of neurite
+    } else if (t >= 1.0 && t < 3.0) {
+    	float scale = m_aaSurfParams[parent->vertex(0)].scale;
+        pos_on_surface_tip(pos, neurite, parent, this, scale);
+    // case 5: soma
+    } else if (t < 0) {
+    	UG_LOGN("Handling soma!");
+    	/// Note 1: Soma and connecting regions are not handled, because they are not in subset 0 for now (change to all subsets)
+    	/// Note 2: TODO: The aaSurfParam[vrts] have to be set correctly in test_neurite_projector for soma and connecting regions
+    	pos_on_surface_soma();
+    } else {
+    	UG_LOGN("Unexpected case met!");
+    }
 
     // save new surface params for new vertex
     m_aaSurfParams[vrt].neuriteID = neuriteID;
     m_aaSurfParams[vrt].axial = t;
     m_aaSurfParams[vrt].angular = angle;
+    m_aaSurfParams[vrt].scale = m_aaSurfParams[parent->vertex(0)].scale;
 
     // set position
     set_pos(vrt, pos);
@@ -1030,7 +1165,8 @@ std::ostream& operator<<(std::ostream &os, const NeuriteProjector::SurfaceParams
     ostringstream strs;
     strs << surfParams.neuriteID << " ";
     strs << surfParams.axial << " ";
-    strs << surfParams.angular;
+    strs << surfParams.angular << " ";
+    strs << surfParams.scale;
     os << strs.str();
     return os;
 }
@@ -1051,6 +1187,10 @@ std::istream& operator>>(std::istream& in, NeuriteProjector::SurfaceParams& surf
     // onset
     in >> temp;
     surfParams.angular = lexical_cast<float>(temp);
+    temp.clear();
+
+    in >> temp;
+    surfParams.scale = lexical_cast<float>(temp);
     temp.clear();
 
     return in;
