@@ -54,6 +54,11 @@ namespace ug {
  * The handled constraints must implement the two methods:
  *     adjust_correction(),
  *     adjust_defect().
+ *
+ * @note This class may have lost its use:
+ *       Constraints are now usually implemented in such a way that
+ *       that both defect and correction is always zero in constrained
+ *       DoFs.
  */
 template <typename TDomain, typename TAlgebra, typename TLinIt, typename = void>
 class ConstrainedLinearIterator : public TLinIt
