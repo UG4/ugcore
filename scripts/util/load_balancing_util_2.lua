@@ -145,21 +145,24 @@ util.balancer.defaults =
 			minElemsPerProcPerLevel		= 32,
 			maxRedistProcs				= 64,
 			qualityRedistLevelOffset	= 2,
-			intermediateRedistributions	= true
+			intermediateRedistributions	= true,
+			allowForRedistOnEachLevel	= false, -- DANGEROUS: 'true' only useful for non-adaptive runs with static partitioning. Leads to errors else.
 		},
 
 		lessRedists = {
 			minElemsPerProcPerLevel		= 32,
 			maxRedistProcs				= 256,
 			qualityRedistLevelOffset	= 3,
-			intermediateRedistributions	= true
+			intermediateRedistributions	= true,
+			allowForRedistOnEachLevel	= false, -- DANGEROUS: 'true' only useful for non-adaptive runs with static partitioning. Leads to errors else.
 		},
 
 		noRedists = {
 			minElemsPerProcPerLevel		= 32,
 			maxRedistProcs				= 64,
 			qualityRedistLevelOffset	= 100000,
-			intermediateRedistributions	= false
+			intermediateRedistributions	= false,
+			allowForRedistOnEachLevel	= false, -- DANGEROUS: 'true' only useful for non-adaptive runs with static partitioning. Leads to errors else.
 		},
 	}
 }
@@ -433,14 +436,18 @@ function util.balancer.CreateProcessHierarchy(dom, hierarchyDesc)
 	local qualityRedistLvlOffset = desc.qualityRedistLevelOffset or defaults.qualityRedistLevelOffset
 	local defNumRedistProcs = desc.maxRedistProcs or defaults.maxRedistProcs or numComputeProcs
 	local defMaxProcs = desc.maxProcs or defaults.maxProcs or numComputeProcs
-	
+	local minRedistLevelDist = 1
+	if desc.allowForRedistOnEachLevel or defaults.allowForRedistOnEachLevel then
+		minRedistLevelDist = 0
+	end
+
 	if numComputeProcs == 1 then
 		procH:add_hierarchy_level(0, 1)
 		return procH, elemThreshold
 	end
 
 
-	if qualityRedistLvlOffset < 2 then qualityRedistLvlOffset = 2 end
+	if qualityRedistLvlOffset < 1 + minRedistLevelDist then qualityRedistLvlOffset = 1 + minRedistLevelDist end
 
 
 	local domInfo = dom:domain_info()
@@ -476,7 +483,7 @@ function util.balancer.CreateProcessHierarchy(dom, hierarchyDesc)
 	local lastDistLvl = -2
 
 	for curLvl = 0, domInfo:num_levels() - 1 do
-		if lastDistLvl + 1 < curLvl then
+		if lastDistLvl + minRedistLevelDist < curLvl then
 			local redistProcs = defNumRedistProcs
 			local maxProcs = defMaxProcs
 			local hints = nil

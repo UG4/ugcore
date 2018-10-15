@@ -190,7 +190,7 @@ FixOrientation(Grid& grid, TVolIterator volsBegin, TVolIterator volsEnd,
 {
 	int numFlips = 0;
 //	iterate through all volumes
-	for(VolumeIterator iter = volsBegin; iter != volsEnd; ++iter){
+	for(TVolIterator iter = volsBegin; iter != volsEnd; ++iter){
 	//	check whether the orientation is fine
 		if(!CheckOrientation(*iter, aaPosVRT)){
 			grid.flip_orientation(*iter);

@@ -60,10 +60,10 @@ The page is an install guide for the usage of Eclipse for ug.
 <hr>
 \section secUG4AndEclipse Generating Eclipse Project-Files
 In order work with UG4 in Eclipse, please download and install UG4 as usual through
-UG4's package-manager (see https://github.com/UG4/ughub/wiki).
+UG4's package-manager (see https://github.com/UG4/ughub).
 
 You'll find detailed instructions on how to generate and import UG4 project-files
-for Eclipse here: https://github.com/UG4/ughub/wiki#importing-ug4-into-your-ide
+for Eclipse here: https://github.com/UG4/ughub#importing-ug4-into-your-ide
 
 
 <hr>

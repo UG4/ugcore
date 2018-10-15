@@ -50,7 +50,7 @@ The \em terminal is located in <tt>Programs -> utilities (Dienstprogramme) -> Te
 
 <hr>
 \section secInstallUg Installation of UG4
-Please follow the description at https://github.com/UG4/ughub/wiki to obtain a
+Please follow the description at https://github.com/UG4/ughub to obtain a
 copy of \ug4. Below you'll find hints on how to obtain additional software which
 is required to build \ug4.
 

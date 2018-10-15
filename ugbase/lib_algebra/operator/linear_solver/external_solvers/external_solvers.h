@@ -87,13 +87,13 @@ class IExternalSolver
 	public:
 	//	Constructor
 		IExternalSolver()
+		: m_bDisablePreprocessing(false)
 		{
 			m_size = 0;
 			m_blockSize = 0;
 		};
 
 	// 	Clone
-
 		SmartPtr<ILinearIterator<vector_type> > clone()
 		{
 			UG_THROW("");
@@ -104,6 +104,8 @@ class IExternalSolver
 	///	returns if parallel solving is supported
 		virtual bool supports_parallel() const {return false;}
 
+	/// disable preprocessing (if underlying matrix has not changed)
+		void set_disable_preprocessing(bool bDisable)	{m_bDisablePreprocessing = bDisable;}
 
 	public:
 
@@ -111,6 +113,10 @@ class IExternalSolver
 
 		void mat_preprocess(const matrix_type &A)
 		{
+			// do not do a thing if preprocessing disabled
+			if (m_bDisablePreprocessing)
+				return;
+
 			if( A.num_rows() == 0 || A.num_cols() == 0) { m_size = 0; return; }
 			STATIC_ASSERT(matrix_type::rows_sorted, Matrix_has_to_have_sorted_rows);
 
@@ -333,6 +339,9 @@ public:
 	protected:
 	//	Postprocess routine
 		virtual bool postprocess() {return true;}
+
+
+	bool m_bDisablePreprocessing;
 
 	CPUAlgebra::vector_type m_c, m_d;
 	size_t m_size;

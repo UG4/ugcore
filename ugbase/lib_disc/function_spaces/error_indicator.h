@@ -1100,7 +1100,7 @@ void EvaluateResidualErrorP1(SmartPtr<TFunction> u,
 //	evaluate L2-Norm of f and store element contributions in aaError
 	/*SmartPtr<IIntegrand<number, dim> > spIntegrand
 		= make_sp(new UserDataIntegrand<number, TFunction>(f, u, time));*/
-	UserDataIntegrand<number, TFunction> integrand(f, u, time);
+	UserDataIntegrand<number, TFunction> integrand(f, &(*u), time);
 	Integrate<dim, dim>(u->template begin<elem_t>(), u->template end<elem_t>(),
 			  			aaPos, integrand, quadOrder, quadType, &aaError);
 

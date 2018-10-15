@@ -34,6 +34,7 @@
  * Implementation of the degenerated layer subset manager.
  */
 // ug4 headers
+#include "common/util/string_util.h"
 #include "lib_grid/grid/grid.h"
 
 namespace ug {

@@ -170,9 +170,20 @@ class GaussSeidelBase : public IPreconditioner<TAlgebra>
 				}
 				else if (m_bConsistentInterfaces)
 				{
-					UG_COND_THROW(!d.has_storage_type(PST_ADDITIVE), "Additive or unique defect expected.");
-					step(m_A, c, d, m_relax);
-					c.set_storage_type(PST_ADDITIVE);
+					// make defect consistent
+					SmartPtr<vector_type> spDtmp = d.clone();
+					spDtmp->change_storage_type(PST_CONSISTENT);
+
+					THROW_IF_NOT_EQUAL_3(c.size(), spDtmp->size(), m_A.num_rows());
+					step(m_A, c, *spDtmp, m_relax);
+
+					// declare c unique to enforce that only master correction is used
+					// when it is made consistent below
+					c.set_storage_type(PST_UNIQUE);
+
+					//UG_COND_THROW(!d.has_storage_type(PST_ADDITIVE), "Additive or unique defect expected.");
+					//step(m_A, c, d, m_relax);
+					//c.set_storage_type(PST_ADDITIVE);
 				}
 				else
 				{
