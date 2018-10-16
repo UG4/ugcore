@@ -185,7 +185,7 @@ class ParallelVector : public TVector
 		virtual this_type* virtual_clone_without_values() const;
 
 	private:
-	// 	type of storage  (i.e. consistent, additiv, additiv unique)
+	// 	type of storage  (i.e. consistent, additive, additive unique)
 	//	holds or-combiation of constants enumerated in ug::ParallelStorageType.
 		uint m_type;
 
