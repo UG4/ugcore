@@ -769,7 +769,7 @@ void HangingNodeRefinerBase<TSelector>::perform_refinement()
 		//	a normal edge may have previously been created by replacing a
 		//	constrained or constraining edge. Those edges won't be considered here
 			// FIXME: This is not correct at least for constrained edges! Remove marked_to_normal()!
-			if((!refinement_is_allowed(e)) || marked_to_normal(e)){
+			if(!refinement_is_allowed(e)){
 				continue;
 			}
 
