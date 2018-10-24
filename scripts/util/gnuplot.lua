@@ -505,7 +505,7 @@ function gnuplot.plot(filename, data, options)
 		
 	-- check valid term
 	if not table.contains(supportedTerms, terminal) then
-		write("Gnuplot Error: unsupprted terminal: '"..terminal.."'\n")
+		write("Gnuplot Error: unsupported terminal: '"..terminal.."'\n")
 		write("Gnuplot Error: supported are: "..table.concat(supportedTerms, ", ").."\n")
 		return 2				
 	end	
