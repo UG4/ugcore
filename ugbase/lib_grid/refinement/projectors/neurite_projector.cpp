@@ -897,7 +897,7 @@ static void pos_on_surface_bp_inner
     }
 
     // determine suitable start position for Newton iteration
-    pos_on_surface_neurite(posOut, np->neurite(neuriteID), neuriteID, t, angle, scale);
+    pos_on_surface_neurite(posOut, np->neurite(neuriteID), neuriteID, t, angle, 1.0); /// TODO: is 1.0 better here? then correct axial parameters in test_neurite_project too and intersections should be gone... still inner neurite seems to be twisted after projection
     //bp_newton_start_pos(posOut, vProjHelp, neuriteID, angle, parent, np);
 
     // perform Newton iteration
@@ -1121,10 +1121,10 @@ number NeuriteProjector::push_onto_surface(Vertex* vrt, const IVertexGroup* pare
     	if (scale == 1.0) {
     		pos_on_surface_bp(pos, neurite, neuriteID, t, angle, it, parent, this);
     	} else {
-    		// case 2: TODO handle inner BPs: If we handle in the same way, intersections might arise (axial parameter).
+    		// case 2: TODO handle inner BPs: If we handle in the same way, intersections might arise (axial parameter has to be correct for split heaxeder).
     		pos_on_surface_bp_inner(pos, neurite, neuriteID, t, angle, it, parent, this, scale);
-    		return 1; /// Use current position, for refinement method above needs to be corrected...
-    		/// TODO: Correct axial pos on surface bp inner or correct final position?
+    		///return 1; /// Use current position, for refinement method above needs to be corrected...
+    		/// (Correct axial pos on surface bp inner or correct final position?)
     	}
     // case 3: normal neurite position
     } else if (t < 1.0) {
@@ -1137,9 +1137,10 @@ number NeuriteProjector::push_onto_surface(Vertex* vrt, const IVertexGroup* pare
     // case 5: soma
     } else if (t < 0) {
     	UG_LOGN("Handling soma!");
+    	/// Note 3: TODO can probably be ignored since SomaProjector handles it!
     	/// Note 1: Soma and connecting regions are not handled, because they are not in subset 0 for now (change to all subsets)
     	/// Note 2: TODO: The aaSurfParam[vrts] have to be set correctly in test_neurite_projector for soma and connecting regions
-    	pos_on_surface_soma();
+    	//pos_on_surface_soma();
     } else {
     	UG_LOGN("Unexpected case met!");
     }
