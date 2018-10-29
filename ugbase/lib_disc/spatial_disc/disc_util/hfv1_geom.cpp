@@ -473,8 +473,8 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 		}
 
 		// set center of elem as part of scvf
-		m_vSCVF[i].m_vGloPos[1] = m_gloMid[dim][0];
-		m_vSCVF[i].m_vLocPos[1] = m_locMid[dim][0];
+		m_vSCVF[i].m_vGloPos[dim > 1 ? 1 : 0] = m_gloMid[dim][0];
+		m_vSCVF[i].m_vLocPos[dim > 1 ? 1 : 0] = m_locMid[dim][0];
 
 		// integration point
 		AveragePositions(m_vSCVF[i].localIP, m_vSCVF[i].m_vLocPos, SCVF::m_numCorners);
@@ -1053,8 +1053,8 @@ update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubs
 		}
 
 		// set center of elem as part of scvf
-		m_vSCVF[i].m_vGloPos[1] = m_gloMid[dim][0];
-		m_vSCVF[i].m_vLocPos[1] = m_locMid[dim][0];
+		m_vSCVF[i].m_vGloPos[dim > 1 ? 1 : 0] = m_gloMid[dim][0];
+		m_vSCVF[i].m_vLocPos[dim > 1 ? 1 : 0] = m_locMid[dim][0];
 
 		// integration point
 		AveragePositions(m_vSCVF[i].localIP, m_vSCVF[i].m_vLocPos, SCVF::m_numCorners);
