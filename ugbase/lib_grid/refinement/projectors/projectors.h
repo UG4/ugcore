@@ -40,6 +40,7 @@
 #include "refinement_projector.h"
 #include "cylinder_cut_projector.h"
 #include "cylinder_projector.h"
+#include "elliptic_cylinder_projector.h"
 #include "plane_cut_projector.h"
 #include "projection_handler.h"
 #include "raster_layers_projector.h"
@@ -62,7 +63,8 @@ namespace tmp {
 //				in this list, since they are only usable in specialized algorithms.
 typedef vector<
 			pair <ug::RefinementProjector,	string<'defa','ult'> >,
-			pair <ug::CylinderProjector,	string<'cyli','nder'> >,
+			pair <ug::CylinderProjector,    string<'cyli','nder'> >,
+			pair <ug::EllipticCylinderProjector, string<'elli','pcyl'> >,
 			pair <ug::SphereProjector,		string<'sphe','re'> >,
 			pair <ug::SubdivisionProjector,	string<'subd','ivis', 'ion'> >,
 			pair <ug::SmoothProjector,		string<'smoo','th'> >,
