@@ -44,37 +44,116 @@
 namespace ug {
 
 
+enum AnisotropyState
+{
+	ISOTROPIC = 0,
+	QUAD_SHORTX,
+	QUAD_SHORTY,
+	PRISM_FLAT,
+	PRISM_LONG,
+	HEX_SHORTX,
+	HEX_SHORTY,
+	HEX_SHORTZ,
+	HEX_SHORTXY,
+	HEX_SHORTXZ,
+	HEX_SHORTYZ
+};
+
+
 template <typename TAAPos>
-bool is_anisotropic
+AnisotropyState is_anisotropic
+(
+	Edge* elem,
+	const TAAPos& aaPos,
+	number thresholdRatio
+);
+
+
+template <typename TAAPos>
+AnisotropyState is_anisotropic
+(
+	Face* elem,
+	const TAAPos& aaPos,
+	number thresholdRatio
+);
+
+
+template <typename TAAPos>
+AnisotropyState is_anisotropic
+(
+	Volume* elem,
+	const TAAPos& aaPos,
+	number thresholdRatio
+);
+
+
+
+template <typename TAAPos>
+AnisotropyState close_sides_of_anisotropic_elem
 (
 	Edge* elem,
 	Grid& grid,
 	const TAAPos& aaPos,
 	number thresholdRatio,
-	std::vector<Vertex*>* nb = NULL
+	std::vector<Vertex*>& sidesOut
 );
 
 
 template <typename TAAPos>
-bool is_anisotropic
+AnisotropyState close_sides_of_anisotropic_elem
 (
 	Face* elem,
 	Grid& grid,
 	const TAAPos& aaPos,
 	number thresholdRatio,
-	std::vector<Edge*>* nb = NULL
+	std::vector<Edge*>& sidesOut
 );
 
 
 template <typename TAAPos>
-static bool is_anisotropic
+AnisotropyState close_sides_of_anisotropic_elem
 (
 	Volume* elem,
 	Grid& grid,
 	const TAAPos& aaPos,
 	number thresholdRatio,
-	std::vector<Face*>* nb = NULL
+	std::vector<Face*>& sidesOut
 );
+
+
+
+template <typename TAAPos>
+AnisotropyState long_edges_of_anisotropic_elem
+(
+	Edge* elem,
+	Grid& grid,
+	const TAAPos& aaPos,
+	number thresholdRatio,
+	std::vector<Edge*>& longEdges
+);
+
+
+template <typename TAAPos>
+AnisotropyState long_edges_of_anisotropic_elem
+(
+	Face* elem,
+	Grid& grid,
+	const TAAPos& aaPos,
+	number thresholdRatio,
+	std::vector<Edge*>& longEdges
+);
+
+
+template <typename TAAPos>
+AnisotropyState long_edges_of_anisotropic_elem
+(
+	Volume* elem,
+	Grid& grid,
+	const TAAPos& aaPos,
+	number thresholdRatio,
+	std::vector<Edge*>& longEdges
+);
+
 
 
 } // namespace ug
