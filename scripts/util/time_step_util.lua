@@ -380,7 +380,7 @@ function util.SolveNonlinearTimeProblem(
 						
 					-- exit debug section (if the debug_writer is specified)
 					if util.debug_writer ~= nil then
-						debug_writer:leave_section ()
+						util.debug_writer:leave_section ()
 					end
 			
 					-- start over again if failed
