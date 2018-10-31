@@ -1713,7 +1713,7 @@ presmooth_and_restriction(int lev)
 		}
 	}
 	UG_CATCH_THROW("GMG: Pre-Smoothing on level "<<lev<<" failed.");
-	lf.n_pre_calls++
+	lf.n_pre_calls++;
 	GMG_PROFILE_END();
 
 	log_debug_data(lev, lf.n_restr_calls, "AfterPreSmooth_BeforeCom");
