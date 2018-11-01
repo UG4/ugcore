@@ -34,6 +34,7 @@
 #define __H__LGMATH__MATRIX_VECTOR_FUNCTIONS_COMMON_IMPL__
 
 #include <cmath>
+#include "common/error.h"
 #include "math_matrix.h"
 #include "math_vector.h"
 
