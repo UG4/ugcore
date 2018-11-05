@@ -135,7 +135,10 @@ UG_API bool FileTypeIs( const char *filename, const char *extension );
 UG_API bool CreateDirectoryTMP(const char *directory);
 UG_API bool CreateDirectory(const char *directory);
 UG_API bool CreateDirectory(const char *directory, int mode);
-UG_API bool CreateDirectory(std::string directory);
+static inline bool CreateDirectory(std::string directory)
+{
+	return CreateDirectory(directory.c_str());
+}
 /** \} */
 
 
