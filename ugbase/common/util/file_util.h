@@ -137,7 +137,7 @@ UG_API bool CreateDirectory(const char *directory);
 UG_API bool CreateDirectory(const char *directory, int mode);
 static inline bool CreateDirectory(std::string directory)
 {
-	return CreateDirectory(directory.c_str());
+	return CreateDirectoryTMP(directory.c_str());
 }
 /** \} */
 
