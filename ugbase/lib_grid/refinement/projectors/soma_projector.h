@@ -39,7 +39,7 @@
 #include "lib_grid/global_attachments.h"
 
 namespace ug {
-///	Projects new vertices onto a sphere during refinement
+///	Projects new vertices onto a sphere during refinement.
 /** For projection during refinement the radius property is ignored. Instead
  * the distance to the center of a newly inserted vertex is calculated
  * as the average distance of the vertices of the parent element to the center.
@@ -47,6 +47,9 @@ namespace ug {
  *
  * You may still specify a radius. This radius can be used for auto-fitting of
  * the center and for reprojecting a set of vertices onto the sphere.
+ *
+ * Only vertices which are at the soma (axial parameter: -1) are projected
+ * on the surface. This works well for good natured connecting neurites.
  */
 class SomaProjector : public RefinementProjector {
 private:
@@ -208,12 +211,10 @@ private:
 		return 1;
 	}
 
-
 	template <class TElem>
 	bool vertex_at_soma_surf(Vertex* vrt, TElem* parent) {
 		size_t numSomaVerts = 0;
 	    size_t nVrt = parent->num_vertices();
-	    UG_LOGN("Num Parents: " << nVrt);
 	    for (size_t i = 0; i < nVrt; ++i) {
 	    	 if(m_aaSurfParams[parent->vertex(i)].axial == -1.0) {
 	    		 numSomaVerts++;
