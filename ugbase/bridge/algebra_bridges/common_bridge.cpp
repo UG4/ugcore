@@ -42,6 +42,7 @@
 #include "bridge/util_algebra_dependent.h"
 
 // operator interfaces
+#include "lib_algebra/operator/fixed_convergence_check.h"
 #include "lib_algebra/operator/interface/operator.h"
 #include "lib_algebra/operator/interface/matrix_operator.h"
 #include "lib_algebra/operator/interface/matrix_operator_inverse.h"
@@ -435,6 +436,19 @@ static void Algebra(Registry& reg, string grp)
 				.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "EnergyConvCheck", tag);
 	}
+
+// 	FixedConvCheck
+	{
+		typedef FixedConvergenceCheck<vector_type> T;
+		typedef IConvergenceCheck<vector_type> TBase;
+		string name = string("FixedConvergenceCheck").append(suffix);
+		reg.add_class_<T, TBase>(name, grp, "Convergence Check")
+	//		.add_constructor()
+			.template add_constructor<void (*)(number)>("")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "FixedConvergenceCheck", tag);
+	}
+
 }
 
 
