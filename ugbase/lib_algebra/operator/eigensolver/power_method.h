@@ -187,6 +187,15 @@ class PowerMethod
 				else
 					m_spEigenvector = m_spResidual->clone();
 
+			//	reset Dirichlet rows to 0
+				for(size_t i = 0; i < m_spEigenvector->size(); i++)
+				{
+					if(m_vbDirichlet[i])
+					{
+						(*m_spEigenvector)[i] = 0.0;
+					}
+				}
+
 			//	v = v / ||v||_B
 				normalize_approximations();
 
@@ -249,6 +258,15 @@ class PowerMethod
 
 			//	v = A^-1 B v or v = A^-1 v
 				m_spSolver->apply(*m_spEigenvector, *m_spResidual);
+
+			//	reset Dirichlet rows to 0
+				for(size_t i = 0; i < m_spEigenvector->size(); i++)
+				{
+					if(m_vbDirichlet[i])
+					{
+						(*m_spEigenvector)[i] = 0.0;
+					}
+				}
 
 			//	v = v / ||v||_B
 				normalize_approximations();

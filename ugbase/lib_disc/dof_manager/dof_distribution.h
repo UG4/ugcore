@@ -182,6 +182,27 @@ class DoFDistribution : public DoFDistributionInfoProvider
 //			}
 		}
 
+		template <typename TBaseElem>
+		void collect_associated
+		(
+			std::vector<TBaseElem*>& vAssElem,
+			GridObject* elem,
+			bool clearContainer = true
+		) const
+		{
+			if (dynamic_cast<Vertex*>(elem))
+				collect_associated<Vertex, TBaseElem>(vAssElem, dynamic_cast<Vertex*>(elem), clearContainer);
+			else if (dynamic_cast<Edge*>(elem))
+				collect_associated<Edge, TBaseElem>(vAssElem, dynamic_cast<Edge*>(elem), clearContainer);
+			else if (dynamic_cast<Face*>(elem))
+				collect_associated<Face, TBaseElem>(vAssElem, dynamic_cast<Face*>(elem), clearContainer);
+			else if (dynamic_cast<Volume*>(elem))
+				collect_associated<Volume, TBaseElem>(vAssElem, dynamic_cast<Volume*>(elem), clearContainer);
+			else
+				UG_THROW("Element is neither Vertex nor Edge, Face or Volume. "
+					"Other elements not implemented.");
+		}
+
 		/// returns if the grid object is part of the dof distribution
 		template <class TGeomObj>
 		bool is_contained(TGeomObj* obj) const{

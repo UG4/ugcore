@@ -821,10 +821,6 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 		end
 		gmg:set_transfer(transfer)
 
-		if (desc.debug or defaults.debug) then
-			gmg:set_debug(GridFunctionDebugWriter(approxSpace))
-		end
-
 		local discretization = desc.discretization or util.solver.defaults.discretization
 		if discretization then
 			gmg:set_discretization(discretization)
@@ -854,42 +850,26 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 
 	util.solver.CondAbort(precond == nil, "Invalid preconditioner specified: " .. name)
   
-  
-
-  -- check:   
-  local rprecond  = precond
-  if desc and desc.debugSolver then
-    print(solver)
-    local dsolver = 
-      util.solver.CreateLinearSolver(
-          desc.debugSolver, solverutil)
-          
-    local err = GridFunction(approxSpace)
-    rprecond = DebugIterator(precond, dsolver)
-    rprecond:set_solution(err)
-  else  
-  
-  
-   
-  end
-  
-  -- create debug writer (optional)
-  if desc and ((desc.debug == true) or (desc.debugSolver and desc.debugSolver.debug==true)) then
-    if approxSpace == nil then
-      print("An ApproximationSpace is required to create a DebugWriter for the '" .. name .. "'' preconditioner.")
-      print("Consider setting the 'approxSpace' property of your preconditioner,")
-      print("or alternatively the util.solver.defaults.approxSpace property or")
-      print("alternatively set the option 'debug=false' in your preconditioner.")
-      exit()
-    end
-
-    local dbgWriter = GridFunctionDebugWriter(approxSpace)
-    dbgWriter:set_vtk_output(true)
-    rprecond:set_debug(dbgWriter)
-  end
-  
-  if desc then desc.instance = rprecond end
-  
+	-- check:   
+	local rprecond  = precond
+	if desc and desc.debugSolver then
+		print(solver)
+		local dsolver = 
+		  util.solver.CreateLinearSolver(
+			  desc.debugSolver, solverutil)
+			  
+		local err = GridFunction(approxSpace)
+		rprecond = DebugIterator(precond, dsolver)
+		rprecond:set_solution(err)
+	else  
+		
+	end
+	
+	-- create debug writer (optional)
+	util.solver.SetDebugWriter(rprecond, desc, defaults)
+	
+	if desc then desc.instance = rprecond end
+	
 	return rprecond
 end
 
@@ -1013,6 +993,9 @@ function util.solver.SetDebugWriter(obj, desc, defaults)
 	
 	local dbgDesc = desc.debug
 	if dbgDesc == nil then
+		dbgDesc = desc.debugSolver
+	end
+	if dbgDesc == nil then
 		if defaults then dbgDesc = defaults.debug end
 	end
 	
@@ -1024,7 +1007,11 @@ function util.solver.SetDebugWriter(obj, desc, defaults)
 		if type (dbgDesc) == "boolean" then
 			debug = dbgDesc
 		elseif type (dbgDesc) == "table" then
-			debug = true
+			if dbgDesc.debug ~= nil then
+				debug = dbgDesc.debug
+			else
+				debug = true
+			end
 			if dbgDesc.vtk ~= nil then vtk = dbgDesc.vtk end
 			if dbgDesc.conn_viewer ~= nil then conn_viewer = dbgDesc.conn_viewer end
 		else
@@ -1033,25 +1020,28 @@ function util.solver.SetDebugWriter(obj, desc, defaults)
 		end
 	
 		if debug then
-	
-			local approxSpace = nil
-			if desc then
-				approxSpace = desc.approxSpace or util.solver.defaults.approxSpace
-			end
-	
-			if approxSpace == nil then
-			  print("An ApproximationSpace is required to create a DebugWriter.")
-			  print("Consider setting the 'approxSpace' property of of the object to debug,")
-			  print("or alternatively the util.solver.defaults.approxSpace property.")
-			  print("Otherwiese set the option 'debug=false' for the object.")
-			  exit()
-			end
-	
-			local dbgWriter = GridFunctionDebugWriter(approxSpace)
-			dbgWriter:set_vtk_output(vtk)
-			dbgWriter:set_conn_viewer_output(conn_viewer)
-			obj:set_debug(dbgWriter)
 		
+			if (util.debug_writer ~= nil) then
+				obj:set_debug(util.debug_writer)
+			else
+				local approxSpace = nil
+				if desc then
+					approxSpace = desc.approxSpace or util.solver.defaults.approxSpace
+				end
+		
+				if approxSpace == nil then
+				  print("An ApproximationSpace is required to create the standard DebugWriter.")
+				  print("Consider setting the 'approxSpace' property of of the object to debug,")
+				  print("or alternatively the util.solver.defaults.approxSpace property.")
+				  print("Otherwise set util.debug_writer to your own debug writer object.")
+				  exit()
+				end
+		
+				local dbgWriter = GridFunctionDebugWriter(approxSpace)
+				dbgWriter:set_vtk_output(vtk)
+				dbgWriter:set_conn_viewer_output(conn_viewer)
+				obj:set_debug(dbgWriter)
+			end
 		end
 	end
 end

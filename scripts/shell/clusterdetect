@@ -5,29 +5,31 @@
 
 if [ -z "$UGSUBMIT_TYPE" ]; then
 
-	if [ $HOSTNAME == "cekon.gcsc.uni-frankfurt.de" ]; then
+	if [ "$HOSTNAME" = "cekon.gcsc.uni-frankfurt.de" ]; then
 		UGSUBMIT_TYPE=cekon
-	elif [ $HOSTNAME == "cesari.gcsc.uni-frankfurt.de" ]; then
+	elif [ "$HOSTNAME" = "cesari.gcsc.uni-frankfurt.de" ]; then
 		UGSUBMIT_TYPE=cesari
-	elif [[ "$HOSTNAME" == "juqueen"* ]]; then
+	elif [[ "$HOSTNAME" = "juqueen"* ]]; then
 		UGSUBMIT_TYPE=Juqueen
-	elif [[ "$HOSTNAME" == "jrl"* ]]; then
+	elif [[ "$HOSTNAME" = "jrl"* ]]; then
 		UGSUBMIT_TYPE=Jureca
-	elif [[ "$HOSTNAME" == "dora"* ]]; then
+	elif [[ "$HOSTNAME" = "juwels"* ]]; then
+		UGSUBMIT_TYPE=Juwels
+	elif [[ "$HOSTNAME" = "dora"* ]]; then
 		UGSUBMIT_TYPE=DoraCSCS
-	elif [[ "$HOSTNAME" == "eslogin"* ]]; then
-		if [ "$SITE_PLATFORM_NAME" == "hornet" ]; then
+	elif [[ "$HOSTNAME" = "eslogin"* ]]; then
+		if [ "$SITE_PLATFORM_NAME" = "hornet" ]; then
 			UGSUBMIT_TYPE=Hornet
-		elif [ "$SITE_PLATFORM_NAME" == "hazelhen" ]; then
+		elif [ "$SITE_PLATFORM_NAME" = "hazelhen" ]; then
 			UGSUBMIT_TYPE=Hazelhen
-		elif [ "$SITE_PLATFORM_NAME" == "hermit" ]; then
+		elif [ "$SITE_PLATFORM_NAME" = "hermit" ]; then
 			UGSUBMIT_TYPE=Hermit
 		else
 			echo "WARNING: couldn't detect cluster type!"
 		fi
 	else
 		unamestr=`uname`
-		if [[ "$unamestr" == 'Darwin' ]]; then
+		if [[ "$unamestr" = 'Darwin' ]]; then
 			UGSUBMIT_TYPE=mpi
 			export UGSUBMIT_MORE=Apple
 		else

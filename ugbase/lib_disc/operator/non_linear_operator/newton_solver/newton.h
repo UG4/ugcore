@@ -147,8 +147,8 @@ class NewtonSolver
 	private:
 	///	help functions for debug output
 	///	\{
-		void write_debug(const vector_type& vec, const char* filename);
-		void write_debug(const matrix_type& mat, const char* filename);
+		void write_debug(const vector_type& vec, std::string filename);
+		void write_debug(const matrix_type& mat, std::string filename);
 	/// \}
 
 	private:

@@ -114,7 +114,7 @@ class BiCGStab
 		//	check correct storage type in parallel
 			#ifdef UG_PARALLEL
 			if(!b.has_storage_type(PST_ADDITIVE) || !x.has_storage_type(PST_CONSISTENT))
-				UG_THROW("BiCGStab: Inadequate storage format of Vectors.");
+				UG_THROW("BiCGStab: Inadequate parallel storage format of the vectors for the sol and the rhs.");
 			#endif
 
 		// 	build defect:  r := b - A*x
@@ -138,7 +138,7 @@ class BiCGStab
 		//	convert b to unique (should already be unique due to norm calculation)
 			#ifdef UG_PARALLEL
 			if(!r.change_storage_type(PST_UNIQUE))
-				UG_THROW("BiCGStab: Cannot convert b to unique vector.");
+				UG_THROW("BiCGStab: Cannot convert b to a vector with the 'unique' parallel storage type.");
 			#endif
 
 		//	needed variables
@@ -146,6 +146,8 @@ class BiCGStab
 
 		//	restart flag (set to true at first run)
 			bool bRestart = true;
+
+			write_debugXR(x, r, convergence_check()->step(), 'i');
 
 		// 	Iteration loop
 			while(!convergence_check()->iteration_ended())
@@ -225,13 +227,16 @@ class BiCGStab
 			// 	apply q = M^-1 * p ...
 				if(preconditioner().valid())
 				{
+					enter_precond_debug_section(convergence_check()->step(), 'a');
 					if(!preconditioner()->apply(q, p))
 					{
 						UG_LOG("BiCGStab: Cannot apply preconditioner. Aborting.\n");
+						this->leave_vector_debug_writer_section();
 						return false;
 					}
-			// 	... or copy q = p
+					this->leave_vector_debug_writer_section();
 				}
+			// 	... or copy q = p
 				else
 				{
 					q = p;
@@ -280,6 +285,8 @@ class BiCGStab
 			// 	check convergence
 				convergence_check()->update(s);
 
+				write_debugXR(x, s, convergence_check()->step(), 'a');
+
 			//	if finished: set output to last defect and exist loop
 				if(convergence_check()->iteration_ended())
 				{
@@ -289,13 +296,16 @@ class BiCGStab
 			// 	apply q = M^-1 * s ...
 				if(preconditioner().valid())
 				{
+					enter_precond_debug_section(convergence_check()->step(), 'b');
 					if(!preconditioner()->apply(q, s))
 					{
 						UG_LOG("BiCGStab: Cannot apply preconditioner. Aborting.\n");
+						this->leave_vector_debug_writer_section();
 						return false;
 					}
-			// 	... or set q:=s
+					this->leave_vector_debug_writer_section();
 				}
+			// 	... or set q:=s
 				else
 				{
 					q = s;
@@ -352,6 +362,8 @@ class BiCGStab
 			// 	check convergence
 				convergence_check()->update(r);
 
+				write_debugXR(x, r, convergence_check()->step(), 'b');
+
 			//	check values
 				if(omega == 0.0)
 				{
@@ -399,6 +411,23 @@ class BiCGStab
 			else
 				s = " (No Preconditioner) ";
 			convergence_check()->set_info(s);
+		}
+
+	/// debugger output: solution and residual
+		void write_debugXR(vector_type &x, vector_type &r, int loopCnt, char phase)
+		{
+			if(!this->vector_debug_writer_valid()) return;
+			char ext[20]; sprintf(ext, "-%c_iter%03d", phase, loopCnt);
+			write_debug(r, std::string("BiCGStab_Residual") + ext + ".vec");
+			write_debug(x, std::string("BiCGStab_Solution") + ext + ".vec");
+		}
+		
+	/// debugger section for the preconditioner
+		void enter_precond_debug_section(int loopCnt, char phase)
+		{
+			if(!this->vector_debug_writer_valid()) return;
+			char ext[20]; sprintf(ext, "-%c_iter%03d", phase, loopCnt);
+			this->enter_vector_debug_writer_section(std::string("BiCGStab_Precond") + ext);
 		}
 
 	public:

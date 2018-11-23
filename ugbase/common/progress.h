@@ -48,8 +48,6 @@ namespace ug
 
 class Progress
 {
-	int m_minSecondsUntilProgress;
-	double startS;
 public:
 	Progress(int minSecondsUntilProgress=-1);
 
@@ -89,7 +87,11 @@ public:
 	void setD(double now);
 
 	void stop();
+	
 private:
+
+	int m_minSecondsUntilProgress;
+	double startS;
 	double dNextValueToUpdate;
 	size_t iNextValueToUpdate;
 	int posNow;

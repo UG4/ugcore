@@ -305,7 +305,9 @@ function util.SolveNonlinearTimeProblem(
 	while (endTime == nil or ((time < endTime) and ((endTime-time)/maxStepSize > relPrecisionBound))) and ((endTSNo == nil) or (step < endTSNo)) do
 		step = step+1
 		print("++++++ TIMESTEP " .. step .. " BEGIN (current time: " .. time .. ") ++++++");
-
+		
+		local solver_call = 0;
+		
 		-- initial t-step size
 		local currdt = maxStepSize
 		-- adjust in case of over-estimation
@@ -363,6 +365,11 @@ function util.SolveNonlinearTimeProblem(
 					-- setup time Disc for old solutions and timestep size
 					timeDisc:prepare_step(solTimeSeries, currdt)
 					
+					-- enter debug section (if the debug_writer is specified)
+					if util.debug_writer ~= nil then
+						util.debug_writer:enter_section ("TIMESTEP-"..step.."-SolverCall-"..solver_call)
+					end
+			
 					-- prepare newton solver
 					if newtonSolver:prepare(u) == false then 
 						print ("\n++++++ Newton solver failed."); exit();
@@ -371,6 +378,11 @@ function util.SolveNonlinearTimeProblem(
 					-- apply newton solver
 					newtonSuccess = newtonSolver:apply(u)
 						
+					-- exit debug section (if the debug_writer is specified)
+					if util.debug_writer ~= nil then
+						util.debug_writer:leave_section ()
+					end
+			
 					-- start over again if failed
 					if newtonSuccess == false then break end
 					

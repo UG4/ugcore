@@ -154,11 +154,6 @@ bool CreateDirectory(const char *directory, int mode)
 	return _mkdir(directory) == 0;
 }
 
-bool CreateDirectory(std::string directory)
-{
-	return CreateDirectory(directory.c_str());
-}
-
 std::string GetTmpPath()
 {
 	static string userDataPath("");

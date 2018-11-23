@@ -31,6 +31,9 @@
  */
 
 #include "vtkoutput.h"
+
+#include "common/util/os_info.h"  // for GetPathSeparator
+
 #include <sstream>
 
 namespace ug{
@@ -182,9 +185,9 @@ void baseName(std::string& nameOut, const std::string& nameIn)
 	// This will treat the two example cases above (on Unix systems).
 	// A proper solution would use boost::filesystem and throw away the file extension
 	// if present. However, this would require linking against a boost library.
-	size_t lo_slash = nameIn.find_last_of('/');
+	size_t lo_pathSep = nameIn.rfind(GetPathSeparator());
 	size_t lo_dot = nameIn.find_last_of('.');
-	if (lo_slash == std::string::npos || lo_slash < lo_dot)
+	if (lo_pathSep == std::string::npos || lo_pathSep < lo_dot)
 		nameOut = nameIn.substr(0, lo_dot);
 	else
 		nameOut = nameIn;

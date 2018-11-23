@@ -43,6 +43,7 @@
 #include "bridge/bridge.h"
 #include "bindings/lua/info_commands.h"
 #include "bindings/lua/lua_stack_check.h"
+#include "common/log.h"
 #include "registry/registry.h"
 #include "registry/class_helper.h"
 
@@ -66,9 +67,9 @@ int iOtherCompletitionsLength;
 const char **pOtherCompletitions=NULL;
 
 
-void print(std::string s)
+void print(const std::string& s)
 {
-	print(s.c_str());
+	printf("%s", s.c_str());
 }
 
 /// \addtogroup ugbase_ugshell

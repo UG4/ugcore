@@ -45,6 +45,7 @@ Progress::Progress(int minSecondsUntilProgress)
 	m_minSecondsUntilProgress = minSecondsUntilProgress;
 	m_length=100;
 	bStarted=false;
+	posNow=-1;
 	myDepth = totalDepth++;
 }
 /*

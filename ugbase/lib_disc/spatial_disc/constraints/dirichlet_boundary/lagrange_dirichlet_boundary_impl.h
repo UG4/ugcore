@@ -489,6 +489,13 @@ adjust_prolongation(matrix_type& P,
 					int type,
                     number time)
 {
+#ifdef LAGRANGE_DIRICHLET_ADJ_TRANSFER_FIX
+	 if (!m_bAdjustTransfers)
+	 {
+		 std::cerr << "Avoiding  adjust_prolongation" << std::endl;
+		 return;
+	}
+#endif
 	extract_data();
 
 	adjust_prolongation<CondNumberData>(m_mBNDNumberBndSegment, P, ddFine, ddCoarse, time);
@@ -614,6 +621,13 @@ adjust_restriction(matrix_type& R,
 					int type,
 					number time)
 {
+#ifdef LAGRANGE_DIRICHLET_ADJ_TRANSFER_FIX
+	if (!m_bAdjustTransfers)
+	{
+		std::cerr << "Avoiding adjust_restriction" << std::endl;
+		return;
+	}
+#endif
 	extract_data();
 
 	adjust_restriction<CondNumberData>(m_mBNDNumberBndSegment, R, ddCoarse, ddFine, time);

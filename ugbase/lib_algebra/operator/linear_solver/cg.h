@@ -121,16 +121,21 @@ class CG
 			SmartPtr<vector_type> spZ = x.clone_without_values(); vector_type& z = *spZ;
 			SmartPtr<vector_type> spP = x.clone_without_values(); vector_type& p = *spP;
 
+			write_debugXR(x, r, convergence_check()->step());
+
 		// 	Preconditioning
 			if(preconditioner().valid())
 			{
+				enter_precond_debug_section(convergence_check()->step());
 				// apply z = M^-1 * s
 				if(!preconditioner()->apply(z, r))
 				{
 					UG_LOG("ERROR in 'CG::apply_return_defect': "
 							"Cannot apply preconditioner. Aborting.\n");
+					this->leave_vector_debug_writer_section();
 					return false;
 				}
+				this->leave_vector_debug_writer_section();
 			}
 			else z = r;
 			
@@ -187,6 +192,8 @@ class CG
 			// 	Update r := r - alpha*t
 				VecScaleAdd(r, 1.0, r, -alpha, q);
 
+				write_debugXR(x, r, convergence_check()->step());
+
 			// 	Check convergence
 				convergence_check()->update(r);
 				if(convergence_check()->iteration_ended()) break;
@@ -194,16 +201,19 @@ class CG
 			// 	Preconditioning
 				if(preconditioner().valid())
 				{
+					enter_precond_debug_section(convergence_check()->step());
 				// 	apply z = M^-1 * r
 					if(!preconditioner()->apply(z, r))
 					{
 						UG_LOG("ERROR in 'CG::apply_return_defect': "
 								"Cannot apply preconditioner. Aborting.\n");
+						this->leave_vector_debug_writer_section();
 						return false;
 					}
+					this->leave_vector_debug_writer_section();
 				}
 				else z = r;
-
+				
 				#ifdef UG_PARALLEL
 			// 	make z consistent
 				if(!z.change_storage_type(PST_CONSISTENT))
@@ -258,6 +268,23 @@ class CG
 			else
 				s = " (No Preconditioner) ";
 			convergence_check()->set_info(s);
+		}
+
+	/// debugger output: solution and residual
+		void write_debugXR(vector_type &x, vector_type &r, int loopCnt)
+		{
+			if(!this->vector_debug_writer_valid()) return;
+			char ext[20]; sprintf(ext, "_iter%03d", loopCnt);
+			write_debug(r, std::string("CG_Residual") + ext + ".vec");
+			write_debug(x, std::string("CG_Solution") + ext + ".vec");
+		}
+		
+	/// debugger section for the preconditioner
+		void enter_precond_debug_section(int loopCnt)
+		{
+			if(!this->vector_debug_writer_valid()) return;
+			char ext[20]; sprintf(ext, "_iter%03d", loopCnt);
+			this->enter_vector_debug_writer_section(std::string("CG_Precond_") + ext);
 		}
 
 	protected:

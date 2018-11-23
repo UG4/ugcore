@@ -101,8 +101,6 @@ util.balancer.defaults =
 			balanceWeights = nil,
 			communicationWeights = nil,
 			options = nil,
-			childWeight		= 2,
-			siblingWeight	= 2,
 			itrFactor		= 1000,
 			verbose = false,
 			clusteredSiblings = true,
@@ -290,8 +288,6 @@ function util.balancer.CreatePartitioner(dom, partitionerDesc)
 		RequiredPlugins({"Parmetis"})
 
 		partitioner = Partitioner_Parmetis(dom)
-		partitioner:set_child_weight(desc.childWeight or defaults.childWeight)
-		partitioner:set_sibling_weight(desc.siblingWeight or defaults.siblingWeight)
 		partitioner:set_itr_factor(desc.itrFactor or defaults.itrFactor)
 		partitioner:set_verbose(verbose)
 

@@ -44,6 +44,11 @@ Scientific Computing</em> at the <em>University of Frankfurt, Germany </em>
 (http://www.g-csc.de).
 
 
+https://github.com/UG4/ugcore gives a quick overview on how to obtain and to install
+\ug4. Several example applications are described and tools for pre- and
+postprocessing are linked.
+
+
 <hr>
 \section secWhatIsIt What is ug4?
 

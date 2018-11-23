@@ -377,7 +377,7 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 					const size_t natEdId2 = m_rRefElem.id(2, i, 1, jplus1);
 
 					// corner of the face
-					const size_t cornerId = m_rRefElem.id(2,i, 0, jplus1);
+					const size_t cornerId = m_rRefElem.id(2, i, 0, jplus1);
 
 					// nodes of hanging edges
 					const size_t hangEdNodeId1 = m_vNatEdgeInfo[natEdId1].node_id();
@@ -473,8 +473,8 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 		}
 
 		// set center of elem as part of scvf
-		m_vSCVF[i].m_vGloPos[1] = m_gloMid[dim][0];
-		m_vSCVF[i].m_vLocPos[1] = m_locMid[dim][0];
+		m_vSCVF[i].m_vGloPos[dim > 1 ? 1 : 0] = m_gloMid[dim][0];
+		m_vSCVF[i].m_vLocPos[dim > 1 ? 1 : 0] = m_locMid[dim][0];
 
 		// integration point
 		AveragePositions(m_vSCVF[i].localIP, m_vSCVF[i].m_vLocPos, SCVF::m_numCorners);
@@ -1053,8 +1053,8 @@ update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubs
 		}
 
 		// set center of elem as part of scvf
-		m_vSCVF[i].m_vGloPos[1] = m_gloMid[dim][0];
-		m_vSCVF[i].m_vLocPos[1] = m_locMid[dim][0];
+		m_vSCVF[i].m_vGloPos[dim > 1 ? 1 : 0] = m_gloMid[dim][0];
+		m_vSCVF[i].m_vLocPos[dim > 1 ? 1 : 0] = m_locMid[dim][0];
 
 		// integration point
 		AveragePositions(m_vSCVF[i].localIP, m_vSCVF[i].m_vLocPos, SCVF::m_numCorners);

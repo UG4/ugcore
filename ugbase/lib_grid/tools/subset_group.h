@@ -90,7 +90,7 @@ class SubsetGroup
 	/// adds all subsets of another subset to the group
 		void add(const SubsetGroup& ssGroup);
 
-	/// select all subsets of underlying subset
+	/// select all subsets of underlying subset handler
 		void add_all();
 
 	/// removes a subset from this group

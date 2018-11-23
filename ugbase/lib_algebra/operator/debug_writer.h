@@ -36,7 +36,7 @@
 #include "common/util/smart_pointer.h"
 #include "common/math/ugmath.h"
 #include "common/profiler/profiler.h"
-
+#include "common/util/file_util.h"
 
 namespace ug{
 
@@ -70,6 +70,17 @@ class IVectorDebugWriter
 
 	///	write vector
 		virtual void write_vector(const vector_type& vec, const char* name) = 0;
+		
+	///	prints a message
+		virtual void print_message(const char * msg)
+		{
+			UG_LOG ("DBG > ");
+			for (size_t i = 0; i < m_secDir.size (); i++)
+			{
+				UG_LOG (":" << m_secDir[i]);
+			}
+			UG_LOG (" > " << msg);
+		}
 
 	///	returns the current dimension
 		int current_dimension() const {return m_currentDim;}
@@ -111,20 +122,51 @@ class IVectorDebugWriter
 			return m_currentDim;
 		}
 
-		/// set the base directory for output files (.vec and .mat)
+	/// set the base directory for output files (.vec and .mat)
 		inline void set_base_dir(const char* const baseDir) {m_baseDir = std::string(baseDir);}
 		std::string get_base_dir() { return m_baseDir; }
+		
+	///	enter a new debugging section
+		inline void enter_section(const char* secDir) {m_secDir.push_back(secDir);}
+		
+	/// leave the current debugging section
+		inline void leave_section () {m_secDir.pop_back();}
 
 	protected:
-		///  base directory for output
-		std::string m_baseDir;
-
+	
 	///	returns the positions and sets the current dim
 		template <int dim>
 		std::vector<MathVector<dim> >& positions()
 		{
 			m_currentDim = dim; return get_pos(Int2Type<dim>());
 		}
+		
+	/// composes the path for the files and creates the intermediate directories (up to the base one):
+		void compose_file_path(std::string& path)
+		{
+			path = get_base_dir ();
+			if (! FileExists (path))
+			{
+				UG_WARNING ("IVectorDebugWriter: Directory '" << path << "' does not exist. Using cwd instead.\n");
+				path = ".";
+			}
+			for (size_t i = 0; i < m_secDir.size (); i++)
+			{
+				path.append ("/"); //TODO: This can be OS-dependent.
+				path.append (m_secDir[i]);
+				if ((! FileExists (path)) && ! CreateDirectory (path))
+					UG_WARNING ("IVectorDebugWriter: Could not create directory '" << path << "'. Using cwd instead.\n");
+			}
+			path.append ("/"); //TODO: This can be OS-dependent.
+		}
+		
+	protected:
+
+	/// base directory for the debugging output
+		std::string m_baseDir;
+		
+	/// debuging section subdirectories
+		std::vector<std::string> m_secDir;
 
 	///	current dimension
 		int m_currentDim;
@@ -194,20 +236,23 @@ class VectorDebugWritingObject
 		SmartPtr<IVectorDebugWriter<vector_type> > vector_debug_writer() {return m_spVectorDebugWriter;}
 		ConstSmartPtr<IVectorDebugWriter<vector_type> > vector_debug_writer() const {return m_spVectorDebugWriter;}
 
+	/// returns true if the debug writer is set
+		bool vector_debug_writer_valid() const {return m_spVectorDebugWriter.valid();}
+	
 	protected:
-		virtual void write_debug(const vector_type& vec, std::string filename)
+	///	writing debug output for a vector (if debug writer set)
+		void write_debug(const vector_type& vec, const char* filename)
 		{
-			write_debug(vec, filename.c_str());
+			write_debug(vec, std::string (filename));
 		}
 	///	writing debug output for a vector (if debug writer set)
-		virtual void write_debug(const vector_type& vec, const char* filename)
+		virtual void write_debug(const vector_type& vec, std::string name)
 		{
 			PROFILE_FUNC_GROUP("algebra debug");
 		//	if no debug writer set, we're done
 			if(m_spVectorDebugWriter.invalid()) return;
 
 		//	check ending
-			std::string name(filename);
 			size_t iExtPos = name.find_last_of(".");
 			if(iExtPos != std::string::npos && name.substr(iExtPos).compare(".vec") != 0)
 				UG_THROW("Only '.vec' format supported for vectors, but"
@@ -219,7 +264,35 @@ class VectorDebugWritingObject
 		//	write
 			m_spVectorDebugWriter->write_vector(vec, name.c_str());
 		}
+		
+	///	prints a debugger message (listing all the sections)
+		void print_debugger_message(std::string msg)
+		{
+			print_debugger_message(msg.c_str());
+		}
+	///	prints a debugger message (listing all the sections)
+		void print_debugger_message(const char * msg)
+		{
+			if (m_spVectorDebugWriter.valid()) m_spVectorDebugWriter->print_message(msg);
+		}
 
+	/// enters a debugging section
+		void enter_vector_debug_writer_section(std::string secDir)
+		{
+				enter_vector_debug_writer_section(secDir.c_str());
+		}
+	/// enters a debugging section
+		void enter_vector_debug_writer_section(const char * secDir)
+		{
+			if (m_spVectorDebugWriter.valid()) m_spVectorDebugWriter->enter_section(secDir);
+		}
+	
+	/// leaves a debugging section
+		void leave_vector_debug_writer_section()
+		{
+			if (m_spVectorDebugWriter.valid()) m_spVectorDebugWriter->leave_section();
+		}
+	
 	protected:
 	///	Debug Writer
 		SmartPtr<IVectorDebugWriter<vector_type> > m_spVectorDebugWriter;
@@ -267,16 +340,23 @@ class DebugWritingObject : public VectorDebugWritingObject<typename TAlgebra::ve
 		SmartPtr<IDebugWriter<algebra_type> > debug_writer() {return m_spDebugWriter;}
 		ConstSmartPtr<IDebugWriter<algebra_type> > debug_writer() const {return m_spDebugWriter;}
 
+	/// returns true if the debug writer is set
+		bool debug_writer_valid() const {return m_spDebugWriter.valid();}
+		
 	protected:
 	///	write debug output for a matrix (if debug writer set)
-		virtual void write_debug(const matrix_type& mat, const char* filename)
+		void write_debug(const matrix_type& mat, const char* filename)
+		{
+			write_debug(mat, std::string(filename));
+		}
+	///	write debug output for a matrix (if debug writer set)
+		void write_debug(const matrix_type& mat, std::string name)
 		{
 			PROFILE_FUNC_GROUP("algebra debug");
 		//	if no debug writer set, we're done
 			if(m_spDebugWriter.invalid()) return;
 
 		//	check ending
-			std::string name(filename);
 			size_t iExtPos = name.find_last_of(".");
 			if(iExtPos != std::string::npos && name.substr(iExtPos).compare(".mat") != 0)
 				UG_THROW("Only '.mat' format supported for matrices, but"
@@ -289,6 +369,23 @@ class DebugWritingObject : public VectorDebugWritingObject<typename TAlgebra::ve
 			m_spDebugWriter->write_matrix(mat, name.c_str());
 		}
 
+	/// enters a debugging section
+		void enter_debug_writer_section(std::string secDir)
+		{
+			enter_debug_writer_section(secDir.c_str());
+		}
+	/// enters a debugging section
+		void enter_debug_writer_section(const char * secDir)
+		{
+			if (m_spDebugWriter.valid()) m_spDebugWriter->enter_section(secDir);
+		}
+	
+	/// leaves a debugging section
+		void leave_debug_writer_section()
+		{
+			if (m_spDebugWriter.valid()) m_spDebugWriter->leave_section();
+		}
+	
 	protected:
 	///	Debug Writer
 		SmartPtr<IDebugWriter<algebra_type> > m_spDebugWriter;

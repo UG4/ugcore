@@ -273,6 +273,7 @@ create_constrained_vertex_node(ConstrainedVertexIterator vrtsBegin,
 
 //	write the vertices to a temporary stream
 	stringstream ss;
+	ss.precision(18);
 	for(ConstrainedVertexIterator iter = vrtsBegin; iter != vrtsEnd; ++iter)
 	{
 		for(int i = 0; i < numCoords; ++i)
