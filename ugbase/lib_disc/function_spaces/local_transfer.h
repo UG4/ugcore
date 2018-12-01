@@ -522,7 +522,7 @@ class CrouzeixRaviartElemTransfer
 					vParentElem[p] = vElem[p];
 
 			//	call prolongation
-				prolongate<TSide>(vParentElem, vChildSide, vValueChild, vValueParent);
+				this->template prolongate<TSide>(vParentElem, vChildSide, vValueChild, vValueParent);
 			}
 
 		//	b) prolongation from a element
@@ -544,7 +544,7 @@ class CrouzeixRaviartElemTransfer
 				vParentElem[0] = parent;
 
 			//	call prolongation
-				prolongate<TSide>(vParentElem, vChildSide, vValueChild, vValueParent);
+				this->template prolongate<TSide>(vParentElem, vChildSide, vValueChild, vValueParent);
 			}
 		};
 
