@@ -877,6 +877,49 @@ void AssignSubset_VerticesInCube(TDomain& dom,
 	}
 }
 
+////////////////////////////////////////////////////////////////////////////////
+///	Marks all elements which have vertices in the given d-dimensional cube.
+/**	Make sure that TAPos is an attachment of vector_t position types.*/
+template <class TDomain>
+void AssignSubset_VerticesInSphere(TDomain& dom, 
+									const typename TDomain::position_type& center,
+									const number radius, int si)
+{
+	typedef typename TDomain::position_type 			position_type;
+	typedef typename TDomain::position_accessor_type	position_accessor_type;
+
+	Grid& grid = *dom.grid();
+	position_accessor_type& aaPos = dom.position_accessor();
+	MGSubsetHandler& sh = *dom.subset_handler();
+
+//	iterate over all vertices of the grid. If a vertex is inside the given cube,
+//	then we'll mark all associated elements.
+	for(VertexIterator iter = grid.begin<Vertex>();
+		iter != grid.end<Vertex>(); ++iter)
+	{
+	//	Position
+		position_type& pos = aaPos[*iter];
+
+	//	check flag
+		bool bInside = true;
+
+	//	check node
+		number normSq = 0.0;
+		for(int d = 0; d < TDomain::dim; ++d){
+			normSq += (pos[d] - center[d])*(pos[d] - center[d]);
+		}
+		number dist = sqrt( normSq );
+
+		if(dist >= radius)
+			bInside = false;
+
+		if(bInside)
+		{
+			sh.assign_subset(*iter, si);
+		}
+	}
+}
+
 
 #ifdef UG_DIM_1
 static number DistanceToSurfaceDomain(MathVector<1>& tpos, const Vertex* vrt,
@@ -1756,6 +1799,9 @@ static void Domain(Registry& reg, string grp)
 				grp, "", "")
 		.add_function("AssignSubset_VerticesInCube",
 				&AssignSubset_VerticesInCube<domain_type>,
+				grp, "", "")
+		.add_function("AssignSubset_VerticesInSphere",
+				&AssignSubset_VerticesInSphere<domain_type>,
 				grp, "", "");
 
 
