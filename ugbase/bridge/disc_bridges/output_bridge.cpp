@@ -140,9 +140,6 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("set_conn_viewer_output", &T::set_conn_viewer_output, "", "bCVOutput")
 			.add_method("set_conn_viewer_indices", &T::set_conn_viewer_indices, "", "bIndicesOutput")
 			.add_method("set_print_consistent",  &T::set_print_consistent, "", "printConsistent")
-		    .add_method("set_base_dir", &T::set_base_dir, "Sets the base directory for output", "dir")
-		    .add_method("enter_section", &T::enter_section, "Enters a debugging section", "dirName")
-		    .add_method("leave_section", &T::leave_section, "Leaves the current debugging section", "")
 		    .add_method("set_grid_level", &T::set_grid_level, "Sets the grid level", "GridLevel")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GridFunctionDebugWriter", tag);
