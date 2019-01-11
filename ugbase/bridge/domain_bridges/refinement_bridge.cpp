@@ -297,9 +297,9 @@ static void MarkForRefinement_AllAnisotropic(SmartPtr<IRefiner> ref)
 ////////////////////////////////////////////////////////////////////////////////
 ///	Marks all vertices in the given d-dimensional sphere.
 template <class TDomain>
-void MarkForAdaption_VerticesInSphere(TDomain& dom, SmartPtr<IRefiner> refiner,
+void MarkForAdaption_VerticesInSphereMaxLvl(TDomain& dom, SmartPtr<IRefiner> refiner,
                                       const typename TDomain::position_type& center,
-                                      number radius, std::string markType)
+                                      number radius, std::string markType, int maxLvl)
 {
 	PROFILE_FUNC_GROUP("grid");
 	typedef typename TDomain::position_accessor_type	position_accessor_type;
@@ -312,7 +312,10 @@ void MarkForAdaption_VerticesInSphere(TDomain& dom, SmartPtr<IRefiner> refiner,
 					"Refiner was not created for the specified domain. Aborting."));
 	}
 
+	typedef typename TDomain::grid_type TGrid;
+
 	Grid& grid = *refiner->get_associated_grid();
+	TGrid& g = *dom.grid();
 	position_accessor_type& aaPos = dom.position_accessor();
 
 //	we'll compare against the square radius.
@@ -328,6 +331,10 @@ void MarkForAdaption_VerticesInSphere(TDomain& dom, SmartPtr<IRefiner> refiner,
 	for(VertexIterator iter = grid.begin<Vertex>();
 		iter != grid.end<Vertex>(); ++iter)
 	{
+		int lvl = g.get_level(*iter);
+		if(maxLvl >= 0 && lvl >= maxLvl)
+			continue;
+
 		if(VecDistanceSq(center, aaPos[*iter]) <= radiusSq){
 			CollectAssociated(vEdges, grid, *iter);
 			CollectAssociated(vFaces, grid, *iter);
@@ -345,7 +352,15 @@ void MarkForRefinement_VerticesInSphere(TDomain& dom, SmartPtr<IRefiner> refiner
                                         const typename TDomain::position_type& center,
                                         number radius)
 {
-	MarkForAdaption_VerticesInSphere(dom, refiner, center, radius, "refine");
+	MarkForAdaption_VerticesInSphereMaxLvl(dom, refiner, center, radius, "refine", -1);
+}
+
+template <class TDomain>
+void MarkForAdaption_VerticesInSphere(TDomain& dom, SmartPtr<IRefiner> refiner,
+                                      const typename TDomain::position_type& center,
+                                      number radius, std::string markType, int maxLvl)
+{
+	MarkForAdaption_VerticesInSphereMaxLvl(dom, refiner, center, radius, markType, -1);	
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1720,6 +1735,9 @@ static void Domain(Registry& reg, string grp)
 				"", "dom#refiner#center#radius")
 		.add_function("MarkForAdaption_VerticesInSphere",
 				&MarkForAdaption_VerticesInSphere<domain_type>, grp,
+				"", "dom#refiner#center#radius#adaption_type")
+		.add_function("MarkForAdaption_VerticesInSphereMaxLvl",
+				&MarkForAdaption_VerticesInSphereMaxLvl<domain_type>, grp,
 				"", "dom#refiner#center#radius#adaption_type")
 		.add_function("MarkForRefinement_EdgesInSphere",
 				&MarkForRefinement_ElementsInSphere<domain_type, Edge>, grp,
