@@ -30,14 +30,17 @@ env:
     - DIM=2 CPU=1       TARGET=vrl     STATIC_BUILD=OFF BUILD_VARIANT="build2"
     - DIM=ALL CPU=1;2   TARGET=ugshell STATIC_BUILD=ON  BUILD_VARIANT="build3"
     - DIM=ALL CPU=1;2   TARGET=vrl     STATIC_BUILD=OFF BUILD_VARIANT="build4"
-      
-      
+
+
+before_cache:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew cleanup; fi
+
 cache:
   ccache: true
   directories:
    #- travis_root
     - $HOME/.ccache
-   #- $HOME/Library/Caches/Homebrew
+    - $HOME/Library/Caches/Homebrew
    # TODO: how can we do conditional caching of directories (depending on OS)
    #- /home/travis/build/miho/OCC-CSG/oce-OCE-0.18.3
    #- /Users/travis/build/miho/ugcore/
