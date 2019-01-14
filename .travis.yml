@@ -7,6 +7,9 @@ addons:
        - make
        - cmake-data
        - cmake
+    homebrew:
+      packages:
+      - ccache
   
 
 # we compile a c++ project
@@ -40,7 +43,7 @@ cache:
   directories:
    #- travis_root
     - $HOME/.ccache
-    - $HOME/Library/Caches/Homebrew
+   # - $HOME/Library/Caches/Homebrew
    # TODO: how can we do conditional caching of directories (depending on OS)
    #- /home/travis/build/miho/OCC-CSG/oce-OCE-0.18.3
    #- /Users/travis/build/miho/ugcore/
@@ -48,7 +51,7 @@ cache:
 # prepare ccache for (optional) install step
 before_install:
   # installing ccache and freetype packages via homebrew
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install ccache; fi
+#  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install ccache; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH="/usr/local/opt/ccache/libexec:$PATH"; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export CXXFLAGS="-stdlib=libc++"; fi
 
