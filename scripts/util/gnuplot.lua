@@ -803,10 +803,12 @@ function gnuplot.plot(filename, data, options)
 			for d, _ in ipairs(DimNames) do
 				dataset.min[d] = math.huge
 				dataset.max[d] = -math.huge
-				for _, val in ipairs(dataset.val[d]) do
-					dataset.min[d] = math.min(dataset.min[d], val)	
-					dataset.max[d] = math.max(dataset.max[d], val)	
-				end		
+				if dataset.func == nil then
+					for _, val in ipairs(dataset.val[d]) do
+						dataset.min[d] = math.min(dataset.min[d], val)	
+						dataset.max[d] = math.max(dataset.max[d], val)	
+					end		
+				end
 			end
 		end
 	end
