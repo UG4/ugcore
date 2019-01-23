@@ -295,6 +295,32 @@ number ParallelVector<TVector>::norm() const
 
 template <typename TVector>
 inline
+number ParallelVector<TVector>::maxnorm() const
+{
+	PROFILE_FUNC_GROUP("algebra parallelization");
+	// 	step 1: make vector d additive unique
+	if(!const_cast<ParallelVector<TVector>*>(this)->change_storage_type(PST_UNIQUE))
+		UG_THROW("ParallelVector::norm(): Cannot change"
+				" ParallelStorageType to unique.");
+
+	// 	step 2: compute process-local defect norm, square them
+	double tNormLocal = (double)TVector::maxnorm();
+
+	// 	step 3: sum squared local norms
+	PARVEC_PROFILE_BEGIN(ParVec_norm_allreduce);
+	double tNormGlobal;
+	if(layouts()->proc_comm().empty())
+		tNormGlobal = tNormLocal;
+	else
+		tNormGlobal = layouts()->proc_comm().allreduce(tNormLocal, PCL_RO_MAX);
+	PARVEC_PROFILE_END();
+
+	// 	step 4: return global norm ( = square root of summed squared local norms)
+	return (number)tNormGlobal;
+}
+
+template <typename TVector>
+inline
 number ParallelVector<TVector>::dotprod(const this_type& v)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");

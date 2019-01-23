@@ -162,6 +162,7 @@ static void Algebra(Registry& reg, string grp)
 		reg.add_function("VecProd", &VecScaleAddProd1<TAlgebra>);
 		reg.add_function("VecProd", &VecScaleAddProd2<TAlgebra>);
 		reg.add_function("VecNorm", &VecNorm<TAlgebra>);
+		reg.add_function("VecMaxNorm", &VecMaxNorm<TAlgebra>);
 		reg.add_function("VecNorm", &VecScaleAddNorm<TAlgebra>);
 		reg.add_function("VecHadamardProd", (void (*)(vector_type&, const vector_type &, const vector_type &))
 				&VecHadamardProd<vector_type>, grp, "", "dst#vec1#vec2", "vec1 * vec2 (elementwise)");
