@@ -298,10 +298,11 @@ inline
 number ParallelVector<TVector>::maxnorm() const
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
-	// 	step 1: make vector d additive unique
-	if(!const_cast<ParallelVector<TVector>*>(this)->change_storage_type(PST_UNIQUE))
-		UG_THROW("ParallelVector::norm(): Cannot change"
-				" ParallelStorageType to unique.");
+
+	if(this->has_storage_type(PST_ADDITIVE))
+		if(!const_cast<ParallelVector<TVector>*>(this)->change_storage_type(PST_UNIQUE))
+			UG_THROW("ParallelVector::norm(): Cannot change"
+					" ParallelStorageType to unique.");
 
 	// 	step 2: compute process-local defect norm, square them
 	double tNormLocal = (double)TVector::maxnorm();
