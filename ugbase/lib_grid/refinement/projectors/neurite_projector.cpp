@@ -856,7 +856,7 @@ static void pos_on_surface_bp_inner
     const NeuriteProjector* np,
     float scale
 ) {
-	/// TODO: implement: This method scales down too much still!
+	/// TODO: This method scales down too much still?! Needs some debugging...
 	const std::vector<NeuriteProjector::Section>& vSections = neurite.vSec;
 
     // preparations for Newton method:
@@ -897,7 +897,9 @@ static void pos_on_surface_bp_inner
     }
 
     // determine suitable start position for Newton iteration
-    pos_on_surface_neurite(posOut, np->neurite(neuriteID), neuriteID, t, angle, 1.0); /// TODO: is 1.0 better here? then correct axial parameters in test_neurite_project too and intersections should be gone... still inner neurite seems to be twisted after projection
+    /// TODO: is 1.0 better here? then correct axial parameters in test_neurite_project too and the
+    ///       intersection should be gone. however still inner neurite seems to be twisted after projection
+    pos_on_surface_neurite(posOut, np->neurite(neuriteID), neuriteID, t, angle, 1.0);
     //bp_newton_start_pos(posOut, vProjHelp, neuriteID, angle, parent, np);
 
     // perform Newton iteration
@@ -954,10 +956,25 @@ static void pos_on_surface_bp_inner
 
 }
 
-static void pos_on_surface_soma
+static void pos_on_surface_soma_bp
 (
+		vector3& posOut,
+	    const NeuriteProjector::Neurite& neurite,
+		size_t neuriteID,
+	    float& t,
+	    float& angle,
+	    const IVertexGroup* parent,
+	    const NeuriteProjector* np
 ) {
-	/// TODO: implement
+	/// TODO: implement according to WORD notes
+    const std::vector<NeuriteProjector::Section>& vSections = neurite.vSec;
+
+    // 1. preparations for Newton method:
+    // save integration start and end positions of soma connection
+    // also save a section iterator to start from
+
+    // 2. determine suitable start position for Newton iteration
+    pos_on_surface_neurite(posOut, np->neurite(neuriteID), neuriteID, t, angle, 1.0);
 }
 
 
@@ -1118,13 +1135,13 @@ number NeuriteProjector::push_onto_surface(Vertex* vrt, const IVertexGroup* pare
         std::upper_bound(vBR.begin(), vBR.end(), cmpBR, CompareBranchingRegionEnds());
     if (it != vBR.end() && it->tstart < t) {
     	float scale = m_aaSurfParams[parent->vertex(0)].scale;
+    	// case2: outer BPs
     	if (scale == 1.0) {
     		pos_on_surface_bp(pos, neurite, neuriteID, t, angle, it, parent, this);
+   		// case 2: inner BPs
     	} else {
-    		// case 2: TODO handle inner BPs: If we handle in the same way, intersections might arise (axial parameter has to be correct for split heaxeder).
+    		/// TODO: This needs optimization (axial parameter in split hexaeder function -> otherwise might result on intersections)
     		pos_on_surface_bp_inner(pos, neurite, neuriteID, t, angle, it, parent, this, scale);
-    		///return 1; /// Use current position, for refinement method above needs to be corrected...
-    		/// (Correct axial pos on surface bp inner or correct final position?)
     	}
     // case 3: normal neurite position
     } else if (t < 1.0) {
@@ -1134,13 +1151,11 @@ number NeuriteProjector::push_onto_surface(Vertex* vrt, const IVertexGroup* pare
     } else if (t >= 1.0 && t < 3.0) {
     	float scale = m_aaSurfParams[parent->vertex(0)].scale;
         pos_on_surface_tip(pos, neurite, parent, this, scale);
-    // case 5: soma
+    // case 5: soma "branching points"
     } else if (t < 0) {
-    	UG_LOGN("Handling soma!");
-    	/// Note 3: TODO can probably be ignored since SomaProjector handles it!
-    	/// Note 1: Soma and connecting regions are not handled, because they are not in subset 0 for now (change to all subsets)
-    	/// Note 2: TODO: The aaSurfParam[vrts] have to be set correctly in test_neurite_projector for soma and connecting regions
-    	//pos_on_surface_soma();
+    	UG_LOGN("Handling soma (as BP!)!");
+    	/// TODO: The aaSurfParam[vrts] have to be set correctly in test_neurite_projector for soma, e.g. -5*radius of initial cylinder/quad
+    	pos_on_surface_soma_bp(pos, neurite, neuriteID, t, angle,  parent, this);
     } else {
     	UG_LOGN("Unexpected case met!");
     }
