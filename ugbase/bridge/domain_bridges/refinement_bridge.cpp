@@ -49,6 +49,7 @@
 #include "lib_grid/refinement/global_multi_grid_refiner.h"
 #include "lib_grid/refinement/hanging_node_refiner_multi_grid.h"
 #include "lib_grid/refinement/ref_mark_adjusters/horizontal_anisotropy_adjuster.h"
+#include "lib_grid/refinement/ref_mark_adjusters/shadow_copy_adjuster.h"
 #include "lib_grid/algorithms/subdivision/subdivision_volumes.h"
 #include "lib_grid/grid_objects/tetrahedron_rules.h"
 #ifdef UG_PARALLEL
@@ -209,6 +210,23 @@ AddHorizontalAnisotropyAdjuster(IRefiner* ref, TDomain* dom)
 
 	href->add_ref_mark_adjuster(haa);
 	return haa;
+}
+
+
+/**
+ * @brief Adds a ShadowCopyAdjuster to the given refiner
+ * @param ref   the refiner; has to be derived from HangingNodeRefiner_MultiGrid
+ */
+static SPIRefMarkAdjuster
+AddShadowCopyAdjuster(IRefiner* ref)
+{
+	HangingNodeRefiner_MultiGrid* href = dynamic_cast<HangingNodeRefiner_MultiGrid*>(ref);
+	UG_COND_THROW(!href, "A ShadowCopyAdjuster can only be added to an instance of HangingNodeRefiner_MultiGrid.");
+
+	SmartPtr<ShadowCopyAdjuster> sca = make_sp(new ShadowCopyAdjuster());
+
+	href->add_ref_mark_adjuster(sca);
+	return sca;
 }
 
 
@@ -1696,6 +1714,9 @@ static void Common(Registry& reg, string grp)
 		.add_function("MarkNeighborsForAnisotropicRefinement",
 				&MarkNeighborsForAnisotropicRefinement,
 				grp, "", "refiner#sideNeighborsOnly");
+
+	reg.add_function("AddShadowCopyAdjuster", &AddShadowCopyAdjuster, grp, "", "refiner");
+
 }
 
 /**

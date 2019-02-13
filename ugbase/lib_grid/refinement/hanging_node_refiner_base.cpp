@@ -768,7 +768,6 @@ void HangingNodeRefinerBase<TSelector>::perform_refinement()
 
 		//	a normal edge may have previously been created by replacing a
 		//	constrained or constraining edge. Those edges won't be considered here
-			// FIXME: This is not correct at least for constrained edges! Remove marked_to_normal()!
 			if(!refinement_is_allowed(e)){
 				continue;
 			}
@@ -1317,6 +1316,13 @@ assign_hnode_marks()
 				}
 			}
 		}
+
+		// FIXME: Also take care of (unmarkable) SHADOW_COPY edges
+		// whose children are marked for refinement:
+		// These children need to be marked HNRM_TO_CONSTRAINING!
+		// How can these be identified!?
+		// This is now only implemented in HaningNodeRefiner_MultiGrid::assign_hnode_marks
+
 	}
 }
 
