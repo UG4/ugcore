@@ -66,8 +66,8 @@ class BinghamViscosityLinker
 	//  Constructor
 	public:
 		BinghamViscosityLinker() :
-			m_spViscosity(NULL), m_spDViscosity(NULL),
 			m_spDensity(NULL), m_spDDensity(NULL),
+			m_spViscosity(NULL), m_spDViscosity(NULL),
 			m_spYieldStress(NULL), m_spDYieldStress(NULL),
 			m_spVelocityGrad(NULL), m_spDVelocityGrad(NULL)
 		{
