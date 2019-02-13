@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2015:  G-CSC, Goethe University Frankfurt
- * Author: Sebastian Reiter
+ * Author: Markus Breit
  * 
  * This file is part of UG4.
  * 
