@@ -146,7 +146,9 @@ class NeuriteProjector
             std::vector<BranchingRegion> vBR;
             bool bHasER;
             number scaleER;
-            bool bIsSoma;
+            number somaStart;
+            number somaRadius;
+            vector3 somaPt;
 
             template <class Archive>
             void serialize(Archive& ar, const unsigned int version)
@@ -173,6 +175,7 @@ class NeuriteProjector
 		    float axial;
 		    float angular;
 		    float scale = 1.0;
+		    bool soma = false;
 		};
 
 
@@ -193,6 +196,8 @@ class NeuriteProjector
         {
             number start;
             number end;
+            number radius;
+            vector3 posSoma;
             std::vector<Section>::const_iterator sec_start;
         };
 
