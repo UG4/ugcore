@@ -1094,8 +1094,6 @@ static void pos_on_surface_soma_bp
 	    const NeuriteProjector* np,
 	    float scale
 ) {
-    const std::vector<NeuriteProjector::Section>& vSections = neurite.vSec;
-
     number somaStart = 0;
     number somaEnd = 0;
     number somaRadius = 0;
@@ -1315,12 +1313,12 @@ number NeuriteProjector::push_onto_surface(Vertex* vrt, const IVertexGroup* pare
     	float scale = m_aaSurfParams[parent->vertex(0)].scale;
         pos_on_surface_tip(pos, neurite, parent, this, scale);
     // case 5: soma "branching points"
-    } else if (t < 0) {
+    } else if (t <= 0) {
     	UG_LOGN("Handling soma (as BP!)!");
     	float scale = m_aaSurfParams[parent->vertex(0)].scale;
     	pos_on_surface_soma_bp(pos, neurite, neuriteID, t, angle,  parent, this, scale);
     } else {
-    	UG_LOGN("Unexpected case met!");
+    	UG_LOGN("Unexpected case met! t = " << t);
     }
 
     // save new surface params for new vertex
