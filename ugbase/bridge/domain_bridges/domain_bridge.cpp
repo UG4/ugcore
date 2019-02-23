@@ -432,6 +432,9 @@ static void Domain(Registry& reg, string grp)
 // 	MaxElementDiameter
 	reg.add_function("MaxElementDiameter", static_cast<number (*)(TDomain&, int)>(
 					 &MaxElementDiameter<TDomain>), grp);
+// 	MinElementDiameter
+	reg.add_function("MinElementDiameter", static_cast<number (*)(TDomain&, int)>(
+					 &MinElementDiameter<TDomain>), grp);
 
 // 	LoadDomain
 	reg.add_function("LoadDomain", static_cast<void (*)(TDomain&, const char*)>(

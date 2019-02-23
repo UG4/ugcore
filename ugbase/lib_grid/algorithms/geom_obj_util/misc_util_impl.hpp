@@ -40,6 +40,8 @@
 #include "face_util.h"
 #include "volume_util.h"
 
+#include <limits>
+
 namespace ug
 {
 
@@ -299,6 +301,23 @@ number MaxElementDiameter(Grid& grid, TAAPos& aaPos,
 #endif
 
 	return std::sqrt(max);
+}
+
+template <class TAAPos, class TIterator>
+number MinElementDiameter(Grid& grid, TAAPos& aaPos,
+                          TIterator iter, TIterator iterEnd)
+{
+	number min = std::numeric_limits<number>::max();
+	for(; iter != iterEnd; ++iter)
+		min = std::min(min, ElementDiameterSq(grid, aaPos, *iter));
+
+#ifdef UG_PARALLEL
+	// share value between all procs
+	pcl::ProcessCommunicator com;
+	min = com.allreduce(min, PCL_RO_MIN);
+#endif
+
+	return std::sqrt(min);
 }
 
 
