@@ -122,10 +122,17 @@ function UJS_Submit
 			return
 		fi
 		
+		# project for accounting
+		if [ -z "$juwels_project" ]; then
+			echo "Juwels-project parameter must be set (for accounting)."
+			return
+		fi
+		
 		
 		# write job script		
 		cat > job.sh << EOF
 #!/bin/bash
+#SBATCH --account=$juwels_project
 #SBATCH --job-name=$jobname
 #SBATCH --nodes=$nnodes
 #SBATCH --ntasks=$npe

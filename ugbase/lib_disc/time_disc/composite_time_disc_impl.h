@@ -213,7 +213,7 @@ void CompositeTimeDiscretization<TAlgebra>::assemble_rhs(vector_type& b, const G
 template <typename TAlgebra>
 void CompositeTimeDiscretization<TAlgebra>::adjust_solution(vector_type& u, const GridLevel& gl)
 {
-	for (size_t i = 1; i < m_vTimeDisc.size(); ++i)
+	for (size_t i = 0; i < m_vTimeDisc.size(); ++i)
 		m_vTimeDisc[i]->adjust_solution(u, gl);
 }
 
@@ -221,7 +221,7 @@ template <typename TAlgebra>
 SmartPtr<AssemblingTuner<TAlgebra> > CompositeTimeDiscretization<TAlgebra>::ass_tuner()
 {
 	SmartPtr<CompositeAssTuner> sp = make_sp(new CompositeAssTuner());
-	for (size_t i = 1; i < m_vTimeDisc.size(); ++i)
+	for (size_t i = 0; i < m_vTimeDisc.size(); ++i)
 		sp->add_ass_tuner(((IAssemble<TAlgebra>*)m_vTimeDisc[i].get())->ass_tuner());
 
 	return sp;
@@ -237,7 +237,7 @@ template <typename TAlgebra>
 size_t CompositeTimeDiscretization<TAlgebra>::num_constraints() const
 {
 	size_t n = 0;
-	for (size_t i = 1; i < m_vTimeDisc.size(); ++i)
+	for (size_t i = 0; i < m_vTimeDisc.size(); ++i)
 		n += m_vTimeDisc[i]->num_constraints();
 
 	return n;
@@ -252,10 +252,12 @@ SmartPtr<IConstraint<TAlgebra> > CompositeTimeDiscretization<TAlgebra>::constrai
 	size_t n = 0;
 	size_t k = 0;
 
-	while (n += m_vTimeDisc[k]->num_constraints() <= i)
+	while ((n += m_vTimeDisc[k]->num_constraints()) <= i)
 		++k;
 
-	return m_vTimeDisc[k]->constraint(i - n);
+	const size_t indInCurTD = i - (n - m_vTimeDisc[k]->num_constraints());
+
+	return m_vTimeDisc[k]->constraint(indInCurTD);
 }
 
 } // end namespace ug

@@ -167,7 +167,7 @@ To build *UG4* as shared library for VRL-Studio, different CMake options have to
 ```
 cd path/to/ug4
 mkdir build_vrl && cd build_vrl
-cmake .. -DTARGET=vrl -DLAPACK=OFF -DBLAS=OFF -DDIM=all -DCPU="1;2" -DCOMPILE_INFO=OFF -DEMBEDDED_PLUGINS=ON -DSTATIC_BUILD=OFF
+cmake .. -DTARGET=vrl -DLAPACK=OFF -DBLAS=OFF -DDIM=ALL -DCPU="1;2" -DCOMPILE_INFO=OFF -DEMBEDDED_PLUGINS=ON -DSTATIC_BUILD=OFF
 make -j
 ```
 

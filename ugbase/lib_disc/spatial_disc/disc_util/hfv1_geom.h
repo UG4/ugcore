@@ -256,7 +256,7 @@ class HFV1Geometry : public FVGeometryBase{
 		void print();
 
 	///	get the element
-		TElem* elem() const {return m_pElem;}
+		GridObject* elem() const {return m_pElem;}
 
 	public:
 	/// number of SubControlVolumeFaces
@@ -464,7 +464,7 @@ class HFV1Geometry : public FVGeometryBase{
 
 	private:
 	// 	pointer to current element
-		TElem* m_pElem;
+		GridObject* m_pElem;
 
 		std::vector<MathVector<dim> > m_locMid[dim+1];
 		std::vector<MathVector<worldDim> > m_gloMid[dim+1];

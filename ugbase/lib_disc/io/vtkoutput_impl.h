@@ -2552,7 +2552,7 @@ write_pvtu(TFunction& u, const std::string& filename,
 	//	Write to file
 		fprintf(file, "<?xml version=\"1.0\"?>\n");
 		fprintf(file, "<VTKFile type=\"PUnstructuredGrid\" version=\"0.1\">\n");
-		fprintf(file, "  <Time timestep=\"%g\"/>\n", time);
+		fprintf(file, "  <Time timestep=\"%.17g\"/>\n", time);
 		fprintf(file, "  <PUnstructuredGrid GhostLevel=\"0\">\n");
 		fprintf(file, "    <PPoints>\n");
 		fprintf(file, "      <PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>\n");
@@ -2748,7 +2748,7 @@ write_time_pvd(const char* filename, TFunction& u)
 				if(numProcs > 1) pvtu_filename(name, filename, -1, 0, step);
 
 				name = FilenameWithoutPath(name);
-				fprintf(file, "  <DataSet timestep=\"%g\" part=\"%d\" file=\"%s\"/>\n",
+				fprintf(file, "  <DataSet timestep=\"%.17g\" part=\"%d\" file=\"%s\"/>\n",
 				        		vTimestep[step], 0, name.c_str());
 			}
 		}
@@ -2761,7 +2761,7 @@ write_time_pvd(const char* filename, TFunction& u)
 					if(numProcs > 1) pvtu_filename(name, filename, si, u.num_subsets()-1, step);
 
 					name = FilenameWithoutPath(name);
-					fprintf(file, "  <DataSet timestep=\"%g\" part=\"%d\" file=\"%s\"/>\n",
+					fprintf(file, "  <DataSet timestep=\"%.17g\" part=\"%d\" file=\"%s\"/>\n",
 					        	vTimestep[step], si, name.c_str());
 				}
 		}
@@ -2832,7 +2832,7 @@ write_time_processwise_pvd(const char* filename, TFunction& u)
 					if(numProcs > 1) pvtu_filename(name, filename, si, u.num_subsets()-1, step);
 
 					name = FilenameWithoutPath(name);
-					fprintf(file, "  <DataSet timestep=\"%g\" part=\"%d\" file=\"%s\"/>\n",
+					fprintf(file, "  <DataSet timestep=\"%.17g\" part=\"%d\" file=\"%s\"/>\n",
 					        vTimestep[step], rank, name.c_str());
 				}
 

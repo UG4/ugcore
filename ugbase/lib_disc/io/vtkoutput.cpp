@@ -317,7 +317,7 @@ write_subset_pvd(int numSubset, const std::string& filename, int step, number ti
 			if(numProcs > 1) pvtu_filename(name, filename, si, numSubset-1, step);
 
 			name = FilenameWithoutPath(name);
-			fprintf(file, "  <DataSet timestep=\"%g\" part=\"%d\" file=\"%s\"/>\n",
+			fprintf(file, "  <DataSet timestep=\"%.17g\" part=\"%d\" file=\"%s\"/>\n",
 			        		time, si, name.c_str());
 		}
 
@@ -354,7 +354,7 @@ write_subset_pvd(int numSubset, const std::string& filename, int step, number ti
 				if(numProcs > 1) pvtu_filename(name, filename, si, numSubset-1, step);
 
 				name = FilenameWithoutPath(name);
-				fprintf(file, "  <DataSet timestep=\"%g\" part=\"%d\" file=\"%s\"/>\n",
+				fprintf(file, "  <DataSet timestep=\"%.17g\" part=\"%d\" file=\"%s\"/>\n",
 				        	time, r, name.c_str());
 			}
 

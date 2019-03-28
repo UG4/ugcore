@@ -102,13 +102,12 @@ class NeuriteProjector
 		struct BranchingPoint;
 		struct BranchingRegion
 		{
-            BranchingRegion() : tstart(0.0), tend(0.0), bp(SPNULL) {} // constructor for serialization
-            BranchingRegion(number _tend)       // constructor for search with CompareBranchingPointEnds
-		    : tstart(_tend), tend(_tend) {}
+            BranchingRegion() : t(0.0), bp(SPNULL) {} // constructor for serialization
+            BranchingRegion(number _t)       // constructor for search with CompareBranchingPointEnds
+		    : t(_t) {}
 
-		    /// the parameter range for this branching point
-            number tstart;
-            number tend;
+		    /// the axial parameter where other neurite(s) branch off
+            number t;
 
             /// pointer to whole branching point
             SmartPtr<BranchingPoint> bp;
@@ -116,14 +115,13 @@ class NeuriteProjector
             template<class Archive>
             void save(Archive & ar, const unsigned int version) const
             {
-                ar << tstart;
-                ar << tend;
+                ar << t;
 
                 // the following won't work:
                 //bool owns_bp = bp->vRegions[0] == this;
                 // pointers are not identical if constructed outside of projector
             	// but this is unsafe:
-                bool owns_bp = tstart == bp->vRegions[0]->tstart && tend == bp->vRegions[0]->tend;
+                bool owns_bp = t == bp->vRegions[0]->t;
                 ar << owns_bp;
                 if (owns_bp)
                 	ar << *bp;
@@ -133,8 +131,7 @@ class NeuriteProjector
             void load(Archive & ar, const unsigned int version)
             {
                 // invoke serialization of the base class
-                ar >> tstart;
-                ar >> tend;
+                ar >> t;
 
                 bool owns_bp;
                 ar >> owns_bp;
@@ -151,7 +148,7 @@ class NeuriteProjector
 
         struct BranchingPoint
         {
-	        std::vector<size_t> vNid;
+	        std::vector<uint32_t> vNid;
             std::vector<BranchingRegion*> vRegions;
 
             template <class Archive>
@@ -196,6 +193,19 @@ class NeuriteProjector
 
 		struct SurfaceParams
 		{
+			/**
+			 * @brief Neurite ID a vertex belongs to
+			 *
+			 * Only the low 20 bits are used for ordinary vertices, i.e.,
+			 * vertices that do not belong to two neurites at a branching point.
+			 * In branching points, the high 4 bits encode which of the child
+			 * neurites share the vertex: bit 28 for child 0, bit 29 for child 1,
+			 * bit 30 for child 2 and bit 31 for child 3.
+			 * Bits 20-27 are used to encode the branching region on the parent
+			 * neurite.
+			 * There cannot be more than 256 branching regions per neurite.
+			 * There cannot be more than 4 children per branching point.
+			 */
 		    uint32 neuriteID;
 		    float axial;
 		    float angular;
@@ -212,7 +222,7 @@ class NeuriteProjector
         struct CompareBranchingRegionEnds
         {
             bool operator()(const BranchingRegion& a, const BranchingRegion& b)
-            {return a.tend < b.tend;}
+            {return a.t < b.t;}
         };
 
         // helper struct for branching point calculations
@@ -227,7 +237,7 @@ class NeuriteProjector
 
 	public:
         void add_neurite(const Neurite& n);
-        const Neurite& neurite(size_t nid) const;
+        const Neurite& neurite(uint32_t nid) const;
 
         Grid::VertexAttachmentAccessor<Attachment<SurfaceParams> >& surface_params_accessor();
         const Grid::VertexAttachmentAccessor<Attachment<SurfaceParams> >& surface_params_accessor() const;
@@ -236,16 +246,27 @@ class NeuriteProjector
 
         void average_pos_from_parent(vector3& posOut, const IVertexGroup* parent) const;
 
+        //void average_pos_from_parent_weighted(vector3& posOut, const IVertexGroup* parent) const;
+
         vector3 position(Vertex* vrt) const;
 
+        number axial_range_around_branching_region
+		(
+			uint32_t nid,
+			size_t brInd,
+			number numberOfRadii = 5.0
+		) const;
+
+        void print_surface_params(Vertex* v) const;
+
     protected:
-        const Section& get_section(uint32 nid, float t) const;
+        std::vector<Section>::const_iterator get_section_iterator(uint32_t nid, float t) const;
 
         void prepare_quadrature();
 
 		void average_params
 		(
-			size_t& neuriteID,
+			uint32_t& neuriteID,
 			float& t,
 			float& angle,
 			float& radius,
