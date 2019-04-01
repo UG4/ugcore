@@ -99,7 +99,8 @@ class CopyAttachmentHandler : public GridObserver
 {
 	public:
 		/// constructor
-		CopyAttachmentHandler() {}
+		CopyAttachmentHandler()
+		: m_bEnableVertComm(true) {}
 
 		/// destructor
 		virtual ~CopyAttachmentHandler()
@@ -151,6 +152,12 @@ class CopyAttachmentHandler : public GridObserver
 			// copy to all levels that are already present
 			propagate_to_levels();
 		}
+
+		void enable_vertical_communication(bool b)
+		{
+			m_bEnableVertComm = b;
+		}
+
 
 		// GridObserver implementations
 		virtual void vertex_created
@@ -272,10 +279,10 @@ class CopyAttachmentHandler : public GridObserver
 
 		void propagate_to_levels()
 		{
-			// yes, "<=" is what we want here!
-			// this ensures a final vertical communication on the top level
-			for (size_t i = 1; i <= m_spMG->num_levels(); ++i)
-				propagate_to_level(i);
+			// ensure a final vertical communication on the top level
+			const size_t nProp = m_bEnableVertComm ? m_spMG->num_levels() + 1 : m_spMG->num_levels();
+			for (size_t i = 1; i < nProp; ++i)
+				propagate_to_level(i, m_bEnableVertComm);
 		}
 
 		void propagate_to_level(size_t lvl, bool vertComm = true)
@@ -317,6 +324,8 @@ class CopyAttachmentHandler : public GridObserver
 	protected:
 		/// multigrid
 		SmartPtr<MultiGrid> m_spMG;
+
+		bool m_bEnableVertComm;
 
 		/// attachment to be handled
 		TAttachment m_a;

@@ -39,8 +39,7 @@ namespace ug {
 
 /**
  * @brief Finds the neighbor connected through a side.
- * If such a neighbor does not exist
- *
+ * If such a neighbor does not exist, NULL is returned.
  */
 template <typename TBaseElem>
 TBaseElem* GetConnectedNeighbor(Grid& g, typename TBaseElem::side* face, TBaseElem* elem);

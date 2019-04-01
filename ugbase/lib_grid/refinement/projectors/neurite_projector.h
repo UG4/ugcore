@@ -64,8 +64,12 @@ class NeuriteProjector
 		///	called when a new vertex was created from an old face.
 		virtual number new_vertex(Vertex* vrt, Volume* parent);
 
+		/// project a vertex to its model position
+		void project(Vertex* vrt);
+
 		/// spline direction at some grid object
 		void direction_at_grid_object(vector3& dirOut, GridObject* o) const;
+
 
 	protected:
 		void attach_surf_params();
@@ -117,11 +121,7 @@ class NeuriteProjector
             {
                 ar << t;
 
-                // the following won't work:
-                //bool owns_bp = bp->vRegions[0] == this;
-                // pointers are not identical if constructed outside of projector
-            	// but this is unsafe:
-                bool owns_bp = t == bp->vRegions[0]->t;
+                bool owns_bp = bp->vRegions[0] == this;
                 ar << owns_bp;
                 if (owns_bp)
                 	ar << *bp;
@@ -236,7 +236,7 @@ class NeuriteProjector
         void debug_neurites() const;
 
 	public:
-        void add_neurite(const Neurite& n);
+        std::vector<Neurite>& neurites();
         const Neurite& neurite(uint32_t nid) const;
 
         Grid::VertexAttachmentAccessor<Attachment<SurfaceParams> >& surface_params_accessor();

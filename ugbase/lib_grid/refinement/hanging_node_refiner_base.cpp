@@ -2037,7 +2037,7 @@ refine_volume_with_normal_vertex(Volume* v, Vertex** newCornerVrts)
 			if(vNewEdgeVertices[i])
 				noEdgeVrts = false;
 			UG_COND_THROW(!(marked_adaptive(v) || vNewEdgeVertices[i]),
-						"In order to fully refine a volume, all edges have"
+						"In order to fully refine a volume, all edges have "
 						"to contain a new vertex!");
 		}
 	}

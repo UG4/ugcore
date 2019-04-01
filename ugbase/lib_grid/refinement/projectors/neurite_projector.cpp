@@ -39,6 +39,7 @@
 
 #include <boost/lexical_cast.hpp>
 #include <cmath>
+#include <iterator>  // for distance
 
 namespace ug {
 
@@ -102,19 +103,25 @@ void NeuriteProjector::set_geometry(SPIGeometry3d geometry)
 
 number NeuriteProjector::new_vertex(Vertex* vrt, Edge* parent)
 {
-    return push_into_place(vrt, parent);
+	return push_into_place(vrt, parent);
 }
 
 
 number NeuriteProjector::new_vertex(Vertex* vrt, Face* parent)
 {
-    return push_into_place(vrt, parent);
+	return push_into_place(vrt, parent);
 }
 
 
 number NeuriteProjector::new_vertex(Vertex* vrt, Volume* parent)
 {
-    return push_into_place(vrt, parent);
+	return push_into_place(vrt, parent);
+}
+
+
+void NeuriteProjector::project(Vertex* vrt)
+{
+	push_into_place(vrt, (IVertexGroup*) NULL);
 }
 
 
@@ -127,7 +134,7 @@ void NeuriteProjector::direction_at_grid_object(vector3& dirOut, GridObject* o) 
         UG_COND_THROW(!v, "Non-vertex with VERTEX base object id.")
 
         const SurfaceParams& sp = m_aaSurfParams[v];
-        uint32_t nid = (sp.neuriteID << 12 ) >> 12;
+        uint32_t nid = sp.neuriteID & ((1 << 20) - 1);
         float t = sp.axial;
 
         const Section& sec = *get_section_iterator(nid, t);
@@ -202,6 +209,14 @@ void NeuriteProjector::attach_surf_params()
         // never destroy the grid from here - we did not create it
         ++(*spMG.refcount_ptr());
 
+        // Vertical communication needs to be disabled for this CopyAttachmentHandler,
+        // Otherwise the programm will be in a deadlock when the geometry is distributed and refined
+        // after the first refinement (processes that did not have any geometry during the first
+        // refinement step will try to communicate with the previous owners of their grid,
+        // but they never get here).
+        // Besides, the vertical communication is not needed as the surface params are a
+        // global attachment which is always distributed with the grid (when declared)
+        m_cah.enable_vertical_communication(false);
         m_cah.set_attachment(m_aSurfParams);
         m_cah.set_grid(spMG);
     }
@@ -241,9 +256,9 @@ void NeuriteProjector::debug_neurites() const
 }
 
 
-void NeuriteProjector::add_neurite(const Neurite& n)
+std::vector<NeuriteProjector::Neurite>& NeuriteProjector::neurites()
 {
-    m_vNeurites.push_back(n);
+	return m_vNeurites;
 }
 
 
@@ -729,9 +744,9 @@ void NeuriteProjector::average_params
     if (fabs(t-2.0) < 1e-8)
     	return;
 
-    if (VecTwoNorm(v) / nVrt < 0.5 * radius)
+    if (VecTwoNorm(v) / nVrt < 0.4 * radius && (nVrt == 4 || nVrt == 8))
     {
-if (VecTwoNorm(v) / nVrt > 0.1 * radius)
+if (VecTwoNorm(v) / nVrt > 0.2 * radius)
 {
 	UG_LOGN("HERE: radius " << radius << " -> 0  (real: " << VecTwoNorm(v) / nVrt << ")");
 	//UG_LOGN("      plainNID " << plainNID);
@@ -835,7 +850,11 @@ number NeuriteProjector::axial_range_around_branching_region
 	const Neurite& neurite = m_vNeurites[nid];
 	const BranchingRegion& br = neurite.vBR[brInd];
 
-	std::vector<Section>::const_iterator secIt = get_section_iterator(nid, br.t);
+	std::vector<Section>::const_iterator secIt;
+	try {secIt = get_section_iterator(nid, br.t);}
+	UG_CATCH_THROW("Could not get section iterator to branching region " << brInd << " at t = " << br.t
+		<< " of neurite " << nid << " (which has " << neurite.vBR.size() << " branching regions).");
+
 	vector3 secStartPos;
 	vector3 secEndPos;
 	const number te = secIt->endParam;
@@ -882,6 +901,7 @@ static void bp_defect_and_gradient
     const std::vector<NeuriteProjector::BPProjectionHelper>& bpList,
     const vector3& x,
 	number rad,
+	const vector3& constAngleSurfNormal,
     const NeuriteProjector* np
 )
 {
@@ -932,6 +952,9 @@ static void bp_defect_and_gradient
     }
 
     defectOut -= sqrt(PI)*exp(-1.0);
+
+    // project gradient to surface of constant angle
+    VecScaleAppend(gradientOut, -VecDot(constAngleSurfNormal, gradientOut), constAngleSurfNormal);
 }
 
 
@@ -967,7 +990,8 @@ static void newton_for_bp_projection
 (
     vector3& posOut,
     const std::vector<NeuriteProjector::BPProjectionHelper>& vProjHelp,
-	number rad,
+	float rad,
+	const vector3& constAngleSurfNormal,
     const NeuriteProjector* np
 )
 {
@@ -976,22 +1000,24 @@ static void newton_for_bp_projection
     number def;
     number def_init;
     vector3 grad;
-    bp_defect_and_gradient(def, grad, vProjHelp, posOut, rad, np);
+    bp_defect_and_gradient(def, grad, vProjHelp, posOut, rad, constAngleSurfNormal, np);
     def_init = fabs(def);
 
     // perform some kind of Newton search for the correct position
     size_t maxIt = 10;
     number minDef = 1e-8*sqrt(PI)*exp(-1.0);
     size_t iter = 0;
+    number corr = 1.0;
 
 //UG_LOGN(iter << "  " << def << "  " << grad << "  " << posOut);
     while (fabs(def) > minDef && fabs(def) > 1e-8 * def_init && ++iter <= maxIt)
     {
+    	corr /= 2;  // start with reduced step size to prevent overshooting in case the start position is too bad
         vector3 posTest;
         vector3 gradTest;
         number defTest;
-        VecScaleAdd(posTest, 1.0, posOut, -def / VecNormSquared(grad), grad);
-        bp_defect_and_gradient(defTest, gradTest, vProjHelp, posTest, rad, np);
+        VecScaleAdd(posTest, 1.0, posOut, -(1.0-corr)*def / VecNormSquared(grad), grad);
+        bp_defect_and_gradient(defTest, gradTest, vProjHelp, posTest, rad, constAngleSurfNormal, np);
 
         // line search
         number lambda = 0.5;
@@ -1002,7 +1028,7 @@ static void newton_for_bp_projection
         {
 //UG_LOGN("    line search with lambda = " << lambda);
             VecScaleAdd(posTest, 1.0, posOut, -lambda*def / VecNormSquared(grad), grad);
-            bp_defect_and_gradient(defTest, gradTest, vProjHelp, posTest, rad, np);
+            bp_defect_and_gradient(defTest, gradTest, vProjHelp, posTest, rad, constAngleSurfNormal, np);
             if (fabs(defTest) < fabs(bestDef))
             {
                 bestDef = defTest;
@@ -1140,7 +1166,10 @@ static void pos_in_bp
 		UG_COND_THROW(!br, "Requested branching region not accessible.");
 
 		// integrate over twice the size of the original BR (i.e., 10 times rad*radius in each direction)
-		const number range = np->axial_range_around_branching_region(nid, (size_t) (br - &np->neurite(nid).vBR[0]), 10.0*rad);
+		number range = 0.0;
+		try {range = np->axial_range_around_branching_region(nid,
+			(size_t) (br - &np->neurite(nid).vBR[0]), 10.0*rad);}
+		UG_CATCH_THROW("Range around branching region could not be calculated.");
 		start = std::max(br->t - range, 0.0);
 		end = std::min(br->t + range, 1.0);
 
@@ -1156,14 +1185,30 @@ static void pos_in_bp
 		}
 	}
 
+	// also calculate normal of constant-angle surface
+	vector3 constAngleSurfNormal;
+	NeuriteProjector::Section cmpSec(t);
+	const std::vector<NeuriteProjector::Section>& vSections = neurite.vSec;
+	std::vector<NeuriteProjector::Section>::const_iterator secIt =
+		std::lower_bound(vSections.begin(), vSections.end(), cmpSec, NeuriteProjector::CompareSections());
+
+	vector3 s, v;
+	number radius;
+	compute_position_and_velocity_in_section(s, v, radius, secIt, t);
+	vector3 projRefDir;
+	vector3 thirdDir;
+	compute_ONB(constAngleSurfNormal, projRefDir, thirdDir, v, neurite.refDir);
+	VecScaleAdd(constAngleSurfNormal, sin(angle), projRefDir, -cos(angle), thirdDir);
+
 	// determine suitable start position for Newton iteration
-	np->average_pos_from_parent(posOut, parent); // best results on regular BPs
+	if (parent)
+		np->average_pos_from_parent(posOut, parent); // best results on regular BPs
 	//pos_in_neurite(posOut, np->neurite(neuriteID), neuriteID, t, angle, rad);
 	//bp_newton_start_pos(posOut, neuriteID, t, angle, rad, parent, np);
 
 
 	// perform Newton iteration
-	try {newton_for_bp_projection(posOut, vProjHelp, rad, np);}
+	try {newton_for_bp_projection(posOut, vProjHelp, rad, constAngleSurfNormal, np);}
 	UG_CATCH_THROW("Newton iteration for neurite projection at branching point failed"
 			" in neurite " << neuriteID << ".");
 
@@ -1175,22 +1220,10 @@ static void pos_in_bp
 	// v(t) = v(t0)
 	// Then from v(t) * (s(t)-pos) = 0, we get:
 	// t = t0 + v(t0) * (pos - s(t0)) / (v(t0)*v(t0))
-	vector3 s, v;
-	number radius;
-
-	NeuriteProjector::Section cmpSec(t);
-	const std::vector<NeuriteProjector::Section>& vSections = neurite.vSec;
-	std::vector<NeuriteProjector::Section>::const_iterator secIt =
-		std::lower_bound(vSections.begin(), vSections.end(), cmpSec, NeuriteProjector::CompareSections());
-
-	compute_position_and_velocity_in_section(s, v, radius, secIt, t);
 	VecSubtract(s, posOut, s);
 	t += VecProd(v,s) / VecProd(v,v);
 
 	// and now angle
-	vector3 projRefDir;
-	vector3 thirdDir;
-	compute_ONB(v, projRefDir, thirdDir, v, neurite.refDir);
 	if (rad > 1e-5)
 		angle = compute_angle(v, projRefDir, thirdDir, s);
 
@@ -1254,7 +1287,15 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 	float t;
 	float angle;
 	float rad;
-	average_params(neuriteID, t, angle, rad, parent);
+	if (parent)
+		average_params(neuriteID, t, angle, rad, parent);
+	else
+	{
+		neuriteID = m_aaSurfParams[vrt].neuriteID;
+		t = m_aaSurfParams[vrt].axial;
+		angle = m_aaSurfParams[vrt].angular;
+		rad = m_aaSurfParams[vrt].radial;
+	}
 
 	//UG_LOGN("averaged params: nid " << neuriteID << "   t " << t << "   angle "
 	//		<< angle << "   rad " << rad);
@@ -1267,7 +1308,7 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 	const std::vector<BranchingRegion>& vBR = neurite.vBR;
 
 	// vector for new position
-	vector3 pos(0.0);
+	vector3 pos(position(vrt));
 
 	// FOUR CASES can occur:
 	// 1. We are at a branching point.
@@ -1276,14 +1317,36 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 	// 4. We are at the soma.
 
 	// case 1: branching point?
+	bool isBP = false;
 	BranchingRegion cmpBR(t);
 	std::vector<BranchingRegion>::const_iterator it =
 		std::lower_bound(vBR.begin(), vBR.end(), cmpBR, CompareBranchingRegionEnds());
 
-	if ((it != vBR.end() && it->t - t < axial_range_around_branching_region(plainNID, (size_t) (it - vBR.begin()), 5.0*rad))
-		|| (it-- != vBR.begin() && t - it->t < axial_range_around_branching_region(plainNID, (size_t) (it - vBR.begin()), 5.0*rad)))
-		pos_in_bp(pos, neurite, plainNID, t, angle, rad, it, parent, this);
+	if (it != vBR.end())
+	{
+		number range = 0.0;
+		try {range = axial_range_around_branching_region(plainNID, std::distance(vBR.begin(), it), 5.0*rad);}
+		UG_CATCH_THROW("Range around branching region could not be determined.");
+		if (it->t - t < range)
+			isBP = true;
+	}
+	if (!isBP && it != vBR.begin())
+	{
+		--it;
+		number range = 0.0;
+		try {range = axial_range_around_branching_region(plainNID, std::distance(vBR.begin(), it), 5.0*rad);}
+		UG_CATCH_THROW("Range around branching region could not be determined.");
+		if (t - it->t < range)
+			isBP = true;
+	}
 
+	if (isBP)
+		pos_in_bp(pos, neurite, plainNID, t, angle, rad, it, parent, this);
+/*
+	if ((it != vBR.end() && it->t - t < axial_range_around_branching_region(plainNID, std::distance(vBR.begin(), it), 5.0*rad))
+		|| (it-- != vBR.begin() && t - it->t < axial_range_around_branching_region(plainNID, std::distance(vBR.begin(), it), 5.0*rad)))
+		pos_in_bp(pos, neurite, plainNID, t, angle, rad, it, parent, this);
+*/
 	// case 2: normal neurite position
 	else if (t <= 1.0)
 		pos_in_neurite(pos, neurite, plainNID, t, angle, rad);
@@ -1307,6 +1370,8 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 
 	return 1.0;
 }
+
+
 
 // -------------------------------------------------------- //
 // DO NOT CHANGE below this line! Needed for serialization. //
