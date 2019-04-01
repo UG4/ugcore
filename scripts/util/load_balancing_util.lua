@@ -70,6 +70,7 @@ balancer.siblingWeight				= 2
 balancer.itrFactor					= 1000
 balancer.imbalanceFactor			= 1.05
 balancer.noSiblingClustering 		= false
+balancer.qualityRedist              = false
 
 balancer.staticProcHierarchy = false
 
@@ -121,6 +122,10 @@ function balancer.ParseParameters()
 
 	balancer.noSiblingClustering = util.HasParamOption("-noSiblingClustering", "siblings should always be clustered if adaptive refinement is performed. Better distribution qualities if disabled.")
 
+	if not balancer.qualityRedist then
+		balancer.qualityRedist = util.HasParamOption("-qualityRedist", "Perform quality redistriubtions on higher levels where all processes already have parts of the grid.")
+	end
+
 	balancer.staticProcHierarchy = balancer.staticProcHierarchy or util.HasParamOption("-staticProcHierarchy")
 	
 	balancer.partitioner		= util.GetParam("-partitioner", balancer.partitioner,
@@ -154,6 +159,11 @@ function balancer.PrintParameters()
 		print("    staticProcHierarchy        active")
 	else
 		print("    staticProcHierarchy        inactive")
+	end
+	if balancer.qualityRedist == true then
+		print("    qualityRedist              active")
+	else
+		print("    qualityRedist              inactive")
 	end
 	print("    partitioner              = " .. balancer.partitioner)
 end
@@ -234,8 +244,11 @@ function balancer.CreateLoadBalancer(domain)
 						procsTotal = procsTotal * numNew
 					end
 				else
-					--processHierarchy:add_hierarchy_level(lvl, 1)
-					break;
+					if balancer.qualityRedist == true then
+						processHierarchy:add_hierarchy_level(lvl, 1)
+					else
+						break
+					end
 				end
 				lvl = lvl + balancer.redistSteps
 			end
