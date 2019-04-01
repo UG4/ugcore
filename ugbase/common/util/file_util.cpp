@@ -217,17 +217,19 @@ std::string FindFileInStandardPaths(const char* filename)
 
 std::string FindDirInStandardPaths(const char* dirname)
 {
-//	first check whether the file can be loaded (e.g. absolute path or relative to woring-directory)
+//	first check whether the file can be loaded (e.g. absolute path or relative to working directory)
 	std::string dirNameOut = dirname;
 	if (DirectoryExists(dirNameOut.c_str()))
 		return dirNameOut;
 
-//	Now check whether the file was specified relative to the current
-//	scripting-directory
-	dirNameOut = PathProvider::get_current_path();
-	dirNameOut.append("/").append(dirname);
+//	Now check whether the directory was specified relative to the current
+//	scripting-directory or script or apps or root paths
+	bool success = PathProvider::get_dirname_relative_to_current_path(dirname, dirNameOut)
+		|| PathProvider::get_dirname_relative_to_path(SCRIPT_PATH, dirname, dirNameOut)
+		|| PathProvider::get_dirname_relative_to_path(APPS_PATH, dirname, dirNameOut)
+		|| PathProvider::get_dirname_relative_to_path(ROOT_PATH, dirname, dirNameOut);
 
-	if(DirectoryExists(dirNameOut.c_str()))
+	if (success)
 		return dirNameOut;
 
 //	filename couldn't be located
