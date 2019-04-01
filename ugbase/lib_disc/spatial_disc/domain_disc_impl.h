@@ -2366,8 +2366,8 @@ template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
 void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
 calc_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		   ConstSmartPtr<DoFDistribution> dd,
-		   std::vector<number> vScaleMass,
-		   std::vector<number> vScaleStiff,
+		   const std::vector<number>& vScaleMass,
+		   const std::vector<number>& vScaleStiff,
 		   vector_type* u_vtk)
 {
 	PROFILE_FUNC_GROUP("error_estimator");
@@ -2608,8 +2608,8 @@ inline void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
 AssembleErrorEstimator(	const std::vector<IElemError<domain_type>*>& vElemDisc,
 						ConstSmartPtr<DoFDistribution> dd,
 						int si, bool bNonRegularGrid,
-						std::vector<number> vScaleMass,
-						std::vector<number> vScaleStiff,
+						const std::vector<number>& vScaleMass,
+						const std::vector<number>& vScaleStiff,
 						ConstSmartPtr<VectorTimeSeries<vector_type> > vSol)
 {
 	//	general case: assembling over all elements in subset si
