@@ -59,7 +59,7 @@ elif [ "$UGSUBMIT_TYPE" = "Jureca" ]; then
 elif [ "$UGSUBMIT_TYPE" = "Juwels" ]; then
 	echo "ugconfig: Loading toolchain with compilers and BLAS / LAPACK as well as CMake."
 	module load Intel           # compilers
-	module load IntelMPI        # MPI wrappers
+	module load ParaStationMPI  # MPI wrappers
 	module load imkl            # BLAS / LAPACK
 	module load CMake
 
