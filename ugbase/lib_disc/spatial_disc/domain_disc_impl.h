@@ -2498,7 +2498,8 @@ calc_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 				if ((m_vConstraint[i]->type() & type) && m_vConstraint[i]->err_est_enabled())
 				{
 					m_vConstraint[i]->set_ass_tuner(m_spAssTuner);
-					m_vConstraint[i]->adjust_error(*vSol->solution(0), dd, type, vSol->time(0));
+					m_vConstraint[i]->adjust_error(*vSol->solution(0), dd, type, vSol->time(0),
+						vSol, &vScaleMass, &vScaleStiff);
 				}
 		}
 	}
@@ -2510,7 +2511,7 @@ calc_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		for (std::size_t i = 0; i < vErrEstData.size(); ++i)
 			vErrEstData[i]->summarize_err_est_data(m_spApproxSpace->domain());
 	}
-	UG_CATCH_THROW("DomainDiscretization::calc_error: Cannot summarize the error estimator");
+	UG_CATCH_THROW("DomainDiscretization::calc_error: Cannot summarize the error estimator.");
 
 	// perform integrations for error estimators and mark elements
 	typedef typename domain_traits<dim>::element_type elem_type;
