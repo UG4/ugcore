@@ -1956,7 +1956,7 @@ template class DimHFV1Geometry<3, 3>;
 //////////////////////
 // Manifold
 //////////////////////
-template class HFV1ManifoldGeometry<Edge, 2>;
+template class HFV1ManifoldGeometry<RegularEdge, 2>;
 template class HFV1ManifoldGeometry<Triangle, 3>;
 template class HFV1ManifoldGeometry<Quadrilateral, 3>;
 
