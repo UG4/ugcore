@@ -120,7 +120,6 @@ bool LoadPlugins(const char* pluginPath, string parentGroup, bridge::Registry& r
 
 		DynLibHandle libHandle;
 		try{
-			std::cout << "opening library " << fullPluginName << std::endl;
 			libHandle = OpenLibrary(fullPluginName.c_str());
 		}
 		catch(std::string errMsg)
