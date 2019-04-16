@@ -33,6 +33,8 @@
 #ifndef __H__UG__LIB_DISC__IO__VTKOUTPUT__
 #define __H__UG__LIB_DISC__IO__VTKOUTPUT__
 
+//TODO: deduplicate code in VTUOutput - reduces vulnerability to errors and linker time 
+
 // extern libraries
 #include <vector>
 #include <map>
@@ -520,6 +522,10 @@ public:
 		// maybe somebody wants to do this from outside
 		static void write_empty_grid_piece(VTKFileWriter& File,
 				bool binary = true);
+
+		void
+		set_user_defined_comment(const char* comment);
+
 protected:
 
 	/**
@@ -533,6 +539,10 @@ protected:
 	 * \param[in]		dim			dimension of subset
 	 * \param[in]		numVert		number of vertices
 	 */
+
+		void
+		write_comment(VTKFileWriter& File);
+
 		template <typename T>
 		void
 		write_points(VTKFileWriter& File,
@@ -922,10 +932,12 @@ protected:
 
 	public:
 	///	default constructor
-		VTKOutput()	: m_bSelectAll(true), m_bBinary(true) {}
+		VTKOutput()	: m_bSelectAll(true), m_bBinary(true), m_bWriteGrid(true) {}
 
 	/// should values be printed in binary (base64 encoded way ) or plain ascii
 		void set_binary(bool b);
+
+		void set_write_grid(bool b);
 
 	protected:
 	///	returns true if name for vtk-component is already used
@@ -977,6 +989,9 @@ protected:
 
 	///	map storing the time points
 		std::map<std::string, std::vector<number> > m_mTimestep;
+
+		bool m_bWriteGrid;
+		const char* m_sComment;
 };
 
 } // namespace ug

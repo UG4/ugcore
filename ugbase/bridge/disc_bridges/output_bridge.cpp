@@ -267,6 +267,8 @@ static void Dimension(Registry& reg, string grp)
 			.add_method("select_element", static_cast<void (T::*)(SmartPtr<UserData<number, dim> >, const char*)>(&T::select_element))
 			.add_method("select_element", static_cast<void (T::*)(SmartPtr<UserData<MathVector<dim>, dim> >, const char*)>(&T::select_element))
 			.add_method("set_binary", &T::set_binary, "", "bBinary", "should values be printed in binary (base64 encoded way ) or plain ascii")
+			.add_method("set_user_defined_comment", static_cast<void (T::*)(const char*)>(&T::set_user_defined_comment))
+			.add_method("set_write_grid", static_cast<void (T::*)(bool)>(&T::set_write_grid))
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "VTKOutput", tag);
 	}
