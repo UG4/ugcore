@@ -36,6 +36,7 @@
 //TODO: deduplicate code in VTUOutput - reduces vulnerability to errors and linker time 
 
 // extern libraries
+#include <string>
 #include <vector>
 #include <map>
 
@@ -991,7 +992,7 @@ protected:
 		std::map<std::string, std::vector<number> > m_mTimestep;
 
 		bool m_bWriteGrid;
-		const char* m_sComment;
+		std::string m_sComment;
 };
 
 } // namespace ug

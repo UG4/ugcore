@@ -787,9 +787,8 @@ template <int TDim>
 void VTKOutput<TDim>::
 write_comment(VTKFileWriter& File)
 {
-	if(!m_sComment){
+	if (!m_sComment.size())
 		return;
-	}
 
 	File << VTKFileWriter::normal;
 	File << "<!--";
@@ -2586,11 +2585,13 @@ write_pvtu(TFunction& u, const std::string& filename,
 		fprintf(file, "<?xml version=\"1.0\"?>\n");
 
 	//	Write comment
-		if(m_sComment){
+		if (m_sComment.size())
+		{
 			fprintf(file, "<!--");
-			fprintf(file, m_sComment);
+			fprintf(file, m_sComment.c_str());
 			fprintf(file, "-->\n");
 		}
+	
 		fprintf(file, "<VTKFile type=\"PUnstructuredGrid\" version=\"0.1\">\n");
 		fprintf(file, "  <Time timestep=\"%.17g\"/>\n", time);
 		fprintf(file, "  <PUnstructuredGrid GhostLevel=\"0\">\n");
@@ -2769,9 +2770,10 @@ write_time_pvd(const char* filename, TFunction& u)
 		fprintf(file, "<?xml version=\"1.0\"?>\n");
 
 	//	Write comment
-		if(m_sComment){
+		if (m_sComment.size())
+		{
 			fprintf(file, "<!--");
-			fprintf(file, m_sComment);
+			fprintf(file, m_sComment.c_str());
 			fprintf(file, "-->\n");
 		}
 
@@ -2870,9 +2872,10 @@ write_time_processwise_pvd(const char* filename, TFunction& u)
 		fprintf(file, "<?xml version=\"1.0\"?>\n");
 
 	//	Write comment
-		if(m_sComment){
+		if (m_sComment.size())
+		{
 			fprintf(file, "<!--");
-			fprintf(file, m_sComment);
+			fprintf(file, m_sComment.c_str());
 			fprintf(file, "-->\n");
 		}
 
@@ -2947,9 +2950,10 @@ write_time_pvd_subset(const char* filename, TFunction& u, int si)
 		fprintf(file, "<?xml version=\"1.0\"?>\n");
 
 	//	Write comment
-		if(m_sComment){
+		if (m_sComment.size())
+		{
 			fprintf(file, "<!--");
-			fprintf(file, m_sComment);
+			fprintf(file, m_sComment.c_str());
 			fprintf(file, "-->\n");
 		}
 
