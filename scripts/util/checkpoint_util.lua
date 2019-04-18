@@ -128,7 +128,7 @@ function util.WriteCheckpoint(u, id, myData, name)
 	ug_assert(id ~= nil)
 	
 	-- create a filename
-	filename = name..id..".ug4vec"
+	local filename = name..id..".ug4vec"
 	SaveToFile(u, filename)
 	checkpoint =
 	{
@@ -184,8 +184,8 @@ function util.ReadCheckpoint(u, name)
 	
 	-- todo: use if file exists here, and return nil if not
 	ug_load_script(name..".lua")
-	-- the script defines a function named "LoadTheCheckpoint"
-	-- call it
+	--! LoadTheCheckpoint is a function defined in the the lua binding:
+        --! @see ugcore/ugbase/bindings/lua/lua_serialization.cpp
 	local cp = LoadTheCheckpoint()
 	
 	-- print the checkpoint
