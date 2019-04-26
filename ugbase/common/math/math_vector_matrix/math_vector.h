@@ -7,7 +7,7 @@
  * UG4 is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License version 3 (as published by the
  * Free Software Foundation) with the following additional attribution
- * requirements (according to LGPL/GPL v3 §7):
+ * requirements (according to LGPL/GPL v3 ��7):
  * 
  * (1) The following notice must be displayed in the Appropriate Legal Notices
  * of covered and combined works: "Based on UG4 (www.ug4.org/license)".
@@ -20,7 +20,7 @@
  * "Reiter, S., Vogel, A., Heppner, I., Rupp, M., and Wittum, G. A massively
  *   parallel geometric multigrid solver on hierarchically distributed grids.
  *   Computing and visualization in science 16, 4 (2013), 151-164"
- * "Vogel, A., Reiter, S., Rupp, M., Nägel, A., and Wittum, G. UG4 -- a novel
+ * "Vogel, A., Reiter, S., Rupp, M., N��gel, A., and Wittum, G. UG4 -- a novel
  *   flexible software system for simulating pde based models on high performance
  *   computers. Computing and visualization in science 16, 4 (2013), 165-179"
  * 
@@ -130,6 +130,9 @@ class MathVector
 		MathVector& operator*= (const value_type& val) {for(std::size_t i = 0; i < N; ++i) m_data[i] *= val;return *this;}
 		MathVector& operator/= (const value_type& val) {for(std::size_t i = 0; i < N; ++i) m_data[i] /= val;return *this;}
 
+		// negation
+		MathVector operator- () const { MathVector<N, T> v; for (std::size_t i = 0; i < N; ++i) v.set_coord(i, -m_data[i]); return v; }
+
 		// scalar product
 		value_type operator* (const MathVector& v) const {value_type res = 0.0; for(std::size_t i = 0; i < N; ++i) res += m_data[i] * v.coord(i);return res;}
 
@@ -194,6 +197,9 @@ class MathVector<0, T>
 		MathVector& operator*= (const value_type& val) {m_data[0] *= val;return *this;}
 		MathVector& operator/= (const value_type& val) {m_data[0] /= val;return *this;}
 
+		// negation
+		MathVector& operator- () { return MathVector<0, T>(-m_data[0]); }
+
 		// scalar product
 		value_type operator* (const MathVector& v) const {return m_data[0] * v.x();}
 
@@ -257,6 +263,9 @@ class MathVector<1, T>
 		MathVector& operator-= (const value_type& val) {m_data[0] -= val;return *this;}
 		MathVector& operator*= (const value_type& val) {m_data[0] *= val;return *this;}
 		MathVector& operator/= (const value_type& val) {m_data[0] /= val;return *this;}
+
+		// negation
+		MathVector operator- () const { return MathVector<1, T>(-m_data[0]); }
 
 		// scalar product
 		value_type operator* (const MathVector& v) const {return m_data[0] * v.x();}
@@ -323,6 +332,9 @@ class MathVector<2, T>
 		MathVector& operator-= (const value_type& val) {for(std::size_t i = 0; i < 2; ++i) m_data[i] -= val;return *this;}
 		MathVector& operator*= (const value_type& val) {for(std::size_t i = 0; i < 2; ++i) m_data[i] *= val;return *this;}
 		MathVector& operator/= (const value_type& val) {for(std::size_t i = 0; i < 2; ++i) m_data[i] /= val;return *this;}
+
+		// negation
+		MathVector operator- () const { return MathVector<2, T>(-m_data[0], -m_data[1]); }
 
 		// scalar product
 		value_type operator* (const MathVector& v) const {value_type res = 0.0; for(std::size_t i = 0; i < 2; ++i) res += m_data[i] * v.coord(i);return res;}
@@ -393,6 +405,9 @@ class MathVector<3, T>
 		MathVector& operator-= (const value_type& val) {for(std::size_t i = 0; i < 3; ++i) m_data[i] -= val;return *this;}
 		MathVector& operator*= (const value_type& val) {for(std::size_t i = 0; i < 3; ++i) m_data[i] *= val;return *this;}
 		MathVector& operator/= (const value_type& val) {for(std::size_t i = 0; i < 3; ++i) m_data[i] /= val;return *this;}
+
+		// negation
+		MathVector operator- () const { return MathVector<3, T>(-m_data[0], -m_data[1], -m_data[2]); }
 
 		// scalar product
 		value_type operator* (const MathVector& v) const {value_type res = 0.0; for(std::size_t i = 0; i < 3; ++i) res += m_data[i] * v.coord(i);return res;}
@@ -469,6 +484,9 @@ class MathVector<4, T>
 		MathVector& operator-= (const value_type& val) {for(std::size_t i = 0; i < 4; ++i) m_data[i] -= val;return *this;}
 		MathVector& operator*= (const value_type& val) {for(std::size_t i = 0; i < 4; ++i) m_data[i] *= val;return *this;}
 		MathVector& operator/= (const value_type& val) {for(std::size_t i = 0; i < 4; ++i) m_data[i] /= val;return *this;}
+
+		// negation
+		MathVector operator- () const { return MathVector<4, T>(-m_data[0], -m_data[1], -m_data[2], -m_data[3]); }
 
 		// scalar product
 		value_type operator* (const MathVector& v) const {value_type res = 0.0; for(std::size_t i = 0; i < 4; ++i) res += m_data[i] * v.coord(i);return res;}

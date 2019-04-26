@@ -1100,17 +1100,21 @@ static void pos_on_surface_soma_bp
     vector3 somaPt = neurite.somaPt;
 
     if (t > -neurite.somaStart) {
+    	UG_LOGN("outer soma projection")
     	/// outer soma
     	somaStart = -neurite.somaStart;
     	somaRadius = neurite.somaRadius;
     	somaEnd = 0;
     } else if (t < neurite.somaStart*scale-1) {
+    	UG_LOGN("inner soma projection")
     	/// inner soma
     	somaStart = -1;
     	somaEnd = neurite.somaStart*scale-1;
     	somaRadius = neurite.somaRadius*scale;
     } else {
-    	/// TODO: usual positioning (cylinder connecting inner soma surface with outer soma surface)
+    	UG_LOGN("between somata projection")
+    	/// Note: As a test: Usual positioning for vertices on cylinder segment connecting inner soma surface with outer soma surface
+    	pos_on_surface_neurite(posOut, np->neurite(neuriteID), neuriteID, t, angle, 1.0);
     }
 
     // 1. preparations for Newton method:
@@ -1296,7 +1300,7 @@ number NeuriteProjector::push_onto_surface(Vertex* vrt, const IVertexGroup* pare
         std::upper_bound(vBR.begin(), vBR.end(), cmpBR, CompareBranchingRegionEnds());
     if (it != vBR.end() && it->tstart < t) {
     	float scale = m_aaSurfParams[parent->vertex(0)].scale;
-    	// case2: outer BPs
+    	// case 2: outer BPs
     	if (scale == 1.0) {
     		pos_on_surface_bp(pos, neurite, neuriteID, t, angle, it, parent, this);
    		// case 2: inner BPs

@@ -128,7 +128,7 @@ function util.WriteCheckpoint(u, id, myData, name)
 	ug_assert(id ~= nil)
 	
 	-- create a filename
-	filename = name..id..".ug4vec"
+	local filename = name..id..".ug4vec"
 	SaveToFile(u, filename)
 	checkpoint =
 	{
