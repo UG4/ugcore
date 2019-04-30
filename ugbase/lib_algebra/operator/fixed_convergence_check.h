@@ -110,7 +110,7 @@ class FixedConvergenceCheck : public IConvergenceCheck<TVector>
 		virtual number reduction() const { UG_ASSERT(0, "not provided by FixedConvergenceCheck");  return 0;}
 
 		// returns the current convergence rate
-		virtual number rate() const { UG_ASSERT(0, "not provided by FixedConvergenceCheck");  return 0;}
+		virtual number rate() const { return 0;}
 
 		// returns the averaged convergence rate
 		virtual number avg_rate() const { UG_ASSERT(0, "not provided by FixedConvergenceCheck");  return 0;}

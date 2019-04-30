@@ -1,8 +1,35 @@
 /*
- * neurite_projector.h
+ * Copyright (c) 2016:  G-CSC, Goethe University Frankfurt
+ * Author: Markus Breit
  *
- *  Created on: 19.12.2016
- *      Author: mbreit
+ * This file is part of UG4.
+ *
+ * UG4 is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License version 3 (as published by the
+ * Free Software Foundation) with the following additional attribution
+ * requirements (according to LGPL/GPL v3 §7):
+ *
+ * (1) The following notice must be displayed in the Appropriate Legal Notices
+ * of covered and combined works: "Based on UG4 (www.ug4.org/license)".
+ *
+ * (2) The following notice must be displayed at a prominent place in the
+ * terminal output of covered works: "Based on UG4 (www.ug4.org/license)".
+ *
+ * (3) The following bibliography is recommended for citation and must be
+ * preserved in all covered files:
+ * "Reiter, S., Vogel, A., Heppner, I., Rupp, M., and Wittum, G. A massively
+ *   parallel geometric multigrid solver on hierarchically distributed grids.
+ *   Computing and visualization in science 16, 4 (2013), 151-164"
+ * "Vogel, A., Reiter, S., Rupp, M., Nägel, A., and Wittum, G. UG4 -- a novel
+ *   flexible software system for simulating pde based models on high performance
+ *   computers. Computing and visualization in science 16, 4 (2013), 165-179"
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ *  Created on: 2016-12-19
  */
 
 #ifndef UG__LIB_GRID__REFINEMENT__PROJECTORS__NEURITE_PROJECTOR_H
@@ -20,34 +47,41 @@ namespace ug {
 class NeuriteProjector
 : public RefinementProjector
 {
-	public:
-		NeuriteProjector();
-		NeuriteProjector(SPIGeometry3d geometry);
+  public:
+    NeuriteProjector();
+    NeuriteProjector(SPIGeometry3d geometry);
 
-		virtual ~NeuriteProjector();
+    virtual ~NeuriteProjector();
 
-		virtual void set_geometry(SPIGeometry3d geometry);
+    virtual void set_geometry(SPIGeometry3d geometry);
 
-		///	called when a new vertex was created from an old edge.
-		virtual number new_vertex(Vertex* vrt, Edge* parent);
+    /// called when a new vertex was created from an old edge.
+    virtual number new_vertex(Vertex* vrt, Edge* parent);
 
-		///	called when a new vertex was created from an old face.
-		virtual number new_vertex(Vertex* vrt, Face* parent);
+    /// called when a new vertex was created from an old face.
+    virtual number new_vertex(Vertex* vrt, Face* parent);
 
-		/// spline direction at some grid object
-		void direction_at_grid_object(vector3& dirOut, GridObject* o) const;
+    /// called when a new vertex was created from an old face.
+    virtual number new_vertex(Vertex* vrt, Volume* parent);
 
-	protected:
-		void attach_surf_params();
+    /// project a vertex to its model position
+    void project(Vertex* vrt);
 
-	public:
-		struct Section
-		{
-		    Section() {}                // constructor for serialization
-		    Section(number _endParam)   // constructor for search with CompareSections
-		    : endParam(_endParam) {}
+    /// spline direction at some grid object
+    void direction_at_grid_object(vector3& dirOut, GridObject* o) const;
 
-		    number endParam;
+
+  protected:
+    void attach_surf_params();
+
+  public:
+    struct Section
+    {
+        Section() {}                // constructor for serialization
+        Section(number _endParam)   // constructor for search with CompareSections
+        : endParam(_endParam) {}
+
+        number endParam;
 
             number splineParamsX[4];
             number splineParamsY[4];
@@ -66,19 +100,18 @@ class NeuriteProjector
                     ar & splineParamsR[i];
                 }
             }
-		};
+    };
 
 
-		struct BranchingPoint;
-		struct BranchingRegion
-		{
-            BranchingRegion() : tstart(0.0), tend(0.0), bp(SPNULL) {} // constructor for serialization
-            BranchingRegion(number _tend)       // constructor for search with CompareBranchingPointEnds
-		    : tstart(_tend), tend(_tend) {}
+    struct BranchingPoint;
+    struct BranchingRegion
+    {
+            BranchingRegion() : t(0.0), bp(SPNULL) {} // constructor for serialization
+            BranchingRegion(number _t)       // constructor for search with CompareBranchingPointEnds
+        : t(_t) {}
 
-		    /// the parameter range for this branching point
-            number tstart;
-            number tend;
+        /// the axial parameter where other neurite(s) branch off
+            number t;
 
             /// pointer to whole branching point
             SmartPtr<BranchingPoint> bp;
@@ -86,25 +119,19 @@ class NeuriteProjector
             template<class Archive>
             void save(Archive & ar, const unsigned int version) const
             {
-                ar << tstart;
-                ar << tend;
+                ar << t;
 
-                // the following won't work:
-                //bool owns_bp = bp->vRegions[0] == this;
-                // pointers are not identical if constructed outside of projector
-            	// but this is unsafe:
-                bool owns_bp = tstart == bp->vRegions[0]->tstart && tend == bp->vRegions[0]->tend;
+                bool owns_bp = bp->vRegions[0] == this;
                 ar << owns_bp;
                 if (owns_bp)
-                	ar << *bp;
+                  ar << *bp;
             }
 
             template<class Archive>
             void load(Archive & ar, const unsigned int version)
             {
                 // invoke serialization of the base class
-                ar >> tstart;
-                ar >> tend;
+                ar >> t;
 
                 bool owns_bp;
                 ar >> owns_bp;
@@ -116,12 +143,12 @@ class NeuriteProjector
             }
 
             BOOST_SERIALIZATION_SPLIT_MEMBER();
-		};
+    };
 
 
         struct BranchingPoint
         {
-	        std::vector<size_t> vNid;
+          std::vector<uint32_t> vNid;
             std::vector<BranchingRegion*> vRegions;
 
             template <class Archive>
@@ -139,16 +166,11 @@ class NeuriteProjector
         };
 
 
-		struct Neurite
+    struct Neurite
         {
-		    vector3 refDir;
+        vector3 refDir;
             std::vector<Section> vSec;
             std::vector<BranchingRegion> vBR;
-            bool bHasER;
-            number scaleER;
-            number somaStart;
-            number somaRadius;
-            vector3 somaPt;
 
             template <class Archive>
             void serialize(Archive& ar, const unsigned int version)
@@ -169,14 +191,26 @@ class NeuriteProjector
             }
         };
 
-		struct SurfaceParams
-		{
-		    uint32 neuriteID;
-		    float axial;
-		    float angular;
-		    float scale = 1.0;
-		    bool soma = false;
-		};
+    struct SurfaceParams
+    {
+      /**
+       * @brief Neurite ID a vertex belongs to
+       *
+       * Only the low 20 bits are used for ordinary vertices, i.e.,
+       * vertices that do not belong to two neurites at a branching point.
+       * In branching points, the high 4 bits encode which of the child
+       * neurites share the vertex: bit 28 for child 0, bit 29 for child 1,
+       * bit 30 for child 2 and bit 31 for child 3.
+       * Bits 20-27 are used to encode the branching region on the parent
+       * neurite.
+       * There cannot be more than 256 branching regions per neurite.
+       * There cannot be more than 4 children per branching point.
+       */
+        uint32 neuriteID;
+        float axial;
+        float angular;
+        float radial;
+    };
 
 
     public:
@@ -188,7 +222,7 @@ class NeuriteProjector
         struct CompareBranchingRegionEnds
         {
             bool operator()(const BranchingRegion& a, const BranchingRegion& b)
-            {return a.tend < b.tend;}
+            {return a.t < b.t;}
         };
 
         // helper struct for branching point calculations
@@ -196,16 +230,14 @@ class NeuriteProjector
         {
             number start;
             number end;
-            number radius;
-            vector3 posSoma;
             std::vector<Section>::const_iterator sec_start;
         };
 
         void debug_neurites() const;
 
-	public:
-        void add_neurite(const Neurite& n);
-        const Neurite& neurite(size_t nid) const;
+  public:
+        std::vector<Neurite>& neurites();
+        const Neurite& neurite(uint32_t nid) const;
 
         Grid::VertexAttachmentAccessor<Attachment<SurfaceParams> >& surface_params_accessor();
         const Grid::VertexAttachmentAccessor<Attachment<SurfaceParams> >& surface_params_accessor() const;
@@ -214,50 +246,77 @@ class NeuriteProjector
 
         void average_pos_from_parent(vector3& posOut, const IVertexGroup* parent) const;
 
+        //void average_pos_from_parent_weighted(vector3& posOut, const IVertexGroup* parent) const;
+
         vector3 position(Vertex* vrt) const;
 
+        number axial_range_around_branching_region
+    (
+      uint32_t nid,
+      size_t brInd,
+      number numberOfRadii = 5.0
+    ) const;
+
+        void print_surface_params(Vertex* v) const;
+
     protected:
-        const Section& get_section(uint32 nid, float t) const;
+        std::vector<Section>::const_iterator get_section_iterator(uint32_t nid, float t) const;
 
         void prepare_quadrature();
 
-		void average_params(size_t& neuriteID, float& t, float& angle, const IVertexGroup* parent) const;
+    void average_params
+    (
+      uint32_t& neuriteID,
+      float& t,
+      float& angle,
+      float& radius,
+      const IVertexGroup* parent
+    ) const;
 
-		number push_onto_surface(Vertex* vrt, const IVertexGroup* parent);
+    number push_into_place(Vertex* vrt, const IVertexGroup* parent);
 
-	private:
-		Attachment<SurfaceParams> m_aSurfParams;
+  private:
+    Attachment<SurfaceParams> m_aSurfParams;
         Grid::VertexAttachmentAccessor<Attachment<SurfaceParams> > m_aaSurfParams;
 
         /// handles propagation of surface param attachment to children on higher levels
         CopyAttachmentHandler<Vertex, Attachment<SurfaceParams> > m_cah;
 
         /**
-		 * @brief storage for cubic splines:
-		 * Vector of sorted vectors of sections; each inner vector represents a single neurite.
-		 * Any complete neurite is parameterized by t in [0,1]. Each section in the neurite vector
-		 * consists of the parameter t at which the section ends and the sixteen coefficients
-		 * describing the spline in each dimension (monomial basis {(t_(i+1) - t)^i}_i).
-		**/
-		std::vector<Neurite> m_vNeurites;
+     * @brief storage for cubic splines:
+     * Vector of sorted vectors of sections; each inner vector represents a single neurite.
+     * Any complete neurite is parameterized by t in [0,1]. Each section in the neurite vector
+     * consists of the parameter t at which the section ends and the sixteen coefficients
+     * describing the spline in each dimension (monomial basis {(t_(i+1) - t)^i}_i).
+    **/
+    std::vector<Neurite> m_vNeurites;
 
-		/// for quadrature when projecting within branching points
-		//size_t m_quadOrder;
+    /// for quadrature when projecting within branching points
+    //size_t m_quadOrder;
 
         std::vector<std::pair<number, number> > m_qPoints;
 
 
 
-		friend class boost::serialization::access;
+    friend class boost::serialization::access;
 
         template<class Archive>
         void save(Archive & ar, const unsigned int version) const
         {
             UG_EMPTY_BASE_CLASS_SERIALIZATION(NeuriteProjector, RefinementProjector);
-            size_t sz = m_vNeurites.size();
-            ar << sz;
-            for (size_t i = 0; i < sz; ++i)
-                ar << m_vNeurites[i];
+
+            // only write if data is to be written
+            if(ArchiveInfo<Archive>::TYPE == AT_DATA)
+            {
+        size_t sz = m_vNeurites.size();
+        ar << sz;
+        for (size_t i = 0; i < sz; ++i)
+          ar << m_vNeurites[i];
+            }
+
+            // do not do anything otherwise
+            else if (ArchiveInfo<Archive>::TYPE == AT_GUI)
+            {}
 
             //ar << m_quadOrder;
         }

@@ -236,6 +236,9 @@ print_subset(const char* filename, TFunction& u, int si, int step, number time, 
 //	header
 	File << VTKFileWriter::normal;
 	File << "<?xml version=\"1.0\"?>\n";
+
+	write_comment(File);
+
 	File << "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"";
 	if(IsLittleEndian()) File << "LittleEndian";
 	else File << "BigEndian";
@@ -365,6 +368,9 @@ print_subsets(const char* filename, TFunction& u, SubsetGroup& ssGrp, int step, 
 //	header
 	File << VTKFileWriter::normal;
 	File << "<?xml version=\"1.0\"?>\n";
+
+	write_comment(File);
+
 	File << "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"";
 	if(IsLittleEndian()) File << "LittleEndian";
 	else File << "BigEndian";
@@ -456,6 +462,7 @@ print_subsets(const char* filename, TFunction& u, const char* ssNames, int step,
 ////////////////////////////////////////////////////////////////////////////////
 //	writing pieces
 ////////////////////////////////////////////////////////////////////////////////
+
 
 template <int TDim>
 template <typename T>
@@ -776,6 +783,19 @@ write_points_elementwise(VTKFileWriter& File,
 	}
 }
 
+template <int TDim>
+void VTKOutput<TDim>::
+write_comment(VTKFileWriter& File)
+{
+	if (!m_sComment.size())
+		return;
+
+	File << VTKFileWriter::normal;
+	File << "<!--";
+	File << m_sComment;
+	File << "-->\n";
+}
+
 
 template <int TDim>
 template <typename T>
@@ -786,6 +806,10 @@ write_points(VTKFileWriter& File,
              Grid& grid, const T& iterContainer, int si, int dim,
              int numVert)
 {
+	if(!m_bWriteGrid){
+		return;
+	}
+
 //	write starting xml tag for points
 	File << VTKFileWriter::normal;
 	File << "      <Points>\n";
@@ -836,6 +860,10 @@ write_points(VTKFileWriter& File,
              Grid& grid, const T& iterContainer, SubsetGroup& ssGrp, int dim,
              int numVert)
 {
+	if(!m_bWriteGrid){
+		return;
+	}
+
 //	write starting xml tag for points
 	File << VTKFileWriter::normal;
 	File << "      <Points>\n";
@@ -891,6 +919,10 @@ write_cells(VTKFileWriter& File,
             Grid& grid, const T& iterContainer, int si, int dim,
             int numElem, int numConn)
 {
+	if(!m_bWriteGrid){
+		return;
+	}
+
 	File << VTKFileWriter::normal;
 
 //	write opening tag to indicate that elements will be written
@@ -2551,8 +2583,17 @@ write_pvtu(TFunction& u, const std::string& filename,
 
 	//	Write to file
 		fprintf(file, "<?xml version=\"1.0\"?>\n");
+
+	//	Write comment
+		if (m_sComment.size())
+		{
+			fprintf(file, "<!--");
+			fprintf(file, m_sComment.c_str());
+			fprintf(file, "-->\n");
+		}
+	
 		fprintf(file, "<VTKFile type=\"PUnstructuredGrid\" version=\"0.1\">\n");
-		fprintf(file, "  <Time timestep=\"%g\"/>\n", time);
+		fprintf(file, "  <Time timestep=\"%.17g\"/>\n", time);
 		fprintf(file, "  <PUnstructuredGrid GhostLevel=\"0\">\n");
 		fprintf(file, "    <PPoints>\n");
 		fprintf(file, "      <PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>\n");
@@ -2727,6 +2768,15 @@ write_time_pvd(const char* filename, TFunction& u)
 
 	// 	Write to file
 		fprintf(file, "<?xml version=\"1.0\"?>\n");
+
+	//	Write comment
+		if (m_sComment.size())
+		{
+			fprintf(file, "<!--");
+			fprintf(file, m_sComment.c_str());
+			fprintf(file, "-->\n");
+		}
+
 		fprintf(file, "<VTKFile type=\"Collection\" version=\"0.1\">\n");
 		fprintf(file, "  <Collection>\n");
 
@@ -2748,7 +2798,7 @@ write_time_pvd(const char* filename, TFunction& u)
 				if(numProcs > 1) pvtu_filename(name, filename, -1, 0, step);
 
 				name = FilenameWithoutPath(name);
-				fprintf(file, "  <DataSet timestep=\"%g\" part=\"%d\" file=\"%s\"/>\n",
+				fprintf(file, "  <DataSet timestep=\"%.17g\" part=\"%d\" file=\"%s\"/>\n",
 				        		vTimestep[step], 0, name.c_str());
 			}
 		}
@@ -2761,7 +2811,7 @@ write_time_pvd(const char* filename, TFunction& u)
 					if(numProcs > 1) pvtu_filename(name, filename, si, u.num_subsets()-1, step);
 
 					name = FilenameWithoutPath(name);
-					fprintf(file, "  <DataSet timestep=\"%g\" part=\"%d\" file=\"%s\"/>\n",
+					fprintf(file, "  <DataSet timestep=\"%.17g\" part=\"%d\" file=\"%s\"/>\n",
 					        	vTimestep[step], si, name.c_str());
 				}
 		}
@@ -2820,6 +2870,15 @@ write_time_processwise_pvd(const char* filename, TFunction& u)
 
 	// 	Write to file
 		fprintf(file, "<?xml version=\"1.0\"?>\n");
+
+	//	Write comment
+		if (m_sComment.size())
+		{
+			fprintf(file, "<!--");
+			fprintf(file, m_sComment.c_str());
+			fprintf(file, "-->\n");
+		}
+
 		fprintf(file, "<VTKFile type=\"Collection\" version=\"0.1\">\n");
 		fprintf(file, "  <Collection>\n");
 
@@ -2832,7 +2891,7 @@ write_time_processwise_pvd(const char* filename, TFunction& u)
 					if(numProcs > 1) pvtu_filename(name, filename, si, u.num_subsets()-1, step);
 
 					name = FilenameWithoutPath(name);
-					fprintf(file, "  <DataSet timestep=\"%g\" part=\"%d\" file=\"%s\"/>\n",
+					fprintf(file, "  <DataSet timestep=\"%.17g\" part=\"%d\" file=\"%s\"/>\n",
 					        vTimestep[step], rank, name.c_str());
 				}
 
@@ -2889,6 +2948,15 @@ write_time_pvd_subset(const char* filename, TFunction& u, int si)
 
 	// 	Write to file
 		fprintf(file, "<?xml version=\"1.0\"?>\n");
+
+	//	Write comment
+		if (m_sComment.size())
+		{
+			fprintf(file, "<!--");
+			fprintf(file, m_sComment.c_str());
+			fprintf(file, "-->\n");
+		}
+
 		fprintf(file, "<VTKFile type=\"Collection\" version=\"0.1\">\n");
 		fprintf(file, "  <Collection>\n");
 

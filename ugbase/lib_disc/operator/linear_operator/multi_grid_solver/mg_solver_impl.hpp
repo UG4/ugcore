@@ -192,7 +192,13 @@ apply(vector_type& rC, const vector_type& rD)
 //	debug output
 	write_debug(d, "Defect_In");
 	write_debug(*m_spSurfaceMat, "SurfaceStiffness", c, c);
-
+	for(int lev = m_baseLev; lev <= m_topLev; ++lev)
+	{
+		LevData& ld = *m_vLevData[lev];
+		ld.n_pre_calls = ld.n_post_calls = ld.n_base_calls
+			= ld.n_restr_calls = ld.n_prolong_calls = 0;
+	}
+	
 //	project defect from surface to level
 	GMG_PROFILE_BEGIN(GMG_Apply_CopyDefectFromSurface);
 	try{
@@ -1100,8 +1106,10 @@ init_projection()
 	{
 		LevData& lf = *m_vLevData[lev];
 		LevData& lc = *m_vLevData[lev-1];
+		GridLevel gw_gl; enter_debug_writer_section(gw_gl, "ProjectionInit", lev);
 		lf.Projection->set_levels(lc.st->grid_level(), lf.t->grid_level());
 		lf.Projection->init();
+		leave_debug_writer_section(gw_gl);
 	}
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop init_projection\n");
@@ -1121,16 +1129,20 @@ init_smoother()
 
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, "  init_smoother: initializing pre-smoother on lev "<<lev<<"\n");
 		bool success;
+		GridLevel gw_gl; enter_debug_writer_section(gw_gl, "PreSmootherInit", lev);
 		try {success = ld.PreSmoother->init(ld.A, *ld.sc);}
 		UG_CATCH_THROW("GMG::init: Cannot init pre-smoother for level "<<lev);
+		leave_debug_writer_section(gw_gl);
 		if (!success)
 			UG_THROW("GMG::init: Cannot init pre-smoother for level "<<lev);
 
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, "  init_smoother: initializing post-smoother on lev "<<lev<<"\n");
 		if(ld.PreSmoother != ld.PostSmoother)
 		{
+			GridLevel gw_gl; enter_debug_writer_section(gw_gl, "PostSmootherInit", lev);
 			try {success = ld.PostSmoother->init(ld.A, *ld.sc);}
 			UG_CATCH_THROW("GMG::init: Cannot init post-smoother for level "<<lev);
+			leave_debug_writer_section(gw_gl);
 			if (!success)
 				UG_THROW("GMG::init: Cannot init post-smoother for level "<<lev);
 		}
@@ -1171,8 +1183,10 @@ init_base_solver()
 	//	we init the base solver with the whole grid matrix
 		if(!m_pSurfaceSol)
 			*ld.t = 0;
+		GridLevel gw_gl; enter_debug_writer_section(gw_gl, "GatheredBaseSolverInit", m_baseLev);
 		if(!m_spBaseSolver->init(spGatheredBaseMat, *ld.t))
 			UG_THROW("GMG::init: Cannot init base solver on baselevel "<< m_baseLev);
+		leave_debug_writer_section(gw_gl);
 	}
 	else
 	{
@@ -1188,8 +1202,10 @@ init_base_solver()
 
 		if(!m_pSurfaceSol)
 			*ld.st = 0;
+		GridLevel gw_gl; enter_debug_writer_section(gw_gl, "BaseSolverInit", m_baseLev);
 		if(!m_spBaseSolver->init(ld.A, *ld.st))
 			UG_THROW("GMG::init: Cannot init base solver on baselevel "<< m_baseLev);
+		leave_debug_writer_section(gw_gl);
 	}
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop init_base_solver\n");
@@ -1292,7 +1308,8 @@ init_index_mappings()
 
 	//	set mapping index
 		for(size_t i = 0; i < vSurfInd.size(); ++i){
-			if(spSurfView->surface_state(elem).contains(SurfaceView::MG_SHADOW_RIM_COPY)){
+			if(spSurfView->surface_state(elem).contains(SurfaceView::MG_SHADOW_RIM_COPY)
+				&& (level != m_topLev)) {
 				if(m_GridLevelType == GridLevel::LEVEL){
 					m_vSurfToLevelMap[vSurfInd[i]].indexLower = vLevelInd[i];
 					m_vSurfToLevelMap[vSurfInd[i]].levelLower = level;
@@ -1657,7 +1674,7 @@ presmooth_and_restriction(int lev)
 	LevData& lc = *m_vLevData[lev-1];
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - presmooth on level "<<lev<<"\n");
-	log_debug_data(lev, "BeforePreSmooth");
+	log_debug_data(lev, lf.n_restr_calls, "BeforePreSmooth");
 	mg_stats_defect(*lf.sd, lev, mg_stats_type::BEFORE_PRE_SMOOTH);
 
 //	PRESMOOTH
@@ -1667,8 +1684,10 @@ presmooth_and_restriction(int lev)
 		for(int nu = 0; nu < m_numPreSmooth; ++nu)
 		{
 		//	a)  Compute t = B*d with some iterator B
+			GridLevel gw_gl; enter_debug_writer_section(gw_gl, "PreSmoother", lev, lf.n_pre_calls, nu);
 			if(!lf.PreSmoother->apply(*lf.st, *lf.sd))
 				UG_THROW("GMG: Smoothing step "<<nu+1<<" on level "<<lev<<" failed.");
+			leave_debug_writer_section(gw_gl);
 
 		//	b) handle patch rim.
 			if(!m_bSmoothOnSurfaceRim){
@@ -1695,9 +1714,10 @@ presmooth_and_restriction(int lev)
 		}
 	}
 	UG_CATCH_THROW("GMG: Pre-Smoothing on level "<<lev<<" failed.");
+	lf.n_pre_calls++;
 	GMG_PROFILE_END();
 
-	log_debug_data(lev, "AfterPreSmooth_BeforeCom");
+	log_debug_data(lev, lf.n_restr_calls, "AfterPreSmooth_BeforeCom");
 	mg_stats_defect(*lf.sd, lev, mg_stats_type::AFTER_PRE_SMOOTH);
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - presmooth on level "<<lev<<"\n");
 
@@ -1756,9 +1776,10 @@ presmooth_and_restriction(int lev)
 	#endif
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - restriction on level "<<lev<<"\n");
-	log_debug_data(lev, "BeforeRestrict");
+	log_debug_data(lev, lf.n_restr_calls, "BeforeRestrict");
 
 //	RESTRICTION:
+	GridLevel gw_gl; enter_debug_writer_section(gw_gl, "Restriction", lev, lf.n_restr_calls);
 	GMG_PROFILE_BEGIN(GMG_Restrict_Transfer);
 	try{
 		lf.Restriction->do_restrict(*lc.sd, *spD);
@@ -1771,6 +1792,8 @@ presmooth_and_restriction(int lev)
 	for(size_t i = 0; i < m_vspRestrictionPostProcess.size(); ++i)
 		m_vspRestrictionPostProcess[i]->post_process(lc.sd);
 	GMG_PROFILE_END();
+	leave_debug_writer_section(gw_gl);
+	lf.n_restr_calls++;
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - restriction on level "<<lev<<"\n");
 }
@@ -1784,7 +1807,7 @@ prolongation_and_postsmooth(int lev)
 	LevData& lc = *m_vLevData[lev-1];
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - prolongation on level "<<lev<<"\n");
-	log_debug_data(lev, "BeforeProlong");
+	log_debug_data(lev, lf.n_prolong_calls, "BeforeProlong");
 
 //	ADAPTIVE CASE:
 	if(lev > m_LocalFullRefLevel)
@@ -1808,9 +1831,10 @@ prolongation_and_postsmooth(int lev)
 		lc.RimCpl_Fine_Coarse.matmul_minus(*lf.sd, *lc.sc);
 		GMG_PROFILE_END();
 	}
-	log_debug_data(lev, "AfterCoarseGridDefect");
+	log_debug_data(lev, lf.n_prolong_calls, "AfterCoarseGridDefect");
 
 //	PROLONGATE:
+	GridLevel gw_gl; enter_debug_writer_section(gw_gl, "Prolongation", lev, lf.n_prolong_calls);
 	SmartPtr<GF> spT = lf.st;
 	#ifdef UG_PARALLEL
 	if( !lf.t->layouts()->vertical_slave().empty() ||
@@ -1856,6 +1880,8 @@ prolongation_and_postsmooth(int lev)
 	for(size_t i = 0; i < m_vspProlongationPostProcess.size(); ++i)
 		m_vspProlongationPostProcess[i]->post_process(lf.st);
 	GMG_PROFILE_END();
+	
+	leave_debug_writer_section(gw_gl);
 
 // 	add coarse grid correction: c := c + t
 	GMG_PROFILE_BEGIN(GMG_AddCoarseGridCorrection);
@@ -1864,7 +1890,7 @@ prolongation_and_postsmooth(int lev)
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - prolongation on level "<<lev<<"\n");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - postsmooth on level "<<lev<<"\n");
-	// log_debug_data(lev, "BeforePostSmooth");
+	// log_debug_data(lev, lf.n_prolong_calls, "BeforePostSmooth");
 
 // 	POST-SMOOTH:
 	GMG_PROFILE_BEGIN(GMG_PostSmooth);
@@ -1876,13 +1902,15 @@ prolongation_and_postsmooth(int lev)
 			lf.A->apply_sub(*lf.sd, *lf.st);
 
 			if(nu == 0){
-				log_debug_data(lev, "BeforePostSmooth");
+				log_debug_data(lev, lf.n_prolong_calls, "BeforePostSmooth");
 				mg_stats_defect(*lf.sd, lev, mg_stats_type::BEFORE_POST_SMOOTH);
 			}
 
 		//	a)  Compute t = B*d with some iterator B
+			GridLevel gw_gl; enter_debug_writer_section(gw_gl, "PostSmoother", lev, lf.n_post_calls, nu);
 			if(!lf.PostSmoother->apply(*lf.st, *lf.sd))
 				UG_THROW("GMG: Smoothing step "<<nu+1<<" on level "<<lev<<" failed.");
+			leave_debug_writer_section(gw_gl);
 
 		//	b) handle patch rim
 			if(!m_bSmoothOnSurfaceRim){
@@ -1900,6 +1928,7 @@ prolongation_and_postsmooth(int lev)
 	}
 	UG_CATCH_THROW("GMG: Post-Smoothing on level "<<lev<<" failed. ")
 	GMG_PROFILE_END();
+	lf.n_post_calls++;
 
 //	update the defect if required. In full-ref case, the defect is not needed
 //	anymore, since it will be restricted anyway. For adaptive case, however,
@@ -1911,9 +1940,10 @@ prolongation_and_postsmooth(int lev)
 		GMG_PROFILE_END();
 	}
 
-	log_debug_data(lev, "AfterPostSmooth");
+	log_debug_data(lev, lf.n_prolong_calls, "AfterPostSmooth");
 	mg_stats_defect(*lf.sd, lev, mg_stats_type::AFTER_POST_SMOOTH);
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - postsmooth on level "<<lev<<"\n");
+	lf.n_prolong_calls++;
 }
 
 // performs the base solving
@@ -1923,11 +1953,12 @@ base_solve(int lev)
 {
 	GMG_PROFILE_FUNC();
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - base_solve on level "<<lev<<"\n");
-	log_debug_data(lev, "BeforeBaseSolver");
 
 	try{
 	LevData& ld = *m_vLevData[lev];
 
+	log_debug_data(lev, ld.n_base_calls, "BeforeBaseSolver");
+	
 //	SOLVE BASE PROBLEM
 //	Here we distinguish two possibilities:
 //	a) The coarse grid problem is solved in parallel, using a parallel solver
@@ -1940,11 +1971,13 @@ base_solve(int lev)
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: entering distributed basesolver branch.\n");
 
 		GMG_PROFILE_BEGIN(GMG_BaseSolver_Apply);
+		GridLevel gw_gl; enter_debug_writer_section(gw_gl, "GatheredBaseSolver", lev, ld.n_base_calls);
 		try{
 			if(!m_spBaseSolver->apply(*ld.sc, *ld.sd))
 				UG_THROW("GMG::lmgc: Base solver on base level "<<lev<<" failed.");
 		}
 		UG_CATCH_THROW("GMG: BaseSolver::apply failed. (case: a).")
+		leave_debug_writer_section(gw_gl);
 		GMG_PROFILE_END();
 
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: exiting distributed basesolver branch.\n");
@@ -1984,11 +2017,13 @@ base_solve(int lev)
 			spGatheredBaseCorr->set(0.0);
 
 		//	compute coarse correction
+			GridLevel gw_gl; enter_debug_writer_section(gw_gl, "BaseSolver", lev, ld.n_base_calls);
 			try{
 				if(!m_spBaseSolver->apply(*spGatheredBaseCorr, *ld.t))
 					UG_THROW("GMG::lmgc: Base solver on base level "<<lev<<" failed.");
 			}
 			UG_CATCH_THROW("GMG: BaseSolver::apply failed. (case: b).")
+			leave_debug_writer_section(gw_gl);
 
 			GMG_PROFILE_END();
 			UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG gathered base solver done.\n");
@@ -2026,7 +2061,8 @@ base_solve(int lev)
 		GMG_PROFILE_END();
 	}
 
-	log_debug_data(lev, "AfterBaseSolver");
+	log_debug_data(lev, ld.n_base_calls, "AfterBaseSolver");
+	ld.n_base_calls++;
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - base_solve on level "<<lev<<"\n");
 	}
 	UG_CATCH_THROW("GMG: Base Solver failed.");
@@ -2088,14 +2124,14 @@ lmgc(int lev, int cycleType)
 
 template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
-write_debug(ConstSmartPtr<GF> spGF, std::string name)
+write_debug(ConstSmartPtr<GF> spGF, std::string name, int cycleNo)
 {
-	write_debug(*spGF, name);
+	write_debug(*spGF, name, cycleNo);
 }
 
 template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
-write_debug(const GF& rGF, std::string name)
+write_debug(const GF& rGF, std::string name, int cycleNo)
 {
 	PROFILE_FUNC_GROUP("debug");
 
@@ -2105,7 +2141,9 @@ write_debug(const GF& rGF, std::string name)
 	GridLevel gl = rGF.grid_level();
 	std::stringstream ss;
 	ss << "GMG_" << name << GridLevelAppendix(gl);
-	ss << "_i" << std::setfill('0') << std::setw(3) << m_dbgIterCnt << ".vec";
+	ss << "_i" << std::setfill('0') << std::setw(3) << m_dbgIterCnt;
+	if (cycleNo >= 0) ss << "_cycle" << std::setfill('0') << std::setw(3) << cycleNo;
+	ss << ".vec";
 
 //	write
 	GridLevel currGL = m_spDebugWriter->grid_level();
@@ -2145,14 +2183,43 @@ write_debug(const matrix_type& mat, std::string name, const GridLevel& glTo, con
 }
 
 template <typename TDomain, typename TAlgebra>
+inline void AssembledMultiGridCycle<TDomain, TAlgebra>::
+enter_debug_writer_section(GridLevel& dw_orig_gl, const char * sec_name, int lev, int cycleNo, int callNo)
+{
+	PROFILE_FUNC_GROUP("debug");
+
+	if(m_spDebugWriter.invalid()) return;
+	
+	dw_orig_gl = m_spDebugWriter->grid_level();
+	m_spDebugWriter->set_grid_level(m_vLevData[lev]->sd->grid_level());
+	
+	std::stringstream ss;
+	ss << "GMG_" << sec_name;
+	ss << "_i" << std::setfill('0') << std::setw(3) << m_dbgIterCnt;
+	if (cycleNo >= 0) ss << "_cycle" << std::setfill('0') << std::setw(3) << cycleNo;
+	ss << "_l" << lev;
+	if (callNo >= 0) ss << "_call" << std::setfill('0') << std::setw(3) << callNo;
+	m_spDebugWriter->enter_section(ss.str().c_str());
+}
+
+template <typename TDomain, typename TAlgebra>
+inline void AssembledMultiGridCycle<TDomain, TAlgebra>::
+leave_debug_writer_section(GridLevel& dw_orig_gl)
+{
+	if(m_spDebugWriter.invalid()) return;
+	m_spDebugWriter->leave_section();
+	m_spDebugWriter->set_grid_level(dw_orig_gl);
+}
+
+template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
-log_debug_data(int lvl, std::string name)
+log_debug_data(int lvl, int cycleNo, std::string name)
 {
 	if(m_spDebugWriter.valid()){
 		std::string defName("Def_"); defName.append(name);
 		std::string curName("Cor_"); curName.append(name);
-		write_debug(m_vLevData[lvl]->sd, defName);
-		write_debug(m_vLevData[lvl]->sc, curName);
+		write_debug(m_vLevData[lvl]->sd, defName, cycleNo);
+		write_debug(m_vLevData[lvl]->sc, curName, cycleNo);
 	}
 
 	const bool bEnableSerialNorm = false;

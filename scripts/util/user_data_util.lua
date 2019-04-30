@@ -486,6 +486,10 @@ for dim =  1,3 do
 	-- only set if dimension is compiled (otherwise metatable does not exist)
 	if ug_dim_compiled(dim) then
 		set_user_data_overloads("DarcyVelocityLinker"..dim.."d")
+		set_user_data_overloads("BinghamViscosityLinker"..dim.."d")
+		set_user_data_overloads("UserTensor"..dim.."d")
+		set_user_data_overloads("UserTensorEntryAdapter"..dim.."d")
+		set_user_data_overloads("UserTensorColumnAdapter"..dim.."d")
 	end
 end
 

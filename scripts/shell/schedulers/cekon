@@ -8,24 +8,12 @@
 function UJS_Submit
 {
 	echo "Cluster: cekon. Scheduler: SLURM."
-	jobid=?
-	
-	# well hm this might be wrong
-	if [ $nppn -ne 1 ]; then
-		echo "cekon does not support nppn > 1. Aborting."
-		exit
-	fi
-	if [ $((npe%nppn)) -ne 0 ]; then
-		echo "npe=$npe is not dividable by nppn=$nppn"
-		exit
-	fi
 		
-	
 	local SlurmWalltime=""
 	if [ $walltime != "unlimited" ]; then
 		SlurmWalltime="--time=$walltime "
 	fi
-
+	
 	local SlurmMail=""
 	if [ $mail == true ]; then 
 		if [ -z "$UGSUBMIT_EMAIL" ]; then
@@ -53,16 +41,16 @@ function UJS_Submit
 		fi	 
 		SlurmMail="--mail-user=$UGSUBMIT_EMAIL --mail-type=$SlurmNotification "
 	fi
-	
+
 	local SlurmExclusive=""
 	if [ $exclusive == true ]; then
-		SlurmExclusive="--exclusive"
+		SlurmExclusive="--exclusive "
 	fi	
 	local additionalSlurm="$SlurmWalltime$SlurmMail$SlurmExclusive"
-
-	commandline="salloc -n $npe $additionalSlurm --job-name=$jobname mpirun $executable $args"
-	echo " command:      "$commandline >> info.txt
 	
+	commandline="salloc -N $nnodes -n $npe $additionalSlurm --job-name=$jobname mpirun $executable $args"
+	echo " command:      "$commandline >> info.txt
+
 	if [ $test == true ]; then
 		echo "ONLY testing - NOT executing."
 		echo "Submit/Start: $commandline"
@@ -84,7 +72,7 @@ function UJS_Submit
 		fi
 	else
 		echo "Submit: $commandline"
-		nohup $commandline > $outdir/job.output &
+		nohup $commandline > job.output &
 		sleep 1
 		jobid=`cat job.output | sed -n 1p | sed 's/.* \([0-9]*\).*/\1/'`
 		
@@ -98,16 +86,15 @@ function UJS_Submit
 
 function UJS_GetOptions
 {
-	nppnmax=1
+	nppnmax=4
 	pemax=92	
 }
 
 function UJS_Info
 {
-	echo "UGSUBMIT Info for CEKON:"
-	echo "Max Cores Total: 92 (23 Nodes with 4 Cores Per Node)"
-	echo "Memory on each node: 4 GB"
-	echo "Using SLURM on cekon"
+	echo "UGSUBMIT Info for cekon:"
+	echo "Max Cores Total: 92 (23 nodes with one 4-Core-CPU per node)"
+	echo "Using SLURM on cekon"	
 	if [ ! -z $1 ] && [ $1 == "all" ]; then
 		echo "squeue -o \"%.7i %6C %6D %.50j %.10u %.8T %.10M %.10l %.6D %19R\""
 		squeue -o "%.7i %6C %6D %.50j %.10u %.8T %.10M %.10l %.6D %19R"
@@ -134,4 +121,4 @@ function UJS_Cancel
 	else
 		scancel $1
 	fi
-}	
+}

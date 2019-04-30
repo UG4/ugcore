@@ -275,6 +275,7 @@ static void Domain(Registry& reg, string grp)
 		typedef IElementMarkingStrategy<TDomain> TBase;
 		string name = string("StdCoarseningMarking").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
+			.template add_constructor<void (*)(number, number, int)>("tolerated max error#safety factor#min level")
 			.template add_constructor<void (*)(number, number)>("tolerated max error#safety factor")
 			.template add_constructor<void (*)(number)>("tolerated max error")
 			.add_method("set_tolerance", &T::set_tolerance)

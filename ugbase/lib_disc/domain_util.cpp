@@ -156,6 +156,15 @@ number MaxElementDiameter(TDomain& domain, int level)
 	                           domain.grid()->template end<TElem>(level));
 }
 
+template <typename TDomain>
+number MinElementDiameter(TDomain& domain, int level)
+{
+	typedef typename domain_traits<TDomain::dim>::grid_base_object TElem;
+	return  MinElementDiameter(*domain.grid(), domain.position_accessor(),
+	                           domain.grid()->template begin<TElem>(level),
+	                           domain.grid()->template end<TElem>(level));
+}
+
 template void LoadDomain<Domain1d>(Domain1d& domain, const char* filename);
 template void LoadDomain<Domain2d>(Domain2d& domain, const char* filename);
 template void LoadDomain<Domain3d>(Domain3d& domain, const char* filename);
@@ -171,6 +180,10 @@ template void SaveDomain<Domain3d>(Domain3d& domain, const char* filename);
 template number MaxElementDiameter<Domain1d>(Domain1d& domain, int level);
 template number MaxElementDiameter<Domain2d>(Domain2d& domain, int level);
 template number MaxElementDiameter<Domain3d>(Domain3d& domain, int level);
+
+template number MinElementDiameter<Domain1d>(Domain1d& domain, int level);
+template number MinElementDiameter<Domain2d>(Domain2d& domain, int level);
+template number MinElementDiameter<Domain3d>(Domain3d& domain, int level);
 
 } // end namespace ug
 

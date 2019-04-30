@@ -52,6 +52,7 @@ set(src_Algebra	 ${src_Algebra}
 	operator/preconditioner/line_smoothers.cpp
 	operator/linear_solver/analyzing_solver.cpp
 	algebra_common/permutation_util.cpp
+	operator/preconditioner/schur/schur.cpp
 	)
 	
 add_subdirectory(common/matrixio)
@@ -59,7 +60,6 @@ add_subdirectory(common/matrixio)
 if(PARALLEL)
 	# add parallelization
 	set(src_Algebra	 ${src_Algebra}
-						operator/preconditioner/schur/schur.cpp
 						operator/preconditioner/schur/schur_precond.cpp
 						operator/preconditioner/schur/schur_complement_operator.cpp
 						operator/preconditioner/schur/parallel_progress.cpp

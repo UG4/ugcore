@@ -1926,7 +1926,7 @@ template class DimFV1Geometry<3, 3>;
 
 //////////////////////
 // Manifold
-template class FV1ManifoldGeometry<Edge, 2>;
+template class FV1ManifoldGeometry<RegularEdge, 2>;
 template class FV1ManifoldGeometry<Triangle, 3>;
 template class FV1ManifoldGeometry<Quadrilateral, 3>;
 

@@ -64,6 +64,7 @@ NewtonSolver(SmartPtr<ILinearOperatorInverse<vector_type> > LinearSolver,
 			m_N(NULL),
 			m_J(NULL),
 			m_spAss(NULL),
+			m_reassembe_J_freq(0),
 			m_dgbCall(0),
 			m_lastNumSteps(0)
 {};
@@ -77,6 +78,7 @@ NewtonSolver() :
 	m_N(NULL),
 	m_J(NULL),
 	m_spAss(NULL),
+	m_reassembe_J_freq(0),
 	m_dgbCall(0),
 	m_lastNumSteps(0)
 {};
@@ -90,6 +92,7 @@ NewtonSolver(SmartPtr<IOperator<vector_type> > N) :
 	m_N(NULL),
 	m_J(NULL),
 	m_spAss(NULL),
+	m_reassembe_J_freq(0),
 	m_dgbCall(0),
 	m_lastNumSteps(0)
 {
@@ -105,6 +108,7 @@ NewtonSolver(SmartPtr<IAssemble<TAlgebra> > spAss) :
 	m_N(NULL),
 	m_J(NULL),
 	m_spAss(NULL),
+	m_reassembe_J_freq(0),
 	m_dgbCall(0),
 	m_lastNumSteps(0)
 {
@@ -170,19 +174,23 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 
 // 	Compute first Defect
 	try{
-	NEWTON_PROFILE_BEGIN(NewtonComputeDefect1);
-	m_N->apply(*spD, u);
-	NEWTON_PROFILE_END();
+		NEWTON_PROFILE_BEGIN(NewtonComputeDefect1);
+		m_N->apply(*spD, u);
+		NEWTON_PROFILE_END();
 	}UG_CATCH_THROW("NewtonSolver::apply: Computation of Start-Defect failed.");
 
-//	write start defect for debug
+//	loop counts (for the the convergence rate statistics etc.)
 	int loopCnt = 0;
 	m_lastNumSteps = 0;
-	char ext[20]; sprintf(ext, "_iter%03d", loopCnt);
-	std::string name("NEWTON_Defect");
-	name.append(ext);
-	write_debug(*spD, name.c_str());
-	write_debug(u, "NEWTON_StartSolution");
+	
+//	write start defect for debug
+	char debug_name_ext[20];
+	if (this->debug_writer_valid())
+	{
+		sprintf(debug_name_ext, "_iter%03d", loopCnt);
+		write_debug(*spD, std::string("NEWTON_Defect") + debug_name_ext);
+		write_debug(u, "NEWTON_StartSolution");
+	}
 
 // 	increase offset of output for linear solver
 	const int stdLinOffset = m_spLinearSolver->standard_offset();
@@ -213,40 +221,56 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 
 	// 	Compute Jacobian
 		try{
-		NEWTON_PROFILE_BEGIN(NewtonComputeJacobian);
-		m_J->init(u);
-		NEWTON_PROFILE_END();
+			if(m_reassembe_J_freq == 0 || loopCnt % m_reassembe_J_freq == 0) // if we need to reassemble
+			{
+				NEWTON_PROFILE_BEGIN(NewtonComputeJacobian);
+				m_J->init(u);
+				NEWTON_PROFILE_END();
+			}
 		}UG_CATCH_THROW("NewtonSolver::apply: Initialization of Jacobian failed.");
 
-	//	Write Jacobian for debug
-		std::string matname("NEWTON_Jacobian");
-		matname.append(ext);
-		write_debug(m_J->get_matrix(), matname.c_str());
+	//	Write the current Jacobian for debug and prepare the section for the lin. solver
+		if (this->debug_writer_valid())
+		{
+			write_debug(m_J->get_matrix(), std::string("NEWTON_Jacobian") + debug_name_ext);
+			this->enter_debug_writer_section(std::string("NEWTON_LinSolver") + debug_name_ext);
+		}
 
 	// 	Init Jacobi Inverse
-		try{
-		NEWTON_PROFILE_BEGIN(NewtonPrepareLinSolver);
-		if(!m_spLinearSolver->init(m_J, u))
+		bool successfulInit = false;
+		try
 		{
-			UG_LOG("ERROR in 'NewtonSolver::apply': Cannot init Inverse Linear "
-					"Operator for Jacobi-Operator.\n");
+			NEWTON_PROFILE_BEGIN(NewtonPrepareLinSolver);
+			successfulInit = m_spLinearSolver->init(m_J, u);
+			NEWTON_PROFILE_END();
+		}
+		UG_CATCH_PRINT("NewtonSolver::apply: Initialization of Linear Solver failed.");
+#ifdef UG_PARALLEL
+		if ((pcl::NumProcs() > 1 && !pcl::AllProcsTrue(successfulInit))
+			|| (pcl::NumProcs() == 1 && !successfulInit))
+#else
+		if (!successfulInit)
+#endif
+		{
+			UG_LOG("ERROR in 'NewtonSolver::apply': "
+                   "Initialization of Linear Solver failed.\n");
 			return false;
 		}
-		NEWTON_PROFILE_END();
-		}UG_CATCH_THROW("NewtonSolver::apply: Initialization of Linear Solver failed.");
 
 	// 	Solve Linearized System
 		try{
-		NEWTON_PROFILE_BEGIN(NewtonApplyLinSolver);
-		if(!m_spLinearSolver->apply(*spC, *spD))
-		{
-			UG_LOG("ERROR in 'NewtonSolver::apply': Cannot apply Inverse Linear "
-					"Operator for Jacobi-Operator.\n");
-			return false;
-		}
-		NEWTON_PROFILE_END();
+			NEWTON_PROFILE_BEGIN(NewtonApplyLinSolver);
+			if(!m_spLinearSolver->apply(*spC, *spD))
+			{
+				UG_LOG("ERROR in 'NewtonSolver::apply': Cannot apply Inverse Linear "
+						"Operator for Jacobi-Operator.\n");
+				return false;
+			}
+			NEWTON_PROFILE_END();
 		}UG_CATCH_THROW("NewtonSolver::apply: Application of Linear Solver failed.");
 
+		this->leave_debug_writer_section();
+		
 	//	store convergence history
 		const int numSteps = m_spLinearSolver->step();
 		if(loopCnt >= (int)m_vTotalLinSolverSteps.size()) m_vTotalLinSolverSteps.resize(loopCnt+1);
@@ -256,38 +280,37 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 		m_vLinSolverCalls[loopCnt] += 1;
 		m_vLinSolverRates[loopCnt] += m_spLinearSolver->convergence_check()->avg_rate();
 
-	// 	Line Search
 		try{
-		if(m_spLineSearch.valid())
-		{
-			m_spLineSearch->set_offset("   #  ");
-			NEWTON_PROFILE_BEGIN(NewtonLineSearch);
-			if(!m_spLineSearch->search(m_N, u, *spC, *spD, m_spConvCheck->defect()))
+		// 	Line Search
+			if(m_spLineSearch.valid())
 			{
-				UG_LOG("ERROR in 'NewtonSolver::apply': "
-						"Newton Solver did not converge.\n");
-				return false;
+				m_spLineSearch->set_offset("   #  ");
+				NEWTON_PROFILE_BEGIN(NewtonLineSearch);
+				if(!m_spLineSearch->search(m_N, u, *spC, *spD, m_spConvCheck->defect()))
+				{
+					UG_LOG("ERROR in 'NewtonSolver::apply': "
+							"Newton Solver did not converge.\n");
+					return false;
+				}
+				NEWTON_PROFILE_END();
 			}
-			NEWTON_PROFILE_END();
-		}
-	// 	No line search: Compute new defect
-		else
-		{
-		// 	update solution
-			u -= *spC;
-
-		// 	compute new Defect
-			NEWTON_PROFILE_BEGIN(NewtonComputeDefect);
-			m_N->prepare(u);
-			m_N->apply(*spD, u);
-			NEWTON_PROFILE_END();
-		}
+		// 	No line search: Compute new defect
+			else
+			{
+			// 	update solution
+				u -= *spC;
+	
+			// 	compute new Defect
+				NEWTON_PROFILE_BEGIN(NewtonComputeDefect);
+				m_N->prepare(u);
+				m_N->apply(*spD, u);
+				NEWTON_PROFILE_END();
+			}
 		}UG_CATCH_THROW("NewtonSolver::apply: Line Search update failed.");
 
 
 	//	update counter
 		loopCnt++;
-		sprintf(ext, "_iter%03d", loopCnt);
 
 	// 	check convergence
 		m_spConvCheck->update(*spD);
@@ -295,12 +318,13 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 		m_vNonLinSolverRates[loopCnt-1] += m_spConvCheck->rate();
 
 	//	write defect for debug
-		std::string name("NEWTON_Defect"); name.append(ext);
-		write_debug(*spD, name.c_str());
-		std::string name2("NEWTON_Correction"); name2.append(ext);
-		write_debug(*spC, name2.c_str());
-		std::string name3("NEWTON_Solution"); name3.append(ext);
-		write_debug(u, name3.c_str());
+		if (this->debug_writer_valid())
+		{
+			sprintf(debug_name_ext, "_iter%03d", loopCnt);
+			write_debug(*spD, std::string("NEWTON_Defect") + debug_name_ext);
+			write_debug(*spC, std::string("NEWTON_Correction") + debug_name_ext);
+			write_debug(u, std::string("NEWTON_Solution") + debug_name_ext);
+		}
 	}
 
 	// reset offset of output for linear solver to previous value
@@ -398,29 +422,25 @@ void NewtonSolver<TAlgebra>::clear_average_convergence()
 }
 
 template <typename TAlgebra>
-void NewtonSolver<TAlgebra>::write_debug(const vector_type& vec, const char* filename)
+void NewtonSolver<TAlgebra>::write_debug(const vector_type& vec, std::string name)
 {
-//	add iter count to name
-	std::string name(filename);
+//	add call count to name
 	char ext[20]; sprintf(ext, "_call%03d", m_dgbCall);
-	name.append(ext).append(".vec");
 
 //	write
 	typedef DebugWritingObject<TAlgebra> base_writer_type;
-	base_writer_type::write_debug(vec, name.c_str());
+	base_writer_type::write_debug(vec, name + ext);
 }
 
 template <typename TAlgebra>
-void NewtonSolver<TAlgebra>::write_debug(const matrix_type& mat, const char* filename)
+void NewtonSolver<TAlgebra>::write_debug(const matrix_type& mat, std::string name)
 {
-//	add iter count to name
-	std::string name(filename);
+//	add call count to name
 	char ext[20]; sprintf(ext, "_call%03d", m_dgbCall);
-	name.append(ext).append(".mat");
 
 //	write
 	typedef DebugWritingObject<TAlgebra> base_writer_type;
-	base_writer_type::write_debug(mat, name.c_str());
+	base_writer_type::write_debug(mat, name + ext);
 }
 
 template <typename TAlgebra>
@@ -437,6 +457,7 @@ std::string NewtonSolver<TAlgebra>::config_string() const
 	ss << " LineSearch: ";
 	if(m_spLineSearch.valid())		ss << ConfigShift(m_spLineSearch->config_string()) << "\n";
 	else							ss << " not set.\n";
+	if(m_reassembe_J_freq != 0)		ss << " Reassembling Jacobian only once per " << m_reassembe_J_freq << " step(s)\n";
 	return ss.str();
 }
 

@@ -830,7 +830,6 @@ public:
 
 	///	write vector
 	virtual void write_vector(const vector_type& vec, const char* filename) {
-
 		//	write to conn viewer
 		if (bConnViewerOut)
 			write_vector_to_conn_viewer(vec, filename);
@@ -854,15 +853,9 @@ public:
 
 		update_positions();
 
-		std::string name = get_base_dir() + "/" + filename;
-
-		if (!FileExists(get_base_dir())) {
-			UG_WARNING("GridFunctionDebugWriter::write_matrix: directory "
-						<< get_base_dir() << "does not exist.");
-			UG_WARNING("GridFunctionDebugWriter::write_matrix: using cwd "
-						"as basedir.");
-			name = "./"; name.append(filename);
-		}
+		std::string name;
+		this->compose_file_path (name);
+		name += filename;
 
 		if ( !FileTypeIs( filename, ".mat" ) ) {
 			UG_THROW( "Only '.mat' format supported for matrices, but"
@@ -931,15 +924,9 @@ protected:
 		PROFILE_FUNC_GROUP("debug");
 		update_positions();
 
-		std::string name = get_base_dir() + "/" + filename;
-
-		if (!FileExists(get_base_dir())) {
-			UG_WARNING("GridFunctionDebugWriter::write_vector_to_conn_viewer: directory "
-						<< get_base_dir() << "does not exist.");
-			UG_WARNING("GridFunctionDebugWriter::write_vector_to_conn_viewer: using cwd "
-						"as basedir.");
-			name = "./"; name.append(filename);
-		}
+		std::string name;
+		this->compose_file_path (name);
+		name += filename;
 
 		if ( !FileTypeIs( filename, ".vec" ) ) {
 			UG_THROW( "Only '.vec' format supported for vectors, but"
@@ -959,15 +946,10 @@ protected:
 	void write_vector_to_vtk(const vector_type& vec, const char* filename) {
 		PROFILE_FUNC_GROUP("debug");
 		//	check name
-		std::string name = get_base_dir() + "/" + filename;
 
-		if (!FileExists(get_base_dir())) {
-			UG_WARNING("GridFunctionDebugWriter::write_vector_to_vtk: directory "
-						<< get_base_dir() << "does not exist.");
-			UG_WARNING("GridFunctionDebugWriter::write_vector_to_vtk: using cwd "
-						"as basedir.");
-			name = "./"; name.append(filename);
-		}
+		std::string name;
+		this->compose_file_path (name);
+		name += filename;
 
 		typedef GridFunction<TDomain, TAlgebra> TGridFunction;
 		TGridFunction vtkFunc(

@@ -74,14 +74,15 @@ public:
 			) = 0;
 			virtual void calc_error
 			(	ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
-				ConstSmartPtr<DoFDistribution> dd, std::vector<number> vScaleMass,
-				std::vector<number> vScaleStiff,
+				ConstSmartPtr<DoFDistribution> dd,
+				const std::vector<number>& vScaleMass,
+				const std::vector<number>& vScaleStiff,
 				vector_type* u_vtk
 			) = 0;
 			virtual void calc_error
 			(	ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
-				std::vector<number> vScaleMass,
-				std::vector<number> vScaleStiff,
+				const std::vector<number>& vScaleMass,
+				const std::vector<number>& vScaleStiff,
 				const GridLevel& gl,
 				vector_type* u_vtk
 			) = 0;

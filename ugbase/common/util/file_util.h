@@ -126,18 +126,46 @@ UG_API bool FileTypeIs( const char *filename, const char *extension );
 /**
  * \brief Creates a directory
  *
+ * This is a hack. This function does the same as CreateDirectory.
+ * But there is a linking problem in MS VC, so that the name CreateDirectory
+ * cannot be used.
+ *
+ * \param[in] directory name of the directory
+ * \return true if successfull
+ *
+ */
+UG_API bool CreateDirectoryTMP(const char *directory);
+
+/**
+ * \brief Creates a directory
+ *
  * \param[in] directory name of the directory
  * \param[in] mode	(optional, default 0777) Sets ownership options for the file.
  *					Ignored on windows.
  * \return true if successfull
- * \{
  */
-UG_API bool CreateDirectoryTMP(const char *directory);
 UG_API bool CreateDirectory(const char *directory);
-UG_API bool CreateDirectory(const char *directory, int mode);
-UG_API bool CreateDirectory(std::string directory);
-/** \} */
 
+/**
+ * \brief Creates a directory
+ *
+ * \param[in] directory name of the directory
+ * \param[in] mode	(optional, default 0777) Sets ownership options for the file.
+ *					Ignored on windows.
+ * \return true if successfull
+ */
+UG_API bool CreateDirectory(const char *directory, int mode);
+
+/**
+ * \brief Creates a directory
+ *
+ * \param[in] directory name of the directory
+ * \return true if successfull
+ */
+static inline bool CreateDirectory(std::string directory)
+{
+	return CreateDirectoryTMP(directory.c_str());
+}
 
 /**
  * \brief Compares two files by their content

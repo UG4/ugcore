@@ -239,6 +239,19 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "IComponentSpace", tag);
 	}
 
+	// GridFunctionComponentSpace
+	{
+		typedef GridFunctionComponentSpace<TFct> T;
+		typedef IComponentSpace<TFct> TBase;
+
+		string name = string("GridFunctionComponentSpace").append(suffix);
+		reg.add_class_<T, TBase>(name, grp)
+			.template add_constructor<void (*)(const char *) >("function names")
+			.template add_constructor<void (*)(const char *, const char *) >("function names, subset names")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "GridFunctionComponentSpace", tag);
+	}
+
 	// L2ComponentSpace
 	{
 		typedef L2ComponentSpace<TFct> T;

@@ -567,6 +567,38 @@ collect_associated(std::vector<TBaseElem*>& vAssElem,
 			vAssElem.push_back(vCoarseElem[i]);
 		}
 	}
+
+// alternative implementation taking into account possible SHADOW_RIM_COPY elem.
+#if 0
+	// collect associated on this level
+	if (is_contained(elem, gl, ALL))
+	{
+		std::vector<TBaseElem*> vCoarseElem;
+		CollectAssociated(vCoarseElem, *m_pMG, elem, true);
+		for (size_t i = 0; i < vCoarseElem.size(); ++i)
+			if (is_contained(vCoarseElem[i], gl, ALL))
+				vAssElem.push_back(vCoarseElem[i]);
+	}
+
+	// if at border of a grid level, there may be connections of a "shadow-rim-copy" element
+	// to surface elements on the finer level. These must be taken into account.
+	if (is_contained(elem, gl, SHADOW_RIM_COPY))
+	{
+		if (m_pMG->num_children<TElem>(elem) > 0)
+		{
+			TElem* child = m_pMG->get_child<TElem>(elem, 0);
+			if (is_contained(child, gl, SURFACE_RIM))
+			{
+				// get connected elements
+				std::vector<TBaseElem*> vFineElem;
+				CollectAssociated(vFineElem, *m_pMG, child, true);
+				for (size_t i = 0; i < vFineElem.size(); ++i)
+					if (is_contained(vFineElem[i], gl, ALL))
+						vAssElem.push_back(vFineElem[i]);
+			}
+		}
+	}
+#endif
 }
 
 
