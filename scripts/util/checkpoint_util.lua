@@ -123,7 +123,8 @@ end
 --!        Can contain all LUA types (tables, arrays, strings, numbers etc.), but no userdata!
 --!        Can also be nil.
 --! @param name name to use when writing the checkpoint. may be nil. 
-function util.WriteCheckpoint(u, id, myData, name)
+--! @param verbose if verbose defined then print additional debug output to console
+function util.WriteCheckpoint(u, id, myData, name, verbose)
 	if name == nil then name = util.checkpoint.stdName end
 	ug_assert(id ~= nil)
 	
@@ -148,7 +149,9 @@ function util.WriteCheckpoint(u, id, myData, name)
 		LuaWrite(name..".lua", "checkpoint")
 	end
 	
-	print("\nWrote Checkpoint "..name..".lua. id = "..id..", filename = "..filename.."\n")		
+ if verbose then
+	  print("\nWrote Checkpoint "..name..".lua. id = "..id..", filename = "..filename.."\n")		
+  end
 	
 end
 
@@ -175,7 +178,8 @@ end
 --! @param name name to use when writing the checkpoint. may be nil.
 --! @return the checkpoint data cp. (see util.WriteCheckpoint)
 --!  myData will be saved  cp.myData.
-function util.ReadCheckpoint(u, name)
+--! @param verbose if verbose defined then print additional debug output to console
+function util.ReadCheckpoint(u, name, verbose)
 	if name == nil then name = util.checkpoint.stdName end
 	
 	-- load the lua data
@@ -189,8 +193,10 @@ function util.ReadCheckpoint(u, name)
 	local cp = LoadTheCheckpoint()
 	
 	-- print the checkpoint
-	print("Loading Checkpoint "..name..".lua :")
-	print(cp)
+	if verbose then
+	  print("Loading Checkpoint "..name..".lua :")
+  	print(cp)
+  end
 	
 	-- check that the stdData is same in file and
 	-- current run (see util.GetStdCheckpointData)
