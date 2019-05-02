@@ -89,7 +89,6 @@ set(srcAlgorithms	algorithms/debug_util.cpp
 					refinement/projectors/neurite_projector.cpp
 					refinement/projectors/elliptic_cylinder_projector.cpp
 					refinement/ref_mark_adjusters/local_mark_adjuster.cpp
-					refinement/projectors/neurite_projector.cpp
 					refinement/ref_mark_adjusters/horizontal_anisotropy_adjuster.cpp
 					refinement/ref_mark_adjusters/shadow_copy_adjuster.cpp
 					refinement/ref_mark_adjusters/mg_hnode_adjuster.cpp
