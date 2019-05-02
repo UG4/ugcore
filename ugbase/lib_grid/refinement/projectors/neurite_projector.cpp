@@ -1351,9 +1351,12 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
   else if (t <= 1.0)
     pos_in_neurite(pos, neurite, plainNID, t, angle, rad);
 
-  // case 3: tip of neurite
-  else
-    pos_on_surface_tip(pos, neurite, parent, this, rad);
+	// case 3: tip of neurite
+	else
+	{
+		// todo: treat case where parent is NULL
+		pos_on_surface_tip(pos, neurite, parent, this, rad);
+	}
 
   // case 4: soma
   // TODO: implement!
