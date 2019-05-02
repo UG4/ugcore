@@ -1168,7 +1168,6 @@ debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 
 	//	has anybody marked an element as invalid? If not, exit adjustment.
 		if(!one_proc_true(foundInvalid)){
-			running = false;
 			break;
 		}
 
@@ -1776,7 +1775,7 @@ We have to handle elements as follows:
 				char parentType = mg.parent_type(elem);
 				if((parentType == EDGE) || (parentType == FACE)){
 					hv = *mg.create_and_replace<ConstrainedVertex>(elem);
-					elem = hv;
+					// elem = hv;  // never used
 				}
 				else
 					break;

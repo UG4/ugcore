@@ -623,7 +623,7 @@ void SelectSmoothEdgePath(Selector& sel, number thresholdDegree, number normalWe
 				if(stopAtSelVrts && sel.is_selected(srcVrt))
 					srcVrt = NULL;
 					
-				lastEdge = bestEdge;
+				// lastEdge = bestEdge;  // never used
 				lastDir = bestDir;
 				bLastNormalValid = bBestNormalValid;
 				lastNormal = bestNormal;
