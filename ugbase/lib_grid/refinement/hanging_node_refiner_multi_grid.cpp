@@ -203,7 +203,7 @@ void HangingNodeRefiner_MultiGrid::assign_hnode_marks()
 		const size_t flSz = fl.size();
 		for (size_t f = 0; f < flSz; ++f)
 		{
-			if (!mg.num_child_faces(fl[f]))
+			if (refinement_is_allowed(fl[f]) && !mg.num_child_faces(fl[f]))
 			{
 				faceWithoutChildExists = true;
 				break;
