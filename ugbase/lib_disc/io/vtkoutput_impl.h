@@ -2588,7 +2588,7 @@ write_pvtu(TFunction& u, const std::string& filename,
 		if (m_sComment.size())
 		{
 			fprintf(file, "<!--");
-			fprintf(file, m_sComment.c_str());
+			fprintf(file, "%s", m_sComment.c_str());
 			fprintf(file, "-->\n");
 		}
 	
@@ -2773,7 +2773,7 @@ write_time_pvd(const char* filename, TFunction& u)
 		if (m_sComment.size())
 		{
 			fprintf(file, "<!--");
-			fprintf(file, m_sComment.c_str());
+			fprintf(file, "%s", m_sComment.c_str());
 			fprintf(file, "-->\n");
 		}
 
@@ -2875,7 +2875,7 @@ write_time_processwise_pvd(const char* filename, TFunction& u)
 		if (m_sComment.size())
 		{
 			fprintf(file, "<!--");
-			fprintf(file, m_sComment.c_str());
+			fprintf(file, "%s", m_sComment.c_str());
 			fprintf(file, "-->\n");
 		}
 
@@ -2953,7 +2953,7 @@ write_time_pvd_subset(const char* filename, TFunction& u, int si)
 		if (m_sComment.size())
 		{
 			fprintf(file, "<!--");
-			fprintf(file, m_sComment.c_str());
+			fprintf(file, "%s", m_sComment.c_str());
 			fprintf(file, "-->\n");
 		}
 
