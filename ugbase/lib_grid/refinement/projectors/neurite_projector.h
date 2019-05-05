@@ -171,11 +171,11 @@ class NeuriteProjector
 			vector3 refDir;
 			std::vector<Section> vSec;
 			std::vector<BranchingRegion> vBR;
-			float somaStart;
-			bool bHasER = true;
+			//float somaStart;  // never used
+			//float somaRadius;  // never used
+			//vector3 somaPt;  // never used
+			bool bHasER;
 			bool scaleER;
-			float somaRadius;
-			vector3 somaPt;
 
 			template <class Archive>
 			void serialize(Archive& ar, const unsigned int version)
@@ -215,8 +215,8 @@ class NeuriteProjector
 			float axial;
 			float angular;
 			float radial;
-			bool soma;
-			float scale;
+			//bool soma;  // never used
+			//float scale;  // never used
 		};
 
 
