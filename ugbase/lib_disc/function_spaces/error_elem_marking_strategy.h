@@ -246,7 +246,7 @@ number CreateSortedListOfElems(
 		std::vector< std::pair<double, TElem*> > &etaSqList)
 {
 
-	typedef typename std::pair<double, TElem*> TPair;
+	//typedef typename std::pair<double, TElem*> TPair;
 	typename DoFDistribution::traits<TElem>::const_iterator iter;
 
 	number localErrSq=0;
@@ -433,7 +433,7 @@ void APosterioriCoarsening<TDomain>::mark(typename base_type::elem_accessor_type
 				ConstSmartPtr<DoFDistribution> dd)
 {
 	typedef typename base_type::elem_type TElem;
-	typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
+	//typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
 	typedef typename std::pair<double, TElem*> TPair;
 	typedef typename std::vector<TPair> TPairVector;
 

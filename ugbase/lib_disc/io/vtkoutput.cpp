@@ -97,10 +97,11 @@ print(const char* filename, Domain<TDim>& domain)
 //	write piece of grid
 	if(dim >= 0)
 	{
+		MGSubsetHandler sh_ = *domain.subset_handler();
 		try{
 			write_grid_piece<MGSubsetHandler>
 			(File, aaVrtIndex, domain.position_accessor(), grid,
-			 sh, si, dim);
+			 sh, si, dim, sh);
 		}
 		UG_CATCH_THROW("VTK::print: Can not write Subset: "<<si);
 	}
@@ -600,6 +601,18 @@ template <int TDim>
 void VTKOutput<TDim>::
 set_write_grid(bool b) {
 	m_bWriteGrid = b;
+}
+
+template <int TDim>
+void VTKOutput<TDim>::
+set_write_subset_indices(bool b) {
+	m_bWriteSubsetIndices = b;
+}
+
+template <int TDim>
+void VTKOutput<TDim>::
+set_write_proc_ranks(bool b) {
+	m_bWriteProcRanks = b;
 }
 
 template <int TDim>

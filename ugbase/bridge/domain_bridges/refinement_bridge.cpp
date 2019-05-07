@@ -994,7 +994,7 @@ void MarkForRefinement_CloseToSurface(TDomain& dom, SmartPtr<IRefiner> refiner,
 {
 	PROFILE_FUNC();
 	typedef typename TDomain::grid_type TGrid;
-	typedef typename TDomain::subset_handler_type TSubsetHandler;
+	//typedef typename TDomain::subset_handler_type TSubsetHandler;
 	typedef typename TDomain::position_type TPos;
 	typedef typename TDomain::position_accessor_type TAAPos;
 	typedef typename domain_traits<TDomain::dim>::element_type TElem;
@@ -1060,8 +1060,8 @@ void MarkForRefinement_ContainsSurfaceNode(TDomain& dom, SmartPtr<IRefiner> refi
 {
 	PROFILE_FUNC();
 	typedef typename TDomain::grid_type TGrid;
-	typedef typename TDomain::subset_handler_type TSubsetHandler;
-	typedef typename TDomain::position_type TPos;
+	//typedef typename TDomain::subset_handler_type TSubsetHandler;
+	//typedef typename TDomain::position_type TPos;
 	typedef typename TDomain::position_accessor_type TAAPos;
 	typedef typename domain_traits<TDomain::dim>::element_type TElem;
 	typedef typename domain_traits<TDomain::dim>::side_type TSide;
@@ -1732,7 +1732,7 @@ template <typename TDomain>
 static void Domain(Registry& reg, string grp)
 {
 	typedef TDomain 							domain_type;
-	typedef typename TDomain::position_attachment_type apos_type;
+	//typedef typename TDomain::position_attachment_type apos_type;
 
 	string suffix = GetDomainSuffix<TDomain>();
 	string tag = GetDomainTag<TDomain>();

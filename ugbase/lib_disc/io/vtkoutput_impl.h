@@ -471,7 +471,7 @@ write_points_cells_piece(VTKFileWriter& File,
                          Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex,
                          const Grid::VertexAttachmentAccessor<Attachment<MathVector<TDim> > >& aaPos,
                          Grid& grid, const T& iterContainer, int si, int dim,
-                         int numVert, int numElem, int numConn)
+                         int numVert, int numElem, int numConn, MGSubsetHandler& sh)
 {
 //	write vertices of this piece
 	try{
@@ -481,7 +481,7 @@ write_points_cells_piece(VTKFileWriter& File,
 
 //	write elements of this piece
 	try{
-		write_cells(File, aaVrtIndex, grid, iterContainer, si, dim, numElem, numConn);
+		write_cells(File, aaVrtIndex, grid, iterContainer, si, dim, numElem, numConn, sh);
 	}
 	UG_CATCH_THROW("VTK::write_piece: Can not write Elements.");
 }
@@ -514,7 +514,7 @@ void VTKOutput<TDim>::
 write_grid_piece(VTKFileWriter& File,
                  Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex,
                  const Grid::VertexAttachmentAccessor<Attachment<MathVector<TDim> > >& aaPos,
-                 Grid& grid, const T& iterContainer, int si, int dim)
+                 Grid& grid, const T& iterContainer, int si, int dim, MGSubsetHandler& sh)
 {
 //	counters
 	int numVert = 0, numElem = 0, numConn = 0;
@@ -533,7 +533,7 @@ write_grid_piece(VTKFileWriter& File,
 
 //	write grid
 	write_points_cells_piece<T>
-	(File, aaVrtIndex, aaPos, grid, iterContainer, si, dim, numVert, numElem, numConn);
+	(File, aaVrtIndex, aaPos, grid, iterContainer, si, dim, numVert, numElem, numConn, sh);
 
 //	write closing tag
 	File << VTKFileWriter::normal;
@@ -563,9 +563,11 @@ write_grid_solution_piece(VTKFileWriter& File,
 	File << "    <Piece NumberOfPoints=\""<<numVert<<
 	"\" NumberOfCells=\""<<numElem<<"\">\n";
 
+	MGSubsetHandler sh = *u.domain()->subset_handler();
+
 //	write grid
 	write_points_cells_piece<TFunction>
-	(File, aaVrtIndex, u.domain()->position_accessor(), grid, u, si, dim, numVert, numElem, numConn);
+	(File, aaVrtIndex, u.domain()->position_accessor(), grid, u, si, dim, numVert, numElem, numConn, sh);
 
 //	add all components if 'selectAll' chosen
 	if(m_bSelectAll){
@@ -787,8 +789,9 @@ template <int TDim>
 void VTKOutput<TDim>::
 write_comment(VTKFileWriter& File)
 {
-	if (!m_sComment.size())
+	if (!m_sComment.size()){
 		return;
+	}
 
 	File << VTKFileWriter::normal;
 	File << "<!--";
@@ -796,6 +799,30 @@ write_comment(VTKFileWriter& File)
 	File << "-->\n";
 }
 
+template <int TDim>
+void VTKOutput<TDim>::
+write_comment_printf(FILE* File)
+{
+	if (!m_sComment.size()){
+		return;
+	}
+	
+	fprintf(File, "<!--");
+	fprintf(File, "%s", m_sComment.c_str());
+	fprintf(File, "-->\n");
+}
+
+template <int TDim>
+void VTKOutput<TDim>::
+write_cell_subset_names(VTKFileWriter& File, MGSubsetHandler &sh)
+{
+	File << VTKFileWriter::normal;
+	File << "      <RegionInfo Name=\"regions\">\n";
+	for(int i = 0; i < sh.num_subsets(); ++i){
+		File << "        <Region Name=\"" << sh.get_subset_name(i) << "\"></Region>\n";
+	}
+	File << "      </RegionInfo>\n";
+}
 
 template <int TDim>
 template <typename T>
@@ -917,7 +944,7 @@ void VTKOutput<TDim>::
 write_cells(VTKFileWriter& File,
             Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex,
             Grid& grid, const T& iterContainer, int si, int dim,
-            int numElem, int numConn)
+            int numElem, int numConn, MGSubsetHandler& sh)
 {
 	if(!m_bWriteGrid){
 		return;
@@ -940,6 +967,24 @@ write_cells(VTKFileWriter& File,
 //	write closing tag
 	File << VTKFileWriter::normal;
 	File << "      </Cells>\n";
+
+	//TODO: move to place dealing with CellData 
+	if(m_bWriteSubsetIndices || m_bWriteProcRanks){
+		File << "      <CellData>\n";
+	}
+	if(m_bWriteSubsetIndices){
+		write_cell_subsets(File, iterContainer, si, dim, numElem, sh);
+	}
+	if(m_bWriteProcRanks){
+		write_cell_proc_ranks(File, iterContainer, si, dim, numElem, sh);
+	}
+	if(m_bWriteSubsetIndices || m_bWriteProcRanks){
+		File << VTKFileWriter::normal;
+		File << "      </CellData>\n";
+	}
+	if(m_bWriteSubsetIndices){
+		write_cell_subset_names(File, sh);
+	}
 }
 
 template <int TDim>
@@ -1414,6 +1459,234 @@ write_cell_types(VTKFileWriter& File, const T& iterContainer, SubsetGroup& ssGrp
 					write_cell_types<Octahedron>(File, iterContainer, ssGrp[i]);
 					write_cell_types<Hexahedron>(File, iterContainer, ssGrp[i]); break;
 			default: UG_THROW("VTK::write_cell_types: Dimension " << dim <<
+			                        " is not supported.");
+		}
+	}
+
+//	write closing tag
+	File << VTKFileWriter::normal;
+	File << "\n        </DataArray>\n";
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Subset Indices
+////////////////////////////////////////////////////////////////////////////////
+
+
+template <int TDim>
+template <class TElem, typename T>
+void VTKOutput<TDim>::
+write_cell_subsets(VTKFileWriter& File, const T& iterContainer, int si, MGSubsetHandler& sh)
+{
+//	subset
+	int subset;
+
+//	get iterators
+	typedef typename IteratorProvider<T>::template traits<TElem>::const_iterator const_iterator;
+	const_iterator iterBegin = IteratorProvider<T>::template begin<TElem>(iterContainer, si);
+	const_iterator iterEnd = IteratorProvider<T>::template end<TElem>(iterContainer, si);
+
+	if(m_bBinary)
+		File << VTKFileWriter::base64_binary;
+	else
+		File << VTKFileWriter::normal;
+//	loop all elements, write type for each element to stream
+	for( ; iterBegin != iterEnd; ++iterBegin)
+	{
+		subset = (char)sh.get_subset_index(*iterBegin);
+		//iterContainer.get_subset_name(2);
+
+		if(m_bBinary){
+			File << (char) subset << ' ';
+		}
+		else{
+			File << subset << ' ';
+		}
+	}
+}
+
+
+template <int TDim>
+template <typename T>
+void VTKOutput<TDim>::
+write_cell_subsets(VTKFileWriter& File, const T& iterContainer, int si, int dim,
+                 int numElem, MGSubsetHandler& sh)
+{
+	File << VTKFileWriter::normal;
+//	write opening tag to indicate that types will be written
+	File << "        <DataArray type=\"Int8\" Name=\"regions\" format="
+		 <<	(m_bBinary ? "\"binary\"": "\"ascii\"") << ">\n";
+	if(m_bBinary)
+		File << VTKFileWriter::base64_binary << numElem;
+
+//	switch dimension
+	if(numElem > 0)
+	{
+		switch(dim)
+		{
+			case 0: break; // no elements -> nothing to do
+			case 1: write_cell_subsets<RegularEdge>(File, iterContainer, si, sh); break;
+			case 2: write_cell_subsets<Triangle>(File, iterContainer, si, sh);
+					write_cell_subsets<Quadrilateral>(File, iterContainer, si, sh);break;
+			case 3: write_cell_subsets<Tetrahedron>(File, iterContainer, si, sh);
+					write_cell_subsets<Pyramid>(File, iterContainer, si, sh);
+					write_cell_subsets<Prism>(File, iterContainer, si, sh);
+					write_cell_subsets<Octahedron>(File, iterContainer, si, sh);
+					write_cell_subsets<Hexahedron>(File, iterContainer, si, sh);break;
+			default: UG_THROW("VTK::write_cell_subsets: Dimension " << dim <<
+			                        " is not supported.");
+		}
+	}
+
+//	write closing tag
+	File << VTKFileWriter::normal;
+	File << "\n        </DataArray>\n";
+}
+
+template <int TDim>
+template <typename T>
+void VTKOutput<TDim>::
+write_cell_subsets(VTKFileWriter& File, const T& iterContainer, SubsetGroup& ssGrp, int dim,
+                 int numElem, MGSubsetHandler& sh)
+{
+	File << VTKFileWriter::normal;
+//	write opening tag to indicate that types will be written
+	File << "        <DataArray type=\"Int8\" Name=\"regions\" format="
+		 <<	(m_bBinary ? "\"binary\"": "\"ascii\"") << ">\n";
+	if(m_bBinary)
+		File << VTKFileWriter::base64_binary << numElem;
+
+//	switch dimension
+	if(numElem > 0)
+	for(size_t i = 0; i < ssGrp.size(); i++)
+	{
+		switch(dim)
+		{
+			case 0: break; // no elements -> nothing to do
+			case 1: write_cell_subsets<RegularEdge>(File, iterContainer, ssGrp[i]), sh; break;
+			case 2: write_cell_subsets<Triangle>(File, iterContainer, ssGrp[i], sh);
+					write_cell_subsets<Quadrilateral>(File, iterContainer, ssGrp[i], sh); break;
+			case 3: write_cell_subsets<Tetrahedron>(File, iterContainer, ssGrp[i], sh);
+					write_cell_subsets<Pyramid>(File, iterContainer, ssGrp[i], sh);
+					write_cell_subsets<Prism>(File, iterContainer, ssGrp[i]), sh;
+					write_cell_subsets<Octahedron>(File, iterContainer, ssGrp[i], sh);
+					write_cell_subsets<Hexahedron>(File, iterContainer, ssGrp[i], sh); break;
+			default: UG_THROW("VTK::write_cell_subsets: Dimension " << dim <<
+			                        " is not supported.");
+		}
+	}
+
+//	write closing tag
+	File << VTKFileWriter::normal;
+	File << "\n        </DataArray>\n";
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Subset Indices
+////////////////////////////////////////////////////////////////////////////////
+
+
+template <int TDim>
+template <class TElem, typename T>
+void VTKOutput<TDim>::
+write_cell_proc_ranks(VTKFileWriter& File, const T& iterContainer, int si, MGSubsetHandler& sh)
+{
+//	subset
+	int rank = 0;
+
+#ifdef UG_PARALLEL
+	rank = pcl::ProcRank();
+#endif
+
+//	get iterators
+	typedef typename IteratorProvider<T>::template traits<TElem>::const_iterator const_iterator;
+	const_iterator iterBegin = IteratorProvider<T>::template begin<TElem>(iterContainer, si);
+	const_iterator iterEnd = IteratorProvider<T>::template end<TElem>(iterContainer, si);
+
+	if(m_bBinary)
+		File << VTKFileWriter::base64_binary;
+	else
+		File << VTKFileWriter::normal;
+//	loop all elements, write type for each element to stream
+	for( ; iterBegin != iterEnd; ++iterBegin)
+	{
+
+		if(m_bBinary){
+			File << (char) rank << ' ';
+		}
+		else{
+			File << rank << ' ';
+		}
+	}
+}
+
+
+template <int TDim>
+template <typename T>
+void VTKOutput<TDim>::
+write_cell_proc_ranks(VTKFileWriter& File, const T& iterContainer, int si, int dim,
+                 int numElem, MGSubsetHandler& sh)
+{
+	File << VTKFileWriter::normal;
+//	write opening tag to indicate that types will be written
+	File << "        <DataArray type=\"Int8\" Name=\"proc_ranks\" format="
+		 <<	(m_bBinary ? "\"binary\"": "\"ascii\"") << ">\n";
+	if(m_bBinary)
+		File << VTKFileWriter::base64_binary << numElem;
+
+//	switch dimension
+	if(numElem > 0)
+	{
+		switch(dim)
+		{
+			case 0: break; // no elements -> nothing to do
+			case 1: write_cell_proc_ranks<RegularEdge>(File, iterContainer, si, sh); break;
+			case 2: write_cell_proc_ranks<Triangle>(File, iterContainer, si, sh);
+					write_cell_proc_ranks<Quadrilateral>(File, iterContainer, si, sh);break;
+			case 3: write_cell_proc_ranks<Tetrahedron>(File, iterContainer, si, sh);
+					write_cell_proc_ranks<Pyramid>(File, iterContainer, si, sh);
+					write_cell_proc_ranks<Prism>(File, iterContainer, si, sh);
+					write_cell_proc_ranks<Octahedron>(File, iterContainer, si, sh);
+					write_cell_proc_ranks<Hexahedron>(File, iterContainer, si, sh);break;
+			default: UG_THROW("VTK::write_cell_proc_ranks: Dimension " << dim <<
+			                        " is not supported.");
+		}
+	}
+
+//	write closing tag
+	File << VTKFileWriter::normal;
+	File << "\n        </DataArray>\n";
+}
+
+template <int TDim>
+template <typename T>
+void VTKOutput<TDim>::
+write_cell_proc_ranks(VTKFileWriter& File, const T& iterContainer, SubsetGroup& ssGrp, int dim,
+                 int numElem, MGSubsetHandler& sh)
+{
+	File << VTKFileWriter::normal;
+//	write opening tag to indicate that types will be written
+	File << "        <DataArray type=\"Int8\" Name=\"proc_ranks\" format="
+		 <<	(m_bBinary ? "\"binary\"": "\"ascii\"") << ">\n";
+	if(m_bBinary)
+		File << VTKFileWriter::base64_binary << numElem;
+
+//	switch dimension
+	if(numElem > 0)
+	for(size_t i = 0; i < ssGrp.size(); i++)
+	{
+		switch(dim)
+		{
+			case 0: break; // no elements -> nothing to do
+			case 1: write_cell_proc_ranks<RegularEdge>(File, iterContainer, ssGrp[i]), sh; break;
+			case 2: write_cell_proc_ranks<Triangle>(File, iterContainer, ssGrp[i], sh);
+					write_cell_proc_ranks<Quadrilateral>(File, iterContainer, ssGrp[i], sh); break;
+			case 3: write_cell_proc_ranks<Tetrahedron>(File, iterContainer, ssGrp[i], sh);
+					write_cell_proc_ranks<Pyramid>(File, iterContainer, ssGrp[i], sh);
+					write_cell_proc_ranks<Prism>(File, iterContainer, ssGrp[i]), sh;
+					write_cell_proc_ranks<Octahedron>(File, iterContainer, ssGrp[i], sh);
+					write_cell_proc_ranks<Hexahedron>(File, iterContainer, ssGrp[i], sh); break;
+			default: UG_THROW("VTK::write_cell_proc_ranks: Dimension " << dim <<
 			                        " is not supported.");
 		}
 	}
@@ -2585,12 +2858,7 @@ write_pvtu(TFunction& u, const std::string& filename,
 		fprintf(file, "<?xml version=\"1.0\"?>\n");
 
 	//	Write comment
-		if (m_sComment.size())
-		{
-			fprintf(file, "<!--");
-			fprintf(file, "%s", m_sComment.c_str());
-			fprintf(file, "-->\n");
-		}
+		write_comment_printf(file);
 	
 		fprintf(file, "<VTKFile type=\"PUnstructuredGrid\" version=\"0.1\">\n");
 		fprintf(file, "  <Time timestep=\"%.17g\"/>\n", time);
@@ -2658,7 +2926,7 @@ write_pvtu(TFunction& u, const std::string& filename,
 		}
 
 	// 	Elem Data
-		if(!m_vSymbFctElem.empty() || !m_vScalarElemData.empty() || !m_vVectorElemData.empty())
+		if(!m_vSymbFctElem.empty() || !m_vScalarElemData.empty() || !m_vVectorElemData.empty() || m_bWriteSubsetIndices || m_bWriteProcRanks) //TODO: cleanup
 		{
 			fprintf(file, "    <PCellData>\n");
 //			for(size_t sym = 0; sym < m_vSymbFctElem.size(); ++sym)
@@ -2697,6 +2965,16 @@ write_pvtu(TFunction& u, const std::string& filename,
 				fprintf(file, "      <PDataArray type=\"Float32\" Name=\"%s\" "
 							  "NumberOfComponents=\"%d\"/>\n",
 							  vtkName.c_str(), 1);
+			}
+
+ //TODO: cleanup!!
+			if(m_bWriteSubsetIndices){
+				fprintf(file, "      <DataArray type=\"Int8\" Name=\"regions\" "
+							  "NumberOfComponents=\"1\"/>\n");
+			}
+			if(m_bWriteProcRanks){
+				fprintf(file, "      <DataArray type=\"Int8\" Name=\"proc_ranks\" "
+							  "NumberOfComponents=\"1\"/>\n");
 			}
 
 		//	loop all vector data
@@ -2770,12 +3048,7 @@ write_time_pvd(const char* filename, TFunction& u)
 		fprintf(file, "<?xml version=\"1.0\"?>\n");
 
 	//	Write comment
-		if (m_sComment.size())
-		{
-			fprintf(file, "<!--");
-			fprintf(file, "%s", m_sComment.c_str());
-			fprintf(file, "-->\n");
-		}
+		write_comment_printf(file);
 
 		fprintf(file, "<VTKFile type=\"Collection\" version=\"0.1\">\n");
 		fprintf(file, "  <Collection>\n");
@@ -2872,12 +3145,7 @@ write_time_processwise_pvd(const char* filename, TFunction& u)
 		fprintf(file, "<?xml version=\"1.0\"?>\n");
 
 	//	Write comment
-		if (m_sComment.size())
-		{
-			fprintf(file, "<!--");
-			fprintf(file, "%s", m_sComment.c_str());
-			fprintf(file, "-->\n");
-		}
+		write_comment_printf(file);
 
 		fprintf(file, "<VTKFile type=\"Collection\" version=\"0.1\">\n");
 		fprintf(file, "  <Collection>\n");
@@ -2950,12 +3218,7 @@ write_time_pvd_subset(const char* filename, TFunction& u, int si)
 		fprintf(file, "<?xml version=\"1.0\"?>\n");
 
 	//	Write comment
-		if (m_sComment.size())
-		{
-			fprintf(file, "<!--");
-			fprintf(file, "%s", m_sComment.c_str());
-			fprintf(file, "-->\n");
-		}
+		write_comment_printf(file);
 
 		fprintf(file, "<VTKFile type=\"Collection\" version=\"0.1\">\n");
 		fprintf(file, "  <Collection>\n");
