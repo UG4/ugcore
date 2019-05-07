@@ -215,8 +215,8 @@ class NeuriteProjector
 			float axial;
 			float angular;
 			float radial;
-			//bool soma;  // never used
-			//float scale;  // never used
+			bool soma;  // used by neurite_projector.cpp temporarily
+			float scale;  // used by neurite_projector.cpp temporarily
 		};
 
 
