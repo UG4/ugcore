@@ -95,6 +95,8 @@ inline
 number CalculateVolume(TIterator begin, TIterator end, TAAPos aaPos);
 /** \} */
 
+template<int dim>
+void CalculateBoundingBox(size_t npoints, const MathVector<dim> points[], MathVector<dim> &vMinBB, MathVector<dim> &vMaxBB);
 
 /** \} */	//end of ingroup
 
