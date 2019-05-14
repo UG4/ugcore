@@ -345,7 +345,7 @@ inline std::string ConvertNumberSI (uint64_t size, unsigned int width,
 							<< "UG_WARNING in " << __FILE__ << " at line "       \
 							__LINE__ << ": " << msg << std::flush;}}
 #else
-	#define UG_COND_WARNING(msg, cond) {}
+	#define UG_COND_WARNING(cond, msg) {}
 #endif
 
 
