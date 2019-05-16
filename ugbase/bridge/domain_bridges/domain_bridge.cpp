@@ -113,14 +113,25 @@ static bool SavePartitionMap(PartitionMap& pmap, TDomain& domain,
 
 
 template <typename TDomain>
+static bool TestDomainInterfaces(TDomain* dom, bool verbose)
+{
+	#ifdef UG_PARALLEL
+		return TestGridLayoutMap(*dom->grid(),
+					dom->distributed_grid_manager()->grid_layout_map(), verbose);
+	#endif
+	return true;
+}
+
+template <typename TDomain>
 static bool TestDomainInterfaces(TDomain* dom)
 {
 	#ifdef UG_PARALLEL
 		return TestGridLayoutMap(*dom->grid(),
-					dom->distributed_grid_manager()->grid_layout_map());
+					dom->distributed_grid_manager()->grid_layout_map(), true);
 	#endif
 	return true;
 }
+
 
 
 template <typename TDomain>
@@ -500,7 +511,8 @@ static void Domain(Registry& reg, string grp)
 	reg.add_function("GetMaxEdgeLength", &GetMaxEdgeLength<TDomain>, grp);
 	reg.add_function("PrintElementEdgeRatios", static_cast<void (*)(TDomain&)>(&PrintElementEdgeRatios<TDomain>), grp);
 //	debugging
-	reg.add_function("TestDomainInterfaces", &TestDomainInterfaces<TDomain>, grp);
+	reg.add_function("TestDomainInterfaces", static_cast<bool (*)(TDomain*)>(&TestDomainInterfaces<TDomain>), grp);
+	reg.add_function("TestDomainInterfaces", static_cast<bool (*)(TDomain*, bool)>(&TestDomainInterfaces<TDomain>), grp);
 
 	reg.add_function("MinimizeMemoryFootprint", &MinimizeMemoryFootprint<TDomain>, grp);
 }

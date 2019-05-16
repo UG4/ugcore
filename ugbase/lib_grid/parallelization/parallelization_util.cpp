@@ -77,7 +77,7 @@ class ToElementPosition
 
 
 template <class TAPos>
-bool TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm, TAPos& aPos)
+bool TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm, TAPos& aPos, bool verbose = true)
 {
 	typedef typename TAPos::ValueType	TValue;
 	typedef VertexLayout::LevelLayout	VrtLevelLayout;
@@ -85,7 +85,6 @@ bool TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm, TAPos& aPos)
 	typedef FaceLayout::LevelLayout		FaceLevelLayout;
 
 	bool bSuccess = true;
-	const bool verbose = true;
 
 //	check the interfaces
 	pcl::InterfaceCommunicator<VertexLayout::LevelLayout> comVrt;
@@ -210,14 +209,14 @@ bool TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm, TAPos& aPos)
 	return pcl::AllProcsTrue(bSuccess);
 }
 
-bool TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm)
+bool TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm, bool verbose)
 {
 	if(mg.has_vertex_attachment(aPosition))
-		return TestGridLayoutMap(mg, glm, aPosition);
+		return TestGridLayoutMap(mg, glm, aPosition, verbose);
 	else if(mg.has_vertex_attachment(aPosition2))
-		return TestGridLayoutMap(mg, glm, aPosition2);
+		return TestGridLayoutMap(mg, glm, aPosition2, verbose);
 	else if(mg.has_vertex_attachment(aPosition1))
-		return TestGridLayoutMap(mg, glm, aPosition1);
+		return TestGridLayoutMap(mg, glm, aPosition1, verbose);
 	else
 		UG_LOG("ERROR in TestGridLayoutMap: A standard position attachment"
 				" is required.\n");
