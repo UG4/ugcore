@@ -72,6 +72,8 @@ class FileReaderSWC
 		bool load_file(const char* fileName);
 		bool create_grid(Grid& g, ISubsetHandler* pSH, number scale_length = 1.0);
 
+		const std::vector<swc_types::SWCPoint>& swc_points() const;
+		std::vector<swc_types::SWCPoint>& swc_points();
 
 	protected:
 		std::vector<swc_types::SWCPoint> m_vPts;

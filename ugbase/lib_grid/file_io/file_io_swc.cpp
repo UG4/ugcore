@@ -212,6 +212,20 @@ bool FileReaderSWC::create_grid(Grid& g, ISubsetHandler* pSH, number scale_lengt
 
 
 
+const std::vector<swc_types::SWCPoint>& FileReaderSWC::swc_points() const
+{
+	return m_vPts;
+}
+
+
+
+std::vector<swc_types::SWCPoint>& FileReaderSWC::swc_points()
+{
+	return m_vPts;
+}
+
+
+
 bool LoadGridFromSWC(Grid& g, ISubsetHandler* pSH, const char* fileName, AVector3& aPos)
 {
 	// now read the file
