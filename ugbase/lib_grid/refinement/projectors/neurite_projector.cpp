@@ -100,6 +100,18 @@ void NeuriteProjector::set_geometry(SPIGeometry3d geometry)
 }
 
 
+number NeuriteProjector::new_vertex(Vertex* vrt, Vertex* parent)
+{
+	m_aaSurfParams[vrt].neuriteID = m_aaSurfParams[parent].neuriteID;
+	m_aaSurfParams[vrt].axial = m_aaSurfParams[parent].axial;
+	m_aaSurfParams[vrt].angular = m_aaSurfParams[parent].angular;
+	m_aaSurfParams[vrt].radial = m_aaSurfParams[parent].radial;
+
+	set_pos(vrt, pos(parent));
+
+	return 1.0;
+}
+
 
 number NeuriteProjector::new_vertex(Vertex* vrt, Edge* parent)
 {
@@ -199,27 +211,6 @@ void NeuriteProjector::attach_surf_params()
 		"No surface parameter attachment for neurite projector attached to grid.");
 
 	m_aaSurfParams.access(grid, m_aSurfParams);
-
-	// handle attachment values also on higher grid levels (if required)
-	MultiGrid* mg = dynamic_cast<MultiGrid*>(&grid);
-	if (mg)
-	{
-		SmartPtr<MultiGrid> spMG(mg);
-
-		// never destroy the grid from here - we did not create it
-		++(*spMG.refcount_ptr());
-
-		// Vertical communication needs to be disabled for this CopyAttachmentHandler,
-		// Otherwise the programm will be in a deadlock when the geometry is distributed and refined
-		// after the first refinement (processes that did not have any geometry during the first
-		// refinement step will try to communicate with the previous owners of their grid,
-		// but they never get here).
-		// Besides, the vertical communication is not needed as the surface params are a
-		// global attachment which is always distributed with the grid (when declared)
-		m_cah.enable_vertical_communication(false);
-		m_cah.set_attachment(m_aSurfParams);
-		m_cah.set_grid(spMG);
-	}
 }
 
 
@@ -1256,7 +1247,9 @@ static void pos_on_surface_tip
 	const std::vector<NeuriteProjector::Section>& vSections = neurite.vSec;
 
 	// initial position: regular refinement
-	np->average_pos_from_parent(posOut, parent);
+	// in case there is no parent (projection of an existing vertex), keep the position
+	if (parent)
+		np->average_pos_from_parent(posOut, parent);
 
 	// project to half-sphere with given radius over tip center
 	// TODO: One might think about something more sophisticated,
@@ -1354,10 +1347,7 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 
 	// case 3: tip of neurite
 	else
-	{
-		// todo: treat case where parent is NULL
 		pos_on_surface_tip(pos, neurite, parent, this, rad);
-	}
 
 	// case 4: soma
 	// TODO: implement!

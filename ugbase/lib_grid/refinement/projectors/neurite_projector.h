@@ -37,7 +37,6 @@
 
 #include "common/types.h"
 #include "lib_grid/refinement/projectors/refinement_projector.h"
-#include "lib_grid/tools/copy_attachment_handler.h"
 //#include "lib_disc/quadrature/gauss_legendre/gauss_legendre.h"
 
 #include <boost/serialization/split_member.hpp> // for separate load/save methods
@@ -55,13 +54,16 @@ class NeuriteProjector
 
 		virtual void set_geometry(SPIGeometry3d geometry);
 
-		/// called when a new vertex was created from an old edge.
+		/// called when a new vertex was created from an old vertex
+		virtual number new_vertex(Vertex* vrt, Vertex* parent);
+
+		/// called when a new vertex was created from an old edge
 		virtual number new_vertex(Vertex* vrt, Edge* parent);
 
-		/// called when a new vertex was created from an old face.
+		/// called when a new vertex was created from an old face
 		virtual number new_vertex(Vertex* vrt, Face* parent);
 
-		/// called when a new vertex was created from an old face.
+		/// called when a new vertex was created from an old volume
 		virtual number new_vertex(Vertex* vrt, Volume* parent);
 
 		/// project a vertex to its model position
@@ -285,9 +287,6 @@ class NeuriteProjector
 	private:
 		Attachment<SurfaceParams> m_aSurfParams;
 		Grid::VertexAttachmentAccessor<Attachment<SurfaceParams> > m_aaSurfParams;
-
-		/// handles propagation of surface param attachment to children on higher levels
-		CopyAttachmentHandler<Vertex, Attachment<SurfaceParams> > m_cah;
 
 		/**
 		 * @brief storage for cubic splines:
