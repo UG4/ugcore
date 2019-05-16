@@ -27,7 +27,7 @@ ifeq ($(system),jureca)
   stagePath=/usr/local/software/jureca/Stages/2018a
 endif
 ifeq ($(system),juwels)
-  stagePath=/gpfs/software/juwels/stages/2018a
+  stagePath=/gpfs/software/juwels/stages/2018b
 endif
 
 #
@@ -35,11 +35,11 @@ endif
 #
 SuperLUroot	= $(UG4_LOCAL_INSTALL_DIR)/SuperLU/4.3
 SUPERLULIB  = $(SuperLUroot)/lib/libsuperlu_4.3.a
-BLASLIB   	= $(stagePath)/software/imkl/2018.2.199-ipsmpi-2018a/mkl/lib/intel64/libmkl_intel_lp64.so \
-			  $(stagePath)/software/imkl/2018.2.199-ipsmpi-2018a/mkl/lib/intel64/libmkl_intel_thread.so \
-			  $(stagePath)/software/imkl/2018.2.199-ipsmpi-2018a/mkl/lib/intel64/libmkl_core.so \
-			  $(stagePath)/software/imkl/2018.2.199-ipsmpi-2018a/mkl/lib/intel64/libmkl_intel_thread.so \
-			  $(stagePath)/software/imkl/2018.2.199-ipsmpi-2018a/lib/intel64/libiomp5.so \
+BLASLIB   	= $(stagePath)/software/imkl/2019.0.117-ipsmpi-2018b/mkl/lib/intel64/libmkl_intel_lp64.so \
+			  $(stagePath)/software/imkl/2019.0.117-ipsmpi-2018b/mkl/lib/intel64/libmkl_intel_thread.so \
+			  $(stagePath)/software/imkl/2019.0.117-ipsmpi-2018b/mkl/lib/intel64/libmkl_core.so \
+			  $(stagePath)/software/imkl/2019.0.117-ipsmpi-2018b/mkl/lib/intel64/libmkl_intel_thread.so \
+			  $(stagePath)/software/imkl/2019.0.117-ipsmpi-2018b/lib/intel64/libiomp5.so \
 			  /usr/lib64/libpthread.so
 TMGLIB      = libtmglib.a
 LIBS		= $(SUPERLULIB) $(BLASLIB)
@@ -52,10 +52,10 @@ ARCH         = ar
 ARCHFLAGS    = cr
 RANLIB       = ranlib
 
-CC           = $(stagePath)/software/impi/2018.2.199-iccifort-2018.2.199-GCC-5.5.0/bin64/mpicc
+CC           = $(stagePath)/software/impi/2019.0.117-iccifort-2019.0.117-GCC-7.3.0/bin/mpicc
 CFLAGS       = -O3 -fPIC
 NOOPTS       = -fPIC
-FORTRAN	     = $(stagePath)/software/impi/2018.2.199-iccifort-2018.2.199-GCC-5.5.0/bin64/mpif90
+FORTRAN	     = $(stagePath)/software/impi/2019.0.117-iccifort-2019.0.117-GCC-7.3.0/bin/mpif90
 FFLAGS       = -O3 -cpu:g5 -YEXT_NAMES=LCS -s -YEXT_SFX=_
 LOADER       = $(CC)
 LOADOPTS     =
