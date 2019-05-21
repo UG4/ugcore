@@ -1,6 +1,6 @@
 /*!
- * Copyright (c) 2010-2015:  G-CSC, Goethe University Frankfurt
- * Author: Markus Breit
+ * Copyright (c) 2010-2019:  G-CSC, Goethe University Frankfurt
+ * Author: Stephan Grein
  *
  * This file is part of UG4.
  *
@@ -35,31 +35,43 @@
 #include "common/common.h"
 #include "common/static_assert.h"
 #include "grid_util.h"
-#include "grid.h"
+#include "lib_grid/selector.h"
+#include "lib_grid/algorithms/selection_util.h"
 
 namespace ug {
-
-template <typename TBaseElem>
-TBaseElem* GetConnectedNeighbor(Grid& g, typename TBaseElem::side* face, TBaseElem* elem)
-{
-	typedef typename Grid::traits<TBaseElem>::secure_container elem_list_type;
-	elem_list_type el;
-	g.associated_elements(el, face);
-	size_t el_sz = el.size();
-	UG_COND_THROW(el_sz > 2, "More than two " << elem->reference_object_id()
-		<< "s associated with " << face->reference_object_id() << ".");
-	for (size_t e = 0; e < el_sz; ++e)
-	{
-		if (el[e] != elem)
-			return el[e];
+	////////////////////////////////////////////////////////////////////////
+	template <typename TElem>
+	typename geometry_traits<TElem>::const_iterator GetNeighborhood
+	(
+		Grid& grid,
+		size_t extSize,
+		TElem* elem
+	) {
+		Selector sel(grid);
+		typedef typename geometry_traits<TElem>::const_iterator Iter;
+		sel.template select<TElem>(elem);
+		grid.begin_marking();
+		for (size_t extIters = 0; extIters < extSize; ++extIters)
+		{
+			SelectAssociatedGridObjects(sel, 1);
+			for(size_t lvl = 0; lvl < sel.num_levels(); ++lvl){
+				for(Iter iter = sel.template begin<TElem>(lvl);
+						iter != sel.template end<TElem>(lvl); ++iter)
+				{
+					TElem* el = *iter;
+					if(!grid.is_marked(el)){
+						grid.mark(el);
+						typename Grid::traits<TElem>::secure_container elemsOut;
+						grid.template associated_elements<TElem>(elemsOut, el);
+						size_t size = elemsOut.size();
+						for (size_t i = 0; i < size; i++) {
+							sel.template select<TElem>(elemsOut[i], 1);
+						}
+					}
+				}
+			}
+		}
+		grid.end_marking();
+		return sel.template begin<TElem>();
 	}
-
-	return (TBaseElem*) NULL;
-}
-
-template Volume* GetConnectedNeighbor<Volume>(Grid&, Face*, Volume*);
-template Face* GetConnectedNeighbor<Face>(Grid&, Edge*, Face*);
-template Edge* GetConnectedNeighbor<Edge>(Grid&, Vertex*, Edge*);
-
 } // namespace ug
-

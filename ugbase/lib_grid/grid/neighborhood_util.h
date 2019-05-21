@@ -1,4 +1,4 @@
-/*
+/*!
  * Copyright (c) 2010-2015:  G-CSC, Goethe University Frankfurt
  * Author: Markus Breit
  *
@@ -37,14 +37,28 @@
 
 namespace ug {
 
-/**
- * @brief Finds the neighbor connected through a side.
+/*!
+ * \brief Finds the neighbor connected through a side.
+ * \param[in] g
+ * \param[in] face
+ * \param[in] elem
  * If such a neighbor does not exist, NULL is returned.
  */
 template <typename TBaseElem>
 TBaseElem* GetConnectedNeighbor(Grid& g, typename TBaseElem::side* face, TBaseElem* elem);
 
+/*!
+ * \brief Finds the neighborhood of a given size for specified element
+ * \param[in] grid
+ * \param[in] extSize size of neighborhood
+ * \param[in] elem start element
+ * \return \c start iterator for TElem
+ */
+template <typename TElem>
+typename geometry_traits<TElem>::const_iterator GetNeighborhood(Grid& grid, size_t extSize, TElem* elem);
 
 } // namespace ug
+
+#include "neighborhood_util_impl.hpp"
 
 #endif // __H__LIB_GRID__NEIGHBORHOOD_UTIL__

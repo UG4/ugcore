@@ -1324,6 +1324,7 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 		if (it->t - t < range)
 			isBP = true;
 	}
+
 	if (!isBP && it != vBR.begin())
 	{
 		--it;
@@ -1334,7 +1335,7 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 			isBP = true;
 	}
 
-	if (isBP)
+	if (isBP) {
 		pos_in_bp(pos, neurite, plainNID, t, angle, rad, it, parent, this);
 	/*
 	if ((it != vBR.end() && it->t - t < axial_range_around_branching_region(plainNID, std::distance(vBR.begin(), it), 5.0*rad))
@@ -1342,16 +1343,15 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 	pos_in_bp(pos, neurite, plainNID, t, angle, rad, it, parent, this);
 	*/
 	// case 2: normal neurite position
-	else if (t <= 1.0)
+	} else if (t <= 1.0 && t > 0) {
 		pos_in_neurite(pos, neurite, plainNID, t, angle, rad);
-
-	// case 3: tip of neurite
-	else
-		pos_on_surface_tip(pos, neurite, parent, this, rad);
-
 	// case 4: soma
-	// TODO: implement!
-
+	} else if (t <= 0) {
+		/// TODO: Treat soma case
+	// case 3: tip of neurite
+	} else {
+		pos_on_surface_tip(pos, neurite, parent, this, rad);
+	}
 
 	// save new surface params for new vertex
 	m_aaSurfParams[vrt].neuriteID = neuriteID;
