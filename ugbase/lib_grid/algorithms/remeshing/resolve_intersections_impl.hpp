@@ -1012,20 +1012,19 @@ int FindCloseVertexInArray(std::vector<Vertex*>& array,
 	return -1;
 }
 
-///	returns the index of the closet vertex to p smaller than snapThreshold.
+///	returns the index of the closest vertex to p smaller than snapThreshold.
 /**	returns -1 if nothing was found.*/
 template <class TAAPosVRT>
-int FindClosestVertexInArray(std::vector<Vertex*>& array,
-							const typename TAAPosVRT::ValueType& p,
+int FindClosestVertexInArray(std::vector<Vertex*>& array, const Vertex* p,
 							TAAPosVRT& aaPos, number snapThreshold)
 {
 	number snapThrSq = snapThreshold * snapThreshold;
 
-	number bestDistance = VecDistanceSq(aaPos[array[0]], p);
+	number bestDistance = VecDistanceSq(aaPos[array[0]], aaPos[p]);
 	int bestElem = 0;
 
 	for (size_t i = 1; i < array.size(); ++i) {
-		number dist = VecDistanceSq(aaPos[array[i]], p);
+		number dist = VecDistanceSq(aaPos[array[i]], aaPos[p]);
 		if (dist < bestDistance) {
 			bestDistance = dist;
 			bestElem = i;
@@ -1033,6 +1032,21 @@ int FindClosestVertexInArray(std::vector<Vertex*>& array,
 	}
 	return (bestDistance < snapThrSq) ? bestElem : -1;
 }
+
+///	returns the index of the closest vertex to p smaller than snapThreshold.
+/**	returns -1 if nothing was found.*/
+template <class TAAPosVRT, class vector_t>
+int FindClosestVertexInPointSet(const vector_t* pointSet, const Vertex* p,
+							TAAPosVRT& aaPos, number snapThreshold,
+							size_t numPoints) {
+	std::vector<Vertex*> vertices;
+	vertices.resize(numPoints);
+	for (size_t i = 0; i < numPoints; ++i) {
+		vertices[i] = pointSet[i];
+	}
+	return FindClosestVertexInArray(vertices, p, aaPos, snapThreshold);
+}
+
 
 ////////////////////////////////////////////////////////////////////////
 ///	Intersects Coplanar Triangles

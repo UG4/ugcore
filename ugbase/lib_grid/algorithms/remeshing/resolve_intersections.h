@@ -105,15 +105,20 @@ bool IntersectCloseEdges(Grid& grid,
 ///	returns the index of the first vertex closer to p than snapThreshold.
 /**	returns -1 if nothing was found.*/
 template <class TAAPosVRT>
-int FindCloseVertexInArray(std::vector<Vertex*>& array,
-							const typename TAAPosVRT::ValueType& p,
+int FindCloseVertexInArray(const std::vector<Vertex*>& array,
+						   const typename TAAPosVRT::ValueType& p,
 							TAAPosVRT& aaPos, number snapThreshold);
 
 /// returns the index of the closest vertex to p if closer than snapThreshold.
 template <class TAAPosVRT>
-int FindClosestVertexInArray(std::vector<Vertex*>& array,
-							const typename TAAPosVRT::ValueType& p,
+int FindClosestVertexInArray(const std::vector<Vertex*>& array, const Vertex* p,
 							TAAPosVRT& aaPos, number snapThreshold);
+
+/// returns the index of the closest vertex to p if closer than snapThreshold
+template <class TAAPosVRT, class vector_t>
+int FindClosestVertexInPointSet(const vector_t* pointSet, const Vertex* p,
+							TAAPosVRT& aaPos, number snapThreshold,
+							size_t numPoints);
 
 ////////////////////////////////////////////////////////////////////////
 /**	This method uses Grid::mark
