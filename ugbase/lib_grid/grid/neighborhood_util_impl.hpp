@@ -32,20 +32,19 @@
 
 #include "neighborhood_util.h"
 #include "grid.h"
-#include "common/common.h"
-#include "common/static_assert.h"
-#include "grid_util.h"
 #include "lib_grid/selector.h"
 #include "lib_grid/algorithms/selection_util.h"
 
 namespace ug {
 	////////////////////////////////////////////////////////////////////////
 	template <typename TElem>
-	typename geometry_traits<TElem>::const_iterator GetNeighborhood
+	void GetNeighborhood
 	(
 		Grid& grid,
 		size_t extSize,
-		TElem* elem
+		TElem* elem,
+		typename geometry_traits<TElem>::const_iterator& begin,
+		typename geometry_traits<TElem>::const_iterator& end
 	) {
 		Selector sel(grid);
 		typedef typename geometry_traits<TElem>::const_iterator Iter;
@@ -72,6 +71,7 @@ namespace ug {
 			}
 		}
 		grid.end_marking();
-		return sel.template begin<TElem>();
+		begin = sel.template begin<TElem>();
+		end = sel.template end<TElem>();
 	}
 } // namespace ug

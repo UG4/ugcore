@@ -33,7 +33,7 @@
 #ifndef __H__LIB_GRID__NEIGHBORHOOD_UTIL__
 #define __H__LIB_GRID__NEIGHBORHOOD_UTIL__
 
-#include "../grid/grid.h"
+#include "grid.h"
 
 namespace ug {
 
@@ -48,14 +48,23 @@ template <typename TBaseElem>
 TBaseElem* GetConnectedNeighbor(Grid& g, typename TBaseElem::side* face, TBaseElem* elem);
 
 /*!
- * \brief Finds the neighborhood of a given size for specified element
+ * \brief Finds the neighborhood of a given size for specified element and type
  * \param[in] grid
  * \param[in] extSize size of neighborhood
  * \param[in] elem start element
- * \return \c start iterator for TElem
+ * \param[out] begin iterator
+ * \param[out] end iterator
+ * Returns iterators begin and end for accessing elements of type
  */
 template <typename TElem>
-typename geometry_traits<TElem>::const_iterator GetNeighborhood(Grid& grid, size_t extSize, TElem* elem);
+void GetNeighborhood
+(
+	Grid& grid,
+	size_t extSize,
+	TElem* elem,
+	typename geometry_traits<TElem>::const_iterator& begin,
+	typename geometry_traits<TElem>::const_iterator& end
+);
 
 } // namespace ug
 

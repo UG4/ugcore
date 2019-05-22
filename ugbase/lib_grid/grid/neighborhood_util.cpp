@@ -33,9 +33,6 @@
 #include "neighborhood_util.h"
 #include "grid.h"
 #include "common/common.h"
-#include "common/static_assert.h"
-#include "grid_util.h"
-#include "grid.h"
 
 namespace ug {
 
