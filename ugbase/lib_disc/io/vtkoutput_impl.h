@@ -563,7 +563,7 @@ write_grid_solution_piece(VTKFileWriter& File,
 	File << "    <Piece NumberOfPoints=\""<<numVert<<
 	"\" NumberOfCells=\""<<numElem<<"\">\n";
 
-	MGSubsetHandler sh = *u.domain()->subset_handler();
+	MGSubsetHandler& sh = *u.domain()->subset_handler();
 
 //	write grid
 	write_points_cells_piece<TFunction>

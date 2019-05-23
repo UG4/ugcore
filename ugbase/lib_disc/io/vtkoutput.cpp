@@ -97,7 +97,6 @@ print(const char* filename, Domain<TDim>& domain)
 //	write piece of grid
 	if(dim >= 0)
 	{
-		MGSubsetHandler sh_ = *domain.subset_handler();
 		try{
 			write_grid_piece<MGSubsetHandler>
 			(File, aaVrtIndex, domain.position_accessor(), grid,
