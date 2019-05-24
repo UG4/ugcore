@@ -623,7 +623,7 @@ void SelectSmoothEdgePath(Selector& sel, number thresholdDegree, number normalWe
 				if(stopAtSelVrts && sel.is_selected(srcVrt))
 					srcVrt = NULL;
 					
-				lastEdge = bestEdge;
+				// lastEdge = bestEdge;  // never used
 				lastDir = bestDir;
 				bLastNormalValid = bBestNormalValid;
 				lastNormal = bestNormal;
@@ -1293,5 +1293,14 @@ void SelectElementsByIndex (ISelector& sel,
 	SelectElementsByIndex<Face> (sel, faceInds);
 	SelectElementsByIndex<Volume> (sel, volInds);
 }
+
+
+// explicit template instantiation
+// (although used in the above function, the template functions
+// may not be compiled with external linkage!)
+template void SelectElementsByIndex<Vertex>(ISelector& sel, const std::vector<size_t>& inds);
+template void SelectElementsByIndex<Edge>(ISelector& sel, const std::vector<size_t>& inds);
+template void SelectElementsByIndex<Face>(ISelector& sel, const std::vector<size_t>& inds);
+template void SelectElementsByIndex<Volume>(ISelector& sel, const std::vector<size_t>& inds);
 
 }//	end of namespace

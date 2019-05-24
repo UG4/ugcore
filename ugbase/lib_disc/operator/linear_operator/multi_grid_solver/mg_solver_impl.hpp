@@ -1308,7 +1308,8 @@ init_index_mappings()
 
 	//	set mapping index
 		for(size_t i = 0; i < vSurfInd.size(); ++i){
-			if(spSurfView->surface_state(elem).contains(SurfaceView::MG_SHADOW_RIM_COPY)){
+			if(spSurfView->surface_state(elem).contains(SurfaceView::MG_SHADOW_RIM_COPY)
+				&& (level != m_topLev)) {
 				if(m_GridLevelType == GridLevel::LEVEL){
 					m_vSurfToLevelMap[vSurfInd[i]].indexLower = vLevelInd[i];
 					m_vSurfToLevelMap[vSurfInd[i]].levelLower = level;

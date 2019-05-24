@@ -7,7 +7,7 @@
  * UG4 is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License version 3 (as published by the
  * Free Software Foundation) with the following additional attribution
- * requirements (according to LGPL/GPL v3 §7):
+ * requirements (according to LGPL/GPL v3 ��7):
  * 
  * (1) The following notice must be displayed in the Appropriate Legal Notices
  * of covered and combined works: "Based on UG4 (www.ug4.org/license)".
@@ -20,7 +20,7 @@
  * "Reiter, S., Vogel, A., Heppner, I., Rupp, M., and Wittum, G. A massively
  *   parallel geometric multigrid solver on hierarchically distributed grids.
  *   Computing and visualization in science 16, 4 (2013), 151-164"
- * "Vogel, A., Reiter, S., Rupp, M., Nägel, A., and Wittum, G. UG4 -- a novel
+ * "Vogel, A., Reiter, S., Rupp, M., N��gel, A., and Wittum, G. UG4 -- a novel
  *   flexible software system for simulating pde based models on high performance
  *   computers. Computing and visualization in science 16, 4 (2013), 165-179"
  * 
@@ -409,12 +409,30 @@ template <typename T>
 inline typename MathMatrix<3,3,T>::value_type
 Determinant(const MathMatrix<3,3,T>& m)
 {
-	return 	m(0,0)*m(1,1)*m(2,2)
+	return	m(0,0)*m(1,1)*m(2,2)
 			+ m(0,1)*m(1,2)*m(2,0)
 			+ m(0,2)*m(1,0)*m(2,1)
 			- m(0,0)*m(1,2)*m(2,1)
 			- m(0,1)*m(1,0)*m(2,2)
 			- m(0,2)*m(1,1)*m(2,0);
+}
+
+template <typename T>
+inline typename MathMatrix<4,4,T>::value_type
+Determinant(const MathMatrix<4,4,T>& m)
+{
+	return m(0,3)*m(1,2)*m(2,1)*m(3,0)-m(0,2)*m(1,3)*m(2,1)*m(3,0)
+	       - m(0,3)*m(1,1)*m(2,2)*m(3,0)+m(0,1)*m(1,3)*m(2,2)*m(3,0)
+           + m(0,2)*m(1,1)*m(2,3)*m(3,0)-m(0,1)*m(1,2)*m(2,3)*m(3,0)
+           - m(0,3)*m(1,2)*m(2,0)*m(3,1)+m(0,2)*m(1,3)*m(2,0)*m(3,1)
+           + m(0,3)*m(1,0)*m(2,2)*m(3,1)-m(0,0)*m(1,3)*m(2,2)*m(3,1)
+           - m(0,2)*m(1,0)*m(2,3)*m(3,1)+m(0,0)*m(1,2)*m(2,3)*m(3,1)
+           + m(0,3)*m(1,1)*m(2,0)*m(3,2)-m(0,1)*m(1,3)*m(2,0)*m(3,2)
+           - m(0,3)*m(1,0)*m(2,1)*m(3,2)+m(0,0)*m(1,3)*m(2,1)*m(3,2)
+           + m(0,1)*m(1,0)*m(2,3)*m(3,2)-m(0,0)*m(1,1)*m(2,3)*m(3,2)
+           - m(0,2)*m(1,1)*m(2,0)*m(3,3)+m(0,1)*m(1,2)*m(2,0)*m(3,3)
+           + m(0,2)*m(1,0)*m(2,1)*m(3,3)-m(0,0)*m(1,2)*m(2,1)*m(3,3)
+           - m(0,1)*m(1,0)*m(2,2)*m(3,3)+m(0,0)*m(1,1)*m(2,2)*m(3,3);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

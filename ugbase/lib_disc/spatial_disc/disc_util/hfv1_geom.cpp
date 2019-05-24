@@ -66,12 +66,11 @@ template <typename TElem, int TWorldDim>
 void HFV1Geometry<TElem, TWorldDim>::
 update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
-	UG_ASSERT(dynamic_cast<TElem*>(elem) != NULL, "Wrong element type.");
-	TElem* pElem = static_cast<TElem*>(elem);
+	UG_ASSERT(dynamic_cast<typename grid_dim_traits<dim>::grid_base_object*>(elem), "Wrong element type.");
 
-	// If already update for this element, do nothing
-	if(m_pElem == pElem) return;
-	else m_pElem = pElem;
+	// if already update for this element, do nothing
+	if (m_pElem == elem) return;
+	else m_pElem = elem;
 
 	// get grid
 	Grid& grid = *(ish->grid());
@@ -94,7 +93,7 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 
 	// get natural edges (and faces if in 3d)
 	std::vector<Edge*> vEdges;
-	CollectEdgesSorted(vEdges, grid, pElem);
+	CollectEdgesSorted(vEdges, grid, m_pElem);
 
 	// compute Nodes
 	m_vSCVF.clear();
@@ -187,7 +186,7 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 	if(dim == 3)
 	{
 		std::vector<Face*> vFaces;
-		CollectFacesSorted(vFaces, grid, pElem);
+		CollectFacesSorted(vFaces, grid, m_pElem);
 
 		// compute Nodes
 		MathVector<dim> locSideMid;
@@ -1273,6 +1272,8 @@ void HFV1ManifoldGeometry<TElem, TWorldDim>::
 update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 	// if already update for this element, do nothing
+	UG_ASSERT(dynamic_cast<typename grid_dim_traits<dim>::grid_base_object*>(elem), "Wrong element type.");
+
 	if (m_pElem == elem) return;
 	else m_pElem = elem;
 
@@ -1955,7 +1956,7 @@ template class DimHFV1Geometry<3, 3>;
 //////////////////////
 // Manifold
 //////////////////////
-template class HFV1ManifoldGeometry<Edge, 2>;
+template class HFV1ManifoldGeometry<RegularEdge, 2>;
 template class HFV1ManifoldGeometry<Triangle, 3>;
 template class HFV1ManifoldGeometry<Quadrilateral, 3>;
 

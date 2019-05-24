@@ -153,6 +153,10 @@ number ElementDiameter(const TElem& elem, TDomain& domain);
 template <typename TDomain>
 number MaxElementDiameter(TDomain& domain, int level);
 
+///	returns the minimal diameter of all elements between iterBegin and iterEnd.
+template <typename TDomain>
+number MinElementDiameter(TDomain& domain, int level);
+
 // end group lib_disc_domain
 /// \}
 

@@ -30,70 +30,39 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef __H__UG_file_io_swc
-#define __H__UG_file_io_swc
+#ifndef __H__UG_shadow_copy_adjuster
+#define __H__UG_shadow_copy_adjuster
 
-#include "lib_grid/grid/grid.h"
-#include "lib_grid/tools/subset_handler_interface.h"
-#include "lib_grid/common_attachments.h"
+#include "../ref_mark_adjuster_interface.h"
 
 namespace ug {
 
-namespace swc_types
-{
-	enum swc_type
-	{
-		SWC_UNDF = 0,
-		SWC_SOMA = 1,
-		SWC_AXON = 2,
-		SWC_DEND = 3,
-		SWC_APIC = 4
-	};
 
-	struct SWCPoint
-	{
-		vector3 coords;
-		number radius;
-		swc_type type;
-		std::vector<size_t> conns;
-	};
-}
-
-
-class FileReaderSWC
+/**
+ * @brief Adjusts RM_FULL-selected quadrilaterals that cannot be fully refined.
+ * 
+ * In a multigrid with SHADOW-COPY elements (created, e.g., by anisotropic adaptive
+ * refinement), it can happen that a surface quadrilateral with a SHADOW_COPY side
+ * is marked for full refinement.
+ * But that cannot take place because the SHADOW-COPY side is already copy-refined.
+ * This can be solved if the element is marked RM_CLOSURE instead and its
+ * SHADOW_COPY edge as well.
+ */
+class ShadowCopyAdjuster : public IRefMarkAdjuster
 {
 	public:
-		typedef swc_types::SWCPoint SWCPoint;
+		virtual ~ShadowCopyAdjuster();
 
-	public:
-		FileReaderSWC() {};
-		~FileReaderSWC() {};
-
-		bool load_file(const char* fileName);
-		bool create_grid(Grid& g, ISubsetHandler* pSH, number scale_length = 1.0);
-
-		const std::vector<swc_types::SWCPoint>& swc_points() const;
-		std::vector<swc_types::SWCPoint>& swc_points();
-
-	protected:
-		std::vector<swc_types::SWCPoint> m_vPts;
+		virtual void ref_marks_changed
+		(
+			IRefiner& ref,
+			const std::vector<Vertex*>& vrts,
+			const std::vector<Edge*>& edges,
+			const std::vector<Face*>& faces,
+			const std::vector<Volume*>& vols
+		);
 };
 
+}  // namespace ug
 
-
-class FileWriterSWC
-{
-	public:
-		FileWriterSWC() {};
-		~FileWriterSWC() {};
-
-		bool export_grid_to_file(Grid& grid, ISubsetHandler* pSH, const char* filename);
-};
-
-
-bool LoadGridFromSWC(Grid& grid, ISubsetHandler* pSH, const char* filename, AVector3& aPos = aPosition);
-bool ExportGridToSWC(Grid& grid, ISubsetHandler* pSH, const char* filename, AVector3& aPos = aPosition);
-
-} // end of namespace ug
-
-#endif // __H__UG_file_io_swc
+#endif	//__H__UG_shadow_copy_adjuster

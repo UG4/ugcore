@@ -947,11 +947,11 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 		}
 	for(size_t i = 0; i < m_rRefElem.num(2)+8; ++i)
 	{
-		UG_DLOG(DID_FV1_GEOM, 2, "	Face midpoint " << i << ": " << m_vvGloMid[2][i] << std::endl);
+		UG_DLOG(DID_FV1_GEOM, 2, "	Face midpoint " << i << ": " << ((dim >= 2) ? m_vvGloMid[2][i] : 0) << std::endl);
 	}
 	for(size_t i = 0; i < m_rRefElem.num(3)+4; ++i)
 	{
-		UG_DLOG(DID_FV1_GEOM, 2, "	Volume midpoint " << i << ": " << m_vvGloMid[3][i] << std::endl);
+		UG_DLOG(DID_FV1_GEOM, 2, "	Volume midpoint " << i << ": " << ((dim >= 3) ? m_vvGloMid[3][i] : 0) << std::endl);
 	}
 
 // 	compute global informations for scvf
@@ -1926,7 +1926,7 @@ template class DimFV1Geometry<3, 3>;
 
 //////////////////////
 // Manifold
-template class FV1ManifoldGeometry<Edge, 2>;
+template class FV1ManifoldGeometry<RegularEdge, 2>;
 template class FV1ManifoldGeometry<Triangle, 3>;
 template class FV1ManifoldGeometry<Quadrilateral, 3>;
 

@@ -154,6 +154,8 @@ function usage
 		echo "        -Juwels-partition <part>: Partition to use; default is batch:"
 		echo "                                  batch (max. 24h walltime, 256 nodes, 96G memory/node)"
 		echo "                                  mem192 (192G memory/node)"
+		echo "        -Juwels-project <name>:   Project name under which the job is to be carried out,"
+		echo "                                  e.g., HFUxxx; needed for accounting."
 		echo ""
 	fi
 	if [ -z "$UGSUBMIT_TYPE" ] || [ $UGSUBMIT_TYPE == "DoraCSCS" ]; then
@@ -323,6 +325,9 @@ do
 		shift 2
 	elif [ $1 == "-Juwels-partition" ]; then
 		juwels_part=$2
+		shift 2
+	elif [ $1 == "-Juwels-project" ]; then
+		juwels_project=$2
 		shift 2
 	elif [ $1 == "---" ]; then
 		shift

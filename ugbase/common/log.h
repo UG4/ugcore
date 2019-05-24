@@ -333,6 +333,24 @@ inline std::string ConvertNumberSI (uint64_t size, unsigned int width,
 #endif
 
 
+// Usage:
+/* The following macro can be used to print warning messages if condition is met.
+ * To use it the define 'UG_ENABLE_WARNINGS' must be set. Otherwise nothing will
+ * be done (no runtime overhead).
+ *
+ * UG_WARNING(cond, msg)  		- prints a warning to the normal output stream
+ */
+#ifdef UG_ENABLED_WARNINGS
+	#define UG_COND_WARNING(cond, msg) {if (cond) {ug::GetLogAssistant().logger()\
+							<< "UG_WARNING in " << __FILE__ << " at line "       \
+							__LINE__ << ": " << msg << std::flush;}}
+#else
+	#define UG_COND_WARNING(cond, msg) {}
+#endif
+
+
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // LOG

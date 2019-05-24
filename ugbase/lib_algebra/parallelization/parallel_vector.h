@@ -140,6 +140,9 @@ class ParallelVector : public TVector
 	 */
 		number norm() const;
 
+	/// max norm (overwrites TVector::maxnorm())
+		number maxnorm() const;
+
 	/// dotprod (overwrites TVector::dotprod())
 	/**
 	 * Returns the dot product of the vector. First, the dot prod of each process

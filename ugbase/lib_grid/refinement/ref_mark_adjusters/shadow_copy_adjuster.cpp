@@ -30,70 +30,85 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef __H__UG_file_io_swc
-#define __H__UG_file_io_swc
+#include "shadow_copy_adjuster.h"
 
-#include "lib_grid/grid/grid.h"
-#include "lib_grid/tools/subset_handler_interface.h"
-#include "lib_grid/common_attachments.h"
 
 namespace ug {
 
-namespace swc_types
-{
-	enum swc_type
-	{
-		SWC_UNDF = 0,
-		SWC_SOMA = 1,
-		SWC_AXON = 2,
-		SWC_DEND = 3,
-		SWC_APIC = 4
-	};
 
-	struct SWCPoint
+ShadowCopyAdjuster::~ShadowCopyAdjuster()
+{}
+
+
+void ShadowCopyAdjuster:: ref_marks_changed
+(
+	IRefiner& ref,
+	const std::vector<Vertex*>& vrts,
+	const std::vector<Edge*>& edges,
+	const std::vector<Face*>& faces,
+	const std::vector<Volume*>& vols
+)
+{
+	Grid::face_traits::secure_container fl;
+	const size_t nv = vols.size();
+	for (size_t i = 0; i < nv; ++i)
 	{
-		vector3 coords;
-		number radius;
-		swc_type type;
-		std::vector<size_t> conns;
-	};
+		Volume* vol = vols[i];
+
+		if (!ref.marked_full(vol))
+			continue;
+
+		bool allSidesRefineable = true;
+		ref.grid()->associated_elements(fl, vol);
+		const size_t flSz = fl.size();
+		for (size_t j = 0; j < flSz; ++j)
+		{
+			Face* f = fl[j];
+			RefinementMark curMark = ref.get_mark(f);
+			if (!ref.mark(f, RM_FULL))
+			{
+				ref.mark(f, curMark);
+				allSidesRefineable = false;
+				break;
+			}
+			ref.mark(f, curMark);
+		}
+
+		if (!allSidesRefineable)
+			ref.mark(vol, RM_CLOSURE);
+	}
+
+	Grid::edge_traits::secure_container el;
+	const size_t nf = faces.size();
+	for (size_t i = 0; i < nf; ++i)
+	{
+		Face* f = faces[i];
+
+		if (!ref.marked_full(f))
+			continue;
+
+		bool allSidesRefineable = true;
+		ref.grid()->associated_elements(el, f);
+		const size_t elSz = el.size();
+		for (size_t j = 0; j < elSz; ++j)
+		{
+			Edge* e = el[j];
+			RefinementMark curMark = ref.get_mark(e);
+			if (!ref.mark(e, RM_FULL))
+			{
+				ref.mark(e, curMark);
+				allSidesRefineable = false;
+				break;
+			}
+			ref.mark(e, curMark);
+		}
+
+		if (!allSidesRefineable)
+			ref.mark(f, RM_CLOSURE);
+	}
 }
 
 
-class FileReaderSWC
-{
-	public:
-		typedef swc_types::SWCPoint SWCPoint;
-
-	public:
-		FileReaderSWC() {};
-		~FileReaderSWC() {};
-
-		bool load_file(const char* fileName);
-		bool create_grid(Grid& g, ISubsetHandler* pSH, number scale_length = 1.0);
-
-		const std::vector<swc_types::SWCPoint>& swc_points() const;
-		std::vector<swc_types::SWCPoint>& swc_points();
-
-	protected:
-		std::vector<swc_types::SWCPoint> m_vPts;
-};
+}  // namespace ug
 
 
-
-class FileWriterSWC
-{
-	public:
-		FileWriterSWC() {};
-		~FileWriterSWC() {};
-
-		bool export_grid_to_file(Grid& grid, ISubsetHandler* pSH, const char* filename);
-};
-
-
-bool LoadGridFromSWC(Grid& grid, ISubsetHandler* pSH, const char* filename, AVector3& aPos = aPosition);
-bool ExportGridToSWC(Grid& grid, ISubsetHandler* pSH, const char* filename, AVector3& aPos = aPosition);
-
-} // end of namespace ug
-
-#endif // __H__UG_file_io_swc

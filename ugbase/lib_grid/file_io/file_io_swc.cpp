@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2015:  G-CSC, Goethe University Frankfurt
- * Author: Sebastian Reiter
+ * Author: Markus Breit
  * 
  * This file is part of UG4.
  * 
@@ -208,6 +208,20 @@ bool FileReaderSWC::create_grid(Grid& g, ISubsetHandler* pSH, number scale_lengt
 	EraseEmptySubsets(*pSH);
 
 	return true;
+}
+
+
+
+const std::vector<swc_types::SWCPoint>& FileReaderSWC::swc_points() const
+{
+	return m_vPts;
+}
+
+
+
+std::vector<swc_types::SWCPoint>& FileReaderSWC::swc_points()
+{
+	return m_vPts;
 }
 
 

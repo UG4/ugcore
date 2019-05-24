@@ -49,6 +49,7 @@
 #include "lib_grid/refinement/global_multi_grid_refiner.h"
 #include "lib_grid/refinement/hanging_node_refiner_multi_grid.h"
 #include "lib_grid/refinement/ref_mark_adjusters/horizontal_anisotropy_adjuster.h"
+#include "lib_grid/refinement/ref_mark_adjusters/shadow_copy_adjuster.h"
 #include "lib_grid/algorithms/subdivision/subdivision_volumes.h"
 #include "lib_grid/grid_objects/tetrahedron_rules.h"
 #ifdef UG_PARALLEL
@@ -212,6 +213,23 @@ AddHorizontalAnisotropyAdjuster(IRefiner* ref, TDomain* dom)
 }
 
 
+/**
+ * @brief Adds a ShadowCopyAdjuster to the given refiner
+ * @param ref   the refiner; has to be derived from HangingNodeRefiner_MultiGrid
+ */
+static SPIRefMarkAdjuster
+AddShadowCopyAdjuster(IRefiner* ref)
+{
+	HangingNodeRefiner_MultiGrid* href = dynamic_cast<HangingNodeRefiner_MultiGrid*>(ref);
+	UG_COND_THROW(!href, "A ShadowCopyAdjuster can only be added to an instance of HangingNodeRefiner_MultiGrid.");
+
+	SmartPtr<ShadowCopyAdjuster> sca = make_sp(new ShadowCopyAdjuster());
+
+	href->add_ref_mark_adjuster(sca);
+	return sca;
+}
+
+
 
 // ////////////////////////////////////////////////////////////////////////////////
 // /// marks face for anisotropic refinement, if it contains edges below given sizeRatio
@@ -297,9 +315,9 @@ static void MarkForRefinement_AllAnisotropic(SmartPtr<IRefiner> ref)
 ////////////////////////////////////////////////////////////////////////////////
 ///	Marks all vertices in the given d-dimensional sphere.
 template <class TDomain>
-void MarkForAdaption_VerticesInSphere(TDomain& dom, SmartPtr<IRefiner> refiner,
+void MarkForAdaption_VerticesInSphereMaxLvl(TDomain& dom, SmartPtr<IRefiner> refiner,
                                       const typename TDomain::position_type& center,
-                                      number radius, std::string markType)
+                                      number radius, std::string markType, int maxLvl)
 {
 	PROFILE_FUNC_GROUP("grid");
 	typedef typename TDomain::position_accessor_type	position_accessor_type;
@@ -312,7 +330,10 @@ void MarkForAdaption_VerticesInSphere(TDomain& dom, SmartPtr<IRefiner> refiner,
 					"Refiner was not created for the specified domain. Aborting."));
 	}
 
+	typedef typename TDomain::grid_type TGrid;
+
 	Grid& grid = *refiner->get_associated_grid();
+	TGrid& g = *dom.grid();
 	position_accessor_type& aaPos = dom.position_accessor();
 
 //	we'll compare against the square radius.
@@ -328,6 +349,10 @@ void MarkForAdaption_VerticesInSphere(TDomain& dom, SmartPtr<IRefiner> refiner,
 	for(VertexIterator iter = grid.begin<Vertex>();
 		iter != grid.end<Vertex>(); ++iter)
 	{
+		int lvl = g.get_level(*iter);
+		if(maxLvl >= 0 && lvl >= maxLvl)
+			continue;
+
 		if(VecDistanceSq(center, aaPos[*iter]) <= radiusSq){
 			CollectAssociated(vEdges, grid, *iter);
 			CollectAssociated(vFaces, grid, *iter);
@@ -345,7 +370,15 @@ void MarkForRefinement_VerticesInSphere(TDomain& dom, SmartPtr<IRefiner> refiner
                                         const typename TDomain::position_type& center,
                                         number radius)
 {
-	MarkForAdaption_VerticesInSphere(dom, refiner, center, radius, "refine");
+	MarkForAdaption_VerticesInSphereMaxLvl(dom, refiner, center, radius, "refine", -1);
+}
+
+template <class TDomain>
+void MarkForAdaption_VerticesInSphere(TDomain& dom, SmartPtr<IRefiner> refiner,
+                                      const typename TDomain::position_type& center,
+                                      number radius, std::string markType, int maxLvl)
+{
+	MarkForAdaption_VerticesInSphereMaxLvl(dom, refiner, center, radius, markType, -1);	
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -839,6 +872,88 @@ void MarkAnisotropic_LongEdges(TDomain& dom, IRefiner& refiner, number minLen)
 // 	refiner->mark(volumes.begin(), volumes.end(), RM_ANISOTROPIC);
 // }
 
+////////////////////////////////////////////////////////////////////////////////
+///	Marks all elements which have vertices in the given d-dimensional cube.
+/**	Make sure that TAPos is an attachment of vector_t position types.*/
+template <class TDomain>
+void AssignSubset_VerticesInCube(TDomain& dom, 
+									const typename TDomain::position_type& min,
+									const typename TDomain::position_type& max, int si)
+{
+	typedef typename TDomain::position_type 			position_type;
+	typedef typename TDomain::position_accessor_type	position_accessor_type;
+
+	Grid& grid = *dom.grid();
+	position_accessor_type& aaPos = dom.position_accessor();
+	MGSubsetHandler& sh = *dom.subset_handler();
+
+//	iterate over all vertices of the grid. If a vertex is inside the given cube,
+//	then we'll mark all associated elements.
+	for(VertexIterator iter = grid.begin<Vertex>();
+		iter != grid.end<Vertex>(); ++iter)
+	{
+	//	Position
+		position_type& pos = aaPos[*iter];
+
+	//	check flag
+		bool bInside = true;
+
+	//	check node
+		for(size_t d = 0; d < pos.size(); ++d)
+			if(pos[d] < min[d] || max[d] < pos[d])
+				bInside = false;
+
+		if(bInside)
+		{
+			sh.assign_subset(*iter, si);
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+///	Marks all elements which have vertices in the given d-dimensional cube.
+/**	Make sure that TAPos is an attachment of vector_t position types.*/
+template <class TDomain>
+void AssignSubset_VerticesInSphere(TDomain& dom, 
+									const typename TDomain::position_type& center,
+									const number radius, int si)
+{
+	typedef typename TDomain::position_type 			position_type;
+	typedef typename TDomain::position_accessor_type	position_accessor_type;
+
+	Grid& grid = *dom.grid();
+	position_accessor_type& aaPos = dom.position_accessor();
+	MGSubsetHandler& sh = *dom.subset_handler();
+
+//	iterate over all vertices of the grid. If a vertex is inside the given cube,
+//	then we'll mark all associated elements.
+	for(VertexIterator iter = grid.begin<Vertex>();
+		iter != grid.end<Vertex>(); ++iter)
+	{
+	//	Position
+		position_type& pos = aaPos[*iter];
+
+	//	check flag
+		bool bInside = true;
+
+	//	check node
+		number normSq = 0.0;
+		for(int d = 0; d < TDomain::dim; ++d){
+			normSq += (pos[d] - center[d])*(pos[d] - center[d]);
+		}
+		number dist = sqrt( normSq );
+
+		if(dist >= radius)
+			bInside = false;
+
+		if(bInside)
+		{
+			sh.assign_subset(*iter, si);
+		}
+	}
+}
+
+
 #ifdef UG_DIM_1
 static number DistanceToSurfaceDomain(MathVector<1>& tpos, const Vertex* vrt,
 									  Grid::VertexAttachmentAccessor<Attachment<MathVector<1> > >& aaPosSurf)
@@ -879,7 +994,7 @@ void MarkForRefinement_CloseToSurface(TDomain& dom, SmartPtr<IRefiner> refiner,
 {
 	PROFILE_FUNC();
 	typedef typename TDomain::grid_type TGrid;
-	typedef typename TDomain::subset_handler_type TSubsetHandler;
+	//typedef typename TDomain::subset_handler_type TSubsetHandler;
 	typedef typename TDomain::position_type TPos;
 	typedef typename TDomain::position_accessor_type TAAPos;
 	typedef typename domain_traits<TDomain::dim>::element_type TElem;
@@ -945,8 +1060,8 @@ void MarkForRefinement_ContainsSurfaceNode(TDomain& dom, SmartPtr<IRefiner> refi
 {
 	PROFILE_FUNC();
 	typedef typename TDomain::grid_type TGrid;
-	typedef typename TDomain::subset_handler_type TSubsetHandler;
-	typedef typename TDomain::position_type TPos;
+	//typedef typename TDomain::subset_handler_type TSubsetHandler;
+	//typedef typename TDomain::position_type TPos;
 	typedef typename TDomain::position_accessor_type TAAPos;
 	typedef typename domain_traits<TDomain::dim>::element_type TElem;
 	typedef typename domain_traits<TDomain::dim>::side_type TSide;
@@ -1599,6 +1714,9 @@ static void Common(Registry& reg, string grp)
 		.add_function("MarkNeighborsForAnisotropicRefinement",
 				&MarkNeighborsForAnisotropicRefinement,
 				grp, "", "refiner#sideNeighborsOnly");
+
+	reg.add_function("AddShadowCopyAdjuster", &AddShadowCopyAdjuster, grp, "", "refiner");
+
 }
 
 /**
@@ -1614,7 +1732,7 @@ template <typename TDomain>
 static void Domain(Registry& reg, string grp)
 {
 	typedef TDomain 							domain_type;
-	typedef typename TDomain::position_attachment_type apos_type;
+	//typedef typename TDomain::position_attachment_type apos_type;
 
 	string suffix = GetDomainSuffix<TDomain>();
 	string tag = GetDomainTag<TDomain>();
@@ -1638,6 +1756,9 @@ static void Domain(Registry& reg, string grp)
 				"", "dom#refiner#center#radius")
 		.add_function("MarkForAdaption_VerticesInSphere",
 				&MarkForAdaption_VerticesInSphere<domain_type>, grp,
+				"", "dom#refiner#center#radius#adaption_type")
+		.add_function("MarkForAdaption_VerticesInSphereMaxLvl",
+				&MarkForAdaption_VerticesInSphereMaxLvl<domain_type>, grp,
 				"", "dom#refiner#center#radius#adaption_type")
 		.add_function("MarkForRefinement_EdgesInSphere",
 				&MarkForRefinement_ElementsInSphere<domain_type, Edge>, grp,
@@ -1714,6 +1835,12 @@ static void Domain(Registry& reg, string grp)
 				grp, "", "")
 		.add_function("MarkForRefinement_ContainsSurfaceNode",
 				&MarkForRefinement_ContainsSurfaceNode<domain_type>,
+				grp, "", "")
+		.add_function("AssignSubset_VerticesInCube",
+				&AssignSubset_VerticesInCube<domain_type>,
+				grp, "", "")
+		.add_function("AssignSubset_VerticesInSphere",
+				&AssignSubset_VerticesInSphere<domain_type>,
 				grp, "", "");
 
 

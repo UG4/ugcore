@@ -212,7 +212,10 @@ class DirichletBoundary
 
 	/// @copydoc IConstraint::adjust_error()
 		virtual void adjust_error(const vector_type& u, ConstSmartPtr<DoFDistribution> dd, int type,
-								  number time = 0.0);
+								  number time = 0.0,
+								  ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = SPNULL,
+								  const std::vector<number>* vScaleMass = NULL,
+								  const std::vector<number>* vScaleStiff = NULL);
 
 	///	sets constraints in prolongation
 		virtual void adjust_prolongation(matrix_type& P,
@@ -300,11 +303,7 @@ class DirichletBoundary
 		template <typename TUserData>
 		void adjust_error(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		                  const vector_type& u, ConstSmartPtr<DoFDistribution> dd, number time);
-/*
-		template <typename TBaseElem, typename TUserData>
-		void adjust_error(const std::vector<TUserData*>& vUserData, int si,
-		                  const vector_type& u, ConstSmartPtr<DoFDistribution> dd, number time);
-*/
+
 		template <typename TUserData>
 		void adjust_prolongation(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		                         matrix_type& P,

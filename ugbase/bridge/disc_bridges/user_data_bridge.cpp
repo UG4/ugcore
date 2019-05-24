@@ -47,6 +47,7 @@
 #include "lib_disc/spatial_disc/user_data/linker/scale_add_linker.h"
 #include "lib_disc/spatial_disc/user_data/linker/inverse_linker.h"
 #include "lib_disc/spatial_disc/user_data/linker/darcy_velocity_linker.h"
+#include "lib_disc/spatial_disc/user_data/linker/bingham_viscosity_linker.h"
 #include "lib_disc/spatial_disc/user_data/linker/projection_linker.h"
 #include "lib_disc/spatial_disc/user_data/user_function.h"
 #include "lib_disc/spatial_disc/user_data/common_user_data/common_user_data.h"
@@ -301,6 +302,24 @@ static void Dimension(Registry& reg, string grp)
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "DarcyVelocityLinker", dimTag);
+	}
+
+//	BinghamViscosityLinker
+	{
+		typedef BinghamViscosityLinker<dim> T;
+		typedef DependentUserData<number, dim> TBase;
+		string name = string("BinghamViscosityLinker").append(dimSuffix);
+		reg.add_class_<T, TBase>(name, grp)
+			.add_method("set_velocity_gradient", &T::set_velocity_gradient)
+			.add_method("set_yield_stress", static_cast<void (T::*)(number)>(&T::set_yield_stress))
+			.add_method("set_yield_stress", static_cast<void (T::*)(SmartPtr<CplUserData<number,dim> >)>(&T::set_yield_stress))
+			.add_method("set_viscosity", static_cast<void (T::*)(number)>(&T::set_viscosity))
+			.add_method("set_viscosity", static_cast<void (T::*)(SmartPtr<CplUserData<number,dim> >)>(&T::set_viscosity))
+			.add_method("set_density", static_cast<void (T::*)(number)>(&T::set_density))
+			.add_method("set_density", static_cast<void (T::*)(SmartPtr<CplUserData<number,dim> >)>(&T::set_density))
+			.add_constructor()
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "BinghamViscosityLinker", dimTag);
 	}
 
 //	InverseLinker"Type"

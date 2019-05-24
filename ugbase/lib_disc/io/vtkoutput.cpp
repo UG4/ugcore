@@ -80,6 +80,9 @@ print(const char* filename, Domain<TDim>& domain)
 //	header
 	File << VTKFileWriter::normal;
 	File << "<?xml version=\"1.0\"?>\n";
+
+	write_comment(File);
+
 	File << "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"";
 	if(IsLittleEndian()) File << "LittleEndian";
 	else File << "BigEndian";
@@ -97,7 +100,7 @@ print(const char* filename, Domain<TDim>& domain)
 		try{
 			write_grid_piece<MGSubsetHandler>
 			(File, aaVrtIndex, domain.position_accessor(), grid,
-			 sh, si, dim);
+			 sh, si, dim, sh);
 		}
 		UG_CATCH_THROW("VTK::print: Can not write Subset: "<<si);
 	}
@@ -317,7 +320,7 @@ write_subset_pvd(int numSubset, const std::string& filename, int step, number ti
 			if(numProcs > 1) pvtu_filename(name, filename, si, numSubset-1, step);
 
 			name = FilenameWithoutPath(name);
-			fprintf(file, "  <DataSet timestep=\"%g\" part=\"%d\" file=\"%s\"/>\n",
+			fprintf(file, "  <DataSet timestep=\"%.17g\" part=\"%d\" file=\"%s\"/>\n",
 			        		time, si, name.c_str());
 		}
 
@@ -354,7 +357,7 @@ write_subset_pvd(int numSubset, const std::string& filename, int step, number ti
 				if(numProcs > 1) pvtu_filename(name, filename, si, numSubset-1, step);
 
 				name = FilenameWithoutPath(name);
-				fprintf(file, "  <DataSet timestep=\"%g\" part=\"%d\" file=\"%s\"/>\n",
+				fprintf(file, "  <DataSet timestep=\"%.17g\" part=\"%d\" file=\"%s\"/>\n",
 				        	time, r, name.c_str());
 			}
 
@@ -591,6 +594,30 @@ template <int TDim>
 void VTKOutput<TDim>::
 set_binary(bool b) {
 	m_bBinary = b;
+}
+
+template <int TDim>
+void VTKOutput<TDim>::
+set_write_grid(bool b) {
+	m_bWriteGrid = b;
+}
+
+template <int TDim>
+void VTKOutput<TDim>::
+set_write_subset_indices(bool b) {
+	m_bWriteSubsetIndices = b;
+}
+
+template <int TDim>
+void VTKOutput<TDim>::
+set_write_proc_ranks(bool b) {
+	m_bWriteProcRanks = b;
+}
+
+template <int TDim>
+void VTKOutput<TDim>::
+set_user_defined_comment(const char* comment){
+	m_sComment = comment;
 }
 
 template <int TDim>

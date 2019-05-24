@@ -328,6 +328,15 @@ inline double Vector<value_type>::norm() const
 	return sqrt(d);
 }
 
+template<typename value_type>
+inline double Vector<value_type>::maxnorm() const
+{
+	double d=0;
+	for(size_t i=0; i<size(); ++i)
+		d = std::max(d, BlockMaxNorm(values[i]));
+	return d;
+}
+
 template<typename TValueType>
 void CloneVector(Vector<TValueType> &dest, const Vector<TValueType>& src)
 {

@@ -622,6 +622,10 @@ function util.solver.CreateSolver(solverDesc, solverutil)
 				util.solver.CreateLineSearch(lineSearch))
 		end
 		
+		if type (desc.reassemble_J_freq) == "number" then
+			newtonSolver:set_reassemble_J_freq(desc.reassemble_J_freq)
+		end
+		
 		util.solver.SetDebugWriter(newtonSolver, solverDesc, defaults)
 
 		return newtonSolver
@@ -805,6 +809,10 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 		gmg:set_gathered_base_solver_if_ambiguous (
 				desc.gatheredBaseSolverIfAmbiguous or
 				defaults.gatheredBaseSolverIfAmbiguous)
+
+		if desc.surfaceLevel then
+			gmg:set_surface_level			(desc.surfaceLevel)
+		end
 
 		local transfer = util.solver.CreateTransfer(desc.transfer or defaults.transfer)
 		if desc.adaptive == true then

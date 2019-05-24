@@ -154,6 +154,8 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase<MGSelector>
 	 *  during construction and destruction.*/
 		void set_grid(MultiGrid* mg);
 
+		virtual void assign_hnode_marks();
+
 	///	creates required vertices in higher levels.
 		virtual void pre_refine();
 
