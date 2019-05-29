@@ -268,7 +268,7 @@ void GetNeighbours(std::vector<Face*>& vFacesOut, Grid& grid, Face* f,
 ////////////////////////////////////////////////////////////////////////
 //	template methods
 ////////////////////////////////////////////////////////////////////////
-//	CalculateFaceCenter
+//	CalculateCenter
 ///	calculates the center of a face.
 /**
  * TVertexPositionAttachmentAccessor has to be an AttachmentAccessor,
@@ -282,14 +282,7 @@ void GetNeighbours(std::vector<Face*>& vFacesOut, Grid& grid, Face* f,
 template<class TVertexPositionAttachmentAccessor>
 UG_API 
 typename TVertexPositionAttachmentAccessor::ValueType
-CalculateFaceCenter(const Face* f, TVertexPositionAttachmentAccessor& aaPosVRT);
-
-////////////////////////////////////////////////////////////////////////
-template<class TVertexPositionAttachmentAccessor>
-UG_API 
-typename TVertexPositionAttachmentAccessor::ValueType
 CalculateCenter(const FaceVertices* f, TVertexPositionAttachmentAccessor& aaPosVRT);
-
 /** \} */
 
 
