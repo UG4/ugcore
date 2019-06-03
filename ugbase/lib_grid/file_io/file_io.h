@@ -7,7 +7,7 @@
  * UG4 is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License version 3 (as published by the
  * Free Software Foundation) with the following additional attribution
- * requirements (according to LGPL/GPL v3 §7):
+ * requirements (according to LGPL/GPL v3 ��7):
  * 
  * (1) The following notice must be displayed in the Appropriate Legal Notices
  * of covered and combined works: "Based on UG4 (www.ug4.org/license)".
@@ -20,7 +20,7 @@
  * "Reiter, S., Vogel, A., Heppner, I., Rupp, M., and Wittum, G. A massively
  *   parallel geometric multigrid solver on hierarchically distributed grids.
  *   Computing and visualization in science 16, 4 (2013), 151-164"
- * "Vogel, A., Reiter, S., Rupp, M., Nägel, A., and Wittum, G. UG4 -- a novel
+ * "Vogel, A., Reiter, S., Rupp, M., N��gel, A., and Wittum, G. UG4 -- a novel
  *   flexible software system for simulating pde based models on high performance
  *   computers. Computing and visualization in science 16, 4 (2013), 165-179"
  * 
@@ -163,6 +163,18 @@ void CopyGridLevel(MultiGrid& srcMG, Grid& destGrid,
 				   ISubsetHandler& srcSH, ISubsetHandler& destSH,
 				   int lvl, TAPos aPos);
 
+
+////////////////////////////////////////////////////////////////////////////////
+///	Copies a grid to a separate grid.
+/**
+ * Extracts the grid from a given Grid with a given SubsetHandler
+ * and copies it to a new grid. Position data is read from aPos.
+ * Note: To copy a grid w/o subset information can use Grid's copy constructor
+ */
+template <class TAPos>
+void CopyGrid(Grid& srcGrid, Grid& destGrid,
+			  ISubsetHandler& srcSH, ISubsetHandler& destSH,
+			  TAPos aPos);
 
 ///	Saves a grid level to a file.
 /**

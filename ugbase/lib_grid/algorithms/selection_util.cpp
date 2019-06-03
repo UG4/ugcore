@@ -1294,6 +1294,31 @@ void SelectElementsByIndex (ISelector& sel,
 	SelectElementsByIndex<Volume> (sel, volInds);
 }
 
+void SelectSubset(ISelector& sel,
+				  const ISubsetHandler& sh,
+				  int si,
+				  ISelector::status_t status)
+{
+	GridObjectCollection goc = sh.get_grid_objects_in_subset(si);
+	for (size_t lvl = 0; lvl < goc.num_levels(); ++lvl) {
+		for (VertexIterator iter = goc.begin<Vertex>(lvl); iter != goc.end<Vertex>(lvl); ++iter) {
+			sel.select(*iter, status);
+		}
+
+		for (EdgeIterator iter = goc.begin<Edge>(lvl); iter != goc.end<Edge>(lvl); ++iter) {
+			sel.select(*iter, status);
+		}
+
+		for (FaceIterator iter = goc.begin<Face>(lvl); iter != goc.end<Face>(lvl); ++iter) {
+			sel.select(*iter, status);
+		}
+
+		for (VolumeIterator iter = goc.begin<Volume>(lvl); iter != goc.end<Volume>(lvl); ++iter) {
+			sel.select(*iter, status);
+		}
+	}
+}
+
 
 // explicit template instantiation
 // (although used in the above function, the template functions

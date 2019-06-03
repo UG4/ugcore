@@ -696,6 +696,68 @@ void CopyGridLevel(MultiGrid& srcMG, Grid& destGrid,
 	srcMG.detach_from_vertices(aNewVrt);
 }
 
+template<class TElem>
+void CopyGridElements(Grid& srcGrid, Grid& destGrid,
+				      ISubsetHandler& srcSH, ISubsetHandler& destSH,
+					  AVertex& aNewVrt)
+{
+	Grid::VertexAttachmentAccessor<AVertex> aaNewVrt(srcGrid, aNewVrt);
+	GridObjectCollection goc = srcGrid.get_grid_objects();
+	CustomVertexGroup vrts;
+
+	typedef typename Grid::traits<TElem>::iterator iter_t;
+
+	for(iter_t eIter = goc.begin<TElem>(); eIter != goc.end<TElem>(); ++eIter)
+	{
+		TElem* e = *eIter;
+		vrts.resize(e->num_vertices());
+
+		for(size_t iv = 0; iv < e->num_vertices(); ++iv)
+		{
+			vrts.set_vertex(iv, aaNewVrt[e->vertex(iv)]);
+		}
+
+		TElem* ne = *destGrid.create_by_cloning(e, vrts);
+		destSH.assign_subset(ne, srcSH.get_subset_index(e));
+	}
+}
+
+template <class TAPos>
+void CopyGrid(Grid& srcGrid, Grid& destGrid,
+			  ISubsetHandler& srcSH, ISubsetHandler& destSH,
+			  TAPos aPos)
+{
+	Grid::VertexAttachmentAccessor<TAPos> aaPos(destGrid, aPos);
+	Grid::VertexAttachmentAccessor<TAPos> aaSrcPos(srcGrid, aPos);
+	GridObjectCollection goc = srcGrid.get_grid_objects();
+
+	AVertex aNewVrt;
+	srcGrid.attach_to_vertices(aNewVrt);
+	Grid::VertexAttachmentAccessor<AVertex> aaNewVrt(srcGrid, aNewVrt);
+
+	for(int si = destSH.num_subsets(); si < srcSH.num_subsets(); ++si)
+	{
+		destSH.subset_info(si) = srcSH.subset_info(si);
+	}
+
+	for(VertexIterator vrtIter = goc.begin<Vertex>(); vrtIter != goc.end<Vertex>(); ++vrtIter)
+	{
+		Vertex* srcVrt  = *vrtIter;
+		Vertex* destVrt = *destGrid.create_by_cloning(srcVrt);
+
+		aaNewVrt[srcVrt] = destVrt;
+		aaPos[destVrt] = aaSrcPos[srcVrt];
+		destSH.assign_subset(destVrt, srcSH.get_subset_index(srcVrt));
+	}
+
+	CopyGridElements<Edge>(srcGrid, destGrid, srcSH, destSH, aNewVrt);
+	CopyGridElements<Face>(srcGrid, destGrid, srcSH, destSH,  aNewVrt);
+	CopyGridElements<Volume>(srcGrid, destGrid, srcSH, destSH, aNewVrt);
+
+	srcGrid.detach_from_vertices(aNewVrt);
+}
+
+
 template <class TAPos>
 bool SaveGridLevel(MultiGrid& srcMG, ISubsetHandler& srcSH, int lvl, const char* filename, TAPos aPos)
 {
@@ -742,5 +804,9 @@ template bool SaveGridToFile(Grid&, ISubsetHandler&, const char*, AVector3&);
 template bool SaveGridToFile(Grid&, const char*, AVector1&);
 template bool SaveGridToFile(Grid&, const char*, AVector2&);
 template bool SaveGridToFile(Grid&, const char*, AVector3&);
+
+template void CopyGrid(Grid&, Grid&, ISubsetHandler&, ISubsetHandler&, APosition1);
+template void CopyGrid(Grid&, Grid&, ISubsetHandler&, ISubsetHandler&, APosition2);
+template void CopyGrid(Grid&, Grid&, ISubsetHandler&, ISubsetHandler&, APosition3);
 
 }//	end of namespace

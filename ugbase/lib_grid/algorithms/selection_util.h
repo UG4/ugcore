@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2015:  G-CSC, Goethe University Frankfurt
+ * Copyright (c) 2009-2015:  G-CSC, Goethe University FrankfurtG
  * Author: Sebastian Reiter
  * 
  * This file is part of UG4.
@@ -615,6 +615,18 @@ void SelectElementsByIndex (ISelector& sel,
                             const std::vector<size_t>& volInds);
 
 /** \} */
+
+/**
+ * \brief Select all elements specified by a subset index ans selection status
+ * \param[in, out] sel
+ * \param[in] sh
+ * \param[in] si
+ * \param[in] status
+ */
+void SelectSubset(ISelector& sel,
+				  const ISubsetHandler& sh,
+				  int si,
+				  ISelector::status_t status);
 
 /**@}*/ // end of doxygen defgroup command
 }// end of namespace
