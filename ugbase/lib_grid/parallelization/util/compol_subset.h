@@ -81,7 +81,7 @@ class ComPol_Subset : public pcl::ICommunicationPolicy<TLayout>
 		virtual bool
 		extract(ug::BinaryBuffer& buff, const Interface& interface)
 		{
-			int nsi;
+			int nsi = -1;
 			bool retVal = true;
 			for(InterfaceIter iter = interface.begin();
 				iter != interface.end(); ++iter)
