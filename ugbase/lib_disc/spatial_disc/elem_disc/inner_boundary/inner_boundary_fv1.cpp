@@ -298,6 +298,8 @@ prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
 	// on horizontal interfaces: only treat hmasters
 	if (m_bCurrElemIsHSlave) return;
 
+	m_si = si;
+
 	//	get the error estimator data object and check that it is of the right type
 	//	we check this at this point in order to be able to dispense with this check later on
 	//	(i.e. in prep_err_est_elem and compute_err_est_A_elem())
@@ -359,6 +361,11 @@ template<typename TElem, typename TFVGeom>
 void FV1InnerBoundaryElemDisc<TDomain>::
 prep_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
+#ifdef UG_PARALLEL
+	DistributedGridManager& dgm = *this->approx_space()->domain()->grid()->distributed_grid_manager();
+	m_bCurrElemIsHSlave = dgm.get_status(elem) & ES_H_SLAVE;
+#endif
+
 	// on horizontal interfaces: only treat hmasters
 	if (m_bCurrElemIsHSlave) return;
 
