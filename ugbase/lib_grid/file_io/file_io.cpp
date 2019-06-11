@@ -579,11 +579,11 @@ static void AssignSubsetsBySurfaceViewState(SubsetHandler& sh, const SurfaceView
 	}
 	for(int i = 0; i < sh.num_subsets(); ++i)
 		sh.subset_info(i).name = "unknown";
-	sh.subset_info(SurfaceView::MG_SHADOW_PURE).name = "unassigned";
-	sh.subset_info(SurfaceView::MG_SURFACE_PURE).name = "pure-surface";
-	sh.subset_info(SurfaceView::MG_SURFACE_RIM).name = "shadowing";
-	sh.subset_info(SurfaceView::MG_SHADOW_RIM_COPY).name = "shadow-copy";
-	sh.subset_info(SurfaceView::MG_SHADOW_RIM_NONCOPY).name = "shadow-noncopy";
+	sh.subset_info(SurfaceView::MG_SHADOW_PURE).name = "shadow-pure";
+	sh.subset_info(SurfaceView::MG_SURFACE_PURE).name = "surface-pure";
+	sh.subset_info(SurfaceView::MG_SURFACE_RIM).name = "surface-rim";
+	sh.subset_info(SurfaceView::MG_SHADOW_RIM_COPY).name = "shadow-rim-copy";
+	sh.subset_info(SurfaceView::MG_SHADOW_RIM_NONCOPY).name = "shadow-rim-noncopy";
 	//EraseEmptySubsets(sh);
 }
 
