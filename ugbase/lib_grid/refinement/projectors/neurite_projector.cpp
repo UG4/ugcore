@@ -1307,10 +1307,9 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 	// FOUR CASES can occur:
 	// 1. We are at a branching point.
 	// 2. We are well inside a regular piece of neurite.
-	// 3. We are at the tip of a neurite.
-	// 4. We are at the soma.
+	// 3. We are at the soma.
+	// 4. We are at the tip of a neurite.
 
-	// case 1: branching point?
 	bool isBP = false;
 	BranchingRegion cmpBR(t);
 	std::vector<BranchingRegion>::const_iterator it =
@@ -1335,23 +1334,29 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 			isBP = true;
 	}
 
-	if (isBP) {
+	// case 1: branching point
+	if (isBP)
 		pos_in_bp(pos, neurite, plainNID, t, angle, rad, it, parent, this);
 	/*
 	if ((it != vBR.end() && it->t - t < axial_range_around_branching_region(plainNID, std::distance(vBR.begin(), it), 5.0*rad))
 		|| (it-- != vBR.begin() && t - it->t < axial_range_around_branching_region(plainNID, std::distance(vBR.begin(), it), 5.0*rad)))
 	pos_in_bp(pos, neurite, plainNID, t, angle, rad, it, parent, this);
 	*/
+
 	// case 2: normal neurite position
-	} else if (t <= 1.0 && t > 0) {
+	else if (t >= 0.0 && t <= 1.0)
 		pos_in_neurite(pos, neurite, plainNID, t, angle, rad);
-	// case 4: soma
-	} else if (t <= 0) {
+
+	// case 3: soma
+	else if (t < 0.0)
+	{
 		/// TODO: Treat soma case
-	// case 3: tip of neurite
-	} else {
-		pos_on_surface_tip(pos, neurite, parent, this, rad);
 	}
+
+	// case 4: tip of neurite
+	else
+		pos_on_surface_tip(pos, neurite, parent, this, rad);
+
 
 	// save new surface params for new vertex
 	m_aaSurfParams[vrt].neuriteID = neuriteID;
