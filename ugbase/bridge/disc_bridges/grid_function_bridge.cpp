@@ -417,6 +417,14 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_function("CheckDoFPositions", static_cast<bool (*)(const TFct&)>(CheckDoFPositions<TFct>), grp);
 	}
 
+//	ScaleGF
+	{
+		reg.add_function("ScaleGF", ScaleGF<TFct>, grp, "",
+			"scaled output vector # input vector # vector of scaling factors for each function",
+			"Scales the input vector using the given scaling factors for each function and writes "
+			"the result to the output vector");
+	}
+
 //	AverageFunctionDifference
 	{
 		typedef ug::GridFunction<TDomain, TAlgebra> GF;
