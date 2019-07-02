@@ -173,9 +173,9 @@ class NeuriteProjector
 			vector3 refDir;
 			std::vector<Section> vSec;
 			std::vector<BranchingRegion> vBR;
-			//float somaStart;  // never used
-			//float somaRadius;  // never used
-			//vector3 somaPt;  // never used
+			float somaStart;  // will be refactored
+			float somaRadius;  // will be refactored
+			vector3 somaPt;  // will be refactored
 			bool bHasER;
 			bool scaleER;
 
@@ -239,6 +239,8 @@ class NeuriteProjector
 		{
 			number start;
 			number end;
+			number radius; // will be refactored
+			vector3 posSoma; // will be refactored
 			std::vector<Section>::const_iterator sec_start;
 		};
 
