@@ -1562,6 +1562,7 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 	m_aaSurfParams[vrt].angular = angle;
 	m_aaSurfParams[vrt].radial = rad;
 
+	///UG_LOGN("t: " << t);
 	// set position
 	set_pos(vrt, pos);
 

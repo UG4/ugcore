@@ -696,32 +696,6 @@ void CopyGridLevel(MultiGrid& srcMG, Grid& destGrid,
 	srcMG.detach_from_vertices(aNewVrt);
 }
 
-template<class TElem>
-void CopyGridElements(Grid& srcGrid, Grid& destGrid,
-				      ISubsetHandler& srcSH, ISubsetHandler& destSH,
-					  AVertex& aNewVrt)
-{
-	Grid::VertexAttachmentAccessor<AVertex> aaNewVrt(srcGrid, aNewVrt);
-	GridObjectCollection goc = srcGrid.get_grid_objects();
-	CustomVertexGroup vrts;
-
-	typedef typename Grid::traits<TElem>::iterator iter_t;
-
-	for(iter_t eIter = goc.begin<TElem>(); eIter != goc.end<TElem>(); ++eIter)
-	{
-		TElem* e = *eIter;
-		vrts.resize(e->num_vertices());
-
-		for(size_t iv = 0; iv < e->num_vertices(); ++iv)
-		{
-			vrts.set_vertex(iv, aaNewVrt[e->vertex(iv)]);
-		}
-
-		TElem* ne = *destGrid.create_by_cloning(e, vrts);
-		destSH.assign_subset(ne, srcSH.get_subset_index(e));
-	}
-}
-
 template <class TAPos>
 void CopyGrid(Grid& srcGrid, Grid& destGrid,
 			  ISubsetHandler& srcSH, ISubsetHandler& destSH,
@@ -756,7 +730,6 @@ void CopyGrid(Grid& srcGrid, Grid& destGrid,
 
 	srcGrid.detach_from_vertices(aNewVrt);
 }
-
 
 template <class TAPos>
 bool SaveGridLevel(MultiGrid& srcMG, ISubsetHandler& srcSH, int lvl, const char* filename, TAPos aPos)
@@ -808,5 +781,6 @@ template bool SaveGridToFile(Grid&, const char*, AVector3&);
 template void CopyGrid(Grid&, Grid&, ISubsetHandler&, ISubsetHandler&, APosition1);
 template void CopyGrid(Grid&, Grid&, ISubsetHandler&, ISubsetHandler&, APosition2);
 template void CopyGrid(Grid&, Grid&, ISubsetHandler&, ISubsetHandler&, APosition3);
+
 
 }//	end of namespace

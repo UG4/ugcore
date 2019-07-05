@@ -36,7 +36,8 @@
 #include "common/types.h"
 #include "common/ug_config.h"
 #include "common/error.h"
-
+#include <lib_grid/attachments/attachment_pipe.h>
+#include <lib_grid/grid/grid_base_objects.h>
 
 namespace ug
 {
@@ -194,7 +195,15 @@ bool SaveGridLevel(MultiGrid& srcMG, ISubsetHandler& srcSH, int lvl,
 bool SaveGridLevelToFile(MultiGrid& srcMG, ISubsetHandler& srcSH, int lvl,
 		  	  	  	     const char* filename);
 
+/// Copy grid elements of type TElem from srcGrid to destGrid
+template<class TElem>
+void CopyGridElements(Grid& srcGrid, Grid& destGrid,
+				      ISubsetHandler& srcSH, ISubsetHandler& destSH,
+					  Attachment<Vertex*>& aNewVrt);
+/// end namespace ug
+}
 
-};
+/// include implementation
+#include "file_io_impl.h"
 
 #endif
