@@ -35,26 +35,26 @@
 
 # USAGE
 # variant 1:
-# exportSingleFileDefinitions(file "def1;def2;def3;...")
+# exportSingleFileCompileFlags(file "def1;def2;def3;...")
 # 
 # variant 2:
 # set(defList def1 def2 def3 ...)
-# exportSingleFileDefinitions(file "${defList}")
+# exportSingleFileCompileFlags(file "${defList}")
+#
+# example: exportSingleFileCompileFlags(cpp11_feature.cpp "-std=c++11;-DSOME_PREPROCESSOR_FLAG")
 #
 # file must be a valid file, prepended by its path, typically ${CMAKE_CURRENT_SOURCE_DIR};
-# definitions for preprocessor need to be exactly like used in preprocessor macros, i.e.,
-# SOME_MACRO, and not -DSOME_MACRO.
-
+#
 # @param file the file definitions are to be exported for
 # @param definitions a list of definitions to be exported
-function(exportSingleFileDefinitions file definitions)
-	list(LENGTH definitions len)
+function(exportSingleFileCompileFlags file flags)
+	list(LENGTH flags len)
 	if (${len} GREATER 0)
 		math(EXPR len "${len} - 1")
 		foreach (idx RANGE ${len})
-			list(GET definitions ${idx} def)
-			set_property(GLOBAL APPEND PROPERTY ugSingleFileDefinitionFiles ${file})
-			set_property(GLOBAL APPEND PROPERTY ugSingleFileDefinitionDefs "${def}")
+			list(GET flags ${idx} flag)
+			set_property(GLOBAL APPEND PROPERTY ugSingleFileCompileFlagsFiles ${file})
+			set_property(GLOBAL APPEND PROPERTY ugSingleFileCompileFlagsDefs "${flag}")
 		endforeach()
 	endif()
-endfunction(exportSingleFileDefinitions)
+endfunction(exportSingleFileCompileFlags)
