@@ -79,7 +79,7 @@ class NeuriteProjector
 	public:
 		struct Section
 		{
-			Section() {}                // constructor for serialization
+			Section() : endParam(0) {}                // constructor for serialization
 			Section(number _endParam)   // constructor for search with CompareSections
 			: endParam(_endParam) {}
 

@@ -782,5 +782,4 @@ template void CopyGrid(Grid&, Grid&, ISubsetHandler&, ISubsetHandler&, APosition
 template void CopyGrid(Grid&, Grid&, ISubsetHandler&, ISubsetHandler&, APosition2);
 template void CopyGrid(Grid&, Grid&, ISubsetHandler&, ISubsetHandler&, APosition3);
 
-
 }//	end of namespace

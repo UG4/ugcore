@@ -1535,7 +1535,7 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 		pos_in_neurite(pos, neurite, plainNID, t, angle, rad);
 
 	// case 3: soma
-	/// TODO: verify, refactor and implement serialization/deserialization for soma
+	/// TODO: verify, refactor and implement serialization/deserialization for soma: need to check also if at soma bp or soma interior
 	else if (t < 0.0)
 	{
 		/*
@@ -1562,7 +1562,7 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 	m_aaSurfParams[vrt].angular = angle;
 	m_aaSurfParams[vrt].radial = rad;
 
-	///UG_LOGN("t: " << t);
+	//UG_LOGN("t: " << t);
 	// set position
 	set_pos(vrt, pos);
 
