@@ -1,5 +1,5 @@
 # Copyright (c) 2013:  G-CSC, Goethe University Frankfurt
-# Author: Markus Breit
+# Author: Stephan Grein
 # 
 # This file is part of UG4.
 # 
@@ -28,33 +28,22 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU Lesser General Public License for more details.
 
-##########################################################
-# Allows all sub-cmake-files to add their own flags to   #
-# specified files when building with EMBEDDED_PLUGINS=ON #
-##########################################################
-
-# USAGE
-# variant 1:
-# exportSingleFileDefinitions(file "def1;def2;def3;...")
-# 
-# variant 2:
-# set(defList def1 def2 def3 ...)
-# exportSingleFileDefinitions(file "${defList}")
-#
-# file must be a valid file, prepended by its path, typically ${CMAKE_CURRENT_SOURCE_DIR};
-# definitions for preprocessor need to be exactly like used in preprocessor macros, i.e.,
-# SOME_MACRO, and not -DSOME_MACRO.
-
-# @param file the file definitions are to be exported for
-# @param definitions a list of definitions to be exported
-function(exportSingleFileDefinitions file definitions)
-	list(LENGTH definitions len)
-	if (${len} GREATER 0)
-		math(EXPR len "${len} - 1")
-		foreach (idx RANGE ${len})
-			list(GET definitions ${idx} def)
-			set_property(GLOBAL APPEND PROPERTY ugSingleFileDefinitionFiles ${file})
-			set_property(GLOBAL APPEND PROPERTY ugSingleFileDefinitionDefs "${def}")
-		endforeach()
-	endif()
-endfunction(exportSingleFileDefinitions)
+################################################################################
+# Declare a method that allows all sub-cmake-files to add their own linker flags
+# to the main project (P_UG4) defines
+#######################
+# Export flags to global variable.
+# PURPOSE: use this function to add local project linker flags to global
+#          ug4LibLinkerFlags property which is used to build libug4 project
+# @param flags   list of linker flags to be exported
+function(ExportLinkerFlags flags)
+    # iterate over all arguments and insert given prefix
+    foreach(flag ${ARGV})
+            # retrieve the global property ugLinkerFlags and store its values
+            # in a temp variable
+            # NOTE: properties must be assigned to variables before being used
+            get_property(temp GLOBAL PROPERTY ugLinkerFlags)
+            # append tmp to the global ugDependencies property using the correct prefix
+            set_property(GLOBAL PROPERTY ugLinkerFlags "${temp} ${flag}")
+    endforeach(flag)
+endfunction(ExportLinkerFlags)
