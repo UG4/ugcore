@@ -51,10 +51,15 @@ namespace ug
  *	not terminate. The lower the quality parameter (but > 0), the
  *	better the tetrahedron quality.
  *
+ *
  *	Using tetgen by Hang Si.
  *
- *  \param verbosity	number between 0 and 3 indicating how detailed the
- *						verbosity should be
+ *  \param[in] quality        number specifiying grid quality between 0 and 18
+ *  \param[in] preserveBnds   bool to specify if outer boundaries shall be preserved
+ *  \param[in] preserveAll    bool to specify if outer and inner boundaries shall be preserved
+ *  \param[in] verbosity	  number between 0 and 3 to specify level of verbosity
+ *
+ *  Note: If preserveAll is true then the value of preserveBnds does not matter anymore
  *	\{
  */
 bool Tetrahedralize(Grid& grid, number quality = 5,
