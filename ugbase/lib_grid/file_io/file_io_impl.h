@@ -50,12 +50,12 @@ namespace ug {
 
 		typedef typename Grid::traits<TElem>::iterator iter_t;
 
-		for(iter_t eIter = goc.begin<TElem>(); eIter != goc.end<TElem>(); ++eIter)
+		for (iter_t eIter = goc.begin<TElem>(); eIter != goc.end<TElem>(); ++eIter)
 		{
 			TElem* e = *eIter;
 			vrts.resize(e->num_vertices());
 
-			for(size_t iv = 0; iv < e->num_vertices(); ++iv)
+			for (size_t iv = 0; iv < e->num_vertices(); ++iv)
 			{
 				vrts.set_vertex(iv, aaNewVrt[e->vertex(iv)]);
 			}
