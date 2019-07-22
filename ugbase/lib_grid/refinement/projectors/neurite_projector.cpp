@@ -1535,19 +1535,21 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 		pos_in_neurite(pos, neurite, plainNID, t, angle, rad);
 
 	// case 3: soma
-	/// TODO: verify, refactor and implement serialization/deserialization for soma: need to check also if at soma bp or soma interior
+	/// TODO: verify, refactor and implement serialization/deserialization for soma.
+	/// Need to check also if at soma bp or soma interiora and not at regular neurite
 	else if (t < 0.0)
 	{
-		/*
-	   	float scale = m_aaSurfParams[parent->vertex(0)].scale;
-	   	/// soma surface (bp)
-	   	if (t == 0.0) {
-	   		pos_on_surface_soma_bp(pos, neurite, neuriteID, t, angle,  parent, this, scale, rad);
-   		/// interior of soma
-	   	} else {
-	   		pos_on_surface_soma(pos, neurite, neuriteID, t, angle, scale, rad);
-	   	}
-	   	*/
+		if (t <= -1.0) {
+			UG_LOGN("At ER: " << t);
+		} else {
+			UG_LOGN("At soma: " << t);
+			float scale = m_aaSurfParams[parent->vertex(0)].scale;
+			if (t == 0.0) {
+				pos_on_surface_soma_bp(pos, neurite, neuriteID, t, angle,  parent, this, scale, rad);
+			} else {
+				pos_on_surface_soma(pos, neurite, neuriteID, t, angle, scale, rad);
+			}
+		}
 	}
 
 	// case 4: tip of neurite
@@ -1562,7 +1564,6 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 	m_aaSurfParams[vrt].angular = angle;
 	m_aaSurfParams[vrt].radial = rad;
 
-	//UG_LOGN("t: " << t);
 	// set position
 	set_pos(vrt, pos);
 
