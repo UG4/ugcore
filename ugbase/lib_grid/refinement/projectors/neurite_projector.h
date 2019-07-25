@@ -167,6 +167,26 @@ class NeuriteProjector
 			}
 		};
 
+		struct Soma {
+			vector3 center;
+			number radius;
+			number length;
+
+			template <class Archive>
+			void serialize(Archive& ar, const unsigned int version) {
+				ar & center;
+				ar & radius;
+				ar & length;
+			}
+
+			Soma(number radius) :
+				center(vector3(0, 0, 0)), radius(radius), length(0) {
+			}
+
+			Soma() :
+				center(vector3(0, 0, 0)), radius(-1), length(-1) {
+			}
+		};
 
 		struct Neurite
 		{
@@ -246,8 +266,16 @@ class NeuriteProjector
 
 		void debug_neurites() const;
 
+		struct CompareSomata {
+			bool operator()(const Soma& a, const Soma& b) {
+				return a.radius < b.radius;
+			}
+		};
+
 	public:
 		std::vector<Neurite>& neurites();
+		std::vector<Soma>& somata() const;
+
 		const Neurite& neurite(uint32_t nid) const;
 
 		Grid::VertexAttachmentAccessor<Attachment<SurfaceParams> >& surface_params_accessor();
@@ -255,7 +283,7 @@ class NeuriteProjector
 
 		const std::vector<std::pair<number, number> >& quadrature_points() const;
 
-		void average_pos_from_parent(vector3& posOut, const IVertexGroup* parent) const;
+		void average_pos_from_parent(vector3& posOut, const IVertexGroup* const parent) const;
 
 		//void average_pos_from_parent_weighted(vector3& posOut, const IVertexGroup* parent) const;
 
@@ -268,10 +296,11 @@ class NeuriteProjector
 			number numberOfRadii = 5.0
 		) const;
 
-		void print_surface_params(Vertex* v) const;
+		void print_surface_params(const Vertex* const v) const;
 
 	protected:
 		std::vector<Section>::const_iterator get_section_iterator(uint32_t nid, float t) const;
+		const Soma& get_soma(float t) const;
 
 		void prepare_quadrature();
 
@@ -297,17 +326,13 @@ class NeuriteProjector
 		 * consists of the parameter t at which the section ends and the sixteen coefficients
 		 * describing the spline in each dimension (monomial basis {(t_(i+1) - t)^i}_i).
 		**/
-		std::vector<Neurite> m_vNeurites;
+		std::vector<Neurite> m_vNeurites; //!< spline information
+		std::vector<Soma> m_vSomata; //!< soma information
 
 		/// for quadrature when projecting within branching points
-		//size_t m_quadOrder;
-
 		std::vector<std::pair<number, number> > m_qPoints;
 
-
-
 		friend class boost::serialization::access;
-
 		template<class Archive>
 		void save(Archive & ar, const unsigned int version) const
 		{
@@ -316,17 +341,25 @@ class NeuriteProjector
 			// only write if data is to be written
 			if(ArchiveInfo<Archive>::TYPE == AT_DATA)
 			{
+				// neurites
 				size_t sz = m_vNeurites.size();
 				ar << sz;
-				for (size_t i = 0; i < sz; ++i)
+				for (size_t i = 0; i < sz; ++i) {
 					ar << m_vNeurites[i];
+				}
+
+				/*
+				// somata
+				sz = m_vSomata.size();
+				for (size_t i = 0; i < sz; ++i) {
+					ar << m_vSomata[i];
+				}
+				*/
 			}
 
 			// do not do anything otherwise
 			else if (ArchiveInfo<Archive>::TYPE == AT_GUI)
 			{}
-
-			//ar << m_quadOrder;
 		}
 
 		template<class Archive>
@@ -334,13 +367,22 @@ class NeuriteProjector
 		{
 			UG_EMPTY_BASE_CLASS_SERIALIZATION(NeuriteProjector, RefinementProjector);
 
+			/// neurites
 			size_t sz;
 			ar >> sz;
 			m_vNeurites.resize(sz);
-			for (size_t i = 0; i < sz; ++i)
+			for (size_t i = 0; i < sz; ++i) {
 				ar >> m_vNeurites[i];
+			}
 
-			//ar >> m_quadOrder;
+			/*
+			/// somata
+			ar >> sz;
+			m_vSomata.resize(sz);
+			for (size_t i = 0; i < sz; ++i) {
+				ar >> m_vSomata[i];
+			}
+			*/
 
 			// reconstruct uninitialized pointers in branching points/ranges
 			size_t nNeurites = m_vNeurites.size();
@@ -368,7 +410,7 @@ class NeuriteProjector
 				}
 			}
 
-			//debug_neurites();
+			// debug_neurites();
 		}
 
 		BOOST_SERIALIZATION_SPLIT_MEMBER();

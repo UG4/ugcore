@@ -296,6 +296,10 @@ NeuriteProjector::get_section_iterator(uint32_t nid, float t) const
 	return itSec;
 }
 
+const NeuriteProjector::Soma& NeuriteProjector::get_soma(float t) const {
+	return *std::lower_bound(m_vSomata.begin(), m_vSomata.end(), Soma(t), CompareSomata());
+}
+
 
 
 static bool cmpQPairs(const std::pair<number, number>& a, const std::pair<number, number>& b)
@@ -769,7 +773,7 @@ void NeuriteProjector::average_params
 }
 
 
-void NeuriteProjector::average_pos_from_parent(vector3& posOut, const IVertexGroup* parent) const
+void NeuriteProjector::average_pos_from_parent(vector3& posOut, const IVertexGroup* const parent) const
 {
 	posOut = 0.0;
 	size_t nVrt = parent->num_vertices();
@@ -875,7 +879,7 @@ number NeuriteProjector::axial_range_around_branching_region
 }
 
 
-void NeuriteProjector::print_surface_params(Vertex* v) const
+void NeuriteProjector::print_surface_params(const Vertex* const v) const
 {
 	const SurfaceParams& sp = m_aaSurfParams[v];
 	UG_LOGN("neuriteID: " << sp.neuriteID);
@@ -957,9 +961,12 @@ static void pos_on_surface_soma
     float& t,
     float& angle,
     float scale,
-    float rad
+    float rad,
+    const NeuriteProjector* np,
+    const IVertexGroup* parent
 )
 {
+	if (parent) np->average_pos_from_parent(posOut, parent);
 }
 
 static void bp_defect_and_gradient_soma
@@ -1276,7 +1283,8 @@ static void pos_on_surface_soma_bp
     	somaRadius = neurite.somaRadius*scale;
     } else {
     	UG_LOGN("between somata projection")
-    	/// Note: As a test: Usual positioning for vertices on cylinder segment connecting inner soma surface with outer soma surface
+    	/// Note: As a test: Usual positioning for vertices on cylinder segment
+    	/// connecting inner soma surface with outer soma surface
     	pos_in_neurite(posOut, np->neurite(neuriteID), neuriteID, t, angle, rad);
     }
 
@@ -1297,7 +1305,7 @@ static void pos_on_surface_soma_bp
  	sec_start = secs->begin();
 
     // 2. determine suitable start position for Newton iteration
-    pos_on_surface_soma(posOut, np->neurite(neuriteID), neuriteID, t, angle, 1.0, rad);
+    pos_on_surface_soma(posOut, np->neurite(neuriteID), neuriteID, t, angle, 1.0, rad, np, parent);
 
     // 3. perform Newton iteration
     try {newton_for_soma_bp_projection(posOut, vProjHelp, np);}
@@ -1458,6 +1466,13 @@ static void pos_on_surface_tip
 	}
 }
 
+static bool is_soma_bp(const Vertex* const vrt) {
+	return false;
+}
+
+static bool is_er_bp(const Vertex* const vrt) {
+	return false;
+}
 
 
 number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent)
@@ -1468,6 +1483,7 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 	float t;
 	float angle;
 	float rad;
+	float scale;
 	if (parent)
 		average_params(neuriteID, t, angle, rad, parent);
 	else
@@ -1476,6 +1492,7 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 		t = m_aaSurfParams[vrt].axial;
 		angle = m_aaSurfParams[vrt].angular;
 		rad = m_aaSurfParams[vrt].radial;
+		scale = m_aaSurfParams[vrt].scale;
 	}
 
 	//UG_LOGN("averaged params: nid " << neuriteID << "   t " << t << "   angle "
@@ -1536,19 +1553,15 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 
 	// case 3: soma
 	/// TODO: verify, refactor and implement serialization/deserialization for soma.
-	/// Need to check also if at soma bp or soma interiora and not at regular neurite
 	else if (t < 0.0)
 	{
-		if (t <= -1.0) {
-			UG_LOGN("At ER: " << t);
+		if (is_soma_bp(vrt)) {
+			// pos_on_surface_soma_bp(pos, neurite, neuriteID, t, angle, parent, this, scale, rad);
+		} else if (is_er_bp(vrt)) {
+			// pos_on_surface_er_bp(pos, neurite, neuriteID, t, angle, parent, this, scale, rad);
 		} else {
-			UG_LOGN("At soma: " << t);
-			float scale = m_aaSurfParams[parent->vertex(0)].scale;
-			if (t == 0.0) {
-				pos_on_surface_soma_bp(pos, neurite, neuriteID, t, angle,  parent, this, scale, rad);
-			} else {
-				pos_on_surface_soma(pos, neurite, neuriteID, t, angle, scale, rad);
-			}
+			// regular position refinement, e.g. sphere projection...
+			pos_on_surface_soma(pos, neurite, neuriteID, t, angle, scale, rad, this, parent);
 		}
 	}
 
