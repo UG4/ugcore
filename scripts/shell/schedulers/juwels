@@ -80,7 +80,7 @@ function UJS_Submit
 		
 		# walltime handling
 		if [ $walltime == "unlimited" ]; then
-			walltime=00:30:00
+			walltime=01:00:00
 		fi
 		
 		echo "Create: $outdir/job.sh"
