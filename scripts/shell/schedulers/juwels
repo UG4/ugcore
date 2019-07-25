@@ -15,8 +15,8 @@ function UJS_Submit
 		exit
 	fi
 	
-	if [ $nnodes -gt 256 ]; then
-		echo "Juwels does not provide more than 256 nodes for one job atm."
+	if [ $nnodes -gt 512 ]; then
+		echo "Juwels does not provide more than 512 nodes for one batch job atm."
 		return
 	elif [ $nnodes -gt 64 ] && [ "$juwels_part" = "mem192" ]; then
 		echo "Juwels does not provide more than 64 nodes on the mem192 partition for one job atm."
