@@ -365,7 +365,7 @@ inline std::string ConvertNumberSI (uint64_t size, unsigned int width,
 #endif
 
 #define UG_LOG(msg) {ug::GetLogAssistant().logger() << msg << std::flush; VRL_LOG(msg);}
-#define UG_COND_LOG(cond, msg) { if (cond) { UG_LOG(msg); } }
+#define UG_COND_LOG(cond, msg) { if (cond) { UG_LOG(msg); } }
 #define UG_LOGN(msg) UG_LOG(msg << "\n")
 #define UG_COND_LOGN(cond, msg) { if (cond) { UG_LOGN(msg); } }
 #define UG_LOG_ALL_PROCS(msg) {ug::LogAssistant& la = ug::GetLogAssistant();\
