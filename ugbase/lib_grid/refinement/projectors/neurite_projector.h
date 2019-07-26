@@ -37,7 +37,6 @@
 
 #include "common/types.h"
 #include "lib_grid/refinement/projectors/refinement_projector.h"
-//#include "lib_disc/quadrature/gauss_legendre/gauss_legendre.h"
 
 #include <boost/serialization/split_member.hpp> // for separate load/save methods
 
@@ -167,6 +166,7 @@ class NeuriteProjector
 			}
 		};
 
+		/// TODO: Implement serialization
 		struct Soma {
 			vector3 center;
 			number radius;

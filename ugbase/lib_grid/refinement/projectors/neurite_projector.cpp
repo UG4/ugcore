@@ -718,8 +718,7 @@ void NeuriteProjector::average_params
 	}
 
 	// for child vertices, calculate the t and phi params of their center
-	// w.r.t. parent neurite
-	// TODO: Atm, this is not done as it is not overly important.
+	// w.r.t. parent neurite TODO: Atm, this is not done as it is not overly important.
 	if (nForeignChildren)
 	{
 		t *= ((number) nVrt) / (nVrt - nForeignChildren);
@@ -1467,10 +1466,12 @@ static void pos_on_surface_tip
 }
 
 static bool is_soma_bp(const Vertex* const vrt) {
+	/// TODO: Implement
 	return false;
 }
 
 static bool is_er_bp(const Vertex* const vrt) {
+	/// TODO: Implement
 	return false;
 }
 
@@ -1525,7 +1526,9 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 		try {range = axial_range_around_branching_region(plainNID, std::distance(vBR.begin(), it), 5.0*rad);}
 		UG_CATCH_THROW("Range around branching region could not be determined.");
 		if (it->t - t < range)
+		{
 			isBP = true;
+		}
 	}
 
 	if (!isBP && it != vBR.begin())
@@ -1535,32 +1538,35 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 		try {range = axial_range_around_branching_region(plainNID, std::distance(vBR.begin(), it), 5.0*rad);}
 		UG_CATCH_THROW("Range around branching region could not be determined.");
 		if (t - it->t < range)
+		{
 			isBP = true;
+		}
 	}
 
 	// case 1: branching point
 	if (isBP)
+	{
 		pos_in_bp(pos, neurite, plainNID, t, angle, rad, it, parent, this);
-	/*
-	if ((it != vBR.end() && it->t - t < axial_range_around_branching_region(plainNID, std::distance(vBR.begin(), it), 5.0*rad))
-		|| (it-- != vBR.begin() && t - it->t < axial_range_around_branching_region(plainNID, std::distance(vBR.begin(), it), 5.0*rad)))
-	pos_in_bp(pos, neurite, plainNID, t, angle, rad, it, parent, this);
-	*/
+	}
 
 	// case 2: normal neurite position
 	else if (t >= 0.0 && t <= 1.0)
+	{
 		pos_in_neurite(pos, neurite, plainNID, t, angle, rad);
+	}
 
 	// case 3: soma
-	/// TODO: verify, refactor and implement serialization/deserialization for soma.
+	/// TODO: Implement
 	else if (t < 0.0)
 	{
 		if (is_soma_bp(vrt)) {
+			// TODO: Implement
 			// pos_on_surface_soma_bp(pos, neurite, neuriteID, t, angle, parent, this, scale, rad);
 		} else if (is_er_bp(vrt)) {
+			// TODO: Implement
 			// pos_on_surface_er_bp(pos, neurite, neuriteID, t, angle, parent, this, scale, rad);
 		} else {
-			// regular position refinement, e.g. sphere projection...
+			// regular position inside soma and ER
 			pos_on_surface_soma(pos, neurite, neuriteID, t, angle, scale, rad, this, parent);
 		}
 	}
