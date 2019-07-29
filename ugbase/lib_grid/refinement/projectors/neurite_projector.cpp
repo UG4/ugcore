@@ -296,11 +296,6 @@ NeuriteProjector::get_section_iterator(uint32_t nid, float t) const
 	return itSec;
 }
 
-const NeuriteProjector::Soma& NeuriteProjector::get_soma(float t) const {
-	return *std::lower_bound(m_vSomata.begin(), m_vSomata.end(), Soma(t), CompareSomata());
-}
-
-
 
 static bool cmpQPairs(const std::pair<number, number>& a, const std::pair<number, number>& b)
 {return a.first < b.first;}
@@ -1465,17 +1460,6 @@ static void pos_on_surface_tip
 	}
 }
 
-static bool is_soma_bp(const Vertex* const vrt) {
-	/// TODO: Implement
-	return false;
-}
-
-static bool is_er_bp(const Vertex* const vrt) {
-	/// TODO: Implement
-	return false;
-}
-
-
 number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent)
 {
 	// average axial and angular params from parent;
@@ -1505,20 +1489,43 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 
 	const Neurite& neurite = m_vNeurites[plainNID];
 	const std::vector<BranchingRegion>& vBR = neurite.vBR;
+	const std::vector<SomaRegion>& vSR = neurite.vSR;
 
 	// vector for new position
 	vector3 pos(position(vrt));
 
-	// FOUR CASES can occur:
+	// FIVE CASES can occur:
 	// 1. We are at a branching point.
-	// 2. We are well inside a regular piece of neurite.
-	// 3. We are at the soma.
-	// 4. We are at the tip of a neurite.
+	// 2. We are at a soma branching point
+	// 3. We are well inside a regular piece of neurite.
+	// 4. We are well inside a regular piece of soma.
+	// 5. We are at the tip of a neurite.
 
 	bool isBP = false;
 	BranchingRegion cmpBR(t);
 	std::vector<BranchingRegion>::const_iterator it =
 		std::lower_bound(vBR.begin(), vBR.end(), cmpBR, CompareBranchingRegionEnds());
+
+	bool isSP = false;
+	SomaRegion cmpSR(t);
+	std::vector<SomaRegion>::const_iterator it2 =
+		std::lower_bound(vSR.begin(), vSR.end(), cmpSR, CompareSomaRegionsEnd());
+
+	if (it2 != vSR.end()) {
+		number range = 0.0;
+		/// TODO: get_axial_range_around_soma_region: (5*rad + 5.0*rad_soma)/2.0
+		if (it2->t - t < range) {
+			isSP = true;
+		}
+	}
+
+	if (!isSP && it2 != vSR.begin()) {
+		number range = 0.0;
+		/// TODO: get_axial_range_around_soma_region: (5*rad + 5.0*rad_soma)/2.0
+		if (t - it2->t < range) {
+			isSP = true;
+		}
+	}
 
 	if (it != vBR.end())
 	{
@@ -1549,29 +1556,25 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 		pos_in_bp(pos, neurite, plainNID, t, angle, rad, it, parent, this);
 	}
 
-	// case 2: normal neurite position
+	// case 2: soma branching point
+	else if (isSP)
+	{
+		pos_on_surface_soma_bp(pos, neurite, neuriteID, t, angle, parent, this, scale, rad);
+	}
+
+	// case 3: normal neurite position
 	else if (t >= 0.0 && t <= 1.0)
 	{
 		pos_in_neurite(pos, neurite, plainNID, t, angle, rad);
 	}
 
-	// case 3: soma
-	/// TODO: Implement
-	else if (t < 0.0)
+	// case 4: normal soma position
+	else if (t < 0 && t >= -1.0)
 	{
-		if (is_soma_bp(vrt)) {
-			// TODO: Implement
-			// pos_on_surface_soma_bp(pos, neurite, neuriteID, t, angle, parent, this, scale, rad);
-		} else if (is_er_bp(vrt)) {
-			// TODO: Implement
-			// pos_on_surface_er_bp(pos, neurite, neuriteID, t, angle, parent, this, scale, rad);
-		} else {
-			// regular position inside soma and ER
-			pos_on_surface_soma(pos, neurite, neuriteID, t, angle, scale, rad, this, parent);
-		}
+		pos_on_surface_soma(pos, neurite, neuriteID, t, angle, scale, rad, this, parent);
 	}
 
-	// case 4: tip of neurite
+	// case 5: tip of neurite
 	else
 	{
 		pos_on_surface_tip(pos, neurite, parent, this, rad);

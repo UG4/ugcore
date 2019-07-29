@@ -166,26 +166,35 @@ class NeuriteProjector
 			}
 		};
 
-		/// TODO: Implement serialization
-		struct Soma {
+		struct SomaRegion {
 			vector3 center;
 			number radius;
-			number length;
+			number t;
 
 			template <class Archive>
 			void serialize(Archive& ar, const unsigned int version) {
 				ar & center;
 				ar & radius;
-				ar & length;
+				ar & t;
 			}
 
-			Soma(number radius) :
-				center(vector3(0, 0, 0)), radius(radius), length(0) {
-			}
+			SomaRegion(const vector3& center, number radius, number t)
+				: center(center),
+				  radius(radius),
+				  t(t)
+			{}
 
-			Soma() :
-				center(vector3(0, 0, 0)), radius(-1), length(-1) {
-			}
+			SomaRegion(number t)
+				: center(0, 0, 0),
+				  radius(0),
+				  t(t)
+			{}
+
+			SomaRegion()
+				: center(0, 0, 0),
+				  radius(-1),
+				  t(-1)
+			{}
 		};
 
 		struct Neurite
@@ -193,6 +202,7 @@ class NeuriteProjector
 			vector3 refDir;
 			std::vector<Section> vSec;
 			std::vector<BranchingRegion> vBR;
+			std::vector<SomaRegion> vSR;
 			float somaStart;  // will be refactored
 			float somaRadius;  // will be refactored
 			vector3 somaPt;  // will be refactored
@@ -266,15 +276,15 @@ class NeuriteProjector
 
 		void debug_neurites() const;
 
-		struct CompareSomata {
-			bool operator()(const Soma& a, const Soma& b) {
+		struct CompareSomaRegionsEnd {
+			bool operator()(const SomaRegion& a, const SomaRegion& b) {
 				return a.radius < b.radius;
 			}
 		};
 
 	public:
 		std::vector<Neurite>& neurites();
-		std::vector<Soma>& somata() const;
+		std::vector<SomaRegion>& somata() const;
 
 		const Neurite& neurite(uint32_t nid) const;
 
@@ -300,7 +310,6 @@ class NeuriteProjector
 
 	protected:
 		std::vector<Section>::const_iterator get_section_iterator(uint32_t nid, float t) const;
-		const Soma& get_soma(float t) const;
 
 		void prepare_quadrature();
 
@@ -326,8 +335,7 @@ class NeuriteProjector
 		 * consists of the parameter t at which the section ends and the sixteen coefficients
 		 * describing the spline in each dimension (monomial basis {(t_(i+1) - t)^i}_i).
 		**/
-		std::vector<Neurite> m_vNeurites; //!< spline information
-		std::vector<Soma> m_vSomata; //!< soma information
+		std::vector<Neurite> m_vNeurites; //!< spline information for neurites and somatas
 
 		/// for quadrature when projecting within branching points
 		std::vector<std::pair<number, number> > m_qPoints;
