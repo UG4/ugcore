@@ -1561,6 +1561,7 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 	std::vector<SomaRegion>::const_iterator it2 =
 		std::lower_bound(vSR.begin(), vSR.end(), cmpSR, CompareSomaRegionsEnd());
 
+	/// This determines if the point is considered to be in the soma branching region by a distance criterion
 	if (it2 != vSR.end()) {
 		isSP = is_in_axial_range_around_soma_region(*it2, 5.0*rad, plainNID, vrt);
 	}
@@ -1601,6 +1602,10 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 	// case 2: soma branching point
 	else if (isSP)
 	{
+		/// TODO This should integrate along the neurite [0, END_SOMA_BRANCHING_REGION]
+		/// not [-range, range] and determines a new position for the vertex based on the
+		/// average of the neurite section and the soma sphere position based on the soma
+		/// information stored in soma region struct (center, radius)
 		pos_on_surface_soma_bp(pos, neurite, neuriteID, t, angle, parent, this, scale, rad);
 	}
 
