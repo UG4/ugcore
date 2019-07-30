@@ -170,6 +170,7 @@ class NeuriteProjector
 			vector3 center;
 			number radius;
 			number t;
+			vector3 bp;
 
 			template <class Archive>
 			void serialize(Archive& ar, const unsigned int version) {
@@ -205,7 +206,6 @@ class NeuriteProjector
 			std::vector<SomaRegion> vSR;
 			float somaStart;  // will be refactored
 			float somaRadius;  // will be refactored
-			vector3 somaPt;  // will be refactored
 			bool bHasER;
 			bool scaleER;
 
@@ -306,6 +306,14 @@ class NeuriteProjector
 			number numberOfRadii = 5.0
 		) const;
 
+		number is_in_axial_range_around_soma_region
+		(
+			const SomaRegion& sr,
+			number rad,
+			size_t nid,
+			Vertex* vrt
+		) const;
+
 		void print_surface_params(const Vertex* const v) const;
 
 	protected:
@@ -339,6 +347,30 @@ class NeuriteProjector
 
 		/// for quadrature when projecting within branching points
 		std::vector<std::pair<number, number> > m_qPoints;
+
+		/*!
+		 * \brief check if an element is inside a sphere
+		 * \param[in] elem
+		 * \param[in] center
+		 * \param[in] radius
+		 * \return \c true if element is inside or on sphere else false
+		 */
+		template <class TElem>
+		bool IsElementInsideSphere
+		(
+			const TElem* elem,
+			const ug::vector3& center,
+			const number radius
+		) const
+		{
+			Grid::VertexAttachmentAccessor<APosition> aaPos(this->geometry()->grid(), aPosition);
+			vector3 c = CalculateCenter(elem, aaPos);
+			vector3 diff;
+			VecSubtract(diff, c, center);
+			VecPow(diff, diff, 2.0);
+			number s = diff.x() + diff.y() + diff.z();
+			return (s <= (sq(radius) + SMALL));
+		}
 
 		friend class boost::serialization::access;
 		template<class Archive>
@@ -420,6 +452,9 @@ class NeuriteProjector
 
 			// debug_neurites();
 		}
+
+
+
 
 		BOOST_SERIALIZATION_SPLIT_MEMBER();
 };

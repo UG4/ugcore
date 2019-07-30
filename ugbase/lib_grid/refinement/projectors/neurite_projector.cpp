@@ -827,8 +827,6 @@ vector3 NeuriteProjector::position(Vertex* vrt) const
 	return this->pos(vrt);
 }
 
-
-
 number NeuriteProjector::axial_range_around_branching_region
 (
 	uint32_t nid,
@@ -1460,6 +1458,54 @@ static void pos_on_surface_tip
 	}
 }
 
+number NeuriteProjector::is_in_axial_range_around_soma_region
+(
+	const SomaRegion& sr,
+	const number rad,
+	const size_t nid,
+	Vertex* vrt
+) const
+{
+	// soma parameters
+	const float somaRad = sr.radius;
+	vector3 bp = sr.bp;
+
+	std::vector<NeuriteProjector::Section>::const_iterator secIt;
+	try {secIt = get_section_iterator(nid, sr.t);}
+	UG_CATCH_THROW("Could not get section iterator to soma region: " << sr.t);
+
+	vector3 secStartPos;
+	vector3 secEndPos;
+	const number te = secIt->endParam;
+	number ts = 0.0;
+	if (secIt == m_vNeurites[nid].vSec.begin())
+		compute_first_section_end_points(secStartPos, secEndPos, secIt);
+	else
+	{
+		secEndPos[0] = secIt->splineParamsX[3];
+		secEndPos[1] = secIt->splineParamsY[3];
+		secEndPos[2] = secIt->splineParamsZ[3];
+		--secIt;
+		ts = secIt->endParam;
+		secStartPos[0] = secIt->splineParamsX[3];
+		secStartPos[1] = secIt->splineParamsY[3];
+		secStartPos[2] = secIt->splineParamsZ[3];
+		++secIt;
+	}
+
+	const number neuriteLengthApprox = VecDistance(secEndPos, secStartPos) / (te - ts);
+	const number* s = &secIt->splineParamsR[0];
+	number radius = s[0]*(te-sr.t) + s[1];
+	radius = radius*(te-sr.t) + s[2];
+	radius = radius*(te-sr.t) + s[3];
+
+	const number bpToVrt = VecDistance(bp, position(vrt));
+	const number neurite_length_to_soma = neuriteLengthApprox + bpToVrt;
+	const number radii = (rad * (somaRad + radius)/2.0)/neurite_length_to_soma;
+
+	return IsElementInsideSphere<Vertex>(vrt, sr.bp, radii);
+}
+
 number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent)
 {
 	// average axial and angular params from parent;
@@ -1512,19 +1558,11 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 		std::lower_bound(vSR.begin(), vSR.end(), cmpSR, CompareSomaRegionsEnd());
 
 	if (it2 != vSR.end()) {
-		number range = 0.0;
-		/// TODO: get_axial_range_around_soma_region: (5*rad + 5.0*rad_soma)/2.0
-		if (it2->t - t < range) {
-			isSP = true;
-		}
+		isSP = is_in_axial_range_around_soma_region(*it2, 5.0*rad, plainNID, vrt);
 	}
 
 	if (!isSP && it2 != vSR.begin()) {
-		number range = 0.0;
-		/// TODO: get_axial_range_around_soma_region: (5*rad + 5.0*rad_soma)/2.0
-		if (t - it2->t < range) {
-			isSP = true;
-		}
+		isSP = is_in_axial_range_around_soma_region(*it2, 5.0*rad, plainNID, vrt);
 	}
 
 	if (it != vBR.end())
