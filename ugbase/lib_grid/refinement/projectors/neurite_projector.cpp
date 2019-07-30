@@ -1256,6 +1256,7 @@ static void pos_on_surface_soma_bp
 	    float scale,
 	    float rad
 ) {
+	/*
     number somaStart = 0;
     number somaEnd = 0;
     number somaRadius = 0;
@@ -1279,6 +1280,7 @@ static void pos_on_surface_soma_bp
     	/// connecting inner soma surface with outer soma surface
     	pos_in_neurite(posOut, np->neurite(neuriteID), neuriteID, t, angle, rad);
     }
+    */
 
     // 1. preparations for Newton method:
     // save integration start and end positions of soma connection
@@ -1289,10 +1291,12 @@ static void pos_on_surface_soma_bp
     number& radius = vProjHelp[0].radius;
     vector3& somaPos = vProjHelp[0].posSoma;
     std::vector<NeuriteProjector::Section>::const_iterator& sec_start = vProjHelp[0].sec_start;
+    /*
     start = somaStart;
     end = somaEnd;
     radius = somaRadius;
     somaPos = somaPt;
+    */
     const std::vector<NeuriteProjector::Section>* secs = &np->neurite(neuriteID).vSec;
  	sec_start = secs->begin();
 
