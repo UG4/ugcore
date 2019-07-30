@@ -1,0 +1,209 @@
+#!/bin/bash
+######################################################################
+#                           SDCluster
+#-------------------------------------------------------------------
+# using SLURM
+######################################################################
+
+function UJS_Submit
+{
+	echo "Cluster: SDCluster. Scheduler: SLURM."
+	
+	# check consistency
+	if [ $((npe%nppn)) -ne 0 ]; then
+		echo "npe=$npe is not divisible by nppn=$nppn"
+		exit
+	fi
+	
+	if [ $nnodes -gt 92 ]; then
+		echo "SDCluster does not provide more than 92 nodes for one job atm."
+		return
+	fi	
+	
+	## interactive (devel) jobs (not tested)
+	# Once an allocation has been made, the salloc command will start a bash
+	# on the login node where the submission was done. After a successful
+	# allocation the users can execute srun from that shell and they can
+	# spawn interactively their applications. The interactive session is
+	# terminated by exiting the shell.
+	# In order to obtain a shell on the first allocated compute nodes
+	# (like command “msub -I“ from Moab), the users can start a remote shell
+	# from within the current session and connect it to a pseudo terminal
+	# (pty) using the srun command with a shell as an argument. For example:
+	#     srun --cpu_bind=none --nodes=2 --pty /bin/bash
+	# After gaining access to the remote shell it is possible to run srun
+	# again from that remote shell in order to execute interactively
+	# applications without any delays (no scheduling delays since the
+	# allocation has already been granted).
+	# For more details, cf.:
+	# "SDCluster - User's Manual for the Batch System - Slurm"
+	if [ $interactive == true ]; then
+		
+		if [ $walltime == "unlimited" ]; then
+			walltime=00:30:00
+		fi
+		
+		# todo: check walltime is <= 2h
+		
+		if [ $nnodes -gt 8 ]; then
+			echo "ERROR: The maximum number of nodes for interactive jobs is 8."
+			return
+		fi
+		
+		commandline="salloc -N $nnodes -n $npe --partition=devel --job-name=$jobname --time=$walltime"
+		echo " command:      "$commandline >> info.txt	
+	
+		echo "[[ current cluster allocation"
+		squeue
+		echo "]] current cluster allocation"
+		
+		if [ $test == true ]; then
+			echo "ONLY testing - NOT executing."
+			echo "Submit/Start: $commandline"
+			return
+		fi
+				
+		echo "Start: $commandline"
+		
+		$commandline | tee $outdir/job.output
+		return=$?	
+		if [ ! $return == 0 ]; then
+			echo "ERROR: srun returned $return. Job has NOT been started."
+			exit
+		fi
+		
+	## BATCH jobs
+	else
+		
+		# walltime handling
+		if [ $walltime == "unlimited" ]; then
+			walltime=00:30:00
+		fi
+		
+		echo "Create: $outdir/job.sh"
+		
+		#MYLDLPATH=/bgsys/drivers/ppcfloor/comm/lib/
+		
+		# mail notification handling
+		SDclusterNotification="NONE"
+		if [ $mail = true ]; then 
+			if [ -z "$UGSUBMIT_EMAIL" ]; then
+				echo "please set UGSUBMIT_EMAIL or specify email with -email. Aborting."
+				exit
+			fi
+		
+			if [ $mailStart = true ]; then
+				SDclusterNotification="BEGIN"
+			fi
+			if [ $mailEnd = true ]; then
+				if [ $SDclusterNotification == "NONE" ]; then
+					SDclusterNotification="END"
+				else
+					SDclusterNotification="ALL"
+				fi
+			fi
+			if [ $mailError = true ]; then
+				if [ $SDclusterNotification == "NONE" ]; then
+					SDclusterNotification="FAIL"
+				else
+					SDclusterNotification="ALL"
+				fi
+			fi	 
+		fi
+
+		# partition
+		if [ -z "$partition" ]; then
+			partition="short"
+		elif [ ! "$partition" = "short" ] && [ ! "$partition" = "medium" ] && [ ! "$partition" = "long" ] && [ ! "$partition" = "fatnodes" ]; then
+			echo "partition parameter not set correctly. Valid values are: short, medium, long, fatnodes."
+			return
+		fi
+		
+		# project for accounting
+		if [ -z "$mem" ]; then
+			echo "mem parameter must be set."
+			return
+		fi
+		
+		# write job script		
+		cat > job.sh << EOF
+#!/bin/bash
+#SBATCH --job-name=$jobname
+#SBATCH --nodes=$nnodes
+#SBATCH --ntasks=$npe
+#SBATCH --time=$walltime
+#SBATCH --error=slurm.%j.error
+#SBATCH --output=slurm.%j.out
+#SBATCH --mail-type=$SDclusterNotification
+#SBATCH --mail-user=$UGSUBMIT_EMAIL
+#SBATCH --partition=$partition
+#SBATCH --mem=$mem		
+EOF
+
+	if [ $exclusive == true ]; then
+		cat >> job.sh << EOF
+#SBATCH --exclusive	
+EOF
+	fi	
+
+
+		cat >> job.sh << EOF
+$profilePrefix
+mpirun -n \${SLURM_NTASKS} $executable $args
+EOF
+
+		# execute command (or only print it in test case)
+		commandline="sbatch -N $nnodes -n $npe job.sh"
+		echo " command:      "$commandline >> info.txt
+	
+		if [ $test == true ]; then
+			echo "ONLY testing - NOT executing."
+			echo "Submit/Start: $commandline"
+			return
+		fi
+	
+		echo "Submit: $commandline"
+	 	commlineoutput=$($commandline)
+	 	echo "$commlineoutput"
+		jobid=$(echo $commlineoutput | sed 's/.*[^0-9]\([0-9]\+\)[^0-9]*$/\1/')
+	fi
+}
+
+
+
+function UJS_GetOptions
+{
+	nppnmax=80
+	pemax=7360
+}
+
+function UJS_Info
+{
+	echo "UGSUBMIT Info for SDCluster:"
+	if [ ! -z $1 ] && [ $1 == "all" ]; then
+		#echo "squeue -o \"%.7i %6C %6D %.20j %.10u %.8T %.10M %.10l %.6D %19R\""
+		squeue -o "%.7i %6C %6D %.20j %.10u %.8T %.10M %.10l %.6D %19R"
+	else
+		#echo "squeue -u $USER -o \"%.7i %6C %6D %.20j %.10u %.8T %.10M %.10l %.6D %19R\""
+		squeue -u $USER -o "%.7i %6C %6D %.20j %.10u %.8T %.10M %.10l %.6D %19R"
+	fi	
+}
+
+function UJS_Cancel
+{
+	echo "Using SLURM on SDCluster"
+	if [ ! -z $1 ] && [ $1 == "all" ]; then
+		echo "your jobs:"
+		squeue -u $USER -o "%.7i %6C %6D %.50j %.10u %.8T %.10M %.10l %.6D %19R"
+		echo " "
+		read -p "Are you sure you want to cancel all your jobs (yes=j,J,y or Y) ? " -n 1 -r
+		echo " "		
+		if [[ $REPLY =~ ^[JjYy]$ ]]
+		then			
+		    scancel --user=$USER
+		fi
+		
+	else
+		scancel $1
+	fi
+}
