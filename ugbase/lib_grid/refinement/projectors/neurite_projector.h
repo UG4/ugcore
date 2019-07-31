@@ -279,8 +279,6 @@ class NeuriteProjector
 
 	public:
 		std::vector<Neurite>& neurites();
-		std::vector<SomaRegion>& somata() const;
-
 		const Neurite& neurite(uint32_t nid) const;
 
 		Grid::VertexAttachmentAccessor<Attachment<SurfaceParams> >& surface_params_accessor();
