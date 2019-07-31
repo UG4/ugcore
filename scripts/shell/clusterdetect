@@ -15,6 +15,8 @@ if [ -z "$UGSUBMIT_TYPE" ]; then
 		UGSUBMIT_TYPE=Jureca
 	elif [[ "$HOSTNAME" = "juwels"* ]]; then
 		UGSUBMIT_TYPE=Juwels
+	elif [[ "$HOSTNAME" = "sdlogin"* ]]; then
+		UGSUBMIT_TYPE=SDCluster
 	elif [[ "$HOSTNAME" = "dora"* ]]; then
 		UGSUBMIT_TYPE=DoraCSCS
 	elif [[ "$HOSTNAME" = "eslogin"* ]]; then

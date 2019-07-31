@@ -40,6 +40,10 @@
 # Please mail martin.rupp@gcsc.uni-frankfurt.de if you have problems setting up
 # OR if you solved your problem.
 
+if(STATIC_BUILD)
+	set(BLA_STATIC ON)
+endif()
+
 # If LAPACK is enabled, try to find the library
 if(LAPACK)
     # try find using cmake-native find_package (requires fortran)
@@ -60,16 +64,16 @@ if(LAPACK)
 		include_directories (${USER_LAPACK_INCLUDE_DIR})
 		set(linkLibraries ${linkLibraries} ${USER_LAPACK_LIBRARIES})
 		add_definitions(-DLAPACK_AVAILABLE)	
-	# b) Lapack has been found
+	# b) Using build-in LAPACK (i.e. nothing needed, added by e.g. compiler)
+	elseif(BUILTIN_LAPACK)
+		message(STATUS "Info: Using Builtin LAPACK")
+		add_definitions(-DLAPACK_AVAILABLE)
+	# c) Lapack has been found
 	elseif(LAPACK_FOUND)
 		message(STATUS "Info: Using LAPACK (Include: ${LAPACK_INCLUDE_DIR}, Lib: ${LAPACK_LIBRARIES})")
 		include_directories (${LAPACK_INCLUDE_DIR})
 		set(linkLibraries ${linkLibraries} ${LAPACK_LIBRARIES})
 		add_definitions(-DLAPACK_AVAILABLE)	
-	# c) Using build-in LAPACK (i.e. nothing needed, added by e.g. compiler)
-	elseif(BUILTIN_LAPACK)
-		message(STATUS "Info: Using Builtin LAPACK")
-		add_definitions(-DLAPACK_AVAILABLE)
 	# d) Not found
 	else()	
 		message(STATUS "WARNING: No LAPACK package found. Not using LAPACK.")
@@ -108,15 +112,15 @@ if(BLAS)
 		include_directories (${USER_BLAS_INCLUDE_DIR})
 		set(linkLibraries ${linkLibraries} ${USER_BLAS_LIBRARIES})
 		add_definitions(-DBLAS_AVAILABLE)
-	# b) Blas has been found
+	# b) Using build-in BLAS (i.e. nothing needed, added by e.g. compiler)
+	elseif(BUILTIN_BLAS)
+		message(STATUS "Info: Using Builtin BLAS")
+		add_definitions(-DBLAS_AVAILABLE)
+	# c) Blas has been found
 	elseif(BLAS_FOUND)
 		message(STATUS "Info: Using BLAS (Include: ${BLAS_INCLUDE_DIR}, Lib: ${BLAS_LIBRARIES})")
 		include_directories (${BLAS_INCLUDE_DIR})
 		set(linkLibraries ${linkLibraries} ${BLAS_LIBRARIES})
-		add_definitions(-DBLAS_AVAILABLE)
-	# c) Using build-in BLAS (i.e. nothing needed, added by e.g. compiler)
-	elseif(BUILTIN_BLAS)
-		message(STATUS "Info: Using Builtin BLAS")
 		add_definitions(-DBLAS_AVAILABLE)
 	# d) Not found
 	else()	
