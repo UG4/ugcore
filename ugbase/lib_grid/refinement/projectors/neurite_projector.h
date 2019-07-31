@@ -204,10 +204,6 @@ class NeuriteProjector
 			std::vector<Section> vSec;
 			std::vector<BranchingRegion> vBR;
 			std::vector<SomaRegion> vSR;
-			float somaStart;  // will be refactored
-			float somaRadius;  // will be refactored
-			bool bHasER;
-			bool scaleER;
 
 			template <class Archive>
 			void serialize(Archive& ar, const unsigned int version)
@@ -269,9 +265,8 @@ class NeuriteProjector
 		{
 			number start;
 			number end;
-			number radius; // will be refactored
-			vector3 posSoma; // will be refactored
 			std::vector<Section>::const_iterator sec_start;
+			const SomaRegion* sr;
 		};
 
 		void debug_neurites() const;
@@ -306,7 +301,15 @@ class NeuriteProjector
 			number numberOfRadii = 5.0
 		) const;
 
-		number is_in_axial_range_around_soma_region
+		number axial_range_around_soma_region
+		(
+			const SomaRegion& sr,
+			number rad,
+			size_t nid,
+			Vertex* vrt
+		) const;
+
+		bool is_in_axial_range_around_soma_region
 		(
 			const SomaRegion& sr,
 			number rad,
