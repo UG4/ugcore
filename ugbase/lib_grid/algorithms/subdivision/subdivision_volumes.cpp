@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2017:  G-CSC, Goethe University Frankfurt
+ * Copyright (c) 2014-2019:  G-CSC, Goethe University Frankfurt
  * Author: Martin Stepniewski
  *
  * This file is part of UG4.
