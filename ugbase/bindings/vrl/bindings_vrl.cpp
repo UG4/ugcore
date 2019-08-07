@@ -444,7 +444,7 @@ JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getDefaultClassNameFromGroup
 		ug::vrl::throwUgErrorAsJavaException(env, ss.str());
 	}
 
-	return (jlong) NULL;
+	return (jstring) NULL;
 }
 
 JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getSvnRevision(JNIEnv *env,
