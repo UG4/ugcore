@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2015:  G-CSC, Goethe University Frankfurt
- * Author: Sebastian Reiter
+ * Author: Markus Breit
  * 
  * This file is part of UG4.
  * 
@@ -111,11 +111,14 @@ bool FileReaderSWC::load_file(const char* fileName)
         int type = boost::lexical_cast<int>(strs[1]);
         switch (type)
         {
+            case 0: pt.type = swc_types::SWC_UNDF; break;
             case 1: pt.type = swc_types::SWC_SOMA; break;
             case 2: pt.type = swc_types::SWC_AXON; break;
             case 3: pt.type = swc_types::SWC_DEND; break;
             case 4: pt.type = swc_types::SWC_APIC; break;
-            default: pt.type = swc_types::SWC_UNDF;
+            case 5: pt.type = swc_types::SWC_FORK; break;
+            case 6: pt.type = swc_types::SWC_END; break;
+            default: pt.type = swc_types::SWC_CUSTOM;
         }
 
         // coordinates
@@ -205,9 +208,26 @@ bool FileReaderSWC::create_grid(Grid& g, ISubsetHandler* pSH, number scale_lengt
 	pSH->set_subset_name("axon", 1);
 	pSH->set_subset_name("dend", 2);
 	pSH->set_subset_name("apic", 3);
+	pSH->set_subset_name("fork", 4);
+	pSH->set_subset_name("end", 5);
+	pSH->set_subset_name("custom", 6);
 	EraseEmptySubsets(*pSH);
 
 	return true;
+}
+
+
+
+const std::vector<swc_types::SWCPoint>& FileReaderSWC::swc_points() const
+{
+	return m_vPts;
+}
+
+
+
+std::vector<swc_types::SWCPoint>& FileReaderSWC::swc_points()
+{
+	return m_vPts;
 }
 
 
@@ -269,6 +289,12 @@ bool ExportGridToSWC(Grid& g, ISubsetHandler* pSH, const char* fileName, AVector
 			vType[i] = 4;
 		else if (name.find("DEND") != std::string::npos)
 			vType[i] = 3;
+    else if (name.find("END") != std::string::npos)
+      vType[i] = 6;
+    else if (name.find("FORK") != std::string::npos)
+      vType[i] = 5;
+    else if (name.find("CUSTOM") != std::string::npos)
+      vType[i] = 7;
 		else vType[i] = 0;
 	}
 

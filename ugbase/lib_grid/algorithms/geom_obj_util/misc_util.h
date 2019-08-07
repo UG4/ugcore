@@ -173,6 +173,12 @@ template <class TAAPos, class TIterator>
 number MaxElementDiameter(Grid& grid, TAAPos& aaPos,
                           TIterator iterBegin, TIterator iterEnd);
 
+///	returns the minimal diameter of all elements between iterBegin and iterEnd.
+/** In parallel, the global min diameter is returned.*/
+template <class TAAPos, class TIterator>
+number MinElementDiameter(Grid& grid, TAAPos& aaPos,
+                          TIterator iterBegin, TIterator iterEnd);
+
 
 ///	Returns the direction from the center of e1 to the center of e2
 template <class TElem1, class TElem2, class TAAPos>

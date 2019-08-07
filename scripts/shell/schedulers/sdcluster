@@ -1,13 +1,13 @@
 #!/bin/bash
 ######################################################################
-#                           JUWELS
+#                           SDCluster
 #-------------------------------------------------------------------
 # using SLURM
 ######################################################################
 
 function UJS_Submit
 {
-	echo "Cluster: JUWELS. Scheduler: SLURM."
+	echo "Cluster: SDCluster. Scheduler: SLURM."
 	
 	# check consistency
 	if [ $((npe%nppn)) -ne 0 ]; then
@@ -15,11 +15,8 @@ function UJS_Submit
 		exit
 	fi
 	
-	if [ $nnodes -gt 512 ]; then
-		echo "Juwels does not provide more than 512 nodes for one batch job atm."
-		return
-	elif [ $nnodes -gt 64 ] && [ "$juwels_part" = "mem192" ]; then
-		echo "Juwels does not provide more than 64 nodes on the mem192 partition for one job atm."
+	if [ $nnodes -gt 92 ]; then
+		echo "SDCluster does not provide more than 92 nodes for one job atm."
 		return
 	fi	
 	
@@ -39,7 +36,7 @@ function UJS_Submit
 	# applications without any delays (no scheduling delays since the
 	# allocation has already been granted).
 	# For more details, cf.:
-	# "JUWELS - User's Manual for the Batch System - Slurm"
+	# "SDCluster - User's Manual for the Batch System - Slurm"
 	if [ $interactive == true ]; then
 		
 		if [ $walltime == "unlimited" ]; then
@@ -80,7 +77,7 @@ function UJS_Submit
 		
 		# walltime handling
 		if [ $walltime == "unlimited" ]; then
-			walltime=01:00:00
+			walltime=00:30:00
 		fi
 		
 		echo "Create: $outdir/job.sh"
@@ -88,7 +85,7 @@ function UJS_Submit
 		#MYLDLPATH=/bgsys/drivers/ppcfloor/comm/lib/
 		
 		# mail notification handling
-		juwelsNotification="NONE"
+		SDclusterNotification="NONE"
 		if [ $mail = true ]; then 
 			if [ -z "$UGSUBMIT_EMAIL" ]; then
 				echo "please set UGSUBMIT_EMAIL or specify email with -email. Aborting."
@@ -96,55 +93,63 @@ function UJS_Submit
 			fi
 		
 			if [ $mailStart = true ]; then
-				juwelsNotification="BEGIN"
+				SDclusterNotification="BEGIN"
 			fi
 			if [ $mailEnd = true ]; then
-				if [ $juwelsNotification == "NONE" ]; then
-					juwelsNotification="END"
+				if [ $SDclusterNotification == "NONE" ]; then
+					SDclusterNotification="END"
 				else
-					juwelsNotification="ALL"
+					SDclusterNotification="ALL"
 				fi
 			fi
 			if [ $mailError = true ]; then
-				if [ $juwelsNotification == "NONE" ]; then
-					juwelsNotification="FAIL"
+				if [ $SDclusterNotification == "NONE" ]; then
+					SDclusterNotification="FAIL"
 				else
-					juwelsNotification="ALL"
+					SDclusterNotification="ALL"
 				fi
 			fi	 
 		fi
-		
+
 		# partition
-		if [ -z "$juwels_part" ]; then
-			juwels_part="batch"
-		elif [ ! "$juwels_part" = "batch" ] && [ ! "$juwels_part" = "mem192" ]; then
-			echo "Juwels-partition parameter not set correctly. Valid values are: batch, mem192."
+		if [ -z "$partition" ]; then
+			partition="short"
+		elif [ ! "$partition" = "short" ] && [ ! "$partition" = "medium" ] && [ ! "$partition" = "long" ] && [ ! "$partition" = "fatnodes" ]; then
+			echo "partition parameter not set correctly. Valid values are: short, medium, long, fatnodes."
 			return
 		fi
 		
 		# project for accounting
-		if [ -z "$juwels_project" ]; then
-			echo "Juwels-project parameter must be set (for accounting)."
+		if [ -z "$mem" ]; then
+			echo "mem parameter must be set."
 			return
 		fi
-		
 		
 		# write job script		
 		cat > job.sh << EOF
 #!/bin/bash
-#SBATCH --account=$juwels_project
 #SBATCH --job-name=$jobname
 #SBATCH --nodes=$nnodes
 #SBATCH --ntasks=$npe
 #SBATCH --time=$walltime
-#SBATCH --partition=$juwels_part
-#SBATCH --error=job.error
-#SBATCH --output=job.output
-#SBATCH --mail-type=$juwelsNotification
+#SBATCH --error=slurm.%j.error
+#SBATCH --output=slurm.%j.out
+#SBATCH --mail-type=$SDclusterNotification
 #SBATCH --mail-user=$UGSUBMIT_EMAIL
+#SBATCH --partition=$partition
+#SBATCH --mem=$mem		
+EOF
 
+	if [ $exclusive == true ]; then
+		cat >> job.sh << EOF
+#SBATCH --exclusive	
+EOF
+	fi	
+
+
+		cat >> job.sh << EOF
 $profilePrefix
-srun -N $nnodes -n $npe -p $juwels_part $executable $args
+mpirun -n \${SLURM_NTASKS} $executable $args
 EOF
 
 		# execute command (or only print it in test case)
@@ -168,13 +173,13 @@ EOF
 
 function UJS_GetOptions
 {
-	nppnmax=48
-	pemax=109008
+	nppnmax=80
+	pemax=7360
 }
 
 function UJS_Info
 {
-	echo "UGSUBMIT Info for JUWELS:"
+	echo "UGSUBMIT Info for SDCluster:"
 	if [ ! -z $1 ] && [ $1 == "all" ]; then
 		#echo "squeue -o \"%.7i %6C %6D %.20j %.10u %.8T %.10M %.10l %.6D %19R\""
 		squeue -o "%.7i %6C %6D %.20j %.10u %.8T %.10M %.10l %.6D %19R"
@@ -186,7 +191,7 @@ function UJS_Info
 
 function UJS_Cancel
 {
-	echo "Using SLURM on JUWELS"
+	echo "Using SLURM on SDCluster"
 	if [ ! -z $1 ] && [ $1 == "all" ]; then
 		echo "your jobs:"
 		squeue -u $USER -o "%.7i %6C %6D %.50j %.10u %.8T %.10M %.10l %.6D %19R"

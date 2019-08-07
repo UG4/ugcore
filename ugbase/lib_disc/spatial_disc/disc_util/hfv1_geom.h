@@ -256,7 +256,7 @@ class HFV1Geometry : public FVGeometryBase{
 		void print();
 
 	///	get the element
-		TElem* elem() const {return m_pElem;}
+		GridObject* elem() const {return m_pElem;}
 
 	public:
 	/// number of SubControlVolumeFaces
@@ -464,7 +464,7 @@ class HFV1Geometry : public FVGeometryBase{
 
 	private:
 	// 	pointer to current element
-		TElem* m_pElem;
+		GridObject* m_pElem;
 
 		std::vector<MathVector<dim> > m_locMid[dim+1];
 		std::vector<MathVector<worldDim> > m_gloMid[dim+1];
@@ -1109,13 +1109,6 @@ class HFV1ManifoldGeometry
 	/// returns number of all scvf ips
 		size_t num_bf_local_ips() const {return m_vLocBFIP.size();}
 
-	/// returns subset index
-		int subset_index() const
-		{
-			if (m_ssi != -1) return m_ssi;
-			UG_THROW("Subset index of geometry unknown.")
-		}
-
 	protected:
 		void compute_side_midpoints(MathVector<dim>& locSideMid,
 								   MathVector<worldDim>& gloSideMid)
@@ -1229,9 +1222,6 @@ class HFV1ManifoldGeometry
 
 	// 	Reference Element
 		const ref_elem_type& m_rRefElem;
-
-	//	subset index of the element represented
-		int m_ssi;
 };
 
 

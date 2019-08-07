@@ -184,6 +184,13 @@ double VecNorm(SmartPtr<typename TAlgebra::vector_type> v)
 
 
 template<typename TAlgebra>
+double VecMaxNorm(SmartPtr<typename TAlgebra::vector_type> v)
+{
+	return v->maxnorm();
+}
+
+
+template<typename TAlgebra>
 double VecScaleAddNorm(SmartPtr<VecScaleAddClass<TAlgebra> > vsac)
 {
 	SmartPtr<typename TAlgebra::vector_type> v = vsac->eval();

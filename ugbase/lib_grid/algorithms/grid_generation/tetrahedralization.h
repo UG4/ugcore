@@ -53,8 +53,11 @@ namespace ug
  *
  *	Using tetgen by Hang Si.
  *
- *  \param verbosity	number between 0 and 3 indicating how detailed the
- *						verbosity should be
+ *  \param[in] quality        number specifiying grid quality between 0 and 18
+ *  \param[in] preserveBnds   bool to specify if outer boundaries shall be preserved
+ *  \param[in] preserveAll    bool to specify if outer and inner boundaries shall be preserved
+ *  \param[in] verbosity	  number between 0 and 3 to specify level of verbosity
+ *
  *	\{
  */
 bool Tetrahedralize(Grid& grid, number quality = 5,
@@ -69,6 +72,20 @@ bool Tetrahedralize(Grid& grid, ISubsetHandler& sh,
 					bool preserveAll = false,
 					APosition& aPos = aPosition,
 					int verbosity = 0);
+
+#ifdef UG_TETGEN
+/*!
+ * \brief Verbosity level specified by an integer to Tetgen verbosity string
+ * Highest verbosity level is 3 (VVV) and lowest is 0 i.e. empty string ("")
+ * \param[in] verbosity
+ * \return \c std::string Tetgen's verbosity string
+ */
+inline const char* VerbosityToTetgenParam(int verbosity) {
+	return std::string(std::max(std::min(verbosity, 3), 0), 'V').c_str();
+}
+#endif
+
+
 ///	\}
 
 ///	If tetrahedrons are already present, this method refines them based on the given volume constraints.

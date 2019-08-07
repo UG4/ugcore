@@ -52,6 +52,62 @@ public:
 	virtual ~IPositionProvider() {}
 };
 
+/// Context of a debugger writer: Keeps the debugging section etc.
+class DebugWriterContext
+{
+	public:
+	
+	///	constructor
+		DebugWriterContext () : m_baseDir(".") {}
+	
+	/// set the base directory for output files (.vec and .mat)
+		inline void set_base_dir(const char* const baseDir) {m_baseDir = std::string(baseDir);}
+		std::string get_base_dir() { return m_baseDir; }
+		
+	///	enter a new debugging section
+		inline void enter_section(const char* secDir) {m_secDir.push_back(secDir);}
+		
+	/// leave the current debugging section
+		inline void leave_section () {m_secDir.pop_back();}
+
+	///	prints a message
+		void print_message(const char * msg)
+		{
+			UG_LOG ("DBG > ");
+			for (size_t i = 0; i < m_secDir.size (); i++)
+			{
+				UG_LOG (":" << m_secDir[i]);
+			}
+			UG_LOG (" > " << msg);
+		}
+
+	/// composes the path for the files and creates the intermediate directories (up to the base one):
+		void compose_file_path(std::string& path)
+		{
+			path = get_base_dir ();
+			if (! FileExists (path))
+			{
+				UG_WARNING ("IVectorDebugWriter: Directory '" << path << "' does not exist. Using cwd instead.\n");
+				path = ".";
+			}
+			for (size_t i = 0; i < m_secDir.size (); i++)
+			{
+				path.append ("/"); //TODO: This can be OS-dependent.
+				path.append (m_secDir[i]);
+				if ((! FileExists (path)) && ! CreateDirectory (path))
+					UG_WARNING ("IVectorDebugWriter: Could not create directory '" << path << "'. Using cwd instead.\n");
+			}
+			path.append ("/"); //TODO: This can be OS-dependent.
+		}
+		
+	protected:
+
+	/// base directory for the debugging output
+		std::string m_baseDir;
+		
+	/// debuging section subdirectories
+		std::vector<std::string> m_secDir;
+};
 
 /// base class for all vector debug writer
 /**
@@ -66,22 +122,15 @@ class IVectorDebugWriter
 
 	public:
 	///	Constructor
-		IVectorDebugWriter() : m_baseDir("."), m_currentDim(-1) {}
+		IVectorDebugWriter()
+		: m_spContext (new DebugWriterContext), m_currentDim(-1) {}
+		
+	/// virtual destructor
+		virtual ~IVectorDebugWriter(){}
 
 	///	write vector
 		virtual void write_vector(const vector_type& vec, const char* name) = 0;
 		
-	///	prints a message
-		virtual void print_message(const char * msg)
-		{
-			UG_LOG ("DBG > ");
-			for (size_t i = 0; i < m_secDir.size (); i++)
-			{
-				UG_LOG (":" << m_secDir[i]);
-			}
-			UG_LOG (" > " << msg);
-		}
-
 	///	returns the current dimension
 		int current_dimension() const {return m_currentDim;}
 
@@ -114,23 +163,39 @@ class IVectorDebugWriter
 			m_currentDim = dim;
 		}
 
-	/// virtual destructor
-		virtual ~IVectorDebugWriter(){}
-
+	/// get the dimensionality
 		int get_dim() const
 		{
 			return m_currentDim;
 		}
+	
+	/// set the debugging writer context
+		void set_context(SmartPtr<DebugWriterContext> context) {m_spContext = context;}
+		
+	/// get the debugging writer context
+		SmartPtr<DebugWriterContext> get_context() {return m_spContext;}
+
+	/// get the debugging writer context
+		ConstSmartPtr<DebugWriterContext> get_context() const {return m_spContext;}
+
+	///	prints a message
+		virtual void print_message(const char * msg) {if (m_spContext.valid()) m_spContext->print_message(msg);}
 
 	/// set the base directory for output files (.vec and .mat)
-		inline void set_base_dir(const char* const baseDir) {m_baseDir = std::string(baseDir);}
-		std::string get_base_dir() { return m_baseDir; }
+		inline void set_base_dir(const char* const baseDir)
+		{
+			if (! m_spContext.valid())
+				set_context (SmartPtr<DebugWriterContext> (new DebugWriterContext));
+			m_spContext->set_base_dir (baseDir);
+		}
+		
+		std::string get_base_dir() {return (m_spContext.valid())?  m_spContext->get_base_dir() : "";}
 		
 	///	enter a new debugging section
-		inline void enter_section(const char* secDir) {m_secDir.push_back(secDir);}
+		inline void enter_section(const char* secDir) {if (m_spContext.valid()) m_spContext->enter_section (secDir);}
 		
 	/// leave the current debugging section
-		inline void leave_section () {m_secDir.pop_back();}
+		inline void leave_section () {if (m_spContext.valid()) m_spContext->leave_section ();}
 
 	protected:
 	
@@ -144,29 +209,14 @@ class IVectorDebugWriter
 	/// composes the path for the files and creates the intermediate directories (up to the base one):
 		void compose_file_path(std::string& path)
 		{
-			path = get_base_dir ();
-			if (! FileExists (path))
-			{
-				UG_WARNING ("IVectorDebugWriter: Directory '" << path << "' does not exist. Using cwd instead.\n");
-				path = ".";
-			}
-			for (size_t i = 0; i < m_secDir.size (); i++)
-			{
-				path.append ("/"); //TODO: This can be OS-dependent.
-				path.append (m_secDir[i]);
-				if ((! FileExists (path)) && ! CreateDirectory (path))
-					UG_WARNING ("IVectorDebugWriter: Could not create directory '" << path << "'. Using cwd instead.\n");
-			}
-			path.append ("/"); //TODO: This can be OS-dependent.
+			if (m_spContext.valid()) m_spContext->compose_file_path (path);
+			else path = ".";
 		}
 		
 	protected:
-
-	/// base directory for the debugging output
-		std::string m_baseDir;
-		
-	/// debuging section subdirectories
-		std::vector<std::string> m_secDir;
+	
+	///	debugging writer context
+		SmartPtr<DebugWriterContext> m_spContext;
 
 	///	current dimension
 		int m_currentDim;

@@ -195,15 +195,33 @@ void InterpolateOnElementsInner
 							(spInterpolFunction, spGridFct, fct, si, time);
 						InterpolateOnElementsInner<Quadrilateral, TGridFunction>
 							(spInterpolFunction, spGridFct, fct, si, time);
+						InterpolateOnElementsInner<ConstrainingTriangle, TGridFunction>
+							(spInterpolFunction, spGridFct, fct, si, time);
+						InterpolateOnElementsInner<ConstrainingQuadrilateral, TGridFunction>
+							(spInterpolFunction, spGridFct, fct, si, time);
+						InterpolateOnElementsInner<ConstrainedTriangle, TGridFunction>
+							(spInterpolFunction, spGridFct, fct, si, time);
+						InterpolateOnElementsInner<ConstrainedQuadrilateral, TGridFunction>
+							(spInterpolFunction, spGridFct, fct, si, time);
 					}
 				case 1:
 					if (spGridFct->max_fct_dofs(fct, EDGE, si))
+					{
 						InterpolateOnElementsInner<RegularEdge, TGridFunction>
 							(spInterpolFunction, spGridFct, fct, si, time);
+						InterpolateOnElementsInner<ConstrainingEdge, TGridFunction>
+							(spInterpolFunction, spGridFct, fct, si, time);
+						InterpolateOnElementsInner<ConstrainedEdge, TGridFunction>
+							(spInterpolFunction, spGridFct, fct, si, time);
+					}
 				case 0:
 					if (spGridFct->max_fct_dofs(fct, VERTEX, si))
+					{
 						InterpolateOnElementsInner<RegularVertex, TGridFunction>
 							(spInterpolFunction, spGridFct, fct, si, time);
+						InterpolateOnElementsInner<ConstrainedVertex, TGridFunction>
+							(spInterpolFunction, spGridFct, fct, si, time);
+					}
 					break;
 				default: UG_THROW("InterpolateOnElements: Dimension " <<dim<<
 							" not possible for world dim "<<3<<".");

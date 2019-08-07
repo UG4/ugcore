@@ -97,13 +97,16 @@ ref_marks_changed(IRefiner& ref,
 		//	we have to mark all associated edges, faces and volumes
 			mg.associated_elements(assEdges, vrt);
 			for(size_t i = 0; i < assEdges.size(); ++i)
-				ref.mark(assEdges[i]);
+				if (ref.get_mark(assEdges[i]) == RM_NONE) // might already be marked RM_CLOSURE, do not overwrite
+					ref.mark(assEdges[i]);
 			mg.associated_elements(assFaces, vrt);
 			for(size_t i = 0; i < assFaces.size(); ++i)
-				ref.mark(assFaces[i]);
+				if (ref.get_mark(assFaces[i]) == RM_NONE)
+					ref.mark(assFaces[i]);
 			mg.associated_elements(assVols, vrt);
 			for(size_t i = 0; i < assVols.size(); ++i)
-				ref.mark(assVols[i]);
+				if (ref.get_mark(assVols[i]) == RM_NONE)
+					ref.mark(assVols[i]);
 		}
 		else if(ref.get_mark(vrt) != RM_DUMMY){
 		//	we don't have to select parents of dummy vertices, since we assume

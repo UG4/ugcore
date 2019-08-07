@@ -33,7 +33,10 @@
 #ifndef __H__UG__LIB_DISC__IO__VTKOUTPUT__
 #define __H__UG__LIB_DISC__IO__VTKOUTPUT__
 
+//TODO: deduplicate code in VTUOutput - reduces vulnerability to errors and linker time 
+
 // extern libraries
+#include <string>
 #include <vector>
 #include <map>
 
@@ -499,7 +502,7 @@ protected:
 		                         Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex,
 		                         const Grid::VertexAttachmentAccessor<Attachment<MathVector<TDim> > >& aaPos,
 		                         Grid& grid, const T& iterContainer, int si, int dim,
-		                         int numVert, int numElem, int numConn);
+		                         int numVert, int numElem, int numConn, MGSubsetHandler& sh);
 
 		template <typename T>
 		void
@@ -514,12 +517,16 @@ protected:
 		write_grid_piece(VTKFileWriter& File,
 		                 Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex,
 		                 const Grid::VertexAttachmentAccessor<Attachment<MathVector<TDim> > >& aaPos,
-		                 Grid& grid, const T& iterContainer, int si, int dim);
+		                 Grid& grid, const T& iterContainer, int si, int dim, MGSubsetHandler& sh);
 
 public:
 		// maybe somebody wants to do this from outside
 		static void write_empty_grid_piece(VTKFileWriter& File,
 				bool binary = true);
+
+		void
+		set_user_defined_comment(const char* comment);
+
 protected:
 
 	/**
@@ -533,6 +540,13 @@ protected:
 	 * \param[in]		dim			dimension of subset
 	 * \param[in]		numVert		number of vertices
 	 */
+
+		void
+		write_comment(VTKFileWriter& File);
+
+		void
+		write_comment_printf(FILE* File);
+
 		template <typename T>
 		void
 		write_points(VTKFileWriter& File,
@@ -593,7 +607,7 @@ protected:
 		write_cells(VTKFileWriter& File,
 		            Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex,
 		            Grid& grid, const T& iterContainer, int si,
-		            int dim, int numElem, int numConn);
+		            int dim, int numElem, int numConn, MGSubsetHandler& sh);
 
 	/**
 	 * This function writes the elements that are part of the specified subsets.
@@ -684,6 +698,60 @@ protected:
 		void
 		write_cell_types(VTKFileWriter& File, const T& iterContainer, SubsetGroup& ssGrp, int dim,
 		                 int numElem);
+
+	/**
+	 * This method writes the 'region' for each element of a subset. The region is
+	 * the ug4 subset index for a given element.
+	 *
+	 * \param[in]	File		file stream
+	 * \param[in]	u			grid function
+	 * \param[in]	si			subset index
+	 * \param[in]	sh			multigrid subset handler
+	 */
+		template <typename TElem, typename T>
+		void
+		write_cell_subsets(VTKFileWriter& File, const T& iterContainer, int si, MGSubsetHandler& sh);
+
+		template <typename T>
+		void
+		write_cell_subsets(VTKFileWriter& File, const T& iterContainer, int si, int dim,
+		                 int numElem, MGSubsetHandler& sh);
+
+		template <typename T>
+		void
+		write_cell_subsets(VTKFileWriter& File, const T& iterContainer, SubsetGroup& ssGrp, int dim,
+		                 int numElem, MGSubsetHandler& sh);
+
+	/**
+	 * This method writes the subset names.
+	 *
+	 * \param[in]	File		file stream
+	 * \param[in]	sh			multigrid subset handler
+	 */
+		void
+		write_cell_subset_names(VTKFileWriter& File, MGSubsetHandler& sh);
+
+	/**
+	 * This method writes the proc ranks for each cell.
+	 *
+	 * \param[in]	File		file stream
+	 * \param[in]	u			grid function
+	 * \param[in]	si			subset index
+	 * \param[in]	sh			multigrid subset handler
+	 */
+		template <typename TElem, typename T>
+		void
+		write_cell_proc_ranks(VTKFileWriter& File, const T& iterContainer, int si, MGSubsetHandler& sh);
+
+		template <typename T>
+		void
+		write_cell_proc_ranks(VTKFileWriter& File, const T& iterContainer, int si, int dim,
+		                 int numElem, MGSubsetHandler& sh);
+
+		template <typename T>
+		void
+		write_cell_proc_ranks(VTKFileWriter& File, const T& iterContainer, SubsetGroup& ssGrp, int dim,
+		                 int numElem, MGSubsetHandler& sh);
 
 	protected:
 	/**
@@ -922,10 +990,16 @@ protected:
 
 	public:
 	///	default constructor
-		VTKOutput()	: m_bSelectAll(true), m_bBinary(true) {}
+		VTKOutput()	: m_bSelectAll(true), m_bBinary(true), m_bWriteGrid(true), m_bWriteSubsetIndices(false), m_bWriteProcRanks(false) {} //TODO: maybe true?
 
 	/// should values be printed in binary (base64 encoded way ) or plain ascii
 		void set_binary(bool b);
+
+		void set_write_grid(bool b);
+
+		void set_write_subset_indices(bool b);
+
+		void set_write_proc_ranks(bool b);
 
 	protected:
 	///	returns true if name for vtk-component is already used
@@ -977,6 +1051,12 @@ protected:
 
 	///	map storing the time points
 		std::map<std::string, std::vector<number> > m_mTimestep;
+
+		bool m_bWriteGrid;
+		std::string m_sComment;
+
+		bool m_bWriteSubsetIndices;
+		bool m_bWriteProcRanks;
 };
 
 } // namespace ug

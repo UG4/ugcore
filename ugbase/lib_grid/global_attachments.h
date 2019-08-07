@@ -36,6 +36,7 @@
 #include "attachments/attachment_info_traits.h"
 #include "attachments/attachment_io_traits.h"
 #include "algorithms/serialization.h"
+#include <algorithm>
 
 namespace ug{
 
@@ -65,6 +66,20 @@ class GlobalAttachments {
 			functions<Edge>().push_back(FunctionEntry<Edge, TAttachment>());
 			functions<Face>().push_back(FunctionEntry<Face, TAttachment>());
 			functions<Volume>().push_back(FunctionEntry<Volume, TAttachment>());
+		}
+
+		template <class TAttachment>
+		static void undeclare_attachment(const std::string& name) {
+			UG_COND_THROW(!is_declared(name), "Trying undeclaring a non-declared attachment.");
+			AttachmentEntry& ae = attachment_entry(name);
+			remove_function_entry<Volume>(ae);
+			remove_function_entry<Face>(ae);
+			remove_function_entry<Edge>(ae);
+			remove_function_entry<Vertex>(ae);
+			attachment_names().erase(std::remove(attachment_names().begin(), attachment_names().end(), name), attachment_names().end());
+			attachments().erase(name);
+			const char* typeName = attachment_info_traits<TAttachment>::type_name();
+			attachment_types().erase(typeName);
 		}
 
 		static void declare_attachment (const std::string& name,
@@ -211,7 +226,6 @@ class GlobalAttachments {
 			}
 		};
 
-
 		struct IAttachmentType {
 			IAttachmentType() : declareFunc(0)	{}
 			void (*declareFunc)	(const std::string&, bool);
@@ -296,6 +310,12 @@ class GlobalAttachments {
 		IFunctionEntry& function_entry(const AttachmentEntry& ae)
 		{
 			return functions<TElem>().at(ae.functionIndex);
+		}
+
+		template <class TElem>
+		static
+		void remove_function_entry(const AttachmentEntry& ae) {
+			functions<TElem>().erase(functions<TElem>().begin() + ae.functionIndex);
 		}
 
 		template <class TElem, class TAttachment>

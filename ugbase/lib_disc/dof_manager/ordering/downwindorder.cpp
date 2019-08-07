@@ -102,7 +102,8 @@ void OrderDownwindForDofDist(SmartPtr<DoFDistribution> dd, ConstSmartPtr<TDomain
 	std::vector<size_t> vAdjacency;
 
 	// count how many vertex were kept / removed per adjacency vector
-	size_t initialcount, kept, removed = 0;
+	size_t kept, removed = 0;
+	size_t initialcount = 0;
 
 	MathVector<TDomain::dim> vVel1, vPos1, vPos2, vDir1_2;
 	size_t i;

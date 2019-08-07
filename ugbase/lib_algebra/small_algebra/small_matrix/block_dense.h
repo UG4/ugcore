@@ -36,6 +36,7 @@
 
 #include "densematrix.h"
 #include "densevector.h"
+#include <algorithm>
 
 namespace ug{
 
@@ -58,6 +59,17 @@ inline double BlockNorm2(const DenseVector<A> &v)
 	for(size_t i=0; i < v.size(); i++)
 		sum += BlockNorm2(v[i]);
 	return sum;
+}
+
+
+
+template<typename A>
+inline double BlockMaxNorm(const DenseVector<A> &v)
+{
+	double max=0;
+	for(size_t i=0; i < v.size(); i++)
+		max = std::max(max, BlockMaxNorm(v[i]));
+	return max;
 }
 
 

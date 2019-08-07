@@ -239,6 +239,19 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "IComponentSpace", tag);
 	}
 
+	// GridFunctionComponentSpace
+	{
+		typedef GridFunctionComponentSpace<TFct> T;
+		typedef IComponentSpace<TFct> TBase;
+
+		string name = string("GridFunctionComponentSpace").append(suffix);
+		reg.add_class_<T, TBase>(name, grp)
+			.template add_constructor<void (*)(const char *) >("function names")
+			.template add_constructor<void (*)(const char *, const char *) >("function names, subset names")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "GridFunctionComponentSpace", tag);
+	}
+
 	// L2ComponentSpace
 	{
 		typedef L2ComponentSpace<TFct> T;
@@ -402,6 +415,14 @@ static void DomainAlgebra(Registry& reg, string grp)
 //	CheckDoFPositions
 	{
 		reg.add_function("CheckDoFPositions", static_cast<bool (*)(const TFct&)>(CheckDoFPositions<TFct>), grp);
+	}
+
+//	ScaleGF
+	{
+		reg.add_function("ScaleGF", ScaleGF<TFct>, grp, "",
+			"scaled output vector # input vector # vector of scaling factors for each function",
+			"Scales the input vector using the given scaling factors for each function and writes "
+			"the result to the output vector");
 	}
 
 //	AverageFunctionDifference

@@ -333,6 +333,24 @@ inline std::string ConvertNumberSI (uint64_t size, unsigned int width,
 #endif
 
 
+// Usage:
+/* The following macro can be used to print warning messages if condition is met.
+ * To use it the define 'UG_ENABLE_WARNINGS' must be set. Otherwise nothing will
+ * be done (no runtime overhead).
+ *
+ * UG_WARNING(cond, msg)  		- prints a warning to the normal output stream
+ */
+#ifdef UG_ENABLED_WARNINGS
+	#define UG_COND_WARNING(cond, msg) {if (cond) {ug::GetLogAssistant().logger()\
+							<< "UG_WARNING in " << __FILE__ << " at line "       \
+							__LINE__ << ": " << msg << std::flush;}}
+#else
+	#define UG_COND_WARNING(cond, msg) {}
+#endif
+
+
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // LOG
@@ -346,10 +364,10 @@ inline std::string ConvertNumberSI (uint64_t size, unsigned int width,
 	#define VRL_LOG(msg)
 #endif
 
-
 #define UG_LOG(msg) {ug::GetLogAssistant().logger() << msg << std::flush; VRL_LOG(msg);}
+#define UG_COND_LOG(cond, msg) { if (cond) { UG_LOG(msg); } }
 #define UG_LOGN(msg) UG_LOG(msg << "\n")
-
+#define UG_COND_LOGN(cond, msg) { if (cond) { UG_LOGN(msg); } }
 #define UG_LOG_ALL_PROCS(msg) {ug::LogAssistant& la = ug::GetLogAssistant();\
 							   int op = la.get_output_process(); la.set_output_process(-1);\
 							   la.logger() << "[Proc " << std::setw(3) << la.get_process_rank() << "]: "\

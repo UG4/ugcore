@@ -374,16 +374,16 @@ estimate_distribution_quality_impl(std::vector<number>* pLvlQualitiesOut)
 	MultiGrid& mg = *m_mg;
 	DistributedGridManager& distGridMgr = *mg.distributed_grid_manager();
 
-	number minQuality = 1;
+	number optLevelLoadSum = 0.0;
+	number maxLevelLoadSum = 0.0;
+	number levelLoadSum = 0.0;
 
 	if(pLvlQualitiesOut)
 		pLvlQualitiesOut->clear();
 
 //	calculate the quality estimate.
-//todo The quality of a level could be weighted by the total amount of elements
-//		in each level.
+	bool participatesInAllLevels = true;
 	const ProcessHierarchy* procH = m_processHierarchy.get();
-
 	for(size_t lvl = 0; lvl < mg.num_levels(); ++lvl){
 		size_t hlvl = procH->hierarchy_level_from_grid_level(lvl);
 		int numProcs = procH->num_global_procs_involved(hlvl);
@@ -394,40 +394,59 @@ estimate_distribution_quality_impl(std::vector<number>* pLvlQualitiesOut)
 		}
 
 		pcl::ProcessCommunicator procComAll = procH->global_proc_com(hlvl);
+
+		number localWeight = 0;
+		IBalanceWeights& wgts = *m_balanceWeights;
+		for(ElemIter iter = mg.begin<elem_t>(lvl);
+			iter != mg.end<elem_t>(lvl); ++iter)
+		{
+			if(!distGridMgr.is_ghost(*iter))
+				localWeight += wgts.get_weight(*iter);
+		}
+
 		if(procComAll.size() == 0){
-			pLvlQualitiesOut->push_back(-1);
+			participatesInAllLevels = false;
+			if(pLvlQualitiesOut)
+				pLvlQualitiesOut->push_back(-1);
 		}
 		else if(procComAll.size() == 1){
-			pLvlQualitiesOut->push_back(1);
+			if(pLvlQualitiesOut)
+				pLvlQualitiesOut->push_back(1);
+			optLevelLoadSum += localWeight;
+			maxLevelLoadSum += localWeight;
+			levelLoadSum += localWeight;
 		}
 		else{
-			number localWeight = 0;
-			IBalanceWeights& wgts = *m_balanceWeights;
-			for(ElemIter iter = mg.begin<elem_t>(lvl);
-				iter != mg.end<elem_t>(lvl); ++iter)
-			{
-				if(!distGridMgr.is_ghost(*iter))
-					localWeight += wgts.get_weight(*iter);
-			}
-
 			number maxW = procComAll.allreduce(localWeight, PCL_RO_MAX);
 			//number minW = procComAll.allreduce(localWeight, PCL_RO_MIN);
 			number totalW = procComAll.allreduce(localWeight, PCL_RO_SUM);
 			size_t numProcs = procComAll.size();
 
-			if(maxW > 0){
-				number quality = (totalW - maxW) / (maxW * number(numProcs - 1));
-				minQuality = min(minQuality, quality);
-				if(pLvlQualitiesOut)
+			optLevelLoadSum += totalW / numProcs;
+			maxLevelLoadSum += maxW;
+			levelLoadSum += totalW;
+
+			if(pLvlQualitiesOut)
+			{
+				if(maxW > 0){
+					number quality = (totalW - maxW) / (maxW * number(numProcs - 1));
 					pLvlQualitiesOut->push_back(quality);
+				}
+				else
+					pLvlQualitiesOut->push_back(-1);
 			}
-			else if(pLvlQualitiesOut)
-				pLvlQualitiesOut->push_back(-1);
 		}
 	}
 
+	number totalQuality = 1.0;
+	if (levelLoadSum != optLevelLoadSum && maxLevelLoadSum != 0)
+		totalQuality = ((levelLoadSum - maxLevelLoadSum) * optLevelLoadSum)
+						/ ((levelLoadSum - optLevelLoadSum) * maxLevelLoadSum);
+	if (!participatesInAllLevels)
+		totalQuality = 1.0;
+
 	pcl::ProcessCommunicator comGlobal;
-	return comGlobal.allreduce(minQuality, PCL_RO_MIN);
+	return comGlobal.allreduce(totalQuality, PCL_RO_MIN);
 }
 
 number LoadBalancer::
@@ -541,6 +560,24 @@ void LoadBalancer::
 print_quality_records() const
 {
 	UG_LOG(m_qualityRecords << "\n");
+}
+
+void LoadBalancer::print_last_quality_record() const
+{
+	const size_t lastRow = m_qualityRecords.num_rows() - 1;
+
+	if (lastRow < 1)
+		return;
+
+	const size_t nCols = m_qualityRecords.num_cols();
+	StringTable tmp(2, nCols);
+	for (size_t j = 0; j < nCols; ++j)
+	{
+		tmp(0, j) = m_qualityRecords(0, j).str();
+		tmp(1, j) = m_qualityRecords(lastRow, j).str();
+	}
+
+	UG_LOG(tmp << "\n");
 }
 
 } // end of namespace

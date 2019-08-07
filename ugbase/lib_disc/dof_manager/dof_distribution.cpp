@@ -95,17 +95,30 @@ void DoFDistribution::check_subsets()
 {
 //	check, that all geom objects are assigned to a subset
 	if(	m_spMGSH->num<Vertex>() != multi_grid()->num<Vertex>())
+	{
+		geometry_traits<Vertex>::const_iterator iter = multi_grid()->begin<Vertex>();
+		geometry_traits<Vertex>::const_iterator iterEnd = multi_grid()->end<Vertex>();
+		for (; iter != iterEnd; ++iter)
+			if (m_spMGSH->get_subset_index(*iter) == -1)
+				UG_LOGN("Missing subset info for " << ElementDebugInfo(*multi_grid(), *iter));
 		UG_THROW("All Vertices "
 			   " must be assigned to a subset. The passed subset handler "
 			   " contains non-assigned elements, thus the dof distribution"
 			   " is not possible, aborting.");
-
+	}
 	if(	m_spMGSH->num<Edge>() != multi_grid()->num<Edge>())
+	{
+		geometry_traits<Edge>::const_iterator iter = multi_grid()->begin<Edge>();
+		geometry_traits<Edge>::const_iterator iterEnd = multi_grid()->end<Edge>();
+		for (; iter != iterEnd; ++iter)
+			if (m_spMGSH->get_subset_index(*iter) == -1)
+				UG_LOGN("Missing subset info for " << ElementDebugInfo(*multi_grid(), *iter));
+
 		UG_THROW("All Edges "
 			   " must be assigned to a subset. The passed subset handler "
 			   " contains non-assigned elements, thus the dof distribution"
 			   " is not possible, aborting.");
-
+	}
 	if(	m_spMGSH->num<Face>() != multi_grid()->num<Face>())
 		UG_THROW("All Faces "
 			   " must be assigned to a subset. The passed subset handler "

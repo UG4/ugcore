@@ -80,6 +80,13 @@ UG_API
 number CalculateTetrahedronAspectRatio(Grid& grid, Tetrahedron* tet,
 							Grid::VertexAttachmentAccessor<APosition>& aaPos);
 
+////////////////////////////////////////////////////////////////////////
+//	CalculateHexahedronAspectRatio
+/// calculates the aspect ratio of a hexahedral element
+UG_API
+number CalculateHexahedronAspectRatio(Grid& grid, Hexahedron* tet,
+							Grid::VertexAttachmentAccessor<APosition>& aaPos);
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //	CalculateTetrahedronRootMeanSquareFaceArea - mstepnie

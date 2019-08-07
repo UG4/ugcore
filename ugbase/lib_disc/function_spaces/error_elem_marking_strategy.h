@@ -177,10 +177,13 @@ public:
 	typedef IElementMarkingStrategy<TDomain> base_type;
 
 	StdCoarseningMarkingStrategy(number tol)
-		: m_tol(tol), m_safety(8.0) {};
+		: m_tol(tol), m_safety(8.0), m_minLvl(0) {}
 
 	StdCoarseningMarkingStrategy(number tol, number safety)
-		: m_tol(tol), m_safety(safety) {};
+		: m_tol(tol), m_safety(safety), m_minLvl(0) {}
+
+	StdCoarseningMarkingStrategy(number tol, number safety, int minLvl)
+		: m_tol(tol), m_safety(safety), m_minLvl(minLvl) {}
 
 	void set_tolerance(number tol) {m_tol = tol;}
 	void set_safety_factor(number safety) {m_safety = safety;}
@@ -190,9 +193,9 @@ public:
 				ConstSmartPtr<DoFDistribution> dd);
 
 protected:
-
 	number m_tol;
 	number m_safety;
+	int m_minLvl;
 };
 
 template <typename TDomain>
@@ -200,7 +203,7 @@ void StdCoarseningMarkingStrategy<TDomain>::mark(typename base_type::elem_access
 				IRefiner& refiner,
 				ConstSmartPtr<DoFDistribution> dd)
 {
-	MarkElementsForCoarsening<typename base_type::elem_type>(aaError, refiner, dd, m_tol, m_safety);
+	MarkElementsForCoarsening<typename base_type::elem_type>(aaError, refiner, dd, m_tol, m_safety, m_minLvl);
 }
 
 
@@ -243,7 +246,7 @@ number CreateSortedListOfElems(
 		std::vector< std::pair<double, TElem*> > &etaSqList)
 {
 
-	typedef typename std::pair<double, TElem*> TPair;
+	//typedef typename std::pair<double, TElem*> TPair;
 	typename DoFDistribution::traits<TElem>::const_iterator iter;
 
 	number localErrSq=0;
@@ -430,7 +433,7 @@ void APosterioriCoarsening<TDomain>::mark(typename base_type::elem_accessor_type
 				ConstSmartPtr<DoFDistribution> dd)
 {
 	typedef typename base_type::elem_type TElem;
-	typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
+	//typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
 	typedef typename std::pair<double, TElem*> TPair;
 	typedef typename std::vector<TPair> TPairVector;
 

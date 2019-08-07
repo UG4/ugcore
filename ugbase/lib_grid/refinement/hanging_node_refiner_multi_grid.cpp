@@ -170,6 +170,56 @@ refinement_is_allowed(Volume* elem)
 	return !m_pMG->has_children(elem);
 }
 
+void HangingNodeRefiner_MultiGrid::assign_hnode_marks()
+{
+	// first call the base implementation
+	BaseClass::assign_hnode_marks();
+
+	// now use multigrid info to do another important set of hnode assignments
+	if (!m_pMG)
+		throw(UGError("HangingNodeRefiner_MultiGrid::refine: No grid assigned."));
+
+	MultiGrid& mg = *m_pMG;
+
+	// TODO: This had better be done in the base implementation. But how?
+	// Also take care of (unmarkable) SHADOW_COPY edges
+	// whose children are marked for refinement:
+	// These children need to be marked HNRM_TO_CONSTRAINING!
+	Grid::face_traits::secure_container fl;
+	EdgeIterator it = mg.begin<Edge>();
+	EdgeIterator itEnd = mg.end<Edge>();
+	for (; it != itEnd; ++it)
+	{
+		Edge* e = *it;
+
+		// find out whether this is a SHADOW-COPY edge;
+		// which is the case iff it has exactly one child
+		// and there exists an associated face that does not have any
+		if (mg.num_child_edges(e) != 1)
+			continue;
+
+		bool faceWithoutChildExists = false;
+		mg.associated_elements(fl, e);
+		const size_t flSz = fl.size();
+		for (size_t f = 0; f < flSz; ++f)
+		{
+			if (refinement_is_allowed(fl[f]) && !mg.num_child_faces(fl[f]))
+			{
+				faceWithoutChildExists = true;
+				break;
+			}
+		}
+
+		if (!faceWithoutChildExists)
+			continue;
+
+		Edge* child = mg.get_child_edge(e, 0);
+
+		if (marked_refine(child))
+			add_hmark(child, HNRM_TO_CONSTRAINING);
+	}
+}
+
 void HangingNodeRefiner_MultiGrid::
 pre_refine()
 {
@@ -1118,7 +1168,6 @@ debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 
 	//	has anybody marked an element as invalid? If not, exit adjustment.
 		if(!one_proc_true(foundInvalid)){
-			running = false;
 			break;
 		}
 
@@ -1726,7 +1775,7 @@ We have to handle elements as follows:
 				char parentType = mg.parent_type(elem);
 				if((parentType == EDGE) || (parentType == FACE)){
 					hv = *mg.create_and_replace<ConstrainedVertex>(elem);
-					elem = hv;
+					// elem = hv;  // never used
 				}
 				else
 					break;

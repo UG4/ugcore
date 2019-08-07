@@ -140,9 +140,6 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("set_conn_viewer_output", &T::set_conn_viewer_output, "", "bCVOutput")
 			.add_method("set_conn_viewer_indices", &T::set_conn_viewer_indices, "", "bIndicesOutput")
 			.add_method("set_print_consistent",  &T::set_print_consistent, "", "printConsistent")
-		    .add_method("set_base_dir", &T::set_base_dir, "Sets the base directory for output", "dir")
-		    .add_method("enter_section", &T::enter_section, "Enters a debugging section", "dirName")
-		    .add_method("leave_section", &T::leave_section, "Leaves the current debugging section", "")
 		    .add_method("set_grid_level", &T::set_grid_level, "Sets the grid level", "GridLevel")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GridFunctionDebugWriter", tag);
@@ -270,6 +267,10 @@ static void Dimension(Registry& reg, string grp)
 			.add_method("select_element", static_cast<void (T::*)(SmartPtr<UserData<number, dim> >, const char*)>(&T::select_element))
 			.add_method("select_element", static_cast<void (T::*)(SmartPtr<UserData<MathVector<dim>, dim> >, const char*)>(&T::select_element))
 			.add_method("set_binary", &T::set_binary, "", "bBinary", "should values be printed in binary (base64 encoded way ) or plain ascii")
+			.add_method("set_user_defined_comment", static_cast<void (T::*)(const char*)>(&T::set_user_defined_comment))
+			.add_method("set_write_grid", static_cast<void (T::*)(bool)>(&T::set_write_grid))
+			.add_method("set_write_subset_indices", static_cast<void (T::*)(bool)>(&T::set_write_subset_indices))
+			.add_method("set_write_proc_ranks", static_cast<void (T::*)(bool)>(&T::set_write_proc_ranks))
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "VTKOutput", tag);
 	}

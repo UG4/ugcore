@@ -439,14 +439,14 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 
 					vector_value s = c[i];
 					++it; // skip diag
-					for(; it != m_U.end_row(i); ++it)
+					for(; it != m_U.end_row(i); ++it){
 						// s -= it.value() * c[it.index()];
 						MatMultAdd(s, 1.0, s, -1.0, it.value(), c[it.index()] );
+					}
+					// c[i] = s/uii;
+					InverseMatMult(c[i], 1.0, uii, s);
 
-						// c[i] = s/uii;
-						InverseMatMult(c[i], 1.0, uii, s);
-
-						if(i==0) break;
+					if(i==0) break;
 				}
 			}
 			return true;
@@ -521,14 +521,14 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 
 						vector_value s = c[i];
 						++it; // skip diag
-						for(; it != m_U.end_row(i); ++it)
+						for(; it != m_U.end_row(i); ++it){
 							// s -= it.value() * c[it.index()];
 							MatMultAdd(s, 1.0, s, -1.0, it.value(), c[it.index()] );
+						}
+						// c[i] = s/uii;
+						InverseMatMult(c[i], 1.0, uii, s);
 
-							// c[i] = s/uii;
-							InverseMatMult(c[i], 1.0, uii, s);
-
-							if(i==0) break;
+						if(i==0) break;
 					}
 				}
 			}

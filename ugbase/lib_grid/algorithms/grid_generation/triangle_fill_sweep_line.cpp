@@ -1112,7 +1112,7 @@ for(SweepLineEdgeIter iter = edges.begin(); iter != edges.end(); ++iter){
 		//	stack and do some administrative stuff
 			if(lastBranchInd == -1){
 				stk.push(cur);
-				lastBranchInd = curBranchInd;
+				//lastBranchInd = curBranchInd;  // never used
 			}
 			else{
 			//	if the last branch was on the other side we can now build triangles

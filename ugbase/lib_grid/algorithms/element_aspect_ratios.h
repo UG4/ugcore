@@ -37,6 +37,8 @@
 #include "lib_grid/parallelization/distributed_grid.h"
 #endif
 
+#include <lib_grid/algorithms/bounding_box_util.h>
+
 /* system includes */
 #include <stddef.h>
 #include <cmath>
@@ -107,47 +109,70 @@ number CalculateMinTriangleHeight(Face* face, TAAPosVRT& aaPos)
 template <class TElem, class TAAPosVRT>
 number CalculateAspectRatio(Grid& grid, TElem* elem, TAAPosVRT& aaPos);
 
-///	Face (Triangles and Constrained Triangles supported)
+/// Quadrilaterals
 template <class TAAPosVRT>
-number CalculateAspectRatio(Grid& grid, Face* face, TAAPosVRT& aaPos)
+number CalculateAspectRatio(Grid& grid, Quadrilateral* quad, TAAPosVRT& aaPos) {
+	typedef AABox<typename TAAPosVRT::ValueType> box_t;
+	Vertex* const* vrts = quad->vertices();
+	box_t box(aaPos[vrts[0]], aaPos[vrts[0]]);
+	for (size_t i = 1; i < quad->num_vertices(); ++i){
+		box = box_t(box, aaPos[vrts[i]]);
+	}
+	const number xDist = box.max.x() - box.min.x();
+	const number yDist = box.max.y() - box.min.y();
+	return xDist > yDist ? xDist/yDist : yDist/xDist;
+}
+
+///	Triangles and Constrained Triangles
+template <class TAAPosVRT>
+number CalculateAspectRatio(Grid& grid, Triangle* tri, TAAPosVRT& aaPos)
 {
-	//PROFILE_FUNC();
-	number AspectRatio;
 	number maxEdgeLength;
 
-//	Collect element edges, find longest edge and calculate its length
+	//	Collect element edges, find longest edge and calculate its length
 	vector<Edge*> edges;
-	CollectAssociated(edges, grid, face);
+	CollectAssociated(edges, grid, tri);
 	Edge* longestEdge = FindLongestEdge(edges.begin(), edges.end(), aaPos);
 	maxEdgeLength = EdgeLength(longestEdge, aaPos);
 
+	/*
+	 * optimal aspect ratio of a regular tetrahedron with edge lengths a:
+	 * Q = hmin/lmax = sqrt(3)/2*a / a = 0.866...
+	 *
+	 * Info: return value is normalized by factor 2/sqrt(3)
+	 * (s. Shewchuk, "What is a Good Linear Element? Interpolation, Conditioning, and Quality Measures?", 2002)
+	 */
+
+	//	Calculate minimal triangle height
+	number minTriangleHeight = CalculateMinTriangleHeight(tri, aaPos);
+
+	//	Calculate the aspect ratio
+	return  2/std::sqrt(3.0) * minTriangleHeight / maxEdgeLength;
+}
+
+/// CalculateAspectRatio for faces
+template <class TAAPosVRT>
+number CalculateAspectRatio(Grid& grid, Face* face, TAAPosVRT& aaPos)
+{
 	switch (face->reference_object_id())
 	{
 		case ROID_TRIANGLE:
 		{
-		/*
-		 * optimal aspect ratio of a regular tetrahedron with edge lengths a:
-		 * Q = hmin/lmax = sqrt(3)/2*a / a = 0.866...
-		 *
-		 * Info: return value is normalized by factor 2/sqrt(3)
-		 * (s. Shewchuk, "What is a Good Linear Element? Interpolation, Conditioning, and Quality Measures?", 2002)
-		 */
+			return CalculateAspectRatio(grid, static_cast<Triangle*>(face), aaPos);
+		}
 
-		//	Calculate minimal triangle height
-			number minTriangleHeight = CalculateMinTriangleHeight(face, aaPos);
-
-		//	Calculate the aspect ratio
-			AspectRatio = 2/std::sqrt(3.0) * minTriangleHeight / maxEdgeLength;
-			return AspectRatio;
+		case ROID_QUADRILATERAL:
+		{
+			return CalculateAspectRatio(grid, static_cast<Quadrilateral*>(face), aaPos);
 		}
 
 		default:
 		{
-		 	UG_THROW("Note: Currently only faces of type triangle supported in aspect ratio calculation.");
+		 	UG_THROW("Note: Currently only faces of type triangle and quadrilateral"
+		 			" supported in aspect ratio calculation.");
 		 	break;
 		}
 	}
-
 	return NAN;
 }
 
@@ -155,9 +180,6 @@ number CalculateAspectRatio(Grid& grid, Face* face, TAAPosVRT& aaPos)
 template <class TAAPosVRT>
 number CalculateAspectRatio(Grid& grid, Tetrahedron* tet, TAAPosVRT& aaPos)
 {
-	//PROFILE_FUNC();
-	number AspectRatio;
-
 	/*
 	 * optimal Aspect Ratio of a regular tetrahedron with edge lengths a:
 	 * Q = hmin/lmax = sqrt(2/3)*a / a = 0.8164...
@@ -165,11 +187,14 @@ number CalculateAspectRatio(Grid& grid, Tetrahedron* tet, TAAPosVRT& aaPos)
 	 * Info: return value is normalized by factor sqrt(3/2)
 	 * (s. Shewchuk, "What is a Good Linear Element? Interpolation, Conditioning, and Quality Measures?", 2002)
 	 */
+	return CalculateTetrahedronAspectRatio(grid, tet, aaPos);
+}
 
-//	Calculate the aspect ratio
-	AspectRatio = CalculateTetrahedronAspectRatio(grid, tet, aaPos);
-
-	return AspectRatio;
+/// Hexahedron
+template <class TAAPosVRT>
+number CalculateAspectRatio(Grid& grid, Hexahedron* hex, TAAPosVRT& aaPos)
+{
+	return CalculateHexahedronAspectRatio(grid, hex, aaPos);
 }
 
 ///	Volume
@@ -183,9 +208,15 @@ number CalculateAspectRatio(Grid& grid, Volume* vol, TAAPosVRT& aaPos)
 			return CalculateAspectRatio(grid, static_cast<Tetrahedron*>(vol), aaPos);
 		}
 
+		case ROID_HEXAHEDRON:
+		{
+			return CalculateAspectRatio(grid, static_cast<Hexahedron*>(vol), aaPos);
+		}
+
 		default:
 		{
-		 	UG_THROW("Note: Currently only volumes of type tetrahedron supported in aspect ratio calculation.");
+		 	UG_THROW("Note: Currently only volumes of type tetrahedron and hexahedron"
+		 			" supported in aspect ratio calculation.");
 		 	break;
 		}
 	}
@@ -206,7 +237,8 @@ number CalculateVolToRMSFaceAreaRatio(Grid& grid, TElem* elem, TAAPosVRT& aaPos)
 template <class TAAPosVRT>
 number CalculateVolToRMSFaceAreaRatio(Grid& grid, Face* face, TAAPosVRT& aaPos)
 {
-	UG_THROW("CalculateVolToRMSFaceAreaRatio: Currently only volumes of type tetrahedron supported in volume to root-mean-square face area ratio calculation.");
+	UG_THROW("CalculateVolToRMSFaceAreaRatio: Currently only volumes of type tetrahedron"
+			" supported in volume to root-mean-square face area ratio calculation.");
 	return NAN;
 }
 
@@ -226,7 +258,7 @@ number CalculateVolToRMSFaceAreaRatio(Grid& grid, Tetrahedron* tet, TAAPosVRT& a
 	 * (s. Shewchuk, "What is a Good Linear Element? Interpolation, Conditioning, and Quality Measures?", 2002)
 	 */
 
-//	Calculate the ratio
+	//	Calculate the ratio
 	ratio = CalculateTetrahedronVolToRMSFaceAreaRatio(grid, tet, aaPos);
 
 	return ratio;
@@ -245,7 +277,8 @@ number CalculateVolToRMSFaceAreaRatio(Grid& grid, Volume* vol, TAAPosVRT& aaPos)
 
 		default:
 		{
-		 	UG_THROW("CalculateVolToRMSFaceAreaRatio: Currently only volumes of type tetrahedron supported in aspect ratio calculation.");
+			UG_THROW("CalculateVolToRMSFaceAreaRatio: Currently only volumes of type tetrahedron"
+					" supported in volume to root-mean-square face area ratio calculation.");
 		 	break;
 		}
 	}
@@ -493,7 +526,5 @@ FindElementWithLargestVolToRMSFaceAreaRatio(Grid& grid, TIterator elemsBegin,
 
 	return elementWithLargestRatio;
 }
-
-
 }	 
 #endif

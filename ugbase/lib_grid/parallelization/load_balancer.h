@@ -149,6 +149,7 @@ class LoadBalancer{
 
 		void create_quality_record(const char* label);
 		void print_quality_records() const;
+		void print_last_quality_record() const;
 
 	private:
 		template <class TElem>

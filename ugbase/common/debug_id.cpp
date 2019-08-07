@@ -34,6 +34,7 @@
 #include "common/log.h"
 #include "common/error.h"
 #include "common/assert.h"
+#include <iostream>
 #include <string.h>
 #include "util/string_util.h"
 
@@ -110,6 +111,8 @@ register_debug_id(const char *debugID)
 	else
 	{
 		// not quite clear if cout is defined yet.
+		// --> it should be, if we define it in this header!
+		std::cout << "FATAL ERROR: DebugID "<<debugID<<" already registered." << std::endl;
 		// note that this could be caused by double-registering libraries.
 		UG_THROW("FATAL ERROR: DebugID "<<debugID<<" already registered.");
 		return false;

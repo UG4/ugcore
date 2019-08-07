@@ -67,7 +67,7 @@ function UJS_Submit
 		$commandline | tee $outdir/job.output
 		return=$?	
 		if [ ! $return == 0 ]; then
-			echo "ERROR: srun returned $return. Job has NOT been started."
+			echo "ERROR: salloc returned $return. Job has NOT been started."
 			exit
 		fi
 	else
@@ -93,7 +93,7 @@ function UJS_GetOptions
 function UJS_Info
 {
 	echo "UGSUBMIT Info for cesari:"
-	echo "Max Cores Total: 520 (26 Nodes with 10 Dualcores Per Node)"
+	echo "Max Cores Total: 520 (26 nodes with two 10-Core-CPUs per node)"
 	echo "Using SLURM on cesari"	
 	if [ ! -z $1 ] && [ $1 == "all" ]; then
 		echo "squeue -o \"%.7i %6C %6D %.50j %.10u %.8T %.10M %.10l %.6D %19R\""

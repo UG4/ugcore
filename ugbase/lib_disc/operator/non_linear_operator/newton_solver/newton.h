@@ -143,6 +143,10 @@ class NewtonSolver
 	///	clears outer step update
 		void clear_step_update(SmartPtr<INewtonUpdate > NU)
 			{m_stepUpdate.clear();}
+		
+	///	sets the frequency of reassembling of the Jacobian (0 == 1 == in every step, i.e. classically)
+		void set_reassemble_J_freq(int freq)
+			{m_reassembe_J_freq = freq;};
 
 	private:
 	///	help functions for debug output
@@ -171,13 +175,8 @@ class NewtonSolver
 		SmartPtr<AssembledLinearOperator<algebra_type> > m_J;
 	///	assembling
 		SmartPtr<IAssemble<TAlgebra> > m_spAss;
-
-	/// line search parameters
-	/// \{
-		int m_maxLineSearch;
-		number m_lambda_start;
-		number m_lambda_reduce;
-	/// \}
+	/// how often to reassemble the Jacobian (0 == 1 == in every step, i.e. classically)
+		int m_reassembe_J_freq;
 
 	///	call counter
 		int m_dgbCall;

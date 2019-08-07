@@ -285,7 +285,6 @@ void RegisterStandardBridges(Registry& reg, string parentGroup)
 #endif
 #ifdef UG_DIM_3
 		if(!first) {availDims << ",";}; availDims << "3";
-		first = false;
 #endif
 
 #ifdef UG_ALGEBRA

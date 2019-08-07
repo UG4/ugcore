@@ -249,7 +249,7 @@ public:
 	/// Extract matrix (on local index set)
 	virtual void extract_matrix(const matrix_type &A)
 	{
-		typedef typename TAlgebra::matrix_type::const_row_iterator const_row_iterator;
+		//typedef typename TAlgebra::matrix_type::const_row_iterator const_row_iterator;
 		// const static int blockSize = TAlgebra::blockSize;
 		const size_t numIndex  = this->size();
 
@@ -703,8 +703,8 @@ protected:
 		GridFunction<TDomain, TAlgebra>* pC = dynamic_cast<GridFunction<TDomain, TAlgebra>*>(&c);
 		UG_COND_THROW(pC == NULL, "SequentialSubspaceCorrection expects correction to be a GridFunction.");
 
-		typedef typename GridFunction<TDomain, TAlgebra>::element_type Element;
-		typedef typename GridFunction<TDomain, TAlgebra>::side_type Side;
+		//typedef typename GridFunction<TDomain, TAlgebra>::element_type Element;
+		//typedef typename GridFunction<TDomain, TAlgebra>::side_type Side;
 		m_spVertexSubspace->preprocess(*pC);
 
 		// Set all vector entries to zero.

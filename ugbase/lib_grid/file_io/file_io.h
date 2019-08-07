@@ -36,7 +36,8 @@
 #include "common/types.h"
 #include "common/ug_config.h"
 #include "common/error.h"
-
+#include <lib_grid/attachments/attachment_pipe.h>
+#include <lib_grid/grid/grid_base_objects.h>
 
 namespace ug
 {
@@ -164,6 +165,49 @@ void CopyGridLevel(MultiGrid& srcMG, Grid& destGrid,
 				   int lvl, TAPos aPos);
 
 
+////////////////////////////////////////////////////////////////////////////////
+///	Copies a grid to a separate grid.
+/**
+ * Extracts the grid from a given Grid with a given SubsetHandler
+ * and copies it to a new grid. Position data is read from aPos.
+ * Note: To copy a grid w/o subset information can use Grid's copy constructor
+ * \param[in] srcGrid the grid to be copied
+ * \param[out] destGrid the copied grid
+ * \param[in] srcSh the SubsetHandler for the srcGrid
+ * \param[out] destSh the SubsetHandler for the destGrid
+ * \tparam[in] aPos position attachment
+ */
+template <class TAPos>
+void CopyGrid
+(
+	Grid& srcGrid,
+	Grid& destGrid,
+	ISubsetHandler& srcSH,
+	ISubsetHandler& destSH,
+	TAPos aPos
+);
+
+/// Merges to grids into one grid.
+/**
+ * Merges all grid elements and subset information from grid to mrgGrid
+ * \param[in,out] mrgGrid merged grid
+ * \param[in] grid input to be merged into merged grid
+ * \param[in] mrgSH the SubsetHandler for mrgGrid
+ * \param[in,out] sh the SubsetHandler for grid
+ * \tparam[in] aPos position attachment
+ * \param[in] joinSubsets if true then subsets will be joined otherwise not
+ */
+template <typename TAPos>
+void MergeGrids
+(
+	Grid& mrgGrid,
+	Grid& grid,
+	ISubsetHandler& mrgSh,
+	ISubsetHandler& sh,
+	TAPos aPos,
+	bool joinSubsets
+);
+
 ///	Saves a grid level to a file.
 /**
  * Extracts a specified level from a given MultiGrid with a given SubsetHandler
@@ -182,7 +226,15 @@ bool SaveGridLevel(MultiGrid& srcMG, ISubsetHandler& srcSH, int lvl,
 bool SaveGridLevelToFile(MultiGrid& srcMG, ISubsetHandler& srcSH, int lvl,
 		  	  	  	     const char* filename);
 
+/// Copy grid elements of type TElem from srcGrid to destGrid
+template<class TElem>
+void CopyGridElements(Grid& srcGrid, Grid& destGrid,
+				      ISubsetHandler& srcSH, ISubsetHandler& destSH,
+					  Attachment<Vertex*>& aNewVrt);
+/// end namespace ug
+}
 
-};
+/// include implementation
+#include "file_io_impl.h"
 
 #endif

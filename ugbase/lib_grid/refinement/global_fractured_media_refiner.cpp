@@ -799,18 +799,18 @@ assign_elem_and_side_marks()
 		//	unmarked sides as fixed sides
 			for(size_t i_side = 0; i_side < sides.size(); ++i_side){
 				Side* s = sides[i_side];
-				if(!m_marker.is_marked(s))
+				if(!m_marker.is_marked(s)){
 				//	in 3d we'll also have to mark sides of sides, to guarantee,
 				//	that fixed marks are communicated correctly.
 					fixedMarker.mark(s);
+				}
 
-					if(Side::dim == 2){
-						CollectAssociated(sidesOfSides, mg, s);
-						for(size_t i = 0; i < sidesOfSides.size(); ++i)
-							fixedMarker.mark(sidesOfSides[i]);
-					}
+				if(Side::dim == 2){
+					CollectAssociated(sidesOfSides, mg, s);
+					for(size_t i = 0; i < sidesOfSides.size(); ++i)
+						fixedMarker.mark(sidesOfSides[i]);
+				}
 			}
-
 		}
 		else{
 		//	this should only happen if we're on a cap-element. Store the element for later use.

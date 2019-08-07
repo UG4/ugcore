@@ -45,8 +45,8 @@ void SetInterpolation(TMatrix& A,
                       std::vector<std::vector<size_t> >& vConstrainingIndex,
 					  bool assembleLinearProblem = true)
 {
-	typedef typename TMatrix::row_iterator row_iterator;
-	typedef typename TMatrix::value_type block_type;
+	//typedef typename TMatrix::row_iterator row_iterator;
+	//typedef typename TMatrix::value_type block_type;
 
 	//	check number of indices passed
 	for(size_t i = 0; i < vConstrainingIndex.size(); ++i)
@@ -653,7 +653,7 @@ adjust_correction
 	number time
 )
 {
-	typedef typename vector_type::value_type block_type;
+	//typedef typename vector_type::value_type block_type;
 
 	if (this->m_spAssTuner->single_index_assembling_enabled())
 		UG_THROW("index-wise assemble routine is not "
@@ -1115,7 +1115,7 @@ adjust_correction
 	number time
 )
 {
-	typedef typename vector_type::value_type block_type;
+	//typedef typename vector_type::value_type block_type;
 
 	if (this->m_spAssTuner->single_index_assembling_enabled())
 		UG_THROW("index-wise assemble routine is not "

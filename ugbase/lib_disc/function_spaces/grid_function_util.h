@@ -74,6 +74,87 @@ using boost::math::isnan;
 using boost::math::isinf;
 #endif
 
+
+template <typename TBaseElem, typename TGridFunction>
+static void ScaleGFOnElems
+(
+	ConstSmartPtr<DoFDistribution> dd,
+	SmartPtr<TGridFunction> vecOut,
+	ConstSmartPtr<TGridFunction> vecIn,
+	const std::vector<number>& vScale
+)
+{
+	typename DoFDistribution::traits<TBaseElem>::const_iterator iter, iterEnd;
+	std::vector<DoFIndex> vInd;
+
+	try
+	{
+		// iterate all elements (including SHADOW_RIM_COPY!)
+		iter = dd->template begin<TBaseElem>(SurfaceView::ALL);
+		iterEnd = dd->template end<TBaseElem>(SurfaceView::ALL);
+		for (; iter != iterEnd; ++iter)
+		{
+			for (size_t fi = 0; fi < dd->num_fct(); ++fi)
+			{
+				size_t nInd = dd->inner_dof_indices(*iter, fi, vInd);
+
+				// remember multi indices
+				for (size_t dof = 0; dof < nInd; ++dof)
+					DoFRef(*vecOut, vInd[dof]) = vScale[fi] * DoFRef(*vecIn, vInd[dof]);
+			}
+		}
+	}
+	UG_CATCH_THROW("Error while scaling vector.")
+}
+
+
+/**
+ * \brief Scales all functions contained in a grid function.
+ *
+ *	Each function has a separate scaling factor.
+ *
+ * \param scaledVecOut    the scaled grid function (output)
+ * \param vecIn	          the original grid function (input)
+ * \param scalingFactors  vector of scales for each of the composite functions
+ */
+template <typename TGridFunction>
+void ScaleGF
+(
+	SmartPtr<TGridFunction> scaledVecOut,
+	ConstSmartPtr<TGridFunction> vecIn,
+	const std::vector<number>& scalingFactors
+)
+{
+	// check that the correct numbers of scaling factors are given
+	size_t n = scalingFactors.size();
+	UG_COND_THROW(n != vecIn->num_fct(), "Number of scaling factors (" << n << ") "
+			"does not match number of functions given in dimless vector (" << vecIn->num_fct() << ").");
+
+	// check that input and output vectors have the same number of components and dofs
+	UG_COND_THROW(n != scaledVecOut->num_fct(), "Input and output vectors do not have "
+			"the same number of functions (" << n << " vs. " << scaledVecOut->num_fct() << ").");
+	for (size_t fct = 0; fct < n; ++fct)
+	{
+		UG_COND_THROW(vecIn->num_dofs(fct) != scaledVecOut->num_dofs(fct),
+				"Input and output vectors do not have the same number of DoFs for function " << fct
+				<< " (" << vecIn->num_dofs(fct) << " vs. " << scaledVecOut->num_dofs(fct) << ").");
+	}
+
+	ConstSmartPtr<DoFDistribution> dd = vecIn->dof_distribution();
+
+	if (dd->max_dofs(VERTEX))
+		ScaleGFOnElems<Vertex, TGridFunction>(dd, scaledVecOut, vecIn, scalingFactors);
+	if (dd->max_dofs(EDGE))
+		ScaleGFOnElems<Edge, TGridFunction>(dd, scaledVecOut, vecIn, scalingFactors);
+	if (dd->max_dofs(FACE))
+		ScaleGFOnElems<Face, TGridFunction>(dd, scaledVecOut, vecIn, scalingFactors);
+	if (dd->max_dofs(VOLUME))
+		ScaleGFOnElems<Volume, TGridFunction>(dd, scaledVecOut, vecIn, scalingFactors);
+}
+
+
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // 	AverageComponent
 ////////////////////////////////////////////////////////////////////////////////

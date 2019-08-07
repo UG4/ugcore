@@ -48,6 +48,7 @@
 #include "sphere_projector.h"
 #include "subdivision_projector.h"
 #include "neurite_projector.h"
+#include "soma_projector.h"
 
 namespace boost {
 namespace mpl {
@@ -65,10 +66,11 @@ typedef vector<
 			pair <ug::RefinementProjector,	string<'defa','ult'> >,
 			pair <ug::CylinderProjector,    string<'cyli','nder'> >,
 			pair <ug::EllipticCylinderProjector, string<'elli','pcyl'> >,
-			pair <ug::SphereProjector,		string<'sphe','re'> >,
-			pair <ug::SubdivisionProjector,	string<'subd','ivis', 'ion'> >,
-			pair <ug::SmoothProjector,		string<'smoo','th'> >,
+			pair <ug::SphereProjector,      string<'sphe','re'> >,
+			pair <ug::SubdivisionProjector, string<'subd','ivis', 'ion'> >,
+			pair <ug::SmoothProjector,      string<'smoo','th'> >,
 			pair <ug::RasterLayersProjector,string<'rast','er'> >,
+			pair <ug::SomaProjector,        string<'soma','ta'> >,
 			pair <ug::NeuriteProjector,     string<'neur','ite'> >
 			>
 	ProjectorTypes;	

@@ -397,7 +397,8 @@ void MarkElementsForCoarsening
 		IRefiner& refiner,
 		ConstSmartPtr<DoFDistribution> dd,
 		number TOL,
-		number safety
+		number safety,
+		int minLevel = 0
 )
 {
 	typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
@@ -427,6 +428,10 @@ void MarkElementsForCoarsening
 
 	// ignore if already marked for coarsening
 		if (refiner.get_mark(elem) & RM_COARSEN) continue;
+
+	// ignore if level too low
+		if (dd->multi_grid()->get_level(elem) <= minLevel)
+			 continue;
 
 	// get parent
 		TElem* parent = dynamic_cast<TElem*>(dd->multi_grid()->get_parent(elem));

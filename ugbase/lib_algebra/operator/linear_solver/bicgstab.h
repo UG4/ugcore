@@ -113,8 +113,11 @@ class BiCGStab
 
 		//	check correct storage type in parallel
 			#ifdef UG_PARALLEL
-			if(!b.has_storage_type(PST_ADDITIVE) || !x.has_storage_type(PST_CONSISTENT))
-				UG_THROW("BiCGStab: Inadequate parallel storage format of the vectors for the sol and the rhs.");
+			if(!b.has_storage_type(PST_ADDITIVE) || !x.has_storage_type(PST_CONSISTENT)){
+				UG_LOG("BICGStab:b_storage_type"<<b.has_storage_type(PST_ADDITIVE)<<"\n");
+				UG_LOG("BICGStab:x_storage_type"<<x.has_storage_type(PST_CONSISTENT)<<"\n");
+				UG_THROW("BiCGStab: Inadequate storage format of Vectors.");
+			}
 			#endif
 
 		// 	build defect:  r := b - A*x
