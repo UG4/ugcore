@@ -260,8 +260,6 @@ class NeuriteProjector
 			float axial;
 			float angular;
 			float radial;
-			bool soma;  // used by neurite_projector.cpp temporarily
-			float scale;  // used by neurite_projector.cpp temporarily
 		};
 
 
@@ -297,16 +295,10 @@ class NeuriteProjector
 	public:
 		std::vector<Neurite>& neurites();
 		const Neurite& neurite(uint32_t nid) const;
-
 		Grid::VertexAttachmentAccessor<Attachment<SurfaceParams> >& surface_params_accessor();
 		const Grid::VertexAttachmentAccessor<Attachment<SurfaceParams> >& surface_params_accessor() const;
-
 		const std::vector<std::pair<number, number> >& quadrature_points() const;
-
 		void average_pos_from_parent(vector3& posOut, const IVertexGroup* const parent) const;
-
-		//void average_pos_from_parent_weighted(vector3& posOut, const IVertexGroup* parent) const;
-
 		vector3 position(Vertex* vrt) const;
 
 		number axial_range_around_branching_region
@@ -363,8 +355,7 @@ class NeuriteProjector
 		**/
 		std::vector<Neurite> m_vNeurites; //!< spline information for neurites and somatas
 
-		/// for quadrature when projecting within branching points
-		std::vector<std::pair<number, number> > m_qPoints;
+		std::vector<std::pair<number, number> > m_qPoints; //!< for quadrature when projecting within branching points
 
 		/*!
 		 * \brief check if an element is inside a sphere
@@ -417,7 +408,7 @@ class NeuriteProjector
 		{
 			UG_EMPTY_BASE_CLASS_SERIALIZATION(NeuriteProjector, RefinementProjector);
 
-			/// neurites
+			// neurites
 			size_t sz;
 			ar >> sz;
 			m_vNeurites.resize(sz);
@@ -450,22 +441,15 @@ class NeuriteProjector
 					}
 				}
 			}
-
 			// debug_neurites();
 		}
-
-
-
-
 		BOOST_SERIALIZATION_SPLIT_MEMBER();
 };
 
-// DO NOT CHANGE! Needed for serialization! //
+// DO NOT CHANGE LINES BELOW! Needed for serialization! //
 std::ostream& operator<<(std::ostream &os, const NeuriteProjector::SurfaceParams& surfParams);
 std::istream& operator>>(std::istream& in, NeuriteProjector::SurfaceParams& surfParams);
 DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<NeuriteProjector::SurfaceParams>, "NeuriteProjectorSurfaceParams");
-
 } // namespace ug
-
 
 #endif // UG__LIB_GRID__REFINEMENT__PROJECTORS__NEURITE_PROJECTOR_H

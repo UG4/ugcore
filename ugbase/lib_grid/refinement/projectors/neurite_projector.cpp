@@ -949,11 +949,6 @@ static void pos_on_surface_soma
 (
     vector3& posOut,
     const NeuriteProjector::Neurite& neurite,
-    size_t neuriteID,
-    float& t,
-    float& angle,
-    float scale,
-    float rad,
     const NeuriteProjector* np,
     const IVertexGroup* parent
 )
@@ -1273,7 +1268,7 @@ static void pos_on_surface_soma_bp
  	sec_start = (&np->neurite(neuriteID).vSec)->begin();
 
     // 2. determine suitable start position for Newton iteration
-    pos_on_surface_soma(posOut, np->neurite(neuriteID), neuriteID, t, angle, 1.0, rad, np, parent);
+    pos_on_surface_soma(posOut, np->neurite(neuriteID), np, parent);
 
     // 3. perform Newton iteration
     try {newton_for_soma_bp_projection(posOut, vProjHelp, np);}
@@ -1499,7 +1494,6 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 	float t;
 	float angle;
 	float rad;
-	float scale;
 	if (parent)
 		average_params(neuriteID, t, angle, rad, parent);
 	else
@@ -1508,7 +1502,6 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 		t = m_aaSurfParams[vrt].axial;
 		angle = m_aaSurfParams[vrt].angular;
 		rad = m_aaSurfParams[vrt].radial;
-		scale = m_aaSurfParams[vrt].scale;
 	}
 
 	//UG_LOGN("averaged params: nid " << neuriteID << "   t " << t << "   angle "
@@ -1600,7 +1593,7 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 	// case 4: normal soma position
 	else if (t < 0 && t >= -1.0)
 	{
-		pos_on_surface_soma(pos, neurite, neuriteID, t, angle, scale, rad, this, parent);
+		pos_on_surface_soma(pos, neurite, this, parent);
 	}
 
 	// case 5: tip of neurite
