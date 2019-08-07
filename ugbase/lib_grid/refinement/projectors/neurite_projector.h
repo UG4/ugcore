@@ -179,6 +179,14 @@ class NeuriteProjector
 				ar & t;
 			}
 
+			template<class Archive>
+			void load(Archive & ar, const unsigned int version)
+			{
+				ar >> center;
+				ar >> radius;
+				ar >> t;
+			}
+
 			SomaRegion(const vector3& center, number radius, number t)
 				: center(center),
 				  radius(radius),
@@ -208,6 +216,7 @@ class NeuriteProjector
 			template <class Archive>
 			void serialize(Archive& ar, const unsigned int version)
 			{
+				/// neurite information
 				ar & refDir;
 
 				size_t sz = vSec.size();
@@ -221,6 +230,14 @@ class NeuriteProjector
 				vBR.resize(sz);
 				for (size_t i = 0; i < sz; ++i)
 					ar & vBR[i];
+
+				/// soma information
+				sz = vSR.size();
+				ar & sz;
+				vSR.resize(sz);
+				for (size_t i = 0; i < sz; ++i) {
+					ar & vSR[i];
+				}
 			}
 		};
 
@@ -388,14 +405,6 @@ class NeuriteProjector
 				for (size_t i = 0; i < sz; ++i) {
 					ar << m_vNeurites[i];
 				}
-
-				/*
-				// somata
-				sz = m_vSomata.size();
-				for (size_t i = 0; i < sz; ++i) {
-					ar << m_vSomata[i];
-				}
-				*/
 			}
 
 			// do not do anything otherwise
@@ -415,15 +424,6 @@ class NeuriteProjector
 			for (size_t i = 0; i < sz; ++i) {
 				ar >> m_vNeurites[i];
 			}
-
-			/*
-			/// somata
-			ar >> sz;
-			m_vSomata.resize(sz);
-			for (size_t i = 0; i < sz; ++i) {
-				ar >> m_vSomata[i];
-			}
-			*/
 
 			// reconstruct uninitialized pointers in branching points/ranges
 			size_t nNeurites = m_vNeurites.size();

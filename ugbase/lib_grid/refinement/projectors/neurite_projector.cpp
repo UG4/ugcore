@@ -1069,9 +1069,9 @@ static void newton_for_soma_bp_projection
         posOut = bestPos;
     }
     UG_COND_THROW(def != def,
-        "Newton iteration did not converge for branching point projection at " << posStart << ". Defect is NaN.")
+        "Newton iteration did not converge for soma branching point projection at " << posStart << ". Defect is NaN.")
     UG_COND_THROW(fabs(def) > minDef && fabs(def) > 1e-8 * def_init,
-        "Newton iteration did not converge for branching point projection at " << posStart << ".")
+        "Newton iteration did not converge for soma branching point projection at " << posStart << ".")
 }
 
 
