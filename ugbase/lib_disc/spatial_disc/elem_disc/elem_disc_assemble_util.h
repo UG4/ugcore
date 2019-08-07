@@ -384,6 +384,14 @@ public:
 			}
 			UG_CATCH_THROW("(stationary) AssembleJacobian: Cannot prepare element.");
 
+        //	modifies size of local data (locally) if needed
+            if( spAssTuner->modify_solution_enabled() )
+            {
+                try{
+                    spAssTuner->modify_LocalData(locJ, locU, dd);
+                } UG_CATCH_THROW("Cannot modify local solution.");
+            }
+            
 		//	reset local algebra
 			locJ = 0.0;
 
@@ -400,6 +408,9 @@ public:
 			}
 			UG_CATCH_THROW("(stationary) AssembleJacobian: Cannot add local matrix.");
 		}
+
+    // ToDO: Only for diffusion, iff INSIDE circle-computation only! ==> all other DoFs set to Dirichlet!
+    //      spAssTuner->adjust_mat_global(J, locJ, dd);
 
 	//	finish element loop
 		try
@@ -511,6 +522,14 @@ public:
 			}
 			UG_CATCH_THROW("(instationary) AssembleJacobian: Cannot prepare element.");
 
+        //	modifies size of local data (locally) if needed
+            if( spAssTuner->modify_solution_enabled() )
+            {
+                try{
+                    spAssTuner->modify_LocalData(locTimeSeries, locJ, locU, dd);
+                } UG_CATCH_THROW("Cannot modify local solution.");
+            }
+            
 		//	reset local algebra
 			locJ = 0.0;
 
@@ -635,13 +654,12 @@ public:
 			}
 			UG_CATCH_THROW("(stationary) AssembleDefect: Cannot prepare element.");
 
-		//	ANALOG to 'domain_disc_elem()' -  modifies the solution, used
-		//	for computing the defect
+        //	modifies size of local data (locally) if needed
 			if( spAssTuner->modify_solution_enabled() )
 			{
 				LocalVector& modLocU = locU;
 				try{
-					spAssTuner->modify_LocalSol(modLocU, locU, dd);
+					spAssTuner->modify_LocalData(locD, tmpLocD, locU, dd);
 				} UG_CATCH_THROW("Cannot modify local solution.");
 
 				// recopy modified LocalVector:
@@ -667,13 +685,13 @@ public:
 
 			}
 			UG_CATCH_THROW("(stationary) AssembleDefect: Cannot compute Rhs.");
-
+            
 		//	send local to global defect
 			try{
 				spAssTuner->add_local_vec_to_global(d, locD, dd);
 			}
 			UG_CATCH_THROW("(stationary) AssembleDefect: Cannot add local vector.");
-		}
+        }
 
 	//	finish element loop
 		try
@@ -684,6 +702,8 @@ public:
 
 		}
 		UG_CATCH_THROW("(stationary) AssembleDefect: Cannot create Data Evaluator.");
+        
+
 	}
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -798,6 +818,14 @@ public:
 				}
 				UG_CATCH_THROW("(instationary) AssembleDefect: Cannot prepare element.");
 
+            //	modifies size of local data (locally) if needed
+                if( spAssTuner->modify_solution_enabled() )
+                {
+                    try{
+                        spAssTuner->modify_LocalData(locTimeSeries, locD, tmpLocD, locU, dd, t);
+                    } UG_CATCH_THROW("Cannot modify local solution.");
+                }
+                
 			//	Assemble M
 				try
 				{

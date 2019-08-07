@@ -50,7 +50,7 @@
 #include "lib_disc/operator/linear_operator/multi_grid_solver/mg_solver.h"
 #include "lib_disc/operator/linear_operator/element_gauss_seidel/element_gauss_seidel.h"
 #include "lib_disc/operator/linear_operator/element_gauss_seidel/component_gauss_seidel.h"
-#include "lib_disc/operator/linear_operator/uzawa/uzawa.h"
+//#include "lib_disc/operator/linear_operator/uzawa/uzawa.h"
 
 using namespace std;
 
@@ -245,7 +245,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ComponentGaussSeidel", tag);
 	}
-
+/*
 	// Uzawa (smoother/iteration)
 	    {
 	        typedef UzawaBase<TDomain, TAlgebra> T;
@@ -265,7 +265,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 	        reg.add_class_to_group(name, "UzawaBase", tag);
 	        //std::cout <<"Registered "<< name << std::endl;
 	    }
-
+*/
 
 }
 

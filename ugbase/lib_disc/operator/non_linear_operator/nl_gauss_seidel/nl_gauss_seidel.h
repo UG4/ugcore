@@ -68,12 +68,26 @@ class LocalToGlobalMapperNLGS : public ILocalToGlobalMapper<TAlgebra>
 		void add_local_vec_to_global(vector_type& vec, const LocalVector& lvec,
 				ConstSmartPtr<DoFDistribution> dd);
 
-	///	adds a local matrix to the global matrix
+    /// sets certain entries to Dirichlet DoFs (in elem_disc_assembla_util)
 		void add_local_mat_to_global(matrix_type& mat, const LocalMatrix& lmat,
 				ConstSmartPtr<DoFDistribution> dd);
 
-	///	modifies local solution vector for adapted defect computation
-		 void modify_LocalSol(LocalVector& vecMod, const LocalVector& lvec, ConstSmartPtr<DoFDistribution> dd){}
+        void adjust_mat_global(matrix_type& mat, const LocalMatrix& lmat,
+                           ConstSmartPtr<DoFDistribution> dd){};
+    
+    ///	modifies local solution vector for adapted defect computation ( in elem_disc_assemble_util)
+        void modify_LocalData(LocalMatrix& locJ, LocalVector& locU, ConstSmartPtr<DoFDistribution> dd){};
+        void modify_LocalData(LocalVectorTimeSeries& uT, LocalMatrix& locJ, LocalVector& locU, ConstSmartPtr<DoFDistribution> dd){};
+    
+        void modify_LocalData(LocalVector& locD, LocalVector& tmpLocD, LocalVector& locU, ConstSmartPtr<DoFDistribution> dd){};
+        void modify_LocalData(LocalVectorTimeSeries& uT, LocalVector& locD, LocalVector& tmpLocD, LocalVector& locU,
+                          ConstSmartPtr<DoFDistribution> dd, size_t t){};
+    
+    ///	modifies global solution vector for adapted defect computation (in domain_disc_impl)
+        void modify_GlobalSol(vector_type& vecMod, const vector_type& vec, ConstSmartPtr<DoFDistribution> dd){};
+    
+        void modify_GlobalSol(SmartPtr<VectorTimeSeries<vector_type> > vSolMod,
+                          ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, ConstSmartPtr<DoFDistribution> dd) {};
 
 	/// sets assembling index
 		void set_assembling_index(const size_t assIndex){ m_assemblingIndex = assIndex;}

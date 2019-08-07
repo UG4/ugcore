@@ -37,6 +37,8 @@
 #include "lib_grid/tools/selector_grid.h"
 #include "lib_disc/spatial_disc/local_to_global/local_to_global_mapper.h"
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
+#include "lib_disc/time_disc/solution_time_series.h"
+
 
 namespace ug{
 
@@ -84,9 +86,23 @@ class LocalToGlobalMapper : public ILocalToGlobalMapper<TAlgebra>
 		void add_local_mat_to_global(matrix_type& mat, const LocalMatrix& lmat, ConstSmartPtr<DoFDistribution> dd)
 			{ AddLocalMatrixToGlobal(mat,lmat);}
 
-	///	modifies local solution vector for adapted defect computation
-		void modify_LocalSol(LocalVector& vecMod, const LocalVector& lvec, ConstSmartPtr<DoFDistribution> dd){};
-
+    /// sets certain entries to Dirichlet DoFs (in elem_disc_assembla_util)
+        void adjust_mat_global(matrix_type& mat, const LocalMatrix& lmat, ConstSmartPtr<DoFDistribution> dd){ }
+    
+    ///	modifies local solution vector for adapted defect computation ( in elem_disc_assemble_util)
+        virtual void modify_LocalData(LocalMatrix& locJ, LocalVector& locU, ConstSmartPtr<DoFDistribution> dd){};
+        virtual void modify_LocalData(LocalVectorTimeSeries& uT, LocalMatrix& locJ, LocalVector& locU, ConstSmartPtr<DoFDistribution> dd){};
+    
+        virtual void modify_LocalData(LocalVector& locD, LocalVector& tmpLocD, LocalVector& locU, ConstSmartPtr<DoFDistribution> dd){};
+        virtual void modify_LocalData(LocalVectorTimeSeries& uT, LocalVector& locD, LocalVector& tmpLocD, LocalVector& locU,
+                                  ConstSmartPtr<DoFDistribution> dd, size_t t){};
+    
+    ///	modifies global solution vector for adapted defect computation (in domain_disc_impl)
+        void modify_GlobalSol(vector_type& vecMod, const vector_type& vec, ConstSmartPtr<DoFDistribution> dd){};
+    
+        void modify_GlobalSol(SmartPtr<VectorTimeSeries<vector_type> > vSolMod,
+                          ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, ConstSmartPtr<DoFDistribution> dd) {};
+    
 	///	destructor
 		~LocalToGlobalMapper() {};
 };
@@ -140,9 +156,37 @@ class AssemblingTuner
 		                         ConstSmartPtr<DoFDistribution> dd) const
 		{ m_pMapper->add_local_mat_to_global(mat, lmat, dd);}
 
-		void modify_LocalSol(LocalVector& vecMod, const LocalVector& lvec,
+    /// sets certain entries to Dirichlet DoFs (in elem_disc_assembla_util)
+        void adjust_mat_global(matrix_type& mat, const LocalMatrix& lmat,
 		                         ConstSmartPtr<DoFDistribution> dd) const
-		{ m_pMapper->modify_LocalSol(vecMod, lvec, dd);}
+        { m_pMapper->adjust_mat_global(mat, lmat, dd);}
+    
+    ///	modifies local solution vector for adapted defect computation ( in elem_disc_assemble_util)
+        void modify_LocalData(LocalVector& locD, LocalVector& tmpLocD, LocalVector& locU,
+                          ConstSmartPtr<DoFDistribution> dd) const
+        { m_pMapper->modify_LocalData(locD, tmpLocD, locU, dd);}
+        void modify_LocalData(LocalVectorTimeSeries& uT, LocalVector& locD, LocalVector& tmpLocD, LocalVector& locU,
+                          ConstSmartPtr<DoFDistribution> dd, size_t t) const
+        { m_pMapper->modify_LocalData(uT, locD, tmpLocD, locU, dd, t);}
+    
+        void modify_LocalData(LocalMatrix& locJ, LocalVector& locU,
+                          ConstSmartPtr<DoFDistribution> dd) const
+        { m_pMapper->modify_LocalData(locJ, locU, dd);}
+        void modify_LocalData(LocalVectorTimeSeries& uT, LocalMatrix& locJ, LocalVector& locU,
+                          ConstSmartPtr<DoFDistribution> dd) const
+        { m_pMapper->modify_LocalData(uT, locJ, locU, dd);}
+    
+    ///	modifies global solution vector for adapted defect computation (in domain_disc_impl)
+        void modify_GlobalSol(vector_type& vecMod, const vector_type& vec,
+                          ConstSmartPtr<DoFDistribution> dd) const
+        { m_pMapper->modify_GlobalSol(vecMod, vec, dd);}
+        void modify_GlobalSol(SmartPtr<VectorTimeSeries<vector_type> > vSolMod,
+                          ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+                          ConstSmartPtr<DoFDistribution> dd) const
+        { m_pMapper->modify_GlobalSol(vSolMod, vSol, dd);}
+    
+    
+    
 	///	sets a marker to exclude elements from assembling
 	/**
 	 * This methods sets a marker. Only elements that are marked will be

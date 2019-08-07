@@ -93,6 +93,8 @@ set(srcDiscretization	domain.cpp
 						spatial_disc/disc_util/fe_geom.cpp
 						spatial_disc/disc_util/fvho_geom.cpp
 						spatial_disc/disc_util/fv1_geom.cpp
+                        spatial_disc/disc_util/fv1FT_geom.cpp
+            spatial_disc/disc_util/fv1Cut_geom.cpp
 						spatial_disc/disc_util/fvcr_geom.cpp
 						spatial_disc/disc_util/hfv1_geom.cpp
 						spatial_disc/disc_util/hfvcr_geom.cpp

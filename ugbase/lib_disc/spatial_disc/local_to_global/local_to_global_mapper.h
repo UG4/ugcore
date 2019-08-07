@@ -38,6 +38,8 @@
 
 // intern headers
 #include "lib_disc/dof_manager/dof_distribution.h"
+#include "lib_disc/time_disc/solution_time_series.h"
+
 
 namespace ug{
 
@@ -70,8 +72,26 @@ class ILocalToGlobalMapper
 		virtual void add_local_mat_to_global(matrix_type& mat, const LocalMatrix& lmat,
 				ConstSmartPtr<DoFDistribution> dd) = 0;
 
-	///	modifies local solution vector for adapted defect computation
-		virtual void modify_LocalSol(LocalVector& vecMod, const LocalVector& lvec, ConstSmartPtr<DoFDistribution> dd) = 0;
+    /// sets certain entries to Dirichlet DoFs (in elem_disc_assembla_util)
+        virtual void adjust_mat_global(matrix_type& mat, const LocalMatrix& lmat,
+                                   ConstSmartPtr<DoFDistribution> dd) = 0;
+    
+    ///	modifies local solution vector for adapted defect computation ( in elem_disc_assemble_util)
+        virtual void modify_LocalData(LocalMatrix& locJ, LocalVector& locU,
+                                  ConstSmartPtr<DoFDistribution> dd) = 0;
+        virtual void modify_LocalData(LocalVectorTimeSeries& uT, LocalMatrix& locJ, LocalVector& locU,
+                                  ConstSmartPtr<DoFDistribution> dd) = 0;
+    
+        virtual void modify_LocalData(LocalVector& locD, LocalVector& tmpLocD, LocalVector& locU,
+                                  ConstSmartPtr<DoFDistribution> dd) = 0;
+        virtual void modify_LocalData(LocalVectorTimeSeries& uT, LocalVector& locD, LocalVector& tmpLocD, LocalVector& locU,
+                                  ConstSmartPtr<DoFDistribution> dd, size_t t) = 0;
+    
+    ///	modifies global solution vector for adapted defect computation (in domain_disc_impl)
+        virtual void modify_GlobalSol(vector_type& vecMod, const vector_type& vec, ConstSmartPtr<DoFDistribution> dd) = 0;
+    
+        virtual void modify_GlobalSol(SmartPtr<VectorTimeSeries<vector_type> > vSolMod,
+                                  ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, ConstSmartPtr<DoFDistribution> dd) = 0;
 
 	///	virtual destructor
 		virtual ~ILocalToGlobalMapper() {};
