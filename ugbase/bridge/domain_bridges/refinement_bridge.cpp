@@ -47,6 +47,7 @@
 #include "lib_grid/refinement/adaptive_regular_mg_refiner.h"
 #include "lib_grid/refinement/global_fractured_media_refiner.h"
 #include "lib_grid/refinement/global_multi_grid_refiner.h"
+#include "lib_grid/refinement/global_subdivision_multi_grid_refiner.h"
 #include "lib_grid/refinement/hanging_node_refiner_multi_grid.h"
 #include "lib_grid/refinement/ref_mark_adjusters/horizontal_anisotropy_adjuster.h"
 #include "lib_grid/refinement/ref_mark_adjusters/shadow_copy_adjuster.h"
@@ -1634,6 +1635,12 @@ namespace domain_wrappers {
 
 }//	end of namespace
 
+
+/// Setting procedure for global refinement rule variable
+/** The global refinement rule information switches between regular
+ * and subdivision volume refinement using hybrid tetra-/octahedral
+ * splitting.
+ */
 void SetTetRefinementRule(std::string ruleName)
 {
 	ruleName = ToLower(ruleName);
@@ -1642,10 +1649,15 @@ void SetTetRefinementRule(std::string ruleName)
 	else if(ruleName.compare("hybrid_tet_oct") == 0)
 			tet_rules::SetRefinementRule(tet_rules::HYBRID_TET_OCT);
 	else{
-		UG_THROW("Unknown refinement rule! Known rules are: standard, hybrid_tet_oct");
+		UG_THROW("ERROR in SetTetRefinementRule:\n"
+				 "Unknown refinement rule! Known rules are: standard, hybrid_tet_oct");
 	}
 }
 
+/// Setting procedure for global boundary refinement rule variable
+/** The global boundary refinement rule information switches between
+ * regular and a collection of subdivision surface refinement schemes.
+ */
 void SetSmoothSubdivisionVolumesBoundaryRefinementRule(std::string bndRefRule)
 {
 	bndRefRule = ToLower(bndRefRule);
@@ -1660,7 +1672,21 @@ void SetSmoothSubdivisionVolumesBoundaryRefinementRule(std::string bndRefRule)
 	else if(bndRefRule.compare("subdiv_vol") == 0)
 		SetBoundaryRefinementRule(SUBDIV_VOL);
 	else
-		UG_THROW("ERROR in SetBoundaryRefinementRule: Unknown boundary refinement rule! Known rules are: 'linear', 'subdiv_surf_loop_scheme', 'subdiv_surf_averaging_scheme', 'subdiv_surf_butterfly_scheme' or 'subdiv_vol'.");
+		UG_THROW("ERROR in SetBoundaryRefinementRule: Unknown boundary refinement rule!\n"
+				 "Known rules are: 'linear', 'subdiv_surf_loop_scheme', 'subdiv_surf_averaging_scheme',"
+				 " 'subdiv_surf_butterfly_scheme' or 'subdiv_vol'.");
+}
+
+///	Helper function for subdivision volumes multigrid smoothing
+/** Returns the default position attachment
+ * from the given domain needed for hierarchy smoothing
+ * using subdivision volumes schemes.
+ */
+template <class TDomain>
+typename TDomain::position_attachment_type&
+GetDomainPositionAttachment(TDomain& dom)
+{
+	return dom.position_attachment();
 }
 
 
@@ -1701,10 +1727,6 @@ static void Common(Registry& reg, string grp)
 //	smooth volume/surface subdivision
 	reg.add_function("ApplySmoothSubdivisionVolumesToTopLevel", (void (*)(ug::MultiGrid&, ug::MGSubsetHandler&, ug::MGSubsetHandler&, const char*)) (&ug::ApplySmoothSubdivisionVolumesToTopLevel), grp);
 	reg.add_function("ApplyConstrainedSmoothSubdivisionVolumesToTopLevel", &ApplyConstrainedSmoothSubdivisionVolumesToTopLevel, grp);
-	reg.add_function("ApplySmoothSubdivisionSurfacesToTopLevel2d", &ApplySmoothSubdivisionSurfacesToTopLevel2d, grp);
-	reg.add_function("ApplySmoothSubdivisionSurfacesToTopLevel3d", &ApplySmoothSubdivisionSurfacesToTopLevel3d, grp);
-	reg.add_function("ProjectHierarchyToLimitSubdivisionSurface", &ProjectHierarchyToLimitSubdivisionSurface, grp);
-	reg.add_function("ProjectHierarchyToLimitSubdivisionVolume", &ProjectHierarchyToLimitSubdivisionVolume, grp);
 	reg.add_function("TetrahedralizeHybridTetOctGrid", &TetrahedralizeHybridTetOctGrid, grp);
 	reg.add_function("CheckValences", &CheckValences, grp);
 
@@ -1731,8 +1753,8 @@ static void Common(Registry& reg, string grp)
 template <typename TDomain>
 static void Domain(Registry& reg, string grp)
 {
-	typedef TDomain 							domain_type;
-	//typedef typename TDomain::position_attachment_type apos_type;
+	typedef TDomain domain_type;
+	typedef typename TDomain::position_attachment_type apos_type;
 
 	string suffix = GetDomainSuffix<TDomain>();
 	string tag = GetDomainTag<TDomain>();
@@ -1749,6 +1771,9 @@ static void Domain(Registry& reg, string grp)
 					 &CreateAdaptiveRegularDomainRefiner<domain_type>, grp, "AdaptiveRegularDomainRefiner", "dom");
 	reg.add_function("AddHorizontalAnisotropyAdjuster",
 					&AddHorizontalAnisotropyAdjuster<domain_type>, grp, "", "refiner # dom");
+	reg.add_function("ApplySmoothSubdivisionSurfacesToTopLevel", &ApplySmoothSubdivisionSurfacesToTopLevel<apos_type>, grp);
+	reg.add_function("ProjectHierarchyToSubdivisionLimit", &ProjectHierarchyToSubdivisionLimit<apos_type>, grp);
+	reg.add_function("GetDomainPositionAttachment", &GetDomainPositionAttachment<domain_type>, grp);
 
 //	register domain dependent mark methods
 	reg.add_function("MarkForRefinement_VerticesInSphere",
