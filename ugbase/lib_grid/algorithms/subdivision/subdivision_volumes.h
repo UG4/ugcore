@@ -350,11 +350,11 @@ void ApplySmoothVolumePosToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
  * 	@param aPos						reference to position attachment
  * 	@param sh						reference to standard SubsetHandler
  * 	@param markSH					reference to SubsetHandler containing marked (inner) boundary manifold
- * 	@param linearManifoldSubsets 	user-specified linearManifoldSubsets
+ * 	@param linearManifoldSH 		reference to user-specified linearManifoldSubsets SubsetHandler
 **/
 template <class TAPosition>
 void ApplySmoothSubdivisionSurfacesToTopLevel(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& sh,
-											  MGSubsetHandler& markSH, const char* linearManifoldSubsets);
+											  MGSubsetHandler& markSH, MGSubsetHandler& linearManifoldSH);
 
 
 /// Function to create a smooth subdivision volumes hierarchy
@@ -365,27 +365,32 @@ void ApplySmoothSubdivisionSurfacesToTopLevel(MultiGrid& mg, TAPosition& aPos, M
  * 	@param mg						reference to MultiGrid
  * 	@param sh						reference to standard SubsetHandler
  * 	@param markSH					reference to SubsetHandler containing marked (inner) boundary manifold
- * 	@param linearManifoldSubsets 	user-specified linearManifoldSubsets
+ * 	@param linearManifoldSH 		reference to user-specified linearManifoldSubsets SubsetHandler
  * 	@param bConstrained				bool switch for constrained smooth subdivision volumes scheme
 **/
 void ApplySmoothSubdivisionVolumesToTopLevel(MultiGrid& mg, MGSubsetHandler& sh, MGSubsetHandler& markSH,
-											 const char* linearManifoldSubsets, bool bConstrained);
+											 MGSubsetHandler& linearManifoldSH, bool bConstrained);
 
 
-/// Wrapper smooth subdivision volumes hierarchy creation
+/// Wrapper procedures for smooth subdivision surfaces/volumes hierarchy creation
 /** These functions call the actual ApplySmoothSubdivisionVolumesToTopLevel procedure
  *
  * 	@param mg						reference to MultiGrid
+ * 	@param aPos						reference to position attachment
  * 	@param markSH					reference to SubsetHandler markSH containing marked (inner) boundary manifold
-* 	@param linearManifoldSubsets 	user-specified linearManifoldSubsets
+ * 	@param linearManifoldSubsets 	user-specified linearManifoldSubsets
  * 	@param bConstrained				bool switch for constrained smooth subdivision volumes scheme
 **/
+template <class TAPosition>
+void ApplySmoothSubdivisionSurfacesToTopLevel(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& sh,
+											  MGSubsetHandler& markSH, const char* linearManifoldSubsets);
+
 void ApplySmoothSubdivisionVolumesToTopLevel(MultiGrid& mg, MGSubsetHandler& sh, MGSubsetHandler& markSH,
-											 const char* linearManifoldSH);
+											 const char* linearManifoldSubsets);
 
 
 void ApplyConstrainedSmoothSubdivisionVolumesToTopLevel(MultiGrid& mg, MGSubsetHandler& sh, MGSubsetHandler& markSH,
-														const char* linearManifoldSH);
+														const char* linearManifoldSubsets);
 
 
 }//	end of namespace

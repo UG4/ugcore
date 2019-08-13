@@ -2504,7 +2504,7 @@ void ApplySmoothVolumePosToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
 ////////////////////////////////////////////////////////////////////////////////
 template <class TAPosition>
 void ApplySmoothSubdivisionSurfacesToTopLevel(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& sh,
-											  MGSubsetHandler& markSH, const char* linearManifoldSubsets)
+											  MGSubsetHandler& markSH, MGSubsetHandler& linearManifoldSH)
 {
 /*****************************************
  *
@@ -2525,10 +2525,6 @@ void ApplySmoothSubdivisionSurfacesToTopLevel(MultiGrid& mg, TAPosition& aPos, M
 		UG_THROW("Error in ApplySmoothSubdivisionSurfacesToTopLevel: "
 				 "Procedure only to be used for MultiGrids with more than one level.");
 	}
-
-//	Init linear boundary manifold subsets SubsetHandler from domain and user-specified subsets
-	MGSubsetHandler linearManifoldSH(mg);
-	InitLinearManifoldSubsetHandler(mg, sh, linearManifoldSH, linearManifoldSubsets);
 
 
 /*****************************************
@@ -2552,7 +2548,7 @@ void ApplySmoothSubdivisionSurfacesToTopLevel(MultiGrid& mg, TAPosition& aPos, M
 
 ////////////////////////////////////////////////////////////////////////////////
 void ApplySmoothSubdivisionVolumesToTopLevel(MultiGrid& mg, MGSubsetHandler& sh, MGSubsetHandler& markSH,
-											 const char* linearManifoldSubsets, bool bConstrained)
+											 MGSubsetHandler& linearManifoldSH, bool bConstrained)
 {
 /*****************************************
  *
@@ -2572,10 +2568,6 @@ void ApplySmoothSubdivisionVolumesToTopLevel(MultiGrid& mg, MGSubsetHandler& sh,
 		UG_THROW("Error in ApplySmoothSubdivisionToTopLevel: "
 				 "Procedure only to be used for MultiGrids with more than one level.");
 	}
-
-//	Init linear boundary manifold subsets SubsetHandler from domain and user-specified subsets
-	MGSubsetHandler linearManifoldSH(mg);
-	InitLinearManifoldSubsetHandler(mg, sh, linearManifoldSH, linearManifoldSubsets);
 
 
 /*****************************************
@@ -2607,15 +2599,32 @@ void ApplySmoothSubdivisionVolumesToTopLevel(MultiGrid& mg, MGSubsetHandler& sh,
 
 
 //////////////////////////////////////////////////////////////////////////////
-void ApplySmoothSubdivisionVolumesToTopLevel(MultiGrid& mg, MGSubsetHandler& sh, MGSubsetHandler& markSH,
-											 const char* linearManifoldSH)
+//	Wrapper procedures
+template <class TAPosition>
+void ApplySmoothSubdivisionSurfacesToTopLevel(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& sh,
+											  MGSubsetHandler& markSH, const char* linearManifoldSubsets)
 {
+	MGSubsetHandler linearManifoldSH(mg);
+	InitLinearManifoldSubsetHandler(mg, sh, linearManifoldSH, linearManifoldSubsets);
+
+	ApplySmoothSubdivisionSurfacesToTopLevel(mg, aPos, sh, markSH, linearManifoldSH);
+}
+
+void ApplySmoothSubdivisionVolumesToTopLevel(MultiGrid& mg, MGSubsetHandler& sh, MGSubsetHandler& markSH,
+											 const char* linearManifoldSubsets)
+{
+	MGSubsetHandler linearManifoldSH(mg);
+	InitLinearManifoldSubsetHandler(mg, sh, linearManifoldSH, linearManifoldSubsets);
+
 	ApplySmoothSubdivisionVolumesToTopLevel(mg, sh, markSH, linearManifoldSH, false);
 }
 
 void ApplyConstrainedSmoothSubdivisionVolumesToTopLevel(MultiGrid& mg, MGSubsetHandler& sh, MGSubsetHandler& markSH,
-														const char* linearManifoldSH)
+														const char* linearManifoldSubsets)
 {
+	MGSubsetHandler linearManifoldSH(mg);
+	InitLinearManifoldSubsetHandler(mg, sh, linearManifoldSH, linearManifoldSubsets);
+
 	ApplySmoothSubdivisionVolumesToTopLevel(mg, sh, markSH, linearManifoldSH, true);
 }
 

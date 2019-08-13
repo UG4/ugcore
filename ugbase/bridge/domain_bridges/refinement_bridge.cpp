@@ -1715,19 +1715,27 @@ struct Functionality
 static void Common(Registry& reg, string grp)
 {
 //	register domain independent mark methods
-	reg.add_function("MarkForRefinement_All", &MarkForRefinement_All, grp, "", "ref");
-	reg.add_function("MarkForRefinement_AllVolumesAnisotropic", &MarkForRefinement_AllAnisotropic<Volume>, grp, "", "ref");
+	reg.add_function("MarkForRefinement_All",
+					 &MarkForRefinement_All, grp, "", "ref");
+	reg.add_function("MarkForRefinement_AllVolumesAnisotropic",
+			         &MarkForRefinement_AllAnisotropic<Volume>, grp, "", "ref");
 //	register refinement rule switch function
-	reg.add_function("SetTetRefinementRule", &SetTetRefinementRule, grp, "", "refRuleName",
-			"Sets the refinement rule which is used to refine tetrahedrons. Possible parameters: 'standard', 'hybrid_tet_oct");
+	reg.add_function("SetTetRefinementRule",
+				     &SetTetRefinementRule, grp, "", "refRuleName",
+					 "Sets the refinement rule which is used to refine tetrahedrons. Possible parameters: 'standard', 'hybrid_tet_oct");
 //	register boundary refinement rule switch function for Subdivision Volumes smoothing
-	reg.add_function("SetSmoothSubdivisionVolumesBoundaryRefinementRule", &SetSmoothSubdivisionVolumesBoundaryRefinementRule, grp, "", "bndRefRule",
-			"Sets the boundary refinement rule used during Subdivision Volumes smoothing. Possible parameters: 'linear', 'subdiv_surf_loop_scheme', 'subdiv_surf_averaging_scheme' or 'subdiv_vol'.");
+	reg.add_function("SetSmoothSubdivisionVolumesBoundaryRefinementRule",
+					 &SetSmoothSubdivisionVolumesBoundaryRefinementRule, grp, "", "bndRefRule",
+					 "Sets the boundary refinement rule used during Subdivision Volumes smoothing. Possible parameters: 'linear', 'subdiv_surf_loop_scheme', 'subdiv_surf_averaging_scheme' or 'subdiv_vol'.");
 //	smooth volume/surface subdivision
-	reg.add_function("ApplySmoothSubdivisionVolumesToTopLevel", (void (*)(ug::MultiGrid&, ug::MGSubsetHandler&, ug::MGSubsetHandler&, const char*)) (&ug::ApplySmoothSubdivisionVolumesToTopLevel), grp);
-	reg.add_function("ApplyConstrainedSmoothSubdivisionVolumesToTopLevel", &ApplyConstrainedSmoothSubdivisionVolumesToTopLevel, grp);
-	reg.add_function("TetrahedralizeHybridTetOctGrid", &TetrahedralizeHybridTetOctGrid, grp);
-	reg.add_function("CheckValences", &CheckValences, grp);
+	reg.add_function("ApplySmoothSubdivisionVolumesToTopLevel",
+					 (void (*)(ug::MultiGrid&, ug::MGSubsetHandler&, ug::MGSubsetHandler&, const char*)) (&ug::ApplySmoothSubdivisionVolumesToTopLevel), grp);
+	reg.add_function("ApplyConstrainedSmoothSubdivisionVolumesToTopLevel",
+					 &ApplyConstrainedSmoothSubdivisionVolumesToTopLevel, grp);
+	reg.add_function("TetrahedralizeHybridTetOctGrid",
+					 &TetrahedralizeHybridTetOctGrid, grp);
+	reg.add_function("CheckValences",
+					 &CheckValences, grp);
 
 	reg.add_function("MarkNeighborsForFullRefinement",
 				&MarkNeighborsForFullRefinement,
@@ -1769,10 +1777,13 @@ static void Domain(Registry& reg, string grp)
 	reg.add_function("AdaptiveRegularDomainRefiner",
 					 &CreateAdaptiveRegularDomainRefiner<domain_type>, grp, "AdaptiveRegularDomainRefiner", "dom");
 	reg.add_function("AddHorizontalAnisotropyAdjuster",
-					&AddHorizontalAnisotropyAdjuster<domain_type>, grp, "", "refiner # dom");
-	reg.add_function("ApplySmoothSubdivisionSurfacesToTopLevel", &ApplySmoothSubdivisionSurfacesToTopLevel<apos_type>, grp);
-	reg.add_function("ProjectHierarchyToSubdivisionLimit", &ProjectHierarchyToSubdivisionLimit<apos_type>, grp);
-	reg.add_function("GetDomainPositionAttachment", &GetDomainPositionAttachment<domain_type>, grp);
+					 &AddHorizontalAnisotropyAdjuster<domain_type>, grp, "", "refiner # dom");
+	reg.add_function("ApplySmoothSubdivisionSurfacesToTopLevel",
+					 (void (*)(ug::MultiGrid&, apos_type&, ug::MGSubsetHandler&, ug::MGSubsetHandler&, const char*)) (&ApplySmoothSubdivisionSurfacesToTopLevel<apos_type>), grp);
+	reg.add_function("ProjectHierarchyToSubdivisionLimit",
+					 &ProjectHierarchyToSubdivisionLimit<apos_type>, grp);
+	reg.add_function("GetDomainPositionAttachment",
+			         &GetDomainPositionAttachment<domain_type>, grp);
 
 //	register domain dependent mark methods
 	reg.add_function("MarkForRefinement_VerticesInSphere",
