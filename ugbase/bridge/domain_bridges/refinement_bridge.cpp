@@ -143,7 +143,7 @@ GlobalSubdivisionDomainRefiner(TDomain* dom, const char* linearManifoldSubsets, 
 		linearManifoldSH = &(*dom->additional_subset_handler("linearManifoldSH"));
 	}
 
-//	Instantiantion of GlobalSubdivisionMultiGridRefiner object
+//	Instantiation of GlobalSubdivisionMultiGridRefiner object
 	GlobalSubdivisionMultiGridRefiner<position_attachment_type>* ref = NULL;
 	#ifdef UG_PARALLEL
 		if(pcl::NumProcs() > 1){
