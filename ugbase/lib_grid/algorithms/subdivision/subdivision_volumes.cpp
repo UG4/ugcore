@@ -2421,7 +2421,7 @@ void ApplySmoothManifoldPosToTopLevelAveragingScheme(MultiGrid& mg, TAPosition& 
 
 ////////////////////////////////////////////////////////////////////////////////
 void ApplySmoothVolumePosToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
-									MGSubsetHandler& linearManifoldSH, bool bConstrained)
+									bool bConstrained)
 {
 /*****************************************
  *
@@ -2671,7 +2671,7 @@ void ApplySmoothSubdivisionVolumesToTopLevel(MultiGrid& mg, MGSubsetHandler& sh,
  *
  *****************************************/
 
-	ApplySmoothVolumePosToTopLevel(mg, markSH, linearManifoldSH, bConstrained);
+	ApplySmoothVolumePosToTopLevel(mg, markSH, bConstrained);
 }
 
 

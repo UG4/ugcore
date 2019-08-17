@@ -334,11 +334,10 @@ void ApplySmoothManifoldPosToTopLevelAveragingScheme(MultiGrid& mg, TAPosition& 
  *
  * 	@param mg					reference to MultiGrid
  * 	@param markSH				reference to SubsetHandler markSH containing marked (inner) boundary manifold
- * 	@param linearManifoldSH		reference to user-specified linearManifoldSubsets SubsetHandler
  * 	@param bConstrained			bool switch for constrained smooth subdivision volumes scheme
 **/
 void ApplySmoothVolumePosToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
-									MGSubsetHandler& linearManifoldSH, bool bConstrained);
+									bool bConstrained);
 
 
 /// Function to create a smooth subdivision volumes hierarchy
