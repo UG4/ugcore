@@ -518,7 +518,16 @@ void ProjectHierarchyToSubdivisionLimit(MultiGrid& mg, TAPosition& aPos)
 	}
 
 //	Catch use of procedure for MultiGrids with just one level
-	if(mg.num_levels() == 1)
+	size_t numLevels = mg.num_levels();
+
+	#ifdef UG_PARALLEL
+		if(pcl::NumProcs() > 1){
+			pcl::ProcessCommunicator pc;
+			numLevels = pc.allreduce(numLevels, PCL_RO_MAX);
+		}
+	#endif
+
+	if(numLevels == 1)
 	{
 		UG_THROW("Error in ProjectHierarchyToSubdivisionLimit:\n"
 				 "Procedure only to be used for MultiGrids with more than one level.");
@@ -596,7 +605,16 @@ void CalculateSmoothManifoldPosInParentLevelButterflyScheme(MultiGrid& mg, TAPos
 	#endif
 
 //	Catch use of procedure for MultiGrids with just one level
-	if(mg.num_levels() == 1)
+	size_t numLevels = mg.num_levels();
+
+	#ifdef UG_PARALLEL
+		if(pcl::NumProcs() > 1){
+			pcl::ProcessCommunicator pc;
+			numLevels = pc.allreduce(numLevels, PCL_RO_MAX);
+		}
+	#endif
+
+	if(numLevels == 1)
 	{
 		UG_THROW("Error in CalculateSmoothManifoldPosInParentLevelButterflyScheme: "
 				 "Procedure only to be used for MultiGrids with more than one level.");
@@ -1003,7 +1021,16 @@ void CalculateSmoothManifoldPosInParentLevelLoopScheme(MultiGrid& mg, TAPosition
 	}
 
 //	Catch use of procedure for MultiGrids with just one level
-	if(mg.num_levels() == 1)
+	size_t numLevels = mg.num_levels();
+
+	#ifdef UG_PARALLEL
+		if(pcl::NumProcs() > 1){
+			pcl::ProcessCommunicator pc;
+			numLevels = pc.allreduce(numLevels, PCL_RO_MAX);
+		}
+	#endif
+
+	if(numLevels == 1)
 	{
 		UG_THROW("Error in CalculateSmoothManifoldPosInParentLevelLoopScheme: "
 				 "Procedure only to be used for MultiGrids with more than one level.");
@@ -1730,8 +1757,17 @@ void CalculateNumManifoldEdgesVertexAttachmentInParentLevel(MultiGrid& mg, MGSub
 		GridLayoutMap& glm = dgm.grid_layout_map();
 	#endif
 
-//	Catch use of CalculateNumManifoldEdgesVertexAttachmentInParentLevel on MultiGrids with just one level
-	if(mg.num_levels() == 1)
+//	Catch use of procedure for MultiGrids with just one level
+	size_t numLevels = mg.num_levels();
+
+	#ifdef UG_PARALLEL
+		if(pcl::NumProcs() > 1){
+			pcl::ProcessCommunicator pc;
+			numLevels = pc.allreduce(numLevels, PCL_RO_MAX);
+		}
+	#endif
+
+	if(numLevels == 1)
 		UG_THROW("CalculateNumManifoldEdgesVertexAttachmentInParentLevel: method may not be used in base level 0.");
 
 //	Loop all edges of parent level and calculate number of associated manifold edges of each vertex
@@ -1841,18 +1877,11 @@ void CalculateNumManifoldFacesVertexAttachmentInTopLevel(MultiGrid& mg, MGSubset
 
 ////////////////////////////////////////////////////////////////////////////////
 void InitLinearManifoldSubsetHandler(MultiGrid& mg, MGSubsetHandler& sh,
-											   MGSubsetHandler& linearManifoldSH,
-											   const char* linearManifoldSubsets)
+									 MGSubsetHandler& linearManifoldSH,
+									 const char* linearManifoldSubsets)
 {
 	if(linearManifoldSubsets[0] == '\0')
 		return;
-
-//	Catch use of procedure for MultiGrids with just one level
-	if(mg.num_levels() == 1)
-	{
-		UG_THROW("Error in InitLinearManifoldSubsetHandler: "
-				 "Procedure only to be used for MultiGrids with more than one level.");
-	}
 
 //	tokenize user input
 	std::vector<std::string> linearManifoldSubsetsString = TokenizeString(linearManifoldSubsets);
@@ -1894,10 +1923,14 @@ void InitLinearManifoldSubsetHandler(MultiGrid& mg, MGSubsetHandler& sh,
 			linearManifoldSH.assign_subset(vrt, 0);
 		}
 
-		for(VertexIterator vrtIter = sh.begin<Vertex>(j, mg.top_level()-1); vrtIter != sh.end<Vertex>(j, mg.top_level()-1); ++vrtIter)
-		{
-			Vertex* vrt = *vrtIter;
-			linearManifoldSH.assign_subset(vrt, 0);
+	/*	In case InitLinearManifoldSubsetHandler is not used as part of
+	 *  the GlobalSubdivisionDomainRefiner factory solely in the base level */
+		if(mg.num_levels() > 1){
+			for(VertexIterator vrtIter = sh.begin<Vertex>(j, mg.top_level()-1); vrtIter != sh.end<Vertex>(j, mg.top_level()-1); ++vrtIter)
+			{
+				Vertex* vrt = *vrtIter;
+				linearManifoldSH.assign_subset(vrt, 0);
+			}
 		}
 	}
 
@@ -1912,10 +1945,14 @@ void InitLinearManifoldSubsetHandler(MultiGrid& mg, MGSubsetHandler& sh,
 			linearManifoldSH.assign_subset(e, 0);
 		}
 
-		for(EdgeIterator eIter = sh.begin<Edge>(j, mg.top_level()-1); eIter != sh.end<Edge>(j, mg.top_level()-1); ++eIter)
-		{
-			Edge* e = *eIter;
-			linearManifoldSH.assign_subset(e, 0);
+	/*	In case InitLinearManifoldSubsetHandler is not used as part of
+	 *  the GlobalSubdivisionDomainRefiner factory solely in the base level */
+		if(mg.num_levels() > 1){
+			for(EdgeIterator eIter = sh.begin<Edge>(j, mg.top_level()-1); eIter != sh.end<Edge>(j, mg.top_level()-1); ++eIter)
+			{
+				Edge* e = *eIter;
+				linearManifoldSH.assign_subset(e, 0);
+			}
 		}
 	}
 
@@ -1930,10 +1967,14 @@ void InitLinearManifoldSubsetHandler(MultiGrid& mg, MGSubsetHandler& sh,
 			linearManifoldSH.assign_subset(f, 0);
 		}
 
-		for(FaceIterator fIter = sh.begin<Face>(j, mg.top_level()-1); fIter != sh.end<Face>(j, mg.top_level()-1); ++fIter)
-		{
-			Face* f = *fIter;
-			linearManifoldSH.assign_subset(f, 0);
+	/*	In case InitLinearManifoldSubsetHandler is not used as part of
+	 *  the GlobalSubdivisionDomainRefiner factory solely in the base level */
+		if(mg.num_levels() > 1){
+			for(FaceIterator fIter = sh.begin<Face>(j, mg.top_level()-1); fIter != sh.end<Face>(j, mg.top_level()-1); ++fIter)
+			{
+				Face* f = *fIter;
+				linearManifoldSH.assign_subset(f, 0);
+			}
 		}
 	}
 
@@ -1959,7 +2000,16 @@ void ApplySmoothManifoldPosToTopLevelLoopScheme(MultiGrid& mg, TAPosition& aPos,
 	}
 
 //	Catch use of procedure for MultiGrids with just one level
-	if(mg.num_levels() == 1)
+	size_t numLevels = mg.num_levels();
+
+	#ifdef UG_PARALLEL
+		if(pcl::NumProcs() > 1){
+			pcl::ProcessCommunicator pc;
+			numLevels = pc.allreduce(numLevels, PCL_RO_MAX);
+		}
+	#endif
+
+	if(numLevels == 1)
 	{
 		UG_THROW("Error in ApplySmoothManifoldPosToTopLevelLoopScheme: "
 				 "Procedure only to be used for MultiGrids with more than one level.");
@@ -2108,7 +2158,16 @@ void ApplySmoothManifoldPosToTopLevelButterflyScheme(MultiGrid& mg, TAPosition& 
 	}
 
 //	Catch use of procedure for MultiGrids with just one level
-	if(mg.num_levels() == 1)
+	size_t numLevels = mg.num_levels();
+
+	#ifdef UG_PARALLEL
+		if(pcl::NumProcs() > 1){
+			pcl::ProcessCommunicator pc;
+			numLevels = pc.allreduce(numLevels, PCL_RO_MAX);
+		}
+	#endif
+
+	if(numLevels == 1)
 	{
 		UG_THROW("Error in ApplySmoothManifoldPosToTopLevelButterflyScheme: "
 				 "Procedure only to be used for MultiGrids with more than one level.");
@@ -2520,7 +2579,16 @@ void ApplySmoothSubdivisionSurfacesToTopLevel(MultiGrid& mg, TAPosition& aPos, M
 	}
 
 //	Catch use of procedure for MultiGrids with just one level
-	if(mg.num_levels() == 1)
+	size_t numLevels = mg.num_levels();
+
+	#ifdef UG_PARALLEL
+		if(pcl::NumProcs() > 1){
+			pcl::ProcessCommunicator pc;
+			numLevels = pc.allreduce(numLevels, PCL_RO_MAX);
+		}
+	#endif
+
+	if(numLevels == 1)
 	{
 		UG_THROW("Error in ApplySmoothSubdivisionSurfacesToTopLevel: "
 				 "Procedure only to be used for MultiGrids with more than one level.");
@@ -2563,7 +2631,16 @@ void ApplySmoothSubdivisionVolumesToTopLevel(MultiGrid& mg, MGSubsetHandler& sh,
 		UG_THROW("ERROR in ApplySubdivisionVolumesToTopLevel: Set necessary refinement rule by SetTetRefinementRule('hybrid_tet_oct').");
 
 //	Catch use of procedure for MultiGrids with just one level
-	if(mg.num_levels() == 1)
+	size_t numLevels = mg.num_levels();
+
+	#ifdef UG_PARALLEL
+		if(pcl::NumProcs() > 1){
+			pcl::ProcessCommunicator pc;
+			numLevels = pc.allreduce(numLevels, PCL_RO_MAX);
+		}
+	#endif
+
+	if(numLevels == 1)
 	{
 		UG_THROW("Error in ApplySmoothSubdivisionToTopLevel: "
 				 "Procedure only to be used for MultiGrids with more than one level.");

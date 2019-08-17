@@ -47,6 +47,7 @@
 #include "lib_grid/refinement/adaptive_regular_mg_refiner.h"
 #include "lib_grid/refinement/global_fractured_media_refiner.h"
 #include "lib_grid/refinement/global_multi_grid_refiner.h"
+#include "lib_grid/refinement/global_subdivision_multi_grid_refiner.h"
 #include "lib_grid/refinement/hanging_node_refiner_multi_grid.h"
 #include "lib_grid/refinement/ref_mark_adjusters/horizontal_anisotropy_adjuster.h"
 #include "lib_grid/refinement/ref_mark_adjusters/shadow_copy_adjuster.h"
@@ -105,6 +106,69 @@ static SmartPtr<IRefiner> GlobalDomainRefiner(TDomain* dom)
 				new GlobalMultiGridRefiner(
 						*dom->grid(),
 						dom->refinement_projector()));
+}
+
+////////////////////////////////////////////////////////////////////////////////
+///	Factory method, that creates a global subdivision domain refiner.
+/**	Automatically chooses whether a parallel refiner is required.*/
+template <class TDomain>
+static SmartPtr<GlobalSubdivisionMultiGridRefiner<typename TDomain::position_attachment_type> >
+GlobalSubdivisionDomainRefiner(TDomain* dom, const char* linearManifoldSubsets, bool constrained)
+{
+	typedef typename TDomain::position_attachment_type position_attachment_type;
+
+//	Check if mandatory manifold marks exist in the given domain grid
+	try{
+		dom->additional_subset_handler("markSH");
+	}
+	UG_CATCH_THROW("Error in CreateGlobalSubdivisionDomainRefiner:\n"
+			 "Given multigrid does not contain surface manifold mark SubsetHandler 'markSH'.\n"
+			 "Please mark all surface manifold elements in the current multigrid.");
+
+//	Linear manifold subset handler management: check for optional specification by user
+	MGSubsetHandler* linearManifoldSH = NULL;
+	if(linearManifoldSubsets[0] != '\0'){
+		try{
+			dom->additional_subset_handler("linearManifoldSH");
+		}
+	//	Linear manifold subsets specified but no corresponding SubsetHandler user-provided
+		UG_CATCH_THROW("Error in CreateGlobalSubdivisionDomainRefiner:\n"
+					   "Linear manifold subsets specified, but no corresponding SubsetHandler 'linearManifoldSH' provided.");
+	//	Assignment of user-provided linear manifold SubsetHandler
+		linearManifoldSH = &(*dom->additional_subset_handler("linearManifoldSH"));
+	}
+	else{
+	//	Assignment of empty dummy for linear manifold SubsetHandler
+		dom->create_additional_subset_handler("linearManifoldSH");
+		linearManifoldSH = &(*dom->additional_subset_handler("linearManifoldSH"));
+	}
+
+//	Instantiantion of GlobalSubdivisionMultiGridRefiner object
+	GlobalSubdivisionMultiGridRefiner<position_attachment_type>* ref = NULL;
+	#ifdef UG_PARALLEL
+		if(pcl::NumProcs() > 1){
+			ref = new ParallelGlobalSubdivisionRefiner<position_attachment_type>(
+							*dom->distributed_grid_manager(),
+							dom->refinement_projector());
+
+			ref->assign_subset_handler(*dom->subset_handler());
+			ref->assign_mark_subset_handler(*dom->additional_subset_handler("markSH"));
+			ref->assign_position_attachment(dom->position_attachment());
+		}
+	#endif
+
+	if(!ref){
+		ref = new GlobalSubdivisionMultiGridRefiner<position_attachment_type>(
+						*dom->grid(), dom->position_attachment(),
+						*dom->subset_handler(),
+						*dom->additional_subset_handler("markSH"),
+						dom->refinement_projector());
+	}
+
+	ref->set_linear_manifold_subsets(*linearManifoldSH, linearManifoldSubsets);
+	ref->set_constrained_subdivision(constrained);
+
+	return SmartPtr<GlobalSubdivisionMultiGridRefiner<position_attachment_type> >(ref);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1778,6 +1842,8 @@ static void Domain(Registry& reg, string grp)
 					 &CreateAdaptiveRegularDomainRefiner<domain_type>, grp, "AdaptiveRegularDomainRefiner", "dom");
 	reg.add_function("AddHorizontalAnisotropyAdjuster",
 					 &AddHorizontalAnisotropyAdjuster<domain_type>, grp, "", "refiner # dom");
+	reg.add_function("GlobalSubdivisionDomainRefiner",
+					 &GlobalSubdivisionDomainRefiner<domain_type>, grp, "GlobalSubdivisionDomainRefiner", "dom");
 	reg.add_function("ApplySmoothSubdivisionSurfacesToTopLevel",
 					 (void (*)(ug::MultiGrid&, apos_type&, ug::MGSubsetHandler&, ug::MGSubsetHandler&, const char*)) (&ApplySmoothSubdivisionSurfacesToTopLevel<apos_type>), grp);
 	reg.add_function("ProjectHierarchyToSubdivisionLimit",

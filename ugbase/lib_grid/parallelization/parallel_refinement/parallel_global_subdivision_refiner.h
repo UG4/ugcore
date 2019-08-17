@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2011-2015:  G-CSC, Goethe University Frankfurt
- * Author: Sebastian Reiter
+ * Copyright (c) 2014-2019:  G-CSC, Goethe University Frankfurt
+ * Author: Martin Stepniewski
  * 
  * This file is part of UG4.
  * 
@@ -30,16 +30,12 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef __H__UG__parallel_refinement__
-#define __H__UG__parallel_refinement__
+#ifndef __H__LIB_GRID__PARALLEL_GLOBAL_SUBDIVISION_REFINER__
+#define __H__LIB_GRID__PARALLEL_GLOBAL_SUBDIVISION_REFINER__
 
-#include "parallel_hanging_node_refiner_multi_grid.h"
-#include "parallel_global_fractured_media_refiner.h"
-#include "parallel_global_subdivision_refiner.cpp"
+#include "../distributed_grid.h"
+#include "lib_grid/refinement/global_subdivision_multi_grid_refiner.h"
 #include "parallel_global_refiner_t.h"
-
-#include "lib_grid/refinement/global_multi_grid_refiner.h"
-#include "lib_grid/refinement/hanging_node_refiner_multi_grid.h"
 
 namespace ug
 {
@@ -47,12 +43,21 @@ namespace ug
 /// \addtogroup lib_grid_parallelization_refinement
 /// @{
 
-///	Parallel global refinement for multi-grids
-typedef TParallelGlobalRefiner<GlobalMultiGridRefiner>
-		ParallelGlobalRefiner_MultiGrid;
+///	Adds parallel support to GlobalSubdivisionMultiGridRefiner
+template <class TAPosition>
+class ParallelGlobalSubdivisionRefiner : public TParallelGlobalRefiner<GlobalSubdivisionMultiGridRefiner<TAPosition> >
+{
+	public:
+		ParallelGlobalSubdivisionRefiner(DistributedGridManager& distGridMgr,
+											SPRefinementProjector projector = SPNULL);
+		virtual ~ParallelGlobalSubdivisionRefiner();
 
-///	@}
+	protected:
+		virtual void refinement_step_ends();
+};
 
+/// @}
 }//	end of namespace
+
 
 #endif

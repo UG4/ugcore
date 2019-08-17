@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2011-2015:  G-CSC, Goethe University Frankfurt
- * Author: Sebastian Reiter
+ * Copyright (c) 2014-2019:  G-CSC, Goethe University Frankfurt
+ * Author: Martin Stepniewski
  * 
  * This file is part of UG4.
  * 
@@ -30,29 +30,35 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef __H__UG__parallel_refinement__
-#define __H__UG__parallel_refinement__
-
-#include "parallel_hanging_node_refiner_multi_grid.h"
-#include "parallel_global_fractured_media_refiner.h"
-#include "parallel_global_subdivision_refiner.cpp"
-#include "parallel_global_refiner_t.h"
-
-#include "lib_grid/refinement/global_multi_grid_refiner.h"
-#include "lib_grid/refinement/hanging_node_refiner_multi_grid.h"
+#include <vector>
+#include "parallel_global_subdivision_refiner.h"
 
 namespace ug
 {
 
-/// \addtogroup lib_grid_parallelization_refinement
-/// @{
+template <class TAPosition>
+ParallelGlobalSubdivisionRefiner<TAPosition>::
+ParallelGlobalSubdivisionRefiner(DistributedGridManager& distGridMgr, SPRefinementProjector projector) :
+		TParallelGlobalRefiner<GlobalSubdivisionMultiGridRefiner<TAPosition> >(distGridMgr, projector)
+{
+}
 
-///	Parallel global refinement for multi-grids
-typedef TParallelGlobalRefiner<GlobalMultiGridRefiner>
-		ParallelGlobalRefiner_MultiGrid;
+template <class TAPosition>
+ParallelGlobalSubdivisionRefiner<TAPosition>::
+~ParallelGlobalSubdivisionRefiner()
+{
+}
 
-///	@}
+template <class TAPosition>
+void ParallelGlobalSubdivisionRefiner<TAPosition>::
+refinement_step_ends()
+{
+	TParallelGlobalRefiner<GlobalSubdivisionMultiGridRefiner<TAPosition> >
+		::m_distGridMgr.end_ordered_element_insertion();
+
+	GlobalSubdivisionMultiGridRefiner<TAPosition>
+		::smooth();
+}
+
 
 }//	end of namespace
-
-#endif
