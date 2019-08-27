@@ -34,6 +34,7 @@
 #include "lib_grid/refinement/adaptive_regular_mg_refiner.h"
 #include "lib_grid/refinement/global_fractured_media_refiner.h"
 #include "lib_grid/refinement/global_multi_grid_refiner.h"
+#include "lib_grid/refinement/global_subdivision_multi_grid_refiner.h"
 #include "lib_grid/refinement/hanging_node_refiner_grid.h"
 #include "lib_grid/refinement/hanging_node_refiner_multi_grid.h"
 #include "lib_grid/refinement/projectors/projectors.h"
@@ -263,6 +264,25 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 		.add_method("assign_grid", static_cast<void (GlobalMultiGridRefiner::*)(MultiGrid&)>(&GlobalMultiGridRefiner::assign_grid),
 				"", "mg")
 		.set_construct_as_smart_pointer(true);
+
+//	GlobalSubdivisionMultiGridRefiner
+	{
+		typedef GlobalSubdivisionMultiGridRefiner<APosition1> T1D;
+		typedef GlobalSubdivisionMultiGridRefiner<APosition2> T2D;
+		typedef GlobalSubdivisionMultiGridRefiner<APosition> T3D;
+		reg.add_class_<T3D, GlobalMultiGridRefiner>("GlobalSubdivisionMultiGridRefiner3d", grp)
+//			.template add_constructor<void (*)(MultiGrid&, APosition&, MGSubsetHandler&, MGSubsetHandler&, SmartPtr<RefinementProjector>)>()
+			.add_method("nest_hierarchy", static_cast<void (T3D::*)()>(&GlobalSubdivisionMultiGridRefiner<APosition>::nest_hierarchy), "", "", "");
+//			.set_construct_as_smart_pointer(true);
+		reg.add_class_<T2D, GlobalMultiGridRefiner>("GlobalSubdivisionMultiGridRefiner2d", grp)
+//			.template add_constructor<void (*)(MultiGrid&, APosition2&, MGSubsetHandler&, MGSubsetHandler&, SmartPtr<RefinementProjector>)>()
+			.add_method("nest_hierarchy", static_cast<void (T2D::*)()>(&GlobalSubdivisionMultiGridRefiner<APosition2>::nest_hierarchy), "", "", "");
+//			.set_construct_as_smart_pointer(true);
+		reg.add_class_<T1D, GlobalMultiGridRefiner>("GlobalSubdivisionMultiGridRefiner1d", grp)
+//			.template add_constructor<void (*)(MultiGrid&, APosition1&, MGSubsetHandler&, MGSubsetHandler&, SmartPtr<RefinementProjector>)>()
+			.add_method("nest_hierarchy", static_cast<void (T1D::*)()>(&GlobalSubdivisionMultiGridRefiner<APosition1>::nest_hierarchy), "", "", "");
+//			.set_construct_as_smart_pointer(true);
+	}
 
 //	FracturedMediaRefiner
 	/*typedef FracturedMediaRefiner<typename TDomain::grid_type,
