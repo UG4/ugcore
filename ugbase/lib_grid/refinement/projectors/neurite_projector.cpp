@@ -1535,8 +1535,9 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 	std::vector<SomaRegion>::const_iterator it2 =
 		std::lower_bound(vSR.begin(), vSR.end(), cmpSR, CompareSomaRegionsEnd());
 
-	/// FIXME: Wrong soma points as soma region points detected
-	/// This determines if the point is considered to be in the soma branching region by a distance criterion
+	/// FIXME: Wrong soma points as soma region points detected still
+	/// This determines if the current point is considered to be in the
+	/// a soma branching region by a simple distance threshold criterion
 	if (it2 != vSR.end()) {
 		isSP = is_in_axial_range_around_soma_region(*it2, 5.0*rad, plainNID, vrt);
 	}
@@ -1571,8 +1572,6 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 	// case 1: branching point
 	if (isBP)
 	{
-		/// FIXME: Fails if branching is degenerated. "Orthogonalize" neurites
-		/// which branch off the main branch (root branch) during preprocessing
 		pos_in_bp(pos, neurite, plainNID, t, angle, rad, it, parent, this);
 	}
 
