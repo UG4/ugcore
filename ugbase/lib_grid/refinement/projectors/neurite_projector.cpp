@@ -1535,7 +1535,8 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 	std::vector<SomaRegion>::const_iterator it2 =
 		std::lower_bound(vSR.begin(), vSR.end(), cmpSR, CompareSomaRegionsEnd());
 
-	/// FIXME: Wrong soma points as soma region points detected still
+	/// FIXME: Wrong soma points as soma region points detected (but actually
+	/// regular some points on the surface or inside)
 	/// This determines if the current point is considered to be in the
 	/// a soma branching region by a simple distance threshold criterion
 	if (it2 != vSR.end()) {
@@ -1575,6 +1576,7 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 		pos_in_bp(pos, neurite, plainNID, t, angle, rad, it, parent, this);
 	}
 
+	/*
 	// case 2: soma branching point
 	else if (isSP)
 	{
@@ -1585,6 +1587,7 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 		/// be calculated based on the SomaRegion information stored in a struct.
 		pos_on_surface_soma_bp(pos, neurite, neuriteID, t, angle, parent, this, rad, vrt, *it2);
 	}
+	*/
 
 	// case 3: normal neurite position
 	else if (t >= 0.0 && t <= 1.0)

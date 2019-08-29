@@ -48,9 +48,9 @@ namespace swc_types
 		SWC_AXON   = 2,
 		SWC_DEND   = 3,
 		SWC_APIC   = 4,
-    SWC_FORK   = 5,
-    SWC_END    = 6,
-    SWC_CUSTOM = 7
+		SWC_FORK   = 5,
+		SWC_END    = 6,
+		SWC_CUSTOM = 7
 	};
 
 	struct SWCPoint
