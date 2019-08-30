@@ -449,6 +449,13 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_function ("CheckGFValuesAtVolumes", static_cast<bool (*) (const GF*, const char *)> (&CheckGFforNaN<GF,Volume>), grp);
 	}
 
+//	CheckGFValuesWithinBounds
+	{
+		typedef ug::GridFunction<TDomain, TAlgebra> GF;
+		reg.add_function("CheckGFValuesWithinBounds", static_cast<bool (*) (ConstSmartPtr<GF>, size_t, number, number)> (&CheckGFValuesWithinBounds<GF>), grp);
+		reg.add_function("CheckGFValuesWithinBounds", static_cast<bool (*) (ConstSmartPtr<GF>, const char*, number, number)> (&CheckGFValuesWithinBounds<GF>), grp);
+	}
+
 //	Move Domain by GridFunction
 	{
 		typedef ug::GridFunction<TDomain, TAlgebra> GF;
