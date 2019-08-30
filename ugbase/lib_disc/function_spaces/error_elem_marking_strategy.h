@@ -34,6 +34,7 @@
 #ifndef __H__UG_DISC__ERROR_ELEM_MARKING_STRATEGY__
 #define __H__UG_DISC__ERROR_ELEM_MARKING_STRATEGY__
 
+#include "lib_grid/algorithms/debug_util.h"  // for ElementDebugInfo
 #include "lib_grid/multi_grid.h"
 #include "lib_grid/refinement/refiner_interface.h"
 #include "lib_disc/dof_manager/dof_distribution.h"
@@ -60,7 +61,7 @@ struct IElementMarkingStrategy
 
 	/// element type to be marked
 	typedef typename domain_traits<dim>::element_type elem_type;
-	typedef typename MultiGrid::AttachmentAccessor<elem_type, ug::Attachment<number> > elem_accessor_type;
+	typedef typename Grid::AttachmentAccessor<elem_type, ug::Attachment<number> > elem_accessor_type;
 
 	IElementMarkingStrategy() :
 		m_latest_error(-1),
@@ -210,7 +211,7 @@ void StdCoarseningMarkingStrategy<TDomain>::mark(typename base_type::elem_access
 /* Generate an ordered list of \eta_k^2 (in descending order, ie. largest first) */
 template<class TElem>
 number CreateListOfElemWeights(
-		MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> > &aaError,
+		Grid::AttachmentAccessor<TElem, ug::Attachment<number> > &aaError,
 		typename DoFDistribution::traits<TElem>::const_iterator iterBegin,
 		const typename DoFDistribution::traits<TElem>::const_iterator iterEnd,
 		std::vector<double> &etaSq)
@@ -240,7 +241,7 @@ number CreateListOfElemWeights(
 /* Generate an ordered list of \eta_k^2 (in descending order, ie. largest first) */
 template<class TElem>
 number CreateSortedListOfElems(
-		MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> > &aaError,
+		Grid::AttachmentAccessor<TElem, ug::Attachment<number> > &aaError,
 		typename DoFDistribution::traits<TElem>::const_iterator iterBegin,
 		const typename DoFDistribution::traits<TElem>::const_iterator iterEnd,
 		std::vector< std::pair<double, TElem*> > &etaSqList)
@@ -267,6 +268,275 @@ number CreateSortedListOfElems(
 	std::sort (etaSqList.begin(), etaSqList.end());
 	return localErrSq;
 };
+
+
+
+/// Refine as many largest-error elements as necessary to reach tolerance.
+/// The expected tolerance is calculated using a user-given expected error reduction factor.
+template <typename TDomain>
+class ExpectedErrorMarkingStrategy : public IElementMarkingStrategy<TDomain>
+{
+
+public:
+	typedef IElementMarkingStrategy<TDomain> base_type;
+
+	ExpectedErrorMarkingStrategy(number tol, int max_level, number safetyFactor, number expectedReductionFactor)
+	: m_tol(tol), m_max_level(max_level), m_safety(safetyFactor), m_expRedFac(expectedReductionFactor) {};
+
+	void set_tolerance(number tol) {m_tol = tol;}
+	void set_max_level(int max_level) {m_max_level = max_level;}
+	void set_safety_factor(number safetyFactor) {m_safety = safetyFactor;}
+	void set_expected_reduction_factor(number expectedReductionFactor) {m_expRedFac = expectedReductionFactor;}
+
+	void mark(typename base_type::elem_accessor_type& aaError,
+				IRefiner& refiner,
+				ConstSmartPtr<DoFDistribution> dd);
+
+protected:
+	void merge_sorted_lists
+	(
+		std::vector<std::pair<number, int> >::iterator beginFirst,
+		std::vector<std::pair<number, int> >::iterator beginSecond,
+		std::vector<std::pair<number, int> >::iterator end
+	);
+
+protected:
+	number m_tol;
+	int m_max_level;
+	number m_safety;
+	number m_expRedFac;
+};
+
+
+template <typename TDomain>
+struct ElemErrorSortDesc
+{
+	typedef typename domain_traits<TDomain::dim>::element_type elem_type;
+	typedef typename Grid::AttachmentAccessor<elem_type, ug::Attachment<number> > error_accessor_type;
+	ElemErrorSortDesc(const error_accessor_type& aaErr)
+	: m_aaErr(aaErr) {}
+
+	bool operator()(const elem_type* elem1, const elem_type* elem2)
+	{
+		return m_aaErr[elem1] > m_aaErr[elem2];
+	}
+
+	const error_accessor_type& m_aaErr;
+};
+
+
+template <typename TDomain>
+void ExpectedErrorMarkingStrategy<TDomain>::merge_sorted_lists
+(
+	std::vector<std::pair<number, int> >::iterator beginFirst,
+	std::vector<std::pair<number, int> >::iterator beginSecond,
+	std::vector<std::pair<number, int> >::iterator end
+)
+{
+	const size_t nVal = std::distance(beginFirst, end);
+	std::vector<std::pair<number, int> > sorted;
+	sorted.reserve(nVal);
+
+	std::vector<std::pair<number, int> >::iterator it1 = beginFirst;
+	std::vector<std::pair<number, int> >::iterator& it2 = beginSecond;
+	while (it1 != end && it2 != end)
+	{
+		if (it1->first > it2->first)
+		{
+			sorted.push_back(*it1);
+			++it1;
+		}
+		else
+		{
+			sorted.push_back(*it2);
+			++it2;
+		}
+	}
+
+	for (; it1 != end; ++it1)
+		sorted.push_back(*it1);
+	for (; it2 != end; ++it2)
+		sorted.push_back(*it2);
+
+	size_t i = 0;
+	for (it1 = beginFirst; it1 != end; ++it1, ++i)
+		*it1 = sorted[i];
+}
+
+
+
+template <typename TDomain>
+void ExpectedErrorMarkingStrategy<TDomain>::mark
+(
+	typename base_type::elem_accessor_type& aaErrorSq,
+	IRefiner& refiner,
+	ConstSmartPtr<DoFDistribution> dd
+)
+{
+	typedef typename base_type::elem_type TElem;
+	typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
+
+	// create vector of local element (squared) errors
+	const_iterator iter = dd->template begin<TElem>();
+	const const_iterator iterEnd = dd->template end<TElem>();
+	std::vector<TElem*> elemVec;
+	number locError = 0.0;
+	for (; iter != iterEnd; ++iter)
+	{
+		TElem* elem = *iter;
+
+		if (aaErrorSq[elem] < 0)
+			continue;
+
+		if (aaErrorSq[elem] != aaErrorSq[elem])
+		{
+			UG_LOG_ALL_PROCS("NaN error indicator on " << ElementDebugInfo(*refiner.grid(), elem));
+			continue;
+		}
+
+		locError += aaErrorSq[elem];
+
+		if (dd->multi_grid()->get_level(elem) < m_max_level)
+			elemVec.push_back(elem);
+	}
+	const size_t nLocalElem = elemVec.size();
+
+	// sort vector of elements locally (descending)
+	ElemErrorSortDesc<TDomain> eeSort(aaErrorSq);
+	std::sort(elemVec.begin(), elemVec.end(), eeSort);
+
+	// create sorted vector of errors
+	std::vector<number> etaSq(nLocalElem);
+	for (size_t i = 0; i < nLocalElem; ++i)
+		etaSq[i] = aaErrorSq[elemVec[i]];
+
+#ifdef UG_PARALLEL
+	const int nProcs = pcl::NumProcs();
+	if (nProcs > 1)
+	{
+		// calculate global error
+		pcl::ProcessCommunicator pc;
+		const int rootProc = pcl::NumProcs() - 1;
+		const number globError = pc.allreduce(locError, PCL_RO_SUM);
+		UG_LOGN("  +++ Element errors: sumEtaSq = " << globError << ".");
+
+		// construct global sorted vector of elem errors
+		// gather on root proc
+		// choose root as the highest-rank proc (proc 0 has least free memory)
+		std::vector<number> rcvBuf;
+		std::vector<int> vSizes;
+		pc.gatherv(rcvBuf, etaSq, rootProc, &vSizes);
+
+		// merge of pre-sorted local vectors
+		std::vector<int> nRefineElems;
+		size_t globNumRefineElems = 0;
+		if (pcl::ProcRank() == rootProc)
+		{
+			// associate each error value with the proc it belongs to
+			// and calculate offsets at the same time
+			std::vector<size_t> vOffsets(nProcs, 0);
+			const size_t nGlobElem = rcvBuf.size();
+			std::vector<std::pair<number, int> > vGlobErrors(nGlobElem);
+			size_t e = 0;
+			for (int p = 0; p < nProcs; ++p)
+			{
+				const size_t szp = vSizes[p];
+				for (size_t i = 0; i < szp; ++i, ++e)
+				{
+					vGlobErrors[e].first = rcvBuf[e];
+					vGlobErrors[e].second = p;
+				}
+				if (p < nProcs-1)
+					vOffsets[p+1] = vOffsets[p] + szp;
+			}
+
+			// free rcv buffer
+			{
+				std::vector<number> tmp;
+				tmp.swap(rcvBuf);
+			}
+
+			// merge pre-sorted proc error lists ((log p) * N)
+			size_t nLists = 2;
+			while (true)
+			{
+				const size_t nMerge = nProcs / std::min(nLists, (size_t) nProcs);
+				for (size_t m = 0; m < nMerge; ++m)
+				{
+					std::vector<std::pair<number, int> >::iterator beginFirst =
+						vGlobErrors.begin() + vOffsets[m*nLists];
+					std::vector<std::pair<number, int> >::iterator beginSecond =
+						vGlobErrors.begin() + vOffsets[m*nLists + nLists/2];
+					std::vector<std::pair<number, int> >::iterator endSecond =
+						(m+1)*nLists < (size_t) nProcs ? vGlobErrors.begin() + vOffsets[(m+1)*nLists] : vGlobErrors.end();
+
+					merge_sorted_lists(beginFirst, beginSecond, endSecond);
+				}
+
+				if (nLists >= (size_t) nProcs)
+					break;
+
+				nLists = nLists << 1;
+			}
+
+			// decide how many elements on each proc have to be refined
+			const number requiredReduction = globError > m_tol ? globError - m_safety*m_tol : 0.0;
+			number red = 0.0;
+			nRefineElems.resize(nProcs, 0);
+			for (; red < requiredReduction && globNumRefineElems < nGlobElem; ++globNumRefineElems)
+			{
+				red += m_expRedFac * vGlobErrors[globNumRefineElems].first;
+				++nRefineElems[vGlobErrors[globNumRefineElems].second];
+			}
+		}
+
+		// tell each proc how many of their elements are to be marked
+		int nRefElems = 0;
+		pc.scatter(GetDataPtr(nRefineElems), 1, PCL_DT_INT, &nRefElems, 1, PCL_DT_INT, rootProc);
+
+		pc.broadcast(globNumRefineElems, rootProc);
+
+		// mark for refinement
+		for (size_t i = 0; i < (size_t) nRefElems; ++i)
+			refiner.mark(elemVec[i], RM_REFINE);
+
+		if (globNumRefineElems)
+		{
+			UG_LOGN("  +++ Marked for refinement: " << globNumRefineElems << " elements");
+		}
+		else
+		{
+			UG_LOGN("  +++ No refinement necessary.");
+		}
+	}
+	else
+	{
+#endif
+
+	// plan refinement of elements until expected error reduction is enough
+	// to get below tolerance (or all elements are marked)
+	const number requiredReduction = locError - m_safety*m_tol;
+	UG_LOGN("  +++ Element errors: sumEtaSq = " << locError << ".");
+	number red = 0.0;
+	size_t i = 0;
+	for (; red < requiredReduction && i < nLocalElem; ++i)
+	{
+		red += m_expRedFac * etaSq[i];
+		refiner.mark(elemVec[i], RM_REFINE);
+	}
+	if (i)
+	{
+		UG_LOGN("  +++ Marked for refinement: " << i << " elements.");
+	}
+	else
+	{
+		UG_LOGN("  +++ No refinement necessary.");
+	}
+
+#ifdef UG_PARALLEL
+	}
+#endif
+}
 
 
 
