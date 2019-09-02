@@ -32,9 +32,10 @@
 
 #include "mem_info.h"
 
+#ifdef UG_PARALLEL
 #include "pcl/pcl_base.h"  // for NumProcs
 #include "pcl/pcl_process_communicator.h"  // for NumProcs
-
+#endif
 
 namespace ug {
 
