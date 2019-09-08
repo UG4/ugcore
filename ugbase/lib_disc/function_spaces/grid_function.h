@@ -39,6 +39,10 @@
 #include "approximation_space.h"
 #include "lib_disc/dof_manager/dof_distribution.h"
 
+#ifdef UG_PARALLEL
+	#include "lib_algebra/parallelization/parallel_storage_type.h"
+#endif
+
 namespace ug{
 
 /// Base class for all Grid Functions
@@ -362,6 +366,9 @@ class GridFunction
 	 *			and my be completely random.*/
 		void enable_redistribution(bool enable)	{m_bRedistribute = enable;}
 
+	// for debugging purposes
+		void SetConsistentStorageType(){this->set_storage_type(PST_CONSISTENT);}
+
 	///	\copydoc IGridFunction::resize_values
 		virtual void resize_values(size_t s, number defaultValue = 0.0);
 
@@ -371,6 +378,7 @@ class GridFunction
 	///	\copydoc IGridFunction::copy_values
 		virtual void copy_values(const std::vector<std::pair<size_t, size_t> >& vIndexMap,
 		                         bool bDisjunct = false);
+
 
 	protected:
 	///	message hub id

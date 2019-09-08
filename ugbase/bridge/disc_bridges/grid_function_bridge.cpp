@@ -102,6 +102,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("assign", static_cast<void (TFct::*)(const vector_type&)>(&TFct::assign),
 						"Success", "Vector")
 			.add_method("clone", &TFct::clone)
+			.add_method("set_consistent_storage_type", &TFct::SetConsistentStorageType)
 			.add_method("grid_level", &TFct::grid_level)
 			.add_method("num_dofs", static_cast<size_t (TFct::*)() const>(&TFct::num_dofs))
 			.add_method("redistribution_enabled", &TFct::redistribution_enabled)
