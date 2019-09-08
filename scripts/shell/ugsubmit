@@ -15,6 +15,7 @@
 # - Juqueen, Forschungszentrum Juelich (ll_submit)
 # - Jureca, Forschungszentrum Juelich (SLURM)
 # - Juwelsjureca, Forschungszentrum Juelich (SLURM)
+# - SDCluster, Ruhr University Bochum (SLURM)
 # - Hermit, HLRS Stuttgart (qsub, aprun)
 # - NecNehalem, HLRS Stuttgart (qsub, mpirun)
 # - MOAB Workload Manager (msub, srun)
@@ -47,6 +48,7 @@ runDir=$execPath
 execdate=`date`;      # date of execution
 verbose=false;
 exclusive=false;
+nosuffix=false;
 scriptpath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 mailStart=false
@@ -100,7 +102,10 @@ function usage
 	echo "        -nppn <nppn>           : number of processes per node (optional, default "$nppn")"
 	echo "        -cluster <type>        : cluster to use. see below (or use env. variable UGSUBMIT_TYPE)"
 	echo "        -name <jobname>        : a jobname to be used (optional, default \""$jobname"\")"
+	echo "        -nosuffix              : do not add .npe.date suffix to jobname"
 	echo "        -walltime <hh:mm:ss>   : max walltime for job to run (optional; default is "$walltime")"
+	echo "        -partition <partition> : the partition to be used"
+	echo "        -mem <mem>             : max (overall) main memory for the job"
 	echo "        -email <emailadress>   : emailadress. you can also use the environment variable UGSUBMIT_EMAIL."
 	echo "        -mail-start            : mail when job starts"
 	echo "        -mail-end              : mail when job ends"
@@ -116,7 +121,7 @@ function usage
 	echo "        -queue                 : the queue to use"
 	echo "        -nosubdir              : don't create job in a subdir, but in dir (default .) directly. (warning: might be dangerous)"
 	echo " "
-	echo " Supported Cluster Types: NecNehalem, Hermit, Jugene, Juqueen, Jureca, Juwels, mpi (mpi-foreground, mpi-background), cekon, cesari, moab."
+	echo " Supported Cluster Types: NecNehalem, Hermit, Jugene, Juqueen, Jureca, Juwels, SDCluster, mpi (mpi-foreground, mpi-background), cekon, cesari, moab."
 	if [ -n "$UGSUBMIT_TYPE" ]; then 
 		echo " Only UGSUBMIT_TYPE=$UGSUBMIT_TYPE specific parameters are shown ! Set UGSUBMIT_TYPE=\"\" to see all."
 	fi
@@ -226,6 +231,9 @@ do
 	elif [ $1 == "-name" ]; then
 		jobname=$2
 		shift 2
+	elif [ $1 == "-nosuffix" ]; then
+		nosuffix=true
+		shift 1
 	elif [ $1 == "-so" ]; then
 		scheduleroptions=$2
 		shift 2
@@ -329,6 +337,12 @@ do
 	elif [ $1 == "-Juwels-project" ]; then
 		juwels_project=$2
 		shift 2
+	elif [ $1 == "-partition" ]; then
+		partition=$2
+		shift 2
+	elif [ $1 == "-mem" ]; then
+		mem=$2
+		shift 2
 	elif [ $1 == "---" ]; then
 		shift
 		break
@@ -392,7 +406,10 @@ if [ ${executable:0:1} = "." ]; then
 fi
 
 dirdate=$(date "+%Yy%mm%dd-%Hh%Mm%Ss");
-jobname=$jobname.$npe.$dirdate;
+
+if [ $nosuffix == false ]; then
+	jobname=$jobname.$npe.$dirdate;
+fi
 
 #create output directory
 if [ $nosubdir == true ]; then

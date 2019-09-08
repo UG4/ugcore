@@ -161,6 +161,13 @@ include_directories(${ug4libIncludes})
 get_property(ug4LinkPaths GLOBAL PROPERTY ugLinkPaths)
 link_directories(${ug4LinkPaths})
 
+get_property(ug4Definitions GLOBAL PROPERTY ugDefinitions)
+add_definitions(${ug4Definitions})
+
+get_property(ug4LinkerFlags GLOBAL PROPERTY ugLinkerFlags)
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${ug4LinkerFlags}")
+	
+
 add_executable(${targetExecutableName} ${srcUGShell})
 
 if("${SHELLTYPE}" STREQUAL "readline")

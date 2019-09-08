@@ -33,6 +33,10 @@
 #ifndef LIB_GRID__COPY_ATTACHMENT_HANDLER_H_
 #define LIB_GRID__COPY_ATTACHMENT_HANDLER_H_
 
+#include "common/util/smart_pointer.h"  // for SmartPtr
+#include "lib_grid/grid/grid_observer.h"  // for GridObserver
+#include "lib_grid/multi_grid.h"  // for MultiGrid
+
 #ifdef UG_PARALLEL
     #include "lib_grid/parallelization/util/compol_copy_attachment.h" // ComPol_CopyAttachment
     #include "lib_grid/parallelization/distributed_grid.h"        // DistributedGridManager

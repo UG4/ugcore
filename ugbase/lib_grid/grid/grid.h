@@ -267,14 +267,14 @@ class UG_API Grid
 		Grid(uint options);
 
 	///	copies all elements and some attachments from the passed grid to this grid.
-	/**	While all elements and the options are copied completly from the source-grid,
+	/**	While all elements and the options are copied completely from the source-grid,
 	 *	the attachments are only copied if their pass-on behaviour is set to true.*/
 		Grid(const Grid& grid);
 
 		virtual ~Grid();
 
 	///	copies all elements and some attachments from the passed grid to this grid.
-	/**	While all elements and the options are copied completly from the source-grid,
+	/**	While all elements and the options are copied completely from the source-grid,
 	 *	the attachments are only copied if their pass-on behaviour is set to true.
 	 *	Attachments that were already attached to this grid are removed prior to
 	 *	copying if their pass-on behaviour was set to true. They will be kept otherwise.

@@ -39,6 +39,9 @@
 #include "common/util/table.h"
 #include "common/util/variant.h"
 #include "registry/registry.h"
+#if defined (__APPLE__) || defined (__linux__)
+	#include "common/util/mem_info.h"
+#endif
 
 #include <cstdlib>
 #include <string>
@@ -220,6 +223,25 @@ void RegisterBridge_Util(Registry& reg, string parentGroup)
 		    .add_method("toc", &T::toc)
 		    .add_method("cuckoo", &T::cuckoo);
 	}
+
+#if defined (__APPLE__) || defined (__linux__)
+	// MemInfo provides information about memory usage
+	{
+		typedef MemInfo T;
+		string name = string("MemInfo");
+		reg.add_class_<T>(name, grp)
+			.add_constructor()
+			.add_method("memory_consumption", &T::memory_consumption, "", "", "")
+			.add_method("local_resident_memory", &T::local_resident_memory, "", "", "")
+			.add_method("local_virtual_memory", &T::local_virtual_memory, "", "", "")
+			.add_method("global_resident_memory", &T::global_resident_memory, "", "", "")
+			.add_method("global_virtual_memory", &T::global_virtual_memory, "", "", "")
+			.add_method("max_resident_memory", &T::max_resident_memory, "", "", "")
+			.add_method("max_virtual_memory", &T::max_virtual_memory, "", "", "")
+
+			.set_construct_as_smart_pointer(true);
+	}
+#endif
 
 }
 

@@ -579,11 +579,11 @@ static void AssignSubsetsBySurfaceViewState(SubsetHandler& sh, const SurfaceView
 	}
 	for(int i = 0; i < sh.num_subsets(); ++i)
 		sh.subset_info(i).name = "unknown";
-	sh.subset_info(SurfaceView::MG_SHADOW_PURE).name = "unassigned";
-	sh.subset_info(SurfaceView::MG_SURFACE_PURE).name = "pure-surface";
-	sh.subset_info(SurfaceView::MG_SURFACE_RIM).name = "shadowing";
-	sh.subset_info(SurfaceView::MG_SHADOW_RIM_COPY).name = "shadow-copy";
-	sh.subset_info(SurfaceView::MG_SHADOW_RIM_NONCOPY).name = "shadow-noncopy";
+	sh.subset_info(SurfaceView::MG_SHADOW_PURE).name = "shadow-pure";
+	sh.subset_info(SurfaceView::MG_SURFACE_PURE).name = "surface-pure";
+	sh.subset_info(SurfaceView::MG_SURFACE_RIM).name = "surface-rim";
+	sh.subset_info(SurfaceView::MG_SHADOW_RIM_COPY).name = "shadow-rim-copy";
+	sh.subset_info(SurfaceView::MG_SHADOW_RIM_NONCOPY).name = "shadow-rim-noncopy";
 	//EraseEmptySubsets(sh);
 }
 
@@ -697,7 +697,42 @@ void CopyGridLevel(MultiGrid& srcMG, Grid& destGrid,
 }
 
 template <class TAPos>
-bool SaveGridLevel(MultiGrid& srcMG, ISubsetHandler& srcSH, int lvl, const char* filename, TAPos aPos)
+void CopyGrid(Grid& srcGrid, Grid& destGrid,
+			  ISubsetHandler& srcSH, ISubsetHandler& destSH,
+			  TAPos aPos)
+{
+	Grid::VertexAttachmentAccessor<TAPos> aaPos(destGrid, aPos);
+	Grid::VertexAttachmentAccessor<TAPos> aaSrcPos(srcGrid, aPos);
+	GridObjectCollection goc = srcGrid.get_grid_objects();
+
+	AVertex aNewVrt;
+	srcGrid.attach_to_vertices(aNewVrt);
+	Grid::VertexAttachmentAccessor<AVertex> aaNewVrt(srcGrid, aNewVrt);
+
+	for(int si = destSH.num_subsets(); si < srcSH.num_subsets(); ++si)
+	{
+		destSH.subset_info(si) = srcSH.subset_info(si);
+	}
+
+	for(VertexIterator vrtIter = goc.begin<Vertex>(); vrtIter != goc.end<Vertex>(); ++vrtIter)
+	{
+		Vertex* srcVrt  = *vrtIter;
+		Vertex* destVrt = *destGrid.create_by_cloning(srcVrt);
+		aaNewVrt[srcVrt] = destVrt;
+		aaPos[destVrt] = aaSrcPos[srcVrt];
+		destSH.assign_subset(destVrt, srcSH.get_subset_index(srcVrt));
+	}
+
+	CopyGridElements<Edge>(srcGrid, destGrid, srcSH, destSH, aNewVrt);
+	CopyGridElements<Face>(srcGrid, destGrid, srcSH, destSH,  aNewVrt);
+	CopyGridElements<Volume>(srcGrid, destGrid, srcSH, destSH, aNewVrt);
+
+	srcGrid.detach_from_vertices(aNewVrt);
+}
+
+template <class TAPos>
+bool SaveGridLevel(MultiGrid& srcMG, ISubsetHandler& srcSH,
+				   int lvl, const char* filename, TAPos aPos)
 {
 	Grid destGrid;
 	SubsetHandler destSH(destGrid);
@@ -708,6 +743,88 @@ bool SaveGridLevel(MultiGrid& srcMG, ISubsetHandler& srcSH, int lvl, const char*
 	SaveGridToFile(destGrid, destSH, filename);
 
 	return true;
+}
+
+template <typename TAPos>
+void MergeGrids
+(
+	Grid& mrgGrid,
+	Grid& grid,
+	ISubsetHandler& mrgSH,
+	ISubsetHandler& sh,
+	TAPos aPos,
+	bool joinSubsets
+)
+{
+	// add offset to not join subsets with same index
+	int subsetBaseInd = joinSubsets ? 0 : mrgSH.num_subsets();
+
+	// attach data
+	AVertex aVrt;
+	grid.attach_to_vertices(aVrt);
+
+	// attachments accessors for position and vertex index
+	Grid::AttachmentAccessor<Vertex, TAPos> aaPosMRG(mrgGrid, aPos, true);
+	Grid::AttachmentAccessor<Vertex, TAPos> aaPos(grid, aPos, true);
+	Grid::AttachmentAccessor<Vertex, AVertex> aaVrt(grid, aVrt);
+
+	// copy vertices
+	for (VertexIterator iter = grid.begin<Vertex>();
+			iter != grid.end<Vertex>(); ++iter)
+	{
+		Vertex* nvrt = *mrgGrid.create_by_cloning(*iter);
+		aaPosMRG[nvrt] = aaPos[*iter];
+		aaVrt[*iter] = nvrt;
+		mrgSH.assign_subset(nvrt, subsetBaseInd + sh.get_subset_index(*iter));
+	}
+
+	//	copy edges
+	EdgeDescriptor ed;
+	for (EdgeIterator iter = grid.begin<Edge>();
+			iter != grid.end<Edge>(); ++iter)
+	{
+		Edge* eSrc = *iter;
+		ed.set_vertices(aaVrt[eSrc->vertex(0)], aaVrt[eSrc->vertex(1)]);
+		Edge* e = *mrgGrid.create_by_cloning(eSrc, ed);
+		mrgSH.assign_subset(e, subsetBaseInd + sh.get_subset_index(eSrc));
+	}
+
+	//	copy faces
+	FaceDescriptor fd;
+	for (FaceIterator iter = grid.begin<Face>();
+		iter != grid.end<Face>(); ++iter)
+	{
+		Face* fSrc = *iter;
+		fd.set_num_vertices((uint)fSrc->num_vertices());
+		for (size_t i = 0; i < fd.num_vertices(); ++i) {
+			fd.set_vertex((uint)i, aaVrt[fSrc->vertex(i)]);
+		}
+		Face* f = *mrgGrid.create_by_cloning(fSrc, fd);
+		mrgSH.assign_subset(f, subsetBaseInd + sh.get_subset_index(fSrc));
+	}
+
+	// copy volumes
+	VolumeDescriptor vd;
+	for (VolumeIterator iter = grid.begin<Volume>();
+			iter != grid.end<Volume>(); ++iter)
+	{
+		Volume* vSrc = *iter;
+		vd.set_num_vertices((uint)vSrc->num_vertices());
+		for (size_t i = 0; i < vd.num_vertices(); ++i) {
+			vd.set_vertex((uint)i, aaVrt[vSrc->vertex(i)]);
+		}
+
+		Volume* v = *mrgGrid.create_by_cloning(vSrc, vd);
+		mrgSH.assign_subset(v, subsetBaseInd + sh.get_subset_index(vSrc));
+	}
+
+	// remove the temporary attachment
+	mrgGrid.detach_from_vertices(aVrt);
+
+	// overwrite subset names
+	for (int i_sub = 0; i_sub < sh.num_subsets(); ++i_sub){
+		mrgSH.subset_info(subsetBaseInd + i_sub) = sh.subset_info(i_sub);
+	}
 }
 
 bool SaveGridLevelToFile(MultiGrid& srcMG, ISubsetHandler& srcSH, int lvl, const char* filename)
@@ -742,5 +859,13 @@ template bool SaveGridToFile(Grid&, ISubsetHandler&, const char*, AVector3&);
 template bool SaveGridToFile(Grid&, const char*, AVector1&);
 template bool SaveGridToFile(Grid&, const char*, AVector2&);
 template bool SaveGridToFile(Grid&, const char*, AVector3&);
+
+template void CopyGrid(Grid&, Grid&, ISubsetHandler&, ISubsetHandler&, APosition1);
+template void CopyGrid(Grid&, Grid&, ISubsetHandler&, ISubsetHandler&, APosition2);
+template void CopyGrid(Grid&, Grid&, ISubsetHandler&, ISubsetHandler&, APosition3);
+
+template void MergeGrids(Grid&, Grid&, ISubsetHandler&, ISubsetHandler&, APosition1, bool);
+template void MergeGrids(Grid&, Grid&, ISubsetHandler&, ISubsetHandler&, APosition2, bool);
+template void MergeGrids(Grid&, Grid&, ISubsetHandler&, ISubsetHandler&, APosition3, bool);
 
 }//	end of namespace

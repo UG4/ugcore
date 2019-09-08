@@ -38,7 +38,7 @@ namespace ug{
 template <typename TElem, int TWorldDim>
 HFV1Geometry<TElem, TWorldDim>::
 HFV1Geometry()
-	: m_pElem(NULL),  m_rRefElem(Provider<ref_elem_type>::get())
+	: m_pElem(NULL), m_numSh(0), m_rRefElem(Provider<ref_elem_type>::get())
 {
 	// local corners
 	m_vSCV.resize(m_numNaturalSCV);
@@ -1246,7 +1246,7 @@ update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubs
 
 template <typename TElem, int TWorldDim>
 HFV1ManifoldGeometry<TElem, TWorldDim>::
-HFV1ManifoldGeometry() : m_pElem(NULL), m_rRefElem(Provider<ref_elem_type>::get()), m_ssi(-1)
+HFV1ManifoldGeometry() : m_pElem(NULL), m_rRefElem(Provider<ref_elem_type>::get())
 {
 	// set corners of element as local centers of nodes
 	m_vBF.resize(m_numNaturalBF);
@@ -1277,23 +1277,6 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 	if (m_pElem == elem) return;
 	else m_pElem = elem;
 
-	//	store subset index for geometry
-	Grid& grid = *(ish->grid());
-	if (dim == 1)
-	{
-		std::vector<Edge*> vEdge;
-		CollectEdges(vEdge, grid, static_cast<Edge*>(elem));
-		UG_ASSERT(vEdge.size(),"No edge contained in 1D manifold element!");
-		m_ssi = ish->get_subset_index(vEdge[0]);
-	}
-	if (dim == 2)
-	{
-		std::vector<Face*> vFace;
-		CollectFaces(vFace, grid, static_cast<Face*>(elem));
-		UG_ASSERT(vFace.size(),"No face contained in 2D manifold element!");
-		m_ssi = ish->get_subset_index(vFace[0]);
-	}
-
 	// reset to natural nodes
 	m_gloMid[0].resize(m_numNaturalBF);
 	m_locMid[0].resize(m_numNaturalBF);
@@ -1311,6 +1294,7 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 
 	// get natural edges
 	std::vector<Edge*> vEdges;
+	Grid& grid = *(ish->grid());
 	CollectEdgesSorted(vEdges, grid, elem);
 
 	// compute nodes

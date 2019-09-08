@@ -1135,12 +1135,13 @@ adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd)
 
 	// NOTE: it is crucial, that dirichlet pp are processed before constraints.
 	// 	 	 otherwise we may start with an inconsistent solution in the solvers
-	std::vector<int> vType(5);
+	std::vector<int> vType(6);
 	vType[0] = CT_DIRICHLET;	// hanging (or other constrained) nodes might depend on Dirichlet nodes
 	vType[1] = CT_CONSTRAINTS;
 	vType[2] = CT_HANGING;
 	vType[3] = CT_MAY_DEPEND_ON_HANGING;
-	vType[4] = CT_DIRICHLET;	// hanging DoFs might be Dirichlet (Dirichlet overrides)
+	vType[4] = CT_ASSEMBLED;
+	vType[5] = CT_DIRICHLET;	// hanging DoFs might be Dirichlet (Dirichlet overrides)
 
 	// if assembling is carried out at one DoF only, u needs to be resized
 	if (m_spAssTuner->single_index_assembling_enabled()) u.resize(1);
