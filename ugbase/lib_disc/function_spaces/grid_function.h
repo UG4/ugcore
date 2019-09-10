@@ -366,8 +366,13 @@ class GridFunction
 	 *			and my be completely random.*/
 		void enable_redistribution(bool enable)	{m_bRedistribute = enable;}
 
-	// for debugging purposes
-		void SetConsistentStorageType(){this->set_storage_type(PST_CONSISTENT);}
+	// for debugging purposes. To be removed.
+		void SetConsistentStorageType()
+		{
+#ifdef UG_PARALLEL
+			this->set_storage_type(PST_CONSISTENT);
+#endif
+		}
 
 	///	\copydoc IGridFunction::resize_values
 		virtual void resize_values(size_t s, number defaultValue = 0.0);
