@@ -338,8 +338,8 @@ void ExpectedErrorMarkingStrategy<TDomain>::merge_sorted_lists
 	sorted.reserve(nVal);
 
 	std::vector<std::pair<number, int> >::iterator it1 = beginFirst;
-	std::vector<std::pair<number, int> >::iterator& it2 = beginSecond;
-	while (it1 != end && it2 != end)
+	std::vector<std::pair<number, int> >::iterator it2 = beginSecond;
+	while (it1 != beginSecond && it2 != end)
 	{
 		if (it1->first > it2->first)
 		{
@@ -353,7 +353,7 @@ void ExpectedErrorMarkingStrategy<TDomain>::merge_sorted_lists
 		}
 	}
 
-	for (; it1 != end; ++it1)
+	for (; it1 != beginSecond; ++it1)
 		sorted.push_back(*it1);
 	for (; it2 != end; ++it2)
 		sorted.push_back(*it2);
@@ -447,7 +447,7 @@ void ExpectedErrorMarkingStrategy<TDomain>::mark
 					vGlobErrors[e].second = p;
 				}
 				if (p < nProcs-1)
-					vOffsets[p+1] = vOffsets[p] + szp;
+					vOffsets[p+1] = e;
 			}
 
 			// free rcv buffer
@@ -485,7 +485,7 @@ void ExpectedErrorMarkingStrategy<TDomain>::mark
 			nRefineElems.resize(nProcs, 0);
 			for (; red < requiredReduction && globNumRefineElems < nGlobElem; ++globNumRefineElems)
 			{
-				red += m_expRedFac * vGlobErrors[globNumRefineElems].first;
+				red += (1.0-m_expRedFac) * vGlobErrors[globNumRefineElems].first;
 				++nRefineElems[vGlobErrors[globNumRefineElems].second];
 			}
 		}
@@ -497,6 +497,8 @@ void ExpectedErrorMarkingStrategy<TDomain>::mark
 		pc.broadcast(globNumRefineElems, rootProc);
 
 		// mark for refinement
+		UG_COND_THROW((size_t) nRefElems > nLocalElem, "More elements supposedly need refinement here ("
+			<< nRefElems << ") than are refineable (" << nLocalElem << ").");
 		for (size_t i = 0; i < (size_t) nRefElems; ++i)
 			refiner.mark(elemVec[i], RM_REFINE);
 
