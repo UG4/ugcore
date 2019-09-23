@@ -115,6 +115,7 @@ function NavierStokesInflow(spMaster)
 
 	local discType = spMaster:disc_type();	
 	if 		discType == "fv1"  then return NavierStokesInflowFV1(spMaster)
+    elseif	discType == "fv1_cutElem"  then return NavierStokesInflowFV1_cutElem(spMaster)
 	elseif  discType == "fv"   then return NavierStokesInflowFV(spMaster)
 	elseif  discType == "fvcr" then return NavierStokesInflowFVCR(spMaster)
 	elseif  discType == "fe"   then return NavierStokesInflowFE(spMaster)

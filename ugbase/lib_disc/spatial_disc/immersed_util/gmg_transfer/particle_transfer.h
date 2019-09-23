@@ -95,12 +95,12 @@ class ParticleTransfer :
 
 	public:
     /// Constructor
-        ParticleTransfer(SmartPtr<ApproximationSpace<TDomain> > approxSpace, SmartPtr<CutElementHandlerFlatTop<dim> > cutElementHandler) :
+        ParticleTransfer(SmartPtr<ApproximationSpace<TDomain> > approxSpace, SmartPtr<CutElementHandler_FlatTop<dim> > cutElementHandler) :
                         ITransferOperator<TDomain, TAlgebra>(),
                         m_p1LagrangeOptimizationEnabled(true),
                         m_dampRes(1.0), bCached(true), m_bUseTransposed(false),
                         m_spDebugWriter(NULL),
-                        m_spParticleHandlerGlobal(cutElementHandler)
+                        m_spCutElementHandler(cutElementHandler)
         {};
     
 	/// Default constructor
@@ -143,7 +143,7 @@ class ParticleTransfer :
 	///	sets if restriction and prolongation are transposed
 		void set_use_transposed(bool bTransposed) {m_bUseTransposed = bTransposed;}
     ///	sets if restriction and prolongation are transposed
-        void set_global_handler(SmartPtr<CutElementHandlerFlatTop<dim> > spCutElementHandler) {m_spParticleHandlerGlobal = spCutElementHandler;}
+        void set_global_handler(SmartPtr<CutElementHandler_FlatTop<dim> > spCutElementHandler) {m_spCutElementHandler = spCutElementHandler;}
 
 
 	public:
@@ -290,7 +290,7 @@ class ParticleTransfer :
 		SmartPtr<IDebugWriter<TAlgebra> > m_spDebugWriter;
     
     // new member
-        SmartPtr<CutElementHandlerFlatTop<dim> > m_spParticleHandlerGlobal;
+        SmartPtr<CutElementHandler_FlatTop<dim> > m_spCutElementHandler;
     
 
 };

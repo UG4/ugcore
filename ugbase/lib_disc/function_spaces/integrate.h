@@ -39,6 +39,7 @@
 
 #include "common/common.h"
 
+#include "integrate_tools.h"
 #include "lib_grid/tools/subset_group.h"
 
 #include "lib_disc/common/function_group.h"
@@ -256,6 +257,163 @@ class StdIntegrand : public IIntegrand<TData, TWorldDim>
  *									associated attachment entry.
  * \returns			value of the integral
  */
+    
+    template <int WorldDim, int dim, typename TGridFunction, typename TConstIterator>
+    number IntegrateInside(SmartPtr<TGridFunction> spFineGridFct,
+                           SmartPtr<TGridFunction> spCoarseGridFct,
+                           int si,
+                           typename domain_traits<WorldDim>::position_accessor_type& aaPos,
+                           IIntegrand<number, WorldDim>& integrand,
+                           int quadOrder, std::string quadType,
+                           Grid::AttachmentAccessor<
+                           typename domain_traits<dim>::grid_base_object, ANumber>
+                           *paaElemContribs = NULL
+                           )
+    {
+        PROFILE_FUNC();
+        
+        //	reset the result
+        number integral = 0;
+        number integralOutside = 0;
+        
+        // set data for	getting parten element
+        const int coarseTopLevel = spCoarseGridFct->dof_distribution()->grid_level().level();
+        const int fineTopLevel = spFineGridFct->dof_distribution()->grid_level().level();
+        SmartPtr<MultiGrid> spMG = spFineGridFct->domain()->grid();
+        
+        //	this is the base element type (e.g. Face). This is the type when the
+        //	iterators above are dereferenciated.
+        typedef typename domain_traits<dim>::grid_base_object grid_base_object;
+        
+        //	note: this iterator is for the base elements, e.g. Face and not
+        //			for the special type, e.g. Triangle, Quadrilateral
+        TConstIterator iter = spFineGridFct->template begin<grid_base_object>(si);
+        TConstIterator iterEnd = spFineGridFct->template end<grid_base_object>(si);
+        
+        //	get quad type
+        if(quadType.empty()) quadType = "best";
+        QuadType type = GetQuadratureType(quadType);
+        
+        //	accessing without dereferencing a pointer first is simpler...
+        Grid::AttachmentAccessor<grid_base_object, ANumber> aaElemContribs;
+        if(paaElemContribs)
+            aaElemContribs = *paaElemContribs;
+        
+        //	We'll reuse containers to avoid reallocations
+        std::vector<MathVector<WorldDim> > vCorner;
+        std::vector<MathVector<WorldDim> > vCornerCoarse;
+        std::vector<MathVector<WorldDim> > vGlobIP;
+        std::vector<MathMatrix<dim, WorldDim> > vJT;
+        std::vector<number> vValue;
+        
+        // 	iterate over all elements
+        for(; iter != iterEnd; ++iter)
+        {
+            //	get element
+            grid_base_object* pElem = *iter;
+            
+            //	get coarse element
+            GridObject* pParentElem = pElem;
+            if(coarseTopLevel < fineTopLevel){
+                int parentLevel = spMG->get_level(pParentElem);
+                while(parentLevel > coarseTopLevel){
+                    pParentElem = spMG->get_parent(pParentElem);
+                    parentLevel = spMG->get_level(pParentElem);
+                }
+            }
+            grid_base_object* pCoarseElem = (grid_base_object*)pParentElem;
+            
+            //	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
+            ReferenceObjectID roid = (ReferenceObjectID) pElem->reference_object_id();
+            
+            //	get quadrature Rule for reference object id and order
+            try{
+                const QuadratureRule<dim>& rQuadRule
+                = QuadratureRuleProvider<dim>::get(roid, quadOrder, type);
+                
+                //	get reference element mapping by reference object id
+                DimReferenceMapping<dim, WorldDim>& mapping
+                = ReferenceMappingProvider::get<dim, WorldDim>(roid);
+                
+                //	number of integration points
+                const size_t numIP = rQuadRule.size();
+                
+                //	get all corner coordinates
+                CollectCornerCoordinates(vCorner, *pElem, aaPos, true);
+                CollectCornerCoordinates(vCornerCoarse, *pCoarseElem, aaPos, true);
+                
+                // skip all outside and cut elements!
+                const MathVector<dim>& center(0.2);
+                const number radius = 0.05;
+                bool outsideElem = false;
+                for ( size_t i = 0; i < vCornerCoarse.size(); ++i )
+                {
+                    number dist = 0.0;
+                    for ( size_t d = 0; d < dim; ++d )
+                        dist += (vCornerCoarse[i][d]-center[d]) * (vCornerCoarse[i][d]-center[d]);
+                    dist = sqrt(dist);
+                    if ( (dist-radius) < 1e-10)
+                    {
+                        outsideElem = true;
+                    }
+                }
+                if ( outsideElem )
+                    continue;
+                //	update the reference mapping for the corners
+                mapping.update(&vCorner[0]);
+                
+                //	compute global integration points
+                vGlobIP.resize(numIP);
+                mapping.local_to_global(&(vGlobIP[0]), rQuadRule.points(), numIP);
+                
+                //	compute transformation matrices
+                vJT.resize(numIP);
+                mapping.jacobian_transposed(&(vJT[0]), rQuadRule.points(), numIP);
+                
+                //	compute integrand values at integration points
+                vValue.resize(numIP);
+                try
+                {
+                    integrand.values(&(vValue[0]), &(vGlobIP[0]),
+                                     pElem, &vCorner[0], rQuadRule.points(),
+                                     &(vJT[0]),
+                                     numIP);
+                }
+                UG_CATCH_THROW("Unable to compute values of integrand at integration point.");
+                
+                //	reset contribution of this element
+                number intValElem = 0;
+                
+                //	loop integration points
+                for(size_t ip = 0; ip < numIP; ++ip)
+                {
+                    //	get quadrature weight
+                    const number weightIP = rQuadRule.weight(ip);
+                    
+                    //	get determinate of mapping
+                    const number det = SqrtGramDeterminant(vJT[ip]);
+                    
+                    //	add contribution of integration point
+                    intValElem += vValue[ip] * weightIP * det;
+                }
+                
+                //	add to global sum
+                if ( outsideElem )
+                    integralOutside += intValElem;
+                else
+                    integral += intValElem;
+                if(aaElemContribs.valid())
+                    aaElemContribs[pElem] = intValElem;
+                
+            }UG_CATCH_THROW("SumValuesOnElems failed.");
+        } // end elem
+        
+        
+        //	return the summed integral contributions of all elements
+        return integral;
+    }
+    
+
 template <int WorldDim, int dim, typename TConstIterator>
 number Integrate(TConstIterator iterBegin,
                  TConstIterator iterEnd,
@@ -387,7 +545,37 @@ number IntegrateSubset(IIntegrand<number, TGridFunction::dim> &spIntegrand,
 	                 spIntegrand,
 	                 quadOrder, quadType);
 }
-
+    
+    
+    template <typename TGridFunction, int dim>
+    number IntegrateSubsetInside(SmartPtr<IIntegrand<number, TGridFunction::dim> > spIntegrand,
+                                 SmartPtr<TGridFunction> spFineGridFct,
+                                 SmartPtr<TGridFunction> spCoarseGridFct,
+                                 int si, int quadOrder, std::string quadType)
+    {
+        //	integrate elements of subset
+        typedef typename TGridFunction::template dim_traits<dim>::const_iterator const_iterator;
+        
+        spIntegrand->set_subset(si);
+        /*
+         return IntegrateOnInnerBoundary<TGridFunction::dim,dim,TGridFunction, const_iterator>
+         (spFineGridFct,
+         spCoarseGridFct,
+         si,
+         spFineGridFct->domain()->position_accessor(),
+         *spIntegrand,
+         quadOrder, quadType);
+         */
+        return IntegrateInside<TGridFunction::dim,dim,TGridFunction, const_iterator>
+        (spFineGridFct,
+         spCoarseGridFct,
+         si,
+         spFineGridFct->domain()->position_accessor(),
+         *spIntegrand,
+         quadOrder, quadType);
+        
+    }
+    
 
 template <typename TGridFunction>
 number IntegrateSubsets(IIntegrand<number, TGridFunction::dim> &spIntegrand,
@@ -457,6 +645,76 @@ number IntegrateSubsets(IIntegrand<number, TGridFunction::dim> &spIntegrand,
 	return value;
 }
 
+    
+    template <typename TGridFunction>
+    number IntegrateSubsetsInside(SmartPtr<IIntegrand<number, TGridFunction::dim> > spIntegrand,
+                                  SmartPtr<TGridFunction> spFineGridFct,
+                                  SmartPtr<TGridFunction> spCoarseGridFct,
+                                  const char* subsets, int quadOrder,
+                                  std::string quadType = std::string())
+    {
+        //	world dimensions
+        static const int dim = TGridFunction::dim;
+        
+        //	read subsets
+        SubsetGroup ssGrp(spFineGridFct->domain()->subset_handler());
+        if(subsets != NULL)
+        {
+            ssGrp.add(TokenizeString(subsets));
+            if(!SameDimensionsInAllSubsets(ssGrp))
+                UG_THROW("IntegrateSubsets: Subsets '"<<subsets<<"' do not have same dimension."
+                         "Can not integrate on subsets of different dimensions.");
+        }
+        else
+        {
+            //	add all subsets and remove lower dim subsets afterwards
+            ssGrp.add_all();
+            RemoveLowerDimSubsets(ssGrp);
+        }
+        
+        //	reset value
+        number value = 0;
+        
+        //	loop subsets
+        for(size_t i = 0; i < ssGrp.size(); ++i)
+        {
+            //	get subset index
+            const int si = ssGrp[i];
+            
+            //	check dimension
+            if(ssGrp.dim(i) > dim)
+                UG_THROW("IntegrateSubsets: Dimension of subset is "<<ssGrp.dim(i)<<", but "
+                         " World Dimension is "<<dim<<". Cannot integrate this.");
+            
+            //	integrate elements of subset
+            try{
+                switch(ssGrp.dim(i))
+                {
+                    case DIM_SUBSET_EMPTY_GRID: break;
+                    case 1: value += IntegrateSubsetInside<TGridFunction, 1>(spIntegrand, spFineGridFct, spCoarseGridFct, si, quadOrder, quadType); break;
+                    case 2: value += IntegrateSubsetInside<TGridFunction, 2>(spIntegrand, spFineGridFct, spCoarseGridFct, si, quadOrder, quadType); break;
+                    case 3: value += IntegrateSubsetInside<TGridFunction, 3>(spIntegrand, spFineGridFct, spCoarseGridFct, si, quadOrder, quadType); break;
+                    default: UG_THROW("IntegrateSubsets: Dimension "<<ssGrp.dim(i)<<" not supported. "
+                                      " World dimension is "<<dim<<".");
+                }
+            }
+            UG_CATCH_THROW("IntegrateSubsets: Integration failed on subset "<<si);
+        }
+        
+#ifdef UG_PARALLEL
+        // sum over processes
+        if(pcl::NumProcs() > 1)
+        {
+            pcl::ProcessCommunicator com;
+            number local = value;
+            com.allreduce(&local, &value, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
+        }
+#endif
+        
+        //	return the result
+        return value;
+    }
+    
 
 ////////////////////////////////////////////////////////////////////////////////
 // UserData Integrand
@@ -1122,7 +1380,363 @@ number L2Error(const char* ExactSol,
 }
 #endif
 
+    
+    template <typename TGridFunction>
+    class L2DiffInnerBoundaryIntegrand
+    : public StdIntegrand<number, TGridFunction::dim, L2DiffInnerBoundaryIntegrand<TGridFunction> >
+    {
+    public:
+        ///	world dimension of grid function
+        static const int worldDim = TGridFunction::dim;
+        
+    private:
+        SmartPtr<TGridFunction> m_spFineGridFct;
+        const size_t m_fineFct;
+        const LFEID m_fineLFEID;
+        const int m_fineTopLevel;
+        
+        SmartPtr<TGridFunction> m_spCoarseGridFct;
+        const size_t m_coarseFct;
+        const LFEID m_coarseLFEID;
+        const int m_coarseTopLevel;
+        
+        ///	multigrid
+        SmartPtr<MultiGrid> m_spMG;
+        
+    public:
+        /// constructor (1 is fine grid function)
+        L2DiffInnerBoundaryIntegrand(SmartPtr<TGridFunction> spFineGridFct, size_t fineCmp,
+                                     SmartPtr<TGridFunction> spCoarseGridFct, size_t coarseCmp)
+        : m_spFineGridFct(spFineGridFct), m_fineFct(fineCmp),
+        m_fineLFEID(m_spFineGridFct->local_finite_element_id(m_fineFct)),
+        m_fineTopLevel(m_spFineGridFct->dof_distribution()->grid_level().level()),
+        m_spCoarseGridFct(spCoarseGridFct), m_coarseFct(coarseCmp),
+        m_coarseLFEID(m_spCoarseGridFct->local_finite_element_id(m_coarseFct)),
+        m_coarseTopLevel(m_spCoarseGridFct->dof_distribution()->grid_level().level()),
+        m_spMG(m_spFineGridFct->domain()->grid()),
+        numCoarseElemCut(0), numFineElemCut(0)
+        {
+            if(m_fineTopLevel < m_coarseTopLevel)
+                UG_THROW("L2DiffInnerBoundaryIntegrand: fine and top level inverted.");
+            
+            if(m_spFineGridFct->domain().get() !=
+               m_spCoarseGridFct->domain().get())
+                UG_THROW("L2DiffInnerBoundaryIntegrand: grid functions defined on different domains.");
+        };
+        
+        ///	sets subset
+        virtual void set_subset(int si)
+        {
+            if(!m_spFineGridFct->is_def_in_subset(m_fineFct, si))
+                UG_THROW("L2DiffInnerBoundaryIntegrand: Grid function component"
+                         <<m_fineFct<<" not defined on subset "<<si);
+            if(!m_spCoarseGridFct->is_def_in_subset(m_coarseFct, si))
+                UG_THROW("L2DiffInnerBoundaryIntegrand: Grid function component"
+                         <<m_coarseFct<<" not defined on subset "<<si);
+            IIntegrand<number, worldDim>::set_subset(si);
+        }
+        
+        
+        /// \copydoc IIntegrand::values
+        template <int elemDim>
+        void evaluate(number vValue[],
+                      const MathVector<worldDim> vFineGlobIP[],
+                      GridObject* pFineElem,
+                      const MathVector<worldDim> vCornerCoords[],
+                      const MathVector<elemDim> vFineLocIP[],
+                      const MathMatrix<elemDim, worldDim> vJT[],
+                      const size_t numIP)
+        {
+            const char* filename = "evaluate";
+            std::string name(filename);
+            char ext[50]; sprintf(ext, ".txt");
+            name.append(ext);
+            FILE* outputFile = fopen(name.c_str(), "a");
+            
+            typedef typename TGridFunction::template dim_traits<elemDim>::grid_base_object Element;
+            
+            //	get coarse element
+            GridObject* pCoarseElem = pFineElem;
+            if(m_coarseTopLevel < m_fineTopLevel){
+                int parentLevel = m_spMG->get_level(pCoarseElem);
+                while(parentLevel > m_coarseTopLevel){
+                    pCoarseElem = m_spMG->get_parent(pCoarseElem);
+                    parentLevel = m_spMG->get_level(pCoarseElem);
+                }
+            }
+            
+            typename domain_traits<worldDim>::position_accessor_type& aaPos = m_spCoarseGridFct->domain()->position_accessor();
+            std::vector<size_t> fine_vOriginalCornerID;
+            std::vector<size_t> fine_vInterfaceID;
+            bool fineElemCut = false;
+            //	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
+            ReferenceObjectID fineROID = pFineElem->reference_object_id();
+            std::vector<MathVector<worldDim> > vCornerFine;
+            if ( !CollectCorners_FlatTop_2d<worldDim>(pFineElem, m_spMG, aaPos, vCornerFine, fine_vOriginalCornerID, fine_vInterfaceID, fineROID) )
+            {
+                CollectCornerCoordinates(vCornerFine, *static_cast<Element*>(pFineElem), *m_spFineGridFct->domain());
+                // fill 'm_vOriginalCornerID' for setting origSH later on:
+                for ( size_t i = 0; i < vCornerFine.size(); ++i )
+                    fine_vOriginalCornerID.push_back(i);
+            }
+            else
+            {
+                numFineElemCut++;
+                
+                fineElemCut = true;
+                
+            }
+            
+            //	get corner coordinates
+            std::vector<size_t> coarse_vOriginalCornerID;
+            std::vector<size_t> coarse_vInterfaceID;
+            ReferenceObjectID coarseROID = pCoarseElem->reference_object_id();
+            std::vector<MathVector<worldDim> > vCornerCoarse;
+            if ( !CollectCorners_FlatTop_2d<worldDim>(pCoarseElem, m_spMG, aaPos, vCornerCoarse, coarse_vOriginalCornerID, coarse_vInterfaceID, coarseROID) )
+            {
+                if ( fineElemCut )
+                    UG_THROW(" not possible: fineElemCut = true && coarseElemCut = false!\n");
+                CollectCornerCoordinates(vCornerCoarse, *static_cast<Element*>(pCoarseElem), *m_spCoarseGridFct->domain());
+                // fill 'm_vOriginalCornerID' for setting origSH later on:
+                for ( size_t i = 0; i < vCornerCoarse.size(); ++i )
+                    coarse_vOriginalCornerID.push_back(i);
+            }
+            else
+            {
+                numCoarseElemCut++;
+            }
+            
+            
+            //	get Reference Mapping
+            DimReferenceMapping<elemDim, worldDim>& map
+            = ReferenceMappingProvider::get<elemDim, worldDim>(coarseROID, vCornerCoarse);
+            
+            std::vector<MathVector<elemDim> > vCoarseLocIP;
+            vCoarseLocIP.resize(numIP);
+            for(size_t ip = 0; ip < vCoarseLocIP.size(); ++ip) VecSet(vCoarseLocIP[ip], 0.0);
+            map.global_to_local(&vCoarseLocIP[0], vFineGlobIP, numIP);
+            
+            try{
+                //	get trial space
+                const LocalShapeFunctionSet<elemDim>& rFineLSFS =
+                LocalFiniteElementProvider::get<elemDim>(fineROID, m_fineLFEID);
+                const LocalShapeFunctionSet<elemDim>& rCoarseLSFS =
+                LocalFiniteElementProvider::get<elemDim>(coarseROID, m_coarseLFEID);
+                
+                //	get multiindices of element
+                std::vector<DoFIndex> vFineMI, vCoarseMI;
+                // m_fineFct = u,v,p!
+                m_spFineGridFct->dof_indices(pFineElem, m_fineFct, vFineMI);
+                m_spCoarseGridFct->dof_indices(pCoarseElem, m_coarseFct, vCoarseMI);
+                
+                //	loop all integration points
+                for(size_t ip = 0; ip < numIP; ++ip)
+                {
+                    // 	compute approximated solution at integration point
+                    number fineSolIP = 0.0;
+                    number sumShapeFine = 0.0;
+                    
+                    for(size_t sh = 0; sh < vCornerFine.size(); ++sh)
+                    {
+                        bool bContinue1 = false;
+                        // solution value for outside velocity := 0.0!
+                        if ( m_fineFct < worldDim )
+                            if ( is_insideParticle<worldDim>(vCornerFine[sh], 0) )
+                                bContinue1 = true; //continue;
+                        
+                        bool bContinue2 = false;
+                        if ( m_fineFct < worldDim )
+                        {
+                            for ( size_t i = 0; i < fine_vInterfaceID.size(); ++i )
+                                if ( sh == fine_vInterfaceID[i] )
+                                    bContinue2 = true; //continue;
+                        }
+                        if ( (bContinue1 && !bContinue2) )
+                        {
+                            for ( size_t i = 0; i < fine_vInterfaceID.size(); ++i )
+                                UG_LOG("vInterface = " << fine_vInterfaceID[i] << "\n");
+                            UG_LOG("sh = " << sh << "\n");
+                            
+                            UG_THROW("case1: error for criterion of continuing solution on FINE interface!\n");
+                        }
+                        if ( (!bContinue1 && bContinue2) )
+                        {
+                            number err = get_insideParticle<worldDim>(vCornerFine[sh], 0);
+                            UG_LOG("err = " << err << "\n");
+                            if ( is_insideParticle<worldDim>(vCornerFine[sh], 0) )
+                            {UG_LOG("true\n");}
+                            else {UG_LOG("false\n");}
+                            for ( size_t i = 0; i < fine_vInterfaceID.size(); ++i )
+                                UG_LOG("vInterface = " << fine_vInterfaceID[i] << "\n");
+                            UG_LOG("sh = " << sh << "\n");
+                            
+                            UG_THROW("case2: error for criterion of continuing solution on FINE interface!\n");
+                        }
+                        
+                        //	get value at shape point (e.g. corner for P1 fct)
+                        const size_t origSH = fine_vOriginalCornerID[sh];
+                        number val;
+                        if ( bContinue1 && bContinue2 )
+                        {
+                            val = get_value<worldDim, TGridFunction>(m_spFineGridFct, m_fineTopLevel, m_fineFct, vCornerFine[sh]);
+                            /*
+                             MathVector<worldDim> RotVec;
+                             RotVec[0] = -vCornerFine[sh][1];
+                             RotVec[1] =  vCornerFine[sh][0];
+                             if ( m_fineFct == 0 )
+                             val = 0.3; //-RotVec[m_fineFct]*0.5;
+                             if ( m_fineFct == 1 )
+                             val = 0.0;
+                             */
+                        }
+                        else val = DoFRef(*m_spFineGridFct, vFineMI[origSH]);
+                        
+                        //	if ( vCornerFine.size() == 4 ) UG_LOG("val = " << val << "\n");
+                        
+                        //	add shape fct at ip * value at shape
+                        fineSolIP += val * rFineLSFS.shape(sh, vFineLocIP[ip]);
+                        sumShapeFine += rFineLSFS.shape(sh, vFineLocIP[ip]);
+                        
+                        if ( 0 ) //vCornerFine.size() == 4 )
+                        {
+                            UG_LOG("sh = " << sh << "\n");
+                            UG_LOG("origSH = " << origSH << "\n");
+                            UG_LOG("vFineMI[" << origSH << " = " << vFineMI[origSH] << "\n");
+                            UG_LOG("m_fineFct = " << m_fineFct << "\n");
+                            UG_LOG("shapeFine = " << rFineLSFS.shape(sh, vFineLocIP[ip]) << "\n");
+                            
+                        }
+                    }
+                    
+                    number coarseSolIP = 0.0;
+                    number sumShapeCoarse = 0.0;
+                    for(size_t sh = 0; sh < vCornerCoarse.size(); ++sh)
+                    {
+                        bool bContinue1 = false;
+                        // solution value for outside velocity := 0.0!
+                        if ( m_coarseFct < worldDim )
+                            if ( is_insideParticle<worldDim>(vCornerCoarse[sh], 0) )
+                                bContinue1 = true; //continue;
+                        
+                        bool bContinue2 = false;
+                        if ( m_coarseFct < worldDim )
+                        {
+                            for ( size_t i = 0; i < coarse_vInterfaceID.size(); ++i )
+                                if ( sh == coarse_vInterfaceID[i] )
+                                    bContinue2 = true; //continue;
+                        }
+                        
+                        if ( (bContinue1 && !bContinue2) || (!bContinue1 && bContinue2) )
+                            UG_THROW("error for criterion of continuing solution on COARSE interface!\n");
+                        
+                        
+                        //	get value at shape point (e.g. corner for P1 fct)
+                        const size_t origSH = coarse_vOriginalCornerID[sh];
+                        number val;
+                        if ( bContinue1 && bContinue2 )
+                        {
+                            val = get_value<worldDim, TGridFunction>(m_spCoarseGridFct, m_coarseTopLevel, m_coarseFct, vCornerCoarse[sh]);
+                            /*
+                             MathVector<worldDim> RotVec;
+                             RotVec[0] = -vCornerCoarse[sh][1];
+                             RotVec[1] =  vCornerCoarse[sh][0];
+                             if ( m_coarseFct == 0 )
+                             val = 0.3;  // -RotVec[m_coarseFct]*0.5;
+                             if ( m_coarseFct == 1 )
+                             val = 0.0;
+                             */
+                        }
+                        else val = DoFRef(*m_spCoarseGridFct, vCoarseMI[origSH]);
+                        
+                        
+                        //	add shape fct at ip * value at shape
+                        coarseSolIP += val * rCoarseLSFS.shape(sh, vCoarseLocIP[ip]);
+                        sumShapeCoarse += rCoarseLSFS.shape(sh, vCoarseLocIP[ip]);
+                        
+                        if ( 0 ) //vCornerCoarse.size() == 4 )
+                        {
+                            UG_LOG("sh = " << sh << "\n");
+                            UG_LOG("origSH = " << origSH << "\n");
+                            UG_LOG("vCoarseMI[" << origSH << " = " << vCoarseMI[origSH] << "\n");
+                            UG_LOG("m_coarseFct = " << m_coarseFct << "\n");
+                            UG_LOG("shapeCoarse = " << rCoarseLSFS.shape(sh, vCoarseLocIP[ip]) << "\n");
+                            
+                        }
+                    }
+                    
+                    
+                    if ( 0 ) //vCoarseMI[0][1] == 2 )
+                        if ( vCornerCoarse.size() == 4 )
+                        {
+                            /*				UG_LOG("trans[0] = " << DoFRef(*m_spFineGridFct, DoFIndex(3029,0)) << "\n");
+                             UG_LOG("trans[1] = " << DoFRef(*m_spFineGridFct, DoFIndex(3029,1)) << "\n");
+                             UG_LOG("rot[0] = " << DoFRef(*m_spFineGridFct, DoFIndex(12,0)) << "\n");
+                             UG_LOG("rot[1] = " << DoFRef(*m_spFineGridFct, DoFIndex(12,1)) << "\n");
+                             */
+                            UG_LOG("sumShapeFine = " << sumShapeFine << "\n");
+                            UG_LOG("sumShapeCoarse = " << sumShapeCoarse << "\n");
+                            UG_THROW("vCoarseMI[" << 0 << " = " << vCoarseMI[0] << "\n");
+                        }
+                    
+                    //	get squared of difference
+                    vValue[ip] = (coarseSolIP - fineSolIP);
+                    vValue[ip] *= vValue[ip];
+                    
+                }
+                
+            }
+            UG_CATCH_THROW("L2ErrorIntegrand::evaluate: trial space missing.");
+            fclose(outputFile);
+        };
+        
+        size_t numCoarseElemCut;
+        size_t numFineElemCut;
+    };
+    
+    
 
+    
+    template <typename TGridFunction>
+    number L2ErrorInside(SmartPtr<TGridFunction> spGridFct1, const char* cmp1,
+                         SmartPtr<TGridFunction> spGridFct2, const char* cmp2,
+                         int quadOrder, const char* subsets)
+    {
+        //	get function id of name
+        const size_t fct1 = spGridFct1->fct_id_by_name(cmp1);
+        const size_t fct2 = spGridFct2->fct_id_by_name(cmp2);
+        
+        //	check that function exists
+        if(fct1 >= spGridFct1->num_fct())
+            UG_THROW("L2Error: Function space does not contain"
+                     " a function with name " << cmp1 << ".");
+        if(fct2 >= spGridFct2->num_fct())
+            UG_THROW("L2Error: Function space does not contain"
+                     " a function with name " << cmp2 << ".");
+        
+        //	get top level of gridfunctions
+        const int level1 = spGridFct1->dof_distribution()->grid_level().level();
+        const int level2 = spGridFct2->dof_distribution()->grid_level().level();
+        
+        //	check
+        if(level1 > level2){
+            SmartPtr<IIntegrand<number, TGridFunction::dim> > spIntegrand
+            = make_sp(new L2DiffInnerBoundaryIntegrand<TGridFunction>(spGridFct1, fct1, spGridFct2, fct2));
+            return sqrt(IntegrateSubsetsInside(spIntegrand, spGridFct1, spGridFct2, subsets, quadOrder));
+        }else{
+            UG_LOG("level1 = " << level1 << ", level2 = " << level2 << "\n");
+            SmartPtr<IIntegrand<number, TGridFunction::dim> > spIntegrand
+            = make_sp(new L2DiffInnerBoundaryIntegrand<TGridFunction>(spGridFct2, fct2, spGridFct1, fct1));
+            return sqrt(IntegrateSubsetsInside(spIntegrand, spGridFct2, spGridFct1, subsets, quadOrder));
+        }
+    }
+    
+    template <typename TGridFunction>
+    number L2ErrorInside(SmartPtr<TGridFunction> spGridFct1, const char* cmp1,
+                         SmartPtr<TGridFunction> spGridFct2, const char* cmp2,
+                         int quadOrder)
+    {
+        return L2ErrorInside(spGridFct1, cmp1, spGridFct2, cmp2, quadOrder, NULL);
+    }
 
 
 ////////////////////////////////////////////////////////////////////////////////

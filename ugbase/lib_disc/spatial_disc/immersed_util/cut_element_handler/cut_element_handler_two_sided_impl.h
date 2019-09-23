@@ -5,8 +5,8 @@
  *      Author: suze
  */
 
-#ifndef CUT_ELEMENT_HANDLER_IMMERSED_IMPL_H_
-#define CUT_ELEMENT_HANDLER_IMMERSED_IMPL_H_
+#ifndef CUT_ELEMENT_HANDLER_TWO_SIDED_IMPL_H_
+#define CUT_ELEMENT_HANDLER_TWO_SIDED_IMPL_H_
 
 
 
@@ -31,8 +31,11 @@ CutElementHandler_TwoSided(SmartPtr<MultiGrid> mg, const char* fctNames,
 
 template<int TWorldDim>
 bool CutElementHandler_TwoSided<TWorldDim>::
-is_nearInterface(Vertex* vrt, const number threshold)
+is_nearInterface(Vertex* vrt)
 {
+// get threshold (either default = 1e-10 or set by user via .lua-call:
+    const number threshold = this->get_threshold(vrt);
+
 // loop all particles:
     for (size_t p = 0; p < m_spInterfaceProvider->num_particles(); ++p)
     {
@@ -54,11 +57,14 @@ is_nearInterface(Vertex* vrt, const number threshold)
    
 template<int TWorldDim>
 bool CutElementHandler_TwoSided<TWorldDim>::
-is_outsideDomain(Vertex* vrt, const number threshold)
+is_outsideDomain(Vertex* vrt)
 {
 // get data
     const int orientation = this->get_orientation();
    
+// get threshold (either default = 1e-10 or set by user via .lua-call:
+    const number threshold = this->get_threshold(vrt);
+
  // loop all particles
     for (size_t p = 0; p < m_spInterfaceProvider->num_particles(); ++p)
     {
@@ -90,10 +96,13 @@ is_outsideDomain(Vertex* vrt, const number threshold)
     
 template<int TWorldDim>
 bool CutElementHandler_TwoSided<TWorldDim>::
-is_outsideDomain(int& PrtIndex, Vertex* vrt, const number threshold)
+is_outsideDomain(int& PrtIndex, Vertex* vrt)
 {
     bool outsideFluid = false;
-        
+    
+// get threshold (either default = 1e-10 or set by user via .lua-call:
+    const number threshold = this->get_threshold(vrt);
+
 //	loop over all centers and pick the index with minimal distance
     for (size_t p = 0; p < this->num_particles(); ++p)
     {
@@ -187,4 +196,4 @@ get_or_insert_vertex_near(const MathVector<dim>& vrtPos)
 
 
 
-#endif /* CUT_ELEMENT_HANDLER_IMMERSED_IMPL_H_ */
+#endif /* CUT_ELEMENT_HANDLER_TWO_SIDED_IMPL_H_ */

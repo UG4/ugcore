@@ -217,18 +217,18 @@ namespace ug{
     {
         
         typedef typename std::vector<grid_base_object*>::iterator ListIter;
-        std::vector<grid_base_object*> ElemListLog = m_spParticleHandlerGlobal->m_vvvElemListCut[levIndex][prtIndex];
+        std::vector<grid_base_object*> ElemListLog = m_spCutElementHandler->m_vvvElemListCut[levIndex][prtIndex];
         
         for(ListIter listIter = ElemListLog.begin(); listIter != ElemListLog.end(); ++listIter)
         {
             //	collect all vertices of the element
             std::vector<Vertex*> vVertex;
-            CollectVertices(vVertex, *m_spParticleHandlerGlobal->m_spMG, *listIter);
+            CollectVertices(vVertex, *m_spCutElementHandler->m_spMG, *listIter);
             
             //	loop vertices
             for(size_t v = 0; v < vVertex.size(); ++v)
             {
-                if ( m_spParticleHandlerGlobal->m_spFlatTopVrtMarker->is_marked(vVertex[v]) )
+                if ( m_spCutElementHandler->m_spInterfaceVrtMarker->is_marked(vVertex[v]) )
                 {
                     // loop velocity DoFs
                     for (size_t fct = 0; fct < dim; ++fct)
@@ -255,15 +255,15 @@ namespace ug{
                         const vector_type& corrCoarse, GridLevel coarseLvl,
                         ConstSmartPtr<ApproximationSpace<TDomain> > spApproxSpace)
     {
-        const int coarseIndex = m_spParticleHandlerGlobal->get_Index(coarseLvl);
-        const int fineIndex = m_spParticleHandlerGlobal->get_Index(fineLvl);
+        const int coarseIndex = m_spCutElementHandler->get_Index(coarseLvl);
+        const int fineIndex = m_spCutElementHandler->get_Index(fineLvl);
         
-        size_t numPrt = m_spParticleHandlerGlobal->num_particles();
+        size_t numPrt = m_spCutElementHandler->num_particles();
         for(size_t p = 0; p < numPrt; ++p)
         {
             
 #ifdef UG_PARALLEL
-            std::vector< grid_base_object* > ElemList = m_spParticleHandlerGlobal->m_vvvElemListCut[fineIndex][p];
+            std::vector< grid_base_object* > ElemList = m_spCutElementHandler->m_vvvElemListCut[fineIndex][p];
             if( ElemList.size() == 0 )
                 continue;
 #endif
@@ -277,11 +277,11 @@ namespace ug{
             ///////////////////////////////////////////////////////////
             // 	2) injection for extraDoFs:
             ////////////////////////////////////////////////////////////
-            std::vector<DoFIndex> transIndCoarse = m_spParticleHandlerGlobal->get_transInd(coarseIndex, p);
-            std::vector<DoFIndex> rotIndCoarse = m_spParticleHandlerGlobal->get_rotInd(coarseIndex, p);
+            std::vector<DoFIndex> transIndCoarse = m_spCutElementHandler->get_transInd(coarseIndex, p);
+            std::vector<DoFIndex> rotIndCoarse = m_spCutElementHandler->get_rotInd(coarseIndex, p);
             
-            std::vector<DoFIndex> transIndFine = m_spParticleHandlerGlobal->get_transInd(fineIndex, p);
-            std::vector<DoFIndex> rotIndFine = m_spParticleHandlerGlobal->get_rotInd(fineIndex, p);
+            std::vector<DoFIndex> transIndFine = m_spCutElementHandler->get_transInd(fineIndex, p);
+            std::vector<DoFIndex> rotIndFine = m_spCutElementHandler->get_rotInd(fineIndex, p);
             
             for ( int d = 0; d < dim; ++d )
             {
@@ -305,16 +305,16 @@ namespace ug{
         ConstSmartPtr<DoFDistribution> ddCoarse = spApproxSpace->dof_distribution(coarseLvl);
         ConstSmartPtr<DoFDistribution> ddFine = spApproxSpace->dof_distribution(coarseLvl);
         
-        const int coarseIndex = m_spParticleHandlerGlobal->get_Index(coarseLvl,ddCoarse);
-        const int fineIndex = m_spParticleHandlerGlobal->get_Index(fineLvl,ddFine);
+        const int coarseIndex = m_spCutElementHandler->get_Index(coarseLvl,ddCoarse);
+        const int fineIndex = m_spCutElementHandler->get_Index(fineLvl,ddFine);
         
-        size_t numPrt = m_spParticleHandlerGlobal->num_particles();
+        size_t numPrt = m_spCutElementHandler->num_particles();
         //	loop over all particles and initialize defects:
         for(size_t p = 0; p < numPrt; ++p)
         {
             
 #ifdef UG_PARALLEL
-            std::vector< grid_base_object* > ElemList = m_spParticleHandlerGlobal->m_vvvElemListCut[fineIndex][p];
+            std::vector< grid_base_object* > ElemList = m_spCutElementHandler->m_vvvElemListCut[fineIndex][p];
             if( ElemList.size() == 0 )
                 continue;
 #endif
@@ -328,11 +328,11 @@ namespace ug{
             ///////////////////////////////////////////////////////////
             // 	2) injection for extraDoFs:
             ////////////////////////////////////////////////////////////
-            std::vector<DoFIndex> transIndCoarse = m_spParticleHandlerGlobal->get_transInd(coarseIndex, p);
-            std::vector<DoFIndex> rotIndCoarse = m_spParticleHandlerGlobal->get_rotInd(coarseIndex, p);
+            std::vector<DoFIndex> transIndCoarse = m_spCutElementHandler->get_transInd(coarseIndex, p);
+            std::vector<DoFIndex> rotIndCoarse = m_spCutElementHandler->get_rotInd(coarseIndex, p);
             
-            std::vector<DoFIndex> transIndFine = m_spParticleHandlerGlobal->get_transInd(fineIndex, p);
-            std::vector<DoFIndex> rotIndFine = m_spParticleHandlerGlobal->get_rotInd(fineIndex, p);
+            std::vector<DoFIndex> transIndFine = m_spCutElementHandler->get_transInd(fineIndex, p);
+            std::vector<DoFIndex> rotIndFine = m_spCutElementHandler->get_rotInd(fineIndex, p);
             
             for ( int d = 0; d < dim; ++d )
             {
@@ -350,13 +350,13 @@ namespace ug{
     get_vertex_index(Vertex* vrt, GridObject* elem)
     {
         std::vector<Vertex*> vVertex;
-        CollectVertices(vVertex, *m_spParticleHandlerGlobal->m_spMG, elem);
+        CollectVertices(vVertex, *m_spCutElementHandler->m_spMG, elem);
         
         for(size_t i = 0; i < vVertex.size(); ++i)
             if ( vrt == vVertex[i])
                 return i;
         
-        UG_THROW("in CutElementHandlerImmersed::get_vertex_index: no index found!\n");
+        UG_THROW("in CutElementHandler_TwoSided::get_vertex_index: no index found!\n");
     }
     
     
@@ -376,63 +376,63 @@ namespace ug{
         bool bChildVrt_isInside = false;
         
         
-        if ( !m_spParticleHandlerGlobal->m_spOutsideMarker->is_marked(coarseVrt0) && !m_spParticleHandlerGlobal->m_spFlatTopVrtMarker->is_marked(coarseVrt0))
+        if ( !m_spCutElementHandler->m_spOutsideMarker->is_marked(coarseVrt0) && !m_spCutElementHandler->m_spInterfaceVrtMarker->is_marked(coarseVrt0))
             bCoarseVrt0_isInside = true;
-        if ( !m_spParticleHandlerGlobal->m_spOutsideMarker->is_marked(coarseVrt1) && !m_spParticleHandlerGlobal->m_spFlatTopVrtMarker->is_marked(coarseVrt1))
+        if ( !m_spCutElementHandler->m_spOutsideMarker->is_marked(coarseVrt1) && !m_spCutElementHandler->m_spInterfaceVrtMarker->is_marked(coarseVrt1))
             bCoarseVrt1_isInside = true;
-        if ( !m_spParticleHandlerGlobal->m_spOutsideMarker->is_marked(childVrt) && !m_spParticleHandlerGlobal->m_spFlatTopVrtMarker->is_marked(childVrt))
+        if ( !m_spCutElementHandler->m_spOutsideMarker->is_marked(childVrt) && !m_spCutElementHandler->m_spInterfaceVrtMarker->is_marked(childVrt))
             bChildVrt_isInside = true;
         
         int prtIndex = -1;
-        bool isOutside_vrt0 	= m_spParticleHandlerGlobal->is_outsideFluid(prtIndex, coarseVrt0);
-        bool isOutside_vrt1 	= m_spParticleHandlerGlobal->is_outsideFluid(prtIndex, coarseVrt1);
+        bool isOutside_vrt0 	= m_spCutElementHandler->is_outsideFluid(prtIndex, coarseVrt0);
+        bool isOutside_vrt1 	= m_spCutElementHandler->is_outsideFluid(prtIndex, coarseVrt1);
         
-        if ( m_spParticleHandlerGlobal->m_spOutsideMarker->is_marked(coarseVrt0) && !isOutside_vrt0 )
+        if ( m_spCutElementHandler->m_spOutsideMarker->is_marked(coarseVrt0) && !isOutside_vrt0 )
             UG_THROW("inconsistent 0!\n");
-        if ( !m_spParticleHandlerGlobal->m_spOutsideMarker->is_marked(coarseVrt0) && isOutside_vrt0 )
+        if ( !m_spCutElementHandler->m_spOutsideMarker->is_marked(coarseVrt0) && isOutside_vrt0 )
             UG_THROW("inconsistent 1!\n");
-        if ( m_spParticleHandlerGlobal->m_spOutsideMarker->is_marked(coarseVrt1) && !isOutside_vrt1 )
+        if ( m_spCutElementHandler->m_spOutsideMarker->is_marked(coarseVrt1) && !isOutside_vrt1 )
             UG_THROW("inconsistent 2!\n");
-        if ( !m_spParticleHandlerGlobal->m_spOutsideMarker->is_marked(coarseVrt1) && isOutside_vrt1 )
+        if ( !m_spCutElementHandler->m_spOutsideMarker->is_marked(coarseVrt1) && isOutside_vrt1 )
             UG_THROW("inconsistent 3!\n");
         
         // inside edge => alpha = (0.5, 0.5)
         if ( bCoarseVrt0_isInside && bCoarseVrt1_isInside)
             return 0;
-        // flat top edge => alpha = (0.5, 0.5) OR (1.0, 0.0) OR alphaNew!
-        // both flat top => alpha = (0.5,0.5) for pressure, for vel: reset later during adjust_prolongation:
-        else if ( m_spParticleHandlerGlobal->m_spFlatTopVrtMarker->is_marked(coarseVrt0) && m_spParticleHandlerGlobal->m_spFlatTopVrtMarker->is_marked(coarseVrt1) )
+        // edge cutted by interface => alpha = (0.5, 0.5) OR (1.0, 0.0) OR alphaNew!
+        // both interface nodes => alpha = (0.5,0.5) for pressure, for vel: reset later during adjust_prolongation:
+        else if ( m_spCutElementHandler->m_spInterfaceVrtMarker->is_marked(coarseVrt0) && m_spCutElementHandler->m_spInterfaceVrtMarker->is_marked(coarseVrt1) )
             return 0;
         // outside edge => alpha = (0.0, 0.0)
-        else if ( m_spParticleHandlerGlobal->m_spOutsideMarker->is_marked(coarseVrt0) && m_spParticleHandlerGlobal->m_spOutsideMarker->is_marked(coarseVrt1) )
+        else if ( m_spCutElementHandler->m_spOutsideMarker->is_marked(coarseVrt0) && m_spCutElementHandler->m_spOutsideMarker->is_marked(coarseVrt1) )
             return 1;
-        else if ( !m_spParticleHandlerGlobal->m_spFlatTopVrtMarker->is_marked(coarseVrt0) && !m_spParticleHandlerGlobal->m_spFlatTopVrtMarker->is_marked(coarseVrt1) )
-        {UG_THROW("error in 'particle_transfer_impl:get_vertex_mode': one vertex must be flat top!\n");}
+        else if ( !m_spCutElementHandler->m_spInterfaceVrtMarker->is_marked(coarseVrt0) && !m_spCutElementHandler->m_spInterfaceVrtMarker->is_marked(coarseVrt1) )
+        {UG_THROW("error in 'particle_transfer_impl:get_vertex_mode': one vertex must be 'on interface'!\n");}
         
         // check: exactly one vertex must be inside:
         else if ( !bCoarseVrt0_isInside && !bCoarseVrt1_isInside )
         {UG_THROW("error in 'particle_transfer_impl:get_vertex_mode': one vertex must be inside!\n");}
         // if one vertex is inside, BUT the FlatTopVertex is also ON interface: (0.5, 0.5) !
-        else if ( m_spParticleHandlerGlobal->m_spNearInterfaceVrtMarker->is_marked(coarseVrt0) || m_spParticleHandlerGlobal->m_spNearInterfaceVrtMarker->is_marked(coarseVrt1) )
+        else if ( m_spCutElementHandler->m_spNearInterfaceVrtMarker->is_marked(coarseVrt0) || m_spCutElementHandler->m_spNearInterfaceVrtMarker->is_marked(coarseVrt1) )
         {
             /*	std::vector<DoFIndex> vParentDoF;
              coarseDD.inner_dof_indices(coarseVrt0, 0, vParentDoF);
-             if ( m_spParticleHandlerGlobal->m_spNearInterfaceVrtMarker.is_marked(coarseVrt0) )
+             if ( m_spCutElementHandler->m_spNearInterfaceVrtMarker.is_marked(coarseVrt0) )
              UG_THROW("oho 0: vParentDoF = " << vParentDoF[0] << "\n");
              coarseDD.inner_dof_indices(coarseVrt1, 0, vParentDoF);
-             if ( m_spParticleHandlerGlobal->m_spNearInterfaceVrtMarker.is_marked(coarseVrt1) )
+             if ( m_spCutElementHandler->m_spNearInterfaceVrtMarker.is_marked(coarseVrt1) )
              UG_THROW("oho 1: vParentDoF = " << vParentDoF[0] << "\n");*/
-            if ( m_spParticleHandlerGlobal->m_spNearInterfaceVrtMarker->is_marked(coarseVrt0) )
-                UG_LOG("0 pos: " << m_spParticleHandlerGlobal->m_aaPos[coarseVrt0] << "\n");
+            if ( m_spCutElementHandler->m_spNearInterfaceVrtMarker->is_marked(coarseVrt0) )
+                UG_LOG("0 pos: " << m_spCutElementHandler->m_aaPos[coarseVrt0] << "\n");
             
-            if ( m_spParticleHandlerGlobal->m_spNearInterfaceVrtMarker->is_marked(coarseVrt1) )
-                UG_LOG("1: pos: " << m_spParticleHandlerGlobal->m_aaPos[coarseVrt1] << "\n");
+            if ( m_spCutElementHandler->m_spNearInterfaceVrtMarker->is_marked(coarseVrt1) )
+                UG_LOG("1: pos: " << m_spCutElementHandler->m_aaPos[coarseVrt1] << "\n");
             return 0;
         }
         // childVertex lies inside => compute new weigthing for prolongation!
         else if ( bChildVrt_isInside )
             return 3;
-        // childVertex lies outside AND on flat top edge => constant prologation for pressure and reset during
+        // childVertex lies outside AND on edge cutted by interface => constant prologation for pressure and reset during
         // adjust_prolongation for velocity:
         else
             return 2;
@@ -551,8 +551,8 @@ assemble_prolongation_p1(matrix_type& P,
                         MathVector<dim> intersectionPnt;
                         int prtIndex = -1;
                         
-                        bool isOutside_vrt0 	= m_spParticleHandlerGlobal->is_outsideFluid(prtIndex, edge->vertex(0));
-                        bool isOutside_vrt1 	= m_spParticleHandlerGlobal->is_outsideFluid(prtIndex, edge->vertex(1));
+                        bool isOutside_vrt0 	= m_spCutElementHandler->is_outsideFluid(prtIndex, edge->vertex(0));
+                        bool isOutside_vrt1 	= m_spCutElementHandler->is_outsideFluid(prtIndex, edge->vertex(1));
                         size_t vrtInd0 = get_vertex_index(edge->vertex(0), parent);
                         size_t vrtInd1 = get_vertex_index(edge->vertex(1), parent);
                         
@@ -567,7 +567,7 @@ assemble_prolongation_p1(matrix_type& P,
                          */
                         size_t vertexMode = get_vertex_mode(edge->vertex(0), edge->vertex(1), child);
                         
-                        //bool isOutside_childDoF = m_spParticleHandlerGlobal->is_outsideFluid(prtIndex, child);
+                        //bool isOutside_childDoF = m_spCutElementHandler->is_outsideFluid(prtIndex, child);
                         
                         
                         if ( vertexMode == 1 )
@@ -586,22 +586,22 @@ assemble_prolongation_p1(matrix_type& P,
                         // only new weighting, if childDoF insideFluid => get boolian isInside_childDoF
                         else if ( vertexMode == 3 ) //!isOutside_childDoF )
                         {
-                            UG_LOG("vertexMode == 3\n");
+                          //  UG_LOG("vertexMode == 3\n");
                             
                             // case1: vrt0 = insideFluid && vrt1 = outsideFluid:
                             if ( !isOutside_vrt0 && isOutside_vrt1 ){
                                 
                                 coarseDD.inner_dof_indices(edge->vertex(1), fct, vParentDoF);
-                                if ( m_spParticleHandlerGlobal->is_nearInterfaceVertex(edge->vertex(1), vrtInd1) )
+                                if ( m_spCutElementHandler->is_nearInterfaceVertex(edge->vertex(1), vrtInd1) )
                                     UG_THROW("1 oho, vParentDoF = " << vParentDoF[0] << "\n");
                                 
                                 
-                                m_spParticleHandlerGlobal->m_spInterfaceProvider->get_intersection_point(intersectionPnt, m_spParticleHandlerGlobal->m_aaPos[edge->vertex(0)], m_spParticleHandlerGlobal->m_aaPos[edge->vertex(1)], prtIndex, alpha);
+                                m_spCutElementHandler->m_spInterfaceProvider->get_intersection_point(intersectionPnt, m_spCutElementHandler->m_aaPos[edge->vertex(0)], m_spCutElementHandler->m_aaPos[edge->vertex(1)], prtIndex, alpha);
                                 newWeights1 = true;
                                 coarseDD.inner_dof_indices(edge->vertex(0), fct, vParentDoF);
-                                UG_LOG("1: vertex[0] = " << vParentDoF[0] << "\n");
-                                UG_LOG("1: alpha = " << alpha[0] << ", " << alpha[1] << "\n");
-                                UG_LOG("VORHER: alpha[i] = " << alpha[0] << ", " << alpha[1] << "\n");
+                            //    UG_LOG("1: vertex[0] = " << vParentDoF[0] << "\n");
+                            //    UG_LOG("1: alpha = " << alpha[0] << ", " << alpha[1] << "\n");
+                            //    UG_LOG("VORHER: alpha[i] = " << alpha[0] << ", " << alpha[1] << "\n");
                                 
                                 alpha[0] = 0.5/alpha[0];
                                 alpha[1] = 1.0 - alpha[0];
@@ -611,15 +611,15 @@ assemble_prolongation_p1(matrix_type& P,
                             else if ( isOutside_vrt0 && !isOutside_vrt1 ){
                                 
                                 coarseDD.inner_dof_indices(edge->vertex(0), fct, vParentDoF);
-                                if ( m_spParticleHandlerGlobal->is_nearInterfaceVertex(edge->vertex(0), vrtInd0) )
+                                if ( m_spCutElementHandler->is_nearInterfaceVertex(edge->vertex(0), vrtInd0) )
                                     UG_THROW("2 oho, vParentDoF = " << vParentDoF[0] << "\n");
                                 
-                                m_spParticleHandlerGlobal->m_spInterfaceProvider->get_intersection_point(intersectionPnt, m_spParticleHandlerGlobal->m_aaPos[edge->vertex(1)], m_spParticleHandlerGlobal->m_aaPos[edge->vertex(0)], prtIndex, alpha);
+                                m_spCutElementHandler->m_spInterfaceProvider->get_intersection_point(intersectionPnt, m_spCutElementHandler->m_aaPos[edge->vertex(1)], m_spCutElementHandler->m_aaPos[edge->vertex(0)], prtIndex, alpha);
                                 newWeights2 = true;
                                 coarseDD.inner_dof_indices(edge->vertex(1), fct, vParentDoF);
-                                UG_LOG("2: vertex[0] = " << vParentDoF[0] << "\n");
-                                UG_LOG("2: alpha[i] = " << alpha[0] << ", " << alpha[1] << "\n");
-                                UG_LOG("VORHER: alpha[i] = " << alpha[0] << ", " << alpha[1] << "\n");
+                           //     UG_LOG("2: vertex[0] = " << vParentDoF[0] << "\n");
+                           //     UG_LOG("2: alpha[i] = " << alpha[0] << ", " << alpha[1] << "\n");
+                           //     UG_LOG("VORHER: alpha[i] = " << alpha[0] << ", " << alpha[1] << "\n");
                                 
                                 // switch also ordering of original alpha!!!
                                 alpha[1] = 0.5/alpha[0];
@@ -643,15 +643,15 @@ assemble_prolongation_p1(matrix_type& P,
                             bool isOutside_parentDoF = false;
                             
                             if ( newWeights2 || newWeights1 )
-                                isOutside_parentDoF = m_spParticleHandlerGlobal->is_outsideFluid(prtIndex, edge->vertex(i));
+                                isOutside_parentDoF = m_spCutElementHandler->is_outsideFluid(prtIndex, edge->vertex(i));
                             
                             if ( isOutside_parentDoF && fct != dim )
                             {
-                                const int coarseIndex = m_spParticleHandlerGlobal->get_Index(coarseDD.grid_level());
+                                const int coarseIndex = m_spCutElementHandler->get_Index(coarseDD.grid_level());
                                 
-                                std::vector<DoFIndex> transIndCoarse = m_spParticleHandlerGlobal->get_transInd(coarseIndex, prtIndex);
+                                std::vector<DoFIndex> transIndCoarse = m_spCutElementHandler->get_transInd(coarseIndex, prtIndex);
                                 
-                                std::vector<DoFIndex> rotIndCoarse = m_spParticleHandlerGlobal->get_rotInd(coarseIndex, prtIndex);
+                                std::vector<DoFIndex> rotIndCoarse = m_spCutElementHandler->get_rotInd(coarseIndex, prtIndex);
                                 
                                 /*					UG_LOG("fct = " << fct << "\n");
                                  UG_LOG("transIndCoarse[0] = " << transIndCoarse[0] << "\n");
@@ -1136,7 +1136,7 @@ assemble_restriction(matrix_type& R,
                                         Vertex* vrt = static_cast<Vertex*>(parent);
                                         if(coarseDD.dof_indices(vrt, fct, vInd) != 1)
                                             UG_THROW("Only one index expected.");
-                                        if ( m_spParticleHandlerGlobal->is_FTVertex(vrt) )
+                                        if ( m_spCutElementHandler->is_onInterfaceVertex(vrt) )
                                         {
                                             fprintf(outputFile,"ParentPos: %e \t %e (index = %lu)\n", vDoFPosParent[0][0], vDoFPosParent[0][1], vInd[0][0]);
                                             DoFRef(R, vParentDoF[sh], vChildDoF[ip]) = vvShape[ip][sh];
@@ -1163,7 +1163,7 @@ assemble_restriction(matrix_type& R,
                                             //	get multi indices
                                             if(coarseDD.dof_indices(edge->vertex(i), fct, vInd) != 1)
                                                 UG_THROW("Only one index expected.");
-                                            if ( m_spParticleHandlerGlobal->is_FTVertex(edge->vertex(i)) && vParentDoF[sh][0] == vInd[0][0] )
+                                            if ( m_spCutElementHandler->is_onInterfaceVertex(edge->vertex(i)) && vParentDoF[sh][0] == vInd[0][0] )
                                             {
                                                 fprintf(outputFile,"vParentDoF[%lu], vInd[0]: %lu \t %lu \n", i, vParentDoF[sh][0], vInd[0][0]);
                                                 DoFRef(R, vParentDoF[sh], vChildDoF[ip]) = vvShape[ip][sh];
@@ -1414,8 +1414,8 @@ do_restrict(GF& uCoarse, const GF& uFine)
 				apply_ignore_zero_rows(uCoarse, m_dampRes, uFine);
 
         
-//		m_spParticleHandlerGlobal->plotCoarse(uCoarse);
-//		m_spParticleHandlerGlobal->plotFine(uFine);
+//		m_spCutElementHandler->plotCoarse(uCoarse);
+//		m_spCutElementHandler->plotFine(uFine);
 
 	// 	adjust using constraints
 		for (int type = 1; type < CT_ALL; type = type << 1)
@@ -1445,7 +1445,7 @@ ParticleTransfer<TDomain, TAlgebra>::clone()
 	op->set_debug(m_spDebugWriter);
 	op->enable_p1_lagrange_optimization(p1_lagrange_optimization_enabled());
 	op->set_use_transposed(m_bUseTransposed);
-    op->set_global_handler(m_spParticleHandlerGlobal);
+    op->set_global_handler(m_spCutElementHandler);
     
 	return op;
 }

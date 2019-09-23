@@ -991,7 +991,8 @@ class DimFV1FTGeometry : public FVGeometryBase
         inline void set_element_modus(bool boolian) { mElemModus = boolian;}
         inline const bool get_element_modus() { return mElemModus;}
         inline const ReferenceObjectID get_roid() const {return m_roid;}
-    
+        inline ElementModus return_element_modus() { return m_spInterfaceHandler->elementModus(); }
+
     /// called during 'ParticleBndCond::add_def_M_local()':
         const number volume_fem_elem() const {UG_THROW("FV1FTGeom::volume_fem_elem() not implemented!\n");}
         const number volume_FT_elem() const {UG_THROW("FV1FTGeom::volume_FT_elem() not implemented!\n");}
@@ -1001,7 +1002,7 @@ class DimFV1FTGeometry : public FVGeometryBase
         bool mElemModus;
     
         /// set the local interface handler
-        /// (called during constructor of class 'MovingInterface')
+        /// (called during constructor of class 'ImmersedInterface')
         void set_interface_handler(SmartPtr<TInterfaceHandler> localHandler)
         { m_spInterfaceHandler = localHandler; }
     

@@ -801,7 +801,7 @@ public:
 
 		//	reset contribution of this element
 			locD = 0.0;
-
+            
 		//	loop all time points and assemble them
 			for(size_t t = 0; t < vScaleStiff.size(); ++t)
 			{
@@ -825,7 +825,7 @@ public:
                         spAssTuner->modify_LocalData(locTimeSeries, locD, tmpLocD, locU, dd, t);
                     } UG_CATCH_THROW("Cannot modify local solution.");
                 }
-                
+
 			//	Assemble M
 				try
 				{
@@ -834,7 +834,7 @@ public:
 					locD.scale_append(vScaleMass[t], tmpLocD);
 				}
 				UG_CATCH_THROW("(instationary) AssembleDefect: Cannot compute Defect (M).");
-
+                
 			//	Assemble A
 				try
 				{
@@ -844,12 +844,10 @@ public:
 						Eval.add_def_A_elem(tmpLocD, locU, elem, vCornerCoords, PT_INSTATIONARY);
 						locD.scale_append(scale_stiff, tmpLocD);
 					}
-
 					if(t == 0)
 						Eval.add_def_A_elem(locD, locU, elem, vCornerCoords, PT_STATIONARY);
 				}
 				UG_CATCH_THROW("(instationary) AssembleDefect: Cannot compute Defect (A).");
-
 
 				// Assemble defect for explicit reaction_rate, reaction and source
 				if( t == 1 ) // only valid at lowest timediscretization order
@@ -865,7 +863,6 @@ public:
 					const number dt = vSol->time(0)-vSol->time(1);
 					locD.scale_append(dt, tmpLocD);
 				}
-
 
 			//	Assemble rhs
 				try

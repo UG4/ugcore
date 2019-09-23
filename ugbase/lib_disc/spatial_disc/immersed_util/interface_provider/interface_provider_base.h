@@ -10,54 +10,27 @@
 
 namespace ug{
 
-    
-class IInterfaceProvider
-{
-	public:
-
-/// default constructor:
-	IInterfaceProvider(){};
-
-/// destructor
-
-	~IInterfaceProvider() {}
-
-};
-
-
-class IInterfaceProvider
-{
-	public:
-
-/// default constructor:
-	IInterfaceProvider(){};
-
-/// destructor
-
-	~IInterfaceProvider() {}
-
-};
-
 
 template <int TWorldDim>
-class InterfaceProviderBase : public IInterfaceProvider
+class IInterfaceProvider
 {
-
-	public:
+    public:
 ///	world Dimension
-	static const int dim = TWorldDim;
-
+    static const int dim = TWorldDim;
+    
 /// default constructor:
-	InterfaceProviderBase()
-	{
-		clear();
-		UG_LOG("InterfaceProviderBase constructor\n");
-	};
+	IInterfaceProvider(){};
 
 /// destructor
-	~InterfaceProviderBase() {}
+
+	virtual ~IInterfaceProvider() {}
+
+    virtual number get_LSvalue_byPosition(MathVector<dim> vrtPos, const int prtIndex) = 0;
+    virtual const int get_orientation() const= 0;
+    virtual void set_orientation(const int orientation) = 0;
 
 };
+
 
 
 }// end namespace ug

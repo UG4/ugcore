@@ -1,0 +1,11 @@
+/* Info File for 'ParticleTransfer' class: */
+
+The 'ParticleTransfer' class imlements adapted interpolation operators for the application on cut elements due to immersed interfaces. It mainly performs a re-definition of the local weights due to the new geometry (which is in particular the edge lenght) of the cut element.
+
+A detailed description of the re-definition of the weights can be found in [1].
+
+
+
+[1] S. Höllbacher.
+    'Voll gekoppelte Modellierung zur direkten numerischen Simulation partikulärer Fluide.'
+    PhD thesis, Universitat Frankfurt, 2016.

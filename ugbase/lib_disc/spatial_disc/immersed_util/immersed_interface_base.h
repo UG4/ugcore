@@ -1,5 +1,5 @@
 /*
- * moving_interface.h
+ * immersed_interface_base.h
  *
  *  Created on: 15.01.2015
  *      Author: susanne hoellbacher
@@ -17,7 +17,12 @@
 namespace ug{
 
 //////////////////////////////////////////////////////////////////////////////////
-// class 'IInterfaceMapper': member of class 'IMovingInterface' (see below)
+// class 'IInterfaceMapper': member of class 'IImmersedInterface' (see below)
+//
+//  it handles the local-to-global mapping, which potentially is changed
+//  if the additional DoFs on the immersed interface needs to be associated
+//  to its according entries in the global algebra
+//
 //////////////////////////////////////////////////////////////////////////////////
 
 template <typename TAlgebra>
@@ -87,7 +92,13 @@ class IInterfaceMapper : public ILocalToGlobalMapper<TAlgebra>
 };
 
 //////////////////////////////////////////////////////////////////////////////////
-// class 'IInterfaceBndCond': member of class 'IMovingInterface' (see below)
+// class 'IInterfaceBndCond': member of class 'IImmersedInterface' (see below)
+//
+//  class in order to implement boundary conditions on the immersed interface
+//  it interhits  the 'IInterfaceHandlerLocal' class, which provides access
+//  to all information important for assembling on a cut element, such as
+//  local indices of DoFs on the interface, size of new local algebra etc.
+//
 //////////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain>
@@ -160,11 +171,11 @@ class IInterfaceBndCond : public IElemDisc<TDomain>
 
 
 //////////////////////////////////////////////////////////////////////////////////
-// main class 'IMovingInterface'
+// main class 'IImmersedInterface'
 //////////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain, typename TAlgebra>
-class IMovingInterface
+class IImmersedInterface
 {
 	public:
 	///	world Dimension
@@ -180,16 +191,16 @@ class IMovingInterface
 		typedef typename algebra_type::vector_type vector_type;
 
 	// default constructor
-		IMovingInterface(){};
+		IImmersedInterface(){};
 
-		IMovingInterface(SmartPtr<IAssemble<TAlgebra> > ass,
+		IImmersedInterface(SmartPtr<IAssemble<TAlgebra> > ass,
 				   	   	 const char* functions, const char* subsets,
 				   	 	 SmartPtr<IInterfaceHandlerLocal> localHandler);
-		IMovingInterface(SmartPtr<IAssemble<TAlgebra> > ass,
+		IImmersedInterface(SmartPtr<IAssemble<TAlgebra> > ass,
 				   	     const std::vector<std::string>& vFct, const std::vector<std::string>& vSubset,
 				   	 	 SmartPtr<IInterfaceHandlerLocal> localHandler);
 
-		virtual ~IMovingInterface()	{}
+		virtual ~IImmersedInterface()	{}
 
 
 	private:

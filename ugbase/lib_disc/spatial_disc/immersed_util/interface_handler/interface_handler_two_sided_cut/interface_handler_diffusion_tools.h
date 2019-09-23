@@ -50,128 +50,6 @@ lies_onInterface_size(const size_t newID, size_t size)
 
 }
 
-/*
-// compare implementation of 'DimFV1Geometry::update_boundary_faces()'
-template <int TWorldDim>
-void InterfaceHandlerLocalDiffusion<TWorldDim>::
-update_inner_boundary_faces()
-{
-
-	/////////////////////////////////////////////////////////////////////////////
-	// get general data
-	/////////////////////////////////////////////////////////////////////////////
- 		const DimReferenceElement<dim>& rRefElem
-			= ReferenceElementProvider::get<dim>(this->m_roid);
-
-		DimReferenceMapping<dim, dim>& rMapping = ReferenceMappingProvider::get<dim, dim>(this->m_roid);
-		rMapping.update(this->m_vCornerCoords);
-
-		const LocalShapeFunctionSet<dim>& TrialSpace =
-			LocalFiniteElementProvider::get<dim>(this->m_roid, LFEID(LFEID::LAGRANGE, dim, 1));
-
-	/////////////////////////////////////////////////////////////////////////////
-	//	compute local and global geom object midpoints for each dimension
-	/////////////////////////////////////////////////////////////////////////////
-
-		MathVector<dim> vvLocMid[dim+1][maxMid];
-		MathVector<dim> vvGloMid[dim+1][maxMid];
-
- 	// 	set corners of element as local centers of nodes
-		for(size_t i = 0; i < rRefElem.num(0); ++i)
-			vvLocMid[0][i] = rRefElem.corner(i);
-
-	//	compute local midpoints
-		interfaceComputeMidPoints<dim, DimReferenceElement<dim>, maxMid>(rRefElem, vvLocMid[0], vvLocMid);
-
-	// 	remember global position of nodes
-		for(size_t i = 0; i < rRefElem.num(0); ++i)
-			vvGloMid[0][i] = this->m_vCornerCoords[i];
-	 //	compute local midpoints
-		interfaceComputeMidPoints<dim, DimReferenceElement<dim>, maxMid>(rRefElem, vvGloMid[0], vvGloMid);
-
-	/////////////////////////////////////////////////////////////////////////////
-	// collect boudary faces
-	/////////////////////////////////////////////////////////////////////////////
-
-	// get number of sides of element
- 		size_t numSides = 0;
-		numSides = rRefElem.num(dim-1);
-
-	//	current number of bf
-		size_t curr_bf = 0;
-
-		m_vBF.clear();
-	//	loop sides of element
-		for(size_t side = 0; side < numSides; ++side)
-		{
-		// side is no boundary face => continue
-			if ( !is_boundary_face(side) )
-				 continue;
-
-		//	number of corners of side (special case bottom side pyramid)
-			const int coOfSide = (this->m_roid != ROID_PYRAMID || side != 0)
-								? rRefElem.num(dim-1, side, 0) : rRefElem.num(dim-1, side, 0) + 2;
-
-		//	resize vector
-			m_vBF.resize(curr_bf + coOfSide);
-
-		//	loop corners
-			for(int co = 0; co < coOfSide; ++co)
-			{
-			//	get current bf
-				interfaceBF& bf = m_vBF[curr_bf];
-
-			//	set node id == scv this bf belongs to
-				if (this->m_roid != ROID_PYRAMID || side != 0)
-					bf.nodeId = rRefElem.id(dim-1, side, 0, co);
-				else
-				{
-					// map according to order defined in ComputeBFMidID
-					bf.nodeId = rRefElem.id(dim-1, side, 0, (co % 3) + (co>3 ? 1 : 0));
-				}
-
-			//	Compute MidID for BF
-				interfaceComputeBFMidID(rRefElem, side, bf.vMidID, co);
-
-			// 	copy corners of bf
-				interfaceCopyCornerByMidID<dim, maxMid>(bf.vLocPos, bf.vMidID, vvLocMid, interfaceBF::numCo);
-				interfaceCopyCornerByMidID<dim, maxMid>(bf.vGloPos, bf.vMidID, vvGloMid, interfaceBF::numCo);
-
-			// 	integration point
-				AveragePositions(bf.localIP, bf.vLocPos, interfaceBF::numCo);
-				AveragePositions(bf.globalIP, bf.vGloPos, interfaceBF::numCo);
-
-			// 	normal on scvf
-				traits::NormalOnSCVF(bf.Normal, bf.vGloPos, vvGloMid[0]);
-
- 			//	compute volume
-				bf.Vol = VecTwoNorm(bf.Normal);
-
-			//	compute shapes and grads
-				bf.numSH = TrialSpace.num_sh();
-				TrialSpace.shapes(&(bf.vShape[0]), bf.localIP);
-				TrialSpace.grads(&(bf.vLocalGrad[0]), bf.localIP);
-
-			//	get reference mapping
-				rMapping.jacobian_transposed_inverse(bf.JtInv, bf.localIP);
-				bf.detj = rMapping.sqrt_gram_det(bf.localIP);
-
-			//	compute global gradients
-				for(size_t sh = 0 ; sh < bf.num_sh(); ++sh)
-					MatVecMult(bf.vGlobalGrad[sh], bf.JtInv, bf.vLocalGrad[sh]);
-
-			//	increase curr_bf
-				++curr_bf;
-
-			} // end loop of corners of side
-
-		} // end loop sides of element
-
-
-}
-*/
-
-
 
 // used during 'diffusion_interface/diffusion_interface.h:initialize_interface_Nitsche()':
 template <int TWorldDim>
@@ -251,29 +129,6 @@ get_or_insert_vertex(const MathVector<dim>& vrtPos)
 		m_verticesPos.push_back(vrtPos);
  	}
 
-	if ( vrtPos[0] == 0.5 )
-	{
-		UG_LOG("m_verticesPos.size(): " << m_verticesPos.size() << "\n");
-	// 	m_verticesValue.size() == numNewDoFs due to setting solution in 'modify_GlobalSol()'!
-		UG_LOG("m_verticesValue.size(): " << m_verticesValue.size() << "\n");
-
-		for ( size_t i = 0; i < m_verticesPos.size(); ++i)
-			UG_LOG("m_verticesPos: " << m_verticesPos[i][0] << " , " << m_verticesPos[i][1] << "\n");
-
-        if ( m_verticesValue[ret.first->second] != 0.0 )
-        {
-            UG_LOG("vrtPos[0]: " << vrtPos[0] << "\n");
-            UG_LOG("vrtPos[1]: " << vrtPos[1] << "\n");
-            UG_LOG("ret.first->second: " << ret.first->second << "\n");
-            UG_LOG("m_verticesValue: " << m_verticesValue[ret.first->second] << "\n");
-
-        }
-        
-        for ( size_t i = 0; i < m_verticesValue.size(); ++i)
-			UG_LOG("m_verticesValue: " << m_verticesValue[i] << "\n");
-        
-	}
-
 	return ret.first->second;
 }
 
@@ -305,20 +160,16 @@ Collect_Data_Nitsche(GridObject* elem)
 	std::vector<Vertex*> vVertex;
 	CollectVertices(vVertex, *this->m_spMG, elem);
 
-// FIRST: set m_vCornerCoords as usual coords for usage of corners(i) in fv1Cut_geom_impl.h:2336:
-//		m_vvGloMid[0][i] = m_spInterfaceHandler->corner(i);
-	this->m_vCornerCoords.clear();
+ 	this->m_vCornerCoords.clear();
 	for(size_t i = 0; i < vVertex.size(); ++i)
 		this->m_vCornerCoords.push_back(this->m_aaPos[vVertex[i]]);
 
 	int numFTVertex = 0;
 	for(size_t i = 0; i < vVertex.size(); ++i)
 	{
-		if ( this->m_aaPos[vVertex[i]][0] == 1.0 && this->m_aaPos[vVertex[i]][1] == 0.0 )
-			UG_LOG("stop here...\n");
 
 		// remember boolian for check, weather there existe at least one vertex, which is FT!
- 		if ( this->is_FTVertex(vVertex[i], i) )
+ 		if ( this->is_onInterfaceVertex(vVertex[i], i) )
 			numFTVertex++;
 	}
 
@@ -359,7 +210,7 @@ Collect_Data_Nitsche(GridObject* elem)
 		if ( this->is_nearInterfaceVertex(vrt2, vrtInd2) || this->is_nearInterfaceVertex(vrt1, vrtInd1) )
 		{ bNearInterface = true; continue; }
 	 // case2: vert2 = outsideParticle && vrt1 = insideParticle:
-		else if ( this->is_FTVertex(vrt1, vrtInd1) && !this->is_FTVertex(vrt2, vrtInd2) )
+		else if ( this->is_onInterfaceVertex(vrt1, vrtInd1) && !this->is_onInterfaceVertex(vrt2, vrtInd2) )
 		{
 			get_intersection_point(intersectionPnt, vrt2, vrt1, alphaOut);
 			UG_LOG("* alphaOut[0] = " << alphaOut[0] << ", alphaOut[1] = " << alphaOut[1] << "\n");
@@ -381,7 +232,7 @@ Collect_Data_Nitsche(GridObject* elem)
  			this->m_vInterfaceID.push_back(vrtInd2);
 		}
 	// case3: vrt1 = outsideParticle && vrt2 = insideParticle:
-		else if ( this->is_FTVertex(vrt2, vrtInd2) && !this->is_FTVertex(vrt1, vrtInd1) )
+		else if ( this->is_onInterfaceVertex(vrt2, vrtInd2) && !this->is_onInterfaceVertex(vrt1, vrtInd1) )
 		{
 			get_intersection_point(intersectionPnt, vrt1, vrt2, alphaOut);
 			UG_LOG("# alphaOut[0] = " << alphaOut[0] << ", alphaOut[1] = " << alphaOut[1] << "\n");
@@ -548,7 +399,7 @@ CollectCorners_FlatTop_2d(GridObject* elem)
  	for(size_t i = 0; i < vVertex.size(); ++i)
 	{
 	// remember boolian for check, weather there existe at least one vertex, which is FT!
-		isFTVertex = this->is_FTVertex(vVertex[i], i);
+		isFTVertex = this->is_onInterfaceVertex(vVertex[i], i);
 		if ( isFTVertex )
 			break;
 	}
@@ -575,7 +426,7 @@ CollectCorners_FlatTop_2d(GridObject* elem)
 		//////////////////////////////////////////////
 		// case 1:
 		// vertex insideDomain
- 		if ( !this->is_FTVertex(vrtRoot, i) )
+ 		if ( !this->is_onInterfaceVertex(vrtRoot, i) )
  		{
 			if ( this->is_nearInterfaceVertex(vrtRoot, i) )
 				UG_THROW("NearInterface BUT !is_FT => neuerdings Fehler!!....\n");
@@ -633,17 +484,17 @@ CollectCorners_FlatTop_2d(GridObject* elem)
 				MathVector<dim> intersectionPnt;
 
 	 		///////////////////////////////////////////////////////////////////
- 			// lies vrtRoot on a cutted edge?
+ 			// does vrtRoot lie on a cutted edge?
 		 	///////////////////////////////////////////////////////////////////
 			// case1: vrtRoot is intersectionPnt with insideCorner = near_interface_corner => remove!
 				if ( this->is_nearInterfaceVertex(vrt2, vrtInd2) || this->is_nearInterfaceVertex(vrt1, vrtInd1) )
 				{ bNearInterface = true;  this->set_bNearInterface(true); continue; }
 			 // case2: vert2 = outsideParticle && vrt1 = insideParticle:
-				else if ( vrtRoot == vrt1 && !this->is_FTVertex(vrt2, vrtInd2) ){
+				else if ( vrtRoot == vrt1 && !this->is_onInterfaceVertex(vrt2, vrtInd2) ){
 					get_intersection_point(intersectionPnt, vrt2, vrt1);
  				}
 			// case3: vrt1 = outsideParticle && vrt2 = insideParticle:
-				else if ( vrtRoot == vrt2 && !this->is_FTVertex(vrt1, vrtInd1) )
+				else if ( vrtRoot == vrt2 && !this->is_onInterfaceVertex(vrt1, vrtInd1) )
 					get_intersection_point(intersectionPnt, vrt1, vrt2);
 				else
  					continue;
@@ -682,7 +533,6 @@ CollectCorners_FlatTop_2d(GridObject* elem)
 // (vInsideCorners.size() == 2) && (bNearInterface)	 => ALL nodes insideFluid, BUT one ON surface
 //		=> no Quadrilateral, but Triangle!!
 ////////////////////////////////////////////////////////////////////////////////////////////
-    const size_t orientation = this->m_orientationInterface;
 
     MathVector<dim> normalDir(0.0);
 	if ( (this->m_vCornerCoords.size() == 4) && (!bNearInterface) && (dim == 2) )
@@ -695,7 +545,7 @@ CollectCorners_FlatTop_2d(GridObject* elem)
 		for ( size_t i = 0; i < this->m_vInterfaceID.size(); ++i)
 			m_vInterfaceID_quad.push_back(this->m_vInterfaceID[i]);
 	}
-    else if ( bNearInterface && this->m_orientationInterface == -1 )
+    else if ( bNearInterface && this->get_orientation() == -1 )
     {
         // m_vRealCornerID_quad was not written and needs to be called:
         // and copy data to m_vInterfaceID_tri:
@@ -727,6 +577,8 @@ CollectCorners_FlatTop_2d(GridObject* elem)
 			m_vRealCornerID_tri.push_back(vRealCornerID_tri[i]);
 	}
 
+    if ( this->m_vCornerCoords.size() == 0 )
+        UG_THROW("m_vCornerCoords.size() = " << this->m_vCornerCoords.size() << "not possible!\n");
 
 	return this->m_vCornerCoords.size();
 
@@ -734,32 +586,53 @@ CollectCorners_FlatTop_2d(GridObject* elem)
 
 template <int TWorldDim>
 void InterfaceHandlerLocalDiffusion<TWorldDim>::
-print_InterfaceIDdata()
+print_CutElementData()
 {
 
-	this->print_InterfaceDdata();
-
+    const char* filename = "CutElementData.";
+    std::string name(filename);
+    char ext[50]; sprintf(ext, "txt");
+    name.append(ext);
+    FILE* printFile = fopen(name.c_str(), "a");
+    if ( dim == 3 )
+        fprintf(printFile, "--------- New cut element --------\n\n");
+    else if ( this->m_roid == ROID_QUADRILATERAL )
+        fprintf(printFile, "--------- ROID_QUADRILATERAL --------\n\n");
+    else if ( this->m_roid == ROID_TRIANGLE )
+       fprintf(printFile, "------------ ROID_TRIANGLE ----------\n\n");
+    
+    for ( size_t i = 0; i < this->m_vCornerCoords.size(); ++i )
+        fprintf(printFile,"Cut element corner %lu: %e, %e \n", i, this->m_vCornerCoords[i][0], this->m_vCornerCoords[i][1]);
+    fprintf(printFile,"\n");
+    
+    for(size_t i = 0; i < this->m_vOriginalCornerID.size(); ++i)
+        fprintf(printFile,"Original corner ID: %lu\n", this->m_vOriginalCornerID[i]);
+    fprintf(printFile,"\n");
+    
+    for(size_t i = 0; i < this->m_vInterfaceID.size(); ++i)
+        fprintf(printFile,"Interface corner ID: %lu\n", this->m_vInterfaceID[i]);
+    fprintf(printFile,"\n");
+    
+    
 	if ( InterfaceHandlerLocalBase<dim>::m_roid == ROID_TRIANGLE )
 	{
 		for ( size_t i = 0; i < m_vInterfaceID_tri.size(); ++i )
-			UG_LOG("Interface tri: id = " << m_vInterfaceID_tri[i] << "\n");
-		UG_LOG("\n");
+            fprintf(printFile,"Interface corner ID - tri: %lu\n", m_vInterfaceID_tri[i]);
 
 		for ( size_t i = 0; i < m_vRealCornerID_tri.size(); ++i )
-			UG_LOG("m_vRealCornerID_tri: id = " << m_vRealCornerID_tri[i] << "\n");
-		UG_LOG("\n");
-	}
+            fprintf(printFile,"Real corner ID - tri: %lu\n", m_vRealCornerID_tri[i]);
+    }
 
 	if ( InterfaceHandlerLocalBase<dim>::m_roid == ROID_QUADRILATERAL )
 	{
 		for ( size_t i = 0; i < m_vInterfaceID_quad.size(); ++i )
-			UG_LOG("Interface quad: id = " << m_vInterfaceID_quad[i] << "\n");
-		UG_LOG("\n");
-
+            fprintf(printFile,"Interface corner ID - quad: %lu\n", m_vInterfaceID_quad[i]);
+ 
 		for ( size_t i = 0; i < m_vRealCornerID_quad.size(); ++i )
-			UG_LOG("m_vRealCornerID_quad: id = " << m_vRealCornerID_quad[i] << "\n");
-		UG_LOG("\n");
-	}
+            fprintf(printFile,"Real corner ID - quad: %lu\n", m_vRealCornerID_quad[i]);
+ 	}
+
+    fclose(printFile);
 
 }
 

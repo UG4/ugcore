@@ -1,5 +1,5 @@
 /*
- * moving_interface_impl.h
+ * immersed_interface_base_impl.h
  *
  *  Created on: 15.01.2015
  *      Author: suze
@@ -123,11 +123,11 @@ IInterfaceBndCond(const std::vector<std::string>& vFct, const std::vector<std::s
 
 ///////////////////////////////////////////////////////////
 // Implementation of the methods class
-// 	 		'IMovingInterface'
+// 	 		'IImmersedInterface'
 ///////////////////////////////////////////////////////////
 template <typename TDomain, typename TAlgebra>
-IMovingInterface<TDomain, TAlgebra>::
-IMovingInterface(SmartPtr<IAssemble<TAlgebra> > ass,
+IImmersedInterface<TDomain, TAlgebra>::
+IImmersedInterface(SmartPtr<IAssemble<TAlgebra> > ass,
 				 const char* functions, const char* subsets,
 				 SmartPtr<IInterfaceHandlerLocal> localHandler)
 				 : m_spInterfaceHandlerLocal(localHandler),
@@ -135,20 +135,14 @@ IMovingInterface(SmartPtr<IAssemble<TAlgebra> > ass,
 				   m_spInterfaceBndCond(new IInterfaceBndCond<TDomain>(functions, subsets, localHandler))
 {
 
-//	m_spInterfaceHandlerLocal = localHandler;
-
-//	m_spInterfaceMapper = make_sp(new IInterfaceMapper<TAlgebra>(localHandler));
-//	m_spInterfaceBndCond = make_sp(new IInterfaceBndCond<TDomain>(localHandler));
-
 	SmartPtr<AssemblingTuner<TAlgebra> > assAdapt = ass->ass_tuner();
 	assAdapt->set_mapping(m_spInterfaceMapper.get());
-//	assAdapt->enable_modify_solution(true); // ToDo: brauche ich das in der base class?
-
+ 
 }
 
 template <typename TDomain, typename TAlgebra>
-IMovingInterface<TDomain, TAlgebra>::
-IMovingInterface(SmartPtr<IAssemble<TAlgebra> > ass,
+IImmersedInterface<TDomain, TAlgebra>::
+IImmersedInterface(SmartPtr<IAssemble<TAlgebra> > ass,
 				 const std::vector<std::string>& vFct, const std::vector<std::string>& vSubset,
 				 SmartPtr<IInterfaceHandlerLocal> localHandler)
 				 : m_spInterfaceHandlerLocal(localHandler),
@@ -156,15 +150,9 @@ IMovingInterface(SmartPtr<IAssemble<TAlgebra> > ass,
 				   m_spInterfaceBndCond(new IInterfaceBndCond<TDomain>(vFct, vSubset, localHandler))
 {
 
-//	m_spInterfaceHandlerLocal = localHandler;
-
-//	m_spInterfaceMapper = make_sp(new IInterfaceMapper<TAlgebra>(localHandler));
-//	m_spInterfaceBndCond = make_sp(new IInterfaceBndCond<TDomain>(localHandler));
-
 	SmartPtr<AssemblingTuner<TAlgebra> > assAdapt = ass->ass_tuner();
 	assAdapt->set_mapping(m_spInterfaceMapper.get());
-//	assAdapt->enable_modify_solution(true); // ToDo: brauche ich das in der base class?
-
+ 
 }
 
 

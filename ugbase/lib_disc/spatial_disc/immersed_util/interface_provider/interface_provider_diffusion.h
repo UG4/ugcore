@@ -23,55 +23,28 @@ class DiffusionInterfaceProvider : public ParticleProviderSphere<TWorldDim>
 	static const int dim = TWorldDim;
 
 /// default constructor:
-	DiffusionInterfaceProvider()
+    DiffusionInterfaceProvider() 
 	{
 		this->clear();
 		UG_LOG("DiffusionInterfaceProvider constructor\n");
 	};
 
 /// destructor
-	~DiffusionInterfaceProvider() {}
+    virtual ~DiffusionInterfaceProvider() {}
 
 // setter methods
-	void add_with_solution(number radius, const MathVector<dim>& center, number density, number solution)
+	void add(number radius, const MathVector<dim>& center)
 	{
-	// A. set given values:
- 		this->m_vCenter.push_back(center);
- 		this->m_vRadius.push_back(radius);
- 		this->m_vDensity.push_back(density);
-
-	// B. prepare data for free particle velocities, to be computed
-	// B1: resize velocity vectors for TimeSeries-Data
-		const size_t numTimePoints = 2;
-		m_vvSolution.resize(numTimePoints);
-
-	// B2: set default values if velocity of particle is free within fluid
- 		for ( size_t i = 0; i < numTimePoints; ++i )
-			m_vvSolution[i].push_back(solution);
- 	}
-
-	void add(number radius, const MathVector<dim>& center, number density)
-	{
-	// A. set given values:
+	// set given values:
  		this->m_vCenter.push_back(center);
 		this->m_vRadius.push_back(radius);
-		this->m_vDensity.push_back(density);
-
-	// B. prepare data to set particle velocities
-	// B1: resize velocity vectors for TimeSeries-Data
-		const size_t numTimePoints = 2;
-		m_vvSolution.resize(numTimePoints);
-
-	// B2: set particle velocities
-		for ( size_t i = 0; i < numTimePoints; ++i )
-			m_vvSolution[i].push_back(0.0);
-
+		this->m_vDensity.push_back(1.0);
   	}
 
+// getter methods
 	number get_radius(int prtIndex)
 	{ if ( (int)this->num_particles() > 1 )
 		UG_THROW("DiffusionInterfaceProvider::num_particles(): number of given particles = " << this->num_particles() << " more than 1! ... not supposed to be!\n");
-
 	  return this->m_vRadius[prtIndex]; }
 
 	number get_density(int prtIndex)
@@ -84,35 +57,19 @@ class DiffusionInterfaceProvider : public ParticleProviderSphere<TWorldDim>
 		UG_THROW("DiffusionInterfaceProvider::num_particles(): number of given particles = " << this->num_particles() << " more than 1! ... not supposed to be!\n");
 	  return this->m_vCenter[prtIndex]; }
 
-// called during ParticleMapper::modify_GlobalSol():
-	void set_solution(number solution, size_t prtIndex, int timeSeriesInd)
-	{ m_vvSolution[timeSeriesInd][prtIndex] = solution; }
-
-/// get solution values
-	number get_solution(size_t prtIndex, size_t timeSeriesInd)
-		{ return m_vvSolution[timeSeriesInd][prtIndex]; }
-
+// output methods
 	void print()
 	{
-		UG_LOG(" +++++++++++++++++++++++++ Particle Info ++++++++++++++++++++++++++++++ \n");
-		UG_LOG("+++ num_particles = " << this->num_particles() << "\n");
+		UG_LOG(" +++++++++++++++++++++++++ Interface Info ++++++++++++++++++++++++++++++ \n");
+		UG_LOG("+++ num_circles = " << this->num_particles() << "\n");
 		for (size_t p = 0; p < this->num_particles(); ++p)
 		{
 			UG_LOG("+++ center = " << this->get_center(p) << "\n");
 			UG_LOG("+++ radius = " << this->get_radius(p) << "\n");
 			UG_LOG("+++ density = " << this->get_density(p) << "\n");
-
-			UG_LOG("+++ solution set to: " << get_solution(p, 0) << "\n\n");
 		}
 		UG_LOG(" ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ \n");
 	}
-
-
-	protected:
-
-// 	m_vvSolution[i][j]: i := timeSeries-index; j := particle-index
-	// ToDo switch indexing: [prtIndex][TimeSeriesIndes] !!
-	std::vector<std::vector<number> > m_vvSolution;
 
 
 };

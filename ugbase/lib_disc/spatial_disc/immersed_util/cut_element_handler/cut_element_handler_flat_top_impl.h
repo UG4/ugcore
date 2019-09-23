@@ -5,8 +5,8 @@
  *      Author: suze
  */
 
-#ifndef CUT_ELEMENT_HANDLER_IMPL_H_
-#define CUT_ELEMENT_HANDLER_IMPL_H_
+#ifndef CUT_ELEMENT_HANDLER_FLAT_TOP_IMPL_H_
+#define CUT_ELEMENT_HANDLER_FLAT_TOP_IMPL_H_
 
 #ifdef UG_PARALLEL
     #include "pcl/pcl_interface_communicator.h"
@@ -17,8 +17,8 @@
 namespace ug{
 
 template <int TWorldDim>
-CutElementHandlerFlatTop<TWorldDim>::
-CutElementHandlerFlatTop(SmartPtr<MultiGrid> mg, const char* fctNames,
+CutElementHandler_FlatTop<TWorldDim>::
+CutElementHandler_FlatTop(SmartPtr<MultiGrid> mg, const char* fctNames,
                          SmartPtr<ParticleProviderSphere<dim> > interfaceProvider)
     : CutElementHandlerBase<dim>(mg, interfaceProvider),
       m_fctNames(fctNames),
@@ -28,8 +28,8 @@ CutElementHandlerFlatTop(SmartPtr<MultiGrid> mg, const char* fctNames,
 }
     
 template <int TWorldDim>
-CutElementHandlerFlatTop<TWorldDim>::
-CutElementHandlerFlatTop(SmartPtr<MultiGrid> mg, const char* fctNames,
+CutElementHandler_FlatTop<TWorldDim>::
+CutElementHandler_FlatTop(SmartPtr<MultiGrid> mg, const char* fctNames,
                          SmartPtr<ParticleProviderEllipse<dim> > interfaceProvider)
     : CutElementHandlerBase<dim>(mg, interfaceProvider),
       m_fctNames(fctNames),
@@ -40,7 +40,7 @@ CutElementHandlerFlatTop(SmartPtr<MultiGrid> mg, const char* fctNames,
     
 // checks weather node is transDoF OR rotDoF
 template<int TWorldDim>
-bool CutElementHandlerFlatTop<TWorldDim>::
+bool CutElementHandler_FlatTop<TWorldDim>::
 is_extraDoF(DoFIndex dofIndex, int levIndex)
 {
 // pressure dof is always NO extraDoF:
@@ -88,7 +88,7 @@ is_extraDoF(DoFIndex dofIndex, int levIndex)
 }
     
 template<int TWorldDim>
-MathMatrix<TWorldDim,TWorldDim> CutElementHandlerFlatTop<TWorldDim>::
+MathMatrix<TWorldDim,TWorldDim> CutElementHandler_FlatTop<TWorldDim>::
 get_rotationMat(MathVector<TWorldDim> radialVector)
 {
     MathMatrix<TWorldDim,TWorldDim> rotationMat;
@@ -121,33 +121,35 @@ get_rotationMat(MathVector<TWorldDim> radialVector)
     
     
 template<int TWorldDim>
-bool CutElementHandlerFlatTop<TWorldDim>::
-is_nearInterface(Vertex* vrt, const number threshold)
+bool CutElementHandler_FlatTop<TWorldDim>::
+is_nearInterface_with_given_index(const int prtIndex, Vertex* vrt)
 {
-// loop all particles:
-    for (size_t p = 0; p < m_spInterfaceProvider->num_particles(); ++p)
+// get threshold (either default = 1e-10 or set by user via .lua-call:
+    const number threshold = this->get_threshold(vrt);
+
+// compute the distance between the location of vrt and the interface:
+    const number LS_value = get_LSvalue(vrt, prtIndex);
+            
+    if (fabs(LS_value) < threshold)
     {
-    // compute the distance between the location of vrt and the interface:
-        const number LS_value = get_LSvalue(vrt, p);
-            
-        if (fabs(LS_value) < threshold)
-        {
-            set_prtIndex(p);
-            return true;
-        }
-            
-    } // end particle loop
-        
+        set_prtIndex(prtIndex);
+        return true;
+    }
+    
     return false;
 }
 
     
 template<int TWorldDim>
-bool CutElementHandlerFlatTop<TWorldDim>::
-is_outsideFluid(Vertex* vrt, const number threshold)
+bool CutElementHandler_FlatTop<TWorldDim>::
+is_outsideFluid(Vertex* vrt)
 {
+// get data
     const int orientation = this->get_orientation();
-        
+
+// get threshold (either default = 1e-10 or set by user via .lua-call:
+    const number threshold = this->get_threshold(vrt);
+
 // loop all particles
     for (size_t p = 0; p < m_spInterfaceProvider->num_particles(); ++p)
     {
@@ -167,7 +169,7 @@ is_outsideFluid(Vertex* vrt, const number threshold)
             set_prtIndex(p);
             return true;
         }
-        else if ( is_nearInterface(vrt) )
+        else if ( is_nearInterface_with_given_index(p, vrt) )
         {
         // set particle index to data
             set_prtIndex(p);
@@ -180,11 +182,14 @@ is_outsideFluid(Vertex* vrt, const number threshold)
 }
   
 template<int TWorldDim>
-bool CutElementHandlerFlatTop<TWorldDim>::
-is_outsideFluid(int& PrtIndex, Vertex* vrt, const number threshold)
+bool CutElementHandler_FlatTop<TWorldDim>::
+is_outsideFluid(int& PrtIndex, Vertex* vrt)
 {
     bool outsideFluid = false;
-        
+    
+// get threshold (either default = 1e-10 or set by user via .lua-call:
+    const number threshold = this->get_threshold(vrt);
+
 //	loop over all centers and pick the index with minimal distance
     for (size_t p = 0; p < this->num_particles(); ++p)
     {
@@ -198,7 +203,7 @@ is_outsideFluid(int& PrtIndex, Vertex* vrt, const number threshold)
             PrtIndex = p;
             outsideFluid = true;
         }
-        else if ( is_nearInterface(vrt) )
+        else if ( is_nearInterface_with_given_index(p, vrt) )
         {
         // set particle index to data
             PrtIndex = p;
@@ -210,12 +215,15 @@ is_outsideFluid(int& PrtIndex, Vertex* vrt, const number threshold)
 }
     
 template<int TWorldDim>
-bool CutElementHandlerFlatTop<TWorldDim>::
-is_outsideFluid_prtIndex(const int prtIndex, Vertex* vrt, const number threshold)
+bool CutElementHandler_FlatTop<TWorldDim>::
+is_insideParticle_with_given_index(const int prtIndex, Vertex* vrt)
 {
         
     bool outsideFluid = false;
-        
+   
+// get threshold (either default = 1e-10 or set by user via .lua-call:
+    const number threshold = this->get_threshold(vrt);
+
 // compute the distance between the location of vrt and the interface:
 // level set value: LS_value := radius - distance
     const number LS_value = get_LSvalue(vrt, prtIndex);
@@ -224,7 +232,7 @@ is_outsideFluid_prtIndex(const int prtIndex, Vertex* vrt, const number threshold
     {
         outsideFluid = true;
     }
-    else if ( is_nearInterface(vrt) )
+    else if ( is_nearInterface_with_given_index(prtIndex, vrt) )
     {
         outsideFluid = true;
     }
@@ -234,7 +242,7 @@ is_outsideFluid_prtIndex(const int prtIndex, Vertex* vrt, const number threshold
 
    
 template<int TWorldDim>
-void CutElementHandlerFlatTop<TWorldDim>::
+void CutElementHandler_FlatTop<TWorldDim>::
 compute_and_set_prtIndex(GridObject* elem)
 {
     m_vPrtIndices.clear();
@@ -280,7 +288,7 @@ compute_and_set_prtIndex(GridObject* elem)
 
     
 template <int TWorldDim>
-void CutElementHandlerFlatTop<TWorldDim>::
+void CutElementHandler_FlatTop<TWorldDim>::
 update_prtCoords(const int topLevel, const number deltaT)
 {    
     if ( deltaT ==  0.0 )
@@ -290,13 +298,13 @@ update_prtCoords(const int topLevel, const number deltaT)
     for (size_t p = 0; p < num_particles(); ++p)
     {
 #ifdef UG_PARALLEL
-// use size of member 'CutElementHandlerFlatTop::m_vvvElemListCut' in order to
+// use size of member 'CutElementHandler_FlatTop::m_vvvElemListCut' in order to
 // indicate, whether a particle lies on a processor or not
     const int levIndex = this->get_Index(GridLevel(topLevel, GridLevel::LEVEL));
     std::vector<grid_base_object*> ElemList = m_vvvElemListCut[levIndex][p];
-    UG_LOG("1 CutElementHandlerFlatTop::update_prtCoords() ElemList.size(): " << ElemList.size() << "\n");
+    UG_LOG("1 CutElementHandler_FlatTop::update_prtCoords() ElemList.size(): " << ElemList.size() << "\n");
     if ( ElemList.size() == 0 ) {
-        UG_LOG("2 CutElementHandlerFlatTop::update_prtCoords() ElemList.size(): "
+        UG_LOG("2 CutElementHandler_FlatTop::update_prtCoords() ElemList.size(): "
                << ElemList.size() << " => skip assembling! \n");
         return;
     }
@@ -315,7 +323,7 @@ update_prtCoords(const int topLevel, const number deltaT)
 
 
 template<int TWorldDim>
-ElementModus CutElementHandlerFlatTop<TWorldDim>::
+ElementModus CutElementHandler_FlatTop<TWorldDim>::
 compute_element_modus(int prtIndex, GridObject* elem)
 {
     bool insideFluid = false;
@@ -328,7 +336,13 @@ compute_element_modus(int prtIndex, GridObject* elem)
     for(size_t i = 0; i < vVertex.size(); ++i)
     {
         Vertex* vrt = vVertex[i];
-        if ( is_outsideFluid_prtIndex(prtIndex, vrt) )
+        if ( is_nearInterface_with_given_index(prtIndex, vrt) )
+        {
+            outsideFluid = true;
+            this->m_spNearInterfaceVrtMarker->mark(vrt);
+            this->m_spOutsideMarker->mark(vrt);
+        }
+        else if ( is_insideParticle_with_given_index(prtIndex, vrt) )
         {
             outsideFluid = true;
             this->m_spOutsideMarker->mark(vrt);
@@ -336,8 +350,8 @@ compute_element_modus(int prtIndex, GridObject* elem)
         else
         {
             insideFluid = true;
-            if ( is_nearInterface(vrt) )
-                UG_THROW("CutElementHandlerFlatTop::compute_element_modus(): case 'is_nearInterface(vrt) = true' not possible!\n");
+            if ( is_nearInterface_with_given_index(prtIndex, vrt) )
+                UG_THROW("CutElementHandler_FlatTop::compute_element_modus(): case 'is_nearInterface_with_given_index(vrt) = true' not possible!\n");
         }
             
     } // vertex loop
@@ -349,45 +363,9 @@ compute_element_modus(int prtIndex, GridObject* elem)
         
 }
     
-template<int TWorldDim>
-ElementModus CutElementHandlerFlatTop<TWorldDim>::
-compute_element_modus(GridObject* elem)
-{
- 	bool insideFluid = false;
-	bool outsideFluid = false;
-  	std::vector<Vertex*> vVertex;
-	CollectVertices(vVertex, *this->m_spMG, elem);
-	this->m_aaPos.access(*this->m_spMG, this->m_aPos);
-
-
- //	loop vertices
-	for(size_t i = 0; i < vVertex.size(); ++i)
-	{
-		Vertex* vrt = vVertex[i];
- 		if ( is_outsideFluid(vrt) )
-		{
-			outsideFluid = true;
- 			this->m_spOutsideMarker->mark(vrt);
- 		}
-		else
-		{
-			insideFluid = true;
-			if ( is_nearInterface(vrt) )
-				UG_THROW("CutElementHandlerFlatTop::compute_element_modus(): case 'is_nearInterface(vrt) = true' not possible!\n");
-		}
-
-	} // vertex loop
-
-	if (insideFluid && outsideFluid) 		return CUT_BY_INTERFACE;
-	else if (outsideFluid) 					return OUTSIDE_DOM;
-
-	return INSIDE_DOM;
-
-}
-
 
 template <int TWorldDim>
-ElementModus CutElementHandlerFlatTop<TWorldDim>::
+ElementModus CutElementHandler_FlatTop<TWorldDim>::
 get_element_modus(GridObject* elem)
 {
     if ( !this->m_bBoolMarkerInit )
@@ -408,7 +386,7 @@ get_element_modus(GridObject* elem)
 
 
 template <int TWorldDim>
-void CutElementHandlerFlatTop<TWorldDim>::
+void CutElementHandler_FlatTop<TWorldDim>::
 update_global_indices(ConstSmartPtr<DoFDistribution> dd, const int levIndex)
 {
 // get data
@@ -444,7 +422,7 @@ update_global_indices(ConstSmartPtr<DoFDistribution> dd, const int levIndex)
 	for (size_t p = 0; p < num_particles(); ++p)
 	{
 #ifdef UG_PARALLEL
-    // use size of member 'CutElementHandlerFlatTop::m_vvvElemListCut' in order to
+    // use size of member 'CutElementHandler_FlatTop::m_vvvElemListCut' in order to
     // indicate, whether a particle lies on a processor or not
 		std::vector<grid_base_object*> ElemList = m_vvvElemListCut[levIndex][p];
  		UG_LOG("1_ update_global_indices() ElemList.size(): " << ElemList.size() << "\n");
@@ -483,9 +461,9 @@ update_global_indices(ConstSmartPtr<DoFDistribution> dd, const int levIndex)
 				const MathVector<dim>& center = get_center(p);
 
 				dist += VecDistance(vrtPos, center);
-				if (is_outsideFluid_prtIndex(p, vrt))
+				if (is_insideParticle_with_given_index(p, vrt))
 					vrtArray.push_back(vrt);
-				if (is_outsideFluid_prtIndex(p, vrt) && !this->m_spOutsideMarker->is_marked(vrt))
+				if (is_insideParticle_with_given_index(p, vrt) && !this->m_spOutsideMarker->is_marked(vrt))
 					UG_THROW("Mist, immeroch falsche marker:-(\n");
 			}
 
@@ -543,7 +521,7 @@ update_global_indices(ConstSmartPtr<DoFDistribution> dd, const int levIndex)
 
     
 template <int TWorldDim>
-void CutElementHandlerFlatTop<TWorldDim>::
+void CutElementHandler_FlatTop<TWorldDim>::
 update_interface_data(ConstSmartPtr<DoFDistribution> dd, const int levIndex)
 {
     this->m_bBoolMarkerInit = true;
@@ -589,24 +567,27 @@ update_interface_data(ConstSmartPtr<DoFDistribution> dd, const int levIndex)
 			if ( dim == 3 )
 			{
 				if ( element_is_pyramid(elem) )
-			 		isPyramid = true;
-			}
+                {
+                    isPyramid = true;
+                    UG_LOG("isPyramid = true...\n");
+                }
+            }
 
 		// mark vrt in order to remove them from 'm_spOutsideMarker'-list!
 			for(size_t i = 0; i < elem->num_vertices(); ++i)
 			{
-   				if ( is_outsideFluid_prtIndex(prtIndex, elem->vertex(i)) )
+   				if ( is_insideParticle_with_given_index(prtIndex, elem->vertex(i)) )
  				{
 					this->m_spCutMarker->mark(elem->vertex(i));
  					this->m_spInterfaceVrtMarker->mark(elem->vertex(i));
 
  				// for pyramids, set ALL outside nodes to 'nearInterface' nodes
  				// => in 'get_cutMode()': numOutside == numNearInterface => original tetrahedron
- 					if ( 0 ) //isPyramid )
+ 					if ( isPyramid )
  					{
  						this->m_spNearInterfaceVrtMarker->mark(elem->vertex(i));
  					}
- 					else if ( is_nearInterface(elem->vertex(i)))
+ 					else if ( is_nearInterface_with_given_index(prtIndex, elem->vertex(i)))
  					{
  						if ( !this->m_spNearInterfaceVrtMarker->is_marked(elem->vertex(i)))
  							UG_THROW("hmmm...muesste schon laengst markiert sein...oder noch nicht implementiert in 'is_nearInterface!!\n");
@@ -628,15 +609,15 @@ update_interface_data(ConstSmartPtr<DoFDistribution> dd, const int levIndex)
  
         } // end particle loop
 	} // end elem-loop
-
+    
 }
 
 
 
 // same fuction as in class 'FlatTopHandler', but since m_spParticleHandlerLocal is not a member of
-// CutElementHandlerFlatTop, there is no option for using it
+// CutElementHandler_FlatTop, there is no option for using it
 template <int TWorldDim>
-bool CutElementHandlerFlatTop<TWorldDim>::
+bool CutElementHandler_FlatTop<TWorldDim>::
 element_is_pyramid(grid_base_object* elem)
 {
 
@@ -664,7 +645,7 @@ element_is_pyramid(grid_base_object* elem)
 
 
 template <int TWorldDim>
-void CutElementHandlerFlatTop<TWorldDim>::
+void CutElementHandler_FlatTop<TWorldDim>::
 update_multigrid_data(ConstSmartPtr<DoFDistribution> dd, const int levIndex)
 {
 // 1. 'update_interface_data()':
@@ -678,7 +659,7 @@ update_multigrid_data(ConstSmartPtr<DoFDistribution> dd, const int levIndex)
 
 
 template<int TWorldDim>
-void CutElementHandlerFlatTop<TWorldDim>::
+void CutElementHandler_FlatTop<TWorldDim>::
 print_elem_lists(ConstSmartPtr<DoFDistribution> dd)
 {
 
@@ -777,7 +758,7 @@ print_elem_lists(ConstSmartPtr<DoFDistribution> dd)
 
 #ifdef UG_PARALLEL
 template <int TWorldDim>
-void CutElementHandlerFlatTop<TWorldDim>::
+void CutElementHandler_FlatTop<TWorldDim>::
 synchronize_particles(int levIndex) {
         
         bool verbose = false;
@@ -953,4 +934,4 @@ synchronize_particles(int levIndex) {
 
 
 
-#endif /* CUT_ELEMENT_HANDLER_IMPL_H_ */
+#endif /* CUT_ELEMENT_HANDLER_FLAT_TOP_IMPL_H_ */

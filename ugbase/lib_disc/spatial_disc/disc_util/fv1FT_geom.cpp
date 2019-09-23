@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2010-2015:  G-CSC, Goethe University Frankfurt
  * Author: Andreas Vogel
@@ -1589,7 +1588,7 @@ update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubs
     if(m_spInterfaceHandler->elementModus() == CUT_BY_INTERFACE)
     {
         update_inner_boundary_faces();
-        m_spInterfaceHandler->update_inner_boundary(m_spInterfaceHandler->corners());
+        m_spInterfaceHandler->update_inner_boundary(vCornerCoords);
 
     }
     else if(m_spInterfaceHandler->elementModus() == CUT_BY_2_INTERFACE)

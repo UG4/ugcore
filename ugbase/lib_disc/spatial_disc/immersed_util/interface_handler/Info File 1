@@ -4,7 +4,7 @@ The 'InterfaceHandlerLocal' class acts as a link between the assembling process 
 
 All assembling of the ElemDisc is cintered around the finite volume/element geometry object 'TFVGeom'. It inherits all local data, like corner coordinates, local indices, ReferenceObjectID. And from that it derives further local data (ip coordinates, normal vectors, gradients) and global data (global corner coordinates, global gradients, global ip coordinates).
 
-On a cut element, the (finite volume/element) geometry of the element changes from its state in the original mesh. In particular, the coordinates of the corners change and can increase. With that the cut element can change from a triangle/tetrahedron in the original grid to a quadrilateral/hexagon in the cut geometry (i.e. ReferenceObjectID changes).
+On a cut element, the (finite volume/element) geometry of the element changes from its state in the original mesh. In particular, the coordinates of the corners change and can increase. With that, the cut element can change from a triangle/tetrahedron in the original grid to a quadrilateral/hexagon in the cut geometry (i.e. ReferenceObjectID changes).
 Finally, for the local assembling procedures in UG4, due to the changed geometry, also the local indices of the corners need to be adapted and stored.
 
 
@@ -37,7 +37,7 @@ Important data:
 
 Further remarks:
 
-- The inner boundary faces, which form the linear approximation onto the immersed interface, are stored in the according derived class as 'm_vBF'. Because this object is derived from the finite volume/element geometry, it can not be initialized in the 'InterfaceHandlerLocalBase' class, which does not rely on this specific information.
+- The inner boundary faces, which form the linear approximation onto the immersed interface, are stored in the according derived class as 'm_vBF'. Since this object is derived from the finite volume/element geometry, it can not be initialized in the 'InterfaceHandlerLocalBase' class, which does not rely on this specific information.
 
         --> See e.g. in 'InterfaceHandlerLocalParticle':
             typedef typename DimFV1FTGeometry<dim, dim, InterfaceHandlerLocalParticle<dim> >::BF interfaceBF;

@@ -12,27 +12,18 @@
 
 namespace ug{
 
-///////////////////////////////////////////////////////////////
-/// methods for class 'IInterfaceHandlerLocal'
-///////////////////////////////////////////////////////////////
-
-
-
-///////////////////////////////////////////////////////////////
-/// methods for class 'InterfaceHandlerLocalBase'
-///////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////
 //	Constructor
 ///////////////////////////////////////////////////////////////
 template <int TWorldDim>
 InterfaceHandlerLocalBase<TWorldDim>::
-InterfaceHandlerLocalBase(SmartPtr<CutElementHandlerFlatTop<dim> > cutElementHandler) :
+InterfaceHandlerLocalBase(SmartPtr<CutElementHandler_FlatTop<dim> > cutElementHandler) :
 		m_spMG(cutElementHandler->m_spMG),
 		m_roid(ROID_UNKNOWN),
-        m_orientationInterface(1),
 		m_bUseStdFVAssembling(false),
-        m_spCutElementHandler((SmartPtr<CutElementHandlerFlatTop<dim> >)cutElementHandler)
+        m_bPrintCutElemDataToFile(false),
+        m_spCutElementHandler((SmartPtr<CutElementHandler_FlatTop<dim> >)cutElementHandler)
 {
 //	get position attachment
 	m_aPos = GetDefaultPositionAttachment<position_attachment_type>();
@@ -51,12 +42,11 @@ InterfaceHandlerLocalBase(SmartPtr<CutElementHandlerFlatTop<dim> > cutElementHan
 
 template <int TWorldDim>
 InterfaceHandlerLocalBase<TWorldDim>::
-InterfaceHandlerLocalBase(SmartPtr<CutElementHandlerImmersed<dim> > cutElementHandler) :
+InterfaceHandlerLocalBase(SmartPtr<CutElementHandler_TwoSided<dim> > cutElementHandler) :
     m_spMG(cutElementHandler->m_spMG),
     m_roid(ROID_UNKNOWN),
-    m_orientationInterface(1),
     m_bUseStdFVAssembling(false),
-    m_spCutElementHandler((SmartPtr<CutElementHandlerImmersed<dim> >)cutElementHandler)
+    m_spCutElementHandler((SmartPtr<CutElementHandler_TwoSided<dim> >)cutElementHandler)
 {
     //	get position attachment
     m_aPos = GetDefaultPositionAttachment<position_attachment_type>();
@@ -74,12 +64,10 @@ InterfaceHandlerLocalBase(SmartPtr<CutElementHandlerImmersed<dim> > cutElementHa
 }
     
     
-// see mod_elem_flat_top() of flat_top.h
 template <int TWorldDim>
 void InterfaceHandlerLocalBase<TWorldDim>::
-compute_flat_top_data(GridObject* elem)
+compute_cut_element_data(GridObject* elem)
 {
-    bool output = true;
     
 // get new element corners and according element type
 	if ( StdFV_assembling() ) // Version an Stelle von 'm_bUsualAss = true'
@@ -107,33 +95,20 @@ compute_flat_top_data(GridObject* elem)
 		if ( elem->reference_object_id() != ROID_TETRAHEDRON )
 			UG_THROW("Discretisation only coded for tetrahedral elements!\n");
 
-
-	m_elemModus = get_element_modus(elem); // computed via 'compute_element_modus()' during 'update_marker()'
-
-	if ( output ){
-	if( m_elemModus == CUT_BY_INTERFACE)
-	{
-		UG_LOG("_________________ compute_flat_top_data()_________________\n");
-
-		for ( size_t i = 0; i < m_vCornerCoords.size(); ++i )
-			UG_LOG("m_vCornerCoords = " << m_vCornerCoords[i] << "\n");
-		for ( size_t i = 0; i < m_vOriginalCornerID.size(); ++i )
-			UG_LOG("Original: id = " << m_vOriginalCornerID[i] << "\n");
-		UG_LOG("\n");
-		for ( size_t i = 0; i < m_vInterfaceID.size(); ++i )
-			UG_LOG("Interface: id = " << m_vInterfaceID[i] << "\n");
-		UG_LOG("\n");
-	}
-
-	}
+// output computed data to file
+    if ( print_cutElment_data() )
+        print_CutElementData();
 
 }
 
 template <int TWorldDim>
 void InterfaceHandlerLocalBase<TWorldDim>::
-set_flat_top_data(GridObject* elem, const MathVector<TWorldDim>* vCornerCoords, ReferenceObjectID roid)
+set_element_data(GridObject* elem, const MathVector<TWorldDim>* vCornerCoords, ReferenceObjectID roid)
 {
-	size_t numCo = dim+1; // -> ok, since implemented only for Triangles and Tetrahedra
+// for elements, lying inside the domain, set the number of corners
+// to the standard case, which is dim+1, since code is only valid
+// for Triangles and Tetrahedra
+	size_t numCo = dim+1;
 
 // set 'm_vCornerCoords'
 	m_vCornerCoords.clear();
@@ -142,9 +117,6 @@ set_flat_top_data(GridObject* elem, const MathVector<TWorldDim>* vCornerCoords, 
 
 // set 'm_roid'
 	m_roid = roid;
-
-	//if ( roid != ROID_UNKNOWN ) return;
-
 
 // for OUTSIDE_DOM, also fill 'vOriginalCornerID' and 'vInterfaceID':
 	m_vInterfaceID.clear();
@@ -155,13 +127,13 @@ set_flat_top_data(GridObject* elem, const MathVector<TWorldDim>* vCornerCoords, 
 	std::vector<Vertex*> vVertex;
 	CollectVertices(vVertex, *m_spMG, elem);
 
-// loop vertices
+// loop vertices and fill cut element data with the usual nodes of the element
  	for(size_t i = 0; i < vVertex.size(); ++i)
 	{
 	// get element
 		Vertex* vrtRoot = vVertex[i];
 
-  		if ( !is_FTVertex(vrtRoot, -1) )
+  		if ( !is_onInterfaceVertex(vrtRoot, i) )
  		{
 			m_vCornerCoords.push_back(m_aaPos[vrtRoot]);
    			m_vOriginalCornerID.push_back(i);
@@ -179,29 +151,31 @@ set_flat_top_data(GridObject* elem, const MathVector<TWorldDim>* vCornerCoords, 
 
 
 
-// see preprocess() of flat_top.h
 // called by geo.update()!!
 template <int TWorldDim>
 bool InterfaceHandlerLocalBase<TWorldDim>::
 update_elem(GridObject* elem, const MathVector<TWorldDim>* vCornerCoords)
 {
 	bool do_update_local = false;
+    
+// compute and set the element modus:
+	m_elemModus = compute_element_modus(elem);
 
-// computing flat top modus
-	m_elemModus = compute_element_modus(elem, m_orientationInterface);
+//   m_elemModus = get_element_modus(elem);
+//       --> not possible to use, since local data will be computed during 'compute_element_modus()'
 
 	switch(m_elemModus)
 	{
- 		case INSIDE_DOM:	   if ( dim == 2 ) set_flat_top_data(elem, vCornerCoords, ROID_TRIANGLE);
- 							   if ( dim == 3 ) set_flat_top_data(elem, vCornerCoords, ROID_TETRAHEDRON);
+ 		case INSIDE_DOM:	   if ( dim == 2 ) set_element_data(elem, vCornerCoords, ROID_TRIANGLE);
+ 							   if ( dim == 3 ) set_element_data(elem, vCornerCoords, ROID_TETRAHEDRON);
 							   break;	// usual assembling
-		case OUTSIDE_DOM: 	   if ( dim == 2 ) set_flat_top_data(elem, vCornerCoords, ROID_TRIANGLE);
-							   if ( dim == 3 ) set_flat_top_data(elem, vCornerCoords, ROID_TETRAHEDRON);
+		case OUTSIDE_DOM: 	   if ( dim == 2 ) set_element_data(elem, vCornerCoords, ROID_TRIANGLE);
+							   if ( dim == 3 ) set_element_data(elem, vCornerCoords, ROID_TETRAHEDRON);
 							   break;	// usual assembling
-		case CUT_BY_INTERFACE: compute_flat_top_data(elem);
+		case CUT_BY_INTERFACE: compute_cut_element_data(elem);
 								//if ( m_roid == ROID_PYRAMID )UG_THROW("PYRAMID\n");
 							   do_update_local = true;
-						  	   break;  // flat top assembling
+						  	   break;  // cut element assembling
 		default:
 			throw(UGError("Error in InterfaceHandlerLocalBase::update(): switch(m_elemModus)!"));
 	}

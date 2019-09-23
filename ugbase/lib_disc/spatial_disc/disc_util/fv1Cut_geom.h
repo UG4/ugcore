@@ -978,14 +978,13 @@ class DimFV1CutGeometry : public FVGeometryBase
 	/// construct object and initialize local values and sizes
 		DimFV1CutGeometry() : m_pElem(NULL), m_roid(ROID_UNKNOWN) {};
 
-    //////////////////////////////////////////////////////////////////////////////
-    ///  new Cut-methods
-    //////////////////////////////////////////////////////////////////////////////
- 
-    /// access to m_vBF (needed during 'FV1CutGeom::update_inner_boundary_faces()')
-    //	const std::vector<BF>* boundary_faces() const { return &m_vBF[0]; }
-        const std::vector<BF> boundary_faces() const { return m_vBF; }
-        std::vector<BF>& get_boundary_faces() { return m_vBF; }
+    ////////////////////////////////////////////////////////////////////////////////////////
+    ///  new methods for the special cut-Geometry
+    ////////////////////////////////////////////////////////////////////////////////////////
+    
+        std::vector<BF>& get_boundary_faces()
+        { return m_spInterfaceHandler->get_boundary_faces(); }
+        void clear_boundary_faces() { m_spInterfaceHandler->clear_boundary_faces(); }
 
         inline void set_element_modus(bool boolian) { mElemModus = boolian;}
         inline const bool get_element_modus() { return mElemModus;}
@@ -1000,63 +999,8 @@ class DimFV1CutGeometry : public FVGeometryBase
         bool lies_onInterface(const size_t newID)
         { return m_spInterfaceHandler->lies_onInterface(newID); }
     
-        inline const size_t get_original_node_for_diff(size_t i, const size_t roidID)
-        {
-            std::vector<size_t> interfaceIDs = m_spInterfaceHandler->interface_id_all();
-        
-            size_t origID = m_spInterfaceHandler->corner_orig(interfaceIDs[0]);
-            size_t origID2 = m_spInterfaceHandler->corner_orig(interfaceIDs[1]);
-        
-            if ( roidID == 4 )
-            {
-                if ( origID == 0 && origID2 == 2 && i == 0 )
-                {return m_spInterfaceHandler->corner_orig(interfaceIDs[1]);}
-                else if ( origID == 0 && origID2 == 2 && i == 1 )
-                {return m_spInterfaceHandler->corner_orig(interfaceIDs[0]);}
-                else if ( i < 2  )
-                {return m_spInterfaceHandler->corner_orig(interfaceIDs[i]);}
-                else
-                {
-                    for ( size_t j = 0; j < 3; ++j )
-                        if ( j != m_spInterfaceHandler->corner_orig(interfaceIDs[0]) && j != m_spInterfaceHandler->corner_orig(interfaceIDs[1]) )
-                            return j;
-                }
-            }
-            else if ( roidID == 3 )
-            {
-                origID = m_spInterfaceHandler->corner_orig(interfaceIDs[0]);
-                if ( i == 0 )
-                    return origID;
-                else
-                    return (origID + i)%3;
-            }
-            
-            UG_THROW("in 'get_original_node_for_diff()': wrong Reference ObjectID: " << roidID << "\n");
-            return 0;
-        }
-    
-        inline void set_jac_bool(bool boolian)
-        {	m_spInterfaceHandler->set_jac_bool(boolian); }
-        inline bool get_jac_bool()
-        {	return m_spInterfaceHandler->get_jac_bool(); }
-    
-        inline void add_to_integral(const number value)
-        {	return m_spInterfaceHandler->add_to_integral(value); }
-        inline number get_integral()
-        {	return m_spInterfaceHandler->get_integral(); }
-        inline void init_integral()
-        {  m_spInterfaceHandler->init_integral(); }
+        inline MathVector<dim> get_corner(size_t i) {return m_spInterfaceHandler->corner(i);}
 
-        void resize_local_data(LocalVector u)
-        { m_spInterfaceHandler->resize_local_data(u); }
-        void set_orientation(const int orientation)
-        { m_spInterfaceHandler->set_orientation(orientation); }
-        int get_orientation()
-        { return m_spInterfaceHandler->get_orientation(); }
-        const bool get_boolian_for_diffusion()
-        { return m_spInterfaceHandler->get_boolian_for_diffusion(); }
-
-    
         number get_shape(size_t sh, MathVector<dim> locIP, const ReferenceObjectID roid )
         {
             const LocalShapeFunctionSet<dim>& TrialSpace =
@@ -1065,85 +1009,114 @@ class DimFV1CutGeometry : public FVGeometryBase
             return	TrialSpace.shape(sh, locIP);
         }
     
-        inline MathVector<dim> get_corner(size_t i) {return m_spInterfaceHandler->corner(i);}
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    /// methods necessary to get access to methods of the InterfaceHandler via the
+    /// FV1CutGeom-object 'TFVGeom& geo' within the 'ConvectionDiffusionFV1_cutElem'-class
+
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    // (A) 'integral'-methods for the computation of the l2-error within
+    // 'ConvectionDiffusionFV1_cutElem::add_l2error_A_elem()'
+        inline void L2Error_add(const number value)
+            {	return m_spInterfaceHandler->L2Error_add(value); }
+        inline number get_L2Error()
+            {	return m_spInterfaceHandler->get_L2Error(); }
+        inline void L2Error_init()
+            {  m_spInterfaceHandler->L2Error_init(); }
+
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    /// (B) further methods
+        void resize_local_data(LocalVector u)
+            { m_spInterfaceHandler->resize_local_data(u); }
+        void set_orientation(const int orientation)
+            { m_spInterfaceHandler->set_orientation(orientation); }
+        int get_orientation()
+            { return m_spInterfaceHandler->get_orientation(); }
+        const bool get_boolian_for_diffusion()
+            { return m_spInterfaceHandler->get_boolian_for_diffusion(); }
     
     
-        void set_DoF_tag_tri(const bool bFactor2_for_DoFIndex)
-        { m_spInterfaceHandler->set_DoF_tag_tri(bFactor2_for_DoFIndex); }
-        void set_DoF_tag_quad(const bool bFactor2_for_DoFIndex)
-        { m_spInterfaceHandler->set_DoF_tag_quad(bFactor2_for_DoFIndex); }
+    // tags needed within the class 'DiffusionInterfaceMapper'
+        void set_DoF_tag(const bool bFactor2_for_DoFIndex, const ReferenceObjectID roid)
+            { m_spInterfaceHandler->set_DoF_tag(bFactor2_for_DoFIndex, roid); }
     
+    // shiftTag = true in case of double DoFs on interface!
         bool get_bScaleDoFs() { return m_spInterfaceHandler->get_bScaleDoFs(); }
     
         inline const bool get_bNearInterface()
-        { return m_spInterfaceHandler->get_bNearInterface(); }
-
-        void set_jacobian_tri(const LocalMatrix locJ)
-        { m_spInterfaceHandler->set_jacobian_tri(locJ); }
-        void set_jacobian_quad(const LocalMatrix locJ)
-        { m_spInterfaceHandler->set_jacobian_quad(locJ); }
+            { return m_spInterfaceHandler->get_bNearInterface(); }
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    // (C) access methods for assemgling of the local defect and jacobian for
+    // the elem Disc 'ConvectionDiffusionFV1_cutElem':
+    // --> during call of 'add_jac_A_elem()' and 'add_def_A_elem()'
     
-        LocalMatrix& get_jacobian_tri()
-        { return m_spInterfaceHandler->get_local_jacobian_tri(); }
-        LocalMatrix& get_jacobian_quad()
-        { return m_spInterfaceHandler->get_local_jacobian_quad(); }
     
-        void set_defect_tri(const LocalVector locD)
-        { m_spInterfaceHandler->set_defect_tri(locD); }
-        void set_defect_quad(const LocalVector locD)
-        { m_spInterfaceHandler->set_defect_quad(locD); }
+    /// setter methods
+        void set_jacobian(const LocalMatrix locJ, const ReferenceObjectID roid)
+            { m_spInterfaceHandler->set_jacobian(locJ, roid); }
     
+        void set_defect(const LocalVector locD, const ReferenceObjectID roid)
+            { m_spInterfaceHandler->set_defect(locD, roid); }
+    
+    /// getter methods
+        LocalMatrix& get_jacobian(const ReferenceObjectID roid)
+            { return m_spInterfaceHandler->get_local_jacobian(roid); }
+    
+        LocalVector& get_defect(const ReferenceObjectID roid)
+            { return m_spInterfaceHandler->get_local_defect(roid); }
+    
+        LocalVector& get_solution(const ReferenceObjectID roid)
+            { return m_spInterfaceHandler->get_local_solution(roid); }
+  
+    /// reset methods
         void reset_defect_on_interface(LocalVector& locD, const size_t size)
-        { m_spInterfaceHandler->reset_defect_on_interface(locD, size); }
+            { m_spInterfaceHandler->reset_defect_on_interface(locD, size); }
     
         void reset_jacobian_on_interface(LocalMatrix& locJ, const size_t size)
-        { m_spInterfaceHandler->reset_jacobian_on_interface(locJ, size); }
-    
-        LocalVector& get_defect_tri()
-        { return m_spInterfaceHandler->get_local_defect_tri(); }
-        LocalVector& get_defect_quad()
-        { return m_spInterfaceHandler->get_local_defect_quad(); }
-    
-        LocalVector& get_solution_tri()
-        { return m_spInterfaceHandler->get_local_solution_tri(); }
-        LocalVector& get_solution_quad()
-        { return m_spInterfaceHandler->get_local_solution_quad(); }
+            { m_spInterfaceHandler->reset_jacobian_on_interface(locJ, size); }
     
     
-        void set_local_sol(LocalVector& solU, const size_t size, const LocalVector& lvec, const int orientation)
-        { return m_spInterfaceHandler->set_local_sol(solU, size, lvec, orientation); }
+  
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    // (D) access methods for local assembling of the boundary conditions on the
+    // immersed interface into the defect and jacobian for the elem Disc
+    // 'ConvectionDiffusionFV1_cutElem'
+    //      --> during call of 'add_jac_A_elem()' and 'add_def_A_elem()'
 
+    // getter methods
         number get_diffusion()
-        { return m_spInterfaceHandler->get_diffusion(); }
+            { return m_spInterfaceHandler->get_diffusion(); }
         number get_diffusion(const bool bElementIsOutside)
-        { return m_spInterfaceHandler->get_diffusion(bElementIsOutside); }
+            { return m_spInterfaceHandler->get_diffusion(bElementIsOutside); }
+   
+    // setter methods (called by ConvectionDiffusionFV1_cutElem::get_local_data() )
+        void set_local_sol(LocalVector& solU, const size_t size, const LocalVector& lvec,
+                           const int orientation)
+            { return m_spInterfaceHandler->set_local_sol(solU, size, lvec, orientation); }
+
+        void set_jump_values(LocalVector& jumpOut, LocalIndices ind, const size_t size)
+            { m_spInterfaceHandler->set_jump_values(jumpOut, ind, size); }
     
-        LocalVector set_jump_values(LocalIndices ind, const size_t size)
-        { return m_spInterfaceHandler->set_jump_values(ind, size); }
-        LocalVector set_jump_grad_values(LocalIndices ind, const size_t size)
-        { return m_spInterfaceHandler->set_jump_grad_values(ind, size); }
-        // 'set_source' instance used for diffusion elem disc
-        LocalVector set_source(const std::vector<double> sourceIm, LocalIndices ind, const size_t size, const bool bElementIsCut)
-        { return m_spInterfaceHandler->set_source(sourceIm, ind, size, bElementIsCut); }
-        // 'set_source' instance used for navier stokes elem disc
-        LocalVector set_source(LocalIndices ind, const size_t size, const bool bElementIsCut)
-        { return m_spInterfaceHandler->set_source(ind, size, bElementIsCut); }
+        void set_jump_grad_values(LocalVector& jumpGradOut, LocalIndices ind, const size_t size)
+            { m_spInterfaceHandler->set_jump_grad_values(jumpGradOut, ind, size); }
     
-        // methods for Nitsche
-        void print_Nitsche_Data()
-        { return m_spInterfaceHandler->print_Nitsche_Data(); }
-        number vAlpha(size_t i, size_t j){ return m_spInterfaceHandler->vAlpha(i, j); }
-        MathVector<dim> vIntersectionPnts(size_t i){ return m_spInterfaceHandler->vIntersectionPnts(i); }
-        MathMatrix<dim+1,dim+1> ShapeValues(){ return m_spInterfaceHandler->vShapeValues(); }
-        MathVector<dim> NormalToFace(){ return m_spInterfaceHandler->NormalToFace(); }
-        number Gamma(){ return m_spInterfaceHandler->Gamma(); }
-        number Area(){ return m_spInterfaceHandler->Area(); }
-        number AreaOrig(){ return m_spInterfaceHandler->AreaOrig(); }
-        number AreaScale(){ return m_spInterfaceHandler->AreaScale(); }
-        number IntegralGamma(size_t i){ return m_spInterfaceHandler->IntegralGamma(i); }
+    // 'set_source' instance used for diffusion elem disc
+        void set_source(const std::vector<double> sourceIm, LocalVector& sourceOut, LocalIndices ind,
+                        const size_t size, const bool bElementIsCut)
+            { m_spInterfaceHandler->set_source(sourceIm, sourceOut, ind, size, bElementIsCut); }
     
-        void print_InterfaceIDdata()
-        { return m_spInterfaceHandler->print_InterfaceIDdata(); }
+    
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    // (E) methods for Nitsche
+        void print_Nitsche_Data()                   { return m_spInterfaceHandler->print_Nitsche_Data(); }
+        number vAlpha(size_t i, size_t j)           { return m_spInterfaceHandler->vAlpha(i,j); }
+        MathVector<dim> vIntersectionPnts(size_t i) { return m_spInterfaceHandler->vIntersectionPnts(i); }
+        MathMatrix<dim+1,dim+1> ShapeValues()       { return m_spInterfaceHandler->vShapeValues(); }
+        MathVector<dim> NormalToFace()              { return m_spInterfaceHandler->NormalToFace(); }
+        number Gamma()                              { return m_spInterfaceHandler->Gamma(); }
+        number Area()                               { return m_spInterfaceHandler->Area(); }
+        number AreaOrig()                           { return m_spInterfaceHandler->AreaOrig(); }
+        number AreaScale()                          { return m_spInterfaceHandler->AreaScale(); }
+        number IntegralGamma(size_t i)              { return m_spInterfaceHandler->IntegralGamma(i); }
     
     
     /// called during 'ParticleBndCond::add_def_M_local()':
@@ -1154,10 +1127,11 @@ class DimFV1CutGeometry : public FVGeometryBase
     
         bool mElemModus;
     
-        /// set the local interface handler
-        /// (called during constructor of class 'MovingInterface')
+    /// set the local interface handler
+    /// (called during constructor of class 'ImmersedInterface')
         void set_interface_handler(SmartPtr<TInterfaceHandler> localHandler)
-        { m_spInterfaceHandler = localHandler; }
+            { m_spInterfaceHandler = localHandler; }
+    
     
     //////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////
@@ -1373,9 +1347,6 @@ class DimFV1CutGeometry : public FVGeometryBase
     SmartPtr<TInterfaceHandler> m_spInterfaceHandler;
     
     bool m_bIsFlatTopElement;
-    
-    std::vector<BF> m_vBF;			// updated during FV1CutGeom::update_inner_boundary_faces()
-    
 
     
 };

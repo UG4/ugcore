@@ -5,8 +5,8 @@
  *      Author: suze
  */
 
-#ifndef INTERFACE_HANDLER_FLAT_TOP_H_
-#define INTERFACE_HANDLER_FLAT_TOP_H_
+#ifndef INTERFACE_HANDLER_LOCAL_PARTICLE_H_
+#define INTERFACE_HANDLER_LOCAL_PARTICLE_H_
 
 #include "lib_disc/spatial_disc/disc_util/geom_provider.h"
 #include "lib_grid/multi_grid.h"
@@ -50,77 +50,106 @@ class InterfaceHandlerLocalParticle : public InterfaceHandlerLocalBase<TWorldDim
 	 	typedef Grid::VertexAttachmentAccessor<position_attachment_type> position_accessor_type;
 
 
-  		InterfaceHandlerLocalParticle(SmartPtr<CutElementHandlerFlatTop<dim> > cutElementHandler,
+  		InterfaceHandlerLocalParticle(SmartPtr<CutElementHandler_FlatTop<dim> > cutElementHandler,
   		 				number fluidDensity, number fluidKinVisc);
 
 
     	virtual ~InterfaceHandlerLocalParticle()	{}
 
-    //////////////////////////////////////////////////////////////////
-    /// virtual base class methods which need to be implemented:
-    //////////////////////////////////////////////////////////////////
     
-    // used for method 'CollectCorners_':
-        number get_LSvalue_byPosition(MathVector<dim> vrtPos)
-        {
-        // ToTo
-        //            if ( m_prtIndex == -1 )
-        //               UG_THROW("'get_LSvalue_byPosition()': value of m_prtIndex not valid!\n");        
-            return m_spCutElementHandler->get_LSvalue_byPosition(vrtPos, m_prtIndex);
-        }
-        number get_LSvalue(Vertex* vrt, const int prtIndex)
-        {
-            UG_THROW("Attention in 'get_LSvalue(vrt, prtIndex)': check if second argument = prtIndex is valid!...prtIndex = " << prtIndex << "\n");
-            return m_spCutElementHandler->get_LSvalue(vrt, prtIndex);
-        }
+    //////////////////////////////////////////////////////////////////////////
+    /// virtual methods in 'IInterfaceHandlerLocal': need to be impl. here
+    //////////////////////////////////////////////////////////////////////////
 
+    // simple forwarding to the associated 'CutElementHandler' class:
     
+        bool is_onInterfaceVertex(Vertex* vrt, size_t vrtIndex = 0)
+            { return m_spCutElementHandler->is_onInterfaceVertex(vrt, vrtIndex);	}
+
+        bool is_OutsideVertex(Vertex* vrt, size_t vrtIndex = 0)
+            { return m_spCutElementHandler->is_OutsideVertex(vrt, vrtIndex); }
+    
+        bool is_nearInterfaceVertex(Vertex* vrt, size_t vrtIndex = 0)
+            { return m_spCutElementHandler->is_nearInterfaceVertex(vrt, vrtIndex); }
+    
+    
+    //////////////////////////////////////////////////////////////////////////
+    /// virtual methods in 'InterfaceHandlerLocalBase': need to be impl. here
+    //////////////////////////////////////////////////////////////////////////
+    
+    // forwarding to m_spCutElementHandler:
+        number get_LSvalue_byPosition(MathVector<dim> vrtPos)
+        { return m_spCutElementHandler->get_LSvalue_byPosition(vrtPos); }
+
+
+    // forwarding to m_spCutElementHandler:
         bool get_intersection_point(MathVector<dim>& Intersect, Vertex* vrtOutsideCirc, Vertex* vrtInsideCirc)
         {
+            const int orientation = this->get_orientation();
+
             const MathVector<dim>& vrtPosOut = this->m_aaPos[vrtOutsideCirc];
             const MathVector<dim>& vrtPosIn  = this->m_aaPos[vrtInsideCirc];
-        
-            if ( this->m_orientationInterface == 1 )
-                return m_spCutElementHandler->get_intersection_point(Intersect, vrtPosOut, vrtPosIn, m_prtIndex);
+            
+            const int prtIndex = get_prtIndex();
+            if ( prtIndex == -1 ) UG_THROW("'get_intersection_point()': value of prtIndex not valid!\n");
+
+            if ( orientation == 1 )
+                return m_spCutElementHandler->get_intersection_point(Intersect, vrtPosOut, vrtPosIn, prtIndex);
         // inverse order of 'vrtPosOut' and 'vrtPosIn' for call of 'get_intersection_point()'
         // to avoid error for alpha < 0:
-            else if ( this->m_orientationInterface == -1 )
+            else if ( orientation == -1 )
             {
-                if ( m_prtIndex == -1 ) UG_THROW("'get_intersection_point()': value of m_prtIndex not valid!\n");
-                return m_spCutElementHandler->get_intersection_point(Intersect, vrtPosIn, vrtPosOut, m_prtIndex);
+                return m_spCutElementHandler->get_intersection_point(Intersect, vrtPosIn, vrtPosOut, prtIndex);
             }
             else
-                UG_THROW("in InterfaceHandlerLocalDiffusion::get_intersection_point(): m_orientationInterface not set!\n");
+                UG_THROW("in InterfaceHandlerLocalDiffusion::get_intersection_point(): orientationInterface not set!\n");
         }
     
+    // forwarding to m_spCutElementHandler:
         bool get_intersection_point(MathVector<dim>& Intersect, Vertex* vrtOutsideCirc, Vertex* vrtInsideCirc, std::vector<number>& alphaOut)
         {
+            const int orientation = this->get_orientation();
+
             const MathVector<dim>& vrtPosOut = this->m_aaPos[vrtOutsideCirc];
             const MathVector<dim>& vrtPosIn  = this->m_aaPos[vrtInsideCirc];
         
-            if ( this->m_orientationInterface == 1 )
-                return m_spCutElementHandler->get_intersection_point(Intersect, vrtPosOut, vrtPosIn, m_prtIndex, alphaOut);
+            const int prtIndex = get_prtIndex();
+            if ( prtIndex == -1 ) UG_THROW("'get_intersection_point()': value of prtIndex not valid!\n");
+
+            if ( orientation == 1 )
+                return m_spCutElementHandler->get_intersection_point(Intersect, vrtPosOut, vrtPosIn, prtIndex, alphaOut);
         // inverse order of 'vrtPosOut' and 'vrtPosIn' for call of 'get_intersection_point()'
         // to avoid error for alpha < 0:
-            else if ( this->m_orientationInterface == -1 )
+            else if ( orientation == -1 )
             {
-                if ( m_prtIndex == -1 ) UG_THROW("'get_intersection_point()': value of m_prtIndex not valid!\n");
-                return m_spCutElementHandler->get_intersection_point(Intersect, vrtPosIn, vrtPosOut, m_prtIndex, alphaOut);
+                return m_spCutElementHandler->get_intersection_point(Intersect, vrtPosIn, vrtPosOut, prtIndex, alphaOut);
             }
             else
-                UG_THROW("in InterfaceHandlerLocalDiffusion::get_intersection_point(): m_orientationInterface not set!\n");
+                UG_THROW("in InterfaceHandlerLocalDiffusion::get_intersection_point(): orientationInterface not set!\n");
         }
     
     //////////////////////////////////////////////////////////
-    /// original class methods
+    /// InterfaceHandlerLocalBase methods
     //////////////////////////////////////////////////////////
 
+    ///////////////////////////////////////////////////////////////////////////
+    /// central method: update_elem():
+    ///     it is called during TFVGeom:update() and computes the new cornders
+    ///     i.e. 'vCornerCoords' of the cut element. Based on that ALL local
+    ///     TFVGeom-computations (compute ip's, normals, gradients, ...) follow
+    ///     as for the standard case
+        bool update(GridObject* elem, const MathVector<TWorldDim>* vCornerCoords);
+    
+    /// re-implement the base class method, since the cut element data does not need to
+    //   be recomputed => herein: call of 'get_element_modus() instead of 'compute_element_modus()'
  	    bool update_elem(GridObject* elem, const MathVector<TWorldDim>* vCornerCoords)
  	    {
- 	    	set_prtIndex(elem);
+ 	    	compute_and_set_prtIndex(elem);
 	    	return update(elem, vCornerCoords);
 	    }
 
+    // called by FV1FTGeom::update() to fill data 'm_vBF' with the faces on
+    //  the interface
         void update_inner_boundary(const MathVector<TWorldDim>* vCornerCoords)
         {
             if ( this->StdFV_assembling() )
@@ -137,18 +166,25 @@ class InterfaceHandlerLocalParticle : public InterfaceHandlerLocalBase<TWorldDim
             {update_inner_boundary_radial_for2();}
         }
     
-    // new methods
+    // new methods for the update of inner boundary faces:
+    //  -> compute the data 'm_vRadialAtIP' and 'm_vRadialAtCo'
+    //  -> in case of a moving particle, the radial direction is needed
+    //      for the computation of the stresses
+    //  -> this data is used in local-to-global-mapper
         void update_inner_boundary_radial(const MathVector<TWorldDim>* vCornerCoords);
-        void update_inner_boundary_radial_for2();
-        void update_inner_boundary_radial_for2_StdFV();
-        void update_inner_boundary_radial_old();
         void update_inner_boundary_radial_StdFV(const MathVector<TWorldDim>* vCornerCoords);
 
+    
+    // REMARK: _for2()-methods not finally tested!!
+        void update_inner_boundary_radial_for2();
+        void update_inner_boundary_radial_for2_StdFV();
+
+    
     //////////////////////////////////////////////////////////
     ///  original class methods + helper methods for 'update()'
     //////////////////////////////////////////////////////////
     
-    /// collects all corners of the flat top element
+    /// collects all corners of the cut element
         int CollectCorners_FlatTop_3d(GridObject* elem);
         int get_cutMode(std::vector<Vertex*> vVertex);
         int CollectCorners_FlatTop_Prism3(GridObject* elem);
@@ -156,8 +192,9 @@ class InterfaceHandlerLocalParticle : public InterfaceHandlerLocalBase<TWorldDim
         int CollectCorners_FlatTop_Pyramid(GridObject* elem);
         int CollectCorners_FlatTop_originalTet(GridObject* elem);
     
-    /// !!! nicht in Base!
-    /*void ResortQuadrilateral_for2(std::vector<MathVector<dim> > vQuadriCorners);
+    /// !!! not implemented new => taken from the base class:
+/*
+        void ResortQuadrilateral_for2(std::vector<MathVector<dim> > vQuadriCorners);
      
         int CollectCorners_StdFV_for2(GridObject* elem);
         int CollectCorners_FlatTop_2d_for2(GridObject* elem);
@@ -165,35 +202,30 @@ class InterfaceHandlerLocalParticle : public InterfaceHandlerLocalBase<TWorldDim
         int CollectQuadrilateral_besideTri_for2(GridObject* elem);
         int CollectQuadrilateral_for2(GridObject* elem);
      
-    	void compute_flat_top_data_for2(GridObject* elem);
-     
-     */
+    	void compute_cut_element_data_for2(GridObject* elem);
+*/
+
+    ///////////////////////////////////////////////////////////////
+    /// forwarding to 'm_spCutElementHandler'
+    ///////////////////////////////////////////////////////////////
+
+        int get_prtIndex()          { return m_spCutElementHandler->get_prtIndex(); }
+        int getPrtIndex(size_t dof) { return m_spCutElementHandler->get_prtIndex(dof); }
     
-	//////////////////////////////////////////////////////////////////////////
-	/// methods, which need to be implemented originating from the base class
-	//////////////////////////////////////////////////////////////////////////
+        void compute_and_set_prtIndex(GridObject* elem)
+        { m_spCutElementHandler->compute_and_set_prtIndex(elem); }
 
-		bool is_FTVertex(Vertex* vrt)
-		{
-			if ( m_prtIndex == -1 ) {return m_spCutElementHandler->is_FTVertex(m_prtIndex, vrt);}
-			else 					return m_spCutElementHandler->is_FTVertex(vrt); }
-		bool is_FTVertex(Vertex* vrt, size_t vrtIndex)
-		{ return is_FTVertex(vrt); }
-
-
-		bool is_FTVertex(int& prtIndex, Vertex* vrt)
-		{ return m_spCutElementHandler->is_outsideFluid(prtIndex, vrt);	}
-
-		bool is_OutsideVertex(Vertex* vrt, size_t vrtIndex)
-		{ 	if ( m_prtIndex == -1 ) return m_spCutElementHandler->is_FTVertex(m_prtIndex, vrt);
-			else					return m_spCutElementHandler->is_OutsideVertex(vrt, vrtIndex); }
-
-
-		bool is_nearInterfaceVertex(Vertex* vrt, size_t vrtIndex)
- 		{ return m_spCutElementHandler->is_nearInterfaceVertex(vrt, vrtIndex); }
-		bool is_nearInterfaceVertex(Vertex* vrt)
- 		{ return is_nearInterfaceVertex(vrt, 0); }
-
+    ///////////////////////////////////////////////////////////////
+    /// access to the particle velocities, stored in the
+    ///     'ParticleProvider' class
+    
+        MathVector<dim> get_transSol(size_t prtIndex, size_t timeSeriesInd)
+            { return m_spCutElementHandler->get_transSol(prtIndex, timeSeriesInd); }
+        MathVector<dim> get_rotSol(size_t prtIndex, size_t timeSeriesInd)
+            { return m_spCutElementHandler->get_rotSol(prtIndex, timeSeriesInd); }
+    
+        MathMatrix<dim,dim> get_rotationMat(MathVector<dim> radialVector)
+            { return m_spCutElementHandler->get_rotationMat(radialVector); }
 
 
 	///////////////////////////////////////////////////////////////
@@ -206,27 +238,17 @@ class InterfaceHandlerLocalParticle : public InterfaceHandlerLocalBase<TWorldDim
     /// acces to 'm_vQuadriCorners_for2'
         const std::vector<MathVector<dim> > quadriCorners() const { return m_vQuadriCorners_for2; }
     
-    /// needed during 'CollectQuadrilateral_besideTri_for2()':
+    // switches the order of storage in 'm_vQuadriCorners_for2' and 'this->m_vQuadriOrigID'
+    // --> earlier needed during 'CollectQuadrilateral_besideTri_for2()'
+    // --> currently not needed anymore
         void switch_order();
     
-    	void set_prtIndex(GridObject* elem);
 
    	/// called during 'ParticleMapper::modify_LocalData()':
+    //  --> resizes the local data (jacobian and defect) due to
+    //      the potentially increased number of corners of a cut element
     	void resize_local_indices(LocalVector& locU);
     	void resize_local_indices(LocalVector& locU, size_t numCo);
-    
-        SmartPtr<CutElementHandlerFlatTop<dim> > get_cutElementHandler() { return m_spCutElementHandler; }
-
-    /// updates 'm_elemModus'; called by FV1FTGeom::update()!!
-        bool update(GridObject* elem, const MathVector<TWorldDim>* vCornerCoords);	// = preprocess() of flat_top.h
-    
-    /// should be called by 'CutElementHandler::update()' directly => no call via this method!
-        ElementModus compute_element_modus(GridObject* elem, const int interfaceOrientation)
-        { return m_spCutElementHandler->compute_element_modus(elem, interfaceOrientation); }
-    
-    /// called by 'InterfaceHandlerLocalParticle::update()'
-        ElementModus get_element_modus(GridObject* elem)
-        { return m_spCutElementHandler->get_element_modus(elem); }
 
 
     ///////////////////////////////////////////////////////////////
@@ -243,53 +265,34 @@ class InterfaceHandlerLocalParticle : public InterfaceHandlerLocalBase<TWorldDim
     /// new getter methods
     ///////////////////////////////////////////////////////////////
 
+        SmartPtr<ParticleProvider<dim> > get_particles() { return m_spCutElementHandler->get_particles(); }
+        size_t num_particles() const { return m_spCutElementHandler->num_particles();}
+
 	    number get_density(int prtIndex) { return m_spCutElementHandler->get_density(prtIndex); }
 	    number get_density_fluid() { return m_fluidDensity; }
 	    number get_kinVisc_fluid() { return m_fluidKinVisc; }
         MathVector<dim> get_center(int prtIndex){ return m_spCutElementHandler->get_center(prtIndex);}
+
+        SmartPtr<CutElementHandler_FlatTop<dim> > get_cutElementHandler() { return m_spCutElementHandler; }
 
 	/// access to single entry of 'm_vRadialAtIP'
 	    MathVector<dim> radial_at_ip(size_t i) { return m_vRadialAtIP[i]; }
 	/// access to single entry of 'm_vRadialAtCo'
 	    MathVector<dim> radial_at_co(size_t i) { return m_vRadialAtCo[i]; }
 
-	    SmartPtr<ParticleProvider<dim> > get_particles() { return m_spCutElementHandler->get_particles(); }
 
-		size_t num_particles() const { return m_spCutElementHandler->num_particles();}
+		std::vector<interfaceBF>& get_boundary_faces() { return m_vBF; }
+		const LocalIndices& get_local_indices() const  { return m_ind; }
 
-		std::vector<interfaceBF>& get_boundary_faces() { return this->m_vBF; }
-
-		const LocalIndices& get_local_indices() const { return m_ind; }
-
-		int get_prtIndex()
-		{ 	if ( m_prtIndex == -1 ) UG_THROW("InterfaceHandlerLocalParticle::apper::get_prtIndex(): prtIndex not set!(): prtIndex not set!\n");
-			return m_prtIndex;
-		}
- 		int getPrtIndex(size_t dof)
-		{
-			int prtIndex = m_spCutElementHandler->get_prtIndex(dof);
-			return prtIndex;
-		}
-
-	/// used in mapper:
+  
+    ///////////////////////////////////////////////////////////////
+	/// used in local to global mapper:
 		number get_rotJ_ind(size_t fct1, size_t dof1, size_t fct2, size_t dof2)
 			{ return m_rotJ_ind(fct1, dof1, fct2, dof2); }
 		number get_rotJ_rot(size_t fct1, size_t dof1, size_t fct2, size_t dof2)
 			{ return m_rotJ_rot(fct1, dof1, fct2, dof2); }
-
 		number get_rotD(size_t fct, size_t dof)
 			{ return m_rotD(fct, dof); }
-
-	///////////////////////////////////////////////////////////////
-	/// get solution values (used by 'immersedbnd_cond.h'
-
-		MathVector<dim> get_transSol(size_t prtIndex, size_t timeSeriesInd)
-			{ return m_spCutElementHandler->get_transSol(prtIndex, timeSeriesInd); }
-		MathVector<dim> get_rotSol(size_t prtIndex, size_t timeSeriesInd)
-			{ return m_spCutElementHandler->get_rotSol(prtIndex, timeSeriesInd); }
-
-		MathMatrix<dim,dim> get_rotationMat(MathVector<dim> radialVector)
-			{ return m_spCutElementHandler->get_rotationMat(radialVector); }
 
 
     ///////////////////////////////////////////////////////////////
@@ -297,12 +300,7 @@ class InterfaceHandlerLocalParticle : public InterfaceHandlerLocalBase<TWorldDim
 	///////////////////////////////////////////////////////////////
 
 	   	std::vector<interfaceBF> m_vBF;					// updated during FV1FTGeom::update_inner_boundary_faces()
-
-	/// actual particle index: set during 'm_spCutElementHandler->compute_element_modus()'!!!
-		int m_prtIndex;
-
-        std::map<Vertex*, int> m_vPrtIndices;
-
+ 
     /// fuid parameter imported by Constructor()
      	number m_fluidDensity;
      	number m_fluidKinVisc;
@@ -312,17 +310,21 @@ class InterfaceHandlerLocalParticle : public InterfaceHandlerLocalBase<TWorldDim
      	LocalMatrix m_rotJ_rot;
      	LocalVector m_rotD;
 
-    /// size of local algebra for flat top element: 'm_numFct' x 'm_numCo'
+    /// size of local algebra for cut element: 'm_numFct' x 'm_numCo'
      	size_t m_numFct;
     
-    /// number of corners of flat top element
+    /// number of corners of cut element
      	size_t m_numCo;
 
-    /// new local algebra for resized flat top element
+    /// new local algebra for resized cut element
      	LocalIndices m_ind;
 
+    /// radial data on the interface is needed for the computation of
+    //  the rotational component of the stresses
    		std::vector<MathVector<dim> > m_vRadialAtIP; 	// global position of scvf on interface
    		std::vector<MathVector<dim> > m_vRadialAtCo; 	// global position of scv on interface
+
+        std::vector<MathVector<dim> > m_vQuadriCorners_for2;
 
     /// flag for computation of 'm_vRadialAtIP' during call of 'update_inner_boundary_faces()'
      	const bool m_bRadial_forMassEq_equals_Normal; 				// default = true
@@ -332,9 +334,8 @@ class InterfaceHandlerLocalParticle : public InterfaceHandlerLocalBase<TWorldDim
         bool m_bBndDataNeeded;							// default = false;
                                                         // flag used e.g. in 'FV1FTGeometry::update()'
 
-	    std::vector<MathVector<dim> > m_vQuadriCorners_for2;
 
-		SmartPtr<CutElementHandlerFlatTop<dim> > m_spCutElementHandler;
+		SmartPtr<CutElementHandler_FlatTop<dim> > m_spCutElementHandler;
  };
 
 
@@ -343,4 +344,4 @@ class InterfaceHandlerLocalParticle : public InterfaceHandlerLocalBase<TWorldDim
 #include "interface_handler_particle_tools.h"
 #include "interface_handler_particle_impl.h"
 
-#endif /* INTERFACE_HANDLER_FLAT_TOP_H_ */
+#endif /* INTERFACE_HANDLER_LOCAL_PARTICLE_H_ */
