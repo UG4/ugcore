@@ -947,11 +947,11 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 		}
 	for(size_t i = 0; i < m_rRefElem.num(2)+8; ++i)
 	{
-		UG_DLOG(DID_FV1_GEOM, 2, "	Face midpoint " << i << ": " << m_vvGloMid[2][i] << std::endl);
+		UG_DLOG(DID_FV1_GEOM, 2, "	Face midpoint " << i << ": " << ((dim >= 2) ? m_vvGloMid[2][i] : 0) << std::endl);
 	}
 	for(size_t i = 0; i < m_rRefElem.num(3)+4; ++i)
 	{
-		UG_DLOG(DID_FV1_GEOM, 2, "	Volume midpoint " << i << ": " << m_vvGloMid[3][i] << std::endl);
+		UG_DLOG(DID_FV1_GEOM, 2, "	Volume midpoint " << i << ": " << ((dim >= 3) ? m_vvGloMid[3][i] : 0) << std::endl);
 	}
 
 // 	compute global informations for scvf
@@ -1694,7 +1694,7 @@ update_boundary_faces(GridObject* pElem, const MathVector<worldDim>* vCornerCoor
 
 template <typename TElem, int TWorldDim>
 FV1ManifoldGeometry<TElem, TWorldDim>::
-FV1ManifoldGeometry() : m_pElem(NULL), m_rRefElem(Provider<ref_elem_type>::get()), m_ssi(-1)
+FV1ManifoldGeometry() : m_pElem(NULL), m_rRefElem(Provider<ref_elem_type>::get())
 {
 	// set corners of element as local centers of nodes
 	for (size_t i = 0; i < m_rRefElem.num(0); ++i)
@@ -1805,27 +1805,6 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 	if (m_pElem == elem) return;
 	else m_pElem = elem;
 
-	//	store subset index for geometry
-	Grid& grid = *(ish->grid());
-	if (worldDim == 2)
-	{
-		UG_ASSERT(dynamic_cast<Edge*>(elem) != NULL, "Wrong element type.");
-		Edge* pElem = static_cast<Edge*>(elem);
-		std::vector<Edge*> vEdge;
-		CollectEdges(vEdge, grid, pElem);
-		UG_ASSERT(vEdge.size(),"No edge contained in 1D manifold element!");
-		m_ssi = ish->get_subset_index(vEdge[0]);
-	}
-	if (worldDim == 3)
-	{
-		UG_ASSERT(dynamic_cast<Face*>(elem) != NULL, "Wrong element type.");
-		Face* pElem = static_cast<Face*>(elem);
-		std::vector<Face*> vFace;
-		CollectFaces(vFace, grid, pElem);
-		UG_ASSERT(vFace.size(),"No face contained in 2D manifold element!");
-		m_ssi = ish->get_subset_index(vFace[0]);
-	}
-
 	// 	remember global position of nodes
 	for (size_t i = 0; i < m_rRefElem.num(0); ++i)
 		m_gloMid[0][i] = vCornerCoords[i];
@@ -1926,7 +1905,7 @@ template class DimFV1Geometry<3, 3>;
 
 //////////////////////
 // Manifold
-template class FV1ManifoldGeometry<Edge, 2>;
+template class FV1ManifoldGeometry<RegularEdge, 2>;
 template class FV1ManifoldGeometry<Triangle, 3>;
 template class FV1ManifoldGeometry<Quadrilateral, 3>;
 

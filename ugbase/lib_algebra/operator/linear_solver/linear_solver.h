@@ -102,21 +102,12 @@ class LinearSolver
 
 				if(!preconditioner()->apply_update_defect(c, d))
 				{
-					UG_LOG("ERROR in 'LinearSolver::apply': Iterator "
-							"Operator applied incorrectly. Aborting.\n");
+					UG_LOG("ERROR in 'LinearSolver': Could not apply preconditioner. Aborting.\n");
 					return false;
 				}
 				LS_PROFILE_END(LS_ApplyPrecond);
 			}
 			return true;
-		}
-
-		void write_debugXCD(vector_type &x, vector_type &c, vector_type &d, int loopCnt, bool bWriteC)
-		{
-			char ext[20]; sprintf(ext, "_iter%03d", loopCnt);
-			write_debug(d, std::string("LS_Defect_") + ext + ".vec");
-			if(bWriteC) write_debug(c, std::string("LS_Correction_") + ext + ".vec");
-			write_debug(x, std::string("LS_Solution_") + ext + ".vec");
 		}
 
 	///	solves the system and returns the last defect
@@ -127,7 +118,7 @@ class LinearSolver
 
 			#ifdef UG_PARALLEL
 			if(!b.has_storage_type(PST_ADDITIVE) || !x.has_storage_type(PST_CONSISTENT))
-				UG_THROW("LinearSolver::apply: Inadequate storage format of Vectors.");
+				UG_THROW("LinearSolver::apply: Inadequate parallel storage format of Vectors.");
 			#endif
 
 		// 	rename b as d (for convenience)
@@ -159,7 +150,13 @@ class LinearSolver
 		// 	Iteration loop
 			while(!convergence_check()->iteration_ended())
 			{
-				if( !compute_correction(c, d) ) return false;
+				enter_precond_debug_section(loopCnt);
+				if( !compute_correction(c, d) )
+				{
+					this->leave_vector_debug_writer_section();
+					return false;
+				}
+				this->leave_vector_debug_writer_section();
 
 			//	post-process the correction
 				m_corr_post_process.apply (c);
@@ -221,6 +218,24 @@ class LinearSolver
             }
 		}
 	
+	/// debugger output: solution, correction, defect
+		void write_debugXCD(vector_type &x, vector_type &c, vector_type &d, int loopCnt, bool bWriteC)
+		{
+			if(!this->vector_debug_writer_valid()) return;
+			char ext[20]; sprintf(ext, "_iter%03d", loopCnt);
+			write_debug(d, std::string("LS_Defect") + ext + ".vec");
+			if(bWriteC) write_debug(c, std::string("LS_Correction") + ext + ".vec");
+			write_debug(x, std::string("LS_Solution") + ext + ".vec");
+		}
+		
+	/// debugger section for the preconditioner
+		void enter_precond_debug_section(int loopCnt)
+		{
+			if(!this->vector_debug_writer_valid()) return;
+			char ext[20]; sprintf(ext, "_iter%03d", loopCnt);
+			this->enter_vector_debug_writer_section(std::string("LS_Precond_") + ext);
+		}
+
 	protected:
 	///	postprocessor for the correction in the iterations
 		PProcessChain<vector_type> m_corr_post_process;

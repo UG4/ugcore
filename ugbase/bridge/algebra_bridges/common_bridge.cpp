@@ -42,6 +42,7 @@
 #include "bridge/util_algebra_dependent.h"
 
 // operator interfaces
+#include "lib_algebra/operator/fixed_convergence_check.h"
 #include "lib_algebra/operator/interface/operator.h"
 #include "lib_algebra/operator/interface/matrix_operator.h"
 #include "lib_algebra/operator/interface/matrix_operator_inverse.h"
@@ -161,6 +162,7 @@ static void Algebra(Registry& reg, string grp)
 		reg.add_function("VecProd", &VecScaleAddProd1<TAlgebra>);
 		reg.add_function("VecProd", &VecScaleAddProd2<TAlgebra>);
 		reg.add_function("VecNorm", &VecNorm<TAlgebra>);
+		reg.add_function("VecMaxNorm", &VecMaxNorm<TAlgebra>);
 		reg.add_function("VecNorm", &VecScaleAddNorm<TAlgebra>);
 		reg.add_function("VecHadamardProd", (void (*)(vector_type&, const vector_type &, const vector_type &))
 				&VecHadamardProd<vector_type>, grp, "", "dst#vec1#vec2", "vec1 * vec2 (elementwise)");
@@ -205,7 +207,13 @@ static void Algebra(Registry& reg, string grp)
 	{
 		typedef IVectorDebugWriter<vector_type> T;
 		string name = string("IVectorDebugWriter").append(suffix);
-		reg.add_class_<T>(name, grp);
+		reg.add_class_<T>(name, grp)
+			.add_method("get_context", static_cast<SmartPtr<DebugWriterContext> (T::*) ()>(&T::get_context), "Gets the debugger writer context", "")
+			.add_method("set_context", &T::set_context, "Sets the debugger writer context", "context")
+		    .add_method("set_base_dir", &T::set_base_dir, "Sets the base directory for output", "dir")
+		    .add_method("enter_section", &T::enter_section, "Enters a debugging section", "dirName")
+		    .add_method("leave_section", &T::leave_section, "Leaves the current debugging section", "")
+			;
 		reg.add_class_to_group(name, "IVectorDebugWriter", tag);
 	}
 
@@ -435,6 +443,19 @@ static void Algebra(Registry& reg, string grp)
 				.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "EnergyConvCheck", tag);
 	}
+
+// 	FixedConvCheck
+	{
+		typedef FixedConvergenceCheck<vector_type> T;
+		typedef IConvergenceCheck<vector_type> TBase;
+		string name = string("FixedConvergenceCheck").append(suffix);
+		reg.add_class_<T, TBase>(name, grp, "Convergence Check")
+	//		.add_constructor()
+			.template add_constructor<void (*)(number)>("")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "FixedConvergenceCheck", tag);
+	}
+
 }
 
 
@@ -457,6 +478,20 @@ static void Common(Registry& reg, string grp)
 		reg.add_class_to_group("IPositionProvider1d", "IPositionProvider", GetDimensionTag<1>());
 		reg.add_class_to_group("IPositionProvider2d", "IPositionProvider", GetDimensionTag<2>());
 		reg.add_class_to_group("IPositionProvider3d", "IPositionProvider", GetDimensionTag<3>());
+	}
+	
+// Debug Writer Context
+	{
+		typedef DebugWriterContext T;
+		reg.add_class_<T>("DebugWriterContext", grp)
+			.add_constructor()
+			.add_method("set_base_dir", &T::set_base_dir)
+			.add_method("get_base_dir", &T::get_base_dir)
+			.add_method("enter_section", &T::enter_section)
+			.add_method("leave_section", &T::leave_section)
+			.add_method("print_message", &T::leave_section)
+			.add_method("compose_file_path", &T::leave_section)
+			.set_construct_as_smart_pointer(true);
 	}
 }
 

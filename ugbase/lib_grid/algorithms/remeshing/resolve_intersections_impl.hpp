@@ -7,7 +7,7 @@
  * UG4 is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License version 3 (as published by the
  * Free Software Foundation) with the following additional attribution
- * requirements (according to LGPL/GPL v3 §7):
+ * requirements (according to LGPL/GPL v3 ��7):
  * 
  * (1) The following notice must be displayed in the Appropriate Legal Notices
  * of covered and combined works: "Based on UG4 (www.ug4.org/license)".
@@ -20,7 +20,7 @@
  * "Reiter, S., Vogel, A., Heppner, I., Rupp, M., and Wittum, G. A massively
  *   parallel geometric multigrid solver on hierarchically distributed grids.
  *   Computing and visualization in science 16, 4 (2013), 151-164"
- * "Vogel, A., Reiter, S., Rupp, M., Nägel, A., and Wittum, G. UG4 -- a novel
+ * "Vogel, A., Reiter, S., Rupp, M., N��gel, A., and Wittum, G. UG4 -- a novel
  *   flexible software system for simulating pde based models on high performance
  *   computers. Computing and visualization in science 16, 4 (2013), 165-179"
  * 
@@ -1012,6 +1012,42 @@ int FindCloseVertexInArray(std::vector<Vertex*>& array,
 	return -1;
 }
 
+///	returns the index of the closest vertex to p smaller than snapThreshold.
+/**	returns -1 if nothing was found.*/
+template <class TAAPosVRT>
+int FindClosestVertexInArray(std::vector<Vertex*>& array, const Vertex* p,
+							TAAPosVRT& aaPos, number snapThreshold)
+{
+	number snapThrSq = snapThreshold * snapThreshold;
+
+	number bestDistance = VecDistanceSq(aaPos[array[0]], aaPos[p]);
+	int bestElem = 0;
+
+	for (size_t i = 1; i < array.size(); ++i) {
+		number dist = VecDistanceSq(aaPos[array[i]], aaPos[p]);
+		if (dist < bestDistance) {
+			bestDistance = dist;
+			bestElem = i;
+		}
+	}
+	return (bestDistance < snapThrSq) ? bestElem : -1;
+}
+
+///	returns the index of the closest vertex to p smaller than snapThreshold.
+/**	returns -1 if nothing was found.*/
+template <class TAAPosVRT, class vector_t>
+int FindClosestVertexInPointSet(const vector_t* pointSet, const Vertex* p,
+							TAAPosVRT& aaPos, number snapThreshold,
+							size_t numPoints) {
+	std::vector<Vertex*> vertices;
+	vertices.resize(numPoints);
+	for (size_t i = 0; i < numPoints; ++i) {
+		vertices[i] = pointSet[i];
+	}
+	return FindClosestVertexInArray(vertices, p, aaPos, snapThreshold);
+}
+
+
 ////////////////////////////////////////////////////////////////////////
 ///	Intersects Coplanar Triangles
 /**	fills a vector with the intersections on tri 1. Each pair of points
@@ -1372,7 +1408,6 @@ bool ResolveTriangleIntersections(Grid& grid, TriangleIterator trisBegin,
 
 //	iterate over all triangles and perform intersecion with other triangles
 	size_t triCounter = 0;
-	const size_t dbgTriInd(-1);
 	for(TriangleIterator triIter1 = sel.begin<Triangle>();
 		triIter1 != sel.end<Triangle>(); ++triIter1, ++triCounter)
 	{

@@ -73,7 +73,7 @@ void CreateAndDistributeGlobalIDs(Grid& g, GridLayoutMap& glm,
 
 ////////////////////////////////////////////////////////////////////////
 ///	Checks whether the grid-layout-map on this proc is consistent with connected ones.
-bool TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm);
+bool TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm, bool verbose = true);
 
 ///	@}
 }//	end of namespace

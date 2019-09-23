@@ -1209,7 +1209,7 @@ bool PluginRequired(const char *name)
 {
 	if(PluginLoaded(name) == false)
 	{
-		string msg = string("plugin ") + name + string(" not loaded. Please use 'cmake -D") + name + string("=ON ..' in your build directory.");		
+		string msg = string("plugin ") + name + string(" not loaded. Please use 'cmake -D") + name + string("=ON .' in your build directory.");		
 		std::string file; size_t line;
 		if(GetLuaFileAndLine(script::GetDefaultLuaState(), file, line))
 			throw UGError(msg.c_str(), file.c_str(), line);

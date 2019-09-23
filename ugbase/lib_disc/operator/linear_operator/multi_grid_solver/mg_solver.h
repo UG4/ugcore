@@ -248,6 +248,9 @@ class AssembledMultiGridCycle :
 		virtual bool ignore_init_for_base_solver() const;
 	/** \\ */
 
+	/// reinit transfer operators
+		void force_reinit();
+
 	///	Compute new correction c = B*d
 		virtual bool apply(vector_type& c, const vector_type& d);
 
@@ -442,6 +445,9 @@ class AssembledMultiGridCycle :
 
 		///	missing coarse grid correction
 			matrix_type RimCpl_Coarse_Fine;
+			
+		/// debugging output information (number of calls of the pre-, postsmoothers, base solver etc)
+			int n_pre_calls, n_post_calls, n_base_calls, n_restr_calls, n_prolong_calls;
 		};
 
 	///	storage for all level
@@ -519,8 +525,8 @@ class AssembledMultiGridCycle :
 	 * \param[in]		spGF		Level Vector to write for debug purpose
 	 * \param[in]		name		Filename
 	 */
-		void write_debug(ConstSmartPtr<GF> spGF, std::string name);
-		void write_debug(const GF& rGF, std::string name);
+		inline void write_debug(ConstSmartPtr<GF> spGF, std::string name, int cycleNo = -1);
+		void write_debug(const GF& rGF, std::string name, int cycleNo = -1);
 
 	///	writes debug output for a level matrix only on smooth path
 	/**
@@ -536,9 +542,15 @@ class AssembledMultiGridCycle :
 		void write_debug(const matrix_type& mat, std::string name,
 		                 const GF& rTo, const GF& rFrom);
 	/// \}
+	
+	/// enters a new debugger section for smoothers, base solver etc
+		void enter_debug_writer_section(GridLevel& orig_gl, const char * sec_name, int lev, int cycleNo = -1, int callNo = -1);
+		
+	/// leaves the current debugger section
+		void leave_debug_writer_section(GridLevel& orig_gl);
 
 	///	logs a level-data-struct to the terminal
-		void log_debug_data(int lvl, std::string name);
+		void log_debug_data(int lvl, int cycleNo, std::string name);
 
 	///	Calls MGStats::set_defect (if available) with the given parameters
 		void mg_stats_defect(GF& gf, int lvl, typename mg_stats_type::Stage stage);

@@ -623,7 +623,7 @@ void SelectSmoothEdgePath(Selector& sel, number thresholdDegree, number normalWe
 				if(stopAtSelVrts && sel.is_selected(srcVrt))
 					srcVrt = NULL;
 					
-				lastEdge = bestEdge;
+				// lastEdge = bestEdge;  // never used
 				lastDir = bestDir;
 				bLastNormalValid = bBestNormalValid;
 				lastNormal = bestNormal;
@@ -1293,5 +1293,39 @@ void SelectElementsByIndex (ISelector& sel,
 	SelectElementsByIndex<Face> (sel, faceInds);
 	SelectElementsByIndex<Volume> (sel, volInds);
 }
+
+void SelectSubset(ISelector& sel,
+				  const ISubsetHandler& sh,
+				  int si,
+				  ISelector::status_t status)
+{
+	GridObjectCollection goc = sh.get_grid_objects_in_subset(si);
+	for (size_t lvl = 0; lvl < goc.num_levels(); ++lvl) {
+		for (VertexIterator iter = goc.begin<Vertex>(lvl); iter != goc.end<Vertex>(lvl); ++iter) {
+			sel.select(*iter, status);
+		}
+
+		for (EdgeIterator iter = goc.begin<Edge>(lvl); iter != goc.end<Edge>(lvl); ++iter) {
+			sel.select(*iter, status);
+		}
+
+		for (FaceIterator iter = goc.begin<Face>(lvl); iter != goc.end<Face>(lvl); ++iter) {
+			sel.select(*iter, status);
+		}
+
+		for (VolumeIterator iter = goc.begin<Volume>(lvl); iter != goc.end<Volume>(lvl); ++iter) {
+			sel.select(*iter, status);
+		}
+	}
+}
+
+
+// explicit template instantiation
+// (although used in the above function, the template functions
+// may not be compiled with external linkage!)
+template void SelectElementsByIndex<Vertex>(ISelector& sel, const std::vector<size_t>& inds);
+template void SelectElementsByIndex<Edge>(ISelector& sel, const std::vector<size_t>& inds);
+template void SelectElementsByIndex<Face>(ISelector& sel, const std::vector<size_t>& inds);
+template void SelectElementsByIndex<Volume>(ISelector& sel, const std::vector<size_t>& inds);
 
 }//	end of namespace

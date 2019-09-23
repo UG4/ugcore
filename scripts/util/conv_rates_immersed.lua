@@ -1,33 +1,3 @@
--- Copyright (c) 2013-2014:  G-CSC, Goethe University Frankfurt
--- Author: Andreas Vogel
--- 
--- This file is part of UG4.
--- 
--- UG4 is free software: you can redistribute it and/or modify it under the
--- terms of the GNU Lesser General Public License version 3 (as published by the
--- Free Software Foundation) with the following additional attribution
--- requirements (according to LGPL/GPL v3 §7):
--- 
--- (1) The following notice must be displayed in the Appropriate Legal Notices
--- of covered and combined works: "Based on UG4 (www.ug4.org/license)".
--- 
--- (2) The following notice must be displayed at a prominent place in the
--- terminal output of covered works: "Based on UG4 (www.ug4.org/license)".
--- 
--- (3) The following bibliography is recommended for citation and must be
--- preserved in all covered files:
--- "Reiter, S., Vogel, A., Heppner, I., Rupp, M., and Wittum, G. A massively
---   parallel geometric multigrid solver on hierarchically distributed grids.
---   Computing and visualization in science 16, 4 (2013), 151-164"
--- "Vogel, A., Reiter, S., Rupp, M., Nägel, A., and Wittum, G. UG4 -- a novel
---   flexible software system for simulating pde based models on high performance
---   computers. Computing and visualization in science 16, 4 (2013), 165-179"
--- 
--- This program is distributed in the hope that it will be useful,
--- but WITHOUT ANY WARRANTY; without even the implied warranty of
--- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
--- GNU Lesser General Public License for more details.
-
 util = util or {}
 util.rates = util.rates or {}
 util.rates.static = util.rates.static or {}
@@ -212,7 +182,7 @@ function util.rates.static.compute(ConvRateSetup)
 
 	-- check for methods
 	local PrepareInitialGuess = CRS.PrepareInitialGuess or util.rates.static.StdPrepareInitialGuess
-	local ComputeSolution = 	CRS.ComputeSolution     or util.rates.static.StdComputeLinearSolution
+	local ComputeSolution = 	CRS.ComputeSolution     or util.rates.static.StdComputeNonLinearSolution
 	local CreateApproxSpace = 	CRS.CreateApproxSpace
 	local CreateDomainDisc = 	CRS.CreateDomainDisc
 	local CreateSolver = 		CRS.CreateSolver
@@ -308,8 +278,7 @@ function util.rates.static.compute(ConvRateSetup)
 			print(">> Create Domain Disc: "..disc..", "..p)
 			local domainDisc = CreateDomainDisc(approxSpace, disc, p)
 			
-			print(">> Create Solver")
-			local solver = CreateSolver(approxSpace, disc, p)
+			--local solver = CreateSolver(approxSpace, disc, p)
 	
 			-- get names in approx space
 			local SpaceCmp = approxSpace:names()
@@ -345,9 +314,12 @@ function util.rates.static.compute(ConvRateSetup)
 			--------------------------------------------------------------------
 			--  Compute Solution on each level
 			--------------------------------------------------------------------
-			--local solver = nil
 			if exact or maxlevel or prevlevel then
 				for lev = minLev, maxLev do
+					print(">> Create Solver on lev "..lev)
+				
+					local solver = CreateSolver(approxSpace, disc, p, lev)
+				
 					write("\n>> Computing Level "..lev..", "..disc..", "..p..".\n")
 					
 					write(">> Preparing inital guess on level "..lev..".\n")
@@ -363,10 +335,12 @@ function util.rates.static.compute(ConvRateSetup)
 						WriteGridFunctionToVTK(u[lev], solPath.."sol_"..disc..p.."_l"..lev)
 						write(">> Solution written to: "..solPath.."sol_"..disc..p.."_l"..lev.."\n");	
 					end
+					
+					solver = nil
 				end
 			end
 						
-			approxSpace, domainDisc, solver = nil, nil, nil
+			approxSpace, domainDisc = nil, nil
 			collectgarbage()
 
 			--------------------------------------------------------------------
@@ -388,7 +362,7 @@ function util.rates.static.compute(ConvRateSetup)
 				
 				local quadOrder = p*p+3
 				write(">> #DoF       on Level "..lev.." is "..err.DoFs[lev] .."\n");
-			
+ 			
 				-- compute for each component
 				for f, Cmps in pairs(PlotCmps) do
 
@@ -457,13 +431,15 @@ function util.rates.static.compute(ConvRateSetup)
 						
 						uExact = nil						
 					end
-					
+ 	
+ 	
 					-- w.r.t max level solution
 					if maxlevel and lev < maxLev then
 						local value = createMeas(f, "l-lmax", "l2")
 						value[lev] = 0.0
 						for _,cmp in pairs(Cmps) do
-							value[lev] = value[lev] + math.pow(L2Error(u[maxLev], cmp, u[lev], cmp, quadOrder), 2)
+							value[lev] = value[lev] + math.pow(L2ErrorInside(u[maxLev], cmp, u[lev], cmp, quadOrder), 2)
+					--		value[lev] = value[lev] + math.pow(L2Error(u[maxLev], cmp, u[lev], cmp, quadOrder), 2)
 						end
 						value[lev] = math.sqrt(value[lev])
 						write(">> L2 l-lmax  for "..f.." on Level "..lev.." is "..string.format("%.3e", value[lev]) .."\n");
@@ -476,13 +452,15 @@ function util.rates.static.compute(ConvRateSetup)
 						value[lev] = math.sqrt(value[lev])
 						write(">> H1 l-lmax  for "..f.." on Level "..lev.." is "..string.format("%.3e", value[lev]) .."\n");
 					end
-				
+					
+					
 					-- w.r.t previous level solution
 					if prevlevel and lev < maxLev then 
 						local value = createMeas(f, "l-prev", "l2")
 						value[lev] = 0.0
 						for _,cmp in pairs(Cmps) do
-							value[lev] = value[lev] + math.pow(L2Error(u[lev+1], cmp, u[lev], cmp, quadOrder), 2)
+							value[lev] = value[lev] + math.pow(L2ErrorInside(u[lev+1], cmp, u[lev], cmp, quadOrder), 2)
+					--		value[lev] = value[lev] + math.pow(L2Error(u[lev+1], cmp, u[lev], cmp, quadOrder), 2)
 						end
 						value[lev] = math.sqrt(value[lev])
 						write(">> L2 l-(l-1) for "..f.." on Level "..lev.." is "..string.format("%.3e", value[lev]) .."\n");

@@ -415,7 +415,7 @@ init_grid_attachments(Grid& grid)
 	AssignIndices(grid.begin<ConstrainingQuadrilateral>(), grid.end<ConstrainingQuadrilateral>(), aaIndFACE, baseInd);
 	baseInd += grid.num<ConstrainingQuadrilateral>();
 	AssignIndices(grid.begin<ConstrainedQuadrilateral>(), grid.end<ConstrainedQuadrilateral>(), aaIndFACE, baseInd);
-	baseInd += grid.num<ConstrainedQuadrilateral>();
+	//baseInd += grid.num<ConstrainedQuadrilateral>();  // never used
 	
 	AssignIndices(grid.begin<Volume>(), grid.end<Volume>(), aaIndVOL, 0);
 }

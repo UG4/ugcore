@@ -66,6 +66,13 @@ inline number BlockNorm2(const number &a)
 	return a*a;
 }
 
+template<typename T> number BlockMaxNorm(const T &t);
+template <>
+inline number BlockMaxNorm(const number &a)
+{
+	return a>0 ? a : -a;
+}
+
 //////////////////////////////////////////////////////
 // get/set specialization for numbers
 

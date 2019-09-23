@@ -223,6 +223,8 @@ bool FactorizeILUSorted(Matrix_type &A, const number eps = 1e-50)
 
 
 // solve x = L^-1 b
+// Returns true on success, or false on issues that lead to some changes in the solution
+// (the solution is computed unless no exceptions are thrown)
 template<typename Matrix_type, typename Vector_type>
 bool invert_L(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 {
@@ -245,6 +247,8 @@ bool invert_L(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 }
 
 // solve x = U^-1 * b
+// Returns true on success, or false on issues that lead to some changes in the solution
+// (the solution is computed unless no exceptions are thrown)
 template<typename Matrix_type, typename Vector_type>
 bool invert_U(const Matrix_type &A, Vector_type &x, const Vector_type &b,
 			  const number eps = 1e-8)
@@ -254,8 +258,8 @@ bool invert_U(const Matrix_type &A, Vector_type &x, const Vector_type &b,
 
 	typename Vector_type::value_type s;
 	
-	size_t numNearZero=0;
-
+	bool result = true;
+	
 	// last row diagonal U entry might be close to zero with corresponding close to zero rhs
 	// when solving Navier Stokes system, therefore handle separately
 	if(x.size() > 0)
@@ -269,27 +273,27 @@ bool invert_U(const Matrix_type &A, Vector_type &x, const Vector_type &b,
 		// nearly zero due to round-off errors. In order to allow ill-
 		// scaled matrices (i.e. small matrix entries row-wise) this
 		// is compared to the rhs, that is small in this case as well.
+		//TODO: Note that this may happen for problems with naturally
+		// non-zero kernels, e.g. for the Stokes equation. One should
+		// probably suppress this message in those cases but set the
+		// rhs to 0.
 		if (BlockNorm(A(i,i)) <= eps * BlockNorm(s))
 		{
-			if(numNearZero++<5)
-			{	UG_LOG("ILU Warning: Near-zero diagonal entry "
-					"with norm "<<BlockNorm(A(i,i))<<" in last row of U "
-					" with corresponding non-near-zero rhs with norm "
-					<< BlockNorm(s) << ". Setting rhs to zero.\n");
-				UG_LOG("NOTE: Call this method with a smaller 'eps' parameter "
-					   "to avoid this warning. (current eps: " << eps <<
-					   "). If this method is called from the "
-					   "ILU preconditioner class, you may want to call "
-					   "ILU::set_inversion_eps(...) with a smaller threshold.\n")
-			}
+			UG_LOG("ILU Warning: Near-zero last diagonal entry "
+					"with norm "<<BlockNorm(A(i,i))<<" in U "
+					"for non-near-zero rhs entry with norm "
+					<< BlockNorm(s) << ". Setting rhs to zero.\n"
+					"NOTE: Reduce 'eps' using e.g. ILU::set_inversion_eps(...) "
+					"to avoid this warning. Current eps: " << eps << ".\n")
 			// set correction to zero
 			x[i] = 0;
+			result = false;
 		} else {
 			// c[i] = s/uii;
 			InverseMatMult(x[i], 1.0, A(i,i), s);
 		}
 	}
-	if(x.size() <= 1) return true;
+	if(x.size() <= 1) return result;
 
 	// handle all other rows
 	for(size_t i = x.size()-2; ; --i)
@@ -307,10 +311,7 @@ bool invert_U(const Matrix_type &A, Vector_type &x, const Vector_type &b,
 		if(i == 0) break;
 	}
 
-	if(numNearZero>=5)
-	{	UG_LOG("...\nILU Warning: " << numNearZero << " ( out of " << x.size() << ") near-zero diagonal entries in last row of U.\n");	}
-
-	return true;
+	return result;
 }
 
 
@@ -372,7 +373,8 @@ class ILU : public IPreconditioner<TAlgebra>
 	protected:
 		using base_type::set_debug;
 		using base_type::debug_writer;
-		// using base_type::write_debug;
+		using base_type::write_debug;
+		using base_type::print_debugger_message;
 
 	public:
 	//	Constructor
@@ -465,7 +467,11 @@ class ILU : public IPreconditioner<TAlgebra>
 			matrix_type &mat = *pOp;
 			PROFILE_BEGIN_GROUP(ILU_preprocess, "algebra ILU");
 		//	Debug output of matrices
-			write_debug(mat, "ILU_prep_01_A_BeforeMakeUnique");
+			#ifdef UG_PARALLEL
+			write_overlap_debug(mat, "ILU_prep_01_A_BeforeMakeUnique");
+			#else
+			write_debug(mat, "ILU_PreProcess_orig_A");
+			#endif
 
 			m_ILU = mat;
 
@@ -517,14 +523,21 @@ class ILU : public IPreconditioner<TAlgebra>
 
 			m_h.resize(m_ILU.num_cols());
 
-			write_debug(m_ILU, "ILU_prep_02_A_AfterMakeUnique");
+			#ifdef UG_PARALLEL
+			write_overlap_debug(m_ILU, "ILU_prep_02_A_AfterMakeUnique");
+			#endif
 
 		//	if using overlap we already sort in a different way
 			if(m_bSort && !(m_useOverlap && sortSlaveToEnd))
 				calc_cuthill_mckee();
 
 		//	Debug output of matrices
-			write_debug(m_ILU, "ILU_prep_03_A_BeforeFactorize");
+			#ifdef UG_PARALLEL
+			write_overlap_debug(m_ILU, "ILU_prep_03_A_BeforeFactorize");
+			#else
+			write_debug(m_ILU, "ILU_PreProcess_U_BeforeFactor");
+			#endif
+
 
 		// 	Compute ILU Factorization
 			if (m_beta!=0.0) FactorizeILUBeta(m_ILU, m_beta);
@@ -533,7 +546,11 @@ class ILU : public IPreconditioner<TAlgebra>
 			m_ILU.defragment();
 
 		//	Debug output of matrices
-			write_debug(m_ILU, "ILU_prep_04_A_AfterFactorize");
+			#ifdef UG_PARALLEL
+			write_overlap_debug(m_ILU, "ILU_prep_04_A_AfterFactorize");
+			#else
+			write_debug(m_ILU, "ILU_PreProcess_U_AfterFactor");
+			#endif
 
 		//	we're done
 			return true;
@@ -545,15 +562,19 @@ class ILU : public IPreconditioner<TAlgebra>
 			if(!m_bSort || m_bSortIsIdentity)
 			{
 				// 	apply iterator: c = LU^{-1}*d
-				invert_L(m_ILU, tmp, d); // h := L^-1 d
-				invert_U(m_ILU, c, tmp, m_invEps); // c := U^-1 h = (LU)^-1 d
+				if(! invert_L(m_ILU, tmp, d)) // h := L^-1 d
+					print_debugger_message("ILU: There were issues at inverting L\n");
+				if(! invert_U(m_ILU, c, tmp, m_invEps)) // c := U^-1 h = (LU)^-1 d
+					print_debugger_message("ILU: There were issues at inverting U\n");
 			}
 			else
 			{
 				// we save one vector here by renaming
 				SetVectorAsPermutation(tmp, d, m_newIndex);
-				invert_L(m_ILU, c, tmp); // c = L^{-1} d
-				invert_U(m_ILU, tmp, c, m_invEps); // tmp = (LU)^{-1} d
+				if(! invert_L(m_ILU, c, tmp)) // c = L^{-1} d
+					print_debugger_message("ILU: There were issues at inverting L (after permutation)\n");
+				if(! invert_U(m_ILU, tmp, c, m_invEps)) // tmp = (LU)^{-1} d
+					print_debugger_message("ILU: There were issues at inverting U (after permutation)\n");
 				SetVectorAsPermutation(c, tmp, m_oldIndex);
 			}
 		}
@@ -571,7 +592,7 @@ class ILU : public IPreconditioner<TAlgebra>
 			//	for debug output (only for application is written)
 				static bool first = true;
 
-				if(first) write_debug(d, "ILU_step_1_d");
+				if(first) write_overlap_debug(d, "ILU_step_1_d");
 				if(m_useOverlap){
 					for(size_t i = 0; i < d.size(); ++i)
 						m_oD[i] = d[i];
@@ -580,7 +601,7 @@ class ILU : public IPreconditioner<TAlgebra>
 					m_oD.set_storage_type(PST_ADDITIVE);
 					m_oD.change_storage_type(PST_CONSISTENT);
 
-					if(first) write_debug(m_oD, "ILU_step_2_oD_consistent");
+					if(first) write_overlap_debug(m_oD, "ILU_step_2_oD_consistent");
 
 					applyLU(m_oC, m_oD, m_h);
 
@@ -590,10 +611,14 @@ class ILU : public IPreconditioner<TAlgebra>
 					c.set_storage_type(PST_UNIQUE);
 				}
 				else if(m_useConsistentInterfaces){
-					UG_COND_THROW(d.has_storage_type(PST_CONSISTENT),
-					              "additive or unique defect expected");
-					applyLU(c, d, m_h);
-					c.set_storage_type(PST_ADDITIVE);
+					// make defect consistent
+					SmartPtr<vector_type> spDtmp = d.clone();
+					spDtmp->change_storage_type(PST_CONSISTENT);
+					applyLU(c, *spDtmp, m_h);
+
+					// declare c unique to enforce that only master correction is used
+					// when it is made consistent below
+					c.set_storage_type(PST_UNIQUE);
 				}
 				else{
 				//	make defect unique
@@ -605,15 +630,17 @@ class ILU : public IPreconditioner<TAlgebra>
 				}
 
 			//	write debug
-				if(first) write_debug(c, "ILU_step_3_c");
+				if(first) write_overlap_debug(c, "ILU_step_3_c");
 
 				c.change_storage_type(PST_CONSISTENT);
 
 			//	write debug
-				if(first) {write_debug(c, "ILU_step_4_c_consistent"); first = false;}
+				if(first) {write_overlap_debug(c, "ILU_step_4_c_consistent"); first = false;}
 
 			#else
+				write_debug(d, "ILU_step_d");
 				applyLU(c, d, m_h);
+				write_debug(c, "ILU_step_c");
 			#endif
 
 		//	we're done
@@ -624,19 +651,17 @@ class ILU : public IPreconditioner<TAlgebra>
 		virtual bool postprocess() {return true;}
 
 	private:
-		template <class T> void write_debug(const T& t, std::string name)
+	#ifdef UG_PARALLEL
+		template <class T> void write_overlap_debug(const T& t, std::string name)
 		{
-			#ifdef UG_PARALLEL
-				if(debug_writer().valid()){
-					if(m_useOverlap && m_overlapWriter.valid() && t.layouts()->overlap_enabled())
-						m_overlapWriter->write(t, name);
-					else
-						base_type::write_debug(t, name.c_str());
-				}
-			#else
-				base_type::write_debug(t, name.c_str());
-			#endif
+			if(debug_writer().valid()){
+				if(m_useOverlap && m_overlapWriter.valid() && t.layouts()->overlap_enabled())
+					m_overlapWriter->write(t, name);
+				else
+					write_debug(t, name.c_str());
+			}
 		}
+	#endif
 
 	protected:
 	///	storage for factorization

@@ -305,7 +305,9 @@ function util.SolveNonlinearTimeProblem(
 	while (endTime == nil or ((time < endTime) and ((endTime-time)/maxStepSize > relPrecisionBound))) and ((endTSNo == nil) or (step < endTSNo)) do
 		step = step+1
 		print("++++++ TIMESTEP " .. step .. " BEGIN (current time: " .. time .. ") ++++++");
-
+		
+		local solver_call = 0;
+		
 		-- initial t-step size
 		local currdt = maxStepSize
 		-- adjust in case of over-estimation
@@ -334,7 +336,13 @@ function util.SolveNonlinearTimeProblem(
 				
 				pp_res = true
 				if prepareTimeStep ~= nil then
+					if util.debug_writer ~= nil then
+						util.debug_writer:enter_section ("TIMESTEP-"..step.."-Prepare-SolverCall-"..solver_call)
+					end
 					pp_res = prepareTimeStep(u, step, time, currdt)
+					if util.debug_writer ~= nil then
+						util.debug_writer:leave_section ()
+					end
 					if type(pp_res) == "boolean" and pp_res == false then -- i.e. not nil, not something else, but "false"!
 						print("\n++++++ Preparation of the time step failed.")
 					else
@@ -350,7 +358,13 @@ function util.SolveNonlinearTimeProblem(
 					
 					-- call pre process
 					if preProcess ~= nil then
+						if util.debug_writer ~= nil then
+							util.debug_writer:enter_section ("TIMESTEP-"..step.."-PreProcess-SolverCall-"..solver_call)
+						end
 						pp_res = preProcess(u, step, time, currdt)
+						if util.debug_writer ~= nil then
+							util.debug_writer:leave_section ()
+						end
 						if type(pp_res) == "boolean" and pp_res == false then -- i.e. not nil, not something else, but "false"!
 							print("\n++++++ PreProcess failed.")
 							newtonSuccess = false
@@ -363,6 +377,11 @@ function util.SolveNonlinearTimeProblem(
 					-- setup time Disc for old solutions and timestep size
 					timeDisc:prepare_step(solTimeSeries, currdt)
 					
+					-- enter debug section (if the debug_writer is specified)
+					if util.debug_writer ~= nil then
+						util.debug_writer:enter_section ("TIMESTEP-"..step.."-SolverCall-"..solver_call)
+					end
+			
 					-- prepare newton solver
 					if newtonSolver:prepare(u) == false then 
 						print ("\n++++++ Newton solver failed."); exit();
@@ -371,12 +390,23 @@ function util.SolveNonlinearTimeProblem(
 					-- apply newton solver
 					newtonSuccess = newtonSolver:apply(u)
 						
+					-- exit debug section (if the debug_writer is specified)
+					if util.debug_writer ~= nil then
+						util.debug_writer:leave_section ()
+					end
+			
 					-- start over again if failed
 					if newtonSuccess == false then break end
 					
 					-- call post process
 					if postProcess ~= nil then
+						if util.debug_writer ~= nil then
+							util.debug_writer:enter_section ("TIMESTEP-"..step.."-PostProcess-SolverCall-"..solver_call)
+						end
 						pp_res = postProcess(u, step, timeDisc:future_time(), currdt)
+						if util.debug_writer ~= nil then
+							util.debug_writer:leave_section ()
+						end
 						if type(pp_res) == "boolean" and pp_res == false then -- i.e. not nil, not something else, but "false"!
 							print("\n++++++ PostProcess failed.")
 							newtonSuccess = false
@@ -407,7 +437,13 @@ function util.SolveNonlinearTimeProblem(
 				end -- loop over the stages
 
 				if newtonSuccess and finalizeTimeStep ~= nil then
+					if util.debug_writer ~= nil then
+						util.debug_writer:enter_section ("TIMESTEP-"..step.."-Finalize-SolverCall-"..solver_call)
+					end
 					pp_res = finalizeTimeStep(u, step, time, currdt)
+					if util.debug_writer ~= nil then
+						util.debug_writer:leave_section ()
+					end
 					if type(pp_res) == "boolean" and pp_res == false then -- i.e. not nil, not something else, but "false"!
 						write("\n++++++ Finalization of the time step failed. ")
 						newtonSuccess = false
@@ -443,7 +479,13 @@ function util.SolveNonlinearTimeProblem(
 				end
 				bSuccess = false
 				if rewindTimeStep ~= nil  then
+					if util.debug_writer ~= nil then
+						util.debug_writer:enter_section ("TIMESTEP-"..step.."-Rewind-SolverCall-"..solver_call)
+					end
 					rewindTimeStep(u, step, time, currdt)
+					if util.debug_writer ~= nil then
+						util.debug_writer:leave_section ()
+					end
 				end
 			else
 				-- update new time

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2017:  G-CSC, Goethe University Frankfurt
+ * Copyright (c) 2014-2019:  G-CSC, Goethe University Frankfurt
  * Author: Martin Stepniewski
  *
  * This file is part of UG4.
@@ -514,7 +514,7 @@ void ProjectHierarchyToLimitSubdivisionSurface(MultiGrid& mg)
 //	Catch use of procedure for MultiGrids with just one level
 	if(mg.num_levels() == 1)
 	{
-		UG_THROW("Error in ProjectHierarchyToLimitSubdivisionVolume2d: "
+		UG_THROW("Error in ProjectHierarchyToLimitSubdivisionSurface: "
 				 "Procedure only to be used for MultiGrids with more than one level.");
 	}
 
@@ -570,7 +570,7 @@ void ProjectHierarchyToLimitSubdivisionVolume(MultiGrid& mg)
 //	Catch use of procedure for MultiGrids with just one level
 	if(mg.num_levels() == 1)
 	{
-		UG_THROW("Error in ProjectHierarchyToLimitSubdivisionVolume3d: "
+		UG_THROW("Error in ProjectHierarchyToLimitSubdivisionVolume: "
 				 "Procedure only to be used for MultiGrids with more than one level.");
 	}
 
@@ -619,16 +619,430 @@ void ProjectHierarchyToLimitSubdivisionVolume(MultiGrid& mg)
 
 
 ////////////////////////////////////////////////////////////////////////////////
+void CalculateSmoothManifoldPosInParentLevelButterflyScheme3d(MultiGrid& mg, MGSubsetHandler& markSH,
+											 	 	   MGSubsetHandler& linearManifoldSH,
+													   APosition& aSmoothBndPosOddVrt,
+													   AInt& aNumManifoldEdges)
+{
+	/*
+	 * Scheme reference:
+	 *
+	 * D. N. Zorin, Interpolating Subdivision for Meshes with Arbitrary Topology,
+	 * SIGGRAPH '96 Proceedings of the 23rd annual conference on Computer graphics
+	 * and interactive techniques, 1996.
+	 */
+
+//	WARNING: Parallel implementation has to be fixed
+	#ifdef UG_PARALLEL
+		UG_LOG("WARNING: CalculateSmoothManifoldPosInParentLevelButterflyScheme3d: "
+					"Parallel implementation has to be fixed." << std::endl);
+	#endif
+
+//	Catch use of procedure for MultiGrids with just one level
+	if(mg.num_levels() == 1)
+	{
+		UG_THROW("Error in CalculateSmoothManifoldPosInParentLevelButterflyScheme3d: "
+				 "Procedure only to be used for MultiGrids with more than one level.");
+	}
+
+//	Define attachment accessors
+	Grid::VertexAttachmentAccessor<APosition> aaPos(mg, aPosition);
+	Grid::EdgeAttachmentAccessor<APosition> aaSmoothBndPosOddVrt(mg, aSmoothBndPosOddVrt);
+	Grid::VertexAttachmentAccessor<AInt> aaNumManifoldEdges(mg, aNumManifoldEdges);
+
+	#ifdef UG_PARALLEL
+		DistributedGridManager& dgm = *mg.distributed_grid_manager();
+	#endif
+
+//	Declare centroid coordinate vector
+	typedef APosition::ValueType pos_type;
+	pos_type p;
+	pos_type q;
+	VecSet(p, 0);
+	VecSet(q, 0);
+
+	/*
+	 * Smoothing of odd vertices x
+	 *
+		 -1/16	1/8  -1/16
+			  \	/ \  /
+			1/2--x--1/2
+			  /	\ /  \
+		 -1/16	1/8  -1/16
+	 *
+	 */
+
+//	Calculate smooth position for ODD vertices (EVEN vertices will be interpolated by this scheme)
+	for(EdgeIterator eIter = mg.begin<Edge>(mg.top_level()-1); eIter != mg.end<Edge>(mg.top_level()-1); ++eIter)
+	{
+	//	Reset centroids
+		VecSet(p, 0);
+		VecSet(q, 0);
+
+		Edge* e = *eIter;
+
+	//	Skip ghost edges
+		#ifdef UG_PARALLEL
+			if(dgm.is_ghost(e))
+				continue;
+		#endif
+
+	//	In case of marked manifold edges, which do not belong to the user-specified linear boundary manifold subsets,
+	//	and activated subdivision Butterfly refinement calculate subdivision surfaces smooth position
+		if(markSH.get_subset_index(e) != -1 && linearManifoldSH.get_subset_index(e) == -1)
+		{
+		//	REGULAR CASE: both edge vertices are of valence 6
+			if(aaNumManifoldEdges[e->vertex(0)] == 6 && aaNumManifoldEdges[e->vertex(1)] == 6)
+			{
+			//	perform Butterfly subdivision on odd manifold vertices
+			//	get the neighbored manifold triangles
+				std::vector<Face*> associatedFaces;
+				std::vector<Face*> associatedButterflyFaces;
+				std::vector<Face*> associatedManifoldFaces;
+				std::vector<Face*> associatedButterflyManifoldFaces;
+
+				CollectAssociated(associatedFaces, mg, e);
+
+				for(size_t i = 0; i < associatedFaces.size(); ++i)
+				{
+				//	Only consider associated faces, which are marked as manifold faces
+					if(markSH.get_subset_index(associatedFaces[i]) != -1)
+					{
+					//	Exclude ghost and horizontal slave manifold faces
+						#ifdef UG_PARALLEL
+							if(dgm.is_ghost(associatedFaces[i]))
+								continue;
+
+							if(dgm.contains_status(associatedFaces[i], ES_H_SLAVE))
+								continue;
+						#endif
+
+						if(associatedManifoldFaces.size() < 2)
+						{
+							associatedManifoldFaces.push_back(associatedFaces[i]);
+						}
+					}
+				}
+
+			//	THROW, if more then 2 associated manifold faces have been found
+				if(associatedManifoldFaces.size() <= 2)
+				{
+				//	Check, if all faces are triangles
+					for(size_t i = 0; i < associatedManifoldFaces.size(); ++i)
+					{
+						if(associatedManifoldFaces[i]->num_vertices() != 3)
+						{
+							UG_THROW("ERROR in CalculateSmoothManifoldPosInParentLevelButterflyScheme3d: "
+								"Non triangular faces included in grid: " << ElementDebugInfo(mg, associatedManifoldFaces[i]));
+						}
+					}
+
+				//	Summate centroid of face adjacent vertices (with corresponding weights 1/8)
+					for(size_t i = 0; i < associatedManifoldFaces.size(); ++i)
+					{
+						VecAdd(p, p, aaPos[GetConnectedVertex(e, associatedManifoldFaces[i])]);
+					}
+
+				//	Extend original "Loop's neighborhood diamond" to include 'BUTTERFLY VERTICES' (with corresponding weights -1/16)
+					for(size_t i = 0; i < associatedManifoldFaces.size(); ++i)
+					{
+					//	Iterate over edges of original "Loop's neighborhood diamond" to extend to Butterfly neighborhood
+						for(size_t j = 0; j < associatedManifoldFaces[i]->num_edges(); ++j)
+						{
+						//	Clear face container
+							associatedButterflyFaces.clear();
+							associatedButterflyManifoldFaces.clear();
+
+						//	Exclude edge e currently being edited
+							if(j != (size_t)GetEdgeIndex(associatedManifoldFaces[i], e))
+							{
+							//	Collect associated Butterfly face adjacent to edge j
+								GetNeighbours(associatedButterflyFaces, mg, associatedManifoldFaces[i], j);
+
+								for(size_t k = 0; k < associatedButterflyFaces.size(); ++k)
+								{
+								//	Only consider associated butterfly faces, which are marked as manifold faces
+									if(markSH.get_subset_index(associatedButterflyFaces[k]) != -1)
+									{
+									//	Exclude ghost and horizontal slave manifold faces
+										#ifdef UG_PARALLEL
+											if(dgm.is_ghost(associatedButterflyFaces[k]))
+												continue;
+
+											if(dgm.contains_status(associatedButterflyFaces[k], ES_H_SLAVE))
+												continue;
+										#endif
+
+										if(associatedButterflyFaces[k]->num_vertices() != 3)
+										{
+											UG_THROW("ERROR in CalculateSmoothManifoldPosInParentLevelButterflyScheme3d: "
+												"Non triangular faces included in grid: " << ElementDebugInfo(mg, associatedButterflyFaces[k]));
+										}
+
+										associatedButterflyManifoldFaces.push_back(associatedButterflyFaces[k]);
+									}
+								}
+
+								if(associatedButterflyManifoldFaces.size() != 1)
+									UG_THROW("ERROR in CalculateSmoothManifoldPosInParentLevelButterflyScheme3d: number of edge associated Butterfly Manifold faces != 1.");
+
+							//	Summate centroid of butterly face adjacent vertex
+								VecAdd(q, q, aaPos[GetConnectedVertex(mg.get_edge(associatedManifoldFaces[i]->edge_desc(j)), associatedButterflyManifoldFaces[0])]);
+							}
+						}
+					}
+
+				//	Exclude ghost and horizontal slaves of the parent edge vertices of the currently smoothed vertex
+				//	to avoid multiple contributions to the centroid of the edge adjacent vertices
+					#ifdef UG_PARALLEL
+						if(dgm.is_ghost(e))
+						{
+							continue;
+						}
+
+						if(dgm.contains_status(e, ES_H_SLAVE))
+						{
+							VecScaleAppend(aaSmoothBndPosOddVrt[e], 0.125, p, -1.0/16, q);
+							continue;
+						}
+					#endif
+
+					VecScaleAppend(aaSmoothBndPosOddVrt[e], 0.5, aaPos[e->vertex(0)], 0.5, aaPos[e->vertex(1)], 0.125, p, -1.0/16, q);
+				}
+				else
+					UG_THROW("ERROR in CalculateSmoothManifoldPosInParentLevelButterflyScheme3d: numAssociatedManifoldFaces > 2.");
+			}
+
+		//	IRREGULAR CASE: at least one edge vertex irregular
+			if(aaNumManifoldEdges[e->vertex(0)] != 6 || aaNumManifoldEdges[e->vertex(1)] != 6)
+			{
+			//	Number of centroids to calculate (1 or 2, depending on the valence of the vertices of e)
+				size_t numLoops;
+
+				if((aaNumManifoldEdges[e->vertex(0)] != 6 && aaNumManifoldEdges[e->vertex(1)] == 6) ||
+				   (aaNumManifoldEdges[e->vertex(0)] == 6 && aaNumManifoldEdges[e->vertex(1)] != 6))
+				{
+					numLoops = 1;
+				}
+			//	case aaNumManifoldEdges[e->vertex(0)] != 6 && aaNumManifoldEdges[e->vertex(1)] != 6
+				else
+					numLoops = 2;
+
+			//	Loop centroids to calculate
+				for(size_t n = 0; n < numLoops; ++n)
+				{
+				//	Reset centroids
+					VecSet(p, 0);
+					VecSet(q, 0);
+
+					Vertex* vrt;
+					Vertex* butterflyVertex;
+
+					std::vector<Face*> associatedFaces;
+					std::vector<Face*> associatedManifoldFaces;
+
+				//	Determine smoothing case
+					if(aaNumManifoldEdges[e->vertex(0)] != 6 && aaNumManifoldEdges[e->vertex(1)] == 6)
+					{
+						vrt = e->vertex(0);
+
+					//	Push back e->vertex(1) as vertex s_0
+						butterflyVertex = e->vertex(1);
+					}
+					else if (aaNumManifoldEdges[e->vertex(0)] == 6 && aaNumManifoldEdges[e->vertex(1)] != 6)
+					{
+						vrt = e->vertex(1);
+
+					//	Push back e->vertex(0) as vertex s_0
+						butterflyVertex = e->vertex(0);
+					}
+				//	case aaNumManifoldEdges[e->vertex(0)] != 6 && aaNumManifoldEdges[e->vertex(1)] != 6
+					else
+					{
+						vrt = e->vertex(n);
+
+					//	Push back the other vertex as vertex s_0
+						butterflyVertex = e->vertex(1 - (n % 2));
+					}
+
+				//	perform Butterfly subdivision on odd manifold vertices
+				//	get the neighbored manifold triangles
+					CollectAssociated(associatedFaces, mg, e);
+
+					for(size_t i = 0; i < associatedFaces.size(); ++i)
+					{
+					//	Only consider associated faces, which are marked as manifold faces
+						if(markSH.get_subset_index(associatedFaces[i]) != -1)
+						{
+						//	Exclude ghost and horizontal slave manifold faces
+							#ifdef UG_PARALLEL
+								if(dgm.is_ghost(associatedFaces[i]))
+									continue;
+
+								if(dgm.contains_status(associatedFaces[i], ES_H_SLAVE))
+									continue;
+							#endif
+
+							if(associatedManifoldFaces.size() < 2)
+							{
+								associatedManifoldFaces.push_back(associatedFaces[i]);
+							}
+						}
+					}
+
+					if(associatedManifoldFaces.size() <= 2)
+					{
+					//	Check, if all faces are triangles
+						for(size_t i = 0; i < associatedManifoldFaces.size(); ++i)
+						{
+							if(associatedManifoldFaces[i]->num_vertices() != 3)
+							{
+								UG_THROW("ERROR in CalculateSmoothManifoldPosInParentLevelButterflyScheme3d: "
+									"Non triangular faces included in grid: " << ElementDebugInfo(mg, associatedManifoldFaces[i]));
+							}
+						}
+
+					// 	Start with one triangle of "Loop's neighborhood diamond"
+						Face* f = associatedManifoldFaces[0];
+						size_t k = (size_t)aaNumManifoldEdges[vrt];
+
+						number butterflyWeight = 0.0;
+						std::vector<number> butterflyWeights;
+
+						if(k == 3)
+						{
+							butterflyWeights.push_back(5.0/12);
+							butterflyWeights.push_back(-1.0/12);
+							butterflyWeights.push_back(-1.0/12);
+						}
+
+						if(k == 4)
+						{
+							butterflyWeights.push_back(3.0/8);
+							butterflyWeights.push_back(0.0);
+							butterflyWeights.push_back(-1.0/8);
+							butterflyWeights.push_back(0.0);
+						}
+
+					//	Special parallel treatment for s_0 in case e is ghost or horizontal slave
+						if(k != 3 && k != 4)
+							butterflyWeight = 1.0/k * 7.0/4;
+						else
+							butterflyWeight = butterflyWeights[0];
+
+						VecScaleAppend(p, butterflyWeight, aaPos[butterflyVertex]);
+
+					//	Ordered traversing of associated edges of currently considered irregular vertex vrt
+						for(size_t i = 1; i < k; ++i)
+						{
+						//	Clear face containers
+							associatedFaces.clear();
+							associatedManifoldFaces.clear();
+
+						//	Get connecting edge of next butterfly vertex s_i in line to vrt
+							if(f->get_opposing_object(butterflyVertex).first != EDGE)
+							{
+								UG_THROW("ERROR in CalculateSmoothManifoldPosInParentLevelButterflyScheme3d: "
+										"Opposing object of butterfly vertex in manifold face is not an edge: "
+										<< ElementDebugInfo(mg, f))
+							}
+
+							Edge* egdeOfNextFace = mg.get_edge(f, f->get_opposing_object(butterflyVertex).second);
+
+						//	Store butterfly vertex s_i
+							egdeOfNextFace->get_opposing_side(vrt, &butterflyVertex);
+
+						//	butterfly weight s_i
+							if(k != 3 && k != 4)
+								butterflyWeight = 1.0/k * (1.0/4 + cos(2*i*PI/k) + 1.0/2*cos(4*i*PI/k));
+							else
+								butterflyWeight = butterflyWeights[i];
+
+						//	Summate centroid of butterly vertices s_i
+							VecScaleAppend(q, butterflyWeight, aaPos[butterflyVertex]);
+
+						//	Get next face to traverse
+							GetNeighbours(associatedFaces, mg, f, GetEdgeIndex(f, egdeOfNextFace));
+
+							for(size_t j = 0; j < associatedFaces.size(); ++j)
+							{
+							//	Only consider associated faces, which are marked as manifold faces
+								if(markSH.get_subset_index(associatedFaces[j]) != -1)
+								{
+								//	Exclude ghost and horizontal slave manifold faces
+									#ifdef UG_PARALLEL
+										if(dgm.is_ghost(associatedFaces[j]))
+											continue;
+
+										if(dgm.contains_status(associatedFaces[j], ES_H_SLAVE))
+											continue;
+									#endif
+
+									associatedManifoldFaces.push_back(associatedFaces[j]);
+								}
+							}
+
+							if(associatedManifoldFaces.size() != 1)
+								UG_THROW("ERROR in CalculateSmoothManifoldPosInParentLevelButterflyScheme3d: number of edge associated Butterfly Manifold faces != 1.");
+
+						//	Store next face in line to traverse in next iteration
+							f = associatedManifoldFaces[0];
+						}
+
+					//	Exclude ghost and horizontal slaves of the parent edge vertices of the currently smoothed vertex
+					//	to avoid multiple contributions to the centroid of the edge adjacent vertices
+						#ifdef UG_PARALLEL
+							if(dgm.is_ghost(e))
+							{
+								continue;
+							}
+
+							if(dgm.contains_status(e, ES_H_SLAVE))
+							{
+								VecScaleAppend(aaSmoothBndPosOddVrt[e], 1.0/numLoops, q);
+								continue;
+							}
+						#endif
+
+						VecScaleAppend(aaSmoothBndPosOddVrt[e], 1.0/numLoops*3.0/4, aaPos[vrt], 1.0/numLoops, p, 1.0/numLoops, q);
+					}
+					else
+						UG_THROW("ERROR in CalculateSmoothManifoldPosInParentLevelButterflyScheme3d: numAssociatedManifoldFaces > 2.");
+				}
+			}
+		}
+	}
+
+//	Manage vertex and edge attachment communication in parallel case -> COMMUNICATE aSmoothBndPosEvenVrt, aSmoothBndPosOddVrt
+	#ifdef UG_PARALLEL
+	//	Reduce add operations:
+	//	sum up h_slaves into h_masters
+
+	//	Copy operations:
+	//	copy h_masters to h_slaves for consistency
+		AttachmentAllReduce<Edge>(mg, aSmoothBndPosOddVrt, PCL_RO_SUM);
+	#endif
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
 void CalculateSmoothManifoldPosInParentLevelLoopScheme2d(MultiGrid& mg, MGSubsetHandler& markSH,
 											 	 	   MGSubsetHandler& linearManifoldSH,
 													   APosition2& aSmoothBndPosEvenVrt,
 													   APosition2& aSmoothBndPosOddVrt,
 													   AInt& aNumManifoldEdges)
 {
+	/*
+	 * Scheme reference:
+	 *
+	 * C. Loop, Smooth subdivision surfaces based on triangles,
+	 * master’s thesis, University of Utah, 1987.
+	 */
+
 //	Catch use of procedure for MultiGrids with just one level
 	if(mg.num_levels() == 1)
 	{
-		UG_THROW("Error in CalculateSmoothManifoldPosInParentLevel: "
+		UG_THROW("Error in CalculateSmoothManifoldPosInParentLevelLoopScheme2d: "
 				 "Procedure only to be used for MultiGrids with more than one level.");
 	}
 
@@ -775,7 +1189,7 @@ void CalculateSmoothManifoldPosInParentLevelLoopScheme2d(MultiGrid& mg, MGSubset
 				{
 					if(associatedManifoldFaces[i]->num_vertices() != 3)
 					{
-						UG_THROW("ERROR in CalculateSmoothManifoldPosInParentLevel2d: "
+						UG_THROW("ERROR in CalculateSmoothManifoldPosInParentLevelLoopScheme2d: "
 							"Non triangular faces included in grid: " << ElementDebugInfo(mg, associatedManifoldFaces[i]));
 					}
 				}
@@ -804,7 +1218,7 @@ void CalculateSmoothManifoldPosInParentLevelLoopScheme2d(MultiGrid& mg, MGSubset
 				VecScaleAppend(aaSmoothBndPosOddVrt[e], 0.375, aaPos[e->vertex(0)], 0.375, aaPos[e->vertex(1)], 0.125, p);
 			}
 			else
-				UG_THROW("ERROR in CalculateSmoothManifoldPosInParentLevel2d: numAssociatedManifoldFaces > 2.");
+				UG_THROW("ERROR in CalculateSmoothManifoldPosInParentLevelLoopScheme2d: numAssociatedManifoldFaces > 2.");
 		}
 	}
 
@@ -828,10 +1242,17 @@ void CalculateSmoothManifoldPosInParentLevelLoopScheme3d(MultiGrid& mg, MGSubset
 													   APosition& aSmoothBndPosOddVrt,
 													   AInt& aNumManifoldEdges)
 {
+	/*
+	 * Scheme reference:
+	 *
+	 * C. Loop, Smooth subdivision surfaces based on triangles,
+	 * master’s thesis, University of Utah, 1987.
+	 */
+
 //	Catch use of procedure for MultiGrids with just one level
 	if(mg.num_levels() == 1)
 	{
-		UG_THROW("Error in CalculateSmoothManifoldPosInParentLevel: "
+		UG_THROW("Error in CalculateSmoothManifoldPosInParentLevelLoopScheme3d: "
 				 "Procedure only to be used for MultiGrids with more than one level.");
 	}
 
@@ -978,7 +1399,7 @@ void CalculateSmoothManifoldPosInParentLevelLoopScheme3d(MultiGrid& mg, MGSubset
 				{
 					if(associatedManifoldFaces[i]->num_vertices() != 3)
 					{
-						UG_THROW("ERROR in CalculateSmoothManifoldPosInParentLevel3d: "
+						UG_THROW("ERROR in CalculateSmoothManifoldPosInParentLevelLoopScheme3d: "
 							"Non triangular faces included in grid: " << ElementDebugInfo(mg, associatedManifoldFaces[i]));
 					}
 				}
@@ -1007,7 +1428,7 @@ void CalculateSmoothManifoldPosInParentLevelLoopScheme3d(MultiGrid& mg, MGSubset
 				VecScaleAppend(aaSmoothBndPosOddVrt[e], 0.375, aaPos[e->vertex(0)], 0.375, aaPos[e->vertex(1)], 0.125, p);
 			}
 			else
-				UG_THROW("ERROR in CalculateSmoothManifoldPosInParentLevel: numAssociatedManifoldFaces > 2.");
+				UG_THROW("ERROR in CalculateSmoothManifoldPosInParentLevelLoopScheme3d: numAssociatedManifoldFaces > 2.");
 		}
 	}
 
@@ -1030,6 +1451,13 @@ void CalculateSmoothManifoldPosInTopLevelAveragingScheme2d(MultiGrid& mg, MGSubs
 										  	  	  	     APosition2& aSmoothBndPos_tri,
 														 APosition2& aSmoothBndPos_quad)
 {
+	/*
+	 * Scheme reference:
+	 *
+	 * J. Warren and H. Weimer, Subdivision Methods for Geometric Design: A Constructive Approach,
+	 * Morgan Kaufmann Publishers Inc., San Francisco, CA, USA, 1st ed., 2001.
+	 */
+
 //	Define attachment accessors
 	Grid::VertexAttachmentAccessor<APosition2> aaPos(mg, aPosition2);
 	Grid::VertexAttachmentAccessor<APosition2> aaSmoothBndPos_tri(mg, aSmoothBndPos_tri);
@@ -1132,6 +1560,13 @@ void CalculateSmoothManifoldPosInTopLevelAveragingScheme3d(MultiGrid& mg, MGSubs
 										  	  	  	     APosition& aSmoothBndPos_tri,
 														 APosition& aSmoothBndPos_quad)
 {
+	/*
+	 * Scheme reference:
+	 *
+	 * J. Warren and H. Weimer, Subdivision Methods for Geometric Design: A Constructive Approach,
+	 * Morgan Kaufmann Publishers Inc., San Francisco, CA, USA, 1st ed., 2001.
+	 */
+
 //	Define attachment accessors
 	Grid::VertexAttachmentAccessor<APosition> aaPos(mg, aPosition);
 	Grid::VertexAttachmentAccessor<APosition> aaSmoothBndPos_tri(mg, aSmoothBndPos_tri);
@@ -1234,6 +1669,15 @@ void CalculateSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
 										APosition& aSmoothVolPos_prism,
 										APosition& aSmoothVolPos_hex)
 {
+	/*
+	 * Scheme references:
+	 *
+	 * S. Schaefer, J. Hakenberg, and J. Warren, Smooth subdivision of tetrahedral meshes,
+	 * Proceedings of the 2004 Eurographics/ACM Symposium on Geometry Processing.
+	 *
+	 * J. Hakenberg, Smooth Subdivision for Mixed Volumetric Meshes, thesis, 2004
+	 */
+
 	#ifdef UG_PARALLEL
 		DistributedGridManager& dgm = *mg.distributed_grid_manager();
 	#endif
@@ -1473,7 +1917,7 @@ void CalculateConstrainedSmoothVolumePosInTopLevel(MultiGrid& mg, MGSubsetHandle
 				{
 					if(GetVertexIndex(vol, oppVrt) == -1)
 					{
-						UG_THROW("ERROR in CalculateSmoothVolumePosInTopLevel: identified opposing vertex actually not included in current volume.");
+						UG_THROW("ERROR in CalculateConstrainedSmoothVolumePosInTopLevel: identified opposing vertex actually not included in current volume.");
 					}
 
 					if(j != i && j != (size_t)GetVertexIndex(vol, oppVrt))
@@ -2130,6 +2574,132 @@ void ApplySmoothManifoldPosToTopLevelLoopScheme3d(MultiGrid& mg, MGSubsetHandler
 
 
 ////////////////////////////////////////////////////////////////////////////////
+void ApplySmoothManifoldPosToTopLevelButterflyScheme3d(MultiGrid& mg, MGSubsetHandler& markSH,
+												MGSubsetHandler& linearManifoldSH)
+{
+//	Catch use of procedure for MultiGrids with just one level
+	if(mg.num_levels() == 1)
+	{
+		UG_THROW("Error in ApplySmoothManifoldPosToTopLevelButterflyScheme3d: "
+				 "Procedure only to be used for MultiGrids with more than one level.");
+	}
+
+
+/*****************************************
+ *
+ *	(1) SETUP
+ *
+ *****************************************/
+
+//	Vertex attachments for associated number of manifold edges and smooth position
+//	(distinguish between volume and boundary smooth vertex positions
+//	 and in case of boundary between EVEN and ODD smooth vertex positions)
+	AInt aNumManifoldEdges;
+	APosition aSmoothBndPosOddVrt;
+
+//	attach previously declared vertex attachments with initial value 0
+	mg.attach_to_vertices_dv(aNumManifoldEdges, 0);
+	mg.attach_to_edges_dv(aSmoothBndPosOddVrt, vector3(0, 0, 0));
+
+//	Define attachment accessors
+	Grid::VertexAttachmentAccessor<APosition> aaPos(mg, aPosition);
+	Grid::EdgeAttachmentAccessor<APosition> aaSmoothBndPosOddVrt(mg, aSmoothBndPosOddVrt);
+
+//	Manage vertex attachment communication in parallel case:
+//	- Setup communication policy for the above attachment aPosition
+//	- Setup interface communicator
+//	- Setup distributed grid manager
+//	- Setup grid layout map
+	#ifdef UG_PARALLEL
+	//	Attachment communication policies COPY
+		ComPol_CopyAttachment<VertexLayout, AVector3> comPolCopyAPosition(mg, aPosition);
+
+	//	Interface communicators and distributed domain manager
+		pcl::InterfaceCommunicator<VertexLayout> com;
+		DistributedGridManager& dgm = *mg.distributed_grid_manager();
+		GridLayoutMap& glm = dgm.grid_layout_map();
+	#endif
+
+
+/*****************************************
+ *
+ *	(2) DETERMINE aNumManifoldEdges
+ *
+ *****************************************/
+
+	CalculateNumManifoldEdgesVertexAttachmentInParentLevel(mg, markSH, aNumManifoldEdges);
+
+
+/*****************************************
+ *
+ *	(3) CALCULATE aSmoothBndPosEvenVrt,
+ *				  aSmoothBndPosOddVrt
+ *
+ *****************************************/
+
+//	Calculate aSmoothBndPosOddVrt
+	CalculateSmoothManifoldPosInParentLevelButterflyScheme3d(mg, markSH, linearManifoldSH, aSmoothBndPosOddVrt, aNumManifoldEdges);
+
+
+/*****************************************
+ *
+ *	(4) APPLY
+ *
+ *****************************************/
+
+//	Loop all vertices of top_level
+	for(VertexIterator vrtIter = mg.begin<Vertex>(mg.top_level()); vrtIter != mg.end<Vertex>(mg.top_level()); ++vrtIter)
+	{
+		Vertex* vrt = *vrtIter;
+
+	//	Catch vertices without parent
+		if(mg.get_parent(vrt) == NULL)
+			continue;
+
+	//	In case of marked manifold vertices, which do not belong to the user-specified linear boundary manifold subsets,
+	//	and activated Loop scheme refinement apply subdivision surfaces smoothing, else linear refinement
+		if(markSH.get_subset_index(vrt) != -1 && linearManifoldSH.get_subset_index(vrt) == -1)
+		{
+		//	ODD VERTEX
+			if(mg.get_parent(vrt)->reference_object_id() == ROID_EDGE)
+			{
+			//	Get parent edge
+				Edge* parentEdge = static_cast<Edge*>(mg.get_parent(vrt));
+
+				aaPos[vrt] =  aaSmoothBndPosOddVrt[parentEdge];
+			}
+		}
+	}
+
+
+/*****************************************
+ *
+ *	(5) COMMUNICATE VERTICALLY
+ *	    AFTER SUBDIVISION SURFACES
+ *
+ *****************************************/
+
+//	Communicate aPosition in parallel case
+	#ifdef UG_PARALLEL
+	//	copy ghosts = VMASTER to v_slaves
+		com.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, comPolCopyAPosition);
+		com.communicate();
+	#endif
+
+
+/*****************************************
+ *
+ *	(6) CLEAN UP
+ *
+ *****************************************/
+
+//	detach vertex attachments
+	mg.detach_from_vertices(aNumManifoldEdges);
+	mg.detach_from_edges(aSmoothBndPosOddVrt);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
 void ApplySmoothManifoldPosToTopLevelAveragingScheme2d(MultiGrid& mg, MGSubsetHandler& markSH,
 													 MGSubsetHandler& linearManifoldSH)
 {
@@ -2562,7 +3132,7 @@ void ApplySmoothSubdivisionSurfacesToTopLevel3d(MultiGrid& mg, MGSubsetHandler& 
 //	Catch use of procedure for MultiGrids with just one level
 	if(mg.num_levels() == 1)
 	{
-		UG_THROW("Error in ApplySmoothSubdivisionToTopLevel: "
+		UG_THROW("Error in ApplySmoothSubdivisionSurfacesToTopLevel3d: "
 				 "Procedure only to be used for MultiGrids with more than one level.");
 	}
 
@@ -2581,10 +3151,12 @@ void ApplySmoothSubdivisionSurfacesToTopLevel3d(MultiGrid& mg, MGSubsetHandler& 
 		ApplySmoothManifoldPosToTopLevelLoopScheme3d(mg, markSH, linearManifoldSH);
 	else if(g_boundaryRefinementRule == SUBDIV_SURF_AVERAGING_SCHEME)
 		ApplySmoothManifoldPosToTopLevelAveragingScheme3d(mg, markSH, linearManifoldSH);
+	else if(g_boundaryRefinementRule == SUBDIV_SURF_BUTTERFLY_SCHEME)
+		ApplySmoothManifoldPosToTopLevelButterflyScheme3d(mg, markSH, linearManifoldSH);
 	else if(g_boundaryRefinementRule == SUBDIV_VOL){}
 	else if(g_boundaryRefinementRule == LINEAR){}
 	else
-		UG_THROW("ERROR in ApplySubdivisionSurfacesToTopLevel: Unknown boundary refinement rule. Known rules are 'subdiv_surf_loop_scheme', 'subdiv_surf_averaging_scheme' or 'linear'.");
+		UG_THROW("ERROR in ApplySmoothSubdivisionSurfacesToTopLevel3d: Unknown boundary refinement rule. Known rules are 'subdiv_surf_loop_scheme', 'subdiv_surf_averaging_scheme', 'subdiv_surf_butterfly_scheme' or 'linear'.");
 }
 
 
@@ -2626,10 +3198,12 @@ void ApplySmoothSubdivisionVolumesToTopLevel(MultiGrid& mg, MGSubsetHandler& sh,
 		ApplySmoothManifoldPosToTopLevelLoopScheme3d(mg, markSH, linearManifoldSH);
 	else if(g_boundaryRefinementRule == SUBDIV_SURF_AVERAGING_SCHEME)
 		ApplySmoothManifoldPosToTopLevelAveragingScheme3d(mg, markSH, linearManifoldSH);
+	else if(g_boundaryRefinementRule == SUBDIV_SURF_BUTTERFLY_SCHEME)
+		ApplySmoothManifoldPosToTopLevelButterflyScheme3d(mg, markSH, linearManifoldSH);
 	else if(g_boundaryRefinementRule == SUBDIV_VOL){}
 	else if(g_boundaryRefinementRule == LINEAR){}
 	else
-		UG_THROW("ERROR in ApplySubdivisionVolumesToTopLevel: Unknown boundary refinement rule. Known rules are 'subdiv_surf_loop_scheme', 'subdiv_surf_averaging_scheme', 'linear' or 'subdiv_vol'.");
+		UG_THROW("ERROR in ApplySubdivisionVolumesToTopLevel: Unknown boundary refinement rule. Known rules are 'subdiv_surf_loop_scheme', 'subdiv_surf_averaging_scheme', 'subdiv_surf_butterfly_scheme', 'linear' or 'subdiv_vol'.");
 
 
 /*****************************************

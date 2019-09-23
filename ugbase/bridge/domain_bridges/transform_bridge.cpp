@@ -121,8 +121,9 @@ void ScaleDomain(TDomain& dom, ISelector& sel, const vector3& center,
 	vector<Vertex*> vrts;
 	CollectVerticesTouchingSelection(vrts, sel);
 
-    if(vrts.empty())
+    if(vrts.empty()){
         return;
+	}
 
 	for(size_t i = 0; i < vrts.size(); ++i){
 		pos_t& v = aaPos[vrts[i]];

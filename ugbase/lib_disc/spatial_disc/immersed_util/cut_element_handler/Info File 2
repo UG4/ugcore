@@ -1,0 +1,9 @@
+/* Info File for 'CutElementHandlerFT' and 'CutElementHandlerImmersed' class: */
+
+The two derived classes contain additional data:
+
+- They inherit the special instance 'ParticleProvider' as interface provider.
+- They inherit special methods to acces infos of the according interface provider.
+- Since the 'ParticleProvider' can hold many particles, the index of a particle is an additional parameter:
+    => the element lists get a third index for the particle index: m_vvvElemList
+    => methods for access: get_prtIndex() and get_prtIndex(dof)

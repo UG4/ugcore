@@ -293,11 +293,25 @@ class GridFunctionVectorData
 				}
 			}
 
+
+			if(bDeriv){
+				for(size_t ip = 0; ip < nip; ++ip){
+					for(int d = 0; d < dim; ++d)
+					{
+						const LocalShapeFunctionSet<refDim>& rTrialSpace =
+								LocalFiniteElementProvider::get<refDim>(roid, m_vlfeID[d]);
+						//	evaluate at shapes at ip
+						rTrialSpace.shapes(vShape, vLocIP[ip]);
+
+						for(size_t sh = 0; sh < vShape.size(); ++sh)
+							vvvDeriv[ip][d][sh][d] = vShape[sh];
+					}
+				}
+			}
+
+
 		}UG_CATCH_THROW("GridFunctionVectorData: Reference Object: "
 				<<roid<<", refDim="<<refDim);
-
-		if(bDeriv)
-			UG_THROW("Not implemented.");
 	}
 	
 	virtual void operator() (MathVector<dim>& value,

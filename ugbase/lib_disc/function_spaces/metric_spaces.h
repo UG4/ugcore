@@ -221,6 +221,210 @@ public:
 };
 
 
+/// Computes simple vector (2-)norm from grid function DoFs which belong to either of the
+/// subsets and either of the functions supplied in the constructor.
+template <typename TGridFunction>
+class GridFunctionComponentSpace
+: public IComponentSpace<TGridFunction>
+{
+	public:
+		GridFunctionComponentSpace(const char* fctNames)
+		: IComponentSpace<TGridFunction>(fctNames) {}
+
+		GridFunctionComponentSpace(const char* fctNames, const char* ssNames)
+		: IComponentSpace<TGridFunction>(fctNames, ssNames, 1) {}
+
+		virtual ~GridFunctionComponentSpace() {};
+
+		virtual double norm2(TGridFunction& uFine)
+		{
+			ConstSmartPtr<DoFDistribution> dd = uFine.dof_distribution();
+
+			// find function indices
+			FunctionGroup fg(dd->function_pattern());
+			try {fg.add(TokenizeTrimString(this->m_fctNames));}
+			UG_CATCH_THROW("Could not convert function names to function indices.");
+
+			// find subset indices
+			SubsetGroup sg(dd->subset_handler());
+			if (this->m_ssNames)
+			{
+				try {sg.add(TokenizeTrimString(this->m_ssNames));}
+				UG_CATCH_THROW("Could not convert subset names to subset indices.");
+			}
+			else
+				sg.add_all();
+
+
+			// loop subsets
+			number sum = 0.0;
+			const size_t sgSz = sg.size();
+			for (size_t i = 0; i < sgSz; ++i)
+			{
+				int si = sg[i];
+				if (dd->max_dofs(VERTEX, si)) add_norm_values<Vertex>(sum, uFine, dd, sg[i], fg);
+				if (dd->max_dofs(EDGE, si)) add_norm_values<Edge>(sum, uFine, dd, sg[i], fg);
+				if (dd->max_dofs(FACE, si)) add_norm_values<Face>(sum, uFine, dd, sg[i], fg);
+				if (dd->max_dofs(VOLUME, si)) add_norm_values<Volume>(sum, uFine, dd, sg[i], fg);
+			}
+
+#ifdef UG_PARALLEL
+			if (pcl::NumProcs() > 1)
+			{
+				pcl::ProcessCommunicator pc;
+				sum = pc.allreduce(sum, PCL_RO_SUM);
+			}
+#endif
+
+			return sum;
+		}
+
+		virtual double distance2(TGridFunction& uFine, TGridFunction& uCoarse)
+		{
+			ConstSmartPtr<DoFDistribution> dd = uFine.dof_distribution();
+			UG_COND_THROW(dd != uCoarse.dof_distribution(),
+				"GridFunctionComponentSpace::distance2: GF1 DoF distro is not the same as for GF2.\n"
+				"This case is not implemented.");
+
+			// find function indices
+			FunctionGroup fg(dd->function_pattern());
+			try {fg.add(TokenizeTrimString(this->m_fctNames));}
+			UG_CATCH_THROW("Could not convert function names to function indices.");
+
+			// find subset indices
+			SubsetGroup sg(dd->subset_handler());
+			if (this->m_ssNames)
+			{
+				try {sg.add(TokenizeTrimString(this->m_ssNames));}
+				UG_CATCH_THROW("Could not convert subset names to subset indices.");
+			}
+			else
+				sg.add_all();
+
+
+			// loop subsets
+			number sum = 0.0;
+			const size_t sgSz = sg.size();
+			for (size_t i = 0; i < sgSz; ++i)
+			{
+				int si = sg[i];
+				if (dd->max_dofs(VERTEX, si)) add_distance_values<Vertex>(sum, uFine, uCoarse, dd, sg[i], fg);
+				if (dd->max_dofs(EDGE, si)) add_distance_values<Edge>(sum, uFine, uCoarse, dd, sg[i], fg);
+				if (dd->max_dofs(FACE, si)) add_distance_values<Face>(sum, uFine, uCoarse, dd, sg[i], fg);
+				if (dd->max_dofs(VOLUME, si)) add_distance_values<Volume>(sum, uFine, uCoarse, dd, sg[i], fg);
+			}
+
+#ifdef UG_PARALLEL
+			if (pcl::NumProcs() > 1)
+			{
+				pcl::ProcessCommunicator pc;
+				sum = pc.allreduce(sum, PCL_RO_SUM);
+			}
+#endif
+
+			return sum;
+		}
+
+	private:
+		template <typename TBaseElem>
+		void add_distance_values
+		(
+			number& sum,
+			const TGridFunction& uFine,
+			const TGridFunction& uCoarse,
+			ConstSmartPtr<DoFDistribution> dd,
+			int si,
+			const FunctionGroup& fg
+		) const
+		{
+			const SurfaceView& sv = *dd->surface_view();
+			const MultiGrid& mg = *dd->multi_grid();
+
+			const number nFct = fg.size();
+
+			// iterate all elements (including SHADOW_RIM_COPY!)
+			typename DoFDistribution::traits<TBaseElem>::const_iterator iter, iterEnd;
+			iter = dd->template begin<TBaseElem>(si, SurfaceView::ALL);
+			iterEnd = dd->template end<TBaseElem>(si, SurfaceView::ALL);
+			std::vector<DoFIndex> vInd;
+			for (; iter != iterEnd; ++iter)
+			{
+				TBaseElem* elem = *iter;
+				if (sv.is_contained(elem, dd->grid_level(), SurfaceView::SHADOW_RIM_COPY))
+				{
+					if (mg.num_children<TBaseElem>(elem) > 0)
+					{
+						TBaseElem* child = mg.get_child<TBaseElem>(elem, 0);
+						if (sv.is_contained(child, dd->grid_level(), SurfaceView::SURFACE_RIM))
+							continue;
+					}
+				}
+
+				for (size_t fi = 0; fi < nFct; ++fi)
+				{
+					dd->inner_dof_indices(elem, fg[fi], vInd);
+
+					const size_t nDof = vInd.size();
+					for (size_t dof = 0; dof < nDof; ++dof)
+					{
+						const number tmp = DoFRef(uFine, vInd[dof]) - DoFRef(uCoarse, vInd[dof]);
+						sum += tmp*tmp;
+					}
+				}
+			}
+			// note: no duplicate additions possible
+		}
+
+		template <typename TBaseElem>
+		void add_norm_values
+		(
+			number& sum,
+			const TGridFunction& uFine,
+			ConstSmartPtr<DoFDistribution> dd,
+			int si,
+			const FunctionGroup& fg
+		) const
+		{
+			const SurfaceView& sv = *dd->surface_view();
+			const MultiGrid& mg = *dd->multi_grid();
+
+			const number nFct = fg.size();
+
+			// iterate all elements (including SHADOW_RIM_COPY!)
+			typename DoFDistribution::traits<TBaseElem>::const_iterator iter, iterEnd;
+			iter = dd->template begin<TBaseElem>(si, SurfaceView::ALL);
+			iterEnd = dd->template end<TBaseElem>(si, SurfaceView::ALL);
+			std::vector<DoFIndex> vInd;
+			for (; iter != iterEnd; ++iter)
+			{
+				TBaseElem* elem = *iter;
+				if (sv.is_contained(elem, dd->grid_level(), SurfaceView::SHADOW_RIM_COPY))
+				{
+					if (mg.num_children<TBaseElem>(elem) > 0)
+					{
+						TBaseElem* child = mg.get_child<TBaseElem>(elem, 0);
+						if (sv.is_contained(child, dd->grid_level(), SurfaceView::SURFACE_RIM))
+							continue;
+					}
+				}
+
+				for (size_t fi = 0; fi < nFct; ++fi)
+				{
+					dd->inner_dof_indices(elem, fg[fi], vInd);
+
+					const size_t nDof = vInd.size();
+					for (size_t dof = 0; dof < nDof; ++dof)
+					{
+						const number tmp = DoFRef(uFine, vInd[dof]);
+						sum += tmp*tmp;
+					}
+				}
+			}
+			// note: no duplicate additions possible
+		}
+};
+
+
 
 //! Wrapper class for time dependence.
 template <typename TGridFunction>
@@ -312,6 +516,81 @@ public:
 
 
 };
+
+/** Evaluates difference between two grid functions in L2 norm */
+template <typename TGridFunction>
+class L2QuotientSpace :
+		public IComponentSpace<TGridFunction>,
+		public IObjectWithWeights<typename L2DistIntegrand<TGridFunction>::weight_type >
+{
+public:
+	typedef IComponentSpace<TGridFunction> base_type;
+	typedef typename L2DistIntegrand<TGridFunction>::weight_type weight_type;
+	typedef IObjectWithWeights<weight_type> weighted_obj_type;
+
+	/// CTOR
+	L2QuotientSpace(const char *fctNames)
+	: base_type(fctNames), weighted_obj_type(make_sp(new ConstUserNumber<TGridFunction::dim>(1.0))) {};
+
+	L2QuotientSpace(const char *fctNames, int order)
+	: base_type(fctNames, order), weighted_obj_type(make_sp(new ConstUserNumber<TGridFunction::dim>(1.0))) {};
+
+	L2QuotientSpace(const char *fctNames,  int order, double weight, const char* ssNames=0)
+	: base_type(fctNames, ssNames, order), weighted_obj_type(make_sp(new ConstUserNumber<TGridFunction::dim>(weight))) {};
+
+	L2QuotientSpace(const char *fctNames, int order, ConstSmartPtr<weight_type> spWeight, const char* ssNames=0)
+	: base_type(fctNames, ssNames, order), weighted_obj_type(spWeight) {};
+
+	/// DTOR
+	~L2QuotientSpace() {};
+
+	using IComponentSpace<TGridFunction>::norm;
+	using IComponentSpace<TGridFunction>::distance;
+
+	/// for weighted norms
+	using weighted_obj_type::set_weight;
+	using weighted_obj_type::get_weight;
+	using weighted_obj_type::m_spWeight;
+
+	/// \copydoc IComponentSpace<TGridFunction>::norm
+	double norm2(TGridFunction& u)
+	{
+		typedef ConstUserNumber<TGridFunction::dim> MyConstUserData;
+		typedef SmartPtr<UserData<number, TGridFunction::dim> > SPUserData;
+
+		SPUserData spConst= make_sp(new MyConstUserData(1.0));
+		number Meas = Integral(spConst, u, base_type::m_ssNames, 0.0, 1, "best");
+		number uAvg = Integral(u,  base_type::m_fctNames.c_str(), base_type::m_ssNames, base_type::m_quadorder);
+
+		std::cerr << "Average:=" << uAvg <<"/" << Meas << " = " << uAvg/Meas << std::endl;
+		SPUserData spAvg = make_sp(new MyConstUserData(uAvg/Meas));
+		double qnorm = L2Error(spAvg, u, base_type::m_fctNames.c_str(), 0.0, base_type::m_quadorder, base_type::m_ssNames);
+
+		return qnorm*qnorm;
+	}
+
+	/// \copydoc IComponentSpace<TGridFunction>::distance
+	double distance2(TGridFunction& uFine, TGridFunction& uCoarse)
+	{
+		typedef ConstUserNumber<TGridFunction::dim> MyConstUserData;
+		typedef SmartPtr<UserData<number, TGridFunction::dim> > SPUserData;
+
+		SPUserData spConst= make_sp(new MyConstUserData(1.0));
+		number Meas = Integral(spConst, uFine, base_type::m_ssNames, 0.0, 1, "best");
+		number avgFine = Integral(uFine, base_type::m_fctNames.c_str(), base_type::m_ssNames, base_type::m_quadorder);
+		number avgCoarse = Integral(uCoarse, base_type::m_fctNames.c_str(), base_type::m_ssNames, base_type::m_quadorder);
+
+		std::cerr << "Average:=(" << avgFine << "-" << avgCoarse<<")/" << Meas << " = " << (avgFine-avgCoarse)/Meas << std::endl;
+		return L2Distance2(uFine, base_type::m_fctNames.c_str(),
+						  uCoarse, base_type::m_fctNames.c_str(),
+						  base_type::m_quadorder, base_type::m_ssNames, weighted_obj_type::m_spWeight,
+						  (avgFine-avgCoarse)/Meas);
+	}
+
+
+
+};
+
 
 /** Evaluates distance between two grid functions in H1 semi-norm */
 template <typename TGridFunction>
@@ -519,11 +798,11 @@ public:
 
 	/// \copydoc IComponentSpace<TGridFunction>::norm
 	double norm2(TGridFunction& uFine)
-	{ return H1Norm2<TGridFunction>(uFine, base_type::m_fctNames.c_str(), base_type::m_quadorder); }
+	{ return H1Norm2<TGridFunction>(uFine, base_type::m_fctNames.c_str(), base_type::m_quadorder, base_type::m_ssNames); }
 
 	/// \copydoc IComponentSpace<TGridFunction>::norm
 	double distance2(TGridFunction& uFine, TGridFunction& uCoarse)
-	{ return H1Distance2<TGridFunction>(uFine, base_type::m_fctNames.c_str(), uCoarse, base_type::m_fctNames.c_str(), base_type::m_quadorder); }
+	{ return H1Distance2<TGridFunction>(uFine, base_type::m_fctNames.c_str(), uCoarse, base_type::m_fctNames.c_str(), base_type::m_quadorder, base_type::m_ssNames); }
 
 };
 

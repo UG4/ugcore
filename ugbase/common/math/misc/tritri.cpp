@@ -316,7 +316,7 @@ int tri_tri_intersect(number V0[3],number V1[3],number V2[3],
   c=fabs(D[2]);
 //#pragma warning( default : 4244 )
   if(b>max) max=b,index=1;
-  if(c>max) max=c,index=2;
+  if(c>max) index=2;
 
         /* this is the simplified projection onto L*/
         vp0=V0[index];

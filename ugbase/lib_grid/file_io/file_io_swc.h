@@ -43,11 +43,14 @@ namespace swc_types
 {
 	enum swc_type
 	{
-		SWC_UNDF = 0,
-		SWC_SOMA = 1,
-		SWC_AXON = 2,
-		SWC_DEND = 3,
-		SWC_APIC = 4
+		SWC_UNDF   = 0,
+		SWC_SOMA   = 1,
+		SWC_AXON   = 2,
+		SWC_DEND   = 3,
+		SWC_APIC   = 4,
+    SWC_FORK   = 5,
+    SWC_END    = 6,
+    SWC_CUSTOM = 7
 	};
 
 	struct SWCPoint
@@ -72,6 +75,8 @@ class FileReaderSWC
 		bool load_file(const char* fileName);
 		bool create_grid(Grid& g, ISubsetHandler* pSH, number scale_length = 1.0);
 
+		const std::vector<swc_types::SWCPoint>& swc_points() const;
+		std::vector<swc_types::SWCPoint>& swc_points();
 
 	protected:
 		std::vector<swc_types::SWCPoint> m_vPts;

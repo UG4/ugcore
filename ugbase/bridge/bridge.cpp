@@ -249,7 +249,7 @@ void RegisterStandardBridges(Registry& reg, string parentGroup)
 			RegisterBridge_Solver(reg, parentGroup);
 			RegisterBridge_Eigensolver(reg, parentGroup);
 			RegisterBridge_DomainDependentPreconditioner(reg, parentGroup);
-			RegisterBridge_ConstrainedLinearIterator(reg, parentGroup);
+			//RegisterBridge_ConstrainedLinearIterator(reg, parentGroup);
 
 			RegisterBridge_Restart(reg, parentGroup);
 
@@ -285,7 +285,6 @@ void RegisterStandardBridges(Registry& reg, string parentGroup)
 #endif
 #ifdef UG_DIM_3
 		if(!first) {availDims << ",";}; availDims << "3";
-		first = false;
 #endif
 
 #ifdef UG_ALGEBRA

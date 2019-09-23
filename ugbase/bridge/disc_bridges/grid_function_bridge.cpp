@@ -239,6 +239,19 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "IComponentSpace", tag);
 	}
 
+	// GridFunctionComponentSpace
+	{
+		typedef GridFunctionComponentSpace<TFct> T;
+		typedef IComponentSpace<TFct> TBase;
+
+		string name = string("GridFunctionComponentSpace").append(suffix);
+		reg.add_class_<T, TBase>(name, grp)
+			.template add_constructor<void (*)(const char *) >("function names")
+			.template add_constructor<void (*)(const char *, const char *) >("function names, subset names")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "GridFunctionComponentSpace", tag);
+	}
+
 	// L2ComponentSpace
 	{
 		typedef L2ComponentSpace<TFct> T;
@@ -257,6 +270,24 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 		   .set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "L2ComponentSpace", tag);
+	}
+
+	// L2QuotientSpace (= L2ComponentSpace which factors out constants)
+	{
+		typedef L2QuotientSpace<TFct> T;
+		typedef IComponentSpace<TFct> TBase;
+		typedef typename L2Integrand<TFct>::weight_type TWeight;
+
+		string name = string("L2QuotientSpace").append(suffix);
+		reg.add_class_<T, TBase>(name, grp)
+			.template add_constructor<void (*)(const char *) >("fctNames")
+			.template add_constructor<void (*)(const char *, int) >("fctNames, order")
+			.template add_constructor<void (*)(const char *, int, double) >("fctNames, order, weight")
+			.template add_constructor<void (*)(const char *, int, double, const char *) >("fctNames, order, weight, ssNames")
+			.template add_constructor<void (*)(const char *, int, ConstSmartPtr<TWeight>) >("fctNames, order, weight")
+			.template add_constructor<void (*)(const char *, int, ConstSmartPtr<TWeight>, const char *) >("fctNames, order, weight, ssNames")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "L2QuotientSpace", tag);
 	}
 
 	// H1SemiComponentSpace
@@ -334,6 +365,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_<T, TBase>(name, grp)
 		   .template add_constructor<void (*)(const char *) >("fctNames")
 		   .template add_constructor<void (*)(const char *, int) >("fctNames, order")
+		   .template add_constructor<void (*)(const char *, const char*, int) >("fctNames, subsetNames, order")
 		   //.template add_constructor<void (*)(const char *, int, number) >("fctNames, order, scale")
 		   .set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "H1ComponentSpace", tag);
@@ -383,6 +415,14 @@ static void DomainAlgebra(Registry& reg, string grp)
 //	CheckDoFPositions
 	{
 		reg.add_function("CheckDoFPositions", static_cast<bool (*)(const TFct&)>(CheckDoFPositions<TFct>), grp);
+	}
+
+//	ScaleGF
+	{
+		reg.add_function("ScaleGF", ScaleGF<TFct>, grp, "",
+			"scaled output vector # input vector # vector of scaling factors for each function",
+			"Scales the input vector using the given scaling factors for each function and writes "
+			"the result to the output vector");
 	}
 
 //	AverageFunctionDifference

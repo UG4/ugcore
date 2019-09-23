@@ -489,6 +489,13 @@ adjust_prolongation(matrix_type& P,
 					int type,
                     number time)
 {
+#ifdef LAGRANGE_DIRICHLET_ADJ_TRANSFER_FIX
+	 if (!m_bAdjustTransfers)
+	 {
+		 std::cerr << "Avoiding  adjust_prolongation" << std::endl;
+		 return;
+	}
+#endif
 	extract_data();
 
 	adjust_prolongation<CondNumberData>(m_mBNDNumberBndSegment, P, ddFine, ddCoarse, time);
@@ -614,6 +621,13 @@ adjust_restriction(matrix_type& R,
 					int type,
 					number time)
 {
+#ifdef LAGRANGE_DIRICHLET_ADJ_TRANSFER_FIX
+	if (!m_bAdjustTransfers)
+	{
+		std::cerr << "Avoiding adjust_restriction" << std::endl;
+		return;
+	}
+#endif
 	extract_data();
 
 	adjust_restriction<CondNumberData>(m_mBNDNumberBndSegment, R, ddCoarse, ddFine, time);
@@ -1581,11 +1595,18 @@ adjust_rhs(const std::vector<TUserData*>& vUserData, int si,
 
 template <typename TDomain, typename TAlgebra>
 void DirichletBoundary<TDomain, TAlgebra>::
-adjust_error(const vector_type& u, ConstSmartPtr<DoFDistribution> dd, int type, number time)
+adjust_error
+(
+	const vector_type& u,
+	ConstSmartPtr<DoFDistribution> dd,
+	int type,
+	number time,
+	ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+	const std::vector<number>* vScaleMass,
+	const std::vector<number>* vScaleStiff
+)
 {
 	//	get the error estimator data object and check that it is of the right type
-	//	we check this at this point in order to be able to dispense with this check later on
-	//	(i.e. in prep_err_est_elem and compute_err_est_A_elem())
 	if (this->m_spErrEstData.get() == NULL)
 	{
 		UG_THROW("No ErrEstData object has been given to this constraint!");

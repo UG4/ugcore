@@ -59,7 +59,7 @@ int GetFaceIndex(Volume* vol, Face* f)
 
 ////////////////////////////////////////////////////////////////////////
 //	CalculateNormal
-void CalculateNormal(vector3& vNormOut, FaceVertices* face,
+void CalculateNormal(vector3& vNormOut, const FaceVertices* face,
 					Grid::AttachmentAccessor<Vertex, APosition>& aaPos)
 {
 	if(face->num_vertices() == 3)
@@ -231,7 +231,7 @@ number FaceQuality(FaceVertices* f,
 	}
 
 	if(numVrts == 3){
-	//	since at least one angle is <= 60�, we have to normalize the return value
+	//	since at least one angle is <= 60, we have to normalize the return value
 		return quality * 2.;
 	}
 	return quality;
@@ -264,7 +264,7 @@ number TriangleQuality(vector3& v1, vector3& v2, vector3& v3)
 		VecScale(d1, d2, -1);
 	}
 
-//	since at least one angle is <= 60�, we have to normalize the return value
+//	since at least one angle is <= 60, we have to normalize the return value
 	return quality * 2.;
 }
 

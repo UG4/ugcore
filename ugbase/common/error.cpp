@@ -41,12 +41,12 @@ std::string ErrorStringFromStdException(const std::exception *pex)
 	std::stringstream ss;
 	if(dynamic_cast<const std::bad_alloc*>(pex))
 		ss << "bad_alloc exception: " << pex->what() << "\nThis is mostly caused by an OUT OF MEMORY - condition.\n"\
-					 	 << "You might have to reduce your problem size, go parallel or increase memory.";
+			<< "You might have to reduce your problem size, go parallel or increase memory.";
 	if(dynamic_cast<const std::bad_typeid*>(pex))
 			ss << "bad_typeid exception: " << pex->what();
 	else if(dynamic_cast<const std::bad_cast*>(pex))
-		ss << "bad_cast exception: " << pex->what() << "\nThis is caused by a Casting error in classes:"
-				"An object is expected to be be or derive from Class A, but is not.";
+		ss << "bad_cast exception: " << pex->what() << "\nThis is caused by a casting error in classes: "
+			"An object is expected to be be or derive from class A, but is not.";
 	else if(dynamic_cast<const std::bad_exception*>(pex))
 		ss << "bad_exception exception: " << pex->what() << "\nException thrown by unexpected handler.";
 	else if(dynamic_cast<const std::runtime_error*>(pex))

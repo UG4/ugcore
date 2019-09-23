@@ -280,10 +280,12 @@ public:
 	// instationary
 		virtual void calc_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 								ConstSmartPtr<DoFDistribution> dd,
-								std::vector<number> vScaleMass, std::vector<number> vScaleStiff,
+								const std::vector<number>& vScaleMass,
+								const std::vector<number>& vScaleStiff,
 								vector_type* u_vtk);
 		virtual void calc_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
-								std::vector<number> vScaleMass, std::vector<number> vScaleStiff,
+								const std::vector<number>& vScaleMass,
+								const std::vector<number>& vScaleStiff,
 								const GridLevel& gl,vector_type* u_vtk)
 		{
 			calc_error((ConstSmartPtr<VectorTimeSeries<vector_type> >) vSol, dd(gl),
@@ -511,7 +513,7 @@ public:
 	///	vector holding all registered elem discs
 		std::vector<IElemError<TDomain>*> m_vElemError;
 
-	//	vector holding all registered constraints
+	///	vector holding all registered constraints
 		std::vector<SmartPtr<IDomainConstraint<TDomain, TAlgebra> > > m_vConstraint;
 
 	///	current approximation space
@@ -612,8 +614,8 @@ public:
 	void AssembleErrorEstimator(	const std::vector<IElemError<domain_type>*>& vElemDisc,
 									ConstSmartPtr<DoFDistribution> dd,
 									int si, bool bNonRegularGrid,
-									std::vector<number> vScaleMass,
-									std::vector<number> vScaleStiff,
+									const std::vector<number>& vScaleMass,
+									const std::vector<number>& vScaleStiff,
 									ConstSmartPtr<VectorTimeSeries<vector_type> > vSol);
 };
 

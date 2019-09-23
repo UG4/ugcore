@@ -108,7 +108,7 @@ LFEID ConvertStringToLFEID(const char* type, int dim)
 		UG_THROW("Unspecified order for DG approximation space.\n");
 	}
 	else if(typeStr == "mini"){
-		eType = LFEID::MINI;
+		//eType = LFEID::MINI;
 		// order = 1;
 		UG_THROW("Unspecified order for MINI approximation space.\n");
 	}

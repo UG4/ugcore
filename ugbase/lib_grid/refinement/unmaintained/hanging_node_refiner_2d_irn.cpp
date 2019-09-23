@@ -1451,7 +1451,7 @@ void HangingNodeRefiner2D_IRN::refine_volume_with_normal_vertex(Volume* v)
 		vNewVrt = *grid.create<RegularVertex>(f);
 	//	assign a new position
 		if(m_aaPos.valid())
-			m_aaPos[vNewVrt] = CalculateFaceCenter(f, m_aaPos);
+			m_aaPos[vNewVrt] = CalculateCenter(f, m_aaPos);
 	}
 */
 //	refine the volume and register new volumes at the grid.

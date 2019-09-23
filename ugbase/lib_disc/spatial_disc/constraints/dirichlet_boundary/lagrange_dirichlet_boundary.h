@@ -45,6 +45,9 @@
 #include <map>
 #include <vector>
 
+
+// #define LAGRANGE_DIRICHLET_ADJ_TRANSFER_FIX 
+
 namespace ug{
 
 template <	typename TDomain, typename TAlgebra>
@@ -89,6 +92,9 @@ class DirichletBoundary
 			:	m_bInvertSubsetSelection(false),
 				m_bDirichletColumns(false),
 				m_A(NULL) 
+#ifdef LAGRANGE_DIRICHLET_ADJ_TRANSFER_FIX
+		 , m_bAdjustTransfers(true)
+#endif
 			{clear();}
 
 	/// constructor with flag for Dirichlet-Columns.
@@ -96,7 +102,21 @@ class DirichletBoundary
 			:	m_bInvertSubsetSelection(false),
 				m_bDirichletColumns(DirichletColumns),
 				m_A(NULL) 
+#ifdef LAGRANGE_DIRICHLET_ADJ_TRANSFER_FIX
+		 , m_bAdjustTransfers(true)
+#endif
 			{clear();}
+
+#ifdef LAGRANGE_DIRICHLET_ADJ_TRANSFER_FIX
+		/// constructor with flag for Dirichlet-Columns.
+		DirichletBoundary(bool DirichletColumns, bool bAdjustTransfers)
+			:	m_bInvertSubsetSelection(false),
+				m_bDirichletColumns(DirichletColumns),
+				m_A(NULL),
+				m_bAdjustTransfers(bAdjustTransfers)
+
+			{clear();}
+#endif
 
 	///	destructor
 		~DirichletBoundary() {}
@@ -192,7 +212,10 @@ class DirichletBoundary
 
 	/// @copydoc IConstraint::adjust_error()
 		virtual void adjust_error(const vector_type& u, ConstSmartPtr<DoFDistribution> dd, int type,
-								  number time = 0.0);
+								  number time = 0.0,
+								  ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = SPNULL,
+								  const std::vector<number>* vScaleMass = NULL,
+								  const std::vector<number>* vScaleStiff = NULL);
 
 	///	sets constraints in prolongation
 		virtual void adjust_prolongation(matrix_type& P,
@@ -280,11 +303,7 @@ class DirichletBoundary
 		template <typename TUserData>
 		void adjust_error(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		                  const vector_type& u, ConstSmartPtr<DoFDistribution> dd, number time);
-/*
-		template <typename TBaseElem, typename TUserData>
-		void adjust_error(const std::vector<TUserData*>& vUserData, int si,
-		                  const vector_type& u, ConstSmartPtr<DoFDistribution> dd, number time);
-*/
+
 		template <typename TUserData>
 		void adjust_prolongation(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		                         matrix_type& P,
@@ -478,6 +497,10 @@ class DirichletBoundary
 
 	///	current position accessor
 		typename domain_type::position_accessor_type m_aaPos;
+#ifdef LAGRANGE_DIRICHLET_ADJ_TRANSFER_FIX
+		/// flag for setting dirichlet columns
+		bool m_bAdjustTransfers;
+#endif
 };
 
 } // end namespace ug

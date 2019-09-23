@@ -140,6 +140,9 @@ class ParallelVector : public TVector
 	 */
 		number norm() const;
 
+	/// max norm (overwrites TVector::maxnorm())
+		number maxnorm() const;
+
 	/// dotprod (overwrites TVector::dotprod())
 	/**
 	 * Returns the dot product of the vector. First, the dot prod of each process
@@ -185,7 +188,7 @@ class ParallelVector : public TVector
 		virtual this_type* virtual_clone_without_values() const;
 
 	private:
-	// 	type of storage  (i.e. consistent, additiv, additiv unique)
+	// 	type of storage  (i.e. consistent, additive, additive unique)
 	//	holds or-combiation of constants enumerated in ug::ParallelStorageType.
 		uint m_type;
 

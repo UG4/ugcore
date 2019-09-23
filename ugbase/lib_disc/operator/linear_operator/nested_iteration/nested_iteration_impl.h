@@ -195,6 +195,8 @@ number NestedIterationSolver<TDomain,TAlgebra>::coarsen_domain(const grid_functi
 	SmartPtr<DoFDistribution> spDD=u.dof_distribution();
 	m_spRefiner->mark(spDD->begin<TElem>(), spDD->end<TElem>(), RM_COARSEN);
 	m_spRefiner->coarsen();*/
+	
+	return 0; // dummy value
 }
 
 

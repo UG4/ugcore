@@ -1,0 +1,97 @@
+/* Info File for 'CutElementHandlerBase' class: */
+
+
+There are 3 cathegories of elements --> 'ElementModus':
+
+- INSIDE_DOM:       all vertices lie inside the domain, i.e. 'is_outsideDomain(vrt) = false'
+- OUTSIDE_DOM:      all vertices lie outside the domain, i.e. 'is_outsideDomain(vrt) = true'
+- CUT_BY_INTERFACE: vertices lie inside AND outside the domain
+
+
+
+There are 4 cathegories of vertices --> 'VertexModus':
+
+- INSIDE:           'is_outsideDomain(vrt) = false'
+- OUTSIDE:          'is_outsideDomain(vrt) = true'
+- ON_INTERFACE:     'is_nearInterface(vrt) = true'
+                            OR
+                    'is_outsideDomain(vrt) = true' && for element, containing vrt: CUT_BY_INTERFACE
+- NEAR_INTERFACE:   'is_nearInterface(vrt) = true'
+
+
+
+The following relations derive from their categorisation:
+
+NEAR_INTERFACE is contained in ON_INTERFACE is contained in OUTSIDE
+
+
+REMARK: Only the ON_INTERFACE-vertices, which are 'no'(!) OUTSIDE-vertices count as DoFs of the according domain.
+        That is the reason, why they are tages separately.
+
+
+
+The 3 main methods in the class provide access to the information on the VertexModus:
+
+- bool is_onInterfaceVertex(Vertex* vrt, size_t vrtIndex)
+- bool is_OutsideVertex(Vertex* vrt, size_t vrtIndex)
+- bool is_nearInterfaceVertex(Vertex* vrt, size_t vrtIndex)
+
+
+The 'ElementModus' and 'VertexModus' are stored in data for local and global access.
+
+---> For the local access and only the element, which is currently assembled:
+
+        'ElementModus':   in 'm_ElementModus'
+        'VertexModus':    in 'm_vvVertexModus'
+
+
+---> For the global access and valid until the interface may change location due to motion:
+
+        'ElementModus': 'In the associated 'BoolMarker':
+                        - INSIDE in 'm_spInsideMarker'
+                        - OUTSIDE in 'm_spOutsideMarker'
+                        - CUT_BY_INTERFACE in 'm_spCutMarker'
+
+        'VertexModus': 'In the associated 'BoolMarker':
+                        - INSIDE in 'm_spInsideMarker'
+                        - OUTSIDE in 'm_spOutsideMarker'
+                        - ON_INTERFACE in 'm_spInterfaceVrtMarker'
+                        - NEAR_INTERFACE in 'm_spNearInterfaceVrtMarker'
+
+
+For methods, which need to loop over all cut elements, these elements are also stored in according lists:
+
+- m_vvElemList
+- m_vvElemListCut
+- m_vvElemListOutside
+
+REMARK: The first index of the double-vector inherits the level-index in case of a mutigrid mesh.
+The second index is simply the counter for the element.
+
+
+The main methods, which are used for the computation of the cut element data (via 'compute_element_modus()') are:
+
+- bool is_outsideDomain(Vertex* vrt, const number threshold = 1e-10);
+- bool is_nearInterface(Vertex* vrt, const number threshold = 1e-10);
+- number get_LSvalue(Vertex* vrt);
+
+---> They can/need to be implemented differently by the derived class.
+
+
+The method 'init()' initiates the computation of the cut element data:
+
+- the BoolMarker will be set
+- the m_vvElemList-lists will be set
+
+
+Further remarks:
+
+- It is possible to change the orientation of the interface, via 'set_orientation()'.
+    => All computations of the cut element data will be switched accordingly
+- For a two-sided interface, i.e. where both parts of the interface are part of the
+    computational domain, all computations can be done for each orientation once
+    ( see for example the ImmersedInterfaceDiffusion implementation)
+- 
+
+
+

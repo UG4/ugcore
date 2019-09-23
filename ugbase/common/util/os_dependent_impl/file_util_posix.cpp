@@ -156,11 +156,6 @@ bool CreateDirectory(const char *directory, int mode)
 	return mkdir(directory, mode) == 0;
 }
 
-bool CreateDirectory(std::string directory)
-{
-	return CreateDirectory(directory.c_str());
-}
-
 std::string GetTmpPath()
 {
 	return string("/tmp");

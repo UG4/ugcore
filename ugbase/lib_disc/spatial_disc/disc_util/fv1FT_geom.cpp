@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2010-2015:  G-CSC, Goethe University Frankfurt
  * Author: Andreas Vogel
@@ -1439,16 +1440,25 @@ void DimFV1FTGeometry<TDim, TWorldDim,  TInterfaceHandler>::
 update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
   
-   set_element_modus(false);
-   
-   // 	If already update for this element, do nothing
+///////////////////////////////////////////////////////////////////////////////////
+// (1) - (4= pre-processing for re-computing the cooridnates of element
+// corners 'vCornerCoords' in case of a cut element
+    
+    set_element_modus(false);
+    
+// If already update for this element, do nothing
    if(m_pElem == pElem) return; else m_pElem = pElem;
    
-   //  FT-1: collect potentially new 'vCornerCoords' and
-   //	       set elemMode (INSIDE_DOM/OUTSIDE_DOM/CUT_BY_INTERFACE)
-   bool do_update_local = m_spInterfaceHandler->update_elem(pElem, vCornerCoords);
+// (1) collect potentially new 'vCornerCoords' and set the elemModus
+//       (INSIDE_DOM/OUTSIDE_DOM/CUT_BY_INTERFACE)
+    bool do_update_local = false;
+    try{
+        do_update_local = m_spInterfaceHandler->update_elem(pElem, vCornerCoords);
+    }
+    UG_CATCH_THROW("DimFV1FTGeometry: access to InterfaceHander::update_elem() failed!.");
+
     
-   // 	FT-2: If OUTSIDE_DOM: set num_co = num_ip = 0 and do nothing further
+// (2) If OUTSIDE_DOM: set m_roid to usual value and perform local update
    if( m_spInterfaceHandler->elementModus() == OUTSIDE_DOM)
    {
        if ( dim == 2 )      m_roid = ROID_TRIANGLE;
@@ -1457,31 +1467,24 @@ update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubs
        update_local(m_roid);
    }
    
-   //	FT-3: refresh local data, if different roid given and reset 'm_roid'
-   //			OR if do_update_local = true: for QUADRILATERAL twice, this is necessary.
-   //			because data like 'm_nsh' need to be set to 4, which was set to 3 during 'remap'!!
+// (3) get computed roid and perform the local update based on that
    if (do_update_local || m_roid != m_spInterfaceHandler->roid() )
    {
        if( m_spInterfaceHandler->elementModus() != OUTSIDE_DOM )
        {
- 
            m_roid = m_spInterfaceHandler->roid();
            update_local(m_roid);
        }
    }
-   
+    
+// (4) set needed flag
    if(m_spInterfaceHandler->elementModus() == CUT_BY_INTERFACE)
        set_element_modus(true);
    
     
-/*
-// 	If already update for this element, do nothing
-	if(m_pElem == pElem) return; else m_pElem = pElem;
+//////////////////////////////////////////////////////////////////////////////////////
+// now: perform usual computations on potentially updated cut element 'vCornerCoords'
 
-//	refresh local data, if different roid given
-	if(m_roid != pElem->reference_object_id()) // remember new roid and update local data
-		update_local ((ReferenceObjectID) pElem->reference_object_id());
-*/
 //	get reference element
 	try{
 	const DimReferenceElement<dim>& rRefElem
@@ -1490,8 +1493,7 @@ update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubs
 // 	remember global position of nodes
 	for(size_t i = 0; i < rRefElem.num(0); ++i)
         m_vvGloMid[0][i] = m_spInterfaceHandler->corner(i);
-//        m_vvGloMid[0][i] = vCornerCoords[i];
-
+ 
         
 //	compute local midpoints
 	ComputeMidPoints<worldDim, DimReferenceElement<dim>, maxMid>(rRefElem, m_vvGloMid[0], m_vvGloMid);
@@ -1580,11 +1582,15 @@ update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubs
 	}
 	UG_CATCH_THROW("DimFV1FTGeometry: update failed.");
 
-// compute boundary faces of inner boundary
+
+/////////////////////////////////////////////////////////////////////////////
+// compute boundary faces of inner boundary: m_vBF-data
+//      --> needed for assembling boundary-conditions on immersed interface
     if(m_spInterfaceHandler->elementModus() == CUT_BY_INTERFACE)
     {
         update_inner_boundary_faces();
-        m_spInterfaceHandler->update_inner_boundary(vCornerCoords);
+        m_spInterfaceHandler->update_inner_boundary(m_spInterfaceHandler->corners());
+
     }
     else if(m_spInterfaceHandler->elementModus() == CUT_BY_2_INTERFACE)
     {
@@ -1640,7 +1646,7 @@ update_inner_boundary_faces()
         
         //	std::vector<BF>& vBF = m_spInterfaceHandler->m_vBF;
         std::vector<BF>& vBF = m_spInterfaceHandler->get_boundary_faces();
-        
+ 
         vBF.clear();
         
         //	loop sides of element
@@ -1716,11 +1722,11 @@ update_inner_boundary_faces()
             } // end loop of corners of side
                 
         } // end loop sides of element
-            
+     
     }
     UG_CATCH_THROW("DimFV1FTGeometry: update_inner_boundary() failed.");
-        
-        
+    
+    
 }
 
 // compare implementation of 'DimFV1Geometry::update_boundary_faces()'

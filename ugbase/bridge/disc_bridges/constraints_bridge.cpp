@@ -128,6 +128,9 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)()>()
 			.template add_constructor<void (*)(bool)>()
+#ifdef LAGRANGE_DIRICHLET_ADJ_TRANSFER_FIX
+			.template add_constructor<void (*)(bool,bool)>()
+#endif
 			.add_method("add", static_cast<void (T::*)(SmartPtr<UserData<number, dim, bool> >, const char*, const char*)>(&T::add),
 						"", "Value#Function#Subsets")
 			.add_method("add", static_cast<void (T::*)(SmartPtr<UserData<number, dim, bool> >, const std::vector<std::string>&, const std::vector<std::string>&)>(&T::add),

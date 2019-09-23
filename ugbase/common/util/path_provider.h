@@ -146,6 +146,22 @@ class PathProvider
 			return FileExists(absoluteFilename.c_str());
 		}
 
+
+	/**
+	 * @param relativeDirname (in) relative directory name
+	 * @param absoluteDirname (out) absolute directory name
+	 * @return true if directory exists relative to current path
+	 */
+		static inline bool get_dirname_relative_to_current_path(const std::string &relativeDirname, std::string &absoluteDirname)
+		{
+			const char* pathSep = GetPathSeparator();
+
+			if (!inst().has_current_path())
+				return false;
+			absoluteDirname = inst().get_current_path() + pathSep + relativeDirname;
+			return DirectoryExists(absoluteDirname.c_str());
+		}
+
 	/**
 	 * @param relativeFilename (in) relative filename
 	 * @param absoluteFilename (out) absolute filename
@@ -160,6 +176,20 @@ class PathProvider
 			return FileExists(absoluteFilename.c_str());
 		}
 
+	/**
+	 * @param relativeDirname (in) relative directory name
+	 * @param absoluteDirname (out) absolute directory name
+	 * @return true if directory exists relative to current path
+	 */
+		static inline bool get_dirname_relative_to_path(PathTypes pathType, const std::string &relativeDirname, std::string &absoluteDirname)
+		{
+			const char* pathSep = GetPathSeparator();
+
+			if (!inst().has_path(pathType))
+				return false;
+			absoluteDirname = inst().get_path(pathType) + pathSep + relativeDirname;
+			return DirectoryExists(absoluteDirname.c_str());
+		}
 	private:
 		PathProvider()	{}
 		PathProvider(const PathProvider&)	{}

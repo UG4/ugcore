@@ -304,19 +304,6 @@ erase(const typename ug::SectionContainer<TValue, TContainer>::iterator& elemHan
 //	if this is the case, we have to update the begin-handle of this section
 	if(elemHandle == m_vSections[sectionIndex].m_elemsBegin)
 	{
-	//	get the previous valid section
-		int prevValidSection = -1;
-		{
-			for(int i = sectionIndex - 1; i >= 0; --i)
-			{
-				if(num_elements(i) > 0)
-				{
-					prevValidSection = i;
-					break;
-				}
-			}
-		}
-
 	//	erase the element
 		hNext = m_container.erase(elemHandle);
 		m_vSections[sectionIndex].m_numElements--;
@@ -324,8 +311,18 @@ erase(const typename ug::SectionContainer<TValue, TContainer>::iterator& elemHan
 	//	update the current section and the previous valid one.
 		m_vSections[sectionIndex].m_elemsBegin = hNext;
 
-		if(prevValidSection != -1)
-			m_vSections[prevValidSection].m_elemsEnd = hNext;
+	//	change begin and end iterators in all preceding empty sections
+	//	and end iterator in the preceding non-empty section
+		for (int i = sectionIndex - 1; i >= 0; --i)
+		{
+			if (num_elements(i) <= 0)
+			{
+				m_vSections[i].m_elemsBegin = m_vSections[i].m_elemsEnd = hNext;
+				continue;
+			}
+			m_vSections[i].m_elemsEnd = hNext;
+			break;
+		}
 	}
 	else
 	{

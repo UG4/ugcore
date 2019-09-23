@@ -175,6 +175,9 @@ public:
 	//! return sqrt(sum values[i]^2) (euclidian norm)
 	inline double norm() const;
 
+	//! return max values[i] (max norm)
+	inline double maxnorm() const;
+
 	size_t size() const { return m_size; }
 
 

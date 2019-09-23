@@ -1018,6 +1018,20 @@ class DimFV1Geometry : public FVGeometryBase
 				return &(m_vvGloMid[0][0]);
 		}
 
+	/// return local coords for node ID
+		const MathVector<dim>& local_node_position(size_t nodeID) const
+		{
+			UG_ASSERT(nodeID < (size_t) maxMid, "Invalid node id.");
+			return m_vvLocMid[0][nodeID];
+		}
+
+	/// return global coords for node ID
+		const MathVector<worldDim>& global_node_position(size_t nodeID) const
+		{
+			UG_ASSERT(nodeID < (size_t) maxMid, "Invalid node id.");
+			return m_vvGloMid[0][nodeID];
+		}
+
 	///	returns the local coordinates of the center of mass of the element
 		const MathVector<dim>* coe_local() const {return &(m_vvLocMid[dim][0]);}
 		
@@ -1296,13 +1310,6 @@ class FV1ManifoldGeometry
 
 	/// returns number of all BF ips
 		size_t num_bf_local_ips() const {return m_vLocBFIP.size();}
-	
-	/// returns subset index
-		int subset_index() const
-		{
-			if (m_ssi != -1) return m_ssi;
-			UG_THROW("Subset index of geometry unknown.")
-		}
 
 	private:
 	// 	pointer to current element
@@ -1320,9 +1327,6 @@ class FV1ManifoldGeometry
 
 	// 	Reference Element
 		const ref_elem_type& m_rRefElem;
-
-	//	subset index of the element represented
-		int m_ssi;
 };
 
 }

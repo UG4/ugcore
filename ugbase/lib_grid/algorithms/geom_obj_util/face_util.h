@@ -75,7 +75,7 @@ UG_API int GetFaceIndex(Volume* vol, Face* f);
  * Performs normalization on the calcluated normals.
  */
 UG_API 
-void CalculateNormal(vector3& vNormOut, FaceVertices* face,
+void CalculateNormal(vector3& vNormOut, const FaceVertices* face,
 					Grid::AttachmentAccessor<Vertex, APosition>& aaPos);
 
 ////////////////////////////////////////////////////////////////////////
@@ -268,7 +268,7 @@ void GetNeighbours(std::vector<Face*>& vFacesOut, Grid& grid, Face* f,
 ////////////////////////////////////////////////////////////////////////
 //	template methods
 ////////////////////////////////////////////////////////////////////////
-//	CalculateFaceCenter
+//	CalculateCenter
 ///	calculates the center of a face.
 /**
  * TVertexPositionAttachmentAccessor has to be an AttachmentAccessor,
@@ -282,14 +282,7 @@ void GetNeighbours(std::vector<Face*>& vFacesOut, Grid& grid, Face* f,
 template<class TVertexPositionAttachmentAccessor>
 UG_API 
 typename TVertexPositionAttachmentAccessor::ValueType
-CalculateFaceCenter(Face* f, TVertexPositionAttachmentAccessor& aaPosVRT);
-
-////////////////////////////////////////////////////////////////////////
-template<class TVertexPositionAttachmentAccessor>
-UG_API 
-typename TVertexPositionAttachmentAccessor::ValueType
 CalculateCenter(const FaceVertices* f, TVertexPositionAttachmentAccessor& aaPosVRT);
-
 /** \} */
 
 

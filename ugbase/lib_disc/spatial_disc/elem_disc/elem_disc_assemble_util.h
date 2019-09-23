@@ -1985,8 +1985,8 @@ public:
 		TIterator iterEnd,
 		int si,
 		bool bNonRegularGrid,
-		std::vector<number> vScaleMass,
-		std::vector<number> vScaleStiff,
+		const std::vector<number>& vScaleMass,
+		const std::vector<number>& vScaleStiff,
 		ConstSmartPtr<VectorTimeSeries<vector_type> > vSol
 	)
 	{

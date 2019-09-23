@@ -87,6 +87,7 @@ class IExternalSolver
 	public:
 	//	Constructor
 		IExternalSolver()
+		: m_bUseConsistentInterfaces(false), m_bDisablePreprocessing(false)
 		{
 			m_size = 0;
 			m_blockSize = 0;
@@ -104,13 +105,19 @@ class IExternalSolver
 	///	returns if parallel solving is supported
 		virtual bool supports_parallel() const {return false;}
 
+	/// disable preprocessing (if underlying matrix has not changed)
+		void set_disable_preprocessing(bool bDisable)	{m_bDisablePreprocessing = bDisable;}
 
-	public:
+		void enable_consistent_interfaces(bool enable){ m_bUseConsistentInterfaces = enable; }
 
 		virtual void double_init(const CPUAlgebra::matrix_type &mat) = 0;
 
 		void mat_preprocess(const matrix_type &A)
 		{
+			// do not do a thing if preprocessing disabled
+			if (m_bDisablePreprocessing)
+				return;
+
 			if( A.num_rows() == 0 || A.num_cols() == 0) { m_size = 0; return; }
 			STATIC_ASSERT(matrix_type::rows_sorted, Matrix_has_to_have_sorted_rows);
 
@@ -119,13 +126,16 @@ class IExternalSolver
 			#ifdef UG_PARALLEL
 				// add slave rows to master rows (in indices which this is possible for)
 				matrix_type A_tmp; A_tmp = A;
-				MatAddSlaveRowsToMasterRowOverlap0(A_tmp);
+				if(m_bUseConsistentInterfaces){
+					MatMakeConsistentOverlap0(A_tmp);
+				}else {
+					MatAddSlaveRowsToMasterRowOverlap0(A_tmp);
 
-				// set zero on slaves
-				std::vector<IndexLayout::Element> vIndex;
-				CollectUniqueElements(vIndex, A.layouts()->slave());
-				SetDirichletRow(A_tmp, vIndex);
-
+					// set zero on slaves
+					std::vector<IndexLayout::Element> vIndex;
+					CollectUniqueElements(vIndex, A.layouts()->slave());
+					SetDirichletRow(A_tmp, vIndex);
+				}
 				// Even after this setting of Dirichlet rows, it is possible that there are
 				// zero rows on a proc because of the distribution:
 				// For example, if one has a horizontal grid interface between two SHADOW_RIM_COPY
@@ -218,12 +228,17 @@ class IExternalSolver
 			m_d.resize(m_size);
 
 #ifdef UG_PARALLEL
+
 			m_d.set_storage_type(PST_ADDITIVE);
 			m_c.set_storage_type(PST_CONSISTENT);
-
 			//	make defect unique
 			SmartPtr<vector_type> spDtmp = d.clone();
-			spDtmp->change_storage_type(PST_UNIQUE);
+			if(m_bUseConsistentInterfaces){
+				spDtmp->change_storage_type(PST_CONSISTENT);
+			} else{
+				spDtmp->change_storage_type(PST_UNIQUE);
+			}
+
 
 			get_vector(m_d, *spDtmp);
 #else
@@ -239,6 +254,7 @@ class IExternalSolver
 
 #ifdef UG_PARALLEL
 			// correction must always be consistent (but is unique by construction)
+			// (or regarded as such in the case of consistent interfaces)
 			c.set_storage_type(PST_UNIQUE);
 			c.change_storage_type(PST_CONSISTENT);
 #endif
@@ -334,9 +350,13 @@ public:
 	//	Postprocess routine
 		virtual bool postprocess() {return true;}
 
-	CPUAlgebra::vector_type m_c, m_d;
-	size_t m_size;
-	size_t m_blockSize;
+		bool m_bUseConsistentInterfaces;
+		CPUAlgebra::vector_type m_c, m_d;
+		size_t m_size;
+		size_t m_blockSize;
+		bool m_bDisablePreprocessing;
+
+
 };
 
 } // namespace ug

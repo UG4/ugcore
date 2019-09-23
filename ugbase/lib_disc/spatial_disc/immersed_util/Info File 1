@@ -1,0 +1,172 @@
+
+/* Info File for 'ImmersedInterface' class: */
+
+
+The 'ImmersedInterface' class provides functionality to assemble FE or FV discretisations with immersed interfaces, i.e. boundaries, which are NOT resolved by the given mesh. One possible application is the case, in which the outer boundary of the domain has a special, non-polygonal shape. It is a common approach to embed this into a regular, polygonal shaped domain. The grid of that domain will contain finite elements, which are cut by the interface. Another application are moving boundaries, where it would be too expensive, to remesh the grid in order to conform the geometry inheriting the moving interface. In all cases, the challenge is to derive a numerical scheme on elements, which are cut by the interface and only a part of the finite elment of the background mesh is relevant for the physical problem.
+
+There are many methods in the FE and FV community to handle the described case of immersed interfaces and resulting cut finite elements. The CutFEM method (mainly developed by P. Hansbo [1], E. Burman [2]) and also the XFEM method described by Reusken [3] derives a kind of 'ficiticious domain method'. It is 'ficticious', since the original shape functions w.r.t. the non-cut domain of the background mesh are used for the discretisation. Appropriate enrichment shape functions are defined on these non-confoming elements. In order to compute the physics in the smaller domain cut by the interface, the support of the shape functions get reduced to the relevant part.
+Another strategy is to introduce discontinuous shape functions on the cut elements which provide a jump at the interface and enables to capture jump boundary conditions on the immersed interface. These cathegory of methods was mainly developed for applicaton to crack simulations, see [4].
+
+The approach followed by the 'ImmersedInterface' class implementation relies on the idea of the CutFEM or XFEM methods and sets up an enriched function space on the cut elements. But the difference to these methods is to do it in a conforming way: Instead of reducing the support of the 'standard' shape functions, 'new' shape functions on the cut part of the element are defined which conform the interface. It is simply a conforming finite element space w.r.t. the interface adapted mesh. A "virtually"-interface-adapted mesh will be used for the discretisation. By means of that enrichment construction, no remeshing will be performed, but the new shape functions are added locally (on the fly during the finite element discretisation) via appropriate adaptations on the cut element. The background mesh remains unchanged. The method is described in [5] and was applied to elliptic problems with discontinuous coefficient [5] and fluid-particle interaction [6], [7].
+In order to enrich the function spaces on the cut elements, certain adaptations within the finite element implementations need to be done. That is described in the following.
+
+Within the UG4 framework the common strategy of an element based assembling is applied. A loop over all grid elements finally provides the discretisation of the whole domain. In particular, the discretisation is described locally for an arbitrary element and applied in an analogous fashion for each element of the mesh (='ElemDisc' class). All data that needs to be known by the finite element discretisation 'ElemDisc' gets stored in the template class TFVGeom, a so called finite element geometry type. The main and defining ingredient to define and set up the TFVGeom data structure are the corners of an element as input. Derived from that geometrical information such as volume, location of integration points, direction and length of normals, direction and length of gradiens etc. are computed and stored (see ugcore/ugbase/lib_disc/spatial_disc/disc_util for many instantiations of a geometry types).
+
+In order to provide the enriched local space w.r.t. the cut element as described above, the adaptation is quite simple by means of the described element geometry class TFVGeom.
+The 3 main comoponents are:
+
+(1) For each cut element the additional corners due to the intersection of the interface with the edges of the original element need to be computed.
+(2) Collecting those intersection point and joining them with those original nodes (into a counter-clockwise ording), which lie inside the domain FULLY DEFINE the adapted element to set up the discretisation on the cut element (see drawings below).
+(3) Define a mapping for the newly created DoFs from local assembling indices onto global indices of the DoFs.
+
+
+
+Original element without interface: 3 corners and standard DoFs, depicted by '*':
+
+        *
+       / \
+      /   \
+     /     \
+    /       \
+   /         \
+  /           \
+ /             \
+* _____________ *
+
+
+Assume, that an interface cuts the original element, such that it gets devided into the upper triangle (which we define as lying accross the interface, i.e. outside the domain) and the lower quadrilateral (which we define as inside the domain). The two lower corners are still DoFs of the system. In order to describe the cut element, i.e. the quadrilateral, we add the two intersection points as new corners, depicted by '+' and remove the upper corner.
+==> inserting those four coordinates into the element geometry class TFVGeom will directly realize the function space on the adapted element.
+
+        -
+       / \
+      /out\
+.....+.....+..... = interface
+    /       \
+   /         \
+  /  inside   \
+ /   domain    \
+* _____________ *
+
+
+______
+
+REMARK: The assembling process will loop over the original triangular element but change the description by means of new corners on the fly!
+            ==> the grid remains unchanged!
+______
+
+
+
+To perform the described adaptations and provide the data for the assembling of the numerical scheme within UG4, the MovingInterface class needs to provide the following functionality:
+
+
+(a) Methods to compute the intersection points of the interface with the element edges
+(b) Methods to collect all (old + new) corners and provide access
+(c) Methods to define new local and global indices of the new DoFs for acces during assembling
+(d) Methods to access the cut element data
+(e) Methods to hand over these data to the local-to-global mapper
+(f) Definition of a mapping of the new local indices/DoFs onto the new OR old global indices/DoFs (depeding on the method: flat top or 2 sided, see (*)). This is done by the local-to-global mapper. For comments on that, see the 'Info File' for the local-to-global mapper.
+
+
+(*) Depending on the choice of the local-to-global mapping (task (3)), the ansatz space on a cut element will differ. In UG4 two different variants are implemented:
+
+(1) In the 'MovingParticle' derivation of the 'ImmersedInterface' class, the intersection points of an element will be mapped onto the original vertex, which lies on the same cut element, but outside the domain (across the interface). In the picture below, the two 'plus'-nodes will be algebraically mapped, i.e. associated, with the 'minus'-node on the triangle. Mathematically, the result is a so called „flat top“ ansatz space, since the solution will be piecewise constant along the linear part of the interface cutting the element.
+
+(2) In the 'ImmersedInterfaceDiffusion' derivation of the 'ImmersedInterface' class, all intersection points of a cut element will be maped to individual DoFs. These DoFs need to be created newly into the global algebra, if the algebra does not provide them based on the original (typically smaller dimensional) grid. The resulting ansatz space is a boundary fitted space, which conforms the immersed boundary. Usually, the number of DoFs in the matrix for the jacobian and the vector for the solution and defect needs to be increased. The class provides methods to handle that in an initialistion phase.
+
+
+
+The 5 main components of the MovingInterface class are the following sub classes:
+
+(I)   InterfaceProvider
+(II)  CutElementHandler, providing (a),(d)
+(III) InterfaceHandlerLocal, providing (a), (b), (c)
+(IV)  LocToGlobMapper, providing (e), (f)
+(V)   InterfaceBndCond
+
+
+
+(I) InterfaceProvider:
+The InterfaceProvider simply stores main data defining the interface, such as location, associated solution values etc.
+
+
+(II) CutElementHandler:
+- provides access to InterfaceProvider
+- computes global infos about cut elements and global access to that: via the BoolMarker data structure of UG4
+    --> BoolMarker provide the boolian whether an element/vertex is cut or non-cut (for more infos se Info File of the CutElementHander)
+- computes lists of all cut elements, all outside elemets etc.
+- it has NO access to InterfaceHandlerLocal
+- the InterfaceHandlerLocal has access to the CutElementHandler
+
+Important methods:
+---> is_onInterfaceVertex(), is_outsideVertex(), is_nearInterfaceVertex()
+---> get_intersectionPoint()
+---> compute_element_modus()
+---> get_element_modus()
+---> compute_vertex_modus()
+---> get_vertex_modus()
+
+
+
+(III) InterfaceHandlerLocal:
+- computation of intersection points
+    --> the computation is induced via the call of 'update_elem()', which itself is controlled by the update functionality of the TFVGeom class for each finite element on which assembling will be done
+- defining a local indexing of the new+old DoFs
+- has access to CutElementHandler
+
+Important methods:
+---> update_elem()
+---> compute_cut_element_data()
+---> CollectCorners_...()
+---> set_roid_2d/3d()
+
+Important data:
+---> m_vCornerCoords: contains the new and old corners, already orderes appropriately!
+---> m_vInterfaceID, m_vNOInterfaceID, v_OriginalCornerID: contains all infos on the local indices
+
+
+
+(IV) LocToGlobMapper:
+- handles the mapping from the local indices provided by the 'InterfaceHandlerLocal' class to the global indices
+- it can also implement boundary conditions via the mapping process if not possible through the class 'InterfaceBndCond'
+
+
+(V) InterfaceBndCond:
+- has the 'LocalToGlobalHandler' class as a member
+- in analogy to usual ElemDisc classes which implement boundary conditions (such as NeumanBoundary) it handles according boundary conditions on the immersed interface with the data provided by the 'LocalToGlobalHandler'
+
+
+
+
+
+
+
+[1] Hansbo A., Hansbo P.:
+    "An unfitted finite element method, based on Nitsche's method, for elliptic interface problems."
+    Computer Methods in Applied Mechanics and Engineering, 191(47-48), (2002), pp. 5537-5552
+
+[2] Burman E., Hansbo P., Larson M. G., Massing A.:
+    "A cut discontinuous Galerkin method for the Laplace-Beltrami operator."
+    AIMA Journal of Numerical Analysis, 37, (2017), pp.138-169
+
+[3] Kirchhart M., Gross S., Reusken A.:
+    "Analysis of an XFEM Discretization for Stokes Interface Problems."
+    SIAM Journal of Scientic Computing, 38(2), (2017), pp. A1019-A1043
+
+[4] Belytschko T., Gracie R., Ventura G.:
+    "A review of extended/generalized finite element methods for material modeling."
+    Modell Simul Mater Sci Eng, 17(4), (2009)
+
+[5] Hoellbacher S., Wittum G.:
+    "A sharp interface method using enriched finite elements for elliptic interface problems."
+    submitted to Numerische Mathematik
+
+[6] Hoellbacher S., Wittum G.:
+    "Rotational test spaces for a fully-implicit FVM and FEM for the DNS of fluid-particle interaction"
+    Journal of Computational Physics, vol. 393, (2019), pp. 186–213
+    open access link: https://authors.elsevier.com/sd/article/S0021999119303298
+    DOI: https://doi.org/10.1016/j.jcp.2019.05.004
+
+[7] Hoellbacher S., Wittum G.:
+    "Gradient-consistent enrichment of finite element spaces for the DNS of fluid-particle interaction."
+    submitted to Jounal of Computational Physics
+

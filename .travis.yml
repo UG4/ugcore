@@ -7,6 +7,9 @@ addons:
        - make
        - cmake-data
        - cmake
+    homebrew:
+      packages:
+      - ccache
   
 
 # we compile a c++ project
@@ -22,7 +25,6 @@ os:
   
 env:
   global:
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then PATH=/usr/lib/ccache:${PATH}; fi
     - TIMEOUT_BUILD='30m'
     - BUILD_SUCCESS=true
     
@@ -31,16 +33,27 @@ env:
     - DIM=2 CPU=1       TARGET=vrl     STATIC_BUILD=OFF BUILD_VARIANT="build2"
     - DIM=ALL CPU=1;2   TARGET=ugshell STATIC_BUILD=ON  BUILD_VARIANT="build3"
     - DIM=ALL CPU=1;2   TARGET=vrl     STATIC_BUILD=OFF BUILD_VARIANT="build4"
-      
-      
+
+
+before_cache:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew cleanup; fi
+
 cache:
   ccache: true
   directories:
-    - travis_root
-   #- $HOME/Library/Caches/Homebrew
+   #- travis_root
+    - $HOME/.ccache
+   # - $HOME/Library/Caches/Homebrew
    # TODO: how can we do conditional caching of directories (depending on OS)
    #- /home/travis/build/miho/OCC-CSG/oce-OCE-0.18.3
    #- /Users/travis/build/miho/ugcore/
+
+# prepare ccache for (optional) install step
+before_install:
+  # installing ccache and freetype packages via homebrew
+#  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install ccache; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH="/usr/local/opt/ccache/libexec:$PATH"; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export CXXFLAGS="-stdlib=libc++"; fi
 
 # prepare compilation  
 before_script:
@@ -83,5 +96,5 @@ script:
     # ccache fixes global build time of ~ 50 minutes
     # we still need to use travis_wait to prevent "build error because of no output"
     # https://docs.travis-ci.com/user/common-build-problems/#Build-times-out-because-no-output-was-received
-    - travis_wait 45 make -j3
+    - travis_wait 45 make -j2
     - if [[ "$TARGET" == "ugshell" ]]; then ../bin/ugshell -call "print(\"it works\")"; fi

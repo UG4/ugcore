@@ -144,6 +144,25 @@ number CalculateVolume(TIterator begin, TIterator end, TAAPos aaPos)
 	return totalVolume;
 }
 
+//! Determine the bounding box for a set of points.
+template<int dim>
+void CalculateBoundingBox(size_t npoints, const MathVector<dim> points[], MathVector<dim> &vMinBB, MathVector<dim> &vMaxBB)
+{
+	// determine bounding box
+	vMinBB= points[0];
+	vMaxBB = points[0];
+
+	for(size_t ii = 1; ii < npoints; ++ii)
+	{
+		for(int i = 0; i < dim; ++i)
+		{
+			const MathVector<dim>& v = points[ii];
+			if(v[i] < vMinBB[i]) vMinBB[i] = v[i];
+			else if(v[i] > vMaxBB[i]) vMaxBB[i] = v[i];
+		}
+	}
+}
+
 }// end of namespace
 
 #endif

@@ -110,7 +110,10 @@ class IConstraint
 
 	///	adjusts the assembled error estimator values in the attachments according to the constraint
 		virtual void adjust_error(const vector_type& u, ConstSmartPtr<DoFDistribution> dd, int type,
-								  number time = 0.0) {};
+								  number time = 0.0,
+								  ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = SPNULL,
+								  const std::vector<number>* vScaleMass = NULL,
+								  const std::vector<number>* vScaleStiff = NULL) {};
 
 	///	sets constraints in prolongation
 		virtual void adjust_prolongation(matrix_type& P,

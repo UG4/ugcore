@@ -14,6 +14,8 @@
 # - Jugene, Forschungszentrum Juelich (ll_submit)
 # - Juqueen, Forschungszentrum Juelich (ll_submit)
 # - Jureca, Forschungszentrum Juelich (SLURM)
+# - Juwelsjureca, Forschungszentrum Juelich (SLURM)
+# - SDCluster, Ruhr University Bochum (SLURM)
 # - Hermit, HLRS Stuttgart (qsub, aprun)
 # - NecNehalem, HLRS Stuttgart (qsub, mpirun)
 # - MOAB Workload Manager (msub, srun)
@@ -46,6 +48,7 @@ runDir=$execPath
 execdate=`date`;      # date of execution
 verbose=false;
 exclusive=false;
+nosuffix=false;
 scriptpath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 mailStart=false
@@ -99,7 +102,10 @@ function usage
 	echo "        -nppn <nppn>           : number of processes per node (optional, default "$nppn")"
 	echo "        -cluster <type>        : cluster to use. see below (or use env. variable UGSUBMIT_TYPE)"
 	echo "        -name <jobname>        : a jobname to be used (optional, default \""$jobname"\")"
+	echo "        -nosuffix              : do not add .npe.date suffix to jobname"
 	echo "        -walltime <hh:mm:ss>   : max walltime for job to run (optional; default is "$walltime")"
+	echo "        -partition <partition> : the partition to be used"
+	echo "        -mem <mem>             : max (overall) main memory for the job"
 	echo "        -email <emailadress>   : emailadress. you can also use the environment variable UGSUBMIT_EMAIL."
 	echo "        -mail-start            : mail when job starts"
 	echo "        -mail-end              : mail when job ends"
@@ -115,7 +121,7 @@ function usage
 	echo "        -queue                 : the queue to use"
 	echo "        -nosubdir              : don't create job in a subdir, but in dir (default .) directly. (warning: might be dangerous)"
 	echo " "
-	echo " Supported Cluster Types: NecNehalem, Hermit, Jugene, Juqueen, Jureca, mpi (mpi-foreground, mpi-background), cekon, cesari, moab."
+	echo " Supported Cluster Types: NecNehalem, Hermit, Jugene, Juqueen, Jureca, Juwels, SDCluster, mpi (mpi-foreground, mpi-background), cekon, cesari, moab."
 	if [ -n "$UGSUBMIT_TYPE" ]; then 
 		echo " Only UGSUBMIT_TYPE=$UGSUBMIT_TYPE specific parameters are shown ! Set UGSUBMIT_TYPE=\"\" to see all."
 	fi
@@ -145,6 +151,16 @@ function usage
 		echo "                                  batch (max. 24h walltime, 128 nodes, 128/256 memory/node)"
 		echo "                                  mem512 (512G memory/node, needs to be explicitly requested)"
 		echo "        -Jureca-memory <mem>:     Amount of memory to use (default is 128): 128, 256, 512."                   
+		echo ""
+	fi
+	if [ -z "$UGSUBMIT_TYPE" ] || [ $UGSUBMIT_TYPE == "Juwels" ]; then
+		echo ""
+		echo " Juwels Parameters"
+		echo "        -Juwels-partition <part>: Partition to use; default is batch:"
+		echo "                                  batch (max. 24h walltime, 256 nodes, 96G memory/node)"
+		echo "                                  mem192 (192G memory/node)"
+		echo "        -Juwels-project <name>:   Project name under which the job is to be carried out,"
+		echo "                                  e.g., HFUxxx; needed for accounting."
 		echo ""
 	fi
 	if [ -z "$UGSUBMIT_TYPE" ] || [ $UGSUBMIT_TYPE == "DoraCSCS" ]; then
@@ -215,6 +231,9 @@ do
 	elif [ $1 == "-name" ]; then
 		jobname=$2
 		shift 2
+	elif [ $1 == "-nosuffix" ]; then
+		nosuffix=true
+		shift 1
 	elif [ $1 == "-so" ]; then
 		scheduleroptions=$2
 		shift 2
@@ -312,6 +331,18 @@ do
 	elif [ $1 == "-Jureca-memory" ]; then
 		jureca_mem=$2
 		shift 2
+	elif [ $1 == "-Juwels-partition" ]; then
+		juwels_part=$2
+		shift 2
+	elif [ $1 == "-Juwels-project" ]; then
+		juwels_project=$2
+		shift 2
+	elif [ $1 == "-partition" ]; then
+		partition=$2
+		shift 2
+	elif [ $1 == "-mem" ]; then
+		mem=$2
+		shift 2
 	elif [ $1 == "---" ]; then
 		shift
 		break
@@ -375,7 +406,10 @@ if [ ${executable:0:1} = "." ]; then
 fi
 
 dirdate=$(date "+%Yy%mm%dd-%Hh%Mm%Ss");
-jobname=$jobname.$npe.$dirdate;
+
+if [ $nosuffix == false ]; then
+	jobname=$jobname.$npe.$dirdate;
+fi
 
 #create output directory
 if [ $nosubdir == true ]; then
@@ -518,7 +552,7 @@ if [ $interactive == false ]; then
 		sleep 1; tail -f job.output -c +0
 	fi
 	
-	if [ $jobid != "?" ] && [ $nosubdir == false ]; then
+	if [ ! "$jobid" = "?" ] && [ $nosubdir = false ]; then
 		cd $execpath
 		ln -s $outdir jobid.$jobid
 	fi	

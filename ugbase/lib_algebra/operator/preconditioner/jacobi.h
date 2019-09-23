@@ -114,10 +114,10 @@ class Jacobi : public IPreconditioner<TAlgebra>
 
 	public:
 	///	default constructor
-		Jacobi() {this->set_damp(1.0);};
+		Jacobi() {this->set_damp(1.0); m_bBlock = true;};
 
 	///	constructor setting the damping parameter
-		Jacobi(number damp) {this->set_damp(damp);};
+		Jacobi(number damp) {this->set_damp(damp); m_bBlock = true;};
 
 	/// clone constructor
 		Jacobi( const Jacobi<TAlgebra> &parent )
@@ -141,6 +141,7 @@ class Jacobi : public IPreconditioner<TAlgebra>
 		virtual ~Jacobi()
 		{};
 
+	/// sets if blocked jacobi is used (inverting block-diagonal), or plain (scalar) diagonal if false
 		void set_block(bool b)
 		{
 			m_bBlock = b;
@@ -206,7 +207,7 @@ class Jacobi : public IPreconditioner<TAlgebra>
 #else
 				typename matrix_type::value_type &d = mat(i,i);
 #endif
-				if(m_bBlock)
+				if(!m_bBlock)
 					GetDiag(m, d);
 				else
 					m = d;

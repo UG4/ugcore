@@ -768,8 +768,7 @@ void HangingNodeRefinerBase<TSelector>::perform_refinement()
 
 		//	a normal edge may have previously been created by replacing a
 		//	constrained or constraining edge. Those edges won't be considered here
-			// FIXME: This is not correct at least for constrained edges! Remove marked_to_normal()!
-			if((!refinement_is_allowed(e)) || marked_to_normal(e)){
+			if(!refinement_is_allowed(e)){
 				continue;
 			}
 
@@ -1317,6 +1316,13 @@ assign_hnode_marks()
 				}
 			}
 		}
+
+		// FIXME: Also take care of (unmarkable) SHADOW_COPY edges
+		// whose children are marked for refinement:
+		// These children need to be marked HNRM_TO_CONSTRAINING!
+		// How can these be identified!?
+		// This is now only implemented in HaningNodeRefiner_MultiGrid::assign_hnode_marks
+
 	}
 }
 
@@ -2031,7 +2037,7 @@ refine_volume_with_normal_vertex(Volume* v, Vertex** newCornerVrts)
 			if(vNewEdgeVertices[i])
 				noEdgeVrts = false;
 			UG_COND_THROW(!(marked_adaptive(v) || vNewEdgeVertices[i]),
-						"In order to fully refine a volume, all edges have"
+						"In order to fully refine a volume, all edges have "
 						"to contain a new vertex!");
 		}
 	}

@@ -267,7 +267,6 @@ refinement_begins (const ISubGrid* psg)
 							sel.select(e);
 					}lg_end_for;
 				}
-				selectionPerformed = true;
 			}
 			
 			SubGrid<IsSelected> tsg(sel.get_grid_objects(), IsSelected(sel));
