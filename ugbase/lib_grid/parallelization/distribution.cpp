@@ -102,7 +102,7 @@ class DistInfoSupplier{
 				case EDGE:		return get(static_cast<Edge*>(obj));
 				case FACE:		return get(static_cast<Face*>(obj));
 				case VOLUME:	return get(static_cast<Volume*>(obj));
-				default:	UG_THROW("Unknown geometric object base type."); break;
+				default:	UG_THROW("Unknown geometric object base type."); 
 			}
 		}
 

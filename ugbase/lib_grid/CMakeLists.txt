@@ -101,6 +101,7 @@ set(srcAlgorithms	algorithms/debug_util.cpp
 					refinement/refiner_interface.cpp
 					refinement/regular_refinement.cpp
 					refinement/global_multi_grid_refiner.cpp
+					refinement/global_subdivision_multi_grid_refiner.cpp
 					refinement/global_fractured_media_refiner.cpp
 					algorithms/subdivision/subdivision_loop.cpp
 					algorithms/subdivision/subdivision_rules_piecewise_loop.cpp
@@ -170,6 +171,7 @@ if(PARALLEL)
 							parallelization/deprecated/load_balancing.cpp
 							parallelization/partitioner_dynamic_bisection.cpp
 							parallelization/parallel_refinement/parallel_global_fractured_media_refiner.cpp
+							parallelization/parallel_refinement/parallel_global_subdivision_refiner.cpp
 							parallelization/parallel_refinement/parallel_hanging_node_refiner_multi_grid.cpp
 							parallelization/parallel_refinement/parallel_hnode_adjuster.cpp)
 	

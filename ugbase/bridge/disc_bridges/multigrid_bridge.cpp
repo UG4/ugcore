@@ -136,6 +136,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 		string name = string("StdInjection").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
+			.add_method("init", &T::init)
+			.add_method("do_restrict", &T::do_restrict)
 			.template add_constructor<void (*)(SmartPtr<approximation_space_type>)>("Approximation Space")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "StdInjection", tag);

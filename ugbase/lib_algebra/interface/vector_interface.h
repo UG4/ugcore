@@ -40,6 +40,7 @@ public:
 	typedef TValueType value_type;
 	//typedef subvector<value_type> subvector_type;
 	typedef Vector<TValueType> vector_type;
+	typedef size_t size_type;
 
 public:
 	//! constructor
