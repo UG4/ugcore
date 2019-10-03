@@ -670,6 +670,30 @@ VecElemSqrt(vector_t& vOut, const vector_t& v1)
 	}
 }
 
+///	component-wise comparison of two vectors (in the absolute values)
+template <typename vector_t>
+inline
+bool
+VecAbsIsLess(const vector_t& v1, const vector_t& v2)
+{
+	for(typename vector_t::size_type i = 0; i < v1.size(); ++i)
+		if (std::abs (v1[i]) >= std::abs (v2[i]))
+			return false;
+	return true;
+}
+
+///	component-wise comparison of a vector (in the absolute values) with a given number
+template <typename vector_t>
+inline
+bool
+VecAbsIsLess(const vector_t& v1, const typename vector_t::value_type s)
+{
+	for(typename vector_t::size_type i = 0; i < v1.size(); ++i)
+		if (std::abs (v1[i]) >= s)
+			return false;
+	return true;
+}
+
 }//	end of namespace
 
 #endif /* __H__COMMON__MathVector_FUNCTIONS_COMMON_IMPL__ */
