@@ -212,36 +212,73 @@ class BaseReferenceMapping
 		}
 
 	///	map global coordinate to local coordinate
-		void global_to_local(MathVector<dim>& locPos,
-							 const MathVector<worldDim>& globPos,
-							 const size_t maxIter = 1000,
-							 const number tol = 1e-10) const
+		void global_to_local
+		(
+			MathVector<dim>& locPos, ///< (o) for the computed local coordinates (i) specify the initial guess!
+			const MathVector<worldDim>& globPos, ///< (i) the global coordinates to transform
+			const size_t maxIter = 1000, ///< (i) maximum number of the Newton iterations
+			const number tol = 1e-10 ///< (i) tolerance (smalles possible correction in the Newton iterations)
+		) const
 		{
+			// We apply the Newton's method for the transformation. We assume here that
+			// the Newton's method converges without the linesearch, and the Jacobian is
+			// non-singular in the whole iteration process. This is true in particular for
+			// the bilinear transformation of convex quadrilaterals if the initial guess
+			// is inside of the element.
 			MathMatrix<worldDim, dim> J;
 			MathMatrix<dim, worldDim> JInv;
-			MathVector<worldDim> dist, compGlobPos;
-			number tolSq = sq(tol);
+			MathVector<worldDim> dist, compGlobPos, minDist;
+			MathVector<dim> corr;
+			
+			VecScale(minDist, globPos, tol);
 
 			for (size_t i = 0; i < maxIter; ++i) {
 
 			//	f(x) := \phi(x) - x_{glob}
 				getImpl().local_to_global(compGlobPos, locPos);
 				VecSubtract(dist, compGlobPos, globPos);
+				
+			//	Floating-point cancellation protection:
+				if(VecAbsIsLess(dist, minDist))
+					return;
+				// REMARK: Note that the tolerance is specified not only to provide the
+				// sufficient accuracy for the solution but also to protect the iteration
+				// from the cancellation phenomena in the floating-point arithmetics.
+				// Computation of the distance involves subtraction which is a reason for
+				// the loss of precision phenomena. If a small element is located very far
+				// from the coordinate origin, the accuracy of the local->global transform
+				// is restricted and this cannot be overcome. After we reach this bound,
+				// the iterates will oscillate and the defect will not be reduced. We use
+				// globPos for the reference values.
+				//      Note that this check may not be used as the only stopping criterion:
+				// globPos may be 0 by specification. 
 
 				UG_DLOG(DID_REFERENCE_MAPPING_GLOB_TO_LOC, 2,
 						"reference_mapping.h: global_to_local() Newton iteration: Iter# "
 						<< i << "; fabs(VecTwoNorm(dist)) = " << fabs(VecTwoNorm(dist)) <<
 						"; dist = " << dist << "; locPos: " << locPos << std::endl);
 
-			//	check if tol reached
-				if(VecTwoNormSq(dist) < tolSq) return;
-
 			//	compute jacobian df/dx = d \phi(x) / dx =: J
 				getImpl().jacobian(J, locPos);
 
-			//	solve x -= J^{-1} f
+			//	solve c -= J^{-1} f
 				LeftInverse(JInv, J);
-				MatVecScaleMultAppend(locPos, -1.0, JInv, dist);
+				MatVecMult(corr, JInv, dist);
+				
+			//	check if tol reached
+				if(VecAbsIsLess(corr, tol))
+					return;
+				// REMARK: Note that using the Euclidean or maximum norm directly to dist
+				// would need tuning of the tolerance for every particular grid: For big
+				// elements with the diameter of order 1, the tolerance 1e-10 is good accuracy,
+				// but for a refined grid with the elements of the size of order 1e-5 it
+				// can be pour. But ||corr|| = ||J^{-1} dist|| is also a norm of dist, and
+				// it is rescaled according to the element dimensions.
+				//      Besides that, ||corr|| measures whether we can get any further progress
+				// in the iterations.
+
+			//	apply the correction
+				VecSubtract(locPos, locPos, corr);
 			}
 
 			// compiler does not know that maxIter will never be 0
