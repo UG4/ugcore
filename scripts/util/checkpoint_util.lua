@@ -208,6 +208,39 @@ function util.ReadCheckpoint(u, name, verbose)
 	return cp
 end
 
+--! util.ReadCheckpointFromDir
+--! 
+--! @param u the GridFunction to read into
+--! @param dir the GridFunction to read into
+--! @param name name of Lua checkpoint file. may be nil.
+--! @return the checkpoint data cp. (see util.WriteCheckpoint)
+--!  myData will be saved  cp.myData.
+--! @param verbose if verbose defined then print additional debug output to console
+function util.ReadCheckpointFromDir(u, dir, name, verbose)
+	if name == nil then name = util.checkpoint.stdName end
+	if dir == nil then dir = "" end
+	
+	-- todo: use if file exists here, and return nil if not
+	ug_load_script(dir..name..".lua")
+
+	local cp = LoadTheCheckpoint()
+	
+	-- print the checkpoint
+	if verbose then
+	  print("Loading Checkpoint "..dir..name..".lua :")
+  	print(cp)
+  end
+	
+	-- check that the stdData is same in file and
+	-- current run (see util.GetStdCheckpointData)
+	util.CheckCheckpointData(cp)
+
+	ReadFromFile(u, dir..cp.lastFilename)
+	
+	util.checkpoint.lastCheckpointTimeMS = GetClockS()*1000
+	return cp
+end
+
 --! util.WriteStateCheckpoint
 --! 
 --! @param gf_names a table of names of grid functions to save (e.g. {u=u, lsf=lsf})
