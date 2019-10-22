@@ -110,6 +110,15 @@ static void DomainAlgebra(Registry& reg, string grp)
 		#endif
 	}
 
+	//IterpolateDiff
+	{
+
+		reg.add_function("Interpolate", static_cast<void (*)(SmartPtr<UserData<number, dim> >, SmartPtr<TFct>, const char*, const MathVector<dim>&)>(&ug::Interpolate<TFct>),grp, "Integral", "Data#GridFunction#Component#MoveVector");
+	#ifdef UG_FOR_LUA
+		//reg.add_function("Interpolate", static_cast<void (*)(LuaFunctionHandle, SmartPtr<TFct>, const char*,const SmartPtr<CplUserData<MathVector<dim>, dim> >)>(&ug::Interpolate<TFct>),grp, "Integral", "LuaFunction#GridFunction#Component#DiffVector");
+	#endif
+	}
+
 	// InterpolateInner
 	{
 		reg.add_function("InterpolateInner", static_cast<void (*)(SmartPtr<UserData<number, dim> >, SmartPtr<TFct>, const char*, const char*, number)>(&ug::InterpolateInner<TFct>),grp, "Integral", "Data#GridFunction#Component#Subsets#Time");
