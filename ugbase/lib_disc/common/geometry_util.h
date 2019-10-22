@@ -1069,7 +1069,7 @@ inline void ElementExtensionsSq<3>(ReferenceObjectID roid, MathVector<3>& ext, c
 	switch(roid)
 	{
 		case ROID_VERTEX: 			ext = 0; return;
-		case ROID_EDGE: 			ComputeElementExtensionsSqForEdges(vCornerCoords,ext); return; return;
+		case ROID_EDGE: 			ComputeElementExtensionsSqForEdges(vCornerCoords,ext); return; 
 		case ROID_TRIANGLE: 		ComputeElementExtensionsSq<3,3>(vCornerCoords,ext); return;
 		case ROID_QUADRILATERAL: 	ComputeElementExtensionsSq<3,4>(vCornerCoords,ext); return;
 		case ROID_TETRAHEDRON: 		ComputeElementExtensionsSq<3,4>(vCornerCoords,ext); return;

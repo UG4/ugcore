@@ -91,13 +91,13 @@ class GlobalMultiGridRefiner : public IRefiner, public GridObserver
 	///	a callback that allows to deny refinement of special volumes
 		virtual bool refinement_is_allowed(Volume* elem)		{return true;}
 		
-	///	this method helps derived classes to perform operations directly before actual element refinment is performed.
+	///	this method helps derived classes to perform operations directly before actual element refinement is performed.
 	/**	Called from the refine() method in each refinement-iteration after
 	 *	collect_objects_for_refine().
 	 *	Default implementation is empty.*/
 		virtual void refinement_step_begins()	{};
 
-	///	this method helps derived classes to perform operations directly after actual element refinment took place.
+	///	this method helps derived classes to perform operations directly after actual element refinement took place.
 	/**	Called from the refine() method in each refinement-iteration after
 	 *	all scheduled elements had been refined.
 	 *	The refine process will either terminate after this method or will

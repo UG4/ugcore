@@ -102,6 +102,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("assign", static_cast<void (TFct::*)(const vector_type&)>(&TFct::assign),
 						"Success", "Vector")
 			.add_method("clone", &TFct::clone)
+			.add_method("set_consistent_storage_type", &TFct::SetConsistentStorageType)
 			.add_method("grid_level", &TFct::grid_level)
 			.add_method("num_dofs", static_cast<size_t (TFct::*)() const>(&TFct::num_dofs))
 			.add_method("redistribution_enabled", &TFct::redistribution_enabled)
@@ -417,6 +418,14 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_function("CheckDoFPositions", static_cast<bool (*)(const TFct&)>(CheckDoFPositions<TFct>), grp);
 	}
 
+//	ScaleGF
+	{
+		reg.add_function("ScaleGF", ScaleGF<TFct>, grp, "",
+			"scaled output vector # input vector # vector of scaling factors for each function",
+			"Scales the input vector using the given scaling factors for each function and writes "
+			"the result to the output vector");
+	}
+
 //	AverageFunctionDifference
 	{
 		typedef ug::GridFunction<TDomain, TAlgebra> GF;
@@ -439,6 +448,13 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_function ("CheckGFValuesAtEdges", static_cast<bool (*) (const GF*, const char *)> (&CheckGFforNaN<GF,Edge>), grp);
 		reg.add_function ("CheckGFValuesAtFaces", static_cast<bool (*) (const GF*, const char *)> (&CheckGFforNaN<GF,Face>), grp);
 		reg.add_function ("CheckGFValuesAtVolumes", static_cast<bool (*) (const GF*, const char *)> (&CheckGFforNaN<GF,Volume>), grp);
+	}
+
+//	CheckGFValuesWithinBounds
+	{
+		typedef ug::GridFunction<TDomain, TAlgebra> GF;
+		reg.add_function("CheckGFValuesWithinBounds", static_cast<bool (*) (ConstSmartPtr<GF>, size_t, number, number)> (&CheckGFValuesWithinBounds<GF>), grp);
+		reg.add_function("CheckGFValuesWithinBounds", static_cast<bool (*) (ConstSmartPtr<GF>, const char*, number, number)> (&CheckGFValuesWithinBounds<GF>), grp);
 	}
 
 //	Move Domain by GridFunction

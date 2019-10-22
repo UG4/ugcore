@@ -1109,13 +1109,6 @@ class HFV1ManifoldGeometry
 	/// returns number of all scvf ips
 		size_t num_bf_local_ips() const {return m_vLocBFIP.size();}
 
-	/// returns subset index
-		int subset_index() const
-		{
-			if (m_ssi != -1) return m_ssi;
-			UG_THROW("Subset index of geometry unknown.")
-		}
-
 	protected:
 		void compute_side_midpoints(MathVector<dim>& locSideMid,
 								   MathVector<worldDim>& gloSideMid)
@@ -1229,9 +1222,6 @@ class HFV1ManifoldGeometry
 
 	// 	Reference Element
 		const ref_elem_type& m_rRefElem;
-
-	//	subset index of the element represented
-		int m_ssi;
 };
 
 

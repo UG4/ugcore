@@ -465,7 +465,9 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 ########################################
 # dynamic linking
 if(UNIX)
-	set(linkLibraries ${linkLibraries} dl)
+	if(NOT STATIC_BUILD)
+		set(linkLibraries ${linkLibraries} dl)
+	endif(NOT STATIC_BUILD)
 # for cekon pthread bug
 #    set(linkLibraries ${linkLibraries} pthread)
 elseif(WIN32)
@@ -581,9 +583,14 @@ include(${UG_ROOT_CMAKE_PATH}/ug/export_includes.cmake)
 include(${UG_ROOT_CMAKE_PATH}/ug/export_definitions.cmake)
 
 ################################################################################
+# Declare a method that allows all sub-cmake-files to add their linker flags to
+# to the main project P_UG4
+include(${UG_ROOT_CMAKE_PATH}/ug/export_linker_flags.cmake)
+
+################################################################################
 # Declare a method that allows all sub-cmake-files to add definitions for
 # specific files to the main project P_UG4
-include(${UG_ROOT_CMAKE_PATH}/ug/export_single_file_definitions.cmake)
+include(${UG_ROOT_CMAKE_PATH}/ug/export_single_file_compile_flags.cmake)
 
 ######################################################################################################################
 # the following options are pseudo cmake-options (normal options only support ON and OFF).

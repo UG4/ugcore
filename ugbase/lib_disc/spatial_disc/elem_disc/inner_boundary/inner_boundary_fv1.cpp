@@ -97,6 +97,8 @@ template<typename TElem, typename TFVGeom>
 void FV1InnerBoundaryElemDisc<TDomain>::
 prep_elem_loop(const ReferenceObjectID roid, const int si)
 {
+	m_si = si;
+
 	//	set local positions
 	if (!TFVGeom::usesHangingNodes)
 	{
@@ -165,6 +167,9 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 	// get finite volume geometry
 	const static TFVGeom& fvgeom = GeomProvider<TFVGeom>::get();
 
+	FluxDerivCond fdc;
+	size_t nFct = u.num_fct();
+	std::vector<LocalVector::value_type> uAtCorner(nFct);
 	for (size_t i = 0; i < fvgeom.num_bf(); ++i)
 	{
 		// get current BF
@@ -172,19 +177,15 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 
 		// get associated node and subset index
 		const int co = bf.node_id();
-		int si = fvgeom.subset_index();
 
 		// get solution at the corner of the bf
-		size_t nFct = u.num_fct();
-		std::vector<LocalVector::value_type> uAtCorner(nFct);
 		for (size_t fct = 0; fct < nFct; fct++)
 			uAtCorner[fct] = u(fct,co);
 
 		// get corner coordinates
 		const MathVector<dim>& cc = bf.global_corner(0);
 
-		FluxDerivCond fdc;
-		if (!fluxDensityDerivFct(uAtCorner, elem, cc, si, fdc))
+		if (!fluxDensityDerivFct(uAtCorner, elem, cc, m_si, fdc))
 			UG_THROW("FV1InnerBoundaryElemDisc::add_jac_A_elem:"
 							" Call to fluxDensityDerivFct resulted did not succeed.");
 		
@@ -229,6 +230,10 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 	// get finite volume geometry
 	static TFVGeom& fvgeom = GeomProvider<TFVGeom>::get();
 
+	FluxCond fc;
+	size_t nFct = u.num_fct();
+	std::vector<LocalVector::value_type> uAtCorner(nFct);
+
 	// loop Boundary Faces
 	for (size_t i = 0; i < fvgeom.num_bf(); ++i)
 	{
@@ -237,11 +242,8 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		
 		// get associated node and subset index
 		const int co = bf.node_id();
-		int si = fvgeom.subset_index();
 
 		// get solution at the corner of the bf
-		size_t nFct = u.num_fct();
-		std::vector<LocalVector::value_type> uAtCorner(nFct);
 		for (size_t fct = 0; fct < nFct; fct++)
 			uAtCorner[fct] = u(fct,co);
 
@@ -249,8 +251,7 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		const MathVector<dim>& cc = bf.global_corner(0);
 
 		// get flux densities in that node
-		FluxCond fc;
-		if (!fluxDensityFct(uAtCorner, elem, cc, si, fc))
+		if (!fluxDensityFct(uAtCorner, elem, cc, m_si, fc))
 		{
 			UG_THROW("FV1InnerBoundaryElemDisc::add_def_A_elem:"
 						" Call to fluxDensityFct did not succeed.");
@@ -297,6 +298,9 @@ prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
 {
 	// on horizontal interfaces: only treat hmasters
 	if (m_bCurrElemIsHSlave) return;
+	m_si = si;
+
+	m_si = si;
 
 	//	get the error estimator data object and check that it is of the right type
 	//	we check this at this point in order to be able to dispense with this check later on
@@ -359,6 +363,11 @@ template<typename TElem, typename TFVGeom>
 void FV1InnerBoundaryElemDisc<TDomain>::
 prep_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
+#ifdef UG_PARALLEL
+	DistributedGridManager& dgm = *this->approx_space()->domain()->grid()->distributed_grid_manager();
+	m_bCurrElemIsHSlave = dgm.get_status(elem) & ES_H_SLAVE;
+#endif
+
 	// on horizontal interfaces: only treat hmasters
 	if (m_bCurrElemIsHSlave) return;
 
@@ -454,11 +463,8 @@ compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<
 			// ip coordinates
 			const MathVector<dim>& ipCoords = globIPs[sip];
 
-			// elem subset
-			int si = this->subset_handler().get_subset_index(side);
-
 			FluxCond fc;
-			if (!fluxDensityFct(uAtIP, elem, ipCoords, si, fc))
+			if (!fluxDensityFct(uAtIP, elem, ipCoords, m_si, fc))
 			{
 				UG_THROW("FV1InnerBoundaryElemDisc::compute_err_est_A_elem:"
 							" Call to fluxDensityFct did not succeed.");

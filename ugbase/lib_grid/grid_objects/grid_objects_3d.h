@@ -193,7 +193,7 @@ typedef geometry_traits<Tetrahedron>::const_iterator	ConstTetrahedronIterator;
 
 ////////////////////////////////////////////////////////////////////////
 //	HexahedronDescriptor
-///	only used to initialize a hexahedron. for all other tasks you should use VolumeDescripor.
+///	only used to initialize a hexahedron. for all other tasks you should use VolumeDescriptor.
 /**
  * please be sure to pass the vertices in the correct order:
  * v1, v2, v3, v4: bottom-vertices in counterclockwise order (if viewed from the top).
