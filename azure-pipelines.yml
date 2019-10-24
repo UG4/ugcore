@@ -8,6 +8,7 @@ trigger:
 
 pool:
   vmImage: 'ubuntu-latest'
+  vmImage: "macos-10.13"
 
 steps:
 - script: echo Hello, world!
