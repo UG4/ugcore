@@ -24,6 +24,7 @@ steps:
   displayName: 'Run a one-line script'
 
 - script: |
+    ls 
     mkdir build.debug
     cd build.debug
      /usr/local/bin/cmake ..
