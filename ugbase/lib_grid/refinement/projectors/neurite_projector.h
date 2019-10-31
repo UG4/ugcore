@@ -103,7 +103,6 @@ class NeuriteProjector
 			}
 		};
 
-
 		struct BranchingPoint;
 		struct BranchingRegion
 		{
@@ -166,15 +165,20 @@ class NeuriteProjector
 			}
 		};
 
-		struct SomaRegion {
-			vector3 center;
+		struct SomaPoint {
+			vector3 soma;
+			number radius;
+			SomaPoint(const vector3& soma, number radius) : soma(soma), radius(radius) {}
+		};
+
+		struct SomaBranchingRegion {
+			SmartPtr<SomaPoint> somaPt;
 			number radius;
 			number t;
 			vector3 bp;
 
 			template <class Archive>
 			void serialize(Archive& ar, const unsigned int version) {
-				ar & center;
 				ar & radius;
 				ar & t;
 			}
@@ -182,26 +186,23 @@ class NeuriteProjector
 			template<class Archive>
 			void load(Archive & ar, const unsigned int version)
 			{
-				ar >> center;
 				ar >> radius;
 				ar >> t;
 			}
 
-			SomaRegion(const vector3& center, number radius, number t)
-				: center(center),
-				  radius(radius),
+			SomaBranchingRegion(const vector3& center, number radius, number t)
+	  		 	  : radius(radius),
+				  t(t),
+				  bp(center)
+			{}
+
+			SomaBranchingRegion(number t)
+				 : radius(-1),
 				  t(t)
 			{}
 
-			SomaRegion(number t)
-				: center(0, 0, 0),
-				  radius(0),
-				  t(t)
-			{}
-
-			SomaRegion()
-				: center(0, 0, 0),
-				  radius(-1),
+			SomaBranchingRegion()
+				 : radius(-1),
 				  t(-1)
 			{}
 		};
@@ -211,7 +212,8 @@ class NeuriteProjector
 			vector3 refDir;
 			std::vector<Section> vSec;
 			std::vector<BranchingRegion> vBR;
-			std::vector<SomaRegion> vSR;
+			std::vector<Section> vSomaSec;
+			std::vector<SomaBranchingRegion> vSBR;
 
 			template <class Archive>
 			void serialize(Archive& ar, const unsigned int version)
@@ -232,11 +234,17 @@ class NeuriteProjector
 					ar & vBR[i];
 
 				/// soma information
-				sz = vSR.size();
+				sz = vSomaSec.size();
 				ar & sz;
-				vSR.resize(sz);
+				vSomaSec.resize(sz);
+				for (size_t i = 0; i < sz; ++i)
+					ar & vSomaSec[i];
+
+				sz = vSBR.size();
+				ar & sz;
+				vSBR.resize(sz);
 				for (size_t i = 0; i < sz; ++i) {
-					ar & vSR[i];
+					ar & vSBR[i];
 				}
 			}
 		};
@@ -281,19 +289,20 @@ class NeuriteProjector
 			number start;
 			number end;
 			std::vector<Section>::const_iterator sec_start;
-			const SomaRegion* sr;
+			const SomaBranchingRegion* sr;
 		};
 
 		void debug_neurites() const;
 
-		struct CompareSomaRegionsEnd {
-			bool operator()(const SomaRegion& a, const SomaRegion& b) {
-				return a.radius < b.radius;
+		struct CompareSomaBranchingRegionsEnd {
+			bool operator()(const SomaBranchingRegion& a, const SomaBranchingRegion& b) {
+				return a.t < b.t;
 			}
 		};
 
 	public:
 		std::vector<Neurite>& neurites();
+		std::vector<SomaBranchingRegion>& somata();
 		const Neurite& neurite(uint32_t nid) const;
 		Grid::VertexAttachmentAccessor<Attachment<SurfaceParams> >& surface_params_accessor();
 		const Grid::VertexAttachmentAccessor<Attachment<SurfaceParams> >& surface_params_accessor() const;
@@ -310,7 +319,7 @@ class NeuriteProjector
 
 		number axial_range_around_soma_region
 		(
-			const SomaRegion& sr,
+			const SomaBranchingRegion& sr,
 			number rad,
 			size_t nid,
 			Vertex* vrt
@@ -318,7 +327,7 @@ class NeuriteProjector
 
 		bool is_in_axial_range_around_soma_region
 		(
-			const SomaRegion& sr,
+			const SomaBranchingRegion& sr,
 			number rad,
 			size_t nid,
 			Vertex* vrt
@@ -328,6 +337,7 @@ class NeuriteProjector
 
 	protected:
 		std::vector<Section>::const_iterator get_section_iterator(uint32_t nid, float t) const;
+		std::vector<NeuriteProjector::Section>::const_iterator get_soma_section_iterator(uint32_t nid, float t) const;
 
 		void prepare_quadrature();
 
@@ -353,7 +363,7 @@ class NeuriteProjector
 		 * consists of the parameter t at which the section ends and the sixteen coefficients
 		 * describing the spline in each dimension (monomial basis {(t_(i+1) - t)^i}_i).
 		**/
-		std::vector<Neurite> m_vNeurites; //!< spline information for neurites and somatas
+		std::vector<Neurite> m_vNeurites; //!< spline information for neurites
 
 		std::vector<std::pair<number, number> > m_qPoints; //!< for quadrature when projecting within branching points
 
