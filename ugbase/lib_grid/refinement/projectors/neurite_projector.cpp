@@ -1613,7 +1613,7 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 	/// This determines if the current point is considered to be in the
 	/// a soma branching region by a simple distance threshold criterion
 	if (it2 != vSBR.end()) {
-		UG_LOGN("In er or soma region (inner or outer sphere): " << it2->somaPt->radius);
+		///UG_LOGN("In er or soma region (inner or outer sphere): " << it2->somaPt->radius);
 		isSP = is_in_axial_range_around_soma_region(*it2, 100.0, plainNID, vrt);
 	}
 
@@ -1649,7 +1649,6 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 	// case 2: soma/neurite or er/neurite branching point
 	else if (isSP)
 	{
-		UG_LOGN("Soma/Neurite (outer sphere) or ER/Neurite (inner sphere) detected")
 		/// This should integrate along the neurite [0, END_SOMA_BRANCHING_REGION]
 		/// but not [-range, range] to avoid dints in the soma interior close to
 		/// the surface. A new position for the vertex based on the average of the
