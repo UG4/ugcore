@@ -56,7 +56,8 @@ size_t FindSlivers(std::vector<typename TIter::value_type>& sliversOut,
 				 TAAPos aaPos, bool clearContainer = true);
 
 ///	Logs all unconnected sides to UG_ERR_LOG and returns true if an unconnected side was found
-bool CheckForUnconnectedSides(Grid& grid);
+template <typename TDomain>
+bool CheckForUnconnectedSides(TDomain& dom);
 
 }//	end of namespace
 

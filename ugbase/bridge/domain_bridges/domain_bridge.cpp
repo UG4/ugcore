@@ -62,6 +62,7 @@
 #endif
 
 
+#include "lib_grid/algorithms/problem_detection_util.h"
 using namespace std;
 
 namespace ug{
@@ -438,6 +439,10 @@ static void Domain(Registry& reg, string grp)
 
 		reg.add_class_to_group(name, "Domain", tag);
 	}
+
+//  CheckForUnconnectedSides
+	reg.add_function("CheckForUnconnectedSides", static_cast<bool (*)(TDomain&)> (&CheckForUnconnectedSides<TDomain>),
+						 grp, "foundUnconnectedSides", "domain", "Checks whether unconnected sides exist in the given grid.");
 
 
 // 	MaxElementDiameter

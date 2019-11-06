@@ -36,6 +36,7 @@
 #include "lib_grid/grid/grid.h"
 #include "debug_util.h"
 #include "isolated_elements.h"
+#include "lib_disc/domain.h"
 
 namespace ug{
 
@@ -67,14 +68,14 @@ int IsSliver(const vector3& v0, const vector3& v1, const vector3& v2,
 
 
 template <class TSide>
-static bool CheckForUnconnectedSidesIMPL(Grid& grid)
+static bool CheckForUnconnectedSidesIMPL(Grid& grid, const ISubsetHandler& sh)
 {
 	bool gotOne = false;
 	std::vector<TSide*> sides;
-	if( CollectUnconnectedSides( sides,
+	if(CollectUnconnectedSides(sides,
 								 grid,
-								 grid.begin<TSide>(),
-								 grid.end<TSide>()))
+								 grid.template begin<TSide>(),
+								 grid.template end<TSide>()))
 	{
 		gotOne = true;
 		UG_LOG("WARNING: Found unconnected sides (those may lead to solver issues!): \n");
@@ -82,20 +83,28 @@ static bool CheckForUnconnectedSidesIMPL(Grid& grid)
 		for(size_t i = 0; i < sides.size(); ++i){
 			UG_LOG("  - " << ElementDebugInfo(grid, sides[i]) << std::endl);
 			UG_ERR_LOG("  - " << ElementDebugInfo(grid, sides[i]) << std::endl);
+			UG_LOG("  - " << ElementSubsetInfo(sh, sides[i]) << std::endl);
+			UG_ERR_LOG("  - " << ElementSubsetInfo(sh, sides[i]) << std::endl);
 		}
 	}
 	return gotOne;
 }
 
-bool CheckForUnconnectedSides(Grid& grid)
+template <typename TDomain>
+bool CheckForUnconnectedSides(TDomain& dom)
 {
-	if(grid.num<Edge>() > 0 && CheckForUnconnectedSidesIMPL<Vertex>(grid))
+	if(dom.grid().get()->template num<Edge>() > 0 && CheckForUnconnectedSidesIMPL<Vertex>(*dom.grid().get(), *dom.subset_handler().get()))
 		return true;
-	if(grid.num<Face>() > 0 && CheckForUnconnectedSidesIMPL<Edge>(grid))
+	if(dom.grid().get()->template num<Face>() > 0 && CheckForUnconnectedSidesIMPL<Edge>(*dom.grid().get(), *dom.subset_handler().get()))
 		return true;
-	if(grid.num<Volume>() > 0 && CheckForUnconnectedSidesIMPL<Face>(grid))
+	if(dom.grid().get()->template num<Volume>() > 0 && CheckForUnconnectedSidesIMPL<Face>(*dom.grid().get(), *dom.subset_handler().get()))
 		return true;
 	return false;
 }
+
+/// explicit template instantiations
+template bool CheckForUnconnectedSides<Domain1d>(Domain1d& domain);
+template bool CheckForUnconnectedSides<Domain2d>(Domain2d& domain);
+template bool CheckForUnconnectedSides<Domain3d>(Domain3d& domain);
 
 }//	end of namespace

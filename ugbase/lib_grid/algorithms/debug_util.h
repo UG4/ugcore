@@ -145,6 +145,14 @@ bool CheckElementConsistency(MultiGrid& mg, Face* f);
 std::string ElementDebugInfo(const Grid& grid, GridObject* e);
 /** \} */
 
+///	Returns a string containing information on the given element
+/**	The string contains the subset index and name of the element
+ * \return string containing information
+ *
+ * \{ */
+std::string ElementSubsetInfo(const ISubsetHandler& grid, GridObject* e);
+/** \} */
+
 ///	Performs some tests on a surface-view (checks iterators vs surface-states)
 //void CheckSurfaceViewConsistency(SurfaceView& sv);
 
