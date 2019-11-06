@@ -60,6 +60,7 @@ class ParallelVector : public TVector
 {
 	public:
 		typedef typename TVector::value_type value_type;
+		typedef size_t size_type;
 		typedef typename TVector::vector_type vector_type;
 		///	own type
 		typedef ParallelVector<TVector> this_type;

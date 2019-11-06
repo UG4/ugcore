@@ -10,6 +10,9 @@ addons:
     homebrew:
       packages:
       - ccache
+      
+git:
+  depth: false    
   
 
 # we compile a c++ project

@@ -284,6 +284,23 @@ static void Domain(Registry& reg, string grp)
 		reg.add_class_to_group(name, "StdCoarseningMarking", tag);
 	}
 
+	//	ExpectedErrorMarkingStrategy
+	{
+		typedef ExpectedErrorMarkingStrategy<TDomain> T;
+		typedef IElementMarkingStrategy<TDomain> TBase;
+		string name = string("ExpectedErrorMarkingStrategy").append(suffix);
+		reg.add_class_<T, TBase>(name, grp)
+			.template add_constructor<void (*)(number, int, number, number)>
+				("tolerated max squared error # maximal refinement level # "
+				"safety factor # expected reduction of squared error by refinement")
+			.add_method("set_tolerance", &T::set_tolerance)
+			.add_method("set_max_level", &T::set_max_level)
+			.add_method("set_safety_factor", &T::set_safety_factor)
+			.add_method("set_expected_reduction_factor", &T::set_expected_reduction_factor)
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "ExpectedErrorMarkingStrategy", tag);
+	}
+
 	//  MaximumMarking
 	{
 			typedef MaximumMarking<TDomain> T;

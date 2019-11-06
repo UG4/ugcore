@@ -215,7 +215,7 @@ class LocalFiniteElementProvider {
 		template <int dim>
 		static const LocalShapeFunctionSet<dim>&
 		get(ReferenceObjectID roid, const LFEID& id, bool bCreate = true)
-			{return get<dim,number,MathVector<dim> >(roid, id, bCreate);};
+			{return get<dim,number,MathVector<dim> >(roid, id, bCreate);}
 
 		template <int dim, typename TShape, typename TGrad>
 		static ConstSmartPtr<LocalShapeFunctionSet<dim, TShape, TGrad> >
@@ -224,7 +224,7 @@ class LocalFiniteElementProvider {
 		template <int dim>
 		static ConstSmartPtr<LocalShapeFunctionSet<dim> >
 		getptr(ReferenceObjectID roid, const LFEID& id, bool bCreate = true)
-			{return getptr<dim,number,MathVector<dim> >(roid, id, bCreate);};
+			{return getptr<dim,number,MathVector<dim> >(roid, id, bCreate);}
 	///\}
 
 
