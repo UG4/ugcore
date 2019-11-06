@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2015:  G-CSC, Goethe University Frankfurt
- * Author: Markus Breit
+ * Copyright (c) 2014-2019:  G-CSC, Goethe University Frankfurt
+ * Author: Martin Stepniewski
  * 
  * This file is part of UG4.
  * 
@@ -30,73 +30,35 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef __H__UG_file_io_swc
-#define __H__UG_file_io_swc
+#include <vector>
+#include "parallel_global_subdivision_refiner.h"
 
-#include "lib_grid/grid/grid.h"
-#include "lib_grid/tools/subset_handler_interface.h"
-#include "lib_grid/common_attachments.h"
-
-namespace ug {
-
-namespace swc_types
+namespace ug
 {
-	enum swc_type
-	{
-		SWC_UNDF   = 0,
-		SWC_SOMA   = 1,
-		SWC_AXON   = 2,
-		SWC_DEND   = 3,
-		SWC_APIC   = 4,
-		SWC_FORK   = 5,
-		SWC_END    = 6,
-		SWC_CUSTOM = 7
-	};
 
-	struct SWCPoint
-	{
-		vector3 coords;
-		number radius;
-		swc_type type;
-		std::vector<size_t> conns;
-	};
+template <class TAPosition>
+ParallelGlobalSubdivisionRefiner<TAPosition>::
+ParallelGlobalSubdivisionRefiner(DistributedGridManager& distGridMgr, SPRefinementProjector projector) :
+		TParallelGlobalRefiner<GlobalSubdivisionMultiGridRefiner<TAPosition> >(distGridMgr, projector)
+{
+}
+
+template <class TAPosition>
+ParallelGlobalSubdivisionRefiner<TAPosition>::
+~ParallelGlobalSubdivisionRefiner()
+{
+}
+
+template <class TAPosition>
+void ParallelGlobalSubdivisionRefiner<TAPosition>::
+refinement_step_ends()
+{
+	TParallelGlobalRefiner<GlobalSubdivisionMultiGridRefiner<TAPosition> >
+		::m_distGridMgr.end_ordered_element_insertion();
+
+	GlobalSubdivisionMultiGridRefiner<TAPosition>
+		::smooth();
 }
 
 
-class FileReaderSWC
-{
-	public:
-		typedef swc_types::SWCPoint SWCPoint;
-
-	public:
-		FileReaderSWC() {};
-		~FileReaderSWC() {};
-
-		bool load_file(const char* fileName);
-		bool create_grid(Grid& g, ISubsetHandler* pSH, number scale_length = 1.0);
-
-		const std::vector<swc_types::SWCPoint>& swc_points() const;
-		std::vector<swc_types::SWCPoint>& swc_points();
-
-	protected:
-		std::vector<swc_types::SWCPoint> m_vPts;
-};
-
-
-
-class FileWriterSWC
-{
-	public:
-		FileWriterSWC() {};
-		~FileWriterSWC() {};
-
-		bool export_grid_to_file(Grid& grid, ISubsetHandler* pSH, const char* filename);
-};
-
-
-bool LoadGridFromSWC(Grid& grid, ISubsetHandler* pSH, const char* filename, AVector3& aPos = aPosition);
-bool ExportGridToSWC(Grid& grid, ISubsetHandler* pSH, const char* filename, AVector3& aPos = aPosition);
-
-} // end of namespace ug
-
-#endif // __H__UG_file_io_swc
+}//	end of namespace

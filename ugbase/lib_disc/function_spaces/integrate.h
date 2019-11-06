@@ -545,7 +545,7 @@ class UserDataIntegrand
 				UG_CATCH_THROW("UserDataIntegrand: Cannot evaluate data.");
 			}
 
-		};
+		}
 };
 
 
@@ -645,7 +645,7 @@ class UserDataIntegrandSq
 				vValue[i]=inner_prod(tmpValues[i], tmpValues[i]);
 			}
 
-		};
+		}
 	protected:
 
 		number inner_prod(const number &d1, const number &d2)
@@ -817,7 +817,7 @@ class UserDataDistIntegrandSq
 				vValue[ip] = inner_dist2(fineValues[ip], coarseValues[ip]);
 			}
 
-		};
+		}
 
 
 	protected:
@@ -1055,7 +1055,7 @@ class L2ErrorIntegrand
 
 			}
 			UG_CATCH_THROW("L2ErrorIntegrand::evaluate: trial space missing.");
-		};
+		}
 };
 
 /// computes the l2 error function on the whole domain or on some subsets
@@ -1244,7 +1244,7 @@ class H1ErrorIntegrand
 
 			}
 			UG_CATCH_THROW("H1ErrorIntegrand::evaluate: trial space missing.");
-		};
+		}
 };
 
 /// compute H1 error of a function on the whole domain or on some subsets
@@ -1526,7 +1526,7 @@ class L2Integrand
 
 			}
 			UG_CATCH_THROW("L2FuncIntegrand::values: trial space missing.");
-		};
+		}
 };
 
 /**
@@ -1767,7 +1767,7 @@ class L2DistIntegrand
 
 			}
 			UG_CATCH_THROW("L2DistIntegrand::evaluate: trial space missing.");
-		};
+		}
 };
 
 
@@ -1962,7 +1962,7 @@ class H1SemiIntegrand
 
 			}
 			UG_CATCH_THROW("H1SemiIntegrand::evaluate: trial space missing.");
-		};
+		}
 };
 
 
@@ -2225,7 +2225,7 @@ class H1SemiDistIntegrand : public StdIntegrand<number, TGridFunction::dim, H1Se
 
 			}
 			UG_CATCH_THROW("H1SemiDiffIntegrand::evaluate: trial space missing.");
-		};
+		}
 };
 
 
@@ -2434,7 +2434,7 @@ class H1EnergyIntegrand
 
 			}
 			UG_CATCH_THROW("H1EnergyIntegrand::evaluate: trial space missing.");
-		};
+		}
 };
 
 
@@ -2699,7 +2699,7 @@ class H1EnergyDistIntegrand
 
 			}
 			UG_CATCH_THROW("H1EnergyDiffIntegrand::evaluate: trial space missing.");
-		};
+		}
 };
 
 
@@ -2836,7 +2836,7 @@ class H1NormIntegrand
 
 			}
 			UG_CATCH_THROW("H1SemiNormFuncIntegrand::evaluate: trial space missing.");
-		};
+		}
 };
 
 
@@ -3032,7 +3032,7 @@ class H1DistIntegrand
 
 			}
 			UG_CATCH_THROW("H1DiffIntegrand::evaluate: trial space missing.");
-		};
+		}
 };
 
 
@@ -3162,7 +3162,7 @@ class StdFuncIntegrand
 
 			}
 			UG_CATCH_THROW("StdFuncIntegrand::evaluate: trial space missing.");
-		};
+		}
 };
 
 

@@ -143,6 +143,12 @@ private:
 
 	bool m_bLaplacian;
 
+	std::vector<double> freq_change;
+	double m_dDensity_linear_elasticity;
+	bool m_bPrintFrequencies_linear_elasticity;
+	bool m_bAbortOnFreqConverged_linear_elasticity;
+	double m_dFreqPrecision;
+
 	bool m_bPrintEigenvaluesAndDefect;
 	bool m_bPrintProjectedEigenvalues;
 	bool m_bPrintProjectedEigenvectors;
@@ -214,6 +220,19 @@ public:
 		m_bStoreDefects = false;
 		m_bStoreLambdas = false;
 		m_bRelativePrecision = false;
+
+		m_dDensity_linear_elasticity = 0.0;
+		m_bPrintFrequencies_linear_elasticity = false;
+		m_bAbortOnFreqConverged_linear_elasticity = false;
+		m_dFreqPrecision = 0.0;
+	}
+
+	void set_abort_on_frequencies_converged_linear_elasticity(double freq_precision, double density)
+	{
+		m_dDensity_linear_elasticity = density;
+		m_bPrintFrequencies_linear_elasticity = true;
+		m_bAbortOnFreqConverged_linear_elasticity = true;
+		m_dFreqPrecision = freq_precision;
 	}
 
 	void set_linear_dependent_eps(double eps)
@@ -480,6 +499,7 @@ public:
 				vAdditional.push_back(create_approximation_vector());
 
 			lambda.resize(nEigenvalues);
+			freq_change.resize(nEigenvalues);
 			for(size_t i=0; i<nEigenvalues; i++)
 			{
 				vCorr.push_back(create_approximation_vector() );
@@ -531,9 +551,18 @@ public:
 				{
 					PROGRESS_UPDATE(prog, i);
 	//				UG_LOG("compute rayleigh " << i << "...\n");
+
+					double freq_old = 0;
+
+					if(m_bPrintFrequencies_linear_elasticity){
+						freq_old = 1.0/(2.0*PI)*sqrt(lambda[i]/m_dDensity_linear_elasticity);
+					}
+
 					compute_rayleigh_and_defect(px(i), lambda[i], *spDefect, vDefectNorm[i]);
 
-	//				UG_LOG("EV " << i << " defect norm: " << vDefectNorm[i] << "\n");
+					if(m_bPrintFrequencies_linear_elasticity){
+						freq_change[i] = freq_old-1.0/(2.0*PI)*sqrt(lambda[i]/m_dDensity_linear_elasticity);
+					}
 
 					if((m_iteration != 0 && m_bRelativePrecision && vDefectNorm[i]/lambda[i] < m_dPrecision)
 							|| (!m_bRelativePrecision && vDefectNorm[i] < m_dPrecision))
@@ -581,8 +610,23 @@ public:
 
 				if(nrofconverged==nEigenvalues)
 				{
-					UG_LOG("all eigenvectors converged\nEigenvalues");
+					UG_LOG("all eigenvectors converged\n");
 					return true;
+				}
+
+				if(m_bAbortOnFreqConverged_linear_elasticity){
+					bool s = true;
+					for(unsigned k = 0; k < freq_change.size(); ++k){
+						if(abs(freq_change[k]) >= m_dFreqPrecision){
+							s = false;
+							break;
+						}
+					}
+
+					if(s){
+						UG_LOG("all eigenvectors converged according to frequency change\n");
+						return true;
+					}
 				}
 
 				// 5. add Testvectors
@@ -629,7 +673,7 @@ public:
 			}UG_CATCH_THROW("PINVIT::apply iteration " << m_iteration << " failed.");
 		}
 
-		UG_LOG("not converged after" << m_maxIterations << " steps.\nEigenvalues");
+		UG_LOG("not converged after" << m_maxIterations << " steps.\n");
 		return false;
 	}
 
@@ -878,7 +922,6 @@ private:
 			else
 			{
 				m_spPrecond->apply_update_defect(corr, defect);
-	//			UG_LOG(defect.norm() << "\n");
 			}
 			corr *= 1/ B_norm(corr);
 	#ifdef UG_PARALLEL
@@ -955,9 +998,15 @@ private:
 
 		for(size_t i=0; i<vLambda.size(); i++)
 		{
-			UG_LOG(i << " lambda: " << std::setw(14) << vLambda[i] << " defect: " <<
-					std::setw(14) << vDefectNorm[i]);
+			UG_LOG(i << " lambda: " << std::setw(20) << vLambda[i]);
+			if(m_bPrintFrequencies_linear_elasticity){
+				UG_LOG(" freq: " << std::setw(20) << 1.0/(2.0*PI)*sqrt(vLambda[i]/m_dDensity_linear_elasticity) );
+				UG_LOG(" change: " << std::setw(20) << freq_change[i]);
+			}
+
+			UG_LOG(" defect: " << std::setw(20) << vDefectNorm[i]);
 			if(iteration != 0) { UG_LOG(" reduction: " << std::setw(14) << vDefectNorm[i]/vOldDefectNorm[i]); }
+			if(m_bPrintFrequencies_linear_elasticity && abs(freq_change[i]) < m_dFreqPrecision) { UG_LOG(" (freq. converged) "); }
 			if(bConverged[i]) { UG_LOG(" (converged)"); }
 			UG_LOG("\n");
 			vOldDefectNorm[i] = vDefectNorm[i];

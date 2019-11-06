@@ -381,7 +381,7 @@ VecInftyNorm(const vector_t& v);
 ////////////////////////////////////////////////////////////////
 // Elementwise operations
 
-// component-wise product: vOut_i = v1_i*v2_i
+/// component-wise product: vOut_i = v1_i*v2_i
 template <typename vector_t>
 inline
 void
@@ -392,6 +392,18 @@ template <typename vector_t>
 inline
 void
 VecElemSqrt(vector_t& vOut, const vector_t& v1);
+
+///	component-wise comparison of two vectors (in the absolute values)
+template <typename vector_t>
+inline
+bool
+VecAbsIsLess(const vector_t& v1, const vector_t& v2);
+
+///	component-wise comparison of a vector (in the absolute values) with a given number
+template <typename vector_t>
+inline
+bool
+VecAbsIsLess(const vector_t& v1, const typename vector_t::value_type s);
 
 }//	end of namespace
 
