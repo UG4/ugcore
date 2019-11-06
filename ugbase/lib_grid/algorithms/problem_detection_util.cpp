@@ -78,9 +78,10 @@ static bool CheckForUnconnectedSidesIMPL(Grid& grid, const ISubsetHandler& sh)
 								 grid.template end<TSide>()))
 	{
 		gotOne = true;
-		UG_LOG("WARNING: Found unconnected sides (those may lead to solver issues!): \n");
-		UG_ERR_LOG("Found unconnected sides (those may lead to solver issues!): \n");
-		for(size_t i = 0; i < sides.size(); ++i){
+		const size_t numSides = sides.size();
+		UG_LOG("WARNING: Found " << numSides << " unconnected sides (those may lead to solver issues!):" << std::endl);
+		UG_ERR_LOG("Found " << numSides << " unconnected sides (those may lead to solver issues!):" << std::endl);
+		for(size_t i = 0; i < numSides; ++i){
 			UG_LOG("  - " << ElementDebugInfo(grid, sides[i]) << std::endl);
 			UG_ERR_LOG("  - " << ElementDebugInfo(grid, sides[i]) << std::endl);
 			UG_LOG("  - " << ElementSubsetInfo(sh, sides[i]) << std::endl);
