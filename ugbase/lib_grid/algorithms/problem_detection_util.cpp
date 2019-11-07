@@ -94,13 +94,14 @@ static bool CheckForUnconnectedSidesIMPL(Grid& grid, const ISubsetHandler& sh)
 template <typename TDomain>
 bool CheckForUnconnectedSides(TDomain& dom)
 {
-	if(dom.grid().get()->template num<Edge>() > 0 && CheckForUnconnectedSidesIMPL<Vertex>(*dom.grid().get(), *dom.subset_handler().get()))
-		return true;
-	if(dom.grid().get()->template num<Face>() > 0 && CheckForUnconnectedSidesIMPL<Edge>(*dom.grid().get(), *dom.subset_handler().get()))
-		return true;
-	if(dom.grid().get()->template num<Volume>() > 0 && CheckForUnconnectedSidesIMPL<Face>(*dom.grid().get(), *dom.subset_handler().get()))
-		return true;
-	return false;
+	bool foundUnconnectedElements = false;
+	if (dom.grid().get()->template num<Edge>() > 0)
+		foundUnconnectedElements = foundUnconnectedElements || CheckForUnconnectedSidesIMPL<Vertex>(*dom.grid().get(), *dom.subset_handler().get());
+	if(dom.grid().get()->template num<Face>() > 0)
+		foundUnconnectedElements = foundUnconnectedElements || CheckForUnconnectedSidesIMPL<Edge>(*dom.grid().get(), *dom.subset_handler().get());
+	if(dom.grid().get()->template num<Volume>() > 0)
+		foundUnconnectedElements = foundUnconnectedElements || CheckForUnconnectedSidesIMPL<Face>(*dom.grid().get(), *dom.subset_handler().get());
+	return foundUnconnectedElements;
 }
 
 /// explicit template instantiations
