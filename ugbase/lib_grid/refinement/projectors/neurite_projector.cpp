@@ -296,6 +296,20 @@ NeuriteProjector::get_section_iterator(uint32_t nid, float t) const
 	return itSec;
 }
 
+std::vector<NeuriteProjector::Section>::const_iterator
+NeuriteProjector::get_soma_section_iterator(uint32_t nid, float t) const
+{
+	Section cmpSec(t);
+	const std::vector<Section>& vSections = m_vNeurites[nid].vSomaSec;
+	std::vector<Section>::const_iterator itSec =
+		std::lower_bound(vSections.begin(), vSections.end(), cmpSec, CompareSections());
+
+	UG_COND_THROW(itSec == vSections.end(),
+		"Could not find section for parameter t = " << t << " in neurite " << nid << ".");
+
+	return itSec;
+}
+
 
 static bool cmpQPairs(const std::pair<number, number>& a, const std::pair<number, number>& b)
 {return a.first < b.first;}
@@ -971,7 +985,6 @@ static void pos_on_surface_soma
 	if (parent) np->average_pos_from_parent(posOut, parent);
 }
 
-#if 0
 static void bp_defect_and_gradient_soma
 (
     number& defectOut,
@@ -991,8 +1004,8 @@ static void bp_defect_and_gradient_soma
     const NeuriteProjector::BPProjectionHelper& helper = bpList[0];
     const number& start = helper.start;
     const number& end = helper.end;
-    const number& somaRadius = helper.sr->radius;
-    const vector3& posSoma = helper.sr->center;
+    const number& somaRadius = helper.sr->somaPt.get()->radius;
+    const vector3& posSoma = helper.sr->somaPt.get()->soma;
     std::vector<NeuriteProjector::Section>::const_iterator secIt = helper.sec_start;
 
     // iterate IPs
@@ -1085,7 +1098,6 @@ static void newton_for_soma_bp_projection
     UG_COND_THROW(fabs(def) > minDef && fabs(def) > 1e-8 * def_init,
         "Newton iteration did not converge for soma branching point projection at " << posStart << ".")
 }
-#endif
 
 
 
@@ -1296,7 +1308,6 @@ static void bp_newton_start_pos
 }
 
 
-#if 0
 static void pos_on_surface_soma_bp
 (
 		vector3& posOut,
@@ -1308,7 +1319,7 @@ static void pos_on_surface_soma_bp
 	    const NeuriteProjector* np,
 	    float rad,
 	    Vertex* vrt,
-	    const NeuriteProjector::SomaRegion& sr
+	    const NeuriteProjector::SomaBranchingRegion& sr
 ) {
     // 1. preparations for Newton method:
     // save integration start and end positions of soma connection
@@ -1332,7 +1343,6 @@ static void pos_on_surface_soma_bp
     try {newton_for_soma_bp_projection(posOut, vProjHelp, np);}
     UG_CATCH_THROW("Newton iteration for neurite projection at branching point failed.");
 }
-#endif
 
 
 static void pos_in_bp
@@ -1491,7 +1501,7 @@ static void pos_on_surface_tip
 
 number NeuriteProjector::axial_range_around_soma_region
 (
-	const SomaRegion& sr,
+	const SomaBranchingRegion& sr,
 	const number rad,
 	const size_t nid,
 	Vertex* vrt
@@ -1502,7 +1512,7 @@ number NeuriteProjector::axial_range_around_soma_region
 	vector3 bp = sr.bp;
 
 	std::vector<NeuriteProjector::Section>::const_iterator secIt;
-	try {secIt = get_section_iterator(nid, sr.t);}
+	try {secIt = get_soma_section_iterator(nid, sr.t);}
 	UG_CATCH_THROW("Could not get section iterator to soma region: " << sr.t);
 
 	vector3 secStartPos;
@@ -1538,12 +1548,13 @@ number NeuriteProjector::axial_range_around_soma_region
 
 bool NeuriteProjector::is_in_axial_range_around_soma_region
 (
-	const SomaRegion& sr,
+	const SomaBranchingRegion& sr,
 	number radius,
 	size_t nid,
 	Vertex* vrt
 ) const {
-	return IsElementInsideSphere<Vertex>(vrt, sr.bp, axial_range_around_soma_region(sr, 5.0*radius, nid, vrt));
+	// axial_range_around_soma_region(sr, 5.0*sr.radius, nid, vrt));
+	return IsElementInsideSphere<Vertex>(vrt, sr.bp, radius);
 }
 
 number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent)
@@ -1573,7 +1584,7 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 
 	const Neurite& neurite = m_vNeurites[plainNID];
 	const std::vector<BranchingRegion>& vBR = neurite.vBR;
-	const std::vector<SomaRegion>& vSR = neurite.vSR;
+	const std::vector<SomaBranchingRegion>& vSBR = neurite.vSBR;
 
 	// vector for new position
 	vector3 pos(position(vrt));
@@ -1585,26 +1596,25 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 	// 4. We are well inside a regular piece of soma.
 	// 5. We are at the tip of a neurite.
 
+	/// This works due to the fact that vBR is sorted ascending
 	bool isBP = false;
 	BranchingRegion cmpBR(t);
 	std::vector<BranchingRegion>::const_iterator it =
-		std::lower_bound(vBR.begin(), vBR.end(), cmpBR, CompareBranchingRegionEnds());
+		std::upper_bound(vBR.begin(), vBR.end(), cmpBR, CompareBranchingRegionEnds());
 
+	/// This works due to the fact that vSBR is sorted ascending
 	bool isSP = false;
-	SomaRegion cmpSR(t);
-	std::vector<SomaRegion>::const_iterator it2 =
-		std::lower_bound(vSR.begin(), vSR.end(), cmpSR, CompareSomaRegionsEnd());
+	SomaBranchingRegion cmpSBR(t);
+	std::vector<SomaBranchingRegion>::const_iterator it2 =
+		std::lower_bound(vSBR.begin(), vSBR.end(), cmpSBR, CompareSomaBranchingRegionsEnd());
 
 	/// FIXME: Wrong soma points as soma region points detected (but actually
 	/// regular some points on the surface or inside)
 	/// This determines if the current point is considered to be in the
 	/// a soma branching region by a simple distance threshold criterion
-	if (it2 != vSR.end()) {
-		isSP = is_in_axial_range_around_soma_region(*it2, 5.0*rad, plainNID, vrt);
-	}
-
-	if (!isSP && it2 != vSR.begin()) {
-		isSP = is_in_axial_range_around_soma_region(*it2, 5.0*rad, plainNID, vrt);
+	if (it2 != vSBR.end()) {
+		///UG_LOGN("In er or soma region (inner or outer sphere): " << it2->somaPt->radius);
+		isSP = is_in_axial_range_around_soma_region(*it2, 100.0, plainNID, vrt);
 	}
 
 	if (it != vBR.end())
@@ -1636,8 +1646,7 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 		pos_in_bp(pos, neurite, plainNID, t, angle, rad, it, parent, this);
 	}
 
-	/*
-	// case 2: soma branching point
+	// case 2: soma/neurite or er/neurite branching point
 	else if (isSP)
 	{
 		/// This should integrate along the neurite [0, END_SOMA_BRANCHING_REGION]
@@ -1645,9 +1654,9 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 		/// the surface. A new position for the vertex based on the average of the
 		/// (first) neurite section and the soma sphere position and radius will
 		/// be calculated based on the SomaRegion information stored in a struct.
-		pos_on_surface_soma_bp(pos, neurite, neuriteID, t, angle, parent, this, rad, vrt, *it2);
+		/// TODO: optimize branching point iteration: Does not always converge
+		/// pos_on_surface_soma_bp(pos, neurite, neuriteID, t, angle, parent, this, rad, vrt, *it2);
 	}
-	*/
 
 	// case 3: normal neurite position
 	else if (t >= 0.0 && t <= 1.0)
