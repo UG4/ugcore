@@ -325,7 +325,7 @@ void NeuriteProjector::prepare_quadrature()
         m_qPoints[i].first = gl.point(i)[0];
         m_qPoints[i].second = gl.weight(i);
     }
-	 */
+	*/
 	m_qPoints.resize(40);
 	m_qPoints[0].first = 4.8061379124697458903340327798768835266e-1;
 	m_qPoints[1].first = 5.1938620875302541096659672201231164734e-1;
@@ -407,6 +407,7 @@ void NeuriteProjector::prepare_quadrature()
 	m_qPoints[36].second = 5.2491422655764068073710855336398261884e-3;
 	m_qPoints[37].second = 5.2491422655764068073710855336398261884e-3;
 	m_qPoints[38].second = 2.2606385492665956292358664390926663639e-3;
+	m_qPoints[39].second = 2.2606385492665956292358664390926663639e-3;
 
 	std::sort(m_qPoints.begin(), m_qPoints.end(), cmpQPairs);
 }
