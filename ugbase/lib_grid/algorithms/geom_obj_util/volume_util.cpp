@@ -232,7 +232,7 @@ number CalculatePyramidAspectRatio
 )
 {
 	// average edge length of base of pyramid
-	number avg_edge_length;
+	number avg_edge_length = 0;
 	for (size_t i = 0; i < 4; i++)
 	{
 		avg_edge_length += VecDistance(aaPos[pyr->vertex(i%4)], aaPos[pyr->vertex((i+1)%4)]);
