@@ -316,7 +316,7 @@ void NeuriteProjector::prepare_quadrature()
         m_qPoints[i].first = gl.point(i)[0];
         m_qPoints[i].second = gl.weight(i);
     }
-	 */
+	*/
 	m_qPoints.resize(40);
 	/// points
 	m_qPoints[0].first = 4.8061379124697458903340327798768835266e-1;
