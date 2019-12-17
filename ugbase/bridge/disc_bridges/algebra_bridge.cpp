@@ -631,4 +631,3 @@ void RegisterBridge_DiscAlgebra(Registry& reg, string grp)
 
 } // end namespace ug
 } // end namespace ug
-
