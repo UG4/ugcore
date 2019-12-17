@@ -197,6 +197,12 @@ number CalculateAspectRatio(Grid& grid, Hexahedron* hex, TAAPosVRT& aaPos)
 	return CalculateHexahedronAspectRatio(grid, hex, aaPos);
 }
 
+/// Pyramid
+template <class TAAPosVRT>
+number CalculateAspectRatio(Grid& grid, Pyramid* pyr, TAAPosVRT& aaPos) {
+	return CalculatePyramidAspectRatio(grid, pyr, aaPos);
+}
+
 ///	Volume
 template <class TAAPosVRT>
 number CalculateAspectRatio(Grid& grid, Volume* vol, TAAPosVRT& aaPos)
@@ -213,10 +219,15 @@ number CalculateAspectRatio(Grid& grid, Volume* vol, TAAPosVRT& aaPos)
 			return CalculateAspectRatio(grid, static_cast<Hexahedron*>(vol), aaPos);
 		}
 
+		case ROID_PYRAMID:
+		{
+			return CalculateAspectRatio(grid, static_cast<Pyramid*>(vol), aaPos);
+		}
+
 		default:
 		{
-		 	UG_THROW("Note: Currently only volumes of type tetrahedron and hexahedron"
-		 			" supported in aspect ratio calculation.");
+		 	UG_THROW("Note: Currently only volumes of type tetrahedron, hexahedron"
+		 			"and pyramids supported in aspect ratio calculation.");
 		 	break;
 		}
 	}

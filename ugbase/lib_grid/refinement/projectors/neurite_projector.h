@@ -174,6 +174,7 @@ class NeuriteProjector
 		struct SomaBranchingRegion {
 			SmartPtr<SomaPoint> somaPt;
 			number radius;
+			vector3 center;
 			number t;
 			vector3 bp;
 
