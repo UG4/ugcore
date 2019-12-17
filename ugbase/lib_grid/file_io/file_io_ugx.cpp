@@ -1254,7 +1254,7 @@ read_projector(xml_node<>* projNode)
 			archivar.archive(ar, *proj);
 			return proj;
 		}
-		catch(boost::archive::archive_exception e){
+		catch(boost::archive::archive_exception& e){
 			UG_LOG("WARNING: Couldn't read projector of type '" <<
 					attribType->value() << "'." << std::endl);
 		}
