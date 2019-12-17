@@ -321,7 +321,7 @@ class NeuriteProjector
 		number axial_range_around_soma_region
 		(
 			const SomaBranchingRegion& sr,
-			number rad,
+			size_t numRadii,
 			size_t nid,
 			Vertex* vrt
 		) const;
@@ -329,7 +329,6 @@ class NeuriteProjector
 		bool is_in_axial_range_around_soma_region
 		(
 			const SomaBranchingRegion& sr,
-			number rad,
 			size_t nid,
 			Vertex* vrt
 		) const;
