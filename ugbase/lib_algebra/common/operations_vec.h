@@ -113,6 +113,20 @@ inline void VecHadamardProd(double &dest, const double &v1, const double &v2)
 	dest = v1 * v2;
 }
 
+// Some unary mathematical elementwise operations on vectors
+
+//! calculates elementwise exp
+inline void VecExp(double &dest, const double &v)
+{
+	dest = exp (v);
+}
+
+//! calculates elementwise log (natural logarithm)
+inline void VecLog(double &dest, const double &v)
+{
+	dest = log (v);
+}
+
 // templated
 
 // operations for vectors
@@ -200,6 +214,22 @@ inline void VecHadamardProd(vector_t &dest, const vector_t &v1, const vector_t &
 {
 	for(size_t i=0; i<dest.size(); i++)
 		VecHadamardProd(dest[i], v1[i], v2[i]);
+}
+
+// Elementwise exp on a vector
+template<typename vector_t>
+inline void VecExp(vector_t &dest, const vector_t &v)
+{
+	for(size_t i=0; i<dest.size(); i++)
+		VecExp(dest[i], v[i]);
+}
+
+// Elementwise log (natural logarithm) on a vector
+template<typename vector_t>
+inline void VecLog(vector_t &dest, const vector_t &v)
+{
+	for(size_t i=0; i<dest.size(); i++)
+		VecLog(dest[i], v[i]);
 }
 
 } // namespace ug

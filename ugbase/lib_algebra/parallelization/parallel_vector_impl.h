@@ -521,6 +521,20 @@ inline void VecHadamardProd(ParallelVector<T> &dest, const ParallelVector<T> &v1
 	VecHadamardProd(*dynamic_cast<T*>(&dest), *dynamic_cast<const T*>(&v1), *dynamic_cast<const T*>(&v2));
 }
 
+// Elementwise exp of a vector
+template<typename T>
+inline void VecExp(ParallelVector<T> &dest, const ParallelVector<T> &v)
+{
+	VecExp(*dynamic_cast<T*>(&dest), *dynamic_cast<const T*>(&v));
+}
+
+// Elementwise log (natural logarithm) of a vector
+template<typename T>
+inline void VecLog(ParallelVector<T> &dest, const ParallelVector<T> &v)
+{
+	VecLog(*dynamic_cast<T*>(&dest), *dynamic_cast<const T*>(&v));
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename TVector>
