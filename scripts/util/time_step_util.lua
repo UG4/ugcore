@@ -544,6 +544,15 @@ end
 --! 						reduced, if the problem was not solved.
 --! 						Iterated until minStepSize is reached.
 --! @param useCheckpointing (optional) if true, use checkpointing.
+--! @param postProcess		(optional) if passed, this can be either a function or a table:
+--!									a)	If this is a function then it is called after
+--!										solving the linear problem in every time step
+--!										of the time-stepping scheme;
+--!									b)	if this is a table, it can contain 4 optional functions:
+--!										preProcess to call before the time step,
+--!										postProcess as in a),
+--!										Arguments of the functions are: (u, step, time, dt)
+--!										u, time: old before the solver, new after it
 function util.SolveLinearTimeProblem(
 	u,
 	domainDisc,
@@ -557,7 +566,8 @@ function util.SolveLinearTimeProblem(
 	maxStepSize,
 	minStepSize,
 	reductionFactor,
-	useCheckpointing)
+	useCheckpointing,
+	postProcess)
 
 	if u == nil then
 		print("SolveLinearTimeProblem: Illegal parameters: No grid function for the solution specified.")
@@ -565,10 +575,14 @@ function util.SolveLinearTimeProblem(
 		exit()
 	end
 
+	local reassemble = false
 	if domainDisc == nil then
 		print("SolveLinearTimeProblem: Illegal parameters: No domain discretization specified.")
 		util.PrintUsageOfSolveTimeProblem()
 		exit()
+	elseif type(domainDisc) == "table" then
+		reassemble = domainDisc.reassemble
+		domainDisc = domainDisc.domainDisc
 	end
 
 	if linSolver == nil then
@@ -593,6 +607,18 @@ function util.SolveLinearTimeProblem(
 		print("SolveLinearTimeProblem: Illegal parameters: No max. time step specified.")
 		util.PrintUsageOfSolveTimeProblem()
 		exit()
+	end
+	
+	local preProcess = nil
+	if postProcess ~= nil then
+		if type(postProcess) ~= "function" then
+			if type(postProcess) ~= "table" then
+				print("SolveLinearTimeProblem: Illegal parameters: postProcess must be a function.")
+				exit()
+			end
+			preProcess = postProcess.preProcess
+			postProcess = postProcess.postProcess
+		end
 	end
 
 	-- check parameters
@@ -664,8 +690,16 @@ function util.SolveLinearTimeProblem(
 			TerminateAbortedRun()
 			print("++++++ Time step size: "..currdt);
 
+			if preProcess ~= nil then
+				local pp_res = preProcess(u, step, time, currdt)
+				if type(pp_res) == "boolean" and pp_res == false then -- i.e. not nil, not something else, but "false"!
+					print("\n++++++ preProcess of the time step failed.")
+					exit()
+				end
+			end
+			
 			-- reassemble matrix if necessary
-			if not(currdt == assembled_dt) then 
+			if reassemble or not(currdt == assembled_dt) then 
 				print("++++++ Assembling Matrix/Rhs for step size "..currdt); 
 				timeDisc:prepare_step(solTimeSeries, currdt)
 				timeDisc:assemble_linear(A, b, gl)
@@ -685,6 +719,14 @@ function util.SolveLinearTimeProblem(
 				bSuccess = true; 
 			end
 	
+			if bSuccess and postProcess ~= nil then
+				local pp_res = postProcess(u, step, time, currdt)
+				if type(pp_res) == "boolean" and pp_res == false then -- i.e. not nil, not something else, but "false"!
+					write("\n++++++ postProcess of the time step failed. ")
+					bSuccess = false
+				end
+			end
+			
 			-- check valid step size			
 			if(bSuccess == false and currdt < minStepSize) then
 				write("++++++ Time Step size "..currdt.." below minimal step ")
