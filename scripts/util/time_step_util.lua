@@ -310,10 +310,12 @@ function util.SolveNonlinearTimeProblem(
 		
 		-- initial t-step size
 		local currdt = maxStepSize
-		-- adjust in case of over-estimation
-		if time+currdt > endTime then currdt = endTime-time end
-		-- adjust if size of remaining t-domain (relative to `maxStepSize`) lies below `relPrecisionBound`
-		if ((endTime-(time+currdt))/maxStepSize < relPrecisionBound) then currdt = endTime-time end
+		if endTime ~= nil then
+			-- adjust in case of over-estimation
+			if time+currdt > endTime then currdt = endTime-time end
+			-- adjust if size of remaining t-domain (relative to `maxStepSize`) lies below `relPrecisionBound`
+			if ((endTime-(time+currdt))/maxStepSize < relPrecisionBound) then currdt = endTime-time end
+		end
 		
 		-- try time step
 		local bSuccess = false;	
@@ -553,6 +555,8 @@ end
 --!										postProcess as in a),
 --!										Arguments of the functions are: (u, step, time, dt)
 --!										u, time: old before the solver, new after it
+--! @param startTSNo		(optional) time step number of the initial condition (normally 0).
+--! @param endTSNo			(optional) if passed, stop after the time step with this number.
 function util.SolveLinearTimeProblem(
 	u,
 	domainDisc,
@@ -567,7 +571,9 @@ function util.SolveLinearTimeProblem(
 	minStepSize,
 	reductionFactor,
 	useCheckpointing,
-	postProcess)
+	postProcess,
+	startTSNo,
+	endTSNo)
 
 	if u == nil then
 		print("SolveLinearTimeProblem: Illegal parameters: No grid function for the solution specified.")
@@ -597,8 +603,14 @@ function util.SolveLinearTimeProblem(
 		exit()
 	end
 
-	if startTime == nil or endTime == nil then
-		print("SolveLinearTimeProblem: Illegal parameters: Start or end time not specified.")
+	if startTime == nil then
+		print("SolveLinearTimeProblem: Illegal parameters: Start time not specified.")
+		util.PrintUsageOfSolveTimeProblem()
+		exit()
+	end
+
+	if endTime == nil and endTSNo == nil then
+		print("SolveLinearTimeProblem: Illegal parameters: End time or number of steps not specified.")
 		util.PrintUsageOfSolveTimeProblem()
 		exit()
 	end
@@ -643,7 +655,7 @@ function util.SolveLinearTimeProblem(
 	
 	-- start
 	local time = startTime
-	local step = 0
+	local step = startTSNo or 0
 	
 	if useCheckpointing then
 		--- Read Checkpoint if necessary
@@ -674,15 +686,17 @@ function util.SolveLinearTimeProblem(
 
 	local assembled_dt = nil
 	
-	while time < endTime do
+	while ((endTime == nil) or (time < endTime)) and ((endTSNo == nil) or (step < endTSNo)) do
 		step = step + 1
 		print("++++++ TIMESTEP "..step.." BEGIN (current time: " .. time .. ") ++++++");
 	
 		-- initial time step size
 		-- assure, that not reaching beyond end of interval and care for round-off
 		local currdt = maxStepSize
-		if time+currdt > endTime then currdt = endTime - time end
-		if ((endTime - (time+currdt))/currdt) < 1e-8 then currdt = endTime - time end
+		if endTime ~= nil then
+			if time+currdt > endTime then currdt = endTime - time end
+			if ((endTime - (time+currdt))/currdt) < 1e-8 then currdt = endTime - time end
+		end
 		
 		-- try time step
 		local bSuccess = false;	
