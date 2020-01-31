@@ -90,3 +90,40 @@ function util.GetLUAFileAndLine (backtraceLevel)
 		return string.format("[%s]:%d", info.short_src, info.currentline)
 	end
 end
+
+--! Creates a grid function debug writer for the utilities. The function reads
+--! the settings from the table util.debug. If this is a boolean variable then no
+--! special settings are applied. If this variable is undefinde the no debug writer
+--! is created.
+--! @param approxSpace the approximation space for the debug writer
+function util.CreateGridFuncDebugWriter (approxSpace)
+	if util.debug then
+		if type (util.debug) ~= "boolean" and type (util.debug) ~= "table" then
+			ug_error ("util.debug should be either boolean or a table.")
+		end
+		if util.debug == false then
+			return nil
+		end
+		if approxSpace == nil then
+			ug_error ("No approximation space specified for the debug writer")
+		end
+		
+		util.debug_writer = GridFunctionDebugWriter(approxSpace)
+		
+		if type (util.debug) ~= "table" then
+			local vtk = true
+			local conn_viewer = false
+			if debug.vtk ~= nil then vtk = debug.vtk end
+			if debug.conn_viewer ~= nil then conn_viewer = debug.conn_viewer end
+			util.debug_writer:set_vtk_output(vtk)
+			util.debug_writer:set_conn_viewer_output(conn_viewer)
+		end
+		
+		if util.debug_dir ~= nil and type (util.debug_dir) == "string" then
+			CreateDirectory(util.debug_dir)
+			util.debug_writer:set_base_dir(util.debug_dir)
+		end
+		
+	end
+	return nil
+end
