@@ -208,6 +208,15 @@ class NeuriteProjector
 			{}
 		};
 
+		/*!
+		 * \brief Mapping of model to surface vertices
+		 */
+		struct Mapping {
+			vector3 v1; /// start vertex of edge
+			vector3 v2; /// end vertex of edge
+			number lambda; /// projection parameter lambda
+		};
+
 		struct Neurite
 		{
 			vector3 refDir;
@@ -457,9 +466,12 @@ class NeuriteProjector
 };
 
 // DO NOT CHANGE LINES BELOW! Needed for serialization! //
-std::ostream& operator<<(std::ostream &os, const NeuriteProjector::SurfaceParams& surfParams);
+std::ostream& operator<<(std::ostream& os, const NeuriteProjector::SurfaceParams& surfParams);
 std::istream& operator>>(std::istream& in, NeuriteProjector::SurfaceParams& surfParams);
 DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<NeuriteProjector::SurfaceParams>, "NeuriteProjectorSurfaceParams");
+std::ostream& operator<<(std::ostream& os, const NeuriteProjector::Mapping&  mapping);
+std::istream& operator>>(std::istream& in, NeuriteProjector::Mapping& mapping);
+DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<NeuriteProjector::Mapping>, "Mapping");
 } // namespace ug
 
 #endif // UG__LIB_GRID__REFINEMENT__PROJECTORS__NEURITE_PROJECTOR_H

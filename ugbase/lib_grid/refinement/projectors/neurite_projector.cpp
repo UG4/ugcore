@@ -1817,4 +1817,43 @@ std::istream& operator>>(std::istream& in, NeuriteProjector::SurfaceParams& surf
 
 	return in;
 }
+
+std::ostream& operator<<(std::ostream& os, const NeuriteProjector::Mapping& mapping)
+{
+	using std::ostringstream;
+	ostringstream strs;
+	for (size_t i = 0; i < mapping.v1.size(); i++) {
+		strs << mapping.v1[i] << " ";
+	}
+	for (size_t i = 0; i < mapping.v1.size(); i++) {
+		strs << mapping.v2[i] << " ";
+	}
+	strs << mapping.lambda;
+	os << strs.str();
+	return os;
+}
+
+std::istream& operator>>(std::istream& in, NeuriteProjector::Mapping& mapping)
+{
+	std::string temp;
+	using boost::lexical_cast;
+
+	for (size_t i = 0; i < mapping.v1.size(); i++) {
+		in >> temp;
+		mapping.v1[i] = (lexical_cast<number>(temp));
+	}
+
+	for (size_t i = 0; i < mapping.v2.size(); i++) {
+		in >> temp;
+		mapping.v2[i] = (lexical_cast<number>(temp));
+	}
+
+	in >> temp;
+	mapping.lambda = (lexical_cast<number>(temp));
+	temp.clear();
+
+	return in;
+}
+
+
 } // namespace ug
