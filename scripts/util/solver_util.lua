@@ -753,9 +753,9 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 
 	local precond = nil
 
-	local approxSpace = nil
+	local approxSpace = solverutil.approxSpace or util.solver.defaults.approxSpace
 	if desc then
-		approxSpace = desc.approxSpace or util.solver.defaults.approxSpace
+		approxSpace = desc.approxSpace or approxSpace
 	end
 
 	if name == "ilu"  then
