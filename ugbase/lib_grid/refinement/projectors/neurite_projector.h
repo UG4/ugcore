@@ -212,6 +212,7 @@ class NeuriteProjector
 		 * \brief Mapping of model to surface vertices
 		 */
 		struct Mapping {
+			/// TODO: Mapping should store unique indices of 1d vertices from SWC file
 			vector3 v1; /// start vertex of edge
 			vector3 v2; /// end vertex of edge
 			number lambda; /// projection parameter lambda

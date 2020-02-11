@@ -1647,15 +1647,15 @@ bool NeuriteProjector::is_in_axial_range_around_soma_region
 number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent)
 {
 	// average axial and angular params from parent;
-	// also decide on neuriteID
+	// also decide on neuriteID for aaSurfParams.
+	// the mapping parameters 1d<->2d are not needed on higher levels of refinment
 	uint32_t neuriteID;
 	float t;
 	float angle;
 	float rad;
-	if (parent)
+	if (parent) {
 		average_params(neuriteID, t, angle, rad, parent);
-	else
-	{
+	} else {
 		neuriteID = m_aaSurfParams[vrt].neuriteID;
 		t = m_aaSurfParams[vrt].axial;
 		angle = m_aaSurfParams[vrt].angular;
@@ -1823,10 +1823,10 @@ std::ostream& operator<<(std::ostream& os, const NeuriteProjector::Mapping& mapp
 	using std::ostringstream;
 	ostringstream strs;
 	for (size_t i = 0; i < mapping.v1.size(); i++) {
-		strs << mapping.v1[i] << " ";
+		strs << std::setprecision(18) << mapping.v1[i] << " ";
 	}
 	for (size_t i = 0; i < mapping.v1.size(); i++) {
-		strs << mapping.v2[i] << " ";
+		strs << std::setprecision(18) << mapping.v2[i] << " ";
 	}
 	strs << mapping.lambda;
 	os << strs.str();
