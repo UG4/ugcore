@@ -648,10 +648,17 @@ function util.SolveLinearTimeProblem(
 		exit()
 	end
 	
+	-- set the level of verbosity (do not print much for only one time step)
+	local verbose = true
+	if startTSNo ~= nil and endTSNo ~= nil and endTSNo == startTSNo + 1 then
+		verbose = false
+	end
 	
 	-- print newtonSolver setup	
-	print("SolveLinearTimeProblem, Linear Solver setup:")
-	print(linSolver:config_string())
+	if verbose then
+		print("SolveLinearTimeProblem, Linear Solver setup:")
+		print(linSolver:config_string())
+	end
 	
 	-- start
 	local time = startTime
@@ -669,8 +676,10 @@ function util.SolveLinearTimeProblem(
 	end	
 	
 	-- write start solution
-	print(">> Writing start values")
-	if not (out==nil) then out:print(filename, u, step, time) end
+	if out ~= nil then
+		print(">> Writing start values")
+		out:print(filename, u, step, time)
+	end
 	
 	-- store grid function in vector of  old solutions
 	local solTimeSeries = SolutionTimeSeries()
@@ -688,7 +697,7 @@ function util.SolveLinearTimeProblem(
 	
 	while ((endTime == nil) or (time < endTime)) and ((endTSNo == nil) or (step < endTSNo)) do
 		step = step + 1
-		print("++++++ TIMESTEP "..step.." BEGIN (current time: " .. time .. ") ++++++");
+		if verbose then print("++++++ TIMESTEP "..step.." BEGIN (current time: " .. time .. ") ++++++") end
 	
 		-- initial time step size
 		-- assure, that not reaching beyond end of interval and care for round-off
@@ -702,7 +711,7 @@ function util.SolveLinearTimeProblem(
 		local bSuccess = false;	
 		while bSuccess == false do
 			TerminateAbortedRun()
-			print("++++++ Time step size: "..currdt);
+			if verbose then print("++++++ Time step size: "..currdt) end
 
 			if preProcess ~= nil then
 				local pp_res = preProcess(u, step, time, currdt)
@@ -767,7 +776,7 @@ function util.SolveLinearTimeProblem(
 		if not (out==nil) then out:print(filename, u, step, time) end
 		--SaveVectorForConnectionViewer(u, filename.."_t"..step..".vec")
 			
-		print("++++++ TIMESTEP "..step.." END   (current time: " .. time .. ") ++++++");
+		if verbose then print("++++++ TIMESTEP "..step.." END   (current time: " .. time .. ") ++++++") end
 		
 		if useCheckpointing then
 			----------------------------------------------------------
