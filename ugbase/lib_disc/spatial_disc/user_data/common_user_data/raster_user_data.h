@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2016:  G-CSC, Goethe University Frankfurt
- * Author: Sebastian Reiter
+ * Copyright (c) 2020:  G-CSC, Goethe University Frankfurt
+ * Author: Arne Naegel
  * 
  * This file is part of UG4.
  * 
