@@ -118,10 +118,9 @@ static void RegisterRaster(Registry& reg, string name, string grp)
 			"set_no_data_value",
 			&T::set_no_data_value,
 			"", "value", "set the 'no-data-value'of the raster. Nodes with this value are ignored in some applications.")
-		.add_method(
-			"no_data_value",
-			&T::no_data_value,
-			"value", "", "returns the 'no-data-value'of the raster. Nodes with this value are ignored in some applications.");
+		.add_method("no_data_value", &T::no_data_value,
+			"value", "", "returns the 'no-data-value'of the raster. Nodes with this value are ignored in some applications.")
+		.set_construct_as_smart_pointer(true);
 
 	reg.add_class_to_group(fullName, name, tag);
 }
