@@ -492,9 +492,11 @@ void RegisterBridge_UserData(Registry& reg, string grp)
 		RegisterDimensionDependent<Functionality>(reg,grp);
 		RegisterDomainDependent<Functionality>(reg,grp);
 
+#if defined UG_DIM_2 || defined UG_DIM_3
 		// only for 2D/3D
 		RegisterRasterUserData<number, 2>(reg, "RasterNumberData", grp);
 		RegisterRasterUserData<number, 3>(reg, "RasterNumberData", grp);
+#endif
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
