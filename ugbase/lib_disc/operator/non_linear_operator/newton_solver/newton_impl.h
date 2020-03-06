@@ -237,25 +237,16 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 		}
 
 	// 	Init Jacobi Inverse
-		bool successfulInit = false;
-		try
-		{
+		try{
 			NEWTON_PROFILE_BEGIN(NewtonPrepareLinSolver);
-			successfulInit = m_spLinearSolver->init(m_J, u);
+			if(!m_spLinearSolver->init(m_J, u))
+			{
+				UG_LOG("ERROR in 'NewtonSolver::apply': Cannot init Inverse Linear "
+						"Operator for Jacobi-Operator.\n");
+				return false;
+			}
 			NEWTON_PROFILE_END();
-		}
-		UG_CATCH_PRINT("NewtonSolver::apply: Initialization of Linear Solver failed.");
-#ifdef UG_PARALLEL
-		if ((pcl::NumProcs() > 1 && !pcl::AllProcsTrue(successfulInit))
-			|| (pcl::NumProcs() == 1 && !successfulInit))
-#else
-		if (!successfulInit)
-#endif
-		{
-			UG_LOG("ERROR in 'NewtonSolver::apply': "
-                   "Initialization of Linear Solver failed.\n");
-			return false;
-		}
+		}UG_CATCH_THROW("NewtonSolver::apply: Initialization of Linear Solver failed.");
 
 	// 	Solve Linearized System
 		try{

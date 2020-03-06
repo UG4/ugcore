@@ -46,6 +46,7 @@
 #include "lib_disc/function_spaces/approximation_space.h"
 
 #include "lib_disc/io/vtkoutput.h"
+#include "lib_disc/io/vtk_export_ho.h"
 #include "common/profiler/profiler.h"
 
 #include "../util_overloaded.h"
@@ -124,7 +125,22 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("print_subsets", static_cast<void (T::*)(const char*, function_type&, const char*, bool)>(&T::print_subsets))
 			.add_method("print_subsets", static_cast<void (T::*)(const char*, function_type&, const char*)>(&T::print_subsets))
 			;
-			
+	}
+
+//	VTK Output for higher-order functions
+	{
+		reg.add_function("vtk_export_ho",
+			static_cast<void (*) (SmartPtr<function_type>, const std::vector<std::string>&, size_t,
+				SmartPtr<VTKOutput<dim> >, const char*)>
+				(&vtk_export_ho<function_type>),
+			grp.c_str(), "new grid function", "input grid function#functions to be exported#order",
+			"creates a grid function of order 1 containing interpolated values from high-order input grid function on a refined grid");
+		reg.add_function("vtk_export_ho",
+			static_cast<void (*) (SmartPtr<function_type>, const std::vector<std::string>&, size_t,
+				SmartPtr<VTKOutput<dim> >, const char*, size_t, number)>
+				(&vtk_export_ho<function_type>),
+			grp.c_str(), "new grid function", "input grid function#functions to be exported#order",
+			"Creates a grid function of order 1 containing interpolated values from high-order input grid function on a refined grid");
 	}
 
 

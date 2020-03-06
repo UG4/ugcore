@@ -185,7 +185,7 @@ function util.Balance(DataToBeWrittenTable)
 					if type(vtkItem) == "string" then vtkData = vtkItem end
 					if type(vtkItem) == "userdata" then vtkData = vtkItem end
 					if type(vtkData) ~= "string" and type(vtkData) ~= "userdata" then
-						print("util.Balance: vtk data must be: string or userdata:"..vtkItem[2])
+						print("util.Balance: vtk data must be: string or userdata but '"..vtkItem[2].."' is "..type(vtkData))
 						exit()													
 					end	
 					

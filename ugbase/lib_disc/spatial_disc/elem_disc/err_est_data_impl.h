@@ -417,7 +417,7 @@ MathVector<TDomain::dim>* SideAndElemErrEstData<TDomain>::elem_global_ips
 		m_elemGlobalIPcoords.resize(num_elem_ips(roid));
 		ref_map.local_to_global(&m_elemGlobalIPcoords[0], quadRuleElem[roid]->points(), quadRuleElem[roid]->size());
 	}
-	catch (std::exception e)
+	catch (std::exception& e)
 	{
 		UG_THROW("Encountered exception while trying to fill array of global IPs: "
 				 << std::endl << "'" << e.what() << "'");

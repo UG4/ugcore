@@ -165,6 +165,90 @@ number CalculateTetrahedronAspectRatio(Grid& grid, Tetrahedron* tet,
 	return aspectRatio;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////
+// CalculateHexahedronAspectRatio
+////////////////////////////////////////////////////////////////////////////////////////////
+number CalculateHexahedronAspectRatio(Grid& grid, Hexahedron* hex,
+									   Grid::VertexAttachmentAccessor<AVector3>& aaPos)
+{
+	/*
+	 * Another important indicator of the mesh quality is the aspect ratio.
+	 * The aspect ratio is a measure of the stretching of a cell. It is computed
+	 * as the ratio of the maximum value to the minimum value of any of the
+	 * following distances: the normal distances between the cell centroid and
+	 * face centroids (computed as a dot product of the distance vector and the
+	 * face normal), and the distances between the cell centroid and nodes.
+	 * For a unit cube (see Figure 5.23: Calculating the Aspect Ratio for a Unit
+	 * Cube), the maximum distance is 0.866, and the minimum distance is 0.5,
+	 * so the aspect ratio is 1.732. This type of definition can be applied on
+	 * any type of mesh, including polyhedral.
+	 *
+	 * \see https://www.sharcnet.ca/Software/Ansys/17.0/en-us/help/flu_ug/flu_ug_mesh_quality.html
+	 *
+	 */
+	vector<Face*> faces;
+	CollectAssociated(faces, grid, hex);
+	ug::vector3 center = CalculateCenter(hex, aaPos);
+
+	/// Max distance to face center
+	std::vector<number> As;
+	for (size_t i = 0; i < faces.size(); i++)
+	{
+		vector3 dir;
+		vector3 faceCenter = CalculateCenter(faces[i], aaPos);
+		VecSubtract(dir, faceCenter, center);
+		vector3 n;
+		CalculateNormal(n, faces[i], aaPos);
+		number dist = VecDot(dir, n);
+		As.push_back(dist);
+	}
+	number max = *std::max_element(As.begin(), As.end());
+
+	/// Min distance to node of hexaeder
+	std::vector<number> Bs;
+	for (size_t i = 0; i < hex->num_vertices(); i++)
+	{
+		number dist = VecDistance(aaPos[hex->vertex(i)], center);
+		Bs.push_back(dist);
+	}
+	number min = *std::min_element(Bs.begin(), Bs.end());
+
+	UG_COND_WARNING(std::abs(min) < SMALL, "Near 0-length minimum distance detected.");
+
+	return max / min;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+// CalculateHexahedronAspectRatio
+// order of vertices should be the same as described in \sa PyramidDescriptor
+// v1, v2, v3, v4: bottom-vertices in counterclockwise order (if viewed from the top).
+// v5: top-vertex.
+////////////////////////////////////////////////////////////////////////////////////////////
+number CalculatePyramidAspectRatio
+(
+	Grid& grid,
+	Pyramid* pyr,
+	Grid::VertexAttachmentAccessor<AVector3>& aaPos
+)
+{
+	// average edge length of base of pyramid
+	number avg_edge_length = 0;
+	for (size_t i = 0; i < 4; i++)
+	{
+		avg_edge_length += VecDistance(aaPos[pyr->vertex(i%4)], aaPos[pyr->vertex((i+1)%4)]);
+	}
+	avg_edge_length /= 4;
+
+	// distance from base to top of pyramid
+	const Face* const face = grid.get_element(FaceDescriptor(pyr->vertex(0), pyr->vertex(1), pyr->vertex(2), pyr->vertex(3)));
+	vector3 normal;
+	CalculateNormal(normal, face, aaPos);
+	const number distance = VecDot(normal, aaPos[pyr->vertex(4)]);
+
+	// AR of pyramid is ratio between distance and average edge length of base
+	return distance / avg_edge_length;
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //	CalculateTetrahedronRootMeanSquareFaceArea - mstepnie
@@ -303,7 +387,7 @@ double CMesh::calculate_volume_gauss() {
 	
 	for(uint i = 0; i < number_of_triangles; i++) {
 		
-	 �uint a = triangles[i].a;
+	 uint a = triangles[i].a;
 		uint b = triangles[i].b;
 		uint c = triangles[i].c;
 		
@@ -319,9 +403,9 @@ double CMesh::calculate_volume_gauss() {
 		
 		if(length > 0.0) {
 		
-		 �x /= length;
-	 �	y /= length; 
- �		z /= length;
+	 	 x /= length;
+	 	y /= length;
+ 		z /= length;
 			
 			double sx = (vertices[a].x() + vertices[b].x() + vertices[c].x()) / 3.0;
 			double sy = (vertices[a].y() + vertices[b].y() + vertices[c].y()) / 3.0;

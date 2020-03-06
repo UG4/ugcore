@@ -37,7 +37,6 @@
 
 #include "common/types.h"
 #include "lib_grid/refinement/projectors/refinement_projector.h"
-//#include "lib_disc/quadrature/gauss_legendre/gauss_legendre.h"
 
 #include <boost/serialization/split_member.hpp> // for separate load/save methods
 
@@ -79,7 +78,7 @@ class NeuriteProjector
 	public:
 		struct Section
 		{
-			Section() {}                // constructor for serialization
+			Section() : endParam(0) {}                // constructor for serialization
 			Section(number _endParam)   // constructor for search with CompareSections
 			: endParam(_endParam) {}
 
@@ -103,7 +102,6 @@ class NeuriteProjector
 				}
 			}
 		};
-
 
 		struct BranchingPoint;
 		struct BranchingRegion
@@ -144,7 +142,7 @@ class NeuriteProjector
 				}
 			}
 
-			BOOST_SERIALIZATION_SPLIT_MEMBER();
+			BOOST_SERIALIZATION_SPLIT_MEMBER()
 		};
 
 
@@ -167,21 +165,61 @@ class NeuriteProjector
 			}
 		};
 
+		struct SomaPoint {
+			vector3 soma;
+			number radius;
+			SomaPoint(const vector3& soma, number radius) : soma(soma), radius(radius) {}
+		};
+
+		struct SomaBranchingRegion {
+			SmartPtr<SomaPoint> somaPt;
+			number radius;
+			vector3 center;
+			number t;
+			vector3 bp;
+
+			template <class Archive>
+			void serialize(Archive& ar, const unsigned int version) {
+				ar & radius;
+				ar & t;
+			}
+
+			template<class Archive>
+			void load(Archive & ar, const unsigned int version)
+			{
+				ar >> radius;
+				ar >> t;
+			}
+
+			SomaBranchingRegion(const vector3& center, number radius, number t)
+	  		 	  : radius(radius),
+				  t(t),
+				  bp(center)
+			{}
+
+			SomaBranchingRegion(number t)
+				 : radius(-1),
+				  t(t)
+			{}
+
+			SomaBranchingRegion()
+				 : radius(-1),
+				  t(-1)
+			{}
+		};
 
 		struct Neurite
 		{
 			vector3 refDir;
 			std::vector<Section> vSec;
 			std::vector<BranchingRegion> vBR;
-			//float somaStart;  // never used
-			//float somaRadius;  // never used
-			//vector3 somaPt;  // never used
-			bool bHasER;
-			bool scaleER;
+			std::vector<Section> vSomaSec;
+			std::vector<SomaBranchingRegion> vSBR;
 
 			template <class Archive>
 			void serialize(Archive& ar, const unsigned int version)
 			{
+				/// neurite information
 				ar & refDir;
 
 				size_t sz = vSec.size();
@@ -195,6 +233,20 @@ class NeuriteProjector
 				vBR.resize(sz);
 				for (size_t i = 0; i < sz; ++i)
 					ar & vBR[i];
+
+				/// soma information
+				sz = vSomaSec.size();
+				ar & sz;
+				vSomaSec.resize(sz);
+				for (size_t i = 0; i < sz; ++i)
+					ar & vSomaSec[i];
+
+				sz = vSBR.size();
+				ar & sz;
+				vSBR.resize(sz);
+				for (size_t i = 0; i < sz; ++i) {
+					ar & vSBR[i];
+				}
 			}
 		};
 
@@ -217,8 +269,6 @@ class NeuriteProjector
 			float axial;
 			float angular;
 			float radial;
-			bool soma;  // used by neurite_projector.cpp temporarily
-			float scale;  // used by neurite_projector.cpp temporarily
 		};
 
 
@@ -240,23 +290,25 @@ class NeuriteProjector
 			number start;
 			number end;
 			std::vector<Section>::const_iterator sec_start;
+			const SomaBranchingRegion* sr;
 		};
 
 		void debug_neurites() const;
 
+		struct CompareSomaBranchingRegionsEnd {
+			bool operator()(const SomaBranchingRegion& a, const SomaBranchingRegion& b) {
+				return a.t < b.t;
+			}
+		};
+
 	public:
 		std::vector<Neurite>& neurites();
+		std::vector<SomaBranchingRegion>& somata();
 		const Neurite& neurite(uint32_t nid) const;
-
 		Grid::VertexAttachmentAccessor<Attachment<SurfaceParams> >& surface_params_accessor();
 		const Grid::VertexAttachmentAccessor<Attachment<SurfaceParams> >& surface_params_accessor() const;
-
 		const std::vector<std::pair<number, number> >& quadrature_points() const;
-
-		void average_pos_from_parent(vector3& posOut, const IVertexGroup* parent) const;
-
-		//void average_pos_from_parent_weighted(vector3& posOut, const IVertexGroup* parent) const;
-
+		void average_pos_from_parent(vector3& posOut, const IVertexGroup* const parent) const;
 		vector3 position(Vertex* vrt) const;
 
 		number axial_range_around_branching_region
@@ -266,10 +318,27 @@ class NeuriteProjector
 			number numberOfRadii = 5.0
 		) const;
 
-		void print_surface_params(Vertex* v) const;
+		number axial_range_around_soma_region
+		(
+			const SomaBranchingRegion& sr,
+			number rad,
+			size_t nid,
+			Vertex* vrt
+		) const;
+
+		bool is_in_axial_range_around_soma_region
+		(
+			const SomaBranchingRegion& sr,
+			number rad,
+			size_t nid,
+			Vertex* vrt
+		) const;
+
+		void print_surface_params(const Vertex* const v) const;
 
 	protected:
 		std::vector<Section>::const_iterator get_section_iterator(uint32_t nid, float t) const;
+		std::vector<NeuriteProjector::Section>::const_iterator get_soma_section_iterator(uint32_t nid, float t) const;
 
 		void prepare_quadrature();
 
@@ -295,17 +364,35 @@ class NeuriteProjector
 		 * consists of the parameter t at which the section ends and the sixteen coefficients
 		 * describing the spline in each dimension (monomial basis {(t_(i+1) - t)^i}_i).
 		**/
-		std::vector<Neurite> m_vNeurites;
+		std::vector<Neurite> m_vNeurites; //!< spline information for neurites
 
-		/// for quadrature when projecting within branching points
-		//size_t m_quadOrder;
+		std::vector<std::pair<number, number> > m_qPoints; //!< for quadrature when projecting within branching points
 
-		std::vector<std::pair<number, number> > m_qPoints;
-
-
+		/*!
+		 * \brief check if an element is inside a sphere
+		 * \param[in] elem
+		 * \param[in] center
+		 * \param[in] radius
+		 * \return \c true if element is inside or on sphere else false
+		 */
+		template <class TElem>
+		bool IsElementInsideSphere
+		(
+			const TElem* elem,
+			const ug::vector3& center,
+			const number radius
+		) const
+		{
+			Grid::VertexAttachmentAccessor<APosition> aaPos(this->geometry()->grid(), aPosition);
+			vector3 c = CalculateCenter(elem, aaPos);
+			vector3 diff;
+			VecSubtract(diff, c, center);
+			VecPow(diff, diff, 2.0);
+			number s = diff.x() + diff.y() + diff.z();
+			return (s <= (sq(radius) + SMALL));
+		}
 
 		friend class boost::serialization::access;
-
 		template<class Archive>
 		void save(Archive & ar, const unsigned int version) const
 		{
@@ -314,17 +401,17 @@ class NeuriteProjector
 			// only write if data is to be written
 			if(ArchiveInfo<Archive>::TYPE == AT_DATA)
 			{
+				// neurites
 				size_t sz = m_vNeurites.size();
 				ar << sz;
-				for (size_t i = 0; i < sz; ++i)
+				for (size_t i = 0; i < sz; ++i) {
 					ar << m_vNeurites[i];
+				}
 			}
 
 			// do not do anything otherwise
 			else if (ArchiveInfo<Archive>::TYPE == AT_GUI)
 			{}
-
-			//ar << m_quadOrder;
 		}
 
 		template<class Archive>
@@ -332,13 +419,13 @@ class NeuriteProjector
 		{
 			UG_EMPTY_BASE_CLASS_SERIALIZATION(NeuriteProjector, RefinementProjector);
 
+			// neurites
 			size_t sz;
 			ar >> sz;
 			m_vNeurites.resize(sz);
-			for (size_t i = 0; i < sz; ++i)
+			for (size_t i = 0; i < sz; ++i) {
 				ar >> m_vNeurites[i];
-
-			//ar >> m_quadOrder;
+			}
 
 			// reconstruct uninitialized pointers in branching points/ranges
 			size_t nNeurites = m_vNeurites.size();
@@ -365,19 +452,15 @@ class NeuriteProjector
 					}
 				}
 			}
-
-			//debug_neurites();
+			// debug_neurites();
 		}
-
-		BOOST_SERIALIZATION_SPLIT_MEMBER();
+		BOOST_SERIALIZATION_SPLIT_MEMBER()
 };
 
-// DO NOT CHANGE! Needed for serialization! //
+// DO NOT CHANGE LINES BELOW! Needed for serialization! //
 std::ostream& operator<<(std::ostream &os, const NeuriteProjector::SurfaceParams& surfParams);
 std::istream& operator>>(std::istream& in, NeuriteProjector::SurfaceParams& surfParams);
 DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<NeuriteProjector::SurfaceParams>, "NeuriteProjectorSurfaceParams");
-
 } // namespace ug
-
 
 #endif // UG__LIB_GRID__REFINEMENT__PROJECTORS__NEURITE_PROJECTOR_H

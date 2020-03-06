@@ -40,9 +40,15 @@
 #include "bridge/util.h"
 #include "bridge/util_domain_dependent.h"
 
+// common
 #include "common/common.h"
+
+// lib disc
 #include "lib_disc/spatial_disc/user_data/const_user_data.h"
 #include "lib_disc/spatial_disc/user_data/std_glob_pos_data.h"
+#include "lib_disc/spatial_disc/user_data/common_user_data/common_user_data.h"
+#include "lib_disc/spatial_disc/user_data/common_user_data/raster_user_data.h"
+
 #include "lib_disc/spatial_disc/user_data/linker/linker.h"
 #include "lib_disc/spatial_disc/user_data/linker/scale_add_linker.h"
 #include "lib_disc/spatial_disc/user_data/linker/inverse_linker.h"
@@ -50,7 +56,7 @@
 #include "lib_disc/spatial_disc/user_data/linker/bingham_viscosity_linker.h"
 #include "lib_disc/spatial_disc/user_data/linker/projection_linker.h"
 #include "lib_disc/spatial_disc/user_data/user_function.h"
-#include "lib_disc/spatial_disc/user_data/common_user_data/common_user_data.h"
+
 
 using namespace std;
 
@@ -451,6 +457,30 @@ static void Common(Registry& reg, string grp)
 
 }// end UserData
 
+
+template <class TValue, int dim>
+static void RegisterRasterUserData(Registry& reg, string name, string grp)
+{
+
+	string suffix = GetDimensionSuffix<dim>();
+	string tag = GetDimensionTag<dim>();
+
+	{ // Raster
+		typedef RasterUserData<dim> T;
+		typedef typename T::base_type TBase;
+		string fullName = name + suffix;
+
+		reg.add_class_<T,TBase>(fullName, grp)
+			.template add_constructor<void (*)(typename T::input_type)>("RasterNumberData")
+			.add_method("set_order", &T::set_order)
+			.add_method("set_scale", &T::set_scale)
+			.set_construct_as_smart_pointer(true);
+
+		reg.add_class_to_group(fullName, name, tag);
+	}
+
+}
+
 /// \addtogroup userdata_bridge
 void RegisterBridge_UserData(Registry& reg, string grp)
 {
@@ -462,6 +492,14 @@ void RegisterBridge_UserData(Registry& reg, string grp)
 		RegisterCommon<Functionality>(reg,grp);
 		RegisterDimensionDependent<Functionality>(reg,grp);
 		RegisterDomainDependent<Functionality>(reg,grp);
+
+#ifdef UG_DIM_2 // only for 2D/3D
+		RegisterRasterUserData<number, 2>(reg, "RasterNumberData", grp);
+#endif
+
+#ifdef UG_DIM_3
+		RegisterRasterUserData<number, 3>(reg, "RasterNumberData", grp);
+#endif
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
