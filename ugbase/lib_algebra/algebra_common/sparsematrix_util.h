@@ -280,7 +280,7 @@ void CreateAsMultiplyOf(AB_type &M, const A_type &A, const B_type &B)
 			size_t k = itAik.index();
 
 			cBiterator itBklEnd = B.end_row(k);
-			for(cBiterator itBkj = B.begin(k); itBkj != itBklEnd; ++itBkj)
+			for(cBiterator itBkj = B.begin_row(k); itBkj != itBklEnd; ++itBkj)
 			{
 				if(itBkj.value() == 0.0) continue;
 				size_t j = itBkj.index();
@@ -288,7 +288,7 @@ void CreateAsMultiplyOf(AB_type &M, const A_type &A, const B_type &B)
 			}
 		}
 
-		M.set_matrix_row(i, row.unsorted_raw_ptr(), row.num_connection());
+		M.set_matrix_row(i, row.unsorted_raw_ptr(), row.num_connections());
 	}
 
 }
