@@ -549,8 +549,10 @@ public:
 	{
 		defragment();
 		pValues = &values[0];
-		pRowStart = &rowStart[0];
-		pColInd = &cols[0];
+		// FIXME:
+		//pRowStart = &rowStart[0]; // assigning int * to size_t *
+		//pColInd = &cols[0];       // assigning int * to size_t *
+		UG_ASSERT(0, "SparseMatrix::get_crs() needs to be fixed.");
 		numRows = num_rows();
 		numCols = num_cols();
 		nnz = total_num_connections();
