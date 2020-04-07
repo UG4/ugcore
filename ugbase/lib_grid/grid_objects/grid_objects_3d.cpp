@@ -160,7 +160,7 @@ void CreateVolumesFromElementIndexList (
  * cornersIn, starting from firstCorner, taking vertices modulo numCorners.
  * If cornersOut == cornersIn, the method will fail! This is ok since
  * the method is used locally and has been created for a special case.
- */
+
 static inline
 bool ReorderCornersCCW(Vertex** cornersOut, Vertex** const cornersIn,
 					   int numCorners, int firstCorner)
@@ -170,6 +170,7 @@ bool ReorderCornersCCW(Vertex** cornersOut, Vertex** const cornersIn,
 		cornersOut[i] = cornersIn[(firstCorner + i) % numCorners];
 	return true;
 }
+ */
 
 /**	This refinement helper is called by the different refine implementations.
  * The last parameter is the actual refinement procedure as defined in
