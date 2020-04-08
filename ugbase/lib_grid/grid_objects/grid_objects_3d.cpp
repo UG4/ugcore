@@ -153,24 +153,6 @@ void CreateVolumesFromElementIndexList (
 		}
 	}
 }
-///	helpful if a local vertex-order is required
-/**
- * cornersOut and cornersIn both have to be of size numCorners.
- * After termination cornersOut will contain the vertices of
- * cornersIn, starting from firstCorner, taking vertices modulo numCorners.
- * If cornersOut == cornersIn, the method will fail! This is ok since
- * the method is used locally and has been created for a special case.
-
-static inline
-bool ReorderCornersCCW(Vertex** cornersOut, Vertex** const cornersIn,
-					   int numCorners, int firstCorner)
-{
-	cornersOut[0] = cornersIn[firstCorner];
-	for(int i = 1; i < numCorners; ++i)
-		cornersOut[i] = cornersIn[(firstCorner + i) % numCorners];
-	return true;
-}
- */
 
 /**	This refinement helper is called by the different refine implementations.
  * The last parameter is the actual refinement procedure as defined in
