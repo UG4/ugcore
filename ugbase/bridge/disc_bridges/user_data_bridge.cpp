@@ -305,6 +305,7 @@ static void Dimension(Registry& reg, string grp)
 			.add_method("set_viscosity", static_cast<void (T::*)(SmartPtr<CplUserData<number,dim> >)>(&T::set_viscosity))
 			.add_method("set_density", static_cast<void (T::*)(number)>(&T::set_density))
 			.add_method("set_density", static_cast<void (T::*)(SmartPtr<CplUserData<number,dim> >)>(&T::set_density))
+			.add_method("set_derivative_mask",  &T::set_derivative_mask)
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "DarcyVelocityLinker", dimTag);
@@ -385,6 +386,32 @@ static void Dimension(Registry& reg, string grp)
 		   .template add_constructor<void(*)(number,number)> ("order#radius")
 		   .set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "IDWUserData", dimTag);
+	}
+
+	// Composite user data (number)
+	{
+			string name = string("CompositeUserNumber").append(dimSuffix);
+			typedef CompositeUserData<number, dim, void> T;
+			reg.add_class_<T,typename T::base_type>(name, grp)
+				.template add_constructor<void (*)(bool) >("")
+				.add_method("add", &T::add)
+				.set_construct_as_smart_pointer(true);
+
+			reg.add_class_to_group(name, "CompositeUserNumber", dimTag);
+
+	}
+
+	// Composite user data (vector)
+	{
+				string name = string("CompositeUserVector").append(dimSuffix);
+				typedef CompositeUserData<MathVector<dim>, dim, void> T;
+				reg.add_class_<T,typename T::base_type>(name, grp)
+					.template add_constructor<void (*)(bool) >("")
+					.add_method("add", &T::add)
+					.set_construct_as_smart_pointer(true);
+
+				reg.add_class_to_group(name, "CompositeUserVector", dimTag);
+
 	}
 }
 

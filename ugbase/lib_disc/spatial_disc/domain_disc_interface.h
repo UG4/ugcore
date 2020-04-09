@@ -55,7 +55,6 @@ public:
 	// (virtual) destructor
 	virtual ~IDomainErrorIndicator() {};
 
-	/// computes the error estimator
 		/**
 		 * Computes the error estimator.
 		 *
@@ -72,6 +71,8 @@ public:
 				ConstSmartPtr<DoFDistribution> dd,
 				vector_type* u_vtk = NULL
 			) = 0;
+
+			//! Transient version
 			virtual void calc_error
 			(	ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 				ConstSmartPtr<DoFDistribution> dd,
@@ -79,6 +80,8 @@ public:
 				const std::vector<number>& vScaleStiff,
 				vector_type* u_vtk
 			) = 0;
+
+			//! Transient version
 			virtual void calc_error
 			(	ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 				const std::vector<number>& vScaleMass,
@@ -110,6 +113,7 @@ public:
 		SmartPtr<element_marking_strategy_type> spMarkingStrategy
 	) = 0 ;
 };
+
 /// Interface for domain discretization
 /**
  * This class is the interface for spatial discretizations. It can be used
