@@ -387,6 +387,32 @@ static void Dimension(Registry& reg, string grp)
 		   .set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "IDWUserData", dimTag);
 	}
+
+	// Composite user data (number)
+	{
+			string name = string("CompositeUserNumber").append(dimSuffix);
+			typedef CompositeUserData<number, dim, void> T;
+			reg.add_class_<T,typename T::base_type>(name, grp)
+				.template add_constructor<void (*)(bool) >("")
+				.add_method("add", &T::add)
+				.set_construct_as_smart_pointer(true);
+
+			reg.add_class_to_group(name, "CompositeUserNumber", dimTag);
+
+	}
+
+	// Composite user data (vector)
+	{
+				string name = string("CompositeUserVector").append(dimSuffix);
+				typedef CompositeUserData<MathVector<dim>, dim, void> T;
+				reg.add_class_<T,typename T::base_type>(name, grp)
+					.template add_constructor<void (*)(bool) >("")
+					.add_method("add", &T::add)
+					.set_construct_as_smart_pointer(true);
+
+				reg.add_class_to_group(name, "CompositeUserVector", dimTag);
+
+	}
 }
 
 /**
