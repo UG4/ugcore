@@ -59,7 +59,7 @@ struct FileBufferDescriptor
 	{	}
 
 	FileBufferDescriptor(std::string _name, std::stringstream &buf) :
-					name(_name), buf(strdup(buf.str().c_str())), size(buf.str().length())
+					name(_name), buf(buf.str().c_str()), size(buf.str().length())
 	{	}
 
 	std::string name;

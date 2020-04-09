@@ -686,9 +686,8 @@ string LuaGetScriptFunctionString(lua_State *L, int index)
 	if(lua_getinfo(L, ">S", &ar) != 0 && ar.linedefined != -1)
 	{
 
-		string line=GetFileLine(ar.source[0] == '@' ? ar.source+1 : ar.source,
-								ar.linedefined);
-		const char *p=line.c_str();
+		const char *p=GetFileLine(ar.source[0] == '@' ? ar.source+1 : ar.source,
+								  ar.linedefined).c_str();
 		p+=strspn(p, " \t");
 		return p;
 	}
