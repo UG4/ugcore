@@ -63,19 +63,29 @@ public:
 	/// CTOR
 	IMultigridElementIndicators() {}
 
+	/// DTOR
+	~IMultigridElementIndicators()
+	{
+		detach_indicators();
+	}
+
 	/// Attach error indicator to multigrid
 	void attach_indicators(SmartPtr<MultiGrid> pMG)
 	{
 		typedef typename domain_traits<dim>::element_type elem_type;
 
-		pMG->template attach_to_dv<elem_type>(m_aError, -1.0);  // attach with default value
+		if (!m_pMG->has_attachment<elem_type>(m_aError))
+			pMG->template attach_to_dv<elem_type>(m_aError, -1.0);  // attach with default value
 		m_pMG = pMG;
 		m_aaError = attachment_accessor_type(*m_pMG, m_aError);
 	}
 
 	/// Detach error indicator from multigrid
 	void detach_indicators()
-	{ m_pMG->template detach_from<elem_type>(m_aError); }
+	{
+		if (m_pMG->has_attachment<elem_type>(m_aError))
+			m_pMG->template detach_from<elem_type>(m_aError);
+	}
 
 
 	/// returns error indicator value
@@ -91,6 +101,7 @@ public:
 
 
 	/// TODO: remove this function
+	/// (mbreit: no, please leave it, it is very useful, at least with const access)
 	attachment_accessor_type& errors()
 	{ return m_aaError; }
 
