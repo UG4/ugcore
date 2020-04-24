@@ -550,11 +550,15 @@ end
 --!									a)	If this is a function then it is called after
 --!										solving the linear problem in every time step
 --!										of the time-stepping scheme;
---!									b)	if this is a table, it can contain 4 optional functions:
+--!									b)	if this is a table, it can contain 2 optional functions:
 --!										preProcess to call before the time step,
 --!										postProcess as in a),
 --!										Arguments of the functions are: (u, step, time, dt)
---!										u, time: old before the solver, new after it
+--!										u, time: old before the solver, new after it;
+--!										there may be also values for the return codes:
+--!										retValAtOK to return if the process ends normally
+--!										retValAtMinStepSize to return if the min. dt is overcome
+--!										retValAtSolver to return if the lin. solver failed
 --! @param startTSNo		(optional) time step number of the initial condition (normally 0).
 --! @param endTSNo			(optional) if passed, stop after the time step with this number.
 function util.SolveLinearTimeProblem(
@@ -622,6 +626,9 @@ function util.SolveLinearTimeProblem(
 	end
 	
 	local preProcess = nil
+	local retValAtOK = nil
+	local retValAtMinStepSize = nil
+	local retValAtSolver = nil
 	if postProcess ~= nil then
 		if type(postProcess) ~= "function" then
 			if type(postProcess) ~= "table" then
@@ -630,6 +637,9 @@ function util.SolveLinearTimeProblem(
 			end
 			preProcess = postProcess.preProcess
 			postProcess = postProcess.postProcess
+			retValAtOK = postProcess.retValAtOK
+			retValAtMinStepSize = postProcess.retValAtMinStepSize
+			retValAtSolver = postProcess.retValAtSolver
 		end
 	end
 
@@ -734,7 +744,8 @@ function util.SolveLinearTimeProblem(
 			end
 			
 			-- apply linear solver
-			if linSolver:apply(u,b) == false then 
+			if linSolver:apply(u,b) == false then
+				if retValAtSolver ~= nil then return retValAtSolver end
 				currdt = currdt * reductionFactor;
 				write("\n++++++ Linear solver failed. "); 
 				write("Trying decreased stepsize " .. currdt .. ".\n");
@@ -754,7 +765,10 @@ function util.SolveLinearTimeProblem(
 			if(bSuccess == false and currdt < minStepSize) then
 				write("++++++ Time Step size "..currdt.." below minimal step ")
 				write("size "..minStepSize..". Cannot solve problem. Aborting.");
-				test.require(false, "Time Solver failed.")
+				if retValAtMinStepSize ~= nil
+				then return retValAtMinStepSize
+				else test.require(false, "Time Solver failed.")
+				end
 			end
 		end
 		
@@ -790,7 +804,9 @@ function util.SolveLinearTimeProblem(
 	
 	if useCheckpointing and  timeDisc:num_stages() > 1 then
 		ug_warning("WARNING: Checkpointing won't work at the moment with timeDisc:num_stages() > 1")
-	end 
+	end
+	
+	if retValAtOK ~= nil then return retValAtOK end
 end
 
 --! Time stepping with the adaptive step size. Returns number of time steps done and the last time.
