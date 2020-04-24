@@ -635,11 +635,11 @@ function util.SolveLinearTimeProblem(
 				print("SolveLinearTimeProblem: Illegal parameters: postProcess must be a function.")
 				exit()
 			end
-			preProcess = postProcess.preProcess
-			postProcess = postProcess.postProcess
 			retValAtOK = postProcess.retValAtOK
 			retValAtMinStepSize = postProcess.retValAtMinStepSize
 			retValAtSolver = postProcess.retValAtSolver
+			preProcess = postProcess.preProcess
+			postProcess = postProcess.postProcess
 		end
 	end
 
