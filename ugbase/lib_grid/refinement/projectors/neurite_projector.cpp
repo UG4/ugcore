@@ -1744,7 +1744,7 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 		/// (first) neurite section and the soma sphere position and radius will
 		/// be calculated based on the SomaRegion information stored in a struct.
 		/// FIXME: Optimize iteration: Find better starting position for iteration start
-		pos_on_surface_soma_bp(pos, neurite, neuriteID, t, angle, parent, this, rad, vrt, *it2, m_aaSurfParams);
+		///pos_on_surface_soma_bp(pos, neurite, neuriteID, t, angle, parent, this, rad, vrt, *it2, m_aaSurfParams);
 	}
 
 	// case 3: normal neurite position
@@ -1756,7 +1756,7 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 	// case 4: normal soma position
 	else if (t < 0 && t >= -1.0)
 	{
-		pos_on_surface_soma(pos, neurite, this, parent);
+		///pos_on_surface_soma(pos, neurite, this, parent);
 	}
 
 	// case 5: tip of neurite
@@ -1820,6 +1820,8 @@ std::istream& operator>>(std::istream& in, NeuriteProjector::SurfaceParams& surf
 
 std::ostream& operator<<(std::ostream& os, const NeuriteProjector::Mapping& mapping)
 {
+	/// Standard precision for UGX coord export is 18. Is this even correct to use?
+	/// Shouldn't one use std::numeric_limits<number>::digits10+1?
 	using std::ostringstream;
 	ostringstream strs;
 	for (size_t i = 0; i < mapping.v1.size(); i++) {
