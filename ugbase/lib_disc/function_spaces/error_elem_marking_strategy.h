@@ -43,19 +43,84 @@
 
 namespace ug{
 
-template <typename TDomain, typename TAlgebra>
-void MarkForCoarsenening_SurfaceLayer(const GridFunction<TDomain, TAlgebra> &u, IRefiner& refiner){
-		typedef typename domain_traits<TDomain::dim>::element_type TElem;
-		ConstSmartPtr<DoFDistribution> spDD=u.dof_distribution();
-		refiner.mark(spDD->begin<TElem>(), spDD->end<TElem>(), RM_COARSEN);
-		refiner.coarsen();
-}
-
-
 /// Abstract base class for element marking (in adaptive refinement)
+template <typename TDomain> class IElementMarkingStrategy;
+
+
+/// This class encapsulates the multi-grid attachments for error estimation
+/** Purpose: replaces direct access to 'm_aaError' etc. */
 template <typename TDomain>
-struct IElementMarkingStrategy
+class IMultigridElementIndicators
 {
+public:
+	///	world dimension
+	static const int dim = TDomain::dim;
+
+	typedef typename domain_traits<dim>::element_type elem_type;
+	typedef Attachment<number> error_attachment_type;
+	typedef MultiGrid::AttachmentAccessor<elem_type, error_attachment_type > attachment_accessor_type;
+
+	/// CTOR
+	IMultigridElementIndicators() {}
+
+	/// DTOR
+	~IMultigridElementIndicators()
+	{
+		detach_indicators();
+	}
+
+	/// Attach error indicator to multigrid
+	void attach_indicators(SmartPtr<MultiGrid> pMG)
+	{
+		typedef typename domain_traits<dim>::element_type elem_type;
+
+		if (!m_pMG->has_attachment<elem_type>(m_aError))
+			pMG->template attach_to_dv<elem_type>(m_aError, -1.0);  // attach with default value
+		m_pMG = pMG;
+		m_aaError = attachment_accessor_type(*m_pMG, m_aError);
+	}
+
+	/// Detach error indicator from multigrid
+	void detach_indicators()
+	{
+		if (m_pMG->has_attachment<elem_type>(m_aError))
+			m_pMG->template detach_from<elem_type>(m_aError);
+	}
+
+
+	/// returns error indicator value
+	number& error(typename attachment_accessor_type::atraits::ConstElemPtr pElem)
+	{ return this->m_aaError[pElem]; }
+
+	/// returns error indicator value
+	const number& error(typename attachment_accessor_type::atraits::ConstElemPtr pElem) const
+	{ return this->m_aaError[pElem]; }
+
+
+	friend class IElementMarkingStrategy<TDomain>;
+
+
+	/// TODO: remove this function
+	/// (mbreit: no, please leave it, it is very useful, at least with const access)
+	attachment_accessor_type& errors()
+	{ return m_aaError; }
+
+protected:
+	SmartPtr<MultiGrid> m_pMG; 		 // multigrid
+	error_attachment_type m_aError;  // holding 'number' attachments
+	attachment_accessor_type m_aaError;
+};
+
+
+
+
+/**
+ *
+ */
+template <typename TDomain>
+class IElementMarkingStrategy
+{
+public:
 	///	world dimension
 	static const int dim = TDomain::dim;
 
@@ -63,18 +128,27 @@ struct IElementMarkingStrategy
 	typedef typename domain_traits<dim>::element_type elem_type;
 	typedef typename Grid::AttachmentAccessor<elem_type, ug::Attachment<number> > elem_accessor_type;
 
-	IElementMarkingStrategy() :
-		m_latest_error(-1),
-		m_latest_error_per_elem_max(-1),
-		m_latest_error_per_elem_min(-1)
+	IElementMarkingStrategy()
+	: m_latest_error(-1), m_latest_error_per_elem_max(-1), m_latest_error_per_elem_min(-1)
 	{}
 	virtual ~IElementMarkingStrategy(){};
 
-	virtual void mark(elem_accessor_type& aaError,
-			IRefiner& refiner,
-			ConstSmartPtr<DoFDistribution> dd) = 0;
+
+	/// This function marks all elements
+	void mark(IMultigridElementIndicators<TDomain>& mgElemIndicators,
+				IRefiner& refiner,
+				ConstSmartPtr<DoFDistribution> dd)
+	{
+		// forward call
+		mark(mgElemIndicators.errors(), refiner, dd);
+	};
 
 	protected:
+		/// DEPRECATED:
+		virtual void mark(elem_accessor_type& aaError,
+				IRefiner& refiner,
+				ConstSmartPtr<DoFDistribution> dd) = 0;
+
 		number m_latest_error;
 		number m_latest_error_per_elem_max;
 		number m_latest_error_per_elem_min;
@@ -99,11 +173,10 @@ public:
 	void set_tolerance(number tol) {m_tol = tol;}
 	void set_max_level(int max_level) {m_max_level = max_level;}
 
+protected:
 	void mark(typename base_type::elem_accessor_type& aaError,
 				IRefiner& refiner,
 				ConstSmartPtr<DoFDistribution> dd);
-
-protected:
 
 	number m_tol;
 	int m_max_level;
@@ -133,6 +206,7 @@ public:
 	void set_tolerance(number tol) {m_tol = tol;}
 	void set_max_level(size_t max_level) {m_max_level = max_level;}
 
+protected:
 	void mark(typename base_type::elem_accessor_type& aaError,
 				IRefiner& refiner,
 				ConstSmartPtr<DoFDistribution> dd);
@@ -189,6 +263,7 @@ public:
 	void set_tolerance(number tol) {m_tol = tol;}
 	void set_safety_factor(number safety) {m_safety = safety;}
 
+protected:
 	void mark(typename base_type::elem_accessor_type& aaError,
 				IRefiner& refiner,
 				ConstSmartPtr<DoFDistribution> dd);
@@ -556,7 +631,10 @@ public:
 	MaximumMarking(number theta_max, number theta_min, number eps)
 	: m_theta(theta_max), m_theta_min(theta_min), m_eps (eps), m_max_level(100), m_min_level(0) {};
 
+protected:
 	void mark(typename base_type::elem_accessor_type& aaErrorSq, IRefiner& refiner, ConstSmartPtr<DoFDistribution> dd);
+
+public:
 	void set_max_level(int lvl) {m_max_level = lvl;}
 	void set_min_level(int lvl) {m_min_level = lvl;}
 
@@ -686,8 +764,9 @@ public:
 	typedef IElementMarkingStrategy<TDomain> base_type;
 	APosterioriCoarsening(number theta=0.1)
 	: m_theta(theta), m_max_level(100), m_min_level(0) {};
-
+protected:
 	void mark(typename base_type::elem_accessor_type& aaErrorSq, IRefiner& refiner, ConstSmartPtr<DoFDistribution> dd);
+public:
 	void set_max_level(int lvl) {m_max_level = lvl;}
 	void set_min_level(int lvl) {m_min_level = lvl;}
 
@@ -792,11 +871,11 @@ public:
 	EquilibrationMarkingStrategy(number theta_top, number theta_bot)
 	: m_theta_top(theta_top), m_theta_bot(theta_bot) {} ;// , m_max_level(100) {};
 
+
+protected:
 	void mark(typename base_type::elem_accessor_type& aaErrorSq,
 					IRefiner& refiner,
 					ConstSmartPtr<DoFDistribution> dd);
-protected:
-
 
 	number m_theta_top;  			// refine at least a certain fraction,  0.0 <= m_theta_top <= 1.0
 	number m_theta_bot;  			// refine at least a certain fraction,  0.0 <= m_theta_bot <= 1.0
@@ -898,10 +977,11 @@ public:
 	VarianceMarking(number theta) : m_theta(theta), m_width(3.0), m_max_level(100) {};
 	VarianceMarking(number theta, number width) : m_theta(theta), m_width (width), m_max_level(100) {};
 
+
+protected:
 	void mark(typename base_type::elem_accessor_type& aaError2,
 					IRefiner& refiner,
 					ConstSmartPtr<DoFDistribution> dd);
-protected:
 
 	number m_theta;
 	number m_width;
@@ -1044,6 +1124,7 @@ public:
 	void init_coarsening(number theta, int min_level)
 	{m_theta_coarse = theta; m_min_level=min_level;}
 
+protected:
 	void mark(typename base_type::elem_accessor_type& aaError2,
 					IRefiner& refiner,
 					ConstSmartPtr<DoFDistribution> dd);
@@ -1190,6 +1271,7 @@ public:
 	typedef IElementMarkingStrategy<TDomain> base_type;
 	MeanValueMarking(number theta, number factor) : m_theta(theta), m_factor (factor) {};
 
+protected:
 	void mark(typename base_type::elem_accessor_type& aaError,
 					IRefiner& refiner,
 					ConstSmartPtr<DoFDistribution> dd);
@@ -1284,6 +1366,7 @@ public:
 	typedef IElementMarkingStrategy<TDomain> base_type;
 	AbsoluteMarking(number eta) : m_eta(eta), m_max_level(100) {};
 
+protected:
 	void mark(typename base_type::elem_accessor_type& aaError,
 					IRefiner& refiner,
 					ConstSmartPtr<DoFDistribution> dd);
@@ -1345,6 +1428,18 @@ void AbsoluteMarking<TDomain>::mark(typename base_type::elem_accessor_type& aaEr
 		UG_LOG("  +++ AbsoluteMarking: Error**2 = "<<errTotal <<"; marked "<< numMarkedRefine << " elements for refinement "<<std::endl);
 
 }
+
+
+
+/// Mark surface layer for coarsening.
+template <typename TDomain, typename TAlgebra>
+void MarkForCoarsenening_SurfaceLayer(const GridFunction<TDomain, TAlgebra> &u, IRefiner& refiner){
+		typedef typename domain_traits<TDomain::dim>::element_type TElem;
+		ConstSmartPtr<DoFDistribution> spDD=u.dof_distribution();
+		refiner.mark(spDD->begin<TElem>(), spDD->end<TElem>(), RM_COARSEN);
+		refiner.coarsen();
+}
+
 
 }//	end of namespace
 

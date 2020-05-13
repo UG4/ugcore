@@ -118,7 +118,9 @@ class LinearSolver
 
 			#ifdef UG_PARALLEL
 			if(!b.has_storage_type(PST_ADDITIVE) || !x.has_storage_type(PST_CONSISTENT))
-				UG_THROW("LinearSolver::apply: Inadequate parallel storage format of Vectors.");
+				UG_THROW("LinearSolver::apply: Inadequate parallel storage format of Vectors: "
+							<< b.get_storage_type() << " for b (expected " << PST_ADDITIVE << "), "
+							<< x.get_storage_type() << " for x (expected " << PST_CONSISTENT << ")");
 			#endif
 
 		// 	rename b as d (for convenience)

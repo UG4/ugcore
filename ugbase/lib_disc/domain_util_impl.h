@@ -124,6 +124,19 @@ void FillCornerCoordinates(	typename TDomain::position_type vCornerCoordsOut[],
 		vCornerCoordsOut[i] = aaPos[vVertex[i]];
 }
 
+
+///	returns the coordinates of a vertex (specialization)
+template <typename TDomain>
+void FillCornerCoordinates(	typename TDomain::position_type vCornerCoordsOut[],
+                           	const RegularVertex& vtx, const TDomain& domain)
+{
+	// get position accessor
+	const typename TDomain::position_accessor_type& aaPos = domain.position_accessor();
+
+	// write vertex coordinates
+	vCornerCoordsOut[0] = aaPos[&vtx];
+}
+
 ////////////////////////////////////////////////////////////////////////
 ///	returns the size of a geometric object
 template <typename TElem, typename TPosition>

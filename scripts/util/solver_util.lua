@@ -626,7 +626,7 @@ function util.solver.CreateSolver(solverDesc, solverutil)
 			newtonSolver:set_reassemble_J_freq(desc.reassemble_J_freq)
 		end
 		
-		util.solver.SetDebugWriter(newtonSolver, solverDesc, defaults)
+		util.solver.SetDebugWriter(newtonSolver, solverDesc, defaults, solverutil)
 
 		return newtonSolver
 	else
@@ -708,13 +708,13 @@ function util.solver.CreateLinearSolver(solverDesc, solverutil)
 			util.solver.CreateConvCheck(desc.convCheck or defaults.convCheck, solverutil))
 	end
 	
-	util.solver.SetDebugWriter(linSolver, solverDesc, defaults)
+	util.solver.SetDebugWriter(linSolver, solverDesc, defaults, solverutil)
 
 	if desc then desc.instance = linSolver end
 	return linSolver
 end
 
-function util.solver.CreateTransfer(transferDesc)
+function util.solver.CreateTransfer(transferDesc, solverutil)
 
 	local name, desc = util.tableDesc.ToNameAndDesc(transferDesc)
 	local defaults   = util.solver.defaults.transfer[name]
@@ -736,7 +736,7 @@ function util.solver.CreateTransfer(transferDesc)
 		transfer:set_prolongation_damping(desc.prolongationDamp)
 	end
 	
-	util.solver.SetDebugWriter(transfer, transferDesc, defaults)
+	util.solver.SetDebugWriter(transfer, transferDesc, defaults, solverutil)
 	
 	return transfer
 end
@@ -753,9 +753,9 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 
 	local precond = nil
 
-	local approxSpace = nil
+	local approxSpace = solverutil.approxSpace or util.solver.defaults.approxSpace
 	if desc then
-		approxSpace = desc.approxSpace or util.solver.defaults.approxSpace
+		approxSpace = desc.approxSpace or approxSpace
 	end
 
 	if name == "ilu"  then
@@ -814,7 +814,7 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 			gmg:set_surface_level			(desc.surfaceLevel)
 		end
 
-		local transfer = util.solver.CreateTransfer(desc.transfer or defaults.transfer)
+		local transfer = util.solver.CreateTransfer(desc.transfer or defaults.transfer, solverutil)
 		if desc.adaptive == true then
 		--	next three lines are obsolete, since gmg:set_transfer overwrites gmg:set_projection, anyways!?
 			local project = StdTransfer()
@@ -870,7 +870,7 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 	end
 	
 	-- create debug writer (optional)
-	util.solver.SetDebugWriter(rprecond, desc, defaults)
+	util.solver.SetDebugWriter(rprecond, desc, defaults, solverutil)
 	
 	if desc then desc.instance = rprecond end
 	
@@ -993,7 +993,7 @@ function util.solver.CreateMGStats(mgStatsDesc)
 	return mgStats
 end
 
-function util.solver.SetDebugWriter(obj, desc, defaults)
+function util.solver.SetDebugWriter(obj, desc, defaults, solverutil)
 	
 	local dbgDesc = desc.debug
 	if dbgDesc == nil then
@@ -1024,8 +1024,10 @@ function util.solver.SetDebugWriter(obj, desc, defaults)
 		end
 	
 		if debug then
-		
-			if (util.debug_writer ~= nil) then
+			
+			if (solverutil ~= nil) and (solverutil.debug_writer ~= nil) then
+				obj:set_debug(solverutil.debug_writer)
+			elseif util.debug_writer ~= nil then
 				obj:set_debug(util.debug_writer)
 			else
 				local approxSpace = nil

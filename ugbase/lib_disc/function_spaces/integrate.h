@@ -270,7 +270,7 @@ number Integrate(TConstIterator iterBegin,
 	PROFILE_FUNC();
 
 //	reset the result
-	number integral = 0;
+	number integral = 0.0;
 
 //	note: this iterator is for the base elements, e.g. Face and not
 //			for the special type, e.g. Triangle, Quadrilateral
@@ -403,9 +403,8 @@ number IntegrateSubsets(IIntegrand<number, TGridFunction::dim> &spIntegrand,
 	if(subsets != NULL)
 	{
 		ssGrp.add(TokenizeString(subsets));
-		if(!SameDimensionsInAllSubsets(ssGrp))
-			UG_THROW("IntegrateSubsets: Subsets '"<<subsets<<"' do not have same dimension."
-			         "Can not integrate on subsets of different dimensions.");
+		UG_COND_THROW(!SameDimensionsInAllSubsets(ssGrp), "IntegrateSubsets: Subsets '"<<subsets<<"' do not have same dimension."
+			         "Cannot integrate on subsets of different dimensions.");
 	}
 	else
 	{
@@ -424,9 +423,8 @@ number IntegrateSubsets(IIntegrand<number, TGridFunction::dim> &spIntegrand,
 		const int si = ssGrp[i];
 
 	//	check dimension
-		if(ssGrp.dim(i) > dim)
-			UG_THROW("IntegrateSubsets: Dimension of subset is "<<ssGrp.dim(i)<<", but "
-			         " World Dimension is "<<dim<<". Cannot integrate this.");
+	UG_COND_THROW(ssGrp.dim(i) > dim, "IntegrateSubsets: Dimension of subset is "<<ssGrp.dim(i)<<", but "
+			      " world dimension is "<<dim<<". Cannot integrate this.");
 
 	//	integrate elements of subset
 		try{

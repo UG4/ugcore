@@ -108,79 +108,9 @@ void quit_all_mpi_procs_in_parallel()
  *	- option -call:				no interactive shell
  *	- else:						interactive shell
  */
-int ugshell_main(int argc, char* argv[])
-{	
 
-//	ATTENTION
-//	Make sure to initialize ug before accessing the registry or performing any
-//	UG_LOGs. This is important, since mpi has to be initialized in a parallel
-//	environment.
-
-	PROFILE_FUNC();
-	PROFILE_BEGIN(ugshellInit);
-
-	#ifdef UG_PARALLEL
-		pcl::Init(&argc, &argv);
-	#endif
-
-
-////////////////////////////////
-//	PARSE PARAMETERS
-
-//	ALWAYS FIRST: check if the '-call' option has been specified. If so,
-//	concatenate all following parameters to one luaCall and shorten argc
-//	so that it only contains parameters up to the '-call' parameter.
-//	If '-ex' has been specified before '-call', abort the check.
-	const bool callSpecified = (GetParamIndex("-call", argc, argv) >= 0);
-	string callCommand = "";
-	if(callSpecified) {
-		for(int i = 1; i < argc; ++i){
-			if(strcmp(argv[i], "-ex") == 0)
-				break;
-			if(strcmp(argv[i], "-call") == 0){
-				for(int j = i + 1; j < argc; ++j){
-					callCommand.append(argv[j]);
-					if(j+1 < argc)
-						callCommand.append(" ");
-				}
-				argc = i;
-				break;
-			}
-		}
-	}
-
-//	check if an output-process has been specified
-	int outputProc = 0;
-//	if "-outproc" is not found, outputProc won't be changed.
-	ParamToInt(outputProc, "-outproc", argc, argv);
-	GetLogAssistant().set_output_process(outputProc);
-	
-	const char* logFileName = NULL;
-	if(ParamToString(&logFileName, "-logtofile", argc, argv))
-		GetLogAssistant().enable_file_output(true, logFileName);
-
-	if(FindParam("-noterm", argc, argv))
-		GetLogAssistant().enable_terminal_output(false);
-		
-	if(FindParam("-profile", argc, argv))
-		UGOutputProfileStatsOnExit(true);
-
-	const bool interactiveShellRequested	= FindParam("-noquit", argc, argv);
-	bool defaultInteractiveShell			= true;	// may be changed later
-
-	#ifdef UG_PARALLEL
-		const bool parallelEnvironment = (pcl::NumProcs() > 1);
-	#else
-		const bool parallelEnvironment = false;
-	#endif
-
-
-////////////////////////////////
-//	PRINT HEADER
-
-	bool errorOccurred = false;
-	int ret = 0;
-
+void ugshell_print_header()
+{
 	LOG("********************************************************************************\n");
 	std::string aux_str(""); // for nicer output we need some padding with spaces ...
 
@@ -215,96 +145,131 @@ int ugshell_main(int argc, char* argv[])
 	LOG("*                        '(', ')', and '\"' have to be escaped, e.g.: '\\('      *\n");
 	LOG("* Additional parameters are passed to the script through ugargc and ugargv.    *\n");
 	LOG("*                                                                              *\n");
+}
 
 
-////////////////////////////////
-//	VARIOUS INITIALIZATIONS
-
-//	INIT PATH
-	try{
-		LOG("* Initializing: paths... ");
-		if(InitPaths((argv)[0]))	{UG_LOG("done");}
-	//	if only false is returned, the error is non-fatal. Still continue shell
-		else{
-			UG_LOG("fail");
-			UG_ERR_LOG("Path Initialization failed. Expect file access problem.\n")
-			UG_ERR_LOG("Check environment variable UG4_ROOT.\n")
+bool ugshell_get_call_command(int argc, char* argv[], std::string &callCommand)
+{
+	const bool callSpecified = (GetParamIndex("-call", argc, argv) >= 0);
+	callCommand = "";
+	if(callSpecified) {
+			for(int i = 1; i < argc; ++i){
+				if(strcmp(argv[i], "-ex") == 0)
+					break;
+				if(strcmp(argv[i], "-call") == 0){
+					for(int j = i + 1; j < argc; ++j){
+						callCommand.append(argv[j]);
+						if(j+1 < argc)
+							callCommand.append(" ");
+					}
+					argc = i;
+					break;
+				}
+			}
 		}
-	}
-	catch(UGError& err)
-	{
-	//	if an UGError is thrown, an internal fatal error occured, we terminate shell
-		UG_ERR_LOG("UGError occurred during Path Initialization:\n");
-		for(size_t i=0; i<err.num_msg(); i++)
-			UG_ERR_LOG(err.get_file(i) << ":" << err.get_line(i) << " : " << err.get_msg(i) << "\n");
-		errorOccurred = true;
-	}
-	catch(...){
-		UG_ERR_LOG("Unknown error received during Path Initialization.\n");
-		errorOccurred = true;
-	}
-
-//	INIT STANDARD BRIDGE
-	try{
-		UG_LOG(", bridge... ");
-		bridge::InitBridge();
-		UG_LOG("done");
-	}
-	catch(UGError& err)
-	{
-		UG_LOG("fail");
-		UG_ERR_LOG("UGError occurred during Standard Bridge Initialization:\n");
-		for(size_t i=0; i<err.num_msg(); i++)
-			UG_ERR_LOG(err.get_file(i) << ":" << err.get_line(i) << " : " << err.get_msg(i) << "\n");
-		errorOccurred = true;
-	}
-	catch(...){
-		UG_LOG("fail");
-		UG_ERR_LOG("Unknown error received during Standard Bridge Initialization.\n");
-		errorOccurred = true;
-	}
-
-//	INIT PLUGINS
-	try{
-		UG_LOG(", plugins... ");
-		if(UGInitPlugins() == true)
-		{	UG_LOG("done"); }
-		else																	
-		{	UG_LOG("fail");	}
-		
-		UG_LOG("                 *\n");
-	}
-	catch(UGError &err)
-	{
-		UG_LOG("fail");
-		UG_LOG("                 *\n");
-	//	if registration of plugin fails, we do abort the shell
-	//	this could be skipped if registering of plugin would be done more
-	//	carefully. (try/catch in load plugins)
-		PathProvider::clear_current_path_stack();
-		UG_ERR_LOG("UGError occurred during Plugin Initialization:\n");
-		for(size_t i=0; i<err.num_msg(); i++)
-			UG_ERR_LOG(err.get_file(i) << ":" << err.get_line(i) << " : " << err.get_msg(i) << "\n");
-		errorOccurred = true;
-	}
-	catch(...){
-		UG_LOG("fail");
-		UG_LOG("                 *\n");
-		UG_ERR_LOG("Unknown error received during Plugin Initialization.\n");
-		errorOccurred = true;
-	}
-
-	LOG("********************************************************************************\n");
 
 
-	#ifdef UG_DEBUG
-		SharedLibrariesLoaded();
-	#endif
+	return callSpecified;
+}
 
-
-	if(!errorOccurred)
-	{
+void ug_init_path(char* argv[], bool &errorOccurred)
+{
+	//	INIT PATH
 		try{
+			LOG("* Initializing: paths... ");
+			if(InitPaths((argv)[0]))	{UG_LOG("done");}
+		//	if only false is returned, the error is non-fatal. Still continue shell
+			else{
+				UG_LOG("fail");
+				UG_ERR_LOG("Path Initialization failed. Expect file access problem.\n")
+				UG_ERR_LOG("Check environment variable UG4_ROOT.\n")
+			}
+		}
+		catch(UGError& err)
+		{
+		//	if an UGError is thrown, an internal fatal error occured, we terminate shell
+			UG_ERR_LOG("UGError occurred during Path Initialization:\n");
+			for(size_t i=0; i<err.num_msg(); i++)
+				UG_ERR_LOG(err.get_file(i) << ":" << err.get_line(i) << " : " << err.get_msg(i) << "\n");
+			errorOccurred = true;
+		}
+		catch(...){
+			UG_ERR_LOG("Unknown error received during Path Initialization.\n");
+			errorOccurred = true;
+		}
+};
+
+void ug_init_bridge(bool &errorOccurred)
+{
+	try{
+			UG_LOG(", bridge... ");
+			bridge::InitBridge();
+			UG_LOG("done");
+		}
+		catch(UGError& err)
+		{
+			UG_LOG("fail");
+			UG_ERR_LOG("UGError occurred during Standard Bridge Initialization:\n");
+			for(size_t i=0; i<err.num_msg(); i++)
+				UG_ERR_LOG(err.get_file(i) << ":" << err.get_line(i) << " : " << err.get_msg(i) << "\n");
+			errorOccurred = true;
+		}
+		catch(...){
+			UG_LOG("fail");
+			UG_ERR_LOG("Unknown error received during Standard Bridge Initialization.\n");
+			errorOccurred = true;
+		}
+};
+
+void ug_init_plugins(bool &errorOccurred)
+{
+	try{
+			UG_LOG(", plugins... ");
+			if(UGInitPlugins() == true)
+			{	UG_LOG("done"); }
+			else
+			{	UG_LOG("fail");	}
+
+			UG_LOG("                 *\n");
+		}
+		catch(UGError &err)
+		{
+			UG_LOG("fail");
+			UG_LOG("                 *\n");
+		//	if registration of plugin fails, we do abort the shell
+		//	this could be skipped if registering of plugin would be done more
+		//	carefully. (try/catch in load plugins)
+			PathProvider::clear_current_path_stack();
+			UG_ERR_LOG("UGError occurred during Plugin Initialization:\n");
+			for(size_t i=0; i<err.num_msg(); i++)
+				UG_ERR_LOG(err.get_file(i) << ":" << err.get_line(i) << " : " << err.get_msg(i) << "\n");
+			errorOccurred = true;
+		}
+		catch(...){
+			UG_LOG("fail");
+			UG_LOG("                 *\n");
+			UG_ERR_LOG("Unknown error received during Plugin Initialization.\n");
+			errorOccurred = true;
+		}
+
+}
+
+void ug_init_luashell(int argc, char* argv[])
+{
+	lua_State* L = script::GetDefaultLuaState();
+
+	SetLuaDebugIDs(L);
+	SetLuaUGArgs(L, argc, argv);
+
+	// replace LUAs print function with our own, to use UG_LOG
+	RegisterStdLUAFunctions(L);
+
+	ug::bridge::InitShell();
+};
+
+void ug_check_registry(bool &errorOccurred)
+{
+	try{
 		//	check that registry is consistent. Else abort.
 			if(bridge::GetUGRegistry().check_consistency() == false){
 				UG_ERR_LOG("#### Registry ERROR: Registering of Standard Bridges and Plugins failed.")
@@ -333,12 +298,113 @@ int ugshell_main(int argc, char* argv[])
 			UG_ERR_LOG("Unknown error occurred on registry check.\n");
 			errorOccurred = true;
 		}
+}
+int ugshell_main(int argc, char* argv[])
+{	
+
+//	ATTENTION
+//	Make sure to initialize ug before accessing the registry or performing any
+//	UG_LOGs. This is important, since mpi has to be initialized in a parallel
+//	environment.
+
+	PROFILE_FUNC();
+	PROFILE_BEGIN(ugshellInit);
+
+	#ifdef UG_PARALLEL
+		pcl::Init(&argc, &argv);
+	#endif
+
+
+////////////////////////////////
+//	PARSE PARAMETERS
+
+//	ALWAYS FIRST: check if the '-call' option has been specified. If so,
+//	concatenate all following parameters to one luaCall and shorten argc
+//	so that it only contains parameters up to the '-call' parameter.
+//	If '-ex' has been specified before '-call', abort the check.
+	/*const bool callSpecified = (GetParamIndex("-call", argc, argv) >= 0);
+	string callCommand = "";
+	if(callSpecified) {
+		for(int i = 1; i < argc; ++i){
+			if(strcmp(argv[i], "-ex") == 0)
+				break;
+			if(strcmp(argv[i], "-call") == 0){
+				for(int j = i + 1; j < argc; ++j){
+					callCommand.append(argv[j]);
+					if(j+1 < argc)
+						callCommand.append(" ");
+				}
+				argc = i;
+				break;
+			}
+		}
+	}*/
+
+	string callCommand;
+	const bool callSpecified = ugshell_get_call_command(argc, argv, callCommand);
+
+//	check if an output-process has been specified
+	int outputProc = 0;
+//	if "-outproc" is not found, outputProc won't be changed.
+	ParamToInt(outputProc, "-outproc", argc, argv);
+	GetLogAssistant().set_output_process(outputProc);
+	
+	const char* logFileName = NULL;
+	if(ParamToString(&logFileName, "-logtofile", argc, argv))
+		GetLogAssistant().enable_file_output(true, logFileName);
+
+	if(FindParam("-noterm", argc, argv))
+		GetLogAssistant().enable_terminal_output(false);
+		
+	if(FindParam("-profile", argc, argv))
+		UGOutputProfileStatsOnExit(true);
+
+	const bool interactiveShellRequested	= FindParam("-noquit", argc, argv);
+	bool defaultInteractiveShell			= true;	// may be changed later
+
+	#ifdef UG_PARALLEL
+		const bool parallelEnvironment = (pcl::NumProcs() > 1);
+	#else
+		const bool parallelEnvironment = false;
+	#endif
+
+
+////////////////////////////////
+//	PRINT HEADER
+	ugshell_print_header();
+
+
+
+////////////////////////////////
+//	VARIOUS INITIALIZATIONS
+
+	bool errorOccurred = false;
+	int ret = 0;
+	// INIT PATH
+	ug_init_path(argv, errorOccurred);
+
+//	INIT STANDARD BRIDGE
+	ug_init_bridge(errorOccurred);
+
+//	INIT PLUGINS
+	ug_init_plugins(errorOccurred);
+	LOG("********************************************************************************\n");
+
+
+	#ifdef UG_DEBUG
+		SharedLibrariesLoaded();
+	#endif
+
+
+	if(!errorOccurred)
+	{
+		ug_check_registry(errorOccurred);
 	}
 
 
 ////////////////////////////////
 //	SET UP LUA
-	lua_State* L = script::GetDefaultLuaState();
+	/*lua_State* L = script::GetDefaultLuaState();
 
 	SetLuaDebugIDs(L);
 	SetLuaUGArgs(L, argc, argv);
@@ -346,7 +412,8 @@ int ugshell_main(int argc, char* argv[])
 	// replace LUAs print function with our own, to use UG_LOG
 	RegisterStdLUAFunctions(L);
 
-	ug::bridge::InitShell();
+	ug::bridge::InitShell();*/
+	ug_init_luashell(argc, argv);
 
 	PROFILE_END(); // ugshellInit
 
