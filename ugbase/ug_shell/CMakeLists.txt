@@ -197,3 +197,8 @@ else(STATIC_BUILD)
 	target_link_libraries (${targetExecutableName} ${targetLibraryName})
 	target_link_libraries(${targetExecutableName} ${ugShellDependencies})
 endif(STATIC_BUILD)
+
+
+install(TARGETS ${targetExecutableName} 
+	RUNTIME
+  	DESTINATION bin)
