@@ -133,7 +133,7 @@ protected:
 	typename map_type::const_iterator find(int si) const
 	{
 		typename map_type::const_iterator it = m_map.find(si);
-		UG_ASSERT(it != m_map.end(), "ERROR:");
+		UG_ASSERT(it != m_map.end(), "ERROR: Subset not found!");
 		return it;
 	}
 
