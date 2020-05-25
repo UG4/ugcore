@@ -187,6 +187,10 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 		{
 		switch(dim)
 		{
+		case 0:
+			this->template AssembleMassMatrix<RegularVertex>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u);
+			break;
 		case 1:
 			this->template AssembleMassMatrix<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u);
@@ -343,6 +347,10 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 		{
 		switch(dim)
 		{
+		case 0:
+			this->template AssembleStiffnessMatrix<RegularVertex>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u);
+			break;
 		case 1:
 			this->template AssembleStiffnessMatrix<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u);
@@ -526,7 +534,7 @@ assemble_jacobian(matrix_type& J,
 		{
 		case 0:
 			this->template AssembleJacobian<RegularVertex>
-						(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU);
 			break;
 		case 1:
 			this->template AssembleJacobian<RegularEdge>
@@ -699,6 +707,10 @@ assemble_defect(vector_type& d,
 		{
 		switch(dim)
 		{
+		case 0:
+			this->template AssembleDefect<RegularVertex>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU);
+			break;
 		case 1:
 			this->template AssembleDefect<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU);
@@ -868,6 +880,10 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		{
 		switch(dim)
 		{
+		case 0:
+			this->template AssembleLinear<RegularVertex>
+					(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs);
+			break;
 		case 1:
 			this->template AssembleLinear<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs);
@@ -1025,6 +1041,10 @@ assemble_rhs(vector_type& rhs,
 		{
 		switch(dim)
 		{
+		case 0:
+			this->template AssembleRhs<RegularVertex>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u);
+			break;
 		case 1:
 			this->template AssembleRhs<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u);
@@ -1260,6 +1280,10 @@ prepare_timestep_elem(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		{
 		switch(dim)
 		{
+		case 0:
+			this->template PrepareTimestepElem<RegularVertex>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
+			break;
 		case 1:
 			this->template PrepareTimestepElem<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
@@ -1762,6 +1786,10 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		{
 		switch(dim)
 		{
+		case 0:
+			this->template AssembleLinear<RegularVertex>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff);
+			break;
 		case 1:
 			this->template AssembleLinear<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff);
@@ -1926,6 +1954,10 @@ assemble_rhs(vector_type& rhs,
 		{
 		switch(dim)
 		{
+		case 0:
+			this->template AssembleRhs<RegularVertex>
+			 	 (vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff);
+			break;
 		case 1:
 			this->template AssembleRhs<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff);
@@ -2755,6 +2787,10 @@ finish_timestep_elem(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		{
 		switch(dim)
 		{
+		case 0:
+			this->template FinishTimestepElem<RegularVertex>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
+			break;
 		case 1:
 			this->template FinishTimestepElem<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
