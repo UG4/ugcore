@@ -328,6 +328,7 @@ function util.SolveNonlinearTimeProblem(
 			local newtonTry = 1
 			newtonSolver:set_line_search(defaultLineSearch)
 
+			-- try to solve the non-linear problem with different line-search strategies
 			while newtonSuccess == false do
 				-- get old solution if the restart with a smaller time step is possible
 				if uOld ~= nil then
@@ -447,13 +448,11 @@ function util.SolveNonlinearTimeProblem(
 						util.debug_writer:leave_section ()
 					end
 					if type(pp_res) == "boolean" and pp_res == false then -- i.e. not nil, not something else, but "false"!
-						write("\n++++++ Finalization of the time step failed. ")
+						write("\n++++++ Finalization of the time step failed.")
 						newtonSuccess = false
-					else
-						pp_res = true
+						break
 					end
 				end
-				if pp_res == false then break end
 				
 				if newtonSuccess == false and newtonLineSearchFallbacks ~= nil then
 					if newtonLineSearchFallbacks[newtonTry] == nil or newtonSolver:last_num_newton_steps() == 0 then
@@ -467,7 +466,7 @@ function util.SolveNonlinearTimeProblem(
 				else
 					break
 				end
-			end -- newtonLineSearchFallbacks
+			end -- while newtonSuccess == false
 
 			-- call post process
 			if newtonSuccess == false then
