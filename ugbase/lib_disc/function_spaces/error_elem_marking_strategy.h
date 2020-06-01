@@ -83,6 +83,7 @@ public:
 	/// Detach error indicator from multigrid
 	void detach_indicators()
 	{
+		if (m_pMG.invalid()) return; // no elements attached
 		if (m_pMG->has_attachment<elem_type>(m_aError))
 			m_pMG->template detach_from<elem_type>(m_aError);
 	}
