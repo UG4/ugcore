@@ -547,7 +547,7 @@ void ExtrudeLayersMixed (
 	nextFaces.reserve(curFaces.size());
 
 	
-	for(int ilayer = (int)layers.size() - 2; ilayer > 0; --ilayer){
+	for(int ilayer = (int)layers.size() - 1; ilayer > 0; --ilayer){
 
 		nextVrts.clear();
 		nextFaces.clear();
