@@ -1014,7 +1014,7 @@ template <int TWorldDim, int ncorners>
 inline void ComputeElementExtensionsSq(const MathVector<TWorldDim>* vCornerCoords, MathVector<TWorldDim> &ext)
 {
 	// compute center
-	MathVector<TWorldDim> mid;
+	MathVector<TWorldDim> mid = 0.0;
 	for (int i=ncorners-1; i>=0; --i){
 		VecAppend(mid, vCornerCoords[i]);
 	}

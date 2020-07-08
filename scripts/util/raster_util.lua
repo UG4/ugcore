@@ -31,6 +31,54 @@
 util = util or {}
 util.raster = util.raster or {}
 
+
+
+-- Turns a descriptor into a RasterNumberData object.
+function util.raster.CreateRasterNumberData (desc)
+  
+  local order = 1
+  if desc.interpolationOrder and type(desc.interpolationOrder) == "number" then
+    order = desc.interpolationOrder 
+  end
+  
+   --  get the dimension of the underlying raster file
+  local filename = desc.file
+  print(desc)
+  local fileDim = util.raster.GetRasterFileDimension (filename)
+
+  if fileDim == nil then
+    print("ERROR in util.raster.CreateRasterCallback: invalid dimension: " .. fileDim)
+    return nil
+  end
+
+  local fullFilename = FindFileInStandardPaths(filename)
+  if fullFilename == "" then
+    print("ERROR in util.raster.GetRasterFileDimension: file not found: '" .. filename .. "'")
+  end
+
+  local raster = NumberRaster2d()
+  raster:load_from_asc(fullFilename)
+  
+  if desc.blurIterations and desc.blurAlpha
+  and type(desc.blurIterations) == "number" and type(desc.blurAlpha) == "number"
+  then
+    raster:blur(desc.blurAlpha, desc.blurIterations)
+  elseif desc.blurIterations or desc.blurAlpha then
+    print("Bad blur parameters. Please specify either both numbers 'blurAlpha' and 'blurIterations' in your descriptor or none."); exit();
+  end
+  
+  local rasterNumberData = RasterNumberData(raster)
+  rasterNumberData:set_order(order)
+  
+  if type(desc.scale) == "number" and type(desc.scale) == "number"
+  then rasterNumberData:set_scale(desc.scale) end
+  
+
+  return rasterNumberData
+end
+
+
+
 -- Returns a callback function and a raster object.
 -- Argument is a descriptor (table) with the following content:
 -- - file (string): filename of the .asc raster file

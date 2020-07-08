@@ -953,12 +953,12 @@ static void bp_defect_and_gradient
 			defectOut += integrandVal * w * (end-start);
 			VecScaleAdd(gradientOut, 1.0, gradientOut, w * (end-start), blub);
 
-			/*
 			UG_LOGN("  Ival: " << integrandVal << ",  iExp: " << -posNormSq*radInv*radInv
 				<< ",  velNorm: " << velNorm << ",  weight: " << w
 				<< ",  t: " << t << ",  intvl: " << end-start
-				<< ", posAx: " << posAx);
-			*/
+				<< ", posAx: " << posAx << "x: " << x);
+
+			UG_LOGN(" gradientOut: " << gradientOut);
 		}
 	}
 
@@ -1017,8 +1017,11 @@ static void bp_defect_and_gradient_soma
          /// if (t < 0) { t = -t; }
          UG_LOGN("Section information... t: " << t << ", secIt->endParam(): " << secIt->endParam);
          compute_position_and_velocity_in_section(posAx, vel, radius, secIt, t);
+         UG_LOGN("position in neurite: " << posAx);
 
-         number radInv = 1.0 / radius;
+         /// FIXME: add back rad in denominator (rad*radius) from current vertex's aaSurfParams
+         UG_LOGN("x: " << x);
+         number radInv = 1.0 / (radius*radius);
          VecSubtract(posAx, posAx, x);
          number posNormSq = VecNormSquared(posAx);
          number velNorm = sqrt(VecNormSquared(vel));
@@ -1027,31 +1030,41 @@ static void bp_defect_and_gradient_soma
          VecScale(blub, posAx, gradIntegrandVal);
          number w = qPoints[j].second;
 
-
          defectOut += integrandVal * w * (end-start);
          VecScaleAdd(gradientOut, 1.0, gradientOut, w * (end-start), blub);
 
+         UG_LOGN("posNeurite: " << posAx);
          UG_LOGN("Neurite part information... radius: " << radius << ", "
         		 << "x: " << x << ", vel: " << vel << ", posAx: " << posAx
         		 << ",radInv: "<< radInv << ", velNorm: " << velNorm
         		 << ",posNormSq: " << posNormSq << ", w:" << w << ", j: "
         		 << j << ", start: " << start << ", end: " << end
         		 << ",defectOut neurite: " << integrandVal * w * (end-start)
-        		 << ",gradIntegrand neurite:" << integrandVal
+        		 << ",integrand neurite:" << integrandVal
+        		 << ",gradintegrand neurite: " << gradIntegrandVal
         		 << ",blub: " << blub);
     }
     UG_LOGN("gradientOut (neurite): " << gradientOut);
 
     /// SOMA surface PM part or ER surface of inner sphere part
     vector3 posAxSoma;
-    /// TODO: Is this the correct soma position?
-    VecSubtract(posAxSoma, posSoma, x);
+    UG_LOGN("posSoma (initial): " << posSoma);
+    /// VecSubtract(posAxSoma, posSoma, x);
+    /// TODO: Verify: Soma position means: in direction from soma center towards
+    /// current point position (x) scaled with t (axial) equals position!
+    vector3 dir;
+    VecSubtract(dir, x, posSoma);
+    // FIXME verify this: soma outer sphere axial = 0 inner ER sphere -1:
+    /// set position of soma between end and start region of integration
+    const number t = std::fabs(helper.sr->t) + helper.sr->t+(start-end)/2;
+    VecScale(dir, dir, 1+t/helper.sr->radius);
+    VecAdd(posAxSoma, posSoma, dir);
+    VecSubtract(posAxSoma, posAxSoma, x);
     vector3 velSoma = posAxSoma;
     number velSomaNorm = sqrt(VecNormSquared(velSoma));
     number posNormSomaSq = VecNormSquared(posAxSoma);
-    /// TODO: Should this vary with t? "axial" distance from soma center to
-    ///      current point specified by aaSurfParams axial for the given vertex
-    number t  = 0;
+    UG_LOGN("t (Soma): " << t);
+    UG_LOGN("somaPos: " << posAxSoma);
     number radInvSoma = 1.0 / ((1+t)*somaRadius);
     number gradIntegrandValSoma = radInvSoma * exp(-posNormSomaSq*radInvSoma*radInvSoma) * velSomaNorm;
     vector3 blubSoma;
@@ -1070,12 +1083,13 @@ static void bp_defect_and_gradient_soma
    		 << ",gradIntegrand neurite:" << gradIntegrandValSoma
    		 << ",blub: " << blubSoma);
 
-    /// TODO: Adjust approximate defect with additional soma point
+    /// TODO: Is the defect calculation correct? It seems we do not account for the added soma point to the integrand?
     defectOut -= sqrt(PI)*exp(-1.0);
     UG_LOGN("defectOut (total): " << defectOut);
+    UG_LOGN("gradientOut (total): " << gradientOut);
 
-	// TODO: project gradient to surface of constant angle: Is this correct?
-	/// VecScaleAppend(gradientOut, -VecDot(constAngleSurfNormal, gradientOut), constAngleSurfNormal);
+	// TODO: project gradient to surface of constant angle: Is this still correct to use after adding the soma point to the integrand?
+	VecScaleAppend(gradientOut, -VecDot(constAngleSurfNormal, gradientOut), constAngleSurfNormal);
 }
 
 
@@ -1088,16 +1102,16 @@ static void newton_for_soma_bp_projection
 )
 {
 	vector3 posStart = posOut;
+    UG_LOGN("posOut (iter):" << posOut);
     // calculate start defect and gradient
     number def;
     number def_init;
     vector3 grad;
     bp_defect_and_gradient_soma(def, grad, vProjHelp, posOut, np, constAngleSurfNormal);
 	def_init = fabs(def);
-
-    /// TODO What to do if initial gradient is already near 0?
-    UG_LOGN("Def initial: " << def);
-    UG_LOGN("Gradient initial: " << grad);
+	// if initially gradient is zero, better starting position has to be chosen
+    UG_LOGN("def initial: " << def);
+    UG_LOGN("gradient initial: " << grad);
 
     // perform some kind of Newton search for the correct position
     size_t maxIt = 100;
@@ -1113,13 +1127,12 @@ static void newton_for_soma_bp_projection
         number defTest;
         // start with reduced step size to prevent overshooting in case the start position is too bad
         corr /= 2;
-        UG_LOGN("posOut:" << posOut);
         UG_LOGN("-def: " << -def);
         UG_LOGN("VecNormSquared(grad): " << VecNormSquared(grad));
         UG_LOGN("grad: " << grad);
         VecScaleAdd(posTest, 1.0, posOut, -(1.0-corr)*def / VecNormSquared(grad), grad);
         bp_defect_and_gradient_soma(defTest, gradTest, vProjHelp, posTest, np, constAngleSurfNormal);
-        /// UG_COND_THROW(std::fabs(VecNormSquared(gradTest)) < SMALL, "Gradient is 0: Iteration will fail.");
+        UG_COND_THROW(std::fabs(VecNorm(gradTest)) < SMALL, "Quasi-zero gradient: Iteration will always fail.");
 
         // line search
         number lambda = 0.5;
@@ -1193,6 +1206,7 @@ static void newton_for_bp_projection
 	number def;
 	number def_init;
 	vector3 grad;
+	UG_LOGN("MB iter: " << posOut);
 	bp_defect_and_gradient(def, grad, vProjHelp, posOut, rad, constAngleSurfNormal, np);
 	def_init = fabs(def);
 
@@ -1253,6 +1267,7 @@ static void pos_in_neurite
 	float rad
 )
 {
+	/// TODO: A similiar procedure as below has to be used for the soma/neurite BP iteration
 	const std::vector<NeuriteProjector::Section>& vSections = neurite.vSec;
 
 	// find correct section
@@ -1388,20 +1403,31 @@ static void pos_on_surface_soma_bp
     number& end = vProjHelp[0].end;
     std::vector<NeuriteProjector::Section>::const_iterator& sec_start = vProjHelp[0].sec_start;
 	number range = 0;
-	/// FIXME: This method generates a range far too large, create only range up to first sections secEnd param at most
+	/// FIXME: This method generates a range (which is negative) far too large, c
+	/// reate only range up to first sections secEnd param at most and not negative
 	try {range = np->axial_range_around_soma_region(sr, rad, neuriteID, vrt); }
 	UG_CATCH_THROW("Range around soma region could not be calculated.");
 	UG_LOGN("range: " << range);
+	/// Test: Too small range will never succeed in integration. Why?!
+	/*
 	start = aaSurfParams[vrt].axial;
 	end = aaSurfParams[vrt].axial+0.00001;
+	*/
+	/// FIXME: Integrates only outside of the soma for now now, but need to
+	// integrate around soma or ER start, e.g. [start-range, start+range]
+	/// soma starts at 0 ER starts at -1
 	start = 0;
-	end = 0.0001;
+	end = 0.001;
 	UG_LOGN("Range: (start: " << start << ", end: " << end << ")");
 	vProjHelp[0].sr = &sr;
  	sec_start = (&np->neurite(neuriteID).vSec)->begin();
 
     // 2. determine suitable start position for Newton iteration
     pos_on_surface_soma(posOut, np->neurite(neuriteID), np, parent);
+	/*if (parent) {
+		bp_newton_start_pos(posOut, neuriteID, t, angle, rad, parent, np);
+	}
+	*/
 
 	// also calculate normal of constant-angle surface
 	vector3 s, v;
@@ -1412,6 +1438,7 @@ static void pos_on_surface_soma_bp
 	vector3 constAngleSurfNormal;
 	compute_ONB(constAngleSurfNormal, projRefDir, thirdDir, v, neurite.refDir);
 	VecScaleAdd(constAngleSurfNormal, sin(angle), projRefDir, -cos(angle), thirdDir);
+	UG_LOGN("posOut (initial): " << posOut);
 
     // 3. perform Newton iteration
     try {newton_for_soma_bp_projection(posOut, vProjHelp, np, constAngleSurfNormal);}
@@ -1500,6 +1527,7 @@ static void pos_in_bp
 	//	np->average_pos_from_parent(posOut, parent);
 	//pos_in_neurite(posOut, np->neurite(neuriteID), neuriteID, t, angle, rad);
 
+	UG_LOGN("MB initial: " << posOut);
 
 	// perform Newton iteration
 	try {newton_for_bp_projection(posOut, vProjHelp, rad, constAngleSurfNormal, np);}
@@ -1576,73 +1604,58 @@ static void pos_on_surface_tip
 number NeuriteProjector::axial_range_around_soma_region
 (
 	const SomaBranchingRegion& sr,
-	const number rad,
+	const size_t numRadii,
 	const size_t nid,
 	Vertex* vrt
 ) const
 {
 	// soma parameters
-	const float somaRad = sr.radius;
+	///const float somaRad = sr.radius;
 	vector3 bp = sr.bp;
-
 	std::vector<NeuriteProjector::Section>::const_iterator secIt;
 	try {secIt = get_soma_section_iterator(nid, sr.t);}
 	UG_CATCH_THROW("Could not get section iterator to soma region: " << sr.t);
-
 	vector3 secStartPos;
 	vector3 secEndPos;
 	const number te = secIt->endParam;
 	number ts = 0.0;
-	if (secIt == m_vNeurites[nid].vSec.begin())
-		compute_first_section_end_points(secStartPos, secEndPos, secIt);
-	else
-	{
-		secEndPos[0] = secIt->splineParamsX[3];
-		secEndPos[1] = secIt->splineParamsY[3];
-		secEndPos[2] = secIt->splineParamsZ[3];
-		--secIt;
-		ts = secIt->endParam;
-		secStartPos[0] = secIt->splineParamsX[3];
-		secStartPos[1] = secIt->splineParamsY[3];
-		secStartPos[2] = secIt->splineParamsZ[3];
-		++secIt;
-	}
-
+	compute_first_section_end_points(secStartPos, secEndPos, secIt);
 	const number neuriteLengthApprox = VecDistance(secEndPos, secStartPos) / (te - ts);
 	const number* s = &secIt->splineParamsR[0];
 	number radius = s[0]*(te-sr.t) + s[1];
 	radius = radius*(te-sr.t) + s[2];
 	radius = radius*(te-sr.t) + s[3];
-
 	const number bpToVrt = VecDistance(bp, position(vrt));
-	const number neurite_length_to_soma = neuriteLengthApprox + bpToVrt;
-	const number radii = (rad * (somaRad + radius)/2.0)/neurite_length_to_soma;
-	return radii;
+	const number neurite_length_to_soma_bp= neuriteLengthApprox + bpToVrt;
+	const number rad = (numRadii * radius)/neurite_length_to_soma_bp;
+	return rad;
 }
 
 bool NeuriteProjector::is_in_axial_range_around_soma_region
 (
 	const SomaBranchingRegion& sr,
-	number radius,
 	size_t nid,
 	Vertex* vrt
 ) const {
-	// axial_range_around_soma_region(sr, 5.0*sr.radius, nid, vrt));
+	///const number radius = axial_range_around_soma_region(sr, 0.1, nid, vrt);
+	const number radius = 0.1;
+	UG_LOGN("Soma Branching Region center: " << sr.center);
+	UG_LOGN("Soma Branching Region raidus: " << radius);
 	return IsElementInsideSphere<Vertex>(vrt, sr.center, radius);
 }
 
 number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent)
 {
 	// average axial and angular params from parent;
-	// also decide on neuriteID
+	// also decide on neuriteID for aaSurfParams.
+	// the mapping parameters 1d<->2d are not needed on higher levels of refinment
 	uint32_t neuriteID;
 	float t;
 	float angle;
 	float rad;
-	if (parent)
+	if (parent) {
 		average_params(neuriteID, t, angle, rad, parent);
-	else
-	{
+	} else {
 		neuriteID = m_aaSurfParams[vrt].neuriteID;
 		t = m_aaSurfParams[vrt].axial;
 		angle = m_aaSurfParams[vrt].angular;
@@ -1687,8 +1700,7 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 		std::lower_bound(vSBR.begin(), vSBR.end(), cmpSBR, CompareSomaBranchingRegionsEnd());
 
 	if (it2 != vSBR.end()) {
-		/// FIXME: Radius of it2->radius might be too large (soma radius might be much bigger than neurite start radii)
-		isSP = is_in_axial_range_around_soma_region(*it2, it2->radius, plainNID, vrt);
+		isSP = is_in_axial_range_around_soma_region(*it2, plainNID, vrt);
 		if (isSP) {
 			UG_LOGN("Soma branching point: " << this->pos(vrt));
 		}
@@ -1731,8 +1743,8 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 		/// the surface. A new position for the vertex based on the average of the
 		/// (first) neurite section and the soma sphere position and radius will
 		/// be calculated based on the SomaRegion information stored in a struct.
-		/// FIXME: Optimize iteration
-		pos_on_surface_soma_bp(pos, neurite, neuriteID, t, angle, parent, this, rad, vrt, *it2, m_aaSurfParams);
+		/// FIXME: Optimize iteration: Find better starting position for iteration start
+		///pos_on_surface_soma_bp(pos, neurite, neuriteID, t, angle, parent, this, rad, vrt, *it2, m_aaSurfParams);
 	}
 
 	// case 3: normal neurite position
@@ -1744,7 +1756,7 @@ number NeuriteProjector::push_into_place(Vertex* vrt, const IVertexGroup* parent
 	// case 4: normal soma position
 	else if (t < 0 && t >= -1.0)
 	{
-		pos_on_surface_soma(pos, neurite, this, parent);
+		///pos_on_surface_soma(pos, neurite, this, parent);
 	}
 
 	// case 5: tip of neurite
@@ -1805,4 +1817,45 @@ std::istream& operator>>(std::istream& in, NeuriteProjector::SurfaceParams& surf
 
 	return in;
 }
+
+std::ostream& operator<<(std::ostream& os, const NeuriteProjector::Mapping& mapping)
+{
+	/// Standard precision for UGX coord export is 18. Is this even correct to use?
+	/// Shouldn't one use std::numeric_limits<number>::digits10+1?
+	using std::ostringstream;
+	ostringstream strs;
+	for (size_t i = 0; i < mapping.v1.size(); i++) {
+		strs << std::setprecision(18) << mapping.v1[i] << " ";
+	}
+	for (size_t i = 0; i < mapping.v1.size(); i++) {
+		strs << std::setprecision(18) << mapping.v2[i] << " ";
+	}
+	strs << mapping.lambda;
+	os << strs.str();
+	return os;
+}
+
+std::istream& operator>>(std::istream& in, NeuriteProjector::Mapping& mapping)
+{
+	std::string temp;
+	using boost::lexical_cast;
+
+	for (size_t i = 0; i < mapping.v1.size(); i++) {
+		in >> temp;
+		mapping.v1[i] = (lexical_cast<number>(temp));
+	}
+
+	for (size_t i = 0; i < mapping.v2.size(); i++) {
+		in >> temp;
+		mapping.v2[i] = (lexical_cast<number>(temp));
+	}
+
+	in >> temp;
+	mapping.lambda = (lexical_cast<number>(temp));
+	temp.clear();
+
+	return in;
+}
+
+
 } // namespace ug

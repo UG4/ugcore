@@ -459,6 +459,40 @@ void SelectEdgesByDirection(
 	}lg_end_for;
 }
 
+////////////////////////////////////////////////////////////////////////
+template <class TAAPos>
+void SelectSubsetEdgesByDirection(
+				Selector& sel,
+				SubsetHandler& sh,
+				int subsetIndex,
+				TAAPos& aaPos,
+				const vector3& dir,
+				number minDeviationAngle,
+				number maxDeviationAngle,
+				bool selectFlipped)
+{
+
+	UG_COND_THROW(!sel.grid(), "A grid has to be assigned to the given selector");
+
+	vector3 n;
+	VecNormalize(n, dir);
+
+	number maxDot = cos(deg_to_rad(minDeviationAngle));
+	number minDot = cos(deg_to_rad(maxDeviationAngle));
+
+	lg_for_each_in_subset(Edge, e, sh, subsetIndex){
+		vector3 dir;
+		VecSubtract(dir, aaPos[e->vertex(1)], aaPos[e->vertex(0)]);
+		VecNormalize(dir, dir);
+		number d = VecDot(dir, n);
+		if((d >= minDot - SMALL && d <= maxDot + SMALL) ||
+			(selectFlipped && (-d >= minDot - SMALL && -d <= maxDot + SMALL)))
+		{
+			sel.select(e);
+		}
+	}lg_end_for;
+}
+
 
 ////////////////////////////////////////////////////////////////////////
 template <class TEdgeIterator>

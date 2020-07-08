@@ -328,6 +328,7 @@ function util.SolveNonlinearTimeProblem(
 			local newtonTry = 1
 			newtonSolver:set_line_search(defaultLineSearch)
 
+			-- try to solve the non-linear problem with different line-search strategies
 			while newtonSuccess == false do
 				-- get old solution if the restart with a smaller time step is possible
 				if uOld ~= nil then
@@ -447,13 +448,11 @@ function util.SolveNonlinearTimeProblem(
 						util.debug_writer:leave_section ()
 					end
 					if type(pp_res) == "boolean" and pp_res == false then -- i.e. not nil, not something else, but "false"!
-						write("\n++++++ Finalization of the time step failed. ")
+						write("\n++++++ Finalization of the time step failed.")
 						newtonSuccess = false
-					else
-						pp_res = true
+						break
 					end
 				end
-				if pp_res == false then break end
 				
 				if newtonSuccess == false and newtonLineSearchFallbacks ~= nil then
 					if newtonLineSearchFallbacks[newtonTry] == nil or newtonSolver:last_num_newton_steps() == 0 then
@@ -467,7 +466,7 @@ function util.SolveNonlinearTimeProblem(
 				else
 					break
 				end
-			end -- newtonLineSearchFallbacks
+			end -- while newtonSuccess == false
 
 			-- call post process
 			if newtonSuccess == false then
@@ -550,11 +549,15 @@ end
 --!									a)	If this is a function then it is called after
 --!										solving the linear problem in every time step
 --!										of the time-stepping scheme;
---!									b)	if this is a table, it can contain 4 optional functions:
+--!									b)	if this is a table, it can contain 2 optional functions:
 --!										preProcess to call before the time step,
 --!										postProcess as in a),
 --!										Arguments of the functions are: (u, step, time, dt)
---!										u, time: old before the solver, new after it
+--!										u, time: old before the solver, new after it;
+--!										there may be also values for the return codes:
+--!										retValAtOK to return if the process ends normally
+--!										retValAtMinStepSize to return if the min. dt is overcome
+--!										retValAtSolver to return if the lin. solver failed
 --! @param startTSNo		(optional) time step number of the initial condition (normally 0).
 --! @param endTSNo			(optional) if passed, stop after the time step with this number.
 function util.SolveLinearTimeProblem(
@@ -622,12 +625,18 @@ function util.SolveLinearTimeProblem(
 	end
 	
 	local preProcess = nil
+	local retValAtOK = nil
+	local retValAtMinStepSize = nil
+	local retValAtSolver = nil
 	if postProcess ~= nil then
 		if type(postProcess) ~= "function" then
 			if type(postProcess) ~= "table" then
 				print("SolveLinearTimeProblem: Illegal parameters: postProcess must be a function.")
 				exit()
 			end
+			retValAtOK = postProcess.retValAtOK
+			retValAtMinStepSize = postProcess.retValAtMinStepSize
+			retValAtSolver = postProcess.retValAtSolver
 			preProcess = postProcess.preProcess
 			postProcess = postProcess.postProcess
 		end
@@ -648,10 +657,17 @@ function util.SolveLinearTimeProblem(
 		exit()
 	end
 	
+	-- set the level of verbosity (do not print much for only one time step)
+	local verbose = true
+	if startTSNo ~= nil and endTSNo ~= nil and endTSNo == startTSNo + 1 then
+		verbose = false
+	end
 	
 	-- print newtonSolver setup	
-	print("SolveLinearTimeProblem, Linear Solver setup:")
-	print(linSolver:config_string())
+	if verbose then
+		print("SolveLinearTimeProblem, Linear Solver setup:")
+		print(linSolver:config_string())
+	end
 	
 	-- start
 	local time = startTime
@@ -669,8 +685,10 @@ function util.SolveLinearTimeProblem(
 	end	
 	
 	-- write start solution
-	print(">> Writing start values")
-	if not (out==nil) then out:print(filename, u, step, time) end
+	if out ~= nil then
+		print(">> Writing start values")
+		out:print(filename, u, step, time)
+	end
 	
 	-- store grid function in vector of  old solutions
 	local solTimeSeries = SolutionTimeSeries()
@@ -688,7 +706,7 @@ function util.SolveLinearTimeProblem(
 	
 	while ((endTime == nil) or (time < endTime)) and ((endTSNo == nil) or (step < endTSNo)) do
 		step = step + 1
-		print("++++++ TIMESTEP "..step.." BEGIN (current time: " .. time .. ") ++++++");
+		if verbose then print("++++++ TIMESTEP "..step.." BEGIN (current time: " .. time .. ") ++++++") end
 	
 		-- initial time step size
 		-- assure, that not reaching beyond end of interval and care for round-off
@@ -702,7 +720,7 @@ function util.SolveLinearTimeProblem(
 		local bSuccess = false;	
 		while bSuccess == false do
 			TerminateAbortedRun()
-			print("++++++ Time step size: "..currdt);
+			if verbose then print("++++++ Time step size: "..currdt) end
 
 			if preProcess ~= nil then
 				local pp_res = preProcess(u, step, time, currdt)
@@ -725,7 +743,8 @@ function util.SolveLinearTimeProblem(
 			end
 			
 			-- apply linear solver
-			if linSolver:apply(u,b) == false then 
+			if linSolver:apply(u,b) == false then
+				if retValAtSolver ~= nil then return retValAtSolver end
 				currdt = currdt * reductionFactor;
 				write("\n++++++ Linear solver failed. "); 
 				write("Trying decreased stepsize " .. currdt .. ".\n");
@@ -745,7 +764,10 @@ function util.SolveLinearTimeProblem(
 			if(bSuccess == false and currdt < minStepSize) then
 				write("++++++ Time Step size "..currdt.." below minimal step ")
 				write("size "..minStepSize..". Cannot solve problem. Aborting.");
-				test.require(false, "Time Solver failed.")
+				if retValAtMinStepSize ~= nil
+				then return retValAtMinStepSize
+				else test.require(false, "Time Solver failed.")
+				end
 			end
 		end
 		
@@ -767,7 +789,7 @@ function util.SolveLinearTimeProblem(
 		if not (out==nil) then out:print(filename, u, step, time) end
 		--SaveVectorForConnectionViewer(u, filename.."_t"..step..".vec")
 			
-		print("++++++ TIMESTEP "..step.." END   (current time: " .. time .. ") ++++++");
+		if verbose then print("++++++ TIMESTEP "..step.." END   (current time: " .. time .. ") ++++++") end
 		
 		if useCheckpointing then
 			----------------------------------------------------------
@@ -781,7 +803,9 @@ function util.SolveLinearTimeProblem(
 	
 	if useCheckpointing and  timeDisc:num_stages() > 1 then
 		ug_warning("WARNING: Checkpointing won't work at the moment with timeDisc:num_stages() > 1")
-	end 
+	end
+	
+	if retValAtOK ~= nil then return retValAtOK end
 end
 
 --! Time stepping with the adaptive step size. Returns number of time steps done and the last time.

@@ -302,12 +302,7 @@ public:
 		virtual bool is_error_valid();
 
 	protected:
-		typedef typename domain_traits<dim>::element_type elem_type;
-		typedef MultiGrid::AttachmentAccessor<elem_type, Attachment<number> > aa_type;
-		Attachment<number> m_aError;
-		aa_type m_aaError;
-		SmartPtr<MultiGrid> m_pMG;
-
+		IMultigridElementIndicators<TDomain> m_mgElemErrors;  // holding the indicators
 		bool m_bErrorCalculated;
 
 	// Error estimator										 //

@@ -412,6 +412,19 @@ void SelectEdgesByDirection(
 				number maxDeviationAngle,
 				bool selectFlipped);
 
+////////////////////////////////////////////////////////////////////////
+///	Selects all subset edges that face a given direction
+template <class TAAPos>
+void SelectSubsetEdgesByDirection(
+				Selector& sel,
+				SubsetHandler& sh,
+				int subsetIndex,
+				TAAPos& aaPos,
+				const vector3& dir,
+				number minDeviationAngle,
+				number maxDeviationAngle,
+				bool selectFlipped);
+
 
 ////////////////////////////////////////////////////////////////////////
 //	SelectSmoothEdgePath

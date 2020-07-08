@@ -63,15 +63,12 @@ namespace ug
 /// enumeration for identification of global boundary refinement rule to be used
 enum GlobalBoundaryRefinementRule
 {
-	LINEAR,
+	LINEAR, // the default value
 	SUBDIV_SURF_LOOP_SCHEME,
 	SUBDIV_SURF_AVERAGING_SCHEME,
 	SUBDIV_SURF_BUTTERFLY_SCHEME,
 	SUBDIV_VOL
 };
-
-/// global boundary refinement rule variable for switching between linear and Subdivision Loop refinement
-static GlobalBoundaryRefinementRule g_boundaryRefinementRule = LINEAR;
 
 /// setting procedure for global boundary refinement rule variable
 void SetBoundaryRefinementRule(GlobalBoundaryRefinementRule refRule);
