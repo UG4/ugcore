@@ -453,12 +453,17 @@ include(${UG_ROOT_CMAKE_PATH}/ug/opencl.cmake)
 #  If it is disabled, the system-installation of boost is used instead.
 #  Note: If INTERNAL_BOOST is enabled and system installations are available,
 #        the internal one has precedence.
+find_package(Boost 1.40 REQUIRED) # automatic detection
+message(STATUS "Info: Found Boost ${Boost_VERSION}")
+
+
 if(INTERNAL_BOOST)
 	add_definitions( -DBOOST_ALL_NO_LIB )
 	set(INTERNAL_BOOST_PATH ${UG_ROOT_PATH}/externals/BoostForUG4/)
 	set(BOOST_ROOT ${INTERNAL_BOOST_PATH})
+	set(Boost_INCLUDE_DIRS ${INTERNAL_BOOST_PATH})
 endif(INTERNAL_BOOST)
-find_package(Boost 1.40 REQUIRED)
+
 message(STATUS "Info: Including Boost from ${Boost_INCLUDE_DIRS}")
 # Suppress diagnostic warnings in the boost headers: declare them to be "system headers"
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
