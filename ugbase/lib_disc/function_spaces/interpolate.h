@@ -130,9 +130,10 @@ void InterpolateOnDiffVertices(SmartPtr<UserData<number, TGridFunction::dim> > s
 }
 //getting value of spInterpolFunction at position
 
-template <typename TGridFunction, typename domain_type=typename TGridFunction::domain_type, typename position_type=typename domain_type::position_type>
+//template <typename TGridFunction, typename domain_type=typename TGridFunction::domain_type, typename position_type=typename domain_type::position_type>
+template <typename TGridFunction>
 number get_number_on_coords(SmartPtr<UserData<number, TGridFunction::dim> > spInterpolFunction,
-	position_type pos,
+	typename TGridFunction::domain_type::position_type pos,
 	number time,
     const int si
 ){
