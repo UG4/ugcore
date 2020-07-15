@@ -52,6 +52,7 @@
 
 namespace ug{
 
+
 /**
  * This function interpolates a grid function on a specific subset and for
  * a specific element type. All inner dofs of all grid elements of the given
@@ -66,7 +67,7 @@ namespace ug{
 template <typename TElem, typename TGridFunction>
 void InterpolateOnElementsInner(
 		SmartPtr<UserData<number, TGridFunction::dim> > spInterpolFunction,
-		SmartPtr<TGridFunction> spGridFct, size_t fct, int si, number time)
+		SmartPtr<TGridFunction> spGridFct, size_t fct, int si, number time, const MathVector<TGridFunction::dim> diff_pos)
 {
 	// do nothing if no DoFs here
 	if (!spGridFct->max_fct_dofs(fct, ROID_TETRAHEDRON, si))
@@ -114,12 +115,92 @@ void InterpolateOnElementsInner(
 		{
 		//	value at position
 			number val;
-			(*spInterpolFunction)(val, glob_pos[i], time, si);
+			position_type rel_pos=glob_pos[i];
+			rel_pos-=diff_pos;
+
+			(*spInterpolFunction)(val, rel_pos, time, si);
 
 		//	set value
 			DoFRef(*spGridFct, ind[i]) = val;
 		}
 	}
+}
+/**
+ * This function interpolates a grid function on a specific subset and for
+ * a specific element type. All inner dofs of all grid elements of the given
+ * type in the given subset will be assigned an interpolated value.
+ *
+ * @param[in] spInterpolFunction	data providing interpolation values
+ * @param[out] spGridFct			interpolated grid function
+ * @param[in] fct					symbolic name of function component
+ * @param[in] si					subset, where to interpolate
+ * @param[in] time					time point
+ */
+template <typename TElem, typename TGridFunction>
+void InterpolateOnElementsInner(
+		SmartPtr<UserData<number, TGridFunction::dim> > spInterpolFunction,
+		SmartPtr<TGridFunction> spGridFct, size_t fct, int si, number time)
+{
+	// do nothing if no DoFs here
+	if (!spGridFct->max_fct_dofs(fct, ROID_TETRAHEDRON, si))
+		return;
+
+	//	domain type and position_type
+	typedef typename TGridFunction::domain_type domain_type;
+	typedef typename domain_type::position_type position_type;
+	typedef typename position_type::value_type value_type;
+
+		//	dimension of reference element
+			const int dim = TGridFunction::dim;
+
+	//	get iterators
+	/*typename TGridFunction::template traits<TElem>::const_iterator iterEnd, iter;
+	iterEnd = spGridFct->template end<TElem>(si);
+	iter = spGridFct->template begin<TElem>(si);
+
+	//	check if something to do:
+	if (iter == iterEnd) return;
+
+	//	id of shape functions used
+	LFEID id = spGridFct->local_finite_element_id(fct);
+
+	// 	iterate over all elements
+	for (; iter != iterEnd; ++iter)
+	{
+	//	get element
+		TElem* elem = *iter;
+
+	//	get multiindices of element
+		std::vector<DoFIndex> ind;
+		spGridFct->inner_dof_indices(elem, fct, ind);
+
+	//	global positions of DoFs
+		std::vector<position_type> glob_pos;
+		InnerDoFPosition<domain_type>(glob_pos, elem, *spGridFct->domain(), id);
+
+	//	check global positions size
+		size_t ind_sz = ind.size();
+		size_t gp_sz = glob_pos.size();
+		if (ind_sz != gp_sz)
+			UG_THROW("InterpolateOnElem: On subset " << si << ": Number of DoFs is "
+					<< ind_sz << ", but number of DoF positions is "
+					<< gp_sz << "." << std::endl);
+
+	// 	loop all dofs
+		for (size_t i = 0; i < ind_sz && i < gp_sz; ++i)
+		{
+		//	value at position
+			number val;
+			(*spInterpolFunction)(val, glob_pos[i], time, si);
+
+		//	set value
+			DoFRef(*spGridFct, ind[i]) = val;
+		}
+	}*/
+
+	MathVector<dim>* diff_pos=new MathVector<dim, value_type>();
+	InterpolateOnElementsInner<TElem,TGridFunction>(spInterpolFunction, spGridFct, fct, si,time, *diff_pos);
+
 }
 
 
@@ -255,6 +336,71 @@ void InterpolateOnElementsInner
  * @param[in] time					time point
  */
 template <typename TGridFunction>
+void InterpolateInnerDiff(SmartPtr<UserData<number, TGridFunction::dim> > spInterpolFunction,
+                 SmartPtr<TGridFunction> spGridFct, const char* cmp,
+                 const char* subsets, number time, const SmartPtr<CplUserData<MathVector<TGridFunction::dim>, TGridFunction::dim> > m_diff_pos)
+{
+	// check, that values do not depend on a solution
+	if (spInterpolFunction->requires_grid_fct())
+		UG_THROW("Interpolate: The interpolation values depend on a grid function."
+				" This is not allowed in the current implementation. Use constant,"
+				" lua-callback or vrl-callback user data only (even within linkers).");
+
+	// get function id of name
+	const size_t fct = spGridFct->fct_id_by_name(cmp);
+
+	// check that function found
+	if (fct > spGridFct->num_fct())
+		UG_THROW("Interpolate: Name of component '"<< cmp <<"' not found.");
+
+	// check that type is Lagrange
+	if (spGridFct->local_finite_element_id(fct).type() != LFEID::LAGRANGE)
+		UG_THROW("This interpolation only allows Lagrange-type elements.\n"
+				 "Feel free to add functionality for other types as needed.");
+
+	// check if fast P1 interpolation can be used
+	const bool bUseP1Interpolation
+		= spGridFct->local_finite_element_id(fct).order() == 1;
+
+	// create subset group
+	SubsetGroup ssGrp(spGridFct->domain()->subset_handler());
+	if (subsets != NULL)
+		ssGrp.add(TokenizeString(subsets));
+	else
+		ssGrp.add_all();
+
+	// forward
+	if (bUseP1Interpolation)
+		InterpolateOnDiffVertices<TGridFunction>(spInterpolFunction, spGridFct, fct, time, ssGrp, m_diff_pos);
+	else
+		InterpolateOnElementsInner<TGridFunction>(spInterpolFunction, spGridFct, fct, time, ssGrp, m_diff_pos);
+
+	//	adjust parallel storage state
+#ifdef UG_PARALLEL
+	spGridFct->set_storage_type(PST_CONSISTENT);
+#endif
+}
+
+/// interpolates a function on a subset
+/**
+ * This function interpolates a Lagrange type GridFunction.
+ * In contrast to its "big brother" Interpolate() in interpolate.h,
+ * this function will only write to _inner_ DoFs, but to _all_ of them,
+ * on any element located in any of the given subsets.
+ * This is more intuitive and secure than writing to all (not necessarily
+ * inner) DoFs of an element located in a subset, as this takes into
+ * account the unique subsets of sub-elements.
+ *
+ * At the moment, this is only meant for Lagrange-type elements.
+ * Please feel free to add functionality for other types if you like.
+ *
+ * @param[in] spInterpolFunction	data providing interpolation values
+ * @param[out] spGridFct			interpolated grid function
+ * @param[in] cmp					symbolic name of function component
+ * @param[in] subsets				subsets, where to interpolate (NULL = everywhere)
+ * @param[in] time					time point
+ */
+template <typename TGridFunction>
 void InterpolateInner(SmartPtr<UserData<number, TGridFunction::dim> > spInterpolFunction,
                  SmartPtr<TGridFunction> spGridFct, const char* cmp,
                  const char* subsets, number time)
@@ -299,6 +445,8 @@ void InterpolateInner(SmartPtr<UserData<number, TGridFunction::dim> > spInterpol
 	spGridFct->set_storage_type(PST_CONSISTENT);
 #endif
 }
+
+
 
 template <typename TGridFunction>
 void InterpolateInner(SmartPtr<UserData<number, TGridFunction::dim> > spInterpolFunction,
