@@ -306,6 +306,18 @@ number CalculateTetrahedronVolToRMSFaceAreaRatio(Grid& grid,
 	return normalization * vol / std::pow(A_rms, 3/2.0);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////
+//	CalculateHexahedronVolToRMSFaceAreaRatio - sgrein
+////////////////////////////////////////////////////////////////////////////////////////////
+UG_API
+number CalculateHexahedronVolToRMSFaceAreaRatio(Grid& grid,
+										  	  	 Hexahedron* hex,
+												 Grid::VertexAttachmentAccessor<APosition>& aaPos)
+{
+	UG_THROW("Not yet implemented");
+	return NAN;
+}
+
 
 ////////////////////////////////////////////////////////////////////////
 // IntersectPlaneWithTetrahedron
