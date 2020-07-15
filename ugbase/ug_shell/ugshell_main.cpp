@@ -379,7 +379,7 @@ int ugshell_main(int argc, char* argv[])
   if (quiet) 
   {
     GetLogAssistant().enable_terminal_output(false);
-  }
+  } 
 
 ////////////////////////////////
 //	PRINT HEADER
@@ -389,7 +389,7 @@ int ugshell_main(int argc, char* argv[])
   if (help)
   {
     LOG("********************************************************************************\n");
-    return 0;
+    return 1;
   }
 
 ////////////////////////////////
@@ -438,8 +438,9 @@ int ugshell_main(int argc, char* argv[])
 
 ////////////////////////////////
 // EANBLE TERMINAL OUTPUT AGAIN
-  if (quiet)
+  if (quiet) {
     GetLogAssistant().enable_terminal_output(true);
+  }
 
 ////////////////////////////////
 //	RUN SCRIPT OR CALL
@@ -521,6 +522,9 @@ int ugshell_main(int argc, char* argv[])
 		UG_LOG("WARNING: Errors occured on startup (see error log). Scripts and calls are ignored!\n");
 	}
 
+  if (quiet) {
+    GetLogAssistant().enable_terminal_output(false);
+  }
 
 	if(!parallelEnvironment && (interactiveShellRequested || (!errorOccurred && defaultInteractiveShell)))
 	{
@@ -532,11 +536,6 @@ int ugshell_main(int argc, char* argv[])
 			UG_LOG(err.get_msg() << std::endl);
 		}
 	}
-
-////////////////////////////////
-// EANBLE TERMINAL OUTPUT AGAIN
-  if (quiet)
-    GetLogAssistant().enable_terminal_output(true);
 
 	PROFILE_BEGIN(ugshellFinalize);
 
@@ -552,6 +551,11 @@ int ugshell_main(int argc, char* argv[])
 
 	ug::UGProfileNode::CheckForTooSmallNodes();
 	UG_LOG(endl);
+
+  ////////////////////////////////
+  // EANBLE TERMINAL OUTPUT AGAIN
+  if (quiet)
+    GetLogAssistant().enable_terminal_output(true);
 
 	// If shell aborted and no custom ret-value defined then return '1'; return 'ret' otherwise
 	return errorOccurred&&ret==0?1:ret;
