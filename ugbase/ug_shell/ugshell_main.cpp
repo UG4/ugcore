@@ -135,6 +135,8 @@ void ugshell_print_header()
 	LOG("*   -outproc id:         Sets the output-proc to id. Default is 0.             *\n");
 	LOG("*   -ex scriptname:      Executes the specified script.                        *\n");
 	LOG("*   -noquit:             Runs the interactive shell after specified script.    *\n");
+  LOG("*   -quiet:              Disables printing of header and trailer.              *\n");
+  LOG("*   -help:               Print this help message and exit.                     *\n");
 	LOG("*   -noterm:             Terminal logging will be disabled.                    *\n");
 	LOG("*   -logtofile filename: Output will be written to the specified file.         *\n");
 #ifdef UG_PROFILER
@@ -177,7 +179,7 @@ void ug_init_path(char* argv[], bool &errorOccurred)
 	//	INIT PATH
 		try{
 			LOG("* Initializing: paths... ");
-			if(InitPaths((argv)[0]))	{UG_LOG("done");}
+			if(InitPaths((argv)[0])) {UG_LOG("done");}
 		//	if only false is returned, the error is non-fatal. Still continue shell
 			else{
 				UG_LOG("fail");
@@ -358,6 +360,10 @@ int ugshell_main(int argc, char* argv[])
 		
 	if(FindParam("-profile", argc, argv))
 		UGOutputProfileStatsOnExit(true);
+    
+  const bool quiet = FindParam("-quiet", argc, argv);
+
+  const bool help = FindParam("-help", argc, argv);
 
 	const bool interactiveShellRequested	= FindParam("-noquit", argc, argv);
 	bool defaultInteractiveShell			= true;	// may be changed later
@@ -368,12 +374,23 @@ int ugshell_main(int argc, char* argv[])
 		const bool parallelEnvironment = false;
 	#endif
 
+////////////////////////////////
+// DO NOT PRINT HEADER AND TRAILER
+  if (quiet) 
+  {
+    GetLogAssistant().enable_terminal_output(false);
+  }
 
 ////////////////////////////////
 //	PRINT HEADER
-	ugshell_print_header();
-
-
+  ugshell_print_header();
+  ////////////////////////////////
+  // PRINT USAGE MESSAGE AND EXIT
+  if (help)
+  {
+    LOG("********************************************************************************\n");
+    return 0;
+  }
 
 ////////////////////////////////
 //	VARIOUS INITIALIZATIONS
@@ -388,7 +405,7 @@ int ugshell_main(int argc, char* argv[])
 
 //	INIT PLUGINS
 	ug_init_plugins(errorOccurred);
-	LOG("********************************************************************************\n");
+  LOG("********************************************************************************\n");
 
 
 	#ifdef UG_DEBUG
@@ -419,6 +436,10 @@ int ugshell_main(int argc, char* argv[])
 
 	EnableMemTracker(true);
 
+////////////////////////////////
+// EANBLE TERMINAL OUTPUT AGAIN
+  if (quiet)
+    GetLogAssistant().enable_terminal_output(true);
 
 ////////////////////////////////
 //	RUN SCRIPT OR CALL
@@ -512,6 +533,10 @@ int ugshell_main(int argc, char* argv[])
 		}
 	}
 
+////////////////////////////////
+// EANBLE TERMINAL OUTPUT AGAIN
+  if (quiet)
+    GetLogAssistant().enable_terminal_output(true);
 
 	PROFILE_BEGIN(ugshellFinalize);
 
