@@ -463,10 +463,16 @@ if(INTERNAL_BOOST)
 	set(Boost_INCLUDE_DIRS ${INTERNAL_BOOST_PATH})
 	message(STATUS "Info: Internal Boost ${Boost_ADDITIONAL_VERSIONS}")
 else(INTERNAL_BOOST)
-	find_package(Boost 1.40 REQUIRED) # automatic detection
+	find_package(Boost 1.58 REQUIRED) # automatic detection
+
 	if(Boost_FOUND)
-	message(STATUS "Info: Found Boost ${Boost_VERSION}")
+		message(STATUS "Info: Found Boost ${Boost_VERSION} in <${Boost_INCLUDE_DIRS}>")
+		link_directories("${Boost_INCLUDE_DIRS}/../lib")
+		set(linkLibraries ${linkLibraries} boost_serialization)
+	else(Boost_FOUND)
+		message(FATAL_ERROR "Info: Boost not found. Please use internal boost (-DINTERNAL_BOOST=ON)")
 	endif(Boost_FOUND)
+	
 endif(INTERNAL_BOOST)
 
 
