@@ -440,7 +440,7 @@ void MarkForRefinement_VerticesInSphere(TDomain& dom, SmartPtr<IRefiner> refiner
 template <class TDomain>
 void MarkForAdaption_VerticesInSphere(TDomain& dom, SmartPtr<IRefiner> refiner,
                                       const typename TDomain::position_type& center,
-                                      number radius, std::string markType, int maxLvl)
+                                      number radius, std::string markType)
 {
 	MarkForAdaption_VerticesInSphereMaxLvl(dom, refiner, center, radius, markType, -1);	
 }
