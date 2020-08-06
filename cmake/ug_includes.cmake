@@ -460,13 +460,13 @@ if(INTERNAL_BOOST)
 	add_definitions( -DBOOST_ALL_NO_LIB )
 	set(INTERNAL_BOOST_PATH ${UG_ROOT_PATH}/externals/BoostForUG4/)
 	set(BOOST_ROOT ${INTERNAL_BOOST_PATH})
-	set(Boost_INCLUDE_DIRS ${INTERNAL_BOOST_PATH})
-	message(STATUS "Info: Internal Boost ${Boost_ADDITIONAL_VERSIONS}")
+	find_package(Boost 1.58 REQUIRED) # automatic detection
+	message(STATUS "Info: Internal Boost ${Boost_VERSION_STRING}")
 else(INTERNAL_BOOST)
 	find_package(Boost 1.58 REQUIRED) # automatic detection
 
 	if(Boost_FOUND)
-		message(STATUS "Info: Found Boost ${Boost_VERSION} in <${Boost_INCLUDE_DIRS}>")
+		message(STATUS "Info: Found Boost ${Boost_VERSION_STRING} in <${Boost_INCLUDE_DIRS}>")
 		link_directories("${Boost_INCLUDE_DIRS}/../lib")
 		set(linkLibraries ${linkLibraries} boost_serialization)
 	else(Boost_FOUND)
