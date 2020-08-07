@@ -200,4 +200,9 @@ bool UnloadPlugins()
 	return true;
 }
 
+vector<string> GetLoadedPlugins()
+{
+	return loadedPluginNames;
+}
+
 }// end of namespace
