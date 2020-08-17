@@ -100,4 +100,10 @@ script:
     # we still need to use travis_wait to prevent "build error because of no output"
     # https://docs.travis-ci.com/user/common-build-problems/#Build-times-out-because-no-output-was-received
     - travis_wait 45 make -j2
-    - if [[ "$TARGET" == "ugshell" ]]; then ../bin/ugshell -call "print(\"it works\")"; fi
+    - if [[ "$TARGET" == "ugshell" ]]; then ../bin/ugshell -call "print(\"it works\")"; fi  
+    - curl -LO https://raw.github.com/stephanmg/travis-dependent-builds/master/trigger.sh
+    - chmod +x trigger.sh
+    - ./trigger.sh NeuroBox3D ProMeshScripts master $TRAVIS_ACCESS_TOKEN ""
+   
+after_script:
+   - echo "Triggered downstream projects: NeuroBox3D/ProMeshScripts"
