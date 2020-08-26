@@ -162,6 +162,16 @@ class LocalIndices
 			check_dof(fct, dof);
 			return m_vvIndex[fct][dof][1];
 		}
+	
+	///	checks if the local index object references a given index
+		bool contains_index(index_type ind)
+		{
+			for(size_t fct = 0; fct < num_fct(); fct++)
+				for(size_t dof = 0; dof < num_dof(fct); dof++)
+					if(m_vvIndex[fct][dof][0] == ind)
+						return true;
+			return false;
+		}
 
 	protected:
 	///	checks correct fct index in debug mode
