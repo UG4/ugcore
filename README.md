@@ -7,7 +7,7 @@
 
 This repository contains the core functionality of **UG4**. Includes sources, build-scripts, and utility-scripts
 
-Copyright 2009-2018 Goethe Center for Scientific Computing, Goethe-University Frankfurt am Main
+Copyright 2009-2020 Goethe Center for Scientific Computing, Goethe-University Frankfurt am Main
 
 Please install/clone this repository through *UG4's* package manager
 [*ughub*](https://github.com/UG4/ughub).

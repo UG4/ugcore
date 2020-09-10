@@ -174,6 +174,7 @@ class NeuriteProjector
 		struct SomaBranchingRegion {
 			SmartPtr<SomaPoint> somaPt;
 			number radius;
+			vector3 center;
 			number t;
 			vector3 bp;
 
@@ -205,6 +206,16 @@ class NeuriteProjector
 				 : radius(-1),
 				  t(-1)
 			{}
+		};
+
+		/*!
+		 * \brief Mapping of model to surface vertices
+		 */
+		struct Mapping {
+			/// TODO: Mapping should store unique indices of 1d vertices from SWC file
+			vector3 v1; /// start vertex of edge
+			vector3 v2; /// end vertex of edge
+			number lambda; /// projection parameter lambda
 		};
 
 		struct Neurite
@@ -320,7 +331,7 @@ class NeuriteProjector
 		number axial_range_around_soma_region
 		(
 			const SomaBranchingRegion& sr,
-			number rad,
+			size_t numRadii,
 			size_t nid,
 			Vertex* vrt
 		) const;
@@ -328,7 +339,6 @@ class NeuriteProjector
 		bool is_in_axial_range_around_soma_region
 		(
 			const SomaBranchingRegion& sr,
-			number rad,
 			size_t nid,
 			Vertex* vrt
 		) const;
@@ -457,9 +467,12 @@ class NeuriteProjector
 };
 
 // DO NOT CHANGE LINES BELOW! Needed for serialization! //
-std::ostream& operator<<(std::ostream &os, const NeuriteProjector::SurfaceParams& surfParams);
+std::ostream& operator<<(std::ostream& os, const NeuriteProjector::SurfaceParams& surfParams);
 std::istream& operator>>(std::istream& in, NeuriteProjector::SurfaceParams& surfParams);
 DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<NeuriteProjector::SurfaceParams>, "NeuriteProjectorSurfaceParams");
+std::ostream& operator<<(std::ostream& os, const NeuriteProjector::Mapping&  mapping);
+std::istream& operator>>(std::istream& in, NeuriteProjector::Mapping& mapping);
+DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<NeuriteProjector::Mapping>, "Mapping");
 } // namespace ug
 
 #endif // UG__LIB_GRID__REFINEMENT__PROJECTORS__NEURITE_PROJECTOR_H

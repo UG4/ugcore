@@ -87,6 +87,27 @@ UG_API
 number CalculateHexahedronAspectRatio(Grid& grid, Hexahedron* tet,
 							Grid::VertexAttachmentAccessor<APosition>& aaPos);
 
+////////////////////////////////////////////////////////////////////////
+//	CalculatePyramidAspectRatio
+/*!
+ * \brief calculates the aspect ratio of a pyramidal element
+ * Pyramid aspect ratio (AR) is the ratio of the height of the pyramid and the
+ * average length of the base's (quadrilateral) edges. The AR can be less than 1.
+ * The height is the distance from the base to the top of the pyramid in normal direction.
+ * \param[in] grid
+ * \param[in] pyr
+ * \param[in] aaPos
+ *
+ * \return \c AR of pyramid as number
+ */
+UG_API
+number CalculatePyramidAspectRatio
+(
+	Grid& grid,
+	Pyramid* pyr,
+	Grid::VertexAttachmentAccessor<APosition>& aaPos
+);
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //	CalculateTetrahedronRootMeanSquareFaceArea - mstepnie
@@ -104,6 +125,16 @@ UG_API
 number CalculateTetrahedronVolToRMSFaceAreaRatio(Grid& grid,
 											  	 Tetrahedron* tet,
 												 Grid::VertexAttachmentAccessor<APosition>& aaPos);
+
+////////////////////////////////////////////////////////////////////////////////////////////
+//	CalculateTetrahedronVolToRMSFaceAreaRatio - sgrein
+////////////////////////////////////////////////////////////////////////////////////////////
+UG_API
+number CalculateTetrahedronVolToRMSFaceAreaRatio(Grid& grid,
+											  	 Hexahedron* hex,
+												 Grid::VertexAttachmentAccessor<APosition>& aaPos);
+
+
 
 
 ////////////////////////////////////////////////////////////////////////

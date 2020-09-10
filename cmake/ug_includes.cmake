@@ -57,7 +57,8 @@ get_filename_component(UG_ROOT_CMAKE_PATH ${CMAKE_CURRENT_LIST_FILE} PATH)
 set(UG_ROOT_PATH ${UG_ROOT_CMAKE_PATH}/../..)
 include_directories(${UG_ROOT_PATH}/ugcore/ugbase)
 include_directories(${CMAKE_BINARY_DIR})
-link_directories(${UG_ROOT_PATH}/lib)
+set(UG_LIBRARY_PATH ${UG_ROOT_PATH}/lib)
+link_directories(${UG_LIBRARY_PATH})
 ################################################################################
 # include cmake functions
 
@@ -367,6 +368,8 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 	add_cxx_flag("-Wall")
 	add_cxx_flag("-Wno-multichar")
+	add_cxx_flag("-Wno-unused-local-typedefs")
+	add_cxx_flag("-Wno-maybe-uninitialized")
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	add_cxx_flag("-Wall")
 	add_cxx_flag("-Wno-multichar")
@@ -451,12 +454,28 @@ include(${UG_ROOT_CMAKE_PATH}/ug/opencl.cmake)
 #  If it is disabled, the system-installation of boost is used instead.
 #  Note: If INTERNAL_BOOST is enabled and system installations are available,
 #        the internal one has precedence.
+
+
 if(INTERNAL_BOOST)
 	add_definitions( -DBOOST_ALL_NO_LIB )
 	set(INTERNAL_BOOST_PATH ${UG_ROOT_PATH}/externals/BoostForUG4/)
 	set(BOOST_ROOT ${INTERNAL_BOOST_PATH})
+	set(Boost_INCLUDE_DIRS ${INTERNAL_BOOST_PATH})
+	message(STATUS "Info: Internal Boost ${Boost_ADDITIONAL_VERSIONS}")
+else(INTERNAL_BOOST)
+	find_package(Boost 1.58 REQUIRED) # automatic detection
+
+	if(Boost_FOUND)
+		message(STATUS "Info: Found Boost ${Boost_VERSION} in <${Boost_INCLUDE_DIRS}>")
+		link_directories("${Boost_INCLUDE_DIRS}/../lib")
+		set(linkLibraries ${linkLibraries} boost_serialization)
+	else(Boost_FOUND)
+		message(FATAL_ERROR "Info: Boost not found. Please use internal boost (-DINTERNAL_BOOST=ON)")
+	endif(Boost_FOUND)
+	
 endif(INTERNAL_BOOST)
-find_package(Boost 1.40 REQUIRED)
+
+
 message(STATUS "Info: Including Boost from ${Boost_INCLUDE_DIRS}")
 # Suppress diagnostic warnings in the boost headers: declare them to be "system headers"
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
