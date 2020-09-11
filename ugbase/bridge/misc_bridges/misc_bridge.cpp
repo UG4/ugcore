@@ -267,6 +267,11 @@ bool IsDefinedUG_BRIDGE() { return true; }
 bool IsDefinedUG_BRIDGE() { return false; }
 #endif
 
+#ifdef UG_JSON
+bool IsDefinedUG_JSON() { return true; }
+#else
+bool IsDefinedUG_JSON() { return false; }
+#endif
 
 /// prints CMake build parameters in a quite compact (pairwise) form
 void PrintBuildConfiguration()
@@ -530,6 +535,7 @@ void RegisterBridge_Misc(Registry &reg, string parentGroup)
 		ADD_DEFINED_FUNC(BLAS_AVAILABLE);
 		ADD_DEFINED_FUNC(UG_HYPRE);
 		ADD_DEFINED_FUNC(UG_HLIBPRO);
+		ADD_DEFINED_FUNC(UG_JSON);
 
 		reg.add_function("PrintBuildConfiguration", &PrintBuildConfiguration, grp, "");
 		reg.add_function("PrintBuildConfigurationExtended", &PrintBuildConfigurationExtended, grp, "");

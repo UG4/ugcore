@@ -57,6 +57,7 @@ ug_load_script("util/debug_util.lua")
 ug_load_script("util/command_line_util.lua")
 ug_load_script("util/common_util.lua")
 ug_load_script("util/refinement_util.lua")
+ug_load_script("util/json_util.lua")
 
 --------------------------------------------------------------------------------
 
