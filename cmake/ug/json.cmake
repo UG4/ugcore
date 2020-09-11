@@ -32,11 +32,12 @@
 if(USE_JSON)
     if(STATIC_BUILD)
     	MESSAGE(STATUS "Info: JSON requested, but static build. JSON disabled?")
-    	set(USE_JSON OFF)
+    	SET(USE_JSON OFF)
     else(STATIC_BUILD)
     	MESSAGE(STATUS "Info: Using JSON")
+    	
     	# Automatic
-    	find_package(nlohmann_json QUIET)
+    	FIND_PACKAGE(nlohmann_json QUIET)
     	MESSAGE("-- Adding JSON from ${UG_ROOT_CMAKE_PATH}/../../externals/JSONForUG4/json-cxx")	
     	include_directories(${UG_ROOT_CMAKE_PATH}/../../externals/JSONForUG4/json-cxx)
     	MESSAGE("-- Dir: ${NLOHMANN_JSON_INCLUDE_INSTALL_DIR}") 
