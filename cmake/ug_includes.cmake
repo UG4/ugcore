@@ -276,6 +276,7 @@ message(STATUS "")
 message(STATUS "Info: External libraries (path which contains the library or ON if you used uginstall):")
 message(STATUS "Info: TETGEN:   ${TETGEN}")
 message(STATUS "Info: HLIBPRO:  ${HLIBPRO}")
+message(STATUS "Info: USE_JSON  ${USE_JSON} (options are: ON, OFF)")
 message(STATUS "")
 message(STATUS "Info: C   Compiler: ${CMAKE_C_COMPILER} (ID: ${CMAKE_C_COMPILER_ID})")
 message(STATUS "Info: C++ Compiler: ${CMAKE_CXX_COMPILER} (ID: ${CMAKE_CXX_COMPILER_ID})")
@@ -430,6 +431,8 @@ include(${UG_ROOT_CMAKE_PATH}/ug/cuda.cmake)
 include(${UG_ROOT_CMAKE_PATH}/ug/lua2c.cmake)
 # LUAJIT
 include(${UG_ROOT_CMAKE_PATH}/ug/luajit.cmake)
+# JSON
+include(${UG_ROOT_CMAKE_PATH}/ug/json.cmake)
 
 ########################################
 # buildAlgebra
