@@ -48,29 +48,6 @@ public:
 	virtual bool step_process(SmartPtr<grid_function_type> u, int step, number time, number dt)  = 0 ;
 };
 
-
-
-// template<class TDomain, class TAlgebra>
-// class ProxyTimeIntegratorObserver : public ITimeIntegratorObserver<TDomain, TAlgebra>
-// {
-// 	typedef GridFunction<TDomain, TAlgebra> grid_function_type;
-// 	typedef bool (*ProxyObserverFunction)(SmartPtr<grid_function_type> u, int step, number time, number dt);
-
-//     public:
-//         ProxyTimeIntegratorObserver(ProxyObserverFunction func, SmartPtr<void> obj) : m_method(func), m_obj(obj) {}
-
-//         bool step_process(SmartPtr<grid_function_type> u, int step, number time, number dt)
-//         {
-// 			ProxyObserverFunction fp = (ProxyObserverFunction)m_method.get_raw_ptr();
-//             return m_obj.get()->*fp(u, step, time, dt);
-//         }
-
-//     private:
-//         bridge::MethodPtrWrapper m_method;
-// 		SmartPtr<void> m_obj;
-// };
-
-
 }
 
 #endif

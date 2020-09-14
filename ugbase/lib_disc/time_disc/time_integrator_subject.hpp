@@ -73,29 +73,20 @@ protected:
 	template<int tGroup>
 	void attach_to_group(SmartPtr<process_observer_type> obs)
 	{
-		// UG_LOG("TimeIntegratorSubject::attach_observer[" << tGroup <<"]" << this << std::endl);
+		//UG_LOG("TimeIntegratorSubject::attach_observer[" << tGroup <<"]" << this << std::endl);
 		m_vProcessObservers[tGroup].push_back(obs);
 	}
 
 	//! register observer (default: postprocess)
 	void attach_to_group(int tGroup, SmartPtr<process_observer_type> obs)
 	{
-		// UG_LOG("TimeIntegratorSubject::attach_observer[" << tGroup <<"]" << this << std::endl);
+		//UG_LOG("TimeIntegratorSubject::attach_observer[" << tGroup <<"]" << this << std::endl);
 		m_vProcessObservers[tGroup].push_back(obs);
 	}
 public:
 	//! Short-cut for
 	void attach_observer(SmartPtr<process_observer_type> obs)
 	{ attach_finalize_observer(obs); }
-
-	// void attach_to_group(int tGroup, SmartPtr<process_observer_type> obs)
-	// {
-	// 	if (tGroup < 0 || tGroup >= TIO_GROUP_SIZE)
-	// 		UG_LOG("TimeIntegratorSubject: no group numbered " << tGroup << std::endl);
-
-	// 	UG_LOG("TimeIntegratorSubject::attach_to_group[" << tGroup <<"]" << this << std::endl);
-	// 	m_vProcessObservers[tGroup].push_back(obs);
-	// }
 
 	void attach_init_observer(SmartPtr<process_observer_type> obs)
 	{ attach_to_group<TIO_GROUP_INIT_STEP>(obs); }
@@ -137,7 +128,7 @@ protected:
 		process_observer_container_type &observers = m_vProcessObservers[tGroup];
 		for (typename process_observer_container_type::iterator it = observers.begin(); it!= observers.end(); ++it)
 		{(*it)->step_process(u, step, time, dt); }
-		// UG_LOG("TimeIntegratorSubject::notify_group[" << tGroup <<"]: " << observers.size() << " observers. " << this<< std::endl);
+		//UG_LOG("TimeIntegratorSubject::notify_group[" << tGroup <<"]: " << observers.size() << " observers. " << this<< std::endl);
 	}
 public:
 
