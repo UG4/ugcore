@@ -242,7 +242,7 @@ void ug_init_plugins(bool &errorOccurred)
 		//	this could be skipped if registering of plugin would be done more
 		//	carefully. (try/catch in load plugins)
 			PathProvider::clear_current_path_stack();
-			UG_ERR_LOG("UGError occurred during Plugin Initialization:\n");
+			UG_ERR_LOG("UGError occurred during plugin initialization:\n");
 			for(size_t i=0; i<err.num_msg(); i++)
 				UG_ERR_LOG(err.get_file(i) << ":" << err.get_line(i) << " : " << err.get_msg(i) << "\n");
 			errorOccurred = true;
@@ -250,7 +250,7 @@ void ug_init_plugins(bool &errorOccurred)
 		catch(...){
 			UG_LOG("fail");
 			UG_LOG("                 *\n");
-			UG_ERR_LOG("Unknown error received during Plugin Initialization.\n");
+			UG_ERR_LOG("Unknown error received during plugin initialization.\n");
 			errorOccurred = true;
 		}
 
