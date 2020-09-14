@@ -103,7 +103,6 @@ class NeuriteProjector
 			}
 		};
 
-
 		struct BranchingPoint;
 		struct BranchingRegion
 		{
@@ -166,15 +165,21 @@ class NeuriteProjector
 			}
 		};
 
-		struct SomaRegion {
-			vector3 center;
+		struct SomaPoint {
+			vector3 soma;
 			number radius;
+			SomaPoint(const vector3& soma, number radius) : soma(soma), radius(radius) {}
+		};
+
+		struct SomaBranchingRegion {
+			SmartPtr<SomaPoint> somaPt;
+			number radius;
+			vector3 center;
 			number t;
 			vector3 bp;
 
 			template <class Archive>
 			void serialize(Archive& ar, const unsigned int version) {
-				ar & center;
 				ar & radius;
 				ar & t;
 			}
@@ -182,28 +187,35 @@ class NeuriteProjector
 			template<class Archive>
 			void load(Archive & ar, const unsigned int version)
 			{
-				ar >> center;
 				ar >> radius;
 				ar >> t;
 			}
 
-			SomaRegion(const vector3& center, number radius, number t)
-				: center(center),
-				  radius(radius),
+			SomaBranchingRegion(const vector3& center, number radius, number t)
+	  		 	  : radius(radius),
+				  t(t),
+				  bp(center)
+			{}
+
+			SomaBranchingRegion(number t)
+				 : radius(-1),
 				  t(t)
 			{}
 
-			SomaRegion(number t)
-				: center(0, 0, 0),
-				  radius(0),
-				  t(t)
-			{}
-
-			SomaRegion()
-				: center(0, 0, 0),
-				  radius(-1),
+			SomaBranchingRegion()
+				 : radius(-1),
 				  t(-1)
 			{}
+		};
+
+		/*!
+		 * \brief Mapping of model to surface vertices
+		 */
+		struct Mapping {
+			/// TODO: Mapping should store unique indices of 1d vertices from SWC file
+			vector3 v1; /// start vertex of edge
+			vector3 v2; /// end vertex of edge
+			number lambda; /// projection parameter lambda
 		};
 
 		struct Neurite
@@ -211,7 +223,8 @@ class NeuriteProjector
 			vector3 refDir;
 			std::vector<Section> vSec;
 			std::vector<BranchingRegion> vBR;
-			std::vector<SomaRegion> vSR;
+			std::vector<Section> vSomaSec;
+			std::vector<SomaBranchingRegion> vSBR;
 
 			template <class Archive>
 			void serialize(Archive& ar, const unsigned int version)
@@ -232,11 +245,17 @@ class NeuriteProjector
 					ar & vBR[i];
 
 				/// soma information
-				sz = vSR.size();
+				sz = vSomaSec.size();
 				ar & sz;
-				vSR.resize(sz);
+				vSomaSec.resize(sz);
+				for (size_t i = 0; i < sz; ++i)
+					ar & vSomaSec[i];
+
+				sz = vSBR.size();
+				ar & sz;
+				vSBR.resize(sz);
 				for (size_t i = 0; i < sz; ++i) {
-					ar & vSR[i];
+					ar & vSBR[i];
 				}
 			}
 		};
@@ -281,19 +300,20 @@ class NeuriteProjector
 			number start;
 			number end;
 			std::vector<Section>::const_iterator sec_start;
-			const SomaRegion* sr;
+			const SomaBranchingRegion* sr;
 		};
 
 		void debug_neurites() const;
 
-		struct CompareSomaRegionsEnd {
-			bool operator()(const SomaRegion& a, const SomaRegion& b) {
-				return a.radius < b.radius;
+		struct CompareSomaBranchingRegionsEnd {
+			bool operator()(const SomaBranchingRegion& a, const SomaBranchingRegion& b) {
+				return a.t < b.t;
 			}
 		};
 
 	public:
 		std::vector<Neurite>& neurites();
+		std::vector<SomaBranchingRegion>& somata();
 		const Neurite& neurite(uint32_t nid) const;
 		Grid::VertexAttachmentAccessor<Attachment<SurfaceParams> >& surface_params_accessor();
 		const Grid::VertexAttachmentAccessor<Attachment<SurfaceParams> >& surface_params_accessor() const;
@@ -310,16 +330,15 @@ class NeuriteProjector
 
 		number axial_range_around_soma_region
 		(
-			const SomaRegion& sr,
-			number rad,
+			const SomaBranchingRegion& sr,
+			size_t numRadii,
 			size_t nid,
 			Vertex* vrt
 		) const;
 
 		bool is_in_axial_range_around_soma_region
 		(
-			const SomaRegion& sr,
-			number rad,
+			const SomaBranchingRegion& sr,
 			size_t nid,
 			Vertex* vrt
 		) const;
@@ -328,6 +347,7 @@ class NeuriteProjector
 
 	protected:
 		std::vector<Section>::const_iterator get_section_iterator(uint32_t nid, float t) const;
+		std::vector<NeuriteProjector::Section>::const_iterator get_soma_section_iterator(uint32_t nid, float t) const;
 
 		void prepare_quadrature();
 
@@ -353,7 +373,7 @@ class NeuriteProjector
 		 * consists of the parameter t at which the section ends and the sixteen coefficients
 		 * describing the spline in each dimension (monomial basis {(t_(i+1) - t)^i}_i).
 		**/
-		std::vector<Neurite> m_vNeurites; //!< spline information for neurites and somatas
+		std::vector<Neurite> m_vNeurites; //!< spline information for neurites
 
 		std::vector<std::pair<number, number> > m_qPoints; //!< for quadrature when projecting within branching points
 
@@ -447,9 +467,12 @@ class NeuriteProjector
 };
 
 // DO NOT CHANGE LINES BELOW! Needed for serialization! //
-std::ostream& operator<<(std::ostream &os, const NeuriteProjector::SurfaceParams& surfParams);
+std::ostream& operator<<(std::ostream& os, const NeuriteProjector::SurfaceParams& surfParams);
 std::istream& operator>>(std::istream& in, NeuriteProjector::SurfaceParams& surfParams);
 DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<NeuriteProjector::SurfaceParams>, "NeuriteProjectorSurfaceParams");
+std::ostream& operator<<(std::ostream& os, const NeuriteProjector::Mapping&  mapping);
+std::istream& operator>>(std::istream& in, NeuriteProjector::Mapping& mapping);
+DECLARE_ATTACHMENT_INFO_TRAITS(Attachment<NeuriteProjector::Mapping>, "Mapping");
 } // namespace ug
 
 #endif // UG__LIB_GRID__REFINEMENT__PROJECTORS__NEURITE_PROJECTOR_H

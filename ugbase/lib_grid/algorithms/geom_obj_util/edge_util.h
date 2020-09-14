@@ -427,6 +427,16 @@ template <class vector_t, class TAAPos>
 UG_API bool
 ContainsPoint(const EdgeVertices* e, const vector_t& p, TAAPos aaPos);
 
+////////////////////////////////////////////////////////////////////////
+///	Returns the average length of edges in the given grid
+/** \note	The method works properly, but is not necessarily optimized for speed
+ * \param[in] grid
+ * \tparam[in] TAAPosVRT
+ *
+ */
+template <class TAAPosVRT>
+number CalculateAverageEdgeLength(Grid& grid, TAAPosVRT& aaPos);
+
 /// @} // end of doxygen defgroup command
 
 }//	end of namespace

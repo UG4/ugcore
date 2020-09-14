@@ -37,6 +37,9 @@ namespace ug
 {
 
 
+/// global boundary refinement rule variable for switching between linear and Subdivision Loop refinement
+static GlobalBoundaryRefinementRule g_boundaryRefinementRule = LINEAR;
+
 ////////////////////////////////////////////////////////////////////////////////
 void SetBoundaryRefinementRule(GlobalBoundaryRefinementRule refRule)
 {
@@ -458,7 +461,9 @@ void TetrahedralizeHybridTetOctGrid(MultiGrid& mg, int bestDiag)
 {
 	PROFILE_FUNC_GROUP("subdivision_volumes");
 
-	DistributedGridManager* dgm = mg.distributed_grid_manager();
+	#ifdef UG_PARALLEL
+		DistributedGridManager* dgm = mg.distributed_grid_manager();
+	#endif
 
 	if(bestDiag != 0 && bestDiag != 1 && bestDiag != 2)
 	{

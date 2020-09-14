@@ -167,7 +167,8 @@ template<typename ABC_type, typename A_type, typename B_type, typename C_type>
 void AddMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_type &C, double epsilonTruncation=0.0)
 {
 	PROFILE_FUNC_GROUP("algebra");
-	UG_ASSERT(C.num_rows() == B.num_cols() && B.num_rows() == A.num_cols(), "sizes must match");
+	UG_ASSERT(C.num_rows() == B.num_cols(), "sizes must match: nRows(C) =" << C.num_rows()<<"!="<< B.num_cols() <<"=Cols(B)");
+	UG_ASSERT(B.num_rows() == A.num_cols(), "sizes must match: nRows(B) =" << B.num_rows()<<"!="<< A.num_cols() <<"=nCols(A)");
 
 	// check
 	if(M.num_rows() != A.num_rows())
@@ -280,7 +281,7 @@ void CreateAsMultiplyOf(AB_type &M, const A_type &A, const B_type &B)
 			size_t k = itAik.index();
 
 			cBiterator itBklEnd = B.end_row(k);
-			for(cBiterator itBkj = B.begin(k); itBkj != itBklEnd; ++itBkj)
+			for(cBiterator itBkj = B.begin_row(k); itBkj != itBklEnd; ++itBkj)
 			{
 				if(itBkj.value() == 0.0) continue;
 				size_t j = itBkj.index();
@@ -288,7 +289,7 @@ void CreateAsMultiplyOf(AB_type &M, const A_type &A, const B_type &B)
 			}
 		}
 
-		M.set_matrix_row(i, row.unsorted_raw_ptr(), row.num_connection());
+		M.set_matrix_row(i, row.unsorted_raw_ptr(), row.num_connections());
 	}
 
 }

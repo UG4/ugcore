@@ -126,12 +126,6 @@ class ComponentGaussSeidel : public IPreconditioner<TAlgebra>
 				                  const DimCache& dimCache,
 				                  bool bReverse);
 
-		template<typename TGroupObj>
-		void extract_by_grouping(std::vector<std::vector<DoFIndex> >& vvDoFIndex,
-		                         const GF& c,
-		                         const std::vector<size_t>& vFullRowCmp,
-		                         const std::vector<size_t>& vRemainCmp);
-
 		void extract_blocks(const matrix_type& A, const GF& c);
 
 	///	step method
@@ -300,14 +294,16 @@ apply_blocks_weighted(const matrix_type& A, GF& c,
 	}
 }
 
-template <typename TDomain, typename TAlgebra>
-template<typename TGroupObj>
-void ComponentGaussSeidel<TDomain, TAlgebra>::
-extract_by_grouping(std::vector<std::vector<DoFIndex> >& vvDoFIndex,
+// extract_by_grouping(std::vector<std::vector<DoFIndex> >& vvDoFIndex,
+template<typename TGroupObj, typename GF>
+void extract_by_grouping(std::vector<std::vector<DoFIndex> >& vvDoFIndex,
                     const GF& c,
                     const std::vector<size_t>& vFullRowCmp,
                     const std::vector<size_t>& vRemainCmp)
 {
+
+	typedef typename GF::element_type Element;
+
 // 	memory for local algebra
 	std::vector<DoFIndex> vFullRowDoFIndex;
 	std::vector<Element*> vElem;
@@ -331,7 +327,7 @@ extract_by_grouping(std::vector<std::vector<DoFIndex> >& vvDoFIndex,
 
 	// 	check if equation present
 		if(vFullRowDoFIndex.empty())
-			UG_THROW("CGS: Should not happen.");
+			UG_THROW("extract_by_grouping: Should not happen.");
 
 	// 	get all algebraic indices on element
 		if(TGroupObj::dim <= VERTEX){
@@ -395,6 +391,7 @@ extract_blocks(const matrix_type& A, const GF& c)
 		if(std::find(vFullRowCmp.begin(), vFullRowCmp.end(), f) == vFullRowCmp.end())
 			vRemainCmp.push_back(f);
 
+	/// Create 'm_vGroupObj' contain all dimensions containg objects from 'vFullRowCmp'
 	if(m_vGroupObj.empty()){
 		for(int d = VERTEX; d <= VOLUME; ++d){
 			bool bCarryDoFs = false;
@@ -424,16 +421,15 @@ extract_blocks(const matrix_type& A, const GF& c)
 	//	extract
 		std::vector<std::vector<DoFIndex> >& vvDoFIndex = m_vDimCache[d].vvDoFIndex;
 		switch(d){
-			case VERTEX: extract_by_grouping<Vertex>(vvDoFIndex, c, vFullRowCmp, vRemainCmp); break;
-			case EDGE:   extract_by_grouping<Edge>(vvDoFIndex, c, vFullRowCmp, vRemainCmp); break;
-			case FACE:   extract_by_grouping<Face>(vvDoFIndex, c, vFullRowCmp, vRemainCmp); break;
-			case VOLUME: extract_by_grouping<Volume>(vvDoFIndex, c, vFullRowCmp, vRemainCmp); break;
+			case VERTEX: extract_by_grouping<Vertex, GF>(vvDoFIndex, c, vFullRowCmp, vRemainCmp); break;
+			case EDGE:   extract_by_grouping<Edge, GF>(vvDoFIndex, c, vFullRowCmp, vRemainCmp); break;
+			case FACE:   extract_by_grouping<Face, GF>(vvDoFIndex, c, vFullRowCmp, vRemainCmp); break;
+			case VOLUME: extract_by_grouping<Volume, GF>(vvDoFIndex, c, vFullRowCmp, vRemainCmp); break;
 			default: UG_THROW("wrong dim");
 		}
 	}
 
 	// compute weights v(i) (= number of groups j that i belongs to)
-
 	if (m_bWeighted)
 	{
 		m_weight = c.clone_without_values();
@@ -456,6 +452,7 @@ extract_blocks(const matrix_type& A, const GF& c)
 
 		}
 	}
+
 	//	extract local matrices
 	for(int d = VERTEX; d <= VOLUME; ++d)
 	{
@@ -471,7 +468,7 @@ extract_blocks(const matrix_type& A, const GF& c)
 
 		// 	get number of indices on patch
 			const size_t numIndex = vDoFIndex.size();
-			//std::cerr << "locSize" << numIndex << std::endl;
+			// std::cerr << "locSize" << numIndex << std::endl;
 
 		// 	fill local block matrix
 			BlockInv.resize(numIndex, numIndex);
@@ -484,6 +481,9 @@ extract_blocks(const matrix_type& A, const GF& c)
 				BlockInv(i,i) = m_alpha*DoFRef(A, vDoFIndex[i], vDoFIndex[i]);
 				BlockInv(numIndex-1,i) = DoFRef(A, vDoFIndex[numIndex-1], vDoFIndex[i]);
 				BlockInv(i,numIndex-1) = DoFRef(A, vDoFIndex[i], vDoFIndex[numIndex-1]);
+
+				//for (size_t k = 0; k < numIndex; k++)
+				//	BlockInv(i,k) = DoFRef(A, vDoFIndex[i], vDoFIndex[k]);
 			}
 
 
@@ -522,8 +522,6 @@ extract_blocks(const matrix_type& A, const GF& c)
 
 
 
-				/*for (size_t k = 0; k < numIndex; k++)
-					BlockInv(j,k) = DoFRef(A, vDoFIndex[j], vDoFIndex[k]);*/
 
 		//	get inverse
 			if(!Invert(BlockInv)){

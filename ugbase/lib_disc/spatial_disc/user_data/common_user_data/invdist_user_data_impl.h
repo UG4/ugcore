@@ -150,7 +150,7 @@ void IDWUserData<WDim, TData>::load_data_from (std::istream & input)
 			read_plain_txt (line_stream, pos);
 			line_stream >> value;
 		}
-		catch (std::istream::failure e)
+		catch (std::istream::failure& e)
 		{
 			UG_THROW ("IDWUserData: Failed to parse line '" << input_line << "' in the input file.");
 		};

@@ -197,6 +197,12 @@ number CalculateAspectRatio(Grid& grid, Hexahedron* hex, TAAPosVRT& aaPos)
 	return CalculateHexahedronAspectRatio(grid, hex, aaPos);
 }
 
+/// Pyramid
+template <class TAAPosVRT>
+number CalculateAspectRatio(Grid& grid, Pyramid* pyr, TAAPosVRT& aaPos) {
+	return CalculatePyramidAspectRatio(grid, pyr, aaPos);
+}
+
 ///	Volume
 template <class TAAPosVRT>
 number CalculateAspectRatio(Grid& grid, Volume* vol, TAAPosVRT& aaPos)
@@ -213,10 +219,15 @@ number CalculateAspectRatio(Grid& grid, Volume* vol, TAAPosVRT& aaPos)
 			return CalculateAspectRatio(grid, static_cast<Hexahedron*>(vol), aaPos);
 		}
 
+		case ROID_PYRAMID:
+		{
+			return CalculateAspectRatio(grid, static_cast<Pyramid*>(vol), aaPos);
+		}
+
 		default:
 		{
-		 	UG_THROW("Note: Currently only volumes of type tetrahedron and hexahedron"
-		 			" supported in aspect ratio calculation.");
+		 	UG_THROW("Note: Currently only volumes of type tetrahedron, hexahedron"
+		 			"and pyramids supported in aspect ratio calculation.");
 		 	break;
 		}
 	}
@@ -264,6 +275,28 @@ number CalculateVolToRMSFaceAreaRatio(Grid& grid, Tetrahedron* tet, TAAPosVRT& a
 	return ratio;
 }
 
+/// Hexahedron
+template <class TAAPosVRT>
+number CalculateVolToRMSFaceAreaRatio(Grid& grid, Hexahedron* hex, TAAPosVRT& aaPos)
+{
+	//PROFILE_FUNC();
+	number ratio;
+
+	/*
+	 * optimal volume to root-mean-square face area ratio of a
+	 * regular tetrahedron with edge lengths a:
+	 * Q = V/A_rms^(3/2)
+	 *
+	 * Info: return value is normalized by factor pow(3, 7/4.0) / 2.0 / sqrt(2);
+	 * (s. Shewchuk, "What is a Good Linear Element? Interpolation, Conditioning, and Quality Measures?", 2002)
+	 */
+
+	//	Calculate the ratio
+	///ratio = CalculateHexahedronVolToRMSFaceAreaRatio(grid, hex, aaPos);
+
+	return ratio;
+}
+
 ///	Volume
 template <class TAAPosVRT>
 number CalculateVolToRMSFaceAreaRatio(Grid& grid, Volume* vol, TAAPosVRT& aaPos)
@@ -273,6 +306,11 @@ number CalculateVolToRMSFaceAreaRatio(Grid& grid, Volume* vol, TAAPosVRT& aaPos)
 		case ROID_TETRAHEDRON:
 		{
 			return CalculateVolToRMSFaceAreaRatio(grid, static_cast<Tetrahedron*>(vol), aaPos);
+		}
+
+		case ROID_HEXAHEDRON:
+		{
+			return CalculateVolToRMSFaceAreaRatio(grid, static_cast<Hexahedron*>(vol), aaPos);
 		}
 
 		default:

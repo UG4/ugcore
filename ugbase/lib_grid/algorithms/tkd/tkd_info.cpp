@@ -124,13 +124,16 @@ TKDInfo (number a, number w, number h, number d)
 	number m1 = d / (2.0 * tan(beta / 2.0));
 	number m2 = d / (2.0 * tan(gamma / 2.0));
 
-	number a2 = sqrt(3) / 3.0 * (sqrt(3) * a + m1 + m2);
+	/*number a2 = sqrt(3) / 3.0 * (sqrt(3) * a + m1 + m2);
 	number h2 = h+d;
-	number w2 = h2 * (w-2*a)/h + 2.0*a2;
+	number w2 = h2 * (w-2*a)/h + 2.0*a2;*/
+	m_alip = sqrt(3) / 3.0 * (sqrt(3) * a + m1 + m2);
+	m_hlip = h+d;
+	m_wlip= m_hlip * (w-2*a)/h + 2.0*m_alip;
 
 	m_coords.resize(NUM_COORDS);
 	init_coords (&m_coords[0], a, w, h);
-	init_coords (&m_coords[NUM_INNER_COORDS], a2, w2, h2);
+	init_coords (&m_coords[NUM_INNER_COORDS], m_alip, m_wlip, m_hlip);
 }
 
 

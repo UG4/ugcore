@@ -69,7 +69,7 @@ class DarcyVelocityLinker
 			m_spViscosity(NULL), m_spDViscosity(NULL),
 			m_spDensity(NULL), m_spDDensity(NULL),
 			m_spGravity(NULL), m_spDGravity(NULL),
-			m_spPressureGrad(NULL), m_spDPressureGrad(NULL)
+			m_spPressureGrad(NULL), m_spDPressureGrad(NULL), m_partialDerivMask(0)
 		{
 		//	this linker needs exactly five input
 			this->set_num_input(5);
@@ -198,7 +198,7 @@ class DarcyVelocityLinker
 			this->set_zero(vvvDeriv, nip);
 
 		//	Derivatives of Viscosity
-			if(m_spDViscosity.valid() && !m_spDViscosity->zero_derivative())
+			if(m_partialDerivMask == 0 && m_spDViscosity.valid() && !m_spDViscosity->zero_derivative())
 			for(size_t ip = 0; ip < nip; ++ip)
 				for(size_t fct = 0; fct < m_spDViscosity->num_fct(); ++fct)
 				{
@@ -216,8 +216,8 @@ class DarcyVelocityLinker
 					}
 				}
 
-		//	Derivatives of Density
-			if(m_spDDensity.valid() && !m_spDDensity->zero_derivative())
+			//	Derivatives of Density
+			if( m_partialDerivMask == 0 && m_spDDensity.valid() && !m_spDDensity->zero_derivative())
 			for(size_t ip = 0; ip < nip; ++ip)
 				for(size_t fct = 0; fct < m_spDDensity->num_fct(); ++fct)
 				{
@@ -275,7 +275,7 @@ class DarcyVelocityLinker
 				}
 
 		//	Derivatives of Pressure
-			if(m_spDPressureGrad.valid() && !m_spDPressureGrad->zero_derivative())
+			if(m_partialDerivMask ==0 && m_spDPressureGrad.valid() && !m_spDPressureGrad->zero_derivative()  )
 			for(size_t ip = 0; ip < nip; ++ip)
 				for(size_t fct = 0; fct < m_spDPressureGrad->num_fct(); ++fct)
 				{
@@ -416,6 +416,17 @@ class DarcyVelocityLinker
 		static const size_t _DP_ = 4;
 		SmartPtr<CplUserData<MathVector<dim>, dim> > m_spPressureGrad;
 		SmartPtr<DependentUserData<MathVector<dim>, dim> > m_spDPressureGrad;
+
+
+	public:
+		void set_derivative_mask(int mask) {
+			m_partialDerivMask = mask;
+			std::cerr << "Setting some derivatives: "<< m_partialDerivMask << "(" << this <<")" << std::endl;
+		}
+
+	protected:
+		// disable certain derivatives
+		int m_partialDerivMask;
 };
 
 } // end namespace ug

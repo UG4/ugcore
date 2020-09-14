@@ -340,10 +340,10 @@ inline std::string ConvertNumberSI (uint64_t size, unsigned int width,
  *
  * UG_WARNING(cond, msg)  		- prints a warning to the normal output stream
  */
-#ifdef UG_ENABLED_WARNINGS
-	#define UG_COND_WARNING(cond, msg) {if (cond) {ug::GetLogAssistant().logger()\
-							<< "UG_WARNING in " << __FILE__ << " at line "       \
-							__LINE__ << ": " << msg << std::flush;}}
+#ifdef UG_ENABLE_WARNINGS
+	#define UG_COND_WARNING(cond, msg) { if (cond) {ug::GetLogAssistant().logger() << "UG_WARNING in "\
+							<< __FILE__ << " at line " << __LINE__ << ": " \
+							<< msg << std::flush;} }
 #else
 	#define UG_COND_WARNING(cond, msg) {}
 #endif
