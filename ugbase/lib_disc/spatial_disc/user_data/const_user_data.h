@@ -306,10 +306,10 @@ inline SmartPtr<CplUserData<number,dim> > CreateConstUserData(number val, number
 	return make_sp(new ConstUserNumber<dim>(val));
 };
 
-template <int dim>
-SmartPtr<CplUserData<MathVector<dim>,dim> > CreateConstUserData(number val, MathVector<dim>)
+template <int dim, int worldDim=dim>
+SmartPtr<CplUserData<MathVector<dim>,worldDim> > CreateConstUserData(number val, MathVector<dim>)
 {
-	return make_sp(new ConstUserVector<dim>(val));
+	return make_sp(new ConstUserVector<dim,worldDim>(val));
 }
 
 template <int dim>
