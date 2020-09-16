@@ -81,6 +81,9 @@ public:
 	const int* outer_element_indices () const;
 	/** \} */
 
+	number get_lipid_edge_length(){return m_alip;}
+	number get_lipid_diameter(){return m_wlip;}
+	number get_lipid_height(){return m_hlip;}
 
 private:
 	inline void init_coords (	vector3* coordsOut,
@@ -89,6 +92,9 @@ private:
 								number h);
 
 	std::vector<vector3> m_coords;
+	number m_alip;
+	number m_wlip;
+	number m_hlip;
 };
 
 }//	end of namespace

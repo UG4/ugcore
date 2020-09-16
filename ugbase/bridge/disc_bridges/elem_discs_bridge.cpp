@@ -51,6 +51,7 @@
 #include "lib_disc/spatial_disc/elem_disc/neumann_boundary/fv/neumann_boundary_fv.h"
 #include "lib_disc/spatial_disc/elem_disc/neumann_boundary/fe/neumann_boundary_fe.h"
 #include "lib_disc/spatial_disc/elem_disc/inner_boundary/inner_boundary.h"
+#include "lib_disc/spatial_disc/elem_disc/dirac_source/lagrange_dirac_source.h"
 
 using namespace std;
 
@@ -197,6 +198,25 @@ static void Domain(Registry& reg, string grp)
 			;
 		reg.add_class_to_group(name, "FV1InnerBoundary", tag);
 	}
+
+	//	DiracSourceDisc
+		{
+			typedef DiracSourceDisc<TDomain> T;
+			typedef IElemDisc<TDomain> TBase;
+			string name = string("DiracSourceDisc").append(suffix);
+			reg.add_class_<T, TBase >(name, elemGrp)
+				.template add_constructor<void (*)(const char*, const char*)>("Function")
+				.add_method("add_source", static_cast<void (T::*)(number, MathVector<dim> &)>(&T::add_source),
+					"", "scale", "Set scale to scale (all) fluxes with.")
+				.add_method("add_source", static_cast<void (T::*)(SmartPtr<UserData<number, dim> >, MathVector<dim> &)>(&T::add_source),
+					"", "scale", "Set scale to scale (all) fluxes with.")
+	#ifdef UG_FOR_LUA
+				.add_method("add_source", static_cast<void (T::*)(const char*, MathVector<dim> &)>(&T::add_source),
+					"", "scale", "Set scale to scale (all) fluxes with.")
+	#endif
+					.set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, "DiracSourceDisc", tag);
+		}
 
 
 /////////////////////////////////////////////////////////////////////////////

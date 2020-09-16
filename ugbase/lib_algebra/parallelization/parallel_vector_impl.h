@@ -479,7 +479,7 @@ inline void VecScaleAdd(ParallelVector<T>  &dest,
 {
 	PROFILE_FUNC_GROUP("algebra");
 	uint mask = v1.get_storage_mask() & v2.get_storage_mask();
-	UG_COND_THROW(mask == 0, "VecScaleAdd: cannot add vectors v1 and v2");
+	UG_COND_THROW(mask == 0, "VecScaleAdd: cannot add vectors v1 and v2 because their storage masks are incompatible");
 	dest.set_storage_type(mask);
 
 	VecScaleAdd(*dynamic_cast<T*>(&dest), 	alpha1, *dynamic_cast<const T*>(&v1),
@@ -497,7 +497,7 @@ inline void VecScaleAdd(ParallelVector<T> &dest,
 	uint mask = 	v1.get_storage_mask() &
 			v2.get_storage_mask() &
 			v3.get_storage_mask();
-	UG_COND_THROW(mask == 0, "VecScaleAdd: cannot add vectors v1 and v2");
+	UG_COND_THROW(mask == 0, "VecScaleAdd: cannot add vectors v1 and v2 because their storage masks are incompatible");
 	dest.set_storage_type(mask);
 
 	VecScaleAdd((T&)dest, alpha1, (const T&)v1, alpha2, (const T&)v2, alpha3, (const T&)v3);
@@ -515,10 +515,24 @@ template<typename T>
 inline void VecHadamardProd(ParallelVector<T> &dest, const ParallelVector<T> &v1, const ParallelVector<T> &v2)
 {
 	uint mask = v1.get_storage_mask() & v2.get_storage_mask();
-	UG_COND_THROW(mask == 0, "VecHadamardProd: cannot multiply vectors v1 and v2");
+	UG_COND_THROW(mask == 0, "VecHadamardProd: cannot multiply vectors v1 and v2 because their storage masks are incompatible");
 	dest.set_storage_type(mask);
 
 	VecHadamardProd(*dynamic_cast<T*>(&dest), *dynamic_cast<const T*>(&v1), *dynamic_cast<const T*>(&v2));
+}
+
+// Elementwise exp of a vector
+template<typename T>
+inline void VecExp(ParallelVector<T> &dest, const ParallelVector<T> &v)
+{
+	VecExp(*dynamic_cast<T*>(&dest), *dynamic_cast<const T*>(&v));
+}
+
+// Elementwise log (natural logarithm) of a vector
+template<typename T>
+inline void VecLog(ParallelVector<T> &dest, const ParallelVector<T> &v)
+{
+	VecLog(*dynamic_cast<T*>(&dest), *dynamic_cast<const T*>(&v));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////

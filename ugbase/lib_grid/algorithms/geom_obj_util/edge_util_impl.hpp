@@ -507,6 +507,7 @@ void MinimizeEdgeLength_SwapsOnly(Grid& grid, EdgeIterator edgesBegin,
 	grid.detach_from_edges(aIsCandidate);
 }
 
+////////////////////////////////////////////////////////////////////////
 template <class vector_t, class TAAPos>
 UG_API bool
 ContainsPoint(const EdgeVertices* e, const vector_t& p, TAAPos aaPos)
@@ -516,6 +517,20 @@ ContainsPoint(const EdgeVertices* e, const vector_t& p, TAAPos aaPos)
 
 	return (fabs(p.x() - center) < rad + SMALL);
 }
+
+////////////////////////////////////////////////////////////////////////
+template <class TAAPosVRT>
+number CalculateAverageEdgeLength(Grid& grid, TAAPosVRT& aaPos)
+{
+	ConstEdgeIterator eit = grid.begin<Edge>();
+	ConstEdgeIterator eit_end = grid.end<Edge>();
+	number avg_length = 0.;
+	for (; eit != eit_end; ++eit) {
+		avg_length += EdgeLength(*eit, aaPos);
+	}
+	return avg_length / grid.num_edges();
+}
+
 
 }//	end of namespace
 

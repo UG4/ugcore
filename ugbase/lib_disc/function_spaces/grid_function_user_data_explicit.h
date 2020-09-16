@@ -37,6 +37,8 @@
 #include <map>
 #include <string>
 
+// ug4 headers
+
 #include "common/common.h"
 
 #include "lib_grid/tools/subset_group.h"
@@ -51,199 +53,193 @@
 
 namespace ug{
 
-
-
-
 /**
- * TImpl: CRTP base impl
- * TData: data type (number, ....)
- * TGridFunction
+ * Base class for the CplUserData-interface for grid functions.
+ *
+ * This base class provides the CplUserData interface for the GridFunctions at integration
+ * points. It can be used in particular to specify constant (or explicit) import parameters
+ * for discretizations. Note that this interface does NOT compute derivatives (so, assuming
+ * that the data are constant and do not depend on the current guess of the solution). For
+ * the current solution in discretizations, so that the derivatives w.r.t. the DoFs are
+ * taken into account, use the GridFunction...Data classes.
  */
 template <typename TImpl, typename TData, typename TGridFunction>
 class StdExplicitGridFunctionData
 : public StdUserData<StdExplicitGridFunctionData<TImpl,TData, TGridFunction>, TData, TGridFunction::dim>
 {
+public:
+	///	world dimension of grid function
+	static const int dim = TGridFunction::dim;
+
+protected:
+	SmartPtr<TGridFunction> m_spGridFct; ///< grid function
+	size_t m_fct;                        ///< component of function
+	LFEID m_lfeID;
 
 protected:
 	///	access to implementation
-		TImpl& getImpl() {return static_cast<TImpl&>(*this);}
+	TImpl& getImpl() {return static_cast<TImpl&>(*this);}
 
 	///	const access to implementation
-		const TImpl& getImpl() const {return static_cast<const TImpl&>(*this);}
-protected:
-		SmartPtr<TGridFunction> m_spGridFct; ///< grid function
-		size_t m_fct;                        ///< component of function
-		LFEID m_lfeID;
+	const TImpl& getImpl() const {return static_cast<const TImpl&>(*this);}
 
+public:
+	/// common constructor
+	StdExplicitGridFunctionData
+	(
+		SmartPtr<TGridFunction> spGridFct ///< grid function
+	)
+	: m_spGridFct(spGridFct)
+	{}
 
-		//	using base_type::get_dim;
-	public:
-		//	world dimension of grid function
-		static const int dim = TGridFunction::dim;
+	///	returns if data is constant
+	virtual bool constant() const {return false;}
 
-		///	returns if data is constant
-		virtual bool constant() const {return false;}
+	///	returns if grid function is needed for evaluation
+	/** (true, since local coordinates may not be sufficient)*/
+	virtual bool requires_grid_fct() const {return true;}
 
-		///	returns if grid function is needed for evaluation
-		/** (true, since local coordinates may not be sufficient)*/
-		virtual bool requires_grid_fct() const {return true;}
+	///	returns if provided data is continuous over geometric object boundaries
+	virtual bool continuous() const {return getImpl().continuous(); }
 
-		///	returns if provided data is continuous over geometric object boundaries
-		//virtual bool continuous() const {return true;}
-		virtual bool continuous() const {return getImpl().continuous(); }
+	template <int refDim>
+	void eval(LocalVector* u, GridObject* elem,
+			const MathVector<dim> vCornerCoords[], bool bDeriv = false)
+	{
+		const int si = this->subset();
 
-		template <int refDim>
-		void eval(LocalVector* u, GridObject* elem,
-				const MathVector<dim> vCornerCoords[], bool bDeriv = false) {
-
-			const int si = this->subset();
-
-
-			for(size_t s = 0; s < this->num_series(); ++s)
-			{
-				getImpl().template evaluate<refDim>(this->values(s), this->ips(s), this->time(s), si,
-						elem, vCornerCoords,
-						this->template local_ips<refDim>(s), this->num_ip(s),
-						u);
-			}
+		for(size_t s = 0; s < this->num_series(); ++s)
+		{
+			getImpl().template evaluate<refDim>(this->values(s), this->ips(s), this->time(s), si,
+					elem, vCornerCoords,
+					this->template local_ips<refDim>(s), this->num_ip(s),
+					u);
 		}
+	}
 
-		template <int refDim>
-		void eval(LocalVectorTimeSeries* u, GridObject* elem,
-				const MathVector<dim> vCornerCoords[], bool bDeriv = false) {
+	template <int refDim>
+	void eval(LocalVectorTimeSeries* u, GridObject* elem,
+			const MathVector<dim> vCornerCoords[], bool bDeriv = false)
+	{
+		const int si = this->subset();
 
-			const int si = this->subset();
-
-
-			for(size_t s = 0; s < this->num_series(); ++s)
-			{
-				getImpl().template evaluate<refDim>(this->values(s), this->ips(s), this->time(s), si,
-						elem, vCornerCoords,
-						this->template local_ips<refDim>(s), this->num_ip(s),
-						&(u->solution(this->time_point(s))));
-			}
+		for(size_t s = 0; s < this->num_series(); ++s)
+		{
+			getImpl().template evaluate<refDim>(this->values(s), this->ips(s), this->time(s), si,
+					elem, vCornerCoords,
+					this->template local_ips<refDim>(s), this->num_ip(s),
+					&(u->solution(this->time_point(s))));
 		}
+	}
 
-		virtual void compute(LocalVector* u, GridObject* elem,
-				const MathVector<dim> vCornerCoords[], bool bDeriv = false){
+	virtual void compute(LocalVector* u, GridObject* elem,
+			const MathVector<dim> vCornerCoords[], bool bDeriv = false)
+	{
+		UG_ASSERT(elem->base_object_id() == this->dim_local_ips(),
+				"local ip dimension and reference element dimension mismatch.");
 
-			UG_ASSERT(elem->base_object_id() == this->dim_local_ips(),
-					"local ip dimension and reference element dimension mismatch.");
-
-			switch(this->dim_local_ips()){
+		switch(this->dim_local_ips())
+		{
 			case 1: eval<1>(u,elem,vCornerCoords,bDeriv); break;
 			case 2: eval<2>(u,elem,vCornerCoords,bDeriv); break;
 			case 3: eval<3>(u,elem,vCornerCoords,bDeriv); break;
 			default: UG_THROW("StdDependentUserData: Dimension not supported.");
-			}
 		}
+	}
 
-		virtual void compute(LocalVectorTimeSeries* u, GridObject* elem,
-				const MathVector<dim> vCornerCoords[], bool bDeriv = false){
+	virtual void compute(LocalVectorTimeSeries* u, GridObject* elem,
+			const MathVector<dim> vCornerCoords[], bool bDeriv = false){
 
-			UG_ASSERT(elem->base_object_id() == this->dim_local_ips(),
-					"local ip dimension and reference element dimension mismatch.");
+		UG_ASSERT(elem->base_object_id() == this->dim_local_ips(),
+				"local ip dimension and reference element dimension mismatch.");
 
-			switch(this->dim_local_ips()){
+		switch(this->dim_local_ips())
+		{
 			case 1: eval<1>(u,elem,vCornerCoords,bDeriv); break;
 			case 2: eval<2>(u,elem,vCornerCoords,bDeriv); break;
 			case 3: eval<3>(u,elem,vCornerCoords,bDeriv); break;
 			default: UG_THROW("StdDependentUserData: Dimension not supported.");
-			}
 		}
+	}
 
-		/// common constructor
-		 StdExplicitGridFunctionData(SmartPtr<TGridFunction> spGridFct, const char* cmp)
-		: m_spGridFct(spGridFct)
-		{
-			//	get function id of name
-			m_fct = spGridFct->fct_id_by_name(cmp);
+	virtual void operator() (TData& value,
+							const MathVector<dim>& globIP,
+							number time, int si) const
+	{
+		UG_THROW("StdExplicitGridFunctionData: Solution, element and local ips required "
+				 "for evaluation, but not passed. Cannot evaluate.");
+	}
 
-			//	check that function exists
-			if(m_fct >= spGridFct->num_fct())
-				UG_THROW("ExplicitGridFunctionValueData: Function space does not contain"
-						" a function with name " << cmp << ".");
+	virtual void operator() (TData vValue[],
+							const MathVector<dim> vGlobIP[],
+							number time, int si, const size_t nip) const
+	{
+		UG_THROW("StdExplicitGridFunctionData: Solution, element and local ips required "
+				 "for evaluation, but not passed. Cannot evaluate.");
+	}
 
-			//	local finite element id
-			m_lfeID = spGridFct->local_finite_element_id(m_fct);
-		};
-
-	/*	virtual bool continuous() const
-		{
-			return LocalFiniteElementProvider::continuous(m_lfeID);
-		}*/
-
-		virtual void operator() (TData& value,
-								const MathVector<dim>& globIP,
-								number time, int si) const
-		{
-			UG_THROW("StdExplicitGridFunctionData: Solution, element and local ips required "
-					 "for evaluation, but not passed. Cannot evaluate.");
-		}
-
-		virtual void operator()(TData vValue[],
-								const MathVector<dim> vGlobIP[],
-								number time, int si, const size_t nip) const
-		{
-			UG_THROW("StdExplicitGridFunctionData: Solution, element and local ips required "
-					 "for evaluation, but not passed. Cannot evaluate.");
-		}
-
-		template <int refDim>
-		inline void evaluate(TData vValue[],
-							 const MathVector<dim> vGlobIP[],
-							 number time, int si,
-							 GridObject* elem,
-							 const MathVector<dim> vCornerCoords[],
-							 const MathVector<refDim> vLocIP[],
-							 const size_t nip,
-							 LocalVector* u,
-							 const MathMatrix<refDim, dim>* vJT = NULL) const
-		{
-			// forward
-			getImpl().template evaluate<refDim> (vValue, vGlobIP, time, si,
-			elem, vCornerCoords, vLocIP, nip, u, vJT);
-		}
+	template <int refDim>
+	inline void evaluate(TData vValue[],
+						 const MathVector<dim> vGlobIP[],
+						 number time, int si,
+						 GridObject* elem,
+						 const MathVector<dim> vCornerCoords[],
+						 const MathVector<refDim> vLocIP[],
+						 const size_t nip,
+						 LocalVector* u,
+						 const MathMatrix<refDim, dim>* vJT = NULL) const
+	{
+		// forward
+		getImpl().template evaluate<refDim> (vValue, vGlobIP, time, si,
+											elem, vCornerCoords, vLocIP, nip, u, vJT);
+	}
 };
 
-/// This grid function can be used as an explicit input (w/o additional derivativ)
+/**
+ * Class for the CplUserData-interface for the interpolation of a scalar component of a grid function.
+ *
+ * This class provides the CplUserData interface for the interpolation of a scalar component
+ * of a GridFunction at integration points. It can be used in particular to specify constant
+ * (or explicit) import parameters for discretizations. Note that this interface does NOT
+ * compute derivatives (so, assuming that the data are constant and do not depend on the
+ * current guess of the solution). For the interpolation of the current solution in
+ * discretizations, so that the derivatives w.r.t. the DoFs are taken into account, use
+ * the GridFunctionNumberData class.
+ */
 template<typename TGridFunction>
 class ExplicitGridFunctionValue
 : public StdExplicitGridFunctionData<ExplicitGridFunctionValue<TGridFunction>, number, TGridFunction>
 {
-public:
-	//	world dimension of grid function
-	static const int dim = TGridFunction::dim;
 	typedef StdExplicitGridFunctionData<ExplicitGridFunctionValue<TGridFunction>, number, TGridFunction> base_type;
 
 	using base_type::m_spGridFct;
-	using base_type::m_lfeID;
-	using base_type::m_fct;
+	
+	size_t m_fct;	///< component of the function
+	LFEID m_lfeID;	///< type of the shape functions
 
-
-
-
+public:
+	//	world dimension of grid function
+	static const int dim = TGridFunction::dim;
+	
 	// constructor
-	ExplicitGridFunctionValue(SmartPtr<TGridFunction> gf, const char* cmp)
-	//: StdExplicitGridFunctionData<ExplicitGridFunctionValue<TGridFunction>, number, TGridFunction>(gf, cmp)
-	: base_type(gf, cmp)
-	{}
+	ExplicitGridFunctionValue
+	(
+		SmartPtr<TGridFunction> gf, ///< grid function
+		const char* cmp ///< its component
+	)
+	:	base_type(gf)
+	{
+		//	get function id of name
+		m_fct = m_spGridFct->fct_id_by_name(cmp);
 
+		//	check that function exists
+		if(m_fct >= m_spGridFct->num_fct())
+			UG_THROW("ExplicitGridFunctionValue: Function space does not contain"
+					" a function with name " << cmp << ".");
 
-	/*template <int refDim>
-				void eval_and_deriv(number vValue[],
-				                    const MathVector<dim> vGlobIP[],
-				                    number time, int si,
-				                    GridObject* elem,
-				                    const MathVector<dim> vCornerCoords[],
-				                    const MathVector<refDim> vLocIP[],
-				                    const size_t nip,
-				                    LocalVector* u,
-				                    bool bDeriv,
-				                    int s,
-				                    std::vector<std::vector<number> > vvvDeriv[],
-				                    const MathMatrix<refDim, dim>* vJT = NULL) const
-				*/
+		//	local finite element id
+		m_lfeID = m_spGridFct->local_finite_element_id(m_fct);
+	}
 
 	template <int refDim>
 	inline void evaluate(number vValue[],
@@ -260,9 +256,10 @@ public:
 		const ReferenceObjectID roid = elem->reference_object_id();
 
 		//	get trial space
-		try{
+		try
+		{
 			const LocalShapeFunctionSet<refDim>& rTrialSpace =
-					LocalFiniteElementProvider::get<refDim>(roid, base_type::m_lfeID);
+					LocalFiniteElementProvider::get<refDim>(roid, m_lfeID);
 
 			//	memory for shapes
 			std::vector<number> vShape;
@@ -270,7 +267,6 @@ public:
 			//	get multiindices of element
 			std::vector<DoFIndex> ind;
 			m_spGridFct->dof_indices(elem, m_fct, ind);
-
           
 			//	loop ips
 			for(size_t ip = 0; ip < nip; ++ip)
@@ -294,34 +290,181 @@ public:
 
 	}
 
-	bool continuous() const
-	{return LocalFiniteElementProvider::continuous(m_lfeID);}
+	bool continuous() const {return LocalFiniteElementProvider::continuous(m_lfeID);}
 
 };
 
+/**
+ * Class for the CplUserData-interface for the interpolation of a vector part of a grid function.
+ *
+ * This class provides the CplUserData interface for the interpolation of dim components
+ * of a GridFunction as one vector at integration points. It can be used in particular to
+ * specify constant (or explicit) import parameters for discretizations. Note that this
+ * interface does NOT compute derivatives (so, assuming that the data are constant and do
+ * not depend on the current guess of the solution). For the interpolation of the current
+ * solution in discretizations, so that the derivatives w.r.t. the DoFs are taken into
+ * account, use the GridFunctionVectorData class.
+ */
+template<typename TGridFunction>
+class ExplicitGridFunctionVector
+: public StdExplicitGridFunctionData<ExplicitGridFunctionVector<TGridFunction>, MathVector<TGridFunction::dim>, TGridFunction>
+{
+public:
+	//	world dimension of grid function
+	static const int dim = TGridFunction::dim;
+	
+private:
+	typedef StdExplicitGridFunctionData<ExplicitGridFunctionVector<TGridFunction>, MathVector<TGridFunction::dim>, TGridFunction> base_type;
 
+	using base_type::m_spGridFct;
+	
+	size_t m_vfct[dim];	///< components of the function
+	LFEID m_vlfeID[dim];	///< types of the shape functions
 
+public:
+
+	//	constructor
+	ExplicitGridFunctionVector
+	(
+		SmartPtr<TGridFunction> gf, ///< grid function
+		const char* cmps ///< its component
+	)
+	:	base_type(gf)
+	{
+		try
+		{
+			//	get strings
+			std::string fctString (cmps);
+
+			//	tokenize strings and select functions
+			std::vector<std::string> tokens;
+			TokenizeString(fctString, tokens, ',');
+
+			for(size_t i = 0; i < tokens.size(); ++i)
+				RemoveWhitespaceFromString(tokens[i]);
+
+			if((int)tokens.size() != dim)
+				UG_THROW("ExplicitGridFunctionVector: Needed " << dim << " components "
+				         "in symbolic function names, but given: " << cmps << '.');
+
+			//	get function id of name
+			for(int i = 0; i < dim; ++i)
+			{
+				m_vfct[i] = m_spGridFct->fct_id_by_name(tokens[i].c_str());
+				m_vlfeID[i] = m_spGridFct->local_finite_element_id(m_vfct[i]);
+			}
+
+		}
+		UG_CATCH_THROW("ExplicitGridFunctionVector: Cannot find  some symbolic function  name in '" << cmps << "'.");
+	}
+
+	template <int refDim>
+	inline void evaluate(MathVector<dim> vValue[],
+					     const MathVector<dim> vGlobIP[],
+					     number time, int si,
+					     GridObject* elem,
+					     const MathVector<dim> vCornerCoords[],
+					     const MathVector<refDim> vLocIP[],
+					     const size_t nip,
+					     LocalVector* u,
+					     const MathMatrix<refDim, dim>* vJT = NULL) const
+	{
+		//	reference object id
+		const ReferenceObjectID roid = elem->reference_object_id();
+
+		//	memory for shapes
+		std::vector<number> vShape;
+
+		//	multiindices of element
+		std::vector<DoFIndex> ind;
+		
+		for (int d = 0; d < dim; ++d)
+		{
+			try
+			{
+			//	get trial space
+				const LocalShapeFunctionSet<refDim>& rTrialSpace =
+						LocalFiniteElementProvider::get<refDim>(roid, m_vlfeID[d]);
+				
+				m_spGridFct->dof_indices(elem, m_vfct[d], ind);
+		 
+				//	loop ips
+				for(size_t ip = 0; ip < nip; ++ip)
+				{
+					//	evaluate at shapes at ip
+					rTrialSpace.shapes(vShape, vLocIP[ip]);
+
+					// 	compute solution at integration point
+					vValue[ip][d] = 0.0;
+					for(size_t sh = 0; sh < vShape.size(); ++sh)
+					{
+						const number valSH = DoFRef(*m_spGridFct, ind[sh]);
+						vValue[ip][d] += valSH * vShape[sh];
+					}
+				}
+			}
+			UG_CATCH_THROW("ExplicitGridFunctionVector: Shape Function Set missing for"
+					" Reference Object: " << roid << ", Trial Space: "
+					<< m_vlfeID << ", refDim=" <<refDim);
+		}
+	}
+
+	bool continuous() const
+	{
+		for(int i = 0; i < dim; ++i)
+			if(!LocalFiniteElementProvider::continuous(m_vlfeID[i]))
+				return false;
+		return true;
+	}
+
+};
+
+/**
+ * Base class for the CplUserData-interface for the gradient of a grid function.
+ *
+ * This base class provides the CplUserData interface for the gradient of a GridFunction
+ * at integration points. It can be used in particular to specify constant (or explicit)
+ * import parameters for discretizations. Note that this interface does NOT compute
+ * derivatives (so, assuming that the data are constant and do not depend on the
+ * current guess of the solution). For the gradient of the current solution in
+ * discretizations, so that the derivatives w.r.t. the DoFs are taken into account, use
+ * the GridFunctionGradientData class.
+ */
 template <typename TGridFunction>
 class ExplicitGridFunctionGradient
 : public StdExplicitGridFunctionData<ExplicitGridFunctionGradient<TGridFunction>, MathVector<TGridFunction::dim>, TGridFunction >
 {
-	public:
-	//	world dimension of grid function
-	static const int dim = TGridFunction::dim;
 	typedef StdExplicitGridFunctionData<ExplicitGridFunctionGradient<TGridFunction>, MathVector<TGridFunction::dim>, TGridFunction > base_type;
-//	typedef CplUserData<MathVector<TGridFunction::dim>, TGridFunction::dim> user_data_type;
 
 	using base_type::m_spGridFct;
-	using base_type::m_lfeID;
-	using base_type::m_fct;
+	
+	size_t m_fct;	///< component of the function
+	LFEID m_lfeID;	///< type of the shape functions
+	std::map<std::string, double> m_diffCoeffMap;
 
-	// specify final overriders
-
-
+public:
+	//	world dimension of grid function
+	static const int dim = TGridFunction::dim;
+	
 	/// constructor
-	ExplicitGridFunctionGradient(SmartPtr<TGridFunction> spGridFct, const char* cmp)
-	: base_type(spGridFct, cmp), m_diffCoeffMap()
-	{};
+	ExplicitGridFunctionGradient
+	(
+		SmartPtr<TGridFunction> gf, ///< grid function
+		const char* cmp ///< its component
+	)
+	: base_type(gf), m_diffCoeffMap()
+	{
+		//	get function id of name
+		m_fct = m_spGridFct->fct_id_by_name(cmp);
+
+		//	check that function exists
+		if(m_fct >= m_spGridFct->num_fct())
+			UG_THROW("ExplicitGridFunctionGradient: Function space does not contain"
+					" a function with name " << cmp << ".");
+
+		//	local finite element id
+		m_lfeID = m_spGridFct->local_finite_element_id(m_fct);
+	}
 
 	// evaluate gradient
 	template <int refDim>
@@ -334,75 +477,74 @@ class ExplicitGridFunctionGradient
 		                    const size_t nip,
 		                    LocalVector* u,
 		                    const MathMatrix<refDim, dim>* vJT = NULL) const
-		{
-			//	reference object id
-			const ReferenceObjectID roid = elem->reference_object_id();
+	{
+		//	reference object id
+		const ReferenceObjectID roid = elem->reference_object_id();
 
-			//	get reference element mapping by reference object id
-			std::vector<MathMatrix<refDim, dim> > vJTTmp(nip);
-			if(vJT == NULL){
-				try{
-					DimReferenceMapping<refDim, dim>& mapping
-					= ReferenceMappingProvider::get<refDim, dim>(roid, vCornerCoords);
-
-					//	compute transformation matrices
-					mapping.jacobian_transposed(&(vJTTmp[0]), vLocIP, nip);
-
-					//	store tmp Gradient
-					vJT = &(vJTTmp[0]);
-				}UG_CATCH_THROW("GridFunctionGradientData: failed.");
-			}
-
-			// scale with coeficient
-			const int   subsetInd  = m_spGridFct->domain()->subset_handler()->get_subset_index(elem);
-			const char* subsetName = m_spGridFct->domain()->subset_handler()->get_subset_name(subsetInd);
-
-			double diffCoeff = get_subset_coeff(std::string(subsetName));
-
-			//	get trial space
+		//	get reference element mapping by reference object id
+		std::vector<MathMatrix<refDim, dim> > vJTTmp(nip);
+		if(vJT == NULL){
 			try{
-				const LocalShapeFunctionSet<refDim>& rTrialSpace =
-						LocalFiniteElementProvider::get<refDim>(roid, m_lfeID);
+				DimReferenceMapping<refDim, dim>& mapping
+				= ReferenceMappingProvider::get<refDim, dim>(roid, vCornerCoords);
 
-				//	storage for shape function at ip
-				std::vector<MathVector<refDim> > vLocGrad;
-				MathVector<refDim> locGrad;
+				//	compute transformation matrices
+				mapping.jacobian_transposed(&(vJTTmp[0]), vLocIP, nip);
 
-				//	Reference Mapping
-				MathMatrix<dim, refDim> JTInv;
-
-				//	loop ips
-				for(size_t ip = 0; ip < nip; ++ip)
-				{
-					//	evaluate at shapes at ip
-					rTrialSpace.grads(vLocGrad, vLocIP[ip]);
-
-					//	get multiindices of element
-					std::vector<DoFIndex > ind;
-					m_spGridFct->dof_indices(elem, m_fct, ind);
-
-					//	compute grad at ip
-					VecSet(locGrad, 0.0);
-					for(size_t sh = 0; sh < vLocGrad.size(); ++sh)
-					{
-						const number valSH = DoFRef( *m_spGridFct, ind[sh]);
-						VecScaleAppend(locGrad, valSH, vLocGrad[sh]);
-					}
-
-					Inverse(JTInv, vJT[ip]);
-					MatVecMult(vValue[ip], JTInv, locGrad);
-
-					// scale with diff coeff (TODO: matrix)
-					VecScale(vValue[ip], vValue[ip], diffCoeff);
-				}
-			}
-			UG_CATCH_THROW("ExplicitGridFunctionGradient: Shape Function Set missing for"
-					" Reference Object: "<<roid<<", Trial Space: "
-					<<m_lfeID<<", refDim="<<refDim);
+				//	store tmp Gradient
+				vJT = &(vJTTmp[0]);
+			}UG_CATCH_THROW("GridFunctionGradientData: failed.");
 		}
 
-	bool continuous() const
-	{ return false; }
+		// scale with coeficient
+		const int   subsetInd  = m_spGridFct->domain()->subset_handler()->get_subset_index(elem);
+		const char* subsetName = m_spGridFct->domain()->subset_handler()->get_subset_name(subsetInd);
+
+		double diffCoeff = get_subset_coeff(std::string(subsetName));
+
+		//	get trial space
+		try{
+			const LocalShapeFunctionSet<refDim>& rTrialSpace =
+					LocalFiniteElementProvider::get<refDim>(roid, m_lfeID);
+
+			//	storage for shape function at ip
+			std::vector<MathVector<refDim> > vLocGrad;
+			MathVector<refDim> locGrad;
+
+			//	Reference Mapping
+			MathMatrix<dim, refDim> JTInv;
+
+			//	loop ips
+			for(size_t ip = 0; ip < nip; ++ip)
+			{
+				//	evaluate at shapes at ip
+				rTrialSpace.grads(vLocGrad, vLocIP[ip]);
+
+				//	get multiindices of element
+				std::vector<DoFIndex > ind;
+				m_spGridFct->dof_indices(elem, m_fct, ind);
+
+				//	compute grad at ip
+				VecSet(locGrad, 0.0);
+				for(size_t sh = 0; sh < vLocGrad.size(); ++sh)
+				{
+					const number valSH = DoFRef( *m_spGridFct, ind[sh]);
+					VecScaleAppend(locGrad, valSH, vLocGrad[sh]);
+				}
+
+				Inverse(JTInv, vJT[ip]);
+				MatVecMult(vValue[ip], JTInv, locGrad);
+
+				// scale with diff coeff (TODO: matrix)
+				VecScale(vValue[ip], vValue[ip], diffCoeff);
+			}
+		}
+		UG_CATCH_THROW("ExplicitGridFunctionGradient: Shape Function Set missing for"
+				" Reference Object: "<<roid<<", Trial Space: "
+				<<m_lfeID<<", refDim="<<refDim);
+	}
+
+	bool continuous() const { return false; }
 
 	void add_subset_coeff(const std::string &key, double val)
 	{
@@ -415,9 +557,6 @@ class ExplicitGridFunctionGradient
 		double val = (it != m_diffCoeffMap.end()) ? it->second : 1.0;
 		return val;
 	}
-
-	protected:
-		std::map<std::string, double> m_diffCoeffMap;
 };
 
 

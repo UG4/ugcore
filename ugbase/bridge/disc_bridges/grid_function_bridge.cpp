@@ -117,18 +117,29 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef ExplicitGridFunctionValue<TFct> T;
 		typedef CplUserData<number, dim> TBase;
 		reg.add_class_<T, TBase>(name, grp)
-		   .template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("ExplicitGridFunctionValue#Component")
+		   .template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridFunction#Component")
 		   .set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ExplicitGridFunctionValue", tag);
 	}
 
-	//	ExplicitGridFunctionGradient
+//	ExplicitGridFunctionVector
+	{
+		string name = string("ExplicitGridFunctionVector").append(suffix);
+		typedef ExplicitGridFunctionVector<TFct> T;
+		typedef CplUserData<MathVector<dim>, dim> TBase;
+		reg.add_class_<T, TBase>(name, grp)
+		   .template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridFunction#Components")
+		   .set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "ExplicitGridFunctionVector", tag);
+	}
+
+//	ExplicitGridFunctionGradient
 	{
 		string name = string("ExplicitGridFunctionGradient").append(suffix);
 		typedef ExplicitGridFunctionGradient<TFct> T;
 		typedef CplUserData<MathVector<dim>, dim> TBase;
 		reg.add_class_<T, TBase>(name, grp)
-		   .template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("ExplicitGridFunctionGradient#Component")
+		   .template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridFunction#Component")
             .add_method("add_subset_coeff", &T::add_subset_coeff)
 			.add_method("get_subset_coeff", &T::get_subset_coeff)
 		   .set_construct_as_smart_pointer(true);

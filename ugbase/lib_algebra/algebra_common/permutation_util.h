@@ -48,7 +48,7 @@ namespace ug{
  * @param[in] perm array mapping i -> perm[i]
  */
 template<typename TMatrix>
-static void SetMatrixAsPermutation(TMatrix &PA, const TMatrix &A, std::vector<size_t> &perm)
+static void SetMatrixAsPermutation(TMatrix &PA, const TMatrix &A, const std::vector<size_t> &perm)
 {
 	PROFILE_FUNC_GROUP("algebra");
 	PA.resize_and_clear(A.num_rows(), A.num_cols());
@@ -71,7 +71,7 @@ static void SetMatrixAsPermutation(TMatrix &PA, const TMatrix &A, std::vector<si
  * @param[in] perm array mapping oldindices i -> new index perm[i]
  */
 template<typename TVector>
-static void SetVectorAsPermutation(TVector &Pv, const TVector &v, std::vector<size_t> &perm)
+static void SetVectorAsPermutation(TVector &Pv, const TVector &v, const std::vector<size_t> &perm)
 {
 	if(Pv.size() != v.size()) Pv.resize(v.size());
 	for(size_t i=0; i<v.size(); i++)

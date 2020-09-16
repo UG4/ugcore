@@ -218,6 +218,37 @@ number CalculateHexahedronAspectRatio(Grid& grid, Hexahedron* hex,
 	return max / min;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////
+// CalculateHexahedronAspectRatio
+// order of vertices should be the same as described in \sa PyramidDescriptor
+// v1, v2, v3, v4: bottom-vertices in counterclockwise order (if viewed from the top).
+// v5: top-vertex.
+////////////////////////////////////////////////////////////////////////////////////////////
+number CalculatePyramidAspectRatio
+(
+	Grid& grid,
+	Pyramid* pyr,
+	Grid::VertexAttachmentAccessor<AVector3>& aaPos
+)
+{
+	// average edge length of base of pyramid
+	number avg_edge_length = 0;
+	for (size_t i = 0; i < 4; i++)
+	{
+		avg_edge_length += VecDistance(aaPos[pyr->vertex(i%4)], aaPos[pyr->vertex((i+1)%4)]);
+	}
+	avg_edge_length /= 4;
+
+	// distance from base to top of pyramid
+	const Face* const face = grid.get_element(FaceDescriptor(pyr->vertex(0), pyr->vertex(1), pyr->vertex(2), pyr->vertex(3)));
+	vector3 normal;
+	CalculateNormal(normal, face, aaPos);
+	const number distance = VecDot(normal, aaPos[pyr->vertex(4)]);
+
+	// AR of pyramid is ratio between distance and average edge length of base
+	return distance / avg_edge_length;
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //	CalculateTetrahedronRootMeanSquareFaceArea - mstepnie
@@ -273,6 +304,18 @@ number CalculateTetrahedronVolToRMSFaceAreaRatio(Grid& grid,
 	number normalization = std::pow(3, 7/4.0) / 2.0 / std::sqrt(2);
 
 	return normalization * vol / std::pow(A_rms, 3/2.0);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+//	CalculateHexahedronVolToRMSFaceAreaRatio - sgrein
+////////////////////////////////////////////////////////////////////////////////////////////
+UG_API
+number CalculateHexahedronVolToRMSFaceAreaRatio(Grid& grid,
+										  	  	 Hexahedron* hex,
+												 Grid::VertexAttachmentAccessor<APosition>& aaPos)
+{
+	UG_THROW("Not yet implemented");
+	return NAN;
 }
 
 

@@ -1406,7 +1406,7 @@ bool ResolveTriangleIntersections(Grid& grid, TriangleIterator trisBegin,
 	vector<Face*>	closeTris;
 	Grid::vertex_traits::secure_container vrts;
 
-//	iterate over all triangles and perform intersecion with other triangles
+//	iterate over all triangles and perform intersection with other triangles
 	size_t triCounter = 0;
 	for(TriangleIterator triIter1 = sel.begin<Triangle>();
 		triIter1 != sel.end<Triangle>(); ++triIter1, ++triCounter)

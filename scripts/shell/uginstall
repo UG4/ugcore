@@ -558,7 +558,7 @@ make_SuperLU()
 	if [[ "$unamestr" == 'Darwin' ]]; then		
 		echo "UGINSTALL: On MacOS, using make.inc_mac (BLAS = /System/Library/Frameworks/Accelerate.framework/Frameworks/vecLib.framework/Versions/Current/libBLAS.dylib)"		
 	   cp $scriptpath/install_scripts/SuperLU/make.inc_mac make.inc
-	elif [ $HOSTNAME == "cekon.gcsc.uni-frankfurt.de" ]; then
+	elif [[ $HOSTNAME == "cekon.gcsc.uni-frankfurt.de" || $HOSTNAME == "cesari.gcsc.uni-frankfurt.de" || $HOSTNAME == "cizeta.gcsc.uni-frankfurt.de" ]]; then
 		echo "UGINSTALL: On Cekon, using make.inc_cekon (BLAS = /usr/lib64/libblas.so)"
 	   cp $scriptpath/install_scripts/SuperLU/make.inc_cekon make.inc
 	elif [[ "$HOSTNAME" == "juqueen"* ]]; then

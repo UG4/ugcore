@@ -187,6 +187,10 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 		{
 		switch(dim)
 		{
+		case 0:
+			this->template AssembleMassMatrix<RegularVertex>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u);
+			break;
 		case 1:
 			this->template AssembleMassMatrix<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u);
@@ -343,6 +347,10 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 		{
 		switch(dim)
 		{
+		case 0:
+			this->template AssembleStiffnessMatrix<RegularVertex>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u);
+			break;
 		case 1:
 			this->template AssembleStiffnessMatrix<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u);
@@ -524,6 +532,10 @@ assemble_jacobian(matrix_type& J,
 		{
 		switch(dim)
 		{
+		case 0:
+			this->template AssembleJacobian<RegularVertex>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU);
+			break;
 		case 1:
 			this->template AssembleJacobian<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU);
@@ -695,6 +707,10 @@ assemble_defect(vector_type& d,
 		{
 		switch(dim)
 		{
+		case 0:
+			this->template AssembleDefect<RegularVertex>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU);
+			break;
 		case 1:
 			this->template AssembleDefect<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU);
@@ -864,6 +880,10 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		{
 		switch(dim)
 		{
+		case 0:
+			this->template AssembleLinear<RegularVertex>
+					(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs);
+			break;
 		case 1:
 			this->template AssembleLinear<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs);
@@ -1021,6 +1041,10 @@ assemble_rhs(vector_type& rhs,
 		{
 		switch(dim)
 		{
+		case 0:
+			this->template AssembleRhs<RegularVertex>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u);
+			break;
 		case 1:
 			this->template AssembleRhs<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u);
@@ -1256,6 +1280,10 @@ prepare_timestep_elem(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		{
 		switch(dim)
 		{
+		case 0:
+			this->template PrepareTimestepElem<RegularVertex>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
+			break;
 		case 1:
 			this->template PrepareTimestepElem<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
@@ -1414,6 +1442,10 @@ assemble_jacobian(matrix_type& J,
 		{
 		switch(dim)
 		{
+		case 0:
+			this->template AssembleJacobian<RegularVertex>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0);
+			break;
 		case 1:
 			this->template AssembleJacobian<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0);
@@ -1589,6 +1621,10 @@ assemble_defect(vector_type& d,
 		{
 		switch(dim)
 		{
+		case 0:
+			this->template AssembleDefect<RegularVertex>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff);
+			break;
 		case 1:
 			this->template AssembleDefect<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff);
@@ -1750,6 +1786,10 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		{
 		switch(dim)
 		{
+		case 0:
+			this->template AssembleLinear<RegularVertex>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff);
+			break;
 		case 1:
 			this->template AssembleLinear<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff);
@@ -1914,6 +1954,10 @@ assemble_rhs(vector_type& rhs,
 		{
 		switch(dim)
 		{
+		case 0:
+			this->template AssembleRhs<RegularVertex>
+			 	 (vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff);
+			break;
 		case 1:
 			this->template AssembleRhs<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff);
@@ -2261,9 +2305,7 @@ calc_error
 
 	// default value negative in order to distinguish between newly added elements (e.g. after refinement)
 	// and elements which an error indicator is known for
-	pMG->template attach_to_dv<elem_type>(m_aError, -1.0);
-	m_pMG = pMG;
-	m_aaError = aa_type(*pMG, m_aError);
+	m_mgElemErrors.attach_indicators(pMG);
 
 	// loop surface elements
 	ConstSmartPtr<SurfaceView> sv = dd->surface_view();
@@ -2272,7 +2314,7 @@ calc_error
 	for (elem_iter_type elem = sv->template begin<elem_type> (gl, SurfaceView::ALL); elem != elem_iter_end; ++elem)
 	{
 		// clear attachment (to be on the safe side)
-		m_aaError[*elem] = 0.0;
+		m_mgElemErrors.error(*elem) = 0.0;
 
 		// get corner coordinates
 		std::vector<MathVector<dim> > vCornerCoords = std::vector<MathVector<dim> >(0);
@@ -2280,7 +2322,7 @@ calc_error
 
 		// integrate for all estimators, then add up
 		for (std::size_t ee = 0; ee < vErrEstData.size(); ++ee)
-			m_aaError[*elem] += vErrEstData[ee]->scaling_factor()
+			m_mgElemErrors.error(*elem) += vErrEstData[ee]->scaling_factor()
 								* vErrEstData[ee]->get_elem_error_indicator(*elem, &vCornerCoords[0]);
 	}
 
@@ -2315,14 +2357,14 @@ calc_error
 			GetLocalVector(locU, *uVTK);
 
 			// assign error value
-			locU(0,0) = m_aaError[*elem];
+			locU(0,0) = m_mgElemErrors.error(*elem);
 
 			// add to grid function
 			AddLocalVector(*uVTK, locU);
 		}
 	}
 
-	m_bErrorCalculated = true;
+	this->m_bErrorCalculated = true;
 
 //	postprocess the error estimators in the discretizations
 	try{
@@ -2520,9 +2562,7 @@ calc_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 
 	// default value negative in order to distinguish between newly added elements (e.g. after refinement)
 	// and elements which an error indicator is known for
-	pMG->template attach_to_dv<elem_type>(m_aError, -1.0);
-	m_pMG = pMG;
-	m_aaError = aa_type(*pMG, m_aError);
+	m_mgElemErrors.attach_indicators(pMG);
 
 	// loop surface elements
 	ConstSmartPtr<SurfaceView> sv = dd->surface_view();
@@ -2531,7 +2571,7 @@ calc_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 	for (elem_iter_type elem = sv->template begin<elem_type> (gl, SurfaceView::ALL); elem != elem_iter_end; ++elem)
 	{
 		// clear attachment
-		m_aaError[*elem] = 0.0;
+		m_mgElemErrors.error(*elem) = 0.0;
 
 		// get corner coordinates
 		std::vector<MathVector<dim> > vCornerCoords = std::vector<MathVector<dim> >(0);
@@ -2539,7 +2579,7 @@ calc_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 
 		// integrate for all estimators, then add up
 		for (std::size_t ee = 0; ee < vErrEstData.size(); ++ee)
-			m_aaError[*elem] += vErrEstData[ee]->scaling_factor()
+			m_mgElemErrors.error(*elem) += vErrEstData[ee]->scaling_factor()
 								* vErrEstData[ee]->get_elem_error_indicator(*elem, &vCornerCoords[0]);
 	}
 
@@ -2574,14 +2614,14 @@ calc_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 			GetLocalVector(locU, *uVTK);
 
 			// assign error value
-			locU(0,0) = m_aaError[*elem];
+			locU(0,0) = m_mgElemErrors.error(*elem);
 
 			// add to grid function
 			AddLocalVector(*uVTK, locU);
 		}
 	}
 
-	m_bErrorCalculated = true;
+	this->m_bErrorCalculated = true;
 
 //	postprocess the error estimators in the discretizations
 	try{
@@ -2628,7 +2668,7 @@ mark_with_strategy
 )
 {
 	// check that error indicators have been calculated
-	if (!m_bErrorCalculated)
+	if (!this->m_bErrorCalculated)
 	{
 		UG_THROW("Error indicators have to be calculated first by a call to 'calc_error'.");
 	}
@@ -2636,7 +2676,7 @@ mark_with_strategy
 	// mark elements for refinement
 	if (spMarkingStrategy.valid())
 	{
-		spMarkingStrategy->mark(m_aaError, refiner, this->dd(GridLevel(GridLevel::TOP, GridLevel::SURFACE)));
+		spMarkingStrategy->mark( m_mgElemErrors, refiner, this->dd(GridLevel(GridLevel::TOP, GridLevel::SURFACE)));
 	}
 }
 
@@ -2644,11 +2684,14 @@ template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
 void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
 invalidate_error()
 {
+	typedef typename domain_traits<dim>::element_type elem_type;
+
 	// check that error indicators have been calculated
 	if (m_bErrorCalculated)
 	{
 		m_bErrorCalculated = false;
-		m_pMG->template detach_from<elem_type>(m_aError);
+		m_mgElemErrors.detach_indicators();
+		// this->m_pMG->template detach_from<elem_type>(this->m_aError);
 	}
 }
 
@@ -2657,7 +2700,7 @@ bool DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
 is_error_valid()
 {
 	// check that error indicators have been calculated
-	return m_bErrorCalculated;
+	return this->m_bErrorCalculated;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -2744,6 +2787,10 @@ finish_timestep_elem(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		{
 		switch(dim)
 		{
+		case 0:
+			this->template FinishTimestepElem<RegularVertex>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
+			break;
 		case 1:
 			this->template FinishTimestepElem<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);

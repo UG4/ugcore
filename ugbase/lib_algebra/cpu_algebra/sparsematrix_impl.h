@@ -659,8 +659,8 @@ void SparseMatrix<T>::copyToNewSize(size_t newSize, size_t maxCol)
 	rowStart[num_rows()] = rowEnd[num_rows()-1];
 	fragmented = 0;
 	maxValues = j;
-	if(bNeedsValues) std::swap(values, v);
-	std::swap(cols, c);
+	if(bNeedsValues) values.swap(v);
+	cols.swap(c);
 }
 
 template<typename T>
