@@ -83,7 +83,7 @@ function util.CreateDomain(gridName, numRefs, neededSubsets, noIntegrityCheck)
 
 	if noIntegrityCheck ~= true then
 		write("Performing integrity check on domain ... ")
-		if CheckForUnconnectedSides(dom:grid()) == true then
+		if CheckForUnconnectedSides(dom) == true then
 			write("WARNING: unconnected sides found (see above).\n")
 			local note = "NOTE: You may disable this check by passing 'true' "..
 				  		 "to 'noIntegrityCheck' in 'util.CreateDomain'.\n"
@@ -178,7 +178,7 @@ function util.CreateAndDistributeDomain(gridName, numRefs, numPreRefs,
 	
 	if noIntegrityCheck ~= true then
 		write("Performing integrity check on domain ... ")
-		if CheckForUnconnectedSides(dom:grid()) == true then
+		if CheckForUnconnectedSides(dom) == true then
 			write("WARNING: unconnected sides found (see above).\n")
 			local note = "NOTE: You may disable this check by passing 'true' "..
 				  		 "to 'noIntegrityCheck' in 'util.CreateAndDistributeDomain'.\n"
