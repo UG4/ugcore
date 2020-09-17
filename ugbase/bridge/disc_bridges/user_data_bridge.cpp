@@ -89,7 +89,7 @@ namespace bridge{
  * \{
  */
 
-template <typename TData, int dim, typename TTraits=user_data_traits<TData> >
+template <typename TData, int dim, typename TTraits>
 void RegisterUserDataTypeA(Registry& reg, string grp)
 {
 	string dimSuffix = GetDimensionSuffix<dim>();
@@ -107,6 +107,7 @@ void RegisterUserDataTypeA(Registry& reg, string grp)
 		reg.add_class_<T,TBase1>(name, grp)
 			.add_method("get_dim", &T::get_dim)
 			.add_method("type", &T::type);
+
 		reg.add_class_to_group(name, string("User").append(type), dimTag);
 		reg.add_function("PrintUserDataValue", &PrintUserDataValue<TData, dim>,
 						 grp, "", "userData#position#time#subsetIndex",
@@ -159,7 +160,7 @@ void RegisterUserDataTypeA(Registry& reg, string grp)
 
 }
 
-template <typename TData, int dim, typename TTraits=user_data_traits<TData> >
+template <typename TData, int dim, typename TTraits>
 void RegisterUserDataTypeB(Registry& reg, string grp)
 {
 	string dimSuffix = GetDimensionSuffix<dim>();
@@ -185,11 +186,11 @@ void RegisterUserDataTypeB(Registry& reg, string grp)
 
 }
 
-template <typename TData, int dim, typename TTraits=user_data_traits<TData> >
+template <typename TData, int dim>
 void RegisterUserDataType(Registry& reg, string grp)
 {
-	RegisterUserDataTypeA<TData, dim, TTraits>(reg, grp);
-	RegisterUserDataTypeB<TData, dim, TTraits>(reg, grp);
+	RegisterUserDataTypeA<TData, dim, user_data_traits<TData> >(reg, grp);
+	RegisterUserDataTypeB<TData, dim, user_data_traits<TData> >(reg, grp);
 }
 // end group userdata_bridge
 /// \}
@@ -220,6 +221,9 @@ struct Functionality
 		typedef std::tuple<number, number, number> MathTriple;
 	template <>
 		struct user_data_traits<MathPair>{static std::string name() 	{return "Pair";}};*/
+
+	struct pair_traits {static std::string name() 	{return "Pair";}};
+	struct triple_traits {static std::string name() 	{return "Triple";}};
 template <int dim>
 static void Dimension(Registry& reg, string grp)
 {
@@ -239,7 +243,6 @@ static void Dimension(Registry& reg, string grp)
 	if (dim!=2)
 	{
 		// Register pair (corresponds to vector for dim==2)
-		struct pair_traits {static std::string name() 	{return "Pair";}};
 		RegisterUserDataTypeA<MathVector<2>, dim, pair_traits>(reg, grp); // Pair
 	}
 /*
