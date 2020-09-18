@@ -35,6 +35,17 @@ cmake_minimum_required(VERSION 2.6)
 ################################################
 project(UG4_CORE)
 
+################################################
+# c++11 check
+################################################
+include(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
+if(COMPILER_SUPPORTS_CXX11)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+else(COMPILER_SUPPORTS_CXX11)
+  message(FATAL_ERROR "      Compiler does not support C++11.")
+endif(COMPILER_SUPPORTS_CXX11)
+
 # set global output paths for UG4
 # They are relative to the source dir for which cmake was executed.
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
