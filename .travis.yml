@@ -37,6 +37,10 @@ env:
     - DIM=ALL CPU=1;2   TARGET=ugshell STATIC_BUILD=ON  BUILD_VARIANT="build3"
     - DIM=ALL CPU=1;2   TARGET=vrl     STATIC_BUILD=OFF BUILD_VARIANT="build4"
 
+jobs:
+  exclude:
+  - compiler: gcc
+    os: osx
 
 before_cache:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew cleanup; fi
