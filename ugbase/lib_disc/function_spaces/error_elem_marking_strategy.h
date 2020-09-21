@@ -74,7 +74,7 @@ public:
 	{
 		typedef typename domain_traits<dim>::element_type elem_type;
 
-		if (!m_pMG->has_attachment<elem_type>(m_aError))
+		if (!pMG->has_attachment<elem_type>(m_aError))
 			pMG->template attach_to_dv<elem_type>(m_aError, -1.0);  // attach with default value
 		m_pMG = pMG;
 		m_aaError = attachment_accessor_type(*m_pMG, m_aError);

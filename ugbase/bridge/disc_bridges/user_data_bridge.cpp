@@ -88,13 +88,14 @@ namespace bridge{
  * \ingroup disc_bridge
  * \{
  */
-template <typename TData, int dim>
-void RegisterUserDataType(Registry& reg, string grp)
+
+template <typename TData, int dim, typename TTraits=user_data_traits<TData> >
+void RegisterUserDataTypeA(Registry& reg, string grp)
 {
 	string dimSuffix = GetDimensionSuffix<dim>();
 	string dimTag = GetDimensionTag<dim>();
 
-	string type = user_data_traits<TData>::name();
+	string type = TTraits::name();
 
 //	User"Type"
 //	NOTE: For better readability this class is named User"Type"
@@ -155,24 +156,41 @@ void RegisterUserDataType(Registry& reg, string grp)
 		reg.add_class_to_group(name, string("DependentUserData").append(type), dimTag);
 	}
 
-//	ScaleAddLinker"Type"
+
+}
+
+template <typename TData, int dim, typename TTraits=user_data_traits<TData> >
+void RegisterUserDataTypeB(Registry& reg, string grp)
+{
+	string dimSuffix = GetDimensionSuffix<dim>();
+	string dimTag = GetDimensionTag<dim>();
+
+	string type = TTraits::name();
+
+	//	ScaleAddLinker"Type"
 	{
-		typedef ScaleAddLinker<TData, dim, number> T;
-		typedef DependentUserData<TData, dim> TBase;
-		string name = string("ScaleAddLinker").append(type).append(dimSuffix);
-		reg.add_class_<T, TBase>(name, grp)
-			.add_method("add", static_cast<void (T::*)(SmartPtr<CplUserData<number,dim> > , SmartPtr<CplUserData<TData,dim> >)>(&T::add))
-			.add_method("add", static_cast<void (T::*)(number , SmartPtr<CplUserData<TData,dim> >)>(&T::add))
-			.add_method("add", static_cast<void (T::*)(SmartPtr<CplUserData<number,dim> > , number)>(&T::add))
-			.add_method("add", static_cast<void (T::*)(number,number)>(&T::add))
-			.add_constructor()
-			.template add_constructor<void (*)(const ScaleAddLinker<TData, dim, number>&)>()
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, string("ScaleAddLinker").append(type), dimTag);
+			typedef ScaleAddLinker<TData, dim, number> T;
+			typedef DependentUserData<TData, dim> TBase;
+			string name = string("ScaleAddLinker").append(type).append(dimSuffix);
+			reg.add_class_<T, TBase>(name, grp)
+				.add_method("add", static_cast<void (T::*)(SmartPtr<CplUserData<number,dim> > , SmartPtr<CplUserData<TData,dim> >)>(&T::add))
+				.add_method("add", static_cast<void (T::*)(number, SmartPtr<CplUserData<TData,dim> >)>(&T::add))
+				.add_method("add", static_cast<void (T::*)(SmartPtr<CplUserData<number,dim> > , number)>(&T::add))
+				.add_method("add", static_cast<void (T::*)(number,number)>(&T::add))
+				.add_constructor()
+				.template add_constructor<void (*)(const ScaleAddLinker<TData, dim, number>&)>()
+				.set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, string("ScaleAddLinker").append(type), dimTag);
 	}
 
 }
 
+template <typename TData, int dim, typename TTraits=user_data_traits<TData> >
+void RegisterUserDataType(Registry& reg, string grp)
+{
+	RegisterUserDataTypeA<TData, dim, TTraits>(reg, grp);
+	RegisterUserDataTypeB<TData, dim, TTraits>(reg, grp);
+}
 // end group userdata_bridge
 /// \}
 
@@ -197,6 +215,11 @@ struct Functionality
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
+	/*
+	typedef std::tuple<number, number> MathPair;
+		typedef std::tuple<number, number, number> MathTriple;
+	template <>
+		struct user_data_traits<MathPair>{static std::string name() 	{return "Pair";}};*/
 template <int dim>
 static void Dimension(Registry& reg, string grp)
 {
@@ -207,6 +230,27 @@ static void Dimension(Registry& reg, string grp)
 	RegisterUserDataType<MathVector<dim>, dim>(reg, grp);
 	RegisterUserDataType<MathMatrix<dim,dim>, dim>(reg, grp);
 	RegisterUserDataType<MathTensor<4,dim>, dim>(reg, grp);
+
+
+
+
+	// RegisterUserDataType<MathPair, dim>(reg, grp);
+
+	if (dim!=2)
+	{
+		// Register pair (corresponds to vector for dim==2)
+		struct pair_traits {static std::string name() 	{return "Pair";}};
+		RegisterUserDataTypeA<MathVector<2>, dim, pair_traits>(reg, grp); // Pair
+	}
+/*
+	if (dim!=3)
+	{
+		// Register triple (corresponds to vector for dim==3)
+		struct triple_traits {static std::string name() {return "Triple";}};
+		RegisterUserDataType<MathVector<3>, dim, triple_traits, false>(reg, grp);
+	}
+
+*/
 
 //	ConstUserNumber
 	{
