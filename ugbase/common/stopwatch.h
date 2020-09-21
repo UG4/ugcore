@@ -43,6 +43,10 @@
 #ifndef __H__UG__STOPWATCH_H__
 #define __H__UG__STOPWATCH_H__
 
+// The following define is a leftover from pre-C++11 times.
+// Def or undef to switch between the two implementations.
+#define UG_CXX11
+
 #include <iostream>
 
 #ifdef UG_CXX11
