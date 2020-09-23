@@ -988,6 +988,13 @@ std::string ElementDebugInfo_IMPL(const Grid& grid, TElem* e)
 	return ss.str();
 }
 
+std::string ElementSubsetInfo(const ISubsetHandler& sh, GridObject* e) {
+	std::stringstream ss;
+	int si = sh.get_subset_index(e);
+	ss << "Element in subset with index " << si << " and name " << sh.get_subset_name(si);
+	return ss.str();
+}
+
 std::string ElementDebugInfo(const Grid& grid, GridObject* e)
 {
 	switch(e->base_object_id()){

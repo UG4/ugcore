@@ -411,8 +411,8 @@ class CrouzeixRaviartElemTransfer
 			return false;
 		}
 
-		// the following line silences -Woverloaded-virtual
-		using ElemProlongationBase<TDomain, CrouzeixRaviartElemTransfer<TDomain> >::prolongate;
+		// the following line silences -Woverloaded-virtual and makes GCC 8.2.0 fail
+		// using ElemProlongationBase<TDomain, CrouzeixRaviartElemTransfer<TDomain> >::prolongate;
 		void prolongate(Vertex* parent,
 						TransferValueAccessor& vValueChild,
 						TransferValueAccessor& vValueParent)
