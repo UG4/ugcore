@@ -31,6 +31,9 @@
 # included from ug_includes.cmake
 ########################################
 # C++11
+
+IF ("${CMAKE_VERSION}" VERSION_LESS 3.1)
+
 IF(${CMAKE_CXX_COMPILER_ID} MATCHES GNU|Clang|Intel|PGI)
 	# Check for the compilers's C++11 capabilities
 	INCLUDE(CheckCXXCompilerFlag)
@@ -53,3 +56,8 @@ ELSE()
 	MESSAGE(STATUS "Info: and PGI. Continuing with the assumption that the compiler accepts")
 	MESSAGE(STATUS "Info: C++11 anyway.")
 ENDIF()
+
+ELSE("${CMAKE_VERSION}" VERSION_LESS 3.1)
+	set(CMAKE_CXX_STANDARD 11)
+	MESSAGE(STATUS "Info: Trying to activate 'CMAKE_CXX_STANDARD 11'")
+ENDIF("${CMAKE_VERSION}" VERSION_LESS 3.1)
