@@ -152,6 +152,69 @@ void SetRootPath(const std::string& strRoot)
 	PathProvider::set_path(APPS_PATH, strRoot + pathSep + "apps");
 }
 
+/**
+ *  init app, script and data paths for a given root path
+ */
+void SetRootPath(const char* c_strRoot)
+{
+	std::string strRoot(c_strRoot);
+	SetRootPath(strRoot);
+}
+
+/**
+ *  init script path
+ */
+void SetScriptPath(const std::string& strScript)
+{
+	PROFILE_FUNC();
+	PathProvider::set_path(SCRIPT_PATH, strScript);
+}
+
+/**
+ *  init script path
+ */
+void SetScriptPath(const char* c_strScript)
+{
+	std::string strScript(c_strScript);
+	SetScriptPath(strScript);
+}
+
+/**
+ *  init apps path
+ */
+void SetAppsPath(const std::string& strApps)
+{
+	PROFILE_FUNC();
+	PathProvider::set_path(APPS_PATH, strApps);
+}
+
+/**
+ *  init apps path
+ */
+void SetAppsPath(const char* c_strApps)
+{
+	std::string strApps(c_strApps);
+	SetAppsPath(strApps);
+}
+
+/**
+ *  init plugin path
+ */
+void SetPluginPath(const std::string& strPlugin)
+{
+	PROFILE_FUNC();
+	PathProvider::set_path(PLUGIN_PATH, strPlugin);
+}
+
+/**
+ *  init plugin path
+ */
+void SetPluginPath(const char* c_strPlugin)
+{
+	std::string strPlugin(c_strPlugin);
+	SetPluginPath(strPlugin);
+}
+
 ////////////////////////////////////////////////////////////////////////
 ///	initializes ug
 /**	This method should be called at the beginning of main(...).

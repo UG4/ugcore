@@ -133,8 +133,17 @@ void RegisterBridge_Util(Registry& reg, string parentGroup)
 	reg.add_function("ug_get_current_path", &GetCurrentPath, grp,
 	                 "pathName", "", "Returns the current path");
 
-	reg.add_function("ug_set_root_path", &SetRootPath, grp,
+	reg.add_function("ug_set_root_path", static_cast<void(*)(const std::string&)>(&SetRootPath), grp,
 	                 "", "pathName", "Sets the paths relative to passed root path");
+
+	reg.add_function("ug_set_script_path", static_cast<void(*)(const std::string&)>(&SetScriptPath), grp,
+	                 "", "pathName", "Sets the script path");
+
+	reg.add_function("ug_set_apps_path", static_cast<void(*)(const std::string&)>(&SetAppsPath), grp,
+	                 "", "pathName", "Sets the script path");
+
+	reg.add_function("ug_set_plugin_path", static_cast<void(*)(const std::string&)>(&SetPluginPath), grp,
+	                 "", "pathName", "Sets the plugin path");
 
 	reg.add_function("ExecuteSystemCommand", &ExecuteSystemCommand, grp,
 	                 "success", "command", "Executes a command in the system shell");

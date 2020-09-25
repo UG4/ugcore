@@ -361,12 +361,28 @@ int ugshell_main(int argc, char* argv[])
 	if(FindParam("-profile", argc, argv))
 		UGOutputProfileStatsOnExit(true);
     
-  const bool quiet = FindParam("-quiet", argc, argv);
+	const bool quiet = FindParam("-quiet", argc, argv);
 
-  const bool help = FindParam("-help", argc, argv);
+	const bool help = FindParam("-help", argc, argv);
 
 	const bool interactiveShellRequested	= FindParam("-noquit", argc, argv);
 	bool defaultInteractiveShell			= true;	// may be changed later
+	
+	const char* rootPath = NULL;
+	if(ParamToString(&rootPath, "-rootpath", argc, argv))
+		SetRootPath(rootPath);
+
+	const char* scriptPath = NULL;
+	if(ParamToString(&scriptPath, "-scriptpath", argc, argv))
+		SetScriptPath(scriptPath);
+
+	const char* appsPath = NULL;
+	if(ParamToString(&appsPath, "-appspath", argc, argv))
+		SetAppsPath(appsPath);
+
+	const char* pluginPath = NULL;
+	if(ParamToString(&pluginPath, "-pluginpath", argc, argv))
+		SetPluginPath(pluginPath);
 
 	#ifdef UG_PARALLEL
 		const bool parallelEnvironment = (pcl::NumProcs() > 1);
