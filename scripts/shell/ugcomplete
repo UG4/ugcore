@@ -448,7 +448,6 @@ None Shiny Scalasca Vampir \
 -DCOMPILE_INFO= \
 -DCPU= \
 -DCUDA= \
--DCXX11= \
 -DDEBUG= \
 -DDEBUG_FORMAT= \
 -DDEBUG_LOGS= \
