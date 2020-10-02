@@ -2303,8 +2303,6 @@ calc_error
 	typedef typename domain_traits<dim>::element_type elem_type;
 	typedef typename SurfaceView::traits<elem_type>::const_iterator elem_iter_type;
 
-	// default value negative in order to distinguish between newly added elements (e.g. after refinement)
-	// and elements which an error indicator is known for
 	m_mgElemErrors.attach_indicators(pMG);
 
 	// loop surface elements
@@ -2560,8 +2558,6 @@ calc_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 	typedef typename domain_traits<dim>::element_type elem_type;
 	typedef typename SurfaceView::traits<elem_type>::const_iterator elem_iter_type;
 
-	// default value negative in order to distinguish between newly added elements (e.g. after refinement)
-	// and elements which an error indicator is known for
 	m_mgElemErrors.attach_indicators(pMG);
 
 	// loop surface elements
