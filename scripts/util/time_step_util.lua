@@ -37,6 +37,73 @@
 
 util = util or {}
 
+--! Parses a callback object and attachs the corresponding callbacks to a TimeIntegratorObserver object.
+--! @param timeIntegratorSubject a TimeIntegratorObserver object to attach callbacks to
+--! @luaobject the object by the user, to be parsed.
+--!	a)	If this is a function then it is called after
+--!		solving the non-linear problem in EVERY STAGE
+--!		of the time-stepping scheme;
+--!	b)	if this is a table, it can contain 4 optional functions:
+--!		prepareTimeStep to call before the time step,
+--!		preProcess to call before the non-linear solver in EVERY STAGE,
+--!		postProcess as in a),
+--!		finalizeTimeStep to call after the time step,
+--!		rewindTimeStep to call if some of the computations of the time step failed,
+--!		Arguments of the functions are: (u, step, time, dt)
+--!		u, time: old before the solver, new after it
+--!	c)	This can also be a list of C++ objects which inherit ITimeIntegratorObserver
+--!		or Lua Callbacks created by util.LuaCallbackHelper:create()
+function util.ParseTimeIntegratorCallbacks(timeIntegratorSubject, luaobject)
+	-- helper function 
+	function attachObservers(attachFct, element, donttraverse)
+		donttraverse = donttraverse or false						
+
+		-- user specified a function
+		if type(element) == "function" then
+			local cb = util.LuaCallbackHelper:create(element)
+			attachFct(timeIntegratorSubject, cb.CPPCallback)
+
+		-- user specified a class created by util.LuaCallbackHelper.create()
+		elseif type(element) == "table" and element.CPPCallback ~= nil then	
+			attachFct(timeIntegratorSubject, element.CPPCallback)
+
+		-- user specified an cpp class, lets hope it implements ITimeIntegratorObserver
+		elseif type(element) == "userdata" then
+			attachFct(timeIntegratorSubject, element)
+
+		-- smells like an array
+		elseif type(element) == "table" and element[1] ~= nil and donttraverse == false then
+			for i, child in ipairs(element) do		
+				attachObservers(attachFct, child, true)
+			end
+		end
+	end
+
+	attachObservers(timeIntegratorSubject.attach_postprocess_observer, luaobject)		
+
+	if luaobject.preProcess ~= nil then
+		attachObservers(timeIntegratorSubject.attach_preprocess_observer, luaobject.preProcess)
+	end
+	if luaobject.postProcess ~= nil then
+		attachObservers(timeIntegratorSubject.attach_postprocess_observer, luaobject.postProcess)
+	end
+	if luaobject.prepareTimeStep ~= nil then
+		attachObservers(timeIntegratorSubject.attach_init_observer, luaobject.prepareTimeStep)
+	end
+	if luaobject.finalizeTimeStep ~= nil then
+		attachObservers(timeIntegratorSubject.attach_finalize_observer, luaobject.finalizeTimeStep)
+	end
+	if luaobject.rewindTimeStep ~= nil then
+		attachObservers(timeIntegratorSubject.attach_rewind_observer, luaobject.rewindTimeStep)
+	end
+	if luaobject.startProcess ~= nil then
+		attachObservers(timeIntegratorSubject.attach_start_observer, luaobject.startProcess)
+	end
+	if luaobject.endProcess ~= nil then
+		attachObservers(timeIntegratorSubject.attach_end_observer, luaobject.endProcess)
+	end
+end
+
 --!
 --! @param domainDisc
 --! @param timeScheme theta, impleuler, expleuer, crank-nicolson, alexander, fracstep, or bdf
@@ -226,55 +293,7 @@ function util.SolveNonlinearTimeProblem(
 	-- if this class is transcribed into c++, just inherit from TimeIntegratorSubject and attach the callbacks
 	local callbackDispatcher = TimeIntegratorSubject()
 	if postProcess ~= nil then
-
-		-- helper function 
-		function attachObservers(callbackDispatcher, attachFct, element, donttraverse)
-			donttraverse = donttraverse or false						
-
-			-- user specified a function
-			if type(element) == "function" then
-				local cb = util.LuaCallbackHelper:create(element)
-				attachFct(callbackDispatcher, cb.CPPCallback)
-
-			-- user specified a class created by util.LuaCallbackHelper.create()
-			elseif type(element) == "table" and element.CPPCallback ~= nil then	
-				attachFct(callbackDispatcher, element.CPPCallback)
-
-			-- user specified an cpp class, lets hope it implements ITimeIntegratorObserver
-			elseif type(element) == "userdata" then
-				attachFct(callbackDispatcher, element)
-
-			-- smells like an array
-			elseif type(element) == "table" and element[1] ~= nil and donttraverse == false then
-				for i, child in ipairs(element) do		
-					attachObservers(callbackDispatcher, attachFct, child, true)
-				end
-			end
-		end
-
-		local matched = attachObservers(callbackDispatcher, callbackDispatcher.attach_postprocess_observer, postProcess)		
-
-		if postProcess.preProcess ~= nil then
-			attachObservers(callbackDispatcher, callbackDispatcher.attach_preprocess_observer, postProcess.preProcess)
-		end
-		if postProcess.postProcess ~= nil then
-			attachObservers(callbackDispatcher, callbackDispatcher.attach_postprocess_observer, postProcess.postProcess)
-		end
-		if postProcess.prepareTimeStep ~= nil then
-			attachObservers(callbackDispatcher, callbackDispatcher.attach_init_observer, postProcess.prepareTimeStep)
-		end
-		if postProcess.finalizeTimeStep ~= nil then
-			attachObservers(callbackDispatcher, callbackDispatcher.attach_finalize_observer, postProcess.finalizeTimeStep)
-		end
-		if postProcess.rewindTimeStep ~= nil then
-			attachObservers(callbackDispatcher, callbackDispatcher.attach_rewind_observer, postProcess.rewindTimeStep)
-		end
-		if postProcess.startProcess ~= nil then
-			attachObservers(callbackDispatcher, callbackDispatcher.attach_start_observer, postProcess.startProcess)
-		end
-		if postProcess.endProcess ~= nil then
-			attachObservers(callbackDispatcher, callbackDispatcher.attach_end_observer, postProcess.endProcess)
-		end
+		util.ParseTimeIntegratorCallbacks(callbackDispatcher, postProcess)
 	end
 		
 	-- bound on t-stepper from machine precision (conservative)
