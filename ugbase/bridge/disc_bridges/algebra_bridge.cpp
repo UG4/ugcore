@@ -175,7 +175,7 @@ static void Algebra(Registry& reg, string parentGroup)
 		reg.add_class_<T,TBase>(name, grp)
 			.add_method("calc_error", static_cast<void (T::*)(const vector_type&)>(&T::calc_error), "", "",
 				"calculate error indicators for elements from error estimators of the elemDiscs")
-			.add_method("calc_error", static_cast<void (T::*)(const vector_type&, vector_type&)>(&T::calc_error), "", "",
+			.add_method("calc_error", static_cast<void (T::*)(const vector_type&, CPUAlgebra::vector_type&)>(&T::calc_error), "", "",
 				"calculate error indicators for elements from error estimators of the elemDiscs")
 			.add_method("invalidate_error", &T::invalidate_error, "", "Marks error indicators as invalid, "
 				"which will prohibit refining and coarsening before a new call to calc_error.")
