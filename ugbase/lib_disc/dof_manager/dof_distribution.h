@@ -503,6 +503,7 @@ class DoFDistribution : public DoFDistributionInfoProvider
 		template <typename TBaseElem>
 		void permute_indices(const std::vector<size_t>& vNewInd);
 
+	public:
 		template <typename TBaseElem>
 		void get_connections(std::vector<std::vector<size_t> >& vvConnection) const;
 
