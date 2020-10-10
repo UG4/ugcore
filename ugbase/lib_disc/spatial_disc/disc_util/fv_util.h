@@ -454,59 +454,42 @@ template <> struct hfv1_traits<ReferenceQuadrilateral, 3> : public hfv1_traits_R
 // 3D Reference Element
 /////////////////////////
 
-template <> struct hfv1_traits<ReferenceTetrahedron, 3>
+struct hfv1_traits_ReferenceVolume
 {
-	const static size_t NumCornersOfSCVF = 3;
-	const static size_t MaxNumCornersOfSCV = 8;
-
 	static void NormalOnSCVF(MathVector<3>& outNormal, const MathVector<3>* vCornerCoords)
-		{ElementNormal<ReferenceTriangle, 3>(outNormal, vCornerCoords);}
+	{ElementNormal<ReferenceTriangle, 3>(outNormal, vCornerCoords);}
 
 	typedef ReferenceTetrahedron scv_type;
 };
 
-template <> struct hfv1_traits<ReferencePrism, 3>
+template <> struct hfv1_traits<ReferenceTetrahedron, 3> : public hfv1_traits_ReferenceVolume
 {
 	const static size_t NumCornersOfSCVF = 3;
 	const static size_t MaxNumCornersOfSCV = 8;
-
-	static void NormalOnSCVF(MathVector<3>& outNormal, const MathVector<3>* vCornerCoords)
-		{ElementNormal<ReferenceTriangle, 3>(outNormal, vCornerCoords);}
-
-	typedef ReferenceTetrahedron scv_type;
 };
 
-template <> struct hfv1_traits<ReferencePyramid, 3>
+template <> struct hfv1_traits<ReferencePrism, 3> : public hfv1_traits_ReferenceVolume
+{
+	const static size_t NumCornersOfSCVF = 3;
+	const static size_t MaxNumCornersOfSCV = 8;
+};
+
+template <> struct hfv1_traits<ReferencePyramid, 3> : public hfv1_traits_ReferenceVolume
 {
 	const static size_t NumCornersOfSCVF = 3;
 	const static size_t MaxNumCornersOfSCV = 10;
-
-	static void NormalOnSCVF(MathVector<3>& outNormal, const MathVector<3>* vCornerCoords)
-		{ElementNormal<ReferenceTriangle, 3>(outNormal, vCornerCoords);}
-
-	typedef ReferenceTetrahedron scv_type;
 };
 
-template <> struct hfv1_traits<ReferenceHexahedron, 3>
+template <> struct hfv1_traits<ReferenceHexahedron, 3> : public hfv1_traits_ReferenceVolume
 {
 	const static size_t NumCornersOfSCVF = 3;
 	const static size_t MaxNumCornersOfSCV = 8;
-
-	static void NormalOnSCVF(MathVector<3>& outNormal, const MathVector<3>* vCornerCoords)
-		{ElementNormal<ReferenceTriangle, 3>(outNormal, vCornerCoords);}
-
-	typedef ReferenceTetrahedron scv_type;
 };
 
-template <> struct hfv1_traits<ReferenceOctahedron, 3>
+template <> struct hfv1_traits<ReferenceOctahedron, 3> : public hfv1_traits_ReferenceVolume
 {
 	const static size_t NumCornersOfSCVF = 3;
 	const static size_t MaxNumCornersOfSCV = 8;
-
-	static void NormalOnSCVF(MathVector<3>& outNormal, const MathVector<3>* vCornerCoords)
-		{ElementNormal<ReferenceTriangle, 3>(outNormal, vCornerCoords);}
-
-	typedef ReferenceTetrahedron scv_type;
 };
 
 template <int TDim> struct hdimfv1_traits
