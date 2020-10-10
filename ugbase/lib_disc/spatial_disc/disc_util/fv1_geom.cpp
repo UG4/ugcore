@@ -942,9 +942,9 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 
 	UG_DLOG(DID_FV1_GEOM, 2, ">>OCT_DISC_DEBUG: " << "fv1_geom.cpp: " << "update(): " << "ComputeMidPoints(): " << std::endl);
 	for(size_t i = 0; i < m_rRefElem.num(1)+2; ++i)
-		{
-			UG_DLOG(DID_FV1_GEOM, 2, "	Edge midpoint " << i << ": " << m_vvGloMid[1][i] << std::endl);
-		}
+	{
+		UG_DLOG(DID_FV1_GEOM, 2, "	Edge midpoint " << i << ": " << m_vvGloMid[1][i] << std::endl);
+	}
 	for(size_t i = 0; i < m_rRefElem.num(2)+8; ++i)
 	{
 		UG_DLOG(DID_FV1_GEOM, 2, "	Face midpoint " << i << ": " << ((dim >= 2) ? m_vvGloMid[2][i] : 0) << std::endl);
@@ -1735,9 +1735,6 @@ FV1ManifoldGeometry() : m_pElem(NULL), m_rRefElem(Provider<ref_elem_type>::get()
 			
 			// copy local corners of bf
 			copy_local_corners(m_vBF[i]);
-			
-			// local integration point
-			AveragePositions(m_vBF[i].localIP, m_vBF[i].vLocPos, 2);
 		}
 		else if (dim == 2)	// Quadrilateral
 		{
@@ -1748,9 +1745,6 @@ FV1ManifoldGeometry() : m_pElem(NULL), m_rRefElem(Provider<ref_elem_type>::get()
 			
 			// copy local corners of bf
 			copy_local_corners(m_vBF[i]);
-			
-			// local integration point
-			AveragePositions(m_vBF[i].localIP, m_vBF[i].vLocPos, 4);
 		}
 		else {UG_ASSERT(0, "Dimension higher than 2 not implemented.");}
 	}
@@ -1773,7 +1767,7 @@ FV1ManifoldGeometry() : m_pElem(NULL), m_rRefElem(Provider<ref_elem_type>::get()
 		const size_t num_sh = m_numBF;
 		m_vBF[i].vShape.resize(num_sh);
 
-		TrialSpace.shapes(&(m_vBF[i].vShape[0]), m_vBF[i].localIP);
+		TrialSpace.shapes(&(m_vBF[i].vShape[0]), m_vBF[i].local_ip());
 	}
 
 	///////////////////////////
@@ -1788,10 +1782,7 @@ FV1ManifoldGeometry() : m_pElem(NULL), m_rRefElem(Provider<ref_elem_type>::get()
 		const BF& rBF = bf(i);
 
 	// 	loop ips
-		for (size_t ip = 0; ip < rBF.num_ip(); ++ip)
-		{
-			m_vLocBFIP.push_back(rBF.local_ip(ip));
-		}
+		m_vLocBFIP.push_back(rBF.local_ip());
 	}
 }
 
@@ -1836,12 +1827,6 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 	{
 		// copy global corners of bf
 		copy_global_corners(m_vBF[i]);
-		
-		if (dim == 1) // RegularEdge
-			{AveragePositions(m_vBF[i].globalIP, m_vBF[i].vGloPos, 2);}
-		else if (dim == 2)	// Quadrilateral
-			{AveragePositions(m_vBF[i].globalIP, m_vBF[i].vGloPos, 4);}
-		else {UG_ASSERT(0, "Dimension higher than 2 not implemented.");}
 	}
 	
 	// 	compute size of BFs
@@ -1865,11 +1850,7 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 	//	get current BF
 		const BF& rBF = bf(i);
 
-	// 	loop ips
-		for (size_t ip = 0; ip < rBF.num_ip(); ++ip)
-		{
-			m_vGlobBFIP.push_back(rBF.global_ip(ip));
-		}
+		m_vGlobBFIP.push_back(rBF.global_ip());
 	}
 }
 

@@ -1207,12 +1207,12 @@ class FV1ManifoldGeometry
 				inline size_t num_ip() const {return m_numIP;}
 
 			/// local integration point of bf
-				inline const MathVector<dim>& local_ip(size_t ip) const
-					{UG_ASSERT(ip < num_ip(), "Invalid index"); return vLocPos[0];}	// <-- always the vertex
+				inline const MathVector<dim>& local_ip() const
+				{return vLocPos[0];}	// <-- always the vertex
 
 			/// global integration point
-				inline const MathVector<worldDim>& global_ip(size_t ip) const
-					{UG_ASSERT(ip < num_ip(), "Invalid index"); return vGloPos[0];}	// <-- here too
+				inline const MathVector<worldDim>& global_ip() const
+				{return vGloPos[0];}	// <-- here too
 
 			/// volume of bf
 				inline number volume() const {return vol;}
@@ -1246,8 +1246,6 @@ class FV1ManifoldGeometry
 				MidID midId[numCorners];			// dimension and id of object, whose midpoint bounds the scv
 				
 				// IPs & shapes
-				MathVector<dim> localIP; // local integration point
-				MathVector<worldDim> globalIP; // global integration point
 				std::vector<number> vShape; // shapes at ip
 				
 				number vol;
