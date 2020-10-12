@@ -710,104 +710,11 @@ update_local_data()
 		else if(m_rRefElem.REFERENCE_OBJECT_ID == ROID_OCTAHEDRON)
 		{
 		// 	map according to order defined in ComputeSCVFMidID
-			switch(i)
-			{
-				case 0:	m_vSCVF[i].From = 1;
-						m_vSCVF[i].To	= 2;
-						break;
-				case 1:	m_vSCVF[i].From = 2;
-						m_vSCVF[i].To	= 1;
-						break;
-
-
-				case 2:	m_vSCVF[i].From = 2;
-						m_vSCVF[i].To	= 3;
-						break;
-				case 3:	m_vSCVF[i].From = 3;
-						m_vSCVF[i].To	= 2;
-						break;
-
-
-				case 4:	m_vSCVF[i].From = 3;
-						m_vSCVF[i].To	= 1;
-						break;
-				case 5:	m_vSCVF[i].From = 1;
-						m_vSCVF[i].To	= 3;
-						break;
-
-
-				case 6:	m_vSCVF[i].From = 1;
-						m_vSCVF[i].To	= 5;
-						break;
-				case 7:	m_vSCVF[i].From = 1;
-						m_vSCVF[i].To	= 0;
-						break;
-
-
-				case 8:	m_vSCVF[i].From = 2;
-						m_vSCVF[i].To	= 5;
-						break;
-				case 9:	m_vSCVF[i].From = 2;
-						m_vSCVF[i].To	= 0;
-						break;
-
-
-				case 10:m_vSCVF[i].From = 3;
-						m_vSCVF[i].To	= 5;
-						break;
-				case 11:m_vSCVF[i].From = 3;
-						m_vSCVF[i].To	= 0;
-						break;
-
-
-				case 12:m_vSCVF[i].From = 1;
-						m_vSCVF[i].To	= 3;
-						break;
-				case 13:m_vSCVF[i].From = 3;
-						m_vSCVF[i].To	= 1;
-						break;
-
-
-				case 14:m_vSCVF[i].From = 3;
-						m_vSCVF[i].To	= 4;
-						break;
-				case 15:m_vSCVF[i].From = 4;
-						m_vSCVF[i].To	= 3;
-						break;
-
-
-				case 16:m_vSCVF[i].From = 4;
-						m_vSCVF[i].To	= 1;
-						break;
-				case 17:m_vSCVF[i].From = 1;
-						m_vSCVF[i].To	= 4;
-						break;
-
-
-				case 18:m_vSCVF[i].From = 1;
-						m_vSCVF[i].To	= 5;
-						break;
-				case 19:m_vSCVF[i].From = 1;
-						m_vSCVF[i].To	= 0;
-						break;
-
-
-				case 20:m_vSCVF[i].From = 3;
-						m_vSCVF[i].To	= 5;
-						break;
-				case 21:m_vSCVF[i].From = 3;
-						m_vSCVF[i].To	= 0;
-						break;
-
-
-				case 22:m_vSCVF[i].From = 4;
-						m_vSCVF[i].To	= 5;
-						break;
-				case 23:m_vSCVF[i].From = 4;
-						m_vSCVF[i].To	= 0;
-						break;
-			}
+			m_vSCVF[i].From = fv1_traits_ReferenceOctahedron::scvf_from_to (i, 0);
+			m_vSCVF[i].To = fv1_traits_ReferenceOctahedron::scvf_from_to (i, 1);
 		}
+		else
+			UG_THROW ("FV1Geometry: Unrecognized reference element.");
 
 	//	compute mid ids of the scvf
 		ComputeSCVFMidID(m_rRefElem, m_vSCVF[i].vMidID, i);
@@ -842,56 +749,10 @@ update_local_data()
 		else if(m_rRefElem.REFERENCE_OBJECT_ID == ROID_OCTAHEDRON)
 		{
 		// 	map according to order defined in ComputeSCVMidID
-			switch(i)
-			{
-				case 0: m_vSCV[i].nodeId = 1;
-						break;
-				case 1: m_vSCV[i].nodeId = 1;
-						break;
-
-
-				case 2: m_vSCV[i].nodeId = 2;
-						break;
-				case 3: m_vSCV[i].nodeId = 2;
-						break;
-
-
-				case 4: m_vSCV[i].nodeId = 3;
-						break;
-				case 5: m_vSCV[i].nodeId = 3;
-						break;
-
-
-				case 6: m_vSCV[i].nodeId = 5;
-						break;
-				case 7: m_vSCV[i].nodeId = 0;
-						break;
-
-
-				case 8: m_vSCV[i].nodeId = 1;
-						break;
-				case 9: m_vSCV[i].nodeId = 1;
-						break;
-
-
-				case 10:m_vSCV[i].nodeId = 3;
-						break;
-				case 11:m_vSCV[i].nodeId = 3;
-						break;
-
-
-				case 12:m_vSCV[i].nodeId = 4;
-						break;
-				case 13:m_vSCV[i].nodeId = 4;
-						break;
-
-
-				case 14:m_vSCV[i].nodeId = 5;
-						break;
-				case 15:m_vSCV[i].nodeId = 0;
-						break;
-			}
+			m_vSCV[i].nodeId = fv1_traits_ReferenceOctahedron::scv_node_id (i);
 		}
+		else
+			UG_THROW ("FV1Geometry: Unrecognized reference element.");
 
 	//	compute mid ids scv
 		ComputeSCVMidID(m_rRefElem, m_vSCV[i].midId, i);
@@ -1230,104 +1091,11 @@ update_local(ReferenceObjectID roid)
 			else if(dim == 3 && m_roid == ROID_OCTAHEDRON)
 			{
 			// 	map according to order defined in ComputeSCVFMidID
-				switch(i)
-				{
-					case 0:	m_vSCVF[i].From = 1;
-							m_vSCVF[i].To	= 2;
-							break;
-					case 1:	m_vSCVF[i].From = 2;
-							m_vSCVF[i].To	= 1;
-							break;
-
-
-					case 2:	m_vSCVF[i].From = 2;
-							m_vSCVF[i].To	= 3;
-							break;
-					case 3:	m_vSCVF[i].From = 3;
-							m_vSCVF[i].To	= 2;
-							break;
-
-
-					case 4:	m_vSCVF[i].From = 3;
-							m_vSCVF[i].To	= 1;
-							break;
-					case 5:	m_vSCVF[i].From = 1;
-							m_vSCVF[i].To	= 3;
-							break;
-
-
-					case 6:	m_vSCVF[i].From = 1;
-							m_vSCVF[i].To	= 5;
-							break;
-					case 7:	m_vSCVF[i].From = 1;
-							m_vSCVF[i].To	= 0;
-							break;
-
-
-					case 8:	m_vSCVF[i].From = 2;
-							m_vSCVF[i].To	= 5;
-							break;
-					case 9:	m_vSCVF[i].From = 2;
-							m_vSCVF[i].To	= 0;
-							break;
-
-
-					case 10:m_vSCVF[i].From = 3;
-							m_vSCVF[i].To	= 5;
-							break;
-					case 11:m_vSCVF[i].From = 3;
-							m_vSCVF[i].To	= 0;
-							break;
-
-
-					case 12:m_vSCVF[i].From = 1;
-							m_vSCVF[i].To	= 3;
-							break;
-					case 13:m_vSCVF[i].From = 3;
-							m_vSCVF[i].To	= 1;
-							break;
-
-
-					case 14:m_vSCVF[i].From = 3;
-							m_vSCVF[i].To	= 4;
-							break;
-					case 15:m_vSCVF[i].From = 4;
-							m_vSCVF[i].To	= 3;
-							break;
-
-
-					case 16:m_vSCVF[i].From = 4;
-							m_vSCVF[i].To	= 1;
-							break;
-					case 17:m_vSCVF[i].From = 1;
-							m_vSCVF[i].To	= 4;
-							break;
-
-
-					case 18:m_vSCVF[i].From = 1;
-							m_vSCVF[i].To	= 5;
-							break;
-					case 19:m_vSCVF[i].From = 1;
-							m_vSCVF[i].To	= 0;
-							break;
-
-
-					case 20:m_vSCVF[i].From = 3;
-							m_vSCVF[i].To	= 5;
-							break;
-					case 21:m_vSCVF[i].From = 3;
-							m_vSCVF[i].To	= 0;
-							break;
-
-
-					case 22:m_vSCVF[i].From = 4;
-							m_vSCVF[i].To	= 5;
-							break;
-					case 23:m_vSCVF[i].From = 4;
-							m_vSCVF[i].To	= 0;
-							break;
-				}
+				m_vSCVF[i].From = fv1_traits_ReferenceOctahedron::scvf_from_to (i, 0);
+				m_vSCVF[i].To = fv1_traits_ReferenceOctahedron::scvf_from_to (i, 1);
 			}
+			else
+				UG_THROW ("DimFV1Geometry: Unsupported combination of dimension and reference element.");
 	
 	
 		//	compute mid ids of the scvf
@@ -1363,56 +1131,10 @@ update_local(ReferenceObjectID roid)
 			else if(dim == 3 && m_roid == ROID_OCTAHEDRON)
 			{
 			// 	map according to order defined in ComputeSCVMidID
-				switch(i)
-				{
-					case 0: m_vSCV[i].nodeId = 1;
-							break;
-					case 1: m_vSCV[i].nodeId = 1;
-							break;
-
-
-					case 2: m_vSCV[i].nodeId = 2;
-							break;
-					case 3: m_vSCV[i].nodeId = 2;
-							break;
-
-
-					case 4: m_vSCV[i].nodeId = 3;
-							break;
-					case 5: m_vSCV[i].nodeId = 3;
-							break;
-
-
-					case 6: m_vSCV[i].nodeId = 5;
-							break;
-					case 7: m_vSCV[i].nodeId = 0;
-							break;
-
-
-					case 8: m_vSCV[i].nodeId = 1;
-							break;
-					case 9: m_vSCV[i].nodeId = 1;
-							break;
-
-
-					case 10:m_vSCV[i].nodeId = 3;
-							break;
-					case 11:m_vSCV[i].nodeId = 3;
-							break;
-
-
-					case 12:m_vSCV[i].nodeId = 4;
-							break;
-					case 13:m_vSCV[i].nodeId = 4;
-							break;
-
-
-					case 14:m_vSCV[i].nodeId = 5;
-							break;
-					case 15:m_vSCV[i].nodeId = 0;
-							break;
-				}
+				m_vSCV[i].nodeId = fv1_traits_ReferenceOctahedron::scv_node_id (i);
 			}
+			else
+				UG_THROW ("DimFV1Geometry: Unsupported combination of dimension and reference element.");
 	
 		//	compute mid ids scv
 			ComputeSCVMidID(rRefElem, m_vSCV[i].vMidID, i);

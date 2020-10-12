@@ -316,7 +316,6 @@ struct fv1_traits_ReferenceVolume
 template <> struct fv1_traits<ReferenceTetrahedron, 3> : public fv1_traits_ReferenceVolume{};
 template <> struct fv1_traits<ReferencePrism, 3> : public fv1_traits_ReferenceVolume{};
 template <> struct fv1_traits<ReferenceHexahedron, 3> : public fv1_traits_ReferenceVolume{};
-template <> struct fv1_traits<ReferenceOctahedron, 3> : public fv1_traits_ReferenceVolume{};
 
 // For Pyramids we use triangular scvf, since the quadrilateral scvf would not be
 // flat in general by the positions where its corners are placed
@@ -341,6 +340,94 @@ template <> struct fv1_traits<ReferencePyramid, 3> : public fv1_traits_Reference
 		ElementNormal<ReferenceQuadrilateral, 3>(outNormal, vSCVFCorner);
 	}
 };
+
+struct fv1_traits_ReferenceOctahedron : public fv1_traits_ReferenceVolume
+{
+	/// returns the 'from' and 'to' corner indices for a scvf
+	static size_t scvf_from_to
+	(
+		size_t i, ///< index of the scvf
+		size_t ft ///< 0 = from, 1 = to
+	)
+	{
+		static size_t from_to_ind [24][2] =
+		{
+			{1, 2},	// face 0
+			{2, 1},	// face 1
+			
+			{2, 3},	// face 2
+			{3, 2},	// face 3
+			
+			{3, 1},	// face 4
+			{1, 3},	// face 5
+			
+			{1, 5},	// face 6
+			{1, 0},	// face 7
+			
+			{2, 5},	// face 8
+			{2, 0},	// face 9
+			
+			{3, 5},	// face 10
+			{3, 0},	// face 11
+			
+			{1, 3},	// face 12
+			{3, 1},	// face 13
+			
+			{3, 4},	// face 14
+			{4, 3},	// face 15
+			
+			{4, 1},	// face 16
+			{1, 4},	// face 17
+			
+			{1, 5},	// face 18
+			{1, 0},	// face 19
+			
+			{3, 5},	// face 20
+			{3, 0},	// face 21
+			
+			{4, 5},	// face 22
+			{4, 0}	// face 23
+		};
+		return from_to_ind [i] [ft];
+	}
+	
+	// returns the node id for a scv
+	static size_t scv_node_id
+	(
+		size_t i ///< index of the scv
+	)
+	{
+		static size_t node_id [16] =
+		{
+			1,	// scv 0
+			1,	// scv 1
+			
+			2,	// scv 2
+			2,	// scv 3
+			
+			3,	// scv 4
+			3,	// scv 5
+			
+			5,	// scv 6
+			0,	// scv 7
+			
+			1,	// scv 8
+			1,	// scv 9
+			
+			3,	// scv 10
+			3,	// scv 11
+			
+			4,	// scv 12
+			4,	// scv 13
+			
+			5,	// scv 14
+			0	// scv 15
+		};
+		return node_id [i];
+	}
+};
+
+template <> struct fv1_traits<ReferenceOctahedron, 3> : public fv1_traits_ReferenceOctahedron{};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Dimension dependent traits DIM FV1
