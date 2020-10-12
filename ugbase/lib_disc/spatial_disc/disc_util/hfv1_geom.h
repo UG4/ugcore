@@ -48,6 +48,15 @@
 
 namespace ug{
 
+////////////////////////////////////////////////////////////////////////////////
+// Hanging node FV1 Geometry for Reference Element Type
+////////////////////////////////////////////////////////////////////////////////
+
+/// Geometry and shape functions for 1st order Vertex-Centered Finite Volume with the hanging nodes
+/**
+ * \tparam	TElem		Element type
+ * \tparam	TWorldDim	(physical) world dimension
+ */
 template <	typename TElem, int TWorldDim>
 class HFV1Geometry : public FVGeometryBase{
 	private:
