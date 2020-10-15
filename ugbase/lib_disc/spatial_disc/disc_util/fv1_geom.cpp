@@ -667,17 +667,17 @@ static void CopyCornerByMidID(MathVector<dim> vCorner[],
 // FV1 Geometry for Reference Element Type
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename TElem, int TWorldDim>
-FV1Geometry<TElem, TWorldDim>::
-FV1Geometry()
+template <typename TElem, int TWorldDim, bool TCondensed>
+FV1Geometry_gen<TElem, TWorldDim, TCondensed>::
+FV1Geometry_gen()
 	: m_pElem(NULL), m_rRefElem(Provider<ref_elem_type>::get()),
 	  m_rTrialSpace(Provider<local_shape_fct_set_type>::get())
 {
 	update_local_data();
 }
 
-template <typename TElem, int TWorldDim>
-void FV1Geometry<TElem, TWorldDim>::
+template <typename TElem, int TWorldDim, bool TCondensed>
+void FV1Geometry_gen<TElem, TWorldDim, TCondensed>::
 update_local_data()
 {
 	UG_DLOG(DID_FV1_GEOM, 2, ">>OCT_DISC_DEBUG: " << "fv1_geom.cpp: " << "update_local_data(): " << std::endl);
@@ -694,27 +694,8 @@ update_local_data()
 	{
 
 	//	this scvf separates the given nodes
-		if (m_rRefElem.REFERENCE_OBJECT_ID != ROID_PYRAMID && m_rRefElem.REFERENCE_OBJECT_ID != ROID_OCTAHEDRON)
-		{
-			m_vSCVF[i].From = m_rRefElem.id(1, i, 0, 0);
-			m_vSCVF[i].To = m_rRefElem.id(1, i, 0, 1);
-		}
-		// special case pyramid
-		else if(m_rRefElem.REFERENCE_OBJECT_ID == ROID_PYRAMID)
-		{
-		// 	map according to order defined in ComputeSCVFMidID
-			m_vSCVF[i].From = m_rRefElem.id(1, i/2, 0, 0);
-			m_vSCVF[i].To = m_rRefElem.id(1, i/2, 0, 1);
-		}
-		//	special case octahedron (scvf not mappable by edges)
-		else if(m_rRefElem.REFERENCE_OBJECT_ID == ROID_OCTAHEDRON)
-		{
-		// 	map according to order defined in ComputeSCVFMidID
-			m_vSCVF[i].From = fv1_traits_ReferenceOctahedron::scvf_from_to (i, 0);
-			m_vSCVF[i].To = fv1_traits_ReferenceOctahedron::scvf_from_to (i, 1);
-		}
-		else
-			UG_THROW ("FV1Geometry: Unrecognized reference element.");
+		m_vSCVF[i].From	= traits::scvf_from_to(m_rRefElem, i, 0);
+		m_vSCVF[i].To	= traits::scvf_from_to(m_rRefElem, i, 1);
 
 	//	compute mid ids of the scvf
 		ComputeSCVFMidID(m_rRefElem, m_vSCVF[i].vMidID, i);
@@ -723,7 +704,10 @@ update_local_data()
 		CopyCornerByMidID<dim, maxMid>(m_vSCVF[i].vLocPos, m_vSCVF[i].vMidID, m_vvLocMid, SCVF::numCo);
 
 	// 	integration point
-		AveragePositions(m_vSCVF[i].localIP, m_vSCVF[i].vLocPos, SCVF::numCo);
+		if (! condensed_scvf_ips)
+			AveragePositions(m_vSCVF[i].localIP, m_vSCVF[i].vLocPos, SCVF::numCo); // the center of the patch
+		else
+			m_vSCVF[i].localIP = m_vSCVF[i].vLocPos[0]; // the midpoint of the edge
 	}
 
 // 	set up local informations for SubControlVolumes (scv)
@@ -731,28 +715,7 @@ update_local_data()
 	for(size_t i = 0; i < num_scv(); ++i)
 	{
 	//	store associated node
-		if (m_rRefElem.REFERENCE_OBJECT_ID != ROID_PYRAMID && m_rRefElem.REFERENCE_OBJECT_ID != ROID_OCTAHEDRON)
-		{
-			m_vSCV[i].nodeId = i;
-		}
-		// special case pyramid
-		else if(m_rRefElem.REFERENCE_OBJECT_ID == ROID_PYRAMID)
-		{
-		// 	map according to order defined in ComputeSCVMidID
-			if(i%2 == 0){
-				m_vSCV[i].nodeId  = m_rRefElem.id(1, i/4, 0, 0); // from
-			} else {
-				m_vSCV[i].nodeId  = m_rRefElem.id(1, i/4, 0, 1); // to
-			}
-		}
-		// special case octahedron (scvf not mappable by edges)
-		else if(m_rRefElem.REFERENCE_OBJECT_ID == ROID_OCTAHEDRON)
-		{
-		// 	map according to order defined in ComputeSCVMidID
-			m_vSCV[i].nodeId = fv1_traits_ReferenceOctahedron::scv_node_id (i);
-		}
-		else
-			UG_THROW ("FV1Geometry: Unrecognized reference element.");
+		m_vSCV[i].nodeId = traits::scv_node_id (m_rRefElem, i); // for 'classical elements', m_vSCV[i].nodeId = i
 
 	//	compute mid ids scv
 		ComputeSCVMidID(m_rRefElem, m_vSCV[i].midId, i);
@@ -784,8 +747,8 @@ update_local_data()
 }
 
 /// update data for given element
-template <typename TElem, int TWorldDim>
-void FV1Geometry<TElem, TWorldDim>::
+template <typename TElem, int TWorldDim, bool TCondensed>
+void FV1Geometry_gen<TElem, TWorldDim, TCondensed>::
 update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 	UG_ASSERT(dynamic_cast<TElem*>(elem) != NULL, "Wrong element type.");
@@ -823,7 +786,10 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 		CopyCornerByMidID<worldDim, maxMid>(m_vSCVF[i].vGloPos, m_vSCVF[i].vMidID, m_vvGloMid, SCVF::numCo);
 
 	// 	integration point
-		AveragePositions(m_vSCVF[i].globalIP, m_vSCVF[i].vGloPos, SCVF::numCo);
+		if (! condensed_scvf_ips)
+			AveragePositions(m_vSCVF[i].globalIP, m_vSCVF[i].vGloPos, SCVF::numCo); // the center of the patch
+		else
+			m_vSCVF[i].globalIP = m_vSCVF[i].vGloPos[0]; // the midpoint of the edge
 
 	// 	normal on scvf
 		traits::NormalOnSCVF(m_vSCVF[i].Normal, m_vSCVF[i].vGloPos, m_vvGloMid[0]);
@@ -918,8 +884,8 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 	else update_boundary_faces(pElem, vCornerCoords, ish);
 }
 
-template <typename TElem, int TWorldDim>
-void FV1Geometry<TElem, TWorldDim>::
+template <typename TElem, int TWorldDim, bool TCondensed>
+void FV1Geometry_gen<TElem, TWorldDim, TCondensed>::
 update_boundary_faces(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 	UG_ASSERT(dynamic_cast<TElem*>(elem) != NULL, "Wrong element type.");
@@ -1049,54 +1015,14 @@ update_local(ReferenceObjectID roid)
 											(rRefElem, m_vvLocMid[0], m_vvLocMid);
 	
 	//	set number of scvf / scv of this roid
-		if(m_roid != ROID_PYRAMID && m_roid != ROID_OCTAHEDRON)
-		{
-			m_numSCV  = rRefElem.num(0);
-			m_numSCVF = rRefElem.num(1);
-		}
-		else if(dim == 3 && m_roid == ROID_PYRAMID)
-		{
-			UG_WARNING("Pyramid Finite Volume Geometry for 1st order currently  "
-					"implemented in DimFV1Geom EXPERIMENTATLLY. Please contact "
-					"Martin Stepniewski or Andreas Vogel if you see this message.")
-
-			m_numSCV  = 4*rRefElem.num(1);
-			m_numSCVF = 2*rRefElem.num(1);
-		}
-		else if(dim == 3 && m_roid == ROID_OCTAHEDRON)
-		{
-		// 	Case octahedron
-			m_numSCV  = 16;
-			m_numSCVF = 24;
-		}
+		traits::dim_get_num_SCV_and_SCVF(rRefElem, m_roid, m_numSCV, m_numSCVF);
 	
 	// 	set up local informations for SubControlVolumeFaces (scvf)
 	// 	each scvf is associated to one edge of the element
 		for(size_t i = 0; i < num_scvf(); ++i)
 		{
 		//	this scvf separates the given nodes
-			if (m_roid != ROID_PYRAMID && m_roid != ROID_OCTAHEDRON)
-			{
-				m_vSCVF[i].From = rRefElem.id(1, i, 0, 0);
-				m_vSCVF[i].To = rRefElem.id(1, i, 0, 1);
-			}
-			// special case pyramid (scvf not mappable by edges)
-			else if (dim == 3 && m_roid == ROID_PYRAMID)
-			{
-			// 	map according to order defined in ComputeSCVFMidID
-				m_vSCVF[i].From = rRefElem.id(1, i/2, 0, 0);
-				m_vSCVF[i].To = rRefElem.id(1, i/2, 0, 1);
-			}
-			//	special case octahedron (scvf not mappable by edges)
-			else if(dim == 3 && m_roid == ROID_OCTAHEDRON)
-			{
-			// 	map according to order defined in ComputeSCVFMidID
-				m_vSCVF[i].From = fv1_traits_ReferenceOctahedron::scvf_from_to (i, 0);
-				m_vSCVF[i].To = fv1_traits_ReferenceOctahedron::scvf_from_to (i, 1);
-			}
-			else
-				UG_THROW ("DimFV1Geometry: Unsupported combination of dimension and reference element.");
-	
+			traits::get_dim_scvf_from_to(rRefElem, m_roid, i, m_vSCVF[i].From, m_vSCVF[i].To);	
 	
 		//	compute mid ids of the scvf
 			ComputeSCVFMidID(rRefElem, m_vSCVF[i].vMidID, i);
@@ -1113,28 +1039,7 @@ update_local(ReferenceObjectID roid)
 		for(size_t i = 0; i < num_scv(); ++i)
 		{
 		//	store associated node
-			if (m_roid != ROID_PYRAMID && m_roid != ROID_OCTAHEDRON)
-			{
-				m_vSCV[i].nodeId = i;
-			}
-			// special case pyramid (scv not mappable by corners)
-			else if(dim == 3 && m_roid == ROID_PYRAMID)
-			{
-			// 	map according to order defined in ComputeSCVMidID
-				if(i%2 == 0){
-					m_vSCV[i].nodeId  = rRefElem.id(1, i/4, 0, 0); // from
-				} else {
-					m_vSCV[i].nodeId  = rRefElem.id(1, i/4, 0, 1); // to
-				}
-			}
-			// special case octahedron (scvf not mappable by edges)
-			else if(dim == 3 && m_roid == ROID_OCTAHEDRON)
-			{
-			// 	map according to order defined in ComputeSCVMidID
-				m_vSCV[i].nodeId = fv1_traits_ReferenceOctahedron::scv_node_id (i);
-			}
-			else
-				UG_THROW ("DimFV1Geometry: Unsupported combination of dimension and reference element.");
+			m_vSCV[i].nodeId = traits::dim_scv_node_id(rRefElem, m_roid, i); // for 'classical elements', m_vSCV[i].nodeId = i
 	
 		//	compute mid ids scv
 			ComputeSCVMidID(rRefElem, m_vSCV[i].vMidID, i);
@@ -1579,21 +1484,40 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 //////////////////////
 // FV1Geometry
 
-template class FV1Geometry<RegularEdge, 1>;
-template class FV1Geometry<RegularEdge, 2>;
-template class FV1Geometry<RegularEdge, 3>;
+template class FV1Geometry_gen<RegularEdge, 1, false>;
+template class FV1Geometry_gen<RegularEdge, 2, false>;
+template class FV1Geometry_gen<RegularEdge, 3, false>;
 
-template class FV1Geometry<Triangle, 2>;
-template class FV1Geometry<Triangle, 3>;
+template class FV1Geometry_gen<Triangle, 2, false>;
+template class FV1Geometry_gen<Triangle, 3, false>;
 
-template class FV1Geometry<Quadrilateral, 2>;
-template class FV1Geometry<Quadrilateral, 3>;
+template class FV1Geometry_gen<Quadrilateral, 2, false>;
+template class FV1Geometry_gen<Quadrilateral, 3, false>;
 
-template class FV1Geometry<Tetrahedron, 3>;
-template class FV1Geometry<Prism, 3>;
-template class FV1Geometry<Pyramid, 3>;
-template class FV1Geometry<Hexahedron, 3>;
-template class FV1Geometry<Octahedron,3>;
+template class FV1Geometry_gen<Tetrahedron, 3, false>;
+template class FV1Geometry_gen<Prism, 3, false>;
+template class FV1Geometry_gen<Pyramid, 3, false>;
+template class FV1Geometry_gen<Hexahedron, 3, false>;
+template class FV1Geometry_gen<Octahedron, 3, false>;
+
+//////////////////////
+// 'condensed' FV1Geometry
+
+template class FV1Geometry_gen<RegularEdge, 1, true>;
+template class FV1Geometry_gen<RegularEdge, 2, true>;
+template class FV1Geometry_gen<RegularEdge, 3, true>;
+
+template class FV1Geometry_gen<Triangle, 2, true>;
+template class FV1Geometry_gen<Triangle, 3, true>;
+
+template class FV1Geometry_gen<Quadrilateral, 2, true>;
+template class FV1Geometry_gen<Quadrilateral, 3, true>;
+
+template class FV1Geometry_gen<Tetrahedron, 3, true>;
+template class FV1Geometry_gen<Prism, 3, true>;
+template class FV1Geometry_gen<Pyramid, 3, true>;
+template class FV1Geometry_gen<Hexahedron, 3, true>;
+template class FV1Geometry_gen<Octahedron, 3, true>;
 
 //////////////////////
 // DimFV1Geometry

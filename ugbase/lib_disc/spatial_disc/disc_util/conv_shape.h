@@ -116,6 +116,15 @@ class ConvectionShapesNoUpwind
 
 			base_type::template register_update_func<TGeom, TFunc>(&this_type::template update<TGeom>);
 
+			typedef FV1CondensedGeometry<TElem, dim> TCGeom;
+			typedef bool (this_type::*TCFunc)
+					(  const TCGeom* geo,
+					   const MathVector<dim>* Velocity,
+					   const MathMatrix<dim, dim>* DiffDisp,
+					   bool computeDeriv);
+
+			base_type::template register_update_func<TCGeom, TCFunc>(&this_type::template update<TCGeom>);
+
 			typedef HFV1Geometry<TElem, dim> THGeom;
 			typedef bool (this_type::*THFunc)
 					(  const THGeom* geo,
@@ -270,6 +279,15 @@ class ConvectionShapesFullUpwind
 					   bool computeDeriv);
 
 			base_type::template register_update_func<TGeom, TFunc>(&this_type::template update<TGeom>);
+
+			typedef FV1CondensedGeometry<TElem, dim> TCGeom;
+			typedef bool (this_type::*TCFunc)
+					(  const TCGeom* geo,
+					   const MathVector<dim>* Velocity,
+					   const MathMatrix<dim, dim>* DiffDisp,
+					   bool computeDeriv);
+
+			base_type::template register_update_func<TCGeom, TCFunc>(&this_type::template update<TCGeom>);
 
 			typedef HFV1Geometry<TElem, dim> THGeom;
 			typedef bool (this_type::*THFunc)
@@ -459,6 +477,15 @@ class ConvectionShapesWeightedUpwind
 
 			base_type::template register_update_func<TGeom, TFunc>(&this_type::template update<TGeom>);
 
+			typedef FV1CondensedGeometry<TElem, dim> TCGeom;
+			typedef bool (this_type::*TCFunc)
+					(  const TCGeom* geo,
+					   const MathVector<dim>* Velocity,
+					   const MathMatrix<dim, dim>* DiffDisp,
+					   bool computeDeriv);
+
+			base_type::template register_update_func<TCGeom, TCFunc>(&this_type::template update<TCGeom>);
+
 			typedef HFV1Geometry<TElem, dim> THGeom;
 			typedef bool (this_type::*THFunc)
 					(  const THGeom* geo,
@@ -635,6 +662,14 @@ class ConvectionShapesPartialUpwind
 
 			base_type::template register_update_func<TGeom, TFunc>(&this_type::template update<TGeom>);
 
+			typedef FV1CondensedGeometry<TElem, dim> TCGeom;
+			typedef bool (this_type::*TCFunc)
+					(  const TCGeom* geo,
+					   const MathVector<dim>* Velocity,
+					   const MathMatrix<dim, dim>* DiffDisp,
+					   bool computeDeriv);
+
+			base_type::template register_update_func<TCGeom, TCFunc>(&this_type::template update<TCGeom>);
 		}
 
 		template <int refDim>
