@@ -210,8 +210,8 @@ void InterpolateOnVertices(SmartPtr<UserData<number, TGridFunction::dim> > spInt
 			}
 		}
 	}*/
-	MathVector<dim>* diff_pos=new MathVector<dim, value_type>();
-	InterpolateOnDiffVertices<TGridFunction>(spInterpolFunction, spGridFct, fct, time, ssGrp, *diff_pos);
+	MathVector<dim> diff_pos(0.0);
+	InterpolateOnDiffVertices<TGridFunction>(spInterpolFunction, spGridFct, fct, time, ssGrp, diff_pos);
 }
 
 
