@@ -130,7 +130,7 @@ void InterpolateOnDiffVertices(SmartPtr<UserData<number, TGridFunction::dim> > s
 }
 //getting value of spInterpolFunction at position
 
-//template <typename TGridFunction, typename domain_type=typename TGridFunction::domain_type, typename position_type=typename domain_type::position_type>
+
 template <typename TGridFunction>
 number get_number_on_coords(SmartPtr<UserData<number, TGridFunction::dim> > spInterpolFunction,
 	typename TGridFunction::domain_type::position_type pos,
@@ -168,48 +168,8 @@ void InterpolateOnVertices(SmartPtr<UserData<number, TGridFunction::dim> > spInt
 	typedef typename position_type::value_type value_type;
 
 	//	dimension of reference element
-		const int dim = TGridFunction::dim;
-/*// get position accessor
-	const typename domain_type::position_accessor_type& aaPos
-										= spGridFct->domain()->position_accessor();
+	const int dim = TGridFunction::dim;
 
-	std::vector<DoFIndex> ind;
-	typename TGridFunction::template dim_traits<0>::const_iterator iterEnd, iter;
-
-	for(size_t i = 0; i < ssGrp.size(); ++i)
-	{
-	//	get subset index
-		const int si = ssGrp[i];
-
-	//	skip if function is not defined in subset
-		if(!spGridFct->is_def_in_subset(fct, si)) continue;
-
-	// 	iterate over all elements
-		iterEnd = spGridFct->template end<Vertex>(si);
-		iter = spGridFct->template begin<Vertex>(si);
-		for(; iter != iterEnd; ++iter)
-		{
-		//	get element
-			Vertex* vrt = *iter;
-
-		//	global position
-			position_type glob_pos = aaPos[vrt];
-
-		//	value at position
-			number val;
-			(*spInterpolFunction)(val, glob_pos, time, si);
-
-		//	get multiindices of element
-			spGridFct->dof_indices(vrt, fct, ind);
-
-		// 	loop all dofs
-			for(size_t i = 0; i < ind.size(); ++i)
-			{
-			//	set value
-				DoFRef(*spGridFct, ind[i]) = val;
-			}
-		}
-	}*/
 	MathVector<dim> diff_pos(0.0);
 	InterpolateOnDiffVertices<TGridFunction>(spInterpolFunction, spGridFct, fct, time, ssGrp, diff_pos);
 }
@@ -587,66 +547,16 @@ void Interpolate(SmartPtr<UserData<number, TGridFunction::dim> > spInterpolFunct
                  SmartPtr<TGridFunction> spGridFct, const char* cmp,
                  const char* subsets, number time)
 {
-/*//	check, that values do not depend on a solution
-	if(spInterpolFunction->requires_grid_fct())
-		UG_THROW("Interpolate: The interpolation values depend on a grid function."
-				" This is not allowed in the current implementation. Use constant,"
-				" lua-callback or vrl-callback user data only (even within linkers).");
 
-//	get function id of name
-	const size_t fct = spGridFct->fct_id_by_name(cmp);
-
-//	check that function found
-	if(fct > spGridFct->num_fct())
-		UG_THROW("Interpolate: Name of component '"<<cmp<<"' not found.");
-
-//	check if fast P1 interpolation can be used
-	// \TODO: This should be improved. Manifold admissible if space continuous
-	bool bUseP1Interpolation = false;
-	if(spGridFct->local_finite_element_id(fct).type() == LFEID::LAGRANGE &&
-			spGridFct->local_finite_element_id(fct).order() == 1)
-		bUseP1Interpolation = true;
-	const bool bAllowManyfoldInterpolation =
-			(spGridFct->local_finite_element_id(fct).type() == LFEID::LAGRANGE);
-
-//	create subset group
-	SubsetGroup ssGrp(spGridFct->domain()->subset_handler());
-	if(subsets != NULL)
-	{
-		ssGrp.add(TokenizeString(subsets));
-		if(!bAllowManyfoldInterpolation)
-			if(!SameDimensionsInAllSubsets(ssGrp))
-				UG_THROW("Interpolate: Subsets '"<<subsets<<"' do not have same dimension."
-						 "Can not integrate on subsets of different dimensions.");
-	}
-	else
-	{
-	//	add all subsets and remove lower dim subsets afterwards
-		ssGrp.add_all();
-		if(!bAllowManyfoldInterpolation)
-			RemoveLowerDimSubsets(ssGrp);
-	}
-
-//	forward
-	if(bUseP1Interpolation)
-		InterpolateOnVertices<TGridFunction>(spInterpolFunction, spGridFct, fct, time, ssGrp);
-	else
-		InterpolateOnElements<TGridFunction>(spInterpolFunction, spGridFct, fct, time, ssGrp);
-
-	//	adjust parallel storage state
-#ifdef UG_PARALLEL
-	spGridFct->set_storage_type(PST_CONSISTENT);
-#endif*/
-
-	//	domain type and position_type
+		//	domain type and position_type
 		typedef typename TGridFunction::domain_type domain_type;
 		typedef typename domain_type::position_type position_type;
 		typedef typename position_type::value_type value_type;
 
 		//	dimension of reference element
-			const int dim = TGridFunction::dim;
-			MathVector<dim>* diff_pos=new MathVector<dim, value_type>();
-			Interpolate(spInterpolFunction, spGridFct, cmp, subsets, time, *diff_pos);
+		const int dim = TGridFunction::dim;
+		MathVector<dim> diff_pos(0.0);
+		Interpolate(spInterpolFunction, spGridFct, cmp, subsets, time, diff_pos);
 }
 
 /// interpolates a function on a subset
