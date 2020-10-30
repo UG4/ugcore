@@ -101,7 +101,7 @@ class MathVector
 		static const std::size_t Size = N;
 
 	public:
-		MathVector() {}
+		MathVector() {for(std::size_t i = 0; i < N; ++i) m_data[i] =  0.0;}
 		MathVector(const value_type& val) {for(std::size_t i = 0; i < N; ++i) m_data[i] =  val;}
 		MathVector(const MathVector& v)	{assign(v);}
 
@@ -234,11 +234,8 @@ class MathVector<1, T>
 		static const std::size_t Size = 1;
 
 	public:
-		MathVector()	{}
-		MathVector(value_type x)
-		{
-			m_data[0] = x;
-		}
+		MathVector() 	{m_data[0] = 0.0; }
+		MathVector(value_type x) { m_data[0] = x; }
 		MathVector(const MathVector<1, T>& v)	{assign(v);}
 
 		static inline MathVector from(const MathVector<0, T>& v)	{return MathVector(0);}
@@ -301,7 +298,7 @@ class MathVector<2, T>
 		static const std::size_t Size = 2;
 
 	public:
-		MathVector()	{}
+		MathVector()	{ m_data[0] = m_data[1] = 0.0; }
 		MathVector(const value_type& val) {m_data[0] = m_data[1] = val;}
 		MathVector(value_type x, value_type y)
 		{
@@ -373,7 +370,7 @@ class MathVector<3, T>
 		static const std::size_t Size = 3;
 
 	public:
-		MathVector()	{}
+		MathVector()	{ m_data[0] = m_data[1] = m_data[2] = 0.0; }
 		MathVector(const value_type& val) {m_data[0] = m_data[1] = m_data[2] = val;}
 		MathVector(value_type x, value_type y, value_type z)
 		{
@@ -451,7 +448,7 @@ class MathVector<4, T>
 		static const std::size_t Size = 4;
 
 	public:
-		MathVector()	{}
+		MathVector()	{m_data[0] = m_data[1] = m_data[2] = m_data[3] =0.0;}
 		MathVector(const value_type& val) {m_data[0] = m_data[1] = m_data[2] = m_data[3] =val;}
 		MathVector(value_type x, value_type y, value_type z, value_type w)
 		{
