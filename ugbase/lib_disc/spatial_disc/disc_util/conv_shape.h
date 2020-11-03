@@ -33,7 +33,12 @@
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__ELEM_DISC__DENSITY_DRIVEN_FLOW__FV1__CONV_SHAPE__
 #define __H__UG__LIB_DISC__SPATIAL_DISC__ELEM_DISC__DENSITY_DRIVEN_FLOW__FV1__CONV_SHAPE__
 
+#include <boost/mpl/range_c.hpp>
+#include <boost/mpl/for_each.hpp>
+
+// ug4 headers
 #include "conv_shape_interface.h"
+#include "lib_disc/spatial_disc/disc_util/fv1_geom.h"
 #include "lib_disc/spatial_disc/disc_util/hfv1_geom.h"
 
 namespace ug{
@@ -74,7 +79,8 @@ class ConvectionShapesNoUpwind
 			set_non_zero_deriv_diffusion_flag(false);
 
 		//	register evaluation function
-			register_func(Int2Type<dim>());
+			boost::mpl::for_each<typename domain_traits<dim>::AllElemList>(RegisterElemFunc(this));
+			boost::mpl::for_each< boost::mpl::range_c<int, 1, dim+1> >(RegisterRefDimFunc(this));
 		}
 
 	///	update of values for FV geometry
@@ -85,66 +91,42 @@ class ConvectionShapesNoUpwind
 		            bool computeDeriv);
 
 	private:
-		void register_func(Int2Type<1>)
-		{	register_func_for_refDim<1>();
-			register_func_for_elem<RegularEdge>();}
-
-		void register_func(Int2Type<2>)
-		{	register_func(Int2Type<1>());
-			register_func_for_refDim<2>();
-			register_func_for_elem<Triangle>();
-			register_func_for_elem<Quadrilateral>();}
-
-		void register_func(Int2Type<3>)
-		{	register_func(Int2Type<2>());
-			register_func_for_refDim<3>();
-			register_func_for_elem<Tetrahedron>();
-			register_func_for_elem<Pyramid>();
-			register_func_for_elem<Prism>();
-			register_func_for_elem<Hexahedron>();
-			register_func_for_elem<Octahedron>();}
-
-		template <typename TElem>
-		void register_func_for_elem()
+		
+	///	functor for registering the shapes for the element-templated FV geometries
+		struct RegisterElemFunc
 		{
-			typedef FV1Geometry<TElem, dim> TGeom;
-			typedef bool (this_type::*TFunc)
-					(  const TGeom* geo,
-					   const MathVector<dim>* Velocity,
-					   const MathMatrix<dim, dim>* DiffDisp,
-					   bool computeDeriv);
-
-			base_type::template register_update_func<TGeom, TFunc>(&this_type::template update<TGeom>);
-
-			typedef FV1CondensedGeometry<TElem, dim> TCGeom;
-			typedef bool (this_type::*TCFunc)
-					(  const TCGeom* geo,
-					   const MathVector<dim>* Velocity,
-					   const MathMatrix<dim, dim>* DiffDisp,
-					   bool computeDeriv);
-
-			base_type::template register_update_func<TCGeom, TCFunc>(&this_type::template update<TCGeom>);
-
-			typedef HFV1Geometry<TElem, dim> THGeom;
-			typedef bool (this_type::*THFunc)
-					(  const THGeom* geo,
-					   const MathVector<dim>* Velocity,
-					   const MathMatrix<dim, dim>* DiffDisp,
-					   bool computeDeriv);
-
-			base_type::template register_update_func<THGeom, THFunc>(&this_type::template update<THGeom>);
+			this_type* m_pThis;
+			RegisterElemFunc(this_type * pThis) : m_pThis(pThis) {}
+			template<typename TElem> void operator() (TElem &)
+			{
+				m_pThis->template register_func_for_elem_fvgeom< TElem, FV1Geometry<TElem, dim> >();
+				m_pThis->template register_func_for_elem_fvgeom< TElem, FV1CondensedGeometry<TElem, dim> >();
+				m_pThis->template register_func_for_elem_fvgeom< TElem, HFV1Geometry<TElem, dim> >();
+			}
+		};
+	
+	/// registers the update function for an element type and a FV geometry
+		template <typename TElem, typename TFVGeom>
+		void register_func_for_elem_fvgeom()
+		{
+			typedef bool (this_type::*TFunc) (const TFVGeom*, const MathVector<dim>*, const MathMatrix<dim, dim>*, bool);
+			base_type::template register_update_func<TFVGeom, TFunc>(&this_type::template update<TFVGeom>);
 		}
 		
+	///	functor for registering the shapes for the reference-dimension-templated FV geometries
+		struct RegisterRefDimFunc
+		{
+			this_type* m_pThis;
+			RegisterRefDimFunc(this_type * pThis) : m_pThis(pThis) {}
+			template<typename TRefDim> void operator() (TRefDim &) {m_pThis->register_func_for_refDim<TRefDim::value> ();}
+		};
+
+	/// registers the update function for a reference dimension
 		template <int refDim>
 		void register_func_for_refDim()
 		{
 			typedef DimFV1Geometry<refDim, dim> TGeom;
-			typedef bool (this_type::*TFunc)
-					(  const TGeom* geo,
-					   const MathVector<dim>* Velocity,
-					   const MathMatrix<dim, dim>* DiffDisp,
-					   bool computeDeriv);
-
+			typedef bool (this_type::*TFunc) (const TGeom*, const MathVector<dim>*, const MathMatrix<dim, dim>*, bool);
 			base_type::template register_update_func<TGeom, TFunc>(&this_type::template update<TGeom>);
 		}
 };
@@ -238,7 +220,8 @@ class ConvectionShapesFullUpwind
 			set_non_zero_deriv_diffusion_flag(false);
 
 		//	register evaluation function
-			register_func(Int2Type<dim>());
+			boost::mpl::for_each<typename domain_traits<dim>::AllElemList>(RegisterElemFunc(this));
+			boost::mpl::for_each< boost::mpl::range_c<int, 1, dim+1> >(RegisterRefDimFunc(this));
 		}
 
 	///	update of values for FV1Geometry
@@ -249,66 +232,42 @@ class ConvectionShapesFullUpwind
 		            bool computeDeriv);
 
 	private:
-		void register_func(Int2Type<1>)
-		{	register_func_for_refDim<1>();
-			register_func_for_elem<RegularEdge>();}
-
-		void register_func(Int2Type<2>)
-		{	register_func(Int2Type<1>());
-			register_func_for_refDim<2>();
-			register_func_for_elem<Triangle>();
-			register_func_for_elem<Quadrilateral>();}
-
-		void register_func(Int2Type<3>)
-		{	register_func(Int2Type<2>());
-			register_func_for_refDim<3>();
-			register_func_for_elem<Tetrahedron>();
-			register_func_for_elem<Pyramid>();
-			register_func_for_elem<Prism>();
-			register_func_for_elem<Hexahedron>();
-			register_func_for_elem<Octahedron>();}
-
-		template <typename TElem>
-		void register_func_for_elem()
+		
+	///	functor for registering the shapes for the element-templated FV geometries
+		struct RegisterElemFunc
 		{
-			typedef FV1Geometry<TElem, dim> TGeom;
-			typedef bool (this_type::*TFunc)
-					(  const TGeom* geo,
-					   const MathVector<dim>* Velocity,
-					   const MathMatrix<dim, dim>* DiffDisp,
-					   bool computeDeriv);
-
-			base_type::template register_update_func<TGeom, TFunc>(&this_type::template update<TGeom>);
-
-			typedef FV1CondensedGeometry<TElem, dim> TCGeom;
-			typedef bool (this_type::*TCFunc)
-					(  const TCGeom* geo,
-					   const MathVector<dim>* Velocity,
-					   const MathMatrix<dim, dim>* DiffDisp,
-					   bool computeDeriv);
-
-			base_type::template register_update_func<TCGeom, TCFunc>(&this_type::template update<TCGeom>);
-
-			typedef HFV1Geometry<TElem, dim> THGeom;
-			typedef bool (this_type::*THFunc)
-					(  const THGeom* geo,
-					   const MathVector<dim>* Velocity,
-					   const MathMatrix<dim, dim>* DiffDisp,
-					   bool computeDeriv);
-
-			base_type::template register_update_func<THGeom, THFunc>(&this_type::template update<THGeom>);
+			this_type* m_pThis;
+			RegisterElemFunc(this_type * pThis) : m_pThis(pThis) {}
+			template<typename TElem> void operator() (TElem &)
+			{
+				m_pThis->template register_func_for_elem_fvgeom< TElem, FV1Geometry<TElem, dim> >();
+				m_pThis->template register_func_for_elem_fvgeom< TElem, FV1CondensedGeometry<TElem, dim> >();
+				m_pThis->template register_func_for_elem_fvgeom< TElem, HFV1Geometry<TElem, dim> >();
+			}
+		};
+	
+	/// registers the update function for an element type and a FV geometry
+		template <typename TElem, typename TFVGeom>
+		void register_func_for_elem_fvgeom()
+		{
+			typedef bool (this_type::*TFunc) (const TFVGeom*, const MathVector<dim>*, const MathMatrix<dim, dim>*, bool);
+			base_type::template register_update_func<TFVGeom, TFunc>(&this_type::template update<TFVGeom>);
 		}
 		
+	///	functor for registering the shapes for the reference-dimension-templated FV geometries
+		struct RegisterRefDimFunc
+		{
+			this_type* m_pThis;
+			RegisterRefDimFunc(this_type * pThis) : m_pThis(pThis) {}
+			template<typename TRefDim> void operator() (TRefDim &) {m_pThis->register_func_for_refDim<TRefDim::value> ();}
+		};
+
+	/// registers the update function for a reference dimension
 		template <int refDim>
 		void register_func_for_refDim()
 		{
 			typedef DimFV1Geometry<refDim, dim> TGeom;
-			typedef bool (this_type::*TFunc)
-					(  const TGeom* geo,
-					   const MathVector<dim>* Velocity,
-					   const MathMatrix<dim, dim>* DiffDisp,
-					   bool computeDeriv);
-
+			typedef bool (this_type::*TFunc) (const TGeom*, const MathVector<dim>*, const MathMatrix<dim, dim>*, bool);
 			base_type::template register_update_func<TGeom, TFunc>(&this_type::template update<TGeom>);
 		}
 };
@@ -416,7 +375,8 @@ class ConvectionShapesWeightedUpwind
 			set_non_zero_deriv_diffusion_flag(false);
 
 		//	register evaluation function
-			register_func(Int2Type<dim>());
+			boost::mpl::for_each<typename domain_traits<dim>::AllElemList>(RegisterElemFunc(this));
+			boost::mpl::for_each< boost::mpl::range_c<int, 1, dim+1> >(RegisterRefDimFunc(this));
 		}
 
 	///	constructor
@@ -429,7 +389,8 @@ class ConvectionShapesWeightedUpwind
 			set_non_zero_deriv_diffusion_flag(false);
 
 		//	register evaluation function
-			register_func(Int2Type<dim>());
+			boost::mpl::for_each<typename domain_traits<dim>::AllElemList>(RegisterElemFunc(this));
+			boost::mpl::for_each< boost::mpl::range_c<int, 1, dim+1> >(RegisterRefDimFunc(this));
 		}
 
 	///	set weighting between full upwind (1.0) and no upwind (0.0)
@@ -445,67 +406,44 @@ class ConvectionShapesWeightedUpwind
 	private:
 	//	weight between no and full upwind (1.0 -> full upwind, 0.0 -> no upwind)
 		number m_weight;
-
-		void register_func(Int2Type<1>)
-		{	register_func_for_refDim<1>();
-			register_func_for_elem<RegularEdge>();}
-
-		void register_func(Int2Type<2>)
-		{	register_func(Int2Type<1>());
-			register_func_for_refDim<2>();
-			register_func_for_elem<Triangle>();
-			register_func_for_elem<Quadrilateral>();}
-
-		void register_func(Int2Type<3>)
-		{	register_func(Int2Type<2>());
-			register_func_for_refDim<3>();
-			register_func_for_elem<Tetrahedron>();
-			register_func_for_elem<Pyramid>();
-			register_func_for_elem<Prism>();
-			register_func_for_elem<Hexahedron>();
-			register_func_for_elem<Octahedron>();}
-
-		template <typename TElem>
-		void register_func_for_elem()
+		
+	private:
+	
+	///	functor for registering the shapes for the element-templated FV geometries
+		struct RegisterElemFunc
 		{
-			typedef FV1Geometry<TElem, dim> TGeom;
-			typedef bool (this_type::*TFunc)
-					(  const TGeom* geo,
-					   const MathVector<dim>* Velocity,
-					   const MathMatrix<dim, dim>* DiffDisp,
-					   bool computeDeriv);
-
-			base_type::template register_update_func<TGeom, TFunc>(&this_type::template update<TGeom>);
-
-			typedef FV1CondensedGeometry<TElem, dim> TCGeom;
-			typedef bool (this_type::*TCFunc)
-					(  const TCGeom* geo,
-					   const MathVector<dim>* Velocity,
-					   const MathMatrix<dim, dim>* DiffDisp,
-					   bool computeDeriv);
-
-			base_type::template register_update_func<TCGeom, TCFunc>(&this_type::template update<TCGeom>);
-
-			typedef HFV1Geometry<TElem, dim> THGeom;
-			typedef bool (this_type::*THFunc)
-					(  const THGeom* geo,
-					   const MathVector<dim>* Velocity,
-					   const MathMatrix<dim, dim>* DiffDisp,
-					   bool computeDeriv);
-
-			base_type::template register_update_func<THGeom, THFunc>(&this_type::template update<THGeom>);
+			this_type* m_pThis;
+			RegisterElemFunc(this_type * pThis) : m_pThis(pThis) {}
+			template<typename TElem> void operator() (TElem &)
+			{
+				m_pThis->template register_func_for_elem_fvgeom< TElem, FV1Geometry<TElem, dim> >();
+				m_pThis->template register_func_for_elem_fvgeom< TElem, FV1CondensedGeometry<TElem, dim> >();
+				m_pThis->template register_func_for_elem_fvgeom< TElem, HFV1Geometry<TElem, dim> >();
+			}
+		};
+	
+	/// registers the update function for an element type and a FV geometry
+		template <typename TElem, typename TFVGeom>
+		void register_func_for_elem_fvgeom()
+		{
+			typedef bool (this_type::*TFunc) (const TFVGeom*, const MathVector<dim>*, const MathMatrix<dim, dim>*, bool);
+			base_type::template register_update_func<TFVGeom, TFunc>(&this_type::template update<TFVGeom>);
 		}
 		
+	///	functor for registering the shapes for the reference-dimension-templated FV geometries
+		struct RegisterRefDimFunc
+		{
+			this_type* m_pThis;
+			RegisterRefDimFunc(this_type * pThis) : m_pThis(pThis) {}
+			template<typename TRefDim> void operator() (TRefDim &) {m_pThis->register_func_for_refDim<TRefDim::value> ();}
+		};
+
+	/// registers the update function for a reference dimension
 		template <int refDim>
 		void register_func_for_refDim()
 		{
 			typedef DimFV1Geometry<refDim, dim> TGeom;
-			typedef bool (this_type::*TFunc)
-					(  const TGeom* geo,
-					   const MathVector<dim>* Velocity,
-					   const MathMatrix<dim, dim>* DiffDisp,
-					   bool computeDeriv);
-
+			typedef bool (this_type::*TFunc) (const TGeom*, const MathVector<dim>*, const MathMatrix<dim, dim>*, bool);
 			base_type::template register_update_func<TGeom, TFunc>(&this_type::template update<TGeom>);
 		}
 };
@@ -620,7 +558,8 @@ class ConvectionShapesPartialUpwind
 		ConvectionShapesPartialUpwind()
 		{
 		//	register evaluation function
-			register_func(Int2Type<dim>());
+			boost::mpl::for_each<typename domain_traits<dim>::AllElemList>(RegisterElemFunc(this));
+			boost::mpl::for_each< boost::mpl::range_c<int, 1, dim+1> >(RegisterRefDimFunc(this));
 		}
 
 	///	update of values for FV1Geometry
@@ -631,57 +570,41 @@ class ConvectionShapesPartialUpwind
 					bool computeDeriv);
 
 	private:
-		void register_func(Int2Type<1>)
-		{	register_func_for_refDim<1>();
-			register_func_for_elem<RegularEdge>();}
-
-		void register_func(Int2Type<2>)
-		{	register_func(Int2Type<1>());
-			register_func_for_refDim<2>();
-			register_func_for_elem<Triangle>();
-			register_func_for_elem<Quadrilateral>();}
-
-		void register_func(Int2Type<3>)
-		{	register_func(Int2Type<2>());
-			register_func_for_refDim<3>();
-			register_func_for_elem<Tetrahedron>();
-			register_func_for_elem<Pyramid>();
-			register_func_for_elem<Prism>();
-			register_func_for_elem<Hexahedron>();
-			register_func_for_elem<Octahedron>();}
-
-		template <typename TElem>
-		void register_func_for_elem()
+		
+	///	functor for registering the shapes for the element-templated FV geometries
+		struct RegisterElemFunc
 		{
-			typedef FV1Geometry<TElem, dim> TGeom;
-			typedef bool (this_type::*TFunc)
-					(  const TGeom* geo,
-					   const MathVector<dim>* Velocity,
-					   const MathMatrix<dim, dim>* DiffDisp,
-					   bool computeDeriv);
-
-			base_type::template register_update_func<TGeom, TFunc>(&this_type::template update<TGeom>);
-
-			typedef FV1CondensedGeometry<TElem, dim> TCGeom;
-			typedef bool (this_type::*TCFunc)
-					(  const TCGeom* geo,
-					   const MathVector<dim>* Velocity,
-					   const MathMatrix<dim, dim>* DiffDisp,
-					   bool computeDeriv);
-
-			base_type::template register_update_func<TCGeom, TCFunc>(&this_type::template update<TCGeom>);
+			this_type* m_pThis;
+			RegisterElemFunc(this_type * pThis) : m_pThis(pThis) {}
+			template<typename TElem> void operator() (TElem &)
+			{
+				m_pThis->template register_func_for_elem_fvgeom< TElem, FV1Geometry<TElem, dim> >();
+				m_pThis->template register_func_for_elem_fvgeom< TElem, FV1CondensedGeometry<TElem, dim> >();
+			}
+		};
+	
+	/// registers the update function for an element type and a FV geometry
+		template <typename TElem, typename TFVGeom>
+		void register_func_for_elem_fvgeom()
+		{
+			typedef bool (this_type::*TFunc) (const TFVGeom*, const MathVector<dim>*, const MathMatrix<dim, dim>*, bool);
+			base_type::template register_update_func<TFVGeom, TFunc>(&this_type::template update<TFVGeom>);
 		}
+		
+	///	functor for registering the shapes for the reference-dimension-templated FV geometries
+		struct RegisterRefDimFunc
+		{
+			this_type* m_pThis;
+			RegisterRefDimFunc(this_type * pThis) : m_pThis(pThis) {}
+			template<typename TRefDim> void operator() (TRefDim &) {m_pThis->register_func_for_refDim<TRefDim::value> ();}
+		};
 
+	/// registers the update function for a reference dimension
 		template <int refDim>
 		void register_func_for_refDim()
 		{
 			typedef DimFV1Geometry<refDim, dim> TGeom;
-			typedef bool (this_type::*TFunc)
-					(  const TGeom* geo,
-					   const MathVector<dim>* Velocity,
-					   const MathMatrix<dim, dim>* DiffDisp,
-					   bool computeDeriv);
-
+			typedef bool (this_type::*TFunc) (const TGeom*, const MathVector<dim>*, const MathMatrix<dim, dim>*, bool);
 			base_type::template register_update_func<TGeom, TFunc>(&this_type::template update<TGeom>);
 		}
 };
