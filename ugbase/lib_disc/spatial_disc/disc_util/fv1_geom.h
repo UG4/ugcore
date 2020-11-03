@@ -37,7 +37,6 @@
 #include <cmath>
 #include <map>
 #include <vector>
-#include <boost/mpl/bool.hpp>
 
 // other ug4 modules
 #include "common/common.h"
