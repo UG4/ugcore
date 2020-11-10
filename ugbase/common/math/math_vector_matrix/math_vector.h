@@ -134,8 +134,7 @@ class MathVector
 		MathVector operator- () const { MathVector<N, T> v; for (std::size_t i = 0; i < N; ++i) v.set_coord(i, -m_data[i]); return v; }
 
 		// scalar product
-		value_type operator* (const MathVector& v) const {value_type res = 
-			; for(std::size_t i = 0; i < N; ++i) res += m_data[i] * v.coord(i);return res;}
+		value_type operator* (const MathVector& v) const {value_type res = 0.0; for(std::size_t i = 0; i < N; ++i) res += m_data[i] * v.coord(i);return res;}
 
 		inline std::size_t size() const {return N;}
 
