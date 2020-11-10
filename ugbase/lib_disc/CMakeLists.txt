@@ -49,6 +49,7 @@ set(srcDiscretization	domain.cpp
 						dof_manager/ordering/cuthill_mckee.cpp
 						dof_manager/ordering/lexorder.cpp
 						dof_manager/ordering/downwindorder.cpp
+						dof_manager/ordering/boost_interface.cpp
 
                         function_spaces/approximation_space.cpp
                         function_spaces/dof_position_util.cpp

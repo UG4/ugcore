@@ -45,6 +45,7 @@
 #include "lib_disc/dof_manager/ordering/cuthill_mckee.h"
 #include "lib_disc/dof_manager/ordering/lexorder.h"
 #include "lib_disc/dof_manager/ordering/downwindorder.h"
+#include "lib_disc/dof_manager/ordering/boost_interface.cpp"
 
 using namespace std;
 
@@ -103,6 +104,12 @@ static void Domain(Registry& reg, string grp)
 //	Order Cuthill-McKee
 	{
 		reg.add_function("OrderCuthillMcKee", static_cast<void (*)(approximation_space_type&, bool)>(&OrderCuthillMcKee), grp);
+		reg.add_function("OrderBoostCuthillMcKee", static_cast<void (*)(SmartPtr<ApproximationSpace<TDomain> >, bool)>(&OrderBoostCuthillMcKee), grp);
+	}
+
+//	Order boost minimum degree
+	{
+		reg.add_function("OrderBoostMinimumDegree", static_cast<void (*)(SmartPtr<ApproximationSpace<TDomain> >)>(&OrderBoostMinimumDegree), grp);
 	}
 
 //	Order lexicographically
