@@ -59,13 +59,58 @@ namespace ug{
 // FV1 Geometry for Reference Element Type
 ////////////////////////////////////////////////////////////////////////////////
 
+// forward declaration
+template <	typename TElem, int TWorldDim, bool TCondensed> class FV1Geometry_gen;
+
 /// Geometry and shape functions for 1st order Vertex-Centered Finite Volume
 /**
+ * The class provides the geometry and shape functions for 1st order Vertex-Centered
+ * Finite Element Finite Volume method based on the Donald Diagrams.
+ *
+ * Cf. class FV1Geometry_gen for the implementation.
+ * 
  * \tparam	TElem		Element type
  * \tparam	TWorldDim	(physical) world dimension
  */
-template <	typename TElem, int TWorldDim>
-class FV1Geometry : public FVGeometryBase
+template <typename TElem, int TWorldDim>
+class FV1Geometry : public FV1Geometry_gen<TElem, TWorldDim, false> {};
+
+/// Geometry and shape functions for 1st order Vertex-Centered Finite Volume
+/**
+ * The class provides the geometry and shape functions for 1st order Vertex-Centered
+ * Finite Element Finite Volume method based on the Donald Diagrams.
+ * 
+ * This class shifts the subcontrol volume face integration
+ * points to the edges. This allows to reduce the matrix pattern and to avoid positive
+ * off-diagonal entries in some cases. (For ex., the discretization of the Laplacian on
+ * a grid of rectangles retains results in the 5-point stencil.) However note that, in many
+ * cases, this leads to the discretization order reduction.
+ *
+ * Cf. class FV1Geometry_gen for the implementation.
+ * 
+ * \tparam	TElem		Element type
+ * \tparam	TWorldDim	(physical) world dimension
+ */
+template <typename TElem, int TWorldDim>
+class FV1CondensedGeometry : public FV1Geometry_gen<TElem, TWorldDim, true> {};
+
+/// Geometry and shape functions for 1st order Vertex-Centered Finite Volume
+/**
+ * The class provides the geometry and shape functions for 1st order Vertex-Centered
+ * Finite Element Finite Volume method based on the Donald Diagrams.
+ * 
+ * The class provides an option (TCondensed) to shift the subcontrol volume face integration
+ * points to the edges. This allows to reduce the matrix pattern and to avoid positive
+ * off-diagonal entries in some cases. (For ex., the discretization of the Laplacian on
+ * a grid of rectangles retains results in the 5-point stencil.) However note that, in many
+ * cases, this leads to the discretization order reduction.
+ * 
+ * \tparam	TElem		Element type
+ * \tparam	TWorldDim	(physical) world dimension
+ * \tparam	TCondensed	if to shift the scvf ip's to midpoints of the edges
+ */
+template <typename TElem, int TWorldDim, bool TCondensed>
+class FV1Geometry_gen : public FVGeometryBase
 {
 	public:
 	///	type of element
@@ -89,21 +134,22 @@ class FV1Geometry : public FVGeometryBase
 
 	/// flag indicating if local data may change
 		static const bool staticLocalData = true;
+		
+	///	whether the scheme shifts the scvf ip's to midpoints of the edges
+		static const bool condensed_scvf_ips = TCondensed;
 
 	public:
 	///	order
 		static const int order = 1;
 
 	///	number of SubControlVolumes
-		static const size_t numSCV = (ref_elem_type::REFERENCE_OBJECT_ID == ROID_PYRAMID || ref_elem_type::REFERENCE_OBJECT_ID == ROID_OCTAHEDRON)
-								   ? ((ref_elem_type::REFERENCE_OBJECT_ID == ROID_PYRAMID) ? (4*ref_elem_type::numEdges) : 16) : ref_elem_type::numCorners;
+		static const size_t numSCV = traits::numSCV;
 
 	///	type of SubControlVolume
 		typedef typename traits::scv_type scv_type;
 
 	///	number of SubControlVolumeFaces
-		static const size_t numSCVF = (ref_elem_type::REFERENCE_OBJECT_ID == ROID_PYRAMID || ref_elem_type::REFERENCE_OBJECT_ID == ROID_OCTAHEDRON)
-									? ((ref_elem_type::REFERENCE_OBJECT_ID == ROID_PYRAMID) ? (2*ref_elem_type::numEdges) : 24) : ref_elem_type::numEdges;
+		static const size_t numSCVF = traits::numSCVF;
 
 	///	type of Shape function used
 		typedef LagrangeP1<ref_elem_type> local_shape_fct_set_type;
@@ -194,7 +240,7 @@ class FV1Geometry : public FVGeometryBase
 
 			private:
 			// 	let outer class access private members
-				friend class FV1Geometry<TElem, TWorldDim>;
+				friend class FV1Geometry_gen<TElem, TWorldDim, TCondensed>;
 
 			// This scvf separates the scv with the ids given in "from" and "to"
 			// The computed normal points in direction from->to
@@ -206,7 +252,7 @@ class FV1Geometry : public FVGeometryBase
 			// ordering is:
 			// 1D: edgeMidPoint
 			// 2D: edgeMidPoint, CenterOfElement
-			// 3D: edgeMidPoint, Side one, CenterOfElement, Side two
+			// 3D: edgeMidPoint, Side #1, CenterOfElement, Side #2
 				MathVector<dim> vLocPos[numCo]; // local corners of scvf
 				MathVector<worldDim> vGloPos[numCo]; // global corners of scvf
 				MidID vMidID[numCo]; // dimension and id of object, that's midpoint bounds the scvf
@@ -298,7 +344,7 @@ class FV1Geometry : public FVGeometryBase
 
 			private:
 			// 	let outer class access private members
-				friend class FV1Geometry<TElem, TWorldDim>;
+				friend class FV1Geometry_gen<TElem, TWorldDim, TCondensed>;
 
 			//  node id of associated node
 				size_t nodeId;
@@ -390,7 +436,7 @@ class FV1Geometry : public FVGeometryBase
 
 			private:
 			/// let outer class access private members
-				friend class FV1Geometry<TElem, TWorldDim>;
+				friend class FV1Geometry_gen<TElem, TWorldDim, TCondensed>;
 
 			// 	id of scv this bf belongs to
 				size_t nodeId;
@@ -419,7 +465,7 @@ class FV1Geometry : public FVGeometryBase
 
 	public:
 	/// construct object and initialize local values and sizes
-		FV1Geometry();
+		FV1Geometry_gen();
 
 	///	update local data
 		void update_local_data();
@@ -1207,12 +1253,12 @@ class FV1ManifoldGeometry
 				inline size_t num_ip() const {return m_numIP;}
 
 			/// local integration point of bf
-				inline const MathVector<dim>& local_ip(size_t ip) const
-					{UG_ASSERT(ip < num_ip(), "Invalid index"); return vLocPos[0];}	// <-- always the vertex
+				inline const MathVector<dim>& local_ip() const
+				{return vLocPos[0];}	// <-- always the vertex
 
 			/// global integration point
-				inline const MathVector<worldDim>& global_ip(size_t ip) const
-					{UG_ASSERT(ip < num_ip(), "Invalid index"); return vGloPos[0];}	// <-- here too
+				inline const MathVector<worldDim>& global_ip() const
+				{return vGloPos[0];}	// <-- here too
 
 			/// volume of bf
 				inline number volume() const {return vol;}
@@ -1246,8 +1292,6 @@ class FV1ManifoldGeometry
 				MidID midId[numCorners];			// dimension and id of object, whose midpoint bounds the scv
 				
 				// IPs & shapes
-				MathVector<dim> localIP; // local integration point
-				MathVector<worldDim> globalIP; // global integration point
 				std::vector<number> vShape; // shapes at ip
 				
 				number vol;

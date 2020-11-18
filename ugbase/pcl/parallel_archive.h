@@ -50,17 +50,19 @@ struct FileBufferDescriptor
 		name(_name), buf(_buf), size(_size)
 	{	}
 
-	FileBufferDescriptor(std::string _name, ug::BinaryBuffer &buf) :
-			name(_name), buf(buf.buffer()), size(buf.write_pos())
+	FileBufferDescriptor(std::string _name, ug::BinaryBuffer& _buf) :
+			name(_name), buf(_buf.buffer()), size(_buf.write_pos())
 	{	}
 
-	FileBufferDescriptor(std::string _name, ug::BinaryStream &buf) :
-				name(_name), buf((char*)buf.buffer()), size(buf.size())
+	FileBufferDescriptor(std::string _name, ug::BinaryStream& _buf) :
+				name(_name), buf((char*)_buf.buffer()), size(_buf.size())
 	{	}
 
-	FileBufferDescriptor(std::string _name, std::stringstream &buf) :
-					name(_name), buf(buf.str().c_str()), size(buf.str().length())
-	{	}
+	// Initializing buf with buf.str().c_str() is unsafe, as _buf.str() is only temporary.
+	// Therefore commenting out (not used anywhere anyhow).
+	//FileBufferDescriptor(std::string _name, std::stringstream& _buf) :
+	//				name(_name), buf(_buf.str().c_str()), size(_buf.str().length())
+	//{	}
 
 	std::string name;
 	const char *buf;

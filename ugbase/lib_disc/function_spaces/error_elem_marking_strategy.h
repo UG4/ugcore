@@ -74,6 +74,8 @@ public:
 	{
 		typedef typename domain_traits<dim>::element_type elem_type;
 
+		// default value negative in order to distinguish between newly added elements (e.g. after refinement)
+		// and elements which an error indicator is known for
 		if (!pMG->has_attachment<elem_type>(m_aError))
 			pMG->template attach_to_dv<elem_type>(m_aError, -1.0);  // attach with default value
 		m_pMG = pMG;

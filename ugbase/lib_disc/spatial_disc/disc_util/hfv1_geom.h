@@ -48,6 +48,15 @@
 
 namespace ug{
 
+////////////////////////////////////////////////////////////////////////////////
+// Hanging node FV1 Geometry for Reference Element Type
+////////////////////////////////////////////////////////////////////////////////
+
+/// Geometry and shape functions for 1st order Vertex-Centered Finite Volume with the hanging nodes
+/**
+ * \tparam	TElem		Element type
+ * \tparam	TWorldDim	(physical) world dimension
+ */
 template <	typename TElem, int TWorldDim>
 class HFV1Geometry : public FVGeometryBase{
 	private:
@@ -1029,10 +1038,12 @@ class HFV1ManifoldGeometry
 				inline size_t num_ip() const {return m_numIP;}
 
 			/// local integration point of scvf
-				inline const MathVector<dim>& local_ip() const {return localIP;}
+				inline const MathVector<dim>& local_ip() const //{return localIP;}
+				{return m_vLocPos[0];}	// <-- always the vertex
 
 			/// global integration point of scvf
-				inline const MathVector<worldDim>& global_ip() const {return globalIP;}
+				inline const MathVector<worldDim>& global_ip() const //{return globalIP;}
+				{return m_vGloPos[0];}	// <-- here too
 
 			/// volume of bf
 				inline number volume() const {return vol;}
@@ -1113,24 +1124,19 @@ class HFV1ManifoldGeometry
 		void compute_side_midpoints(MathVector<dim>& locSideMid,
 								   MathVector<worldDim>& gloSideMid)
 		{
-			if (worldDim > 1)
+			locSideMid = m_locMid[0][0];
+			gloSideMid = m_gloMid[0][0];
+
+			// add corner coordinates of the corners of the geometric object
+			for (size_t j = 1; j < m_numNaturalBF; ++j)
 			{
-				const size_t coID0 = m_rRefElem.id(2, 0, 0, 0);
-				locSideMid = m_locMid[0][coID0];
-				gloSideMid = m_gloMid[0][coID0];
-
-				// add corner coordinates of the corners of the geometric object
-				for (size_t j = 1; j < m_rRefElem.num(2, 0, 0); ++j)
-				{
-					const size_t coID = m_rRefElem.id(2, 0, 0, j);
-					locSideMid += m_locMid[0][coID];
-					gloSideMid += m_gloMid[0][coID];
-				}
-
-				// scale for correct averaging
-				locSideMid *= 1./(m_rRefElem.num(2, 0, 0));
-				gloSideMid *= 1./(m_rRefElem.num(2, 0, 0));
+				locSideMid += m_locMid[0][j];
+				gloSideMid += m_gloMid[0][j];
 			}
+
+			// scale for correct averaging
+			locSideMid /= m_numNaturalBF;
+			gloSideMid /= m_numNaturalBF;
 		}
 
 		// i, j, k, l = number nodes
@@ -1156,20 +1162,6 @@ class HFV1ManifoldGeometry
 			// scale for correct averaging
 			locSideMid *= 1./3.;
 			gloSideMid *= 1./3.;
-		}
-
-		// returns edgeID of child edge, that has corner co. i is the natural edge index
-		size_t get_child_edge_of_corner(size_t i, size_t co)
-		{
-			for (size_t e = 0; e < m_vNatEdgeInfo[i].num_child_edges(); ++e)
-			{
-				const size_t childId = m_vNatEdgeInfo[i].child_edge(e);
-				if (m_vNewEdgeInfo[childId].from() == co)
-					return childId;
-				if (m_vNewEdgeInfo[childId].to() == co)
-					return childId;
-			}
-			return -1;
 		}
 
 	private:

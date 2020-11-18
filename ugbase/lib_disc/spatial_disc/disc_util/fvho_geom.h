@@ -556,7 +556,7 @@ class FVGeometry : public FVGeometryBase
 		MathVector<dim> m_vLocSCV_IP[numSCVIP];
 
 	protected:
-	//	miximum number of geom objects in a dimension
+	//	maximum number of geom objects in a dimension
 		static const int maxMid = numSCVF + 1;
 
 	//	subelement

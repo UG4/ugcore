@@ -170,7 +170,7 @@ void NestedIterationSolver<TDomain,TAlgebra>::estimate_and_mark_domain(const gri
 	  // compute error
 	  if (m_spElemError.valid()) {
 		  // debug version
-		  spDomainEstimator->calc_error(u, u.dd(), &(*m_spElemError));
+		  spDomainEstimator->calc_error(u, u.dd(), m_spElemError.get());
 	  } else {
 		  // standard version
 		  spDomainEstimator->calc_error(u, u.dd());

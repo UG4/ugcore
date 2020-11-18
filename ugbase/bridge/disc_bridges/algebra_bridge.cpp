@@ -179,7 +179,7 @@ static void Algebra(Registry& reg, string parentGroup)
 		reg.add_class_<T,TBase>(name, grp)
 			.add_method("calc_error", static_cast<void (T::*)(const vector_type&)>(&T::calc_error), "", "",
 				"calculate error indicators for elements from error estimators of the elemDiscs")
-			.add_method("calc_error", static_cast<void (T::*)(const vector_type&, vector_type&)>(&T::calc_error), "", "",
+			.add_method("calc_error", static_cast<void (T::*)(const vector_type&, CPUAlgebra::vector_type&)>(&T::calc_error), "", "",
 				"calculate error indicators for elements from error estimators of the elemDiscs")
 			.add_method("invalidate_error", &T::invalidate_error, "", "Marks error indicators as invalid, "
 				"which will prohibit refining and coarsening before a new call to calc_error.")
@@ -548,8 +548,9 @@ static void DomainAlgebra(Registry& reg, string parentGroup)
 							.add_method("set_tolerance", &T::set_tolerance)
 							.add_method("set_max_steps", &T::set_max_steps)
 							.add_method("last_error", &T::last_error)
+#ifdef UG_CPU_1
 							.add_method("set_debug_elem_error", &T::set_debug_elem_error)
-
+#endif
 							.add_method("use_adaptive_refinement", &T::use_adaptive_refinement)
 							.add_method("enable_adaptive_refinement", &T::enable_adaptive_refinement)
 							.add_method("disable_adaptive_refinement", &T::disable_adaptive_refinement)

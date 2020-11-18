@@ -33,6 +33,7 @@
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__DOMAIN_DISC_INTERFACE__
 #define __H__UG__LIB_DISC__SPATIAL_DISC__DOMAIN_DISC_INTERFACE__
 
+#include "lib_algebra/cpu_algebra_types.h"
 #include "lib_disc/assemble_interface.h"
 #include "lib_disc/time_disc/solution_time_series.h"
 #include "lib_disc/spatial_disc/constraints/constraint_interface.h"
@@ -52,6 +53,9 @@ public:
 	/// Type of algebra vector
 	typedef typename TAlgebra::vector_type vector_type;
 
+	/// Type of error vector
+	typedef typename CPUAlgebra::vector_type error_vector_type;
+
 	// (virtual) destructor
 	virtual ~IDomainErrorIndicator() {};
 
@@ -64,12 +68,12 @@ public:
 			virtual	void calc_error
 			(	const vector_type& u,
 				const GridLevel& gl,
-				vector_type* u_vtk = NULL
+				error_vector_type* u_vtk = NULL
 			) = 0;
 			virtual void calc_error
 			(	const vector_type& u,
 				ConstSmartPtr<DoFDistribution> dd,
-				vector_type* u_vtk = NULL
+				error_vector_type* u_vtk = NULL
 			) = 0;
 
 			//! Transient version
@@ -78,7 +82,7 @@ public:
 				ConstSmartPtr<DoFDistribution> dd,
 				const std::vector<number>& vScaleMass,
 				const std::vector<number>& vScaleStiff,
-				vector_type* u_vtk
+				error_vector_type* u_vtk
 			) = 0;
 
 			//! Transient version
@@ -87,7 +91,7 @@ public:
 				const std::vector<number>& vScaleMass,
 				const std::vector<number>& vScaleStiff,
 				const GridLevel& gl,
-				vector_type* u_vtk
+				error_vector_type* u_vtk
 			) = 0;
 
 	/// marks error indicators as invalid

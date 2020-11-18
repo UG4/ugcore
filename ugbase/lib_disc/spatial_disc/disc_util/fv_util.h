@@ -71,8 +71,43 @@ void AveragePositions(TPosition& vOut, const TPosition* vCornerCoords, size_t nu
 // Finite Volume Traits
 ////////////////////////////////////////////////////////////////////////////////
 
-/// Traits for Finite Volumes (dummy implementation)
+///	Base class, some fields are redefined in the instantiations for particular elements
+template <typename TRefElem> struct fv1_traits_most_common
+{
+///	type of reference element
+	typedef TRefElem ref_elem_type;
+
+///	number of SubControlVolumes (for most of the elements - overridden for e.g. ROID_PYRAMID and ROID_OCTAHEDRON)
+	static const size_t numSCV = ref_elem_type::numCorners;
+	
+///	number of SubControlVolumeFaces (for most of the elements - overridden for e.g. ROID_PYRAMID and ROID_OCTAHEDRON)
+	static const size_t numSCVF = ref_elem_type::numEdges;
+
+/// returns the 'from' and 'to' corner indices for a scvf
+	static size_t scvf_from_to
+	(
+		const ref_elem_type& refElem, ///< the reference element object
+		size_t i, ///< index of the scvf
+		size_t ft ///< 0 = from, 1 = to
+	)
+	{
+		return refElem.id(1, i, 0, ft);
+	}
+	
+///	returns the node id for a scv
+	static size_t scv_node_id
+	(
+		const ref_elem_type& refElem, ///< the reference element object
+		size_t i ///< index of the scv
+	)
+	{
+		return i;
+	}
+};
+
+/// Traits for Finite Volumes (dummy implementation, s. the instantiations below)
 template <typename TRefElem, int TWorldDim> struct fv1_traits
+:	public fv1_traits_most_common<TRefElem>
 {
 //	maximum for dimension
 	static const size_t maxNumSCVF;
@@ -123,7 +158,9 @@ struct fv1_traits_ReferenceEdge
 	typedef ReferenceVertex bf_type;
 };
 
-template <> struct fv1_traits<ReferenceEdge, 1> : public fv1_traits_ReferenceEdge
+template <> struct fv1_traits<ReferenceEdge, 1>
+:	public fv1_traits_ReferenceEdge,
+	public fv1_traits_most_common<ReferenceEdge>
 {
 	static void NormalOnSCVF(MathVector<1>& outNormal,
 	                         const MathVector<1>* vSCVFCorner,
@@ -140,7 +177,9 @@ template <> struct fv1_traits<ReferenceEdge, 1> : public fv1_traits_ReferenceEdg
 	}
 };
 
-template <> struct fv1_traits<ReferenceEdge, 2> : public fv1_traits_ReferenceEdge
+template <> struct fv1_traits<ReferenceEdge, 2>
+:	public fv1_traits_ReferenceEdge,
+	public fv1_traits_most_common<ReferenceEdge>
 {
 		static void NormalOnSCVF(MathVector<2>& outNormal,
 		                         const MathVector<2>* vSCVFCorner,
@@ -157,7 +196,9 @@ template <> struct fv1_traits<ReferenceEdge, 2> : public fv1_traits_ReferenceEdg
 		}
 };
 
-template <> struct fv1_traits<ReferenceEdge, 3> : public fv1_traits_ReferenceEdge
+template <> struct fv1_traits<ReferenceEdge, 3>
+:	public fv1_traits_ReferenceEdge,
+	public fv1_traits_most_common<ReferenceEdge>
 {
 		static void NormalOnSCVF(MathVector<3>& outNormal,
 		                         const MathVector<3>* vSCVFCorner,
@@ -253,8 +294,13 @@ struct fv1_traits_ReferenceFace3d : public fv1_traits_ReferenceFace
 		}
 };
 
-template <> struct fv1_traits<ReferenceTriangle, 2> : public fv1_traits_ReferenceFace2d{};
-template <> struct fv1_traits<ReferenceTriangle, 3> : public fv1_traits_ReferenceFace
+template <> struct fv1_traits<ReferenceTriangle, 2>
+:	public fv1_traits_ReferenceFace2d,
+	public fv1_traits_most_common<ReferenceTriangle>
+{};
+template <> struct fv1_traits<ReferenceTriangle, 3>
+:	public fv1_traits_ReferenceFace,
+	public fv1_traits_most_common<ReferenceTriangle>
 {
 	static void NormalOnSCVF(MathVector<3>& outNormal,
 							 const MathVector<3>* vSCVFCorner,
@@ -268,8 +314,13 @@ template <> struct fv1_traits<ReferenceTriangle, 3> : public fv1_traits_Referenc
 	}
 };
 
-template <> struct fv1_traits<ReferenceQuadrilateral, 2> : public fv1_traits_ReferenceFace2d{};
-template <> struct fv1_traits<ReferenceQuadrilateral, 3> : public fv1_traits_ReferenceFace
+template <> struct fv1_traits<ReferenceQuadrilateral, 2>
+:	public fv1_traits_ReferenceFace2d,
+	public fv1_traits_most_common<ReferenceQuadrilateral>
+{};
+template <> struct fv1_traits<ReferenceQuadrilateral, 3>
+:	public fv1_traits_ReferenceFace,
+	public fv1_traits_most_common<ReferenceQuadrilateral>
 {
 	static void NormalOnSCVF(MathVector<3>& outNormal,
 							 const MathVector<3>* vSCVFCorner,
@@ -313,15 +364,32 @@ struct fv1_traits_ReferenceVolume
 	}
 };
 
-template <> struct fv1_traits<ReferenceTetrahedron, 3> : public fv1_traits_ReferenceVolume{};
-template <> struct fv1_traits<ReferencePrism, 3> : public fv1_traits_ReferenceVolume{};
-template <> struct fv1_traits<ReferenceHexahedron, 3> : public fv1_traits_ReferenceVolume{};
-template <> struct fv1_traits<ReferenceOctahedron, 3> : public fv1_traits_ReferenceVolume{};
+template <> struct fv1_traits<ReferenceTetrahedron, 3>
+:	public fv1_traits_ReferenceVolume,
+	public fv1_traits_most_common<ReferenceTetrahedron>
+{};
+template <> struct fv1_traits<ReferencePrism, 3>
+:	public fv1_traits_ReferenceVolume,
+	public fv1_traits_most_common<ReferencePrism>
+{};
+template <> struct fv1_traits<ReferenceHexahedron, 3>
+:	public fv1_traits_ReferenceVolume,
+	public fv1_traits_most_common<ReferenceHexahedron>
+{};
 
-// For Pyramids we use triangular scvf, since the quadrilateral scvf would not be
-// flat in general by the positions where its corners are placed
-template <> struct fv1_traits<ReferencePyramid, 3> : public fv1_traits_ReferenceVolume
+/// Pyramids: dimension-independent part of the FV1 traits
+/**
+ * For Pyramids we use triangular scvf, since the quadrilateral scvf would not be
+ * flat in general by the positions where its corners are placed
+ */
+struct fv1_traits_ReferencePyramid
+:	public fv1_traits_ReferenceVolume
+	// Remark: Pyramid is a special case, fv1_traits_most_common<ReferencePyramid> is not inherited here!
 {
+	static const size_t numSCV = 4 * ReferencePyramid::numEdges; ///< overridden field from fv1_traits_most_common
+	
+	static const size_t numSCVF = 2 * ReferencePyramid::numEdges; ///< overridden field from fv1_traits_most_common
+
 	const static size_t NumCornersOfSCVF = 3; // triangles
 	const static size_t NumCornersOfSCV = 4;  // tetrahedrons
 	const static size_t NumCornersOfBF = 4;   // quadrilaterals
@@ -330,6 +398,38 @@ template <> struct fv1_traits<ReferencePyramid, 3> : public fv1_traits_Reference
 	typedef ReferenceTriangle scvf_type;
 	typedef ReferenceQuadrilateral bf_type;
 
+/// returns the 'from' and 'to' corner indices for a scvf (overridden function form fv1_traits_most_common)
+	static size_t scvf_from_to
+	(
+		const ReferencePyramid& refElem, ///< the reference element object
+		size_t i, ///< index of the scvf
+		size_t ft ///< 0 = from, 1 = to
+	)
+	{ // map according to the order defined in ComputeSCVFMidID
+		return refElem.id(1, i/2, 0, ft);
+	}
+	
+///	returns the node id for a scv (overridden function form fv1_traits_most_common)
+	static size_t scv_node_id
+	(
+		const ReferencePyramid& refElem, ///< the reference element object
+		size_t i ///< index of the scv
+	)
+	{ // map according to order defined in ComputeSCVMidID
+		if(i%2 == 0){
+			return refElem.id(1, i/4, 0, 0); // from
+		} else {
+			return refElem.id(1, i/4, 0, 1); // to
+		}
+	}
+};
+/// Pyramids: the FV1 traits
+/**
+ * For Pyramids we use triangular scvf, since the quadrilateral scvf would not be
+ * flat in general by the positions where its corners are placed
+ */
+template <> struct fv1_traits<ReferencePyramid, 3> : public fv1_traits_ReferencePyramid
+{
 	static void NormalOnSCVF(MathVector<3>& outNormal,
 							 const MathVector<3>* vSCVFCorner,
 							 const MathVector<3>* vElemCorner)
@@ -342,19 +442,217 @@ template <> struct fv1_traits<ReferencePyramid, 3> : public fv1_traits_Reference
 	}
 };
 
+/// Octahedra: dimension-independent part of the FV1 traits
+struct fv1_traits_ReferenceOctahedron
+:	public fv1_traits_ReferenceVolume
+	// Remark: Octahedron is a special case, fv1_traits_most_common<ReferenceOctahedron> is not inherited here!
+{
+	static const size_t numSCV = 16; ///< overridden field from fv1_traits_most_common
+	
+	static const size_t numSCVF = 24; ///< overridden field from fv1_traits_most_common
+	//	Remark: Special case for octahedron, scvf not mappable by edges.
+	
+/// returns the 'from' and 'to' corner indices for a scvf (overridden function form fv1_traits_most_common)
+	static size_t scvf_from_to
+	(
+		const ReferenceOctahedron& refElem, ///< the reference element object
+		size_t i, ///< index of the scvf
+		size_t ft ///< 0 = from, 1 = to
+	)
+	{ // map according to the order defined in ComputeSCVFMidID
+		static size_t from_to_ind [24][2] =
+		{
+			{1, 2},	// face 0
+			{2, 1},	// face 1
+			
+			{2, 3},	// face 2
+			{3, 2},	// face 3
+			
+			{3, 1},	// face 4
+			{1, 3},	// face 5
+			
+			{1, 5},	// face 6
+			{1, 0},	// face 7
+			
+			{2, 5},	// face 8
+			{2, 0},	// face 9
+			
+			{3, 5},	// face 10
+			{3, 0},	// face 11
+			
+			{1, 3},	// face 12
+			{3, 1},	// face 13
+			
+			{3, 4},	// face 14
+			{4, 3},	// face 15
+			
+			{4, 1},	// face 16
+			{1, 4},	// face 17
+			
+			{1, 5},	// face 18
+			{1, 0},	// face 19
+			
+			{3, 5},	// face 20
+			{3, 0},	// face 21
+			
+			{4, 5},	// face 22
+			{4, 0}	// face 23
+		};
+		return from_to_ind [i] [ft];
+	}
+	
+///	returns the node id for a scv (overridden function form fv1_traits_most_common)
+	static size_t scv_node_id
+	(
+		const ReferenceOctahedron& refElem, ///< the reference element object
+		size_t i ///< index of the scv
+	)
+	{ // map according to order defined in ComputeSCVMidID
+		static size_t node_id [16] =
+		{
+			1,	// scv 0
+			1,	// scv 1
+			
+			2,	// scv 2
+			2,	// scv 3
+			
+			3,	// scv 4
+			3,	// scv 5
+			
+			5,	// scv 6
+			0,	// scv 7
+			
+			1,	// scv 8
+			1,	// scv 9
+			
+			3,	// scv 10
+			3,	// scv 11
+			
+			4,	// scv 12
+			4,	// scv 13
+			
+			5,	// scv 14
+			0	// scv 15
+		};
+		return node_id [i];
+	}
+};
+/// Octahedra: the FV1 traits
+template <> struct fv1_traits<ReferenceOctahedron, 3> : public fv1_traits_ReferenceOctahedron {};
+
 ////////////////////////////////////////////////////////////////////////////////
 // Dimension dependent traits DIM FV1
 ////////////////////////////////////////////////////////////////////////////////
 
-///	Traits for Finite Volumes in a dimension
+///	Base for the Traits for Finite Volumes for a generic element of the fixed dimensionalities
+template <int TDim, int TWorldDim> struct fv1_dim_traits_base
+{
+///	dimension of reference element
+	static const int dim = TDim;
+
+///	generic reference element type
+	typedef DimReferenceElement<dim> ref_elem_type;
+	
+///	returns the number of the SCV
+	static void dim_get_num_SCV_and_SCVF
+	(
+		const ref_elem_type& refElem, ///< reference element object
+		ReferenceObjectID roid, ///< reference element object id
+		size_t& numSCV, ///< to write the number of the SCVs
+		size_t& numSCVF ///< to write the number of the SCVFs
+	)
+	{
+		if(roid != ROID_PYRAMID && roid != ROID_OCTAHEDRON)
+		{
+			numSCV  = refElem.num(0);
+			numSCVF = refElem.num(1);
+		}
+		else if(dim == 3 && roid == ROID_PYRAMID)
+		{
+			UG_WARNING("Pyramid Finite Volume Geometry for 1st order currently  "
+					"implemented in DimFV1Geom EXPERIMENTATLLY. Please contact "
+					"Martin Stepniewski or Andreas Vogel if you see this message.")
+
+			numSCV  = 4*refElem.num(1);
+			numSCVF = 2*refElem.num(1);
+		}
+		else if(dim == 3 && roid == ROID_OCTAHEDRON)
+		{
+		// 	Case octahedron
+			numSCV  = 16;
+			numSCVF = 24;
+		}
+		else
+			UG_THROW ("fv1_dim_traits_base: Unsupported combination of dimension and reference element.");
+	}
+	
+/// returns the 'from' and 'to' corner indices for a scvf
+	static void get_dim_scvf_from_to
+	(
+		const ref_elem_type& refElem, ///< reference element object
+		ReferenceObjectID roid, ///< reference element object id
+		size_t i, ///< index of the scvf
+		size_t& From, ///< to write the from-index
+		size_t& To ///< to write the to-index
+	)
+	{
+		if (roid != ROID_PYRAMID && roid != ROID_OCTAHEDRON)
+		{
+			From = refElem.id(1, i, 0, 0);
+			To = refElem.id(1, i, 0, 1);
+		}
+		// special case pyramid (scvf not mappable by edges)
+		else if (dim == 3 && roid == ROID_PYRAMID)
+		{
+		// 	map according to order defined in ComputeSCVFMidID
+			From = fv1_traits_ReferencePyramid::scvf_from_to ((const ReferencePyramid&) refElem, i, 0);
+			To = fv1_traits_ReferencePyramid::scvf_from_to ((const ReferencePyramid&) refElem, i, 1);
+		}
+		//	special case octahedron (scvf not mappable by edges)
+		else if(dim == 3 && roid == ROID_OCTAHEDRON)
+		{
+		// 	map according to order defined in ComputeSCVFMidID
+			From = fv1_traits_ReferenceOctahedron::scvf_from_to ((const ReferenceOctahedron&) refElem, i, 0);
+			To = fv1_traits_ReferenceOctahedron::scvf_from_to ((const ReferenceOctahedron&) refElem, i, 1);
+		}
+		else
+			UG_THROW ("fv1_dim_traits_base: Unsupported combination of dimension and reference element.");
+	}
+	
+///	returns the node id for a scv
+	static size_t dim_scv_node_id
+	(
+		const ref_elem_type& refElem, ///< reference element object
+		ReferenceObjectID roid, ///< reference element object id
+		size_t i ///< index of the scv
+	)
+	{
+		// "classical" elements
+		if (roid != ROID_PYRAMID && roid != ROID_OCTAHEDRON)
+			return i;
+		
+		// special case pyramid (scv not mappable by corners)
+		if(dim == 3 && roid == ROID_PYRAMID)
+			return fv1_traits_ReferencePyramid::scv_node_id ((const ReferencePyramid&) refElem, i);
+		
+		// special case octahedron (scvf not mappable by edges)
+		if(dim == 3 && roid == ROID_OCTAHEDRON)
+			return fv1_traits_ReferenceOctahedron::scv_node_id ((const ReferenceOctahedron&) refElem, i);
+		
+		UG_THROW ("fv1_dim_traits_base: Unsupported combination of dimension and reference element.");
+	}
+};
+
+///	Traits for Finite Volumes for a generic element of the fixed dimensionalities
 template <int TDim, int TWorldDim> struct fv1_dim_traits;
 
-template <> struct fv1_dim_traits<1, 1> : public fv1_traits<ReferenceEdge, 1> {};
-template <> struct fv1_dim_traits<1, 2> : public fv1_traits<ReferenceEdge, 2> {};
-template <> struct fv1_dim_traits<1, 3> : public fv1_traits<ReferenceEdge, 3> {};
+template <> struct fv1_dim_traits<1, 1> : public fv1_traits<ReferenceEdge, 1>, public fv1_dim_traits_base<1, 1> {};
+template <> struct fv1_dim_traits<1, 2> : public fv1_traits<ReferenceEdge, 2>, public fv1_dim_traits_base<1, 2> {};
+template <> struct fv1_dim_traits<1, 3> : public fv1_traits<ReferenceEdge, 3>, public fv1_dim_traits_base<1, 3> {};
 
-template <> struct fv1_dim_traits<2, 2> : public fv1_traits_ReferenceFace2d {};
-template <> struct fv1_dim_traits<2, 3> : public fv1_traits_ReferenceFace3d {
+template <> struct fv1_dim_traits<2, 2> : public fv1_traits_ReferenceFace2d, public fv1_dim_traits_base<2, 2> {};
+template <> struct fv1_dim_traits<2, 3> : public fv1_traits_ReferenceFace3d, public fv1_dim_traits_base<2, 3>
+{
 	static void NormalOnSCVF(MathVector<3>& outNormal,
 							 const MathVector<3>* vSCVFCorner,
 							 const MathVector<3>* vElemCorner)
@@ -369,7 +667,7 @@ template <> struct fv1_dim_traits<2, 3> : public fv1_traits_ReferenceFace3d {
 
 };
 
-template <> struct fv1_dim_traits<3, 3>	: public fv1_traits_ReferenceVolume {};
+template <> struct fv1_dim_traits<3, 3>	: public fv1_traits_ReferenceVolume, public fv1_dim_traits_base<3, 3> {};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Hanging Finite Volume Traits
@@ -454,59 +752,42 @@ template <> struct hfv1_traits<ReferenceQuadrilateral, 3> : public hfv1_traits_R
 // 3D Reference Element
 /////////////////////////
 
-template <> struct hfv1_traits<ReferenceTetrahedron, 3>
+struct hfv1_traits_ReferenceVolume
 {
-	const static size_t NumCornersOfSCVF = 3;
-	const static size_t MaxNumCornersOfSCV = 8;
-
 	static void NormalOnSCVF(MathVector<3>& outNormal, const MathVector<3>* vCornerCoords)
-		{ElementNormal<ReferenceTriangle, 3>(outNormal, vCornerCoords);}
+	{ElementNormal<ReferenceTriangle, 3>(outNormal, vCornerCoords);}
 
 	typedef ReferenceTetrahedron scv_type;
 };
 
-template <> struct hfv1_traits<ReferencePrism, 3>
+template <> struct hfv1_traits<ReferenceTetrahedron, 3> : public hfv1_traits_ReferenceVolume
 {
 	const static size_t NumCornersOfSCVF = 3;
 	const static size_t MaxNumCornersOfSCV = 8;
-
-	static void NormalOnSCVF(MathVector<3>& outNormal, const MathVector<3>* vCornerCoords)
-		{ElementNormal<ReferenceTriangle, 3>(outNormal, vCornerCoords);}
-
-	typedef ReferenceTetrahedron scv_type;
 };
 
-template <> struct hfv1_traits<ReferencePyramid, 3>
+template <> struct hfv1_traits<ReferencePrism, 3> : public hfv1_traits_ReferenceVolume
+{
+	const static size_t NumCornersOfSCVF = 3;
+	const static size_t MaxNumCornersOfSCV = 8;
+};
+
+template <> struct hfv1_traits<ReferencePyramid, 3> : public hfv1_traits_ReferenceVolume
 {
 	const static size_t NumCornersOfSCVF = 3;
 	const static size_t MaxNumCornersOfSCV = 10;
-
-	static void NormalOnSCVF(MathVector<3>& outNormal, const MathVector<3>* vCornerCoords)
-		{ElementNormal<ReferenceTriangle, 3>(outNormal, vCornerCoords);}
-
-	typedef ReferenceTetrahedron scv_type;
 };
 
-template <> struct hfv1_traits<ReferenceHexahedron, 3>
+template <> struct hfv1_traits<ReferenceHexahedron, 3> : public hfv1_traits_ReferenceVolume
 {
 	const static size_t NumCornersOfSCVF = 3;
 	const static size_t MaxNumCornersOfSCV = 8;
-
-	static void NormalOnSCVF(MathVector<3>& outNormal, const MathVector<3>* vCornerCoords)
-		{ElementNormal<ReferenceTriangle, 3>(outNormal, vCornerCoords);}
-
-	typedef ReferenceTetrahedron scv_type;
 };
 
-template <> struct hfv1_traits<ReferenceOctahedron, 3>
+template <> struct hfv1_traits<ReferenceOctahedron, 3> : public hfv1_traits_ReferenceVolume
 {
 	const static size_t NumCornersOfSCVF = 3;
 	const static size_t MaxNumCornersOfSCV = 8;
-
-	static void NormalOnSCVF(MathVector<3>& outNormal, const MathVector<3>* vCornerCoords)
-		{ElementNormal<ReferenceTriangle, 3>(outNormal, vCornerCoords);}
-
-	typedef ReferenceTetrahedron scv_type;
 };
 
 template <int TDim> struct hdimfv1_traits

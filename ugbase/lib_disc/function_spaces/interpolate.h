@@ -130,7 +130,7 @@ void InterpolateOnDiffVertices(SmartPtr<UserData<number, TGridFunction::dim> > s
 }
 //getting value of spInterpolFunction at position
 
-//template <typename TGridFunction, typename domain_type=typename TGridFunction::domain_type, typename position_type=typename domain_type::position_type>
+
 template <typename TGridFunction>
 number get_number_on_coords(SmartPtr<UserData<number, TGridFunction::dim> > spInterpolFunction,
 	typename TGridFunction::domain_type::position_type pos,
@@ -170,7 +170,11 @@ void InterpolateOnVertices(SmartPtr<UserData<number, TGridFunction::dim> > spInt
 	//	dimension of reference element
 	const int dim = TGridFunction::dim;
 
+<<<<<<< HEAD
 	MathVector<dim> diff_pos= MathVector<dim, value_type>(0);
+=======
+	MathVector<dim> diff_pos(0.0);
+>>>>>>> origin/master
 	InterpolateOnDiffVertices<TGridFunction>(spInterpolFunction, spGridFct, fct, time, ssGrp, diff_pos);
 }
 
@@ -473,6 +477,7 @@ void Interpolate(SmartPtr<UserData<number, TGridFunction::dim> > spInterpolFunct
                  SmartPtr<TGridFunction> spGridFct, const char* cmp,
                  const char* subsets, number time)
 {
+<<<<<<< HEAD
 	//	domain type and position_type
 	typedef typename TGridFunction::domain_type domain_type;
 	typedef typename domain_type::position_type position_type;
@@ -482,6 +487,18 @@ void Interpolate(SmartPtr<UserData<number, TGridFunction::dim> > spInterpolFunct
 	const int dim = TGridFunction::dim;
 	MathVector<dim> diff_pos= MathVector<dim, value_type>(0);
 	Interpolate(spInterpolFunction, spGridFct, cmp, subsets, time, diff_pos);
+=======
+
+		//	domain type and position_type
+		typedef typename TGridFunction::domain_type domain_type;
+		typedef typename domain_type::position_type position_type;
+		typedef typename position_type::value_type value_type;
+
+		//	dimension of reference element
+		const int dim = TGridFunction::dim;
+		MathVector<dim> diff_pos(0.0);
+		Interpolate(spInterpolFunction, spGridFct, cmp, subsets, time, diff_pos);
+>>>>>>> origin/master
 }
 
 /// interpolates a function on a subset

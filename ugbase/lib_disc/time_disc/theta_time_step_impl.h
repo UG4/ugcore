@@ -258,7 +258,7 @@ assemble_rhs(vector_type& b, const vector_type& u, const GridLevel& gl)
 
 template<typename TAlgebra>
 void MultiStepTimeDiscretization<TAlgebra>::
-calc_error(const vector_type& u, vector_type* u_vtk)
+calc_error(const vector_type& u, error_vector_type* u_vtk)
 {
 	PROFILE_BEGIN_GROUP(MultiStepTimeDiscretization_calc_error, "discretization MultiStepTimeDiscretization");
 //	perform checks
