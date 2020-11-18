@@ -162,19 +162,10 @@ void InterpolateOnVertices(SmartPtr<UserData<number, TGridFunction::dim> > spInt
                            number time,
                            const SubsetGroup& ssGrp)
 {
-	//	domain type and position_type
-	typedef typename TGridFunction::domain_type domain_type;
-	typedef typename domain_type::position_type position_type;
-	typedef typename position_type::value_type value_type;
-
 	//	dimension of reference element
 	const int dim = TGridFunction::dim;
 
-<<<<<<< HEAD
-	MathVector<dim> diff_pos= MathVector<dim, value_type>(0);
-=======
 	MathVector<dim> diff_pos(0.0);
->>>>>>> origin/master
 	InterpolateOnDiffVertices<TGridFunction>(spInterpolFunction, spGridFct, fct, time, ssGrp, diff_pos);
 }
 
@@ -373,16 +364,10 @@ void InterpolateOnElements(
 		SmartPtr<UserData<number, TGridFunction::dim> > spInterpolFunction,
 		SmartPtr<TGridFunction> spGridFct, size_t fct, int si, number time)
 {
-
-	//	domain type and position_type
-	typedef typename TGridFunction::domain_type domain_type;
-	typedef typename domain_type::position_type position_type;
-	typedef typename position_type::value_type value_type;
-
 	//	dimension of reference element
 	const int dim = TGridFunction::dim;
 
-	MathVector<dim> diff_pos= MathVector<dim, value_type>(0);
+	MathVector<dim> diff_pos(0.0);
 	InterpolateOnDiffElements<TElem,TGridFunction>(spInterpolFunction, spGridFct, fct, si,time, diff_pos);
 }
 
@@ -477,28 +462,10 @@ void Interpolate(SmartPtr<UserData<number, TGridFunction::dim> > spInterpolFunct
                  SmartPtr<TGridFunction> spGridFct, const char* cmp,
                  const char* subsets, number time)
 {
-<<<<<<< HEAD
-	//	domain type and position_type
-	typedef typename TGridFunction::domain_type domain_type;
-	typedef typename domain_type::position_type position_type;
-	typedef typename position_type::value_type value_type;
-
 	//	dimension of reference element
 	const int dim = TGridFunction::dim;
-	MathVector<dim> diff_pos= MathVector<dim, value_type>(0);
+	MathVector<dim> diff_pos(0.0);
 	Interpolate(spInterpolFunction, spGridFct, cmp, subsets, time, diff_pos);
-=======
-
-		//	domain type and position_type
-		typedef typename TGridFunction::domain_type domain_type;
-		typedef typename domain_type::position_type position_type;
-		typedef typename position_type::value_type value_type;
-
-		//	dimension of reference element
-		const int dim = TGridFunction::dim;
-		MathVector<dim> diff_pos(0.0);
-		Interpolate(spInterpolFunction, spGridFct, cmp, subsets, time, diff_pos);
->>>>>>> origin/master
 }
 
 /// interpolates a function on a subset
