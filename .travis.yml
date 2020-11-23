@@ -25,6 +25,9 @@ compiler:
 os:
   - linux
   - osx
+
+osx_image: 
+  - xcode12
   
 env:
   global:
