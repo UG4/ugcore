@@ -378,7 +378,7 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	# the VRL crashing on this code. In order to suppress usage of this dyld:
 	#if(buildForVRL AND APPLE)
 	#	add_cxx_flag("-mmacosx-version-min=10.8")
-    endif()
+	#endif()
     # for some reason -Wsign-compare is not in -Wall for Clang 
 	add_cxx_flag("-Wsign-compare")
 	add_cxx_flag(-Wno-unused-local-typedef)
