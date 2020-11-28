@@ -1,5 +1,5 @@
 # Build worker image (VM template)
-image: Visual Studio 2017
+image: Visual Studio 2019
 
 # scripts that are called at very beginning, before repo cloning
 init:
@@ -26,28 +26,32 @@ environment:
   matrix:
     
     - BUILD_VARIANT: "build1"
-      generator: "Visual Studio 15 2017 Win64" 
+      generator: "Visual Studio 16 2019" 
+      architecture: "x64"
       DIM: 2 
       CPU: 1
       TARGET: ugshell
       STATIC_BUILD: ON
     
     - BUILD_VARIANT: "build2"
-      generator: "Visual Studio 15 2017 Win64" 
+      generator: "Visual Studio 16 2019"
+      architecture: "x64"
       DIM: 2 
       CPU: 1
       TARGET: vrl
       STATIC_BUILD: OFF
 
     - BUILD_VARIANT: "build3"
-      generator: "Visual Studio 15 2017 Win64" 
+      generator: "Visual Studio 16 2019"
+      architecture: "x64"
       DIM: ALL 
       CPU: 1;2
       TARGET: ugshell
       STATIC_BUILD: ON
 
     - BUILD_VARIANT: "build4"
-      generator: "Visual Studio 15 2017 Win64" 
+      generator: "Visual Studio 16 2019"
+      architecture: "x64"
       DIM: ALL 
       CPU: 1;2
       TARGET: vrl
@@ -101,7 +105,7 @@ build_script:
   - if not exist %BUILD_VARIANT% mkdir %BUILD_VARIANT%
 #  - rm -rf %BUILD_VARIANT%/
 #  - mkdir %BUILD_VARIANT%
-  - cd %BUILD_VARIANT% && cmake ..\ -DCMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE=X64 -G "%generator%" -DTARGET="%TARGET%" -DLAPACK=OFF -DBLAS=OFF -DDIM="%DIM%" -DCPU="%CPU%" -DCOMPILE_INFO=OFF -DEMBEDDED_PLUGINS=ON -DSTATIC_BUILD="%STATIC_BUILD%"
+  - cd %BUILD_VARIANT% && cmake ..\ -DCMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE=X64 -G "%generator%" -A "%architecture%" -DTARGET="%TARGET%" -DLAPACK=OFF -DBLAS=OFF -DDIM="%DIM%" -DCPU="%CPU%" -DCOMPILE_INFO=OFF -DEMBEDDED_PLUGINS=ON -DSTATIC_BUILD="%STATIC_BUILD%"
   - MSBuild .\ug4.sln  /property:Configuration=Release /property:Platform=x64
   - cd ..\bin
   - dir
