@@ -30,35 +30,30 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_METAGRAPH_IMETAGRAPH__
-#define __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_METAGRAPH_IMETAGRAPH__
+#ifndef __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_IORDERING_ALGORITHM__
+#define __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_IORDERING_ALGORITHM__
 
 namespace ug{
 
 /*
-	Interface for metagraph creation. The graph is accessible via graph()
-	G_t is supposed to be a bidirected boost graph. g must not have edge duplicates
-	and loops.
-
-	G_t may be an unweighted graph, e.g.,
-		boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS>
-
-	or weighted, e.g., 
-		typedef boost::property<boost::edge_weight_t, double> EdgeWeightProperty;
-		boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS, boost::no_property, EdgeWeightProperty>
+	Interface for ordering algorithms. O_t denotes the ordering container type.
+	Ordering algorithms have to implement
+		compute() - triggers computation of an ordering
+	as well as
+		ordering() - returns a reference to an ordering of type O_t
+	O_t usually is a std::vector<size_t>
+	G_t (not required here) denotes the underlying graph type, e.g.,     
+                                                        a boost graph
 */
 
-template <typename G_t>
-class IMetaGraph{
+template <typename O_t>
+class IOrderingAlgorithm{
 public:
-	IMetaGraph(){}
+	IOrderingAlgorithm(){}
+	virtual ~IOrderingAlgorithm() = 0;
 
-	G_t& graph(){
-		return g;
-	}
-
-protected:
-	G_t g;
+	virtual void compute() = 0;
+	virtual O_t& ordering() = 0;
 };
 
 } //namespace
