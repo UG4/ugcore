@@ -35,7 +35,6 @@
 
 #include <vector>
 
-#include "metagraph/IMetaGraph.h"
 #include "algorithms/IOrderingAlgorithm.h"
 #include "execution/IExecuteOrdering.h"
 
