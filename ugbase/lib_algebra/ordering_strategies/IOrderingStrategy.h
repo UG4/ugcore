@@ -30,47 +30,38 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef __UG__LIB_DISC__ORDERING_STRATEGIES_EXECUTION_DOFS_ORDERING__
-#define __UG__LIB_DISC__ORDERING_STRATEGIES_EXECUTION_DOFS_ORDERING__
+#ifndef __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_IORDERING_STRATEGY__
+#define __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_IORDERING_STRATEGY__
 
 #include <vector>
 
-#include "lib_disc/function_spaces/approximation_space.h"
-
-#include "../../../lib_algebra/ordering_strategies/execution/IExecuteOrdering.h"
-#include "../../../lib_algebra/ordering_strategies/execution/util.cpp"
-
-#include "../../../common/code_marker.h" //error()
+#include "metagraph/IMetaGraph.h"
+#include "algorithms/IOrderingAlgorithm.h"
+#include "execution/IExecuteOrdering.h"
 
 namespace ug{
 
 /*
-        Orders dof_distributions()[index] according to an ordering. dof_distribution triggers reordering
-        of handled matrices.
-
+	Interface for an ordering strategy.
+	Requires an ordering algorithm and an instance of ExecuteOrdering.
+	Computes an ordering and applies it.
 */
 
-//TODO use GridLevel
-template <typename TDomain, typename O_t=std::vector<size_t> >
-class DOFsOrdering : public IExecuteOrdering{
+template <typename G_t, typename O_t=std::vector<size_t> >
+class IOrderingStrategy{
 public:
-	DOFsOrdering(SmartPtr<ug::ApproximationSpace<TDomain> > approx_in, O_t &o_in, unsigned idx_in)
-		: m_spApprox(approx_in), o(o_in), idx(idx_in){}
-	virtual ~DOFsOrdering(){}
+	IOrderingStrategy(SmartPtr<IOrderingAlgorithm<O_t> > algo, SmartPtr<IExecuteOrdering> execution)
+		: m_spOrderingAlgorithm(algo), m_spExecuteOrdering(execution){}
 
-	void execute(){
-		if(!is_permutation(o)){
-			std::cerr << "[DOFsOrdering::execute] Not a permutation!" << std::endl;
-			error();
-		}
-
-		m_spApprox->dof_distributions()[idx]->permute_indices(o);
+	void apply(){
+		m_spOrderingAlgorithm->compute();
+		m_spOrderingAlgorithm->ordering();
+		m_spExecuteOrdering->execute();
 	}
 
 private:
-	SmartPtr<ug::ApproximationSpace<TDomain> > m_spApprox;
-	O_t &o;
-	size_t idx;
+	SmartPtr<IOrderingAlgorithm<O_t> > m_spOrderingAlgorithm;
+	SmartPtr<IExecuteOrdering> m_spExecuteOrdering;
 };
 
 } //namespace
