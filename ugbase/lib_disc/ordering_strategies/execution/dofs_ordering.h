@@ -56,7 +56,7 @@ class DOFsOrdering : public IExecuteOrdering{
 public:
 	DOFsOrdering(SmartPtr<ug::ApproximationSpace<TDomain> > approx_in, O_t &o_in, unsigned idx_in)
 		: m_spApprox(approx_in), o(o_in), idx(idx_in){}
-	virtual ~DOFsOrdering(){}
+	~DOFsOrdering(){}
 
 	void execute(){
 		if(!is_permutation(o)){

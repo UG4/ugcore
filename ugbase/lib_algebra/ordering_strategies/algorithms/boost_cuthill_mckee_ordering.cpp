@@ -68,7 +68,7 @@ class BoostCuthillMcKeeOrdering : public IOrderingAlgorithm<O_t>
 {
 public:
 	BoostCuthillMcKeeOrdering(G_t &g_in, O_t &o_in, bool reverse) : g(g_in), o(o_in), m_bReverse(reverse){}
-	virtual ~BoostCuthillMcKeeOrdering(){}
+	~BoostCuthillMcKeeOrdering(){}
 
 	void compute(){
 		typedef boost::graph_traits<Graph_t>::vertex_descriptor Vertex_t;

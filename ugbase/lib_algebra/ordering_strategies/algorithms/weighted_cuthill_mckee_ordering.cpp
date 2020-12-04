@@ -113,7 +113,7 @@ public:
 	typedef typename boost::graph_traits<G_t>::adjacency_iterator adj_iter;
 
 	WeightedCuthillMcKeeOrdering(G_t &g_in, O_t &o_in, bool reverse) : g(g_in), o(o_in), m_bReverse(reverse){}
-	virtual ~WeightedCuthillMcKeeOrdering(){}
+	~WeightedCuthillMcKeeOrdering(){}
 
 	class next_vertex_iterator{
 	public:

@@ -42,7 +42,7 @@ namespace ug{
 	as well as
 		ordering() - returns a reference to an ordering of type O_t
 	O_t usually is a std::vector<size_t>
-	G_t (not required here) denotes the underlying graph type, e.g.,     
+	G_t (not required here) denotes the underlying graph type, e.g.,
                                                         a boost graph
 */
 
@@ -50,7 +50,7 @@ template <typename O_t>
 class IOrderingAlgorithm{
 public:
 	IOrderingAlgorithm(){}
-	virtual ~IOrderingAlgorithm() = 0;
+	~IOrderingAlgorithm(){}
 
 	virtual void compute() = 0;
 	virtual O_t& ordering() = 0;

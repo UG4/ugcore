@@ -59,7 +59,7 @@ class BoostShortestPathsOrdering : public IOrderingAlgorithm<O_t>
 {
 public:
 	BoostShortestPathsOrdering(G_t &g_in, O_t &o_in) : g(g_in), o(o_in){}
-	virtual ~BoostShortestPathsOrdering(){}
+	~BoostShortestPathsOrdering(){}
 
 	void compute(){
 		typedef typename boost::graph_traits<G_t>::vertex_descriptor vd;
