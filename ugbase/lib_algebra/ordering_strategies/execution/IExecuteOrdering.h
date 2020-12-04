@@ -46,7 +46,7 @@ namespace ug{
 class IExecuteOrdering{
 public:
 	IExecuteOrdering(){}
-	virtual ~IExecuteOrdering() = 0;
+	~IExecuteOrdering(){}
 
 	virtual void execute() = 0;
 };

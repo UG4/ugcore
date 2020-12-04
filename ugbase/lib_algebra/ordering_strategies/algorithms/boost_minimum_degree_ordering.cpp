@@ -54,7 +54,7 @@ class BoostMinimumDegreeOrdering : public IOrderingAlgorithm<O_t>
 {
 public:
 	BoostMinimumDegreeOrdering(G_t &g_in, O_t &o_in) : g(g_in), o(o_in){}
-	virtual ~BoostMinimumDegreeOrdering(){}
+	~BoostMinimumDegreeOrdering(){}
 
 	void compute(){
 		unsigned n = boost::num_vertices(g);

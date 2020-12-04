@@ -51,7 +51,7 @@ class MatrixOrdering : public IExecuteOrdering{
 public:
 	MatrixOrdering(matrix_type &target_in, const matrix_type &source_in, O_t &o_in)
 		: target(target_in), source(source_in), o(o_in){}
-	virtual ~MatrixOrdering(){}
+	~MatrixOrdering(){}
 
 	void execute(){
 		if(!is_permutation(o)){
