@@ -184,12 +184,14 @@ option(POSIX "If enabled and available, some additional functionality may be ava
 option(CRS_ALGEBRA "Use the CRS Sparse Matrix" OFF)
 option(CPU_ALGEBRA "Use the old CPU Sparse Matrix" ON)
 option(INTERNAL_MEMTRACKER "Internal Memory Tracker" OFF)
-
 if(APPLE)
 	option(USE_LUA2C "Use LUA2C" ON)
 else(APPLE)
 	option(USE_LUA2C "Use LUA2C" OFF)
 endif(APPLE)
+option(USE_LUAJIT "Use LUA just in time compiler" OFF)
+option(USE_JSON "Use JSON" OFF)
+option(USE_XEUS "Use XEUS" OFF)
 
 ################################################################################
 # set default values for pseudo-options
@@ -273,9 +275,10 @@ message(STATUS "Info: USE_LUA2C          ${USE_LUA2C} (options are: ON, OFF)")
 message(STATUS "Info: USE_LUAJIT         ${USE_LUAJIT} (options are: ON, OFF)")
 message(STATUS "")
 message(STATUS "Info: External libraries (path which contains the library or ON if you used uginstall):")
-message(STATUS "Info: TETGEN:   ${TETGEN}")
-message(STATUS "Info: HLIBPRO:  ${HLIBPRO}")
-message(STATUS "Info: USE_JSON  ${USE_JSON} (options are: ON, OFF)")
+message(STATUS "Info: TETGEN:            ${TETGEN}")
+message(STATUS "Info: HLIBPRO:           ${HLIBPRO}")
+message(STATUS "Info: USE_JSON:          ${USE_JSON} (options are: ON, OFF)")
+message(STATUS "Info: USE_XEUS:          ${USE_XEUS} (options are: ON, OFF)")
 message(STATUS "")
 message(STATUS "Info: C   Compiler: ${CMAKE_C_COMPILER} (ID: ${CMAKE_C_COMPILER_ID})")
 message(STATUS "Info: C++ Compiler: ${CMAKE_CXX_COMPILER} (ID: ${CMAKE_CXX_COMPILER_ID})")
@@ -420,10 +423,10 @@ endif(PCL_DEBUG_BARRIER)
 
 
 ########################################
-# OPENMP
-include(${UG_ROOT_CMAKE_PATH}/ug/openmp.cmake)
 # C++11
 include(${UG_ROOT_CMAKE_PATH}/ug/cpp11.cmake)
+# OPENMP
+include(${UG_ROOT_CMAKE_PATH}/ug/openmp.cmake)
 # CUDA
 include(${UG_ROOT_CMAKE_PATH}/ug/cuda.cmake)
 # LUA2C
@@ -432,6 +435,8 @@ include(${UG_ROOT_CMAKE_PATH}/ug/lua2c.cmake)
 include(${UG_ROOT_CMAKE_PATH}/ug/luajit.cmake)
 # JSON
 include(${UG_ROOT_CMAKE_PATH}/ug/json.cmake)
+# XEUS
+include(${UG_ROOT_CMAKE_PATH}/ug/xeus.cmake)
 
 ########################################
 # buildAlgebra
