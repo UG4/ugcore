@@ -99,6 +99,7 @@ before_script:
   - cd ugcore
   - if [[ "$UG4_FOLDER_SURVIVED_CACHE" == "true" ]]; then git fetch; fi
   - git checkout -f $TRAVIS_COMMIT
+  - if [[ "$CC" == "clang" ]]; then export CC='ccache clang'; export CXX='ccache clang++'; fi
   - mkdir -p $BUILD_VARIANT && cd $BUILD_VARIANT && cmake ../ -DTARGET="${TARGET}" -DLAPACK=OFF -DBLAS=OFF -DDIM="${DIM}" -DCPU="${CPU}" -DCOMPILE_INFO=OFF -DEMBEDDED_PLUGINS=ON -DSTATIC_BUILD="${STATIC_BUILD}"
   - rm -rf ../bin/ugshell
   
