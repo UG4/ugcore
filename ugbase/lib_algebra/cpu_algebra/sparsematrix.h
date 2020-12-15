@@ -400,7 +400,7 @@ public:
 
 
 
-	row_iterator         begin_row(size_t r)         { return row_iterator(*this, r, rowStart[r]);  }
+    row_iterator         begin_row(size_t r)         { return row_iterator(*this, r, rowStart[r]);  }
     row_iterator         end_row(size_t r)           { return row_iterator(*this, r, rowEnd[r]);  }
     const_row_iterator   begin_row(size_t r) const   { return const_row_iterator(*this, r, rowStart[r]);  }
     const_row_iterator   end_row(size_t r)   const   { return const_row_iterator(*this, r, rowEnd[r]);  }
@@ -617,10 +617,11 @@ private:
 	SparseMatrix(SparseMatrix&); ///< disallow copy operator
 
 
-protected:
+public:
 	int get_index_internal(size_t row, int col) const;
     int get_index_const(int r, int c) const;
     int get_index(int r, int c);
+protected:
     void copyToNewSize(size_t newSize)
     {
     	copyToNewSize(newSize, num_cols());
@@ -630,7 +631,8 @@ protected:
 	int get_nnz_max_cols(size_t maxCols);
 
 
-protected:
+//protected:
+public:
     std::vector<int> rowStart;
     std::vector<int> rowEnd;
     std::vector<int> rowMax;
@@ -638,8 +640,8 @@ protected:
     size_t fragmented;
     size_t nnz;
     bool bNeedsValues;
-
     std::vector<value_type> values;
+
     int maxValues;
     int m_numCols;
     mutable int iIterators;

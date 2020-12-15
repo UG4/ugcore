@@ -46,14 +46,18 @@ namespace ug{
                                                         a boost graph
 */
 
-template <typename O_t>
+template <typename G_t, typename O_t>
 class IOrderingAlgorithm{
 public:
 	IOrderingAlgorithm(){}
 	~IOrderingAlgorithm(){}
 
 	virtual void compute() = 0;
-	virtual O_t& ordering() = 0;
+	virtual void check() = 0;
+	virtual O_t* ordering() = 0;
+
+	virtual void set_graph(G_t&) = 0;
+	virtual void set_ordering(O_t&) = 0;
 };
 
 } //namespace

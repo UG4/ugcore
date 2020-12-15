@@ -35,9 +35,6 @@
 
 #include <vector>
 
-#include "IExecuteOrdering.h"
-#include "util.cpp"
-
 #include "../../../common/code_marker.h" //error()
 
 namespace ug{
@@ -47,34 +44,17 @@ namespace ug{
 */
 
 template <typename matrix_type, typename O_t=std::vector<size_t> >
-class MatrixOrdering : public IExecuteOrdering{
-public:
-	MatrixOrdering(matrix_type &target_in, const matrix_type &source_in, O_t &o_in)
-		: target(target_in), source(source_in), o(o_in){}
-	~MatrixOrdering(){}
+void reorder_matrix(matrix_type& target, matrix_type& source, O_t& o){
+	target.resize_and_clear(source.num_rows(), source.num_cols());
 
-	void execute(){
-		if(!is_permutation(o)){
-			std::cerr << "[MatrixOrdering::execute] Not a permutation!" << std::endl;
-			error();
-		}
-
-		target.resize_and_clear(source.num_rows(), source.num_cols());
-
-		for(size_t r = 0; r < source.num_rows(); ++r){
-			size_t Pr = o[r];
-			for(typename matrix_type::const_row_iterator it = source.begin_row(r); it != source.end_row(r); ++it){
-				size_t Pc = o[it.index()];
-				target(Pr, Pc) = it.value();
-			}
+	for(size_t r = 0; r < source.num_rows(); ++r){
+		size_t Pr = o[r];
+		for(typename matrix_type::const_row_iterator it = source.begin_row(r); it != source.end_row(r); ++it){
+			size_t Pc = o[it.index()];
+			target(Pr, Pc) = it.value();
 		}
 	}
-
-private:
-	matrix_type& target;
-	const matrix_type& source;
-	O_t &o;
-};
+}
 
 } //namespace
 
