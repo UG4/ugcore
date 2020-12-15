@@ -31,7 +31,7 @@
  */
 
 #include "common/common.h"
-#include "common/cuthill_mckee.h"
+#include "lib_algebra/ordering_strategies/algorithms/native_cuthill_mckee.h"
 #include "cuthill_mckee.h"
 #include <algorithm>
 #include <vector>

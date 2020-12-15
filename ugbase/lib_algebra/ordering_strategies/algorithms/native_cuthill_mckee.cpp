@@ -1,9 +1,18 @@
-#include "common/common.h"
-#include "cuthill_mckee.h"
+#ifndef __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_NATIVE_CUTHILL_MCKEE_ORDERING_CPP__
+#define __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_NATIVE_CUTHILL_MCKEE_ORDERING_CPP__
+
+#include "common/common.h" //UG_LOG
+#include "native_cuthill_mckee.h"
 #include <algorithm>
 #include <vector>
 #include <queue>
 #include "common/profiler/profiler.h"
+
+#include "IOrderingAlgorithm.h"
+
+#include "../execution/util.cpp"
+
+#include "../../../common/code_marker.h" //error()
 
 namespace ug{
 
@@ -286,4 +295,47 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 #endif
 }
 
+
+
+
+template <typename M_t, typename G_t, typename O_t>
+class NativeCuthillMcKeeOrdering : public IOrderingAlgorithm<G_t, O_t>
+{
+public:
+	NativeCuthillMcKeeOrdering(){}
+	~NativeCuthillMcKeeOrdering(){
+		if(own_o){ delete o; }
+	}
+
+	void compute(){
+		if(!o){
+			own_o = true;
+			o = new O_t;
+		}
+
+		GetCuthillMcKeeOrder(*mat, *o);
+	}
+
+	void check(){
+		if(!is_permutation(*o)){
+			std::cerr << "Not a permutation!" << std::endl;
+			error();
+		}
+	}
+
+	O_t* ordering(){
+		return o;
+	}
+
+	void set_matrix(M_t* m){ mat = m; };
+	void set_graph(G_t& graph){}
+	void set_ordering(O_t& ordering){}
+private:
+	O_t* o;
+	M_t* mat;
+	bool own_o;
+};
+
 }
+
+#endif //guard

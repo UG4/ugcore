@@ -52,6 +52,7 @@ set(src_Algebra	 ${src_Algebra}
 	operator/preconditioner/line_smoothers.cpp
 	operator/linear_solver/analyzing_solver.cpp
 	algebra_common/permutation_util.cpp
+	ordering_strategies/algorithms/native_cuthill_mckee.cpp
 	operator/preconditioner/schur/schur.cpp
 	)
 	

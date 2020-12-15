@@ -46,6 +46,7 @@
 	#include "lib_algebra/parallelization/overlap_writer.h"
 #endif
 #include "lib_algebra/algebra_common/permutation_util.h"
+#include "lib_algebra/ordering_strategies/algorithms/native_cuthill_mckee.h"
 
 namespace ug{
 

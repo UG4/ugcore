@@ -36,8 +36,7 @@
 #include "common/common.h"
 #include "common/profiler/profiler.h"
 #include "common/error.h"
-#include "common/cuthill_mckee.h"
-//#include "lib_disc/dof_manager/ordering/cuthill_mckee.h"
+#include "../ordering_strategies/algorithms/native_cuthill_mckee.h"
 #include <vector>
 
 namespace ug{
@@ -91,6 +90,7 @@ bool GetInversePermutation(const std::vector<size_t> &perm, std::vector<size_t> 
  * @param mat 			A sparse matrix
  * @param newIndex		the cuthill-mckee ordered new indices
  */
+// /todo move this to a proper place and remove ordering_strategies dependency
 template<typename TSparseMatrix>
 void GetCuthillMcKeeOrder(const TSparseMatrix &mat, std::vector<size_t> &newIndex)
 {
