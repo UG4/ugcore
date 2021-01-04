@@ -802,7 +802,7 @@ struct ElementSideRayIntersectionWrapper<TRefElem, 3, 3>
 		// find side
 		for(sideOut = 0; sideOut < rRefElem.num(dim-1); ++sideOut)
 		{
-			// get corners
+			// A1. get corners
 			p0 = rRefElem.id(dim-1, sideOut, 0, 0);
 			p1 = rRefElem.id(dim-1, sideOut, 0, 1);
 			p2 = rRefElem.id(dim-1, sideOut, 0, 2);
@@ -819,7 +819,11 @@ struct ElementSideRayIntersectionWrapper<TRefElem, 3, 3>
 			// second triangle (only if 4 corners)
 			if(rRefElem.num(dim-1, sideOut, 0) == 3) continue;
 
-			// get corner number 4
+			// B1. get corner number 4 as p2 and replace p1 by p2
+            // (In case of a quadrilateral whose corners are numbered counterclockwise by (1,2,3,4),
+            // we decompose it into the triangle with corners (1,2,3) and the triangle (1,3,4).)
+            
+            p1 = rRefElem.id(dim-1, sideOut, 0, 2); // added in order to create disjunct triangles filling the quadrilateral completely
 			p2 = rRefElem.id(dim-1, sideOut, 0, 3);
 
 			// if match: break
@@ -830,6 +834,42 @@ struct ElementSideRayIntersectionWrapper<TRefElem, 3, 3>
 				if(bPositiv && t >= 0.0) break;
 				else if(!bPositiv && t <= 0.0) break;
 			}
+            
+            // repeat the procedures A. and B. but by cutting the quadrilateral
+            // along the other diagonal into 2 triangles
+            // (necessary for cases, where the 4 corners do not form a flat
+            // quadrilateral. In such cases it can happen, that the intersection
+            // point found lies outside the element formed by the two triangles.)
+            
+            // A2. get corners
+            p0 = rRefElem.id(dim-1, sideOut, 0, 1);
+            p1 = rRefElem.id(dim-1, sideOut, 0, 2);
+            p2 = rRefElem.id(dim-1, sideOut, 0, 3);
+            
+            // if match: break
+            if(RayTriangleIntersection(	GlobalIntersectionPointOut, bc0, bc1, t,
+                                       vCornerCoords[p0], vCornerCoords[p1], vCornerCoords[p2],
+                                       From, Direction))
+            {
+                if(bPositiv && t >= 0.0) break;
+                else if(!bPositiv && t <= 0.0) break;
+            }
+            
+            // second triangle (only if 4 corners)
+            if(rRefElem.num(dim-1, sideOut, 0) == 3) continue;
+            
+            // B2. get corner number 1 as p2 and replace p1 by p2
+            p1 = rRefElem.id(dim-1, sideOut, 0, 3); // added in order to create dijunct triangles filling the quadrilateral completely
+            p2 = rRefElem.id(dim-1, sideOut, 0, 0);
+            
+            // if match: break
+            if(RayTriangleIntersection(	GlobalIntersectionPointOut, bc0, bc1, t,
+                                       vCornerCoords[p0], vCornerCoords[p1], vCornerCoords[p2],
+                                       From, Direction))
+            {
+                if(bPositiv && t >= 0.0) break;
+                else if(!bPositiv && t <= 0.0) break;
+            }
 		}
 
 		// if not found

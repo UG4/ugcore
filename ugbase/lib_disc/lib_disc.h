@@ -108,6 +108,8 @@
 
 #include "spatial_disc/disc_util/fe_geom.h"
 #include "spatial_disc/disc_util/fv1_geom.h"
+#include "spatial_disc/disc_util/fv1FT_geom.h"
+#include "spatial_disc/disc_util/fv1Cut_geom.h"
 #include "spatial_disc/disc_util/fvcr_geom.h"
 #include "spatial_disc/disc_util/fv_output.h"
 #include "spatial_disc/disc_util/fv_util.h"

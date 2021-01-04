@@ -1,0 +1,70 @@
+/* Info File on the influence of the local-to-global mapping on the mathematical ansatz space */
+
+
+Depending on the choice of the local-to-global mapping, the ansatz space on a cut element will differ:
+On a cut element, in the first assembling step, local couplings will be computed for ALL the intersection points of the interface with the edges of the cut element. That is, to apply the usual discretisation scheme for the new TFVGeom object. The mapping of these couplings to its associated global indices finally defines the property of the underlying finite element space. In UG4 two different variants are implemented:
+
+
+Case 1: Each coupling is mapped to its own, designated global index, i.e. DoF. The resulting space will be the usual finite element space w.r.t. the interface adaped grid. It contains additional nodes along the interface and (virtually) consists of cut elements and original elements. The resulting ansatz space is a boundary fitted space, which conforms the immersed boundary.
+
+Case 2: The local coupling of an intersection point is mapped onto the global index of the original node, which lies accross the interface, but on the corner of the same element. The resulting finite element space will potentially be smaller than the one of the cut element, since two and more (in 3d) intersection points can share the same node accross the interface. The resulting space is a so called "flat top" space, since it results in piecewise constant solutions along the connecting hyperplane between these intersection points. In the picture below, the two 'plus'-nodes will be algebraically mapped, i.e. associated, with the 'minus'-node on the triangle.
+
+
+
+The 'ParticleMapper' class of the 'MovingParticle' derivation of the 'ImmersedInterface' class, is of type case 2:
+It maps all couplings of intersection points to the same translational (and in analogy to the rotational) global index. Therefore, the 'ParticleMapper' is a flat-top mapper.
+
+In contrast, the 'DiffusionInterfaceMapper' is of type case 1:
+In particular, it is a tow-sided mapper (see the depicted two 'configurations' below) and the resulting space is an interface adapted space.
+
+
+
+
+Original element without interface: 3 corners and standard DoFs, depicted by '*':
+
+        *
+       / \
+      /   \
+     /     \
+    /       \
+   /         \
+  /           \
+ /             \
+* _____________ *
+
+
+Assume, that an interface cuts the original element, such that it gets devided into the upper triangle (which we define as lying accross the interface, i.e. outside the domain) and the lower quadrilateral (which we define as inside the domain). The two lower corners are still DoFs of the system. In order to describe the cut element, i.e. the quadrilateral, we add the two intersection points as new corners, depicted by '+' and remove the upper corner.
+==> inserting those four coordinates into the element geometry class TFVGeom will directly realize the function space on the adapted element.
+
+
+
+First configuration of the TWO-SIDED case:
+
+
+        -
+       / \
+      /out\
+.....+.....+.....   = interface
+    /       \
+   /         \
+  /  inside   \
+ /   domain    \
+* _____________ *
+
+
+
+
+Second configuration of the TWO-SIDED case:
+
+        *
+       / \
+      / in\
+.....+.....+.....   = interface
+    /       \
+   /         \
+  /  outside  \
+ /   domain    \
+- _____________ -
+
+
+

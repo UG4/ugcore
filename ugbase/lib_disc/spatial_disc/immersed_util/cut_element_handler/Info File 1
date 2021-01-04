@@ -1,0 +1,102 @@
+/* Info File for 'CutElementHandlerBase' class: */
+
+
+There are 4 categories of elements --> 'ElementModus':
+
+- INSIDE_DOM:       all vertices lie inside the domain, i.e. 'is_outsideDomain(vrt) = false'
+- OUTSIDE_DOM:      all vertices lie outside the domain, i.e. 'is_outsideDomain(vrt) = true'
+- CUT_BY_INTERFACE: vertices lie inside AND outside the domain
+- CUT_BY_2_INTERFACE: vertices lie inside the domain AND outside of two different parts of the domain OR only outside of two different parts of the domain
+
+
+There are 3 categories of vertices --> 'VertexModus':
+
+- INSIDE:           'is_outsideDomain(vrt) = false'
+- OUTSIDE:          'is_outsideDomain(vrt) = true'
+- ON_INTERFACE:     'is_nearInterface(vrt) = true'
+                            OR
+                    'is_outsideDomain(vrt) = true' && vrt lies on an element which is 'CUT_BY_INTERFACE'
+
+
+
+The following relations derive from their categorisation:
+
+  ON_INTERFACE is contained in OUTSIDE
+
+
+REMARK 1: Only ON_INTERFACE-vertices, which are 'no'(!) OUTSIDE-vertices count as DoFs of the according domain.
+        That is the reason, why they are taged separately.
+
+REMARK 2: The near-interface vertices are a subset of the ON_INTERFACE vertices. They are treated similarly. But since there is no need to compute an intersection point ( the discrete interface is moved onto these points, since the computation of the real cut would result in small cut elements), its distinction via the boolian 'is_nearInterface(vrt)' and the assocated BoolMarker 'm_spNearInterfaceVrtMarker' is provided.
+
+
+
+The 3 main methods in the class provide access to the information on the VertexModus:
+
+- bool is_onInterfaceVertex(Vertex* vrt, size_t vrtIndex)
+- bool is_OutsideVertex(Vertex* vrt, size_t vrtIndex)
+- bool is_nearInterfaceVertex(Vertex* vrt, size_t vrtIndex)
+
+
+The 'ElementModus' and 'VertexModus' are stored in data for LOCAL and GLOBAL access.
+
+---> For the LOCAL access and only the element, which is currently assembled:
+
+        'ElementModus':   in 'm_ElementModus'
+        'VertexModus':    in 'm_vvVertexModus'
+
+
+---> For the GLOBAL access and valid until the interface may change location due to motion:
+
+        'ElementModus': In the associated 'BoolMarker':
+                        - INSIDE in 'm_spInsideMarker'
+                        - OUTSIDE in 'm_spOutsideMarker'
+                        - CUT_BY_INTERFACE in 'm_spCutMarker'
+
+        'VertexModus': In the associated 'BoolMarker':
+                        - INSIDE in 'm_spInsideMarker'
+                        - OUTSIDE in 'm_spOutsideMarker'
+                        - ON_INTERFACE in 'm_spInterfaceVrtMarker'
+                       ( - near interface (no distinguished VertexModus) in 'm_spNearInterfaceVrtMarker')
+
+
+For methods, which need to loop over all cut elements, these elements are also stored in according lists:
+
+- m_vvElemList
+- m_vvElemListCut
+- m_vvElemListOutside
+
+REMARK: The first index of the double-vector inherits the level-index in case of a mutigrid mesh.
+The second index is simply the counter for the element.
+
+
+
+The main methods, which are used for the computation of the cut element data (via 'compute_element_modus()') are:
+
+- bool is_outsideDomain(Vertex* vrt, const number threshold = 1e-10);
+- bool is_nearInterface(Vertex* vrt, const number threshold = 1e-10);
+- number get_LSvalue(Vertex* vrt);
+
+---> They can/need to be implemented differently by the derived class.
+
+
+The method 'init()' initiates the computation of the cut element data:
+
+- the BoolMarker will be set
+- the m_vvElemList-lists will be set
+
+
+Further remarks:
+
+- It is possible to change the orientation of the interface, via 'set_orientation()'.
+    => All computations of the cut element data will be switched accordingly
+
+- for orientation = 1 and a circular interface, the inside of the circle will lie outside the domain
+
+- For a two-sided interface, i.e. where both parts of the interface are part of the
+    computational domain, all computations can be done for each orientation once
+    ( see for example the ImmersedInterfaceDiffusion implementation)
+
+
+
+

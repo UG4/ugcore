@@ -190,6 +190,22 @@ void CalculateSmoothManifoldPosInParentLevelButterflyScheme(MultiGrid& mg, TAPos
 													   AInt& aNumManifoldEdges);
 
 
+/// Parent level vertex smoothing function for subdivision surfaces refinement (Butterfly scheme)
+/** This function calculates the smoothed positions of all parent level vertices
+ * 	determined by the subdivision surfaces refinement.
+ *
+ * 	@param mg						reference to MultiGrid
+ * 	@param markSH					reference to SubsetHandler markSH containing marked (inner) boundary manifold
+ * 	@param linearManifoldSH			reference to user-specified linearManifoldSubsets SubsetHandler
+ * 	@param aSmoothBndPosOddVrt		reference to aSmoothBndPosOddVrt
+ * 	@param aNumManifoldEdges		reference to aNumManifoldEdges
+**/
+void CalculateSmoothManifoldPosInParentLevelButterflyScheme3d(MultiGrid& mg, MGSubsetHandler& markSH,
+											 	 	   MGSubsetHandler& linearManifoldSH,
+													   APosition& aSmoothBndPosOddVrt,
+													   AInt& aNumManifoldEdges);
+
+
 /// Toplevel vertex smoothing function for subdivision surfaces refinement (Averaging scheme)
 /** This function calculates the smoothed positions of all toplevel vertices
  * 	determined by the subdivision surfaces refinement.
@@ -309,6 +325,19 @@ void ApplySmoothManifoldPosToTopLevelLoopScheme(MultiGrid& mg, TAPosition& aPos,
 template <class TAPosition>
 void ApplySmoothManifoldPosToTopLevelButterflyScheme(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& markSH,
 												     MGSubsetHandler& linearManifoldSH);
+
+
+/// Toplevel vertex repositioning function for subdivision surfaces refinement (Butterfly scheme)
+/** This function repositions all toplevel manifold vertices to their smoothed positions
+ * 	determined by the subdivision surfaces refinement.
+ *
+ * 	@param mg						reference to MultiGrid
+ * 	@param markSH					reference to SubsetHandler markSH containing marked (inner) boundary manifold
+ * 	@param linearManifoldSH			reference to user-specified linearManifoldSubsets SubsetHandler
+ * 	@param aSmoothBndPosOddVrt		reference to aSmoothBndPosOddVrt
+**/
+void ApplySmoothManifoldPosToTopLevelButterflyScheme3d(MultiGrid& mg, MGSubsetHandler& markSH,
+												MGSubsetHandler& linearManifoldSH);
 
 
 /// Toplevel vertex repositioning function for subdivision surfaces refinement (Averaging scheme)

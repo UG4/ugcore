@@ -491,6 +491,10 @@ assemble_jacobian(matrix_type& J,
 		pModifyMemory = u.clone();
 		pModifyU = pModifyMemory.get();
 		try{
+            m_spAssTuner->modify_GlobalSol(*pModifyMemory, u, dd);
+        } UG_CATCH_THROW("Cannot modify local solution.");
+        
+        try{
 		for(int type = 1; type < CT_ALL; type = type << 1){
 			if(!(m_spAssTuner->constraint_type_enabled(type))) continue;
 			for(size_t i = 0; i < m_vConstraint.size(); ++i)
@@ -668,6 +672,10 @@ assemble_defect(vector_type& d,
 		pModifyMemory = u.clone();
 		pModifyU = pModifyMemory.get();
 		try{
+            m_spAssTuner->modify_GlobalSol(*pModifyMemory, u, dd);
+        } UG_CATCH_THROW("Cannot modify local solution.");
+        
+        try{
 		for(int type = 1; type < CT_ALL; type = type << 1){
 			if(!(m_spAssTuner->constraint_type_enabled(type))) continue;
 			for(size_t i = 0; i < m_vConstraint.size(); ++i)
@@ -1407,6 +1415,10 @@ assemble_jacobian(matrix_type& J,
 	if( m_spAssTuner->modify_solution_enabled() ){
 		pModifyMemory = vSol->clone();
 		pModifyU = pModifyMemory;
+        try{
+            m_spAssTuner->modify_GlobalSol(pModifyMemory, vSol, dd);
+        } UG_CATCH_THROW("Cannot modify local solution.");
+        
 		try{
 		for(int type = 1; type < CT_ALL; type = type << 1){
 			if(!(m_spAssTuner->constraint_type_enabled(type))) continue;
@@ -1587,6 +1599,10 @@ assemble_defect(vector_type& d,
 		pModifyMemory = vSol->clone();
 		pModifyU = pModifyMemory;
 		try{
+            m_spAssTuner->modify_GlobalSol(pModifyMemory, vSol, dd);
+        } UG_CATCH_THROW("Cannot modify local solution.");
+        
+        try{
 		for(int type = 1; type < CT_ALL; type = type << 1){
 			if(!(m_spAssTuner->constraint_type_enabled(type))) continue;
 			for(size_t i = 0; i < m_vConstraint.size(); ++i)

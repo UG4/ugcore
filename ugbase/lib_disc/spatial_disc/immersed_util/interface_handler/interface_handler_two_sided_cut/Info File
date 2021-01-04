@@ -1,0 +1,22 @@
+/* Info File for 'InterfaceHandlerDiffusion' class: */
+
+
+ATTENTION: only implemented and tested for 2d case!
+
+For the simulation of elliptic problems with discontinuous coefficients, the domain on BOTH sides of the interface in part of the physical domain. Therefore, DOUBLE data needs to be provided locally for each cut element, for each cut part of either domain.
+
+=> All data structure, which stores local indices (like m_vInterfaceID, m_vRealCornerID) get the distinction via _tri, _quad (for 2d case only!).
+
+=> For the assembling within the local-to-global mapper, the usual local stiffnes matrix and defect can not be used. Specific data storage is provided by the 'InterfaceHandlerDiffusion' (see new members below).
+
+
+==> Most important new members:
+
+- LocalMatrix m_locJ_tri;
+- LocalMatrix m_locJ_quad;
+- LocalVector m_locD_tri;
+- LocalVector m_locD_quad;
+- LocalVector m_locU_tri;
+- LocalVector m_locU_quad;
+
+---> Local assembling data which gets forwarded to the local-to-global mapper.

@@ -1,0 +1,39 @@
+/* Info File for 'CutElementHandler_FlatTop' and 'CutElementHandler_TwoSided' class: */
+
+The two derived classes contain additional data:
+
+- They inherit the special instance 'ParticleProvider' as interface provider.
+
+- They inherit special methods to acces infos of the according 'InterfaceProvider' class.
+
+- Since the 'ParticleProvider' can hold many particles, the index of a particle is an additional parameter:
+    => the element lists get a third index for the particle index: m_vvvElemList
+    => new methods for access: get_prtIndex() and get_prtIndex(dof)
+
+
+
+
+Further remarks to 'CutElementHandler_FlatTop' class:
+
+- The class is member of the 'MovingParticle' class. In a moving particle simulation, the domain of a particle contains arbitrary many vertices, which algebraically act as DoFs. Since the particle only possesses the translational and rotational velocity as parameter, only 3 (for 2 space dimensions) or 6 (for 3 space dimensions) DoFs need to be associated to the particle domain.
+
+- Beside cut element information, also information on the global indices of those DoFs needs to be computed and provided.
+
+- During initilisation of the inteface, not only the BoolMarker and element lists are set up, but also the global indices for transVel und rotVel: --> additional method 'update_global_indices()'
+
+New class member:
+    'm_vvvGlobalIndices_linearVel' and 'm_vvvGlobalIndices_linearVel'
+
+
+
+
+Further remarks to 'CutElementHandler_TwoSided' class:
+
+- The class is member of the 'ImmersedInterfaceDiffusion' class. For the application of elliptic problems with discontinuous coefficients, the domain on BOTH sides of the interface in part of the physical domain.
+
+- The cut element assembling process needs to be performed TWICE:
+    --> first:  for orientation = 1  and on the according cut part of the element
+    --> second: for orientation = -1 and on the according cut part of the element
+
+New class member:
+    'm_MapNearVertices' and 'm_verticesNearPos'

@@ -1,0 +1,8 @@
+/* Info File for 'InterfaceHandlerLocalParticle' class: */
+
+In addition to the data provided by the base class, the 'InterfaceHandlerLocal' for the moving particle simulation needs to provide infomation on radial data: The discrete scheme for the angular momentum contains the cross product with the radial vector.
+
+==> Most important new class members:
+
+- std::vector<MathVector<dim> > m_vRadialAtIP;
+- std::vector<MathVector<dim> > m_vRadialAtCo;
