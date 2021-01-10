@@ -41,6 +41,7 @@
 #include "bridge/util_domain_algebra_dependent.h"
 
 // lib_disc includes
+#include "lib_disc/common/marking_utils.h"
 #include "lib_disc/function_spaces/grid_function.h"
 #include "lib_disc/function_spaces/approximation_space.h"
 #include "lib_disc/function_spaces/error_indicator.h"
@@ -208,7 +209,13 @@ static void DomainAlgebra(Registry& reg, string grp)
 	{
 		reg.add_function("Restrict", &Restrict<TDomain, TAlgebra>, grp);
 	}
-	
+
+	// MarkOutOfRangeElems
+	typedef GridFunction<TDomain, TAlgebra> TGridFunction;
+	reg.add_function("MarkOutOfRangeElems", static_cast<void (*) (SmartPtr<IRefiner>, ConstSmartPtr<TGridFunction>, size_t, number, number)>(MarkOutOfRangeElems<TGridFunction>),
+		grp.c_str(), "", "refiner # grid function # component # lower bound # upper bound",
+		"Marks elements next to out-of-range DoFs for refinement");
+
 }
 
 /**
@@ -389,6 +396,11 @@ static void Domain(Registry& reg, string grp)
 										.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "AbsoluteMarking", tag);
 	}
+
+	reg.add_function("MarkGlobal", &MarkGlobal<TDomain>, grp.c_str(), "", "refiner#domain", "");
+	reg.add_function("MarkSubsets", &MarkSubsets<TDomain>, grp.c_str(), "", "refiner#domain#subset names (as vector of string)", "");
+	reg.add_function("MarkAnisotropic", &MarkAnisotropic<TDomain>, grp.c_str(), "", "refiner#domain#anisotropy threshold (<=1)", "");
+	reg.add_function("MarkAnisotropicX", &MarkAnisotropicOnlyX<TDomain>, grp.c_str(), "", "refiner#domain#anisotropy threshold (<=1)", "");
 }
 
 /**
