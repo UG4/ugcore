@@ -100,6 +100,61 @@ void MarkSubsets
 
 
 template <typename TDomain>
+void MarkAlongSurface
+(
+	SmartPtr<IRefiner> refiner,
+	SmartPtr<TDomain> domain,
+	const std::vector<std::string>& surfaceSubsets,
+	const std::vector<std::string>& volumeSubsets
+)
+{
+	typedef typename domain_traits<TDomain::dim>::element_type elem_type;
+	typedef typename MultiGrid::traits<elem_type>::secure_container elem_list_type;
+	typedef typename SurfaceView::traits<Vertex>::const_iterator iter_type;
+
+	const size_t nSurf = surfaceSubsets.size();
+	UG_COND_THROW(volumeSubsets.size() != nSurf, "Same number of surface and volume subsets required.");
+
+	Grid* grid = refiner->grid();
+	SmartPtr<MGSubsetHandler> spSH = domain->subset_handler();
+	const SurfaceView sv(spSH);
+
+	for (size_t i = 0; i < nSurf; ++i)
+	{
+		int surf_si;
+		int vol_si;
+		try
+		{
+			surf_si = spSH->get_subset_index(surfaceSubsets[i].c_str());
+			vol_si = spSH->get_subset_index(volumeSubsets[i].c_str());
+		}
+		UG_CATCH_THROW("Cannot convert subset names " << surfaceSubsets[i] << " and "
+			<< volumeSubsets[i] << " to indices.");
+
+		//	loop elements for marking
+		iter_type iter = sv.begin<Vertex>(surf_si, GridLevel(), SurfaceView::MG_ALL);
+		iter_type iterEnd = sv.end<Vertex>(surf_si, GridLevel(), SurfaceView::MG_ALL);
+		for (; iter != iterEnd; ++iter)
+		{
+			Vertex* v = *iter;
+			elem_list_type el;
+			grid->associated_elements(el, v);
+			size_t el_sz = el.size();
+			for (size_t j = 0; j < el_sz; ++j)
+			{
+				int elem_si = spSH->get_subset_index(el[j]);
+				if (elem_si == vol_si && !sv.surface_state(el[j]).contains(SurfaceView::MG_SHADOW_PURE))
+				{
+					// mark the element for anisotropic refinement
+					refiner->mark(el[j], RM_REFINE);
+				}
+			}
+		}
+	}
+}
+
+
+template <typename TDomain>
 void MarkAnisotropic
 (
 	SmartPtr<IRefiner> refiner,
@@ -210,18 +265,24 @@ void MarkAnisotropicOnlyX
 #ifdef UG_DIM_1
 	template void MarkGlobal<Domain1d>(SmartPtr<IRefiner>, SmartPtr<Domain1d>);
 	template void MarkSubsets<Domain1d>(SmartPtr<IRefiner>, SmartPtr<Domain1d>, const std::vector<std::string>&);
+	template void MarkAlongSurface(SmartPtr<IRefiner>, SmartPtr<Domain1d>, const std::vector<std::string>&,
+		const std::vector<std::string>&);
 	template void MarkAnisotropic<Domain1d>(SmartPtr<IRefiner>, SmartPtr<Domain1d>, number);
 	template void MarkAnisotropicOnlyX<Domain1d>(SmartPtr<IRefiner>, SmartPtr<Domain1d>, number);
 #endif
 #ifdef UG_DIM_2
 	template void MarkGlobal<Domain2d>(SmartPtr<IRefiner>, SmartPtr<Domain2d>);
 	template void MarkSubsets<Domain2d>(SmartPtr<IRefiner>, SmartPtr<Domain2d>, const std::vector<std::string>&);
+	template void MarkAlongSurface(SmartPtr<IRefiner>, SmartPtr<Domain2d>, const std::vector<std::string>&,
+		const std::vector<std::string>&);
 	template void MarkAnisotropic<Domain2d>(SmartPtr<IRefiner>, SmartPtr<Domain2d>, number);
 	template void MarkAnisotropicOnlyX<Domain2d>(SmartPtr<IRefiner>, SmartPtr<Domain2d>, number);
 #endif
 #ifdef UG_DIM_3
 	template void MarkGlobal<Domain3d>(SmartPtr<IRefiner>, SmartPtr<Domain3d>);
 	template void MarkSubsets<Domain3d>(SmartPtr<IRefiner>, SmartPtr<Domain3d>, const std::vector<std::string>&);
+	template void MarkAlongSurface(SmartPtr<IRefiner>, SmartPtr<Domain3d>, const std::vector<std::string>&,
+		const std::vector<std::string>&);
 	template void MarkAnisotropic<Domain3d>(SmartPtr<IRefiner>, SmartPtr<Domain3d>, number);
 	template void MarkAnisotropicOnlyX<Domain3d>(SmartPtr<IRefiner>, SmartPtr<Domain3d>, number);
 #endif

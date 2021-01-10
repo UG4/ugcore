@@ -67,6 +67,22 @@ void MarkSubsets
 
 
 /**
+ * @brief Mark elements neighboring a surface
+ *
+ * For a given pair of surface subset and volume subset, marks all full-dim elements
+ * of the volume subset for refinement that have at least one vertex in the surface subset.
+ */
+template <typename TDomain>
+void MarkAlongSurface
+(
+	SmartPtr<IRefiner> refiner,
+	SmartPtr<TDomain> domain,
+	const std::vector<std::string>& surfaceSubsets,
+	const std::vector<std::string>& volumeSubsets
+);
+
+
+/**
  * @brief Mark all anisotropic elements of the surface grid for ansiotropic refinement
  *
  * Whether an element is isotropic or not is decided using the is_anisotropic() functions

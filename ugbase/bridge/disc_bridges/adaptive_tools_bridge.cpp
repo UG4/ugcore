@@ -399,6 +399,7 @@ static void Domain(Registry& reg, string grp)
 
 	reg.add_function("MarkGlobal", &MarkGlobal<TDomain>, grp.c_str(), "", "refiner#domain", "");
 	reg.add_function("MarkSubsets", &MarkSubsets<TDomain>, grp.c_str(), "", "refiner#domain#subset names (as vector of string)", "");
+	reg.add_function("MarkAlongSurface", &MarkAlongSurface<TDomain>, grp.c_str(), "", "refiner#domain#vector of surface names#vector of volume names", "");
 	reg.add_function("MarkAnisotropic", &MarkAnisotropic<TDomain>, grp.c_str(), "", "refiner#domain#anisotropy threshold (<=1)", "");
 	reg.add_function("MarkAnisotropicX", &MarkAnisotropicOnlyX<TDomain>, grp.c_str(), "", "refiner#domain#anisotropy threshold (<=1)", "");
 }
