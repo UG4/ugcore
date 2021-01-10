@@ -262,7 +262,7 @@ bool NestedIterationSolver<TDomain,TAlgebra>::apply(vector_type& u)
 
 		// Assemble.
 		NESTED_ITER_PROFILE_BEGIN(NestedIterationAssemble);
-		m_spAss->assemble_linear(*m_J, *spD, surfGridLevel);   // todo: replace for non-linear problems
+		m_spAss->assemble_linear(*m_J, *spD, u, surfGridLevel);   // todo: replace for non-linear problems
 		m_spAss->adjust_solution(u, surfGridLevel);
 		NESTED_ITER_PROFILE_END();
 

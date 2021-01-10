@@ -43,24 +43,12 @@ static void setConstrainedRow
 (
 	TMatrix& J,
 	size_t constrdInd,
-	const std::vector<size_t>& vConstrgInd,
-	bool assembleLinearProblem
+	const std::vector<size_t>& vConstrgInd
 )
 {
-	const size_t nConstrg = vConstrgInd.size();
-
 	// set a unity row
 	SetRow(J, constrdInd, 0.0);
 	J(constrdInd, constrdInd) = 1.0;
-
-	// set an interpolation row
-	// this is only required if assembling for a linear problem.
-	if (assembleLinearProblem)
-	{
-		const number frac = 1.0 / nConstrg;
-		for (size_t k = 0; k < nConstrg; ++k)
-			J(constrdInd, vConstrgInd[k]) = -frac;
-	}
 }
 
 
@@ -293,6 +281,10 @@ adjust_rhs(vector_type& rhs, const vector_type& u,
 
 	//	adapt rhs
 		SplitAddRhs_Symmetric(rhs, constrainedInd, vConstrainingInd);
+
+		const size_t nCstrd = constrainedInd.size();
+		for (size_t i = 0; i < nCstrd; ++i)
+			rhs[constrainedInd[i]] = u[constrainedInd[i]];
 	}
 }
 
@@ -467,7 +459,7 @@ adjust_jacobian(matrix_type& J, const vector_type& u,
 		splitConstrainedRowSymmetric(J, constrdInd, vConstrgInd);
 
 		// set identity row (or interpolating row in linear case)
-		setConstrainedRow(J, constrdInd, vConstrgInd, m_bAssembleLinearProblem);
+		setConstrainedRow(J, constrdInd, vConstrgInd);
 	}
 
 	// apply chain rule, i.e., also split constrained columns
@@ -478,11 +470,9 @@ adjust_jacobian(matrix_type& J, const vector_type& u,
 template <typename TDomain, typename TAlgebra>
 void
 SymP1Constraints<TDomain,TAlgebra>::
-adjust_linear(matrix_type& mat, vector_type& rhs,
+adjust_linear(matrix_type& mat, vector_type& rhs, const vector_type& u,
               ConstSmartPtr<DoFDistribution> dd, int type, number time)
 {
-	m_bAssembleLinearProblem = true;
-
 	if (this->m_spAssTuner->single_index_assembling_enabled())
 		UG_THROW("index-wise assemble routine is not "
 				"implemented for SymP1Constraints \n");
@@ -504,9 +494,10 @@ adjust_linear(matrix_type& mat, vector_type& rhs,
 
 		// split original rhs entry
 		splitConstrainedRhsEntrySymmetric(rhs, constrdInd, vConstrgInd);
+		rhs[constrdInd] = u[constrdInd];
 
 		// set identity row (or interpolating row in linear case)
-		setConstrainedRow(mat, constrdInd, vConstrgInd, m_bAssembleLinearProblem);
+		setConstrainedRow(mat, constrdInd, vConstrgInd);
 	}
 
 	// apply chain rule, i.e., also split constrained columns
@@ -561,8 +552,6 @@ adjust_prolongation
 	number time
 )
 {
-	if (m_bAssembleLinearProblem) return;
-
 	if (this->m_spAssTuner->single_index_assembling_enabled())
 			UG_THROW("index-wise assemble routine is not "
 					"implemented for SymP1Constraints \n");
@@ -876,6 +865,10 @@ adjust_rhs(vector_type& rhs, const vector_type& u,
 
 	//	adapt rhs
 		SplitAddRhs_OneSide(rhs, constrainedInd, vConstrainingInd);
+
+		const size_t nCstrd = constrainedInd.size();
+		for (size_t i = 0; i < nCstrd; ++i)
+			rhs[constrainedInd[i]] = u[constrainedInd[i]];
 	}
 }
 
@@ -991,7 +984,7 @@ adjust_jacobian(matrix_type& J, const vector_type& u,
 		splitConstrainedRowOneSide(J, constrdInd, vConstrgInd);
 
 		// set identity row (or interpolating row in linear case)
-		setConstrainedRow(J, constrdInd, vConstrgInd, m_bAssembleLinearProblem);
+		setConstrainedRow(J, constrdInd, vConstrgInd);
 	}
 
 	// apply chain rule, i.e., also split constrained columns
@@ -1002,11 +995,9 @@ adjust_jacobian(matrix_type& J, const vector_type& u,
 template <typename TDomain, typename TAlgebra>
 void
 OneSideP1Constraints<TDomain,TAlgebra>::
-adjust_linear(matrix_type& mat, vector_type& rhs,
+adjust_linear(matrix_type& mat, vector_type& rhs, const vector_type& u,
               ConstSmartPtr<DoFDistribution> dd, int type, number time)
 {
-	m_bAssembleLinearProblem = true;
-
 	if (this->m_spAssTuner->single_index_assembling_enabled())
 		UG_THROW("index-wise assemble routine is not "
 				"implemented for OneSideP1Constraints");
@@ -1028,9 +1019,10 @@ adjust_linear(matrix_type& mat, vector_type& rhs,
 
 		// split original rhs entry
 		splitConstrainedRhsEntryOneSide(rhs, constrdInd, vConstrgInd);
+		rhs[constrdInd] = u[constrdInd];
 
 		// set identity row (or interpolating row in linear case)
-		setConstrainedRow(mat, constrdInd, vConstrgInd, m_bAssembleLinearProblem);
+		setConstrainedRow(mat, constrdInd, vConstrgInd);
 	}
 
 	// apply chain rule, i.e., also split constrained columns
@@ -1086,8 +1078,6 @@ adjust_prolongation
 	number time
 )
 {
-	if (m_bAssembleLinearProblem) return;
-
 	if (this->m_spAssTuner->single_index_assembling_enabled())
 			UG_THROW("index-wise assemble routine is not "
 					"implemented for SymP1Constraints \n");
