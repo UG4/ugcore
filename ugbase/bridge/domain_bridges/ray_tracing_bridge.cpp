@@ -38,6 +38,7 @@
 #include "lib_grid/algorithms/space_partitioning/lg_ntree.h"
 #include "lib_grid/tools/subset_group.h"
 
+#include <lib_grid/algorithms/projections/overlying_subset_finder.hpp>
 
 using namespace std;
 
@@ -159,6 +160,39 @@ struct Functionality {
 				.add_method("trace_point_y", &T::trace_point_y, "yCoord", "index", "")
 				.add_method("trace_point_z", &T::trace_point_z, "zCoord", "index", "");
 	}
+
+
+
+	/**
+	 * Function called for the registration of Domain dependent parts.
+	 * All Functions and Classes depending on the Domain
+	 * are to be placed here when registering. The method is called for all
+	 * available Domain types, based on the current build options.
+	 *
+	 * @param reg				registry
+	 * @param parentGroup		group for sorting of functionality
+	 */
+	template <typename TDomain>
+	static void Domain(Registry& reg, string grp)
+	{
+		typedef TDomain domain_type;
+
+		typedef OverlyingSubsetFinder<TDomain> T;
+
+		string suffix = GetDomainSuffix<TDomain>();
+		string tag = GetDomainTag<TDomain>();
+
+
+		string name = string("OverlyingSubsetFinder").append(suffix);
+		
+		reg.add_class_<T>(name, grp)
+				.template add_constructor<void (*)(SmartPtr<domain_type>, const std::string& subsets)> ()
+				.add_method("findOverlyingSubset", &T::findOverlyingSubset, "", "point to search over", "")
+				.set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, "OverlyingSubsetFinder", tag);
+						
+	}
+
 }; // end Functionality
 
 }  // end of namespace domain_ray_tracing
@@ -167,6 +201,7 @@ void RegisterBridge_DomainRayTracing(Registry& reg, string grp) {
 	grp.append("/RayTracing");
 
 	try {
+		RegisterDomain2d3dDependent<domain_ray_tracing::Functionality>(reg, grp);
 #ifdef UG_DIM_3
 		RegisterCommon<domain_ray_tracing::Functionality>(reg, grp);
 #endif

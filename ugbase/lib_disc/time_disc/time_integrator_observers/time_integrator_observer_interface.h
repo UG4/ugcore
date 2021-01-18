@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2013-2015:  G-CSC, Goethe University Frankfurt
- * Author: Sebastian Reiter
+ * Copyright (c) 2010-2020:  G-CSC, Goethe University Frankfurt
+ * Author: Arne Naegel, Andreas Kreienbuehl, Tim Schön
  * 
  * This file is part of UG4.
  * 
@@ -30,49 +30,24 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <string>
-#include <vector>
-#include <cstring>
-#include "common/log.h"
-#include "bridge/bridge.h"
-#include "common/profiler/profiler.h"
-#include "path_provider.h"
-#include "plugin_util.h"
-#include "embedded_plugins.h"	// created by cmake in the build directory
+#ifndef __H__UG__LIB_DISC__TIME_DISC__TIME_INTEGRATOR_OBSERVERS__TIME_INTEGRATOR_OBSERVER_INTERFACE
+#define __H__UG__LIB_DISC__TIME_DISC__TIME_INTEGRATOR_OBSERVERS__TIME_INTEGRATOR_OBSERVER_INTERFACE
 
-using namespace std;
+#include <registry/class.h>
 
-namespace ug{
+namespace ug {
 
-bool PluginLoaded(const string &name)
+/// Abstract base class for time integration observer
+template<class TDomain, class TAlgebra>
+class ITimeIntegratorObserver
 {
-	string searchStr;
-	searchStr.append(" ").append(name).append(" ");
-	return (strstr(ListOfEmbeddedPlugins(), searchStr.c_str()) != NULL);
+public:
+	typedef GridFunction<TDomain, TAlgebra> grid_function_type;
+
+	virtual ~ITimeIntegratorObserver() {}
+	virtual bool step_process(SmartPtr<grid_function_type> u, int step, number time, number dt)  = 0 ;
+};
+
 }
 
-bool LoadPlugins(const char*, string parentGroup, bridge::Registry& reg, bool bPrefixGroup)
-{
-	InitializeEmbeddedPlugins(&reg, parentGroup);
-	return true;
-}
-
-bool UnloadPlugins()
-{
-	return true;
-}
-
-vector<string> GetLoadedPlugins()
-{
-	string plugins = string(ListOfEmbeddedPlugins());
-
-	std::stringstream ss(plugins);
-	std::istream_iterator<std::string> begin(ss);
-	std::istream_iterator<std::string> end;
-	std::vector<std::string> pluginNames(begin, end);
-	std::copy(pluginNames.begin(), pluginNames.end(), std::ostream_iterator<std::string>(std::cout, "\n"));
-
-	return pluginNames;
-}
-
-}// end of namespace
+#endif

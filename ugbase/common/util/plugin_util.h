@@ -34,6 +34,7 @@
 #define __H__UG__plugin_util__
 
 #include <string>
+#include <vector>
 #include "common/ug_config.h"
 #include "registry/registry.h"
 
@@ -48,6 +49,7 @@ UG_API bool LoadPlugins(const char* pluginPath, std::string parentGroup,
 						bridge::Registry& reg, bool bPrefixGroup=false);
 UG_API bool UnloadPlugins();
 UG_API bool PluginLoaded(const std::string &name);
+UG_API std::vector<std::string> GetLoadedPlugins();
 
 // end group ugbase_common_util
 /// \}

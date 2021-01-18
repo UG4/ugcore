@@ -38,6 +38,7 @@
 #include <cstring>
 #include <string>
 #include <boost/type_traits.hpp>
+#include <boost/optional.hpp>
 
 #include "parameter_stack.h"
 #include "function_traits.h"
@@ -144,10 +145,14 @@ class ExportedMethod : public ExportedFunctionBase
 		void create_parameter_stack()
 		{
 			ExportedFunctionBase::create_parameter_stack<TFunc>();
+			m_customReturn = func_traits<TFunc>::custom_return;
 		}
 		
 	///	returns the class name this method belongs to
 		const std::string& class_name() const {return m_className;}
+
+	/// returns true if this method handles its own return of values to lua
+		bool has_custom_return() const {return m_customReturn;}
 
 	private:
 	/// pointer to function (stored in a wrapper)
@@ -158,6 +163,8 @@ class ExportedMethod : public ExportedFunctionBase
 
 	/// name of class this method belongs to
 		std::string m_className;
+
+		bool m_customReturn;
 
 #ifdef PROFILE_BRIDGE
 		mutable RuntimeProfileInfo m_dpi;
@@ -315,6 +322,28 @@ struct MethodProxy<TClass, TMethod, void>
 	}
 };
 
+template <typename TClass, typename TMethod>
+struct MethodProxy<TClass, TMethod, CustomReturn>
+{
+	static void apply(const MethodPtrWrapper& method, void* obj,
+	                  const ParameterStack& in, ParameterStack& out)
+	{
+	//  cast to method pointer
+		TMethod mptr = *(TMethod*) method.get_raw_ptr();
+
+	//  cast object to type
+		TClass* objPtr = (TClass*) (obj);
+
+	//  get parameter
+		typedef typename func_traits<TMethod>::params_type params_type;
+		ParameterStackToTypeValueList<params_type> args(in);
+
+	//  apply method
+		func_traits<TMethod>::apply(mptr, objPtr, args);
+	}
+};
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Exported Constructor
 ////////////////////////////////////////////////////////////////////////////////
@@ -462,6 +491,9 @@ void DestructorProxy(void* obj)
 // Interface Exported Class
 ////////////////////////////////////////////////////////////////////////////////
 
+
+class JSONConstructible {};
+
 /// Base class for exported Classes
 class IExportedClass
 {
@@ -527,6 +559,12 @@ class IExportedClass
 
 	///	get exported constructor
 		virtual const ExportedConstructor& get_constructor(size_t i) const = 0;
+
+	/// get constructor for construction from json
+		virtual const boost::optional<ExportedConstructor&> get_json_constructor() const = 0;
+
+	/// get constructor for construction from json
+		virtual const bool is_json_constructible() const = 0;
 
 	///	true if the class shall be wrapped in a SmartPtr on construction
 		virtual bool construct_as_smart_pointer() const = 0;
@@ -601,6 +639,9 @@ class ExportedClassBaseImpl : public IExportedClass
 
 	///	get exported constructor
 		virtual const ExportedConstructor& get_constructor(size_t i) const;
+
+	/// get constructor for construction from json
+		virtual const boost::optional<ExportedConstructor&> get_json_constructor() const;
 
 	///	returns whether the class shall be wrapped in a SmartPtr on construction
 		virtual bool construct_as_smart_pointer() const;
@@ -682,6 +723,9 @@ class ExportedClass : public ExportedClassBaseImpl
 
 	///	get groups
 		virtual const std::string& group() const {return ClassNameProvider<TClass>::group();}
+
+	/// is json constructible
+		virtual const bool is_json_constructible() const { return std::is_base_of<JSONConstructible, TClass>::value; }
 
 	//\todo: remove this method, use class name nodes instead
 	///	class-hierarchy

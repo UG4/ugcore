@@ -57,6 +57,8 @@ ug_load_script("util/debug_util.lua")
 ug_load_script("util/command_line_util.lua")
 ug_load_script("util/common_util.lua")
 ug_load_script("util/refinement_util.lua")
+ug_load_script("util/plugin_util.lua")
+ug_load_script("util/lua_callback_util.lua")
 ug_load_script("util/json_util.lua")
 
 --------------------------------------------------------------------------------
@@ -144,28 +146,6 @@ function bool2string(boolB)
 end
 
 
---! 
---! @param pluginNamesList a list like {"amg", "d3f"} of plugins to check
-function RequiredPlugins(pluginNamesList)
-	local notLoadedNames = ""
-	local cmakePluginString = ""
-	for i,v in pairs(pluginNamesList) do
-		if PluginLoaded(v) == false then
-			notLoadedNames=notLoadedNames..v.." "
-			cmakePluginString = cmakePluginString.." -D"..v.."=ON"
-		end
-	end	
-	if notLoadedNames:len() > 0 then
-		print("Plugin(s) needed but not loaded: "..notLoadedNames)		
-		print("Please use \n   cmake "..cmakePluginString.." ..; make\nin your build directory to add the plugin(s).")
-		exit()
-	end
-	
-end
-
-function AssertPluginsLoaded(pluginNamesList)
-	RequiredPlugins(pluginNamesList)
-end
 
     
 ------ PARALLEL FILE OPEN FUNCTIONS ------ 
