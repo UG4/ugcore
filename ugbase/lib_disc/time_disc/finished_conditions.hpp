@@ -100,7 +100,7 @@ class TemporalFinishedCondition : public IFinishedCondition
 
 		bool check_finished(number time, int step)
 		{
-			return (time >= m_end_time) or ((m_end_time-time)/m_max_step_size <= m_relative_precision_bound);
+			return (time >= m_end_time) || ((m_end_time-time)/m_max_step_size <= m_relative_precision_bound);
 		}
 
 		void set_max_step_size(number max_step_size)
