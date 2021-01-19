@@ -1,9 +1,11 @@
 #include <common/util/string_util.h>
 #include "lib_grid/algorithms/space_partitioning/lg_ntree.h"
 #include <lib_grid/grid_objects/grid_dim_traits.h>
+#ifdef UG_PARALLEL
 #include "lib_grid/parallelization/gather_grid.h"
 #include "lib_grid/parallelization/broadcast.h"
 #include "lib_grid/parallelization/distributed_grid.h"
+#endif
 #include "lib_grid/file_io/file_io.h"
 
 namespace ug {
@@ -71,6 +73,9 @@ namespace ug {
 				// }
                 
             	//	copy the top Sides into a new grid
+
+				#ifdef UG_PARALLEL
+
                 GridDataSerializationHandler serializer;
                 serializer.add
                     (GeomObjAttachmentSerializer<Vertex, position_attachment_type>::create (mg, m_sp_domain->position_attachment ()));
@@ -84,6 +89,8 @@ namespace ug {
                     (GeomObjAttachmentSerializer<side_t, Attachment<int> >::create (m_top_grid, subset_index_attachment));
 
                 BroadcastGrid (m_top_grid, sel, serializer, deserializer, 0);
+
+				#endif
 
                 for (SideIterator it = m_top_grid.begin<side_t> (); it != m_top_grid.end<side_t> (); ++it)
                     topSides.push_back (*it);
