@@ -33,6 +33,7 @@
 #ifndef __H__UG__LIB_DISC__TIME_DISC__TIME_INTEGRATOR_SUBJECT
 #define __H__UG__LIB_DISC__TIME_DISC__TIME_INTEGRATOR_SUBJECT
 
+#include "./time_integrator_observers/time_integrator_observer_interface.h"
 
 namespace ug {
 
