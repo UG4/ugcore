@@ -19,6 +19,9 @@ public:
 	typedef GridFunction<TDomain, TAlgebra> grid_function_type;
 	typedef LuaFunction<number, number> lua_function_type;
 
+	LuaCallbackObserver()
+	: m_lua_callback(SPNULL), m_lua_id(0) {}
+
 	LuaCallbackObserver(int lua_id)
 	: m_lua_callback(SPNULL), m_lua_id(lua_id) {}
 
