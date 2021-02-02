@@ -612,6 +612,7 @@ static void DomainAlgebra(Registry& reg, string parentGroup)
 
 		string name = string("LuaCallbackObserver").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
+			.template add_constructor<void (*)() >("internal id=0")
 			.template add_constructor<void (*)(int) >("internal id")
 			.add_method("set_callback", &T::set_callback)
 			.add_method("get_current_solution", static_cast<SmartPtr<TGF> (T::*)() > (&T::get_current_solution))
