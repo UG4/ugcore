@@ -124,42 +124,46 @@ public:
 protected:
 	/// Notify all observers for a certain group.
 	template<int tGroup>
-	void notify_group(SmartPtr<grid_function_type> u, int step, number time, number dt)
+	bool notify_group(SmartPtr<grid_function_type> u, int step, number time, number dt)
 	{
 		process_observer_container_type &observers = m_vProcessObservers[tGroup];
+		
+		bool result = true;
 		for (typename process_observer_container_type::iterator it = observers.begin(); it!= observers.end(); ++it)
-		{(*it)->step_process(u, step, time, dt); }
-		//UG_LOG("TimeIntegratorSubject::notify_group[" << tGroup <<"]: " << observers.size() << " observers. " << this<< std::endl);
+		{
+			result = (*it)->step_process(u, step, time, dt) && result;				 			
+		}
+		return result;
 	}
 public:
 
 	/// notify all observers that time step evolution starts
-	void notify_init_step(SmartPtr<grid_function_type> u, int step, number time, number dt)
-	{ notify_group<TIO_GROUP_INIT_STEP>(u, step, time, dt); }
+	bool notify_init_step(SmartPtr<grid_function_type> u, int step, number time, number dt)
+	{ return notify_group<TIO_GROUP_INIT_STEP>(u, step, time, dt); }
 
 	/// Notify all observers that time step must be rewinded.
-	void notify_rewind_step(SmartPtr<grid_function_type> u, int step, number time, number dt)
-	{ notify_group<TIO_GROUP_REWIND_STEP>(u, step, time, dt); }
+	bool notify_rewind_step(SmartPtr<grid_function_type> u, int step, number time, number dt)
+	{ return notify_group<TIO_GROUP_REWIND_STEP>(u, step, time, dt); }
 
 	/// notify all observers that time step has been evolved (successfully)
-	void notify_finalize_step(SmartPtr<grid_function_type> u, int step, number time, number dt)
-	{ notify_group<TIO_GROUP_FINALIZE_STEP>(u, step, time, dt); }
+	bool notify_finalize_step(SmartPtr<grid_function_type> u, int step, number time, number dt)
+	{ return notify_group<TIO_GROUP_FINALIZE_STEP>(u, step, time, dt); }
 
 	/// notify all observers that newton solver is about to start (may happen multiple times per time step)
-	void notify_preprocess_step(SmartPtr<grid_function_type> u, int step, number time, number dt)
-	{ notify_group<TIO_GROUP_PREPROCESS_STEP>(u, step, time, dt); }
+	bool notify_preprocess_step(SmartPtr<grid_function_type> u, int step, number time, number dt)
+	{ return notify_group<TIO_GROUP_PREPROCESS_STEP>(u, step, time, dt); }
 
 	/// notify all observers that newton solver has finished (may happen multiple times per time step)
-	void notify_postprocess_step(SmartPtr<grid_function_type> u, int step, number time, number dt)
-	{ notify_group<TIO_GROUP_POSTPROCESS_STEP>(u, step, time, dt); }
+	bool notify_postprocess_step(SmartPtr<grid_function_type> u, int step, number time, number dt)
+	{ return notify_group<TIO_GROUP_POSTPROCESS_STEP>(u, step, time, dt); }
 
 	/// notify all observers that the simulation has started
-	void notify_start(SmartPtr<grid_function_type> u, int step, number time, number dt)
-	{ notify_group<TIO_GROUP_START>(u, step, time, dt); }
+	bool notify_start(SmartPtr<grid_function_type> u, int step, number time, number dt)
+	{ return notify_group<TIO_GROUP_START>(u, step, time, dt); }
 
 	/// notify all observers that the simulation has ended
-	void notify_end(SmartPtr<grid_function_type> u, int step, number time, number dt)
-	{ notify_group<TIO_GROUP_END>(u, step, time, dt); }
+	bool notify_end(SmartPtr<grid_function_type> u, int step, number time, number dt)
+	{ return notify_group<TIO_GROUP_END>(u, step, time, dt); }
 
 
 

@@ -429,12 +429,10 @@ function util.SolveNonlinearTimeProblem(
 				if util.debug_writer ~= nil then
 					util.debug_writer:leave_section ()
 				end
-				if type(pp_res) == "boolean" and pp_res == false then -- i.e. not nil, not something else, but "false"!
+				if pp_res == false then
 					print("\n++++++ Preparation of the time step failed.")
-				else
-					pp_res = true
+					break
 				end
-				if pp_res == false then break end
 				
 				for stage = 1, timeDisc:num_stages() do
 					if timeDisc:num_stages() > 1 then
@@ -449,7 +447,7 @@ function util.SolveNonlinearTimeProblem(
 					if util.debug_writer ~= nil then
 						util.debug_writer:leave_section ()
 					end
-					if type(pp_res) == "boolean" and pp_res == false then -- i.e. not nil, not something else, but "false"!
+					if pp_res == false then -- i.e. not nil, not something else, but "false"!
 						print("\n++++++ PreProcess failed.")
 						newtonSuccess = false
 						break
@@ -490,7 +488,7 @@ function util.SolveNonlinearTimeProblem(
 					if util.debug_writer ~= nil then
 						util.debug_writer:leave_section ()
 					end
-					if type(pp_res) == "boolean" and pp_res == false then -- i.e. not nil, not something else, but "false"!
+					if pp_res == false then -- i.e. not nil, not something else, but "false"!
 						print("\n++++++ PostProcess failed.")
 						newtonSuccess = false
 						break
@@ -527,7 +525,7 @@ function util.SolveNonlinearTimeProblem(
 					if util.debug_writer ~= nil then
 						util.debug_writer:leave_section ()
 					end
-					if type(pp_res) == "boolean" and pp_res == false then -- i.e. not nil, not something else, but "false"!
+					if pp_res == false then -- i.e. not nil, not something else, but "false"!
 						write("\n++++++ Finalization of the time step failed.")
 						newtonSuccess = false
 						break
