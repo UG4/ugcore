@@ -123,6 +123,10 @@ class LinearSolver
 							<< x.get_storage_type() << " for x (expected " << PST_CONSISTENT << ")");
 			#endif
 
+		//	debug output
+			if(this->vector_debug_writer_valid())
+				write_debug(b, std::string("LS_RHS") + ".vec");
+			
 		// 	rename b as d (for convenience)
 			vector_type& d = b;
 
