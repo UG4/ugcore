@@ -48,6 +48,30 @@ public:
 	virtual bool step_process(SmartPtr<grid_function_type> u, int step, number time, number dt)  = 0 ;
 };
 
+
+/// Any stage can be responded to by an observer.
+/// To decide at compile time, which stages an observer responds to, the observer needs to
+/// derive from a special StageObserver class for each stage it responds to.
+#define DECLARE_STAGE_OBSERVER(name) \
+	template <typename TDomain, typename TAlgebra>\
+	class ITimeIntegratorStageObserver_ ## name\
+	{\
+	public:\
+		typedef GridFunction<TDomain, TAlgebra> grid_function_type;\
+		\
+		virtual ~ITimeIntegratorStageObserver_ ## name() {}\
+		virtual bool name ## _action(SmartPtr<grid_function_type> u, int step, number time, number dt) = 0;\
+	};
+
+DECLARE_STAGE_OBSERVER(init)
+DECLARE_STAGE_OBSERVER(rewind)
+DECLARE_STAGE_OBSERVER(finalize)
+DECLARE_STAGE_OBSERVER(preprocess)
+DECLARE_STAGE_OBSERVER(postprocess)
+DECLARE_STAGE_OBSERVER(start)
+DECLARE_STAGE_OBSERVER(end)
+
+
 }
 
 #endif
