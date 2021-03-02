@@ -1303,7 +1303,6 @@ static void bp_newton_start_pos
 	float t,
 	float angle,
 	float rad,
-	const vector3& constAngleSurfaceNormal,
 	const IVertexGroup* parent,
 	const NeuriteProjector* np
 )
@@ -1330,19 +1329,6 @@ static void bp_newton_start_pos
 	//     w*v_spl + (1-w)*v_avg
 	// as the starting position.
 
-	vector3 pos_avg_onNeurite;
-	pos_in_neurite(pos_avg_onNeurite, np->neurite(neuriteID), neuriteID, t, angle, rad);
-
-	// special case: no parents (happens when a vertex is being projected without refinement)
-	if (!parent)
-	{
-		// project to surface of constant angle
-		vector3 ptToSurf;
-		VecSubtract(ptToSurf, pos_avg_onNeurite, initOut);
-		VecScaleAdd(initOut, 1.0, initOut, VecDot(ptToSurf, constAngleSurfaceNormal), constAngleSurfaceNormal);
-		return;
-	}
-
 	// find correct section
 	const std::vector<NeuriteProjector::Section>& vSections = np->neurite(neuriteID).vSec;
 	NeuriteProjector::Section cmpSec(t);
@@ -1367,6 +1353,8 @@ static void bp_newton_start_pos
 
 	vector3 pos_avg;
 	np->average_pos_from_parent(pos_avg, parent);
+	vector3 pos_avg_onNeurite;
+	pos_in_neurite(pos_avg_onNeurite, np->neurite(neuriteID), neuriteID, t, angle, rad);
 
 	number distSq = VecDistanceSq(pos_avg_onNeurite, pos_avg);
 
@@ -1538,7 +1526,8 @@ static void pos_in_bp
 	VecScaleAdd(constAngleSurfNormal, sin(angle), projRefDir, -cos(angle), thirdDir);
 
 	// determine suitable start position for Newton iteration
-	bp_newton_start_pos(posOut, neuriteID, t, angle, rad, constAngleSurfNormal, parent, np);
+	if (parent)
+		bp_newton_start_pos(posOut, neuriteID, t, angle, rad, parent, np);
 	//if (parent)
 	//	np->average_pos_from_parent(posOut, parent);
 	//pos_in_neurite(posOut, np->neurite(neuriteID), neuriteID, t, angle, rad);
