@@ -41,6 +41,8 @@
 
 #include "IOrderingAlgorithm.h"
 
+#include "../execution/util.cpp"
+
 namespace ug{
 
 //for sorting
@@ -54,24 +56,40 @@ bool compBlo(Blo a, Blo b){
 }
 
 
-template <typename G_t, typename O_t>
-class BoostShortestPathsOrdering : public IOrderingAlgorithm<O_t>
+template <typename M_t, typename G_t, typename O_t>
+class BoostShortestPathsOrdering : public IOrderingAlgorithm<M_t, G_t, O_t>
 {
 public:
-	BoostShortestPathsOrdering(G_t &g_in, O_t &o_in) : g(g_in), o(o_in){}
-	~BoostShortestPathsOrdering(){}
+	typedef IOrderingAlgorithm<M_t, G_t, O_t> baseclass;
+	typedef typename baseclass::Type Type;
+
+	//BoostShortestPathsOrdering(G_t &g_in, O_t &o_in) : g(&g_in), o(&o_in), own_o(false){}
+	BoostShortestPathsOrdering() : own_o(false){}
+	~BoostShortestPathsOrdering(){
+		if(own_o){ delete o; }
+	}
 
 	void compute(){
+		if(!g){
+			std::cerr << "graph not set! abort." << std::endl;
+			return;
+		}
+
+		if(!o){
+			own_o = true;
+			o = new O_t;
+		}
+
 		typedef typename boost::graph_traits<G_t>::vertex_descriptor vd;
-		std::vector<vd> p(boost::num_vertices(g)); //parents
-		std::vector<int> d(num_vertices(g)); //distances
+		std::vector<vd> p(boost::num_vertices(*g)); //parents
+		std::vector<int> d(num_vertices(*g)); //distances
 
-		vd s = *boost::vertices(g).first; //start vertex	//TODO: choose a vertex strategically
+		vd s = *boost::vertices(*g).first; //start vertex	//TODO: choose a vertex strategically
 
-		boost::dijkstra_shortest_paths(g, s, boost::predecessor_map(&p[0]).distance_map(&d[0]));
+		boost::dijkstra_shortest_paths(*g, s, boost::predecessor_map(&p[0]).distance_map(&d[0]));
 
-		std::vector<Blo> blo(boost::num_vertices(g));
-		for(unsigned i = 0; i < boost::num_vertices(g); ++i){
+		std::vector<Blo> blo(boost::num_vertices(*g));
+		for(unsigned i = 0; i < boost::num_vertices(*g); ++i){
 			blo[i].v = i;
 			blo[i].w = d[i];
 		}
@@ -79,25 +97,49 @@ public:
 		//sort o according to d
 		std::sort(blo.begin(), blo.end(), compBlo);
 
-		o.resize(boost::num_vertices(g));
-		for(unsigned i = 0; i < boost::num_vertices(g); ++i){
-			o[i] = blo[i].v;
+		o->resize(boost::num_vertices(*g));
+		for(unsigned i = 0; i < boost::num_vertices(*g); ++i){
+			(*o)[i] = blo[i].v;
 		}
 	}
 
-	O_t& ordering(){
+	void check(){
+		if(!is_permutation(*o)){
+			std::cerr << "Not a permutation!" << std::endl;
+			error();
+		}
+	}
+
+	O_t* ordering(){
 		return o;
 	}
 
+	const Type type(){
+		return mytype;
+	} 
+
+	void set_graph(G_t* graph){
+		g = graph;
+	}
+
+	void set_matrix(M_t*){}
+
+	void set_ordering(O_t* ordering){
+		o = ordering;
+	}
 private:
-	G_t& g;
-	O_t& o;
+	G_t* g;
+	O_t* o;
+
+	bool own_o;
+
+	static const Type mytype = Type::GRAPH_BASED;
 };
 
 
-template <typename G_t, typename O_t>
+template <typename M_t, typename G_t, typename O_t>
 void boost_shortest_paths_ordering(G_t &g, O_t &o){
-	BoostShortestPathsOrdering<G_t, O_t> algo(g, o);
+	BoostShortestPathsOrdering<M_t, G_t, O_t> algo(&g, &o);
 	algo.compute();
 }
 

@@ -41,6 +41,8 @@
 
 #include "IOrderingAlgorithm.h"
 
+#include "../execution/util.cpp"
+
 namespace ug{
 
 
@@ -63,19 +65,33 @@ void copy_graph_for_boost_Cuthill_McKee(G_t &orig, Graph_t &copy){
 }
 
 
-template <typename G_t, typename O_t>
-class BoostCuthillMcKeeOrdering : public IOrderingAlgorithm<O_t>
+template <typename M_t, typename G_t, typename O_t>
+class BoostCuthillMcKeeOrdering : public IOrderingAlgorithm<M_t, G_t, O_t>
 {
 public:
-	BoostCuthillMcKeeOrdering(G_t &g_in, O_t &o_in, bool reverse) : g(g_in), o(o_in), m_bReverse(reverse){}
-	~BoostCuthillMcKeeOrdering(){}
+	typedef IOrderingAlgorithm<M_t, G_t, O_t> baseclass;
+	typedef typename baseclass::Type Type;
+	BoostCuthillMcKeeOrdering() : m_bReverse(false), own_o(false){}
+	~BoostCuthillMcKeeOrdering(){
+		if(own_o){ delete o; }
+	}
 
 	void compute(){
+		if(!g){
+			std::cerr << "graph not set! abort." << std::endl;
+			return;
+		}
+
+		if(!o){
+			own_o = true;
+			o = new O_t;
+		}
+
 		typedef boost::graph_traits<Graph_t>::vertex_descriptor Vertex_t;
 		typedef boost::graph_traits<Graph_t>::vertices_size_type size_type;
 
 		Graph_t h;
-		copy_graph_for_boost_Cuthill_McKee(g, h); //explicit copy
+		copy_graph_for_boost_Cuthill_McKee(*g, h); //explicit copy
 
 		boost::property_map<Graph_t, boost::vertex_degree_t>::type deg = get(boost::vertex_degree, h);
 		boost::graph_traits<Graph_t>::vertex_iterator vIt, vEnd;
@@ -94,28 +110,58 @@ public:
 			boost::cuthill_mckee_ordering(h, inv_perm.begin(), get(boost::vertex_color, h), boost::make_degree_map(h));
 		}
 
-		o.resize(boost::num_vertices(g));
+		o->resize(boost::num_vertices(*g));
 
 		for(unsigned i = 0; i != inv_perm.size(); ++i){
-			o[index_map[inv_perm[i]]] = i;
+			(*o)[index_map[inv_perm[i]]] = i;
 		}
 	}
 
-	O_t& ordering(){
+	void check(){
+		if(!is_permutation(*o)){
+			std::cerr << "Not a permutation!" << std::endl;
+			error();
+		}
+
+	}
+
+	O_t* ordering(){
 		return o;
 	}
 
+	const Type type(){
+		return mytype;
+	} 
+
+	void set_graph(G_t* graph){
+		g = graph;
+	}
+
+	void set_matrix(M_t*){}
+
+	void set_ordering(O_t* ordering){
+		o = ordering;
+	}
+
+	void set_reverse(bool b){
+		m_bReverse = b;
+	}
+
 private:
-	G_t& g;
-	O_t& o;
+	G_t* g;
+	O_t* o;
 
 	bool m_bReverse;
+
+	bool own_o;
+
+	static const Type mytype = Type::GRAPH_BASED;
 };
 
 
-template <typename G_t, typename O_t>
+template <typename M_t, typename G_t, typename O_t>
 void boost_Cuthill_McKee_ordering(G_t &g, O_t &o, bool reverse){
-	BoostCuthillMcKeeOrdering<G_t, O_t> algo(g, o, reverse);
+	BoostCuthillMcKeeOrdering<M_t, G_t, O_t> algo(g, o, reverse);
 	algo.compute();
 }
 

@@ -41,6 +41,8 @@
 
 #include "IOrderingAlgorithm.h"
 
+#include "../execution/util.cpp"
+
 #include "../../../common/code_marker.h" //error()
 
 namespace ug{
@@ -49,20 +51,36 @@ namespace ug{
 //Important Note: This implementation requires the BGL graph to be
 //directed.  Therefore, nonzero entry (i, j) in a symmetrical matrix
 //A coresponds to two directed edges (i->j and j->i).
-template <typename G_t, typename O_t>
-class BoostMinimumDegreeOrdering : public IOrderingAlgorithm<O_t>
+template <typename M_t, typename G_t, typename O_t>
+class BoostMinimumDegreeOrdering : public IOrderingAlgorithm<M_t, G_t, O_t>
 {
 public:
-	BoostMinimumDegreeOrdering(G_t &g_in, O_t &o_in) : g(g_in), o(o_in){}
-	~BoostMinimumDegreeOrdering(){}
+	typedef IOrderingAlgorithm<M_t, G_t, O_t> baseclass;
+	typedef typename baseclass::Type Type;
+
+	//BoostMinimumDegreeOrdering(G_t &g_in, O_t &o_in) : g(&g_in), o(&o_in), own_o(false){}
+	BoostMinimumDegreeOrdering() : own_o(false){}
+	~BoostMinimumDegreeOrdering(){
+		if(own_o){ delete o; }
+	}
 
 	void compute(){
-		unsigned n = boost::num_vertices(g);
-		unsigned e = boost::num_edges(g);
+		if(!g){
+			std::cerr << "graph not set! abort." << std::endl;
+			return;
+		}
 
-		O_t io(boost::num_vertices(g), 0);
+		if(!o){
+			own_o = true;
+			o = new O_t;
+		}
 
-		o.resize(n);
+		unsigned n = boost::num_vertices(*g);
+		unsigned e = boost::num_edges(*g);
+
+		O_t io(boost::num_vertices(*g), 0);
+
+		o->resize(n);
 		unsigned i = 0;
 
 		if(n == 0){
@@ -71,14 +89,14 @@ public:
 		else if(n*(n-1u)==e || e==0){
 			error();
 			typename boost::graph_traits<G_t>::vertex_iterator vIt, vEnd;
-			for(boost::tie(vIt, vEnd) = boost::vertices(g); vIt != vEnd; vIt++){
-				o[i++] = *vIt;
+			for(boost::tie(vIt, vEnd) = boost::vertices(*g); vIt != vEnd; vIt++){
+				(*o)[i++] = *vIt;
 			}
 		}
 
 		std::vector<int> inverse_perm(n, 0);
 		std::vector<int> supernode_sizes(n, 1);
-		auto id = boost::get(boost::vertex_index, g);
+		auto id = boost::get(boost::vertex_index, *g);
 		std::vector<int> degree(n, 0);
 
 		/*
@@ -92,29 +110,54 @@ public:
 		 */
 
 		boost::minimum_degree_ordering
-		  (g,
+		  (*g,
 		   boost::make_iterator_property_map(&degree[0], id, degree[0]),
 		   &io[0],
-		   &o[0],
+		   &((*o)[0]),
 		   boost::make_iterator_property_map(&supernode_sizes[0], id, supernode_sizes[0]),
 		   0,
 		   id
 		   );
 	}
 
-	O_t& ordering(){
+	void check(){
+		if(!is_permutation(*o)){
+			std::cerr << "Not a permutation!" << std::endl;
+			error();
+		}
+	}
+
+	O_t* ordering(){
 		return o;
 	}
 
+	const Type type(){
+		return mytype;
+	} 
+
+	void set_graph(G_t* graph){
+		g = graph;
+	}
+
+	void set_matrix(M_t*){}
+
+	void set_ordering(O_t* ordering){
+		o = ordering;
+	}
+
 private:
-	G_t& g;
-	O_t& o;
+	G_t* g;
+	O_t* o;
+
+	bool own_o;
+
+	static const Type mytype = Type::GRAPH_BASED;
 };
 
 
-template <typename G_t, typename O_t>
+template <typename M_t, typename G_t, typename O_t>
 void boost_minimum_degree_ordering(G_t &g, O_t &o){
-	BoostMinimumDegreeOrdering<G_t, O_t> algo(g, o);
+	BoostMinimumDegreeOrdering<M_t, G_t, O_t> algo(&g, &o);
 	algo.compute();
 }
 

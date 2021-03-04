@@ -44,20 +44,26 @@ namespace ug{
 	O_t usually is a std::vector<size_t>
 	G_t (not required here) denotes the underlying graph type, e.g.,
                                                         a boost graph
+	M_t is only required for native_cuthill_mckee
 */
 
-template <typename G_t, typename O_t>
+template <typename M_t, typename G_t, typename O_t>
 class IOrderingAlgorithm{
 public:
+	enum Type{ GRAPH_BASED, MATRIX_BASED };
+
 	IOrderingAlgorithm(){}
 	~IOrderingAlgorithm(){}
 
 	virtual void compute() = 0;
 	virtual void check() = 0;
-	virtual O_t* ordering() = 0;
 
-	virtual void set_graph(G_t&) = 0;
-	virtual void set_ordering(O_t&) = 0;
+	virtual O_t* ordering() = 0;
+	virtual const Type type() = 0;
+
+	virtual void set_graph(G_t*) = 0;
+	virtual void set_matrix(M_t*) = 0;
+	virtual void set_ordering(O_t*) = 0;
 };
 
 } //namespace

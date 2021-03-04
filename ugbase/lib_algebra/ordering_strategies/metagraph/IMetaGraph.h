@@ -53,8 +53,8 @@ class IMetaGraph{
 public:
 	IMetaGraph(){}
 
-	G_t& graph(){
-		return g;
+	G_t* graph(){
+		return &g;
 	}
 
 protected:

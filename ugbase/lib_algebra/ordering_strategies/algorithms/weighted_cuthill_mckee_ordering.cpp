@@ -44,6 +44,7 @@
 #include "IOrderingAlgorithm.h"
 
 #include "iters.cpp"
+#include "../execution/util.cpp"
 
 #include <assert.h>
 #include "../../../common/code_marker.h" //error()
@@ -51,49 +52,40 @@
 
 namespace ug{
 
-//#define DUMP
-
 template <typename S_t>
 void print(S_t &s){
-#ifdef DUMP
 	for(auto sIt = s.begin(); sIt != s.end(); ++sIt){
 		std::cout << sIt->source << " -> " << sIt->target << " ( " << sIt->w << ")" << std::endl;
 	} std::cout << std::endl;
-#endif
 }
 
 template <typename G_t>
-void print_graph(G_t &g){
-#ifdef DUMP
-	typedef typename G_t::edge_descriptor Edge;
+void print_graph(G_t* g){
+	typedef typename boost::graph_traits<G_t>::edge_descriptor Edge;
 
 	typename boost::graph_traits<G_t>::edge_iterator eIt, eEnd;
-	for(boost::tie(eIt, eEnd) = boost::edges(g); eIt != eEnd; ++eIt){
-		std::pair<Edge, bool> e = boost::edge(boost::source(*eIt, g), boost::target(*eIt, g), g);
-		double w = boost::get(boost::edge_weight_t(), g, e.first);
-		std::cout << boost::source(*eIt, g) << " -> " << boost::target(*eIt, g) << " ( " << w << " )" << std::endl;
+	for(boost::tie(eIt, eEnd) = boost::edges(*g); eIt != eEnd; ++eIt){
+		std::pair<Edge, bool> e = boost::edge(boost::source(*eIt, *g), boost::target(*eIt, *g), *g);
+		double w = boost::get(boost::edge_weight_t(), *g, e.first);
+		std::cout << boost::source(*eIt, *g) << " -> " << boost::target(*eIt, *g) << " ( " << w << " )" << std::endl;
 	}
-#endif
 }
 
 template <typename T>
 void print(std::set<T> &s){
-#ifdef DUMP
 	for(auto sIt = s.begin(); sIt != s.end(); ++sIt){
 		std::cout << *sIt << " ";
 	} std::cout << std::endl;
-#endif
 }
-
 
 template <typename T>
-void dump(T t){
-#ifdef DUMP
-	std::cout << t;
-#endif
+void print(std::vector<T> &s){
+	for(auto sIt = s.begin(); sIt != s.end(); ++sIt){
+		std::cout << *sIt << " ";
+	} std::cout << std::endl;
 }
 
-
+//#define DUMP
 
 /* TODO
 
@@ -105,184 +97,206 @@ void dump(T t){
 // TODO: rework this if it produces good orderings and needs to be fast..
 
 
-template <typename G_t, typename O_t>
-class WeightedCuthillMcKeeOrdering : public IOrderingAlgorithm<O_t>
+template <typename M_t, typename G_t, typename O_t>
+class WeightedCuthillMcKeeOrdering : public IOrderingAlgorithm<M_t, G_t, O_t>
 {
 public:
 	typedef typename boost::graph_traits<G_t>::vertex_descriptor vd;
 	typedef typename boost::graph_traits<G_t>::adjacency_iterator adj_iter;
 
-	WeightedCuthillMcKeeOrdering(G_t &g_in, O_t &o_in, bool reverse) : g(g_in), o(o_in), m_bReverse(reverse){}
-	~WeightedCuthillMcKeeOrdering(){}
+	typedef IOrderingAlgorithm<M_t, G_t, O_t> baseclass;
+	typedef typename baseclass::Type Type;
 
+	WeightedCuthillMcKeeOrdering() : m_bReverse(false), own_o(false){}
+	~WeightedCuthillMcKeeOrdering(){
+		if(own_o){ delete o; }
+	}
+
+#if 0
 	class next_vertex_iterator{
 	public:
-		next_vertex_iterator(vd cur, G_t &g) : _cur(cur), _g(g), _init(true){
-			unsigned n = boost::num_vertices(g);
-			_visited = std::vector<BOOL>(n, false);
-			if(_cur < n){ //TODO: should be in make_next_...
-				operator++();
-			}
-			_k = 0;
-		}
+		next_vertex_iterator(){}
 
-		bool operator==(const next_vertex_iterator& o) const{
-			return _cur==o._cur;
-		}
+		bool operator==(const next_vertex_iterator& o) const{}
 
 		bool operator!=(const next_vertex_iterator& o) const{
 			return !operator==(o);
 		}
 
+		void operator++(){}
 
-
-		double compute_inflow(vd v, bool ignore_visited=true){
-			double w = .0f;
-			typename boost::graph_traits<G_t>::in_edge_iterator in_nIt, in_nEnd;
-			for(boost::tie(in_nIt, in_nEnd) = boost::in_edges(v, _g); in_nIt != in_nEnd; ++in_nIt){
-				if(ignore_visited && _visited[v]){ continue; }
-				w += abs(boost::get(boost::edge_weight_t(), _g, *in_nIt)); //TODO: think about this!
-			}
-			return w;
-		}
-
-
-		//TODO: do not recompute
-		vd min_inflow_vertex(){
-			double min_w = -1u;
-			vd min_vertex;
-
-			assert(_front.size());
-
-			typename boost::graph_traits<G_t>::vertex_iterator vIt, vEnd;
-			for(auto sIt = _front.begin(); sIt != _front.end(); ++sIt){
-				double w = compute_inflow(*sIt);
-#ifdef DUMP
-				std::cout << *sIt << ": " << w << std::endl;
-#endif
-				if(w < min_w){
-					min_w = w;
-					min_vertex = *sIt;
-				}
-			}
-
-			return min_vertex;
-		}
-
-		void operator++(){
-			++_k;
-			//TODO
-			if(_k == boost::num_vertices(_g)){
-				return;
-			}
-
-
-			/*
-				the algorithm can be tuned here: start vertex and next vertex
-			*/
-
-			if(_front.size() == 0){
-				//initial front - TODO: ordering begins with *boost::vertices(g).first !
-				_cur = *unvisited_iterator(_visited); //TODO: see initial front below
-			}
-			else{
-				_cur = min_inflow_vertex();
-			}
-
-#ifdef DUMP
-			std::cout << "next vertex: " << _cur << std::endl;
-#endif
-
-			_visited[_cur] = true;
-
-			//insert downstream neighbors to front
-			typename boost::graph_traits<G_t>::out_edge_iterator out_nIt, out_nEnd;
-			for(boost::tie(out_nIt, out_nEnd) = boost::out_edges(_cur, _g); out_nIt != out_nEnd; ++out_nIt){
-				if(!_visited[boost::target(*out_nIt, _g)]){
-					_front.insert(boost::target(*out_nIt, _g));
-				}
-			}
-
-			_front.erase(_cur);
-
-#ifdef DUMP
-			std::cout << "front: "; print(_front);
-#endif
-		}
-
-		unsigned operator*() const{
-			return _cur;
-		}
-
-	private:
-		unsigned _k;
-		vd _cur;
-		std::set<vd> _front;
-		std::vector<BOOL> _visited;
-		G_t& _g;
-		bool _init;
+		unsigned operator*() const{}
 	};
 
 
-	std::pair<next_vertex_iterator, next_vertex_iterator> make_next_vertex_iterator(G_t &g)
+	std::pair<next_vertex_iterator, next_vertex_iterator> make_next_vertex_iterator(G_t* g)
 	{
 		auto a = next_vertex_iterator(0, g);
-		auto b = next_vertex_iterator(boost::num_vertices(g), g);
+		auto b = next_vertex_iterator(boost::num_vertices(*g), g);
 
 		return std::make_pair(a, b);
+	}
+#endif
+
+	double compute_inflow(vd v, std::vector<BOOL>& visited, bool ignore_visited=true){
+		double w = .0f;
+		typename boost::graph_traits<G_t>::in_edge_iterator in_nIt, in_nEnd;
+		for(boost::tie(in_nIt, in_nEnd) = boost::in_edges(v, *g); in_nIt != in_nEnd; ++in_nIt){
+			if(ignore_visited && visited[v]){ continue; }
+			w += abs(boost::get(boost::edge_weight_t(), *g, *in_nIt)); //TODO: think about this!
+		}
+		return w;
+	}
+
+	//TODO: do not recompute
+	vd min_inflow_vertex(std::set<vd>& front, std::vector<BOOL>& visited){
+		double min_w = -1u;
+		vd min_vertex;
+
+		assert(front.size());
+
+		typename boost::graph_traits<G_t>::vertex_iterator vIt, vEnd;
+		for(auto sIt = front.begin(); sIt != front.end(); ++sIt){
+			double w = compute_inflow(*sIt, visited);
+#ifdef DUMP
+			std::cout << *sIt << ": " << w << std::endl;
+#endif
+			if(w < min_w){
+				min_w = w;
+				min_vertex = *sIt;
+			}
+		}
+		return min_vertex;
 	}
 
 
 	//overload
 	void compute(){
+		if(g == NULL){
+			std::cerr << "graph not set! abort." << std::endl;
+			return;
+		}
+
+		own_o = true;
+		o = new O_t;
+	
+		unsigned n = boost::num_vertices(*g);
+		o->resize(n);
+		std::cout << "[CuthillMcKeeOrderingWeighted::compute] n = " << n << ", e = " << boost::num_edges(*g) << std::endl;
 #ifdef DUMP
-		std::cout << "[CuthillMcKeeOrderingWeighted::compute]" << std::endl;
+		std::cout << "graph: " << std::endl; print_graph(g); std::cout << "end graph" << std::endl;
 #endif
 
-		unsigned n = boost::num_vertices(g);
-		o.resize(n);
 
-#ifdef DUMP
-		std::cout << "graph: " << std::endl; print_graph(g);;
-#endif
-
-
-		std::pair<next_vertex_iterator, next_vertex_iterator> tuple_next_vertex_iterators = make_next_vertex_iterator(g);
-		auto nextIt = tuple_next_vertex_iterators.first;
+		//std::pair<next_vertex_iterator, next_vertex_iterator> tuple_next_vertex_iterators = make_next_vertex_iterator(g);
+		//auto nextIt = tuple_next_vertex_iterators.first;
 		//auto nextEnd = tuple_next_vertex_iterators.second; TODO: fix end
-		unsigned k = 0;
 
-		for(; k < n; ++nextIt){
-			o[k++] = *nextIt;
+		vd cur;
+		std::set<vd> front;
+		std::vector<BOOL> visited(n, false);
+
+		for(unsigned k = 0; k < n; ++k){
+			/*
+				the algorithm can be tuned here: start vertex and next vertex
+			*/
+
+			if(front.size() == 0){
+				//initial front - TODO: ordering begins with *boost::vertices(g).first !
+				//cur = *unvisited_iterator(visited);
+				for(unsigned i = 0; i < boost::num_vertices(*g); ++i){
+					if(!visited[i]){
+						cur = i;
+					}
+				}
+			}
+			else{
+				cur = min_inflow_vertex(front, visited);
+			}
+#ifdef DUMP
+			std::cout << "next vertex: " << cur << std::endl;
+#endif
+
+
+			visited[cur] = true;
+
+			//insert downstream neighbors to front
+			typename boost::graph_traits<G_t>::out_edge_iterator out_nIt, out_nEnd;
+			for(boost::tie(out_nIt, out_nEnd) = boost::out_edges(cur, *g); out_nIt != out_nEnd; ++out_nIt){
+				if(!visited[boost::target(*out_nIt, *g)]){
+					front.insert(boost::target(*out_nIt, *g));
+				}
+			}
+
+			front.erase(cur);
+
+#ifdef DUMP
+			std::cout << "front: "; print(front);
+#endif
+
+			(*o)[k] = cur;
 
 #ifdef DUMP
 			std::cout << "ordering: ";
-			for(unsigned i = 0; i < n; ++i){
-				std::cout << o[i] << " ";
+			for(unsigned i = 0; i < k; ++i){
+				std::cout << (*o)[i] << " ";
 			}std::cout << std::endl;
 #endif
 		}
 
 		if(m_bReverse){
-			std::reverse(o.begin(), o.end());
+			std::reverse(o->begin(), o->end());
+		}
+
+		std::cout << "[CuthillMcKeeOrderingWeighted::compute] done. " << std::endl;
+	}
+
+	void check(){
+		if(!is_permutation(*o)){
+			std::cerr << "Not a permutation!" << std::endl;
+			print(*o);
+			error();
 		}
 	}
 
-	O_t& ordering(){
+	O_t* ordering(){
 		return o;
 	}
 
+	const Type type(){
+		return mytype;
+	} 
+
+	void set_graph(G_t* graph){
+		g = graph;
+		std::cout << "set graph: " << boost::num_vertices(*g) << std::endl;
+	}
+
+	void set_matrix(M_t*){}
+
+	void set_ordering(O_t* ordering){
+		o = ordering;
+	}
+
+	void set_reverse(bool b){
+		m_bReverse = b;
+	}
+
 private:
-	G_t& g;
-	O_t& o;
+	G_t* g;
+	O_t* o;
 
 	bool m_bReverse;
+
+	bool own_o;
+
+	static const Type mytype = Type::GRAPH_BASED;
 };
 
 
-template <typename G_t, typename O_t>
+template <typename M_t, typename G_t, typename O_t>
 void weighted_Cuthill_McKee_ordering(G_t &g, O_t &o, bool reverse){
-	WeightedCuthillMcKeeOrdering<G_t, O_t> algo(g, o, reverse);
+	WeightedCuthillMcKeeOrdering<M_t, G_t, O_t> algo(g, o, reverse);
 	algo.compute();
 }
 

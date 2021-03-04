@@ -79,43 +79,38 @@ typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
 
 //------------------
 
-#include "IOrderingStrategy.h"
-
-//#include "metagraph/GridGraph.hpp"
-#include "../../lib_disc/ordering_strategies/metagraph/ConnectionGraph.h" //TODO: -> lib_disc
 //#include "metagraph/MatrixGraph.h"
 #include "metagraph/WeightedMatrixGraph.h"
+#include "metagraph/WeightedCliqueMatrixGraph.h"
 
 namespace ug{
 
 typedef graph_bidirectional_t base_graph_type;
 typedef graph_bidirectional_weighted_t weighted_base_graph_type;
-typedef std::vector<size_t> container_type;
-typedef IOrderingStrategy<base_graph_type, container_type> strategy_type;
-typedef IOrderingStrategy<weighted_base_graph_type, container_type> weighted_strategy_type;
+typedef std::vector<size_t> ordering_container_type;
 
-template <typename TDomain>
-using connection_graph_type = ConnectionGraph<TDomain, base_graph_type>;
 
 template <typename TAlgebra>
 using weighted_graph_type = WeightedMatrixGraph<weighted_base_graph_type, typename TAlgebra::matrix_type>;
 
-}
+template <typename TAlgebra>
+using weighted_clique_graph_type = WeightedCliqueMatrixGraph<weighted_base_graph_type, typename TAlgebra::matrix_type>;
 
+}
 
 //---------------------
 
-
-#include "algorithms/boost_cuthill_mckee_ordering.cpp"
-#include "algorithms/boost_minimum_degree_ordering.cpp"
 #include "algorithms/weighted_cuthill_mckee_ordering.cpp"
 #include "algorithms/boost_shortest_paths_ordering.cpp"
 
+namespace ug{
 
-//---------------------
+template <typename TAlgebra>
+using WeightedCuthillMcKeeOrdering_type = WeightedCuthillMcKeeOrdering<typename TAlgebra::matrix_type, weighted_base_graph_type, ordering_container_type>;
 
+template <typename TAlgebra>
+using BoostShortestPathsOrdering_type = BoostShortestPathsOrdering<typename TAlgebra::matrix_type, weighted_base_graph_type, ordering_container_type>;
 
-#include "execution/matrix_ordering.h"
-#include "../../lib_disc/ordering_strategies/execution/dofs_ordering.h" //TODO: lib_disc
+}
 
 #endif //guard

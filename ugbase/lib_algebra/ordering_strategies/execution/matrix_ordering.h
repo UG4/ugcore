@@ -44,7 +44,7 @@ namespace ug{
 */
 
 template <typename matrix_type, typename O_t=std::vector<size_t> >
-void reorder_matrix(matrix_type& target, matrix_type& source, O_t& o){
+void reorder_matrix(matrix_type& target, const matrix_type& source, O_t& o){
 	target.resize_and_clear(source.num_rows(), source.num_cols());
 
 	for(size_t r = 0; r < source.num_rows(); ++r){
