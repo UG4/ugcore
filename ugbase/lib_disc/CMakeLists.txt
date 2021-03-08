@@ -39,6 +39,7 @@ set(srcDiscretization	domain.cpp
 
                         common/function_group.cpp
 						common/groups_util.cpp
+						common/marking_utils.cpp
 
 						dof_manager/function_pattern.cpp
 						dof_manager/orientation.cpp

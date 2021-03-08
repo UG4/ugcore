@@ -311,10 +311,10 @@ number CalculateTetrahedronVolToRMSFaceAreaRatio(Grid& grid,
 ////////////////////////////////////////////////////////////////////////////////////////////
 UG_API
 number CalculateHexahedronVolToRMSFaceAreaRatio(Grid& grid,
-										  	  	 Hexahedron* hex,
-												 Grid::VertexAttachmentAccessor<APosition>& aaPos)
+										  	  	Hexahedron* hex,
+												Grid::VertexAttachmentAccessor<APosition>& aaPos)
 {
-	UG_THROW("Not yet implemented");
+	UG_THROW("ERROR in CalculateHexahedronVolToRMSFaceAreaRatio: Not yet implemented");
 	return NAN;
 }
 

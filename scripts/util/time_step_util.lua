@@ -37,6 +37,73 @@
 
 util = util or {}
 
+--! Parses a callback object and attachs the corresponding callbacks to a TimeIntegratorObserver object.
+--! @param timeIntegratorSubject a TimeIntegratorObserver object to attach callbacks to
+--! @luaobject the object by the user, to be parsed.
+--!	a)	If this is a function then it is called after
+--!		solving the non-linear problem in EVERY STAGE
+--!		of the time-stepping scheme;
+--!	b)	if this is a table, it can contain 4 optional functions:
+--!		prepareTimeStep to call before the time step,
+--!		preProcess to call before the non-linear solver in EVERY STAGE,
+--!		postProcess as in a),
+--!		finalizeTimeStep to call after the time step,
+--!		rewindTimeStep to call if some of the computations of the time step failed,
+--!		Arguments of the functions are: (u, step, time, dt)
+--!		u, time: old before the solver, new after it
+--!	c)	This can also be a list of C++ objects which inherit ITimeIntegratorObserver
+--!		or Lua Callbacks created by util.LuaCallbackHelper:create()
+function util.ParseTimeIntegratorCallbacks(timeIntegratorSubject, luaobject)
+	-- helper function 
+	function attachObservers(attachFct, element, donttraverse)
+		donttraverse = donttraverse or false						
+
+		-- user specified a function
+		if type(element) == "function" then
+			local cb = util.LuaCallbackHelper:create(element)
+			attachFct(timeIntegratorSubject, cb.CPPCallback)
+
+		-- user specified a class created by util.LuaCallbackHelper.create()
+		elseif type(element) == "table" and element.CPPCallback ~= nil then	
+			attachFct(timeIntegratorSubject, element.CPPCallback)
+
+		-- user specified an cpp class, lets hope it implements ITimeIntegratorObserver
+		elseif type(element) == "userdata" then
+			attachFct(timeIntegratorSubject, element)
+
+		-- smells like an array
+		elseif type(element) == "table" and element[1] ~= nil and donttraverse == false then
+			for i, child in ipairs(element) do		
+				attachObservers(attachFct, child, true)
+			end
+		end
+	end
+
+	attachObservers(timeIntegratorSubject.attach_postprocess_observer, luaobject)		
+
+	if luaobject.preProcess ~= nil then
+		attachObservers(timeIntegratorSubject.attach_preprocess_observer, luaobject.preProcess)
+	end
+	if luaobject.postProcess ~= nil then
+		attachObservers(timeIntegratorSubject.attach_postprocess_observer, luaobject.postProcess)
+	end
+	if luaobject.prepareTimeStep ~= nil then
+		attachObservers(timeIntegratorSubject.attach_init_observer, luaobject.prepareTimeStep)
+	end
+	if luaobject.finalizeTimeStep ~= nil then
+		attachObservers(timeIntegratorSubject.attach_finalize_observer, luaobject.finalizeTimeStep)
+	end
+	if luaobject.rewindTimeStep ~= nil then
+		attachObservers(timeIntegratorSubject.attach_rewind_observer, luaobject.rewindTimeStep)
+	end
+	if luaobject.startProcess ~= nil then
+		attachObservers(timeIntegratorSubject.attach_start_observer, luaobject.startProcess)
+	end
+	if luaobject.endProcess ~= nil then
+		attachObservers(timeIntegratorSubject.attach_end_observer, luaobject.endProcess)
+	end
+end
+
 --!
 --! @param domainDisc
 --! @param timeScheme theta, impleuler, expleuer, crank-nicolson, alexander, fracstep, or bdf
@@ -150,11 +217,15 @@ end
 --!										rewindTimeStep to call if some of the computations of the time step failed,
 --!										Arguments of the functions are: (u, step, time, dt)
 --!										u, time: old before the solver, new after it
+--!									c)	This can also be a list of C++ objects which inherit ITimeIntegratorObserver
+--!										or Lua Callbacks created by util.LuaCallbackHelper:create()
 --! @param startTSNo		(optional) time step number of the initial condition (normally 0).
 --! @param endTSNo			(optional) if passed, stop after the time step with this number.
 --! @param newtonLineSearchFallbacks	(optional) Sequence of line-search objects.
 --!										Each time the newton-solver fails in a time-step,
 --!										the next line-search object from the sequence is used.
+--! @param additionalFinishedConditions (optional) More objects of type IFinishedConditions to add to the FinishedConditions
+--!										defined by endTSNo or endTime
 function util.SolveNonlinearTimeProblem(
 	u,
 	domainDisc,
@@ -173,7 +244,8 @@ function util.SolveNonlinearTimeProblem(
 	postProcess,
 	startTSNo,
 	endTSNo,
-	newtonLineSearchFallbacks)
+	newtonLineSearchFallbacks,
+	additionalFinishedConditions)
 	
 	if u == nil then
 		print("SolveNonlinearTimeProblem: Illegal parameters: No grid function for the solution specified.")
@@ -205,8 +277,8 @@ function util.SolveNonlinearTimeProblem(
 		exit()
 	end
 
-	if endTime == nil and endTSNo == nil then
-		print("SolveNonlinearTimeProblem: Illegal parameters: End time or number of steps not specified.")
+	if endTime == nil and endTSNo == nil and (additionalFinishedConditions == nil or #additionalFinishedConditions == 0)  then
+		print("SolveNonlinearTimeProblem: Illegal parameters: End time, number of steps or other finished conditions not specified.")
 		util.PrintUsageOfSolveTimeProblem()
 		exit()
 	end
@@ -217,21 +289,29 @@ function util.SolveNonlinearTimeProblem(
 		exit()
 	end
 	
-	local prepareTimeStep = nil
-	local preProcess = nil
-	local finalizeTimeStep = nil
-	local rewindTimeStep = nil
+	-- attach the given callbacks to a TimeIntegratorSubject
+	-- if this class is transcribed into c++, just inherit from TimeIntegratorSubject and attach the callbacks
+	local callbackDispatcher = TimeIntegratorSubject()
 	if postProcess ~= nil then
-		if type(postProcess) ~= "function" then
-			if type(postProcess) ~= "table" then
-				print("SolveNonlinearTimeProblem: Illegal parameters: postProcess must be a function.")
-				exit()
-			end
-			prepareTimeStep = postProcess.prepareTimeStep
-			preProcess = postProcess.preProcess
-			finalizeTimeStep = postProcess.finalizeTimeStep
-			rewindTimeStep = postProcess.rewindTimeStep
-			postProcess = postProcess.postProcess
+		util.ParseTimeIntegratorCallbacks(callbackDispatcher, postProcess)
+	end
+		
+	-- bound on t-stepper from machine precision (conservative)
+	relPrecisionBound = 1e-12
+
+	-- create the finished conditions
+	local finishedTester = FinishedTester()
+	if endTSNo ~= nil then
+		maxStepsCondition = MaxStepsFinishedCondition(endTSNo)
+		finishedTester:add_condition(maxStepsCondition)
+	end
+	if endTime ~= nil then
+		temporalCondition = TemporalFinishedCondition(endTime,maxStepSize,relPrecisionBound)
+		finishedTester:add_condition(temporalCondition)
+	end
+	if additionalFinishedConditions ~= nil then
+		for i, fc in ipairs(additionalFinishedConditions) do	
+			finishedTester:add_condition(fc)
 		end
 	end
 
@@ -301,8 +381,12 @@ function util.SolveNonlinearTimeProblem(
 
 	local defaultLineSearch = newtonSolver:line_search()
 
+	callbackDispatcher:notify_start(u, step, time, maxStepSize)
+
+	local last_dt = currdt
+
 	-- stop if size of remaining t-domain (relative to `maxStepSize`) lies below `relPrecisionBound`
-	while (endTime == nil or ((time < endTime) and ((endTime-time)/maxStepSize > relPrecisionBound))) and ((endTSNo == nil) or (step < endTSNo)) do
+	while not finishedTester:is_finished(time, step) do
 		step = step+1
 		print("++++++ TIMESTEP " .. step .. " BEGIN (current time: " .. time .. ") ++++++");
 		
@@ -338,21 +422,17 @@ function util.SolveNonlinearTimeProblem(
 				local pp_res -- result of pre- and postprocess routines
 				
 				pp_res = true
-				if prepareTimeStep ~= nil then
-					if util.debug_writer ~= nil then
-						util.debug_writer:enter_section ("TIMESTEP-"..step.."-Prepare-SolverCall-"..solver_call)
-					end
-					pp_res = prepareTimeStep(u, step, time, currdt)
-					if util.debug_writer ~= nil then
-						util.debug_writer:leave_section ()
-					end
-					if type(pp_res) == "boolean" and pp_res == false then -- i.e. not nil, not something else, but "false"!
-						print("\n++++++ Preparation of the time step failed.")
-					else
-						pp_res = true
-					end
+				if util.debug_writer ~= nil then
+					util.debug_writer:enter_section ("TIMESTEP-"..step.."-Prepare-SolverCall-"..solver_call)
 				end
-				if pp_res == false then break end
+				local pp_res = callbackDispatcher:notify_init_step(u, step, time, currdt)
+				if util.debug_writer ~= nil then
+					util.debug_writer:leave_section ()
+				end
+				if pp_res == false then
+					print("\n++++++ Preparation of the time step failed.")
+					break
+				end
 				
 				for stage = 1, timeDisc:num_stages() do
 					if timeDisc:num_stages() > 1 then
@@ -360,20 +440,19 @@ function util.SolveNonlinearTimeProblem(
 					end
 					
 					-- call pre process
-					if preProcess ~= nil then
-						if util.debug_writer ~= nil then
-							util.debug_writer:enter_section ("TIMESTEP-"..step.."-PreProcess-SolverCall-"..solver_call)
-						end
-						pp_res = preProcess(u, step, time, currdt)
-						if util.debug_writer ~= nil then
-							util.debug_writer:leave_section ()
-						end
-						if type(pp_res) == "boolean" and pp_res == false then -- i.e. not nil, not something else, but "false"!
-							print("\n++++++ PreProcess failed.")
-							newtonSuccess = false
-							break
-						end
+					if util.debug_writer ~= nil then
+						util.debug_writer:enter_section ("TIMESTEP-"..step.."-PreProcess-SolverCall-"..solver_call)
 					end
+					pp_res = callbackDispatcher:notify_preprocess_step(u, step, time, currdt)
+					if util.debug_writer ~= nil then
+						util.debug_writer:leave_section ()
+					end
+					if pp_res == false then -- i.e. not nil, not something else, but "false"!
+						print("\n++++++ PreProcess failed.")
+						newtonSuccess = false
+						break
+					end
+					
 						
 					timeDisc:set_stage(stage)
 				
@@ -402,19 +481,17 @@ function util.SolveNonlinearTimeProblem(
 					if newtonSuccess == false then break end
 					
 					-- call post process
-					if postProcess ~= nil then
-						if util.debug_writer ~= nil then
-							util.debug_writer:enter_section ("TIMESTEP-"..step.."-PostProcess-SolverCall-"..solver_call)
-						end
-						pp_res = postProcess(u, step, timeDisc:future_time(), currdt)
-						if util.debug_writer ~= nil then
-							util.debug_writer:leave_section ()
-						end
-						if type(pp_res) == "boolean" and pp_res == false then -- i.e. not nil, not something else, but "false"!
-							print("\n++++++ PostProcess failed.")
-							newtonSuccess = false
-							break
-						end
+					if util.debug_writer ~= nil then
+						util.debug_writer:enter_section ("TIMESTEP-"..step.."-PostProcess-SolverCall-"..solver_call)
+					end
+					pp_res = callbackDispatcher:notify_postprocess_step(u, step, timeDisc:future_time(), currdt)
+					if util.debug_writer ~= nil then
+						util.debug_writer:leave_section ()
+					end
+					if pp_res == false then -- i.e. not nil, not something else, but "false"!
+						print("\n++++++ PostProcess failed.")
+						newtonSuccess = false
+						break
 					end
 
 					--total_linsolver_calls()
@@ -439,15 +516,16 @@ function util.SolveNonlinearTimeProblem(
 					end
 				end -- loop over the stages
 
-				if newtonSuccess and finalizeTimeStep ~= nil then
+				if newtonSuccess then
 					if util.debug_writer ~= nil then
 						util.debug_writer:enter_section ("TIMESTEP-"..step.."-Finalize-SolverCall-"..solver_call)
 					end
-					pp_res = finalizeTimeStep(u, step, time, currdt)
+					last_dt = currdt
+					pp_res = callbackDispatcher:notify_finalize_step(u, step, time, currdt)
 					if util.debug_writer ~= nil then
 						util.debug_writer:leave_section ()
 					end
-					if type(pp_res) == "boolean" and pp_res == false then -- i.e. not nil, not something else, but "false"!
+					if pp_res == false then -- i.e. not nil, not something else, but "false"!
 						write("\n++++++ Finalization of the time step failed.")
 						newtonSuccess = false
 						break
@@ -483,7 +561,7 @@ function util.SolveNonlinearTimeProblem(
 					if util.debug_writer ~= nil then
 						util.debug_writer:enter_section ("TIMESTEP-"..step.."-Rewind-SolverCall-"..solver_call)
 					end
-					rewindTimeStep(u, step, time, currdt)
+					callbackDispatcher:notify_rewind_step(u, step, time, currdt)
 					if util.debug_writer ~= nil then
 						util.debug_writer:leave_section ()
 					end
@@ -516,6 +594,8 @@ function util.SolveNonlinearTimeProblem(
 			----------------------------------------------------------
 		end
 	end
+
+	callbackDispatcher:notify_end(u, step, time, last_dt)
 	
 	if useCheckpointing and  timeDisc:num_stages() > 1 then
 		ug_warning("WARNING: Checkpointing won't work at the moment with timeDisc:num_stages() > 1")
@@ -734,7 +814,12 @@ function util.SolveLinearTimeProblem(
 			if reassemble or not(currdt == assembled_dt) then 
 				print("++++++ Assembling Matrix/Rhs for step size "..currdt); 
 				timeDisc:prepare_step(solTimeSeries, currdt)
-				timeDisc:assemble_linear(A, b, gl)
+				-- Remark: Do not use assemble_linear here: it cannot keep the old solution
+				-- at the Dirichlet boundaries. Thus, it does not work correctly at the
+				-- Dirichlet boundary where the boundary condition is specified not explicitely
+				-- by a UserData object or LUA function but should be kept as in the initial condition.
+				timeDisc:assemble_jacobian(A, u, gl)
+				timeDisc:assemble_rhs(b, gl)
 				linSolver:init(A, u)
 				assembled_dt = currdt
 			else

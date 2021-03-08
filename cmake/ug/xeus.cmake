@@ -63,19 +63,24 @@ if(USE_XEUS) # included from ug_includes.cmake
 
 		# We also need  'zeromq' and 'sodium'
 		## load in pkg-config support
-		message(STATUS "Jupyter-Plugin: Checking pkg-config ${CMAKE_PREFIX_PATH}")
-		find_package(PkgConfig)
-		pkg_check_modules(PC_ZeroMQ zmq) ## use pkg-config to get hints for 0mq locations
-		pkg_check_modules(PC_Sodium sodium) ## use pkg-config to get hints for sodium locations
+		set(ENV{PKG_CONFIG_PATH} "$ENV{CONDA_PREFIX}/lib/pkgconfig")
+		message(STATUS "Jupyter-Plugin: Checking pkg-config $ENV{PKG_CONFIG_PATH}")
+		
+		find_package(PkgConfig REQUIRED)
+		pkg_search_module(ZEROMQ REQUIRED libzmq cppzmq zmq) ## use pkg-config to get hints for 0mq locations
+		pkg_search_module(SODIUM REQUIRED libsodium sodium)  ## use pkg-config to get hints for sodium locations
 
+		message(STATUS "Jupyter-Plugin:${ZEROMQ_FOUND} ${ZEROMQ_LINK_LIBRARIES} ${ZEROMQ_LIBRARIES} ")
+		message(STATUS "Jupyter-Plugin:${SODIUM_FOUND} ${SODIUM_LINK_LIBRARIES} ${SODIUM_LIBRARIES}")
+		
 		## use the hint from about to find the location of libzmq, sodium
-		if(NOT DEFINED ${PC_ZeroMQ_LIBRARY_DIRS})
+		if(NOT DEFINED ${ZEROMQ_LIBRARY_DIRS})
+			message(WARNING "Jupyter-Plugin: $ZEROMQ_LIBRARY_DIRS not defined.")
 			set (PC_ZeroMQ_LIBRARY_DIRS "${xtl_INCLUDE_DIRS}/../lib")
-			message(WARNING "Jupyter-Plugin: $PC_ZeroMQ_LIBRARY_DIRS not defined.")
 		endif()	
 
-		find_library(ZeroMQ_LIBRARY NAMES zmq PATHS ${PC_ZeroMQ_LIBRARY_DIRS})
-		find_library(sodium_LIBRARY NAMES sodium PATHS ${PC_ZeroMQ_LIBRARY_DIRS})
+		# find_library(ZeroMQ_LIBRARY NAMES zmq PATHS ${PC_ZeroMQ_LIBRARY_DIRS})
+		# find_library(sodium_LIBRARY NAMES sodium PATHS ${PC_ZeroMQ_LIBRARY_DIRS})
     	
     	
     	# Automatic

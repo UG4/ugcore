@@ -45,6 +45,20 @@ using namespace std;
 namespace ug
 {
 
+#ifdef UG_TETGEN
+const char* VerbosityToTetgenParam(int verbosity)
+{
+	if (verbosity <= 0)
+		return "";
+	else if(verbosity == 1)
+		return "V";
+	else if(verbosity == 2)
+		return "VV";
+	else
+		return "VVV";
+}
+#endif
+
 static bool PerformTetrahedralization(Grid& grid,
 										ISubsetHandler* pSH,
 										number quality,

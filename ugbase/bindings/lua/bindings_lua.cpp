@@ -651,6 +651,11 @@ static int ExecuteMethod(lua_State* L, const ExportedMethodGroup* methodGrp,
 		UG_LUA_BINDINGS_CATCH("In CALL to method '" << LuaClassMethodInfo(L, 1, *m)  << "'", ParameterStackString(paramsIn));
 
 	//	if we reach this point, then the method was successfully executed.
+	//	return values to lua!
+
+		if(m->has_custom_return())		
+			return 1;		
+		
 		return ParamsToLuaStack(paramsOut, L);
 	}
 

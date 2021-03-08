@@ -140,7 +140,6 @@ class UG_API ExportedFunctionBase
 
 		//	Fill missing Parameter
 			m_vvParamInfo.resize(m_paramsIn.size());
-
 		//	resize missing infos for each parameter
 			for(int i = 0; i < (int)m_vvParamInfo.size(); ++i)
 				for(size_t j = m_vvParamInfo.at(i).size(); j < MinNumInfos; ++j)

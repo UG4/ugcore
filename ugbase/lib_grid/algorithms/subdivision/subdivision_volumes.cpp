@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019:  G-CSC, Goethe University Frankfurt
+ * Copyright (c) 2014-2021:  G-CSC, Goethe University Frankfurt
  * Author: Martin Stepniewski
  *
  * This file is part of UG4.
@@ -1814,6 +1814,70 @@ void CalculateNumManifoldEdgesVertexAttachmentInParentLevel(MultiGrid& mg, MGSub
 
 
 ////////////////////////////////////////////////////////////////////////////////
+void CalculateNumManifoldFacesEdgeAttachmentInParentLevel(MultiGrid& mg, MGSubsetHandler& markSH, AInt& aNumManifoldFaces)
+{
+//	Define attachment accessor
+	Grid::EdgeAttachmentAccessor<AInt> aaNumManifoldFaces(mg, aNumManifoldFaces);
+
+//	Manage vertex attachment communication in parallel case:
+//	- Setup communication policy for the above attachment
+//	- Setup interface communicator
+//	- Setup distributed grid manager
+//	- Setup grid layout map
+	#ifdef UG_PARALLEL
+	//	Attachment communication policies COPY
+		ComPol_CopyAttachment<EdgeLayout, AInt> comPolCopyNumManifoldFaces(mg, aNumManifoldFaces);
+
+	//	Interface communicators and distributed domain manager
+		pcl::InterfaceCommunicator<EdgeLayout> com;
+		DistributedGridManager& dgm = *mg.distributed_grid_manager();
+		GridLayoutMap& glm = dgm.grid_layout_map();
+	#endif
+
+//	Loop all manifold faces of parent level and calculate number of faces each vertex is contained by
+	for(FaceIterator fIter = mg.begin<Face>(mg.top_level()-1); fIter != mg.end<Face>(mg.top_level()-1); ++fIter)
+	{
+		Face* f = *fIter;
+
+		if(f->reference_object_id() == ROID_TRIANGLE)
+		{
+		//	Only consider boundary manifold faces
+			if(markSH.get_subset_index(f) != -1)
+			{
+			//	Skip ghosts
+				#ifdef UG_PARALLEL
+					if(dgm.is_ghost(f))
+						continue;
+				#endif
+
+				std::vector<Edge*> vEdges;
+				CollectEdges(vEdges, mg, f, true);
+
+				for(size_t i = 0; i < vEdges.size(); ++i)
+					++aaNumManifoldFaces[vEdges[i]];
+			}
+		}
+		else
+			UG_THROW("ERROR in CalculateNumManifoldFacesEdgeAttachmentInParentLevel: Non triangular faces included in grid.");
+	}
+
+//	Manage vertex attachment communication in parallel case -> COMMUNICATE aNumManifoldFaces
+	#ifdef UG_PARALLEL
+	//	Reduce add operations:
+	//	sum up h_slaves into h_masters
+
+	//	Copy operations:
+	//	copy h_masters to h_slaves for consistency
+		AttachmentAllReduce<Edge>(mg, aNumManifoldFaces, PCL_RO_SUM);
+
+	//	copy v_slaves to ghosts = VMASTER
+		com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopyNumManifoldFaces);
+		com.communicate();
+	#endif
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
 void CalculateNumManifoldFacesVertexAttachmentInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH, AInt& aNumManifoldFaces_tri, AInt& aNumManifoldFaces_quad)
 {
 //	Define attachment accessor
@@ -1875,6 +1939,68 @@ void CalculateNumManifoldFacesVertexAttachmentInTopLevel(MultiGrid& mg, MGSubset
 	//	copy v_slaves to ghosts = VMASTER
 		com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopyNumManifoldFaces_tri);
 		com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopyNumManifoldFaces_quad);
+		com.communicate();
+	#endif
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+void InitIsBoundaryVertexAttachmentInParentLevel(MultiGrid& mg, AInt& aNumManifoldFaces, ABool& aBoolIsBndVrt)
+{
+//	Manage vertex attachment communication in parallel case:
+//	- Setup communication policy for the above attachment
+//	- Setup interface communicator
+//	- Setup distributed grid manager
+//	- Setup grid layout map
+	#ifdef UG_PARALLEL
+	//	Attachment communication policies COPY
+		ComPol_CopyAttachment<VertexLayout, ABool> comPolCopyBoolIsBoundaryVrt(mg, aBoolIsBndVrt);
+
+	//	Interface communicators and distributed domain manager
+		pcl::InterfaceCommunicator<VertexLayout> com;
+		DistributedGridManager& dgm = *mg.distributed_grid_manager();
+		GridLayoutMap& glm = dgm.grid_layout_map();
+	#endif
+
+//	Catch use of procedure for MultiGrids with just one level
+	size_t numLevels = mg.num_levels();
+
+	#ifdef UG_PARALLEL
+		if(pcl::NumProcs() > 1){
+			pcl::ProcessCommunicator pc;
+			numLevels = pc.allreduce(numLevels, PCL_RO_MAX);
+		}
+	#endif
+
+	if(numLevels == 1)
+		UG_THROW("InitIsBoundaryVertexAttachment: method may not be used in base level 0.");
+
+//	Define attachment accessor
+	Grid::EdgeAttachmentAccessor<AInt> aaNumManifoldFaces(mg, aNumManifoldFaces);
+	Grid::VertexAttachmentAccessor<ABool> aaBoolIsBndVrt(mg, aBoolIsBndVrt);
+
+	for(VertexIterator vrtIter = mg.begin<Vertex>(mg.top_level()-1); vrtIter != mg.end<Vertex>(mg.top_level()-1); ++vrtIter){
+		Vertex* vrt = *vrtIter;
+
+		for(Grid::AssociatedEdgeIterator eIter = mg.associated_edges_begin(vrt); eIter != mg.associated_edges_end(vrt); ++eIter){
+			Edge* e = *eIter;
+
+			if(aaNumManifoldFaces[e] == 1)
+				aaBoolIsBndVrt[vrt] = true;
+		}
+	}
+
+//	Manage vertex attachment communication in parallel case -> COMMUNICATE aBoolIsBndVrt
+	#ifdef UG_PARALLEL
+	//	Reduce add operations:
+	//	sum up h_slaves into h_masters
+
+	//	Copy operations:
+	//	copy h_masters to h_slaves for consistency
+		AttachmentAllReduce<Vertex>(mg, aBoolIsBndVrt, PCL_RO_MAX);
+
+	//	copy v_slaves to ghosts = VMASTER
+		com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopyBoolIsBoundaryVrt);
 		com.communicate();
 	#endif
 }
