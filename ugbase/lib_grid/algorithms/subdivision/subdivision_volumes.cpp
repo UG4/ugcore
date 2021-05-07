@@ -1077,10 +1077,7 @@ void CalculateSmoothManifoldPosInParentLevelLoopScheme(MultiGrid& mg, TAPosition
 							continue;
 					#endif
 
-					if(associatedManifoldFaces.size() < 2)
-					{
-						associatedManifoldFaces.push_back(associatedFaces[i]);
-					}
+					associatedManifoldFaces.push_back(associatedFaces[i]);
 				}
 			}
 
