@@ -16,38 +16,36 @@ function UJS_Submit
 	if [ $((npe%nppn)) -ne 0 ]; then
 		echo "NOTE: npe=$npe is not dividable by nppn=$nppn. rounding up"
 	fi
-	if [ $UGSUBMIT_TYPE == "NecNehalem" ]; then
-		echo "Cluster: NecNehalem / NEC Nehalem Cluster / HLRS. Scheduler: qsub."
-		PBSnodes="-l nodes=$nnodes:nehalem:ppn=$nppn"
-		qsubrun="mpirun -np $npe $executable $args"
-		
-		if [ -z "$queue" ]; then
-			qsubqueue="-q user"
-		else
-			qsubqueue="-q $queue"
-		fi		
-	else
-		echo "Cluster: Hermit/Cray XE6. Scheduler: qsub"
-		if [ $nppn -gt $nppnmaxSingleThread ]; then
-			qsubrun="aprun -n $npe -N $nppn -j2 $executable $args"
-			#qsub doesn't know about hyperthreading. Only specify used procs. Round up.
-			nppnRaw=$(((nppn+1)/2))
-		else
-			qsubrun="aprun -n $npe -N $nppn -j1 $executable $args"
-			nppnRaw=$((nppn))
-		fi
-		PBSnodes="-l nodes=$nnodes:ppn=$nppnRaw"
+	
 
-		if [ -z "$queue" ]; then
-			qsubqueue=""
-		else
-			qsubqueue="-q $queue"
-		fi			
+	#omplaceOption="omplace -c 0-127:st=4"
+	omplaceOption=""
+
+	echo "Cluster: Hawk-Apollo. Scheduler: qsub"
+	if [ $nppn -gt $nppnmaxSingleThread ]; then
+		qsubrun="mpirun -np $npe $executable $args"
+		#qsub doesn't know about hyperthreading. Only specify used procs. Round up.
+		# nppnRaw=$(((nppn+1)/2))
+	else
+		qsubrun="mpirun -np $npe $omplaceOption $executable $args"
+		# nppnRaw=$((nppn))
 	fi
+	PBSnodes="-l select=$nnodes:node_type=rome:mpiprocs=$nppn"
+
+
+
+
+
+	if [ -z "$queue" ]; then
+		qsubqueue=""
+	else
+		qsubqueue="-queue $queue"
+	fi			
 	
 	if [ $exclusive == true ]; then
 		echo "WARNING: Exclusive not yet supported on this machine."
 	fi	
+
 
 	pbsMail=""
 	if [ $mail == true ]; then 
@@ -69,6 +67,10 @@ function UJS_Submit
 		return
 	fi
 
+
+
+
+
 	if [ $interactive == true ]; then
 		echo "Interactive mode currently not supported on hermit. Aborting."
 	else
@@ -86,26 +88,10 @@ function UJS_Submit
 
 function UJS_GetOptions
 {
-	if [ $UGSUBMIT_TYPE == "NecNehalem" ]; then
-		nppnmax=4
-		pemax=1024
-		nppnmaxSingleThread=4
-	elif [ $UGSUBMIT_TYPE == "Hazelhen" ]; then
-		nppnmax=48
-		pemax=370176
-		nppnmaxSingleThread=24
-	elif [ $UGSUBMIT_TYPE == "Hornet" ]; then
-		nppnmax=24
-		pemax=94656
-		nppnmaxSingleThread=24
-	elif [ $UGSUBMIT_TYPE == "Hermit" ]; then
-		nppnmax=32
-		pemax=113664
-		nppnmaxSingleThread=32
- 	elif [ $UGSUBMIT_TYPE == "Hawk" ]; then
-                nppnmax=64
+	if [ $UGSUBMIT_TYPE == "Hawk" ]; then
+		nppnmax=128
                 pemax=720896
-                nppnmaxSingleThread=64
+                nppnmaxSingleThread=128	
 	else
 		echo "WARNING: Unknown platform. guessed default values for MaxNumProcsPerNode (nppnmax) and MaxProcs (pemax) may be wrong."
 		nppnmax=32

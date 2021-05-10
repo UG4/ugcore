@@ -263,7 +263,12 @@ class FV1InnerBoundaryElemDisc
 					sideVals.resize(nSip);
 					for (size_t i = 0; i < nSip; i++) sideVals[i].resize(nSh);
 				}
-				number& shapeAtSideIP(size_t sh, size_t ip) {return sideVals[ip][sh];}
+				number& shapeAtSideIP(size_t sh, size_t ip)
+				{
+					UG_ASSERT(ip < sideVals.size(), "Requested data for IP " << ip << ", but only " << sideVals.size() << " IPs present.");
+					UG_ASSERT(sh < sideVals[ip].size(), "Requested data for shape fct " << sh << ", but only " << sideVals[ip].size() << " shape fcts present.");
+					return sideVals.at(ip).at(sh);
+				}
 				number* shapesAtSideIP(size_t ip) {return &sideVals[ip][0];}
 				size_t num_sh() {return nSh;}
 			private:

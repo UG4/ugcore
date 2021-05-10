@@ -814,7 +814,12 @@ function util.SolveLinearTimeProblem(
 			if reassemble or not(currdt == assembled_dt) then 
 				print("++++++ Assembling Matrix/Rhs for step size "..currdt); 
 				timeDisc:prepare_step(solTimeSeries, currdt)
-				timeDisc:assemble_linear(A, b, gl)
+				-- Remark: Do not use assemble_linear here: it cannot keep the old solution
+				-- at the Dirichlet boundaries. Thus, it does not work correctly at the
+				-- Dirichlet boundary where the boundary condition is specified not explicitely
+				-- by a UserData object or LUA function but should be kept as in the initial condition.
+				timeDisc:assemble_jacobian(A, u, gl)
+				timeDisc:assemble_rhs(b, gl)
 				linSolver:init(A, u)
 				assembled_dt = currdt
 			else

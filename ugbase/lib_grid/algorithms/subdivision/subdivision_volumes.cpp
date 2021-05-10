@@ -584,6 +584,673 @@ void ProjectHierarchyToSubdivisionLimit(MultiGrid& mg, TAPosition& aPos)
 
 ////////////////////////////////////////////////////////////////////////////////
 template <class TAPosition>
+void CalculateSmoothCreaseManifoldPosInParentLevelLoopScheme(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& markSH,
+											 	 	   	   	 MGSubsetHandler& linearManifoldSH,
+															 TAPosition& aSmoothBndPosEvenVrt,
+															 TAPosition& aSmoothBndPosOddVrt,
+															 AInt& aNumManifoldEdges)
+{
+	/*
+	 * Scheme reference:
+	 *
+	 * C. Loop, Smooth subdivision surfaces based on triangles,
+	 * master’s thesis, University of Utah, 1987.
+	 */
+
+	if(TAPosition::ValueType::Size == 1){
+		UG_THROW("Error in CalculateSmoothCreaseManifoldPosInParentLevelLoopScheme:\n"
+				 "Currently only dimensions 2 and 3 are supported.\n");
+	}
+
+//	Catch use of procedure for MultiGrids with just one level
+	size_t numLevels = mg.num_levels();
+
+	#ifdef UG_PARALLEL
+		if(pcl::NumProcs() > 1){
+			pcl::ProcessCommunicator pc;
+			numLevels = pc.allreduce(numLevels, PCL_RO_MAX);
+		}
+	#endif
+
+	if(numLevels == 1)
+	{
+		UG_THROW("Error in CalculateSmoothCreaseManifoldPosInParentLevelLoopScheme: "
+				 "Procedure only to be used for MultiGrids with more than one level.");
+	}
+
+//	Define attachment accessors
+	Grid::VertexAttachmentAccessor<TAPosition> aaPos(mg, aPos);
+	Grid::VertexAttachmentAccessor<TAPosition> aaSmoothBndPosEvenVrt(mg, aSmoothBndPosEvenVrt);
+	Grid::EdgeAttachmentAccessor<TAPosition> aaSmoothBndPosOddVrt(mg, aSmoothBndPosOddVrt);
+	Grid::VertexAttachmentAccessor<AInt> aaNumManifoldEdges(mg, aNumManifoldEdges);
+
+
+	/*
+	 * Crease boundary setup section
+	 */
+
+//	Edge and vertex attachments for crease boundary distinguishment in case of non-closed surfaces
+	AInt aNumManifoldFaces;
+	ABool aBoolIsCreaseBndVrt;
+
+//	attach previously declared attachments with initial value 0
+	mg.attach_to_edges_dv(aNumManifoldFaces, 0);
+	mg.attach_to_vertices_dv(aBoolIsCreaseBndVrt, false);
+
+	Grid::EdgeAttachmentAccessor<AInt> aaNumManifoldFaces(mg, aNumManifoldFaces);
+	Grid::VertexAttachmentAccessor<ABool> aaBoolIsCreaseBndVrt(mg, aBoolIsCreaseBndVrt);
+
+//	Initialize aNumManifoldFaces for non-closed surfaces
+	CalculateNumManifoldFacesEdgeAttachmentInParentLevel(mg, markSH, aNumManifoldFaces);
+	InitIsCreaseBoundaryVertexAttachmentInParentLevel(mg, aNumManifoldFaces, aBoolIsCreaseBndVrt);
+
+
+	#ifdef UG_PARALLEL
+		DistributedGridManager& dgm = *mg.distributed_grid_manager();
+	#endif
+
+//	Declare centroid coordinate vector
+	typedef typename TAPosition::ValueType position_type;
+	position_type p;
+	VecSet(p, 0);
+
+//	Load subdivision surfaces rules
+	SubdivRules_PLoop& subdiv = SubdivRules_PLoop::inst();
+
+	/*
+	 * Smoothing of even vertices x
+	 *
+	 * Weights of center vertex 		: (1 - k*b[k]), k = vertex valence
+	 * Weights of edge adjacent vertices: b[k] = (0.625 - a*a)/k,
+	 * 									  a    = 0.375 + 0.25 * cos((2.0*PI)/k)
+	 *
+	 *	   Closed surface weights		  Polyline weights
+	 *	   							   for non-closed surfaces
+	 *
+				(b) (b) (b)
+				   \ | /
+						 ...
+			(b) -- (1-kb) -- (b)		0.125 -- 0.75 -- 0.125
+
+				   / | \
+				(b) (b) (b)
+	 *
+	 */
+
+//	Calculate smooth position for EVEN vertices
+	for(VertexIterator vrtIter = mg.begin<Vertex>(mg.top_level()-1); vrtIter != mg.end<Vertex>(mg.top_level()-1); ++vrtIter)
+	{
+		VecSet(p, 0);
+
+		Vertex* vrt = *vrtIter;
+
+	//	Skip ghost vertices
+		#ifdef UG_PARALLEL
+			if(dgm.is_ghost(vrt))
+				continue;
+		#endif
+
+	//	In case of marked manifold vertices, which do not belong to the user-specified linear boundary manifold subsets,
+	//	and activated subdivision Loop refinement calculate subdivision surfaces smooth position
+		if(markSH.get_subset_index(vrt) != -1 && linearManifoldSH.get_subset_index(vrt) == -1)
+		{
+		//	perform loop subdivision on even manifold vertices
+		//	first get neighbored manifold vertices
+			for(Grid::AssociatedEdgeIterator eIter = mg.associated_edges_begin(vrt); eIter != mg.associated_edges_end(vrt); ++eIter)
+			{
+				Edge* e = *eIter;
+
+			//	Only consider associated edges, which are marked as manifold edges
+				if(markSH.get_subset_index(e) != -1)
+				{
+				//	In case of a polyline surface boundary vertex (non-closed surfaces) exclude non-boundary neighbor vertices
+					if(aaBoolIsCreaseBndVrt[vrt]){
+						if(aaNumManifoldFaces[e] != 1)
+							continue;
+					}
+
+				//	Exclude ghost and horizontal slave neighbor vertices from contributing to centroid
+					#ifdef UG_PARALLEL
+						if(dgm.is_ghost(e))
+							continue;
+
+						if(dgm.contains_status(e, ES_H_SLAVE))
+							continue;
+					#endif
+
+					VecAdd(p, p, aaPos[GetConnectedVertex(e, vrt)]);
+				}
+			}
+
+			number centerWght;
+			number nbrWght;
+
+			if(aaBoolIsCreaseBndVrt[vrt]){
+			//	Polyline weights in case of boundary vertices of non-closed surfaces
+
+			//	Prototype Butterfly interpolation
+//				centerWght 	= 1.0;
+//				nbrWght 	= 0.0;
+
+				centerWght 	= 0.75;
+				nbrWght 	= 0.125;
+			}
+			else{
+			//	Regular subdivision weights by C. Loop for closed triangular surfaces
+				centerWght 	= subdiv.ref_even_inner_center_weight(aaNumManifoldEdges[vrt]);
+				nbrWght 	= subdiv.ref_even_inner_nbr_weight(aaNumManifoldEdges[vrt]);
+			}
+
+		//	Exclude horizontal slaves of the currently smoothed vertex to avoid multiple contributions to centroid
+			#ifdef UG_PARALLEL
+				if(dgm.is_ghost(vrt))
+					continue;
+
+				if(dgm.contains_status(vrt, ES_H_SLAVE))
+				{
+					VecScaleAppend(aaSmoothBndPosEvenVrt[vrt], nbrWght, p);
+					continue;
+				}
+			#endif
+
+			VecScaleAppend(aaSmoothBndPosEvenVrt[vrt], centerWght, aaPos[vrt], nbrWght, p);
+		}
+	}
+
+	/*
+	 * Smoothing of odd vertices x
+	 *
+	 * Weights of face adjacent vertices to x: 1/8
+	 * Weights of edge adjacent vertices to x: 3/8
+	 *
+	 *	Closed surface weights		      Polyline weights
+	 *	   							   for non-closed surfaces
+				1/8
+				/ \
+			3/8--x--3/8						 0.5--x--0.5
+				\ /
+				1/8
+	 *
+	 */
+
+//	Calculate smooth position for ODD vertices
+	for(EdgeIterator eIter = mg.begin<Edge>(mg.top_level()-1); eIter != mg.end<Edge>(mg.top_level()-1); ++eIter)
+	{
+		VecSet(p, 0);
+
+		Edge* e = *eIter;
+
+	//	Skip ghost edges
+		#ifdef UG_PARALLEL
+			if(dgm.is_ghost(e))
+				continue;
+		#endif
+
+	//	In case of marked manifold edges, which do not belong to the user-specified linear boundary manifold subsets,
+	//	and activated subdivision Loop refinement calculate subdivision surfaces smooth position
+		if(markSH.get_subset_index(e) != -1 && linearManifoldSH.get_subset_index(e) == -1)
+		{
+		//	In case of non-closed surfaces check if the current edge belongs to the polyline surface boundary
+			bool bIsBndEdge = false;
+
+			if(aaNumManifoldFaces[e] == 1)
+				bIsBndEdge = true;
+
+			if(bIsBndEdge)
+			{
+			//	Exclude ghost and horizontal slaves of the parent edge vertices of the currently smoothed vertex
+			//	to avoid multiple contributions to the centroid of the edge adjacent vertices
+				#ifdef UG_PARALLEL
+					if(dgm.is_ghost(e) || dgm.contains_status(e, ES_H_SLAVE))
+						continue;
+				#endif
+
+			//	Prototype Butterfly interpolation
+//				std::vector<Edge*> vEdges;
+//				CollectEdges(vEdges, mg, e->vertex(0), true);
+//				for(size_t i = 0; i < vEdges.size(); ++i){
+//					Edge* nbrEdge = vEdges[i];
+//					if(nbrEdge != e && aaNumManifoldFaces[nbrEdge] == 1){
+//						VecAdd(p, p, aaPos[GetConnectedVertex(nbrEdge, e->vertex(0))]);
+//					}
+//				}
+//
+//				CollectEdges(vEdges, mg, e->vertex(1), true);
+//				for(size_t i = 0; i < vEdges.size(); ++i){
+//					Edge* nbrEdge = vEdges[i];
+//					if(nbrEdge != e && aaNumManifoldFaces[nbrEdge] == 1){
+//						VecAdd(p, p, aaPos[GetConnectedVertex(nbrEdge, e->vertex(1))]);
+//					}
+//				}
+//
+//				VecScaleAppend(aaSmoothBndPosOddVrt[e], 9.0/16, aaPos[e->vertex(0)], 9.0/16, aaPos[e->vertex(1)], -1.0/16, p);
+
+				VecScaleAppend(aaSmoothBndPosOddVrt[e], 0.5, aaPos[e->vertex(0)], 0.5, aaPos[e->vertex(1)]);
+			}
+			else
+			{
+			//	perform loop subdivision on odd manifold vertices
+			//	get the neighbored manifold triangles
+				std::vector<Face*> associatedFaces;
+				std::vector<Face*> associatedManifoldFaces;
+
+				CollectAssociated(associatedFaces, mg, e);
+
+				for(size_t i = 0; i < associatedFaces.size(); ++i)
+				{
+
+				//	Only consider associated faces, which are marked as manifold faces
+					if(markSH.get_subset_index(associatedFaces[i]) != -1)
+					{
+					//	Exclude ghost and horizontal slave manifold faces
+						#ifdef UG_PARALLEL
+							if(dgm.is_ghost(associatedFaces[i]))
+								continue;
+
+							if(dgm.contains_status(associatedFaces[i], ES_H_SLAVE))
+								continue;
+						#endif
+
+						associatedManifoldFaces.push_back(associatedFaces[i]);
+
+					}
+				}
+
+				if(associatedManifoldFaces.size() <= 2)
+				{
+				//	Check, if all faces are triangles
+					for(size_t i = 0; i < associatedManifoldFaces.size(); ++i)
+					{
+						if(associatedManifoldFaces[i]->num_vertices() != 3)
+						{
+							UG_THROW("ERROR in CalculateSmoothCreaseManifoldPosInParentLevelLoopScheme: "
+								"Non triangular faces included in grid: " << ElementDebugInfo(mg, associatedManifoldFaces[i]));
+						}
+					}
+
+				//	Summate centroid of face adjacent vertices
+					for(size_t i = 0; i < associatedManifoldFaces.size(); ++i)
+					{
+						VecAdd(p, p, aaPos[GetConnectedVertex(e, associatedManifoldFaces[i])]);
+					}
+
+				//	Exclude ghost and horizontal slaves of the parent edge vertices of the currently smoothed vertex
+				//	to avoid multiple contributions to the centroid of the edge adjacent vertices
+					#ifdef UG_PARALLEL
+						if(dgm.is_ghost(e))
+							continue;
+
+						if(dgm.contains_status(e, ES_H_SLAVE))
+						{
+							VecScaleAppend(aaSmoothBndPosOddVrt[e], 0.125, p);
+							continue;
+						}
+					#endif
+
+					VecScaleAppend(aaSmoothBndPosOddVrt[e], 0.375, aaPos[e->vertex(0)], 0.375, aaPos[e->vertex(1)], 0.125, p);
+				}
+				else
+					UG_THROW("ERROR in CalculateSmoothCreaseManifoldPosInParentLevelLoopScheme: numAssociatedManifoldFaces > 2.");
+			}
+		}
+	}
+
+//	Manage vertex and edge attachment communication in parallel case -> COMMUNICATE aSmoothBndPosEvenVrt, aSmoothBndPosOddVrt
+	#ifdef UG_PARALLEL
+	//	Reduce add operations:
+	//	sum up h_slaves into h_masters
+
+	//	Copy operations:
+	//	copy h_masters to h_slaves for consistency
+		AttachmentAllReduce<Vertex>(mg, aSmoothBndPosEvenVrt, PCL_RO_SUM);
+		AttachmentAllReduce<Edge>(mg, aSmoothBndPosOddVrt, PCL_RO_SUM);
+	#endif
+
+//	detach crease boundary feature attachments
+	mg.detach_from_edges(aNumManifoldFaces);
+	mg.detach_from_vertices(aBoolIsCreaseBndVrt);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+template <class TAPosition>
+void CalculateSmoothManifoldPosInParentLevelLoopScheme(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& markSH,
+											 	 	   MGSubsetHandler& linearManifoldSH,
+													   TAPosition& aSmoothBndPosEvenVrt,
+													   TAPosition& aSmoothBndPosOddVrt,
+													   AInt& aNumManifoldEdges)
+{
+	/*
+	 * Scheme reference:
+	 *
+	 * C. Loop, Smooth subdivision surfaces based on triangles,
+	 * master’s thesis, University of Utah, 1987.
+	 */
+
+	if(TAPosition::ValueType::Size == 1){
+		UG_THROW("Error in CalculateSmoothManifoldPosInParentLevelLoopScheme:\n"
+				 "Currently only dimensions 2 and 3 are supported.\n");
+	}
+
+//	Catch use of procedure for MultiGrids with just one level
+	size_t numLevels = mg.num_levels();
+
+	#ifdef UG_PARALLEL
+		if(pcl::NumProcs() > 1){
+			pcl::ProcessCommunicator pc;
+			numLevels = pc.allreduce(numLevels, PCL_RO_MAX);
+		}
+	#endif
+
+	if(numLevels == 1)
+	{
+		UG_THROW("Error in CalculateSmoothManifoldPosInParentLevelLoopScheme: "
+				 "Procedure only to be used for MultiGrids with more than one level.");
+	}
+
+//	Define attachment accessors
+	Grid::VertexAttachmentAccessor<TAPosition> aaPos(mg, aPos);
+	Grid::VertexAttachmentAccessor<TAPosition> aaSmoothBndPosEvenVrt(mg, aSmoothBndPosEvenVrt);
+	Grid::EdgeAttachmentAccessor<TAPosition> aaSmoothBndPosOddVrt(mg, aSmoothBndPosOddVrt);
+	Grid::VertexAttachmentAccessor<AInt> aaNumManifoldEdges(mg, aNumManifoldEdges);
+
+	#ifdef UG_PARALLEL
+		DistributedGridManager& dgm = *mg.distributed_grid_manager();
+	#endif
+
+//	Declare centroid coordinate vector
+	typedef typename TAPosition::ValueType position_type;
+	position_type p;
+	VecSet(p, 0);
+
+//	Load subdivision surfaces rules
+	SubdivRules_PLoop& subdiv = SubdivRules_PLoop::inst();
+
+//	Calculate smooth position for EVEN vertices
+	for(VertexIterator vrtIter = mg.begin<Vertex>(mg.top_level()-1); vrtIter != mg.end<Vertex>(mg.top_level()-1); ++vrtIter)
+	{
+		VecSet(p, 0);
+
+		Vertex* vrt = *vrtIter;
+
+	//	Skip ghost vertices
+		#ifdef UG_PARALLEL
+			if(dgm.is_ghost(vrt))
+				continue;
+		#endif
+
+	//	In case of marked manifold vertices, which do not belong to the user-specified linear boundary manifold subsets,
+	//	and activated subdivision Loop refinement calculate subdivision surfaces smooth position
+		if(markSH.get_subset_index(vrt) != -1 && linearManifoldSH.get_subset_index(vrt) == -1)
+		{
+		//	perform loop subdivision on even manifold vertices
+		//	first get neighbored manifold vertices
+			for(Grid::AssociatedEdgeIterator eIter = mg.associated_edges_begin(vrt); eIter != mg.associated_edges_end(vrt); ++eIter)
+			{
+				Edge* e = *eIter;
+
+			//	Only consider associated edges, which are marked as manifold edges
+				if(markSH.get_subset_index(e) != -1)
+				{
+				//	Exclude ghost and horizontal slave neighbor vertices from contributing to centroid
+					#ifdef UG_PARALLEL
+						if(dgm.is_ghost(e))
+							continue;
+
+						if(dgm.contains_status(e, ES_H_SLAVE))
+							continue;
+					#endif
+
+					VecAdd(p, p, aaPos[GetConnectedVertex(e, vrt)]);
+				}
+			}
+
+			number centerWgt 	= subdiv.ref_even_inner_center_weight(aaNumManifoldEdges[vrt]);
+			number nbrWgt 		= subdiv.ref_even_inner_nbr_weight(aaNumManifoldEdges[vrt]);
+
+		//	Exclude horizontal slaves of the currently smoothed vertex to avoid multiple contributions to centroid
+			#ifdef UG_PARALLEL
+				if(dgm.is_ghost(vrt))
+					continue;
+
+				if(dgm.contains_status(vrt, ES_H_SLAVE))
+				{
+					VecScaleAppend(aaSmoothBndPosEvenVrt[vrt], nbrWgt, p);
+					continue;
+				}
+			#endif
+
+			VecScaleAppend(aaSmoothBndPosEvenVrt[vrt], centerWgt, aaPos[vrt], nbrWgt, p);
+		}
+	}
+
+	/*
+	 * Smoothing of odd vertices x
+	 *
+	 * Weights of face adjacent vertices to x: 1/8
+	 * Weights of edge adjacent vertices to x: 3/8
+	 *
+				1/8
+				/ \
+			3/8--x--3/8
+				\ /
+				1/8
+	 *
+	 */
+
+//	Calculate smooth position for ODD vertices
+	for(EdgeIterator eIter = mg.begin<Edge>(mg.top_level()-1); eIter != mg.end<Edge>(mg.top_level()-1); ++eIter)
+	{
+		VecSet(p, 0);
+
+		Edge* e = *eIter;
+
+	//	Skip ghost edges
+		#ifdef UG_PARALLEL
+			if(dgm.is_ghost(e))
+				continue;
+		#endif
+
+	//	In case of marked manifold edges, which do not belong to the user-specified linear boundary manifold subsets,
+	//	and activated subdivision Loop refinement calculate subdivision surfaces smooth position
+		if(markSH.get_subset_index(e) != -1 && linearManifoldSH.get_subset_index(e) == -1)
+		{
+		//	perform loop subdivision on odd manifold vertices
+		//	get the neighbored manifold triangles
+			std::vector<Face*> associatedFaces;
+			std::vector<Face*> associatedManifoldFaces;
+
+			CollectAssociated(associatedFaces, mg, e);
+
+			for(size_t i = 0; i < associatedFaces.size(); ++i)
+			{
+
+			//	Only consider associated faces, which are marked as manifold faces
+				if(markSH.get_subset_index(associatedFaces[i]) != -1)
+				{
+				//	Exclude ghost and horizontal slave manifold faces
+					#ifdef UG_PARALLEL
+						if(dgm.is_ghost(associatedFaces[i]))
+							continue;
+
+						if(dgm.contains_status(associatedFaces[i], ES_H_SLAVE))
+							continue;
+					#endif
+
+					associatedManifoldFaces.push_back(associatedFaces[i]);
+				}
+			}
+
+			if(associatedManifoldFaces.size() <= 2)
+			{
+			//	Check, if all faces are triangles
+				for(size_t i = 0; i < associatedManifoldFaces.size(); ++i)
+				{
+					if(associatedManifoldFaces[i]->num_vertices() != 3)
+					{
+						UG_THROW("ERROR in CalculateSmoothManifoldPosInParentLevelLoopScheme: "
+							"Non triangular faces included in grid: " << ElementDebugInfo(mg, associatedManifoldFaces[i]));
+					}
+				}
+
+			//	Summate centroid of face adjacent vertices
+				for(size_t i = 0; i < associatedManifoldFaces.size(); ++i)
+				{
+					VecAdd(p, p, aaPos[GetConnectedVertex(e, associatedManifoldFaces[i])]);
+				}
+
+			//	Exclude ghost and horizontal slaves of the parent edge vertices of the currently smoothed vertex
+			//	to avoid multiple contributions to the centroid of the edge adjacent vertices
+				#ifdef UG_PARALLEL
+					if(dgm.is_ghost(e))
+					{
+						continue;
+					}
+
+					if(dgm.contains_status(e, ES_H_SLAVE))
+					{
+						VecScaleAppend(aaSmoothBndPosOddVrt[e], 0.125, p);
+						continue;
+					}
+				#endif
+
+				VecScaleAppend(aaSmoothBndPosOddVrt[e], 0.375, aaPos[e->vertex(0)], 0.375, aaPos[e->vertex(1)], 0.125, p);
+			}
+			else
+				UG_THROW("ERROR in CalculateSmoothManifoldPosInParentLevelLoopScheme: numAssociatedManifoldFaces > 2.");
+		}
+	}
+
+//	Manage vertex and edge attachment communication in parallel case -> COMMUNICATE aSmoothBndPosEvenVrt, aSmoothBndPosOddVrt
+	#ifdef UG_PARALLEL
+	//	Reduce add operations:
+	//	sum up h_slaves into h_masters
+
+	//	Copy operations:
+	//	copy h_masters to h_slaves for consistency
+		AttachmentAllReduce<Vertex>(mg, aSmoothBndPosEvenVrt, PCL_RO_SUM);
+		AttachmentAllReduce<Edge>(mg, aSmoothBndPosOddVrt, PCL_RO_SUM);
+	#endif
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+template <class TAPosition>
+void CalculateSmoothManifoldPosInTopLevelAveragingScheme(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& markSH,
+														 MGSubsetHandler& linearManifoldSH,
+														 TAPosition& aSmoothBndPos_tri,
+														 TAPosition& aSmoothBndPos_quad)
+{
+	/*
+	 * Scheme reference:
+	 *
+	 * J. Warren and H. Weimer, Subdivision Methods for Geometric Design: A Constructive Approach,
+	 * Morgan Kaufmann Publishers Inc., San Francisco, CA, USA, 1st ed., 2001.
+	 */
+
+	if(TAPosition::ValueType::Size == 1){
+		UG_THROW("Error in CalculateSmoothManifoldPosInTopLevelAveragingScheme:\n"
+				 "Currently only dimensions 2 and 3 are supported.\n");
+	}
+
+//	Define attachment accessors
+	Grid::VertexAttachmentAccessor<TAPosition> aaPos(mg, aPos);
+	Grid::VertexAttachmentAccessor<TAPosition> aaSmoothBndPos_tri(mg, aSmoothBndPos_tri);
+	Grid::VertexAttachmentAccessor<TAPosition> aaSmoothBndPos_quad(mg, aSmoothBndPos_quad);
+
+	#ifdef UG_PARALLEL
+		DistributedGridManager& dgm = *mg.distributed_grid_manager();
+	#endif
+
+//	Declare centroid coordinate vector
+	typedef typename TAPosition::ValueType position_type;
+	position_type p;
+	VecSet(p, 0);
+
+//	Loop all manifold faces of top_level
+	for(FaceIterator fIter = mg.begin<Face>(mg.top_level()); fIter != mg.end<Face>(mg.top_level()); ++fIter)
+	{
+		Face* f = *fIter;
+
+	//	Skip ghost volumes
+		#ifdef UG_PARALLEL
+			if(dgm.is_ghost(f))
+				continue;
+		#endif
+
+	//	In case of marked manifold faces, which do not belong to the user-specified linear boundary manifold subsets,
+	//	and activated Averaging scheme calculate subdivision surfaces smooth position
+		if(markSH.get_subset_index(f) != -1 && linearManifoldSH.get_subset_index(f) == -1)
+		{
+		//	TRIANGLE CASE
+			if(f->reference_object_id() == ROID_TRIANGLE)
+			{
+			//	Iterate over all face vertices, calculate and apply local centroid masks
+				for(size_t i = 0; i < f->num_vertices(); ++i)
+				{
+				//	Init
+					Vertex* vrt = f->vertex(i);
+					VecSet(p, 0);
+
+				//	Summate coordinates of neighbor vertices to vrt inside face
+					for(size_t j = 0; j < f->num_vertices(); ++j)
+					{
+						if(j != i)
+						{
+							VecAdd(p, p, aaPos[f->vertex(j)]);
+						}
+					}
+
+				//	Smooth vertex position
+					VecScaleAppend(aaSmoothBndPos_tri[vrt], 2.0/8, aaPos[vrt], 3.0/8, p);
+				}
+			}
+
+		//	QUADRILATERAL CASE
+			else if(f->reference_object_id() == ROID_QUADRILATERAL)
+			{
+			//	Iterate over all face vertices, calculate and apply local centroid masks
+				for(size_t i = 0; i < f->num_vertices(); ++i)
+				{
+				//	Init
+					Vertex* vrt = f->vertex(i);
+					VecSet(p, 0);
+
+				//	Summate coordinates of neighbor vertices to vrt inside face
+					for(size_t j = 0; j < f->num_vertices(); ++j)
+					{
+						if(j != i)
+						{
+							VecAdd(p, p, aaPos[f->vertex(j)]);
+						}
+					}
+
+				//	Smooth vertex position
+					VecScaleAppend(aaSmoothBndPos_quad[vrt], 1.0/4, aaPos[vrt], 1.0/4, p);
+				}
+			}
+
+		//	UNSUPPORTED MANIFOLD ELEMENT CASE
+			else
+				UG_THROW("ERROR in CalculateSmoothManifoldPosInTopLevelAveragingScheme: Non triangular/quadrilateral faces included in grid.");
+		}
+	}
+
+//	Manage vertex attachment communication in parallel case -> COMMUNICATE aaSmoothBndPos
+	#ifdef UG_PARALLEL
+	//	Reduce add operations:
+	//	sum up h_slaves into h_masters
+
+	//	Copy operations:
+	//	copy h_masters to h_slaves for consistency
+		AttachmentAllReduce<Vertex>(mg, aSmoothBndPos_tri, PCL_RO_SUM);
+		AttachmentAllReduce<Vertex>(mg, aSmoothBndPos_quad, PCL_RO_SUM);
+	#endif
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+template <class TAPosition>
 void CalculateSmoothManifoldPosInParentLevelButterflyScheme(MultiGrid& mg, TAPosition& aPos,
 															MGSubsetHandler& markSH,
 															MGSubsetHandler& linearManifoldSH,
@@ -1001,346 +1668,6 @@ void CalculateSmoothManifoldPosInParentLevelButterflyScheme(MultiGrid& mg, TAPos
 	//	Copy operations:
 	//	copy h_masters to h_slaves for consistency
 		AttachmentAllReduce<Edge>(mg, aSmoothBndPosOddVrt, PCL_RO_SUM);
-	#endif
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
-template <class TAPosition>
-void CalculateSmoothManifoldPosInParentLevelLoopScheme(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& markSH,
-											 	 	   MGSubsetHandler& linearManifoldSH,
-													   TAPosition& aSmoothBndPosEvenVrt,
-													   TAPosition& aSmoothBndPosOddVrt,
-													   AInt& aNumManifoldEdges)
-{
-	/*
-	 * Scheme reference:
-	 *
-	 * C. Loop, Smooth subdivision surfaces based on triangles,
-	 * master’s thesis, University of Utah, 1987.
-	 */
-
-	if(TAPosition::ValueType::Size == 1){
-		UG_THROW("Error in CalculateSmoothManifoldPosInParentLevelLoopScheme:\n"
-				 "Currently only dimensions 2 and 3 are supported.\n");
-	}
-
-//	Catch use of procedure for MultiGrids with just one level
-	size_t numLevels = mg.num_levels();
-
-	#ifdef UG_PARALLEL
-		if(pcl::NumProcs() > 1){
-			pcl::ProcessCommunicator pc;
-			numLevels = pc.allreduce(numLevels, PCL_RO_MAX);
-		}
-	#endif
-
-	if(numLevels == 1)
-	{
-		UG_THROW("Error in CalculateSmoothManifoldPosInParentLevelLoopScheme: "
-				 "Procedure only to be used for MultiGrids with more than one level.");
-	}
-
-//	Define attachment accessors
-	Grid::VertexAttachmentAccessor<TAPosition> aaPos(mg, aPos);
-	Grid::VertexAttachmentAccessor<TAPosition> aaSmoothBndPosEvenVrt(mg, aSmoothBndPosEvenVrt);
-	Grid::EdgeAttachmentAccessor<TAPosition> aaSmoothBndPosOddVrt(mg, aSmoothBndPosOddVrt);
-	Grid::VertexAttachmentAccessor<AInt> aaNumManifoldEdges(mg, aNumManifoldEdges);
-
-	#ifdef UG_PARALLEL
-		DistributedGridManager& dgm = *mg.distributed_grid_manager();
-	#endif
-
-//	Declare centroid coordinate vector
-	typedef typename TAPosition::ValueType position_type;
-	position_type p;
-	VecSet(p, 0);
-
-//	Load subdivision surfaces rules
-	SubdivRules_PLoop& subdiv = SubdivRules_PLoop::inst();
-
-//	Calculate smooth position for EVEN vertices
-	for(VertexIterator vrtIter = mg.begin<Vertex>(mg.top_level()-1); vrtIter != mg.end<Vertex>(mg.top_level()-1); ++vrtIter)
-	{
-		VecSet(p, 0);
-
-		Vertex* vrt = *vrtIter;
-
-	//	Skip ghost vertices
-		#ifdef UG_PARALLEL
-			if(dgm.is_ghost(vrt))
-				continue;
-		#endif
-
-	//	In case of marked manifold vertices, which do not belong to the user-specified linear boundary manifold subsets,
-	//	and activated subdivision Loop refinement calculate subdivision surfaces smooth position
-		if(markSH.get_subset_index(vrt) != -1 && linearManifoldSH.get_subset_index(vrt) == -1)
-		{
-		//	perform loop subdivision on even manifold vertices
-		//	first get neighbored manifold vertices
-			for(Grid::AssociatedEdgeIterator eIter = mg.associated_edges_begin(vrt); eIter != mg.associated_edges_end(vrt); ++eIter)
-			{
-				Edge* e = *eIter;
-
-			//	Only consider associated edges, which are marked as manifold edges
-				if(markSH.get_subset_index(e) != -1)
-				{
-				//	Exclude ghost and horizontal slave neighbor vertices from contributing to centroid
-					#ifdef UG_PARALLEL
-						if(dgm.is_ghost(e))
-							continue;
-
-						if(dgm.contains_status(e, ES_H_SLAVE))
-							continue;
-					#endif
-
-					VecAdd(p, p, aaPos[GetConnectedVertex(e, vrt)]);
-				}
-			}
-
-			number centerWgt 	= subdiv.ref_even_inner_center_weight(aaNumManifoldEdges[vrt]);
-			number nbrWgt 		= subdiv.ref_even_inner_nbr_weight(aaNumManifoldEdges[vrt]);
-
-		//	Exclude horizontal slaves of the currently smoothed vertex to avoid multiple contributions to centroid
-			#ifdef UG_PARALLEL
-				if(dgm.is_ghost(vrt))
-					continue;
-
-				if(dgm.contains_status(vrt, ES_H_SLAVE))
-				{
-					VecScaleAppend(aaSmoothBndPosEvenVrt[vrt], nbrWgt, p);
-					continue;
-				}
-			#endif
-
-			VecScaleAppend(aaSmoothBndPosEvenVrt[vrt], centerWgt, aaPos[vrt], nbrWgt, p);
-		}
-	}
-
-	/*
-	 * Smoothing of odd vertices x
-	 *
-	 * Weights of face adjacent vertices to x: 1/8
-	 * Weights of edge adjacent vertices to x: 3/8
-	 *
-				1/8
-				/ \
-			3/8--x--3/8
-				\ /
-				1/8
-	 *
-	 */
-
-//	Calculate smooth position for ODD vertices
-	for(EdgeIterator eIter = mg.begin<Edge>(mg.top_level()-1); eIter != mg.end<Edge>(mg.top_level()-1); ++eIter)
-	{
-		VecSet(p, 0);
-
-		Edge* e = *eIter;
-
-	//	Skip ghost edges
-		#ifdef UG_PARALLEL
-			if(dgm.is_ghost(e))
-				continue;
-		#endif
-
-	//	In case of marked manifold edges, which do not belong to the user-specified linear boundary manifold subsets,
-	//	and activated subdivision Loop refinement calculate subdivision surfaces smooth position
-		if(markSH.get_subset_index(e) != -1 && linearManifoldSH.get_subset_index(e) == -1)
-		{
-		//	perform loop subdivision on odd manifold vertices
-		//	get the neighbored manifold triangles
-			std::vector<Face*> associatedFaces;
-			std::vector<Face*> associatedManifoldFaces;
-
-			CollectAssociated(associatedFaces, mg, e);
-
-			for(size_t i = 0; i < associatedFaces.size(); ++i)
-			{
-
-			//	Only consider associated faces, which are marked as manifold faces
-				if(markSH.get_subset_index(associatedFaces[i]) != -1)
-				{
-				//	Exclude ghost and horizontal slave manifold faces
-					#ifdef UG_PARALLEL
-						if(dgm.is_ghost(associatedFaces[i]))
-							continue;
-
-						if(dgm.contains_status(associatedFaces[i], ES_H_SLAVE))
-							continue;
-					#endif
-
-					if(associatedManifoldFaces.size() < 2)
-					{
-						associatedManifoldFaces.push_back(associatedFaces[i]);
-					}
-				}
-			}
-
-			if(associatedManifoldFaces.size() <= 2)
-			{
-			//	Check, if all faces are triangles
-				for(size_t i = 0; i < associatedManifoldFaces.size(); ++i)
-				{
-					if(associatedManifoldFaces[i]->num_vertices() != 3)
-					{
-						UG_THROW("ERROR in CalculateSmoothManifoldPosInParentLevelLoopScheme: "
-							"Non triangular faces included in grid: " << ElementDebugInfo(mg, associatedManifoldFaces[i]));
-					}
-				}
-
-			//	Summate centroid of face adjacent vertices
-				for(size_t i = 0; i < associatedManifoldFaces.size(); ++i)
-				{
-					VecAdd(p, p, aaPos[GetConnectedVertex(e, associatedManifoldFaces[i])]);
-				}
-
-			//	Exclude ghost and horizontal slaves of the parent edge vertices of the currently smoothed vertex
-			//	to avoid multiple contributions to the centroid of the edge adjacent vertices
-				#ifdef UG_PARALLEL
-					if(dgm.is_ghost(e))
-					{
-						continue;
-					}
-
-					if(dgm.contains_status(e, ES_H_SLAVE))
-					{
-						VecScaleAppend(aaSmoothBndPosOddVrt[e], 0.125, p);
-						continue;
-					}
-				#endif
-
-				VecScaleAppend(aaSmoothBndPosOddVrt[e], 0.375, aaPos[e->vertex(0)], 0.375, aaPos[e->vertex(1)], 0.125, p);
-			}
-			else
-				UG_THROW("ERROR in CalculateSmoothManifoldPosInParentLevelLoopScheme: numAssociatedManifoldFaces > 2.");
-		}
-	}
-
-//	Manage vertex and edge attachment communication in parallel case -> COMMUNICATE aSmoothBndPosEvenVrt, aSmoothBndPosOddVrt
-	#ifdef UG_PARALLEL
-	//	Reduce add operations:
-	//	sum up h_slaves into h_masters
-
-	//	Copy operations:
-	//	copy h_masters to h_slaves for consistency
-		AttachmentAllReduce<Vertex>(mg, aSmoothBndPosEvenVrt, PCL_RO_SUM);
-		AttachmentAllReduce<Edge>(mg, aSmoothBndPosOddVrt, PCL_RO_SUM);
-	#endif
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
-template <class TAPosition>
-void CalculateSmoothManifoldPosInTopLevelAveragingScheme(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& markSH,
-														 MGSubsetHandler& linearManifoldSH,
-														 TAPosition& aSmoothBndPos_tri,
-														 TAPosition& aSmoothBndPos_quad)
-{
-	/*
-	 * Scheme reference:
-	 *
-	 * J. Warren and H. Weimer, Subdivision Methods for Geometric Design: A Constructive Approach,
-	 * Morgan Kaufmann Publishers Inc., San Francisco, CA, USA, 1st ed., 2001.
-	 */
-
-	if(TAPosition::ValueType::Size == 1){
-		UG_THROW("Error in CalculateSmoothManifoldPosInTopLevelAveragingScheme:\n"
-				 "Currently only dimensions 2 and 3 are supported.\n");
-	}
-
-//	Define attachment accessors
-	Grid::VertexAttachmentAccessor<TAPosition> aaPos(mg, aPos);
-	Grid::VertexAttachmentAccessor<TAPosition> aaSmoothBndPos_tri(mg, aSmoothBndPos_tri);
-	Grid::VertexAttachmentAccessor<TAPosition> aaSmoothBndPos_quad(mg, aSmoothBndPos_quad);
-
-	#ifdef UG_PARALLEL
-		DistributedGridManager& dgm = *mg.distributed_grid_manager();
-	#endif
-
-//	Declare centroid coordinate vector
-	typedef typename TAPosition::ValueType position_type;
-	position_type p;
-	VecSet(p, 0);
-
-//	Loop all manifold faces of top_level
-	for(FaceIterator fIter = mg.begin<Face>(mg.top_level()); fIter != mg.end<Face>(mg.top_level()); ++fIter)
-	{
-		Face* f = *fIter;
-
-	//	Skip ghost volumes
-		#ifdef UG_PARALLEL
-			if(dgm.is_ghost(f))
-				continue;
-		#endif
-
-	//	In case of marked manifold faces, which do not belong to the user-specified linear boundary manifold subsets,
-	//	and activated Averaging scheme calculate subdivision surfaces smooth position
-		if(markSH.get_subset_index(f) != -1 && linearManifoldSH.get_subset_index(f) == -1)
-		{
-		//	TRIANGLE CASE
-			if(f->reference_object_id() == ROID_TRIANGLE)
-			{
-			//	Iterate over all face vertices, calculate and apply local centroid masks
-				for(size_t i = 0; i < f->num_vertices(); ++i)
-				{
-				//	Init
-					Vertex* vrt = f->vertex(i);
-					VecSet(p, 0);
-
-				//	Summate coordinates of neighbor vertices to vrt inside face
-					for(size_t j = 0; j < f->num_vertices(); ++j)
-					{
-						if(j != i)
-						{
-							VecAdd(p, p, aaPos[f->vertex(j)]);
-						}
-					}
-
-				//	Smooth vertex position
-					VecScaleAppend(aaSmoothBndPos_tri[vrt], 2.0/8, aaPos[vrt], 3.0/8, p);
-				}
-			}
-
-		//	QUADRILATERAL CASE
-			else if(f->reference_object_id() == ROID_QUADRILATERAL)
-			{
-			//	Iterate over all face vertices, calculate and apply local centroid masks
-				for(size_t i = 0; i < f->num_vertices(); ++i)
-				{
-				//	Init
-					Vertex* vrt = f->vertex(i);
-					VecSet(p, 0);
-
-				//	Summate coordinates of neighbor vertices to vrt inside face
-					for(size_t j = 0; j < f->num_vertices(); ++j)
-					{
-						if(j != i)
-						{
-							VecAdd(p, p, aaPos[f->vertex(j)]);
-						}
-					}
-
-				//	Smooth vertex position
-					VecScaleAppend(aaSmoothBndPos_quad[vrt], 1.0/4, aaPos[vrt], 1.0/4, p);
-				}
-			}
-
-		//	UNSUPPORTED MANIFOLD ELEMENT CASE
-			else
-				UG_THROW("ERROR in CalculateSmoothManifoldPosInTopLevelAveragingScheme: Non triangular/quadrilateral faces included in grid.");
-		}
-	}
-
-//	Manage vertex attachment communication in parallel case -> COMMUNICATE aaSmoothBndPos
-	#ifdef UG_PARALLEL
-	//	Reduce add operations:
-	//	sum up h_slaves into h_masters
-
-	//	Copy operations:
-	//	copy h_masters to h_slaves for consistency
-		AttachmentAllReduce<Vertex>(mg, aSmoothBndPos_tri, PCL_RO_SUM);
-		AttachmentAllReduce<Vertex>(mg, aSmoothBndPos_quad, PCL_RO_SUM);
 	#endif
 }
 
@@ -1945,7 +2272,7 @@ void CalculateNumManifoldFacesVertexAttachmentInTopLevel(MultiGrid& mg, MGSubset
 
 
 ////////////////////////////////////////////////////////////////////////////////
-void InitIsBoundaryVertexAttachmentInParentLevel(MultiGrid& mg, AInt& aNumManifoldFaces, ABool& aBoolIsBndVrt)
+void InitIsCreaseBoundaryVertexAttachmentInParentLevel(MultiGrid& mg, AInt& aNumManifoldFaces, ABool& aBoolIsCreaseBndVrt)
 {
 //	Manage vertex attachment communication in parallel case:
 //	- Setup communication policy for the above attachment
@@ -1954,7 +2281,7 @@ void InitIsBoundaryVertexAttachmentInParentLevel(MultiGrid& mg, AInt& aNumManifo
 //	- Setup grid layout map
 	#ifdef UG_PARALLEL
 	//	Attachment communication policies COPY
-		ComPol_CopyAttachment<VertexLayout, ABool> comPolCopyBoolIsBoundaryVrt(mg, aBoolIsBndVrt);
+		ComPol_CopyAttachment<VertexLayout, ABool> comPolCopyBoolIsCreaseBoundaryVrt(mg, aBoolIsCreaseBndVrt);
 
 	//	Interface communicators and distributed domain manager
 		pcl::InterfaceCommunicator<VertexLayout> com;
@@ -1973,11 +2300,11 @@ void InitIsBoundaryVertexAttachmentInParentLevel(MultiGrid& mg, AInt& aNumManifo
 	#endif
 
 	if(numLevels == 1)
-		UG_THROW("InitIsBoundaryVertexAttachment: method may not be used in base level 0.");
+		UG_THROW("InitIsCreaseBoundaryVertexAttachmentInParentLevel: method may not be used in base level 0.");
 
 //	Define attachment accessor
 	Grid::EdgeAttachmentAccessor<AInt> aaNumManifoldFaces(mg, aNumManifoldFaces);
-	Grid::VertexAttachmentAccessor<ABool> aaBoolIsBndVrt(mg, aBoolIsBndVrt);
+	Grid::VertexAttachmentAccessor<ABool> aaBoolIsCreaseBndVrt(mg, aBoolIsCreaseBndVrt);
 
 	for(VertexIterator vrtIter = mg.begin<Vertex>(mg.top_level()-1); vrtIter != mg.end<Vertex>(mg.top_level()-1); ++vrtIter){
 		Vertex* vrt = *vrtIter;
@@ -1986,7 +2313,7 @@ void InitIsBoundaryVertexAttachmentInParentLevel(MultiGrid& mg, AInt& aNumManifo
 			Edge* e = *eIter;
 
 			if(aaNumManifoldFaces[e] == 1)
-				aaBoolIsBndVrt[vrt] = true;
+				aaBoolIsCreaseBndVrt[vrt] = true;
 		}
 	}
 
@@ -1997,10 +2324,10 @@ void InitIsBoundaryVertexAttachmentInParentLevel(MultiGrid& mg, AInt& aNumManifo
 
 	//	Copy operations:
 	//	copy h_masters to h_slaves for consistency
-		AttachmentAllReduce<Vertex>(mg, aBoolIsBndVrt, PCL_RO_MAX);
+		AttachmentAllReduce<Vertex>(mg, aBoolIsCreaseBndVrt, PCL_RO_MAX);
 
 	//	copy v_slaves to ghosts = VMASTER
-		com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopyBoolIsBoundaryVrt);
+		com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, comPolCopyBoolIsCreaseBoundaryVrt);
 		com.communicate();
 	#endif
 }
@@ -2123,7 +2450,7 @@ void InitLinearManifoldSubsetHandler(MultiGrid& mg, MGSubsetHandler& sh,
 ////////////////////////////////////////////////////////////////////////////////
 template <class TAPosition>
 void ApplySmoothManifoldPosToTopLevelLoopScheme(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& markSH,
-												MGSubsetHandler& linearManifoldSH)
+												MGSubsetHandler& linearManifoldSH, bool bClosedSurface)
 {
 	if(TAPosition::ValueType::Size == 1){
 		UG_THROW("Error in ApplySmoothManifoldPosToTopLevelLoopScheme:\n"
@@ -2206,8 +2533,12 @@ void ApplySmoothManifoldPosToTopLevelLoopScheme(MultiGrid& mg, TAPosition& aPos,
  *****************************************/
 
 //	Calculate aSmoothBndPosEvenVrt, aSmoothBndPosOddVrt
-	CalculateSmoothManifoldPosInParentLevelLoopScheme(mg, aPos, markSH, linearManifoldSH,
-												aSmoothBndPosEvenVrt, aSmoothBndPosOddVrt, aNumManifoldEdges);
+	if(bClosedSurface)
+		CalculateSmoothManifoldPosInParentLevelLoopScheme(mg, aPos, markSH, linearManifoldSH,
+								aSmoothBndPosEvenVrt, aSmoothBndPosOddVrt, aNumManifoldEdges);
+	else
+		CalculateSmoothCreaseManifoldPosInParentLevelLoopScheme(mg, aPos, markSH, linearManifoldSH,
+								aSmoothBndPosEvenVrt, aSmoothBndPosOddVrt, aNumManifoldEdges);
 
 
 /*****************************************
@@ -2694,7 +3025,8 @@ void ApplySmoothVolumePosToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
 ////////////////////////////////////////////////////////////////////////////////
 template <class TAPosition>
 void ApplySmoothSubdivisionSurfacesToTopLevel(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& sh,
-											  MGSubsetHandler& markSH, MGSubsetHandler& linearManifoldSH)
+											  MGSubsetHandler& markSH, MGSubsetHandler& linearManifoldSH,
+											  bool bClosedSurface)
 {
 /*****************************************
  *
@@ -2733,7 +3065,7 @@ void ApplySmoothSubdivisionSurfacesToTopLevel(MultiGrid& mg, TAPosition& aPos, M
  *****************************************/
 
 	if(g_boundaryRefinementRule == SUBDIV_SURF_LOOP_SCHEME)
-		ApplySmoothManifoldPosToTopLevelLoopScheme(mg, aPos, markSH, linearManifoldSH);
+		ApplySmoothManifoldPosToTopLevelLoopScheme(mg, aPos, markSH, linearManifoldSH, bClosedSurface);
 	else if(g_boundaryRefinementRule == SUBDIV_SURF_AVERAGING_SCHEME)
 		ApplySmoothManifoldPosToTopLevelAveragingScheme(mg, aPos, markSH, linearManifoldSH);
 	else if(g_boundaryRefinementRule == SUBDIV_SURF_BUTTERFLY_SCHEME)
@@ -2785,7 +3117,7 @@ void ApplySmoothSubdivisionVolumesToTopLevel(MultiGrid& mg, MGSubsetHandler& sh,
  *****************************************/
 
 	if(g_boundaryRefinementRule == SUBDIV_SURF_LOOP_SCHEME)
-		ApplySmoothManifoldPosToTopLevelLoopScheme(mg, aPosition, markSH, linearManifoldSH);
+		ApplySmoothManifoldPosToTopLevelLoopScheme(mg, aPosition, markSH, linearManifoldSH, true);
 	else if(g_boundaryRefinementRule == SUBDIV_SURF_AVERAGING_SCHEME)
 		ApplySmoothManifoldPosToTopLevelAveragingScheme(mg, aPosition, markSH, linearManifoldSH);
 	else if(g_boundaryRefinementRule == SUBDIV_SURF_BUTTERFLY_SCHEME)
@@ -2810,12 +3142,13 @@ void ApplySmoothSubdivisionVolumesToTopLevel(MultiGrid& mg, MGSubsetHandler& sh,
 //	Wrapper procedures
 template <class TAPosition>
 void ApplySmoothSubdivisionSurfacesToTopLevel(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& sh,
-											  MGSubsetHandler& markSH, const char* linearManifoldSubsets)
+											  MGSubsetHandler& markSH, const char* linearManifoldSubsets,
+											  bool bClosedSurface)
 {
 	MGSubsetHandler linearManifoldSH(mg);
 	InitLinearManifoldSubsetHandler(mg, sh, linearManifoldSH, linearManifoldSubsets);
 
-	ApplySmoothSubdivisionSurfacesToTopLevel(mg, aPos, sh, markSH, linearManifoldSH);
+	ApplySmoothSubdivisionSurfacesToTopLevel(mg, aPos, sh, markSH, linearManifoldSH, bClosedSurface);
 }
 
 void ApplySmoothSubdivisionVolumesToTopLevel(MultiGrid& mg, MGSubsetHandler& sh, MGSubsetHandler& markSH,
@@ -2840,11 +3173,14 @@ void ApplyConstrainedSmoothSubdivisionVolumesToTopLevel(MultiGrid& mg, MGSubsetH
 //////////////////////////////////////////////////////////////////////////////
 //	Explicit instantiations
 template void ApplySmoothSubdivisionSurfacesToTopLevel<APosition1>(MultiGrid& mg, APosition1& aPos, MGSubsetHandler& sh,
-		  	  	  	  	  	  	  	  	  	  	  	  	  	  MGSubsetHandler& markSH, const char* linearManifoldSubsets);
+		  	  	  	  	  	  	  	  	  	  	  	  	  	  MGSubsetHandler& markSH, const char* linearManifoldSubsets,
+															  bool bClosedSurface);
 template void ApplySmoothSubdivisionSurfacesToTopLevel<APosition2>(MultiGrid& mg, APosition2& aPos, MGSubsetHandler& sh,
-		  	  	  	  	  	  	  	  	  	  	  	  	  	  MGSubsetHandler& markSH, const char* linearManifoldSubsets);
+		  	  	  	  	  	  	  	  	  	  	  	  	  	  MGSubsetHandler& markSH, const char* linearManifoldSubsets,
+															  bool bClosedSurface);
 template void ApplySmoothSubdivisionSurfacesToTopLevel<APosition>(MultiGrid& mg, APosition& aPos, MGSubsetHandler& sh,
-		  	  	  	  	  	  	  	  	  	  	  	  	  	  MGSubsetHandler& markSH, const char* linearManifoldSubsets);
+		  	  	  	  	  	  	  	  	  	  	  	  	  	  MGSubsetHandler& markSH, const char* linearManifoldSubsets,
+															  bool bClosedSurface);
 
 template void ProjectHierarchyToSubdivisionLimit(MultiGrid& mg, APosition1& aPos);
 template void ProjectHierarchyToSubdivisionLimit(MultiGrid& mg, APosition2& aPos);

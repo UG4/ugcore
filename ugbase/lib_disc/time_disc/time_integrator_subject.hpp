@@ -53,6 +53,13 @@ class TimeIntegratorSubject
 public:
 	typedef GridFunction<TDomain, TAlgebra> grid_function_type;
 	typedef ITimeIntegratorObserver<TDomain, TAlgebra> process_observer_type;
+	typedef ITimeIntegratorStageObserver_init<TDomain, TAlgebra> init_observer_type;
+	typedef ITimeIntegratorStageObserver_rewind<TDomain, TAlgebra> rewind_observer_type;
+	typedef ITimeIntegratorStageObserver_finalize<TDomain, TAlgebra> finalize_observer_type;
+	typedef ITimeIntegratorStageObserver_preprocess<TDomain, TAlgebra> preprocess_observer_type;
+	typedef ITimeIntegratorStageObserver_postprocess<TDomain, TAlgebra> postprocess_observer_type;
+	typedef ITimeIntegratorStageObserver_start<TDomain, TAlgebra> start_observer_type;
+	typedef ITimeIntegratorStageObserver_end<TDomain, TAlgebra> end_observer_type;
 	typedef typename std::vector<SmartPtr<process_observer_type> > process_observer_container_type;
 
 	enum observer_group_type {
@@ -68,6 +75,16 @@ public:
 protected:
 	// process_observer_container_type m_vProcessObservers;
 	process_observer_container_type m_vProcessObservers[TIO_GROUP_SIZE];
+
+	// container for statically mapped observers
+	std::vector<SmartPtr<init_observer_type> > m_vInitObservers;
+	std::vector<SmartPtr<rewind_observer_type> > m_vRewindObservers;
+	std::vector<SmartPtr<finalize_observer_type> > m_vFinalizeObservers;
+	std::vector<SmartPtr<preprocess_observer_type> > m_vPreprocessObservers;
+	std::vector<SmartPtr<postprocess_observer_type> > m_vPostprocessObservers;
+	std::vector<SmartPtr<start_observer_type> > m_vStartObservers;
+	std::vector<SmartPtr<end_observer_type> > m_vEndObservers;
+
 
 protected:
 	//! register observer (default: postprocess)
@@ -85,9 +102,43 @@ protected:
 		m_vProcessObservers[tGroup].push_back(obs);
 	}
 public:
-	//! Short-cut for
+
+#define DECLARE_CHECK_STATIC_ATTACH(stage, container) \
+	bool check_attach_##stage(SmartPtr<process_observer_type> obs)\
+	{\
+		SmartPtr<stage##_observer_type> sp_staticObs = obs.template cast_dynamic<stage##_observer_type>();\
+		if (sp_staticObs.valid())\
+		{\
+			(container).push_back(sp_staticObs);\
+			return true;\
+		}\
+		return false;\
+	}
+
+	DECLARE_CHECK_STATIC_ATTACH(init, m_vInitObservers)
+	DECLARE_CHECK_STATIC_ATTACH(rewind, m_vRewindObservers)
+	DECLARE_CHECK_STATIC_ATTACH(finalize, m_vFinalizeObservers)
+	DECLARE_CHECK_STATIC_ATTACH(preprocess, m_vPreprocessObservers)
+	DECLARE_CHECK_STATIC_ATTACH(postprocess, m_vPostprocessObservers)
+	DECLARE_CHECK_STATIC_ATTACH(start, m_vStartObservers)
+	DECLARE_CHECK_STATIC_ATTACH(end, m_vEndObservers)
+
+	//! Attach statically mapped observers to their respective stages.
+	//! Other observers are mapped to the finalize stage.
 	void attach_observer(SmartPtr<process_observer_type> obs)
-	{ attach_finalize_observer(obs); }
+	{
+		const bool isStaticallyAttached =
+			check_attach_init(obs) |
+			check_attach_rewind(obs) |
+			check_attach_finalize(obs) |
+			check_attach_preprocess(obs) |
+			check_attach_postprocess(obs) |
+			check_attach_start(obs) |
+			check_attach_end(obs);
+
+		if (!isStaticallyAttached)
+			attach_finalize_observer(obs);
+	}
 
 	void attach_init_observer(SmartPtr<process_observer_type> obs)
 	{ attach_to_group<TIO_GROUP_INIT_STEP>(obs); }
@@ -119,6 +170,14 @@ public:
 		m_vProcessObservers[TIO_GROUP_POSTPROCESS_STEP].clear();
 		m_vProcessObservers[TIO_GROUP_START].clear();
 		m_vProcessObservers[TIO_GROUP_END].clear();
+
+		m_vInitObservers.clear();
+		m_vRewindObservers.clear();
+		m_vFinalizeObservers.clear();
+		m_vPreprocessObservers.clear();
+		m_vPostprocessObservers.clear();
+		m_vStartObservers.clear();
+		m_vEndObservers.clear();
 	}
 
 protected:
@@ -133,40 +192,43 @@ protected:
 		{
 			result = (*it)->step_process(u, step, time, dt) && result;				 			
 		}
+
 		return result;
 	}
+
+
 public:
 
+#define DECLARE_NOTIFY_STEP(functionName, stageName, stageID, container) \
+	bool notify_##functionName(SmartPtr<grid_function_type> u, int step, number time, number dt)\
+	{\
+		bool res = notify_group<(stageID)>(u, step, time, dt);\
+		const size_t numObs = (container).size();\
+		for (size_t o = 0; o < numObs; ++o)\
+			res &= (container)[o]->stageName##_action(u, step, time, dt);\
+		return res;\
+	}
+
 	/// notify all observers that time step evolution starts
-	bool notify_init_step(SmartPtr<grid_function_type> u, int step, number time, number dt)
-	{ return notify_group<TIO_GROUP_INIT_STEP>(u, step, time, dt); }
+	DECLARE_NOTIFY_STEP(init_step, init, TIO_GROUP_INIT_STEP, m_vInitObservers)
 
 	/// Notify all observers that time step must be rewinded.
-	bool notify_rewind_step(SmartPtr<grid_function_type> u, int step, number time, number dt)
-	{ return notify_group<TIO_GROUP_REWIND_STEP>(u, step, time, dt); }
+	DECLARE_NOTIFY_STEP(rewind_step, rewind, TIO_GROUP_REWIND_STEP, m_vRewindObservers)
 
 	/// notify all observers that time step has been evolved (successfully)
-	bool notify_finalize_step(SmartPtr<grid_function_type> u, int step, number time, number dt)
-	{ return notify_group<TIO_GROUP_FINALIZE_STEP>(u, step, time, dt); }
+	DECLARE_NOTIFY_STEP(finalize_step, finalize, TIO_GROUP_FINALIZE_STEP, m_vFinalizeObservers)
 
 	/// notify all observers that newton solver is about to start (may happen multiple times per time step)
-	bool notify_preprocess_step(SmartPtr<grid_function_type> u, int step, number time, number dt)
-	{ return notify_group<TIO_GROUP_PREPROCESS_STEP>(u, step, time, dt); }
+	DECLARE_NOTIFY_STEP(preprocess_step, preprocess, TIO_GROUP_PREPROCESS_STEP, m_vPreprocessObservers)
 
 	/// notify all observers that newton solver has finished (may happen multiple times per time step)
-	bool notify_postprocess_step(SmartPtr<grid_function_type> u, int step, number time, number dt)
-	{ return notify_group<TIO_GROUP_POSTPROCESS_STEP>(u, step, time, dt); }
+	DECLARE_NOTIFY_STEP(postprocess_step, postprocess, TIO_GROUP_POSTPROCESS_STEP, m_vPostprocessObservers)
 
 	/// notify all observers that the simulation has started
-	bool notify_start(SmartPtr<grid_function_type> u, int step, number time, number dt)
-	{ return notify_group<TIO_GROUP_START>(u, step, time, dt); }
+	DECLARE_NOTIFY_STEP(start, start, TIO_GROUP_START, m_vStartObservers)
 
 	/// notify all observers that the simulation has ended
-	bool notify_end(SmartPtr<grid_function_type> u, int step, number time, number dt)
-	{ return notify_group<TIO_GROUP_END>(u, step, time, dt); }
-
-
-
+	DECLARE_NOTIFY_STEP(end, end, TIO_GROUP_END, m_vEndObservers)
 };
 
 }
