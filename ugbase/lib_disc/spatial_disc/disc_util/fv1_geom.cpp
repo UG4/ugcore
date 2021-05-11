@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2010-2015:  G-CSC, Goethe University Frankfurt
- * Author: Andreas Vogel
+ * Copyright (c) 2010-2021:  G-CSC, Goethe University Frankfurt
+ * Authors: Andreas Vogel, Dmitrij Logashenko, Martin Stepniewski
  * 
  * This file is part of UG4.
  * 
@@ -86,6 +86,9 @@ static void ComputeMidPoints(const ReferenceOctahedron& rRefOct,
                              const MathVector<dim> vCorner[],
                              MathVector<dim> vvMid[][maxMid])
 {
+///	used traits
+	typedef fv1_traits_ReferenceOctahedron traits;
+
 	ComputeMidPoints<dim, DimReferenceElement<3>, maxMid>(static_cast<DimReferenceElement<3> >(rRefOct), vCorner, vvMid);
 
 /**
@@ -96,25 +99,24 @@ static void ComputeMidPoints(const ReferenceOctahedron& rRefOct,
  * 	The dual fv1 geometry consists of the original hexahedral SCVs in each of the
  * 	4 subtetrahedra. Therefore, add the following additional corresponding midpoints:
  */
-// 	compute local midpoints for all geometric objects with  0 < d <= dim of the implicit interior substructure
 	for(int d = 1; d <= dim; ++d)
 	{
 	// 	loop geometric objects of dimension d of the implicit interior substructure
-		for(size_t i = 0; i < rRefOct.substruct_num(d); ++i)
+		for(size_t i = 0; i < traits::substruct_num(d); ++i)
 		{
 		// 	set first node
-			const size_t coID0 = rRefOct.substruct_coID(d, i, 0);
+			const size_t coID0 = traits::substruct_coID(d, i, 0);
 			vvMid[d][rRefOct.num(d)+i] = vCorner[coID0];
 
 		// 	add corner coordinates of the corners of the geometric object of the implicit interior substructure
-			for(size_t j = 1; j < rRefOct.substruct_num(d, i, 0); ++j)
+			for(size_t j = 1; j < traits::substruct_num(d, i, 0); ++j)
 			{
-				const size_t coID = rRefOct.substruct_coID(d, i, j);
+				const size_t coID = traits::substruct_coID(d, i, j);
 				vvMid[d][rRefOct.num(d)+i] += vCorner[coID];
 			}
 
 		// 	scale for correct averaging
-			vvMid[d][rRefOct.num(d)+i] *= 1./(rRefOct.substruct_num(d, i, 0));
+			vvMid[d][rRefOct.num(d)+i] *= 1./(traits::substruct_num(d, i, 0));
 		}
 	}
 }
@@ -224,13 +226,13 @@ static void ComputeSCVFMidID(const TRefElem& rRefElem,
 					break;
 
 
-		// 	scvf of edge 9
+		// 	scvf of edge 9 in subvolume 0
 			case 8:	vMidID[0] = MidID(1,9);	// edge 9
 					vMidID[1] = MidID(2,5);	// face 5
 					vMidID[2] = MidID(3,1);	// subvolume 0
 					vMidID[3] = MidID(2,4); // face 4
 					break;
-		// 	scvf of edge 1
+		// 	scvf of edge 1 in subvolume 2
 			case 9:	vMidID[0] = MidID(1,1);	// edge 1
 					vMidID[1] = MidID(2,0); // face 0
 					vMidID[2] = MidID(3,3);	// subvolume 2

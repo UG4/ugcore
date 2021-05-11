@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2010-2015:  G-CSC, Goethe University Frankfurt
- * Author: Andreas Vogel
+ * Copyright (c) 2010-2021:  G-CSC, Goethe University Frankfurt
+ * Authors: Andreas Vogel, Martin Stepniewski
  * 
  * This file is part of UG4.
  * 
@@ -1961,123 +1961,6 @@ ReferenceOctahedron::ReferenceOctahedron()
  	m_vNumRefElem[ROID_EDGE] = 12;
  	m_vNumRefElem[ROID_TRIANGLE] = 8;
  	m_vNumRefElem[ROID_OCTAHEDRON] = 1;
-
-/**
- * 	The octahedral reference element contains an implicit interior
- * 	substructure that is constructed by several geometric objects,
- * 	i.e. imaginary subfaces (8 triangles), subedges (2) and subvolumes (4 tetrahedra)
- * 	resulting from the division into 4 subtetrahedra alongside inner edge 3->1.
- * 	The dual fv1 geometry consists of the original hexahedral SCVs in each of the
- * 	4 subtetrahedra.
- */
-
-//	number of interior substructure Geometric Objects
- 	m_vSubStructNum[POINT] = 0;	// no additional vertices in the substructure
- 	m_vSubStructNum[EDGE] = 2;
- 	m_vSubStructNum[FACE] = 8;
- 	m_vSubStructNum[VOLUME] = 4;
-
-// 	number of interior substructure Geometric Objects
-	for(size_t i = 0; i < m_vSubStructNum[VOLUME]; ++i)
-	{
-		m_vSubStructSubNum[VOLUME][i][POINT] = 4;
-		m_vSubStructSubNum[VOLUME][i][EDGE] = 6;
-		m_vSubStructSubNum[VOLUME][i][FACE] = 4;
-		m_vSubStructSubNum[VOLUME][i][VOLUME] = 1;
-
-		m_vSubStructRefElemType[VOLUME][i] = ROID_TETRAHEDRON;
-	}
-
-	for(size_t i = 0; i < m_vSubStructNum[FACE]; ++i)
-	{
-		m_vSubStructSubNum[FACE][i][POINT] = 3;
-		m_vSubStructSubNum[FACE][i][EDGE] = 3;
-		m_vSubStructSubNum[FACE][i][FACE] = 1;
-		m_vSubStructSubNum[FACE][i][VOLUME] = 1;
-
-		m_vSubStructRefElemType[FACE][i] = ROID_TRIANGLE;
-	}
-
-	for(size_t i = 0; i < m_vSubStructNum[EDGE]; ++i)
-	{
-		m_vSubStructSubNum[EDGE][i][POINT] = 2;
-		m_vSubStructSubNum[EDGE][i][EDGE] = 1;
-		m_vSubStructSubNum[EDGE][i][FACE] = 2;
-		m_vSubStructSubNum[EDGE][i][VOLUME] = 1;
-
-		m_vSubStructRefElemType[EDGE][i] = ROID_EDGE;
-	}
-
-	for(size_t i = 0; i < m_vSubStructNum[POINT]; ++i)
-	{
-		m_vSubStructSubNum[POINT][i][POINT] = 1;
-		m_vSubStructSubNum[POINT][i][EDGE] = 3;
-		m_vSubStructSubNum[POINT][i][FACE] = 3;
-		m_vSubStructSubNum[POINT][i][VOLUME] = 1;
-
-		m_vSubStructRefElemType[POINT][i] = ROID_VERTEX;
-	}
-
- 	// subedge 0 = (3,1)
- 	m_substruct_coID[EDGE][0][0] = 3;
- 	m_substruct_coID[EDGE][0][1] = 1;
- 	// subedge 1 = (1,3)
- 	m_substruct_coID[EDGE][1][0] = 1;
- 	m_substruct_coID[EDGE][1][1] = 3;
-
- 	// subface 0 = (1,2,3)
- 	m_substruct_coID[FACE][0][0] = 1;
- 	m_substruct_coID[FACE][0][1] = 2;
- 	m_substruct_coID[FACE][0][2] = 3;
- 	// subface 1 = (1,3,2)
- 	m_substruct_coID[FACE][1][0] = 1;
- 	m_substruct_coID[FACE][1][1] = 3;
- 	m_substruct_coID[FACE][1][2] = 2;
- 	// subface 2 = (1,3,4)
- 	m_substruct_coID[FACE][2][0] = 1;
- 	m_substruct_coID[FACE][2][1] = 3;
- 	m_substruct_coID[FACE][2][2] = 4;
- 	// subface 3 = (1,4,3)
- 	m_substruct_coID[FACE][3][0] = 1;
- 	m_substruct_coID[FACE][3][1] = 4;
- 	m_substruct_coID[FACE][3][2] = 3;
- 	// subface 4 = (1,3,5)
- 	m_substruct_coID[FACE][4][0] = 1;
- 	m_substruct_coID[FACE][4][1] = 3;
- 	m_substruct_coID[FACE][4][2] = 5;
- 	// subface 5 = (1,5,3)
- 	m_substruct_coID[FACE][5][0] = 1;
- 	m_substruct_coID[FACE][5][1] = 5;
- 	m_substruct_coID[FACE][5][2] = 3;
- 	// subface 6 = (1,0,3)
- 	m_substruct_coID[FACE][6][0] = 1;
- 	m_substruct_coID[FACE][6][1] = 0;
- 	m_substruct_coID[FACE][6][2] = 3;
- 	// subface 7 = (1,0,3)
- 	m_substruct_coID[FACE][7][0] = 1;
- 	m_substruct_coID[FACE][7][1] = 3;
- 	m_substruct_coID[FACE][7][2] = 0;
-
- 	// subvolume 0 = (1,2,3,5)
- 	m_substruct_coID[VOLUME][0][0] = 1;
- 	m_substruct_coID[VOLUME][0][1] = 2;
- 	m_substruct_coID[VOLUME][0][2] = 3;
- 	m_substruct_coID[VOLUME][0][3] = 5;
- 	// subvolume 1 = (1,3,4,5)
- 	m_substruct_coID[VOLUME][1][0] = 1;
- 	m_substruct_coID[VOLUME][1][1] = 3;
- 	m_substruct_coID[VOLUME][1][2] = 4;
- 	m_substruct_coID[VOLUME][1][3] = 5;
- 	// subvolume 2 = (1,2,3,0)
- 	m_substruct_coID[VOLUME][2][0] = 1;
- 	m_substruct_coID[VOLUME][2][1] = 2;
- 	m_substruct_coID[VOLUME][2][2] = 3;
- 	m_substruct_coID[VOLUME][2][3] = 0;
- 	// subvolume 3 = (1,3,4,0)
- 	m_substruct_coID[VOLUME][3][0] = 1;
- 	m_substruct_coID[VOLUME][3][1] = 3;
- 	m_substruct_coID[VOLUME][3][2] = 4;
- 	m_substruct_coID[VOLUME][3][3] = 0;
 }
 
 
