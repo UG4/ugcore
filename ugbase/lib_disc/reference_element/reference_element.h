@@ -737,6 +737,83 @@ class ReferenceOctahedron : public DimReferenceElement<3>
 		{
 			//\todo: add check
 		}
+
+	public:
+
+	///	maximum number of substructure objects
+		enum{MAXSUBSTRUCTOBJECTS = 8};
+
+	///	maximum number of substructure corners
+		enum{MAXSUBSTRUCTCORNERS = 4};
+
+	/// Corner indices of implicit interior substructure Geometric Objects
+	/**
+	 * The octahedral reference element contains an implicit interior
+	 * substructure that is constructed by several geometric objects,
+	 * i.e. imaginary subfaces (8 triangles), subedges (2) and subvolumes (4 tetrahedra)
+	 * resulting from the division into 4 subtetrahedra alongside inner edge 3->1.
+	 * The dual fv1 geometry consists of the original hexahedral SCVs in each of the
+	 * 4 subtetrahedra.
+	 */
+		int m_substruct_coID[dim+1][MAXSUBSTRUCTOBJECTS][MAXSUBSTRUCTCORNERS];
+
+	/// number of implicit interior substructure Geometric Objects of a dimension
+		size_t m_vSubStructNum[dim+1];
+
+	/// number of Geometric Objects contained in a (Sub-)Geometric Object of the implicit interior substructure of the Element
+		size_t m_vSubStructSubNum[dim+1][MAXSUBSTRUCTOBJECTS][dim+1];
+
+	///	type of interior substructure reference elements
+		ReferenceObjectID m_vSubStructRefElemType[dim+1][MAXSUBSTRUCTOBJECTS];
+
+	/// returns the number of implicit interior substructure geometric objects of dim
+	/**
+	 * The octahedral reference element contains an implicit interior
+	 * substructure that is constructed by several geometric objects, that
+	 * are mapped by a reference element by themselves. This method returns how
+	 * many (sub-)geometric objects of a given dimension are contained in the
+	 * implicit interior substructure of this reference element.
+	 *
+	 * \param[in]	dim		dimension
+	 * \returns		number of objects of the dimension contained in the ref elem
+	 */
+		size_t substruct_num(int dim) const	{return m_vSubStructNum[dim];}
+
+	/// returns the number of objects of dim for a sub-geometric object of the implicit interior substructure
+	/**
+	 * The octahedral reference element contains an implicit interior
+	 * substructure that is constructed by several geometric objects, that
+	 * are mapped by a reference element by themselves. This method returns how
+	 * many (sub-)geometric objects of a given dimension are contained in the
+	 * (sub-)geometric object of the implicit interior substructure of
+	 * this reference element.
+	 *
+	 * \param[in]	dim_i		dimension of sub geometric object
+	 * \param[in]	i			number of sub geometric object
+	 * \param[in]	dim_j		dimension for elems contained in the sub-object
+	 * \returns		number of objects of the dimension dim_j that are
+	 * 				contained in the i*th (sub-)geom object of dimension dim_i
+	 */
+		size_t substruct_num(int dim_i, size_t i, int dim_j) const
+			{return m_vSubStructSubNum[dim_i][i][dim_j];}
+
+	/// id of object j in dimension dim_j of obj i in dimension dim_i of the implicit interior substructure
+	/**
+	 * The octahedral reference element contains an implicit interior
+	 * substructure that is constructed by several geometric objects, that
+	 * are mapped by a reference element by themselves. This method returns the
+	 * id (w.r.t. this reference element) of a sub-geometric object that is
+	 * part of a sub-geometric object of the implicit interior substructure of
+	 * this reference element.
+	 *
+	 * \param[in]	dim_i		dimension of sub geometric object
+	 * \param[in]	i			id of sub geometric object
+	 * \param[in]	j			number of obj contained in the sub-object
+	 * \returns		id of the j'th object of the dimension dim_j that are
+	 * 				contained in the i*th (sub-)geom object of dimension dim_i
+	 */
+		int substruct_coID(int dim_i, size_t i, size_t j) const
+			{return m_substruct_coID[dim_i][i][j];}
 };
 
 } // end namespace ug

@@ -75,80 +75,47 @@ static void ComputeMidPoints(const TRefElem& rRefElem,
 			vvMid[d][i] *= 1./(rRefElem.num(d, i, 0));
 		}
 	}
+}
 
-// 	for OCTAHEDRONS: add midpoints of imaginary faces, edges and volumes
-// 	resulting from the division into 4 tetrahedra alongside inner edge 3->1
-	if (rRefElem.roid() == ROID_OCTAHEDRON)
+/**
+ * \tparam	dim			dimension of coordinates
+ * \tparam	maxMid		Maximum number of elements for all dimensions
+ */
+template <int dim, typename TRefElem = ReferenceOctahedron, int maxMid>
+static void ComputeMidPoints(const ReferenceOctahedron& rRefOct,
+                             const MathVector<dim> vCorner[],
+                             MathVector<dim> vvMid[][maxMid])
+{
+	ComputeMidPoints<dim, DimReferenceElement<3>, maxMid>(static_cast<DimReferenceElement<3> >(rRefOct), vCorner, vvMid);
+
+/**
+ * 	The octahedral reference element contains an implicit interior
+ * 	substructure that is constructed by several geometric objects,
+ * 	i.e. imaginary subfaces (8 triangles), subedges (2) and subvolumes (4 tetrahedra)
+ * 	resulting from the division into 4 subtetrahedra alongside inner edge 3->1.
+ * 	The dual fv1 geometry consists of the original hexahedral SCVs in each of the
+ * 	4 subtetrahedra. Therefore, add the following additional corresponding midpoints:
+ */
+// 	compute local midpoints for all geometric objects with  0 < d <= dim of the implicit interior substructure
+	for(int d = 1; d <= dim; ++d)
 	{
-	// 	diagonal 3->1, diagonal 1->3
-		VecScaleAdd(vvMid[1][rRefElem.num(1)], 0.5, vCorner[3], 0.5, vCorner[1]);
-		VecScaleAdd(vvMid[1][rRefElem.num(1)+1], 0.5, vCorner[1], 0.5, vCorner[3]);
+	// 	loop geometric objects of dimension d of the implicit interior substructure
+		for(size_t i = 0; i < rRefOct.substruct_num(d); ++i)
+		{
+		// 	set first node
+			const size_t coID0 = rRefOct.substruct_coID(d, i, 0);
+			vvMid[d][rRefOct.num(d)+i] = vCorner[coID0];
 
-	// 	subface 1,2,3; subface 1,3,2; subface 1,3,4; subface 1,4,3; face 1,3,5; face 1,5,3; face 1,0,3; face 1,3,0
-		vvMid[2][rRefElem.num(2)] = vCorner[1];
-		vvMid[2][rRefElem.num(2)] += vCorner[2];
-		vvMid[2][rRefElem.num(2)] += vCorner[3];
-		vvMid[2][rRefElem.num(2)] *= 1.0/3.0;
+		// 	add corner coordinates of the corners of the geometric object of the implicit interior substructure
+			for(size_t j = 1; j < rRefOct.substruct_num(d, i, 0); ++j)
+			{
+				const size_t coID = rRefOct.substruct_coID(d, i, j);
+				vvMid[d][rRefOct.num(d)+i] += vCorner[coID];
+			}
 
-		vvMid[2][rRefElem.num(2)+1] = vCorner[1];
-		vvMid[2][rRefElem.num(2)+1] += vCorner[3];
-		vvMid[2][rRefElem.num(2)+1] += vCorner[2];
-		vvMid[2][rRefElem.num(2)+1] *= 1.0/3.0;
-
-		vvMid[2][rRefElem.num(2)+2] = vCorner[1];
-		vvMid[2][rRefElem.num(2)+2] += vCorner[3];
-		vvMid[2][rRefElem.num(2)+2] += vCorner[4];
-		vvMid[2][rRefElem.num(2)+2] *= 1.0/3.0;
-
-		vvMid[2][rRefElem.num(2)+3] = vCorner[1];
-		vvMid[2][rRefElem.num(2)+3] += vCorner[4];
-		vvMid[2][rRefElem.num(2)+3] += vCorner[3];
-		vvMid[2][rRefElem.num(2)+3] *= 1.0/3.0;
-
-		vvMid[2][rRefElem.num(2)+4] = vCorner[1];
-		vvMid[2][rRefElem.num(2)+4] += vCorner[3];
-		vvMid[2][rRefElem.num(2)+4] += vCorner[5];
-		vvMid[2][rRefElem.num(2)+4] *= 1.0/3.0;
-
-		vvMid[2][rRefElem.num(2)+5] = vCorner[1];
-		vvMid[2][rRefElem.num(2)+5] += vCorner[5];
-		vvMid[2][rRefElem.num(2)+5] += vCorner[3];
-		vvMid[2][rRefElem.num(2)+5] *= 1.0/3.0;
-
-		vvMid[2][rRefElem.num(2)+6] = vCorner[1];
-		vvMid[2][rRefElem.num(2)+6] += vCorner[0];
-		vvMid[2][rRefElem.num(2)+6] += vCorner[3];
-		vvMid[2][rRefElem.num(2)+6] *= 1.0/3.0;
-
-		vvMid[2][rRefElem.num(2)+7] = vCorner[1];
-		vvMid[2][rRefElem.num(2)+7] += vCorner[3];
-		vvMid[2][rRefElem.num(2)+7] += vCorner[0];
-		vvMid[2][rRefElem.num(2)+7] *= 1.0/3.0;
-
-	// 	subvolume 1,2,3,5; subvolume 1,3,4,5; subvolume 1,2,3,0; subvolume 1,3,4,0
-		vvMid[3][rRefElem.num(3)] = vCorner[1];
-		vvMid[3][rRefElem.num(3)] += vCorner[2];
-		vvMid[3][rRefElem.num(3)] += vCorner[3];
-		vvMid[3][rRefElem.num(3)] += vCorner[5];
-		vvMid[3][rRefElem.num(3)] *= 0.25;
-
-		vvMid[3][rRefElem.num(3)+1] = vCorner[1];
-		vvMid[3][rRefElem.num(3)+1] += vCorner[3];
-		vvMid[3][rRefElem.num(3)+1] += vCorner[4];
-		vvMid[3][rRefElem.num(3)+1] += vCorner[5];
-		vvMid[3][rRefElem.num(3)+1] *= 0.25;
-
-		vvMid[3][rRefElem.num(3)+2] = vCorner[1];
-		vvMid[3][rRefElem.num(3)+2] += vCorner[2];
-		vvMid[3][rRefElem.num(3)+2] += vCorner[3];
-		vvMid[3][rRefElem.num(3)+2] += vCorner[0];
-		vvMid[3][rRefElem.num(3)+2] *= 0.25;
-
-		vvMid[3][rRefElem.num(3)+3] = vCorner[1];
-		vvMid[3][rRefElem.num(3)+3] += vCorner[3];
-		vvMid[3][rRefElem.num(3)+3] += vCorner[4];
-		vvMid[3][rRefElem.num(3)+3] += vCorner[0];
-		vvMid[3][rRefElem.num(3)+3] *= 0.25;
+		// 	scale for correct averaging
+			vvMid[d][rRefOct.num(d)+i] *= 1./(rRefOct.substruct_num(d, i, 0));
+		}
 	}
 }
 
