@@ -56,6 +56,27 @@
 namespace ug{
 
 ////////////////////////////////////////////////////////////////////////////////
+// FV1 Geometry helper procedures
+////////////////////////////////////////////////////////////////////////////////
+
+// forward declarations
+
+/**
+ * \tparam	dim			dimension of coordinates
+ * \tparam	TRefElem	Reference element type
+ * \tparam	maxMid		Maximum number of elements for all dimensions
+ */
+template <int dim, typename TRefElem, int maxMid>
+static void ComputeMidPoints(const TRefElem& rRefElem,
+                             const MathVector<dim> vCorner[],
+                             MathVector<dim> vvMid[][maxMid]);
+
+template <int dim, typename TRefElem = ReferenceOctahedron, int maxMid>
+static void ComputeMidPoints(const ReferenceOctahedron& rRefOct,
+                             const MathVector<dim> vCorner[],
+                             MathVector<dim> vvMid[][maxMid]);
+
+////////////////////////////////////////////////////////////////////////////////
 // FV1 Geometry for Reference Element Type
 ////////////////////////////////////////////////////////////////////////////////
 

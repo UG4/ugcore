@@ -81,7 +81,7 @@ static void ComputeMidPoints(const TRefElem& rRefElem,
  * \tparam	dim			dimension of coordinates
  * \tparam	maxMid		Maximum number of elements for all dimensions
  */
-template <int dim, typename TRefElem = ReferenceOctahedron, int maxMid>
+template <int dim, typename TRefElem, int maxMid>
 static void ComputeMidPoints(const ReferenceOctahedron& rRefOct,
                              const MathVector<dim> vCorner[],
                              MathVector<dim> vvMid[][maxMid])
