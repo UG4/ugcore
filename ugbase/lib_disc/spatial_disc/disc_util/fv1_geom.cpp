@@ -76,6 +76,14 @@ static void ComputeMidPoints(const TRefElem& rRefElem,
 		}
 	}
 
+/**
+ * 	The octahedral reference element contains an implicit interior
+ * 	substructure that is constructed by several geometric objects,
+ * 	i.e. imaginary subfaces (8 triangles), subedges (2) and subvolumes (4 tetrahedra)
+ * 	resulting from the division into 4 subtetrahedra alongside inner edge 3->1.
+ * 	The dual fv1 geometry consists of the original hexahedral SCVs in each of the
+ * 	4 subtetrahedra. Therefore, add the following additional corresponding midpoints:
+ */
 	if(rRefElem.roid() == ROID_OCTAHEDRON)
 	{
 		typedef fv1_traits_ReferenceOctahedron traits;
@@ -102,51 +110,6 @@ static void ComputeMidPoints(const TRefElem& rRefElem,
 		}
 	}
 }
-
-///**
-// * \tparam	dim			dimension of coordinates
-// * \tparam	maxMid		Maximum number of elements for all dimensions
-// */
-////template <int dim, typename TRefElem, int maxMid>
-//template <int dim, typename TRefElem, int maxMid>
-//static void ComputeMidPoints(const ReferenceOctahedron& rRefOct,
-//                             const MathVector<dim> vCorner[],
-//                             MathVector<dim> vvMid[][maxMid])
-//{
-/////	used traits
-//	typedef fv1_traits_ReferenceOctahedron traits;
-//
-//	ComputeMidPoints<dim, DimReferenceElement<3>, maxMid>(static_cast<DimReferenceElement<3> >(rRefOct), vCorner, vvMid);
-//
-///**
-// * 	The octahedral reference element contains an implicit interior
-// * 	substructure that is constructed by several geometric objects,
-// * 	i.e. imaginary subfaces (8 triangles), subedges (2) and subvolumes (4 tetrahedra)
-// * 	resulting from the division into 4 subtetrahedra alongside inner edge 3->1.
-// * 	The dual fv1 geometry consists of the original hexahedral SCVs in each of the
-// * 	4 subtetrahedra. Therefore, add the following additional corresponding midpoints:
-// */
-//	for(int d = 1; d <= dim; ++d)
-//	{
-//	// 	loop geometric objects of dimension d of the implicit interior substructure
-//		for(size_t i = 0; i < traits::substruct_num(d); ++i)
-//		{
-//		// 	set first node
-//			const size_t coID0 = traits::substruct_coID(d, i, 0);
-//			vvMid[d][rRefOct.num(d)+i] = vCorner[coID0];
-//
-//		// 	add corner coordinates of the corners of the geometric object of the implicit interior substructure
-//			for(size_t j = 1; j < traits::substruct_num(d, i, 0); ++j)
-//			{
-//				const size_t coID = traits::substruct_coID(d, i, j);
-//				vvMid[d][rRefOct.num(d)+i] += vCorner[coID];
-//			}
-//
-//		// 	scale for correct averaging
-//			vvMid[d][rRefOct.num(d)+i] *= 1./(traits::substruct_num(d, i, 0));
-//		}
-//	}
-//}
 
 /**
  * \param[in]	i		indicates that scvf corresponds to i'th edge of ref elem
