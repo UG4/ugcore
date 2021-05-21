@@ -636,6 +636,7 @@ class PointEvaluatorBase : public ITimeIntegratorObserver<TDomain, TAlgebra>
 		std::vector<TPoint> m_evaluationPoints;
 		std::string m_filename;
 		std::string m_separator = "\t";
+		//std::string m_separator = std::string("\t");
 };
 
 template <typename TDomain, typename TAlgebra>
