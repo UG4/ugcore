@@ -624,27 +624,6 @@ void CalculateSmoothCreaseManifoldPosInParentLevelLoopScheme(MultiGrid& mg, TAPo
 	Grid::EdgeAttachmentAccessor<TAPosition> aaSmoothBndPosOddVrt(mg, aSmoothBndPosOddVrt);
 	Grid::VertexAttachmentAccessor<AInt> aaNumManifoldEdges(mg, aNumManifoldEdges);
 
-
-	/*
-	 * Crease boundary setup section
-	 */
-
-//	Edge and vertex attachments for crease boundary distinguishment in case of non-closed surfaces
-	AInt aNumManifoldFaces;
-	ABool aBoolIsCreaseBndVrt;
-
-//	attach previously declared attachments with initial value 0
-	mg.attach_to_edges_dv(aNumManifoldFaces, 0);
-	mg.attach_to_vertices_dv(aBoolIsCreaseBndVrt, false);
-
-	Grid::EdgeAttachmentAccessor<AInt> aaNumManifoldFaces(mg, aNumManifoldFaces);
-	Grid::VertexAttachmentAccessor<ABool> aaBoolIsCreaseBndVrt(mg, aBoolIsCreaseBndVrt);
-
-//	Initialize aNumManifoldFaces for non-closed surfaces
-	CalculateNumManifoldFacesEdgeAttachmentInParentLevel(mg, markSH, aNumManifoldFaces);
-	InitIsCreaseBoundaryVertexAttachmentInParentLevel(mg, aNumManifoldFaces, aBoolIsCreaseBndVrt);
-
-
 	#ifdef UG_PARALLEL
 		DistributedGridManager& dgm = *mg.distributed_grid_manager();
 	#endif
@@ -690,9 +669,9 @@ void CalculateSmoothCreaseManifoldPosInParentLevelLoopScheme(MultiGrid& mg, TAPo
 				continue;
 		#endif
 
-	//	In case of marked manifold vertices, which do not belong to the user-specified linear boundary manifold subsets,
+	//	In case of vertices, which do not belong to the user-specified linear boundary manifold subsets,
 	//	and activated subdivision Loop refinement calculate subdivision surfaces smooth position
-		if(markSH.get_subset_index(vrt) != -1 && linearManifoldSH.get_subset_index(vrt) == -1)
+		if(linearManifoldSH.get_subset_index(vrt) == -1)
 		{
 		//	perform loop subdivision on even manifold vertices
 		//	first get neighbored manifold vertices
@@ -700,32 +679,29 @@ void CalculateSmoothCreaseManifoldPosInParentLevelLoopScheme(MultiGrid& mg, TAPo
 			{
 				Edge* e = *eIter;
 
-			//	Only consider associated edges, which are marked as manifold edges
-				if(markSH.get_subset_index(e) != -1)
-				{
-				//	In case of a polyline surface boundary vertex (non-closed surfaces) exclude non-boundary neighbor vertices
-					if(aaBoolIsCreaseBndVrt[vrt]){
-						if(aaNumManifoldFaces[e] != 1)
-							continue;
-					}
-
-				//	Exclude ghost and horizontal slave neighbor vertices from contributing to centroid
-					#ifdef UG_PARALLEL
-						if(dgm.is_ghost(e))
-							continue;
-
-						if(dgm.contains_status(e, ES_H_SLAVE))
-							continue;
-					#endif
-
-					VecAdd(p, p, aaPos[GetConnectedVertex(e, vrt)]);
+			//	In case of a polyline surface boundary vertex (marked in non-closed surfaces) exclude non-boundary neighbor vertices
+				if(markSH.get_subset_index(vrt) != -1){
+					if(markSH.get_subset_index(e) == -1)
+						continue;
 				}
+
+			//	Exclude ghost and horizontal slave neighbor vertices from contributing to centroid
+				#ifdef UG_PARALLEL
+					if(dgm.is_ghost(e))
+						continue;
+
+					if(dgm.contains_status(e, ES_H_SLAVE))
+						continue;
+				#endif
+
+				VecAdd(p, p, aaPos[GetConnectedVertex(e, vrt)]);
 			}
 
 			number centerWght;
 			number nbrWght;
 
-			if(aaBoolIsCreaseBndVrt[vrt]){
+		//	Polyline surface boundary vertex (marked in non-closed surfaces)
+			if(markSH.get_subset_index(vrt) != -1){
 			//	Polyline weights in case of boundary vertices of non-closed surfaces
 
 			//	Prototype Butterfly interpolation
@@ -735,6 +711,7 @@ void CalculateSmoothCreaseManifoldPosInParentLevelLoopScheme(MultiGrid& mg, TAPo
 				centerWght 	= 0.75;
 				nbrWght 	= 0.125;
 			}
+		//	Inner vertex
 			else{
 			//	Regular subdivision weights by C. Loop for closed triangular surfaces
 				centerWght 	= subdiv.ref_even_inner_center_weight(aaNumManifoldEdges[vrt]);
@@ -786,17 +763,12 @@ void CalculateSmoothCreaseManifoldPosInParentLevelLoopScheme(MultiGrid& mg, TAPo
 				continue;
 		#endif
 
-	//	In case of marked manifold edges, which do not belong to the user-specified linear boundary manifold subsets,
+	//	In case of manifold edges, which do not belong to the user-specified linear boundary manifold subsets,
 	//	and activated subdivision Loop refinement calculate subdivision surfaces smooth position
-		if(markSH.get_subset_index(e) != -1 && linearManifoldSH.get_subset_index(e) == -1)
+		if(linearManifoldSH.get_subset_index(e) == -1)
 		{
-		//	In case of non-closed surfaces check if the current edge belongs to the polyline surface boundary
-			bool bIsBndEdge = false;
-
-			if(aaNumManifoldFaces[e] == 1)
-				bIsBndEdge = true;
-
-			if(bIsBndEdge)
+		//	In case of non-closed surfaces check if the current edge belongs to the polyline surface boundary (marked in non-closed surfaces)
+			if(markSH.get_subset_index(e) != -1)
 			{
 			//	Exclude ghost and horizontal slaves of the parent edge vertices of the currently smoothed vertex
 			//	to avoid multiple contributions to the centroid of the edge adjacent vertices
@@ -838,22 +810,16 @@ void CalculateSmoothCreaseManifoldPosInParentLevelLoopScheme(MultiGrid& mg, TAPo
 
 				for(size_t i = 0; i < associatedFaces.size(); ++i)
 				{
+				//	Exclude ghost and horizontal slave manifold faces
+					#ifdef UG_PARALLEL
+						if(dgm.is_ghost(associatedFaces[i]))
+							continue;
 
-				//	Only consider associated faces, which are marked as manifold faces
-					if(markSH.get_subset_index(associatedFaces[i]) != -1)
-					{
-					//	Exclude ghost and horizontal slave manifold faces
-						#ifdef UG_PARALLEL
-							if(dgm.is_ghost(associatedFaces[i]))
-								continue;
+						if(dgm.contains_status(associatedFaces[i], ES_H_SLAVE))
+							continue;
+					#endif
 
-							if(dgm.contains_status(associatedFaces[i], ES_H_SLAVE))
-								continue;
-						#endif
-
-						associatedManifoldFaces.push_back(associatedFaces[i]);
-
-					}
+					associatedManifoldFaces.push_back(associatedFaces[i]);
 				}
 
 				if(associatedManifoldFaces.size() <= 2)
@@ -905,10 +871,6 @@ void CalculateSmoothCreaseManifoldPosInParentLevelLoopScheme(MultiGrid& mg, TAPo
 		AttachmentAllReduce<Vertex>(mg, aSmoothBndPosEvenVrt, PCL_RO_SUM);
 		AttachmentAllReduce<Edge>(mg, aSmoothBndPosOddVrt, PCL_RO_SUM);
 	#endif
-
-//	detach crease boundary feature attachments
-	mg.detach_from_edges(aNumManifoldFaces);
-	mg.detach_from_vertices(aBoolIsCreaseBndVrt);
 }
 
 
@@ -2069,7 +2031,7 @@ void CalculateNumElemsVertexAttachmentInTopLevel(MultiGrid& mg, AInt& aNumElems_
 
 ////////////////////////////////////////////////////////////////////////////////
 void CalculateNumManifoldEdgesVertexAttachmentInParentLevel(MultiGrid& mg, MGSubsetHandler& markSH,
-															AInt& aNumManifoldEdges)
+															AInt& aNumManifoldEdges, bool bCreaseSurf)
 {
 //	Define attachment accessor
 	Grid::VertexAttachmentAccessor<AInt> aaNumManifoldEdges(mg, aNumManifoldEdges);
@@ -2107,8 +2069,24 @@ void CalculateNumManifoldEdgesVertexAttachmentInParentLevel(MultiGrid& mg, MGSub
 	{
 		Edge* e = *eIter;
 
+	//	Smooth surfaces:
+	//	Count only marked manifold edges
+	// 	-> bool bSwitch = (markSH.get_subset_index(e) != -1);
+
+	//	Crease surfaces;
+	//	Count all edges
+	//	-> bSwitch = true;
+
+		bool bSwitch;
+
+		if(bCreaseSurf)
+			bSwitch = true;
+		else
+			bSwitch = (markSH.get_subset_index(e) != -1);
+
 	// 	Check, if edge is contained in subset with marked manifold elements
-		if (markSH.get_subset_index(e) != -1)
+//		if (markSH.get_subset_index(e) != -1)
+		if(bSwitch)
 		{
 		//	Skip ghost and horizontal slave edges
 			#ifdef UG_PARALLEL
@@ -2450,7 +2428,7 @@ void InitLinearManifoldSubsetHandler(MultiGrid& mg, MGSubsetHandler& sh,
 ////////////////////////////////////////////////////////////////////////////////
 template <class TAPosition>
 void ApplySmoothManifoldPosToTopLevelLoopScheme(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& markSH,
-												MGSubsetHandler& linearManifoldSH, bool bClosedSurface)
+												MGSubsetHandler& linearManifoldSH, bool bCreaseSurf)
 {
 	if(TAPosition::ValueType::Size == 1){
 		UG_THROW("Error in ApplySmoothManifoldPosToTopLevelLoopScheme:\n"
@@ -2522,7 +2500,7 @@ void ApplySmoothManifoldPosToTopLevelLoopScheme(MultiGrid& mg, TAPosition& aPos,
  *
  *****************************************/
 
-	CalculateNumManifoldEdgesVertexAttachmentInParentLevel(mg, markSH, aNumManifoldEdges);
+	CalculateNumManifoldEdgesVertexAttachmentInParentLevel(mg, markSH, aNumManifoldEdges, bCreaseSurf);
 
 
 /*****************************************
@@ -2533,12 +2511,12 @@ void ApplySmoothManifoldPosToTopLevelLoopScheme(MultiGrid& mg, TAPosition& aPos,
  *****************************************/
 
 //	Calculate aSmoothBndPosEvenVrt, aSmoothBndPosOddVrt
-	if(bClosedSurface)
-		CalculateSmoothManifoldPosInParentLevelLoopScheme(mg, aPos, markSH, linearManifoldSH,
-								aSmoothBndPosEvenVrt, aSmoothBndPosOddVrt, aNumManifoldEdges);
-	else
+	if(bCreaseSurf)
 		CalculateSmoothCreaseManifoldPosInParentLevelLoopScheme(mg, aPos, markSH, linearManifoldSH,
-								aSmoothBndPosEvenVrt, aSmoothBndPosOddVrt, aNumManifoldEdges);
+										aSmoothBndPosEvenVrt, aSmoothBndPosOddVrt, aNumManifoldEdges);
+	else
+		CalculateSmoothManifoldPosInParentLevelLoopScheme(mg, aPos, markSH, linearManifoldSH,
+										aSmoothBndPosEvenVrt, aSmoothBndPosOddVrt, aNumManifoldEdges);
 
 
 /*****************************************
@@ -2556,9 +2534,24 @@ void ApplySmoothManifoldPosToTopLevelLoopScheme(MultiGrid& mg, TAPosition& aPos,
 		if(mg.get_parent(vrt) == NULL)
 			continue;
 
+	//	Smooth surfaces:
 	//	In case of marked manifold vertices, which do not belong to the user-specified linear boundary manifold subsets,
 	//	and activated Loop scheme refinement apply subdivision surfaces smoothing, else linear refinement
-		if(markSH.get_subset_index(vrt) != -1 && linearManifoldSH.get_subset_index(vrt) == -1)
+	// 	-> bool bSwitch = (markSH.get_subset_index(vrt) != -1 && linearManifoldSH.get_subset_index(vrt) == -1);
+
+	//	Crease surfaces;
+	//	In case of vertices, which do not belong to the user-specified linear boundary manifold subsets,
+	//	and activated Loop scheme refinement apply subdivision surfaces smoothing, else linear refinement
+	//	-> bSwitch = (linearManifoldSH.get_subset_index(vrt) == -1);
+
+		bool bSwitch;
+
+		if(bCreaseSurf)
+			bSwitch = (linearManifoldSH.get_subset_index(vrt) == -1);
+		else
+			bSwitch = (markSH.get_subset_index(vrt) != -1 && linearManifoldSH.get_subset_index(vrt) == -1);
+
+		if(bSwitch)
 		{
 		//	EVEN VERTEX
 			if(mg.get_parent(vrt)->reference_object_id() == ROID_VERTEX)
@@ -2681,7 +2674,7 @@ void ApplySmoothManifoldPosToTopLevelButterflyScheme(MultiGrid& mg, TAPosition& 
  *
  *****************************************/
 
-	CalculateNumManifoldEdgesVertexAttachmentInParentLevel(mg, markSH, aNumManifoldEdges);
+	CalculateNumManifoldEdgesVertexAttachmentInParentLevel(mg, markSH, aNumManifoldEdges, false);
 
 
 /*****************************************
@@ -3026,7 +3019,7 @@ void ApplySmoothVolumePosToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
 template <class TAPosition>
 void ApplySmoothSubdivisionSurfacesToTopLevel(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& sh,
 											  MGSubsetHandler& markSH, MGSubsetHandler& linearManifoldSH,
-											  bool bClosedSurface)
+											  bool bCreaseSurf)
 {
 /*****************************************
  *
@@ -3064,8 +3057,15 @@ void ApplySmoothSubdivisionSurfacesToTopLevel(MultiGrid& mg, TAPosition& aPos, M
  *
  *****************************************/
 
+	if(bCreaseSurf){
+		if(!(g_boundaryRefinementRule == SUBDIV_SURF_LOOP_SCHEME || g_boundaryRefinementRule == LINEAR)){
+			UG_THROW("Error in ApplySmoothSubdivisionSurfacesToTopLevel: "
+					 "Crease surfaces are currently only supported with 'subdiv_surf_loop_scheme' or 'linear' refinement.");
+		}
+	}
+
 	if(g_boundaryRefinementRule == SUBDIV_SURF_LOOP_SCHEME)
-		ApplySmoothManifoldPosToTopLevelLoopScheme(mg, aPos, markSH, linearManifoldSH, bClosedSurface);
+		ApplySmoothManifoldPosToTopLevelLoopScheme(mg, aPos, markSH, linearManifoldSH, bCreaseSurf);
 	else if(g_boundaryRefinementRule == SUBDIV_SURF_AVERAGING_SCHEME)
 		ApplySmoothManifoldPosToTopLevelAveragingScheme(mg, aPos, markSH, linearManifoldSH);
 	else if(g_boundaryRefinementRule == SUBDIV_SURF_BUTTERFLY_SCHEME)
@@ -3117,7 +3117,7 @@ void ApplySmoothSubdivisionVolumesToTopLevel(MultiGrid& mg, MGSubsetHandler& sh,
  *****************************************/
 
 	if(g_boundaryRefinementRule == SUBDIV_SURF_LOOP_SCHEME)
-		ApplySmoothManifoldPosToTopLevelLoopScheme(mg, aPosition, markSH, linearManifoldSH, true);
+		ApplySmoothManifoldPosToTopLevelLoopScheme(mg, aPosition, markSH, linearManifoldSH, false);
 	else if(g_boundaryRefinementRule == SUBDIV_SURF_AVERAGING_SCHEME)
 		ApplySmoothManifoldPosToTopLevelAveragingScheme(mg, aPosition, markSH, linearManifoldSH);
 	else if(g_boundaryRefinementRule == SUBDIV_SURF_BUTTERFLY_SCHEME)
@@ -3143,12 +3143,12 @@ void ApplySmoothSubdivisionVolumesToTopLevel(MultiGrid& mg, MGSubsetHandler& sh,
 template <class TAPosition>
 void ApplySmoothSubdivisionSurfacesToTopLevel(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& sh,
 											  MGSubsetHandler& markSH, const char* linearManifoldSubsets,
-											  bool bClosedSurface)
+											  bool bCreaseSurf)
 {
 	MGSubsetHandler linearManifoldSH(mg);
 	InitLinearManifoldSubsetHandler(mg, sh, linearManifoldSH, linearManifoldSubsets);
 
-	ApplySmoothSubdivisionSurfacesToTopLevel(mg, aPos, sh, markSH, linearManifoldSH, bClosedSurface);
+	ApplySmoothSubdivisionSurfacesToTopLevel(mg, aPos, sh, markSH, linearManifoldSH, bCreaseSurf);
 }
 
 void ApplySmoothSubdivisionVolumesToTopLevel(MultiGrid& mg, MGSubsetHandler& sh, MGSubsetHandler& markSH,
@@ -3174,13 +3174,13 @@ void ApplyConstrainedSmoothSubdivisionVolumesToTopLevel(MultiGrid& mg, MGSubsetH
 //	Explicit instantiations
 template void ApplySmoothSubdivisionSurfacesToTopLevel<APosition1>(MultiGrid& mg, APosition1& aPos, MGSubsetHandler& sh,
 		  	  	  	  	  	  	  	  	  	  	  	  	  	  MGSubsetHandler& markSH, const char* linearManifoldSubsets,
-															  bool bClosedSurface);
+															  bool bCreaseSurf);
 template void ApplySmoothSubdivisionSurfacesToTopLevel<APosition2>(MultiGrid& mg, APosition2& aPos, MGSubsetHandler& sh,
 		  	  	  	  	  	  	  	  	  	  	  	  	  	  MGSubsetHandler& markSH, const char* linearManifoldSubsets,
-															  bool bClosedSurface);
+															  bool bCreaseSurf);
 template void ApplySmoothSubdivisionSurfacesToTopLevel<APosition>(MultiGrid& mg, APosition& aPos, MGSubsetHandler& sh,
 		  	  	  	  	  	  	  	  	  	  	  	  	  	  MGSubsetHandler& markSH, const char* linearManifoldSubsets,
-															  bool bClosedSurface);
+															  bool bCreaseSurf);
 
 template void ProjectHierarchyToSubdivisionLimit(MultiGrid& mg, APosition1& aPos);
 template void ProjectHierarchyToSubdivisionLimit(MultiGrid& mg, APosition2& aPos);
