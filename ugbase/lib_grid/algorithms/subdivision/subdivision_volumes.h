@@ -283,17 +283,6 @@ void CalculateNumManifoldEdgesVertexAttachmentInParentLevel(MultiGrid& mg, MGSub
 															AInt& aNumManifoldEdges, bool bCreaseSurf);
 
 
-/// Function for calculating the number of associated manifold faces (triangles) of all parent level manifold edges
-/** This function calculates the number of associated manifold faces (triangles)
- * 	for all parent level edges.
- *
- * 	@param mg					reference to MultiGrid
- * 	@param markSH				reference to SubsetHandler markSH containing marked (inner) boundary manifold
- * 	@param aNumManifoldFaces	reference to aNumManifoldFaces
-**/
-void CalculateNumManifoldFacesEdgeAttachmentInParentLevel(MultiGrid& mg, MGSubsetHandler& markSH, AInt& aNumManifoldFaces);
-
-
 /// Function for calculating the number of associated manifold faces of all toplevel manifold vertices
 /** This function calculates the number of of associated manifold faces (triangles and quadrilaterals)
  * 	for all toplevel vertices.
@@ -304,17 +293,6 @@ void CalculateNumManifoldFacesEdgeAttachmentInParentLevel(MultiGrid& mg, MGSubse
  * 	@param aNumManifoldFaces_quad	reference to aNumManifoldFaces_quad
 **/
 void CalculateNumManifoldFacesVertexAttachmentInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH, AInt& aNumManifoldFaces_tri, AInt& aNumManifoldFaces_quad);
-
-
-/// Procedure to initialize the crease boundary feature vertex attachment of all parent level vertices
-/** This procedure initializes crease boundary feature vertex attachment
- * 	for all parent level vertices.
- *
- * 	@param mg					reference to MultiGrid
- * 	@param aNumManifoldFaces	reference to aNumManifoldFaces
- * 	@param aBoolIsBndVrt		reference to aBoolIsCreaseBndVrt
-**/
-void InitIsCreaseBoundaryVertexAttachmentInParentLevel(MultiGrid& mg, AInt& aNumManifoldFaces, ABool& aBoolIsCreaseBndVrt);
 
 
 /// Procedure to initialize the linear boundary manifold subsets SubsetHandler with user-specified subsets
