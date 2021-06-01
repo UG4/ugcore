@@ -31,6 +31,8 @@
  */
 
 #include <fstream>
+#include <sstream>
+#include <string>
 #include <vector>
 #include "file_io_txt.h"
 #include "../lg_base.h"
@@ -49,15 +51,16 @@ bool LoadGridFromTXT(Grid& grid, const char* filename, AVector3& aPos)
 
 	//grid.clear();
 
-	int numVrts, numTris;
+	int numVrts, numElems;
 
 	in >> numVrts;
-	in >> numTris;
+	in >> numElems;
 
 //	create points
 //	store pointers to the vertices on the fly in a vector.
 	vector<Vertex*>	vVrts;
-	vVrts.resize(numVrts);
+	vector<int> vVrtIds;
+	vVrts.resize(numVrts); vVrtIds.resize(numVrts);
 
 	for(int i = 0; i < numVrts; ++i)
 		vVrts[i] = *grid.create<RegularVertex>();
@@ -68,26 +71,63 @@ bool LoadGridFromTXT(Grid& grid, const char* filename, AVector3& aPos)
 
 //	read the points
 	{
-		for(VertexIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); ++iter)
+		int i = 0;
+		for(VertexIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); ++iter, ++i)
 		{
-			int Index;
-			in >> Index;
+			in >> vVrtIds[i];
 			in >> aaPos[*iter].x();
 			in >> aaPos[*iter].y();
 			in >> aaPos[*iter].z();
 		}
+		if (in.fail())
+			UG_THROW ("LoadGridFromTXT: Failed to read vertices from '" << filename << "'");
 	}
 
-//	read the triangles
+//	read the triangles and the quadrilaterals
 	{
-		for(int i = 0; i < numTris; ++i)
+		string e_line;
+		
+		for(int i = 0; i < numElems; ++i)
 		{
-			int Index, i1, i2, i3;
-			in >> Index;
-			in >> i1;
-			in >> i2;
-			in >> i3;
-			grid.create<Triangle>(TriangleDescriptor(vVrts[i1], vVrts[i2], vVrts[i3]));
+			int Index, vrt_id_1, vrt_id_2, vrt_id_3, vrt_id_4;
+			vector<int>::iterator i1, i2, i3, i4;
+			
+			do
+			{
+				getline(in, e_line);
+			}
+			while (e_line.empty());
+			stringstream ss(e_line, ios_base::in);
+			
+			ss >> Index;
+			ss >> vrt_id_1;
+			ss >> vrt_id_2;
+			ss >> vrt_id_3;
+			
+			if (ss.fail())
+				UG_THROW ("LoadGridFromTXT: Failed to read grid elements from '" << filename << "'");
+			
+			i1 = find (vVrtIds.begin(), vVrtIds.end(), vrt_id_1);
+			i2 = find (vVrtIds.begin(), vVrtIds.end(), vrt_id_2);
+			i3 = find (vVrtIds.begin(), vVrtIds.end(), vrt_id_3);
+			
+			if (i1 == vVrtIds.end() || i2 == vVrtIds.end() || i3 == vVrtIds.end())
+				UG_THROW ("LoadGridFromTXT: Wrong index of a vertex of element " << Index << "in '" << filename << "'");
+			
+			ss >> vrt_id_4;
+			if (ss.fail ())
+				grid.create<Triangle>
+					(TriangleDescriptor
+						(vVrts[i1 - vVrtIds.begin()], vVrts[i2 - vVrtIds.begin()], vVrts[i3 - vVrtIds.begin()]));
+			else
+			{
+				i4 = find (vVrtIds.begin(), vVrtIds.end(), vrt_id_4);
+				if (i4 == vVrtIds.end())
+					UG_THROW ("LoadGridFromTXT: Wrong index of the last vertex of quadrilateral " << Index << "in '" << filename << "'");
+				grid.create<Quadrilateral>
+					(QuadrilateralDescriptor
+						(vVrts[i1 - vVrtIds.begin()], vVrts[i2 - vVrtIds.begin()], vVrts[i3 - vVrtIds.begin()], vVrts[i4 - vVrtIds.begin()]));
+			}
 		}
 	}
 
@@ -106,7 +146,7 @@ bool SaveGridToTXT(Grid& grid, const char* filename, AVector3& aPos)
 		return false;
 
 //	write the header
-	out << grid.num_vertices() << " " << grid.num<Triangle>() << endl;
+	out << grid.num_vertices() << " " << grid.num<Triangle>() + grid.num<Quadrilateral>() << endl;
 
 //	write the vertices
 //	store in each vertex at which position it has been written to the file.
@@ -138,6 +178,15 @@ bool SaveGridToTXT(Grid& grid, const char* filename, AVector3& aPos)
 			out << counter << " " 	<< aaInt[t->vertex(0)] << " "
 									<< aaInt[t->vertex(1)] << " "
 									<< aaInt[t->vertex(2)] << endl;
+		}
+
+		for(QuadrilateralIterator iter = grid.begin<Quadrilateral>(); iter != grid.end<Quadrilateral>(); ++iter, ++counter)
+		{
+			Quadrilateral* t = *iter;
+			out << counter << " " 	<< aaInt[t->vertex(0)] << " "
+									<< aaInt[t->vertex(1)] << " "
+									<< aaInt[t->vertex(2)] << " "
+									<< aaInt[t->vertex(3)] << endl;
 		}
 	}
 
