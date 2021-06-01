@@ -564,7 +564,7 @@ class IExportedClass
 		virtual const boost::optional<ExportedConstructor&> get_json_constructor() const = 0;
 
 	/// get constructor for construction from json
-		virtual const bool is_json_constructible() const = 0;
+		virtual bool is_json_constructible() const = 0;
 
 	///	true if the class shall be wrapped in a SmartPtr on construction
 		virtual bool construct_as_smart_pointer() const = 0;
@@ -725,7 +725,7 @@ class ExportedClass : public ExportedClassBaseImpl
 		virtual const std::string& group() const {return ClassNameProvider<TClass>::group();}
 
 	/// is json constructible
-		virtual const bool is_json_constructible() const { return std::is_base_of<JSONConstructible, TClass>::value; }
+		virtual bool is_json_constructible() const { return std::is_base_of<JSONConstructible, TClass>::value; }
 
 	//\todo: remove this method, use class name nodes instead
 	///	class-hierarchy
