@@ -29,13 +29,15 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
  */
-
 #include <fstream>
 #include <sstream>
 #include <string>
 #include <vector>
-#include "file_io_txt.h"
+
 #include "../lg_base.h"
+#include "common/util/string_util.h"
+
+#include "file_io_txt.h"
 
 using namespace std;
 
@@ -95,8 +97,9 @@ bool LoadGridFromTXT(Grid& grid, const char* filename, AVector3& aPos)
 			do
 			{
 				getline(in, e_line);
+				e_line = TrimString(e_line);
 			}
-			while (e_line.empty());
+			while(e_line.empty());
 			stringstream ss(e_line, ios_base::in);
 			
 			ss >> Index;
