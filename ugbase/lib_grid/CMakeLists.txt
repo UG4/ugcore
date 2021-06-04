@@ -157,6 +157,7 @@ set(srcLibGrid	common_attachments.cpp
 				grid_objects/rule_util.cpp
 				multi_grid.cpp
 				lib_grid_messages.cpp
+				grid_debug.cpp
 				)
 
 
