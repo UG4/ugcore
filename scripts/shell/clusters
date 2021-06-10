@@ -40,6 +40,9 @@ elif [ $UGSUBMIT_TYPE == "Juwels" ]; then
 elif [ $UGSUBMIT_TYPE == "SDCluster" ]; then
 	source $scriptpath/schedulers/sdcluster
 
+elif [ $UGSUBMIT_TYPE == "Shaheen" ]; then
+	source $scriptpath/schedulers/shaheen
+
 elif [ $UGSUBMIT_TYPE == "mpi" ] || [ $UGSUBMIT_TYPE == "mpi-foreground" ]; then
 
 	source $scriptpath/schedulers/mpi
