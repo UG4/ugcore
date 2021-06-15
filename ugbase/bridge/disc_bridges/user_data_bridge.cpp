@@ -447,16 +447,16 @@ static void Dimension(Registry& reg, string grp)
 
 	// Composite user data (vector)
 	{
-				string name = string("CompositeUserVector").append(dimSuffix);
-				typedef CompositeUserData<MathVector<dim>, dim, void> T;
-				reg.add_class_<T,typename T::base_type>(name, grp)
-					.template add_constructor<void (*)(bool) >("")
-					.add_method("add", &T::add)
-					.set_construct_as_smart_pointer(true);
+			string name = string("CompositeUserVector").append(dimSuffix);
+			typedef CompositeUserData<MathVector<dim>, dim, void> T;
+			reg.add_class_<T,typename T::base_type>(name, grp)
+				.template add_constructor<void (*)(bool) >("")
+				.add_method("add", &T::add)
+				.set_construct_as_smart_pointer(true);
 
-				reg.add_class_to_group(name, "CompositeUserVector", dimTag);
-
+			reg.add_class_to_group(name, "CompositeUserVector", dimTag);
 	}
+
 }
 
 /**
@@ -486,6 +486,20 @@ static void Domain(Registry& reg, string grp)
 			.template add_constructor<void (*)(ConstSmartPtr<TDomain>, const char*)>("Domain#Subsets")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "SubsetIndicatorUserData", tag);
+	}
+
+	// EdgeOrientation (vector)
+	{
+		string name = string("EdgeOrientation").append(suffix);
+		typedef EdgeOrientation<TDomain> T;
+		typedef CplUserData<MathVector<dim>, dim> TBase;
+
+		reg.add_class_<T,TBase>(name, grp)
+		   .template add_constructor<void (*)(SmartPtr<TDomain> ) >("")
+		   .set_construct_as_smart_pointer(true);
+
+		reg.add_class_to_group(name, "EdgeOrientation", tag);
+
 	}
 }
 		
