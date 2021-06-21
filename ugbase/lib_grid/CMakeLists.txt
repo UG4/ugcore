@@ -130,6 +130,7 @@ set(srcFileIO	file_io/file_io_2df.cpp
 				file_io/file_io_stl.cpp
 				file_io/file_io_vtu.cpp
 				file_io/file_io_swc.cpp
+				file_io/file_io_grdecl.cpp
 				file_io/file_io.cpp)
 								
 set(srcLibGrid	common_attachments.cpp
