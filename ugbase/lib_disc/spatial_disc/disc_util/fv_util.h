@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2010-2015:  G-CSC, Goethe University Frankfurt
- * Author: Andreas Vogel
+ * Copyright (c) 2010-2021:  G-CSC, Goethe University Frankfurt
+ * Authors: Andreas Vogel, Dmitrij Logashenko, Martin Stepniewski
  * 
  * This file is part of UG4.
  * 
@@ -42,6 +42,7 @@
 
 #include "lib_disc/common/geometry_util.h"
 #include "lib_disc/local_finite_element/lagrange/lagrange.h"
+#include "lib_disc/spatial_disc/disc_util/fv_geom_base.h"
 
 namespace ug{
 
@@ -102,6 +103,72 @@ template <typename TRefElem> struct fv1_traits_most_common
 	)
 	{
 		return i;
+	}
+
+/// Calculates array vMidID for scvf i
+	static void scvf_mid_id
+	(
+		const ref_elem_type& refElem, ///< the reference element object
+		MidID *vMidID, ///< array vMidID for scvf i
+		size_t i  ///< index of the scvf
+	)
+	{
+		static const int dim = TRefElem::dim;
+
+	//	set mid ids:
+
+	// 	start at edge midpoint
+		vMidID[0] = MidID(1,i);
+
+	// 	loop up dimension
+		if(dim == 2)
+		{
+			vMidID[1] = MidID(dim, 0); // center of element
+		}
+		else if (dim == 3)
+		{
+			vMidID[1] = MidID(2, refElem.id(1, i, 2, 0)); // side 0
+			vMidID[2] = MidID(dim, 0); // center of element
+			vMidID[3] = MidID(2, refElem.id(1, i, 2, 1)); // side 1
+		}
+	}
+
+/// Calculates array vMidID for scv i
+	static void scv_mid_id
+	(
+		const ref_elem_type& refElem, ///< the reference element object
+		MidID *vMidID, ///< array vMidID for scvf i
+		size_t i  ///< index of the scvf
+	)
+	{
+		static const int dim = TRefElem::dim;
+
+	//	set mid ids:
+
+		if(dim == 1)
+		{
+			vMidID[0] = MidID(0, i); // set node as corner of scv
+			vMidID[1] = MidID(dim, 0);	// center of element
+		}
+		else if(dim == 2)
+		{
+			vMidID[0] = MidID(0, i); // set node as corner of scv
+			vMidID[1] = MidID(1, refElem.id(0, i, 1, 0)); // edge 1
+			vMidID[2] = MidID(dim, 0);	// center of element
+			vMidID[3] = MidID(1, refElem.id(0, i, 1, 1)); // edge 2
+		}
+		else if(dim == 3)
+		{
+			vMidID[0] = MidID(0, i); // set node as corner of scv
+			vMidID[1] = MidID(1, refElem.id(0, i, 1, 1)); // edge 1
+			vMidID[2] = MidID(2, refElem.id(0, i, 2, 0)); // face 0
+			vMidID[3] = MidID(1, refElem.id(0, i, 1, 0)); // edge 0
+			vMidID[4] = MidID(1, refElem.id(0, i, 1, 2)); // edge 2
+			vMidID[5] = MidID(2, refElem.id(0, i, 2, 2)); // face 2
+			vMidID[6] = MidID(dim, 0);	// center of element
+			vMidID[7] = MidID(2, refElem.id(0, i, 2, 1)); // face 1
+		}
+		else {UG_THROW("Dimension higher than 3 not implemented.");}
 	}
 };
 
@@ -398,7 +465,7 @@ struct fv1_traits_ReferencePyramid
 	typedef ReferenceTriangle scvf_type;
 	typedef ReferenceQuadrilateral bf_type;
 
-/// returns the 'from' and 'to' corner indices for a scvf (overridden function form fv1_traits_most_common)
+/// returns the 'from' and 'to' corner indices for a scvf (overridden function from fv1_traits_most_common)
 	static size_t scvf_from_to
 	(
 		const ReferencePyramid& refElem, ///< the reference element object
@@ -409,7 +476,7 @@ struct fv1_traits_ReferencePyramid
 		return refElem.id(1, i/2, 0, ft);
 	}
 	
-///	returns the node id for a scv (overridden function form fv1_traits_most_common)
+///	returns the node id for a scv (overridden function from fv1_traits_most_common)
 	static size_t scv_node_id
 	(
 		const ReferencePyramid& refElem, ///< the reference element object
@@ -420,6 +487,63 @@ struct fv1_traits_ReferencePyramid
 			return refElem.id(1, i/4, 0, 0); // from
 		} else {
 			return refElem.id(1, i/4, 0, 1); // to
+		}
+	}
+
+/// Calculates array vMidID for scvf i
+	static void scvf_mid_id
+	(
+		const ReferencePyramid& refElem, ///< the reference element object
+		MidID *vMidID, ///< array vMidID for scvf i
+		size_t i  ///< index of the scvf
+	)
+	{
+		static const int dim = 3;
+
+	// 	set mid ids:
+
+	//	start at edge midpoint
+		vMidID[0] = MidID(1,i/2);
+
+	//  there are 2 scvf per edge
+		if(i%2 == 0){
+			vMidID[1] = MidID(2, refElem.id(1, i/2, 2, 0)); // side 0
+			vMidID[2] = MidID(dim, 0); // center of element
+		} else {
+			vMidID[1] = MidID(dim, 0); // center of element
+			vMidID[2] = MidID(2, refElem.id(1, i/2, 2, 1)); // side 1
+		}
+	}
+
+/// Calculates array vMidID for scv i
+	static void scv_mid_id
+	(
+		const ReferencePyramid& refElem, ///< the reference element object
+		MidID *vMidID, ///< array vMidID for scvf i
+		size_t i  ///< index of the scvf
+	)
+	{
+		static const int dim = 3;
+
+	// 	set mid ids:
+
+	// 	start at edge midpoint
+		vMidID[3] = MidID(1,i/4);
+
+	//  there are 2 scvf per edge
+		if(i%4 == 0 || i%4 == 1){
+			vMidID[1] = MidID(2, refElem.id(1, i/4, 2, 0)); // side 0
+			vMidID[2] = MidID(dim, 0); // center of element
+		} else {
+			vMidID[1] = MidID(dim, 0); // center of element
+			vMidID[2] = MidID(2, refElem.id(1, i/4, 2, 1)); // side 1
+		}
+
+	//	connect to from / to corners of edge
+		if(i%2 == 0){
+			vMidID[0] = MidID(0, refElem.id(1, i/4, 0, 0)); // from
+		} else {
+			vMidID[0] = MidID(0, refElem.id(1, i/4, 0, 1)); // to
 		}
 	}
 };
@@ -447,12 +571,192 @@ struct fv1_traits_ReferenceOctahedron
 :	public fv1_traits_ReferenceVolume
 	// Remark: Octahedron is a special case, fv1_traits_most_common<ReferenceOctahedron> is not inherited here!
 {
+/**
+ * The octahedral reference element contains an implicit interior
+ * substructure that is constructed by several geometric objects,
+ * i.e. imaginary subfaces (8 triangles), subedges (2) and subvolumes (4 tetrahedra)
+ * resulting from the division into 4 subtetrahedra alongside inner edge 3->1.
+ * The dual fv1 geometry consists of the original hexahedral SCVs in each of the
+ * 4 subtetrahedra.
+ */
 	static const size_t numSCV = 16; ///< overridden field from fv1_traits_most_common
 	
 	static const size_t numSCVF = 24; ///< overridden field from fv1_traits_most_common
 	//	Remark: Special case for octahedron, scvf not mappable by edges.
 	
-/// returns the 'from' and 'to' corner indices for a scvf (overridden function form fv1_traits_most_common)
+//	maximum dimension of substructure objects
+	enum{MAXDIM = 3};
+
+//	maximum number of substructure objects
+	enum{MAXSUBSTRUCTOBJECTS = 8};
+
+//	maximum number of substructure corners
+	enum{MAXSUBSTRUCTCORNERS = 4};
+
+/// returns the id of corner j of obj i in dimension dim_i of the implicit interior substructure
+/**
+ * The octahedral reference element contains an implicit interior
+ * substructure that is constructed by several geometric objects, that
+ * are mapped by a reference element by themselves. This method returns the
+ * id (w.r.t. this reference element) of a sub-geometric object that is
+ * part of a sub-geometric object of the implicit interior substructure of
+ * this reference element.
+ *
+ * \param[in]	dim_i		dimension of sub geometric object
+ * \param[in]	i			id of sub geometric object
+ * \param[in]	j			number of obj contained in the sub-object
+ * \returns		id of the j'th corner that is
+ * 				contained in the i*th (sub-)geom object of dimension dim_i
+ */
+	static int substruct_coID(int dim_i, size_t i, size_t j)
+	{
+	// 	Corner indices of implicit interior substructure Geometric Objects
+		static int substruct_coID[MAXDIM+1][MAXSUBSTRUCTOBJECTS][MAXSUBSTRUCTCORNERS];
+
+		// subedge 0 = (3,1)
+		substruct_coID[EDGE][0][0] = 3;
+		substruct_coID[EDGE][0][1] = 1;
+		// subedge 1 = (1,3)
+		substruct_coID[EDGE][1][0] = 1;
+		substruct_coID[EDGE][1][1] = 3;
+
+		// subface 0 = (1,2,3)
+		substruct_coID[FACE][0][0] = 1;
+		substruct_coID[FACE][0][1] = 2;
+		substruct_coID[FACE][0][2] = 3;
+		// subface 1 = (1,3,2)
+		substruct_coID[FACE][1][0] = 1;
+		substruct_coID[FACE][1][1] = 3;
+		substruct_coID[FACE][1][2] = 2;
+		// subface 2 = (1,3,4)
+		substruct_coID[FACE][2][0] = 1;
+		substruct_coID[FACE][2][1] = 3;
+		substruct_coID[FACE][2][2] = 4;
+		// subface 3 = (1,4,3)
+		substruct_coID[FACE][3][0] = 1;
+		substruct_coID[FACE][3][1] = 4;
+		substruct_coID[FACE][3][2] = 3;
+		// subface 4 = (1,3,5)
+		substruct_coID[FACE][4][0] = 1;
+		substruct_coID[FACE][4][1] = 3;
+		substruct_coID[FACE][4][2] = 5;
+		// subface 5 = (1,5,3)
+		substruct_coID[FACE][5][0] = 1;
+		substruct_coID[FACE][5][1] = 5;
+		substruct_coID[FACE][5][2] = 3;
+		// subface 6 = (1,0,3)
+		substruct_coID[FACE][6][0] = 1;
+		substruct_coID[FACE][6][1] = 0;
+		substruct_coID[FACE][6][2] = 3;
+		// subface 7 = (1,0,3)
+		substruct_coID[FACE][7][0] = 1;
+		substruct_coID[FACE][7][1] = 3;
+		substruct_coID[FACE][7][2] = 0;
+
+		// subvolume 0 = (1,2,3,5)
+		substruct_coID[VOLUME][0][0] = 1;
+		substruct_coID[VOLUME][0][1] = 2;
+		substruct_coID[VOLUME][0][2] = 3;
+		substruct_coID[VOLUME][0][3] = 5;
+		// subvolume 1 = (1,3,4,5)
+		substruct_coID[VOLUME][1][0] = 1;
+		substruct_coID[VOLUME][1][1] = 3;
+		substruct_coID[VOLUME][1][2] = 4;
+		substruct_coID[VOLUME][1][3] = 5;
+		// subvolume 2 = (1,2,3,0)
+		substruct_coID[VOLUME][2][0] = 1;
+		substruct_coID[VOLUME][2][1] = 2;
+		substruct_coID[VOLUME][2][2] = 3;
+		substruct_coID[VOLUME][2][3] = 0;
+		// subvolume 3 = (1,3,4,0)
+		substruct_coID[VOLUME][3][0] = 1;
+		substruct_coID[VOLUME][3][1] = 3;
+		substruct_coID[VOLUME][3][2] = 4;
+		substruct_coID[VOLUME][3][3] = 0;
+
+		return substruct_coID[dim_i][i][j];
+	}
+
+/// returns the number of implicit interior substructure geometric objects of dim
+/**
+ * The octahedral reference element contains an implicit interior
+ * substructure that is constructed by several geometric objects, that
+ * are mapped by a reference element by themselves. This method returns how
+ * many (sub-)geometric objects of a given dimension are contained in the
+ * implicit interior substructure of this reference element.
+ *
+ * \param[in]	dim		dimension
+ * \returns		number of objects of the dimension contained in the ref elem
+ */
+	static size_t substruct_num(int dim)
+	{
+	//	number of interior substructure Geometric Objects
+		size_t vSubStructNum[MAXDIM+1];
+
+		vSubStructNum[VERTEX] = 0;	// no additional vertices in the substructure
+		vSubStructNum[EDGE] = 2;
+		vSubStructNum[FACE] = 8;
+		vSubStructNum[VOLUME] = 4;
+
+		return vSubStructNum[dim];
+	}
+
+/// returns the number of objects of dim for a sub-geometric object of the implicit interior substructure
+/**
+ * The octahedral reference element contains an implicit interior
+ * substructure that is constructed by several geometric objects, that
+ * are mapped by a reference element by themselves. This method returns how
+ * many (sub-)geometric objects of a given dimension are contained in the
+ * (sub-)geometric object of the implicit interior substructure of
+ * this reference element.
+ *
+ * \param[in]	dim_i		dimension of sub geometric object
+ * \param[in]	i			number of sub geometric object
+ * \param[in]	dim_j		dimension for elems contained in the sub-object
+ * \returns		number of objects of the dimension dim_j that are
+ * 				contained in the i*th (sub-)geom object of dimension dim_i
+ */
+	static size_t substruct_num(int dim_i, size_t i, int dim_j)
+	{
+	// 	number of interior substructure Geometric Objects
+		size_t vSubStructSubNum[MAXDIM+1][MAXSUBSTRUCTOBJECTS][MAXDIM+1];
+
+		for(size_t i = 0; i < substruct_num(VOLUME); ++i)
+		{
+			vSubStructSubNum[VOLUME][i][VERTEX] = 4;
+			vSubStructSubNum[VOLUME][i][EDGE] = 6;
+			vSubStructSubNum[VOLUME][i][FACE] = 4;
+			vSubStructSubNum[VOLUME][i][VOLUME] = 1;
+		}
+
+		for(size_t i = 0; i < substruct_num(FACE); ++i)
+		{
+			vSubStructSubNum[FACE][i][VERTEX] = 3;
+			vSubStructSubNum[FACE][i][EDGE] = 3;
+			vSubStructSubNum[FACE][i][FACE] = 1;
+			vSubStructSubNum[FACE][i][VOLUME] = 1;
+		}
+
+		for(size_t i = 0; i < substruct_num(EDGE); ++i)
+		{
+			vSubStructSubNum[EDGE][i][VERTEX] = 2;
+			vSubStructSubNum[EDGE][i][EDGE] = 1;
+			vSubStructSubNum[EDGE][i][FACE] = 2;
+			vSubStructSubNum[EDGE][i][VOLUME] = 1;
+		}
+
+		for(size_t i = 0; i < substruct_num(VERTEX); ++i)
+		{
+			vSubStructSubNum[VERTEX][i][VERTEX] = 1;
+			vSubStructSubNum[VERTEX][i][EDGE] = 3;
+			vSubStructSubNum[VERTEX][i][FACE] = 3;
+			vSubStructSubNum[VERTEX][i][VOLUME] = 1;
+		}
+
+		return vSubStructSubNum[dim_i][i][dim_j];
+	}
+
+/// returns the 'from' and 'to' corner indices for a scvf (overridden function from fv1_traits_most_common)
 	static size_t scvf_from_to
 	(
 		const ReferenceOctahedron& refElem, ///< the reference element object
@@ -501,7 +805,7 @@ struct fv1_traits_ReferenceOctahedron
 		return from_to_ind [i] [ft];
 	}
 	
-///	returns the node id for a scv (overridden function form fv1_traits_most_common)
+///	returns the node id for a scv (overridden function from fv1_traits_most_common)
 	static size_t scv_node_id
 	(
 		const ReferenceOctahedron& refElem, ///< the reference element object
@@ -535,6 +839,380 @@ struct fv1_traits_ReferenceOctahedron
 			0	// scv 15
 		};
 		return node_id [i];
+	}
+
+/// Calculates array vMidID for scvf i
+	static void scvf_mid_id
+	(
+		const ReferenceOctahedron& refElem, ///< the reference element object
+		MidID *vMidID, ///< array vMidID for scvf i
+		size_t i  ///< index of the scvf
+	)
+	{
+		switch (i)
+		{
+		// 	scvf of edge 4 (top)
+			case 0:	vMidID[0] = MidID(1,4);	// edge 4
+					vMidID[1] = MidID(2,8);	// subface 0 = 1,2,3
+					vMidID[2] = MidID(3,1);	// subvolume 0
+					vMidID[3] = MidID(2,4); // face 4
+					break;
+		// 	scvf of edge 4 (bottom)
+			case 1:	vMidID[0] = MidID(1,4);	// edge 4
+					vMidID[1] = MidID(2,9);	// subface 1 = 1,3,2
+					vMidID[2] = MidID(3,3);	// subvolume 2
+					vMidID[3] = MidID(2,0); // face 0
+					break;
+
+
+		// 	scvf of edge 5 (top)
+			case 2:	vMidID[0] = MidID(1,5);	// edge 5
+					vMidID[1] = MidID(2,8);	// subface 0 = 1,2,3
+					vMidID[2] = MidID(3,1);	// subvolume 0
+					vMidID[3] = MidID(2,5); // face 5
+					break;
+		// 	scvf of edge 5 (bottom)
+			case 3:	vMidID[0] = MidID(1,5);	// edge 5
+					vMidID[1] = MidID(2,9);	// subface 1 = 1,3,2
+					vMidID[2] = MidID(3,3);	// subvolume 2
+					vMidID[3] = MidID(2,1); // face 1
+					break;
+
+
+		// 	scvf of diagonal 3->1 (top) in subvolume 0
+			case 4:	vMidID[0] = MidID(1,12);// diagonal 3->1
+					vMidID[1] = MidID(2,8);	// subface 0 = 1,2,3
+					vMidID[2] = MidID(3,1);	// subvolume 0
+					vMidID[3] = MidID(2,13);// face 1,5,3
+					break;
+		// 	scvf of diagonal 1->3 (bottom) in subvolume 2
+			case 5:	vMidID[0] = MidID(1,13);// diagonal 1->3
+					vMidID[1] = MidID(2,9);	// subface 1 = 1,3,2
+					vMidID[2] = MidID(3,3);	// subvolume 2
+					vMidID[3] = MidID(2,14);// face 1,0,3
+					break;
+
+
+		//	scvf of edge 8 in subvolume 0
+			case 6:	vMidID[0] = MidID(1,8);	// edge 8
+					vMidID[1] = MidID(2,4); // face 4
+					vMidID[2] = MidID(3,1);	// subvolume 0
+					vMidID[3] = MidID(2,13);// face 1,5,3
+					break;
+		//	scvf of edge 0 in subvolume 2
+			case 7:	vMidID[0] = MidID(1,0);	// edge 0
+					vMidID[1] = MidID(2,15);// face 1,3,0
+					vMidID[2] = MidID(3,3);	// subvolume 2
+					vMidID[3] = MidID(2,0); // face 0
+					break;
+
+
+		// 	scvf of edge 9 in subvolume 0
+			case 8:	vMidID[0] = MidID(1,9);	// edge 9
+					vMidID[1] = MidID(2,5);	// face 5
+					vMidID[2] = MidID(3,1);	// subvolume 0
+					vMidID[3] = MidID(2,4); // face 4
+					break;
+		// 	scvf of edge 1 in subvolume 2
+			case 9:	vMidID[0] = MidID(1,1);	// edge 1
+					vMidID[1] = MidID(2,0); // face 0
+					vMidID[2] = MidID(3,3);	// subvolume 2
+					vMidID[3] = MidID(2,1);	// face 1
+					break;
+
+
+		// 	scvf of edge 10 in subvolume 0
+			case 10:vMidID[0] = MidID(1,10);// edge 10
+					vMidID[1] = MidID(2,12);// face 1,3,5
+					vMidID[2] = MidID(3,1);	// subvolume 0
+					vMidID[3] = MidID(2,5);	// face 5
+					break;
+		// 	scvf of edge 2 in subvolume 2
+			case 11:vMidID[0] = MidID(1,2);	// edge 2
+					vMidID[1] = MidID(2,1); // face 1
+					vMidID[2] = MidID(3,3);	// subvolume 2
+					vMidID[3] = MidID(2,14);// face 1,0,3
+					break;
+
+
+		// 	scvf of diagonal 1->3 (top) in subvolume 1
+			case 12:vMidID[0] = MidID(1,13);// diagonal 1->3
+					vMidID[1] = MidID(2,10);// subface 2 = 1,3,4
+					vMidID[2] = MidID(3,2);	// subvolume 1
+					vMidID[3] = MidID(2,12);// face 1,3,5
+					break;
+		// 	scvf of diagonal 3->1 (bottom) in subvolume 3
+			case 13:vMidID[0] = MidID(1,12);// diagonal 3->1
+					vMidID[1] = MidID(2,11);// subface 3 = 1,4,3
+					vMidID[2] = MidID(3,4);	// subvolume 3
+					vMidID[3] = MidID(2,15);// face 1,3,0
+					break;
+
+
+		// 	scvf of edge 6 (top)
+			case 14:vMidID[0] = MidID(1,6);	// edge 6
+					vMidID[1] = MidID(2,10);// subface 2 = 1,3,4
+					vMidID[2] = MidID(3,2);	// subvolume 1
+					vMidID[3] = MidID(2,6); // face 6
+					break;
+		// 	scvf of edge 6 (bottom)
+			case 15:vMidID[0] = MidID(1,6);	// edge 6
+					vMidID[1] = MidID(2,11);// subface 3 = 1,4,3
+					vMidID[2] = MidID(3,4);	// subvolume 3
+					vMidID[3] = MidID(2,2);	// face 2
+					break;
+
+
+		// 	scvf of edge 7 (top)
+			case 16:vMidID[0] = MidID(1,7);	// edge 7
+					vMidID[1] = MidID(2,10);// subface 2 = 1,3,4
+					vMidID[2] = MidID(3,2);	// subvolume 1
+					vMidID[3] = MidID(2,7); // face 7
+					break;
+		// 	scvf of edge 7 (bottom)
+			case 17:vMidID[0] = MidID(1,7);	// edge 7
+					vMidID[1] = MidID(2,11);// subface 3 = 1,4,3
+					vMidID[2] = MidID(3,4);	// subvolume 3
+					vMidID[3] = MidID(2,3);	// face 3
+					break;
+
+
+		// 	scvf of edge 8 in subvolume 1
+			case 18:vMidID[0] = MidID(1,8);	// edge 8
+					vMidID[1] = MidID(2,13);// face 1,5,3
+					vMidID[2] = MidID(3,2);	// subvolume 1
+					vMidID[3] = MidID(2,7); // face 7
+					break;
+		// 	scvf of edge 0 in subvolume 3
+			case 19:vMidID[0] = MidID(1,0);	// edge 0
+					vMidID[1] = MidID(2,3);	// face 3
+					vMidID[2] = MidID(3,4);	// subvolume 3
+					vMidID[3] = MidID(2,15);// face 1,3,0
+					break;
+
+
+		// 	scvf of edge 10 in subvolume 1
+			case 20:vMidID[0] = MidID(1,10);// edge 10
+					vMidID[1] = MidID(2,6); // face 6
+					vMidID[2] = MidID(3,2);	// subvolume 1
+					vMidID[3] = MidID(2,12);// face 1,3,5
+					break;
+		// 	scvf of edge 2 in subvolume 3
+			case 21:vMidID[0] = MidID(1,2);	// edge 2
+					vMidID[1] = MidID(2,14);// face 1,0,3
+					vMidID[2] = MidID(3,4);	// subvolume 3
+					vMidID[3] = MidID(2,2); // face 2
+					break;
+
+
+		// 	scvf of edge 11 in subvolume 1
+			case 22:vMidID[0] = MidID(1,11);// edge 11
+					vMidID[1] = MidID(2,7); // face 7
+					vMidID[2] = MidID(3,2);	// subvolume 1
+					vMidID[3] = MidID(2,6); // face 6
+					break;
+		// 	scvf of edge 3 in subvolume 3
+			case 23:vMidID[0] = MidID(1,3);	// edge 3
+					vMidID[1] = MidID(2,2); // face 2
+					vMidID[2] = MidID(3,4);	// subvolume 3
+					vMidID[3] = MidID(2,3); // face 3
+					break;
+
+
+			default:UG_THROW("Octahedron only has 24 SCVFs (no. 0-23), but requested no. " << i << ".");
+					break;
+		}
+	}
+
+/// Calculates array vMidID for scv i
+	static void scv_mid_id
+	(
+		const ReferenceOctahedron& refElem, ///< the reference element object
+		MidID *vMidID, ///< array vMidID for scvf i
+		size_t i  ///< index of the scvf
+	)
+	{
+		switch (i)
+		{
+		// 	scv of corner 1 in subvolume 0 (top)
+			case 0:	vMidID[0] = MidID(0,1);	// corner 1
+					vMidID[1] = MidID(1,4);	// edge 4
+					vMidID[2] = MidID(2,8);	// subface 0 = 1,2,3
+					vMidID[3] = MidID(1,12);// edge 3->1
+					vMidID[4] = MidID(1,8);	// edge 8
+					vMidID[5] = MidID(2,4); // face 4
+					vMidID[6] = MidID(3,1);	// subvolume 0
+					vMidID[7] = MidID(2,13);// face 1,5,3
+					break;
+		// 	scv of corner 1 in subvolume 2 (bottom)
+			case 1:	vMidID[0] = MidID(0,1);	// corner 1
+					vMidID[1] = MidID(1,13);// edge 1->3
+					vMidID[2] = MidID(2,9);	// subface 1 = 1,3,2
+					vMidID[3] = MidID(1,4);	// edge 4
+					vMidID[4] = MidID(1,0);	// edge 0
+					vMidID[5] = MidID(2,15);// face 1,3,0
+					vMidID[6] = MidID(3,3);	// subvolume 2
+					vMidID[7] = MidID(2,0); // face 0
+					break;
+
+
+		// 	scv of corner 2 in subvolume 0 (top)
+			case 2:	vMidID[0] = MidID(0,2);	// corner 2
+					vMidID[1] = MidID(1,5);	// edge 5
+					vMidID[2] = MidID(2,8);	// subface 0 = 1,2,3
+					vMidID[3] = MidID(1,4); // edge 4
+					vMidID[4] = MidID(1,9);	// edge 9
+					vMidID[5] = MidID(2,5); // face 5
+					vMidID[6] = MidID(3,1);	// subvolume 0
+					vMidID[7] = MidID(2,4); // face 4
+					break;
+		// 	scv of corner 2 in subvolume 2 (bottom)
+			case 3:	vMidID[0] = MidID(0,2);	// corner 2
+					vMidID[1] = MidID(1,4); // edge 4
+					vMidID[2] = MidID(2,9);	// subface 1 = 1,3,2
+					vMidID[3] = MidID(1,5);	// edge 5
+					vMidID[4] = MidID(1,1);	// edge 1
+					vMidID[5] = MidID(2,0); // face 0
+					vMidID[6] = MidID(3,3);	// subvolume 2
+					vMidID[7] = MidID(2,1); // face 1
+					break;
+
+
+		// 	scv of corner 3 in subvolume 0 (top)
+			case 4:	vMidID[0] = MidID(0,3);	// corner 3
+					vMidID[1] = MidID(1,12);// edge 3->1
+					vMidID[2] = MidID(2,8);	// subface 0 = 1,2,3
+					vMidID[3] = MidID(1,5);	// edge 5
+					vMidID[4] = MidID(1,10);// edge 10
+					vMidID[5] = MidID(2,13);// face 1,5,3
+					vMidID[6] = MidID(3,1);	// subvolume 0
+					vMidID[7] = MidID(2,5);	// face 5
+					break;
+		// 	scv of corner 3 in subvolume 2 (bottom)
+			case 5:	vMidID[0] = MidID(0,3);	// corner 3
+					vMidID[1] = MidID(1,5);	// edge 5
+					vMidID[2] = MidID(2,9);	// subface 0 = 1,3,2
+					vMidID[3] = MidID(1,13);// edge 1->3
+					vMidID[4] = MidID(1,2); // edge 2
+					vMidID[5] = MidID(2,1);	// face 1
+					vMidID[6] = MidID(3,3);	// subvolume 2
+					vMidID[7] = MidID(2,15);// face 1,3,0
+					break;
+
+
+		// 	scv of corner 5 in subvolume 0 (top)
+			case 6:	vMidID[0] = MidID(0,5);	// corner 5
+					vMidID[1] = MidID(1,9); // edge 9
+					vMidID[2] = MidID(2,4);	// face 4
+					vMidID[3] = MidID(1,8);	// edge 8
+					vMidID[4] = MidID(1,10);// edge 10
+					vMidID[5] = MidID(2,5); // face 5
+					vMidID[6] = MidID(3,1);	// subvolume 0
+					vMidID[7] = MidID(2,13);// subface 1,5,3
+					break;
+		// 	scv of corner 0 in subvolume 2 (bottom)
+			case 7:	vMidID[0] = MidID(0,0);	// corner 0
+					vMidID[1] = MidID(1,0);	// edge 0
+					vMidID[2] = MidID(2,0);	// face 0
+					vMidID[3] = MidID(1,1); // edge 1
+					vMidID[4] = MidID(1,2); // edge 2
+					vMidID[5] = MidID(2,14);// subface 1,0,3
+					vMidID[6] = MidID(3,3);	// subvolume 2
+					vMidID[7] = MidID(2,1); // face 1
+					break;
+
+
+		// 	scv of corner 1 in subvolume 1 (top)
+			case 8:	vMidID[0] = MidID(0,1);	// corner 1
+					vMidID[1] = MidID(1,13);// edge 1->3
+					vMidID[2] = MidID(2,10);// subface 2 = 1,3,4
+					vMidID[3] = MidID(1,7); // edge 7
+					vMidID[4] = MidID(1,8);	// edge 8
+					vMidID[5] = MidID(2,12);// face 1,3,5
+					vMidID[6] = MidID(3,2);	// subvolume 1
+					vMidID[7] = MidID(2,7); // face 7
+					break;
+		//	scv of corner 1 in subvolume 3 (bottom)
+			case 9:	vMidID[0] = MidID(0,1);	// corner 1
+					vMidID[1] = MidID(1,7); // edge 7
+					vMidID[2] = MidID(2,11);// subface 3 = 1,4,3
+					vMidID[3] = MidID(1,12);// edge 3->1
+					vMidID[4] = MidID(1,0);	// edge 0
+					vMidID[5] = MidID(2,3); // face 3
+					vMidID[6] = MidID(3,4);	// subvolume 3
+					vMidID[7] = MidID(2,14);// face 1,0,3
+					break;
+
+
+		// 	scv of corner 3 in subvolume 1 (top)
+			case 10:vMidID[0] = MidID(0,3);	// corner 3
+					vMidID[1] = MidID(1,6); // edge 6
+					vMidID[2] = MidID(2,10);// subface 2 = 1,3,4
+					vMidID[3] = MidID(1,13);// edge 1->3
+					vMidID[4] = MidID(1,10);// edge 10
+					vMidID[5] = MidID(2,6); // face 6
+					vMidID[6] = MidID(3,2);	// subvolume 1
+					vMidID[7] = MidID(2,12);// face 1,3,5
+					break;
+		// 	scv of corner 3 in subvolume 3 (bottom)
+			case 11:vMidID[0] = MidID(0,3);	// corner 3
+					vMidID[1] = MidID(1,12);// edge 3->1
+					vMidID[2] = MidID(2,11);// subface 3 = 1,4,3
+					vMidID[3] = MidID(1,6); // edge 6
+					vMidID[4] = MidID(1,2);	// edge 2
+					vMidID[5] = MidID(2,14);// face 1,0,3
+					vMidID[6] = MidID(3,4);	// subvolume 3
+					vMidID[7] = MidID(2,2); // face 2
+					break;
+
+
+		// 	scv of corner 4 in subvolume 1 (top)
+			case 12:vMidID[0] = MidID(0,4);	// corner 4
+					vMidID[1] = MidID(1,7); // edge 7
+					vMidID[2] = MidID(2,10);// subface 2 = 1,3,4
+					vMidID[3] = MidID(1,6); // edge 6
+					vMidID[4] = MidID(1,11);// edge 11
+					vMidID[5] = MidID(2,7); // face 7
+					vMidID[6] = MidID(3,2);	// subvolume 1
+					vMidID[7] = MidID(2,6); // face 6
+					break;
+		// 	scv of corner 4 in subvolume 3 (bottom)
+			case 13:vMidID[0] = MidID(0,4);	// corner 4
+					vMidID[1] = MidID(1,6); // edge 6
+					vMidID[2] = MidID(2,11);// subface 3 = 1,4,3
+					vMidID[3] = MidID(1,7); // edge 7
+					vMidID[4] = MidID(1,3);	// edge 3
+					vMidID[5] = MidID(2,2); // face 2
+					vMidID[6] = MidID(3,4);	// subvolume 3
+					vMidID[7] = MidID(2,3); // face 3
+					break;
+
+
+		// 	scv of corner 5 in subvolume 1 (top)
+			case 14:vMidID[0] = MidID(0,5);	// corner 5
+					vMidID[1] = MidID(1,10);// edge 10
+					vMidID[2] = MidID(2,12);// subface 1,3,5
+					vMidID[3] = MidID(1,8);	// edge 8
+					vMidID[4] = MidID(1,11);// edge 11
+					vMidID[5] = MidID(2,6);	// face 6
+					vMidID[6] = MidID(3,2);	// subvolume 1
+					vMidID[7] = MidID(2,7); // face 7
+					break;
+		// 	scv of corner 0 in subvolume 3 (bottom)
+			case 15:vMidID[0] = MidID(0,0);	// corner 0
+					vMidID[1] = MidID(1,0);	// edge 0
+					vMidID[2] = MidID(2,15);// subface 1,3,0
+					vMidID[3] = MidID(1,2); // edge 2
+					vMidID[4] = MidID(1,3); // edge 3
+					vMidID[5] = MidID(2,3); // face 3
+					vMidID[6] = MidID(3,4);	// subvolume 3
+					vMidID[7] = MidID(2,2); // face 2
+					break;
+
+
+			default:UG_THROW("Octahedron only has 16 SCVs (no. 0-15), but requested no. " << i << ".");
+					break;
+		}
 	}
 };
 /// Octahedra: the FV1 traits

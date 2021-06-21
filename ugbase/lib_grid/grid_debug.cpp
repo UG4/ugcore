@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2014-2015:  G-CSC, Goethe University Frankfurt
- * Author: Martin Rupp
+ * Copyright (c) 2009-2021:  G-CSC, Goethe University Frankfurt
+ * Author: Dmitry Logashenko
  * 
  * This file is part of UG4.
  * 
@@ -30,15 +30,14 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef __H__UG__LIB_DISC__SPATIAL_DISC__COMMON_USER_DATA__
-#define __H__UG__LIB_DISC__SPATIAL_DISC__COMMON_USER_DATA__
+#include "grid_debug.h"
 
-#include "lognormal_random_field.h"
-#include "rotating_cone.h"
-#include "rotating_velocity.h"
-#include "invdist_user_data.h"
-#include "subset_indicator_user_data.h"
-#include "composite_user_data.h"
-#include "element_orientation_data.h"
+namespace ug
+{
 
-#endif // __H__UG__LIB_DISC__SPATIAL_DISC__COMMON_USER_DATA__
+/// Pointer to the single (if any) object of the grid debug info provider
+std::unique_ptr<grid_global_debug_info_provider> grid_global_debug_info_provider::the_object (nullptr);
+
+} // namespace ug
+
+/* End of File */
