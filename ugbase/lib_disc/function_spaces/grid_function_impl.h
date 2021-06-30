@@ -189,11 +189,6 @@ void GridFunction<TDomain, TAlgebra>::assign(const vector_type& v)
 
 //	assign vector
 	*(dynamic_cast<vector_type*>(this)) = v;
-
-#ifdef UG_PARALLEL
-//	copy storage type
-	this->set_storage_type(v.get_storage_mask());
-#endif
 }
 
 template <typename TDomain, typename TAlgebra>
@@ -258,6 +253,7 @@ permute_values(const std::vector<size_t>& vIndNew)
 #ifdef UG_PARALLEL
 //	copy storage type
 	vecTmp.set_storage_type(this->get_storage_mask());
+	vecTmp.set_layouts(this->layouts());
 #endif
 
 //	loop indices and copy values

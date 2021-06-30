@@ -130,9 +130,9 @@ number CalculateTetrahedronVolToRMSFaceAreaRatio(Grid& grid,
 //	CalculateTetrahedronVolToRMSFaceAreaRatio - sgrein
 ////////////////////////////////////////////////////////////////////////////////////////////
 UG_API
-number CalculateTetrahedronVolToRMSFaceAreaRatio(Grid& grid,
-											  	 Hexahedron* hex,
-												 Grid::VertexAttachmentAccessor<APosition>& aaPos);
+number CalculateHexahedronVolToRMSFaceAreaRatio(Grid& grid,
+											  	Hexahedron* hex,
+												Grid::VertexAttachmentAccessor<APosition>& aaPos);
 
 
 

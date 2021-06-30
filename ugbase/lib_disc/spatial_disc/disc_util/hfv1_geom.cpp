@@ -1511,35 +1511,35 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 						m_vBF[numBF].m_vGloPos[3] = gloEdgeMid3;
 						m_vBF[numBF].nodeId = edgeID;
 
-						m_vBF[numBF].m_vLocPos[0] = m_locMid[0][nextEdgeID];
-						m_vBF[numBF].m_vLocPos[1] = locEdgeMid1;
-						m_vBF[numBF].m_vLocPos[2] = locSideMid;
-						m_vBF[numBF].m_vLocPos[3] = locEdgeMid0;
-						m_vBF[numBF].m_vGloPos[0] = m_gloMid[0][nextEdgeID];
-						m_vBF[numBF].m_vGloPos[1] = gloEdgeMid1;
-						m_vBF[numBF].m_vGloPos[2] = gloSideMid;
-						m_vBF[numBF].m_vGloPos[3] = gloEdgeMid0;
-						m_vBF[numBF].nodeId = nextEdgeID;
+						m_vBF[numBF+1].m_vLocPos[0] = m_locMid[0][nextEdgeID];
+						m_vBF[numBF+1].m_vLocPos[1] = locEdgeMid1;
+						m_vBF[numBF+1].m_vLocPos[2] = locSideMid;
+						m_vBF[numBF+1].m_vLocPos[3] = locEdgeMid0;
+						m_vBF[numBF+1].m_vGloPos[0] = m_gloMid[0][nextEdgeID];
+						m_vBF[numBF+1].m_vGloPos[1] = gloEdgeMid1;
+						m_vBF[numBF+1].m_vGloPos[2] = gloSideMid;
+						m_vBF[numBF+1].m_vGloPos[3] = gloEdgeMid0;
+						m_vBF[numBF+1].nodeId = nextEdgeID;
 
-						m_vBF[numBF].m_vLocPos[0] = m_locMid[0][hangEdNodeId1];
-						m_vBF[numBF].m_vLocPos[1] = locEdgeMid2;
-						m_vBF[numBF].m_vLocPos[2] = locSideMid;
-						m_vBF[numBF].m_vLocPos[3] = locEdgeMid1;
-						m_vBF[numBF].m_vGloPos[0] = m_gloMid[0][hangEdNodeId1];
-						m_vBF[numBF].m_vGloPos[1] = gloEdgeMid2;
-						m_vBF[numBF].m_vGloPos[2] = gloSideMid;
-						m_vBF[numBF].m_vGloPos[3] = gloEdgeMid1;
-						m_vBF[numBF].nodeId = hangEdNodeId1;
+						m_vBF[numBF+2].m_vLocPos[0] = m_locMid[0][hangEdNodeId1];
+						m_vBF[numBF+2].m_vLocPos[1] = locEdgeMid2;
+						m_vBF[numBF+2].m_vLocPos[2] = locSideMid;
+						m_vBF[numBF+2].m_vLocPos[3] = locEdgeMid1;
+						m_vBF[numBF+2].m_vGloPos[0] = m_gloMid[0][hangEdNodeId1];
+						m_vBF[numBF+2].m_vGloPos[1] = gloEdgeMid2;
+						m_vBF[numBF+2].m_vGloPos[2] = gloSideMid;
+						m_vBF[numBF+2].m_vGloPos[3] = gloEdgeMid1;
+						m_vBF[numBF+2].nodeId = hangEdNodeId1;
 
-						m_vBF[numBF].m_vLocPos[0] = m_locMid[0][hangEdNodeId2];
-						m_vBF[numBF].m_vLocPos[1] = locEdgeMid3;
-						m_vBF[numBF].m_vLocPos[2] = locSideMid;
-						m_vBF[numBF].m_vLocPos[3] = locEdgeMid2;
-						m_vBF[numBF].m_vGloPos[0] = m_gloMid[0][hangEdNodeId2];
-						m_vBF[numBF].m_vGloPos[1] = gloEdgeMid3;
-						m_vBF[numBF].m_vGloPos[2] = gloSideMid;
-						m_vBF[numBF].m_vGloPos[3] = gloEdgeMid2;
-						m_vBF[numBF].nodeId = hangEdNodeId2;
+						m_vBF[numBF+3].m_vLocPos[0] = m_locMid[0][hangEdNodeId2];
+						m_vBF[numBF+3].m_vLocPos[1] = locEdgeMid3;
+						m_vBF[numBF+3].m_vLocPos[2] = locSideMid;
+						m_vBF[numBF+3].m_vLocPos[3] = locEdgeMid2;
+						m_vBF[numBF+3].m_vGloPos[0] = m_gloMid[0][hangEdNodeId2];
+						m_vBF[numBF+3].m_vGloPos[1] = gloEdgeMid3;
+						m_vBF[numBF+3].m_vGloPos[2] = gloSideMid;
+						m_vBF[numBF+3].m_vGloPos[3] = gloEdgeMid2;
+						m_vBF[numBF+3].nodeId = hangEdNodeId2;
 					}
 
 					break;

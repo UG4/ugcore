@@ -296,10 +296,6 @@ template <typename TElem, typename TFVGeom>
 void FV1InnerBoundaryElemDisc<TDomain>::
 prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
 {
-	// on horizontal interfaces: only treat hmasters
-	if (m_bCurrElemIsHSlave) return;
-	m_si = si;
-
 	m_si = si;
 
 	//	get the error estimator data object and check that it is of the right type

@@ -43,6 +43,7 @@
 // lib_disc includes
 #include "lib_disc/domain.h"
 #include "lib_disc/spatial_disc/domain_disc.h"
+#include "lib_disc/spatial_disc/dom_disc_embb.h"
 #include "lib_disc/parallelization/domain_distribution.h"
 #include "lib_disc/function_spaces/grid_function.h"
 
@@ -123,6 +124,14 @@ static void DomainAlgebra(Registry& reg, string grp)
 		string name = string("IDiscretizationItem").append(suffix);
 		reg.add_class_<T>(name, domDiscGrp);
 		reg.add_class_to_group(name, "IDiscretizationItem", tag);
+	}
+
+//	IInterfaceExtrapolation
+	{
+		typedef IInterfaceExtrapolation<TDomain, TAlgebra> T;
+		string name = string("IInterfaceExtrapolation").append(suffix);
+		reg.add_class_<T>(name,grp);
+		reg.add_class_to_group(name, "IInterfaceExtrapolation", tag);
 	}
 }
 

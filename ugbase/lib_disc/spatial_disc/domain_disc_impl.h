@@ -2008,7 +2008,7 @@ assemble_rhs(vector_type& rhs,
 			if(m_vConstraint[i]->type() & type)
 			{
 				m_vConstraint[i]->set_ass_tuner(m_spAssTuner);
-				m_vConstraint[i]->adjust_rhs(rhs, rhs, dd, type, vSol->time(0));
+				m_vConstraint[i]->adjust_rhs(rhs, *(vSol->solution(0)), dd, type, vSol->time(0));
 			}
 	}
 	} UG_CATCH_THROW("Cannot adjust linear.");

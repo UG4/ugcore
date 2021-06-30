@@ -952,13 +952,14 @@ static void bp_defect_and_gradient
 			number w = qPoints[j].second;
 			defectOut += integrandVal * w * (end-start);
 			VecScaleAdd(gradientOut, 1.0, gradientOut, w * (end-start), blub);
-
+#if 0
 			UG_LOGN("  Ival: " << integrandVal << ",  iExp: " << -posNormSq*radInv*radInv
 				<< ",  velNorm: " << velNorm << ",  weight: " << w
 				<< ",  t: " << t << ",  intvl: " << end-start
 				<< ", posAx: " << posAx << "x: " << x);
 
 			UG_LOGN(" gradientOut: " << gradientOut);
+#endif
 		}
 	}
 
@@ -968,6 +969,7 @@ static void bp_defect_and_gradient
 	VecScaleAppend(gradientOut, -VecDot(constAngleSurfNormal, gradientOut), constAngleSurfNormal);
 }
 
+#if 0
 static void pos_on_surface_soma
 (
     vector3& posOut,
@@ -1161,7 +1163,7 @@ static void newton_for_soma_bp_projection
     UG_COND_THROW(fabs(def) > minDef && fabs(def) > 1e-8 * def_init,
         "Newton iteration did not converge for soma branching point projection at " << posStart << ".")
 }
-
+#endif
 
 
 #if 0
@@ -1202,11 +1204,12 @@ static void newton_for_bp_projection
 )
 {
 	vector3 posStart = posOut;
+
 	// calculate start defect and gradient
 	number def;
 	number def_init;
 	vector3 grad;
-	UG_LOGN("MB iter: " << posOut);
+
 	bp_defect_and_gradient(def, grad, vProjHelp, posOut, rad, constAngleSurfNormal, np);
 	def_init = fabs(def);
 
@@ -1300,6 +1303,7 @@ static void bp_newton_start_pos
 	float t,
 	float angle,
 	float rad,
+	const vector3& constAngleSurfaceNormal,
 	const IVertexGroup* parent,
 	const NeuriteProjector* np
 )
@@ -1326,6 +1330,17 @@ static void bp_newton_start_pos
 	//     w*v_spl + (1-w)*v_avg
 	// as the starting position.
 
+	vector3 pos_avg_onNeurite;
+	pos_in_neurite(pos_avg_onNeurite, np->neurite(neuriteID), neuriteID, t, angle, rad);
+
+	// special case: no parents (happens when a vertex is being projected without refinement)
+	if (!parent)
+	{
+		// start at position given by the parameterization
+		initOut = pos_avg_onNeurite;
+		return;
+	}
+
 	// find correct section
 	const std::vector<NeuriteProjector::Section>& vSections = np->neurite(neuriteID).vSec;
 	NeuriteProjector::Section cmpSec(t);
@@ -1350,8 +1365,6 @@ static void bp_newton_start_pos
 
 	vector3 pos_avg;
 	np->average_pos_from_parent(pos_avg, parent);
-	vector3 pos_avg_onNeurite;
-	pos_in_neurite(pos_avg_onNeurite, np->neurite(neuriteID), neuriteID, t, angle, rad);
 
 	number distSq = VecDistanceSq(pos_avg_onNeurite, pos_avg);
 
@@ -1370,9 +1383,15 @@ static void bp_newton_start_pos
 	const number w2 = pSq*pSq / (pSq*pSq + 256); // in [0,1] with w2 = 0.5 for p = 4
 
 	VecScaleAdd(initOut, w1*w2, pos_avg_onNeurite, 1.0-w1*w2, pos_avg);
+
+	// project onto plane of constant angle
+	vector3 ptToSurf;
+	VecSubtract(ptToSurf, pos_avg_onNeurite, initOut);
+	VecScaleAdd(initOut, 1.0, initOut, VecDot(ptToSurf, constAngleSurfaceNormal), constAngleSurfaceNormal);
 }
 
 
+#if 0
 static void pos_on_surface_soma_bp
 (
 		vector3& posOut,
@@ -1444,6 +1463,7 @@ static void pos_on_surface_soma_bp
     try {newton_for_soma_bp_projection(posOut, vProjHelp, np, constAngleSurfNormal);}
     UG_CATCH_THROW("Newton iteration for neurite projection at branching point failed.");
 }
+#endif
 
 
 static void pos_in_bp
@@ -1521,13 +1541,10 @@ static void pos_in_bp
 	VecScaleAdd(constAngleSurfNormal, sin(angle), projRefDir, -cos(angle), thirdDir);
 
 	// determine suitable start position for Newton iteration
-	if (parent)
-		bp_newton_start_pos(posOut, neuriteID, t, angle, rad, parent, np);
+	bp_newton_start_pos(posOut, neuriteID, t, angle, rad, constAngleSurfNormal, parent, np);
 	//if (parent)
 	//	np->average_pos_from_parent(posOut, parent);
 	//pos_in_neurite(posOut, np->neurite(neuriteID), neuriteID, t, angle, rad);
-
-	UG_LOGN("MB initial: " << posOut);
 
 	// perform Newton iteration
 	try {newton_for_bp_projection(posOut, vProjHelp, rad, constAngleSurfNormal, np);}

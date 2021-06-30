@@ -104,7 +104,8 @@ class AlgebraDebugWriter : public IDebugWriter<TAlgebra>
 			// check size
 			if(vec.size() > posvec.size())
 				UG_THROW("'AlgebraDebugWriter::write_vector':"
-						 " Number of positions does not match.\n");
+						 " Number of positions does not match. Vector has " 
+						 << vec.size() << " elements, but " << posvec.size() << " positions were supplied!\n");
 
 			// write connection viewer output to file
 			ConnectionViewer::WriteVectorPar<vector_type, MathVector<dim> >(name, vec, &posvec[0], dim);
@@ -121,7 +122,9 @@ class AlgebraDebugWriter : public IDebugWriter<TAlgebra>
 		// check size
 			if(mat.num_rows() > posvec.size() || mat.num_cols() > posvec.size())
 							UG_THROW("'AlgebraDebugWriter::write_matrix':"
-									" Number of positions does not match: "<<   mat.num_rows() << ">" << posvec.size()<<"\n");
+									" Number of positions does not match: Matrix has "
+									<< mat.num_rows() << " rows, " << mat.num_cols() << " cols, but "
+									<< posvec.size()<< "positions were supplied." << "\n");
 			// write to connection viewer
 			ConnectionViewer::WriteMatrixPar<matrix_type, MathVector<dim> >
 								( name, mat, &base_type::template get_positions<dim>()[0], dim);

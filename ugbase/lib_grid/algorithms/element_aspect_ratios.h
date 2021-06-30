@@ -282,17 +282,8 @@ number CalculateVolToRMSFaceAreaRatio(Grid& grid, Hexahedron* hex, TAAPosVRT& aa
 	//PROFILE_FUNC();
 	number ratio;
 
-	/*
-	 * optimal volume to root-mean-square face area ratio of a
-	 * regular tetrahedron with edge lengths a:
-	 * Q = V/A_rms^(3/2)
-	 *
-	 * Info: return value is normalized by factor pow(3, 7/4.0) / 2.0 / sqrt(2);
-	 * (s. Shewchuk, "What is a Good Linear Element? Interpolation, Conditioning, and Quality Measures?", 2002)
-	 */
-
 	//	Calculate the ratio
-	///ratio = CalculateHexahedronVolToRMSFaceAreaRatio(grid, hex, aaPos);
+	ratio = CalculateHexahedronVolToRMSFaceAreaRatio(grid, hex, aaPos);
 
 	return ratio;
 }

@@ -1,4 +1,4 @@
-# run in container
+# run in container 
 sudo: false
 
 addons:
@@ -40,8 +40,8 @@ env:
   matrix:
     - DIM=2 CPU=1       TARGET=ugshell STATIC_BUILD=ON  BUILD_VARIANT="build1"
     - DIM=2 CPU=1       TARGET=vrl     STATIC_BUILD=OFF BUILD_VARIANT="build2"
-    - DIM=ALL CPU="1;2" TARGET=ugshell STATIC_BUILD=ON  BUILD_VARIANT="build3"
-    - DIM=ALL CPU="1;2" TARGET=vrl     STATIC_BUILD=OFF BUILD_VARIANT="build4"
+#   - DIM=ALL CPU="1;2" TARGET=ugshell STATIC_BUILD=ON  BUILD_VARIANT="build3"
+#   - DIM=ALL CPU="1;2" TARGET=vrl     STATIC_BUILD=OFF BUILD_VARIANT="build4"
 
 jobs:
   exclude:
@@ -66,6 +66,7 @@ before_install:
   # installing ccache and freetype packages via homebrew
 #  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install ccache; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH="/usr/local/opt/ccache/libexec:$PATH"; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" && "$CC" == "clang" ]]; then export CC='ccache clang'; export CXX='ccache clang++'; fi
 
 # prepare compilation  
 before_script:
@@ -108,5 +109,5 @@ script:
     # ccache fixes global build time of ~ 50 minutes
     # we still need to use travis_wait to prevent "build error because of no output"
     # https://docs.travis-ci.com/user/common-build-problems/#Build-times-out-because-no-output-was-received
-    - travis_wait 45 make -j2
+    - travis_wait 45 make -j1
     - if [[ "$TARGET" == "ugshell" ]]; then ../bin/ugshell -call "print(\"it works\")"; fi

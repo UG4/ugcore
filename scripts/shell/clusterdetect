@@ -29,6 +29,8 @@ if [ -z "$UGSUBMIT_TYPE" ]; then
 		else
 			echo "WARNING: couldn't detect cluster type!"
 		fi
+	elif [[ "$HOSTNAME" = "hawk-login"* ]]; then
+		UGSUBMIT_TYPE=Hawk
 	else
 		unamestr=`uname`
 		if [[ "$unamestr" = 'Darwin' ]]; then

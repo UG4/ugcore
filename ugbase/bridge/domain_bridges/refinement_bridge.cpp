@@ -1845,7 +1845,8 @@ static void Domain(Registry& reg, string grp)
 	reg.add_function("GlobalSubdivisionDomainRefiner",
 					 &GlobalSubdivisionDomainRefiner<domain_type>, grp, "GlobalSubdivisionDomainRefiner", "dom");
 	reg.add_function("ApplySmoothSubdivisionSurfacesToTopLevel",
-					 (void (*)(ug::MultiGrid&, apos_type&, ug::MGSubsetHandler&, ug::MGSubsetHandler&, const char*)) (&ApplySmoothSubdivisionSurfacesToTopLevel<apos_type>), grp);
+					 (void (*)(ug::MultiGrid&, apos_type&, ug::MGSubsetHandler&, ug::MGSubsetHandler&, const char*, bool))
+					 (&ApplySmoothSubdivisionSurfacesToTopLevel<apos_type>), grp);
 	reg.add_function("ProjectHierarchyToSubdivisionLimit",
 					 &ProjectHierarchyToSubdivisionLimit<apos_type>, grp);
 	reg.add_function("GetDomainPositionAttachment",

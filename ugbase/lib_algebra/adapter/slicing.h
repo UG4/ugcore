@@ -268,6 +268,24 @@ public:
 
 	}
 
+	//! Sets an existing sliced vector up correctly
+	template<class VT>
+	void setup_slice_like(const VT &full_src, slice_desc_type type, VT & vectorslice) const
+	{
+		const slice_desc_set &slice_desc = slice(type);
+
+		vectorslice.resize(slice_desc.size());
+#ifdef UG_PARALLEL
+		// set layout
+		vectorslice.set_layouts(create_slice_layouts(full_src.layouts(), type));
+
+		// set mask
+		uint mask = full_src.get_storage_mask();
+		vectorslice->set_storage_type(mask);
+		//std::cout << "Storage Type:" << full_src.get_storage_type() <<", mask=" << mask << std::endl;
+#endif
+	}
+
 	//! Create a (partial) clone
 	template<class VT>
 	SmartPtr<VT> slice_clone(const VT &full_src, slice_desc_type type) const

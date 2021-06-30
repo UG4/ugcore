@@ -31,6 +31,7 @@
  */
 
 #include <string>
+#include <vector>
 #include <cstring>
 #include "common/log.h"
 #include "bridge/bridge.h"
@@ -59,6 +60,19 @@ bool LoadPlugins(const char*, string parentGroup, bridge::Registry& reg, bool bP
 bool UnloadPlugins()
 {
 	return true;
+}
+
+vector<string> GetLoadedPlugins()
+{
+	string plugins = string(ListOfEmbeddedPlugins());
+
+	std::stringstream ss(plugins);
+	std::istream_iterator<std::string> begin(ss);
+	std::istream_iterator<std::string> end;
+	std::vector<std::string> pluginNames(begin, end);
+	std::copy(pluginNames.begin(), pluginNames.end(), std::ostream_iterator<std::string>(std::cout, "\n"));
+
+	return pluginNames;
 }
 
 }// end of namespace

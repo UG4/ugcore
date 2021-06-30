@@ -1279,8 +1279,11 @@ bool RegisterInfoCommands(Registry &reg, const char* parentGroup)
 #ifdef UG_PLUGINS
 		reg.add_function("PluginLoaded", &PluginLoaded, grp.c_str(), 
 		                 "true if plugin loaded", "pluginName", "pluginName as listed when using cmake ..");
+
 		reg.add_function("PluginRequired", &PluginRequired, grp.c_str(),
 		                 "true if plugin loaded", "pluginName", "throws an error if plugin not loaded, displays help string how to enable plugins via cmake -DpluginName=ON ..");
+		reg.add_function("GetLoadedPlugins", &GetLoadedPlugins, grp.c_str(), 
+		                 "list of loaded plugins names", "", "");
 #endif
 		reg.add_function("EnableLUA2C", &EnableLUA2C, grp.c_str(), 
 		                 "", "bEnable", "");

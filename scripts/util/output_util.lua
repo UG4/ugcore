@@ -116,6 +116,9 @@ function util.Balance(DataToBeWrittenTable)
 	local PrintPVD = DataToBeWrittenTable.write_pvd or false
 	local PrintProcesswisePVD = DataToBeWrittenTable.write_processwise_pvd or false
 	local vecOutput = nil
+
+	local integratorsubject = TimeIntegratorSubject()
+
 	----------------------------------
 	-- loop "Data-to-be-written"-Table
 	----------------------------------
@@ -200,20 +203,19 @@ function util.Balance(DataToBeWrittenTable)
 			
 		end -- end Parsing Vtk-Data
 	
-	
 		----------------------------------
-		-- check for position data
+		-- create evaluators
 		----------------------------------
 		if DataSet.value ~= nil then
 			-- create position evaluation
-			local PosEval = {}
-			
-			-- get data to be evaluated
-			PosEval.value = DataSet.value
-			if type(PosEval.value) ~= "userdata" then
+
+			if type(DataSet.value) ~= "userdata" then
 				print("util.Balance: PointData: value must be userdata.")
 				exit()													
 			end
+
+			-- get data to be evaluated
+			evaluator = PointEvaluatorFactory():create(DataSet.value)
 			
 			-- get positions
 			if type(DataSet.point) ~= "table" then
@@ -230,43 +232,26 @@ function util.Balance(DataToBeWrittenTable)
 				end
 			end	
 			
-			PosEval.points = {}
 			if type(DataSet.point[1]) == "table" then
 				for _, point in ipairs(DataSet.point) do
 					CheckPointSet(point)
-					table.insert(PosEval.points, point)		
+					evaluator:add_evaluation_point(point)	
 				end	
 			else
 				CheckPointSet(DataSet.point)
-				table.insert(PosEval.points, DataSet.point)			
+				evaluator:add_evaluation_point(DataSet.point)		
 			end
 		
 			-- store file name
-			PosEval.file = file
+			evaluator:set_filename(file)
 
 			-- separator 
-			PosEval.sep = DataSet.sep
-			if type(PosEval.sep) ~= "string" then
-				PosEval.sep = "\t"
+			if type(DataSet.sep) == "string" then
+				evaluator:set_separator(DataSet.sep)
 			end
-
-			-- create file
-			local thefile = io.open (file, "w+")
-			thefile:write("# Position Evaluating file\n")
-			thefile:write("time"..PosEval.sep)
-			for _, point in ipairs(PosEval.points) do
-				thefile:write("{")
-				for i, coord in ipairs(point) do
-					if i > 1 then thefile:write(",") end
-					thefile:write(coord)
-				end
-				thefile:write("}",PosEval.sep)
-			end						
-			thefile:write("\n")
-			io.close(thefile)
 			
-			-- append to pos-eval datas
-			table.insert(PosEvals, PosEval)
+			-- attach to subject
+			integratorsubject:attach_finalize_observer(evaluator)
 		end
 
 		----------------------------------
@@ -420,28 +405,7 @@ function util.Balance(DataToBeWrittenTable)
 			if verbose then print("done.") end
 		end
 
-		-- evaluate Pos-Datas
-		for _, PosEval in ipairs(PosEvals) do
-			local points = PosEval.points
-			local value = PosEval.value
-			local filename = PosEval.file
-			local sep = PosEval.sep
-
-			if verbose then print(" * Write PosData to '"..filename.."' ... ") end
-		
-			local file = io.open (filename, "a")
-			file:write(time)
-			file:write(sep)
-			for _, point in ipairs(points) do
-				local val = value:evaluate_global(point)
-				--print("Point data is: "..val)
-				file:write(val, sep)
-			end
-			file:write("\n")
-			io.close(file)
-			
-			if verbose then print("done.") end
-		end
+		integratorsubject:notify_finalize_step(u, step, time, 0)
 
 		-- evaluate Integrals
 		for _, IntegralData in ipairs(Integrals) do
