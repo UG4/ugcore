@@ -43,6 +43,8 @@
 
 #include "../execution/util.cpp"
 
+#include "common/code_marker.h"
+
 namespace ug{
 
 
@@ -71,20 +73,12 @@ class BoostCuthillMcKeeOrdering : public IOrderingAlgorithm<M_t, G_t, O_t>
 public:
 	typedef IOrderingAlgorithm<M_t, G_t, O_t> baseclass;
 	typedef typename baseclass::Type Type;
-	BoostCuthillMcKeeOrdering() : m_bReverse(false), own_o(false){}
-	~BoostCuthillMcKeeOrdering(){
-		if(own_o){ delete o; }
-	}
+	BoostCuthillMcKeeOrdering() : m_bReverse(false){}
 
 	void compute(){
 		if(!g){
 			std::cerr << "graph not set! abort." << std::endl;
 			return;
-		}
-
-		if(!o){
-			own_o = true;
-			o = new O_t;
 		}
 
 		typedef boost::graph_traits<Graph_t>::vertex_descriptor Vertex_t;
@@ -113,19 +107,19 @@ public:
 		o->resize(boost::num_vertices(*g));
 
 		for(unsigned i = 0; i != inv_perm.size(); ++i){
-			(*o)[index_map[inv_perm[i]]] = i;
+			o[index_map[inv_perm[i]]] = i;
 		}
 	}
 
 	void check(){
-		if(!is_permutation(*o)){
+		if(!is_permutation(o)){
 			std::cerr << "Not a permutation!" << std::endl;
 			error();
 		}
 
 	}
 
-	O_t* ordering(){
+	O_t& ordering(){
 		return o;
 	}
 
@@ -139,29 +133,23 @@ public:
 
 	void set_matrix(M_t*){}
 
-	void set_ordering(O_t* ordering){
-		o = ordering;
-	}
-
 	void set_reverse(bool b){
 		m_bReverse = b;
 	}
 
 private:
 	G_t* g;
-	O_t* o;
+	O_t o;
 
 	bool m_bReverse;
-
-	bool own_o;
 
 	static const Type mytype = Type::GRAPH_BASED;
 };
 
 
 template <typename M_t, typename G_t, typename O_t>
-void boost_Cuthill_McKee_ordering(G_t &g, O_t &o, bool reverse){
-	BoostCuthillMcKeeOrdering<M_t, G_t, O_t> algo(g, o, reverse);
+void boost_Cuthill_McKee_ordering(G_t &g, bool reverse){
+	BoostCuthillMcKeeOrdering<M_t, G_t, O_t> algo(g, reverse);
 	algo.compute();
 }
 

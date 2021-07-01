@@ -58,12 +58,11 @@ public:
 	virtual void compute() = 0;
 	virtual void check() = 0;
 
-	virtual O_t* ordering() = 0;
+	virtual O_t& ordering() = 0;
 	virtual const Type type() = 0;
 
 	virtual void set_graph(G_t*) = 0;
 	virtual void set_matrix(M_t*) = 0;
-	virtual void set_ordering(O_t*) = 0;
 };
 
 } //namespace

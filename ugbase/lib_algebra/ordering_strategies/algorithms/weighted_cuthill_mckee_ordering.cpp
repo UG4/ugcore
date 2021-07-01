@@ -107,10 +107,7 @@ public:
 	typedef IOrderingAlgorithm<M_t, G_t, O_t> baseclass;
 	typedef typename baseclass::Type Type;
 
-	WeightedCuthillMcKeeOrdering() : m_bReverse(false), own_o(false){}
-	~WeightedCuthillMcKeeOrdering(){
-		if(own_o){ delete o; }
-	}
+	WeightedCuthillMcKeeOrdering() : m_bReverse(false){}
 
 #if 0
 	class next_vertex_iterator{
@@ -177,11 +174,8 @@ public:
 			return;
 		}
 
-		own_o = true;
-		o = new O_t;
-	
 		unsigned n = boost::num_vertices(*g);
-		o->resize(n);
+		o.resize(n);
 		std::cout << "[CuthillMcKeeOrderingWeighted::compute] n = " << n << ", e = " << boost::num_edges(*g) << std::endl;
 #ifdef DUMP
 		std::cout << "graph: " << std::endl; print_graph(g); std::cout << "end graph" << std::endl;
@@ -234,32 +228,32 @@ public:
 			std::cout << "front: "; print(front);
 #endif
 
-			(*o)[k] = cur;
+			o[k] = cur;
 
 #ifdef DUMP
 			std::cout << "ordering: ";
 			for(unsigned i = 0; i < k; ++i){
-				std::cout << (*o)[i] << " ";
+				std::cout << o[i] << " ";
 			}std::cout << std::endl;
 #endif
 		}
 
 		if(m_bReverse){
-			std::reverse(o->begin(), o->end());
+			std::reverse(o.begin(), o.end());
 		}
 
 		std::cout << "[CuthillMcKeeOrderingWeighted::compute] done. " << std::endl;
 	}
 
 	void check(){
-		if(!is_permutation(*o)){
+		if(!is_permutation(o)){
 			std::cerr << "Not a permutation!" << std::endl;
-			print(*o);
+			print(o);
 			error();
 		}
 	}
 
-	O_t* ordering(){
+	O_t& ordering(){
 		return o;
 	}
 
@@ -274,29 +268,23 @@ public:
 
 	void set_matrix(M_t*){}
 
-	void set_ordering(O_t* ordering){
-		o = ordering;
-	}
-
 	void set_reverse(bool b){
 		m_bReverse = b;
 	}
 
 private:
 	G_t* g;
-	O_t* o;
+	O_t o;
 
 	bool m_bReverse;
-
-	bool own_o;
 
 	static const Type mytype = Type::GRAPH_BASED;
 };
 
 
 template <typename M_t, typename G_t, typename O_t>
-void weighted_Cuthill_McKee_ordering(G_t &g, O_t &o, bool reverse){
-	WeightedCuthillMcKeeOrdering<M_t, G_t, O_t> algo(g, o, reverse);
+void weighted_Cuthill_McKee_ordering(G_t &g, bool reverse){
+	WeightedCuthillMcKeeOrdering<M_t, G_t, O_t> algo(g, reverse);
 	algo.compute();
 }
 

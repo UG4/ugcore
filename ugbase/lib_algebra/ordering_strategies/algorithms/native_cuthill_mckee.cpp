@@ -338,27 +338,19 @@ public:
 	typedef typename baseclass::Type Type;
 
 	NativeCuthillMcKeeOrdering(){}
-	~NativeCuthillMcKeeOrdering(){
-		if(own_o){ delete o; }
-	}
 
 	void compute(){
-		if(!o){
-			own_o = true;
-			o = new O_t;
-		}
-
-		GetCuthillMcKeeOrder(*mat, *o);
+		GetCuthillMcKeeOrder(*mat, o);
 	}
 
 	void check(){
-		if(!is_permutation(*o)){
+		if(!is_permutation(o)){
 			std::cerr << "Not a permutation!" << std::endl;
 			error();
 		}
 	}
 
-	O_t* ordering(){
+	O_t& ordering(){
 		return o;
 	}
 
@@ -370,14 +362,9 @@ public:
 
 	void set_matrix(M_t* m){ mat = m; }
 
-	void set_ordering(O_t* ordering){
-		o = ordering;
-	}
-
 private:
-	O_t* o;
+	O_t o;
 	M_t* mat;
-	bool own_o;
 
 	static const Type mytype = Type::MATRIX_BASED;
 };

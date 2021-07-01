@@ -58,11 +58,7 @@ public:
 	typedef IOrderingAlgorithm<M_t, G_t, O_t> baseclass;
 	typedef typename baseclass::Type Type;
 
-	//BoostMinimumDegreeOrdering(G_t &g_in, O_t &o_in) : g(&g_in), o(&o_in), own_o(false){}
-	BoostMinimumDegreeOrdering() : own_o(false){}
-	~BoostMinimumDegreeOrdering(){
-		if(own_o){ delete o; }
-	}
+	BoostMinimumDegreeOrdering(){}
 
 	void compute(){
 		if(!g){
@@ -70,17 +66,12 @@ public:
 			return;
 		}
 
-		if(!o){
-			own_o = true;
-			o = new O_t;
-		}
-
 		unsigned n = boost::num_vertices(*g);
 		unsigned e = boost::num_edges(*g);
 
 		O_t io(boost::num_vertices(*g), 0);
 
-		o->resize(n);
+		o.resize(n);
 		unsigned i = 0;
 
 		if(n == 0){
@@ -90,7 +81,7 @@ public:
 			error();
 			typename boost::graph_traits<G_t>::vertex_iterator vIt, vEnd;
 			for(boost::tie(vIt, vEnd) = boost::vertices(*g); vIt != vEnd; vIt++){
-				(*o)[i++] = *vIt;
+				o[i++] = *vIt;
 			}
 		}
 
@@ -113,7 +104,7 @@ public:
 		  (*g,
 		   boost::make_iterator_property_map(&degree[0], id, degree[0]),
 		   &io[0],
-		   &((*o)[0]),
+		   &(o[0]),
 		   boost::make_iterator_property_map(&supernode_sizes[0], id, supernode_sizes[0]),
 		   0,
 		   id
@@ -121,13 +112,13 @@ public:
 	}
 
 	void check(){
-		if(!is_permutation(*o)){
+		if(!is_permutation(o)){
 			std::cerr << "Not a permutation!" << std::endl;
 			error();
 		}
 	}
 
-	O_t* ordering(){
+	O_t& ordering(){
 		return o;
 	}
 
@@ -141,23 +132,17 @@ public:
 
 	void set_matrix(M_t*){}
 
-	void set_ordering(O_t* ordering){
-		o = ordering;
-	}
-
 private:
 	G_t* g;
-	O_t* o;
-
-	bool own_o;
-
+	O_t o;
+	
 	static const Type mytype = Type::GRAPH_BASED;
 };
 
 
 template <typename M_t, typename G_t, typename O_t>
-void boost_minimum_degree_ordering(G_t &g, O_t &o){
-	BoostMinimumDegreeOrdering<M_t, G_t, O_t> algo(&g, &o);
+void boost_minimum_degree_ordering(G_t &g){
+	BoostMinimumDegreeOrdering<M_t, G_t, O_t> algo(&g);
 	algo.compute();
 }
 

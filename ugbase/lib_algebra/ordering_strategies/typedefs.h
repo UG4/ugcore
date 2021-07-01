@@ -101,15 +101,17 @@ using weighted_clique_graph_type = WeightedCliqueMatrixGraph<weighted_base_graph
 //---------------------
 
 #include "algorithms/weighted_cuthill_mckee_ordering.cpp"
-#include "algorithms/boost_shortest_paths_ordering.cpp"
+//#include "algorithms/boost_shortest_paths_ordering.cpp"
 
 namespace ug{
 
 template <typename TAlgebra>
 using WeightedCuthillMcKeeOrdering_type = WeightedCuthillMcKeeOrdering<typename TAlgebra::matrix_type, weighted_base_graph_type, ordering_container_type>;
 
+#if 0
 template <typename TAlgebra>
 using BoostShortestPathsOrdering_type = BoostShortestPathsOrdering<typename TAlgebra::matrix_type, weighted_base_graph_type, ordering_container_type>;
+#endif
 
 }
 

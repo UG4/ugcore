@@ -44,6 +44,7 @@
 // preconditioner
 #include "lib_algebra/lib_algebra.h"
 #include "lib_algebra/operator/preconditioner/preconditioners.h"
+#include "lib_algebra/operator/preconditioner/myilu.h"
 #include "lib_algebra/operator/preconditioner/ilut_scalar.h"
 #include "lib_algebra/operator/linear_solver/agglomerating_solver.h"
 #include "lib_algebra/operator/preconditioner/block_gauss_seidel.h"
@@ -250,6 +251,27 @@ static void Algebra(Registry& reg, string grp)
 			.add_method("enable_overlap", &T::enable_overlap, "", "enable", "Enables matrix overlap. This also means that interfaces are consistent.")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ILU", tag);
+	}
+	
+//	myILU
+	{
+		typedef myILU<TAlgebra> T;
+		typedef IPreconditioner<TAlgebra> TBase;
+		typedef IOrderingAlgorithm<typename TAlgebra::matrix_type, weighted_base_graph_type, ordering_container_type> TOrderingAlgo;
+		string name = string("myILU").append(suffix);
+		reg.add_class_<T,TBase>(name, grp, "Incomplete LU Decomposition")
+			.add_constructor()
+			.add_method("set_beta", &T::set_beta, "", "beta")
+			.add_method("set_inversion_eps", &T::set_inversion_eps, "", "eps")
+			.add_method("set_ordering_algorithm", static_cast<void (T::*)(SmartPtr<TOrderingAlgo>)>(&T::set_ordering_algorithm), "", "", "sets an ordering algorithm")
+			.add_method("set_disable_preprocessing", &T::set_disable_preprocessing, "", "disable",
+						"set whether preprocessing (notably, LU factorization) is to be disabled - usable when the operator has not changed; use with care")
+/*
+			.add_method("enable_consistent_interfaces", &T::enable_consistent_interfaces, "", "enable", "Make Matrix consistent for connections in interfaces.")
+			.add_method("enable_overlap", &T::enable_overlap, "", "enable", "Enables matrix overlap. This also means that interfaces are consistent.")
+*/
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "myILU", tag);
 	}
 
 //	ILU Threshold
