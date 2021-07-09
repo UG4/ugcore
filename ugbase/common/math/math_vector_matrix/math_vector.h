@@ -7,7 +7,7 @@
  * UG4 is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License version 3 (as published by the
  * Free Software Foundation) with the following additional attribution
- * requirements (according to LGPL/GPL v3 ��7):
+ * requirements (according to LGPL/GPL v3 §7):
  * 
  * (1) The following notice must be displayed in the Appropriate Legal Notices
  * of covered and combined works: "Based on UG4 (www.ug4.org/license)".
@@ -20,7 +20,7 @@
  * "Reiter, S., Vogel, A., Heppner, I., Rupp, M., and Wittum, G. A massively
  *   parallel geometric multigrid solver on hierarchically distributed grids.
  *   Computing and visualization in science 16, 4 (2013), 151-164"
- * "Vogel, A., Reiter, S., Rupp, M., N��gel, A., and Wittum, G. UG4 -- a novel
+ * "Vogel, A., Reiter, S., Rupp, M., Nägel, A., and Wittum, G. UG4 -- a novel
  *   flexible software system for simulating pde based models on high performance
  *   computers. Computing and visualization in science 16, 4 (2013), 165-179"
  * 
@@ -101,7 +101,7 @@ class MathVector
 		static const std::size_t Size = N;
 
 	public:
-		MathVector() {for(std::size_t i = 0; i < N; ++i) m_data[i] =  0.0;}
+		MathVector() {for(std::size_t i = 0; i < N; ++i) m_data[i] = 0.0;}
 		MathVector(const value_type& val) {for(std::size_t i = 0; i < N; ++i) m_data[i] =  val;}
 		MathVector(const MathVector& v)	{assign(v);}
 
@@ -234,7 +234,7 @@ class MathVector<1, T>
 		static const std::size_t Size = 1;
 
 	public:
-		MathVector() 	{m_data[0] = 0.0; }
+		MathVector() 	{m_data[0] = 0.0;}
 		MathVector(value_type x) { m_data[0] = x; }
 		MathVector(const MathVector<1, T>& v)	{assign(v);}
 
@@ -298,7 +298,7 @@ class MathVector<2, T>
 		static const std::size_t Size = 2;
 
 	public:
-		MathVector()	{ m_data[0] = m_data[1] = 0.0; }
+		MathVector()	{m_data[0] = m_data[1] = 0.0;}
 		MathVector(const value_type& val) {m_data[0] = m_data[1] = val;}
 		MathVector(value_type x, value_type y)
 		{
@@ -370,7 +370,7 @@ class MathVector<3, T>
 		static const std::size_t Size = 3;
 
 	public:
-		MathVector()	{ m_data[0] = m_data[1] = m_data[2] = 0.0; }
+		MathVector()	{m_data[0] = m_data[1] = m_data[2] = 0.0;}
 		MathVector(const value_type& val) {m_data[0] = m_data[1] = m_data[2] = val;}
 		MathVector(value_type x, value_type y, value_type z)
 		{
@@ -448,7 +448,7 @@ class MathVector<4, T>
 		static const std::size_t Size = 4;
 
 	public:
-		MathVector()	{m_data[0] = m_data[1] = m_data[2] = m_data[3] =0.0;}
+		MathVector()	{m_data[0] = m_data[1] = m_data[2] = m_data[3] = 0.0;}
 		MathVector(const value_type& val) {m_data[0] = m_data[1] = m_data[2] = m_data[3] =val;}
 		MathVector(value_type x, value_type y, value_type z, value_type w)
 		{
