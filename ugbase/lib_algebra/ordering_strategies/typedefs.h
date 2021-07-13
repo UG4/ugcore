@@ -79,13 +79,14 @@ typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
 
 //------------------
 
-//#include "metagraph/MatrixGraph.h"
 #include "metagraph/WeightedMatrixGraph.h"
-#include "metagraph/WeightedCliqueMatrixGraph.h"
+#include "metagraph/UnweightedMatrixGraph.h"
+//#include "metagraph/WeightedCliqueMatrixGraph.h"
 
 namespace ug{
 
 typedef graph_bidirectional_t base_graph_type;
+typedef graph_bidirectional_t unweighted_base_graph_type; //aka
 typedef graph_bidirectional_weighted_t weighted_base_graph_type;
 typedef std::vector<size_t> ordering_container_type;
 
@@ -94,7 +95,10 @@ template <typename TAlgebra>
 using weighted_graph_type = WeightedMatrixGraph<weighted_base_graph_type, typename TAlgebra::matrix_type>;
 
 template <typename TAlgebra>
-using weighted_clique_graph_type = WeightedCliqueMatrixGraph<weighted_base_graph_type, typename TAlgebra::matrix_type>;
+using unweighted_graph_type = UnweightedMatrixGraph<base_graph_type, typename TAlgebra::matrix_type>;
+
+//template <typename TAlgebra>
+//using weighted_clique_graph_type = WeightedCliqueMatrixGraph<weighted_base_graph_type, typename TAlgebra::matrix_type>;
 
 }
 
@@ -112,6 +116,22 @@ using WeightedCuthillMcKeeOrdering_type = WeightedCuthillMcKeeOrdering<typename 
 template <typename TAlgebra>
 using BoostShortestPathsOrdering_type = BoostShortestPathsOrdering<typename TAlgebra::matrix_type, weighted_base_graph_type, ordering_container_type>;
 #endif
+
+}
+
+//---------------------
+
+
+#include "algorithms/boost_cuthill_mckee_ordering.cpp"
+#include "algorithms/boost_minimum_degree_ordering.cpp"
+
+namespace ug{
+
+template <typename TAlgebra>
+using BoostCuthillMcKeeOrdering_type = BoostCuthillMcKeeOrdering<typename TAlgebra::matrix_type, base_graph_type, ordering_container_type>;
+
+template <typename TAlgebra>
+using BoostMinimumDegreeOrdering_type = BoostMinimumDegreeOrdering<typename TAlgebra::matrix_type, base_graph_type, ordering_container_type>;
 
 }
 

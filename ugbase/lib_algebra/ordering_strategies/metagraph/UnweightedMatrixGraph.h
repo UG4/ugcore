@@ -31,8 +31,8 @@
  */
 
 
-#ifndef __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_METAGRAPH_MATRIX_GRAPH__
-#define __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_METAGRAPH_MATRIX_GRAPH__
+#ifndef __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_METAGRAPH_UNWEIGTED_MATRIX_GRAPH__
+#define __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_METAGRAPH_UNWEIGTED_MATRIX_GRAPH__
 
 #include "IMetaGraph.h"
 
@@ -46,11 +46,11 @@ namespace ug{
 */
 
 template <typename G_t, typename matrix_type>
-class MatrixGraph : public IMetaGraph<G_t>{
+class UnweightedMatrixGraph : public IMetaGraph<G_t>{
 public:
 	typedef IMetaGraph<G_t> baseclass;
 
-	MatrixGraph(matrix_type& A){
+	UnweightedMatrixGraph(matrix_type& A){
 		unsigned rows = A.num_rows();
 
 		baseclass::g = G_t(rows);

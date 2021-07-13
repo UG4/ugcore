@@ -529,8 +529,10 @@ class ILU : public IPreconditioner<TAlgebra>
 			#endif
 
 		//	if using overlap we already sort in a different way
-			if(m_bSort && !(m_useOverlap && sortSlaveToEnd))
+			if(m_bSort && !(m_useOverlap && sortSlaveToEnd)){
+				std::cout << "ilu.h: CuthillMcKee native" << std::endl;
 				calc_cuthill_mckee();
+			}
 
 		//	Debug output of matrices
 			#ifdef UG_PARALLEL

@@ -45,6 +45,8 @@
 
 #include "common/code_marker.h"
 
+#include "weighted_cuthill_mckee_ordering.cpp"
+
 namespace ug{
 
 
@@ -66,6 +68,17 @@ void copy_graph_for_boost_Cuthill_McKee(G_t &orig, Graph_t &copy){
 	}
 }
 
+template <typename G_t>
+void print_graph_unweighted(G_t& g){
+	typedef typename boost::graph_traits<G_t>::edge_descriptor Edge;
+
+	typename boost::graph_traits<G_t>::edge_iterator eIt, eEnd;
+	for(boost::tie(eIt, eEnd) = boost::edges(g); eIt != eEnd; ++eIt){
+		std::pair<Edge, bool> e = boost::edge(boost::source(*eIt, g), boost::target(*eIt, g), g);
+		std::cout << boost::source(*eIt, g) << " -> " << boost::target(*eIt, g) << std::endl;
+	}
+}
+
 
 template <typename M_t, typename G_t, typename O_t>
 class BoostCuthillMcKeeOrdering : public IOrderingAlgorithm<M_t, G_t, O_t>
@@ -76,7 +89,14 @@ public:
 	BoostCuthillMcKeeOrdering() : m_bReverse(false){}
 
 	void compute(){
-		if(!g){
+		std::cout << "graph: " << std::endl; print_graph_unweighted(g); std::cout << "end graph" << std::endl;
+
+		std::cout << "boost cuthill, compute" << std::endl;
+		
+		
+		unsigned n = boost::num_vertices(g);
+		
+		if(n == 0){
 			std::cerr << "graph not set! abort." << std::endl;
 			return;
 		}
@@ -85,7 +105,9 @@ public:
 		typedef boost::graph_traits<Graph_t>::vertices_size_type size_type;
 
 		Graph_t h;
-		copy_graph_for_boost_Cuthill_McKee(*g, h); //explicit copy
+		std::cout << "begin copy for cuthill mc kee" << std::endl;
+		copy_graph_for_boost_Cuthill_McKee(g, h); //explicit copy
+		std::cout << "end copy for cuthill mc kee" << std::endl;
 
 		boost::property_map<Graph_t, boost::vertex_degree_t>::type deg = get(boost::vertex_degree, h);
 		boost::graph_traits<Graph_t>::vertex_iterator vIt, vEnd;
@@ -97,6 +119,7 @@ public:
 
 		std::vector<Vertex_t> inv_perm(boost::num_vertices(h));
 
+		std::cout << "call boost algo" << std::endl;
 		if(m_bReverse){
 			boost::cuthill_mckee_ordering(h, inv_perm.rbegin(), get(boost::vertex_color, h), boost::make_degree_map(h));
 		}
@@ -104,11 +127,12 @@ public:
 			boost::cuthill_mckee_ordering(h, inv_perm.begin(), get(boost::vertex_color, h), boost::make_degree_map(h));
 		}
 
-		o->resize(boost::num_vertices(*g));
+		o.resize(boost::num_vertices(g));
 
 		for(unsigned i = 0; i != inv_perm.size(); ++i){
 			o[index_map[inv_perm[i]]] = i;
 		}
+		std::cout << "end of compute " << std::endl;
 	}
 
 	void check(){
@@ -128,7 +152,7 @@ public:
 	} 
 
 	void set_graph(G_t* graph){
-		g = graph;
+		g = *graph;
 	}
 
 	void set_matrix(M_t*){}
@@ -138,7 +162,7 @@ public:
 	}
 
 private:
-	G_t* g;
+	G_t g;
 	O_t o;
 
 	bool m_bReverse;

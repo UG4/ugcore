@@ -60,14 +60,14 @@ void print(S_t &s){
 }
 
 template <typename G_t>
-void print_graph(G_t* g){
+void print_graph(G_t& g){
 	typedef typename boost::graph_traits<G_t>::edge_descriptor Edge;
 
 	typename boost::graph_traits<G_t>::edge_iterator eIt, eEnd;
-	for(boost::tie(eIt, eEnd) = boost::edges(*g); eIt != eEnd; ++eIt){
-		std::pair<Edge, bool> e = boost::edge(boost::source(*eIt, *g), boost::target(*eIt, *g), *g);
-		double w = boost::get(boost::edge_weight_t(), *g, e.first);
-		std::cout << boost::source(*eIt, *g) << " -> " << boost::target(*eIt, *g) << " ( " << w << " )" << std::endl;
+	for(boost::tie(eIt, eEnd) = boost::edges(g); eIt != eEnd; ++eIt){
+		std::pair<Edge, bool> e = boost::edge(boost::source(*eIt, g), boost::target(*eIt, g), g);
+		double w = boost::get(boost::edge_weight_t(), g, e.first);
+		std::cout << boost::source(*eIt, g) << " -> " << boost::target(*eIt, g) << " ( " << w << " )" << std::endl;
 	}
 }
 
@@ -129,7 +129,7 @@ public:
 	std::pair<next_vertex_iterator, next_vertex_iterator> make_next_vertex_iterator(G_t* g)
 	{
 		auto a = next_vertex_iterator(0, g);
-		auto b = next_vertex_iterator(boost::num_vertices(*g), g);
+		auto b = next_vertex_iterator(boost::num_vertices(g), g);
 
 		return std::make_pair(a, b);
 	}
@@ -138,9 +138,9 @@ public:
 	double compute_inflow(vd v, std::vector<BOOL>& visited, bool ignore_visited=true){
 		double w = .0f;
 		typename boost::graph_traits<G_t>::in_edge_iterator in_nIt, in_nEnd;
-		for(boost::tie(in_nIt, in_nEnd) = boost::in_edges(v, *g); in_nIt != in_nEnd; ++in_nIt){
+		for(boost::tie(in_nIt, in_nEnd) = boost::in_edges(v, g); in_nIt != in_nEnd; ++in_nIt){
 			if(ignore_visited && visited[v]){ continue; }
-			w += abs(boost::get(boost::edge_weight_t(), *g, *in_nIt)); //TODO: think about this!
+			w += abs(boost::get(boost::edge_weight_t(), g, *in_nIt)); //TODO: think about this!
 		}
 		return w;
 	}
@@ -169,14 +169,15 @@ public:
 
 	//overload
 	void compute(){
-		if(g == NULL){
+		unsigned n = boost::num_vertices(g);
+		
+		if(n == 0){
 			std::cerr << "graph not set! abort." << std::endl;
 			return;
 		}
-
-		unsigned n = boost::num_vertices(*g);
+		
 		o.resize(n);
-		std::cout << "[CuthillMcKeeOrderingWeighted::compute] n = " << n << ", e = " << boost::num_edges(*g) << std::endl;
+		std::cout << "[CuthillMcKeeOrderingWeighted::compute] n = " << n << ", e = " << boost::num_edges(g) << std::endl;
 #ifdef DUMP
 		std::cout << "graph: " << std::endl; print_graph(g); std::cout << "end graph" << std::endl;
 #endif
@@ -198,7 +199,7 @@ public:
 			if(front.size() == 0){
 				//initial front - TODO: ordering begins with *boost::vertices(g).first !
 				//cur = *unvisited_iterator(visited);
-				for(unsigned i = 0; i < boost::num_vertices(*g); ++i){
+				for(unsigned i = 0; i < boost::num_vertices(g); ++i){
 					if(!visited[i]){
 						cur = i;
 					}
@@ -216,9 +217,9 @@ public:
 
 			//insert downstream neighbors to front
 			typename boost::graph_traits<G_t>::out_edge_iterator out_nIt, out_nEnd;
-			for(boost::tie(out_nIt, out_nEnd) = boost::out_edges(cur, *g); out_nIt != out_nEnd; ++out_nIt){
-				if(!visited[boost::target(*out_nIt, *g)]){
-					front.insert(boost::target(*out_nIt, *g));
+			for(boost::tie(out_nIt, out_nEnd) = boost::out_edges(cur, g); out_nIt != out_nEnd; ++out_nIt){
+				if(!visited[boost::target(*out_nIt, g)]){
+					front.insert(boost::target(*out_nIt, g));
 				}
 			}
 
@@ -262,8 +263,8 @@ public:
 	} 
 
 	void set_graph(G_t* graph){
-		g = graph;
-		std::cout << "set graph: " << boost::num_vertices(*g) << std::endl;
+		g = *graph;
+		std::cout << "set graph: " << boost::num_vertices(g) << std::endl;
 	}
 
 	void set_matrix(M_t*){}
@@ -273,7 +274,7 @@ public:
 	}
 
 private:
-	G_t* g;
+	G_t g;
 	O_t o;
 
 	bool m_bReverse;
