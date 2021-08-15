@@ -2490,7 +2490,7 @@ number H1EnergyNorm( SmartPtr<TGridFunction> spGridFct, const char* cmp, int qua
 
 
 
-/// Integrand for the distance of two grid functions - evaluated in the norm |D \nabla u|^2
+/// Integrand for the distance of two grid functions - evaluated in the norm \f$ |D \nabla u|^2 \f$
 template <typename TGridFunction>
 class H1EnergyDistIntegrand
 		: public StdIntegrand<number, TGridFunction::dim, H1EnergyDistIntegrand<TGridFunction> >
