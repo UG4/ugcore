@@ -660,7 +660,7 @@ class UserDataIntegrandSq
 
 
 
-//! For arbitrary UserData $f$ and grid functions u_1 and u_2, this class (should) define the integrand $ (f(u_1)- f(u_2))^2$.
+//! For arbitrary UserData \f$f\f$ and grid functions \f$u_1\f$ and \f$u_2\f$, this class (should) define the integrand \f$ (f(u_1)- f(u_2))^2 \f$.
 template <typename TData, typename TGridFunction>
 class UserDataDistIntegrandSq
 		: public StdIntegrand<number, TGridFunction::dim, UserDataDistIntegrandSq<TData, TGridFunction> >
@@ -2438,7 +2438,7 @@ class H1EnergyIntegrand
 
 /// compute energy -norm of a function on the whole domain (or on selected subsets)
 /**
- * This function computes the integral over  \f$ \| q  \|^2 \f where the velocity is given by \f$ q:= \kappa \nabla u\f$ of a grid function u.
+ * This function computes the integral over  \f$ \| q  \|^2 \f$ where the velocity is given by \f$ q:= \kappa \nabla u \f$ of a grid function u.
  *
  * \param[in]		spGridFct	grid function
  * \param[in]		cmp			symbolic name of component function
