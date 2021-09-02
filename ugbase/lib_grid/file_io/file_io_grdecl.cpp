@@ -331,10 +331,10 @@ bool LoadGridFromGRDECL(Grid& grid, const char* filename, AVector3& aPos)
 	New_coord_list.push_back(coord_list[0]);
 	Index_coord.push_back(0);
 
-	for (int i=1; i<coord_list.size(); i++)
+	for (size_t i=1; i<coord_list.size(); i++)
 	{
 		bool New_coord=true;
-		for (int j=0; j<New_coord_list.size(); j++)
+		for (size_t j=0; j<New_coord_list.size(); j++)
 		{
 			if ((coord_list[i].x==New_coord_list[j].x) && (coord_list[i].y==New_coord_list[j].y) && (coord_list[i].z==New_coord_list[j].z))
 				{
