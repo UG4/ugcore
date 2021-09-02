@@ -120,12 +120,12 @@ class NumberValuedUserDataEvaluator
 			int numFound = (found ? 1 : 0);
 			numFound = com.allreduce(numFound, PCL_RO_SUM);
 
+			if(numFound == 0)
+				return false;
+
 			// get overall value
 			// if found on more than one processor, the data will be the same
 			number globalResult = com.allreduce(result, PCL_RO_SUM);
-
-			if(numFound == 0)
-				return false;
 
 			// set as result			
 			result = globalResult / numFound;
@@ -154,6 +154,7 @@ class NumberValuedUserDataEvaluator
 
 			if(!FindContainingElement(elem, *m_tree, globalPosition))
 			{
+				result = 0;
 				return false;
 			}
 
@@ -274,6 +275,10 @@ class VectorValuedUserDataEvaluator
 
 		#ifndef UG_PARALLEL
 			return found;
+		#else
+			if (! found)
+				for (int i = 0; i < dim; i++)
+					result[i] = 0;
 		#endif
 
 		#ifdef UG_PARALLEL
@@ -282,13 +287,13 @@ class VectorValuedUserDataEvaluator
 			int numFound = (found ? 1 : 0);
 			numFound = com.allreduce(numFound, PCL_RO_SUM);
 
+			if(numFound == 0)
+				return false;
+
 			// get overall value
 			// if found on more than one processor, the data will be the same
 			std::vector<number> globalResult;
 			com.allreduce(result, globalResult, PCL_RO_SUM);
-
-			if(numFound == 0)
-				return false;
 
 			// set as result
 			for(int i = 0; i < dim; i++)
