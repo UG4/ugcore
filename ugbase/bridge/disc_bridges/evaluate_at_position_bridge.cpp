@@ -120,12 +120,12 @@ class NumberValuedUserDataEvaluator
 			int numFound = (found ? 1 : 0);
 			numFound = com.allreduce(numFound, PCL_RO_SUM);
 
+			if(numFound == 0)
+				return false;
+
 			// get overall value
 			// if found on more than one processor, the data will be the same
 			number globalResult = com.allreduce(result, PCL_RO_SUM);
-
-			if(numFound == 0)
-				return false;
 
 			// set as result			
 			result = globalResult / numFound;
@@ -154,6 +154,7 @@ class NumberValuedUserDataEvaluator
 
 			if(!FindContainingElement(elem, *m_tree, globalPosition))
 			{
+				result = 0;
 				return false;
 			}
 
@@ -274,6 +275,10 @@ class VectorValuedUserDataEvaluator
 
 		#ifndef UG_PARALLEL
 			return found;
+		#else
+			if (! found)
+				for (int i = 0; i < dim; i++)
+					result[i] = 0;
 		#endif
 
 		#ifdef UG_PARALLEL
@@ -282,13 +287,13 @@ class VectorValuedUserDataEvaluator
 			int numFound = (found ? 1 : 0);
 			numFound = com.allreduce(numFound, PCL_RO_SUM);
 
+			if(numFound == 0)
+				return false;
+
 			// get overall value
 			// if found on more than one processor, the data will be the same
 			std::vector<number> globalResult;
 			com.allreduce(result, globalResult, PCL_RO_SUM);
-
-			if(numFound == 0)
-				return false;
 
 			// set as result
 			for(int i = 0; i < dim; i++)
@@ -635,8 +640,7 @@ class PointEvaluatorBase : public ITimeIntegratorObserver<TDomain, TAlgebra>
 
 		std::vector<TPoint> m_evaluationPoints;
 		std::string m_filename;
-		std::string m_separator = "\t";
-		//std::string m_separator = std::string("\t");
+		std::string m_separator{"\t"};
 };
 
 template <typename TDomain, typename TAlgebra>
@@ -758,17 +762,25 @@ class NumberValuedUserDataPointEvaluator : public PointEvaluatorBase<TDomain, TA
 		NumberValuedUserDataEvaluator<TDomain, TAlgebra> m_evaluator;
 };
 
+//! This is a factory for creating a 'PointEvaluatorBase' object from user data.
+/*! The class carries TDomain/TAlgebra info required when creating objects.*/
 template <typename TDomain, typename TAlgebra>
-SmartPtr<PointEvaluatorBase<TDomain,TAlgebra> > GetUserDataPointEvaluator(SmartPtr<UserData<MathVector<TDomain::dim>, TDomain::dim> > userData)
+struct PointEvaluatorFactory
 {
-	return make_sp(new VectorValuedUserDataPointEvaluator<TDomain, TAlgebra>(userData));
-}
 
-template <typename TDomain, typename TAlgebra>
-SmartPtr<PointEvaluatorBase<TDomain,TAlgebra> > GetUserDataPointEvaluator(SmartPtr<UserData<number, TDomain::dim> > userData)
-{
-	return make_sp(new NumberValuedUserDataPointEvaluator<TDomain, TAlgebra>(userData));
-}
+	PointEvaluatorFactory(){}
+
+	typedef PointEvaluatorBase<TDomain,TAlgebra> return_type;
+	typedef UserData<MathVector<TDomain::dim>, TDomain::dim> input_vector_data;
+	typedef UserData<number, TDomain::dim> input_number_data;
+
+	SmartPtr<return_type> create(SmartPtr<input_vector_data> userData) const
+	{ return make_sp(new VectorValuedUserDataPointEvaluator<TDomain, TAlgebra>(userData)); }
+
+	SmartPtr<return_type> create(SmartPtr<input_number_data> userData) const
+	{ return make_sp(new NumberValuedUserDataPointEvaluator<TDomain, TAlgebra>(userData)); }
+
+};
 
 template <typename TDomain>
 bool CloseVertexExists(const MathVector<TDomain::dim>& globPos,
@@ -1024,9 +1036,6 @@ static void DomainAlgebra(Registry& reg, string grp)
 	typedef ug::GridFunction<TDomain, TAlgebra> TFct;
 
 	{
-	//	reg.add_function("Integral", static_cast<number (*)(SmartPtr<UserData<number,dim> >, SmartPtr<TFct>, const char*, number, int)>(&Integral<TFct>), grp, "Integral", "Data#GridFunction#Subsets#Time#QuadOrder");
-
-		//reg.add_function("EvaluateAtClosestVertex", static_cast<number (*)(const std::vector<number>&, SmartPtr<TFct>, const char*, const char*)>(&EvaluateAtClosestVertex<TFct>),grp, "Evaluate_at_closest_vertex", "Position#GridFunction#Component#Subsets");
 		reg.add_function("EvaluateAtClosestVertex",
 						 &EvaluateAtClosestVertex<TFct>,
 						 grp, "Evaluate_at_closest_vertex", "Position#GridFunction#Component#Subsets#SubsetHandler");
@@ -1097,18 +1106,32 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "NumberValuedUserDataEvaluator", tag);
 	}
 	{
+		typedef PointEvaluatorFactory<TDomain, TAlgebra> T;
+		string name = string("PointEvaluatorFactory").append(suffix);
 
-		reg.add_function("GetUserDataPointEvaluator", static_cast<SmartPtr<PointEvaluatorBase<TDomain,TAlgebra> > (*)(SmartPtr<UserData<MathVector<TDomain::dim>, TDomain::dim> >)>(&GetUserDataPointEvaluator<TDomain,TAlgebra>), 
-			grp, 
-			"GetUserDataPointEvaluator", 
-			"UserDataObject");
-		
-		reg.add_function("GetUserDataPointEvaluator", static_cast<SmartPtr<PointEvaluatorBase<TDomain,TAlgebra> > (*)(SmartPtr<UserData<number, TDomain::dim> >)>(&GetUserDataPointEvaluator<TDomain,TAlgebra>), 
-			grp, 
-			"GetUserDataPointEvaluator", 
-			"UserDataObject");
-		
+		reg.add_class_<T>(name, grp)
+		.template add_constructor<void (*)() >("")
+			.add_method("create", static_cast<SmartPtr<typename T::return_type> (T::*)(SmartPtr<typename T::input_vector_data>) const>(&T::create), "point#result#solution#time", "")
+			.add_method("create", static_cast<SmartPtr<typename T::return_type> (T::*)(SmartPtr<typename T::input_number_data>) const>(&T::create), "point#result#solution#time", "")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "PointEvaluatorFactory", tag);
 	}
+
+	/*{
+		string  name = string("GetUserDataPointEvaluator").append(suffix);
+		reg.add_function(name,
+			static_cast<SmartPtr<PointEvaluatorBase<TDomain,TAlgebra> > (*)(SmartPtr<UserData<MathVector<TDomain::dim>, TDomain::dim> >)>(&GetUserDataPointEvaluator<TDomain,TAlgebra>),
+			grp, 
+			"GetUserDataPointEvaluator", 
+			"UserDataObject");
+
+		reg.add_function(name,
+			static_cast<SmartPtr<PointEvaluatorBase<TDomain,TAlgebra> > (*)(SmartPtr<UserData<number, TDomain::dim> >)>(&GetUserDataPointEvaluator<TDomain,TAlgebra>),
+			grp, 
+			"GetUserDataPointEvaluator", 
+			"UserDataObject");
+		
+	}*/
 }
 
 /**

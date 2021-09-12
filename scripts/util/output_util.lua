@@ -215,7 +215,7 @@ function util.Balance(DataToBeWrittenTable)
 			end
 
 			-- get data to be evaluated
-			evaluator = GetUserDataPointEvaluator(DataSet.value)
+			evaluator = PointEvaluatorFactory():create(DataSet.value)
 			
 			-- get positions
 			if type(DataSet.point) ~= "table" then
