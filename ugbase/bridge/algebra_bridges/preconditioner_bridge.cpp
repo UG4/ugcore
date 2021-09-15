@@ -48,6 +48,8 @@
 #include "lib_algebra/operator/linear_solver/agglomerating_solver.h"
 #include "lib_algebra/operator/preconditioner/block_gauss_seidel.h"
 
+#include "lib_algebra/ordering_strategies/algorithms/IOrderingAlgorithm.h"
+
 #include "../util_overloaded.h"
 using namespace std;
 
@@ -241,6 +243,8 @@ static void Algebra(Registry& reg, string grp)
 			.add_method("set_beta", &T::set_beta, "", "beta")
 			.add_method("set_sort_eps", &T::set_sort_eps, "", "eps")
 			.add_method("set_inversion_eps", &T::set_inversion_eps, "", "eps")
+			.add_method("set_ordering_algorithm", &T::set_ordering_algorithm, "", "",
+						"sets an ordering algorithm")
 			.add_method("set_sort", &T::set_sort, "", "bSort", "if bSort=true, use a cuthill-mckey sorting to reduce fill-in. default false")
 			.add_method("set_disable_preprocessing", &T::set_disable_preprocessing, "", "disable",
 						"set whether preprocessing (notably, LU factorization) is to be disabled - usable when the operator has not changed; use with care")

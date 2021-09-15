@@ -561,6 +561,8 @@ class ILU : public IPreconditioner<TAlgebra>
 				//m_spOrderingAlgo->check();
 				m_ordering = m_spOrderingAlgo->ordering();
 				SetMatrixAsPermutation(m_ILU, mat, m_ordering); //see SetMatrixAsPermutation
+
+				m_bSortIsIdentity = GetInversePermutation(m_ordering, m_old_ordering);
 			}
 
 		//	Debug output of matrices
