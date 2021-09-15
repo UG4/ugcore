@@ -374,10 +374,8 @@ class ILU : public IPreconditioner<TAlgebra>
 	///	Base type
 		typedef IPreconditioner<TAlgebra> base_type;
 
-	///	Ordering container type
+	///	Ordering type
 		typedef std::vector<size_t> ordering_container_type;
-
-	///	Ordering algorithm type
 		typedef IOrderingAlgorithm<matrix_type, ordering_container_type> ordering_algo_type;
 
 	protected:
@@ -392,7 +390,6 @@ class ILU : public IPreconditioner<TAlgebra>
 			m_beta(beta),
 			m_sortEps(1.e-50),
 			m_invEps(1.e-8),
-			m_bSort(false),
 			m_bDisablePreprocessing(false),
 			m_useConsistentInterfaces(false),
 			m_useOverlap(false) {};
@@ -403,7 +400,6 @@ class ILU : public IPreconditioner<TAlgebra>
 			  m_beta(parent.m_beta),
 			  m_sortEps(parent.m_sortEps),
 			  m_invEps(parent.m_invEps),
-			  m_bSort(parent.m_bSort),
 			  m_bDisablePreprocessing(parent.m_bDisablePreprocessing),
 			  m_useConsistentInterfaces(parent.m_useConsistentInterfaces),
 			  m_useOverlap(parent.m_useOverlap)
@@ -432,16 +428,11 @@ class ILU : public IPreconditioner<TAlgebra>
 	/// set cuthill-mckee sort on/off
 		void set_sort(bool b)
 		{
-			m_bSort = b;
-
-/* obsolete?
-			if(m_spOrderingAlgo.valid()){
-				delete m_spOrderingAlgo;
-			}
-*/
-
-			if(m_bSort){
+			if(b){
 				m_spOrderingAlgo = make_sp(new NativeCuthillMcKeeOrdering<matrix_type, ordering_container_type>());
+			}
+			else{
+				m_spOrderingAlgo = SPNULL;
 			}
 
 			std::cerr << "please use 'set_ordering_algorithm(..)' in the future" << std::endl;
@@ -466,22 +457,6 @@ class ILU : public IPreconditioner<TAlgebra>
 	protected:
 	//	Name of preconditioner
 		virtual const char* name() const {return "ILU";}
-
-	protected:
-		// cuthill-mckee sorting
-		void calc_cuthill_mckee()
-		{
-			PROFILE_BEGIN_GROUP(ILU_ReorderCuthillMcKey, "ilu algebra");
-			GetCuthillMcKeeOrder(m_ILU, m_newIndex);
-			m_bSortIsIdentity = GetInversePermutation(m_newIndex, m_oldIndex);
-
-			if(!m_bSortIsIdentity)
-			{
-				matrix_type mat;
-				mat = m_ILU;
-				SetMatrixAsPermutation(m_ILU, mat, m_newIndex);
-			}
-		}
 
 	protected:
 
@@ -522,7 +497,6 @@ class ILU : public IPreconditioner<TAlgebra>
 
 				//	slave-overlap rows shall be at the end of the matrix
 					if(sortSlaveToEnd){
-						m_bSort = true;
 						LayoutEntriesToEndPermutation(	m_newIndex,
 						                              	m_ILU.layouts()->slave(),
 						                       			m_ILU.num_rows());
@@ -560,9 +534,12 @@ class ILU : public IPreconditioner<TAlgebra>
 				m_spOrderingAlgo->compute();
 				//m_spOrderingAlgo->check();
 				m_ordering = m_spOrderingAlgo->ordering();
-				SetMatrixAsPermutation(m_ILU, mat, m_ordering); //see SetMatrixAsPermutation
 
 				m_bSortIsIdentity = GetInversePermutation(m_ordering, m_old_ordering);
+
+				if(!m_bSortIsIdentity){
+					SetMatrixAsPermutation(m_ILU, mat, m_ordering);
+				}
 			}
 
 		//	Debug output of matrices
@@ -723,7 +700,6 @@ class ILU : public IPreconditioner<TAlgebra>
 	/// for cuthill-mckee reordering
 		std::vector<size_t> m_newIndex, m_oldIndex;
 		bool m_bSortIsIdentity;
-		bool m_bSort;
 
 	/// for ordering algorithms
 		SmartPtr<ordering_algo_type> m_spOrderingAlgo;
