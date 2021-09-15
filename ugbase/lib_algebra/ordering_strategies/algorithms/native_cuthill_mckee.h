@@ -40,6 +40,8 @@
 
 #include "IOrderingAlgorithm.h"
 
+#include "../execution/util.cpp"
+
 namespace ug{
 
 /// returns an array describing the needed index mapping for Cuthill-McKee ordering
@@ -86,7 +88,6 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
                               std::vector<std::vector<size_t> >& vvNeighbour,
                               bool bReverse = true,
 			       bool bPreserveConsec = true);
-
 
 
 template <typename M_t, typename O_t>

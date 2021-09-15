@@ -69,7 +69,7 @@ void print_graph_unweighted(G_t& g){
 }
 
 
-template <typename M_t, typename O_t>
+template <typename M_t, typename O_t=std::vector<size_t> >
 class BoostCuthillMcKeeOrdering : public IOrderingAlgorithm<M_t, O_t>
 {
 public:

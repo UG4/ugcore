@@ -45,7 +45,12 @@
 	#include "lib_algebra/parallelization/matrix_overlap.h"
 	#include "lib_algebra/parallelization/overlap_writer.h"
 #endif
+
+#include "lib_algebra/ordering_strategies/algorithms/IOrderingAlgorithm.h"
+#include "lib_algebra/ordering_strategies/algorithms/native_cuthill_mckee.h"
+
 #include "lib_algebra/algebra_common/permutation_util.h"
+
 
 namespace ug{
 
@@ -370,6 +375,12 @@ class ILU : public IPreconditioner<TAlgebra>
 	///	Base type
 		typedef IPreconditioner<TAlgebra> base_type;
 
+	///	Ordering container type
+		typedef std::vector<size_t> ordering_container_type;
+
+	///	Ordering algorithm type
+		typedef IOrderingAlgorithm<matrix_type, ordering_container_type> ordering_algo_type;
+
 	protected:
 		using base_type::set_debug;
 		using base_type::debug_writer;
@@ -414,10 +425,28 @@ class ILU : public IPreconditioner<TAlgebra>
 	///	set factor for \f$ ILU_{\beta} \f$
 		void set_beta(double beta) {m_beta = beta;}
 
+	/// 	sets an ordering algorithm
+		void set_ordering_algorithm(SmartPtr<ordering_algo_type> ordering_algo){
+			m_spOrderingAlgo = ordering_algo;
+		}
+
 	/// set cuthill-mckee sort on/off
 		void set_sort(bool b)
 		{
 			m_bSort = b;
+
+/* obsolete?
+			if(m_spOrderingAlgo.valid()){
+				delete m_spOrderingAlgo;
+			}
+*/
+
+			if(m_bSort){ //what about deletion (e.g. set_sort(true), set_sort(false), set_sort(true) and conflicts with
+					// set_ordering_algorithm ?
+				m_spOrderingAlgo = make_sp(new NativeCuthillMcKeeOrdering<matrix_type, ordering_container_type>());
+			}
+
+			std::cerr << "please use 'set_ordering_algorithm(..)' in the future" << std::endl;
 		}
 
 	/// disable preprocessing (if underlying matrix has not changed)
@@ -528,8 +557,12 @@ class ILU : public IPreconditioner<TAlgebra>
 			#endif
 
 		//	if using overlap we already sort in a different way
-			if(m_bSort && !(m_useOverlap && sortSlaveToEnd)){
-				calc_cuthill_mckee();
+			if(m_spOrderingAlgo.valid() && !(m_useOverlap && sortSlaveToEnd)){
+				m_spOrderingAlgo->set_matrix(&mat);
+				m_spOrderingAlgo->compute();
+				//m_spOrderingAlgo->check();
+				m_ordering = m_spOrderingAlgo->ordering();
+				reorder_matrix(m_ILU, mat, m_ordering); //see SetMatrixAsPermutation
 			}
 
 		//	Debug output of matrices
@@ -560,7 +593,7 @@ class ILU : public IPreconditioner<TAlgebra>
 
 		void applyLU(vector_type &c, const vector_type &d, vector_type &tmp)
 		{	
-			if(!m_bSort || m_bSortIsIdentity)
+			if(m_spOrderingAlgo.invalid() || m_bSortIsIdentity)
 			{
 				// 	apply iterator: c = LU^{-1}*d
 				if(! invert_L(m_ILU, tmp, d)) // h := L^-1 d
@@ -571,12 +604,12 @@ class ILU : public IPreconditioner<TAlgebra>
 			else
 			{
 				// we save one vector here by renaming
-				SetVectorAsPermutation(tmp, d, m_newIndex);
+				permute_vector(tmp, d, m_ordering);
 				if(! invert_L(m_ILU, c, tmp)) // c = L^{-1} d
 					print_debugger_message("ILU: There were issues at inverting L (after permutation)\n");
 				if(! invert_U(m_ILU, tmp, c, m_invEps)) // tmp = (LU)^{-1} d
 					print_debugger_message("ILU: There were issues at inverting U (after permutation)\n");
-				SetVectorAsPermutation(c, tmp, m_oldIndex);
+				permute_vector(c, tmp, m_old_ordering);
 			}
 		}
 
@@ -691,6 +724,10 @@ class ILU : public IPreconditioner<TAlgebra>
 		std::vector<size_t> m_newIndex, m_oldIndex;
 		bool m_bSortIsIdentity;
 		bool m_bSort;
+
+	/// for ordering algorithms
+		SmartPtr<ordering_algo_type> m_spOrderingAlgo;
+		ordering_container_type m_ordering, m_old_ordering;
 
 	/// whether or not to disable preprocessing
 		bool m_bDisablePreprocessing;

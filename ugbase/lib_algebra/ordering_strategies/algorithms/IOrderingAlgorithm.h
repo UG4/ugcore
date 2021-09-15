@@ -58,7 +58,6 @@ public:
 
 	virtual O_t& ordering() = 0;
 
-	//virtual void set_graph(G_t*) = 0;
 	virtual void set_matrix(M_t*) = 0;
 };
 

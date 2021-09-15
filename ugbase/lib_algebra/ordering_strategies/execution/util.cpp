@@ -10,15 +10,17 @@ namespace ug{
 class BOOL{
 public:
 	BOOL() : value_(bool()){}
-	/* explicit */ BOOL(bool const& t): value_(t) {}
-	// /* explicit */ operator bool&() { return value_; }
-	/* explicit */ operator bool() const { return value_; }
+	BOOL(bool const& t): value_(t) {}
+	operator bool() const { return value_; }
 private:
 	char value_;
 };
 
 #endif
 
+
+#ifndef HAVE_IS_PERMUTATION
+#define HAVE_IS_PERMUTATION
 
 template <typename O_t>
 bool is_permutation(O_t &o){
@@ -40,6 +42,8 @@ bool is_permutation(O_t &o){
 
 	return true;
 }
+
+#endif
 
 
 } //namespace
