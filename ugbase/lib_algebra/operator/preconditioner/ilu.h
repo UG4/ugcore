@@ -50,7 +50,7 @@
 #include "lib_algebra/ordering_strategies/algorithms/native_cuthill_mckee.h"
 
 #include "lib_algebra/algebra_common/permutation_util.h"
-
+#include "lib_algebra/ordering_strategies/execution/util.cpp"
 
 namespace ug{
 
@@ -562,7 +562,7 @@ class ILU : public IPreconditioner<TAlgebra>
 				m_spOrderingAlgo->compute();
 				//m_spOrderingAlgo->check();
 				m_ordering = m_spOrderingAlgo->ordering();
-				reorder_matrix(m_ILU, mat, m_ordering); //see SetMatrixAsPermutation
+				SetMatrixAsPermutation(m_ILU, mat, m_ordering); //see SetMatrixAsPermutation
 			}
 
 		//	Debug output of matrices
@@ -604,12 +604,12 @@ class ILU : public IPreconditioner<TAlgebra>
 			else
 			{
 				// we save one vector here by renaming
-				permute_vector(tmp, d, m_ordering);
+				SetVectorAsPermutation(tmp, d, m_ordering);
 				if(! invert_L(m_ILU, c, tmp)) // c = L^{-1} d
 					print_debugger_message("ILU: There were issues at inverting L (after permutation)\n");
 				if(! invert_U(m_ILU, tmp, c, m_invEps)) // tmp = (LU)^{-1} d
 					print_debugger_message("ILU: There were issues at inverting U (after permutation)\n");
-				permute_vector(c, tmp, m_old_ordering);
+				SetVectorAsPermutation(c, tmp, m_old_ordering);
 			}
 		}
 

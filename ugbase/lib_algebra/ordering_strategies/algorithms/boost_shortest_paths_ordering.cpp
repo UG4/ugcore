@@ -62,7 +62,7 @@ class BoostShortestPathsOrdering : public IOrderingAlgorithm<M_t, O_t>
 public:
 	typedef boost::property<boost::edge_weight_t, double> EdgeWeightProperty;
 	typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS, boost::no_property, EdgeWeightProperty> G_t;
-	
+
 	typedef IOrderingAlgorithm<M_t, O_t> baseclass;
 
 	BoostShortestPathsOrdering(){}

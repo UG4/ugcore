@@ -104,7 +104,7 @@ static void Algebra(Registry& reg, string grp)
 //#if 0
 //	Boost Shortest Paths
 	{
-		typedef BoostShortestPathsOrdering<typename TAlgebra::matrix_type, ordering_container_type> T; 
+		typedef BoostShortestPathsOrdering<typename TAlgebra::matrix_type, ordering_container_type> T;
 		typedef IOrderingAlgorithm<typename TAlgebra::matrix_type, ordering_container_type> TBase;
 		string name = string("BoostShortestPathsOrdering").append(suffix);
 		reg.add_class_<T, TBase>(name, grp, "BoostShortestPathsOrdering")

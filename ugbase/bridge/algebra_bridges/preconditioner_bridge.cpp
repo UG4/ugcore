@@ -44,7 +44,7 @@
 // preconditioner
 #include "lib_algebra/lib_algebra.h"
 #include "lib_algebra/operator/preconditioner/preconditioners.h"
-#include "lib_algebra/operator/preconditioner/myilu.h"
+//#include "lib_algebra/operator/preconditioner/myilu.h"
 #include "lib_algebra/operator/preconditioner/ilut_scalar.h"
 #include "lib_algebra/operator/linear_solver/agglomerating_solver.h"
 #include "lib_algebra/operator/preconditioner/block_gauss_seidel.h"
@@ -252,7 +252,7 @@ static void Algebra(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ILU", tag);
 	}
-
+/*
 //	myILU
 	{
 		typedef myILU<TAlgebra> T;
@@ -271,10 +271,11 @@ static void Algebra(Registry& reg, string grp)
 /*
 			.add_method("enable_consistent_interfaces", &T::enable_consistent_interfaces, "", "enable", "Make Matrix consistent for connections in interfaces.")
 			.add_method("enable_overlap", &T::enable_overlap, "", "enable", "Enables matrix overlap. This also means that interfaces are consistent.")
-*/
+
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "myILU", tag);
 	}
+*/
 
 //	ILU Threshold
 	{

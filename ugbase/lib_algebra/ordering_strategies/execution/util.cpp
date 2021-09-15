@@ -33,7 +33,7 @@ bool is_permutation(O_t &o){
 			return false; //no doubles allowed
 		}
 	}
-	
+
 	for(unsigned i = 0; i < o.size(); ++i){
 		if(!container[i]){
 			return false;

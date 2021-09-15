@@ -114,24 +114,6 @@ void GetCuthillMcKeeOrder(const TSparseMatrix &mat, std::vector<size_t> &newInde
 /// @}
 
 
-/*
-	Orders a source matrix according to an ordering and stores it as target matrix.
-*/
-template <typename matrix_type, typename O_t=std::vector<size_t> >
-void reorder_matrix(matrix_type& target, const matrix_type& source, O_t& o){
-	target.resize_and_clear(source.num_rows(), source.num_cols());
-
-	for(size_t r = 0; r < source.num_rows(); ++r){
-		size_t Pr = o[r];
-		for(typename matrix_type::const_row_iterator it = source.begin_row(r); it != source.end_row(r); ++it){
-			size_t Pc = o[it.index()];
-			target(Pr, Pc) = it.value();
-		}
-	}
-}
-
-
-
 #ifndef HAVE_BOOL
 #define HAVE_BOOL
 
@@ -160,7 +142,7 @@ bool is_permutation(O_t &o){
 			return false; //no doubles allowed
 		}
 	}
-	
+
 	for(unsigned i = 0; i < o.size(); ++i){
 		if(!container[i]){
 			return false;
