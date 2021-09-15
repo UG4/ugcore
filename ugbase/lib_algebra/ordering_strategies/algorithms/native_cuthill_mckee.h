@@ -39,8 +39,7 @@
 #include "common/code_marker.h"
 
 #include "IOrderingAlgorithm.h"
-
-#include "../execution/util.cpp"
+#include "util.cpp"
 
 namespace ug{
 

@@ -40,7 +40,7 @@
 #include <boost/graph/cuthill_mckee_ordering.hpp>
 
 #include "IOrderingAlgorithm.h"
-#include "../execution/util.cpp"
+#include "util.cpp"
 
 #include "common/code_marker.h"
 

@@ -40,8 +40,7 @@
 #include <boost/graph/dijkstra_shortest_paths.hpp>
 
 #include "IOrderingAlgorithm.h"
-
-#include "../execution/util.cpp"
+#include "util.cpp"
 
 namespace ug{
 

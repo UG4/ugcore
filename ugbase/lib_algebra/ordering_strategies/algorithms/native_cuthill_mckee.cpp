@@ -10,9 +10,7 @@
 #include <queue>
 
 #include "IOrderingAlgorithm.h"
-
 #include "lib_algebra/algebra_common/permutation_util.h"
-
 #include "native_cuthill_mckee.h"
 
 namespace ug{

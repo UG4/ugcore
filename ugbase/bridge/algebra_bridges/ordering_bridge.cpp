@@ -40,9 +40,10 @@
 #include "bridge/util.h"
 #include "bridge/util_algebra_dependent.h"
 
-// ordering algorithms
+
 #include "lib_algebra/lib_algebra.h"
 
+// ordering algorithms
 #include "lib_algebra/ordering_strategies/algorithms/ordering_algorithms.cpp"
 
 using namespace std;
@@ -101,7 +102,6 @@ static void Algebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "WeightedCuthillMcKeeOrdering", tag);
 	}
 
-//#if 0
 //	Boost Shortest Paths
 	{
 		typedef BoostShortestPathsOrdering<typename TAlgebra::matrix_type, ordering_container_type> T;
@@ -112,7 +112,6 @@ static void Algebra(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "BoostShortestPathsOrdering", tag);
 	}
-//#endif
 
 //	Boost Cuthill McKee
 	{
@@ -149,7 +148,6 @@ static void Algebra(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "NativeCuthillMcKeeOrdering", tag);
 	}
-
 }
 
 }; // end Functionality

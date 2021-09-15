@@ -47,10 +47,9 @@
 #endif
 
 #include "lib_algebra/ordering_strategies/algorithms/IOrderingAlgorithm.h"
-#include "lib_algebra/ordering_strategies/algorithms/native_cuthill_mckee.h"
+#include "lib_algebra/ordering_strategies/algorithms/native_cuthill_mckee.h" // for backward compatibility
 
 #include "lib_algebra/algebra_common/permutation_util.h"
-#include "lib_algebra/ordering_strategies/execution/util.cpp"
 
 namespace ug{
 
@@ -441,8 +440,7 @@ class ILU : public IPreconditioner<TAlgebra>
 			}
 */
 
-			if(m_bSort){ //what about deletion (e.g. set_sort(true), set_sort(false), set_sort(true) and conflicts with
-					// set_ordering_algorithm ?
+			if(m_bSort){
 				m_spOrderingAlgo = make_sp(new NativeCuthillMcKeeOrdering<matrix_type, ordering_container_type>());
 			}
 
