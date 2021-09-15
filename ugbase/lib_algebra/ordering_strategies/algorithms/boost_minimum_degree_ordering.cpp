@@ -135,6 +135,12 @@ public:
 		}
 	}
 
+	std::string config_string() const{
+		std::stringstream ss;
+		ss << "BoostMinimumDegreeOrdering";
+		return ss.str();
+	}
+
 private:
 	G_t g;
 	O_t o;

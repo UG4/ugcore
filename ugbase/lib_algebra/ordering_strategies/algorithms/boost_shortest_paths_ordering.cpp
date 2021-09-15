@@ -134,6 +134,12 @@ public:
 		}
 	}
 
+	std::string config_string() const{
+		std::stringstream ss;
+		ss << "BoostShortestPathsOrdering";
+		return ss.str();
+	}
+
 private:
 	G_t g;
 	O_t o;

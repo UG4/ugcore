@@ -140,6 +140,12 @@ public:
 		m_bReverse = b;
 	}
 
+	std::string config_string() const{
+		std::stringstream ss;
+		ss << "BoostCuthillMcKeeOrdering";
+		return ss.str();
+	}
+
 private:
 	G_t g;
 	O_t o;

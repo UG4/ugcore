@@ -59,6 +59,8 @@ public:
 	virtual O_t& ordering() = 0;
 
 	virtual void set_matrix(M_t*) = 0;
+
+	virtual std::string config_string() const = 0;
 };
 
 } //namespace

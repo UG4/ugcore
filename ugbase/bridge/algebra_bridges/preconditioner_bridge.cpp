@@ -266,6 +266,8 @@ static void Algebra(Registry& reg, string grp)
 						"", "threshold", "sets threshold of incomplete LU factorisation")
 			.add_method("set_info", &T::set_info,
 						"", "info", "sets storage information output")
+			.add_method("set_ordering_algorithm", &T::set_ordering_algorithm, "", "",
+						"sets an ordering algorithm")
 			.add_method("set_sort", &T::set_sort, "", "bSort", "if bSort=true, use a cuthill-mckey sorting to reduce fill-in. default true")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ILUT", tag);

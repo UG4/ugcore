@@ -356,7 +356,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 				UG_LOG(reset_floats << "	Total entries: " << totalentries << " (" << ((double)totalentries) / (A->num_rows()*A->num_rows()) << "% of dense)\n");
 				if(m_spOrderingAlgo.valid())
 				{
-					UG_LOG("	Using Cuthill-McKey sorting. ")
+					UG_LOG("	Using " <<  m_spOrderingAlgo->config_string() << "\n");
 						if(m_bSortIsIdentity) UG_LOG("Sort is identity (already sorted).");
 					UG_LOG("\n");
 				}

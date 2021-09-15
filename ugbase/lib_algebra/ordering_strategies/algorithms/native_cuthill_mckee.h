@@ -131,6 +131,12 @@ public:
 		m_bReverse = b;
 	}
 
+	std::string config_string() const{
+		std::stringstream ss;
+		ss << "NativeCuthillMcKeeOrdering (ug4 version)";
+		return ss.str();
+	}
+
 private:
 	O_t o;
 	M_t* mat;
