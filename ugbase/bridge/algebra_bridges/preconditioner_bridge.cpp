@@ -252,21 +252,19 @@ static void Algebra(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ILU", tag);
 	}
-	
+
 //	myILU
 	{
 		typedef myILU<TAlgebra> T;
 		typedef IPreconditioner<TAlgebra> TBase;
-		typedef IOrderingAlgorithm<typename TAlgebra::matrix_type, weighted_base_graph_type, ordering_container_type> TOrderingAlgo_weighted;
-		typedef IOrderingAlgorithm<typename TAlgebra::matrix_type, base_graph_type, ordering_container_type> TOrderingAlgo_unweighted;
+		typedef std::vector<size_t> ordering_container_type;
+		typedef IOrderingAlgorithm<typename TAlgebra::matrix_type, ordering_container_type> TOrderingAlgo;
 		string name = string("myILU").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "Incomplete LU Decomposition")
 			.add_constructor()
 			.add_method("set_beta", &T::set_beta, "", "beta")
 			.add_method("set_inversion_eps", &T::set_inversion_eps, "", "eps")
-			.add_method("set_ordering_algorithm_weighted", static_cast<void (T::*)(SmartPtr<TOrderingAlgo_weighted>)>(&T::set_ordering_algorithm_weighted), "", "",
-								"sets an ordering algorithm")
-			.add_method("set_ordering_algorithm_unweighted", static_cast<void (T::*)(SmartPtr<TOrderingAlgo_unweighted>)>(&T::set_ordering_algorithm_unweighted), "", "",
+			.add_method("set_ordering_algorithm", static_cast<void (T::*)(SmartPtr<TOrderingAlgo>)>(&T::set_ordering_algorithm), "", "",
 								"sets an ordering algorithm")
 			.add_method("set_disable_preprocessing", &T::set_disable_preprocessing, "", "disable",
 						"set whether preprocessing (notably, LU factorization) is to be disabled - usable when the operator has not changed; use with care")

@@ -97,15 +97,17 @@ void print(std::vector<T> &s){
 // TODO: rework this if it produces good orderings and needs to be fast..
 
 
-template <typename M_t, typename G_t, typename O_t>
-class WeightedCuthillMcKeeOrdering : public IOrderingAlgorithm<M_t, G_t, O_t>
+template <typename M_t, typename O_t>
+class WeightedCuthillMcKeeOrdering : public IOrderingAlgorithm<M_t, O_t>
 {
 public:
+	typedef boost::property<boost::edge_weight_t, double> EdgeWeightProperty;
+	typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS, boost::no_property, EdgeWeightProperty> G_t;
+
 	typedef typename boost::graph_traits<G_t>::vertex_descriptor vd;
 	typedef typename boost::graph_traits<G_t>::adjacency_iterator adj_iter;
 
-	typedef IOrderingAlgorithm<M_t, G_t, O_t> baseclass;
-	typedef typename baseclass::Type Type;
+	typedef IOrderingAlgorithm<M_t, O_t> baseclass;
 
 	WeightedCuthillMcKeeOrdering() : m_bReverse(false){}
 
@@ -170,12 +172,12 @@ public:
 	//overload
 	void compute(){
 		unsigned n = boost::num_vertices(g);
-		
+
 		if(n == 0){
 			std::cerr << "graph not set! abort." << std::endl;
 			return;
 		}
-		
+
 		o.resize(n);
 		std::cout << "[CuthillMcKeeOrderingWeighted::compute] n = " << n << ", e = " << boost::num_edges(g) << std::endl;
 #ifdef DUMP
@@ -258,16 +260,31 @@ public:
 		return o;
 	}
 
-	const Type type(){
-		return mytype;
-	} 
+	void set_matrix(M_t* A){
+		unsigned rows = A->num_rows();
 
-	void set_graph(G_t* graph){
-		g = *graph;
-		std::cout << "set graph: " << boost::num_vertices(g) << std::endl;
+		g = G_t(rows);
+
+		for(unsigned i = 0; i < rows; i++){
+			for(typename M_t::row_iterator conn = A->begin_row(i); conn != A->end_row(i); ++conn){
+				if(conn.value() != 0.0 && conn.index() != i){ //TODO: think about this!!
+					double w;
+	#ifdef UG_CPU_1
+					w = abs(conn.value()); //TODO: think about this
+	#endif
+	#ifdef UG_CPU_2
+					std::cerr << "[WeightedMatrixGraph] CPU > 1 not implemented yet!" << std::endl;
+					error();
+	#endif
+	#ifdef UG_CPU_3
+					std::cerr << "[WeightedMatrixGraph] CPU > 1 not implemented yet!" << std::endl;
+					error();
+	#endif
+					boost::add_edge(i, conn.index(), w, g);
+				}
+			}
+		}
 	}
-
-	void set_matrix(M_t*){}
 
 	void set_reverse(bool b){
 		m_bReverse = b;
@@ -278,14 +295,14 @@ private:
 	O_t o;
 
 	bool m_bReverse;
-
-	static const Type mytype = Type::GRAPH_BASED;
 };
 
 
-template <typename M_t, typename G_t, typename O_t>
-void weighted_Cuthill_McKee_ordering(G_t &g, bool reverse){
-	WeightedCuthillMcKeeOrdering<M_t, G_t, O_t> algo(g, reverse);
+template <typename M_t, typename O_t>
+void weighted_Cuthill_McKee_ordering(M_t &m, bool reverse){
+	WeightedCuthillMcKeeOrdering<M_t, O_t> algo();
+	algo.set_matrix(m);
+	algo.set_reverse(reverse);
 	algo.compute();
 }
 

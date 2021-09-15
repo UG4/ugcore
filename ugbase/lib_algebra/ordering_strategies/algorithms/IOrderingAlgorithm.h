@@ -47,21 +47,18 @@ namespace ug{
 	M_t is only required for native_cuthill_mckee
 */
 
-template <typename M_t, typename G_t, typename O_t>
+template <typename M_t, typename O_t>
 class IOrderingAlgorithm{
 public:
-	enum Type{ GRAPH_BASED, MATRIX_BASED };
-
 	IOrderingAlgorithm(){}
-	~IOrderingAlgorithm(){}
+	virtual ~IOrderingAlgorithm(){}
 
 	virtual void compute() = 0;
 	virtual void check() = 0;
 
 	virtual O_t& ordering() = 0;
-	virtual const Type type() = 0;
 
-	virtual void set_graph(G_t*) = 0;
+	//virtual void set_graph(G_t*) = 0;
 	virtual void set_matrix(M_t*) = 0;
 };
 

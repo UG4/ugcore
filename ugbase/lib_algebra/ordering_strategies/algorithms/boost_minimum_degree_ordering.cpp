@@ -51,25 +51,25 @@ namespace ug{
 //Important Note: This implementation requires the BGL graph to be
 //directed.  Therefore, nonzero entry (i, j) in a symmetrical matrix
 //A coresponds to two directed edges (i->j and j->i).
-template <typename M_t, typename G_t, typename O_t>
-class BoostMinimumDegreeOrdering : public IOrderingAlgorithm<M_t, G_t, O_t>
+template <typename M_t, typename O_t>
+class BoostMinimumDegreeOrdering final : public IOrderingAlgorithm<M_t, O_t>
 {
 public:
-	typedef IOrderingAlgorithm<M_t, G_t, O_t> baseclass;
-	typedef typename baseclass::Type Type;
+	typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS> G_t;
+	typedef IOrderingAlgorithm<M_t, O_t> baseclass;
 
 	BoostMinimumDegreeOrdering(){}
 
 	void compute(){
-		if(!g){
+		unsigned n = boost::num_vertices(g);
+		unsigned e = boost::num_edges(g);
+
+		if(n == 0){
 			std::cerr << "graph not set! abort." << std::endl;
 			return;
 		}
 
-		unsigned n = boost::num_vertices(*g);
-		unsigned e = boost::num_edges(*g);
-
-		O_t io(boost::num_vertices(*g), 0);
+		O_t io(n, 0);
 
 		o.resize(n);
 		unsigned i = 0;
@@ -80,14 +80,14 @@ public:
 		else if(n*(n-1u)==e || e==0){
 			error();
 			typename boost::graph_traits<G_t>::vertex_iterator vIt, vEnd;
-			for(boost::tie(vIt, vEnd) = boost::vertices(*g); vIt != vEnd; vIt++){
+			for(boost::tie(vIt, vEnd) = boost::vertices(g); vIt != vEnd; vIt++){
 				o[i++] = *vIt;
 			}
 		}
 
 		std::vector<int> inverse_perm(n, 0);
 		std::vector<int> supernode_sizes(n, 1);
-		auto id = boost::get(boost::vertex_index, *g);
+		auto id = boost::get(boost::vertex_index, g);
 		std::vector<int> degree(n, 0);
 
 		/*
@@ -101,7 +101,7 @@ public:
 		 */
 
 		boost::minimum_degree_ordering
-		  (*g,
+		  (g,
 		   boost::make_iterator_property_map(&degree[0], id, degree[0]),
 		   &io[0],
 		   &(o[0]),
@@ -122,27 +122,30 @@ public:
 		return o;
 	}
 
-	const Type type(){
-		return mytype;
-	} 
+	void set_matrix(M_t* A){
+		unsigned rows = A->num_rows();
 
-	void set_graph(G_t* graph){
-		g = graph;
+		g = G_t(rows);
+
+		for(unsigned i = 0; i < rows; i++){
+			for(typename M_t::row_iterator conn = A->begin_row(i); conn != A->end_row(i); ++conn){
+				if(conn.value() != 0.0 && conn.index() != i){ //TODO: think about this!!
+					boost::add_edge(i, conn.index(), g);
+				}
+			}
+		}
 	}
 
-	void set_matrix(M_t*){}
-
 private:
-	G_t* g;
+	G_t g;
 	O_t o;
-	
-	static const Type mytype = Type::GRAPH_BASED;
 };
 
 
-template <typename M_t, typename G_t, typename O_t>
-void boost_minimum_degree_ordering(G_t &g){
-	BoostMinimumDegreeOrdering<M_t, G_t, O_t> algo(&g);
+template <typename M_t, typename O_t>
+void boost_minimum_degree_ordering(M_t &m){
+	BoostMinimumDegreeOrdering<M_t, O_t> algo();
+	algo.set_matrix(m);
 	algo.compute();
 }
 

@@ -46,7 +46,6 @@
 	#include "lib_algebra/parallelization/overlap_writer.h"
 #endif
 #include "lib_algebra/algebra_common/permutation_util.h"
-#include "lib_algebra/ordering_strategies/algorithms/native_cuthill_mckee.h"
 
 namespace ug{
 
@@ -258,9 +257,9 @@ bool invert_U(const Matrix_type &A, Vector_type &x, const Vector_type &b,
 	typedef typename Matrix_type::const_row_iterator const_row_iterator;
 
 	typename Vector_type::value_type s;
-	
+
 	bool result = true;
-	
+
 	// last row diagonal U entry might be close to zero with corresponding close to zero rhs
 	// when solving Navier Stokes system, therefore handle separately
 	if(x.size() > 0)
@@ -530,7 +529,6 @@ class ILU : public IPreconditioner<TAlgebra>
 
 		//	if using overlap we already sort in a different way
 			if(m_bSort && !(m_useOverlap && sortSlaveToEnd)){
-				std::cout << "ilu.h: CuthillMcKee native" << std::endl;
 				calc_cuthill_mckee();
 			}
 

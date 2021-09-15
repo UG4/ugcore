@@ -36,7 +36,8 @@
 #include "common/common.h"
 #include "common/profiler/profiler.h"
 #include "common/error.h"
-#include "../ordering_strategies/algorithms/native_cuthill_mckee.h"
+#include "lib_algebra/ordering_strategies/algorithms/native_cuthill_mckee.h"
+#include "common/code_marker.h" //error()
 #include <vector>
 
 namespace ug{
@@ -91,8 +92,9 @@ bool GetInversePermutation(const std::vector<size_t> &perm, std::vector<size_t> 
  * @param newIndex		the cuthill-mckee ordered new indices
  */
 // /todo move this to a proper place and remove ordering_strategies dependency
+
 template<typename TSparseMatrix>
-void GetCuthillMcKeeOrder(const TSparseMatrix &mat, std::vector<size_t> &newIndex)
+void GetCuthillMcKeeOrder(const TSparseMatrix &mat, std::vector<size_t> &newIndex, bool reverse=true, bool bPreserveConsec=false)
 {
 	std::vector<std::vector<size_t> > neighbors;
 	neighbors.resize(mat.num_rows());
@@ -107,9 +109,27 @@ void GetCuthillMcKeeOrder(const TSparseMatrix &mat, std::vector<size_t> &newInde
 		//	"lead to problems and is therefore disallowed.");
 	}
 
-	ComputeCuthillMcKeeOrder(newIndex, neighbors, true, false);
+	ComputeCuthillMcKeeOrder(newIndex, neighbors, reverse, bPreserveConsec);
 }
 /// @}
+
+
+/*
+	Orders a source matrix according to an ordering and stores it as target matrix.
+*/
+template <typename matrix_type, typename O_t=std::vector<size_t> >
+void reorder_matrix(matrix_type& target, const matrix_type& source, O_t& o){
+	target.resize_and_clear(source.num_rows(), source.num_cols());
+
+	for(size_t r = 0; r < source.num_rows(); ++r){
+		size_t Pr = o[r];
+		for(typename matrix_type::const_row_iterator it = source.begin_row(r); it != source.end_row(r); ++it){
+			size_t Pc = o[it.index()];
+			target(Pr, Pc) = it.value();
+		}
+	}
+}
+
 } // end namespace ug
 
 

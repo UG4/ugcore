@@ -29,58 +29,45 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
  */
- 
-#ifndef __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_BOOST_CUTHILL_MCKEE_ORDERING__
-#define __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_BOOST_CUTHILL_MCKEE_ORDERING__
+
+#ifndef __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_BOOST_SHORTEST_PATHS_ORDERING__BLA
+#define __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_BOOST_SHORTEST_PATHS_ORDERING__BLA
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/properties.hpp>
 
-#include <boost/graph/cuthill_mckee_ordering.hpp>
+#include <boost/graph/dijkstra_shortest_paths.hpp>
 
 #include "IOrderingAlgorithm.h"
 
 #include "../execution/util.cpp"
 
-#include "common/code_marker.h"
-
-#include "weighted_cuthill_mckee_ordering.cpp"
-
 namespace ug{
 
+//for sorting
+struct Blo{
+	size_t v;
+	double w;
+};
 
-/* boost graph type for Cuthill-McKee */
-typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
-	boost::property<boost::vertex_color_t,
-			 boost::default_color_type,
-			 boost::property<boost::vertex_degree_t, int> > >
-				Graph_t;
-
-
-template <typename G_t>
-void print_graph_unweighted(G_t& g){
-	typedef typename boost::graph_traits<G_t>::edge_descriptor Edge;
-
-	typename boost::graph_traits<G_t>::edge_iterator eIt, eEnd;
-	for(boost::tie(eIt, eEnd) = boost::edges(g); eIt != eEnd; ++eIt){
-		std::cout << boost::source(*eIt, g) << " -> " << boost::target(*eIt, g) << std::endl;
-	}
+bool compBlo(Blo a, Blo b){
+	return a.w < b.w;
 }
 
 
 template <typename M_t, typename O_t>
-class BoostCuthillMcKeeOrdering : public IOrderingAlgorithm<M_t, O_t>
+class BoostShortestPathsOrdering : public IOrderingAlgorithm<M_t, O_t>
 {
 public:
-	typedef Graph_t G_t;
+	typedef boost::property<boost::edge_weight_t, double> EdgeWeightProperty;
+	typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS, boost::no_property, EdgeWeightProperty> G_t;
+	
 	typedef IOrderingAlgorithm<M_t, O_t> baseclass;
 
-	BoostCuthillMcKeeOrdering() : m_bReverse(false){}
+	BoostShortestPathsOrdering(){}
 
 	void compute(){
-		//std::cout << "graph: " << std::endl; print_graph_unweighted(g); std::cout << "end graph" << std::endl;
-
 		unsigned n = boost::num_vertices(g);
 
 		if(n == 0){
@@ -88,28 +75,26 @@ public:
 			return;
 		}
 
-		boost::property_map<Graph_t, boost::vertex_degree_t>::type deg = get(boost::vertex_degree, g);
-		boost::graph_traits<Graph_t>::vertex_iterator vIt, vEnd;
-		for(boost::tie(vIt, vEnd) = boost::vertices(g); vIt != vEnd; ++vIt){
-			deg[*vIt] = boost::degree(*vIt, g);
+		typedef typename boost::graph_traits<G_t>::vertex_descriptor vd;
+		std::vector<vd> p(n); //parents
+		std::vector<int> d(n); //distances
+
+		vd s = *boost::vertices(g).first; //start vertex	//TODO: choose a vertex strategically
+
+		boost::dijkstra_shortest_paths(g, s, boost::predecessor_map(&p[0]).distance_map(&d[0]));
+
+		std::vector<Blo> blo(n);
+		for(unsigned i = 0; i < n; ++i){
+			blo[i].v = i;
+			blo[i].w = d[i];
 		}
 
-		boost::property_map<Graph_t, boost::vertex_index_t>::type index_map = get(boost::vertex_index, g);
+		//sort o according to d
+		std::sort(blo.begin(), blo.end(), compBlo);
 
-		typedef boost::graph_traits<Graph_t>::vertex_descriptor Vertex_t;
-		std::vector<Vertex_t> inv_perm(boost::num_vertices(g));
-
-		if(m_bReverse){
-			boost::cuthill_mckee_ordering(g, inv_perm.rbegin(), get(boost::vertex_color, g), boost::make_degree_map(g));
-		}
-		else{
-			boost::cuthill_mckee_ordering(g, inv_perm.begin(), get(boost::vertex_color, g), boost::make_degree_map(g));
-		}
-
-		o.resize(boost::num_vertices(g));
-
-		for(unsigned i = 0; i != inv_perm.size(); ++i){
-			o[index_map[inv_perm[i]]] = i;
+		o.resize(n);
+		for(unsigned i = 0; i < n; ++i){
+			o[i] = blo[i].v;
 		}
 	}
 
@@ -118,7 +103,6 @@ public:
 			std::cerr << "Not a permutation!" << std::endl;
 			error();
 		}
-
 	}
 
 	O_t& ordering(){
@@ -133,28 +117,33 @@ public:
 		for(unsigned i = 0; i < rows; i++){
 			for(typename M_t::row_iterator conn = A->begin_row(i); conn != A->end_row(i); ++conn){
 				if(conn.value() != 0.0 && conn.index() != i){ //TODO: think about this!!
-					boost::add_edge(i, conn.index(), g);
+					double w;
+	#ifdef UG_CPU_1
+					w = abs(conn.value()); //TODO: think about this
+	#endif
+	#ifdef UG_CPU_2
+					std::cerr << "[WeightedMatrixGraph] CPU > 1 not implemented yet!" << std::endl;
+					error();
+	#endif
+	#ifdef UG_CPU_3
+					std::cerr << "[WeightedMatrixGraph] CPU > 1 not implemented yet!" << std::endl;
+					error();
+	#endif
+					boost::add_edge(i, conn.index(), w, g);
 				}
 			}
 		}
 	}
 
-	void set_reverse(bool b){
-		m_bReverse = b;
-	}
-
 private:
 	G_t g;
 	O_t o;
-
-	bool m_bReverse;
 };
 
 
 template <typename M_t, typename O_t>
-void boost_Cuthill_McKee_ordering(M_t &m, bool reverse){
-	BoostCuthillMcKeeOrdering<M_t, O_t> algo();
-	algo.set_reverse(reverse);
+void boost_shortest_paths_ordering(M_t &m){
+	BoostShortestPathsOrdering<M_t, O_t> algo();
 	algo.set_matrix(m);
 	algo.compute();
 }

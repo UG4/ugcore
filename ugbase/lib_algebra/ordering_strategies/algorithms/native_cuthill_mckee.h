@@ -36,6 +36,10 @@
 
 #include <vector>
 
+#include "common/code_marker.h"
+
+#include "IOrderingAlgorithm.h"
+
 namespace ug{
 
 /// returns an array describing the needed index mapping for Cuthill-McKee ordering
@@ -81,8 +85,60 @@ namespace ug{
 void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
                               std::vector<std::vector<size_t> >& vvNeighbour,
                               bool bReverse = true,
-							  bool bPreserveConsec = true);
+			       bool bPreserveConsec = true);
+
+
+
+template <typename M_t, typename O_t>
+class NativeCuthillMcKeeOrdering : public IOrderingAlgorithm<M_t, O_t>
+{
+public:
+	NativeCuthillMcKeeOrdering() : m_bReverse(false) {}
+
+	void compute(){
+		std::vector<std::vector<size_t> > neighbors;
+		neighbors.resize(mat->num_rows());
+
+		for(size_t i=0; i<mat->num_rows(); i++)
+		{
+			for(typename M_t::row_iterator i_it = mat->begin_row(i); i_it != mat->end_row(i); ++i_it)
+				neighbors[i].push_back(i_it.index());
+
+			// make sure there are no disconnected DoFs
+			//UG_ASSERT(neighbors[i].size(), "Index "<< i << " does not have any connections. This will most probably "
+			//	"lead to problems and is therefore disallowed.");
+		}
+
+		ComputeCuthillMcKeeOrder(o, neighbors, m_bReverse, true);
+	}
+
+	void check(){
+		if(!is_permutation(o)){
+			std::cerr << "Not a permutation!" << std::endl;
+			error();
+		}
+	}
+
+	O_t& ordering(){
+		return o;
+	}
+
+	void set_matrix(M_t* m){
+		mat = m;
+	}
+
+	void set_reverse(bool b){
+		m_bReverse = b;
+	}
+
+private:
+	O_t o;
+	M_t* mat;
+
+	bool m_bReverse;
+};
+
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__DOF_MANAGER__CUTHILL_MCKEE__ */
+#endif

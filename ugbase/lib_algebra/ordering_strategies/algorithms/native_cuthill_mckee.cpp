@@ -2,17 +2,18 @@
 #define __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_NATIVE_CUTHILL_MCKEE_ORDERING_CPP__
 
 #include "common/common.h"
-#include "native_cuthill_mckee.h"
+#include "common/profiler/profiler.h"
+#include "common/code_marker.h"
+
 #include <algorithm>
 #include <vector>
 #include <queue>
-#include "common/profiler/profiler.h"
 
 #include "IOrderingAlgorithm.h"
 
-#include "../execution/util.cpp"
+#include "lib_algebra/algebra_common/permutation_util.h"
 
-#include "common/code_marker.h"
+#include "native_cuthill_mckee.h"
 
 namespace ug{
 
@@ -102,7 +103,7 @@ static size_t findBlockSize(const std::vector<std::vector<size_t> >& vvConnectio
 void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
                               std::vector<std::vector<size_t> >& vvConnection,
                               bool bReverse,
-							  bool bPreserveConsec)
+			       bool bPreserveConsec)
 {
 	PROFILE_FUNC();
 //	list of sorted (will be filled later)
@@ -294,80 +295,6 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 	CheckPermutationBijective(vNewIndex);
 #endif
 }
-
-/**
- * Function to calculate the inverse of a permutation
- * @param[in] perm array mapping  i -> perm[i]
- * @param[out] invPerm array mapping  i -> invPerm[i] so that perm[ invPerm[i] ] = i
- * @return true if perm[i] == i forall i.
- */
-bool GetInversePermutation(const std::vector<size_t> &perm, std::vector<size_t> &invPerm);
-
-/**
- * @param mat 			A sparse matrix
- * @param newIndex		the cuthill-mckee ordered new indices
- */
-template<typename TSparseMatrix>
-void GetCuthillMcKeeOrder(const TSparseMatrix &mat, std::vector<size_t> &newIndex)
-{
-	std::vector<std::vector<size_t> > neighbors;
-	neighbors.resize(mat.num_rows());
-
-	for(size_t i=0; i<mat.num_rows(); i++)
-	{
-		for(typename TSparseMatrix::const_row_iterator i_it = mat.begin_row(i); i_it != mat.end_row(i); ++i_it)
-			neighbors[i].push_back(i_it.index());
-
-		// make sure there are no disconnected DoFs
-		//UG_ASSERT(neighbors[i].size(), "Index "<< i << " does not have any connections. This will most probably "
-		//	"lead to problems and is therefore disallowed.");
-	}
-
-	ComputeCuthillMcKeeOrder(newIndex, neighbors, true, false);
-}
-/// @}
-
-
-
-
-template <typename M_t, typename G_t, typename O_t>
-class NativeCuthillMcKeeOrdering : public IOrderingAlgorithm<M_t, G_t, O_t>
-{
-public:
-	typedef IOrderingAlgorithm<M_t, G_t, O_t> baseclass;
-	typedef typename baseclass::Type Type;
-
-	NativeCuthillMcKeeOrdering(){}
-
-	void compute(){
-		GetCuthillMcKeeOrder(*mat, o);
-	}
-
-	void check(){
-		if(!is_permutation(o)){
-			std::cerr << "Not a permutation!" << std::endl;
-			error();
-		}
-	}
-
-	O_t& ordering(){
-		return o;
-	}
-
-	const Type type(){
-		return mytype;
-	} 
-
-	void set_graph(G_t*){}
-
-	void set_matrix(M_t* m){ mat = m; }
-
-private:
-	O_t o;
-	M_t* mat;
-
-	static const Type mytype = Type::MATRIX_BASED;
-};
 
 }
 

@@ -13,7 +13,6 @@
 
 #include "lib_algebra/algebra_common/vector_util.h"
 #include "lib_algebra/algebra_common/permutation_util.h"
-#include "lib_algebra/ordering_strategies/algorithms/native_cuthill_mckee.h"
 
 namespace ug{
 

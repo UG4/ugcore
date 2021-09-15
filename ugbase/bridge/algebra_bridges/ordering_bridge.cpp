@@ -43,9 +43,7 @@
 // ordering algorithms
 #include "lib_algebra/lib_algebra.h"
 
-#include "lib_algebra/ordering_strategies/typedefs.h"
-
-
+#include "lib_algebra/ordering_strategies/algorithms/ordering_algorithms.cpp"
 
 using namespace std;
 
@@ -84,53 +82,74 @@ static void Algebra(Registry& reg, string grp)
 //	typedefs for this algebra
 	typedef typename TAlgebra::vector_type vector_type;
 	typedef typename TAlgebra::matrix_type matrix_type;
-	
+	typedef std::vector<size_t> ordering_container_type;
+
 	{
-		typedef IOrderingAlgorithm<typename TAlgebra::matrix_type, weighted_base_graph_type, ordering_container_type> TBase;
-		reg.add_class_<TBase>("IOrderingAlgorithm_weighted", grp);
-	}
-	
-	{
-		typedef IOrderingAlgorithm<typename TAlgebra::matrix_type, base_graph_type, ordering_container_type> TBase;
-		reg.add_class_<TBase>("IOrderingAlgorithm_unweighted", grp);
+		typedef IOrderingAlgorithm<typename TAlgebra::matrix_type, ordering_container_type> TBase;
+		reg.add_class_<TBase>("IOrderingAlgorithm", grp);
 	}
 
 //	Weighted Cuthill McKee
 	{
-		typedef WeightedCuthillMcKeeOrdering_type<TAlgebra> T;
-		typedef IOrderingAlgorithm<typename TAlgebra::matrix_type, weighted_base_graph_type, ordering_container_type> TBase;
+		typedef WeightedCuthillMcKeeOrdering<typename TAlgebra::matrix_type, ordering_container_type> T;
+		typedef IOrderingAlgorithm<typename TAlgebra::matrix_type, ordering_container_type> TBase;
 		string name = string("WeightedCuthillMcKeeOrdering").append(suffix);
 		reg.add_class_<T, TBase>(name, grp, "WeightedCuthillMcKeeOrdering")
 			.add_constructor()
 			.add_method("set_reverse", &T::set_reverse)
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "WeightedCuthillMcKeeOrdering", tag); 
+		reg.add_class_to_group(name, "WeightedCuthillMcKeeOrdering", tag);
 	}
+
+//#if 0
+//	Boost Shortest Paths
+	{
+		typedef BoostShortestPathsOrdering<typename TAlgebra::matrix_type, ordering_container_type> T; 
+		typedef IOrderingAlgorithm<typename TAlgebra::matrix_type, ordering_container_type> TBase;
+		string name = string("BoostShortestPathsOrdering").append(suffix);
+		reg.add_class_<T, TBase>(name, grp, "BoostShortestPathsOrdering")
+			.add_constructor()
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "BoostShortestPathsOrdering", tag);
+	}
+//#endif
 
 //	Boost Cuthill McKee
 	{
-		typedef BoostCuthillMcKeeOrdering_type<TAlgebra> T;
-		typedef IOrderingAlgorithm<typename TAlgebra::matrix_type, base_graph_type, ordering_container_type> TBase;
+		typedef BoostCuthillMcKeeOrdering<typename TAlgebra::matrix_type, ordering_container_type> T;
+		typedef IOrderingAlgorithm<typename TAlgebra::matrix_type, ordering_container_type> TBase;
 		string name = string("BoostCuthillMcKeeOrdering").append(suffix);
 		reg.add_class_<T, TBase>(name, grp, "BoostCuthillMcKeeOrdering")
 			.add_constructor()
 			.add_method("set_reverse", &T::set_reverse)
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "BoostCuthillMcKeeOrdering", tag); 
+		reg.add_class_to_group(name, "BoostCuthillMcKeeOrdering", tag);
 	}
 
-#if 0
-	//	Boost Shortest Paths
+//	Boost Minimum-Degree
 	{
-		typedef BoostShortestPathsOrdering_type<TAlgebra> T;
-		typedef IOrderingAlgorithm<typename TAlgebra::matrix_type, weighted_base_graph_type, ordering_container_type> TBase;
-		string name = string("BoostShortestPathsOrdering").append(suffix);
-		reg.add_class_<T, TBase>(name, grp, "BoostShortestPathsOrdering")
+		typedef BoostMinimumDegreeOrdering<typename TAlgebra::matrix_type, ordering_container_type> T;
+		typedef IOrderingAlgorithm<typename TAlgebra::matrix_type, ordering_container_type> TBase;
+		string name = string("BoostMinimumDegreeOrdering").append(suffix);
+		reg.add_class_<T, TBase>(name, grp, "BoostMinimumDegreeOrdering")
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "BoostShortestPathsOrdering", tag); 
+		reg.add_class_to_group(name, "BoostMinimumDegreeOrdering", tag);
 	}
-#endif
+
+
+//	Native Cuthill McKee
+	{
+		typedef NativeCuthillMcKeeOrdering<typename TAlgebra::matrix_type, ordering_container_type> T;
+		typedef IOrderingAlgorithm<typename TAlgebra::matrix_type, ordering_container_type> TBase;
+		string name = string("NativeCuthillMcKeeOrdering").append(suffix);
+		reg.add_class_<T, TBase>(name, grp, "NativeCuthillMcKeeOrdering")
+			.add_constructor()
+			.add_method("set_reverse", &T::set_reverse)
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "NativeCuthillMcKeeOrdering", tag);
+	}
+
 }
 
 }; // end Functionality

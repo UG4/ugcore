@@ -52,8 +52,6 @@
 
 // ordering stuff
 #include "lib_algebra/ordering_strategies/algorithms/IOrderingAlgorithm.h"
-#include "lib_algebra/ordering_strategies/execution/matrix_ordering.h"
-#include "lib_algebra/ordering_strategies/typedefs.h"
 
 #include "permutation_util.h"
 
@@ -183,9 +181,9 @@ bool invert_U_(const Matrix_type &A, Vector_type &x, const Vector_type &b,
 	typedef typename Matrix_type::const_row_iterator const_row_iterator;
 
 	typename Vector_type::value_type s;
-	
+
 	bool result = true;
-	
+
 	// last row diagonal U entry might be close to zero with corresponding close to zero rhs
 	// when solving Navier Stokes system, therefore handle separately
 	if(x.size() > 0){
@@ -251,8 +249,7 @@ public:
 	typedef typename base_type::matrix_operator_type matrix_operator_type;
 
 	typedef std::vector<size_t> ordering_container_type;
-	typedef IOrderingAlgorithm<matrix_type, weighted_base_graph_type, ordering_container_type> weighted_ordering_algo_type;
-	typedef IOrderingAlgorithm<matrix_type, base_graph_type, ordering_container_type> unweighted_ordering_algo_type;
+	typedef IOrderingAlgorithm<matrix_type, ordering_container_type> ordering_algo_type;
 
 protected:
 	using base_type::set_debug;
@@ -293,13 +290,8 @@ public:
 	void set_beta(double beta){ m_beta = beta; }
 
 /// 	set ordering on/off
-	void set_ordering_algorithm_weighted(SmartPtr<weighted_ordering_algo_type> ordering_algo){
-		m_spOrderingAlgo_weighted = ordering_algo;
-	}
-
-/// 	set ordering on/off
-	void set_ordering_algorithm_unweighted(SmartPtr<unweighted_ordering_algo_type> ordering_algo){
-		m_spOrderingAlgo_unweighted = ordering_algo;
+	void set_ordering_algorithm(SmartPtr<ordering_algo_type> ordering_algo){
+		m_spOrderingAlgo = ordering_algo;
 	}
 
 /// 	disable preprocessing (if underlying matrix has not changed)
@@ -336,76 +328,29 @@ protected:
 		matrix_type &orig_matrix = *pOp;
 
 		m_h.resize(orig_matrix.num_cols());
-		
-		if(m_spOrderingAlgo_weighted.invalid() && m_spOrderingAlgo_unweighted.invalid())
+
+		if(m_spOrderingAlgo.invalid())
 		{
-			std::cout << "no ordering" << std::endl;
+			//std::cout << "no ordering" << std::endl;
 			m_matrix = orig_matrix;
 		}
 		else
 		{
-			if(!m_spOrderingAlgo_weighted.invalid()){
-				std::cout << "weighted ordering" << std::endl;
+			m_spOrderingAlgo->set_matrix(&orig_matrix);
+			//std::cout << "	m_spOrderingAlgo->compute();" << std::endl;
 
-				std::cout << "	m_spOrderingAlgo_weighted init;" << std::endl;
+			m_spOrderingAlgo->compute();
+			m_spOrderingAlgo->check();
 
-				if(m_spOrderingAlgo_weighted->type() == weighted_ordering_algo_type::Type::GRAPH_BASED){
-					std::cout << "graph based" << std::endl;
-					weighted_graph_type<TAlgebra> meta_graph(orig_matrix);
-					g = meta_graph.graph();
-					m_spOrderingAlgo_weighted->set_graph(g);
-				}
-				else if(m_spOrderingAlgo_weighted->type() == weighted_ordering_algo_type::Type::MATRIX_BASED){
-					std::cout << "matrix based" << std::endl;
-					m_spOrderingAlgo_weighted->set_matrix(&orig_matrix);
-				}
+			m_ordering = m_spOrderingAlgo->ordering();
 
-				std::cout << "	m_spOrderingAlgo_weighted->compute();" << std::endl;
-				m_spOrderingAlgo_weighted->compute();
-				m_spOrderingAlgo_weighted->check();
+			//std::cout << "	reorder.execute();" << std::endl;
+			reorder_matrix(m_matrix, orig_matrix, m_ordering);
 
-				m_ordering = m_spOrderingAlgo_weighted->ordering();
+			bool is_identity = inverse_permutation(m_ordering, m_old_ordering);
 
-				std::cout << "	reorder.execute();" << std::endl;
-				reorder_matrix(m_matrix, orig_matrix, m_ordering);
-
-				bool is_identity = inverse_permutation(m_ordering, m_old_ordering);
-
-				if(is_identity){
-					std::cout << "identity permutation" << std::endl;
-				}
-			}
-
-			else if(!m_spOrderingAlgo_unweighted.invalid()){
-				std::cout << "unweighted ordering" << std::endl;
-
-				std::cout << "	m_spOrderingAlgo_unweighted init;" << std::endl;
-
-				if(m_spOrderingAlgo_unweighted->type() == unweighted_ordering_algo_type::Type::GRAPH_BASED){
-					std::cout << "graph based" << std::endl;
-					unweighted_graph_type<TAlgebra> meta_graph(orig_matrix);
-					g_unweighted = meta_graph.graph();
-					m_spOrderingAlgo_unweighted->set_graph(g_unweighted);
-				}
-				else if(m_spOrderingAlgo_unweighted->type() == unweighted_ordering_algo_type::Type::MATRIX_BASED){
-					std::cout << "matrix based" << std::endl;
-					m_spOrderingAlgo_unweighted->set_matrix(&orig_matrix);
-				}
-
-				std::cout << "	m_spOrderingAlgo_weighted->compute();" << std::endl;
-				m_spOrderingAlgo_unweighted->compute();
-				m_spOrderingAlgo_unweighted->check();
-
-				m_ordering = m_spOrderingAlgo_unweighted->ordering();
-
-				std::cout << "	reorder.execute();" << std::endl;
-				reorder_matrix(m_matrix, orig_matrix, m_ordering);
-
-				bool is_identity = inverse_permutation(m_ordering, m_old_ordering);
-
-				if(is_identity){
-					std::cout << "identity permutation" << std::endl;
-				}
+			if(is_identity){
+				std::cout << "identity permutation" << std::endl;
 			}
 		}
 
@@ -422,7 +367,7 @@ protected:
 
 	void applyLU(vector_type &c, const vector_type &d, vector_type &tmp)
 	{
-		if(m_spOrderingAlgo_weighted.invalid() && m_spOrderingAlgo_unweighted.invalid())			////////////
+		if(m_spOrderingAlgo.invalid())			////////////
 		{
 			// 	apply iterator: c = LU^{-1}*d
 			if(! invert_L_(m_matrix, tmp, d)) // h := L^-1 d
@@ -476,12 +421,9 @@ protected:
 	bool m_bDisablePreprocessing;
 
 
-/// ordering stuff
-	weighted_base_graph_type* g;
-	unweighted_base_graph_type* g_unweighted;							//////////////////
-	SmartPtr<weighted_ordering_algo_type> m_spOrderingAlgo_weighted;
-	SmartPtr<unweighted_ordering_algo_type> m_spOrderingAlgo_unweighted;
-	
+/// ordering stuff						//////////////////
+	SmartPtr<ordering_algo_type> m_spOrderingAlgo;
+
 	ordering_container_type m_ordering, m_old_ordering;
 
 #if 0
