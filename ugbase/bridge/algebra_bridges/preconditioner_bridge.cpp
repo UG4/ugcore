@@ -253,7 +253,7 @@ static void Algebra(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ILU", tag);
 	}
-	
+
 //	ILU Threshold
 	{
 		typedef ILUTPreconditioner<TAlgebra> T;
@@ -272,7 +272,7 @@ static void Algebra(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ILUT", tag);
 	}
-	
+
 //	ILU Threshold Scalar
 	{
 		typedef ILUTScalarPreconditioner<TAlgebra> T;
