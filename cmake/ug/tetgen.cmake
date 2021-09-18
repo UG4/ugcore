@@ -29,14 +29,11 @@
 # GNU Lesser General Public License for more details.
 
 # included from ug_includes.cmake
-if(TETGEN)
-	unset(TETGEN_LIBS CACHE)
-	find_library(TETGEN_LIBS NAMES tet PATHS ${TETGEN})
-	if(TETGEN_LIBS-NOTFOUND)
-		message(FATAL_ERROR "ERROR: Couldn't find TETGEN in the specified path.")
-	else(TETGEN_LIBS-NOTFOUND)
-		add_definitions(-DUG_TETGEN -DTETLIBRARY)
-		include_directories(${TETGEN})
-		set(linkLibraries ${linkLibraries} ${TETGEN_LIBS})
-	endif(TETGEN_LIBS-NOTFOUND)
-endif(TETGEN)
+if(LINK_TETGEN)
+  # LINK_TETGEN is defined by the tetgen tool if the corresponding option is set.
+  # Install tetgen using `ughub install tetgen` to make this option available.
+  # Note: tetgen is distributed under the GPL license. This option is thus only suited for
+  #       personal development builds.
+  set(linkLibraries ${linkLibraries} tet)
+  add_definitions(-DUG_TETGEN)
+endif()

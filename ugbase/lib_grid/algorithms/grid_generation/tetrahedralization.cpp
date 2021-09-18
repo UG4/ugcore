@@ -37,6 +37,7 @@
 #include "../remove_duplicates_util.h"
 
 #ifdef UG_TETGEN
+	#define TETLIBRARY
 	#include "tetgen.h"
 #endif
 
