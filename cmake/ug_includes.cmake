@@ -582,12 +582,6 @@ if(buildBridge)
 endif(buildBridge)
 set(UG_DEBUG ${DEBUG})
 
-
-################################################################################
-# link against required libraries
-link_libraries(${linkLibraries})
-
-
 ################################################################################
 # Declare a method that allows all sub-cmake-files to add their sources
 # to a common library.

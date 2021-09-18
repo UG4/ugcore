@@ -130,9 +130,7 @@ if(BUILD_ONE_LIB)
 	
 	if(buildEmbeddedPlugins)
 		add_definitions(${ug4libDefinitions})
-		include_directories(${ug4libIncludes})
 		link_directories(${ug4LinkPaths})
-		link_libraries(${ug4libDependencies})
 		set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${ug4libLinkerFlags}")
 		set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} ${ug4libLinkerFlags}")
 	endif(buildEmbeddedPlugins)
@@ -166,7 +164,10 @@ if(BUILD_ONE_LIB)
 			target_link_libraries(${targetLibraryName} CompileInfo_s)
 		endif(buildCompileInfo AND NOT buildEmbeddedPlugins)
 	endif(buildDynamicLib)
-   
+  
+  target_include_directories(${targetLibraryName} PUBLIC ${ug4libIncludes})
+  target_link_libraries(${targetLibraryName} PUBLIC ${ug4libDependencies} ${linkLibraries})
+
 	if(buildEmbeddedPlugins)
 		# if we build with embedded plugins, the compile-info is also embedded
 		# into the single big target lib. We thus have to add a dependency to
