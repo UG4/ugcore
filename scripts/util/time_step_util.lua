@@ -1074,6 +1074,7 @@ function util.SolveNonlinearProblemAdaptiveTimestep(
 				currdt = currdt * red;
 				write("\n++++++ Newton solver failed. "); 
 				write("Trying decreased stepsize " .. currdt .. ".\n");
+				-- bSuccess = true;  -- KAUST
 			else
 				bSuccess = true; 
 			end
@@ -1239,7 +1240,7 @@ function util.SolveNonlinearProblemAdaptiveLimex(
 	dt,
 	minStepSize,
 	maxStepSize,
-	adaptiveStepInfo,
+	limexDesc,
 	--reductionFactor,
 	--tol,
 	bFinishTimeStep,
@@ -1249,28 +1250,20 @@ function util.SolveNonlinearProblemAdaptiveLimex(
 
 
 	-- read adaptive stuff
-	local tol = adaptiveStepInfo["TOLERANCE"]
-	local red = adaptiveStepInfo["REDUCTION"]
-	local inc_fac = adaptiveStepInfo["INCREASE"]
-	local safety_fac = adaptiveStepInfo["SAFETY"]
-	local errorEst = adaptiveStepInfo["ESTIMATOR"]
+	local tol = limexDesc["TOLERANCE"] or  1e-3 
+	local red = limexDesc["REDUCTION"] or 0.5           -- reduction of time step
+	local inc_fac = limexDesc["INCREASE"] or 1.5        -- increase of time step
+	local safety_fac = limexDesc["SAFETY"] or 0.8       -- safety factor
+	local errorEst = limexDesc["ESTIMATOR"]
   
 	-- check parameters
 	if filename == nil then filename = "sol" end
 	if minStepSize == nil then minStepSize = maxStepSize end
 
-	if red == nil then red = 0.5 end   -- reduction of time step
-	if inc_fac == nil then inc_fac = 1.5 end   -- increase of time step
-  
 	if errorEst == nil then 
 		print "WARNING: Error estimator not set. Default is euclidean norm! "
 		errorEst = Norm2ErrorEst() 
 	end
-	if tol == nil then 
-		tol = 1e-3 
-		print ("WARNING: Using default tolerance "..tol)
-	end
-	if safety_fac == nil then safety_fac = 0.8 end   -- safety factor
 
 
 	local doControl = true
@@ -1540,7 +1533,153 @@ function util.SolveNonlinearProblemAdaptiveLimex(
 end
 
 
+function util.SolveNonlinearProblemLimex(
+  u,
+  domainDisc,
+  newtonSolver,
+  out,
+  filename,
+  startTime,
+  endTime,
+  dt,
+  minStepSize,
+  maxStepSize,
+  adaptiveDesc,
+  postProcess)
 
+
+  -- read adaptive stuff
+  local inc_fac = adaptiveDesc["INCREASE"] or 1.5        -- increase of time step
+ 
+  -- check parameters
+  if filename == nil then filename = "sol" end
+  if minStepSize == nil then minStepSize = maxStepSize end
+
+
+  -- Check input parameters.
+  if u == nil or domainDisc == nil or newtonSolver == nil
+    or startTime == nil or endTime == nil or maxStepSize == nil then
+    print("Wrong usage found. Please specify parameters as below:")
+    
+    if (u == nil) then print ("Did not find u!"); end;
+    if (domainDisc == nil) then print ("Did not find domainDisc!"); end;
+
+    if (startTime == nil) then print ("Did not find endTime!"); end;
+    if (endTime == nil) then print ("Did not find endTime!"); end;
+    if (maxStepSize == nil) then print ("Did not find maxStepSize!"); end;
+    --util.PrintUsageOfSolveTimeProblem()
+    exit()
+  end
+
+
+  print ("maxStepSize ="..maxStepSize)
+  print ("minStepSize ="..minStepSize)
+
+  print ("startTime ="..startTime)
+  print ("endTime ="..endTime)
+  
+  
+  -- Create LIMEX descriptor
+  local limexDesc = {
+
+        nstages = adaptiveDesc["STAGES"] or 2,
+        steps = {1,2,3,4,5,6},
+        nthreads = 1, 
+        tol = adaptiveDesc["TOLERANCE"] or  1e-3,
+        rhoSafetyOPT = adaptiveDesc["SAFETY"] or 0.25,
+
+        dt = dt,
+        dtmin = minStepSize,
+        dtmax = maxStepSize,
+        dtred = adaptiveDesc["REDUCTION"] or 0.5,  -- reduction of time step
+
+        -- set disc & solver
+        domainDisc= domainDisc,
+        nonlinSolver = newtonSolver,   
+        -- makeConsistent = true,
+
+        matrixCache = true, -- or true,
+        -- costStrategyOPT = time.limexDesc.costStrategyOPT,
+        debugOPT = 5,
+
+       -- dampScheideggerOPT = time.limexDesc.dampScheideggerOPT or 1.0,
+       -- partialVeloMaskOPT = time.limexDesc.partialVeloMaskOPT or 0,
+     }
+  -- Create LIMEX object
+  local limex = util.limex.CreateIntegrator(limexDesc)
+      
+   limex:set_time_step(limexDesc.dt)
+   limex:set_dt_min(limexDesc.dtmin)
+   limex:set_dt_max(limexDesc.dtmax)
+   limex:set_reduction_factor(limexDesc.dtred)
+  
+    if (adaptiveDesc["DEBUG"]) then 
+      --limex:set_debug(adaptiveDesc["DEBUG"])
+      limex:set_debug_for_timestepper(adaptiveDesc["DEBUG"])
+    end
+  -- Register LUA callback.
+  if type(postProcess) == "function" then 
+    -- a) LUA functions
+    local luaobserver = LuaCallbackObserver()
+    
+     function __util_LimexLuaCallbackPost(step, t, currdt) 
+            local sol=luaobserver:get_current_solution()
+            print(postProcess)
+            postProcess(sol, step, t, currdt)
+            return 1
+      end
+      luaobserver:set_callback("__util_LimexLuaCallbackPost") 
+    limex:attach_observer(luaobserver)
+   end
+   
+   -- Register VTK output callback.
+   if type(out) == "userdata" then
+    -- b) VTK output
+    limex:attach_observer(VTKOutputObserver(filename, out))
+   end
+   
+   
+   
+   local limexErrorEst 
+   limexErrorEst = CompositeGridFunctionEstimator() 
+   
+   if (type(adaptiveDesc["SPACES"])=="table") then
+    for i, _spacei in ipairs(adaptiveDesc["SPACES"]) do 
+      print(_spacei)
+      limexErrorEst:add(_spacei)
+      
+    end
+   end -- table
+  
+ 
+  -- limex:set_space(limexErrorSpace)
+
+
+   print(limexErrorEst:config_string())
+   limex:add_error_estimator(limexErrorEst)
+   
+   -- Solve problem
+    print(">> Solve using LIMEX...")
+    
+    -- Replace convergence check.
+    local limexConvCheck = ConvCheck()
+    limexConvCheck:set_maximum_steps(1)
+    limexConvCheck:set_minimum_defect(1e-12)
+    limexConvCheck:set_reduction(1e-9)
+    limexConvCheck:set_verbose(true)
+    limexConvCheck:set_supress_unsuccessful(true)
+    
+    newtonSolver:set_convergence_check(limexConvCheck) 
+    newtonSolver:disable_line_search()
+    
+    -- Execute solver
+    local sw = CuckooClock()
+    sw:tic()
+    print(newtonSolver:config_string())
+    limex:apply(u, endTime, u,  startTime)
+    print ("CDELTA="..sw:toc())
+  return 
+end
 
 --[[!
 \}
