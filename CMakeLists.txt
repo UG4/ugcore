@@ -166,13 +166,15 @@ if(BUILD_ONE_LIB)
 	endif(buildDynamicLib)
   
   target_include_directories(${targetLibraryName} PUBLIC ${ug4libIncludes})
-  target_link_libraries(${targetLibraryName} PUBLIC ${ug4libDependencies} ${linkLibraries})
+  target_link_libraries(${targetLibraryName} ${ug4libDependencies} ${linkLibraries})
 
 	if(buildEmbeddedPlugins)
 		# if we build with embedded plugins, the compile-info is also embedded
 		# into the single big target lib. We thus have to add a dependency to
 		# the custom updateCompileInfo target declared in compile_info/CMakeLists.txt.
-		add_dependencies(${targetLibraryName} updateCompileInfo)
+    if(UNIX AND buildCompileInfo)
+		  add_dependencies(${targetLibraryName} updateCompileInfo)
+    endif()
 		
 		# apply single file definitions
 		list(LENGTH ug4libSingleFileCompileFlagsFiles len)
