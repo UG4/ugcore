@@ -93,7 +93,18 @@ template <typename M_t, typename O_t>
 class NativeCuthillMcKeeOrdering : public IOrderingAlgorithm<M_t, O_t>
 {
 public:
+	typedef IOrderingAlgorithm<M_t, O_t> baseclass;
+
 	NativeCuthillMcKeeOrdering() : m_bReverse(false) {}
+
+	/// clone constructor
+	NativeCuthillMcKeeOrdering( const NativeCuthillMcKeeOrdering<M_t, O_t> &parent )
+			: baseclass(), m_bReverse(parent.m_bReverse){}
+
+	SmartPtr<IOrderingAlgorithm<M_t, O_t> > clone()
+	{
+		return make_sp(new NativeCuthillMcKeeOrdering<M_t, O_t>(*this));
+	}
 
 	void compute(){
 		std::vector<std::vector<size_t> > neighbors;
@@ -110,6 +121,8 @@ public:
 		}
 
 		ComputeCuthillMcKeeOrder(o, neighbors, m_bReverse, true);
+
+		mat = NULL;
 	}
 
 	void check(){

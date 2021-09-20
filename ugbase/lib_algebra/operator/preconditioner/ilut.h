@@ -71,6 +71,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 			m_eps = parent.m_eps;
 			set_info(parent.m_info);
 			m_bSortIsIdentity = parent.m_bSortIsIdentity;
+			m_spOrderingAlgo = parent.m_spOrderingAlgo;
 		}
 
 	///	Clone

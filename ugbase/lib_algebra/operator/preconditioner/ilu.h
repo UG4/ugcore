@@ -399,7 +399,8 @@ class ILU : public IPreconditioner<TAlgebra>
 			  m_invEps(parent.m_invEps),
 			  m_bDisablePreprocessing(parent.m_bDisablePreprocessing),
 			  m_useConsistentInterfaces(parent.m_useConsistentInterfaces),
-			  m_useOverlap(parent.m_useOverlap)
+			  m_useOverlap(parent.m_useOverlap),
+			  m_spOrderingAlgo(parent.m_spOrderingAlgo)
 		{	}
 
 	///	Clone

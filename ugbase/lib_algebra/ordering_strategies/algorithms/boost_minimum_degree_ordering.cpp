@@ -59,6 +59,15 @@ public:
 
 	BoostMinimumDegreeOrdering(){}
 
+	/// clone constructor
+	BoostMinimumDegreeOrdering( const BoostMinimumDegreeOrdering<M_t, O_t> &parent )
+			: baseclass(){}
+
+	SmartPtr<IOrderingAlgorithm<M_t, O_t> > clone()
+	{
+		return make_sp(new BoostMinimumDegreeOrdering<M_t, O_t>(*this));
+	}
+
 	void compute(){
 		unsigned n = boost::num_vertices(g);
 		unsigned e = boost::num_edges(g);
@@ -108,6 +117,8 @@ public:
 		   0,
 		   id
 		   );
+
+		g = G_t(0);
 	}
 
 	void check(){

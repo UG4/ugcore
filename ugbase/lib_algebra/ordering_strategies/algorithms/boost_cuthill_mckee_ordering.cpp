@@ -75,6 +75,15 @@ public:
 
 	BoostCuthillMcKeeOrdering() : m_bReverse(false){}
 
+	/// clone constructor
+	BoostCuthillMcKeeOrdering( const BoostCuthillMcKeeOrdering<M_t, O_t> &parent )
+			: baseclass(), m_bReverse(parent.m_bReverse){}
+
+	SmartPtr<IOrderingAlgorithm<M_t, O_t> > clone()
+	{
+		return make_sp(new BoostCuthillMcKeeOrdering<M_t, O_t>(*this));
+	}
+
 	void compute(){
 		//std::cout << "graph: " << std::endl; print_graph_unweighted(g); std::cout << "end graph" << std::endl;
 
@@ -108,6 +117,8 @@ public:
 		for(unsigned i = 0; i != inv_perm.size(); ++i){
 			o[index_map[inv_perm[i]]] = i;
 		}
+
+		g = G_t(0);
 	}
 
 	void check(){

@@ -66,6 +66,15 @@ public:
 
 	BoostShortestPathsOrdering(){}
 
+	/// clone constructor
+	BoostShortestPathsOrdering( const BoostShortestPathsOrdering<M_t, O_t> &parent )
+			: baseclass(){}
+
+	SmartPtr<IOrderingAlgorithm<M_t, O_t> > clone()
+	{
+		return make_sp(new BoostShortestPathsOrdering<M_t, O_t>(*this));
+	}
+
 	void compute(){
 		unsigned n = boost::num_vertices(g);
 
@@ -95,6 +104,8 @@ public:
 		for(unsigned i = 0; i < n; ++i){
 			o[i] = blo[i].v;
 		}
+
+		g = G_t(0);
 	}
 
 	void check(){

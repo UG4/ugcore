@@ -111,6 +111,15 @@ public:
 
 	WeightedCuthillMcKeeOrdering() : m_bReverse(false){}
 
+	/// clone constructor
+	WeightedCuthillMcKeeOrdering( const WeightedCuthillMcKeeOrdering<M_t, O_t> &parent )
+			: baseclass(), m_bReverse(parent.m_bReverse){}
+
+	SmartPtr<IOrderingAlgorithm<M_t, O_t> > clone()
+	{
+		return make_sp(new WeightedCuthillMcKeeOrdering<M_t, O_t>(*this));
+	}
+
 #if 0
 	class next_vertex_iterator{
 	public:
@@ -244,6 +253,8 @@ public:
 		if(m_bReverse){
 			std::reverse(o.begin(), o.end());
 		}
+
+		g = G_t(0);
 
 		std::cout << "[CuthillMcKeeOrderingWeighted::compute] done. " << std::endl;
 	}

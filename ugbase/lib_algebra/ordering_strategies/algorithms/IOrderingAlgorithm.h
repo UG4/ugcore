@@ -33,6 +33,8 @@
 #ifndef __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_IORDERING_ALGORITHM__
 #define __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_IORDERING_ALGORITHM__
 
+#include "common/util/smart_pointer.h"
+
 namespace ug{
 
 /*
@@ -61,6 +63,8 @@ public:
 	virtual void set_matrix(M_t*) = 0;
 
 	virtual std::string config_string() const = 0;
+
+	virtual SmartPtr<IOrderingAlgorithm<M_t, O_t> > clone() = 0;
 };
 
 } //namespace
