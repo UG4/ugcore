@@ -68,8 +68,7 @@ bool FactorizeILU(Matrix_type &A)
 	{
 		// eliminate all entries A(i, k) with k<i with rows A(k, .) and k<i
 		const row_iterator rowEnd = A.end_row(i);
-		for(row_iterator it_k = A.begin_row(i);
-								it_k != rowEnd && (it_k.index() < i); ++it_k)
+		for(row_iterator it_k = A.begin_row(i); it_k != rowEnd && (it_k.index() < i); ++it_k)
 		{
 			const size_t k = it_k.index();
 			block_type &a_ik = it_k.value();
@@ -120,8 +119,7 @@ bool FactorizeILUBeta(Matrix_type &A, number beta)
 		// for k=1:(i-1) do
 		// eliminate all entries A(i, k) with k<i with rows A(k, .) and k<i
 		const row_iterator it_iEnd = A.end_row(i);
-		for(row_iterator it_ik = A.begin_row(i);
-							it_ik != it_iEnd && (it_ik.index() < i); ++it_ik)
+		for(row_iterator it_ik = A.begin_row(i); it_ik != it_iEnd && (it_ik.index() < i); ++it_ik)
 		{
 
 			// add row k to row i by A(i, .) -=  [A(i,k) / A(k,k)] A(k,.)
@@ -181,8 +179,7 @@ bool FactorizeILUSorted(Matrix_type &A, const number eps = 1e-50)
 	{
 
 		// eliminate all entries A(i, k) with k<i with rows A(k, .) and k<i
-		for(row_iterator it_k = A.begin_row(i);
-							it_k != A.end_row(i) && (it_k.index() < i); ++it_k)
+		for(row_iterator it_k = A.begin_row(i); it_k != A.end_row(i) && (it_k.index() < i); ++it_k)
 		{
 			const size_t k = it_k.index();
 			block_type &a_ik = it_k.value();
@@ -435,7 +432,7 @@ class ILU : public IPreconditioner<TAlgebra>
 				m_spOrderingAlgo = SPNULL;
 			}
 
-			std::cerr << "please use 'set_ordering_algorithm(..)' in the future" << std::endl;
+			UG_LOG("\nILU: please use 'set_ordering_algorithm(..)' in the future\n");
 		}
 
 	/// disable preprocessing (if underlying matrix has not changed)
@@ -532,7 +529,6 @@ class ILU : public IPreconditioner<TAlgebra>
 			if(m_spOrderingAlgo.valid() && !(m_useOverlap && sortSlaveToEnd)){
 				m_spOrderingAlgo->set_matrix(&mat);
 				m_spOrderingAlgo->compute();
-				//m_spOrderingAlgo->check();
 				m_ordering = m_spOrderingAlgo->ordering();
 
 				m_bSortIsIdentity = GetInversePermutation(m_ordering, m_old_ordering);

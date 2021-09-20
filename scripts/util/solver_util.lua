@@ -491,11 +491,13 @@ util.solver.defaults =
 			sortEps 		= 1.e-50,
 			inversionEps 	= 1.e-8,
 			consistentInterfaces = false,
-			overlap 		= false
+			overlap 		= false,
+			ordering 		= nil
 		},
 
 		ilut = {
-			threshold = 1e-6
+			threshold = 1e-6,
+			ordering = "NativeCuthillMcKeeOrdering"
 		},
 		
 		gs = {
@@ -715,7 +717,6 @@ function util.solver.CreateLinearSolver(solverDesc, solverutil)
 end
 
 function util.solver.CreateTransfer(transferDesc, solverutil)
-
 	local name, desc = util.tableDesc.ToNameAndDesc(transferDesc)
 	local defaults   = util.solver.defaults.transfer[name]
 	if desc == nil then desc = defaults end
@@ -741,6 +742,37 @@ function util.solver.CreateTransfer(transferDesc, solverutil)
 	return transfer
 end
 
+function util.solver.CreateOrdering(orderingDesc, solverutil)
+	if orderingDesc == nil then return nil end
+
+	local name, desc = util.tableDesc.ToNameAndDesc(orderingDesc)
+
+	local ordering = nil
+
+	if name == "NativeCuthillMcKee" then
+		ordering = NativeCuthillMcKeeOrdering() --ug4 CuthillMcKee?
+	elseif name == "ReverseNativeCuthillMcKee" then
+		ordering = NativeCuthillMcKeeOrdering()
+		ordering.set_reverse(true)
+	elseif name == "BoostCuthillMcKee" then --BoostCppCuthillMckee?
+		ordering = BoostCuthillMcKeeOrdering()
+	elseif name == "ReverseBoostCuthillMcKee" then --rBoost..?
+		ordering = BoostCuthillMcKeeOrdering()
+		ordering.set_reverse(true)
+	elseif name == "BoostMinimumDegree" then
+		ordering = BoostMinimumDegreeOrdering()
+	elseif name == "BoostShortestPaths" then
+		ordering = BoostShortestPathsOrdering()
+	elseif name == "WeightedCuthillMcKee" then
+		ordering = WeightedCuthillMcKeeOrdering()
+	end
+
+	util.solver.CondAbort(ordering == nil, "Invalid ordering specified: " .. name)
+
+	return ordering
+
+end
+
 -- create a preconditioner
 -- solverutil may be nil
 function util.solver.CreatePreconditioner(precondDesc, solverutil)
@@ -763,11 +795,18 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 		precond:set_beta (desc.beta or defaults.beta)
 		precond:set_damp(desc.damping or defaults.damping)
 		precond:set_sort(desc.sort or defaults.sort)
+		if desc.ordering or (defaults.ordering ~= nil) then
+			precond:set_ordering_algorithm(util.solver.CreateOrdering(desc.ordering or defaults.ordering, solverutil))
+		end
 		precond:set_sort_eps(desc.sortEps or defaults.sortEps)
 		precond:set_inversion_eps(desc.inversionEps or defaults.inversionEps)
 		precond:enable_consistent_interfaces(desc.consistentInterfaces or defaults.consistentInterfaces)
 		precond:enable_overlap(desc.overlap or defaults.overlap)
-	elseif name == "ilut" then precond = ILUT (desc.threshold or defaults.threshold);
+	elseif name == "ilut" then
+		precond = ILUT (desc.threshold or defaults.threshold);
+		if desc.ordering or (defaults.ordering ~= nil) then
+			precond:set_ordering_algorithm(util.solver.CreateOrdering(desc.ordering or defaults.ordering, solverutil))
+		end
 	elseif name == "jac"  then precond = Jacobi (desc.damping or defaults.damping);
 	elseif name == "bgs"  then precond = BlockGaussSeidel ();
 	elseif name == "gs"   then

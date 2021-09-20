@@ -128,7 +128,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 				m_spOrderingAlgo = SPNULL;
 			}
 
-			std::cerr << "please use 'set_ordering_algorithm(..)' in the future" << std::endl;
+			UG_LOG("\nILUT: please use 'set_ordering_algorithm(..)' in the future\n");
 		}
 
 
@@ -202,7 +202,6 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 			{
 				m_spOrderingAlgo->set_matrix(&mat);
 				m_spOrderingAlgo->compute();
-				//m_spOrderingAlgo->check();
 				m_ordering = m_spOrderingAlgo->ordering();
 
 				m_bSortIsIdentity = GetInversePermutation(m_ordering, m_old_ordering);
@@ -357,8 +356,6 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 				if(m_spOrderingAlgo.valid())
 				{
 					UG_LOG("	Using " <<  m_spOrderingAlgo->config_string() << "\n");
-						if(m_bSortIsIdentity) UG_LOG("Sort is identity (already sorted).");
-					UG_LOG("\n");
 				}
 				else
 				{
