@@ -156,15 +156,6 @@ private:
 	O_t o;
 };
 
-
-template <typename M_t, typename O_t>
-void boost_shortest_paths_ordering(M_t &m){
-	BoostShortestPathsOrdering<M_t, O_t> algo();
-	algo.set_matrix(m);
-	algo.compute();
-}
-
-
 } //namespace
 
 #endif //guard

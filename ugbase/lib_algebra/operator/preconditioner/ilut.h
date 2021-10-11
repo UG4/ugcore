@@ -66,12 +66,11 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 
 	/// clone constructor
 		ILUTPreconditioner(const ILUTPreconditioner<TAlgebra> &parent)
-			: base_type(parent)
+			: base_type(parent), m_spOrderingAlgo(parent.m_spOrderingAlgo)
 		{
 			m_eps = parent.m_eps;
 			set_info(parent.m_info);
 			m_bSortIsIdentity = parent.m_bSortIsIdentity;
-			m_spOrderingAlgo = parent.m_spOrderingAlgo;
 		}
 
 	///	Clone

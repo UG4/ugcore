@@ -765,6 +765,8 @@ function util.solver.CreateOrdering(orderingDesc, solverutil)
 		ordering = BoostShortestPathsOrdering()
 	elseif name == "WeightedCuthillMcKee" then
 		ordering = WeightedCuthillMcKeeOrdering()
+	elseif name == "WittumDownwind" then
+		ordering = WittumDownwindOrdering()
 	end
 
 	util.solver.CondAbort(ordering == nil, "Invalid ordering specified: " .. name)

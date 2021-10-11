@@ -59,6 +59,8 @@ void print(S_t &s){
 	} std::cout << std::endl;
 }
 
+#ifndef PRINT_GRAPH
+#define PRINT_GRAPH
 template <typename G_t>
 void print_graph(G_t& g){
 	typedef typename boost::graph_traits<G_t>::edge_descriptor Edge;
@@ -70,6 +72,7 @@ void print_graph(G_t& g){
 		std::cout << boost::source(*eIt, g) << " -> " << boost::target(*eIt, g) << " ( " << w << " )" << std::endl;
 	}
 }
+#endif
 
 template <typename T>
 void print(std::set<T> &s){
@@ -313,15 +316,6 @@ private:
 
 	bool m_bReverse;
 };
-
-
-template <typename M_t, typename O_t>
-void weighted_Cuthill_McKee_ordering(M_t &m, bool reverse){
-	WeightedCuthillMcKeeOrdering<M_t, O_t> algo();
-	algo.set_matrix(m);
-	algo.set_reverse(reverse);
-	algo.compute();
-}
 
 } //namespace
 

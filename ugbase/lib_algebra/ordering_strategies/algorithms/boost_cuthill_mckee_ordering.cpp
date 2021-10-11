@@ -119,6 +119,11 @@ public:
 		}
 
 		g = G_t(0);
+
+		std::cout << "ordering: ";
+		for(unsigned i = 0; i < n; ++i){
+			std::cout << o[i] << " ";
+		} std::cout << std::endl;
 	}
 
 	void check(){
@@ -126,7 +131,6 @@ public:
 			std::cerr << "Not a permutation!" << std::endl;
 			error();
 		}
-
 	}
 
 	O_t& ordering(){
@@ -163,16 +167,6 @@ private:
 
 	bool m_bReverse;
 };
-
-
-template <typename M_t, typename O_t>
-void boost_Cuthill_McKee_ordering(M_t &m, bool reverse){
-	BoostCuthillMcKeeOrdering<M_t, O_t> algo();
-	algo.set_reverse(reverse);
-	algo.set_matrix(m);
-	algo.compute();
-}
-
 
 } //namespace
 

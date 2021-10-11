@@ -157,15 +157,6 @@ private:
 	O_t o;
 };
 
-
-template <typename M_t, typename O_t>
-void boost_minimum_degree_ordering(M_t &m){
-	BoostMinimumDegreeOrdering<M_t, O_t> algo();
-	algo.set_matrix(m);
-	algo.compute();
-}
-
-
 } //namespace
 
 #endif //guard
