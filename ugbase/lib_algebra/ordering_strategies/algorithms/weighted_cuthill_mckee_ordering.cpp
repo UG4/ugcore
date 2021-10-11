@@ -274,7 +274,7 @@ public:
 		return o;
 	}
 
-	void set_matrix(M_t* A){
+	void init(M_t* A){
 		unsigned rows = A->num_rows();
 
 		g = G_t(rows);

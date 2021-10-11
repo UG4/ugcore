@@ -457,6 +457,49 @@ class ILU : public IPreconditioner<TAlgebra>
 		virtual const char* name() const {return "ILU";}
 
 	protected:
+		virtual bool init(SmartPtr<ILinearOperator<vector_type> > J,
+		                  const vector_type& u)
+		{
+		//	cast to matrix based operator
+			SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp =
+					J.template cast_dynamic<MatrixOperator<matrix_type, vector_type> >();
+
+		//	Check that matrix if of correct type
+			if(pOp.invalid())
+				UG_THROW(name() << "::init': Passed Operator is "
+						"not based on matrix. This Preconditioner can only "
+						"handle matrix-based operators.");
+
+		//	forward request to matrix based implementation
+			return init(pOp);
+		}
+
+		bool init(SmartPtr<ILinearOperator<vector_type> > L)
+		{
+		//	cast to matrix based operator
+			SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp =
+					L.template cast_dynamic<MatrixOperator<matrix_type, vector_type> >();
+
+		//	Check that matrix if of correct type
+			if(pOp.invalid())
+				UG_THROW(name() << "::init': Passed Operator is "
+						"not based on matrix. This Preconditioner can only "
+						"handle matrix-based operators.");
+
+		//	forward request to matrix based implementation
+			return init(pOp);
+		}
+
+		bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op)
+		{
+			if(m_spOrderingAlgo.valid()){
+				m_spOrderingAlgo->init(&(*Op));
+			}
+
+			return base_type::init(Op);
+		}
+
+	protected:
 
 	//	Preprocess routine
 		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
@@ -528,7 +571,6 @@ class ILU : public IPreconditioner<TAlgebra>
 
 		//	if using overlap we already sort in a different way
 			if(m_spOrderingAlgo.valid() && !(m_useOverlap && sortSlaveToEnd)){
-				m_spOrderingAlgo->set_matrix(&mat);
 				m_spOrderingAlgo->compute();
 				m_ordering = m_spOrderingAlgo->ordering();
 
@@ -698,15 +740,15 @@ class ILU : public IPreconditioner<TAlgebra>
 		std::vector<size_t> m_newIndex, m_oldIndex;
 		bool m_bSortIsIdentity;
 
-	/// for ordering algorithms
-		SmartPtr<ordering_algo_type> m_spOrderingAlgo;
-		ordering_container_type m_ordering, m_old_ordering;
-
 	/// whether or not to disable preprocessing
 		bool m_bDisablePreprocessing;
 
 		bool m_useConsistentInterfaces;
 		bool m_useOverlap;
+
+	/// for ordering algorithms
+		SmartPtr<ordering_algo_type> m_spOrderingAlgo;
+		ordering_container_type m_ordering, m_old_ordering;
 };
 
 } // end namespace ug

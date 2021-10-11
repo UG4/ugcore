@@ -136,7 +136,7 @@ public:
 		return o;
 	}
 
-	void set_matrix(M_t* m){
+	void init(M_t* m){
 		mat = m;
 	}
 
