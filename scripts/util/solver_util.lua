@@ -665,6 +665,11 @@ function util.solver.CreateLinearSolver(solverDesc, solverutil)
 		linSolver = BiCGStab()
 		createPrecond = true
 		createConvCheck = true
+	
+	elseif name == "gmres" then
+    linSolver = GMRES(5)
+    createPrecond = true
+    createConvCheck = true	
 
 	elseif name == "lu"	then
 		if HasClassGroup("SuperLU") then
@@ -819,8 +824,18 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 		precond = SymmetricGaussSeidel ()
 		precond:enable_consistent_interfaces(desc.consistentInterfaces or defaults.consistentInterfaces)
 		precond:enable_overlap(desc.overlap or defaults.overlap)
-	elseif name == "egs"  then precond = ElementGaussSeidel ();
-
+	elseif name == "egs"  then 
+		precond = ElementGaussSeidel();
+	elseif name == "cgs"  then 
+		precond = ComponentGaussSeidel();
+	elseif name == "ssc"  then 
+	   print("desc=")
+	   print (desc)
+	    precond = SequentialSubspaceCorrection(desc.damping or 1.0);
+	    local primary = desc.vertex[1] 
+	    local secondary = desc.vertex[2] 
+      local vertex_vanka = VertexCenteredVankaSubspace(primary, secondary)
+      precond:set_vertex_subspace(vertex_vanka)
 	elseif name == "gmg"  then 
 		local smoother =
 				util.solver.CreatePreconditioner(
@@ -850,7 +865,10 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 		gmg:set_gathered_base_solver_if_ambiguous (
 				desc.gatheredBaseSolverIfAmbiguous or
 				defaults.gatheredBaseSolverIfAmbiguous)
-
+		
+		if (util.debug_writer) then		 -- quickhack
+	  	gmg:set_debug(util.debug_writer)
+    end
 		if desc.surfaceLevel then
 			gmg:set_surface_level			(desc.surfaceLevel)
 		end
@@ -894,27 +912,43 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 	end
 
 	util.solver.CondAbort(precond == nil, "Invalid preconditioner specified: " .. name)
+   
+  -- check:   
+  local rprecond  = precond
+  if desc and desc.debugSolver then
+      print(solver)
+      print(precond)
+      local dsolver = util.solver.CreateLinearSolver(desc.debugSolver, solverutil)
+          
+      local err = GridFunction(approxSpace)
+      rprecond = DebugIterator(precond, dsolver)
+      rprecond:set_solution(err)
+      print(rprecond)
+  else  
   
-	-- check:   
-	local rprecond  = precond
-	if desc and desc.debugSolver then
-		print(solver)
-		local dsolver = 
-		  util.solver.CreateLinearSolver(
-			  desc.debugSolver, solverutil)
-			  
-		local err = GridFunction(approxSpace)
-		rprecond = DebugIterator(precond, dsolver)
-		rprecond:set_solution(err)
-	else  
-		
-	end
-	
-	-- create debug writer (optional)
-	util.solver.SetDebugWriter(rprecond, desc, defaults, solverutil)
-	
-	if desc then desc.instance = rprecond end
-	
+  
+   
+  end
+  
+  -- create debug writer (optional)
+  if desc and ((desc.debug == true) or (desc.debugSolver and desc.debugSolver.debug==true)) then
+    if approxSpace == nil then
+      print("An ApproximationSpace is required to create a DebugWriter for the '" .. name .. "'' preconditioner.")
+      print("Consider setting the 'approxSpace' property of your preconditioner,")
+      print("or alternatively the util.solver.defaults.approxSpace property or")
+      print("alternatively set the option 'debug=false' in your preconditioner.")
+      exit()
+    end
+
+    local dbgWriter = GridFunctionDebugWriter(approxSpace)
+    dbgWriter:set_vtk_output(true)
+    dbgWriter:set_conn_viewer_output(true)
+    rprecond:set_debug(dbgWriter)
+  end
+  
+  if desc then desc.instance = rprecond end
+  
+
 	return rprecond
 end
 
@@ -938,7 +972,8 @@ function util.solver.CreateConvCheck(convCheckDesc, solverutil)
 		cc:set_maximum_steps	(desc.iterations	or defaults.iterations)
 		cc:set_minimum_defect	(desc.absolute		or defaults.absolute)
 		cc:set_reduction		(desc.reduction		or defaults.reduction)
-		cc:set_verbose			(verbose)
+		cc:set_verbose			(desc.verbose or false)
+		cc:set_supress_unsuccessful(desc.always_accept or false)
 	elseif name == "composite" then
 		local approxSpace = desc.approxSpace or util.solver.defaults.approxSpace
 		if approxSpace == nil then 
@@ -1137,7 +1172,7 @@ end
 --! @param outFilePrefix	(optional) .vtk and .vec files of the solution are stored.
 --! @return					A, u, b, where A is the system matrix, u is the solution
 --!							and b is the right hand side
-function util.solver.SolveLinearProblem(domDisc, solverDesc, outFilePrefix, startValueCB)
+function util.solver.SolveLinearProblem(domainDisc, solverDesc, outFilePrefix, startValueCB)
 	print("")
 	print("util.solver: setting up linear system ...")
 	local A = AssembledLinearOperator(domainDisc)

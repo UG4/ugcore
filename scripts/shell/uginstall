@@ -621,7 +621,7 @@ install_SuperLU()
 {
 	my_install \
 	SuperLU "4.3"\
-	"http://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_4.3.tar.gz"\
+	"https://portal.nersc.gov/project/sparse/superlu/superlu_4.3.tar.gz"\
 	superlu_4.3.tar.gz SuperLU_4.3 \
 	"make_SuperLU"	
 }

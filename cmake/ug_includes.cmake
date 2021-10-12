@@ -275,7 +275,6 @@ message(STATUS "Info: USE_LUA2C          ${USE_LUA2C} (options are: ON, OFF)")
 message(STATUS "Info: USE_LUAJIT         ${USE_LUAJIT} (options are: ON, OFF)")
 message(STATUS "")
 message(STATUS "Info: External libraries (path which contains the library or ON if you used uginstall):")
-message(STATUS "Info: TETGEN:            ${TETGEN}")
 message(STATUS "Info: HLIBPRO:           ${HLIBPRO}")
 message(STATUS "Info: USE_JSON:          ${USE_JSON} (options are: ON, OFF)")
 message(STATUS "Info: USE_XEUS:          ${USE_XEUS} (options are: ON, OFF)")
@@ -468,9 +467,11 @@ if(INTERNAL_BOOST)
 	set(INTERNAL_BOOST_PATH ${UG_ROOT_PATH}/externals/BoostForUG4/)
 	set(BOOST_ROOT ${INTERNAL_BOOST_PATH})
 	set(Boost_INCLUDE_DIRS ${INTERNAL_BOOST_PATH})
-	message(STATUS "Info: Internal Boost ${Boost_ADDITIONAL_VERSIONS}")
+	set(Boost_MAJOR_VERSION 1)
+	set(Boost_MINOR_VERSION 71)
+	message(STATUS "Info: Internal Boost ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}")
 else(INTERNAL_BOOST)
-	find_package(Boost 1.58 REQUIRED) # automatic detection
+	find_package(Boost 1.71 REQUIRED) # automatic detection
 
 	if(Boost_FOUND)
 		message(STATUS "Info: Found Boost ${Boost_VERSION} in <${Boost_INCLUDE_DIRS}>")
@@ -582,12 +583,6 @@ if(buildBridge)
 endif(buildBridge)
 set(UG_DEBUG ${DEBUG})
 
-
-################################################################################
-# link against required libraries
-link_libraries(${linkLibraries})
-
-
 ################################################################################
 # Declare a method that allows all sub-cmake-files to add their sources
 # to a common library.
@@ -632,7 +627,6 @@ set(PROFILER ${PROFILER} CACHE STRING "Set the a profiler. Valid options are: ${
 
 # the following options too are pseudo cmake-options. However, they should
 # contains pathes, if set.
-set(TETGEN ${TETGEN} CACHE PATH "Sets the path in which tetgen shall be searched.")
 set(HLIBPRO ${HLIBPRO} CACHE PATH "Sets the path in which hlibpro shall be searched.")
 
 set(DEBUG_FORMAT ${DEBUG_FORMAT} CACHE STRING "Debug format options like -g, -gstabs, -ggbd. If not set, debug format is -g.")
