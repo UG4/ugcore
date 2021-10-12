@@ -154,7 +154,9 @@ public:
 		typename boost::graph_traits<G_t>::in_edge_iterator in_nIt, in_nEnd;
 		for(boost::tie(in_nIt, in_nEnd) = boost::in_edges(v, g); in_nIt != in_nEnd; ++in_nIt){
 			if(ignore_visited && visited[v]){ continue; }
+#ifdef UG_CPU_1
 			w += abs(boost::get(boost::edge_weight_t(), g, *in_nIt)); //TODO: think about this!
+#endif
 		}
 		return w;
 	}
@@ -285,16 +287,11 @@ public:
 					double w;
 	#ifdef UG_CPU_1
 					w = abs(conn.value()); //TODO: think about this
-	#endif
-	#ifdef UG_CPU_2
-					std::cerr << "[WeightedMatrixGraph] CPU > 1 not implemented yet!" << std::endl;
-					error();
-	#endif
-	#ifdef UG_CPU_3
-					std::cerr << "[WeightedMatrixGraph] CPU > 1 not implemented yet!" << std::endl;
-					error();
-	#endif
 					boost::add_edge(i, conn.index(), w, g);
+	#else
+					std::cerr << "[WeightedMatrixGraph] CPU > 1 not implemented yet!" << std::endl;
+					error();
+	#endif
 				}
 			}
 		}
