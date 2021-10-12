@@ -41,8 +41,7 @@
 
 #include "IOrderingAlgorithm.h"
 #include "util.cpp"
-
-#include "common/code_marker.h"
+#include "common/error.h"
 
 namespace ug{
 
@@ -53,17 +52,6 @@ typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
 			 boost::default_color_type,
 			 boost::property<boost::vertex_degree_t, int> > >
 				Graph_t;
-
-
-template <typename G_t>
-void print_graph_unweighted(G_t& g){
-	typedef typename boost::graph_traits<G_t>::edge_descriptor Edge;
-
-	typename boost::graph_traits<G_t>::edge_iterator eIt, eEnd;
-	for(boost::tie(eIt, eEnd) = boost::edges(g); eIt != eEnd; ++eIt){
-		std::cout << boost::source(*eIt, g) << " -> " << boost::target(*eIt, g) << std::endl;
-	}
-}
 
 
 template <typename M_t, typename O_t=std::vector<size_t> >
@@ -90,7 +78,7 @@ public:
 		unsigned n = boost::num_vertices(g);
 
 		if(n == 0){
-			std::cerr << "graph not set! abort." << std::endl;
+			UG_THROW(name() << "::compute: Graph is empty!");
 			return;
 		}
 
@@ -120,16 +108,17 @@ public:
 
 		g = G_t(0);
 
+#if 0
 		std::cout << "ordering: ";
 		for(unsigned i = 0; i < n; ++i){
 			std::cout << o[i] << " ";
 		} std::cout << std::endl;
+#endif
 	}
 
 	void check(){
 		if(!is_permutation(o)){
-			std::cerr << "Not a permutation!" << std::endl;
-			error();
+			UG_THROW(name() << "::check: Not a permutation!");
 		}
 	}
 
@@ -138,6 +127,7 @@ public:
 	}
 
 	void init(M_t* A){
+		UG_LOG("Using " << name() << "\n");
 		unsigned rows = A->num_rows();
 
 		g = G_t(rows);
@@ -155,11 +145,7 @@ public:
 		m_bReverse = b;
 	}
 
-	std::string config_string() const{
-		std::stringstream ss;
-		ss << "BoostCuthillMcKeeOrdering";
-		return ss.str();
-	}
+	virtual const char* name() const {return "BoostCuthillMcKeeOrdering";}
 
 private:
 	G_t g;

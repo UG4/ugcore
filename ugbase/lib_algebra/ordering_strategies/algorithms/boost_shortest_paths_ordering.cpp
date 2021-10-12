@@ -41,6 +41,7 @@
 
 #include "IOrderingAlgorithm.h"
 #include "util.cpp"
+#include "common/error.h"
 
 namespace ug{
 
@@ -79,7 +80,7 @@ public:
 		unsigned n = boost::num_vertices(g);
 
 		if(n == 0){
-			std::cerr << "graph not set! abort." << std::endl;
+			UG_THROW(name() << "::compute: Graph is empty!");
 			return;
 		}
 
@@ -110,8 +111,7 @@ public:
 
 	void check(){
 		if(!is_permutation(o)){
-			std::cerr << "Not a permutation!" << std::endl;
-			error();
+			UG_THROW(name() << "::check: Not a permutation!");
 		}
 	}
 
@@ -120,6 +120,7 @@ public:
 	}
 
 	void init(M_t* A){
+		UG_LOG("Using " << name() << "\n");
 		unsigned rows = A->num_rows();
 
 		g = G_t(rows);
@@ -128,28 +129,14 @@ public:
 			for(typename M_t::row_iterator conn = A->begin_row(i); conn != A->end_row(i); ++conn){
 				if(conn.value() != 0.0 && conn.index() != i){ //TODO: think about this!!
 					double w;
-	#ifdef UG_CPU_1
 					w = abs(conn.value()); //TODO: think about this
-	#endif
-	#ifdef UG_CPU_2
-					std::cerr << "[WeightedMatrixGraph] CPU > 1 not implemented yet!" << std::endl;
-					error();
-	#endif
-	#ifdef UG_CPU_3
-					std::cerr << "[WeightedMatrixGraph] CPU > 1 not implemented yet!" << std::endl;
-					error();
-	#endif
 					boost::add_edge(i, conn.index(), w, g);
 				}
 			}
 		}
 	}
 
-	std::string config_string() const{
-		std::stringstream ss;
-		ss << "BoostShortestPathsOrdering";
-		return ss.str();
-	}
+	virtual const char* name() const {return "BoostShortestPathsOrdering";}
 
 private:
 	G_t g;

@@ -37,7 +37,6 @@
 #include "common/profiler/profiler.h"
 #include "common/error.h"
 #include "lib_algebra/ordering_strategies/algorithms/native_cuthill_mckee.h"
-#include "common/code_marker.h" //error()
 #include <vector>
 
 namespace ug{

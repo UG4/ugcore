@@ -45,7 +45,7 @@ void ComputeLexicographicOrder(std::vector<size_t>& vNewIndex,
                                std::vector<std::pair<MathVector<dim>, size_t> >& vPos,
 							   size_t orderDim = 0);
 
-/// orders the dof distribution using Cuthill-McKee
+/// orders the dof distribution using lexicographic order
 template <typename TDomain>
 void OrderLexForDofDist(SmartPtr<DoFDistribution> dd, ConstSmartPtr<TDomain> domain,
 	   size_t orderDim = 0);

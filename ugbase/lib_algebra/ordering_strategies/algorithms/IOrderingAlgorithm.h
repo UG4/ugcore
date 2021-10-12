@@ -62,9 +62,9 @@ public:
 
 	virtual void init(M_t*) = 0;
 
-	virtual std::string config_string() const = 0;
-
 	virtual SmartPtr<IOrderingAlgorithm<M_t, O_t> > clone() = 0;
+
+	virtual const char* name() const = 0;
 };
 
 } //namespace

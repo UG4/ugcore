@@ -41,8 +41,7 @@
 
 #include "IOrderingAlgorithm.h"
 #include "util.cpp"
-
-#include "../../../common/code_marker.h" //error()
+#include "common/error.h"
 
 namespace ug{
 
@@ -72,21 +71,17 @@ public:
 		unsigned n = boost::num_vertices(g);
 		unsigned e = boost::num_edges(g);
 
-		if(n == 0){
-			std::cerr << "graph not set! abort." << std::endl;
-			return;
-		}
-
 		O_t io(n, 0);
 
 		o.resize(n);
 		unsigned i = 0;
 
 		if(n == 0){
-			error();
+			UG_THROW(name() << "::compute: Graph is empty!");
+			return;
 		}
 		else if(n*(n-1u)==e || e==0){
-			error();
+			UG_LOG(name() << "::compute: Graph is complete or edgeless!");
 			typename boost::graph_traits<G_t>::vertex_iterator vIt, vEnd;
 			for(boost::tie(vIt, vEnd) = boost::vertices(g); vIt != vEnd; vIt++){
 				o[i++] = *vIt;
@@ -123,8 +118,7 @@ public:
 
 	void check(){
 		if(!is_permutation(o)){
-			std::cerr << "Not a permutation!" << std::endl;
-			error();
+			UG_THROW(name() << "::check: Not a permutation!");
 		}
 	}
 
@@ -133,6 +127,7 @@ public:
 	}
 
 	void init(M_t* A){
+		UG_LOG("Using " << name() << "\n");
 		unsigned rows = A->num_rows();
 
 		g = G_t(rows);
@@ -146,11 +141,7 @@ public:
 		}
 	}
 
-	std::string config_string() const{
-		std::stringstream ss;
-		ss << "BoostMinimumDegreeOrdering";
-		return ss.str();
-	}
+	virtual const char* name() const {return "BoostMinimumDegreeOrdering";}
 
 private:
 	G_t g;

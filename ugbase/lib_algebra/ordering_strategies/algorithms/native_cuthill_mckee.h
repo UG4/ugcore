@@ -36,10 +36,9 @@
 
 #include <vector>
 
-#include "common/code_marker.h"
-
 #include "IOrderingAlgorithm.h"
 #include "util.cpp"
+#include "common/error.h"
 
 namespace ug{
 
@@ -127,8 +126,7 @@ public:
 
 	void check(){
 		if(!is_permutation(o)){
-			std::cerr << "Not a permutation!" << std::endl;
-			error();
+			UG_THROW(name() << "::check': Not a permutation!");
 		}
 	}
 
@@ -137,6 +135,7 @@ public:
 	}
 
 	void init(M_t* m){
+		UG_LOG("Using " << name() << "\n");
 		mat = m;
 	}
 
@@ -144,11 +143,7 @@ public:
 		m_bReverse = b;
 	}
 
-	std::string config_string() const{
-		std::stringstream ss;
-		ss << "NativeCuthillMcKeeOrdering (ug4 version)";
-		return ss.str();
-	}
+	virtual const char* name() const {return "NativeCuthillMcKeeOrdering (ug4 version)";}
 
 private:
 	O_t o;
