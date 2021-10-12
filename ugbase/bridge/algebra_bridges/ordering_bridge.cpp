@@ -101,7 +101,7 @@ static void Algebra(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "WeightedCuthillMcKeeOrdering", tag);
 	}
-
+/*
 //	Boost Shortest Paths
 	{
 		typedef BoostShortestPathsOrdering<typename TAlgebra::matrix_type, ordering_container_type> T;
@@ -112,7 +112,7 @@ static void Algebra(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "BoostShortestPathsOrdering", tag);
 	}
-
+*/
 //	Boost Cuthill McKee
 	{
 		typedef BoostCuthillMcKeeOrdering<typename TAlgebra::matrix_type, ordering_container_type> T;
@@ -135,7 +135,7 @@ static void Algebra(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "BoostMinimumDegreeOrdering", tag);
 	}
-
+/*
 //	Native Cuthill McKee
 	{
 		typedef NativeCuthillMcKeeOrdering<typename TAlgebra::matrix_type, ordering_container_type> T;
@@ -158,6 +158,7 @@ static void Algebra(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "WittumDownwindOrdering", tag);
 	}
+*/
 }
 
 }; // end Functionality
