@@ -43,6 +43,7 @@ namespace ug{
 
 void OrderCuthillMcKee(DoFDistribution& dofDistr, bool bReverse)
 {
+	std::cerr << "!!!!!!!!!!! OrderCuthillMcKee: Do not use this function" << std::endl;
 	PROFILE_FUNC();
 //	get adjacency graph
 	std::vector<std::vector<size_t> > vvConnection;
