@@ -497,7 +497,7 @@ util.solver.defaults =
 
 		ilut = {
 			threshold = 1e-6,
-			ordering = "NativeCuthillMcKeeOrdering"
+			ordering = "NativeCuthillMcKee"
 		},
 		
 		gs = {
