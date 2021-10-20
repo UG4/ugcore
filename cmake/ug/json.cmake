@@ -38,8 +38,8 @@ if(USE_JSON)
     	
     	# Automatic
     	FIND_PACKAGE(nlohmann_json QUIET)
-    	MESSAGE("-- Adding JSON from ${UG_ROOT_CMAKE_PATH}/../../externals/JSONForUG4/json-cxx")	
-    	include_directories(${UG_ROOT_CMAKE_PATH}/../../externals/JSONForUG4/json-cxx)
+    	MESSAGE("-- Adding JSON from ${UG_ROOT_CMAKE_PATH}/../../externals/JSONForUG4/json-cxx/include")
+    	include_directories(${UG_ROOT_CMAKE_PATH}/../../externals/JSONForUG4/json-cxx/include)
     	MESSAGE("-- Dir: ${NLOHMANN_JSON_INCLUDE_INSTALL_DIR}") 
     	add_definitions(-DUG_JSON)
     endif(STATIC_BUILD)
