@@ -30,7 +30,7 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include "lexorder.h"
+#include "lib_disc/ordering_strategies/algorithms/lexorder.h"
 #include "common/common.h"
 #include "lib_disc/function_spaces/dof_position_util.h"
 #include "lib_disc/reference_element/reference_element_util.h"
