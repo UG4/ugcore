@@ -42,6 +42,9 @@
 	#include "lib_algebra/parallelization/parallel_matrix_overlap_impl.h"
 #endif
 
+#include "lib_algebra/ordering_strategies/algorithms/IOrderingAlgorithm.h"
+#include "lib_algebra/algebra_common/permutation_util.h"
+
 namespace ug{
 
 template<typename TAlgebra>
@@ -63,6 +66,10 @@ class GaussSeidelBase : public IPreconditioner<TAlgebra>
 	///	Base type
 		typedef IPreconditioner<TAlgebra> base_type;
 
+	///	Ordering type
+		typedef std::vector<size_t> ordering_container_type;
+		typedef IOrderingAlgorithm<matrix_type, ordering_container_type> ordering_algo_type;
+
 	protected:
 		using base_type::set_debug;
 		using base_type::debug_writer;
@@ -79,7 +86,8 @@ class GaussSeidelBase : public IPreconditioner<TAlgebra>
 		GaussSeidelBase( const GaussSeidelBase<TAlgebra> &parent )
 			: base_type(parent),
 			  m_bConsistentInterfaces(parent.m_bConsistentInterfaces),
-			  m_useOverlap(parent.m_useOverlap)
+			  m_useOverlap(parent.m_useOverlap),
+			  m_spOrderingAlgo(parent.m_spOrderingAlgo)
 		{
 			set_sor_relax(parent.m_relax);
 		}
@@ -91,6 +99,11 @@ class GaussSeidelBase : public IPreconditioner<TAlgebra>
 		void enable_consistent_interfaces(bool enable) {m_bConsistentInterfaces = enable;}
 
 		void enable_overlap (bool enable) {m_useOverlap = enable;}
+
+	/// 	sets an ordering algorithm
+		void set_ordering_algorithm(SmartPtr<ordering_algo_type> ordering_algo){
+			m_spOrderingAlgo = ordering_algo;
+		}
 
 		virtual const char* name() const = 0;
 	protected:
@@ -137,6 +150,11 @@ class GaussSeidelBase : public IPreconditioner<TAlgebra>
 			THROW_IF_NOT_EQUAL(pA->num_rows(), pA->num_cols());
 //			UG_ASSERT(CheckDiagonalInvertible(A), "GS: A has noninvertible diagonal");
 			UG_COND_THROW(CheckDiagonalInvertible(*pA) == false, name() << ": A has noninvertible diagonal");
+
+			if(m_spOrderingAlgo.valid() && !m_useOverlap){
+				m_spOrderingAlgo->init(pA);
+			}
+
 			return true;
 		}
 
@@ -230,6 +248,12 @@ class GaussSeidelBase : public IPreconditioner<TAlgebra>
 
 		bool m_bConsistentInterfaces;
 		bool m_useOverlap;
+
+	/// for ordering algorithms
+		SmartPtr<ordering_algo_type> m_spOrderingAlgo;
+		ordering_container_type m_ordering, m_old_ordering;
+		std::vector<size_t> m_newIndex, m_oldIndex;
+		bool m_bSortIsIdentity;
 };
 
 /// Gauss-Seidel preconditioner for the 'forward' ordering of the dofs

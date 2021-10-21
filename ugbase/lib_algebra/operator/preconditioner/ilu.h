@@ -492,7 +492,7 @@ class ILU : public IPreconditioner<TAlgebra>
 
 		bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op)
 		{
-			if(m_spOrderingAlgo.valid()){
+			if(m_spOrderingAlgo.valid() && !m_useOverlap){
 				m_spOrderingAlgo->init(&(*Op));
 			}
 
@@ -736,10 +736,6 @@ class ILU : public IPreconditioner<TAlgebra>
 	///	smallest allowed value for the Aii/Bi quotient
 		number m_invEps;
 
-	/// for cuthill-mckee reordering
-		std::vector<size_t> m_newIndex, m_oldIndex;
-		bool m_bSortIsIdentity;
-
 	/// whether or not to disable preprocessing
 		bool m_bDisablePreprocessing;
 
@@ -749,6 +745,8 @@ class ILU : public IPreconditioner<TAlgebra>
 	/// for ordering algorithms
 		SmartPtr<ordering_algo_type> m_spOrderingAlgo;
 		ordering_container_type m_ordering, m_old_ordering;
+		std::vector<size_t> m_newIndex, m_oldIndex;
+		bool m_bSortIsIdentity;
 };
 
 } // end namespace ug
