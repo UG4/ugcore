@@ -362,7 +362,7 @@ class ICplUserData : virtual public UserDataInfo
 	///	get the specified evaluation time
 		number time(size_t s) const
 		{
-			UG_ASSERT( m_vTime.size() > time_point(s), "invalid size of time point"  );
+			UG_ASSERT( m_vTime.size() > time_point(s), "invalid size of time point"  << m_vTime.size() << " ///  " << time_point(s) << std::endl  );
 			return m_vTime[time_point(s)];
 		}
 
