@@ -35,10 +35,13 @@
 
 #include <iostream>
 #include <sstream>
+#include <limits>
 
 #include "newton.h"
 #include "lib_disc/function_spaces/grid_function_util.h"
 #include "common/util/string_util.h"
+
+#include "lib_disc/operator/non_linear_operator/newton_solver/nestedNewtonRFSwitch.h"
 
 #define PROFILE_NEWTON
 #ifdef PROFILE_NEWTON
@@ -67,6 +70,10 @@ NewtonSolver(SmartPtr<ILinearOperatorInverse<vector_type> > LinearSolver,
 			m_reassembe_J_freq(0),
 			m_dgbCall(0),
 			m_lastNumSteps(0)
+#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
+			,
+			m_newtonUpdater(new NewtonUpdaterGeneric<vector_type>{})
+#endif
 {};
 
 template <typename TAlgebra>
@@ -81,6 +88,10 @@ NewtonSolver() :
 	m_reassembe_J_freq(0),
 	m_dgbCall(0),
 	m_lastNumSteps(0)
+#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
+	,
+	m_newtonUpdater(new NewtonUpdaterGeneric<vector_type>{})
+#endif
 {};
 
 template <typename TAlgebra>
@@ -95,6 +106,10 @@ NewtonSolver(SmartPtr<IOperator<vector_type> > N) :
 	m_reassembe_J_freq(0),
 	m_dgbCall(0),
 	m_lastNumSteps(0)
+#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
+	,
+	m_newtonUpdater(new NewtonUpdaterGeneric<vector_type>{})
+#endif
 {
 	init(N);
 };
@@ -111,6 +126,10 @@ NewtonSolver(SmartPtr<IAssemble<TAlgebra> > spAss) :
 	m_reassembe_J_freq(0),
 	m_dgbCall(0),
 	m_lastNumSteps(0)
+#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
+	,
+	m_newtonUpdater(new NewtonUpdaterGeneric<vector_type>{})
+#endif
 {
 	m_spAss = spAss;
 	m_N = SmartPtr<AssembledOperator<TAlgebra> >(new AssembledOperator<TAlgebra>(m_spAss));
@@ -277,6 +296,12 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 			{
 				m_spLineSearch->set_offset("   #  ");
 				NEWTON_PROFILE_BEGIN(NewtonLineSearch);
+
+#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
+
+				m_spLineSearch->setNewtonUpdater(m_newtonUpdater);
+
+#endif
 				if(!m_spLineSearch->search(m_N, u, *spC, *spD, m_spConvCheck->defect()))
 				{
 					UG_LOG("ERROR in 'NewtonSolver::apply': "
@@ -288,9 +313,35 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 		// 	No line search: Compute new defect
 			else
 			{
+#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
+				// 	update solution
+				//u -= *spC;
+//				if( ! (*m_newtonUpdater)() )
+
+				//bool acceptedNewtonUpdate = m_newtonUpdater->updateNewton(u,*spC);
+
+				//if( ! acceptedNewtonUpdate )
+
+				if( ! m_newtonUpdater->updateSolution(u,*spC) )
+				{
+					UG_LOG("ERROR in 'NewtonSolver::apply': "
+							"Newton Update did not work.\n");
+					// TODO FIXME was macht conv check update? wie kriege ich hier einfach ein riesiges Residuum rein, ohne was zu rechnen?
+					return false;
+				}
+
+				if( ! m_newtonUpdater->tellAndFixUpdateEvents(u) )
+				{
+					UG_LOG("unable to fix local Newton updates" << std::endl );
+					return false;
+				}
+
+
+#else
 			// 	update solution
 				u -= *spC;
-	
+#endif
+
 			// 	compute new Defect
 				NEWTON_PROFILE_BEGIN(NewtonComputeDefect);
 				m_N->prepare(u);

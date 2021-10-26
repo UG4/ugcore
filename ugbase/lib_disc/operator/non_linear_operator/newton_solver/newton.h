@@ -47,6 +47,14 @@
 #include "newton_update_interface.h"
 #include "lib_algebra/operator/debug_writer.h"
 
+#include "nestedNewtonRFSwitch.h"
+
+#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
+
+#include "newtonUpdaterGeneric.h"
+
+#endif
+
 namespace ug {
 
 /// Newton solver for assembling based discretizations
@@ -148,6 +156,13 @@ class NewtonSolver
 		void set_reassemble_J_freq(int freq)
 			{m_reassembe_J_freq = freq;};
 
+#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
+		void setNewtonUpdater( SmartPtr<NewtonUpdaterGeneric<vector_type> > nU )
+		{
+			m_newtonUpdater = nU;
+		}
+#endif
+
 	private:
 	///	help functions for debug output
 	///	\{
@@ -189,6 +204,13 @@ class NewtonSolver
 		std::vector<number> m_vNonLinSolverRates;
 		std::vector<number> m_vLinSolverRates;
 	/// \}
+
+#if ENABLE_NESTED_NEWTON_RESOLFUNC_UPDATE
+
+		SmartPtr<NewtonUpdaterGeneric<vector_type> > m_newtonUpdater;
+
+#endif
+
 };
 
 }
