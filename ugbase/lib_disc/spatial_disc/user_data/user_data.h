@@ -360,7 +360,11 @@ class ICplUserData : virtual public UserDataInfo
 		inline size_t time_point(size_t s) const;
 		
 	///	get the specified evaluation time
-		number time(size_t s) const {return m_vTime[time_point(s)];}
+		number time(size_t s) const
+		{
+			UG_ASSERT( m_vTime.size() > time_point(s), "invalid size of time point"  );
+			return m_vTime[time_point(s)];
+		}
 
 	///	returns true iff the time point specification is equal to the current one, or not specified
 		inline bool at_current_time(size_t s) const;
