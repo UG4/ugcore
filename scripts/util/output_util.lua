@@ -448,7 +448,7 @@ function util.Balance(DataToBeWrittenTable)
 	
 			if verbose then write(" * Write Flux to '"..filename.."' ... ") end
 		
-			local val = IntegralNormalComponentOnManifold(data, u, boundary, inner)
+			local val = IntegralNormalComponentOnManifold(data, u, boundary, inner, time)
 			print("Flux is: "..val)
 			
 			if ProcRank() == 0 then
