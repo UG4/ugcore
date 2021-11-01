@@ -209,7 +209,7 @@ void RegisterBridge_Ordering(Registry& reg, string grp)
 //		RegisterDimensionDependent<Functionality>(reg,grp);
 		RegisterDomainDependent<Functionality>(reg,grp);
 //		RegisterAlgebraDependent<Functionality>(reg,grp);
-		RegisterDomainAlgebraDependent<Functionality>(reg,grp);
+		//RegisterDomainAlgebraDependent<Functionality>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
