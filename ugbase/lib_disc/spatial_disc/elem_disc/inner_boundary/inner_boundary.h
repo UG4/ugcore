@@ -37,9 +37,6 @@
  * assemblings for the unknown-dependent Neumann-flux over an inner boundary.
  * The equation of this flux and its derivative should be given
  * in a concretization of this class.
- * 
- * \tparam	TDomain		Domain
- * \tparam	TAlgebra	Algebra
  */
 
 #ifndef __H__UG__LIB_DISC__SPACIAL_DISCRETIZATION__ELEM_DISC__NEUMANN_BOUNDARY__FV1__INNER_BOUNDARY__
@@ -72,43 +69,49 @@ struct InnerBoundaryConstants
 		static const size_t _IGNORE_ = -1;
 };
 
-template<typename TDomain>
+
+/// struct that holds information about the flux densities and from where to where the flux occurs
+struct InnerBoundaryFluxCond
+{
+	// vector of fluxFctValues
+	std::vector<number> flux;
+	std::vector<size_t> from;
+	std::vector<size_t> to;
+};
+
+/// struct that holds information about the derivatives of the flux densities
+/// and from where to where the flux occurs
+struct InnerBoundaryFluxDerivCond
+{
+	// vector of fluxFctDerivValues
+	// rows: fluxIndex, cols: dependency;
+	// in the pair: first: with respect to which local function index, second: value
+	std::vector<std::vector<std::pair<size_t,number> > > fluxDeriv;
+	std::vector<size_t> from;
+	std::vector<size_t> to;
+};
+
+
+template <typename TImpl, typename TDomain>
 class FV1InnerBoundaryElemDisc
 : public IElemDisc<TDomain>
 {
 	public:
-		/// struct that holds information about the flux densities and from where to where the flux occurs
-		struct FluxCond
-		{
-			// vector of fluxFctValues
-			std::vector<number> flux;
-			std::vector<size_t> from;
-			std::vector<size_t> to;
-		};
-
-		/// struct that holds information about the derivatives of the flux densities
-		/// and from where to where the flux occurs
-		struct FluxDerivCond
-		{
-			// vector of fluxFctDerivValues
-			// rows: fluxIndex, cols: dependency;
-			// in the pair: first: with respect to which local function index, second: value
-			std::vector<std::vector<std::pair<size_t,number> > > fluxDeriv;
-			std::vector<size_t> from;
-			std::vector<size_t> to;
-		};
-
-	private:
-	///	Base class type
-		typedef IElemDisc<TDomain> base_type;
-
-	///	own type
-		typedef FV1InnerBoundaryElemDisc<TDomain> this_type;
+		typedef InnerBoundaryFluxCond FluxCond;
+		typedef InnerBoundaryFluxDerivCond FluxDerivCond;
 
 	public:
 	///	Domain type
-		typedef typename base_type::domain_type domain_type;
+		typedef TDomain domain_type;
 
+	private:
+	///	Base class type
+		typedef IElemDisc<domain_type> base_type;
+
+	///	own type
+		typedef FV1InnerBoundaryElemDisc<TImpl, TDomain> this_type;
+
+	public:
 	///	World dimension
 		static const int dim = base_type::dim;
 
@@ -116,20 +119,21 @@ class FV1InnerBoundaryElemDisc
 		typedef typename base_type::position_type position_type;
 
 	/// error estimator type
-		typedef MultipleSideAndElemErrEstData<TDomain> err_est_type;
+		typedef MultipleSideAndElemErrEstData<domain_type> err_est_type;
+
 
 	public:
 
 	/// Constructor with c-strings
 		FV1InnerBoundaryElemDisc(const char* functions = "", const char* subsets = "")
-			: IElemDisc<TDomain>(functions, subsets), m_bNonRegularGrid(false), m_bCurrElemIsHSlave(false), m_si(0)
+			: IElemDisc<domain_type>(functions, subsets), m_bNonRegularGrid(false), m_bCurrElemIsHSlave(false), m_si(0)
 		{
 			register_all_fv1_funcs();
 		}
 
 	/// Constructor with functions
 		FV1InnerBoundaryElemDisc(const std::vector<std::string>& functions, const std::vector<std::string>& subsets)
-			: IElemDisc<TDomain>(functions, subsets), m_bNonRegularGrid(false), m_bCurrElemIsHSlave(false), m_si(0)
+			: IElemDisc<domain_type>(functions, subsets), m_bNonRegularGrid(false), m_bCurrElemIsHSlave(false), m_si(0)
 		{
 			register_all_fv1_funcs();
 		}
@@ -149,28 +153,12 @@ class FV1InnerBoundaryElemDisc
 
 	public:	// inherited from IElemDisc
 	///	type of trial space for each function used
-		virtual void prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid);
+		virtual void prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid) override;
 
 	///	returns if hanging nodes are used
-		virtual bool use_hanging() const;
+		virtual bool use_hanging() const override;
 
 	private:
-	
-	/// the flux function
-	/**	This is the actual flux function defining the flux density over the boundary
-	 *	depending on the unknowns on the boundary;
-	 *	shall be defined in a specialized class that is derived from FV1InnerBoundaryElemDisc.
-	 */
-		virtual bool fluxDensityFct(const std::vector<LocalVector::value_type>& u, GridObject* e, const MathVector<dim>& cc,
-									int si, FluxCond& fc) = 0;
-	
-	/**	This is the flux derivative function defining the flux density derivatives over the boundary
-	 *	depending on the unknowns on the boundary;
-	 *	shall be defined in a specialized class that is derived from FV1InnerBoundaryElemDisc.
-	 */
-		virtual bool fluxDensityDerivFct(const std::vector<LocalVector::value_type>& u, GridObject* e, const MathVector<dim>& cc,
-										 int si, FluxDerivCond& fdc) = 0;
-	
 	///	prepares the loop over all elements
 	/**
 	 * This method prepares the loop over all elements. It resizes the Position

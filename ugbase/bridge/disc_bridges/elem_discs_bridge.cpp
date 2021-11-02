@@ -181,6 +181,7 @@ static void Domain(Registry& reg, string grp)
 		reg.add_class_to_group(name, "NeumannBoundaryFE", tag);
 	}
 
+#if 0
 //	Inner Boundaries
 	{
 		typedef FV1InnerBoundaryElemDisc<TDomain> T;
@@ -198,6 +199,7 @@ static void Domain(Registry& reg, string grp)
 			;
 		reg.add_class_to_group(name, "FV1InnerBoundary", tag);
 	}
+#endif
 
 	//	DiracSourceDisc
 		{
