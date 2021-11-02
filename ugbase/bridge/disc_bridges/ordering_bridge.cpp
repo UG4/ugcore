@@ -43,8 +43,6 @@
 
 // lib_disc includes
 #include "lib_disc/domain.h"
-#include "lib_disc/dof_manager/ordering/cuthill_mckee.h"
-#include "lib_disc/dof_manager/ordering/downwindorder.h"
 
 // ordering algorithms
 #include "lib_disc/ordering_strategies/algorithms/ordering_algorithms.cpp"
@@ -209,7 +207,7 @@ void RegisterBridge_Ordering(Registry& reg, string grp)
 //		RegisterDimensionDependent<Functionality>(reg,grp);
 		RegisterDomainDependent<Functionality>(reg,grp);
 //		RegisterAlgebraDependent<Functionality>(reg,grp);
-		//RegisterDomainAlgebraDependent<Functionality>(reg,grp);
+		RegisterDomainAlgebraDependent<Functionality>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }

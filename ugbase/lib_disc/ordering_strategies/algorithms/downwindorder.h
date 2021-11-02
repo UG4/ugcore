@@ -30,8 +30,8 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef __H__UG__LIB_DISC__DOF_MANAGER__DOWNWINDORDER__
-#define __H__UG__LIB_DISC__DOF_MANAGER__DOWNWINDORDER__
+#ifndef __H__UG__LIB_DISC__ORDERING_STRATEGIES_ALGORITHMS__DOWNWINDORDER__
+#define __H__UG__LIB_DISC__ORDERING_STRATEGIES_ALGORITHMS__DOWNWINDORDER__
 
 #include <vector>
 #include <functional> // for lambda signature
@@ -40,6 +40,10 @@
 #include "lib_disc/spatial_disc/user_data/const_user_data.h"
 #include "bindings/lua/lua_user_data.h"
 #include "common/log.h"
+
+#include "lib_algebra/ordering_strategies/algorithms/IOrderingAlgorithm.h"
+#include "lib_algebra/ordering_strategies/algorithms/util.cpp"
+#include "common/error.h"
 
 namespace ug{
 
@@ -128,6 +132,99 @@ void OrderDownwind(ApproximationSpace<TDomain>& approxSpace, const char* strVelo
 template <typename TDomain>
 void OrderDownwind(ApproximationSpace<TDomain>& approxSpace, const char* strVelocity, number threshold);
 #endif
+
+
+template <typename TDomain, typename M_t, typename O_t>
+class DownwindOrdering : public IOrderingAlgorithm<M_t, O_t>
+{
+public:
+	typedef IOrderingAlgorithm<M_t, O_t> baseclass;
+
+	DownwindOrdering(){}
+
+	/// clone constructor
+	DownwindOrdering( const DownwindOrdering<TDomain, M_t, O_t> &parent )
+			: baseclass(){}
+
+	SmartPtr<IOrderingAlgorithm<M_t, O_t> > clone()
+	{
+		return make_sp(new DownwindOrdering<TDomain, M_t, O_t>(*this));
+	}
+
+	void compute(){
+#if 0
+		if(strcmp(m_order, "") == 0){
+			UG_THROW(name() << "::compute': no direction choosen!");
+		}
+
+		if(!m_approxSpace){
+			UG_THROW(name() << "::compute': approximation space not set!");
+		}
+
+		ConstSmartPtr<TDomain> domain = m_approxSpace->domain();
+		std::vector<SmartPtr<DoFDistribution> > vDD = m_approxSpace->dof_distributions();
+		SmartPtr<DoFDistribution> dd = vDD[0]; //TODO: choose properly
+
+		if(dd->num_indices() != mat->num_rows()){
+			UG_THROW(name() << "::compute': #indices in dof distribution does not match #rows in matrix!");
+		}
+
+	//	position attachment type
+		typedef typename std::pair<MathVector<TDomain::dim>, size_t> pos_type;
+
+	//	positions of indices
+		std::vector<pos_type> vPositions;
+		ExtractPositions(domain, dd, vPositions);
+
+		ComputeLexicographicOrder<TDomain::dim>(o, vPositions, m_dir);
+
+#endif
+		mat = NULL;
+	}
+
+	void check(){
+		if(!is_permutation(o)){
+			UG_THROW(name() << "::check': Not a permutation!");
+		}
+	}
+
+	O_t& ordering(){
+		return o;
+	}
+
+	void init(M_t* m){
+		UG_LOG("Using " << name() << " in " << m_order << " direction\n");
+		mat = m;
+	}
+
+	virtual const char* name() const {return "DownwindOrdering";}
+
+	void set_approximation_space(ApproximationSpace<TDomain> &approx){
+		m_approxSpace = &approx;
+	}
+
+	void set_direction(const char *order){
+		m_order = order;
+
+		if (strcmp(order, "x") == 0){	m_dir = 0; }
+		else if (strcmp(order, "y") == 0){ m_dir = 1; }
+		else if (strcmp(order, "z") == 0){ m_dir = 2; }
+		else{
+			UG_THROW("LexOrdering::set_direction: Currently only lexicographic order in direction x, y or z implemented.");
+		}
+	}
+
+private:
+	O_t o;
+	M_t* mat;
+
+	ApproximationSpace<TDomain>* m_approxSpace;
+	size_t m_dir;
+	const char *m_order;
+};
+
+
+
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__DOF_MANAGER__DOWNWINDORDER__ */
+#endif

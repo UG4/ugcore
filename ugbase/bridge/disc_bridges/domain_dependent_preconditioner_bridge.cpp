@@ -43,7 +43,7 @@
 
 // preconditioner
 #include "lib_algebra/lib_algebra.h"
-#include "lib_algebra/operator/preconditioner/line_smoothers.h"
+#include "lib_disc/operator/preconditioner/line_smoothers.h"
 
 using namespace std;
 
@@ -114,7 +114,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 /// \addtogroup domdepprecond_bridge
 void RegisterBridge_DomainDependentPreconditioner(Registry& reg, string grp)
 {
-	grp.append("/Algebra/Preconditioner");
+	grp.append("/Disc/Preconditioner");
 	typedef Preconditioner::Functionality Functionality;
 
 	try{		
