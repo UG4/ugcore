@@ -158,6 +158,11 @@ class FV1InnerBoundaryElemDisc
 	///	returns if hanging nodes are used
 		virtual bool use_hanging() const override;
 
+	protected:
+		void previous_solution_required(bool b);
+
+		template <typename TAlgebra>
+		void prep_timestep(number future_time, number time, VectorProxyBase* upb);
 	private:
 	///	prepares the loop over all elements
 	/**
@@ -223,10 +228,13 @@ class FV1InnerBoundaryElemDisc
 	private:
 		void register_all_fv1_funcs();
 
-		struct RegisterFV1
+		template <typename TElem, typename TFVGeom>
+		void register_fv1_func();
+
+		struct RegisterAssemblingFuncs
 		{
 				// friend class this_type;
-				RegisterFV1(this_type* pThis) : m_pThis(pThis){}
+				RegisterAssemblingFuncs(this_type* pThis) : m_pThis(pThis){}
 				this_type* m_pThis;
 				template< typename TElem > void operator()(TElem&)
 				{
@@ -237,8 +245,31 @@ class FV1InnerBoundaryElemDisc
 				}
 		};
 
-		template <typename TElem, typename TFVGeom>
-		void register_fv1_func();
+		template <typename List>
+		struct RegisterPrepTimestep
+		{
+			RegisterPrepTimestep(this_type* p)
+			{
+				static const bool isEmpty = boost::mpl::empty<List>::value;
+				(typename boost::mpl::if_c<isEmpty, RegEnd, RegNext>::type(p));
+			}
+			struct RegEnd
+			{
+				RegEnd(this_type*) {}
+			};
+			struct RegNext
+			{
+				RegNext(this_type* p)
+				{
+					typedef typename boost::mpl::front<List>::type AlgebraType;
+					typedef typename boost::mpl::pop_front<List>::type NextList;
+
+					size_t aid = bridge::AlgebraTypeIDProvider::instance().id<AlgebraType>();
+					p->set_prep_timestep_fct(aid, &this_type::template prep_timestep<AlgebraType>);
+					(RegisterPrepTimestep<NextList>(p));
+				}
+			};
+		};
 
 
 		/// struct holding values of shape functions in IPs
@@ -267,6 +298,14 @@ class FV1InnerBoundaryElemDisc
 	private:
 		bool m_bNonRegularGrid;
 		bool m_bCurrElemIsHSlave;
+
+		bool m_bPrevSolRequired;
+		LocalVector m_locUOld;
+		SmartPtr<VectorProxyBase> m_spOldSolutionProxy;
+
+		// temporary vectors (avoid re-allocating heap memory over and over again)
+		std::vector<LocalVector::value_type> m_uAtCorner;
+		std::vector<LocalVector::value_type> m_uOldAtCorner;
 
 		int m_si;
 };

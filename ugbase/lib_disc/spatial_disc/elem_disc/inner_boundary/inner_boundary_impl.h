@@ -36,7 +36,7 @@
 #include "inner_boundary.h"
 #include "lib_disc/spatial_disc/disc_util/geom_provider.h"
 #include "lib_disc/spatial_disc/disc_util/fv1_geom.h"
-
+#include "lib_algebra/cpu_algebra_types.h"
 
 
 namespace ug
@@ -90,6 +90,32 @@ use_hanging() const
 	return true;
 }
 
+
+template <typename TImpl, typename TDomain>
+void FV1InnerBoundaryElemDisc<TImpl, TDomain>::previous_solution_required(bool b)
+{
+	m_bPrevSolRequired = b;
+}
+
+
+template <typename TImpl, typename TDomain>
+template <typename TAlgebra>
+void FV1InnerBoundaryElemDisc<TImpl, TDomain>::prep_timestep
+(
+	number future_time,
+	number time,
+	VectorProxyBase* upb
+)
+{
+	if (!m_bPrevSolRequired)
+		return;
+
+	// the proxy provided here will not survive, but the vector it wraps will,
+	// so we re-wrap it in a new proxy for ourselves
+	typedef VectorProxy<typename TAlgebra::vector_type> tProxy;
+	tProxy* proxy = static_cast<tProxy*>(upb);
+	m_spOldSolutionProxy = make_sp(new tProxy(proxy->m_v));
+}
 
 
 template <typename TImpl, typename TDomain>
@@ -153,6 +179,23 @@ prep_elem(const LocalVector& u, GridObject* elem, const ReferenceObjectID roid, 
 	const size_t numBFip = geo.num_bf_global_ips();
 
 	m_fluxScale.set_global_ips(vBFip, numBFip);
+
+	// create a local vector with values of the previous solution
+	if (!m_bPrevSolRequired)
+		return;
+
+	// copy local vector of current solution to get indices and map access right,
+	// then copy correct values
+	m_locUOld = u;
+	const LocalIndices& ind = m_locUOld.get_indices();
+	for (size_t fct = 0; fct < m_locUOld.num_all_fct(); ++fct)
+	{
+		for(size_t dof = 0; dof < m_locUOld.num_all_dof(fct); ++dof)
+		{
+			const DoFIndex di = ind.multi_index(fct, dof);
+			m_locUOld.value(fct, dof) = m_spOldSolutionProxy->evaluate(di);
+		}
+	}
 }
 
 // assemble stiffness part of Jacobian
@@ -169,7 +212,8 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 
 	FluxDerivCond fdc;
 	size_t nFct = u.num_fct();
-	std::vector<LocalVector::value_type> uAtCorner(nFct);
+	m_uAtCorner.resize(nFct);
+	m_uOldAtCorner.resize(nFct);
 	for (size_t i = 0; i < fvgeom.num_bf(); ++i)
 	{
 		// get current BF
@@ -178,17 +222,29 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		// get associated node and subset index
 		const int co = bf.node_id();
 
-		// get solution at the corner of the bf
-		for (size_t fct = 0; fct < nFct; fct++)
-			uAtCorner[fct] = u(fct,co);
-
 		// get corner coordinates
 		const MathVector<dim>& cc = bf.global_corner(0);
 
-		if (!static_cast<TImpl*>(this)->fluxDensityDerivFct(uAtCorner, elem, cc, m_si, fdc))
-			UG_THROW("FV1InnerBoundaryElemDisc::add_jac_A_elem:"
-							" Call to fluxDensityDerivFct resulted did not succeed.");
-		
+		// get solution at the corner of the bf
+		for (size_t fct = 0; fct < nFct; fct++)
+			m_uAtCorner[fct] = u(fct,co);
+
+		if (!m_bPrevSolRequired)
+		{
+			if (!static_cast<TImpl*>(this)->fluxDensityDerivFct(m_uAtCorner, elem, cc, m_si, fdc))
+				UG_THROW("FV1InnerBoundaryElemDisc::add_jac_A_elem:"
+					" Call to fluxDensityDerivFct did not succeed.");
+		}
+		else
+		{
+			for (size_t fct = 0; fct < nFct; fct++)
+				m_uOldAtCorner[fct] = m_locUOld(fct,co);
+
+			if (!static_cast<TImpl*>(this)->fluxDensityDerivFct(m_uAtCorner, m_uOldAtCorner, elem, cc, m_si, fdc))
+				UG_THROW("FV1InnerBoundaryElemDisc::add_jac_A_elem:"
+					" Call to fluxDensityDerivFct did not succeed.");
+		}
+
 		// scale with volume of BF and flux scale (if applicable)
 		number scale = bf.volume();
 		if (m_fluxScale.data_given())
@@ -232,7 +288,8 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 
 	FluxCond fc;
 	size_t nFct = u.num_fct();
-	std::vector<LocalVector::value_type> uAtCorner(nFct);
+	m_uAtCorner.resize(nFct);
+	m_uOldAtCorner.resize(nFct);
 
 	// loop Boundary Faces
 	for (size_t i = 0; i < fvgeom.num_bf(); ++i)
@@ -245,16 +302,29 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 
 		// get solution at the corner of the bf
 		for (size_t fct = 0; fct < nFct; fct++)
-			uAtCorner[fct] = u(fct,co);
+			m_uAtCorner[fct] = u(fct,co);
 
 		// get corner coordinates
 		const MathVector<dim>& cc = bf.global_corner(0);
 
 		// get flux densities in that node
-		if (!static_cast<TImpl*>(this)->fluxDensityFct(uAtCorner, elem, cc, m_si, fc))
+		if (!m_bPrevSolRequired)
 		{
-			UG_THROW("FV1InnerBoundaryElemDisc::add_def_A_elem:"
-						" Call to fluxDensityFct did not succeed.");
+			if (!static_cast<TImpl*>(this)->fluxDensityFct(m_uAtCorner, elem, cc, m_si, fc))
+			{
+				UG_THROW("FV1InnerBoundaryElemDisc::add_def_A_elem:"
+							" Call to fluxDensityFct did not succeed.");
+			}
+		}
+		else
+		{
+			// get solution at the corner of the bf
+			for (size_t fct = 0; fct < nFct; fct++)
+				m_uOldAtCorner[fct] = m_locUOld(fct,co);
+
+			if (!static_cast<TImpl*>(this)->fluxDensityFct(m_uAtCorner, m_uOldAtCorner, elem, cc, m_si, fc))
+				UG_THROW("FV1InnerBoundaryElemDisc::add_def_A_elem:"
+					" Call to fluxDensityFct did not succeed.");
 		}
 
 		// scale with volume of BF and flux scale (if applicable)
@@ -510,11 +580,12 @@ template <typename TImpl, typename TDomain>
 void FV1InnerBoundaryElemDisc<TImpl, TDomain>::
 register_all_fv1_funcs()
 {
-//	get all grid element types in the dimension below
-	typedef typename domain_traits<dim>::ManifoldElemList ElemList;
+//	register prep_timestep function for all known algebra types
+	RegisterPrepTimestep<bridge::CompileAlgebraList>(this);
 
-//	switch assemble functions
-	boost::mpl::for_each<ElemList>(RegisterFV1(this));
+//	register assembling functions for all element types
+	typedef typename domain_traits<dim>::ManifoldElemList ElemList;
+	boost::mpl::for_each<ElemList>(RegisterAssemblingFuncs(this));
 }
 
 template <typename TImpl, typename TDomain>

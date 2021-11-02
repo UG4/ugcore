@@ -228,6 +228,22 @@ class LocalVector
 		// vector functions
 		///////////////////////////
 
+	this_type& operator=(const this_type& other)
+	{
+		m_pIndex = other.m_pIndex;
+		const size_t numFcts = m_pIndex->num_fct();
+		m_vvValue.resize(numFcts);
+		for (size_t fct = 0; fct < numFcts; ++fct)
+			m_vvValue[fct].resize(m_pIndex->num_dof(fct));
+		m_vvValueAcc.resize(numFcts);
+		if (other.m_pFuncMap)
+			access_by_map(*other.m_pFuncMap);
+		else
+			access_all();
+
+		return *this;
+	}
+
 	/// set all components of the vector
 		this_type& operator=(number val)
 		{
