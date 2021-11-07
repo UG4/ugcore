@@ -179,10 +179,11 @@ private:
 };
 
 
-template <typename M_t, typename O_t>
-class WittumDownwindOrdering : public IOrderingAlgorithm<M_t, O_t>
+template <typename TAlgebra, typename O_t>
+class WittumDownwindOrdering : public IOrderingAlgorithm<TAlgebra, O_t>
 {
 public:
+	typedef typename TAlgebra::matrix_type M_t;
 	typedef boost::property<boost::edge_weight_t, double> EdgeWeightProperty;
 	typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS, boost::no_property, EdgeWeightProperty> G_t;
 
@@ -194,12 +195,12 @@ public:
 	WittumDownwindOrdering(){}
 
 	/// clone constructor
-	WittumDownwindOrdering( const WittumDownwindOrdering<M_t, O_t> &parent )
+	WittumDownwindOrdering( const WittumDownwindOrdering<TAlgebra, O_t> &parent )
 			: baseclass(){}
 
-	SmartPtr<IOrderingAlgorithm<M_t, O_t> > clone()
+	SmartPtr<IOrderingAlgorithm<TAlgebra, O_t> > clone()
 	{
-		return make_sp(new WittumDownwindOrdering<M_t, O_t>(*this));
+		return make_sp(new WittumDownwindOrdering<TAlgebra, O_t>(*this));
 	}
 
 	size_t compute_inedges(vd v){

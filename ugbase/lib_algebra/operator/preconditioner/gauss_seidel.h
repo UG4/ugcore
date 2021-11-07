@@ -68,7 +68,7 @@ class GaussSeidelBase : public IPreconditioner<TAlgebra>
 
 	///	Ordering type
 		typedef std::vector<size_t> ordering_container_type;
-		typedef IOrderingAlgorithm<matrix_type, ordering_container_type> ordering_algo_type;
+		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> ordering_algo_type;
 
 	protected:
 		using base_type::set_debug;

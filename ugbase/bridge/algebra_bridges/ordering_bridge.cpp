@@ -81,12 +81,12 @@ static void Algebra(Registry& reg, string grp)
 	string tag = GetAlgebraTag<TAlgebra>();
 
 //	typedefs for this algebra
-	typedef typename TAlgebra::vector_type vector_type;
-	typedef typename TAlgebra::matrix_type matrix_type;
+	//typedef typename TAlgebra::vector_type vector_type;
+	//typedef typename TAlgebra::matrix_type matrix_type;
 	typedef std::vector<size_t> ordering_container_type;
 
 	{
-		typedef IOrderingAlgorithm<typename TAlgebra::matrix_type, ordering_container_type> TBase;
+		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
 		string name = string("IOrderingAlgorithm").append(suffix);
 		reg.add_class_<TBase>(name, grp);
 		reg.add_class_to_group(name, "IOrderingAlgorithm", tag);
@@ -94,8 +94,8 @@ static void Algebra(Registry& reg, string grp)
 
 //	Boost Cuthill McKee
 	{
-		typedef BoostCuthillMcKeeOrdering<typename TAlgebra::matrix_type, ordering_container_type> T;
-		typedef IOrderingAlgorithm<typename TAlgebra::matrix_type, ordering_container_type> TBase;
+		typedef BoostCuthillMcKeeOrdering<TAlgebra, ordering_container_type> T;
+		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
 		string name = string("BoostCuthillMcKeeOrdering").append(suffix);
 		reg.add_class_<T, TBase>(name, grp, "BoostCuthillMcKeeOrdering")
 			.add_constructor()
@@ -106,8 +106,8 @@ static void Algebra(Registry& reg, string grp)
 
 //	Boost Minimum-Degree
 	{
-		typedef BoostMinimumDegreeOrdering<typename TAlgebra::matrix_type, ordering_container_type> T;
-		typedef IOrderingAlgorithm<typename TAlgebra::matrix_type, ordering_container_type> TBase;
+		typedef BoostMinimumDegreeOrdering<TAlgebra, ordering_container_type> T;
+		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
 		string name = string("BoostMinimumDegreeOrdering").append(suffix);
 		reg.add_class_<T, TBase>(name, grp, "BoostMinimumDegreeOrdering")
 			.add_constructor()
@@ -117,8 +117,8 @@ static void Algebra(Registry& reg, string grp)
 
 //	Native Cuthill McKee
 	{
-		typedef NativeCuthillMcKeeOrdering<typename TAlgebra::matrix_type, ordering_container_type> T;
-		typedef IOrderingAlgorithm<typename TAlgebra::matrix_type, ordering_container_type> TBase;
+		typedef NativeCuthillMcKeeOrdering<TAlgebra, ordering_container_type> T;
+		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
 		string name = string("NativeCuthillMcKeeOrdering").append(suffix);
 		reg.add_class_<T, TBase>(name, grp, "NativeCuthillMcKeeOrdering")
 			.add_constructor()
@@ -126,39 +126,28 @@ static void Algebra(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "NativeCuthillMcKeeOrdering", tag);
 	}
+
 /*
-//	Wittum Downwind
-	{
-		typedef WittumDownwindOrdering<typename TAlgebra::matrix_type, ordering_container_type> T;
-		typedef IOrderingAlgorithm<typename TAlgebra::matrix_type, ordering_container_type> TBase;
-		string name = string("WittumDownwindOrdering").append(suffix);
-		reg.add_class_<T, TBase>(name, grp, "WittumDownwindOrdering")
-			.add_constructor()
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "WittumDownwindOrdering", tag);
-	}
-
-//	Weighted Cuthill McKee
-	{
-		typedef WeightedCuthillMcKeeOrdering<typename TAlgebra::matrix_type, ordering_container_type> T;
-		typedef IOrderingAlgorithm<typename TAlgebra::matrix_type, ordering_container_type> TBase;
-		string name = string("WeightedCuthillMcKeeOrdering").append(suffix);
-		reg.add_class_<T, TBase>(name, grp, "WeightedCuthillMcKeeOrdering")
-			.add_constructor()
-			.add_method("set_reverse", &T::set_reverse)
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "WeightedCuthillMcKeeOrdering", tag);
-	}
-
 //	Boost Shortest Paths
 	{
-		typedef BoostShortestPathsOrdering<typename TAlgebra::matrix_type, ordering_container_type> T;
-		typedef IOrderingAlgorithm<typename TAlgebra::matrix_type, ordering_container_type> TBase;
+		typedef BoostShortestPathsOrdering<TAlgebra, ordering_container_type> T;
+		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
 		string name = string("BoostShortestPathsOrdering").append(suffix);
 		reg.add_class_<T, TBase>(name, grp, "BoostShortestPathsOrdering")
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "BoostShortestPathsOrdering", tag);
+	}
+
+//	Wittum Downwind
+	{
+		typedef WittumDownwindOrdering<TAlgebra, ordering_container_type> T;
+		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
+		string name = string("WittumDownwindOrdering").append(suffix);
+		reg.add_class_<T, TBase>(name, grp, "WittumDownwindOrdering")
+			.add_constructor()
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "WittumDownwindOrdering", tag);
 	}
 */
 }

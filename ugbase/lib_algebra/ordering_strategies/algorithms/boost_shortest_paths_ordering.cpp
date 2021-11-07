@@ -56,24 +56,25 @@ bool compBlo(Blo a, Blo b){
 }
 
 
-template <typename M_t, typename O_t>
-class BoostShortestPathsOrdering : public IOrderingAlgorithm<M_t, O_t>
+template <typename TAlgebra, typename O_t>
+class BoostShortestPathsOrdering : public IOrderingAlgorithm<TAlgebra, O_t>
 {
 public:
+	typedef typename TAlgebra::matrix_type M_t;
 	typedef boost::property<boost::edge_weight_t, double> EdgeWeightProperty;
 	typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS, boost::no_property, EdgeWeightProperty> G_t;
 
-	typedef IOrderingAlgorithm<M_t, O_t> baseclass;
+	typedef IOrderingAlgorithm<TAlgebra, O_t> baseclass;
 
 	BoostShortestPathsOrdering(){}
 
 	/// clone constructor
-	BoostShortestPathsOrdering( const BoostShortestPathsOrdering<M_t, O_t> &parent )
+	BoostShortestPathsOrdering( const BoostShortestPathsOrdering<TAlgebra, O_t> &parent )
 			: baseclass(){}
 
-	SmartPtr<IOrderingAlgorithm<M_t, O_t> > clone()
+	SmartPtr<IOrderingAlgorithm<TAlgebra, O_t> > clone()
 	{
-		return make_sp(new BoostShortestPathsOrdering<M_t, O_t>(*this));
+		return make_sp(new BoostShortestPathsOrdering<TAlgebra, O_t>(*this));
 	}
 
 	void compute(){

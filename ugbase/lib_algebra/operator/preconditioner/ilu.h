@@ -373,7 +373,7 @@ class ILU : public IPreconditioner<TAlgebra>
 
 	///	Ordering type
 		typedef std::vector<size_t> ordering_container_type;
-		typedef IOrderingAlgorithm<matrix_type, ordering_container_type> ordering_algo_type;
+		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> ordering_algo_type;
 
 	protected:
 		using base_type::set_debug;
@@ -427,7 +427,7 @@ class ILU : public IPreconditioner<TAlgebra>
 		void set_sort(bool b)
 		{
 			if(b){
-				m_spOrderingAlgo = make_sp(new NativeCuthillMcKeeOrdering<matrix_type, ordering_container_type>());
+				m_spOrderingAlgo = make_sp(new NativeCuthillMcKeeOrdering<TAlgebra, ordering_container_type>());
 			}
 			else{
 				m_spOrderingAlgo = SPNULL;
@@ -460,6 +460,7 @@ class ILU : public IPreconditioner<TAlgebra>
 		virtual bool init(SmartPtr<ILinearOperator<vector_type> > J,
 		                  const vector_type& u)
 		{
+			std::cout << "init(J, u)" << std::endl;
 		//	cast to matrix based operator
 			SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp =
 					J.template cast_dynamic<MatrixOperator<matrix_type, vector_type> >();
@@ -476,6 +477,7 @@ class ILU : public IPreconditioner<TAlgebra>
 
 		bool init(SmartPtr<ILinearOperator<vector_type> > L)
 		{
+			std::cout << "init(L)" << std::endl;
 		//	cast to matrix based operator
 			SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp =
 					L.template cast_dynamic<MatrixOperator<matrix_type, vector_type> >();
@@ -492,6 +494,7 @@ class ILU : public IPreconditioner<TAlgebra>
 
 		bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op)
 		{
+			std::cout << "init(Op)" << std::endl;
 			if(m_spOrderingAlgo.valid() && !m_useOverlap){
 				m_spOrderingAlgo->init(&(*Op));
 			}

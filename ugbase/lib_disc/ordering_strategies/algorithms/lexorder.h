@@ -61,21 +61,24 @@ template <typename TDomain>
 void OrderLex(ApproximationSpace<TDomain>& approxSpace, const char *order);
 
 
-template <typename TDomain, typename M_t, typename O_t>
-class LexOrdering : public IOrderingAlgorithm<M_t, O_t>
+template <typename TAlgebra, typename TDomain, typename O_t>
+class LexOrdering : public IOrderingAlgorithm<TAlgebra, O_t>
 {
 public:
-	typedef IOrderingAlgorithm<M_t, O_t> baseclass;
+	typedef typename TAlgebra::matrix_type M_t;
+	typedef IOrderingAlgorithm<TAlgebra, O_t> baseclass;
+
+	//typedef typename M_t::vector_type vector_type;
 
 	LexOrdering(){}
 
 	/// clone constructor
-	LexOrdering( const LexOrdering<TDomain, M_t, O_t> &parent )
+	LexOrdering( const LexOrdering<TAlgebra, TDomain, O_t> &parent )
 			: baseclass(){}
 
-	SmartPtr<IOrderingAlgorithm<M_t, O_t> > clone()
+	SmartPtr<IOrderingAlgorithm<TAlgebra, O_t> > clone()
 	{
-		return make_sp(new LexOrdering<TDomain, M_t, O_t>(*this));
+		return make_sp(new LexOrdering<TAlgebra, TDomain, O_t>(*this));
 	}
 
 	void compute(){

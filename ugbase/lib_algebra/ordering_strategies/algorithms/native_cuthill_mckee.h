@@ -88,21 +88,22 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 			       bool bPreserveConsec = true);
 
 
-template <typename M_t, typename O_t>
-class NativeCuthillMcKeeOrdering : public IOrderingAlgorithm<M_t, O_t>
+template <typename TAlgebra, typename O_t>
+class NativeCuthillMcKeeOrdering : public IOrderingAlgorithm<TAlgebra, O_t>
 {
 public:
-	typedef IOrderingAlgorithm<M_t, O_t> baseclass;
+	typedef typename TAlgebra::matrix_type M_t;
+	typedef IOrderingAlgorithm<TAlgebra, O_t> baseclass;
 
 	NativeCuthillMcKeeOrdering() : m_bReverse(false) {}
 
 	/// clone constructor
-	NativeCuthillMcKeeOrdering( const NativeCuthillMcKeeOrdering<M_t, O_t> &parent )
+	NativeCuthillMcKeeOrdering( const NativeCuthillMcKeeOrdering<TAlgebra, O_t> &parent )
 			: baseclass(), m_bReverse(parent.m_bReverse){}
 
-	SmartPtr<IOrderingAlgorithm<M_t, O_t> > clone()
+	SmartPtr<IOrderingAlgorithm<TAlgebra, O_t> > clone()
 	{
-		return make_sp(new NativeCuthillMcKeeOrdering<M_t, O_t>(*this));
+		return make_sp(new NativeCuthillMcKeeOrdering<TAlgebra, O_t>(*this));
 	}
 
 	void compute(){

@@ -134,21 +134,22 @@ void OrderDownwind(ApproximationSpace<TDomain>& approxSpace, const char* strVelo
 #endif
 
 
-template <typename TDomain, typename M_t, typename O_t>
-class DownwindOrdering : public IOrderingAlgorithm<M_t, O_t>
+template <typename TAlgebra, typename TDomain, typename O_t>
+class DownwindOrdering : public IOrderingAlgorithm<TAlgebra, O_t>
 {
 public:
-	typedef IOrderingAlgorithm<M_t, O_t> baseclass;
+	typedef typename TAlgebra::matrix_type M_t;
+	typedef IOrderingAlgorithm<TAlgebra, O_t> baseclass;
 
 	DownwindOrdering(){}
 
 	/// clone constructor
-	DownwindOrdering( const DownwindOrdering<TDomain, M_t, O_t> &parent )
+	DownwindOrdering( const DownwindOrdering<TAlgebra, TDomain, O_t> &parent )
 			: baseclass(){}
 
-	SmartPtr<IOrderingAlgorithm<M_t, O_t> > clone()
+	SmartPtr<IOrderingAlgorithm<TAlgebra, O_t> > clone()
 	{
-		return make_sp(new DownwindOrdering<TDomain, M_t, O_t>(*this));
+		return make_sp(new DownwindOrdering<TAlgebra, TDomain, O_t>(*this));
 	}
 
 	void compute(){

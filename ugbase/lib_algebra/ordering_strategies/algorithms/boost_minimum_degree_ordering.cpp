@@ -49,22 +49,23 @@ namespace ug{
 //Important Note: This implementation requires the BGL graph to be
 //directed.  Therefore, nonzero entry (i, j) in a symmetrical matrix
 //A coresponds to two directed edges (i->j and j->i).
-template <typename M_t, typename O_t>
-class BoostMinimumDegreeOrdering final : public IOrderingAlgorithm<M_t, O_t>
+template <typename TAlgebra, typename O_t>
+class BoostMinimumDegreeOrdering final : public IOrderingAlgorithm<TAlgebra, O_t>
 {
 public:
+	typedef typename TAlgebra::matrix_type M_t;
 	typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS> G_t;
-	typedef IOrderingAlgorithm<M_t, O_t> baseclass;
+	typedef IOrderingAlgorithm<TAlgebra, O_t> baseclass;
 
 	BoostMinimumDegreeOrdering(){}
 
 	/// clone constructor
-	BoostMinimumDegreeOrdering( const BoostMinimumDegreeOrdering<M_t, O_t> &parent )
+	BoostMinimumDegreeOrdering( const BoostMinimumDegreeOrdering<TAlgebra, O_t> &parent )
 			: baseclass(){}
 
-	SmartPtr<IOrderingAlgorithm<M_t, O_t> > clone()
+	SmartPtr<IOrderingAlgorithm<TAlgebra, O_t> > clone()
 	{
-		return make_sp(new BoostMinimumDegreeOrdering<M_t, O_t>(*this));
+		return make_sp(new BoostMinimumDegreeOrdering<TAlgebra, O_t>(*this));
 	}
 
 	void compute(){

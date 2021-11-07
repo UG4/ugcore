@@ -54,22 +54,23 @@ typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
 				Graph_t;
 
 
-template <typename M_t, typename O_t=std::vector<size_t> >
-class BoostCuthillMcKeeOrdering : public IOrderingAlgorithm<M_t, O_t>
+template <typename TAlgebra, typename O_t=std::vector<size_t> >
+class BoostCuthillMcKeeOrdering : public IOrderingAlgorithm<TAlgebra, O_t>
 {
 public:
+	typedef typename TAlgebra::matrix_type M_t;
 	typedef Graph_t G_t;
-	typedef IOrderingAlgorithm<M_t, O_t> baseclass;
+	typedef IOrderingAlgorithm<TAlgebra, O_t> baseclass;
 
 	BoostCuthillMcKeeOrdering() : m_bReverse(false){}
 
 	/// clone constructor
-	BoostCuthillMcKeeOrdering( const BoostCuthillMcKeeOrdering<M_t, O_t> &parent )
+	BoostCuthillMcKeeOrdering( const BoostCuthillMcKeeOrdering<TAlgebra, O_t> &parent )
 			: baseclass(), m_bReverse(parent.m_bReverse){}
 
-	SmartPtr<IOrderingAlgorithm<M_t, O_t> > clone()
+	SmartPtr<IOrderingAlgorithm<TAlgebra, O_t> > clone()
 	{
-		return make_sp(new BoostCuthillMcKeeOrdering<M_t, O_t>(*this));
+		return make_sp(new BoostCuthillMcKeeOrdering<TAlgebra, O_t>(*this));
 	}
 
 	void compute(){

@@ -46,12 +46,13 @@ namespace ug{
 	O_t usually is a std::vector<size_t>
 	G_t (not required here) denotes the underlying graph type, e.g.,
                                                         a boost graph
-	M_t is only required for native_cuthill_mckee
 */
 
-template <typename M_t, typename O_t>
+template <typename TAlgebra, typename O_t=std::vector<size_t> >
 class IOrderingAlgorithm{
 public:
+	typedef typename TAlgebra::matrix_type M_t;
+
 	IOrderingAlgorithm(){}
 	virtual ~IOrderingAlgorithm(){}
 
@@ -62,7 +63,7 @@ public:
 
 	virtual void init(M_t*) = 0;
 
-	virtual SmartPtr<IOrderingAlgorithm<M_t, O_t> > clone() = 0;
+	virtual SmartPtr<IOrderingAlgorithm<TAlgebra, O_t> > clone() = 0;
 
 	virtual const char* name() const = 0;
 };

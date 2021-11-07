@@ -40,7 +40,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 
 	///	Ordering type
 		typedef std::vector<size_t> ordering_container_type;
-		typedef IOrderingAlgorithm<matrix_type, ordering_container_type> ordering_algo_type;
+		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> ordering_algo_type;
 
 	///	Matrix Operator type
 		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
@@ -61,7 +61,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 			: m_eps(eps), m_info(false), m_show_progress(true), m_bSortIsIdentity(false)
 		{
 			//default was set true
-			m_spOrderingAlgo = make_sp(new NativeCuthillMcKeeOrdering<matrix_type, ordering_container_type>());
+			m_spOrderingAlgo = make_sp(new NativeCuthillMcKeeOrdering<TAlgebra, ordering_container_type>());
 		};
 
 	/// clone constructor
@@ -122,7 +122,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 		void set_sort(bool b)
 		{
 			if(b){
-				m_spOrderingAlgo = make_sp(new NativeCuthillMcKeeOrdering<matrix_type, ordering_container_type>());
+				m_spOrderingAlgo = make_sp(new NativeCuthillMcKeeOrdering<TAlgebra, ordering_container_type>());
 			}
 			else{
 				m_spOrderingAlgo = SPNULL;
