@@ -36,8 +36,8 @@
 #include <vector>
 #include <utility> // for pair
 
-#include "lib_disc/function_spaces/approximation_space.h"
 #include "lib_disc/domain.h"
+#include "lib_disc/function_spaces/grid_function.h"
 
 #include "lib_algebra/ordering_strategies/algorithms/IOrderingAlgorithm.h"
 #include "lib_algebra/ordering_strategies/algorithms/util.cpp"
@@ -69,6 +69,12 @@ public:
 	typedef typename TAlgebra::vector_type V_t;
 	typedef IOrderingAlgorithm<TAlgebra, O_t> baseclass;
 
+	/// Grid function type for the solution
+	typedef GridFunction<TDomain, TAlgebra> GridFunc_t;
+
+	/// Position attachment type
+	typedef typename std::pair<MathVector<TDomain::dim>, size_t> Position_t;
+
 	LexOrdering(){}
 
 	/// clone constructor
@@ -81,34 +87,19 @@ public:
 	}
 
 	void compute(){
-		if (strcmp(m_dir, "x") == 0){}
-		else if (strcmp(m_dir, "y") == 0){}
-		else if (strcmp(m_dir, "z") == 0){}
+		if(strcmp(m_dir, "x") == 0){
+			ComputeLexicographicOrder<TDomain::dim>(o, m_vPositions, 0);
+		}
+		else if(strcmp(m_dir, "y") == 0){
+			ComputeLexicographicOrder<TDomain::dim>(o, m_vPositions, 1);
+		}
+		else if(strcmp(m_dir, "z") == 0){
+			ComputeLexicographicOrder<TDomain::dim>(o, m_vPositions, 2);
+		}
 		else{
-			UG_THROW("LexOrdering::compute: Currently only lexicographic order in direction x, y or z implemented.");
-		}
-/*
-		if(!m_approxSpace){
-			UG_THROW(name() << "::compute': approximation space not set!");
+			UG_THROW(name() << "::compute: Lexicographic ordering in direction x, y or z implemented only.");
 		}
 
-		ConstSmartPtr<TDomain> domain = m_approxSpace->domain();
-		std::vector<SmartPtr<DoFDistribution> > vDD = m_approxSpace->dof_distributions();
-		SmartPtr<DoFDistribution> dd = vDD[0]; //TODO: choose properly
-
-		if(dd->num_indices() != mat->num_rows()){
-			UG_THROW(name() << "::compute': #indices in dof distribution does not match #rows in matrix!");
-		}
-
-	//	position attachment type
-		typedef typename std::pair<MathVector<TDomain::dim>, size_t> pos_type;
-
-	//	positions of indices
-		std::vector<pos_type> vPositions;
-		ExtractPositions(domain, dd, vPositions);
-
-		ComputeLexicographicOrder<TDomain::dim>(o, vPositions, m_dir);
-*/
 		mat = NULL;
 	}
 
@@ -123,17 +114,37 @@ public:
 	}
 
 	void init(M_t* A, const V_t& V){
-	
-	}
-
-	void init(M_t* m){
 		if(strcmp(m_dir, "") == 0){
-			UG_THROW(name() << "::init(M)': no direction chosen!");
+			UG_THROW(name() << "::init': no direction chosen!");
+		}
+
+		try{
+			const GridFunc_t* pGridF;
+			if((pGridF = dynamic_cast<const GridFunc_t*>(&V)) == 0){
+				UG_THROW(name() << "::init: No DoFDistribution specified.");
+			}
+
+			SmartPtr<DoFDistribution> dd = ((GridFunc_t*) pGridF)->dof_distribution();
+
+			size_t indN = dd->num_indices();
+
+			if(indN != A->num_rows ()){
+				UG_THROW(name() << "::init: #indices != #rows");
+			}
+
+			ExtractPositions(pGridF->domain(), dd, m_vPositions);
+		}
+		catch(...){
+			throw;
 		}
 
 		std::cout << name() << " init(M)" << std::endl;
 		UG_LOG("Using " << name() << " in " << m_dir << " direction\n");
-		mat = m;
+		mat = A;
+	}
+
+	void init(M_t*){
+		UG_THROW(name() << "::init: Cannot initialize smoother without a geometry. Specify the 2nd argument for init!");
 	}
 
 	virtual const char* name() const {return "LexOrdering";}
@@ -147,6 +158,7 @@ private:
 	M_t* mat;
 
 	const char *m_dir;
+	std::vector<Position_t> m_vPositions;
 };
 
 } // end namespace ug
