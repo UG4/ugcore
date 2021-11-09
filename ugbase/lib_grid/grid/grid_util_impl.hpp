@@ -85,6 +85,15 @@ bool CompareVertexContainer(const TVrtContainer1& con1,
 }
 
 
+inline bool CompareVertices(const EdgeVertices* ev1,
+					const EdgeVertices* ev2)
+{
+	if((ev1->vertex(0) == ev2->vertex(0) && ev1->vertex(1) == ev2->vertex(1)) ||
+		(ev1->vertex(0) == ev2->vertex(1) && ev1->vertex(1) == ev2->vertex(0)))
+		return true;
+	return false;
+}
+
 ////////////////////////////////////////////////////////////////////////
 //	GetVertex
 inline Vertex* GetVertex(Vertex* vrt, size_t i)
