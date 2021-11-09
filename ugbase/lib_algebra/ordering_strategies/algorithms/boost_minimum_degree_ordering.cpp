@@ -54,6 +54,7 @@ class BoostMinimumDegreeOrdering final : public IOrderingAlgorithm<TAlgebra, O_t
 {
 public:
 	typedef typename TAlgebra::matrix_type M_t;
+	typedef typename TAlgebra::vector_type V_t;
 	typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS> G_t;
 	typedef IOrderingAlgorithm<TAlgebra, O_t> baseclass;
 
@@ -125,6 +126,10 @@ public:
 
 	O_t& ordering(){
 		return o;
+	}
+
+	void init(M_t* A, const V_t&){
+		init(A);
 	}
 
 	void init(M_t* A){

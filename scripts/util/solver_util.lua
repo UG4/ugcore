@@ -766,12 +766,12 @@ function util.solver.CreateOrdering(orderingDesc, solverutil)
 		ordering.set_reverse(true)
 	elseif name == "BoostMinimumDegree" then
 		ordering = BoostMinimumDegreeOrdering()
-	elseif name == "BoostShortestPaths" then
-		ordering = BoostShortestPathsOrdering()
-	elseif name == "WeightedCuthillMcKee" then
-		ordering = WeightedCuthillMcKeeOrdering()
-	elseif name == "WittumDownwind" then
-		ordering = WittumDownwindOrdering()
+	elseif name == "Lex" then
+		ordering = LexOrdering()
+--	elseif name == "BoostShortestPaths" then
+--		ordering = BoostShortestPathsOrdering()
+--	elseif name == "WittumDownwind" then
+--		ordering = WittumDownwindOrdering()
 	end
 
 	util.solver.CondAbort(ordering == nil, "Invalid ordering specified: " .. name)

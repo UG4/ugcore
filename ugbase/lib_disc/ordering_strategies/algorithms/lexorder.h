@@ -66,9 +66,8 @@ class LexOrdering : public IOrderingAlgorithm<TAlgebra, O_t>
 {
 public:
 	typedef typename TAlgebra::matrix_type M_t;
+	typedef typename TAlgebra::vector_type V_t;
 	typedef IOrderingAlgorithm<TAlgebra, O_t> baseclass;
-
-	//typedef typename M_t::vector_type vector_type;
 
 	LexOrdering(){}
 
@@ -82,10 +81,13 @@ public:
 	}
 
 	void compute(){
-		if(strcmp(m_order, "") == 0){
-			UG_THROW(name() << "::compute': no direction choosen!");
+		if (strcmp(m_dir, "x") == 0){}
+		else if (strcmp(m_dir, "y") == 0){}
+		else if (strcmp(m_dir, "z") == 0){}
+		else{
+			UG_THROW("LexOrdering::compute: Currently only lexicographic order in direction x, y or z implemented.");
 		}
-
+/*
 		if(!m_approxSpace){
 			UG_THROW(name() << "::compute': approximation space not set!");
 		}
@@ -106,7 +108,7 @@ public:
 		ExtractPositions(domain, dd, vPositions);
 
 		ComputeLexicographicOrder<TDomain::dim>(o, vPositions, m_dir);
-
+*/
 		mat = NULL;
 	}
 
@@ -120,35 +122,31 @@ public:
 		return o;
 	}
 
+	void init(M_t* A, const V_t& V){
+	
+	}
+
 	void init(M_t* m){
-		UG_LOG("Using " << name() << " in " << m_order << " direction\n");
+		if(strcmp(m_dir, "") == 0){
+			UG_THROW(name() << "::init(M)': no direction chosen!");
+		}
+
+		std::cout << name() << " init(M)" << std::endl;
+		UG_LOG("Using " << name() << " in " << m_dir << " direction\n");
 		mat = m;
 	}
 
 	virtual const char* name() const {return "LexOrdering";}
 
-	void set_approximation_space(ApproximationSpace<TDomain> &approx){
-		m_approxSpace = &approx;
-	}
-
-	void set_direction(const char *order){
-		m_order = order;
-
-		if (strcmp(order, "x") == 0){	m_dir = 0; }
-		else if (strcmp(order, "y") == 0){ m_dir = 1; }
-		else if (strcmp(order, "z") == 0){ m_dir = 2; }
-		else{
-			UG_THROW("LexOrdering::set_direction: Currently only lexicographic order in direction x, y or z implemented.");
-		}
+	void set_direction(const char *dir){
+		m_dir = dir;
 	}
 
 private:
 	O_t o;
 	M_t* mat;
 
-	ApproximationSpace<TDomain>* m_approxSpace;
-	size_t m_dir;
-	const char *m_order;
+	const char *m_dir;
 };
 
 } // end namespace ug

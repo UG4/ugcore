@@ -52,6 +52,7 @@ template <typename TAlgebra, typename O_t=std::vector<size_t> >
 class IOrderingAlgorithm{
 public:
 	typedef typename TAlgebra::matrix_type M_t;
+	typedef typename TAlgebra::vector_type V_t;
 
 	IOrderingAlgorithm(){}
 	virtual ~IOrderingAlgorithm(){}
@@ -62,6 +63,7 @@ public:
 	virtual O_t& ordering() = 0;
 
 	virtual void init(M_t*) = 0;
+	virtual void init(M_t*, const V_t&) = 0;
 
 	virtual SmartPtr<IOrderingAlgorithm<TAlgebra, O_t> > clone() = 0;
 

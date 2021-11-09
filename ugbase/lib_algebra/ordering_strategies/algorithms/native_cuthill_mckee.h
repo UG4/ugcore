@@ -93,6 +93,7 @@ class NativeCuthillMcKeeOrdering : public IOrderingAlgorithm<TAlgebra, O_t>
 {
 public:
 	typedef typename TAlgebra::matrix_type M_t;
+	typedef typename TAlgebra::vector_type V_t;
 	typedef IOrderingAlgorithm<TAlgebra, O_t> baseclass;
 
 	NativeCuthillMcKeeOrdering() : m_bReverse(false) {}
@@ -133,6 +134,10 @@ public:
 
 	O_t& ordering(){
 		return o;
+	}
+
+	void init(M_t* A, const V_t&){
+		init(A);
 	}
 
 	void init(M_t* m){

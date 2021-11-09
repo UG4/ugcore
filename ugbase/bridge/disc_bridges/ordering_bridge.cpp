@@ -43,7 +43,7 @@
 
 // lib_disc includes
 #include "lib_disc/domain.h"
-#include "lib_disc/function_spaces/approximation_space.h"
+//#include "lib_disc/function_spaces/approximation_space.h"
 
 // ordering algorithms
 #include "lib_disc/ordering_strategies/algorithms/ordering_algorithms.cpp"
@@ -82,12 +82,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 	string suffix = GetDomainAlgebraSuffix<TDomain,TAlgebra>();
 	string tag = GetDomainAlgebraTag<TDomain,TAlgebra>();
 
-//	typedefs for this algebra
-	typedef typename TAlgebra::vector_type vector_type;
-	typedef typename TAlgebra::matrix_type matrix_type;
 	typedef std::vector<size_t> ordering_container_type;
 
-/*
 //	Lexicographic ordering
 	{
 		typedef LexOrdering<TAlgebra, TDomain, ordering_container_type> T;
@@ -95,12 +91,10 @@ static void DomainAlgebra(Registry& reg, string grp)
 		string name = string("LexOrdering").append(suffix);
 		reg.add_class_<T, TBase>(name, grp, "LexOrdering")
 			.add_constructor()
-			.add_method("set_approximation_space", &T::set_approximation_space)
 			.add_method("set_direction", &T::set_direction)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "LexOrdering", tag);
 	}
-*/
 }
 
 /**
@@ -208,9 +202,9 @@ void RegisterBridge_Ordering(Registry& reg, string grp)
 	try{
 //		RegisterCommon<Functionality>(reg,grp);
 //		RegisterDimensionDependent<Functionality>(reg,grp);
-	//RegisterDomainDependent<Functionality>(reg,grp);
+		RegisterDomainDependent<Functionality>(reg,grp);
 //		RegisterAlgebraDependent<Functionality>(reg,grp);
-	//RegisterDomainAlgebraDependent<Functionality>(reg,grp);
+		RegisterDomainAlgebraDependent<Functionality>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }

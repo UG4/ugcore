@@ -80,9 +80,6 @@ static void Algebra(Registry& reg, string grp)
 	string suffix = GetAlgebraSuffix<TAlgebra>();
 	string tag = GetAlgebraTag<TAlgebra>();
 
-//	typedefs for this algebra
-	//typedef typename TAlgebra::vector_type vector_type;
-	//typedef typename TAlgebra::matrix_type matrix_type;
 	typedef std::vector<size_t> ordering_container_type;
 
 	{

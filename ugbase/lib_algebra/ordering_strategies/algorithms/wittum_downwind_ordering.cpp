@@ -184,13 +184,13 @@ class WittumDownwindOrdering : public IOrderingAlgorithm<TAlgebra, O_t>
 {
 public:
 	typedef typename TAlgebra::matrix_type M_t;
+	typedef typename TAlgebra::vector_type V_t;
 	typedef boost::property<boost::edge_weight_t, double> EdgeWeightProperty;
 	typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS, boost::no_property, EdgeWeightProperty> G_t;
+	typedef IOrderingAlgorithm<M_t, O_t> baseclass;
 
 	typedef typename boost::graph_traits<G_t>::vertex_descriptor vd;
 	typedef typename boost::graph_traits<G_t>::adjacency_iterator adj_iter;
-
-	typedef IOrderingAlgorithm<M_t, O_t> baseclass;
 
 	WittumDownwindOrdering(){}
 
@@ -344,6 +344,10 @@ public:
 
 	O_t& ordering(){
 		return o;
+	}
+
+	void init(M_t* A, const V_t&){
+		init(A);
 	}
 
 	void init(M_t* A){
