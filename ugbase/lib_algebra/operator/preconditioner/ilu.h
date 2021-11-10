@@ -460,7 +460,6 @@ class ILU : public IPreconditioner<TAlgebra>
 		virtual bool init(SmartPtr<ILinearOperator<vector_type> > J,
 		                  const vector_type& u)
 		{
-			std::cout << "init(J, u)" << std::endl;
 		//	cast to matrix based operator
 			SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp =
 					J.template cast_dynamic<MatrixOperator<matrix_type, vector_type> >();
@@ -471,13 +470,16 @@ class ILU : public IPreconditioner<TAlgebra>
 						"not based on matrix. This Preconditioner can only "
 						"handle matrix-based operators.");
 
+			if(m_spOrderingAlgo.valid() && !m_useOverlap){
+				m_spOrderingAlgo->init(&(*pOp), u);
+			}
+
 		//	forward request to matrix based implementation
-			return init(pOp);
+			return base_type::init(pOp);
 		}
 
 		bool init(SmartPtr<ILinearOperator<vector_type> > L)
 		{
-			std::cout << "init(L)" << std::endl;
 		//	cast to matrix based operator
 			SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp =
 					L.template cast_dynamic<MatrixOperator<matrix_type, vector_type> >();
@@ -488,13 +490,17 @@ class ILU : public IPreconditioner<TAlgebra>
 						"not based on matrix. This Preconditioner can only "
 						"handle matrix-based operators.");
 
+			if(m_spOrderingAlgo.valid() && !m_useOverlap){
+				m_spOrderingAlgo->init(&(*pOp));
+			}
+
 		//	forward request to matrix based implementation
-			return init(pOp);
+			return base_type::init(pOp);
 		}
 
 		bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op)
 		{
-			std::cout << "init(Op)" << std::endl;
+
 			if(m_spOrderingAlgo.valid() && !m_useOverlap){
 				m_spOrderingAlgo->init(&(*Op));
 			}

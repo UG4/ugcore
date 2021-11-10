@@ -269,7 +269,7 @@ inline std::string ConvertNumberSI (uint64_t size, unsigned int width,
 	UG_RESET_DEBUG_LEVELS();
 	UG_DLOG(MAIN, 0, "DLOG on level 0.\n");		// no message printed
 	UG_SET_DEBUG_LEVEL(MAIN, 0);
-	UG_DLOG(MAIN, 0, "DLOG on lebel 0.\n");		// message printed
+	UG_DLOG(MAIN, 0, "DLOG on level 0.\n");		// message printed
 	UG_DLOG(MAIN, 1, "DLOG on level 1.\n");		// no message printed
  */
 #ifdef UG_ENABLE_DEBUG_LOGS

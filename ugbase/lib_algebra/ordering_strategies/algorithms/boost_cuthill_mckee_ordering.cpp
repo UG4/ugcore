@@ -41,10 +41,13 @@
 
 #include "IOrderingAlgorithm.h"
 #include "util.cpp"
+
+//debug
 #include "common/error.h"
+//#include "common/debug_id.h"
+#include "common/log.h"
 
 namespace ug{
-
 
 /* boost graph type for Cuthill-McKee */
 typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
@@ -133,7 +136,10 @@ public:
 	}
 
 	void init(M_t* A){
+//TODO: replace this by UG_DLOG if permutation_util does not depend on this file anymore
+#ifdef UG_ENABLE_DEBUG_LOGS
 		UG_LOG("Using " << name() << "\n");
+#endif
 		unsigned rows = A->num_rows();
 
 		g = G_t(rows);

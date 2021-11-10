@@ -42,6 +42,7 @@
 #include "lib_algebra/ordering_strategies/algorithms/IOrderingAlgorithm.h"
 #include "lib_algebra/ordering_strategies/algorithms/util.cpp"
 #include "lib_disc/function_spaces/dof_position_util.h"
+
 #include "common/error.h"
 
 namespace ug{
@@ -105,7 +106,7 @@ public:
 
 	void check(){
 		if(!is_permutation(o)){
-			UG_THROW(name() << "::check': Not a permutation!");
+			UG_THROW(name() << "::check: Not a permutation!");
 		}
 	}
 
@@ -115,7 +116,7 @@ public:
 
 	void init(M_t* A, const V_t& V){
 		if(strcmp(m_dir, "") == 0){
-			UG_THROW(name() << "::init': no direction chosen!");
+			UG_THROW(name() << "::init: no direction chosen!");
 		}
 
 		try{
@@ -132,14 +133,16 @@ public:
 				UG_THROW(name() << "::init: #indices != #rows");
 			}
 
+			o.resize(indN);
 			ExtractPositions(pGridF->domain(), dd, m_vPositions);
 		}
 		catch(...){
 			throw;
 		}
 
-		std::cout << name() << " init(M)" << std::endl;
+#ifdef UG_ENABLE_DEBUG_LOGS
 		UG_LOG("Using " << name() << " in " << m_dir << " direction\n");
+#endif
 		mat = A;
 	}
 
