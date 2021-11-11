@@ -124,6 +124,17 @@ static void Algebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "NativeCuthillMcKeeOrdering", tag);
 	}
 
+//	Topological - for cycle-free matrices only
+	{
+		typedef TopologicalOrdering<TAlgebra, ordering_container_type> T;
+		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
+		string name = string("TopologicalOrdering").append(suffix);
+		reg.add_class_<T, TBase>(name, grp, "TopologicalOrdering")
+			.add_constructor()
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "TopologicalOrdering", tag);
+	}
+
 /*
 //	Boost Shortest Paths
 	{

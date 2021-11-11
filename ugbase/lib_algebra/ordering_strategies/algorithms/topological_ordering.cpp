@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020:  G-CSC, Goethe University Frankfurt
+ * Copyright (c) 2021:  G-CSC, Goethe University Frankfurt
  * Author: Lukas Larisch
  * 
  * This file is part of UG4.
@@ -30,14 +30,16 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_BOOST_SHORTEST_PATHS_ORDERING__
-#define __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_BOOST_SHORTEST_PATHS_ORDERING__
+#ifndef __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_TOPOLOGICAL_ORDERING__
+#define __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_TOPOLOGICAL_ORDERING__
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/properties.hpp>
 
-#include <boost/graph/dijkstra_shortest_paths.hpp>
+#include <vector>
+#include <utility> //for pair
+#include <bits/stdc++.h> //INT_MAX
 
 #include "IOrderingAlgorithm.h"
 #include "util.cpp"
@@ -49,38 +51,46 @@
 
 namespace ug{
 
-//for sorting
-struct Blo{
-	size_t v;
-	double w;
-};
-
-bool compBlo(Blo a, Blo b){
-	return a.w < b.w;
-}
-
-
+//for cycle-free matrices only
 template <typename TAlgebra, typename O_t>
-class BoostShortestPathsOrdering : public IOrderingAlgorithm<TAlgebra, O_t>
+class TopologicalOrdering : public IOrderingAlgorithm<TAlgebra, O_t>
 {
 public:
 	typedef typename TAlgebra::matrix_type M_t;
 	typedef typename TAlgebra::vector_type V_t;
-	typedef boost::property<boost::edge_weight_t, double> EdgeWeightProperty;
-	typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS, boost::no_property, EdgeWeightProperty> G_t;
+	typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS> G_t;
+	typedef boost::graph_traits<G_t>::vertex_descriptor vd_t;
+	typedef boost::graph_traits<G_t>::vertex_iterator vIt_t;
+	typedef boost::graph_traits<G_t>::adjacency_iterator nIt_t;
+	typedef std::pair<vd_t, int> indegs_t;
 	typedef IOrderingAlgorithm<TAlgebra, O_t> baseclass;
 
-	BoostShortestPathsOrdering(){}
+	TopologicalOrdering(){}
 
 	/// clone constructor
-	BoostShortestPathsOrdering( const BoostShortestPathsOrdering<TAlgebra, O_t> &parent )
+	TopologicalOrdering( const TopologicalOrdering<TAlgebra, O_t> &parent )
 			: baseclass(){}
 
 	SmartPtr<IOrderingAlgorithm<TAlgebra, O_t> > clone()
 	{
-		return make_sp(new BoostShortestPathsOrdering<TAlgebra, O_t>(*this));
+		return make_sp(new TopologicalOrdering<TAlgebra, O_t>(*this));
 	}
 
+	indegs_t min_indegree_vertex(){
+		vd_t minv;
+		int mind = INT_MAX;
+		vIt_t vIt, vEnd;
+		for(boost::tie(vIt, vEnd) = boost::vertices(g); vIt != vEnd; ++vIt){
+			int d = indegs[*vIt];
+			if(d >= 0 && d < mind){
+				mind = d;
+				minv = *vIt;
+			}
+		}
+		return std::make_pair(minv, mind);
+	}
+
+	//TODO: this is a very inefficient implementation, rewrite if necessary
 	void compute(){
 		unsigned n = boost::num_vertices(g);
 
@@ -89,26 +99,32 @@ public:
 			return;
 		}
 
-		typedef typename boost::graph_traits<G_t>::vertex_descriptor vd;
-		std::vector<vd> p(n); //parents
-		std::vector<int> d(n); //distances
+		//init
+		o.resize(n);
+		indegs.resize(n);
 
-		vd s = *boost::vertices(g).first; //start vertex	//TODO: choose a vertex strategically
-
-		boost::dijkstra_shortest_paths(g, s, boost::predecessor_map(&p[0]).distance_map(&d[0]));
-
-		std::vector<Blo> blo(n);
-		for(unsigned i = 0; i < n; ++i){
-			blo[i].v = i;
-			blo[i].w = d[i];
+		vIt_t vIt, vEnd;
+		for(boost::tie(vIt, vEnd) = boost::vertices(g); vIt != vEnd; ++vIt){
+			indegs[*vIt] = boost::in_degree(*vIt, g);
 		}
 
-		//sort o according to d
-		std::sort(blo.begin(), blo.end(), compBlo);
-
-		o.resize(n);
+		indegs_t indeg;
+		nIt_t nIt, nEnd;
 		for(unsigned i = 0; i < n; ++i){
-			o[i] = blo[i].v;
+			//std::cout << "-------------" << i << "/" << n << "----------" << std::endl;
+			indegs_t indeg = min_indegree_vertex();
+			//std::cout << "v: " << indeg.first << ", deg: " << indeg.second << std::endl;
+			if(indeg.second == 0){
+				o[i] = indeg.first;
+				--indegs[indeg.first]; //becomes -1
+				for(boost::tie(nIt, nEnd) = boost::adjacent_vertices(indeg.first, g); nIt != nEnd; ++nIt){
+					//std::cout << "nit: " << *nIt << std::endl;
+					--indegs[*nIt];
+				}
+			}
+			else{
+				UG_THROW(name() << "::compute: Graph is not cycle-free!");
+			}
 		}
 
 		g = G_t(0);
@@ -133,6 +149,7 @@ public:
 #ifdef UG_ENABLE_DEBUG_LOGS
 		UG_LOG("Using " << name() << "\n");
 #endif
+		//UG_LOG("Using " << name() << "\n");
 		unsigned rows = A->num_rows();
 
 		g = G_t(rows);
@@ -140,19 +157,19 @@ public:
 		for(unsigned i = 0; i < rows; i++){
 			for(typename M_t::row_iterator conn = A->begin_row(i); conn != A->end_row(i); ++conn){
 				if(conn.value() != 0.0 && conn.index() != i){ //TODO: think about this!!
-					double w;
-					w = abs(conn.value()); //TODO: think about this
-					boost::add_edge(i, conn.index(), w, g);
+					boost::add_edge(i, conn.index(), g);
 				}
 			}
 		}
 	}
 
-	virtual const char* name() const {return "BoostShortestPathsOrdering";}
+	virtual const char* name() const {return "TopologicalOrdering";}
 
 private:
 	G_t g;
 	O_t o;
+
+	std::vector<size_t> indegs;
 };
 
 } //namespace

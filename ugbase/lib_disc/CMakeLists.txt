@@ -37,7 +37,7 @@ include("../../cmake/ug_includes.cmake")
 set(srcDiscretization	domain.cpp
 						domain_util.cpp
 
-                        			common/function_group.cpp
+						common/function_group.cpp
 						common/groups_util.cpp
 						common/marking_utils.cpp
 
