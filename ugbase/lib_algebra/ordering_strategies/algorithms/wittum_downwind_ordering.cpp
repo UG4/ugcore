@@ -263,11 +263,11 @@ public:
 	void strongly_connected_components(){
 		std::cout << "strongly_connected_components()" << std::endl;
 		size_t n = boost::num_vertices(g);
- 		std::vector<int> component(n);
+		std::vector<int> component(n);
 		std::vector<int> discover_time(n);
-    		std::vector<boost::default_color_type> color(n);
-    		std::vector<vd> root(n);
-    		int num = boost::strong_components(g,
+		std::vector<boost::default_color_type> color(n);
+		std::vector<vd> root(n);
+		int num = boost::strong_components(g,
 			boost::make_iterator_property_map(component.begin(), boost::get(boost::vertex_index, g)),
 			boost::root_map(boost::make_iterator_property_map(root.begin(), boost::get(boost::vertex_index, g)))
 			    .color_map(
