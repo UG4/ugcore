@@ -768,6 +768,7 @@ function util.solver.CreateOrdering(orderingDesc, solverutil)
 		ordering = BoostMinimumDegreeOrdering()
 	elseif name == "Lex" then
 		ordering = LexOrdering()
+		ordering:set_direction(desc.dir)
 	elseif name == "Topological" then
 		ordering = TopologicalOrdering()
 --	elseif name == "BoostShortestPaths" then
