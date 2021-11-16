@@ -133,11 +133,12 @@ public:
 		UG_LOG("Using " << name() << "\n");
 		unsigned n = boost::num_vertices(g);
 
+/*
 		if(n == 0){
 			UG_THROW(name() << "::compute: Graph is empty!");
 			return;
 		}
-
+*/
 		//init
 		o.resize(n);
 		indegs.resize(n);
@@ -166,8 +167,8 @@ public:
 			}
 		}
 
-		std::cout << name() << " - print_ordered_matrix_cout *************" << std::endl;
-		print_ordered_matrix_cout(*m_A, o);
+		//std::cout << name() << " - print_ordered_matrix_cout *************" << std::endl;
+		//print_ordered_matrix_cout(*m_A, o);
 
 		g = G_t(0);
 	}
@@ -179,10 +180,10 @@ public:
 	}
 
 	O_t& ordering(){
-		std::cout << "ordering: " << std::endl;
-		for(unsigned i = 0; i < o.size(); ++i){
-			std::cout << o[i] << " ";
-		} std::cout << std::endl;
+		//std::cout << "ordering: " << std::endl;
+		//for(unsigned i = 0; i < o.size(); ++i){
+		//	std::cout << o[i] << " ";
+		//} std::cout << std::endl;
 		return o;
 	}
 
@@ -193,8 +194,8 @@ public:
 	void init(M_t* A){
 		m_A = A;
 
-		std::cout << name() << " - print_matrix_cout *************" << std::endl;
-		print_matrix_cout(*m_A);
+		//std::cout << name() << " - print_matrix_cout *************" << std::endl;
+		//print_matrix_cout(*m_A);
 
 //TODO: replace this by UG_DLOG if permutation_util does not depend on this file anymore
 #ifdef UG_ENABLE_DEBUG_LOGS

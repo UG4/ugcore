@@ -509,6 +509,10 @@ class ILU : public IPreconditioner<TAlgebra>
 						"not based on matrix. This Preconditioner can only "
 						"handle matrix-based operators.");
 
+			std::cout << "init(J, u)" << std::endl;
+
+			std::cout << "proc rank: " << pcl::ProcRank() << std::endl;
+
 			if(m_spOrderingAlgo.valid() && !m_useOverlap){
 				m_spOrderingAlgo->init(&(*pOp), u);
 			}
@@ -568,8 +572,9 @@ class ILU : public IPreconditioner<TAlgebra>
 		//	this is an experimental trigger. Best to leave it false for now.
 			//const bool sortSlaveToEnd = false;
 
-			#ifdef 	UG_PARALLEL
+			#ifdef UG_PARALLEL
 				if(m_useOverlap){
+					std::cout << "!!!!!!!!!!overlap" << std::endl;
 					CreateOverlap(m_ILU);
 					m_oD.set_layouts(m_ILU.layouts());
 					m_oC.set_layouts(m_ILU.layouts());
@@ -601,9 +606,11 @@ class ILU : public IPreconditioner<TAlgebra>
 #endif
 				}
 				else if(m_useConsistentInterfaces){
+					std::cout << "!!!!!!!!!!consistent interfaces" << std::endl;
 					MatMakeConsistentOverlap0(m_ILU);
 				}
 				else {
+					std::cout << "!!!!!!!!!!else" << std::endl;
 					MatAddSlaveRowsToMasterRowOverlap0(m_ILU);
 				//	set dirichlet rows on slaves
 					std::vector<IndexLayout::Element> vIndex;
@@ -620,10 +627,10 @@ class ILU : public IPreconditioner<TAlgebra>
 
 		//	if using overlap we already sort in a different way
 			if(m_spOrderingAlgo.valid() && !m_useOverlap){
-				std::cout << "---------before ordering-----------" << std::endl;
-				print_matrix_cout(mat);
-				write_debug(m_ILU, "ILU_PreProcess_mat_BeforeOrdering");
-				write_debug(m_ILU, "ILU_PreProcess_A_BeforeOrdering");
+				//std::cout << "---------before ordering-----------" << std::endl;
+				//print_matrix_cout(mat);
+				//write_debug(m_ILU, "ILU_PreProcess_mat_BeforeOrdering");
+				//write_debug(m_ILU, "ILU_PreProcess_A_BeforeOrdering");
 				m_spOrderingAlgo->compute();
 				m_ordering = m_spOrderingAlgo->ordering();
 
@@ -634,18 +641,13 @@ class ILU : public IPreconditioner<TAlgebra>
 					std::cout << m_ordering[i] << " ";
 				} std::cout << std::endl;
 
-				std::cout << "inverse ordering: " << std::endl;
-				for(unsigned i = 0; i < m_ordering.size(); ++i){
-					std::cout << m_old_ordering[i] << " ";
-				} std::cout << std::endl;
-
 				if(!m_bSortIsIdentity){
 					SetMatrixAsPermutation(m_ILU, mat, m_ordering);
 				}
-				write_debug(m_ILU, "ILU_PreProcess_A_AfterOrdering");
+				//write_debug(m_ILU, "ILU_PreProcess_A_AfterOrdering");
 
-				std::cout << "---------after ordering-----------" << std::endl;
-				print_matrix_cout(m_ILU);
+				//std::cout << "---------after ordering-----------" << std::endl;
+				//print_matrix_cout(m_ILU);
 			}
 
 		//	Debug output of matrices
@@ -662,8 +664,8 @@ class ILU : public IPreconditioner<TAlgebra>
 			else FactorizeILU(m_ILU);
 			m_ILU.defragment();
 
-			std::cout << "---------after factorize-----------" << std::endl;
-			print_matrix_cout(m_ILU);
+			//std::cout << "---------after factorize-----------" << std::endl;
+			//print_matrix_cout(m_ILU);
 
 		//	Debug output of matrices
 			#ifdef UG_PARALLEL
@@ -678,7 +680,8 @@ class ILU : public IPreconditioner<TAlgebra>
 
 
 		void applyLU(vector_type &c, const vector_type &d, vector_type &tmp)
-		{	
+		{
+
 			if(m_spOrderingAlgo.invalid() || m_bSortIsIdentity)
 			{
 				// 	apply iterator: c = LU^{-1}*d
@@ -687,6 +690,7 @@ class ILU : public IPreconditioner<TAlgebra>
 				if(! invert_U(m_ILU, c, tmp, m_invEps)) // c := U^-1 h = (LU)^-1 d
 					print_debugger_message("ILU: There were issues at inverting U\n");
 			}
+///*
 			else
 			{
 				// we save one vector here by renaming
@@ -697,6 +701,7 @@ class ILU : public IPreconditioner<TAlgebra>
 					print_debugger_message("ILU: There were issues at inverting U (after permutation)\n");
 				SetVectorAsPermutation(c, tmp, m_old_ordering);
 			}
+//*/
 		}
 
 	//	Stepping routine
@@ -714,6 +719,7 @@ class ILU : public IPreconditioner<TAlgebra>
 
 				if(first) write_overlap_debug(d, "ILU_step_1_d");
 				if(m_useOverlap){
+					std::cout << "!!!!!!!!!!step overlap" << std::endl;
 					for(size_t i = 0; i < d.size(); ++i)
 						m_oD[i] = d[i];
 					for(size_t i = d.size(); i < m_oD.size(); ++i)
@@ -731,6 +737,7 @@ class ILU : public IPreconditioner<TAlgebra>
 					c.set_storage_type(PST_UNIQUE);
 				}
 				else if(m_useConsistentInterfaces){
+					std::cout << "!!!!!!!!!!step consistent interface " << std::endl;
 					// make defect consistent
 					SmartPtr<vector_type> spDtmp = d.clone();
 					spDtmp->change_storage_type(PST_CONSISTENT);
@@ -741,12 +748,29 @@ class ILU : public IPreconditioner<TAlgebra>
 					c.set_storage_type(PST_UNIQUE);
 				}
 				else{
+					std::cout << "!!!!!!!!!!step else" << std::endl;
 				//	make defect unique
 					SmartPtr<vector_type> spDtmp = d.clone();
+//					SetVectorAsPermutation(*spDtmp, d, m_ordering);
+
 					spDtmp->change_storage_type(PST_UNIQUE);
 					if(first) write_debug(*spDtmp, "ILU_step_2_d_unique");
 					applyLU(c, *spDtmp, m_h);
 					c.set_storage_type(PST_ADDITIVE);
+					//replaces applyLU(c, *spDtmp, m_h);
+/*
+					{
+						// we save one vector here by renaming
+						//SetVectorAsPermutation(*spDtmp, d, m_ordering);
+						if(! invert_L(m_ILU, c, *spDtmp)) // c = L^{-1} d
+							print_debugger_message("ILU: There were issues at inverting L (after permutation)\n");
+						if(! invert_U(m_ILU, *spDtmp, c, m_invEps)) // tmp = (LU)^{-1} d
+							print_debugger_message("ILU: There were issues at inverting U (after permutation)\n");
+					}
+
+					SetVectorAsPermutation(c, *spDtmp, m_old_ordering);
+					vector_type c_tmp = c;
+*/
 				}
 
 			//	write debug
