@@ -63,6 +63,7 @@ static void SetMatrixAsPermutation(TMatrix &PA, const TMatrix &A, const std::vec
 	}
 }
 
+
 /**
  * Function to compute a permutation of a vector
  * @param[out] Pv the permuted vector: Pv[perm[i]] = v[i]

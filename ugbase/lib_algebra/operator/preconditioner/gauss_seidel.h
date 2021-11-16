@@ -155,6 +155,23 @@ class GaussSeidelBase : public IPreconditioner<TAlgebra>
 				m_spOrderingAlgo->init(pA);
 			}
 
+			if(m_spOrderingAlgo.valid() && !m_useOverlap){
+				//std::cout << "----------ordering------------" << std::endl;
+				//print_matrix_cout(*pOp);
+				m_spOrderingAlgo->compute();
+				m_ordering = m_spOrderingAlgo->ordering();
+
+				m_bSortIsIdentity = GetInversePermutation(m_ordering, m_old_ordering);
+
+				if(!m_bSortIsIdentity){
+					m_tmpA = *pOp;
+					//matrix_type& A = *pOp;
+					SetMatrixAsPermutation(m_A, m_tmpA, m_ordering);
+				}
+				//std::cout << "---------after ordering-----------" << std::endl;
+				//print_matrix_cout(m_A);
+			}
+
 			return true;
 		}
 
@@ -223,9 +240,21 @@ class GaussSeidelBase : public IPreconditioner<TAlgebra>
 			else
 #endif
 			{
-				matrix_type &A = *pOp;
+				matrix_type &A = m_A; //*pOp;
 				THROW_IF_NOT_EQUAL_4(c.size(), d.size(), A.num_rows(), A.num_cols());
-				step(A, c, d, m_relax);
+
+				if(m_spOrderingAlgo.invalid() || m_bSortIsIdentity){
+					step(A, c, d, m_relax);
+				}
+				else{
+					vector_type c_tmp = c;
+					vector_type d_tmp = d;
+					SetVectorAsPermutation(c_tmp, c, m_ordering);
+					SetVectorAsPermutation(d_tmp, d, m_ordering);
+					step(m_tmpA, c_tmp, d_tmp, m_relax);
+					SetVectorAsPermutation(c, c_tmp, m_old_ordering);
+					SetVectorAsPermutation(c, d_tmp, m_old_ordering);
+				}
 #ifdef UG_PARALLEL
 				c.set_storage_type(PST_CONSISTENT);
 #endif
@@ -237,6 +266,7 @@ class GaussSeidelBase : public IPreconditioner<TAlgebra>
 #ifdef UG_PARALLEL
 		matrix_type m_A;
 #endif
+		matrix_type m_tmpA;
 
 	protected:
 	///	relaxation parameter

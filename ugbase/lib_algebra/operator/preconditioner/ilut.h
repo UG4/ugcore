@@ -150,8 +150,12 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 						"not based on matrix. This Preconditioner can only "
 						"handle matrix-based operators.");
 
+			if(m_spOrderingAlgo.valid()){
+				m_spOrderingAlgo->init(&(*pOp), u);
+			}
+
 		//	forward request to matrix based implementation
-			return init(pOp);
+			return base_type::init(pOp);
 		}
 
 		bool init(SmartPtr<ILinearOperator<vector_type> > L)
@@ -166,8 +170,12 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 						"not based on matrix. This Preconditioner can only "
 						"handle matrix-based operators.");
 
+			if(m_spOrderingAlgo.valid()){
+				m_spOrderingAlgo->init(&(*pOp));
+			}
+
 		//	forward request to matrix based implementation
-			return init(pOp);
+			return base_type::init(pOp);
 		}
 
 		bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op)
@@ -175,9 +183,8 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 			if(m_spOrderingAlgo.valid()){
 				m_spOrderingAlgo->init(&(*Op));
 			}
-			bool b = base_type::init(Op);
 
-			return b;
+			return base_type::init(Op);
 		}
 
 	//	Preprocess routine

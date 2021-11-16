@@ -316,6 +316,7 @@ bool invert_U(const Matrix_type &A, Vector_type &x, const Vector_type &b,
 }
 
 
+#if 0
 #ifdef UG_PARALLEL
 inline void
 LayoutEntriesToEndPermutation(std::vector<size_t>& newIndexOut,
@@ -349,7 +350,45 @@ LayoutEntriesToEndPermutation(std::vector<size_t>& newIndexOut,
 	}
 }
 #endif
+#endif
 
+#ifndef PRINT_MATRIX_COUT
+#define PRINT_MATRIX_COUT
+template <typename M_t>
+void print_matrix_cout(M_t &A){
+	unsigned rows = A.num_rows();
+
+	for(unsigned i = 0; i < rows; i++){
+		std::cout << "line " << i << ": ";
+		for(typename M_t::row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn){
+			if(conn.value() != 0.0){
+				std::cout << conn.index() << "(" << conn.value() << "), ";
+			}
+			//if(conn.value() != 0.0 && conn.index() != i){ //TODO: think about this!!
+				//boost::add_edge(i, conn.index(), g);
+			//}
+		} std::cout << std::endl;
+	}
+}
+
+
+template <typename M_t, typename O_t>
+void print_ordered_matrix_cout(M_t &A, O_t &o){
+	unsigned rows = A.num_rows();
+
+	for(unsigned i = 0; i < rows; i++){
+		std::cout << "line " << o[i] << ": ";
+		for(typename M_t::row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn){
+			if(conn.value() != 0.0){
+				std::cout << o[conn.index()] << "(" << conn.value() << "), ";
+			}
+			//if(conn.value() != 0.0 && conn.index() != i){ //TODO: think about this!!
+				//boost::add_edge(i, conn.index(), g);
+			//}
+		} std::cout << std::endl;
+	}
+}
+#endif
 
 ///	ILU / ILU(beta) preconditioner
 template <typename TAlgebra>
@@ -500,7 +539,6 @@ class ILU : public IPreconditioner<TAlgebra>
 
 		bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op)
 		{
-
 			if(m_spOrderingAlgo.valid() && !m_useOverlap){
 				m_spOrderingAlgo->init(&(*Op));
 			}
@@ -528,7 +566,7 @@ class ILU : public IPreconditioner<TAlgebra>
 			m_ILU = mat;
 
 		//	this is an experimental trigger. Best to leave it false for now.
-			const bool sortSlaveToEnd = false;
+			//const bool sortSlaveToEnd = false;
 
 			#ifdef 	UG_PARALLEL
 				if(m_useOverlap){
@@ -545,6 +583,7 @@ class ILU : public IPreconditioner<TAlgebra>
 				                      		   m_ILU.num_rows());
 					}
 
+#if 0
 				//	slave-overlap rows shall be at the end of the matrix
 					if(sortSlaveToEnd){
 						LayoutEntriesToEndPermutation(	m_newIndex,
@@ -559,6 +598,7 @@ class ILU : public IPreconditioner<TAlgebra>
 							SetMatrixAsPermutation(m_ILU, mat, m_newIndex);
 						}
 					}
+#endif
 				}
 				else if(m_useConsistentInterfaces){
 					MatMakeConsistentOverlap0(m_ILU);
@@ -579,15 +619,33 @@ class ILU : public IPreconditioner<TAlgebra>
 			#endif
 
 		//	if using overlap we already sort in a different way
-			if(m_spOrderingAlgo.valid() && !(m_useOverlap && sortSlaveToEnd)){
+			if(m_spOrderingAlgo.valid() && !m_useOverlap){
+				std::cout << "---------before ordering-----------" << std::endl;
+				print_matrix_cout(mat);
+				write_debug(m_ILU, "ILU_PreProcess_mat_BeforeOrdering");
+				write_debug(m_ILU, "ILU_PreProcess_A_BeforeOrdering");
 				m_spOrderingAlgo->compute();
 				m_ordering = m_spOrderingAlgo->ordering();
 
 				m_bSortIsIdentity = GetInversePermutation(m_ordering, m_old_ordering);
 
+				std::cout << "ordering: " << std::endl;
+				for(unsigned i = 0; i < m_ordering.size(); ++i){
+					std::cout << m_ordering[i] << " ";
+				} std::cout << std::endl;
+
+				std::cout << "inverse ordering: " << std::endl;
+				for(unsigned i = 0; i < m_ordering.size(); ++i){
+					std::cout << m_old_ordering[i] << " ";
+				} std::cout << std::endl;
+
 				if(!m_bSortIsIdentity){
 					SetMatrixAsPermutation(m_ILU, mat, m_ordering);
 				}
+				write_debug(m_ILU, "ILU_PreProcess_A_AfterOrdering");
+
+				std::cout << "---------after ordering-----------" << std::endl;
+				print_matrix_cout(m_ILU);
 			}
 
 		//	Debug output of matrices
@@ -603,6 +661,9 @@ class ILU : public IPreconditioner<TAlgebra>
 			else if(matrix_type::rows_sorted) FactorizeILUSorted(m_ILU, m_sortEps);
 			else FactorizeILU(m_ILU);
 			m_ILU.defragment();
+
+			std::cout << "---------after factorize-----------" << std::endl;
+			print_matrix_cout(m_ILU);
 
 		//	Debug output of matrices
 			#ifdef UG_PARALLEL

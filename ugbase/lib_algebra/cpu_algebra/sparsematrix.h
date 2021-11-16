@@ -446,7 +446,7 @@ public:
 	const_row_iterator get_connection(size_t r, size_t c, bool &bFound) const
 	{
 		check_rc(r, c);
-        int j=get_index_const(r, c);
+		int j=get_index_const(r, c);
 		if(j != -1)
 		{
 			bFound = true;
@@ -499,7 +499,7 @@ public:
 	{
 		check_rc(r, c);
 		assert(bNeedsValues);
-        int j=get_index(r, c);
+		int j=get_index(r, c);
 		return row_iterator(*this, r, j);
 	}
 
