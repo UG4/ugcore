@@ -157,17 +157,6 @@ static void Algebra(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "BoostShortestPathsOrdering", tag);
 	}
-
-//	Wittum Downwind
-	{
-		typedef WittumDownwindOrdering<TAlgebra, ordering_container_type> T;
-		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
-		string name = string("WittumDownwindOrdering").append(suffix);
-		reg.add_class_<T, TBase>(name, grp, "WittumDownwindOrdering")
-			.add_constructor()
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "WittumDownwindOrdering", tag);
-	}
 */
 }
 

@@ -150,9 +150,11 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 						"not based on matrix. This Preconditioner can only "
 						"handle matrix-based operators.");
 
+			#ifndef UG_PARALLEL
 			if(m_spOrderingAlgo.valid()){
 				m_spOrderingAlgo->init(&(*pOp), u);
 			}
+			#endif
 
 		//	forward request to matrix based implementation
 			return base_type::init(pOp);
@@ -249,6 +251,13 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 
 			matrix_type* A;
 			matrix_type permA;
+
+			#ifdef UG_PARALLEL
+			if(m_spOrderingAlgo.valid()){
+				m_spOrderingAlgo->init(&mat);
+			}
+			#endif
+
 			if(m_spOrderingAlgo.valid())
 			{
 				m_spOrderingAlgo->compute();

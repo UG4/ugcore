@@ -315,81 +315,6 @@ bool invert_U(const Matrix_type &A, Vector_type &x, const Vector_type &b,
 	return result;
 }
 
-
-#if 0
-#ifdef UG_PARALLEL
-inline void
-LayoutEntriesToEndPermutation(std::vector<size_t>& newIndexOut,
-                              const IndexLayout& layout,
-                       		  const size_t numRows)
-{
-	using namespace std;
-	vector<size_t> inds;
-	CollectElements(inds, layout);
-
-	newIndexOut.clear();
-	newIndexOut.resize(numRows, 0);
-
-	size_t numUniqueInds = 0;
-	for(size_t i = 0; i < inds.size(); ++i){
-		if(newIndexOut[inds[i]] != 1){
-			newIndexOut[inds[i]] = 1;
-			++numUniqueInds;
-		}
-	}
-
-	size_t curNormalInd = 0;
-	size_t curSlaveInd = numRows - numUniqueInds;
-
-//	0 marks normal index, 1 marks layout index
-	for(size_t irow = 0; irow < numRows; ++irow){
-		if(newIndexOut[irow] == 0)
-			newIndexOut[irow] = curNormalInd++;
-		else
-			newIndexOut[irow] = curSlaveInd++;
-	}
-}
-#endif
-#endif
-
-#ifndef PRINT_MATRIX_COUT
-#define PRINT_MATRIX_COUT
-template <typename M_t>
-void print_matrix_cout(M_t &A){
-	unsigned rows = A.num_rows();
-
-	for(unsigned i = 0; i < rows; i++){
-		std::cout << "line " << i << ": ";
-		for(typename M_t::row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn){
-			if(conn.value() != 0.0){
-				std::cout << conn.index() << "(" << conn.value() << "), ";
-			}
-			//if(conn.value() != 0.0 && conn.index() != i){ //TODO: think about this!!
-				//boost::add_edge(i, conn.index(), g);
-			//}
-		} std::cout << std::endl;
-	}
-}
-
-
-template <typename M_t, typename O_t>
-void print_ordered_matrix_cout(M_t &A, O_t &o){
-	unsigned rows = A.num_rows();
-
-	for(unsigned i = 0; i < rows; i++){
-		std::cout << "line " << o[i] << ": ";
-		for(typename M_t::row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn){
-			if(conn.value() != 0.0){
-				std::cout << o[conn.index()] << "(" << conn.value() << "), ";
-			}
-			//if(conn.value() != 0.0 && conn.index() != i){ //TODO: think about this!!
-				//boost::add_edge(i, conn.index(), g);
-			//}
-		} std::cout << std::endl;
-	}
-}
-#endif
-
 ///	ILU / ILU(beta) preconditioner
 template <typename TAlgebra>
 class ILU : public IPreconditioner<TAlgebra>
@@ -568,9 +493,6 @@ class ILU : public IPreconditioner<TAlgebra>
 
 			m_ILU = mat;
 
-		//	this is an experimental trigger. Best to leave it false for now.
-			//const bool sortSlaveToEnd = false;
-
 			#ifdef UG_PARALLEL
 				if(m_useOverlap){
 					CreateOverlap(m_ILU);
@@ -637,9 +559,6 @@ class ILU : public IPreconditioner<TAlgebra>
 			else FactorizeILU(m_ILU);
 			m_ILU.defragment();
 
-			//std::cout << "---------after factorize-----------" << std::endl;
-			//print_matrix_cout(m_ILU);
-
 		//	Debug output of matrices
 			#ifdef UG_PARALLEL
 			write_overlap_debug(m_ILU, "ILU_prep_04_A_AfterFactorize");
@@ -692,7 +611,6 @@ class ILU : public IPreconditioner<TAlgebra>
 
 				if(first) write_overlap_debug(d, "ILU_step_1_d");
 				if(m_useOverlap){
-					std::cout << "!!!!!!!!!!step overlap" << std::endl;
 					for(size_t i = 0; i < d.size(); ++i)
 						m_oD[i] = d[i];
 					for(size_t i = d.size(); i < m_oD.size(); ++i)
@@ -710,7 +628,6 @@ class ILU : public IPreconditioner<TAlgebra>
 					c.set_storage_type(PST_UNIQUE);
 				}
 				else if(m_useConsistentInterfaces){
-					std::cout << "!!!!!!!!!!step consistent interface " << std::endl;
 					// make defect consistent
 					SmartPtr<vector_type> spDtmp = d.clone();
 					spDtmp->change_storage_type(PST_CONSISTENT);
@@ -721,7 +638,6 @@ class ILU : public IPreconditioner<TAlgebra>
 					c.set_storage_type(PST_UNIQUE);
 				}
 				else{
-					std::cout << "!!!!!!!!!!step else" << std::endl;
 				//	make defect unique
 					SmartPtr<vector_type> spDtmp = d.clone();
 //					SetVectorAsPermutation(*spDtmp, d, m_ordering);
@@ -730,20 +646,6 @@ class ILU : public IPreconditioner<TAlgebra>
 					if(first) write_debug(*spDtmp, "ILU_step_2_d_unique");
 					applyLU(c, *spDtmp, m_h);
 					c.set_storage_type(PST_ADDITIVE);
-					//replaces applyLU(c, *spDtmp, m_h);
-/*
-					{
-						// we save one vector here by renaming
-						//SetVectorAsPermutation(*spDtmp, d, m_ordering);
-						if(! invert_L(m_ILU, c, *spDtmp)) // c = L^{-1} d
-							print_debugger_message("ILU: There were issues at inverting L (after permutation)\n");
-						if(! invert_U(m_ILU, *spDtmp, c, m_invEps)) // tmp = (LU)^{-1} d
-							print_debugger_message("ILU: There were issues at inverting U (after permutation)\n");
-					}
-
-					SetVectorAsPermutation(c, *spDtmp, m_old_ordering);
-					vector_type c_tmp = c;
-*/
 				}
 
 			//	write debug

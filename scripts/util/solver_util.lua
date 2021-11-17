@@ -777,8 +777,6 @@ function util.solver.CreateOrdering(orderingDesc, solverutil)
 		ordering:set_direction(desc.dir)
 --	elseif name == "BoostShortestPaths" then
 --		ordering = BoostShortestPathsOrdering()
---	elseif name == "WittumDownwind" then
---		ordering = WittumDownwindOrdering()
 	end
 
 	util.solver.CondAbort(ordering == nil, "Invalid ordering specified: " .. name)
