@@ -46,48 +46,9 @@
 
 //debug
 #include "common/error.h"
-//#include "common/debug_id.h"
 #include "common/log.h"
 
 namespace ug{
-
-#ifndef PRINT_MATRIX_COUT
-#define PRINT_MATRIX_COUT
-template <typename M_t>
-void print_matrix_cout(M_t &A){
-	unsigned rows = A.num_rows();
-
-	for(unsigned i = 0; i < rows; i++){
-		std::cout << "line " << i << ": ";
-		for(typename M_t::row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn){
-			if(conn.value() != 0.0){
-				std::cout << conn.index() << "(" << conn.value() << "), ";
-			}
-			//if(conn.value() != 0.0 && conn.index() != i){ //TODO: think about this!!
-				//boost::add_edge(i, conn.index(), g);
-			//}
-		} std::cout << std::endl;
-	}
-}
-
-
-template <typename M_t, typename O_t>
-void print_ordered_matrix_cout(M_t &A, O_t &o){
-	unsigned rows = A.num_rows();
-
-	for(unsigned i = 0; i < rows; i++){
-		std::cout << "line " << o[i] << ": ";
-		for(typename M_t::row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn){
-			if(conn.value() != 0.0){
-				std::cout << o[conn.index()] << "(" << conn.value() << "), ";
-			}
-			//if(conn.value() != 0.0 && conn.index() != i){ //TODO: think about this!!
-				//boost::add_edge(i, conn.index(), g);
-			//}
-		} std::cout << std::endl;
-	}
-}
-#endif
 
 //for cycle-free matrices only
 template <typename TAlgebra, typename O_t>
@@ -130,15 +91,13 @@ public:
 
 	//TODO: this is a very inefficient implementation, rewrite if necessary
 	void compute(){
-		UG_LOG("Using " << name() << "\n");
 		unsigned n = boost::num_vertices(g);
 
-/*
 		if(n == 0){
 			UG_THROW(name() << "::compute: Graph is empty!");
 			return;
 		}
-*/
+
 		//init
 		o.resize(n);
 		indegs.resize(n);
@@ -151,14 +110,11 @@ public:
 		indegs_t indeg;
 		nIt_t nIt, nEnd;
 		for(unsigned i = 0; i < n; ++i){
-			//std::cout << "-------------" << i << "/" << n << "----------" << std::endl;
 			indegs_t indeg = min_indegree_vertex();
-			//std::cout << "v: " << indeg.first << ", deg: " << indeg.second << std::endl;
 			if(indeg.second == 0){
 				o[indeg.first] = i;
 				--indegs[indeg.first]; //becomes -1
 				for(boost::tie(nIt, nEnd) = boost::adjacent_vertices(indeg.first, g); nIt != nEnd; ++nIt){
-					//std::cout << "nit: " << *nIt << std::endl;
 					--indegs[*nIt];
 				}
 			}
@@ -167,10 +123,11 @@ public:
 			}
 		}
 
-		//std::cout << name() << " - print_ordered_matrix_cout *************" << std::endl;
-		//print_ordered_matrix_cout(*m_A, o);
-
 		g = G_t(0);
+
+		#ifdef UG_DEBUG
+		check();
+		#endif
 	}
 
 	void check(){
@@ -180,10 +137,6 @@ public:
 	}
 
 	O_t& ordering(){
-		//std::cout << "ordering: " << std::endl;
-		//for(unsigned i = 0; i < o.size(); ++i){
-		//	std::cout << o[i] << " ";
-		//} std::cout << std::endl;
 		return o;
 	}
 
@@ -192,16 +145,13 @@ public:
 	}
 
 	void init(M_t* A){
+		//TODO: replace this by UG_DLOG if permutation_util does not depend on this file anymore
+		#ifdef UG_ENABLE_DEBUG_LOGS
+		UG_LOG("Using " << name() << "\n");
+		#endif
+
 		m_A = A;
 
-		//std::cout << name() << " - print_matrix_cout *************" << std::endl;
-		//print_matrix_cout(*m_A);
-
-//TODO: replace this by UG_DLOG if permutation_util does not depend on this file anymore
-#ifdef UG_ENABLE_DEBUG_LOGS
-		UG_LOG("Using " << name() << "\n");
-#endif
-		//UG_LOG("Using " << name() << "\n");
 		unsigned rows = A->num_rows();
 
 		g = G_t(rows);

@@ -3,5 +3,6 @@
 #include "native_cuthill_mckee.h"
 #include "topological_ordering.cpp"
 
+#include "SCC_ordering.cpp"
+
 //#include "boost_shortest_paths_ordering.cpp"
-//#include "wittum_downwind_ordering.cpp"

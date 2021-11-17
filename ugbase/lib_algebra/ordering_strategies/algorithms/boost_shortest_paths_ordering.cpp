@@ -112,6 +112,10 @@ public:
 		}
 
 		g = G_t(0);
+
+		#ifdef UG_DEBUG
+		check();
+		#endif
 	}
 
 	void check(){
@@ -129,10 +133,11 @@ public:
 	}
 
 	void init(M_t* A){
-//TODO: replace this by UG_DLOG if permutation_util does not depend on this file anymore
-#ifdef UG_ENABLE_DEBUG_LOGS
+		//TODO: replace this by UG_DLOG if permutation_util does not depend on this file anymore
+		#ifdef UG_ENABLE_DEBUG_LOGS
 		UG_LOG("Using " << name() << "\n");
-#endif
+		#endif
+
 		unsigned rows = A->num_rows();
 
 		g = G_t(rows);

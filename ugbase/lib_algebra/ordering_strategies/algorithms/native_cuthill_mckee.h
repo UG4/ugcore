@@ -41,7 +41,6 @@
 
 //debug
 #include "common/error.h"
-//#include "common/debug_id.h"
 #include "common/log.h"
 
 namespace ug{
@@ -117,17 +116,18 @@ public:
 
 		for(size_t i=0; i<mat->num_rows(); i++)
 		{
-			for(typename M_t::row_iterator i_it = mat->begin_row(i); i_it != mat->end_row(i); ++i_it)
+			for(typename M_t::row_iterator i_it = mat->begin_row(i); i_it != mat->end_row(i); ++i_it){
 				neighbors[i].push_back(i_it.index());
-
-			// make sure there are no disconnected DoFs
-			//UG_ASSERT(neighbors[i].size(), "Index "<< i << " does not have any connections. This will most probably "
-			//	"lead to problems and is therefore disallowed.");
+			}
 		}
 
 		ComputeCuthillMcKeeOrder(o, neighbors, m_bReverse, true);
 
 		mat = NULL;
+
+		#ifdef UG_DEBUG
+		check();
+		#endif
 	}
 
 	void check(){
@@ -145,10 +145,11 @@ public:
 	}
 
 	void init(M_t* m){
-//TODO: replace this by UG_DLOG if permutation_util does not depend on this file anymore
-#ifdef UG_ENABLE_DEBUG_LOGS
+		//TODO: replace this by UG_DLOG if permutation_util does not depend on this file anymore
+		#ifdef UG_ENABLE_DEBUG_LOGS
 		UG_LOG("Using " << name() << "\n");
-#endif
+		#endif
+
 		mat = m;
 	}
 

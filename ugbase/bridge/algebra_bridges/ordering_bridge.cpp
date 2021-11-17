@@ -135,6 +135,17 @@ static void Algebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "TopologicalOrdering", tag);
 	}
 
+//	Strongly connected components ordering
+	{
+		typedef SCCOrdering<TAlgebra, ordering_container_type> T;
+		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
+		string name = string("SCCOrdering").append(suffix);
+		reg.add_class_<T, TBase>(name, grp, "SCCOrdering")
+			.add_constructor()
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "SCCOrdering", tag);
+	}
+
 /*
 //	Boost Shortest Paths
 	{

@@ -509,13 +509,11 @@ class ILU : public IPreconditioner<TAlgebra>
 						"not based on matrix. This Preconditioner can only "
 						"handle matrix-based operators.");
 
-			std::cout << "init(J, u)" << std::endl;
-
-			std::cout << "proc rank: " << pcl::ProcRank() << std::endl;
-
-			if(m_spOrderingAlgo.valid() && !m_useOverlap){
-				m_spOrderingAlgo->init(&(*pOp), u);
-			}
+			#ifndef UG_PARALLEL
+                       if(m_spOrderingAlgo.valid() && !m_useOverlap){
+                               m_spOrderingAlgo->init(&(*pOp), u);
+                       }
+			#endif
 
 		//	forward request to matrix based implementation
 			return base_type::init(pOp);
@@ -543,6 +541,7 @@ class ILU : public IPreconditioner<TAlgebra>
 
 		bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op)
 		{
+
 			if(m_spOrderingAlgo.valid() && !m_useOverlap){
 				m_spOrderingAlgo->init(&(*Op));
 			}
@@ -574,7 +573,6 @@ class ILU : public IPreconditioner<TAlgebra>
 
 			#ifdef UG_PARALLEL
 				if(m_useOverlap){
-					std::cout << "!!!!!!!!!!overlap" << std::endl;
 					CreateOverlap(m_ILU);
 					m_oD.set_layouts(m_ILU.layouts());
 					m_oC.set_layouts(m_ILU.layouts());
@@ -587,30 +585,11 @@ class ILU : public IPreconditioner<TAlgebra>
 					                     	   *debug_writer(),
 				                      		   m_ILU.num_rows());
 					}
-
-#if 0
-				//	slave-overlap rows shall be at the end of the matrix
-					if(sortSlaveToEnd){
-						LayoutEntriesToEndPermutation(	m_newIndex,
-						                              	m_ILU.layouts()->slave(),
-						                       			m_ILU.num_rows());
-						m_bSortIsIdentity = GetInversePermutation(m_newIndex, m_oldIndex);
-
-						if(!m_bSortIsIdentity)
-						{
-							matrix_type mat;
-							mat = m_ILU;
-							SetMatrixAsPermutation(m_ILU, mat, m_newIndex);
-						}
-					}
-#endif
 				}
 				else if(m_useConsistentInterfaces){
-					std::cout << "!!!!!!!!!!consistent interfaces" << std::endl;
 					MatMakeConsistentOverlap0(m_ILU);
 				}
 				else {
-					std::cout << "!!!!!!!!!!else" << std::endl;
 					MatAddSlaveRowsToMasterRowOverlap0(m_ILU);
 				//	set dirichlet rows on slaves
 					std::vector<IndexLayout::Element> vIndex;
@@ -625,29 +604,23 @@ class ILU : public IPreconditioner<TAlgebra>
 			write_overlap_debug(m_ILU, "ILU_prep_02_A_AfterMakeUnique");
 			#endif
 
+			#ifdef UG_PARALLEL
+			if(m_spOrderingAlgo.valid() && !m_useOverlap){
+				m_spOrderingAlgo->init(&m_ILU);
+			}
+			#endif
+
 		//	if using overlap we already sort in a different way
 			if(m_spOrderingAlgo.valid() && !m_useOverlap){
-				//std::cout << "---------before ordering-----------" << std::endl;
-				//print_matrix_cout(mat);
-				//write_debug(m_ILU, "ILU_PreProcess_mat_BeforeOrdering");
-				//write_debug(m_ILU, "ILU_PreProcess_A_BeforeOrdering");
 				m_spOrderingAlgo->compute();
 				m_ordering = m_spOrderingAlgo->ordering();
 
 				m_bSortIsIdentity = GetInversePermutation(m_ordering, m_old_ordering);
 
-				std::cout << "ordering: " << std::endl;
-				for(unsigned i = 0; i < m_ordering.size(); ++i){
-					std::cout << m_ordering[i] << " ";
-				} std::cout << std::endl;
-
 				if(!m_bSortIsIdentity){
-					SetMatrixAsPermutation(m_ILU, mat, m_ordering);
+					m_tmp = m_ILU;
+					SetMatrixAsPermutation(m_ILU, m_tmp, m_ordering);
 				}
-				//write_debug(m_ILU, "ILU_PreProcess_A_AfterOrdering");
-
-				//std::cout << "---------after ordering-----------" << std::endl;
-				//print_matrix_cout(m_ILU);
 			}
 
 		//	Debug output of matrices
@@ -810,6 +783,7 @@ class ILU : public IPreconditioner<TAlgebra>
 	protected:
 	///	storage for factorization
 		matrix_type m_ILU;
+		matrix_type m_tmp;
 
 	///	help vector
 		vector_type m_h;

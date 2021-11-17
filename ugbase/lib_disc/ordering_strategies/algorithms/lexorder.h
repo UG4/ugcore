@@ -140,9 +140,10 @@ public:
 			throw;
 		}
 
-#ifdef UG_ENABLE_DEBUG_LOGS
+		#ifdef UG_ENABLE_DEBUG_LOGS
 		UG_LOG("Using " << name() << " in " << m_dir << " direction\n");
-#endif
+		#endif
+
 		mat = A;
 	}
 
