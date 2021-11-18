@@ -75,11 +75,14 @@ public:
 		return make_sp(new SCCOrdering<TAlgebra, O_t>(*this));
 	}
 
-	void preorder(vd v, O_t& o, size_t& i, G_t& g){
+	void preorder(vd v, O_t& o, size_t& i, std::vector<BOOL>& visited, G_t& g){
+		std::cout << i << " preorder visit " << v << std::endl;
 		o[i] = v;
+		visited[o[i]] = true;
 		adj_iter nIt, nEnd;
 		for(boost::tie(nIt, nEnd) = boost::adjacent_vertices(v, g); nIt != nEnd; ++nIt){
-			preorder(*nIt, o, ++i, g);
+			std::cout << "call preorder from " << v << " for " << *nIt << std::endl;
+			preorder(*nIt, o, ++i, visited, g);
 		}
 	}
 
@@ -139,28 +142,52 @@ public:
 			i_comp = component[i];
 			for(boost::tie(nIt, nEnd) = boost::adjacent_vertices(i, g); nIt != nEnd; ++nIt){
 				n_comp = component[*nIt];
-				if(i_comp != n_comp){
+				if(i_comp != n_comp && !boost::edge(i_comp, n_comp, scc_g).second){
 					boost::add_edge(i_comp, n_comp, scc_g);
 				}
 			}
 		}
 
 		//determine root of scc_g
-		vd scc_root = *boost::vertices(scc_g).first;
-		inedge_iter ineIt, ineEnd;
-		boost::tie(ineIt, ineEnd) = boost::in_edges(scc_root, scc_g);
-		while(ineIt != ineEnd){
-			scc_root = boost::source(*ineIt, scc_g);
-			boost::tie(ineIt, ineEnd) = boost::in_edges(scc_root, scc_g);
+		vd scc_root = 0;
+		size_t num_roots = 0;
+		for(unsigned i = 0; i < num_components; ++i){
+			if(boost::in_degree(i, scc_g) == 0 && boost::out_degree(i, scc_g) > 0){
+				std::cout << "scc root: " << i << std::endl;
+				scc_root = i;
+				++num_roots;
+			}
 		}
 
-		std::cout << "scc root: " << scc_root << std::endl;
+		if(num_roots > 1){
+			UG_THROW("#roots > 1 not implemented yet!");
+		}
 
 		O_t scc_topo_ordering(num_components);
+		std::vector<BOOL> visited(num_components, false);
 		size_t idx = 0;
-		preorder(scc_root, scc_topo_ordering, idx, scc_g);
+		preorder(scc_root, scc_topo_ordering, idx, visited, scc_g);
+
+		if(idx < num_components){
+			//there are isolated vertices in scc_g
+			//put them at the end of scc_topo_ordering
+			std::cout << "idx: " << idx << std::endl;
+			for(unsigned i = 0; i < num_components; ++i){
+				if(!visited[i]){
+					std::cout << "isolated vertex " << i << std::endl;
+					scc_topo_ordering[++idx] = i;
+				}
+			}
+		}
 
 		//scc_topo_ordering is now a topological ordering of the scc_g
+
+		std::cout << "scc graph: " << std::endl;
+		for(unsigned i = 0; i < num_components; ++i){
+			for(boost::tie(nIt, nEnd) = boost::adjacent_vertices(i, scc_g); nIt != nEnd; ++nIt){
+				std::cout << i << " -> " << *nIt << std::endl;
+			}
+		}
 
 		std::cout << "scc ordering: " << std::endl;
 		for(unsigned i = 0; i < num_components; ++i){
@@ -179,6 +206,7 @@ public:
 			size_t k = 0;
 			for(unsigned i = 0; i < num_components; ++i){
 				for(unsigned j = 0; j < comp_members[scc_topo_ordering[i]].size(); ++j){
+					std::cout << "o[" << k << "]: " << comp_members[scc_topo_ordering[i]][j] << std::endl;
 					o[k++] = comp_members[scc_topo_ordering[i]][j];
 				}
 			}

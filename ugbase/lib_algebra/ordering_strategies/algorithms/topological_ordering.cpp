@@ -107,7 +107,6 @@ public:
 			indegs[*vIt] = boost::in_degree(*vIt, g);
 		}
 
-		indegs_t indeg;
 		nIt_t nIt, nEnd;
 		for(unsigned i = 0; i < n; ++i){
 			indegs_t indeg = min_indegree_vertex();

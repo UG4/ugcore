@@ -434,11 +434,7 @@ class ILU : public IPreconditioner<TAlgebra>
 						"not based on matrix. This Preconditioner can only "
 						"handle matrix-based operators.");
 
-			#ifndef UG_PARALLEL
-                       if(m_spOrderingAlgo.valid() && !m_useOverlap){
-                               m_spOrderingAlgo->init(&(*pOp), u);
-                       }
-			#endif
+			m_u = &u;
 
 		//	forward request to matrix based implementation
 			return base_type::init(pOp);
@@ -456,9 +452,7 @@ class ILU : public IPreconditioner<TAlgebra>
 						"not based on matrix. This Preconditioner can only "
 						"handle matrix-based operators.");
 
-			if(m_spOrderingAlgo.valid() && !m_useOverlap){
-				m_spOrderingAlgo->init(&(*pOp));
-			}
+			m_u = NULL;
 
 		//	forward request to matrix based implementation
 			return base_type::init(pOp);
@@ -466,10 +460,7 @@ class ILU : public IPreconditioner<TAlgebra>
 
 		bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op)
 		{
-
-			if(m_spOrderingAlgo.valid() && !m_useOverlap){
-				m_spOrderingAlgo->init(&(*Op));
-			}
+			m_u = NULL;
 
 			return base_type::init(Op);
 		}
@@ -526,11 +517,14 @@ class ILU : public IPreconditioner<TAlgebra>
 			write_overlap_debug(m_ILU, "ILU_prep_02_A_AfterMakeUnique");
 			#endif
 
-			#ifdef UG_PARALLEL
 			if(m_spOrderingAlgo.valid() && !m_useOverlap){
-				m_spOrderingAlgo->init(&m_ILU);
+				if(m_u){
+					m_spOrderingAlgo->init(&m_ILU, *m_u);
+				}
+				else{
+					m_spOrderingAlgo->init(&m_ILU);
+				}
 			}
-			#endif
 
 		//	if using overlap we already sort in a different way
 			if(m_spOrderingAlgo.valid() && !m_useOverlap){
@@ -685,6 +679,8 @@ class ILU : public IPreconditioner<TAlgebra>
 	protected:
 	///	storage for factorization
 		matrix_type m_ILU;
+
+	///	temporary matrix
 		matrix_type m_tmp;
 
 	///	help vector
@@ -694,10 +690,10 @@ class ILU : public IPreconditioner<TAlgebra>
 		vector_type m_oD;
 		vector_type m_oC;
 		#ifdef UG_PARALLEL
-			SmartPtr<OverlapWriter<TAlgebra> >	m_overlapWriter;
+		SmartPtr<OverlapWriter<TAlgebra> > m_overlapWriter;
 		#endif
 
-	/// Factor for ILU-beta
+	/// 	factor for ILU-beta
 		number m_beta;
 
 	///	smallest allowed value for sorted factorization
@@ -706,17 +702,19 @@ class ILU : public IPreconditioner<TAlgebra>
 	///	smallest allowed value for the Aii/Bi quotient
 		number m_invEps;
 
-	/// whether or not to disable preprocessing
+	/// 	whether or not to disable preprocessing
 		bool m_bDisablePreprocessing;
 
 		bool m_useConsistentInterfaces;
 		bool m_useOverlap;
 
-	/// for ordering algorithms
+	/// 	for ordering algorithms
 		SmartPtr<ordering_algo_type> m_spOrderingAlgo;
 		ordering_container_type m_ordering, m_old_ordering;
 		std::vector<size_t> m_newIndex, m_oldIndex;
 		bool m_bSortIsIdentity;
+
+		const vector_type* m_u;
 };
 
 } // end namespace ug

@@ -30,12 +30,14 @@ bool is_permutation(O_t &o){
 			container[o[i]] = true;
 		}
 		else{
+			UG_THROW("is_permutation: multiple occurence of index " << o[i]);
 			return false; //no doubles allowed
 		}
 	}
 
 	for(unsigned i = 0; i < o.size(); ++i){
 		if(!container[i]){
+			UG_THROW("is_permutation: no occurence of index " << i);
 			return false;
 		}
 	}
