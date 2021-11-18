@@ -247,9 +247,7 @@ static void Algebra(Registry& reg, string grp)
 		std::string name = string("AssTuner");
 		reg.add_class_<T>(name+suffix, grp)
 			.add_method("set_matrix_is_const", &T::set_matrix_is_const, "",
-				"whether matrix is constant in time", "")
-			.add_method("set_matrix_structure_is_const", &T::set_matrix_structure_is_const, "",
-				"whether matrix has constant in time structure", "")
+						"whether matrix is constant in time", "")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name+suffix, name, tag);
 	}

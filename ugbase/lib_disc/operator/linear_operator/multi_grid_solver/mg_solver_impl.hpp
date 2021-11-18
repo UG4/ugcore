@@ -621,11 +621,7 @@ assemble_level_operator()
 		//	loop all mapped indices
 			UG_ASSERT(m_spSurfaceMat->num_rows() == m_vSurfToLevelMap.size(),
 			          "Surface Matrix rows != Surf Level Indices")
-
-			if (m_bMatrixStructureIsConst)
-				ld.A->clear_retain_structure();
-			else
-				ld.A->resize_and_clear(m_spSurfaceMat->num_rows(), m_spSurfaceMat->num_cols());
+			ld.A->resize_and_clear(m_spSurfaceMat->num_rows(), m_spSurfaceMat->num_cols());
 			for(size_t srfRow = 0; srfRow < m_vSurfToLevelMap.size(); ++srfRow)
 			{
 			//	get mapped level index
@@ -830,10 +826,7 @@ init_rap_operator()
 	for(int lev = m_topLev; lev >= m_baseLev; --lev)
 	{
 		LevData& ld = *m_vLevData[lev];
-		if (m_bMatrixStructureIsConst)
-			ld.A->clear_retain_structure();
-		else
-			ld.A->resize_and_clear(ld.st->size(), ld.st->size());
+		ld.A->resize_and_clear(ld.st->size(), ld.st->size());
 		#ifdef UG_PARALLEL
 		ld.A->set_storage_type(m_spSurfaceMat->get_storage_mask());
 		ld.A->set_layouts(ld.st->layouts());
@@ -969,11 +962,7 @@ init_rap_operator()
 		GMG_PROFILE_BEGIN(GMG_BuildRAP_CopyNoghostToGhost_GatheredBase);
 		LevData& ld = *m_vLevData[m_baseLev];
 		if(gathered_base_master()){
-
-			if (m_bMatrixStructureIsConst)
-				spGatheredBaseMat->clear_retain_structure();
-			else
-				spGatheredBaseMat->resize_and_clear(ld.t->size(), ld.t->size());
+			spGatheredBaseMat->resize_and_clear(ld.t->size(), ld.t->size());
 			copy_noghost_to_ghost(spGatheredBaseMat.template cast_dynamic<matrix_type>(), ld.A, ld.vMapPatchToGlobal);
 		} else {
 			spGatheredBaseMat = SmartPtr<MatrixOperator<matrix_type, vector_type> >(new MatrixOperator<matrix_type, vector_type>);

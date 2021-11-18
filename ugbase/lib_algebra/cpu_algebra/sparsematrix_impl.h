@@ -132,13 +132,6 @@ void SparseMatrix<T>::resize_and_keep_values(size_t newRows, size_t newCols)
 
 
 template<typename T>
-void SparseMatrix<T>::clear_retain_structure()
-{
-	std::fill(values.begin(), values.end(), value_type(0));
-}
-
-
-template<typename T>
 void SparseMatrix<T>::set_as_transpose_of(const SparseMatrix<value_type> &B, double scale)
 {
 	PROFILE_SPMATRIX(SparseMatrix_set_as_transpose_of);

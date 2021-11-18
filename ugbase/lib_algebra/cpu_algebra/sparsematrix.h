@@ -130,7 +130,6 @@ public:
 	 */
 	void resize_and_clear(size_t newRows, size_t newCols);
 	void resize_and_keep_values(size_t newRows, size_t newCols);
-	void clear_retain_structure();
 
 	/**
 	 * \brief write in a empty SparseMatrix (this) the transpose SparseMatrix of B.
