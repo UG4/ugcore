@@ -77,7 +77,7 @@ namespace ug{
 template <typename TDomain, typename TAlgebra>
 AssembledMultiGridCycle<TDomain, TAlgebra>::
 AssembledMultiGridCycle() :
-	m_spSurfaceMat(NULL), m_spAss(NULL), m_spApproxSpace(SPNULL),
+	m_spSurfaceMat(NULL), m_pSurfaceSol(nullptr), m_spAss(NULL), m_spApproxSpace(SPNULL),
 	m_topLev(GridLevel::TOP), m_surfaceLev(GridLevel::TOP),
 	m_baseLev(0), m_cycleType(_V_),
 	m_numPreSmooth(2), m_numPostSmooth(2),
@@ -91,7 +91,10 @@ AssembledMultiGridCycle() :
 	m_spRestrictionPrototype(m_spProlongationPrototype),
 	m_spBaseSolver(new LU<TAlgebra>()),
 	m_bGatheredBaseIfAmbiguous(true),
+	m_bGatheredBaseUsed(true),
 	m_ignoreInitForBaseSolver(false),
+	m_bMatrixStructureIsConst(false),
+	m_pC(nullptr),
 	m_spDebugWriter(NULL), m_dbgIterCnt(0)
 {};
 
@@ -99,7 +102,7 @@ AssembledMultiGridCycle() :
 template <typename TDomain, typename TAlgebra>
 AssembledMultiGridCycle<TDomain, TAlgebra>::
 AssembledMultiGridCycle(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
-	m_spSurfaceMat(NULL), m_spAss(NULL), m_spApproxSpace(approxSpace),
+	m_spSurfaceMat(NULL), m_pSurfaceSol(nullptr), m_spAss(NULL), m_spApproxSpace(approxSpace),
 	m_topLev(GridLevel::TOP), m_surfaceLev(GridLevel::TOP),
 	m_baseLev(0), m_cycleType(_V_),
 	m_numPreSmooth(2), m_numPostSmooth(2),
@@ -113,7 +116,10 @@ AssembledMultiGridCycle(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
 	m_spRestrictionPrototype(m_spProlongationPrototype),
 	m_spBaseSolver(new LU<TAlgebra>()),
 	m_bGatheredBaseIfAmbiguous(true),
+	m_bGatheredBaseUsed(true),
 	m_ignoreInitForBaseSolver(false),
+	m_bMatrixStructureIsConst(false),
+	m_pC(nullptr),
 	m_spDebugWriter(NULL), m_dbgIterCnt(0)
 {};
 
@@ -621,7 +627,11 @@ assemble_level_operator()
 		//	loop all mapped indices
 			UG_ASSERT(m_spSurfaceMat->num_rows() == m_vSurfToLevelMap.size(),
 			          "Surface Matrix rows != Surf Level Indices")
-			ld.A->resize_and_clear(m_spSurfaceMat->num_rows(), m_spSurfaceMat->num_cols());
+
+			if (m_bMatrixStructureIsConst)
+				ld.A->clear_retain_structure();
+			else
+				ld.A->resize_and_clear(m_spSurfaceMat->num_rows(), m_spSurfaceMat->num_cols());
 			for(size_t srfRow = 0; srfRow < m_vSurfToLevelMap.size(); ++srfRow)
 			{
 			//	get mapped level index
@@ -826,7 +836,10 @@ init_rap_operator()
 	for(int lev = m_topLev; lev >= m_baseLev; --lev)
 	{
 		LevData& ld = *m_vLevData[lev];
-		ld.A->resize_and_clear(ld.st->size(), ld.st->size());
+		if (m_bMatrixStructureIsConst)
+			ld.A->clear_retain_structure();
+		else
+			ld.A->resize_and_clear(ld.st->size(), ld.st->size());
 		#ifdef UG_PARALLEL
 		ld.A->set_storage_type(m_spSurfaceMat->get_storage_mask());
 		ld.A->set_layouts(ld.st->layouts());
@@ -962,7 +975,11 @@ init_rap_operator()
 		GMG_PROFILE_BEGIN(GMG_BuildRAP_CopyNoghostToGhost_GatheredBase);
 		LevData& ld = *m_vLevData[m_baseLev];
 		if(gathered_base_master()){
-			spGatheredBaseMat->resize_and_clear(ld.t->size(), ld.t->size());
+
+			if (m_bMatrixStructureIsConst)
+				spGatheredBaseMat->clear_retain_structure();
+			else
+				spGatheredBaseMat->resize_and_clear(ld.t->size(), ld.t->size());
 			copy_noghost_to_ghost(spGatheredBaseMat.template cast_dynamic<matrix_type>(), ld.A, ld.vMapPatchToGlobal);
 		} else {
 			spGatheredBaseMat = SmartPtr<MatrixOperator<matrix_type, vector_type> >(new MatrixOperator<matrix_type, vector_type>);

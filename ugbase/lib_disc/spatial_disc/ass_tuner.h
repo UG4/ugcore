@@ -61,7 +61,7 @@ enum ConstraintType
 };
 
 template <typename TAlgebra>
-class LocalToGlobalMapper : public ILocalToGlobalMapper<TAlgebra>
+class LocalToGlobalMapper
 {
 	public:
 	///	Algebra type
@@ -74,22 +74,14 @@ class LocalToGlobalMapper : public ILocalToGlobalMapper<TAlgebra>
 		typedef typename algebra_type::vector_type vector_type;
 
 	public:
-	///	default constructor
-		LocalToGlobalMapper() {}
 
 	///	adds a local vector to the global one
-		void add_local_vec_to_global(vector_type& vec, const LocalVector& lvec, ConstSmartPtr<DoFDistribution> dd)
-			{ AddLocalVector(vec,lvec);}
+		void add_local_vec_to_global(vector_type& vec, const LocalVector& lvec) const
+			{ AddLocalVector(vec, lvec);}
 
 	///	adds a local matrix to the global one
-		void add_local_mat_to_global(matrix_type& mat, const LocalMatrix& lmat, ConstSmartPtr<DoFDistribution> dd)
-			{ AddLocalMatrixToGlobal(mat,lmat);}
-
-	///	modifies local solution vector for adapted defect computation
-		void modify_LocalSol(LocalVector& vecMod, const LocalVector& lvec, ConstSmartPtr<DoFDistribution> dd){};
-
-	///	destructor
-		~LocalToGlobalMapper() {};
+		void add_local_mat_to_global(matrix_type& mat, const LocalMatrix& lmat) const
+			{ AddLocalMatrixToGlobal(mat, lmat);}
 };
 
 /// The AssemblingTuner class combines tools to adapt the assembling routine.
@@ -111,14 +103,11 @@ class AssemblingTuner
 
 	public:
 	/// constructor
-		AssemblingTuner(): m_pBoolMarker(NULL), m_pSelector(NULL),
+		AssemblingTuner(): m_pMapper(nullptr), m_pBoolMarker(NULL), m_pSelector(NULL),
 		m_bSingleAssIndex(false), m_SingleAssIndex(0),
 		m_bForceRegGrid(false), m_bModifySolutionImplemented(false),
 		m_ConstraintTypesEnabled(CT_ALL), m_ElemTypesEnabled(EDT_ALL),
-		m_bMatrixIsConst(false), m_bClearOnResize(true)
-		{
-			m_pMapper = &m_pMapperCommon;
-		}
+		m_bMatrixIsConst(false), m_bMatrixStructureIsConst(false), m_bClearOnResize(true) {}
 
 	/// destructor
 		virtual ~AssemblingTuner() {}
@@ -126,24 +115,34 @@ class AssemblingTuner
 	/// set local to global mapping
 		void set_mapping(ILocalToGlobalMapper<TAlgebra>* pMapper = NULL)
 		{
-			if(pMapper)
-				m_pMapper = pMapper;
-			else
-				m_pMapper = &m_pMapperCommon;
+			m_pMapper = pMapper;
 		}
 
 	/// LocalToGlobalMapper-function calls
 		void add_local_vec_to_global(vector_type& vec, const LocalVector& lvec,
 		                 ConstSmartPtr<DoFDistribution> dd) const
-		{ m_pMapper->add_local_vec_to_global(vec, lvec, dd);}
+		{
+			if (m_pMapper)
+				m_pMapper->add_local_vec_to_global(vec, lvec, dd);
+			else
+				m_defaultMapper.add_local_vec_to_global(vec, lvec);
+		}
 
 		void add_local_mat_to_global(matrix_type& mat, const LocalMatrix& lmat,
 		                         ConstSmartPtr<DoFDistribution> dd) const
-		{ m_pMapper->add_local_mat_to_global(mat, lmat, dd);}
+		{
+			if (m_pMapper)
+				m_pMapper->add_local_mat_to_global(mat, lmat, dd);
+			else
+				m_defaultMapper.add_local_mat_to_global(mat, lmat);
+		}
 
 		void modify_LocalSol(LocalVector& vecMod, const LocalVector& lvec,
 		                         ConstSmartPtr<DoFDistribution> dd) const
-		{ m_pMapper->modify_LocalSol(vecMod, lvec, dd);}
+		{
+			if (m_pMapper)
+				m_pMapper->modify_LocalSol(vecMod, lvec, dd);
+		}
 	///	sets a marker to exclude elements from assembling
 	/**
 	 * This methods sets a marker. Only elements that are marked will be
@@ -251,6 +250,8 @@ class AssemblingTuner
 	 */
 		void set_matrix_is_const(bool bCh) {m_bMatrixIsConst = bCh;}
 
+		void set_matrix_structure_is_const(bool b) {m_bMatrixStructureIsConst = b;}
+
 	/**
 	 * whether matrix is to be modified by assembling
 	 *
@@ -260,7 +261,7 @@ class AssemblingTuner
 
 	protected:
 	///	default LocalToGlobalMapper
-		LocalToGlobalMapper<TAlgebra> m_pMapperCommon;
+		LocalToGlobalMapper<TAlgebra> m_defaultMapper;
 
 	///	LocalToGlobalMapper
 		ILocalToGlobalMapper<TAlgebra>* m_pMapper;
@@ -290,6 +291,9 @@ class AssemblingTuner
 
 	/// disables matrix assembling if set to false
 		bool m_bMatrixIsConst;
+
+	/// keeps matrix structure from last call if set to true
+		bool m_bMatrixStructureIsConst;
 
 	/// disables clearing of vector/matrix on resize
 		bool m_bClearOnResize;

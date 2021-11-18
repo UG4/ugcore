@@ -248,6 +248,11 @@ class AssembledMultiGridCycle :
 		virtual bool ignore_init_for_base_solver() const;
 	/** \\ */
 
+	/// If the nonzero entry pattern of the matrix does not change
+	/// (which is usually the case in time-dependent problems without space adaptation),
+	/// then keeping the entry structure between re-inits saves time during level matrix assembling.
+		void set_matrix_structure_is_const(bool b) {m_bMatrixStructureIsConst = b;}
+
 	/// reinit transfer operators
 		void force_reinit();
 
@@ -461,6 +466,9 @@ class AssembledMultiGridCycle :
 
 	///	flag indicating whether the base-solver shall be initialized during a call to init()
 		bool m_ignoreInitForBaseSolver;
+
+	/// flag indicating whether the matrix structure is supposed to stay the same in the next init phase
+		bool m_bMatrixStructureIsConst;
 
 	///	Matrix for gathered base solver
 		SmartPtr<MatrixOperator<matrix_type, vector_type> > spGatheredBaseMat;

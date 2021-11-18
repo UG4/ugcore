@@ -60,10 +60,23 @@ void AssemblingTuner<TAlgebra>::resize(ConstSmartPtr<DoFDistribution> dd,
 		if (m_bClearOnResize) mat.resize_and_clear(1, 1);
 		else mat.resize_and_keep_values(1,1);
 	}
-	else{
+	else
+	{
 		const size_t numIndex = dd->num_indices();
-		if (m_bClearOnResize) mat.resize_and_clear(numIndex, numIndex);
-		else mat.resize_and_keep_values(numIndex, numIndex);
+		if (m_bClearOnResize)
+		{
+			if (m_bMatrixStructureIsConst)
+			{
+				UG_COND_THROW(mat.num_rows() != dd->num_indices() || mat.num_cols() != dd->num_indices(),
+					"The assembling tuner is set to use a constant matrix structure, "
+					"but the number of indices in the new matrix is different from that in the old one.");
+				mat.clear_retain_structure();
+			}
+			else
+				mat.resize_and_clear(numIndex, numIndex);
+		}
+		else
+			mat.resize_and_keep_values(numIndex, numIndex);
 	}
 }
 
