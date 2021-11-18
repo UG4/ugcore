@@ -39,7 +39,7 @@
 
 #include <vector>
 #include <utility> //for pair
-#include <bits/stdc++.h> //INT_MAX
+#include <climits> //INT_MAX
 
 #include "IOrderingAlgorithm.h"
 #include "util.cpp"
