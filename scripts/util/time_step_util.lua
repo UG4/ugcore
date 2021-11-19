@@ -312,7 +312,7 @@ function util.SolveNonlinearTimeProblem(
 	newtonLineSearchFallbacks,
 	additionalFinishedConditions)
 
-	luacpp.SolveNonlinearTimeProblemParams(
+	SolveNonlinearTimeProblemParams(
 		u,
 		domainDisc,
 		newtonSolver,
