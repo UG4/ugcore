@@ -311,7 +311,7 @@ function util.SolveNonlinearTimeProblem(
 	endTSNo,
 	newtonLineSearchFallbacks,
 	additionalFinishedConditions)
-	
+
 	luacpp.SolveNonlinearTimeProblemParams(
 		u,
 		domainDisc,
@@ -368,9 +368,9 @@ function util.SolveNonlinearTimeProblem(
 		exit()
 	end
 	
-	-- create time disc
-	local timeDisc = util.CreateTimeDisc(domainDisc, timeScheme, orderOrTheta)
-	
+	-- create time disc -- BUG: requires luacpp
+	local timeDisc = createTimeDisc(domainDisc, timeScheme, orderOrTheta)
+
 	
 	-- print newtonSolver setup	
 	print("SolveNonlinearTimeProblem, Newton Solver setup:")
@@ -394,7 +394,7 @@ function util.SolveNonlinearTimeProblem(
 	end
 	
 	-- write start solution
-	print(">> Writing start values")
+	print(">> Writing start values using "..type(out))
 	if type(out) == "function" then out(u, step, time)
 	elseif type(out) == "userdata" then out:print(filename, u, step, time)
 	end
@@ -423,13 +423,56 @@ function util.SolveNonlinearTimeProblem(
 	-- bound on t-stepper from machine precision (conservative)
 	relPrecisionBound = 1e-12
 
+	-- not needed in c++ version
 	local defaultLineSearch = newtonSolver:line_search()
 
 	callbackDispatcher:notify_start(u, step, time, maxStepSize)
 
 	local last_dt = currdt
 
-	-- stop if size of remaining t-domain (relative to `maxStepSize`) lies below `relPrecisionBound`
+	if true then -- c++ version
+		print("incomplete c++...")
+		RequiredPlugins({"Luacpp"})
+
+		loop = SolveNonlinearTimeProblemOuterLoop()
+		loop:setFinishedTester(finishedTester)
+		loop:setNewtonSolver(newtonSolver)
+		loop:setTimeDisc(timeDisc) -- move "createTimeDisc(domainDisc, timeScheme, orderOrTheta)" to constructor?
+		                           -- also, call NewtonSolver:init from there?
+		loop:setStep(step)
+		loop:setOrderOrTheta(orderOrTheta)
+		loop:setReductionFactor(reductionFactor)
+		loop:setMinStepSize(minStepSize)
+		loop:setMaxStepSize(maxStepSize)
+		loop:setTimeScheme(timeScheme)
+		loop:setBFinishTimeStep(bFinishTimeStep); -- what if nil? does this work?
+
+		loop:setEndTime(endTime)
+		loop:setRelPrecisionBound(relPrecisionBound)
+		if util.debug_writer ~= nil then
+			loop:setDebugWriterContext(util.debug_writer)
+		end
+		loop:setU(u)
+
+		function MyLuaCallback(step, time, currdt)
+			out(step, time, currdt)
+			return 0.
+		end
+
+		ocb = LuaCallbackObserver()
+		-- util.ParseTimeIntegratorCallbacks(timeIntegratorSubject, out)
+		ocb:set_callback("MyLuaCallback") -- function??
+
+		loop:setOutput(ocb)
+		if minStepSize <= maxStepSize * reductionFactor or newtonLineSearchFallbacks ~= nil then
+			loop:storeU()
+		end
+		loop:do_it()
+		step = loop:getStep()
+		last_dt = loop:getLastDt()
+	else -- old version
+		print("running legacy lua implementation")
+
 	while not finishedTester:is_finished(time, step) do
 		step = step+1
 		print("++++++ TIMESTEP " .. step .. " BEGIN (current time: " .. time .. ") ++++++");
@@ -637,7 +680,9 @@ function util.SolveNonlinearTimeProblem(
 			util.WriteCheckpointIntervallic(u, time, {time=time, step=step, endTime=endTime})
 			----------------------------------------------------------
 		end
-	end
+	end -- outer loop
+
+	end -- lua script version
 
 	callbackDispatcher:notify_end(u, step, time, last_dt)
 	
@@ -648,7 +693,7 @@ function util.SolveNonlinearTimeProblem(
 	if type(out) == "userdata" then out:write_time_pvd(filename, u) end
 	
 	return step, time
-end
+end -- SolveNonlinearTimeProblem
 
 
 --!
