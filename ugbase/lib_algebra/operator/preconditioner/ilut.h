@@ -150,11 +150,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 						"not based on matrix. This Preconditioner can only "
 						"handle matrix-based operators.");
 
-			#ifndef UG_PARALLEL
-			if(m_spOrderingAlgo.valid()){
-				m_spOrderingAlgo->init(&(*pOp), u);
-			}
-			#endif
+			m_u = &u;
 
 		//	forward request to matrix based implementation
 			return base_type::init(pOp);
@@ -172,9 +168,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 						"not based on matrix. This Preconditioner can only "
 						"handle matrix-based operators.");
 
-			if(m_spOrderingAlgo.valid()){
-				m_spOrderingAlgo->init(&(*pOp));
-			}
+			m_u = NULL;
 
 		//	forward request to matrix based implementation
 			return base_type::init(pOp);
@@ -182,9 +176,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 
 		bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op)
 		{
-			if(m_spOrderingAlgo.valid()){
-				m_spOrderingAlgo->init(&(*Op));
-			}
+			m_u = NULL;
 
 			return base_type::init(Op);
 		}
@@ -252,11 +244,14 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 			matrix_type* A;
 			matrix_type permA;
 
-			#ifdef UG_PARALLEL
-			if(m_spOrderingAlgo.valid()){
-				m_spOrderingAlgo->init(&mat);
+			if(m_spOrderingAlgo.valid() && !m_useOverlap){
+				if(m_u){
+					m_spOrderingAlgo->init(&m_ILU, *m_u);
+				}
+				else{
+					m_spOrderingAlgo->init(&m_ILU);
+				}
 			}
-			#endif
 
 			if(m_spOrderingAlgo.valid())
 			{
@@ -631,6 +626,8 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 		ordering_container_type m_ordering, m_old_ordering;
 
 		bool m_bSortIsIdentity;
+
+		const vector_type* m_u;
 };
 
 // define constant
