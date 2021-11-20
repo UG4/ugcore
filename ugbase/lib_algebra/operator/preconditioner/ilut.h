@@ -244,12 +244,12 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 			matrix_type* A;
 			matrix_type permA;
 
-			if(m_spOrderingAlgo.valid() && !m_useOverlap){
+			if(m_spOrderingAlgo.valid()){
 				if(m_u){
-					m_spOrderingAlgo->init(&m_ILU, *m_u);
+					m_spOrderingAlgo->init(&mat, *m_u);
 				}
 				else{
-					m_spOrderingAlgo->init(&m_ILU);
+					m_spOrderingAlgo->init(&mat);
 				}
 			}
 
