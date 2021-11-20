@@ -151,7 +151,7 @@ public:
 		o.resize(n);
 
 		if(m_spOrderingSubAlgo.invalid()){
-			UG_LOG(name() << "::compute: not using ordering subalgo");
+			UG_LOG(name() << "::compute: not using ordering subalgo\n");
 			//enumerate members of components where components are iterated using the
 			//topological ordering of the scc meta graph
 
@@ -163,7 +163,7 @@ public:
 			}
 		}
 		else{
-			UG_LOG(name() << ":compute: using " << m_spOrderingSubAlgo->name() << " as subalgo");
+			UG_LOG(name() << ":compute: using " << m_spOrderingSubAlgo->name() << " as subalgo\n");
 
 			size_t k = 0;
 			for(unsigned i = 0; i < num_components; ++i){
