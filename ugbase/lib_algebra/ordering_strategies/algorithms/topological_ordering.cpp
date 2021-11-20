@@ -98,7 +98,6 @@ public:
 			return;
 		}
 
-		//init
 		o.resize(n);
 		indegs.resize(n);
 
@@ -130,9 +129,7 @@ public:
 	}
 
 	void check(){
-		if(!is_permutation(o)){
-			UG_THROW(name() << "::check: Not a permutation!");
-		}
+		UG_COND_THROW(!is_permutation(o), name() << "::check: Not a permutation!");
 	}
 
 	O_t& ordering(){
@@ -162,6 +159,14 @@ public:
 				}
 			}
 		}
+	}
+
+	void init(M_t*, const V_t&, const O_t&){
+		UG_THROW(name() << "::init: Algorithm does not support induced subgraph version!");
+	}
+
+	void init(M_t*, const O_t&){
+		UG_THROW(name() << "::init: Algorithm does not support induced subgraph version!");
 	}
 
 	virtual const char* name() const {return "TopologicalOrdering";}

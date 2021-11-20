@@ -62,8 +62,14 @@ public:
 
 	virtual O_t& ordering() = 0;
 
+	//lib_algebra only
 	virtual void init(M_t*) = 0;
+	//lib_disc
 	virtual void init(M_t*, const V_t&) = 0;
+	//lib_algebra only, induced matrix
+	virtual void init(M_t*, const std::vector<size_t>&) = 0;
+	//lib_disc, induced matrix
+	virtual void init(M_t*, const V_t&, const std::vector<size_t>&) = 0;
 
 	virtual SmartPtr<IOrderingAlgorithm<TAlgebra, O_t> > clone() = 0;
 

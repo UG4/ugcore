@@ -112,18 +112,18 @@ public:
 
 	void compute(){
 		std::vector<std::vector<size_t> > neighbors;
-		neighbors.resize(mat->num_rows());
+		neighbors.resize(m->num_rows());
 
-		for(size_t i=0; i<mat->num_rows(); i++)
+		for(size_t i=0; i<m->num_rows(); i++)
 		{
-			for(typename M_t::row_iterator i_it = mat->begin_row(i); i_it != mat->end_row(i); ++i_it){
+			for(typename M_t::row_iterator i_it = m->begin_row(i); i_it != m->end_row(i); ++i_it){
 				neighbors[i].push_back(i_it.index());
 			}
 		}
 
 		ComputeCuthillMcKeeOrder(o, neighbors, m_bReverse, true);
 
-		mat = NULL;
+		m = NULL;
 
 		#ifdef UG_DEBUG
 		check();
@@ -131,9 +131,7 @@ public:
 	}
 
 	void check(){
-		if(!is_permutation(o)){
-			UG_THROW(name() << "::check: Not a permutation!");
-		}
+		UG_COND_THROW(!is_permutation(o), name() << "::check: Not a permutation!");
 	}
 
 	O_t& ordering(){
@@ -144,24 +142,38 @@ public:
 		init(A);
 	}
 
-	void init(M_t* m){
+	void init(M_t* A){
 		//TODO: replace this by UG_DLOG if permutation_util does not depend on this file anymore
 		#ifdef UG_ENABLE_DEBUG_LOGS
 		UG_LOG("Using " << name() << "\n");
 		#endif
 
-		mat = m;
+		m = A;
+	}
+
+	void init(M_t*, const V_t&, const O_t&){
+		UG_THROW(name() << "::init: induced subgraph version not implemented yet!");
+	}
+
+	void init(M_t*, const O_t&){
+		UG_THROW(name() << "::init: induced subgraph version not implemented yet!");
 	}
 
 	void set_reverse(bool b){
 		m_bReverse = b;
 	}
 
-	virtual const char* name() const {return "NativeCuthillMcKeeOrdering (ug4 version)";}
-
+	virtual const char* name() const {
+		if(m_bReverse){
+			return "ReverseNativeCuthillMcKeeOrdering (ug4 version)";
+		}
+		else{
+			return "NativeCuthillMcKeeOrdering (ug4 version)";
+		}
+	}
 private:
 	O_t o;
-	M_t* mat;
+	M_t* m;
 
 	bool m_bReverse;
 };

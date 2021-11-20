@@ -44,7 +44,6 @@
 
 //debug
 #include "common/error.h"
-//#include "common/debug_id.h"
 #include "common/log.h"
 
 namespace ug{
@@ -126,9 +125,7 @@ public:
 	}
 
 	void check(){
-		if(!is_permutation(o)){
-			UG_THROW(name() << "::check: Not a permutation!");
-		}
+		UG_COND_THROW(!is_permutation(o), name() << "::check: Not a permutation!");
 	}
 
 	O_t& ordering(){
@@ -156,6 +153,14 @@ public:
 				}
 			}
 		}
+	}
+
+	void init(M_t*, const V_t&, const O_t&){
+		UG_THROW(name() << "::init: induced subgraph version not implemented yet!");
+	}
+
+	void init(M_t*, const O_t&){
+		UG_THROW(name() << "::init: induced subgraph version not implemented yet!");
 	}
 
 	virtual const char* name() const {return "BoostMinimumDegreeOrdering";}

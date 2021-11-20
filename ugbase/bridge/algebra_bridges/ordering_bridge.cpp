@@ -142,6 +142,8 @@ static void Algebra(Registry& reg, string grp)
 		string name = string("SCCOrdering").append(suffix);
 		reg.add_class_<T, TBase>(name, grp, "SCCOrdering")
 			.add_constructor()
+			.add_method("set_ordering_subalgorithm", &T::set_ordering_subalgorithm, "", "",
+						"sets an ordering subalgorithm")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "SCCOrdering", tag);
 	}

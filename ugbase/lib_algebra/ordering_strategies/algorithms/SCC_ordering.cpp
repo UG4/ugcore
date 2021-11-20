@@ -43,10 +43,12 @@
 
 //debug
 #include "common/error.h"
-//#include "common/debug_id.h"
 #include "common/log.h"
 
 #include <boost/graph/strong_components.hpp>
+
+#include "lib_algebra/algebra_common/permutation_util.h"
+
 
 namespace ug{
 template <typename TAlgebra, typename O_t>
@@ -58,31 +60,46 @@ public:
 	typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS> G_t;
 	typedef IOrderingAlgorithm<TAlgebra, O_t> baseclass;
 
+	typedef std::vector<size_t> ordering_container_type;
+	typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> ordering_algo_type;
+
 	typedef typename boost::graph_traits<G_t>::vertex_descriptor vd;
 	typedef typename boost::graph_traits<G_t>::adjacency_iterator adj_iter;
 	typedef typename boost::graph_traits<G_t>::in_edge_iterator inedge_iter;
-
-	enum options{NO_COMPONENT_ORDERING, COMPONENT_ORDERING};
 
 	SCCOrdering(){}
 
 	/// clone constructor
 	SCCOrdering( const SCCOrdering<TAlgebra, O_t> &parent )
-			: baseclass(){}
+			: baseclass(), m_spOrderingSubAlgo(parent.m_spOrderingSubAlgo){}
 
 	SmartPtr<IOrderingAlgorithm<TAlgebra, O_t> > clone()
 	{
 		return make_sp(new SCCOrdering<TAlgebra, O_t>(*this));
 	}
 
-	void preorder(vd v, O_t& o, size_t& i, std::vector<BOOL>& visited, G_t& g){
-		std::cout << i << " preorder visit " << v << std::endl;
-		o[i] = v;
-		visited[o[i]] = true;
-		adj_iter nIt, nEnd;
-		for(boost::tie(nIt, nEnd) = boost::adjacent_vertices(v, g); nIt != nEnd; ++nIt){
-			std::cout << "call preorder from " << v << " for " << *nIt << std::endl;
-			preorder(*nIt, o, ++i, visited, g);
+	/// sets an ordering algorithm
+	void set_ordering_subalgorithm(SmartPtr<ordering_algo_type> ordering_subalgo){
+		m_spOrderingSubAlgo = ordering_subalgo;
+	}
+
+	vd get_source_vertex(std::vector<BOOL>& visited, G_t& g){
+		for(unsigned i = 0; i < boost::num_vertices(g); ++i){
+			if(!visited[i] && boost::in_degree(i, g) == 0){
+				visited[i] = true;
+				boost::clear_vertex(i, g);
+				return i;
+			}
+		}
+
+		return -1u;
+	}
+
+	void topological_ordering(O_t& o, G_t& g){
+		size_t n = boost::num_vertices(g);
+		std::vector<BOOL> visited(n, false);
+		for(unsigned i = 0; i < n; ++i){
+			o[i] = get_source_vertex(visited, g);
 		}
 	}
 
@@ -105,38 +122,16 @@ public:
 			    .discover_time_map(boost::make_iterator_property_map(
 				discover_time.begin(), boost::get(boost::vertex_index, g))));
 
-		std::cout << "n=" << n << std::endl;
-		std::cout << "Total number of components: " << num_components << std::endl;
-
-		for(unsigned i = 0; i < n; ++i){
-			std::cout << "v=" << i << ", c=" << component[i] << std::endl;
-		}
-
-		std::cout << "-----------------" << std::endl;
-
-		adj_iter nIt, nEnd;
-		for(unsigned i = 0; i < n; ++i){
-			std::cout << "v=" << i << "(" << component[i] << ")" << ", n={";
-			for(boost::tie(nIt, nEnd) = boost::adjacent_vertices(i, g); nIt != nEnd; ++nIt){
-				std::cout << *nIt << "(" << component[*nIt] << ");";
-			} std::cout << "}" << std::endl;
-		}
 
 		std::vector<std::vector<vd> > comp_members(num_components);
 		for(unsigned i = 0; i < n; ++i){
 			comp_members[component[i]].push_back(i);
 		}
 
-		for(unsigned i = 0; i < num_components; ++i){
-			std::cout << "comp_" << i << ":" << std::endl;
-			for(unsigned j = 0; j < comp_members[i].size(); ++j){
-				std::cout << comp_members[i][j] << " ";
-			} std::cout << std::endl;
-		}
-
 		//create scc meta graph
-		scc_g = G_t(num_components); //use directed graph instead of G_t?
+		scc_g = G_t(num_components);
 
+		adj_iter nIt, nEnd;
 		size_t i_comp, n_comp;
 		for(unsigned i = 0; i < n; ++i){
 			i_comp = component[i];
@@ -148,80 +143,50 @@ public:
 			}
 		}
 
-		//determine root of scc_g
-		vd scc_root = 0;
-		size_t num_roots = 0;
-		for(unsigned i = 0; i < num_components; ++i){
-			if(boost::in_degree(i, scc_g) == 0 && boost::out_degree(i, scc_g) > 0){
-				std::cout << "scc root: " << i << std::endl;
-				scc_root = i;
-				++num_roots;
-			}
-		}
-
-		if(num_roots > 1){
-			UG_THROW("#roots > 1 not implemented yet!");
-		}
-
-		O_t scc_topo_ordering(num_components);
-		std::vector<BOOL> visited(num_components, false);
-		size_t idx = 0;
-		preorder(scc_root, scc_topo_ordering, idx, visited, scc_g);
-
-		if(idx < num_components){
-			//there are isolated vertices in scc_g
-			//put them at the end of scc_topo_ordering
-			std::cout << "idx: " << idx << std::endl;
-			for(unsigned i = 0; i < num_components; ++i){
-				if(!visited[i]){
-					std::cout << "isolated vertex " << i << std::endl;
-					scc_topo_ordering[++idx] = i;
-				}
-			}
-		}
-
 		//scc_topo_ordering is now a topological ordering of the scc_g
 
-		std::cout << "scc graph: " << std::endl;
-		for(unsigned i = 0; i < num_components; ++i){
-			for(boost::tie(nIt, nEnd) = boost::adjacent_vertices(i, scc_g); nIt != nEnd; ++nIt){
-				std::cout << i << " -> " << *nIt << std::endl;
-			}
-		}
-
-		std::cout << "scc ordering: " << std::endl;
-		for(unsigned i = 0; i < num_components; ++i){
-			std::cout << scc_topo_ordering[i] << " ";
-		} std::cout << std::endl;
-
-		//fix this option for now
-		static options option = NO_COMPONENT_ORDERING;
+		O_t scc_topo_ordering(num_components);
+		topological_ordering(scc_topo_ordering, scc_g);
 
 		o.resize(n);
 
-		if(option == NO_COMPONENT_ORDERING){
+		if(m_spOrderingSubAlgo.invalid()){
+			UG_LOG(name() << "::compute: not using ordering subalgo");
 			//enumerate members of components where components are iterated using the
 			//topological ordering of the scc meta graph
 
 			size_t k = 0;
 			for(unsigned i = 0; i < num_components; ++i){
 				for(unsigned j = 0; j < comp_members[scc_topo_ordering[i]].size(); ++j){
-					std::cout << "o[" << k << "]: " << comp_members[scc_topo_ordering[i]][j] << std::endl;
 					o[k++] = comp_members[scc_topo_ordering[i]][j];
 				}
 			}
 		}
-		else if(option == COMPONENT_ORDERING){
-			UG_THROW(name() << "::compute: option COMPONENT_ORDERING not implemented yet!");
-		}
 		else{
-			UG_THROW(name() << "::compute: option ELSE not implemented yet!");
-		}
+			UG_LOG(name() << ":compute: using " << m_spOrderingSubAlgo->name() << " as subalgo");
 
-		std::cout << "total ordering:" << std::endl;
-		for(unsigned i = 0; i < n; ++i){
-			std::cout << o[i] << " ";
-		} std::cout << std::endl;
+			size_t k = 0;
+			for(unsigned i = 0; i < num_components; ++i){
+				size_t c_size = comp_members[scc_topo_ordering[i]].size();
+
+				if(c_size == 1){
+					o[comp_members[scc_topo_ordering[i]][0]] = k++;
+				}
+				else{
+					m_spOrderingSubAlgo->init(m, comp_members[scc_topo_ordering[i]]);
+					m_spOrderingSubAlgo->compute();
+					std::vector<size_t>& sub_o = m_spOrderingSubAlgo->ordering();
+					std::vector<size_t> inv_sub_o;
+					GetInversePermutation(sub_o, inv_sub_o);
+
+					for(unsigned j = 0; j < c_size; ++j){
+						o[comp_members[scc_topo_ordering[i]][inv_sub_o[j]]] = k++;
+					}
+				}
+			}
+
+			UG_COND_THROW(k != n, "k!=n, k=" << k << ", n=" << n);
+		}
 
 		//reset
 		scc_g = G_t(0);
@@ -230,14 +195,10 @@ public:
 		#ifdef UG_DEBUG
 		check();
 		#endif
-
-		std::cout << name() << ": done. " << std::endl;
 	}
 
 	void check(){
-		if(!is_permutation(o)){
-			UG_THROW(name() << "::check: Not a permutation!");
-		}
+		UG_COND_THROW(!is_permutation(o), name() << "::check: Not a permutation!");
 	}
 
 	O_t& ordering(){
@@ -253,6 +214,8 @@ public:
 		#ifdef UG_ENABLE_DEBUG_LOGS
 		UG_LOG("Using " << name() << "\n");
 		#endif
+
+		m = A;
 
 		unsigned rows = A->num_rows();
 
@@ -270,11 +233,23 @@ public:
 		}
 	}
 
+	void init(M_t*, const V_t&, const O_t&){
+		UG_THROW(name() << "::init: Algorithm does not support induced subgraph version!");
+	}
+
+	void init(M_t*, const O_t&){
+		UG_THROW(name() << "::init: Algorithm does not support induced subgraph version!");
+	}
+
 	virtual const char* name() const {return "SCCOrdering";}
 
 private:
 	G_t g, scc_g;
 	O_t o;
+
+	M_t* m;
+
+	SmartPtr<ordering_algo_type> m_spOrderingSubAlgo;
 };
 
 
