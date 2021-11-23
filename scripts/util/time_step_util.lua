@@ -254,7 +254,7 @@ end
 --! @param u 				[in] GridFunction with Startvalues, [out] Solution"
 --! @param domainDisc		Domain Discretization
 --! @param newtonSolver		Nonlinear Solver
---! @param out				a VTKOutput (pass nil for no output)
+--! @param out				userdata or function? a VTKOutput (pass nil for no output)
 --! @param filename			filename for output
 --! @param timeScheme   	Name of time step scheme:
 --!     	            	Theta, ImplEuler, ExplEuler, Crank-Nicolson
@@ -336,6 +336,7 @@ function util.SolveNonlinearTimeProblem(
 	-- attach the given callbacks to a TimeIntegratorSubject
 	-- if this class is transcribed into c++, just inherit from TimeIntegratorSubject and attach the callbacks
 	local callbackDispatcher = TimeIntegratorSubject()
+
 	if postProcess ~= nil then
 		util.ParseTimeIntegratorCallbacks(callbackDispatcher, postProcess)
 	end
@@ -431,7 +432,7 @@ function util.SolveNonlinearTimeProblem(
 	local last_dt = currdt
 
 	if true then -- c++ version
-		print("incomplete c++...")
+		print("experimental c++...")
 		RequiredPlugins({"Luacpp"})
 
 		loop = SolveNonlinearTimeProblemOuterLoop()
@@ -452,24 +453,44 @@ function util.SolveNonlinearTimeProblem(
 		if util.debug_writer ~= nil then
 			loop:setDebugWriterContext(util.debug_writer)
 		end
-		loop:setU(u)
+		loop:attachU(u)
 
-		function MyLuaCallback(step, time, currdt)
-			out(step, time, currdt)
+		function MyLuaCallback(step, time, currdt, dummy)
+			print("CB", type(step), type(time), type(currdt), type(dummy), type(out))
+			print("CB out type ", type(out)) -- is "userdata??"
+
+			--- eek, u is shared between callback and solver.
+			-- but still passed as argument?
+			out(u, step, time, currdt)
 			return 0.
 		end
 
-		ocb = LuaCallbackObserver()
-		-- util.ParseTimeIntegratorCallbacks(timeIntegratorSubject, out)
-		ocb:set_callback("MyLuaCallback") -- function??
+		ocb = LuaCallbackObserver() -- is an ITimeIntegratorObserver...?
+		-- print("ocb type ", type(ocb)) -- is "userdata"
+		-- print("out type ", type(out)) -- is "userdata"
+		-- ocb can be function or userdata?
+		--
+		-- does not work.
+		-- thing = TimeIntegratorObserver()
+		-- util.ParseTimeIntegratorCallbacks(thing, out)
+
+		if(type(out) == "function") then
+			-- print("setting out function", out)
+			ocb:set_callback("MyLuaCallback")
+		else
+			-- print("incomplete. not a function", ocb);
+			exit();
+		end
 
 		loop:setOutput(ocb)
+		loop:setCallback(callbackDispatcher)
 		if minStepSize <= maxStepSize * reductionFactor or newtonLineSearchFallbacks ~= nil then
 			loop:storeU()
 		end
 		loop:do_it()
 		step = loop:getStep()
 		last_dt = loop:getLastDt()
+		-- loop:getU(u) no. shared.
 	else -- old version
 		print("running legacy lua implementation")
 
@@ -541,6 +562,7 @@ function util.SolveNonlinearTimeProblem(
 					end
 					
 						
+					print("set_stage")
 					timeDisc:set_stage(stage)
 				
 					-- setup time Disc for old solutions and timestep size
@@ -668,8 +690,11 @@ function util.SolveNonlinearTimeProblem(
 		end			
 		
 		-- plot solution
-		if type(out) == "function" then out(u, step, time)
-		elseif type(out) == "userdata" then out:print(filename, u, step, time)
+		print("plot type ", type(out));
+		if type(out) == "function" then
+			out(u, step, time)
+		elseif type(out) == "userdata" then
+			out:print(filename, u, step, time)
 		end
 	
 		print("++++++ TIMESTEP "..step.." END   (current time: " .. time .. ") ++++++");
