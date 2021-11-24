@@ -717,6 +717,69 @@ function util.SolveNonlinearTimeProblem(
 	return step, time
 end -- SolveNonlinearTimeProblem
 
+function SolveLinearTimeProblemParams(
+	u,
+	domainDisc,
+	linSolver,
+	out,
+	filename,
+	timeScheme,
+	orderOrTheta,
+	startTime,
+	endTime,
+	maxStepSize,
+	minStepSize,
+	reductionFactor,
+	useCheckpointing,
+	postProcess,
+	startTSNo,
+	endTSNo)
+	if u == nil then
+		print("SolveLinearTimeProblem: Illegal parameters: No grid function for the solution specified.")
+		util.PrintUsageOfSolveTimeProblem()
+		exit()
+	end
+
+	local reassemble = false
+	if domainDisc == nil then
+		print("SolveLinearTimeProblem: Illegal parameters: No domain discretization specified.")
+		util.PrintUsageOfSolveTimeProblem()
+		exit()
+	elseif type(domainDisc) == "table" then
+		reassemble = domainDisc.reassemble
+		domainDisc = domainDisc.domainDisc
+	end
+
+	if linSolver == nil then
+		print("SolveLinearTimeProblem: Illegal parameters: No lin. solver specified.")
+		util.PrintUsageOfSolveTimeProblem()
+		exit()
+	end
+
+	if timeScheme == nil then
+		print("SolveLinearTimeProblem: Illegal parameters: No time scheme specified.")
+		util.PrintUsageOfSolveTimeProblem()
+		exit()
+	end
+
+	if startTime == nil then
+		print("SolveLinearTimeProblem: Illegal parameters: Start time not specified.")
+		util.PrintUsageOfSolveTimeProblem()
+		exit()
+	end
+
+	if endTime == nil and endTSNo == nil then
+		print("SolveLinearTimeProblem: Illegal parameters: End time or number of steps not specified.")
+		util.PrintUsageOfSolveTimeProblem()
+		exit()
+	end
+
+	if maxStepSize == nil then
+		print("SolveLinearTimeProblem: Illegal parameters: No max. time step specified.")
+		util.PrintUsageOfSolveTimeProblem()
+		exit()
+	end
+end
 
 --!
 --! @param u 				[in] GridFunction with Startvalues, [out] Solution"
@@ -769,51 +832,23 @@ function util.SolveLinearTimeProblem(
 	startTSNo,
 	endTSNo)
 
-	if u == nil then
-		print("SolveLinearTimeProblem: Illegal parameters: No grid function for the solution specified.")
-		util.PrintUsageOfSolveTimeProblem()
-		exit()
-	end
-
-	local reassemble = false
-	if domainDisc == nil then
-		print("SolveLinearTimeProblem: Illegal parameters: No domain discretization specified.")
-		util.PrintUsageOfSolveTimeProblem()
-		exit()
-	elseif type(domainDisc) == "table" then
-		reassemble = domainDisc.reassemble
-		domainDisc = domainDisc.domainDisc
-	end
-
-	if linSolver == nil then
-		print("SolveLinearTimeProblem: Illegal parameters: No lin. solver specified.")
-		util.PrintUsageOfSolveTimeProblem()
-		exit()
-	end
-
-	if timeScheme == nil then
-		print("SolveLinearTimeProblem: Illegal parameters: No time scheme specified.")
-		util.PrintUsageOfSolveTimeProblem()
-		exit()
-	end
-
-	if startTime == nil then
-		print("SolveLinearTimeProblem: Illegal parameters: Start time not specified.")
-		util.PrintUsageOfSolveTimeProblem()
-		exit()
-	end
-
-	if endTime == nil and endTSNo == nil then
-		print("SolveLinearTimeProblem: Illegal parameters: End time or number of steps not specified.")
-		util.PrintUsageOfSolveTimeProblem()
-		exit()
-	end
-
-	if maxStepSize == nil then
-		print("SolveLinearTimeProblem: Illegal parameters: No max. time step specified.")
-		util.PrintUsageOfSolveTimeProblem()
-		exit()
-	end
+	SolveLinearTimeProblemParams(
+	   u,
+	   domainDisc,
+	   linSolver,
+	   out,
+	   filename,
+	   timeScheme,
+	   orderOrTheta,
+	   startTime,
+	   endTime,
+	   maxStepSize,
+	   minStepSize,
+	   reductionFactor,
+	   useCheckpointing,
+	   postProcess,
+	   startTSNo,
+	   endTSNo)
 	
 	local preProcess = nil
 	local retValAtOK = nil
