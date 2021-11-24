@@ -456,9 +456,6 @@ function util.SolveNonlinearTimeProblem(
 		loop:attachU(u)
 
 		function MyLuaCallback(step, time, currdt, dummy)
-			print("CB", type(step), type(time), type(currdt), type(dummy), type(out))
-			print("CB out type ", type(out)) -- is "userdata??"
-
 			--- eek, u is shared between callback and solver.
 			-- but still passed as argument?
 			out(u, step, time, currdt)

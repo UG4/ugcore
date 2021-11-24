@@ -30,9 +30,9 @@ public:
 
 	virtual bool step_process(SmartPtr<grid_function_type> uNew, int step, number time, number dt)
 	{
-		if (!m_lua_callback.valid()){ untested();
+		if (!m_lua_callback.valid()){
 			return true;
-		}else{ untested();
+		}else{
 		}
 
 		number lua_return_value;
