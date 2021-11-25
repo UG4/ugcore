@@ -756,13 +756,13 @@ function util.solver.CreateOrdering(orderingDesc, solverutil)
 
 	--lib_algebra dependent
 	if name == "NativeCuthillMcKee" then
-		ordering = NativeCuthillMcKeeOrdering() --ug4 CuthillMcKee?
+		ordering = NativeCuthillMcKeeOrdering()
 	elseif name == "ReverseNativeCuthillMcKee" then
 		ordering = NativeCuthillMcKeeOrdering()
 		ordering.set_reverse(true)
-	elseif name == "BoostCuthillMcKee" then --BoostCppCuthillMckee?
+	elseif name == "BoostCuthillMcKee" then
 		ordering = BoostCuthillMcKeeOrdering()
-	elseif name == "ReverseBoostCuthillMcKee" then --rBoost..?
+	elseif name == "ReverseBoostCuthillMcKee" then
 		ordering = BoostCuthillMcKeeOrdering()
 		ordering.set_reverse(true)
 	elseif name == "BoostMinimumDegree" then
@@ -771,12 +771,11 @@ function util.solver.CreateOrdering(orderingDesc, solverutil)
 		ordering = TopologicalOrdering()
 	elseif name == "SCC" then
 		ordering = SCCOrdering()
+		ordering:set_ordering_subalgorithm(util.solver.CreateOrdering(desc.subalgo, solverutil))
 	--lib_disc dependent
 	elseif name == "Lex" then
 		ordering = LexOrdering()
 		ordering:set_direction(desc.dir)
---	elseif name == "BoostShortestPaths" then
---		ordering = BoostShortestPathsOrdering()
 	end
 
 	util.solver.CondAbort(ordering == nil, "Invalid ordering specified: " .. name)
