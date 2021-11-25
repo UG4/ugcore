@@ -107,9 +107,12 @@ void gs_step_LL(const Matrix_type &A, Vector_type &c, const Vector_type &d, cons
 {
 	// gs LL has preconditioning matrix N = (D-L)^{-1}
 
+	typedef typename Matrix_type::value_type matrix_block;
+	typedef typename Matrix_type::const_row_iterator const_row_it;
 	typename Vector_type::value_type s;
 
-	for(size_t i=0; i < c.size(); i++)
+	const size_t sz = c.size();
+	for (size_t i = 0; i < sz; ++i)
 	{
 		s = d[i];
 
@@ -117,13 +120,15 @@ void gs_step_LL(const Matrix_type &A, Vector_type &c, const Vector_type &d, cons
 		//	Note: Here the corrections c, which have already been computed in previous loops (wrt. i),
 		//	are taken to compute the i-th correction. For example the correction of the second row
 		//	is computed by s[2] = (d[2] - A[2][1] * c[1]); and c[2] = s[2]/A[2][2];
-		for(typename Matrix_type::const_row_iterator it = A.begin_row(i); it != A.end_row(i)
-		&& it.index() < i; ++it)
+		const const_row_it rowEnd = A.end_row(i);
+		const_row_it it = A.begin_row(i);
+		for(; it != rowEnd && it.index() < i; ++it)
 			// s -= it.value() * c[it.index()];
 			MatMultAdd(s, 1.0, s, -1.0, it.value(), c[it.index()]);
 
 		// c[i] = relaxFactor * s/A(i,i)
-		InverseMatMult(c[i], relaxFactor, A(i,i), s);
+		const matrix_block& A_ii = it.index() == i ? it.value() : matrix_block(0);
+		InverseMatMult(c[i], relaxFactor, A_ii, s);
 	}
 }
 

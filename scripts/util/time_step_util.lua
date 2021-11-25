@@ -837,13 +837,6 @@ function util.SolveLinearTimeProblem(
 				bSuccess = true; 
 			end
 	
-			if bSuccess and postProcess ~= nil then
-				local pp_res = postProcess(u, step, time, currdt)
-				if type(pp_res) == "boolean" and pp_res == false then -- i.e. not nil, not something else, but "false"!
-					write("\n++++++ postProcess of the time step failed. ")
-					bSuccess = false
-				end
-			end
 			
 			-- check valid step size			
 			if(bSuccess == false and currdt < minStepSize) then
@@ -873,6 +866,14 @@ function util.SolveLinearTimeProblem(
 		-- plot solution
 		if not (out==nil) then out:print(filename, u, step, time) end
 		--SaveVectorForConnectionViewer(u, filename.."_t"..step..".vec")
+		
+		-- Post processing.
+		if postProcess ~= nil then
+      local pp_res = postProcess(u, step, time)
+      if type(pp_res) == "boolean" and pp_res == false then -- i.e. not nil, not something else, but "false"!
+          write("\n++++++ postProcess of the time step failed. ")
+      end
+    end
 			
 		if verbose then print("++++++ TIMESTEP "..step.." END   (current time: " .. time .. ") ++++++") end
 		

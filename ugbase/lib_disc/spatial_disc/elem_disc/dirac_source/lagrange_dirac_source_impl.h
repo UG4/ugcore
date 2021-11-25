@@ -97,7 +97,7 @@ void DiracSourceDisc<TDomain>::
 add_rhs_elem(LocalVector& rhs, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	UG_LOG("'DiracSourceDisc::add_rhs_elem' called for " << vCornerCoords[0]);
-	UG_LOG("elem:"<<  elem);
+	UG_LOG("elem:"<<  elem << "\n");
 
 	UG_ASSERT(vCornerCoords[0] == m_srcCoord, "Source must be located at element corner!");
 

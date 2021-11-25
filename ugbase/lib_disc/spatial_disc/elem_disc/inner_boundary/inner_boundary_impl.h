@@ -36,22 +36,22 @@
 #include "inner_boundary.h"
 #include "lib_disc/spatial_disc/disc_util/geom_provider.h"
 #include "lib_disc/spatial_disc/disc_util/fv1_geom.h"
-
+#include "lib_algebra/cpu_algebra_types.h"
 
 
 namespace ug
 {
 
-template<typename TDomain>
-void FV1InnerBoundaryElemDisc<TDomain>::
+template <typename TImpl, typename TDomain>
+void FV1InnerBoundaryElemDisc<TImpl, TDomain>::
 set_flux_scale(number scale)
 {
 	set_flux_scale(make_sp(new ConstUserNumber<dim>(scale)));
 }
 
 
-template<typename TDomain>
-void FV1InnerBoundaryElemDisc<TDomain>::
+template <typename TImpl, typename TDomain>
+void FV1InnerBoundaryElemDisc<TImpl, TDomain>::
 set_flux_scale(SmartPtr<CplUserData<number, dim> > scaleFct)
 {
 	m_fluxScale.set_data(scaleFct);
@@ -59,8 +59,8 @@ set_flux_scale(SmartPtr<CplUserData<number, dim> > scaleFct)
 }
 
 #ifdef UG_FOR_LUA
-template<typename TDomain>
-void FV1InnerBoundaryElemDisc<TDomain>::
+template <typename TImpl, typename TDomain>
+void FV1InnerBoundaryElemDisc<TImpl, TDomain>::
 set_flux_scale(const char* luaScaleFctName)
 {
 	set_flux_scale(LuaUserDataFactory<number,dim>::create(luaScaleFctName));
@@ -69,8 +69,8 @@ set_flux_scale(const char* luaScaleFctName)
 
 
 
-template<typename TDomain>
-void FV1InnerBoundaryElemDisc<TDomain>::
+template <typename TImpl, typename TDomain>
+void FV1InnerBoundaryElemDisc<TImpl, TDomain>::
 prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid)
 {
 	// check that Lagrange 1st order
@@ -83,18 +83,44 @@ prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid)
 	register_all_fv1_funcs();
 }
 
-template<typename TDomain>
-bool FV1InnerBoundaryElemDisc<TDomain>::
+template <typename TImpl, typename TDomain>
+bool FV1InnerBoundaryElemDisc<TImpl, TDomain>::
 use_hanging() const
 {
 	return true;
 }
 
 
+template <typename TImpl, typename TDomain>
+void FV1InnerBoundaryElemDisc<TImpl, TDomain>::previous_solution_required(bool b)
+{
+	m_bPrevSolRequired = b;
+}
 
-template<typename TDomain>
+
+template <typename TImpl, typename TDomain>
+template <typename TAlgebra>
+void FV1InnerBoundaryElemDisc<TImpl, TDomain>::prep_timestep
+(
+	number future_time,
+	number time,
+	VectorProxyBase* upb
+)
+{
+	if (!m_bPrevSolRequired)
+		return;
+
+	// the proxy provided here will not survive, but the vector it wraps will,
+	// so we re-wrap it in a new proxy for ourselves
+	typedef VectorProxy<typename TAlgebra::vector_type> tProxy;
+	tProxy* proxy = static_cast<tProxy*>(upb);
+	m_spOldSolutionProxy = make_sp(new tProxy(proxy->m_v));
+}
+
+
+template <typename TImpl, typename TDomain>
 template<typename TElem, typename TFVGeom>
-void FV1InnerBoundaryElemDisc<TDomain>::
+void FV1InnerBoundaryElemDisc<TImpl, TDomain>::
 prep_elem_loop(const ReferenceObjectID roid, const int si)
 {
 	m_si = si;
@@ -112,16 +138,16 @@ prep_elem_loop(const ReferenceObjectID roid, const int si)
 }
 
 
-template<typename TDomain>
+template <typename TImpl, typename TDomain>
 template<typename TElem, typename TFVGeom>
-void FV1InnerBoundaryElemDisc<TDomain>::
+void FV1InnerBoundaryElemDisc<TImpl, TDomain>::
 fsh_elem_loop()
 {}
 
 
-template<typename TDomain>
+template <typename TImpl, typename TDomain>
 template<typename TElem, typename TFVGeom>
-void FV1InnerBoundaryElemDisc<TDomain>::
+void FV1InnerBoundaryElemDisc<TImpl, TDomain>::
 prep_elem(const LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[])
 {
 #ifdef UG_PARALLEL
@@ -153,12 +179,29 @@ prep_elem(const LocalVector& u, GridObject* elem, const ReferenceObjectID roid, 
 	const size_t numBFip = geo.num_bf_global_ips();
 
 	m_fluxScale.set_global_ips(vBFip, numBFip);
+
+	// create a local vector with values of the previous solution
+	if (!m_bPrevSolRequired)
+		return;
+
+	// copy local vector of current solution to get indices and map access right,
+	// then copy correct values
+	m_locUOld = u;
+	const LocalIndices& ind = m_locUOld.get_indices();
+	for (size_t fct = 0; fct < m_locUOld.num_all_fct(); ++fct)
+	{
+		for(size_t dof = 0; dof < m_locUOld.num_all_dof(fct); ++dof)
+		{
+			const DoFIndex di = ind.multi_index(fct, dof);
+			m_locUOld.value(fct, dof) = m_spOldSolutionProxy->evaluate(di);
+		}
+	}
 }
 
 // assemble stiffness part of Jacobian
-template<typename TDomain>
+template <typename TImpl, typename TDomain>
 template<typename TElem, typename TFVGeom>
-void FV1InnerBoundaryElemDisc<TDomain>::
+void FV1InnerBoundaryElemDisc<TImpl, TDomain>::
 add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	// on horizontal interfaces: only treat hmasters
@@ -169,7 +212,8 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 
 	FluxDerivCond fdc;
 	size_t nFct = u.num_fct();
-	std::vector<LocalVector::value_type> uAtCorner(nFct);
+	m_uAtCorner.resize(nFct);
+	m_uOldAtCorner.resize(nFct);
 	for (size_t i = 0; i < fvgeom.num_bf(); ++i)
 	{
 		// get current BF
@@ -178,17 +222,29 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		// get associated node and subset index
 		const int co = bf.node_id();
 
-		// get solution at the corner of the bf
-		for (size_t fct = 0; fct < nFct; fct++)
-			uAtCorner[fct] = u(fct,co);
-
 		// get corner coordinates
 		const MathVector<dim>& cc = bf.global_corner(0);
 
-		if (!fluxDensityDerivFct(uAtCorner, elem, cc, m_si, fdc))
-			UG_THROW("FV1InnerBoundaryElemDisc::add_jac_A_elem:"
-							" Call to fluxDensityDerivFct resulted did not succeed.");
-		
+		// get solution at the corner of the bf
+		for (size_t fct = 0; fct < nFct; fct++)
+			m_uAtCorner[fct] = u(fct,co);
+
+		if (!m_bPrevSolRequired)
+		{
+			if (!static_cast<TImpl*>(this)->fluxDensityDerivFct(m_uAtCorner, elem, cc, m_si, fdc))
+				UG_THROW("FV1InnerBoundaryElemDisc::add_jac_A_elem:"
+					" Call to fluxDensityDerivFct did not succeed.");
+		}
+		else
+		{
+			for (size_t fct = 0; fct < nFct; fct++)
+				m_uOldAtCorner[fct] = m_locUOld(fct,co);
+
+			if (!static_cast<TImpl*>(this)->fluxDensityDerivFct(m_uAtCorner, m_uOldAtCorner, elem, cc, m_si, fdc))
+				UG_THROW("FV1InnerBoundaryElemDisc::add_jac_A_elem:"
+					" Call to fluxDensityDerivFct did not succeed.");
+		}
+
 		// scale with volume of BF and flux scale (if applicable)
 		number scale = bf.volume();
 		if (m_fluxScale.data_given())
@@ -212,16 +268,16 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 	}
 }
 
-template<typename TDomain>
+template <typename TImpl, typename TDomain>
 template<typename TElem, typename TFVGeom>
-void FV1InnerBoundaryElemDisc<TDomain>::
+void FV1InnerBoundaryElemDisc<TImpl, TDomain>::
 add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {}
 
 
-template<typename TDomain>
+template <typename TImpl, typename TDomain>
 template<typename TElem, typename TFVGeom>
-void FV1InnerBoundaryElemDisc<TDomain>::
+void FV1InnerBoundaryElemDisc<TImpl, TDomain>::
 add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	// on horizontal interfaces: only treat hmasters
@@ -232,7 +288,8 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 
 	FluxCond fc;
 	size_t nFct = u.num_fct();
-	std::vector<LocalVector::value_type> uAtCorner(nFct);
+	m_uAtCorner.resize(nFct);
+	m_uOldAtCorner.resize(nFct);
 
 	// loop Boundary Faces
 	for (size_t i = 0; i < fvgeom.num_bf(); ++i)
@@ -245,16 +302,29 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 
 		// get solution at the corner of the bf
 		for (size_t fct = 0; fct < nFct; fct++)
-			uAtCorner[fct] = u(fct,co);
+			m_uAtCorner[fct] = u(fct,co);
 
 		// get corner coordinates
 		const MathVector<dim>& cc = bf.global_corner(0);
 
 		// get flux densities in that node
-		if (!fluxDensityFct(uAtCorner, elem, cc, m_si, fc))
+		if (!m_bPrevSolRequired)
 		{
-			UG_THROW("FV1InnerBoundaryElemDisc::add_def_A_elem:"
-						" Call to fluxDensityFct did not succeed.");
+			if (!static_cast<TImpl*>(this)->fluxDensityFct(m_uAtCorner, elem, cc, m_si, fc))
+			{
+				UG_THROW("FV1InnerBoundaryElemDisc::add_def_A_elem:"
+							" Call to fluxDensityFct did not succeed.");
+			}
+		}
+		else
+		{
+			// get solution at the corner of the bf
+			for (size_t fct = 0; fct < nFct; fct++)
+				m_uOldAtCorner[fct] = m_locUOld(fct,co);
+
+			if (!static_cast<TImpl*>(this)->fluxDensityFct(m_uAtCorner, m_uOldAtCorner, elem, cc, m_si, fc))
+				UG_THROW("FV1InnerBoundaryElemDisc::add_def_A_elem:"
+					" Call to fluxDensityFct did not succeed.");
 		}
 
 		// scale with volume of BF and flux scale (if applicable)
@@ -274,15 +344,15 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 	}
 }
 
-template<typename TDomain>
+template <typename TImpl, typename TDomain>
 template<typename TElem, typename TFVGeom>
-void FV1InnerBoundaryElemDisc<TDomain>::
+void FV1InnerBoundaryElemDisc<TImpl, TDomain>::
 add_def_M_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {}
 
-template<typename TDomain>
+template <typename TImpl, typename TDomain>
 template<typename TElem, typename TFVGeom>
-void FV1InnerBoundaryElemDisc<TDomain>::
+void FV1InnerBoundaryElemDisc<TImpl, TDomain>::
 add_rhs_elem(LocalVector& rhs, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {}
 
@@ -291,9 +361,9 @@ add_rhs_elem(LocalVector& rhs, GridObject* elem, const MathVector<dim> vCornerCo
 //   error estimation (begin)   																 //
 
 //	prepares the loop over all elements of one type for the computation of the error estimator
-template<typename TDomain>
+template <typename TImpl, typename TDomain>
 template <typename TElem, typename TFVGeom>
-void FV1InnerBoundaryElemDisc<TDomain>::
+void FV1InnerBoundaryElemDisc<TImpl, TDomain>::
 prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
 {
 	m_si = si;
@@ -354,9 +424,9 @@ prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
 	}
 }
 
-template<typename TDomain>
+template <typename TImpl, typename TDomain>
 template<typename TElem, typename TFVGeom>
-void FV1InnerBoundaryElemDisc<TDomain>::
+void FV1InnerBoundaryElemDisc<TImpl, TDomain>::
 prep_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 #ifdef UG_PARALLEL
@@ -415,9 +485,9 @@ prep_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> 
 }
 
 //	computes the error estimator contribution for one element
-template<typename TDomain>
+template <typename TImpl, typename TDomain>
 template <typename TElem, typename TFVGeom>
-void FV1InnerBoundaryElemDisc<TDomain>::
+void FV1InnerBoundaryElemDisc<TImpl, TDomain>::
 compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale)
 {
 	// on horizontal interfaces: only treat hmasters
@@ -427,11 +497,11 @@ compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<
 	err_est_type* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
 
 	// cast this elem to side_type of error estimator
-	typename SideAndElemErrEstData<TDomain>::side_type* side =
-		dynamic_cast<typename SideAndElemErrEstData<TDomain>::side_type*>(elem);
+	typename SideAndElemErrEstData<domain_type>::side_type* side =
+		dynamic_cast<typename SideAndElemErrEstData<domain_type>::side_type*>(elem);
 	if (!side)
 	{
-		UG_THROW("Error in DependentNeumannBoundaryFV1<TDomain>::compute_err_est_A_elem():\n"
+		UG_THROW("Error in DependentNeumannBoundaryFV1::compute_err_est_A_elem():\n"
 				 "Element that error assembling routine is called for has the wrong type.");
 	}
 
@@ -460,7 +530,7 @@ compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<
 			const MathVector<dim>& ipCoords = globIPs[sip];
 
 			FluxCond fc;
-			if (!fluxDensityFct(uAtIP, elem, ipCoords, m_si, fc))
+			if (!static_cast<TImpl*>(this)->fluxDensityFct(uAtIP, elem, ipCoords, m_si, fc))
 			{
 				UG_THROW("FV1InnerBoundaryElemDisc::compute_err_est_A_elem:"
 							" Call to fluxDensityFct did not succeed.");
@@ -489,9 +559,9 @@ compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<
 }
 
 //	postprocesses the loop over all elements of one type in the computation of the error estimator
-template<typename TDomain>
+template <typename TImpl, typename TDomain>
 template <typename TElem, typename TFVGeom>
-void FV1InnerBoundaryElemDisc<TDomain>::
+void FV1InnerBoundaryElemDisc<TImpl, TDomain>::
 fsh_err_est_elem_loop()
 {
 	// nothing to do
@@ -506,20 +576,21 @@ fsh_err_est_elem_loop()
 ////////////////////////////////////////////////////////////////////////////////
 
 // register for 1D
-template<typename TDomain>
-void FV1InnerBoundaryElemDisc<TDomain>::
+template <typename TImpl, typename TDomain>
+void FV1InnerBoundaryElemDisc<TImpl, TDomain>::
 register_all_fv1_funcs()
 {
-//	get all grid element types in the dimension below
-	typedef typename domain_traits<dim>::ManifoldElemList ElemList;
+//	register prep_timestep function for all known algebra types
+	RegisterPrepTimestep<bridge::CompileAlgebraList>(this);
 
-//	switch assemble functions
-	boost::mpl::for_each<ElemList>(RegisterFV1(this));
+//	register assembling functions for all element types
+	typedef typename domain_traits<dim>::ManifoldElemList ElemList;
+	boost::mpl::for_each<ElemList>(RegisterAssemblingFuncs(this));
 }
 
-template<typename TDomain>
+template <typename TImpl, typename TDomain>
 template<typename TElem, typename TFVGeom>
-void FV1InnerBoundaryElemDisc<TDomain>::
+void FV1InnerBoundaryElemDisc<TImpl, TDomain>::
 register_fv1_func()
 {
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
@@ -541,21 +612,6 @@ register_fv1_func()
 	this->set_compute_err_est_A_elem(	id, &T::template compute_err_est_A_elem<TElem, TFVGeom>);
 	this->set_fsh_err_est_elem_loop(	id, &T::template fsh_err_est_elem_loop<TElem, TFVGeom>);
 }
-
-////////////////////////////////////////////////////////////////////////////////
-//	explicit template instantiations
-////////////////////////////////////////////////////////////////////////////////
-
-#ifdef UG_DIM_1
-template class FV1InnerBoundaryElemDisc<Domain1d>;
-#endif
-#ifdef UG_DIM_2
-template class FV1InnerBoundaryElemDisc<Domain2d>;
-#endif
-#ifdef UG_DIM_3
-template class FV1InnerBoundaryElemDisc<Domain3d>;
-#endif
-
 
 } // namespace ug
 

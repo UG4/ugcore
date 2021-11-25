@@ -417,8 +417,6 @@ function util.Balance(DataToBeWrittenTable)
 	
 			if verbose then write(" * Write Integral to '"..filename.."' ... ") end
 		
-			local file = io.open (filename, "a")
-
 			local val = nil
 			if type(subsets) == "string" then
 				val = Integral(data, u, subsets, time)
@@ -426,11 +424,15 @@ function util.Balance(DataToBeWrittenTable)
 				val = Integral(data, u, time)
 			end
 			print("Integral is: "..val)
-			file:write(time)
-			file:write(sep)
-			file:write(val)
-			file:write("\n")
-			io.close(file)
+			
+			if ProcRank() == 0 then
+				local file = io.open (filename, "a")
+				file:write(time)
+				file:write(sep)
+				file:write(val)
+				file:write("\n")
+				io.close(file)
+			end
 			
 			if verbose then print("done.") end
 		end
@@ -446,15 +448,17 @@ function util.Balance(DataToBeWrittenTable)
 	
 			if verbose then write(" * Write Flux to '"..filename.."' ... ") end
 		
-			local file = io.open (filename, "a")
-
-			local val = IntegralNormalComponentOnManifold(data, u, boundary, inner)
+			local val = IntegralNormalComponentOnManifold(data, u, boundary, inner, time)
 			print("Flux is: "..val)
-			file:write(time)
-			file:write(sep)
-			file:write(val)
-			file:write("\n")
-			io.close(file)
+			
+			if ProcRank() == 0 then
+				local file = io.open (filename, "a")
+				file:write(time)
+				file:write(sep)
+				file:write(val)
+				file:write("\n")
+				io.close(file)
+			end
 			
 			if verbose then print("done.") end
 		end

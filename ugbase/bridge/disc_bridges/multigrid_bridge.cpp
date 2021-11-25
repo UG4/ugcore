@@ -213,6 +213,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("set_comm_comp_overlap", &T::set_comm_comp_overlap)
 			.add_method("ignore_init_for_base_solver", static_cast<void (T::*)(bool)>(&T::ignore_init_for_base_solver), "", "ignore")
 			.add_method("ignore_init_for_base_solver", static_cast<bool (T::*)() const>(&T::ignore_init_for_base_solver), "is ignored", "")
+			.add_method("set_matrix_structure_is_const", &T::set_matrix_structure_is_const)
 			.add_method("force_reinit", &T::force_reinit)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GeometricMultiGrid", tag);
