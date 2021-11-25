@@ -517,17 +517,18 @@ class ILU : public IPreconditioner<TAlgebra>
 			write_overlap_debug(m_ILU, "ILU_prep_02_A_AfterMakeUnique");
 			#endif
 
-			if(m_spOrderingAlgo.valid() && !m_useOverlap){
+			if(m_spOrderingAlgo.valid()){
+				if (m_useOverlap)
+					UG_THROW ("ILU: Ordering for overlap has not been implemented yet.");
+
 				if(m_u){
 					m_spOrderingAlgo->init(&m_ILU, *m_u);
 				}
 				else{
 					m_spOrderingAlgo->init(&m_ILU);
 				}
-			}
 
-		//	if using overlap we already sort in a different way
-			if(m_spOrderingAlgo.valid() && !m_useOverlap){
+				//	if using overlap we already sort in a different way
 				m_spOrderingAlgo->compute();
 				m_ordering = m_spOrderingAlgo->ordering();
 
