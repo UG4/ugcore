@@ -432,7 +432,7 @@ function util.SolveNonlinearTimeProblem(
 	local last_dt = currdt
 
 	if true then -- c++ version
-		print("experimental c++...")
+		print("c++rework...")
 		RequiredPlugins({"Luacpp"})
 
 		loop = SolveNonlinearTimeProblemOuterLoop()
@@ -486,10 +486,11 @@ function util.SolveNonlinearTimeProblem(
 		end
 		loop:do_it()
 		step = loop:getStep()
-		last_dt = loop:getLastDt()
+		time = loop:getTime()
+		-- last_dt = loop:getLastDt()
 		-- loop:getU(u) no. shared.
 	else -- old version
-		print("running legacy lua implementation")
+		print("legacy SolveNonlinearTimeProblem")
 
 	while not finishedTester:is_finished(time, step) do
 		step = step+1
@@ -704,9 +705,9 @@ function util.SolveNonlinearTimeProblem(
 		end
 	end -- outer loop
 
-	end -- lua script version
-
 	callbackDispatcher:notify_end(u, step, time, last_dt)
+
+	end -- lua script version
 	
 	if useCheckpointing and  timeDisc:num_stages() > 1 then
 		ug_warning("WARNING: Checkpointing won't work at the moment with timeDisc:num_stages() > 1")
@@ -857,7 +858,7 @@ function util.SolveLinearTimeProblem(
 	if postProcess ~= nil then
 		if type(postProcess) ~= "function" then
 			if type(postProcess) ~= "table" then
-				print("SolveLinearTimeProblem: Illegal parameters: postProcess must be a function.")
+				print("SolveLinearTimeProblem: Illegal parameters: postProcess must be a function.") -- table??
 				exit()
 			end
 			retValAtOK = postProcess.retValAtOK
@@ -919,9 +920,85 @@ function util.SolveLinearTimeProblem(
 	-- store grid function in vector of  old solutions
 	local solTimeSeries = SolutionTimeSeries()
 	solTimeSeries:push(u:clone(), time)
-	local gl = u:grid_level()
 
+	if true then -- c++ version
+		RequiredPlugins({"Luacpp"})
+		print("c++rework... time=", time, " endTSNo=", endTSNo)
+
+		-- matrix and vectors
+		local gl = u:grid_level()
+		local A = AssembledLinearOperator(timeDisc, gl)
+		local b = u:clone()
+
+		-- set order for bdf to 1 (initially)
+		if timeScheme:lower() == "bdf" then timeDisc:set_order(1) end
+
+		if preProcess ~= nil then
+			loop:setPreProcess(preProcess);
+		end
+		if postProcess ~= nil then
+			loop:setPostProcess(postProcess);
+		end
+
+		local assembled_dt = nil
+		loop = SolveLinearTimeProblemOuterLoop()
+
+		-- this is not actually used anywhere. incomplete/untested.
+		-- what type is retVal?
+		if retValAtOK == true then
+			loop:setRetValAtOK(1);
+		elseif retValAtOK == false then
+			loop:setRetValAtOK(0);
+		elseif retValAtOK ~= nil then
+			loop:setRetValAtOK(retValAtOK);
+		end
+		if retValAtMinStepSize ~= nil then
+			loop:setRetValAtMinStepSize(retValAtMinStepSize);
+		end
+		if retValAtSolver == false then
+			loop:setRetValAtSolver(0);
+		elseif retValAtSolver == true then
+			loop:setRetValAtSolver(1);
+		elseif retValAtSolver ~= nil then
+			loop:setRetValAtSolver(retValAtSolver);
+		end
+
+		if(reassemble == true) then
+			loop:setReassemble(reassemble)
+		end
+
+		loop:setTimeDisc(timeDisc) -- move "createTimeDisc(domainDisc, timeScheme, orderOrTheta)" to constructor?
+		                           -- also, call NewtonSolver:init from there?
+		-- loop:setGl(gl)
+		loop:setStep(step)
+		loop:setLinearSolver(linSolver)
+		loop:setOrderOrTheta(orderOrTheta)
+		loop:setReductionFactor(reductionFactor)
+		loop:setMinStepSize(minStepSize)
+		loop:setMaxStepSize(maxStepSize)
+
+		if endTime ~= nil then
+			loop:setEndTime(endTime)
+		end
+		if endTSNo ~= nil then
+			loop:setEndTSNo(endTSNo)
+		end
+		loop:attachU(u)
+
+		if out ~= nil then
+			loop:setVTKOutput(out)
+		end
+		if filename ~= nil then
+			loop:setFilename(filename)
+		end
+		loop:do_it()
+		step = loop:getStep()
+		time = loop:getTime()
+	else -- legacy script version
+
+	print("legacy SolveLinearTimeProblem")
 	-- matrix and vectors
+	local gl = u:grid_level()
 	local A = AssembledLinearOperator(timeDisc, gl)
 	local b = u:clone()
 
@@ -929,7 +1006,7 @@ function util.SolveLinearTimeProblem(
 	if timeScheme:lower() == "bdf" then timeDisc:set_order(1) end
 
 	local assembled_dt = nil
-	
+
 	while ((endTime == nil) or (time < endTime)) and ((endTSNo == nil) or (step < endTSNo)) do
 		step = step + 1
 		if verbose then print("++++++ TIMESTEP "..step.." BEGIN (current time: " .. time .. ") ++++++") end
@@ -1019,9 +1096,11 @@ function util.SolveLinearTimeProblem(
       if type(pp_res) == "boolean" and pp_res == false then -- i.e. not nil, not something else, but "false"!
           write("\n++++++ postProcess of the time step failed. ")
       end
-    end
+	end -- main loop
+
+	end -- legacy script
 			
-		if verbose then print("++++++ TIMESTEP "..step.." END   (current time: " .. time .. ") ++++++") end
+	if verbose then print("++++++ TIMESTEP "..step.." END   (current time: " .. time .. ") ++++++") end
 		
 		if useCheckpointing then
 			----------------------------------------------------------
