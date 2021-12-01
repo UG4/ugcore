@@ -347,25 +347,31 @@ class ILU : public IPreconditioner<TAlgebra>
 
 	public:
 	//	Constructor
-		ILU(double beta=0.0) :
+		ILU (double beta=0.0) :
 			m_beta(beta),
 			m_sortEps(1.e-50),
 			m_invEps(1.e-8),
 			m_bDisablePreprocessing(false),
 			m_useConsistentInterfaces(false),
-			m_useOverlap(false) {};
+			m_useOverlap(false),
+			m_spOrderingAlgo(SPNULL),
+			m_bSortIsIdentity(false),
+			m_u(nullptr)
+		{};
 
 	/// clone constructor
-		ILU( const ILU<TAlgebra> &parent )
-			: base_type(parent),
-			  m_beta(parent.m_beta),
-			  m_sortEps(parent.m_sortEps),
-			  m_invEps(parent.m_invEps),
-			  m_bDisablePreprocessing(parent.m_bDisablePreprocessing),
-			  m_useConsistentInterfaces(parent.m_useConsistentInterfaces),
-			  m_useOverlap(parent.m_useOverlap),
-			  m_spOrderingAlgo(parent.m_spOrderingAlgo)
-		{	}
+		ILU (const ILU<TAlgebra> &parent) :
+			base_type(parent),
+			m_beta(parent.m_beta),
+			m_sortEps(parent.m_sortEps),
+			m_invEps(parent.m_invEps),
+			m_bDisablePreprocessing(parent.m_bDisablePreprocessing),
+			m_useConsistentInterfaces(parent.m_useConsistentInterfaces),
+			m_useOverlap(parent.m_useOverlap),
+			m_spOrderingAlgo(parent.m_spOrderingAlgo),
+			m_bSortIsIdentity(false),
+			m_u(nullptr)
+		{}
 
 	///	Clone
 		virtual SmartPtr<ILinearIterator<vector_type> > clone()
@@ -419,6 +425,28 @@ class ILU : public IPreconditioner<TAlgebra>
 	protected:
 	//	Name of preconditioner
 		virtual const char* name() const {return "ILU";}
+
+		void apply_ordering(const matrix_type& mat)
+		{
+			if (!m_spOrderingAlgo.valid())
+				return;
+
+			if (m_useOverlap)
+				UG_THROW ("ILU: Ordering for overlap has not been implemented yet.");
+
+			if (m_u)
+				m_spOrderingAlgo->init(&m_ILU, *m_u);
+			else
+				m_spOrderingAlgo->init(&m_ILU);
+
+			m_spOrderingAlgo->compute();
+			m_ordering = m_spOrderingAlgo->ordering();
+
+			m_bSortIsIdentity = GetInversePermutation(m_ordering, m_old_ordering);
+
+			if (!m_bSortIsIdentity)
+				SetMatrixAsPermutation(m_ILU, mat, m_ordering);
+		}
 
 	protected:
 		virtual bool init(SmartPtr<ILinearOperator<vector_type> > J,
@@ -517,28 +545,7 @@ class ILU : public IPreconditioner<TAlgebra>
 			write_overlap_debug(m_ILU, "ILU_prep_02_A_AfterMakeUnique");
 			#endif
 
-			if(m_spOrderingAlgo.valid()){
-				if (m_useOverlap)
-					UG_THROW ("ILU: Ordering for overlap has not been implemented yet.");
-
-				if(m_u){
-					m_spOrderingAlgo->init(&m_ILU, *m_u);
-				}
-				else{
-					m_spOrderingAlgo->init(&m_ILU);
-				}
-
-				//	if using overlap we already sort in a different way
-				m_spOrderingAlgo->compute();
-				m_ordering = m_spOrderingAlgo->ordering();
-
-				m_bSortIsIdentity = GetInversePermutation(m_ordering, m_old_ordering);
-
-				if(!m_bSortIsIdentity){
-					m_tmp = m_ILU;
-					SetMatrixAsPermutation(m_ILU, m_tmp, m_ordering);
-				}
-			}
+			apply_ordering(mat);
 
 		//	Debug output of matrices
 			#ifdef UG_PARALLEL
@@ -681,9 +688,6 @@ class ILU : public IPreconditioner<TAlgebra>
 	///	storage for factorization
 		matrix_type m_ILU;
 
-	///	temporary matrix
-		matrix_type m_tmp;
-
 	///	help vector
 		vector_type m_h;
 
@@ -694,7 +698,7 @@ class ILU : public IPreconditioner<TAlgebra>
 		SmartPtr<OverlapWriter<TAlgebra> > m_overlapWriter;
 		#endif
 
-	/// 	factor for ILU-beta
+	/// factor for ILU-beta
 		number m_beta;
 
 	///	smallest allowed value for sorted factorization
@@ -703,13 +707,13 @@ class ILU : public IPreconditioner<TAlgebra>
 	///	smallest allowed value for the Aii/Bi quotient
 		number m_invEps;
 
-	/// 	whether or not to disable preprocessing
+	/// whether or not to disable preprocessing
 		bool m_bDisablePreprocessing;
 
 		bool m_useConsistentInterfaces;
 		bool m_useOverlap;
 
-	/// 	for ordering algorithms
+	/// for ordering algorithms
 		SmartPtr<ordering_algo_type> m_spOrderingAlgo;
 		ordering_container_type m_ordering, m_old_ordering;
 		std::vector<size_t> m_newIndex, m_oldIndex;
