@@ -426,7 +426,7 @@ class ILU : public IPreconditioner<TAlgebra>
 	//	Name of preconditioner
 		virtual const char* name() const {return "ILU";}
 
-		void apply_ordering(const matrix_type& mat)
+		void apply_ordering()
 		{
 			if (!m_spOrderingAlgo.valid())
 				return;
@@ -445,7 +445,11 @@ class ILU : public IPreconditioner<TAlgebra>
 			m_bSortIsIdentity = GetInversePermutation(m_ordering, m_old_ordering);
 
 			if (!m_bSortIsIdentity)
-				SetMatrixAsPermutation(m_ILU, mat, m_ordering);
+			{
+				matrix_type tmp;
+				tmp = m_ILU;
+				SetMatrixAsPermutation(m_ILU, tmp, m_ordering);
+			}
 		}
 
 	protected:
@@ -545,7 +549,7 @@ class ILU : public IPreconditioner<TAlgebra>
 			write_overlap_debug(m_ILU, "ILU_prep_02_A_AfterMakeUnique");
 			#endif
 
-			apply_ordering(mat);
+			apply_ordering();
 
 		//	Debug output of matrices
 			#ifdef UG_PARALLEL
