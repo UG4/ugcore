@@ -43,7 +43,6 @@ namespace ug{
 
 void OrderCuthillMcKee(DoFDistribution& dofDistr, bool bReverse)
 {
-	std::cerr << "!!!!!!!!!!! OrderCuthillMcKee: Do not use this function" << std::endl;
 	PROFILE_FUNC();
 //	get adjacency graph
 	std::vector<std::vector<size_t> > vvConnection;
@@ -63,6 +62,8 @@ void OrderCuthillMcKee(DoFDistribution& dofDistr, bool bReverse)
 template <typename TDomain>
 void OrderCuthillMcKee(ApproximationSpace<TDomain>& approxSpace, bool bReverse)
 {
+	UG_LOG ("OrderCuthillMcKee: This function is obsolete and may cause problems. Avoid it! Alternatives: Ordering strategies in solvers etc.\n");
+	
 	std::vector<SmartPtr<DoFDistribution> > vDD = approxSpace.dof_distributions();
 
 	for(size_t i = 0; i < vDD.size(); ++i)

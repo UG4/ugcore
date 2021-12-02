@@ -184,7 +184,8 @@ template <typename TDomain>
 void OrderDownwind(ApproximationSpace<TDomain>& approxSpace,
 		SmartPtr<UserData<MathVector<TDomain::dim>, TDomain::dim> > spVelocity, number threshold)
 {
-	std::cerr << "!!!!!!!!!!! OrderDownwind: Do not use this function" << std::endl;
+	UG_LOG ("OrderDownwind: This function is obsolete and may cause problems. Avoid it! Alternatives: Ordering strategies in solvers etc.\n");
+	
 	// TODO: implement for variable time and subset
 	number time = 0.0;
 	int si = 0;
