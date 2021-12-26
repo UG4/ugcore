@@ -43,6 +43,10 @@
 #ifndef __H__UG_BRIDGE__PARAMETER_STACK__
 #define __H__UG_BRIDGE__PARAMETER_STACK__
 
+#include <iostream>
+#define untested() ( std::cerr <<  "@@#\n@@@:"<< __FILE__ << ":"<< __LINE__ \
+          <<":" << __func__ << "\n" )
+
 namespace ug
 {
 namespace bridge
@@ -193,6 +197,7 @@ template <> struct ParameterInfo::PushType<std::string>			{static void push(Para
 template <> struct ParameterInfo::PushType<const std::string&>	{static void push(ParameterInfo* This){This->_push_type<std::string>();}};
 #ifdef UG_FOR_LUA
 template <> struct ParameterInfo::PushType<LuaFunctionHandle>	{static void push(ParameterInfo* This){This->_push_type<LuaFunctionHandle>();}};
+template <> struct ParameterInfo::PushType<LuaTableHandle>	{static void push(ParameterInfo* This){ This->_push_type<LuaTableHandle>();}};
 #endif
 
 // implementation pointers and references to registered types
@@ -498,6 +503,7 @@ template <> struct ParameterStack::PushType<std::string>		{static void push(Para
 template <> struct ParameterStack::PushType<const std::string&>	{static void push(ParameterStack* This, const std::string& data){This->_push_native<std::string>(data);}};
 #ifdef UG_FOR_LUA
 template <> struct ParameterStack::PushType<LuaFunctionHandle>	{static void push(ParameterStack* This, LuaFunctionHandle data)	{This->_push_native<LuaFunctionHandle>(data);}};
+template <> struct ParameterStack::PushType<LuaTableHandle>	{static void push(ParameterStack* This, LuaTableHandle data)	{This->_push_native<LuaTableHandle>(data);}};
 #endif
 
 // convert pointers to native types
@@ -568,6 +574,7 @@ template <> struct ParameterStack::ToType<std::string>		{static std::string to(c
 template <> struct ParameterStack::ToType<const std::string&>{static const std::string& to(const ParameterStack* This, int index)	{return This->_to_native<const std::string&>(index);}};
 #ifdef UG_FOR_LUA
 template <> struct ParameterStack::ToType<LuaFunctionHandle>	{static LuaFunctionHandle to(const ParameterStack* This, int index)		{return This->_to_native<LuaFunctionHandle>(index);}};
+template <> struct ParameterStack::ToType<LuaTableHandle>	{static LuaTableHandle to(const ParameterStack* This, int index)		{return This->_to_native<LuaTableHandle>(index);}};
 #endif
 
 // convert to void types
