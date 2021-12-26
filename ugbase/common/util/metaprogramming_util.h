@@ -121,6 +121,10 @@ template <typename TTypeList> struct TypeValueList
 	head hd;
 	TypeValueList<tail> tl;
 
+	explicit TypeValueList() {
+		std::cerr << "incomplete TVL\n";
+	}
+
 	TypeValueList(head _hd,
 				  TypeValueList<tail> typValList) :
 		hd(_hd), tl(typValList)	{}

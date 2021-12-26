@@ -274,7 +274,8 @@ static void Common(Registry& reg, string grp)
 			.add_method("set_lua_callback", &T::set_lua_callback)
 			.set_construct_as_smart_pointer(true);
 	}
-}
+
+} // Common
 }; // end Functionality
 }// end LuaUserData
 
