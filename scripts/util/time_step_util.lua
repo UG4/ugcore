@@ -933,15 +933,15 @@ function util.SolveLinearTimeProblem(
 		-- set order for bdf to 1 (initially)
 		if timeScheme:lower() == "bdf" then timeDisc:set_order(1) end
 
+		local assembled_dt = nil
+		loop = SolveLinearTimeProblemOuterLoop()
+
 		if preProcess ~= nil then
 			loop:setPreProcess(preProcess);
 		end
 		if postProcess ~= nil then
 			loop:setPostProcess(postProcess);
 		end
-
-		local assembled_dt = nil
-		loop = SolveLinearTimeProblemOuterLoop()
 
 		-- this is not actually used anywhere. incomplete/untested.
 		-- what type is retVal?
