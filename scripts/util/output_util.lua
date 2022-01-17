@@ -256,6 +256,119 @@ function MiscWriter:eval_functions(u, step, time)
 end
 
 
+--[[ Parse & prepare integral data
+-- data: userdata
+-- sep: separator, string, OPTIONAL
+-- subsets
+--]]
+local function PrepareIntegralData(DataSet, Integrals, file)
+  -- create integral data
+      local IntegralData = {}
+
+      -- get data to be evaluated
+      IntegralData.data = DataSet.integral
+      if type(IntegralData.data) ~= "userdata" then
+        print("util.Balance: Integral: value must be userdata.")
+        exit()                          
+      end
+      
+      -- store file name
+      IntegralData.file = file
+      
+      -- separator 
+      IntegralData.sep = DataSet.sep
+      if type(IntegralData.sep) ~= "string" then
+        IntegralData.sep = "\t"
+      end
+      
+      -- subsets
+      IntegralData.subsets = DataSet.subsets
+
+      -- create file
+      local thefile = io.open (file, "w+")
+      thefile:write("# Integral data file\n")
+      thefile:write("time"..IntegralData.sep.."value\n")
+      io.close(thefile)
+      
+      -- append to integral datas 
+      table.insert(Integrals, IntegralData)   
+end
+
+-- Parse & prepare flux data
+local function PrepareFluxData(DataSet, Fluxes, file)
+
+      local FluxData = {}
+
+      -- get data to be evaluated
+      FluxData.data = DataSet.flux
+      if type(FluxData.data) ~= "userdata" then
+        print("util.Balance: Flux: value must be userdata.")
+        exit()                          
+      end
+
+      -- get boundary
+      FluxData.boundary = DataSet.boundary
+      if type(FluxData.boundary) ~= "string" then
+        print("util.Balance: Flux: boundary must be specified.")
+        exit()                                
+      end
+
+      -- get boundary
+      FluxData.inner = DataSet.inner
+      if type(FluxData.inner) ~= "string" then
+        print("util.Balance: Flux: inner must be specified.")
+        exit()                                
+      end
+      
+      -- store file name
+      FluxData.file = file
+
+      -- separator 
+      FluxData.sep = DataSet.sep
+      if type(FluxData.sep) ~= "string" then
+        FluxData.sep = "\t"
+      end
+
+      -- create file
+      local thefile = io.open (file, "w+")
+      thefile:write("# Flux data file\n")
+      thefile:write("time"..FluxData.sep.."value\n")
+      io.close(thefile)
+      
+      -- append to integral datas
+      table.insert(Fluxes, FluxData)  
+end
+
+-- Parse & prepare function value data
+local function PrepareFuncData(DataSet, FuncValues, file)
+  -- create a container for the object
+      local FuncValue = {}
+      FuncValue.func = DataSet.func_data
+      FuncValue.data = DataSet.data
+      FuncValue.file = file
+
+      -- separator 
+      FuncValue.sep = DataSet.sep
+      if type(FuncValue.sep) ~= "string" then
+        FuncValue.sep = "\t"
+      end
+      
+      -- a comment to write at the beginning of the file
+      if DataSet.comment ~= nil then
+        -- create the file
+        local thefile = io.open (file, "w+")
+        thefile:write("# "..DataSet.comment.."\n")
+        io.close(thefile)
+      else
+        -- clean the file
+        local thefile = io.open (file, "w+")
+        io.close(thefile)
+      end
+      
+      -- append to the other objects
+      table.insert(FuncValues, FuncValue)
+     
+end
 
 function util.Balance(DataToBeWrittenTable)
 	-- check that table passed
@@ -418,124 +531,25 @@ function util.Balance(DataToBeWrittenTable)
 
 		----------------------------------
 		-- check for integral data
-		-- data: userdata
-		-- sep: separator, string, OPTIONAL
-		-- subsets
 		----------------------------------
 		if DataSet.integral ~= nil then
-			-- create integral data
-			local IntegralData = {}
-
-			-- get data to be evaluated
-			IntegralData.data = DataSet.integral
-			if type(IntegralData.data) ~= "userdata" then
-				print("util.Balance: Integral: value must be userdata.")
-				exit()													
-			end
-			
-			-- store file name
-			IntegralData.file = file
-			
-			-- separator 
-			IntegralData.sep = DataSet.sep
-			if type(IntegralData.sep) ~= "string" then
-				IntegralData.sep = "\t"
-			end
-			
-			-- subsets
-			IntegralData.subsets = DataSet.subsets
-
-			-- create file
-			local thefile = io.open (file, "w+")
-			thefile:write("# Integral data file\n")
-			thefile:write("time"..IntegralData.sep.."value\n")
-			io.close(thefile)
-			
-			-- append to integral datas 
-			-- (for forthcoming evaluation)
-			table.insert(Integrals, IntegralData)			
+			 PrepareIntegralData(DataSet, Integrals, file)   
 		end
 
 		----------------------------------
 		-- check for flux data
 		----------------------------------
 		if DataSet.flux ~= nil then
-			-- create integral data
-			local FluxData = {}
-
-			-- get data to be evaluated
-			FluxData.data = DataSet.flux
-			if type(FluxData.data) ~= "userdata" then
-				print("util.Balance: Flux: value must be userdata.")
-				exit()													
-			end
-
-			-- get boundary
-			FluxData.boundary = DataSet.boundary
-			if type(FluxData.boundary) ~= "string" then
-				print("util.Balance: Flux: boundary must be specified.")
-				exit()																
-			end
-
-			-- get boundary
-			FluxData.inner = DataSet.inner
-			if type(FluxData.inner) ~= "string" then
-				print("util.Balance: Flux: inner must be specified.")
-				exit()																
-			end
-			
-			-- store file name
-			FluxData.file = file
-
-			-- separator 
-			FluxData.sep = DataSet.sep
-			if type(FluxData.sep) ~= "string" then
-				FluxData.sep = "\t"
-			end
-
-			-- create file
-			local thefile = io.open (file, "w+")
-			thefile:write("# Flux data file\n")
-			thefile:write("time"..FluxData.sep.."value\n")
-			io.close(thefile)
-			
-			-- append to integral datas
-			table.insert(Fluxes, FluxData)			
+		  PrepareFluxData(DataSet, Fluxes, file)		
 		end
 
 		----------------------------------
 		-- check for values of user-defined functions data
 		----------------------------------
 		if DataSet.func_data ~= nil then
-			-- create a container for the object
-			local FuncValue = {}
-			FuncValue.func = DataSet.func_data
-			FuncValue.data = DataSet.data
-			FuncValue.file = file
-
-			-- separator 
-			FuncValue.sep = DataSet.sep
-			if type(FuncValue.sep) ~= "string" then
-				FuncValue.sep = "\t"
-			end
-			
-			-- a comment to write at the beginning of the file
-			if DataSet.comment ~= nil then
-				-- create the file
-				local thefile = io.open (file, "w+")
-				thefile:write("# "..DataSet.comment.."\n")
-				io.close(thefile)
-			else
-				-- clean the file
-				local thefile = io.open (file, "w+")
-				io.close(thefile)
-			end
-			
-			-- append to the other objects
-			table.insert(FuncValues, FuncValue)
+		  PrepareFuncData(DataSet, FuncValues, file)
 		end
-		
-	end -- end DataSet loop
+	end -- end of for-loop
 	
 	---------------------------------------------------------------------
 	-- This function is called, when data writer is invoked (LUA closure)
