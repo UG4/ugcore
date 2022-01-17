@@ -94,6 +94,167 @@ function util.TableToText(var)
 end
 
 
+ --[[
+ Auxiliary function: Writing VTK data in the following format using OOP-style.
+ 
+ VTKBalanceWriter = {
+    VTK = {
+     { vtkOut1, file1, subsets1  },
+     { vtkOut2, file2, subsets2  }
+    },
+    times
+    verbose=true, 
+    PrintPVD=false,
+    PrintProcesswisePVD=true
+  },
+  --]]
+    
+local VTKBalanceWriter = {}
+
+function VTKBalanceWriter:new (o)
+   o = o or { VTK={}, verbose=false, PrintPVD=false, PrintProcesswisePVD=false, times = nil}   -- create object if user does not provide one
+   o.tindex = o.tindex or 1
+   setmetatable(o, self)
+   self.__index = self
+   return o
+end
+
+function VTKBalanceWriter:is_due(tnow)
+
+  -- Default: always print all times.
+  if not self.times then return true end  
+  
+  -- Invalid entry. 
+  if not self.times[self.tindex] then return false end
+  
+  -- Special case: Advance, if data is provided
+  if tnow >= self.times[self.tindex] then  
+    self.tindex = self.tindex+1
+    return true
+  end
+  
+  return false
+  
+end
+
+function VTKBalanceWriter:write_data(u, step, time)
+
+  if not self:is_due(time) then return 
+  end  -- Only print certain times. 
+
+  for _, vtkData in ipairs(self.VTK) do
+      print(vtkData)
+      
+      local vtkOut = vtkData[1]
+      local file = vtkData[2]
+      local subsets = vtkData[3]
+      
+      if self.verbose then write(" * Write VTK-data to '"..file.."' ... ") end
+      
+      if type(subsets) == "string" then
+        vtkOut:print_subsets(file, u, subsets, step, time)
+        if self.PrintPVD then vtkOut:write_time_pvd(file, u) end
+        if self.PrintProcesswisePVD then vtkOut:write_time_processwise_pvd(file, u) end
+      else
+        vtkOut:print(file, u, step, time) 
+        if self.PrintPVD then vtkOut:write_time_pvd(file, u) end
+        if self.PrintProcesswisePVD then vtkOut:write_time_processwise_pvd(file, u) end
+      end
+      
+      if self.verbose then print("done.") end
+  end
+end
+
+-- The following object writes integrals, fluxes, and user functions.
+local MiscWriter = {}
+function MiscWriter:new (o)
+   o = o or { Integrals={}, Fluxes = {}, FuncValues={}, verbose=false}   -- create object if user does not provide one
+   setmetatable(o, self)
+   self.__index = self
+   return o
+end
+
+function MiscWriter:eval_integrals(u, step, time)
+  for _, IntegralData in ipairs(self.Integrals) do
+      local data = IntegralData.data
+      local filename = IntegralData.file
+      local quadOrder = 2
+      local sep = IntegralData.sep
+      local subsets = IntegralData.subsets
+  
+      if self.verbose then write(" * Write Integral to '"..filename.."' ... ") end
+    
+      local val = nil
+      if type(subsets) == "string" then
+        val = Integral(data, u, subsets, time)
+      else
+        val = Integral(data, u, time)
+      end
+      print("Integral is: "..val)
+      
+      if ProcRank() == 0 then
+        local file = io.open (filename, "a")
+        file:write(time)
+        file:write(sep)
+        file:write(val)
+        file:write("\n")
+        io.close(file)
+      end
+      
+      if self.verbose then print("done.") end
+    end
+end
+
+function MiscWriter:eval_fluxes(u, step, time)
+    -- evaluate Fluxes
+    for _, FluxData in ipairs(self.Fluxes) do
+      local data = FluxData.data
+      local filename = FluxData.file
+      local boundary = FluxData.boundary
+      local inner = FluxData.inner
+      local quadOrder = 2
+      local sep = FluxData.sep
+  
+      if self.verbose then write(" * Write Flux to '"..filename.."' ... ") end
+    
+      local val = IntegralNormalComponentOnManifold(data, u, boundary, inner, time)
+      print("Flux is: "..val)
+      
+      if ProcRank() == 0 then
+        local file = io.open (filename, "a")
+        file:write(time)
+        file:write(sep)
+        file:write(val)
+        file:write("\n")
+        io.close(file)
+      end
+      
+      if self.verbose then print("done.") end
+    end
+end
+
+-- evaluate the user-defined function data
+function MiscWriter:eval_functions(u, step, time)
+
+    for _, FuncValue in ipairs(self.FuncValues) do
+      local filename = FuncValue.file
+      local func = FuncValue.func
+      local data = FuncValue.data
+      local sep = FuncValue.sep
+  
+      if self.verbose then write(" * Write Function Values to '"..filename.."' ... ") end
+    
+      local file = io.open (filename, "a")
+      file:write(time)
+      file:write(sep)
+      file:write(func(data))
+      file:write("\n")
+      io.close(file)
+      
+      if self.verbose then print("done.") end
+    end
+end
+
 
 
 function util.Balance(DataToBeWrittenTable)
@@ -115,6 +276,7 @@ function util.Balance(DataToBeWrittenTable)
 	local PrintFreq = DataToBeWrittenTable.datafreq or 1
 	local PrintPVD = DataToBeWrittenTable.write_pvd or false
 	local PrintProcesswisePVD = DataToBeWrittenTable.write_processwise_pvd or false
+	local PrintVTKTimes= DataToBeWrittenTable.vtktimes or nil
 	local vecOutput = nil
 
 	local integratorsubject = TimeIntegratorSubject()
@@ -215,7 +377,7 @@ function util.Balance(DataToBeWrittenTable)
 			end
 
 			-- get data to be evaluated
-			evaluator = PointEvaluatorFactory():create(DataSet.value)
+			local evaluator = PointEvaluatorFactory():create(DataSet.value)
 			
 			-- get positions
 			if type(DataSet.point) ~= "table" then
@@ -256,6 +418,9 @@ function util.Balance(DataToBeWrittenTable)
 
 		----------------------------------
 		-- check for integral data
+		-- data: userdata
+		-- sep: separator, string, OPTIONAL
+		-- subsets
 		----------------------------------
 		if DataSet.integral ~= nil then
 			-- create integral data
@@ -286,7 +451,8 @@ function util.Balance(DataToBeWrittenTable)
 			thefile:write("time"..IntegralData.sep.."value\n")
 			io.close(thefile)
 			
-			-- append to integral datas
+			-- append to integral datas 
+			-- (for forthcoming evaluation)
 			table.insert(Integrals, IntegralData)			
 		end
 
@@ -371,120 +537,38 @@ function util.Balance(DataToBeWrittenTable)
 		
 	end -- end DataSet loop
 	
-	-------------------------------------------------------------------
-	-- the function being called, when data writer is invoked
-	-------------------------------------------------------------------
+	---------------------------------------------------------------------
+	-- This function is called, when data writer is invoked (LUA closure)
+	---------------------------------------------------------------------
+	local tmpWriterVTK = VTKBalanceWriter:new({VTK=VTK, verbose=verbose, times=PrintVTKTimes, 
+	                                           PrintPVD=PrintPVD, PrintProcesswisePVD=PrintProcesswisePVD})
+	                                           
+	local tmpMiscWriter= MiscWriter:new({Integrals=Integrals, Fluxes = Fluxes, FuncValues=FuncValues, verbose=verbose})                                    
+	
 	return function(u, step, time)
 		
 		if (step < 0) or (math.fmod(step, PrintFreq) == 0) then
 		if verbose then print(" ******** Start Balancing ********") end		
 		
-		-- write ascii-vector
+		-- Write ascii-vector.
 		if type(vecOutput) == "table" and vecOutput.filename and vecOutput.data then
 			SaveVectorForConnectionViewer(vecOutput.data, vecOutput.filename.."-"..step..".vec")
 		end
 
-		-- write VTK datas
-		for _, vtkData in ipairs(VTK) do
-			local vtkOut = vtkData[1]
-			local file = vtkData[2]
-			local subsets = vtkData[3]
+		-- Write VTK data.
+		tmpWriterVTK:write_data(u, step, time)
 			
-			if verbose then write(" * Write VTK-data to '"..file.."' ... ") end
-			
-			if type(subsets) == "string" then
-				vtkOut:print_subsets(file, u, subsets, step, time)
-				if PrintPVD then vtkOut:write_time_pvd(file, u) end
-				if PrintProcesswisePVD then vtkOut:write_time_processwise_pvd(file, u) end
-			else
-				vtkOut:print(file, u, step, time) 
-				if PrintPVD then vtkOut:write_time_pvd(file, u) end
-				if PrintProcesswisePVD then vtkOut:write_time_processwise_pvd(file, u) end
-			end
-			
-			if verbose then print("done.") end
-		end
-
+    -- point evaluators
 		integratorsubject:notify_finalize_step(u, step, time, 0)
 
-		-- evaluate Integrals
-		for _, IntegralData in ipairs(Integrals) do
-			local data = IntegralData.data
-			local filename = IntegralData.file
-			local quadOrder = 2
-			local sep = IntegralData.sep
-			local subsets = IntegralData.subsets
-	
-			if verbose then write(" * Write Integral to '"..filename.."' ... ") end
-		
-			local val = nil
-			if type(subsets) == "string" then
-				val = Integral(data, u, subsets, time)
-			else
-				val = Integral(data, u, time)
-			end
-			print("Integral is: "..val)
-			
-			if ProcRank() == 0 then
-				local file = io.open (filename, "a")
-				file:write(time)
-				file:write(sep)
-				file:write(val)
-				file:write("\n")
-				io.close(file)
-			end
-			
-			if verbose then print("done.") end
-		end
-
-		-- evaluate Fluxes
-		for _, FluxData in ipairs(Fluxes) do
-			local data = FluxData.data
-			local filename = FluxData.file
-			local boundary = FluxData.boundary
-			local inner = FluxData.inner
-			local quadOrder = 2
-			local sep = FluxData.sep
-	
-			if verbose then write(" * Write Flux to '"..filename.."' ... ") end
-		
-			local val = IntegralNormalComponentOnManifold(data, u, boundary, inner, time)
-			print("Flux is: "..val)
-			
-			if ProcRank() == 0 then
-				local file = io.open (filename, "a")
-				file:write(time)
-				file:write(sep)
-				file:write(val)
-				file:write("\n")
-				io.close(file)
-			end
-			
-			if verbose then print("done.") end
-		end
-		
-		-- evaluate the user-defined function data
-		for _, FuncValue in ipairs(FuncValues) do
-			local filename = FuncValue.file
-			local func = FuncValue.func
-			local data = FuncValue.data
-			local sep = FuncValue.sep
-	
-			if verbose then write(" * Write Function Values to '"..filename.."' ... ") end
-		
-			local file = io.open (filename, "a")
-			file:write(time)
-			file:write(sep)
-			file:write(func(data))
-			file:write("\n")
-			io.close(file)
-			
-			if verbose then print("done.") end
-		end
+		-- evaluate Integrals and Fluxes
+	  tmpMiscWriter:eval_integrals(u, step, time)
+	  tmpMiscWriter:eval_fluxes(u, step, time)
+    tmpMiscWriter:eval_functions(u, step, time)
 		
 		if verbose then print(" ******** End   Balancing ********")	end		
-		end	
-	end
+		end	-- function
+	end 
 end
 
 
