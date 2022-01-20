@@ -336,8 +336,11 @@ function util.SolveNonlinearTimeProblem(
 	-- attach the given callbacks to a TimeIntegratorSubject
 	-- if this class is transcribed into c++, just inherit from TimeIntegratorSubject and attach the callbacks
 	local callbackDispatcher = TimeIntegratorSubject()
+	cplusplus = true;
 
-	if postProcess ~= nil then
+	if cplusplus then
+		-- parsed below
+	elseif postProcess ~= nil then
 		util.ParseTimeIntegratorCallbacks(callbackDispatcher, postProcess)
 	end
 		
@@ -427,15 +430,16 @@ function util.SolveNonlinearTimeProblem(
 	-- not needed in c++ version
 	local defaultLineSearch = newtonSolver:line_search()
 
-	callbackDispatcher:notify_start(u, step, time, maxStepSize)
-
 	local last_dt = currdt
 
-	if true then -- c++ version
+	if cplusplus then -- c++ version
 		print("c++rework...")
 		RequiredPlugins({"Luacpp"})
 
 		loop = SolveNonlinearTimeProblemOuterLoop()
+		if postProcess ~= nil then
+			util.ParseTimeIntegratorCallbacks(loop, postProcess)
+		end
 		loop:setFinishedTester(finishedTester)
 		loop:setNewtonSolver(newtonSolver)
 		loop:setTimeDisc(timeDisc) -- move "createTimeDisc(domainDisc, timeScheme, orderOrTheta)" to constructor?
@@ -480,7 +484,7 @@ function util.SolveNonlinearTimeProblem(
 		end
 
 		loop:setOutput(ocb)
-		loop:setCallback(callbackDispatcher)
+--		loop:setCallback(callbackDispatcher)
 		if minStepSize <= maxStepSize * reductionFactor or newtonLineSearchFallbacks ~= nil then
 			loop:storeU()
 		end
@@ -491,6 +495,8 @@ function util.SolveNonlinearTimeProblem(
 		-- loop:getU(u) no. shared.
 	else -- old version
 		print("legacy SolveNonlinearTimeProblem")
+
+	callbackDispatcher:notify_start(u, step, time, maxStepSize)
 
 	while not finishedTester:is_finished(time, step) do
 		step = step+1
