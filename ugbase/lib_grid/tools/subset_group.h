@@ -116,7 +116,7 @@ class SubsetGroup
 		void clear() {m_vSubset.clear();}
 
 	/// returns if function group is empty
-		bool empty() {return m_vSubset.empty();}
+		bool empty() const {return m_vSubset.empty();}
 
 	/// number of subsets in this group
 		inline size_t size() const
