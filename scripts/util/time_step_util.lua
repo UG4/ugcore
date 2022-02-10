@@ -433,7 +433,7 @@ function util.SolveNonlinearTimeProblem(
 	local last_dt = currdt
 
 	if cplusplus then -- c++ version
-		print("c++rework...")
+		print("NonLinear c++rework...")
 		RequiredPlugins({"Luacpp"})
 
 		loop = SolveNonlinearTimeProblemOuterLoop()
@@ -489,8 +489,8 @@ function util.SolveNonlinearTimeProblem(
 			loop:storeU()
 		end
 		loop:do_it()
-		step = loop:getStep()
-		time = loop:getTime()
+		step = loop:get_step()
+		time = loop:get_time()
 		-- last_dt = loop:getLastDt()
 		-- loop:getU(u) no. shared.
 	else -- old version
@@ -929,7 +929,9 @@ function util.SolveLinearTimeProblem(
 
 	if true then -- c++ version
 		RequiredPlugins({"Luacpp"})
-		print("c++rework... time=", time, " endTSNo=", endTSNo)
+		RequiredPlugins({"Limex"})
+		print("Linear c++rework... time=", time, " endTSNo=", endTSNo, " step=", step, " endTime=", endTime,
+		   " minStepSize=", minStepSize, " maxStepSize=", maxStepSize)
 
 		-- matrix and vectors
 		local gl = u:grid_level()
@@ -940,7 +942,61 @@ function util.SolveLinearTimeProblem(
 		if timeScheme:lower() == "bdf" then timeDisc:set_order(1) end
 
 		local assembled_dt = nil
-		loop = SolveLinearTimeProblemOuterLoop()
+
+		if true then --- OuterLoop thing (old)
+			loop = SolveLinearTimeProblemOuterLoop() -- ad hoc
+			-- this is not actually used anywhere. incomplete/untested.
+			-- what type is retVal?
+			if retValAtOK == true then
+				loop:setRetValAtOK(1);
+			elseif retValAtOK == false then
+				loop:setRetValAtOK(0);
+			elseif retValAtOK ~= nil then
+				loop:setRetValAtOK(retValAtOK);
+			end
+			if retValAtMinStepSize ~= nil then
+				loop:setRetValAtMinStepSize(retValAtMinStepSize);
+			end
+			if retValAtSolver == false then
+				loop:setRetValAtSolver(0);
+			elseif retValAtSolver == true then
+				loop:setRetValAtSolver(1);
+			elseif retValAtSolver ~= nil then
+				loop:setRetValAtSolver(retValAtSolver);
+			end
+
+			loop:set_time_disc(timeDisc) -- move "createTimeDisc(domainDisc, timeScheme, orderOrTheta)" to constructor?
+			                             -- also, call NewtonSolver:init from there?
+			if endTSNo ~= nil then
+				print("incomplete, endTSNo", endTSNo)
+				loop:setEndTSNo(endTSNo)
+			end
+			if out ~= nil then
+				print("incomplete, setVTKOutput ", out)
+				loop:setVTKOutput(out)
+			end
+			if filename ~= nil then
+				print("incomplete, setFilename ", filename)
+				loop:setFilename(filename)
+			end
+
+			loop:setStep(step)
+
+			loop:set_linear_solver(linSolver)
+			loop:setOrderOrTheta(orderOrTheta) -- already in timeDisc?
+		elseif true then
+			print("incomplete: use limex? -- which one?")
+
+			loop = SimpleTimeIntegrator(timeDisc) -- does not work with linear solver?
+			local inv = SimpleInvert()
+			inv:set_linear_solver(linSolver)
+			inv:set_time_disc(timeDisc)
+			loop:set_solver(inv)
+
+			-- loop = LinearTimeIntegrator(timeDisc) -- does not know min/max dt
+			-- loop = TimeIntegratorLinearAdaptive(timeDisc) -- ???
+
+		end
 
 		if preProcess ~= nil then
 			loop:setPreProcess(preProcess);
@@ -949,57 +1005,29 @@ function util.SolveLinearTimeProblem(
 			loop:setPostProcess(postProcess);
 		end
 
-		-- this is not actually used anywhere. incomplete/untested.
-		-- what type is retVal?
-		if retValAtOK == true then
-			loop:setRetValAtOK(1);
-		elseif retValAtOK == false then
-			loop:setRetValAtOK(0);
-		elseif retValAtOK ~= nil then
-			loop:setRetValAtOK(retValAtOK);
-		end
-		if retValAtMinStepSize ~= nil then
-			loop:setRetValAtMinStepSize(retValAtMinStepSize);
-		end
-		if retValAtSolver == false then
-			loop:setRetValAtSolver(0);
-		elseif retValAtSolver == true then
-			loop:setRetValAtSolver(1);
-		elseif retValAtSolver ~= nil then
-			loop:setRetValAtSolver(retValAtSolver);
-		end
-
 		if(reassemble == true) then
 			loop:setReassemble(reassemble)
 		end
 
-		loop:setTimeDisc(timeDisc) -- move "createTimeDisc(domainDisc, timeScheme, orderOrTheta)" to constructor?
-		                           -- also, call NewtonSolver:init from there?
 		-- loop:setGl(gl)
-		loop:setStep(step)
-		loop:setLinearSolver(linSolver)
-		loop:setOrderOrTheta(orderOrTheta)
-		loop:setReductionFactor(reductionFactor)
-		loop:setMinStepSize(minStepSize)
-		loop:setMaxStepSize(maxStepSize)
+		-- loop:set_time_step(step)
+		--
 
-		if endTime ~= nil then
-			loop:setEndTime(endTime)
-		end
-		if endTSNo ~= nil then
-			loop:setEndTSNo(endTSNo)
-		end
-		loop:attachU(u)
+		loop:set_time_step(minStepSize) -- really?
+		loop:set_dt_min(minStepSize)
+		loop:set_dt_max(maxStepSize)
+		loop:set_reduction_factor(reductionFactor)
 
-		if out ~= nil then
-			loop:setVTKOutput(out)
+		if endTime == nil then
+			print("incomplete, endTime")
+			endTime = 1;
 		end
-		if filename ~= nil then
-			loop:setFilename(filename)
-		end
-		loop:do_it()
-		step = loop:getStep()
-		time = loop:getTime()
+
+		loop:init(u)
+
+		loop:apply(u, endTime, u, startTime)
+		step = 1 -- BUG loop:getStep()
+		time = endTime -- BUG loop:getTime()
 	else -- legacy script version
 
 	print("legacy SolveLinearTimeProblem")
