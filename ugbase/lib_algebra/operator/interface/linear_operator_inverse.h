@@ -77,6 +77,7 @@ namespace ug{
  */
 template <typename X, typename Y = X>
 class ILinearOperatorInverse : public ILinearIterator<X,Y>
+                               // ?? , public IOperatorInverse<X, Y>
 {
 	public:
 	///	Domain space
