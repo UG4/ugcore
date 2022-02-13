@@ -115,6 +115,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 	{
 		typedef StdTransfer<TDomain, TAlgebra> T;
 		typedef ITransferOperator<TDomain, TAlgebra> TBase;
+		typedef typename T::GF GF;
 		string name = string("StdTransfer").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
@@ -125,6 +126,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("set_use_transposed", &T::set_use_transposed)
 			.add_method("enable_p1_lagrange_optimization", &T::enable_p1_lagrange_optimization)
 			.add_method("p1_lagrange_optimization_enabled", &T::p1_lagrange_optimization_enabled)
+			.add_method("prolongate", static_cast<void (T::*) (GF&, const GF&)> (&T::prolongate))
+			.add_method("do_restrict", static_cast<void (T::*) (GF&, const GF&)> (&T::do_restrict))
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "StdTransfer", tag);
 	}
