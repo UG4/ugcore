@@ -111,6 +111,7 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 		int elem_status = m_extrapol.check_elem_lsf
 			(TElem::NUM_VERTICES, elem, si, g_level, Eval.use_hanging(), vCornerCoords, 0);
 		if (elem_status < 0) continue; // this is an outer element, do not assemble it at all
+		if (m_bAssembleOnlyCut && elem_status > 0) continue; // exclude elements that are not cut
 
 	//	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -269,6 +270,7 @@ AssembleMassMatrix( const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 		int elem_status = m_extrapol.check_elem_lsf
 			(TElem::NUM_VERTICES, elem, si, g_level, Eval.use_hanging(), vCornerCoords, 0);
 		if (elem_status < 0) continue; // this is an outer element, do not assemble it at all
+		if (m_bAssembleOnlyCut && elem_status > 0) continue; // exclude elements that are not cut
 
 	//	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -426,6 +428,7 @@ AssembleJacobian(	const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 		int elem_status = m_extrapol.check_elem_lsf
 			(TElem::NUM_VERTICES, elem, si, g_level, Eval.use_hanging(), vCornerCoords, 0);
 		if (elem_status < 0) continue; // this is an outer element, do not assemble it at all
+		if (m_bAssembleOnlyCut && elem_status > 0) continue; // exclude elements that are not cut
 
 	//	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -600,6 +603,7 @@ AssembleJacobian(	const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 		int elem_status = m_extrapol.check_elem_lsf
 			(TElem::NUM_VERTICES, elem, si, g_level, Eval.use_hanging(), vCornerCoords, vSol->time(0));
 		if (elem_status < 0) continue; // this is an outer element, do not assemble it at all
+		if (m_bAssembleOnlyCut && elem_status > 0) continue; // exclude elements that are not cut
 
 	//	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -795,6 +799,7 @@ AssembleDefect( const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 		int elem_status = m_extrapol.check_elem_lsf
 			(TElem::NUM_VERTICES, elem, si, g_level, Eval.use_hanging(), vCornerCoords, 0);
 		if (elem_status < 0) continue; // this is an outer element, do not assemble it at all
+		if (m_bAssembleOnlyCut && elem_status > 0) continue; // exclude elements that are not cut
 
 	//	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -1021,6 +1026,7 @@ AssembleDefect( const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 		int elem_status = m_extrapol.check_elem_lsf
 			(TElem::NUM_VERTICES, elem, si, g_level, Eval.use_hanging(), vCornerCoords, vSol->time(0));
 		if (elem_status < 0) continue; // this is an outer element, do not assemble it at all
+		if (m_bAssembleOnlyCut && elem_status > 0) continue; // exclude elements that are not cut
 
 	//	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -1310,6 +1316,7 @@ AssembleLinear( const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 		int elem_status = m_extrapol.check_elem_lsf
 			(TElem::NUM_VERTICES, elem, si, g_level, Eval.use_hanging(), vCornerCoords, 0);
 		if (elem_status < 0) continue; // this is an outer element, do not assemble it at all
+		if (m_bAssembleOnlyCut && elem_status > 0) continue; // exclude elements that are not cut
 
 	//	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -1460,6 +1467,7 @@ AssembleLinear( const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 		int elem_status = m_extrapol.check_elem_lsf
 			(TElem::NUM_VERTICES, elem, si, g_level, Eval.use_hanging(), vCornerCoords, vSol->time(0));
 		if (elem_status < 0) continue; // this is an outer element, do not assemble it at all
+		if (m_bAssembleOnlyCut && elem_status > 0) continue; // exclude elements that are not cut
 
 	//	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -1829,6 +1837,7 @@ PrepareTimestepElem(const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 		int elem_status = m_extrapol.check_elem_lsf
 			(TElem::NUM_VERTICES, elem, si, g_level, Eval.use_hanging(), vCornerCoords, vSol->time(0));
 		if (elem_status < 0) continue; // this is an outer element, do not assemble it at all
+		if (m_bAssembleOnlyCut && elem_status > 0) continue; // exclude elements that are not cut
 
 	//	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -1976,6 +1985,7 @@ FinishTimestepElem(const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 		int elem_status = m_extrapol.check_elem_lsf
 			(TElem::NUM_VERTICES, elem, si, g_level, Eval.use_hanging(), vCornerCoords, vSol->time(0));
 		if (elem_status < 0) continue; // this is an outer element, do not assemble it at all
+		if (m_bAssembleOnlyCut && elem_status > 0) continue; // exclude elements that are not cut
 
 	//	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
