@@ -336,13 +336,16 @@ function util.SolveNonlinearTimeProblem(
 	-- attach the given callbacks to a TimeIntegratorSubject
 	-- if this class is transcribed into c++, just inherit from TimeIntegratorSubject and attach the callbacks
 	local callbackDispatcher = TimeIntegratorSubject()
-	cplusplus = true;
+	cplusplus = true -- redirect to 1:1 Luacpp port
+	use_limex = true -- try to use Limex instead
 
 	if cplusplus then
 		-- parsed below
 	elseif postProcess ~= nil then
 		util.ParseTimeIntegratorCallbacks(callbackDispatcher, postProcess)
 	end
+
+	local loop
 		
 	-- bound on t-stepper from machine precision (conservative)
 	relPrecisionBound = 1e-12
@@ -433,31 +436,40 @@ function util.SolveNonlinearTimeProblem(
 	local last_dt = currdt
 
 	if cplusplus then -- c++ version
-		print("NonLinear c++rework...")
-		RequiredPlugins({"Luacpp"})
 
-		loop = SolveNonlinearTimeProblemOuterLoop()
+		if use_limex then
+			loop = SimpleTimeIntegrator(timeDisc)
+			print("NonLinear limex c++rework... step [", minStepSize, " ", maxStepSize, "]")
+			RequiredPlugins({"Limex"})
+		else
+			print("NonLinear c++rework... step [", minStepSize, " ", maxStepSize, "]")
+			RequiredPlugins({"Luacpp"})
+
+			loop = SolveNonlinearTimeProblemOuterLoop()
+			loop:setTimeDisc(timeDisc) -- move "createTimeDisc(domainDisc, timeScheme, orderOrTheta)" to constructor?
+				-- also, call NewtonSolver:init from there?
+			loop:setStep(step)
+			loop:setEndTime(endTime)
+			loop:setOrderOrTheta(orderOrTheta) -- not used in SimpleTimeIntegrator...
+			loop:setTimeScheme(timeScheme) -- not used anywhere?
+			loop:setRelPrecisionBound(relPrecisionBound) -- not implemented in SimpleTimeIntegrator
+		end
+
+
 		if postProcess ~= nil then
 			util.ParseTimeIntegratorCallbacks(loop, postProcess)
 		end
-		loop:setFinishedTester(finishedTester)
-		loop:setNewtonSolver(newtonSolver)
-		loop:setTimeDisc(timeDisc) -- move "createTimeDisc(domainDisc, timeScheme, orderOrTheta)" to constructor?
-		                           -- also, call NewtonSolver:init from there?
-		loop:setStep(step)
-		loop:setOrderOrTheta(orderOrTheta)
-		loop:setReductionFactor(reductionFactor)
-		loop:setMinStepSize(minStepSize)
-		loop:setMaxStepSize(maxStepSize)
-		loop:setTimeScheme(timeScheme)
-		loop:setBFinishTimeStep(bFinishTimeStep); -- what if nil? does this work?
+		loop:set_finished_tester(finishedTester)
+		loop:set_solver(newtonSolver)
+		loop:set_reduction_factor(reductionFactor)
+		loop:set_dt_min(minStepSize)
+		loop:set_dt_max(maxStepSize)
+		loop:set_b_finish_time_step(bFinishTimeStep); -- what if nil? does this work?
 
-		loop:setEndTime(endTime)
-		loop:setRelPrecisionBound(relPrecisionBound)
 		if util.debug_writer ~= nil then
 			loop:setDebugWriterContext(util.debug_writer)
 		end
-		loop:attachU(u)
+		loop:init(u)
 
 		function MyLuaCallback(step, time, currdt, dummy)
 			--- eek, u is shared between callback and solver.
@@ -483,18 +495,29 @@ function util.SolveNonlinearTimeProblem(
 			exit();
 		end
 
-		loop:setOutput(ocb)
---		loop:setCallback(callbackDispatcher)
-		if minStepSize <= maxStepSize * reductionFactor or newtonLineSearchFallbacks ~= nil then
+		loop:set_output(ocb)
+
+		if use_limex then
+			print("trying Limex, min step size=", minStepSize)
+			loop:set_time_step(maxStepSize) -- really?
+		elseif minStepSize <= maxStepSize * reductionFactor or newtonLineSearchFallbacks ~= nil then
 			loop:storeU()
 		end
-		loop:do_it()
-		step = loop:get_step()
-		time = loop:get_time()
+
+		loop:apply(u, endTime, u, startTime)
+
+		if use_limex then
+			step = 0
+			time = endTime -- what? only if successful?
+		else
+			step = loop:get_step()
+			time = loop:get_time()
+		end
+
 		-- last_dt = loop:getLastDt()
 		-- loop:getU(u) no. shared.
 	else -- old version
-		print("legacy SolveNonlinearTimeProblem")
+	-- print("legacy SolveNonlinearTimeProblem")
 
 	callbackDispatcher:notify_start(u, step, time, maxStepSize)
 
@@ -565,8 +588,6 @@ function util.SolveNonlinearTimeProblem(
 						break
 					end
 					
-						
-					print("set_stage")
 					timeDisc:set_stage(stage)
 				
 					-- setup time Disc for old solutions and timestep size
@@ -597,6 +618,7 @@ function util.SolveNonlinearTimeProblem(
 					if util.debug_writer ~= nil then
 						util.debug_writer:enter_section ("TIMESTEP-"..step.."-PostProcess-SolverCall-"..solver_call)
 					end
+					print("notify_pp", step, " ", timeDisc:future_time(), " ", currdt)
 					pp_res = callbackDispatcher:notify_postprocess_step(u, step, timeDisc:future_time(), currdt)
 					if util.debug_writer ~= nil then
 						util.debug_writer:leave_section ()
@@ -634,6 +656,7 @@ function util.SolveNonlinearTimeProblem(
 						util.debug_writer:enter_section ("TIMESTEP-"..step.."-Finalize-SolverCall-"..solver_call)
 					end
 					last_dt = currdt
+					print("notify_fin 1 ", step, " ", time, " ", currdt)
 					pp_res = callbackDispatcher:notify_finalize_step(u, step, time, currdt)
 					if util.debug_writer ~= nil then
 						util.debug_writer:leave_section ()
@@ -694,7 +717,7 @@ function util.SolveNonlinearTimeProblem(
 		end			
 		
 		-- plot solution
-		print("plot type ", type(out));
+		-- print("plot type ", type(out));
 		if type(out) == "function" then
 			out(u, step, time)
 		elseif type(out) == "userdata" then
@@ -857,6 +880,9 @@ function util.SolveLinearTimeProblem(
 	   startTSNo,
 	   endTSNo)
 	
+	local cplusplus = true
+	local use_limex = false
+
 	local preProcess = nil
 	local retValAtOK = nil
 	local retValAtMinStepSize = nil
@@ -893,8 +919,13 @@ function util.SolveLinearTimeProblem(
 	-- set the level of verbosity (do not print much for only one time step)
 	local verbose = true
 	if startTSNo ~= nil and endTSNo ~= nil and endTSNo == startTSNo + 1 then
+		print("WARNING: legacy step hack.")
+		use_limex = false -- it won't work
 		verbose = false
 	end
+
+	-- DEBUG
+	-- verbose = true
 	
 	-- print newtonSolver setup	
 	if verbose then
@@ -927,7 +958,7 @@ function util.SolveLinearTimeProblem(
 	local solTimeSeries = SolutionTimeSeries()
 	solTimeSeries:push(u:clone(), time)
 
-	if true then -- c++ version
+	if cplusplus then -- c++ version
 		RequiredPlugins({"Luacpp"})
 		RequiredPlugins({"Limex"})
 		print("Linear c++rework... time=", time, " endTSNo=", endTSNo, " step=", step, " endTime=", endTime,
@@ -939,12 +970,13 @@ function util.SolveLinearTimeProblem(
 		local b = u:clone()
 
 		-- set order for bdf to 1 (initially)
-		if timeScheme:lower() == "bdf" then timeDisc:set_order(1) end
-
-		local assembled_dt = nil
+		if timeScheme:lower() == "bdf" then
+			timeDisc:set_order(1)
+		end
 
 		if true then --- OuterLoop thing (old)
 			loop = SolveLinearTimeProblemOuterLoop() -- ad hoc
+			loop:set_verbose(verbose)
 			-- this is not actually used anywhere. incomplete/untested.
 			-- what type is retVal?
 			if retValAtOK == true then
@@ -977,14 +1009,14 @@ function util.SolveLinearTimeProblem(
 			end
 			if filename ~= nil then
 				print("incomplete, setFilename ", filename)
-				loop:setFilename(filename)
+				loop:set_filename(filename)
 			end
 
 			loop:setStep(step)
 
 			loop:set_linear_solver(linSolver)
 			loop:setOrderOrTheta(orderOrTheta) -- already in timeDisc?
-		elseif true then
+		elseif use_limex then
 			print("incomplete: use limex? -- which one?")
 
 			loop = SimpleTimeIntegrator(timeDisc) -- does not work with linear solver?
@@ -1006,7 +1038,7 @@ function util.SolveLinearTimeProblem(
 		end
 
 		if(reassemble == true) then
-			loop:setReassemble(reassemble)
+			loop:set_reassemble(reassemble)
 		end
 
 		-- loop:setGl(gl)
@@ -1019,131 +1051,141 @@ function util.SolveLinearTimeProblem(
 		loop:set_reduction_factor(reductionFactor)
 
 		if endTime == nil then
-			print("incomplete, endTime")
-			endTime = 1;
+			print("incomplete, missing endTime")
+			endTime = 1e99;
 		end
 
 		loop:init(u)
 
+		print ("Linear apply")
 		loop:apply(u, endTime, u, startTime)
-		step = 1 -- BUG loop:getStep()
-		time = endTime -- BUG loop:getTime()
+
+		if use_limex then
+			print("incomplete: use limex? -- which one?")
+			step = 1 -- BUG don't use this variable
+			time = endTime -- BUG don't use this variable
+		else
+			step = loop:get_step()
+			time = endTime -- BUG loop:getTime()
+		end
 	else -- legacy script version
 
-	print("legacy SolveLinearTimeProblem")
-	-- matrix and vectors
-	local gl = u:grid_level()
-	local A = AssembledLinearOperator(timeDisc, gl)
-	local b = u:clone()
+		print("legacy SolveLinearTimeProblem")
+		-- matrix and vectors
+		local gl = u:grid_level()
+		local A = AssembledLinearOperator(timeDisc, gl)
+		local b = u:clone()
 
-	-- set order for bdf to 1 (initially)
-	if timeScheme:lower() == "bdf" then timeDisc:set_order(1) end
+		-- set order for bdf to 1 (initially)
+		if timeScheme:lower() == "bdf" then timeDisc:set_order(1) end
 
-	local assembled_dt = nil
+		local assembled_dt = -1
 
-	while ((endTime == nil) or (time < endTime)) and ((endTSNo == nil) or (step < endTSNo)) do
-		step = step + 1
-		if verbose then print("++++++ TIMESTEP "..step.." BEGIN (current time: " .. time .. ") ++++++") end
+		while ((endTime == nil) or (time < endTime)) and ((endTSNo == nil) or (step < endTSNo)) do
+			step = step + 1
+			if verbose then print("++++++ TIMESTEP "..step.." BEGIN (current time: " .. time .. ") ++++++") end
 	
-		-- initial time step size
-		-- assure, that not reaching beyond end of interval and care for round-off
-		local currdt = maxStepSize
-		if endTime ~= nil then
-			if time+currdt > endTime then currdt = endTime - time end
-			if ((endTime - (time+currdt))/currdt) < 1e-8 then currdt = endTime - time end
-		end
-		
-		-- try time step
-		local bSuccess = false;	
-		while bSuccess == false do
-			TerminateAbortedRun()
-			if verbose then print("++++++ Time step size: "..currdt) end
+			-- initial time step size
+			-- assure, that not reaching beyond end of interval and care for round-off
+			local currdt = maxStepSize
+			if endTime ~= nil then
+				if time+currdt > endTime then currdt = endTime - time end
+				if ((endTime - (time+currdt))/currdt) < 1e-8 then currdt = endTime - time end
+			end
 
-			if preProcess ~= nil then
-				local pp_res = preProcess(u, step, time, currdt)
+			-- try time step
+			local bSuccess = false;	
+			while bSuccess == false do
+				TerminateAbortedRun()
+				if verbose then print("++++++ Time step size: "..currdt) end
+
+				if preProcess ~= nil then
+					local pp_res = preProcess(u, step, time, currdt)
+					if type(pp_res) == "boolean" and pp_res == false then -- i.e. not nil, not something else, but "false"!
+						print("\n++++++ preProcess of the time step failed.")
+						exit()
+					end
+				end
+
+				-- reassemble matrix if necessary
+				if reassemble or not(currdt == assembled_dt) then
+					print("++++++ Assembling Matrix/Rhs for step size "..currdt);
+					timeDisc:prepare_step(solTimeSeries, currdt)
+					-- Remark: Do not use assemble_linear here: it cannot keep the old solution
+					-- at the Dirichlet boundaries. Thus, it does not work correctly at the
+					-- Dirichlet boundary where the boundary condition is specified not explicitely
+					-- by a UserData object or LUA function but should be kept as in the initial condition.
+					timeDisc:assemble_jacobian(A, u, gl)
+					timeDisc:assemble_rhs(b, gl)
+					linSolver:init(A, u)
+					assembled_dt = currdt
+				else
+					timeDisc:prepare_step(solTimeSeries, currdt)
+					timeDisc:assemble_rhs(b, gl)
+				end
+
+				-- apply linear solver
+				if linSolver:apply(u,b) == false then
+					if retValAtSolver ~= nil then return retValAtSolver end
+					currdt = currdt * reductionFactor;
+					write("\n++++++ Linear solver failed. "); 
+					write("Trying decreased stepsize " .. currdt .. ".\n");
+				else
+					bSuccess = true; 
+				end
+
+
+				-- check valid step size
+				if(bSuccess == false and currdt < minStepSize) then
+					write("++++++ Time Step size "..currdt.." below minimal step ")
+					write("size "..minStepSize..". Cannot solve problem. Aborting.");
+					if retValAtMinStepSize ~= nil then
+						return retValAtMinStepSize
+					else
+						test.require(false, "Time Solver failed.")
+					end
+				end
+			end -- bSuccess loop
+
+			-- update new time
+			time = solTimeSeries:time(0) + currdt
+
+			-- push oldest solutions with new values to front, oldest sol pointer is poped from end
+			if timeScheme:lower() == "bdf" and step < orderOrTheta then
+				print("++++++ BDF: Increasing order to "..step+1)
+				timeDisc:set_order(step+1)
+				solTimeSeries:push(u:clone(), time)
+			else
+				oldestSol = solTimeSeries:oldest()
+				VecScaleAssign(oldestSol, 1.0, u)
+				solTimeSeries:push_discard_oldest(oldestSol, time)
+			end
+
+			-- plot solution
+			if not (out==nil) then out:print(filename, u, step, time) end
+			-- SaveVectorForConnectionViewer(u, filename.."_t"..step..".vec")
+
+			-- Post processing.
+			if postProcess ~= nil then
+				local pp_res = postProcess(u, step, time)
 				if type(pp_res) == "boolean" and pp_res == false then -- i.e. not nil, not something else, but "false"!
-					print("\n++++++ preProcess of the time step failed.")
-					exit()
+					 write("\n++++++ postProcess of the time step failed. ")
 				end
 			end
-			
-			-- reassemble matrix if necessary
-			if reassemble or not(currdt == assembled_dt) then 
-				print("++++++ Assembling Matrix/Rhs for step size "..currdt); 
-				timeDisc:prepare_step(solTimeSeries, currdt)
-				-- Remark: Do not use assemble_linear here: it cannot keep the old solution
-				-- at the Dirichlet boundaries. Thus, it does not work correctly at the
-				-- Dirichlet boundary where the boundary condition is specified not explicitely
-				-- by a UserData object or LUA function but should be kept as in the initial condition.
-				timeDisc:assemble_jacobian(A, u, gl)
-				timeDisc:assemble_rhs(b, gl)
-				linSolver:init(A, u)
-				assembled_dt = currdt
-			else
-				timeDisc:prepare_step(solTimeSeries, currdt)
-				timeDisc:assemble_rhs(b, gl)
-			end
-			
-			-- apply linear solver
-			if linSolver:apply(u,b) == false then
-				if retValAtSolver ~= nil then return retValAtSolver end
-				currdt = currdt * reductionFactor;
-				write("\n++++++ Linear solver failed. "); 
-				write("Trying decreased stepsize " .. currdt .. ".\n");
-			else
-				bSuccess = true; 
-			end
-	
-			
-			-- check valid step size			
-			if(bSuccess == false and currdt < minStepSize) then
-				write("++++++ Time Step size "..currdt.." below minimal step ")
-				write("size "..minStepSize..". Cannot solve problem. Aborting.");
-				if retValAtMinStepSize ~= nil
-				then return retValAtMinStepSize
-				else test.require(false, "Time Solver failed.")
-				end
-			end
-		end
-		
-		-- update new time
-		time = solTimeSeries:time(0) + currdt
-		
-		-- push oldest solutions with new values to front, oldest sol pointer is poped from end	
-		if timeScheme:lower() == "bdf" and step < orderOrTheta then
-			print("++++++ BDF: Increasing order to "..step+1)
-			timeDisc:set_order(step+1)
-			solTimeSeries:push(u:clone(), time)
-		else 
-			oldestSol = solTimeSeries:oldest()
-			VecScaleAssign(oldestSol, 1.0, u)
-			solTimeSeries:push_discard_oldest(oldestSol, time)
-		end
+		end -- legacy main loop
+	end -- legacy version
 
-		-- plot solution
-		if not (out==nil) then out:print(filename, u, step, time) end
-		--SaveVectorForConnectionViewer(u, filename.."_t"..step..".vec")
-		
-		-- Post processing.
-		if postProcess ~= nil then
-      local pp_res = postProcess(u, step, time)
-      if type(pp_res) == "boolean" and pp_res == false then -- i.e. not nil, not something else, but "false"!
-          write("\n++++++ postProcess of the time step failed. ")
-      end
-	end -- main loop
-
-	end -- legacy script
-			
-	if verbose then print("++++++ TIMESTEP "..step.." END   (current time: " .. time .. ") ++++++") end
-		
-		if useCheckpointing then
-			----------------------------------------------------------
-			--- Write Checkpoint if necessary
-			util.WriteCheckpointIntervallic(u, time, {time=time, step=step, endTime=endTime})
-			----------------------------------------------------------
-		end
+	if verbose then
+		print("++++++ TIMESTEP "..step.." END   (current time: " .. time .. ") ++++++")
 	end
-	
+
+	if useCheckpointing then
+		----------------------------------------------------------
+		--- Write Checkpoint if necessary
+		util.WriteCheckpointIntervallic(u, time, {time=time, step=step, endTime=endTime})
+		----------------------------------------------------------
+	end
+
 	if not (out==nil) then out:write_time_pvd(filename, u) end
 	
 	if useCheckpointing and  timeDisc:num_stages() > 1 then
@@ -1151,6 +1193,7 @@ function util.SolveLinearTimeProblem(
 	end
 	
 	if retValAtOK ~= nil then return retValAtOK end
+
 end
 
 --! Time stepping with the adaptive step size. Returns number of time steps done and the last time.
