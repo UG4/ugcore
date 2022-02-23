@@ -776,6 +776,9 @@ function util.solver.CreateOrdering(orderingDesc, solverutil)
 	elseif name == "Lex" then
 		ordering = LexOrdering()
 		ordering:set_direction(desc.dir)
+	elseif name == "River" then
+		ordering = RiverOrdering()
+		ordering:select_sources(desc.sources)
 	end
 
 	util.solver.CondAbort(ordering == nil, "Invalid ordering specified: " .. name)
