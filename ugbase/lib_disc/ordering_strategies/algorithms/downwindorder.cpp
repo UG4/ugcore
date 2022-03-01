@@ -30,15 +30,14 @@
  * GNU Lesser General Public License for more details.
  */
 
-
 #include "lib_disc/ordering_strategies/algorithms/downwindorder.h"
-#include "common/common.h"
-#include <iostream>
-
-#include <utility> // for pair
-#include <map> // for graph structure
 #include "lib_disc/domain.h"
 #include "lib_disc/function_spaces/dof_position_util.h"
+#include "common/common.h"
+
+#include <iostream>
+#include <utility> // for pair
+#include <map> // for graph structure
 
 namespace ug{
 /**
@@ -60,6 +59,29 @@ void NumeriereKnoten(const std::vector<std::vector<size_t> > &vvConnections,
 		vAncestorsCount[*AdjacencIter]--;
 		if (vAncestorsCount[*AdjacencIter] == 0)
 			NumeriereKnoten(vvConnections, vVisited, vAncestorsCount, vNewIndex, N, *AdjacencIter);
+	}
+}
+
+// Numbers vertices based on coupling in stiffness matrix.
+void NumberVertices(const std::vector<std::vector<size_t> >& vvConnections,
+					std::vector<bool>&   vVisited,
+					std::vector<size_t>& vAncestorsCount,
+					std::vector<size_t>& vNewIndex,
+					size_t& N, size_t v){
+	vVisited[v] = true;
+	vNewIndex[v] = N;
+	N++;
+	const std::vector<size_t> connections = vvConnections[v];
+	std::vector<size_t>::const_iterator AdjacencIter;
+	for(AdjacencIter = connections.begin();
+					AdjacencIter != connections.end(); ++AdjacencIter){
+		vAncestorsCount[*AdjacencIter]--;
+		if(vAncestorsCount[*AdjacencIter] == 0)
+			NumberVertices(vvConnections,
+						   vVisited,
+						   vAncestorsCount,
+						   vNewIndex,
+						   N, *AdjacencIter);
 	}
 }
 
@@ -179,6 +201,127 @@ void OrderDownwindForDofDist(SmartPtr<DoFDistribution> dd, ConstSmartPtr<TDomain
 	dd->permute_indices(vNewIndex);
 }
 
+// Calculates downwind numbering for one DofDistribution only.
+template <typename TDomain>
+void OrderDownwindStiffForDofDist(SmartPtr<DoFDistribution> dd, const CPUAlgebra::matrix_type& m){
+	const size_t num_ind = dd->num_indices();
+	typedef typename std::vector<std::vector<size_t> > adjacency_type;
+
+	// get adjacency vector of vectors
+	adjacency_type vvConnections;
+	dd->get_connections(vvConnections);
+
+	// Check vector sizes match
+	if (vvConnections.size() != num_ind)
+		UG_THROW("OrderDownstreamStiffForDofDist: "
+				 "Adjacency list of dimension "
+				 << num_ind << " expected, got "<< vvConnections.size());
+
+	// Init helper structures
+	std::vector<size_t> vNewIndex(num_ind, 0);
+	std::vector<size_t> vAncestorsCount(num_ind, 0);
+	std::vector<bool> vVisited(num_ind, false);
+
+	// Remove connections that are not associated with a coupling in
+	// the stiffness matrix
+	adjacency_type::iterator VertexIter;
+	std::vector<size_t>::iterator AdjIter;
+	std::vector<size_t> vAdjacency;
+	size_t i; // index of first vertex
+	size_t cycles = 0;
+
+	for (VertexIter = vvConnections.begin(), i = 0;
+				VertexIter != vvConnections.end(); VertexIter++, i++){
+		// First pass for resolving length 1 cycles and
+		// finding the number of ancestors.
+		AdjIter = VertexIter->begin();
+		while (AdjIter != VertexIter->end()){
+			// Get index of second vertex
+			std::size_t j = *AdjIter;
+
+			// Get absolute values for the coupling
+			double c_ij = std::fabs(m(i, j));
+			double c_ji = std::fabs(m(j, i));
+
+			// Check for a length 1 cycle and resolve
+			if(i != j && c_ij > 1.0e-12 && c_ji > 1.0e-12){
+				if((c_ij == c_ji && i < j) || c_ij > c_ji){
+					// If the coupling is identical, the trait with the highest
+					// index takes preceedent. Otherwise, the strongest coupling
+					// takes preceedent.
+					cycles +=1;
+					vAncestorsCount[i] += 1;
+					AdjIter = VertexIter->erase(AdjIter);
+
+					UG_DLOG(LIB_DISC_ORDER, 2,
+									"Length 1 cycle detected during downwind numbering: "
+									<< i << " <--> " << j
+									<<std::endl);
+				}
+				else{
+					AdjIter++;
+					continue;
+				}
+			}
+			// No length 1 cycle
+			else{
+				// If there is a coupling in upwind direction i --> j
+				// increase the ancestor count for this trait.
+				if(i != j && c_ij > 1.0e-12)
+					vAncestorsCount[i] += 1;
+				// If there is a coupling in downwind direction j --> i,
+				// then erase this connection. The reason for this is
+				// that NumberVertices moves downwind.
+				if(c_ji < 1.0e-12){
+					AdjIter = VertexIter->erase(AdjIter);
+					continue;
+				}
+				AdjIter++;
+			}
+		}
+	}
+
+	// Calculate downwind order
+	// Find vertexes without any ancestors and start NumberIndices on them.
+	size_t v, N;
+	for (v = 0, N = 0; v < vvConnections.size(); v++){
+		if (vAncestorsCount[v] == 0 && !vVisited[v])
+			NumberVertices(vvConnections, vVisited, vAncestorsCount,
+						   vNewIndex, N, v);
+	}
+
+	// Sanity check
+	size_t fails = 0;
+	if (N < vvConnections.size()){
+		for (v = 0; v < vvConnections.size(); v++){
+			if (!vVisited[v]){
+				if(fails < 10)
+					UG_DLOG(LIB_DISC_ORDER, 2,
+								v << " was not visited and has " << vAncestorsCount[v]
+								<< " unresolved ancestors. "
+								<< "Assigning index " << N << " to the trait." 
+								<< std::endl);
+				vNewIndex[v] = N;
+				N++;
+				fails++;
+			}
+		}
+	}
+
+	if(cycles > 0 || fails > 0){
+		UG_LOG("Warning: Downwind numbering for domain distribution failed. ");
+		if(cycles > 0)
+			UG_LOG(cycles << " cycle(s) detected. ");
+		if(fails > 0)
+			UG_LOG(fails << " trait(s) could not be resolved and have been "
+			   	   << "assigned the next available index.");
+		UG_LOG(std::endl);
+	}
+
+	// Reorder traits
+	dd->permute_indices(vNewIndex);
+}
+
 // Calculates Downwind Numbering for all DofDistributions of one Domain.
 template <typename TDomain>
 void OrderDownwind(ApproximationSpace<TDomain>& approxSpace,
@@ -231,9 +374,6 @@ void OrderDownwind(ApproximationSpace<TDomain>& approxSpace,
 	OrderDownwind<TDomain>(approxSpace,  SmartPtr<ConstUserVector<dim> >(new ConstUserVector<dim>(vVel)), threshold );
 }
 
-
-#ifdef UG_FOR_LUA
-
 // Calculates Downwind Numbering for all DofDistributions of one Domain.
 template <typename TDomain>
 void OrderDownwind(ApproximationSpace<TDomain>& approxSpace, const char* strVelocity)
@@ -258,6 +398,20 @@ void OrderDownwind(ApproximationSpace<TDomain>& approxSpace, const char* strVelo
 	OrderDownwind<TDomain>(approxSpace, spVelocity, threshold);
 }
 
+// Calculates downwind numbering based on coupling in stiffness matrix m
+// for all DofDistributions of one Domain.
+template <typename TDomain>
+void OrderDownwindStiff(ApproximationSpace<TDomain>& approxSpace, const CPUAlgebra::matrix_type& m){
+	std::vector<SmartPtr<DoFDistribution> > vDD = approxSpace.dof_distributions();
+	UG_DLOG(LIB_DISC_ORDER, 2, "Starting downwind ordering based on stiffness matrix." << std::endl);
+
+	for(size_t i = 0; i < vDD.size(); ++i){
+		UG_LOG("Ordering domain distribution " << i << "." << std::endl);
+
+		OrderDownwindStiffForDofDist<TDomain>(vDD[i], m);
+	}
+}
+
 #ifdef UG_DIM_1
 template void OrderDownwind<Domain1d>(ApproximationSpace<Domain1d>& approxSpace, const char* strVelocity);
 template void OrderDownwind<Domain1d>(ApproximationSpace<Domain1d>& approxSpace, const char* strVelocity, number threshold);
@@ -269,8 +423,6 @@ template void OrderDownwind<Domain2d>(ApproximationSpace<Domain2d>& approxSpace,
 #ifdef UG_DIM_3
 template void OrderDownwind<Domain3d>(ApproximationSpace<Domain3d>& approxSpace, const char* strVelocity);
 template void OrderDownwind<Domain3d>(ApproximationSpace<Domain3d>& approxSpace, const char* strVelocity, number threshold);
-#endif
-
 #endif
 
 #ifdef UG_DIM_1
@@ -292,6 +444,16 @@ template void OrderDownwind<Domain3d>(ApproximationSpace<Domain3d>& approxSpace,
 template void OrderDownwind<Domain3d>(ApproximationSpace<Domain3d>& approxSpace, SmartPtr<UserData<MathVector<Domain3d::dim>, Domain3d::dim> > spVelocity, number threshold);
 template void OrderDownwind<Domain3d>(ApproximationSpace<Domain3d>& approxSpace, const std::vector<number>& vVel);
 template void OrderDownwind<Domain3d>(ApproximationSpace<Domain3d>& approxSpace, const std::vector<number>& vVel, number threshold);
+#endif
+
+#ifdef UG_DIM_1
+template void OrderDownwindStiff<Domain1d>(ApproximationSpace<Domain1d>& approxSpace, const CPUAlgebra::matrix_type& m);
+#endif
+#ifdef UG_DIM_2
+template void OrderDownwindStiff<Domain2d>(ApproximationSpace<Domain2d>& approxSpace, const CPUAlgebra::matrix_type& m);
+#endif
+#ifdef UG_DIM_3
+template void OrderDownwindStiff<Domain3d>(ApproximationSpace<Domain3d>& approxSpace, const CPUAlgebra::matrix_type& m);
 #endif
 
 } // end namespace ug

@@ -95,6 +95,32 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "LexOrdering", tag);
 	}
+
+/*
+//	Downwind ordering
+	{
+		typedef DownwindStiffOrdering<TAlgebra, TDomain, ordering_container_type> T;
+		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
+		string name = string("DownwindStiffOrdering").append(suffix);
+		reg.add_class_<T, TBase>(name, grp, "DownwindStiffOrdering")
+			.add_constructor()
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "DownwindStiffOrdering", tag);
+	}
+*/
+
+//	Weighted Cuthill-McKee ordering
+	{
+		typedef WeightedCuthillMcKeeOrdering<TAlgebra, TDomain, ordering_container_type> T;
+		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
+		string name = string("WeightedCuthillMcKeeOrdering").append(suffix);
+		reg.add_class_<T, TBase>(name, grp, "WeightedCuthillMcKeeOrdering")
+			.add_constructor()
+			.add_method("set_reverse", &T::set_reverse)
+			.add_method("select_dirichlet_subset", static_cast<void (T::*)(int)>(&T::select_dirichlet_subset))
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "WeightedCuthillMcKeeOrdering", tag);
+	}
 }
 
 /**
@@ -137,6 +163,9 @@ static void Domain(Registry& reg, string grp)
 		reg.add_function("OrderDownwind", static_cast<void (*)(approximation_space_type&, const char*)>(&ug::OrderDownwind<TDomain>), grp);
         reg.add_function("OrderDownwind", static_cast<void (*)(approximation_space_type&, const char*, number)>(&ug::OrderDownwind<TDomain>), grp);
 #endif
+
+	reg.add_function("OrderDownwindStiffTest", &OrderDownwindStiff<TDomain>, grp);
+
 	}
 
 }
