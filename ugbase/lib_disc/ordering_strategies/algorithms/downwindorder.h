@@ -173,8 +173,6 @@ void OrderDownwindStiff(ApproximationSpace<TDomain>& approxSpace, const CPUAlgeb
 
 /*
 
-
-
 template <typename TAlgebra, typename TDomain, typename O_t>
 class DownwindStiffOrdering : public IOrderingAlgorithm<TAlgebra, O_t>
 {
