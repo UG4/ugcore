@@ -779,6 +779,9 @@ function util.solver.CreateOrdering(orderingDesc, solverutil)
 	elseif name == "WeightedCuthillMcKee" then
 		ordering = WeightedCuthillMcKeeOrdering()
 		ordering:select_dirichlet_subset(desc.dirichletSubset)
+	elseif name == "River" then
+		ordering = RiverOrdering()
+		ordering:select_sources(desc.sources)
 	end
 
 	util.solver.CondAbort(ordering == nil, "Invalid ordering specified: " .. name)

@@ -96,6 +96,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "LexOrdering", tag);
 	}
 
+<<<<<<< HEAD
 /*
 //	Downwind ordering
 	{
@@ -120,6 +121,18 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("select_dirichlet_subset", static_cast<void (T::*)(int)>(&T::select_dirichlet_subset))
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "WeightedCuthillMcKeeOrdering", tag);
+	}
+
+//	River ordering (selected sources + topological ordering)
+	{
+		typedef RiverOrdering<TAlgebra, TDomain, ordering_container_type> T;
+		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
+		string name = string("RiverOrdering").append(suffix);
+		reg.add_class_<T, TBase>(name, grp, "RiverOrdering")
+			.add_constructor()
+			.add_method("select_sources", static_cast<void (T::*)(int)>(&T::select_sources))
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "RiverOrdering", tag);
 	}
 }
 
@@ -164,6 +177,7 @@ static void Domain(Registry& reg, string grp)
         reg.add_function("OrderDownwind", static_cast<void (*)(approximation_space_type&, const char*, number)>(&ug::OrderDownwind<TDomain>), grp);
 #endif
 
+	//OrderDownwindStiff(approx, matrix)
 	reg.add_function("OrderDownwindStiffTest", &OrderDownwindStiff<TDomain>, grp);
 
 	}
