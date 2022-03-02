@@ -82,6 +82,8 @@ class DiracSourceDisc
 	///	World dimension
 		static const int dim = base_type::dim;
 
+		static const int _C_ = 0;
+
 	///	Position type
 		typedef typename base_type::position_type position_type;
 
@@ -116,6 +118,14 @@ class DiracSourceDisc
 		void add_source(SmartPtr<UserData<number, dim> > srcData, MathVector<dim> &srcCoord);
 #ifdef UG_FOR_LUA
 		void add_source(const char* luaScaleFctName, MathVector<dim> &srcCoord);
+#endif
+
+		/// Setting a scaling factor for the flux
+		void add_transport_sink(SmartPtr<UserData<number, dim> > snkData);
+		void add_transport_sink(number snk);
+
+#ifdef UG_FOR_LUA
+		void add_transport_sink(const char* luaScaleFctName);
 #endif
 
 	public:	// inherited from IElemDisc
@@ -155,8 +165,7 @@ class DiracSourceDisc
 
 	///	assembles the local stiffness matrix using a finite volume scheme
 		template<typename TElem, typename TFVGeom>
-		void add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
-		{}
+		void add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	///	assembles the local mass matrix using a finite volume scheme
 		template<typename TElem, typename TFVGeom>
@@ -165,8 +174,7 @@ class DiracSourceDisc
 
 	///	assembles the stiffness part of the local defect
 		template<typename TElem, typename TFVGeom>
-		void add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
-		{}
+		void add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	///	assembles the mass part of the local defect
 		template<typename TElem, typename TFVGeom>
@@ -200,7 +208,8 @@ class DiracSourceDisc
 		{ UG_THROW("Not Implemented!"); }
 
 	private:
-		SmartPtr<UserData<number, dim> > m_srcData;  // data import for scaling of fluxes
+		SmartPtr<UserData<number, dim> > m_srcData;  // source/sink: adding 'source' to rhs
+		SmartPtr<UserData<number, dim> > m_snkTransportData;  // transport sink: subtracting u*sink
 		MathVector<dim> m_srcCoord;
 
 	private:
@@ -208,7 +217,12 @@ class DiracSourceDisc
 
 		template <typename TElem, typename TFVGeom>
 		void register_func();
+	public:
+		typedef SmartPtr<CplUserData<number, dim> > NumberExport;
 
+	protected:
+		///	Export for the concentration
+		SmartPtr<DataExport<number, dim> > m_exRate;
 
 	private:
 		bool m_bNonRegularGrid;
