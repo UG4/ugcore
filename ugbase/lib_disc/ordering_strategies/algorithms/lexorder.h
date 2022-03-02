@@ -35,6 +35,7 @@
 
 #include <vector>
 #include <utility> // for pair
+#include <cstring> //strlen
 
 #include "lib_disc/domain.h"
 #include "lib_disc/function_spaces/grid_function.h"
@@ -50,12 +51,12 @@ namespace ug{
 template<int dim>
 void ComputeLexicographicOrder(std::vector<size_t>& vNewIndex,
                                std::vector<std::pair<MathVector<dim>, size_t> >& vPos,
-							   size_t orderDim = 0);
+							   size_t orderDim = 0, bool increasing = true);
 
 /// orders the dof distribution using lexicographic order
 template <typename TDomain>
 void OrderLexForDofDist(SmartPtr<DoFDistribution> dd, ConstSmartPtr<TDomain> domain,
-	   size_t orderDim = 0);
+	   size_t orderDim = 0, bool increasing = true);
 
 /// orders the all DofDistributions of the ApproximationSpace using lexicographic order
 template <typename TDomain>
@@ -87,18 +88,65 @@ public:
 		return make_sp(new LexOrdering<TAlgebra, TDomain, O_t>(*this));
 	}
 
+	void parse(){
+		if(sizeof(m_dir) == 0){
+			UG_THROW(name() << "::parse: empty string\n");
+		}
+
+		std::cout << name() << "::parse()" << std::endl;
+		std::cout << "length: " << strlen(m_dir) << std::endl;
+	}
+
 	void compute(){
-		if(strcmp(m_dir, "x") == 0){
-			ComputeLexicographicOrder<TDomain::dim>(o, m_vPositions, 0);
+		size_t len = strlen(m_dir);
+
+		if(len == 0){
+			UG_THROW(name() << "::compute: Empty direction!");
 		}
-		else if(strcmp(m_dir, "y") == 0){
-			ComputeLexicographicOrder<TDomain::dim>(o, m_vPositions, 1);
-		}
-		else if(strcmp(m_dir, "z") == 0){
-			ComputeLexicographicOrder<TDomain::dim>(o, m_vPositions, 2);
-		}
-		else{
-			UG_THROW(name() << "::compute: Lexicographic ordering in direction x, y or z implemented only.");
+
+		size_t pos = 0;
+		bool increasing = true;
+		char sign;
+		while(pos < len){
+			if(increasing){
+				sign = '+';
+			}
+			else{
+				sign = '-';
+			}
+
+			switch(m_dir[pos]){
+				case '+':
+					//UG_LOG(name() << "::compute: LexOrdering in + direction.\n")
+					++pos;
+					increasing = true;
+					break;
+				case '-':
+					//UG_LOG(name() << "::compute: LexOrdering in - direction.\n")
+					++pos;
+					increasing = false;
+					break;
+				case 'x':
+					UG_LOG(name() << "::compute: LexOrdering in " << sign << "x direction.\n")
+					ComputeLexicographicOrder<TDomain::dim>(o, m_vPositions, 0, increasing);
+					++pos;
+					increasing = true;
+					break;
+				case 'y':
+					UG_LOG(name() << "::compute: LexOrdering in " << sign << "y direction.\n")
+					ComputeLexicographicOrder<TDomain::dim>(o, m_vPositions, 1, increasing);
+					++pos;
+					increasing = true;
+					break;
+				case 'z':
+					UG_LOG(name() << "::compute: LexOrdering in " << sign << "z direction.\n")
+					ComputeLexicographicOrder<TDomain::dim>(o, m_vPositions, 2, increasing);
+					++pos;
+					increasing = true;
+					break;
+				default:
+					UG_THROW(name() << "::compute: Invalid token in direction string, valid tokens: +, -, x, y, z");
+			}
 		}
 
 		mat = NULL;
