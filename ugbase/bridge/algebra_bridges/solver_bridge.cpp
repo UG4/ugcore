@@ -50,6 +50,7 @@
 #include "lib_algebra/operator/linear_solver/bicgstab.h"
 #include "lib_algebra/operator/linear_solver/gmres.h"
 #include "lib_algebra/operator/linear_solver/lu.h"
+#include "lib_algebra/operator/linear_solver/fast_marching.h"
 #include "lib_algebra/operator/linear_solver/agglomerating_solver.h"
 #include "lib_algebra/operator/linear_solver/debug_iterator.h"
 #include "lib_algebra/operator/linear_solver/external_solvers/external_solvers.h"
@@ -260,6 +261,17 @@ static void Algebra(Registry& reg, string grp)
 			.add_method("set_show_progress", &T::set_show_progress, "", "onoff", "switches the progress indicator on/off")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "LU", tag);
+	}
+
+// 	Fast Marching
+	{
+		typedef FastMarching<TAlgebra> T;
+		typedef ILinearOperatorInverse<vector_type> TBase;
+		string name = string("FastMarching").append(suffix);
+		reg.add_class_<T,TBase>(name, grp, "FastMarching")
+			.add_constructor()
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "FastMarching", tag);
 	}
 
 // 	AgglomeratingSolver

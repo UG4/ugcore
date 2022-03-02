@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015:  G-CSC, Goethe University Frankfurt
+ * Copyright (c) 2010-2022:  G-CSC, Goethe University Frankfurt
  * Author: Martin Rupp
  * 
  * This file is part of UG4.
@@ -30,8 +30,8 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef __H__LIB_ALGEBRA__LAPACK_LU_OPERATOR__
-#define __H__LIB_ALGEBRA__LAPACK_LU_OPERATOR__
+#ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_SOLVER__LU__
+#define __H__UG__LIB_DISC__OPERATOR__LINEAR_SOLVER__LU__
 #include <iostream>
 #include <sstream>
 
