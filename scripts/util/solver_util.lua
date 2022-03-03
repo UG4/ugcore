@@ -673,7 +673,7 @@ function util.solver.CreateLinearSolver(solverDesc, solverutil)
 
 	elseif name == "lu"	then
 		if HasClassGroup("SuperLU") then
-			linSolver = AgglomeratingSolver(SuperLU());
+			linSolver = AgglomeratingSolver(SuperLU())
 		else
 			local LU_solver = LU()
 			local showProgress
@@ -700,7 +700,12 @@ function util.solver.CreateLinearSolver(solverDesc, solverutil)
 		linSolver = AgglomeratingSolver(LU_solver)
 		
 	elseif name == "superlu" then
-		linSolver = AgglomeratingSolver(SuperLU());
+		linSolver = AgglomeratingSolver(SuperLU())
+
+	elseif name == "fastmarching" then
+		linSolver = FastMarching()
+		createPrecond = false
+		createConvCheck = false
 	end
 
 	util.solver.CondAbort(linSolver == nil, "Invalid linear solver specified: " .. name)
