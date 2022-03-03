@@ -131,6 +131,7 @@ static void Algebra(Registry& reg, string grp)
 		string name = string("TopologicalOrdering").append(suffix);
 		reg.add_class_<T, TBase>(name, grp, "TopologicalOrdering")
 			.add_constructor()
+			.add_method("get_lua_ordering", &T::get_lua_ordering)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "TopologicalOrdering", tag);
 	}

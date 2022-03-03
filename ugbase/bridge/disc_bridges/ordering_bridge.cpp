@@ -47,6 +47,7 @@
 
 // ordering algorithms
 #include "lib_disc/ordering_strategies/algorithms/ordering_algorithms.cpp"
+#include "lib_algebra/ordering_strategies/algorithms/lua_ordering.h"
 
 using namespace std;
 
@@ -92,6 +93,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_<T, TBase>(name, grp, "LexOrdering")
 			.add_constructor()
 			.add_method("set_direction", &T::set_direction)
+			.add_method("get_lua_ordering", &T::get_lua_ordering)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "LexOrdering", tag);
 	}
@@ -213,7 +215,17 @@ static void Algebra(Registry& reg, string grp)
  * @param parentGroup		group for sorting of functionality
  */
 static void Common(Registry& reg, string grp)
-{}
+{
+	typedef std::vector<size_t> ordering_container_type;
+	{
+		typedef LuaOrdering TBase;
+		string name = string("LuaOrdering");
+		reg.add_class_<TBase>(name, grp)
+			.add_constructor()
+			.set_construct_as_smart_pointer(true);
+		//reg.add_class_to_group(name, "LuaOrdering", tag);
+	}
+}
 
 }; // end Functionality
 
@@ -229,7 +241,7 @@ void RegisterBridge_Ordering(Registry& reg, string grp)
 	typedef Ordering::Functionality Functionality;
 
 	try{
-//		RegisterCommon<Functionality>(reg,grp);
+		RegisterCommon<Functionality>(reg,grp);
 //		RegisterDimensionDependent<Functionality>(reg,grp);
 		RegisterDomainDependent<Functionality>(reg,grp);
 //		RegisterAlgebraDependent<Functionality>(reg,grp);

@@ -51,6 +51,8 @@
 #include "lib_disc/spatial_disc/disc_util/fv_util.h"
 #include "lib_grid/algorithms/debug_util.h"
 
+#include "lib_algebra/algebra_common/permutation_util.h"
+
 #ifdef UG_PARALLEL
 #include "pcl/pcl_base.h"
 #include "lib_algebra/parallelization/parallel_storage_type.h"
@@ -2145,6 +2147,85 @@ write_nodal_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& g
 //	write opening tag to indicate point data
 	File << VTKFileWriter::normal;
 	File << "      <PointData>\n";
+
+	if(m_bWriteOrdering){
+		File << VTKFileWriter::normal;
+		File << "<DataArray type=\"Float32\" Name=\"ordering\" NumberOfComponents=\"3\" format=\"ascii\">\n";
+	//	get iterators
+		typedef typename IteratorProvider<TFunction>::template traits<ug::Vertex>::const_iterator const_iterator;
+		const_iterator iterBegin = IteratorProvider<TFunction>::template begin<ug::Vertex>(u, si);
+		const_iterator iterEnd = IteratorProvider<TFunction>::template end<ug::Vertex>(u, si);
+
+		size_t ordering = 0;
+
+		//m_spLuaOrdering
+
+		File << VTKFileWriter::normal;
+	//	loop all elements, write type for each element to stream
+		for( ; iterBegin != iterEnd; ++iterBegin)
+		{
+			File << 0 << ' ';
+			File << 0 << ' ';
+			File << ordering << ' ';
+			++ordering;
+		}
+
+		File << "\n</DataArray>\n";
+	}
+
+	std::vector<size_t> inverse_ordering;
+
+	if(m_bWriteOrdering){
+		GetInversePermutation(m_spLuaOrdering->ordering, inverse_ordering);
+	}
+
+	if(m_bWriteOrdering){
+		File << VTKFileWriter::normal;
+		File << "<DataArray type=\"Float32\" Name=\"ordering2\" NumberOfComponents=\"3\" format=\"ascii\">\n";
+	//	get iterators
+		typedef typename IteratorProvider<TFunction>::template traits<ug::Vertex>::const_iterator const_iterator;
+		const_iterator iterBegin = IteratorProvider<TFunction>::template begin<ug::Vertex>(u, si);
+		const_iterator iterEnd = IteratorProvider<TFunction>::template end<ug::Vertex>(u, si);
+
+		size_t ordering = 0;
+
+
+		File << VTKFileWriter::normal;
+	//	loop all elements, write type for each element to stream
+		for( ; iterBegin != iterEnd; ++iterBegin)
+		{
+			File << 0 << ' ';
+			File << 0 << ' ';
+			File << m_spLuaOrdering->ordering[ordering] << ' ';
+			++ordering;
+		}
+
+		File << "\n</DataArray>\n";
+	}
+
+	if(m_bWriteOrdering){
+		File << VTKFileWriter::normal;
+		File << "<DataArray type=\"Float32\" Name=\"ordering3\" NumberOfComponents=\"3\" format=\"ascii\">\n";
+	//	get iterators
+		typedef typename IteratorProvider<TFunction>::template traits<ug::Vertex>::const_iterator const_iterator;
+		const_iterator iterBegin = IteratorProvider<TFunction>::template begin<ug::Vertex>(u, si);
+		const_iterator iterEnd = IteratorProvider<TFunction>::template end<ug::Vertex>(u, si);
+
+		size_t ordering = 0;
+
+
+		File << VTKFileWriter::normal;
+	//	loop all elements, write type for each element to stream
+		for( ; iterBegin != iterEnd; ++iterBegin)
+		{
+			File << 0 << ' ';
+			File << 0 << ' ';
+			File << inverse_ordering[ordering] << ' ';
+			++ordering;
+		}
+
+		File << "\n</DataArray>\n";
+	}
 
 //	loop all selected symbolic names
 	for(std::map<std::string, std::vector<std::string> >::const_iterator iter =

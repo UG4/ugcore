@@ -616,6 +616,12 @@ set_write_proc_ranks(bool b) {
 
 template <int TDim>
 void VTKOutput<TDim>::
+set_write_ordering(bool b) {
+	m_bWriteOrdering = b;
+}
+
+template <int TDim>
+void VTKOutput<TDim>::
 set_user_defined_comment(const char* comment){
 	m_sComment = comment;
 }

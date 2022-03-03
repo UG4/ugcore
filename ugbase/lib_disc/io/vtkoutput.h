@@ -33,8 +33,6 @@
 #ifndef __H__UG__LIB_DISC__IO__VTKOUTPUT__
 #define __H__UG__LIB_DISC__IO__VTKOUTPUT__
 
-//TODO: deduplicate code in VTUOutput - reduces vulnerability to errors and linker time 
-
 // extern libraries
 #include <string>
 #include <vector>
@@ -46,6 +44,8 @@
 #include "lib_disc/common/function_group.h"
 #include "lib_disc/domain.h"
 #include "lib_disc/spatial_disc/user_data/user_data.h"
+
+#include "lib_algebra/ordering_strategies/algorithms/lua_ordering.h"
 
 namespace ug{
 // todo this should avoid refactoring all the signatures of VTKOutput, remove it later
@@ -1001,6 +1001,18 @@ protected:
 
 		void set_write_proc_ranks(bool b);
 
+		void set_write_ordering(bool b);
+
+		void set_lua_ordering(SmartPtr<LuaOrdering> lua_ordering){
+			m_spLuaOrdering = lua_ordering;
+
+			UG_LOG("ordering:\n");
+			for(unsigned i = 0; i < lua_ordering->ordering.size(); ++i){
+				UG_LOG(lua_ordering->ordering[i] << " ");
+			}
+			UG_LOG("\n");
+		}
+
 	protected:
 	///	returns true if name for vtk-component is already used
 		bool vtk_name_used(const char* name) const;
@@ -1057,6 +1069,9 @@ protected:
 
 		bool m_bWriteSubsetIndices;
 		bool m_bWriteProcRanks;
+		bool m_bWriteOrdering;
+
+		SmartPtr<LuaOrdering> m_spLuaOrdering;
 };
 
 } // namespace ug

@@ -46,6 +46,8 @@
 
 #include "common/error.h"
 
+#include "lib_algebra/ordering_strategies/algorithms/lua_ordering.h"
+
 namespace ug{
 
 template<int dim>
@@ -160,6 +162,12 @@ public:
 
 	O_t& ordering(){
 		return o;
+	}
+
+	SmartPtr<LuaOrdering> get_lua_ordering(){
+		SmartPtr<LuaOrdering> lua_ord = SmartPtr<LuaOrdering>(new LuaOrdering());
+		lua_ord->ordering = o;
+		return lua_ord;
 	}
 
 	void init(M_t* A, const V_t& V){
