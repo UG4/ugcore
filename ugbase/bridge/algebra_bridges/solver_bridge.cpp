@@ -39,6 +39,7 @@
 #include "bridge/bridge.h"
 #include "bridge/util.h"
 #include "bridge/util_algebra_dependent.h"
+#include "bridge/util_domain_algebra_dependent.h" //todo: move to lib_disc
 
 // solver
 #include "lib_algebra/lib_algebra.h"
@@ -50,7 +51,7 @@
 #include "lib_algebra/operator/linear_solver/bicgstab.h"
 #include "lib_algebra/operator/linear_solver/gmres.h"
 #include "lib_algebra/operator/linear_solver/lu.h"
-#include "lib_algebra/operator/linear_solver/fast_marching.h"
+#include "lib_algebra/operator/linear_solver/distance_to_boundary_bruteforce.h"
 #include "lib_algebra/operator/linear_solver/agglomerating_solver.h"
 #include "lib_algebra/operator/linear_solver/debug_iterator.h"
 #include "lib_algebra/operator/linear_solver/external_solvers/external_solvers.h"
@@ -263,17 +264,6 @@ static void Algebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "LU", tag);
 	}
 
-// 	Fast Marching
-	{
-		typedef FastMarching<TAlgebra> T;
-		typedef ILinearOperatorInverse<vector_type> TBase;
-		string name = string("FastMarching").append(suffix);
-		reg.add_class_<T,TBase>(name, grp, "FastMarching")
-			.add_constructor()
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "FastMarching", tag);
-	}
-
 // 	AgglomeratingSolver
 	{
 		typedef AgglomeratingSolver<TAlgebra> T;
@@ -344,6 +334,44 @@ static void Algebra(Registry& reg, string grp)
 
 }
 
+
+/* TODO: move to lib_disc */
+
+/**
+ * Function called for the registration of Domain and Algebra dependent parts.
+ * All Functions and Classes depending on both Domain and Algebra
+ * are to be placed here when registering. The method is called for all
+ * available Domain and Algebra types, based on the current build options.
+ *
+ * @param reg				registry
+ * @param parentGroup		group for sorting of functionality
+ */
+template <typename TDomain, typename TAlgebra>
+static void DomainAlgebra(Registry& reg, string grp)
+{
+	string suffix = GetDomainAlgebraSuffix<TDomain,TAlgebra>();
+	string tag = GetDomainAlgebraTag<TDomain,TAlgebra>();
+
+//	typedefs for this algebra
+	typedef typename TAlgebra::vector_type vector_type;
+
+// 	DistanceToBoundaryBruteforce
+	{
+		typedef DistanceToBoundaryBruteforce<TAlgebra, TDomain> T;
+		typedef ILinearOperatorInverse<vector_type> TBase;
+		string name = string("DistanceToBoundaryBruteforce").append(suffix);
+		reg.add_class_<T,TBase>(name, grp, "DistanceToBoundaryBruteforce")
+			.add_constructor()
+			.add_method("set_approximation_space", &T::set_approximation_space, "", "Approximation space")
+			.add_method("select_inner", static_cast<void (T::*)(int)>(&T::select_inner))
+			.add_method("select_boundary", static_cast<void (T::*)(int)>(&T::select_boundary))
+			.add_method("set_level", static_cast<void (T::*)(int)>(&T::set_level))
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "DistanceToBoundaryBruteforce", tag);
+	}
+}
+
+
 }; // end Functionality
 
 // end group solver_bridge
@@ -359,6 +387,7 @@ void RegisterBridge_Solver(Registry& reg, string grp)
 
 	try{
 		RegisterAlgebraDependent<Functionality>(reg,grp);
+		RegisterDomainAlgebraDependent<Functionality>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
