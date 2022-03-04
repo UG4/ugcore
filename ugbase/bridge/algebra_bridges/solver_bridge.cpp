@@ -362,10 +362,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 		string name = string("DistanceToBoundaryBruteforce").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "DistanceToBoundaryBruteforce")
 			.add_constructor()
-			.add_method("set_approximation_space", &T::set_approximation_space, "", "Approximation space")
 			.add_method("select_inner", static_cast<void (T::*)(int)>(&T::select_inner))
 			.add_method("select_boundary", static_cast<void (T::*)(int)>(&T::select_boundary))
-			.add_method("set_level", static_cast<void (T::*)(int)>(&T::set_level))
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "DistanceToBoundaryBruteforce", tag);
 	}

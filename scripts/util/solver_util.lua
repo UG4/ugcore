@@ -704,7 +704,6 @@ function util.solver.CreateLinearSolver(solverDesc, solverutil)
 
 	elseif name == "DistanceToBoundaryBruteforce" then
 		linSolver = DistanceToBoundaryBruteforce()
-		linSolver:set_level(desc.level)
 		linSolver:select_inner(desc.subset_inner)
 		linSolver:select_boundary(desc.subset_boundary)
 		createPrecond = false

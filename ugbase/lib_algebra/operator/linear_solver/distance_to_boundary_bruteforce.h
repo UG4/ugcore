@@ -57,49 +57,6 @@
 
 namespace ug{
 
-
-/*
-
-	///	initializes this inverse operator for a matrix-based operator
-
-	 * This method passes the operator A that is inverted by this operator. In
-	 * addition some preparation step can be made.
-	 *
-	 * \param[in]	A		linear matrix-basewd operator to invert
-	 * \returns		bool	success flag
-
-
-		virtual bool init(SmartPtr<MatrixOperator<M,Y,X> > A) = 0;
-
-
-
-	/// applies the inverse operator, i.e. returns u = A^{-1} * f
-	 * This method applies the inverse operator.
-	 *
-	 * \param[out]	u		solution
-	 * \param[in]	f		right-hand side
-	 * \returns		bool	success flag
-
-
-		virtual bool apply(Y& u, const X& f) = 0;
-
-
-
-	/// applies the inverse operator and updates the defect
-	 * This method applies the inverse operator and updates the defect, i.e.
-	 * returns u = A^{-1} * f and in f the last defect d:= f - A*u is returned.
-	 *
-	 * \param[out]	u		solution
-	 * \param[in]	f		right-hand side on entry, defect on exit
-	 * \returns		bool	success flag
-
-
-		virtual bool apply_return_defect(Y& u, X& f) = 0;
-
-
-
-*/
-
 template <typename TAlgebra, typename TDomain>
 class DistanceToBoundaryBruteforce
 	: public ILinearOperatorInverse<typename TAlgebra::vector_type, typename TAlgebra::vector_type>
@@ -127,7 +84,7 @@ class DistanceToBoundaryBruteforce
 
 	public:
 	///	constructor
-		DistanceToBoundaryBruteforce() : m_ssBoundaryIdx(-1), m_ssInnerIdx(-1), m_lvl(-1){};
+		DistanceToBoundaryBruteforce() : m_ssBoundaryIdx(-1), m_ssInnerIdx(-1){};
 
 	///	returns if parallel solving is supported
 		virtual bool supports_parallel() const {return false;}
@@ -142,10 +99,6 @@ class DistanceToBoundaryBruteforce
 
 			if(m_ssInnerIdx < 0)
 				UG_THROW(name() << "::init_distance_to_boundary_bruteforce: No subset for inner selected! Call 'select_boundary'.");
-
-			if(m_lvl < 0)
-				UG_THROW(name() << "::init_distance_to_boundary_bruteforce: No level set! Call 'set_level'.");
-
 
 			std::string ssBoundaryName;
 			std::string ssInnerName;
@@ -321,20 +274,12 @@ class DistanceToBoundaryBruteforce
 			return true;
 		}
 
-		void set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace){
-			m_spApproxSpace = approxSpace;
-		}
-
 		void select_boundary(int ssBoundaryIdx){
 			m_ssBoundaryIdx = ssBoundaryIdx;
 		}
 
 		void select_inner(int ssInnerIdx){
 			m_ssInnerIdx = ssInnerIdx;
-		}
-
-		void set_level(int lvl){
-			m_lvl = lvl;
 		}
 
 		virtual std::string config_string() const
@@ -350,10 +295,9 @@ class DistanceToBoundaryBruteforce
 	protected:
 		const vector_type* m_pVector;
 		const matrix_type* m_pMatrix;
-		ConstSmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
+
 		int m_ssBoundaryIdx;
 		int m_ssInnerIdx;
-		int m_lvl;
 
 		std::vector<size_t> m_vIdxInner;
 		std::vector<size_t> m_vIdxBnd;
