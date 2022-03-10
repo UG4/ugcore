@@ -117,14 +117,6 @@ public:
 		#endif
 	}
 
-	void check(){
-		UG_COND_THROW(!is_permutation(o), name() << "::check: Not a permutation!");
-	}
-
-	O_t& ordering(){
-		return o;
-	}
-
 	void init(M_t* A, const V_t&){
 		init(A);
 	}
@@ -161,8 +153,18 @@ public:
 		induced_subgraph<G_t, M_t>(g, A, inv_map);
 	}
 
-	void set_reverse(bool b){
-		m_bReverse = b;
+	void check(){
+		UG_COND_THROW(!is_permutation(o), name() << "::check: Not a permutation!");
+	}
+
+	O_t& ordering(){
+		return o;
+	}
+
+	SmartPtr<LuaOrdering> get_lua_ordering(){
+		SmartPtr<LuaOrdering> lua_ord = SmartPtr<LuaOrdering>(new LuaOrdering());
+		lua_ord->ordering = o;
+		return lua_ord;
 	}
 
 	virtual const char* name() const {
@@ -172,6 +174,10 @@ public:
 		else{
 			return "BoostCuthillMcKeeOrdering";
 		}
+	}
+
+	void set_reverse(bool b){
+		m_bReverse = b;
 	}
 
 private:

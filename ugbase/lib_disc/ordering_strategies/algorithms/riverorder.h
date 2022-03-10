@@ -121,16 +121,6 @@ public:
 		#endif
 	}
 
-	void check(){
-		if(!is_permutation(o)){
-			UG_THROW(name() << "::check: Not a permutation!");
-		}
-	}
-
-	O_t& ordering(){
-		return o;
-	}
-
 	void init(M_t* A, const V_t& V){
 		if(m_ssIdx < 0)
 			UG_THROW(name() << "::init: No subset for sources selected! Call 'select_sources(int)'.");
@@ -214,6 +204,22 @@ public:
 
 	void init(M_t*, const O_t&){
 		UG_THROW(name() << "::init: Algorithm does not support induced subgraph version!");
+	}
+
+	void check(){
+		if(!is_permutation(o)){
+			UG_THROW(name() << "::check: Not a permutation!");
+		}
+	}
+
+	O_t& ordering(){
+		return o;
+	}
+
+	SmartPtr<LuaOrdering> get_lua_ordering(){
+		SmartPtr<LuaOrdering> lua_ord = SmartPtr<LuaOrdering>(new LuaOrdering());
+		lua_ord->ordering = o;
+		return lua_ord;
 	}
 
 	virtual const char* name() const {return "RiverOrdering";}

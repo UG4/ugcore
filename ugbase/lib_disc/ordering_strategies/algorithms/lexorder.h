@@ -46,8 +46,6 @@
 
 #include "common/error.h"
 
-#include "lib_algebra/ordering_strategies/algorithms/lua_ordering.h"
-
 namespace ug{
 
 template<int dim>
@@ -154,22 +152,6 @@ public:
 		mat = NULL;
 	}
 
-	void check(){
-		if(!is_permutation(o)){
-			UG_THROW(name() << "::check: Not a permutation!");
-		}
-	}
-
-	O_t& ordering(){
-		return o;
-	}
-
-	SmartPtr<LuaOrdering> get_lua_ordering(){
-		SmartPtr<LuaOrdering> lua_ord = SmartPtr<LuaOrdering>(new LuaOrdering());
-		lua_ord->ordering = o;
-		return lua_ord;
-	}
-
 	void init(M_t* A, const V_t& V){
 		if(strcmp(m_dir, "") == 0){
 			UG_THROW(name() << "::init: no direction chosen!");
@@ -213,6 +195,22 @@ public:
 
 	void init(M_t*, const O_t&){
 		UG_THROW(name() << "::init: induced subgraph version not implemented yet!");
+	}
+
+	void check(){
+		if(!is_permutation(o)){
+			UG_THROW(name() << "::check: Not a permutation!");
+		}
+	}
+
+	O_t& ordering(){
+		return o;
+	}
+
+	SmartPtr<LuaOrdering> get_lua_ordering(){
+		SmartPtr<LuaOrdering> lua_ord = SmartPtr<LuaOrdering>(new LuaOrdering());
+		lua_ord->ordering = o;
+		return lua_ord;
 	}
 
 	virtual const char* name() const {return "LexOrdering";}

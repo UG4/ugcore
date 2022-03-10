@@ -124,14 +124,6 @@ public:
 		#endif
 	}
 
-	void check(){
-		UG_COND_THROW(!is_permutation(o), name() << "::check: Not a permutation!");
-	}
-
-	O_t& ordering(){
-		return o;
-	}
-
 	void init(M_t* A, const V_t&){
 		init(A);
 	}
@@ -161,6 +153,20 @@ public:
 
 	void init(M_t*, const O_t&){
 		UG_THROW(name() << "::init: induced subgraph version not implemented yet!");
+	}
+
+	void check(){
+		UG_COND_THROW(!is_permutation(o), name() << "::check: Not a permutation!");
+	}
+
+	O_t& ordering(){
+		return o;
+	}
+
+	SmartPtr<LuaOrdering> get_lua_ordering(){
+		SmartPtr<LuaOrdering> lua_ord = SmartPtr<LuaOrdering>(new LuaOrdering());
+		lua_ord->ordering = o;
+		return lua_ord;
 	}
 
 	virtual const char* name() const {return "BoostMinimumDegreeOrdering";}

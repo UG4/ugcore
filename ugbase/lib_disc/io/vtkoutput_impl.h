@@ -2153,7 +2153,7 @@ write_nodal_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& g
 		File << "<DataArray type=\"Float32\" Name=\"ordering: grid points\" NumberOfComponents=\"3\" format=\"ascii\">\n";
 		File << VTKFileWriter::normal;
 
-		for(size_t k = 0; k < numVert; ++k)
+		for(int k = 0; k < numVert; ++k)
 		{
 			File << 0 << ' ';
 			File << 0 << ' ';
@@ -2186,7 +2186,7 @@ write_nodal_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& g
 		File << "<DataArray type=\"Float32\" Name=\"ordering: grid function\" NumberOfComponents=\"3\" format=\"ascii\">\n";
 		File << VTKFileWriter::normal;
 
-		for(size_t k = 0; k < numVert; ++k)
+		for(int k = 0; k < numVert; ++k)
 		{
 			File << 0 << ' ';
 			File << 0 << ' ';
@@ -2201,7 +2201,7 @@ write_nodal_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& g
 		File << "<DataArray type=\"Float32\" Name=\"ordering: sorted grid function\" NumberOfComponents=\"3\" format=\"ascii\">\n";
 		File << VTKFileWriter::normal;
 
-		for(size_t k = 0; k < numVert; ++k)
+		for(int k = 0; k < numVert; ++k)
 		{
 			File << 0 << ' ';
 			File << 0 << ' ';

@@ -35,6 +35,8 @@
 
 #include "common/util/smart_pointer.h"
 
+#include "lib_algebra/ordering_strategies/algorithms/lua_ordering.h"
+
 namespace ug{
 
 /*
@@ -74,6 +76,8 @@ public:
 	virtual SmartPtr<IOrderingAlgorithm<TAlgebra, O_t> > clone() = 0;
 
 	virtual const char* name() const = 0;
+
+	virtual SmartPtr<LuaOrdering> get_lua_ordering() = 0;
 };
 
 } //namespace
