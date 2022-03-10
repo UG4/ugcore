@@ -127,6 +127,21 @@ void ExtractPositions(ConstSmartPtr<TDomain> domain,
                       std::vector<std::pair<MathVector<TDomain::dim>, size_t> >& vPosPair);
 
 /**
+ * extracts the positions of the degrees of freedom and stores them together with
+ * the index in a std::pair into the passed vector at the position of the
+ * algebraic index corresponding to the degree of freedom.
+ *
+ * @param u				the underlying grid function
+ * @param vPos			the array of positions (to be filled)
+ */
+template<typename TFunction>
+void ExtractPositions(const TFunction &u,
+                      std::vector<std::pair<MathVector<TFunction::domain_type::dim>, size_t> >& vPosPair)
+{
+	ExtractPositions(u.domain(),u.dof_distribution(), vPosPair);
+}
+
+/**
  * extracts the positions of the degrees of freedom of a component
  * and stores them together with the index in a std::pair into the passed
  * vector at the position of the algebraic index corresponding to the degree of

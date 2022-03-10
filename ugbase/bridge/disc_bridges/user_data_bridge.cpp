@@ -485,10 +485,9 @@ static void Domain(Registry& reg, string grp)
 			.template add_constructor<void (*)(SmartPtr<Grid>, const char *) >("AttachmentName")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GlobAttachmentElementUserData", tag);
-
 	}
-	
-	
+
+
 //	User data of a subset indicator (1 in the subset, 0 everywhere else)
 	{
 		string name = string("SubsetIndicatorUserData").append(suffix);

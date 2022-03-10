@@ -585,7 +585,7 @@ write_grid_solution_piece(VTKFileWriter& File,
 	}
 
 //	write nodal data
-	write_nodal_values_piece(File, u, time, grid, si, dim, numVert);
+	write_nodal_values_piece(File, u, time, grid, si, dim, numVert, aaVrtIndex);
 
 //	write cell data
 	write_cell_values_piece(File, u, time, grid, si, dim, numElem);
@@ -637,7 +637,7 @@ write_grid_solution_piece(VTKFileWriter& File,
 	}
 
 //	write nodal data
-	write_nodal_values_piece(File, u, time, grid, ssGrp, dim, numVert);
+	write_nodal_values_piece(File, u, time, grid, ssGrp, dim, numVert, aaVrtIndex);
 
 //	write cell data
 	write_cell_values_piece(File, u, time, grid, ssGrp, dim, numElem);
@@ -1957,8 +1957,8 @@ write_nodal_values_elementwise(VTKFileWriter& File, TFunction& u,
                                Grid& grid, int si)
 {
 //	get reference element
-	typedef typename reference_element_traits<TElem>::reference_element_type
-																ref_elem_type;
+	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+
 	if(m_bBinary)
 		File << VTKFileWriter::base64_binary;
 	else
@@ -2118,7 +2118,7 @@ template <int TDim>
 template <typename TFunction>
 void VTKOutput<TDim>::
 write_nodal_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& grid,
-                         int si, int dim, int numVert)
+                         int si, int dim, int numVert, Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex)
 {
 	if(!m_vSymbFct.empty()){
 		for(std::map<std::string, std::vector<std::string> >::const_iterator iter =
@@ -2148,80 +2148,64 @@ write_nodal_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& g
 	File << VTKFileWriter::normal;
 	File << "      <PointData>\n";
 
-	if(m_bWriteOrdering){
+	if(m_bWriteGridPointsOrdering){
 		File << VTKFileWriter::normal;
-		File << "<DataArray type=\"Float32\" Name=\"ordering\" NumberOfComponents=\"3\" format=\"ascii\">\n";
-	//	get iterators
-		typedef typename IteratorProvider<TFunction>::template traits<ug::Vertex>::const_iterator const_iterator;
-		const_iterator iterBegin = IteratorProvider<TFunction>::template begin<ug::Vertex>(u, si);
-		const_iterator iterEnd = IteratorProvider<TFunction>::template end<ug::Vertex>(u, si);
-
-		size_t ordering = 0;
-
-		//m_spLuaOrdering
-
+		File << "<DataArray type=\"Float32\" Name=\"ordering: grid points\" NumberOfComponents=\"3\" format=\"ascii\">\n";
 		File << VTKFileWriter::normal;
-	//	loop all elements, write type for each element to stream
-		for( ; iterBegin != iterEnd; ++iterBegin)
+
+		for(size_t k = 0; k < numVert; ++k)
 		{
 			File << 0 << ' ';
 			File << 0 << ' ';
-			File << ordering << ' ';
-			++ordering;
+			File << k << ' ';
 		}
 
 		File << "\n</DataArray>\n";
 	}
 
-	std::vector<size_t> inverse_ordering;
+	std::vector<size_t> index(numVert);
+	std::vector<size_t> invIndex(numVert);
 
-	if(m_bWriteOrdering){
-		GetInversePermutation(m_spLuaOrdering->ordering, inverse_ordering);
-	}
-
-	if(m_bWriteOrdering){
-		File << VTKFileWriter::normal;
-		File << "<DataArray type=\"Float32\" Name=\"ordering2\" NumberOfComponents=\"3\" format=\"ascii\">\n";
-	//	get iterators
+	if(m_bWriteGridFunctionOrdering || m_bWriteSortedGridFunctionOrdering){
 		typedef typename IteratorProvider<TFunction>::template traits<ug::Vertex>::const_iterator const_iterator;
 		const_iterator iterBegin = IteratorProvider<TFunction>::template begin<ug::Vertex>(u, si);
 		const_iterator iterEnd = IteratorProvider<TFunction>::template end<ug::Vertex>(u, si);
 
-		size_t ordering = 0;
+		size_t k = 0;
+		for( ; iterBegin != iterEnd; ++iterBegin, ++k)
+		{
+			ug::Vertex* v = *iterBegin;
+			index[k] = aaVrtIndex[v];
+		}
 
+		GetInversePermutation(index, invIndex);
+	}
 
+	if(m_bWriteGridFunctionOrdering){
 		File << VTKFileWriter::normal;
-	//	loop all elements, write type for each element to stream
-		for( ; iterBegin != iterEnd; ++iterBegin)
+		File << "<DataArray type=\"Float32\" Name=\"ordering: grid function\" NumberOfComponents=\"3\" format=\"ascii\">\n";
+		File << VTKFileWriter::normal;
+
+		for(size_t k = 0; k < numVert; ++k)
 		{
 			File << 0 << ' ';
 			File << 0 << ' ';
-			File << m_spLuaOrdering->ordering[ordering] << ' ';
-			++ordering;
+			File << invIndex[k] << ' ';
 		}
 
 		File << "\n</DataArray>\n";
 	}
 
-	if(m_bWriteOrdering){
+	if(m_bWriteSortedGridFunctionOrdering){
 		File << VTKFileWriter::normal;
-		File << "<DataArray type=\"Float32\" Name=\"ordering3\" NumberOfComponents=\"3\" format=\"ascii\">\n";
-	//	get iterators
-		typedef typename IteratorProvider<TFunction>::template traits<ug::Vertex>::const_iterator const_iterator;
-		const_iterator iterBegin = IteratorProvider<TFunction>::template begin<ug::Vertex>(u, si);
-		const_iterator iterEnd = IteratorProvider<TFunction>::template end<ug::Vertex>(u, si);
-
-		size_t ordering = 0;
-
-
+		File << "<DataArray type=\"Float32\" Name=\"ordering: sorted grid function\" NumberOfComponents=\"3\" format=\"ascii\">\n";
 		File << VTKFileWriter::normal;
-	//	loop all elements, write type for each element to stream
-		for( ; iterBegin != iterEnd; ++iterBegin)
+
+		for(size_t k = 0; k < numVert; ++k)
 		{
 			File << 0 << ' ';
 			File << 0 << ' ';
-			File << inverse_ordering[ordering] << ' ';
-			++ordering;
+			File << m_spLuaOrdering->ordering[invIndex[k]] << ' ';
 		}
 
 		File << "\n</DataArray>\n";
@@ -2296,7 +2280,7 @@ template <int TDim>
 template <typename TFunction>
 void VTKOutput<TDim>::
 write_nodal_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& grid,
-                         SubsetGroup& ssGrp, int dim, int numVert)
+                         SubsetGroup& ssGrp, int dim, int numVert, Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex)
 {
 	if(!m_vSymbFct.empty()){
 		for(std::map<std::string, std::vector<std::string> >::const_iterator iter =

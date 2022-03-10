@@ -869,11 +869,11 @@ protected:
 
 		template <typename TFunction>
 		void write_nodal_values_piece(VTKFileWriter& File, TFunction& u, number time,
-		                              Grid& grid, int si, int dim, int numVert);
+		                              Grid& grid, int si, int dim, int numVert, Grid::VertexAttachmentAccessor<Attachment<int> >&aaVrtIndex);
 
 		template <typename TFunction>
 		void write_nodal_values_piece(VTKFileWriter& File, TFunction& u, number time,
-		                              Grid& grid, SubsetGroup& ssGrp, int dim, int numVert);
+		                              Grid& grid, SubsetGroup& ssGrp, int dim, int numVert, Grid::VertexAttachmentAccessor<Attachment<int> >&aaVrtIndex);
 
 	///////////////////////////////////////////////////////////////////////////
 	// cell data
@@ -1001,16 +1001,14 @@ protected:
 
 		void set_write_proc_ranks(bool b);
 
-		void set_write_ordering(bool b);
+		void set_write_grid_points_ordering(bool b);
+
+		void set_write_grid_function_ordering(bool b);
+
+		void set_write_sorted_grid_function_ordering(bool b);
 
 		void set_lua_ordering(SmartPtr<LuaOrdering> lua_ordering){
 			m_spLuaOrdering = lua_ordering;
-
-			UG_LOG("ordering:\n");
-			for(unsigned i = 0; i < lua_ordering->ordering.size(); ++i){
-				UG_LOG(lua_ordering->ordering[i] << " ");
-			}
-			UG_LOG("\n");
 		}
 
 	protected:
@@ -1069,7 +1067,9 @@ protected:
 
 		bool m_bWriteSubsetIndices;
 		bool m_bWriteProcRanks;
-		bool m_bWriteOrdering;
+		bool m_bWriteGridPointsOrdering;
+		bool m_bWriteGridFunctionOrdering;
+		bool m_bWriteSortedGridFunctionOrdering;
 
 		SmartPtr<LuaOrdering> m_spLuaOrdering;
 };
