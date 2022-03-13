@@ -990,7 +990,8 @@ protected:
 
 	public:
 	///	default constructor
-		VTKOutput()	: m_bSelectAll(true), m_bBinary(true), m_bWriteGrid(true), m_bWriteSubsetIndices(false), m_bWriteProcRanks(false) {} //TODO: maybe true?
+		VTKOutput()	: m_bSelectAll(true), m_bBinary(true), m_bWriteGrid(true), m_bWriteSubsetIndices(false), m_bWriteProcRanks(false),
+				  m_bWriteGridPointsOrdering(false), m_bWriteGridFunctionOrdering(false), m_bWriteSortedGridFunctionOrdering(false) {} //TODO: maybe true?
 
 	/// should values be printed in binary (base64 encoded way ) or plain ascii
 		void set_binary(bool b);

@@ -424,20 +424,26 @@ template <int TDim>
 void VTKOutput<TDim>::
 select(SmartPtr<UserData<number, TDim> > spData, const char* name)
 {
-	if(spData->continuous())
+	if(spData->continuous()){ UG_LOG("HERE1\n");
 		select_nodal(spData, name);
-	else
+	}
+	else{UG_LOG("HERE2\n");
 		select_element(spData, name);
+	}
 }
 
 template <int TDim>
 void VTKOutput<TDim>::
 select(SmartPtr<UserData<MathVector<TDim>, TDim> > spData, const char* name)
 {
-	if(spData->continuous())
+	if(spData->continuous()){
+		UG_LOG("HERE3\n");
 		select_nodal(spData, name);
-	else
+	}
+	else{
+		UG_LOG("HERE4\n");
 		select_element(spData, name);
+	}
 }
 
 template <int TDim>

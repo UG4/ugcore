@@ -85,6 +85,21 @@ class GridFunctionNumberData
 			m_lfeID = spGridFct->local_finite_element_id(m_fct);
 		};
 
+		void set(SmartPtr<TGridFunction> spGridFct, const char* cmp){
+			this->set_functions(cmp);
+
+			//	get function id of name
+			m_fct = spGridFct->fct_id_by_name(cmp);
+
+			//	check that function exists
+			if(m_fct >= spGridFct->num_fct())
+				UG_THROW("GridFunctionNumberData: Function space does not contain"
+						" a function with name " << cmp << ".");
+
+			//	local finite element id
+			m_lfeID = spGridFct->local_finite_element_id(m_fct);
+		}
+
 		virtual bool continuous() const
 		{
 			return LocalFiniteElementProvider::continuous(m_lfeID);
