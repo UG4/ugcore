@@ -449,6 +449,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 //	SumGFValuesAt
 	{
 		typedef ug::GridFunction<TDomain, TAlgebra> GF;
+		reg.add_function ("SumGFValuesAtVertices", static_cast<number (*) (GF*, const char *)> (&SumGFValuesAt<GF,Vertex>), grp);
 		reg.add_function ("SumGFValuesAtVertices", static_cast<number (*) (GF*, const char *, const char *)> (&SumGFValuesAt<GF,Vertex>), grp);
 	}
 	

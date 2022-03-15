@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2014-2015:  G-CSC, Goethe University Frankfurt
- * Author: Martin Rupp
+ * Copyright (c) 2011-2022:  G-CSC, Goethe University Frankfurt
+ * Author: Lukas Larisch
  * 
  * This file is part of UG4.
  * 
@@ -30,17 +30,48 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef __H__UG__LIB_DISC__SPATIAL_DISC__COMMON_USER_DATA__
-#define __H__UG__LIB_DISC__SPATIAL_DISC__COMMON_USER_DATA__
 
-#include "lognormal_random_field.h"
-#include "rotating_cone.h"
-#include "rotating_velocity.h"
-#include "invdist_user_data.h"
-#include "subset_indicator_user_data.h"
-#include "composite_user_data.h"
-#include "element_orientation_data.h"
-#include "dim_dim_user_data.h"
-#include "glob_attachment_user_data.h"
+#include "lib_disc/domain.h"
+#include "lib_disc/function_spaces/grid_function.h"
+#include "lib_disc/function_spaces/grid_function_user_data.h"
+#include "lib_disc/reference_element/reference_element.h"
 
-#endif // __H__UG__LIB_DISC__SPATIAL_DISC__COMMON_USER_DATA__
+namespace ug{
+
+template <typename TDomain, typename TAlgebra>
+class GridFunctionOrdering
+{
+	typedef GridFunction<TDomain, TAlgebra> TGridFunction;
+	typedef GridFunctionNumberData<GridFunction<TDomain, TAlgebra> > TGridFunctionNumberData;
+
+	typedef typename TGridFunction::template traits<Vertex>::const_iterator VertexConstIterator;
+
+public:
+	GridFunctionOrdering(SmartPtr<TGridFunction> spGridFct, const char* name)
+	{
+		m_u = spGridFct->clone_without_values();
+		m_name = name;
+
+		std::vector<DoFIndex> ind(1);
+		size_t k = 0;
+		for(VertexConstIterator iter = m_u->template begin<Vertex>(); iter != m_u->template end<Vertex>(); ++iter)
+		{
+		//	get vertex
+			Vertex* vrt = *iter;
+
+		//	get vector holding all indices on the vertex
+			m_u->inner_dof_indices(vrt, 0, ind);
+			DoFRef(*m_u, ind[0]) = k++;
+		}
+	}
+
+	SmartPtr<TGridFunctionNumberData> get(){
+		return SmartPtr<TGridFunctionNumberData>(new TGridFunctionNumberData(m_u, m_name));
+	}
+
+private:
+	SmartPtr<TGridFunction> m_u;
+	const char* m_name;
+};
+
+} //namespace

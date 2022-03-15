@@ -37,6 +37,7 @@
 
 #include "../lg_base.h"
 #include "common/util/string_util.h"
+#include "lib_grid/global_attachments.h"
 
 #include "file_io_grdecl.h"
 
@@ -52,11 +53,11 @@ namespace ug
 
 	struct ab
 	{
-		int a1, a2, a3, a4, b1, b2, b3, b4;
+		size_t a1, a2, a3, a4, b1, b2, b3, b4;
 	};
 
 
-void GetDim(string str, vector<int>& dim)
+void GetDim(string str, vector<size_t>& dim)
 {
     string word = "";
     for (auto x : str) 
@@ -65,7 +66,7 @@ void GetDim(string str, vector<int>& dim)
         {
 			if (word!="" && dim.size()<3)
 			{
-				int a;
+				size_t a;
 				stringstream ss;
 				ss << word;
 				ss >> a;
@@ -79,7 +80,7 @@ void GetDim(string str, vector<int>& dim)
     }
 	if (word!="" && dim.size()<3)
 		{
-			int a;
+			size_t a;
 			stringstream ss;
 			ss << word;
 			ss >> a;
@@ -97,7 +98,7 @@ void GetCoord(string str, vector<double>& coord)
 			if (word!="")
 			{
 				string snum = "";
-				int num=1;
+				size_t num=1;
 				for (auto y : word)
 				{
 					if (y=='*')
@@ -111,16 +112,14 @@ void GetCoord(string str, vector<double>& coord)
 						snum=snum+y;
 				}
 				
-				int value;
+				double value;
 				stringstream ss;
 				ss << snum;
 				ss >> value;
-				for (int i=0; i<num; i++)
+				for (size_t i=0; i<num; i++)
 				{
 					coord.push_back(value);
 				}
-				
-				//cout << word << endl;
 			}  
             word = "";
         }
@@ -128,10 +127,10 @@ void GetCoord(string str, vector<double>& coord)
             word = word + x;
         }
     }
-	if (word!="")
+	if (word!="" && word.compare(0,1,"/")!=0)
 	{
 		string snum = "";
-		int num=1;
+		size_t num=1;
 		for (auto y : word)
 		{
 			if (y=='*')
@@ -145,11 +144,11 @@ void GetCoord(string str, vector<double>& coord)
 				snum=snum+y;
 		}
 				
-		int value;
+		double value;
 		stringstream ss;
 		ss << snum;
 		ss >> value;
-		for (int i=0; i<num; i++)
+		for (size_t i=0; i<num; i++)
 		{
 			coord.push_back(value);
 		}
@@ -166,7 +165,7 @@ void GetZcorn(string str, vector<double>& zcorn)
 			if (word!="")
 			{
 				string snum = "";
-				int num=1;
+				size_t num=1;
 				for (auto y : word)
 				{
 					if (y=='*')
@@ -180,11 +179,11 @@ void GetZcorn(string str, vector<double>& zcorn)
 						snum=snum+y;
 				}
 				
-				int value;
+				double value;
 				stringstream ss;
 				ss << snum;
 				ss >> value;
-				for (int i=0; i<num; i++)
+				for (size_t i=0; i<num; i++)
 				{
 					zcorn.push_back(value);
 				}
@@ -198,7 +197,7 @@ void GetZcorn(string str, vector<double>& zcorn)
 	if (word!="" && word.compare(0,1,"/")!=0)
 	{
 		string snum = "";
-		int num=1;
+		size_t num=1;
 		for (auto y : word)
 		{
 			if (y=='*')
@@ -212,29 +211,281 @@ void GetZcorn(string str, vector<double>& zcorn)
 				snum=snum+y;
 		}
 				
-		int value;
+		double value;
 		stringstream ss;
 		ss << snum;
 		ss >> value;
-		for (int i=0; i<num; i++)
+		for (size_t i=0; i<num; i++)
 		{
 			zcorn.push_back(value);
 		}
 	}
 }
 
+void GetAct(string str, vector<size_t>& act)
+{
+    string word = "";
+    for (auto x : str) 
+    {
+        if (x == ' ')
+        {
+			if (word!="")
+			{
+				string snum = "";
+				size_t num=1;
+				for (auto y : word)
+				{
+					if (y=='*')
+					{
+						stringstream ss;
+						ss << snum;
+						ss >> num;
+						snum="";
+					}
+					else
+						snum=snum+y;
+				}
+				
+				size_t value;
+				stringstream ss;
+				ss << snum;
+				ss >> value;
+				for (size_t i=0; i<num; i++)
+				{
+					act.push_back(value);
+				}
+			}  
+            word = "";
+        }
+        else {
+            word = word + x;
+        }
+    }
+	if (word!="" && word.compare(0,1,"/")!=0)
+	{
+		string snum = "";
+		size_t num=1;
+		for (auto y : word)
+		{
+			if (y=='*')
+			{
+				stringstream ss;
+				ss << snum;
+				ss >> num;
+				snum="";
+			}
+			else
+				snum=snum+y;
+		}
+				
+		size_t value;
+		stringstream ss;
+		ss << snum;
+		ss >> value;
+		for (size_t i=0; i<num; i++)
+		{
+			act.push_back(value);
+		}
+	}
+}
+
+void GetProperty(string str, vector<double>& prop)
+{
+    string word = "";
+    for (auto x : str) 
+    {
+        if (x == ' ')
+        {
+			if (word!="")
+			{
+				string snum = "";
+				size_t num=1;
+				for (auto y : word)
+				{
+					if (y=='*')
+					{
+						stringstream ss;
+						ss << snum;
+						ss >> num;
+						snum="";
+					}
+					else
+						snum=snum+y;
+				}
+				
+				double value;
+				stringstream ss;
+				ss << snum;
+				ss >> value;
+				for (size_t i=0; i<num; i++)
+				{
+					prop.push_back(value);
+				}
+			}  
+            word = "";
+        }
+        else {
+            word = word + x;
+        }
+    }
+	if (word!="" && word.compare(0,1,"/")!=0)
+	{
+		string snum = "";
+		size_t num=1;
+		for (auto y : word)
+		{
+			if (y=='*')
+			{
+				stringstream ss;
+				ss << snum;
+				ss >> num;
+				snum="";
+			}
+			else
+				snum=snum+y;
+		}
+				
+		double value;
+		stringstream ss;
+		ss << snum;
+		ss >> value;
+		for (size_t i=0; i<num; i++)
+		{
+			prop.push_back(value);
+		}
+	}
+}
+
+
+bool AttachAct(Grid& grid, const char* filename, string name)
+{
+	vector<size_t> actnum;
+	bool d = false;
+	string buf;
+	string name2 = name +' ';
+	ifstream ifs(filename);
+	if(!ifs)
+		return false;
+
+	while (getline(ifs, buf))
+	{
+		if (d==true)
+			{
+				if (buf.compare(2,1,"/")==0)
+					d=false;
+				else if (buf.compare(buf.size()-2,1,"/")==0)
+				{
+					GetAct(buf, actnum);
+					d=false;
+				}
+				else
+					GetAct(buf, actnum);
+			}
+		if (buf.compare(0,name2.length(),name2)==0)
+			d=true;
+	}
+	
+	if (!GlobalAttachments::is_declared(name))
+	{
+		try {GlobalAttachments::declare_attachment<ANumber>(name);}
+		catch (ug::UGError& err)
+		{
+			UG_LOGN(err.get_msg());
+			return false;
+		}
+	}
+	ANumber aVols = GlobalAttachments::attachment<ANumber>(name);
+	if(!grid.has_volume_attachment(aVols))
+		grid.attach_to_volumes(aVols);
+
+	Grid::VolumeAttachmentAccessor<ANumber> aaVols(grid, aVols);
+	
+//	ofstream ofs;
+//	ofs.open ("Actnum.txt");
+	
+	size_t i = 0;
+	for(VolumeIterator iter = grid.volumes_begin(); iter != grid.volumes_end(); ++iter, i++)
+		{
+			aaVols[*iter]=actnum[i];
+//			ofs<<i<<' '<<aaVols[*iter]<<endl;
+		}
+	return true;
+}
+
+
+bool AttachProperty(Grid& grid, const char* filename, string name)
+{
+	vector<double> prop;
+	bool d = false;
+	bool e = false;
+	string buf;
+	string name2 = name +' ';
+	ifstream ifs(filename);
+	if(!ifs)
+		return false;
+
+	while (getline(ifs, buf))
+	{
+		if (d==true)
+			{
+				if (buf.compare(2,1,"/")==0)
+					d=false;
+				else if (buf.compare(buf.size()-2,1,"/")==0)
+				{
+					GetProperty(buf, prop);
+					d=false;
+				}
+				else
+					GetProperty(buf, prop);
+			}
+		if ((buf.compare(0,11,"-- Property")==0)&&(e==true))
+			d=true;
+		if (buf.compare(0,name2.length(),name2)==0)
+			e=true;
+	}
+	
+	if (!GlobalAttachments::is_declared(name))
+	{
+		try {GlobalAttachments::declare_attachment<ANumber>(name);}
+		catch (ug::UGError& err)
+		{
+			UG_LOGN(err.get_msg());
+			return false;
+		}
+	}
+	ANumber aVols = GlobalAttachments::attachment<ANumber>(name);
+	if(!grid.has_volume_attachment(aVols))
+		grid.attach_to_volumes(aVols);
+
+	Grid::VolumeAttachmentAccessor<ANumber> aaVols(grid, aVols);
+	
+//	ofstream ofs;
+//	ofs.open ("Volumes.txt");
+	
+	size_t i = 0;
+	for(VolumeIterator iter = grid.volumes_begin(); iter != grid.volumes_end(); ++iter, i++)
+		{
+			aaVols[*iter]=prop[i];
+//			ofs<<i<<' '<<aaVols[*iter]<<endl;
+		}
+	return true;
+}
 
 bool LoadGridFromGRDECL(Grid& grid, const char* filename, AVector3& aPos)
 {
 	
 	string buf;
-	vector<int> dim;
+	vector<size_t> dim;
 	vector<double> coord;
 	vector<double> zcorn;
+	vector<size_t> act;
+	vector<string> prop;
+	vector<string> prop_name;
 	
 	bool a=false;
 	bool b=false;
 	bool c=false;
+	bool d=false;
 	
 	ifstream ifs(filename);
 	if(!ifs)
@@ -252,7 +503,6 @@ bool LoadGridFromGRDECL(Grid& grid, const char* filename, AVector3& aPos)
 				a=true;
 			
 			//Get the coordinate list of the top and bot surfaces
-			
 			if (b==true)
 				{
 					if (buf.compare(2,1,"/")==0)
@@ -275,21 +525,64 @@ bool LoadGridFromGRDECL(Grid& grid, const char* filename, AVector3& aPos)
 						c=false;
 					else if (buf.compare(buf.size()-2,1,"/")==0)
 					{
-						GetZcorn(buf, zcorn);
+						GetCoord(buf, zcorn);
 						c=false;
 					}
 					else
-						GetZcorn(buf, zcorn);
+						GetCoord(buf, zcorn);
 				}
 			if (buf.compare(0,6,"ZCORN ")==0)
 				c=true;
+				
+			//Get the ACTNUM list
+			if (d==true)
+				{
+					if (buf.compare(2,1,"/")==0)
+						d=false;
+					else if (buf.compare(buf.size()-2,1,"/")==0)
+					{
+						GetAct(buf, act);
+						d=false;
+					}
+					else
+						GetAct(buf, act);
+				}
+			if (buf.compare(0,7,"ACTNUM ")==0)
+				d=true;
+				
+			//Get property name list
+			prop.push_back(buf);
+			if (buf.compare(0,11,"-- Property")==0)
+			{
+				prop.pop_back();
+				string name = "";
+				for (auto x : prop.back()) 
+				{
+					if (x != ' ')
+						name = name + x;
+					else
+						break;
+				}
+				prop_name.push_back(name);
+			}
+			
 		}
-	
+		
+/*	ofstream ofs;
+	ofs.open ("prop_name.txt");	
+	for (auto i = 0; i<zcorn.size(); i++)
+		{
+			ofs<<i<<' '<<zcorn[i]<<endl;
+			//ofs<<i<<' '<<buf<<endl;
+		}*/
+		
+		
+		
 	vector<xyz> top;
 	vector<xyz> bot;
-	for (int j=0; j<dim[1]+1; j++)
+	for (size_t j=0; j<dim[1]+1; j++)
 	{
-		for (int i=0; i<dim[0]+1; i++)
+		for (size_t i=0; i<dim[0]+1; i++)
 		{
 			top.push_back({coord[(j*(dim[0]+1)+i)*6], coord[(j*(dim[0]+1)+i)*6+1], coord[(j*(dim[0]+1)+i)*6+2]});
 			bot.push_back({coord[(j*(dim[0]+1)+i)*6+3], coord[(j*(dim[0]+1)+i)*6+4], coord[(j*(dim[0]+1)+i)*6+5]});
@@ -299,27 +592,28 @@ bool LoadGridFromGRDECL(Grid& grid, const char* filename, AVector3& aPos)
 	vector<xyz> coord_list;
 	vector<ab> ele_list;
 	
-	for (int k=0; k<dim[2]; k++)
+	for (size_t k=0; k<dim[2]; k++)
 	{
-		for (int j=0; j<dim[1]; j++)
+		for (size_t j=0; j<dim[1]; j++)
 		{
-			for (int i=0; i<dim[0]; i++)
+			for (size_t i=0; i<dim[0]; i++)
 			{
-				int ij=j*(dim[0]+1)+i;
-				int ijk4=k*dim[1]*dim[0]*8+(j*dim[0]+i)*4;
-				int ijk8=(k*dim[1]*dim[0]+j*dim[0]+i)*8;
+				
+				size_t ij=j*(dim[0]+1)+i;
+				size_t ijk4=k*dim[1]*dim[0]*8+j*dim[0]*4+i*2;
+				size_t ijk8=(k*dim[1]*dim[0]+j*dim[0]+i)*8;
 				
 				ele_list.push_back({ijk8+1, ijk8+2, ijk8+3, ijk8+4, ijk8+5, ijk8+6, ijk8+7, ijk8+8});
 				
 				coord_list.push_back({top[ij].x, top[ij].y, zcorn[ijk4]});
 				coord_list.push_back({top[ij+1].x, top[ij+1].y, zcorn[ijk4+1]});
-				coord_list.push_back({top[ij+dim[0]+2].x, top[ij+dim[0]+2].y, zcorn[ijk4+3]});
-				coord_list.push_back({top[ij+dim[0]+1].x, top[ij+dim[0]+1].y, zcorn[ijk4+2]});
+				coord_list.push_back({top[ij+dim[0]+2].x, top[ij+dim[0]+2].y, zcorn[ijk4+dim[0]*2+1]});
+				coord_list.push_back({top[ij+dim[0]+1].x, top[ij+dim[0]+1].y, zcorn[ijk4+dim[0]*2]});
 				
 				coord_list.push_back({top[ij].x, top[ij].y, zcorn[ijk4+dim[1]*dim[0]*4]});
 				coord_list.push_back({top[ij+1].x, top[ij+1].y, zcorn[ijk4+dim[1]*dim[0]*4+1]});
-				coord_list.push_back({top[ij+dim[0]+2].x, top[ij+dim[0]+2].y, zcorn[ijk4+dim[1]*dim[0]*4+3]});
-				coord_list.push_back({top[ij+dim[0]+1].x, top[ij+dim[0]+1].y, zcorn[ijk4+dim[1]*dim[0]*4+2]});
+				coord_list.push_back({top[ij+dim[0]+2].x, top[ij+dim[0]+2].y, zcorn[ijk4+dim[1]*dim[0]*4+dim[0]*2+1]});
+				coord_list.push_back({top[ij+dim[0]+1].x, top[ij+dim[0]+1].y, zcorn[ijk4+dim[1]*dim[0]*4+dim[0]*2]});
 			}
 		}
 	}
@@ -327,7 +621,7 @@ bool LoadGridFromGRDECL(Grid& grid, const char* filename, AVector3& aPos)
 	//remove redundant coords
 	vector<xyz> New_coord_list;
 	vector<ab> New_ele_list;
-	vector<int> Index_coord;
+	vector<size_t> Index_coord;
 	New_coord_list.push_back(coord_list[0]);
 	Index_coord.push_back(0);
 
@@ -350,9 +644,16 @@ bool LoadGridFromGRDECL(Grid& grid, const char* filename, AVector3& aPos)
 			}
 	}
 	
-
-
-	int numVrts, numElems;
+	ofstream ofs;
+	ofs.open ("coord_list.txt");	
+	for (size_t i = 0; i<New_coord_list.size(); i++)
+		{
+			ofs<<i<<' '<<New_coord_list[i].x<<' '<<New_coord_list[i].y<<' '<<New_coord_list[i].z<<endl;
+		}
+	
+	
+	
+	size_t numVrts, numElems;
 
 	numVrts=New_coord_list.size();
 	numElems=ele_list.size();
@@ -360,10 +661,10 @@ bool LoadGridFromGRDECL(Grid& grid, const char* filename, AVector3& aPos)
 //	create points
 //	store pointers to the vertices on the fly in a vector.
 	vector<Vertex*>	vVrts;
-	vector<int> vVrtIds;
+	vector<size_t> vVrtIds;
 	vVrts.resize(numVrts); vVrtIds.resize(numVrts);
 
-	for(int i = 0; i < numVrts; ++i)
+	for(size_t i = 0; i < numVrts; ++i)
 		vVrts[i] = *grid.create<RegularVertex>();
 
 	if(!grid.has_vertex_attachment(aPos))
@@ -372,7 +673,7 @@ bool LoadGridFromGRDECL(Grid& grid, const char* filename, AVector3& aPos)
 
 //	read the points
 	{
-		int i = 0;
+		size_t i = 0;
 		for(VertexIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); ++iter, ++i)
 		{
 			vVrtIds[i]=i;
@@ -383,12 +684,14 @@ bool LoadGridFromGRDECL(Grid& grid, const char* filename, AVector3& aPos)
 
 	}
 
+
+
 //	read the hexahedrons
 	{
-		for(int i = 0; i < numElems; ++i)
+		for(size_t i = 0; i < numElems; ++i)
 		{
-			int Index, vrt_id_1, vrt_id_2, vrt_id_3, vrt_id_4, vrt_id_5, vrt_id_6, vrt_id_7, vrt_id_8;
-			vector<int>::iterator i1, i2, i3, i4, i5, i6, i7, i8;
+			size_t Index, vrt_id_1, vrt_id_2, vrt_id_3, vrt_id_4, vrt_id_5, vrt_id_6, vrt_id_7, vrt_id_8;
+			vector<size_t>::iterator i1, i2, i3, i4, i5, i6, i7, i8;
 			
 			Index=i;
 			vrt_id_1=Index_coord[ele_list[i].a1-1];
@@ -416,6 +719,19 @@ bool LoadGridFromGRDECL(Grid& grid, const char* filename, AVector3& aPos)
 					(vVrts[i1 - vVrtIds.begin()], vVrts[i2 - vVrtIds.begin()], vVrts[i3 - vVrtIds.begin()], vVrts[i4 - vVrtIds.begin()], vVrts[i5 - vVrtIds.begin()], vVrts[i6 - vVrtIds.begin()], vVrts[i7 - vVrtIds.begin()], vVrts[i8 - vVrtIds.begin()]));
 		}
 	}
+
+
+
+
+	AttachAct(grid, filename, "ACTNUM");	
+
+//	read the volumes(properties)
+	
+	for (size_t i = 0; i<prop_name.size(); i++)
+		{
+			AttachProperty(grid, filename, prop_name[i]);
+		}
+
 
 	return true;
 }

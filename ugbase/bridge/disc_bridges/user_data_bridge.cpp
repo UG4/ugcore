@@ -476,6 +476,19 @@ static void Domain(Registry& reg, string grp)
 	string suffix = GetDomainSuffix<TDomain>();
 	string tag = GetDomainTag<TDomain>();
 	
+	// GlobAttachmentElementUserData
+	{
+		string name = string("GlobAttachmentElementUserData").append(suffix);
+		typedef GlobAttachmentElementUserData<TDomain> T;
+		typedef CplUserData<number, dim> TBase;
+		reg.add_class_<T, TBase>(name, grp)
+			.template add_constructor<void (*)(SmartPtr<Grid>, const char *) >("AttachmentName")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "GlobAttachmentElementUserData", tag);
+
+	}
+	
+	
 //	User data of a subset indicator (1 in the subset, 0 everywhere else)
 	{
 		string name = string("SubsetIndicatorUserData").append(suffix);
@@ -488,7 +501,7 @@ static void Domain(Registry& reg, string grp)
 		reg.add_class_to_group(name, "SubsetIndicatorUserData", tag);
 	}
 
-	// EdgeOrientation (vector)
+// EdgeOrientation (vector)
 	{
 		string name = string("EdgeOrientation").append(suffix);
 		typedef EdgeOrientation<TDomain> T;
@@ -501,6 +514,20 @@ static void Domain(Registry& reg, string grp)
 		reg.add_class_to_group(name, "EdgeOrientation", tag);
 
 	}
+	
+//	User data for evaluation of full-dimensional vector fields on hypersurfaces
+	{
+		string name = string("OutNormCmp").append(suffix);
+		typedef OutNormCmp<TDomain> T;
+		typedef UserData<MathVector<dim>, dim> TBase;
+		
+		reg.add_class_<T, TBase> (name, grp)
+			.template add_constructor<void (*)(SmartPtr<TDomain>, SmartPtr<TBase>, const char*)>("Domain#Data#Subsets")
+			.template add_constructor<void (*)(SmartPtr<TDomain>, SmartPtr<TBase>)>("Domain#Data")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "OutNormCmp", tag);
+	}
+
 }
 		
 /**

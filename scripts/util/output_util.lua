@@ -143,7 +143,7 @@ function VTKBalanceWriter:write_data(u, step, time)
   end  -- Only print certain times. 
 
   for _, vtkData in ipairs(self.VTK) do
-      print(vtkData)
+      -- print(vtkData)
       
       local vtkOut = vtkData[1]
       local file = vtkData[2]
@@ -379,7 +379,7 @@ function util.Balance(DataToBeWrittenTable)
 	
 	local verbose = true
 	
-	-- store outputs as local varible of closure 
+	-- store outputs as local variable of closure 
 	local Filenames = {}
 	local VTK = {}
 	local PosEvals = {}
