@@ -780,7 +780,7 @@ function util.solver.CreateOrdering(orderingDesc, solverutil)
 		ordering = RiverOrdering()
 		ordering:select_sources(desc.sources)
 	elseif name == "BoostDirichletCuthillMcKee" then
-		ordering = "BoostDirichletCuthillMcKeeOrdering()
+		ordering = BoostDirichletCuthillMcKeeOrdering()
 		ordering:select_dirichlet_subset(desc.dirichletSubset)
 	elseif name == "WeightedCuthillMcKee" then
 		ordering = WeightedCuthillMcKeeOrdering()

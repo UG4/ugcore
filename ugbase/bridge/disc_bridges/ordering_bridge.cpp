@@ -125,7 +125,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_<T, TBase>(name, grp, "LibDiscCuthillMcKeeOrdering")
 			.add_constructor()
 			.add_method("set_reverse", &T::set_reverse)
-			.add_method("select_dirichlet_subset", static_cast<void (T::*)(int)>(&T::select_dirichlet_subset))
+			.add_method("select_dirichlet_subset", static_cast<void (T::*)(const char*)>(&T::select_dirichlet_subset))
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "BoostDirichletCuthillMcKeeOrdering", tag);
 	}
