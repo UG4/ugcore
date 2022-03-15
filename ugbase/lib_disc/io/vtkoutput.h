@@ -33,8 +33,6 @@
 #ifndef __H__UG__LIB_DISC__IO__VTKOUTPUT__
 #define __H__UG__LIB_DISC__IO__VTKOUTPUT__
 
-//TODO: deduplicate code in VTUOutput - reduces vulnerability to errors and linker time 
-
 // extern libraries
 #include <string>
 #include <vector>
@@ -869,11 +867,11 @@ protected:
 
 		template <typename TFunction>
 		void write_nodal_values_piece(VTKFileWriter& File, TFunction& u, number time,
-		                              Grid& grid, int si, int dim, int numVert);
+		                              Grid& grid, int si, int dim, int numVert, Grid::VertexAttachmentAccessor<Attachment<int> >&aaVrtIndex);
 
 		template <typename TFunction>
 		void write_nodal_values_piece(VTKFileWriter& File, TFunction& u, number time,
-		                              Grid& grid, SubsetGroup& ssGrp, int dim, int numVert);
+		                              Grid& grid, SubsetGroup& ssGrp, int dim, int numVert, Grid::VertexAttachmentAccessor<Attachment<int> >&aaVrtIndex);
 
 	///////////////////////////////////////////////////////////////////////////
 	// cell data
@@ -990,7 +988,8 @@ protected:
 
 	public:
 	///	default constructor
-		VTKOutput()	: m_bSelectAll(true), m_bBinary(true), m_bWriteGrid(true), m_bWriteSubsetIndices(false), m_bWriteProcRanks(false) {} //TODO: maybe true?
+		VTKOutput()	: m_bSelectAll(true), m_bBinary(true), m_bWriteGrid(true), m_bWriteSubsetIndices(false), m_bWriteProcRanks(false),
+				  m_bWriteGridPointsOrdering(false), m_bWriteGridFunctionOrdering(false), m_bWriteSortedGridFunctionOrdering(false) {} //TODO: maybe true?
 
 	/// should values be printed in binary (base64 encoded way ) or plain ascii
 		void set_binary(bool b);
@@ -1000,6 +999,12 @@ protected:
 		void set_write_subset_indices(bool b);
 
 		void set_write_proc_ranks(bool b);
+
+		void set_write_grid_points_ordering(bool b);
+
+		void set_write_grid_function_ordering(bool b);
+
+		void set_write_sorted_grid_function_ordering(bool b);
 
 	protected:
 	///	returns true if name for vtk-component is already used
@@ -1057,6 +1062,9 @@ protected:
 
 		bool m_bWriteSubsetIndices;
 		bool m_bWriteProcRanks;
+		bool m_bWriteGridPointsOrdering;
+		bool m_bWriteGridFunctionOrdering;
+		bool m_bWriteSortedGridFunctionOrdering;
 };
 
 } // namespace ug
