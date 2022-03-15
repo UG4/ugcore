@@ -30,8 +30,8 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef __UG__LIB_DISC__ORDERING_STRATEGIES_ALGORITHMS_WEIGHTED_CUTHILL_MCKEE_ORDERING__
-#define __UG__LIB_DISC__ORDERING_STRATEGIES_ALGORITHMS_WEIGHTED_CUTHILL_MCKEE_ORDERING__
+#ifndef __UG__LIB_DISC__ORDERING_STRATEGIES_ALGORITHMS_LIB_DISC_CUTHILL_MCKEE_ORDERING__
+#define __UG__LIB_DISC__ORDERING_STRATEGIES_ALGORITHMS_LIB_DISC_CUTHILL_MCKEE_ORDERING__
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_traits.hpp>
@@ -53,53 +53,8 @@
 
 namespace ug{
 
-template <typename S_t>
-void print(S_t &s){
-	for(auto sIt = s.begin(); sIt != s.end(); ++sIt){
-		std::cout << sIt->source << " -> " << sIt->target << " ( " << sIt->w << ")" << std::endl;
-	} std::cout << std::endl;
-}
-
-#ifndef PRINT_GRAPH
-#define PRINT_GRAPH
-template <typename G_t>
-void print_graph(G_t& g){
-	typedef typename boost::graph_traits<G_t>::edge_descriptor Edge;
-
-	typename boost::graph_traits<G_t>::edge_iterator eIt, eEnd;
-	for(boost::tie(eIt, eEnd) = boost::edges(g); eIt != eEnd; ++eIt){
-		std::pair<Edge, bool> e = boost::edge(boost::source(*eIt, g), boost::target(*eIt, g), g);
-		double w = boost::get(boost::edge_weight_t(), g, e.first);
-		std::cout << boost::source(*eIt, g) << " -> " << boost::target(*eIt, g) << " ( " << w << " )" << std::endl;
-	}
-}
-#endif
-
-template <typename T>
-void print(std::set<T> &s){
-	for(auto sIt = s.begin(); sIt != s.end(); ++sIt){
-		std::cout << *sIt << " ";
-	} std::cout << std::endl;
-}
-
-template <typename T>
-void print(std::vector<T> &s){
-	for(auto sIt = s.begin(); sIt != s.end(); ++sIt){
-		std::cout << *sIt << " ";
-	} std::cout << std::endl;
-}
-
-#define DUMP
-
-/* TODO
-
-	use iterators
-
-*/
-
-
 template <typename TAlgebra, typename TDomain, typename O_t>
-class WeightedCuthillMcKeeOrdering : public IOrderingAlgorithm<TAlgebra, O_t>
+class LibDiscCuthillMcKeeOrdering : public IOrderingAlgorithm<TAlgebra, O_t>
 {
 public:
 	typedef typename TAlgebra::matrix_type M_t;
@@ -116,15 +71,15 @@ public:
 	typedef typename boost::graph_traits<G_t>::adjacency_iterator adj_iter;
 	typedef typename boost::graph_traits<G_t>::out_edge_iterator oute_iter;
 
-	WeightedCuthillMcKeeOrdering() : m_bReverse(false), m_ssDirichletIdx(-1){}
+	LibDiscCuthillMcKeeOrdering() : m_bReverse(false), m_ssDirichletIdx(-1){}
 
 	/// clone constructor
-	WeightedCuthillMcKeeOrdering( const WeightedCuthillMcKeeOrdering<TAlgebra, TDomain, O_t> &parent )
+	LibDiscCuthillMcKeeOrdering( const WeightedCuthillMcKeeOrdering<TAlgebra, TDomain, O_t> &parent )
 			: baseclass(), m_bReverse(parent.m_bReverse), m_ssDirichletIdx(parent.m_ssDirichletIdx){}
 
 	SmartPtr<IOrderingAlgorithm<TAlgebra, O_t> > clone()
 	{
-		return make_sp(new WeightedCuthillMcKeeOrdering<TAlgebra, TDomain, O_t>(*this));
+		return make_sp(new LibDiscCuthillMcKeeOrdering<TAlgebra, TDomain, O_t>(*this));
 	}
 
 	double compute_inflow(vd v, std::vector<BOOL>& visited, bool ignore_visited=true){
@@ -316,7 +271,7 @@ public:
 		m_ssDirichletIdx = ssDirichletIdx;
 	}
 
-	virtual const char* name() const {return "WeightedCuthillMcKeeOrdering";}
+	virtual const char* name() const {return "LibDiscCuthillMcKeeOrdering";}
 
 private:
 	G_t g;

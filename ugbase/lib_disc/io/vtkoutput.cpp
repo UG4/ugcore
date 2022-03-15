@@ -616,24 +616,6 @@ set_write_proc_ranks(bool b) {
 
 template <int TDim>
 void VTKOutput<TDim>::
-set_write_grid_points_ordering(bool b) {
-	m_bWriteGridPointsOrdering = b;
-}
-
-template <int TDim>
-void VTKOutput<TDim>::
-set_write_grid_function_ordering(bool b) {
-	m_bWriteGridFunctionOrdering = b;
-}
-
-template <int TDim>
-void VTKOutput<TDim>::
-set_write_sorted_grid_function_ordering(bool b) {
-	m_bWriteSortedGridFunctionOrdering = b;
-}
-
-template <int TDim>
-void VTKOutput<TDim>::
 set_user_defined_comment(const char* comment){
 	m_sComment = comment;
 }

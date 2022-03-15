@@ -48,8 +48,6 @@
 #include "common/error.h"
 #include "common/log.h"
 
-#include "lua_ordering.h"
-
 namespace ug{
 
 //for cycle-free matrices only
@@ -169,12 +167,6 @@ public:
 
 	O_t& ordering(){
 		return o;
-	}
-
-	SmartPtr<LuaOrdering> get_lua_ordering(){
-		SmartPtr<LuaOrdering> lua_ord = SmartPtr<LuaOrdering>(new LuaOrdering());
-		lua_ord->ordering = o;
-		return lua_ord;
 	}
 
 	virtual const char* name() const {return "TopologicalOrdering";}

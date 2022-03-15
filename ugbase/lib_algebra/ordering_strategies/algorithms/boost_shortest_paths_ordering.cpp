@@ -158,12 +158,6 @@ public:
 		return o;
 	}
 
-	SmartPtr<LuaOrdering> get_lua_ordering(){
-		SmartPtr<LuaOrdering> lua_ord = SmartPtr<LuaOrdering>(new LuaOrdering());
-		lua_ord->ordering = o;
-		return lua_ord;
-	}
-
 	virtual const char* name() const {return "BoostShortestPathsOrdering";}
 
 private:

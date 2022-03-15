@@ -33,6 +33,8 @@
 #ifndef __H__UG__LIB_DISC__IO__VTKOUTPUT__
 #define __H__UG__LIB_DISC__IO__VTKOUTPUT__
 
+//TODO: deduplicate code in VTUOutput - reduces vulnerability to errors and linker time 
+
 // extern libraries
 #include <string>
 #include <vector>
@@ -44,8 +46,6 @@
 #include "lib_disc/common/function_group.h"
 #include "lib_disc/domain.h"
 #include "lib_disc/spatial_disc/user_data/user_data.h"
-
-#include "lib_algebra/ordering_strategies/algorithms/lua_ordering.h"
 
 namespace ug{
 // todo this should avoid refactoring all the signatures of VTKOutput, remove it later
@@ -869,11 +869,11 @@ protected:
 
 		template <typename TFunction>
 		void write_nodal_values_piece(VTKFileWriter& File, TFunction& u, number time,
-		                              Grid& grid, int si, int dim, int numVert, Grid::VertexAttachmentAccessor<Attachment<int> >&aaVrtIndex);
+		                              Grid& grid, int si, int dim, int numVert);
 
 		template <typename TFunction>
 		void write_nodal_values_piece(VTKFileWriter& File, TFunction& u, number time,
-		                              Grid& grid, SubsetGroup& ssGrp, int dim, int numVert, Grid::VertexAttachmentAccessor<Attachment<int> >&aaVrtIndex);
+		                              Grid& grid, SubsetGroup& ssGrp, int dim, int numVert);
 
 	///////////////////////////////////////////////////////////////////////////
 	// cell data
@@ -990,8 +990,7 @@ protected:
 
 	public:
 	///	default constructor
-		VTKOutput()	: m_bSelectAll(true), m_bBinary(true), m_bWriteGrid(true), m_bWriteSubsetIndices(false), m_bWriteProcRanks(false),
-				  m_bWriteGridPointsOrdering(false), m_bWriteGridFunctionOrdering(false), m_bWriteSortedGridFunctionOrdering(false) {} //TODO: maybe true?
+		VTKOutput()	: m_bSelectAll(true), m_bBinary(true), m_bWriteGrid(true), m_bWriteSubsetIndices(false), m_bWriteProcRanks(false) {} //TODO: maybe true?
 
 	/// should values be printed in binary (base64 encoded way ) or plain ascii
 		void set_binary(bool b);
@@ -1001,16 +1000,6 @@ protected:
 		void set_write_subset_indices(bool b);
 
 		void set_write_proc_ranks(bool b);
-
-		void set_write_grid_points_ordering(bool b);
-
-		void set_write_grid_function_ordering(bool b);
-
-		void set_write_sorted_grid_function_ordering(bool b);
-
-		void set_lua_ordering(SmartPtr<LuaOrdering> lua_ordering){
-			m_spLuaOrdering = lua_ordering;
-		}
 
 	protected:
 	///	returns true if name for vtk-component is already used
@@ -1068,11 +1057,6 @@ protected:
 
 		bool m_bWriteSubsetIndices;
 		bool m_bWriteProcRanks;
-		bool m_bWriteGridPointsOrdering;
-		bool m_bWriteGridFunctionOrdering;
-		bool m_bWriteSortedGridFunctionOrdering;
-
-		SmartPtr<LuaOrdering> m_spLuaOrdering;
 };
 
 } // namespace ug

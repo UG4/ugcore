@@ -100,7 +100,6 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_<T, TBase>(name, grp, "LexOrdering")
 			.add_constructor()
 			.add_method("set_direction", &T::set_direction)
-			.add_method("get_lua_ordering", &T::get_lua_ordering)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "LexOrdering", tag);
 	}
@@ -118,6 +117,19 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "WeightedCuthillMcKeeOrdering", tag);
 	}
 
+//	LibDisc Cuthill-McKee ordering
+	{
+		typedef LibDiscCuthillMcKeeOrdering<TAlgebra, TDomain, ordering_container_type> T;
+		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
+		string name = string("LibDiscCuthillMcKeeOrdering").append(suffix);
+		reg.add_class_<T, TBase>(name, grp, "LibDiscCuthillMcKeeOrdering")
+			.add_constructor()
+			.add_method("set_reverse", &T::set_reverse)
+			.add_method("select_dirichlet_subset", static_cast<void (T::*)(int)>(&T::select_dirichlet_subset))
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "LibDiscCuthillMcKeeOrdering", tag);
+	}
+
 //	River ordering (selected sources + topological ordering)
 	{
 		typedef RiverOrdering<TAlgebra, TDomain, ordering_container_type> T;
@@ -130,8 +142,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "RiverOrdering", tag);
 	}
 
-       /* IO */
 
+       /* IO */
 
 //     GridPointsOrdering
        {
@@ -208,10 +220,6 @@ static void Domain(Registry& reg, string grp)
 		reg.add_function("OrderDownwind", static_cast<void (*)(approximation_space_type&, const char*)>(&ug::OrderDownwind<TDomain>), grp);
         reg.add_function("OrderDownwind", static_cast<void (*)(approximation_space_type&, const char*, number)>(&ug::OrderDownwind<TDomain>), grp);
 #endif
-
-	//OrderDownwindStiff(approx, matrix)
-	reg.add_function("OrderDownwindStiffTest", &OrderDownwindStiff<TDomain>, grp);
-
 	}
 
 }
@@ -260,15 +268,6 @@ static void Algebra(Registry& reg, string grp)
  */
 static void Common(Registry& reg, string grp)
 {
-	typedef std::vector<size_t> ordering_container_type;
-	{
-		typedef LuaOrdering TBase;
-		string name = string("LuaOrdering");
-		reg.add_class_<TBase>(name, grp)
-			.add_constructor()
-			.set_construct_as_smart_pointer(true);
-		//reg.add_class_to_group(name, "LuaOrdering", tag);
-	}
 }
 
 }; // end Functionality
@@ -285,7 +284,7 @@ void RegisterBridge_Ordering(Registry& reg, string grp)
 	typedef Ordering::Functionality Functionality;
 
 	try{
-		RegisterCommon<Functionality>(reg,grp);
+		//RegisterCommon<Functionality>(reg,grp);
 //		RegisterDimensionDependent<Functionality>(reg,grp);
 		RegisterDomainDependent<Functionality>(reg,grp);
 //		RegisterAlgebraDependent<Functionality>(reg,grp);
