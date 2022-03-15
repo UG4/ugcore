@@ -143,10 +143,10 @@ public:
 			}
 		}
 
-		//scc_topo_ordering is now a topological ordering of the scc_g
-
 		O_t scc_topo_ordering(num_components);
 		topological_ordering(scc_topo_ordering, scc_g);
+
+		//scc_topo_ordering is now a topological ordering of scc_g
 
 		o.resize(n);
 
