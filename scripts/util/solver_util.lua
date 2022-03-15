@@ -776,12 +776,15 @@ function util.solver.CreateOrdering(orderingDesc, solverutil)
 	elseif name == "Lex" then
 		ordering = LexOrdering()
 		ordering:set_direction(desc.dir)
-	elseif name == "WeightedCuthillMcKee" then
-		ordering = WeightedCuthillMcKeeOrdering()
-		ordering:select_dirichlet_subset(desc.dirichletSubset)
 	elseif name == "River" then
 		ordering = RiverOrdering()
 		ordering:select_sources(desc.sources)
+	elseif name == "BoostDirichletCuthillMcKee" then
+		ordering = "BoostDirichletCuthillMcKeeOrdering()
+		ordering:select_dirichlet_subset(desc.dirichletSubset)
+	elseif name == "WeightedCuthillMcKee" then
+		ordering = WeightedCuthillMcKeeOrdering()
+		ordering:select_dirichlet_subset(desc.dirichletSubset)
 	end
 
 	util.solver.CondAbort(ordering == nil, "Invalid ordering specified: " .. name)

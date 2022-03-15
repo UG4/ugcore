@@ -48,13 +48,15 @@
 
 namespace ug{
 
+#ifndef GRAPH_T_FOR_CUTHILL_MCKEE
+#define GRAPH_T_FOR_CUTHILL_MCKEE
 /* boost graph type for Cuthill-McKee */
 typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
 	boost::property<boost::vertex_color_t,
 			 boost::default_color_type,
 			 boost::property<boost::vertex_degree_t, int> > >
 				Graph_t;
-
+#endif
 
 template <typename TAlgebra, typename O_t=std::vector<size_t> >
 class BoostCuthillMcKeeOrdering : public IOrderingAlgorithm<TAlgebra, O_t>
@@ -77,8 +79,6 @@ public:
 	}
 
 	void compute(){
-		//std::cout << "graph: " << std::endl; print_graph_unweighted(g); std::cout << "end graph" << std::endl;
-
 		unsigned n = boost::num_vertices(g);
 
 		if(n == 0){
@@ -86,15 +86,15 @@ public:
 			return;
 		}
 
-		boost::property_map<Graph_t, boost::vertex_degree_t>::type deg = get(boost::vertex_degree, g);
-		boost::graph_traits<Graph_t>::vertex_iterator vIt, vEnd;
+		boost::property_map<G_t, boost::vertex_degree_t>::type deg = get(boost::vertex_degree, g);
+		boost::graph_traits<G_t>::vertex_iterator vIt, vEnd;
 		for(boost::tie(vIt, vEnd) = boost::vertices(g); vIt != vEnd; ++vIt){
 			deg[*vIt] = boost::degree(*vIt, g);
 		}
 
-		boost::property_map<Graph_t, boost::vertex_index_t>::type index_map = get(boost::vertex_index, g);
+		boost::property_map<G_t, boost::vertex_index_t>::type index_map = get(boost::vertex_index, g);
 
-		typedef boost::graph_traits<Graph_t>::vertex_descriptor Vertex_t;
+		typedef boost::graph_traits<G_t>::vertex_descriptor Vertex_t;
 		std::vector<Vertex_t> inv_perm(boost::num_vertices(g));
 
 		if(m_bReverse){

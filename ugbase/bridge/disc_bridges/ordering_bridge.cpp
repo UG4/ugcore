@@ -117,17 +117,17 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "WeightedCuthillMcKeeOrdering", tag);
 	}
 
-//	LibDisc Cuthill-McKee ordering
+//	Boost Dirichlet Cuthill-McKee ordering
 	{
-		typedef LibDiscCuthillMcKeeOrdering<TAlgebra, TDomain, ordering_container_type> T;
+		typedef BoostDirichletCuthillMcKeeOrdering<TAlgebra, TDomain, ordering_container_type> T;
 		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
-		string name = string("LibDiscCuthillMcKeeOrdering").append(suffix);
+		string name = string("BoostDirichletCuthillMcKeeOrdering").append(suffix);
 		reg.add_class_<T, TBase>(name, grp, "LibDiscCuthillMcKeeOrdering")
 			.add_constructor()
 			.add_method("set_reverse", &T::set_reverse)
 			.add_method("select_dirichlet_subset", static_cast<void (T::*)(int)>(&T::select_dirichlet_subset))
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "LibDiscCuthillMcKeeOrdering", tag);
+		reg.add_class_to_group(name, "BoostDirichletCuthillMcKeeOrdering", tag);
 	}
 
 //	River ordering (selected sources + topological ordering)
