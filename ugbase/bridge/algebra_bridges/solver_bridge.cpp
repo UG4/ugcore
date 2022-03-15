@@ -52,6 +52,7 @@
 #include "lib_algebra/operator/linear_solver/gmres.h"
 #include "lib_algebra/operator/linear_solver/lu.h"
 #include "lib_algebra/operator/linear_solver/distance_to_boundary_bruteforce.h"
+#include "lib_algebra/operator/linear_solver/distance_to_boundary_bruteforce2.h"
 #include "lib_algebra/operator/linear_solver/agglomerating_solver.h"
 #include "lib_algebra/operator/linear_solver/debug_iterator.h"
 #include "lib_algebra/operator/linear_solver/external_solvers/external_solvers.h"
@@ -355,6 +356,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 //	typedefs for this algebra
 	typedef typename TAlgebra::vector_type vector_type;
 
+	typedef GridFunction<TDomain, TAlgebra> TGridFunction;
+
 // 	DistanceToBoundaryBruteforce
 	{
 		typedef DistanceToBoundaryBruteforce<TAlgebra, TDomain> T;
@@ -362,10 +365,24 @@ static void DomainAlgebra(Registry& reg, string grp)
 		string name = string("DistanceToBoundaryBruteforce").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "DistanceToBoundaryBruteforce")
 			.add_constructor()
-			.add_method("select_inner", static_cast<void (T::*)(int)>(&T::select_inner))
-			.add_method("select_boundary", static_cast<void (T::*)(int)>(&T::select_boundary))
+			.add_method("select_inner", static_cast<void (T::*)(const char*)>(&T::select_inner))
+			.add_method("select_boundary", static_cast<void (T::*)(const char*)>(&T::select_boundary))
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "DistanceToBoundaryBruteforce", tag);
+	}
+
+// 	DistanceToBoundaryBruteforce2
+	{
+		typedef DistanceToBoundaryBruteforce2<TAlgebra, TDomain> T;
+		string name = string("DistanceToBoundaryBruteforce2").append(suffix);
+		reg.add_class_<T>(name, grp, "DistanceToBoundaryBruteforce2")
+			.add_constructor()
+			.add_method("select_inner", static_cast<void (T::*)(const char*)>(&T::select_inner))
+			.add_method("select_boundary", static_cast<void (T::*)(const char*)>(&T::select_boundary))
+			.add_method("init", &T::init)
+			.add_method("solve", &T::solve)
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "DistanceToBoundaryBruteforce2", tag);
 	}
 }
 

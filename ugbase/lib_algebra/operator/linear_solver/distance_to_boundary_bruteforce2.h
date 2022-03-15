@@ -30,8 +30,8 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_SOLVER__DISANCE_TO_BOUNDARY_BRUTEFORCE__
-#define __H__UG__LIB_DISC__OPERATOR__LINEAR_SOLVER__DISANCE_TO_BOUNDARY_BRUTEFORCE__
+#ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_SOLVER__DISANCE_TO_BOUNDARY_BRUTEFORCE_2__
+#define __H__UG__LIB_DISC__OPERATOR__LINEAR_SOLVER__DISANCE_TO_BOUNDARY_BRUTEFORCE_2__
 #include <iostream>
 #include <sstream>
 
@@ -59,8 +59,7 @@
 namespace ug{
 
 template <typename TAlgebra, typename TDomain>
-class DistanceToBoundaryBruteforce
-	: public ILinearOperatorInverse<typename TAlgebra::vector_type, typename TAlgebra::vector_type>
+class DistanceToBoundaryBruteforce2
 {
 	public:
 	///	Vector type
@@ -68,11 +67,6 @@ class DistanceToBoundaryBruteforce
 		typedef typename TAlgebra::matrix_type matrix_type;
 
 		typedef MathVector<TDomain::dim> small_vector_type;
-
-	///	Base type
-		typedef  ILinearOperatorInverse<vector_type, vector_type> base_type;
-
-		using base_type::init;
 
 		/// Grid function type for the solution
 		typedef GridFunction<TDomain, TAlgebra> GridFunc_t;
@@ -82,34 +76,25 @@ class DistanceToBoundaryBruteforce
 		/// Position attachment type
 		typedef typename std::pair<small_vector_type, size_t> Position_t;
 
-	protected:
-		using base_type::convergence_check;
-
 	public:
 	///	constructor
-		DistanceToBoundaryBruteforce() : m_ssBoundaryIdx(-1), m_ssInnerIdx(-1){};
+		DistanceToBoundaryBruteforce2() : m_ssBoundaryIdx(-1), m_ssInnerIdx(-1){};
 
-	///	returns if parallel solving is supported
-		virtual bool supports_parallel() const {return false;}
 
-		const char* name() const {return "DistanceToBoundaryBruteforce";}
+		const char* name() const {return "DistanceToBoundaryBruteforce2";}
 
 	public:
-		bool init_distance_to_boundary_bruteforce()
+		bool init(SmartPtr<GridFunc_t> spGF)
 		{
-			const GridFunc_t* pGridF;
+			m_spGF = spGF;
 
 			try{
-				if((pGridF = dynamic_cast<const GridFunc_t*>(m_pVector)) == 0){
-					UG_THROW(name() << "::init: No DoFDistribution specified.");
-				}
-
-				SmartPtr<DoFDistribution> dd = ((GridFunc_t*) pGridF)->dof_distribution();
+				SmartPtr<DoFDistribution> dd = spGF->dof_distribution();
 
 				m_vDistance = std::vector<number>(dd->num_indices(), 0.0);
 
-				m_ssBoundaryIdx = pGridF->domain()->subset_handler()->get_subset_index(m_ssBoundaryName);
-				m_ssInnerIdx = pGridF->domain()->subset_handler()->get_subset_index(m_ssInnerName);
+				m_ssBoundaryIdx = spGF->domain()->subset_handler()->get_subset_index(m_ssBoundaryName);
+				m_ssInnerIdx = spGF->domain()->subset_handler()->get_subset_index(m_ssInnerName);
 
 				if(m_ssBoundaryIdx < 0)
 					UG_THROW(name() << "::init_distance_to_boundary_bruteforce: Invalid boundary subset chosen! Use 'select_boundary(const char*)'.");
@@ -117,20 +102,21 @@ class DistanceToBoundaryBruteforce
 				if(m_ssInnerIdx < 0)
 					UG_THROW(name() << "::init_distance_to_boundary_bruteforce: Invalid inner subset chosen! Use 'select_inner(const char*)'.");
 
-				ExtractPositions(pGridF->domain(), dd, m_vPositions);
+				ConstSmartPtr<GridFunc_t> gf = spGF;
+				ExtractPositions(gf->domain(), dd, m_vPositions);
 
 			}UG_CATCH_THROW(name() << "::" << __FUNCTION__ << " failed")
 
 			typedef typename GridFunc_t::template traits<ug::Vertex>::const_iterator ugVertIt_t;
 
-			ugVertIt_t ugVertIt = pGridF->template begin<ug::Vertex>();
-			ugVertIt_t ugVertEnd = pGridF->template end<ug::Vertex>();
+			ugVertIt_t ugVertIt = spGF->template begin<ug::Vertex>();
+			ugVertIt_t ugVertEnd = spGF->template end<ug::Vertex>();
 			size_t k = 0;
 
 			for(; ugVertIt != ugVertEnd; ++ugVertIt, ++k){
 				ug::Vertex* v = *ugVertIt;
 
-				int si = pGridF->domain()->subset_handler()->get_subset_index(v);
+				int si = spGF->domain()->subset_handler()->get_subset_index(v);
 
 				if(si == m_ssBoundaryIdx){
 					m_vIdxBnd.push_back(k);
@@ -150,7 +136,7 @@ class DistanceToBoundaryBruteforce
 			return true;
 		}
 
-		bool apply_distance_to_boundary_bruteforce(vector_type &x, const vector_type &b)
+		bool solve()
 		{
 			try{
 
@@ -170,111 +156,18 @@ class DistanceToBoundaryBruteforce
 				}
 			}
 
-			for(size_t i = 0; i < x.size(); ++i){
-				x[i] = m_vDistance[i];
+			std::vector<DoFIndex> ind(1);
+			for(VertexConstIterator iter = m_spGF->template begin<Vertex>(); iter != m_spGF->template end<Vertex>(); ++iter)
+			{
+			//	get vertex
+				Vertex* vrt = *iter;
+
+			//	get vector holding all indices on the vertex
+				m_spGF->inner_dof_indices(vrt, 0, ind);
+				DoFRef(*m_spGF, ind[0]) = m_vDistance[ind[0][0]];
 			}
 
 			}UG_CATCH_THROW(name() << "::" << __FUNCTION__ << " failed")
-			return true;
-		}
-
-	// 	Init for Linear Operator L
-		virtual bool init(SmartPtr<ILinearOperator<vector_type> > L){
-			UG_THROW(name() << "::init: Cannot initialize solver without a geometry. Specify the 2nd argument for init!");
-
-			return false;
-		}
-
-
-	// 	Init for Linear Operator J and Linearization point (current solution)
-		virtual bool init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
-		{
-		//	cast to matrix based operator
-			SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp =
-					J.template cast_dynamic<MatrixOperator<matrix_type, vector_type> >();
-
-		//	Check that matrix if of correct type
-			if(pOp.invalid())
-				UG_THROW(name() << "::init: Passed Operator is "
-						"not based on matrix. This Solver can only "
-						"handle matrix-based operators.");
-
-			m_pVector = &u;
-			m_pMatrix = &pOp->get_matrix();
-
-			base_type::init(pOp);
-
-			if(!init_distance_to_boundary_bruteforce())
-			{
-				UG_LOG(name() << "::init: Cannot init.\n");
-				return false;
-			}
-
-			return true;
-		}
-
-		bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op)
-		{
-			UG_THROW(name() << "::init: Cannot initialize solver without a geometry. Specify the 2nd argument for init!");
-
-			return false;
-		}
-
-	///	Compute u = L^{-1} * f
-		virtual bool apply(vector_type& u, const vector_type& f)
-		{
-			PROFILE_FUNC();
-			convergence_check()->set_symbol('%');
-			convergence_check()->set_name(name());
-
-#ifdef UG_PARALLEL
-			if(!f.has_storage_type(PST_ADDITIVE))
-			{
-				UG_LOG("ERROR: In '" << name() << "::apply': "
-						"Inadequate storage format of Vector f.\n");
-				return false;
-			}
-			if(!u.has_storage_type(PST_CONSISTENT))
-			{
-				UG_LOG("ERROR: In '" << name() << "::apply': "
-						"Inadequate storage format of Vector u.\n");
-				return false;
-			}
-#endif
-			UG_ASSERT(f.size() == u.size(), "Vector sizes have to match!");
-
-			if(!apply_distance_to_boundary_bruteforce(u, f))
-			{
-				UG_LOG("ERROR in '" << name() << "::apply': "
-						"Cannot apply " << name() << ".\n");
-				return false;
-			}
-
-#ifdef UG_PARALLEL
-			// todo: we set solution to consistent here, but that is only true for
-			//			serial case. Handle parallel case.
-			u.set_storage_type(PST_CONSISTENT);
-#endif
-
-		//	we're done
-			return true;
-		}
-
-	/// Compute u = L^{-1} * f AND return defect f := f - L*u
-		virtual bool apply_return_defect(vector_type& u, vector_type& f)
-		{
-		//	solve u
-			if(!apply(u, f)) return false;
-
-		//	update defect
-			if(!m_pMatrix->matmul_minus(f, u))
-			{
-				UG_LOG("ERROR in '" << name() << "::apply_return_defect': "
-						"Cannot apply matmul_minus.\n");
-				return false;
-			}
-
-		//	we're done
 			return true;
 		}
 
@@ -294,12 +187,10 @@ class DistanceToBoundaryBruteforce
 		}
 
 	///	Destructor
-		virtual ~DistanceToBoundaryBruteforce(){};
+		virtual ~DistanceToBoundaryBruteforce2(){};
 
 	protected:
-		const vector_type* m_pVector;
-		const matrix_type* m_pMatrix;
-
+		SmartPtr<GridFunc_t> m_spGF;
 		int m_ssBoundaryIdx;
 		int m_ssInnerIdx;
 		const char* m_ssBoundaryName;
