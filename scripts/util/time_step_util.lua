@@ -185,6 +185,71 @@ function util.PrintUsageOfSolveTimeProblem()
 	print("endTSNo			-- (optional) if passed, stop after the time step with this number.")
 end
 
+-- split from SolveNonlinearTimeProblem below
+function SolveNonlinearTimeProblemParams(
+	u,
+	domainDisc,
+	newtonSolver,
+	out,
+	filename,
+	timeScheme,
+	orderOrTheta,
+	startTime,
+	endTime,
+	maxStepSize,
+	minStepSize,
+	reductionFactor,
+	bFinishTimeStep,
+	useCheckpointing,
+	postProcess,
+	startTSNo,
+	endTSNo,
+	newtonLineSearchFallbacks,
+	additionalFinishedConditions)
+
+	if u == nil then
+		print("SolveNonlinearTimeProblem: Illegal parameters: No grid function for the solution specified.")
+		util.PrintUsageOfSolveTimeProblem()
+		exit()
+	end
+
+	if domainDisc == nil then
+		print("SolveNonlinearTimeProblem: Illegal parameters: No domain discretization specified.")
+		util.PrintUsageOfSolveTimeProblem()
+		exit()
+	end
+
+	if newtonSolver == nil then
+		print("SolveNonlinearTimeProblem: Illegal parameters: No nonlin. solver specified.")
+		util.PrintUsageOfSolveTimeProblem()
+		exit()
+	end
+
+	if timeScheme == nil then
+		print("SolveNonlinearTimeProblem: Illegal parameters: No time scheme specified.")
+		util.PrintUsageOfSolveTimeProblem()
+		exit()
+	end
+
+	if startTime == nil then
+		print("SolveNonlinearTimeProblem: Illegal parameters: Start time not specified.")
+		util.PrintUsageOfSolveTimeProblem()
+		exit()
+	end
+
+	if endTime == nil and endTSNo == nil and (additionalFinishedConditions == nil or #additionalFinishedConditions == 0)  then
+		print("SolveNonlinearTimeProblem: Illegal parameters: End time, number of steps or other finished conditions not specified.")
+		util.PrintUsageOfSolveTimeProblem()
+		exit()
+	end
+
+	if maxStepSize == nil then
+		print("SolveNonlinearTimeProblem: Illegal parameters: No max. time step specified.")
+		util.PrintUsageOfSolveTimeProblem()
+		exit()
+	end
+end
+
 --! Time stepping with a fixed step size. Returns number of time steps done and the last time.
 --! @param u 				[in] GridFunction with Startvalues, [out] Solution"
 --! @param domainDisc		Domain Discretization
@@ -247,47 +312,26 @@ function util.SolveNonlinearTimeProblem(
 	newtonLineSearchFallbacks,
 	additionalFinishedConditions)
 	
-	if u == nil then
-		print("SolveNonlinearTimeProblem: Illegal parameters: No grid function for the solution specified.")
-		util.PrintUsageOfSolveTimeProblem()
-		exit()
-	end
-
-	if domainDisc == nil then
-		print("SolveNonlinearTimeProblem: Illegal parameters: No domain discretization specified.")
-		util.PrintUsageOfSolveTimeProblem()
-		exit()
-	end
-
-	if newtonSolver == nil then
-		print("SolveNonlinearTimeProblem: Illegal parameters: No nonlin. solver specified.")
-		util.PrintUsageOfSolveTimeProblem()
-		exit()
-	end
-
-	if timeScheme == nil then
-		print("SolveNonlinearTimeProblem: Illegal parameters: No time scheme specified.")
-		util.PrintUsageOfSolveTimeProblem()
-		exit()
-	end
-
-	if startTime == nil then
-		print("SolveNonlinearTimeProblem: Illegal parameters: Start time not specified.")
-		util.PrintUsageOfSolveTimeProblem()
-		exit()
-	end
-
-	if endTime == nil and endTSNo == nil and (additionalFinishedConditions == nil or #additionalFinishedConditions == 0)  then
-		print("SolveNonlinearTimeProblem: Illegal parameters: End time, number of steps or other finished conditions not specified.")
-		util.PrintUsageOfSolveTimeProblem()
-		exit()
-	end
-
-	if maxStepSize == nil then
-		print("SolveNonlinearTimeProblem: Illegal parameters: No max. time step specified.")
-		util.PrintUsageOfSolveTimeProblem()
-		exit()
-	end
+	luacpp.SolveNonlinearTimeProblemParams(
+		u,
+		domainDisc,
+		newtonSolver,
+		out,
+		filename,
+		timeScheme,
+		orderOrTheta,
+		startTime,
+		endTime,
+		maxStepSize,
+		minStepSize,
+		reductionFactor,
+		bFinishTimeStep,
+		useCheckpointing,
+		postProcess,
+		startTSNo,
+		endTSNo,
+		newtonLineSearchFallbacks,
+		additionalFinishedConditions)
 	
 	-- attach the given callbacks to a TimeIntegratorSubject
 	-- if this class is transcribed into c++, just inherit from TimeIntegratorSubject and attach the callbacks
