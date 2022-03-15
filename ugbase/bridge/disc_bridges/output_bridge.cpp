@@ -287,9 +287,6 @@ static void Dimension(Registry& reg, string grp)
 			.add_method("set_write_grid", static_cast<void (T::*)(bool)>(&T::set_write_grid))
 			.add_method("set_write_subset_indices", static_cast<void (T::*)(bool)>(&T::set_write_subset_indices))
 			.add_method("set_write_proc_ranks", static_cast<void (T::*)(bool)>(&T::set_write_proc_ranks))
-                       .add_method("set_write_grid_points_ordering", static_cast<void (T::*)(bool)>(&T::set_write_grid_points_ordering))
-                       .add_method("set_write_grid_function_ordering", static_cast<void (T::*)(bool)>(&T::set_write_grid_function_ordering))
-                       .add_method("set_write_sorted_grid_function_ordering", static_cast<void (T::*)(bool)>(&T::set_write_sorted_grid_function_ordering))
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "VTKOutput", tag);
 	}

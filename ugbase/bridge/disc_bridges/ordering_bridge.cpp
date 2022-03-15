@@ -132,9 +132,10 @@ static void DomainAlgebra(Registry& reg, string grp)
 //     SortedGridFunctionOrdering
        {
                typedef SortedGridFunctionOrdering<TDomain, TAlgebra> T;
+               typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TOrdAlgo;
                string name = string("SortedGridFunctionOrdering").append(suffix);
                reg.add_class_<T>(name, grp)
-                       .template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("SortedGridFunctionOrdering")
+                       .template add_constructor<void (*)(SmartPtr<TFct>, SmartPtr<TOrdAlgo>, const char*)>("SortedGridFunctionOrdering")
                        .add_method("get", &T::get)
                        .set_construct_as_smart_pointer(true);
                reg.add_class_to_group(name, "SortedGridFunctionOrdering", tag);

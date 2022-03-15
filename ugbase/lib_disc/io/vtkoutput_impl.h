@@ -51,8 +51,6 @@
 #include "lib_disc/spatial_disc/disc_util/fv_util.h"
 #include "lib_grid/algorithms/debug_util.h"
 
-#include "lib_algebra/algebra_common/permutation_util.h"
-
 #ifdef UG_PARALLEL
 #include "pcl/pcl_base.h"
 #include "lib_algebra/parallelization/parallel_storage_type.h"
@@ -585,7 +583,7 @@ write_grid_solution_piece(VTKFileWriter& File,
 	}
 
 //	write nodal data
-	write_nodal_values_piece(File, u, time, grid, si, dim, numVert, aaVrtIndex);
+	write_nodal_values_piece(File, u, time, grid, si, dim, numVert);
 
 //	write cell data
 	write_cell_values_piece(File, u, time, grid, si, dim, numElem);
@@ -637,7 +635,7 @@ write_grid_solution_piece(VTKFileWriter& File,
 	}
 
 //	write nodal data
-	write_nodal_values_piece(File, u, time, grid, ssGrp, dim, numVert, aaVrtIndex);
+	write_nodal_values_piece(File, u, time, grid, ssGrp, dim, numVert);
 
 //	write cell data
 	write_cell_values_piece(File, u, time, grid, ssGrp, dim, numElem);
@@ -1957,8 +1955,8 @@ write_nodal_values_elementwise(VTKFileWriter& File, TFunction& u,
                                Grid& grid, int si)
 {
 //	get reference element
-	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
-
+	typedef typename reference_element_traits<TElem>::reference_element_type
+																ref_elem_type;
 	if(m_bBinary)
 		File << VTKFileWriter::base64_binary;
 	else
@@ -2118,7 +2116,7 @@ template <int TDim>
 template <typename TFunction>
 void VTKOutput<TDim>::
 write_nodal_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& grid,
-                         int si, int dim, int numVert, Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex)
+                         int si, int dim, int numVert)
 {
 	if(!m_vSymbFct.empty()){
 		for(std::map<std::string, std::vector<std::string> >::const_iterator iter =
@@ -2147,70 +2145,6 @@ write_nodal_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& g
 //	write opening tag to indicate point data
 	File << VTKFileWriter::normal;
 	File << "      <PointData>\n";
-
-	if(m_bWriteGridPointsOrdering){
-		File << VTKFileWriter::normal;
-		File << "<DataArray type=\"Float32\" Name=\"ordering: grid points\" NumberOfComponents=\"3\" format=\"ascii\">\n";
-		File << VTKFileWriter::normal;
-
-		for(int k = 0; k < numVert; ++k)
-		{
-			File << 0 << ' ';
-			File << 0 << ' ';
-			File << k << ' ';
-		}
-
-		File << "\n</DataArray>\n";
-	}
-
-	std::vector<size_t> index(numVert);
-	std::vector<size_t> invIndex(numVert);
-
-	if(m_bWriteGridFunctionOrdering || m_bWriteSortedGridFunctionOrdering){
-		typedef typename IteratorProvider<TFunction>::template traits<ug::Vertex>::const_iterator const_iterator;
-		const_iterator iterBegin = IteratorProvider<TFunction>::template begin<ug::Vertex>(u, si);
-		const_iterator iterEnd = IteratorProvider<TFunction>::template end<ug::Vertex>(u, si);
-
-		size_t k = 0;
-		for( ; iterBegin != iterEnd; ++iterBegin, ++k)
-		{
-			ug::Vertex* v = *iterBegin;
-			index[k] = aaVrtIndex[v];
-		}
-
-		GetInversePermutation(index, invIndex);
-	}
-
-	if(m_bWriteGridFunctionOrdering){
-		File << VTKFileWriter::normal;
-		File << "<DataArray type=\"Float32\" Name=\"ordering: grid function\" NumberOfComponents=\"3\" format=\"ascii\">\n";
-		File << VTKFileWriter::normal;
-
-		for(int k = 0; k < numVert; ++k)
-		{
-			File << 0 << ' ';
-			File << 0 << ' ';
-			File << invIndex[k] << ' ';
-		}
-
-		File << "\n</DataArray>\n";
-	}
-
-	if(m_bWriteSortedGridFunctionOrdering){
-		File << VTKFileWriter::normal;
-		File << "<DataArray type=\"Float32\" Name=\"ordering: sorted grid function\" NumberOfComponents=\"3\" format=\"ascii\">\n";
-		File << VTKFileWriter::normal;
-
-		for(int k = 0; k < numVert; ++k)
-		{
-			File << 0 << ' ';
-			File << 0 << ' ';
-			File << 0 << ' ';
-			//File << m_spLuaOrdering->ordering[invIndex[k]] << ' ';
-		}
-
-		File << "\n</DataArray>\n";
-	}
 
 //	loop all selected symbolic names
 	for(std::map<std::string, std::vector<std::string> >::const_iterator iter =
@@ -2281,7 +2215,7 @@ template <int TDim>
 template <typename TFunction>
 void VTKOutput<TDim>::
 write_nodal_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& grid,
-                         SubsetGroup& ssGrp, int dim, int numVert, Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex)
+                         SubsetGroup& ssGrp, int dim, int numVert)
 {
 	if(!m_vSymbFct.empty()){
 		for(std::map<std::string, std::vector<std::string> >::const_iterator iter =
