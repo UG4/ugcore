@@ -103,7 +103,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		string name = string("RiverOrdering").append(suffix);
 		reg.add_class_<T, TBase>(name, grp, "RiverOrdering")
 			.add_constructor()
-			.add_method("select_sources", static_cast<void (T::*)(int)>(&T::select_sources))
+			.add_method("select_sources", static_cast<void (T::*)(const char*)>(&T::select_sources))
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "RiverOrdering", tag);
 	}
