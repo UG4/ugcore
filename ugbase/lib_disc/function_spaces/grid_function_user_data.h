@@ -69,8 +69,15 @@ class GridFunctionNumberData
 	public:
 		/// constructor
 		GridFunctionNumberData(SmartPtr<TGridFunction> spGridFct, const char* cmp)
-		: m_spGridFct(spGridFct)
 		{
+			assign(spGridFct, cmp);
+		}
+
+		GridFunctionNumberData(){}
+
+		void assign(SmartPtr<TGridFunction> spGridFct, const char* cmp)
+		{
+			m_spGridFct = spGridFct;
 			this->set_functions(cmp);
 
 			//	get function id of name
@@ -83,7 +90,7 @@ class GridFunctionNumberData
 
 			//	local finite element id
 			m_lfeID = spGridFct->local_finite_element_id(m_fct);
-		};
+		}
 
 		void set(SmartPtr<TGridFunction> spGridFct, const char* cmp){
 			this->set_functions(cmp);

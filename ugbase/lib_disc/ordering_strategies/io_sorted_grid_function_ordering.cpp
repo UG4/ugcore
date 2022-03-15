@@ -34,203 +34,48 @@
 #include "lib_disc/domain.h"
 #include "lib_disc/function_spaces/grid_function.h"
 
+#include "lib_disc/ordering_strategies/algorithms/ordering_algorithms.cpp"
+
 namespace ug{
 
 template <typename TDomain, typename TAlgebra>
 class SortedGridFunctionOrdering
 {
 	typedef GridFunction<TDomain, TAlgebra> TGridFunction;
+	typedef GridFunctionNumberData<GridFunction<TDomain, TAlgebra> > TGridFunctionNumberData;
+
+	typedef std::vector<size_t> ordering_container_type;
+	typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> ordering_algo_type;
+
+	typedef typename TGridFunction::template traits<Vertex>::const_iterator VertexConstIterator;
+
 public:
-	SortedGridFunctionOrdering(SmartPtr<TGridFunction> spGridFct, const char* name)
+	SortedGridFunctionOrdering(SmartPtr<TGridFunction> spGridFct, SmartPtr<ordering_algo_type> spOrdAlgo, const char* name)
 	{
-		u = spGridFct->clone_without_values();
-		auto v = getVector(u);
-		//v[1] = 0;
-	}
+		m_u = spGridFct->clone_without_values();
+		m_name = name;
+		ordering_container_type &o = spOrdAlgo->ordering();
 
-	template <typename TElem>
-	void count_sizes(Grid &grid, const TGridFunction &u, int si,
-		    int& numVert, int& numElem, int& numConn)
-	{
-	//	get reference element
-		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
-
-	//	number of corners of element
-		static const int numCo = ref_elem_type::numCorners;
-
-	//	get iterators
-		typedef typename IteratorProvider<TGridFunction>::template traits<TElem>::const_iterator const_iterator;
-		const_iterator iterBegin = IteratorProvider<TGridFunction>::template begin<TElem>(u, si);
-		const_iterator iterEnd = IteratorProvider<TGridFunction>::template end<TElem>(u, si);
-
-	//	loop elements
-		for( ; iterBegin != iterEnd; ++iterBegin)
+		std::vector<DoFIndex> ind(1);
+		size_t k = 0;
+		for(VertexConstIterator iter = m_u->template begin<Vertex>(); iter != m_u->template end<Vertex>(); ++iter)
 		{
-		//	get the element
-			TElem *elem = *iterBegin;
+		//	get vertex
+			Vertex* vrt = *iter;
 
-		//	count number of elements and number of connections;
-		//	handle octahedrons separately by splitting into a top and bottom pyramid
-			if(ref_elem_type::REFERENCE_OBJECT_ID != ROID_OCTAHEDRON)
-			{
-				++numElem;
-				numConn += numCo;
-			}
-			else
-			{
-			// 	counting top and bottom pyramid
-				numElem += 2;
-				numConn += 10;
-			}
-
-		//	loop vertices of the element
-			for(int i = 0; i < numCo; ++i)
-			{
-			//	get vertex of the element
-				Vertex* v = GetVertex(elem,i);
-
-			//	if this vertex has already been counted, skip it
-				if(grid.is_marked(v)) continue;
-
-			// count vertex and mark it
-				++numVert;
-				grid.mark(v);
-			}
+		//	get vector holding all indices on the vertex
+			m_u->inner_dof_indices(vrt, 0, ind);
+			DoFRef(*m_u, ind[0]) = o[k++];
 		}
 	}
 
-
-	template <typename TElem>
-	void number_points_elementwise(Grid::VertexAttachmentAccessor<Attachment<int> > &aaVrtIndex,
-		                 Grid &grid, const TGridFunction &u, int si, int& n)
-	{
-	//	get reference element
-		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
-	//	get iterators
-		typedef typename IteratorProvider<TGridFunction>::template traits<TElem>::const_iterator const_iterator;
-		const_iterator iterBegin = IteratorProvider<TGridFunction>::template begin<TElem>(u, si);
-		const_iterator iterEnd = IteratorProvider<TGridFunction>::template end<TElem>(u, si);
-
-	//	loop all elements of the subset
-		for( ; iterBegin != iterEnd; ++iterBegin)
-		{
-		//	get the element
-			TElem *elem = *iterBegin;
-
-		//	loop vertices of the element
-			for(size_t i = 0; i < (size_t) ref_elem_type::numCorners; ++i)
-			{
-			//	get vertex of element
-				Vertex* v = GetVertex(elem, i);
-
-			//	if vertex has already be handled, skip it
-				if(grid.is_marked(v)) continue;
-
-			//	mark the vertex as processed
-				grid.mark(v);
-
-			//	number vertex
-				aaVrtIndex[v] = n++;
-			}
-		}
+	SmartPtr<TGridFunctionNumberData> get(){
+		return SmartPtr<TGridFunctionNumberData>(new TGridFunctionNumberData(m_u, m_name));
 	}
-
-	void create_vtkoutput_ordering(){
-//		check functions
-		bool bEverywhere = true;
-		for(size_t fct = 0; fct < u.num_fct(); ++fct)
-		{
-		//	check if function is defined everywhere
-			if(!u.is_def_everywhere(fct)){
-				bEverywhere = false;
-				UG_THROW("only serial case implemented!");
-			}
-		}
-
-//		get the grid associated to the solution
-		Grid& grid = *u.domain()->grid();
-
-// 		attach help indices
-		typedef ug::Attachment<int> AVrtIndex;
-		AVrtIndex aVrtIndex;
-		Grid::VertexAttachmentAccessor<AVrtIndex> aaVrtIndex;
-		grid.attach_to_vertices(aVrtIndex);
-		aaVrtIndex.access(grid, aVrtIndex);
-
-		int dim = DimensionOfSubsets(*u.domain()->subset_handler());
-
-//		counters
-		int numVert = 0, numElem = 0, numConn = 0;
-
-		int si = -1;
-
-// 		Count needed sizes for vertices, elements and connections
-		try{
-//			reset all marks
-			grid.begin_marking();
-
-//			switch dimension
-			switch(dim)
-			{
-				case 0: count_sizes<Vertex>(grid, u, si, numVert, numElem, numConn); break;
-				case 1: count_sizes<RegularEdge>(grid, u, si, numVert, numElem, numConn);
-						count_sizes<ConstrainingEdge>(grid, u, si, numVert, numElem, numConn); break;
-				case 2: count_sizes<Triangle>(grid, u, si, numVert, numElem, numConn);
-						count_sizes<Quadrilateral>(grid, u, si, numVert, numElem, numConn);
-						count_sizes<ConstrainingTriangle>(grid, u, si, numVert, numElem, numConn);
-						count_sizes<ConstrainingQuadrilateral>(grid, u, si, numVert, numElem, numConn); break;
-				case 3: count_sizes<Tetrahedron>(grid, u, si, numVert, numElem, numConn);
-						count_sizes<Pyramid>(grid, u, si, numVert, numElem, numConn);
-						count_sizes<Prism>(grid, u, si, numVert, numElem, numConn);
-						count_sizes<Octahedron>(grid, u, si, numVert, numElem, numConn);
-						count_sizes<Hexahedron>(grid, u, si, numVert, numElem, numConn); break;
-				default: UG_THROW(name() << "::create_vtkoutput_ordering: Dimension " << dim << " is not supported.");
-			}
-
-//			signal end of marking
-			grid.end_marking();
-		}
-		UG_CATCH_THROW(name() << "::create_vtkoutput_ordering: Can not count piece sizes.");
-
-
-		MGSubsetHandler& sh = *u.domain()->subset_handler();
-
-//		write grid
-		int n = 0;
-
-//		start marking of vertices
-		grid.begin_marking();
-
-//		switch dimension
-		if(numVert > 0){
-			switch(dim){
-				case 0: number_points_elementwise<Vertex>(aaVrtIndex, grid, u, si, n); break;
-				case 1: number_points_elementwise<RegularEdge>(aaVrtIndex, grid, u, si, n);
-					number_points_elementwise<ConstrainingEdge>(aaVrtIndex, grid, u, si, n); break;
-				case 2: number_points_elementwise<Triangle>(aaVrtIndex, grid, u, si, n);
-					number_points_elementwise<Quadrilateral>(aaVrtIndex, grid, u, si, n);
-					number_points_elementwise<ConstrainingTriangle>(aaVrtIndex, grid, u, si, n);
-					number_points_elementwise<ConstrainingQuadrilateral>(aaVrtIndex, grid, u, si, n); break;
-				case 3: number_points_elementwise<Tetrahedron>(aaVrtIndex, grid, u, si, n);
-					number_points_elementwise<Pyramid>(aaVrtIndex, grid, u, si, n);
-					number_points_elementwise<Prism>(aaVrtIndex, grid, u, si, n);
-					number_points_elementwise<Octahedron>(aaVrtIndex, grid, u, si, n);
-					number_points_elementwise<Hexahedron>(aaVrtIndex, grid, u, si, n); break;
-				default: UG_THROW(name() << "::create_vtkoutput_ordering: Dimension " << dim << " is not supported.");
-			}
-		}
-//		signal end of marking the grid
-		grid.end_marking();
-	}
-
-	SmartPtr<TGridFunction> get(){
-		return u;
-	}
-
-	const char* name() const {return "SortedGridFunctionOrdering";}
 
 private:
-	SmartPtr<TGridFunction> u;
+	SmartPtr<TGridFunction> m_u;
+	const char* m_name;
 };
 
 } //namespace
