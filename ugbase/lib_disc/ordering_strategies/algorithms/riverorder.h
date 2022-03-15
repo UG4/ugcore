@@ -154,7 +154,7 @@ public:
 			m_ssIdx = pGridF->domain()->subset_handler()->get_subset_index(m_ssName);
 
 			if(m_ssIdx < 0)
-				UG_THROW(name() << "::init: No subset for sources selected! Call 'select_sources(int)'.");
+				UG_THROW(name() << "::init: Invalid subset for sources selected! Call 'select_sources(const char*)'.");
 
 			std::vector<std::vector<size_t> > vvConnection(n);
 			try{
