@@ -62,29 +62,6 @@ void NumeriereKnoten(const std::vector<std::vector<size_t> > &vvConnections,
 	}
 }
 
-// Numbers vertices based on coupling in stiffness matrix.
-void NumberVertices(const std::vector<std::vector<size_t> >& vvConnections,
-					std::vector<bool>&   vVisited,
-					std::vector<size_t>& vAncestorsCount,
-					std::vector<size_t>& vNewIndex,
-					size_t& N, size_t v){
-	vVisited[v] = true;
-	vNewIndex[v] = N;
-	N++;
-	const std::vector<size_t> connections = vvConnections[v];
-	std::vector<size_t>::const_iterator AdjacencIter;
-	for(AdjacencIter = connections.begin();
-					AdjacencIter != connections.end(); ++AdjacencIter){
-		vAncestorsCount[*AdjacencIter]--;
-		if(vAncestorsCount[*AdjacencIter] == 0)
-			NumberVertices(vvConnections,
-						   vVisited,
-						   vAncestorsCount,
-						   vNewIndex,
-						   N, *AdjacencIter);
-	}
-}
-
 // Calculates Downwind-Numbering for one DofDistribution only.
 template <typename TDomain>
 void OrderDownwindForDofDist(SmartPtr<DoFDistribution> dd, ConstSmartPtr<TDomain> domain,
