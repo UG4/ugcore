@@ -89,6 +89,18 @@ static void Algebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "IOrderingAlgorithm", tag);
 	}
 
+	{
+		typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
+			boost::property<boost::vertex_color_t,
+			boost::default_color_type,
+			boost::property<boost::vertex_degree_t, int> > > G_t;
+		//typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS> G_t;
+		typedef IOrderingPreprocessor<TAlgebra, G_t> TBase;
+		string name = string("IOrderingPreprocessor").append(suffix);
+		reg.add_class_<TBase>(name, grp);
+		reg.add_class_to_group(name, "IOrderingPreprocessor", tag);
+	}
+
 //	Boost Cuthill McKee
 	{
 		typedef BoostCuthillMcKeeOrdering<TAlgebra, ordering_container_type> T;
@@ -97,6 +109,7 @@ static void Algebra(Registry& reg, string grp)
 		reg.add_class_<T, TBase>(name, grp, "BoostCuthillMcKeeOrdering")
 			.add_constructor()
 			.add_method("set_reverse", &T::set_reverse)
+			.add_method("set_preprocessor", &T::set_preprocessor)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "BoostCuthillMcKeeOrdering", tag);
 	}

@@ -1,7 +1,9 @@
-#include "lexorder.h"
-#include "downwindorder.h"
+#include "angle_preprocessor.cpp"
 
+#include "lexorder.h"
 #include "riverorder.h"
+
+#include "downwindorder.h"
 
 #include "weighted_cuthill_mckee_ordering.cpp"
 #include "boost_dirichlet_cuthill_mckee_ordering.cpp"
