@@ -120,10 +120,11 @@ public:
 				for(boost::tie(nIt, nEnd) = boost::adjacent_vertices(*vIt, *g); nIt != nEnd; ++nIt){
 					t = *nIt;
 					pos_t = m_vPositions.at(t).first;
-					VecSubtract(dir_st, pos_s, pos_t);
+					VecSubtract(dir_st, pos_t, pos_s);
 
 					angle = VecAngle(dir_st, vel_s);
-					if(angle > m_threshold){
+					if(angle > m_threshold && PI-angle > m_threshold){
+						UG_LOG("remove edge " << pos_s << " -> " << pos_t << ", vel: " << vel_s << ", dir: " << dir_st << ", angle: " << angle << "\n")
 						boost::remove_edge(s, t, *g);
 						++numRemoved;
 					}
