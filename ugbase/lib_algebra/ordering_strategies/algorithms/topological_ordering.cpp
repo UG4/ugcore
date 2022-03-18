@@ -39,7 +39,6 @@
 
 #include <vector>
 #include <utility> //for pair
-#include <climits> //INT_MAX
 
 #include "IOrderingAlgorithm.h"
 #include "util.cpp"
@@ -77,7 +76,7 @@ public:
 
 	indegs_t min_indegree_vertex(){
 		vd_t minv;
-		int mind = INT_MAX;
+		int mind = boost::num_vertices(g);;
 		vIt_t vIt, vEnd;
 		for(boost::tie(vIt, vEnd) = boost::vertices(g); vIt != vEnd; ++vIt){
 			int d = indegs[*vIt];
@@ -128,14 +127,6 @@ public:
 		#endif
 	}
 
-	void check(){
-		UG_COND_THROW(!is_permutation(o), name() << "::check: Not a permutation!");
-	}
-
-	O_t& ordering(){
-		return o;
-	}
-
 	void init(M_t* A, const V_t&){
 		init(A);
 	}
@@ -154,8 +145,8 @@ public:
 
 		for(unsigned i = 0; i < rows; i++){
 			for(typename M_t::row_iterator conn = A->begin_row(i); conn != A->end_row(i); ++conn){
-				if(conn.value() != 0.0 && conn.index() != i){ //TODO: think about this!!
-					boost::add_edge(i, conn.index(), g);
+				if(conn.value() != 0.0 && conn.index() != i){
+					boost::add_edge(conn.index(), i, g);
 				}
 			}
 		}
@@ -167,6 +158,14 @@ public:
 
 	void init(M_t*, const O_t&){
 		UG_THROW(name() << "::init: Algorithm does not support induced subgraph version!");
+	}
+
+	void check(){
+		UG_COND_THROW(!is_permutation(o), name() << "::check: Not a permutation!");
+	}
+
+	O_t& ordering(){
+		return o;
 	}
 
 	virtual const char* name() const {return "TopologicalOrdering";}
