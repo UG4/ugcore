@@ -92,6 +92,9 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 	typedef ug::GridFunction<TDomain, TAlgebra> TFct;
 
+	typedef SmartPtr<UserData<MathVector<TDomain::dim>, TDomain::dim> > TSpUserData;
+	typedef MathVector<TDomain::dim> small_vec_t;
+
 //	Lexicographic ordering
 	{
 		typedef LexOrdering<TAlgebra, TDomain, ordering_container_type> T;
@@ -130,54 +133,68 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "BoostDirichletCuthillMcKeeOrdering", tag);
 	}
 
-//	River ordering (selected sources + topological ordering)
+//	River ordering (topological ordering beginning at selected sources)
 	{
 		typedef RiverOrdering<TAlgebra, TDomain, ordering_container_type> T;
 		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
 		string name = string("RiverOrdering").append(suffix);
 		reg.add_class_<T, TBase>(name, grp, "RiverOrdering")
 			.add_constructor()
-			.add_method("select_sources", static_cast<void (T::*)(int)>(&T::select_sources))
+			.add_method("select_sources", static_cast<void (T::*)(const char*)>(&T::select_sources))
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "RiverOrdering", tag);
 	}
 
+//	Directional ordering
+	{
+		typedef DirectionalOrdering<TAlgebra, TDomain, ordering_container_type> T;
+		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
+		string name = string("DirectionalOrdering").append(suffix);
+		reg.add_class_<T, TBase>(name, grp, "DirectionalOrdering")
+			.add_constructor()
+			//.add_method("set_direction", static_cast<void (T::*)(const char*)>(&T::set_direction))
+			//.add_method("set_direction", static_cast<void (T::*)(TSpUserData)>(&T::set_direction))
+			.add_method("set_direction", static_cast<void (T::*)(small_vec_t*)>(&T::set_direction))
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "DirectionalOrdering", tag);
+	}
 
-       /* IO */
 
-//     GridPointsOrdering
-       {
-               typedef GridPointsOrdering<TDomain, TAlgebra> T;
-               string name = string("GridPointsOrdering").append(suffix);
-               reg.add_class_<T>(name, grp)
-                       .template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridPointsOrdering")
-                       .add_method("get", &T::get)
-                       .set_construct_as_smart_pointer(true);
-               reg.add_class_to_group(name, "GridPointsOrdering", tag);
-       }
+	/* IO */
 
-//     GridFunctionOrdering
-       {
-               typedef GridFunctionOrdering<TDomain, TAlgebra> T;
-               string name = string("GridFunctionOrdering").append(suffix);
-               reg.add_class_<T>(name, grp)
-                       .template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridFunctionOrdering")
-                       .add_method("get", &T::get)
-                       .set_construct_as_smart_pointer(true);
-               reg.add_class_to_group(name, "GridFunctionOrdering", tag);
-       }
+//	GridPointsOrdering
+	{
+		typedef GridPointsOrdering<TDomain, TAlgebra> T;
+		string name = string("GridPointsOrdering").append(suffix);
+		reg.add_class_<T>(name, grp)
+			.template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridPointsOrdering")
+			.add_method("get", &T::get)
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "GridPointsOrdering", tag);
+	}
 
-//     SortedGridFunctionOrdering
-       {
-               typedef SortedGridFunctionOrdering<TDomain, TAlgebra> T;
-               typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TOrdAlgo;
-               string name = string("SortedGridFunctionOrdering").append(suffix);
-               reg.add_class_<T>(name, grp)
-                       .template add_constructor<void (*)(SmartPtr<TFct>, SmartPtr<TOrdAlgo>, const char*)>("SortedGridFunctionOrdering")
-                       .add_method("get", &T::get)
-                       .set_construct_as_smart_pointer(true);
-               reg.add_class_to_group(name, "SortedGridFunctionOrdering", tag);
-       }
+//	GridFunctionOrdering
+	{
+		typedef GridFunctionOrdering<TDomain, TAlgebra> T;
+		string name = string("GridFunctionOrdering").append(suffix);
+		reg.add_class_<T>(name, grp)
+			.template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridFunctionOrdering")
+			.add_method("get", &T::get)
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "GridFunctionOrdering", tag);
+	}
+
+//	SortedGridFunctionOrdering
+	{
+		typedef SortedGridFunctionOrdering<TDomain, TAlgebra> T;
+		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TOrdAlgo;
+		string name = string("SortedGridFunctionOrdering").append(suffix);
+		reg.add_class_<T>(name, grp)
+			.template add_constructor<void (*)(SmartPtr<TFct>, SmartPtr<TOrdAlgo>, const char*)>("SortedGridFunctionOrdering")
+			.add_method("get", &T::get)
+			.set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, "SortedGridFunctionOrdering", tag);
+	}
 }
 
 /**
