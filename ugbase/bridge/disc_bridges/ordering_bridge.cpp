@@ -157,18 +157,6 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "FollowConvectionOrdering", tag);
 	}
 
-//	ConstConvection ordering
-	{
-		typedef ConstConvectionOrdering<TAlgebra, TDomain, ordering_container_type> T;
-		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
-		string name = string("ConstConvectionOrdering").append(suffix);
-		reg.add_class_<T, TBase>(name, grp, "ConstConvectionOrdering")
-			.add_constructor()
-			.add_method("set_velocity", static_cast<void (T::*)(const char*)>(&T::set_velocity))
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "ConstConvectionOrdering", tag);
-	}
-
 
 	/* Preprocessor */
 
