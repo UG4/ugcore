@@ -128,20 +128,6 @@ public:
 						boost::remove_edge(s, t, *g);
 						++numRemoved;
 					}
-
-
-/*
-				for(boost::tie(nIt, nEnd) = boost::adjacent_vertices(*vIt, g); nIt != nEnd; ++nIt){
-					t = *nIt;
-					pos_t = m_vPositions.at(t).first;
-					VecSubtract(dir_st, pos_s, pos_t);
-
-					angle = VecAngle(dir_st, vel_s);
-					if(angle > threshold){
-						boost::remove_edge(s, t, g);
-						++numRemoved;
-					}
-*/
 				}
 			}
 			else{

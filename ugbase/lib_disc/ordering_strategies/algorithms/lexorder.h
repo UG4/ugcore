@@ -148,8 +148,6 @@ public:
 					UG_THROW(name() << "::compute: Invalid token in direction string, valid tokens: +, -, x, y, z");
 			}
 		}
-
-		mat = NULL;
 	}
 
 	void init(M_t* A, const V_t& V){
@@ -181,8 +179,6 @@ public:
 		#ifdef UG_ENABLE_DEBUG_LOGS
 		UG_LOG("Using " << name() << " in " << m_dir << " direction\n");
 		#endif
-
-		mat = A;
 	}
 
 	void init(M_t*){
@@ -215,7 +211,6 @@ public:
 
 private:
 	O_t o;
-	M_t* mat;
 
 	const char *m_dir;
 	std::vector<Position_t> m_vPositions;
