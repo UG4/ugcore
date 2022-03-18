@@ -97,7 +97,7 @@ public:
 		small_vec_t pos;
 		for(size_t i = 0; i < m_vPositions.size(); ++i){
 			pos = m_vPositions[i].first;
-			m_vScalars[i].first = pos*m_dir; //scalar product
+			m_vScalars[i].first = pos*(*m_dir); //scalar product
 			m_vScalars[i].second = m_vPositions[i].second;
 		}
 
@@ -140,10 +140,10 @@ public:
 		pos = m_vPositions.at(0).first; //choose first occuring node
 
 		//call lua function, store velocity in node with index 0 in m_dir
-		(*m_spVelocity)(m_dir, pos, 0.0f, 0);
+		(*m_spVelocity)(*m_dir, pos, 0.0f, 0);
 
 		#ifdef UG_ENABLE_DEBUG_LOGS
-		UG_LOG("Using " << name() << " (direction " << m_dir << ")\n");
+		UG_LOG("Using " << name() << " (direction " << *m_dir << ")\n");
 		#endif
 	}
 
@@ -169,17 +169,16 @@ public:
 		return o;
 	}
 
-
+/*
 	void set_direction(const char* strVelocity){
 		m_spVelocity = make_sp(new LuaUserData<MathVector<TDomain::dim>, TDomain::dim>(strVelocity));
 	}
-
-/*
-	//TODO: small_vec_t
-	void set_direction(TSpUserData dir){
-		m_dir = *dir;
-	}
 */
+
+	//TODO: small_vec_t
+	void set_direction(small_vec_t *dir){
+		m_dir = dir;
+	}
 
 	virtual const char* name() const {return "DirectionalOrdering";}
 
@@ -187,7 +186,7 @@ private:
 	O_t o;
 
 	SmartPtr<Velocity_t> m_spVelocity;
-	small_vec_t m_dir;
+	small_vec_t *m_dir;
 
 	std::vector<Position_t> m_vPositions;
 	std::vector<Scalar_t> m_vScalars;

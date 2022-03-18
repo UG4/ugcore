@@ -93,6 +93,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 	typedef ug::GridFunction<TDomain, TAlgebra> TFct;
 
 	typedef SmartPtr<UserData<MathVector<TDomain::dim>, TDomain::dim> > TSpUserData;
+	typedef MathVector<TDomain::dim> small_vec_t;
 
 //	Lexicographic ordering
 	{
@@ -125,8 +126,9 @@ static void DomainAlgebra(Registry& reg, string grp)
 		string name = string("DirectionalOrdering").append(suffix);
 		reg.add_class_<T, TBase>(name, grp, "DirectionalOrdering")
 			.add_constructor()
-			.add_method("set_direction", static_cast<void (T::*)(const char*)>(&T::set_direction))
+			//.add_method("set_direction", static_cast<void (T::*)(const char*)>(&T::set_direction))
 			//.add_method("set_direction", static_cast<void (T::*)(TSpUserData)>(&T::set_direction))
+			.add_method("set_direction", static_cast<void (T::*)(small_vec_t*)>(&T::set_direction))
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "DirectionalOrdering", tag);
 	}
