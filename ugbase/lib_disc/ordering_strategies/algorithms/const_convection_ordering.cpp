@@ -172,7 +172,7 @@ public:
 		m_spVelocity = make_sp(new LuaUserData<MathVector<TDomain::dim>, TDomain::dim>(strVelocity));
 	}
 
-	virtual const char* name() const {return "FollowConvectionOrdering";}
+	virtual const char* name() const {return "ConstConvectionOrdering";}
 
 private:
 	O_t o;
