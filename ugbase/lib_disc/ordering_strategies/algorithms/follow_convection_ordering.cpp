@@ -37,7 +37,7 @@
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/properties.hpp>
 
-#include <boost/graph/cuthill_mckee_ordering.hpp>
+#include <boost/graph/dijkstra_shortest_paths.hpp> //TODO: remove if not used
 
 #include <set>
 #include <algorithm> //reverse
@@ -58,6 +58,22 @@
 
 namespace ug{
 
+bool CompareScalar(const std::pair<number, size_t> &p1,
+		const std::pair<number, size_t> &p2)
+{
+	return p1.first<p2.first;
+}
+
+//for sorting
+struct Blo{
+	size_t v;
+	number w;
+};
+
+bool compBlo(Blo a, Blo b){
+	return a.w < b.w;
+}
+
 template <typename TAlgebra, typename TDomain, typename O_t>
 class FollowConvectionOrdering : public IOrderingAlgorithm<TAlgebra, O_t>
 {
@@ -66,9 +82,11 @@ public:
 	typedef typename TAlgebra::vector_type V_t;
 	typedef IOrderingAlgorithm<TAlgebra, O_t> baseclass;
 
-	typedef typename std::pair<MathVector<TDomain::dim>, size_t> Position_t;
 	typedef MathVector<TDomain::dim> small_vec_t;
 	typedef GridFunction<TDomain, TAlgebra> GridFunc_t;
+
+	typedef typename std::pair<MathVector<TDomain::dim>, size_t> Position_t;
+	typedef typename std::pair<number, size_t> Scalar_t;
 	typedef UserData<MathVector<TDomain::dim>, TDomain::dim> Velocity_t;
 
 	typedef boost::property<boost::edge_weight_t, double> EdgeWeightProperty; //TODO: number
@@ -115,6 +133,7 @@ public:
 		small_vec_t pos_s, pos_t, vel_s, dir_st;
 		edge_t edge;
 		number angle;
+		number prod;
 		for(boost::tie(vIt, vEnd) = boost::vertices(g); vIt != vEnd; ++vIt){
 			s = *vIt;
 			pos_s = m_vPositions.at(s).first;
@@ -128,11 +147,16 @@ public:
 					pos_t = m_vPositions.at(t).first;
 					VecSubtract(dir_st, pos_t, pos_s);
 					angle = VecAngle(dir_st, vel_s);
+					//prod = dir_st*vel_s;
+
+					UG_LOG("prod: " << prod << "\n");
 
 					edge = boost::edge(s, t, g);
-					boost::put(boost::edge_weight_t(), g, edge.first, angle);
+					//boost::put(boost::edge_weight_t(), g, edge.first, prod);
+					//boost::put(boost::edge_weight_t(), g, edge.first, angle);
+					boost::put(boost::edge_weight_t(), g, edge.first, VecLength(dir_st));
 
-					UG_LOG("edge " << pos_s << " -> " << pos_t << ", w= " << angle << "\n");
+					//UG_LOG("edge " << pos_s << " -> " << pos_t << ", w= " << angle << "\n");
 				}
 			}
 			else{
@@ -145,6 +169,73 @@ public:
 			}
 		}
 
+
+		//find start vertices
+		m_vScalars.resize(m_vPositions.size());
+		small_vec_t pos;
+		small_vec_t vel;
+		(*m_spVelocity)(vel, m_vPositions[0].first, 0.0f, 0); //TODO: this assumes vel is constant!
+
+		for(size_t i = 0; i < m_vPositions.size(); ++i){
+			pos = m_vPositions[i].first;
+			m_vScalars[i].first = pos*vel; //scalar product
+			m_vScalars[i].second = m_vPositions[i].second;
+		}
+
+		std::sort(m_vScalars.begin(), m_vScalars.end(), CompareScalar);
+
+		number min_w = m_vScalars[0].first;
+		size_t min_v;
+
+		s = boost::add_vertex(g);
+
+		for(size_t i = 0; i < m_vScalars.size(); ++i){
+			if(m_vScalars[i].first > min_w){
+				break;
+			}
+
+			min_v = m_vScalars[i].second;
+
+			boost::add_edge(s, min_v, 0.0f, g);
+
+			UG_LOG(name() << "::compute: min_v = " << min_v << " (" << m_vPositions[min_v].first << "), min_w = " << min_w << "\n");
+		}
+
+		std::vector<vd_t> p(n+1); //parents
+		std::vector<number> d(n+1); //distances
+
+		//start vertex
+		//s = *boost::vertices(g).first;
+
+		UG_LOG("distance to s: " << d[s] << "\n");
+
+		boost::dijkstra_shortest_paths(g, s, boost::predecessor_map(&p[0]).distance_map(&d[0]));
+
+		UG_LOG(name() << "::compute: Done!\n");
+
+		std::vector<Blo> blo(n);
+		for(unsigned i = 0; i < n; ++i){
+			UG_LOG("d: " << d[i] << "\n");
+			blo[i].v = i;
+			blo[i].w = d[i];
+		}
+
+		//sort o according to d
+		std::sort(blo.begin(), blo.end(), compBlo);
+
+		o.resize(n);
+		for(unsigned i = 0; i < n; ++i){
+			o[blo[i].v] = i;
+			//o[i] = blo[i].v;
+			UG_LOG("o[" << i << "]: " << m_vPositions[blo[i].v].first << ", cost: " << d[blo[i].v] << "\n");
+		}
+
+/*
+		for(size_t i = 0; i < m_vScalars.size(); ++i){
+			o[m_vScalars[i].second] = i;
+		}
+*/
+/*
 		//find start vertex
 		s = *(boost::vertices(g).first);
 		pos_s = m_vPositions.at(s).first;
@@ -170,15 +261,15 @@ public:
 
 		m_sFront.insert(s);
 		m_dirichlet[s] = true;
+*/
 
-
+/*
 		//choose edge (v, w) in cut(m_sFront, V(g)/m_sFront) with minimum weight
 		//add w to m_sFront
 		//ensure that are no edges between vertices in m_sFront
 		UG_LOG(name() << "::compute: front.size(): " << m_sFront.size() << "\n");
 
 		double w;
-		double min_w;
 		vd_t min_source; //TODO: just for sanity check
 		vd_t min_target;
 		size_t min_idx;
@@ -214,7 +305,7 @@ public:
 			}
 			UG_LOG("add vertex " << min_target << " via edge " << min_source << " -> " << min_target << ", w = " << min_w << "\n");
 
-/*
+#ifdef WHATEVER
 			for(front_type::iterator sIt = m_sFront.begin(); sIt != m_sFront.end(); ++sIt){
 				for(boost::tie(nIt, nEnd) = boost::adjacent_vertices(*sIt, g); nIt != nEnd; ++nIt){
 					if(m_dirichlet[*nIt]){
@@ -225,14 +316,14 @@ public:
 					UG_LOG("w: " << w << "\n");
 				}
 			}
-*/
+#endif
 			m_sFront.insert(min_target);
 			//o[k] = min_target;
 			o[min_target] = k;
 			m_dirichlet[min_target] = true; //use this container as visited marker
 			++k;
 		}
-
+*/
 		g = G_t(0);
 
 		#ifdef UG_DEBUG
@@ -391,7 +482,9 @@ private:
 
 	front_type m_sFront;
 	std::vector<BOOL> m_dirichlet;
+
 	std::vector<Position_t> m_vPositions;
+	std::vector<Scalar_t> m_vScalars;
 	std::vector<std::vector<size_t> > m_vvConnection;
 };
 
