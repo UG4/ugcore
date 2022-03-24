@@ -131,7 +131,13 @@ end
 
 --! create a partition map by performing repeated bisection
 function util.PartitionMapBisection(dom, partitionMapOut, numProcs)
-	if(partitionMapOut:num_target_procs() ~= numProcs) then
+
+	local rework = true
+
+	if rework then
+		RequiredPlugins({"Luacpp"})
+		return partitionMapBisection(dom, partitionMapOut, numProcs)
+	elseif(partitionMapOut:num_target_procs() ~= numProcs) then
 		partitionMapOut:clear()
 		partitionMapOut:add_target_procs(0, numProcs)
 	end
