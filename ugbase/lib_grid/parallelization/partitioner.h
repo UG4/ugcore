@@ -219,6 +219,8 @@ class IPartitioner{
 
 		virtual SubsetHandler& get_partitions() = 0;
 
+		virtual void set_subset_handler(SmartPtr<SubsetHandler>) = 0;
+		virtual void enable_static_partitioning(bool) = 0;
 
 	///	returns the processes map. Updated during partitioning. may be NULL.
 	/**	If NULL is returned, this means that each subset index correspons to a
