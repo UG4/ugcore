@@ -37,6 +37,7 @@
 #ifdef UG_FOR_LUA
 #include "bindings/lua/lua_user_data.h"
 #endif
+#include "lib_disc/spatial_disc/user_data/const_user_data.h" // ConstUserMatrix
 
 namespace ug{
 
