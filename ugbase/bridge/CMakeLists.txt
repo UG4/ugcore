@@ -89,6 +89,7 @@ if(buildAlgebra)
 					algebra_bridges/restart_bridge.cpp
 					
 					disc_bridges/domain_disc_bridge.cpp
+					disc_bridges/eqn_disc_bridge.cpp
 					disc_bridges/interpolate_bridge.cpp
 					disc_bridges/evaluate_at_position_bridge.cpp					
 					disc_bridges/max_error_bridge.cpp

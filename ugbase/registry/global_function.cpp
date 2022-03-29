@@ -100,6 +100,7 @@ bool ExportedFunctionBase::check_consistency(std::string classname) const
 	for(int j=0; j<params_in().size(); j++)
 		if(!params_in().parameter_named(j))
 		{
+		UG_ERR_LOG("#### Registry ERROR: Unregistered Parameter?" + std::to_string(j));
 			bUndeclared = true;
 			bUndeclaredParameter = true;
 		}
