@@ -65,7 +65,14 @@ util = util or {}
 --!							'metisReweigh' partitioning method.
 function util.DistributeDomain(dom, partitioningMethod, verticalInterfaces,
 							   numTargetProcs, distributionLevel, wFct)
-	if NumProcs() == 1 then
+
+	local rework = false
+
+	if rework then
+		RequiredPlugins({"Luacpp"})
+		-- not yet.
+		-- return distributeDomain(dom, partitioningMethod, verticalInterfaces, numTargetProcs, distributionLevel, wFct)
+	elseif NumProcs() == 1 then
 		return true
 	end
 	
@@ -99,6 +106,8 @@ function util.DistributeDomain(dom, partitioningMethod, verticalInterfaces,
 		ug_warning("    num target processes: " .. numTargetProcs)
 		ug_warning("")	
 	end
+
+	print("util.DistributeDomain ", partitioningMethod, "\n" )
 	
 	if partitioningMethod == "bisection" then
 		if distributionLevel < dom:grid():num_levels() - 1 then

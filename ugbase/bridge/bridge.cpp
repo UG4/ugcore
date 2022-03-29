@@ -207,6 +207,8 @@ int GetUGDim()
 	return UG4_DIM;
 }
 
+void RegisterBridge_EquationDisc(Registry& reg, std::string grp);
+
 void RegisterStandardBridges(Registry& reg, string parentGroup)
 {
 	try
@@ -239,6 +241,7 @@ void RegisterStandardBridges(Registry& reg, string parentGroup)
 		//	depends on lib_disc
 			RegisterBridge_DiscCommon(reg, parentGroup);
 			RegisterBridge_ElemDiscs(reg, parentGroup);
+			RegisterBridge_EquationDisc(reg, parentGroup);
 
 		//	depends on lib_algebra
 			RegisterBridge_AlgebraCommon(reg, parentGroup);
