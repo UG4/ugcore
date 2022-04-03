@@ -540,7 +540,7 @@ public:
 	 * returns pointers to CRS format. note that these are only valid as long
 	 * as the matrix is not modified.
 	 * @param numRows   	(out) num rows of A
-	 * @param numCols		(out) num rows of A
+	 * @param numCols		(out) num cols of A
 	 * @param pValues		(out) value_type vector with non-zero values
 	 * @param pRowStart   (out) row i is from pRowStart[i] to pRowStart[i+1]
 	 * @param pColInd		(out) pColInd[i] is colum index of nonzero i
