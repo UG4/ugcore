@@ -48,9 +48,13 @@ public:
 		delete _base;
 		_base = nullptr;
 	}
+	size_t idx() const {
+		assert(_base);
+		return _base->idx();
+	}
 	reference dereference() const {
 		assert(_base);
-		return _base->index();
+		return _base->index(); // row?
 	}
 	bool operator!=(const SM_adjacency_iterator& other) const {
 		assert(_base);
@@ -86,23 +90,34 @@ private:
 	friend class iterator_core_access;
 }; // SM_adjacency_iterator
 
-class SM_edge : public std::pair<size_t, size_t>{
-	typedef std::pair<size_t, size_t> base;
+template<class T>
+class SM_edge{
 public:
-	SM_edge(size_t v, size_t w) : base(v, w) {}
-	SM_edge(base const& c) : base(c) {}
+	SM_edge(size_t v, size_t w) : _row(v), _idx(w) {}
+
+public:
+	size_t row() const{
+		return _row;
+	}
+	size_t column(ug::SparseMatrix<T> const& m) const{
+		return m.col(_idx);
+	}
+
+private:
+	int _row;
+	size_t _idx;
 };
 
 template<class T>
-size_t source(SM_edge const& e, T const&)
+size_t source(SM_edge<T> const& e, ug::SparseMatrix<T> const&)
 {
-	return e.first;
+	return e.row();
 }
 
 template<class T>
-size_t target(SM_edge const& e, T const&)
+size_t target(SM_edge<T> const& e, ug::SparseMatrix<T> const& m)
 {
-	return e.second;
+	return e.column(m);
 }
 
 template<class T>
@@ -111,21 +126,21 @@ class SM_out_edge_iterator : public iterator_facade<
 	std::pair<size_t, SM_adjacency_iterator<T>>,
 	// bidirectional_traversal_tag, // breaks InputIterator (why?)
 	std::input_iterator_tag,
-	std::pair<size_t, size_t>, // <= reference
+	SM_edge<T>, // <= reference
 	std::intmax_t // difference_type
 	 >{
 public: // types
 	typedef ug::SparseMatrix<T> M;
 	typedef typename std::pair<size_t, SM_adjacency_iterator<T> > value_type;
 	typedef intmax_t difference_type;
-	typedef std::pair<size_t, size_t> reference;
-	typedef SM_edge edge_type;
+	typedef SM_edge<T> reference;
+	typedef SM_edge<T> edge_type;
 
 public: // construct
 	explicit SM_out_edge_iterator() {
 	}
 	explicit SM_out_edge_iterator(size_t v, SM_adjacency_iterator<T> w)
-	    : _base(std::make_pair(v, w)) {
+	    : _base(v, w) {
 	}
 	explicit SM_out_edge_iterator(SM_out_edge_iterator const& p)
 	    : _base(p._base){
@@ -151,7 +166,7 @@ public: // op
 #endif
 private:
 	reference dereference() const {
-		return edge_type(_base.first, *_base.second);
+		return edge_type(_base.first, _base.second.idx());
 	}
 	bool equal(SM_out_edge_iterator const& other) const {
 		assert(_base.first == other._base.first);
@@ -182,6 +197,7 @@ private:
 
 template <class T> struct graph_traits<ug::SparseMatrix<T>>{
 	typedef size_t vertex_descriptor;
+	typedef SM_edge<T> edge_descriptor;
 	typedef directed_tag directed_category;
 	typedef counting_iterator<size_t> vertex_iterator;
 	typedef SM_out_edge_iterator<T> out_edge_iterator;

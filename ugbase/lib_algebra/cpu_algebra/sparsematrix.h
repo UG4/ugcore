@@ -382,7 +382,7 @@ public:
     class const_row_iterator
     {
         const SparseMatrix &A;
-        size_t row;
+        size_t row; // int?
         size_t i;
     public:
         inline void check() const {A.check_row(row, i); }
@@ -396,6 +396,8 @@ public:
         void operator ++ () { ++i; }
         void operator += (int nr) { i+=nr; }
 		bool operator == (const const_row_iterator &other) const { return other.i == i; }
+		public: // BUG
+		 size_t idx() const{return i;}
     };
 
 
@@ -630,6 +632,11 @@ protected:
 	void check_fragmentation() const;
 	int get_nnz_max_cols(size_t maxCols);
 
+public: // bug
+	int col(size_t i) const{
+		assert(i<cols.size());
+		return cols[i];
+	}
 
 protected:
     std::vector<int> rowStart;

@@ -4,6 +4,7 @@
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_traits.hpp>
+#include "common/error.h" // UG_THROW
 
 namespace ug{
 
