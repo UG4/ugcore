@@ -65,13 +65,16 @@ public:
 	typedef typename TAlgebra::matrix_type M_t;
 	typedef typename TAlgebra::vector_type V_t;
 	typedef Graph_t G_t;
+	typedef typename boost::graph_traits<G_t>::vertex_descriptor vd;
 	typedef IOrderingAlgorithm<TAlgebra, O_t> baseclass;
 
-	BoostCuthillMcKeeOrdering() : m_bReverse(false){}
+	BoostCuthillMcKeeOrdering() : m_bReverse(false), m_bUseStartVertex(false),
+			m_vdStartVertex(0){}
 
 	/// clone constructor
 	BoostCuthillMcKeeOrdering( const BoostCuthillMcKeeOrdering<TAlgebra, O_t> &parent )
-			: baseclass(), m_bReverse(parent.m_bReverse){}
+			: baseclass(), m_bReverse(parent.m_bReverse), m_bUseStartVertex(parent.m_bUseStartVertex),
+			m_vdStartVertex(parent.m_vdStartVertex){}
 
 	SmartPtr<IOrderingAlgorithm<TAlgebra, O_t> > clone()
 	{
@@ -97,19 +100,45 @@ public:
 		typedef boost::graph_traits<G_t>::vertex_descriptor Vertex_t;
 		std::vector<Vertex_t> inv_perm(boost::num_vertices(g));
 
-		if(m_bReverse){
-			boost::cuthill_mckee_ordering(g, inv_perm.rbegin(), get(boost::vertex_color, g), boost::make_degree_map(g));
+		if(m_bUseStartVertex){
+			if(m_bReverse){
+				boost::cuthill_mckee_ordering(g, m_vdStartVertex, inv_perm.rbegin(), get(boost::vertex_color, g), boost::make_degree_map(g));
+			}
+			else{
+				boost::cuthill_mckee_ordering(g, m_vdStartVertex, inv_perm.begin(), get(boost::vertex_color, g), boost::make_degree_map(g));
+			}
 		}
 		else{
-			boost::cuthill_mckee_ordering(g, inv_perm.begin(), get(boost::vertex_color, g), boost::make_degree_map(g));
+			if(m_bReverse){
+				boost::cuthill_mckee_ordering(g, inv_perm.rbegin(), get(boost::vertex_color, g), boost::make_degree_map(g));
+			}
+			else{
+				boost::cuthill_mckee_ordering(g, inv_perm.begin(), get(boost::vertex_color, g), boost::make_degree_map(g));
+			}
 		}
 
-		o.resize(boost::num_vertices(g));
+		size_t offset = 0;
 
-		for(unsigned i = 0; i != inv_perm.size(); ++i){
-			o[index_map[inv_perm[i]]] = i;
+		if(m_bUseStartVertex){
+			offset = 1;
 		}
 
+		if(m_bReverse){
+			//remove start vertex (at end of o)
+			o.resize(boost::num_vertices(g)-offset);
+
+			for(unsigned i = 0; i != inv_perm.size()-offset; ++i){
+				o[index_map[inv_perm[i]]] = i;
+			}
+		}
+		else{
+			//remove start vertex (at begin of o)
+			o.resize(boost::num_vertices(g)-offset);
+
+			for(unsigned i = 0+offset; i != inv_perm.size(); ++i){
+				o[index_map[inv_perm[i]]] = i-offset;
+			}
+		}
 		g = G_t(0);
 
 		#ifdef UG_DEBUG
@@ -133,8 +162,10 @@ public:
 
 		for(unsigned i = 0; i < rows; i++){
 			for(typename M_t::row_iterator conn = A->begin_row(i); conn != A->end_row(i); ++conn){
-				if(conn.value() != 0.0 && conn.index() != i){ //TODO: think about this!!
-					boost::add_edge(i, conn.index(), g);
+				if(conn.value() != 0.0 && conn.index() != i){
+					if(!boost::edge(conn.index(), i, g).second){
+						boost::add_edge(conn.index(), i, g); //convection is reverse to disc. direction
+					}
 				}
 			}
 		}
@@ -144,6 +175,7 @@ public:
 		init(A, inv_map);
 	}
 
+	//TODO: avoid copy
 	void init(M_t* A, const O_t& inv_map){
 		//TODO: replace this by UG_DLOG if permutation_util does not depend on this file anymore
 		#ifdef UG_ENABLE_DEBUG_LOGS
@@ -151,6 +183,12 @@ public:
 		#endif
 
 		induced_subgraph<G_t, M_t>(g, A, inv_map);
+	}
+
+	//called with an assembled graph by lib_disc version
+	//TODO: avoid copy
+	void init(G_t &g_in){
+		g = g_in;
 	}
 
 	void check(){
@@ -174,11 +212,18 @@ public:
 		m_bReverse = b;
 	}
 
+	void set_start_vertex(vd s){
+		m_vdStartVertex = s;
+		m_bUseStartVertex = true;
+	}
+
 private:
 	G_t g;
 	O_t o;
 
 	bool m_bReverse;
+	bool m_bUseStartVertex;
+	vd m_vdStartVertex;
 };
 
 } //namespace

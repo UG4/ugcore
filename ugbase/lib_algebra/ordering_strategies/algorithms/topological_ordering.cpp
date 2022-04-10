@@ -146,8 +146,8 @@ public:
 
 		for(unsigned i = 0; i < rows; i++){
 			for(typename M_t::row_iterator conn = A->begin_row(i); conn != A->end_row(i); ++conn){
-				if(conn.value() != 0.0 && conn.index() != i){ //TODO: think about this!!
-					boost::add_edge(i, conn.index(), g);
+				if(conn.value() != 0.0 && conn.index() != i){
+					boost::add_edge(conn.index(), i, g);
 				}
 			}
 		}

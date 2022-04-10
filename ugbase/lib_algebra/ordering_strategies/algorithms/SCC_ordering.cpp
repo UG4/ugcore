@@ -215,11 +215,11 @@ public:
 
 		for(unsigned i = 0; i < rows; i++){
 			for(typename M_t::row_iterator conn = A->begin_row(i); conn != A->end_row(i); ++conn){
-				if(conn.value() != 0.0 && conn.index() != i){ //TODO: think about this!!
+				if(conn.value() != 0.0 && conn.index() != i){
 					//double w;
 					//w = abs(conn.value()); //TODO: think about this
 					//boost::add_edge(i, conn.index(), w, g);
-					boost::add_edge(i, conn.index(), g);
+					boost::add_edge(conn.index(), i, g); //convection is reverse to disc. direction
 				}
 			}
 		}

@@ -67,7 +67,8 @@ void induced_subgraph(G_t& ind_g, M_t* A, const std::vector<size_t>& inv_map){
 			if(conn.value() != 0.0 && conn.index() != i){
 				int idx = ind_map[conn.index()];
 				if(idx >= 0){
-					boost::add_edge(i, idx, ind_g);
+					//boost::add_edge(i, idx, ind_g);
+					boost::add_edge(idx, i, ind_g);
 				}
 			}
 		}

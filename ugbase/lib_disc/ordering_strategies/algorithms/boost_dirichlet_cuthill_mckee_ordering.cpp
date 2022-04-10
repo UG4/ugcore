@@ -46,7 +46,7 @@
 #include "lib_disc/domain.h"
 #include "lib_disc/function_spaces/grid_function.h"
 
-#include "lib_algebra/ordering_strategies/algorithms/IOrderingAlgorithm.h"
+#include "lib_algebra/ordering_strategies/algorithms/boost_cuthill_mckee_ordering.cpp"
 #include "lib_algebra/ordering_strategies/algorithms/util.cpp"
 
 #include <assert.h>
@@ -55,23 +55,13 @@
 
 namespace ug{
 
-#ifndef GRAPH_T_FOR_CUTHILL_MCKEE
-#define GRAPH_T_FOR_CUTHILL_MCKEE
-/* boost graph type for Cuthill-McKee */
-typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
-	boost::property<boost::vertex_color_t,
-			 boost::default_color_type,
-			 boost::property<boost::vertex_degree_t, int> > >
-				Graph_t;
-#endif
-
 template <typename TAlgebra, typename TDomain, typename O_t>
-class BoostDirichletCuthillMcKeeOrdering : public IOrderingAlgorithm<TAlgebra, O_t>
+class BoostDirichletCuthillMcKeeOrdering : public BoostCuthillMcKeeOrdering<TAlgebra, O_t>//public IOrderingAlgorithm<TAlgebra, O_t>
 {
 public:
 	typedef typename TAlgebra::matrix_type M_t;
 	typedef typename TAlgebra::vector_type V_t;
-	typedef IOrderingAlgorithm<TAlgebra, O_t> baseclass;
+	typedef BoostCuthillMcKeeOrdering<TAlgebra, O_t> baseclass;
 
 	/// Grid function type for the solution
 	typedef GridFunction<TDomain, TAlgebra> GridFunc_t;
@@ -79,60 +69,16 @@ public:
 	typedef Graph_t G_t;
 
 	typedef typename boost::graph_traits<G_t>::vertex_descriptor vd;
-	typedef typename boost::graph_traits<G_t>::adjacency_iterator adj_iter;
-	typedef typename boost::graph_traits<G_t>::out_edge_iterator oute_iter;
 
-	BoostDirichletCuthillMcKeeOrdering() : m_bReverse(false), m_ssDirichletIdx(-1){}
+	BoostDirichletCuthillMcKeeOrdering() : m_ssDirichletIdx(-1){}
 
 	/// clone constructor
 	BoostDirichletCuthillMcKeeOrdering( const BoostDirichletCuthillMcKeeOrdering<TAlgebra, TDomain, O_t> &parent )
-			: baseclass(), m_bReverse(parent.m_bReverse), m_ssDirichletIdx(parent.m_ssDirichletIdx){}
+			: baseclass(), m_ssDirichletIdx(parent.m_ssDirichletIdx){}
 
 	SmartPtr<IOrderingAlgorithm<TAlgebra, O_t> > clone()
 	{
 		return make_sp(new BoostDirichletCuthillMcKeeOrdering<TAlgebra, TDomain, O_t>(*this));
-	}
-
-	//overload
-	void compute(){
-		unsigned n = boost::num_vertices(g);
-
-		if(n == 0){
-			UG_THROW(name() << "::compute: Graph is empty!");
-			return;
-		}
-
-		boost::property_map<G_t, boost::vertex_degree_t>::type deg = get(boost::vertex_degree, g);
-		boost::graph_traits<G_t>::vertex_iterator vIt, vEnd;
-		for(boost::tie(vIt, vEnd) = boost::vertices(g); vIt != vEnd; ++vIt){
-			deg[*vIt] = boost::degree(*vIt, g);
-		}
-
-		boost::property_map<G_t, boost::vertex_index_t>::type index_map = get(boost::vertex_index, g);
-
-		typedef boost::graph_traits<G_t>::vertex_descriptor Vertex_t;
-		std::vector<Vertex_t> inv_perm(boost::num_vertices(g));
-
-		if(m_bReverse){
-			boost::cuthill_mckee_ordering(g, s, inv_perm.rbegin(), get(boost::vertex_color, g), boost::make_degree_map(g));
-		}
-		else{
-			boost::cuthill_mckee_ordering(g, s, inv_perm.begin(), get(boost::vertex_color, g), boost::make_degree_map(g));
-		}
-
-		//skip s
-		o.resize(boost::num_vertices(g)-1);
-		for(unsigned i = 1; i != inv_perm.size(); ++i){
-			o[index_map[inv_perm[i]]] = i-1;
-		}
-
-		g = G_t(0);
-
-		#ifdef UG_DEBUG
-		check();
-		#endif
-
-
 	}
 
 	void init(M_t* A, const V_t& V){
@@ -152,27 +98,14 @@ public:
 
 			n = A->num_rows();
 
-
-/* REMOVE THIS */
-	typedef typename std::pair<MathVector<TDomain::dim>, size_t> Position_t;
-	std::vector<Position_t> vPositions;
-	SmartPtr<DoFDistribution> dd = ((GridFunc_t*) pGridF)->dof_distribution();
-	ExtractPositions(pGridF->domain(), dd, vPositions);
-/* REMOVE THIS*/
-
 			g = G_t(n);
 
 			for(unsigned i = 0; i < n; i++){
-/* REMOVE THIS */
-						UG_LOG(i << ": " << vPositions[i].first << "\n");
-/* REMOVE THIS*/
-
 				for(typename M_t::row_iterator conn = A->begin_row(i); conn != A->end_row(i); ++conn){
-					if(conn.value() != 0.0 && conn.index() != i){ //TODO: think about this!!
-						boost::add_edge(i, conn.index(), g);
-/* REMOVE THIS */
-						UG_LOG(i << " -> " << conn.index() << ", " << vPositions[i].first << " -> " << vPositions[conn.index()].first << "\n");
-/* REMOVE THIS*/
+					if(conn.value() != 0.0 && conn.index() != i){
+						if(!boost::edge(conn.index(), i, g).second){
+							boost::add_edge(conn.index(), i, g);
+						}
 					}
 				}
 			}
@@ -181,7 +114,6 @@ public:
 			throw;
 		}
 
-		o.resize(n);
 		m_dirichlet = std::vector<BOOL>(n, false);
 
 		//select dirichlet vertices according to m_ssDirichletIdx
@@ -206,12 +138,15 @@ public:
 		}
 
 		//create a vertex and connect it to dirichlet nodes
-		s = boost::add_vertex(g);
+		vd s = boost::add_vertex(g);
 		for(unsigned i = 0; i < n; ++i){
 			if(m_dirichlet[i]){
 				boost::add_edge(s, i, g);
 			}
 		}
+
+		baseclass::init(g);
+		baseclass::set_start_vertex(s);
 
 		#ifdef UG_ENABLE_DEBUG_LOGS
 		UG_LOG("Using " << name() << " (subset " << m_ssDirichletIdx << ", " << m_ssDirichletName
@@ -232,19 +167,8 @@ public:
 		UG_THROW(name() << "::init: induced subgraph version not implemented yet!");
 	}
 
-	void check(){
-		if(!is_permutation(o)){
-			print(o);
-			UG_THROW(name() << "::check: Not a permutation!");
-		}
-	}
-
 	O_t& ordering(){
-		return o;
-	}
-
-	void set_reverse(bool b){
-		m_bReverse = b;
+		return baseclass::ordering();
 	}
 
 	void select_dirichlet_subset(const char* ssDirichletName){
@@ -255,14 +179,11 @@ public:
 
 private:
 	G_t g;
-	O_t o;
 
-	bool m_bReverse;
 	int m_ssDirichletIdx;
 	const char* m_ssDirichletName;
 
 	std::vector<BOOL> m_dirichlet;
-	vd s;
 };
 
 } //namespace
