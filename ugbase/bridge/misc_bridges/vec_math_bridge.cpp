@@ -70,30 +70,7 @@ static SmartPtr<vector4> MakeVec(number x, number y, number z, number w)
 
 ////////////////////////////////////////////////////////////////////////////////
 namespace bridge{
-////////////////////////////////////////////////////////////////////////////////
-/*
-template <int dim>
-static void RegisterBridge_VecMath(Registry& reg, string grp)
-{
-	typedef MathVector<dim, number> vec_type;
-	
-	try
-	{
-		string suffix = GetDimensionSuffix<dim>();
-		string tag = GetDimensionTag<dim>();
 
-	//	register the class
-		string vecName = "Vec";
-		vecName.append(suffix);
-
-		reg.add_class_<vec_type>(vecName, grp)
-			.add_method("coord",
-					static_cast<typename vec_type::value_type (vec_type::*)(size_t) const>(&vec_type::coord));
-		reg.add_class_to_group(vecName, "Vec", tag);
-	}
-	UG_REGISTRY_CATCH_THROW(grp);
-}
-*/
 ////////////////////////////////////////////////////////////////////////////////
 static void RegisterVecMathBridge_DimIndep(Registry& reg, string grp)
 {

@@ -39,6 +39,7 @@
 #include "lib_grid/refinement/hanging_node_refiner_grid.h"
 #include "lib_grid/refinement/hanging_node_refiner_multi_grid.h"
 #include "lib_grid/refinement/projectors/projectors.h"
+#include "lib_grid/refinement/projectors/custom_projector.h"
 #include "lib_grid/algorithms/subdivision/subdivision_loop.h"
 #include "lib_grid/file_io/file_io.h"
 
@@ -217,6 +218,15 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 		reg.add_class_<T, RefinementProjector>("SubdivisionProjector", grp)
 			.add_constructor()
 			.add_constructor<void (T::*)(SPIGeometry3d)>()
+			.set_construct_as_smart_pointer(true);
+	}
+
+	{
+		typedef CustomProjector T;
+		reg.add_class_<T, RefinementProjector>("CustomProjector", grp)
+			.add_constructor()
+			.add_method("set_edge_projector", &T::set_edge_projector)
+			.add_method("set_quad_projector", &T::set_quad_projector)
 			.set_construct_as_smart_pointer(true);
 	}
 	
