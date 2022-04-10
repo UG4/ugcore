@@ -48,6 +48,14 @@ public:
 		delete _base;
 		_base = nullptr;
 	}
+	T const& value() const {
+		assert(_base);
+		return _base->value();
+	}
+	int row() const {
+		assert(_base);
+		return _base->row();
+	}
 	size_t idx() const {
 		assert(_base);
 		return _base->idx();
@@ -93,19 +101,27 @@ private:
 template<class T>
 class SM_edge{
 public:
-	SM_edge(size_t v, size_t w) : _row(v), _idx(w) {}
+//	SM_edge(size_t v, size_t w) : _row(v), _idx(w) {
+//	}
+	SM_edge(SM_adjacency_iterator<T> const& i) : _iter(i) {
+	}
 
 public:
 	size_t row() const{
-		return _row;
+		return _iter.row();
 	}
 	size_t column(ug::SparseMatrix<T> const& m) const{
-		return m.col(_idx);
+		return *_iter;
+	}
+	T const value(ug::SparseMatrix<T> const& m) const{
+		return _iter.value();
 	}
 
 private:
-	int _row;
-	size_t _idx;
+//	int _row;
+//	size_t _idx;
+	SM_adjacency_iterator<T> _iter;
+	// typename ug::SparseMatrix<T>::const_row_iterator _iter;
 };
 
 template<class T>
@@ -123,7 +139,7 @@ size_t target(SM_edge<T> const& e, ug::SparseMatrix<T> const& m)
 template<class T>
 class SM_out_edge_iterator : public iterator_facade<
 	SM_out_edge_iterator<T>,
-	std::pair<size_t, SM_adjacency_iterator<T>>,
+	SM_adjacency_iterator<T>,
 	// bidirectional_traversal_tag, // breaks InputIterator (why?)
 	std::input_iterator_tag,
 	SM_edge<T>, // <= reference
@@ -131,7 +147,7 @@ class SM_out_edge_iterator : public iterator_facade<
 	 >{
 public: // types
 	typedef ug::SparseMatrix<T> M;
-	typedef typename std::pair<size_t, SM_adjacency_iterator<T> > value_type;
+	typedef SM_adjacency_iterator<T> value_type;
 	typedef intmax_t difference_type;
 	typedef SM_edge<T> reference;
 	typedef SM_edge<T> edge_type;
@@ -140,7 +156,7 @@ public: // construct
 	explicit SM_out_edge_iterator() {
 	}
 	explicit SM_out_edge_iterator(size_t v, SM_adjacency_iterator<T> w)
-	    : _base(v, w) {
+	    : _base(w) {
 	}
 	explicit SM_out_edge_iterator(SM_out_edge_iterator const& p)
 	    : _base(p._base){
@@ -166,17 +182,17 @@ public: // op
 #endif
 private:
 	reference dereference() const {
-		return edge_type(_base.first, _base.second.idx());
+		return edge_type(_base);
 	}
 	bool equal(SM_out_edge_iterator const& other) const {
 		assert(_base.first == other._base.first);
 		return _base.second == other._base.second;
 	}
 	void increment() {
-		++_base.second;
+		++_base;
 	}
 	void decrement() {
-		--_base.second;
+		--_base;
 	}
 	//			bool operator==(const SM_out_edge_iterator& other) const
 	//			{ incomplete();
@@ -187,7 +203,7 @@ public:
 		return _base.second == other._base.second;
 	}
 	bool operator!=(const SM_out_edge_iterator& other) const {
-		return _base.second != other._base.second;
+		return _base != other._base;
 	}
 
 private:
@@ -196,7 +212,7 @@ private:
 }; // SM_out_edge_iterator
 
 template <class T> struct graph_traits<ug::SparseMatrix<T>>{
-	typedef size_t vertex_descriptor;
+	typedef int vertex_descriptor;
 	typedef SM_edge<T> edge_descriptor;
 	typedef directed_tag directed_category;
 	typedef counting_iterator<size_t> vertex_iterator;
@@ -272,5 +288,73 @@ std::pair<counting_iterator<size_t>, counting_iterator<size_t> > vertices(
 
 	return std::make_pair(b,e);
 }
+
+template<class T>
+int out_degree(int v, ug::SparseMatrix<T> const& M)
+{
+	return M.num_connections(v);
+}
+
+// template<class T>
+// T get(edge_weight_t, ug::SparseMatrix<T> const& M, SM_edge<T> e)
+// {
+// 	return e.value();
+// }
+
+template<class T>
+class SM_edge_weight_map :
+	public put_get_helper< T /*algebraic connection?*/, SM_edge_weight_map<T> > {
+public:
+	typedef T edge_weight_type;
+	typedef int vertex_descriptor;
+	typedef readable_property_map_tag category;
+	typedef edge_weight_type value_type;
+	typedef T& reference;
+	typedef vertex_descriptor key_type;
+
+	SM_edge_weight_map(SM_edge_weight_map const& p) : _g(p._g) {
+	}
+	SM_edge_weight_map(ug::SparseMatrix<T>const & g, boost::edge_weight_t) : _g(g) {
+	}
+	// bug?
+	SM_edge_weight_map(ug::SparseMatrix<T>const & g) : _g(g) {
+	}
+	template <class X>
+	value_type operator[](X const& x) const {
+		//				assert(x == _g.position(x));
+		return x.value(_g);
+	}
+	SM_edge_weight_map& operator=(const SM_edge_weight_map& s) {
+		assert(&s._g==&_g); (void)s;
+		return *this;
+	}
+private:
+	ug::SparseMatrix<T> const& _g;
+}; // SM_edge_weight_map
+
+// g++ 'enumeral_type' in template unification not implemented workaround
+template<class T, class Tag>
+struct property_map<ug::SparseMatrix<T>, Tag> {
+//	typedef typename gala_graph_property_map<Tag>::template bind_<T> map_gen;
+//	typedef typename map_gen::type type;
+//	typedef typename map_gen::const_type const_type;
+};
+
+template<class T>
+inline SM_edge_weight_map<T>
+//inline typename property_map<ug::SparseMatrix<T>, edge_weight_t>::type
+get(edge_weight_t, ug::SparseMatrix<T> const & g) {
+	return SM_edge_weight_map<T>(g);
+}
+
+#if 0
+template<class T>
+inline typename property_map<ug::SparseMatrix<T>, edge_all_t>::type
+get(edge_all_t, ug::SparseMatrix<T> & g) { incomplete();
+	typedef typename property_map<ug::SparseMatrix<T>, edge_all_t>::type
+		pmap_type;
+	return pmap_type(&g);
+}
+#endif
 
 } // boost

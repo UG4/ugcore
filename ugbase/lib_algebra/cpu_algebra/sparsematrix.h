@@ -382,14 +382,14 @@ public:
     class const_row_iterator
     {
         const SparseMatrix &A;
-        size_t row; // int?
+        size_t _row; // int?
         size_t i;
     public:
-        inline void check() const {A.check_row(row, i); }
-        const_row_iterator(const SparseMatrix &_A, size_t _row, size_t _i) : A(_A), row(_row), i(_i) {A.add_iterator(row);}
-        const_row_iterator(const const_row_iterator &other) : A(other.A), row(other.row), i(other.i) { A.add_iterator(row); }
-        ~const_row_iterator() { A.remove_iterator(row); }
-        const_row_iterator *operator ->() { return this; }
+        inline void check() const {A.check_row(_row, i); }
+        const_row_iterator(const SparseMatrix &_A, size_t row, size_t _i) : A(_A), _row(row), i(_i) {A.add_iterator(row);}
+        const_row_iterator(const const_row_iterator &other) : A(other.A), _row(other._row), i(other.i) { A.add_iterator(_row); }
+        ~const_row_iterator() { A.remove_iterator(_row); }
+        const_row_iterator *operator ->() const { return this; }
         const value_type &value() const { check(); return A.values[i];   }
         size_t index() const { check(); return A.cols[i];     }
         bool operator != (const const_row_iterator &o) const { return i != o.i; }
@@ -397,6 +397,7 @@ public:
         void operator += (int nr) { i+=nr; }
 		bool operator == (const const_row_iterator &other) const { return other.i == i; }
 		public: // BUG
+		 int row() const{return _row;}
 		 size_t idx() const{return i;}
     };
 
