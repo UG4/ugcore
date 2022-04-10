@@ -2,6 +2,7 @@
 
 #include "lexorder.h"
 #include "riverorder.h"
+#include "directional_ordering.cpp"
 
 #include "downwindorder.h"
 

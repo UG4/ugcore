@@ -52,22 +52,22 @@ template<>
 bool ComparePosDim<2,0>(const std::pair<MathVector<2>, size_t> &p1,
                       const std::pair<MathVector<2>, size_t> &p2)
 {
-	if (p1.first[1]==p2.first[1]) {
-		return (p1.first[0] < p2.first[0]);
+	if (p1.first[0]==p2.first[0]) {
+		return (p1.first[1] < p2.first[1]);
 	}
 	else {
-		return (p1.first[1] < p2.first[1]);
+		return (p1.first[0] < p2.first[0]);
 	}
 };
 template<>
 bool ComparePosDim<2,1>(const std::pair<MathVector<2>, size_t> &p1,
                       const std::pair<MathVector<2>, size_t> &p2)
 {
-	if (p1.first[0]==p2.first[0]) {
-		return (p1.first[1] < p2.first[1]);
+	if (p1.first[1]==p2.first[1]) {
+		return (p1.first[0] < p2.first[0]);
 	}
 	else {
-		return (p1.first[0] < p2.first[0]);
+		return (p1.first[1] < p2.first[1]);
 	}
 };
 
@@ -142,22 +142,22 @@ template<>
 bool ComparePosDimDec<2,0>(const std::pair<MathVector<2>, size_t> &p1,
                       const std::pair<MathVector<2>, size_t> &p2)
 {
-	if (p1.first[1]==p2.first[1]) {
-		return (p1.first[0] > p2.first[0]);
+	if (p1.first[0]==p2.first[0]) {
+		return (p1.first[1] > p2.first[1]);
 	}
 	else {
-		return (p1.first[1] > p2.first[1]);
+		return (p1.first[0] > p2.first[0]);
 	}
 };
 template<>
 bool ComparePosDimDec<2,1>(const std::pair<MathVector<2>, size_t> &p1,
                       const std::pair<MathVector<2>, size_t> &p2)
 {
-	if (p1.first[0]==p2.first[0]) {
-		return (p1.first[1] > p2.first[1]);
+	if (p1.first[1]==p2.first[1]) {
+		return (p1.first[0] > p2.first[0]);
 	}
 	else {
-		return (p1.first[0] > p2.first[0]);
+		return (p1.first[1] > p2.first[1]);
 	}
 };
 

@@ -122,9 +122,6 @@ public:
 	}
 
 	void init(M_t* A, const V_t& V){
-		if(m_ssIdx < 0)
-			UG_THROW(name() << "::init: No subset for sources selected! Call 'select_sources(int)'.");
-
 		const GridFunc_t* pGridF;
 		size_t numSources = 0;
 		std::string ssName;
@@ -144,8 +141,10 @@ public:
 				UG_THROW(name() << "::init: #indices != #rows");
 			}
 
-			//throws an exception if m_ssIdx is invalid
-			ssName = pGridF->domain()->subset_handler()->get_subset_name(m_ssIdx);
+			m_ssIdx = pGridF->domain()->subset_handler()->get_subset_index(m_ssName);
+
+			if(m_ssIdx < 0)
+				UG_THROW(name() << "::init: Invalid subset for sources selected! Call 'select_sources(const char*)'.");
 
 			std::vector<std::vector<size_t> > vvConnection(n);
 			try{
@@ -188,7 +187,7 @@ public:
 		}
 
 		#ifdef UG_ENABLE_DEBUG_LOGS
-		UG_LOG("Using " << name() << " (subset " << m_ssIdx << ", " << ssName
+		UG_LOG("Using " << name() << " (subset " << m_ssIdx << ", " << m_ssName
 				<< ", n=" << boost::num_vertices(g) << ", m=2*" << boost::num_edges(g)/2
 				<< ", s=" << numSources << ")\n");
 		#endif
@@ -218,8 +217,9 @@ public:
 
 	virtual const char* name() const {return "RiverOrdering";}
 
-	void select_sources(int ssIdx){
-		m_ssIdx = ssIdx;
+	void select_sources(const char* ssName){
+		//m_ssIdx = ssIdx;
+		m_ssName = ssName;
 	}
 
 private:
@@ -227,6 +227,7 @@ private:
 	O_t o;
 
 	int m_ssIdx;
+	const char* m_ssName;
 	std::vector<BOOL> m_sources;
 };
 

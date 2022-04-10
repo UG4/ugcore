@@ -92,7 +92,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 	typedef ug::GridFunction<TDomain, TAlgebra> TFct;
 
-	typedef SmartPtr<UserData<MathVector<TDomain::dim>, TDomain::dim> > TSpUserData;
+	typedef MathVector<TDomain::dim> small_vec_t;
 
 //	Lexicographic ordering
 	{
@@ -106,17 +106,18 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "LexOrdering", tag);
 	}
 
-//	Weighted Cuthill-McKee ordering
+//	Directional ordering
 	{
-		typedef WeightedCuthillMcKeeOrdering<TAlgebra, TDomain, ordering_container_type> T;
+		typedef DirectionalOrdering<TAlgebra, TDomain, ordering_container_type> T;
 		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
-		string name = string("WeightedCuthillMcKeeOrdering").append(suffix);
-		reg.add_class_<T, TBase>(name, grp, "WeightedCuthillMcKeeOrdering")
+		string name = string("DirectionalOrdering").append(suffix);
+		reg.add_class_<T, TBase>(name, grp, "DirectionalOrdering")
 			.add_constructor()
-			.add_method("set_reverse", &T::set_reverse)
-			.add_method("select_dirichlet_subset", static_cast<void (T::*)(int)>(&T::select_dirichlet_subset))
+			//.add_method("set_direction", static_cast<void (T::*)(const char*)>(&T::set_direction))
+			//.add_method("set_direction", static_cast<void (T::*)(TSpUserData)>(&T::set_direction))
+			.add_method("set_direction", static_cast<void (T::*)(small_vec_t*)>(&T::set_direction))
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "WeightedCuthillMcKeeOrdering", tag);
+		reg.add_class_to_group(name, "DirectionalOrdering", tag);
 	}
 
 //	Boost Dirichlet Cuthill-McKee ordering
@@ -132,17 +133,36 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "BoostDirichletCuthillMcKeeOrdering", tag);
 	}
 
-//	River ordering (selected sources + topological ordering)
+//	River ordering (topological ordering beginning at selected sources)
 	{
 		typedef RiverOrdering<TAlgebra, TDomain, ordering_container_type> T;
 		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
 		string name = string("RiverOrdering").append(suffix);
 		reg.add_class_<T, TBase>(name, grp, "RiverOrdering")
 			.add_constructor()
-			.add_method("select_sources", static_cast<void (T::*)(int)>(&T::select_sources))
+			.add_method("select_sources", static_cast<void (T::*)(const char*)>(&T::select_sources))
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "RiverOrdering", tag);
 	}
+
+
+
+
+
+//	Weighted Cuthill-McKee ordering
+	{
+		typedef WeightedCuthillMcKeeOrdering<TAlgebra, TDomain, ordering_container_type> T;
+		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
+		string name = string("WeightedCuthillMcKeeOrdering").append(suffix);
+		reg.add_class_<T, TBase>(name, grp, "WeightedCuthillMcKeeOrdering")
+			.add_constructor()
+			.add_method("set_reverse", &T::set_reverse)
+			.add_method("select_dirichlet_subset", static_cast<void (T::*)(int)>(&T::select_dirichlet_subset))
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "WeightedCuthillMcKeeOrdering", tag);
+	}
+
+
 
 //	FollowConvection ordering
 	{
