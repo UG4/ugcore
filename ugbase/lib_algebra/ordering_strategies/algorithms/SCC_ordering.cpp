@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020:  G-CSC, Goethe University Frankfurt
+ * Copyright (c) 2022:  G-CSC, Goethe University Frankfurt
  * Author: Lukas Larisch
  * 
  * This file is part of UG4.
@@ -38,16 +38,17 @@
 #include <boost/graph/properties.hpp>
 #include <boost/graph/graph_utility.hpp>
 
+#include <boost/graph/strong_components.hpp>
+
 #include "IOrderingAlgorithm.h"
+#include "topological_ordering.cpp"
 #include "util.cpp"
+#include "lib_algebra/algebra_common/permutation_util.h"
 
 //debug
 #include "common/error.h"
 #include "common/log.h"
 
-#include <boost/graph/strong_components.hpp>
-
-#include "lib_algebra/algebra_common/permutation_util.h"
 
 
 namespace ug{
@@ -57,15 +58,17 @@ class SCCOrdering : public IOrderingAlgorithm<TAlgebra, O_t>
 public:
 	typedef typename TAlgebra::matrix_type M_t;
 	typedef typename TAlgebra::vector_type V_t;
-	typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS> G_t;
+	typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS> G_t;
 	typedef IOrderingAlgorithm<TAlgebra, O_t> baseclass;
 
 	typedef std::vector<size_t> ordering_container_type;
 	typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> ordering_algo_type;
 
-	typedef typename boost::graph_traits<G_t>::vertex_descriptor vd;
-	typedef typename boost::graph_traits<G_t>::adjacency_iterator adj_iter;
-	typedef typename boost::graph_traits<G_t>::in_edge_iterator inedge_iter;
+	typedef boost::graph_traits<G_t>::vertex_descriptor vd_t;
+	typedef boost::graph_traits<G_t>::vertex_iterator vIt_t;
+	typedef boost::graph_traits<G_t>::adjacency_iterator nIt_t;
+	typedef boost::graph_traits<G_t>::adjacency_iterator adj_iter;
+	typedef boost::graph_traits<G_t>::in_edge_iterator inedge_iter;
 
 	SCCOrdering(){}
 
@@ -83,26 +86,6 @@ public:
 		m_spOrderingSubAlgo = ordering_subalgo;
 	}
 
-	vd get_source_vertex(std::vector<BOOL>& visited, G_t& g){
-		for(unsigned i = 0; i < boost::num_vertices(g); ++i){
-			if(!visited[i] && boost::in_degree(i, g) == 0){
-				visited[i] = true;
-				boost::clear_vertex(i, g);
-				return i;
-			}
-		}
-
-		return -1u;
-	}
-
-	void topological_ordering(O_t& o, G_t& g){
-		size_t n = boost::num_vertices(g);
-		std::vector<BOOL> visited(n, false);
-		for(unsigned i = 0; i < n; ++i){
-			o[i] = get_source_vertex(visited, g);
-		}
-	}
-
 	void compute(){
 		unsigned n = boost::num_vertices(g);
 
@@ -113,7 +96,7 @@ public:
 
 		std::vector<int> component(n), discover_time(n);
 		std::vector<boost::default_color_type> color(n);
-		std::vector<vd> root(n);
+		std::vector<vd_t> root(n);
 		size_t num_components = boost::strong_components(g,
 			boost::make_iterator_property_map(component.begin(), boost::get(boost::vertex_index, g)),
 			boost::root_map(boost::make_iterator_property_map(root.begin(), boost::get(boost::vertex_index, g)))
@@ -123,7 +106,7 @@ public:
 				discover_time.begin(), boost::get(boost::vertex_index, g))));
 
 
-		std::vector<std::vector<vd> > comp_members(num_components);
+		std::vector<std::vector<vd_t> > comp_members(num_components);
 		for(unsigned i = 0; i < n; ++i){
 			comp_members[component[i]].push_back(i);
 		}
@@ -144,7 +127,7 @@ public:
 		}
 
 		O_t scc_topo_ordering(num_components);
-		topological_ordering(scc_topo_ordering, scc_g);
+		topological_ordering_core(scc_topo_ordering, scc_g, true); //true = inverse
 
 		//scc_topo_ordering is now a topological ordering of scc_g
 
@@ -216,9 +199,6 @@ public:
 		for(unsigned i = 0; i < rows; i++){
 			for(typename M_t::row_iterator conn = A->begin_row(i); conn != A->end_row(i); ++conn){
 				if(conn.value() != 0.0 && conn.index() != i){
-					//double w;
-					//w = abs(conn.value()); //TODO: think about this
-					//boost::add_edge(i, conn.index(), w, g);
 					boost::add_edge(conn.index(), i, g); //convection is reverse to disc. direction
 				}
 			}

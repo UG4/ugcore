@@ -37,22 +37,15 @@
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/properties.hpp>
 
-#include <boost/graph/cuthill_mckee_ordering.hpp>
-
-#include <set>
 #include <algorithm> //reverse
 #include <utility> //pair
-
-#include "lib_disc/domain.h"
-#include "lib_disc/function_spaces/grid_function.h"
-
-#include "lib_disc/spatial_disc/user_data/user_data.h"
-#include "bindings/lua/lua_user_data.h"
 
 #include "lib_algebra/ordering_strategies/algorithms/IOrderingAlgorithm.h"
 #include "lib_algebra/ordering_strategies/algorithms/util.cpp"
 
-#include <assert.h>
+#include "lib_disc/domain.h"
+#include "lib_disc/function_spaces/grid_function.h"
+
 #include "common/error.h"
 
 
@@ -77,9 +70,6 @@ public:
 	typedef typename std::pair<number, size_t> Scalar_t;
 	typedef MathVector<TDomain::dim> small_vec_t;
 	typedef GridFunction<TDomain, TAlgebra> GridFunc_t;
-	typedef UserData<MathVector<TDomain::dim>, TDomain::dim> Velocity_t;
-
-	typedef SmartPtr<UserData<MathVector<TDomain::dim>, TDomain::dim> > TSpUserData;
 
 	DirectionalOrdering(){}
 
@@ -136,12 +126,6 @@ public:
 			throw;
 		}
 
-		small_vec_t pos;
-		pos = m_vPositions.at(0).first; //choose first occuring node
-
-		//call lua function, store velocity in node with index 0 in m_dir
-		(*m_spVelocity)(*m_dir, pos, 0.0f, 0);
-
 		#ifdef UG_ENABLE_DEBUG_LOGS
 		UG_LOG("Using " << name() << " (direction " << *m_dir << ")\n");
 		#endif
@@ -169,13 +153,6 @@ public:
 		return o;
 	}
 
-/*
-	void set_direction(const char* strVelocity){
-		m_spVelocity = make_sp(new LuaUserData<MathVector<TDomain::dim>, TDomain::dim>(strVelocity));
-	}
-*/
-
-	//TODO: small_vec_t
 	void set_direction(small_vec_t *dir){
 		m_dir = dir;
 	}
@@ -185,7 +162,6 @@ public:
 private:
 	O_t o;
 
-	SmartPtr<Velocity_t> m_spVelocity;
 	small_vec_t *m_dir;
 
 	std::vector<Position_t> m_vPositions;

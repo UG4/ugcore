@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020:  G-CSC, Goethe University Frankfurt
+ * Copyright (c) 2022:  G-CSC, Goethe University Frankfurt
  * Author: Lukas Larisch
  * 
  * This file is part of UG4.

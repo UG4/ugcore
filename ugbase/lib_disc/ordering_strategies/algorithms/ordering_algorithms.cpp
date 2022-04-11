@@ -1,12 +1,11 @@
 #include "lexorder.h"
-#include "downwindorder.h"
-
+#include "directional_ordering.cpp"
 #include "riverorder.h"
-
-#include "weighted_cuthill_mckee_ordering.cpp"
 #include "boost_dirichlet_cuthill_mckee_ordering.cpp"
 
-#include "directional_ordering.cpp"
+//ongoin work..
+#include "weighted_cuthill_mckee_ordering.cpp"
 
-//do not use this
+//do not use these
 #include "cuthill_mckee.h"
+#include "downwindorder.h"
