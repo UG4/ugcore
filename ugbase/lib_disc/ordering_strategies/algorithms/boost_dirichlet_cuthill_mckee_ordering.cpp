@@ -56,7 +56,7 @@
 namespace ug{
 
 template <typename TAlgebra, typename TDomain, typename O_t>
-class BoostDirichletCuthillMcKeeOrdering : public BoostCuthillMcKeeOrdering<TAlgebra, O_t>//public IOrderingAlgorithm<TAlgebra, O_t>
+class BoostDirichletCuthillMcKeeOrdering : public BoostCuthillMcKeeOrdering<TAlgebra, O_t>
 {
 public:
 	typedef typename TAlgebra::matrix_type M_t;

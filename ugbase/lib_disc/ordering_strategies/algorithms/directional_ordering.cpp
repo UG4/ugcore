@@ -51,11 +51,14 @@
 
 namespace ug{
 
+#ifndef COMPARE_SCALAR_DEFINED
+#define COMPARE_SCALAR_DEFINED
 bool CompareScalar(const std::pair<number, size_t> &p1,
 		const std::pair<number, size_t> &p2)
 {
 	return p1.first<p2.first;
 }
+#endif
 
 
 template <typename TAlgebra, typename TDomain, typename O_t>

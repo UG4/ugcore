@@ -39,6 +39,7 @@
 
 #include <boost/graph/cuthill_mckee_ordering.hpp>
 
+#include "IOrderingPreprocessor.h"
 #include "IOrderingAlgorithm.h"
 #include "util.cpp"
 
@@ -52,10 +53,10 @@ namespace ug{
 #define GRAPH_T_FOR_CUTHILL_MCKEE
 /* boost graph type for Cuthill-McKee */
 typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
-	boost::property<boost::vertex_color_t,
-			 boost::default_color_type,
-			 boost::property<boost::vertex_degree_t, int> > >
-				Graph_t;
+		boost::property<boost::vertex_color_t,
+		boost::default_color_type,
+		boost::property<boost::vertex_degree_t, int> > >
+			Graph_t;
 #endif
 
 template <typename TAlgebra, typename O_t=std::vector<size_t> >
@@ -67,6 +68,7 @@ public:
 	typedef Graph_t G_t;
 	typedef typename boost::graph_traits<G_t>::vertex_descriptor vd;
 	typedef IOrderingAlgorithm<TAlgebra, O_t> baseclass;
+	typedef IOrderingPreprocessor<TAlgebra, G_t> Preprocessor_t;
 
 	BoostCuthillMcKeeOrdering() : m_bReverse(false), m_bUseStartVertex(false),
 			m_vdStartVertex(0){}
@@ -87,6 +89,11 @@ public:
 		if(n == 0){
 			UG_THROW(name() << "::compute: Graph is empty!");
 			return;
+		}
+
+		if(m_spPreprocessor.valid()){
+			UG_LOG("call preprocessor\n");
+			m_spPreprocessor->compute();
 		}
 
 		boost::property_map<G_t, boost::vertex_degree_t>::type deg = get(boost::vertex_degree, g);
@@ -146,8 +153,12 @@ public:
 		#endif
 	}
 
-	void init(M_t* A, const V_t&){
+	void init(M_t* A, const V_t& V){
 		init(A);
+
+		if(m_spPreprocessor.valid()){
+			m_spPreprocessor->init(V, g);
+		}
 	}
 
 	void init(M_t* A){
@@ -217,13 +228,20 @@ public:
 		m_bUseStartVertex = true;
 	}
 
+	void set_preprocessor(SmartPtr<Preprocessor_t> spPreprocessor){
+		m_spPreprocessor = spPreprocessor;
+	}
+
 private:
 	G_t g;
 	O_t o;
 
 	bool m_bReverse;
+
 	bool m_bUseStartVertex;
 	vd m_vdStartVertex;
+
+	SmartPtr<Preprocessor_t> m_spPreprocessor;
 };
 
 } //namespace

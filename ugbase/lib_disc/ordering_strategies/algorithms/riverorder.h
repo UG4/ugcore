@@ -189,7 +189,7 @@ public:
 		#ifdef UG_ENABLE_DEBUG_LOGS
 		UG_LOG("Using " << name() << " (subset " << m_ssIdx << ", " << m_ssName
 				<< ", n=" << boost::num_vertices(g) << ", m=2*" << boost::num_edges(g)/2
-				<< ", s=" <<  numSources << ")\n");
+				<< ", s=" << numSources << ")\n");
 		#endif
 	}
 
