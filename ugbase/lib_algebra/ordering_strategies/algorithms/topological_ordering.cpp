@@ -39,6 +39,7 @@
 
 #include <vector>
 #include <utility> //for pair
+#include <deque>
 
 #include "IOrderingAlgorithm.h"
 #include "util.cpp"
@@ -74,50 +75,74 @@ public:
 		return make_sp(new TopologicalOrdering<TAlgebra, O_t>(*this));
 	}
 
-	indegs_t min_indegree_vertex(){
-		vd_t minv;
-		int mind = boost::num_vertices(g);;
-		vIt_t vIt, vEnd;
-		for(boost::tie(vIt, vEnd) = boost::vertices(g); vIt != vEnd; ++vIt){
-			int d = indegs[*vIt];
-			if(d >= 0 && d < mind){
-				mind = d;
-				minv = *vIt;
-			}
-		}
-		return std::make_pair(minv, mind);
-	}
-
-	//TODO: this is a very inefficient implementation, rewrite if necessary
 	void compute(){
 		unsigned n = boost::num_vertices(g);
 
 		if(n == 0){
 			UG_THROW(name() << "::compute: Graph is empty!");
-			return;
 		}
 
 		o.resize(n);
 		indegs.resize(n);
+		isindeq = std::vector<BOOL>(n, false);
 
 		vIt_t vIt, vEnd;
+		nIt_t nIt, nEnd;
 		for(boost::tie(vIt, vEnd) = boost::vertices(g); vIt != vEnd; ++vIt){
-			indegs[*vIt] = boost::in_degree(*vIt, g);
+			for(boost::tie(nIt, nEnd) = boost::adjacent_vertices(*vIt, g); nIt != nEnd; ++nIt){
+				++indegs[*nIt];
+			}
 		}
 
-		nIt_t nIt, nEnd;
-		for(unsigned i = 0; i < n; ++i){
-			indegs_t indeg = min_indegree_vertex();
-			if(indeg.second == 0){
-				o[indeg.first] = i;
-				--indegs[indeg.first]; //becomes -1
-				for(boost::tie(nIt, nEnd) = boost::adjacent_vertices(indeg.first, g); nIt != nEnd; ++nIt){
-					--indegs[*nIt];
+		for(boost::tie(vIt, vEnd) = boost::vertices(g); vIt != vEnd; ++vIt){
+			if(indegs[*vIt] == 0){
+				deq.push_front(*vIt);
+				isindeq[*vIt] = true;
+			}
+		}
+
+		if(deq.empty()){
+			UG_THROW(name() << "::compute: Graph is not cycle-free [1]!\n");
+		}
+
+		vd_t cur_v;
+		size_t k = 0;
+		size_t miss = 0;
+		while(!deq.empty() && miss < deq.size()){
+			cur_v = deq.front();
+			deq.pop_front();
+
+			//rotate deque, there is a cycle iff miss==deq.size()
+			if(indegs[cur_v] > 0){
+				deq.push_back(cur_v);
+				++miss;
+				continue;
+			}
+
+			miss = 0;
+			o[cur_v] = k++;
+
+			for(boost::tie(nIt, nEnd) = boost::adjacent_vertices(cur_v, g); nIt != nEnd; ++nIt){
+				--indegs[*nIt];
+
+				if(isindeq[*nIt]){
+					continue;
 				}
+
+				if(indegs[*nIt] == 0){
+					deq.push_front(*nIt);
+					isindeq[*nIt] = true;
+				}
+				else if(indegs[*nIt] > 0){
+					deq.push_back(*nIt);
+					isindeq[*nIt] = true;
+				}
+				else{} //ignore vertex
 			}
-			else{
-				UG_THROW(name() << "::compute: Graph is not cycle-free!");
-			}
+		}
+
+		if(!deq.empty()){
+			UG_THROW(name() << "::compute: Graph is not cycle-free [2]!\n");
 		}
 
 		g = G_t(0);
@@ -136,8 +161,6 @@ public:
 		#ifdef UG_ENABLE_DEBUG_LOGS
 		UG_LOG("Using " << name() << "\n");
 		#endif
-
-		m_A = A;
 
 		unsigned rows = A->num_rows();
 
@@ -173,9 +196,10 @@ public:
 private:
 	G_t g;
 	O_t o;
-	M_t* m_A;
 
-	std::vector<size_t> indegs;
+	std::deque<vd_t> deq;
+	std::vector<int> indegs;
+	std::vector<BOOL> isindeq;
 };
 
 } //namespace

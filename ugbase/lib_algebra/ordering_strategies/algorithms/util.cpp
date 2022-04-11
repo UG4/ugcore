@@ -33,7 +33,7 @@ bool is_permutation(O_t &o){
 			container[o[i]] = true;
 		}
 		else{
-			UG_THROW("is_permutation: multiple occurence of index " << o[i]);
+			UG_THROW("is_permutation: multiple occurence of index, i=" << i << ", o[i]=" << o[i] << "\n");
 			return false; //no doubles allowed
 		}
 	}
