@@ -33,6 +33,10 @@
 #ifndef __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_SPARSEMATRIX_GRAPH_TEST__
 #define __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_SPARSEMATRIX_GRAPH_TEST__
 
+#include "lib_algebra/cpu_algebra/sparsematrix_boost.h"
+#include "lib_algebra/parallelization/parallel_matrix_boost.h" //really?
+#include "lib_algebra/small_algebra/storage/fixed_array.h" // really?
+
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/graph_utility.hpp>
@@ -44,12 +48,10 @@
 #include "IOrderingAlgorithm.h"
 #include "util.cpp"
 
-#include "lib_algebra/cpu_algebra/sparsematrix_boost.h"
-#include "lib_algebra/cpu_algebra/sparsematrix.h"
-
 //debug
 #include "common/error.h"
 #include "common/log.h"
+
 
 namespace ug{
 
@@ -142,12 +144,11 @@ public:
 		std::cout << "\n";
 		auto e = boost::out_edges(1, *A);
 		for(; e.first!=e.second; ++e.first){
-			std::cout << e.first->first << ":" << e.first->second << "\n";
+			auto edg = *e.first;
+			std::cout << boost::source(edg, *A) << ":" << boost::target(edg, *A) << "\n";
 		}
 		std::cout << "pg\n";
 		boost::print_graph(*A);
-
-
 	}
 
 	void init(M_t*, const V_t&, const O_t&){

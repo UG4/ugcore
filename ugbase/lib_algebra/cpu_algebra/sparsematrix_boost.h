@@ -284,7 +284,7 @@ std::pair<counting_iterator<size_t>, counting_iterator<size_t> > vertices(
       ug::SparseMatrix<T> const& M)
 {
 	counting_iterator<size_t> b(0);
-	counting_iterator<size_t> e(7);
+	counting_iterator<size_t> e(M.num_rows());
 
 	return std::make_pair(b,e);
 }
