@@ -110,10 +110,13 @@ public:
 	size_t row() const{
 		return _iter.row();
 	}
-	size_t column(ug::SparseMatrix<T> const& m) const{
+
+	template<class X>
+	size_t column(X const&) const{
 		return *_iter;
 	}
-	T const value(ug::SparseMatrix<T> const& m) const{
+	template<class X>
+	T const value(X const&) const{
 		return _iter.value();
 	}
 

@@ -34,8 +34,8 @@
 #define __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_SPARSEMATRIX_GRAPH_TEST__
 
 #include "lib_algebra/cpu_algebra/sparsematrix_boost.h"
-#include "lib_algebra/parallelization/parallel_matrix_boost.h" //really?
-#include "lib_algebra/small_algebra/storage/fixed_array.h" // really?
+#include "lib_algebra/graph_interface/parallel_matrix_boost.h"
+// #include "lib_algebra/small_algebra/storage/fixed_array.h" // really?
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_traits.hpp>
