@@ -64,6 +64,11 @@ public:
 		assert(_base);
 		return _base->index(); // row?
 	}
+	bool operator==(const SM_adjacency_iterator& other) const {
+		assert(_base);
+		assert(other._base);
+		return *_base == *other._base;
+	}
 	bool operator!=(const SM_adjacency_iterator& other) const {
 		assert(_base);
 		assert(other._base);
@@ -103,6 +108,8 @@ class SM_edge{
 public:
 //	SM_edge(size_t v, size_t w) : _row(v), _idx(w) {
 //	}
+	explicit SM_edge() {
+	}
 	SM_edge(SM_adjacency_iterator<T> const& i) : _iter(i) {
 	}
 
@@ -120,12 +127,20 @@ public:
 		return _iter.value();
 	}
 
+public:
+	bool operator==(const SM_edge& other) const {
+		return _iter == other._iter;
+	}
+	bool operator!=(const SM_edge& other) const {
+		return _iter != other._iter;
+	}
+
 private:
 //	int _row;
 //	size_t _idx;
 	SM_adjacency_iterator<T> _iter;
 	// typename ug::SparseMatrix<T>::const_row_iterator _iter;
-};
+}; // SM_edge
 
 template<class T>
 size_t source(SM_edge<T> const& e, ug::SparseMatrix<T> const&)
@@ -161,7 +176,7 @@ public: // construct
 	explicit SM_out_edge_iterator(size_t v, SM_adjacency_iterator<T> w)
 	    : _base(w) {
 	}
-	explicit SM_out_edge_iterator(SM_out_edge_iterator const& p)
+	/* explicit */ SM_out_edge_iterator(SM_out_edge_iterator const& p)
 	    : _base(p._base){
 	}
 	~SM_out_edge_iterator(){
@@ -202,8 +217,17 @@ private:
 	//				return false;
 	//			}
 public:
+	SM_out_edge_iterator& operator++() {
+		++_base;
+		return *this;
+	}
+	SM_out_edge_iterator operator++(int) {
+		SM_out_edge_iterator copy(*this);
+		++*this;
+		return copy;
+	}
 	bool operator==(const SM_out_edge_iterator& other) const {
-		return _base.second == other._base.second;
+		return _base == other._base;
 	}
 	bool operator!=(const SM_out_edge_iterator& other) const {
 		return _base != other._base;
@@ -214,13 +238,18 @@ private:
 	friend class iterator_core_access;
 }; // SM_out_edge_iterator
 
+struct SM_traversal_tag : adjacency_graph_tag, incidence_graph_tag {};
+
 template <class T> struct graph_traits<ug::SparseMatrix<T>>{
 	typedef int vertex_descriptor;
 	typedef SM_edge<T> edge_descriptor;
 	typedef directed_tag directed_category;
+	typedef disallow_parallel_edge_tag edge_parallel_category;
+	typedef SM_traversal_tag traversal_category;
 	typedef counting_iterator<size_t> vertex_iterator;
 	typedef SM_out_edge_iterator<T> out_edge_iterator;
 	typedef SM_adjacency_iterator<T> adjacency_iterator;
+	typedef int degree_size_type;
 	//typedef typename ug::SparseMatrix<T>::const_row_iterator adjacency_iterator;
 };
 
@@ -229,6 +258,7 @@ std::pair<typename graph_traits<ug::SparseMatrix<T>>::adjacency_iterator,
           typename graph_traits<ug::SparseMatrix<T>>::adjacency_iterator>
 adjacent_vertices(size_t v, ug::SparseMatrix<T> const& M)
 {
+	assert(v<M.num_rows());
 	typedef typename graph_traits<ug::SparseMatrix<T>>::adjacency_iterator a;
 
 	typename ug::SparseMatrix<T>::const_row_iterator b = M.begin_row(v);
@@ -241,6 +271,7 @@ template<class T>
 inline std::pair<SM_out_edge_iterator<T>, SM_out_edge_iterator<T>>
 					out_edges(size_t v, ug::SparseMatrix<T> const& g)
 {
+	assert(v<g.num_rows());
 	typedef SM_out_edge_iterator<T> Iter;
 //	ug::SparseMatrix<T>* G = const_cast<ug::SparseMatrix<T>*>(&g); // HACK
    auto a = adjacent_vertices(v, g);
@@ -258,9 +289,13 @@ class sparse_matrix_index_map
 		typedef vertex_index_type reference;
 		typedef vertex_descriptor key_type;
 
-		sparse_matrix_index_map(sparse_matrix_index_map const& p) { }
-		sparse_matrix_index_map(ug::SparseMatrix<T>const&, boost::vertex_index_t) { }
-		sparse_matrix_index_map(ug::SparseMatrix<T>const&) { }
+		sparse_matrix_index_map(sparse_matrix_index_map const& p) {
+		}
+		sparse_matrix_index_map(ug::SparseMatrix<T>const&, boost::vertex_index_t) {
+		}
+		template<class X>
+		sparse_matrix_index_map(X const&) {
+		}
 		template <class T_>
 		value_type operator[](T_ x) const {
 			return x;
@@ -304,7 +339,7 @@ int out_degree(int v, ug::SparseMatrix<T> const& M)
 // 	return e.value();
 // }
 
-template<class T>
+template<class T, class M=ug::SparseMatrix<T>>
 class SM_edge_weight_map :
 	public put_get_helper< T /*algebraic connection?*/, SM_edge_weight_map<T> > {
 public:
@@ -320,7 +355,7 @@ public:
 	SM_edge_weight_map(ug::SparseMatrix<T>const & g, boost::edge_weight_t) : _g(g) {
 	}
 	// bug?
-	SM_edge_weight_map(ug::SparseMatrix<T>const & g) : _g(g) {
+	SM_edge_weight_map(M const& g) : _g(g) {
 	}
 	template <class X>
 	value_type operator[](X const& x) const {
@@ -332,7 +367,7 @@ public:
 		return *this;
 	}
 private:
-	ug::SparseMatrix<T> const& _g;
+	M const& _g;
 }; // SM_edge_weight_map
 
 // g++ 'enumeral_type' in template unification not implemented workaround

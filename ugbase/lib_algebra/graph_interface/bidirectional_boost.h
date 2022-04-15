@@ -37,15 +37,20 @@
 
 namespace boost{
 
+struct BS_traversal_tag : adjacency_graph_tag, bidirectional_graph_tag {};
+
 template <class T> struct graph_traits<ug::BidirectionalMatrix<ug::SparseMatrix<T>>>{
 	typedef int vertex_descriptor;
 	typedef SM_edge<T> edge_descriptor;
-	typedef directed_tag bidirectional_category;
+	typedef bidirectional_tag directed_category;
+	typedef BS_traversal_tag traversal_category;
+	typedef disallow_parallel_edge_tag edge_parallel_category;
 	typedef counting_iterator<size_t> vertex_iterator;
 	typedef SM_out_edge_iterator<T> out_edge_iterator;
 	typedef SM_out_edge_iterator<T> in_edge_iterator;
 //	typedef SM_out_edge_iterator<T> in_edge_iterator;
 	typedef SM_adjacency_iterator<T> adjacency_iterator;
+	typedef int degree_size_type;
 };
 
 template<class T>
@@ -68,6 +73,12 @@ template<class T>
 int in_degree(int v, ug::BidirectionalMatrix<T> const& M)
 {
 	return M.num_connections(v);
+}
+
+template<class T>
+int degree(int v, ug::BidirectionalMatrix<T> const& M)
+{ untested();
+	return 2*M.num_connections(v);
 }
 
 template<class T>
@@ -127,6 +138,23 @@ inline std::pair<SM_out_edge_iterator<T>, SM_out_edge_iterator<T>>
 	return std::make_pair(Iter(v, a.first), Iter(v, a.second));
 }
 
+template<class T>
+inline SM_edge_weight_map<T, ug::BidirectionalMatrix<ug::SparseMatrix<T>>>
+get(edge_weight_t, ug::BidirectionalMatrix<ug::SparseMatrix<T>> const & g) {
+	return SM_edge_weight_map<T, ug::BidirectionalMatrix<ug::SparseMatrix<T>>>(g);
+}
+
+template<class T>
+struct property_map<ug::BidirectionalMatrix<ug::SparseMatrix<T>>, vertex_index_t>{
+	typedef sparse_matrix_index_map<T> type;
+	typedef type const_type;
+};
+
+template<class T>
+inline typename property_map<ug::BidirectionalMatrix<ug::SparseMatrix<T>>, vertex_index_t>::const_type
+get(vertex_index_t, ug::BidirectionalMatrix<ug::SparseMatrix<T>> const& m){
+	return sparse_matrix_index_map<T>(m);
+}
 
 } // boost
 

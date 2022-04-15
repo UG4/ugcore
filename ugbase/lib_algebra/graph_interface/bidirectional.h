@@ -63,29 +63,50 @@ public: // interface
 	}
 
 	int num_rows() const {
-		return _matrix->num_rows();
+		return std::max(_matrix->num_rows(), _matrix->num_cols());
 	}
 	int num_cols() const { untested();
-		return _matrix->num_cols();
+		return num_rows();
 	}
 	int num_connections(int v) const {
-		return _matrix->num_connections(v);
+		if(v<_matrix->num_rows()){
+			return _matrix->num_connections(v);
+		}else{
+			assert(v<_matrix_transpose.num_rows());
+			return _matrix_transpose.num_connections(v);
+		}
 	}
 
-	const_row_iterator begin_row(size_t row) const {
+	const_row_iterator begin_row(int row) const {
 		assert(_matrix);
+		if(row<_matrix->num_rows()){
+		}else{
+			row = 0;
+		}
 		return _matrix->begin_row(row);
 	}
-	const_row_iterator end_row(size_t row) const {
+	const_row_iterator end_row(int row) const {
 		assert(_matrix);
-		return _matrix->end_row(row);
+		if(row<_matrix->num_rows()){
+			return _matrix->end_row(row);
+		}else{
+			return _matrix->begin_row(0);
+		}
 	}
 
-	const_row_iterator begin_col(size_t col) const {
+	const_row_iterator begin_col(int col) const {
+		if(col<_matrix_transpose.num_rows()){
+		}else{
+			col = 0;
+		}
 		return _matrix_transpose.begin_row(col);
 	}
-	const_row_iterator end_col(size_t col) const {
-		return _matrix_transpose.end_row(col);
+	const_row_iterator end_col(int col) const {
+		if(col<_matrix_transpose.num_rows()){
+			return _matrix_transpose.end_row(col);
+		}else{
+			return _matrix_transpose.begin_row(0);
+		}
 	}
 
 private:
