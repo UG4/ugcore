@@ -238,7 +238,8 @@ private:
 	friend class iterator_core_access;
 }; // SM_out_edge_iterator
 
-struct SM_traversal_tag : adjacency_graph_tag, incidence_graph_tag {};
+struct SM_traversal_tag
+    : adjacency_graph_tag, bidirectional_graph_tag, vertex_list_graph_tag {};
 
 template <class T> struct graph_traits<ug::SparseMatrix<T>>{
 	typedef int vertex_descriptor;
@@ -250,7 +251,7 @@ template <class T> struct graph_traits<ug::SparseMatrix<T>>{
 	typedef SM_out_edge_iterator<T> out_edge_iterator;
 	typedef SM_adjacency_iterator<T> adjacency_iterator;
 	typedef int degree_size_type;
-	//typedef typename ug::SparseMatrix<T>::const_row_iterator adjacency_iterator;
+	typedef int vertices_size_type;
 };
 
 template<class T>
@@ -330,7 +331,7 @@ std::pair<counting_iterator<size_t>, counting_iterator<size_t> > vertices(
 template<class T>
 int num_vertices(ug::SparseMatrix<T> const& M)
 {
-	assert(M.num_rows() == M.num_cols);
+	assert(M.num_rows() == M.num_cols());
 	return M.num_rows();
 }
 
@@ -407,21 +408,8 @@ get(edge_all_t, ug::SparseMatrix<T> & g) { incomplete();
 namespace ug{
 
 // used from boost::print_graph, graph_utility.hpp.
-// must be in ug, because of ADL. why don't they call boost::vertices?
-template<class T>
-std::pair<boost::counting_iterator<size_t>, boost::counting_iterator<size_t> >
-          vertices( ug::SparseMatrix<T> const& M)
-{
-	return boost::vertices(M);
-}
-
-// used from boost::print_graph, graph_utility.hpp.
-// must be in ug, because of ADL. why don't they call boost::out_edges?
-template<class T>
-std::pair<boost::SM_out_edge_iterator<T>, boost::SM_out_edge_iterator<T>>
-          out_edges(size_t v, ug::SparseMatrix<T> const& g)
-{
-	return boost::out_edges(v, g);
-}
+// must be in ug, because of ADL. why don't they call boost::{out_edges,vertices}?
+using boost::vertices;
+using boost::out_edges;
 
 }// ug
