@@ -147,7 +147,7 @@ public:
 			auto edg = *e.first;
 			std::cout << boost::source(edg, *A) << ":" << boost::target(edg, *A) << "\n";
 		}
-		std::cout << "pg\n";
+		std::cout << "pg " << boost::num_vertices(*A) << "\n";
 		boost::print_graph(*A);
 	}
 

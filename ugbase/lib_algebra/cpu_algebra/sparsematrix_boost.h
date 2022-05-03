@@ -312,19 +312,26 @@ struct property_map<ug::SparseMatrix<T>, vertex_index_t>{
 };
 
 template<class T>
-inline typename property_map<ug::SparseMatrix<T>, vertex_index_t>::const_type
+typename property_map<ug::SparseMatrix<T>, vertex_index_t>::const_type
 get(vertex_index_t, ug::SparseMatrix<T> const& m){
 	return sparse_matrix_index_map<T>(m);
 }
 
 template<class T>
-inline std::pair<counting_iterator<size_t>, counting_iterator<size_t> > vertices(
+std::pair<counting_iterator<size_t>, counting_iterator<size_t> > vertices(
       ug::SparseMatrix<T> const& M)
 {
 	counting_iterator<size_t> b(0);
 	counting_iterator<size_t> e(M.num_rows());
 
 	return std::make_pair(b,e);
+}
+
+template<class T>
+int num_vertices(ug::SparseMatrix<T> const& M)
+{
+	assert(M.num_rows() == M.num_cols);
+	return M.num_rows();
 }
 
 template<class T>
@@ -402,7 +409,7 @@ namespace ug{
 // used from boost::print_graph, graph_utility.hpp.
 // must be in ug, because of ADL. why don't they call boost::vertices?
 template<class T>
-inline std::pair<boost::counting_iterator<size_t>, boost::counting_iterator<size_t> >
+std::pair<boost::counting_iterator<size_t>, boost::counting_iterator<size_t> >
           vertices( ug::SparseMatrix<T> const& M)
 {
 	return boost::vertices(M);
@@ -411,7 +418,7 @@ inline std::pair<boost::counting_iterator<size_t>, boost::counting_iterator<size
 // used from boost::print_graph, graph_utility.hpp.
 // must be in ug, because of ADL. why don't they call boost::out_edges?
 template<class T>
-inline std::pair<boost::SM_out_edge_iterator<T>, boost::SM_out_edge_iterator<T>>
+std::pair<boost::SM_out_edge_iterator<T>, boost::SM_out_edge_iterator<T>>
           out_edges(size_t v, ug::SparseMatrix<T> const& g)
 {
 	return boost::out_edges(v, g);
