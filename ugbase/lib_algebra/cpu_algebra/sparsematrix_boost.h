@@ -256,7 +256,7 @@ template <class T> struct graph_traits<ug::SparseMatrix<T>>{
 template<class T>
 std::pair<typename graph_traits<ug::SparseMatrix<T>>::adjacency_iterator,
           typename graph_traits<ug::SparseMatrix<T>>::adjacency_iterator>
-adjacent_vertices(size_t v, ug::SparseMatrix<T> const& M)
+inline adjacent_vertices(size_t v, ug::SparseMatrix<T> const& M)
 {
 	assert(v<M.num_rows());
 	typedef typename graph_traits<ug::SparseMatrix<T>>::adjacency_iterator a;
@@ -318,7 +318,7 @@ get(vertex_index_t, ug::SparseMatrix<T> const& m){
 }
 
 template<class T>
-std::pair<counting_iterator<size_t>, counting_iterator<size_t> > vertices(
+inline std::pair<counting_iterator<size_t>, counting_iterator<size_t> > vertices(
       ug::SparseMatrix<T> const& M)
 {
 	counting_iterator<size_t> b(0);
@@ -396,3 +396,25 @@ get(edge_all_t, ug::SparseMatrix<T> & g) { incomplete();
 #endif
 
 } // boost
+
+namespace ug{
+
+// used from boost::print_graph, graph_utility.hpp.
+// must be in ug, because of ADL. why don't they call boost::vertices?
+template<class T>
+inline std::pair<boost::counting_iterator<size_t>, boost::counting_iterator<size_t> >
+          vertices( ug::SparseMatrix<T> const& M)
+{
+	return boost::vertices(M);
+}
+
+// used from boost::print_graph, graph_utility.hpp.
+// must be in ug, because of ADL. why don't they call boost::out_edges?
+template<class T>
+inline std::pair<boost::SM_out_edge_iterator<T>, boost::SM_out_edge_iterator<T>>
+          out_edges(size_t v, ug::SparseMatrix<T> const& g)
+{
+	return boost::out_edges(v, g);
+}
+
+}// ug
