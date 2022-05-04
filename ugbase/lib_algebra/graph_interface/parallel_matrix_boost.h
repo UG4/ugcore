@@ -30,8 +30,8 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef PARALLEL_MATRIX_BOOST_H
-#define PARALLEL_MATRIX_BOOST_H
+#ifndef UG_PARALLEL_MATRIX_BOOST_H
+#define UG_PARALLEL_MATRIX_BOOST_H
 #ifdef UG_PARALLEL
 #include "lib_algebra/parallelization/parallel_matrix.h"
 #include "lib_algebra/small_algebra/storage/fixed_array.h"

@@ -72,7 +72,7 @@ public:
 		assert(_base);
 		return _base->index(); // row?
 	}
-	bool operator==(const SM_adjacency_iterator& other) const { untested();
+	bool operator==(const SM_adjacency_iterator& other) const {
 		assert(_base);
 		assert(other._base);
 		return *_base == *other._base;
@@ -249,7 +249,7 @@ public:
 		++*this;
 		return copy;
 	}
-	bool operator==(const SM_out_edge_iterator& other) const { untested();
+	bool operator==(const SM_out_edge_iterator& other) const {
 		return _base == other._base;
 	}
 	bool operator!=(const SM_out_edge_iterator& other) const {

@@ -2,6 +2,7 @@
 #include "lib_algebra/cpu_algebra/sparsematrix_boost.h"
 #include "lib_algebra/cpu_algebra/sparsematrix_impl.h"
 #include "lib_algebra/graph_interface/bidirectional_boost.h"
+#include "lib_algebra/graph_interface/boost_util.h"
 
 #include "common/log.cpp" // ?
 #include "common/debug_id.cpp" // ?
@@ -47,7 +48,8 @@ int main()
 
 	{
 		std::cout << "=== out edges ===\n";
-		std::pair<out_edge_iterator, out_edge_iterator> e = boost::out_edges(1, b);
+		std::pair<out_edge_iterator, out_edge_iterator> e_ = boost::out_edges(1, b);
+		auto e = ug::util::omit_loops(e_, b);
 		for(; e.first!=e.second; ++e.first){
 			boost::graph_traits<BM>::edge_descriptor const& edg = *e.first;
 			std::cout << boost::source(edg, b) << ":" << boost::target(edg, b)
