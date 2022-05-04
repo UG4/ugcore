@@ -31,7 +31,8 @@ int main()
 	M A;
 	A.resize_and_clear(N, N);
 
-	A(0 /*row?*/, N-1 /*column?*/) = -1.;
+	A(0 , N-1) = -1.;
+	A(1 , N-1) = 0.;
 	A(0, 0) = 2.;
 	for(unsigned i=1; i<N; ++i){
 		A(i, i) = 2.;

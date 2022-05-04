@@ -110,7 +110,7 @@ adjacent_vertices(size_t v, ug::BidirectionalMatrix<ug::SparseMatrix<T>> const& 
 	typename ug::SparseMatrix<T>::const_row_iterator b = M.begin_row(v);
 	typename ug::SparseMatrix<T>::const_row_iterator e = M.end_row(v);
 
-	return std::make_pair(a(&b), a(&e));
+	return std::make_pair(a(&b, &e), a(&e, &e));
 }
 
 template<class T>
@@ -123,7 +123,7 @@ coadjacent_vertices(size_t v, ug::BidirectionalMatrix<ug::SparseMatrix<T>> const
 	typename ug::SparseMatrix<T>::const_row_iterator b = M.begin_col(v);
 	typename ug::SparseMatrix<T>::const_row_iterator e = M.end_col(v);
 
-	return std::make_pair(a(&b), a(&e));
+	return std::make_pair(a(&b, &e), a(&e, &e));
 }
 
 
