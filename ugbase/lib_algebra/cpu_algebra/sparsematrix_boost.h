@@ -107,10 +107,10 @@ private:
 		assert(_end);
 		++(*_base);
 		while((*_base) != (*_end)){
-			if(_base->value()){
-				break;
-			}else{
+			if(iszero(_base->value())){
 				++(*_base);
+			}else{
+				break;
 			}
 		}
 	}

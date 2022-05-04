@@ -66,3 +66,8 @@ int main()
 	}
 	
 }
+
+typedef ug::DenseMatrix<ug::VariableArray2<double> > T;
+BOOST_CONCEPT_ASSERT(( boost::AdjacencyGraphConcept<ug::SparseMatrix<T>> ));
+BOOST_CONCEPT_ASSERT(( boost::IncidenceGraphConcept<ug::SparseMatrix<T>> ));
+BOOST_CONCEPT_ASSERT(( boost::VertexListGraphConcept<ug::SparseMatrix<T>> ));
