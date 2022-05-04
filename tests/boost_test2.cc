@@ -1,5 +1,5 @@
 
-#include "lib_algebra/cpu_algebra/sparsematrix_boost.h"
+#include "lib_algebra/graph_interface/sparsematrix_boost.h"
 #include "lib_algebra/cpu_algebra/sparsematrix_impl.h"
 #include "lib_algebra/graph_interface/bidirectional_boost.h"
 

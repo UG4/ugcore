@@ -1,6 +1,6 @@
 // #define UG_PARALLEL
 
-#include "lib_algebra/cpu_algebra/sparsematrix_boost.h"
+#include "lib_algebra/graph_interface/sparsematrix_boost.h"
 #include "lib_algebra/cpu_algebra/sparsematrix_impl.h"
 
 #ifdef UG_PARALLEL

@@ -10,7 +10,7 @@
 
 // BGL interface for cpu sparse martrix (dynamic CRS).
 
-#include "sparsematrix.h"
+#include "lib_algebra/cpu_algebra/sparsematrix.h"
 #include <boost/graph/properties.hpp> // put_get_helper
 #include <boost/iterator/counting_iterator.hpp>
 
