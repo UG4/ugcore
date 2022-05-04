@@ -49,6 +49,7 @@ public:
 		assert(p);
 		_base = new iter_t(*p);
 		_end = new iter_t(*e);
+		skip_zeroes();
 	}
 	~SM_adjacency_iterator(){
 		delete _base;
@@ -97,6 +98,16 @@ public:
 	}
 
 private:
+	// could use boost::filter_iterator, but does not work yet.
+	void skip_zeroes(){
+		while((*_base) != (*_end)){
+			if(iszero(_base->value())){
+				++(*_base);
+			}else{
+				break;
+			}
+		}
+	}
 	bool equal(SM_adjacency_iterator const& other) const { untested();
 		assert(_base);
 		assert(other._base);
@@ -106,13 +117,7 @@ private:
 		assert(_base);
 		assert(_end);
 		++(*_base);
-		while((*_base) != (*_end)){
-			if(iszero(_base->value())){
-				++(*_base);
-			}else{
-				break;
-			}
-		}
+		skip_zeroes();
 	}
 	void decrement() { untested();
 		// incomplete(); // don't use. too complicated.

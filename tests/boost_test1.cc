@@ -28,6 +28,7 @@ int main()
 
 	M(0, 0) = 2.;
 	M(0, 6) = -1.;
+	M(5, 1) = 0.;
 	for(unsigned i=1; i<N; ++i){
 		M(i, i) = 2.;
 		M(i, i-1) = 1.;
@@ -54,6 +55,19 @@ int main()
 			boost::graph_traits<BM>::edge_descriptor const& edg = *e.first;
 			std::cout << boost::source(edg, b) << ":" << boost::target(edg, b)
 			          << " -- " << boost::get(wtmap, edg) << "\n";
+		}
+	}
+
+	{
+		std::cout << "=== out edges ===\n";
+		std::pair<out_edge_iterator, out_edge_iterator> e_ = boost::out_edges(5, b);
+		auto e = ug::util::omit_loops(e_, b);
+		for(; e.first!=e.second; ++e.first){
+			boost::graph_traits<BM>::edge_descriptor const& edg = *e.first;
+			auto wt = boost::get(wtmap, edg);
+			std::cout << boost::source(edg, b) << ":" << boost::target(edg, b)
+			          << " -- " << wt << "\n";
+			assert(wt);
 		}
 	}
 

@@ -45,8 +45,8 @@ public: // types
 	typedef typename T::const_row_iterator const_row_iterator;
 public:
 	explicit BidirectionalMatrix(T const* m=nullptr)
-	    : _matrix(m) { untested();
-		if(m){ untested();
+	    : _matrix(m) {
+		if(m){
 			refresh();
 		}else{ untested();
 		}
