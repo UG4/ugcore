@@ -30,8 +30,8 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef UG4_GRAPH_INTERFACE_BIDIR_H
-#define UG4_GRAPH_INTERFACE_BIDIR_H
+#ifndef UG_GRAPH_INTERFACE_BIDIR_H
+#define UG_GRAPH_INTERFACE_BIDIR_H
 
 #include "trace.h"
 
@@ -44,14 +44,19 @@ class BidirectionalMatrix{
 public: // types
 	typedef typename T::const_row_iterator const_row_iterator;
 public:
-	explicit BidirectionalMatrix(ConstSmartPtr<T> m) : _matrix(m) { untested();
-		refresh();
+	explicit BidirectionalMatrix(T const* m=nullptr)
+	    : _matrix(m) { untested();
+		if(m){ untested();
+			refresh();
+		}else{ untested();
+		}
 	}
-	explicit BidirectionalMatrix(T const* m) : _matrix(nullptr) {
-		T* m_ = new T;
-		m_->set_as_copy_of(*m);
-		_matrix = make_sp(m_);
-		refresh();
+	explicit BidirectionalMatrix(BidirectionalMatrix const& o)
+	    : _matrix(o._matrix), _matrix_transpose(o._matrix_transpose) { untested();
+	}
+	BidirectionalMatrix& operator=(BidirectionalMatrix const& o) { untested();
+		_matrix = o._matrix;
+		_matrix_transpose = o._matrix_transpose;
 	}
 
 public: // interface
@@ -110,7 +115,7 @@ public: // interface
 	}
 
 private:
-	ConstSmartPtr<T> _matrix;
+	T const* _matrix;
 	T _matrix_transpose;
 };
 
