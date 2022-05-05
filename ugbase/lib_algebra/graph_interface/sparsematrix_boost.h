@@ -10,6 +10,9 @@
 
 // BGL interface for cpu sparse martrix (dynamic CRS).
 
+#ifndef UG_SPARSEMATRIX_BOOST_H
+#define UG_SPARSEMATRIX_BOOST_H
+
 #include "lib_algebra/cpu_algebra/sparsematrix.h"
 #include <boost/graph/properties.hpp> // put_get_helper
 #include <boost/iterator/counting_iterator.hpp>
@@ -365,8 +368,12 @@ int num_vertices(ug::SparseMatrix<T> const& M)
 template<class T>
 int out_degree(int v, ug::SparseMatrix<T> const& M)
 {
-// BUG: filter.
-	return M.num_connections(v);
+	int c = 0;
+	auto i = out_edges(v, M);
+	for(; i.first != i.second; ++i.first) {
+		++c;
+	}
+	return c;
 }
 
 // template<class T>
@@ -441,3 +448,5 @@ using boost::vertices;
 using boost::out_edges;
 
 }// ug
+
+#endif // guard

@@ -60,10 +60,10 @@ int main()
 	boost::print_graph(A);
 
 	{
-		auto e = boost::vertices(B);
+		auto e = boost::vertices(A);
 		for(; e.first!=e.second; ++e.first){
 			auto v = *e.first;
-			std::cout << v << " " << boost::out_degree(v, B) << "\n";
+			std::cout << v << " " << boost::out_degree(v, A) << "\n";
 		}
 	}
 }

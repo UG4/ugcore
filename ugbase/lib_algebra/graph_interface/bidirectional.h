@@ -34,6 +34,7 @@
 #define UG_GRAPH_INTERFACE_BIDIR_H
 
 #include "trace.h"
+#include "sparsematrix_boost.h"
 
 namespace ug{
 
@@ -80,6 +81,23 @@ public: // interface
 			assert(v<_matrix_transpose.num_rows());
 			return _matrix_transpose.num_connections(v);
 		}
+	}
+	int out_degree(int v) const {
+		// could call in_degree?
+		return in_degree(v);
+	}
+	int in_degree(int v) const {
+		// could use difference, requires zero-pruning in _matrix_transpose.
+		if(v<_matrix_transpose.num_rows()){
+			return boost::out_degree(v, _matrix_transpose);
+		}else{
+			assert(_matrix);
+			assert(v<_matrix->num_rows());
+			return boost::out_degree(v, *_matrix);
+		}
+	}
+	int degree(int v) const { untested();
+		return 2*out_degree(v);
 	}
 
 	const_row_iterator begin_row(int row) const {

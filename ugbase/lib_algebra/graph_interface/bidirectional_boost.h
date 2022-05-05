@@ -73,19 +73,19 @@ int num_vertices(ug::BidirectionalMatrix<T> const& M)
 template<class T>
 int out_degree(int v, ug::BidirectionalMatrix<T> const& M)
 {
-	return M.num_connections(v);
+	return M.out_degree(v);
 }
 
 template<class T>
 int in_degree(int v, ug::BidirectionalMatrix<T> const& M)
 {
-	return M.num_connections(v);
+	return M.in_degree(v);
 }
 
 template<class T>
 int degree(int v, ug::BidirectionalMatrix<T> const& M)
 { untested();
-	return 2*M.num_connections(v);
+	return 2*M.degree(v);
 }
 
 template<class T>
