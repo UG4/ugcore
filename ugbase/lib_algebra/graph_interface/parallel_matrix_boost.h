@@ -65,7 +65,7 @@ namespace ug {
 
 using boost::counting_iterator;
 
-// duplicate? why does it have to be here?
+#if 0
 template<class T>
 std::pair<counting_iterator<size_t>, counting_iterator<size_t> > vertices(
       ug::ParallelMatrix<ug::SparseMatrix<T>> const& M)
@@ -75,6 +75,7 @@ std::pair<counting_iterator<size_t>, counting_iterator<size_t> > vertices(
 
 	return std::make_pair(b,e);
 }
+#endif
 
 template<class T>
 inline std::pair<boost::SM_out_edge_iterator<T>, boost::SM_out_edge_iterator<T>>
