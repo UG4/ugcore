@@ -57,6 +57,7 @@ public:
 	BidirectionalMatrix& operator=(BidirectionalMatrix const& o) { untested();
 		_matrix = o._matrix;
 		_matrix_transpose = o._matrix_transpose;
+		return *this;
 	}
 
 public: // interface
