@@ -163,11 +163,13 @@ public:
 	}
 
 	void compute(){
+#ifdef UG_PARALLEL
 		int rank = pcl::ProcRank();
 		std::cout << "rank: " << rank << std::endl;
 		std::cout << "#vertices: " << boost::num_vertices(g) << std::endl;
 
 		UG_LOG("rank: " << rank << "\n");
+#endif
 
 		topological_ordering_core(o, g, false); //false = no inverse
 
