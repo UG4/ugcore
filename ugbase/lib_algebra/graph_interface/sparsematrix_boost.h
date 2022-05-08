@@ -173,14 +173,14 @@ private:
 	// typename ug::SparseMatrix<T>::const_row_iterator _iter;
 }; // SM_edge
 
-template<class T>
-size_t source(SM_edge<T> const& e, ug::SparseMatrix<T> const&)
+template<class T, class M>
+int source(SM_edge<T> const& e, M const&)
 {
 	return e.row();
 }
 
-template<class T>
-size_t target(SM_edge<T> const& e, ug::SparseMatrix<T> const& m)
+template<class T, class M>
+int target(SM_edge<T> const& e, M const& m)
 {
 	return e.column(m);
 }

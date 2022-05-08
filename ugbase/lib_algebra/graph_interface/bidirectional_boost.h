@@ -40,7 +40,25 @@ namespace boost{
 struct BS_traversal_tag
     : adjacency_graph_tag, bidirectional_graph_tag, vertex_list_graph_tag {};
 
-template <class T> struct graph_traits<ug::BidirectionalMatrix<ug::SparseMatrix<T>>>{
+template <class T>
+struct graph_traits<ug::BidirectionalMatrix<T>>{
+	typedef typename T::value_type value_type;
+	typedef int vertex_descriptor;
+	typedef SM_edge<value_type> edge_descriptor;
+	typedef bidirectional_tag directed_category;
+	typedef BS_traversal_tag traversal_category;
+	typedef disallow_parallel_edge_tag edge_parallel_category;
+	typedef counting_iterator<size_t> vertex_iterator;
+	typedef SM_out_edge_iterator<value_type> out_edge_iterator;
+	typedef SM_out_edge_iterator<value_type> in_edge_iterator;
+	typedef SM_adjacency_iterator<value_type> adjacency_iterator;
+	typedef int degree_size_type;
+	typedef int vertices_size_type;
+};
+
+#if 0
+// deduplicate?
+template <class T> struct graph_traits<ug::BidirectionalMatrix<ug::ParallelMatrix<ug::SparseMatrix<T>>>>{
 	typedef int vertex_descriptor;
 	typedef SM_edge<T> edge_descriptor;
 	typedef bidirectional_tag directed_category;
@@ -53,10 +71,11 @@ template <class T> struct graph_traits<ug::BidirectionalMatrix<ug::SparseMatrix<
 	typedef int degree_size_type;
 	typedef int vertices_size_type;
 };
+#endif
 
 template<class T>
 std::pair<counting_iterator<size_t>, counting_iterator<size_t> > vertices(
-      ug::BidirectionalMatrix<ug::SparseMatrix<T>> const& M)
+      ug::BidirectionalMatrix<T> const& M)
 {
 	counting_iterator<size_t> b(0);
 	counting_iterator<size_t> e(M.num_rows());
@@ -89,66 +108,72 @@ int degree(int v, ug::BidirectionalMatrix<T> const& M)
 }
 
 template<class T>
-size_t source(SM_edge<T> const& e, ug::BidirectionalMatrix<ug::SparseMatrix<T>> const&)
+size_t source(SM_edge<typename T::value_type> const& e, ug::BidirectionalMatrix<T> const&)
 {
 	return e.row();
 }
 
 template<class T>
-size_t target(SM_edge<T> const& e, ug::BidirectionalMatrix<ug::SparseMatrix<T>> const& m)
+size_t target(SM_edge<typename T::value_type> const& e, ug::BidirectionalMatrix<T> const& m)
 {
 	return e.column(m);
 }
 
 template<class T>
-std::pair<typename graph_traits<ug::SparseMatrix<T>>::adjacency_iterator,
-          typename graph_traits<ug::SparseMatrix<T>>::adjacency_iterator>
-adjacent_vertices(size_t v, ug::BidirectionalMatrix<ug::SparseMatrix<T>> const& M)
+std::pair<typename graph_traits<T>::adjacency_iterator,
+          typename graph_traits<T>::adjacency_iterator>
+adjacent_vertices(size_t v, ug::BidirectionalMatrix<T> const& M)
 {
-	typedef typename graph_traits<ug::SparseMatrix<T>>::adjacency_iterator a;
+	typedef typename graph_traits<T>::adjacency_iterator a;
 
-	typename ug::SparseMatrix<T>::const_row_iterator b = M.begin_row(v);
-	typename ug::SparseMatrix<T>::const_row_iterator e = M.end_row(v);
+	typename T::const_row_iterator b = M.begin_row(v);
+	typename T::const_row_iterator e = M.end_row(v);
 
 	return std::make_pair(a(&b, &e), a(&e, &e));
 }
 
 template<class T>
-std::pair<typename graph_traits<ug::SparseMatrix<T>>::adjacency_iterator,
-          typename graph_traits<ug::SparseMatrix<T>>::adjacency_iterator>
-coadjacent_vertices(size_t v, ug::BidirectionalMatrix<ug::SparseMatrix<T>> const& M)
+std::pair<typename graph_traits<T>::adjacency_iterator,
+          typename graph_traits<T>::adjacency_iterator>
+coadjacent_vertices(size_t v, ug::BidirectionalMatrix<T> const& M)
 {
-	typedef typename graph_traits<ug::SparseMatrix<T>>::adjacency_iterator a;
+	typedef typename T::value_type value_type;
+	typedef typename graph_traits<ug::SparseMatrix<value_type>>::adjacency_iterator a;
 
-	typename ug::SparseMatrix<T>::const_row_iterator b = M.begin_col(v);
-	typename ug::SparseMatrix<T>::const_row_iterator e = M.end_col(v);
+	typename T::const_row_iterator b = M.begin_col(v);
+	typename T::const_row_iterator e = M.end_col(v);
 
 	return std::make_pair(a(&b, &e), a(&e, &e));
 }
 
 
 template<class T>
-inline std::pair<SM_out_edge_iterator<T>, SM_out_edge_iterator<T>>
-					out_edges(size_t v, ug::BidirectionalMatrix<ug::SparseMatrix<T>> const& g)
+inline std::pair<SM_out_edge_iterator<typename T::value_type>,
+                 SM_out_edge_iterator<typename T::value_type>>
+					out_edges(size_t v, ug::BidirectionalMatrix<T> const& g)
 {
-	typedef SM_out_edge_iterator<T> Iter;
+	typedef typename T::value_type value_type;
+	typedef SM_out_edge_iterator<value_type> Iter;
    auto a = adjacent_vertices(v, g);
 	return std::make_pair(Iter(v, a.first), Iter(v, a.second));
 }
 
 template<class T>
-inline std::pair<SM_out_edge_iterator<T>, SM_out_edge_iterator<T>>
-					in_edges(size_t v, ug::BidirectionalMatrix<ug::SparseMatrix<T>> const& g)
+inline std::pair<SM_out_edge_iterator<typename T::value_type>,
+                 SM_out_edge_iterator<typename T::value_type>>
+					in_edges(size_t v, ug::BidirectionalMatrix<T> const& g)
 {
-	typedef SM_out_edge_iterator<T> Iter;
+	typedef typename T::value_type value_type;
+	typedef SM_out_edge_iterator<value_type> Iter;
    auto a = coadjacent_vertices(v, g);
 	return std::make_pair(Iter(v, a.first), Iter(v, a.second));
 }
 
 template<class T>
-inline SM_edge_weight_map<T, ug::BidirectionalMatrix<ug::SparseMatrix<T>>>
-get(edge_weight_t, ug::BidirectionalMatrix<ug::SparseMatrix<T>> const & g) {
-	return SM_edge_weight_map<T, ug::BidirectionalMatrix<ug::SparseMatrix<T>>>(g);
+inline SM_edge_weight_map<typename T::value_type, ug::BidirectionalMatrix<T>>
+get(edge_weight_t, ug::BidirectionalMatrix<T> const & g) {
+	typedef typename T::value_type value_type;
+	return SM_edge_weight_map<value_type, ug::BidirectionalMatrix<T>>(g);
 }
 
 template<class T>
@@ -159,8 +184,8 @@ struct property_map<ug::BidirectionalMatrix<ug::SparseMatrix<T>>, vertex_index_t
 
 template<class T>
 inline typename property_map<ug::BidirectionalMatrix<ug::SparseMatrix<T>>, vertex_index_t>::const_type
-get(vertex_index_t, ug::BidirectionalMatrix<ug::SparseMatrix<T>> const& m){
-	return sparse_matrix_index_map<T>(m);
+get(vertex_index_t, ug::BidirectionalMatrix<T> const& m){
+	return sparse_matrix_index_map<typename T::value_type>(m);
 }
 
 } // boost

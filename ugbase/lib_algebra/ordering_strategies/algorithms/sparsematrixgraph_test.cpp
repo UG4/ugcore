@@ -148,6 +148,8 @@ public:
 			auto edg = *e.first;
 			std::cout << boost::source(edg, *A) << ":" << boost::target(edg, *A) << "\n";
 		}
+
+#if 1
 		std::cout << "pg " << boost::num_vertices(*A) << "\n";
 		boost::print_graph(*A);
 
@@ -159,6 +161,22 @@ public:
 			//funzt nicht:
 		auto inedge = boost::out_edges(2, bim);
 		//}
+# else // later
+		int rank;
+		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+		if(rank){
+			std::cerr << "rank " << rank << "num vert " << boost::num_vertices(*A) << "\n";
+			boost::print_graph(*A, std::cerr);
+		}else{
+			std::cout << "rank " << rank << "num vert " << boost::num_vertices(*A) << "\n";
+			boost::print_graph(*A, std::cout);
+		}
+
+		auto L = A->layouts();
+		assert(L);
+		std::cerr << "rank: " << rank << " " << *L << "\n";
+#endif
 	}
 
 	void init(M_t*, const V_t&, const O_t&){

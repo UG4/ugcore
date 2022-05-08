@@ -39,6 +39,7 @@
 
 namespace boost{
 
+// duplicate, same as graph_traits<ug::SparseMatrix<T>>?
 template <class T> struct graph_traits<ug::ParallelMatrix<ug::SparseMatrix<T>>>{
 	typedef int vertex_descriptor;
 	typedef SM_edge<T> edge_descriptor;
@@ -46,6 +47,10 @@ template <class T> struct graph_traits<ug::ParallelMatrix<ug::SparseMatrix<T>>>{
 	typedef counting_iterator<size_t> vertex_iterator;
 	typedef SM_out_edge_iterator<T> out_edge_iterator;
 	typedef SM_adjacency_iterator<T> adjacency_iterator;
+	typedef disallow_parallel_edge_tag edge_parallel_category;
+	typedef SM_traversal_tag traversal_category;
+	typedef int degree_size_type;
+	typedef int vertices_size_type;
 	//typedef typename ug::SparseMatrix<T>::const_row_iterator adjacency_iterator;
 };
 
