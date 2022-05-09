@@ -37,7 +37,8 @@
 
 namespace boost{
 
-struct BS_traversal_tag : adjacency_graph_tag, bidirectional_graph_tag {};
+struct BS_traversal_tag
+    : adjacency_graph_tag, bidirectional_graph_tag, vertex_list_graph_tag {};
 
 template <class T> struct graph_traits<ug::BidirectionalMatrix<ug::SparseMatrix<T>>>{
 	typedef int vertex_descriptor;
@@ -48,9 +49,9 @@ template <class T> struct graph_traits<ug::BidirectionalMatrix<ug::SparseMatrix<
 	typedef counting_iterator<size_t> vertex_iterator;
 	typedef SM_out_edge_iterator<T> out_edge_iterator;
 	typedef SM_out_edge_iterator<T> in_edge_iterator;
-//	typedef SM_out_edge_iterator<T> in_edge_iterator;
 	typedef SM_adjacency_iterator<T> adjacency_iterator;
 	typedef int degree_size_type;
+	typedef int vertices_size_type;
 };
 
 template<class T>
@@ -64,21 +65,27 @@ std::pair<counting_iterator<size_t>, counting_iterator<size_t> > vertices(
 }
 
 template<class T>
+int num_vertices(ug::BidirectionalMatrix<T> const& M)
+{
+	return M.num_rows();
+}
+
+template<class T>
 int out_degree(int v, ug::BidirectionalMatrix<T> const& M)
 {
-	return M.num_connections(v);
+	return M.out_degree(v);
 }
 
 template<class T>
 int in_degree(int v, ug::BidirectionalMatrix<T> const& M)
 {
-	return M.num_connections(v);
+	return M.in_degree(v);
 }
 
 template<class T>
 int degree(int v, ug::BidirectionalMatrix<T> const& M)
 { untested();
-	return 2*M.num_connections(v);
+	return 2*M.degree(v);
 }
 
 template<class T>
@@ -103,7 +110,7 @@ adjacent_vertices(size_t v, ug::BidirectionalMatrix<ug::SparseMatrix<T>> const& 
 	typename ug::SparseMatrix<T>::const_row_iterator b = M.begin_row(v);
 	typename ug::SparseMatrix<T>::const_row_iterator e = M.end_row(v);
 
-	return std::make_pair(a(&b), a(&e));
+	return std::make_pair(a(&b, &e), a(&e, &e));
 }
 
 template<class T>
@@ -116,7 +123,7 @@ coadjacent_vertices(size_t v, ug::BidirectionalMatrix<ug::SparseMatrix<T>> const
 	typename ug::SparseMatrix<T>::const_row_iterator b = M.begin_col(v);
 	typename ug::SparseMatrix<T>::const_row_iterator e = M.end_col(v);
 
-	return std::make_pair(a(&b), a(&e));
+	return std::make_pair(a(&b, &e), a(&e, &e));
 }
 
 

@@ -30,10 +30,11 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef UG4_GRAPH_INTERFACE_BIDIR_H
-#define UG4_GRAPH_INTERFACE_BIDIR_H
+#ifndef UG_GRAPH_INTERFACE_BIDIR_H
+#define UG_GRAPH_INTERFACE_BIDIR_H
 
 #include "trace.h"
+#include "sparsematrix_boost.h"
 
 namespace ug{
 
@@ -44,14 +45,19 @@ class BidirectionalMatrix{
 public: // types
 	typedef typename T::const_row_iterator const_row_iterator;
 public:
-	explicit BidirectionalMatrix(ConstSmartPtr<T> m) : _matrix(m) { untested();
-		refresh();
+	explicit BidirectionalMatrix(T const* m=nullptr)
+	    : _matrix(m) {
+		if(m){
+			refresh();
+		}else{ untested();
+		}
 	}
-	explicit BidirectionalMatrix(T const* m) : _matrix(nullptr) {
-		T* m_ = new T;
-		m_->set_as_copy_of(*m);
-		_matrix = make_sp(m_);
-		refresh();
+	explicit BidirectionalMatrix(BidirectionalMatrix const& o)
+	    : _matrix(o._matrix), _matrix_transpose(o._matrix_transpose) { untested();
+	}
+	BidirectionalMatrix& operator=(BidirectionalMatrix const& o) { untested();
+		_matrix = o._matrix;
+		_matrix_transpose = o._matrix_transpose;
 	}
 
 public: // interface
@@ -75,6 +81,23 @@ public: // interface
 			assert(v<_matrix_transpose.num_rows());
 			return _matrix_transpose.num_connections(v);
 		}
+	}
+	int out_degree(int v) const {
+		// could call in_degree?
+		return in_degree(v);
+	}
+	int in_degree(int v) const {
+		// could use difference, requires zero-pruning in _matrix_transpose.
+		if(v<_matrix_transpose.num_rows()){
+			return boost::out_degree(v, _matrix_transpose);
+		}else{
+			assert(_matrix);
+			assert(v<_matrix->num_rows());
+			return boost::out_degree(v, *_matrix);
+		}
+	}
+	int degree(int v) const { untested();
+		return 2*out_degree(v);
 	}
 
 	const_row_iterator begin_row(int row) const {
@@ -110,7 +133,7 @@ public: // interface
 	}
 
 private:
-	ConstSmartPtr<T> _matrix;
+	T const* _matrix;
 	T _matrix_transpose;
 };
 

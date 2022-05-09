@@ -33,7 +33,7 @@
 #ifndef __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_SPARSEMATRIX_GRAPH_TEST__
 #define __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_SPARSEMATRIX_GRAPH_TEST__
 
-#include "lib_algebra/cpu_algebra/sparsematrix_boost.h"
+#include "lib_algebra/graph_interface/sparsematrix_boost.h"
 #include "lib_algebra/graph_interface/parallel_matrix_boost.h"
 // #include "lib_algebra/small_algebra/storage/fixed_array.h" // really?
 
@@ -147,7 +147,7 @@ public:
 			auto edg = *e.first;
 			std::cout << boost::source(edg, *A) << ":" << boost::target(edg, *A) << "\n";
 		}
-		std::cout << "pg\n";
+		std::cout << "pg " << boost::num_vertices(*A) << "\n";
 		boost::print_graph(*A);
 	}
 
