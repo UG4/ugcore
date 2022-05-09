@@ -37,6 +37,9 @@
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/properties.hpp>
 
+#include "lib_algebra/graph_interface/sparsematrix_boost.h"
+#include "lib_algebra/graph_interface/parallel_matrix_boost.h"
+
 #include <vector>
 #include <utility> //for pair
 #include <deque>
@@ -160,6 +163,12 @@ public:
 	}
 
 	void compute(){
+		int rank = pcl::ProcRank();
+		std::cout << "rank: " << rank << std::endl;
+		std::cout << "#vertices: " << boost::num_vertices(g) << std::endl;
+
+		UG_LOG("rank: " << rank << "\n");
+
 		topological_ordering_core(o, g, false); //false = no inverse
 
 		g = G_t(0);

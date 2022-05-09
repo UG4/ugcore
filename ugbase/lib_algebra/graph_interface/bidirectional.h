@@ -33,7 +33,6 @@
 #ifndef UG_GRAPH_INTERFACE_BIDIR_H
 #define UG_GRAPH_INTERFACE_BIDIR_H
 
-#include "trace.h"
 #include "sparsematrix_boost.h"
 
 namespace ug{

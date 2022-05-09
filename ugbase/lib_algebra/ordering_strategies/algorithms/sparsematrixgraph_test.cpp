@@ -35,7 +35,8 @@
 
 #include "lib_algebra/graph_interface/sparsematrix_boost.h"
 #include "lib_algebra/graph_interface/parallel_matrix_boost.h"
-// #include "lib_algebra/small_algebra/storage/fixed_array.h" // really?
+#include "lib_algebra/graph_interface/bidirectional.h"
+#include "lib_algebra/graph_interface/bidirectional_boost.h"
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_traits.hpp>
@@ -149,6 +150,15 @@ public:
 		}
 		std::cout << "pg " << boost::num_vertices(*A) << "\n";
 		boost::print_graph(*A);
+
+		std::cout << "bidirectional" << std::endl;
+
+		BidirectionalMatrix<M_t> bim(A);
+		boost::num_vertices(bim);
+		//for(size_t i = 0; i <  ++i){
+			//funzt nicht:
+		auto inedge = boost::out_edges(2, bim);
+		//}
 	}
 
 	void init(M_t*, const V_t&, const O_t&){
