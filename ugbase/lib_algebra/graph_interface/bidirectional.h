@@ -88,11 +88,11 @@ public: // interface
 	}
 	int in_degree(int v) const {
 		// could use difference, requires zero-pruning in _matrix_transpose.
-		if(v<_matrix_transpose.num_rows()){
+		if(size_t(v)<_matrix_transpose.num_rows()){
 			return boost::out_degree(v, _matrix_transpose);
 		}else{
 			assert(_matrix);
-			assert(v<_matrix->num_rows());
+			assert(size_t(v)<_matrix->num_rows());
 			return boost::out_degree(v, *_matrix);
 		}
 	}
@@ -102,7 +102,7 @@ public: // interface
 
 	const_row_iterator begin_row(int row) const {
 		assert(_matrix);
-		if(row<_matrix->num_rows()){
+		if(size_t(row)<_matrix->num_rows()){
 		}else{
 			row = 0;
 		}
@@ -110,7 +110,7 @@ public: // interface
 	}
 	const_row_iterator end_row(int row) const {
 		assert(_matrix);
-		if(row<_matrix->num_rows()){
+		if(size_t(row)<_matrix->num_rows()){
 			return _matrix->end_row(row);
 		}else{
 			return _matrix->begin_row(0);
@@ -118,14 +118,14 @@ public: // interface
 	}
 
 	const_row_iterator begin_col(int col) const {
-		if(col<_matrix_transpose.num_rows()){
+		if(size_t(col)<_matrix_transpose.num_rows()){
 		}else{
 			col = 0;
 		}
 		return _matrix_transpose.begin_row(col);
 	}
 	const_row_iterator end_col(int col) const {
-		if(col<_matrix_transpose.num_rows()){
+		if(size_t(col)<_matrix_transpose.num_rows()){
 			return _matrix_transpose.end_row(col);
 		}else{
 			return _matrix_transpose.begin_row(0);
