@@ -56,7 +56,7 @@
 namespace ug{
 
 template <typename O_t, typename G_t>
-void topological_ordering_core(O_t& o, G_t& g, bool inverse){
+void topological_ordering_core_bidirectional(O_t& o, G_t& g, bool inverse){
 	typedef typename boost::graph_traits<G_t>::vertex_descriptor vd_t;
 	typedef typename boost::graph_traits<G_t>::edge_descriptor ed_t;
 	typedef typename boost::graph_traits<G_t>::vertex_iterator vIt_t;
@@ -258,7 +258,7 @@ public:
 	}
 
 	void compute(){
-		topological_ordering_core(o, bidir, false); //false = do not compute inverse permutation
+		topological_ordering_core_bidirectional(o, bidir, false); //false = do not compute inverse permutation
 
 		#ifdef UG_DEBUG
 		check();

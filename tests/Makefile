@@ -1,4 +1,4 @@
-	
+
 TESTS = \
 	boost_test0 \
 	boost_test1 \

@@ -80,7 +80,6 @@ int main()
 			          << " -- " << boost::get(wtmap, edg) << "\n";
 		}
 	}
-	
 }
 
 typedef ug::DenseMatrix<ug::VariableArray2<double> > T;

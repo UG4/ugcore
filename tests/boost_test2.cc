@@ -69,7 +69,6 @@ int main()
 
 	std::cout << "pg\n";
 	boost::print_graph(b);
-	
 }
 
 BOOST_CONCEPT_ASSERT(( boost::BidirectionalGraphConcept<ug::BidirectionalMatrix<ug::SparseMatrix<double>>> ));
