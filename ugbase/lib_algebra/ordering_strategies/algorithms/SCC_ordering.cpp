@@ -127,7 +127,7 @@ public:
 		}
 
 		O_t scc_topo_ordering(num_components);
-		topological_ordering_core(scc_topo_ordering, scc_g, true); //true = inverse
+		topological_ordering_core_directed(scc_topo_ordering, scc_g, true); //true = inverse
 
 		//scc_topo_ordering is now a topological ordering of scc_g
 

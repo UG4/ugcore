@@ -156,11 +156,14 @@ public:
 		std::cout << "bidirectional" << std::endl;
 
 		BidirectionalMatrix<M_t> bim(A);
-		boost::num_vertices(bim);
-		//for(size_t i = 0; i <  ++i){
-			//funzt nicht:
-		auto inedge = boost::out_edges(2, bim);
-		//}
+
+		for(int i = 0; i < boost::num_vertices(bim); ++i){
+			auto inedge = boost::in_edges(i, bim);
+			for(; inedge.first != inedge.second; ++inedge.first){
+				if(boost::source(*inedge.first, bim) != boost::target(*inedge.first, bim)){
+				}
+			}
+		}
 # else // later
 		int rank;
 		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
