@@ -141,7 +141,7 @@ public:
 			size_t k = 0;
 			for(unsigned i = 0; i < num_components; ++i){
 				for(unsigned j = 0; j < comp_members[scc_topo_ordering[i]].size(); ++j){
-					o[k++] = comp_members[scc_topo_ordering[i]][j];
+					o[comp_members[scc_topo_ordering[i]][j]] = k++;
 				}
 			}
 		}
