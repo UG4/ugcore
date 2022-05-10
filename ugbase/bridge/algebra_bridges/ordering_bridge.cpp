@@ -161,6 +161,17 @@ static void Algebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "SCCOrdering", tag);
 	}
 
+//	SparseMatrixGraphTest (boost interface for sparsematrix)
+	{
+		typedef SparseMatrixGraphTest<TAlgebra, ordering_container_type> T;
+		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
+		string name = string("SparseMatrixGraphTest").append(suffix);
+		reg.add_class_<T, TBase>(name, grp, "SparseMatrixGraphTest")
+			.add_constructor()
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "SparseMatrixGraphTest", tag);
+	}
+
 /*
 //	Boost Shortest Paths
 	{
