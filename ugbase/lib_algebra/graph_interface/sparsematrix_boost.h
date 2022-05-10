@@ -204,7 +204,7 @@ public: // types
 public: // construct
 	explicit SM_out_edge_iterator() {
 	}
-	explicit SM_out_edge_iterator(size_t v, SM_adjacency_iterator<T> w)
+	explicit SM_out_edge_iterator(SM_adjacency_iterator<T> w)
 	    : _base(w) {
 	}
 	/* explicit */ SM_out_edge_iterator(SM_out_edge_iterator const& p)
@@ -306,7 +306,7 @@ inline std::pair<SM_out_edge_iterator<T>, SM_out_edge_iterator<T>>
 	assert(v<g.num_rows());
 	typedef SM_out_edge_iterator<T> Iter;
    auto a = adjacent_vertices(v, g);
-	return std::make_pair(Iter(v, a.first), Iter(v, a.second));
+	return std::make_pair(Iter(a.first), Iter(a.second));
 }
 
 template<class T>

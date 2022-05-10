@@ -80,9 +80,9 @@ namespace boost {
       size_type i = get(id, x);
       assert(i<size());
 #if 0
-      trace3("rm", x, i, bucket[x]);
-      trace1("rm", head[bucket[x] ]);
-      trace2("rm", prev[i], next[i]);
+      std::cerr << "rm " <<  x << " " <<  i << " " <<  bucket[x] << "\n";
+      std::cerr << "rm " <<  head[bucket[x]] << "\n";
+      std::cerr << "rm " <<  prev[i] << " " <<  next[i] << "\n";
 #endif
       auto next_node = next[i];
       auto prev_node = prev[i];

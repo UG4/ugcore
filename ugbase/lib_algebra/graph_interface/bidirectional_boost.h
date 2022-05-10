@@ -155,7 +155,7 @@ inline std::pair<SM_out_edge_iterator<typename T::value_type>,
 	typedef typename T::value_type value_type;
 	typedef SM_out_edge_iterator<value_type> Iter;
    auto a = adjacent_vertices(v, g);
-	return std::make_pair(Iter(v, a.first), Iter(v, a.second));
+	return std::make_pair(Iter(a.first), Iter(a.second));
 }
 
 template<class T>
@@ -166,7 +166,7 @@ inline std::pair<SM_out_edge_iterator<typename T::value_type>,
 	typedef typename T::value_type value_type;
 	typedef SM_out_edge_iterator<value_type> Iter;
    auto a = coadjacent_vertices(v, g);
-	return std::make_pair(Iter(v, a.first), Iter(v, a.second));
+	return std::make_pair(Iter(a.first), Iter(a.second));
 }
 
 template<class T>
@@ -184,7 +184,8 @@ struct property_map<ug::BidirectionalMatrix<ug::SparseMatrix<T>>, vertex_index_t
 
 template<class T>
 inline typename property_map<ug::BidirectionalMatrix<ug::SparseMatrix<T>>, vertex_index_t>::const_type
-get(vertex_index_t, ug::BidirectionalMatrix<T> const& m){
+get(vertex_index_t, ug::BidirectionalMatrix<T> const& m)
+{
 	return sparse_matrix_index_map<typename T::value_type>(m);
 }
 

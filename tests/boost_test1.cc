@@ -35,7 +35,8 @@ int main()
 		M(i-1, i) = 1.;
 	}
 
-	BM b(&M);
+	BM b_(&M);
+	BM b(b_);
 
 	{
 		auto e = boost::vertices(b);
