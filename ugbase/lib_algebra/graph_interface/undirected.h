@@ -181,6 +181,7 @@ void UndirectedMatrix<T>::refresh()
 		}
 	}
 
+#if 0
 	for(size_t j=0; j<N; ++j){
 		std::cerr << "bs init " << j << "... ";
 		for(auto t : bs[j]){
@@ -188,9 +189,10 @@ void UndirectedMatrix<T>::refresh()
 		}
 		std::cerr << "\n";
 	}
+#endif
 
 	for(size_t j=0; j<N; ++j){
-		std::cerr << "====== " << j << " ====\n";
+		// std::cerr << "====== " << j << " ====\n";
 		if(c[j] == e[j]){
 		}else if(*c[j]==j){
 			++c[j];
@@ -211,12 +213,12 @@ void UndirectedMatrix<T>::refresh()
 			if(c[k] == e[k]){
 				assert(size_t(k)<N);
 				assert(j<N);
-				std::cerr << "lower fill0 " << k << " " << j << "\n";
+				// std::cerr << "lower fill0 " << k << " " << j << "\n";
 				boost::add_edge(k, j, _extra_fill);
 			}else if(*c[k] > j){
 				assert(size_t(k)<N);
 				assert(j<N);
-				std::cerr << "lower fill1 " << k << " " << j << "\n";
+				// std::cerr << "lower fill1 " << k << " " << j << "\n";
 				boost::add_edge(k, j, _extra_fill);
 			}else if(*c[k] == j){
 				++c[k];
@@ -236,11 +238,11 @@ void UndirectedMatrix<T>::refresh()
 		}
 
 		// lower triangle, visit subset of nonzeroes.
-		std::cerr << "====== lower " << j << " ====\n";
+		// std::cerr << "====== lower " << j << " ====\n";
 		auto bj = bs[j];
 		for(auto t=bj.begin(); t!=bj.end(); ++t){
 			int i = *t;
-			std::cerr << "upper fill " << j << " " << i << "\n";
+			// std::cerr << "upper fill " << j << " " << i << "\n";
 			boost::add_edge(j, i, _extra_fill);
 
 			untested();
@@ -253,7 +255,7 @@ void UndirectedMatrix<T>::refresh()
 			}else if(int(*c[i])>=i){
 				bs.remove(i);
 			}else{ untested();
-				std::cerr << "bs push " << i << " " << *c[i] << "\n";
+				// std::cerr << "bs push " << i << " " << *c[i] << "\n";
 				bs.update(i);
 			}
 

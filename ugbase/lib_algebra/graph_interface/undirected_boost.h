@@ -298,5 +298,23 @@ get(vertex_index_t, ug::UndirectedMatrix<T> const& m)
 {
 	return sparse_matrix_index_map<typename T::value_type>(m);
 }
+
+template<class T>
+int num_vertices(ug::UndirectedMatrix<T> const& M)
+{
+	return M.num_rows();
+}
+
 } // boost
+
+namespace ug{
+
+// adl hack/workaround?
+// (required by adjacency list concept
+using boost::vertices;
+using boost::adjacent_vertices;
+// required by vertexListGraph concept
+using boost::num_vertices;
+
+} // ug
 #endif

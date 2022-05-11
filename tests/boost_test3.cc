@@ -15,11 +15,11 @@
 #include "boost/graph/graph_utility.hpp"
 
 static const int N=4;
+typedef ug::SparseMatrix<double> T;
+typedef ug::UndirectedMatrix<T> UM;
 
 void test0()
 {
-	typedef ug::SparseMatrix<double> T;
-	typedef ug::UndirectedMatrix<T> UM;
 	T M;
 
 	M.resize_and_clear(N, N);
@@ -143,3 +143,7 @@ int main()
 	std::cout << "== test1 ==\n";
 	test1();
 }
+
+BOOST_CONCEPT_ASSERT(( boost::GraphConcept<UM> ));
+BOOST_CONCEPT_ASSERT(( boost::AdjacencyGraphConcept<UM> ));
+BOOST_CONCEPT_ASSERT(( boost::VertexListGraphConcept<UM> ));
