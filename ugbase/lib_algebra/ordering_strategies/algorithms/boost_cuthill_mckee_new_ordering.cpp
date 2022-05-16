@@ -94,20 +94,23 @@ public:
 
 		auto dm = boost::make_degree_map(undir);
 
+		untested();
+
 #if 0
 		auto vc = get(boost::vertex_color, undir);
 #else
 		typedef boost::iterator_property_map<unsigned*,
 		    boost::identity_property_map, unsigned, unsigned&> map_type;
+		untested();
 
 		std::vector<unsigned> V(N);
 		map_type vc(&V[0], boost::identity_property_map());
 #endif
+		untested();
 
-		if(m_bReverse){
+		if(m_bReverse){ untested();
 			boost::cuthill_mckee_ordering(undir, inv_perm.rbegin(), vc, dm);
-		}
-		else{
+		}else{ untested();
 			boost::cuthill_mckee_ordering(undir, inv_perm.begin(), vc, dm);
 		}
 
@@ -118,15 +121,16 @@ public:
 		}
 
 		#ifdef UG_DEBUG
+		untested();
 		check();
 		#endif
 	}
 
-	void check(){
+	void check(){ untested();
 		UG_COND_THROW(!is_permutation(o), name() << "::check: Not a permutation!");
 	}
 
-	O_t& ordering(){
+	O_t& ordering(){ untested();
 		return o;
 	}
 
@@ -134,7 +138,7 @@ public:
 		init(A);
 	}
 
-	void init(M_t* A){
+	void init(M_t* A){ untested();
 		//TODO: replace this by UG_DLOG if permutation_util does not depend on this file anymore
 		#ifdef UG_ENABLE_DEBUG_LOGS
 		UG_LOG("Using " << name() << "\n");
@@ -149,7 +153,7 @@ public:
 		init(A, inv_map);
 	}
 
-	void init(M_t* A, const O_t& inv_map){
+	void init(M_t* A, const O_t& inv_map){ untested();
 		//TODO: replace this by UG_DLOG if permutation_util does not depend on this file anymore
 		#ifdef UG_ENABLE_DEBUG_LOGS
 		UG_LOG("Using " << name() << " on induced matrix of size " << inv_map.size() << "\n");

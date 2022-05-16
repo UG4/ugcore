@@ -84,6 +84,7 @@ public:
 		assert(other._base);
 		return *_base != *other._base;
 	}
+	SM_adjacency_iterator operator=(SM_adjacency_iterator&& other) = delete;
 	SM_adjacency_iterator operator=(const SM_adjacency_iterator& other) {
 		if(other._base){
 			_base = new iter_t(*other._base);

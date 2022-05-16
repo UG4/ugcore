@@ -140,14 +140,16 @@ private:
 private:
 	class map_type{
 	public:
-		explicit map_type(T_adj_it const* i) : _it(i){}
+		explicit map_type(T_adj_it const* i, T_adj_it const* e) : _it(i), _end(e){}
 
 		int operator[](int i) const{
+			assert(_it[i] != _end[i]);
 			return *_it[i];
 		}
 
 	private:
 		T_adj_it const* _it;
+		T_adj_it const* _end;
 	};
 }; // UndirectedMatrix
 
@@ -158,6 +160,7 @@ void UndirectedMatrix<T>::refresh()
 	assert(_matrix);
 	size_t N = _matrix->num_rows();
 	assert(N == _matrix->num_cols());
+	assert(!_matrix->iters()); // for now.
 
 	_extra_fill = G(N);
 
@@ -166,7 +169,7 @@ void UndirectedMatrix<T>::refresh()
 
 	std::vector<T_adj_it> c(N);
 	std::vector<T_adj_it> e(N);
-	map_type M(&c[0]);
+	map_type M(&c[0], &e[0]);
 
 	container_type bs(N, N, M);
 
@@ -197,7 +200,7 @@ void UndirectedMatrix<T>::refresh()
 		}else if(*c[j]==j){
 			++c[j];
 
-			if(c[j] == e[j]){ untested();
+			if(c[j] == e[j]){ itested();
 				bs.remove(j);
 			}else{
 				bs.update(j);
@@ -257,7 +260,7 @@ void UndirectedMatrix<T>::refresh()
 			}else if(int(*c[i])>=i){
 				assert(*c[i] > j);
 				bs.remove(i);
-			}else{ untested();
+			}else{ itested();
 				// std::cerr << "bs push " << i << " " << j << " " << *c[i] << "\n";
 				assert(*c[i] > j);
 				bs.update(i);
@@ -265,6 +268,10 @@ void UndirectedMatrix<T>::refresh()
 
 		}
 	}
+
+	c.clear();
+	e.clear();
+	assert(!_matrix->iters());
 }
 
 } // ug

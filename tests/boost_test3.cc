@@ -174,7 +174,9 @@ void test2()
 	// 2 <--> 3 0
 	// 3 <--> 2
 
+	assert(!M.iters());
 	UM b(&M);
+	assert(!M.iters());
 
 	size_t N = boost::num_vertices(b);
 	assert(N);

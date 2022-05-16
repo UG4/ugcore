@@ -639,6 +639,12 @@ public: // bug
 		return cols[i];
 	}
 
+#ifndef NDEBUG
+	int iters() const{
+		return iIterators;
+	}
+#endif
+
 protected:
     std::vector<int> rowStart;
     std::vector<int> rowEnd;
