@@ -88,7 +88,7 @@ inline std::pair<boost::SM_out_edge_iterator<T>, boost::SM_out_edge_iterator<T>>
 {
 	typedef boost::SM_out_edge_iterator<T> Iter;
    auto a = boost::adjacent_vertices(v, g);
-	return std::make_pair(Iter(v, a.first), Iter(v, a.second));
+	return std::make_pair(Iter(a.first), Iter(a.second));
 }
 
 } // ug

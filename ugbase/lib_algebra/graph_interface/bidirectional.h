@@ -48,13 +48,14 @@ public:
 	    : _matrix(m) {
 		if(m){
 			refresh();
-		}else{ untested();
+		}else{
 		}
 	}
 	explicit BidirectionalMatrix(BidirectionalMatrix const& o)
-	    : _matrix(o._matrix), _matrix_transpose(o._matrix_transpose) { untested();
+	    : _matrix(o._matrix) {
+		_matrix_transpose = o._matrix_transpose; // BUG: missing copy constructor.
 	}
-	BidirectionalMatrix& operator=(BidirectionalMatrix const& o) { untested();
+	BidirectionalMatrix& operator=(BidirectionalMatrix const& o) {
 		_matrix = o._matrix;
 		_matrix_transpose = o._matrix_transpose;
 		return *this;
