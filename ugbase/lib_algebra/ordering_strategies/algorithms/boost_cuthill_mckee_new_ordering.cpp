@@ -84,27 +84,38 @@ public:
 		return make_sp(new BoostCuthillMcKeeNewOrdering<TAlgebra, O_t>(*this));
 	}
 
-	void compute(){
-		UG_COND_THROW(boost::num_vertices(g) == 0, name() << "::compute: Graph is empty!");
+	void compute(){ untested();
+		UG_COND_THROW(boost::num_vertices(undir) == 0, name() << "::compute: Graph is empty!");
 
-		boost::property_map<G_t, boost::vertex_index_t>::type index_map = get(boost::vertex_index, g); //TODO
+		typename boost::property_map<M_t, boost::vertex_index_t>::type index_map = get(boost::vertex_index, undir);
 
-		std::vector<Vertex_t> inv_perm(boost::num_vertices(g));
+		size_t N = boost::num_vertices(undir);
+		std::vector<Vertex_t> inv_perm(N);
+
+		auto dm = boost::make_degree_map(undir);
+
+#if 0
+		auto vc = get(boost::vertex_color, undir);
+#else
+		typedef boost::iterator_property_map<unsigned*,
+		    boost::identity_property_map, unsigned, unsigned&> map_type;
+
+		std::vector<unsigned> V(N);
+		map_type vc(&V[0], boost::identity_property_map());
+#endif
 
 		if(m_bReverse){
-			boost::cuthill_mckee_ordering(g, inv_perm.rbegin(), get(boost::vertex_color, g), boost::make_degree_map(g)); //TODO
+			boost::cuthill_mckee_ordering(undir, inv_perm.rbegin(), vc, dm);
 		}
 		else{
-			boost::cuthill_mckee_ordering(g, inv_perm.begin(), get(boost::vertex_color, g), boost::make_degree_map(g)); //TODO
+			boost::cuthill_mckee_ordering(undir, inv_perm.begin(), vc, dm);
 		}
 
-		o.resize(boost::num_vertices(g));
+		o.resize(boost::num_vertices(undir));
 
 		for(unsigned i = 0; i != inv_perm.size(); ++i){
 			o[index_map[inv_perm[i]]] = i;
 		}
-
-		g = G_t(0);
 
 		#ifdef UG_DEBUG
 		check();
@@ -131,18 +142,6 @@ public:
 
 		unsigned rows = A->num_rows();
 
-		g = G_t(rows);
-
-		for(unsigned i = 0; i < rows; i++){
-			for(typename M_t::row_iterator conn = A->begin_row(i); conn != A->end_row(i); ++conn){
-				if(conn.value() != 0.0 && conn.index() != i){ //TODO: think about this!!
-					if(!boost::edge(i, conn.index(), g).second){
-						boost::add_edge(i, conn.index(), g);
-					}
-				}
-			}
-		}
-
 		undir = UndirectedMatrix<M_t>(A);
 	}
 
@@ -156,7 +155,8 @@ public:
 		UG_LOG("Using " << name() << " on induced matrix of size " << inv_map.size() << "\n");
 		#endif
 
-		induced_subgraph<G_t, M_t>(g, A, inv_map);
+//		?
+// 	induced_subgraph<G_t, M_t>(g, A, inv_map);
 	}
 
 	void set_reverse(bool b){
@@ -173,7 +173,6 @@ public:
 	}
 
 private:
-	G_t g;
 	O_t o;
 	UndirectedMatrix<M_t> undir;
 

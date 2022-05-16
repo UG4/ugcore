@@ -246,10 +246,9 @@ int out_degree(int v, ug::UndirectedMatrix<T> const& M)
 	return degree(v, M);
 }
 
-#if 1
 template<class T>
 std::pair<UM_out_edge_iterator<T>, UM_out_edge_iterator<T> >
-					out_edges(size_t v, ug::UndirectedMatrix<T> const& M)
+					out_edges(int v, ug::UndirectedMatrix<T> const& M)
 {
 	typedef typename ug::UndirectedMatrix<T>::adjacency_iterator ai;
 	typedef UM_out_edge_iterator<T> ei;
@@ -259,7 +258,6 @@ std::pair<UM_out_edge_iterator<T>, UM_out_edge_iterator<T> >
 
 	return std::make_pair(ei(v, b), ei(v, e));
 }
-#endif
 
 template<class T>
 std::pair<typename ug::UndirectedMatrix<T>::adjacency_iterator,
@@ -305,6 +303,31 @@ int num_vertices(ug::UndirectedMatrix<T> const& M)
 	return M.num_rows();
 }
 
+template <class T>
+class degree_property_map< ug::UndirectedMatrix<T> >
+: public put_get_helper< typename graph_traits< ug::UndirectedMatrix<T> >::degree_size_type,
+      degree_property_map< ug::UndirectedMatrix<T> > >
+{
+public:
+	typedef ug::UndirectedMatrix<T> Graph;
+	typedef typename graph_traits< Graph >::vertex_descriptor key_type;
+	typedef typename graph_traits< Graph >::degree_size_type value_type;
+	typedef value_type reference;
+	typedef readable_property_map_tag category;
+	degree_property_map(const Graph& g) : m_g(g) {}
+	value_type operator[](const key_type& v) const { return degree(v, m_g); }
+
+private:
+	Graph const& m_g;
+};
+
+template<class T>
+degree_property_map< ug::UndirectedMatrix<T> >
+make_degree_map(const ug::UndirectedMatrix<T>& g)
+{
+	return degree_property_map< ug::UndirectedMatrix<T> >(g);
+}
+
 } // boost
 
 namespace ug{
@@ -315,6 +338,8 @@ using boost::vertices;
 using boost::adjacent_vertices;
 // required by vertexListGraph concept
 using boost::num_vertices;
+using boost::out_edges; // used in IndicenceGraph concept
+using boost::out_degree; // used in IndicenceGraph concept
 
 } // ug
 #endif

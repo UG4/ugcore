@@ -245,9 +245,7 @@ void UndirectedMatrix<T>::refresh()
 			// std::cerr << "upper fill " << j << " " << i << "\n";
 			boost::add_edge(j, i, _extra_fill);
 
-			untested();
 			assert(*c[i]==j);
-			untested();
 
 			++c[i];
 			if(c[i] == e[i]){

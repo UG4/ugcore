@@ -13,13 +13,11 @@
 #ifndef UG_SPARSEMATRIX_BOOST_H
 #define UG_SPARSEMATRIX_BOOST_H
 
+#include "trace.h"
 #include "lib_algebra/cpu_algebra/sparsematrix.h"
+
 #include <boost/graph/properties.hpp> // put_get_helper
 #include <boost/iterator/counting_iterator.hpp>
-
-// TODO: trace header.
-#define untested() ( std::cerr <<  "@@#\n@@@:"<< __FILE__ << ":"<< __LINE__ \
-          <<":" << __func__ << "\n" )
 
 namespace boost{
 
@@ -301,9 +299,9 @@ inline adjacent_vertices(size_t v, ug::SparseMatrix<T> const& M)
 
 template<class T>
 inline std::pair<SM_out_edge_iterator<T>, SM_out_edge_iterator<T>>
-					out_edges(size_t v, ug::SparseMatrix<T> const& g)
+					out_edges(int v, ug::SparseMatrix<T> const& g)
 {
-	assert(v<g.num_rows());
+	assert(size_t(v)<g.num_rows());
 	typedef SM_out_edge_iterator<T> Iter;
    auto a = adjacent_vertices(v, g);
 	return std::make_pair(Iter(a.first), Iter(a.second));
