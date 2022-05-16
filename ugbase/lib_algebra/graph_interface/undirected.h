@@ -168,7 +168,7 @@ void UndirectedMatrix<T>::refresh()
 	std::vector<T_adj_it> e(N);
 	map_type M(&c[0]);
 
-	container_type bs(2*N, 2*N, M);
+	container_type bs(N, N, M);
 
 	for(size_t k=0; k<N; ++k){
 		auto rr = boost::adjacent_vertices(k, *_matrix);
