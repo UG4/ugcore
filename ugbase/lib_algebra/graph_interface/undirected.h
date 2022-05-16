@@ -239,9 +239,13 @@ void UndirectedMatrix<T>::refresh()
 
 		// lower triangle, visit subset of nonzeroes.
 		// std::cerr << "====== lower " << j << " ====\n";
+		assert(j<N);
 		auto bj = bs[j];
-		for(auto t=bj.begin(); t!=bj.end(); ++t){
+
+		for(auto t=bj.begin(); t!=bj.end(); ){
 			int i = *t;
+			++t;
+
 			// std::cerr << "upper fill " << j << " " << i << "\n";
 			boost::add_edge(j, i, _extra_fill);
 
@@ -251,9 +255,11 @@ void UndirectedMatrix<T>::refresh()
 			if(c[i] == e[i]){
 				bs.remove(i);
 			}else if(int(*c[i])>=i){
+				assert(*c[i] > j);
 				bs.remove(i);
 			}else{ untested();
-				// std::cerr << "bs push " << i << " " << *c[i] << "\n";
+				// std::cerr << "bs push " << i << " " << j << " " << *c[i] << "\n";
+				assert(*c[i] > j);
 				bs.update(i);
 			}
 

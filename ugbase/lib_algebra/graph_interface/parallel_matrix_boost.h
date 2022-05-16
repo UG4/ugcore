@@ -80,7 +80,6 @@ std::pair<counting_iterator<size_t>, counting_iterator<size_t> > vertices(
 
 	return std::make_pair(b,e);
 }
-#endif
 
 template<class T>
 inline std::pair<boost::SM_out_edge_iterator<T>, boost::SM_out_edge_iterator<T>>
@@ -90,6 +89,9 @@ inline std::pair<boost::SM_out_edge_iterator<T>, boost::SM_out_edge_iterator<T>>
    auto a = boost::adjacent_vertices(v, g);
 	return std::make_pair(Iter(a.first), Iter(a.second));
 }
+#endif
+
+using boost::out_edges;
 
 } // ug
 
