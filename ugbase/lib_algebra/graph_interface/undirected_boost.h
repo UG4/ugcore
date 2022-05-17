@@ -2,7 +2,7 @@
 #define UG_GRAPH_UNDIRECTED_BOOST_H
 
 #include "undirected.h"
-#include "trace.h"
+//#include "trace.h"
 #include <boost/iterator/counting_iterator.hpp>
 
 namespace boost{

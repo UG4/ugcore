@@ -33,7 +33,7 @@
 #ifndef UG_GRAPH_INTERFACE_UNDIRECTED_H
 #define UG_GRAPH_INTERFACE_UNDIRECTED_H
 
-#include "trace.h"
+//#include "trace.h"
 #include "sparsematrix_boost.h"
 #include <boost/geometry/iterators/concatenate_iterator.hpp>
 #include <boost/graph/adjacency_list.hpp>

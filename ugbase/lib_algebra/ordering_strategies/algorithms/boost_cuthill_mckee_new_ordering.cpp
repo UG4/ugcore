@@ -30,12 +30,15 @@
  * GNU Lesser General Public License for more details.
  */
  
-#ifndef __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_BOOST_CUTHILL_MCKEE_ORDERING__
-#define __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_BOOST_CUTHILL_MCKEE_ORDERING__
+#ifndef __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_BOOST_CUTHILL_MCKEE_NEW_ORDERING__
+#define __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_BOOST_CUTHILL_MCKEE_NEW_ORDERING__
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/properties.hpp>
+
+#include "lib_algebra/graph_interface/undirected.h"
+#include "lib_algebra/graph_interface/undirected_boost.h"
 
 #include <boost/graph/cuthill_mckee_ordering.hpp>
 
@@ -47,6 +50,7 @@
 #include "common/log.h"
 
 namespace ug{
+
 
 #ifndef MCKEE_GRAPH_T
 #define MCKEE_GRAPH_T
@@ -60,7 +64,7 @@ typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
 
 
 template <typename TAlgebra, typename O_t=std::vector<size_t> >
-class BoostCuthillMcKeeOrdering : public IOrderingAlgorithm<TAlgebra, O_t>
+class BoostCuthillMcKeeNewOrdering : public IOrderingAlgorithm<TAlgebra, O_t>
 {
 public:
 	typedef typename TAlgebra::matrix_type M_t;
@@ -69,29 +73,29 @@ public:
 	typedef boost::graph_traits<G_t>::vertex_descriptor Vertex_t;
 	typedef IOrderingAlgorithm<TAlgebra, O_t> baseclass;
 
-	BoostCuthillMcKeeOrdering() : m_bReverse(false){}
+	BoostCuthillMcKeeNewOrdering() : m_bReverse(false){}
 
 	/// clone constructor
-	BoostCuthillMcKeeOrdering( const BoostCuthillMcKeeOrdering<TAlgebra, O_t> &parent )
+	BoostCuthillMcKeeNewOrdering( const BoostCuthillMcKeeOrdering<TAlgebra, O_t> &parent )
 			: baseclass(), m_bReverse(parent.m_bReverse){}
 
 	SmartPtr<IOrderingAlgorithm<TAlgebra, O_t> > clone()
 	{
-		return make_sp(new BoostCuthillMcKeeOrdering<TAlgebra, O_t>(*this));
+		return make_sp(new BoostCuthillMcKeeNewOrdering<TAlgebra, O_t>(*this));
 	}
 
 	void compute(){
 		UG_COND_THROW(boost::num_vertices(g) == 0, name() << "::compute: Graph is empty!");
 
-		boost::property_map<G_t, boost::vertex_index_t>::type index_map = get(boost::vertex_index, g);
+		boost::property_map<G_t, boost::vertex_index_t>::type index_map = get(boost::vertex_index, g); //TODO
 
 		std::vector<Vertex_t> inv_perm(boost::num_vertices(g));
 
 		if(m_bReverse){
-			boost::cuthill_mckee_ordering(g, inv_perm.rbegin(), get(boost::vertex_color, g), boost::make_degree_map(g));
+			boost::cuthill_mckee_ordering(g, inv_perm.rbegin(), get(boost::vertex_color, g), boost::make_degree_map(g)); //TODO
 		}
 		else{
-			boost::cuthill_mckee_ordering(g, inv_perm.begin(), get(boost::vertex_color, g), boost::make_degree_map(g));
+			boost::cuthill_mckee_ordering(g, inv_perm.begin(), get(boost::vertex_color, g), boost::make_degree_map(g)); //TODO
 		}
 
 		o.resize(boost::num_vertices(g));
@@ -138,6 +142,8 @@ public:
 				}
 			}
 		}
+
+		undir = UndirectedMatrix<M_t>(A);
 	}
 
 	void init(M_t* A, const V_t&, const O_t& inv_map){
@@ -159,16 +165,17 @@ public:
 
 	virtual const char* name() const {
 		if(m_bReverse){
-			return "ReverseBoostCuthillMcKeeOrdering";
+			return "ReverseBoostCuthillMcKeeNewOrdering";
 		}
 		else{
-			return "BoostCuthillMcKeeOrdering";
+			return "BoostCuthillMcKeeNewOrdering";
 		}
 	}
 
 private:
 	G_t g;
 	O_t o;
+	UndirectedMatrix<M_t> undir;
 
 	bool m_bReverse;
 };
