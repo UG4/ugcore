@@ -205,6 +205,9 @@ class SmartPtr
 	///	returns true if the pointer is valid, false if not.
 		inline bool valid() const	{return m_ptr != NULL;}
 
+		// pointer compat -- behave like std::shared_ptr<T>
+		explicit operator bool() const noexcept { return m_ptr != NULL; }
+
 	///	returns true if the pointer is invalid, false if not.
 		inline bool invalid() const	{return m_ptr == NULL;}
 
@@ -410,6 +413,9 @@ class ConstSmartPtr
 	///	returns true if the pointer is valid, false if not.
 		inline bool valid() const	{return m_ptr != NULL;}
 
+		// pointer compat -- behave like std::shared_ptr<T>
+		explicit operator bool() const noexcept { return m_ptr != NULL; }
+
 	///	returns true if the pointer is invalid, false if not.
 		inline bool invalid() const	{return m_ptr == NULL;}
 
@@ -608,6 +614,9 @@ class SmartPtr<void>
 	///	returns true if the pointer is valid, false if not.
 		inline bool valid() const {return m_ptr != NULL;}
 
+		// pointer compat -- behave like std::shared_ptr<T>
+		explicit operator bool() const noexcept { return m_ptr != NULL; }
+
 	///	returns true if the pointer is invalid, false if not.
 		inline bool invalid() const	{return m_ptr == NULL;}
 
@@ -768,6 +777,9 @@ class ConstSmartPtr<void>
 
 	///	returns true if the pointer is valid, false if not.
 		inline bool valid() const {return m_ptr != NULL;}
+
+		// pointer compat -- behave like std::shared_ptr<T>
+		explicit operator bool() const noexcept { return m_ptr != NULL; }
 
 	///	returns true if the pointer is invalid, false if not.
 		inline bool invalid() const	{return m_ptr == NULL;}
