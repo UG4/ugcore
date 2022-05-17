@@ -369,6 +369,9 @@ public:
     public:
         inline void check() const {A.check_row(row, i); }
         row_iterator(SparseMatrix &_A, size_t _row, size_t _i) : A(_A), row(_row), i(_i) { A.add_iterator(row); }
+        row_iterator(row_iterator &&other) : A(other.A), row(other.row), i(other.i) {
+				A.add_iterator(row);
+		  }
         row_iterator(const row_iterator &other) : A(other.A), row(other.row), i(other.i) { A.add_iterator(row); }
         ~row_iterator() { A.remove_iterator(row); }
         row_iterator *operator ->() { return this; }
@@ -387,7 +390,14 @@ public:
     public:
         inline void check() const {A.check_row(_row, i); }
         const_row_iterator(const SparseMatrix &_A, size_t row, size_t _i) : A(_A), _row(row), i(_i) {A.add_iterator(row);}
-        const_row_iterator(const const_row_iterator &other) : A(other.A), _row(other._row), i(other.i) { A.add_iterator(_row); }
+        const_row_iterator(const const_row_iterator &other) : A(other.A), _row(other._row), i(other.i) {
+			  A.add_iterator(_row);
+		  }
+        const_row_iterator(const_row_iterator&& other) : A(other.A), _row(other._row), i(other.i) {
+			  A.add_iterator(_row);
+		  }
+		  const_row_iterator& operator=(const_row_iterator const&) = delete;
+		  const_row_iterator& operator=(const_row_iterator&&) = delete;
         ~const_row_iterator() { A.remove_iterator(_row); }
         const_row_iterator *operator ->() const { return this; }
         const value_type &value() const { check(); return A.values[i];   }

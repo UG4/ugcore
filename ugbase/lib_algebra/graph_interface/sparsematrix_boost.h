@@ -33,6 +33,13 @@ class SM_adjacency_iterator : public iterator_facade<
 	 >{ //
 	typedef ug::SparseMatrix<T> M;
 	typedef typename M::const_row_iterator iter_t;
+	typedef iterator_facade<
+	SM_adjacency_iterator<T>,
+	typename ug::SparseMatrix<T>::const_row_iterator,
+	std::input_iterator_tag,
+	size_t, // <= reference
+	std::intmax_t // difference_type
+	 > base_class;
 
 public:
 	typedef iter_t* value_type;
@@ -40,24 +47,42 @@ public:
 	typedef size_t reference;
 
 public:
-	SM_adjacency_iterator() : _base(nullptr), _end(nullptr){}
+	SM_adjacency_iterator() : base_class(), _base(nullptr), _end(nullptr){
+	}
 	SM_adjacency_iterator(SM_adjacency_iterator&& p) = delete;
 	SM_adjacency_iterator(SM_adjacency_iterator const& p)
 		: _base(p._base?(new iter_t(*p._base)) : nullptr)
 		, _end(p._end?(new iter_t(*p._end)) : nullptr){
 	}
-	SM_adjacency_iterator(value_type p, value_type e){
+	SM_adjacency_iterator(value_type p, value_type e) : base_class(){
 		assert(p);
 		_base = new iter_t(*p);
 		_end = new iter_t(*e);
 		skip_zeroes();
 	}
-	~SM_adjacency_iterator(){
+	~SM_adjacency_iterator() {
 		delete _base;
 		delete _end;
 		_base = nullptr;
 		_end = nullptr;
 	}
+	SM_adjacency_iterator& operator=(SM_adjacency_iterator&& other) = delete;
+	SM_adjacency_iterator& operator=(const SM_adjacency_iterator& other) {
+		if(other._base){
+			delete _base;
+			_base = new iter_t(*other._base);
+		}else{ untested();
+			_base = nullptr;
+		}
+		if(other._end){
+			delete _end;
+			_end = new iter_t(*other._end);
+		}else{ untested();
+			_end = nullptr;
+		}
+		return *this;
+	}
+
 	T const& value() const {
 		assert(_base);
 		return _base->value();
@@ -83,20 +108,6 @@ public:
 		assert(_base);
 		assert(other._base);
 		return *_base != *other._base;
-	}
-	SM_adjacency_iterator operator=(SM_adjacency_iterator&& other) = delete;
-	SM_adjacency_iterator operator=(const SM_adjacency_iterator& other) {
-		if(other._base){
-			_base = new iter_t(*other._base);
-		}else{ untested();
-			_base = nullptr;
-		}
-		if(other._end){
-			_end = new iter_t(*other._end);
-		}else{ untested();
-			_end = nullptr;
-		}
-		return *this;
 	}
 
 private:
@@ -138,10 +149,14 @@ class SM_edge{
 public:
 //	SM_edge(size_t v, size_t w) : _row(v), _idx(w) { untested();
 //	}
+	SM_edge(SM_edge const&) = default;
+	SM_edge(SM_edge&&) = default;
 	explicit SM_edge() { untested();
 	}
 	SM_edge(SM_adjacency_iterator<T> const& i) : _iter(i) {
 	}
+	SM_edge& operator=(SM_edge const&) = default;
+	SM_edge& operator=(SM_edge&&) = default;
 
 public:
 	size_t row() const{
@@ -149,7 +164,7 @@ public:
 	}
 
 	template<class X>
-	size_t column(X const&) const{
+	int column(X const&) const{
 		return *_iter;
 	}
 	template<class X>
@@ -166,10 +181,8 @@ public:
 	}
 
 private:
-//	int _row;
-//	size_t _idx;
+//	int _row; // BUG
 	SM_adjacency_iterator<T> _iter;
-	// typename ug::SparseMatrix<T>::const_row_iterator _iter;
 }; // SM_edge
 
 template<class T, class M>
@@ -194,6 +207,13 @@ class SM_out_edge_iterator : public iterator_facade<
 	std::intmax_t // difference_type
 	 >{ //
 public: // types
+	typedef iterator_facade<
+	SM_out_edge_iterator<T>,
+	SM_adjacency_iterator<T>,
+	std::input_iterator_tag,
+	SM_edge<T>, // <= reference
+	std::intmax_t // difference_type
+	 > base_class;
 	typedef ug::SparseMatrix<T> M;
 	typedef SM_adjacency_iterator<T> value_type;
 	typedef intmax_t difference_type;
@@ -201,16 +221,19 @@ public: // types
 	typedef SM_edge<T> edge_type;
 
 public: // construct
-	explicit SM_out_edge_iterator() {
+	explicit SM_out_edge_iterator() : base_class() {
 	}
 	explicit SM_out_edge_iterator(SM_adjacency_iterator<T> w)
-	    : _base(w) {
+	    : base_class(), _base(w) {
 	}
 	/* explicit */ SM_out_edge_iterator(SM_out_edge_iterator const& p)
-	    : _base(p._base){
+	    : base_class(p), _base(p._base){
 	}
+	SM_out_edge_iterator(SM_out_edge_iterator&& p) = delete;
 	~SM_out_edge_iterator(){
 	}
+	SM_out_edge_iterator& operator=(SM_out_edge_iterator&& other) =  default;
+	SM_out_edge_iterator& operator=(SM_out_edge_iterator const& other) = default;
 #if 0
 public: // op
 	SM_out_edge_iterator operator+(int a) const{ untested();
@@ -292,8 +315,8 @@ inline adjacent_vertices(size_t v, ug::SparseMatrix<T> const& M)
 	assert(v<M.num_rows());
 	typedef typename graph_traits<ug::SparseMatrix<T>>::adjacency_iterator a;
 
-	typename ug::SparseMatrix<T>::const_row_iterator b = M.begin_row(v);
-	typename ug::SparseMatrix<T>::const_row_iterator e = M.end_row(v);
+	typename ug::SparseMatrix<T>::const_row_iterator b(M.begin_row(v));
+	typename ug::SparseMatrix<T>::const_row_iterator e(M.end_row(v));
 
 	return std::make_pair(a(&b, &e), a(&e, &e));
 }
@@ -310,29 +333,29 @@ inline std::pair<SM_out_edge_iterator<T>, SM_out_edge_iterator<T>>
 
 template<class T>
 class sparse_matrix_index_map
-	 : public put_get_helper<size_t, sparse_matrix_index_map<T> > { //
-	public:
-		typedef size_t vertex_index_type;
-		typedef size_t vertex_descriptor;
-		typedef readable_property_map_tag category;
-		typedef vertex_index_type value_type;
-		typedef vertex_index_type reference;
-		typedef vertex_descriptor key_type;
+    : public put_get_helper<size_t, sparse_matrix_index_map<T> > { //
+public:
+	typedef size_t vertex_index_type;
+	typedef size_t vertex_descriptor;
+	typedef readable_property_map_tag category;
+	typedef vertex_index_type value_type;
+	typedef vertex_index_type reference;
+	typedef vertex_descriptor key_type;
 
-		sparse_matrix_index_map(sparse_matrix_index_map const& p) {
-		}
-		sparse_matrix_index_map(ug::SparseMatrix<T>const&, boost::vertex_index_t) { untested();
-		}
-		template<class X>
-		sparse_matrix_index_map(X const&) {
-		}
-		template <class T_>
-		value_type operator[](T_ x) const {
-			return x;
-		}
-		sparse_matrix_index_map& operator=(const sparse_matrix_index_map& s) { untested();
-			return *this;
-		}
+	sparse_matrix_index_map(sparse_matrix_index_map const& p) {
+	}
+	sparse_matrix_index_map(ug::SparseMatrix<T>const&, boost::vertex_index_t) { untested();
+	}
+	template<class X>
+	sparse_matrix_index_map(X const&) {
+	}
+	template <class T_>
+	value_type operator[](T_ x) const {
+		return x;
+	}
+	sparse_matrix_index_map& operator=(const sparse_matrix_index_map& s) { untested();
+		return *this;
+	}
 };
 
 template<class T>
@@ -359,7 +382,7 @@ std::pair<counting_iterator<size_t>, counting_iterator<size_t> > vertices(
 
 template<class T>
 int num_vertices(ug::SparseMatrix<T> const& M)
-{ untested();
+{
 	assert(M.num_rows() == M.num_cols());
 	return M.num_rows();
 }

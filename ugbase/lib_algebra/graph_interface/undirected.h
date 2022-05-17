@@ -76,6 +76,7 @@ public:
 		}else{ untested();
 		}
 	}
+	UndirectedMatrix(UndirectedMatrix && o) = delete;
 	explicit UndirectedMatrix(UndirectedMatrix const& o)
 	    : _matrix(o._matrix), _extra_fill(o._extra_fill) { untested();
 	}

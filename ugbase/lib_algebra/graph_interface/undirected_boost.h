@@ -126,6 +126,15 @@ class UM_out_edge_iterator : public iterator_facade<
 	typename ug::UndirectedMatrix<T>::edge, // <= reference
 	std::intmax_t // difference_type
 	 >{ //
+private: // types
+	typedef iterator_facade<
+	UM_out_edge_iterator<T>,
+	typename ug::UndirectedMatrix<T>::adjacency_iterator,
+	// bidirectional_traversal_tag, // breaks InputIterator (why?)
+	std::input_iterator_tag,
+	typename ug::UndirectedMatrix<T>::edge, // <= reference
+	std::intmax_t // difference_type
+	 > base_class;
 public: // types
 	typedef ug::SparseMatrix<T> M;
 	typedef typename ug::UndirectedMatrix<T>::adjacency_iterator value_type;
@@ -134,16 +143,23 @@ public: // types
 	typedef typename ug::UndirectedMatrix<T>::edge edge_type;
 
 public: // construct
-	explicit UM_out_edge_iterator() {
+	explicit UM_out_edge_iterator() : base_class(), _base() {
 	}
 	explicit UM_out_edge_iterator(int v, value_type w)
-	    : _v(v), _base(w) {
+	    : base_class(), _v(v), _base(w) {
 	}
 	/* explicit */ UM_out_edge_iterator(UM_out_edge_iterator const& p)
-	    : _v(p._v), _base(p._base){
+	    : base_class(p), _v(p._v), _base(p._base){
 	}
+	UM_out_edge_iterator(UM_out_edge_iterator&& p) = delete;
 	~UM_out_edge_iterator(){
 	}
+	UM_out_edge_iterator& operator=(UM_out_edge_iterator const& p) {
+		_v = p._v;
+		_base = p._base;
+		return *this;
+	}
+	UM_out_edge_iterator& operator=(UM_out_edge_iterator&& p) = delete;
 #if 0
 public: // op
 	UM_out_edge_iterator operator+(int a) const{ untested();
@@ -211,7 +227,6 @@ template <class T> struct graph_traits<ug::UndirectedMatrix<T>>{
 	typedef disallow_parallel_edge_tag edge_parallel_category;
 	typedef SM_traversal_tag traversal_category;
 	typedef counting_iterator<size_t> vertex_iterator;
-//	typedef UM_adjacency_iterator<T> adjacency_iterator;
 	typedef UM_out_edge_iterator<T> out_edge_iterator;
 	typedef typename G::adjacency_iterator adjacency_iterator;
 	typedef int degree_size_type;

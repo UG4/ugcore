@@ -1,4 +1,6 @@
+// #define BOOST_RECURSIVE_DFS
 
+#include "lib_algebra/graph_interface/trace.h"
 #include "lib_algebra/cpu_algebra/sparsematrix_impl.h"
 #include "lib_algebra/graph_interface/sparsematrix_boost.h"
 
@@ -15,7 +17,7 @@
 #include <boost/graph/graph_utility.hpp>
 #include <boost/graph/cuthill_mckee_ordering.hpp>
 
-static const int N=4;
+static const int N = 4;
 typedef ug::SparseMatrix<double> T;
 typedef ug::UndirectedMatrix<T> UM;
 
@@ -61,6 +63,17 @@ void test0()
 
 	{
 		std::cout << "=== adj nodes ===\n";
+		auto e = boost::adjacent_vertices(0, b);
+		for(; e.first!=e.second; ++e.first){
+			std::cout << *e.first << ":" <<
+	//		" -- " << boost::get(wtmap, edg) <<
+			"\n";
+		}
+	}
+	assert(!M.iters());
+
+	{
+		std::cout << "=== adj nodes ===\n";
 		auto e = boost::adjacent_vertices(1, b);
 		for(; e.first!=e.second; ++e.first){
 			std::cout << *e.first << ":" <<
@@ -68,8 +81,8 @@ void test0()
 			"\n";
 		}
 	}
+	assert(!M.iters());
 
-#if 1
 	{
 		std::cout << "=== out edges ===\n";
 		auto e = boost::out_edges(1, b);
@@ -80,7 +93,7 @@ void test0()
 			"\n";
 		}
 	}
-#endif
+	assert(!M.iters());
 }
 
 void test1()
@@ -123,6 +136,7 @@ void test1()
 			std::cout << v << " " << boost::out_degree(v, b) << " " << boost::in_degree(v, b) << "\n";
 		}
 	}
+	assert(!M.iters());
 
 	{
 		std::cout << "=== adj nodes 2 ===\n";
@@ -133,6 +147,7 @@ void test1()
 			"\n";
 		}
 	}
+	assert(!M.iters());
 
 	{
 		std::cout << "=== out edges 2 ===\n";
@@ -144,12 +159,39 @@ void test1()
 			"\n";
 		}
 	}
+	assert(!M.iters());
 }
 
 void test2()
 {
-	typedef ug::SparseMatrix<double> T;
-	typedef ug::UndirectedMatrix<T> UM;
+	T M;
+	M.resize_and_clear(N, N);
+
+//	M(0, 1) = 1.;
+
+	assert(!M.iters());
+	UM b(&M);
+	assert(!M.iters());
+
+	typedef boost::iterator_property_map<unsigned*,
+		 boost::identity_property_map, unsigned, unsigned&> color_map_type;
+
+	std::vector<unsigned> colors(N);
+	color_map_type color(&colors[0], boost::identity_property_map());
+	typedef typename boost::property_traits<color_map_type>::value_type ColorValue;
+	typedef boost::color_traits<ColorValue> Color;
+
+	// Mark everything white
+	BGL_FORALL_VERTICES_T(v, b, UM) put(color, v, Color::white());
+
+	depth_first_visit(b, 0, boost::dfs_visitor<>(), color);
+
+	std::cout << " " << M.iters() << "\n";
+	assert(!M.iters());
+} // test2: dfs
+
+void test3()
+{
 	T M;
 
 	M.resize_and_clear(N, N);
@@ -176,7 +218,6 @@ void test2()
 
 	assert(!M.iters());
 	UM b(&M);
-	assert(!M.iters());
 
 	size_t N = boost::num_vertices(b);
 	assert(N);
@@ -185,19 +226,20 @@ void test2()
 	auto dm = boost::make_degree_map(b);
 
 	typedef boost::iterator_property_map<unsigned*,
-		 boost::identity_property_map, unsigned, unsigned&> map_type;
+		 boost::identity_property_map, unsigned, unsigned&> color_map_type;
 
-	std::vector<unsigned> V(N);
-	map_type vc(&V[0], boost::identity_property_map());
+	std::vector<unsigned> colors(N);
+	color_map_type color(&colors[0], boost::identity_property_map());
 
-	boost::cuthill_mckee_ordering(b, inv_perm.rbegin(), vc, dm);
+	boost::cuthill_mckee_ordering(b, inv_perm.rbegin(), color, dm);
+	assert(!M.iters());
 
 	for(unsigned i = 0; i != inv_perm.size(); ++i){
 		std::cout << " " << inv_perm[i];
 	}
 	std::cout << "\n";
 
-} // test2: cmk
+} // test3: cmk
 
 int main()
 {
@@ -207,6 +249,8 @@ int main()
 	test1();
 	std::cout << "== test2 ==\n";
 	test2();
+	std::cout << "== test3 ==\n";
+	test3();
 }
 
 BOOST_CONCEPT_ASSERT(( boost::IncidenceGraphConcept<UM> ));

@@ -84,40 +84,40 @@ public:
 		return make_sp(new BoostCuthillMcKeeNewOrdering<TAlgebra, O_t>(*this));
 	}
 
-	void compute(){ untested();
+	void compute(){
+		size_t N = boost::num_vertices(*_A);
+		o.resize(N);
+		assert(_A);
+		UndirectedMatrix<M_t> undir(_A);
 		UG_COND_THROW(boost::num_vertices(undir) == 0, name() << "::compute: Graph is empty!");
 
 		typename boost::property_map<M_t, boost::vertex_index_t>::type index_map = get(boost::vertex_index, undir);
 
-		size_t N = boost::num_vertices(undir);
 		std::vector<Vertex_t> inv_perm(N);
 
 		auto dm = boost::make_degree_map(undir);
 
-		untested();
-
-#if 0
-		auto vc = get(boost::vertex_color, undir);
-#else
 		typedef boost::iterator_property_map<unsigned*,
 		    boost::identity_property_map, unsigned, unsigned&> map_type;
 		untested();
 
 		std::vector<unsigned> V(N);
 		map_type vc(&V[0], boost::identity_property_map());
-#endif
-		untested();
 
+		assert(!_A->iters());
 		if(m_bReverse){ untested();
 			boost::cuthill_mckee_ordering(undir, inv_perm.rbegin(), vc, dm);
-		}else{ untested();
+		}else{
 			boost::cuthill_mckee_ordering(undir, inv_perm.begin(), vc, dm);
 		}
-
-		o.resize(boost::num_vertices(undir));
+		assert(!_A->iters());
 
 		for(unsigned i = 0; i != inv_perm.size(); ++i){
 			o[index_map[inv_perm[i]]] = i;
+		}
+
+		for(unsigned i = 0; i < N; ++i){
+			std::cout << i << " -> " << o[i] << "\n";
 		}
 
 		#ifdef UG_DEBUG
@@ -130,7 +130,7 @@ public:
 		UG_COND_THROW(!is_permutation(o), name() << "::check: Not a permutation!");
 	}
 
-	O_t& ordering(){ untested();
+	O_t& ordering(){
 		return o;
 	}
 
@@ -138,15 +138,16 @@ public:
 		init(A);
 	}
 
-	void init(M_t* A){ untested();
+	void init(M_t* A){
 		//TODO: replace this by UG_DLOG if permutation_util does not depend on this file anymore
 		#ifdef UG_ENABLE_DEBUG_LOGS
 		UG_LOG("Using " << name() << "\n");
 		#endif
 
-		unsigned rows = A->num_rows();
+//		unsigned rows = A->num_rows();
+		_A = A;
 
-		undir = UndirectedMatrix<M_t>(A);
+//		undir = UndirectedMatrix<M_t>(A);
 	}
 
 	void init(M_t* A, const V_t&, const O_t& inv_map){
@@ -178,7 +179,7 @@ public:
 
 private:
 	O_t o;
-	UndirectedMatrix<M_t> undir;
+	M_t const* _A;
 
 	bool m_bReverse;
 };
