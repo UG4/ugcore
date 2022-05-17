@@ -116,9 +116,9 @@ public:
 			o[index_map[inv_perm[i]]] = i;
 		}
 
-		for(unsigned i = 0; i < N; ++i){
-			std::cout << i << " -> " << o[i] << "\n";
-		}
+		// for(unsigned i = 0; i < N; ++i){
+		// 	std::cout << i << " -> " << o[i] << "\n";
+		// }
 
 		#ifdef UG_DEBUG
 		untested();

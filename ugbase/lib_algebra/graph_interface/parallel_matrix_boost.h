@@ -64,6 +64,13 @@ std::pair<counting_iterator<size_t>, counting_iterator<size_t> > vertices(
 	return std::make_pair(b,e);
 }
 
+template<class T>
+struct property_map<ug::ParallelMatrix<T>, vertex_index_t>{
+	typedef typename T::value_type value_type;
+	typedef sparse_matrix_index_map<value_type> type;
+	typedef type const_type;
+};
+
 } // boost
 
 namespace ug {
