@@ -13,7 +13,7 @@
 #ifndef UG_SPARSEMATRIX_BOOST_H
 #define UG_SPARSEMATRIX_BOOST_H
 
-#include "trace.h"
+#include "common/util/trace.h"
 #include "lib_algebra/cpu_algebra/sparsematrix.h"
 
 #include <boost/graph/properties.hpp> // put_get_helper
