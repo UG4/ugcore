@@ -39,10 +39,11 @@ approxSpace:print_statistic()
 --  Velocity
 --------------------------------------------------------------------------------
 
+slope = 0.1
 
 function velocity(x, y)
-	local x_dir = 1
-	local y_dir = 0
+	x_dir = - (slope * x - y)
+	y_dir = - (slope * y + x)
 	return x_dir, y_dir
 end
 
@@ -82,7 +83,7 @@ ilu_solverDesc = {
 	precond = ilu,
 	convCheck = {
 		type		= "standard",
-		iterations	= 100,
+		iterations	= 250,
 		absolute	= 1e-12,
 		reduction	= 1e-10,
 		verbose	= true
@@ -114,27 +115,9 @@ print("-------------------------------------------------------------------------
 
 print("Solving...")
 
+start_time_solver = GetClockS()
 solver:init(A, u)
 solver:apply(u, b)
+end_time_solver = GetClockS()
 
---------------------------------------------------------------------------------
---  Output
---------------------------------------------------------------------------------
-
-solFileName = "ordertest"
-
-print("writing solution to '" .. solFileName .. ".vtu'...")
-
-
-vtk_out = VTKOutput()
-vtk_out:clear_selection()
-vtk_out:select_nodal(GridFunctionNumberData(u, "u"), "u")
-vtk_out:select_nodal(LuaUserVector("velocity"), "vel")
-vtk_out:set_binary(false)
-vtk_out:set_write_proc_ranks(true)
-
-vtk_out:print(solFileName, u)
-
-print("done")
-
-
+print("duration solver: "..end_time_solver-start_time_solver.."s")
