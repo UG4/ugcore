@@ -241,6 +241,21 @@ void test3()
 
 } // test3: cmk
 
+void test4()
+{
+	T M;
+
+	M.resize_and_clear(N, N);
+
+	M(1, 1) = 1.;
+	M(1, 3) = 2.;
+	M(3, 1) = 3.;
+	M(3, 3) = 4.;
+
+	UM b(&M);
+
+}
+
 int main()
 {
 	std::cout << "== test0 ==\n";
@@ -251,6 +266,8 @@ int main()
 	test2();
 	std::cout << "== test3 ==\n";
 	test3();
+	std::cout << "== test4 ==\n";
+	test4();
 }
 
 BOOST_CONCEPT_ASSERT(( boost::IncidenceGraphConcept<UM> ));

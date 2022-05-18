@@ -258,13 +258,13 @@ void UndirectedMatrix<T>::refresh()
 			++c[i];
 			if(c[i] == e[i]){
 				bs.remove(i);
-			}else if(int(*c[i])>=i){
-				assert(*c[i] > j);
-				bs.remove(i);
-			}else{ itested();
+			}else if(int(*c[i]) < i){ itested();
 				// std::cerr << "bs push " << i << " " << j << " " << *c[i] << "\n";
 				assert(*c[i] > j);
 				bs.update(i);
+			}else{ itested();
+				assert(*c[i] > j);
+				// bs.remove(i);
 			}
 
 		}

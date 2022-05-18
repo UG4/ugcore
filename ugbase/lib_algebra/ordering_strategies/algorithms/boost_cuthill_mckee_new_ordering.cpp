@@ -99,7 +99,6 @@ public:
 
 		typedef boost::iterator_property_map<unsigned*,
 		    boost::identity_property_map, unsigned, unsigned&> map_type;
-		untested();
 
 		std::vector<unsigned> V(N);
 		map_type vc(&V[0], boost::identity_property_map());

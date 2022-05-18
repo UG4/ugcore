@@ -80,6 +80,7 @@ namespace boost {
       size_type i = get(id, x);
       assert(i<size());
 #if 0
+      std::cerr << "rm " << i << "\n";
       std::cerr << "rm " <<  x << " " <<  i << " " <<  bucket[x] << "\n";
       std::cerr << "rm " <<  head[bucket[x]] << "\n";
       std::cerr << "rm " <<  prev[i] << " " <<  next[i] << "\n";
