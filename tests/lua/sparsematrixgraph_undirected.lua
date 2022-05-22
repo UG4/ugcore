@@ -71,7 +71,7 @@ domainDisc:add(DirichletBnd)
 ilu = ILU()
 ilu:set_damp(1)
 
---algo = BoostCuthillMcKeeOrdering() --old version not using UndirectedMatrix
+-- algo = BoostCuthillMcKeeOrdering() --old version not using UndirectedMatrix
 algo = BoostCuthillMcKeeNewOrdering() --using UndirectedMatrix
 
 ilu:set_ordering_algorithm(algo)
@@ -83,7 +83,7 @@ ilu_solverDesc = {
 	precond = ilu,
 	convCheck = {
 		type		= "standard",
-		iterations	= 250,
+		iterations	= 1000,
 		absolute	= 1e-12,
 		reduction	= 1e-10,
 		verbose	= true

@@ -34,6 +34,7 @@
 #define __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_SPARSEMATRIX_GRAPH_TEST__
 
 #include "lib_algebra/graph_interface/sparsematrix_boost.h"
+#include "lib_algebra/graph_interface/parallel_matrix.h"
 #include "lib_algebra/graph_interface/parallel_matrix_boost.h"
 #include "lib_algebra/graph_interface/bidirectional.h"
 #include "lib_algebra/graph_interface/bidirectional_boost.h"
@@ -55,6 +56,31 @@
 
 
 namespace ug{
+
+namespace {
+
+template<class G>
+class Map{
+public:
+	Map(G const& g):_g(g){}
+
+	template<class T>
+	std::string operator()(T& t) const{
+//		using boost::detail::parallel::owner;
+//		using boost::detail::parallel::local;
+		return "(" + std::to_string(owner(t)) + ":" + std::to_string(local(t)) + ")";
+	}
+private:
+	G const& _g;
+};
+
+template<class T, class G>
+std::string get(Map<G> const& m, T t)
+{
+	return m(t);
+}
+
+}
 
 //for cycle-free matrices only
 template <typename TAlgebra, typename O_t>
@@ -85,8 +111,9 @@ public:
 		unsigned n = boost::num_vertices(g);
 
 		if(n == 0){
-			UG_THROW(name() << "::compute: Graph is empty!");
+
 			return;
+			UG_THROW(name() << "::compute: Graph is empty!");
 		}
 
 		o.resize(n);
@@ -115,6 +142,12 @@ public:
 	}
 
 	void init(M_t* A){
+		if(!A){
+			std::cerr<<"no A?!\n";
+			return;
+		}else{
+		}
+
 		//TODO: replace this by UG_DLOG if permutation_util does not depend on this file anymore
 		#ifdef UG_ENABLE_DEBUG_LOGS
 		UG_LOG("Using " << name() << "\n");
@@ -138,20 +171,23 @@ public:
 
 		boost::graph_traits<T>::adjacency_iterator i;
 
-		auto p = boost::adjacent_vertices(size_t(1), *A);
-		for(; p.first!=p.second; ++p.first){
-			std::cout << " " << *p.first;
-		}
-		std::cout << "\n";
-		auto e = boost::out_edges(1, *A);
-		for(; e.first!=e.second; ++e.first){
-			auto edg = *e.first;
-			std::cout << boost::source(edg, *A) << ":" << boost::target(edg, *A) << "\n";
+		if(boost::num_vertices(*A)>2){
+			auto p = boost::adjacent_vertices(1, *A);
+			for(; p.first!=p.second; ++p.first){
+				std::cout << " " << *p.first;
+			}
+			std::cout << "\n";
+			auto e = boost::out_edges(1, *A);
+			for(; e.first!=e.second; ++e.first){
+				auto edg = *e.first;
+				std::cout << boost::source(edg, *A) << ":" << boost::target(edg, *A) << "\n";
+			}
 		}
 
-#if 1
 		std::cout << "pg " << boost::num_vertices(*A) << "\n";
-		boost::print_graph(*A);
+
+		// need to print to cerr, because cout from rank!=0 gets lost
+		boost::print_graph(*A, std::cerr);
 
 		std::cout << "bidirectional" << std::endl;
 
@@ -164,21 +200,60 @@ public:
 				}
 			}
 		}
-# else // later
+#ifdef UG_PARALLEL
+
+		std::cout << "parallel pg \n";
+		typedef BGLParallelMatrix<M_t> BPM;
+		BPM bpm(A);
+		Map<BPM> map(bpm);
+		// need to print to cerr, because cout from rank!=0 gets lost
+		boost::print_graph(bpm, map, std::cerr);
+
+#endif
+
+#if 0
 		int rank;
 		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+		sleep(rank);
 
-		if(rank){
-			std::cerr << "rank " << rank << "num vert " << boost::num_vertices(*A) << "\n";
-			boost::print_graph(*A, std::cerr);
-		}else{
-			std::cout << "rank " << rank << "num vert " << boost::num_vertices(*A) << "\n";
-			boost::print_graph(*A, std::cout);
+		std::cerr << " process " << rank << " num vert " << boost::num_vertices(*A) << "\n";
+		boost::print_graph(*A, std::cerr);
+
+		// ../../ugcore/ugbase/pcl/pcl_communication_structs.h
+		ConstSmartPtr<ug::AlgebraLayouts> L = A->layouts();
+
+		IndexLayout const& idx_master = L->master();
+		IndexLayout const& idx_slave = L->slave();
+
+		// typedef pcl::SingleLevelLayout<pcl::OrderedInterface<size_t, std::vector> >
+		// 		IndexLayout;
+		// 		../../ugcore/ugbase/pcl/pcl_communication_structs.h
+		// typedef pcl::OrderedInterface<size_t, std::vector> Interface
+		//
+
+
+		for(auto k = idx_master.begin(); k!=idx_master.end(); ++k){
+			std::cerr << "rank " << rank << " master " << idx_master.proc_id(k) << "\n";
+			IndexLayout::Interface const& I = idx_master.interface(k);
+			for(auto i : I){
+				std::cerr << " [ elem " << i.elem;
+				std::cerr << " id " << i.localID << "]";
+			}
+			std::cerr << "\n";
 		}
-
-		auto L = A->layouts();
+		for(auto k = idx_slave.begin(); k!=idx_slave.end(); ++k){
+			std::cerr << "rank " << rank << " slave " << idx_slave.proc_id(k) << "\n";
+			IndexLayout::Interface const& I = idx_slave.interface(k);
+			for(auto i : I){
+				std::cerr << " [ elem " << i.elem;
+				std::cerr << " id " << i.localID << "]";
+			}
+			std::cerr << "\n";
+		}
 		assert(L);
-		std::cerr << "rank: " << rank << " " << *L << "\n";
+		std::cerr << "rank: " << rank << "\n"
+			       << "overlap: " << L->overlap_enabled() << "\n"
+		          << "Layouts\n " << *L << "\n";
 #endif
 	}
 

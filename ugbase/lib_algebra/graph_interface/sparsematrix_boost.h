@@ -366,7 +366,8 @@ struct property_map<ug::SparseMatrix<T>, vertex_index_t>{
 
 template<class T>
 typename property_map<ug::SparseMatrix<T>, vertex_index_t>::const_type
-get(vertex_index_t, ug::SparseMatrix<T> const& m){
+get(vertex_index_t, ug::SparseMatrix<T> const& m)
+{
 	return sparse_matrix_index_map<T>(m);
 }
 
