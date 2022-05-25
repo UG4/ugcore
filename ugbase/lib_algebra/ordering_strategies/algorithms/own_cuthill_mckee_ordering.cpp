@@ -47,6 +47,14 @@
 #include <assert.h>
 #include "common/error.h"
 
+// is this already implemented somewhere else?
+namespace{
+template<class T>
+double my_abs(T){return 0;}
+
+template<>
+double my_abs(double v){return abs(v);}
+}
 
 namespace ug{
 
@@ -174,7 +182,7 @@ public:
 			for(typename M_t::row_iterator conn = A->begin_row(i); conn != A->end_row(i); ++conn){
 				if(conn.value() != 0.0 && conn.index() != i){
 					double w;
-					w = abs(conn.value()); //TODO: think about this
+					w = my_abs(conn.value());
 					boost::add_edge(conn.index(), i, w, g);
 				}
 			}

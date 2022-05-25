@@ -50,6 +50,17 @@
 
 namespace ug{
 
+namespace{
+template<class T>
+double my_abs(T v){return 0;}
+
+template<>
+double my_abs(double v){
+		return abs(v);
+}
+}
+
+
 #ifndef PRINT_GRAPH
 #define PRINT_GRAPH
 template <typename G_t>
@@ -112,7 +123,8 @@ void induced_subgraph_weighted(G_t& ind_g, M_t* A, const std::vector<size_t>& in
 			if(conn.value() != 0.0 && conn.index() != i){
 				int idx = ind_map[conn.index()];
 				if(idx >= 0){
-					boost::add_edge(idx, i, conn.value(), ind_g);
+					double a = my_abs(conn.value());
+					boost::add_edge(idx, i, a, ind_g);
 				}
 			}
 		}
@@ -249,7 +261,7 @@ public:
 			for(typename M_t::row_iterator conn = A->begin_row(i); conn != A->end_row(i); ++conn){
 				if(conn.value() != 0.0 && conn.index() != i){
 					double w;
-					w = abs(conn.value()); //TODO: think about this
+					w = my_abs(conn.value());
 					boost::add_edge(conn.index(), i, w, g);
 				}
 			}
