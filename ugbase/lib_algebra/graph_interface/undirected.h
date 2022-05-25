@@ -277,8 +277,7 @@ void UndirectedMatrix<T>::refresh()
 	e.clear();
 	assert(!_matrix->iters());
 
-	t += get_clock_s();
-	UG_LOG("Undirected refresh " << t << "\n");
+	UG_LOG("Undirected refresh " << get_clock_s()-t << "\n");
 }
 
 } // ug

@@ -78,13 +78,13 @@ ilu = ILU()
 ilu:set_damp(1)
 
 --algo = BoostCuthillMcKeeOrdering() --old version not using UndirectedMatrix
---algo = BoostCuthillMcKeeNewOrdering() --using UndirectedMatrix
+algo = BoostCuthillMcKeeNewOrdering() --using UndirectedMatrix
 
 --scc = SCCOrdering()
 --scc:set_ordering_subalgorithm(algo)
 --algo = scc
 
-algo = TopologicalOrdering()
+--algo = TopologicalOrdering()
 --algo = TopologicalOldOrdering()
 
 ilu:set_ordering_algorithm(algo)
@@ -96,7 +96,7 @@ ilu_solverDesc = {
 	precond = ilu,
 	convCheck = {
 		type		= "standard",
-		iterations	= 1000,
+		iterations	= 0,
 		absolute	= 1e-12,
 		reduction	= 1e-10,
 		verbose	= true
