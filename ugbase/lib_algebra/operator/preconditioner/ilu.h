@@ -434,12 +434,19 @@ class ILU : public IPreconditioner<TAlgebra>
 			if (m_useOverlap)
 				UG_THROW ("ILU: Ordering for overlap has not been implemented yet.");
 
+			double start = get_clock_s();
+
 			if (m_u)
 				m_spOrderingAlgo->init(&m_ILU, *m_u);
 			else
 				m_spOrderingAlgo->init(&m_ILU);
 
 			m_spOrderingAlgo->compute();
+
+			double end = get_clock_s();
+
+			UG_LOG("ILU: ordering took " << end-start << " seconds\n");
+
 			m_ordering = m_spOrderingAlgo->ordering();
 
 			m_bSortIsIdentity = GetInversePermutation(m_ordering, m_old_ordering);
