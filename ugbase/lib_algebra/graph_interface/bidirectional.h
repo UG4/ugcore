@@ -64,7 +64,7 @@ public:
 
 public: // interface
 	void refresh(){
-		double t = get_clock_s();
+		double t = -get_clock_s();
 		assert(_matrix);
 		_matrix_transpose.set_as_transpose_of(*_matrix);
 		assert(_matrix->num_rows() == _matrix_transpose.num_cols());
