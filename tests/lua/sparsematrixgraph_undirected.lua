@@ -42,10 +42,10 @@ approxSpace:print_statistic()
 slope = 0.4
 
 function velocity(x, y)
-	--x_dir = - (slope * x - y)
-	--y_dir = - (slope * y + x)
-	x_dir = 1
-	y_dir = 0
+	x_dir = - (slope * x - y)
+	y_dir = - (slope * y + x)
+	--x_dir = 1
+	--y_dir = 0
 	return x_dir, y_dir
 end
 
@@ -78,7 +78,9 @@ ilu = ILU()
 ilu:set_damp(1)
 
 --algo = BoostCuthillMcKeeOrdering() --old version not using UndirectedMatrix
-algo = BoostCuthillMcKeeNewOrdering() --using UndirectedMatrix
+--algo = BoostCuthillMcKeeNewOrdering() --using UndirectedMatrix
+algo = OwnCuthillMcKeeOrdering()
+
 
 --scc = SCCOrdering()
 --scc:set_ordering_subalgorithm(algo)
@@ -96,7 +98,7 @@ ilu_solverDesc = {
 	precond = ilu,
 	convCheck = {
 		type		= "standard",
-		iterations	= 0,
+		iterations	= 1000,
 		absolute	= 1e-12,
 		reduction	= 1e-10,
 		verbose	= true

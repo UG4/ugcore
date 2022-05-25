@@ -40,6 +40,7 @@
 #include <set>
 #include <algorithm> //reverse
 #include <utility> //pair
+#include <deque>
 
 #include "lib_algebra/ordering_strategies/algorithms/IOrderingAlgorithm.h"
 #include "lib_algebra/ordering_strategies/algorithms/util.cpp"
@@ -103,6 +104,7 @@ public:
 	typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS, boost::no_property, EdgeWeightProperty> G_t;
 
 	typedef typename boost::graph_traits<G_t>::vertex_descriptor vd;
+	typedef typename boost::graph_traits<G_t>::edge_descriptor ed_t;
 	typedef typename boost::graph_traits<G_t>::vertex_iterator vIt_t;
 	typedef typename boost::graph_traits<G_t>::adjacency_iterator adj_iter;
 	typedef typename boost::graph_traits<G_t>::out_edge_iterator oute_iter;
@@ -116,6 +118,17 @@ public:
 	SmartPtr<IOrderingAlgorithm<TAlgebra, O_t> > clone()
 	{
 		return make_sp(new OwnCuthillMcKeeOrdering<TAlgebra, O_t>(*this));
+	}
+
+	inline void unregister_indegree(size_t v, std::vector<size_t>& indegs){
+		std::pair<oute_iter, oute_iter> e;
+		e = boost::out_edges(v, g);
+
+		for(; e.first != e.second; ++e.first){
+			ed_t const& edg = *e.first;
+			auto t = boost::target(edg, g);
+			--indegs[t];
+		 }
 	}
 
 	//overload
@@ -134,31 +147,99 @@ public:
 		std::cout << "graph: " << std::endl; print_graph(g); std::cout << "end graph" << std::endl;
 #endif
 
+		size_t k = 0;
+		std::vector<int> numbering(n, -1);
 		std::vector<size_t> indegs(n);
 
+		std::vector<int> front(n, -1);
+
 		vIt_t vIt, vEnd;
+
 		for(boost::tie(vIt, vEnd) = boost::vertices(g); vIt != vEnd; ++vIt){
 			indegs[*vIt] = boost::in_degree(*vIt, g);
-		}
-
-		vd s;
-		size_t min_s = n;
-		for(boost::tie(vIt, vEnd) = boost::vertices(g); vIt != vEnd; ++vIt){
-			if(indegs[*vIt] < min_s){
-				s = *vIt;
-				min_s = indegs[*vIt];
+			if(indegs[*vIt] == 0){
+				numbering[*vIt] = k;
+				front[k] = *vIt;
+				//UG_LOG("source: " << *vIt << "\n");
+				++k;
 			}
 		}
 
-		UG_LOG("s = " << s << ", deg: " << min_s << "\n");
+		for(size_t i = 0; i < k; ++i){
+			unregister_indegree(front[i], indegs);
+		}
+
+
+		UG_LOG("sources numbered: " << k << "\n");
+
+		//Test
+		UG_COND_THROW(k == 0, name() << ": no sources numbered, front empty != n\n");
+
+		std::pair<oute_iter, oute_iter> e;
+
+		//main loop
+		for(; k < n;){
+			size_t min_indeg_v;
+			size_t min_indeg_val = n;
+
+			//over all vertices in front
+			for(size_t j = 0; j < k; ++j){
+				auto candidate = front[j];
+
+				size_t misses = 0;
+				e = boost::out_edges(candidate, g);
+				for(; e.first != e.second; ++e.first){
+					ed_t const& edg = *e.first;
+					auto t = boost::target(edg, g);
+
+					//UG_LOG("outedge " << s << " -> " << t << "\n");
+
+
+					if(numbering[t] < 0){
+						//UG_LOG("unnumbered vertex: " << t << ", indeg: " << indegs[t] << "\n");
+
+						if(indegs[t] < min_indeg_val){
+							min_indeg_val = indegs[t];
+							min_indeg_v = t;
+						}
+					}
+					else{
+						++misses;
+					}
+				 }
+
+				if(misses == boost::out_degree(candidate, g)){
+					UG_LOG("may be deleted\n");
+				}
+			}
+
+			//UG_LOG("k= " << k << ", min_indeg_vertex: " << min_indeg_v << ", indeg: " << min_indeg_val << "\n");
+			numbering[min_indeg_v] = k;
+			front[k] = min_indeg_v;
+
+			unregister_indegree(min_indeg_v, indegs);
+			++k;
+		}
+
+
+		//Test
+		for(size_t i = 0; i < n; ++i){
+			if(numbering[i] < 0){
+				UG_THROW(name() << ": unnumbered vertex\n");
+			}
+		}
+
+		//Test
+		UG_COND_THROW(front.size() != n, name() << ": front.size() != n\n");
+
 
 		for(unsigned i = 0; i < n; ++i){
-			o[i] = i;
+			o[i] = numbering[i];
 		}
 
 		g = G_t(0);
 
-		std::cout << "[CuthillMcKeeOrderingWeighted::compute] done. " << std::endl;
+		UG_LOG(name() << ": done.\n");
 	}
 
 	void init(M_t* A, const V_t&){
