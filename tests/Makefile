@@ -23,7 +23,7 @@ out: ${TEST_OUT}
 
 out/%.out: %
 	mkdir -p out
-	./$* > $@
+	./$* | grep -v "\ refresh\ " > $@
 
 MPI_INCLUDE=-I/usr/lib/x86_64-linux-gnu/openmpi/include
 
@@ -42,3 +42,6 @@ ${PTESTS}: CXX = mpiCC
 # boost_ptest0: CPPFLAGS=-I../ugbase ${MPI_INCLUDE} -DUG_PARALLEL
 ${PTESTS}: %: %.o
 	${CXX} -o $@ $< ${LIBS}
+
+clean:
+	rm -rf *~ ${TESTS} out *.vtu

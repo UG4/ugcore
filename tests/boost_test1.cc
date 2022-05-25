@@ -49,17 +49,20 @@ int main()
 	auto wtmap = boost::get(boost::edge_weight, b);
 
 	{
-		std::cout << "=== out edges ===\n";
-		std::pair<out_edge_iterator, out_edge_iterator> e_ = boost::out_edges(1, b);
-		auto e = ug::util::omit_loops(e_, b);
-		for(; e.first!=e.second; ++e.first){
-			boost::graph_traits<BM>::edge_descriptor const& edg = *e.first;
-			std::cout << boost::source(edg, b) << ":" << boost::target(edg, b)
-			          << " -- " << boost::get(wtmap, edg) << "\n";
+		for(int k=0; k<N; ++k){
+			std::cout << "=== out edges " << k << " === "
+			          << boost::out_degree(k, b) << "\n";
+			std::pair<out_edge_iterator, out_edge_iterator> e = boost::out_edges(k, b);
+			// auto e = ug::util::omit_loops(e_, b);
+			for(; e.first!=e.second; ++e.first){
+				boost::graph_traits<BM>::edge_descriptor const& edg = *e.first;
+				std::cout << boost::source(edg, b) << ":" << boost::target(edg, b)
+							 << " -- " << boost::get(wtmap, edg) << "\n";
+			}
 		}
 	}
 
-	{
+	if(0){
 		std::cout << "=== out edges ===\n";
 		std::pair<out_edge_iterator, out_edge_iterator> e_ = boost::out_edges(5, b);
 		auto e = ug::util::omit_loops(e_, b);

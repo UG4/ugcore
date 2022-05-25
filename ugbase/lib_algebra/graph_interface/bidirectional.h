@@ -88,17 +88,20 @@ public: // interface
 		}
 	}
 	int out_degree(int v) const {
-		// could call in_degree?
-		return in_degree(v);
+		assert(_matrix);
+		if(size_t(v)<_matrix->num_rows()){
+			assert(size_t(v)<_matrix->num_rows());
+			return boost::out_degree(v, *_matrix);
+		}else{
+			return 0;
+		}
 	}
 	int in_degree(int v) const {
 		// could use difference, requires zero-pruning in _matrix_transpose.
 		if(size_t(v)<_matrix_transpose.num_rows()){
 			return boost::out_degree(v, _matrix_transpose);
 		}else{
-			assert(_matrix);
-			assert(size_t(v)<_matrix->num_rows());
-			return boost::out_degree(v, *_matrix);
+			return 0;
 		}
 	}
 	int degree(int v) const { untested();

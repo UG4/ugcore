@@ -43,14 +43,14 @@ int main()
 		auto e = boost::vertices(b);
 		for(; e.first!=e.second; ++e.first){
 			auto v = *e.first;
-			std::cout << v << " " << boost::out_degree(v, b) << " " << boost::in_degree(v, b) << "\n";
+			std::cout << v << " outdeg: " << boost::out_degree(v, b) << " indeg: " << boost::in_degree(v, b) << "\n";
 		}
 	}
 
 	auto wtmap = boost::get(boost::edge_weight, b);
 
 	for(int w=0; w<N+2; ++w){
-		std::cout << "=== out edges ===\n";
+		std::cout << "=== out edges " << w << " ===\n";
 		std::pair<out_edge_iterator, out_edge_iterator> e = boost::out_edges(w, b);
 		for(; e.first!=e.second; ++e.first){
 			boost::graph_traits<BM>::edge_descriptor const& edg = *e.first;
