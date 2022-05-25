@@ -39,11 +39,13 @@ approxSpace:print_statistic()
 --  Velocity
 --------------------------------------------------------------------------------
 
-slope = 0.1
+slope = 0.4
 
 function velocity(x, y)
-	x_dir = - (slope * x - y)
-	y_dir = - (slope * y + x)
+	--x_dir = - (slope * x - y)
+	--y_dir = - (slope * y + x)
+	x_dir = 1
+	y_dir = 0
 	return x_dir, y_dir
 end
 
@@ -63,6 +65,10 @@ domainDisc = DomainDiscretization(approxSpace)
 domainDisc:add(elemDisc)
 domainDisc:add(DirichletBnd)
 
+
+zWriteOffset = 3;
+SaveParallelGridLayout(dom:grid(), "grid_layout_p" .. ProcRank() .. ".ugx", zWriteOffset);
+
 --------------------------------------------------------------------------------
 --  Linear solver (choose!) - using 'util/solver_util.lua'
 --------------------------------------------------------------------------------
@@ -71,8 +77,15 @@ domainDisc:add(DirichletBnd)
 ilu = ILU()
 ilu:set_damp(1)
 
--- algo = BoostCuthillMcKeeOrdering() --old version not using UndirectedMatrix
-algo = BoostCuthillMcKeeNewOrdering() --using UndirectedMatrix
+--algo = BoostCuthillMcKeeOrdering() --old version not using UndirectedMatrix
+--algo = BoostCuthillMcKeeNewOrdering() --using UndirectedMatrix
+
+--scc = SCCOrdering()
+--scc:set_ordering_subalgorithm(algo)
+--algo = scc
+
+algo = TopologicalOrdering()
+--algo = TopologicalOldOrdering()
 
 ilu:set_ordering_algorithm(algo)
 
