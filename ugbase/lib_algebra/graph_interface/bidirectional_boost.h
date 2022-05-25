@@ -155,7 +155,7 @@ inline std::pair<SM_out_edge_iterator<typename T::value_type>,
 	typedef typename T::value_type value_type;
 	typedef SM_out_edge_iterator<value_type> Iter;
    auto a = adjacent_vertices(v, g);
-	return std::make_pair(Iter(a.first), Iter(a.second));
+	return std::make_pair(Iter(a.first, v), Iter(a.second, v));
 }
 
 template<class T>
@@ -166,7 +166,7 @@ inline std::pair<SM_out_edge_iterator<typename T::value_type>,
 	typedef typename T::value_type value_type;
 	typedef SM_out_edge_iterator<value_type> Iter;
    auto a = coadjacent_vertices(v, g);
-	return std::make_pair(Iter(a.first), Iter(a.second));
+	return std::make_pair(Iter(a.first, v), Iter(a.second, v));
 }
 
 template<class T>

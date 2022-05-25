@@ -364,16 +364,50 @@ public:
 	class row_iterator
     {
         SparseMatrix &A;
-        size_t row;
+#ifdef CHECK_ROW_ITERATORS
+        size_t _row;
+#endif
         size_t i;
     public:
-        inline void check() const {A.check_row(row, i); }
-        row_iterator(SparseMatrix &_A, size_t _row, size_t _i) : A(_A), row(_row), i(_i) { A.add_iterator(row); }
-        row_iterator(row_iterator &&other) : A(other.A), row(other.row), i(other.i) {
-				A.add_iterator(row);
+        inline void check() const {
+#ifdef CHECK_ROW_ITERATORS
+			  A.check_row(_row, i);
+#endif
 		  }
-        row_iterator(const row_iterator &other) : A(other.A), row(other.row), i(other.i) { A.add_iterator(row); }
-        ~row_iterator() { A.remove_iterator(row); }
+        row_iterator(SparseMatrix &_A, size_t row, size_t _i) : A(_A)
+#ifdef CHECK_ROW_ITERATORS
+				 , _row(row)
+#endif
+				 , i(_i) { A.add_iterator(row); }
+        row_iterator(row_iterator &&other) : A(other.A),
+#ifdef CHECK_ROW_ITERATORS
+		  _row(other._row),
+#endif
+		  i(other.i) {
+#ifdef CHECK_ROW_ITERATORS
+				A.add_iterator(other._row);
+#else
+				A.add_iterator(-1);
+#endif
+		  }
+        row_iterator(const row_iterator &other) : A(other.A),
+#ifdef CHECK_ROW_ITERATORS
+		  _row(other._row),
+#endif
+		  i(other.i) {
+#ifdef CHECK_ROW_ITERATORS
+			  A.add_iterator(other._row);
+#else
+			  A.add_iterator(-1);
+#endif
+		  }
+        ~row_iterator() {
+#ifdef CHECK_ROW_ITERATORS
+			  A.remove_iterator(_row);
+#else
+			  A.remove_iterator(-1);
+#endif
+		  }
         row_iterator *operator ->() { return this; }
         value_type &value() { check(); return A.values[i];   }
         size_t index() const { check(); return A.cols[i]; }
@@ -385,20 +419,52 @@ public:
     class const_row_iterator
     {
         const SparseMatrix &A;
+#ifdef CHECK_ROW_ITERATORS
         size_t _row; // int?
+#endif
         size_t i;
     public:
-        inline void check() const {A.check_row(_row, i); }
-        const_row_iterator(const SparseMatrix &_A, size_t row, size_t _i) : A(_A), _row(row), i(_i) {A.add_iterator(row);}
-        const_row_iterator(const const_row_iterator &other) : A(other.A), _row(other._row), i(other.i) {
-			  A.add_iterator(_row);
+        inline void check() const {
+#ifdef CHECK_ROW_ITERATORS
+			  A.check_row(_row, i);
+#endif
 		  }
-        const_row_iterator(const_row_iterator&& other) : A(other.A), _row(other._row), i(other.i) {
+        const_row_iterator(const SparseMatrix &_A, size_t row, size_t _i) : A(_A),
+#ifdef CHECK_ROW_ITERATORS
+		  _row(row),
+#endif
+		  i(_i) {A.add_iterator(row);}
+        const_row_iterator(const const_row_iterator &other) : A(other.A),
+#ifdef CHECK_ROW_ITERATORS
+		  _row(other._row),
+#endif
+		  i(other.i) {
+#ifdef CHECK_ROW_ITERATORS
 			  A.add_iterator(_row);
+#else
+			  A.add_iterator(-1);
+#endif
+		  }
+        const_row_iterator(const_row_iterator&& other) : A(other.A),
+#ifdef CHECK_ROW_ITERATORS
+		     _row(other._row),
+#endif
+			  i(other.i) {
+#ifdef CHECK_ROW_ITERATORS
+			  A.add_iterator(_row);
+#else
+			  A.add_iterator(-1);
+#endif
 		  }
 		  const_row_iterator& operator=(const_row_iterator const&) = delete;
 		  const_row_iterator& operator=(const_row_iterator&&) = delete;
-        ~const_row_iterator() { A.remove_iterator(_row); }
+        ~const_row_iterator() {
+#ifdef CHECK_ROW_ITERATORS
+			  A.remove_iterator(_row);
+#else
+			  A.remove_iterator(-1);
+#endif
+		  }
         const_row_iterator *operator ->() const { return this; }
         const value_type &value() const { check(); return A.values[i];   }
         size_t index() const { check(); return A.cols[i];     }
@@ -407,7 +473,7 @@ public:
         void operator += (int nr) { i+=nr; }
 		bool operator == (const const_row_iterator &other) const { return other.i == i; }
 		public: // BUG
-		 int row() const{return _row;}
+		 // int row() const{return _row;}
 		 size_t idx() const{return i;}
     };
 
