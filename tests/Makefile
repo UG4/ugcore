@@ -8,7 +8,6 @@ TESTS = \
 	${PTESTS} \
 	boost_test0 \
 	boost_test1 \
-	boost_test2 \
 	boost_test3 \
 	boost_test4
 
