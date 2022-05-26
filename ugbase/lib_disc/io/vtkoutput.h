@@ -464,10 +464,10 @@ class VTKOutput
 protected:
 	/**
 	 * This function counts the number of vertices, elements and connections for
-	 * a given subset (or the whole grid if si < 0).
+	 * given subsets.
 	 *
 	 * \param[in]		u			discrete function
-	 * \param[in]		si			subset
+	 * \param[in]		ssGrp		subset group of the piece
 	 * \param[in]		dim			dimension of subset
 	 * \param[out]		numVert		number of vertices
 	 * \param[out]		numElem		number of elements
@@ -475,7 +475,7 @@ protected:
 	 */
 		template <typename T>
 		void
-		count_piece_sizes(Grid& grid, const T& iterContainer, int si, int dim,
+		count_piece_sizes(Grid& grid, const T& iterContainer, SubsetGroup& ssGrp, const int dim,
 		                  int& numVert, int& numElem, int& numConn);
 
 	/**
@@ -496,7 +496,7 @@ protected:
 	 */
 		template <typename TElem, typename T>
 		void
-		count_sizes(Grid& grid, const T& iterContainer, int si,
+		count_sizes(Grid& grid, const T& iterContainer, const int si,
 		            int& numVert, int& numElem, int& numConn);
 
 		template <typename T>

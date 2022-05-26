@@ -570,8 +570,7 @@ write_grid_piece(VTKFileWriter& File,
 
 // 	Count needed sizes for vertices, elements and connections
 	try{
-		for(size_t i = 0; i < ssGrp.size(); i++)
-			count_piece_sizes(grid, iterContainer, ssGrp[i], dim, numVert, numElem, numConn);
+		count_piece_sizes(grid, iterContainer, ssGrp, dim, numVert, numElem, numConn);
 	}
 	UG_CATCH_THROW("VTK::write_piece: Failed to count piece sizes.");
 
@@ -608,8 +607,7 @@ write_grid_solution_piece(VTKFileWriter& File,
 
 // 	Count needed sizes for vertices, elements and connections
 	try{
-		for(size_t i = 0; i < ssGrp.size(); i++)
-			count_piece_sizes(grid, u, ssGrp[i], dim, numVert, numElem, numConn);
+		count_piece_sizes(grid, u, ssGrp, dim, numVert, numElem, numConn);
 	}
 	UG_CATCH_THROW("VTK::write_piece: Failed to count piece sizes.");
 
@@ -654,7 +652,7 @@ write_grid_solution_piece(VTKFileWriter& File,
 template <int TDim>
 template <typename TElem, typename T>
 void VTKOutput<TDim>::
-count_sizes(Grid& grid, const T& iterContainer, int si,
+count_sizes(Grid& grid, const T& iterContainer, const int si,
             int& numVert, int& numElem, int& numConn)
 {
 //	get reference element
@@ -705,33 +703,41 @@ count_sizes(Grid& grid, const T& iterContainer, int si,
 	}
 };
 
-
+/**
+ * Counts VTK grid elements (points, full-dim. elements and connections) in a given
+ * piece of the ug grid.
+ */
 template <int TDim>
 template <typename T>
 void VTKOutput<TDim>::
-count_piece_sizes(Grid& grid, const T& iterContainer, int si, int dim,
+count_piece_sizes(Grid& grid, const T& iterContainer, SubsetGroup& ssGrp, const int dim,
                   int& numVert, int& numElem, int& numConn)
 {
-//	reset all marks
+	numVert = numElem = numConn = 0;
+
+//	reset all marks (we use vertex marking to avoid counting vertices twice)
 	grid.begin_marking();
 
-//	switch dimension
-	switch(dim)
+	for(size_t i = 0; i < ssGrp.size(); i++)
 	{
-		case 0: count_sizes<Vertex, T>(grid, iterContainer, si, numVert, numElem, numConn); break;
-		case 1: count_sizes<RegularEdge, T>(grid, iterContainer, si, numVert, numElem, numConn);
-				count_sizes<ConstrainingEdge, T>(grid, iterContainer, si, numVert, numElem, numConn); break;
-		case 2: count_sizes<Triangle, T>(grid, iterContainer, si, numVert, numElem, numConn);
-				count_sizes<Quadrilateral, T>(grid, iterContainer, si, numVert, numElem, numConn);
-				count_sizes<ConstrainingTriangle, T>(grid, iterContainer, si, numVert, numElem, numConn);
-				count_sizes<ConstrainingQuadrilateral, T>(grid, iterContainer, si, numVert, numElem, numConn); break;
-		case 3: count_sizes<Tetrahedron, T>(grid, iterContainer, si, numVert, numElem, numConn);
-				count_sizes<Pyramid, T>(grid, iterContainer, si, numVert, numElem, numConn);
-				count_sizes<Prism, T>(grid, iterContainer, si, numVert, numElem, numConn);
-				count_sizes<Octahedron, T>(grid, iterContainer, si, numVert, numElem, numConn);
-				count_sizes<Hexahedron, T>(grid, iterContainer, si, numVert, numElem, numConn); break;
-		default: UG_THROW("VTK::count_piece_sizes: Dimension " << dim <<
-		                        " is not supported.");
+		const int si = ssGrp[i];
+		switch(dim) // switch dimension
+		{
+			case 0: count_sizes<Vertex, T>(grid, iterContainer, si, numVert, numElem, numConn); break;
+			case 1: count_sizes<RegularEdge, T>(grid, iterContainer, si, numVert, numElem, numConn);
+					count_sizes<ConstrainingEdge, T>(grid, iterContainer, si, numVert, numElem, numConn); break;
+			case 2: count_sizes<Triangle, T>(grid, iterContainer, si, numVert, numElem, numConn);
+					count_sizes<Quadrilateral, T>(grid, iterContainer, si, numVert, numElem, numConn);
+					count_sizes<ConstrainingTriangle, T>(grid, iterContainer, si, numVert, numElem, numConn);
+					count_sizes<ConstrainingQuadrilateral, T>(grid, iterContainer, si, numVert, numElem, numConn); break;
+			case 3: count_sizes<Tetrahedron, T>(grid, iterContainer, si, numVert, numElem, numConn);
+					count_sizes<Pyramid, T>(grid, iterContainer, si, numVert, numElem, numConn);
+					count_sizes<Prism, T>(grid, iterContainer, si, numVert, numElem, numConn);
+					count_sizes<Octahedron, T>(grid, iterContainer, si, numVert, numElem, numConn);
+					count_sizes<Hexahedron, T>(grid, iterContainer, si, numVert, numElem, numConn); break;
+			default: UG_THROW("VTK::count_piece_sizes: Dimension " << dim <<
+									" is not supported.");
+		}
 	}
 
 //	signal end of marking
