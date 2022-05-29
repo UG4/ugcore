@@ -56,18 +56,22 @@ void test1()
 		std::pair<out_edge_iterator, out_edge_iterator> e = boost::out_edges(w, b);
 		for(; e.first!=e.second; ++e.first){
 			boost::graph_traits<BM>::edge_descriptor const& edg = *e.first;
-			std::cout << boost::source(edg, b) << ":" << boost::target(edg, b)
+			int s = boost::source(edg, b);
+			assert(w == s);
+			std::cout << s << "->" << boost::target(edg, b)
 			          << " -- " << boost::get(wtmap, edg) << "\n";
 		}
 	}
 
 	for(int w=0; w<N+2; ++w){
-		std::cout << "=== in edges ===\n";
+		std::cout << "=== in edges === " << w << "\n";
 		std::pair<in_edge_iterator, in_edge_iterator> e = boost::in_edges(w, b);
 		for(; e.first!=e.second; ++e.first){
 			boost::graph_traits<BM>::edge_descriptor const& edg = *e.first;
-			std::cout << boost::source(edg, b) << ":" << boost::target(edg, b)
+			int t = boost::target(edg, b);
+			std::cout << boost::source(edg, b) << "->" << t
 			          << " -- " << boost::get(wtmap, edg) << "\n";
+			assert(w == t);
 		}
 	}
 

@@ -153,53 +153,52 @@ public:
 	SM_edge(SM_edge&&) = default;
 	explicit SM_edge() { untested();
 	}
-	SM_edge(SM_adjacency_iterator<T> const& i, int row) : _iter(i), _row(row) {
+	SM_edge(int s, int t, T const& v) : _source(s), _target(t), _value(v) {
 	}
 	SM_edge& operator=(SM_edge const&) = default;
 	SM_edge& operator=(SM_edge&&) = default;
 
 public:
-	size_t row() const{
-		return _row;
+	int source() const{
+		return _source;
 	}
-
-	template<class X>
-	int column(X const&) const{
-		return *_iter;
+	int target() const{
+		return _target;
 	}
 	template<class X>
-	T const value(X const&) const{
-		return _iter.value();
+	T const& value(X const&) const{
+		return _value;
 	}
 
 public:
 	bool operator==(const SM_edge& other) const { untested();
-		return _iter == other._iter;
+		return _source == other._source && _target == other._target;
 	}
 	bool operator!=(const SM_edge& other) const { untested();
-		return _iter != other._iter;
+		return !operator==(other);
 	}
 
 private:
-	SM_adjacency_iterator<T> _iter;
-	int _row;
+	int _source;
+	int _target;
+	T _value;
 }; // SM_edge
 
 template<class T, class M>
 int source(SM_edge<T> const& e, M const&)
-{
-	return e.row();
+{ untested();
+	return e.source();
 }
 
 template<class T, class M>
-int target(SM_edge<T> const& e, M const& m)
-{
-	return e.column(m);
+int target(SM_edge<T> const& e, M const&)
+{ untested();
+	return e.target();
 }
 
-template<class T>
+template<class T, bool out=true>
 class SM_out_edge_iterator : public iterator_facade<
-	SM_out_edge_iterator<T>,
+	SM_out_edge_iterator<T, out>,
 	SM_adjacency_iterator<T>,
 	// bidirectional_traversal_tag, // breaks InputIterator (why?)
 	std::input_iterator_tag,
@@ -208,7 +207,7 @@ class SM_out_edge_iterator : public iterator_facade<
 	 >{ //
 public: // types
 	typedef iterator_facade<
-	SM_out_edge_iterator<T>,
+	SM_out_edge_iterator<T, out>,
 	SM_adjacency_iterator<T>,
 	std::input_iterator_tag,
 	SM_edge<T>, // <= reference
@@ -225,9 +224,15 @@ public: // construct
 	}
 	explicit SM_out_edge_iterator(SM_adjacency_iterator<T> w, int src)
 	    : base_class(), _base(w), _src(src) {
+		if(out){
+		}else{
+		}
 	}
 	/* explicit */ SM_out_edge_iterator(SM_out_edge_iterator const& p)
 	    : base_class(p), _base(p._base), _src(p._src){
+		if(out){
+		}else{
+		}
 	}
 	SM_out_edge_iterator(SM_out_edge_iterator&& p) = delete; // why?
 	~SM_out_edge_iterator(){
@@ -253,7 +258,11 @@ public: // op
 #endif
 private:
 	reference dereference() const {
-		return edge_type(_base, _src);
+		if(out){
+			return edge_type(_src, *_base, _base.value());
+		}else{
+			return edge_type(*_base, _src, _base.value());
+		}
 	}
 	bool equal(SM_out_edge_iterator const& other) const { untested();
 		assert(_base.first == other._base.first);

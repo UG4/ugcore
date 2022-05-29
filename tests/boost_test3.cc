@@ -1,6 +1,6 @@
 // #define BOOST_RECURSIVE_DFS
 
-#include "lib_algebra/graph_interface/trace.h"
+#include "common/util/trace.h"
 #include "lib_algebra/cpu_algebra/sparsematrix_impl.h"
 #include "lib_algebra/graph_interface/sparsematrix_boost.h"
 
