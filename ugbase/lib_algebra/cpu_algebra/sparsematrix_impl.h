@@ -197,10 +197,10 @@ void SparseMatrix<T>::set_as_transpose_of2(const SparseMatrix<value_type> &B, do
 
 	for(r=0; r<num_cols(); r++){
 		for(const_row_iterator it = B.begin_row(r); it != B.end_row(r); ++it){
-			if(it.value()){
+			if(iszero(it.value())){
+			}else{
 				++nnz;
 				++rowMax[it.index()];
-			}else{
 			}
 		}
 	}
@@ -221,14 +221,14 @@ void SparseMatrix<T>::set_as_transpose_of2(const SparseMatrix<value_type> &B, do
 
 	for(r=0; r<num_cols(); ++r){
 		for(const_row_iterator it = B.begin_row(r); it != B.end_row(r); ++it){
-			if(it.value()){
+			if(iszero(it.value())){
+			}else{
 				int idx = rowEnd[it.index()]++;
 				if(bNeedsValues){
 					values[idx] = scale * it.value();
 				}else{
 				}
 				cols[idx] = r;
-			}else{
 			}
 		}
 	}
