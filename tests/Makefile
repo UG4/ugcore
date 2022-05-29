@@ -6,6 +6,7 @@ PTESTS = \
 
 TESTS = \
 	${PTESTS} \
+	sm_transpose \
 	boost_test0 \
 	boost_test1 \
 	boost_test3 \

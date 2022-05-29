@@ -139,6 +139,7 @@ public:
 	 * \return			true on success
 	 */
 	void set_as_transpose_of(const SparseMatrix<value_type> &B, double scale=1.0);
+	void set_as_transpose_of2(const SparseMatrix<value_type> &B, double scale=1.0);
 
 	/**
 	 * \brief create/recreate this as a copy of SparseMatrix B
