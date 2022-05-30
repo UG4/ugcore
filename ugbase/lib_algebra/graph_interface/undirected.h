@@ -38,7 +38,10 @@
 #include <boost/geometry/iterators/concatenate_iterator.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include "common/util/bucket_sorter.hpp"
+
+#ifndef NDEBUG
 #include "common/stopwatch.h"
+#endif
 
 namespace ug{
 
@@ -159,7 +162,9 @@ private:
 template<class T>
 void UndirectedMatrix<T>::refresh()
 {
+#ifndef NDEBUG
 	double t = get_clock_s();
+#endif
 
 	assert(_matrix);
 	size_t N = _matrix->num_rows();
@@ -277,7 +282,9 @@ void UndirectedMatrix<T>::refresh()
 	e.clear();
 	assert(!_matrix->iters());
 
+#ifndef NDEBUG
 	UG_LOG("Undirected refresh " << get_clock_s()-t << "\n");
+#endif
 }
 
 } // ug

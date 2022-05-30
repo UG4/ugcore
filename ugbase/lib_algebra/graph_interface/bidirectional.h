@@ -34,7 +34,10 @@
 #define UG_GRAPH_INTERFACE_BIDIR_H
 
 #include "sparsematrix_boost.h"
+
+#ifndef NDEBUG
 #include "common/stopwatch.h"
+#endif
 
 namespace ug{
 
@@ -64,13 +67,17 @@ public:
 
 public: // interface
 	void refresh(){
+#ifndef NDEBUG
 		double t = -get_clock_s();
+#endif
 		assert(_matrix);
 		_matrix_transpose.set_as_transpose_of2(*_matrix);
 		assert(_matrix->num_rows() == _matrix_transpose.num_cols());
 		assert(_matrix->num_cols() == _matrix_transpose.num_rows());
+#ifndef NDEBUG
 		t += get_clock_s();
 		UG_LOG("Transpose in bidirectional refresh " << t << "\n");
+#endif
 	}
 
 	int num_rows() const {

@@ -36,7 +36,9 @@
 
 #include <limits>
 #include "common/error.h"
+#ifndef NDEBUG
 #include "common/stopwatch.h"
+#endif
 #include "common/util/smart_pointer.h"
 #include "lib_algebra/operator/interface/preconditioner.h"
 
@@ -435,19 +437,19 @@ class ILU : public IPreconditioner<TAlgebra>
 			if (m_useOverlap)
 				UG_THROW ("ILU: Ordering for overlap has not been implemented yet.");
 
+#ifndef NDEBUG
 			double start = get_clock_s();
-
+#endif
 			if (m_u)
 				m_spOrderingAlgo->init(&m_ILU, *m_u);
 			else
 				m_spOrderingAlgo->init(&m_ILU);
 
 			m_spOrderingAlgo->compute();
-
+#ifndef NDEBUG
 			double end = get_clock_s();
-
 			UG_LOG("ILU: ordering took " << end-start << " seconds\n");
-
+#endif
 			m_ordering = m_spOrderingAlgo->ordering();
 
 			m_bSortIsIdentity = GetInversePermutation(m_ordering, m_old_ordering);
