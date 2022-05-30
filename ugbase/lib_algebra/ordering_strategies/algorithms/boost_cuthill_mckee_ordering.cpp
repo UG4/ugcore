@@ -49,6 +49,7 @@
 
 namespace ug{
 
+<<<<<<< HEAD
 #ifndef GRAPH_T_FOR_CUTHILL_MCKEE
 #define GRAPH_T_FOR_CUTHILL_MCKEE
 /* boost graph type for Cuthill-McKee */
@@ -58,6 +59,45 @@ typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
 		boost::property<boost::vertex_degree_t, int> > >
 			Graph_t;
 #endif
+=======
+
+template <typename G_t, typename M_t>
+void induced_subgraph(G_t& ind_g, M_t* A, const std::vector<size_t>& inv_map){
+	size_t n = A->num_rows();
+	size_t k = inv_map.size();
+	ind_g = G_t(k);
+
+	std::vector<int> ind_map(n, -1);
+	for(unsigned i = 0; i < k; ++i){
+		ind_map[inv_map[i]] = i;
+	}
+
+	typename boost::graph_traits<G_t>::adjacency_iterator nIt, nEnd;
+	for(unsigned i = 0; i < inv_map.size(); ++i){
+		for(typename M_t::row_iterator conn = A->begin_row(inv_map[i]); conn != A->end_row(inv_map[i]); ++conn){
+			if(conn.value() != 0.0 && conn.index() != i){
+				int idx = ind_map[conn.index()];
+				if(idx >= 0){
+					boost::add_edge(i, idx, ind_g);
+				}
+			}
+		}
+	}
+}
+
+
+
+#ifndef MCKEE_GRAPH_T
+#define MCKEE_GRAPH_T
+/* boost graph type for Cuthill-McKee */
+typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
+	boost::property<boost::vertex_color_t,
+			 boost::default_color_type,
+			 boost::property<boost::vertex_degree_t, int> > >
+				Graph_t;
+#endif
+
+>>>>>>> master
 
 template <typename TAlgebra, typename O_t=std::vector<size_t> >
 class BoostCuthillMcKeeOrdering : public IOrderingAlgorithm<TAlgebra, O_t>
@@ -66,7 +106,11 @@ public:
 	typedef typename TAlgebra::matrix_type M_t;
 	typedef typename TAlgebra::vector_type V_t;
 	typedef Graph_t G_t;
+<<<<<<< HEAD
 	typedef typename boost::graph_traits<G_t>::vertex_descriptor vd;
+=======
+	typedef boost::graph_traits<G_t>::vertex_descriptor Vertex_t;
+>>>>>>> master
 	typedef IOrderingAlgorithm<TAlgebra, O_t> baseclass;
 	typedef IOrderingPreprocessor<TAlgebra, G_t> Preprocessor_t;
 
@@ -84,6 +128,7 @@ public:
 	}
 
 	void compute(){
+<<<<<<< HEAD
 		unsigned n = boost::num_vertices(g);
 
 		if(n == 0){
@@ -105,6 +150,12 @@ public:
 		boost::property_map<G_t, boost::vertex_index_t>::type index_map = get(boost::vertex_index, g);
 
 		typedef boost::graph_traits<G_t>::vertex_descriptor Vertex_t;
+=======
+		UG_COND_THROW(boost::num_vertices(g) == 0, name() << "::compute: Graph is empty!");
+
+		boost::property_map<G_t, boost::vertex_index_t>::type index_map = get(boost::vertex_index, g);
+
+>>>>>>> master
 		std::vector<Vertex_t> inv_perm(boost::num_vertices(g));
 
 		if(m_bUseStartVertex){

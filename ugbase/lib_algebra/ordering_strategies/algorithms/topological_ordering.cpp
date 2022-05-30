@@ -56,7 +56,7 @@
 namespace ug{
 
 template <typename O_t, typename G_t>
-void topological_ordering_core(O_t& o, G_t& g, bool inverse){
+void topological_ordering_core_bidirectional(O_t& o, G_t& g, bool inverse){
 	typedef typename boost::graph_traits<G_t>::vertex_descriptor vd_t;
 	typedef typename boost::graph_traits<G_t>::edge_descriptor ed_t;
 	typedef typename boost::graph_traits<G_t>::vertex_iterator vIt_t;
@@ -73,23 +73,9 @@ void topological_ordering_core(O_t& o, G_t& g, bool inverse){
 	std::vector<BOOL> isindeq(n, false);
 	std::deque<vd_t> deq;
 
-
 	vIt_t vIt, vEnd;
-	std::pair<in_edge_iterator, in_edge_iterator> e;
-
 	for(boost::tie(vIt, vEnd) = boost::vertices(g); vIt != vEnd; ++vIt){
-		e = boost::in_edges(*vIt, g);
-		for(; e.first != e.second; ++e.first){
-			ed_t const& edg = *e.first;
-			auto s = boost::source(edg, g);
-			auto t = boost::target(edg, g);
-			if(s != t){
-				++indegs[t];
-			}
-		 }
-	}
-
-	for(boost::tie(vIt, vEnd) = boost::vertices(g); vIt != vEnd; ++vIt){
+		indegs[*vIt] = boost::out_degree(*vIt, g)-1; //self-loop
 		if(indegs[*vIt] == 0){
 			deq.push_front(*vIt);
 			isindeq[*vIt] = true;
@@ -100,6 +86,7 @@ void topological_ordering_core(O_t& o, G_t& g, bool inverse){
 		UG_THROW("topological_ordering_core: Graph is not cycle-free [1]!\n");
 	}
 
+	std::pair<in_edge_iterator, in_edge_iterator> e;
 	vd_t cur_v;
 	size_t k = 0;
 	size_t miss = 0;
@@ -126,7 +113,7 @@ void topological_ordering_core(O_t& o, G_t& g, bool inverse){
 		e = boost::in_edges(cur_v, g);
 		for(; e.first != e.second; ++e.first){
 			ed_t const& edg = *e.first;
-			auto t = boost::target(edg, g);
+			auto t = boost::source(edg, g);
 
 			--indegs[t];
 
@@ -258,7 +245,7 @@ public:
 	}
 
 	void compute(){
-		topological_ordering_core(o, bidir, false); //false = do not compute inverse permutation
+		topological_ordering_core_bidirectional(o, bidir, false); //false = do not compute inverse permutation
 
 		#ifdef UG_DEBUG
 		check();

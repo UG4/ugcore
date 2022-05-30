@@ -172,6 +172,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "FollowConvectionOrdering", tag);
 	}
 
+<<<<<<< HEAD
 
 	/* Preprocessor */
 
@@ -193,6 +194,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "AnglePreprocessor", tag);
 	}
 
+=======
+>>>>>>> master
 	/* IO */
 
 //	GridPointsOrdering

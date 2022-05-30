@@ -35,6 +35,10 @@
 
 #include "sparsematrix_boost.h"
 
+#ifndef NDEBUG
+#include "common/stopwatch.h"
+#endif
+
 namespace ug{
 
 // give access to edges both ways.
@@ -48,13 +52,14 @@ public:
 	    : _matrix(m) {
 		if(m){
 			refresh();
-		}else{ untested();
+		}else{
 		}
 	}
 	explicit BidirectionalMatrix(BidirectionalMatrix const& o)
-	    : _matrix(o._matrix), _matrix_transpose(o._matrix_transpose) { untested();
+	    : _matrix(o._matrix) {
+		_matrix_transpose = o._matrix_transpose; // BUG: missing copy constructor.
 	}
-	BidirectionalMatrix& operator=(BidirectionalMatrix const& o) { untested();
+	BidirectionalMatrix& operator=(BidirectionalMatrix const& o) {
 		_matrix = o._matrix;
 		_matrix_transpose = o._matrix_transpose;
 		return *this;
@@ -62,10 +67,17 @@ public:
 
 public: // interface
 	void refresh(){
+#ifndef NDEBUG
+		double t = -get_clock_s();
+#endif
 		assert(_matrix);
-		_matrix_transpose.set_as_transpose_of(*_matrix);
+		_matrix_transpose.set_as_transpose_of2(*_matrix);
 		assert(_matrix->num_rows() == _matrix_transpose.num_cols());
 		assert(_matrix->num_cols() == _matrix_transpose.num_rows());
+#ifndef NDEBUG
+		t += get_clock_s();
+		UG_LOG("Transpose in bidirectional refresh " << t << "\n");
+#endif
 	}
 
 	int num_rows() const {
@@ -83,17 +95,20 @@ public: // interface
 		}
 	}
 	int out_degree(int v) const {
-		// could call in_degree?
-		return in_degree(v);
+		assert(_matrix);
+		if(size_t(v)<_matrix->num_rows()){
+			assert(size_t(v)<_matrix->num_rows());
+			return boost::out_degree(v, *_matrix);
+		}else{
+			return 0;
+		}
 	}
 	int in_degree(int v) const {
 		// could use difference, requires zero-pruning in _matrix_transpose.
-		if(v<_matrix_transpose.num_rows()){
+		if(size_t(v)<_matrix_transpose.num_rows()){
 			return boost::out_degree(v, _matrix_transpose);
 		}else{
-			assert(_matrix);
-			assert(v<_matrix->num_rows());
-			return boost::out_degree(v, *_matrix);
+			return 0;
 		}
 	}
 	int degree(int v) const { untested();
@@ -102,7 +117,7 @@ public: // interface
 
 	const_row_iterator begin_row(int row) const {
 		assert(_matrix);
-		if(row<_matrix->num_rows()){
+		if(size_t(row)<_matrix->num_rows()){
 		}else{
 			row = 0;
 		}
@@ -110,7 +125,7 @@ public: // interface
 	}
 	const_row_iterator end_row(int row) const {
 		assert(_matrix);
-		if(row<_matrix->num_rows()){
+		if(size_t(row)<_matrix->num_rows()){
 			return _matrix->end_row(row);
 		}else{
 			return _matrix->begin_row(0);
@@ -118,14 +133,14 @@ public: // interface
 	}
 
 	const_row_iterator begin_col(int col) const {
-		if(col<_matrix_transpose.num_rows()){
+		if(size_t(col)<_matrix_transpose.num_rows()){
 		}else{
 			col = 0;
 		}
 		return _matrix_transpose.begin_row(col);
 	}
 	const_row_iterator end_col(int col) const {
-		if(col<_matrix_transpose.num_rows()){
+		if(size_t(col)<_matrix_transpose.num_rows()){
 			return _matrix_transpose.end_row(col);
 		}else{
 			return _matrix_transpose.begin_row(0);

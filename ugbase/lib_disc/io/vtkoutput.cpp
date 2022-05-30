@@ -62,71 +62,70 @@ print(const char* filename, Domain<TDim>& domain)
 	rank = pcl::ProcRank();
 #endif
 
-	const int si = -1;
+	SubsetGroup ssg (domain.subset_handler());
+	ssg.add_all ();
 
 //	get name for *.vtu file
 	std::string name;
 	try{
-		vtu_filename(name, filename, rank, si, sh.num_subsets()-1, -1);
+		vtu_filename(name, filename, rank, -1, sh.num_subsets()-1, -1);
 	}
-	UG_CATCH_THROW("VTK::print_subset: Can not write vtu - file.");
+	UG_CATCH_THROW("VTK::print_subset: Failed to write vtu file.");
 
 
 //	open the file
 	try
 	{
-	VTKFileWriter File(name.c_str());
+		VTKFileWriter File(name.c_str());
 
-//	header
-	File << VTKFileWriter::normal;
-	File << "<?xml version=\"1.0\"?>\n";
+	//	header
+		File << VTKFileWriter::normal;
+		File << "<?xml version=\"1.0\"?>\n";
 
-	write_comment(File);
+		write_comment(File);
 
-	File << "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"";
-	if(IsLittleEndian()) File << "LittleEndian";
-	else File << "BigEndian";
-	File << "\">\n";
+		File << "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"";
+		if(IsLittleEndian()) File << "LittleEndian";
+		else File << "BigEndian";
+		File << "\">\n";
 
-//	opening the grid
-	File << "  <UnstructuredGrid>\n";
+	//	opening the grid
+		File << "  <UnstructuredGrid>\n";
 
-// 	get dimension of grid-piece
-	int dim = DimensionOfSubsets(sh);
+	// 	get dimension of grid-piece
+		int dim = DimensionOfSubsets(sh);
 
-//	write piece of grid
-	if(dim >= 0)
-	{
-		try{
-			write_grid_piece<MGSubsetHandler>
-			(File, aaVrtIndex, domain.position_accessor(), grid,
-			 sh, si, dim, sh);
-		}
-		UG_CATCH_THROW("VTK::print: Can not write Subset: "<<si);
-	}
-	else
-	{
-	//	if dim < 0, some is wrong with grid, except no element is in the grid
-		if( ((si < 0) && grid.num<Vertex>() != 0) ||
-			((si >=0) && sh.num<Vertex>(si) != 0))
+	//	write piece of grid
+		if(dim >= 0)
 		{
-			UG_THROW("VTK::print: Dimension of grid/subset not"
-					" detected correctly although grid objects present.");
+			try{
+				write_grid_piece<MGSubsetHandler>
+				(File, aaVrtIndex, domain.position_accessor(), grid, sh, ssg, dim);
+			}
+			UG_CATCH_THROW("VTK::print: Failed to write subsets.");
+		}
+		else
+		{
+		//	if dim < 0, some is wrong with grid, except no element is in the grid
+			if(grid.num<Vertex>() != 0)
+			{
+				UG_THROW("VTK::print: Dimension of grid/subset not"
+						" detected correctly although grid objects present.");
+			}
+
+			write_empty_grid_piece(File);
 		}
 
-		write_empty_grid_piece(File);
-	}
+	//	write closing xml tags
+		File << "  </UnstructuredGrid>\n";
+		File << "</VTKFile>\n";
 
-//	write closing xml tags
-	File << "  </UnstructuredGrid>\n";
-	File << "</VTKFile>\n";
-
-// 	detach help indices
-	grid.detach_from_vertices(aVrtIndex);
+	// 	detach help indices
+		grid.detach_from_vertices(aVrtIndex);
 
 	}
 
-	UG_CATCH_THROW("VTK::print: Can not open Output File: "<< filename);
+	UG_CATCH_THROW("VTK::print: Can not open file: '" << filename << "' for output.");
 	#ifdef UG_PARALLEL
 		PCL_DEBUG_BARRIER_ALL();
 	#endif
@@ -169,6 +168,37 @@ write_empty_grid_piece(VTKFileWriter& File, bool binary)
 	File << "\n        </DataArray>\n";
 	File << "      </Cells>\n";
 	File << "    </Piece>\n";
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Comments
+////////////////////////////////////////////////////////////////////////////////
+
+template <int TDim>
+void VTKOutput<TDim>::
+write_comment(VTKFileWriter& File)
+{
+	if (!m_sComment.size()){
+		return;
+	}
+
+	File << VTKFileWriter::normal;
+	File << "<!--";
+	File << m_sComment;
+	File << "-->\n";
+}
+
+template <int TDim>
+void VTKOutput<TDim>::
+write_comment_printf(FILE* File)
+{
+	if (!m_sComment.size()){
+		return;
+	}
+	
+	fprintf(File, "<!--");
+	fprintf(File, "%s", m_sComment.c_str());
+	fprintf(File, "-->\n");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -442,6 +472,16 @@ select(SmartPtr<UserData<MathVector<TDim>, TDim> > spData, const char* name)
 
 template <int TDim>
 void VTKOutput<TDim>::
+select(SmartPtr<UserData<MathMatrix<TDim,TDim>, TDim> > spData, const char* name)
+{
+	if(spData->continuous())
+		select_nodal(spData, name);
+	else
+		select_element(spData, name);
+}
+
+template <int TDim>
+void VTKOutput<TDim>::
 select_nodal(const std::vector<std::string>& vFct, const char* name)
 {
 //	set select all to false, since now user-chosen
@@ -513,6 +553,21 @@ select_nodal(SmartPtr<UserData<MathVector<TDim>, TDim> > spData, const char* nam
 			       " that is already used by other data is not allowed.");
 
 	m_vVectorNodalData[name] = spData;
+}
+
+template <int TDim>
+void VTKOutput<TDim>::
+select_nodal(SmartPtr<UserData<MathMatrix<TDim,TDim>, TDim> > spData, const char* name)
+{
+//	set select all to false, since now user-chosen
+	select_all(false);
+
+	TrimString(name);
+	if(vtk_name_used(name))
+		UG_THROW("VTK:select_nodal: Using name " << name <<
+			       " that is already used by other data is not allowed.");
+
+	m_vMatrixNodalData[name] = spData;
 }
 
 
@@ -592,32 +647,17 @@ select_element(SmartPtr<UserData<MathVector<TDim>, TDim> > spData, const char* n
 
 template <int TDim>
 void VTKOutput<TDim>::
-set_binary(bool b) {
-	m_bBinary = b;
-}
+select_element(SmartPtr<UserData<MathMatrix<TDim,TDim>, TDim> > spData, const char* name)
+{
+//	set select all to false, since now user-chosen
+	select_all(false);
 
-template <int TDim>
-void VTKOutput<TDim>::
-set_write_grid(bool b) {
-	m_bWriteGrid = b;
-}
+	TrimString(name);
+	if(vtk_name_used(name))
+		UG_THROW("VTK:select_element: Using name " << name <<
+			       " that is already used by other data is not allowed.");
 
-template <int TDim>
-void VTKOutput<TDim>::
-set_write_subset_indices(bool b) {
-	m_bWriteSubsetIndices = b;
-}
-
-template <int TDim>
-void VTKOutput<TDim>::
-set_write_proc_ranks(bool b) {
-	m_bWriteProcRanks = b;
-}
-
-template <int TDim>
-void VTKOutput<TDim>::
-set_user_defined_comment(const char* comment){
-	m_sComment = comment;
+	m_vMatrixElemData[name] = spData;
 }
 
 template <int TDim>

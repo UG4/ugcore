@@ -344,6 +344,10 @@ static void Dimension(Registry& reg, string grp)
 			.add_method("set_gravity", &T::set_gravity)
 			.add_method("set_permeability", static_cast<void (T::*)(number)>(&T::set_permeability))
 			.add_method("set_permeability", static_cast<void (T::*)(SmartPtr<CplUserData<MathMatrix<dim,dim>,dim> >)>(&T::set_permeability))
+#ifdef UG_FOR_LUA
+			.add_method("set_permeability", static_cast<void (T::*)(const char* fctName)>(&T::set_permeability))
+			.add_method("set_permeability", static_cast<void (T::*)(LuaFunctionHandle fct)>(&T::set_permeability))
+#endif
 			.add_method("set_pressure_gradient", &T::set_pressure_gradient)
 			.add_method("set_viscosity", static_cast<void (T::*)(number)>(&T::set_viscosity))
 			.add_method("set_viscosity", static_cast<void (T::*)(SmartPtr<CplUserData<number,dim> >)>(&T::set_viscosity))
@@ -498,6 +502,18 @@ static void Domain(Registry& reg, string grp)
 			.template add_constructor<void (*)(ConstSmartPtr<TDomain>, const char*)>("Domain#Subsets")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "SubsetIndicatorUserData", tag);
+	}
+
+//	User data of a value indicator (1 in the subset, 0 everywhere else)
+	{
+		string name = string("ValueIndicatorUserData").append(suffix);
+		typedef ValueIndicatorUserData<TDomain> T;
+		typedef UserData<number, dim> TBase;
+		
+		reg.add_class_<T, TBase> (name, grp)
+			.template add_constructor<void (*)(SmartPtr<TBase>, number, bool)>("Domain#threshold#greater")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "ValueIndicatorUserData", tag);
 	}
 
 // EdgeOrientation (vector)
