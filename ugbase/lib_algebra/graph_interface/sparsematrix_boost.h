@@ -21,6 +21,8 @@
 
 namespace boost{
 
+using ug::iszero; // for now
+
 // a bit of a pointer dance,
 // because ug::SparseMatrix<T>::const_row_iterator is not default constructible.
 template<class T>

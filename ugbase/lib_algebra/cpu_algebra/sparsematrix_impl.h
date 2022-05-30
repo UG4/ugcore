@@ -48,6 +48,13 @@
 
 namespace ug{
 
+// defined in C99, and sometimes part of <math.h>, <cmath>
+template <class __T> inline bool
+iszero (__T __val)
+{
+  return __val == 0;
+}
+
 template<typename T>
 SparseMatrix<T>::SparseMatrix()
 {
