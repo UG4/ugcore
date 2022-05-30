@@ -153,14 +153,14 @@ public:
 	SM_edge(SM_edge&&) = default;
 	explicit SM_edge() { untested();
 	}
-	SM_edge(SM_adjacency_iterator<T> const& i) : _iter(i) {
+	SM_edge(SM_adjacency_iterator<T> const& i, int row) : _iter(i), _row(row) {
 	}
 	SM_edge& operator=(SM_edge const&) = default;
 	SM_edge& operator=(SM_edge&&) = default;
 
 public:
 	size_t row() const{
-		return _iter.row();
+		return _row;
 	}
 
 	template<class X>
@@ -181,8 +181,8 @@ public:
 	}
 
 private:
-//	int _row; // BUG
 	SM_adjacency_iterator<T> _iter;
+	int _row;
 }; // SM_edge
 
 template<class T, class M>
@@ -223,13 +223,13 @@ public: // types
 public: // construct
 	explicit SM_out_edge_iterator() : base_class() {
 	}
-	explicit SM_out_edge_iterator(SM_adjacency_iterator<T> w)
-	    : base_class(), _base(w) {
+	explicit SM_out_edge_iterator(SM_adjacency_iterator<T> w, int src)
+	    : base_class(), _base(w), _src(src) {
 	}
 	/* explicit */ SM_out_edge_iterator(SM_out_edge_iterator const& p)
-	    : base_class(p), _base(p._base){
+	    : base_class(p), _base(p._base), _src(p._src){
 	}
-	SM_out_edge_iterator(SM_out_edge_iterator&& p) = delete;
+	SM_out_edge_iterator(SM_out_edge_iterator&& p) = delete; // why?
 	~SM_out_edge_iterator(){
 	}
 	SM_out_edge_iterator& operator=(SM_out_edge_iterator&& other) =  default;
@@ -253,7 +253,7 @@ public: // op
 #endif
 private:
 	reference dereference() const {
-		return edge_type(_base);
+		return edge_type(_base, _src);
 	}
 	bool equal(SM_out_edge_iterator const& other) const { untested();
 		assert(_base.first == other._base.first);
@@ -288,6 +288,7 @@ public:
 
 private:
 	value_type _base;
+	int _src;
 	friend class iterator_core_access;
 }; // SM_out_edge_iterator
 
@@ -328,7 +329,7 @@ inline std::pair<SM_out_edge_iterator<T>, SM_out_edge_iterator<T>>
 	assert(size_t(v)<g.num_rows());
 	typedef SM_out_edge_iterator<T> Iter;
    auto a = adjacent_vertices(v, g);
-	return std::make_pair(Iter(a.first), Iter(a.second));
+	return std::make_pair(Iter(a.first, v), Iter(a.second, v));
 }
 
 template<class T>

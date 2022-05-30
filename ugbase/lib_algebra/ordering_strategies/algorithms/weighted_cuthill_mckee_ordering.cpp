@@ -52,6 +52,63 @@
 
 namespace ug{
 
+namespace{
+template<class T>
+double my_abs(T v){return 0;}
+
+template<>
+double my_abs(double v){
+		return abs(v);
+}
+}
+
+
+#ifndef PRINT_GRAPH
+#define PRINT_GRAPH
+template <typename G_t>
+void print_graph(G_t& g){
+	typedef typename boost::graph_traits<G_t>::edge_descriptor Edge;
+
+	typename boost::graph_traits<G_t>::edge_iterator eIt, eEnd;
+	for(boost::tie(eIt, eEnd) = boost::edges(g); eIt != eEnd; ++eIt){
+		std::pair<Edge, bool> e = boost::edge(boost::source(*eIt, g), boost::target(*eIt, g), g);
+		double w = boost::get(boost::edge_weight_t(), g, e.first);
+		std::cout << boost::source(*eIt, g) << " -> " << boost::target(*eIt, g) << " ( " << w << " )" << std::endl;
+	}
+}
+#endif
+
+
+
+
+#ifndef INDUCED_SUBGRAPH_WEIGHTED
+#define INDUCED_SUBGRAPH_WEIGHTED
+template <typename G_t, typename M_t>
+void induced_subgraph_weighted(G_t& ind_g, M_t* A, const std::vector<size_t>& inv_map){
+	size_t n = A->num_rows();
+	size_t k = inv_map.size();
+	ind_g = G_t(k);
+
+	std::vector<int> ind_map(n, -1);
+	for(unsigned i = 0; i < k; ++i){
+		ind_map[inv_map[i]] = i;
+	}
+
+	typename boost::graph_traits<G_t>::adjacency_iterator nIt, nEnd;
+	for(unsigned i = 0; i < inv_map.size(); ++i){
+		for(typename M_t::row_iterator conn = A->begin_row(inv_map[i]); conn != A->end_row(inv_map[i]); ++conn){
+			if(conn.value() != 0.0 && conn.index() != i){
+				int idx = ind_map[conn.index()];
+				if(idx >= 0){
+					double a = my_abs(conn.value());
+					boost::add_edge(idx, i, a, ind_g);
+				}
+			}
+		}
+	}
+}
+#endif
+
 template <typename TAlgebra, typename O_t>
 class WeightedCuthillMcKeeOrdering : public IOrderingAlgorithm<TAlgebra, O_t>
 {
@@ -191,7 +248,7 @@ public:
 			for(typename M_t::row_iterator conn = A->begin_row(i); conn != A->end_row(i); ++conn){
 				if(conn.value() != 0.0 && conn.index() != i){
 					double w;
-					w = abs(conn.value()); //TODO: think about this
+					w = my_abs(conn.value());
 					boost::add_edge(conn.index(), i, w, g);
 				}
 			}

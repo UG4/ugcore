@@ -37,8 +37,9 @@ typedef ug::SparseMatrix<double> T;
 typedef ug::ParallelMatrix<T> PM;
 typedef ug::BidirectionalMatrix<PM> BM;
 
-int main()
+int main(int argc, char* argv[])
 {
+	MPI_Init(&argc, &argv);
 	PM M;
 
 	typedef typename boost::graph_traits<BM>::in_edge_iterator in_edge_iterator;
