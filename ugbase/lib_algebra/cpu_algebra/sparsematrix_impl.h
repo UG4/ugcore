@@ -191,7 +191,7 @@ void SparseMatrix<T>::set_as_transpose_of2(const SparseMatrix<value_type> &B, do
 	std::vector<int> rowsize(num_rows());
 	nnz = 0;
 	bNeedsValues = B.bNeedsValues; // allocate value array
-	
+
 	maxValues = B.maxValues;
 	fragmented = 0;
 

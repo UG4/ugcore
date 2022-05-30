@@ -92,7 +92,6 @@ int main(int argc, char* argv[])
 
 	std::cout << "pg " << n << "\n";
 	boost::print_graph(b);
-	
 }
 
 BOOST_CONCEPT_ASSERT(( boost::BidirectionalGraphConcept<BM> ));
