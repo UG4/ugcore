@@ -133,6 +133,17 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "DirectionalOrdering", tag);
 	}
 
+//	Print matrix graph
+	{
+		typedef PrintMatrixGraph<TAlgebra, TDomain, ordering_container_type> T;
+		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
+		string name = string("PrintMatrixGraph").append(suffix);
+		reg.add_class_<T, TBase>(name, grp, "PrintMatrixGraph")
+			.add_constructor()
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "PrintMatrixGraph", tag);
+	}
+
 	/* IO */
 
 //	GridPointsOrdering
