@@ -113,30 +113,6 @@ static void Algebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "BoostCuthillMcKeeNewOrdering", tag);
 	}
 
-//	Own Cuthill McKee
-	{
-		typedef OwnCuthillMcKeeOrdering<TAlgebra, ordering_container_type> T;
-		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
-		string name = string("OwnCuthillMcKeeOrdering").append(suffix);
-		reg.add_class_<T, TBase>(name, grp, "OwnCuthillMcKeeOrdering")
-			.add_constructor()
-			.add_method("set_reverse", &T::set_reverse)
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "OwnCuthillMcKeeOrdering", tag);
-	}
-
-//	Weighted Cuthill McKee
-	{
-		typedef WeightedCuthillMcKeeOrdering<TAlgebra, ordering_container_type> T;
-		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
-		string name = string("WeightedCuthillMcKeeOrdering").append(suffix);
-		reg.add_class_<T, TBase>(name, grp, "WeightedCuthillMcKeeOrdering")
-			.add_constructor()
-			.add_method("set_reverse", &T::set_reverse)
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "WeightedCuthillMcKeeOrdering", tag);
-	}
-
 //	Boost Minimum-Degree
 	{
 		typedef BoostMinimumDegreeOrdering<TAlgebra, ordering_container_type> T;

@@ -79,15 +79,12 @@ ilu:set_damp(1)
 
 algo = BoostCuthillMcKeeOrdering() --old version not using UndirectedMatrix
 --algo = BoostCuthillMcKeeNewOrdering() --using UndirectedMatrix
---algo = OwnCuthillMcKeeOrdering()
-
 
 --scc = SCCOrdering()
 --scc:set_ordering_subalgorithm(algo)
 --algo = scc
 
 --algo = TopologicalOrdering()
---algo = TopologicalOldOrdering()
 
 ilu:set_ordering_algorithm(algo)
 
