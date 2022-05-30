@@ -455,7 +455,6 @@ public:
 
 	void check(){
 		if(!is_permutation(o)){
-			print(o);
 			UG_THROW(name() << "::check: Not a permutation!");
 		}
 	}
