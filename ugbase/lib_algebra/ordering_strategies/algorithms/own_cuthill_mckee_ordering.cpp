@@ -41,6 +41,7 @@
 #include <algorithm> //reverse
 #include <utility> //pair
 #include <deque>
+#include <list>
 
 #include "lib_algebra/ordering_strategies/algorithms/IOrderingAlgorithm.h"
 #include "lib_algebra/ordering_strategies/algorithms/util.cpp"
@@ -50,47 +51,6 @@
 
 
 namespace ug{
-
-#ifndef PRINT_GRAPH
-#define PRINT_GRAPH
-template <typename G_t>
-void print_graph(G_t& g){
-	typedef typename boost::graph_traits<G_t>::edge_descriptor Edge;
-
-	typename boost::graph_traits<G_t>::edge_iterator eIt, eEnd;
-	for(boost::tie(eIt, eEnd) = boost::edges(g); eIt != eEnd; ++eIt){
-		std::pair<Edge, bool> e = boost::edge(boost::source(*eIt, g), boost::target(*eIt, g), g);
-		double w = boost::get(boost::edge_weight_t(), g, e.first);
-		std::cout << boost::source(*eIt, g) << " -> " << boost::target(*eIt, g) << " ( " << w << " )" << std::endl;
-	}
-}
-#endif
-
-
-/*
-
-template <typename S_t>
-void print(S_t &s){
-	for(auto sIt = s.begin(); sIt != s.end(); ++sIt){
-		std::cout << sIt->source << " -> " << sIt->target << " ( " << sIt->w << ")" << std::endl;
-	} std::cout << std::endl;
-}
-
-template <typename T>
-void print(std::set<T> &s){
-	for(auto sIt = s.begin(); sIt != s.end(); ++sIt){
-		std::cout << *sIt << " ";
-	} std::cout << std::endl;
-}
-
-template <typename T>
-void print(std::vector<T> &s){
-	for(auto sIt = s.begin(); sIt != s.end(); ++sIt){
-		std::cout << *sIt << " ";
-	} std::cout << std::endl;
-}
-*/
-
 
 template <typename TAlgebra, typename O_t>
 class OwnCuthillMcKeeOrdering : public IOrderingAlgorithm<TAlgebra, O_t>
@@ -142,38 +102,26 @@ public:
 
 		o.resize(n);
 
-		UG_LOG(name() << "::compute: n = " << n << ", m = " << boost::num_edges(g) << std::endl);
-#ifdef DUMP
-		std::cout << "graph: " << std::endl; print_graph(g); std::cout << "end graph" << std::endl;
-#endif
-
 		size_t k = 0;
 		std::vector<int> numbering(n, -1);
 		std::vector<size_t> indegs(n);
-
-		std::vector<int> front(n, -1);
+		//std::vector<size_t> front(n);
+		std::list<size_t> front;
 
 		vIt_t vIt, vEnd;
-
 		for(boost::tie(vIt, vEnd) = boost::vertices(g); vIt != vEnd; ++vIt){
 			indegs[*vIt] = boost::in_degree(*vIt, g);
+			//source vertex
 			if(indegs[*vIt] == 0){
 				numbering[*vIt] = k;
-				front[k] = *vIt;
-				//UG_LOG("source: " << *vIt << "\n");
+				front.push_back(*vIt);
+				unregister_indegree(*vIt, indegs);
 				++k;
 			}
 		}
-
-		for(size_t i = 0; i < k; ++i){
-			unregister_indegree(front[i], indegs);
-		}
-
-
-		UG_LOG("sources numbered: " << k << "\n");
-
-		//Test
 		UG_COND_THROW(k == 0, name() << ": no sources numbered, front empty != n\n");
+
+		UG_LOG("#sources numbered: " << k << "\n");
 
 		std::pair<oute_iter, oute_iter> e;
 
@@ -182,9 +130,10 @@ public:
 			size_t min_indeg_v;
 			size_t min_indeg_val = n;
 
-			//over all vertices in front
-			for(size_t j = 0; j < k; ++j){
-				auto candidate = front[j];
+			std::vector<std::list<size_t>::iterator> to_delete;
+
+			for(auto it = front.begin(); it != front.end(); ++it){
+				auto candidate = *it;
 
 				size_t misses = 0;
 				e = boost::out_edges(candidate, g);
@@ -192,12 +141,8 @@ public:
 					ed_t const& edg = *e.first;
 					auto t = boost::target(edg, g);
 
-					//UG_LOG("outedge " << s << " -> " << t << "\n");
-
-
+					//unnumbered vertex
 					if(numbering[t] < 0){
-						//UG_LOG("unnumbered vertex: " << t << ", indeg: " << indegs[t] << "\n");
-
 						if(indegs[t] < min_indeg_val){
 							min_indeg_val = indegs[t];
 							min_indeg_v = t;
@@ -209,29 +154,20 @@ public:
 				 }
 
 				if(misses == boost::out_degree(candidate, g)){
-					UG_LOG("may be deleted\n");
+					to_delete.push_back(it);
 				}
 			}
 
-			//UG_LOG("k= " << k << ", min_indeg_vertex: " << min_indeg_v << ", indeg: " << min_indeg_val << "\n");
+			for(size_t u = 0; u < to_delete.size(); ++u){
+				front.erase(to_delete[u]);
+			}
+
 			numbering[min_indeg_v] = k;
-			front[k] = min_indeg_v;
+			front.push_back(min_indeg_v);
 
 			unregister_indegree(min_indeg_v, indegs);
 			++k;
 		}
-
-
-		//Test
-		for(size_t i = 0; i < n; ++i){
-			if(numbering[i] < 0){
-				UG_THROW(name() << ": unnumbered vertex\n");
-			}
-		}
-
-		//Test
-		UG_COND_THROW(front.size() != n, name() << ": front.size() != n\n");
-
 
 		for(unsigned i = 0; i < n; ++i){
 			o[i] = numbering[i];

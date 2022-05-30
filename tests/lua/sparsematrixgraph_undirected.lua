@@ -77,9 +77,9 @@ SaveParallelGridLayout(dom:grid(), "grid_layout_p" .. ProcRank() .. ".ugx", zWri
 ilu = ILU()
 ilu:set_damp(1)
 
---algo = BoostCuthillMcKeeOrdering() --old version not using UndirectedMatrix
+algo = BoostCuthillMcKeeOrdering() --old version not using UndirectedMatrix
 --algo = BoostCuthillMcKeeNewOrdering() --using UndirectedMatrix
-algo = OwnCuthillMcKeeOrdering()
+--algo = OwnCuthillMcKeeOrdering()
 
 
 --scc = SCCOrdering()

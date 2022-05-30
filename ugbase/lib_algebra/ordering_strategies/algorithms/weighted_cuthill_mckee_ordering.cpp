@@ -30,8 +30,8 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef __UG__LIB_DISC__ORDERING_STRATEGIES_ALGORITHMS_WEIGHTED_CUTHILL_MCKEE_ORDERING__
-#define __UG__LIB_DISC__ORDERING_STRATEGIES_ALGORITHMS_WEIGHTED_CUTHILL_MCKEE_ORDERING__
+#ifndef __UG__LIB_DISC__ORDERING_STRATEGIES_ALGORITHMS_Weighted_CUTHILL_MCKEE_ORDERING__
+#define __UG__LIB_DISC__ORDERING_STRATEGIES_ALGORITHMS_Weighted_CUTHILL_MCKEE_ORDERING__
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_traits.hpp>
@@ -40,6 +40,8 @@
 #include <set>
 #include <algorithm> //reverse
 #include <utility> //pair
+#include <deque>
+#include <list>
 
 #include "lib_algebra/ordering_strategies/algorithms/IOrderingAlgorithm.h"
 #include "lib_algebra/ordering_strategies/algorithms/util.cpp"
@@ -49,76 +51,6 @@
 
 
 namespace ug{
-
-#ifndef PRINT_GRAPH
-#define PRINT_GRAPH
-template <typename G_t>
-void print_graph(G_t& g){
-	typedef typename boost::graph_traits<G_t>::edge_descriptor Edge;
-
-	typename boost::graph_traits<G_t>::edge_iterator eIt, eEnd;
-	for(boost::tie(eIt, eEnd) = boost::edges(g); eIt != eEnd; ++eIt){
-		std::pair<Edge, bool> e = boost::edge(boost::source(*eIt, g), boost::target(*eIt, g), g);
-		double w = boost::get(boost::edge_weight_t(), g, e.first);
-		std::cout << boost::source(*eIt, g) << " -> " << boost::target(*eIt, g) << " ( " << w << " )" << std::endl;
-	}
-}
-#endif
-
-
-
-
-/*
-
-template <typename S_t>
-void print(S_t &s){
-	for(auto sIt = s.begin(); sIt != s.end(); ++sIt){
-		std::cout << sIt->source << " -> " << sIt->target << " ( " << sIt->w << ")" << std::endl;
-	} std::cout << std::endl;
-}
-
-template <typename T>
-void print(std::set<T> &s){
-	for(auto sIt = s.begin(); sIt != s.end(); ++sIt){
-		std::cout << *sIt << " ";
-	} std::cout << std::endl;
-}
-
-template <typename T>
-void print(std::vector<T> &s){
-	for(auto sIt = s.begin(); sIt != s.end(); ++sIt){
-		std::cout << *sIt << " ";
-	} std::cout << std::endl;
-}
-*/
-
-
-#ifndef INDUCED_SUBGRAPH_WEIGHTED
-#define INDUCED_SUBGRAPH_WEIGHTED
-template <typename G_t, typename M_t>
-void induced_subgraph_weighted(G_t& ind_g, M_t* A, const std::vector<size_t>& inv_map){
-	size_t n = A->num_rows();
-	size_t k = inv_map.size();
-	ind_g = G_t(k);
-
-	std::vector<int> ind_map(n, -1);
-	for(unsigned i = 0; i < k; ++i){
-		ind_map[inv_map[i]] = i;
-	}
-
-	typename boost::graph_traits<G_t>::adjacency_iterator nIt, nEnd;
-	for(unsigned i = 0; i < inv_map.size(); ++i){
-		for(typename M_t::row_iterator conn = A->begin_row(inv_map[i]); conn != A->end_row(inv_map[i]); ++conn){
-			if(conn.value() != 0.0 && conn.index() != i){
-				int idx = ind_map[conn.index()];
-				if(idx >= 0){
-					boost::add_edge(idx, i, conn.value(), ind_g);
-				}
-			}
-		}
-	}
-}
-#endif
 
 template <typename TAlgebra, typename O_t>
 class WeightedCuthillMcKeeOrdering : public IOrderingAlgorithm<TAlgebra, O_t>
@@ -132,6 +64,8 @@ public:
 	typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS, boost::no_property, EdgeWeightProperty> G_t;
 
 	typedef typename boost::graph_traits<G_t>::vertex_descriptor vd;
+	typedef typename boost::graph_traits<G_t>::edge_descriptor ed_t;
+	typedef typename boost::graph_traits<G_t>::vertex_iterator vIt_t;
 	typedef typename boost::graph_traits<G_t>::adjacency_iterator adj_iter;
 	typedef typename boost::graph_traits<G_t>::out_edge_iterator oute_iter;
 
@@ -146,39 +80,16 @@ public:
 		return make_sp(new WeightedCuthillMcKeeOrdering<TAlgebra, O_t>(*this));
 	}
 
-/*
-	double compute_inflow(vd v, std::vector<BOOL>& visited, bool ignore_visited=true){
-		double w = .0f;
-		typename boost::graph_traits<G_t>::in_edge_iterator in_nIt, in_nEnd;
-		for(boost::tie(in_nIt, in_nEnd) = boost::in_edges(v, g); in_nIt != in_nEnd; ++in_nIt){
-			if(ignore_visited && visited[v]){
-				continue;
-			}
+	inline void unregister_indegree(size_t v, std::vector<size_t>& indegs){
+		std::pair<oute_iter, oute_iter> e;
+		e = boost::out_edges(v, g);
 
-			w += abs(boost::get(boost::edge_weight_t(), g, *in_nIt)); //TODO: think about this!
-		}
-		return w;
+		for(; e.first != e.second; ++e.first){
+			ed_t const& edg = *e.first;
+			auto t = boost::target(edg, g);
+			--indegs[t];
+		 }
 	}
-
-	//TODO: do not recompute
-	vd min_inflow_vertex(std::set<vd>& front, std::vector<BOOL>& visited){
-		double min_w = -1u;
-		vd min_vertex;
-
-		assert(front.size());
-
-		typename boost::graph_traits<G_t>::vertex_iterator vIt, vEnd;
-		for(auto sIt = front.begin(); sIt != front.end(); ++sIt){
-			double w = compute_inflow(*sIt, visited);
-
-			if(w < min_w){
-				min_w = w;
-				min_vertex = *sIt;
-			}
-		}
-		return min_vertex;
-	}
-*/
 
 	//overload
 	void compute(){
@@ -191,49 +102,80 @@ public:
 
 		o.resize(n);
 
-		UG_LOG(name() << "::compute: n = " << n << ", m = " << boost::num_edges(g) << std::endl);
-#ifdef DUMP
-		std::cout << "graph: " << std::endl; print_graph(g); std::cout << "end graph" << std::endl;
-#endif
+		size_t k = 0;
+		std::vector<int> numbering(n, -1);
+		std::vector<size_t> indegs(n);
+		//std::vector<size_t> front(n);
+		std::list<size_t> front;
 
-
-		for(unsigned i = 0; i < n; ++i){
-			o[i] = i;
+		vIt_t vIt, vEnd;
+		for(boost::tie(vIt, vEnd) = boost::vertices(g); vIt != vEnd; ++vIt){
+			indegs[*vIt] = boost::in_degree(*vIt, g);
+			//source vertex
+			if(indegs[*vIt] == 0){
+				numbering[*vIt] = k;
+				front.push_back(*vIt);
+				unregister_indegree(*vIt, indegs);
+				++k;
+			}
 		}
+		UG_COND_THROW(k == 0, name() << ": no sources numbered, front empty != n\n");
 
-#ifdef REWORK_DONE
-		vd cur;
-		std::vector<BOOL> visited(n, false);
+		UG_LOG("#sources numbered: " << k << "\n");
 
-		for(unsigned k = 0; k < n; ++k){
-			visited[cur] = true;
+		std::pair<oute_iter, oute_iter> e;
 
-			//insert downstream neighbors to front
-			oute_iter out_nIt, out_nEnd;
-			for(boost::tie(out_nIt, out_nEnd) = boost::out_edges(cur, g); out_nIt != out_nEnd; ++out_nIt){
-				if(!visited[boost::target(*out_nIt, g)]){
-					//front.insert(boost::target(*out_nIt, g));
+		//main loop
+		for(; k < n;){
+			size_t min_indeg_v;
+			size_t min_indeg_val = n;
+
+			std::vector<std::list<size_t>::iterator> to_delete;
+
+			for(auto it = front.begin(); it != front.end(); ++it){
+				auto candidate = *it;
+
+				size_t misses = 0;
+				e = boost::out_edges(candidate, g);
+				for(; e.first != e.second; ++e.first){
+					ed_t const& edg = *e.first;
+					auto t = boost::target(edg, g);
+
+					//unnumbered vertex
+					if(numbering[t] < 0){
+						if(indegs[t] < min_indeg_val){
+							min_indeg_val = indegs[t];
+							min_indeg_v = t;
+						}
+					}
+					else{
+						++misses;
+					}
+				 }
+
+				if(misses == boost::out_degree(candidate, g)){
+					to_delete.push_back(it);
 				}
 			}
 
-			o[k] = cur;
+			for(size_t u = 0; u < to_delete.size(); ++u){
+				front.erase(to_delete[u]);
+			}
 
-#ifdef DUMP
-			std::cout << "ordering: ";
-			for(unsigned i = 0; i < k; ++i){
-				std::cout << o[i] << " ";
-			}std::cout << std::endl;
-#endif
+			numbering[min_indeg_v] = k;
+			front.push_back(min_indeg_v);
+
+			unregister_indegree(min_indeg_v, indegs);
+			++k;
 		}
 
-		if(m_bReverse){
-			std::reverse(o.begin(), o.end());
+		for(unsigned i = 0; i < n; ++i){
+			o[i] = numbering[i];
 		}
 
-#endif
 		g = G_t(0);
 
-		std::cout << "[CuthillMcKeeOrderingWeighted::compute] done. " << std::endl;
+		UG_LOG(name() << ": done.\n");
 	}
 
 	void init(M_t* A, const V_t&){
@@ -265,8 +207,6 @@ public:
 		#ifdef UG_ENABLE_DEBUG_LOGS
 		UG_LOG("Using " << name() << " on induced matrix of size " << inv_map.size() << "\n");
 		#endif
-
-		induced_subgraph_weighted<G_t, M_t>(g, A, inv_map);
 	}
 
 	void check(){
