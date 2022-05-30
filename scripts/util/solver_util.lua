@@ -762,8 +762,6 @@ function util.solver.CreateOrdering(orderingDesc, solverutil)
 		ordering.set_reverse(true)
 	elseif name == "BoostCuthillMcKee" then
 		ordering = BoostCuthillMcKeeOrdering()
-	elseif name == "BoostCuthillMcKeeNew" then
-		ordering = BoostCuthillMcKeeNewOrdering()
 	elseif name == "ReverseBoostCuthillMcKee" then
 		ordering = BoostCuthillMcKeeOrdering()
 		ordering.set_reverse(true)

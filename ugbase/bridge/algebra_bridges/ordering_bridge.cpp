@@ -101,18 +101,6 @@ static void Algebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "BoostCuthillMcKeeOrdering", tag);
 	}
 
-//	Boost Cuthill McKee New
-	{
-		typedef BoostCuthillMcKeeNewOrdering<TAlgebra, ordering_container_type> T;
-		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
-		string name = string("BoostCuthillMcKeeNewOrdering").append(suffix);
-		reg.add_class_<T, TBase>(name, grp, "BoostCuthillMcKeeNewOrdering")
-			.add_constructor()
-			.add_method("set_reverse", &T::set_reverse)
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "BoostCuthillMcKeeNewOrdering", tag);
-	}
-
 //	Boost Minimum-Degree
 	{
 		typedef BoostMinimumDegreeOrdering<TAlgebra, ordering_container_type> T;
@@ -159,30 +147,6 @@ static void Algebra(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "SCCOrdering", tag);
 	}
-
-//	SparseMatrixGraphTest (boost interface for sparsematrix)
-	{
-		typedef SparseMatrixGraphTest<TAlgebra, ordering_container_type> T;
-		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
-		string name = string("SparseMatrixGraphTest").append(suffix);
-		reg.add_class_<T, TBase>(name, grp, "SparseMatrixGraphTest")
-			.add_constructor()
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "SparseMatrixGraphTest", tag);
-	}
-
-/*
-//	Boost Shortest Paths
-	{
-		typedef BoostShortestPathsOrdering<TAlgebra, ordering_container_type> T;
-		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
-		string name = string("BoostShortestPathsOrdering").append(suffix);
-		reg.add_class_<T, TBase>(name, grp, "BoostShortestPathsOrdering")
-			.add_constructor()
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "BoostShortestPathsOrdering", tag);
-	}
-*/
 }
 
 }; // end Functionality
