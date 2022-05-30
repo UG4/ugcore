@@ -108,6 +108,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "LexOrdering", tag);
 	}
 
+//	Directional ordering
 	{
 		typedef DirectionalOrdering<TAlgebra, TDomain, ordering_container_type> T;
 		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
@@ -121,6 +122,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "DirectionalOrdering", tag);
 	}
 
+/*
 //	Boost Dirichlet Cuthill-McKee ordering
 	{
 		typedef BoostDirichletCuthillMcKeeOrdering<TAlgebra, TDomain, ordering_container_type> T;
@@ -133,6 +135,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "BoostDirichletCuthillMcKeeOrdering", tag);
 	}
+*/
 
 //	River ordering (topological ordering beginning at selected sources)
 	{
@@ -144,19 +147,6 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("select_sources", static_cast<void (T::*)(const char*)>(&T::select_sources))
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "RiverOrdering", tag);
-	}
-
-//	Weighted Cuthill-McKee ordering
-	{
-		typedef WeightedCuthillMcKeeOrdering<TAlgebra, TDomain, ordering_container_type> T;
-		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
-		string name = string("WeightedCuthillMcKeeOrdering").append(suffix);
-		reg.add_class_<T, TBase>(name, grp, "WeightedCuthillMcKeeOrdering")
-			.add_constructor()
-			.add_method("set_reverse", &T::set_reverse)
-			.add_method("select_dirichlet_subset", static_cast<void (T::*)(int)>(&T::select_dirichlet_subset))
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "WeightedCuthillMcKeeOrdering", tag);
 	}
 
 //	FollowConvection ordering
@@ -172,30 +162,6 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "FollowConvectionOrdering", tag);
 	}
 
-<<<<<<< HEAD
-
-	/* Preprocessor */
-
-//	Angle preprocessor
-	{
-		typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
-			boost::property<boost::vertex_color_t,
-			boost::default_color_type,
-			boost::property<boost::vertex_degree_t, int> > > G_t;
-		//typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS> G_t;
-		typedef AnglePreprocessor<TAlgebra, TDomain, G_t> T;
-		typedef IOrderingPreprocessor<TAlgebra, G_t> TBase;
-		string name = string("AnglePreprocessor").append(suffix);
-		reg.add_class_<T, TBase>(name, grp, "AnglePreprocessor")
-			.add_constructor()
-			.add_method("set_velocity", static_cast<void (T::*)(const char*)>(&T::set_velocity))
-			.add_method("set_threshold", static_cast<void (T::*)(number)>(&T::set_threshold))
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "AnglePreprocessor", tag);
-	}
-
-=======
->>>>>>> master
 	/* IO */
 
 //	GridPointsOrdering
