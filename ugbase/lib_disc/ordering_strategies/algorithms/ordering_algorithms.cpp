@@ -9,6 +9,8 @@
 //#include "boost_dirichlet_cuthill_mckee_ordering.cpp"
 
 
+#include "print_matrix_graph.h"
+
 //not working?
 #include "downwindorder.h"
 //do not use this
