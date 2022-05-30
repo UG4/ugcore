@@ -171,17 +171,6 @@ static void Algebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "TopologicalOrdering", tag);
 	}
 
-//	Topological old - for cycle-free matrices only
-	{
-		typedef TopologicalOldOrdering<TAlgebra, ordering_container_type> T;
-		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
-		string name = string("TopologicalOldOrdering").append(suffix);
-		reg.add_class_<T, TBase>(name, grp, "TopologicalOldOrdering")
-			.add_constructor()
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "TopologicalOldOrdering", tag);
-	}
-
 //	Strongly connected components ordering
 	{
 		typedef SCCOrdering<TAlgebra, ordering_container_type> T;
