@@ -33,6 +33,9 @@
 #ifndef __H__UG__LIB_ALGEBRA__OPERATIONS_VEC__
 #define __H__UG__LIB_ALGEBRA__OPERATIONS_VEC__
 
+#include <stddef.h> // size_t
+#include <cmath> // log, exp
+
 namespace ug
 {
 

@@ -4,6 +4,3 @@
 #include "topological_ordering.cpp"
 
 #include "SCC_ordering.cpp"
-
-#include "sparsematrixgraph_test.cpp"
-//#include "boost_shortest_paths_ordering.cpp"

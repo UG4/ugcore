@@ -1,25 +1,46 @@
 
+#define UG_PARALLEL
+
 #include "lib_algebra/graph_interface/sparsematrix_boost.h"
 #include "lib_algebra/cpu_algebra/sparsematrix_impl.h"
-#include "lib_algebra/graph_interface/bidirectional_boost.h"
 
-#include "common/log.cpp" // ?
-#include "common/debug_id.cpp" // ?
-#include "common/assert.cpp" // ?
-#include "common/util/crc32.cpp" // ?
-#include "common/util/ostream_buffer_splitter.cpp" // ?
-#include "common/util/string_util.cpp" // ?
+#include "lib_algebra/graph_interface/parallel_matrix_boost.h"
+#include "lib_algebra/graph_interface/bidirectional_boost.h"
+#include "pcl/pcl_base.cpp"
+#include "pcl/pcl_util.cpp"
+
+// library?
+#include "common/log.cpp"
+#include "common/util/file_util.cpp"
+#include "common/debug_id.cpp"
+#include "common/assert.cpp"
+#include "common/util/crc32.cpp"
+#include "common/util/ostream_buffer_splitter.cpp"
+#include "common/util/string_util.cpp"
+#include "common/util/binary_buffer.cpp"
+#include "common/util/os_dependent_impl/file_util_posix.cpp"
+#include "common/util/os_dependent_impl/os_info_linux.cpp"
+
+// #include "lib_algebra/parallelization/parallel_nodes.cpp" // ?
+
+#include "pcl/pcl_process_communicator.cpp"
+#include "pcl/pcl_comm_world.cpp"
 
 #include "boost/graph/graph_utility.hpp"
-#include <boost/graph/graph_concepts.hpp>
+
+#include "lib_algebra/parallelization/algebra_layouts.cpp" // operator<<
+#include "lib_algebra/parallelization/parallel_index_layout.cpp"
 
 static const int N=7;
 
-int main()
+typedef ug::SparseMatrix<double> T;
+typedef ug::ParallelMatrix<T> PM;
+typedef ug::BidirectionalMatrix<PM> BM;
+
+int main(int argc, char* argv[])
 {
-	typedef ug::SparseMatrix<double> T;
-	typedef ug::BidirectionalMatrix<T> BM;
-	ug::SparseMatrix<double> M;
+	MPI_Init(&argc, &argv);
+	PM M;
 
 	typedef typename boost::graph_traits<BM>::in_edge_iterator in_edge_iterator;
 	typedef typename boost::graph_traits<BM>::out_edge_iterator out_edge_iterator;
@@ -67,10 +88,12 @@ int main()
 		}
 	}
 
-	std::cout << "pg\n";
+	auto n = boost::num_vertices(b);
+
+	std::cout << "pg " << n << "\n";
 	boost::print_graph(b);
 }
 
-BOOST_CONCEPT_ASSERT(( boost::BidirectionalGraphConcept<ug::BidirectionalMatrix<ug::SparseMatrix<double>>> ));
-BOOST_CONCEPT_ASSERT(( boost::AdjacencyGraphConcept<ug::BidirectionalMatrix<ug::SparseMatrix<double>>> ));
-BOOST_CONCEPT_ASSERT(( boost::VertexListGraphConcept<ug::BidirectionalMatrix<ug::SparseMatrix<double>>> ));
+BOOST_CONCEPT_ASSERT(( boost::BidirectionalGraphConcept<BM> ));
+BOOST_CONCEPT_ASSERT(( boost::AdjacencyGraphConcept<BM> ));
+BOOST_CONCEPT_ASSERT(( boost::VertexListGraphConcept<BM> ));

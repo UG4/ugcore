@@ -133,7 +133,6 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "DirectionalOrdering", tag);
 	}
 
-
 	/* IO */
 
 //	GridPointsOrdering

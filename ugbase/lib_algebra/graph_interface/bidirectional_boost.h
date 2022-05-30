@@ -49,29 +49,12 @@ struct graph_traits<ug::BidirectionalMatrix<T>>{
 	typedef BS_traversal_tag traversal_category;
 	typedef disallow_parallel_edge_tag edge_parallel_category;
 	typedef counting_iterator<size_t> vertex_iterator;
-	typedef SM_out_edge_iterator<value_type> out_edge_iterator;
-	typedef SM_out_edge_iterator<value_type> in_edge_iterator;
+	typedef SM_out_edge_iterator<value_type, true> out_edge_iterator;
+	typedef SM_out_edge_iterator<value_type, false> in_edge_iterator;
 	typedef SM_adjacency_iterator<value_type> adjacency_iterator;
 	typedef int degree_size_type;
 	typedef int vertices_size_type;
 };
-
-#if 0
-// deduplicate?
-template <class T> struct graph_traits<ug::BidirectionalMatrix<ug::ParallelMatrix<ug::SparseMatrix<T>>>>{
-	typedef int vertex_descriptor;
-	typedef SM_edge<T> edge_descriptor;
-	typedef bidirectional_tag directed_category;
-	typedef BS_traversal_tag traversal_category;
-	typedef disallow_parallel_edge_tag edge_parallel_category;
-	typedef counting_iterator<size_t> vertex_iterator;
-	typedef SM_out_edge_iterator<T> out_edge_iterator;
-	typedef SM_out_edge_iterator<T> in_edge_iterator;
-	typedef SM_adjacency_iterator<T> adjacency_iterator;
-	typedef int degree_size_type;
-	typedef int vertices_size_type;
-};
-#endif
 
 template<class T>
 std::pair<counting_iterator<size_t>, counting_iterator<size_t> > vertices(
@@ -110,13 +93,13 @@ int degree(int v, ug::BidirectionalMatrix<T> const& M)
 template<class T>
 size_t source(SM_edge<typename T::value_type> const& e, ug::BidirectionalMatrix<T> const&)
 {
-	return e.row();
+	return e.source();
 }
 
 template<class T>
 size_t target(SM_edge<typename T::value_type> const& e, ug::BidirectionalMatrix<T> const& m)
 {
-	return e.column(m);
+	return e.target();
 }
 
 template<class T>
@@ -155,18 +138,18 @@ inline std::pair<SM_out_edge_iterator<typename T::value_type>,
 	typedef typename T::value_type value_type;
 	typedef SM_out_edge_iterator<value_type> Iter;
    auto a = adjacent_vertices(v, g);
-	return std::make_pair(Iter(v, a.first), Iter(v, a.second));
+	return std::make_pair(Iter(a.first, v), Iter(a.second, v));
 }
 
 template<class T>
-inline std::pair<SM_out_edge_iterator<typename T::value_type>,
-                 SM_out_edge_iterator<typename T::value_type>>
+inline std::pair<SM_out_edge_iterator<typename T::value_type, false>,
+                 SM_out_edge_iterator<typename T::value_type, false>>
 					in_edges(size_t v, ug::BidirectionalMatrix<T> const& g)
 {
 	typedef typename T::value_type value_type;
-	typedef SM_out_edge_iterator<value_type> Iter;
+	typedef SM_out_edge_iterator<value_type, false> Iter;
    auto a = coadjacent_vertices(v, g);
-	return std::make_pair(Iter(v, a.first), Iter(v, a.second));
+	return std::make_pair(Iter(a.first, v), Iter(a.second, v));
 }
 
 template<class T>
@@ -184,7 +167,8 @@ struct property_map<ug::BidirectionalMatrix<ug::SparseMatrix<T>>, vertex_index_t
 
 template<class T>
 inline typename property_map<ug::BidirectionalMatrix<ug::SparseMatrix<T>>, vertex_index_t>::const_type
-get(vertex_index_t, ug::BidirectionalMatrix<T> const& m){
+get(vertex_index_t, ug::BidirectionalMatrix<T> const& m)
+{
 	return sparse_matrix_index_map<typename T::value_type>(m);
 }
 
