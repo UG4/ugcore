@@ -42,10 +42,10 @@ approxSpace:print_statistic()
 slope = 0.4
 
 function velocity(x, y)
-	x_dir = - (slope * x - y)
-	y_dir = - (slope * y + x)
-	--x_dir = 1
-	--y_dir = 0
+	--x_dir = - (slope * x - y)
+	--y_dir = - (slope * y + x)
+	x_dir = 1
+	y_dir = 0
 	return x_dir, y_dir
 end
 
@@ -77,7 +77,7 @@ SaveParallelGridLayout(dom:grid(), "grid_layout_p" .. ProcRank() .. ".ugx", zWri
 ilu = ILU()
 ilu:set_damp(1)
 
-algo = BoostCuthillMcKeeOrdering() --old version not using UndirectedMatrix
+--algo = BoostCuthillMcKeeOrdering() --old version not using UndirectedMatrix
 --algo = BoostCuthillMcKeeNewOrdering() --using UndirectedMatrix
 --algo = OwnCuthillMcKeeOrdering()
 
@@ -86,7 +86,7 @@ algo = BoostCuthillMcKeeOrdering() --old version not using UndirectedMatrix
 --scc:set_ordering_subalgorithm(algo)
 --algo = scc
 
---algo = TopologicalOrdering()
+algo = TopologicalOrdering()
 --algo = TopologicalOldOrdering()
 
 ilu:set_ordering_algorithm(algo)

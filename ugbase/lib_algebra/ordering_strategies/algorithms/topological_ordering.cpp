@@ -89,12 +89,15 @@ void topological_ordering_core_bidirectional(O_t& o, G_t& g, bool inverse){
 		 }
 	}
 
-/* TODO
 	std::vector<int> indegs2(n);
 	for(boost::tie(vIt, vEnd) = boost::vertices(g); vIt != vEnd; ++vIt){
 		indegs2[*vIt] = boost::in_degree(*vIt, g);
 	}
-*/
+
+	for(boost::tie(vIt, vEnd) = boost::vertices(g); vIt != vEnd; ++vIt){
+		UG_LOG("indeg1: " << indegs[*vIt] << ", indeg2: " << indegs2[*vIt] << "\n");
+	}
+
 
 	for(boost::tie(vIt, vEnd) = boost::vertices(g); vIt != vEnd; ++vIt){
 		if(indegs[*vIt] == 0){
