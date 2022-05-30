@@ -45,6 +45,7 @@
 
 #include "lib_disc/domain.h"
 #include "lib_disc/function_spaces/grid_function.h"
+#include "lib_disc/spatial_disc/user_data/user_data.h"
 
 #include "lib_algebra/ordering_strategies/algorithms/IOrderingAlgorithm.h"
 #include "lib_algebra/ordering_strategies/algorithms/util.cpp"
