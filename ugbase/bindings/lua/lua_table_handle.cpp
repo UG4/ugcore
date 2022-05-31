@@ -4,6 +4,7 @@
 #include <iostream>
 #include <assert.h>
 #include "common/util/variant.h"
+#include "common/util/trace.h"
 
 extern "C" {
 #include "externals/lua/lua.h"
@@ -11,9 +12,6 @@ extern "C" {
 #include "externals/lua/lualib.h"
 #include "externals/lua/ldo.h"
 }
-
-#define untested() ( std::cerr <<  "@@#\n@@@:"<< __FILE__ << ":"<< __LINE__ \
-          <<":" << __func__ << "\n" )
 
 namespace ug {
 namespace impl {
