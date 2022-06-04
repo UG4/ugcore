@@ -37,6 +37,9 @@
 
 util = util or {}
 
+util.use_luacpp = false
+util.use_limex = false
+
 --! Parses a callback object and attachs the corresponding callbacks to a TimeIntegratorObserver object.
 --! @param timeIntegratorSubject a TimeIntegratorObserver object to attach callbacks to
 --! @luaobject the object by the user, to be parsed.
@@ -336,8 +339,8 @@ function util.SolveNonlinearTimeProblem(
 	-- attach the given callbacks to a TimeIntegratorSubject
 	-- if this class is transcribed into c++, just inherit from TimeIntegratorSubject and attach the callbacks
 	local callbackDispatcher = TimeIntegratorSubject()
-	cplusplus = true -- redirect to 1:1 Luacpp port
-	use_limex = true -- try to use Limex instead
+	local cplusplus = util.use_luacpp or util.use_limex
+	local use_limex = util.use_limex
 
 	if cplusplus then
 		-- parsed below
@@ -618,7 +621,7 @@ function util.SolveNonlinearTimeProblem(
 					if util.debug_writer ~= nil then
 						util.debug_writer:enter_section ("TIMESTEP-"..step.."-PostProcess-SolverCall-"..solver_call)
 					end
-					print("notify_pp", step, " ", timeDisc:future_time(), " ", currdt)
+					-- print("notify_pp", step, " ", timeDisc:future_time(), " ", currdt)
 					pp_res = callbackDispatcher:notify_postprocess_step(u, step, timeDisc:future_time(), currdt)
 					if util.debug_writer ~= nil then
 						util.debug_writer:leave_section ()
@@ -656,7 +659,7 @@ function util.SolveNonlinearTimeProblem(
 						util.debug_writer:enter_section ("TIMESTEP-"..step.."-Finalize-SolverCall-"..solver_call)
 					end
 					last_dt = currdt
-					print("notify_fin 1 ", step, " ", time, " ", currdt)
+					-- print("notify_fin 1 ", step, " ", time, " ", currdt)
 					pp_res = callbackDispatcher:notify_finalize_step(u, step, time, currdt)
 					if util.debug_writer ~= nil then
 						util.debug_writer:leave_section ()
@@ -880,8 +883,8 @@ function util.SolveLinearTimeProblem(
 	   startTSNo,
 	   endTSNo)
 	
-	local cplusplus = true
-	local use_limex = false
+	local cplusplus = util.use_luacpp
+	local use_limex = util.use_limex
 
 	local preProcess = nil
 	local retValAtOK = nil
