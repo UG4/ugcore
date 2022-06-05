@@ -42,73 +42,127 @@
 
 namespace ug{
 
+/**
+ * This class provides an interface between data saved in a grid attachment via the
+ * coupling interface. Its main purpuse is to access the values saved in the (global,
+ * named) attachments in discretizations. The data should be attached to the full-dim.
+ * grid objects (grid elements), for ex. to volumens in 3d grids.
+ */
 template <typename TDomain>
 class GlobAttachmentElementUserData
-: public StdDependentUserData<GlobAttachmentElementUserData<TDomain>, number, TDomain::dim>
+: public StdUserData<GlobAttachmentElementUserData<TDomain>, number, TDomain::dim>
 {
-		static const int dim = TDomain::dim;
+	static const int dim = TDomain::dim; ///< the world dimension
+	typedef typename grid_dim_traits<dim>::grid_base_object elem_t; ///< type of the full-dim. grid objects
 
-	private:
-		std::string m_attachment_name;
-		SmartPtr<Grid> m_spGrid;
-		ANumber m_att;
-		typedef typename grid_dim_traits<dim>::grid_base_object TElem;
-		
-	public:
-		/// constructor
-		GlobAttachmentElementUserData(SmartPtr<Grid> grid, const char* name)
-		: m_attachment_name(name), m_spGrid(grid)
-		{
-			m_att = GlobalAttachments::attachment<ANumber>(m_attachment_name);
-		};
-
-		virtual bool continuous() const
-		{
-			return false;
-		}
-
-		template <int refDim>
-		void eval_and_deriv(number vValue[],
-		                    const MathVector<dim> vGlobIP[],
-		                    number time, int si,
-		                    GridObject* elem,
-		                    const MathVector<dim> vCornerCoords[],
-		                    const MathVector<refDim> vLocIP[],
-		                    const size_t nip,
-		                    LocalVector* u,
-		                    bool bDeriv,
-		                    int s,
-		                    std::vector<std::vector<number> > vvvDeriv[],
-		                    const MathMatrix<refDim, dim>* vJT = NULL) const
-		{
-
-				if (refDim != dim)
-				{
-					UG_THROW ("GlobAttachmentElementUserData: Diamention of the element is not consistent.");
-				}
-			
-				Grid::AttachmentAccessor<TElem, ANumber> aatt((Grid&)*m_spGrid, (ANumber &) m_att);
-				
-				//	loop ips
-				for(size_t ip = 0; ip < nip; ++ip)
-				{
-					vValue[ip] = aatt[(TElem*)elem];
-					
-				}
-
-				if(bDeriv){
-					UG_THROW ("GlobAttachmentElementUserData: Derivative not implemented.");
-					}
-
-		}
+	std::string m_attachment_name; ///< name of the global attachment
+	SmartPtr<Grid> m_spGrid; ///< grid of the attachment
+	ANumber m_att; ///< the attachment
+	Grid::AttachmentAccessor<elem_t, ANumber> m_aatt; ///< the attachment accessor
 	
-		virtual void operator() (number& value,
-									const MathVector<dim>& globIP,
-									number time, int si,
-									Vertex* vrt) const
-		{
-			UG_THROW ("GlobAttachmentElementUserData: Values at vertices of the grid function are not uniquely defined.");
-		}
+protected:
+///	gets the attachment value
+	number get_value
+	(
+		GridObject* elem ///< pointer to the element where evaluate
+	) const
+	{
+		return m_aatt [(elem_t *)elem];
+	}
+		
+public:
+
+/// constructor
+	GlobAttachmentElementUserData
+	(
+		SmartPtr<Grid> grid, ///< grid
+		const char* name ///< registered name of the global attachment
+	)
+	: m_attachment_name(name), m_spGrid(grid)
+	{
+		m_att = GlobalAttachments::attachment<ANumber>(m_attachment_name);
+		m_aatt.access((Grid &) (*m_spGrid), m_att);
+	};
+
+	virtual bool continuous() const {return false;} // the data are piecewise constant
+	virtual bool requires_grid_fct() const {return true;} // to always get the grid element!
+	virtual bool constant() const {return false;} // the data are not globally constant
+	virtual bool zero_derivative() const {return true;} // we do not consider any derivatives
+
+/// evaluator for StdUserData interface
+	template <int refDim>
+	inline void evaluate
+	(
+		number vValue [],
+		const MathVector<dim> vGlobIP [],
+		number time,
+		int si,
+		GridObject * elem,
+		const MathVector<dim> vCornerCoords [],
+		const MathVector<refDim> vLocIP [],
+		const size_t nip,
+		LocalVector * u,
+		const MathMatrix<refDim, dim> * vJT = NULL
+	) const
+	{
+		if (refDim != dim)
+			UG_THROW ("GlobAttachmentElementUserData: Only evaluation in full-dim. elements is supported.");
+		const number val = get_value(elem);
+		for (size_t ip = 0; ip < nip; ++ip) vValue[ip] = val;
+	}
+	
+///	function from the CplUserData interface
+	virtual void compute
+	(
+		LocalVector* u,
+		GridObject* elem,
+		const MathVector<dim> vCornerCoords[],
+		bool bDeriv ///< assumed to be always false
+	)
+	{
+		const number val = get_value(elem);
+		for(size_t s = 0; s < this->num_series(); ++s)
+			for(size_t ip = 0; ip < this->num_ip(s); ++ip)
+				this->value(s,ip) = val;
+	}
+
+///	function from the CplUserData interface
+	virtual void compute
+	(
+		LocalVectorTimeSeries* u,
+		GridObject* elem,
+		const MathVector<dim> vCornerCoords[],
+		bool bDeriv ///< assumed to be always false
+	)
+	{
+		const number val = get_value(elem);
+		for(size_t s = 0; s < this->num_series(); ++s)
+			for(size_t ip = 0; ip < this->num_ip(s); ++ip)
+				this->value(s,ip) = val;
+	}
+	
+//	The following two operators may not be used: They do not get the grid element
+	virtual void operator()
+	(
+		number& vValue,
+		const MathVector<dim>& globIP,
+		number time,
+		int si
+	) const
+	{
+		UG_THROW ("GlobAttachmentElementUserData: Cannot provide values basing only on the global coordinates.");
+	}
+	virtual void operator()
+	(
+		number vValue[],
+		const MathVector<dim> vGlobIP[],
+		number time,
+		int si,
+		const size_t nip
+	) const
+	{
+		UG_THROW ("GlobAttachmentElementUserData: Cannot provide values basing only on the global coordinates.");
+	}
 };
 
 
