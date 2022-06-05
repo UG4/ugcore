@@ -97,7 +97,7 @@ public:
 	virtual bool continuous () const {return false;}
 
 ///	Returns true to get the grid element in the evaluation routine
-	virtual bool requires_grid_fct () const {return false;}
+	virtual bool requires_grid_fct () const {return true;}
 
 ///	Evaluator
 	template <int refDim>
