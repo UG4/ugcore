@@ -127,7 +127,7 @@ public:
 		}
 
 		O_t scc_topo_ordering(num_components);
-		topological_ordering_core(scc_topo_ordering, scc_g, true); //true = inverse
+		topological_ordering_core_directed(scc_topo_ordering, scc_g, true); //true = inverse
 
 		//scc_topo_ordering is now a topological ordering of scc_g
 
@@ -141,7 +141,7 @@ public:
 			size_t k = 0;
 			for(unsigned i = 0; i < num_components; ++i){
 				for(unsigned j = 0; j < comp_members[scc_topo_ordering[i]].size(); ++j){
-					o[k++] = comp_members[scc_topo_ordering[i]][j];
+					o[comp_members[scc_topo_ordering[i]][j]] = k++;
 				}
 			}
 		}

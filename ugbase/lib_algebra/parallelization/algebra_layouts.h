@@ -148,10 +148,11 @@ class AlgebraLayouts : public HorizontalAlgebraLayouts
 		///	vertical slave index layout
 		IndexLayout verticalSlaveLayout;
 };
-#endif
 
 std::ostream &operator << (std::ostream &out, const HorizontalAlgebraLayouts &layouts);
 std::ostream &operator << (std::ostream &out, const AlgebraLayouts &layouts);
+
+#endif
 
 
 } // end namespace ug

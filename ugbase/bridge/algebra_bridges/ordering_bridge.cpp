@@ -147,19 +147,6 @@ static void Algebra(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "SCCOrdering", tag);
 	}
-
-/*
-//	Boost Shortest Paths
-	{
-		typedef BoostShortestPathsOrdering<TAlgebra, ordering_container_type> T;
-		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
-		string name = string("BoostShortestPathsOrdering").append(suffix);
-		reg.add_class_<T, TBase>(name, grp, "BoostShortestPathsOrdering")
-			.add_constructor()
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "BoostShortestPathsOrdering", tag);
-	}
-*/
 }
 
 }; // end Functionality

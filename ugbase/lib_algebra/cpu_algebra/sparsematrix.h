@@ -33,7 +33,7 @@
 #ifndef __H__UG__CPU_ALGEBRA__SPARSEMATRIX__
 #define __H__UG__CPU_ALGEBRA__SPARSEMATRIX__
 
-#include "math.h"
+#include <math.h>
 #include "common/common.h"
 #include "../algebra_common/sparsematrix_util.h"
 #include <iostream>
@@ -139,6 +139,7 @@ public:
 	 * \return			true on success
 	 */
 	void set_as_transpose_of(const SparseMatrix<value_type> &B, double scale=1.0);
+	void set_as_transpose_of2(const SparseMatrix<value_type> &B, double scale=1.0);
 
 	/**
 	 * \brief create/recreate this as a copy of SparseMatrix B
@@ -364,13 +365,50 @@ public:
 	class row_iterator
     {
         SparseMatrix &A;
-        size_t row;
+#ifdef CHECK_ROW_ITERATORS
+        size_t _row;
+#endif
         size_t i;
     public:
-        inline void check() const {A.check_row(row, i); }
-        row_iterator(SparseMatrix &_A, size_t _row, size_t _i) : A(_A), row(_row), i(_i) { A.add_iterator(row); }
-        row_iterator(const row_iterator &other) : A(other.A), row(other.row), i(other.i) { A.add_iterator(row); }
-        ~row_iterator() { A.remove_iterator(row); }
+        inline void check() const {
+#ifdef CHECK_ROW_ITERATORS
+			  A.check_row(_row, i);
+#endif
+		  }
+        row_iterator(SparseMatrix &_A, size_t row, size_t _i) : A(_A)
+#ifdef CHECK_ROW_ITERATORS
+				 , _row(row)
+#endif
+				 , i(_i) { A.add_iterator(row); }
+        row_iterator(row_iterator &&other) : A(other.A),
+#ifdef CHECK_ROW_ITERATORS
+		  _row(other._row),
+#endif
+		  i(other.i) {
+#ifdef CHECK_ROW_ITERATORS
+				A.add_iterator(other._row);
+#else
+				A.add_iterator(-1);
+#endif
+		  }
+        row_iterator(const row_iterator &other) : A(other.A),
+#ifdef CHECK_ROW_ITERATORS
+		  _row(other._row),
+#endif
+		  i(other.i) {
+#ifdef CHECK_ROW_ITERATORS
+			  A.add_iterator(other._row);
+#else
+			  A.add_iterator(-1);
+#endif
+		  }
+        ~row_iterator() {
+#ifdef CHECK_ROW_ITERATORS
+			  A.remove_iterator(_row);
+#else
+			  A.remove_iterator(-1);
+#endif
+		  }
         row_iterator *operator ->() { return this; }
         value_type &value() { check(); return A.values[i];   }
         size_t index() const { check(); return A.cols[i]; }
@@ -382,20 +420,62 @@ public:
     class const_row_iterator
     {
         const SparseMatrix &A;
-        size_t row;
+#ifdef CHECK_ROW_ITERATORS
+        size_t _row; // int?
+#endif
         size_t i;
     public:
-        inline void check() const {A.check_row(row, i); }
-        const_row_iterator(const SparseMatrix &_A, size_t _row, size_t _i) : A(_A), row(_row), i(_i) {A.add_iterator(row);}
-        const_row_iterator(const const_row_iterator &other) : A(other.A), row(other.row), i(other.i) { A.add_iterator(row); }
-        ~const_row_iterator() { A.remove_iterator(row); }
-        const_row_iterator *operator ->() { return this; }
+        inline void check() const {
+#ifdef CHECK_ROW_ITERATORS
+			  A.check_row(_row, i);
+#endif
+		  }
+        const_row_iterator(const SparseMatrix &_A, size_t row, size_t _i) : A(_A),
+#ifdef CHECK_ROW_ITERATORS
+		  _row(row),
+#endif
+		  i(_i) {A.add_iterator(row);}
+        const_row_iterator(const const_row_iterator &other) : A(other.A),
+#ifdef CHECK_ROW_ITERATORS
+		  _row(other._row),
+#endif
+		  i(other.i) {
+#ifdef CHECK_ROW_ITERATORS
+			  A.add_iterator(_row);
+#else
+			  A.add_iterator(-1);
+#endif
+		  }
+        const_row_iterator(const_row_iterator&& other) : A(other.A),
+#ifdef CHECK_ROW_ITERATORS
+		     _row(other._row),
+#endif
+			  i(other.i) {
+#ifdef CHECK_ROW_ITERATORS
+			  A.add_iterator(_row);
+#else
+			  A.add_iterator(-1);
+#endif
+		  }
+		  const_row_iterator& operator=(const_row_iterator const&) = delete;
+		  const_row_iterator& operator=(const_row_iterator&&) = delete;
+        ~const_row_iterator() {
+#ifdef CHECK_ROW_ITERATORS
+			  A.remove_iterator(_row);
+#else
+			  A.remove_iterator(-1);
+#endif
+		  }
+        const_row_iterator *operator ->() const { return this; }
         const value_type &value() const { check(); return A.values[i];   }
         size_t index() const { check(); return A.cols[i];     }
         bool operator != (const const_row_iterator &o) const { return i != o.i; }
         void operator ++ () { ++i; }
         void operator += (int nr) { i+=nr; }
 		bool operator == (const const_row_iterator &other) const { return other.i == i; }
+		public: // BUG
+		 // int row() const{return _row;}
+		 size_t idx() const{return i;}
     };
 
 
@@ -630,6 +710,17 @@ protected:
 	void check_fragmentation() const;
 	int get_nnz_max_cols(size_t maxCols);
 
+public: // bug
+	int col(size_t i) const{
+		assert(i<cols.size());
+		return cols[i];
+	}
+
+#ifndef NDEBUG
+	int iters() const{
+		return iIterators;
+	}
+#endif
 
 protected:
     std::vector<int> rowStart;

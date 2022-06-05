@@ -4,5 +4,3 @@
 #include "topological_ordering.cpp"
 
 #include "SCC_ordering.cpp"
-
-//#include "boost_shortest_paths_ordering.cpp"

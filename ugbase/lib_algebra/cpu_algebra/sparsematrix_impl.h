@@ -48,6 +48,13 @@
 
 namespace ug{
 
+// defined in C99, and sometimes part of <math.h>, <cmath>
+template <class __T> inline bool
+iszero (__T __val)
+{
+  return __val == 0;
+}
+
 template<typename T>
 SparseMatrix<T>::SparseMatrix()
 {
@@ -173,6 +180,78 @@ void SparseMatrix<T>::set_as_transpose_of(const SparseMatrix<value_type> &B, dou
 			operator()(it.index(), r) = MatrixTranspose(scale*it.value());
 	}
 	// todo: sort rows
+}
+
+template<typename T>
+void SparseMatrix<T>::set_as_transpose_of2(const SparseMatrix<value_type> &B, double scale)
+{
+	PROFILE_SPMATRIX(SparseMatrix_set_as_transpose_of2);
+	resize_and_clear(B.num_cols(), B.num_rows());
+	assert(num_cols() == B.num_rows());
+	assert(num_rows() == B.num_cols());
+	size_t r, c;
+
+	for(r=0; r<num_rows(); ++r){
+		assert(rowMax[r] == 0);
+	}
+
+	std::vector<int> rowsize(num_rows());
+	nnz = 0;
+	bNeedsValues = B.bNeedsValues; // allocate value array
+
+	maxValues = B.maxValues;
+	fragmented = 0;
+
+	for(r=0; r<num_cols(); r++){
+		for(const_row_iterator it = B.begin_row(r); it != B.end_row(r); ++it){
+			if(iszero(it.value())){
+			}else{
+				++nnz;
+				++rowMax[it.index()];
+			}
+		}
+	}
+
+	rowStart[0] = 0;
+	rowEnd[0] = 0;
+	for(c=1; c<num_rows(); ++c) {
+		rowStart[c] = rowMax[c-1];
+		rowMax[c] = rowStart[c]+rowMax[c];
+		rowEnd[c] = rowStart[c];
+	}
+
+	cols.resize(nnz);
+	if(bNeedsValues){
+		values.resize(nnz);
+	}else{
+	}
+
+	for(r=0; r<num_cols(); ++r){
+		for(const_row_iterator it = B.begin_row(r); it != B.end_row(r); ++it){
+			if(iszero(it.value())){
+			}else{
+				int idx = rowEnd[it.index()]++;
+				if(bNeedsValues){
+					values[idx] = scale * it.value();
+				}else{
+				}
+				cols[idx] = r;
+			}
+		}
+	}
+
+#ifndef NDEBUG
+	for(r=0; r<num_rows(); ++r){
+		assert(rowMax[r] == rowEnd[r]);
+	}
+
+	assert(nnz <= B.nnz);
+
+	for(r=1; r<num_rows(); ++r) {
+		assert(rowEnd[r] == rowMax[r]);
+	}
+#endif
+
 }
 
 template<typename T>

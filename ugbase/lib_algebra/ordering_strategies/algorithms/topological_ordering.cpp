@@ -37,6 +37,11 @@
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/properties.hpp>
 
+#include "lib_algebra/graph_interface/sparsematrix_boost.h"
+#include "lib_algebra/graph_interface/parallel_matrix_boost.h"
+#include "lib_algebra/graph_interface/bidirectional.h"
+#include "lib_algebra/graph_interface/bidirectional_boost.h"
+
 #include <vector>
 #include <utility> //for pair
 #include <deque>
@@ -51,7 +56,90 @@
 namespace ug{
 
 template <typename O_t, typename G_t>
-void topological_ordering_core(O_t& o, G_t& g, bool inverse){
+void topological_ordering_core_bidirectional(O_t& o, G_t& g, bool inverse){
+	typedef typename boost::graph_traits<G_t>::vertex_descriptor vd_t;
+	typedef typename boost::graph_traits<G_t>::edge_descriptor ed_t;
+	typedef typename boost::graph_traits<G_t>::vertex_iterator vIt_t;
+	typedef typename boost::graph_traits<G_t>::in_edge_iterator in_edge_iterator;
+
+	size_t n = boost::num_vertices(g);
+
+	if(n == 0){
+		UG_THROW("topological_ordering_core: Graph is empty!");
+	}
+
+	o.resize(n);
+	std::vector<int> indegs(n);
+	std::vector<BOOL> isindeq(n, false);
+	std::deque<vd_t> deq;
+
+	vIt_t vIt, vEnd;
+	for(boost::tie(vIt, vEnd) = boost::vertices(g); vIt != vEnd; ++vIt){
+		indegs[*vIt] = boost::out_degree(*vIt, g)-1; //self-loop
+		if(indegs[*vIt] == 0){
+			deq.push_front(*vIt);
+			isindeq[*vIt] = true;
+		}
+	}
+
+	if(deq.empty()){
+		UG_THROW("topological_ordering_core: Graph is not cycle-free [1]!\n");
+	}
+
+	std::pair<in_edge_iterator, in_edge_iterator> e;
+	vd_t cur_v;
+	size_t k = 0;
+	size_t miss = 0;
+	while(!deq.empty() && miss < deq.size()){
+		cur_v = deq.front();
+		deq.pop_front();
+
+		//rotate deque, there is a cycle iff miss==deq.size()
+		if(indegs[cur_v] > 0){
+			deq.push_back(cur_v);
+			++miss;
+			continue;
+		}
+
+		miss = 0;
+
+		if(inverse){
+			o[k++] = cur_v;
+		}
+		else{
+			o[cur_v] = k++;
+		}
+
+		e = boost::in_edges(cur_v, g);
+		for(; e.first != e.second; ++e.first){
+			ed_t const& edg = *e.first;
+			auto t = boost::source(edg, g);
+
+			--indegs[t];
+
+			if(isindeq[t]){
+				continue;
+			}
+
+			if(indegs[t] == 0){
+				deq.push_front(t);
+				isindeq[t] = true;
+			}
+			else if(indegs[t] > 0){
+				deq.push_back(t);
+				isindeq[t] = true;
+			}
+			else{} //ignore vertex
+		}
+	}
+
+	if(!deq.empty()){
+		UG_THROW("topological_ordering_core: Graph is not cycle-free [2]!\n");
+	}
+}
+
+template <typename O_t, typename G_t>
+void topological_ordering_core_directed(O_t& o, G_t& g, bool inverse){
 	typedef typename boost::graph_traits<G_t>::vertex_descriptor vd_t;
 	typedef typename boost::graph_traits<G_t>::vertex_iterator vIt_t;
 	typedef typename boost::graph_traits<G_t>::adjacency_iterator nIt_t;
@@ -66,6 +154,7 @@ void topological_ordering_core(O_t& o, G_t& g, bool inverse){
 	std::vector<int> indegs(n);
 	std::vector<BOOL> isindeq(n, false);
 	std::deque<vd_t> deq;
+
 
 	vIt_t vIt, vEnd;
 	nIt_t nIt, nEnd;
@@ -110,7 +199,7 @@ void topological_ordering_core(O_t& o, G_t& g, bool inverse){
 		}
 
 		for(boost::tie(nIt, nEnd) = boost::adjacent_vertices(cur_v, g); nIt != nEnd; ++nIt){
-			--indegs[*nIt];
+                       --indegs[*nIt];
 
 			if(isindeq[*nIt]){
 				continue;
@@ -141,11 +230,7 @@ class TopologicalOrdering : public IOrderingAlgorithm<TAlgebra, O_t>
 public:
 	typedef typename TAlgebra::matrix_type M_t;
 	typedef typename TAlgebra::vector_type V_t;
-	typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS> G_t;
-	typedef boost::graph_traits<G_t>::vertex_descriptor vd_t;
-	typedef boost::graph_traits<G_t>::vertex_iterator vIt_t;
-	typedef boost::graph_traits<G_t>::adjacency_iterator nIt_t;
-	typedef std::pair<vd_t, int> indegs_t;
+	typedef typename boost::graph_traits<M_t>::vertex_descriptor vd_t;
 	typedef IOrderingAlgorithm<TAlgebra, O_t> baseclass;
 
 	TopologicalOrdering(){}
@@ -160,9 +245,7 @@ public:
 	}
 
 	void compute(){
-		topological_ordering_core(o, g, false); //false = no inverse
-
-		g = G_t(0);
+		topological_ordering_core_bidirectional(o, bidir, false); //false = do not compute inverse permutation
 
 		#ifdef UG_DEBUG
 		check();
@@ -179,17 +262,7 @@ public:
 		UG_LOG("Using " << name() << "\n");
 		#endif
 
-		unsigned rows = A->num_rows();
-
-		g = G_t(rows);
-
-		for(unsigned i = 0; i < rows; i++){
-			for(typename M_t::row_iterator conn = A->begin_row(i); conn != A->end_row(i); ++conn){
-				if(conn.value() != 0.0 && conn.index() != i){
-					boost::add_edge(conn.index(), i, g);
-				}
-			}
-		}
+		bidir = BidirectionalMatrix<M_t>(A);
 	}
 
 	void init(M_t*, const V_t&, const O_t&){
@@ -211,12 +284,8 @@ public:
 	virtual const char* name() const {return "TopologicalOrdering";}
 
 private:
-	G_t g;
+	BidirectionalMatrix<M_t> bidir;
 	O_t o;
-
-	std::deque<vd_t> deq;
-	std::vector<int> indegs;
-	std::vector<BOOL> isindeq;
 };
 
 } //namespace
