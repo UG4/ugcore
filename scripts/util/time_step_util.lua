@@ -342,6 +342,23 @@ function util.SolveNonlinearTimeProblem(
 	local cplusplus = util.use_luacpp or util.use_limex
 	local use_limex = util.use_limex
 
+	if use_limex == false then
+		-- good to go.
+	elseif startTSNo ~= nil and endTSNo ~= nil and endTSNo == startTSNo + 1 then
+		-- this happens in suse-kluft4..
+		print("WARNING: legacy step hack, limex doesn't work ", startTSNo, " ", endTSNo)
+		-- TODO? if only one step requested, avoid loop altogether and just call solver?
+		use_limex = false
+		verbose = false
+	elseif startTSNo ~= nil and endTSNo ~= nil then
+		print("unreachable") -- probably
+	elseif startTSNo ~= nil and startTSNo ~= 0 then
+		print("WARNING: legacy step hack, limex needs zro starTsNo=", startTSNo)
+		use_limex = false
+	else
+		-- print("no step numbers, trying limex ", startTSNo, " ", endTSNo)
+	end
+
 	if cplusplus then
 		-- parsed below
 	elseif postProcess ~= nil then
@@ -490,23 +507,26 @@ function util.SolveNonlinearTimeProblem(
 		-- thing = TimeIntegratorObserver()
 		-- util.ParseTimeIntegratorCallbacks(thing, out)
 
-		if(type(out) == "function") then
-			-- print("setting out function", out)
+		if out == nil then
+			print("no output")
+		elseif(type(out) == "function") then
+			-- print("setting out function ", out)
 			ocb:set_callback("MyLuaCallback")
+			loop:set_output(ocb)
 		else
-			-- print("incomplete. not a function", ocb);
-			exit();
+			print("incomplete? not a function", out);
+			loop:set_output(out)
 		end
 
-		loop:set_output(ocb)
 
 		if use_limex then
-			print("trying Limex, min step size=", minStepSize)
+			print("trying Limex, min step size=", minStepSize, " stepno=", step)
 			loop:set_time_step(maxStepSize) -- really?
 		elseif minStepSize <= maxStepSize * reductionFactor or newtonLineSearchFallbacks ~= nil then
 			loop:storeU()
 		end
 
+		-- print("Nonlinear loop apply [", startTime, ":", EndTime, "]")
 		loop:apply(u, endTime, u, startTime)
 
 		if use_limex then
