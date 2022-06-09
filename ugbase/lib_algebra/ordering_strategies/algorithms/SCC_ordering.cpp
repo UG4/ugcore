@@ -111,6 +111,8 @@ public:
 			comp_members[component[i]].push_back(i);
 		}
 
+		std::vector<std::vector<vd_t> > comp_start_vertices(num_components);
+
 		//create scc meta graph
 		scc_g = G_t(num_components);
 
@@ -120,10 +122,21 @@ public:
 			i_comp = component[i];
 			for(boost::tie(nIt, nEnd) = boost::adjacent_vertices(i, g); nIt != nEnd; ++nIt){
 				n_comp = component[*nIt];
-				if(i_comp != n_comp && !boost::edge(i_comp, n_comp, scc_g).second){
-					boost::add_edge(i_comp, n_comp, scc_g);
+				if(i_comp != n_comp){
+					if(comp_members[n_comp].size() > 1){
+						comp_start_vertices[n_comp].push_back(*nIt);
+					}
+
+					if(!boost::edge(i_comp, n_comp, scc_g).second){
+						boost::add_edge(i_comp, n_comp, scc_g);
+					}
 				}
 			}
+		}
+
+		for(unsigned i = 0; i < num_components; ++i){
+			std::sort(comp_start_vertices[i].begin(), comp_start_vertices[i].end());
+			comp_start_vertices[i].erase(std::unique(comp_start_vertices[i].begin(), comp_start_vertices[i].end()), comp_start_vertices[i].end());
 		}
 
 		O_t scc_topo_ordering(num_components);
@@ -132,6 +145,17 @@ public:
 		//scc_topo_ordering is now a topological ordering of scc_g
 
 		o.resize(n);
+
+		for(unsigned i = 0; i < num_components; ++i){
+			if(comp_members[i].size() > 1){
+				UG_LOG("comp " << i << ", size: " << comp_members[i].size() << ", #start vertices: " << comp_start_vertices[i].size() << "\n");
+
+				UG_LOG("    start vertices: ");
+				for(unsigned j = 0; j < comp_start_vertices[i].size(); ++j){
+					UG_LOG(comp_start_vertices[i][j] << " ");
+				} UG_LOG("\n");
+			}
+		}
 
 		if(m_spOrderingSubAlgo.invalid()){
 			UG_LOG(name() << "::compute: not using ordering subalgo\n");
@@ -156,7 +180,7 @@ public:
 					o[comp_members[scc_topo_ordering[i]][0]] = k++;
 				}
 				else{
-					m_spOrderingSubAlgo->init(m, comp_members[scc_topo_ordering[i]]);
+					m_spOrderingSubAlgo->init(m, comp_members[scc_topo_ordering[i]], comp_start_vertices[i]);
 					m_spOrderingSubAlgo->compute();
 					std::vector<size_t>& sub_o = m_spOrderingSubAlgo->ordering();
 					std::vector<size_t> inv_sub_o;
@@ -205,11 +229,11 @@ public:
 		}
 	}
 
-	void init(M_t*, const V_t&, const O_t&){
+	void init(M_t*, const V_t&, const O_t&, const O_t&){
 		UG_THROW(name() << "::init: Algorithm does not support induced subgraph version!");
 	}
 
-	void init(M_t*, const O_t&){
+	void init(M_t*, const O_t&, const O_t&){
 		UG_THROW(name() << "::init: Algorithm does not support induced subgraph version!");
 	}
 

@@ -147,11 +147,11 @@ public:
 		}
 	}
 
-	void init(M_t*, const V_t&, const O_t&){
+	void init(M_t*, const V_t&, const O_t&, const O_t&){
 		UG_THROW(name() << "::init: induced subgraph version not implemented yet!");
 	}
 
-	void init(M_t*, const O_t&){
+	void init(M_t*, const O_t&, const O_t&){
 		UG_THROW(name() << "::init: induced subgraph version not implemented yet!");
 	}
 

@@ -49,16 +49,31 @@
 #include <assert.h>
 #include "common/error.h"
 
-// is this already implemented somewhere else?
-namespace{
-template<class T>
-double my_abs(T){return 0;}
-
-template<>
-double my_abs(double v){return abs(v);}
-}
-
 namespace ug{
+
+template <typename G_t, typename M_t>
+void own_cmk_induced_subgraph(G_t& ind_g, M_t* A, const std::vector<size_t>& inv_map){
+	size_t n = A->num_rows();
+	size_t k = inv_map.size();
+	ind_g = G_t(k);
+
+	std::vector<int> ind_map(n, -1);
+	for(unsigned i = 0; i < k; ++i){
+		ind_map[inv_map[i]] = i;
+	}
+
+	typename boost::graph_traits<G_t>::adjacency_iterator nIt, nEnd;
+	for(unsigned i = 0; i < inv_map.size(); ++i){
+		for(typename M_t::row_iterator conn = A->begin_row(inv_map[i]); conn != A->end_row(inv_map[i]); ++conn){
+			if(conn.value() != 0.0){
+				int idx = ind_map[conn.index()];
+				if(idx >= 0 && idx != i){
+					boost::add_edge(idx, i, ind_g);
+				}
+			}
+		}
+	}
+}
 
 template <typename TAlgebra, typename O_t>
 class OwnCuthillMcKeeOrdering : public IOrderingAlgorithm<TAlgebra, O_t>
@@ -68,8 +83,7 @@ public:
 	typedef typename TAlgebra::vector_type V_t;
 	typedef IOrderingAlgorithm<TAlgebra, O_t> baseclass;
 
-	typedef boost::property<boost::edge_weight_t, double> EdgeWeightProperty;
-	typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS, boost::no_property, EdgeWeightProperty> G_t;
+	typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS> G_t;
 
 	typedef typename boost::graph_traits<G_t>::vertex_descriptor vd;
 	typedef typename boost::graph_traits<G_t>::edge_descriptor ed_t;
@@ -77,11 +91,11 @@ public:
 	typedef typename boost::graph_traits<G_t>::adjacency_iterator adj_iter;
 	typedef typename boost::graph_traits<G_t>::out_edge_iterator oute_iter;
 
-	OwnCuthillMcKeeOrdering() : m_bReverse(false){}
+	OwnCuthillMcKeeOrdering() : m_bReverse(false), m_look_for_sources(true){}
 
 	/// clone constructor
 	OwnCuthillMcKeeOrdering( const OwnCuthillMcKeeOrdering<TAlgebra, O_t> &parent )
-			: baseclass(), m_bReverse(parent.m_bReverse){}
+			: baseclass(), m_bReverse(parent.m_bReverse), m_look_for_sources(parent.m_look_for_sources){}
 
 	SmartPtr<IOrderingAlgorithm<TAlgebra, O_t> > clone()
 	{
@@ -110,32 +124,39 @@ public:
 
 		o.resize(n);
 
-		size_t k = 0;
 		std::vector<int> numbering(n, -1);
 		std::vector<size_t> indegs(n);
-		//std::vector<size_t> front(n);
-		std::list<size_t> front;
 
 		vIt_t vIt, vEnd;
 		for(boost::tie(vIt, vEnd) = boost::vertices(g); vIt != vEnd; ++vIt){
 			indegs[*vIt] = boost::in_degree(*vIt, g);
-			//source vertex
-			if(indegs[*vIt] == 0){
-				numbering[*vIt] = k;
-				front.push_back(*vIt);
-				unregister_indegree(*vIt, indegs);
-				++k;
-			}
 		}
-		UG_COND_THROW(k == 0, name() << ": no sources numbered, front empty != n\n");
 
-		UG_LOG("#sources numbered: " << k << "\n");
+		size_t k = 0;
+
+		if(m_look_for_sources){
+			for(size_t i = 0; i < n; ++i){
+				if(indegs[i] == 0){
+					numbering[i] = k;
+					front.push_back(i);
+					unregister_indegree(i, indegs);
+					++k;
+				}
+			}
+			UG_COND_THROW(front.empty(), name() << ": no sources numbered, front empty! [1]\n");
+
+			UG_LOG("#sources numbered: " << k << ", #vertices: " << n << "\n");
+		}
+		else{
+			UG_COND_THROW(front.empty(), name() << ": no sources numbered, front empty! [2]\n");
+
+			//TODO
+		}
 
 		std::pair<oute_iter, oute_iter> e;
-
 		//main loop
 		for(; k < n;){
-			size_t min_indeg_v;
+			size_t min_indeg_v = -1u;
 			size_t min_indeg_val = n;
 
 			std::vector<std::list<size_t>::iterator> to_delete;
@@ -170,6 +191,16 @@ public:
 				front.erase(to_delete[u]);
 			}
 
+			if(min_indeg_val == n){
+				for(unsigned i = 0; i < n; ++i){
+					if(numbering[i] == -1){
+						numbering[i] = k++;
+					}
+				}
+
+				break;
+			}
+
 			numbering[min_indeg_v] = k;
 			front.push_back(min_indeg_v);
 
@@ -182,8 +213,6 @@ public:
 		}
 
 		g = G_t(0);
-
-		UG_LOG(name() << ": done.\n");
 	}
 
 	void init(M_t* A, const V_t&){
@@ -198,23 +227,26 @@ public:
 		for(unsigned i = 0; i < n; i++){
 			for(typename M_t::row_iterator conn = A->begin_row(i); conn != A->end_row(i); ++conn){
 				if(conn.value() != 0.0 && conn.index() != i){
-					double w;
-					w = my_abs(conn.value());
-					boost::add_edge(conn.index(), i, w, g);
+					boost::add_edge(conn.index(), i, g);
 				}
 			}
 		}
 	}
 
-	void init(M_t* A, const V_t&, const O_t& inv_map){
-		init(A, inv_map);
+	void init(M_t* A, const V_t&, const O_t& inv_map, const O_t& start){
+		init(A, inv_map, start);
 	}
 
-	void init(M_t* A, const O_t& inv_map){
+	void init(M_t* A, const O_t& inv_map, const O_t& start){
 		//TODO: replace this by UG_DLOG if permutation_util does not depend on this file anymore
 		#ifdef UG_ENABLE_DEBUG_LOGS
 		UG_LOG("Using " << name() << " on induced matrix of size " << inv_map.size() << "\n");
 		#endif
+
+		own_cmk_induced_subgraph<G_t, M_t>(g, A, inv_map);
+		m_look_for_sources = false;
+
+		UG_LOG("n: " << boost::num_vertices(g) << ", e: " << boost::num_edges(g) << "\n");
 	}
 
 	void check(){
@@ -237,7 +269,11 @@ private:
 	G_t g;
 	O_t o;
 
+	std::list<size_t> front;
+
 	bool m_bReverse;
+
+	bool m_look_for_sources;
 };
 
 } //namespace

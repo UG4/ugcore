@@ -255,15 +255,12 @@ public:
 		}
 	}
 
-	void init(M_t* A, const V_t&, const O_t& inv_map){
-		init(A, inv_map);
+	void init(M_t* A, const V_t&, const O_t& inv_map, const O_t&){
+		UG_THROW(name() << "::init: induced subgraph version not implemented yet!");
 	}
 
-	void init(M_t* A, const O_t& inv_map){
-		//TODO: replace this by UG_DLOG if permutation_util does not depend on this file anymore
-		#ifdef UG_ENABLE_DEBUG_LOGS
-		UG_LOG("Using " << name() << " on induced matrix of size " << inv_map.size() << "\n");
-		#endif
+	void init(M_t* A, const O_t& inv_map, const O_t&){
+		UG_THROW(name() << "::init: induced subgraph version not implemented yet!");
 	}
 
 	void check(){

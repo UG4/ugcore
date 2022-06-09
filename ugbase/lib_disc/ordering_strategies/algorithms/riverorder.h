@@ -197,11 +197,11 @@ public:
 		UG_THROW(name() << "::init: Cannot initialize smoother without a geometry. Specify the 2nd argument for init!");
 	}
 
-	void init(M_t*, const V_t&, const O_t&){
+	void init(M_t*, const V_t&, const O_t&, const O_t&){
 		UG_THROW(name() << "::init: Algorithm does not support induced subgraph version!");
 	}
 
-	void init(M_t*, const O_t&){
+	void init(M_t*, const O_t&, const O_t&){
 		UG_THROW(name() << "::init: Algorithm does not support induced subgraph version!");
 	}
 

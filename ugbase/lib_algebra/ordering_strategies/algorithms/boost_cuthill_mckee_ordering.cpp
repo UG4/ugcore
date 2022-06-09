@@ -48,9 +48,8 @@
 
 namespace ug{
 
-
 template <typename G_t, typename M_t>
-void induced_subgraph(G_t& ind_g, M_t* A, const std::vector<size_t>& inv_map){
+void boost_cmk_induced_subgraph(G_t& ind_g, M_t* A, const std::vector<size_t>& inv_map){
 	size_t n = A->num_rows();
 	size_t k = inv_map.size();
 	ind_g = G_t(k);
@@ -63,16 +62,15 @@ void induced_subgraph(G_t& ind_g, M_t* A, const std::vector<size_t>& inv_map){
 	typename boost::graph_traits<G_t>::adjacency_iterator nIt, nEnd;
 	for(unsigned i = 0; i < inv_map.size(); ++i){
 		for(typename M_t::row_iterator conn = A->begin_row(inv_map[i]); conn != A->end_row(inv_map[i]); ++conn){
-			if(conn.value() != 0.0 && conn.index() != i){
+			if(conn.value() != 0.0){
 				int idx = ind_map[conn.index()];
-				if(idx >= 0){
-					boost::add_edge(i, idx, ind_g);
+				if(idx >= 0 && idx != i){
+					boost::add_edge(idx, i, ind_g);
 				}
 			}
 		}
 	}
 }
-
 
 
 #ifndef MCKEE_GRAPH_T
@@ -159,25 +157,25 @@ public:
 		for(unsigned i = 0; i < rows; i++){
 			for(typename M_t::row_iterator conn = A->begin_row(i); conn != A->end_row(i); ++conn){
 				if(conn.value() != 0.0 && conn.index() != i){ //TODO: think about this!!
-					if(!boost::edge(i, conn.index(), g).second){
-						boost::add_edge(i, conn.index(), g);
+					if(!boost::edge(conn.index(), i, g).second){
+						boost::add_edge(conn.index(), i, g);
 					}
 				}
 			}
 		}
 	}
 
-	void init(M_t* A, const V_t&, const O_t& inv_map){
-		init(A, inv_map);
+	void init(M_t* A, const V_t&, const O_t& inv_map, const O_t& start){
+		init(A, inv_map, start);
 	}
 
-	void init(M_t* A, const O_t& inv_map){
+	void init(M_t* A, const O_t& inv_map, const O_t&){
 		//TODO: replace this by UG_DLOG if permutation_util does not depend on this file anymore
 		#ifdef UG_ENABLE_DEBUG_LOGS
 		UG_LOG("Using " << name() << " on induced matrix of size " << inv_map.size() << "\n");
 		#endif
 
-		induced_subgraph<G_t, M_t>(g, A, inv_map);
+		boost_cmk_induced_subgraph<G_t, M_t>(g, A, inv_map);
 	}
 
 	void set_reverse(bool b){

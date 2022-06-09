@@ -115,10 +115,6 @@ public:
 			o[index_map[inv_perm[i]]] = i;
 		}
 
-		// for(unsigned i = 0; i < N; ++i){
-		// 	std::cout << i << " -> " << o[i] << "\n";
-		// }
-
 		#ifdef UG_DEBUG
 		untested();
 		check();
@@ -143,21 +139,15 @@ public:
 		UG_LOG("Using " << name() << "\n");
 		#endif
 
-//		unsigned rows = A->num_rows();
 		_A = A;
-
-//		undir = UndirectedMatrix<M_t>(A);
 	}
 
-	void init(M_t* A, const V_t&, const O_t& inv_map){
-		init(A, inv_map);
+	void init(M_t* A, const V_t&, const O_t& inv_map, const O_t&){
+		UG_THROW(name() << "::init: induced subgraph version not implemented yet!");
 	}
 
-	void init(M_t* A, const O_t& inv_map){ untested();
-		//TODO: replace this by UG_DLOG if permutation_util does not depend on this file anymore
-		#ifdef UG_ENABLE_DEBUG_LOGS
-		UG_LOG("Using " << name() << " on induced matrix of size " << inv_map.size() << "\n");
-		#endif
+	void init(M_t* A, const O_t& inv_map, const O_t&){
+		UG_THROW(name() << "::init: induced subgraph version not implemented yet!");
 
 //		?
 // 	induced_subgraph<G_t, M_t>(g, A, inv_map);
