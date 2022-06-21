@@ -37,8 +37,8 @@
 
 util = util or {}
 
-util.use_luacpp = false
-util.use_limex = false
+util.use_luacpp = util.use_luacpp or false
+util.use_limex = util.use_limex or false
 
 --! Parses a callback object and attachs the corresponding callbacks to a TimeIntegratorObserver object.
 --! @param timeIntegratorSubject a TimeIntegratorObserver object to attach callbacks to
@@ -341,6 +341,8 @@ function util.SolveNonlinearTimeProblem(
 	local callbackDispatcher = TimeIntegratorSubject()
 	local cplusplus = util.use_luacpp or util.use_limex
 	local use_limex = util.use_limex
+
+	-- print("SolveNonlinearTimeProblemParams use_luacpp ", util.use_luacpp, " use_limex ", util.use_limex)
 
 	if use_limex == false then
 		-- good to go.
@@ -1023,7 +1025,6 @@ function util.SolveLinearTimeProblem(
 			loop:set_time_disc(timeDisc) -- move "createTimeDisc(domainDisc, timeScheme, orderOrTheta)" to constructor?
 			                             -- also, call NewtonSolver:init from there?
 			if endTSNo ~= nil then
-				print("incomplete, endTSNo", endTSNo)
 				loop:setEndTSNo(endTSNo)
 			end
 			if out ~= nil then
