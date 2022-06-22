@@ -48,13 +48,16 @@ struct LuaTableHandle_;
 /// Handle for a lua reference
 class LuaTableHandle /* public SuitableBaseClass */ {
 public:
-	LuaTableHandle() = delete;
+	LuaTableHandle() : _data(nullptr) {}
 	LuaTableHandle(LuaTableHandle const&);
 	LuaTableHandle(LuaTableHandle&&);
 	explicit LuaTableHandle(lua_State* ref, int idx);
 	~LuaTableHandle();
 
 public:
+	bool operator==(LuaTableHandle const& o) const{
+		return _data == o._data;
+	}
 	size_t size() const;
 	ug::Variant get(std::string const& key) const;
 	ug::Variant get(int const& key) const;
