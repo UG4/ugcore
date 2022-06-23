@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2012-2015:  G-CSC, Goethe University Frankfurt
- * Author: Andreas Vogel
+ * Author: Shuai Lu
  * 
  * This file is part of UG4.
  * 
