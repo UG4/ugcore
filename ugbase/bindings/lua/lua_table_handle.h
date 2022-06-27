@@ -48,6 +48,30 @@ struct LuaTableHandle_;
 /// Handle for a lua reference
 class LuaTableHandle /* public SuitableBaseClass */ {
 public:
+	class const_iter /* erase in SuitableBaseClass */ {
+		typedef std::pair<std::string, ug::Variant> value_type;
+	public:
+		const_iter();
+		~const_iter();
+		const_iter(impl::LuaTableHandle_ /*const*/ * _data);
+		const_iter(const_iter const&);
+
+	public:
+		value_type operator*() const;
+		const_iter& operator++();
+		const_iter& operator=(const_iter const& o);
+		bool operator==(const_iter const& o) const;
+		bool operator!=(const_iter const& o) const{
+			return !operator==(o);
+		}
+
+	private:
+		impl::LuaTableHandle_ /*const*/ * _data;
+		int _keyref;
+		int _valref;
+		int _cnt;
+	}; // const_iter
+public:
 	LuaTableHandle() : _data(nullptr) {}
 	LuaTableHandle(LuaTableHandle const&);
 	LuaTableHandle(LuaTableHandle&&);
@@ -55,12 +79,14 @@ public:
 	~LuaTableHandle();
 
 public:
-	bool operator==(LuaTableHandle const& o) const{
-		return _data == o._data;
-	}
+	bool operator==(LuaTableHandle const& o) const;
 	size_t size() const;
+	size_t count() const;
 	ug::Variant get(std::string const& key) const;
 	ug::Variant get(int const& key) const;
+
+	const_iter begin();
+	const_iter end();
 
 	LuaTableHandle& operator=(LuaTableHandle const&);
 	LuaTableHandle& operator=(LuaTableHandle&&);
