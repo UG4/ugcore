@@ -44,13 +44,13 @@ namespace ug{
 template<class TDomain, class TAlgebra>
 class IEquationDisc {
 public:
-	virtual ~IEquationDisc() {};
+	virtual ~IEquationDisc() {}
 
 public:
-	virtual void set_dt(number) = 0;
-	virtual void set_time(number) = 0;
-	virtual number get_dt() = 0;
-	virtual number get_time() = 0;
+	virtual void set_dt(number){}
+	virtual void set_time(number){}
+	virtual number get_dt(){return 0.;}
+	virtual number get_time(){return 0.;}
 };
 
 }
