@@ -55,6 +55,20 @@ struct attachment_reduce_traits
 	static inline value_t bor(value_t v1, value_t v2)	{return v1 | v2;}
 };
 
+template <>
+struct attachment_reduce_traits<bool>
+{
+	typedef bool value_t;
+	static inline value_t min(value_t v1, value_t v2)	{return std::min(v1, v2);}
+	static inline value_t max(value_t v1, value_t v2)	{return std::max(v1, v2);}
+	static inline value_t sum(value_t v1, value_t v2)	{return v1 + v2;}
+	static inline value_t prod(value_t v1, value_t v2)	{return v1 && v2;}
+	static inline value_t land(value_t v1, value_t v2)	{return v1 && v2;}
+	static inline value_t band(value_t v1, value_t v2)	{return v1 && v2;}
+	static inline value_t lor(value_t v1, value_t v2)	{return v1 || v2;}
+	static inline value_t bor(value_t v1, value_t v2)	{return v1 || v2;}
+};
+
 /**	Specialization for float. No band and bor operations are supported.*/
 template <>
 struct attachment_reduce_traits<float>
