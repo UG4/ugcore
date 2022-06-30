@@ -64,7 +64,7 @@ public:
 
 	static void attach(LuaTableHandle_* c, LuaTableHandle_** to) {
 		assert(to);
-		if (c == *to) { untested();
+		if (c == *to) {
 		}else if (!c) { untested();
 			detach(to);
 		}else if (!*to) {
@@ -238,7 +238,7 @@ ug::Variant LuaTableHandle::get(std::string const& key) const
 }
 
 ug::Variant LuaTableHandle::get(int const& key) const
-{ untested();
+{
 	assert(_data);
 	return _data->get(key);
 }

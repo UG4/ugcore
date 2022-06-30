@@ -398,8 +398,12 @@ function util.SolveNonlinearTimeProblem(
 	end
 	
 	-- create time disc -- BUG: requires luacpp
-	local timeDisc = createTimeDisc(domainDisc, timeScheme, orderOrTheta)
-
+	local timeDisc
+	if cplusplus then -- c++ version
+		timeDisc = createTimeDisc(domainDisc, timeScheme, orderOrTheta)
+	else
+		timeDisc = util.CreateTimeDisc(domainDisc, timeScheme, orderOrTheta)
+	end
 	
 	-- print newtonSolver setup	
 	print("SolveNonlinearTimeProblem, Newton Solver setup:")
@@ -947,6 +951,8 @@ function util.SolveLinearTimeProblem(
 		print("WARNING: legacy step hack.")
 		use_limex = false -- it won't work
 		verbose = false
+	else
+		-- print("fingers crossed: no legacy step hack. startTSNo=", startTSNo, " endTSNo=", endTSNo)
 	end
 
 	-- DEBUG
@@ -1085,8 +1091,7 @@ function util.SolveLinearTimeProblem(
 		loop:apply(u, endTime, u, startTime)
 
 		if use_limex then
-			print("incomplete: use limex? -- which one?")
-			step = 1 -- BUG don't use this variable
+			step = loop:get_step()
 			time = endTime -- BUG don't use this variable
 		else
 			step = loop:get_step()
