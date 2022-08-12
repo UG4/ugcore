@@ -769,6 +769,8 @@ function util.solver.CreateOrdering(orderingDesc, solverutil)
 		ordering = BoostCuthillMcKeeNewOrdering()
 	elseif name == "OwnCuthillMcKee" then
 		ordering = OwnCuthillMcKeeOrdering()
+	elseif name == "OwnCuthillMcKee2" then
+		ordering = OwnCuthillMcKeeOrdering2()
 	elseif name == "BoostMinimumDegree" then
 		ordering = BoostMinimumDegreeOrdering()
 	elseif name == "Topological" then

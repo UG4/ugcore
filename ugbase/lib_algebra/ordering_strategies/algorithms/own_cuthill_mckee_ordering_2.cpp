@@ -30,8 +30,8 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef __UG__LIB_DISC__ORDERING_STRATEGIES_ALGORITHMS_OWN_CUTHILL_MCKEE_ORDERING__
-#define __UG__LIB_DISC__ORDERING_STRATEGIES_ALGORITHMS_OWN_CUTHILL_MCKEE_ORDERING__
+#ifndef __UG__LIB_DISC__ORDERING_STRATEGIES_ALGORITHMS_OWN_CUTHILL_MCKEE_ORDERING2__
+#define __UG__LIB_DISC__ORDERING_STRATEGIES_ALGORITHMS_OWN_CUTHILL_MCKEE_ORDERING2__
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_traits.hpp>
@@ -63,32 +63,8 @@ double my_abs(double v){return abs(v);}
 
 namespace ug{
 
-template <typename G_t, typename M_t>
-void own_cmk_induced_subgraph(G_t& ind_g, M_t* A, const std::vector<size_t>& inv_map){
-	size_t n = A->num_rows();
-	size_t k = inv_map.size();
-	ind_g = G_t(k);
-
-	std::vector<int> ind_map(n, -1);
-	for(unsigned i = 0; i < k; ++i){
-		ind_map[inv_map[i]] = i;
-	}
-
-	typename boost::graph_traits<G_t>::adjacency_iterator nIt, nEnd;
-	for(unsigned i = 0; i < inv_map.size(); ++i){
-		for(typename M_t::row_iterator conn = A->begin_row(inv_map[i]); conn != A->end_row(inv_map[i]); ++conn){
-			if(conn.value() != 0.0){
-				int idx = ind_map[conn.index()];
-				if(idx >= 0 && idx != i){
-					boost::add_edge(idx, i, ind_g);
-				}
-			}
-		}
-	}
-}
-
 template <typename TAlgebra, typename O_t>
-class OwnCuthillMcKeeOrdering : public IOrderingAlgorithm<TAlgebra, O_t>
+class OwnCuthillMcKeeOrdering2 : public IOrderingAlgorithm<TAlgebra, O_t>
 {
 public:
 	typedef typename TAlgebra::matrix_type M_t;
@@ -103,15 +79,15 @@ public:
 	typedef typename boost::graph_traits<G_t>::adjacency_iterator adj_iter;
 	typedef typename boost::graph_traits<G_t>::out_edge_iterator oute_iter;
 
-	OwnCuthillMcKeeOrdering() : m_bReverse(false), m_look_for_sources(true){}
+	OwnCuthillMcKeeOrdering2() : m_bReverse(false), m_look_for_sources(true){}
 
 	/// clone constructor
-	OwnCuthillMcKeeOrdering( const OwnCuthillMcKeeOrdering<TAlgebra, O_t> &parent )
+	OwnCuthillMcKeeOrdering2( const OwnCuthillMcKeeOrdering2<TAlgebra, O_t> &parent )
 			: baseclass(), m_bReverse(parent.m_bReverse), m_look_for_sources(parent.m_look_for_sources){}
 
 	SmartPtr<IOrderingAlgorithm<TAlgebra, O_t> > clone()
 	{
-		return make_sp(new OwnCuthillMcKeeOrdering<TAlgebra, O_t>(*this));
+		return make_sp(new OwnCuthillMcKeeOrdering2<TAlgebra, O_t>(*this));
 	}
 
 	inline void unregister_indegree(size_t v, std::vector<size_t>& indegs){
@@ -275,7 +251,7 @@ public:
 		m_bReverse = b;
 	}
 
-	virtual const char* name() const {return "OwnCuthillMcKeeOrdering";}
+	virtual const char* name() const {return "OwnCuthillMcKeeOrdering2";}
 
 private:
 	G_t g;

@@ -137,6 +137,18 @@ static void Algebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "OwnCuthillMcKeeOrdering", tag);
 	}
 
+//	Own Cuthill McKee 2
+	{
+		typedef OwnCuthillMcKeeOrdering2<TAlgebra, ordering_container_type> T;
+		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
+		string name = string("OwnCuthillMcKeeOrdering2").append(suffix);
+		reg.add_class_<T, TBase>(name, grp, "OwnCuthillMcKeeOrdering2")
+			.add_constructor()
+			.add_method("set_reverse", &T::set_reverse)
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "OwnCuthillMcKeeOrdering2", tag);
+	}
+
 //	Weighted Cuthill McKee
 	{
 		typedef WeightedCuthillMcKeeOrdering<TAlgebra, ordering_container_type> T;

@@ -5,6 +5,7 @@
 #include "topological_ordering.cpp"
 
 #include "own_cuthill_mckee_ordering.cpp"
+#include "own_cuthill_mckee_ordering_2.cpp"
 #include "weighted_cuthill_mckee_ordering.cpp"
 
 #include "sparsematrixgraph_test.cpp"
