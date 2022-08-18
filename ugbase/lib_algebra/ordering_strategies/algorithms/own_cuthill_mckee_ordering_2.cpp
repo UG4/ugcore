@@ -114,115 +114,93 @@ public:
 		 }
 	}
 
-	void compute() override { untested();
+	void do_node(vd s, int k);
+
+	void compute() override {
 		unsigned n = boost::num_vertices(g);
-		unsigned min_bucket = -1u;
+		_min_bucket = -1u;
 
 		if(n == 0){ untested();
 			UG_THROW(name() << "::compute: Graph is empty!");
 			return;
-		}else{ untested();
+		}else{
 		}
 
-		o.resize(0);
-		o.resize(n, INVALID);
+		_o.resize(0);
+		_o.resize(n, INVALID);
 
-		vd s = *boost::vertices(g).first;
-		o[s] = 0;
-		_degrees_[s] = INVALID;
-		_tags[s] = 0;
+		int k = 0;
 
-		auto i = boost::adjacent_vertices(s, g);
-		for(; i.first != i.second; ++i.first){ untested();
-			vd n = *i.first;
-			assert(n!=s);
-			deg_t d = boost::in_degree(n, g);
+		if(m_look_for_sources){
+			for(size_t i = 0; i < n; ++i){
+				deg_t d = boost::in_degree(i, g);
 
-			_degrees_[n] = d;
-			_bs.push_front(n);
+				if(d){
+				}else{
+					_degrees_[n] = boost::in_degree(n, g);
+					assert(_o[i] == INVALID);
+					do_node(i, k);
+					_tags[i] = k; // self loop
+					++k;
+				}
+			}
+			UG_COND_THROW(k==0, name() << ": no sources numbered, front empty! [1]\n");
 
-			assert(_tags[n] == INVALID);
+			UG_LOG("#sources numbered: " << k << ", #vertices: " << n << "\n");
+		} else{ untested();
 
-			_tags[n] = s;
-			min_bucket = std::min(_degrees_[n], min_bucket);
+			UG_COND_THROW("incomplete" && 0, name() << ": no sources numbered, front empty! [2]\n");
+			//TODO
+			vd s = *boost::vertices(g).first;
+
+			do_node(s, k);
+			++k;
+
 		}
-
-		size_t k = 1;
 
 		std::pair<oute_iter, oute_iter> e;
 
+		_min_bucket = 0;
+		while(_bs[_min_bucket].empty()){
+			++_min_bucket;
+			assert(_min_bucket < _o.size()); // not connected?
+		}
+
 		//main loop
-		for(; k < n;){ untested();
+		for(; k < n;){
 			unsigned min_tag = -1u;
 			vd next = INVALID;
-			for(unsigned j=0; j<min_bucket; ++j){ untested();
+			for(unsigned j=0; j<_min_bucket; ++j){
 				assert(_bs[j].empty());
 			}
-			assert(!_bs[min_bucket].empty());
+			assert(!_bs[_min_bucket].empty());
 
-			for(vd cand : _bs[min_bucket]){ untested();
+			for(vd cand : _bs[_min_bucket]){
 				unsigned tag = _tags[cand];
 				assert(tag!=INVALID);
-				if(tag < min_tag){ untested();
+				if(tag < min_tag){
 					next = cand;
 					min_tag = tag;
-				}else{ untested();
+				}else{
 				}
 			}
-
-			assert(_degrees_[next] == min_bucket);
+			assert(_degrees_[next] == _min_bucket);
 			assert(_tags[next] != INVALID);
-			assert(next!=INVALID);
+			assert(_o[next] == INVALID);
 
-			auto i = boost::adjacent_vertices(next, g);
-			for(; i.first != i.second; ++i.first){ untested();
-				vd n = *i.first;
-				assert(n!=next);
-
-				if(_tags[n] == INVALID){
-					// not a candidate, add it, initialise degree.
-
-					deg_t d = boost::in_degree(n, g);
-					assert(d);
-					_tags[n] = k;
-					
-					_degrees_[n] = d;
-					_bs.push_front(n);
-
-					min_bucket = std::min(_degrees_[n], min_bucket);
-				}else if(_degrees_[n] == INVALID){ untested();
-					// n already numbered.
-				}else{ untested();
-					// already reachable from S. Degree drop.
-					assert(_tags[n]<k);
-					assert(_degrees_[n]);
-
-
-					if(min_bucket == _degrees_[n]){ untested();
-						--min_bucket;
-					}else{ untested();
-						assert(min_bucket < _degrees_[n]);
-					}
-
-					--_degrees_[n];
-					_bs.update(n);
-				}
-			}
-
+			do_node(next, k);
+			++k;
 			_bs.remove(next);
 			_degrees_[next] = INVALID;
-			assert(o[next] == INVALID);
-			o[next] = k;
-			++k;
 
-			if(k==o.size()){ untested();
-			}else{ untested();
-				for(unsigned i=0; i<min_bucket; ++i){
+			if(k==_o.size()){
+			}else{
+				for(unsigned i=0; i<_min_bucket; ++i){
 					assert(_bs[i].empty());
 				}
-				while(_bs[min_bucket].empty()){ untested();
-					++min_bucket;
-					assert(min_bucket < o.size()); // not connected?
+				while(_bs[_min_bucket].empty()){
+					++_min_bucket;
+					assert(_min_bucket < _o.size()); // not connected?
 				}
 			}
 		} // main loop
@@ -230,11 +208,11 @@ public:
 		g = G_t(0);
 	}
 
-	void init(M_t* A, const V_t&){ untested();
+	void init(M_t* A, const V_t&){
 		init(A);
 	}
 
-	void init(M_t* A){ untested();
+	void init(M_t* A){
 		unsigned n = A->num_rows();
 
 		g = G_t(n);
@@ -255,7 +233,7 @@ public:
 		init_bs();
 	}
 
-	void init(M_t* A, const O_t& inv_map, const O_t& start){ untested();
+	void init(M_t* A, const O_t& inv_map, const O_t& start){
 		//TODO: replace this by UG_DLOG if permutation_util does not depend on this file anymore
 		#ifdef UG_ENABLE_DEBUG_LOGS
 		UG_LOG("Using " << name() << " on induced matrix of size " << inv_map.size() << "\n");
@@ -270,7 +248,7 @@ public:
 		init_bs();
 	}
 
-	void init_bs(){ untested();
+	void init_bs(){
 		size_t n = boost::num_vertices(g);
 		assert(n);
 		_degrees.resize(0);
@@ -282,16 +260,16 @@ public:
 	}
 
 	void check(){
-		if(!is_permutation(o)){
+		if(!is_permutation(_o)){
 			UG_THROW(name() << "::check: Not a permutation!");
 		}
 	}
 
-	O_t& ordering(){ untested();
+	O_t& ordering(){
 #ifndef NDEBUG
 		check();
 #endif
-		return o;
+		return _o;
 	}
 
 	void set_reverse(bool b){
@@ -302,16 +280,59 @@ public:
 
 private:
 	G_t g;
-	O_t o;
+	O_t _o;
 
-	std::list<size_t> front;
 	bool m_bReverse;
 	bool m_look_for_sources;
 
 	std::vector<unsigned> _tags;
 	map_type _degrees_;
-	bucket_sorter _bs; // (10, 10, M);
+
+	bucket_sorter _bs;
+	unsigned _min_bucket;
 }; // OwnCuthillMcKeeOrdering2
+
+
+template <typename TAlgebra, typename O_t>
+void OwnCuthillMcKeeOrdering2<TAlgebra, O_t>::do_node(vd s, int k)
+{
+	assert(_o[s] == INVALID);
+	_o[s] = k;
+	_degrees_[s] = INVALID;
+
+	auto i = boost::adjacent_vertices(s, g);
+	for(; i.first != i.second; ++i.first){
+		vd n = *i.first;
+		// assert(_o[n] == INVALID);
+
+		assert(n!=s);
+
+		if(_o[n] != INVALID) {
+			// already numbered.
+		}else if(_tags[n] == INVALID){
+			//not reachable yet
+			deg_t d = boost::in_degree(n, g);
+			_degrees_[n] = d;
+			_tags[n] = k;
+			_min_bucket = std::min(d, _min_bucket);
+			_bs.push_front(n);
+		}else{
+			// reached by earlier node.
+			assert(_tags[n]<k);
+			assert(_degrees_[n]);
+
+			if(_min_bucket == _degrees_[n]){
+				--_min_bucket;
+			}else{
+				assert(_min_bucket < _degrees_[n]);
+			}
+
+			--_degrees_[n];
+			_bs.update(n);
+		}
+	}
+
+}
 
 } //namespace
 
