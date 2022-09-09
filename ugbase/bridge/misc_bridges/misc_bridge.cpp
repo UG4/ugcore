@@ -483,13 +483,14 @@ static void errlog(const char* msg)
 	UG_ERR_LOG(msg);
 }
 
-void RegisterBridge_Misc(Registry &reg, string parentGroup)
+template <typename TRegistry>
+void RegisterBridge_Misc_(TRegistry &reg, string parentGroup)
 {
 
 	{
 		stringstream ss; ss << parentGroup << "/Util/Log";
 		string grp = ss.str();
-		reg.add_class_<LogAssistant>("LogAssistant", grp)
+		reg.template add_class_<LogAssistant>("LogAssistant", grp)
 			.add_method("enable_file_output", &LogAssistant::enable_file_output,
 					"", "bEnable#filename", "Please note that only the filename given at the first call is considered")
 			.add_method("rename_log_file", &LogAssistant::rename_log_file,
@@ -570,7 +571,7 @@ void RegisterBridge_Misc(Registry &reg, string parentGroup)
 		stringstream ss; ss << parentGroup << "/Util/Lua";
 		string grp = ss.str();
 		typedef LuaTableHandle T;
-		reg.add_class_<T /*, TBase*/>("LuaTableHandle", grp)
+		reg.template add_class_<T /*, TBase*/>("LuaTableHandle", grp)
 			.add_method("size", &T::size)
 			.set_construct_as_smart_pointer(true) // really?
 			;
@@ -579,9 +580,18 @@ void RegisterBridge_Misc(Registry &reg, string parentGroup)
 
 } // RegisterBridge_Misc
 
+void RegisterBridge_Misc(Registry &reg, string parentGroup)
+{ RegisterBridge_Misc_<Registry>(reg, parentGroup); }
 // end group misc_bridge
 /// \}
 
 }	// end namespace bridge
 
+#ifdef UG_USE_PYBIND11
+namespace pybind
+{
+	void RegisterBridge_Misc(ug::pybind::RegistryAdapter& reg, string parentGroup)
+	{ ug::bridge::RegisterBridge_Misc_<ug::pybind::RegistryAdapter>(reg, parentGroup); }
+}
+#endif
 } // end namespace ug

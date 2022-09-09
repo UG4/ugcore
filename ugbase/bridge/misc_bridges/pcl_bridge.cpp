@@ -201,7 +201,8 @@ bool AllProcsTrueDUMMY(bool bTrue)
 	return bTrue;
 }
 
-void RegisterBridge_PCL(Registry& reg, string parentGroup)
+template <typename TRegistry>
+void RegisterBridge_PCL_(TRegistry& reg, string parentGroup)
 {
 	string grp(parentGroup);
 	grp.append("/PCL");
@@ -233,10 +234,24 @@ void RegisterBridge_PCL(Registry& reg, string parentGroup)
 	reg.add_function("ParallelSum", &ParallelSumDUMMY<double>, grp, "tsum", "t", "returns the sum of t over all processes. note: you have to assure that all processes call this function.");
 }
 
+void RegisterBridge_PCL(Registry& reg, string parentGroup)
+{ RegisterBridge_PCL_<Registry>(reg, parentGroup); }
+
 #endif //UG_PARALLEL
 
 // end group pcl_bridge
 /// \}
 
-}// end of namespace
-}// end of namespace
+}// end of namespace bridge
+
+// #ifdef UG_PARALLEL
+#ifdef UG_USE_PYBIND11
+namespace pybind
+{
+	void RegisterBridge_PCL(ug::pybind::RegistryAdapter& reg, string parentGroup)
+	{ ug::bridge::RegisterBridge_PCL_<ug::pybind::RegistryAdapter>(reg, parentGroup); }
+}
+#endif
+// #endif
+
+}// end of namespace ug

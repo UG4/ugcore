@@ -207,12 +207,52 @@ int GetUGDim()
 	return UG4_DIM;
 }
 
-void RegisterStandardBridges(Registry& reg, string parentGroup)
+template <typename TRegistry>
+void RegisterBridge_InitUG_(TRegistry& reg)
+{
+	//	build a string with all compiled dimensions
+		stringstream availDims; bool first = true;
+#ifdef UG_DIM_1
+		if(!first) {availDims << ",";}; availDims << "1";
+		first = false;
+#endif
+#ifdef UG_DIM_2
+		if(!first) {availDims << ",";}; availDims << "2";
+		first = false;
+#endif
+#ifdef UG_DIM_3
+		if(!first) {availDims << ",";}; availDims << "3";
+#endif
+
+#ifdef UG_ALGEBRA
+		reg.add_function("InitUG", static_cast<void (*)(int, const AlgebraType&, bool)>(&InitUG), "/ug4/Init",
+		                 "", string("Dimension|selection|value=[").append(availDims.str()).
+		                 	 append("]#AlgebraType#verbose"));
+		reg.add_function("InitUG", static_cast<void (*)(int, const AlgebraType&)>(&InitUG), "/ug4/Init",
+		                 "", string("Dimension|selection|value=[").append(availDims.str()).
+		                 	 append("]#AlgebraType"));
+		reg.add_function("GetUGDim", &GetUGDim, "/ug4", "dimension", "", "Returns the dimension to which UG was initialized.");
+
+	// 	AlgebraType Interface
+		reg.template add_class_<AlgebraType>("AlgebraType", "/ug4/Init")
+			.template add_constructor<void (*)(const char*, int)>("Type|selection|value=[\"CPU\"]#Blocksize|selection|value=[1,2,3,4]")
+			.template add_constructor<void (*)(const char*)>("Type|selection|value=[\"CPU\"]", "Variable Blocksize")
+			.set_construct_as_smart_pointer(true);
+#endif
+}
+
+void RegisterBridge_InitUG(Registry& reg)
+{ RegisterBridge_InitUG_(reg); }
+
+}//	end of namespace bridge
+
+template<typename TRegistry>
+void RegisterBridges_Standard(TRegistry& reg, std::string parentGroup)
 {
 	try
 	{
 		// uncomment this to register test-methods
-		//RegisterBridge_Test(reg, parentGroup);
+		// RegisterBridge_Test(reg, parentGroup);
 
 		RegisterBridge_VecMath(reg, parentGroup);
 		RegisterBridge_Util(reg, parentGroup);
@@ -221,12 +261,15 @@ void RegisterStandardBridges(Registry& reg, string parentGroup)
 		RegisterBridge_Profiler(reg, parentGroup);
 		RegisterBridge_Misc(reg, parentGroup);
 		RegisterBridge_Raster(reg, parentGroup);
-		RegisterBridge_OrthoPoly(reg, parentGroup);
+#ifdef UG_USE_PYBIND11
+		/* The forthcoming bridges are not available w/ python binding yet.
+#endif
+		 RegisterBridge_OrthoPoly(reg, parentGroup);
 
 		#ifdef UG_GRID
 			RegisterBridge_Grid(reg, parentGroup);
 		#endif
-		
+
 		#ifdef UG_ALGEBRA
 			RegisterBridge_Selection(reg, parentGroup);
 			RegisterBridge_Domain(reg, parentGroup);
@@ -273,36 +316,11 @@ void RegisterStandardBridges(Registry& reg, string parentGroup)
 			RegisterBridge_ReferenceMappingTest(reg, parentGroup);
 		#endif
 
+#ifdef UG_USE_PYBIND11
+			*/
+#endif
+			RegisterBridge_InitUG(reg);
 
-	//	build a string with all compiled dimensions
-		stringstream availDims; bool first = true;
-#ifdef UG_DIM_1
-		if(!first) {availDims << ",";}; availDims << "1";
-		first = false;
-#endif
-#ifdef UG_DIM_2
-		if(!first) {availDims << ",";}; availDims << "2";
-		first = false;
-#endif
-#ifdef UG_DIM_3
-		if(!first) {availDims << ",";}; availDims << "3";
-#endif
-
-#ifdef UG_ALGEBRA
-		reg.add_function("InitUG", static_cast<void (*)(int, const AlgebraType&, bool)>(&InitUG), "/ug4/Init",
-		                 "", string("Dimension|selection|value=[").append(availDims.str()).
-		                 	 append("]#AlgebraType#verbose"));
-		reg.add_function("InitUG", static_cast<void (*)(int, const AlgebraType&)>(&InitUG), "/ug4/Init",
-		                 "", string("Dimension|selection|value=[").append(availDims.str()).
-		                 	 append("]#AlgebraType"));
-		reg.add_function("GetUGDim", &GetUGDim, "/ug4", "dimension", "", "Returns the dimension to which UG was initialized.");
-
-	// 	AlgebraType Interface
-		reg.add_class_<AlgebraType>("AlgebraType", "/ug4/Init")
-			.add_constructor<void (*)(const char*, int)>("Type|selection|value=[\"CPU\"]#Blocksize|selection|value=[1,2,3,4]")
-			.add_constructor<void (*)(const char*)>("Type|selection|value=[\"CPU\"]", "Variable Blocksize")
-			.set_construct_as_smart_pointer(true);
-#endif
 
 	}
 	UG_REGISTRY_CATCH_THROW("RegisterStandardInterfaces")
@@ -311,5 +329,33 @@ void RegisterStandardBridges(Registry& reg, string parentGroup)
 	reg.registry_changed();
 }
 
-}//	end of namespace 
-}//	end of namespace 
+
+
+namespace bridge {
+void RegisterStandardBridges(ug::bridge::Registry& reg, string parentGroup)
+{ ug::RegisterBridges_Standard<ug::bridge::Registry>(reg, parentGroup); }
+
+}//	end of namespace bridge
+
+#ifdef UG_USE_PYBIND11
+namespace pybind {
+
+void RegisterBridge_VecMath(ug::pybind::RegistryAdapter& reg, string parentGroup);
+void RegisterBridge_Util(ug::pybind::RegistryAdapter& reg, string parentGroup);
+
+void RegisterBridge_PCL(ug::pybind::RegistryAdapter& reg, string parentGroup);
+void RegisterBridge_Profiler(ug::pybind::RegistryAdapter& reg, string parentGroup);
+void RegisterBridge_Misc(ug::pybind::RegistryAdapter& reg, string parentGroup);
+void RegisterBridge_Raster(ug::pybind::RegistryAdapter& reg, string parentGroup);
+
+
+void RegisterBridge_InitUG(ug::pybind::RegistryAdapter& reg)
+{ ug::bridge::RegisterBridge_InitUG_(reg); }
+
+void RegisterStandardBridges(ug::pybind::RegistryAdapter& reg, string parentGroup)
+{ug::RegisterBridges_Standard(reg, parentGroup);}
+
+}//	end of namespace pybind
+
+#endif
+}//	end of namespace ug

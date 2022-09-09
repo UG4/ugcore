@@ -95,16 +95,17 @@ static void RegisterBridge_VecMath(Registry& reg, string grp)
 }
 */
 ////////////////////////////////////////////////////////////////////////////////
-static void RegisterVecMathBridge_DimIndep(Registry& reg, string grp)
+template <typename TRegistry>
+static void RegisterVecMathBridge_DimIndep(TRegistry& reg, string grp)
 {
 	try
 	{
 		{
 			typedef MathVector<1, number> vec_type;
-			reg.add_class_<vec_type>("Vec1d", grp)
+			reg.template add_class_<vec_type>("Vec1d", grp)
 				.add_constructor()
 #ifndef UG_FOR_VRL // TODO can we add all constructors to base class of class group? For now, use MakeVec for Java API.
-				.add_constructor<void (*)(number)>()
+				.template add_constructor<void (*)(number)>()
 #endif
 				.add_method("set_coord", &vec_type::set_coord, "", "index # value",
 				            "sets the value of the coordinate with the given index")
@@ -114,10 +115,10 @@ static void RegisterVecMathBridge_DimIndep(Registry& reg, string grp)
 		}
 		{
 			typedef MathVector<2, number> vec_type;
-			reg.add_class_<vec_type>("Vec2d", grp)
+			reg.template add_class_<vec_type>("Vec2d", grp)
 				.add_constructor()
 #ifndef UG_FOR_VRL // TODO can we add all constructors to base class of class group? For now, use MakeVec for Java API.
-				.add_constructor<void (*)(number, number)>()
+				.template add_constructor<void (*)(number, number)>()
 #endif
 				.add_method("set_coord", &vec_type::set_coord, "", "index # value",
 				            "sets the value of the coordinate with the given index")
@@ -127,10 +128,10 @@ static void RegisterVecMathBridge_DimIndep(Registry& reg, string grp)
 		}
 		{
 			typedef MathVector<3, number> vec_type;
-			reg.add_class_<vec_type>("Vec3d", grp)
+			reg.template add_class_<vec_type>("Vec3d", grp)
 				.add_constructor()
 #ifndef UG_FOR_VRL // TODO can we add all constructors to base class of class group? For now, use MakeVec for Java API.
-				.add_constructor<void (*)(number, number, number)>()
+				.template add_constructor<void (*)(number, number, number)>()
 #endif
 				.add_method("set_coord", &vec_type::set_coord, "", "index # value",
 				            "sets the value of the coordinate with the given index")
@@ -140,10 +141,10 @@ static void RegisterVecMathBridge_DimIndep(Registry& reg, string grp)
 		}
 		{
 			typedef MathVector<4, number> vec_type;
-			reg.add_class_<vec_type>("Vec4d", grp)
+			reg.template add_class_<vec_type>("Vec4d", grp)
 				.add_constructor()
 #ifndef UG_FOR_VRL // TODO can we add all constructors to base class of class group? For now, use MakeVec for Java API.
-				.add_constructor<void (*)(number, number, number, number)>()
+				.template add_constructor<void (*)(number, number, number, number)>()
 #endif
 				.add_method("set_coord", &vec_type::set_coord, "", "index # value",
 				            "sets the value of the coordinate with the given index")
@@ -167,20 +168,26 @@ static void RegisterVecMathBridge_DimIndep(Registry& reg, string grp)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-void RegisterBridge_VecMath(Registry& reg, string parentGroup)
+template<typename TRegistry>
+void RegisterBridge_VecMath_(TRegistry& reg, string parentGroup)
 {
 //	get group string
 	string grp = parentGroup; grp.append("/Util/VecMath");
-
-//	RegisterBridge_VecMath<1>(reg, grp);
-//	RegisterBridge_VecMath<2>(reg, grp);
-//	RegisterBridge_VecMath<3>(reg, grp);
-//	RegisterBridge_VecMath<4>(reg, grp);
 	RegisterVecMathBridge_DimIndep(reg, grp);
 }
 
+void RegisterBridge_VecMath(Registry& reg, string parentGroup)
+{ RegisterBridge_VecMath_<Registry>(reg, parentGroup); }
 // end group vecmath_bridge
 /// \}
 
-}// end of namespace
-}// end of namespace
+}// end of namespace bridge
+
+#ifdef UG_USE_PYBIND11
+namespace pybind
+{
+	void RegisterBridge_VecMath(ug::pybind::RegistryAdapter& reg, string parentGroup)
+	{ bridge::RegisterBridge_VecMath_<ug::pybind::RegistryAdapter>(reg, parentGroup); }
+}
+#endif
+}// end of namespace pybind

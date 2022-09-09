@@ -41,8 +41,8 @@ using namespace std;
 namespace ug{
 namespace bridge{
 
-template <class TValue, int TDIM>
-static void RegisterRaster(Registry& reg, string name, string grp)
+template <class TValue, int TDIM, typename TRegistry=Registry>
+static void RegisterRaster(TRegistry& reg, string name, string grp)
 {
 	string suffix = GetDimensionSuffix<TDIM>();
 	string tag = GetDimensionTag<TDIM>();
@@ -50,7 +50,7 @@ static void RegisterRaster(Registry& reg, string name, string grp)
 	typedef Raster<TValue, TDIM> T;
 	string fullName = name + suffix;
 
-	reg.add_class_<T>(fullName, grp)
+	reg.template add_class_<T>(fullName, grp)
 		.template add_constructor<void (*)()>()
 		.add_method("dim", &T::dim, "dimension", "", "Returns the dimension of the raster.")
 		.add_method("blur", &T::blur,
@@ -93,14 +93,26 @@ static void RegisterRaster(Registry& reg, string name, string grp)
 	reg.add_class_to_group(fullName, name, tag);
 }
 
-void RegisterBridge_Raster(Registry& reg, string parentGroup)
+template <typename TRegistry>
+void RegisterBridge_Raster_(TRegistry& reg, string parentGroup)
 {
 	string grp = parentGroup; grp.append("/Util/Raster");
 
-	RegisterRaster<number, 1>(reg, "NumberRaster", parentGroup);
-	RegisterRaster<number, 2>(reg, "NumberRaster", parentGroup);
-	RegisterRaster<number, 3>(reg, "NumberRaster", parentGroup);
+	RegisterRaster<number, 1, TRegistry>(reg, "NumberRaster", parentGroup);
+	RegisterRaster<number, 2, TRegistry>(reg, "NumberRaster", parentGroup);
+	RegisterRaster<number, 3, TRegistry>(reg, "NumberRaster", parentGroup);
 }
 
-}//	end of namespace
-}//	end of namespace
+void RegisterBridge_Raster(Registry& reg, string parentGroup)
+{ RegisterBridge_Raster_<Registry>(reg, parentGroup); }
+}//	end of namespace bridge
+
+#ifdef UG_USE_PYBIND11
+namespace pybind
+{
+	void RegisterBridge_Raster(ug::pybind::RegistryAdapter& reg, string parentGroup)
+	{ ug::bridge::RegisterBridge_Raster_<ug::pybind::RegistryAdapter>(reg, parentGroup); }
+}
+#endif
+
+}//	end of namespace ug

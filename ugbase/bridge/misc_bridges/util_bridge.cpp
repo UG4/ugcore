@@ -39,6 +39,7 @@
 #include "common/util/table.h"
 #include "common/util/variant.h"
 #include "registry/registry.h"
+#include "bindings/pybind/ug_pybind.h"
 #if defined (__APPLE__) || defined (__linux__)
 	#include "common/util/mem_info.h"
 #endif
@@ -112,25 +113,27 @@ std::vector<std::string> GetDirsInDir(const char* dir)
 	GetDirectoriesInDirectory(dirs, dir);
 	return dirs;
 }
+}
 
-void RegisterBridge_Util(Registry& reg, string parentGroup)
+template <typename TRegistry>
+void RegisterBridge_Util_(TRegistry& reg, string parentGroup)
 {
 	string grp(parentGroup);
 	grp.append("/Util");
 
-	reg.add_function("ug_get_root_path", &GetRootPath, grp,
+	reg.add_function("ug_get_root_path", &ug::bridge::GetRootPath, grp,
 	                 "pathName", "", "Returns ug's root path");
 
-	reg.add_function("ug_get_apps_path", &GetAppsPath, grp,
+	reg.add_function("ug_get_apps_path", &ug::bridge::GetAppsPath, grp,
 	                 "pathName", "", "Returns the path in which ug's apps are stored");
 
-	reg.add_function("ug_get_bin_path", &GetBinPath, grp,
+	reg.add_function("ug_get_bin_path", &ug::bridge::GetBinPath, grp,
 	                 "pathName", "", "Returns the path in which the ug executable lies");
 
-	reg.add_function("ug_get_script_path", &GetScriptPath, grp,
+	reg.add_function("ug_get_script_path", &ug::bridge::GetScriptPath, grp,
 	                 "pathName", "", "Returns the script path");
 
-	reg.add_function("ug_get_current_path", &GetCurrentPath, grp,
+	reg.add_function("ug_get_current_path", &ug::bridge::GetCurrentPath, grp,
 	                 "pathName", "", "Returns the current path");
 
 	reg.add_function("ug_set_root_path", static_cast<void(*)(const std::string&)>(&SetRootPath), grp,
@@ -145,10 +148,10 @@ void RegisterBridge_Util(Registry& reg, string parentGroup)
 	reg.add_function("ug_set_plugin_path", static_cast<void(*)(const std::string&)>(&SetPluginPath), grp,
 	                 "", "pathName", "Sets the plugin path");
 
-	reg.add_function("ExecuteSystemCommand", &ExecuteSystemCommand, grp,
+	reg.add_function("ExecuteSystemCommand", &ug::bridge::ExecuteSystemCommand, grp,
 	                 "success", "command", "Executes a command in the system shell");
 
-	reg.add_function("srand", int_srand, grp, 
+	reg.add_function("srand", ug::bridge::int_srand, grp,
 	                 "", "seed", "The pseudo-random number generator is initialized using the argument passed as seed.")
 		.add_function("ug_file_exists", OVERLOADED_FUNCTION_PTR(bool, FileExists, (const char*)), grp,
 	                  "exists", "", "Returns true if a path exists, false if not.")
@@ -160,27 +163,27 @@ void RegisterBridge_Util(Registry& reg, string parentGroup)
 	reg.add_function("CreateDirectory", static_cast<bool (*)(const char *) > (&CreateDirectoryTMP) );
 	reg.add_function("DirectoryExists", static_cast<bool (*)(const char *) > (&DirectoryExists) );
 	reg.add_function("FileExists", static_cast<bool (*)(const char *) > (&FileExists) );
-	reg.add_function("GetFilesInDir", GetFilesInDir);
-	reg.add_function("GetDirsInDir", GetDirsInDir);
+	reg.add_function("GetFilesInDir", ug::bridge::GetFilesInDir);
+	reg.add_function("GetDirsInDir", ug::bridge::GetDirsInDir);
 	reg.add_function("GetTmpPath", GetTmpPath);
 	reg.add_function("ChangeDirectory", ChangeDirectory);
 	reg.add_function("CurrentWorkingDirectory", CurrentWorkingDirectory);
 	reg.add_function("FileCompare", FileCompare);
-	reg.add_function("SetMinSecondsUntilProgress", SetMinSecondsUntilProgress, grp, "", "seconds", "determines after which time a progress bar can show up");
+	reg.add_function("SetMinSecondsUntilProgress", ug::bridge::SetMinSecondsUntilProgress, grp, "", "seconds", "determines after which time a progress bar can show up");
 
 	reg.add_function("FindFileInStandardPaths", FindFileInStandardPaths);
 
 	{
 		typedef Variant T;
-		reg.add_class_<T>("Variant", grp)
+		reg.template add_class_<T>("Variant", grp)
 		.add_constructor()
-		.add_constructor<void (*)(bool)>()
-		.add_constructor<void (*)(int)>()
-		.add_constructor<void (*)(size_t)>()
-		.add_constructor<void (*)(float)>()
-		.add_constructor<void (*)(double)>()
-		.add_constructor<void (*)(const char*)>()
-		.add_constructor<void (*)(const Variant&)>()
+		.template add_constructor<void (*)(bool)>()
+		.template add_constructor<void (*)(int)>()
+		.template add_constructor<void (*)(size_t)>()
+		.template add_constructor<void (*)(float)>()
+		.template add_constructor<void (*)(double)>()
+		.template add_constructor<void (*)(const char*)>()
+		.template add_constructor<void (*)(const Variant&)>()
 		.add_method("to_bool", &T::to_bool)
 		.add_method("to_int", &T::to_int)
 		.add_method("to_size_t", &T::to_size_t)
@@ -193,9 +196,9 @@ void RegisterBridge_Util(Registry& reg, string parentGroup)
 
 	{
 		typedef StringTable T;
-		reg.add_class_<T>("StringTable", grp)
+		reg.template add_class_<T>("StringTable", grp)
 		.add_constructor()
-		.add_constructor< void (*) ( size_t numRows, size_t numCols) > ()
+		.template add_constructor< void (*) ( size_t numRows, size_t numCols) > ()
 		.add_method("set", &T::set)
 		.add_method("get", &T::get)
 		.add_method("add_rows", &T::add_rows)
@@ -226,7 +229,7 @@ void RegisterBridge_Util(Registry& reg, string parentGroup)
 	{
 		// Matlab like stop watch
 		 typedef CuckooClock T;
-		 reg.add_class_<T>("CuckooClock", grp)
+		 reg.template add_class_<T>("CuckooClock", grp)
 			.add_constructor()
 		    .add_method("tic", &T::tic)
 		    .add_method("toc", &T::toc)
@@ -238,7 +241,7 @@ void RegisterBridge_Util(Registry& reg, string parentGroup)
 	{
 		typedef MemInfo T;
 		string name = string("MemInfo");
-		reg.add_class_<T>(name, grp)
+		reg.template add_class_<T>(name, grp)
 			.add_constructor()
 			.add_method("memory_consumption", &T::memory_consumption, "", "", "")
 			.add_method("local_resident_memory", &T::local_resident_memory, "", "", "")
@@ -254,8 +257,22 @@ void RegisterBridge_Util(Registry& reg, string parentGroup)
 
 }
 
+namespace bridge {
+
+void RegisterBridge_Util(Registry& reg, string parentGroup)
+{ ug::RegisterBridge_Util_<Registry>(reg, parentGroup); }
+
 // end group util_bridge
 /// \}
 
 }// end of namespace bridge
+
+#ifdef UG_USE_PYBIND11
+namespace pybind
+{
+	void RegisterBridge_Util(ug::pybind::RegistryAdapter& reg, string parentGroup)
+	{ ug::RegisterBridge_Util_<ug::pybind::RegistryAdapter>(reg, parentGroup); }
+}
+#endif
+
 }// end of namespace ug

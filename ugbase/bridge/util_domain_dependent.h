@@ -79,56 +79,56 @@ typedef boost::mpl::list<
 //  Register invokers
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename Functionality, typename List = CompileDomainList>
+template <typename Functionality, typename List = CompileDomainList, typename TRegistry=Registry>
 struct RegisterDomainDependent
 {
-	RegisterDomainDependent(Registry& reg, std::string grp)
+	RegisterDomainDependent(TRegistry& reg, std::string grp)
 	{
 		static const bool isEmpty = boost::mpl::empty<List>::value;
 		typename boost::mpl::if_c<isEmpty, RegEnd, RegNext>::type (reg,grp);
 	}
-	struct RegEnd{ RegEnd(Registry& reg, std::string grp){} };
+	struct RegEnd{ RegEnd(TRegistry& reg, std::string grp){} };
 	struct RegNext
 	{
-		RegNext(Registry& reg, std::string grp)
+		RegNext(TRegistry& reg, std::string grp)
 		{
 			typedef typename boost::mpl::front<List>::type DomainType;
 			typedef typename boost::mpl::pop_front<List>::type NextList;
 			Functionality::template Domain<DomainType>(reg,grp);
-			RegisterDomainDependent<Functionality, NextList>(reg,grp);
+			RegisterDomainDependent<Functionality, NextList, TRegistry>(reg,grp);
 		}
 	};
 };
 
-template<typename Functionality>
-void RegisterDomain1dDependent(Registry& reg, std::string grp)
+template<typename Functionality, typename TRegistry=Registry>
+void RegisterDomain1dDependent(TRegistry& reg, std::string grp)
 {
 #ifdef UG_DIM_1
 	RegisterDomainDependent<Functionality, boost::mpl::list<Domain1d> > (reg, grp);
 #endif
 }
 
-template<typename Functionality>
-void RegisterDomain2dDependent(Registry& reg, std::string grp)
+template<typename Functionality, typename TRegistry=Registry>
+void RegisterDomain2dDependent(TRegistry& reg, std::string grp)
 {
 #ifdef UG_DIM_2
 	RegisterDomainDependent<Functionality, boost::mpl::list<Domain2d> > (reg, grp);
 #endif
 }
 
-template<typename Functionality>
-void RegisterDomain3dDependent(Registry& reg, std::string grp)
+template<typename Functionality, typename TRegistry=Registry>
+void RegisterDomain3dDependent(TRegistry& reg, std::string grp)
 {
 #ifdef UG_DIM_3
 	RegisterDomainDependent<Functionality, boost::mpl::list<Domain3d> > (reg, grp);
 #endif
 }
 
-template<typename Functionality>
-void RegisterDomain2d3dDependent(Registry& reg, std::string grp)
+template<typename Functionality, typename TRegistry=Registry>
+void RegisterDomain2d3dDependent(TRegistry& reg, std::string grp)
 {
-	RegisterDomain2dDependent<Functionality>(reg, grp);
-	RegisterDomain3dDependent<Functionality>(reg, grp);
+	RegisterDomain2dDependent<Functionality, TRegistry>(reg, grp);
+	RegisterDomain3dDependent<Functionality, TRegistry>(reg, grp);
 }
 
 // end group bridge

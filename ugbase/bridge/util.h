@@ -42,14 +42,14 @@ namespace bridge{
 /// \addtogroup bridge
 /// \{
 
-template <typename Functionality>
-void RegisterCommon(Registry& reg, std::string grp)
+template <typename Functionality, typename TRegistry=Registry>
+void RegisterCommon(TRegistry& reg, std::string grp)
 {
 	Functionality::Common(reg,grp);
 }
 
-template <typename Functionality>
-void RegisterDimensionDependent(Registry& reg, std::string grp)
+template <typename Functionality, typename TRegistry=Registry>
+void RegisterDimensionDependent(TRegistry& reg, std::string grp)
 {
 #ifdef UG_DIM_1
 	Functionality::template Dimension<1>(reg,grp);
@@ -62,35 +62,35 @@ void RegisterDimensionDependent(Registry& reg, std::string grp)
 #endif
 }
 
-template <typename Functionality>
-void RegisterDimension1dDependent(Registry& reg, std::string grp)
+template <typename Functionality, typename TRegistry=Registry>
+void RegisterDimension1dDependent(TRegistry& reg, std::string grp)
 {
 #ifdef UG_DIM_1
 	Functionality::template Dimension<1>(reg,grp);
 #endif
 }
 
-template <typename Functionality>
-void RegisterDimension2dDependent(Registry& reg, std::string grp)
+template <typename Functionality, typename TRegistry=Registry>
+void RegisterDimension2dDependent(TRegistry& reg, std::string grp)
 {
 #ifdef UG_DIM_2
 	Functionality::template Dimension<2>(reg,grp);
 #endif
 }
 
-template <typename Functionality>
-void RegisterDimension3dDependent(Registry& reg, std::string grp)
+template <typename Functionality, typename TRegistry=Registry>
+void RegisterDimension3dDependent(TRegistry& reg, std::string grp)
 {
 #ifdef UG_DIM_3
 	Functionality::template Dimension<3>(reg,grp);
 #endif
 }
 
-template <typename Functionality>
-void RegisterDimension2d3dDependent(Registry& reg, std::string grp)
+template <typename Functionality, typename TRegistry=Registry>
+void RegisterDimension2d3dDependent(TRegistry& reg, std::string grp)
 {
-	RegisterDimension2dDependent<Functionality>(reg, grp);
-	RegisterDimension3dDependent<Functionality>(reg, grp);
+	RegisterDimension2dDependent<Functionality, TRegistry>(reg, grp);
+	RegisterDimension3dDependent<Functionality, TRegistry>(reg, grp);
 }
 
 // end group bridge

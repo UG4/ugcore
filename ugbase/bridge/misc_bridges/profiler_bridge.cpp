@@ -68,21 +68,15 @@ static void SetFrequency(const std::string& csvFile){
 
 
   //void PrintLUA();
-namespace bridge
-{
 
 
-/// \defgroup profiler_bridge Profiler Bridge
-/// \ingroup misc_bridge
-/// \{
-//////////////////////////////////////////////////////////////////////////////////////////
-
-void RegisterBridge_Profiler(Registry &reg, string parentGroup)
+template <typename TRegistry>
+void RegisterBridge_Profiler_(TRegistry &reg, string parentGroup)
 {
 	stringstream ss; ss << parentGroup << "/Util/Profiler";
 	string grp = ss.str();
 
-	reg.add_class_<UGProfileNode>("UGProfileNode", grp)
+	reg.template add_class_<UGProfileNode>("UGProfileNode", grp)
 		// call tree
 		.add_method("call_tree",
 				OVERLOADED_CONST_METHOD_PTR(string, UGProfileNode, call_tree, ()),
@@ -187,9 +181,28 @@ void RegisterBridge_Profiler(Registry &reg, string parentGroup)
 }
 
 
+namespace bridge
+{
+
+/// \defgroup profiler_bridge Profiler Bridge
+/// \ingroup misc_bridge
+/// \{
+
+void RegisterBridge_Profiler(Registry& reg, string parentGroup)
+{ ug::RegisterBridge_Profiler_<Registry>(reg, parentGroup); }
+
+//////////////////////////////////////////////////////////////////////////////////////////
 // end group profiler_bridge
 /// \}
 
 } // namespace bridge
 
+
+#ifdef UG_USE_PYBIND11
+namespace pybind
+{
+	void RegisterBridge_Profiler(ug::pybind::RegistryAdapter& reg, string parentGroup)
+	{ ug::RegisterBridge_Profiler_<ug::pybind::RegistryAdapter>(reg, parentGroup); }
+}
+#endif
 } // namespace ug

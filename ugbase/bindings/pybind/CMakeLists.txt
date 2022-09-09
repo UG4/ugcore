@@ -1,5 +1,5 @@
-# Copyright (c) 2020:  G-CSC, Goethe University Frankfurt
-# Author: Arne Naegel
+# Copyright (c) 2010-2015:  G-CSC, Goethe University Frankfurt
+# Author: Sebastian Reiter
 # 
 # This file is part of UG4.
 # 
@@ -28,37 +28,20 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU Lesser General Public License for more details.
 
-# included from ug_includes.cmake
+cmake_minimum_required(VERSION 2.8.12)
 
+project(UG_PYBIND11)
+####
+# uginterface Library
+####
 
-if(USE_PYBIND11)
-    if(STATIC_BUILD)
-    	MESSAGE(STATUS "Info: Pybind11 requested, but static build. Pybind11 disabled?")
-    	SET(USE_JSON OFF)
-    else(STATIC_BUILD)
-    	MESSAGE(STATUS "Info: Using Pybind11")
-    	
-    	
-    	#FIND_PACKAGE (Python COMPONENTS Interpreter Development)
-    	MESSAGE(STATUS "Info: Using Pybind11 from ${Python_INCLUDE_DIRS}")
-    	
-    	# Automatic
-    	SET(pybind11_DIR ${UG_ROOT_CMAKE_PATH}/../../externals/pybind11/include)		
-    	FIND_PACKAGE(pybind11 REQUIRED)
-		FIND_PACKAGE(Python REQUIRED COMPONENTS Interpreter Development)
-   	   	
-   	    MESSAGE(STATUS "Info: Using Pybind11 from ${pybind11_FOUND}")
-   	   	MESSAGE(STATUS "Info: Using Pybind11 INC ${pybind11_INCLUDE_DIR}")
-   	   	MESSAGE(STATUS "Info: Using Pybind11 INC ${Python_INCLUDE_DIRS}")
-   		MESSAGE(STATUS "Info: Using Pybind11 LIB ${Python_LIBRARIES}")
-    	
-    	# includes
-    	include_directories(${pybind11_INCLUDE_DIR} ${Python_INCLUDE_DIRS})
-		#expand libraries
-		set(linkLibraries ${linkLibraries} ${Python_LIBRARIES})
-		# set define
-    	add_definitions(-DUG_USE_PYBIND11)
-    endif(STATIC_BUILD)
-else(USE_PYBIND11)
-	set(USE_PYBIND11 OFF)
-endif(USE_PYBIND11)
+# Python binding (requires C++11).
+#find_package(pybind11 REQUIRED)
+
+SET(pyPluginName ug4py) # Must match module name!
+pybind11_add_module(${pyPluginName} ug_pybind.cpp)
+set_target_properties(${pyPluginName} PROPERTIES	
+  	CXX_STANDARD 11 
+  	CXX_STANDARD_REQUIRED YES
+   	CXX_EXTENSIONS NO)
+target_link_libraries (${pyPluginName} PRIVATE ug4)

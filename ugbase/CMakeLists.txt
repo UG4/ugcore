@@ -74,6 +74,7 @@ endif(buildRegistry)
 # bindings
 if(buildBindings)
 	add_subdirectory(bindings/lua)
+	add_subdirectory(bindings/pybind)
 	if(buildForVRL)
     	add_subdirectory(bindings/vrl)
 	endif(buildForVRL)

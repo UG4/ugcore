@@ -40,6 +40,10 @@
 #include "lib_algebra/algebra_type.h"
 #include "common/ug_config.h"
 
+#ifdef UG_USE_PYBIND11
+#include "bindings/pybind/ug_pybind.h"
+#endif
+
 namespace ug{
 namespace bridge{
 
@@ -76,6 +80,13 @@ UG_API void RegisterStandardBridges(Registry& reg, std::string grp = UG4_GRP);
 /// \}
 
 }//	end bridge
+
+#ifdef UG_USE_PYBIND11
+namespace pybind {
+void RegisterStandardBridges(ug::pybind::RegistryAdapter& reg, std::string parentGroup);
+}//	end of namespace
+#endif
+
 }//	end ug
 
 #include "suffix_tag.h"
