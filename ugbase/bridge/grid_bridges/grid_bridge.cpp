@@ -47,31 +47,32 @@ bool IsValidPtr(T* o){
 	return o != NULL;
 }
 
-template <int dim>
-void RegisterGeometry(Registry& reg, string grp)
+template <int dim, typename TRegistry=Registry>
+void RegisterGeometry(TRegistry& reg, string grp)
 {
 	typedef IGeometry<dim>	T;
 	string suffix = GetDimensionSuffix<dim>();
 	string tag = GetDimensionTag<dim>();
 
 	string name = mkstr("IGeometry" << suffix);
-	reg.add_class_<T>(name, grp);
+	reg.template add_class_<T>(name, grp);
 	reg.add_class_to_group(name, "IGeometry", tag);
 }
 
-void RegisterGridBridge_Grid(Registry& reg, string parentGroup)
+template<typename TRegistry=Registry>
+void RegisterGridBridge_Grid_(TRegistry& reg, string parentGroup)
 {
 	string grp = parentGroup;
 //	Geometric Objects
-	reg.add_class_<GridObject>("GridObject", grp);
-	reg.add_class_<Vertex, GridObject>("Vertex", grp);
-	reg.add_class_<Edge, GridObject>("Edge", grp)
+	reg.template add_class_<GridObject>("GridObject", grp);
+	reg.template add_class_<Vertex, GridObject>("Vertex", grp);
+	reg.template add_class_<Edge, GridObject>("Edge", grp)
 		.add_method("num_vertices", &Edge::num_vertices, grp)
 		.add_method("vertex", &Edge::vertex, grp);
-	reg.add_class_<Face, GridObject>("Face", grp)
+	reg.template add_class_<Face, GridObject>("Face", grp)
 		.add_method("num_vertices", &Face::num_vertices, grp)
 		.add_method("vertex", &Face::vertex, grp);
-	reg.add_class_<Volume, GridObject>("Volume", grp)
+	reg.template add_class_<Volume, GridObject>("Volume", grp)
 		.add_method("num_vertices", &Volume::num_vertices, grp)
 		.add_method("vertex", &Volume::vertex, grp);
 
@@ -81,7 +82,7 @@ void RegisterGridBridge_Grid(Registry& reg, string parentGroup)
 	reg.add_function("IsValid", &IsValidPtr<Volume>, grp);
 
 //	Grid
-	reg.add_class_<Grid>("Grid", grp)
+	reg.template add_class_<Grid>("Grid", grp)
 		.add_constructor()
 		.add_method("clear", static_cast<void (Grid::*)()>(&Grid::clear))
 		.add_method("clear_geometry", &Grid::clear_geometry)
@@ -102,7 +103,7 @@ void RegisterGridBridge_Grid(Registry& reg, string parentGroup)
 		.set_construct_as_smart_pointer(true);
 
 //	MultiGrid
-	reg.add_class_<MultiGrid, Grid>("MultiGrid", grp)
+	reg.template add_class_<MultiGrid, Grid>("MultiGrid", grp)
 		.add_constructor()
 		.add_method("num_levels", &MultiGrid::num_levels)
 
@@ -119,11 +120,11 @@ void RegisterGridBridge_Grid(Registry& reg, string parentGroup)
 		.set_construct_as_smart_pointer(true);
 
 //	standard attachments
-	reg.add_class_<AInt>("AInt");
-	reg.add_class_<ANumber>("ANumber");
-	reg.add_class_<APosition1>("APosition1");
-	reg.add_class_<APosition2>("APosition2");
-	reg.add_class_<APosition3>("APosition3");
+	reg.template add_class_<AInt>("AInt");
+	reg.template add_class_<ANumber>("ANumber");
+	reg.template add_class_<APosition1>("APosition1");
+	reg.template add_class_<APosition2>("APosition2");
+	reg.template add_class_<APosition3>("APosition3");
 
 //	geometry
 	RegisterGeometry<1>(reg, grp);
@@ -131,5 +132,7 @@ void RegisterGridBridge_Grid(Registry& reg, string parentGroup)
 	RegisterGeometry<3>(reg, grp);
 }
 
-}//	end of namespace
-}//	end of namespace
+}//	end of namespace bridge
+
+UG_REGISTRY_DEFINE(RegisterGridBridge_Grid);
+}//	end of namespace ug

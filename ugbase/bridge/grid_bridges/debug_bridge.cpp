@@ -39,7 +39,8 @@ using namespace std;
 namespace ug{
 namespace bridge{
 
-void RegisterGridBridge_Debug(Registry& reg, string parentGroup)
+template <typename TRegistry=Registry>
+void RegisterGridBridge_Debug_(TRegistry& reg, string parentGroup)
 {
 	string grp = parentGroup;
 
@@ -57,4 +58,7 @@ void RegisterGridBridge_Debug(Registry& reg, string parentGroup)
 }
 
 }//	end of namespace
+
+UG_REGISTRY_DEFINE(RegisterGridBridge_Debug);
+
 }//	end of namespace

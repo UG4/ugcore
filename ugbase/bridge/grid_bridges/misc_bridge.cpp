@@ -95,7 +95,8 @@ bool TestNTree(const char* filename)
 	return true;
 }
 
-void RegisterGridBridge_Misc(Registry& reg, string parentGroup)
+template <typename TRegistry=Registry>
+void RegisterGridBridge_Misc_(TRegistry& reg, string parentGroup)
 {
 	string grp = parentGroup;
 	reg.add_function("PrintGridElementNumbers", static_cast<void (*)(MultiGrid&)>(&PrintGridElementNumbers), grp)
@@ -108,4 +109,7 @@ void RegisterGridBridge_Misc(Registry& reg, string parentGroup)
 }
 
 }//	end of namespace
+
+UG_REGISTRY_DEFINE(RegisterGridBridge_Misc);
+
 }//	end of namespace

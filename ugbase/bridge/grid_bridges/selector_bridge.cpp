@@ -39,11 +39,12 @@ using namespace std;
 namespace ug{
 namespace bridge{
 
-void RegisterGridBridge_Selector(Registry& reg, string parentGroup)
+template<typename TRegistry=Registry>
+void RegisterGridBridge_Selector_(TRegistry& reg, string parentGroup)
 {
 	string grp = parentGroup;
 
-	reg.add_class_<ISelector>("ISelector", grp)
+	reg.template add_class_<ISelector>("ISelector", grp)
 		.add_method("select", static_cast<void (ISelector::*)(Vertex*)>(&ISelector::select<Vertex>))
 		.add_method("select", static_cast<void (ISelector::*)(Edge*)>(&ISelector::select<Edge>))
 		.add_method("select", static_cast<void (ISelector::*)(Face*)>(&ISelector::select<Face>))
@@ -57,8 +58,8 @@ void RegisterGridBridge_Selector(Registry& reg, string parentGroup)
 		.add_method("is_selected", static_cast<bool (ISelector::*)(Face*) const>(&ISelector::is_selected<Face>))
 		.add_method("is_selected", static_cast<bool (ISelector::*)(Volume*) const>(&ISelector::is_selected<Volume>));
 
-	reg.add_class_<Selector, ISelector>("Selector", grp)
-		.add_constructor<void (*)(Grid&)>()
+	reg.template add_class_<Selector, ISelector>("Selector", grp)
+		.template add_constructor<void (*)(Grid&)>()
 		.add_method("num_vertices", static_cast<size_t (Selector::*)() const>(&Selector::num<Vertex>))
 		.add_method("num_edges", static_cast<size_t (Selector::*)() const>(&Selector::num<Edge>))
 		.add_method("num_faces", static_cast<size_t (Selector::*)() const>(&Selector::num<Face>))
@@ -73,4 +74,6 @@ void RegisterGridBridge_Selector(Registry& reg, string parentGroup)
 }
 
 }//	end of namespace
+
+UG_REGISTRY_DEFINE(RegisterGridBridge_Selector);
 }//	end of namespace

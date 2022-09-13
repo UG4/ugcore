@@ -40,26 +40,27 @@ using namespace std;
 namespace ug{
 namespace bridge{
 
-void RegisterGridBridge_Balancing(Registry& reg, string parentGroup)
+template <typename TRegistry=Registry>
+void RegisterGridBridge_Balancing_(TRegistry& reg, string parentGroup)
 {
 	string grp = parentGroup;
 
 // partition weighting in metis partitioning
-	reg.add_class_<PartitionWeighting>("PartitionWeighting", grp)
+	reg.template add_class_<PartitionWeighting>("PartitionWeighting", grp)
 		.add_constructor()
 		.add_method("set_default_weights", &PartitionWeighting::set_default_weights, "", "hWeight#vWeight")
 		.set_construct_as_smart_pointer(true);
-	reg.add_class_<InterSubsetPartitionWeighting, PartitionWeighting>("InterSubsetPartitionWeighting", grp)
+	reg.template add_class_<InterSubsetPartitionWeighting, PartitionWeighting>("InterSubsetPartitionWeighting", grp)
 		.add_constructor()
 		.add_method("set_inter_subset_weight", &InterSubsetPartitionWeighting::set_inter_subset_weight, "", "si1#si2#weight")
 		.set_construct_as_smart_pointer(true);
-	reg.add_class_<ProtectSubsetPartitionWeighting, PartitionWeighting>("ProtectSubsetPartitionWeighting", grp)
+	reg.template add_class_<ProtectSubsetPartitionWeighting, PartitionWeighting>("ProtectSubsetPartitionWeighting", grp)
 		.add_constructor()
 		.add_method("set_weight", &ProtectSubsetPartitionWeighting::set_weight, "", "si#weight")
 		.set_construct_as_smart_pointer(true);
 
 //	PartitionMap
-	reg.add_class_<PartitionMap>("PartitionMap", grp)
+	reg.template add_class_<PartitionMap>("PartitionMap", grp)
 		.add_constructor()
 		.add_method("clear", &PartitionMap::clear)
 		.add_method("get_partition_handler", &PartitionMap::get_partition_handler)
@@ -72,4 +73,7 @@ void RegisterGridBridge_Balancing(Registry& reg, string parentGroup)
 }
 
 }//	end of namespace
+
+UG_REGISTRY_DEFINE(RegisterGridBridge_Balancing);
+
 }//	end of namespace

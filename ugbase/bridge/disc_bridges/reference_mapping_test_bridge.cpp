@@ -48,7 +48,8 @@ namespace ug{
 namespace bridge{
 
 /// \addtogroup ordering_bridge
-void RegisterBridge_ReferenceMappingTest(Registry& reg, string grp)
+template <typename TRegistry=Registry>
+void RegisterBridge_ReferenceMappingTest_(TRegistry& reg, string grp)
 {
 	grp.append("/Discretization");
 
@@ -58,4 +59,6 @@ void RegisterBridge_ReferenceMappingTest(Registry& reg, string grp)
 }
 
 }//	end of namespace bridge
+
+UG_REGISTRY_DEFINE(RegisterBridge_ReferenceMappingTest);
 }//	end of namespace ug

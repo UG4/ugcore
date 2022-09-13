@@ -261,14 +261,15 @@ void RegisterBridges_Standard(TRegistry& reg, std::string parentGroup)
 		RegisterBridge_Profiler(reg, parentGroup);
 		RegisterBridge_Misc(reg, parentGroup);
 		RegisterBridge_Raster(reg, parentGroup);
-#ifdef UG_USE_PYBIND11
-		/* The forthcoming bridges are not available w/ python binding yet.
-#endif
-		 RegisterBridge_OrthoPoly(reg, parentGroup);
+		RegisterBridge_OrthoPoly(reg, parentGroup);
 
 		#ifdef UG_GRID
 			RegisterBridge_Grid(reg, parentGroup);
 		#endif
+
+#ifdef UG_USE_PYBIND11
+		/* The forthcoming bridges are not available w/ python binding yet.
+#endif
 
 		#ifdef UG_ALGEBRA
 			RegisterBridge_Selection(reg, parentGroup);
@@ -315,10 +316,10 @@ void RegisterBridges_Standard(TRegistry& reg, std::string parentGroup)
 			RegisterBridge_ManifoldUtil(reg, parentGroup);
 			RegisterBridge_ReferenceMappingTest(reg, parentGroup);
 		#endif
-
 #ifdef UG_USE_PYBIND11
 			*/
 #endif
+
 			RegisterBridge_InitUG(reg);
 
 
@@ -340,20 +341,24 @@ void RegisterStandardBridges(ug::bridge::Registry& reg, string parentGroup)
 #ifdef UG_USE_PYBIND11
 namespace pybind {
 
-void RegisterBridge_VecMath(ug::pybind::RegistryAdapter& reg, string parentGroup);
-void RegisterBridge_Util(ug::pybind::RegistryAdapter& reg, string parentGroup);
+	void RegisterBridge_VecMath(ug::pybind::RegistryAdapter& reg, string parentGroup);
+	void RegisterBridge_Util(ug::pybind::RegistryAdapter& reg, string parentGroup);
 
-void RegisterBridge_PCL(ug::pybind::RegistryAdapter& reg, string parentGroup);
-void RegisterBridge_Profiler(ug::pybind::RegistryAdapter& reg, string parentGroup);
-void RegisterBridge_Misc(ug::pybind::RegistryAdapter& reg, string parentGroup);
-void RegisterBridge_Raster(ug::pybind::RegistryAdapter& reg, string parentGroup);
+	void RegisterBridge_PCL(ug::pybind::RegistryAdapter& reg, string parentGroup);
+	void RegisterBridge_Profiler(ug::pybind::RegistryAdapter& reg, string parentGroup);
+	void RegisterBridge_Misc(ug::pybind::RegistryAdapter& reg, string parentGroup);
+	void RegisterBridge_Raster(ug::pybind::RegistryAdapter& reg, string parentGroup);
 
+	void RegisterBridge_OrthoPoly(ug::pybind::RegistryAdapter& reg, string parentGroup);
+	void RegisterBridge_Grid(ug::pybind::RegistryAdapter& reg, string parentGroup);
 
-void RegisterBridge_InitUG(ug::pybind::RegistryAdapter& reg)
-{ ug::bridge::RegisterBridge_InitUG_(reg); }
+	void RegisterBridge_ReferenceMappingTest(ug::pybind::RegistryAdapter& reg, string parentGroup);
 
-void RegisterStandardBridges(ug::pybind::RegistryAdapter& reg, string parentGroup)
-{ug::RegisterBridges_Standard(reg, parentGroup);}
+	void RegisterBridge_InitUG(ug::pybind::RegistryAdapter& reg)
+	{ ug::bridge::RegisterBridge_InitUG_(reg); }
+
+	void RegisterStandardBridges(ug::pybind::RegistryAdapter& reg, string parentGroup)
+	{ug::RegisterBridges_Standard(reg, parentGroup);}
 
 }//	end of namespace pybind
 

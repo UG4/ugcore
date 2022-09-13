@@ -135,6 +135,23 @@ void RegisterDomain2d3dDependent(TRegistry& reg, std::string grp)
 /// \}
 
 } // namespace bridge
+
+#ifdef UG_USE_PYBIND11
+namespace pybind{
+
+template <typename TFunctionality>
+void RegisterDomainDependent(RegistryAdapter& reg, std::string grp)
+{
+	typedef typename ug::pybind::RegistryAdapter TRegistry;
+	typedef typename ug::bridge::CompileDomainList TDomainList;
+	ug::bridge::RegisterDomainDependent<TFunctionality, TDomainList, TRegistry>(reg, grp);
+}
+
+
+
+}
+#endif
+
 } // namespace ug
 
 #endif	/* UTIL_DOMAIN_DEPENDENT_H */

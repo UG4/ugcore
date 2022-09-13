@@ -47,8 +47,8 @@ namespace bridge{
 
 /// \ingroup misc_bridge
 /// \{
-
-void RegisterBridge_OrthoPoly(Registry& reg, string parentGroup)
+template<typename TRegistry=Registry>
+void RegisterBridge_OrthoPoly_(TRegistry& reg, string parentGroup)
 {
 	string grp(parentGroup);
 	grp.append("/OrthoPoly");
@@ -80,4 +80,8 @@ void RegisterBridge_OrthoPoly(Registry& reg, string parentGroup)
 /// \}
 
 }// end of namespace bridge
+
+// Instantiate templates.
+UG_REGISTRY_DEFINE(RegisterBridge_OrthoPoly);
+
 }// end of namespace ug

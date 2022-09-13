@@ -77,13 +77,13 @@ bool SaveGridHierarchy(MultiGrid& mg, const char* filename)
 	return SaveGridToFile(mg, mg.get_hierarchy_handler(), filename);
 }
 
-
-void RegisterGridBridge_FileIO(Registry& reg, string parentGroup)
+template <typename TRegistry=Registry>
+void RegisterGridBridge_FileIO_(TRegistry& reg, string parentGroup)
 {
 	string grp = parentGroup;
 
 //	UGXFileInfo
-	reg.add_class_<UGXFileInfo>("UGXFileInfo", grp)
+	reg.template add_class_<UGXFileInfo>("UGXFileInfo", grp)
 		.add_constructor()
 		.add_method("parse_file", &UGXFileInfo::parse_file, "", "filename")
 		.add_method("num_grids", &UGXFileInfo::num_grids)
@@ -132,5 +132,7 @@ void RegisterGridBridge_FileIO(Registry& reg, string parentGroup)
 		.add_function("SaveGridLevelToFile", &SaveGridLevelToFile);
 }
 
-}//	end of namespace
+}//	end of namespace bridge
+
+UG_REGISTRY_DEFINE(RegisterGridBridge_FileIO);
 }//	end of namespace

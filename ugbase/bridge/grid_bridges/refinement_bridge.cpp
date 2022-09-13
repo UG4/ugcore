@@ -98,23 +98,24 @@ bool CreateSmoothHierarchy(MultiGrid& mg, size_t numRefs)
 	return true;
 }
 
-void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
+template <typename TRegistry=Registry>
+void RegisterGridBridge_Refinement_(TRegistry& reg, string parentGroup)
 {
 	string grp = parentGroup;
 //	refinement projectors
 	{
 		typedef RefinementProjector T;
-		reg.add_class_<T>("RefinementProjector", grp)
+		reg.template add_class_<T>("RefinementProjector", grp)
 			.add_method("set_geometry", &T::set_geometry, "", "geometry")
 			.add_method("geometry", &T::geometry, "geometry", "");
 	}
 
 	{
 		typedef CylinderCutProjector T;
-		reg.add_class_<T, RefinementProjector>("CylinderCutProjector", grp)
+		reg.template add_class_<T, RefinementProjector>("CylinderCutProjector", grp)
 			.add_constructor()
-			.add_constructor<void (T::*)(const vector3&, const vector3&, number)>()
-			.add_constructor<void (T::*)(SPIGeometry3d, const vector3&, const vector3&, number)>()
+			.template add_constructor<void (T::*)(const vector3&, const vector3&, number)>()
+			.template add_constructor<void (T::*)(SPIGeometry3d, const vector3&, const vector3&, number)>()
 			.add_method("set_center", &T::set_center, "", "center")
 			.add_method("center", &T::center, "center")
 			.add_method("set_axis", &T::set_axis, "", "axis")
@@ -126,13 +127,13 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 
 	{
 		typedef CylinderProjector T;
-		reg.add_class_<T, RefinementProjector>("CylinderProjector", grp)
+		reg.template add_class_<T, RefinementProjector>("CylinderProjector", grp)
 			.add_constructor()
-			.add_constructor<void (T::*)(const vector3&, const vector3&)>()
-			.add_constructor<void (T::*)(const vector3&, const vector3&, number)>()
-			.add_constructor<void (T::*)(const vector3&, const vector3&, number,
+			.template add_constructor<void (T::*)(const vector3&, const vector3&)>()
+			.template add_constructor<void (T::*)(const vector3&, const vector3&, number)>()
+			.template add_constructor<void (T::*)(const vector3&, const vector3&, number,
 										 number)>()
-			.add_constructor<void (T::*)(SPIGeometry3d, const vector3&,
+			.template add_constructor<void (T::*)(SPIGeometry3d, const vector3&,
 										 const vector3&, number, number)>()
 			.add_method("set_center", &T::set_center, "", "center")
 			.add_method("center", &T::center, "center")
@@ -147,10 +148,10 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 
 	{
 		typedef PlaneCutProjector T;
-		reg.add_class_<T, RefinementProjector>("PlaneCutProjector", grp)
+		reg.template add_class_<T, RefinementProjector>("PlaneCutProjector", grp)
 			.add_constructor()
-			.add_constructor<void (T::*)(const vector3&, const vector3&)>()
-			.add_constructor<void (T::*)(SPIGeometry3d, const vector3&,
+			.template add_constructor<void (T::*)(const vector3&, const vector3&)>()
+			.template add_constructor<void (T::*)(SPIGeometry3d, const vector3&,
 										 const vector3&)>()
 			.add_method("set_position", &T::set_position, "", "position")
 			.add_method("position", &T::position, "position")
@@ -161,13 +162,13 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 
 	{
 		typedef ProjectionHandler T;
-		reg.add_class_<T, RefinementProjector>("ProjectionHandler", grp)
+		reg.template add_class_<T, RefinementProjector>("ProjectionHandler", grp)
 			.add_constructor()
-			.add_constructor<void (T::*)(ISubsetHandler*)>()
-			.add_constructor<void (T::*)(SmartPtr<ISubsetHandler>)>()
-			.add_constructor<void (T::*)(SPIGeometry3d,
+			.template add_constructor<void (T::*)(ISubsetHandler*)>()
+			.template add_constructor<void (T::*)(SmartPtr<ISubsetHandler>)>()
+			.template add_constructor<void (T::*)(SPIGeometry3d,
 										 ISubsetHandler*)>()
-			.add_constructor<void (T::*)(SPIGeometry3d,
+			.template add_constructor<void (T::*)(SPIGeometry3d,
 										 SmartPtr<ISubsetHandler>)>()
 			.add_method("set_geometry_all", &T::set_geometry_all, "", "geometry")
 			.add_method("set_projector",
@@ -183,10 +184,10 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 
 	{
 		typedef SmoothProjector T;
-		reg.add_class_<T, RefinementProjector>("SmoothProjector", grp)
+		reg.template add_class_<T, RefinementProjector>("SmoothProjector", grp)
 			.add_constructor()
-			.add_constructor<void (T::*)(int, number)>()
-			.add_constructor<void (T::*)(SPIGeometry3d, int, number)>()
+			.template add_constructor<void (T::*)(int, number)>()
+			.template add_constructor<void (T::*)(SPIGeometry3d, int, number)>()
 			.add_method("set_iterations", &T::set_iterations, "", "iterations")
 			.add_method("iterations", &T::iterations, "iterations")
 			.add_method("set_change_rate", &T::set_change_rate, "", "changeRate")
@@ -196,12 +197,12 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 
 	{
 		typedef SphereProjector T;
-		reg.add_class_<T, RefinementProjector>("SphereProjector", grp)
+		reg.template add_class_<T, RefinementProjector>("SphereProjector", grp)
 			.add_constructor()
-			.add_constructor<void (T::*)(const vector3&)>()
-			.add_constructor<void (T::*)(const vector3&, number)>()
-			.add_constructor<void (T::*)(const vector3&, number, number)>()
-			.add_constructor<void (T::*)(SPIGeometry3d, const vector3&,
+			.template add_constructor<void (T::*)(const vector3&)>()
+			.template add_constructor<void (T::*)(const vector3&, number)>()
+			.template add_constructor<void (T::*)(const vector3&, number, number)>()
+			.template add_constructor<void (T::*)(SPIGeometry3d, const vector3&,
 										 number, number)>()
 			.add_method("set_center", &T::set_center, "", "center")
 			.add_method("center", &T::center, "center")
@@ -214,14 +215,14 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 
 	{
 		typedef SubdivisionProjector T;
-		reg.add_class_<T, RefinementProjector>("SubdivisionProjector", grp)
+		reg.template add_class_<T, RefinementProjector>("SubdivisionProjector", grp)
 			.add_constructor()
-			.add_constructor<void (T::*)(SPIGeometry3d)>()
+			.template add_constructor<void (T::*)(SPIGeometry3d)>()
 			.set_construct_as_smart_pointer(true);
 	}
 	
 //	IRefiner
-	reg.add_class_<IRefiner>("IRefiner", grp)
+	reg.template add_class_<IRefiner>("IRefiner", grp)
 		.add_method("refine", &IRefiner::refine)
 		.add_method("coarsen", &IRefiner::coarsen)
 		.add_method("save_marks_to_file", &IRefiner::save_marks_to_file, "", "filename")
@@ -238,29 +239,29 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 		.add_method("num_marked_elements", static_cast<size_t (IRefiner::*)()>(&IRefiner::num_marked_elements));
 
 //	RefMarkAdjusters
-	reg.add_class_<IRefMarkAdjuster>("IRefMarkAdjuster", grp)
+	reg.template add_class_<IRefMarkAdjuster>("IRefMarkAdjuster", grp)
 		.add_method("enable", &IRefMarkAdjuster::enable, "", "enable")
 		.add_method("enabled", &IRefMarkAdjuster::enabled, "enabled", "");
 
 //	HangingNodeRefiner
-	reg.add_class_<HangingNodeRefiner_Grid, IRefiner>("HangingNodeRefiner_Grid", grp)
+	reg.template add_class_<HangingNodeRefiner_Grid, IRefiner>("HangingNodeRefiner_Grid", grp)
 		.add_constructor()
 		.add_method("assign_grid", &HangingNodeRefiner_Grid::assign_grid, "", "g")
 		.set_construct_as_smart_pointer(true);
 
-	reg.add_class_<HangingNodeRefiner_MultiGrid, IRefiner>("HangingNodeRefiner_MultiGrid", grp)
+	reg.template add_class_<HangingNodeRefiner_MultiGrid, IRefiner>("HangingNodeRefiner_MultiGrid", grp)
 		.add_constructor()
 		.add_method("assign_grid", &HangingNodeRefiner_MultiGrid::assign_grid, "", "mg")
 		.set_construct_as_smart_pointer(true);
 
 //	AdaptiveRegularMGRefiner
-	reg.add_class_<AdaptiveRegularRefiner_MultiGrid, HangingNodeRefiner_MultiGrid>("AdaptiveRegularRefiner_MultiGrid", grp)
+	reg.template add_class_<AdaptiveRegularRefiner_MultiGrid, HangingNodeRefiner_MultiGrid>("AdaptiveRegularRefiner_MultiGrid", grp)
 		.add_constructor()
 		.add_method("assign_grid", &AdaptiveRegularRefiner_MultiGrid::assign_grid, "", "mg")
 		.set_construct_as_smart_pointer(true);
 
 //	GlobalMultiGridRefiner
-	reg.add_class_<GlobalMultiGridRefiner, IRefiner>("GlobalMultiGridRefiner", grp)
+	reg.template add_class_<GlobalMultiGridRefiner, IRefiner>("GlobalMultiGridRefiner", grp)
 		.add_constructor()
 		.add_method("assign_grid", static_cast<void (GlobalMultiGridRefiner::*)(MultiGrid&)>(&GlobalMultiGridRefiner::assign_grid),
 				"", "mg")
@@ -271,7 +272,7 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 		typedef GlobalSubdivisionMultiGridRefiner<APosition2> T2D;
 		typedef GlobalSubdivisionMultiGridRefiner<APosition> T3D;
 		std::string name = "GlobalSubdivisionMultiGridRefiner";
-		reg.add_class_<T3D, GlobalMultiGridRefiner>(name + GetDimensionSuffix<3>(), grp)
+		reg.template add_class_<T3D, GlobalMultiGridRefiner>(name + GetDimensionSuffix<3>(), grp)
 //			.template add_constructor<void (*)(MultiGrid&, APosition&, MGSubsetHandler&, MGSubsetHandler&, SmartPtr<RefinementProjector>)>()
 #ifdef UG_FOR_VRL
 			.template add_constructor<void (*)(SmartPtr<RefinementProjector>)>()
@@ -280,7 +281,7 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 //			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name + GetDimensionSuffix<3>(), name, GetDimensionTag<3>());
 
-		reg.add_class_<T2D, GlobalMultiGridRefiner>(name + GetDimensionSuffix<2>(), grp)
+		reg.template add_class_<T2D, GlobalMultiGridRefiner>(name + GetDimensionSuffix<2>(), grp)
 //			.template add_constructor<void (*)(MultiGrid&, APosition2&, MGSubsetHandler&, MGSubsetHandler&, SmartPtr<RefinementProjector>)>()
 #ifdef UG_FOR_VRL
 			.template add_constructor<void (*)(SmartPtr<RefinementProjector>)>()
@@ -289,7 +290,7 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 //			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name + GetDimensionSuffix<2>(), name, GetDimensionTag<2>());
 
-		reg.add_class_<T1D, GlobalMultiGridRefiner>(name + GetDimensionSuffix<1>(), grp)
+		reg.template add_class_<T1D, GlobalMultiGridRefiner>(name + GetDimensionSuffix<1>(), grp)
 //			.template add_constructor<void (*)(MultiGrid&, APosition1&, MGSubsetHandler&, MGSubsetHandler&, SmartPtr<RefinementProjector>)>()
 #ifdef UG_FOR_VRL
 			.template add_constructor<void (*)(SmartPtr<RefinementProjector>)>()
@@ -309,7 +310,7 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 //	GlobalFracturedDomainRefiner
 	{
 		typedef GlobalFracturedMediaRefiner cls;
-		reg.add_class_<cls, IRefiner>("GlobalFracturedMediumRefiner", grp)
+		reg.template add_class_<cls, IRefiner>("GlobalFracturedMediumRefiner", grp)
 			.add_constructor()
 			.add_method("assign_grid", static_cast<void (cls::*)(MultiGrid*)>(&cls::assign_grid), "", "g")
 			.add_method("set_subset_handler", static_cast<void (cls::*)(ISubsetHandler*)>(&cls::set_subset_handler),
@@ -321,7 +322,7 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 
 //	parallel refinement
 #ifdef UG_PARALLEL
-	reg.add_class_<ParallelHangingNodeRefiner_MultiGrid, HangingNodeRefiner_MultiGrid>
+	reg.template add_class_<ParallelHangingNodeRefiner_MultiGrid, HangingNodeRefiner_MultiGrid>
 		("ParallelHangingNodeRefiner_MultiGrid", grp)
 		.add_constructor()
 		.set_construct_as_smart_pointer(true);
@@ -341,4 +342,6 @@ void RegisterGridBridge_Refinement(Registry& reg, string parentGroup)
 }
 
 }//	end of namespace
+
+UG_REGISTRY_DEFINE(RegisterGridBridge_Refinement);
 }//	end of namespace

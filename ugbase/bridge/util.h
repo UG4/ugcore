@@ -36,6 +36,10 @@
 #include "registry/registry.h"
 #include "suffix_tag.h"
 
+#ifdef UG_USE_PYBIND11
+#include "bindings/pybind/ug_pybind.h"
+#endif
+
 namespace ug{
 namespace bridge{
 
@@ -97,6 +101,29 @@ void RegisterDimension2d3dDependent(TRegistry& reg, std::string grp)
 /// \}
 
 } // end namespace bridge
+
+
+#ifdef UG_USE_PYBIND11
+
+namespace pybind {
+//! Shortcuts
+template <typename TFunctionality>
+void RegisterCommon(ug::pybind::RegistryAdapter& reg, std::string grp)
+{
+	typedef typename ug::pybind::RegistryAdapter TRegistry;
+	ug::bridge::RegisterCommon<TFunctionality, TRegistry>(reg,grp);
+}
+
+template <typename TFunctionality>
+void RegisterDimensionDependent(RegistryAdapter& reg, std::string grp)
+{
+	typedef typename ug::pybind::RegistryAdapter TRegistry;
+	ug::bridge::RegisterDimensionDependent<TFunctionality, TRegistry>(reg,grp);
+};
+
+
+}
+#endif
 } // end namespace ug
 
 #define UG_REGISTRY_CATCH_THROW(grp)	\
@@ -104,5 +131,6 @@ void RegisterDimension2d3dDependent(TRegistry& reg, std::string grp)
 			UG_ERR_LOG("### ERROR while registering functionality at '"<<(grp)<<"'. "\
 					"Registration failed (using name " << ex.name << ").\n");\
 			throw(ex);}
+
 
 #endif /* __H__UG_BRIDGE__UTIL__ */

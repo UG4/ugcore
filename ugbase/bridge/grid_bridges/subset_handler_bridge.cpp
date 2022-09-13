@@ -36,6 +36,9 @@
 #include "lib_grid/tools/surface_view.h"
 using namespace std;
 
+#ifdef UG_USE_PYBIND11
+#include "bindings/pybind/ug_pybind.h"
+#endif
 
 namespace ug{
 
@@ -67,12 +70,13 @@ void AssignSubsetsByLevel(SubsetHandler& sh, MultiGrid& mg)
 
 namespace bridge{
 
-void RegisterGridBridge_SubsetHandler(Registry& reg, string parentGroup)
+template<typename TRegistry = Registry>
+void RegisterGridBridge_SubsetHandler_(TRegistry& reg, string parentGroup)
 {
 	string grp = parentGroup;
 	
 //  ISubsetHandler
-	reg.add_class_<ISubsetHandler>("ISubsetHandler", grp)
+	reg.template add_class_<ISubsetHandler>("ISubsetHandler", grp)
 		.add_method("assign_subset", static_cast<void (ISubsetHandler::*)(Vertex*, int)>(&ISubsetHandler::assign_subset))
 		.add_method("assign_subset", static_cast<void (ISubsetHandler::*)(Edge*, int)>(&ISubsetHandler::assign_subset))
 		.add_method("assign_subset", static_cast<void (ISubsetHandler::*)(Face*, int)>(&ISubsetHandler::assign_subset))
@@ -91,20 +95,20 @@ void RegisterGridBridge_SubsetHandler(Registry& reg, string parentGroup)
 		.add_method("get_default_subset_index", &ISubsetHandler::set_default_subset_index, "subsetIndex", "");
 	
 //	SubsetHandler
-	reg.add_class_<SubsetHandler, ISubsetHandler>("SubsetHandler", grp)
+	reg.template add_class_<SubsetHandler, ISubsetHandler>("SubsetHandler", grp)
 		.add_constructor()
 		.add_method("assign_grid", static_cast<void (SubsetHandler::*)(Grid&)>(&SubsetHandler::assign_grid), "", "g")
 		.set_construct_as_smart_pointer(true);
 
 
 //	MGSubsetHandler
-	reg.add_class_<MGSubsetHandler, ISubsetHandler>("MGSubsetHandler", grp)
+	reg.template add_class_<MGSubsetHandler, ISubsetHandler>("MGSubsetHandler", grp)
 		.add_constructor()
 		.add_method("assign_grid", &MGSubsetHandler::assign_grid, "", "mg")
 		.set_construct_as_smart_pointer(true);
 
 //	SurfaceView
-	reg.add_class_<SurfaceView>("SurfaceView", grp)
+	reg.template add_class_<SurfaceView>("SurfaceView", grp)
 		.add_method("subset_handler", static_cast<ConstSmartPtr<MGSubsetHandler> (SurfaceView::*)() const>(
 										&SurfaceView::subset_handler));
 
@@ -121,5 +125,9 @@ void RegisterGridBridge_SubsetHandler(Registry& reg, string parentGroup)
 		.add_function("AssignSubsetsByLevel", static_cast<void (*)(SubsetHandler&, MultiGrid&)>(&AssignSubsetsByLevel));
 }
 
-}//	end of namespace
-}//	end of namespace
+
+}//	end of namespace bridge
+
+UG_REGISTRY_DEFINE(RegisterGridBridge_SubsetHandler);
+
+}//	end of namespace ug

@@ -48,6 +48,7 @@
 #include "parameter_stack.h"
 #include "common/ug_config.h"
 
+
 namespace ug
 {
 namespace bridge
@@ -333,6 +334,41 @@ class UG_API Registry {
 } // end namespace registry
 
 } // end namespace ug
+
+
+
+
+#ifdef UG_USE_PYBIND11
+
+// Auxiliary function.
+#define UG_REGISTRY_CONCAT(first, second) first##second
+
+// Use this function to declare.
+#define UG_REGISTRY_DECL(fname)\
+		namespace bridge { void fname (ug::bridge::Registry& r, std::string grp); }\
+		namespace pybind { void fname (ug::pybind::RegistryAdapter& r, std::string grp); }
+
+#define UG_REGISTRY_DEFINE(fname)\
+		namespace bridge {\
+			void fname (ug::bridge::Registry& r, std::string grp)\
+			{ UG_REGISTRY_CONCAT(fname,_) (r, grp); }\
+		}\
+		namespace pybind {\
+			void fname (ug::pybind::RegistryAdapter& r, std::string grp)\
+			{ ug::bridge::UG_REGISTRY_CONCAT(fname,_) (r, grp); }\
+		}
+#else
+
+#define UG_REGISTRY_DECL(fname)\
+		namespace bridge { void fname (ug::bridge::Registry& r, std::string grp); }
+
+#define UG_REGISTRY_DEFINE(fname)\
+		namespace bridge {\
+			void fname (ug::bridge::Registry& r, std::string grp)\
+			{ UG_REGISTRY_CONCAT(fname,_) (r, grp); }\
+		}
+
+#endif
 
 ////////////////////////////////
 //	include implementation

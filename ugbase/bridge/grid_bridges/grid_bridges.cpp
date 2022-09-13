@@ -34,12 +34,12 @@
 #include "grid_bridges.h"
 #include "bridge/util.h"
 
-using namespace std;
 
 namespace ug{
 namespace bridge{
 
-void RegisterBridge_Grid(Registry& reg, string parentGroup)
+template<typename TRegistry=Registry>
+void RegisterBridge_Grid_(TRegistry& reg, std::string parentGroup)
 {
 	try{
 		parentGroup.append("/Grid");
@@ -56,5 +56,9 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 	UG_REGISTRY_CATCH_THROW(parentGroup);
 }
 
-}//	end of namespace
-}//	end of namespace
+}//	end of namespace bridge
+
+
+UG_REGISTRY_DEFINE(RegisterBridge_Grid);
+
+}//	end of namespace ug

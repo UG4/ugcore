@@ -7,7 +7,7 @@
 
 // UG4 core modules
 #include "bridge/bridge.h"
-#include "bindings/pybind/ug_pybind.h"
+
 
 // this plugin
 #include "ug_pybind.h"

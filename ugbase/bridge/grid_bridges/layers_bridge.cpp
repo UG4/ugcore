@@ -45,15 +45,15 @@ namespace bridge{
  * A template function for registering a degenerated layer manager for a
  * specified dimensionality.
  */
-template <int dim>
-static void RegisterDegeneratedLayerManager(Registry& reg, string grp)
+template <int dim, typename TRegistry=Registry>
+static void RegisterDegeneratedLayerManager(TRegistry& reg, string grp)
 {
 	string suffix = GetDimensionSuffix<dim>();
 	string tag = GetDimensionTag<dim>();
 
 	typedef DegeneratedLayerManager<dim> T;
 	string name = string("DegeneratedLayerManager").append(suffix);
-	reg.add_class_<T>(name, grp)
+	reg.template add_class_<T>(name, grp)
 		.template add_constructor<void (*) (SmartPtr<MultiGridSubsetHandler>)>("MultiGridSubsetHandler")
 		.add_method("add", static_cast<void (T::*) (const char*)>(&T::add), "Adds degenerated subsets to the manager", "subset(s)")
 		.add_method("remove", static_cast<void (T::*) (const char*)>(&T::remove), "Removes subsets from the manager", "subset(s)")
@@ -88,22 +88,22 @@ class ExpandLayersDesc : public std::vector<FractureInfo>
 		}
 };
 
-
-void RegisterGridBridge_Layers(Registry& reg, string parentGroup)
+template <typename TRegistry=Registry>
+void RegisterGridBridge_Layers_(TRegistry& reg, string parentGroup)
 {
 	string grp = parentGroup;
 	
 #ifdef UG_DIM_2
-	RegisterDegeneratedLayerManager<2> (reg, grp);
+	RegisterDegeneratedLayerManager<2, TRegistry> (reg, grp);
 #endif
 #ifdef UG_DIM_3
-	RegisterDegeneratedLayerManager<3> (reg, grp);
+	RegisterDegeneratedLayerManager<3, TRegistry> (reg, grp);
 #endif
 
 	typedef vector<FractureInfo> FracInfoVec;
-	reg.add_class_<FracInfoVec>("FractureInfoVec", grp);
+	reg.template add_class_<FracInfoVec>("FractureInfoVec", grp);
 
-	reg.add_class_<ExpandLayersDesc, FracInfoVec>("ExpandLayersDesc", grp)
+	reg.template add_class_<ExpandLayersDesc, FracInfoVec>("ExpandLayersDesc", grp)
 		.add_constructor()
 		.add_method("add_layer", &ExpandLayersDesc::add_layer)
 		.set_construct_as_smart_pointer(true);
@@ -114,9 +114,9 @@ void RegisterGridBridge_Layers(Registry& reg, string parentGroup)
 //			.add_function("ExpandLayers3d", &ExpandFractures3d, grp);
 
 //	prism-meshing
-	reg.add_class_<RasterLayerDesc>("RasterLayerDesc", grp,
+	reg.template add_class_<RasterLayerDesc>("RasterLayerDesc", grp,
 			"Layer Desc for RasterLayers class")
-		.add_constructor<void (RasterLayerDesc::*)(const std::string&, number)>(
+		.template add_constructor<void (*)(const std::string&, number)>(
 			"filename#minLayerHeight")
 		.add_method("filename", &RasterLayerDesc::filename,
 			"filename", "", "Returns the filename of the given layer-desc")
@@ -124,7 +124,7 @@ void RegisterGridBridge_Layers(Registry& reg, string parentGroup)
 			"minHeight", "", "Returns the minimal height of the given layer-desc")
 		.set_construct_as_smart_pointer(true);
 	
-	reg.add_class_<Heightfield>("Heightfield", grp, "2d raster with number values")
+	reg.template add_class_<Heightfield>("Heightfield", grp, "2d raster with number values")
 		.add_constructor()
 		.add_method("interpolate",
 					static_cast<number (Heightfield::*)(number, number) const>(&Heightfield::interpolate),
@@ -144,7 +144,7 @@ void RegisterGridBridge_Layers(Registry& reg, string parentGroup)
 	reg.add_function("LoadHeightfieldFromASC", LoadHeightfieldFromASC, grp,
 					 "", "heightfield # filename", "Loads a heightfield from the specified file");
 
-	reg.add_class_<RasterLayers>("RasterLayers", grp, "Stack of 2d raster data.")
+	reg.template add_class_<RasterLayers>("RasterLayers", grp, "Stack of 2d raster data.")
 		.add_constructor()
 		.add_method("load_from_files",
 			static_cast<void (RasterLayers::*)(const std::vector<std::string>&, number)>(
@@ -183,4 +183,6 @@ void RegisterGridBridge_Layers(Registry& reg, string parentGroup)
 }
 
 }//	end of namespace
+
+UG_REGISTRY_DEFINE(RegisterGridBridge_Layers);
 }//	end of namespace

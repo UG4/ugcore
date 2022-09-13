@@ -32,6 +32,7 @@
 
 #include "registry/registry.h"
 #include "bridge/bridge.h"
+#include "bridge/util.h"
 #include "common/profiler/profiler.h"
 #include "common/profiler/profile_node.h"
 #include "ug.h" // Required for UGOutputProfileStatsOnExit.
@@ -69,7 +70,8 @@ static void SetFrequency(const std::string& csvFile){
 
   //void PrintLUA();
 
-
+namespace bridge
+{
 template <typename TRegistry>
 void RegisterBridge_Profiler_(TRegistry &reg, string parentGroup)
 {
@@ -181,28 +183,30 @@ void RegisterBridge_Profiler_(TRegistry &reg, string parentGroup)
 }
 
 
-namespace bridge
-{
+
 
 /// \defgroup profiler_bridge Profiler Bridge
 /// \ingroup misc_bridge
 /// \{
 
-void RegisterBridge_Profiler(Registry& reg, string parentGroup)
-{ ug::RegisterBridge_Profiler_<Registry>(reg, parentGroup); }
 
+
+/*void RegisterBridge_Profiler(Registry& reg, string parentGroup)
+{ ug::RegisterBridge_Profiler_<Registry>(reg, parentGroup); }
+*/
 //////////////////////////////////////////////////////////////////////////////////////////
 // end group profiler_bridge
 /// \}
 
 } // namespace bridge
 
+UG_REGISTRY_DEFINE(RegisterBridge_Profiler);
 
-#ifdef UG_USE_PYBIND11
+/*#ifdef UG_USE_PYBIND11
 namespace pybind
 {
 	void RegisterBridge_Profiler(ug::pybind::RegistryAdapter& reg, string parentGroup)
 	{ ug::RegisterBridge_Profiler_<ug::pybind::RegistryAdapter>(reg, parentGroup); }
 }
-#endif
+#endif*/
 } // namespace ug

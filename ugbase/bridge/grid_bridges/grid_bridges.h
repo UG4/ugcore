@@ -35,6 +35,7 @@
 
 #include <string>
 #include "registry/registry.h"
+#include "bridge/bridge.h"
 
 namespace ug{
 namespace bridge{
@@ -50,6 +51,23 @@ void RegisterGridBridge_Debug(Registry& reg, std::string parentGroup);
 void RegisterGridBridge_Misc(Registry& reg, std::string parentGroup);
 
 }//	end of namespace	
+
+namespace pybind{
+
+void RegisterGridBridge_Grid(ug::pybind::RegistryAdapter& reg, std::string parentGroup);
+void RegisterGridBridge_SubsetHandler(ug::pybind::RegistryAdapter& reg, std::string parentGroup);
+void RegisterGridBridge_Selector(ug::pybind::RegistryAdapter& reg, std::string parentGroup);
+void RegisterGridBridge_Refinement(ug::pybind::RegistryAdapter& reg, std::string parentGroup);
+void RegisterGridBridge_Balancing(ug::pybind::RegistryAdapter& reg, std::string parentGroup);
+void RegisterGridBridge_FileIO(ug::pybind::RegistryAdapter& reg, std::string parentGroup);
+void RegisterGridBridge_Layers(ug::pybind::RegistryAdapter& reg, std::string parentGroup);
+void RegisterGridBridge_Debug(ug::pybind::RegistryAdapter& reg, std::string parentGroup);
+void RegisterGridBridge_Misc(ug::pybind::RegistryAdapter& reg, std::string parentGroup);
+
+}//	end of namespace pybind
+
+UG_REGISTRY_DECL(RegisterGridBridge_Grid);
+
 }//	end of namespace
 
 #endif	//__H__UG_grid_bridges
