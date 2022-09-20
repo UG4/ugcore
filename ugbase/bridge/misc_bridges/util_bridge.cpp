@@ -113,7 +113,7 @@ std::vector<std::string> GetDirsInDir(const char* dir)
 	GetDirectoriesInDirectory(dirs, dir);
 	return dirs;
 }
-}
+
 
 template <typename TRegistry>
 void RegisterBridge_Util_(TRegistry& reg, string parentGroup)
@@ -257,22 +257,13 @@ void RegisterBridge_Util_(TRegistry& reg, string parentGroup)
 
 }
 
-namespace bridge {
-
-void RegisterBridge_Util(Registry& reg, string parentGroup)
-{ ug::RegisterBridge_Util_<Registry>(reg, parentGroup); }
 
 // end group util_bridge
 /// \}
 
 }// end of namespace bridge
 
-#ifdef UG_USE_PYBIND11
-namespace pybind
-{
-	void RegisterBridge_Util(ug::pybind::RegistryAdapter& reg, string parentGroup)
-	{ ug::RegisterBridge_Util_<ug::pybind::RegistryAdapter>(reg, parentGroup); }
-}
-#endif
+UG_REGISTRY_DEFINE(RegisterBridge_Util);
+
 
 }// end of namespace ug

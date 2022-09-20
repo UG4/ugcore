@@ -65,8 +65,8 @@ struct Functionality
 {
 
 	
-template <typename TDomain, typename TAlgebra>
-static void DomainAlgebra(Registry& reg, string grp)
+template <typename TDomain, typename TAlgebra, typename TRegistry=Registry>
+static void DomainAlgebra(TRegistry& reg, string grp)
 {
 	string suffix = GetDomainAlgebraSuffix<TDomain,TAlgebra>();
 	string tag = GetDomainAlgebraTag<TDomain,TAlgebra>();
@@ -76,7 +76,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef LineGaussSeidel<TDomain,TAlgebra> T;
 		typedef IPreconditioner<TAlgebra> TBase;
 		string name = string("LineGaussSeidel").append(suffix);
-		reg.add_class_<T,TBase>(name, grp, "Line Gauss-Seidel Preconditioner")
+		reg.template add_class_<T,TBase>(name, grp, "Line Gauss-Seidel Preconditioner")
 		.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >)>("Approximation Space")
 		.add_method("update", &T::update, "", "update")
 		.add_method("set_num_steps", static_cast<void (T::*)(size_t,size_t,size_t,size_t,size_t,size_t)>(&T::set_num_steps), "", "set_num_steps")
@@ -91,7 +91,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef LineVanka<TDomain,TAlgebra> T;
 		typedef IPreconditioner<TAlgebra> TBase;
 		string name = string("LineVanka").append(suffix);
-		reg.add_class_<T,TBase>(name, grp, "LineVanka Preconditioner")
+		reg.template add_class_<T,TBase>(name, grp, "LineVanka Preconditioner")
 		.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >)>("Approximation Space")
 		.add_method("update", &T::update, "", "update")
 		.add_method("set_num_steps", static_cast<void (T::*)(size_t,size_t,size_t,size_t,size_t,size_t)>(&T::set_num_steps), "", "set_num_steps")
@@ -112,16 +112,19 @@ static void DomainAlgebra(Registry& reg, string grp)
 }// end Preconditioner
 
 /// \addtogroup domdepprecond_bridge
-void RegisterBridge_DomainDependentPreconditioner(Registry& reg, string grp)
+template <typename TRegistry=Registry>
+void RegisterBridge_DomainDependentPreconditioner_(TRegistry& reg, string grp)
 {
 	grp.append("/Disc/Preconditioner");
 	typedef Preconditioner::Functionality Functionality;
 
 	try{		
-		RegisterDomainAlgebraDependent<Functionality>(reg,grp);
+		RegisterDomainAlgebraDependent<Functionality, TRegistry>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
 
 } // namespace bridge
+
+UG_REGISTRY_DEFINE(RegisterBridge_DomainDependentPreconditioner);
 } // namespace ug

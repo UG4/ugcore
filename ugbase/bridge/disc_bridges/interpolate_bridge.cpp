@@ -73,8 +73,8 @@ struct Functionality
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-template <typename TDomain, typename TAlgebra>
-static void DomainAlgebra(Registry& reg, string grp)
+template <typename TDomain, typename TAlgebra, typename TRegistry=ug::bridge::Registry>
+static void DomainAlgebra(TRegistry& reg, string grp)
 {
 	string suffix = GetDomainAlgebraSuffix<TDomain,TAlgebra>();
 	string tag = GetDomainAlgebraTag<TDomain,TAlgebra>();
@@ -210,7 +210,8 @@ static void Common(Registry& reg, string grp)
 }// namespace Interpolate
 
 /// \addtogroup interpolate_bridge
-void RegisterBridge_Interpolate(Registry& reg, string grp)
+template <typename TRegistry=Registry>
+void RegisterBridge_Interpolate_(TRegistry& reg, string grp)
 {
 	grp.append("/Discretization");
 	typedef Interpolate::Functionality Functionality;
@@ -220,10 +221,13 @@ void RegisterBridge_Interpolate(Registry& reg, string grp)
 //		RegisterDimensionDependent<Functionality>(reg,grp);
 //		RegisterDomainDependent<Functionality>(reg,grp);
 //		RegisterAlgebraDependent<Functionality>(reg,grp);
-		RegisterDomainAlgebraDependent<Functionality>(reg,grp);
+		RegisterDomainAlgebraDependent<Functionality, TRegistry>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
 
 }//	end of namespace bridge
+
+UG_REGISTRY_DEFINE(RegisterBridge_Interpolate);
+
 }//	end of namespace ug

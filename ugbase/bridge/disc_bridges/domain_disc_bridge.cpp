@@ -76,8 +76,8 @@ struct Functionality
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-template <typename TDomain, typename TAlgebra>
-static void DomainAlgebra(Registry& reg, string grp)
+template <typename TDomain, typename TAlgebra, typename TRegistry>
+static void DomainAlgebra(TRegistry& reg, string grp)
 {
 	string suffix = GetDomainAlgebraSuffix<TDomain,TAlgebra>();
 	string tag = GetDomainAlgebraTag<TDomain,TAlgebra>();
@@ -91,7 +91,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef IDomainDiscretization<TAlgebra> TBase;
 		typedef DomainDiscretization<TDomain, TAlgebra> T;
 		string name = string("DomainDiscretization").append(suffix);
-		reg.add_class_<T, TBase>(name, domDiscGrp)
+		reg.template add_class_<T, TBase>(name, domDiscGrp)
 			.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >)>("ApproximationSpace")
 			.add_method("add", static_cast<void (T::*)(SmartPtr<IDomainConstraint<TDomain, TAlgebra> >)>(&T::add), "", "Post Process")
 			.add_method("remove", static_cast<void (T::*)(SmartPtr<IDomainConstraint<TDomain, TAlgebra> >)>(&T::remove), "", "Post Process")
@@ -122,7 +122,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 	{
 		typedef IDiscretizationItem<TDomain, TAlgebra> T;
 		string name = string("IDiscretizationItem").append(suffix);
-		reg.add_class_<T>(name, domDiscGrp);
+		reg.template add_class_<T>(name, domDiscGrp);
 		reg.add_class_to_group(name, "IDiscretizationItem", tag);
 	}
 
@@ -130,7 +130,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 	{
 		typedef IInterfaceExtrapolation<TDomain, TAlgebra> T;
 		string name = string("IInterfaceExtrapolation").append(suffix);
-		reg.add_class_<T>(name,grp);
+		reg.template add_class_<T>(name,grp);
 		reg.add_class_to_group(name, "IInterfaceExtrapolation", tag);
 	}
 }
@@ -144,8 +144,8 @@ static void DomainAlgebra(Registry& reg, string grp)
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-template <typename TDomain>
-static void Domain(Registry& reg, string grp)
+template <typename TDomain, typename TRegistry=Registry>
+static void Domain(TRegistry& reg, string grp)
 {
 	string suffix = GetDomainSuffix<TDomain>();
 	string tag = GetDomainTag<TDomain>();
@@ -158,7 +158,7 @@ static void Domain(Registry& reg, string grp)
 	{
 		typedef IErrEstData<TDomain> T;
 		string name = string("IErrEstData").append(suffix);
-		reg.add_class_<T>(name, domDiscGrp)
+		reg.template add_class_<T>(name, domDiscGrp)
 			.add_method("set_consider_me", &T::set_consider_me, "", "", "", "")
 			.add_method("set_scaling_factor", &T::set_scaling_factor, "", "", "", "");
 		reg.add_class_to_group(name, "ErrEstData", tag);
@@ -169,7 +169,7 @@ static void Domain(Registry& reg, string grp)
 		typedef SideFluxErrEstData<TDomain> T;
 		typedef IErrEstData<TDomain> TBase;
 		string name = string("SideFluxErrEstData").append(suffix);
-		reg.add_class_<T, TBase>(name, domDiscGrp)
+		reg.template add_class_<T, TBase>(name, domDiscGrp)
 			.template add_constructor<void (*) ()>()
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "SideFluxErrEstData", tag);
@@ -180,7 +180,7 @@ static void Domain(Registry& reg, string grp)
 		typedef SideAndElemErrEstData<TDomain> T;
 		typedef IErrEstData<TDomain> TBase;
 		string name = string("SideAndElemErrEstData").append(suffix);
-		reg.add_class_<T, TBase>(name, domDiscGrp)
+		reg.template add_class_<T, TBase>(name, domDiscGrp)
 			.template add_constructor<void (*) (std::size_t, std::size_t)>
 				("integration order for sides#integration order for elements", "", "", "")
 			.template add_constructor<void (*) (std::size_t, std::size_t, const char*)>
@@ -197,7 +197,7 @@ static void Domain(Registry& reg, string grp)
 		typedef MultipleSideAndElemErrEstData<TDomain> T;
 		typedef IErrEstData<TDomain> TBase;
 		string name = string("MultipleSideAndElemErrEstData").append(suffix);
-		reg.add_class_<T, TBase>(name, domDiscGrp)
+		reg.template add_class_<T, TBase>(name, domDiscGrp)
 			.template add_constructor<void (*) (ConstSmartPtr<ApproximationSpace<TDomain> >)> ()
 			.add_method("add", static_cast<void (T::*)(SmartPtr<SideAndElemErrEstData<TDomain> >, const char* )>(&T::add),
 						"ErrEstData object", "", "Add existing ErrEstData objects one at a time. "
@@ -218,8 +218,8 @@ static void Domain(Registry& reg, string grp)
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-template <int dim>
-static void Dimension(Registry& reg, string grp)
+template <int dim, typename TRegistry>
+static void Dimension(TRegistry& reg, string grp)
 {
 	string suffix = GetDimensionSuffix<dim>();
 	string tag = GetDimensionTag<dim>();
@@ -235,8 +235,8 @@ static void Dimension(Registry& reg, string grp)
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-template <typename TAlgebra>
-static void Algebra(Registry& reg, string grp)
+template <typename TAlgebra, typename TRegistry>
+static void Algebra(TRegistry& reg, string grp)
 {
 	string suffix = GetAlgebraSuffix<TAlgebra>();
 	string tag = GetAlgebraTag<TAlgebra>();
@@ -245,7 +245,7 @@ static void Algebra(Registry& reg, string grp)
 	{
 		typedef AssemblingTuner<TAlgebra> T;
 		std::string name = string("AssTuner");
-		reg.add_class_<T>(name+suffix, grp)
+		reg.template add_class_<T>(name+suffix, grp)
 			.add_method("set_matrix_is_const", &T::set_matrix_is_const, "",
 				"whether matrix is constant in time", "")
 			.add_method("set_matrix_structure_is_const", &T::set_matrix_structure_is_const, "",
@@ -263,7 +263,8 @@ static void Algebra(Registry& reg, string grp)
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-static void Common(Registry& reg, string grp)
+template <typename TRegistry=Registry>
+static void Common(TRegistry& reg, string grp)
 {
 //	group string
 	string domDiscGrp = grp; domDiscGrp.append("/SpatialDisc");
@@ -277,20 +278,23 @@ static void Common(Registry& reg, string grp)
 }// namespace DomainDisc
 
 /// \addtogroup domaindisc_bridge
-void RegisterBridge_DomainDisc(Registry& reg, string grp)
+template <typename TRegistry=Registry>
+void RegisterBridge_DomainDisc_(TRegistry& reg, string grp)
 {
 	grp.append("/Discretization");
-	typedef DomainDisc::Functionality Functionality;
+	typedef DomainDisc::Functionality TFunctionality;
 
 	try{
 //		RegisterCommon<Functionality>(reg,grp);
 //		RegisterDimensionDependent<Functionality>(reg,grp);
-		RegisterDomainDependent<Functionality>(reg,grp);
-		RegisterAlgebraDependent<Functionality>(reg,grp);
-		RegisterDomainAlgebraDependent<Functionality>(reg,grp);
+		RegisterDomainDependent<TFunctionality,TRegistry>(reg,grp);
+		RegisterAlgebraDependent<TFunctionality,TRegistry>(reg,grp);
+		RegisterDomainAlgebraDependent<TFunctionality,TRegistry>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
 
 }//	end of namespace bridge
+
+UG_REGISTRY_DEFINE(RegisterBridge_DomainDisc);
 }//	end of namespace ug

@@ -75,8 +75,8 @@ struct Functionality
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-template <typename TAlgebra>
-static void Algebra(Registry& reg, string grp)
+template <typename TAlgebra, typename TRegistry=Registry>
+static void Algebra(TRegistry& reg, string grp)
 {
 	string suffix = GetAlgebraSuffix<TAlgebra>();
 	string tag = GetAlgebraTag<TAlgebra>();
@@ -86,7 +86,7 @@ static void Algebra(Registry& reg, string grp)
 		string name = string("EigenSolver").append(suffix);
 		typedef PINVIT<TAlgebra> T;
 		typedef DebugWritingObject<TAlgebra> TBase;
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.add_method("add_vector", &T::add_vector, "", "vector")
 			.add_method("set_preconditioner", &T::set_preconditioner, "", "Preconditioner")
@@ -129,7 +129,7 @@ static void Algebra(Registry& reg, string grp)
 		typedef typename TAlgebra::vector_type vector_type;
 		typedef ILinearIterator<vector_type> TBase;
 		typedef OperatorInverseIterator<TAlgebra> T;
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<ILinearOperatorInverse<vector_type>  >)>( "opInv")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "OperatorInverseIterator", tag);
@@ -138,7 +138,7 @@ static void Algebra(Registry& reg, string grp)
 	{
 		string name = string("PowerMethod").append(suffix);
 		typedef PowerMethod<TAlgebra> T;
-		reg.add_class_<T>(name, grp)
+		reg.template add_class_<T>(name, grp)
 			.add_constructor()
 			.add_method("set_solver", &T::set_solver, "", "Solver")
 			.add_method("set_linear_operator_A", &T::set_linear_operator_A,	"", "LinearOperatorA")
@@ -166,16 +166,19 @@ static void Algebra(Registry& reg, string grp)
 
 
 /// \addtogroup eigensolver_bridge
-void RegisterBridge_Eigensolver(Registry& reg, string grp)
+template <typename TRegistry=Registry>
+void RegisterBridge_Eigensolver_(TRegistry& reg, string grp)
 {
 	grp.append("/Algebra/Solver");
-	typedef Eigensolver::Functionality Functionality;
+	typedef Eigensolver::Functionality TFunctionality;
 
 	try{
-		RegisterAlgebraDependent<Functionality>(reg,grp);
+		RegisterAlgebraDependent<TFunctionality, TRegistry>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
 
 } // namespace bridge
+
+UG_REGISTRY_DEFINE(RegisterBridge_Eigensolver);
 } // namespace ug

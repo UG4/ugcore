@@ -182,7 +182,8 @@ void RegisterGridBridge_Layers_(TRegistry& reg, string parentGroup)
 
 }
 
-}//	end of namespace
+}//	end of namespace bridge
 
 UG_REGISTRY_DEFINE(RegisterGridBridge_Layers);
-}//	end of namespace
+
+}//	end of namespace ug

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <type_traits>
+
 // pybind11 lib.
 #include <pybind11/pybind11.h>
 
@@ -90,10 +92,45 @@ public:
 	void set_construct_as_smart_pointer (bool flag)
 	{};
 
+
+void construct_as_smart_pointer ()
+	{ set_construct_as_smart_pointer(true); }
+
+
+};
+
+struct IgnoredClass
+{
+	IgnoredClass& add_constructor()
+	{return *this;}
+
+	IgnoredClass& add_constructor(std::string paramInfos = "",
+		            std::string tooltip = "", std::string help = "",
+		            std::string options = "") {return *this;}
+
+	template<typename TMethod>
+	IgnoredClass& add_method (std::string methodName, TMethod func,
+				                     std::string retValInfos = "", std::string paramInfos = "",
+				                     std::string tooltip = "", std::string help = "")
+	{return *this;}
+
+	//! Always use smart pointers.
+	void set_construct_as_smart_pointer (bool flag)
+	{};
+
+
 	void construct_as_smart_pointer ()
 	{ set_construct_as_smart_pointer(true); }
 
 
+};
+
+// Maps T -> T
+template <typename T>
+struct trampoline_traits
+{
+	static constexpr bool has_trampoline=false;
+	typedef T trampoline_class;
 };
 
 //! This adapter provides access to a pybind11::module as a UG registry conforming object.
@@ -119,7 +156,16 @@ struct RegistryAdapter : public pybind11::module
 			                                   std::string group = "",
 			                                   std::string tooltip = "")
 	{
-		typedef pybind11::class_<TClass> pyclass;
+		/*
+
+		typedef trampoline_traits<TClass> TTraits;
+		typedef typename TTraits::trampoline_class TrampolineClass;
+
+		typedef typename std::conditional<TTraits::has_trampoline,
+					 pybind11::class_<TClass, TrampolineClass>, // define with trampoline
+					 pybind11::class_<TClass> >::type pyclass;*/
+
+		typedef typename pybind11::class_<TClass> pyclass;
 		return pyclass(*this, className.c_str());
 	}
 
@@ -145,15 +191,28 @@ struct RegistryAdapter : public pybind11::module
 
 	//! TODO: Does this make sense?
 	void add_class_to_group(std::string group, std::string className, std::string tag)
-	{
+	{}
 
+	/// Get reference to already registered class.
+	template <typename TClass>
+	IgnoredClass& get_class_()
+	{
+		//! How can we do this? We need a static map for 'name' -> pybind11::class_...
+	// 	const std::string& name = ClassNameProvider<TClass>::name();
+
+		return dummy;
 	}
+
+	IgnoredClass dummy;
+
 
 	void registry_changed()
 	{};
 
 };
 
+//! New name.
+typedef RegistryAdapter Registry;
 
 
 

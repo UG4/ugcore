@@ -66,8 +66,8 @@ namespace Obstacle{
 struct Functionality
 {
 
-template <typename TDomain, typename TAlgebra>
-static void DomainAlgebra(Registry& reg, string grp)
+template <typename TDomain, typename TAlgebra, typename TRegistry>
+static void DomainAlgebra(TRegistry& reg, string grp)
 {
 	string suffix = GetDomainAlgebraSuffix<TDomain,TAlgebra>();
 	string tag = GetDomainAlgebraTag<TDomain,TAlgebra>();
@@ -82,7 +82,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef IObstacleConstraint<TDomain,TAlgebra> T;
 		typedef IDomainConstraint<TDomain, TAlgebra> TBase;
 		string name = string("IObstacleConstraint").append(suffix);
-		reg.add_class_<T,TBase>(name, grp)
+		reg.template add_class_<T,TBase>(name, grp)
 			.add_method("add", static_cast<void (T::*)(SmartPtr<UserData<number, dim, bool> >, const char*)>(&T::add),
 						"", "Value#Function")
 			.add_method("add", static_cast<void (T::*)(SmartPtr<UserData<number, dim, bool> >, const char*, const char*)>(&T::add),
@@ -114,7 +114,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef ScalarLowerObstacle<TDomain,TAlgebra> T;
 		typedef IObstacleConstraint<TDomain,TAlgebra> TBase;
 		string name = string("ScalarLowerObstacle").append(suffix);
-		reg.add_class_<T,TBase>(name, grp)
+		reg.template add_class_<T,TBase>(name, grp)
 			.template add_constructor<void (*)(const function_type&)>()
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
@@ -126,7 +126,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef ScalarUpperObstacle<TDomain,TAlgebra> T;
 		typedef IObstacleConstraint<TDomain,TAlgebra> TBase;
 		string name = string("ScalarUpperObstacle").append(suffix);
-		reg.add_class_<T,TBase>(name, grp)
+		reg.template add_class_<T,TBase>(name, grp)
 			.template add_constructor<void (*)(const function_type&)>()
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
@@ -138,7 +138,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef ObstacleInNormalDir<TDomain,TAlgebra> T;
 		typedef IObstacleConstraint<TDomain,TAlgebra> TBase;
 		string name = string("ObstacleInNormalDir").append(suffix);
-		reg.add_class_<T,TBase>(name, grp)
+		reg.template add_class_<T,TBase>(name, grp)
 			.template add_constructor<void (*)(const function_type&)>()
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
@@ -153,7 +153,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef IProjGaussSeidel<TDomain, TAlgebra> T;
 		typedef GaussSeidelBase<TAlgebra> TBase;
 		string name = string("IProjGaussSeidel").append(suffix);
-		reg.add_class_<T,TBase>(name, grp)
+		reg.template add_class_<T,TBase>(name, grp)
 			.add_method("add_obstacle_constraint", &T::add_obstacle_constraint,
 				"", "obstacle constraint", "adds an obstacle constraint")
 			.set_construct_as_smart_pointer(true);
@@ -165,7 +165,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef ProjGaussSeidel<TDomain,TAlgebra> T;
 		typedef IProjGaussSeidel<TDomain,TAlgebra> TBase;
 		string name = string("ProjGaussSeidel").append(suffix);
-		reg.add_class_<T,TBase>(name, grp)
+		reg.template add_class_<T,TBase>(name, grp)
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ProjGaussSeidel", tag);
@@ -176,7 +176,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef ProjBackwardGaussSeidel<TDomain,TAlgebra> T;
 		typedef IProjGaussSeidel<TDomain,TAlgebra> TBase;
 		string name = string("ProjBackwardGaussSeidel").append(suffix);
-		reg.add_class_<T,TBase>(name, grp)
+		reg.template add_class_<T,TBase>(name, grp)
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ProjBackwardGaussSeidel", tag);
@@ -187,7 +187,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef ProjSymmetricGaussSeidel<TDomain,TAlgebra> T;
 		typedef IProjGaussSeidel<TDomain,TAlgebra> TBase;
 		string name = string("ProjSymmetricGaussSeidel").append(suffix);
-		reg.add_class_<T,TBase>(name, grp)
+		reg.template add_class_<T,TBase>(name, grp)
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ProjSymmetricGaussSeidel", tag);
@@ -199,7 +199,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef TruncatedMonotoneTransfer<TDomain,TAlgebra> T;
 		typedef StdTransfer<TDomain,TAlgebra> TBase;
 		string name = string("TruncatedMonotoneTransfer").append(suffix);
-		reg.add_class_<T,TBase>(name, grp)
+		reg.template add_class_<T,TBase>(name, grp)
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "TruncatedMonotoneTransfer", tag);
@@ -214,16 +214,19 @@ static void DomainAlgebra(Registry& reg, string grp)
 }// end Obstacle
 
 /// \addtogroup obstacle_bridge
-void RegisterBridge_Obstacle(Registry& reg, string grp)
+template <typename TRegistry=Registry>
+void RegisterBridge_Obstacle_(TRegistry& reg, string grp)
 {
 	grp.append("/Algebra/Obstacle");
 	typedef Obstacle::Functionality Functionality;
 
 	try{
-		RegisterDomainAlgebraDependent<Functionality>(reg,grp);
+		RegisterDomainAlgebraDependent<Functionality, TRegistry>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
 
 } // namespace bridge
+
+UG_REGISTRY_DEFINE(RegisterBridge_Obstacle);
 } // namespace ug

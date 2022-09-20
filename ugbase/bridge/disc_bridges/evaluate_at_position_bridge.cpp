@@ -1026,8 +1026,8 @@ struct Functionality
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-template <typename TDomain, typename TAlgebra>
-static void DomainAlgebra(Registry& reg, string grp)
+template <typename TDomain, typename TAlgebra, typename TRegistry>
+static void DomainAlgebra(TRegistry& reg, string grp)
 {
 	string suffix = GetDomainAlgebraSuffix<TDomain,TAlgebra>();
 	string tag = GetDomainAlgebraTag<TDomain,TAlgebra>();
@@ -1052,7 +1052,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		
 		string name = string("PointEvaluatorBase").append(suffix);
 
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 					   	.add_method("add_evaluation_point", &T::add_evaluation_point, "point", "")
 					   	.add_method("set_filename", &T::set_filename, "filename", "")
 					   	.add_method("set_separator", &T::set_separator, "separator", "")
@@ -1066,7 +1066,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 		string name = string("VectorValuedUserDataPointEvaluator").append(suffix);
 
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 					   	.template add_constructor<void (*)(SmartPtr<UserData<MathVector<TDomain::dim>, TDomain::dim> >) >("")					   
 						.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "VectorValuedUserDataPointEvaluator", tag);
@@ -1076,7 +1076,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef VectorValuedUserDataEvaluator<TDomain, TAlgebra> T;
 		string name = string("VectorValuedUserDataEvaluator").append(suffix);
 
-		reg.add_class_<T>(name, grp)
+		reg.template add_class_<T>(name, grp)
 					   	.template add_constructor<void (*)(SmartPtr<UserData<MathVector<TDomain::dim>, TDomain::dim> >) >("")
 					   	.add_method("evaluate", &T::evaluateLua, "point#result#solution#time", "")
 						.set_construct_as_smart_pointer(true);
@@ -1089,7 +1089,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 		string name = string("NumberValuedUserDataPointEvaluator").append(suffix);
 
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 					   	.template add_constructor<void (*)(SmartPtr<UserData<number, TDomain::dim> >) >("")					   
 						.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "NumberValuedUserDataPointEvaluator", tag);
@@ -1099,7 +1099,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef NumberValuedUserDataEvaluator<TDomain, TAlgebra> T;
 		string name = string("NumberValuedUserDataEvaluator").append(suffix);
 
-		reg.add_class_<T>(name, grp)
+		reg.template add_class_<T>(name, grp)
 					   	.template add_constructor<void (*)(SmartPtr<UserData<number, TDomain::dim> >) >("")
 					   	.add_method("evaluate", &T::evaluateLua, "point#result#solution#time", "")
 						.set_construct_as_smart_pointer(true);
@@ -1109,7 +1109,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef PointEvaluatorFactory<TDomain, TAlgebra> T;
 		string name = string("PointEvaluatorFactory").append(suffix);
 
-		reg.add_class_<T>(name, grp)
+		reg.template add_class_<T>(name, grp)
 		.template add_constructor<void (*)() >("")
 			.add_method("create", static_cast<SmartPtr<typename T::return_type> (T::*)(SmartPtr<typename T::input_vector_data>) const>(&T::create), "point#result#solution#time", "")
 			.add_method("create", static_cast<SmartPtr<typename T::return_type> (T::*)(SmartPtr<typename T::input_number_data>) const>(&T::create), "point#result#solution#time", "")
@@ -1143,8 +1143,8 @@ static void DomainAlgebra(Registry& reg, string grp)
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-template <typename TDomain>
-static void Domain(Registry& reg, string grp)
+template <typename TDomain, typename TRegistry>
+static void Domain(TRegistry& reg, string grp)
 {
 	string suffix = GetDomainSuffix<TDomain>();
 	string tag = GetDomainTag<TDomain>();
@@ -1205,7 +1205,8 @@ static void Common(Registry& reg, string grp)
 }// namespace Evaluate
 
 ///
-void RegisterBridge_Evaluate(Registry& reg, string grp)
+template <typename TRegistry=Registry>
+void RegisterBridge_Evaluate_(TRegistry& reg, string grp)
 {
 	grp.append("/Evaluate");
 	typedef Evaluate::Functionality Functionality;
@@ -1213,12 +1214,14 @@ void RegisterBridge_Evaluate(Registry& reg, string grp)
 	try{
 //		RegisterCommon<Functionality>(reg,grp);
 //		RegisterDimensionDependent<Functionality>(reg,grp);
-		RegisterDomainDependent<Functionality>(reg,grp);
+		RegisterDomainDependent<Functionality, TRegistry>(reg,grp);
 //		RegisterAlgebraDependent<Functionality>(reg,grp);
-		RegisterDomainAlgebraDependent<Functionality>(reg,grp);
+		RegisterDomainAlgebraDependent<Functionality, TRegistry>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
 
 }//	end of namespace bridge
+
+UG_REGISTRY_DEFINE(RegisterBridge_Evaluate);
 }//	end of namespace ug

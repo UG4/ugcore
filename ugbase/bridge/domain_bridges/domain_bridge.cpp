@@ -413,8 +413,8 @@ struct Functionality
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-template <typename TDomain>
-static void Domain(Registry& reg, string grp)
+template <typename TDomain, typename TRegistry=Registry>
+static void Domain(TRegistry& reg, string grp)
 {
 	string suffix = GetDomainSuffix<TDomain>();
 	string tag = GetDomainTag<TDomain>();
@@ -424,7 +424,7 @@ static void Domain(Registry& reg, string grp)
 		typedef typename TDomain::position_attachment_type apos_t;
 		typedef IDomain<> TBase;
 		string name = string("Domain").append(suffix);
-		reg.add_class_<TDomain, TBase>(name, grp)
+		reg.template add_class_<TDomain, TBase>(name, grp)
 			.add_constructor()
 			.add_method("empty", &TDomain::empty)
 #ifndef UG_FOR_VRL
@@ -525,11 +525,13 @@ static void Domain(Registry& reg, string grp)
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-static void Common(Registry& reg, string grp)
+
+template <typename TRegistry=Registry>
+static void Common(TRegistry& reg, string grp)
 {
 //	DomainInfo
 	{
-		reg.add_class_<DomainInfo>("DomainInfo", grp)
+		reg.template add_class_<DomainInfo>("DomainInfo", grp)
 			.add_constructor()
 			.add_method("element_type", &DomainInfo::element_type)
 			.add_method("num_levels", &DomainInfo::num_levels)
@@ -547,7 +549,7 @@ static void Common(Registry& reg, string grp)
 //	IDomain
 	{
 		typedef IDomain<> T;
-		reg.add_class_<T>("IDomain", grp)
+		reg.template add_class_<T>("IDomain", grp)
 			.add_method("domain_info", &T::domain_info, "DomainInfo")
 			.add_method("get_dim", static_cast<int (T::*)() const>(&T::get_dim))
 			.add_method("grid", static_cast<SmartPtr<MultiGrid> (T::*)()>(&T::grid), "grid")
@@ -572,8 +574,8 @@ static void Common(Registry& reg, string grp)
 ///	methods that are only available for 2d and 3d are registered here
 struct Functionality2d3d
 {
-template <typename TDomain>
-static void Domain(Registry& reg, string grp)
+template <typename TDomain, typename TRegistry=Registry>
+static void Domain(TRegistry& reg, string grp)
 {
 	reg.add_function("PartitionDomain_RegularGrid",
 					 &PartitionDomain_RegularGrid<TDomain>, grp);
@@ -586,7 +588,8 @@ static void Domain(Registry& reg, string grp)
 }// end Domain
 
 /// \addtogroup domain_bridge
-void RegisterBridge_Domain(Registry& reg, string grp)
+template <typename TRegistry=Registry>
+void RegisterBridge_Domain_(TRegistry& reg, string grp)
 {
 	grp.append("/Domain");
 
@@ -604,12 +607,14 @@ void RegisterBridge_Domain(Registry& reg, string grp)
 	> CompileDomain2d3dList;
 
 	try{
-		RegisterCommon<Functionality>(reg,grp);
-		RegisterDomainDependent<Functionality>(reg,grp);
-		RegisterDomainDependent<Domain::Functionality2d3d, CompileDomain2d3dList>(reg,grp);
+		RegisterCommon<Functionality, TRegistry>(reg,grp);
+		RegisterDomainDependent<Functionality, TRegistry>(reg,grp);
+		RegisterDomainDependent<Domain::Functionality2d3d, TRegistry, CompileDomain2d3dList>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
 
 }// end of namespace
+
+UG_REGISTRY_DEFINE(RegisterBridge_Domain);
 }// end of namespace

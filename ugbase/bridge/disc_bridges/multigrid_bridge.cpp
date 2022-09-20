@@ -82,8 +82,8 @@ struct Functionality
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-template <typename TDomain, typename TAlgebra>
-static void DomainAlgebra(Registry& reg, string grp)
+template <typename TDomain, typename TAlgebra, typename TRegistry>
+static void DomainAlgebra(TRegistry& reg, string grp)
 {
 	string suffix = GetDomainAlgebraSuffix<TDomain,TAlgebra>();
 	string tag = GetDomainAlgebraTag<TDomain,TAlgebra>();
@@ -99,7 +99,11 @@ static void DomainAlgebra(Registry& reg, string grp)
 	{
 		typedef ITransferOperator<TDomain, TAlgebra> T;
 		string name = string("ITransferOperator").append(suffix);
-		reg.add_class_<T>(name, grp);
+		reg.template add_class_<T>(name, grp)
+		// NEW: But is this equivalent???
+		.add_method("clear_constraints", &T::clear_constraints)
+		.add_method("add_constraint", &T::add_constraint)
+		.add_method("remove_constraint", &T::remove_constraint);
 		reg.add_class_to_group(name, "ITransferOperator", tag);
 	}
 
@@ -107,7 +111,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 	{
 		typedef ITransferPostProcess<TDomain, TAlgebra> T;
 		string name = string("ITransferPostProcess").append(suffix);
-		reg.add_class_<T>(name, grp);
+		reg.template add_class_<T>(name, grp);
 		reg.add_class_to_group(name, "ITransferPostProcess", tag);
 	}
 
@@ -117,11 +121,13 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef ITransferOperator<TDomain, TAlgebra> TBase;
 		typedef typename T::GF GF;
 		string name = string("StdTransfer").append(suffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.add_method("set_restriction_damping", &T::set_restriction_damping)
 			.add_method("set_prolongation_damping", &T::set_prolongation_damping)
-			.add_method("add_constraint", &T::add_constraint)
+			/* PyBind: The following function does not exist at compile time.
+			 * Can we move it to base class ???*/
+			//.add_method("add_constraint", &T::add_constraint)
 			.add_method("set_debug", &T::set_debug)
 			.add_method("set_use_transposed", &T::set_use_transposed)
 			.add_method("enable_p1_lagrange_optimization", &T::enable_p1_lagrange_optimization)
@@ -137,7 +143,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef StdInjection<TDomain, TAlgebra> T;
 		typedef ITransferOperator<TDomain, TAlgebra> TBase;
 		string name = string("StdInjection").append(suffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.add_method("init", &T::init)
 			.add_method("do_restrict", &T::do_restrict)
@@ -151,7 +157,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef AverageComponent<TDomain, TAlgebra> T;
 		typedef ITransferPostProcess<TDomain, TAlgebra> TBase;
 		string name = string("AverageComponent").append(suffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(const std::string&)>("Components")
 			.template add_constructor<void (*)(const std::vector<std::string>&)>("Components")
 			.set_construct_as_smart_pointer(true);
@@ -162,7 +168,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 	{
 		typedef MGStats<TDomain, TAlgebra> T;
 		string name = string("MGStats").append(suffix);
-		reg.add_class_<T>(name, grp)
+		reg.template add_class_<T>(name, grp)
 			.add_constructor()
 			.add_method("set_exit_on_error", &T::set_exit_on_error, "", "exitOnError")
 			.add_method("set_write_err_vecs", &T::set_write_err_vecs, "", "writeErrVecs")
@@ -185,9 +191,9 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef AssembledMultiGridCycle<TDomain, TAlgebra> T;
 		typedef ILinearIterator<vector_type> TBase;
 		string name = string("GeometricMultiGrid").append(suffix);
-		reg.add_class_<T, TBase>(name, grp)
-					.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >)>("Approximation Space")
-					.template add_constructor<void (*)()>()
+		reg.template add_class_<T, TBase>(name, grp)
+			.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >)>("Approximation Space")
+			.template add_constructor<void (*)()>()
 			.add_method("set_mg_stats", &T::set_mg_stats, "", "MGStats")
 			.add_method("set_approximation_space", &T::set_approximation_space, "", "Approximation space")
 			.add_method("set_discretization", &T::set_discretization, "", "Discretization")
@@ -227,7 +233,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef ElementGaussSeidel<TDomain, TAlgebra> T;
 		typedef IPreconditioner<TAlgebra> TBase;
 		string name = string("ElementGaussSeidel").append(suffix);
-		reg.add_class_<T,TBase>(name, grp, "Vanka Preconditioner")
+		reg.template add_class_<T,TBase>(name, grp, "Vanka Preconditioner")
 		.add_constructor()
 		.template add_constructor<void (*)(number)>("relax")
 		.template add_constructor<void (*)(const std::string&)>("patch_type")
@@ -244,7 +250,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef ComponentGaussSeidel<TDomain, TAlgebra> T;
 		typedef IPreconditioner<TAlgebra> TBase;
 		string name = string("ComponentGaussSeidel").append(suffix);
-		reg.add_class_<T,TBase>(name, grp, "Vanka Preconditioner")
+		reg.template add_class_<T,TBase>(name, grp, "Vanka Preconditioner")
 		.template add_constructor<void (*)(const std::vector<std::string>&)>("Cmps")
 		.template add_constructor<void (*)(number, const std::vector<std::string>&)>("relax#Cmps")
 		.template add_constructor<void (*)(number, const std::vector<std::string>&, const std::vector<int>&, const std::vector<number>&)>("relax#Cmps")
@@ -260,7 +266,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef SequentialSubspaceCorrection<TDomain, TAlgebra> T;
 		typedef IPreconditioner<TAlgebra> TBase;
 		string name = string("SequentialSubspaceCorrection").append(suffix);
-		reg.add_class_<T,TBase>(name, grp, "Sequential subspace correction")
+		reg.template add_class_<T,TBase>(name, grp, "Sequential subspace correction")
 					.template add_constructor<void (*)(number)>("omega")
 					.add_method("set_vertex_subspace", &T::set_vertex_subspace, "", "subspace")
 					.set_construct_as_smart_pointer(true);
@@ -272,7 +278,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 	{
 		typedef ILocalSubspace<TDomain, TAlgebra,Vertex> TVertexSubspace;
 		string name = string("ILocalSubspace").append(suffix);
-		reg.add_class_<TVertexSubspace>(name, grp, "ILocalSubspace base");
+		reg.template add_class_<TVertexSubspace>(name, grp, "ILocalSubspace base");
 		reg.add_class_to_group(name, "ILocalSubspace", tag);
 
 		//	VertexCenteredVankaSubspace
@@ -280,7 +286,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 			typedef VertexCenteredVankaSubspace<TDomain, TAlgebra> T;
 			// typedef IPreconditioner<TAlgebra> TBase;
 			string name = string("VertexCenteredVankaSubspace").append(suffix);
-			reg.add_class_<T,TVertexSubspace>(name, grp, "Vertex centered Vanka")
+			reg.template add_class_<T,TVertexSubspace>(name, grp, "Vertex centered Vanka")
 					.template add_constructor<void (*)(const std::vector<std::string>&, const std::vector<std::string>&)>("primary functions, secondary functions")
 					.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "VertexCenteredVankaSubspace", tag);
@@ -294,7 +300,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef DebugWritingObject<TAlgebra> TBase2;
 		string name = string("UzawaBase").append(suffix);
 
-		reg.add_class_<T, TBase, TBase2>(name, grp)
+		reg.template add_class_<T, TBase, TBase2>(name, grp)
 	        		.ADD_CONSTRUCTOR( (const std::vector<std::string>&) ) ("String IDs for Schur complement")
 					.ADD_CONSTRUCTOR( (const char *) ) ("String ID for Schur")
 					.add_method("set_forward_iter", &T::set_forward_iter, "forward iteration", "beta")
@@ -317,16 +323,19 @@ static void DomainAlgebra(Registry& reg, string grp)
 }// namespace MultiGrid
 
 /// \addtogroup multigrid_bridge
-void RegisterBridge_MultiGrid(Registry& reg, string grp)
+template <typename TRegistry=Registry>
+void RegisterBridge_MultiGrid_(TRegistry& reg, string grp)
 {
 	grp.append("/Discretization");
 	typedef MultiGrid::Functionality Functionality;
 
 	try{
-		RegisterDomainAlgebraDependent<Functionality>(reg,grp);
+		RegisterDomainAlgebraDependent<Functionality, TRegistry>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
 
 }//	end of namespace ug
+
+UG_REGISTRY_DEFINE(RegisterBridge_MultiGrid);
 }//	end of namespace interface

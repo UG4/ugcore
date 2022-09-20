@@ -344,9 +344,9 @@ class UG_API Registry {
 #define UG_REGISTRY_CONCAT(first, second) first##second
 
 // Use this function to declare.
-#define UG_REGISTRY_DECL(fname)\
-		namespace bridge { void fname (ug::bridge::Registry& r, std::string grp); }\
-		namespace pybind { void fname (ug::pybind::RegistryAdapter& r, std::string grp); }
+#define UG_REGISTRY_DECL(fname, ...)\
+		namespace bridge { void fname (__VA_ARGS__); }\
+		namespace pybind { void fname (__VA_ARGS__); }
 
 #define UG_REGISTRY_DEFINE(fname)\
 		namespace bridge {\
@@ -359,8 +359,8 @@ class UG_API Registry {
 		}
 #else
 
-#define UG_REGISTRY_DECL(fname)\
-		namespace bridge { void fname (ug::bridge::Registry& r, std::string grp); }
+#define UG_REGISTRY_DECL(fname, ...)\
+		namespace bridge { void fname (__VA_ARGS__); }
 
 #define UG_REGISTRY_DEFINE(fname)\
 		namespace bridge {\

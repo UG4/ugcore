@@ -274,8 +274,9 @@ struct Functionality
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-template <typename TDomain>
-static void Domain(Registry& reg, string grp)
+
+template <typename TDomain, typename TRegistry=Registry>
+static void Domain(TRegistry& reg, string grp)
 {
 	typedef TDomain 							domain_type;
 
@@ -300,16 +301,19 @@ static void Domain(Registry& reg, string grp)
 }// end Refinement
 
 /// \addtogroup transform_bridge
-void RegisterBridge_Transform(Registry& reg, string grp)
+template <typename TRegistry=Registry>
+void RegisterBridge_Transform_(TRegistry& reg, string grp)
 {
 	grp.append("/Transform");
 	typedef Transform::Functionality Functionality;
 
 	try{
-		RegisterDomainDependent<Functionality>(reg, grp);
+		RegisterDomainDependent<Functionality, TRegistry>(reg, grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
 
 }// end of namespace bridge
+
+UG_REGISTRY_DEFINE(RegisterBridge_Transform);
 }// end of namespace ug

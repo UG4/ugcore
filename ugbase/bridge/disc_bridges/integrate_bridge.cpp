@@ -75,8 +75,8 @@ struct Functionality
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-template <typename TDomain, typename TAlgebra>
-static void DomainAlgebra(Registry& reg, string grp)
+template <typename TDomain, typename TAlgebra, typename TRegistry>
+static void DomainAlgebra(TRegistry& reg, string grp)
 {
 //	typedef
 	static const int dim = TDomain::dim;
@@ -185,21 +185,23 @@ static void DomainAlgebra(Registry& reg, string grp)
 }// end Integrate
 
 /// \addtogroup integrate_bridge
-void RegisterBridge_Integrate(Registry& reg, string grp)
+template <typename TRegistry=Registry>
+void RegisterBridge_Integrate_(TRegistry& reg, string grp)
 {
 	grp.append("/Discretization");
 	typedef Integrate::Functionality Functionality;
-
-
 	{
 		reg.add_function("TestQuadRule", &ug::TestQuadRule);
 	}
 
 	try{
-		RegisterDomainAlgebraDependent<Functionality>(reg,grp);
+		RegisterDomainAlgebraDependent<Functionality,TRegistry>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
 
 }//	end of namespace bridge
+
+UG_REGISTRY_DEFINE(RegisterBridge_Integrate);
+
 }//	end of namespace ug

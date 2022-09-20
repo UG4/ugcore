@@ -74,8 +74,8 @@ struct Functionality2
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-template <typename TAlgebra>
-static void Algebra(Registry& reg, string grp)
+template <typename TAlgebra, typename TRegistry>
+static void Algebra(TRegistry& reg, string grp)
 {
 	string suffix = GetAlgebraSuffix<TAlgebra>();
 	string tag = GetAlgebraTag<TAlgebra>();
@@ -91,7 +91,7 @@ static void Algebra(Registry& reg, string grp)
 		typedef PILUTPreconditioner<TAlgebra> T;
 		typedef IPreconditioner<TAlgebra> TBase;
 		string name = string("PILUT").append(suffix);
-		reg.add_class_<T,TBase>(name, grp, "Incomplete LU Decomposition with threshold")
+		reg.template add_class_<T,TBase>(name, grp, "Incomplete LU Decomposition with threshold")
 			.add_constructor()
 			.template add_constructor<void (*)(number)>("threshold parameter")
 			.add_method("set_threshold", &T::set_threshold,
@@ -115,13 +115,14 @@ static void Algebra(Registry& reg, string grp)
 }// end Preconditioner
 
 /// \addtogroup precond_bridge
-void RegisterBridge_PILUT(Registry& reg, string grp)
+template <typename TRegistry =Registry>
+void RegisterBridge_PILUT_(TRegistry& reg, string grp)
 {
 	grp.append("/Algebra/Preconditioner");
-	typedef Preconditioner::Functionality2 Functionality2;
+	typedef Preconditioner::Functionality2 TFunctionality;
 
 	try{
-		RegisterAlgebraDependent<Functionality2>(reg,grp);
+		RegisterAlgebraDependent<TFunctionality, TRegistry>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
@@ -134,10 +135,13 @@ void RegisterBridge_PILUT(Registry& reg, string grp)
 namespace ug{
 namespace bridge{
 /// \addtogroup precond_bridge
-void RegisterBridge_PILUT(Registry& reg, std::string grp)
+template <typename TRegistry =Registry>
+void RegisterBridge_PILUT_(TRegistry& reg, std::string grp)
 {
 
 }
 
 } // namespace bridge
+
+UG_REGISTRY_DEFINE(RegisterBridge_PILUT);
 } // namespace ug

@@ -54,8 +54,8 @@ namespace bridge
  * \ingroup disc_bridge
  * \{
  */
-
-void RegisterBridge_DiscCommon(Registry& reg, string parentGroup)
+template <typename TRegistry=Registry>
+void RegisterBridge_DiscCommon_(TRegistry& reg, string parentGroup)
 {
 //	get group string
 	string grp = parentGroup; grp.append("/Discretization");
@@ -66,16 +66,17 @@ void RegisterBridge_DiscCommon(Registry& reg, string parentGroup)
 		{
 			typedef MultiIndex<2, size_t> T;
 			string name = string("MultiIndex2");
-			reg.add_class_<T>(name, grp);
+			reg.template add_class_<T>(name, grp);
 		}
 
 #ifdef UG_PARALLEL
 	//	IDomainDecompositionInfo, StandardDomainDecompositionInfo
 		{
 		typedef pcl::IDomainDecompositionInfo Tbase;
-		reg.add_class_<Tbase>("IDomainDecompositionInfo", grp);
+		reg.template add_class_<Tbase>("IDomainDecompositionInfo", grp);
+
 		typedef pcl::StandardDomainDecompositionInfo T;
-		reg.add_class_<T, Tbase>("StandardDomainDecompositionInfo", grp)
+		reg.template add_class_<T, Tbase>("StandardDomainDecompositionInfo", grp)
 			.add_constructor()
 			.add_method("map_proc_id_to_subdomain_id", &T::map_proc_id_to_subdomain_id)
 			.add_method("set_num_subdomains",          &T::set_num_subdomains)
@@ -94,4 +95,6 @@ void RegisterBridge_DiscCommon(Registry& reg, string parentGroup)
 /// \}
 
 } // end namespace bridge
+
+UG_REGISTRY_DEFINE(RegisterBridge_DiscCommon);
 } // end namespace ug

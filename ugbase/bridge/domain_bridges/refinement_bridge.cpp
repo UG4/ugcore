@@ -1776,7 +1776,9 @@ struct Functionality
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-static void Common(Registry& reg, string grp)
+
+template <typename TRegistry=Registry>
+static void Common(TRegistry& reg, string grp)
 {
 //	register domain independent mark methods
 	reg.add_function("MarkForRefinement_All",
@@ -1821,8 +1823,8 @@ static void Common(Registry& reg, string grp)
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-template <typename TDomain>
-static void Domain(Registry& reg, string grp)
+template <typename TDomain, typename TRegistry=Registry>
+static void Domain(TRegistry& reg, string grp)
 {
 	typedef TDomain domain_type;
 	typedef typename TDomain::position_attachment_type apos_type;
@@ -1997,17 +1999,20 @@ static void Domain(Registry& reg, string grp)
 }// end Refinement
 
 /// \addtogroup refinement_bridge
-void RegisterBridge_Refinement(Registry& reg, string grp)
+template <typename TRegistry=Registry>
+void RegisterBridge_Refinement_(TRegistry& reg, string grp)
 {
 	grp.append("/Refinement");
 	typedef Refinement::Functionality Functionality;
 
 	try{
-		RegisterCommon<Functionality>(reg,grp);
-		RegisterDomainDependent<Functionality>(reg,grp);
+		RegisterCommon<Functionality, TRegistry>(reg,grp);
+		RegisterDomainDependent<Functionality, TRegistry>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
 
 }// end of namespace bridge
+
+UG_REGISTRY_DEFINE(RegisterBridge_Refinement);
 }// end of namespace ug

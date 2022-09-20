@@ -47,6 +47,7 @@
 #include "lib_algebra/active_set/lagrange_multiplier_disc_interface.h"
 #include "lib_algebra/operator/convergence_check.h"
 #include "lib_algebra/operator/matrix_operator_functions.h"
+#include "lib_algebra/small_algebra/small_matrix/print.h"
 #include "lib_disc/spatial_disc/domain_disc_interface.h"
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
 #include "lib_disc/spatial_disc/constraints/constraint_interface.h"
@@ -95,8 +96,8 @@ struct Functionality
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-template <typename TAlgebra>
-static void Algebra(Registry& reg, string parentGroup)
+template <typename TAlgebra, typename TRegistry>
+static void Algebra(TRegistry& reg, string parentGroup)
 {
 //	typedefs for Vector and Matrix
 	typedef typename TAlgebra::vector_type vector_type;
@@ -106,21 +107,13 @@ static void Algebra(Registry& reg, string parentGroup)
 	string suffix = GetAlgebraSuffix<TAlgebra>();
 	string tag = GetAlgebraTag<TAlgebra>();
 
-//	IConstraint
-	{
-		std::string grp = parentGroup; grp.append("/Discretization/SpatialDisc");
-		typedef IConstraint<TAlgebra> T;
-		string name = string("IConstraint").append(suffix);
-		reg.add_class_<T>(name, grp);
-		reg.add_class_to_group(name, "IConstraint", tag);
-	}
 
 //	IAssemble
 	{
 		std::string grp = parentGroup; grp.append("/Discretization/SpatialDisc");
 		typedef IAssemble<TAlgebra> T;
 		string name = string("IAssemble").append(suffix);
-		reg.add_class_<T>(name, grp)
+		reg.template add_class_<T>(name, grp)
 			.add_method("assemble_jacobian", static_cast<void (T::*)(matrix_type&, const vector_type&)>(&T::assemble_jacobian),"", "J(u)#u", "assembles jacobian on surface grid")
 			.add_method("assemble_jacobian", static_cast<void (T::*)(matrix_type&, const vector_type&, const GridLevel&)>(&T::assemble_jacobian),"", "J(u)#u#GridLevel", "assembles jacobian on grid level")
 			.add_method("assemble_defect", static_cast<void (T::*)(vector_type&, const vector_type&)>(&T::assemble_defect),"", "d(u)#u", "Assembles Defect on surface grid.")
@@ -144,7 +137,7 @@ static void Algebra(Registry& reg, string parentGroup)
 		typedef IAssemble<TAlgebra> TBase;
 		typedef IDomainDiscretization<TAlgebra> T;
 		string name = string("IDomainDiscretization").append(suffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			.add_method("assemble_jacobian", static_cast<void (T::*)
 			            (matrix_type&, ConstSmartPtr<VectorTimeSeries<vector_type> >,
 			             number)>(&T::assemble_jacobian));
@@ -157,7 +150,7 @@ static void Algebra(Registry& reg, string parentGroup)
 		typedef IAssemble<TAlgebra>  TBase;
 		typedef ITimeDiscretization<TAlgebra> T;
 		string name = string("ITimeDiscretization").append(suffix);
-		reg.add_class_<T,TBase>(name, grp)
+		reg.template add_class_<T,TBase>(name, grp)
 			.add_method("prepare_step", &T::prepare_step, "", "", "prepares the assembling of defect/Jacobian for a time step")
 			.add_method("prepare_step_elem", static_cast<void (T::*)(SmartPtr<VectorTimeSeries<vector_type> >, number)>(&T::prepare_step_elem))
 			.add_method("finish_step", &T::finish_step, "", "", "finishes the assembling of defect/Jacobian for a time step")
@@ -176,7 +169,7 @@ static void Algebra(Registry& reg, string parentGroup)
 		typedef ITimeDiscretization<TAlgebra> TBase;
 		typedef MultiStepTimeDiscretization<TAlgebra> T;
 		string name = string("MultiStepTimeDiscretization").append(suffix);
-		reg.add_class_<T,TBase>(name, grp)
+		reg.template add_class_<T,TBase>(name, grp)
 			.add_method("calc_error", static_cast<void (T::*)(const vector_type&)>(&T::calc_error), "", "",
 				"calculate error indicators for elements from error estimators of the elemDiscs")
 			.add_method("calc_error", static_cast<void (T::*)(const vector_type&, CPUAlgebra::vector_type&)>(&T::calc_error), "", "",
@@ -193,7 +186,7 @@ static void Algebra(Registry& reg, string parentGroup)
 		typedef MultiStepTimeDiscretization<TAlgebra> TBase;
 		typedef ThetaTimeStep<TAlgebra> T;
 		string name = string("ThetaTimeStep").append(suffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 				.template add_constructor<void (*)(SmartPtr<IDomainDiscretization<TAlgebra> >)>("Domain Discretization")
 				.template add_constructor<void (*)(SmartPtr<IDomainDiscretization<TAlgebra> >,number)>("Domain Discretization#Theta")
 				.template add_constructor<void (*)(SmartPtr<IDomainDiscretization<TAlgebra> >,const char*)>("Domain Discretization#Scheme")
@@ -210,7 +203,7 @@ static void Algebra(Registry& reg, string parentGroup)
 		typedef MultiStepTimeDiscretization<TAlgebra> TBase;
 		typedef BDF<TAlgebra> T;
 		string name = string("BDF").append(suffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 				.template add_constructor<void (*)(SmartPtr<IDomainDiscretization<TAlgebra> >)>("Domain Discretization")
 				.template add_constructor<void (*)(SmartPtr<IDomainDiscretization<TAlgebra> >,int)>("Domain Discretization#Order")
 				.add_method("set_order", &T::set_order, "", "Order")
@@ -224,7 +217,7 @@ static void Algebra(Registry& reg, string parentGroup)
 		typedef MultiStepTimeDiscretization<TAlgebra> TBase;
 		typedef SDIRK<TAlgebra> T;
 		string name = string("SDIRK").append(suffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 				.template add_constructor<void (*)(SmartPtr<IDomainDiscretization<TAlgebra> >)>("Domain Discretization")
 				.template add_constructor<void (*)(SmartPtr<IDomainDiscretization<TAlgebra> >,int)>("Domain Discretization#Order")
 				.add_method("set_order", &T::set_order, "", "Order")
@@ -239,7 +232,7 @@ static void Algebra(Registry& reg, string parentGroup)
 		typedef IAssemble<TAlgebra> TBase;
 		typedef CompositeTimeDiscretization<TAlgebra> T;
 		string name = string("CompositeTimeDiscretization").append(suffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.add_method("add_time_disc", &T::add_time_disc, "", "time discretization")
 			.add_method("prepare_step", &T::prepare_step, "", "", "prepares the assembling of defect/Jacobian for a time step")
@@ -253,7 +246,7 @@ static void Algebra(Registry& reg, string parentGroup)
 		typedef AssembledLinearOperator<TAlgebra> T;
 		typedef MatrixOperator<matrix_type, vector_type> TBase;
 		string name = string("AssembledLinearOperator").append(suffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.template add_constructor<void (*)(SmartPtr<IAssemble<TAlgebra> >)>("Assembling Routine")
 			.template add_constructor<void (*)(SmartPtr<IAssemble<TAlgebra> >, const GridLevel&)>("AssemblingRoutine#GridLevel")
@@ -274,7 +267,7 @@ static void Algebra(Registry& reg, string parentGroup)
 		typedef IOperatorInverse<vector_type> TBase;
 		typedef DebugWritingObject<TAlgebra> TBase2;
 		string name = string("NewtonSolver").append(suffix);
-		reg.add_class_<T, TBase, TBase2>(name, grp)
+		reg.template add_class_<T, TBase, TBase2>(name, grp)
 			.add_constructor()
 			.template add_constructor<void (*)(SmartPtr<IOperator<vector_type> >)>("Operator")
 			.template add_constructor<void (*)(SmartPtr<IAssemble<TAlgebra> >)>("AssemblingRoutine")
@@ -313,7 +306,7 @@ static void Algebra(Registry& reg, string parentGroup)
 		typedef IOperatorInverse<vector_type> TBase;
 		typedef DebugWritingObject<TAlgebra> TBase2;
 		string name = string("NLJacobiSolver").append(suffix);
-		reg.add_class_<T, TBase, TBase2>(name, grp)
+		reg.template add_class_<T, TBase, TBase2>(name, grp)
 			.add_constructor()
 			.template add_constructor<void (*)(SmartPtr<IConvergenceCheck<vector_type> >)>("ConvCheck")
 			.add_method("set_convergence_check", &T::set_convergence_check, "", "convCheck")
@@ -332,7 +325,7 @@ static void Algebra(Registry& reg, string parentGroup)
 		typedef AssembledOperator<TAlgebra> T;
 		typedef IOperator<vector_type> TBase;
 		string name = string("AssembledOperator").append(suffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.template add_constructor<void (*)(SmartPtr<IAssemble<TAlgebra> >)>("AssemblingRoutine")
 			.template add_constructor<void (*)(SmartPtr<IAssemble<TAlgebra> >, const GridLevel&)>("AssemblingRoutine#GridLevel")
@@ -350,7 +343,7 @@ static void Algebra(Registry& reg, string parentGroup)
 		std::string grp = parentGroup; grp.append("/Discretization/SpatialDisc");
 		typedef ILocalToGlobalMapper<TAlgebra> T;
 		string name = string("ILocalToGlobalMapper").append(suffix);
-		reg.add_class_<T>(name, grp);
+		reg.template add_class_<T>(name, grp);
 		reg.add_class_to_group(name, "ILocalToGlobalMapper", tag);
 	}
 
@@ -379,7 +372,7 @@ static void Algebra(Registry& reg, string parentGroup)
 		std::string grp = parentGroup; grp.append("/Discretization/Nonlinear");
 		typedef ILineSearch<vector_type> T;
 		string name = string("ILineSearch").append(suffix);
-		reg.add_class_<T>(name, grp);
+		reg.template add_class_<T>(name, grp);
 		reg.add_class_to_group(name, "ILineSearch", tag);
 	}
 
@@ -389,7 +382,7 @@ static void Algebra(Registry& reg, string parentGroup)
 		typedef StandardLineSearch<vector_type> T;
 		typedef ILineSearch<vector_type> TBase;
 		string name = string("StandardLineSearch").append(suffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.template add_constructor<void (*)(int, number, number, bool)>()
 			.template add_constructor<void (*)(int, number, number, bool, bool)>()
@@ -411,7 +404,7 @@ static void Algebra(Registry& reg, string parentGroup)
 		std::string grp = parentGroup; grp.append("/Discretization/TimeDisc");
 		string name = string("SolutionTimeSeries").append(suffix);
 		typedef VectorTimeSeries<vector_type> T;
-		reg.add_class_<T>(name, grp)
+		reg.template add_class_<T>(name, grp)
 			.add_constructor()
 			.add_method("size", &T::size, "number of time steps handled")
 			.add_method("push_discard_oldest", &T::push_discard_oldest, "oldest solution", "vec#time", "adds new time point, oldest solution is discarded and returned")
@@ -437,8 +430,8 @@ static void Algebra(Registry& reg, string parentGroup)
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-template <typename TDomain, typename TAlgebra>
-static void DomainAlgebra(Registry& reg, string parentGroup)
+template <typename TDomain, typename TAlgebra, typename TRegistry>
+static void DomainAlgebra(TRegistry& reg, string parentGroup)
 {
 	//	typedefs for Vector and Matrix
 	typedef typename TAlgebra::vector_type vector_type;
@@ -452,7 +445,7 @@ static void DomainAlgebra(Registry& reg, string parentGroup)
 		typedef CompositeConvCheck<vector_type, TDomain> T;
 		typedef IConvergenceCheck<vector_type> TBase;
 		string name = string("CompositeConvCheck").append(suffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >)>("ApproximationSpace")
 			.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >, int, number, number)>("ApproximationSpace#maxSteps#minDefect#relReduction")
 			.add_method("set_level", (void (T::*)(int)) &T::set_level,
@@ -506,7 +499,7 @@ static void DomainAlgebra(Registry& reg, string parentGroup)
 		typedef IOperatorInverse<vector_type> TBase;
 		typedef DebugWritingObject<TAlgebra> TBase2;
 		string name = string("NLGaussSeidelSolver").append(suffix);
-		reg.add_class_<T, TBase, TBase2>(name, grp)
+		reg.template add_class_<T, TBase, TBase2>(name, grp)
 			.add_constructor()
 			.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >,
 				SmartPtr<IConvergenceCheck<vector_type> >)> ("ApproxSpaceConvCheck")
@@ -529,7 +522,7 @@ static void DomainAlgebra(Registry& reg, string parentGroup)
 		typedef IOperatorInverse<vector_type> TBase;
 		typedef DebugWritingObject<TAlgebra> TBase2;
 		string name = string("NestedIterationSolver").append(suffix);
-		reg.add_class_<T, TBase, TBase2>(name, grp)
+		reg.template add_class_<T, TBase, TBase2>(name, grp)
 							.add_constructor()
 							.template add_constructor<void (*)(SmartPtr<IOperator<vector_type> >)>("Operator")
 							.template add_constructor<void (*)(SmartPtr<IAssemble<TAlgebra> >)>("AssemblingRoutine")
@@ -568,7 +561,7 @@ static void DomainAlgebra(Registry& reg, string parentGroup)
 		std::string &grp = parentGroup;
 		typedef ILagrangeMultiplierDisc<TDomain, function_type> T;
 		string name = string("ILagrangeMultiplierDisc").append(suffix);
-		reg.add_class_<T>(name, grp)
+		reg.template add_class_<T>(name, grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ILagrangeMultiplierDisc", tag);
 	}
@@ -578,7 +571,7 @@ static void DomainAlgebra(Registry& reg, string parentGroup)
 		std::string &grp = parentGroup;
 		typedef ActiveSet<TDomain, TAlgebra> T;
 		string name = string("ActiveSet").append(suffix);
-		reg.add_class_<T>(name, grp)
+		reg.template add_class_<T>(name, grp)
 			.add_constructor()
 			.add_method("set_obstacle", &T::set_obstacle, "", "sets limiting "
 					"obstacle constraint")
@@ -604,14 +597,22 @@ static void DomainAlgebra(Registry& reg, string parentGroup)
 
 	{
 		std::string grp = parentGroup; grp.append("/Discretization/TimeIntegratorObservers");
+		// ITimeIntegratorObserver (virtual base class)
+		typedef ITimeIntegratorObserver<TDomain, TAlgebra> T;
+		string name = string("ITimeIntegratorObserver").append(suffix);
+		reg.template add_class_<T>(name, grp);
+		reg.add_class_to_group(name, "ITimeIntegratorObserver", tag);
+	}
+
+	{
+		std::string grp = parentGroup; grp.append("/Discretization/TimeIntegratorObservers");
 		// LuaCallbackObserver
 		typedef LuaCallbackObserver<TDomain, TAlgebra> T;
 		typedef ITimeIntegratorObserver<TDomain, TAlgebra> TBase;
-
 		typedef GridFunction<TDomain, TAlgebra> TGF;
 
 		string name = string("LuaCallbackObserver").append(suffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)() >("internal id=0")
 			.template add_constructor<void (*)(int) >("internal id")
 			.add_method("set_callback", &T::set_callback)
@@ -626,7 +627,7 @@ static void DomainAlgebra(Registry& reg, string parentGroup)
 		typedef GridFunction<TDomain, TAlgebra> TGF;
 
 		string name = string("TimeIntegratorSubject").append(suffix);
-		reg.add_class_<T>(name, grp)
+		reg.template add_class_<T>(name, grp)
 				  .template add_constructor<void (*)() >("")
 				  .add_method("attach_observer", &T::attach_observer)
 				  //.add_method("attach_to_group", &T::attach_to_group)
@@ -651,15 +652,6 @@ static void DomainAlgebra(Registry& reg, string parentGroup)
 	}
 
 
-	{
-		std::string grp = parentGroup; grp.append("/Discretization/TimeIntegratorObservers");
-		// ITimeIntegratorObserver (virtual base class)
-		typedef ITimeIntegratorObserver<TDomain, TAlgebra> T;
-		string name = string("ITimeIntegratorObserver").append(suffix);
-		reg.add_class_<T>(name, grp);
-		reg.add_class_to_group(name, "ITimeIntegratorObserver", tag);
-	}
-
 	// {
 	// 	std::string grp = parentGroup; grp.append("/Discretization/TimeIntegratorObservers");
 	// 	// ProxyTimeIntegratorObserver
@@ -672,29 +664,30 @@ static void DomainAlgebra(Registry& reg, string parentGroup)
 
 }
 
-static void Common(Registry& reg, string parentGroup)
+template <typename TRegistry>
+static void Common(TRegistry& reg, string parentGroup)
 {
 	std::string grp = parentGroup; grp.append("/Discretization/Nonlinear");
 	//  INewtonUpdate
 	{
 		typedef INewtonUpdate T;
 		string name = string("INewtonUpdate");
-		reg.add_class_<T>(name, grp);
+		reg.template add_class_<T>(name, grp);
 	}
 
 	grp = parentGroup; grp.append("/Discretization/Util");
 
 	{
 		// IFinishedCondition (virtual base class)
-		reg.add_class_<IFinishedCondition>(string("IFinishedCondition"), grp);
+		reg.template add_class_<IFinishedCondition>(string("IFinishedCondition"), grp);
 	}
 
 
 	{
 		typedef FinishedTester T;
 		string name = string("FinishedTester");
-		reg.add_class_<T>(name, grp)
-			.add_constructor<void (*) ()> ()
+		reg.template add_class_<T>(name, grp)
+			.template add_constructor<void (*) ()> ()
 			.add_method("is_finished", static_cast<bool (T::*) (number,int)> (&T::is_finished), "time, step", "Tests if all conditions are fulfilled")
 			.add_method("add_condition", static_cast<void (T::*) (SmartPtr<IFinishedCondition>)> (&T::add_condition), "condition", "Adds a new condition to the list of conditions")
 			.set_construct_as_smart_pointer(true);
@@ -704,8 +697,8 @@ static void Common(Registry& reg, string parentGroup)
 		typedef MaxStepsFinishedCondition T;
 		typedef IFinishedCondition TBase;
 		string name = string("MaxStepsFinishedCondition");
-		reg.add_class_<T, TBase>(name, grp)
-			.add_constructor<void (*) (int)> ("max_steps")
+		reg.template add_class_<T, TBase>(name, grp)
+			.template add_constructor<void (*) (int)> ("max_steps")
 			.set_construct_as_smart_pointer(true);
 	}
 
@@ -714,8 +707,8 @@ static void Common(Registry& reg, string parentGroup)
 		typedef TemporalFinishedCondition T;
 		typedef IFinishedCondition TBase;
 		string name = string("TemporalFinishedCondition");
-		reg.add_class_<T, TBase>(name, grp)
-			.add_constructor<void (*) (number, number, number)> ("end_time, max_step_size, relative_precision_bound")
+		reg.template add_class_<T, TBase>(name, grp)
+			.template add_constructor<void (*) (number, number, number)> ("end_time, max_step_size, relative_precision_bound")
 			.add_method("set_max_step_size", static_cast<void (T::*) (number)> (&T::set_max_step_size), "max_step_size", "Sets maximum step size")
 			.set_construct_as_smart_pointer(true);
 	}
@@ -731,17 +724,20 @@ static void Common(Registry& reg, string parentGroup)
 }// end DiscAlgebra
 
 /// \addtogroup discalgebra_bridge
-void RegisterBridge_DiscAlgebra(Registry& reg, string grp)
+template <typename TRegistry=Registry>
+void RegisterBridge_DiscAlgebra_(TRegistry& reg, string grp)
 {
-	typedef DiscAlgebra::Functionality Functionality;
+	typedef DiscAlgebra::Functionality TFunctionality;
 
 	try{
-		RegisterAlgebraDependent<Functionality>(reg,grp);
-		RegisterDomainAlgebraDependent<Functionality>(reg,grp);
-		RegisterCommon<Functionality>(reg,grp);
+		RegisterAlgebraDependent<TFunctionality, TRegistry>(reg,grp);
+		RegisterDomainAlgebraDependent<TFunctionality, TRegistry>(reg,grp);
+		RegisterCommon<TFunctionality, TRegistry>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
 
 } // end namespace ug
+
+UG_REGISTRY_DEFINE(RegisterBridge_DiscAlgebra);
 } // end namespace ug

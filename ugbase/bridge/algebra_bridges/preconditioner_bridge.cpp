@@ -75,8 +75,8 @@ struct Functionality
 {
 
 
-template <typename TDomain, typename TAlgebra>
-static void DomainAlgebra(Registry& reg, string grp)
+template <typename TDomain, typename TAlgebra, typename TRegistry>
+static void DomainAlgebra(TRegistry& reg, string grp)
 {
 	string suffix = GetDomainAlgebraSuffix<TDomain,TAlgebra>();
 	string tag = GetDomainAlgebraTag<TDomain,TAlgebra>();
@@ -87,7 +87,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef ILinearIterator<typename TAlgebra::vector_type> TBase;
 		typedef DebugWritingObject<TAlgebra> TBase2;
 		string name = string("AssembledTransformingSmoother").append(suffix);
-		reg.add_class_<T, TBase, TBase2>(name, grp)
+		reg.template add_class_<T, TBase, TBase2>(name, grp)
             .ADD_CONSTRUCTOR((SmartPtr<IAssemble<TAlgebra> >,
                           SmartPtr<ILinearIterator<typename TAlgebra::vector_type> >,
                           SmartPtr<IAssemble<TAlgebra> >))
@@ -103,8 +103,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 }
 
-template<typename TAlgebra, typename TGSType>
-static void RegisterBlockGaussSeidel(Registry& reg, string grp, string name)
+template<typename TAlgebra, typename TRegistry, typename TGSType>
+static void RegisterBlockGaussSeidel(TRegistry& reg, string grp, string name)
 {
 	string suffix = GetAlgebraSuffix<TAlgebra>();
 	string tag = GetAlgebraTag<TAlgebra>();
@@ -112,7 +112,7 @@ static void RegisterBlockGaussSeidel(Registry& reg, string grp, string name)
 	typedef TGSType T;
 	typedef IPreconditioner<TAlgebra> TBase;
 	string namesuffix = name+suffix;
-	reg.add_class_<T,TBase>(namesuffix, grp, name)
+	reg.template add_class_<T,TBase>(namesuffix, grp, name)
 		.add_constructor()
 		.ADD_CONSTRUCTOR( (int) )("depth")
 		.add_method("set_depth", &T::set_depth)
@@ -121,8 +121,8 @@ static void RegisterBlockGaussSeidel(Registry& reg, string grp, string name)
 	reg.add_class_to_group(namesuffix, name, tag);
 }
 
-template<typename TAlgebra, bool forward, bool backward>
-static void RegisterBlockGaussSeidelIterative(Registry& reg, string grp, string name)
+template<typename TAlgebra, typename TRegistry, bool forward, bool backward>
+static void RegisterBlockGaussSeidelIterative(TRegistry& reg, string grp, string name)
 {
 	string suffix = GetAlgebraSuffix<TAlgebra>();
 	string tag = GetAlgebraTag<TAlgebra>();
@@ -130,7 +130,7 @@ static void RegisterBlockGaussSeidelIterative(Registry& reg, string grp, string 
 	typedef BlockGaussSeidelIterative<TAlgebra, forward, backward> T;
 	typedef IPreconditioner<TAlgebra> TBase;
 	string namesuffix = name+suffix;
-	reg.add_class_<T,TBase>(namesuffix, grp, name)
+	reg.template add_class_<T,TBase>(namesuffix, grp, name)
 		.add_constructor()
 		. ADD_CONSTRUCTOR( (int, int) )("depth#steps")
 		.add_method("set_depth", &T::set_depth)
@@ -148,8 +148,8 @@ static void RegisterBlockGaussSeidelIterative(Registry& reg, string grp, string 
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-template <typename TAlgebra>
-static void Algebra(Registry& reg, string grp)
+template <typename TAlgebra, typename TRegistry>
+static void Algebra(TRegistry& reg, string grp)
 {
 	string suffix = GetAlgebraSuffix<TAlgebra>();
 	string tag = GetAlgebraTag<TAlgebra>();
@@ -163,7 +163,7 @@ static void Algebra(Registry& reg, string grp)
 		typedef Jacobi<TAlgebra> T;
 		typedef IPreconditioner<TAlgebra> TBase;
 		string name = string("Jacobi").append(suffix);
-		reg.add_class_<T,TBase>(name, grp, "Jacobi Preconditioner")
+		reg.template add_class_<T,TBase>(name, grp, "Jacobi Preconditioner")
 			.add_constructor()
 			.template add_constructor<void (*)(number)>("DampingFactor")
 			//.add_method("set_block", &T::set_block, "", "block", "if true, use block smoothing (default), else diagonal smoothing")
@@ -176,7 +176,7 @@ static void Algebra(Registry& reg, string grp)
 		typedef GaussSeidelBase<TAlgebra> T;
 		typedef IPreconditioner<TAlgebra> TBase;
 		string name = string("GaussSeidelBase").append(suffix);
-		reg.add_class_<T,TBase>(name, grp, "Gauss-Seidel Base")
+		reg.template add_class_<T,TBase>(name, grp, "Gauss-Seidel Base")
 			.add_method("enable_consistent_interfaces", &T::enable_consistent_interfaces, "", "enable", "makes the matrix and defect consistent at the proc. interfaces")
 			.add_method("enable_overlap", &T::enable_overlap, "", "enable", "Enables matrix overlap. This also means that interfaces are consistent.")
 			//.add_method("set_ordering_algorithm", &T::set_ordering_algorithm, "", "",
@@ -191,7 +191,7 @@ static void Algebra(Registry& reg, string grp)
 		typedef GaussSeidel<TAlgebra> T;
 		typedef GaussSeidelBase<TAlgebra> TBase;
 		string name = string("GaussSeidel").append(suffix);
-		reg.add_class_<T,TBase>(name, grp, "Gauss-Seidel Preconditioner")
+		reg.template add_class_<T,TBase>(name, grp, "Gauss-Seidel Preconditioner")
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GaussSeidel", tag);
@@ -202,7 +202,7 @@ static void Algebra(Registry& reg, string grp)
 		typedef SymmetricGaussSeidel<TAlgebra> T;
 		typedef GaussSeidelBase<TAlgebra> TBase;
 		string name = string("SymmetricGaussSeidel").append(suffix);
-		reg.add_class_<T,TBase>(name, grp, "Symmetric Gauss Seidel Preconditioner")
+		reg.template add_class_<T,TBase>(name, grp, "Symmetric Gauss Seidel Preconditioner")
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "SymmetricGaussSeidel", tag);
@@ -213,7 +213,7 @@ static void Algebra(Registry& reg, string grp)
 		typedef BackwardGaussSeidel<TAlgebra> T;
 		typedef GaussSeidelBase<TAlgebra> TBase;
 		string name = string("BackwardGaussSeidel").append(suffix);
-		reg.add_class_<T,TBase>(name, grp, "Backward Gauss Seidel Preconditioner")
+		reg.template add_class_<T,TBase>(name, grp, "Backward Gauss Seidel Preconditioner")
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "BackwardGaussSeidel", tag);
@@ -221,18 +221,18 @@ static void Algebra(Registry& reg, string grp)
 
 //	BlockGaussSeidel
 	{
-		RegisterBlockGaussSeidel<TAlgebra, BlockGaussSeidel<TAlgebra, true, false> >(reg, grp, "BlockGaussSeidel");
-		RegisterBlockGaussSeidel<TAlgebra, BlockGaussSeidel<TAlgebra, false, true> >(reg, grp, "BackwardBlockGaussSeidel");
-		RegisterBlockGaussSeidel<TAlgebra, BlockGaussSeidel<TAlgebra, true, true> >(reg, grp, "SymmetricBlockGaussSeidel");
+		RegisterBlockGaussSeidel<TAlgebra, TRegistry, BlockGaussSeidel<TAlgebra, true, false> >(reg, grp, "BlockGaussSeidel");
+		RegisterBlockGaussSeidel<TAlgebra, TRegistry, BlockGaussSeidel<TAlgebra, false, true> >(reg, grp, "BackwardBlockGaussSeidel");
+		RegisterBlockGaussSeidel<TAlgebra, TRegistry, BlockGaussSeidel<TAlgebra, true, true> >(reg, grp, "SymmetricBlockGaussSeidel");
 
-		RegisterBlockGaussSeidel<TAlgebra, SparseBlockGaussSeidel<TAlgebra, true, false> >(reg, grp, "SparseBlockGaussSeidel");
-		RegisterBlockGaussSeidel<TAlgebra, SparseBlockGaussSeidel2<TAlgebra, true, false> >(reg, grp, "SparseBlockGaussSeidel2");
-		RegisterBlockGaussSeidel<TAlgebra, SparseBlockGaussSeidel<TAlgebra, false, true> >(reg, grp, "SparseBackwardBlockGaussSeidel");
-		RegisterBlockGaussSeidel<TAlgebra, SparseBlockGaussSeidel<TAlgebra, true, true> >(reg, grp, "SparseSymmetricBlockGaussSeidel");
+		RegisterBlockGaussSeidel<TAlgebra, TRegistry, SparseBlockGaussSeidel<TAlgebra, true, false> >(reg, grp, "SparseBlockGaussSeidel");
+		RegisterBlockGaussSeidel<TAlgebra, TRegistry, SparseBlockGaussSeidel2<TAlgebra, true, false> >(reg, grp, "SparseBlockGaussSeidel2");
+		RegisterBlockGaussSeidel<TAlgebra, TRegistry, SparseBlockGaussSeidel<TAlgebra, false, true> >(reg, grp, "SparseBackwardBlockGaussSeidel");
+		RegisterBlockGaussSeidel<TAlgebra, TRegistry, SparseBlockGaussSeidel<TAlgebra, true, true> >(reg, grp, "SparseSymmetricBlockGaussSeidel");
 
-		RegisterBlockGaussSeidelIterative<TAlgebra, true, false>(reg, grp, "BlockGaussSeidelIterative");
-		RegisterBlockGaussSeidelIterative<TAlgebra, false, true>(reg, grp, "BackwardBlockGaussSeidelIterative");
-		RegisterBlockGaussSeidelIterative<TAlgebra, true, true>(reg, grp, "SymmetricBlockGaussSeidelIterative");
+		RegisterBlockGaussSeidelIterative<TAlgebra, TRegistry, true, false>(reg, grp, "BlockGaussSeidelIterative");
+		RegisterBlockGaussSeidelIterative<TAlgebra, TRegistry, false, true>(reg, grp, "BackwardBlockGaussSeidelIterative");
+		RegisterBlockGaussSeidelIterative<TAlgebra, TRegistry, true, true>(reg, grp, "SymmetricBlockGaussSeidelIterative");
 	}
 
 //	ILU
@@ -240,7 +240,7 @@ static void Algebra(Registry& reg, string grp)
 		typedef ILU<TAlgebra> T;
 		typedef IPreconditioner<TAlgebra> TBase;
 		string name = string("ILU").append(suffix);
-		reg.add_class_<T,TBase>(name, grp, "Incomplete LU Decomposition")
+		reg.template add_class_<T,TBase>(name, grp, "Incomplete LU Decomposition")
 			.add_constructor()
 			.add_method("set_beta", &T::set_beta, "", "beta")
 			.add_method("set_sort_eps", &T::set_sort_eps, "", "eps")
@@ -261,7 +261,7 @@ static void Algebra(Registry& reg, string grp)
 		typedef ILUTPreconditioner<TAlgebra> T;
 		typedef IPreconditioner<TAlgebra> TBase;
 		string name = string("ILUT").append(suffix);
-		reg.add_class_<T,TBase>(name, grp, "Incomplete LU Decomposition with threshold")
+		reg.template add_class_<T,TBase>(name, grp, "Incomplete LU Decomposition with threshold")
 			.add_constructor()
 			.template add_constructor<void (*)(number)>("threshold parameter")
 			.add_method("set_threshold", &T::set_threshold,
@@ -280,7 +280,7 @@ static void Algebra(Registry& reg, string grp)
 		typedef ILUTScalarPreconditioner<TAlgebra> T;
 		typedef IPreconditioner<TAlgebra> TBase;
 		string name = string("ILUTScalar").append(suffix);
-		reg.add_class_<T,TBase>(name, grp, "Scalar Incomplete LU Decomposition with threshold")
+		reg.template add_class_<T,TBase>(name, grp, "Scalar Incomplete LU Decomposition with threshold")
 			.add_constructor()
 			.template add_constructor<void (*)(number)>("threshold parameter")
 			.add_method("set_threshold", &T::set_threshold,
@@ -297,7 +297,7 @@ static void Algebra(Registry& reg, string grp)
 		typedef LinearIteratorProduct<vector_type, vector_type> T;
 		typedef ILinearIterator<vector_type> TBase;
 		string name = string("LinearIteratorProduct").append(suffix);
-		reg.add_class_<T,TBase>(name, grp,
+		reg.template add_class_<T,TBase>(name, grp,
 						"Linear Iterator consisting of several LinearIterations")
 				.add_constructor()
 				.template add_constructor<void (*)(const std::vector<SmartPtr<ILinearIterator<vector_type,vector_type> > >&)>()
@@ -314,7 +314,7 @@ static void Algebra(Registry& reg, string grp)
 		typedef LinearIteratorSum<vector_type, vector_type> T;
 		typedef ILinearIterator<vector_type> TBase;
 		string name = string("LinearIteratorSum").append(suffix);
-		reg.add_class_<T,TBase>(name, grp,
+		reg.template add_class_<T,TBase>(name, grp,
 						"Linear Iterator consisting of several LinearIterations")
 				.add_constructor()
 				.template add_constructor<void (*)(const std::vector<SmartPtr<ILinearIterator<vector_type,vector_type> > >&)>()
@@ -331,7 +331,7 @@ static void Algebra(Registry& reg, string grp)
 		typedef Vanka<TAlgebra> T;
 		typedef IPreconditioner<TAlgebra> TBase;
 		string name = string("Vanka").append(suffix);
-		reg.add_class_<T,TBase>(name, grp, "Vanka Preconditioner")
+		reg.template add_class_<T,TBase>(name, grp, "Vanka Preconditioner")
 		.add_constructor()
 		.add_method("set_relax", &T::set_relax, "", "relax")
 		.set_construct_as_smart_pointer(true);
@@ -343,7 +343,7 @@ static void Algebra(Registry& reg, string grp)
 		typedef DiagVanka<TAlgebra> T;
 		typedef IPreconditioner<TAlgebra> TBase;
 		string name = string("DiagVanka").append(suffix);
-		reg.add_class_<T,TBase>(name, grp, "Diagonal Vanka Preconditioner")
+		reg.template add_class_<T,TBase>(name, grp, "Diagonal Vanka Preconditioner")
 		.add_constructor()
 		.add_method("set_relax", &T::set_relax, "", "relax")
 		.set_construct_as_smart_pointer(true);
@@ -355,7 +355,7 @@ static void Algebra(Registry& reg, string grp)
 		typedef AgglomeratingIterator<TAlgebra> T;
 		typedef ILinearIterator<vector_type> TBase;
 		string name = string("AgglomeratingIterator").append(suffix);
-		reg.add_class_<T,TBase>(name, grp, "AgglomeratingIterator")
+		reg.template add_class_<T,TBase>(name, grp, "AgglomeratingIterator")
 			.template add_constructor<void (*)(SmartPtr<ILinearIterator<vector_type> > )>("pLinIterator")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "AgglomeratingIterator", tag);
@@ -366,7 +366,7 @@ static void Algebra(Registry& reg, string grp)
 		typedef AgglomeratingPreconditioner<TAlgebra> T;
 		typedef IPreconditioner<TAlgebra> TBase;
 		string name = string("AgglomeratingPreconditioner").append(suffix);
-		reg.add_class_<T,TBase>(name, grp, "AgglomeratingPreconditioner")
+		reg.template add_class_<T,TBase>(name, grp, "AgglomeratingPreconditioner")
 			.template add_constructor<void (*)(SmartPtr<ILinearIterator<vector_type> > )>("pPreconditioner")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "AgglomeratingPreconditioner", tag);
@@ -383,16 +383,19 @@ static void Algebra(Registry& reg, string grp)
 }// end Preconditioner
 
 /// \addtogroup precond_bridge
-void RegisterBridge_Preconditioner(Registry& reg, string grp)
+template <typename TRegistry=Registry>
+void RegisterBridge_Preconditioner_(TRegistry& reg, string grp)
 {
 	grp.append("/Algebra/Preconditioner");
 	typedef Preconditioner::Functionality Functionality;
 
 	try{
-		RegisterAlgebraDependent<Functionality>(reg,grp);
+		RegisterAlgebraDependent<Functionality, TRegistry>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
 
 } // namespace bridge
+
+UG_REGISTRY_DEFINE(RegisterBridge_Preconditioner);
 } // namespace ug

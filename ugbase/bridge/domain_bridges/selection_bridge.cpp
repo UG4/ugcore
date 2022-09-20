@@ -157,7 +157,8 @@ struct Functionality
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-static void Common(Registry& reg, string grp)
+template <typename TRegistry=Registry>
+static void Common(TRegistry& reg, string grp)
 {
 //	register domain independent mark methods
 	reg.add_function("SelectDomainElements", &SelectDomainElements, grp, "", "sel#bSelect#selectVrts#selectEdges#selectFaces#selectVolumes");
@@ -173,8 +174,8 @@ static void Common(Registry& reg, string grp)
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-template <typename TDomain>
-static void Domain(Registry& reg, string grp)
+template <typename TDomain, typename TRegistry=Registry>
+static void Domain(TRegistry& reg, string grp)
 {
 	typedef TDomain 							domain_type;
 
@@ -191,17 +192,20 @@ static void Domain(Registry& reg, string grp)
 }// end Refinement
 
 /// \addtogroup selection_bridge
-void RegisterBridge_Selection(Registry& reg, string grp)
+template <typename TRegistry=Registry>
+void RegisterBridge_Selection_(TRegistry& reg, string grp)
 {
 	grp.append("/Selection");
-	typedef Selection::Functionality Functionality;
+	typedef Selection::Functionality TFunctionality;
 
 	try{
-		RegisterCommon<Functionality>(reg, grp);
-		RegisterDomainDependent<Functionality>(reg, grp);
+		RegisterCommon<TFunctionality, TRegistry>(reg, grp);
+		RegisterDomainDependent<TFunctionality, TRegistry>(reg, grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
 
 }// end of namespace bridge
+
+UG_REGISTRY_DEFINE(RegisterBridge_Selection);
 }// end of namespace ug

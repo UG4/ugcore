@@ -187,28 +187,28 @@ struct AlgebraTypeIDProvider
 };
 
 
-template <typename Functionality, typename List = CompileAlgebraList>
+template <typename Functionality, typename TRegistry=Registry, typename List = CompileAlgebraList>
 struct RegisterAlgebraDependent
 {
-	RegisterAlgebraDependent(Registry& reg, std::string grp)
+	RegisterAlgebraDependent(TRegistry& reg, std::string grp)
 	{
 		static const bool isEmpty = boost::mpl::empty<List>::value;
 		typename boost::mpl::if_c<isEmpty, RegEnd, RegNext>::type (reg,grp);
 	}
 
 	struct RegEnd{
-		RegEnd(Registry& reg, std::string grp)
+		RegEnd(TRegistry& reg, std::string grp)
 		{
 		}
 	};
 	struct RegNext
 	{
-		RegNext(Registry& reg, std::string grp)
+		RegNext(TRegistry& reg, std::string grp)
 		{
 			typedef typename boost::mpl::front<List>::type AlgebraType;
 			typedef typename boost::mpl::pop_front<List>::type NextList;
 			Functionality::template Algebra<AlgebraType>(reg,grp);
-			RegisterAlgebraDependent<Functionality, NextList>(reg,grp);
+			RegisterAlgebraDependent<Functionality, TRegistry, NextList>(reg,grp);
 		}
 	};
 };

@@ -68,8 +68,8 @@ struct Functionality
 	 * @param reg				registry
 	 * @param parentGroup		group for sorting of functionality
 	 */
-	template <typename TAlgebra>
-	static void Algebra(Registry& reg, string grp)
+	template <typename TAlgebra, typename TRegistry>
+	static void Algebra(TRegistry& reg, string grp)
 	{
 		string suffix = GetAlgebraSuffix<TAlgebra>();
 		string tag = GetAlgebraTag<TAlgebra>();
@@ -88,17 +88,21 @@ struct Functionality
 
 ////////////////////////////////////////////////////////////////////////////////
 //	Register
-void RegisterBridge_ManifoldUtil(Registry& reg, string grp)
+template <typename TRegistry=Registry>
+void RegisterBridge_ManifoldUtil_(TRegistry& reg, string grp)
 {
 	typedef Functionality Functionality;
 
 	#if defined(UG_DIM_3)
 		try{
-			RegisterAlgebraDependent<Functionality>(reg,grp);
+			RegisterAlgebraDependent<Functionality, TRegistry>(reg,grp);
 		}
 		UG_REGISTRY_CATCH_THROW(grp);
 	#endif
 }
 
 }//	end of namespace bridge
+
+UG_REGISTRY_DEFINE(RegisterBridge_ManifoldUtil);
+
 }//	end of namespace ug

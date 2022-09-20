@@ -144,12 +144,13 @@ namespace domain_ray_tracing {
 
 struct Functionality {
 
-	static void Common(Registry& reg, string grp)
+	template <typename TRegistry>
+	static void Common(TRegistry& reg, string grp)
 	{
 		typedef DomainRayTracer T;
 		
-		reg.add_class_<DomainRayTracer>("DomainRayTracer", grp)
-				.add_constructor<void (*)(Domain3d&)> ()
+		reg.template add_class_<DomainRayTracer>("DomainRayTracer", grp)
+				.template add_constructor<void (*)(Domain3d&)> ()
 				.add_method("set_small", &T::set_small, "", "small", "")
 				.add_method("init", static_cast<void (T::*) (const std::vector<int>&)>(&T::init), "", "subsetIndices", "")
 				.add_method("init", static_cast<void (T::*) (const char*)>(&T::init), "", "subsetNames", "")
@@ -172,8 +173,8 @@ struct Functionality {
 	 * @param reg				registry
 	 * @param parentGroup		group for sorting of functionality
 	 */
-	template <typename TDomain>
-	static void Domain(Registry& reg, string grp)
+	template <typename TDomain, typename TRegistry>
+	static void Domain(TRegistry& reg, string grp)
 	{
 		typedef TDomain domain_type;
 
@@ -185,7 +186,7 @@ struct Functionality {
 
 		string name = string("OverlyingSubsetFinder").append(suffix);
 		
-		reg.add_class_<T>(name, grp)
+		reg.template add_class_<T>(name, grp)
 				.template add_constructor<void (*)(SmartPtr<domain_type>, const std::string& subsets)> ()
 				.add_method("findOverlyingSubset", &T::findOverlyingSubset, "", "point to search over", "")
 				.set_construct_as_smart_pointer(true);
@@ -197,16 +198,19 @@ struct Functionality {
 
 }  // end of namespace domain_ray_tracing
 
-void RegisterBridge_DomainRayTracing(Registry& reg, string grp) {
+template <typename TRegistry=Registry>
+void RegisterBridge_DomainRayTracing_(TRegistry& reg, string grp) {
 	grp.append("/RayTracing");
 
 	try {
-		RegisterDomain2d3dDependent<domain_ray_tracing::Functionality>(reg, grp);
+		RegisterDomain2d3dDependent<domain_ray_tracing::Functionality, TRegistry>(reg, grp);
 #ifdef UG_DIM_3
-		RegisterCommon<domain_ray_tracing::Functionality>(reg, grp);
+		RegisterCommon<domain_ray_tracing::Functionality, TRegistry>(reg, grp);
 #endif
 	} UG_REGISTRY_CATCH_THROW(grp);
 }
 
 } // end of namespace bridge
+
+UG_REGISTRY_DEFINE(RegisterBridge_DomainRayTracing);
 }//	end of namespace ug

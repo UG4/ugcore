@@ -78,8 +78,8 @@ struct Functionality
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-template <typename TDomain, typename TAlgebra>
-static void DomainAlgebra(Registry& reg, string grp)
+template <typename TDomain, typename TAlgebra, typename TRegistry>
+static void DomainAlgebra(TRegistry& reg, string grp)
 {
 	string suffix = GetDomainAlgebraSuffix<TDomain,TAlgebra>();
 	string tag = GetDomainAlgebraTag<TDomain,TAlgebra>();
@@ -96,7 +96,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 //	GridFunction
 	{
 		string name = string("GridFunction").append(suffix);
-		reg.add_class_<TFct, vector_type>(name, grp)
+		reg.template add_class_<TFct, vector_type>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<approximation_space_type>)>("ApproximationSpace")
 			.template add_constructor<void (*)(SmartPtr<approximation_space_type>, int)>("ApproximationSpace#Level")
 			.add_method("assign", static_cast<void (TFct::*)(const vector_type&)>(&TFct::assign),
@@ -116,7 +116,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		string name = string("ExplicitGridFunctionValue").append(suffix);
 		typedef ExplicitGridFunctionValue<TFct> T;
 		typedef CplUserData<number, dim> TBase;
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 		   .template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridFunction#Component")
 		   .set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ExplicitGridFunctionValue", tag);
@@ -127,7 +127,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		string name = string("ExplicitGridFunctionVector").append(suffix);
 		typedef ExplicitGridFunctionVector<TFct> T;
 		typedef CplUserData<MathVector<dim>, dim> TBase;
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 		   .template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridFunction#Components")
 		   .set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ExplicitGridFunctionVector", tag);
@@ -138,7 +138,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		string name = string("ExplicitGridFunctionGradient").append(suffix);
 		typedef ExplicitGridFunctionGradient<TFct> T;
 		typedef CplUserData<MathVector<dim>, dim> TBase;
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 		   .template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridFunction#Component")
             .add_method("add_subset_coeff", &T::add_subset_coeff)
 			.add_method("get_subset_coeff", &T::get_subset_coeff)
@@ -151,7 +151,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		string name = string("GridFunctionNumberData").append(suffix);
 		typedef GridFunctionNumberData<TFct> T;
 		typedef CplUserData<number, dim> TBase;
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridFunction#Component")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GridFunctionNumberData", tag);
@@ -162,7 +162,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		string name = string("GridFunctionVectorData").append(suffix);
 		typedef GridFunctionVectorData<TFct> T;
 		typedef CplUserData<MathVector<dim>, dim> TBase;
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridFunction#Components")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GridFunctionVectorData", tag);
@@ -173,7 +173,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		string name = string("GridFunctionGradientData").append(suffix);
 		typedef GridFunctionGradientData<TFct> T;
 		typedef CplUserData<MathVector<dim>, dim> TBase;
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridFunction#Component")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GridFunctionGradientData", tag);
@@ -184,7 +184,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		string name = string("GridFunctionGradientComponentData").append(suffix);
 		typedef GridFunctionGradientComponentData<TFct> T;
 		typedef CplUserData<number, dim> TBase;
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<TFct>, const char*, size_t)>("GridFunction#Components")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GridFunctionGradientComponentData", tag);
@@ -194,7 +194,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		string name = string("GlobalGridFunctionNumberData").append(suffix);
 		typedef GlobalGridFunctionNumberData<TFct> T;
 		typedef CplUserData<number, dim> TBase;
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridFunction#Component")
 			.add_method("evaluate", static_cast<number (T::*)(const MathVector<dim>&) const>(&T::evaluate))
 			.add_method("evaluate_global", static_cast<number (T::*)(std::vector<number>)>(&T::evaluate_global))
@@ -208,7 +208,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		string name = string("GlobalEdgeGridFunctionNumberData").append(suffix);
 		typedef GlobalGridFunctionNumberData<TFct, 1> T;
 		typedef CplUserData<number, dim> TBase;
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridFunction#Component")
 			.add_method("evaluate", static_cast<number (T::*)(const MathVector<dim>&) const>(&T::evaluate))
 			.add_method("evaluate_global", static_cast<number (T::*)(std::vector<number>)>(&T::evaluate_global))
@@ -222,7 +222,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		string name = string("GlobalGridFunctionGradientData").append(suffix);
 		typedef GlobalGridFunctionGradientData<TFct> T;
 		typedef CplUserData<MathVector<dim>, dim> TBase;
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridFunction#Component")
 			.add_method("evaluate_global", static_cast<std::vector<number> (T::*)(std::vector<number>)>(&T::evaluate_global))
 			.set_construct_as_smart_pointer(true);
@@ -233,7 +233,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 	{
 			typedef IGridFunctionSpace<TFct> T;
 			string name = string("IGridFunctionSpace").append(suffix);
-			reg.add_class_<T>(name, grp)
+			reg.template add_class_<T>(name, grp)
 			   .add_method("config_string", &T::config_string);
 			reg.add_class_to_group(name, "IGridFunctionSpace", tag);
 	}
@@ -244,7 +244,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef IGridFunctionSpace<TFct> TBase;
 
 		string name = string("IComponentSpace").append(suffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 		   .add_method("norm", static_cast<number (T::*)(TFct&) > (&T::norm))
 		   .add_method("distance", static_cast<number (T::*)(TFct&, TFct&) > (&T::distance));
 
@@ -257,7 +257,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef IComponentSpace<TFct> TBase;
 
 		string name = string("GridFunctionComponentSpace").append(suffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(const char *) >("function names")
 			.template add_constructor<void (*)(const char *, const char *) >("function names, subset names")
 			.set_construct_as_smart_pointer(true);
@@ -271,7 +271,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef typename L2Integrand<TFct>::weight_type TWeight;
 
 		string name = string("L2ComponentSpace").append(suffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 		   .template add_constructor<void (*)(const char *) >("fctNames")
 		   .template add_constructor<void (*)(const char *, int) >("fctNames, order")
 		   .template add_constructor<void (*)(const char *, int, double) >("fctNames, order, weight")
@@ -291,7 +291,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef typename L2Integrand<TFct>::weight_type TWeight;
 
 		string name = string("L2QuotientSpace").append(suffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(const char *) >("fctNames")
 			.template add_constructor<void (*)(const char *, int) >("fctNames, order")
 			.template add_constructor<void (*)(const char *, int, double) >("fctNames, order, weight")
@@ -309,7 +309,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef typename H1SemiIntegrand<TFct>::weight_type TWeight;
 
 		string name = string("H1SemiComponentSpace").append(suffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 		   .template add_constructor<void (*)(const char *) >("fctNames")
 		   .template add_constructor<void (*)(const char *, int) >("fctNames, order")
 		   .template add_constructor<void (*)(const char *, int, number) >("fctNames, order, weight")
@@ -352,7 +352,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 			typedef typename H1EnergyIntegrand<TFct>::weight_type TWeight;
 
 			string name = string("VelEnergyComponentSpace").append(suffix);
-			reg.add_class_<T, TBase>(name, grp)
+			reg.template add_class_<T, TBase>(name, grp)
 			   .template add_constructor<void (*)(const char *) >("fctNames")
 			   .template add_constructor<void (*)(const char *, int) >("fctNames, order")
 			   .template add_constructor<void (*)(const char *, int, number) >("fctNames, order, weight")
@@ -374,7 +374,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef IComponentSpace<TFct> TBase;
 
 		string name = string("H1ComponentSpace").append(suffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 		   .template add_constructor<void (*)(const char *) >("fctNames")
 		   .template add_constructor<void (*)(const char *, int) >("fctNames, order")
 		   .template add_constructor<void (*)(const char *, const char*, int) >("fctNames, subsetNames, order")
@@ -391,7 +391,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef IComponentSpace<TFct> TCompSpace;
 
 		string name = string("TimeDependentSpace").append(suffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 				.template add_constructor<void (*)(SmartPtr<TCompSpace>, number) >("component space")
 				.add_method("update_time_data", &T::update_time_data)
 				.set_construct_as_smart_pointer(true);
@@ -406,7 +406,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 			typedef IGridFunctionSpace<TFct> TBase;
 
 			string name = string("CompositeSpace").append(suffix);
-			reg.add_class_<T, TBase>(name, grp)
+			reg.template add_class_<T, TBase>(name, grp)
 			   .template add_constructor<void (*)() >("")
 			   .add_method("add", static_cast<void (T::*)(SmartPtr<TCompSpace>) > (&T::add))
 			   .add_method("add", static_cast<void (T::*)(SmartPtr<TCompSpace>, number) > (&T::add))
@@ -490,8 +490,8 @@ static void DomainAlgebra(Registry& reg, string grp)
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-template <typename TDomain>
-static void Domain(Registry& reg, string grp)
+template <typename TDomain, typename TRegistry>
+static void Domain(TRegistry& reg, string grp)
 {
 	string suffix = GetDomainSuffix<TDomain>();
 	string tag = GetDomainTag<TDomain>();
@@ -504,7 +504,7 @@ static void Domain(Registry& reg, string grp)
 		typedef ApproximationSpace<TDomain> T;
 		typedef IApproximationSpace TBase;
 		string name = string("ApproximationSpace").append(suffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<TDomain>)>("Domain")
 			.template add_constructor<void (*)(SmartPtr<TDomain>, const AlgebraType&)>("Domain#AlgebraType")
 			.add_method("domain", static_cast<SmartPtr<TDomain> (T::*)()>(&T::domain))
@@ -541,8 +541,8 @@ static void Dimension(Registry& reg, string grp)
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-template <typename TAlgebra>
-static void Algebra(Registry& reg, string grp)
+template <typename TAlgebra, typename TRegistry>
+static void Algebra(TRegistry& reg, string grp)
 {
 	string suffix = GetAlgebraSuffix<TAlgebra>();
 	string tag = GetAlgebraTag<TAlgebra>();
@@ -557,19 +557,20 @@ static void Algebra(Registry& reg, string grp)
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-static void Common(Registry& reg, string grp)
+template <typename TRegistry>
+static void Common(TRegistry& reg, string grp)
 {
 //	GridLevel
-	reg.add_class_<GridLevel>("GridLevel", grp)
+	reg.template add_class_<GridLevel>("GridLevel", grp)
 		.add_constructor()
-		.add_constructor<void (*)(int)>("Level")
-		.add_constructor<void (*)(int, std::string)>("Level#Type")
+		.template add_constructor<void (*)(int)>("Level")
+		.template add_constructor<void (*)(int, std::string)>("Level#Type")
 		.set_construct_as_smart_pointer(true);
 
 //	LFEID
 	{
 		typedef LFEID T;
-		reg.add_class_<T>("LFEID", grp)
+		reg.template add_class_<T>("LFEID", grp)
 			.add_method("order", &T::order)
 			.add_method("dim", &T::dim);
 	}
@@ -577,7 +578,7 @@ static void Common(Registry& reg, string grp)
 //	DoFDistributionInfoProvider
 	{
 	typedef DoFDistributionInfoProvider T;
-	reg.add_class_<T>("DoFDistributionInfoProvider", grp)
+	reg.template add_class_<T>("DoFDistributionInfoProvider", grp)
 		.add_method("print_local_dof_statistic", static_cast<void (T::*)(int) const>(&T::print_local_dof_statistic))
 		.add_method("print_local_dof_statistic", static_cast<void (T::*)() const>(&T::print_local_dof_statistic))
 		.add_method("num_fct", static_cast<size_t (T::*)() const>(&T::num_fct))
@@ -591,7 +592,7 @@ static void Common(Registry& reg, string grp)
 	{
 	typedef IApproximationSpace T;
 	typedef DoFDistributionInfoProvider TBase;
-	reg.add_class_<T, TBase>("IApproximationSpace", grp)
+	reg.template add_class_<T, TBase>("IApproximationSpace", grp)
 		.add_method("print_statistic", static_cast<void (T::*)(std::string) const>(&T::print_statistic))
 		.add_method("print_statistic", static_cast<void (T::*)() const>(&T::print_statistic))
 		.add_method("print_layout_statistic", static_cast<void (T::*)() const>(&T::print_layout_statistic))
@@ -631,20 +632,23 @@ static void Common(Registry& reg, string grp)
 }// namespace GridFunction
 
 /// \addtogroup gridfnct_bridge
-void RegisterBridge_GridFunction(Registry& reg, string grp)
+template <typename TRegistry=Registry>
+void RegisterBridge_GridFunction_(TRegistry& reg, string grp)
 {
 	grp.append("/Discretization");
-	typedef GridFunction::Functionality Functionality;
+	typedef GridFunction::Functionality TFunctionality;
 
 	try{
-		RegisterCommon<Functionality>(reg,grp);
-		//RegisterDimensionDependent<Functionality>(reg,grp);
-		RegisterDomainDependent<Functionality>(reg,grp);
-		//RegisterAlgebraDependent<Functionality>(reg,grp);
-		RegisterDomainAlgebraDependent<Functionality>(reg,grp);
+		RegisterCommon<TFunctionality, TRegistry>(reg,grp);
+		//RegisterDimensionDependent<TFunctionality, TRegistry >(reg,grp);
+		RegisterDomainDependent<TFunctionality, TRegistry>(reg,grp);
+		//RegisterAlgebraDependent<TFunctionality, TRegistry>(reg,grp);
+		RegisterDomainAlgebraDependent<TFunctionality, TRegistry>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
 
 }//	end of namespace bridge
+
+UG_REGISTRY_DEFINE(RegisterBridge_GridFunction);
 }//	end of namespace ug

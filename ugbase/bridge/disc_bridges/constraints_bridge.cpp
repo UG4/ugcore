@@ -70,6 +70,7 @@ namespace Constraints{
 struct Functionality
 {
 
+
 /**
  * Function called for the registration of Domain and Algebra dependent parts.
  * All Functions and Classes depending on both Domain and Algebra
@@ -79,8 +80,29 @@ struct Functionality
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-template <typename TDomain, typename TAlgebra>
-static void DomainAlgebra(Registry& reg, string grp)
+template <typename TAlgebra, typename TRegistry>
+static void Algebra(TRegistry& reg, string parentGroup)
+{
+	//	typedefs for Vector and Matrix
+		typedef typename TAlgebra::vector_type vector_type;
+		typedef typename TAlgebra::matrix_type matrix_type;
+
+	//	suffix and tag
+		string suffix = GetAlgebraSuffix<TAlgebra>();
+		string tag = GetAlgebraTag<TAlgebra>();
+
+	//	IConstraint
+		{
+			std::string grp = parentGroup; grp.append("/Discretization/SpatialDisc");
+			typedef IConstraint<TAlgebra> T;
+			string name = string("IConstraint").append(suffix);
+			reg.template add_class_<T>(name, grp);
+			reg.add_class_to_group(name, "IConstraint", tag);
+		}
+}
+
+template <typename TDomain, typename TAlgebra, typename TRegistry>
+static void DomainAlgebra(TRegistry& reg, string grp)
 {
 	string suffix = GetDomainAlgebraSuffix<TDomain,TAlgebra>();
 	string tag = GetDomainAlgebraTag<TDomain,TAlgebra>();
@@ -93,7 +115,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef IConstraint<TAlgebra> TBase;
 		typedef IDomainConstraint<TDomain, TAlgebra> T;
 		string name = string("IDomainConstraint").append(suffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			.add_method("set_error_estimator", &T::set_error_estimator, "", "error estimator data object");
 		reg.add_class_to_group(name, "IDomainConstraint", tag);
 	}
@@ -103,7 +125,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef OneSideP1Constraints<TDomain, TAlgebra> T;
 		typedef IDomainConstraint<TDomain, TAlgebra> baseT;
 		string name = string("OneSideP1Constraints").append(suffix);
-		reg.add_class_<T, baseT>(name, grp)
+		reg.template add_class_<T, baseT>(name, grp)
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "OneSideP1Constraints", tag);
@@ -114,7 +136,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef SymP1Constraints<TDomain, TAlgebra> T;
 		typedef IDomainConstraint<TDomain, TAlgebra> baseT;
 		string name = string("SymP1Constraints").append(suffix);
-		reg.add_class_<T, baseT>(name, grp)
+		reg.template add_class_<T, baseT>(name, grp)
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "SymP1Constraints", tag);
@@ -125,7 +147,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef DirichletBoundary<TDomain, TAlgebra> T;
 		typedef IDomainConstraint<TDomain, TAlgebra> TBase;
 		string name = string("DirichletBoundary").append(suffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)()>()
 			.template add_constructor<void (*)(bool)>()
 #ifdef LAGRANGE_DIRICHLET_ADJ_TRANSFER_FIX
@@ -179,16 +201,20 @@ static void DomainAlgebra(Registry& reg, string grp)
 }// namespace Constraints
 
 /// \addtogroup constraints_bridge
-void RegisterBridge_Constraints(Registry& reg, string grp)
+template <typename TRegistry=Registry>
+void RegisterBridge_Constraints_(TRegistry& reg, string grp)
 {
 	grp.append("/Discretization/SpatialDisc");
-	typedef Constraints::Functionality Functionality;
+	typedef Constraints::Functionality TFunctionality;
 
 	try{
-		RegisterDomainAlgebraDependent<Functionality>(reg,grp);
+		RegisterAlgebraDependent<TFunctionality, TRegistry>(reg,grp);
+		RegisterDomainAlgebraDependent<TFunctionality, TRegistry>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
 
 }//	end of namespace bridge
+
+UG_REGISTRY_DEFINE(RegisterBridge_Constraints);
 }//	end of namespace ug

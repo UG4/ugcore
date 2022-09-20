@@ -95,8 +95,8 @@ struct Functionality
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-template <typename TDomain, typename TAlgebra>
-static void DomainAlgebra(Registry& reg, string grp)
+template <typename TDomain, typename TAlgebra, typename TRegistry=Registry>
+static void DomainAlgebra(TRegistry& reg, string grp)
 {
 	string suffix = GetDomainAlgebraSuffix<TDomain,TAlgebra>();
 	string tag = GetDomainAlgebraTag<TDomain,TAlgebra>();
@@ -110,7 +110,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 //	VTK Output
 	{
 		typedef VTKOutput<dim> T;
-		reg.get_class_<T>()
+			reg.template get_class_<T>()
 			.add_method("write_time_pvd", static_cast<void (T::*)(const char*, function_type&)>(&T::write_time_pvd))
 			.add_method("write_time_processwise_pvd", static_cast<void (T::*)(const char*, function_type&)>(&T::write_time_processwise_pvd))
 			.add_method("write_time_pvd_subset", static_cast<void (T::*)(const char*, function_type&, int)>(&T::write_time_pvd_subset), "", "name # printed grid function # subset index", "", "")
@@ -149,7 +149,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef GridFunctionDebugWriter<TDomain, TAlgebra> T;
 		typedef IDebugWriter<TAlgebra> TBase;
 		string name = string("GridFunctionDebugWriter").append(suffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >)>("")
 			.add_method("reset", &T::reset, "", "")
 			.add_method("set_vtk_output", &T::set_vtk_output, "", "bVtkOutput")
@@ -166,7 +166,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef GridFunctionPositionProvider<function_type> T;
 		typedef IPositionProvider<dim> TBase;
 		string name = string("GridFunctionPositionProvider").append(suffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			. ADD_CONSTRUCTOR( (const function_type&) )("gridFunction")
 			.add_method("set_reference_grid_function", &T::set_reference_grid_function, "", "gridFunction")
@@ -180,7 +180,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef GridFunctionVectorWriter<function_type, vector_type> T;
 		typedef IVectorWriter<vector_type> TBase;
 		string name = string("GridFunctionVectorWriter").append(suffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.add_method("set_reference_grid_function", &T::set_reference_grid_function, "", "gridFunction")
 			.add_method("set_user_data", &T::set_user_data, "", "userData")
@@ -193,7 +193,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef GridFunctionVectorWriterDirichlet0<function_type> T;
 		typedef IVectorWriter<vector_type> TBase;
 		string name = string("GridFunctionVectorWriterDirichlet0").append(suffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.add_method("init", &T::init, "", "postProcess#approxSpace#level")
 			.add_method("set_level", &T::set_level, "", "level")
@@ -252,8 +252,8 @@ static void DomainAlgebra(Registry& reg, string grp)
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-template <int dim>
-static void Dimension(Registry& reg, string grp)
+template <int dim, typename TRegistry=Registry>
+static void Dimension(TRegistry& reg, string grp)
 {
 	string suffix = GetDimensionSuffix<dim>();
 	string tag = GetDimensionTag<dim>();
@@ -264,7 +264,7 @@ static void Dimension(Registry& reg, string grp)
 	{
 		typedef VTKOutput<dim> T;
 		string name = string("VTKOutput").append(suffix);
-		reg.add_class_<T>(name, grp)
+		reg.template add_class_<T>(name, grp)
 			.add_constructor()
 			.add_method("clear_selection", &T::clear_selection, "", "", "clears the selected output")
 			.add_method("clear_data_selection", &T::clear_data_selection, "", "", "clears the selected UserData output")
@@ -303,7 +303,8 @@ static void Dimension(Registry& reg, string grp)
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-static void Common(Registry& reg, string grp)
+template <typename TRegistry=Registry>
+static void Common(TRegistry& reg, string grp)
 {
 #ifdef UG_CPU_1
 // SaveMatrixToMTX
@@ -324,19 +325,22 @@ static void Common(Registry& reg, string grp)
 }// end Output
 
 /// \addtogroup output_bridge
-void RegisterBridge_Output(Registry& reg, string grp)
+template <typename TRegistry=Registry>
+void RegisterBridge_Output_(TRegistry& reg, string grp)
 {
 	grp.append("/Discretization/Output");
-	typedef Output::Functionality Functionality;
+	typedef Output::Functionality TFunctionality;
 
 	try{
-		RegisterCommon<Functionality>(reg,grp);
-		RegisterDimensionDependent<Functionality>(reg,grp);
-		RegisterDomainAlgebraDependent<Functionality>(reg,grp);
+		RegisterCommon<TFunctionality, TRegistry>(reg,grp);
+		RegisterDimensionDependent<TFunctionality, TRegistry>(reg,grp);
+		RegisterDomainAlgebraDependent<TFunctionality, TRegistry>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
 
 
 }//	end of namespace bridge
+
+UG_REGISTRY_DEFINE(RegisterBridge_Output);
 }//	end of namespace ug

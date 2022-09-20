@@ -66,8 +66,8 @@ struct Functionality
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-template <typename TDomain, typename TAlgebra>
-static void DomainAlgebra(Registry& reg, string grp)
+template <typename TDomain, typename TAlgebra, typename TRegistry>
+static void DomainAlgebra(TRegistry& reg, string grp)
 {
 	string suffix = GetDomainAlgebraSuffix<TDomain,TAlgebra>();
 	string tag = GetDomainAlgebraTag<TDomain,TAlgebra>();
@@ -162,8 +162,8 @@ static void Common(Registry& reg, string grp)
 }; // end Functionality
 
 }// namespace MaxError
-
-void RegisterBridge_MaxError(Registry& reg, string grp)
+template <typename TRegistry=Registry>
+void RegisterBridge_MaxError_(TRegistry& reg, string grp)
 {
 	grp.append("/Discretization");
 	typedef MaxError::Functionality Functionality;
@@ -173,10 +173,12 @@ void RegisterBridge_MaxError(Registry& reg, string grp)
 //		RegisterDimensionDependent<Functionality>(reg,grp);
 //		RegisterDomainDependent<Functionality>(reg,grp);
 //		RegisterAlgebraDependent<Functionality>(reg,grp);
-		RegisterDomainAlgebraDependent<Functionality>(reg,grp);
+		RegisterDomainAlgebraDependent<Functionality, TRegistry>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
 
 }//	end of namespace bridge
+
+UG_REGISTRY_DEFINE(RegisterBridge_MaxError);
 }//	end of namespace ug

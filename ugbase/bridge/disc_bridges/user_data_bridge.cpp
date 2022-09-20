@@ -89,8 +89,8 @@ namespace bridge{
  * \{
  */
 
-template <typename TData, int dim, typename TTraits=user_data_traits<TData> >
-void RegisterUserDataTypeA(Registry& reg, string grp)
+template <typename TRegistry, typename TData, int dim, typename TTraits=user_data_traits<TData> >
+void RegisterUserDataTypeA(TRegistry& reg, string grp)
 {
 	string dimSuffix = GetDimensionSuffix<dim>();
 	string dimTag = GetDimensionTag<dim>();
@@ -104,7 +104,7 @@ void RegisterUserDataTypeA(Registry& reg, string grp)
 		typedef UserData<TData, dim> T;
 		typedef UserDataInfo TBase1;
 		string name = string("User").append(type).append(dimSuffix);
-		reg.add_class_<T,TBase1>(name, grp)
+		reg.template add_class_<T,TBase1>(name, grp)
 			.add_method("get_dim", &T::get_dim)
 			.add_method("type", &T::type);
 		reg.add_class_to_group(name, string("User").append(type), dimTag);
@@ -120,7 +120,7 @@ void RegisterUserDataTypeA(Registry& reg, string grp)
 		typedef UserData<TData, dim, bool> T;
 		typedef UserDataInfo TBase1;
 		string name = string("CondUser").append(type).append(dimSuffix);
-		reg.add_class_<T,TBase1>(name, grp);
+		reg.template add_class_<T,TBase1>(name, grp);
 		reg.add_class_to_group(name, string("CondUser").append(type), dimTag);
 		reg.add_function("PrintUserDataValue", &PrintCondUserDataValue<TData, dim>,
 						 grp, "", "userData#position#time#subsetIndex",
@@ -132,7 +132,7 @@ void RegisterUserDataTypeA(Registry& reg, string grp)
 		typedef CplUserData<TData, dim> T;
 		typedef UserData<TData,dim> TBase1;
 		string name = string("CplUser").append(type).append(dimSuffix);
-		reg.add_class_<T,TBase1>(name, grp)
+		reg.template add_class_<T,TBase1>(name, grp)
 			.add_method("get_dim", &T::get_dim)
 			.add_method("type", &T::type);
 		reg.add_class_to_group(name, string("CplUser").append(type), dimTag);
@@ -143,7 +143,7 @@ void RegisterUserDataTypeA(Registry& reg, string grp)
 		typedef CplUserData<TData, dim, bool> T;
 		typedef UserData<TData,dim,bool> TBase1;
 		string name = string("CondCplUser").append(type).append(dimSuffix);
-		reg.add_class_<T,TBase1>(name, grp);
+		reg.template add_class_<T,TBase1>(name, grp);
 		reg.add_class_to_group(name, string("CondCplUser").append(type), dimTag);
 	}
 
@@ -152,15 +152,15 @@ void RegisterUserDataTypeA(Registry& reg, string grp)
 		typedef DependentUserData<TData, dim> T;
 		typedef CplUserData<TData, dim> TBase;
 		string name = string("DependentUserData").append(type).append(dimSuffix);
-		reg.add_class_<T, TBase >(name, grp);
+		reg.template add_class_<T, TBase >(name, grp);
 		reg.add_class_to_group(name, string("DependentUserData").append(type), dimTag);
 	}
 
 
 }
 
-template <typename TData, int dim, typename TTraits=user_data_traits<TData> >
-void RegisterUserDataTypeB(Registry& reg, string grp)
+template <typename TRegistry, typename TData, int dim, typename TTraits=user_data_traits<TData> >
+void RegisterUserDataTypeB(TRegistry& reg, string grp)
 {
 	string dimSuffix = GetDimensionSuffix<dim>();
 	string dimTag = GetDimensionTag<dim>();
@@ -172,7 +172,7 @@ void RegisterUserDataTypeB(Registry& reg, string grp)
 			typedef ScaleAddLinker<TData, dim, number> T;
 			typedef DependentUserData<TData, dim> TBase;
 			string name = string("ScaleAddLinker").append(type).append(dimSuffix);
-			reg.add_class_<T, TBase>(name, grp)
+			reg.template add_class_<T, TBase>(name, grp)
 				.add_method("add", static_cast<void (T::*)(SmartPtr<CplUserData<number,dim> > , SmartPtr<CplUserData<TData,dim> >)>(&T::add))
 				.add_method("add", static_cast<void (T::*)(number, SmartPtr<CplUserData<TData,dim> >)>(&T::add))
 				.add_method("add", static_cast<void (T::*)(SmartPtr<CplUserData<number,dim> > , number)>(&T::add))
@@ -185,11 +185,11 @@ void RegisterUserDataTypeB(Registry& reg, string grp)
 
 }
 
-template <typename TData, int dim, typename TTraits=user_data_traits<TData> >
-void RegisterUserDataType(Registry& reg, string grp)
+template <typename TRegistry, typename TData, int dim, typename TTraits=user_data_traits<TData> >
+void RegisterUserDataType(TRegistry& reg, string grp)
 {
-	RegisterUserDataTypeA<TData, dim, TTraits>(reg, grp);
-	RegisterUserDataTypeB<TData, dim, TTraits>(reg, grp);
+	RegisterUserDataTypeA<TRegistry, TData, dim, TTraits>(reg, grp);
+	RegisterUserDataTypeB<TRegistry, TData, dim, TTraits>(reg, grp);
 }
 // end group userdata_bridge
 /// \}
@@ -220,19 +220,16 @@ struct Functionality
 		typedef std::tuple<number, number, number> MathTriple;
 	template <>
 		struct user_data_traits<MathPair>{static std::string name() 	{return "Pair";}};*/
-template <int dim>
-static void Dimension(Registry& reg, string grp)
+template <int dim, typename TRegistry>
+static void Dimension(TRegistry& reg, string grp)
 {
 	string dimSuffix = GetDimensionSuffix<dim>();
 	string dimTag = GetDimensionTag<dim>();
 
-	RegisterUserDataType<number, dim>(reg, grp);
-	RegisterUserDataType<MathVector<dim>, dim>(reg, grp);
-	RegisterUserDataType<MathMatrix<dim,dim>, dim>(reg, grp);
-	RegisterUserDataType<MathTensor<4,dim>, dim>(reg, grp);
-
-
-
+	RegisterUserDataType<TRegistry, number, dim>(reg, grp);
+	RegisterUserDataType<TRegistry, MathVector<dim>, dim>(reg, grp);
+	RegisterUserDataType<TRegistry, MathMatrix<dim,dim>, dim>(reg, grp);
+	RegisterUserDataType<TRegistry, MathTensor<4,dim>, dim>(reg, grp);
 
 	// RegisterUserDataType<MathPair, dim>(reg, grp);
 
@@ -240,7 +237,7 @@ static void Dimension(Registry& reg, string grp)
 	{
 		// Register pair (corresponds to vector for dim==2)
 		struct pair_traits {static std::string name() 	{return "Pair";}};
-		RegisterUserDataTypeA<MathVector<2>, dim, pair_traits>(reg, grp); // Pair
+		RegisterUserDataTypeA<TRegistry, MathVector<2>, dim, pair_traits>(reg, grp); // Pair
 	}
 /*
 	if (dim!=3)
@@ -257,7 +254,7 @@ static void Dimension(Registry& reg, string grp)
 		typedef ConstUserNumber<dim> T;
 		typedef CplUserData<number, dim> TBase;
 		string name = string("ConstUserNumber").append(dimSuffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.template add_constructor<void (*)(number)>("Value")
 			.add_method("set", &T::set, "", "Value")
@@ -272,7 +269,7 @@ static void Dimension(Registry& reg, string grp)
 		typedef ConstUserVector<dim> T;
 		typedef CplUserData<MathVector<dim>, dim> TBase;
 		string name = string("ConstUserVector").append(dimSuffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.template add_constructor<void (*)(number)>("Values")
 			.template add_constructor<void (*)(const std::vector<number>&)>("Values")
@@ -288,7 +285,7 @@ static void Dimension(Registry& reg, string grp)
 		typedef ConstUserMatrix<dim> T;
 		typedef CplUserData<MathMatrix<dim, dim>, dim> TBase;
 		string name = string("ConstUserMatrix").append(dimSuffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.template add_constructor<void (*)(number)>("Diagonal Value")
 			.add_method("set_diag_tensor", &T::set_diag_tensor)
@@ -306,7 +303,7 @@ static void Dimension(Registry& reg, string grp)
 		typedef ScaleAddLinker<TData, dim, TDataScale> T;
 		typedef DependentUserData<TData, dim> TBase;
 		string name = string("ScaleAddLinkerVectorMatrix").append(dimSuffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			.add_method("add", static_cast<void (T::*)(SmartPtr<CplUserData<TDataScale,dim> > , SmartPtr<CplUserData<TData,dim> >)>(&T::add))
 			.add_method("add", static_cast<void (T::*)(number , SmartPtr<CplUserData<TData,dim> >)>(&T::add))
 			.add_method("add", static_cast<void (T::*)(SmartPtr<CplUserData<TDataScale,dim> > , number)>(&T::add))
@@ -324,7 +321,7 @@ static void Dimension(Registry& reg, string grp)
 		typedef ScaleAddLinker<TData, dim, TDataScale, number> T;
 		typedef DependentUserData<number, dim> TBase;
 		string name = string("ScaleAddLinkerVectorVector").append(dimSuffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			.add_method("add", static_cast<void (T::*)(SmartPtr<CplUserData<TDataScale,dim> > , SmartPtr<CplUserData<TData,dim> >)>(&T::add))
 			.add_method("add", static_cast<void (T::*)(number , SmartPtr<CplUserData<TData,dim> >)>(&T::add))
 			.add_method("add", static_cast<void (T::*)(SmartPtr<CplUserData<TDataScale,dim> > , number)>(&T::add))
@@ -340,7 +337,7 @@ static void Dimension(Registry& reg, string grp)
 		typedef DarcyVelocityLinker<dim> T;
 		typedef DependentUserData<MathVector<dim>, dim> TBase;
 		string name = string("DarcyVelocityLinker").append(dimSuffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			.add_method("set_gravity", &T::set_gravity)
 			.add_method("set_permeability", static_cast<void (T::*)(number)>(&T::set_permeability))
 			.add_method("set_permeability", static_cast<void (T::*)(SmartPtr<CplUserData<MathMatrix<dim,dim>,dim> >)>(&T::set_permeability))
@@ -364,7 +361,7 @@ static void Dimension(Registry& reg, string grp)
 		typedef BinghamViscosityLinker<dim> T;
 		typedef DependentUserData<number, dim> TBase;
 		string name = string("BinghamViscosityLinker").append(dimSuffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			.add_method("set_velocity_gradient", &T::set_velocity_gradient)
 			.add_method("set_yield_stress", static_cast<void (T::*)(number)>(&T::set_yield_stress))
 			.add_method("set_yield_stress", static_cast<void (T::*)(SmartPtr<CplUserData<number,dim> >)>(&T::set_yield_stress))
@@ -383,7 +380,7 @@ static void Dimension(Registry& reg, string grp)
 		typedef DependentUserData<number,dim> TBase;
 
 			string name = string("InverseLinker").append(dimSuffix);
-			reg.add_class_<T,TBase>(name, grp)
+			reg.template add_class_<T,TBase>(name, grp)
 			.add_method("divide", static_cast<void (T::*)(SmartPtr<CplUserData<number,dim> > , SmartPtr<CplUserData<number,dim> >)>(&T::divide))
 			.add_method("divide", static_cast<void (T::*)(number , SmartPtr<CplUserData<number,dim> >)>(&T::divide))
 			.add_method("divide", static_cast<void (T::*)(SmartPtr<CplUserData<number,dim> > , number)>(&T::divide))
@@ -400,7 +397,7 @@ static void Dimension(Registry& reg, string grp)
 		typedef ProjectionLinker<dim> T;
 		typedef DependentUserData<MathVector<dim>, dim> TBase;
 		string name = string("ProjectionLinker").append(dimSuffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 		   .template add_constructor<void (*) (SmartPtr<CplUserData<MathVector<dim>, dim> >)>()
 		   .set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ProjectionLinker", dimTag);
@@ -411,7 +408,7 @@ static void Dimension(Registry& reg, string grp)
 		typedef ug::LognormalRandomField<MathMatrix<dim, dim>, dim> T;
 		typedef CplUserData<MathMatrix<dim, dim>, dim> TBase;
 		string name = string("LognormalRandomField").append(dimSuffix);;
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			//.add_constructor()
 			.template add_constructor<void (*)()>("LognormalRandomField")
 			.template add_constructor<void (*)(size_t N, double mean_f, double sigma_f, double sigma)>("LognormalRandomField", "N#mean_f#sigma_f#sigma")
@@ -426,7 +423,7 @@ static void Dimension(Registry& reg, string grp)
 		typedef IDWUserData<dim, number> T;
 		typedef CplUserData<number, dim> TBase;
 		string name = string("IDWUserData").append(dimSuffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 		   .add_method("load_data_from", static_cast<void (T::*)(const char*)>(&T::load_data_from), "loads data from a file", "file name")
 		   .add_method("set_order", static_cast<void (T::*)(number)>(&T::set_order), "sets order of the IDW-interpolation", "order")
 		   .add_method("set_radius", static_cast<void (T::*)(number)>(&T::set_radius), "sets radius of the neighbourhood for the IDW-interpolation", "radius")
@@ -440,7 +437,7 @@ static void Dimension(Registry& reg, string grp)
 	{
 			string name = string("CompositeUserNumber").append(dimSuffix);
 			typedef CompositeUserData<number, dim, void> T;
-			reg.add_class_<T,typename T::base_type>(name, grp)
+			reg.template add_class_<T,typename T::base_type>(name, grp)
 				.template add_constructor<void (*)(bool) >("")
 				.add_method("add", &T::add)
 				.set_construct_as_smart_pointer(true);
@@ -453,7 +450,7 @@ static void Dimension(Registry& reg, string grp)
 	{
 			string name = string("CompositeUserVector").append(dimSuffix);
 			typedef CompositeUserData<MathVector<dim>, dim, void> T;
-			reg.add_class_<T,typename T::base_type>(name, grp)
+			reg.template add_class_<T,typename T::base_type>(name, grp)
 				.template add_constructor<void (*)(bool) >("")
 				.add_method("add", &T::add)
 				.set_construct_as_smart_pointer(true);
@@ -472,8 +469,8 @@ static void Dimension(Registry& reg, string grp)
  * @param reg	registry
  * @param grp	group for sorting of functionality
  */
-template <typename TDomain>
-static void Domain(Registry& reg, string grp)
+template <typename TDomain, typename TRegistry>
+static void Domain(TRegistry& reg, string grp)
 {
 	static const int dim = TDomain::dim;
 	
@@ -485,7 +482,7 @@ static void Domain(Registry& reg, string grp)
 		string name = string("GlobAttachmentElementUserData").append(suffix);
 		typedef GlobAttachmentElementUserData<TDomain> T;
 		typedef CplUserData<number, dim> TBase;
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<Grid>, const char *) >("AttachmentName")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GlobAttachmentElementUserData", tag);
@@ -499,7 +496,7 @@ static void Domain(Registry& reg, string grp)
 		typedef SubsetIndicatorUserData<TDomain> T;
 		typedef UserData<number, dim> TBase;
 		
-		reg.add_class_<T, TBase> (name, grp)
+		reg.template add_class_<T, TBase> (name, grp)
 			.template add_constructor<void (*)(ConstSmartPtr<TDomain>, const char*)>("Domain#Subsets")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "SubsetIndicatorUserData", tag);
@@ -511,7 +508,7 @@ static void Domain(Registry& reg, string grp)
 		typedef ValueIndicatorUserData<TDomain> T;
 		typedef UserData<number, dim> TBase;
 		
-		reg.add_class_<T, TBase> (name, grp)
+		reg.template add_class_<T, TBase> (name, grp)
 			.template add_constructor<void (*)(SmartPtr<TBase>, number, bool)>("Domain#threshold#greater")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ValueIndicatorUserData", tag);
@@ -523,7 +520,7 @@ static void Domain(Registry& reg, string grp)
 		typedef EdgeOrientation<TDomain> T;
 		typedef CplUserData<MathVector<dim>, dim> TBase;
 
-		reg.add_class_<T,TBase>(name, grp)
+		reg.template add_class_<T,TBase>(name, grp)
 		   .template add_constructor<void (*)(SmartPtr<TDomain> ) >("")
 		   .set_construct_as_smart_pointer(true);
 
@@ -537,7 +534,7 @@ static void Domain(Registry& reg, string grp)
 		typedef OutNormCmp<TDomain> T;
 		typedef UserData<MathVector<dim>, dim> TBase;
 		
-		reg.add_class_<T, TBase> (name, grp)
+		reg.template add_class_<T, TBase> (name, grp)
 			.template add_constructor<void (*)(SmartPtr<TDomain>, SmartPtr<TBase>, const char*)>("Domain#Data#Subsets")
 			.template add_constructor<void (*)(SmartPtr<TDomain>, SmartPtr<TBase>)>("Domain#Data")
 			.set_construct_as_smart_pointer(true);
@@ -554,30 +551,52 @@ static void Domain(Registry& reg, string grp)
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-static void Common(Registry& reg, string grp)
+template <typename TRegistry>
+static void Common(TRegistry& reg, string grp)
 {
-	reg.add_class_<IFunction<number> >("IFunctionNumber", grp);
+	reg.template add_class_<IFunction<number> >("IFunctionNumber", grp);
 
 //	UserDataInfo
 	{
-		reg.add_class_<UserDataInfo>("UserDataInfo", grp);
+		reg.template add_class_<UserDataInfo>("UserDataInfo", grp);
 	}
 
-#ifdef UG_DIM_2
+/*#ifdef UG_DIM_2
 	{
 		typedef CplUserData<number, 2> TBase1;
-		reg.add_class_<RotatingCone2d, TBase1>("RotatingCone2d", grp)
-				.add_constructor<void (*)(double,double,double,double,double,double,double)>()
+		reg.template add_class_<RotatingCone2d, TBase1>("RotatingCone2d", grp)
+				.template add_constructor<void (*)(double,double,double,double,double,double,double)>()
 				.set_construct_as_smart_pointer(true);
 		typedef CplUserData<MathVector<2>, 2> TBase2;
-		reg.add_class_<RotatingVelocity2d, TBase2>("RotatingVelocity2d", grp)
-				.add_constructor<void (*)(double,double,double)>()
+		reg.template add_class_<RotatingVelocity2d, TBase2>("RotatingVelocity2d", grp)
+				.template add_constructor<void (*)(double,double,double)>()
 				.set_construct_as_smart_pointer(true);
 	}
-#endif
+#endif*/
 }
 
 }; // end Functionality
+
+struct RotatingFunctionality
+{
+	template <typename TRegistry>
+	static void Common(TRegistry& reg, string grp)
+	{
+	#ifdef UG_DIM_2
+		{
+			typedef CplUserData<number, 2> TBase1;
+			reg.template add_class_<RotatingCone2d, TBase1>("RotatingCone2d", grp)
+					.template add_constructor<void (*)(double,double,double,double,double,double,double)>()
+					.set_construct_as_smart_pointer(true);
+			typedef CplUserData<MathVector<2>, 2> TBase2;
+			reg.template add_class_<RotatingVelocity2d, TBase2>("RotatingVelocity2d", grp)
+					.template add_constructor<void (*)(double,double,double)>()
+					.set_construct_as_smart_pointer(true);
+		}
+	#endif
+	}
+
+}; // end RotatingFunctionality
 
 // end group userdata_bridge
 /// \}
@@ -585,8 +604,8 @@ static void Common(Registry& reg, string grp)
 }// end UserData
 
 
-template <class TValue, int dim>
-static void RegisterRasterUserData(Registry& reg, string name, string grp)
+template <class TValue, int dim, typename TRegistry=Registry>
+static void RegisterRasterUserData(TRegistry& reg, string name, string grp)
 {
 
 	string suffix = GetDimensionSuffix<dim>();
@@ -597,7 +616,7 @@ static void RegisterRasterUserData(Registry& reg, string name, string grp)
 		typedef typename T::base_type TBase;
 		string fullName = name + suffix;
 
-		reg.add_class_<T,TBase>(fullName, grp)
+		reg.template add_class_<T,TBase>(fullName, grp)
 			.template add_constructor<void (*)(typename T::input_type)>("RasterNumberData")
 			.add_method("set_order", &T::set_order)
 			.add_method("set_scale", &T::set_scale)
@@ -609,27 +628,32 @@ static void RegisterRasterUserData(Registry& reg, string name, string grp)
 }
 
 /// \addtogroup userdata_bridge
-void RegisterBridge_UserData(Registry& reg, string grp)
+template <typename TRegistry=Registry>
+void RegisterBridge_UserData_(TRegistry& reg, string grp)
 {
 //	get group string
 	grp.append("/Discretization/SpatialDisc/UserData");
 	typedef UserDataBridge::Functionality Functionality;
 
 	try{
-		RegisterCommon<Functionality>(reg,grp);
-		RegisterDimensionDependent<Functionality>(reg,grp);
-		RegisterDomainDependent<Functionality>(reg,grp);
+		RegisterCommon<Functionality,TRegistry>(reg,grp);
+		RegisterDimensionDependent<Functionality,TRegistry>(reg,grp);
+		RegisterDomainDependent<Functionality,TRegistry>(reg,grp);
 
 #ifdef UG_DIM_2 // only for 2D/3D
-		RegisterRasterUserData<number, 2>(reg, "RasterNumberData", grp);
+		RegisterRasterUserData<number, 2, TRegistry>(reg, "RasterNumberData", grp);
 #endif
 
 #ifdef UG_DIM_3
-		RegisterRasterUserData<number, 3>(reg, "RasterNumberData", grp);
+		RegisterRasterUserData<number, 3, TRegistry>(reg, "RasterNumberData", grp);
 #endif
+
+		RegisterCommon<UserDataBridge::RotatingFunctionality,TRegistry>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
 
-} // end namespace
+} // end namespace bridge
+
+UG_REGISTRY_DEFINE(RegisterBridge_UserData);
 } // end namepace

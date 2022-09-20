@@ -79,7 +79,7 @@ typedef boost::mpl::list<
 //  Register invokers
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename Functionality, typename List = CompileDomainList, typename TRegistry=Registry>
+template <typename Functionality, typename TRegistry=Registry, typename List = CompileDomainList>
 struct RegisterDomainDependent
 {
 	RegisterDomainDependent(TRegistry& reg, std::string grp)
@@ -94,8 +94,8 @@ struct RegisterDomainDependent
 		{
 			typedef typename boost::mpl::front<List>::type DomainType;
 			typedef typename boost::mpl::pop_front<List>::type NextList;
-			Functionality::template Domain<DomainType>(reg,grp);
-			RegisterDomainDependent<Functionality, NextList, TRegistry>(reg,grp);
+			Functionality::template Domain<DomainType, TRegistry>(reg,grp);
+			RegisterDomainDependent<Functionality, TRegistry, NextList>(reg,grp);
 		}
 	};
 };
@@ -104,7 +104,7 @@ template<typename Functionality, typename TRegistry=Registry>
 void RegisterDomain1dDependent(TRegistry& reg, std::string grp)
 {
 #ifdef UG_DIM_1
-	RegisterDomainDependent<Functionality, boost::mpl::list<Domain1d> > (reg, grp);
+	RegisterDomainDependent<Functionality, TRegistry, boost::mpl::list<Domain1d> > (reg, grp);
 #endif
 }
 
@@ -112,7 +112,7 @@ template<typename Functionality, typename TRegistry=Registry>
 void RegisterDomain2dDependent(TRegistry& reg, std::string grp)
 {
 #ifdef UG_DIM_2
-	RegisterDomainDependent<Functionality, boost::mpl::list<Domain2d> > (reg, grp);
+	RegisterDomainDependent<Functionality, TRegistry, boost::mpl::list<Domain2d> > (reg, grp);
 #endif
 }
 
@@ -120,7 +120,7 @@ template<typename Functionality, typename TRegistry=Registry>
 void RegisterDomain3dDependent(TRegistry& reg, std::string grp)
 {
 #ifdef UG_DIM_3
-	RegisterDomainDependent<Functionality, boost::mpl::list<Domain3d> > (reg, grp);
+	RegisterDomainDependent<Functionality, TRegistry, boost::mpl::list<Domain3d> > (reg, grp);
 #endif
 }
 
@@ -140,11 +140,11 @@ void RegisterDomain2d3dDependent(TRegistry& reg, std::string grp)
 namespace pybind{
 
 template <typename TFunctionality>
-void RegisterDomainDependent(RegistryAdapter& reg, std::string grp)
+void RegisterDomainDependent(ug::pybind::Registry& reg, std::string grp)
 {
-	typedef typename ug::pybind::RegistryAdapter TRegistry;
+	typedef typename ug::pybind::Registry TRegistry;
 	typedef typename ug::bridge::CompileDomainList TDomainList;
-	ug::bridge::RegisterDomainDependent<TFunctionality, TDomainList, TRegistry>(reg, grp);
+	ug::bridge::RegisterDomainDependent<TFunctionality, TRegistry, TDomainList>(reg, grp);
 }
 
 

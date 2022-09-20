@@ -44,27 +44,28 @@ namespace bridge{
 /// \{
 
 template <	typename Functionality,
+			typename TRegistry = Registry,
 			typename DomainList = CompileDomainList,
 			typename AlgebraList = CompileAlgebraList>
 struct RegisterDomainAlgebraDependent
 {
-	RegisterDomainAlgebraDependent(Registry& reg, std::string grp)
+	RegisterDomainAlgebraDependent(TRegistry& reg, std::string grp)
 	{
 		static const bool domainIsEmpty = boost::mpl::empty<DomainList>::value;
 		typename boost::mpl::if_c<domainIsEmpty, RegEnd, RegNextDomain>::type (reg,grp);
 	}
-	struct RegEnd{ RegEnd(Registry& reg, std::string grp){} };
+	struct RegEnd{ RegEnd(TRegistry& reg, std::string grp){} };
 
 	template <typename CurrAlgebraList>
 	struct RegNextDomainAlgebra
 	{
-		RegNextDomainAlgebra(Registry& reg, std::string grp)
+		RegNextDomainAlgebra(TRegistry& reg, std::string grp)
 		{
 			typedef typename boost::mpl::front<DomainList>::type DomainType;
 			typedef typename boost::mpl::front<CurrAlgebraList>::type AlgebraType;
 			typedef typename boost::mpl::pop_front<CurrAlgebraList>::type NextAlgebraList;
 
-			Functionality::template DomainAlgebra<DomainType, AlgebraType>(reg,grp);
+			Functionality::template DomainAlgebra<DomainType, AlgebraType, TRegistry>(reg,grp);
 			RegAlgebra<NextAlgebraList>(reg,grp);
 		}
 	};
@@ -72,7 +73,7 @@ struct RegisterDomainAlgebraDependent
 	template <typename CurrAlgebraList>
 	struct RegAlgebra
 	{
-		RegAlgebra(Registry& reg, std::string grp)
+		RegAlgebra(TRegistry& reg, std::string grp)
 		{
 			static const bool algebraIsEmpty = boost::mpl::empty<CurrAlgebraList>::value;
 			typename boost::mpl::if_c<algebraIsEmpty, RegEnd, RegNextDomainAlgebra<CurrAlgebraList> >::type (reg,grp);
@@ -81,12 +82,12 @@ struct RegisterDomainAlgebraDependent
 
 	struct RegNextDomain
 	{
-		RegNextDomain(Registry& reg, std::string grp)
+		RegNextDomain(TRegistry& reg, std::string grp)
 		{
 			typedef typename boost::mpl::pop_front<DomainList>::type NextDomainList;
 
 			RegAlgebra<AlgebraList>(reg,grp);
-			RegisterDomainAlgebraDependent<Functionality, NextDomainList, AlgebraList>(reg,grp);
+			RegisterDomainAlgebraDependent<Functionality, TRegistry, NextDomainList, AlgebraList>(reg,grp);
 		}
 	};
 };
@@ -139,7 +140,7 @@ struct RegisterDomain2d3dAlgebraDependent
 // end group bridge
 /// \}
 
-}
-}
+} // namespace bridge
+} // namespace ug
 #endif	/* UTIL_DOMAIN_ALGEBRA_DEPENDENT_H */
 

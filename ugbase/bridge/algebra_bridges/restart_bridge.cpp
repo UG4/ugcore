@@ -188,8 +188,8 @@ struct Functionality
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-template <typename TAlgebra>
-static void Algebra(Registry& reg, string grp)
+template <typename TAlgebra, typename TRegistry = Registry>
+static void Algebra(TRegistry& reg, string grp)
 {
 	string suffix = GetAlgebraSuffix<TAlgebra>();
 	string tag = GetAlgebraTag<TAlgebra>();
@@ -206,18 +206,21 @@ static void Algebra(Registry& reg, string grp)
 }// end Restart
 
 /// \addtogroup precond_bridge
-void RegisterBridge_Restart(Registry& reg, string grp)
+template <typename TRegistry = Registry>
+void RegisterBridge_Restart_(TRegistry& reg, string grp)
 {
 	grp.append("/Algebra/Restart");
 	typedef Restart::Functionality Functionality;
 
 	try{
-		RegisterAlgebraDependent<Functionality>(reg,grp);
+		RegisterAlgebraDependent<Functionality, TRegistry>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 	//reg.add_function("testomato", testomato, grp);
 }
 
 } // namespace bridge
+
+UG_REGISTRY_DEFINE(RegisterBridge_Restart);
 } // namespace ug
 

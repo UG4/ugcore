@@ -105,19 +105,19 @@ void RegisterDimension2d3dDependent(TRegistry& reg, std::string grp)
 
 #ifdef UG_USE_PYBIND11
 
-namespace pybind {
+namespace bridge {
 //! Shortcuts
 template <typename TFunctionality>
-void RegisterCommon(ug::pybind::RegistryAdapter& reg, std::string grp)
+void RegisterCommon(ug::pybind::Registry& reg, std::string grp)
 {
-	typedef typename ug::pybind::RegistryAdapter TRegistry;
+	typedef typename ug::pybind::Registry TRegistry;
 	ug::bridge::RegisterCommon<TFunctionality, TRegistry>(reg,grp);
 }
 
 template <typename TFunctionality>
-void RegisterDimensionDependent(RegistryAdapter& reg, std::string grp)
+void RegisterDimensionDependent(ug::pybind::Registry& reg, std::string grp)
 {
-	typedef typename ug::pybind::RegistryAdapter TRegistry;
+	typedef typename ug::pybind::Registry TRegistry;
 	ug::bridge::RegisterDimensionDependent<TFunctionality, TRegistry>(reg,grp);
 };
 
@@ -130,7 +130,11 @@ void RegisterDimensionDependent(RegistryAdapter& reg, std::string grp)
 		catch(ug::bridge::UGRegistryError& ex) {\
 			UG_ERR_LOG("### ERROR while registering functionality at '"<<(grp)<<"'. "\
 					"Registration failed (using name " << ex.name << ").\n");\
-			throw(ex);}
+			throw(ex);} \
+		catch (const std::exception& e) {\
+			std::cerr << "A standard exception was caught, with message '" \
+			                  << e.what() << "in "<< __FILE__"'\n"; \
+		throw(e);}
 
 
 #endif /* __H__UG_BRIDGE__UTIL__ */

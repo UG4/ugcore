@@ -82,8 +82,8 @@ struct Functionality
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-template <typename TAlgebra>
-static void Algebra(Registry& reg, string grp)
+template <typename TAlgebra, typename TRegistry=Registry>
+static void Algebra(TRegistry& reg, string grp)
 {
 	string suffix = GetAlgebraSuffix<TAlgebra>();
 	string tag = GetAlgebraTag<TAlgebra>();
@@ -95,7 +95,7 @@ typedef typename TAlgebra::vector_type vector_type;
 
 	{
 		string name = string("ISchurComplementInverse").append(suffix);
-		reg.add_class_< ISchurComplementInverse<TAlgebra> >(name, grp) ;
+		reg.template add_class_< ISchurComplementInverse<TAlgebra> >(name, grp) ;
 		reg.add_class_to_group(name, "ISchurComplementInverse", tag);
 	}
 
@@ -104,7 +104,7 @@ typedef typename TAlgebra::vector_type vector_type;
 		typedef SchurPrecond<TAlgebra> T;
 		typedef IPreconditioner<TAlgebra> TBase;
 		string name = string("SchurComplement").append(suffix);
-		reg.add_class_<T,TBase>(name, grp, "Schur complement preconditioner")
+		reg.template add_class_<T,TBase>(name, grp, "Schur complement preconditioner")
 			.add_constructor()
 			.add_method("set_dirichlet_solver", &T::set_dirichlet_solver, "","Dirichlet solver")
 			.add_method("set_skeleton_solver", &T::set_skeleton_solver, "","Skeleton solver")
@@ -120,7 +120,7 @@ typedef typename TAlgebra::vector_type vector_type;
 		typedef SchurInverseWithOperator<TAlgebra> T;
 		typedef ISchurComplementInverse<TAlgebra> TBase;
 		string name = string("SchurInverseWithOperator").append(suffix);
-		reg.add_class_<T,TBase>(name, grp, "SchurInverseWithOperator")
+		reg.template add_class_<T,TBase>(name, grp, "SchurInverseWithOperator")
 			.ADD_CONSTRUCTOR( (SmartPtr<ILinearOperatorInverse<vector_type> > ) )("linOpInverse")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "SchurInverseWithOperator", tag);
@@ -130,7 +130,7 @@ typedef typename TAlgebra::vector_type vector_type;
 		typedef SchurInverseWithFullMatrix<TAlgebra> T;
 		typedef ISchurComplementInverse<TAlgebra> TBase;
 		string name = string("SchurInverseWithFullMatrix").append(suffix);
-		reg.add_class_<T,TBase>(name, grp, "SchurInverseWithFullMatrix")
+		reg.template add_class_<T,TBase>(name, grp, "SchurInverseWithFullMatrix")
 			.ADD_CONSTRUCTOR( (SmartPtr<ILinearOperatorInverse<vector_type> > ) )("linOpInverse")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "SchurInverseWithFullMatrix", tag);
@@ -141,7 +141,7 @@ typedef typename TAlgebra::vector_type vector_type;
 		typedef SchurInverseWithAGammaGamma<TAlgebra> T;
 		typedef ISchurComplementInverse<TAlgebra> TBase;
 		string name = string("SchurInverseWithAGammaGamma").append(suffix);
-		reg.add_class_<T,TBase>(name, grp, "SchurInverseWithAGammaGamma")
+		reg.template add_class_<T,TBase>(name, grp, "SchurInverseWithAGammaGamma")
 			.ADD_CONSTRUCTOR( (SmartPtr<IPreconditionedLinearOperatorInverse<vector_type> > ) )("precLinOpInv")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "SchurInverseWithAGammaGamma", tag);
@@ -152,7 +152,7 @@ typedef typename TAlgebra::vector_type vector_type;
 		typedef SchurInverseWithAutoFullMatrix<TAlgebra> T;
 		typedef ISchurComplementInverse<TAlgebra> TBase;
 		string name = string("SchurInverseWithAutoFullMatrix").append(suffix);
-		reg.add_class_<T,TBase>(name, grp, "SchurInverseWithAutoFullMatrix")
+		reg.template add_class_<T,TBase>(name, grp, "SchurInverseWithAutoFullMatrix")
 			.ADD_CONSTRUCTOR( (SmartPtr<ILinearOperatorInverse<vector_type> > ) )("linOpInverse")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "SchurInverseWithAutoFullMatrix", tag);
@@ -172,16 +172,19 @@ typedef typename TAlgebra::vector_type vector_type;
 }// end Preconditioner
 
 /// \addtogroup precond_bridge
-void RegisterBridge_Schur(Registry& reg, string grp)
+template <typename TRegistry=Registry>
+void RegisterBridge_Schur_(TRegistry& reg, string grp)
 {
 	grp.append("/Algebra/Preconditioner");
-	typedef Schur::Functionality Functionality;
+	typedef Schur::Functionality TFunctionality;
 
 	try{
-		RegisterAlgebraDependent<Functionality>(reg,grp);
+		RegisterAlgebraDependent<TFunctionality, TRegistry>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
 
 } // namespace bridge
+
+UG_REGISTRY_DEFINE(RegisterBridge_Schur);
 } // namespace ug

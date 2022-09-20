@@ -239,11 +239,12 @@ static void RegisterClusterElementStacks(
 struct Functionality
 {
 
-static void Common(Registry& reg, string grp) {
+template <typename TRegistry=Registry>
+static void Common(TRegistry& reg, string grp) {
 	#ifdef UG_PARALLEL
 	{
 		typedef ProcessHierarchy T;
-		reg.add_class_<T>("ProcessHierarchy", grp)
+		reg.template add_class_<T>("ProcessHierarchy", grp)
 			.add_constructor()
 			.add_method("empty", &T::empty)
 			.add_method("add_hierarchy_level", &T::add_hierarchy_level)
@@ -259,35 +260,35 @@ static void Common(Registry& reg, string grp) {
 	}
 
 	{
-		reg.add_class_<IBalanceWeights>("IBalanceWeights", grp);
+		reg.template add_class_<IBalanceWeights>("IBalanceWeights", grp);
 	}
 
 	{
 		string name = string("ICommunicationWeights");
-		reg.add_class_<ICommunicationWeights>(name, grp);
+		reg.template add_class_<ICommunicationWeights>(name, grp);
 	}
 
 	{
 		string name("BalanceWeightsRefMarks");
 		typedef BalanceWeightsRefMarks	T;
-		reg.add_class_<T, IBalanceWeights>(name, grp)
+		reg.template add_class_<T, IBalanceWeights>(name, grp)
 			.add_constructor<void (*)(IRefiner*)>()
 			.set_construct_as_smart_pointer(true);
 	}
 
 	{
 		typedef IPartitionPreProcessor T;
-		reg.add_class_<T>("IPartitionPreProcessor", grp);
+		reg.template add_class_<T>("IPartitionPreProcessor", grp);
 	}
 
 	{
 		typedef IPartitionPostProcessor T;
-		reg.add_class_<T>("IPartitionPostProcessor", grp);
+		reg.template add_class_<T>("IPartitionPostProcessor", grp);
 	}
 
 	{
 		typedef IPartitioner T;
-		reg.add_class_<T>("IPartitioner", grp)
+		reg.template add_class_<T>("IPartitioner", grp)
 			.add_method("set_verbose", &T::set_verbose)
 			.add_method("partition", &T::partition)
 			.add_method("set_balance_weights", &T::set_balance_weights)
@@ -305,7 +306,7 @@ static void Common(Registry& reg, string grp) {
 	//	Note that this class does not feature a constructor.
 	//	One normally uses the derived class DomainLoadBalancer
 		typedef LoadBalancer T;
-		reg.add_class_<T>("LoadBalancer", grp)
+		reg.template add_class_<T>("LoadBalancer", grp)
 				//.add_method("add_distribution_level", &T::add_distribution_level)
 				.add_method("enable_vertical_interface_creation", &T::enable_vertical_interface_creation)
 				.add_method("set_next_process_hierarchy", &T::set_next_process_hierarchy)
@@ -529,8 +530,8 @@ static void Common(Registry& reg, string grp) {
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-template <typename TDomain>
-static void Domain(Registry& reg, string grp)
+template <typename TDomain, typename TRegistry=Registry>
+static void Domain(TRegistry& reg, string grp)
 {
 	string suffix = GetDomainSuffix<TDomain>();
 	string tag = GetDomainTag<TDomain>();
@@ -540,7 +541,7 @@ static void Domain(Registry& reg, string grp)
 		{
 			typedef PartPreProc_RasterProjectorCoordinates<TDomain::dim> T;
 			string name = string("PartPreProc_RasterProjectorCoordinates").append(suffix);
-			reg.add_class_<T, IPartitionPreProcessor>(name, grp)
+			reg.template add_class_<T, IPartitionPreProcessor>(name, grp)
 				.template add_constructor<void (*)(const Attachment<MathVector<TDomain::dim> >&)>()
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "PartPreProc_RasterProjectorCoordinates", tag);
@@ -549,7 +550,7 @@ static void Domain(Registry& reg, string grp)
 		{
 			typedef DomainBalanceWeights<TDomain, AnisotropicBalanceWeights<TDomain::dim> > T;
 			string name = string("AnisotropicBalanceWeights").append(suffix);
-			reg.add_class_<T, IBalanceWeights>(name, grp)
+			reg.template add_class_<T, IBalanceWeights>(name, grp)
 				.template add_constructor<void (*)(TDomain&)>()
 				.add_method("set_weight_factor", &T::set_weight_factor)
 				.add_method("weight_factor", &T::weight_factor)
@@ -560,7 +561,7 @@ static void Domain(Registry& reg, string grp)
 		{
 			typedef BalanceWeightsLuaCallback<TDomain> T;
 			string name = string("BalanceWeightsLuaCallback").append(suffix);
-			reg.add_class_<T, IBalanceWeights>(name, grp)
+			reg.template add_class_<T, IBalanceWeights>(name, grp)
 				.template add_constructor<void (*)(SmartPtr<TDomain> spDom,
 												   const char* luaCallbackName)>()
 				.add_method("set_time", &T::set_time)
@@ -573,7 +574,7 @@ static void Domain(Registry& reg, string grp)
 			string name = string("DomainLoadBalancer").append(suffix);
 			typedef DomainLoadBalancer<TDomain> T;
 			typedef LoadBalancer TBase;
-			reg.add_class_<T, TBase>(name, grp)
+			reg.template add_class_<T, TBase>(name, grp)
 				.template add_constructor<void (*)(SmartPtr<TDomain>)>("Domain")
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "DomainLoadBalancer", tag);
@@ -607,18 +608,22 @@ static void Domain(Registry& reg, string grp)
 }// end of namespace
 
 /// \addtogroup loadbalance_bridge
-void RegisterBridge_LoadBalancing(Registry& reg, string grp)
+
+template <typename TRegistry=Registry>
+void RegisterBridge_LoadBalancing_(TRegistry& reg, string grp)
 {
 	grp.append("/LoadBalancing");
 
 	typedef LoadBalancing::Functionality Functionality;
 
 	try{
-		RegisterCommon<Functionality>(reg, grp);
-		RegisterDomainDependent<Functionality>(reg,grp);
+		RegisterCommon<Functionality,TRegistry>(reg, grp);
+		RegisterDomainDependent<Functionality,TRegistry>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
 
 }// end of namespace
+
+UG_REGISTRY_DEFINE(RegisterBridge_LoadBalancing);
 }// end of namespace

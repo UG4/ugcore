@@ -74,7 +74,7 @@ struct Functionality
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-template <typename TDomain, typename TAlgebra>
+template <typename TDomain, typename TAlgebra, typename TRegistry=Registry>
 static void DomainAlgebra(Registry& reg, string grp)
 {
 	string suffix = GetDomainAlgebraSuffix<TDomain,TAlgebra>();
@@ -82,8 +82,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 }
 
-template <template <class, int> class TFVGeom, typename TDomain>
-static void DomainFVGeom(Registry& reg, string grp, string append)
+template <template <class, int> class TFVGeom, typename TDomain, typename TRegistry=Registry>
+static void DomainFVGeom(TRegistry& reg, string grp, string append)
 {
 	string suffix = GetDomainSuffix<TDomain>();
 	string tag = GetDomainTag<TDomain>();
@@ -108,16 +108,16 @@ static void DomainFVGeom(Registry& reg, string grp, string append)
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-template <typename TDomain>
-static void Domain(Registry& reg, string grp)
+template <typename TDomain, typename TRegistry=Registry>
+static void Domain(TRegistry& reg, string grp)
 {
 	string suffix = GetDomainSuffix<TDomain>();
 	string tag = GetDomainTag<TDomain>();
 
 //	CreateSubControlVolumeFaceDomain
 	{
-		DomainFVGeom<FV1Geometry, TDomain>(reg, grp, "_FV1");
-		DomainFVGeom<HFV1Geometry, TDomain>(reg, grp, "_HFV1");
+		DomainFVGeom<FV1Geometry, TDomain, TRegistry>(reg, grp, "_FV1");
+		DomainFVGeom<HFV1Geometry, TDomain, TRegistry>(reg, grp, "_HFV1");
 	}
 }
 
@@ -130,8 +130,8 @@ static void Domain(Registry& reg, string grp)
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-template <int dim>
-static void Dimension(Registry& reg, string grp)
+template <int dim, typename TRegistry=Registry>
+static void Dimension(TRegistry& reg, string grp)
 {
 	string suffix = GetDimensionSuffix<dim>();
 	string tag = GetDimensionTag<dim>();
@@ -147,7 +147,7 @@ static void Dimension(Registry& reg, string grp)
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-template <typename TAlgebra>
+template <typename TAlgebra, typename TRegistry>
 static void Algebra(Registry& reg, string grp)
 {
 	string suffix = GetAlgebraSuffix<TAlgebra>();
@@ -174,20 +174,24 @@ static void Common(Registry& reg, string grp)
 }// end FiniteVolume
 
 /// \addtogroup finitvolume_bridge
-void RegisterBridge_FiniteVolume(Registry& reg, string grp)
+template <typename TRegistry=Registry>
+void RegisterBridge_FiniteVolume_(TRegistry& reg, string grp)
 {
 	grp.append("/Discretization");
 	typedef FiniteVolume::Functionality Functionality;
 
 	try{
-		RegisterCommon<Functionality>(reg,grp);
-		RegisterDimensionDependent<Functionality>(reg,grp);
-		RegisterDomainDependent<Functionality>(reg,grp);
-		RegisterAlgebraDependent<Functionality>(reg,grp);
-		RegisterDomainAlgebraDependent<Functionality>(reg,grp);
+		//RegisterCommon<Functionality,TRegistry>(reg,grp);
+		//RegisterDimensionDependent<Functionality,TRegistry>(reg,grp);
+		RegisterDomainDependent<Functionality,TRegistry>(reg,grp);
+		//RegisterAlgebraDependent<Functionality,TRegistry>(reg,grp);
+		//RegisterDomainAlgebraDependent<Functionality,TRegistry>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
 
 }// namespace bridge
+
+UG_REGISTRY_DEFINE(RegisterBridge_FiniteVolume);
+
 }// namespace ug

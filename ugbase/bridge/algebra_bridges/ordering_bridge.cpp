@@ -74,8 +74,8 @@ struct Functionality
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-template <typename TAlgebra>
-static void Algebra(Registry& reg, string grp)
+template <typename TAlgebra, typename TRegistry>
+static void Algebra(TRegistry& reg, string grp)
 {
 	string suffix = GetAlgebraSuffix<TAlgebra>();
 	string tag = GetAlgebraTag<TAlgebra>();
@@ -85,7 +85,7 @@ static void Algebra(Registry& reg, string grp)
 	{
 		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
 		string name = string("IOrderingAlgorithm").append(suffix);
-		reg.add_class_<TBase>(name, grp);
+		reg.template add_class_<TBase>(name, grp);
 		reg.add_class_to_group(name, "IOrderingAlgorithm", tag);
 	}
 
@@ -94,7 +94,7 @@ static void Algebra(Registry& reg, string grp)
 		typedef BoostCuthillMcKeeOrdering<TAlgebra, ordering_container_type> T;
 		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
 		string name = string("BoostCuthillMcKeeOrdering").append(suffix);
-		reg.add_class_<T, TBase>(name, grp, "BoostCuthillMcKeeOrdering")
+		reg.template add_class_<T, TBase>(name, grp, "BoostCuthillMcKeeOrdering")
 			.add_constructor()
 			.add_method("set_reverse", &T::set_reverse)
 			.set_construct_as_smart_pointer(true);
@@ -106,7 +106,7 @@ static void Algebra(Registry& reg, string grp)
 		typedef BoostMinimumDegreeOrdering<TAlgebra, ordering_container_type> T;
 		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
 		string name = string("BoostMinimumDegreeOrdering").append(suffix);
-		reg.add_class_<T, TBase>(name, grp, "BoostMinimumDegreeOrdering")
+		reg.template add_class_<T, TBase>(name, grp, "BoostMinimumDegreeOrdering")
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "BoostMinimumDegreeOrdering", tag);
@@ -117,7 +117,7 @@ static void Algebra(Registry& reg, string grp)
 		typedef NativeCuthillMcKeeOrdering<TAlgebra, ordering_container_type> T;
 		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
 		string name = string("NativeCuthillMcKeeOrdering").append(suffix);
-		reg.add_class_<T, TBase>(name, grp, "NativeCuthillMcKeeOrdering")
+		reg.template add_class_<T, TBase>(name, grp, "NativeCuthillMcKeeOrdering")
 			.add_constructor()
 			.add_method("set_reverse", &T::set_reverse)
 			.set_construct_as_smart_pointer(true);
@@ -129,7 +129,7 @@ static void Algebra(Registry& reg, string grp)
 		typedef TopologicalOrdering<TAlgebra, ordering_container_type> T;
 		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
 		string name = string("TopologicalOrdering").append(suffix);
-		reg.add_class_<T, TBase>(name, grp, "TopologicalOrdering")
+		reg.template add_class_<T, TBase>(name, grp, "TopologicalOrdering")
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "TopologicalOrdering", tag);
@@ -140,7 +140,7 @@ static void Algebra(Registry& reg, string grp)
 		typedef SCCOrdering<TAlgebra, ordering_container_type> T;
 		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> TBase;
 		string name = string("SCCOrdering").append(suffix);
-		reg.add_class_<T, TBase>(name, grp, "SCCOrdering")
+		reg.template add_class_<T, TBase>(name, grp, "SCCOrdering")
 			.add_constructor()
 			.add_method("set_ordering_subalgorithm", &T::set_ordering_subalgorithm, "", "",
 						"sets an ordering subalgorithm")
@@ -157,16 +157,19 @@ static void Algebra(Registry& reg, string grp)
 }// end Ordering
 
 /// \addtogroup ordering_bridge
-void RegisterBridge_AlgebraOrdering(Registry& reg, string grp)
+template <typename TRegistry>
+void RegisterBridge_AlgebraOrdering_(TRegistry& reg, string grp)
 {
 	grp.append("/Algebra/Ordering");
-	typedef Ordering::Functionality Functionality;
+	typedef Ordering::Functionality TFunctionality;
 
 	try{
-		RegisterAlgebraDependent<Functionality>(reg,grp);
+		RegisterAlgebraDependent<TFunctionality, TRegistry>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
 
 } // namespace bridge
+
+UG_REGISTRY_DEFINE(RegisterBridge_AlgebraOrdering);
 } // namespace ug

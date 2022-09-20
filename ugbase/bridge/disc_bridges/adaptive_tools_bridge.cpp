@@ -139,8 +139,8 @@ struct Functionality
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-template <typename TDomain, typename TAlgebra>
-static void DomainAlgebra(Registry& reg, string grp)
+template <typename TDomain, typename TAlgebra, typename TRegistry=Registry>
+static void DomainAlgebra(TRegistry& reg, string grp)
 {
 	string suffix = GetDomainAlgebraSuffix<TDomain,TAlgebra>();
 	string tag = GetDomainAlgebraTag<TDomain,TAlgebra>();
@@ -227,8 +227,8 @@ static void DomainAlgebra(Registry& reg, string grp)
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-template <typename TDomain>
-static void Domain(Registry& reg, string grp)
+template <typename TDomain, typename TRegistry=Registry>
+static void Domain(TRegistry& reg, string grp)
 {
 	string suffix = GetDomainSuffix<TDomain>();
 	string tag = GetDomainTag<TDomain>();
@@ -240,7 +240,7 @@ static void Domain(Registry& reg, string grp)
 	{
 		typedef IElementMarkingStrategy<TDomain> T;
 		string name = string("IElementMarkingStrategy").append(suffix);
-		reg.add_class_<T>(name, grp)
+		reg.template add_class_<T>(name, grp)
 			.add_method("global_estimated_error", &T::global_estimated_error)
 			.add_method("global_estimated_error_per_elem_max", &T::global_estimated_error_per_elem_max)
 			.add_method("global_estimated_error_per_elem_min", &T::global_estimated_error_per_elem_min);
@@ -253,7 +253,7 @@ static void Domain(Registry& reg, string grp)
 		typedef StdRefinementMarkingStrategy<TDomain> T;
 		typedef IElementMarkingStrategy<TDomain> TBase;
 		string name = string("StdRefinementMarking").append(suffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(number, int)>("tolerated max error#max level")
 			.add_method("set_tolerance", &T::set_tolerance)
 			.add_method("set_max_level", &T::set_max_level)
@@ -267,7 +267,7 @@ static void Domain(Registry& reg, string grp)
 		typedef GlobalMarking<TDomain> T;
 		typedef IElementMarkingStrategy<TDomain> TBase;
 		string name = string("GlobalMarking").append(suffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(number, int)>("tolerated max error#max level")
 			.add_method("set_tolerance", &T::set_tolerance)
 			.add_method("set_max_level", &T::set_max_level)
@@ -281,7 +281,7 @@ static void Domain(Registry& reg, string grp)
 		typedef StdCoarseningMarkingStrategy<TDomain> T;
 		typedef IElementMarkingStrategy<TDomain> TBase;
 		string name = string("StdCoarseningMarking").append(suffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(number, number, int)>("tolerated max error#safety factor#min level")
 			.template add_constructor<void (*)(number, number)>("tolerated max error#safety factor")
 			.template add_constructor<void (*)(number)>("tolerated max error")
@@ -296,7 +296,7 @@ static void Domain(Registry& reg, string grp)
 		typedef ExpectedErrorMarkingStrategy<TDomain> T;
 		typedef IElementMarkingStrategy<TDomain> TBase;
 		string name = string("ExpectedErrorMarkingStrategy").append(suffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(number, int, number, number)>
 				("tolerated max squared error # maximal refinement level # "
 				"safety factor # expected reduction of squared error by refinement")
@@ -313,7 +313,7 @@ static void Domain(Registry& reg, string grp)
 			typedef MaximumMarking<TDomain> T;
 			typedef IElementMarkingStrategy<TDomain> TBase;
 			string name = string("MaximumMarking").append(suffix);
-			reg.add_class_<T, TBase>(name, grp)
+			reg.template add_class_<T, TBase>(name, grp)
 								   .template add_constructor<void (*)(number)>("theta")
 								   .template add_constructor<void (*)(number, number)>("theta#eps")
 								   .template add_constructor<void (*)(number, number, number)>("theta#eps")
@@ -328,7 +328,7 @@ static void Domain(Registry& reg, string grp)
 			typedef MeanValueMarking<TDomain> T;
 			typedef IElementMarkingStrategy<TDomain> TBase;
 			string name = string("MeanValueMarking").append(suffix);
-			reg.add_class_<T, TBase>(name, grp)
+			reg.template add_class_<T, TBase>(name, grp)
 								   .template add_constructor<void (*)(number, number)>("theta#factor")
 								   .set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "MeanValueMarking", tag);
@@ -339,7 +339,7 @@ static void Domain(Registry& reg, string grp)
 			typedef VarianceMarking<TDomain> T;
 			typedef IElementMarkingStrategy<TDomain> TBase;
 			string name = string("VarianceMarking").append(suffix);
-			reg.add_class_<T, TBase>(name, grp)
+			reg.template add_class_<T, TBase>(name, grp)
 									   .template add_constructor<void (*)(number)>("theta")
 									   .template add_constructor<void (*)(number, number)>("theta#eps")
 									   .set_construct_as_smart_pointer(true);
@@ -352,7 +352,7 @@ static void Domain(Registry& reg, string grp)
 			typedef VarianceMarkingEta<TDomain> T;
 			typedef IElementMarkingStrategy<TDomain> TBase;
 			string name = string("VarianceMarkingEta").append(suffix);
-			reg.add_class_<T, TBase>(name, grp)
+			reg.template add_class_<T, TBase>(name, grp)
 						.template add_constructor<void (*)(number)>("theta")
 						.template add_constructor<void (*)(number, number)>("theta#eps")
 						.template add_constructor<void (*)(number, number,number)>("theta#eps#threshlow")
@@ -368,7 +368,7 @@ static void Domain(Registry& reg, string grp)
 			typedef APosterioriCoarsening<TDomain> T;
 			typedef IElementMarkingStrategy<TDomain> TBase;
 			string name = string("APosterioriCoarsening").append(suffix);
-			reg.add_class_<T, TBase>(name, grp)
+			reg.template add_class_<T, TBase>(name, grp)
 										.template add_constructor<void (*)(number)>("theta")
 										 .set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "APosterioriCoarsening", tag);
@@ -379,7 +379,7 @@ static void Domain(Registry& reg, string grp)
 		typedef EquilibrationMarkingStrategy<TDomain> T;
 		typedef IElementMarkingStrategy<TDomain> TBase;
 		string name = string("EquilibrationMarking").append(suffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.template add_class_<T, TBase>(name, grp)
 									.template add_constructor<void (*)(number)>("theta")
 									.template add_constructor<void (*)(number, number)>("theta#eps")
 									.set_construct_as_smart_pointer(true);
@@ -391,7 +391,7 @@ static void Domain(Registry& reg, string grp)
 			typedef AbsoluteMarking<TDomain> T;
 			typedef IElementMarkingStrategy<TDomain> TBase;
 			string name = string("AbsoluteMarking").append(suffix);
-			reg.add_class_<T, TBase>(name, grp)
+			reg.template add_class_<T, TBase>(name, grp)
 										.template add_constructor<void (*)(number)>("eta")
 										.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "AbsoluteMarking", tag);
@@ -458,20 +458,23 @@ static void Common(Registry& reg, string grp)
 }// end AdaptiveTools
 
 /// \addtogroup adaptivetools_bridge
-void RegisterBridge_AdaptiveTools(Registry& reg, string grp)
+template <typename TRegistry=Registry>
+void RegisterBridge_AdaptiveTools_(TRegistry& reg, string grp)
 {
 	grp.append("/Discretization");
 	typedef AdaptiveTools::Functionality Functionality;
 
 	try{
-		RegisterCommon<Functionality>(reg,grp);
-		RegisterDimensionDependent<Functionality>(reg,grp);
-		RegisterDomainDependent<Functionality>(reg,grp);
-		RegisterAlgebraDependent<Functionality>(reg,grp);
-		RegisterDomainAlgebraDependent<Functionality>(reg,grp);
+		// RegisterCommon<Functionality, TRegistry>(reg,grp);
+		// RegisterDimensionDependent<Functionality, TRegistry>(reg,grp);
+		RegisterDomainDependent<Functionality, TRegistry>(reg,grp);
+		// RegisterAlgebraDependent<Functionality, TRegistry>(reg,grp);
+		RegisterDomainAlgebraDependent<Functionality, TRegistry>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
 
 }// namespace bridge
+
+UG_REGISTRY_DEFINE(RegisterBridge_AdaptiveTools);
 }// namespace ug

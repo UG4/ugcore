@@ -176,18 +176,11 @@ void RegisterBridge_VecMath_(TRegistry& reg, string parentGroup)
 	RegisterVecMathBridge_DimIndep(reg, grp);
 }
 
-void RegisterBridge_VecMath(Registry& reg, string parentGroup)
-{ RegisterBridge_VecMath_<Registry>(reg, parentGroup); }
 // end group vecmath_bridge
 /// \}
 
 }// end of namespace bridge
 
-#ifdef UG_USE_PYBIND11
-namespace pybind
-{
-	void RegisterBridge_VecMath(ug::pybind::RegistryAdapter& reg, string parentGroup)
-	{ bridge::RegisterBridge_VecMath_<ug::pybind::RegistryAdapter>(reg, parentGroup); }
-}
-#endif
-}// end of namespace pybind
+UG_REGISTRY_DEFINE(RegisterBridge_VecMath);
+
+}// end of namespace ug

@@ -63,8 +63,9 @@ void print_all_identifications(Grid& g) {
  */
 struct Functionality {
 
-	static void Common(Registry& reg, string grp) {
-		reg.add_class_<PeriodicBoundaryManager>("PeriodicBoundaryManager", grp)
+	template <typename TRegistry=Registry>
+	static void Common(TRegistry& reg, string grp) {
+		reg.template add_class_<PeriodicBoundaryManager>("PeriodicBoundaryManager", grp)
 				.add_constructor();
 		reg.add_function("PrintIdentification", &print_all_identifications, grp);
 	}
@@ -78,8 +79,8 @@ struct Functionality {
 	 * @param reg				registry
 	 * @param parentGroup		group for sorting of functionality
 	 */
-	template<typename TDomain>
-	static void Domain(Registry& reg, string grp) {
+	template<typename TDomain, typename TRegistry=Registry>
+	static void Domain(TRegistry& reg, string grp) {
 		reg.add_function("IdentifySubsets",
 				static_cast<void(*)(TDomain&, int, int)>(&IdentifySubsets<TDomain>), grp)
 		   .add_function("IdentifySubsets",
@@ -93,14 +94,17 @@ struct Functionality {
 }  // end periodicBoundary
 
 /// \addtogroup periodic_bridge
-void RegisterBridge_PeriodicBoundary(Registry& reg, string grp) {
+template <typename TRegistry=Registry>
+void RegisterBridge_PeriodicBoundary_(TRegistry& reg, string grp) {
 	grp.append("/Periodic");
 
 	try {
-		RegisterCommon<periodicBoundary::Functionality>(reg, grp);
-		RegisterDomainDependent<periodicBoundary::Functionality>(reg, grp);
+		RegisterCommon<periodicBoundary::Functionality, TRegistry>(reg, grp);
+		RegisterDomainDependent<periodicBoundary::Functionality, TRegistry>(reg, grp);
 	} UG_REGISTRY_CATCH_THROW(grp);
 }
 
 } // end of namespace bridge
+
+UG_REGISTRY_DEFINE(RegisterBridge_PeriodicBoundary);
 } // end of namespace ug
