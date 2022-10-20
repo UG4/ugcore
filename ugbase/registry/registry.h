@@ -338,10 +338,10 @@ class UG_API Registry {
 
 
 
-#ifdef UG_USE_PYBIND11
-
 // Auxiliary function.
 #define UG_REGISTRY_CONCAT(first, second) first##second
+
+#ifdef UG_USE_PYBIND11
 
 // Use this function to declare.
 #define UG_REGISTRY_DECL(fname, ...)\

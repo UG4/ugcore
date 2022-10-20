@@ -52,6 +52,7 @@ void RegisterGridBridge_Misc(Registry& reg, std::string parentGroup);
 
 }//	end of namespace	
 
+#ifdef UG_USE_PYBIND11
 namespace pybind{
 
 void RegisterGridBridge_Grid(ug::pybind::RegistryAdapter& reg, std::string parentGroup);
@@ -65,6 +66,7 @@ void RegisterGridBridge_Debug(ug::pybind::RegistryAdapter& reg, std::string pare
 void RegisterGridBridge_Misc(ug::pybind::RegistryAdapter& reg, std::string parentGroup);
 
 }//	end of namespace pybind
+#endif
 
 UG_REGISTRY_DECL(RegisterGridBridge_Grid);
 
