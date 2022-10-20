@@ -199,7 +199,7 @@ void RegisterBridge_Selection_(TRegistry& reg, string grp)
 	typedef Selection::Functionality TFunctionality;
 
 	try{
-		RegisterCommon<TFunctionality, TRegistry>(reg, grp);
+		RegisterCommon<TFunctionality>(reg, grp);
 		RegisterDomainDependent<TFunctionality, TRegistry>(reg, grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);

@@ -367,8 +367,8 @@ class GridFunctionGradientData
 		m_fct = spGridFct->fct_id_by_name(cmp);
 
 		//	check that function exists
-		if(m_fct >= spGridFct->num_fct())
-			UG_THROW("GridFunctionGradientData: Function space does not contain"
+		UG_COND_THROW(m_fct >= spGridFct->num_fct(),
+					"GridFunctionGradientData: Function space does not contain"
 					" a function with name " << cmp << ".");
 
 		//	local finite element id
@@ -377,6 +377,7 @@ class GridFunctionGradientData
 
 	virtual bool continuous() const
 	{
+		if ((m_lfeID.type() == LFEID::LAGRANGE) && (m_lfeID.order()>1)) return true;
 		return false;
 	}
 
@@ -451,7 +452,9 @@ class GridFunctionGradientData
 				<<m_lfeID<<", refDim="<<refDim);
 
 		if(bDeriv)
+		{
 			UG_THROW("Not implemented.");
+		}
 	}
 };
 

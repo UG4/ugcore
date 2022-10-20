@@ -639,7 +639,7 @@ void RegisterBridge_GridFunction_(TRegistry& reg, string grp)
 	typedef GridFunction::Functionality TFunctionality;
 
 	try{
-		RegisterCommon<TFunctionality, TRegistry>(reg,grp);
+		RegisterCommon<TFunctionality>(reg,grp);
 		//RegisterDimensionDependent<TFunctionality, TRegistry >(reg,grp);
 		RegisterDomainDependent<TFunctionality, TRegistry>(reg,grp);
 		//RegisterAlgebraDependent<TFunctionality, TRegistry>(reg,grp);

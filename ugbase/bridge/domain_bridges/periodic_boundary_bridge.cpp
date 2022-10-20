@@ -99,7 +99,7 @@ void RegisterBridge_PeriodicBoundary_(TRegistry& reg, string grp) {
 	grp.append("/Periodic");
 
 	try {
-		RegisterCommon<periodicBoundary::Functionality, TRegistry>(reg, grp);
+		RegisterCommon<periodicBoundary::Functionality>(reg, grp);
 		RegisterDomainDependent<periodicBoundary::Functionality, TRegistry>(reg, grp);
 	} UG_REGISTRY_CATCH_THROW(grp);
 }

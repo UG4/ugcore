@@ -205,7 +205,7 @@ void RegisterBridge_DomainRayTracing_(TRegistry& reg, string grp) {
 	try {
 		RegisterDomain2d3dDependent<domain_ray_tracing::Functionality, TRegistry>(reg, grp);
 #ifdef UG_DIM_3
-		RegisterCommon<domain_ray_tracing::Functionality, TRegistry>(reg, grp);
+		RegisterCommon<domain_ray_tracing::Functionality>(reg, grp);
 #endif
 	} UG_REGISTRY_CATCH_THROW(grp);
 }

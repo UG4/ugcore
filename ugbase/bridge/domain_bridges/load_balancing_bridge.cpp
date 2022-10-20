@@ -272,7 +272,7 @@ static void Common(TRegistry& reg, string grp) {
 		string name("BalanceWeightsRefMarks");
 		typedef BalanceWeightsRefMarks	T;
 		reg.template add_class_<T, IBalanceWeights>(name, grp)
-			.add_constructor<void (*)(IRefiner*)>()
+			.template add_constructor<void (*)(IRefiner*)>()
 			.set_construct_as_smart_pointer(true);
 	}
 
@@ -617,13 +617,13 @@ void RegisterBridge_LoadBalancing_(TRegistry& reg, string grp)
 	typedef LoadBalancing::Functionality Functionality;
 
 	try{
-		RegisterCommon<Functionality,TRegistry>(reg, grp);
+		RegisterCommon<Functionality>(reg, grp);
 		RegisterDomainDependent<Functionality,TRegistry>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
 
-}// end of namespace
+}// end of namespace bridge
 
 UG_REGISTRY_DEFINE(RegisterBridge_LoadBalancing);
-}// end of namespace
+}// end of namespace ug

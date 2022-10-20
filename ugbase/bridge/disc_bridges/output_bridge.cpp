@@ -332,8 +332,8 @@ void RegisterBridge_Output_(TRegistry& reg, string grp)
 	typedef Output::Functionality TFunctionality;
 
 	try{
-		RegisterCommon<TFunctionality, TRegistry>(reg,grp);
-		RegisterDimensionDependent<TFunctionality, TRegistry>(reg,grp);
+		RegisterCommon<TFunctionality>(reg,grp);
+		RegisterDimensionDependent<TFunctionality>(reg,grp);
 		RegisterDomainAlgebraDependent<TFunctionality, TRegistry>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);

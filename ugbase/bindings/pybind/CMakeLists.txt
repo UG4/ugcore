@@ -38,6 +38,7 @@ project(UG_PYBIND11)
 # Python binding (requires C++11).
 #find_package(pybind11 REQUIRED)
 
+if(USE_PYBIND11)
 SET(pyPluginName ug4py) # Must match module name!
 pybind11_add_module(${pyPluginName} ug_pybind.cpp)
 set_target_properties(${pyPluginName} PROPERTIES	
@@ -45,3 +46,4 @@ set_target_properties(${pyPluginName} PROPERTIES
   	CXX_STANDARD_REQUIRED YES
    	CXX_EXTENSIONS NO)
 target_link_libraries (${pyPluginName} PRIVATE ug4)
+endif(USE_PYBIND11)

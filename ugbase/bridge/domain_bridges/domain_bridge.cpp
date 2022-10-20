@@ -607,7 +607,7 @@ void RegisterBridge_Domain_(TRegistry& reg, string grp)
 	> CompileDomain2d3dList;
 
 	try{
-		RegisterCommon<Functionality, TRegistry>(reg,grp);
+		RegisterCommon<Functionality>(reg,grp);
 		RegisterDomainDependent<Functionality, TRegistry>(reg,grp);
 		RegisterDomainDependent<Domain::Functionality2d3d, TRegistry, CompileDomain2d3dList>(reg,grp);
 	}

@@ -636,8 +636,8 @@ void RegisterBridge_UserData_(TRegistry& reg, string grp)
 	typedef UserDataBridge::Functionality Functionality;
 
 	try{
-		RegisterCommon<Functionality,TRegistry>(reg,grp);
-		RegisterDimensionDependent<Functionality,TRegistry>(reg,grp);
+		RegisterCommon<Functionality>(reg,grp);
+		RegisterDimensionDependent<Functionality>(reg,grp);
 		RegisterDomainDependent<Functionality,TRegistry>(reg,grp);
 
 #ifdef UG_DIM_2 // only for 2D/3D
@@ -648,7 +648,7 @@ void RegisterBridge_UserData_(TRegistry& reg, string grp)
 		RegisterRasterUserData<number, 3, TRegistry>(reg, "RasterNumberData", grp);
 #endif
 
-		RegisterCommon<UserDataBridge::RotatingFunctionality,TRegistry>(reg,grp);
+		RegisterCommon<UserDataBridge::RotatingFunctionality>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }

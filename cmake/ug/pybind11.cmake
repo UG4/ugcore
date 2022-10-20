@@ -34,21 +34,36 @@
 if(USE_PYBIND11)
     if(STATIC_BUILD)
     	MESSAGE(STATUS "Info: Pybind11 requested, but static build. Pybind11 disabled?")
-    	SET(USE_JSON OFF)
+    	SET(USE_PYBIND11 OFF)
     else(STATIC_BUILD)
-    	MESSAGE(STATUS "Info: Using Pybind11")
-    	
+    	MESSAGE(STATUS "Info: Using Pybind11.")
+ 	
     	
     	#FIND_PACKAGE (Python COMPONENTS Interpreter Development)
-    	MESSAGE(STATUS "Info: Using Pybind11 from ${Python_INCLUDE_DIRS}")
+    	MESSAGE(STATUS "Info: Using Python from ${Python_FOUND}")
+    	MESSAGE(STATUS "Info: Using Python from ${Python_INCLUDE_DIRS}")
     	
     	# Automatic
+    	SET(pybind11_DIR ${UG_ROOT_CMAKE_PATH}/../../externals/pybind11/include)
     	SET(pybind11_DIR ${UG_ROOT_CMAKE_PATH}/../../externals/pybind11/include)		
     	FIND_PACKAGE(pybind11 REQUIRED)
-		FIND_PACKAGE(Python REQUIRED COMPONENTS Interpreter Development)
+    	
+    	# SET(Python_DIR /Users/anaegel/opt/anaconda3/envs/xeus/include)	
+    	#set (Python_ROOT_DIR "/Users/anaegel/opt/anaconda3/include/python3.8")	
+    	#unset(Python_EXECUTABLE)
+		FIND_PACKAGE(Python 3.9 EXACT
+					# Python 3.8 EXACT
+					REQUIRED 
+					COMPONENTS Interpreter Development)
+		
+		# Manually activate 3.8 (for Jupyter) 			
+		#set (Python_INCLUDE_DIRS /opt/local/Library/Frameworks/Python.framework/Versions/3.8/include/python3.8)
+		#set (Python_LIBRARIES /opt/local/Library/Frameworks/Python.framework/Versions/3.8/lib/libpython3.8.dylib)
+		
    	   	
-   	    MESSAGE(STATUS "Info: Using Pybind11 from ${pybind11_FOUND}")
-   	   	MESSAGE(STATUS "Info: Using Pybind11 INC ${pybind11_INCLUDE_DIR}")
+   	    MESSAGE(STATUS "Info: Found Pybind11 from ${pybind11_FOUND} in ${pybind11_INCLUDE_DIR}")
+   	
+   	   	
    	   	MESSAGE(STATUS "Info: Using Pybind11 INC ${Python_INCLUDE_DIRS}")
    		MESSAGE(STATUS "Info: Using Pybind11 LIB ${Python_LIBRARIES}")
     	

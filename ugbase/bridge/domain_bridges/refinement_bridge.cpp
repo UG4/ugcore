@@ -2006,7 +2006,7 @@ void RegisterBridge_Refinement_(TRegistry& reg, string grp)
 	typedef Refinement::Functionality Functionality;
 
 	try{
-		RegisterCommon<Functionality, TRegistry>(reg,grp);
+		RegisterCommon<Functionality>(reg,grp);
 		RegisterDomainDependent<Functionality, TRegistry>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);

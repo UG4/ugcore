@@ -525,7 +525,7 @@ void RegisterBridge_AlgebraCommon_(TRegistry& reg, string grp)
 	typedef AlgebraCommon::Functionality Functionality;
 
 	try{
-		RegisterCommon<Functionality, TRegistry>(reg,grp);
+		RegisterCommon<Functionality>(reg,grp);
 		RegisterAlgebraDependent<Functionality, TRegistry>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);

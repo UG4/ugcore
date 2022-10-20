@@ -732,7 +732,7 @@ void RegisterBridge_DiscAlgebra_(TRegistry& reg, string grp)
 	try{
 		RegisterAlgebraDependent<TFunctionality, TRegistry>(reg,grp);
 		RegisterDomainAlgebraDependent<TFunctionality, TRegistry>(reg,grp);
-		RegisterCommon<TFunctionality, TRegistry>(reg,grp);
+		RegisterCommon<TFunctionality>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }

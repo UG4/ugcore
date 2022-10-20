@@ -47,13 +47,13 @@ namespace bridge{
 /// \{
 
 template <typename Functionality, typename TRegistry=Registry>
-void RegisterCommon(TRegistry& reg, std::string grp)
+void RegisterCommon_(TRegistry& reg, std::string grp)
 {
 	Functionality::Common(reg,grp);
 }
 
 template <typename Functionality, typename TRegistry=Registry>
-void RegisterDimensionDependent(TRegistry& reg, std::string grp)
+void RegisterDimensionDependent_(TRegistry& reg, std::string grp)
 {
 #ifdef UG_DIM_1
 	Functionality::template Dimension<1>(reg,grp);
@@ -100,25 +100,38 @@ void RegisterDimension2d3dDependent(TRegistry& reg, std::string grp)
 // end group bridge
 /// \}
 
+
+template <typename TFunctionality>
+void RegisterCommon(Registry& reg, std::string grp)
+{ RegisterCommon_<TFunctionality, Registry>(reg,grp); }
+
+template <typename TFunctionality>
+void RegisterDimensionDependent(Registry& reg, std::string grp)
+{ ug::bridge::RegisterDimensionDependent_<TFunctionality, Registry>(reg,grp); }
 } // end namespace bridge
+
 
 
 #ifdef UG_USE_PYBIND11
 
-namespace bridge {
+namespace pybind {
+
+
+//template <typename T>
+//struct type{};
+
 //! Shortcuts
 template <typename TFunctionality>
 void RegisterCommon(ug::pybind::Registry& reg, std::string grp)
 {
-	typedef typename ug::pybind::Registry TRegistry;
-	ug::bridge::RegisterCommon<TFunctionality, TRegistry>(reg,grp);
+	// typedef typename ug::pybind::Registry TRegistry;
+	ug::bridge::RegisterCommon_<TFunctionality, ug::pybind::Registry>(reg,grp);
 }
 
 template <typename TFunctionality>
 void RegisterDimensionDependent(ug::pybind::Registry& reg, std::string grp)
 {
-	typedef typename ug::pybind::Registry TRegistry;
-	ug::bridge::RegisterDimensionDependent<TFunctionality, TRegistry>(reg,grp);
+	ug::bridge::RegisterDimensionDependent_<TFunctionality, ug::pybind::Registry>(reg,grp);
 };
 
 
