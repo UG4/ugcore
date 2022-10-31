@@ -36,22 +36,23 @@ if(USE_PYBIND11)
     	MESSAGE(STATUS "Info: Pybind11 requested, but static build. Pybind11 disabled?")
     	SET(USE_PYBIND11 OFF)
     else(STATIC_BUILD)
-    	MESSAGE(STATUS "Info: Using Pybind11.")
+   		MESSAGE(STATUS "Info: ****************************************************************************************")
+    	MESSAGE(STATUS "Info: Pybind11 enabled.")
  	
-    	
-    	#FIND_PACKAGE (Python COMPONENTS Interpreter Development)
-    	MESSAGE(STATUS "Info: Using Python from ${Python_FOUND}")
-    	MESSAGE(STATUS "Info: Using Python from ${Python_INCLUDE_DIRS}")
+    	FIND_PACKAGE (Python COMPONENTS Interpreter Development)
+    	MESSAGE(STATUS "Info: Found Python = ${Python_FOUND}")
+    	MESSAGE(STATUS "Info: Using Python INC ${Python_INCLUDE_DIRS}")
+    	MESSAGE(STATUS "Info: Using Python LIB ${Python_LIBRARIES}")
     	
     	# Automatic
-    	SET(pybind11_DIR ${UG_ROOT_CMAKE_PATH}/../../externals/pybind11/include)
-    	SET(pybind11_DIR ${UG_ROOT_CMAKE_PATH}/../../externals/pybind11/include)		
+    	SET(pybind11_DIR ${UG_ROOT_CMAKE_PATH}/../../externals/PybindForUG4/pybind11/include)		
     	FIND_PACKAGE(pybind11 REQUIRED)
     	
     	# SET(Python_DIR /Users/anaegel/opt/anaconda3/envs/xeus/include)	
     	#set (Python_ROOT_DIR "/Users/anaegel/opt/anaconda3/include/python3.8")	
     	#unset(Python_EXECUTABLE)
-		FIND_PACKAGE(Python 3.9 EXACT
+		FIND_PACKAGE(Python
+					# Python 3.9 EXACT
 					# Python 3.8 EXACT
 					REQUIRED 
 					COMPONENTS Interpreter Development)
@@ -60,18 +61,19 @@ if(USE_PYBIND11)
 		#set (Python_INCLUDE_DIRS /opt/local/Library/Frameworks/Python.framework/Versions/3.8/include/python3.8)
 		#set (Python_LIBRARIES /opt/local/Library/Frameworks/Python.framework/Versions/3.8/lib/libpython3.8.dylib)
 		
-   	   	
-   	    MESSAGE(STATUS "Info: Found Pybind11 from ${pybind11_FOUND} in ${pybind11_INCLUDE_DIR}")
-   	
-   	   	
-   	   	MESSAGE(STATUS "Info: Using Pybind11 INC ${Python_INCLUDE_DIRS}")
-   		MESSAGE(STATUS "Info: Using Pybind11 LIB ${Python_LIBRARIES}")
+   	    MESSAGE(STATUS "Info: Found Pybind11 = ${pybind11_FOUND}")
+   	   	MESSAGE(STATUS "Info: Using Pybind11 INC ${pybind11_INCLUDE_DIRS}")
+   		MESSAGE(STATUS "Info: ****************************************************************************************")
     	
-    	# includes
-    	include_directories(${pybind11_INCLUDE_DIR} ${Python_INCLUDE_DIRS})
-		#expand libraries
+    	cmake_policy(SET CMP0057 NEW)
+    	
+    	# Expand includes.
+    	include_directories(${pybind11_INCLUDE_DIRS})
+    	
+		# Expand libraries.
 		set(linkLibraries ${linkLibraries} ${Python_LIBRARIES})
-		# set define
+		
+		# Set define
     	add_definitions(-DUG_USE_PYBIND11)
     endif(STATIC_BUILD)
 else(USE_PYBIND11)

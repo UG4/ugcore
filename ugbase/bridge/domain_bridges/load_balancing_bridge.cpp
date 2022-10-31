@@ -167,14 +167,14 @@ namespace LoadBalancing{
 
 #ifdef UG_PARALLEL
 
-template <class TDomain, class TPartitioner>
+template <class TDomain, class TPartitioner, typename TRegistry=Registry>
 static void RegisterDynamicBisectionPartitioner(
-	Registry& reg,
+	TRegistry& reg,
 	string name,
 	string grpName,
 	string clsGrpName)
 {
-	reg.add_class_<TPartitioner, IPartitioner>(name, grpName)
+	 reg.template add_class_<TPartitioner, IPartitioner>(name, grpName)
 		.template add_constructor<void (*)(TDomain&)>()
 		.add_method("set_subset_handler",
 			&TPartitioner::set_subset_handler)
@@ -197,30 +197,30 @@ static void RegisterDynamicBisectionPartitioner(
 	reg.add_class_to_group(name, clsGrpName, GetDomainTag<TDomain>());
 }
 
-template <class TDomain, class elem_t>
+template <class TDomain, class elem_t, typename TRegistry=Registry>
 static void RegisterSmoothPartitionBounds(
-	Registry& reg,
+	TRegistry& reg,
 	string name,
 	string grpName,
 	string clsGrpName)
 {
 	typedef SmoothPartitionBounds<elem_t>	T;
-	reg.add_class_<T, IPartitionPostProcessor>(name, grpName)
+	reg.template add_class_<T, IPartitionPostProcessor>(name, grpName)
 		.add_constructor()
 		.set_construct_as_smart_pointer(true);
 	reg.add_class_to_group(name, clsGrpName, GetDomainTag<TDomain>());
 }
 
-template <class TDomain, class elem_t, class vector_t>
+template <class TDomain, class elem_t, class vector_t, typename TRegistry=Registry>
 static void RegisterClusterElementStacks(
-	Registry& reg,
+	TRegistry& reg,
 	string name,
 	string grpName,
 	string clsGrpName)
 {
 	typedef Attachment<vector_t> apos_t;
 	typedef ClusterElementStacks<elem_t, vector_t>	T;
-	reg.add_class_<T, IPartitionPostProcessor>(name, grpName)
+	reg.template add_class_<T, IPartitionPostProcessor>(name, grpName)
 		.add_constructor()
 		.template add_constructor<void (*)(const apos_t&, const vector_t&)>()
 		.add_method("set_position_attachment", &T::set_position_attachment)
@@ -327,20 +327,21 @@ static void Common(TRegistry& reg, string grp) {
 		typedef ug::Domain<1>	TDomain;
 		RegisterDynamicBisectionPartitioner<
 				TDomain,
-				DomainPartitioner<TDomain, Partitioner_DynamicBisection<Edge, 1> > >(
+				DomainPartitioner<TDomain, Partitioner_DynamicBisection<Edge, 1> >,
+				TRegistry>(
 			reg,
 			"EdgePartitioner_DynamicBisection1d",
 			grp,
 			"Partitioner_DynamicBisection");
 
 
-		RegisterSmoothPartitionBounds<TDomain, Edge>(
+		RegisterSmoothPartitionBounds<TDomain, Edge, TRegistry>(
 			reg,
 			"SmoothPartitionBounds1d",
 			grp,
 			"SmoothPartitionBounds");
 
-		// RegisterClusterElementStacks<TDomain, Edge, vector1>(
+		// RegisterClusterElementStacks<TDomain, Edge, vector1, TRegistry>(
 		// 	reg,
 		// 	"ClusterElementStacks1d",
 		// 	grp,
@@ -353,7 +354,8 @@ static void Common(TRegistry& reg, string grp) {
 
 		RegisterDynamicBisectionPartitioner<
 				TDomain,
-				DomainPartitioner<TDomain, Partitioner_DynamicBisection<Edge, 2> > >(
+				DomainPartitioner<TDomain, Partitioner_DynamicBisection<Edge, 2> >,
+				TRegistry>(
 			reg,
 			"EdgePartitioner_DynamicBisection2d",
 			grp,
@@ -361,19 +363,20 @@ static void Common(TRegistry& reg, string grp) {
 
 		RegisterDynamicBisectionPartitioner<
 				TDomain,
-				DomainPartitioner<TDomain, Partitioner_DynamicBisection<Face, 2> > >(
+				DomainPartitioner<TDomain, Partitioner_DynamicBisection<Face, 2> >,
+				TRegistry>(
 			reg,
 			"FacePartitioner_DynamicBisection2d",
 			grp,
 			"Partitioner_DynamicBisection");
 
-		RegisterSmoothPartitionBounds<TDomain, Face>(
+		RegisterSmoothPartitionBounds<TDomain, Face, TRegistry>(
 			reg,
 			"SmoothPartitionBounds2d",
 			grp,
 			"SmoothPartitionBounds");
 
-		RegisterClusterElementStacks<TDomain, Face, vector2>(
+		RegisterClusterElementStacks<TDomain, Face, vector2, TRegistry>(
 			reg,
 			"ClusterElementStacks2d",
 			grp,
@@ -386,7 +389,8 @@ static void Common(TRegistry& reg, string grp) {
 
 		RegisterDynamicBisectionPartitioner<
 				TDomain,
-				DomainPartitioner<TDomain, Partitioner_DynamicBisection<Edge, 3> > >(
+				DomainPartitioner<TDomain, Partitioner_DynamicBisection<Edge, 3> >,
+				TRegistry>(
 			reg,
 			"EdgePartitioner_DynamicBisection3d",
 			grp,
@@ -394,7 +398,8 @@ static void Common(TRegistry& reg, string grp) {
 
 		RegisterDynamicBisectionPartitioner<
 				TDomain,
-				DomainPartitioner<TDomain, Partitioner_DynamicBisection<Face, 3> > >(
+				DomainPartitioner<TDomain, Partitioner_DynamicBisection<Face, 3> >,
+				TRegistry>(
 			reg,
 			"FacePartitioner_DynamicBisection3d",
 			grp,
@@ -402,19 +407,20 @@ static void Common(TRegistry& reg, string grp) {
 
 		RegisterDynamicBisectionPartitioner<
 				TDomain,
-				DomainPartitioner<TDomain, Partitioner_DynamicBisection<Volume, 3> > >(
+				DomainPartitioner<TDomain, Partitioner_DynamicBisection<Volume, 3> >,
+				TRegistry>(
 			reg,
 			"VolumePartitioner_DynamicBisection3d",
 			grp,
 			"Partitioner_DynamicBisection");
 
-		RegisterSmoothPartitionBounds<TDomain, Volume>(
+		RegisterSmoothPartitionBounds<TDomain, Volume, TRegistry>(
 			reg,
 			"SmoothPartitionBounds3d",
 			grp,
 			"SmoothPartitionBounds");
 
-		RegisterClusterElementStacks<TDomain, Volume, vector3>(
+		RegisterClusterElementStacks<TDomain, Volume, vector3, TRegistry>(
 			reg,
 			"ClusterElementStacks3d",
 			grp,

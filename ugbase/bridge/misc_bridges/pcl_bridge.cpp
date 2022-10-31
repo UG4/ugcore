@@ -116,8 +116,8 @@ static vector<T> ParallelVecSum(const vector<T>& t)
 	return tmp;
 }
 
-
-void RegisterBridge_PCL(Registry& reg, string parentGroup)
+template <typename TRegistry>
+void RegisterBridge_PCL_(TRegistry& reg, string parentGroup)
 {
 	string grp(parentGroup);
 	grp.append("/pcl");
@@ -234,10 +234,11 @@ void RegisterBridge_PCL_(TRegistry& reg, string parentGroup)
 	reg.add_function("ParallelSum", &ParallelSumDUMMY<double>, grp, "tsum", "t", "returns the sum of t over all processes. note: you have to assure that all processes call this function.");
 }
 
-void RegisterBridge_PCL(Registry& reg, string parentGroup)
-{ RegisterBridge_PCL_<Registry>(reg, parentGroup); }
 
 #endif //UG_PARALLEL
+
+void RegisterBridge_PCL(Registry& reg, string parentGroup)
+{ RegisterBridge_PCL_<Registry>(reg, parentGroup); }
 
 // end group pcl_bridge
 /// \}
