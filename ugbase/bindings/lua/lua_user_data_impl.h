@@ -629,6 +629,33 @@ void LuaUserFunction<TData,dim,TDataIn>::set_deriv(size_t arg, const char* luaCa
 }
 
 template <typename TData, int dim, typename TDataIn>
+void LuaUserFunction<TData,dim,TDataIn>::set_deriv(size_t arg, LuaFunctionHandle handle)
+{
+//	check number of arg
+	if(arg >= m_numArgs)
+		UG_THROW("LuaUserFunction::set_lua_deriv_callback: Trying "
+				"to set a derivative for argument " << arg <<", that "
+				"does not exist. Number of arguments is "<<m_numArgs);
+
+//	store name (string) of callback
+	m_cbDerivName[arg] = std::string("__anonymous__lua__function__");
+
+//	free old reference
+	free_deriv_callback_ref(arg);
+
+//	store reference to lua function
+	m_cbDerivRef[arg] = handle.ref;
+
+	#ifdef USE_LUA2C
+	//	if(useLuaCompiler) m_luaComp_Deriv[arg].create(luaCallback);
+	#endif
+
+}
+
+
+
+
+template <typename TData, int dim, typename TDataIn>
 void LuaUserFunction<TData,dim,TDataIn>::operator() (TData& out, int numArgs, ...) const
 {
     PROFILE_CALLBACK();
