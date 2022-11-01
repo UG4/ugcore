@@ -34,7 +34,7 @@
 if(USE_PYBIND11)
     if(STATIC_BUILD)
     	MESSAGE(STATUS "Info: Pybind11 requested, but static build. Pybind11 disabled?")
-    	SET(USE_JSON OFF)
+    	SET(USE_PYBIND11 OFF)
     else(STATIC_BUILD)
     	MESSAGE(STATUS "Info: Using Pybind11")
     	
