@@ -267,6 +267,8 @@ class LuaUserFunction
 	 * \param luaCallback name of the Lua function to use as callback
 	 */
 		void set_deriv(size_t arg, const char* luaCallback);
+		void set_deriv(size_t arg, LuaFunctionHandle handle);
+
 
 	///	set number of needed inputs
 		void set_num_input(size_t num);
@@ -279,6 +281,9 @@ class LuaUserFunction
 		void set_input(size_t i, SmartPtr<CplUserData<TDataIn, dim> > data);
 		void set_input(size_t i, number val);
 	///	\}
+
+		void set_input_and_deriv(size_t i, SmartPtr<CplUserData<TDataIn, dim> > input, LuaFunctionHandle deriv)
+		{ set_input(i, input); set_deriv(i, deriv); }
 
 	///	evaluates the data
 		virtual void operator() (TData& out, int numArgs, ...) const;
