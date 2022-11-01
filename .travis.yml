@@ -34,7 +34,7 @@ osx_image:
   
 env:
   global:
-    - TIMEOUT_BUILD='30m'
+    - TIMEOUT_BUILD='50m'
     - BUILD_SUCCESS=true
     
   matrix:
