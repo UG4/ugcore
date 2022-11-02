@@ -30,6 +30,7 @@ function UJS_Submit
 		echo "Submit: $commandline"
 		nohup $commandline > job.output &
 	fi
+	jobid=$!
 }
 
 
@@ -46,8 +47,15 @@ function UJS_Info
 {
 	echo "Using MPI"
 	echo "ps aux | grep $USER | grep mpirun"
-	ps aux | sed -n 1p
-	ps aux | grep $USER | grep mpirun
+	echo "JOBID STATE $(ps aux | sed -n 1p)"
+
+	ps aux | grep $USER | grep mpirun \
+  | while read -r line ; do
+		jobid=$(echo $line | grep -E '(?:[[:digit:]]+){2}' -o -m 1 -h -a | head -1)
+		if ! echo $line | grep -q grep; then
+			echo "$jobid RUNNING $line"
+		fi
+	done
 }
 
 
