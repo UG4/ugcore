@@ -245,7 +245,6 @@ void RegisterBridge_PCL(Registry& reg, string parentGroup)
 
 }// end of namespace bridge
 
-// #ifdef UG_PARALLEL
 #ifdef UG_USE_PYBIND11
 namespace pybind
 {
@@ -253,6 +252,5 @@ namespace pybind
 	{ ug::bridge::RegisterBridge_PCL_<ug::pybind::RegistryAdapter>(reg, parentGroup); }
 }
 #endif
-// #endif
 
 }// end of namespace ug
