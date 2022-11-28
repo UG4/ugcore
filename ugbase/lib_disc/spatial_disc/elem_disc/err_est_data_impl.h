@@ -122,6 +122,12 @@ inline void check_subset_strings(std::vector<std::string> s)
 					 "subset specification at position " << i << "(of " << s.size()-1 << ")");
 		}
 	}
+
+	if (s.size() == 0)
+	{
+			UG_LOG("Warning: SideAndElemErrEstData is constructed without definition of subsets. This is likely not to work.\n"
+				   "Please specify a subset of the same dimension as your domain that the error estimator is supposed to work on.\n");
+	}
 }
 
 
@@ -142,13 +148,6 @@ SideAndElemErrEstData<TDomain>::SideAndElemErrEstData
 {
 	m_vSs = TokenizeString(subsets);
 	check_subset_strings(m_vSs);
-
-	if (m_vSs.size() == 0)
-	{
-		UG_LOG("Warning: SideAndElemErrEstData is constructed without definition of subsets. This is likely not to work.\n"
-			   "Please specify a subset of the same dimension as your domain that the error estimator is supposed to work on.\n");
-	}
-
 	init_quadrature();
 }
 
@@ -170,13 +169,6 @@ SideAndElemErrEstData<TDomain>::SideAndElemErrEstData
 {
 	m_vSs = subsets;
 	check_subset_strings(m_vSs);
-
-	if (m_vSs.size() == 0)
-	{
-		UG_LOG("Warning: SideAndElemErrEstData is constructed without definition of subsets. This is likely not to work.\n"
-					   "Please specify a subset of the same dimension as your domain that the error estimator is supposed to work on.\n");
-	}
-
 	init_quadrature();
 }
 
@@ -324,15 +316,12 @@ template <int refDim>
 const MathVector<refDim>* SideAndElemErrEstData<TDomain>::elem_local_ips(const ReferenceObjectID roid)
 {
 //	return NULL if dim is not fitting (not meaningful for the purpose of error estimation)
-	if (TDomain::dim != refDim)
-		return NULL;
+	if (TDomain::dim != refDim) return NULL;
 
 //	check that quad rule exists
-	if (!quadRuleElem[roid])
-		UG_THROW("Requesting side IPs for roid " << roid << ", but no quadrature rule has been created for it.");
+	UG_COND_THROW(!quadRuleElem[roid], "Requesting side IPs for roid " << roid << ", but no quadrature rule has been created for it.");
 //	check that IP series exists
-	if (quadRuleElem[roid]->size() == 0)
-		UG_THROW("No elem IP series available for roid " << roid << ".");
+	UG_COND_THROW(quadRuleElem[roid]->size() == 0, "No elem IP series available for roid " << roid << ".");
 
 	// cast is necessary, since TDomain::dim might be != refDim,
 	// but in that case, this return is not reached
@@ -436,8 +425,8 @@ template <typename TDomain>
 size_t SideAndElemErrEstData<TDomain>::num_side_ips(const ReferenceObjectID roid)
 {
 	// check that quad rule exists
-	if (!quadRuleSide[roid])
-		UG_THROW("Requesting number of side IPs for roid " << roid << ", but no quadrature rule has been created for it.");
+	UG_COND_THROW(!quadRuleSide[roid],
+			"Requesting number of side IPs for roid " << roid << ", but no quadrature rule has been created for it.");
 
 	return quadRuleSide[roid]->size();
 }
@@ -459,8 +448,7 @@ template <typename TDomain>
 size_t SideAndElemErrEstData<TDomain>::num_elem_ips(const ReferenceObjectID roid)
 {
 	// check that quad rule exists
-	if (!quadRuleElem[roid])
-		UG_THROW("Requesting elem IPs for roid " << roid << ", but no quadrature rule has been created for it.");
+	UG_COND_THROW(!quadRuleElem[roid], "Requesting elem IPs for roid " << roid << ", but no quadrature rule has been created for it.");
 
 	return quadRuleElem[roid]->size();
 }
@@ -486,8 +474,7 @@ void SideAndElemErrEstData<TDomain>::alloc_err_est_data
 )
 {
 //	get and check the grid level
-	if (gl.type () != GridLevel::SURFACE)
-		UG_THROW("SideFluxErrEstData::alloc_err_est_data:"
+	UG_COND_THROW(gl.type () != GridLevel::SURFACE, "SideFluxErrEstData::alloc_err_est_data:"
 			" The error estimator can work only with grid functions of the SURFACE type.");
 
 //	get the subset handler
@@ -523,11 +510,10 @@ void SideAndElemErrEstData<TDomain>::alloc_err_est_data
 		if (dim_si < ssDimMin) ssDimMin = dim_si;
 	}
 
-	if (ssDimMax != ssDimMin || ssDimMax != TDomain::dim)
-	{
-		UG_THROW("Subsets passed to an instance of SideAndElemErrEstData have varying or inadmissable dimension.\n"
+	UG_COND_THROW((ssDimMax != ssDimMin || ssDimMax != TDomain::dim),
+				"Subsets passed to an instance of SideAndElemErrEstData have varying or inadmissable dimension.\n"
 				 "(NOTE: Only sets of subsets of the same dimension as the domain are allowed.)");
-	}
+
 
 	// iterate over elems and associated sides and resize the IP value vectors
 	for (size_t si = 0; si < m_ssg.size(); si++)
@@ -873,7 +859,6 @@ number SideAndElemErrEstData<TDomain>::get_elem_error_indicator(GridObject* pEle
 	pErrEstGrid->associated_elements(side_list, pElem);
 
 	// loop sides
-	number diamE;
 	for (size_t side = 0; side < side_list.size(); side++)
 	{
 		side_type* pSide = side_list[side];
@@ -883,8 +868,8 @@ number SideAndElemErrEstData<TDomain>::get_elem_error_indicator(GridObject* pEle
 
 		// check number of integration points
 		size_t nsIPs = quadRuleSide[side_roid]->size();
-		if (nsIPs != m_aaSide[pSide].size())
-			UG_THROW("Side attachment vector does not have the required size for integration!");
+		UG_COND_THROW(nsIPs != m_aaSide[pSide].size(),
+				"Side attachment vector does not have the required size for integration!");
 
 		// get side corners
 		std::vector<MathVector<dim> > vSideCornerCoords(0);
@@ -908,6 +893,7 @@ number SideAndElemErrEstData<TDomain>::get_elem_error_indicator(GridObject* pEle
 		// scale by diam(side) (= $h_E$)
 		// c* vol(side) >= diam^2(side) >= vol(side)
 		// therefore, up to a constant, error estimator can calculate diam as sqrt(vol(side))
+		number diamE;
 		if (dim==1)      { diamE = 1.0; }
 		else if (dim==2) { diamE = ElementSize<dim>(side_roid, &vSideCornerCoords[0]); }
 		else if (dim==3) { diamE = std::sqrt(ElementSize<dim>(side_roid, &vSideCornerCoords[0])); }
