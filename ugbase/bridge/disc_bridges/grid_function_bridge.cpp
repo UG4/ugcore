@@ -385,7 +385,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 	}
 
 	// TimeDependentSpace
-	{
+	/*{
 		typedef TimeDependentSpace<TFct> T;
 		typedef IGridFunctionSpace<TFct> TBase;
 
@@ -398,7 +398,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 				.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "TimeDependentSpace", tag);
 	}
-
+*/
 
 	// CompositeSpace
 	{
