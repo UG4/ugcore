@@ -75,34 +75,6 @@ struct Functionality
 {
 
 
-template <typename TDomain, typename TAlgebra, typename TRegistry>
-static void DomainAlgebra(TRegistry& reg, string grp)
-{
-	string suffix = GetDomainAlgebraSuffix<TDomain,TAlgebra>();
-	string tag = GetDomainAlgebraTag<TDomain,TAlgebra>();
-
-//	AssembledTransformingSmoother
-	{
-		typedef AssembledTransformingSmoother<TDomain, TAlgebra> T;
-		typedef ILinearIterator<typename TAlgebra::vector_type> TBase;
-		typedef DebugWritingObject<TAlgebra> TBase2;
-		string name = string("AssembledTransformingSmoother").append(suffix);
-		reg.template add_class_<T, TBase, TBase2>(name, grp)
-            .ADD_CONSTRUCTOR((SmartPtr<IAssemble<TAlgebra> >,
-                          SmartPtr<ILinearIterator<typename TAlgebra::vector_type> >,
-                          SmartPtr<IAssemble<TAlgebra> >))
-                          ("TrafoSystemAss, TrafoSystemSmoother, RightTrafoAss")
-            .ADD_CONSTRUCTOR((SmartPtr<IAssemble<TAlgebra> >,
-                              SmartPtr<ILinearIterator<typename TAlgebra::vector_type> >,
-                              SmartPtr<IAssemble<TAlgebra> >,
-                              SmartPtr<ILinearIterator<typename TAlgebra::vector_type> >))
-                            ("TrafoSystemAss, TrafoSystemSmoother, RightTrafoAss, RightTrafoSmoother")
-            .set_construct_as_smart_pointer(true);
-        reg.add_class_to_group(name, "AssembledTransformingSmoother", tag);
-	}
-
-}
-
 template<typename TAlgebra, typename TRegistry, typename TGSType>
 static void RegisterBlockGaussSeidel(TRegistry& reg, string grp, string name)
 {

@@ -43,7 +43,10 @@
 
 // preconditioner
 #include "lib_algebra/lib_algebra.h"
+#include "lib_algebra/operator/preconditioner/preconditioners.h"
 #include "lib_disc/operator/preconditioner/line_smoothers.h"
+
+#include "../util_overloaded.h" // ADD_CONSTRUCTOR
 
 using namespace std;
 
@@ -102,6 +105,26 @@ static void DomainAlgebra(TRegistry& reg, string grp)
 		reg.add_class_to_group(name, "LineVanka",  tag);
 	}
 	
+
+	//	AssembledTransformingSmoother
+	{
+		typedef AssembledTransformingSmoother<TDomain, TAlgebra> T;
+		typedef ILinearIterator<typename TAlgebra::vector_type> TBase;
+		typedef DebugWritingObject<TAlgebra> TBase2;
+		string name = string("AssembledTransformingSmoother").append(suffix);
+		reg.template add_class_<T, TBase, TBase2>(name, grp)
+	       .ADD_CONSTRUCTOR((SmartPtr<IAssemble<TAlgebra> >,
+	                          SmartPtr<ILinearIterator<typename TAlgebra::vector_type> >,
+	                          SmartPtr<IAssemble<TAlgebra> >))
+	                          ("TrafoSystemAss, TrafoSystemSmoother, RightTrafoAss")
+	       .ADD_CONSTRUCTOR((SmartPtr<IAssemble<TAlgebra> >,
+	                              SmartPtr<ILinearIterator<typename TAlgebra::vector_type> >,
+	                              SmartPtr<IAssemble<TAlgebra> >,
+	                              SmartPtr<ILinearIterator<typename TAlgebra::vector_type> >))
+	                            ("TrafoSystemAss, TrafoSystemSmoother, RightTrafoAss, RightTrafoSmoother")
+	        .set_construct_as_smart_pointer(true);
+	     reg.add_class_to_group(name, "AssembledTransformingSmoother", tag);
+	}
 };
 
 }; // end Functionality

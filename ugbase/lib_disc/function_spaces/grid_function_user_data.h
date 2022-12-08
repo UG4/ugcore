@@ -47,6 +47,20 @@
 
 namespace ug{
 
+/**
+ * Class for StdDependentUserData interface to scalar values from GridFunction objects.
+ *
+ * This class provides a StdDependentUserData interface to scalar values from GridFunction
+ * objects so that they can be used in import parameters. Note that the GridFunction object
+ * must have the same FunctionPattern as the owner of the import parameter.
+ *
+ * REMARK:
+ * This class is used to reuse the unknowns of variables of discretizations. It provides
+ * "derivatives w.r.t. the unknowns", too. Note that in this case, the GridFunction object
+ * must be the same as the solution. An attempt to use a grid function based on a different
+ * ApproximationSpace would lead to errors. Consider ExplicitGridFunctionValue
+ * for this purpose instead.
+ */
 template <typename TGridFunction>
 class GridFunctionNumberData
 : public StdDependentUserData<GridFunctionNumberData<TGridFunction>,
@@ -170,6 +184,20 @@ class GridFunctionNumberData
 		}
 };
 
+/**
+ * Class for StdDependentUserData interface to vectors from GridFunction objects.
+ *
+ * This class provides a StdDependentUserData interface to vectors from GridFunction
+ * objects so that they can be used in import parameters. Note that the GridFunction object
+ * must have the same FunctionPattern as the owner of the import parameter.
+ *
+ * REMARK:
+ * This class is used to reuse the unknowns of variables of discretizations. It provides
+ * "derivatives w.r.t. the unknowns", too. Note that in this case the GridFunction object
+ * must be the same as the solution. An attempt to use a grid function based on a different
+ * ApproximationSpace would lead to errors. Consider ExplicitGridFunctionVector
+ * for this purpose instead.
+ */
 template <typename TGridFunction>
 class GridFunctionVectorData
 : public StdDependentUserData<GridFunctionVectorData<TGridFunction>,
@@ -337,6 +365,20 @@ class GridFunctionVectorData
 };
 
 
+/**
+ * Class for StdDependentUserData interface to the gradient of scalar values from GridFunction objects.
+ *
+ * This class provides a StdDependentUserData interface to the gradient of scalar values
+ * from GridFunction objects so that they can be used in import parameters. Note that the
+ * GridFunction object must have the same FunctionPattern as the owner of the import parameter.
+ *
+ * REMARK:
+ * This class is used to reuse the unknowns of variables of discretizations. It provides
+ * "derivatives w.r.t. the unknowns", too. Note that in this case the GridFunction object
+ * must be the same as the solution. An attempt to use a grid function based on a different
+ * ApproximationSpace would lead to errors. Consider ExplicitGridFunctionGradient
+ * for this purpose instead.
+ */
 template <typename TGridFunction>
 class GridFunctionGradientData
 : public StdDependentUserData<GridFunctionGradientData<TGridFunction> ,

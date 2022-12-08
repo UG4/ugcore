@@ -228,11 +228,13 @@ class AssembledTransformingSmoother :
 	///	Clone
 		SmartPtr<ILinearIterator<vector_type> > clone();
 
-	protected:
+
 
 
 		SmartPtr<ILinearOperator<vector_type> > original_operator()
 		{return m_spOriginalSystemOp;}
+
+	protected:
 
 	///	matrix for original system
 		SmartPtr<ILinearOperator<vector_type> > m_spOriginalSystemOp;
@@ -384,7 +386,9 @@ AssembledTransformingSmoother<TDomain, TAlgebra>::
 clone()
 {
 	SmartPtr<AssembledTransformingSmoother<TDomain, TAlgebra> > clone(
-		new AssembledTransformingSmoother<TDomain, TAlgebra>(m_spRightTrafoAss, m_spAuxSystemAss, m_spAuxSmoother));
+		new AssembledTransformingSmoother<TDomain, TAlgebra>(
+										m_spAuxSystemAss, m_spAuxSmoother,
+										m_spRightTrafoAss, m_spRightTrafoSmoother));
 
 	return clone;
 }
