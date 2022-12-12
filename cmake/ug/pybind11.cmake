@@ -30,6 +30,32 @@
 
 # included from ug_includes.cmake
 
+if(USE_PYBIND11)
+
+# ug4pybind_add_module
+# argument1: name of Python module
+# argument2: source files
+# argument3: source files
+function(ug4pybind_add_module pyPluginName myPluginSources myLinkLibs)
+  
+	find_package(pybind11 CONFIG)
+	MESSAGE(STATUS ${pybind11_FOUND})
+	MESSAGE(STATUS ${pybind11_INCLUDE_DIRS})
+	MESSAGE(STATUS "Info: ****************************************************************************************")
+	
+	pybind11_add_module(${pyPluginName} ${myPluginSources})
+	set_target_properties(${pyPluginName} PROPERTIES	
+  		CXX_STANDARD 11 
+  		CXX_STANDARD_REQUIRED YES
+   		CXX_EXTENSIONS NO
+   		OUTPUT_NAME ug4py/${pyPluginName})
+   		
+   	# We need to link against 'this' plugin and UG4 library.
+	target_link_libraries (${pyPluginName} PRIVATE ${myLinkLibs})
+    
+endfunction(ug4pybind_add_module)
+endif(USE_PYBIND11)
+
 
 if(USE_PYBIND11)
     if(STATIC_BUILD)
