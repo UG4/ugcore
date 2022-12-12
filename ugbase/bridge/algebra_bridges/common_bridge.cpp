@@ -429,7 +429,6 @@ static void Algebra(TRegistry& reg, string grp)
 			.add_method("defect", &T::defect)
 			.add_method("get_defect", &T::get_defect)
 			.add_method("previous_defect", &T::previous_defect)
-			.add_method("get_defect", &T::get_defect)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ConvCheck", tag);
 	}
