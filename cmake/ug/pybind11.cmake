@@ -32,16 +32,22 @@
 
 if(USE_PYBIND11)
 
+# Load Pybind11
+add_subdirectory(
+	${UG_ROOT_CMAKE_PATH}/../../externals/PybindForUG4/pybind11 # Source dir.
+	{UG_ROOT_CMAKE_PATH}/bin   									# Binary dir (mandatory, but not used).
+	)
+
 # ug4pybind_add_module
 # argument1: name of Python module
 # argument2: source files
 # argument3: source files
 function(ug4pybind_add_module pyPluginName myPluginSources myLinkLibs)
   
-	find_package(pybind11 CONFIG)
-	MESSAGE(STATUS ${pybind11_FOUND})
-	MESSAGE(STATUS ${pybind11_INCLUDE_DIRS})
-	MESSAGE(STATUS "Info: ****************************************************************************************")
+	# find_package(pybind11 CONFIG)
+	# MESSAGE(STATUS ${pybind11_FOUND})
+	# MESSAGE(STATUS ${pybind11_INCLUDE_DIRS})
+	# MESSAGE(STATUS "Info: ****************************************************************************************")
 	
 	pybind11_add_module(${pyPluginName} ${myPluginSources})
 	set_target_properties(${pyPluginName} PROPERTIES	
@@ -70,18 +76,6 @@ if(USE_PYBIND11)
     	MESSAGE(STATUS "Info: Using Python INC ${Python_INCLUDE_DIRS}")
     	MESSAGE(STATUS "Info: Using Python LIB ${Python_LIBRARIES}")
     	
-    	# Automatic
-    	SET(pybind11_DIR ${UG_ROOT_CMAKE_PATH}/../../externals/PybindForUG4/pybind11/include)		
-    	FIND_PACKAGE(pybind11 REQUIRED)
-    	
-    	# SET(Python_DIR /Users/anaegel/opt/anaconda3/envs/xeus/include)	
-    	#set (Python_ROOT_DIR "/Users/anaegel/opt/anaconda3/include/python3.8")	
-    	#unset(Python_EXECUTABLE)
-		FIND_PACKAGE(Python
-					# Python 3.9 EXACT
-					# Python 3.8 EXACT
-					REQUIRED 
-					COMPONENTS Interpreter Development)
 		
 		# Manually activate 3.8 (for Jupyter) 			
 		#set (Python_INCLUDE_DIRS /opt/local/Library/Frameworks/Python.framework/Versions/3.8/include/python3.8)
@@ -91,6 +85,7 @@ if(USE_PYBIND11)
    	   	MESSAGE(STATUS "Info: Using Pybind11 INC ${pybind11_INCLUDE_DIRS}")
    		MESSAGE(STATUS "Info: ****************************************************************************************")
     	
+		# Change policy in order to avoid errors.
     	cmake_policy(SET CMP0057 NEW)
     	
     	# Expand includes.
