@@ -32,23 +32,13 @@
 
 if(USE_PYBIND11)
 
-# Load Pybind11
-add_subdirectory(
-	${UG_ROOT_CMAKE_PATH}/../../externals/PybindForUG4/pybind11 # Source dir.
-	{UG_ROOT_CMAKE_PATH}/bin   									# Binary dir (mandatory, but not used).
-	)
-
 # ug4pybind_add_module
 # argument1: name of Python module
 # argument2: source files
 # argument3: source files
 function(ug4pybind_add_module pyPluginName myPluginSources myLinkLibs)
-  
-	# find_package(pybind11 CONFIG)
-	# MESSAGE(STATUS ${pybind11_FOUND})
-	# MESSAGE(STATUS ${pybind11_INCLUDE_DIRS})
-	# MESSAGE(STATUS "Info: ****************************************************************************************")
-	
+  	
+  	# Add module.
 	pybind11_add_module(${pyPluginName} ${myPluginSources})
 	set_target_properties(${pyPluginName} PROPERTIES	
   		CXX_STANDARD 11 
@@ -56,7 +46,7 @@ function(ug4pybind_add_module pyPluginName myPluginSources myLinkLibs)
    		CXX_EXTENSIONS NO
    		OUTPUT_NAME ug4py/${pyPluginName})
    		
-   	# We need to link against 'this' plugin and UG4 library.
+   	# Link against 'this' plugin and UG4 library.
 	target_link_libraries (${pyPluginName} PRIVATE ${myLinkLibs})
     
 endfunction(ug4pybind_add_module)
@@ -71,17 +61,19 @@ if(USE_PYBIND11)
    		MESSAGE(STATUS "Info: ****************************************************************************************")
     	MESSAGE(STATUS "Info: Pybind11 enabled.")
  	
+ 		# Check for Python.
     	FIND_PACKAGE (Python COMPONENTS Interpreter Development)
     	MESSAGE(STATUS "Info: Found Python = ${Python_FOUND}")
     	MESSAGE(STATUS "Info: Using Python INC ${Python_INCLUDE_DIRS}")
     	MESSAGE(STATUS "Info: Using Python LIB ${Python_LIBRARIES}")
     	
-		
-		# Manually activate 3.8 (for Jupyter) 			
-		#set (Python_INCLUDE_DIRS /opt/local/Library/Frameworks/Python.framework/Versions/3.8/include/python3.8)
-		#set (Python_LIBRARIES /opt/local/Library/Frameworks/Python.framework/Versions/3.8/lib/libpython3.8.dylib)
-		
+    	# Then check for Pybind11 (order is important!).
+		add_subdirectory(
+			${UG_ROOT_CMAKE_PATH}/../../externals/PybindForUG4/pybind11 # Source dir.
+			{UG_ROOT_CMAKE_PATH}/bin   									# Binary dir (mandatory, but not used).
+		)
    	    MESSAGE(STATUS "Info: Found Pybind11 = ${pybind11_FOUND}")
+   	   	MESSAGE(STATUS "Info: Using Pybind11 INC ${pybind11_INCLUDE_DIR}")
    	   	MESSAGE(STATUS "Info: Using Pybind11 INC ${pybind11_INCLUDE_DIRS}")
    		MESSAGE(STATUS "Info: ****************************************************************************************")
     	
@@ -94,7 +86,7 @@ if(USE_PYBIND11)
 		# Expand libraries.
 		set(linkLibraries ${linkLibraries} ${Python_LIBRARIES})
 		
-		# Set define
+		# Set define for UG4.
     	add_definitions(-DUG_USE_PYBIND11)
     endif(STATIC_BUILD)
 else(USE_PYBIND11)
