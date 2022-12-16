@@ -20,6 +20,7 @@
 
 
 //! Use SmartPtr
+PYBIND11_DECLARE_HOLDER_TYPE(T, ConstSmartPtr<T>);
 PYBIND11_DECLARE_HOLDER_TYPE(T, SmartPtr<T>);
 
 namespace ug{
@@ -123,12 +124,12 @@ struct IgnoredClass
 };
 
 // Maps T -> T
-template <typename T>
+/*template <typename T>
 struct trampoline_traits
 {
 	static constexpr bool has_trampoline=false;
 	typedef T trampoline_class;
-};
+};*/
 
 //! This adapter provides access to a pybind11::module as a UG registry conforming object.
 struct RegistryAdapter : public pybind11::module
@@ -153,14 +154,6 @@ struct RegistryAdapter : public pybind11::module
 			                                   std::string group = "",
 			                                   std::string tooltip = "")
 	{
-		/*
-
-		typedef trampoline_traits<TClass> TTraits;
-		typedef typename TTraits::trampoline_class TrampolineClass;
-
-		typedef typename std::conditional<TTraits::has_trampoline,
-					 pybind11::class_<TClass, TrampolineClass>, // define with trampoline
-					 pybind11::class_<TClass> >::type pyclass;*/
 
 		typedef typename pybind11::class_<TClass, SmartPtr<TClass> > pyclass;
 		return pyclass(*this, className.c_str());
@@ -194,9 +187,9 @@ struct RegistryAdapter : public pybind11::module
 	template <typename TClass>
 	IgnoredClass& get_class_()
 	{
-		//! How can we do this? We need a static map for 'name' -> pybind11::class_...
-	// 	const std::string& name = ClassNameProvider<TClass>::name();
-
+		// 	const std::string& name = ClassNameProvider<TClass>::name();
+		// TODO: How can we do this? We would need a static map 'name' -> pybind11::class_... for a RAII object...
+		// This may not be viable at compile time
 		return dummy;
 	}
 
