@@ -133,8 +133,9 @@ string SnipStringFront(const string& str, size_t totalSize,
 	return s;
 }
 
-int NumberOfDigits(int n)
+int NumberOfDigits(int nsigned)
 {
+	int n = abs(nsigned);
 //	a 0 has 1 digit
 	if (n == 0) return 1;
 

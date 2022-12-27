@@ -443,10 +443,13 @@ static void Dimension(Registry& reg, string grp)
 			reg.add_class_<T,typename T::base_type>(name, grp)
 				.template add_constructor<void (*)(bool) >("")
 				.add_method("add", &T::add)
+				.add_method("has", &T::has)
+				.add_method("get", &T::get)
+				.add_method("is_coupled", &T::is_coupled)
+				.add_method("get_coupled", &T::get_coupled)
 				.set_construct_as_smart_pointer(true);
 
 			reg.add_class_to_group(name, "CompositeUserNumber", dimTag);
-
 	}
 
 	// Composite user data (vector)
@@ -456,6 +459,10 @@ static void Dimension(Registry& reg, string grp)
 			reg.add_class_<T,typename T::base_type>(name, grp)
 				.template add_constructor<void (*)(bool) >("")
 				.add_method("add", &T::add)
+				.add_method("has", &T::has)
+				.add_method("get", &T::get)
+				.add_method("is_coupled", &T::is_coupled)
+				.add_method("get_coupled", &T::get_coupled)
 				.set_construct_as_smart_pointer(true);
 
 			reg.add_class_to_group(name, "CompositeUserVector", dimTag);
