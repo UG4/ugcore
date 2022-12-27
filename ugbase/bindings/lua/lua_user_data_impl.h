@@ -990,14 +990,15 @@ eval_and_deriv(TData vValue[],
 //	loop all inputs
 	for(size_t c = 0; c < vDataIn.size(); ++c)
 	{
-	//	check if input has derivative
-		if(m_vpUserData[c]->zero_derivative()) continue;
+	//	check if we have the derivative w.r.t. this input, and the input has derivative
+		if(m_cbDerivRef[c] == LUA_NOREF || m_vpUserData[c]->zero_derivative()) continue;
 
 	//	loop ips
 		for(size_t ip = 0; ip < nip; ++ip)
 		{
 		//	gather all input data for this ip
-			vDataIn[c] = m_vpUserData[c]->value(this->series_id(c,s), ip);
+			for(size_t i = 0; i < vDataIn.size(); ++i)
+				vDataIn[i] = m_vpUserData[i]->value(this->series_id(c,s), ip); //< series_id(c,s) or series_id(i,s)
 
 		//	data of derivative w.r.t. one component at ip-values
 			TData derivVal;
@@ -1025,6 +1026,11 @@ eval_and_deriv(TData vValue[],
 	}
 }
 
+/**
+ * TODO: Note this is a public (non-virtual) function whose argument
+ * should be consistent with the number of the arguments. Should not it also
+ * resize the array for the references to the derivatives?
+ */
 template <typename TData, int dim, typename TDataIn>
 void LuaUserFunction<TData,dim,TDataIn>::set_num_input(size_t num)
 {
