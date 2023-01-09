@@ -417,6 +417,8 @@ static void Algebra(Registry& reg, string grp)
 			.add_method("set_reduction", &T::set_reduction,	"", "Relative Reduction|default|min=0D;value=1e-12")
 			.add_method("set_verbose", &T::set_verbose,	"", "Verbosity")
 			.add_method("set_supress_unsuccessful", &T::set_supress_unsuccessful,"", "supress false return")
+			.add_method("defect", &T::defect)
+			.add_method("get_defect", &T::get_defect)
 			.add_method("previous_defect", &T::previous_defect)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ConvCheck", tag);
