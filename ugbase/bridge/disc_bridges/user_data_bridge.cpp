@@ -55,6 +55,7 @@
 #include "lib_disc/spatial_disc/user_data/linker/darcy_velocity_linker.h"
 #include "lib_disc/spatial_disc/user_data/linker/bingham_viscosity_linker.h"
 #include "lib_disc/spatial_disc/user_data/linker/projection_linker.h"
+#include "lib_disc/spatial_disc/user_data/linker/adapter.h"
 #include "lib_disc/spatial_disc/user_data/user_function.h"
 
 
@@ -295,6 +296,23 @@ static void Dimension(TRegistry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ConstUserMatrix", dimTag);
 	}
+
+	// UserVectorEntryAdapter
+	{
+		string name = string("UserVectorEntryAdapter").append(dimSuffix);
+		typedef UserVectorEntryAdapter<dim> T;
+		typedef CplUserData<number, dim> TCplData;
+		typedef typename T::encapsulated_type TEncaps;
+
+		reg.template add_class_<T, TCplData>(name, grp)
+		   .template add_constructor<void (*)() >("")
+			.add_method("set_vector", &T::set_vector)
+			.set_construct_as_smart_pointer(true);
+
+		reg.add_class_to_group(name, "UserVectorEntryAdapter", dimTag);
+
+	}
+
 
 //	ScaleAddLinkerMatrixVector
 	{
