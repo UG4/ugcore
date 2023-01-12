@@ -49,10 +49,9 @@ function UJS_Info
 	echo "ps aux | grep $USER | grep mpirun"
 	echo "JOBID STATE $(ps aux | sed -n 1p)"
 
-	ps aux | grep $USER | grep mpirun \
-  | while read -r line ; do
-		jobid=$(echo $line | grep -E '(?:[[:digit:]]+){2}' -o -m 1 -h -a | head -1)
-		if ! echo $line | grep -q grep; then
+	ps aux | grep -E "$USER|$UID|${USER:0:8}+" | grep mpirun | while read -r line ; do
+		jobid=$(echo $line | grep -Eo '\s[0-9]+\b' -o -m 1 -h -a | head -1 | cut -c2-)
+		if ! echo $line | grep -q "grep"; then
 			echo "$jobid RUNNING $line"
 		fi
 	done
