@@ -113,6 +113,11 @@ class SmartPtr
 	public:
 		explicit SmartPtr() : m_ptr(0), m_refCount(0)	{}
 		explicit SmartPtr(T* ptr) : m_ptr(ptr), m_refCount(0)	{if(ptr) m_refCount = new int(1);}
+#ifdef UG_USE_PYBIND11
+		// Aliasing constructor. Postconditions: get() == ptr && use_count() == r.use_count().
+		SmartPtr(const SmartPtr<T, FreePolicy> &other, T* ptr) noexcept
+		: m_ptr(ptr), m_refCount(other.refcount_ptr()) {(*m_refCount)++;}
+#endif
 		SmartPtr(NullSmartPtr) : m_ptr(0), m_refCount(0)	{}
 		SmartPtr(const SmartPtr& sp) : m_ptr(sp.m_ptr), m_refCount(sp.m_refCount)
 		{
@@ -299,7 +304,12 @@ class ConstSmartPtr
 	public:
 		explicit ConstSmartPtr() : m_ptr(0), m_refCount(0)	{}
 		explicit ConstSmartPtr(const T* ptr) : m_ptr(ptr), m_refCount(0)	{if(ptr) m_refCount = new int(1);}
+#ifdef UG_USE_PYBIND11
+		ConstSmartPtr(const ConstSmartPtr<T, FreePolicy> &other, T* ptr) noexcept
+		: m_ptr(ptr), m_refCount(other.refcount_ptr()) {(*m_refCount)++;}
+#endif
 		ConstSmartPtr(NullSmartPtr) : m_ptr(0), m_refCount(0)	{}
+
 		ConstSmartPtr(const ConstSmartPtr& sp) : m_ptr(sp.m_ptr), m_refCount(sp.m_refCount)
 		{
 			if(m_refCount) (*m_refCount)++;
