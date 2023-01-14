@@ -36,24 +36,6 @@
 \brief functions to create DomainDiscs using a string disc-type identifier
 ]]--
 
-
---!	Returns a ConvectionDiffusion Element-Disc of the requested type
---! @return Returns the domain discreatization
---! @param fcts (String) names of symbolic functions 
---! @param subsets (String) names of symbolic subsets 
---! @param discType (String) discretizatin scheme 
-function ConvectionDiffusion(fcts, subsets, discType)
-	if discType == nil then discType = "fv1" end
-	if 		discType == "fv1"  then return ConvectionDiffusionFV1(fcts, subsets)
-	elseif  discType == "fe"   then return ConvectionDiffusionFE(fcts, subsets)
-	elseif  discType == "fvcr" then return ConvectionDiffusionFVCR(fcts, subsets)
-	elseif  discType == "fv"   then return ConvectionDiffusionFV(fcts, subsets)
-	else 
-		print("ConvectionDiffusion: no disc type '"..discType.."' available. Aborting")
-		exit();
-	end
-end
-
 --!	Returns a NeumannBoundary Element-Disc of the requested type
 --! @return Returns the domain discreatization
 --! @param fcts (String) names of symbolic function 
@@ -65,21 +47,6 @@ function NeumannBoundary(fcts, discType)
 	elseif  discType == "fe"   then return NeumannBoundaryFE(fcts)
 	else 
 		print("NeumannBoundary: no disc type '"..discType.."' available. Aborting")
-		exit();
-	end
-end
-
---!	Returns a DensityDrivenFlow Element-Disc of the requested type
---! @return Returns the domain discreatization
---! @param fcts (String) names of symbolic functions 
---! @param subsets (String) names of symbolic subsets 
---! @param discType (String) discretizatin scheme 
-function DensityDrivenFlow(fcts, subsets, discType)
-	if discType == nil then discType = "fv1" end
-	if 		discType == "fv1"  then return DensityDrivenFlowFV1(fcts, subsets)
-	elseif  discType == "fv"   then return DensityDrivenFlowFV(fcts, subsets)
-	else 
-		print("DensityDrivenFlow: no disc type '"..discType.."' available. Aborting")
 		exit();
 	end
 end
