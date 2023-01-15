@@ -37,7 +37,7 @@
 ]]--
 
 --!	Returns a NeumannBoundary Element-Disc of the requested type
---! @return Returns the domain discreatization
+--! @return Returns the element discreatization (of the Neumann BC)
 --! @param fcts (String) names of symbolic function 
 --! @param discType (String) discretizatin scheme 
 function NeumannBoundary(fcts, discType)
@@ -47,6 +47,25 @@ function NeumannBoundary(fcts, discType)
 	elseif  discType == "fe"   then return NeumannBoundaryFE(fcts)
 	else 
 		print("NeumannBoundary: no disc type '"..discType.."' available. Aborting")
+		exit();
+	end
+end
+
+--! Returns a IConvectionShape class object of an upwind method (for FV1 discretization)
+--! @return Returns the object of the upwind method
+--! @param upwindType type of the upwind as string
+--! @param upwindParam object-specific parameters
+function UpwindFV1(upwindType, upwindParam)
+	if upwindType == nil then upwindType = "partial" end
+	if		upwindType == "no" then return NoUpwind()
+	elseif	upwindType == "full" then return FullUpwind ()
+	elseif	upwindType == "weighted" then
+		local upwind = WeightedUpwind ()
+		upwind:set_weight(upwindParam)
+		return upwind
+	elseif	upwindType == "partial" then return PartialUpwind ()
+	else
+		print("UpwindFV1: no upwind type '"..upwindType.."' available. Aborting")
 		exit();
 	end
 end
