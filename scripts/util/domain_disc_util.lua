@@ -61,7 +61,9 @@ function UpwindFV1(upwindType, upwindParam)
 	elseif	upwindType == "full" then return FullUpwind ()
 	elseif	upwindType == "weighted" then
 		local upwind = WeightedUpwind ()
-		upwind:set_weight(upwindParam)
+		if upwindParam ~= nil then
+			upwind:set_weight(upwindParam)
+		end
 		return upwind
 	elseif	upwindType == "partial" then return PartialUpwind ()
 	else
