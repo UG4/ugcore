@@ -100,7 +100,7 @@ std::string ErrorStringFromStdException(const std::exception *pex);
 
 ///	Instances of this class or of derived classes are thrown if errors arise.
 /**	By default the error-code is 0 and terminate returns false.*/
-class UGError
+class UGError : public std::exception
 {
 	public:
 		UGError(const char* msg,
@@ -157,6 +157,9 @@ class UGError
 			}
 			return ss.str();
 		}
+
+		const char* what() const noexcept override
+		{ return get_stacktrace().c_str();}
 
 	protected:
 		std::vector<std::string> m_vMsg; //< Message stack
