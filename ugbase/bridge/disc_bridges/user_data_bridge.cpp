@@ -56,6 +56,7 @@
 #include "lib_disc/spatial_disc/user_data/linker/bingham_viscosity_linker.h"
 #include "lib_disc/spatial_disc/user_data/linker/projection_linker.h"
 #include "lib_disc/spatial_disc/user_data/linker/adapter.h"
+#include "lib_disc/spatial_disc/user_data/linker/interval_linker.h"
 #include "lib_disc/spatial_disc/user_data/user_function.h"
 
 
@@ -484,6 +485,19 @@ static void Dimension(Registry& reg, string grp)
 				.set_construct_as_smart_pointer(true);
 
 			reg.add_class_to_group(name, "CompositeUserVector", dimTag);
+	}
+
+//	Interval filter linker
+	{
+		typedef IntervalNumberLinker<dim> T;
+		typedef DependentUserData<number, dim> TBase;
+		string name = string("IntervalNumberLinker").append(dimSuffix);
+		reg.add_class_<T, TBase>(name, grp)
+		   .add_method("set_default", static_cast<void (T::*)(number)>(&T::set_default), "sets the value out of the interval", "value")
+		   .template add_constructor<void (*) (SmartPtr<CplUserData<number, dim> >, MathVector<dim>&, MathVector<dim>&)>("data#left#right")
+		   .template add_constructor<void (*) (SmartPtr<CplUserData<number, dim> >, std::vector<number>, std::vector<number>)>("data#left#right")
+		   .set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "IntervalNumberLinker", dimTag);
 	}
 
 }
