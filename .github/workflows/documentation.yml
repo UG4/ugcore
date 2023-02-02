@@ -11,5 +11,5 @@ jobs:
         uses: peter-evans/repository-dispatch@v2
         with:
           token: ${{ secrets.UG4_DOCS }}
-          repository: nordegraf/ug4_docs
+          repository: UG4/docs
           event-type: trigger-doxygen
