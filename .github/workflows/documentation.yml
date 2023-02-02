@@ -1,0 +1,15 @@
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  documentation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Repository Dispatch for Documentation
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.UG4_DOCS }}
+          repository: nordegraf/ug4_docs
+          event-type: trigger-doxygen
