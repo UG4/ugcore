@@ -1,7 +1,5 @@
 # ugcore
-
-[![Build Status](https://travis-ci.org/UG4/ugcore.svg?branch=master)](https://travis-ci.org/UG4/ugcore)
-[![Build status](https://ci.appveyor.com/api/projects/status/3jor63mr5hap1b2x?svg=true)](https://ci.appveyor.com/project/miho/ugcore)
+[![jenkins-CI](https://github.com/UG4/ugcore/actions/workflows/jenkins-trigger.yml/badge.svg)](https://github.com/UG4/ugcore/actions/workflows/jenkins-trigger.yml)
 [![Code Climate](https://codeclimate.com/github/UG4/ugcore/badges/gpa.svg)](https://codeclimate.com/github/UG4/ugcore)
 [![Issue Count](https://codeclimate.com/github/UG4/ugcore/badges/issue_count.svg)](https://codeclimate.com/github/UG4/ugcore)
 
