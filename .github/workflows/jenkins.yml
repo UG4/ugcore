@@ -18,7 +18,7 @@ jobs:
       - name: Trigger jenkins job
         uses: anaegel/jenkins-githubaction@master
         with:
-          url: https://cizeta.gcsc.uni-frankfurt.de
+          url: ${{ secrets.JENKINS_URL }}
           job_name: ug-sources
           username: ${{ secrets.JENKINS_USER }}
           api_token: ${{ secrets.JENKINS_TOKEN }}
