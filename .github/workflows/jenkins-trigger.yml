@@ -19,7 +19,7 @@ jobs:
         uses: anaegel/jenkins-githubaction@master
         with:
           url: ${{ secrets.JENKINS_URL }}
-          job_name: ug-sources
+          job_name: ug-build-pipeline
           username: ${{ secrets.JENKINS_USER }}
           api_token: ${{ secrets.JENKINS_TOKEN }}
-          timeout: "60"
+          timeout: "600"
