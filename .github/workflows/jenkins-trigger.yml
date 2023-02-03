@@ -22,4 +22,4 @@ jobs:
           job_name: ug-build-pipeline
           username: ${{ secrets.JENKINS_USER }}
           api_token: ${{ secrets.JENKINS_TOKEN }}
-          timeout: "600"
+          timeout: "3600"
