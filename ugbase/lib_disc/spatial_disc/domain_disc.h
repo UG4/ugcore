@@ -40,6 +40,7 @@
 // library intern headers
 #include "subset_assemble_util.h"
 #include "domain_disc_interface.h"
+#include "lib_algebra/cpu_algebra_types.h"
 #include "lib_disc/common/function_group.h"
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_assemble_util.h"
 #include "lib_disc/spatial_disc/constraints/constraint_interface.h"
@@ -93,6 +94,9 @@ class DomainDiscretizationBase
 
 	///	Type of algebra vector
 		typedef typename algebra_type::vector_type vector_type;
+
+	/// Type of error vector
+		typedef typename CPUAlgebra::vector_type error_vector_type;
 
 	///	Type of approximation space
 		typedef ApproximationSpace<TDomain>	approx_space_type;
@@ -268,13 +272,13 @@ class DomainDiscretizationBase
 public:
 	/// \copydoc IDomainDiscretization::mark_error()
 	// stationary
-		virtual void calc_error(const vector_type& u, ConstSmartPtr<DoFDistribution> dd, vector_type* u_vtk = NULL);
-		virtual	void calc_error(const vector_type& u, const GridLevel& gl, vector_type* u_vtk = NULL)
+		virtual void calc_error(const vector_type& u, ConstSmartPtr<DoFDistribution> dd, error_vector_type* u_vtk = NULL);
+		virtual	void calc_error(const vector_type& u, const GridLevel& gl, error_vector_type* u_vtk = NULL)
 		{calc_error(u, dd(gl));}
 
 		virtual	void calc_error(const GridFunction<TDomain,TAlgebra>& u)
 		{calc_error(u, u.dd(), NULL);}
-		virtual	void calc_error(const GridFunction<TDomain,TAlgebra>& u, vector_type* u_vtk)
+		virtual	void calc_error(const GridFunction<TDomain,TAlgebra>& u, error_vector_type* u_vtk)
 		{calc_error(u, u.dd(), u_vtk);}
 
 	// instationary
@@ -282,11 +286,12 @@ public:
 								ConstSmartPtr<DoFDistribution> dd,
 								const std::vector<number>& vScaleMass,
 								const std::vector<number>& vScaleStiff,
-								vector_type* u_vtk);
+								error_vector_type* u_vtk);
 		virtual void calc_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 								const std::vector<number>& vScaleMass,
 								const std::vector<number>& vScaleStiff,
-								const GridLevel& gl,vector_type* u_vtk)
+								const GridLevel& gl,
+								error_vector_type* u_vtk)
 		{
 			calc_error((ConstSmartPtr<VectorTimeSeries<vector_type> >) vSol, dd(gl),
 					   vScaleMass, vScaleStiff, u_vtk);

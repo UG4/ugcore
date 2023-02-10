@@ -1,4 +1,4 @@
-# run in container
+# run in container 
 sudo: false
 
 addons:
@@ -25,18 +25,28 @@ compiler:
 os:
   - linux
   - osx
+
+dist:
+  - focal
+
+osx_image: 
+  - xcode12
   
 env:
   global:
-    - TIMEOUT_BUILD='30m'
+    - TIMEOUT_BUILD='50m'
     - BUILD_SUCCESS=true
     
   matrix:
     - DIM=2 CPU=1       TARGET=ugshell STATIC_BUILD=ON  BUILD_VARIANT="build1"
     - DIM=2 CPU=1       TARGET=vrl     STATIC_BUILD=OFF BUILD_VARIANT="build2"
-    - DIM=ALL CPU=1;2   TARGET=ugshell STATIC_BUILD=ON  BUILD_VARIANT="build3"
-    - DIM=ALL CPU=1;2   TARGET=vrl     STATIC_BUILD=OFF BUILD_VARIANT="build4"
+#   - DIM=ALL CPU="1;2" TARGET=ugshell STATIC_BUILD=ON  BUILD_VARIANT="build3"
+#   - DIM=ALL CPU="1;2" TARGET=vrl     STATIC_BUILD=OFF BUILD_VARIANT="build4"
 
+jobs:
+  exclude:
+  - compiler: gcc
+    os: osx
 
 before_cache:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew cleanup; fi
@@ -56,7 +66,7 @@ before_install:
   # installing ccache and freetype packages via homebrew
 #  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install ccache; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH="/usr/local/opt/ccache/libexec:$PATH"; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export CXXFLAGS="-stdlib=libc++"; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" && "$CC" == "clang" ]]; then export CC='ccache clang'; export CXX='ccache clang++'; fi
 
 # prepare compilation  
 before_script:
@@ -89,7 +99,7 @@ before_script:
   - ls .
   - cd ugcore
   - if [[ "$UG4_FOLDER_SURVIVED_CACHE" == "true" ]]; then git fetch; fi
-  - git checkout -qf $TRAVIS_COMMIT
+  - git checkout -f $TRAVIS_COMMIT
   - mkdir -p $BUILD_VARIANT && cd $BUILD_VARIANT && cmake ../ -DTARGET="${TARGET}" -DLAPACK=OFF -DBLAS=OFF -DDIM="${DIM}" -DCPU="${CPU}" -DCOMPILE_INFO=OFF -DEMBEDDED_PLUGINS=ON -DSTATIC_BUILD="${STATIC_BUILD}"
   - rm -rf ../bin/ugshell
   
@@ -99,5 +109,5 @@ script:
     # ccache fixes global build time of ~ 50 minutes
     # we still need to use travis_wait to prevent "build error because of no output"
     # https://docs.travis-ci.com/user/common-build-problems/#Build-times-out-because-no-output-was-received
-    - travis_wait 45 make -j2
+    - travis_wait 45 make -j1
     - if [[ "$TARGET" == "ugshell" ]]; then ../bin/ugshell -call "print(\"it works\")"; fi

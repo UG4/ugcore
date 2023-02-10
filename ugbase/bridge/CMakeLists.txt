@@ -28,7 +28,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU Lesser General Public License for more details.
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.12)
 
 ####
 # ug_bridge Library
@@ -80,9 +80,9 @@ if(buildAlgebra)
 					algebra_bridges/common_bridge.cpp
 					algebra_bridges/preconditioner_bridge.cpp
 					algebra_bridges/schur_bridge.cpp
+					algebra_bridges/ordering_bridge.cpp
 					algebra_bridges/solver_bridge.cpp
 					algebra_bridges/eigensolver_bridge.cpp
-					algebra_bridges/domain_dependent_preconditioner_bridge.cpp
 					#algebra_bridges/constrained_linear_iterator_bridge.cpp
 					algebra_bridges/pilut_bridge.cpp
 					algebra_bridges/obstacle_bridge.cpp
@@ -96,6 +96,7 @@ if(buildAlgebra)
 					disc_bridges/ordering_bridge.cpp
 					disc_bridges/integrate_bridge.cpp
 					disc_bridges/adaptive_tools_bridge.cpp
+					disc_bridges/domain_dependent_preconditioner_bridge.cpp
 					disc_bridges/common_bridge.cpp
 					disc_bridges/algebra_bridge.cpp
 					disc_bridges/elem_discs_bridge.cpp

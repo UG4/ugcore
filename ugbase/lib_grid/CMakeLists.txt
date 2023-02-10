@@ -32,7 +32,7 @@
 # lib_grid
 ################################################
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.12)
 
 project(P_LIB_GRID)
 
@@ -83,6 +83,8 @@ set(srcAlgorithms	algorithms/debug_util.cpp
 					algorithms/extrusion/extrude.cpp
 					algorithms/extrusion/cylinder_extrusion.cpp
 					algorithms/extrusion/expand_layers.cpp
+					algorithms/projections/overlying_subset_finder.hpp
+					algorithms/projections/z_ray_tracer.hpp
 					refinement/projectors/projection_handler.cpp
 					refinement/projectors/smooth_projector.cpp
 					refinement/projectors/subdivision_projector.cpp
@@ -128,6 +130,7 @@ set(srcFileIO	file_io/file_io_2df.cpp
 				file_io/file_io_stl.cpp
 				file_io/file_io_vtu.cpp
 				file_io/file_io_swc.cpp
+				file_io/file_io_grdecl.cpp
 				file_io/file_io.cpp)
 								
 set(srcLibGrid	common_attachments.cpp
@@ -155,6 +158,7 @@ set(srcLibGrid	common_attachments.cpp
 				grid_objects/rule_util.cpp
 				multi_grid.cpp
 				lib_grid_messages.cpp
+				grid_debug.cpp
 				)
 
 

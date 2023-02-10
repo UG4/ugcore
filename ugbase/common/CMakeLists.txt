@@ -28,7 +28,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU Lesser General Public License for more details.
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.12)
 
 ################################################
 # common
@@ -44,7 +44,6 @@ set(srcCommon	log.cpp
 				error.cpp
 				serialization.cpp
 				progress.cpp
-				cuthill_mckee.cpp
 				allocators/small_object_allocator.cpp
 				util/base64_file_writer.cpp
 				util/binary_buffer.cpp

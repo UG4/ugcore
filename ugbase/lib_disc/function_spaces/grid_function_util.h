@@ -297,6 +297,76 @@ void AdjustMeanValue(SmartPtr<TGridFunction> spGF, const std::string& fcts, numb
 ////////////////////////////////////////////////////////////////////////////////
 
 /**
+ * Sums values of a grid function at all given elements (like vertices)
+ *
+ * \tparam TGridFunction	the grid function type
+ * \tparam TBaseElem		the given element type (like 'Vertex')
+ */
+template <typename TGridFunction, typename TBaseElem>
+number SumGFValuesAt
+(
+	TGridFunction * u, ///< the grid function
+	size_t fct ///< index of the function
+)
+{
+	typedef typename TGridFunction::template traits<TBaseElem>::const_iterator t_elem_iter;
+	
+	std::vector<DoFIndex> ind;
+	number sum (1);
+	
+	sum = 0;
+//	Loop the elements in the subset
+	for (t_elem_iter vi = u->template begin<TBaseElem> ();
+				vi != u->template end<TBaseElem> (); ++vi)
+	{
+		TBaseElem * vert = *vi;
+		
+	//	indices at this element
+		u->inner_dof_indices (vert, fct, ind);
+		
+		if (ind.size () != 1)
+			UG_THROW ("SumGFValuesAt: The function must be scalar!");
+	
+	//	add the contribution
+		sum += DoFRef (*u, ind [0]);
+	}
+	
+#ifdef UG_PARALLEL
+	pcl::ProcessCommunicator procComm;
+	sum = procComm.allreduce (sum, PCL_RO_SUM);
+#endif
+	
+	return sum;
+}
+
+/**
+ * Sums values of a grid function at all given elements (like vertices).
+ *
+ * This version takes symbolic data.
+ *
+ * \tparam TGridFunction	the grid function type
+ * \tparam TBaseElem		the given element type (like 'Vertex')
+ */
+template <typename TGridFunction, typename TBaseElem>
+number SumGFValuesAt
+(
+	TGridFunction * u, ///< the grid function
+	const char * fct_names ///< index of the function
+)
+{
+//	Get the function index
+	std::vector<std::string> vfctNames;
+	TokenizeString (fct_names, vfctNames);
+	if (vfctNames.size () != 1)
+		UG_THROW ("SumGFValuesAt: Exactly one function name must be specified.");
+	FunctionGroup fctGroup (u->function_pattern ());
+	fctGroup.add (vfctNames [0]);
+
+//	Compute the sum
+	return SumGFValuesAt<TGridFunction, TBaseElem> (u, fctGroup[0]);
+}
+
+/**
  * Sums values of a grid function at given elements (like vertices) in given subsets
  *
  * \tparam TGridFunction	the grid function type

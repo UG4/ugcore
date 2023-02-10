@@ -36,6 +36,7 @@
 #include "lib_grid/refinement/hanging_node_refiner_grid.h"
 #include "lib_grid/algorithms/space_partitioning/lg_ntree.h"
 #include "lib_grid/file_io/file_io.h"
+#include "lib_grid/grid_debug.h"
 
 using namespace std;
 
@@ -94,15 +95,16 @@ bool TestNTree(const char* filename)
 	return true;
 }
 
-
 void RegisterGridBridge_Misc(Registry& reg, string parentGroup)
 {
 	string grp = parentGroup;
 	reg.add_function("PrintGridElementNumbers", static_cast<void (*)(MultiGrid&)>(&PrintGridElementNumbers), grp)
 		.add_function("PrintGridElementNumbers", static_cast<void (*)(Grid&)>(&PrintGridElementNumbers), grp)
 		.add_function("PrintAttachmentInfo", &PrintAttachmentInfo, grp);
-
+	
 	reg.add_function("TestNTree", &TestNTree, grp);
+	
+	reg.add_function("CreateGridGlobalDebugInfoProvider", static_cast<void (*) (Grid&,ISubsetHandler&)>(&grid_global_debug_info_provider::create), grp);
 }
 
 }//	end of namespace

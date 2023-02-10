@@ -28,7 +28,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU Lesser General Public License for more details.
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.12)
 
 ################################################
 # ug4
@@ -40,6 +40,8 @@ project(UG4_CORE)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_SOURCE_DIR}/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_SOURCE_DIR}/bin)
 
 include("cmake/ug_includes.cmake")
 include("cmake/ug_cpack_config.cmake")
@@ -128,9 +130,7 @@ if(BUILD_ONE_LIB)
 	
 	if(buildEmbeddedPlugins)
 		add_definitions(${ug4libDefinitions})
-		include_directories(${ug4libIncludes})
 		link_directories(${ug4LinkPaths})
-		link_libraries(${ug4libDependencies})
 		set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${ug4libLinkerFlags}")
 		set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} ${ug4libLinkerFlags}")
 	endif(buildEmbeddedPlugins)
@@ -169,12 +169,17 @@ if(BUILD_ONE_LIB)
 			target_link_libraries(${targetLibraryName} CompileInfo_s)
 		endif(buildCompileInfo AND NOT buildEmbeddedPlugins)
 	endif(buildDynamicLib)
-   
+  
+  target_include_directories(${targetLibraryName} PUBLIC ${ug4libIncludes})
+  target_link_libraries(${targetLibraryName} ${ug4libDependencies} ${linkLibraries})
+
 	if(buildEmbeddedPlugins)
 		# if we build with embedded plugins, the compile-info is also embedded
 		# into the single big target lib. We thus have to add a dependency to
 		# the custom updateCompileInfo target declared in compile_info/CMakeLists.txt.
-		add_dependencies(${targetLibraryName} updateCompileInfo)
+    if(UNIX AND buildCompileInfo)
+		  add_dependencies(${targetLibraryName} updateCompileInfo)
+    endif()
 		
 		# apply single file definitions
 		list(LENGTH ug4libSingleFileCompileFlagsFiles len)

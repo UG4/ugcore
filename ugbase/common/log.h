@@ -269,7 +269,7 @@ inline std::string ConvertNumberSI (uint64_t size, unsigned int width,
 	UG_RESET_DEBUG_LEVELS();
 	UG_DLOG(MAIN, 0, "DLOG on level 0.\n");		// no message printed
 	UG_SET_DEBUG_LEVEL(MAIN, 0);
-	UG_DLOG(MAIN, 0, "DLOG on lebel 0.\n");		// message printed
+	UG_DLOG(MAIN, 0, "DLOG on level 0.\n");		// message printed
 	UG_DLOG(MAIN, 1, "DLOG on level 1.\n");		// no message printed
  */
 #ifdef UG_ENABLE_DEBUG_LOGS
@@ -340,10 +340,10 @@ inline std::string ConvertNumberSI (uint64_t size, unsigned int width,
  *
  * UG_WARNING(cond, msg)  		- prints a warning to the normal output stream
  */
-#ifdef UG_ENABLED_WARNINGS
-	#define UG_COND_WARNING(cond, msg) {if (cond) {ug::GetLogAssistant().logger()\
-							<< "UG_WARNING in " << __FILE__ << " at line "       \
-							__LINE__ << ": " << msg << std::flush;}}
+#ifdef UG_ENABLE_WARNINGS
+	#define UG_COND_WARNING(cond, msg) { if (cond) {ug::GetLogAssistant().logger() << "UG_WARNING in "\
+							<< __FILE__ << " at line " << __LINE__ << ": " \
+							<< msg << std::flush;} }
 #else
 	#define UG_COND_WARNING(cond, msg) {}
 #endif

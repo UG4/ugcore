@@ -155,6 +155,7 @@ std::string ParameterStackString(ParameterStack &s)
 				case Variant::VT_CONST_SMART_POINTER: ss << "ConstSmartPtr<" << s.class_name(i) << "> " << s.to<ConstSmartPtr<void> >(i).get(); break;
 			#ifdef UG_FOR_LUA
 				case Variant::VT_LUA_FUNCTION_HANDLE: ss << "LuaFunctionHandle " << s.to<LuaFunctionHandle>(i).ref; break;
+				case Variant::VT_LUA_TABLE_HANDLE: ss << "LuaFunctionHandle " << s.to<LuaFunctionHandle>(i).ref; break;
 			#endif
 				default: ss << "unknown"; break;
 			}
@@ -651,6 +652,11 @@ static int ExecuteMethod(lua_State* L, const ExportedMethodGroup* methodGrp,
 		UG_LUA_BINDINGS_CATCH("In CALL to method '" << LuaClassMethodInfo(L, 1, *m)  << "'", ParameterStackString(paramsIn));
 
 	//	if we reach this point, then the method was successfully executed.
+	//	return values to lua!
+
+		if(m->has_custom_return())		
+			return 1;		
+		
 		return ParamsToLuaStack(paramsOut, L);
 	}
 

@@ -75,6 +75,9 @@ class NestedIterationSolver
 	///	GridFunction type
 		typedef GridFunction<TDomain, TAlgebra> grid_function_type;
 
+	/// Error function type
+		typedef GridFunction<TDomain, CPUAlgebra> error_function_type;
+
 	public:
 	///	default constructor
 		NestedIterationSolver();
@@ -173,7 +176,7 @@ class NestedIterationSolver
 	/// for debug output
 		using DebugWritingObject<TAlgebra>::write_debug;
 		using DebugWritingObject<TAlgebra>::vector_debug_writer;
-		void set_debug_elem_error(SmartPtr<grid_function_type> spErrEta)
+		void set_debug_elem_error(SmartPtr<error_function_type> spErrEta)
 		{m_spElemError = spErrEta;}
 
 	protected:
@@ -222,8 +225,7 @@ class NestedIterationSolver
 		number m_absTOL;
 
 	/// (optional) debug info for adaptive refinement
-		SmartPtr<grid_function_type> m_spElemError;
-
+		SmartPtr<error_function_type> m_spElemError;
 };
 
 }

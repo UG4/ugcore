@@ -58,7 +58,7 @@
 ################################################################################
 
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.12)
 
 ####
 # ugscript Library
@@ -186,8 +186,8 @@ if(STATIC_BUILD)
     # end and the libraries are available  as shared and (!) static on the 
     # system. In that case, without the oprtions below, the dynamic lib would 
     # be selected. Setting options to ON lets cmake choose the static lib.
-    set_target_properties(${targetExecutableName} PROPERTIES LINK_SEARCH_START_STATIC ON)
-    set_target_properties(${targetExecutableName} PROPERTIES LINK_SEARCH_END_STATIC ON)
+    #set_target_properties(${targetExecutableName} PROPERTIES LINK_SEARCH_START_STATIC ON)
+    #set_target_properties(${targetExecutableName} PROPERTIES LINK_SEARCH_END_STATIC ON)
     
     # we have to link against the ug4_s static library
 	target_link_libraries(${targetExecutableName} ${targetLibraryName})

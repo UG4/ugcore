@@ -28,7 +28,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU Lesser General Public License for more details.
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.12)
 
 ####
 # uginterface Library
@@ -124,7 +124,8 @@ set(srcUGScript		lua_util.cpp
 					bindings_lua.cpp
 					lua_debug.cpp
 					lua_stack.cpp
-					lua_serialization.cpp)
+					lua_serialization.cpp
+					lua_table_handle.cpp)
 
 set(srcLUACompiler	compiler/parser.cpp
 					compiler/lexer.cpp

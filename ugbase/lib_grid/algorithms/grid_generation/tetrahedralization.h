@@ -80,9 +80,7 @@ bool Tetrahedralize(Grid& grid, ISubsetHandler& sh,
  * \param[in] verbosity
  * \return \c std::string Tetgen's verbosity string
  */
-inline const char* VerbosityToTetgenParam(int verbosity) {
-	return std::string(std::max(std::min(verbosity, 3), 0), 'V').c_str();
-}
+const char* VerbosityToTetgenParam(int verbosity);
 #endif
 
 

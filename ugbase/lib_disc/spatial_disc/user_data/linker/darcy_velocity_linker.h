@@ -34,6 +34,9 @@
 #define __H__UG__LIB_DISC__SPATIAL_DISC__DARCY_VELOCITY_LINKER__
 
 #include "linker.h"
+#ifdef UG_FOR_LUA
+#include "bindings/lua/lua_user_data.h"
+#endif
 
 namespace ug{
 
@@ -348,6 +351,18 @@ class DarcyVelocityLinker
 		{
 			set_permeability(make_sp(new ConstUserMatrix<dim>(val)));
 		}
+		
+		#ifdef UG_FOR_LUA
+		void set_permeability(const char* fctName)
+		{
+			set_permeability(LuaUserDataFactory<MathMatrix<dim,dim>, dim>::create(fctName));
+		}
+		
+		void set_permeability(LuaFunctionHandle fct)
+		{
+			set_permeability(make_sp(new LuaUserData<MathMatrix<dim,dim>, dim>(fct)));
+		}
+		#endif
 
 	///	set permeability import
 		void set_viscosity(SmartPtr<CplUserData<number, dim> > data)

@@ -4,3 +4,6 @@
 .tags_sorted_by_file
 .settings
 /Debug/
+.DS_Store
+.Rhistory
+.vscode

@@ -86,6 +86,19 @@ UG_API bool InitPaths(const char* argv0);
  *	- PLUGIN_PATH
  */
 UG_API void SetRootPath(const std::string& strRoot);
+UG_API void SetRootPath(const char* c_strRoot);
+
+///	Initializes the SCRIPT_PATH of ug::PathProvider.
+UG_API void SetScriptPath(const std::string& strScript);
+UG_API void SetScriptPath(const char* c_strScript);
+
+///	Initializes the APPS_PATH of ug::PathProvider.
+UG_API void SetAppsPath(const std::string& strApps);
+UG_API void SetAppsPath(const char* c_strApps);
+
+///	Initializes the PLUGIN_PATH of ug::PathProvider.
+UG_API void SetPluginPath(const std::string& strPlugin);
+UG_API void SetPluginPath(const char* c_strPlugin);
 
 ///	finalizes ug
 /**	If ug has been compiled for parallel use (UG_PARALLEL is defined)

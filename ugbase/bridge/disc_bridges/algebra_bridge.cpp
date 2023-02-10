@@ -52,6 +52,10 @@
 #include "lib_disc/spatial_disc/constraints/constraint_interface.h"
 #include "lib_disc/time_disc/time_disc_interface.h"
 #include "lib_disc/time_disc/theta_time_step.h"
+#include "lib_disc/time_disc/finished_conditions.hpp"
+#include "lib_disc/time_disc/time_integrator_observers/time_integrator_observer_interface.h"
+#include "lib_disc/time_disc/time_integrator_observers/lua_callback_observer.hpp"
+#include "lib_disc/time_disc/time_integrator_subject.hpp"
 #include "lib_disc/operator/linear_operator/assembled_linear_operator.h"
 #include "lib_disc/operator/non_linear_operator/assembled_non_linear_operator.h"
 #include "lib_disc/operator/non_linear_operator/line_search.h"
@@ -175,7 +179,7 @@ static void Algebra(Registry& reg, string parentGroup)
 		reg.add_class_<T,TBase>(name, grp)
 			.add_method("calc_error", static_cast<void (T::*)(const vector_type&)>(&T::calc_error), "", "",
 				"calculate error indicators for elements from error estimators of the elemDiscs")
-			.add_method("calc_error", static_cast<void (T::*)(const vector_type&, vector_type&)>(&T::calc_error), "", "",
+			.add_method("calc_error", static_cast<void (T::*)(const vector_type&, CPUAlgebra::vector_type&)>(&T::calc_error), "", "",
 				"calculate error indicators for elements from error estimators of the elemDiscs")
 			.add_method("invalidate_error", &T::invalidate_error, "", "Marks error indicators as invalid, "
 				"which will prohibit refining and coarsening before a new call to calc_error.")
@@ -544,8 +548,9 @@ static void DomainAlgebra(Registry& reg, string parentGroup)
 							.add_method("set_tolerance", &T::set_tolerance)
 							.add_method("set_max_steps", &T::set_max_steps)
 							.add_method("last_error", &T::last_error)
+#ifdef UG_CPU_1
 							.add_method("set_debug_elem_error", &T::set_debug_elem_error)
-
+#endif
 							.add_method("use_adaptive_refinement", &T::use_adaptive_refinement)
 							.add_method("enable_adaptive_refinement", &T::enable_adaptive_refinement)
 							.add_method("disable_adaptive_refinement", &T::disable_adaptive_refinement)
@@ -596,6 +601,75 @@ static void DomainAlgebra(Registry& reg, string parentGroup)
 		reg.add_class_to_group(name, "ActiveSet", tag);
 	}
 
+
+	{
+		std::string grp = parentGroup; grp.append("/Discretization/TimeIntegratorObservers");
+		// LuaCallbackObserver
+		typedef LuaCallbackObserver<TDomain, TAlgebra> T;
+		typedef ITimeIntegratorObserver<TDomain, TAlgebra> TBase;
+
+		typedef GridFunction<TDomain, TAlgebra> TGF;
+
+		string name = string("LuaCallbackObserver").append(suffix);
+		reg.add_class_<T, TBase>(name, grp)
+			.template add_constructor<void (*)() >("internal id=0")
+			.template add_constructor<void (*)(int) >("internal id")
+			.add_method("set_callback", &T::set_callback)
+			.add_method("get_current_solution", static_cast<SmartPtr<TGF> (T::*)() > (&T::get_current_solution))
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "LuaCallbackObserver", tag);
+	}
+
+	{
+		std::string grp = parentGroup; grp.append("/Discretization");
+		typedef TimeIntegratorSubject<TDomain, TAlgebra> T;
+		typedef GridFunction<TDomain, TAlgebra> TGF;
+
+		string name = string("TimeIntegratorSubject").append(suffix);
+		reg.add_class_<T>(name, grp)
+				  .template add_constructor<void (*)() >("")
+				  .add_method("attach_observer", &T::attach_observer)
+				  //.add_method("attach_to_group", &T::attach_to_group)
+				  .add_method("attach_init_observer", &T::attach_init_observer)
+				  .add_method("attach_rewind_observer", &T::attach_rewind_observer)
+				  .add_method("attach_finalize_observer", &T::attach_finalize_observer)
+				  .add_method("attach_preprocess_observer", &T::attach_preprocess_observer)
+				  .add_method("attach_postprocess_observer", &T::attach_postprocess_observer)
+				  .add_method("attach_start_observer", &T::attach_start_observer)
+				  .add_method("attach_end_observer", &T::attach_end_observer)
+				  .add_method("reset_observers", &T::reset_observers)
+				  .add_method("notify_init_step", &T::notify_init_step)
+				  .add_method("notify_rewind_step", &T::notify_rewind_step)
+				  .add_method("notify_finalize_step", &T::notify_finalize_step)
+				  .add_method("notify_preprocess_step", &T::notify_preprocess_step)
+				  .add_method("notify_postprocess_step", &T::notify_postprocess_step)
+				  .add_method("notify_start", &T::notify_start)
+				  .add_method("notify_end", &T::notify_end)
+				  .set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "TimeIntegratorSubject", tag);
+
+	}
+
+
+	{
+		std::string grp = parentGroup; grp.append("/Discretization/TimeIntegratorObservers");
+		// ITimeIntegratorObserver (virtual base class)
+		typedef ITimeIntegratorObserver<TDomain, TAlgebra> T;
+		string name = string("ITimeIntegratorObserver").append(suffix);
+		reg.add_class_<T>(name, grp);
+		reg.add_class_to_group(name, "ITimeIntegratorObserver", tag);
+	}
+
+	// {
+	// 	std::string grp = parentGroup; grp.append("/Discretization/TimeIntegratorObservers");
+	// 	// ProxyTimeIntegratorObserver
+	// 	typedef ProxyTimeIntegratorObserver<TDomain, TAlgebra> T;
+	// 	typedef ITimeIntegratorObserver<TDomain, TAlgebra> TBase;
+	// 	string name = string("ProxyTimeIntegratorObserver").append(suffix);
+	// 	reg.add_class_<T, TBase>(name, grp);
+	// 	reg.add_class_to_group(name, "ProxyTimeIntegratorObserver", tag);
+	// }
+
 }
 
 static void Common(Registry& reg, string parentGroup)
@@ -607,6 +681,46 @@ static void Common(Registry& reg, string parentGroup)
 		string name = string("INewtonUpdate");
 		reg.add_class_<T>(name, grp);
 	}
+
+	grp = parentGroup; grp.append("/Discretization/Util");
+
+	{
+		// IFinishedCondition (virtual base class)
+		reg.add_class_<IFinishedCondition>(string("IFinishedCondition"), grp);
+	}
+
+
+	{
+		typedef FinishedTester T;
+		string name = string("FinishedTester");
+		reg.add_class_<T>(name, grp)
+			.add_constructor<void (*) ()> ()
+			.add_method("is_finished", static_cast<bool (T::*) (number,int)> (&T::is_finished), "time, step", "Tests if all conditions are fulfilled")
+			.add_method("add_condition", static_cast<void (T::*) (SmartPtr<IFinishedCondition>)> (&T::add_condition), "condition", "Adds a new condition to the list of conditions")
+			.set_construct_as_smart_pointer(true);
+	}
+
+	{
+		typedef MaxStepsFinishedCondition T;
+		typedef IFinishedCondition TBase;
+		string name = string("MaxStepsFinishedCondition");
+		reg.add_class_<T, TBase>(name, grp)
+			.add_constructor<void (*) (int)> ("max_steps")
+			.set_construct_as_smart_pointer(true);
+	}
+
+
+	{
+		typedef TemporalFinishedCondition T;
+		typedef IFinishedCondition TBase;
+		string name = string("TemporalFinishedCondition");
+		reg.add_class_<T, TBase>(name, grp)
+			.add_constructor<void (*) (number, number, number)> ("end_time, max_step_size, relative_precision_bound")
+			.add_method("set_max_step_size", static_cast<void (T::*) (number)> (&T::set_max_step_size), "max_step_size", "Sets maximum step size")
+			.set_construct_as_smart_pointer(true);
+	}
+
+
 }
 
 }; // end Functionality

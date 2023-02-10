@@ -222,6 +222,7 @@ class StdConvCheck : public IConvergenceCheck<TVector>
 		void set_name(std::string name) {m_name = name;}
 		void set_info(std::string info) {m_info = info;}
 		const std::vector<number> get_defects() const { return _defects;}
+		number get_defect(size_t i) const { return _defects[i];}
 		void print_line(std::string line);
 
 		virtual SmartPtr<IConvergenceCheck<TVector> > clone()

@@ -105,6 +105,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("set_consistent_storage_type", &TFct::SetConsistentStorageType)
 			.add_method("grid_level", &TFct::grid_level)
 			.add_method("num_dofs", static_cast<size_t (TFct::*)() const>(&TFct::num_dofs))
+			.add_method("approx_space", static_cast<SmartPtr<approximation_space_type> (TFct::*)()>(&TFct::approx_space))
 			.add_method("redistribution_enabled", &TFct::redistribution_enabled)
 			.add_method("enable_redistribution", &TFct::enable_redistribution)
 			.set_construct_as_smart_pointer(true);
@@ -117,18 +118,29 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef ExplicitGridFunctionValue<TFct> T;
 		typedef CplUserData<number, dim> TBase;
 		reg.add_class_<T, TBase>(name, grp)
-		   .template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("ExplicitGridFunctionValue#Component")
+		   .template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridFunction#Component")
 		   .set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ExplicitGridFunctionValue", tag);
 	}
 
-	//	ExplicitGridFunctionGradient
+//	ExplicitGridFunctionVector
+	{
+		string name = string("ExplicitGridFunctionVector").append(suffix);
+		typedef ExplicitGridFunctionVector<TFct> T;
+		typedef CplUserData<MathVector<dim>, dim> TBase;
+		reg.add_class_<T, TBase>(name, grp)
+		   .template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridFunction#Components")
+		   .set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "ExplicitGridFunctionVector", tag);
+	}
+
+//	ExplicitGridFunctionGradient
 	{
 		string name = string("ExplicitGridFunctionGradient").append(suffix);
 		typedef ExplicitGridFunctionGradient<TFct> T;
 		typedef CplUserData<MathVector<dim>, dim> TBase;
 		reg.add_class_<T, TBase>(name, grp)
-		   .template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("ExplicitGridFunctionGradient#Component")
+		   .template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridFunction#Component")
             .add_method("add_subset_coeff", &T::add_subset_coeff)
 			.add_method("get_subset_coeff", &T::get_subset_coeff)
 		   .set_construct_as_smart_pointer(true);
@@ -273,7 +285,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "L2ComponentSpace", tag);
 	}
 
-	// L2QuotientSpace (= L2ComponentSpace which factors out constants)
+	// L2QuotientSpace (= L2ComponentSpace factoring out constants)
 	{
 		typedef L2QuotientSpace<TFct> T;
 		typedef IComponentSpace<TFct> TBase;
@@ -373,7 +385,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 	}
 
 	// TimeDependentSpace
-	{
+	/*{
 		typedef TimeDependentSpace<TFct> T;
 		typedef IGridFunctionSpace<TFct> TBase;
 
@@ -386,7 +398,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 				.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "TimeDependentSpace", tag);
 	}
-
+*/
 
 	// CompositeSpace
 	{
@@ -438,6 +450,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 //	SumGFValuesAt
 	{
 		typedef ug::GridFunction<TDomain, TAlgebra> GF;
+		reg.add_function ("SumGFValuesAtVertices", static_cast<number (*) (GF*, const char *)> (&SumGFValuesAt<GF,Vertex>), grp);
 		reg.add_function ("SumGFValuesAtVertices", static_cast<number (*) (GF*, const char *, const char *)> (&SumGFValuesAt<GF,Vertex>), grp);
 	}
 	

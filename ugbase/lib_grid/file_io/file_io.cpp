@@ -58,6 +58,7 @@
 #include "file_io_tikz.h"
 #include "file_io_vtu.h"
 #include "file_io_swc.h"
+#include "file_io_grdecl.h"
 
 #ifdef UG_PARALLEL
 	#include "pcl/pcl_process_communicator.h"
@@ -83,6 +84,11 @@ static bool LoadGrid3d_IMPL(Grid& grid, ISubsetHandler* pSH,
 	{
 		bAutoassignFaces = true;
 		bSuccess = LoadGridFromTXT(grid, filename, aPos);
+	}
+	else if(strExt.compare("grdecl") == 0)
+	{
+		bAutoassignFaces = true;
+		bSuccess = LoadGridFromGRDECL(grid, filename, aPos);
 	}
 	else if(strExt.compare("obj") == 0)
 		bSuccess = LoadGridFromOBJ(grid, filename, aPos, NULL, pSH);

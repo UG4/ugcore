@@ -90,6 +90,8 @@
 #include "operator/non_linear_operator/nl_gauss_seidel/nl_gauss_seidel.h"
 #include "operator/non_linear_operator/nl_jacobi/nl_jacobi.h"
 
+#include "operator/preconditioner/line_smoothers.h"
+
 // Parallelization
 #ifdef UG_PARALLEL
 #include "parallelization/parallelization_util.h"

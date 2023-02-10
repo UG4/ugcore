@@ -36,26 +36,8 @@
 \brief functions to create DomainDiscs using a string disc-type identifier
 ]]--
 
-
---!	Returns a ConvectionDiffusion Element-Disc of the requested type
---! @return Returns the domain discreatization
---! @param fcts (String) names of symbolic functions 
---! @param subsets (String) names of symbolic subsets 
---! @param discType (String) discretizatin scheme 
-function ConvectionDiffusion(fcts, subsets, discType)
-	if discType == nil then discType = "fv1" end
-	if 		discType == "fv1"  then return ConvectionDiffusionFV1(fcts, subsets)
-	elseif  discType == "fe"   then return ConvectionDiffusionFE(fcts, subsets)
-	elseif  discType == "fvcr" then return ConvectionDiffusionFVCR(fcts, subsets)
-	elseif  discType == "fv"   then return ConvectionDiffusionFV(fcts, subsets)
-	else 
-		print("ConvectionDiffusion: no disc type '"..discType.."' available. Aborting")
-		exit();
-	end
-end
-
 --!	Returns a NeumannBoundary Element-Disc of the requested type
---! @return Returns the domain discreatization
+--! @return Returns the element discreatization (of the Neumann BC)
 --! @param fcts (String) names of symbolic function 
 --! @param discType (String) discretizatin scheme 
 function NeumannBoundary(fcts, discType)
@@ -69,79 +51,23 @@ function NeumannBoundary(fcts, discType)
 	end
 end
 
---!	Returns a DensityDrivenFlow Element-Disc of the requested type
---! @return Returns the domain discreatization
---! @param fcts (String) names of symbolic functions 
---! @param subsets (String) names of symbolic subsets 
---! @param discType (String) discretizatin scheme 
-function DensityDrivenFlow(fcts, subsets, discType)
-	if discType == nil then discType = "fv1" end
-	if 		discType == "fv1"  then return DensityDrivenFlowFV1(fcts, subsets)
-	elseif  discType == "fv"   then return DensityDrivenFlowFV(fcts, subsets)
-	else 
-		print("DensityDrivenFlow: no disc type '"..discType.."' available. Aborting")
-		exit();
-	end
-end
-
---!	Returns a NavierStokes Element-Disc of the requested type
---! @return Returns the domain discreatization
---! @param fcts (String) names of symbolic functions 
---! @param subsets (String) names of symbolic subsets 
---! @param discType (String) discretizatin scheme 
-function NavierStokes(fcts, subsets, discType)
-	if discType == nil then discType = "fv1" end
-	if 		discType == "fv1"  then return NavierStokesFV1(fcts, subsets)
-	elseif  discType == "fv"   then return NavierStokesFV(fcts, subsets)
-	elseif  discType == "fvcr" then return NavierStokesFVCR(fcts, subsets)
-	elseif  discType == "fe"   then return NavierStokesFE(fcts, subsets)
-	elseif  discType == "fecr" then return NavierStokesFE(fcts, subsets)
-	else 
-		print("NavierStokes: no disc type '"..discType.."' available. Aborting")
-		exit();
-	end
-end
-
---!	Returns a NavierStokesInflow Element-Disc of the requested type
---! @return Returns the domain discreatization
---! @param fcts (String) names of symbolic functions 
---! @param subsets (String) names of symbolic subsets 
---! @param discType (String) discretizatin scheme 
-function NavierStokesInflow(spMaster)
-	if spMaster == nil then
-		print("NavierStokesInflow: master disc is not available. Aborting")
-		exit();
-	end
-
-	local discType = spMaster:disc_type();	
-	if 		discType == "fv1"  then return NavierStokesInflowFV1(spMaster)
-	elseif  discType == "fv"   then return NavierStokesInflowFV(spMaster)
-	elseif  discType == "fvcr" then return NavierStokesInflowFVCR(spMaster)
-	elseif  discType == "fe"   then return NavierStokesInflowFE(spMaster)
-	elseif  discType == "fecr" then return NavierStokesInflowFE(spMaster)
-	else 
-		print("NavierStokesInflow: no disc type '"..discType.."' available. Aborting")
-		exit();
-	end
-end
-
---!	Returns a NavierStokesNoNormalStressOutflow Element-Disc of the requested type
---! @return Returns the domain discreatization
---! @param fcts (String) names of symbolic functions 
---! @param subsets (String) names of symbolic subsets 
---! @param discType (String) discretizatin scheme 
-function NavierStokesNoNormalStressOutflow(spMaster)
-	if spMaster == nil then
-		print("NavierStokesNoNormalStressOutflow: master disc is not available. Aborting")
-		exit();
-	end
-
-	local discType = spMaster:disc_type();	
-	if 		discType == "fv1"  then return NavierStokesNoNormalStressOutflowFV1(spMaster)
-	elseif  discType == "fvcr" then return NavierStokesNoNormalStressOutflowFVCR(spMaster)
-	elseif  discType == "fv"   then return NavierStokesNoNormalStressOutflowFV(spMaster)
-	else 
-		print("NavierStokesNoNormalStressOutflow: no disc type '"..discType.."' available. Aborting")
+--! Returns a IConvectionShape class object of an upwind method (for FV1 discretization)
+--! @return Returns the object of the upwind method
+--! @param upwindType type of the upwind as string
+--! @param upwindParam object-specific parameters
+function UpwindFV1(upwindType, upwindParam)
+	if upwindType == nil then upwindType = "partial" end
+	if		upwindType == "no" then return NoUpwind()
+	elseif	upwindType == "full" then return FullUpwind ()
+	elseif	upwindType == "weighted" then
+		local upwind = WeightedUpwind ()
+		if upwindParam ~= nil then
+			upwind:set_weight(upwindParam)
+		end
+		return upwind
+	elseif	upwindType == "partial" then return PartialUpwind ()
+	else
+		print("UpwindFV1: no upwind type '"..upwindType.."' available. Aborting")
 		exit();
 	end
 end

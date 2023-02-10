@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019:  G-CSC, Goethe University Frankfurt
+ * Copyright (c) 2014-2021:  G-CSC, Goethe University Frankfurt
  * Author: Martin Stepniewski
  *
  * This file is part of UG4.
@@ -152,6 +152,27 @@ template <class TAPosition>
 void ProjectHierarchyToSubdivisionLimit(MultiGrid& mg, TAPosition& aPos);
 
 
+/// Parent level vertex smoothing function for subdivision crease surfaces refinement (by C. Loop, 1987)
+/** This function calculates the smoothed positions of all parent level vertices
+ * 	determined by the subdivision surfaces refinement for crease surfaces
+ * 	handling the crease polylines separately
+ *
+ * 	@param mg						reference to MultiGrid
+ * 	@param aPos						reference to position attachment
+ * 	@param markSH					reference to SubsetHandler markSH containing marked (inner) boundary manifold
+ * 	@param linearManifoldSH			reference to user-specified linearManifoldSubsets SubsetHandler
+ * 	@param aSmoothBndPosEvenVrt		reference to aSmoothBndPosEvenVrt
+ * 	@param aSmoothBndPosOddVrt		reference to aSmoothBndPosOddVrt
+ * 	@param aNumManifoldEdges		reference to aNumManifoldEdges
+**/
+template <class TAPosition>
+void CalculateSmoothCreaseManifoldPosInParentLevelLoopScheme(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& markSH,
+											 	 	   	   	 MGSubsetHandler& linearManifoldSH,
+															 TAPosition& aSmoothBndPosEvenVrt,
+															 TAPosition& aSmoothBndPosOddVrt,
+															 AInt& aNumManifoldEdges);
+
+
 /// Parent level vertex smoothing function for subdivision surfaces refinement (by C. Loop, 1987)
 /** This function calculates the smoothed positions of all parent level vertices
  * 	determined by the subdivision surfaces refinement.
@@ -172,24 +193,6 @@ void CalculateSmoothManifoldPosInParentLevelLoopScheme(MultiGrid& mg, TAPosition
 													   AInt& aNumManifoldEdges);
 
 
-/// Parent level vertex smoothing function for subdivision surfaces refinement (Butterfly scheme)
-/** This function calculates the smoothed positions of all parent level vertices
- * 	determined by the subdivision surfaces refinement.
- *
- * 	@param mg						reference to MultiGrid
- * 	@param aPos						reference to position attachment
- * 	@param markSH					reference to SubsetHandler markSH containing marked (inner) boundary manifold
- * 	@param linearManifoldSH			reference to user-specified linearManifoldSubsets SubsetHandler
- * 	@param aSmoothBndPosOddVrt		reference to aSmoothBndPosOddVrt
- * 	@param aNumManifoldEdges		reference to aNumManifoldEdges
-**/
-template <class TAPosition>
-void CalculateSmoothManifoldPosInParentLevelButterflyScheme(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& markSH,
-											 	 	   MGSubsetHandler& linearManifoldSH,
-													   TAPosition& aSmoothBndPosOddVrt,
-													   AInt& aNumManifoldEdges);
-
-
 /// Toplevel vertex smoothing function for subdivision surfaces refinement (Averaging scheme)
 /** This function calculates the smoothed positions of all toplevel vertices
  * 	determined by the subdivision surfaces refinement.
@@ -206,6 +209,24 @@ void CalculateSmoothManifoldPosInTopLevelAveragingScheme(MultiGrid& mg, TAPositi
 														 MGSubsetHandler& linearManifoldSH,
 														 TAPosition& aSmoothBndPos_tri,
 														 TAPosition& aSmoothBndPos_quad);
+
+
+/// Parent level vertex smoothing function for subdivision surfaces refinement (Butterfly scheme)
+/** This function calculates the smoothed positions of all parent level vertices
+ * 	determined by the subdivision surfaces refinement.
+ *
+ * 	@param mg						reference to MultiGrid
+ * 	@param aPos						reference to position attachment
+ * 	@param markSH					reference to SubsetHandler markSH containing marked (inner) boundary manifold
+ * 	@param linearManifoldSH			reference to user-specified linearManifoldSubsets SubsetHandler
+ * 	@param aSmoothBndPosOddVrt		reference to aSmoothBndPosOddVrt
+ * 	@param aNumManifoldEdges		reference to aNumManifoldEdges
+**/
+template <class TAPosition>
+void CalculateSmoothManifoldPosInParentLevelButterflyScheme(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& markSH,
+											 	 	   MGSubsetHandler& linearManifoldSH,
+													   TAPosition& aSmoothBndPosOddVrt,
+													   AInt& aNumManifoldEdges);
 
 
 /// Toplevel vertex smoothing function for subdivision volumes refinement
@@ -255,20 +276,23 @@ void CalculateNumElemsVertexAttachmentInTopLevel(MultiGrid& mg, AInt& aNumElems_
  * 	@param mg					reference to MultiGrid
  * 	@param markSH				reference to SubsetHandler markSH containing marked (inner) boundary manifold
  * 	@param aNumManifoldEdges	reference to aNumManifoldEdges
+ * 	@param bCreaseSurf 			bool switch for crease surfaces in case of subdivision
+ * 								refinement by C. Loop, 1987 handling the boundary polylines separately
 **/
 void CalculateNumManifoldEdgesVertexAttachmentInParentLevel(MultiGrid& mg, MGSubsetHandler& markSH,
-															AInt& aNumManifoldEdges);
+															AInt& aNumManifoldEdges, bool bCreaseSurf);
 
 
 /// Function for calculating the number of associated manifold faces of all toplevel manifold vertices
-/** This function calculates the number of associated volumes
+/** This function calculates the number of of associated manifold faces (triangles and quadrilaterals)
  * 	for all toplevel vertices.
  *
- * 	@param mg					reference to MultiGrid
- * 	@param markSH				reference to SubsetHandler markSH containing marked (inner) boundary manifold
- * 	@param aNumManifoldFaces	reference to aNumManifoldFaces
+ * 	@param mg						reference to MultiGrid
+ * 	@param markSH					reference to SubsetHandler markSH containing marked (inner) boundary manifold
+ * 	@param aNumManifoldFaces_tri	reference to aNumManifoldFaces_tri
+ * 	@param aNumManifoldFaces_quad	reference to aNumManifoldFaces_quad
 **/
-void CalculateNumManifoldFacesVertexAttachmentInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH, AInt& aNumManifoldFaces);
+void CalculateNumManifoldFacesVertexAttachmentInTopLevel(MultiGrid& mg, MGSubsetHandler& markSH, AInt& aNumManifoldFaces_tri, AInt& aNumManifoldFaces_quad);
 
 
 /// Procedure to initialize the linear boundary manifold subsets SubsetHandler with user-specified subsets
@@ -291,10 +315,12 @@ void InitLinearManifoldSubsetHandler(MultiGrid& mg, MGSubsetHandler& sh,
  * 	@param aPos						reference to position attachment
  * 	@param markSH					reference to SubsetHandler markSH containing marked (inner) boundary manifold
  * 	@param linearManifoldSH			reference to user-specified linearManifoldSubsets SubsetHandler
+ * 	@param bCreaseSurf 				bool switch for crease surfaces in case of subdivision
+ * 									refinement by C. Loop, 1987 handling the crease polylines separately
 **/
 template <class TAPosition>
 void ApplySmoothManifoldPosToTopLevelLoopScheme(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& markSH,
-												MGSubsetHandler& linearManifoldSH);
+												MGSubsetHandler& linearManifoldSH, bool bCreaseSurf);
 
 
 /// Toplevel vertex repositioning function for subdivision surfaces refinement (Butterfly scheme)
@@ -347,10 +373,13 @@ void ApplySmoothVolumePosToTopLevel(MultiGrid& mg, MGSubsetHandler& markSH,
  * 	@param sh						reference to standard SubsetHandler
  * 	@param markSH					reference to SubsetHandler containing marked (inner) boundary manifold
  * 	@param linearManifoldSH 		reference to user-specified linearManifoldSubsets SubsetHandler
+ * 	@param bCreaseSurf 				bool switch for crease surfaces in case of subdivision
+ * 									refinement by C. Loop, 1987 handling the crease polylines separately
 **/
 template <class TAPosition>
 void ApplySmoothSubdivisionSurfacesToTopLevel(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& sh,
-											  MGSubsetHandler& markSH, MGSubsetHandler& linearManifoldSH);
+											  MGSubsetHandler& markSH, MGSubsetHandler& linearManifoldSH,
+											  bool bCreaseSurf);
 
 
 /// Function to create a smooth subdivision volumes hierarchy
@@ -376,10 +405,13 @@ void ApplySmoothSubdivisionVolumesToTopLevel(MultiGrid& mg, MGSubsetHandler& sh,
  * 	@param markSH					reference to SubsetHandler markSH containing marked (inner) boundary manifold
  * 	@param linearManifoldSubsets 	user-specified linearManifoldSubsets
  * 	@param bConstrained				bool switch for constrained smooth subdivision volumes scheme
+ * 	@param bCreaseSurf 				bool switch for crease surfaces in case of subdivision
+ * 									refinement by C. Loop, 1987 handling the boundary polylines separately
 **/
 template <class TAPosition>
 void ApplySmoothSubdivisionSurfacesToTopLevel(MultiGrid& mg, TAPosition& aPos, MGSubsetHandler& sh,
-											  MGSubsetHandler& markSH, const char* linearManifoldSubsets);
+											  MGSubsetHandler& markSH, const char* linearManifoldSubsets,
+											  bool bCreaseSurf);
 
 void ApplySmoothSubdivisionVolumesToTopLevel(MultiGrid& mg, MGSubsetHandler& sh, MGSubsetHandler& markSH,
 											 const char* linearManifoldSubsets);

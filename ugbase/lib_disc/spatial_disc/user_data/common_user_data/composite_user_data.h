@@ -39,10 +39,12 @@
 namespace ug{
 
 //! This is a compositum for user data from different subsets.
-/*! (This is handy, but the implementation is rather slow.) */
+/*! This is handy, but the implementation is rather slow. */
 template <typename TData, int dim, typename TRet = void>
 class CompositeUserData : public UserData<TData, dim, TRet>
 {
+protected:
+	typedef CplUserData<TData, dim, TRet> TCplUserData;
 public:
 	typedef UserData<TData, dim, TRet> base_type;
 	typedef SmartPtr<base_type> ref_type;
@@ -63,6 +65,22 @@ public:
 		m_bRequiresGridFunction = m_bRequiresGridFunction || ref->requires_grid_fct();
 	}
 
+	ref_type get(int si)
+	{ return (find(si)->second); }
+
+	bool has(int si)
+	{ return find(si) != m_map.end();}
+
+
+	bool is_coupled(int si)
+	{ return (has(si) && find(si)->second.template is_of_type<TCplUserData>()); }
+
+	SmartPtr<TCplUserData> get_coupled(int si)
+	{ return find(si)->second.template cast_dynamic<TCplUserData>(); }
+
+
+
+
 	// Implementing virtual functions
 
 	virtual bool continuous() const
@@ -75,11 +93,11 @@ public:
 		 return m_bRequiresGridFunction;
 	 }
 
-		///	returns value for a global position
-			virtual TRet operator() (TData& value,
+	///	returns value for a global position
+	 virtual TRet operator() (TData& value,
 									 const MathVector<dim>& globIP,
 									 number time, int si) const
-			{ return (*find(si)->second)(value, globIP, time, si); }
+	{ return (*find(si)->second)(value, globIP, time, si); }
 
 		///	returns values for global positions
 			virtual void operator()(TData vValue[],
@@ -133,7 +151,7 @@ protected:
 	typename map_type::const_iterator find(int si) const
 	{
 		typename map_type::const_iterator it = m_map.find(si);
-		UG_ASSERT(it != m_map.end(), "ERROR:");
+		UG_ASSERT(it != m_map.end(), "ERROR: Subset not found!");
 		return it;
 	}
 

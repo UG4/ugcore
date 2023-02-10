@@ -281,7 +281,7 @@ void CreateAsMultiplyOf(AB_type &M, const A_type &A, const B_type &B)
 			size_t k = itAik.index();
 
 			cBiterator itBklEnd = B.end_row(k);
-			for(cBiterator itBkj = B.begin(k); itBkj != itBklEnd; ++itBkj)
+			for(cBiterator itBkj = B.begin_row(k); itBkj != itBklEnd; ++itBkj)
 			{
 				if(itBkj.value() == 0.0) continue;
 				size_t j = itBkj.index();
@@ -289,7 +289,7 @@ void CreateAsMultiplyOf(AB_type &M, const A_type &A, const B_type &B)
 			}
 		}
 
-		M.set_matrix_row(i, row.unsorted_raw_ptr(), row.num_connection());
+		M.set_matrix_row(i, row.unsorted_raw_ptr(), row.num_connections());
 	}
 
 }
@@ -851,13 +851,13 @@ void SetDirichletRow(TSparseMatrix& A, size_t i)
 {
 	typedef typename TSparseMatrix::row_iterator iterator;
 	typedef typename TSparseMatrix::value_type value_type;
-	A(i,i) = 1.0;
 	iterator itEnd = A.end_row(i);
 	for(iterator conn = A.begin_row(i); conn != itEnd; ++conn)
 	{
 		value_type& block = conn.value();
-		if(conn.index() != i) block = 0.0;
+		block = 0.0;
 	}
+	A(i,i) = 1.0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -865,7 +865,7 @@ void SetDirichletRow(TSparseMatrix& A, size_t i)
 //-------------------------
 /**
  * set Dirichlet row for block i.
- * \param[in/out] A Matrix A
+ * \param[in/out] Matrix A
  * \param[in] vIndex vector of row indices to set dirichlet, that is A(i,i) = 1.0, A(i,k) = 0.0 for all k != i.
  */
 template <typename TSparseMatrix>
@@ -881,13 +881,13 @@ void SetDirichletRow(TSparseMatrix& A, const std::vector<size_t> vIndex)
 		const size_t i = *iter;
 		UG_ASSERT(i < A.num_rows(), "Index to large in index set.");
 
-		A(i,i) = 1.0;
 		iterator itEnd = A.end_row(i);
 		for(iterator conn = A.begin_row(i); conn != itEnd; ++conn)
 		{
 			value_type& block = conn.value();
-			if(conn.index() != i) block = 0.0;
+			block = 0.0;
 		}
+		A(i,i) = 1.0;
 	}
 }
 

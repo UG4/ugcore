@@ -235,9 +235,12 @@ static void Algebra(Registry& reg, string grp)
 		typedef VectorDebugWritingObject<vector_type> T;
 		string name = string("VectorDebugWritingObject").append(suffix);
 		reg.add_class_<T>(name, grp)
+			.template add_constructor<void (*) (SmartPtr<IVectorDebugWriter<vector_type> >)> ("VectorDebugWriter")
 			.add_method("set_debug", &T::set_debug,  "", "dbgWriter", "sets a debug writer")
 			.add_method("vector_debug_writer", static_cast<SmartPtr<IVectorDebugWriter<vector_type> > (T::*)()>(&T::vector_debug_writer))
-			.add_method("vector_debug_writer", static_cast<ConstSmartPtr<IVectorDebugWriter<vector_type> > (T::*)() const>(&T::vector_debug_writer));
+			.add_method("vector_debug_writer", static_cast<ConstSmartPtr<IVectorDebugWriter<vector_type> > (T::*)() const>(&T::vector_debug_writer))
+			.add_method("write_debug", static_cast<void (T::*) (const vector_type&, const char*)> (&T::write_debug))
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "VectorDebugWritingObject", tag);
 	}
 
@@ -417,6 +420,8 @@ static void Algebra(Registry& reg, string grp)
 			.add_method("set_reduction", &T::set_reduction,	"", "Relative Reduction|default|min=0D;value=1e-12")
 			.add_method("set_verbose", &T::set_verbose,	"", "Verbosity")
 			.add_method("set_supress_unsuccessful", &T::set_supress_unsuccessful,"", "supress false return")
+			.add_method("defect", &T::defect)
+			.add_method("get_defect", &T::get_defect)
 			.add_method("previous_defect", &T::previous_defect)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ConvCheck", tag);

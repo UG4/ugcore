@@ -242,6 +242,7 @@ void vtk_export_ho
 	}
 
 	typedef typename TGridFunction::domain_type dom_type;
+	typedef typename TGridFunction::algebra_type algebra_type;
 	typedef typename dom_type::position_attachment_type position_attachment_type;
 	typedef typename TGridFunction::approximation_space_type approx_space_type;
 	typedef typename TGridFunction::template dim_traits<trueDim>::grid_base_object elem_type;
@@ -283,7 +284,7 @@ void vtk_export_ho
 
 	// create approx space and add functions
 	approx_space_type* approx_ptr;
-	try {approx_ptr = new approx_space_type(destDom);}
+	try {approx_ptr = new approx_space_type(destDom, algebra_type::get_type());}
 	UG_CATCH_THROW("Temporary approximation space could not be created.");
 	SmartPtr<approx_space_type> destApproxSpace = make_sp(approx_ptr);
 

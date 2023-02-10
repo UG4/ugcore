@@ -70,6 +70,7 @@ public:
 		*delta -= y;
 		return norm(*delta);
 	}
+
 };
 
 
@@ -88,18 +89,21 @@ public:
 	virtual ~IGridFunctionSpace() {}
 
 	/// norm (for grid functions)
-	virtual double norm(TGridFunction& x)
-	{ return x.norm(); }
+	virtual double norm(TGridFunction& x) = 0;
+	virtual double norm2(TGridFunction& x) = 0;
+
+	// { return x.norm(); }
 
 	/// distance (for grid functions)
-	virtual double distance(TGridFunction& x, TGridFunction& y)
-	{
+	virtual double distance(TGridFunction& x, TGridFunction& y) = 0;
+	virtual double distance2(TGridFunction& x, TGridFunction& y) = 0;
+	/*{
 		SmartPtr<TGridFunction> delta = x.clone();
 		*delta -= y;
 		return norm(*delta);
-	}
+	}*/
 
-	/// norm (for vectors)
+	/// OVERRIDE norm (for vectors)
 	virtual double norm(vector_type &x)
 	{
 		TGridFunction* gfX=dynamic_cast< TGridFunction*>(&x);
@@ -107,7 +111,7 @@ public:
 		return norm(*gfX);
 	}
 
-	/// distance (for vectors)
+	/// OVERRIDE distance (for vectors)
 	virtual double distance(vector_type &x, vector_type &y)
 	{ return distance(static_cast<TGridFunction &>(x), static_cast<TGridFunction &>(y)); }
 
@@ -116,6 +120,25 @@ public:
 
 	virtual std::string config_string() const
 	 { return std::string("IGridFunctionSpace"); }
+};
+
+template<typename TGridFunction>
+class AlgebraicSpace : public IGridFunctionSpace<TGridFunction>
+{
+	typedef typename TGridFunction::vector_type vector_type;
+	virtual ~AlgebraicSpace() {}
+
+	virtual double norm(TGridFunction& x)
+	{return x.norm();}
+
+	virtual double norm2(TGridFunction& x)
+	{ double n = this->norm(x); return n*n; }
+
+	virtual double distance(TGridFunction& x, TGridFunction& y)
+	{ SmartPtr<TGridFunction> delta = x.clone(); *delta -= y; return delta->norm(); }
+
+	virtual double distance2(TGridFunction& x, TGridFunction& y)
+	{ double d = this->distance(x,y);; return d*d;}
 };
 
 
@@ -182,9 +205,6 @@ public:
 	IComponentSpace(const char *fctNames, int order)
 	: m_fctNames(fctNames), m_ssNames(NULL), m_quadorder(order) {}
 
-	/*IComponentSpace(const char *fctNames, int order, number scale)
-	: m_fctNames(fctNames), m_ssNames(NULL), m_quadorder(order), m_scale(scale) {}
-*/
 	IComponentSpace(const char *fctNames, const char* ssNames, int order)
 	: m_fctNames(fctNames), m_ssNames(ssNames), m_quadorder(order) {}
 
@@ -724,7 +744,9 @@ public:
 	typedef IComponentSpace<TGridFunction> base_type;
 	typedef typename H1SemiDistIntegrand<TGridFunction>::weight_type weight_type;
 	typedef IObjectWithWeights<weight_type> weighted_obj_type;
-	typedef DarcyVelocityLinker<TGridFunction::dim> velocity_type;
+	// typedef DarcyVelocityLinker<TGridFunction::dim> velocity_type;
+	static const int dim = TGridFunction::dim;
+	typedef UserData<MathVector<dim>, dim> velocity_type;
 
 	H1EnergyComponentSpace(const char *fctNames)
 	: base_type(fctNames), weighted_obj_type(make_sp(new ConstUserMatrix<TGridFunction::dim>(1.0))), m_spVelocity(SPNULL) {};
@@ -755,7 +777,7 @@ public:
 	double norm2(TGridFunction& uFine)
 	{
 		if (m_spVelocity.valid()) {
-			const char* subsets = NULL;
+			const char* subsets = NULL; // [q^2]
 			UserDataIntegrandSq<MathVector<TGridFunction::dim>, TGridFunction> integrand2(m_spVelocity, &uFine, 0.0);
 			return IntegrateSubsets(integrand2, uFine, subsets, m_quadorder);
 		} else {
@@ -813,8 +835,7 @@ public:
  *  TODO: Merge with ApproximationSpace?
  * */
 template <typename TGridFunction>
-class CompositeSpace
-		: public IGridFunctionSpace<TGridFunction>
+class CompositeSpace : public IGridFunctionSpace<TGridFunction>
 {
 public:
 	typedef IGridFunctionSpace<TGridFunction> base_type;
@@ -840,9 +861,11 @@ public:
 				it!= m_spWeightedSubspaces.end(); ++it)
 		{
 			double snorm2 = it->first->norm2(uFine);
-			unorm2 += it->second * snorm2;
-			// std::cerr << "norm2:" << snorm2*snorm << std::endl;
+			unorm2 += it->second * snorm2; 						// scaling
+			UG_LOG("composite-norm2:\t" << snorm2 << "\t*\t" << it->second
+					<< "\t=\t" << it->second * snorm2 << std::endl);
 		}
+		UG_LOG("composite-norm2-final:\t" << unorm2 << std::endl);
 		return unorm2;
 	}
 
@@ -854,9 +877,11 @@ public:
 					it!= m_spWeightedSubspaces.end(); ++it)
 		{
 			double sdist2 = it->first->distance2(uFine, uCoarse);
-			unorm2 += it->second * sdist2;
-			//	std::cerr << "distance:" << sdist2 << std::endl;
+			unorm2 += it->second * sdist2; // scaling
+			UG_LOG("composite-dist2:\t" << sdist2 << "\t*\t" << it->second
+					<< "\t=\t" << it->second * sdist2 << std::endl);
 		}
+		UG_LOG("composite-dist2-final:\t" << unorm2 << std::endl);
 		return unorm2;
 	}
 

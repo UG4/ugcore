@@ -83,7 +83,7 @@ void InitUG(int dim, const AlgebraType& algType, bool verbose)
 	const std::string& algTag = GetAlgebraTag(algType);
 	int blocksize = algType.blocksize();
 	if( (blocksize < 0 || blocksize > 6) && blocksize != AlgebraType::VariableBlockSize)
-		UG_THROW("ERROR in InitUG: Only Algebra Blocksizes '1x1', '2x2', '3x3', '4x4', '5x5', 6x6 and 'variable' are supported.");
+		UG_THROW("ERROR in InitUG: Only Algebra Blocksizes '1x1', '2x2', '3x3', '4x4', '5x5', '6x6' and 'variable' are supported.");
 	
 	#ifdef UG_ALGEBRA
 			if(algType.type() == AlgebraType::CPU)
@@ -246,6 +246,7 @@ void RegisterStandardBridges(Registry& reg, string parentGroup)
 			RegisterBridge_Schur(reg, parentGroup);
 			RegisterBridge_Obstacle(reg, parentGroup);
 			RegisterBridge_PILUT(reg, parentGroup);
+			RegisterBridge_AlgebraOrdering(reg, parentGroup);
 			RegisterBridge_Solver(reg, parentGroup);
 			RegisterBridge_Eigensolver(reg, parentGroup);
 			RegisterBridge_DomainDependentPreconditioner(reg, parentGroup);

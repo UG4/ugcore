@@ -134,7 +134,8 @@ public:
 	)
 	const
 	{
-		UG_THROW("SubsetIndicatorUserData: Element required for evaluation, but not passed. Cannot evaluate.");
+	//	Check if si is in one of the specified subsets:
+		vValue = (m_ssGrp.contains (si))? 1 : 0;
 	}
 
 ///	This function should not be used
@@ -147,7 +148,129 @@ public:
 		const size_t nip
 	) const
 	{
-		UG_THROW("SubsetIndicatorUserData: Element required for evaluation, but not passed. Cannot evaluate.");
+	//	Check if si is in one of the specified subsets:
+		number indicator = (m_ssGrp.contains (si))? 1 : 0;
+	//	Return the indicator:
+		for (size_t i = 0; i < nip; i++)
+			vValue [i] = indicator;
+	}
+};
+
+/// "Heaviside step function" based on the value of values of a further userdata
+/**
+ * This class implements the UserData that returns 1 if the given user data is greater/less
+ * or equal than a given value.
+ */
+template <typename TDomain>
+class ValueIndicatorUserData
+	: public StdUserData<ValueIndicatorUserData<TDomain>, number, TDomain::dim, void, UserData<number, TDomain::dim, void> >
+{
+///	the world dimension
+	static const int dim = TDomain::dim;
+	
+///	the domain type
+	typedef TDomain domain_type;
+	
+///	the grid type
+	typedef typename TDomain::grid_type grid_type;
+	
+///	the original data
+	SmartPtr<UserData<number, dim, void> > m_spData;
+	
+///	the threshold value
+	number m_threshold;
+	
+///	if less or greater
+	bool m_greater;
+	
+public:
+
+///	constructor
+	ValueIndicatorUserData
+	(
+		SmartPtr<UserData<number, dim, void> > spData, ///< the original data
+		number threshold, ///< the threshold value
+		bool greater ///< if greater or less
+	)
+	:	m_spData (spData), m_threshold (threshold), m_greater (greater)
+	{
+		if (m_spData.invalid ())
+			UG_THROW ("ValueIndicatorUserData: No userdata specified!");
+	}
+
+///	Indicator functions are discontinuous
+	virtual bool continuous () const {return m_spData->continuous ();}
+
+///	Returns true to get the grid element in the evaluation routine
+	virtual bool requires_grid_fct () const {return m_spData->requires_grid_fct ();}
+
+///	Evaluator
+	template <int refDim>
+	inline void evaluate
+	(
+		number vValue [],
+		const MathVector<dim> vGlobIP [],
+		number time,
+		int si,
+		GridObject * elem,
+		const MathVector<dim> vCornerCoords [],
+		const MathVector<refDim> vLocIP [],
+		const size_t nip,
+		LocalVector * u,
+		const MathMatrix<refDim, dim> * vJT = NULL
+	) const
+	{
+	//	Call the original UserData, get the values
+		(* m_spData) (vValue, vGlobIP, time, si, elem, vCornerCoords, vLocIP, nip, u, vJT);
+	
+	//	Reset the values
+		reset_values (vValue, nip);
+	};
+	
+///	This function should not be used
+	void operator()
+	(
+		number & vValue,
+		const MathVector<dim> & globIP,
+		number time,
+		int si
+	)
+	const
+	{
+	//	Call the original UserData, get the values
+		(* m_spData) (vValue, globIP, time, si);
+	
+	//	Reset the values
+		reset_values (&vValue, 1);
+	}
+
+///	This function should not be used
+	void operator()
+	(
+		number vValue [],
+		const MathVector<dim> vGlobIP [],
+		number time,
+		int si,
+		const size_t nip
+	) const
+	{
+	//	Call the original UserData, get the values
+		(* m_spData) (vValue, vGlobIP, time, si, nip);
+	
+	//	Reset the values
+		reset_values (vValue, nip);
+	}
+	
+private:
+	
+	void reset_values (number vValue [], const size_t nip) const
+	{
+		if (m_greater)
+			for (size_t i = 0; i < nip; i++)
+				if (vValue[i] >= m_threshold) vValue[i] = 1; else vValue[i] = 0;
+		else
+			for (size_t i = 0; i < nip; i++)
+				if (vValue[i] <= m_threshold) vValue[i] = 1; else vValue[i] = 0;
 	}
 };
 

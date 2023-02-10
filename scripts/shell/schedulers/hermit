@@ -102,6 +102,10 @@ function UJS_GetOptions
 		nppnmax=32
 		pemax=113664
 		nppnmaxSingleThread=32
+ 	elif [ $UGSUBMIT_TYPE == "Hawk" ]; then
+                nppnmax=64
+                pemax=720896
+                nppnmaxSingleThread=64
 	else
 		echo "WARNING: Unknown platform. guessed default values for MaxNumProcsPerNode (nppnmax) and MaxProcs (pemax) may be wrong."
 		nppnmax=32

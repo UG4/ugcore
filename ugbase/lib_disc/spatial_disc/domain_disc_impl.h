@@ -41,6 +41,7 @@
 #ifdef UG_PARALLEL
 #include "lib_disc/parallelization/parallelization_util.h"
 #endif
+#include "lib_grid/algorithms/debug_util.h"
 
 namespace ug{
 
@@ -187,6 +188,10 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 		{
 		switch(dim)
 		{
+		case 0:
+			this->template AssembleMassMatrix<RegularVertex>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u);
+			break;
 		case 1:
 			this->template AssembleMassMatrix<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u);
@@ -343,6 +348,10 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 		{
 		switch(dim)
 		{
+		case 0:
+			this->template AssembleStiffnessMatrix<RegularVertex>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u);
+			break;
 		case 1:
 			this->template AssembleStiffnessMatrix<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u);
@@ -526,7 +535,7 @@ assemble_jacobian(matrix_type& J,
 		{
 		case 0:
 			this->template AssembleJacobian<RegularVertex>
-						(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU);
 			break;
 		case 1:
 			this->template AssembleJacobian<RegularEdge>
@@ -699,6 +708,10 @@ assemble_defect(vector_type& d,
 		{
 		switch(dim)
 		{
+		case 0:
+			this->template AssembleDefect<RegularVertex>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU);
+			break;
 		case 1:
 			this->template AssembleDefect<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU);
@@ -868,6 +881,10 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		{
 		switch(dim)
 		{
+		case 0:
+			this->template AssembleLinear<RegularVertex>
+					(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs);
+			break;
 		case 1:
 			this->template AssembleLinear<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs);
@@ -1025,6 +1042,10 @@ assemble_rhs(vector_type& rhs,
 		{
 		switch(dim)
 		{
+		case 0:
+			this->template AssembleRhs<RegularVertex>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u);
+			break;
 		case 1:
 			this->template AssembleRhs<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u);
@@ -1260,6 +1281,10 @@ prepare_timestep_elem(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		{
 		switch(dim)
 		{
+		case 0:
+			this->template PrepareTimestepElem<RegularVertex>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
+			break;
 		case 1:
 			this->template PrepareTimestepElem<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
@@ -1762,6 +1787,10 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		{
 		switch(dim)
 		{
+		case 0:
+			this->template AssembleLinear<RegularVertex>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff);
+			break;
 		case 1:
 			this->template AssembleLinear<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff);
@@ -1926,6 +1955,10 @@ assemble_rhs(vector_type& rhs,
 		{
 		switch(dim)
 		{
+		case 0:
+			this->template AssembleRhs<RegularVertex>
+			 	 (vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff);
+			break;
 		case 1:
 			this->template AssembleRhs<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff);
@@ -1975,7 +2008,7 @@ assemble_rhs(vector_type& rhs,
 			if(m_vConstraint[i]->type() & type)
 			{
 				m_vConstraint[i]->set_ass_tuner(m_spAssTuner);
-				m_vConstraint[i]->adjust_rhs(rhs, rhs, dd, type, vSol->time(0));
+				m_vConstraint[i]->adjust_rhs(rhs, *(vSol->solution(0)), dd, type, vSol->time(0));
 			}
 	}
 	} UG_CATCH_THROW("Cannot adjust linear.");
@@ -2101,7 +2134,7 @@ calc_error
 (
 	const vector_type& u,
 	ConstSmartPtr<DoFDistribution> dd,
-	vector_type* u_vtk
+	error_vector_type* u_vtk
 )
 {
 	PROFILE_FUNC_GROUP("error_estimator");
@@ -2271,8 +2304,6 @@ calc_error
 	typedef typename domain_traits<dim>::element_type elem_type;
 	typedef typename SurfaceView::traits<elem_type>::const_iterator elem_iter_type;
 
-	// default value negative in order to distinguish between newly added elements (e.g. after refinement)
-	// and elements which an error indicator is known for
 	m_mgElemErrors.attach_indicators(pMG);
 
 	// loop surface elements
@@ -2301,10 +2332,10 @@ calc_error
 		LocalIndices ind; LocalVector locU;
 
 		// cast u_vtk to grid_function
-		GridFunction<TDomain,TAlgebra>* uVTK = dynamic_cast<GridFunction<TDomain,TAlgebra>*>(u_vtk);
+		GridFunction<TDomain, CPUAlgebra>* uVTK = dynamic_cast<GridFunction<TDomain, CPUAlgebra>*>(u_vtk);
 		if (!uVTK)
 		{
-			UG_THROW("Argument passed as output for error function is not a GridFunction.");
+			UG_THROW("Argument passed as output for error function is not a GridFunction of suitable type.");
 		}
 
 		// clear previous values
@@ -2317,6 +2348,14 @@ calc_error
 		{
 			// 	get global indices
 			uVTK->approx_space()->dof_distribution(gl)->indices(*elem, ind, false);
+
+			UG_COND_THROW(ind.num_fct() != 1,
+				"Number of functions in grid function passed for error indicator values is not 1 on "
+				<< ElementDebugInfo(*uVTK->domain()->grid(), *elem) << ".");
+
+			UG_COND_THROW(ind.num_dof(0) != 1,
+				"Number of DoFs in grid function passed for error indicator values is not 1 on "
+				<< ElementDebugInfo(*uVTK->domain()->grid(), *elem) << ".");
 
 			// 	adapt local algebra
 			locU.resize(ind);
@@ -2379,7 +2418,7 @@ calc_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		   ConstSmartPtr<DoFDistribution> dd,
 		   const std::vector<number>& vScaleMass,
 		   const std::vector<number>& vScaleStiff,
-		   vector_type* u_vtk)
+		   error_vector_type* u_vtk)
 {
 	PROFILE_FUNC_GROUP("error_estimator");
 
@@ -2528,8 +2567,6 @@ calc_error(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 	typedef typename domain_traits<dim>::element_type elem_type;
 	typedef typename SurfaceView::traits<elem_type>::const_iterator elem_iter_type;
 
-	// default value negative in order to distinguish between newly added elements (e.g. after refinement)
-	// and elements which an error indicator is known for
 	m_mgElemErrors.attach_indicators(pMG);
 
 	// loop surface elements
@@ -2755,6 +2792,10 @@ finish_timestep_elem(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		{
 		switch(dim)
 		{
+		case 0:
+			this->template FinishTimestepElem<RegularVertex>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);
+			break;
 		case 1:
 			this->template FinishTimestepElem<RegularEdge>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol);

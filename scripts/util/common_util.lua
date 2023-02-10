@@ -157,6 +157,11 @@ function common:scandir(directory_, extension_)
    return filetab
 end
 
+--! returns the path separator used by the current OS
+function common:path_sep()
+   return package.config:sub(1,1)
+end
+
 --! list all ugx files
 -- @param directory
 -- @param extension

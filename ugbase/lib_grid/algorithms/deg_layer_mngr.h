@@ -44,11 +44,16 @@
 // ug4 headers
 #include "common/common.h"
 #include "common/util/smart_pointer.h"
+#include "lib_grid/grid/grid.h"
 #include "lib_grid/tools/subset_group.h"
 #include "lib_grid/tools/subset_handler_multi_grid.h"
 #include "lib_grid/algorithms/subset_dim_util.h"
 #include "lib_grid/grid_objects/grid_dim_traits.h"
 #include "lib_grid/refinement/global_fractured_media_refiner.h"
+#ifdef UG_PARALLEL
+#include "lib_grid/parallelization/distributed_grid.h"
+#include "lib_grid/parallelization/util/attachment_operations.hpp"
+#endif
 
 namespace ug {
 

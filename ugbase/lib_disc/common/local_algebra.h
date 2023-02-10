@@ -162,6 +162,16 @@ class LocalIndices
 			check_dof(fct, dof);
 			return m_vvIndex[fct][dof][1];
 		}
+	
+	///	checks if the local index object references a given index
+		bool contains_index(index_type ind)
+		{
+			for(size_t fct = 0; fct < num_fct(); fct++)
+				for(size_t dof = 0; dof < num_dof(fct); dof++)
+					if(m_vvIndex[fct][dof][0] == ind)
+						return true;
+			return false;
+		}
 
 	protected:
 	///	checks correct fct index in debug mode
@@ -217,6 +227,22 @@ class LocalVector
 		///////////////////////////
 		// vector functions
 		///////////////////////////
+
+	this_type& operator=(const this_type& other)
+	{
+		m_pIndex = other.m_pIndex;
+		const size_t numFcts = m_pIndex->num_fct();
+		m_vvValue.resize(numFcts);
+		for (size_t fct = 0; fct < numFcts; ++fct)
+			m_vvValue[fct].resize(m_pIndex->num_dof(fct));
+		m_vvValueAcc.resize(numFcts);
+		if (other.m_pFuncMap)
+			access_by_map(*other.m_pFuncMap);
+		else
+			access_all();
+
+		return *this;
+	}
 
 	/// set all components of the vector
 		this_type& operator=(number val)

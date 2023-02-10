@@ -36,8 +36,7 @@
 #include "common/common.h"
 #include "common/profiler/profiler.h"
 #include "common/error.h"
-#include "common/cuthill_mckee.h"
-//#include "lib_disc/dof_manager/ordering/cuthill_mckee.h"
+#include "lib_algebra/ordering_strategies/algorithms/native_cuthill_mckee.h"
 #include <vector>
 
 namespace ug{
@@ -63,6 +62,7 @@ static void SetMatrixAsPermutation(TMatrix &PA, const TMatrix &A, const std::vec
 		}
 	}
 }
+
 
 /**
  * Function to compute a permutation of a vector
@@ -91,8 +91,10 @@ bool GetInversePermutation(const std::vector<size_t> &perm, std::vector<size_t> 
  * @param mat 			A sparse matrix
  * @param newIndex		the cuthill-mckee ordered new indices
  */
+// /todo move this to a proper place and remove ordering_strategies dependency
+
 template<typename TSparseMatrix>
-void GetCuthillMcKeeOrder(const TSparseMatrix &mat, std::vector<size_t> &newIndex)
+void GetCuthillMcKeeOrder(const TSparseMatrix &mat, std::vector<size_t> &newIndex, bool reverse=true, bool bPreserveConsec=false)
 {
 	std::vector<std::vector<size_t> > neighbors;
 	neighbors.resize(mat.num_rows());
@@ -107,9 +109,51 @@ void GetCuthillMcKeeOrder(const TSparseMatrix &mat, std::vector<size_t> &newInde
 		//	"lead to problems and is therefore disallowed.");
 	}
 
-	ComputeCuthillMcKeeOrder(newIndex, neighbors, true, false);
+	ComputeCuthillMcKeeOrder(newIndex, neighbors, reverse, bPreserveConsec);
 }
 /// @}
+
+
+#ifndef HAVE_BOOL
+#define HAVE_BOOL
+
+class BOOL{
+public:
+	BOOL() : value_(bool()){}
+	BOOL(bool const& t): value_(t) {}
+	operator bool() const { return value_; }
+private:
+	char value_;
+};
+
+#endif
+
+#ifndef HAVE_IS_PERMUTATION
+#define HAVE_IS_PERMUTATION
+
+template <typename O_t>
+bool is_permutation(O_t &o){
+	std::vector<BOOL> container(o.size(), false);
+	for(unsigned i = 0; i < o.size(); ++i){
+		if(!container[o[i]]){
+			container[o[i]] = true;
+		}
+		else{
+			return false; //no doubles allowed
+		}
+	}
+
+	for(unsigned i = 0; i < o.size(); ++i){
+		if(!container[i]){
+			return false;
+		}
+	}
+
+	return true;
+}
+
+#endif
+
 } // end namespace ug
 
 

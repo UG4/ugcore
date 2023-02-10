@@ -40,6 +40,8 @@
 #include "lib_disc/parallelization/parallelization_util.h"
 #endif
 
+#include "lib_disc/assemble_interface.h"
+
 namespace ug{
 
 ///	matrix operator based on the assembling of a problem

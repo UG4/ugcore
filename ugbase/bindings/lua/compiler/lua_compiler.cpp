@@ -74,9 +74,9 @@ bool LUACompiler::createC(const char *functionName, LuaFunctionHandle* pHandle)
 		LUAParserClass parser;
 		int ret = 0;
 		if(pHandle == NULL){
-			parser.parse_luaFunction(functionName);
+			ret = parser.parse_luaFunction(functionName);
 		} else {
-			parser.parse_luaFunction(*pHandle);
+			ret = parser.parse_luaFunction(*pHandle);
 		}
 		if(ret == LUAParserClass::LUAParserError)
 		{

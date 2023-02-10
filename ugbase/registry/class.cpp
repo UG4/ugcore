@@ -264,6 +264,19 @@ get_constructor(size_t i) const
 	return *(m_vConstructor[i].m_constructor);
 }
 
+const boost::optional<ExportedConstructor&> ExportedClassBaseImpl::
+get_json_constructor() const
+{
+	if(!is_json_constructible()) 
+		return boost::none;
+
+	for(size_t i = 0; i < m_vConstructor.size(); ++i)
+		if(m_vConstructor[i].m_typeID == GetUniqueTypeID<void (*)(const char*)>())
+			return *(m_vConstructor[i].m_constructor);
+
+	return boost::none;
+}
+
 bool ExportedClassBaseImpl::
 construct_as_smart_pointer() const
 {

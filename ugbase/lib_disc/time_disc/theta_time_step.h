@@ -38,9 +38,10 @@
 #include <cmath>
 
 // other ug libraries
+#include "lib_algebra/cpu_algebra_types.h"
 #include "common/common.h"
 
-// modul intern libraries
+// module-intern libraries
 #include "lib_disc/time_disc/time_disc_interface.h"
 #include "lib_disc/local_finite_element/common/lagrange1d.h"
 
@@ -63,6 +64,9 @@ class MultiStepTimeDiscretization
 
 	/// Type of algebra vector
 		typedef typename algebra_type::vector_type vector_type;
+
+	/// Type of algebra vector
+		typedef typename CPUAlgebra::vector_type error_vector_type;
 
 	/// Domain Discretization type
 		typedef IDomainDiscretization<algebra_type>	domain_discretization_type;
@@ -113,9 +117,9 @@ class MultiStepTimeDiscretization
 	/// Error estimator												///
 
 	/// calculates error indicators for elements from error estimators
-		void calc_error(const vector_type& u, vector_type* u_vtk);
+		void calc_error(const vector_type& u, error_vector_type* u_vtk);
 		void calc_error(const vector_type& u) {calc_error(u, NULL);};
-		void calc_error(const vector_type& u, vector_type& u_vtk){calc_error(u, &u_vtk);};
+		void calc_error(const vector_type& u, error_vector_type& u_vtk){calc_error(u, &u_vtk);};
 
 	/// marks error indicators as invalid; in order to revalidate them,
 	/// they will have to be newly calculated by a call to calc_error

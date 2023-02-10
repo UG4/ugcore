@@ -289,12 +289,13 @@ class VectorDebugWritingObject
 	/// returns true if the debug writer is set
 		bool vector_debug_writer_valid() const {return m_spVectorDebugWriter.valid();}
 	
-	protected:
 	///	writing debug output for a vector (if debug writer set)
 		void write_debug(const vector_type& vec, const char* filename)
 		{
 			write_debug(vec, std::string (filename));
 		}
+		
+	protected:
 	///	writing debug output for a vector (if debug writer set)
 		virtual void write_debug(const vector_type& vec, std::string name)
 		{

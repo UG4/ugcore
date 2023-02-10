@@ -276,17 +276,18 @@ class SubLocalDoFSet : public DimLocalDoFSet<TDim>
 						//	add
 							vLocalDoF.push_back(LocalDoF(subDim, i, offset));
 							vLocalPos.push_back(locPos);
-
-							this->set(vNumDoF, vLocalDoF, vLocalPos);
 						}
 					}
 				}
+
+				this->set(vNumDoF, vLocalDoF, vLocalPos);
 			}
 		}
 
 	public:
 		virtual ReferenceObjectID roid() const {return m_roid;};
 		virtual size_t num_dof(ReferenceObjectID roid) const {return m_vNumDoF[roid];}
+		virtual size_t num_sh() const {return m_vLocalDoF.size();}
 		virtual const LocalDoF& local_dof(size_t dof) const {return m_vLocalDoF[dof];}
 		virtual bool exact_position_available() const {return m_bExactPos;}
 		virtual bool position(size_t i, MathVector<TDim>& pos) const

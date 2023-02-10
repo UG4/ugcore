@@ -74,7 +74,9 @@ public:
 	{
 		typedef typename domain_traits<dim>::element_type elem_type;
 
-		if (!m_pMG->has_attachment<elem_type>(m_aError))
+		// default value negative in order to distinguish between newly added elements (e.g. after refinement)
+		// and elements which an error indicator is known for
+		if (!pMG->has_attachment<elem_type>(m_aError))
 			pMG->template attach_to_dv<elem_type>(m_aError, -1.0);  // attach with default value
 		m_pMG = pMG;
 		m_aaError = attachment_accessor_type(*m_pMG, m_aError);
@@ -83,6 +85,7 @@ public:
 	/// Detach error indicator from multigrid
 	void detach_indicators()
 	{
+		if (m_pMG.invalid()) return; // no elements attached
 		if (m_pMG->has_attachment<elem_type>(m_aError))
 			m_pMG->template detach_from<elem_type>(m_aError);
 	}

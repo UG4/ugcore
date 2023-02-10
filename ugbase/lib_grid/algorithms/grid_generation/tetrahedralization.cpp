@@ -37,13 +37,31 @@
 #include "../remove_duplicates_util.h"
 
 #ifdef UG_TETGEN
+	#define TETLIBRARY
 	#include "tetgen.h"
 #endif
 
+static char const* sTetgenMissing = "Tetrahedralization failed since Tetgen is not available in the current build.\n"
+                                    "In order to compile with Tetgen, please install Tetgen through `ughub install tetgen`\n"
+                                    "and enable Tetgen in your build using `cmake -Dtetgen=ON -DLINK_TETGEN=ON .`";
 using namespace std;
 
 namespace ug
 {
+
+#ifdef UG_TETGEN
+const char* VerbosityToTetgenParam(int verbosity)
+{
+	if (verbosity <= 0)
+		return "";
+	else if(verbosity == 1)
+		return "V";
+	else if(verbosity == 2)
+		return "VV";
+	else
+		return "VVV";
+}
+#endif
 
 static bool PerformTetrahedralization(Grid& grid,
 										ISubsetHandler* pSH,
@@ -275,8 +293,7 @@ static bool PerformTetrahedralization(Grid& grid,
 	return true;
 
 #else
-	UG_THROW("\nPerformTetrahedralization: Tetgen is not available in the "
-			"current build.\nRecompile with Tetgen support to use tetrahedralization.\n");
+	UG_THROW("\nPerformTetrahedralization: " << sTetgenMissing);
 #endif
 
 }
@@ -490,8 +507,7 @@ static bool PerformRetetrahedralization(Grid& grid,
 	return true;
 
 #else
-	UG_LOG("WARNING in PerformRetetrahedralization: Tetgen is not available in the "
-			"current build. Please consider recompiling with Tetgen support enabled.\n");
+  UG_THROW("\nPerformRetetrahedralization: " << sTetgenMissing);
 	return false;
 #endif
 

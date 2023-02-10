@@ -38,6 +38,7 @@
 #include <string>
 #include <vector>
 #include <cstring>
+#include "function_traits.h"
 
 namespace ug
 {
@@ -114,6 +115,11 @@ struct CreateParameterInfoOut {
 	static void create(ParameterInfo& stack){
 		CreateParameterInfo<TypeList<TRet> >::create(stack);
 }};
+
+template <>
+struct CreateParameterInfoOut<CustomReturn> {
+	static void create(ParameterInfo& stack){}		
+};
 
 ///	Creation of void return value (template specialization)
 template <>

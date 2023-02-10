@@ -660,7 +660,7 @@ class UserDataIntegrandSq
 
 
 
-//! For arbitrary UserData $f$ and grid functions u_1 and u_2, this class (should) define the integrand $ (f(u_1)- f(u_2))^2$.
+//! For arbitrary UserData \f$f\f$ and grid functions \f$u_1\f$ and \f$u_2\f$, this class (should) define the integrand \f$ (f(u_1)- f(u_2))^2 \f$.
 template <typename TData, typename TGridFunction>
 class UserDataDistIntegrandSq
 		: public StdIntegrand<number, TGridFunction::dim, UserDataDistIntegrandSq<TData, TGridFunction> >
@@ -957,6 +957,111 @@ number Integral(const char* luaFct, SmartPtr<TGridFunction> spGridFct)
 #endif
 
 
+
+template <typename TGridFunction>
+class MaximumDistIntegrand
+	: public StdIntegrand<number, TGridFunction::dim, MaximumDistIntegrand<TGridFunction> >
+{
+	public:
+	///	world dimension of grid function
+		static const int worldDim = TGridFunction::dim;
+
+	protected:
+		ScalarGridFunctionData<TGridFunction> m_scalarData;
+
+		double m_max, m_min;
+
+	public:
+	/// constructor
+		MaximumDistIntegrand(TGridFunction& gridFct, size_t cmp)
+
+		: m_scalarData(gridFct, cmp),
+			m_max(-std::numeric_limits<float>::infinity()),
+			m_min(std::numeric_limits<float>::infinity())
+		{};
+
+		virtual ~MaximumDistIntegrand() {};
+
+	///	sets subset
+		virtual void set_subset(int si)
+		{
+			UG_COND_THROW(!m_scalarData.is_def_in_subset(si), "L2ErrorIntegrand: Grid function component" <<
+							m_scalarData.fct()<<" not defined on subset "<<si);
+			IIntegrand<number, worldDim>::set_subset(si);
+		}
+
+		void reset()
+		{
+			m_min = std::numeric_limits<double>::infinity();
+			m_max = -std::numeric_limits<double>::infinity();
+		}
+
+		double min() { return m_min; }
+		double max() { return m_max; }
+
+	/// \copydoc IIntegrand::values
+		template <int elemDim>
+		void evaluate(number vValue[],
+		              const MathVector<worldDim> vGlobIP[],
+		              GridObject* pElem,
+		              const MathVector<worldDim> vCornerCoords[],
+		              const MathVector<elemDim> vLocIP[],
+		              const MathMatrix<elemDim, worldDim> vJT[],
+		              const size_t numIP)
+		{
+		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
+			const ReferenceObjectID roid = pElem->reference_object_id();
+
+			try{
+				//	get trial space
+				const LocalShapeFunctionSet<elemDim>& rTrialSpace =
+							LocalFiniteElementProvider::get<elemDim>(roid, m_scalarData.id());
+
+				//	number of dofs on element
+				const size_t num_sh = rTrialSpace.num_sh();
+
+				//	get multiindices of element
+				std::vector<DoFIndex> ind;  // 	aux. index array
+				m_scalarData.dof_indices(pElem, ind);
+
+				//	check multi indices
+				UG_COND_THROW(ind.size() != num_sh, "L2ErrorIntegrand::evaluate: Wrong number of multi indices.");
+
+				// 	evaluate function in corners.
+				for(size_t sh = 0; sh < num_sh; ++sh)
+				{
+					//	get value at shape point (e.g. corner for P1 fct)
+					const number val = DoFRef(m_scalarData.grid_function(), ind[sh]);
+
+					m_max = std::max(m_max, val);
+					m_min = std::min(m_min, val);
+				}
+
+
+			} UG_CATCH_THROW("L2ErrorIntegrand::evaluate: trial space missing.");
+		}
+};
+
+
+template <typename TGridFunction>
+number GetMinimum(TGridFunction &gridFct, const char* cmp, const char* subsets)
+{
+	//	get function id of name & check that function exists
+	const size_t fct = gridFct.fct_id_by_name(cmp);
+	UG_COND_THROW(fct >= gridFct.num_fct(),
+				"L2Error: Function space does not contain a function with name " << cmp << ".");
+
+	// Find minimum.
+	MaximumDistIntegrand<TGridFunction> spIntegrand(gridFct, fct);
+	IntegrateSubsets(spIntegrand, gridFct, subsets, 2);
+	return spIntegrand.min();
+}
+
+template <typename TGridFunction>
+number Minimum(SmartPtr<TGridFunction> spGridFct, const char* cmp, const char* subsets)
+{ return GetMinimum(*spGridFct, cmp, subsets); }
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // L2 Error Integrand
 ////////////////////////////////////////////////////////////////////////////////
@@ -1055,6 +1160,12 @@ class L2ErrorIntegrand
 			UG_CATCH_THROW("L2ErrorIntegrand::evaluate: trial space missing.");
 		}
 };
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// L2 Error Integrand
+////////////////////////////////////////////////////////////////////////////////
 
 /// computes the l2 error function on the whole domain or on some subsets
 /**
@@ -2438,7 +2549,7 @@ class H1EnergyIntegrand
 
 /// compute energy -norm of a function on the whole domain (or on selected subsets)
 /**
- * This function computes the integral over  \f$ \| q  \|^2 \f where the velocity is given by \f$ q:= \kappa \nabla u\f$ of a grid function u.
+ * This function computes the integral over  \f$ \| q  \|^2 \f$ where the velocity is given by \f$ q:= \kappa \nabla u \f$ of a grid function u.
  *
  * \param[in]		spGridFct	grid function
  * \param[in]		cmp			symbolic name of component function
@@ -2490,7 +2601,7 @@ number H1EnergyNorm( SmartPtr<TGridFunction> spGridFct, const char* cmp, int qua
 
 
 
-/// Integrand for the distance of two grid functions - evaluated in the norm |D \nabla u|^2
+/// Integrand for the distance of two grid functions - evaluated in the norm \f$ |D \nabla u|^2 \f$
 template <typename TGridFunction>
 class H1EnergyDistIntegrand
 		: public StdIntegrand<number, TGridFunction::dim, H1EnergyDistIntegrand<TGridFunction> >

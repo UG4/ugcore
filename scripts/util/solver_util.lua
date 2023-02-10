@@ -103,11 +103,11 @@ here someApproxSpace points to a previously created approximation space
 		precond = 
 		{	
 			type 		= "gmg",	-- preconditioner ["gmg", "ilu", "ilut", "jac", "gs", "sgs"]
-			smoother 	= "gs",		-- gmg-smoother ["ilu", "ilut", "jac", "gs", "sgs"]
+			smoother 	= "gs",	-- gmg-smoother ["ilu", "ilut", "jac", "gs", "sgs"]
 			cycle		= "V",		-- gmg-cycle ["V", "F", "W"]
 			preSmooth	= 3,		-- number presmoothing steps
 			postSmooth 	= 3,		-- number postsmoothing steps
-			rap			= false,	-- comutes RAP-product instead of assembling if true 
+			rap		= false,	-- comutes RAP-product instead of assembling if true
 			baseLevel	= 0,		-- gmg - baselevel
 			baseSolver	= {			-- better options are most likely "lu" or "superlu"
 				type	  = "bicgstab",
@@ -117,7 +117,7 @@ here someApproxSpace points to a previously created approximation space
 					iterations	= 1000,
 					absolute	= 1e-12,
 					reduction	= 1e-10,	-- higher values may suffice and may be much
-											-- more efficent (e.g. 1e-2, 1e-4, ...).
+										-- more efficent (e.g. 1e-2, 1e-4, ...).
 					verbose		= false
 				}
 			},
@@ -214,7 +214,7 @@ to obtain the described solved.
 \code
 {
 	type		= "linear",
-	precond		= "ilu",
+	precond	= "ilu",
 	convCheck	= "standard"
 }
 \endcode
@@ -223,7 +223,7 @@ to obtain the described solved.
 \code
 {
 	type		= "cg",
-	precond		= "ilu",
+	precond	= "ilu",
 	convCheck	= "standard"
 }
 \endcode
@@ -232,7 +232,7 @@ to obtain the described solved.
 \code
 {
 	type		= "bicgstab",
-	precond		= "ilu",
+	precond	= "ilu",
 	convCheck	= "standard"
 }
 \endcode
@@ -248,21 +248,21 @@ parameters.
 {
 	type 							= "gmg",
 	adaptive 						= false,
-	approxSpace 					= nil,
+	approxSpace 						= nil,
 	baseLevel 						= 0,
-	baseSolver 						= "lu",		-- any solver listed in the 'Solvers' section
+	baseSolver 						= "lu",	-- any solver listed in the 'Solvers' section
 	cycle 							= "V",
 	discretization 					= nil,		-- only necessary if the underlying matrix is not of type AssembledLinearOperator
-	gatheredBaseSolverIfAmbiguous	= false,
+	gatheredBaseSolverIfAmbiguous				= false,
 	preSmooth 						= 3,
 	postSmooth 						= 3,
 	rap 							= false,
 	rim 							= false,
-	emulateFullRefined 				= false,
-	smoother 						= "gs",		-- any preconditioner listed in the 'Preconditioners' section
+	emulateFullRefined 					= false,
+	smoother 						= "gs",	-- any preconditioner listed in the 'Preconditioners' section
 	transfer 						= "std",	-- any transfer listed in the 'Transfers' section
 	debug 							= false,
-	mgStats							= nil		-- any mgStats listed in the 'MGStats' section
+	mgStats						= nil		-- any mgStats listed in the 'MGStats' section
 }
 \endcode
 
@@ -274,7 +274,7 @@ parameters.
 	beta 			= 0,
 	damping 		= 1,
 	sortEps 		= 1.e-50,
-	inversionEps 	= 1.e-8
+	inversionEps 		= 1.e-8
 }
 \endcode
 
@@ -335,7 +335,7 @@ parameters.
 {
 	type 			= "schur",
 	dirichletSolver	= "lu",
-	skeletonSolver	= "lu"
+	skeletonSolver		= "lu"
 }
 \endcode
 
@@ -352,7 +352,7 @@ default parameters.
 	iterations	= 100,
 	absolute	= 1e-12,
 	reduction	= 1e-6,
-	verbose		= true
+	verbose	= true
 }
 \endcode
 
@@ -365,9 +365,9 @@ default parameters.
 \code
 {
 	type				= "std",
-	restrictionDamp 	= 1.0,
-	prolongationDamp 	= 1.0,
-	enableP1LagrangeOptimization = true,
+	restrictionDamp 		= 1.0,
+	prolongationDamp 		= 1.0,
+	enableP1LagrangeOptimization   = true,
 	debug 				= false
 }
 \endcode
@@ -384,7 +384,7 @@ default parameters.
 	type			= "standard",
 	maxSteps		= 10,
 	lambdaStart		= 1,
-	lambdaReduce	= 0.5,
+	lambdaReduce		= 0.5,
 	acceptBest 		= true,
 	checkAll		= false
 }
@@ -400,9 +400,9 @@ They add some overhead, so one should only use them for debugging.
 <h3>MGStats</h3>
 \code
 {
-	type			= "standard",
+	type		= "standard",
 	filenamePrefix	= "mgstats",
-	exitOnError		= false,
+	exitOnError	= false,
 	writeErrVecs	= false,
 	writeErrDiffs	= false,
 	activeStages	= nil
@@ -438,17 +438,17 @@ util.solver.defaults =
 	linearSolver = 
 	{
 		linear = {
-			precond		= "ilu",
+			precond	= "ilu",
 			convCheck	= "standard"
 		},
 
 		cg = {
-			precond		= "ilu",
+			precond	= "ilu",
 			convCheck	= "standard"
 		},
 
 		bicgstab = {
-			precond		= "ilu",
+			precond	= "ilu",
 			convCheck	= "standard"
 		},
 		
@@ -489,23 +489,25 @@ util.solver.defaults =
 			damping 		= 1,
 			sort			= false,
 			sortEps 		= 1.e-50,
-			inversionEps 	= 1.e-8,
-			consistentInterfaces = false,
-			overlap 		= false
+			inversionEps 		= 1.e-8,
+			consistentInterfaces   = false,
+			overlap 		= false,
+			ordering 		= nil
 		},
 
 		ilut = {
-			threshold = 1e-6
+			threshold = 1e-6,
+			ordering = "NativeCuthillMcKee"
 		},
 		
 		gs = {
-			consistentInterfaces = false,
-			overlap 			 = false
+			consistentInterfaces 	= false,
+			overlap 	 	= false
 		},
 
 		sgs = {
-			consistentInterfaces = false,
-			overlap 			 = false
+			consistentInterfaces	= false,
+			overlap		= false
 		},
 
 		jac = {
@@ -514,7 +516,7 @@ util.solver.defaults =
 
 		schur = {
 			dirichletSolver	= "lu",
-			skeletonSolver	= "lu"
+			skeletonSolver		= "lu"
 		}
 	},
 	
@@ -533,8 +535,8 @@ util.solver.defaults =
 		standard = {
 			iterations	= 100,		-- number of iterations
 			absolute	= 1e-12,	-- absolute value of defect to be reached;
-			reduction	= 1e-6,		-- reduction factor of defect to be reached;
-			verbose		= true
+			reduction	= 1e-6,	-- reduction factor of defect to be reached;
+			verbose	= true
 		}
 	},
 	
@@ -543,7 +545,7 @@ util.solver.defaults =
 		standard = {
 			maxSteps		= 10,
 			lambdaStart		= 1,
-			lambdaReduce	= 0.5,
+			lambdaReduce		= 0.5,
 			acceptBest 		= true,
 			checkAll		= false
 		}
@@ -553,9 +555,9 @@ util.solver.defaults =
 	{
 		standard = {
 			filenamePrefix	= "mgstats",
-			exitOnError		= false,
+			exitOnError	= false,
 			writeErrVecs	= false,
-    		writeErrDiffs	= false,
+			writeErrDiffs	= false,
 			activeStages	= nil
 		}
 	},
@@ -663,6 +665,11 @@ function util.solver.CreateLinearSolver(solverDesc, solverutil)
 		linSolver = BiCGStab()
 		createPrecond = true
 		createConvCheck = true
+	
+	elseif name == "gmres" then
+		linSolver = GMRES(5)
+		createPrecond = true
+		createConvCheck = true
 
 	elseif name == "lu"	then
 		if HasClassGroup("SuperLU") then
@@ -715,7 +722,6 @@ function util.solver.CreateLinearSolver(solverDesc, solverutil)
 end
 
 function util.solver.CreateTransfer(transferDesc, solverutil)
-
 	local name, desc = util.tableDesc.ToNameAndDesc(transferDesc)
 	local defaults   = util.solver.defaults.transfer[name]
 	if desc == nil then desc = defaults end
@@ -741,6 +747,46 @@ function util.solver.CreateTransfer(transferDesc, solverutil)
 	return transfer
 end
 
+function util.solver.CreateOrdering(orderingDesc, solverutil)
+	if orderingDesc == nil then return nil end
+
+	local name, desc = util.tableDesc.ToNameAndDesc(orderingDesc)
+
+	local ordering = nil
+
+	--lib_algebra dependent
+	if name == "NativeCuthillMcKee" then
+		ordering = NativeCuthillMcKeeOrdering()
+	elseif name == "ReverseNativeCuthillMcKee" then
+		ordering = NativeCuthillMcKeeOrdering()
+		ordering.set_reverse(true)
+	elseif name == "BoostCuthillMcKee" then
+		ordering = BoostCuthillMcKeeOrdering()
+	elseif name == "ReverseBoostCuthillMcKee" then
+		ordering = BoostCuthillMcKeeOrdering()
+		ordering.set_reverse(true)
+	elseif name == "BoostMinimumDegree" then
+		ordering = BoostMinimumDegreeOrdering()
+	elseif name == "Topological" then
+		ordering = TopologicalOrdering()
+	elseif name == "SCC" then
+		ordering = SCCOrdering()
+		ordering:set_ordering_subalgorithm(util.solver.CreateOrdering(desc.subalgo, solverutil))
+	--lib_disc dependent
+	elseif name == "Lex" then
+		ordering = LexOrdering()
+		ordering:set_direction(desc.dir)
+	elseif name == "River" then
+		ordering = RiverOrdering()
+		ordering:select_sources(desc.sources)
+	end
+
+	util.solver.CondAbort(ordering == nil, "Invalid ordering specified: " .. name)
+
+	return ordering
+
+end
+
 -- create a preconditioner
 -- solverutil may be nil
 function util.solver.CreatePreconditioner(precondDesc, solverutil)
@@ -763,11 +809,18 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 		precond:set_beta (desc.beta or defaults.beta)
 		precond:set_damp(desc.damping or defaults.damping)
 		precond:set_sort(desc.sort or defaults.sort)
+		if desc.ordering or (defaults.ordering ~= nil) then
+			precond:set_ordering_algorithm(util.solver.CreateOrdering(desc.ordering or defaults.ordering, solverutil))
+		end
 		precond:set_sort_eps(desc.sortEps or defaults.sortEps)
 		precond:set_inversion_eps(desc.inversionEps or defaults.inversionEps)
 		precond:enable_consistent_interfaces(desc.consistentInterfaces or defaults.consistentInterfaces)
 		precond:enable_overlap(desc.overlap or defaults.overlap)
-	elseif name == "ilut" then precond = ILUT (desc.threshold or defaults.threshold);
+	elseif name == "ilut" then
+		precond = ILUT (desc.threshold or defaults.threshold);
+		if desc.ordering or (defaults.ordering ~= nil) then
+			precond:set_ordering_algorithm(util.solver.CreateOrdering(desc.ordering or defaults.ordering, solverutil))
+		end
 	elseif name == "jac"  then precond = Jacobi (desc.damping or defaults.damping);
 	elseif name == "bgs"  then precond = BlockGaussSeidel ();
 	elseif name == "gs"   then
@@ -778,8 +831,18 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 		precond = SymmetricGaussSeidel ()
 		precond:enable_consistent_interfaces(desc.consistentInterfaces or defaults.consistentInterfaces)
 		precond:enable_overlap(desc.overlap or defaults.overlap)
-	elseif name == "egs"  then precond = ElementGaussSeidel ();
-
+	elseif name == "egs"  then 
+		precond = ElementGaussSeidel();
+	elseif name == "cgs"  then 
+		precond = ComponentGaussSeidel();
+	elseif name == "ssc"  then 
+		print("desc=")
+		print (desc)
+		precond = SequentialSubspaceCorrection(desc.damping or 1.0);
+		local primary = desc.vertex[1]
+		local secondary = desc.vertex[2]
+		local vertex_vanka = VertexCenteredVankaSubspace(primary, secondary)
+		precond:set_vertex_subspace(vertex_vanka)
 	elseif name == "gmg"  then 
 		local smoother =
 				util.solver.CreatePreconditioner(
@@ -797,21 +860,24 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 		end
 
 		local gmg = GeometricMultiGrid(approxSpace)
-		gmg:set_base_solver					(baseSolver)
-		gmg:set_smoother 					(smoother)
-		gmg:set_base_level					(desc.baseLevel or defaults.baseLevel)
-		gmg:set_cycle_type					(desc.cycle or defaults.cycle)
-		gmg:set_num_presmooth				(desc.preSmooth or defaults.preSmooth)
-		gmg:set_num_postsmooth				(desc.postSmooth or defaults.postSmooth)
-		gmg:set_rap 						(desc.rap or defaults.rap)
+		gmg:set_base_solver			(baseSolver)
+		gmg:set_smoother 			(smoother)
+		gmg:set_base_level			(desc.baseLevel or defaults.baseLevel)
+		gmg:set_cycle_type			(desc.cycle or defaults.cycle)
+		gmg:set_num_presmooth			(desc.preSmooth or defaults.preSmooth)
+		gmg:set_num_postsmooth			(desc.postSmooth or defaults.postSmooth)
+		gmg:set_rap 				(desc.rap or defaults.rap)
 		gmg:set_smooth_on_surface_rim		(desc.rim or defaults.rim)
 		gmg:set_emulate_full_refined_grid	(desc.emulateFullRefined or defaults.emulateFullRefined)
 		gmg:set_gathered_base_solver_if_ambiguous (
 				desc.gatheredBaseSolverIfAmbiguous or
 				defaults.gatheredBaseSolverIfAmbiguous)
-
+		
+		if (util.debug_writer) then		 -- quickhack
+			gmg:set_debug(util.debug_writer)
+		end
 		if desc.surfaceLevel then
-			gmg:set_surface_level			(desc.surfaceLevel)
+			gmg:set_surface_level		(desc.surfaceLevel)
 		end
 
 		local transfer = util.solver.CreateTransfer(desc.transfer or defaults.transfer, solverutil)
@@ -853,27 +919,43 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 	end
 
 	util.solver.CondAbort(precond == nil, "Invalid preconditioner specified: " .. name)
+   
+  -- check:   
+  local rprecond  = precond
+  if desc and desc.debugSolver then
+      print(solver)
+      print(precond)
+      local dsolver = util.solver.CreateLinearSolver(desc.debugSolver, solverutil)
+          
+      local err = GridFunction(approxSpace)
+      rprecond = DebugIterator(precond, dsolver)
+      rprecond:set_solution(err)
+      print(rprecond)
+  else  
   
-	-- check:   
-	local rprecond  = precond
-	if desc and desc.debugSolver then
-		print(solver)
-		local dsolver = 
-		  util.solver.CreateLinearSolver(
-			  desc.debugSolver, solverutil)
-			  
-		local err = GridFunction(approxSpace)
-		rprecond = DebugIterator(precond, dsolver)
-		rprecond:set_solution(err)
-	else  
-		
-	end
-	
-	-- create debug writer (optional)
-	util.solver.SetDebugWriter(rprecond, desc, defaults, solverutil)
-	
-	if desc then desc.instance = rprecond end
-	
+  
+   
+  end
+  
+  -- create debug writer (optional)
+  if desc and ((desc.debug == true) or (desc.debugSolver and desc.debugSolver.debug==true)) then
+    if approxSpace == nil then
+      print("An ApproximationSpace is required to create a DebugWriter for the '" .. name .. "'' preconditioner.")
+      print("Consider setting the 'approxSpace' property of your preconditioner,")
+      print("or alternatively the util.solver.defaults.approxSpace property or")
+      print("alternatively set the option 'debug=false' in your preconditioner.")
+      exit()
+    end
+
+    local dbgWriter = GridFunctionDebugWriter(approxSpace)
+    dbgWriter:set_vtk_output(true)
+    dbgWriter:set_conn_viewer_output(true)
+    rprecond:set_debug(dbgWriter)
+  end
+  
+  if desc then desc.instance = rprecond end
+  
+
 	return rprecond
 end
 
@@ -894,10 +976,11 @@ function util.solver.CreateConvCheck(convCheckDesc, solverutil)
 
 	if name == "standard" then
 		cc = ConvCheck()
-		cc:set_maximum_steps	(desc.iterations	or defaults.iterations)
-		cc:set_minimum_defect	(desc.absolute		or defaults.absolute)
-		cc:set_reduction		(desc.reduction		or defaults.reduction)
-		cc:set_verbose			(verbose)
+		cc:set_maximum_steps		(desc.iterations	or defaults.iterations)
+		cc:set_minimum_defect		(desc.absolute		or defaults.absolute)
+		cc:set_reduction		(desc.reduction	or defaults.reduction)
+		cc:set_verbose			(desc.verbose		or false)
+		cc:set_supress_unsuccessful	(desc.always_accept	or false)
 	elseif name == "composite" then
 		local approxSpace = desc.approxSpace or util.solver.defaults.approxSpace
 		if approxSpace == nil then 
@@ -1096,7 +1179,7 @@ end
 --! @param outFilePrefix	(optional) .vtk and .vec files of the solution are stored.
 --! @return					A, u, b, where A is the system matrix, u is the solution
 --!							and b is the right hand side
-function util.solver.SolveLinearProblem(domDisc, solverDesc, outFilePrefix, startValueCB)
+function util.solver.SolveLinearProblem(domainDisc, solverDesc, outFilePrefix, startValueCB)
 	print("")
 	print("util.solver: setting up linear system ...")
 	local A = AssembledLinearOperator(domainDisc)

@@ -28,7 +28,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU Lesser General Public License for more details.
 
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 2.8.12)
 
 project (P_LIB_ALGEBRA)
 
@@ -49,9 +49,9 @@ set(src_Algebra	 ${src_Algebra}
 	common/connection_viewer_output.cpp
 	common/connection_viewer_input.cpp
 	small_algebra/solve_deficit.cpp
-	operator/preconditioner/line_smoothers.cpp
 	operator/linear_solver/analyzing_solver.cpp
 	algebra_common/permutation_util.cpp
+	ordering_strategies/algorithms/native_cuthill_mckee.cpp
 	operator/preconditioner/schur/schur.cpp
 	)
 	

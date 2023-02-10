@@ -275,6 +275,19 @@ number CalculateVolToRMSFaceAreaRatio(Grid& grid, Tetrahedron* tet, TAAPosVRT& a
 	return ratio;
 }
 
+/// Hexahedron
+template <class TAAPosVRT>
+number CalculateVolToRMSFaceAreaRatio(Grid& grid, Hexahedron* hex, TAAPosVRT& aaPos)
+{
+	//PROFILE_FUNC();
+	number ratio;
+
+	//	Calculate the ratio
+	ratio = CalculateHexahedronVolToRMSFaceAreaRatio(grid, hex, aaPos);
+
+	return ratio;
+}
+
 ///	Volume
 template <class TAAPosVRT>
 number CalculateVolToRMSFaceAreaRatio(Grid& grid, Volume* vol, TAAPosVRT& aaPos)
@@ -284,6 +297,11 @@ number CalculateVolToRMSFaceAreaRatio(Grid& grid, Volume* vol, TAAPosVRT& aaPos)
 		case ROID_TETRAHEDRON:
 		{
 			return CalculateVolToRMSFaceAreaRatio(grid, static_cast<Tetrahedron*>(vol), aaPos);
+		}
+
+		case ROID_HEXAHEDRON:
+		{
+			return CalculateVolToRMSFaceAreaRatio(grid, static_cast<Hexahedron*>(vol), aaPos);
 		}
 
 		default:

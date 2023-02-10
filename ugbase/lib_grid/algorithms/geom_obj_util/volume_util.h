@@ -126,6 +126,16 @@ number CalculateTetrahedronVolToRMSFaceAreaRatio(Grid& grid,
 											  	 Tetrahedron* tet,
 												 Grid::VertexAttachmentAccessor<APosition>& aaPos);
 
+////////////////////////////////////////////////////////////////////////////////////////////
+//	CalculateTetrahedronVolToRMSFaceAreaRatio - sgrein
+////////////////////////////////////////////////////////////////////////////////////////////
+UG_API
+number CalculateHexahedronVolToRMSFaceAreaRatio(Grid& grid,
+											  	Hexahedron* hex,
+												Grid::VertexAttachmentAccessor<APosition>& aaPos);
+
+
+
 
 ////////////////////////////////////////////////////////////////////////
 //	PointIsInsideTetrahedron - sreiter

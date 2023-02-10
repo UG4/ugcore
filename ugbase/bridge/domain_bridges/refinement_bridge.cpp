@@ -440,7 +440,7 @@ void MarkForRefinement_VerticesInSphere(TDomain& dom, SmartPtr<IRefiner> refiner
 template <class TDomain>
 void MarkForAdaption_VerticesInSphere(TDomain& dom, SmartPtr<IRefiner> refiner,
                                       const typename TDomain::position_type& center,
-                                      number radius, std::string markType, int maxLvl)
+                                      number radius, std::string markType)
 {
 	MarkForAdaption_VerticesInSphereMaxLvl(dom, refiner, center, radius, markType, -1);	
 }
@@ -1845,7 +1845,8 @@ static void Domain(Registry& reg, string grp)
 	reg.add_function("GlobalSubdivisionDomainRefiner",
 					 &GlobalSubdivisionDomainRefiner<domain_type>, grp, "GlobalSubdivisionDomainRefiner", "dom");
 	reg.add_function("ApplySmoothSubdivisionSurfacesToTopLevel",
-					 (void (*)(ug::MultiGrid&, apos_type&, ug::MGSubsetHandler&, ug::MGSubsetHandler&, const char*)) (&ApplySmoothSubdivisionSurfacesToTopLevel<apos_type>), grp);
+					 (void (*)(ug::MultiGrid&, apos_type&, ug::MGSubsetHandler&, ug::MGSubsetHandler&, const char*, bool))
+					 (&ApplySmoothSubdivisionSurfacesToTopLevel<apos_type>), grp);
 	reg.add_function("ProjectHierarchyToSubdivisionLimit",
 					 &ProjectHierarchyToSubdivisionLimit<apos_type>, grp);
 	reg.add_function("GetDomainPositionAttachment",

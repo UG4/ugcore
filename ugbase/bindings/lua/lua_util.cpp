@@ -97,13 +97,13 @@ bool GetNormalFilename(const string &filename, string &returnedFilename)
 
 
 /**
- * say UG4ROOT is the root path of ug4 (containing ugbase, apps, scripts and so on)
+ * say UG4_ROOT is the root path of ug4 (containing ugbase, apps, scripts and so on)
  * This function will search a file (in this order)
  * 1.) relative to the current script path.
  * 2.) as a normal, i.e. absolute or relative to the working directory, filename
- * 3.) relative to SCRIPT_PATH (normally UG4ROOT/scripts)
- * 4.) relative to APPS_PATH (normally UG4ROOT/apps)
- * 5.) relative to UG4ROOT
+ * 3.) relative to SCRIPT_PATH (normally UG4_ROOT/scripts)
+ * 4.) relative to APPS_PATH (normally UG4_ROOT/apps)
+ * 5.) relative to UG4_ROOT
  * @param filename
  * @param absoluteFilename
  * @return true if a file could be found at one of the locations

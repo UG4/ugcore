@@ -43,6 +43,7 @@
 // lib_disc includes
 #include "lib_disc/domain.h"
 #include "lib_disc/spatial_disc/domain_disc.h"
+#include "lib_disc/spatial_disc/dom_disc_embb.h"
 #include "lib_disc/parallelization/domain_distribution.h"
 #include "lib_disc/function_spaces/grid_function.h"
 
@@ -105,7 +106,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("add_elem_error_indicator", &T::add_elem_error_indicator, "","OPTIONAL: Add element-wise error indicator")
 			.add_method("remove_elem_error_indicator", &T::remove_elem_error_indicator, "","OPTIONAL: Remove element-wise error indicator")
 			.add_method("calc_error", static_cast<void (T::*)(const GridFunction<TDomain, TAlgebra>&)>(&T::calc_error), "", "Calculate element-wise error indicators from error estimator")
-			.add_method("calc_error", static_cast<void (T::*)(const GridFunction<TDomain, TAlgebra>&, typename TAlgebra::vector_type*)>(&T::calc_error), "", "Calculate element-wise error indicators from error estimator")
+			.add_method("calc_error", static_cast<void (T::*)(const GridFunction<TDomain, TAlgebra>&, typename CPUAlgebra::vector_type*)>(&T::calc_error), "", "Calculate element-wise error indicators from error estimator")
 			.add_method("mark_with_strategy", &T::mark_with_strategy)
 			.add_method("invalidate_error", &T::invalidate_error, "", "Marks error indicators as invalid, "
 				"which will prohibit refining and coarsening before a new call to calc_error.")
@@ -123,6 +124,14 @@ static void DomainAlgebra(Registry& reg, string grp)
 		string name = string("IDiscretizationItem").append(suffix);
 		reg.add_class_<T>(name, domDiscGrp);
 		reg.add_class_to_group(name, "IDiscretizationItem", tag);
+	}
+
+//	IInterfaceExtrapolation
+	{
+		typedef IInterfaceExtrapolation<TDomain, TAlgebra> T;
+		string name = string("IInterfaceExtrapolation").append(suffix);
+		reg.add_class_<T>(name,grp);
+		reg.add_class_to_group(name, "IInterfaceExtrapolation", tag);
 	}
 }
 
@@ -238,7 +247,9 @@ static void Algebra(Registry& reg, string grp)
 		std::string name = string("AssTuner");
 		reg.add_class_<T>(name+suffix, grp)
 			.add_method("set_matrix_is_const", &T::set_matrix_is_const, "",
-						"whether matrix is constant in time", "")
+				"whether matrix is constant in time", "")
+			.add_method("set_matrix_structure_is_const", &T::set_matrix_structure_is_const, "",
+				"whether matrix has constant in time structure", "")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name+suffix, name, tag);
 	}

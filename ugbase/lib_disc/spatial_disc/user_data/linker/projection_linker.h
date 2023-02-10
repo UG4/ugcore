@@ -82,7 +82,7 @@ public:
 		this->set_input (0, m_spVector, m_spVector);
 	}
 	
-///	Returns true because without a grid function, we do not get the element to projecto to!
+///	Returns true because without a grid function, we do not get the element to project to!
 	virtual bool requires_grid_fct() const {return true;}
 
 ///	Evaluation with no element is impossible

@@ -12,13 +12,18 @@
 #NecNehalem		qsub+mpirun		4	1024
 #Jugene			LL+mpirun		4	65536
 #Jugene			slurm+aprun		4	65536
+#Hawk			qsub+mpirun
 
 source $scriptpath/clusterdetect
 
 if [ $UGSUBMIT_TYPE == "Hermit" ] || [ $UGSUBMIT_TYPE == "Hazelhen" ] || [ $UGSUBMIT_TYPE == "Hornet" ] || [ $UGSUBMIT_TYPE == "NecNehalem" ] || [ $UGSUBMIT_TYPE == "HermitOrHornet" ]; then
 
 	source $scriptpath/schedulers/hermit
-	
+
+elif [ $UGSUBMIT_TYPE == "Hawk" ]; then
+
+ 	source $scriptpath/schedulers/hawk
+
 elif [ $UGSUBMIT_TYPE == "Jugene" ]; then
 
 	source $scriptpath/schedulers/jugene
@@ -34,6 +39,9 @@ elif [ $UGSUBMIT_TYPE == "Juwels" ]; then
 	
 elif [ $UGSUBMIT_TYPE == "SDCluster" ]; then
 	source $scriptpath/schedulers/sdcluster
+
+elif [ $UGSUBMIT_TYPE == "Shaheen" ]; then
+	source $scriptpath/schedulers/shaheen
 
 elif [ $UGSUBMIT_TYPE == "mpi" ] || [ $UGSUBMIT_TYPE == "mpi-foreground" ]; then
 

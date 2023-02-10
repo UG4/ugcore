@@ -41,6 +41,10 @@
 #include "common/stopwatch.h"
 #include "ug.h"
 
+#ifdef UG_FOR_LUA
+#include "bindings/lua/lua_table_handle.h"
+#endif
+
 using namespace std;
 
 void ug_backtrace();
@@ -267,6 +271,11 @@ bool IsDefinedUG_BRIDGE() { return true; }
 bool IsDefinedUG_BRIDGE() { return false; }
 #endif
 
+#ifdef UG_JSON
+bool IsDefinedUG_JSON() { return true; }
+#else
+bool IsDefinedUG_JSON() { return false; }
+#endif
 
 /// prints CMake build parameters in a quite compact (pairwise) form
 void PrintBuildConfiguration()
@@ -530,6 +539,7 @@ void RegisterBridge_Misc(Registry &reg, string parentGroup)
 		ADD_DEFINED_FUNC(BLAS_AVAILABLE);
 		ADD_DEFINED_FUNC(UG_HYPRE);
 		ADD_DEFINED_FUNC(UG_HLIBPRO);
+		ADD_DEFINED_FUNC(UG_JSON);
 
 		reg.add_function("PrintBuildConfiguration", &PrintBuildConfiguration, grp, "");
 		reg.add_function("PrintBuildConfigurationExtended", &PrintBuildConfigurationExtended, grp, "");
@@ -555,8 +565,19 @@ void RegisterBridge_Misc(Registry &reg, string parentGroup)
 		reg.add_function("TerminateAbortedRun", &TerminateAbortedRun, grp, "", "", "Terminates the current run if AbortRun() has been called before.");
 	}
 	
+#ifdef UG_FOR_LUA
+	{
+		stringstream ss; ss << parentGroup << "/Util/Lua";
+		string grp = ss.str();
+		typedef LuaTableHandle T;
+		reg.add_class_<T /*, TBase*/>("LuaTableHandle", grp)
+			.add_method("size", &T::size)
+			.set_construct_as_smart_pointer(true) // really?
+			;
+	}
+#endif
 
-}
+} // RegisterBridge_Misc
 
 // end group misc_bridge
 /// \}

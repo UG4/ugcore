@@ -57,7 +57,8 @@ get_filename_component(UG_ROOT_CMAKE_PATH ${CMAKE_CURRENT_LIST_FILE} PATH)
 set(UG_ROOT_PATH ${UG_ROOT_CMAKE_PATH}/../..)
 include_directories(${UG_ROOT_PATH}/ugcore/ugbase)
 include_directories(${CMAKE_BINARY_DIR})
-link_directories(${UG_ROOT_PATH}/lib)
+set(UG_LIBRARY_PATH ${UG_ROOT_PATH}/lib)
+link_directories(${UG_LIBRARY_PATH})
 ################################################################################
 # include cmake functions
 
@@ -177,19 +178,21 @@ option(BUILTIN_BLAS "BLAS is built into compiler" OFF)
 option(BUILTIN_LAPACK "LAPACK is built into compiler" OFF)
 option(BUILTIN_MPI "MPI is built into compiler" OFF)
 option(OPENMP "Enables use of OpenMP. Valid options are ON, OFF" OFF)
-option(CXX11 "Enables compilation with C++11 standard. Valid options are ON, OFF" OFF)
 option(EMBEDDED_PLUGINS "Plugin sources are directly included in libug4. No dynamic loading required. Valid options are ON, OFF " OFF)
 option(COMPILE_INFO "Embeds information on compile revision and date. Requires relinking of all involved libraries. Valid options are ON, OFF " ${buildCompileInfo})
 option(POSIX "If enabled and available, some additional functionality may be available. Valid options are ON, OFF " ${posixDefault})
 option(CRS_ALGEBRA "Use the CRS Sparse Matrix" OFF)
 option(CPU_ALGEBRA "Use the old CPU Sparse Matrix" ON)
 option(INTERNAL_MEMTRACKER "Internal Memory Tracker" OFF)
-
 if(APPLE)
 	option(USE_LUA2C "Use LUA2C" ON)
 else(APPLE)
 	option(USE_LUA2C "Use LUA2C" OFF)
 endif(APPLE)
+option(USE_LUAJIT "Use LUA just in time compiler" OFF)
+option(USE_PYBIND11 "Use PYBIND11" OFF)
+option(USE_JSON "Use JSON" OFF)
+option(USE_XEUS "Use XEUS" OFF)
 
 ################################################################################
 # set default values for pseudo-options
@@ -273,8 +276,10 @@ message(STATUS "Info: USE_LUA2C          ${USE_LUA2C} (options are: ON, OFF)")
 message(STATUS "Info: USE_LUAJIT         ${USE_LUAJIT} (options are: ON, OFF)")
 message(STATUS "")
 message(STATUS "Info: External libraries (path which contains the library or ON if you used uginstall):")
-message(STATUS "Info: TETGEN:   ${TETGEN}")
-message(STATUS "Info: HLIBPRO:  ${HLIBPRO}")
+message(STATUS "Info: HLIBPRO:           ${HLIBPRO}")
+message(STATUS "Info: USE_JSON:          ${USE_JSON} (options are: ON, OFF)")
+message(STATUS "Info: USE_XEUS:          ${USE_XEUS} (options are: ON, OFF)")
+message(STATUS "Info: USE_PYBIND11:      ${USE_PYBIND11} (options are: ON, OFF)")
 message(STATUS "")
 message(STATUS "Info: C   Compiler: ${CMAKE_C_COMPILER} (ID: ${CMAKE_C_COMPILER_ID})")
 message(STATUS "Info: C++ Compiler: ${CMAKE_CXX_COMPILER} (ID: ${CMAKE_CXX_COMPILER_ID})")
@@ -375,9 +380,9 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	# When building on MacOS >10.8, code using sin(x) _and_ cos(x) with the same argument x,
 	# a dynamic library will be used which is not available on older systems; this will lead to
 	# the VRL crashing on this code. In order to suppress usage of this dyld:
-	if(buildForVRL AND APPLE)
-		add_cxx_flag("-mmacosx-version-min=10.8")
-    endif()
+	#if(buildForVRL AND APPLE)
+	#	add_cxx_flag("-mmacosx-version-min=10.8")
+	#endif()
     # for some reason -Wsign-compare is not in -Wall for Clang 
 	add_cxx_flag("-Wsign-compare")
 	add_cxx_flag(-Wno-unused-local-typedef)
@@ -419,16 +424,22 @@ endif(PCL_DEBUG_BARRIER)
 
 
 ########################################
-# OPENMP
-include(${UG_ROOT_CMAKE_PATH}/ug/openmp.cmake)
 # C++11
 include(${UG_ROOT_CMAKE_PATH}/ug/cpp11.cmake)
+# OPENMP
+include(${UG_ROOT_CMAKE_PATH}/ug/openmp.cmake)
 # CUDA
 include(${UG_ROOT_CMAKE_PATH}/ug/cuda.cmake)
 # LUA2C
 include(${UG_ROOT_CMAKE_PATH}/ug/lua2c.cmake)
 # LUAJIT
 include(${UG_ROOT_CMAKE_PATH}/ug/luajit.cmake)
+# JSON
+include(${UG_ROOT_CMAKE_PATH}/ug/json.cmake)
+# XEUS
+include(${UG_ROOT_CMAKE_PATH}/ug/pybind11.cmake)
+# XEUS
+include(${UG_ROOT_CMAKE_PATH}/ug/xeus.cmake)
 
 ########################################
 # buildAlgebra
@@ -453,12 +464,30 @@ include(${UG_ROOT_CMAKE_PATH}/ug/opencl.cmake)
 #  If it is disabled, the system-installation of boost is used instead.
 #  Note: If INTERNAL_BOOST is enabled and system installations are available,
 #        the internal one has precedence.
+
+
 if(INTERNAL_BOOST)
 	add_definitions( -DBOOST_ALL_NO_LIB )
 	set(INTERNAL_BOOST_PATH ${UG_ROOT_PATH}/externals/BoostForUG4/)
 	set(BOOST_ROOT ${INTERNAL_BOOST_PATH})
+	set(Boost_INCLUDE_DIRS ${INTERNAL_BOOST_PATH})
+	set(Boost_MAJOR_VERSION 1)
+	set(Boost_MINOR_VERSION 71)
+	message(STATUS "Info: Internal Boost ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}")
+else(INTERNAL_BOOST)
+	find_package(Boost 1.71 REQUIRED) # automatic detection
+
+	if(Boost_FOUND)
+		message(STATUS "Info: Found Boost ${Boost_VERSION} in <${Boost_INCLUDE_DIRS}>")
+		link_directories("${Boost_INCLUDE_DIRS}/../lib")
+		set(linkLibraries ${linkLibraries} boost_serialization)
+	else(Boost_FOUND)
+		message(FATAL_ERROR "Info: Boost not found. Please use internal boost (-DINTERNAL_BOOST=ON)")
+	endif(Boost_FOUND)
+	
 endif(INTERNAL_BOOST)
-find_package(Boost 1.40 REQUIRED)
+
+
 message(STATUS "Info: Including Boost from ${Boost_INCLUDE_DIRS}")
 # Suppress diagnostic warnings in the boost headers: declare them to be "system headers"
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
@@ -558,12 +587,6 @@ if(buildBridge)
 endif(buildBridge)
 set(UG_DEBUG ${DEBUG})
 
-
-################################################################################
-# link against required libraries
-link_libraries(${linkLibraries})
-
-
 ################################################################################
 # Declare a method that allows all sub-cmake-files to add their sources
 # to a common library.
@@ -608,7 +631,6 @@ set(PROFILER ${PROFILER} CACHE STRING "Set the a profiler. Valid options are: ${
 
 # the following options too are pseudo cmake-options. However, they should
 # contains pathes, if set.
-set(TETGEN ${TETGEN} CACHE PATH "Sets the path in which tetgen shall be searched.")
 set(HLIBPRO ${HLIBPRO} CACHE PATH "Sets the path in which hlibpro shall be searched.")
 
 set(DEBUG_FORMAT ${DEBUG_FORMAT} CACHE STRING "Debug format options like -g, -gstabs, -ggbd. If not set, debug format is -g.")

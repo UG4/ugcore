@@ -1257,12 +1257,10 @@ HFV1ManifoldGeometry() : m_pElem(NULL), m_rRefElem(Provider<ref_elem_type>::get(
 	// compute local elem center
 	m_locMid[dim].resize(1);
 	m_gloMid[dim].resize(1);
-	m_locMid[dim][0] = 0.0;
-	for (size_t i = 0; i < m_locMid[0].size(); ++i)
-	{
+	m_locMid[dim][0] = m_locMid[0][0];
+	for (size_t i = 1; i < m_numNaturalBF; ++i)
 		m_locMid[dim][0] += m_locMid[0][i];
-	}
-	m_locMid[dim][0] *= 1.0/(m_locMid[0].size());
+	m_locMid[dim][0] /= m_numNaturalBF;
 }
 
 
@@ -1286,11 +1284,11 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 		m_gloMid[0][i] = vCornerCoords[i];
 
 	// compute global center
-	m_gloMid[dim][0] = 0.0;
-	for (size_t i = 0; i < m_gloMid[0].size(); i++)
+	m_gloMid[dim][0] = m_gloMid[0][0];
+	for (size_t i = 1; i < m_numNaturalBF; i++)
 		m_gloMid[dim][0] += m_gloMid[0][i];
 
-	m_gloMid[dim][0] *= 1./(m_gloMid[0].size());
+	m_gloMid[dim][0] /= m_numNaturalBF;
 
 	// get natural edges
 	std::vector<Edge*> vEdges;
@@ -1304,7 +1302,7 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 	UG_ASSERT(vEdges.size() == m_numNaturalBFS, "Incorrect number of edges found, only " << vEdges.size() << "Edges");
 
 	bool bAllConstraining = true;
-	for (size_t i = 0; i < vEdges.size(); i++)
+	for (size_t i = 0; i < m_numNaturalBFS; i++)
 	{
 		// natural ids of end of edge
 		const size_t from = m_rRefElem.id(1, i, 0, 0);
@@ -1338,7 +1336,7 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 					m_vBF[numBF+1].m_vGloPos[1] = gloMidPt;
 					m_vBF[numBF+1].nodeId = to;
 				}
-				if (dim == 2)
+				else if (dim == 2)
 				{
 					// remember this edge (and that it is not constraining)
 					const size_t numNewEdgeInfo = m_vNewEdgeInfo.size();
@@ -1360,14 +1358,8 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 					const size_t newNodeId = m_gloMid[0].size();
 					m_gloMid[0].resize(newNodeId + 1);
 					m_locMid[0].resize(newNodeId + 1);
-					VecInterpolateLinear(	m_gloMid[0].back(),
-											m_gloMid[0][from],
-											m_gloMid[0][to],
-											0.5);
-					VecInterpolateLinear(	m_locMid[0].back(),
-											m_locMid[0][from],
-											m_locMid[0][to],
-											0.5);
+					VecInterpolateLinear(m_gloMid[0].back(), m_gloMid[0][from], m_gloMid[0][to], 0.5);
+					VecInterpolateLinear(m_locMid[0].back(), m_locMid[0][from], m_locMid[0][to], 0.5);
 
 					if (dim == 1)
 					{
@@ -1408,7 +1400,7 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 						m_vBF[numBF+3].nodeId = newNodeId;
 					}
 
-					if (dim == 2)
+					else if (dim == 2)
 					{
 						// mapping naturalEdges -> new edges
 						const size_t numNewEdgeInfo = m_vNewEdgeInfo.size();
@@ -1484,77 +1476,70 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 						size_t nextEdgeID = (edgeID+1) % nEdge;
 						size_t prevEdgeID = (edgeID+nEdge-1) % nEdge;
 
-						const size_t cornerID1 = m_rRefElem.id(2, 0, 0, edgeID);
-						const size_t cornerID2 = m_rRefElem.id(2, 0, 0, nextEdgeID);
-
-						// natural edges
-						const size_t natEdId1 = m_rRefElem.id(2, 0, 1, nextEdgeID);
-						const size_t natEdId2 = m_rRefElem.id(2, 0, 1, prevEdgeID);
-
 						// nodes of hanging edges
-						const size_t hangEdNodeId1 = m_vNatEdgeInfo[natEdId1].node_id();
-						const size_t hangEdNodeId2 = m_vNatEdgeInfo[natEdId2].node_id();
+						const size_t hangEdNodeId1 = m_vNatEdgeInfo[nextEdgeID].node_id();
+						const size_t hangEdNodeId2 = m_vNatEdgeInfo[prevEdgeID].node_id();
 
 						// mid point of constrained side
-						compute_side_midpoints(cornerID1, cornerID2,
+						compute_side_midpoints(edgeID, nextEdgeID,
 											   hangEdNodeId1, hangEdNodeId2,
 											   locSideMid, gloSideMid);
 
 						// edge mids
 						MathVector<dim> locEdgeMid0, locEdgeMid1, locEdgeMid2, locEdgeMid3;
 						MathVector<worldDim> gloEdgeMid0, gloEdgeMid1, gloEdgeMid2, gloEdgeMid3;
-						VecInterpolateLinear(locEdgeMid0, m_locMid[0][cornerID1], m_locMid[0][cornerID2], 0.5);
-						VecInterpolateLinear(gloEdgeMid0, m_gloMid[0][cornerID1], m_gloMid[0][cornerID2], 0.5);
-						VecInterpolateLinear(locEdgeMid1, m_locMid[0][cornerID2], m_locMid[0][hangEdNodeId1], 0.5);
-						VecInterpolateLinear(gloEdgeMid1, m_gloMid[0][cornerID2], m_gloMid[0][hangEdNodeId1], 0.5);
+						VecInterpolateLinear(locEdgeMid0, m_locMid[0][edgeID], m_locMid[0][nextEdgeID], 0.5);
+						VecInterpolateLinear(gloEdgeMid0, m_gloMid[0][edgeID], m_gloMid[0][nextEdgeID], 0.5);
+						VecInterpolateLinear(locEdgeMid1, m_locMid[0][nextEdgeID], m_locMid[0][hangEdNodeId1], 0.5);
+						VecInterpolateLinear(gloEdgeMid1, m_gloMid[0][nextEdgeID], m_gloMid[0][hangEdNodeId1], 0.5);
 						VecInterpolateLinear(locEdgeMid2, m_locMid[0][hangEdNodeId1], m_locMid[0][hangEdNodeId2], 0.5);
 						VecInterpolateLinear(gloEdgeMid2, m_gloMid[0][hangEdNodeId1], m_gloMid[0][hangEdNodeId2], 0.5);
-						VecInterpolateLinear(locEdgeMid3, m_locMid[0][hangEdNodeId2], m_locMid[0][cornerID1], 0.5);
-						VecInterpolateLinear(gloEdgeMid3, m_gloMid[0][hangEdNodeId2], m_gloMid[0][cornerID1], 0.5);
+						VecInterpolateLinear(locEdgeMid3, m_locMid[0][hangEdNodeId2], m_locMid[0][edgeID], 0.5);
+						VecInterpolateLinear(gloEdgeMid3, m_gloMid[0][hangEdNodeId2], m_gloMid[0][edgeID], 0.5);
 
 						// create corresponding boundary faces
 						const size_t numBF = m_vBF.size();
 						m_vBF.resize(numBF + 4);
 
-						m_vBF[numBF].m_vLocPos[0] = m_locMid[0][cornerID1];
+						m_vBF[numBF].m_vLocPos[0] = m_locMid[0][edgeID];
 						m_vBF[numBF].m_vLocPos[1] = locEdgeMid0;
 						m_vBF[numBF].m_vLocPos[2] = locSideMid;
 						m_vBF[numBF].m_vLocPos[3] = locEdgeMid3;
-						m_vBF[numBF].m_vGloPos[0] = m_gloMid[0][cornerID1];
+						m_vBF[numBF].m_vGloPos[0] = m_gloMid[0][edgeID];
 						m_vBF[numBF].m_vGloPos[1] = gloEdgeMid0;
 						m_vBF[numBF].m_vGloPos[2] = gloSideMid;
 						m_vBF[numBF].m_vGloPos[3] = gloEdgeMid3;
-						m_vBF[numBF].nodeId = cornerID1;
+						m_vBF[numBF].nodeId = edgeID;
 
-						m_vBF[numBF].m_vLocPos[0] = m_locMid[0][cornerID2];
-						m_vBF[numBF].m_vLocPos[1] = locEdgeMid1;
-						m_vBF[numBF].m_vLocPos[2] = locSideMid;
-						m_vBF[numBF].m_vLocPos[3] = locEdgeMid0;
-						m_vBF[numBF].m_vGloPos[0] = m_gloMid[0][cornerID2];
-						m_vBF[numBF].m_vGloPos[1] = gloEdgeMid1;
-						m_vBF[numBF].m_vGloPos[2] = gloSideMid;
-						m_vBF[numBF].m_vGloPos[3] = gloEdgeMid0;
-						m_vBF[numBF].nodeId = cornerID2;
+						m_vBF[numBF+1].m_vLocPos[0] = m_locMid[0][nextEdgeID];
+						m_vBF[numBF+1].m_vLocPos[1] = locEdgeMid1;
+						m_vBF[numBF+1].m_vLocPos[2] = locSideMid;
+						m_vBF[numBF+1].m_vLocPos[3] = locEdgeMid0;
+						m_vBF[numBF+1].m_vGloPos[0] = m_gloMid[0][nextEdgeID];
+						m_vBF[numBF+1].m_vGloPos[1] = gloEdgeMid1;
+						m_vBF[numBF+1].m_vGloPos[2] = gloSideMid;
+						m_vBF[numBF+1].m_vGloPos[3] = gloEdgeMid0;
+						m_vBF[numBF+1].nodeId = nextEdgeID;
 
-						m_vBF[numBF].m_vLocPos[0] = m_locMid[0][hangEdNodeId1];
-						m_vBF[numBF].m_vLocPos[1] = locEdgeMid2;
-						m_vBF[numBF].m_vLocPos[2] = locSideMid;
-						m_vBF[numBF].m_vLocPos[3] = locEdgeMid1;
-						m_vBF[numBF].m_vGloPos[0] = m_gloMid[0][hangEdNodeId1];
-						m_vBF[numBF].m_vGloPos[1] = gloEdgeMid2;
-						m_vBF[numBF].m_vGloPos[2] = gloSideMid;
-						m_vBF[numBF].m_vGloPos[3] = gloEdgeMid1;
-						m_vBF[numBF].nodeId = hangEdNodeId1;
+						m_vBF[numBF+2].m_vLocPos[0] = m_locMid[0][hangEdNodeId1];
+						m_vBF[numBF+2].m_vLocPos[1] = locEdgeMid2;
+						m_vBF[numBF+2].m_vLocPos[2] = locSideMid;
+						m_vBF[numBF+2].m_vLocPos[3] = locEdgeMid1;
+						m_vBF[numBF+2].m_vGloPos[0] = m_gloMid[0][hangEdNodeId1];
+						m_vBF[numBF+2].m_vGloPos[1] = gloEdgeMid2;
+						m_vBF[numBF+2].m_vGloPos[2] = gloSideMid;
+						m_vBF[numBF+2].m_vGloPos[3] = gloEdgeMid1;
+						m_vBF[numBF+2].nodeId = hangEdNodeId1;
 
-						m_vBF[numBF].m_vLocPos[0] = m_locMid[0][hangEdNodeId2];
-						m_vBF[numBF].m_vLocPos[1] = locEdgeMid3;
-						m_vBF[numBF].m_vLocPos[2] = locSideMid;
-						m_vBF[numBF].m_vLocPos[3] = locEdgeMid2;
-						m_vBF[numBF].m_vGloPos[0] = m_gloMid[0][hangEdNodeId2];
-						m_vBF[numBF].m_vGloPos[1] = gloEdgeMid3;
-						m_vBF[numBF].m_vGloPos[2] = gloSideMid;
-						m_vBF[numBF].m_vGloPos[3] = gloEdgeMid2;
-						m_vBF[numBF].nodeId = hangEdNodeId2;
+						m_vBF[numBF+3].m_vLocPos[0] = m_locMid[0][hangEdNodeId2];
+						m_vBF[numBF+3].m_vLocPos[1] = locEdgeMid3;
+						m_vBF[numBF+3].m_vLocPos[2] = locSideMid;
+						m_vBF[numBF+3].m_vLocPos[3] = locEdgeMid2;
+						m_vBF[numBF+3].m_vGloPos[0] = m_gloMid[0][hangEdNodeId2];
+						m_vBF[numBF+3].m_vGloPos[1] = gloEdgeMid3;
+						m_vBF[numBF+3].m_vGloPos[2] = gloSideMid;
+						m_vBF[numBF+3].m_vGloPos[3] = gloEdgeMid2;
+						m_vBF[numBF+3].nodeId = hangEdNodeId2;
 					}
 
 					break;
@@ -1578,11 +1563,11 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 						const size_t jplus1 = (j+1)%4;
 
 						// natural edges
-						const size_t natEdId1 = m_rRefElem.id(2, 0, 1, j);
-						const size_t natEdId2 = m_rRefElem.id(2, 0, 1, jplus1);
+						const size_t natEdId1 = j;
+						const size_t natEdId2 = jplus1;
 
 						// corner between the two edges
-						const size_t cornerId = m_rRefElem.id(2, 0, 0, jplus1);
+						const size_t cornerId = jplus1;
 
 						// nodes of hanging edges
 						const size_t hangEdNodeId1 = m_vNatEdgeInfo[natEdId1].node_id();
@@ -1670,23 +1655,18 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 			{
 				const size_t jplus1 = (j+1)%3;
 
-				// natural edges
-				const size_t natEdId1 = m_rRefElem.id(2, 0, 1, j);
-				const size_t natEdId2 = m_rRefElem.id(2, 0, 1, jplus1);
-
 				// corner between the two edges
-				const size_t cornerId = m_rRefElem.id(2, 0, 0, jplus1);
+				const size_t cornerId = jplus1;
 
 				// nodes of hanging edges
-				const size_t hangEdNodeId1 = m_vNatEdgeInfo[natEdId1].node_id();
-				const size_t hangEdNodeId2 = m_vNatEdgeInfo[natEdId2].node_id();
+				const size_t hangEdNodeId1 = m_vNatEdgeInfo[j].node_id();
+				const size_t hangEdNodeId2 = m_vNatEdgeInfo[jplus1].node_id();
 
 				MathVector<dim> locSmallSideMid;
 				MathVector<worldDim> gloSmallSideMid;
 
 				// mid point of hanging side
-				compute_side_midpoints(	cornerId, hangEdNodeId1, hangEdNodeId2,
-										locSmallSideMid, gloSmallSideMid);
+				compute_side_midpoints(cornerId, hangEdNodeId1, hangEdNodeId2, locSmallSideMid, gloSmallSideMid);
 
 				// edge mids
 				MathVector<dim> locEdgeMid0, locEdgeMid1;
@@ -1699,7 +1679,7 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 				// create corresponding boundary faces
 				// NOTE: Although the following BFs are not aligned with the BFs from the HFVG
 				//       of the bordering volume element, the complete FV boxes are.
-				//		 And that should be enough.
+				//		 And that should be enough, since both place the IP in the corner.
 				const size_t numBF = m_vBF.size();
 				m_vBF.resize(numBF + 3);
 
@@ -1747,28 +1727,25 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 			compute_side_midpoints(locSideMid, gloSideMid);
 
 			// loop edges
-			for (size_t j = 0; j < m_rRefElem.num(2, 0, 1); ++j)
+			const size_t num_edges =  m_rRefElem.num(2, 0, 1);
+			for (size_t j = 0; j < num_edges; ++j)
 			{
-				const size_t jplus1 = (j+1) % m_rRefElem.num(2, 0, 1);
-				const size_t jplus2 = (j+2) % m_rRefElem.num(2, 0, 1);
-
-				// natural edges
-				const size_t natEdId1 = m_rRefElem.id(2, 0, 1, j);
-				const size_t natEdId2 = m_rRefElem.id(2, 0, 1, jplus1);
+				const size_t jplus1 = (j+1) % num_edges;
+				const size_t jplus2 = (j+2) % num_edges;
 
 				// corner between the two edges
-				const size_t cornerId = m_rRefElem.id(2, 0, 0, jplus1);
-				const size_t prevCornerId = m_rRefElem.id(2, 0, 0, j);
-				const size_t nextCornerId = m_rRefElem.id(2, 0, 0, jplus2);
+				const size_t cornerId = jplus1;
+				const size_t prevCornerId = j;
+				const size_t nextCornerId = jplus2;
 
 				// mid points of edges
 				MathVector<dim> locEdgeMidNext, locEdgeMidCurr;
 				MathVector<worldDim> gloEdgeMidNext, gloEdgeMidCurr;
 
 				// next side is hanging
-				if (m_vNatEdgeInfo[natEdId2].num_child_edges() == 2)
+				if (m_vNatEdgeInfo[jplus1].is_hanging())
 				{
-					const size_t hangEdNodeId2 = m_vNatEdgeInfo[natEdId2].node_id();
+					const size_t hangEdNodeId2 = m_vNatEdgeInfo[jplus1].node_id();
 					VecInterpolateLinear(locEdgeMidNext, m_locMid[0][cornerId], m_locMid[0][hangEdNodeId2], 0.5);
 					VecInterpolateLinear(gloEdgeMidNext, m_gloMid[0][cornerId], m_gloMid[0][hangEdNodeId2], 0.5);
 				}
@@ -1780,9 +1757,9 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 				}
 
 				// current side is hanging
-				if (m_vNatEdgeInfo[natEdId1].num_child_edges() == 2)
+				if (m_vNatEdgeInfo[j].is_hanging())
 				{
-					const size_t hangEdNodeId1 = m_vNatEdgeInfo[natEdId1].node_id();
+					const size_t hangEdNodeId1 = m_vNatEdgeInfo[j].node_id();
 
 					MathVector<dim> locEdgeMidHang;
 					MathVector<worldDim> gloEdgeMidHang;
@@ -1831,7 +1808,7 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 
 	// compute size of bf
 	for (size_t i = 0; i < m_vBF.size(); ++i)
-		m_vBF[i].vol = ElementSize<bf_type, worldDim>(&(m_vBF[i].m_vGloPos[0]));
+		m_vBF[i].vol = ElementSize<bf_type, worldDim>(&m_vBF[i].m_vGloPos[0]);
 
 	// set integration points (to BF mid points)
 	for (size_t i = 0; i < num_bf(); ++i)

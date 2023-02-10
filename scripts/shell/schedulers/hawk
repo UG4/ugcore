@@ -1,0 +1,116 @@
+#!/bin/bash
+######################################################################
+#                     qsub on Hermit / HLRS (aprun)
+#        qsub on NecNehalem / NEC Nehalem Cluster / HLRS (mpirun)
+#-------------------------------------------------------------------
+######################################################################
+
+function UJS_Submit
+{
+	UJS_GetOptions
+
+	if [ $walltime == "unlimited" ]; then
+		walltime=01:00:00
+	fi
+	
+	if [ $((npe%nppn)) -ne 0 ]; then
+		echo "NOTE: npe=$npe is not dividable by nppn=$nppn. rounding up"
+	fi
+	
+
+	#omplaceOption="omplace -c 0-127:st=4"
+	omplaceOption=""
+
+	echo "Cluster: Hawk-Apollo. Scheduler: qsub"
+	if [ $nppn -gt $nppnmaxSingleThread ]; then
+		qsubrun="mpirun -np $npe $executable $args"
+		#qsub doesn't know about hyperthreading. Only specify used procs. Round up.
+		# nppnRaw=$(((nppn+1)/2))
+	else
+		qsubrun="mpirun -np $npe $omplaceOption $executable $args"
+		# nppnRaw=$((nppn))
+	fi
+	PBSnodes="-l select=$nnodes:node_type=rome:mpiprocs=$nppn"
+
+
+
+
+
+	if [ -z "$queue" ]; then
+		qsubqueue=""
+	else
+		qsubqueue="-queue $queue"
+	fi			
+	
+	if [ $exclusive == true ]; then
+		echo "WARNING: Exclusive not yet supported on this machine."
+	fi	
+
+
+	pbsMail=""
+	if [ $mail == true ]; then 
+		if [ -z "$UGSUBMIT_EMAIL" ]; then
+			echo "please set UGSUBMIT_EMAIL or specify email with -email".
+			exit
+		fi 
+		pbsMail="-M $UGSUBMIT_EMAIL -m $pbsMailtype"
+	fi
+
+	# interactive: qsub -IX -l walltime=00:50:00 -l mppwidth=4 -l mppnppn=4
+			
+	qsubargs="$qsubqueue -v UG4_ROOT -N $jobname -o job.output -e job.error -j oe -l walltime=$walltime $PBSnodes $pbsMail"
+
+	echo "echo \"cd $outdir; $qsubrun\" | qsub $qsubargs" >> info.txt
+
+	if [ $test == true ]; then
+		echo "ONLY testing - NOT executing."
+		return
+	fi
+
+
+
+
+
+	if [ $interactive == true ]; then
+		echo "Interactive mode currently not supported on hermit. Aborting."
+	else
+		jobid=`echo "cd $outdir; $qsubrun" | qsub $qsubargs`
+		return=$?	
+		if [ ! $return == 0 ]; then
+			echo "ERROR: qsub returned $return. Job has NOT been scheduled."
+			exit
+		fi
+		jobid=`echo $jobid | sed 's/\([0-9]*\).*/\1/'`
+	fi	
+}
+
+
+
+function UJS_GetOptions
+{
+	if [ $UGSUBMIT_TYPE == "Hawk" ]; then
+		nppnmax=128
+                pemax=720896
+                nppnmaxSingleThread=128	
+	else
+		echo "WARNING: Unknown platform. guessed default values for MaxNumProcsPerNode (nppnmax) and MaxProcs (pemax) may be wrong."
+		nppnmax=32
+		pemax=113664
+		nppnmaxSingleThread=32
+	fi
+}
+
+function UJS_Info
+{
+	echo "Using $UGSUBMIT_TYPE"
+	echo "qstat -u $USER -r"
+	qstat -u $USER	
+}
+
+
+function UJS_Cancel
+{
+	echo "Using $UGSUBMIT_TYPE"
+	echo "qdel $1"
+	qdel $1
+}
