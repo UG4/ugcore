@@ -1,0 +1,17 @@
+on:
+ schedule:
+   - cron: '0 0 * * 1'  # 00:00 on Monday
+ # push:
+    # branches:
+    #   - master
+
+jobs:
+  documentation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Repository Dispatch for Documentation
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.UG4_DOCS }}
+          repository: UG4/docs
+          event-type: trigger-doxygen

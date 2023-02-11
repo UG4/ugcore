@@ -59,7 +59,7 @@ if util.LuaPluginsLoaded == nil then
     pluginPath = ug_get_root_path()..common:path_sep().."plugins"..common:path_sep()
 
     for i, name in ipairs(loadedPlugins) do
-        filename = pluginPath..name..common:path_sep().."lua"..common:path_sep().."lua-include.lua"
+        local filename = pluginPath..name..common:path_sep().."lua"..common:path_sep().."lua-include.lua"
         if FileExists(filename) then
             print("Loading Plugin Lua Content from "..filename)
             ug_load_script(filename)
