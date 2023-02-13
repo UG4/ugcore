@@ -199,6 +199,9 @@ else(STATIC_BUILD)
 endif(STATIC_BUILD)
 
 
+# CPack specifics
 install(TARGETS ${targetExecutableName} 
 	RUNTIME
   	DESTINATION bin)
+install(DIRECTORY ${UG_ROOT_PATH}/ugcore/scripts
+		DESTINATION ugcore)

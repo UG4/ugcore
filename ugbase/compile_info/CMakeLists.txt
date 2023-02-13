@@ -89,10 +89,10 @@ if(buildEmbeddedPlugins OR NOT buildCompileInfo)
 else(buildEmbeddedPlugins OR NOT buildCompileInfo)
 	if(buildDynamicLib)
 		add_library(CompileInfo SHARED ${infoFileName})
-		install(TARGETS CompileInfo
-			ARCHIVE
-  			DESTINATION lib)
 		set(compileInfoLibName CompileInfo)
+		install(TARGETS ${compileInfoLibName}
+				LIBRARY
+  				DESTINATION lib)
 	else(buildDynamicLib)
 	   # no dynamic lib
 		add_library(CompileInfo_s STATIC ${infoFileName})

@@ -30,9 +30,14 @@
 
 
 # This file is used for cpack configuration.
+set(CPACK_PACKAGE_NAME "UG4")
+set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/UG4")
+
+#include(cmake/cpack/nuget-config.cmake)
+#include(cmake/cpack/osx-config.cmake)
+#include(cmake/cpack/rpm-config.cmake)
+include(cmake/cpack/zip-config.cmake) # Create ZIP (generic)
+
+set(CPACK_GENERATOR "ZIP") # Override?
+
 include(CPack)
-
-# Configuration.
-set(CPACK_GENERATOR "STGZ;TGZ;ZIP")
-
-# Add more contents here...
