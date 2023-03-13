@@ -113,8 +113,9 @@ void InterpolateOnDiffVertices(SmartPtr<UserData<number, TGridFunction::dim> > s
 				rel_pos -=diff_pos;
 
 			//	value at position
-				number val;
+				number val = std::nan("InterpolateOnDiffVertices");
 				(*spInterpolFunction)(val, rel_pos, time, si);
+				UG_COND_THROW(isnan(val), "ERROR: Interpolating NaN.")
 
 			//	get multiindices of element
 				spGridFct->dof_indices(vrt, fct, ind);
@@ -137,7 +138,7 @@ number get_number_on_coords(SmartPtr<UserData<number, TGridFunction::dim> > spIn
 	number time,
     const int si
 ){
-	number val;
+	number val = nan("get_number_on_coords");
 	(*spInterpolFunction)(val, pos, time, si);
 
 	return val;
@@ -225,10 +226,10 @@ void InterpolateOnDiffElements(
 // 	load local positions of dofs for the trial space on element
 	std::vector<MathVector<dim> > loc_pos(nsh);
 	for(size_t i = 0; i < nsh; ++i)
-		if(!trialSpace.position(i, loc_pos[i]))
-			UG_THROW("InterpolateOnElem: Cannot find meaningful"
+	{
+		UG_COND_THROW(!trialSpace.position(i, loc_pos[i]), "InterpolateOnElem: Cannot find meaningful"
 					" local positions of dofs.");
-
+	}
 //	create a reference mapping
 	ReferenceMapping<ref_elem_type, domain_type::dim> mapping;
 
@@ -250,9 +251,8 @@ void InterpolateOnDiffElements(
 		spGridFct->dof_indices(elem, fct, ind);
 
 	//	check multi indices
-		if(ind.size() != nsh)
-			UG_THROW("InterpolateOnElem: On subset "<<si<<": Number of shapes is "
-					<<nsh<<", but got "<<ind.size()<<" multi indices.");
+		UG_COND_THROW(ind.size() != nsh, "InterpolateOnElem: On subset "<<si<<": Number of shapes is "
+						<<nsh<<", but got "<<ind.size()<<" multi indices.");
 
 	// 	loop all dofs
 		for(size_t i = 0; i < nsh; ++i)
@@ -485,13 +485,13 @@ void Interpolate(SmartPtr<UserData<number, TGridFunction::dim> > spInterpolFunct
 				 const SubsetGroup& ssGrp, number time, const MathVector<TGridFunction::dim> diff_pos)
 {
 
-	//	check, that values do not depend on a solution
-	if(spInterpolFunction->requires_grid_fct())
-		UG_THROW("Interpolate: The interpolation values depend on a grid function."
-				" This is not allowed in the current implementation. Use constant,"
-				" lua-callback or vrl-callback user data only (even within linkers).");
+	// Check, that values do not depend on a solution.
+	UG_COND_THROW(spInterpolFunction->requires_grid_fct(),
+			"Interpolate: The interpolation values depend on a grid function."
+			" This is not allowed in the current implementation. Use constant,"
+			" lua-callback or vrl-callback user data only (even within linkers).");
 
-//	check if fast P1 interpolation can be used
+	// Check if fast P1 interpolation can be used.
 	// \TODO: This should be improved. Manifold admissible if space continuous
 	bool bUseP1Interpolation = false;
 	if(spGridFct->local_finite_element_id(fct).type() == LFEID::LAGRANGE &&
@@ -532,8 +532,7 @@ void Interpolate(SmartPtr<UserData<number, TGridFunction::dim> > spInterpolFunct
 	const size_t fct = spGridFct->fct_id_by_name(cmp);
 
 //	check that function found
-	if(fct > spGridFct->num_fct())
-		UG_THROW("Interpolate: Name of component '"<<cmp<<"' not found.");
+	UG_COND_THROW(fct > spGridFct->num_fct(), "Interpolate: Name of component '"<<cmp<<"' not found.");
 
 	Interpolate(spInterpolFunction, spGridFct,  fct, subsets, time, diff_pos);
 }
