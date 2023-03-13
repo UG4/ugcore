@@ -14,7 +14,7 @@
 #include "registry/function_traits.h"
 
 // #include "bridge/util.h"
-//#include "bridge/util_domain_dependent.h"
+// #include "bridge/util_domain_dependent.h"
 // #include "bridge/util_domain_algebra_dependent.h"
 
 
