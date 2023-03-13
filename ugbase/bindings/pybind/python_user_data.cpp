@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2010-2015:  G-CSC, Goethe University Frankfurt
- * Author: Andreas Vogel
+ * Copyright (c) 2023:  G-CSC, Goethe University Frankfurt
+ * Author: Sam Gimbel
  * 
  * This file is part of UG4.
  * 
