@@ -11,7 +11,7 @@
 
 // this plugin
 #include "ug_pybind.h"
-#include "python_user_data_impl.h"
+#include "python_user_data.h"
 
 // Expose registry to python.
 PYBIND11_MODULE(ug4py, m)

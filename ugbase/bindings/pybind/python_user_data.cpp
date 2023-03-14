@@ -38,7 +38,8 @@
 #include "bridge/bridge.h"
 #include "bridge/util.h"
 
-#include "python_user_data_impl.h"
+// Include own header.
+#include "python_user_data.h"
 
 using namespace std;
 
@@ -72,6 +73,8 @@ void RegisterPythonUserDataType(Registry& reg, string type, string grp)
 		reg.add_class_to_group(name, string("PythonUser").append(type), tag);
 	}
 
+
+
 }
 
 /**
@@ -99,6 +102,18 @@ static void Dimension(Registry& reg, string grp)
 	RegisterPythonUserDataType<number, dim>(reg, "Number", grp);
 	//RegisterPythonUserDataType<MathVector<dim>, dim>(reg, "Vector", grp);
 	//RegisterPythonUserDataType<MathMatrix<dim,dim>, dim>(reg, "Matrix", grp);
+
+	//	PythonUserFunction
+	{
+			typedef PythonUserFunction<number, dim, number> T;
+			typedef DependentUserData<number, dim> TBase;
+			string name = string("PythonUserFunction").append(suffix);
+			reg.add_class_<T, TBase>(name, grp)
+				.template add_constructor<void (*)(typename T::TFunctionHandle, int)>("LuaCallbackName#NumberOfArguments")
+				.add_method("set_input_and_deriv", &T::set_input_and_deriv)
+				.set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, "PythonUserFunction", tag);
+	}
 
 }
 
