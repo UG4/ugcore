@@ -639,6 +639,17 @@ public:
 		nnz = total_num_connections();
 	}
 
+	/**
+	 * assigns a reference to the values vector to argument vector
+	 * 
+	 * \param argValues vector to be assigned
+	 */
+	void get_values(std::vector<value_type> &argValues) const
+	{
+		defragment();
+		argValues = values;
+	}
+
 
 public:
 	// output functions
