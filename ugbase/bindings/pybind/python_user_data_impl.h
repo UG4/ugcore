@@ -73,6 +73,7 @@ PythonUserFunction<TData,dim,TDataIn>::
 PythonUserFunction(TFunctionHandle pyCallback, size_t numArgs)
 	: m_numArgs(numArgs), m_cbValueRef(pyCallback), m_cbDerivRef(numArgs)//, m_bPosTimeNeed(false)
 {
+	debug();
 	this->set_num_input(numArgs);
 }
 
@@ -82,14 +83,7 @@ PythonUserFunction(TFunctionHandle pyCallback, size_t numArgs)
 template <typename TData, int dim, typename TDataIn>
 PythonUserFunction<TData,dim,TDataIn>::~PythonUserFunction()
 {
-	/*
-//	free reference to callback
-	free_callback_ref();
-
-//	free references to derivate callbacks
-	for(size_t i = 0; i < m_numArgs; ++i){
-		free_deriv_callback_ref(i);
-	}*/
+	debug();
 }
 
 
@@ -97,7 +91,7 @@ template <typename TData, int dim, typename TDataIn>
 void PythonUserFunction<TData,dim,TDataIn>::set_deriv(size_t i, TFunctionHandle pyCallback)
 {
 //	check number of arg
-
+	debug();
 	UG_COND_THROW(i >= m_numArgs,
 			"PythonUserFunction::set_lua_deriv_callback: Trying " <<
 			"to set a derivative for argument " << i <<", that " <<
@@ -116,6 +110,7 @@ void PythonUserFunction<TData,dim,TDataIn>::set_deriv(size_t i, TFunctionHandle 
 template <typename TData, int dim, typename TDataIn>
 void PythonUserFunction<TData,dim,TDataIn>::operator() (TData& out, const std::vector<TDataIn> &input) const
 {
+	debug();
 
 	UG_ASSERT(input.size() == m_numArgs, "Number of arguments mismatched.");
 
@@ -129,7 +124,7 @@ void PythonUserFunction<TData,dim,TDataIn>::operator() (TData& out, const std::v
 template <typename TData, int dim, typename TDataIn>
 void PythonUserFunction<TData,dim,TDataIn>::operator() (TData& out, int numArgs, ...) const
 {
-
+	debug();
 	UG_ASSERT(numArgs == (int)m_numArgs, "Number of arguments mismatched.");
 
 	// read vector of all arguments.
@@ -150,7 +145,7 @@ template <typename TData, int dim, typename TDataIn>
 void PythonUserFunction<TData,dim,TDataIn>::eval_value(TData& out, const std::vector<TDataIn>& dataIn,
 													const MathVector<dim>& x, number time, int si) const
 {
-
+	debug();
 	(*this)(out, dataIn);
 }
 
@@ -159,7 +154,7 @@ template <typename TData, int dim, typename TDataIn>
 void PythonUserFunction<TData,dim,TDataIn>::eval_deriv(TData& out, const std::vector<TDataIn>& dataIn,
 		 	 	 	 	 	 	 	 	 	 	 	 const MathVector<dim>& x, number time, int si, size_t arg) const
 {
-
+	debug();
 	UG_ASSERT(dataIn.size() == m_numArgs, "Number of arguments mismatched.");
 	UG_ASSERT(arg < m_numArgs, "Argument does not exist.");
 
@@ -171,8 +166,6 @@ void PythonUserFunction<TData,dim,TDataIn>::eval_deriv(TData& out, const std::ve
 
 	// Call function.
 	py::object result_py = m_cbDerivRef[arg](*pyArgs);
-
-	//	pop values
 	out = result_py.cast<TData>();
 
 }
@@ -184,6 +177,7 @@ evaluate (TData& value,
           const MathVector<dim>& globIP,
           number time, int si) const
 {
+	debug();
 	// PROFILE_CALLBACK();
 //	vector of data for all inputs
 	std::vector<TDataIn> vDataIn(this->num_input());
@@ -211,6 +205,7 @@ evaluate(TData vValue[],
          LocalVector* u,
          const MathMatrix<refDim, dim>* vJT) const
 {
+	debug();
 	// PROFILE_CALLBACK();
 //	vector of data for all inputs
 	std::vector<TDataIn> vDataIn(this->num_input());
@@ -243,6 +238,7 @@ eval_and_deriv(TData vValue[],
 				std::vector<std::vector<TData> > vvvDeriv[],
 				const MathMatrix<refDim, dim>* vJT)
 {
+	debug();
 	// PROFILE_CALLBACK();
 //	vector of data for all inputs
 	std::vector<TDataIn> vDataIn(this->num_input());
@@ -310,6 +306,7 @@ eval_and_deriv(TData vValue[],
 template <typename TData, int dim, typename TDataIn>
 void PythonUserFunction<TData,dim,TDataIn>::set_num_input(size_t num)
 {
+	debug();
 //	resize arrays
 	m_vpUserData.resize(num);
 	m_vpDepentData.resize(num);
@@ -322,6 +319,7 @@ template <typename TData, int dim, typename TDataIn>
 void PythonUserFunction<TData,dim,TDataIn>::
 set_input(size_t i, SmartPtr<CplUserData<TDataIn, dim> > data)
 {
+	debug();
 	UG_ASSERT(i < m_vpUserData.size(), "Input not needed");
 	UG_ASSERT(i < m_vpDepentData.size(), "Input not needed");
 
@@ -332,23 +330,14 @@ set_input(size_t i, SmartPtr<CplUserData<TDataIn, dim> > data)
 			" inputs can be set. Use 'set_num_input' to increase" <<
 			" the number of needed inputs.");
 
-//	remember userdata
+//	remember userdata & cast to dependent data
 	m_vpUserData[i] = data;
-
-//	cast to dependent data
 	m_vpDepentData[i] = data.template cast_dynamic<DependentUserData<TDataIn, dim> >();
 
 //	forward to base class
 	base_type::set_input(i, data, data);
 }
 
-/*
-template <typename TData, int dim, typename TDataIn>
-void PythonUserFunction<TData,dim,TDataIn>::set_input(size_t i, number val)
-{
-	set_input(i, CreateConstUserData<dim>(val, TDataIn()));
-}
-*/
 
 
 

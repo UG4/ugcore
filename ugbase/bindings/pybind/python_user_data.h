@@ -174,25 +174,24 @@ class PythonUserFunction : public StdDataLinker<PythonUserFunction<TData, dim, T
 	 * \param pyCallback name of the Lua function to use as callback
 	 */
 	protected:
+		int debug() const
+		{
+			UG_ASSERT(true, "This is a debug function");
+		}
 		/**
 		 * \brief set input value for paramter \c i
 		 * \param i parameter index this input is bind to
 		 * \{
 		 */
 		void set_input(size_t i, SmartPtr<CplUserData<TDataIn, dim> > data);
-		// void set_input(size_t i, number val);
-		///	\}
-
-
-		// void set_deriv(size_t arg, const char* pyCallback);
 		void set_deriv(size_t arg, TFunctionHandle handle);
-
 
 		///	set number of needed inputs
 		void set_num_input(size_t num);
 
 
 	public:
+
 		void set_input_and_deriv(size_t i, SmartPtr<CplUserData<TDataIn, dim> > input, TFunctionHandle deriv)
 		{ set_input(i, input); set_deriv(i, deriv); }
 
@@ -230,7 +229,6 @@ class PythonUserFunction : public StdDataLinker<PythonUserFunction<TData, dim, T
 		                    const MathMatrix<refDim, dim>* vJT = NULL);
 
 	protected:
-
 
 	///	frees the callback-reference, if a callback was set.
 	//	void free_callback_ref();
