@@ -466,7 +466,7 @@ public:
 			  A.remove_iterator(-1);
 #endif
 		  }
-        const_row_iterator *operator ->() const { return this; }
+        const const_row_iterator *operator ->() const { return this; }
         const value_type &value() const { check(); return A.values[i];   }
         size_t index() const { check(); return A.cols[i];     }
         bool operator != (const const_row_iterator &o) const { return i != o.i; }
