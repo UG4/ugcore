@@ -17,6 +17,8 @@ namespace py = pybind11;
 namespace ug {
 
 
+//! This class implements a python-based observer for time integration.
+/*! (Note: Could be implemented as a pure python class as well ...) */
 template<class TDomain, class TAlgebra>
 class PythonCallbackObserver
 : public ITimeIntegratorObserver<TDomain, TAlgebra>
@@ -26,10 +28,10 @@ public:
 	typedef GridFunction<TDomain, TAlgebra> grid_function_type;
 	typedef py::object TFunctionHandle;
 
-	PythonCallbackObserver() : m_callback(), m_u(SPNULL)
+	PythonCallbackObserver() : m_callback()
 	{}
 
-	PythonCallbackObserver(TFunctionHandle handle) : m_callback(handle), m_u(SPNULL)
+	PythonCallbackObserver(TFunctionHandle handle) : m_callback(handle)
 	{}
 
 
@@ -38,11 +40,7 @@ public:
 
 	virtual bool step_process(SmartPtr<grid_function_type> uNew, int step, number time, number dt)
 	{
-		// store value.
-		m_u = uNew;
-
-		//	call python function
-		// auto pyArgs = py::tuple(, py::cast(step), py::cast(time), py::cast(dt));
+		//	Call python function
 		py::object result_py = m_callback(py::cast(uNew), step, time, dt);
 		return result_py.cast<bool>();
 	}
@@ -50,12 +48,10 @@ public:
 	void set_callback(TFunctionHandle callback)
 	{ m_callback = callback; }
 
-	SmartPtr<grid_function_type> get_current_solution()
-	{ return m_u; }
 
 protected:
 	TFunctionHandle m_callback;
-	SmartPtr<grid_function_type> m_u;
+
 };
 
 }

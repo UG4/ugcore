@@ -149,7 +149,7 @@ static void DomainAlgebra(TRegistry& reg, string parentGroup)
 				.template add_constructor<void (*)() >("internal id=0")
 				.template add_constructor<void (*)(typename T::TFunctionHandle) >("internal id=1")
 				.add_method("set_callback", &T::set_callback)
-				.add_method("get_current_solution", static_cast<SmartPtr<TGF> (T::*)() > (&T::get_current_solution))
+			//	.add_method("get_current_solution", static_cast<SmartPtr<TGF> (T::*)() > (&T::get_current_solution))
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "PythonCallbackObserver", tag);
 	}
