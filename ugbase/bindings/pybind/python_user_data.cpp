@@ -34,12 +34,19 @@
 #include <sstream>
 #include <string>
 
-// include bridge
+// Include bridge.
 #include "bridge/bridge.h"
 #include "bridge/util.h"
+#include "bridge/suffix_tag.h"
+#include "bridge/util_domain_algebra_dependent.h"
+
+
+#include "lib_disc/time_disc/theta_time_step.h"
+#include "lib_disc/time_disc/time_integrator_observers/python_callback_observer.hpp"
 
 // Include own header.
 #include "python_user_data.h"
+
 
 using namespace std;
 
@@ -72,8 +79,6 @@ void RegisterPythonUserDataType(Registry& reg, string type, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, string("PythonUser").append(type), tag);
 	}
-
-
 
 }
 
@@ -115,6 +120,39 @@ static void Dimension(Registry& reg, string grp)
 			reg.add_class_to_group(name, "PythonUserFunction", tag);
 	}
 
+
+
+
+}
+
+template <typename TDomain, typename TAlgebra, typename TRegistry>
+static void DomainAlgebra(TRegistry& reg, string parentGroup)
+{
+	//	typedefs for Vector and Matrix
+	typedef typename TAlgebra::vector_type vector_type;
+
+	string suffix = ug::bridge::GetDomainAlgebraSuffix<TDomain,TAlgebra>();
+	string tag = ug::bridge::GetDomainAlgebraTag<TDomain,TAlgebra>();
+
+
+	{
+			std::string grp = parentGroup;
+			grp.append("/Discretization/TimeIntegratorObservers");
+
+			// PythonCallbackObserver
+			typedef PythonCallbackObserver<TDomain, TAlgebra> T;
+			typedef ITimeIntegratorObserver<TDomain, TAlgebra> TBase;
+			typedef GridFunction<TDomain, TAlgebra> TGF;
+
+			string name = string("PythonCallbackObserver").append(suffix);
+			reg.template add_class_<T, TBase>(name, grp)
+				.template add_constructor<void (*)() >("internal id=0")
+				.template add_constructor<void (*)(typename T::TFunctionHandle) >("internal id=1")
+				.add_method("set_callback", &T::set_callback)
+				.add_method("get_current_solution", static_cast<SmartPtr<TGF> (T::*)() > (&T::get_current_solution))
+				.set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, "PythonCallbackObserver", tag);
+	}
 }
 
 /**
@@ -140,6 +178,7 @@ void RegisterPythonUserData(Registry& reg, string grp)
 	try{
 		// RegisterCommon<Functionality>(reg,grp);
 		RegisterDimensionDependent<Functionality>(reg,grp);
+		ug::bridge::RegisterDomainAlgebraDependent<Functionality, Registry>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }

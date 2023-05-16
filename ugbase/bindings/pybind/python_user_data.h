@@ -38,7 +38,6 @@
 
 #ifdef UG_USE_PYBIND11
 #include <Python.h>
-
 #include <pybind11/pybind11.h>
 #include <pybind11/functional.h>
 
@@ -264,13 +263,6 @@ class PythonUserFunction : public StdDataLinker<PythonUserFunction<TData, dim, T
 
 
 
-/*
-template <typename TData, int dim, typename TDataIn>
-void PythonUserFunction<TData,dim,TDataIn>::set_input(size_t i, number val)
-{
-	set_input(i, CreateConstUserData<dim>(val, TDataIn()));
-}
-*/
 
 
 namespace pybind{
