@@ -32,6 +32,8 @@
 
 if(USE_PYBIND11)
 
+cmake_minimum_required(VERSION 3.12)
+
 # ug4pybind_add_module
 # argument1: name of Python module
 # argument2: source files
