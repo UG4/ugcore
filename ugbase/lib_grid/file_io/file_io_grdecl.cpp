@@ -46,6 +46,11 @@ using namespace std;
 namespace ug
 {
 
+	struct xy
+	{
+	   double x, y;
+	};
+	
 	struct xyz
 	{
 	   double x, y, z;
@@ -127,7 +132,7 @@ void GetCoord(string str, vector<double>& coord)
             word = word + x;
         }
     }
-	if (word!="" && word.compare(0,1,"/")!=0)
+	if (word!="" && word.compare(0,1,"/")!=0 && word!="\r")
 	{
 		string snum = "";
 		size_t num=1;
@@ -362,7 +367,7 @@ bool AttachAct(Grid& grid, const char* filename, string name)
 	vector<size_t> actnum;
 	bool d = false;
 	string buf;
-	string name2 = name +' ';
+	//string name2 = name +' ';
 	ifstream ifs(filename);
 	if(!ifs)
 		return false;
@@ -381,7 +386,7 @@ bool AttachAct(Grid& grid, const char* filename, string name)
 				else
 					GetAct(buf, actnum);
 			}
-		if (buf.compare(0,name2.length(),name2)==0)
+		if (buf.compare(0,name.length(),name)==0)
 			d=true;
 	}
 	
@@ -399,9 +404,6 @@ bool AttachAct(Grid& grid, const char* filename, string name)
 		grid.attach_to_volumes(aVols);
 
 	Grid::VolumeAttachmentAccessor<ANumber> aaVols(grid, aVols);
-	
-//	ofstream ofs;
-//	ofs.open ("Actnum.txt");
 	
 	size_t i = 0;
 	for(VolumeIterator iter = grid.volumes_begin(); iter != grid.volumes_end(); ++iter, i++)
@@ -515,7 +517,7 @@ bool LoadGridFromGRDECL(Grid& grid, const char* filename, AVector3& aPos)
 					else
 						GetCoord(buf, coord);
 				}
-			if (buf.compare(0,6,"COORD ")==0)
+			if (buf.compare(0,6,"COORD ")==0 or buf.compare(0,7,"COORD\r")==0)
 				b=true;
 				
 			//Get the depth list
@@ -531,7 +533,7 @@ bool LoadGridFromGRDECL(Grid& grid, const char* filename, AVector3& aPos)
 					else
 						GetCoord(buf, zcorn);
 				}
-			if (buf.compare(0,6,"ZCORN ")==0)
+			if (buf.compare(0,5,"ZCORN")==0)
 				c=true;
 				
 			//Get the ACTNUM list
@@ -547,9 +549,9 @@ bool LoadGridFromGRDECL(Grid& grid, const char* filename, AVector3& aPos)
 					else
 						GetAct(buf, act);
 				}
-			if (buf.compare(0,7,"ACTNUM ")==0)
+			if (buf.compare(0,6,"ACTNUM")==0)
 				d=true;
-				
+	
 			//Get property name list
 			prop.push_back(buf);
 			if (buf.compare(0,11,"-- Property")==0)
@@ -567,29 +569,103 @@ bool LoadGridFromGRDECL(Grid& grid, const char* filename, AVector3& aPos)
 			}
 			
 		}
+
 		
-/*	ofstream ofs;
-	ofs.open ("prop_name.txt");	
-	for (auto i = 0; i<zcorn.size(); i++)
-		{
-			ofs<<i<<' '<<zcorn[i]<<endl;
-			//ofs<<i<<' '<<buf<<endl;
-		}*/
-		
-		
-		
-	vector<xyz> top;
-	vector<xyz> bot;
+	vector<xy> top;
+	vector<xy> bot;
+	// loop over pillar
 	for (size_t j=0; j<dim[1]+1; j++)
 	{
 		for (size_t i=0; i<dim[0]+1; i++)
 		{
-			top.push_back({coord[(j*(dim[0]+1)+i)*6], coord[(j*(dim[0]+1)+i)*6+1], coord[(j*(dim[0]+1)+i)*6+2]});
-			bot.push_back({coord[(j*(dim[0]+1)+i)*6+3], coord[(j*(dim[0]+1)+i)*6+4], coord[(j*(dim[0]+1)+i)*6+5]});
+			//build pillar coords
+			top.push_back({coord[(j*(dim[0]+1)+i)*6], coord[(j*(dim[0]+1)+i)*6+1]});
+			bot.push_back({coord[(j*(dim[0]+1)+i)*6+3], coord[(j*(dim[0]+1)+i)*6+4]});
+			//check pillar is vertical
+			if ( coord[(j*(dim[0]+1)+i)*6] != coord[(j*(dim[0]+1)+i)*6+3]|| coord[(j*(dim[0]+1)+i)*6+1] != coord[(j*(dim[0]+1)+i)*6+4] )
+				UG_THROW ("LoadGridFromGRDECL: pillar is not vertical");
 		}
 	}
 	
+	vector<vector<double> > zcorn_ij((dim[0]+1)*(dim[1]+1), vector<double>(1,0));
+	
+	for (size_t k=0; k<dim[2]; k++)
+	{
+		for (size_t j=0; j<dim[1]; j++)
+		{
+			for (size_t i=0; i<dim[0]; i++)
+			{
+				size_t ij=j*(dim[0]+1)+i;
+				size_t ijk4=k*dim[1]*dim[0]*8+j*dim[0]*4+i*2;
+				
+				zcorn_ij[ij].push_back(zcorn[ijk4]);
+				zcorn_ij[ij+1].push_back(zcorn[ijk4+1]);
+				zcorn_ij[ij+dim[0]+2].push_back(zcorn[ijk4+dim[0]*2+1]);
+				zcorn_ij[ij+dim[0]+1].push_back(zcorn[ijk4+dim[0]*2]);
+				
+				zcorn_ij[ij].push_back(zcorn[ijk4+dim[1]*dim[0]*4]);
+				zcorn_ij[ij+1].push_back(zcorn[ijk4+dim[1]*dim[0]*4+1]);
+				zcorn_ij[ij+dim[0]+2].push_back(zcorn[ijk4+dim[1]*dim[0]*4+dim[0]*2+1]);
+				zcorn_ij[ij+dim[0]+1].push_back(zcorn[ijk4+dim[1]*dim[0]*4+dim[0]*2]);			
+			}
+		}
+	}
+	
+	vector<vector<size_t> > Index_zcorn((dim[0]+1)*(dim[1]+1), vector<size_t>(1,0));
+	vector<vector<size_t> > Index_zcorn_Global((dim[0]+1)*(dim[1]+1), vector<size_t>(1,0));
+	vector<vector<double> > New_zcorn((dim[0]+1)*(dim[1]+1), vector<double>(1,0));
+	size_t numVrts=0;
+	
 	vector<xyz> coord_list;
+
+	for (size_t j=0; j<dim[1]+1; j++)
+	{
+		for (size_t i=0; i<dim[0]+1; i++)
+		{	
+			size_t ij=j*(dim[0]+1)+i;
+			
+			//remove redundant coords
+			New_zcorn[ij].push_back(zcorn_ij[ij][1]);
+			for (size_t t=2; t<zcorn_ij[ij].size(); t++)
+			{
+				bool New_coord=true;
+				for (size_t s =1; s<New_zcorn[ij].size(); s++)
+				{
+					if (zcorn_ij[ij][t]==New_zcorn[ij][s])
+					{
+						New_coord = false;
+						Index_zcorn[ij].push_back(s-1);
+						break;
+					}
+				}
+				
+				if (New_coord==true)
+				{
+					Index_zcorn[ij].push_back(New_zcorn[ij].size()-1);
+					New_zcorn[ij].push_back(zcorn_ij[ij][t]);
+				}
+			}
+			
+			for (size_t k=1; k<New_zcorn[ij].size(); k++)
+			{
+				coord_list.push_back({top[ij].x, top[ij].y, -New_zcorn[ij][k]});
+				Index_zcorn_Global[ij].push_back(numVrts);
+				numVrts++;
+			}
+			
+			reverse(New_zcorn[ij].begin(), New_zcorn[ij].end());
+			New_zcorn[ij].pop_back();
+			reverse(zcorn_ij[ij].begin(), zcorn_ij[ij].end());
+			zcorn_ij[ij].pop_back();
+			reverse(Index_zcorn[ij].begin(), Index_zcorn[ij].end());
+			
+			reverse(Index_zcorn_Global[ij].begin(), Index_zcorn_Global[ij].end());
+			Index_zcorn_Global[ij].pop_back();
+			reverse(Index_zcorn_Global[ij].begin(), Index_zcorn_Global[ij].end());
+		}
+		
+	}
+	
 	vector<ab> ele_list;
 	
 	for (size_t k=0; k<dim[2]; k++)
@@ -598,65 +674,32 @@ bool LoadGridFromGRDECL(Grid& grid, const char* filename, AVector3& aPos)
 		{
 			for (size_t i=0; i<dim[0]; i++)
 			{
-				
 				size_t ij=j*(dim[0]+1)+i;
-				size_t ijk4=k*dim[1]*dim[0]*8+j*dim[0]*4+i*2;
-				size_t ijk8=(k*dim[1]*dim[0]+j*dim[0]+i)*8;
 				
-				ele_list.push_back({ijk8+1, ijk8+2, ijk8+3, ijk8+4, ijk8+5, ijk8+6, ijk8+7, ijk8+8});
+				size_t a1=Index_zcorn_Global[ij][Index_zcorn[ij].back()];
+				Index_zcorn[ij].pop_back();
+				size_t a2=Index_zcorn_Global[ij+1][Index_zcorn[ij+1].back()];
+				Index_zcorn[ij+1].pop_back();
+				size_t a3=Index_zcorn_Global[ij+dim[0]+2][Index_zcorn[ij+dim[0]+2].back()];
+				Index_zcorn[ij+dim[0]+2].pop_back();
+				size_t a4=Index_zcorn_Global[ij+dim[0]+1][Index_zcorn[ij+dim[0]+1].back()];
+				Index_zcorn[ij+dim[0]+1].pop_back();
 				
-				coord_list.push_back({top[ij].x, top[ij].y, zcorn[ijk4]});
-				coord_list.push_back({top[ij+1].x, top[ij+1].y, zcorn[ijk4+1]});
-				coord_list.push_back({top[ij+dim[0]+2].x, top[ij+dim[0]+2].y, zcorn[ijk4+dim[0]*2+1]});
-				coord_list.push_back({top[ij+dim[0]+1].x, top[ij+dim[0]+1].y, zcorn[ijk4+dim[0]*2]});
+				size_t b1=Index_zcorn_Global[ij][Index_zcorn[ij].back()];
+				Index_zcorn[ij].pop_back();
+				size_t b2=Index_zcorn_Global[ij+1][Index_zcorn[ij+1].back()];
+				Index_zcorn[ij+1].pop_back();
+				size_t b3=Index_zcorn_Global[ij+dim[0]+2][Index_zcorn[ij+dim[0]+2].back()];
+				Index_zcorn[ij+dim[0]+2].pop_back();
+				size_t b4=Index_zcorn_Global[ij+dim[0]+1][Index_zcorn[ij+dim[0]+1].back()];
+				Index_zcorn[ij+dim[0]+1].pop_back();
 				
-				coord_list.push_back({top[ij].x, top[ij].y, zcorn[ijk4+dim[1]*dim[0]*4]});
-				coord_list.push_back({top[ij+1].x, top[ij+1].y, zcorn[ijk4+dim[1]*dim[0]*4+1]});
-				coord_list.push_back({top[ij+dim[0]+2].x, top[ij+dim[0]+2].y, zcorn[ijk4+dim[1]*dim[0]*4+dim[0]*2+1]});
-				coord_list.push_back({top[ij+dim[0]+1].x, top[ij+dim[0]+1].y, zcorn[ijk4+dim[1]*dim[0]*4+dim[0]*2]});
+				ele_list.push_back({a1, a2, a3, a4, b1, b2, b3, b4});
 			}
 		}
 	}
-	
-	//remove redundant coords
-	vector<xyz> New_coord_list;
-	vector<ab> New_ele_list;
-	vector<size_t> Index_coord;
-	New_coord_list.push_back(coord_list[0]);
-	Index_coord.push_back(0);
-
-	for (size_t i=1; i<coord_list.size(); i++)
-	{
-		bool New_coord=true;
-		for (size_t j=0; j<New_coord_list.size(); j++)
-		{
-			if ((coord_list[i].x==New_coord_list[j].x) && (coord_list[i].y==New_coord_list[j].y) && (coord_list[i].z==New_coord_list[j].z))
-				{
-					New_coord=false;
-					Index_coord.push_back(j);
-					break;
-				}
-		}
-		if (New_coord==true)
-			{
-				Index_coord.push_back(New_coord_list.size());
-				New_coord_list.push_back(coord_list[i]);
-			}
-	}
-	
-	ofstream ofs;
-	ofs.open ("coord_list.txt");	
-	for (size_t i = 0; i<New_coord_list.size(); i++)
-		{
-			ofs<<i<<' '<<New_coord_list[i].x<<' '<<New_coord_list[i].y<<' '<<New_coord_list[i].z<<endl;
-		}
-	
-	
-	
-	size_t numVrts, numElems;
-
-	numVrts=New_coord_list.size();
-	numElems=ele_list.size();
+		
+	size_t numElems = ele_list.size();
 
 //	create points
 //	store pointers to the vertices on the fly in a vector.
@@ -677,51 +720,22 @@ bool LoadGridFromGRDECL(Grid& grid, const char* filename, AVector3& aPos)
 		for(VertexIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); ++iter, ++i)
 		{
 			vVrtIds[i]=i;
-			aaPos[*iter].x()=New_coord_list[i].x;
-			aaPos[*iter].y()=New_coord_list[i].y;
-			aaPos[*iter].z()=New_coord_list[i].z;
+			aaPos[*iter].x()=coord_list[i].x;
+			aaPos[*iter].y()=coord_list[i].y;
+			aaPos[*iter].z()=coord_list[i].z;
 		}
 
 	}
-
-
 
 //	read the hexahedrons
 	{
 		for(size_t i = 0; i < numElems; ++i)
 		{
-			size_t Index, vrt_id_1, vrt_id_2, vrt_id_3, vrt_id_4, vrt_id_5, vrt_id_6, vrt_id_7, vrt_id_8;
-			vector<size_t>::iterator i1, i2, i3, i4, i5, i6, i7, i8;
-			
-			Index=i;
-			vrt_id_1=Index_coord[ele_list[i].a1-1];
-			vrt_id_2=Index_coord[ele_list[i].a2-1];
-			vrt_id_3=Index_coord[ele_list[i].a3-1];
-			vrt_id_4=Index_coord[ele_list[i].a4-1];
-			vrt_id_5=Index_coord[ele_list[i].b1-1];
-			vrt_id_6=Index_coord[ele_list[i].b2-1];
-			vrt_id_7=Index_coord[ele_list[i].b3-1];
-			vrt_id_8=Index_coord[ele_list[i].b4-1];
-			
-			i1 = find (vVrtIds.begin(), vVrtIds.end(), vrt_id_1);
-			i2 = find (vVrtIds.begin(), vVrtIds.end(), vrt_id_2);
-			i3 = find (vVrtIds.begin(), vVrtIds.end(), vrt_id_3);
-			i4 = find (vVrtIds.begin(), vVrtIds.end(), vrt_id_4);
-			i5 = find (vVrtIds.begin(), vVrtIds.end(), vrt_id_5);
-			i6 = find (vVrtIds.begin(), vVrtIds.end(), vrt_id_6);
-			i7 = find (vVrtIds.begin(), vVrtIds.end(), vrt_id_7);
-			i8 = find (vVrtIds.begin(), vVrtIds.end(), vrt_id_8);
-			
-	if (i1 == vVrtIds.end() || i2 == vVrtIds.end() || i3 == vVrtIds.end() || i4 == vVrtIds.end() || i5 == vVrtIds.end() || i6 == vVrtIds.end() || i7 == vVrtIds.end() || i8 == vVrtIds.end() )
-				UG_THROW ("LoadGridFromGRDECL: Wrong index of a vertex of element " << Index << "in '" << filename << "'");
 			grid.create<Hexahedron>
 				(HexahedronDescriptor
-					(vVrts[i1 - vVrtIds.begin()], vVrts[i2 - vVrtIds.begin()], vVrts[i3 - vVrtIds.begin()], vVrts[i4 - vVrtIds.begin()], vVrts[i5 - vVrtIds.begin()], vVrts[i6 - vVrtIds.begin()], vVrts[i7 - vVrtIds.begin()], vVrts[i8 - vVrtIds.begin()]));
+					(vVrts[ele_list[i].a1], vVrts[ele_list[i].a2], vVrts[ele_list[i].a3], vVrts[ele_list[i].a4], vVrts[ele_list[i].b1], vVrts[ele_list[i].b2], vVrts[ele_list[i].b3], vVrts[ele_list[i].b4]));
 		}
 	}
-
-
-
 
 	AttachAct(grid, filename, "ACTNUM");	
 
