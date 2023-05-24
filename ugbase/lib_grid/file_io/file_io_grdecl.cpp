@@ -698,25 +698,8 @@ bool LoadGridFromGRDECL(Grid& grid, const char* filename, AVector3& aPos)
 			}
 		}
 	}
-	// */
-	
-	ofstream ofs;
-	ofs.open ("coord_list.txt");	
-	for (size_t i = 0; i<coord_list.size(); i++)
-		{
-			ofs<<i<<' '<<coord_list[i].x<<' '<<coord_list[i].y<<' '<<coord_list[i].z<<endl;
-		}
-	
-	ofstream ofs1;
-	ofs1.open ("ele_list.txt");	
-	for (size_t i = 0; i<ele_list.size(); i++)
-		{
-			ofs1<<i<<' '<<ele_list[i].a1<<' '<<ele_list[i].a2<<' '<<ele_list[i].a3<<' '<<ele_list[i].a4<<' '<<ele_list[i].b1<<' '<<ele_list[i].b2<<' '<<ele_list[i].b3<<' '<<ele_list[i].b4<<endl;
-		}
 		
-	size_t numElems;
-
-	numElems=ele_list.size();
+	size_t numElems = ele_list.size();
 
 //	create points
 //	store pointers to the vertices on the fly in a vector.
