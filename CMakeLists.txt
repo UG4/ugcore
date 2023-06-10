@@ -146,9 +146,9 @@ if(BUILD_ONE_LIB)
 		else(CUDA_FOUND)
 		   # dynamic; w/o cuda
 		   add_library(${targetLibraryName} SHARED ${ug4libSources})
-		   install(TARGETS ${targetLibraryName}
-			ARCHIVE
-  			DESTINATION lib)
+		   install(TARGETS ${targetLibraryName} 
+		   			LIBRARY DESTINATION lib
+		   			COMPONENT libraries)
 		endif(CUDA_FOUND)
 		#ug_add_library(${targetLibraryName} SHARED ${ug4libSources})
 		

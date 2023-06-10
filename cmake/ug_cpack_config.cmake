@@ -32,12 +32,24 @@
 # This file is used for cpack configuration.
 set(CPACK_PACKAGE_NAME "UG4")
 set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/UG4")
+set(CPACK_PACKAGE_VENDOR "TheUG4Group")
+set(CPACK_PACKAGE_CONTACT "ug4@uni-frankfurt.de")
+set(CPACK_PACKAGE_CHECKSUM SHA256)
 
+# make DESTDIR=/home/xyz install
+set(CPACK_PACKAGING_INSTALL_PREFIX "/opt/ug4")
+
+#include(cmake/cpack/zip-config.cmake) # Create ZIP (generic)
 #include(cmake/cpack/nuget-config.cmake)
 #include(cmake/cpack/osx-config.cmake)
 #include(cmake/cpack/rpm-config.cmake)
-include(cmake/cpack/zip-config.cmake) # Create ZIP (generic)
+include(cmake/cpack/deb-config.cmake)
 
-set(CPACK_GENERATOR "ZIP") # Override?
-
+# We can select a generator using cpack -G
+# set(CPACK_GENERATOR "DEB") # Override? # ZIP, DEB
 include(CPack)
+
+# These are the 'component' categories used (extend, if neccessary!)
+cpack_add_component(applications DISPLAY_NAME "Executables")
+cpack_add_component(libraries DISPLAY_NAME "Libraries")
+cpack_add_component(sources DISPLAY_NAME "Sources")

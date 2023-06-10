@@ -199,9 +199,12 @@ else(STATIC_BUILD)
 endif(STATIC_BUILD)
 
 
-# CPack specifics
+# CPack specific
+#set_target_properties(${targetExecutableName} PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
+#set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 install(TARGETS ${targetExecutableName} 
-	RUNTIME
-  	DESTINATION bin)
-install(DIRECTORY ${UG_ROOT_PATH}/ugcore/scripts
+		RUNTIME DESTINATION bin 
+		LIBRARY DESTINATION lib
+		COMPONENT applications)
+install(DIRECTORY ${UG_ROOT_PATH}/ugcore/scripts 
 		DESTINATION ugcore)
