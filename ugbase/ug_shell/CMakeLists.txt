@@ -202,6 +202,7 @@ endif(STATIC_BUILD)
 # CPack specific
 #set_target_properties(${targetExecutableName} PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
 #set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+set_target_properties(${targetExecutableName}  PROPERTIES INSTALL_RPATH "$ORIGIN/../lib/")
 install(TARGETS ${targetExecutableName} 
 		RUNTIME DESTINATION bin 
 		LIBRARY DESTINATION lib
