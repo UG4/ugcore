@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2012-2015:  G-CSC, Goethe University Frankfurt
  * Author: Andreas Vogel
+ * 		   Shuai Lu
  * 
  * This file is part of UG4.
  * 
@@ -50,74 +51,40 @@ void LoadDomain(TDomain& domain, const char* filename)
 	LoadDomain(domain, filename, 0);
 }
 
-
+// Shuai
 // Use procId = -2 (i.e., 4294967294 for 32bit int) to achieve loading on all procs.
 template <typename TDomain>
 void LoadDomain(TDomain& domain, const char* filename, int procId)
 {
 	PROFILE_FUNC_GROUP("grid");
-	if(GetFilenameExtension(string(filename)) == string("ugx")){
-		domain.grid()->message_hub()->post_message(GridMessage_Creation(GMCT_CREATION_STARTS, procId));
+	size_t num_ph = 0;
+	//domain.create_additional_subset_handler("markSH");
+	vector<string> additionalSHNames = domain.additional_subset_handler_names();
+	SPProjectionHandler ph = make_sp(new ProjectionHandler(domain.geometry3d(), domain.subset_handler()));
 
-		bool loadingGrid = true;
-		#ifdef UG_PARALLEL
-			if((procId != -1) && (procId != -2) && (pcl::ProcRank() != procId))
-				loadingGrid = false;
-		#endif
-
-		if(loadingGrid){
-			string nfilename = FindFileInStandardPaths(filename);
-			if(!nfilename.empty()){
-				GridReaderUGX ugxReader;
-				if(!ugxReader.parse_file(nfilename.c_str())){
-					UG_THROW("An error occured while parsing '" << nfilename << "'");
-				}
-
-				if(ugxReader.num_grids() < 1){
-					UG_THROW("ERROR in LoadGridFromUGX: File contains no grid.");
-				}
-
-				ugxReader.grid(*domain.grid(), 0, domain.position_attachment());
-
-				if(ugxReader.num_subset_handlers(0) > 0)
-					ugxReader.subset_handler(*domain.subset_handler(), 0, 0);
-
-				vector<string> additionalSHNames = domain.additional_subset_handler_names();
-				for(size_t i_name = 0; i_name < additionalSHNames.size(); ++i_name){
-					string shName = additionalSHNames[i_name];
-					for(size_t i_sh = 0; i_sh < ugxReader.num_subset_handlers(0); ++i_sh){
-						if(shName == ugxReader.get_subset_handler_name(0, i_sh)){
-							ugxReader.subset_handler(*domain.additional_subset_handler(shName), i_sh, 0);
-						}
-					}
-				}
-
-				if(ugxReader.num_projection_handlers(0) > 0){
-					SPProjectionHandler ph = make_sp(
-							new ProjectionHandler(domain.geometry3d(), domain.subset_handler()));
-					ugxReader.projection_handler(*ph, 0, 0);
-					size_t shIndex = ugxReader.get_projection_handler_subset_handler_index(0, 0);
-					std::string shName;
-					shName = std::string(ugxReader.get_subset_handler_name(0, shIndex));
-					if (shIndex > 0)
-					{
-						try {ph->set_subset_handler(domain.additional_subset_handler(shName));}
-						UG_CATCH_THROW("Additional subset handler '"<< shName << "' has not been added to the domain.\n"
-								       "Do so by using Domain::create_additional_subset_handler(std::string name).");
-					}
-					domain.set_refinement_projector(ph);
-				}
-			}
-			else{
-				UG_THROW("ERROR in LoadDomain: File not found: " << filename);
-			}
+	if(additionalSHNames.size()>0){
+		SmartPtr<ISubsetHandler> sh;
+		vector<SmartPtr<ISubsetHandler>> ash;
+		for(size_t i_name = 0; i_name < additionalSHNames.size(); ++i_name){
+			SmartPtr<ISubsetHandler> sh = domain.additional_subset_handler(additionalSHNames[i_name]);
+			ash[i_name]= sh;
 		}
-		domain.grid()->message_hub()->post_message(GridMessage_Creation(GMCT_CREATION_STOPS, procId));
+
+		if(!LoadGridFromFile(*domain.grid(), ph, num_ph, *domain.subset_handler(), additionalSHNames, ash,
+						 filename, domain.position_attachment(), procId))
+		{
+			UG_THROW("LoadDomain: Could not load file: "<<filename);
+		}
 	}
 	else if(!LoadGridFromFile(*domain.grid(), *domain.subset_handler(),
 						 filename, domain.position_attachment(), procId))
 	{
 		UG_THROW("LoadDomain: Could not load file: "<<filename);
+	}
+
+	if(num_ph > 0)
+	{
+		domain.set_refinement_projector(ph);
 	}
 }
 

@@ -38,6 +38,8 @@
 #include "common/error.h"
 #include <lib_grid/attachments/attachment_pipe.h>
 #include <lib_grid/grid/grid_base_objects.h>
+//Shuai
+#include "lib_grid/refinement/projectors/projection_handler.h"
 
 namespace ug
 {
@@ -68,6 +70,13 @@ class ISubsetHandler;
  * processes.
  * \{
  */
+//Shuai
+template <class TAPos>
+UG_API
+//bool LoadGridFromFile(Grid& grid, SPProjectionHandler& ph, size_t& num_ph, ISubsetHandler& sh, std::vector<std::string> additionalSHNames, ISubsetHandler& ash,
+bool LoadGridFromFile(Grid& grid, SPProjectionHandler& ph, size_t& num_ph, ISubsetHandler& sh, std::vector<std::string> additionalSHNames, std::vector<SmartPtr<ISubsetHandler>> ash,
+						const char* filename, TAPos& aPos, int procId = -1);
+
 template <class TAPos>
 UG_API
 bool LoadGridFromFile(Grid& grid, ISubsetHandler& sh,
