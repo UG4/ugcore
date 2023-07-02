@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2010-2015:  G-CSC, Goethe University Frankfurt
  * Author: Sebastian Reiter
- * 		   Shuai Lu
  * 
  * This file is part of UG4.
  * 
@@ -56,7 +55,6 @@ bool SaveGridToUGX(Grid& grid, ISubsetHandler& sh, const char* filename,
 };
 
 ////////////////////////////////////////////////////////////////////////
-// Shuai 
 template <class TAPosition>
 bool LoadGridFromUGX(Grid& grid, SPProjectionHandler& ph, size_t& num_ph, ISubsetHandler& sh, std::vector<std::string> additionalSHNames, std::vector<SmartPtr<ISubsetHandler>> ash,
 						const char* filename, TAPosition& aPos)
@@ -86,7 +84,6 @@ bool LoadGridFromUGX(Grid& grid, SPProjectionHandler& ph, size_t& num_ph, ISubse
 		}
 	}
 
-
 	if(ugxReader.num_projection_handlers(0) > 0){
 		ugxReader.projection_handler(*ph, 0, 0);
 		size_t shIndex = ugxReader.get_projection_handler_subset_handler_index(0, 0);
@@ -102,9 +99,7 @@ bool LoadGridFromUGX(Grid& grid, SPProjectionHandler& ph, size_t& num_ph, ISubse
 					UG_CATCH_THROW("Additional subset handler '"<< shName2 << "' has not been added to the domain.\n"
 									"Do so by using Domain::create_additional_subset_handler(std::string name).");
 				}
-			
 		}
-
 	}
 
 	return true;

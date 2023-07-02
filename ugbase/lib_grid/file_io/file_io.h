@@ -70,10 +70,8 @@ class ISubsetHandler;
  * processes.
  * \{
  */
-//Shuai
 template <class TAPos>
 UG_API
-//bool LoadGridFromFile(Grid& grid, SPProjectionHandler& ph, size_t& num_ph, ISubsetHandler& sh, std::vector<std::string> additionalSHNames, ISubsetHandler& ash,
 bool LoadGridFromFile(Grid& grid, SPProjectionHandler& ph, size_t& num_ph, ISubsetHandler& sh, std::vector<std::string> additionalSHNames, std::vector<SmartPtr<ISubsetHandler>> ash,
 						const char* filename, TAPos& aPos, int procId = -1);
 

@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2012-2015:  G-CSC, Goethe University Frankfurt
  * Author: Andreas Vogel
- * 		   Shuai Lu
  * 
  * This file is part of UG4.
  * 
@@ -51,7 +50,6 @@ void LoadDomain(TDomain& domain, const char* filename)
 	LoadDomain(domain, filename, 0);
 }
 
-// Shuai
 // Use procId = -2 (i.e., 4294967294 for 32bit int) to achieve loading on all procs.
 template <typename TDomain>
 void LoadDomain(TDomain& domain, const char* filename, int procId)
@@ -71,13 +69,13 @@ void LoadDomain(TDomain& domain, const char* filename, int procId)
 		}
 
 		if(!LoadGridFromFile(*domain.grid(), ph, num_ph, *domain.subset_handler(), additionalSHNames, ash,
-						 filename, domain.position_attachment(), procId))
+								filename, domain.position_attachment(), procId))
 		{
 			UG_THROW("LoadDomain: Could not load file: "<<filename);
 		}
 	}
 	else if(!LoadGridFromFile(*domain.grid(), *domain.subset_handler(),
-						 filename, domain.position_attachment(), procId))
+								filename, domain.position_attachment(), procId))
 	{
 		UG_THROW("LoadDomain: Could not load file: "<<filename);
 	}
