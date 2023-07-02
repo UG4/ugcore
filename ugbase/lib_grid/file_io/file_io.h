@@ -71,13 +71,12 @@ class ISubsetHandler;
  */
 template <class TAPos>
 UG_API
-bool LoadGridFromFile(Grid& grid, SPProjectionHandler& ph, size_t& num_ph, ISubsetHandler& sh, std::vector<std::string> additionalSHNames, std::vector<SmartPtr<ISubsetHandler>> ash,
-						const char* filename, TAPos& aPos, int procId = -1);
+bool LoadGridFromFile(Grid& grid, SPProjectionHandler& ph, size_t& num_ph, ISubsetHandler& sh, std::vector<std::string> additionalSHNames,
+						std::vector<SmartPtr<ISubsetHandler>> ash, const char* filename, TAPos& aPos, int procId = -1);
 
 template <class TAPos>
 UG_API
-bool LoadGridFromFile(Grid& grid, ISubsetHandler& sh,
-					  const char* filename, TAPos& aPos, int procId = -1);
+bool LoadGridFromFile(Grid& grid, ISubsetHandler& sh, const char* filename, TAPos& aPos, int procId = -1);
 
 template <class TAPos>
 UG_API

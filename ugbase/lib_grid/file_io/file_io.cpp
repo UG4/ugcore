@@ -238,8 +238,8 @@ static bool LoadGrid(Grid& grid, ISubsetHandler* psh,
 }
 
 template <class TAPos>
-static bool LoadGrid(Grid& grid, SPProjectionHandler* ph, size_t& num_ph, ISubsetHandler* psh, std::vector<std::string> additionalSHNames, std::vector<SmartPtr<ISubsetHandler>> ash,
-					  const char* filename, TAPos& aPos, int procId)
+static bool LoadGrid(Grid& grid, SPProjectionHandler* ph, size_t& num_ph, ISubsetHandler* psh, std::vector<std::string> additionalSHNames,
+						std::vector<SmartPtr<ISubsetHandler>> ash, const char* filename, TAPos& aPos, int procId)
 {
 //	For convenience, we support multiple different standard paths, from which
 //	grids may be loaded. We thus first check, where the specified file is
@@ -301,8 +301,8 @@ static bool LoadGrid(Grid& grid, SPProjectionHandler* ph, size_t& num_ph, ISubse
 
 ////////////////////////////////////////////////////////////////////////////////
 template <class TAPos>
-bool LoadGridFromFile(Grid& grid, SPProjectionHandler& ph, size_t& num_ph, ISubsetHandler& sh, vector<string> additionalSHNames, vector<SmartPtr<ISubsetHandler>> ash,
-					  const char* filename, TAPos& aPos, int procId)
+bool LoadGridFromFile(Grid& grid, SPProjectionHandler& ph, size_t& num_ph, ISubsetHandler& sh, vector<string> additionalSHNames,
+						vector<SmartPtr<ISubsetHandler>> ash, const char* filename, TAPos& aPos, int procId)
 {
 	return LoadGrid(grid, &ph, num_ph, &sh, additionalSHNames, ash, filename, aPos, procId);
 }
