@@ -56,8 +56,8 @@ bool SaveGridToUGX(Grid& grid, ISubsetHandler& sh, const char* filename,
 
 ////////////////////////////////////////////////////////////////////////
 template <class TAPosition>
-bool LoadGridFromUGX(Grid& grid, SPProjectionHandler& ph, size_t& num_ph, ISubsetHandler& sh, std::vector<std::string> additionalSHNames, std::vector<SmartPtr<ISubsetHandler>> ash,
-						const char* filename, TAPosition& aPos)
+bool LoadGridFromUGX(Grid& grid, SPProjectionHandler& ph, size_t& num_ph, ISubsetHandler& sh, std::vector<std::string> additionalSHNames,
+						std::vector<SmartPtr<ISubsetHandler>> ash, const char* filename, TAPosition& aPos)
 {
 	GridReaderUGX ugxReader;
 	if(!ugxReader.parse_file(filename)){
@@ -104,53 +104,6 @@ bool LoadGridFromUGX(Grid& grid, SPProjectionHandler& ph, size_t& num_ph, ISubse
 
 	return true;
 }
-
-/*
-template <typename TDomain>
-bool LoadGridFromUGX(TDomain& domain, SPProjectionHandler& ph, const char* filename)
-{
-	GridReaderUGX ugxReader;
-	if(!ugxReader.parse_file(filename)){
-		UG_LOG("ERROR in LoadGridFromUGX: File not found: " << filename << std::endl);
-		return false;
-	}
-	
-	if(ugxReader.num_grids() < 1){
-		UG_LOG("ERROR in LoadGridFromUGX: File contains no grid.\n");
-		return false;
-	}
-
-	ugxReader.grid(*domain.grid(), 0, domain.position_attachment());
-
-	if(ugxReader.num_subset_handlers(0) > 0)
-		ugxReader.subset_handler(*domain.subset_handler(), 0, 0);
-		
-	std::vector<std::string> additionalSHNames = domain.additional_subset_handler_names();
-	for(size_t i_name = 0; i_name < additionalSHNames.size(); ++i_name){
-		std::string shName = additionalSHNames[i_name];
-		for(size_t i_sh = 0; i_sh < ugxReader.num_subset_handlers(0); ++i_sh){
-			if(shName == ugxReader.get_subset_handler_name(0, i_sh)){
-				ugxReader.subset_handler(*domain.additional_subset_handler(shName), i_sh, 0);
-			}
-		}
-	}
-
-	if(ugxReader.num_projection_handlers(0) > 0){
-		ugxReader.projection_handler(*ph, 0, 0);
-		size_t shIndex = ugxReader.get_projection_handler_subset_handler_index(0, 0);
-		std::string shName2;
-		shName2 = std::string(ugxReader.get_subset_handler_name(0, shIndex));
-		if (shIndex > 0)
-		{
-			try {ph->set_subset_handler(domain.additional_subset_handler(shName2));}
-			UG_CATCH_THROW("Additional subset handler '"<< shName2 << "' has not been added to the domain.\n"
-							"Do so by using Domain::create_additional_subset_handler(std::string name).");
-		}
-	}
-
-	return true;
-}
-*/
 
 template <class TAPosition>
 bool LoadGridFromUGX(Grid& grid, ISubsetHandler& sh, const char* filename,
