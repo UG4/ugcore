@@ -34,6 +34,28 @@ project(P_LIB_DISCRETIZATION)
 
 include("../../cmake/ug_includes.cmake")
 
+option(ENABLE_NESTED_NEWTON "If enabled, nested Newton may be used, but needs for specification, else fallback to normal Newton" OFF)
+message(STATUS "")
+message(STATUS "Info: ${pluginName} options:")
+message(STATUS "    * ENABLE_NESTED_NEWTON:    ${ENABLE_NESTED_NEWTON} (options are: ON, OFF)")
+
+if( ENABLE_NESTED_NEWTON )
+
+set( SET_NESTED_NEWTON 1 ) 
+
+else(ENABLE_NESTED_NEWTON)
+
+set( SET_NESTED_NEWTON 0) 
+
+endif(ENABLE_NESTED_NEWTON)
+
+configure_file (
+  "${CMAKE_CURRENT_SOURCE_DIR}//operator/non_linear_operator/newton_solver/nestedNewtonRFSwitch.h.in"
+  "${CMAKE_CURRENT_SOURCE_DIR}//operator/non_linear_operator/newton_solver/nestedNewtonRFSwitch.h"
+  )
+
+
+
 set(srcDiscretization	domain.cpp
 						domain_util.cpp
 
