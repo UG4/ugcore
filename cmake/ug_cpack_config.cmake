@@ -43,7 +43,7 @@ set(CPACK_PACKAGING_INSTALL_PREFIX "/opt/ug4")
 #include(cmake/cpack/nuget-config.cmake)
 #include(cmake/cpack/osx-config.cmake)
 #include(cmake/cpack/rpm-config.cmake)
-include(cmake/cpack/deb-config.cmake)
+#include(cmake/cpack/deb-config.cmake)
 
 # We can select a generator using cpack -G
 # set(CPACK_GENERATOR "DEB") # Override? # ZIP, DEB

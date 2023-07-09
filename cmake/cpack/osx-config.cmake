@@ -1,10 +1,9 @@
 # Configuration for RPMs
 
-
 set(CPACK_GENERATOR "Bundle") # For MacOS
 
 #  The name of the generated bundle. This appears in the macOS Finder as the bundle name. Required.
-#CPACK_BUNDLE_NAME
+set(CPACK_BUNDLE_NAME "UG4")
 
 #Path to an macOS Property List (.plist) file that will be used for the generated bundle. This assumes that the caller has generated or specified their own Info.plist file. Required.
 #CPACK_BUNDLE_PLIST
