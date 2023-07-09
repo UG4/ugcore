@@ -124,7 +124,8 @@ set(srcUGScript		lua_util.cpp
 					bindings_lua.cpp
 					lua_debug.cpp
 					lua_stack.cpp
-					lua_serialization.cpp)
+					lua_serialization.cpp
+					lua_table_handle.cpp)
 
 set(srcLUACompiler	compiler/parser.cpp
 					compiler/lexer.cpp

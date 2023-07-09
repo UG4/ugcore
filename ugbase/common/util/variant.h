@@ -33,12 +33,14 @@
 #ifndef __H__UG_variant__
 #define __H__UG_variant__
 
+#include <iostream>
 #include <string>
 #include "smart_pointer.h"
 #include "common/types.h"
 #include "common/ug_config.h"
 #ifdef UG_FOR_LUA
 #include "bindings/lua/lua_function_handle.h"
+#include "bindings/lua/lua_table_handle.h"
 #endif
 
 namespace ug{
@@ -83,7 +85,7 @@ namespace ug{
  * which will return a constant enumerated in Variant::Type.
  */
 class UG_API Variant{
-	public:
+	public: // TODO?: hide enum
 		enum Type{
 			VT_INVALID = 0,
 			VT_BOOL = 1,
@@ -99,6 +101,7 @@ class UG_API Variant{
 			VT_CONST_SMART_POINTER = 11
 #ifdef UG_FOR_LUA
 			,VT_LUA_FUNCTION_HANDLE = 12
+			,VT_LUA_TABLE_HANDLE = 13
 #endif
 		};
 
@@ -117,6 +120,7 @@ class UG_API Variant{
 		Variant(const ConstSmartPtr<void>& val);
 #ifdef UG_FOR_LUA
 		Variant(LuaFunctionHandle val);
+		Variant(LuaTableHandle val);
 #endif
 
 		Variant(const Variant& v);
@@ -130,6 +134,7 @@ class UG_API Variant{
 		template <typename T>
 		inline static Type type() {return VT_INVALID;}
 
+		bool is_valid() const{return m_type;}
 		bool to_bool() const;
 		int to_int() const;
 		size_t to_size_t() const;
@@ -144,6 +149,7 @@ class UG_API Variant{
 		ConstSmartPtr<void> to_const_smart_pointer() const;
 #ifdef UG_FOR_LUA
 		LuaFunctionHandle to_lua_function_handle() const;
+		LuaTableHandle to_lua_table_handle() const;
 #endif
 
 		template <typename T>
@@ -171,6 +177,7 @@ class UG_API Variant{
 			ConstSmartPtr<void>* 	m_constsmartptr;
 #ifdef UG_FOR_LUA
 			LuaFunctionHandle		m_luafcthandle;
+			LuaTableHandle		m_luatblhandle;
 #endif
 		};
 
@@ -191,6 +198,7 @@ template <> inline SmartPtr<void> 	   	Variant::to<SmartPtr<void> >() const 		{r
 template <> inline ConstSmartPtr<void> 	Variant::to<ConstSmartPtr<void> >() const 	{return to_const_smart_pointer();}
 #ifdef UG_FOR_LUA
 template <> inline LuaFunctionHandle 	Variant::to<LuaFunctionHandle>() const 		{return to_lua_function_handle();}
+template <> inline LuaTableHandle 	Variant::to<LuaTableHandle>() const 		{return to_lua_table_handle();}
 #endif
 
 template <> inline Variant::Type Variant::type<bool>() 					{return VT_BOOL;}
@@ -207,6 +215,7 @@ template <> inline Variant::Type Variant::type<SmartPtr<void> >() 		{return VT_S
 template <> inline Variant::Type Variant::type<ConstSmartPtr<void> >() 	{return VT_CONST_SMART_POINTER;}
 #ifdef UG_FOR_LUA
 template <> inline Variant::Type Variant::type<LuaFunctionHandle>() 	{return VT_LUA_FUNCTION_HANDLE;}
+template <> inline Variant::Type Variant::type<LuaTableHandle>() 	{return VT_LUA_TABLE_HANDLE;}
 #endif
 
 

@@ -59,7 +59,7 @@ configure_file (
 set(srcDiscretization	domain.cpp
 						domain_util.cpp
 
-                        common/function_group.cpp
+						common/function_group.cpp
 						common/groups_util.cpp
 						common/marking_utils.cpp
 
@@ -69,20 +69,21 @@ set(srcDiscretization	domain.cpp
 						dof_manager/dof_index_storage.cpp
 						dof_manager/dof_distribution_info.cpp
 						dof_manager/dof_distribution.cpp
-						dof_manager/ordering/cuthill_mckee.cpp
-						dof_manager/ordering/lexorder.cpp
-						dof_manager/ordering/downwindorder.cpp
 
-                        function_spaces/approximation_space.cpp
-                        function_spaces/dof_position_util.cpp
-                        function_spaces/grid_function.cpp
-                        function_spaces/adaption_surface_grid_function.cpp
-                        function_spaces/local_transfer_interface.cpp
+						ordering_strategies/algorithms/cuthill_mckee.cpp
+						ordering_strategies/algorithms/lexorder.cpp
+						ordering_strategies/algorithms/downwindorder.cpp
 
-                        io/vtkoutput.cpp
+						function_spaces/approximation_space.cpp
+						function_spaces/dof_position_util.cpp
+						function_spaces/grid_function.cpp
+						function_spaces/adaption_surface_grid_function.cpp
+						function_spaces/local_transfer_interface.cpp
+
+						io/vtkoutput.cpp
 
 						reference_element/reference_element.cpp
-			            reference_element/reference_mapping_provider.cpp
+						reference_element/reference_mapping_provider.cpp
 						
 						quadrature/quad_test.cpp
 						quadrature/quadrature_provider.cpp
@@ -110,6 +111,8 @@ set(srcDiscretization	domain.cpp
 						local_finite_element/mini/mini.cpp
 						
 						operator/linear_operator/multi_grid_solver/mg_solver.cpp
+
+						operator/preconditioner/line_smoothers.cpp
 						
 						spatial_disc/subset_assemble_util.cpp
 						spatial_disc/elem_disc/elem_disc_interface.cpp
@@ -124,7 +127,6 @@ set(srcDiscretization	domain.cpp
 						
 						spatial_disc/constraints/continuity_constraints/p1_continuity_constraints.cpp
 						
-						spatial_disc/elem_disc/inner_boundary/inner_boundary_fv1.cpp
 						spatial_disc/elem_disc/neumann_boundary/neumann_boundary_base.cpp
 						spatial_disc/elem_disc/neumann_boundary/fv1/neumann_boundary_fv1.cpp
 						spatial_disc/elem_disc/neumann_boundary/fe/neumann_boundary_fe.cpp

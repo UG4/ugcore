@@ -31,7 +31,7 @@
  */
 
 #ifndef __H__UG__COMMON__DEBUG_ID_H
-#define	__H__UG__COMMON__DEBUG_ID_H
+#define __H__UG__COMMON__DEBUG_ID_H
 #include <vector>
 #include <map>
 #include <string>

@@ -237,7 +237,76 @@ static bool LoadGrid(Grid& grid, ISubsetHandler* psh,
 	return retVal;
 }
 
+template <class TAPos>
+static bool LoadGrid(Grid& grid, SPProjectionHandler* ph, size_t& num_ph, ISubsetHandler* psh, std::vector<std::string> additionalSHNames,
+						std::vector<SmartPtr<ISubsetHandler>> ash, const char* filename, TAPos& aPos, int procId)
+{
+//	For convenience, we support multiple different standard paths, from which
+//	grids may be loaded. We thus first check, where the specified file is
+//	located and load it from that location afterwards.
+	bool loadingGrid = true;
+	#ifdef UG_PARALLEL
+		if((procId != -1) && (pcl::ProcRank() != procId))
+			loadingGrid = false;
+	#endif
+
+	grid.message_hub()->post_message(GridMessage_Creation(GMCT_CREATION_STARTS, procId));
+
+	bool retVal = false;
+	if(loadingGrid){
+	//	Now perform the actual loading.
+	//	first all load methods, which do accept template position types are
+	//	handled. Then all those which only work with 3d position types are processed.
+		string tfile = FindFileInStandardPaths(filename);
+		if(!tfile.empty()){
+			if(tfile.find(".ugx") != string::npos){
+				if(psh)
+					retVal = LoadGridFromUGX(grid, *ph, num_ph, *psh, additionalSHNames, ash, tfile.c_str(), aPos);
+				else{
+				//	we have to create a temporary subset handler
+					SubsetHandler shTmp(grid);
+					retVal = LoadGridFromUGX(grid, *ph, num_ph, shTmp, additionalSHNames, ash, tfile.c_str(), aPos);
+				}
+			}
+
+			else if(tfile.find(".vtu") != string::npos){
+				if(psh)
+					retVal = LoadGridFromVTU(grid, *psh, tfile.c_str(), aPos);
+				else{
+				//	we have to create a temporary subset handler
+					SubsetHandler shTmp(grid);
+					retVal = LoadGridFromVTU(grid, shTmp, tfile.c_str(), aPos);
+				}
+			}
+			else{
+			//	now we'll handle those methods, which only support 3d position types.
+				retVal = LoadGrid3d(grid, psh, tfile.c_str(), aPos);
+			}
+
+		}
+	}
+
+	grid.message_hub()->post_message(GridMessage_Creation(GMCT_CREATION_STOPS, procId));
+	
+	#ifdef UG_PARALLEL
+		pcl::ProcessCommunicator procCom;
+		if(procId == -1)
+			retVal = pcl::AllProcsTrue(retVal, procCom);
+		else
+			retVal = pcl::OneProcTrue(retVal, procCom);
+	#endif
+
+	return retVal;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
+template <class TAPos>
+bool LoadGridFromFile(Grid& grid, SPProjectionHandler& ph, size_t& num_ph, ISubsetHandler& sh, vector<string> additionalSHNames,
+						vector<SmartPtr<ISubsetHandler>> ash, const char* filename, TAPos& aPos, int procId)
+{
+	return LoadGrid(grid, &ph, num_ph, &sh, additionalSHNames, ash, filename, aPos, procId);
+}
+
 template <class TAPos>
 bool LoadGridFromFile(Grid& grid, ISubsetHandler& sh,
 					  const char* filename, TAPos& aPos, int procId)
@@ -857,6 +926,10 @@ template bool LoadGridFromFile(Grid&, ISubsetHandler&, const char*, AVector3&, i
 template bool LoadGridFromFile(Grid&, const char*, AVector1&, int);
 template bool LoadGridFromFile(Grid&, const char*, AVector2&, int);
 template bool LoadGridFromFile(Grid&, const char*, AVector3&, int);
+
+template bool LoadGridFromFile(Grid&, SPProjectionHandler&, size_t&, ISubsetHandler&, std::vector<std::string>, std::vector<SmartPtr<ISubsetHandler>>, const char*, AVector1&, int);
+template bool LoadGridFromFile(Grid&, SPProjectionHandler&, size_t&, ISubsetHandler&, std::vector<std::string>, std::vector<SmartPtr<ISubsetHandler>>, const char*, AVector2&, int);
+template bool LoadGridFromFile(Grid&, SPProjectionHandler&, size_t&, ISubsetHandler&, std::vector<std::string>, std::vector<SmartPtr<ISubsetHandler>>, const char*, AVector3&, int);
 
 template bool SaveGridToFile(Grid&, ISubsetHandler&, const char*, AVector1&);
 template bool SaveGridToFile(Grid&, ISubsetHandler&, const char*, AVector2&);

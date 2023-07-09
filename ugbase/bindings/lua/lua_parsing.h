@@ -41,6 +41,7 @@
 
 #include "bindings_lua.h"
 #include "bindings/lua/lua_function_handle.h"
+#include "bindings/lua/lua_table_handle.h"
 
 namespace ug{
 namespace bridge{
@@ -164,6 +165,21 @@ struct LuaParsing<LuaFunctionHandle>{
 	}
 	static void push(lua_State* L, LuaFunctionHandle data){
 		UG_THROW("Return value of type LuaFunctionHandle not implemented.");
+	}
+};
+
+template <>
+struct LuaParsing<LuaTableHandle>{
+	static bool check(lua_State* L, int index){
+		return lua_istable(L, index);
+	}
+	static LuaTableHandle get(lua_State* L, int index){
+		LuaTableHandle tmp(L, index);
+		untested();
+		return tmp;
+	}
+	static void push(lua_State* L, LuaTableHandle data){
+		UG_THROW("Return value of type LuaTableHandle not implemented.");
 	}
 };
 #endif

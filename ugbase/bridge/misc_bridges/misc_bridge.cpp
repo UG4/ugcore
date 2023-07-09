@@ -41,6 +41,10 @@
 #include "common/stopwatch.h"
 #include "ug.h"
 
+#ifdef UG_FOR_LUA
+#include "bindings/lua/lua_table_handle.h"
+#endif
+
 using namespace std;
 
 void ug_backtrace();
@@ -561,8 +565,19 @@ void RegisterBridge_Misc(Registry &reg, string parentGroup)
 		reg.add_function("TerminateAbortedRun", &TerminateAbortedRun, grp, "", "", "Terminates the current run if AbortRun() has been called before.");
 	}
 	
+#ifdef UG_FOR_LUA
+	{
+		stringstream ss; ss << parentGroup << "/Util/Lua";
+		string grp = ss.str();
+		typedef LuaTableHandle T;
+		reg.add_class_<T /*, TBase*/>("LuaTableHandle", grp)
+			.add_method("size", &T::size)
+			.set_construct_as_smart_pointer(true) // really?
+			;
+	}
+#endif
 
-}
+} // RegisterBridge_Misc
 
 // end group misc_bridge
 /// \}

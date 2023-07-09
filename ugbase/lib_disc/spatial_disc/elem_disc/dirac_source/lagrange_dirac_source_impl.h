@@ -71,6 +71,26 @@ add_source(const char* luaFctName, MathVector<dim> &coord)
 
 template<typename TDomain>
 void DiracSourceDisc<TDomain>::
+add_transport_sink(SmartPtr<UserData<number, dim> > snkTransportData)
+{ m_snkTransportData = snkTransportData; }
+
+template<typename TDomain>
+void DiracSourceDisc<TDomain>::
+add_transport_sink(number scale)
+{ add_transport_sink(make_sp(new ConstUserNumber<dim>(scale))); }
+
+
+#ifdef UG_FOR_LUA
+template<typename TDomain>
+void DiracSourceDisc<TDomain>::
+add_transport_sink(const char* luaFctName)
+{ add_transport_sink(LuaUserDataFactory<number,dim>::create(luaFctName)); }
+#endif
+
+
+
+template<typename TDomain>
+void DiracSourceDisc<TDomain>::
 prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid)
 {
 	// check that Lagrange 1st order
@@ -94,12 +114,44 @@ use_hanging() const
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
 void DiracSourceDisc<TDomain>::
+add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
+{
+	if (m_snkTransportData.invalid()) return;
+	UG_LOG("'DiracSourceDisc::add_jac_A_elem' called for " << vCornerCoords[0] << std::endl);
+	// Request source strength form user data.
+	const int co = 0;
+	double snkSVal;
+	(*m_snkTransportData)(snkSVal, m_srcCoord, this->time(), -1);
+	J(_C_, co, _C_, co) -= snkSVal;
+}
+
+
+///	assembles the stiffness part of the local defect
+template<typename TDomain>
+template<typename TElem, typename TFVGeom>
+void DiracSourceDisc<TDomain>::
+add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
+{
+	if (m_snkTransportData.invalid()) return;
+	// Request source strength form user data.
+	const int co = 0;
+	double snkSVal;
+	UG_LOG("'DiracSourceDisc::add_def_A_elem' called for " << vCornerCoords[0] << std::endl);
+	(*m_snkTransportData)(snkSVal, m_srcCoord, this->time (), -1);
+	d(_C_, co) -= u(_C_, co) * snkSVal;
+}
+
+template<typename TDomain>
+template<typename TElem, typename TFVGeom>
+void DiracSourceDisc<TDomain>::
 add_rhs_elem(LocalVector& rhs, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
-	UG_LOG("'DiracSourceDisc::add_rhs_elem' called for " << vCornerCoords[0]);
-	UG_LOG("elem:"<<  elem << "\n");
+	UG_LOG("'DiracSourceDisc::add_rhs_elem' called for " << vCornerCoords[0]<< std::endl);
+	UG_LOG("elem:"<<  elem << std::endl);
 
 	UG_ASSERT(vCornerCoords[0] == m_srcCoord, "Source must be located at element corner!");
+
+	if (m_srcData.invalid()) return;
 
 	// Request source strength form user data.
 	const int co = 0;

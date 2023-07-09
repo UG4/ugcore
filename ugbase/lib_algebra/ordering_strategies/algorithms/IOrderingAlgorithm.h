@@ -33,6 +33,8 @@
 #ifndef __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_IORDERING_ALGORITHM__
 #define __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_IORDERING_ALGORITHM__
 
+#include "common/util/smart_pointer.h"
+
 namespace ug{
 
 /*
@@ -46,14 +48,32 @@ namespace ug{
                                                         a boost graph
 */
 
-template <typename O_t>
+template <typename TAlgebra, typename O_t=std::vector<size_t> >
 class IOrderingAlgorithm{
 public:
+	typedef typename TAlgebra::matrix_type M_t;
+	typedef typename TAlgebra::vector_type V_t;
+
 	IOrderingAlgorithm(){}
-	~IOrderingAlgorithm(){}
+	virtual ~IOrderingAlgorithm(){}
 
 	virtual void compute() = 0;
+	virtual void check() = 0;
+
 	virtual O_t& ordering() = 0;
+
+	//lib_algebra only
+	virtual void init(M_t*) = 0;
+	//lib_disc
+	virtual void init(M_t*, const V_t&) = 0;
+	//lib_algebra only, induced matrix
+	virtual void init(M_t*, const std::vector<size_t>&) = 0;
+	//lib_disc, induced matrix
+	virtual void init(M_t*, const V_t&, const std::vector<size_t>&) = 0;
+
+	virtual SmartPtr<IOrderingAlgorithm<TAlgebra, O_t> > clone() = 0;
+
+	virtual const char* name() const = 0;
 };
 
 } //namespace

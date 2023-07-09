@@ -110,6 +110,9 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_function("Integral",static_cast<number (*)(SmartPtr<TFct>, const char*)>(Integral<TFct>),grp, "Integral", "GridFunction#Component");
 	}
 
+	{
+		reg.add_function("Minimum",static_cast<number (*)(SmartPtr<TFct>, const char*, const char*)>(&Minimum<TFct>), grp);
+	}
 //	L2Error
 	{
 		reg.add_function("L2Error",static_cast<number (*)(SmartPtr<TFct>, const char*, SmartPtr<TFct>, const char*, int, const char*)>(&L2Error<TFct>), grp);

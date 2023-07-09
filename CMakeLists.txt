@@ -44,7 +44,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_SOURCE_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_SOURCE_DIR}/bin)
 
 include("cmake/ug_includes.cmake")
-
+include("cmake/ug_cpack_config.cmake")
 ########################
 # compile plugins
 if(buildPlugins)
@@ -141,9 +141,14 @@ if(BUILD_ONE_LIB)
 			add_definitions(-DLUA_BUILD_AS_DLL -DLUA_LIB -DLUA_CORE)
 		endif(WIN32)
 		if(CUDA_FOUND)
+			# dynamic; w/ cuda
 		   CUDA_add_library(${targetLibraryName} SHARED ${ug4libSources})
 		else(CUDA_FOUND)
+		   # dynamic; w/o cuda
 		   add_library(${targetLibraryName} SHARED ${ug4libSources})
+		   install(TARGETS ${targetLibraryName} 
+		   			LIBRARY DESTINATION lib
+		   			COMPONENT libraries)
 		endif(CUDA_FOUND)
 		#ug_add_library(${targetLibraryName} SHARED ${ug4libSources})
 		

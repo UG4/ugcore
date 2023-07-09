@@ -35,7 +35,6 @@
  */
 // ug4 headers
 #include "common/util/string_util.h"
-#include "lib_grid/grid/grid.h"
 
 namespace ug {
 
@@ -211,7 +210,6 @@ void DegeneratedLayerManager<dim>::mark_vertices ()
 	}
 	
 //	Unmark all vertices in the other (not-degenerated-layer) elements:
-	SubsetGroup bulkSsGrp (m_spSH);
 	for (int si = 0; si < m_spSH->num_subsets (); si++)
 	if (DimensionOfSubset (*m_spSH, si) == dim && ! m_layerSsGrp.contains (si))
 		for (size_t lev = 0; lev < pMG->num_levels (); lev++)
@@ -225,6 +223,11 @@ void DegeneratedLayerManager<dim>::mark_vertices ()
 					m_aaVertMarks [elem->vertex(i)] = D_LAYER_OUTER;
 			}
 		}
+	
+#ifdef UG_PARALLEL
+//	Make the marking consistent
+	AttachmentAllReduce<Vertex> (*pMG, m_aVertexMarks, PCL_RO_MIN);
+#endif // UG_PARALLEL
 }
 
 /**

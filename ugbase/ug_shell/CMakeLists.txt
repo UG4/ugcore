@@ -197,3 +197,15 @@ else(STATIC_BUILD)
 	target_link_libraries (${targetExecutableName} ${targetLibraryName})
 	target_link_libraries(${targetExecutableName} ${ugShellDependencies})
 endif(STATIC_BUILD)
+
+
+# CPack specific
+#set_target_properties(${targetExecutableName} PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
+#set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+set_target_properties(${targetExecutableName}  PROPERTIES INSTALL_RPATH "$ORIGIN/../lib/")
+install(TARGETS ${targetExecutableName} 
+		RUNTIME DESTINATION bin 
+		LIBRARY DESTINATION lib
+		COMPONENT applications)
+install(DIRECTORY ${UG_ROOT_PATH}/ugcore/scripts 
+		DESTINATION ugcore)

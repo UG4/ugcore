@@ -190,7 +190,7 @@ public:
 public:
 
 ///	class constructor (may not have any arguments!)
-	LSGFGlobAssembler () {};
+	LSGFGlobAssembler () : m_bAssembleOnlyCut(false) {};
 	
 ///	virtual destructor
 	virtual ~LSGFGlobAssembler () {};
@@ -456,7 +456,15 @@ public:
 
 private:
 
-	extrapolation_type m_extrapol;
+	extrapolation_type m_extrapol; ///< the extrapolation at the interface
+	
+	/**
+	 * The following flag is used only for research purposes (measuring the volume
+	 * sources/sinks at the embedded interface etc.). It switches off assembing
+	 * in all inner elements (i.e. makes the procedures to assemble only in the cut
+	 * elements:
+	 */
+	 bool m_bAssembleOnlyCut;
 
 public:
 
@@ -540,6 +548,12 @@ public:
 	)
 	{
 		m_extrapol.exclude_subsets (spApproxSpace, subset_names);
+	}
+	
+///	set the "assemble only in cut elements" flag
+	void set_assemble_only_cut (bool b)
+	{
+		m_bAssembleOnlyCut = b;
 	}
 	
 ///	project the level-set function to the coarse levels
@@ -921,6 +935,12 @@ public:
 	)
 	{
 		gass_type::exclude_subsets (base_type::m_spApproxSpace, subset_names);
+	}
+	
+///	set the "assemble only in cut elements" flag
+	void set_assemble_only_cut (bool b)
+	{
+		gass_type::set_assemble_only_cut (b);
 	}
 	
 ///	project the level-set function to the coarse levels

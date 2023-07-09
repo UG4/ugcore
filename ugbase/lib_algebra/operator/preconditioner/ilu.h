@@ -36,6 +36,9 @@
 
 #include <limits>
 #include "common/error.h"
+#ifndef NDEBUG
+#include "common/stopwatch.h"
+#endif
 #include "common/util/smart_pointer.h"
 #include "lib_algebra/operator/interface/preconditioner.h"
 
@@ -45,6 +48,10 @@
 	#include "lib_algebra/parallelization/matrix_overlap.h"
 	#include "lib_algebra/parallelization/overlap_writer.h"
 #endif
+
+#include "lib_algebra/ordering_strategies/algorithms/IOrderingAlgorithm.h"
+#include "lib_algebra/ordering_strategies/algorithms/native_cuthill_mckee.h" // for backward compatibility
+
 #include "lib_algebra/algebra_common/permutation_util.h"
 
 namespace ug{
@@ -64,8 +71,7 @@ bool FactorizeILU(Matrix_type &A)
 	{
 		// eliminate all entries A(i, k) with k<i with rows A(k, .) and k<i
 		const row_iterator rowEnd = A.end_row(i);
-		for(row_iterator it_k = A.begin_row(i);
-								it_k != rowEnd && (it_k.index() < i); ++it_k)
+		for(row_iterator it_k = A.begin_row(i); it_k != rowEnd && (it_k.index() < i); ++it_k)
 		{
 			const size_t k = it_k.index();
 			block_type &a_ik = it_k.value();
@@ -116,8 +122,7 @@ bool FactorizeILUBeta(Matrix_type &A, number beta)
 		// for k=1:(i-1) do
 		// eliminate all entries A(i, k) with k<i with rows A(k, .) and k<i
 		const row_iterator it_iEnd = A.end_row(i);
-		for(row_iterator it_ik = A.begin_row(i);
-							it_ik != it_iEnd && (it_ik.index() < i); ++it_ik)
+		for(row_iterator it_ik = A.begin_row(i); it_ik != it_iEnd && (it_ik.index() < i); ++it_ik)
 		{
 
 			// add row k to row i by A(i, .) -=  [A(i,k) / A(k,k)] A(k,.)
@@ -177,8 +182,7 @@ bool FactorizeILUSorted(Matrix_type &A, const number eps = 1e-50)
 	{
 
 		// eliminate all entries A(i, k) with k<i with rows A(k, .) and k<i
-		for(row_iterator it_k = A.begin_row(i);
-							it_k != A.end_row(i) && (it_k.index() < i); ++it_k)
+		for(row_iterator it_k = A.begin_row(i); it_k != A.end_row(i) && (it_k.index() < i); ++it_k)
 		{
 			const size_t k = it_k.index();
 			block_type &a_ik = it_k.value();
@@ -257,9 +261,9 @@ bool invert_U(const Matrix_type &A, Vector_type &x, const Vector_type &b,
 	typedef typename Matrix_type::const_row_iterator const_row_iterator;
 
 	typename Vector_type::value_type s;
-	
+
 	bool result = true;
-	
+
 	// last row diagonal U entry might be close to zero with corresponding close to zero rhs
 	// when solving Navier Stokes system, therefore handle separately
 	if(x.size() > 0)
@@ -314,42 +318,6 @@ bool invert_U(const Matrix_type &A, Vector_type &x, const Vector_type &b,
 	return result;
 }
 
-
-#ifdef UG_PARALLEL
-inline void
-LayoutEntriesToEndPermutation(std::vector<size_t>& newIndexOut,
-                              const IndexLayout& layout,
-                       		  const size_t numRows)
-{
-	using namespace std;
-	vector<size_t> inds;
-	CollectElements(inds, layout);
-
-	newIndexOut.clear();
-	newIndexOut.resize(numRows, 0);
-
-	size_t numUniqueInds = 0;
-	for(size_t i = 0; i < inds.size(); ++i){
-		if(newIndexOut[inds[i]] != 1){
-			newIndexOut[inds[i]] = 1;
-			++numUniqueInds;
-		}
-	}
-
-	size_t curNormalInd = 0;
-	size_t curSlaveInd = numRows - numUniqueInds;
-
-//	0 marks normal index, 1 marks layout index
-	for(size_t irow = 0; irow < numRows; ++irow){
-		if(newIndexOut[irow] == 0)
-			newIndexOut[irow] = curNormalInd++;
-		else
-			newIndexOut[irow] = curSlaveInd++;
-	}
-}
-#endif
-
-
 ///	ILU / ILU(beta) preconditioner
 template <typename TAlgebra>
 class ILU : public IPreconditioner<TAlgebra>
@@ -370,6 +338,10 @@ class ILU : public IPreconditioner<TAlgebra>
 	///	Base type
 		typedef IPreconditioner<TAlgebra> base_type;
 
+	///	Ordering type
+		typedef std::vector<size_t> ordering_container_type;
+		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> ordering_algo_type;
+
 	protected:
 		using base_type::set_debug;
 		using base_type::debug_writer;
@@ -378,26 +350,31 @@ class ILU : public IPreconditioner<TAlgebra>
 
 	public:
 	//	Constructor
-		ILU(double beta=0.0) :
+		ILU (double beta=0.0) :
 			m_beta(beta),
 			m_sortEps(1.e-50),
 			m_invEps(1.e-8),
-			m_bSort(false),
 			m_bDisablePreprocessing(false),
 			m_useConsistentInterfaces(false),
-			m_useOverlap(false) {};
+			m_useOverlap(false),
+			m_spOrderingAlgo(SPNULL),
+			m_bSortIsIdentity(false),
+			m_u(nullptr)
+		{};
 
 	/// clone constructor
-		ILU( const ILU<TAlgebra> &parent )
-			: base_type(parent),
-			  m_beta(parent.m_beta),
-			  m_sortEps(parent.m_sortEps),
-			  m_invEps(parent.m_invEps),
-			  m_bSort(parent.m_bSort),
-			  m_bDisablePreprocessing(parent.m_bDisablePreprocessing),
-			  m_useConsistentInterfaces(parent.m_useConsistentInterfaces),
-			  m_useOverlap(parent.m_useOverlap)
-		{	}
+		ILU (const ILU<TAlgebra> &parent) :
+			base_type(parent),
+			m_beta(parent.m_beta),
+			m_sortEps(parent.m_sortEps),
+			m_invEps(parent.m_invEps),
+			m_bDisablePreprocessing(parent.m_bDisablePreprocessing),
+			m_useConsistentInterfaces(parent.m_useConsistentInterfaces),
+			m_useOverlap(parent.m_useOverlap),
+			m_spOrderingAlgo(parent.m_spOrderingAlgo),
+			m_bSortIsIdentity(false),
+			m_u(nullptr)
+		{}
 
 	///	Clone
 		virtual SmartPtr<ILinearIterator<vector_type> > clone()
@@ -414,10 +391,22 @@ class ILU : public IPreconditioner<TAlgebra>
 	///	set factor for \f$ ILU_{\beta} \f$
 		void set_beta(double beta) {m_beta = beta;}
 
+	/// 	sets an ordering algorithm
+		void set_ordering_algorithm(SmartPtr<ordering_algo_type> ordering_algo){
+			m_spOrderingAlgo = ordering_algo;
+		}
+
 	/// set cuthill-mckee sort on/off
 		void set_sort(bool b)
 		{
-			m_bSort = b;
+			if(b){
+				m_spOrderingAlgo = make_sp(new NativeCuthillMcKeeOrdering<TAlgebra, ordering_container_type>());
+			}
+			else{
+				m_spOrderingAlgo = SPNULL;
+			}
+
+			UG_LOG("\nILU: please use 'set_ordering_algorithm(..)' in the future\n");
 		}
 
 	/// disable preprocessing (if underlying matrix has not changed)
@@ -440,20 +429,82 @@ class ILU : public IPreconditioner<TAlgebra>
 	//	Name of preconditioner
 		virtual const char* name() const {return "ILU";}
 
-	protected:
-		// cuthill-mckee sorting
-		void calc_cuthill_mckee()
+		void apply_ordering()
 		{
-			PROFILE_BEGIN_GROUP(ILU_ReorderCuthillMcKey, "ilu algebra");
-			GetCuthillMcKeeOrder(m_ILU, m_newIndex);
-			m_bSortIsIdentity = GetInversePermutation(m_newIndex, m_oldIndex);
+			if (!m_spOrderingAlgo.valid())
+				return;
 
-			if(!m_bSortIsIdentity)
+			if (m_useOverlap)
+				UG_THROW ("ILU: Ordering for overlap has not been implemented yet.");
+
+#ifndef NDEBUG
+			double start = get_clock_s();
+#endif
+			if (m_u)
+				m_spOrderingAlgo->init(&m_ILU, *m_u);
+			else
+				m_spOrderingAlgo->init(&m_ILU);
+
+			m_spOrderingAlgo->compute();
+#ifndef NDEBUG
+			double end = get_clock_s();
+			UG_LOG("ILU: ordering took " << end-start << " seconds\n");
+#endif
+			m_ordering = m_spOrderingAlgo->ordering();
+
+			m_bSortIsIdentity = GetInversePermutation(m_ordering, m_old_ordering);
+
+			if (!m_bSortIsIdentity)
 			{
-				matrix_type mat;
-				mat = m_ILU;
-				SetMatrixAsPermutation(m_ILU, mat, m_newIndex);
+				matrix_type tmp;
+				tmp = m_ILU;
+				SetMatrixAsPermutation(m_ILU, tmp, m_ordering);
 			}
+		}
+
+	protected:
+		virtual bool init(SmartPtr<ILinearOperator<vector_type> > J,
+		                  const vector_type& u)
+		{
+		//	cast to matrix based operator
+			SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp =
+					J.template cast_dynamic<MatrixOperator<matrix_type, vector_type> >();
+
+		//	Check that matrix if of correct type
+			if(pOp.invalid())
+				UG_THROW(name() << "::init': Passed Operator is "
+						"not based on matrix. This Preconditioner can only "
+						"handle matrix-based operators.");
+
+			m_u = &u;
+
+		//	forward request to matrix based implementation
+			return base_type::init(pOp);
+		}
+
+		bool init(SmartPtr<ILinearOperator<vector_type> > L)
+		{
+		//	cast to matrix based operator
+			SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp =
+					L.template cast_dynamic<MatrixOperator<matrix_type, vector_type> >();
+
+		//	Check that matrix if of correct type
+			if(pOp.invalid())
+				UG_THROW(name() << "::init': Passed Operator is "
+						"not based on matrix. This Preconditioner can only "
+						"handle matrix-based operators.");
+
+			m_u = NULL;
+
+		//	forward request to matrix based implementation
+			return base_type::init(pOp);
+		}
+
+		bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op)
+		{
+			m_u = NULL;
+
+			return base_type::init(Op);
 		}
 
 	protected:
@@ -475,10 +526,7 @@ class ILU : public IPreconditioner<TAlgebra>
 
 			m_ILU = mat;
 
-		//	this is an experimental trigger. Best to leave it false for now.
-			const bool sortSlaveToEnd = false;
-
-			#ifdef 	UG_PARALLEL
+			#ifdef UG_PARALLEL
 				if(m_useOverlap){
 					CreateOverlap(m_ILU);
 					m_oD.set_layouts(m_ILU.layouts());
@@ -491,22 +539,6 @@ class ILU : public IPreconditioner<TAlgebra>
 						m_overlapWriter->init (*m_ILU.layouts(),
 					                     	   *debug_writer(),
 				                      		   m_ILU.num_rows());
-					}
-
-				//	slave-overlap rows shall be at the end of the matrix
-					if(sortSlaveToEnd){
-						m_bSort = true;
-						LayoutEntriesToEndPermutation(	m_newIndex,
-						                              	m_ILU.layouts()->slave(),
-						                       			m_ILU.num_rows());
-						m_bSortIsIdentity = GetInversePermutation(m_newIndex, m_oldIndex);
-
-						if(!m_bSortIsIdentity)
-						{
-							matrix_type mat;
-							mat = m_ILU;
-							SetMatrixAsPermutation(m_ILU, mat, m_newIndex);
-						}
 					}
 				}
 				else if(m_useConsistentInterfaces){
@@ -527,9 +559,7 @@ class ILU : public IPreconditioner<TAlgebra>
 			write_overlap_debug(m_ILU, "ILU_prep_02_A_AfterMakeUnique");
 			#endif
 
-		//	if using overlap we already sort in a different way
-			if(m_bSort && !(m_useOverlap && sortSlaveToEnd))
-				calc_cuthill_mckee();
+			apply_ordering();
 
 		//	Debug output of matrices
 			#ifdef UG_PARALLEL
@@ -558,8 +588,9 @@ class ILU : public IPreconditioner<TAlgebra>
 
 
 		void applyLU(vector_type &c, const vector_type &d, vector_type &tmp)
-		{	
-			if(!m_bSort || m_bSortIsIdentity)
+		{
+
+			if(m_spOrderingAlgo.invalid() || m_bSortIsIdentity)
 			{
 				// 	apply iterator: c = LU^{-1}*d
 				if(! invert_L(m_ILU, tmp, d)) // h := L^-1 d
@@ -567,16 +598,18 @@ class ILU : public IPreconditioner<TAlgebra>
 				if(! invert_U(m_ILU, c, tmp, m_invEps)) // c := U^-1 h = (LU)^-1 d
 					print_debugger_message("ILU: There were issues at inverting U\n");
 			}
+///*
 			else
 			{
 				// we save one vector here by renaming
-				SetVectorAsPermutation(tmp, d, m_newIndex);
+				SetVectorAsPermutation(tmp, d, m_ordering);
 				if(! invert_L(m_ILU, c, tmp)) // c = L^{-1} d
 					print_debugger_message("ILU: There were issues at inverting L (after permutation)\n");
 				if(! invert_U(m_ILU, tmp, c, m_invEps)) // tmp = (LU)^{-1} d
 					print_debugger_message("ILU: There were issues at inverting U (after permutation)\n");
-				SetVectorAsPermutation(c, tmp, m_oldIndex);
+				SetVectorAsPermutation(c, tmp, m_old_ordering);
 			}
+//*/
 		}
 
 	//	Stepping routine
@@ -623,6 +656,8 @@ class ILU : public IPreconditioner<TAlgebra>
 				else{
 				//	make defect unique
 					SmartPtr<vector_type> spDtmp = d.clone();
+//					SetVectorAsPermutation(*spDtmp, d, m_ordering);
+
 					spDtmp->change_storage_type(PST_UNIQUE);
 					if(first) write_debug(*spDtmp, "ILU_step_2_d_unique");
 					applyLU(c, *spDtmp, m_h);
@@ -674,10 +709,10 @@ class ILU : public IPreconditioner<TAlgebra>
 		vector_type m_oD;
 		vector_type m_oC;
 		#ifdef UG_PARALLEL
-			SmartPtr<OverlapWriter<TAlgebra> >	m_overlapWriter;
+		SmartPtr<OverlapWriter<TAlgebra> > m_overlapWriter;
 		#endif
 
-	/// Factor for ILU-beta
+	/// factor for ILU-beta
 		number m_beta;
 
 	///	smallest allowed value for sorted factorization
@@ -686,16 +721,19 @@ class ILU : public IPreconditioner<TAlgebra>
 	///	smallest allowed value for the Aii/Bi quotient
 		number m_invEps;
 
-	/// for cuthill-mckee reordering
-		std::vector<size_t> m_newIndex, m_oldIndex;
-		bool m_bSortIsIdentity;
-		bool m_bSort;
-
 	/// whether or not to disable preprocessing
 		bool m_bDisablePreprocessing;
 
 		bool m_useConsistentInterfaces;
 		bool m_useOverlap;
+
+	/// for ordering algorithms
+		SmartPtr<ordering_algo_type> m_spOrderingAlgo;
+		ordering_container_type m_ordering, m_old_ordering;
+		std::vector<size_t> m_newIndex, m_oldIndex;
+		bool m_bSortIsIdentity;
+
+		const vector_type* m_u;
 };
 
 } // end namespace ug

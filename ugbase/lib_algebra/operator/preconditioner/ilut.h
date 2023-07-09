@@ -12,6 +12,10 @@
 #include "common/profiler/profiler.h"
 
 #include "lib_algebra/algebra_common/vector_util.h"
+
+#include "lib_algebra/ordering_strategies/algorithms/IOrderingAlgorithm.h"
+#include "lib_algebra/ordering_strategies/algorithms/native_cuthill_mckee.h" // for backward compatibility
+
 #include "lib_algebra/algebra_common/permutation_util.h"
 
 namespace ug{
@@ -34,6 +38,10 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 		typedef typename matrix_type::const_row_iterator const_matrix_row_iterator;
 		typedef typename matrix_type::connection matrix_connection;
 
+	///	Ordering type
+		typedef std::vector<size_t> ordering_container_type;
+		typedef IOrderingAlgorithm<TAlgebra, ordering_container_type> ordering_algo_type;
+
 	///	Matrix Operator type
 		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
 		using IPreconditioner<TAlgebra>::set_debug;
@@ -50,16 +58,18 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 	public:
 	///	Constructor
 		ILUTPreconditioner(double eps=1e-6)
-			: m_eps(eps), m_info(false), m_show_progress(true), m_bSort(true), m_bSortIsIdentity(false)
-		{};
+			: m_eps(eps), m_info(false), m_show_progress(true), m_bSortIsIdentity(false)
+		{
+			//default was set true
+			m_spOrderingAlgo = make_sp(new NativeCuthillMcKeeOrdering<TAlgebra, ordering_container_type>());
+		};
 
 	/// clone constructor
 		ILUTPreconditioner(const ILUTPreconditioner<TAlgebra> &parent)
-			: base_type(parent)
+			: base_type(parent), m_spOrderingAlgo(parent.m_spOrderingAlgo)
 		{
 			m_eps = parent.m_eps;
 			set_info(parent.m_info);
-			set_sort(parent.m_bSort);
 			m_bSortIsIdentity = parent.m_bSortIsIdentity;
 		}
 
@@ -98,14 +108,27 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 		virtual std::string config_string() const
 		{
 			std::stringstream ss;
-			ss << "ILUT(threshold = " << m_eps << ", sort = " << (m_bSort?"true":"false") << ")";
+			ss << "ILUT(threshold = " << m_eps << ", sort = " << (m_spOrderingAlgo.valid()?"true":"false") << ")";
 			if(m_eps == 0.0) ss << " = Sparse LU";
 			return ss.str();
 		}
 
+	/// 	sets an ordering algorithm
+		void set_ordering_algorithm(SmartPtr<ordering_algo_type> ordering_algo){
+			m_spOrderingAlgo = ordering_algo;
+		}
+
+	/// set cuthill-mckee sort on/off
 		void set_sort(bool b)
 		{
-			m_bSort = b;
+			if(b){
+				m_spOrderingAlgo = make_sp(new NativeCuthillMcKeeOrdering<TAlgebra, ordering_container_type>());
+			}
+			else{
+				m_spOrderingAlgo = SPNULL;
+			}
+
+			UG_LOG("\nILUT: please use 'set_ordering_algorithm(..)' in the future\n");
 		}
 
 
@@ -113,14 +136,49 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 	//	Name of preconditioner
 		virtual const char* name() const {return "ILUT";}
 
-		void calc_cuthill_mckee(matrix_type &permMat, const matrix_type &mat)
+	protected:
+		virtual bool init(SmartPtr<ILinearOperator<vector_type> > J,
+		                  const vector_type& u)
 		{
-			PROFILE_BEGIN_GROUP(ILUT_ReorderCuthillMcKey, "ilut algebra");
-			GetCuthillMcKeeOrder(mat, newIndex);
-			m_bSortIsIdentity = GetInversePermutation(newIndex, oldIndex);
+		//	cast to matrix based operator
+			SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp =
+					J.template cast_dynamic<MatrixOperator<matrix_type, vector_type> >();
 
-			if(!m_bSortIsIdentity)
-				SetMatrixAsPermutation(permMat, mat, newIndex);
+		//	Check that matrix if of correct type
+			if(pOp.invalid())
+				UG_THROW(name() << "::init': Passed Operator is "
+						"not based on matrix. This Preconditioner can only "
+						"handle matrix-based operators.");
+
+			m_u = &u;
+
+		//	forward request to matrix based implementation
+			return base_type::init(pOp);
+		}
+
+		bool init(SmartPtr<ILinearOperator<vector_type> > L)
+		{
+		//	cast to matrix based operator
+			SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp =
+					L.template cast_dynamic<MatrixOperator<matrix_type, vector_type> >();
+
+		//	Check that matrix if of correct type
+			if(pOp.invalid())
+				UG_THROW(name() << "::init': Passed Operator is "
+						"not based on matrix. This Preconditioner can only "
+						"handle matrix-based operators.");
+
+			m_u = NULL;
+
+		//	forward request to matrix based implementation
+			return base_type::init(pOp);
+		}
+
+		bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op)
+		{
+			m_u = NULL;
+
+			return base_type::init(Op);
 		}
 
 	//	Preprocess routine
@@ -185,13 +243,30 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 
 			matrix_type* A;
 			matrix_type permA;
-			if(m_bSort)
+
+			if(m_spOrderingAlgo.valid()){
+				if(m_u){
+					m_spOrderingAlgo->init(&mat, *m_u);
+				}
+				else{
+					m_spOrderingAlgo->init(&mat);
+				}
+			}
+
+			if(m_spOrderingAlgo.valid())
 			{
-				calc_cuthill_mckee(permA, mat);
-				if(m_bSortIsIdentity)
-					A = &mat;
-				else
+				m_spOrderingAlgo->compute();
+				m_ordering = m_spOrderingAlgo->ordering();
+
+				m_bSortIsIdentity = GetInversePermutation(m_ordering, m_old_ordering);
+
+				if(!m_bSortIsIdentity){
+					SetMatrixAsPermutation(permA, mat, m_ordering);
 					A = &permA;
+				}
+				else{
+					A = &mat;
+				}
 			}
 			else
 			{
@@ -332,11 +407,9 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 				UG_LOG("	L+U nr of connections: " << m_L.total_num_connections()+m_U.total_num_connections() << "\n");
 				UG_LOG("	Increase factor: " << (float)(m_L.total_num_connections() + m_U.total_num_connections() )/A->total_num_connections() << "\n");
 				UG_LOG(reset_floats << "	Total entries: " << totalentries << " (" << ((double)totalentries) / (A->num_rows()*A->num_rows()) << "% of dense)\n");
-				if(m_bSort)
+				if(m_spOrderingAlgo.valid())
 				{
-					UG_LOG("	Using Cuthill-McKey sorting. ")
-						if(m_bSortIsIdentity) UG_LOG("Sort is identity (already sorted).");
-					UG_LOG("\n");
+					UG_LOG("	Using " <<  m_spOrderingAlgo->name() << "\n");
 				}
 				else
 				{
@@ -366,7 +439,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 
 		virtual bool solve(vector_type& c, const vector_type& d)
 		{
-			if(m_bSort == false || m_bSortIsIdentity)
+			if(m_spOrderingAlgo.invalid()|| m_bSortIsIdentity)
 			{
 				if(applyLU(c, d) == false) return false;
 			}
@@ -374,10 +447,10 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 			{
 				PROFILE_BEGIN_GROUP(ILUT_StepWithReorder, "ilut algebra");
 
-				SetVectorAsPermutation(c, d, newIndex);
+				SetVectorAsPermutation(c, d, m_ordering);
 				c2.resize(c.size());
 				if(applyLU(c2, c) == false) return false;
-				SetVectorAsPermutation(c, c2, oldIndex);
+				SetVectorAsPermutation(c, c2, m_old_ordering);
 			}
 			return true;
 		}
@@ -547,9 +620,14 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 		bool m_show_progress;
 		static const number m_small;
 		std::vector<size_t> newIndex, oldIndex;
-		bool m_bSort;
+
+	/// for ordering algorithms
+		SmartPtr<ordering_algo_type> m_spOrderingAlgo;
+		ordering_container_type m_ordering, m_old_ordering;
 
 		bool m_bSortIsIdentity;
+
+		const vector_type* m_u;
 };
 
 // define constant

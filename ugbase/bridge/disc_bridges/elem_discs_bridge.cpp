@@ -181,6 +181,7 @@ static void Domain(Registry& reg, string grp)
 		reg.add_class_to_group(name, "NeumannBoundaryFE", tag);
 	}
 
+#if 0
 //	Inner Boundaries
 	{
 		typedef FV1InnerBoundaryElemDisc<TDomain> T;
@@ -198,6 +199,7 @@ static void Domain(Registry& reg, string grp)
 			;
 		reg.add_class_to_group(name, "FV1InnerBoundary", tag);
 	}
+#endif
 
 	//	DiracSourceDisc
 		{
@@ -210,10 +212,20 @@ static void Domain(Registry& reg, string grp)
 					"", "scale", "Set scale to scale (all) fluxes with.")
 				.add_method("add_source", static_cast<void (T::*)(SmartPtr<UserData<number, dim> >, MathVector<dim> &)>(&T::add_source),
 					"", "scale", "Set scale to scale (all) fluxes with.")
-	#ifdef UG_FOR_LUA
-				.add_method("add_source", static_cast<void (T::*)(const char*, MathVector<dim> &)>(&T::add_source),
+#ifdef UG_FOR_LUA
+				.add_method("add_source", static_cast<void (T::*)(const char*)>(&T::add_transport_sink),
 					"", "scale", "Set scale to scale (all) fluxes with.")
-	#endif
+#endif
+				.add_method("add_transport_sink", static_cast<void (T::*)(number)>(&T::add_transport_sink),
+							"", "scale", "Set scale to scale (all) fluxes with.")
+				.add_method("add_transport_sink", static_cast<void (T::*)(SmartPtr<UserData<number, dim> >)>(&T::add_transport_sink),
+							"", "scale", "Set scale to scale (all) fluxes with.")
+#ifdef UG_FOR_LUA
+				.add_method("add_transport_sink", static_cast<void (T::*)(const char*)>(&T::add_transport_sink),
+							"", "scale", "Set scale to scale (all) fluxes with.")
+#endif
+
+
 					.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "DiracSourceDisc", tag);
 		}

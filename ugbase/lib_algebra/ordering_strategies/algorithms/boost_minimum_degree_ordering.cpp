@@ -40,36 +40,52 @@
 #include <boost/graph/minimum_degree_ordering.hpp>
 
 #include "IOrderingAlgorithm.h"
+#include "util.cpp"
 
-#include "../../../common/code_marker.h" //error()
+//debug
+#include "common/error.h"
+#include "common/log.h"
 
 namespace ug{
-
 
 //Important Note: This implementation requires the BGL graph to be
 //directed.  Therefore, nonzero entry (i, j) in a symmetrical matrix
 //A coresponds to two directed edges (i->j and j->i).
-template <typename G_t, typename O_t>
-class BoostMinimumDegreeOrdering : public IOrderingAlgorithm<O_t>
+template <typename TAlgebra, typename O_t>
+class BoostMinimumDegreeOrdering final : public IOrderingAlgorithm<TAlgebra, O_t>
 {
 public:
-	BoostMinimumDegreeOrdering(G_t &g_in, O_t &o_in) : g(g_in), o(o_in){}
-	~BoostMinimumDegreeOrdering(){}
+	typedef typename TAlgebra::matrix_type M_t;
+	typedef typename TAlgebra::vector_type V_t;
+	typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS> G_t;
+	typedef IOrderingAlgorithm<TAlgebra, O_t> baseclass;
+
+	BoostMinimumDegreeOrdering(){}
+
+	/// clone constructor
+	BoostMinimumDegreeOrdering( const BoostMinimumDegreeOrdering<TAlgebra, O_t> &parent )
+			: baseclass(){}
+
+	SmartPtr<IOrderingAlgorithm<TAlgebra, O_t> > clone()
+	{
+		return make_sp(new BoostMinimumDegreeOrdering<TAlgebra, O_t>(*this));
+	}
 
 	void compute(){
 		unsigned n = boost::num_vertices(g);
 		unsigned e = boost::num_edges(g);
 
-		O_t io(boost::num_vertices(g), 0);
+		O_t io(n, 0);
 
 		o.resize(n);
 		unsigned i = 0;
 
 		if(n == 0){
-			error();
+			UG_THROW(name() << "::compute: Graph is empty!");
+			return;
 		}
 		else if(n*(n-1u)==e || e==0){
-			error();
+			UG_LOG(name() << "::compute: Graph is complete or edgeless!");
 			typename boost::graph_traits<G_t>::vertex_iterator vIt, vEnd;
 			for(boost::tie(vIt, vEnd) = boost::vertices(g); vIt != vEnd; vIt++){
 				o[i++] = *vIt;
@@ -95,29 +111,64 @@ public:
 		  (g,
 		   boost::make_iterator_property_map(&degree[0], id, degree[0]),
 		   &io[0],
-		   &o[0],
+		   &(o[0]),
 		   boost::make_iterator_property_map(&supernode_sizes[0], id, supernode_sizes[0]),
 		   0,
 		   id
 		   );
+
+		g = G_t(0);
+
+		#ifdef UG_DEBUG
+		check();
+		#endif
+	}
+
+	void check(){
+		UG_COND_THROW(!is_permutation(o), name() << "::check: Not a permutation!");
 	}
 
 	O_t& ordering(){
 		return o;
 	}
 
+	void init(M_t* A, const V_t&){
+		init(A);
+	}
+
+	void init(M_t* A){
+		//TODO: replace this by UG_DLOG if permutation_util does not depend on this file anymore
+		#ifdef UG_ENABLE_DEBUG_LOGS
+		UG_LOG("Using " << name() << "\n");
+		#endif
+
+		unsigned rows = A->num_rows();
+
+		g = G_t(rows);
+
+		for(unsigned i = 0; i < rows; i++){
+			for(typename M_t::row_iterator conn = A->begin_row(i); conn != A->end_row(i); ++conn){
+				if(conn.value() != 0.0 && conn.index() != i){ //TODO: think about this!!
+					boost::add_edge(i, conn.index(), g);
+				}
+			}
+		}
+	}
+
+	void init(M_t*, const V_t&, const O_t&){
+		UG_THROW(name() << "::init: induced subgraph version not implemented yet!");
+	}
+
+	void init(M_t*, const O_t&){
+		UG_THROW(name() << "::init: induced subgraph version not implemented yet!");
+	}
+
+	virtual const char* name() const {return "BoostMinimumDegreeOrdering";}
+
 private:
-	G_t& g;
-	O_t& o;
+	G_t g;
+	O_t o;
 };
-
-
-template <typename G_t, typename O_t>
-void boost_minimum_degree_ordering(G_t &g, O_t &o){
-	BoostMinimumDegreeOrdering<G_t, O_t> algo(g, o);
-	algo.compute();
-}
-
 
 } //namespace
 

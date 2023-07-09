@@ -404,9 +404,6 @@ dof_indices(TBaseElem* elem, const ReferenceObjectID roid,
 		}
 
 	} // end loop sub elements
-
-//	return number of indices
-	return;
 }
 
 template<typename TBaseElem>
