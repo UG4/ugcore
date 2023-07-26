@@ -331,7 +331,7 @@ static void SaveDistSelectorToFile(MGSelector& msel, const char* filename)
 	AssignSubsetColors(sh);
 	EraseEmptySubsets(sh);
 	//SaveGridHierarchyTransformed(mg, sh, filename, LG_DISTRIBUTION_Z_OUTPUT_TRANSFORM);
-        SaveGridToFile(mg, sh, filename);
+    SaveGridToFile(mg, sh, filename);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
