@@ -330,7 +330,8 @@ static void SaveDistSelectorToFile(MGSelector& msel, const char* filename)
 
 	AssignSubsetColors(sh);
 	EraseEmptySubsets(sh);
-	SaveGridHierarchyTransformed(mg, sh, filename, LG_DISTRIBUTION_Z_OUTPUT_TRANSFORM);
+	//SaveGridHierarchyTransformed(mg, sh, filename, LG_DISTRIBUTION_Z_OUTPUT_TRANSFORM);
+        SaveGridToFile(mg, sh, filename);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -399,7 +400,8 @@ static void SaveDistInfosToFile(MultiGrid& mg, DistInfoSupplier& infoSupplier,
 		if(sh.num_subsets() > 0){
 			stringstream ss;
 			ss << filename << "_p" << pcl::ProcRank() << "_for_p" << pi << ".ugx";
-			SaveGridHierarchyTransformed(mg, sh, ss.str().c_str(), LG_DISTRIBUTION_Z_OUTPUT_TRANSFORM);
+			//SaveGridHierarchyTransformed(mg, sh, ss.str().c_str(), LG_DISTRIBUTION_Z_OUTPUT_TRANSFORM);
+		        SaveGridToFile(mg, sh,ss.str().c_str());
 		}
 	}
 }
