@@ -111,6 +111,27 @@ static bool SavePartitionMap(PartitionMap& pmap, TDomain& domain,
 	return SavePartitionMapToFile(pmap, filename, domain.position_attachment());
 }
 
+template <typename TDomain>
+static bool SavePartitionMapLevel(PartitionMap& pmap, TDomain& domain,
+                                                         const char* filename, const int level)
+{
+        PROFILE_FUNC_GROUP("grid");
+        if(domain.grid().get() != pmap.get_partition_handler()->grid())
+        {
+                UG_LOG("WARNING in SavePartitionMapLevel: The given partition map was not"
+                                " created for the given domain. Aborting...\n");
+                return false;
+        }
+
+	if(level>domain.grid().num_levels()){
+		UG_LOG("WARNING in SavePartitionMapLevel: The given level was not"
+                                " created for the given domain. Aborting...\n");
+                return false;
+	}
+
+        return SavePartitionMapToFile(pmap, filename, domain.position_attachment(), level);
+}
+
 
 template <typename TDomain>
 static bool TestDomainInterfaces(TDomain* dom, bool verbose)
