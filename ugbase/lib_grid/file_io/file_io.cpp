@@ -421,7 +421,7 @@ static bool SaveGrid(Grid& grid, ISubsetHandler* psh,
 {
 	string strName = filename;
 	if(strName.find(".ugx") != string::npos){
-		 #if (defined UG_PARALLEL && defined NDEBUG)
+		 #if (defined UG_PARALLEL && defined UG_DEBUG)
 		 std::size_t found=strName.find(".ugx");
 		 strName=strName.replace(found, 4, "");
 		 strName=strName.append(std::to_string(pcl::ProcRank()));
@@ -436,9 +436,9 @@ static bool SaveGrid(Grid& grid, ISubsetHandler* psh,
 		}
 	}
 	else if(strName.find(".vtu") != string::npos){
-		#if (defined UG_PARALLEL && defined NDEBUG)
+		#if (defined UG_PARALLEL && defined UG_DEBUG)
                  std::size_t found=strName.find(".vtu");
-	         strNname=strName.replace(found, 4, "");
+	         	 strName=strName.replace(found, 4, "");
                  strName=strName.append(std::to_string(pcl::ProcRank()));
                  strName.append(".vtu");
 		#endif
