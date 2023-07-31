@@ -124,8 +124,8 @@ class ActiveSet
 	///	constructor
 		ActiveSet() : m_bObs(false), m_spLagMultDisc(NULL) {
 			//	specifies the number of fcts
-			value_type u_val;
-			m_nrFcts = GetSize(u_val);
+			//value_type u_val;
+			//m_nrFcts = GetSize(u_val);  //ToDo: This field is only used in check_dist_to_obs which is commented out. Remove it completely?
 		};
 
 	///	sets obstacle gridfunction, which limits the solution u
@@ -187,7 +187,7 @@ class ActiveSet
 		SmartPtr<TDomain> m_spDom;
 
 		///	number of functions
-		size_t m_nrFcts;
+		//size_t m_nrFcts; //ToDo: This field is only used in check_dist_to_obs which is commented out. Remove it completely?
 
 		/// pointer to a gridfunction describing an obstacle-constraint
 		ConstSmartPtr<function_type> m_spObs;
