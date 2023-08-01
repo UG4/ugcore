@@ -103,7 +103,7 @@ VariableArray1<T>::resize(size_t newN, bool bCopyValues)
 	value_type *new_values = new T[newN];
 	UG_ASSERT(new_values != NULL, "out of memory");
 	if(new_values == NULL) return false;
-	memset(new_values, 0, sizeof(T)*newN); // todo: think about that
+	memset(reinterpret_cast<void *> (new_values), 0, sizeof(T)*newN); // todo: think about that
 
 	if(bCopyValues)
 	{
@@ -247,7 +247,7 @@ VariableArray2<T, T_ordering>::resize(size_t newRows, size_t newCols, bool bCopy
 	}
 
 	value_type *new_values = new T[newRows*newCols];
-	memset(new_values, 0, sizeof(T)*newRows*newCols); // todo: think about that
+	memset(reinterpret_cast<void *> (new_values), 0, sizeof(T)*newRows*newCols); // todo: think about that
 	UG_ASSERT(new_values != NULL, "out of memory");
 	if(new_values==NULL) return false;
 	/*
