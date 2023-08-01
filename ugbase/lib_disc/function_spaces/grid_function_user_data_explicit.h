@@ -143,7 +143,7 @@ public:
 			case 1: eval<1>(u,elem,vCornerCoords,bDeriv); break;
 			case 2: eval<2>(u,elem,vCornerCoords,bDeriv); break;
 			case 3: eval<3>(u,elem,vCornerCoords,bDeriv); break;
-			default: UG_THROW("StdDependentUserData: Dimension not supported.");
+			default: UG_THROW("StdExplicitGridFunctionData: Dimension not supported.");
 		}
 	}
 
@@ -158,7 +158,7 @@ public:
 			case 1: eval<1>(u,elem,vCornerCoords,bDeriv); break;
 			case 2: eval<2>(u,elem,vCornerCoords,bDeriv); break;
 			case 3: eval<3>(u,elem,vCornerCoords,bDeriv); break;
-			default: UG_THROW("StdDependentUserData: Dimension not supported.");
+			default: UG_THROW("StdExplicitGridFunctionData: Dimension not supported.");
 		}
 	}
 
@@ -493,7 +493,7 @@ public:
 
 				//	store tmp Gradient
 				vJT = &(vJTTmp[0]);
-			}UG_CATCH_THROW("GridFunctionGradientData: failed.");
+			}UG_CATCH_THROW("ExplicitGridFunctionGradient: failed.");
 		}
 
 		// scale with coeficient
