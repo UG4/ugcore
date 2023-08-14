@@ -127,7 +127,6 @@ Thus, the Import can be described by
 \mathcal{I}: \mathbb{R}^d \times \mathbb{R} \times
 			 \mathbb{R}^{N_1} \times \dots \times \mathbb{R}^{N_{n_{sys}}} 
 			 &\mapsto \mathcal{D} \\
-
 \vec{x}, t, \vec{u}^1, \dots, \vec{u}^{n_{sys}}
  &\mapsto \mathcal{I}(\vec{x}, t, \vec{u}^1, \dots, \vec{u}^{n_{sys}})			 
 \f}
