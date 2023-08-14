@@ -76,7 +76,9 @@ class GlobAttachmentElementUserData
 		GlobAttachmentElementUserData(SmartPtr<Grid> grid, const char* name)
 		:	m_attachment_name(name), m_spGrid(grid)
 		{
-			m_att = GlobalAttachments::attachment<ANumber> (m_attachment_name);
+			if (! GlobalAttachments::is_declared (m_attachment_name))
+				UG_THROW ("GlobAttachmentElementUserData: No global attachment '" << m_attachment_name << "' found.");
+			m_att = GlobalAttachments::attachment<attachment_type> (m_attachment_name);
 			m_aatt.access (*grid, m_att);
 		};
 	
