@@ -42,72 +42,129 @@
 
 namespace ug{
 
-template <typename TDomain>
+template <int WDim, typename TData = number>
 class GlobAttachmentElementUserData
-: public StdDependentUserData<GlobAttachmentElementUserData<TDomain>, number, TDomain::dim>
+: public StdUserData<GlobAttachmentElementUserData<WDim, TData>, TData, WDim>
+
 {
-		static const int dim = TDomain::dim;
+		static const int dim = WDim;
+		typedef TData data_type;
+		typedef typename grid_dim_traits<dim>::grid_base_object elem_type;
+		typedef Attachment<data_type> attachment_type;
 
 	private:
 		std::string m_attachment_name;
 		SmartPtr<Grid> m_spGrid;
-		ANumber m_att;
-		typedef typename grid_dim_traits<dim>::grid_base_object TElem;
+		attachment_type m_att;
+		Grid::AttachmentAccessor<elem_type, attachment_type> m_aatt;
 		
-	public:
-		/// constructor
-		GlobAttachmentElementUserData(SmartPtr<Grid> grid, const char* name)
-		: m_attachment_name(name), m_spGrid(grid)
+	///	Evalutation of the attachment in one element
+		inline void eval_on_elem
+		(
+			elem_type * elem, ///< the element to evaluate on
+			const size_t nip, ///< number of the values to write
+			data_type vValue []  ///< array for the values
+		) const
 		{
-			m_att = GlobalAttachments::attachment<ANumber>(m_attachment_name);
-		};
+			for (size_t ip = 0; ip < nip; ++ip)
+				vValue[ip] = m_aatt [elem];
+		}
 
-		virtual bool continuous() const
+	public:
+	
+	/// constructor
+		GlobAttachmentElementUserData(SmartPtr<Grid> grid, const char* name)
+		:	m_attachment_name(name), m_spGrid(grid)
+		{
+			if (! GlobalAttachments::is_declared (m_attachment_name))
+				UG_THROW ("GlobAttachmentElementUserData: No global attachment '" << m_attachment_name << "' found.");
+			m_att = GlobalAttachments::attachment<attachment_type> (m_attachment_name);
+			m_aatt.access (*grid, m_att);
+		};
+	
+	//	UserData interface
+		
+		virtual bool continuous () const
 		{
 			return false;
 		}
 
-		template <int refDim>
-		void eval_and_deriv(number vValue[],
-		                    const MathVector<dim> vGlobIP[],
-		                    number time, int si,
-		                    GridObject* elem,
-		                    const MathVector<dim> vCornerCoords[],
-		                    const MathVector<refDim> vLocIP[],
-		                    const size_t nip,
-		                    LocalVector* u,
-		                    bool bDeriv,
-		                    int s,
-		                    std::vector<std::vector<number> > vvvDeriv[],
-		                    const MathMatrix<refDim, dim>* vJT = NULL) const
+		virtual bool requires_grid_fct () const
 		{
+			return true;
+		}
 
-				if (refDim != dim)
-				{
-					UG_THROW ("GlobAttachmentElementUserData: Diamention of the element is not consistent.");
-				}
+	//	StdUserData interface
+		template <int refDim>
+		inline void evaluate
+		(
+			data_type vValue[],
+			const MathVector<dim> vGlobIP[],
+			number time, int si,
+			GridObject* elem,
+			const MathVector<dim> vCornerCoords[],
+			const MathVector<refDim> vLocIP[],
+			const size_t nip,
+			LocalVector* u,
+			const MathMatrix<refDim, dim>* vJT = NULL
+		) const
+		{
+			UG_ASSERT (refDim == dim, "GlobAttachmentElementUserData: Dimensionality of the element should be equal to the world dimensionality.");
 			
-				Grid::AttachmentAccessor<TElem, ANumber> aatt((Grid&)*m_spGrid, (ANumber &) m_att);
-				
-				//	loop ips
-				for(size_t ip = 0; ip < nip; ++ip)
-				{
-					vValue[ip] = aatt[(TElem*)elem];
-					
-				}
-
-				if(bDeriv){
-					UG_THROW ("GlobAttachmentElementUserData: Derivative not implemented.");
-					}
-
+			eval_on_elem ((elem_type *) elem, nip, vValue);
 		}
 	
-		virtual void operator() (number& value,
-									const MathVector<dim>& globIP,
-									number time, int si,
-									Vertex* vrt) const
+	//	StdUserData interface
+		
+		virtual void compute
+		(
+			LocalVector* u,
+			GridObject* elem,
+			const MathVector<dim> vCornerCoords[],
+			bool bDeriv = false
+		)
 		{
-			UG_THROW ("GlobAttachmentElementUserData: Values at vertices of the grid function are not uniquely defined.");
+			UG_ASSERT (elem->base_object_id() == dim, "GlobAttachmentElementUserData: Dimensionality of the element should be equal to the world dimensionality.");
+			
+			for (size_t s = 0; s < this->num_series (); ++s)
+				eval_on_elem ((elem_type *) elem, this->num_ip (s), this->values (s));
+		}
+
+		virtual void compute
+		(
+			LocalVectorTimeSeries* u,
+			GridObject* elem,
+			const MathVector<dim> vCornerCoords[],
+			bool bDeriv = false
+		)
+		{
+			UG_ASSERT (elem->base_object_id() == dim, "GlobAttachmentElementUserData: Dimensionality of the element should be equal to the world dimensionality.");
+			
+			for (size_t s = 0; s < this->num_series (); ++s)
+				eval_on_elem ((elem_type *) elem, this->num_ip (s), this->values (s));
+		}
+
+		virtual void operator () ///< cannot be implemented here
+		(
+			data_type& value,
+			const MathVector<dim>& globIP,
+			number time, int si
+		) const
+		{
+			UG_THROW("GlobAttachmentElementUserData: Element required"
+					 " for evaluation, but not passed. Cannot evaluate.");
+		}
+
+		virtual void operator () ///< cannot be implemented here
+		(
+			data_type vValue[],
+			const MathVector<dim> vGlobIP[],
+			number time, int si,
+			const size_t nip
+		) const
+		{
+			UG_THROW("GlobAttachmentElementUserData: Element required"
+					 " for evaluation, but not passed. Cannot evaluate.");
 		}
 };
 

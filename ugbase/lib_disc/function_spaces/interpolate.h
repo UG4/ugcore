@@ -583,17 +583,22 @@ template <typename TGridFunction>
 void Interpolate(SmartPtr<UserData<number, TGridFunction::dim> > spInterpolFunction,
                  SmartPtr<TGridFunction> spGridFct, const char* cmp,
                  number time)
-{Interpolate(spInterpolFunction, spGridFct, cmp, NULL, time);}
+{
+	Interpolate(spInterpolFunction, spGridFct, cmp, NULL, time);
+}
 template <typename TGridFunction>
 void Interpolate(SmartPtr<UserData<number, TGridFunction::dim> > spInterpolFunction,
                  SmartPtr<TGridFunction> spGridFct, const char* cmp,
                  const char* subsets)
-{Interpolate(spInterpolFunction, spGridFct, cmp, subsets, 0.0);}
+{
+	Interpolate(spInterpolFunction, spGridFct, cmp, subsets, 0.0);
+}
 template <typename TGridFunction>
 void Interpolate(SmartPtr<UserData<number, TGridFunction::dim> > spInterpolFunction,
                  SmartPtr<TGridFunction> spGridFct, const char* cmp)
 {
-	Interpolate(spInterpolFunction, spGridFct, cmp, NULL, 0.0);}
+	Interpolate(spInterpolFunction, spGridFct, cmp, NULL, 0.0);
+}
 //interpolate with diff_vector
 template <typename TGridFunction>
 void Interpolate(SmartPtr<UserData<number, TGridFunction::dim> > spInterpolFunction,

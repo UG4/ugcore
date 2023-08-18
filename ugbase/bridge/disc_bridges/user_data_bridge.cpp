@@ -497,6 +497,17 @@ static void Dimension(TRegistry& reg, string grp)
 		reg.add_class_to_group(name, "IntervalNumberLinker", dimTag);
 	}
 
+//	GlobAttachmentElementUserData
+	{
+		typedef GlobAttachmentElementUserData<dim, number> T;
+		typedef CplUserData<number, dim> TBase;
+		string name = string("GlobAttachmentElementNumberData").append(dimSuffix);
+		reg.template add_class_<T, TBase>(name, grp)
+			.template add_constructor<void (*)(SmartPtr<Grid>, const char *) >("AttachmentName")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "GlobAttachmentElementNumberData", dimTag);
+	}
+	
 }
 
 /**
@@ -516,8 +527,9 @@ static void Domain(TRegistry& reg, string grp)
 	string suffix = GetDomainSuffix<TDomain>();
 	string tag = GetDomainTag<TDomain>();
 	
+
 	// GlobAttachmentElementUserData
-	{
+	/*{
 		string name = string("GlobAttachmentElementUserData").append(suffix);
 		typedef GlobAttachmentElementUserData<TDomain> T;
 		typedef CplUserData<number, dim> TBase;
@@ -526,7 +538,7 @@ static void Domain(TRegistry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GlobAttachmentElementUserData", tag);
 
-	}
+	}*/
 	
 	
 //	User data of a subset indicator (1 in the subset, 0 everywhere else)

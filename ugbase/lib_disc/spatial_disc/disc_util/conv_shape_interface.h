@@ -52,9 +52,9 @@ namespace ug{
  *  <li> P. Frolkovic, H. De Schepper, Numerical Modelling of Convection Dominated
  *       Transport Coupled with Density Driven Flow in Porous Media.
  *       Advances in Water Resources 24 (1): 63–72, 2000, DOI: 10.1016/S0309-1708(00)00025-7 </li>
- *  <li> K. W. Morton, D. F. Mayers, Numerical Solution of Partial Differential
- *       Equations, Cambridge University Press, 1994 </li>
- *  <li> R. J. Le Veque, Numerical Methods for Conservation Laws, Birkhäuser, 1990 </li>
+ *  <li> K. W. Morton, D. Mayers, Numerical Solution of Partial Differential Equations:
+ *       An Introduction (2nd ed.), Cambridge: Cambridge University Press, 2005, DOI: 10.1017/CBO9780511812248 </li>
+ *  <li> R. J. LeVeque, Numerical Methods for Conservation Laws (2nd ed.), Springer Basel AG, 1992, DOI: 10.1007/978-3-0348-8629-1 </li>
  * </ul>
  * Convection shapes is one of possible implementations of upwind methods,
  * in which the upwind is considered as a special kind of interpolation of degrees
@@ -78,7 +78,7 @@ namespace ug{
  * through a subcontrol volume face with the integration point \f$ip\f$ is
  * \f[ \sum_{s=1}^{n_s} \phi_s (ip) \, c_s, \f]
  * where \f$\phi_s (ip)\f$ are the values of the \f$n_s\f$ ``convection shapes''
- * at \f$ip\f$, whereas $c_s$ are the degrees of freedom of \f$c\f$ corresponding
+ * at \f$ip\f$, whereas \f$c_s\f$ are the degrees of freedom of \f$c\f$ corresponding
  * to the shapes.
  *
  * Although the convection shapes for every upwind method are based on the

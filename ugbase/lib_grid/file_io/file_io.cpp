@@ -421,15 +421,29 @@ static bool SaveGrid(Grid& grid, ISubsetHandler* psh,
 {
 	string strName = filename;
 	if(strName.find(".ugx") != string::npos){
+		 #if (defined UG_PARALLEL && defined UG_DEBUG)
+		 std::size_t found=strName.find(".ugx");
+		 strName=strName.replace(found, 4, "");
+		 int procRank=pcl::ProcRank();
+		 strName=strName.append(std::to_string(procRank));
+		 strName.append(".ugx");   
+		#endif
+		
 		if(psh)
-			return SaveGridToUGX(grid, *psh, filename, aPos);
+			return SaveGridToUGX(grid, *psh, strName.c_str(), aPos);
 		else {
 			SubsetHandler shTmp(grid);
-			return SaveGridToUGX(grid, shTmp, filename, aPos);
+			return SaveGridToUGX(grid, shTmp, strName.c_str(), aPos);
 		}
 	}
 	else if(strName.find(".vtu") != string::npos){
-		return SaveGridToVTU(grid, psh, filename, aPos);
+		#if (defined UG_PARALLEL && defined UG_DEBUG)
+                 std::size_t found=strName.find(".vtu");
+	         	 strName=strName.replace(found, 4, "");
+                 strName=strName.append(std::to_string(pcl::ProcRank()));
+                 strName.append(".vtu");
+		#endif
+		return SaveGridToVTU(grid, psh, strName.c_str(), aPos);
 	}
 	else
 		return SaveGrid3d(grid, psh, filename, aPos);
@@ -906,6 +920,16 @@ bool SaveGridLevelToFile(MultiGrid& srcMG, ISubsetHandler& srcSH, int lvl, const
 {
 //	check whether one of the standard attachments is attached and call
 //	SaveGridLevel with that attachment
+	/*#ifdef UG_PARALLEL
+	    std::size_t found=filename.find(".ugx")
+            if(found != string::npos){
+		filename=filename.replace(found, 4, "");    
+	    }
+	    filename=filename.append(std::to_string(pcl::ProRank()));
+	    if(found != string::npos){
+	    		filename.append(".ugx");
+	    }
+	#endif*/
 	if(srcMG.has_vertex_attachment(aPosition))
 		return SaveGridLevel(srcMG, srcSH, lvl, filename, aPosition);
 	if(srcMG.has_vertex_attachment(aPosition2))

@@ -67,6 +67,10 @@ if(DEBUG)
 		add_definitions(-D_GLIBCXX_DEBUG=1 -D_GLIBCXX_DEBUG_PEDANTIC=1)
 		message(STATUS "Info: Debugging STL")
 	endif(DEBUG_STL)
+
+	if(PARALLEL)
+           add_definitions(-DLG_DISTRIBUTION_DEBUG)
+	endif(PARALLEL)	
 	
 else(DEBUG)
 	# add release definitions
