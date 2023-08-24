@@ -80,47 +80,6 @@ void LoadDomain(TDomain& domain, const char* filename, int procId)
 		UG_THROW("LoadDomain: Could not load file: "<<filename);
 	}
 	
-	//	declare global attachments on all processors
-	#ifdef UG_PARALLEL
-		pcl::ProcessCommunicator procComm;
-		const vector<string> possible_attachment_names = {"PORO", "PERM", "PERMX", "PERMY", "PERMZ"};
-		vector<byte> locDeclared(possible_attachment_names.size(), 0);
-		vector<byte> globDeclared(possible_attachment_names.size(), 0);
-		// record local info
-		for(size_t i = 0; i < possible_attachment_names.size(); ++i){
-			byte& b = locDeclared[i];
-			if(GlobalAttachments::is_declared(possible_attachment_names[i])){
-				b |= 1;
-				if(GlobalAttachments::is_attached<Vertex>(*domain.grid(), possible_attachment_names[i]))
-					b |= 1<<1;
-				if(GlobalAttachments::is_attached<Edge>(*domain.grid(), possible_attachment_names[i]))
-					b |= 1<<2;
-				if(GlobalAttachments::is_attached<Face>(*domain.grid(), possible_attachment_names[i]))
-					b |= 1<<3;
-				if(GlobalAttachments::is_attached<Volume>(*domain.grid(), possible_attachment_names[i]))
-					b |= 1<<4;
-			}
-		}
-		// sum up all the local to the global
-		procComm.allreduce(locDeclared, globDeclared, PCL_RO_BOR);
-		// update the local with the global
-		for(size_t i = 0; i < possible_attachment_names.size(); ++i){
-			byte& b = globDeclared[i];
-			if(b & 1){
-				if(!GlobalAttachments::is_declared(possible_attachment_names[i]))
-					GlobalAttachments::declare_attachment(possible_attachment_names[i], "double", true);
-				if(b & 1<<1)
-					GlobalAttachments::attach<Vertex>(*domain.grid(), possible_attachment_names[i]);
-				if(b & 1<<2)
-					GlobalAttachments::attach<Edge>(*domain.grid(), possible_attachment_names[i]);	
-				if(b & 1<<3)
-					GlobalAttachments::attach<Face>(*domain.grid(), possible_attachment_names[i]);	
-				if(b & 1<<4)
-					GlobalAttachments::attach<Volume>(*domain.grid(), possible_attachment_names[i]);	
-			}
-		}
-	#endif
-	
 	if(num_ph > 0)
 	{
 		domain.set_refinement_projector(ph);

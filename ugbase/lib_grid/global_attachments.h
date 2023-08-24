@@ -125,6 +125,49 @@ class GlobalAttachments {
 		{
 			return attachment_types().find(typeName) != attachment_types().end();
 		}
+		
+		static void SynchronizeDeclaredGlobalAttachments(Grid& grid, const std::vector<std::string> possible_attachment_names)
+		{
+			//declare global attachments on all processors
+			pcl::ProcessCommunicator procComm;
+			
+			std::vector<byte> locDeclared(possible_attachment_names.size(), 0);
+			std::vector<byte> globDeclared(possible_attachment_names.size(), 0);
+			// record local info
+			for(size_t i = 0; i < possible_attachment_names.size(); ++i){
+				byte& b = locDeclared[i];
+				if(GlobalAttachments::is_declared(possible_attachment_names[i])){
+					b |= 1;
+					if(GlobalAttachments::is_attached<Vertex>(grid, possible_attachment_names[i]))
+						b |= 1<<1;
+					if(GlobalAttachments::is_attached<Edge>(grid, possible_attachment_names[i]))
+						b |= 1<<2;
+					if(GlobalAttachments::is_attached<Face>(grid, possible_attachment_names[i]))
+						b |= 1<<3;
+					if(GlobalAttachments::is_attached<Volume>(grid, possible_attachment_names[i]))
+						b |= 1<<4;
+				}
+			}
+			// sum up all the local to the global
+			procComm.allreduce(locDeclared, globDeclared, PCL_RO_BOR);
+			// update the local with the global
+			for(size_t i = 0; i < possible_attachment_names.size(); ++i){
+				byte& b = globDeclared[i];
+				if(b & 1){
+					if(!GlobalAttachments::is_declared(possible_attachment_names[i]))
+						GlobalAttachments::declare_attachment(possible_attachment_names[i], "double", true);
+					if(b & 1<<1)
+						GlobalAttachments::attach<Vertex>(grid, possible_attachment_names[i]);
+					if(b & 1<<2)
+						GlobalAttachments::attach<Edge>(grid, possible_attachment_names[i]);	
+					if(b & 1<<3)
+						GlobalAttachments::attach<Face>(grid, possible_attachment_names[i]);	
+					if(b & 1<<4)
+						GlobalAttachments::attach<Volume>(grid, possible_attachment_names[i]);	
+				}
+			}
+
+		}
 
 		template <class TElem>
 		static
