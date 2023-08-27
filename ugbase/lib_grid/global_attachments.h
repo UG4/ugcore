@@ -126,11 +126,19 @@ class GlobalAttachments {
 			return attachment_types().find(typeName) != attachment_types().end();
 		}
 		
-		static void SynchronizeDeclaredGlobalAttachments(Grid& grid, const std::vector<std::string> possible_attachment_names)
+		#ifdef UG_PARALLEL
+		static void SynchronizeDeclaredGlobalAttachments(Grid& grid, int procId)
 		{
 			//declare global attachments on all processors
 			pcl::ProcessCommunicator procComm;
-			
+			std::vector<std::string> possible_attachment_names = GlobalAttachments::declared_attachment_names();
+			// only master proc loaded the grid
+			if (procId == 0)
+				procComm.broadcast<std::vector<std::string> >(possible_attachment_names, procId);
+			else
+				UG_THROW("There are more than one proc loading the grid"<<
+						"please make sure all processes broadcast their GlobalAttachments");
+						
 			std::vector<byte> locDeclared(possible_attachment_names.size(), 0);
 			std::vector<byte> globDeclared(possible_attachment_names.size(), 0);
 			// record local info
@@ -168,7 +176,8 @@ class GlobalAttachments {
 			}
 
 		}
-
+		#endif
+		
 		template <class TElem>
 		static
 		void attach(Grid& g, const std::string& name)

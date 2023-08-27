@@ -226,16 +226,7 @@ static bool LoadGrid(Grid& grid, ISubsetHandler* psh,
 	
 	//	declare global attachments on all processors
 	#ifdef UG_PARALLEL
-		pcl::ProcessCommunicator procComm;
-		vector<string> possible_attachment_names = GlobalAttachments::declared_attachment_names();
-		// only master proc loaded the grid
-		if (procId == 0)
-			procComm.broadcast<vector<string> >(possible_attachment_names, procId);
-		else
-			UG_THROW("There are more than one proc loading the grid"<<
-			"please make sure all processes broadcast their GlobalAttachments");
-
-		GlobalAttachments::SynchronizeDeclaredGlobalAttachments(grid, possible_attachment_names);
+		GlobalAttachments::SynchronizeDeclaredGlobalAttachments(grid, procId);
 	#endif
 	
 	grid.message_hub()->post_message(GridMessage_Creation(GMCT_CREATION_STOPS, procId));
@@ -303,16 +294,7 @@ static bool LoadGrid(Grid& grid, SPProjectionHandler* ph, size_t& num_ph, ISubse
 	
 	//	declare global attachments on all processors
 	#ifdef UG_PARALLEL
-		pcl::ProcessCommunicator procComm;
-		vector<string> possible_attachment_names = GlobalAttachments::declared_attachment_names();
-		// only master proc loaded the grid
-		if (procId == 0)
-			procComm.broadcast<vector<string> >(possible_attachment_names, procId);
-		else
-			UG_THROW("There are more than one proc loading the grid"<<
-			"please make sure all processes broadcast their GlobalAttachments");
-
-		GlobalAttachments::SynchronizeDeclaredGlobalAttachments(grid, possible_attachment_names);
+		GlobalAttachments::SynchronizeDeclaredGlobalAttachments(grid, procId);
 	#endif
 
 	grid.message_hub()->post_message(GridMessage_Creation(GMCT_CREATION_STOPS, procId));
