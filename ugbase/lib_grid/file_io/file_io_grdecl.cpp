@@ -517,7 +517,7 @@ bool LoadGridFromGRDECL(Grid& grid, const char* filename, AVector3& aPos)
 					else
 						GetCoord(buf, coord);
 				}
-			if (buf.compare(0,6,"COORD ")==0 or buf.compare(0,7,"COORD\r")==0)
+			if (buf.compare(0,6,"COORD ")==0 || buf.compare(0,7,"COORD\r")==0)
 				b=true;
 				
 			//Get the depth list
