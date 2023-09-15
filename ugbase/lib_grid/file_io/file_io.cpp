@@ -223,9 +223,15 @@ static bool LoadGrid(Grid& grid, ISubsetHandler* psh,
 			}
 		}
 	}
-
+	
+	//	declare global attachments on all processors
+	#ifdef UG_PARALLEL
+		GlobalAttachments::SynchronizeDeclaredGlobalAttachments(grid, procId);
+	#endif
+	
 	grid.message_hub()->post_message(GridMessage_Creation(GMCT_CREATION_STOPS, procId));
-
+	
+	
 	#ifdef UG_PARALLEL
 		pcl::ProcessCommunicator procCom;
 		if(procId == -1)
@@ -285,6 +291,11 @@ static bool LoadGrid(Grid& grid, SPProjectionHandler* ph, size_t& num_ph, ISubse
 
 		}
 	}
+	
+	//	declare global attachments on all processors
+	#ifdef UG_PARALLEL
+		GlobalAttachments::SynchronizeDeclaredGlobalAttachments(grid, procId);
+	#endif
 
 	grid.message_hub()->post_message(GridMessage_Creation(GMCT_CREATION_STOPS, procId));
 	
@@ -938,7 +949,7 @@ bool SaveGridLevelToFile(MultiGrid& srcMG, ISubsetHandler& srcSH, int lvl, const
 		return SaveGridLevel(srcMG, srcSH, lvl, filename, aPosition1);
 
 	return false;
-}
+}	
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

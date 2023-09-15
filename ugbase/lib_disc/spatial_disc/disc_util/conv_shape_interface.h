@@ -115,9 +115,9 @@ class IConvectionShapes
 			: m_numScvf(0), m_numSh(0), m_bNonZeroDerivDiffusion(true)
 		{
 			m_vUpdateFunc.clear();
-			m_vUpShape.clear();
-			m_vUpShapeVel.clear();
-			m_vUpShapeDiffusion.clear();
+			m_vConvShape.clear();
+			m_vConvShapeVel.clear();
+			m_vConvShapeDiffusion.clear();
 		}
 
 	/// destructor
@@ -132,17 +132,17 @@ class IConvectionShapes
 	/// shape value
 		number operator()(size_t scvf, size_t sh) const
 		{
-			UG_ASSERT(scvf < m_vUpShape.size(), "Invalid index");
-			UG_ASSERT(sh < m_vUpShape[scvf].size(), "Invalid index");
-			return m_vUpShape[scvf][sh];
+			UG_ASSERT(scvf < m_vConvShape.size(), "Invalid index");
+			UG_ASSERT(sh < m_vConvShape[scvf].size(), "Invalid index");
+			return m_vConvShape[scvf][sh];
 		}
 
 	///	upwind shape for corner vel
 		const MathVector<dim>& D_vel(size_t scvf, size_t sh) const
 		{
-			UG_ASSERT(scvf < m_vUpShapeVel.size(), "Invalid index");
-			UG_ASSERT(sh < m_vUpShapeVel[scvf].size(), "Invalid index");
-			return m_vUpShapeVel[scvf][sh];
+			UG_ASSERT(scvf < m_vConvShapeVel.size(), "Invalid index");
+			UG_ASSERT(sh < m_vConvShapeVel[scvf].size(), "Invalid index");
+			return m_vConvShapeVel[scvf][sh];
 		}
 
 	///	returns if upwind shape w.r.t. ip vel is non-zero
@@ -151,9 +151,9 @@ class IConvectionShapes
 	///	upwind shapes for ip vel
 		const MathMatrix<dim,dim>& D_diffusion(size_t scvf, size_t sh) const
 		{
-			UG_ASSERT(scvf < m_vUpShapeDiffusion.size(), "Invalid index");
-			UG_ASSERT(sh < m_vUpShapeDiffusion[scvf].size(), "Invalid index");
-			return m_vUpShapeDiffusion[scvf][sh];
+			UG_ASSERT(scvf < m_vConvShapeDiffusion.size(), "Invalid index");
+			UG_ASSERT(sh < m_vConvShapeDiffusion[scvf].size(), "Invalid index");
+			return m_vConvShapeDiffusion[scvf][sh];
 		}
 
 		bool update(const FVGeometryBase* geo,
@@ -176,25 +176,25 @@ class IConvectionShapes
 	/// non-const access to ip velocity (i.e. interpolated velocity at ip)
 		number& conv_shape(size_t scvf, size_t sh)
 		{
-			UG_ASSERT(scvf < m_vUpShape.size(), "Invalid index");
-			UG_ASSERT(sh < m_vUpShape[scvf].size(), "Invalid index");
-			return m_vUpShape[scvf][sh];
+			UG_ASSERT(scvf < m_vConvShape.size(), "Invalid index");
+			UG_ASSERT(sh < m_vConvShape[scvf].size(), "Invalid index");
+			return m_vConvShape[scvf][sh];
 		}
 
 	///	non-const access to upwind shapes for corner vel
 		MathVector<dim>& D_vel(size_t scvf, size_t sh)
 		{
-			UG_ASSERT(scvf < m_vUpShapeVel.size(), "Invalid index");
-			UG_ASSERT(sh < m_vUpShapeVel[scvf].size(), "Invalid index");
-			return m_vUpShapeVel[scvf][sh];
+			UG_ASSERT(scvf < m_vConvShapeVel.size(), "Invalid index");
+			UG_ASSERT(sh < m_vConvShapeVel[scvf].size(), "Invalid index");
+			return m_vConvShapeVel[scvf][sh];
 		}
 
 	///	non-const access to upwind shapes for ip vel
 		MathMatrix<dim,dim>& conv_shape_diffusion(size_t scvf, size_t sh)
 		{
-			UG_ASSERT(scvf < m_vUpShapeDiffusion.size(), "Invalid index");
-			UG_ASSERT(sh < m_vUpShapeDiffusion[scvf].size(), "Invalid index");
-			return m_vUpShapeDiffusion[scvf][sh];
+			UG_ASSERT(scvf < m_vConvShapeDiffusion.size(), "Invalid index");
+			UG_ASSERT(sh < m_vConvShapeDiffusion[scvf].size(), "Invalid index");
+			return m_vConvShapeDiffusion[scvf][sh];
 		}
 
 
@@ -205,13 +205,13 @@ class IConvectionShapes
 		size_t m_numSh;
 
 	///	upwind shapes for corners shape functions
-		std::vector<std::vector<number> > m_vUpShape;
+		std::vector<std::vector<number> > m_vConvShape;
 
 	///	upwind shapes for corners shape functions
-		std::vector<std::vector<MathVector<dim> > > m_vUpShapeVel;
+		std::vector<std::vector<MathVector<dim> > > m_vConvShapeVel;
 
 	///	upwind shapes for corners shape functions
-		std::vector<std::vector<MathMatrix<dim,dim> > > m_vUpShapeDiffusion;
+		std::vector<std::vector<MathMatrix<dim,dim> > > m_vConvShapeDiffusion;
 
 	///	flag if ip shapes are non-zero
 		bool m_bNonZeroDerivDiffusion;
@@ -299,14 +299,14 @@ set_sizes(size_t numScvf, size_t numSh)
 	m_numSh = numSh;
 
 //	adjust arrays
-	m_vUpShape.resize(m_numScvf);
-	m_vUpShapeVel.resize(m_numScvf);
-	m_vUpShapeDiffusion.resize(m_numScvf);
+	m_vConvShape.resize(m_numScvf);
+	m_vConvShapeVel.resize(m_numScvf);
+	m_vConvShapeDiffusion.resize(m_numScvf);
 	for(size_t scvf = 0; scvf < m_numScvf; ++scvf)
 	{
-		m_vUpShape[scvf].resize(m_numSh);
-		m_vUpShapeVel[scvf].resize(m_numSh);
-		m_vUpShapeDiffusion[scvf].resize(m_numSh);
+		m_vConvShape[scvf].resize(m_numSh);
+		m_vConvShapeVel[scvf].resize(m_numSh);
+		m_vConvShapeDiffusion[scvf].resize(m_numSh);
 	}
 }
 
