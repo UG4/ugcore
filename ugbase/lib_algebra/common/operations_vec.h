@@ -75,6 +75,7 @@ inline void VecProdAdd(const double &a, const double &b, double &s)
 template<typename vector_t>
 inline void VecProdAdd(const vector_t &a, const vector_t &b, double &s)
 {
+	#pragma omp simd reduction(+:s)
 	for(size_t i=0; i<a.size(); i++)
 		VecProdAdd(a[i], b[i], s);
 }
@@ -157,10 +158,35 @@ inline void VecAssign(vector_t &dest, const vector_t &v1)
 		dest[i] = v1[i];
 }
 
+
+//! calculates dest = alpha1*v1 + alpha2*v2
+inline void VecScaleAdd(DenseVector<FixedArray1<double, 2>> &dest,
+			double alpha1, const DenseVector<FixedArray1<double, 2>> &v1,
+			double alpha2, const DenseVector<FixedArray1<double, 2>> &v2)
+{
+	dest[0] = alpha1*v1[0] + alpha2*v2[0];
+	dest[1] = alpha1*v1[1] + alpha2*v2[1];
+}
+
+//! calculates dest = alpha1*v1 + alpha2*v2
+inline void VecScaleAdd(DenseVector<FixedArray1<double, 4>> &dest,
+			double alpha1, const DenseVector<FixedArray1<double, 4>> &v1,
+			double alpha2, const DenseVector<FixedArray1<double, 4>> &v2)
+{
+
+	dest[0] = alpha1*v1[0] + alpha2*v2[0];
+	dest[1] = alpha1*v1[1] + alpha2*v2[1];
+	dest[2] = alpha1*v1[2] + alpha2*v2[2];
+	dest[3] = alpha1*v1[3] + alpha2*v2[3];
+
+}
+
+
 //! calculates dest = alpha1*v1 + alpha2*v2
 template<typename vector_t, template <class T> class TE_VEC>
 inline void VecScaleAdd(TE_VEC<vector_t> &dest, double alpha1, const TE_VEC<vector_t> &v1, double alpha2, const TE_VEC<vector_t> &v2)
 {
+	#pragma omp simd
 	for(size_t i=0; i<dest.size(); i++)
 		VecScaleAdd(dest[i], alpha1, v1[i], alpha2, v2[i]);
 }
@@ -180,6 +206,7 @@ inline void VecScaleAdd(TE_VEC<vector_t> &dest, double alpha1, const TE_VEC<vect
 template<typename vector_t>
 inline void VecProd(const vector_t &a, const vector_t &b, double &sum)
 {
+	#pragma omp simd reduction(+:sum)
 	for(size_t i=0; i<a.size(); i++)
 		VecProdAdd(a[i], b[i], sum);
 }
@@ -198,6 +225,7 @@ inline double VecProd(const vector_t &a, const vector_t &b)
 template<typename vector_t>
 inline void VecNormSquaredAdd(const vector_t &a, double &sum)
 {
+	#pragma omp simd reduction(+:sum)
 	for(size_t i=0; i<a.size(); i++)
 		VecNormSquaredAdd(a[i], sum);
 }
