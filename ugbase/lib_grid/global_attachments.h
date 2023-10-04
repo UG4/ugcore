@@ -137,7 +137,7 @@ class GlobalAttachments {
 				procComm.broadcast<std::vector<std::string> >(possible_attachment_names, procId);
 			else
 				UG_THROW("There are more than one proc loading the grid"<<
-						"please make sure all processes broadcast their GlobalAttachments");
+						", please make sure all processes broadcast their GlobalAttachments");
 						
 			std::vector<byte> locDeclared(possible_attachment_names.size(), 0);
 			std::vector<byte> globDeclared(possible_attachment_names.size(), 0);

@@ -50,14 +50,21 @@ class GlobAttachmentElementUserData
 		static const int dim = WDim;
 		typedef TData data_type;
 		typedef typename grid_dim_traits<dim>::grid_base_object elem_type;
+		//typedef typename geometry_traits<Face>::grid_base_object Face_type;
+		//typedef typename geometry_traits<Edge>::grid_base_object Edge_type;
+		typedef typename geometry_traits<Vertex>::grid_base_object Vertex_type;
 		typedef Attachment<data_type> attachment_type;
 
 	private:
 		std::string m_attachment_name;
 		SmartPtr<Grid> m_spGrid;
 		attachment_type m_att;
+		int m_dim_of_att = dim;
 		Grid::AttachmentAccessor<elem_type, attachment_type> m_aatt;
-		
+		//Grid::AttachmentAccessor<Face_type, attachment_type> m_Face_aatt;
+		//Grid::AttachmentAccessor<Edge_type, attachment_type> m_Edge_aatt;
+		Grid::AttachmentAccessor<Vertex_type, attachment_type> m_Vertex_aatt;
+
 	///	Evalutation of the attachment in one element
 		inline void eval_on_elem
 		(
@@ -66,20 +73,88 @@ class GlobAttachmentElementUserData
 			data_type vValue []  ///< array for the values
 		) const
 		{
-			for (size_t ip = 0; ip < nip; ++ip)
-				vValue[ip] = m_aatt [elem];
+			if ( m_dim_of_att == dim ){
+				for (size_t ip = 0; ip < nip; ++ip)
+					vValue[ip] = m_aatt [elem];
+			}
+			else if ( m_dim_of_att == 0){
+				if (elem->num_vertices() != nip){
+					UG_THROW ("GlobAttachmentElementUserData::eval_on_elem: The number of vertices inconsistent.");
+				}
+				else{
+					elem_type* Ele = (elem_type *) elem;
+					for (size_t ip = 0; ip < nip; ++ip){
+						vValue[ip] = m_Vertex_aatt[Ele->vertex(ip)];
+					}
+				}
+			}
 		}
+/*		
+		///	Evalutation of the attachment in one element
+		inline void eval_on_elem
+		(
+			elem_type * elem, ///< the element to evaluate on
+			const size_t nip, ///< number of the values to write
+			data_type vValue [],  ///< array for the values
+			const MathVector<dim> vCornerCoords[]
+		) const
+		{
+			if ( m_dim_of_att == dim ){
+				for (size_t ip = 0; ip < nip; ++ip)
+					vValue[ip] = m_aatt [elem];
+			}
+			else if ( m_dim_of_att == 0){
+				if (elem->num_vertices() != nip){
+					UG_THROW ("GlobAttachmentElementUserData::eval_on_elem: The number of vertices inconsistent.");
+				}
+				else{
+					elem_type* Ele = (elem_type *) elem;
+					for (size_t ip = 0; ip < nip; ++ip){
+						vValue[ip] = m_Vertex_aatt[Ele->vertex(ip)];
+					}
+				}	
+			}
+			else if ( m_dim_of_att == 2)
+			{
+				for (size_t ip = 0; ip < nip; ++ip)
+					vValue[ip] = m_Edge_aatt [elem];
+			}
+			else if ( m_dim_of_att == 1)
+				for (size_t ip = 0; ip < nip; ++ip)
+					vValue[ip] = m_Edge_aatt [elem];
+			
+		}
+*/
 
 	public:
 	
 	/// constructor
-		GlobAttachmentElementUserData(SmartPtr<Grid> grid, const char* name)
-		:	m_attachment_name(name), m_spGrid(grid)
+		GlobAttachmentElementUserData(SmartPtr<Grid> grid, const char* name, const int dim_of_att = dim)
+		:	m_attachment_name(name), m_spGrid(grid), m_dim_of_att(dim_of_att)
 		{
-			if (! GlobalAttachments::is_declared (m_attachment_name))
+			if (! GlobalAttachments::is_declared (m_attachment_name)) 
 				UG_THROW ("GlobAttachmentElementUserData: No global attachment '" << m_attachment_name << "' found.");
+			
 			m_att = GlobalAttachments::attachment<attachment_type> (m_attachment_name);
-			m_aatt.access (*grid, m_att);
+			if (m_dim_of_att > dim){
+				UG_THROW ("GlobAttachmentElementUserData: '" << m_dim_of_att << "'d global attachment is not support on '"<< dim <<"'d elements");
+			}	
+			else if ( m_dim_of_att == dim ){
+				m_aatt.access (*grid, m_att);
+			}
+			else if ( m_dim_of_att == 0){
+				m_Vertex_aatt.access (*grid, m_att);
+			}
+			else{
+				UG_THROW ("GlobAttachmentElementUserData: '" << m_dim_of_att << "'d global attachment is not support on '"<< dim <<"'d elements");
+			}
+				
+			/*
+			if else ( m_dim_of_att == 2)
+				m_Face_aatt.access (*grid, m_att);
+			if else  ( m_dim_of_att == 1)
+				m_Edge_aatt.access (*grid, m_att);
+			*/	
 		};
 	
 	//	UserData interface
@@ -125,9 +200,11 @@ class GlobAttachmentElementUserData
 		)
 		{
 			UG_ASSERT (elem->base_object_id() == dim, "GlobAttachmentElementUserData: Dimensionality of the element should be equal to the world dimensionality.");
-			
-			for (size_t s = 0; s < this->num_series (); ++s)
-				eval_on_elem ((elem_type *) elem, this->num_ip (s), this->values (s));
+
+			for (size_t s = 0; s < this->num_series (); ++s){
+					eval_on_elem ((elem_type *) elem, this->num_ip (s), this->values (s));
+			}
+				
 		}
 
 		virtual void compute

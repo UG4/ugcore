@@ -507,6 +507,7 @@ static void Dimension(Registry& reg, string grp)
 		string name = string("GlobAttachmentElementNumberData").append(dimSuffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<Grid>, const char *) >("AttachmentName")
+			.template add_constructor<void (*)(SmartPtr<Grid>, const char *, int) >("AttachmentName and dimension of attachments")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GlobAttachmentElementNumberData", dimTag);
 	}
