@@ -129,6 +129,8 @@ class GlobalAttachments {
 		#ifdef UG_PARALLEL
 		static void SynchronizeDeclaredGlobalAttachments(Grid& grid, int procId)
 		{
+			if (procId < 0) return; // this is not a parallel run
+			
 			//declare global attachments on all processors
 			pcl::ProcessCommunicator procComm;
 			std::vector<std::string> possible_attachment_names = GlobalAttachments::declared_attachment_names();
