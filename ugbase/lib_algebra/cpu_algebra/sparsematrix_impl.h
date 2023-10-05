@@ -299,6 +299,7 @@ void SparseMatrix<T>::axpy(vector_t &dest,
 	check_fragmentation();
 	if(alpha1 == 0.0)
 	{
+		#pragma omp parallel for
 		for(size_t i=0; i < num_rows(); i++)
 		{
 			size_t rowIt=rowStart[i];
@@ -317,6 +318,7 @@ void SparseMatrix<T>::axpy(vector_t &dest,
 	else if(&dest == &v1)
 	{
 		if(alpha1 != 1.0) {
+			#pragma omp parallel for
 			for(size_t i=0; i < num_rows(); i++)
 			{
 				dest[i] *= alpha1;
@@ -324,12 +326,14 @@ void SparseMatrix<T>::axpy(vector_t &dest,
 			}
 		}
 		else
+			#pragma omp parallel for
 			for(size_t i=0; i < num_rows(); i++)
 				mat_mult_add_row(i, dest[i], beta1, w1);
 
 	}
 	else
 	{
+		#pragma omp parallel for
 		for(size_t i=0; i < num_rows(); i++)
 		{
 			VecScaleAssign(dest[i], alpha1, v1[i]);
