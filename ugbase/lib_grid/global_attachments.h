@@ -135,9 +135,18 @@ class GlobalAttachments {
 			// only master proc loaded the grid
 			if (procId == 0)
 				procComm.broadcast<std::vector<std::string> >(possible_attachment_names, procId);
+			// all procs loaded their girds
+			else if (procId == -1)
+				// broadcast their attachment names one by one
+				for (int i = 0; i < pcl::NumProcs(); ++i){
+					// ignore the proc without attachment
+					if (possible_attachment_names.size() != 0){
+						procComm.broadcast<std::vector<std::string> >(possible_attachment_names, i);
+						procComm.barrier();
+					}
+				}
 			else
-				UG_THROW("There are more than one proc loading the grid"<<
-						", please make sure all processes broadcast their GlobalAttachments");
+				UG_THROW("The procId is '"<<procId<<"', such loading method is not supported now");
 						
 			std::vector<byte> locDeclared(possible_attachment_names.size(), 0);
 			std::vector<byte> globDeclared(possible_attachment_names.size(), 0);
