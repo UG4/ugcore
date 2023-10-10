@@ -97,7 +97,7 @@ template<typename T, size_t n>
 inline T &
 FixedArray1<T, n>::operator[](size_t i)
 {
-	UG_ASSERT(i<n, "Size mismatch!");
+	assert(i<n);
 	return values[i];
 }
 
@@ -105,7 +105,7 @@ template<typename T, size_t n>
 inline const T &
 FixedArray1<T, n>::operator[](size_t i) const
 {
-	UG_ASSERT(i<n, "Size mismatch!");
+	assert(i<n);
 	return values[i];
 }
 
