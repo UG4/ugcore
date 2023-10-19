@@ -389,20 +389,26 @@ perform_refinement()
 		for(uint j = 0; j < f->num_vertices(); ++j)
 			vVrts.push_back(mg.get_child_vertex(f->vertex(j)));
 
-	//	if the face is not marked, we'll simply clone it to the next level
-		if(!m_marker.is_marked(f)){
+	//	collect the child vertices of marked and associated edges
+		vEdgeVrts.clear();
+		for(uint j = 0; j < f->num_edges(); ++j){
+			Edge *edge=mg.get_edge(f,j);
+			if(m_marker.is_marked(edge)){
+				vEdgeVrts.push_back(mg.get_child_vertex(edge));
+			}else{
+				vEdgeVrts.push_back(NULL);
+			}
+		}
+
+    // instead of not marked faces, the cloning condition is changed for those, no edges of which will be refined. They will be cloned to the next level
+	// please test again, if it works for parallel computing. 
+		if(vEdgeVrts.size()==0){
 			fd.set_num_vertices(vVrts.size());
 			for(size_t i = 0; i < vVrts.size(); ++i)
 				fd.set_vertex(i, vVrts[i]);
 			mg.create_by_cloning(f, fd, f);
 			continue;
-		}
-
-	//	collect the child vertices of associated edges
-		vEdgeVrts.clear();
-		for(uint j = 0; j < f->num_edges(); ++j){
-			vEdgeVrts.push_back(mg.get_child_vertex(mg.get_edge(f, j)));
-		}
+		}		
 
 		//GFDR_PROFILE(GFDR_Refine_CreatingFaces);
 		Vertex* newVrt;
@@ -790,7 +796,7 @@ assign_elem_and_side_marks()
 							 << GetGridObjectCenter(mg, e) << "! Aborting.");
 				}
 				m_marker.mark(opSide);
-			}
+							}
 			else{
 				UG_THROW("Opposing side could not be found in grid. Check grid options.");
 			}
@@ -954,10 +960,14 @@ save_marks_to_file(const char* filename)
 	for(FaceIterator iter = mg.begin<Face>(lvl); iter != mg.end<Face>(lvl); ++iter){
 		Face* f = *iter;
 		CollectAssociated(edges, mg, f);
-		if(num_marked(edges) != f->num_sides())
-			sh.assign_subset(f, 1);
-		else
+		if(m_marker.is_marked(f)){
+		//if(num_marked(edges) != f->num_sides())
+			//sh.assign_subset(f, 1);
+		//else
 			sh.assign_subset(f, 0);
+		}else if(num_marked(edges) != f->num_sides()){
+			sh.assign_subset(f, 1);
+		}
 	}
 
 	for(EdgeIterator iter = mg.begin<Edge>(lvl); iter != mg.end<Edge>(lvl); ++iter){
