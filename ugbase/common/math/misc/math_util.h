@@ -704,7 +704,7 @@ int BinomCoeff(int n, int k);
  * This method reflects a given vector at a plane specified by n and r0, i.e.
  * the plane P is given such that for all \f$ \vec{x} in P \f$ it holds that
  * \f[
- * 	(\vec{x}�- \vec{r0}) \cdot \vec{n} = 0.
+ * 	(\vec{x} - \vec{r0}) \cdot \vec{n} = 0.
  * \f]
  *
  * @param vReflectedOut		the reflected vector

@@ -101,18 +101,16 @@ void OrderDownwindForDofDist(SmartPtr<DoFDistribution> dd, ConstSmartPtr<TDomain
 	std::vector<size_t>::iterator AdjIter;
 	std::vector<size_t> vAdjacency;
 
-	// count how many vertex were kept / removed per adjacency vector
-	size_t kept, removed = 0;
-	size_t initialcount = 0;
-
 	MathVector<TDomain::dim> vVel1, vPos1, vPos2, vDir1_2;
 	size_t i;
 	for (VertexIter = vvConnections.begin(), i=0; VertexIter != vvConnections.end(); VertexIter++, i++)
 	{
 		UG_DLOG(LIB_DISC_ORDER, 2, "Filtering vertex " << i << " adjacency vector." <<std::endl);
-		initialcount = VertexIter->size();
-		kept = 0;
-		removed = 0;
+		// count how many vertex were kept / removed per adjacency vector
+		#ifdef UG_ENABLE_DEBUG_LOGS
+		size_t initialcount = VertexIter->size();
+		#endif
+		size_t kept = 0, removed = 0;
 		// get position and velocity of first trait
 		vPos1 = vPositions.at(i).first;
 		(*spVelocity)(vVel1, vPos1, time, si);

@@ -125,7 +125,61 @@ class GlobalAttachments {
 		{
 			return attachment_types().find(typeName) != attachment_types().end();
 		}
+		
+		#ifdef UG_PARALLEL
+		static void SynchronizeDeclaredGlobalAttachments(Grid& grid, int procId)
+		{
+			if (procId < 0) return; // this is not a parallel run
+			
+			//declare global attachments on all processors
+			pcl::ProcessCommunicator procComm;
+			std::vector<std::string> possible_attachment_names = GlobalAttachments::declared_attachment_names();
+			// only master proc loaded the grid
+			if (procId == 0)
+				procComm.broadcast<std::vector<std::string> >(possible_attachment_names, procId);
+			else
+				UG_THROW("There are more than one proc loading the grid"<<
+						"please make sure all processes broadcast their GlobalAttachments");
+						
+			std::vector<byte> locDeclared(possible_attachment_names.size(), 0);
+			std::vector<byte> globDeclared(possible_attachment_names.size(), 0);
+			// record local info
+			for(size_t i = 0; i < possible_attachment_names.size(); ++i){
+				byte& b = locDeclared[i];
+				if(GlobalAttachments::is_declared(possible_attachment_names[i])){
+					b |= 1;
+					if(GlobalAttachments::is_attached<Vertex>(grid, possible_attachment_names[i]))
+						b |= 1<<1;
+					if(GlobalAttachments::is_attached<Edge>(grid, possible_attachment_names[i]))
+						b |= 1<<2;
+					if(GlobalAttachments::is_attached<Face>(grid, possible_attachment_names[i]))
+						b |= 1<<3;
+					if(GlobalAttachments::is_attached<Volume>(grid, possible_attachment_names[i]))
+						b |= 1<<4;
+				}
+			}
+			// sum up all the local to the global
+			procComm.allreduce(locDeclared, globDeclared, PCL_RO_BOR);
+			// update the local with the global
+			for(size_t i = 0; i < possible_attachment_names.size(); ++i){
+				byte& b = globDeclared[i];
+				if(b & 1){
+					if(!GlobalAttachments::is_declared(possible_attachment_names[i]))
+						GlobalAttachments::declare_attachment(possible_attachment_names[i], "double", true);
+					if(b & 1<<1)
+						GlobalAttachments::attach<Vertex>(grid, possible_attachment_names[i]);
+					if(b & 1<<2)
+						GlobalAttachments::attach<Edge>(grid, possible_attachment_names[i]);	
+					if(b & 1<<3)
+						GlobalAttachments::attach<Face>(grid, possible_attachment_names[i]);	
+					if(b & 1<<4)
+						GlobalAttachments::attach<Volume>(grid, possible_attachment_names[i]);	
+				}
+			}
 
+		}
+		#endif
+		
 		template <class TElem>
 		static
 		void attach(Grid& g, const std::string& name)
