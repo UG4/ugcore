@@ -400,8 +400,9 @@ perform_refinement()
 			}
 		}
 
-    // instead of not marked faces, the cloning condition is changed for those, no edges of which will be refined. They will be cloned to the next level
-	// please test again, if it works for parallel computing. 
+    // instead of not marked faces, the cloning condition is changed for those, of which no edges will be refined.
+	// It means, a face will be cloned to the next level if none of its edges should be refined.
+	// There are no such cases for testing. If such faces exist in your case, please test to ensure if it works for parallel computing. 
 		if(vEdgeVrts.size()==0){
 			fd.set_num_vertices(vVrts.size());
 			for(size_t i = 0; i < vVrts.size(); ++i)
