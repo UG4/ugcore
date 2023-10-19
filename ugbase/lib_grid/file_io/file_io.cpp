@@ -425,6 +425,7 @@ static bool SaveGrid(Grid& grid, ISubsetHandler* psh,
 		 std::size_t found=strName.find(".ugx");
 		 strName=strName.replace(found, 4, "");
 		 int procRank=pcl::ProcRank();
+		 strName=strName.append("_p");
 		 strName=strName.append(std::to_string(procRank));
 		 strName.append(".ugx");   
 		#endif
@@ -440,6 +441,7 @@ static bool SaveGrid(Grid& grid, ISubsetHandler* psh,
 		#if (defined UG_PARALLEL && defined UG_DEBUG)
                  std::size_t found=strName.find(".vtu");
 	         	 strName=strName.replace(found, 4, "");
+				 strName=strName.append("_p");
                  strName=strName.append(std::to_string(pcl::ProcRank()));
                  strName.append(".vtu");
 		#endif
