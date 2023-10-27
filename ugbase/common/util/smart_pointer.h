@@ -823,8 +823,10 @@ class ConstSmartPtr<void>
 namespace std
 {
 	template <class T, template <class TPtr> class TFreePolicy>
-	struct less<SmartPtr<T, TFreePolicy> > :
-		public binary_function<SmartPtr<T, TFreePolicy>, SmartPtr<T, TFreePolicy>, bool>
+	struct less<SmartPtr<T, TFreePolicy> >
+#if (__cplusplus < 201103L)
+	: public binary_function<SmartPtr<T, TFreePolicy>, SmartPtr<T, TFreePolicy>, bool>
+#endif
 	{
 		bool operator()(const SmartPtr<T, TFreePolicy>& lhs,
 						const SmartPtr<T, TFreePolicy>& rhs) const
