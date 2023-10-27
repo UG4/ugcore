@@ -362,6 +362,7 @@ void SparseMatrix<T>::axpy_transposed(vector_t &dest,
 	else
 		VecScaleAssign(dest, alpha1, v1);
 
+	#pragma omp parallel for
 	for(size_t i=0; i<num_rows(); i++)
 	{
 
