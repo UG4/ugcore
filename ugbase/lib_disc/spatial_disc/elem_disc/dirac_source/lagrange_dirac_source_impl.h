@@ -149,9 +149,9 @@ add_rhs_elem(LocalVector& rhs, GridObject* elem, const MathVector<dim> vCornerCo
 	UG_LOG("'DiracSourceDisc::add_rhs_elem' called for " << vCornerCoords[0]<< std::endl);
 	UG_LOG("elem:"<<  elem << std::endl);
 
-	UG_ASSERT(vCornerCoords[0] == m_srcCoord, "Source must be located at element corner!");
-
 	if (m_srcData.invalid()) return;
+
+	UG_ASSERT(vCornerCoords[0] == m_srcCoord, "Source must be located at element corner!");
 
 	// Request source strength form user data.
 	const int co = 0;
