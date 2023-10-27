@@ -62,7 +62,7 @@ void LoadDomain(TDomain& domain, const char* filename, int procId)
 
 	if(additionalSHNames.size()>0){
 		SmartPtr<ISubsetHandler> sh;
-		vector<SmartPtr<ISubsetHandler>> ash;
+		vector<SmartPtr<ISubsetHandler>> ash(additionalSHNames.size());
 		for(size_t i_name = 0; i_name < additionalSHNames.size(); ++i_name){
 			SmartPtr<ISubsetHandler> sh = domain.additional_subset_handler(additionalSHNames[i_name]);
 			ash[i_name]= sh;
