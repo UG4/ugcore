@@ -40,7 +40,7 @@ if(USE_AUTODIFF)
 	IF (EXTERNAL_AUTODIFF) # Automatic
     	FIND_PACKAGE(autodiff CONFIG REQUIRED)
 	else (EXTERNAL_AUTODIFF)# Builtin
-		SET(autodiff_DIR ${UG_ROOT_CMAKE_PATH}/../../externals/AutoDiffForUG4/autodiff)
+		SET(autodiff_DIR ${UG_ROOT_CMAKE_PATH}/../../externals/AutodiffForUG4/autodiff)
    	ENDIF(EXTERNAL_AUTODIFF)
    	   	
    	MESSAGE(STATUS "Info: Using Autodiff from ${autodiff_DIR}")
