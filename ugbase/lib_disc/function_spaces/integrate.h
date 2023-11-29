@@ -169,8 +169,8 @@ class IIntegrand
 
 	///	returns the subset
 		inline int subset() const {return m_si;}
-
-	protected:
+	
+		protected:
 	///	subset
 		int m_si;
 };
@@ -219,7 +219,7 @@ class StdIntegrand : public IIntegrand<TData, TWorldDim>
 			getImpl().template evaluate<3>(vValue,vGlobIP,pElem,vCornerCoords,vLocIP,vJT,numIP);
 		}
 	/// \}
-
+		
 	protected:
 	///	access to implementation
 		TImpl& getImpl() {return static_cast<TImpl&>(*this);}
@@ -405,6 +405,7 @@ number IntegrateSubsets(IIntegrand<number, TGridFunction::dim> &spIntegrand,
 		ssGrp.add(TokenizeString(subsets));
 		UG_COND_THROW(!SameDimensionsInAllSubsets(ssGrp), "IntegrateSubsets: Subsets '"<<subsets<<"' do not have same dimension."
 			         "Cannot integrate on subsets of different dimensions.");
+		UG_LOG("IntegrateSubsets for subsets="<<subsets<<"\n");
 	}
 	else
 	{
@@ -501,7 +502,7 @@ class UserDataIntegrand
 						"UserDataIntegrand: Missing GridFunction, but data requires grid function.");
 		};
 
-	/// \copydoc IIntegrand::values
+       	/// \copydoc IIntegrand::values
 		template <int elemDim>
 		void evaluate(TData vValue[],
 		              const MathVector<worldDim> vGlobIP[],
@@ -591,7 +592,7 @@ class UserDataIntegrandSq
 						" data requires grid function.")
 		};
 
-
+		
 	/// \copydoc IIntegrand::values
 		template <int elemDim>
 		void evaluate(number vValue[],
