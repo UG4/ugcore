@@ -103,6 +103,7 @@ elseif("${TARGET}" STREQUAL "libgrid")
 	set(buildBindings ON)
 	set(buildPlugins ON)
 	set(buildTools ON)
+	set(buildForLUA ON)
 
 elseif("${TARGET}" STREQUAL "gridshell")
 	set(targetLibraryName ugGrid)

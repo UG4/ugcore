@@ -760,8 +760,8 @@ public:
 	H1EnergyComponentSpace(const char *fctNames, int order, ConstSmartPtr<weight_type> spWeight, const char* ssNames=0)
 	: base_type(fctNames, ssNames, order), weighted_obj_type(spWeight), m_spVelocity(SPNULL) {};
 
-	H1EnergyComponentSpace(const char *fctNames, int order, const char* ssNames, ConstSmartPtr<weight_type> spWeight)
-	: base_type(fctNames, ssNames, order), weighted_obj_type(spWeight), m_spVelocity(SPNULL) {};
+	/*H1EnergyComponentSpace(const char *fctNames, int order, const char* ssNames, ConstSmartPtr<weight_type> spWeight)
+	: base_type(fctNames, ssNames, order), weighted_obj_type(spWeight), m_spVelocity(SPNULL) {};*/
 
 	/// DTOR
 	~H1EnergyComponentSpace() {};
@@ -769,30 +769,28 @@ public:
 
 	/// \copydoc IComponentSpace<TGridFunction>::norm
 	/// \copydoc IComponentSpace<TGridFunction>::distance
-	using IComponentSpace<TGridFunction>::m_quadorder;
 	using IComponentSpace<TGridFunction>::norm;
 	using IComponentSpace<TGridFunction>::distance;
-
+ 
 	/// \copydoc IComponentSpace<TGridFunction>::norm2
 	double norm2(TGridFunction& uFine)
 	{
 		if (m_spVelocity.valid()) {
-			const char* subsets = NULL; // [q^2]
+			//const char* subsets = NULL; // [q^2]
 			UserDataIntegrandSq<MathVector<TGridFunction::dim>, TGridFunction> integrand2(m_spVelocity, &uFine, 0.0);
-			return IntegrateSubsets(integrand2, uFine, subsets, m_quadorder);
+			return IntegrateSubsets(integrand2, uFine, base_type::m_ssNames, base_type::m_quadorder);
 		} else {
-			return H1EnergyNorm2<TGridFunction>(uFine, base_type::m_fctNames.c_str(), base_type::m_quadorder, NULL, weighted_obj_type::m_spWeight);
+			return H1EnergyNorm2<TGridFunction>(uFine, base_type::m_fctNames.c_str(), base_type::m_quadorder, base_type::m_ssNames, weighted_obj_type::m_spWeight);
 		}
 	}
 
 	/// \copydoc IComponentSpace<TGridFunction>::distance2
 	double distance2(TGridFunction& uFine, TGridFunction& uCoarse)
-	{ return H1EnergyDistance2<TGridFunction>(uFine, base_type::m_fctNames.c_str(), uCoarse, base_type::m_fctNames.c_str(), base_type::m_quadorder, m_spWeight); }
+	{ return H1EnergyDistance2<TGridFunction>(uFine, base_type::m_fctNames.c_str(), uCoarse, base_type::m_fctNames.c_str(), base_type::m_quadorder,base_type::m_ssNames, weighted_obj_type::m_spWeight); }
 
 	/// for weighted norms
 	using weighted_obj_type::set_weight;
 	using weighted_obj_type::get_weight;
-	using weighted_obj_type::m_spWeight;
 
 	void set_velocity(SmartPtr<velocity_type> spVelocity)
 	{ m_spVelocity = spVelocity;}
