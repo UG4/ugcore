@@ -55,7 +55,7 @@ stages:
     - pwd
     - ls
     - echo $UG4_ROOT
-    - ./ug4/bin/testsuite --build-info=yes --log_level=all --log_format=XML -- --name report || true
+    - ./ug4/bin/testsuite --build-info=yes --log_level=all --log_format=XML -- --name report || true # <- TODO remove "|| true"?  
     - mv ug_test_numprocs_1.log report.xml
     #- gcovr -v --gcov-executable "llvm-cov gcov" --xml -o "coveragereport_${CI_COMMIT_SHORT_SHA}.xml" -r $CI_PROJECT_DIR $CI_PROJECT_DIR/ug4/build/
     #- mv coveragereport_${CI_COMMIT_SHORT_SHA}.xml coverage_reports/${CI_COMMIT_SHORT_SHA}.xml
