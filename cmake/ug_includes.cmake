@@ -190,6 +190,7 @@ else(APPLE)
 	option(USE_LUA2C "Use LUA2C" OFF)
 endif(APPLE)
 option(USE_LUAJIT "Use LUA just in time compiler" OFF)
+option(USE_AUTODIFF "Use Autodiff" OFF)
 option(USE_PYBIND11 "Use PYBIND11" OFF)
 option(USE_JSON "Use JSON" OFF)
 option(USE_XEUS "Use XEUS" OFF)
@@ -280,6 +281,7 @@ message(STATUS "Info: HLIBPRO:           ${HLIBPRO}")
 message(STATUS "Info: USE_JSON:          ${USE_JSON} (options are: ON, OFF)")
 message(STATUS "Info: USE_XEUS:          ${USE_XEUS} (options are: ON, OFF)")
 message(STATUS "Info: USE_PYBIND11:      ${USE_PYBIND11} (options are: ON, OFF)")
+message(STATUS "Info: USE_AUTODIFF:      ${USE_AUTODIFF} (options are: ON, OFF)")
 message(STATUS "")
 message(STATUS "Info: C   Compiler: ${CMAKE_C_COMPILER} (ID: ${CMAKE_C_COMPILER_ID})")
 message(STATUS "Info: C++ Compiler: ${CMAKE_CXX_COMPILER} (ID: ${CMAKE_CXX_COMPILER_ID})")
@@ -436,8 +438,10 @@ include(${UG_ROOT_CMAKE_PATH}/ug/lua2c.cmake)
 include(${UG_ROOT_CMAKE_PATH}/ug/luajit.cmake)
 # JSON
 include(${UG_ROOT_CMAKE_PATH}/ug/json.cmake)
-# XEUS
+# Pybind11
 include(${UG_ROOT_CMAKE_PATH}/ug/pybind11.cmake)
+# Autodiff
+include(${UG_ROOT_CMAKE_PATH}/ug/autodiff.cmake)
 # XEUS
 include(${UG_ROOT_CMAKE_PATH}/ug/xeus.cmake)
 
