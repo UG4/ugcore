@@ -65,6 +65,10 @@ elif [ $UGSUBMIT_TYPE == "DoraCSCS" ]; then
 
 elif [ $UGSUBMIT_TYPE == "moab" ]; then
 	source $scriptpath/schedulers/moab
+	
+elif [ $UGSUBMIT_TYPE == "PBSGeneric" ]; then
+	source $scriptpath/schedulers/pbs-generic	
+	
 ############################################################
 #
 # you can add your own cluster like this:
