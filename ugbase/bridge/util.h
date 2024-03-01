@@ -144,10 +144,12 @@ void RegisterDimensionDependent(ug::pybind::Registry& reg, std::string grp)
 			UG_ERR_LOG("### ERROR while registering functionality at '"<<(grp)<<"'. "\
 					"Registration failed (using name " << ex.name << ").\n");\
 			throw(ex);} \
-		catch (const std::exception& e) {\
+		/*
+		 catch (const std::exception& e) {\
 			std::cerr << "A standard exception was caught, with message '" \
 			                  << e.what() << "in "<< __FILE__"'\n"; \
 		throw(e);}
+		*/
 
 
 #endif /* __H__UG_BRIDGE__UTIL__ */
