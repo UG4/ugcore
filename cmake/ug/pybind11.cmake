@@ -60,35 +60,35 @@ if(USE_PYBIND11)
     	MESSAGE(STATUS "Info: Pybind11 requested, but static build. Pybind11 disabled?")
     	SET(USE_PYBIND11 OFF)
     else(STATIC_BUILD)
-   		MESSAGE(STATUS "Info: ****************************************************************************************")
+   	MESSAGE(STATUS "Info: ****************************************************************************************")
     	MESSAGE(STATUS "Info: Pybind11 enabled.")
  	
- 		# Check for Python.
-    	FIND_PACKAGE (Python COMPONENTS Interpreter Development)
+ 	# Check for Python.
+    	FIND_PACKAGE(Python REQUIRED COMPONENTS Interpreter Development)
     	MESSAGE(STATUS "Info: Found Python = ${Python_FOUND}")
     	MESSAGE(STATUS "Info: Using Python INC ${Python_INCLUDE_DIRS}")
     	MESSAGE(STATUS "Info: Using Python LIB ${Python_LIBRARIES}")
     	
     	# Then check for Pybind11 (order is important!).
-		add_subdirectory(
+	add_subdirectory(
 			${UG_ROOT_CMAKE_PATH}/../../externals/PybindForUG4/pybind11 # Source dir.
 			{UG_ROOT_CMAKE_PATH}/bin   									# Binary dir (mandatory, but not used).
 		)
-   	    MESSAGE(STATUS "Info: Found Pybind11 = ${pybind11_FOUND}")
-   	   	MESSAGE(STATUS "Info: Using Pybind11 INC ${pybind11_INCLUDE_DIR}")
-   	   	MESSAGE(STATUS "Info: Using Pybind11 INC ${pybind11_INCLUDE_DIRS}")
-   		MESSAGE(STATUS "Info: ****************************************************************************************")
+   	MESSAGE(STATUS "Info: Found Pybind11 = ${pybind11_FOUND}")
+   	MESSAGE(STATUS "Info: Using Pybind11 INC ${pybind11_INCLUDE_DIR}")
+   	MESSAGE(STATUS "Info: Using Pybind11 INC ${pybind11_INCLUDE_DIRS}")
+   	MESSAGE(STATUS "Info: ****************************************************************************************")
     	
-		# Change policy in order to avoid errors.
+	# Change policy in order to avoid errors.
     	cmake_policy(SET CMP0057 NEW)
     	
     	# Expand includes.
     	include_directories(${pybind11_INCLUDE_DIRS})
     	
-		# Expand libraries.
-		set(linkLibraries ${linkLibraries} ${Python_LIBRARIES})
+	# Expand libraries.
+	set(linkLibraries ${linkLibraries} ${Python_LIBRARIES})
 		
-		# Set define for UG4.
+	# Set define for UG4.
     	add_definitions(-DUG_USE_PYBIND11)
     endif(STATIC_BUILD)
 else(USE_PYBIND11)
