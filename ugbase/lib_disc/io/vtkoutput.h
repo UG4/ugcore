@@ -954,6 +954,54 @@ protected:
 
 } // namespace ug
 
+
+#ifdef UG_JSON
+// Dummy: JSON based serialization
+#include "bindings/json/json_basics.hpp"
+
+namespace ug {
+
+
+#ifdef UG_DIM_1
+	void from_json(const nlohmann::json& j, VTKOutput<1>& p);
+#endif
+#ifdef UG_DIM_2
+	void from_json(const nlohmann::json& j, VTKOutput<2>& p);
+#endif
+#ifdef UG_DIM_3
+	void from_json(const nlohmann::json& j, VTKOutput<3>& p);
+#endif
+
+	//! All objects use identical defaults.
+	template <int dim>
+	struct json_default<VTKOutput<dim>>{
+		static constexpr const char* value = R"(
+			{
+	  			"binary" : true
+			}
+		)";
+	};
+
+	//! All objects use identical schema.
+	template <int dim>
+	struct json_schema<VTKOutput<dim>>{
+		static constexpr const char* value = R"(
+			{
+	  			"$schema": "http://json-schema.org/draft-07/schema#",
+	  			"type": "object",
+				"properties": {
+					"binary": { "type": "bool" },
+				},
+				"additionalProperties": true
+			}
+		)";
+	};
+
+
+}
+
+#endif
+
 #include "vtkoutput_impl.h"
 
 #endif /* __H__UG__LIB_DISC__IO__VTKOUTPUT__ */

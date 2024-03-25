@@ -688,6 +688,7 @@ vtk_name_used(const char* name) const
 	return false;
 }
 
+// Create instances.
 #ifdef UG_DIM_1
 template class VTKOutput<1>;
 #endif
@@ -696,6 +697,25 @@ template class VTKOutput<2>;
 #endif
 #ifdef UG_DIM_3
 template class VTKOutput<3>;
+#endif
+
+// Create JSON reader.
+#ifdef UG_JSON
+#ifdef UG_DIM_1
+	template struct json_default<VTKOutput<1>>;
+	template struct json_schema<VTKOutput<1>>;
+	void from_json(const nlohmann::json& j, VTKOutput<1>& p) {}
+#endif
+#ifdef UG_DIM_2
+	template struct json_default<VTKOutput<2>>;
+	template struct json_schema<VTKOutput<2>>;
+	void from_json(const nlohmann::json& j, VTKOutput<2>& p){}
+#endif
+#ifdef UG_DIM_1
+	template struct json_default<VTKOutput<3>>;
+	template struct json_schema<VTKOutput<3>>;
+	void from_json(const nlohmann::json& j, VTKOutput<3>& p){}
+#endif
 #endif
 
 } // end namespace ug
