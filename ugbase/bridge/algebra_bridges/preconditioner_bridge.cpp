@@ -168,6 +168,9 @@ static void Algebra(Registry& reg, string grp)
 			.add_method("set_sor_relax", &T::set_sor_relax,
 					"", "sor relaxation", "sets sor relaxation parameter");
 		reg.add_class_to_group(name, "GaussSeidelBase", tag);
+#ifdef UG_JSON
+		reg.add_json_functions<T>(name, grp);
+#endif
 	}
 
 //	GaussSeidel

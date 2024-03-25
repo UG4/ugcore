@@ -42,6 +42,11 @@
 	#include "lib_algebra/parallelization/parallelization.h"
 #endif
 
+#ifdef UG_JSON
+#include "bindings/json/json_basics.hpp"
+#endif
+
+
 namespace ug{
 ///////////////////////////////////////////////////////////////////////////////
 // Matrix Iterator Operator (Preconditioner)
@@ -388,6 +393,45 @@ class IPreconditioner :
 };
 
 
-
 }  // end namespace ug
+
+
+#ifdef UG_JSON
+namespace ug {
+
+
+	//! All objects use identical defaults.
+	template <typename TAlgebra>
+	struct json_default<IPreconditioner<TAlgebra>>{
+		static constexpr const char* value = R"( {"damp":1.0} )";
+	};
+
+	//! All objects use identical schema.
+	template <typename TAlgebra>
+	struct json_schema<IPreconditioner<TAlgebra>>{
+		static constexpr const char* value = R"(
+			{
+	  			"$schema": "http://json-schema.org/draft-07/schema#",
+				"$id": "schema:preconditioner",
+	  			"type": "object",
+				"properties": {
+					"damp": { "type": "number" },
+				},
+				"additionalProperties": true
+			}
+		)";
+	};
+
+	template <typename TAlgebra>
+	struct json_assignment<IPreconditioner<TAlgebra>>
+	{
+		// TODO: Avoid manual assignment?
+		static void from_json(const nlohmann::json& j, IPreconditioner<TAlgebra>& obj)
+		{ obj.set_damp(j.at("damp")); }
+	};
+
+
+
+}
+#endif
 #endif /* __H__LIB_ALGEBRA__OPERATOR__INTERFACE__PRECONDITIONER__ */

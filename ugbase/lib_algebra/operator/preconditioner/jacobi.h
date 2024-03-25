@@ -321,15 +321,17 @@ class Jacobi : public IPreconditioner<TAlgebra>
 #ifdef UG_JSON
 namespace ug {
 
+	// Draft for initialization using inheritance.
 	//! Generic schema.
 	template <typename TAlgebra>
 	struct json_schema<Jacobi<TAlgebra>>{
 		static constexpr const char* value = R"(
 			{
 	  			"$schema": "http://json-schema.org/draft-07/schema#",
+				"$id": "schema:preconditioner",
+				"$ref": "schema:jacobi",
 	  			"type": "object",
 				"properties": {
-					"damp": { "type": "number" },
 					"bBlock": { "type": "boolean" }
 				},
 				"additionalProperties": true
@@ -342,20 +344,18 @@ namespace ug {
 	template <typename TAlgebra>
 	struct json_default<Jacobi<TAlgebra>>{
 		static constexpr const char* value = R"(
-			{
-	  			"damp" : 0.66,
-				"bBlock" : true
-			}
+			{ "bBlock" : true }
 		)";
 	};
 
 	template <typename TAlgebra>
 	struct json_assignment<Jacobi<TAlgebra>>
 	{
-		// TODO: 1) Avoid manual assignment; 2) recursive call to IPreconditioner.
+		// TODO: Avoid manual assignment?
 		static void from_json(const nlohmann::json& j, Jacobi<TAlgebra>& obj)
 		{
-			obj.set_damp(j.at("damp"));
+			typedef IPreconditioner<TAlgebra> TPreconditioner;
+			json_assignment<TPreconditioner>::from_json(j, static_cast<TPreconditioner&>(obj)); // recursive call.
 			obj.set_block(j.at("bBlock"));
 		}
 	};
