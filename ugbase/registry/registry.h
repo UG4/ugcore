@@ -202,7 +202,7 @@ class UG_API Registry {
 
 			// Create new object
 			this->add_function(
-					std::string("JSON_Create_").append(name),
+					std::string("j").append(name),
 					static_cast<T* (*)(const nlohmann::json &)>(&json_factory<T>::create_new),
 					group);
 
