@@ -38,7 +38,13 @@
 #include "lib_algebra/cpu_algebra/vector.h"
 
 #ifdef UG_PARALLEL
-	#include "lib_algebra/parallelization/parallelization.h"
+#include "lib_algebra/parallelization/parallelization.h"
+#endif
+
+
+
+#ifdef UG_JSON
+#include "bindings/json/json_basics.hpp"
 #endif
 
 namespace ug{
@@ -311,6 +317,53 @@ class Jacobi : public IPreconditioner<TAlgebra>
 };
 
 } // end namespace ug
+
+#ifdef UG_JSON
+namespace ug {
+
+	//! Generic schema.
+	template <typename TAlgebra>
+	struct json_schema<Jacobi<TAlgebra>>{
+		static constexpr const char* value = R"(
+			{
+	  			"$schema": "http://json-schema.org/draft-07/schema#",
+	  			"type": "object",
+				"properties": {
+					"damp": { "type": "number" },
+					"bBlock": { "type": "boolean" }
+				},
+				"additionalProperties": true
+			}
+		)";
+	};
+
+
+	//! Generic defaults.
+	template <typename TAlgebra>
+	struct json_default<Jacobi<TAlgebra>>{
+		static constexpr const char* value = R"(
+			{
+	  			"damp" : 0.66,
+				"bBlock" : true
+			}
+		)";
+	};
+
+	template <typename TAlgebra>
+	struct json_assignment<Jacobi<TAlgebra>>
+	{
+		// TODO: 1) Avoid manual assignment; 2) recursive call to IPreconditioner.
+		static void from_json(const nlohmann::json& j, Jacobi<TAlgebra>& obj)
+		{
+			obj.set_damp(j.at("damp"));
+			obj.set_block(j.at("bBlock"));
+		}
+	};
+
+
+}// end namespace ug
+
+#endif
 
 //#include "gpujacobi.h"
 

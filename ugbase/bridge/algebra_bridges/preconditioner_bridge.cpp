@@ -150,6 +150,9 @@ static void Algebra(Registry& reg, string grp)
 			//.add_method("set_block", &T::set_block, "", "block", "if true, use block smoothing (default), else diagonal smoothing")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "Jacobi", tag);
+#ifdef UG_JSON
+		reg.add_json_functions<T>(name, grp);
+#endif
 	}
 
 //	GaussSeidelBase
