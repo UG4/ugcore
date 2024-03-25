@@ -292,6 +292,10 @@ static void Dimension(Registry& reg, string grp)
 			.add_method("set_write_proc_ranks", static_cast<void (T::*)(bool)>(&T::set_write_proc_ranks))
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "VTKOutput", tag);
+#ifdef UG_JSON
+		reg.add_json_functions<T>(name, grp);
+#endif
+
 	}
 }
 
