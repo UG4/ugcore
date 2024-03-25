@@ -264,6 +264,8 @@ get_constructor(size_t i) const
 	return *(m_vConstructor[i].m_constructor);
 }
 
+#ifdef UG_JSON
+// OLD approach!
 const boost::optional<ExportedConstructor&> ExportedClassBaseImpl::
 get_json_constructor() const
 {
@@ -276,6 +278,7 @@ get_json_constructor() const
 
 	return boost::none;
 }
+#endif
 
 bool ExportedClassBaseImpl::
 construct_as_smart_pointer() const

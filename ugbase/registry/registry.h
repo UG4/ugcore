@@ -48,6 +48,11 @@
 #include "parameter_stack.h"
 #include "common/ug_config.h"
 
+#ifdef UG_JSON
+#include "bindings/json/json_basics.hpp"
+#endif
+
+
 namespace ug
 {
 namespace bridge
@@ -187,6 +192,38 @@ class UG_API Registry {
 		add_and_get_function(std::string funcName, TFunc func, std::string group = "",
 		                     std::string retValInfos = "", std::string paramInfos = "",
 		                     std::string tooltip = "", std::string help = "");
+#ifdef UG_JSON
+		template<typename T>
+		Registry& add_json_functions(std::string name, std::string group = "")
+		{
+			UG_ASSERT(json_default<T>::value, "Error: No valid JSON default set:" << json_default<T>::value);
+			UG_ASSERT(json_schema<T>::value, "Error: No valid JSON schema set:" << json_schema<T>::value);
+			// nlohmann::json j =  nlohmann::json::parse(json_default<T>::value);
+
+			// Create new object
+			this->add_function(
+					std::string("JSON_Create_").append(name),
+					static_cast<T* (*)(const nlohmann::json &)>(&json_factory<T>::create_new),
+					group);
+
+			// Create new object (with defaults)
+
+			// Get JSON default.
+			this->add_function(
+					std::string("JSON_GetDefault_").append(name),
+					static_cast<const char* (*)()>(&json_default_value<T>),
+					group);
+
+			// Get JSON schema.
+			this->add_function(
+					std::string("JSON_GetSchema_").append(name),
+					static_cast<const char* (*)()>(&json_schema_value<T>),
+					group);
+
+
+			return (*this);
+		}
+#endif
 
 	/// number of functions registered at the Registry (overloads are not counted)
 		size_t num_functions() const;

@@ -47,6 +47,12 @@
 #include "error.h"
 #include "registry_util.h"
 
+
+#ifdef UG_JSON
+#include "bindings/json/json_basics.hpp"
+#endif
+
+
 #ifdef PROFILE_BRIDGE
 #ifndef UG_PROFILER
 	#error "You need to define UG_PROFILER to use PROFILE_BRIDGE"
@@ -492,8 +498,6 @@ void DestructorProxy(void* obj)
 ////////////////////////////////////////////////////////////////////////////////
 
 
-class JSONConstructible {};
-
 /// Base class for exported Classes
 class IExportedClass
 {
@@ -560,11 +564,16 @@ class IExportedClass
 	///	get exported constructor
 		virtual const ExportedConstructor& get_constructor(size_t i) const = 0;
 
+#ifdef UG_JSON
 	/// get constructor for construction from json
 		virtual const boost::optional<ExportedConstructor&> get_json_constructor() const = 0;
 
+
 	/// get constructor for construction from json
 		virtual bool is_json_constructible() const = 0;
+
+		//virtual void* json_create(const nlohmann::json j)=0;
+#endif
 
 	///	true if the class shall be wrapped in a SmartPtr on construction
 		virtual bool construct_as_smart_pointer() const = 0;
@@ -639,9 +648,10 @@ class ExportedClassBaseImpl : public IExportedClass
 
 	///	get exported constructor
 		virtual const ExportedConstructor& get_constructor(size_t i) const;
-
+#ifdef UG_JSON
 	/// get constructor for construction from json
 		virtual const boost::optional<ExportedConstructor&> get_json_constructor() const;
+#endif
 
 	///	returns whether the class shall be wrapped in a SmartPtr on construction
 		virtual bool construct_as_smart_pointer() const;
@@ -724,8 +734,13 @@ class ExportedClass : public ExportedClassBaseImpl
 	///	get groups
 		virtual const std::string& group() const {return ClassNameProvider<TClass>::group();}
 
+#ifdef UG_JSON
 	/// is json constructible
-		virtual bool is_json_constructible() const { return std::is_base_of<JSONConstructible, TClass>::value; }
+		virtual bool is_json_constructible() const {
+			return ug::is_json_constructible<TClass>::value;
+			//return std::is_base_of<JSONConstructible, TClass>::value;
+		}
+#endif
 
 	//\todo: remove this method, use class name nodes instead
 	///	class-hierarchy
