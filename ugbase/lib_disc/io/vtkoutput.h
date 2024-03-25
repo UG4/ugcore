@@ -956,9 +956,10 @@ protected:
 
 
 #ifdef UG_JSON
-// Dummy: JSON based serialization
 #include "bindings/json/json_basics.hpp"
+#endif
 
+#ifdef UG_JSON
 namespace ug {
 
 
@@ -999,7 +1000,6 @@ namespace ug {
 
 
 }
-
 #endif
 
 #include "vtkoutput_impl.h"
