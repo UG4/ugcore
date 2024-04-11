@@ -37,7 +37,7 @@ stages:
     - mkdir -p build
     - cd build
     - cmake .. -DENABLE_ALL_PLUGINS=ON -GNinja
-    - ninja -j8
+    - ninja -j4
     - cd ../..
 
 .build_test: &build_test
@@ -46,7 +46,7 @@ stages:
     - cd build
     #- export LD_FLAGS="-lboost_system -lboost_filesystem -lboost_serialization -lug4"
     - cmake .. -DUSE_JSON=OFF -DINTERNAL_BOOST=ON -DDEBUG=OFF -GNinja
-    - ninja -j8
+    - ninja -j4
     - cd ../../../..
 
 .run_tests: &run_tests
