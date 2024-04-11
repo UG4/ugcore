@@ -36,8 +36,8 @@ stages:
     - cd ug4
     - mkdir -p build
     - cd build
-    - cmake .. -DENABLE_ALL_PLUGINS=ON -GNinja
-    - ninja -j4
+    - cmake .. -DENABLE_ALL_PLUGINS=ON -DDEBUG=ON -GNinja
+    - ninja -j8
     - cd ../..
 
 .build_test: &build_test
@@ -45,8 +45,8 @@ stages:
     - mkdir -p build
     - cd build
     #- export LD_FLAGS="-lboost_system -lboost_filesystem -lboost_serialization -lug4"
-    - cmake .. -DUSE_JSON=OFF -DINTERNAL_BOOST=ON -DDEBUG=OFF -GNinja
-    - ninja -j4
+    - cmake .. -DUSE_JSON=OFF -DINTERNAL_BOOST=ON -DDEBUG=ON -GNinja
+    - ninja -j8
     - cd ../../../..
 
 .run_tests: &run_tests
@@ -95,7 +95,7 @@ do-test:
   variables:
     CC: "ccache clang"
     CXX: "ccache clang++"
-    #CXX_FLAGS: "-O0 -coverage -fPIC"
+    CXX_FLAGS: "-O0 -coverage -fPIC"
     UG_PACKAGES_TO_INSTALL: "ugcore tests unit_tests"
     #UG_PACKAGES_TO_INSTALL: "ugcore d3f_app tests unit_tests"
     #UG_PACKAGES_TO_INSTALL: "ugcore adaptive_mg_tests conv_diff_app d3f_app tests electromagnetism_app unit_tests"
