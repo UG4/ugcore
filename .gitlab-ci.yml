@@ -30,7 +30,7 @@ build-clang:
     - ughub init
     - ughub addsource quadruped gitolite3@quadruped.gcsc.uni-frankfurt.de:ug4-packages
     - ughub updatesources
-    - ughub install --ignore $UG_PACKAGES_TO_INSTALL
+    - ughub install $UG_PACKAGES_TO_INSTALL --ignore
     - ughub git submodule init
     - ughub git submodule update
     # build ug
