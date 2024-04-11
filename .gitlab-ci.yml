@@ -36,7 +36,7 @@ build-clang:
     - ughub git submodule update
     # replace ugcore
     - ls -a
-    - rf -r ugcore
+    - rm -r ugcore
     - mv ../ugcore ugcore
     # build ug
     - mkdir -p build
