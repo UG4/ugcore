@@ -45,7 +45,7 @@ stages:
     - mkdir -p build
     - cd build
     - export LD_FLAGS="-lboost_system -lboost_filesystem -lboost_serialization -lug4"
-    - cmake .. -DUSE_JSON=OFF -DINTERNAL_BOOST=ON -DDEBUG=ON -GNinja
+    - cmake .. -DUSE_JSON=OFF -DINTERNAL_BOOST=ON -DDEBUG=OFF -GNinja
     - ninja -j8
     - cd ../../../..
 
@@ -55,7 +55,7 @@ stages:
     - pwd
     - ls
     - echo $UG4_ROOT
-    - ./ug4/bin/testsuite --build-info=yes --log_level=all --log_format=XML -- --name report || true # <- TODO remove "|| true"?  
+    - ./ug4/bin/testsuite --build-info=yes --log_level=all --log_format=XML -- --name report
     - mv ug_test_numprocs_1.log report.xml
     #- gcovr -v --gcov-executable "llvm-cov gcov" --xml -o "coveragereport_${CI_COMMIT_SHORT_SHA}.xml" -r $CI_PROJECT_DIR $CI_PROJECT_DIR/ug4/build/
     #- mv coveragereport_${CI_COMMIT_SHORT_SHA}.xml coverage_reports/${CI_COMMIT_SHORT_SHA}.xml
