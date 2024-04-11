@@ -1,65 +1,10 @@
 variables:
-    GIT_CLONE_PATH: $CI_BUILDS_DIR/$CI_CONCURRENT_ID/$CI_PROJECT_DIR/$CI_PIPELINE_ID/$CI_JOB_ID/
+    GIT_CLONE_PATH: $CI_BUILDS_DIR/$CI_CONCURRENT_ID/$CI_PROJECT_DIR/$CI_PIPELINE_ID/ugcore/
 
 stages:
   - build
   - test
   - deploy
-
-# common subscripts:
-.repo2ugcore: &repo2ugcore
-  - ls -all
-  - cd ..
-  - mv "$CI_JOB_ID" tmp
-  - mkdir "$CI_JOB_ID"
-  - mv tmp "$CI_JOB_ID"/ugcore
-  - cd "$CI_JOB_ID"
-
-.setup_ug: &setup_ug
-  - if cd ughub; then git pull&&cd ..; else git clone https://github.com/UG4/ughub ughub; fi
-  - export PATH=$PATH:$(pwd)/ughub
-  - mkdir -p ug4
-  - cd ug4
-  - ls -a
-  - ughub init
-  - ughub addsource quadruped gitolite3@quadruped.gcsc.uni-frankfurt.de:ug4-packages
-  - ughub updatesources
-  - ughub install $UG_PACKAGES_TO_INSTALL
-  - ughub git submodule init # todo needed?
-  - ughub git submodule update # todo needed?
-  - rm -rf ugcore/
-  - mv ../ugcore ugcore  # todo do a submodule update in cloned repo?
-  - source ugcore/scripts/shell/ugbash
-  - cd ..
-
-.build_ug: &build_ug
-    - cd ug4
-    - mkdir -p build
-    - cd build
-    - cmake .. -DENABLE_ALL_PLUGINS=ON -GNinja
-    - ninja -j8
-    - cd ../..
-
-.build_test: &build_test
-    - cd ug4/apps/unit_tests
-    - mkdir -p build
-    - cd build
-    - export LD_FLAGS="-lboost_system -lboost_filesystem -lboost_serialization -lug4"
-    - cmake .. -DUSE_JSON=OFF -DINTERNAL_BOOST=ON -DDEBUG=ON -GNinja
-    - ninja -j8
-    - cd ../../../..
-
-.run_tests: &run_tests
-    - mkdir -p test_reports
-    - mkdir -p coverage_reports
-    - pwd
-    - ls
-    - echo $UG4_ROOT
-    - ./ug4/bin/testsuite --build-info=yes --log_level=all --log_format=XML -- --name report || true # <- TODO remove "|| true"?  
-    - mv ug_test_numprocs_1.log report.xml
-    #- gcovr -v --gcov-executable "llvm-cov gcov" --xml -o "coveragereport_${CI_COMMIT_SHORT_SHA}.xml" -r $CI_PROJECT_DIR $CI_PROJECT_DIR/ug4/build/
-    #- mv coveragereport_${CI_COMMIT_SHORT_SHA}.xml coverage_reports/${CI_COMMIT_SHORT_SHA}.xml
-    - cd ..
 
 # BUILD sources on various platforms and compilers
 build-clang:
@@ -67,14 +12,43 @@ build-clang:
   variables:
     CC: "ccache clang"
     CXX: "ccache clang++"
-    UG_PACKAGES_TO_INSTALL: "ConvectionDiffusion"
+    CXX_FLAGS: "-O0 -coverage -fPIC"
+    UG_PACKAGES_TO_INSTALL: "ConvectionDiffusion ugcore tests unit_tests"
+    #UG_PACKAGES_TO_INSTALL: "ugcore d3f_app tests unit_tests"
+    #UG_PACKAGES_TO_INSTALL: "ugcore adaptive_mg_tests conv_diff_app d3f_app tests electromagnetism_app unit_tests"
   tags:
     - linux
   timeout: 4 hours
   script:
-    - *repo2ugcore # moves caches into ugcore folder
-    - *setup_ug
-    - *build_ug
+    - pwd
+    - ls -a
+    # move to CI "workspace" and install ug
+    - cd ../
+    - git clone https://github.com/UG4/ughub
+    - export PATH=$PATH:$(pwd)/ughub
+    - mkdir -p ug4
+    - cd ug4
+    - ughub init
+    - ughub addsource quadruped gitolite3@quadruped.gcsc.uni-frankfurt.de:ug4-packages
+    - ughub updatesources
+    - ughub install $UG_PACKAGES_TO_INSTALL
+    - ughub git submodule init
+    - ughub git submodule update
+    # replace ugcore
+    - ls -a
+    - rm -r ugcore
+    - mv ../ugcore ugcore
+    # build ug
+    - mkdir -p build
+    - cd build
+    - cmake .. -DENABLE_ALL_PLUGINS=ON -DDEBUG=ON -GNinja
+    - ninja -j8
+    # build testsuite
+    - cd ../apps/unit_tests/
+    - mkdir -p build
+    - cd build
+    - cmake .. -DUSE_JSON=OFF -DINTERNAL_BOOST=ON -DDEBUG=ON -GNinja
+    - ninja -j8
   artifacts:
     when: on_success
     expire_in: 1 week
@@ -93,21 +67,18 @@ build-clang:
 do-test:
   stage: test
   variables:
-    CC: "ccache clang"
-    CXX: "ccache clang++"
-    CXX_FLAGS: "-O0 -coverage -fPIC"
-    UG_PACKAGES_TO_INSTALL: "ugcore tests unit_tests"
-    #UG_PACKAGES_TO_INSTALL: "ugcore d3f_app tests unit_tests"
-    #UG_PACKAGES_TO_INSTALL: "ugcore adaptive_mg_tests conv_diff_app d3f_app tests electromagnetism_app unit_tests"
+    GIT_STRATEGY: none # Do not clone repo again for this job.
   tags:
     - linux
   timeout: 4 hours
   script:
-    - *repo2ugcore # moves caches into ugcore folder
-    - *setup_ug
-    - *build_ug
-    - *build_test
-    - *run_tests
+    - pwd
+    - ls -a
+    - source scripts/shell/ugbash
+    - cd ../
+    - echo $UG4_ROOT
+    - ./ug4/bin/testsuite --build-info=yes --log_level=all --log_format=XML -- --name report
+    - mv ug_test_numprocs_1.log report.xml
   artifacts:
     when: always
     expire_in: 4 week
