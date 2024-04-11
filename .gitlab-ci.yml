@@ -44,7 +44,7 @@ stages:
     - cd ug4/apps/unit_tests
     - mkdir -p build
     - cd build
-    #- export LD_FLAGS="-lboost_system -lboost_filesystem -lboost_serialization -lug4"
+    - export LD_FLAGS="-lboost_system -lboost_filesystem -lboost_serialization -lug4"
     - cmake .. -DUSE_JSON=OFF -DINTERNAL_BOOST=ON -DDEBUG=ON -GNinja
     - ninja -j8
     - cd ../../../..
