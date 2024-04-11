@@ -27,8 +27,8 @@ stages:
   - ughub install $UG_PACKAGES_TO_INSTALL
   - ughub git submodule init # todo needed?
   - ughub git submodule update # todo needed?
-  #- rm -rf ugcore/
-  #- mv ../ugcore ugcore  # todo do a submodule update in cloned repo?
+  - rm -rf ugcore/
+  - mv ../ugcore ugcore  # todo do a submodule update in cloned repo?
   - source ugcore/scripts/shell/ugbash
   - cd ..
 
@@ -95,7 +95,7 @@ do-test:
   variables:
     CC: "ccache clang"
     CXX: "ccache clang++"
-    CXX_FLAGS: "-O0 -coverage -fPIC"
+    #CXX_FLAGS: "-O0 -coverage -fPIC"
     UG_PACKAGES_TO_INSTALL: "ugcore tests unit_tests"
     #UG_PACKAGES_TO_INSTALL: "ugcore d3f_app tests unit_tests"
     #UG_PACKAGES_TO_INSTALL: "ugcore adaptive_mg_tests conv_diff_app d3f_app tests electromagnetism_app unit_tests"
