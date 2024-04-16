@@ -1,4 +1,4 @@
-nname: Build
+nname: Build wheels
 
 on: [push, pull_request]
 
