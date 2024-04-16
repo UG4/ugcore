@@ -1,23 +1,23 @@
 # Workflow to build and test wheels
 name: Wheel builder
 
-on:
-  schedule:
+on: [push]
+  #schedule:
     # Nightly build at 3:42 A.M.
-    - cron: "42 3 */1 * *"
-  push:
-    branches:
+   # - cron: "42 3 */1 * *"
+  #push:
+  #  branches:
       # - main
-      # Feature branch
-      - feature-cibuildwheel
-      # Release branches
-      - "[0-9]+.[0-9]+.X"
-  pull_request:
-    branches:
-      - main
-      - "[0-9]+.[0-9]+.X"
+    #  # Feature branch
+   #   - feature-cibuildwheel
+    #  # Release branches
+    #  - "[0-9]+.[0-9]+.X"
+  #pull_request:
+  #  branches:
+   #   - main
+    #  - "[0-9]+.[0-9]+.X"
   # Manual run
-  workflow_dispatch:
+  #workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
