@@ -76,6 +76,11 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh,
 						bool expandInnerFracBnds, bool expandOuterFracBnds);
 
 
+bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh,
+						const std::vector<FractureInfo>& fracInfos,
+						bool expandInnerFracBnds, bool expandOuterFracBnds);
+
+
 /**
  * This algorithm indirectly uses Grid::mark.
  *
