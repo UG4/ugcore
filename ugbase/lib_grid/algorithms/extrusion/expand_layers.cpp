@@ -718,21 +718,12 @@ template< typename T >
 class VertexFractureProperties
 {
 public:
-//	VertexFractureProperties( bool isBndFracVertex, bool isInnerFracCrossingVertex, unsigned short numberCrossingFracsInVertex )
-//	: m_isBndFracVertex(isBndFracVertex), m_isInnerFracCrossingVertex(isInnerFracCrossingVertex), m_numberCrossingFracsInVertex(numberCrossingFracsInVertex)
-//	{
-//	};
 
 	VertexFractureProperties( bool isBndFracVertex,  T numberCrossingFracsInVertex )
 	: m_isBndFracVertex(isBndFracVertex), m_numberCountedFracsInVertex(numberCrossingFracsInVertex)
 	{
 	};
 
-
-//	VertexFractureProperties()
-//	: VertexFractureProperties(false,false,0)
-//	{
-//	};
 
 	VertexFractureProperties()
 	: VertexFractureProperties( false, 0 )
@@ -744,12 +735,6 @@ public:
 		m_isBndFracVertex = iBDV;
 	}
 
-//	void setIsInnerFracCrossingVertex( bool iIFCV = true )
-//	{
-//		m_isInnerFracCrossingVertex = iIFCV;
-//	}
-
-//	void setNumberCrossingFracsInVertex( unsigned short nCFIV )
 	void setNumberCrossingFracsInVertex( T const & nCFIV )
 	{
 		m_numberCountedFracsInVertex = nCFIV;
@@ -760,11 +745,6 @@ public:
 		return m_isBndFracVertex;
 	}
 
-//	bool getIsInnerFracCrossingVertex()
-//	{
-//		return m_isInnerFracCrossingVertex;
-//	}
-
 	T getCountedNumberFracsInVertex()
 	{
 		return m_numberCountedFracsInVertex;
@@ -773,7 +753,6 @@ public:
 
 	T getNumberCrossingFracsInVertex()
 	{
-
 
 		if( m_isBndFracVertex )
 			return m_numberCountedFracsInVertex;
@@ -805,8 +784,6 @@ public:
 
 private:
 	bool m_isBndFracVertex;
-//	bool m_isInnerFracCrossingVertex;
-//	unsigned short m_numberCrossingFracsInVertex;
 	T m_numberCountedFracsInVertex;
 };
 
@@ -817,28 +794,6 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 						bool expandInnerFracBnds, bool expandOuterFracBnds)
 {
 
-	//			static_assert( std::is_same< decltype(formerNumCross), IndexType >::value );
-//				static_assert( std::is_same< int, int >::value == false );
-	//			decltype(formerNumCross) newNumCross = formerNumCross + static_cast<IndexType >(1);
-	//			aaMarkVrtVFP[*iterV].setNumberCrossingFracsInVertex(newNumCross);
-
-
-//	bool sag = false;
-//
-//	bool isSam = std::is_same< int, decltype(sag) >::value;
-//
-//	UG_LOG("is same " << isSam << std::endl);
-//
-//	decltype(sag) sag2 = true;
-//
-//	auto isSam2 = std::is_same< bool, decltype(sag2)>::value;
-//
-//	static_assert(  std::is_same< bool, decltype(sag2)>::value );
-//
-//	UG_LOG("is same 2 " << isSam2 << std::endl);
-//
-//
-//	return true;
 
 //	access position attachment
 	if(!grid.has_vertex_attachment(aPosition)){
@@ -883,71 +838,23 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 	Grid::EdgeAttachmentAccessor<AInt> aaMarkEDGE(grid, aAdjMarker);
 
 
-#if 0
-	using P_isBVF_numFrCross = std::pair<bool,int>;
-	// pair: is Boundary vertex of a fracture, number of crossing fractures
-
-	using Att_P_BF_NFC = Attachment<P_isBVF_numFrCross>;
-	// attachment pair boundary is fracture, number fractures crossing
-
-	Att_P_BF_NFC aAdjMarkerBNF;
-	// attachment of type pair bool int
-
-	P_isBVF_numFrCross noBdnoFC( false, 0 );
-	// default value: no boundary fracture, no fractures crossing
-
-	grid.attach_to_vertices_dv(aAdjMarkerBNF, noBdnoFC );
-	Grid::VertexAttachmentAccessor<Att_P_BF_NFC> aaMarkVrtBFN(grid, aAdjMarkerBNF);
-
-//	grid.attach_to_edges_dv(aAdjMarkerBNF, noBdnoFC );
-//	Grid::EdgeAttachmentAccessor<Att_P_BF_NFC> aaMarkEdgeBFN(grid, aAdjMarkerBNF);
-// nicht benoetigt vermutlich, da wir nur wissen wollen, ob das eine fracture edge ist oder nicht
-
-	// usage: fra-boundary (true/false), inner frac vertizes (0 in case of no inner fac vertizes, 1 in case of inner frac vertex but no cut point, >= 2 inner cut point
-	// auf diese Art und Weise wird verhindert, dass Grenzpunkte und inner Punkte vermischt werden wie bisher
-#else
 	using IndexType = unsigned short;
 	using AttVerFracProp = Attachment<VertexFractureProperties<IndexType> >;
 	// attachment pair boundary is fracture, number fractures crossing
 
 	AttVerFracProp aAdjMarkerVFP;
 
-//	VertexFractureProperties<IndexType> vfp0( false, false, 0 );
 	VertexFractureProperties<IndexType> vfp0( false, 0 );
 	// default value: no boundary fracture, no fractures crossing
 
 	grid.attach_to_vertices_dv(aAdjMarkerVFP, vfp0 );
 	Grid::VertexAttachmentAccessor<AttVerFracProp> aaMarkVrtVFP(grid, aAdjMarkerVFP);
 
-#endif
-
 	ABool aAdjMarkerB; // used to know if an edge is frac edge
 	grid.attach_to_edges_dv(aAdjMarkerB, false);
 	Grid::EdgeAttachmentAccessor<ABool> aaMarkEdgeB(grid, aAdjMarkerB);
 
 
-
-//	Grid::VertexAttachmentAccessor<Att_P_BF_NFC> aaMarkVrtBFN(grid, aAdjMarkerBNF);
-//	Grid::EdgeAttachmentAccessor<ABool> aaMarkEdgeB(grid, aAdjMarkerB);
-
-	// BEGIN ALTES ZEUG SELEKTION
-
-
-	// TODO Fixme schon hier einen enum einfuehren fuer aAdjMarker
-	// dieser enum soll dann auch wissen, ob ein Vertex ein Schnittpunkt
-	// von zwei Klueften ist
-	// im Falle von 3D ist das Analogon eine Kante, aber nicht relevant
-	// im Moment hiery
-	// also wichtig heraus zu finden: subdomain von Vertex abfragen,
-	// wie geht das?
-	// vielleicht ein pair von int bool zum unterscheiden, ob innen oder aussen
-	// damit die Anzahl der Kreuzungen bekannt ist, und nicht vermaledeit
-	// durch komisches auf 2 setzen fuer den Fall, dass expandiert werden soll
-
-
-
-	// wir benutzen den alten loop, und lassen die alten Attachments befüllen wie bei SR, aber füllen auch die neuen Attachments, damit wir mit denen besser kontrollieren können
-	// später, was wir haben, und was nicht
 //	iterate over the given fracture infos and select all fracture edges
 //	and fracture vertices.
 	for(size_t i_fi = 0; i_fi < fracInfos.size(); ++i_fi){
@@ -965,8 +872,6 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 			for(size_t i = 0; i < 2; ++i){
 				Vertex* v = (*iter)->vertex(i);
 				sel.select(v);
-
-				// die ganze Schleife kann viel kürzer genacht werden mit dem neuen System
 
 				// wird in jedem Fall inkrimiert, da der Vertex auf jeden Fall mit einer Kante einer frac verbunden sein muss, sonst darf der loop gar nicht darüber gehen
 				aaMarkVrtVFP[v]++;
@@ -991,103 +896,10 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 				else
 					aaMarkVRT[v]++;
 
-#if 0
-		// wenn wir den unten folgenden Loop hier einbauen für Sebastian, dann haben wir
-
-		if( expandOuterFracBnds && !expandInnerFracBnds)
-			if(IsBoundaryVertex2D(grid, v))
-				aaMarkVRT[v] = 2;
-
-		// zusammengenommen wäre das
-
-		if(expandInnerFracBnds){
-			if(!expandOuterFracBnds){
-				if(IsBoundaryVertex2D(grid, v))
-					aaMarkVRT[v]++;
-				else
-					aaMarkVRT[v] = 2;
-			}
-			else
-				aaMarkVRT[v] = 2;
-		}
-		else // ! expandInnerFracBnds
-		{
-			aaMarkVRT[v]++;
-
-			if( expandOuterFracBnds )
-				if( IsBoundaryVertex2D(grid, v) )
-					aaMarkVRT[v] = 2;
-		}
-// wieso Sebastian das nicht noch hier mit rein hat, ist komisch
-// was bedeutet das aber?
-		// vermutlich:
-		// nicht expandiert werden sollen nur folgende Fälle von Fracture Verizes:
-		// im Falle, dass die inneren expandiert werden sollen, aber die äusseren nicht: die Boundary Vertizes, es sei denn, es sind mehrere betroffen
-		// im Falle, dass die inneren nicht expandiert werden sollen, aber die äusseren schon nur die nicht, die innen am Rand liege, es sei denn, es treffen sich dort
-		// mehrere fracs
-		// sonderbares Konzept, wieso nicht ein loop über alle Vertizes der fractures?
-
-#endif
-
-#if 0
-			// hier Sebastians loop mit Kommentaren und eigenen Ergänzungen vom Anfang, inzwischen nicht mehr passend teilweise
-
-			//	if fracture boundaries are expanded, we'll regard all fracture vertices
-			//	as inner vertices
-				// vermutlich kapiert:  was ist das fuer eine Logik? noch nicht begriffen, noch nicht klar, wie umsetzen mit neuen Attachment type
-				if(expandInnerFracBnds)
-				{
-					if(!expandOuterFracBnds)
-					{
-						if(IsBoundaryVertex2D(grid, v))
-						{
-							aaMarkVRT[v]++;
-
-//							(aaMarkVrtBFN[v].first) = true;
-//							(aaMarkVrtBFN[v].second)++;
-
-							aaMarkVrtVFP[v].setIsBndFracVertex(true);
-//							aaMarkVrtVFP[v].setIsInnerFracCrossingVertex(false);
-//							unsigned short formerNum = aaMarkVrtVFP[v].getNumberCrossingFracsInVertex();
-//							aaMarkVrtVFP[v].setNumberCrossingFracsInVertex( formerNum + 1 ); // TODO FIXME mit ++ operator ueberladen noch implementieren!!!
-//							aaMarkVrtVFP[v]++;
-
-							// neues System: Inkrement fuer Anzahl schon ausserhalb
-						}
-						else
-						{
-							aaMarkVRT[v] = 2;
-
-							aaMarkVrtVFP[v].setIsBndFracVertex(false);
-
-							// neues System: Inkrement fuer Anzahl schon ausserhalb
-						}
-					}
-					else
-					{
-						aaMarkVRT[v] = 2;
-
-						// TODO FIXME muss hier was inkrimiert werden? wieso wird hier eine 2 zugewiesen? weil die äusseren Kantenverzizes auch extrudiert
-						// werden sollen, und die 2 nur dafür steht, dass wir uns an einem Vertex befinden, der extrudiert werden soll
-						// dann ist es nämlich egal, ob wir aussen oder innen sind, es wird so getan, als ob wir aussen wären
-						// bei Sebastian wird so getan, wir tun so nicht mehr
-
-					}
-				}
-				else
-				{
-					aaMarkVRT[v]++;
-
-					// neues System: Inkrement fuer Anzahl schon ausserhalb
-				}
-#endif
-
 			}
 		}
 	}
 
-
-	// TODO FIXME was ist das fuer ein Käse? hier wird das von vorher wieder überschrieben, und zwar vielleicth anders, als direkt vorher, was soll der Käse?
 
 //	Make sure that selected vertices that lie on the boundary of the geometry
 //	are treated as inner fracture vertices.
@@ -1104,90 +916,6 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 		}
 	}
 
-	// TODO FIXME in diesem Loop abfragen, ob die bedingungen für Ränder etc erfüllt sind
-
-//	Select all edges and faces which are connected to inner fracture vertices
-//	for(VertexIterator iter = sel.begin<Vertex>();
-//		iter != sel.end<Vertex>(); ++iter)
-//	{
-//		if(aaMarkVRT[*iter] > 1){
-//			sel.select(grid.associated_edges_begin(*iter),
-//						grid.associated_edges_end(*iter));
-//			sel.select(grid.associated_faces_begin(*iter),
-//						grid.associated_faces_end(*iter));
-//		}
-//	}
-
-	// ENDE ALTES ZEUG SELEKTION
-
-	// TODO FIXME hätte man das nicht schon im Loop oben mit einbauen können? was soll dieses sich um den Kreis drehen?
-
-	// BEGINN NEUES ZEUG SELEKTION
-
-//	// neuer Versuch
-//
-//	for(size_t i_fi = 0; i_fi < fracInfos.size(); ++i_fi)
-//	{
-//		int fracInd = fracInfos[i_fi].subsetIndex;
-//
-//		UG_LOG("frac ind " << fracInd << std::endl);
-//
-//		for(EdgeIterator iterE = sh.begin<Edge>(fracInd); iterE != sh.end<Edge>(fracInd); ++iterE )
-//		{
-//			//	mark edge
-//			sel.select( *iterE );
-//
-//			aaMarkEdgeB[ *iterE ] = true;
-//		}
-//
-//		for( VertexIterator iterV = sh.begin<Vertex>(fracInd); iterV != sh.end<Vertex>(fracInd); iterV++ )
-//		{
-//			sel.select( * iterV );
-//
-//////		Ziel:	aaMarkVrtVFP[ *iterV ]++;
-//
-////			auto formerNumCross = aaMarkVrtVFP[*iterV];
-////
-//////			static_assert( std::is_same< decltype(formerNumCross), IndexType >::value );
-////			static_assert( std::is_same< int, int >::value == true );
-//////			decltype(formerNumCross) newNumCross = formerNumCross + static_cast<IndexType >(1);
-//////			aaMarkVrtVFP[*iterV].setNumberCrossingFracsInVertex(newNumCross);
-////
-////			bool isSam = std::is_same< int, int >::value;
-////
-////			UG_LOG("is same " << isSam << std::endl);
-//
-//			auto formerNumCross = aaMarkVrtVFP[*iterV].getNumberCrossingFracsInVertex();
-//
-////			auto isSame = std::is_same< IndexType, decltype(formerNumCross) >::value;
-////
-////			static_assert( std::is_same< IndexType, decltype(formerNumCross) >::value );
-////
-////			UG_LOG("is same " << isSame << std::endl);
-////
-////			UG_LOG("type " << typeid(formerNumCross).name() << std::endl);
-////
-////			int bla = 1;
-////
-////			UG_LOG("bla type " << typeid(bla).name() << std::endl);
-//
-//			decltype(formerNumCross) newNumCross = formerNumCross + 1;
-//
-//			aaMarkVrtVFP[*iterV].setNumberCrossingFracsInVertex(newNumCross);
-//
-//			if( IsBoundaryVertex2D(grid,  *iterV ) )
-//				aaMarkVrtVFP[ *iterV ].setIsBndFracVertex();
-//
-//			UG_LOG("position " << aaPos[*iterV] << std::endl);
-//
-//		}
-//	}
-
-//	using AttVrt = Attachment<Vertex* >;
-//
-//	AttVrt attVrt;
-//	grid.attach_to_vertices(attVrt);
-//	Grid::VertexAttachmentAccessor<AttVrt> aaVrtVecVRT(grid, attVrt);
 
 
 
