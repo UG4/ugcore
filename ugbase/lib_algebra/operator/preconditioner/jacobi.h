@@ -344,7 +344,10 @@ namespace ug {
 	template <typename TAlgebra>
 	struct json_default<Jacobi<TAlgebra>>{
 		static constexpr const char* value = R"(
-			{ "bBlock" : true }
+		{
+			"damp" : 0.66,
+ 			"bBlock" : true 
+ 		}
 		)";
 	};
 

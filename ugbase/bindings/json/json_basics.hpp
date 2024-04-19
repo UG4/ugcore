@@ -134,11 +134,12 @@ struct is_json_constructible<size_t> {
 	constexpr static const bool value = false;
 };
 
+/*
 template <>
 struct is_json_constructible<LuaFunctionHandle> {
 	constexpr static const bool value = false;
 };
-
+*/
 
 /*****************************************************************************
  * JSON assignment.
