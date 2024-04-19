@@ -560,8 +560,8 @@ function util.solver.CreateLinearSolver(solverDesc, solverutil)
 	util.solver.CondAbort(linSolver == nil, "Invalid linear solver specified: " .. name)
 	
 	if createPrecond == true then
-		linSolver:set_preconditioner(
-			util.solver.CreatePreconditioner(desc.precond or defaults.precond, solverutil))
+		local myprecond = util.solver.CreatePreconditioner(desc.precond or defaults.precond, solverutil)
+		linSolver:set_preconditioner(myprecond)
 	end
 
 	if createConvCheck == true then
