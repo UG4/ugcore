@@ -950,14 +950,98 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 	}
 
-	// TODO FIXME Test mit drei und vier kreuzenden Fractures machen!!! einfache Geometrien mit 3 und 4 kreuzenden fractures basteln
+
+	for( size_t fraInfInd = 0; fraInfInd < fracInfos.size(); fraInfInd++ )
+	{
+		int fracInd = fracInfos[fraInfInd].subsetIndex;
+
+		for(EdgeIterator iterEdg = sh.begin<Edge>(fracInd); iterEdg != sh.end<Edge>(fracInd); iterEdg++ )
+		{
+
+			// get subdomain of edge
+
+			auto sudoEdg = sh.get_subset_index(*iterEdg);
+
+			static_assert( std::is_same< decltype(sudoEdg), int >::value );
+
+			// get vertices of edge, always 2
+
+			std::vector<Vertex* > verticesEdg;
+
+			static_assert( std::is_same< Vertex*, decltype( (*iterEdg)->vertex(0) ) >::value );
+
+			for( size_t i = 0; i < 2; ++i )
+				verticesEdg.push_back( (*iterEdg)->vertex(i) );
+
+			// get attached faces
+
+			std::vector<Face* > assFace;
+
+			for(Grid::AssociatedFaceIterator iterAFI = grid.associated_faces_begin( verticesEdg[0] );
+				iterAFI != grid.associated_faces_end( verticesEdg[0] );
+				iterAFI++ )
+			{
+
+				if(FaceContains( *iterAFI, *iterEdg ))
+				{
+					assFace.push_back( *iterAFI );
+
+//					sh.assign_subset( *iterAFI, sh.get_subset_index(*iterEdg));
+				}
+
+			}
+
+			// compute normal of edge
+
+	//		vector3 edgeNormal;
+
+			std::vector< vector3 > edgeNormals;
+
+			for( auto fac : assFace )
+			{
+				vector3 facCenter = CalculateCenter( fac, aaPos );
+
+				vector3 perpendicu;
+
+				DropAPerpendicular(perpendicu, facCenter, aaPos[verticesEdg[0]], aaPos[verticesEdg[1]]);
+
+			//	vector from projection to center is the unnormalized normal
+				vector3 tmpN;
+
+				VecSubtract(tmpN, facCenter, perpendicu );
+
+				VecNormalize(tmpN, tmpN);
+
+				edgeNormals.push_back( tmpN );
+
+			}
+
+			UG_LOG("EDGE NORMALS: " << sh.get_subset_index(*iterEdg) << " -> ");
+
+			for( auto en: edgeNormals )
+			{
+
+				for( size_t i = 0; i < 3; i++ )
+					UG_LOG( en[i] << ", "  );
+
+				UG_LOG(" --- ");
+			}
+
+			UG_LOG(std::endl);
+
+
+
+
+		}
+	}
+
 
 	//	remove the temporary attachments
-		grid.detach_from_vertices(aAdjMarker);
-		grid.detach_from_edges(aAdjMarker);
+	grid.detach_from_vertices(aAdjMarker);
+	grid.detach_from_edges(aAdjMarker);
 
-		grid.detach_from_vertices(aAdjMarkerVFP);
-		grid.detach_from_edges(aAdjMarkerB);
+	grid.detach_from_vertices(aAdjMarkerVFP);
+	grid.detach_from_edges(aAdjMarkerB);
 
 
 	return true;
@@ -985,7 +1069,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 	grid.attach_to_faces(aVrtVec);
 	Grid::FaceAttachmentAccessor<AVrtVec> aaVrtVecFACE(grid, aVrtVec);
 
-//	a callback that returns true if the edge is a fracture edge
+//	a callback that returns true if the edge is a fracture edge, altes System
 	AttachmentUnequal<Edge, Grid::EdgeAttachmentAccessor<AInt> > isFracEdge(aaMarkEDGE, 0);
 
 	//	a callback that returns true if the edge is a fracture edge, neues System
@@ -1009,6 +1093,13 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 	// testen, ob ein Schnittvertex vor liegt, indem die Anzahl der touches getestet wird, anhand einfacher Geometrien testen, was die Anzahl ist
 
+	// die nächsten beiden Hauptloops müssen vermutlich zusammen gelegt werden
+	// da muss der Arte Algorithmus für die neuen Vertizes rein
+	// die Erzeugung der neuen Elemente muss danach erfolgen
+	// das kann auch knifflig werden
+	// aber für den Moment ist wichtig, die neuen Knoten richtig zu erzeugen
+	// TODO FIXME hier sind wir gerade
+
 //	iterate over all surrounding faces and create new vertices.
 	for(FaceIterator iter_sf = sel.faces_begin(); iter_sf != sel.faces_end(); ++iter_sf)
 	{
@@ -1031,6 +1122,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 				// NEU Test
 				vector3 n_v2 = CalculateCreaseNormal(grid, sf, vrt, isFracEdgeB, aaPos);
+				// das calculate crease normal scheint mir ein Schwachsinn zu sein
+				// aber vielleicht doch nicht?
 
 				UG_LOG("calculated crease normal: " << n << endl);
 				UG_LOG("calculated crease normal v2: " << n_v2 << endl);
@@ -1057,6 +1150,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 			}
 		}
 	}
+
+	// das folgende muss der eigentliche Käse sein
 
 //	assign the new positions
 	for(VertexIterator iter = sel.vertices_begin();
