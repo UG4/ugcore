@@ -949,29 +949,12 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 			UG_LOG("marked vertex: " << aaPos[*iter] << " is bnd " << isBnd << " number cross frac " << numCrosFrac << std::endl );
 
-			// TODO FIXME Problem jetzt, fuer Nicht Boundary Vertizes muessen wir durch 2 teilen, damit wir richtige Anzahl der
+			// fuer Nicht Boundary Vertizes muessen wir durch 2 teilen, damit wir richtige Anzahl der
 			// Fracs haben, die durch den spezifischen Vertex durch geht
 
 		}
 
 	}
-
-//	std::vector<double> minDist2Center(fracInfos.size(), std::numeric_limits<double>);
-// matrix, wo auch index drin ist der subdom
-
-//	MatrixTwoIndices<IndexType,double> mat_fracInd_minFacePep( fracInfos.size(), 100 );
-//	MatrixTwoIndices<IndexType,double> mat_fracInd_minFacePep( fracInfos.size(), std::numeric_limits<double>::max() );
-	//MatrixTwoIndices mat_fracInd_minFacePep( fracInfos.size(), std::numeric_limits<double> );
-
-//	MatrixTwoIndices<IndexType,double> mat_fracInd_minFacePep( 30, 20, std::numeric_limits<double>::max() );
-//
-//	class bla{
-//
-//	};
-//
-//	bla blubb;
-//
-//	MatrixTwoIndices<IndexType, bla> mat_by( 30, 20, blubb );
 
 	using pairIndDbl = std::pair<IndexType,double>;
 
@@ -1033,8 +1016,6 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 			// compute normal of edge
 
-	//		vector3 edgeNormal;
-
 			std::vector< vector3 > edgeNormals;
 
 			std::vector<double> perpendDistances;
@@ -1051,14 +1032,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 				perpendDistances.push_back( perpendDist );
 
-//				auto oldMinVal = fsfpmv.second;
-
-//				static_assert( std::is_same< declval( minVal ), double >::value );
-
 				minDistPerpThisFrac( perpendDist );
 
-//				if( oldMinVal > perpendDist  )
-//					fsfpmv.second = perpendDist;
 
 			//	vector from projection to center is the unnormalized normal
 				vector3 tmpN;

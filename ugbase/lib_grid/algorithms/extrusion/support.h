@@ -136,6 +136,24 @@ private:
 
  };
 
+//	std::vector<double> minDist2Center(fracInfos.size(), std::numeric_limits<double>);
+// matrix, wo auch index drin ist der subdom
+
+//	MatrixTwoIndices<IndexType,double> mat_fracInd_minFacePep( fracInfos.size(), 100 );
+//	MatrixTwoIndices<IndexType,double> mat_fracInd_minFacePep( fracInfos.size(), std::numeric_limits<double>::max() );
+	//MatrixTwoIndices mat_fracInd_minFacePep( fracInfos.size(), std::numeric_limits<double> );
+
+//	MatrixTwoIndices<IndexType,double> mat_fracInd_minFacePep( 30, 20, std::numeric_limits<double>::max() );
+//
+//	class bla{
+//
+//	};
+//
+//	bla blubb;
+//
+//	MatrixTwoIndices<IndexType, bla> mat_by( 30, 20, blubb );
+
+
 /////////////////////////////////////////////////////////////////////////////
 
 
