@@ -960,7 +960,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 	std::vector< pairIndDbl > fracSubdom_facePerpendMinVal;
 
-	for( auto pf: fracInfos )
+	for( auto const & pf: fracInfos )
 	{
 		fracSubdom_facePerpendMinVal.push_back( pairIndDbl( pf.subsetIndex, std::numeric_limits<double>::max() ) );
 	}
@@ -1020,7 +1020,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 			std::vector<double> perpendDistances;
 
-			for( auto fac : assFace )
+			for( auto const & fac : assFace )
 			{
 				vector3 facCenter = CalculateCenter( fac, aaPos );
 
@@ -1050,7 +1050,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 			int j = 0;
 
-			for( auto en: edgeNormals )
+			for( auto const & en: edgeNormals )
 			{
 
 				for( size_t i = 0; i < 3; i++ )
@@ -1073,12 +1073,20 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 		UG_LOG("first " << fsfpmv.first << " second " << fsfpmv.second << std::endl);
 	}
 
-	for( auto fsfpmv : fracSubdom_facePerpendMinVal )
+	for( auto const & fsfpmv : fracSubdom_facePerpendMinVal )
 	{
 		UG_LOG("min dist sd " << fsfpmv.first << " -> " << fsfpmv.second << std::endl  );
 	}
 
 	UG_LOG("overall min dist " << minDistPerpOverall() << std::endl);
+
+	// TODO FIXME nächstes Ziel:
+	// Mittelwert der Normalen an den Kanten der Klüfte bilden
+	// neue Vertizes in der Entfernung der Klüfte von den Klüften weg erzeugen,
+	// basierend auf den Normalen multipliziert mit der halben Kluftdicke
+	//für eine Kluft erstmal nur
+	// die neuen Kanten und Faces erzeugen, die alten falschen Kanten löschen und ebenso die alten Faces
+	// später auf mehr Klüfte ausdehnen, mit Problemstelle Kreuzung, aber erst, wenn eine Kluft funktioniert
 
 	//	remove the temporary attachments
 	grid.detach_from_vertices(aAdjMarker);

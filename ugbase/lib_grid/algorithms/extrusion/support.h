@@ -167,7 +167,7 @@ public:
   T_min( T val ) : minval( val ) {}; 
 
   // tells the minimal value
-  const T operator()() const  { return minval; };
+  T const operator()() const  { return minval; };
  
   // wants to know values, saves the minimum
   void operator()(T val) 
