@@ -42,6 +42,12 @@
 #include <utility>
 #include <vector>
 #include <type_traits>
+#include <limits>
+#include <atomic>
+#include <cstddef>
+#include <bitset>
+
+#include "support.h"
 
 using namespace std;
 
@@ -714,78 +720,78 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 
 /////////////////////////////////////////////////////////////////////////
 
-template< typename T >
-class VertexFractureProperties
-{
-public:
-
-	VertexFractureProperties( bool isBndFracVertex,  T numberCrossingFracsInVertex )
-	: m_isBndFracVertex(isBndFracVertex), m_numberCountedFracsInVertex(numberCrossingFracsInVertex)
-	{
-	};
-
-
-	VertexFractureProperties()
-	: VertexFractureProperties( false, 0 )
-	{
-	};
-
-	void setIsBndFracVertex( bool iBDV = true )
-	{
-		m_isBndFracVertex = iBDV;
-	}
-
-	void setNumberCrossingFracsInVertex( T const & nCFIV )
-	{
-		m_numberCountedFracsInVertex = nCFIV;
-	}
-
-	bool getIsBndFracVertex()
-	{
-		return m_isBndFracVertex;
-	}
-
-	T getCountedNumberFracsInVertex()
-	{
-		return m_numberCountedFracsInVertex;
-	}
-
-
-	T getNumberCrossingFracsInVertex()
-	{
-
-		if( m_isBndFracVertex )
-			return m_numberCountedFracsInVertex;
-
-		// for inner vertices, each edge passed when
-		// fractures are counted along their edges
-		// that the vertizes get hit twice for each fracture run
-		// only for boundary vertices, this happens only once per fracture
-		T multipeInnerHits = 2;
-
-		T rest = m_numberCountedFracsInVertex % multipeInnerHits;
-
-		if( rest != 0 )
-		{
-			UG_THROW("Expand layers: rest division frac counting not zero " << m_numberCountedFracsInVertex << std::endl);
-
-			return 0;
-		}
-
-		return m_numberCountedFracsInVertex / multipeInnerHits;
-	}
-
-	VertexFractureProperties & operator++( int a )
-	{
-		m_numberCountedFracsInVertex++;
-		return *this;
-	}
-
-
-private:
-	bool m_isBndFracVertex;
-	T m_numberCountedFracsInVertex;
-};
+//template< typename T >
+//class VertexFractureProperties
+//{
+//public:
+//
+//	VertexFractureProperties( bool isBndFracVertex,  T numberCrossingFracsInVertex )
+//	: m_isBndFracVertex(isBndFracVertex), m_numberCountedFracsInVertex(numberCrossingFracsInVertex)
+//	{
+//	};
+//
+//
+//	VertexFractureProperties()
+//	: VertexFractureProperties( false, 0 )
+//	{
+//	};
+//
+//	void setIsBndFracVertex( bool iBDV = true )
+//	{
+//		m_isBndFracVertex = iBDV;
+//	}
+//
+//	void setNumberCrossingFracsInVertex( T const & nCFIV )
+//	{
+//		m_numberCountedFracsInVertex = nCFIV;
+//	}
+//
+//	bool getIsBndFracVertex()
+//	{
+//		return m_isBndFracVertex;
+//	}
+//
+//	T getCountedNumberFracsInVertex()
+//	{
+//		return m_numberCountedFracsInVertex;
+//	}
+//
+//
+//	T getNumberCrossingFracsInVertex()
+//	{
+//
+//		if( m_isBndFracVertex )
+//			return m_numberCountedFracsInVertex;
+//
+//		// for inner vertices, each edge passed when
+//		// fractures are counted along their edges
+//		// that the vertizes get hit twice for each fracture run
+//		// only for boundary vertices, this happens only once per fracture
+//		T multipeInnerHits = 2;
+//
+//		T rest = m_numberCountedFracsInVertex % multipeInnerHits;
+//
+//		if( rest != 0 )
+//		{
+//			UG_THROW("Expand layers: rest division frac counting not zero " << m_numberCountedFracsInVertex << std::endl);
+//
+//			return 0;
+//		}
+//
+//		return m_numberCountedFracsInVertex / multipeInnerHits;
+//	}
+//
+//	VertexFractureProperties & operator++( int a )
+//	{
+//		m_numberCountedFracsInVertex++;
+//		return *this;
+//	}
+//
+//
+//private:
+//	bool m_isBndFracVertex;
+//	T m_numberCountedFracsInVertex;
+//};
 
 
 
@@ -950,10 +956,44 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 	}
 
+//	std::vector<double> minDist2Center(fracInfos.size(), std::numeric_limits<double>);
+// matrix, wo auch index drin ist der subdom
 
-	for( size_t fraInfInd = 0; fraInfInd < fracInfos.size(); fraInfInd++ )
+//	MatrixTwoIndices<IndexType,double> mat_fracInd_minFacePep( fracInfos.size(), 100 );
+//	MatrixTwoIndices<IndexType,double> mat_fracInd_minFacePep( fracInfos.size(), std::numeric_limits<double>::max() );
+	//MatrixTwoIndices mat_fracInd_minFacePep( fracInfos.size(), std::numeric_limits<double> );
+
+//	MatrixTwoIndices<IndexType,double> mat_fracInd_minFacePep( 30, 20, std::numeric_limits<double>::max() );
+//
+//	class bla{
+//
+//	};
+//
+//	bla blubb;
+//
+//	MatrixTwoIndices<IndexType, bla> mat_by( 30, 20, blubb );
+
+	using pairIndDbl = std::pair<IndexType,double>;
+
+	std::vector< pairIndDbl > fracSubdom_facePerpendMinVal;
+
+	for( auto pf: fracInfos )
 	{
-		int fracInd = fracInfos[fraInfInd].subsetIndex;
+		fracSubdom_facePerpendMinVal.push_back( pairIndDbl( pf.subsetIndex, std::numeric_limits<double>::max() ) );
+	}
+
+	T_min<double> minDistPerpOverall( std::numeric_limits<double>::max() );
+
+//	for( auto fI : fracInfos )
+//	for( size_t fraInfInd = 0; fraInfInd < fracInfos.size(); fraInfInd++ )
+	for( auto & fsfpmv : fracSubdom_facePerpendMinVal )
+	{
+//		int fracInd = fracInfos[fraInfInd].subsetIndex;
+//		int fracInd = fI.subsetIndex;
+
+		auto fracInd = fsfpmv.first;
+
+		T_min<double> minDistPerpThisFrac( fsfpmv.second );
 
 		for(EdgeIterator iterEdg = sh.begin<Edge>(fracInd); iterEdg != sh.end<Edge>(fracInd); iterEdg++ )
 		{
@@ -997,6 +1037,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 			std::vector< vector3 > edgeNormals;
 
+			std::vector<double> perpendDistances;
+
 			for( auto fac : assFace )
 			{
 				vector3 facCenter = CalculateCenter( fac, aaPos );
@@ -1004,6 +1046,19 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 				vector3 perpendicu;
 
 				DropAPerpendicular(perpendicu, facCenter, aaPos[verticesEdg[0]], aaPos[verticesEdg[1]]);
+
+				double perpendDist = VecLength( perpendicu ); // betrag perpendicu
+
+				perpendDistances.push_back( perpendDist );
+
+//				auto oldMinVal = fsfpmv.second;
+
+//				static_assert( std::is_same< declval( minVal ), double >::value );
+
+				minDistPerpThisFrac( perpendDist );
+
+//				if( oldMinVal > perpendDist  )
+//					fsfpmv.second = perpendDist;
 
 			//	vector from projection to center is the unnormalized normal
 				vector3 tmpN;
@@ -1018,13 +1073,18 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 			UG_LOG("EDGE NORMALS: " << sh.get_subset_index(*iterEdg) << " -> ");
 
+			int j = 0;
+
 			for( auto en: edgeNormals )
 			{
 
 				for( size_t i = 0; i < 3; i++ )
 					UG_LOG( en[i] << ", "  );
 
-				UG_LOG(" --- ");
+
+				UG_LOG(" --- " << perpendDistances[j] << " ///////// " );
+
+				j++;
 			}
 
 			UG_LOG(std::endl);
@@ -1033,8 +1093,20 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 
 		}
+
+		fsfpmv.second = minDistPerpThisFrac();
+
+		minDistPerpOverall( fsfpmv.second );
+
+		UG_LOG("first " << fsfpmv.first << " second " << fsfpmv.second << std::endl);
 	}
 
+	for( auto fsfpmv : fracSubdom_facePerpendMinVal )
+	{
+		UG_LOG("min dist sd " << fsfpmv.first << " -> " << fsfpmv.second << std::endl  );
+	}
+
+	UG_LOG("overall min dist " << minDistPerpOverall() << std::endl);
 
 	//	remove the temporary attachments
 	grid.detach_from_vertices(aAdjMarker);
