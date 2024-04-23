@@ -1064,9 +1064,6 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 			UG_LOG(std::endl);
 
-
-
-
 		}
 
 		fsfpmv.second = minDistPerpThisFrac();
