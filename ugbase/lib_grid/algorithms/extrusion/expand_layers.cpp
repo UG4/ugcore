@@ -1016,6 +1016,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 			// compute normal of edge
 
+			// TODO FIXME die edge normals müssen irgendwie gespeichert werden für die subdoms und die Ecken
+
 			std::vector< vector3 > edgeNormals;
 
 			std::vector<double> perpendDistances;
@@ -1045,6 +1047,15 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 				edgeNormals.push_back( tmpN );
 
 			}
+
+			// damit speichern wir die plus und minus Normale, und das ist alles, und auch
+			// gleich wieder weg
+			// TODO FIXME besser, wir speichern die gemittelte Normale an den Vertizes
+			// vielleihct als attachment pair, das die subdom kennt der frac und die Normale dazu?
+			// ziemlich nutzlos, die Normale wie hier gemacht in einen kurzen Vektor zu speichern, der schnell
+			// wieder weg ist......
+			// wir brauchen alle Normalen zu jeder fracture an jedem fracture Vertex, also die Mittelung vermutlich
+
 
 			UG_LOG("EDGE NORMALS: " << sh.get_subset_index(*iterEdg) << " -> ");
 
@@ -1080,13 +1091,26 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 	UG_LOG("overall min dist " << minDistPerpOverall() << std::endl);
 
-	// TODO FIXME nächstes Ziel:
-	// Mittelwert der Normalen an den Kanten der Klüfte bilden
-	// neue Vertizes in der Entfernung der Klüfte von den Klüften weg erzeugen,
-	// basierend auf den Normalen multipliziert mit der halben Kluftdicke
-	//für eine Kluft erstmal nur
-	// die neuen Kanten und Faces erzeugen, die alten falschen Kanten löschen und ebenso die alten Faces
-	// später auf mehr Klüfte ausdehnen, mit Problemstelle Kreuzung, aber erst, wenn eine Kluft funktioniert
+
+
+	for( auto & fI : fracInfos )
+	{
+		int fracInd = fI.subsetIndex;
+
+		// TODO FIXME nächstes Ziel:
+		// Mittelwert der Normalen an den Kanten der Klüfte bilden
+		// neue Vertizes in der Entfernung der Klüfte von den Klüften weg erzeugen,
+		// basierend auf den Normalen multipliziert mit der halben Kluftdicke
+		//für eine Kluft erstmal nur
+		// die neuen Kanten und Faces erzeugen, die alten falschen Kanten löschen und ebenso die alten Faces
+		// später auf mehr Klüfte ausdehnen, mit Problemstelle Kreuzung, aber erst, wenn eine Kluft funktioniert
+
+
+		// TODO FIXME die edge normals oben müssen irgendwie gespeichert werden für die subdoms und die Ecken
+		// oder wir arbeiten im obigen Loop und verwenden sie dort drin
+		// noch zu klären
+
+	}
 
 	//	remove the temporary attachments
 	grid.detach_from_vertices(aAdjMarker);
