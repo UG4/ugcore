@@ -860,6 +860,46 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 	grid.attach_to_edges_dv(aAdjMarkerB, false);
 	Grid::EdgeAttachmentAccessor<ABool> aaMarkEdgeB(grid, aAdjMarkerB);
 
+	// die Vertizes, Faces und Edges, die mit einer Kluft zu tun haben
+
+	AFace aAdjMarkerFac;
+	AEdge aAdjMarkerEdg;
+	AVertex aAdjMarkerVrt;
+
+	grid.attach_to_vertices_dv( aAdjMarkerFac, NULL );
+	Grid::VertexAttachmentAccessor<AFace> aaFaceAtt2Vrt( grid, aAdjMarkerFac );
+
+	grid.attach_to_edges_dv( aAdjMarkerFac, NULL);
+	Grid::EdgeAttachmentAccessor<AFace> aaEdgeAtt2Face( grid, aAdjMarkerFac );
+
+	grid.attach_to_faces_dv( aAdjMarkerEdg, NULL);
+	Grid::FaceAttachmentAccessor<AEdge> aaFaceAtt2Edge( grid, aAdjMarkerEdg );
+
+	grid.attach_to_vertices_dv( aAdjMarkerEdg, NULL);
+	Grid::VertexAttachmentAccessor<AEdge> aaEdgeAtt2Vrt( grid, aAdjMarkerEdg );
+
+	grid.attach_to_faces_dv( aAdjMarkerVrt, NULL);
+	Grid::FaceAttachmentAccessor<AVertex> aaVrtAtt2Face( grid, aAdjMarkerVrt );
+
+	grid.attach_to_edges_dv( aAdjMarkerVrt, NULL );
+	Grid::EdgeAttachmentAccessor<AVertex> aaVrtAtt2Edge( grid, aAdjMarkerVrt);
+
+	// TODO FIXME diese komischen accessoren sollen jetzt so zugewiesen
+	// werden, dass
+	/*
+	 * jeder Kluftvertex soll wissen, welche Kluftedges ihm anliegen, und welche faces
+	 * jede Kluftedge soll wissen, welche Vertizes ihr anliegen, und welche faces
+	 * jedes Face, das an eine Kluft anliegt, soll wissen, welche Vertizes und Edges
+	 * ihm anliegen
+	 * letzteres muss man vielleicht noch ausdehnen, indem man subdomain indizes
+	 * dazu bringt
+	 * das kann auch notwendig sein fuer alle anderen - wirklich?
+	 * die edges und faces kennen ihre subdomain
+	 * nur beim Vertex kann in Kreuzungspunkten ein Problem sein
+	 * zudem ist die subdomain der faces EGAL, im Zweifel entscheidet die subdomain
+	 * der edges, die anliegen bzw der edge, die anliegt!
+	 *
+	 */
 
 //	iterate over the given fracture infos and select all fracture edges
 //	and fracture vertices.
@@ -1093,12 +1133,18 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 
 
+	// wieso gehen wir hier wieder über die frac infos, wo wir schon das pair
+	// haben, wo die subdoms drin stehen, und der minimale Abstand?
 	for( auto & fI : fracInfos )
 	{
 		int fracInd = fI.subsetIndex;
 
 		// TODO FIXME nächstes Ziel:
 		// Mittelwert der Normalen an den Kanten der Klüfte bilden
+		// ups, die sind ja schon wieder weg, da nur im obigen Loop gespeichert
+		// was machen wir da?
+		// vielleicht attachments an die faces, die die edges wissen und die
+		// Vertizes, an denen was passiert?
 		// neue Vertizes in der Entfernung der Klüfte von den Klüften weg erzeugen,
 		// basierend auf den Normalen multipliziert mit der halben Kluftdicke
 		//für eine Kluft erstmal nur
