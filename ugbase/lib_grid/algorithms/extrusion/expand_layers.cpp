@@ -862,27 +862,31 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 	// die Vertizes, Faces und Edges, die mit einer Kluft zu tun haben
 
-	AFace aAdjMarkerFac;
-	AEdge aAdjMarkerEdg;
-	AVertex aAdjMarkerVrt;
+	using AFaceVec = Attachment<std::vector<Face* > >;
+	using AEdgeVec = Attachment<std::vector<Edge* > >;
+	using AVertexVec = Attachment<std::vector<Vertex* > >;
 
-	grid.attach_to_vertices_dv( aAdjMarkerFac, NULL );
-	Grid::VertexAttachmentAccessor<AFace> aaFaceAtt2Vrt( grid, aAdjMarkerFac );
+	AFaceVec aAdjMarkerFacV;
+	AEdgeVec aAdjMarkerEdgV;
+	AVertexVec aAdjMarkerVrtV;
 
-	grid.attach_to_edges_dv( aAdjMarkerFac, NULL);
-	Grid::EdgeAttachmentAccessor<AFace> aaEdgeAtt2Face( grid, aAdjMarkerFac );
+	grid.attach_to_vertices_dv( aAdjMarkerFacV, std::vector<Face* >() );
+	Grid::VertexAttachmentAccessor<AFaceVec> aaFaceVAtt2Vrt( grid, aAdjMarkerFacV );
 
-	grid.attach_to_faces_dv( aAdjMarkerEdg, NULL);
-	Grid::FaceAttachmentAccessor<AEdge> aaFaceAtt2Edge( grid, aAdjMarkerEdg );
+	grid.attach_to_edges_dv( aAdjMarkerFacV, std::vector<Face* >() );
+	Grid::EdgeAttachmentAccessor<AFaceVec> aaFaceVAtt2Edge( grid, aAdjMarkerFacV );
 
-	grid.attach_to_vertices_dv( aAdjMarkerEdg, NULL);
-	Grid::VertexAttachmentAccessor<AEdge> aaEdgeAtt2Vrt( grid, aAdjMarkerEdg );
+	grid.attach_to_faces_dv( aAdjMarkerEdgV, std::vector<Edge* >() );
+	Grid::FaceAttachmentAccessor<AEdgeVec> aaEdgeVAtt2Face( grid, aAdjMarkerEdgV );
 
-	grid.attach_to_faces_dv( aAdjMarkerVrt, NULL);
-	Grid::FaceAttachmentAccessor<AVertex> aaVrtAtt2Face( grid, aAdjMarkerVrt );
+	grid.attach_to_vertices_dv( aAdjMarkerEdgV, std::vector<Edge* >() );
+	Grid::VertexAttachmentAccessor<AEdgeVec> aaEdgeVAtt2Vrt( grid, aAdjMarkerEdgV );
 
-	grid.attach_to_edges_dv( aAdjMarkerVrt, NULL );
-	Grid::EdgeAttachmentAccessor<AVertex> aaVrtAtt2Edge( grid, aAdjMarkerVrt);
+	grid.attach_to_faces_dv( aAdjMarkerVrtV, std::vector<Vertex* >() );
+	Grid::FaceAttachmentAccessor<AVertexVec> aaVrtVAtt2Face( grid, aAdjMarkerVrtV );
+
+	grid.attach_to_edges_dv( aAdjMarkerVrtV, std::vector<Vertex* >() );
+	Grid::EdgeAttachmentAccessor<AVertexVec> aaVrtVAtt2Edge( grid, aAdjMarkerVrtV );
 
 	// TODO FIXME diese komischen accessoren sollen jetzt so zugewiesen
 	// werden, dass
