@@ -862,6 +862,20 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 	// die Vertizes, Faces und Edges, die mit einer Kluft zu tun haben
 
+//	using VertTripFEG3 = typename VertexTripleFacEdgNorm<FACE *, EDGE *, vector3 >;
+	using VertFracTrip = VertexFractureTriple<Edge*, Face*, vector3>;
+
+//	using VecVertTripFEG3 = std::vector<VertTripFEG3>;
+//
+//	VecVertTripFEG3 vertexNoInfo = std::vector<VertTripFEG3>();
+//
+//	using AttVecVertTripFEG3 = Attachment<std::vector<VertTripFEG3> >;
+//
+//	AttVecVertTripFEG3 aAdjMarkerAVVTFEG3;
+//
+//	grid.attach_to_vertices_dv(aAdjMarkerAVVTFEG3, vertexNoInfo );
+//	Grid::VertexAttachmentAccessor<AttVecVertTripFEG3> aaVVTFEG2Vrt;
+
 	using AFaceVec = Attachment<std::vector<Face* > >;
 	using AEdgeVec = Attachment<std::vector<Edge* > >;
 	using AVertexVec = Attachment<std::vector<Vertex* > >;
@@ -869,6 +883,9 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 	AFaceVec aAdjMarkerFacV;
 	AEdgeVec aAdjMarkerEdgV;
 	AVertexVec aAdjMarkerVrtV;
+
+	// Achtung: nur Faces, die an Kluefte angrenzen, sollen INfos bekommen
+	// die anderen bleiben einfach "leer"
 
 	grid.attach_to_vertices_dv( aAdjMarkerFacV, std::vector<Face* >() );
 	Grid::VertexAttachmentAccessor<AFaceVec> aaFaceVAtt2Vrt( grid, aAdjMarkerFacV );
@@ -887,6 +904,15 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 	grid.attach_to_edges_dv( aAdjMarkerVrtV, std::vector<Vertex* >() );
 	Grid::EdgeAttachmentAccessor<AVertexVec> aaVrtVAtt2Edge( grid, aAdjMarkerVrtV );
+
+	// das ist Käse, ich brauche für jeden Vertex ein Attachment der Form
+	// class VertexTriple, bzw std vektoren von solchen vertex triplen
+	// da weiss dann jeder Vertex das triple
+	// Kante (damit subdom) - Face - normal (von Kante in Face rein)
+	// dann kann man nämlich anhand des Winkels von zwei Normalen
+	// von solchen Vertizes bestimmtn, ob sie auf die gleiche Seite der Kante zeigen
+	// und dann kann man sie mitteln, sofern die Vertizes keine Kreuzungs Vertizes sind
+	// oder keine äusseren Vertizes - ob sie dsa sind, dafür haben wir schon attachments!
 
 	// TODO FIXME diese komischen accessoren sollen jetzt so zugewiesen
 	// werden, dass
@@ -976,6 +1002,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 		// so stimmt es vielleicht, aber ist auch ein komischer Fall, innen expandieren und aussen nicht...... die Frage ist, ob es oonst Sinn macht.....
 		if( expandInnerFracBnds && !expandOuterFracBnds && aaMarkVrtVFP[*iter].getIsBndFracVertex() )
 			wahl = false;
+
+		static_assert( std::is_same< decltype(*iter), Vertex * >::value );
 
 		if( wahl )
 		{
