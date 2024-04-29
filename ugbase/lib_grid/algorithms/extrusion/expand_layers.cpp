@@ -862,48 +862,47 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 	// die Vertizes, Faces und Edges, die mit einer Kluft zu tun haben
 
-//	using VertTripFEG3 = typename VertexTripleFacEdgNorm<FACE *, EDGE *, vector3 >;
 	using VertFracTrip = VertexFractureTriple<Edge*, Face*, vector3>;
 
-//	using VecVertTripFEG3 = std::vector<VertTripFEG3>;
+	using VecVertFracTrip = std::vector<VertFracTrip>;
+
+	VecVertFracTrip vertexNoInfo;
+
+	using AttVecVertFracTrip = Attachment<VecVertFracTrip>;
+
+	AttVecVertFracTrip aAdjMarkerAVVFT;
+
+	grid.attach_to_vertices_dv( aAdjMarkerAVVFT, vertexNoInfo );
+	Grid::VertexAttachmentAccessor<AttVecVertFracTrip> aaVrtFraTri;
+
+//	using AFaceVec = Attachment<std::vector<Face* > >;
+//	using AEdgeVec = Attachment<std::vector<Edge* > >;
+//	using AVertexVec = Attachment<std::vector<Vertex* > >;
 //
-//	VecVertTripFEG3 vertexNoInfo = std::vector<VertTripFEG3>();
+//	AFaceVec aAdjMarkerFacV;
+//	AEdgeVec aAdjMarkerEdgV;
+//	AVertexVec aAdjMarkerVrtV;
 //
-//	using AttVecVertTripFEG3 = Attachment<std::vector<VertTripFEG3> >;
+//	// Achtung: nur Faces, die an Kluefte angrenzen, sollen INfos bekommen
+//	// die anderen bleiben einfach "leer"
 //
-//	AttVecVertTripFEG3 aAdjMarkerAVVTFEG3;
+//	grid.attach_to_vertices_dv( aAdjMarkerFacV, std::vector<Face* >() );
+//	Grid::VertexAttachmentAccessor<AFaceVec> aaFaceVAtt2Vrt( grid, aAdjMarkerFacV );
 //
-//	grid.attach_to_vertices_dv(aAdjMarkerAVVTFEG3, vertexNoInfo );
-//	Grid::VertexAttachmentAccessor<AttVecVertTripFEG3> aaVVTFEG2Vrt;
-
-	using AFaceVec = Attachment<std::vector<Face* > >;
-	using AEdgeVec = Attachment<std::vector<Edge* > >;
-	using AVertexVec = Attachment<std::vector<Vertex* > >;
-
-	AFaceVec aAdjMarkerFacV;
-	AEdgeVec aAdjMarkerEdgV;
-	AVertexVec aAdjMarkerVrtV;
-
-	// Achtung: nur Faces, die an Kluefte angrenzen, sollen INfos bekommen
-	// die anderen bleiben einfach "leer"
-
-	grid.attach_to_vertices_dv( aAdjMarkerFacV, std::vector<Face* >() );
-	Grid::VertexAttachmentAccessor<AFaceVec> aaFaceVAtt2Vrt( grid, aAdjMarkerFacV );
-
-	grid.attach_to_edges_dv( aAdjMarkerFacV, std::vector<Face* >() );
-	Grid::EdgeAttachmentAccessor<AFaceVec> aaFaceVAtt2Edge( grid, aAdjMarkerFacV );
-
-	grid.attach_to_faces_dv( aAdjMarkerEdgV, std::vector<Edge* >() );
-	Grid::FaceAttachmentAccessor<AEdgeVec> aaEdgeVAtt2Face( grid, aAdjMarkerEdgV );
-
-	grid.attach_to_vertices_dv( aAdjMarkerEdgV, std::vector<Edge* >() );
-	Grid::VertexAttachmentAccessor<AEdgeVec> aaEdgeVAtt2Vrt( grid, aAdjMarkerEdgV );
-
-	grid.attach_to_faces_dv( aAdjMarkerVrtV, std::vector<Vertex* >() );
-	Grid::FaceAttachmentAccessor<AVertexVec> aaVrtVAtt2Face( grid, aAdjMarkerVrtV );
-
-	grid.attach_to_edges_dv( aAdjMarkerVrtV, std::vector<Vertex* >() );
-	Grid::EdgeAttachmentAccessor<AVertexVec> aaVrtVAtt2Edge( grid, aAdjMarkerVrtV );
+//	grid.attach_to_edges_dv( aAdjMarkerFacV, std::vector<Face* >() );
+//	Grid::EdgeAttachmentAccessor<AFaceVec> aaFaceVAtt2Edge( grid, aAdjMarkerFacV );
+//
+//	grid.attach_to_faces_dv( aAdjMarkerEdgV, std::vector<Edge* >() );
+//	Grid::FaceAttachmentAccessor<AEdgeVec> aaEdgeVAtt2Face( grid, aAdjMarkerEdgV );
+//
+//	grid.attach_to_vertices_dv( aAdjMarkerEdgV, std::vector<Edge* >() );
+//	Grid::VertexAttachmentAccessor<AEdgeVec> aaEdgeVAtt2Vrt( grid, aAdjMarkerEdgV );
+//
+//	grid.attach_to_faces_dv( aAdjMarkerVrtV, std::vector<Vertex* >() );
+//	Grid::FaceAttachmentAccessor<AVertexVec> aaVrtVAtt2Face( grid, aAdjMarkerVrtV );
+//
+//	grid.attach_to_edges_dv( aAdjMarkerVrtV, std::vector<Vertex* >() );
+//	Grid::EdgeAttachmentAccessor<AVertexVec> aaVrtVAtt2Edge( grid, aAdjMarkerVrtV );
 
 	// das ist Käse, ich brauche für jeden Vertex ein Attachment der Form
 	// class VertexTriple, bzw std vektoren von solchen vertex triplen
