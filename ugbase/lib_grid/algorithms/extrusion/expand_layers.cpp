@@ -932,10 +932,11 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 //	iterate over the given fracture infos and select all fracture edges
 //	and fracture vertices.
-	for(size_t i_fi = 0; i_fi < fracInfos.size(); ++i_fi){
+	for(size_t i_fi = 0; i_fi < fracInfos.size(); ++i_fi)
+	{
 		int fracInd = fracInfos[i_fi].subsetIndex;
-		for(EdgeIterator iter = sh.begin<Edge>(fracInd);
-			iter != sh.end<Edge>(fracInd); ++iter)
+
+		for(EdgeIterator iter = sh.begin<Edge>(fracInd); iter != sh.end<Edge>(fracInd); ++iter)
 		{
 		//	mark edge and vertices
 			sel.select(*iter);
@@ -1004,6 +1005,9 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 		static_assert( std::is_same< decltype(*iter), Vertex * >::value );
 
+		bool isBnd = aaMarkVrtVFP[ *iter ].getIsBndFracVertex();
+		auto numCrosFrac = aaMarkVrtVFP[ *iter ].getNumberCrossingFracsInVertex();
+
 		if( wahl )
 		{
 			sel.select(grid.associated_edges_begin(*iter),
@@ -1015,14 +1019,16 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 			// mit UG_LOG ausgeben, was die Koordinaten sind, und die Anzahl der hits
 
-			bool isBnd = aaMarkVrtVFP[ *iter ].getIsBndFracVertex();
-			auto numCrosFrac = aaMarkVrtVFP[ *iter ].getNumberCrossingFracsInVertex();
 
-			UG_LOG("marked vertex: " << aaPos[*iter] << " is bnd " << isBnd << " number cross frac " << numCrosFrac << std::endl );
+			UG_LOG("marked vertex wahl: " << aaPos[*iter] << " is bnd " << isBnd << " number cross frac " << numCrosFrac << std::endl );
 
 			// fuer Nicht Boundary Vertizes muessen wir durch 2 teilen, damit wir richtige Anzahl der
 			// Fracs haben, die durch den spezifischen Vertex durch geht
 
+		}
+		else
+		{
+			UG_LOG("marked vertex unwahl: " << aaPos[*iter] << " is bnd " << isBnd << " number cross frac " << numCrosFrac << std::endl );
 		}
 
 	}
@@ -1117,6 +1123,24 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 				edgeNormals.push_back( tmpN );
 
+				static_assert( std::is_same< Edge*, decltype(*iterEdg) >::value );
+
+				static_assert( std::is_same< Face * const &, decltype(fac) >::value );
+				static_assert( std::is_same< Face *, decltype( const_cast<Face*>(fac) ) >::value );
+
+				VertFracTrip infoVertizesThisEdge( *iterEdg, const_cast<Face*>(fac), tmpN );
+
+				for( auto const & v : verticesEdg )
+				{
+					static_assert( std::is_same< decltype(v), Vertex * const & >::value );
+					static_assert( std::is_same< decltype(const_cast<Vertex*>(v)), Vertex *  >::value );
+					aaVrtFraTri[v].push_back( infoVertizesThisEdge );
+
+					static_assert( std::is_same< decltype( aaVrtFraTri[v][ aaVrtFraTri[v].size() - 1 ].getFace() ), Face* >::value );
+					static_assert( std::is_same< decltype( aaVrtFraTri[v][ aaVrtFraTri[v].size() - 1 ].getEdge() ), Edge* >::value );
+					static_assert( std::is_same< decltype( aaVrtFraTri[v][ aaVrtFraTri[v].size() - 1 ].getNormal() ), vector3 const >::value );
+				}
+
 			}
 
 			// damit speichern wir die plus und minus Normale, und das ist alles, und auch
@@ -1162,32 +1186,49 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 	UG_LOG("overall min dist " << minDistPerpOverall() << std::endl);
 
+	// am Ende dieser Prozedur sollten alle Vertizes wissen, welche Tripel vom Typ Edge - Face - Normal zum Face hin an ihnen angelagert sind
+
+	// damit weiss, wenn es stimmt, jeder Vertex, der an einer Fracture ist, wieviele Schnittpunkte von Fractures er hat,
+	// ob er ein boundary vertex ist, und was für einen Vektor von Tripeln an ihm angehängt sind
+	// die subdomain der Fracture muss anhand der subdomain der edge bestimmt werden immer
 
 
-	// wieso gehen wir hier wieder über die frac infos, wo wir schon das pair
-	// haben, wo die subdoms drin stehen, und der minimale Abstand?
-	for( auto & fI : fracInfos )
+	// jetzt können wir alle Vertizes ablaufen und an ihnen neue Vertizes erzeugen, die anhand der gemittelten Normalen von den Vertizes weg gehen
+	// ob zwei anhängende Faces auf der gleichen Seite liegen, wenn es kein Schnittvertex von zwei oder mehr Klüften ist
+	// das kann man anhand des Winkels zwischen zwei face Normalen unterscheiden vermutlich
+	// dabei müssen die edges sowieso disjunkt sein, sonst ist man sowieso sicher auf verschiedenen Seiten
+	// wenn wir es mit einem boundary Vertex zu tun haben, müssen wir weiter überlegen, wie wir die Verschiebung auf die äussere Kante projizieren
+	// muss auch mit dem Winkel zu tun haben
+	for(VertexIterator iter = sel.begin<Vertex>(); iter != sel.end<Vertex>(); ++iter)
 	{
-		int fracInd = fI.subsetIndex;
-
-		// TODO FIXME nächstes Ziel:
-		// Mittelwert der Normalen an den Kanten der Klüfte bilden
-		// ups, die sind ja schon wieder weg, da nur im obigen Loop gespeichert
-		// was machen wir da?
-		// vielleicht attachments an die faces, die die edges wissen und die
-		// Vertizes, an denen was passiert?
-		// neue Vertizes in der Entfernung der Klüfte von den Klüften weg erzeugen,
-		// basierend auf den Normalen multipliziert mit der halben Kluftdicke
-		//für eine Kluft erstmal nur
-		// die neuen Kanten und Faces erzeugen, die alten falschen Kanten löschen und ebenso die alten Faces
-		// später auf mehr Klüfte ausdehnen, mit Problemstelle Kreuzung, aber erst, wenn eine Kluft funktioniert
-
-
-		// TODO FIXME die edge normals oben müssen irgendwie gespeichert werden für die subdoms und die Ecken
-		// oder wir arbeiten im obigen Loop und verwenden sie dort drin
-		// noch zu klären
 
 	}
+
+
+//	// wieso gehen wir hier wieder über die frac infos, wo wir schon das pair
+//	// haben, wo die subdoms drin stehen, und der minimale Abstand?
+//	for( auto & fI : fracInfos )
+//	{
+//		int fracInd = fI.subsetIndex;
+//
+//		// falsch: nächstes Ziel:
+//		// Mittelwert der Normalen an den Kanten der Klüfte bilden
+//		// ups, die sind ja schon wieder weg, da nur im obigen Loop gespeichert
+//		// was machen wir da?
+//		// vielleicht attachments an die faces, die die edges wissen und die
+//		// Vertizes, an denen was passiert?
+//		// neue Vertizes in der Entfernung der Klüfte von den Klüften weg erzeugen,
+//		// basierend auf den Normalen multipliziert mit der halben Kluftdicke
+//		//für eine Kluft erstmal nur
+//		// die neuen Kanten und Faces erzeugen, die alten falschen Kanten löschen und ebenso die alten Faces
+//		// später auf mehr Klüfte ausdehnen, mit Problemstelle Kreuzung, aber erst, wenn eine Kluft funktioniert
+//
+//
+//		// TODO FIXME die edge normals oben müssen irgendwie gespeichert werden für die subdoms und die Ecken
+//		// oder wir arbeiten im obigen Loop und verwenden sie dort drin
+//		// noch zu klären
+//
+//	}
 
 	//	remove the temporary attachments
 	grid.detach_from_vertices(aAdjMarker);
