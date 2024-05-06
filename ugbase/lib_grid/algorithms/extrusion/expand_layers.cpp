@@ -1229,6 +1229,10 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 			static_assert( std::is_same< decltype( vft.getEdge() ), Edge * >::value );
 			static_assert( std::is_same< decltype( vft.getNormal() ), vector3 const >::value );
 
+			Face * f = vft.getFace();
+			Edge * e = vft.getEdge();
+			vector3 n = vft.getNormal();
+
 		}
 
 	}
