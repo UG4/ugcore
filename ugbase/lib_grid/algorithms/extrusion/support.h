@@ -183,6 +183,40 @@ private:
   T_min() {};
 };
 
+//////////////////////////////////////////////////////////////////////
+
+
+template <
+typename ECKENTYP,
+typename GESICHTSTYP, 
+typename SENKRECHTENTYP 
+>
+class VertexFractureTriple
+{
+
+public:
+	
+	VertexFractureTriple( ECKENTYP const & edge, GESICHTSTYP const & face, SENKRECHTENTYP const & normal   )
+	: m_edge(edge), m_face(face), m_normal(normal)
+	{	
+	};
+
+	ECKENTYP const getEdge() const { return m_edge; } 
+	
+	GESICHTSTYP const getFace() const { return m_face; } 
+	
+	SENKRECHTENTYP const getNormal() const { return m_normal; } 
+
+private:
+	
+	ECKENTYP m_edge;
+	GESICHTSTYP m_face;
+	SENKRECHTENTYP  m_normal;
+	
+	VertexFractureTriple()
+	{};
+	
+};
 
 
 #endif

@@ -1127,8 +1127,14 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 				static_assert( std::is_same< Face * const &, decltype(fac) >::value );
 				static_assert( std::is_same< Face *, decltype( const_cast<Face*>(fac) ) >::value );
+				static_assert( std::is_same< vector3, decltype( tmpN ) >::value );
 
-				VertFracTrip infoVertizesThisEdge( *iterEdg, const_cast<Face*>(fac), tmpN );
+				VertFracTrip infoVertizesThisEdge( *iterEdg, fac, tmpN );
+
+//				UG_LOG("TypE Fac " << typeid(const_cast<Face*>(fac) ).name() << std::endl);
+//				UG_LOG("TypE Edg " << typeid( *iterEdg ).name() << std::endl);
+//				UG_LOG("TypE Vec " << typeid( tmpN ).name() << std::endl);
+
 
 				for( auto const & v : verticesEdg )
 				{
@@ -1136,8 +1142,12 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 					static_assert( std::is_same< decltype(const_cast<Vertex*>(v)), Vertex *  >::value );
 					aaVrtFraTri[v].push_back( infoVertizesThisEdge );
 
-					static_assert( std::is_same< decltype( aaVrtFraTri[v][ aaVrtFraTri[v].size() - 1 ].getFace() ), Face* >::value );
-					static_assert( std::is_same< decltype( aaVrtFraTri[v][ aaVrtFraTri[v].size() - 1 ].getEdge() ), Edge* >::value );
+//					UG_LOG("type Fac " << typeid( aaVrtFraTri[v][ aaVrtFraTri[v].size() - 1 ].getFace() ).name() << std::endl);
+//					UG_LOG("type Edg " << typeid( aaVrtFraTri[v][ aaVrtFraTri[v].size() - 1 ].getEdge() ).name() << std::endl);
+//					UG_LOG("type Vec " << typeid( aaVrtFraTri[v][ aaVrtFraTri[v].size() - 1 ].getNormal() ).name() << std::endl);
+
+					static_assert( std::is_same< decltype( aaVrtFraTri[v][ aaVrtFraTri[v].size() - 1 ].getFace() ), Face * >::value );
+					static_assert( std::is_same< decltype( aaVrtFraTri[v][ aaVrtFraTri[v].size() - 1 ].getEdge() ), Edge * >::value );
 					static_assert( std::is_same< decltype( aaVrtFraTri[v][ aaVrtFraTri[v].size() - 1 ].getNormal() ), vector3 const >::value );
 				}
 
