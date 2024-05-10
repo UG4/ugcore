@@ -873,7 +873,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 	AttVecVertFracTrip aAdjMarkerAVVFT;
 
 	grid.attach_to_vertices_dv( aAdjMarkerAVVFT, vertexNoInfo );
-	Grid::VertexAttachmentAccessor<AttVecVertFracTrip> aaVrtFraTri;
+	Grid::VertexAttachmentAccessor<AttVecVertFracTrip> aaVrtFraTri(grid,  aAdjMarkerAVVFT );
 
 //	using AFaceVec = Attachment<std::vector<Face* > >;
 //	using AEdgeVec = Attachment<std::vector<Edge* > >;
@@ -1142,6 +1142,10 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 					static_assert( std::is_same< decltype(const_cast<Vertex*>(v)), Vertex *  >::value );
 					aaVrtFraTri[v].push_back( infoVertizesThisEdge );
 
+//					VecVertFracTrip allInfosVrtxThisEdg = aaVrtFraTri[v];
+
+//					static_assert( std::is_same< decltype(  aaVrtFraTri[v] ),  VecVertFracTrip >::value );
+
 //					UG_LOG("type Fac " << typeid( aaVrtFraTri[v][ aaVrtFraTri[v].size() - 1 ].getFace() ).name() << std::endl);
 //					UG_LOG("type Edg " << typeid( aaVrtFraTri[v][ aaVrtFraTri[v].size() - 1 ].getEdge() ).name() << std::endl);
 //					UG_LOG("type Vec " << typeid( aaVrtFraTri[v][ aaVrtFraTri[v].size() - 1 ].getNormal() ).name() << std::endl);
@@ -1196,12 +1200,15 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 	UG_LOG("overall min dist " << minDistPerpOverall() << std::endl);
 
+//	return true;
+
 	// am Ende dieser Prozedur sollten alle Vertizes wissen, welche Tripel vom Typ Edge - Face - Normal zum Face hin an ihnen angelagert sind
 
 	// damit weiss, wenn es stimmt, jeder Vertex, der an einer Fracture ist, wieviele Schnittpunkte von Fractures er hat,
 	// ob er ein boundary vertex ist, und was für einen Vektor von Tripeln an ihm angehängt sind
 	// die subdomain der Fracture muss anhand der subdomain der edge bestimmt werden immer
 
+	UG_LOG("loop over all marked vertizes " << std::endl);
 
 	// jetzt können wir alle Vertizes ablaufen und an ihnen neue Vertizes erzeugen, die anhand der gemittelten Normalen von den Vertizes weg gehen
 	// ob zwei anhängende Faces auf der gleichen Seite liegen, wenn es kein Schnittvertex von zwei oder mehr Klüften ist
@@ -1211,6 +1218,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 	// muss auch mit dem Winkel zu tun haben
 	for(VertexIterator iterV = sel.begin<Vertex>(); iterV != sel.end<Vertex>(); ++iterV)
 	{
+
+
 		// TODO FIXME hier ist die Prozedur jetzt angekommen
 		// vielleicht muss man, wenn die neuen Vertizes da sind, diese auch gleich mit den umliegenden Knoten per neuer Kanten verbinden
 		// und die neuen faces erzeugen nach Löschen der alten?
@@ -1232,6 +1241,59 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 			Face * f = vft.getFace();
 			Edge * e = vft.getEdge();
 			vector3 n = vft.getNormal();
+
+		}
+
+		// Anzahl der Kreuzungspunkte auslesen und danach unterscheiden, erstmal keine Kreuzung! TODO FIXME
+
+		// irgendwie muessen wir diese Infos jetzt verwerten, um als erstes neue Vertizes zu erzeugen, anfangs für eine Kluft nur
+		// und danach die alten Edges und faces löschen und an neuer Stelle neu erzeugen, plus die sowieso neuen,
+		// oder Edges verschieben, wenn es möglich ist, die Vertizes zu verschieben, und die Edges und in Folge faces passen sich an,
+		// dann müssen nur die neuen edges und faces neu erzeugt werden
+		// verschieben der Position des Vertex löst Kaskade aus, dass Edge und Face auch verschoben werden, kann also angewendet werden
+		// allerdings Problem, dass die Vertizes dafür verdoppelt werden müssen und die Kanten, sonst kann man sie nicht nach aussen verschieben
+		// also doch komplette Neuerzeugung vermutlich..... oder doppeltes Klonen, und das alte bleibt in der Mitte.....
+
+		vector3 posThisVrt =  aaPos[*iterV];
+
+		UG_LOG("vertex at " << posThisVrt << std::endl );
+
+		bool vrtxIsBndVrt = aaMarkVrtVFP[*iterV].getIsBndFracVertex(); //setIsBndFracVertex();
+
+		UG_LOG("is bndry " << vrtxIsBndVrt << std::endl);
+
+		IndexType numFracsCrossAtVrt = aaMarkVrtVFP[*iterV].getNumberCrossingFracsInVertex();
+
+		UG_LOG("number crossing fracs " << numFracsCrossAtVrt << std::endl);
+
+		size_t numbAttTripl = vecVertFracTrip.size();
+
+		UG_LOG("sizes of vft " << numbAttTripl << std::endl );
+
+
+		if( ! vrtxIsBndVrt )
+		{
+			if( numFracsCrossAtVrt < 1 )
+			{
+				UG_THROW("no fracs crossing but marked vertex? << std::endl");
+			}
+			if( numFracsCrossAtVrt == 1 ) // free line of fracture, no crossing point, not at boundary
+			{
+				// in this case, we have two attached edges, and each of these edges has two attached faces
+				// the faces have a naormal, and based on the normal, we can decide which faces belong to the same side of the edges
+
+
+
+
+			}
+			else // fractures are crossing
+			{
+
+			}
+
+		}
+		else // different treatment for boundary vertizes
+		{
 
 		}
 
