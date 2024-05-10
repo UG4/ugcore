@@ -113,20 +113,20 @@ public:
    // constructor, wants to know the degrees
    MatrixTwoIndices( I _x_degree_, I _y_degree_, D defVal = 0 )
           : x_degree(_x_degree_), y_degree(_y_degree_)
- 	{ values = std::vector<D>(  (_x_degree_+1)*(_y_degree_+1),  defVal  ); }
+ 	{ values = std::vector<D>(  (_x_degree_)*(_y_degree_),  defVal  ); }
 
    // asking for a special element, cout << object(i,j) ...
    D const operator()( I i, I j ) const
    {
  	  assert( x_degree > 0 &&  y_degree > 0 );
-      return values[ j*(x_degree+1) + i ];
+      return values[ j*(x_degree) + i ];
    }
 
    // giving a special element a special value , object(i,j) = xx -> values[...] = xx
    D & operator()( I i, I j )
    {
  	  assert( x_degree > 0 &&  y_degree > 0 );
-      return values[ j*(x_degree+1) + i ];
+      return values[ j*(x_degree) + i ];
    }
 
 private:

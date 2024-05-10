@@ -1282,8 +1282,131 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 				// in this case, we have two attached edges, and each of these edges has two attached faces
 				// the faces have a naormal, and based on the normal, we can decide which faces belong to the same side of the edges
 
+				if( numbAttTripl != 4 )
+				{
+					UG_THROW("Anzahl der angehaengten Triples kann nicht stimmen, Vertex einer Kluft ohne Schnittpunkte, nicht am Rand " << std::endl);
+				}
+
+				// finde heraus, welche beiden der vier Triles jeweils auf der gleichen Seite sind
+
+				std::vector<vector3> normalTrip;
+
+				for( auto const & vft : vecVertFracTrip )
+				{
+//					static_assert( std::is_same< decltype( vft.getFace() ), Face * >::value );
+//					static_assert( std::is_same< decltype( vft.getEdge() ), Edge * >::value );
+//					static_assert( std::is_same< decltype( vft.getNormal() ), vector3 const >::value );
+
+//					Face * f = vft.getFace();
+//					Edge * e = vft.getEdge();
+					vector3 n = vft.getNormal();
+
+					normalTrip.push_back(n);
+
+				}
+
+				// Winkel zwischen den Normalen berechnen - die kleiner als 90 Grad werden als auf gleicher Seite betrachtet
+
+				MatrixTwoIndices<IndexType,number> cosBetweenNormals( numbAttTripl, numbAttTripl, 500 );
 
 
+				IndexType i = 0;
+
+				for( auto nOne : normalTrip )
+				{
+					IndexType j = 0;
+
+					for( auto nTwo : normalTrip )
+					{
+
+						number angle = acos(VecDot( nOne, nTwo ));
+
+//						UG_LOG("angle between " << nOne << " and " << nTwo << " -> " << angle << std::endl );
+
+						number cosinus = VecDot( nOne, nTwo );
+
+//						UG_LOG("cosinus between " << i << " and " << j << " vecs " << nOne << " and " << nTwo << " -> " << cosinus << std::endl );
+
+						cosBetweenNormals( i, j ) = cosinus;
+
+						//angleBetweenNormals( i, j ) = angle;
+//						UG_LOG("cosinus between " << normalTrip[i] << " and " << normalTrip[j] << " -> " << cosBetweenNormals( i, j ) << std::endl );
+//						UG_LOG("cosinus between " << nOne << " and " << nTwo << " -> " << cosBetweenNormals( i, j ) << std::endl );
+//						UG_LOG("kreuz " << i << ", " << j << std::endl);
+
+						j++;
+					}
+					i++;
+				}
+
+//				UG_LOG("REPEAT" << std::endl);
+
+				IndexType a = 0;
+
+				for( auto nOne : normalTrip )
+				{
+					IndexType b = 0;
+
+					for( auto nTwo : normalTrip )
+					{
+
+						//angleBetweenNormals( i, j ) = angle;
+//						UG_LOG("cosinus between " << normalTrip[i] << " and " << normalTrip[j] << " -> " << cosBetweenNormals( i, j ) << std::endl );
+						UG_LOG("cosinus between " << nOne << " and " << nTwo << " -> " << cosBetweenNormals( a, b ) << std::endl );
+//						UG_LOG("kreuz " << a << ", " << b << std::endl);
+
+						b++;
+					}
+					a++;
+				}
+
+
+
+//				UG_LOG("max unsigned short " << std::numeric_limits<IndexType>::max() << std::endl);
+
+//				for( auto nEins : normalTrip )
+//				{
+//					IndexType a = 0;
+//
+//					for( auto nZwei : normalTrip )
+//					{
+//						IndexType b = 0;
+//
+//						//angleBetweenNormals( i, j ) = angle;
+////						UG_LOG("cosinus between " << normalTrip[i] << " and " << normalTrip[j] << " -> " << cosBetweenNormals( i, j ) << std::endl );
+//						UG_LOG("cosinus between " << a << " and " << b << " -> " << cosBetweenNormals( a, b ) << std::endl );
+//
+//						b++;
+//					}
+//					a++;
+//				}
+
+//				for( IndexType i = 0; i < numbAttTripl; i++ )
+//				{
+//					for( IndexType j = 0; j < numbAttTripl; j++ )
+//					{
+//						UG_LOG("kreuz " << i << ", " << j << std::endl );
+//
+//						UG_LOG("cosinus between " << normalTrip[i] << " and " << normalTrip[j] << " -> " << cosBetweenNormals( i, j ) << std::endl );
+//					}
+//				}
+
+
+//
+	//				for( IndexType i = 0; i < numbAttTripl; i++ )
+	//				{
+	//					for( IndexType j = 0; j < numbAttTripl; j++ )
+	//					{
+	//						number cosinus = cosBetweenNormals( i, j );
+	//
+	////						UG_LOG("cosinus between " << normalTrip[i] << " and " << normalTrip[j] << " -> " << cosBetweenNormals( i, j ) << std::endl );
+	//						UG_LOG("cosinus between " << normalTrip[i] << " and " << normalTrip[j] << " -> " << cosinus << std::endl );
+	//					}
+	//				}
+
+
+
+				UG_LOG("END THIS VERTEX NORMAL COSINE" << std::endl);
 
 			}
 			else // fractures are crossing
