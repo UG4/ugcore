@@ -875,34 +875,6 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 	grid.attach_to_vertices_dv( aAdjMarkerAVVFT, vertexNoInfo );
 	Grid::VertexAttachmentAccessor<AttVecVertFracTrip> aaVrtFraTri(grid,  aAdjMarkerAVVFT );
 
-//	using AFaceVec = Attachment<std::vector<Face* > >;
-//	using AEdgeVec = Attachment<std::vector<Edge* > >;
-//	using AVertexVec = Attachment<std::vector<Vertex* > >;
-//
-//	AFaceVec aAdjMarkerFacV;
-//	AEdgeVec aAdjMarkerEdgV;
-//	AVertexVec aAdjMarkerVrtV;
-//
-//	// Achtung: nur Faces, die an Kluefte angrenzen, sollen INfos bekommen
-//	// die anderen bleiben einfach "leer"
-//
-//	grid.attach_to_vertices_dv( aAdjMarkerFacV, std::vector<Face* >() );
-//	Grid::VertexAttachmentAccessor<AFaceVec> aaFaceVAtt2Vrt( grid, aAdjMarkerFacV );
-//
-//	grid.attach_to_edges_dv( aAdjMarkerFacV, std::vector<Face* >() );
-//	Grid::EdgeAttachmentAccessor<AFaceVec> aaFaceVAtt2Edge( grid, aAdjMarkerFacV );
-//
-//	grid.attach_to_faces_dv( aAdjMarkerEdgV, std::vector<Edge* >() );
-//	Grid::FaceAttachmentAccessor<AEdgeVec> aaEdgeVAtt2Face( grid, aAdjMarkerEdgV );
-//
-//	grid.attach_to_vertices_dv( aAdjMarkerEdgV, std::vector<Edge* >() );
-//	Grid::VertexAttachmentAccessor<AEdgeVec> aaEdgeVAtt2Vrt( grid, aAdjMarkerEdgV );
-//
-//	grid.attach_to_faces_dv( aAdjMarkerVrtV, std::vector<Vertex* >() );
-//	Grid::FaceAttachmentAccessor<AVertexVec> aaVrtVAtt2Face( grid, aAdjMarkerVrtV );
-//
-//	grid.attach_to_edges_dv( aAdjMarkerVrtV, std::vector<Vertex* >() );
-//	Grid::EdgeAttachmentAccessor<AVertexVec> aaVrtVAtt2Edge( grid, aAdjMarkerVrtV );
 
 	// das ist Käse, ich brauche für jeden Vertex ein Attachment der Form
 	// class VertexTriple, bzw std vektoren von solchen vertex triplen
@@ -1093,8 +1065,6 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 			// compute normal of edge
 
-			// TODO FIXME die edge normals müssen irgendwie gespeichert werden für die subdoms und die Ecken
-
 			std::vector< vector3 > edgeNormals;
 
 			std::vector<double> perpendDistances;
@@ -1164,7 +1134,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 			// ziemlich nutzlos, die Normale wie hier gemacht in einen kurzen Vektor zu speichern, der schnell
 			// wieder weg ist......
 			// wir brauchen alle Normalen zu jeder fracture an jedem fracture Vertex, also die Mittelung vermutlich
-
+			// diese Mittelung kann aber erst stattfinden, wenn wir nachher über die vertizes loopen,
+			// hier kennen wir nur die Vertizes, die an derselben Edge anliegen
 
 			UG_LOG("EDGE NORMALS: " << sh.get_subset_index(*iterEdg) << " -> ");
 
@@ -1220,7 +1191,6 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 	{
 
 
-		// TODO FIXME hier ist die Prozedur jetzt angekommen
 		// vielleicht muss man, wenn die neuen Vertizes da sind, diese auch gleich mit den umliegenden Knoten per neuer Kanten verbinden
 		// und die neuen faces erzeugen nach Löschen der alten?
 		// oder alle neuen Vertizes wie bei Prof Reiter in einen std Vektor, der als attachment den bisherigen Face Vertizes angehängt wird
@@ -1258,7 +1228,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 		UG_LOG("vertex at " << posThisVrt << std::endl );
 
-		bool vrtxIsBndVrt = aaMarkVrtVFP[*iterV].getIsBndFracVertex(); //setIsBndFracVertex();
+		bool vrtxIsBndVrt = aaMarkVrtVFP[*iterV].getIsBndFracVertex();
 
 		UG_LOG("is bndry " << vrtxIsBndVrt << std::endl);
 
@@ -1307,8 +1277,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 				// Winkel zwischen den Normalen berechnen - die kleiner als 90 Grad werden als auf gleicher Seite betrachtet
 
-				MatrixTwoIndices<IndexType,number> cosBetweenNormals( numbAttTripl, numbAttTripl, 500 );
-
+				MatrixTwoIndices<IndexType,number> cosBetweenNormals( numbAttTripl, numbAttTripl, 0 );
 
 				IndexType i = 0;
 
@@ -1319,27 +1288,16 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 					for( auto nTwo : normalTrip )
 					{
 
-						number angle = acos(VecDot( nOne, nTwo ));
-
-//						UG_LOG("angle between " << nOne << " and " << nTwo << " -> " << angle << std::endl );
+						//number angle = acos(VecDot( nOne, nTwo ));
 
 						number cosinus = VecDot( nOne, nTwo );
 
-//						UG_LOG("cosinus between " << i << " and " << j << " vecs " << nOne << " and " << nTwo << " -> " << cosinus << std::endl );
-
 						cosBetweenNormals( i, j ) = cosinus;
-
-						//angleBetweenNormals( i, j ) = angle;
-//						UG_LOG("cosinus between " << normalTrip[i] << " and " << normalTrip[j] << " -> " << cosBetweenNormals( i, j ) << std::endl );
-//						UG_LOG("cosinus between " << nOne << " and " << nTwo << " -> " << cosBetweenNormals( i, j ) << std::endl );
-//						UG_LOG("kreuz " << i << ", " << j << std::endl);
 
 						j++;
 					}
 					i++;
 				}
-
-//				UG_LOG("REPEAT" << std::endl);
 
 				IndexType a = 0;
 
@@ -1350,59 +1308,24 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 					for( auto nTwo : normalTrip )
 					{
 
-						//angleBetweenNormals( i, j ) = angle;
-//						UG_LOG("cosinus between " << normalTrip[i] << " and " << normalTrip[j] << " -> " << cosBetweenNormals( i, j ) << std::endl );
-						UG_LOG("cosinus between " << nOne << " and " << nTwo << " -> " << cosBetweenNormals( a, b ) << std::endl );
-//						UG_LOG("kreuz " << a << ", " << b << std::endl);
+						number cosi = cosBetweenNormals( a, b );
+						bool vz = ! std::signbit(cosi);
+
+						UG_LOG("cosinus between " << nOne << " and " << nTwo << " -> " << cosi << std::endl );
+						UG_LOG("sign between " << nOne << " and " << nTwo << " -> " << vz << std::endl );
 
 						b++;
 					}
 					a++;
 				}
 
+				// Ziel: die beiden parallelen Normalen mitteln, und in die jeweiligen beiden Richtungen je einen neuen Vertex erzeugen
+				// irgendwie muss der Vertex oder die Edge besser sogar wissen, dass sie einen neuen Verschiebevertex bekommen hat
+				// denn später müssen neue Edges und neue Faces basierend auf den neuen Vertizes erzeugt werden
+				// vielleicht braucht die edge und das face ein Attachment, das ihnen das sagt, ähnlihc wie VertexTrible std Vektoren?
 
 
-//				UG_LOG("max unsigned short " << std::numeric_limits<IndexType>::max() << std::endl);
 
-//				for( auto nEins : normalTrip )
-//				{
-//					IndexType a = 0;
-//
-//					for( auto nZwei : normalTrip )
-//					{
-//						IndexType b = 0;
-//
-//						//angleBetweenNormals( i, j ) = angle;
-////						UG_LOG("cosinus between " << normalTrip[i] << " and " << normalTrip[j] << " -> " << cosBetweenNormals( i, j ) << std::endl );
-//						UG_LOG("cosinus between " << a << " and " << b << " -> " << cosBetweenNormals( a, b ) << std::endl );
-//
-//						b++;
-//					}
-//					a++;
-//				}
-
-//				for( IndexType i = 0; i < numbAttTripl; i++ )
-//				{
-//					for( IndexType j = 0; j < numbAttTripl; j++ )
-//					{
-//						UG_LOG("kreuz " << i << ", " << j << std::endl );
-//
-//						UG_LOG("cosinus between " << normalTrip[i] << " and " << normalTrip[j] << " -> " << cosBetweenNormals( i, j ) << std::endl );
-//					}
-//				}
-
-
-//
-	//				for( IndexType i = 0; i < numbAttTripl; i++ )
-	//				{
-	//					for( IndexType j = 0; j < numbAttTripl; j++ )
-	//					{
-	//						number cosinus = cosBetweenNormals( i, j );
-	//
-	////						UG_LOG("cosinus between " << normalTrip[i] << " and " << normalTrip[j] << " -> " << cosBetweenNormals( i, j ) << std::endl );
-	//						UG_LOG("cosinus between " << normalTrip[i] << " and " << normalTrip[j] << " -> " << cosinus << std::endl );
-	//					}
-	//				}
 
 
 
@@ -1423,30 +1346,12 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 	}
 
 
-//	// wieso gehen wir hier wieder über die frac infos, wo wir schon das pair
-//	// haben, wo die subdoms drin stehen, und der minimale Abstand?
-//	for( auto & fI : fracInfos )
-//	{
-//		int fracInd = fI.subsetIndex;
-//
-//		// falsch: nächstes Ziel:
-//		// Mittelwert der Normalen an den Kanten der Klüfte bilden
-//		// ups, die sind ja schon wieder weg, da nur im obigen Loop gespeichert
-//		// was machen wir da?
-//		// vielleicht attachments an die faces, die die edges wissen und die
-//		// Vertizes, an denen was passiert?
 //		// neue Vertizes in der Entfernung der Klüfte von den Klüften weg erzeugen,
 //		// basierend auf den Normalen multipliziert mit der halben Kluftdicke
 //		//für eine Kluft erstmal nur
 //		// die neuen Kanten und Faces erzeugen, die alten falschen Kanten löschen und ebenso die alten Faces
 //		// später auf mehr Klüfte ausdehnen, mit Problemstelle Kreuzung, aber erst, wenn eine Kluft funktioniert
 //
-//
-//		// TODO FIXME die edge normals oben müssen irgendwie gespeichert werden für die subdoms und die Ecken
-//		// oder wir arbeiten im obigen Loop und verwenden sie dort drin
-//		// noch zu klären
-//
-//	}
 
 	//	remove the temporary attachments
 	grid.detach_from_vertices(aAdjMarker);
