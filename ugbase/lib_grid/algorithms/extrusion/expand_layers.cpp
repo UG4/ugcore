@@ -870,10 +870,10 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 	using AttVecVertFracTrip = Attachment<VecVertFracTrip>;
 
-	AttVecVertFracTrip aAdjMarkerAVVFT;
+	AttVecVertFracTrip aAdjInfoAVVFT;
 
-	grid.attach_to_vertices_dv( aAdjMarkerAVVFT, vertexNoInfo );
-	Grid::VertexAttachmentAccessor<AttVecVertFracTrip> aaVrtFraTri(grid,  aAdjMarkerAVVFT );
+	grid.attach_to_vertices_dv( aAdjInfoAVVFT, vertexNoInfo );
+	Grid::VertexAttachmentAccessor<AttVecVertFracTrip> aaVrtInfoFraTri(grid,  aAdjInfoAVVFT );
 
 
 	// das ist Käse, ich brauche für jeden Vertex ein Attachment der Form
@@ -1110,19 +1110,19 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 				{
 					static_assert( std::is_same< decltype(v), Vertex * const & >::value );
 					static_assert( std::is_same< decltype(const_cast<Vertex*>(v)), Vertex *  >::value );
-					aaVrtFraTri[v].push_back( infoVertizesThisEdge );
+					aaVrtInfoFraTri[v].push_back( infoVertizesThisEdge );
 
-//					VecVertFracTrip allInfosVrtxThisEdg = aaVrtFraTri[v];
+//					VecVertFracTrip allInfosVrtxThisEdg = aaVrtInfoFraTri[v];
 
-//					static_assert( std::is_same< decltype(  aaVrtFraTri[v] ),  VecVertFracTrip >::value );
+//					static_assert( std::is_same< decltype(  aaVrtInfoFraTri[v] ),  VecVertFracTrip >::value );
 
-//					UG_LOG("type Fac " << typeid( aaVrtFraTri[v][ aaVrtFraTri[v].size() - 1 ].getFace() ).name() << std::endl);
-//					UG_LOG("type Edg " << typeid( aaVrtFraTri[v][ aaVrtFraTri[v].size() - 1 ].getEdge() ).name() << std::endl);
-//					UG_LOG("type Vec " << typeid( aaVrtFraTri[v][ aaVrtFraTri[v].size() - 1 ].getNormal() ).name() << std::endl);
+//					UG_LOG("type Fac " << typeid( aaVrtInfoFraTri[v][ aaVrtInfoFraTri[v].size() - 1 ].getFace() ).name() << std::endl);
+//					UG_LOG("type Edg " << typeid( aaVrtInfoFraTri[v][ aaVrtInfoFraTri[v].size() - 1 ].getEdge() ).name() << std::endl);
+//					UG_LOG("type Vec " << typeid( aaVrtInfoFraTri[v][ aaVrtInfoFraTri[v].size() - 1 ].getNormal() ).name() << std::endl);
 
-					static_assert( std::is_same< decltype( aaVrtFraTri[v][ aaVrtFraTri[v].size() - 1 ].getFace() ), Face * >::value );
-					static_assert( std::is_same< decltype( aaVrtFraTri[v][ aaVrtFraTri[v].size() - 1 ].getEdge() ), Edge * >::value );
-					static_assert( std::is_same< decltype( aaVrtFraTri[v][ aaVrtFraTri[v].size() - 1 ].getNormal() ), vector3 const >::value );
+					static_assert( std::is_same< decltype( aaVrtInfoFraTri[v][ aaVrtInfoFraTri[v].size() - 1 ].getFace() ), Face * >::value );
+					static_assert( std::is_same< decltype( aaVrtInfoFraTri[v][ aaVrtInfoFraTri[v].size() - 1 ].getEdge() ), Edge * >::value );
+					static_assert( std::is_same< decltype( aaVrtInfoFraTri[v][ aaVrtInfoFraTri[v].size() - 1 ].getNormal() ), vector3 const >::value );
 				}
 
 			}
@@ -1171,7 +1171,29 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 	UG_LOG("overall min dist " << minDistPerpOverall() << std::endl);
 
-//	return true;
+
+	// attachment to allow fracture vertizes to know the newly created vertizes
+	// due to extrusion which are related to them, in connection with
+	// the normals which are an average of the related edges and the faces
+	// defining the original normal
+
+	// usage: store edges and associated faces in SAME order in std vectors!
+	using ExpandVertexMultiplett = VertexFractureTriple< std::vector<Edge*>, std::vector<Face*>, vector3 >;
+	// holds the averaged normal of the related edges and their corresponding faces which give direction
+
+	using VecExpandVertexMultiplett = std::vector<ExpandVertexMultiplett>;
+
+
+	VecExpandVertexMultiplett vertexMultiplettEmpty;
+
+	using AttVecExpandVertexMultiplett = Attachment<VecExpandVertexMultiplett>;
+
+	AttVecExpandVertexMultiplett aAdjInfoVVEVM;
+
+	grid.attach_to_vertices_dv( aAdjInfoVVEVM, vertexMultiplettEmpty );
+	Grid::VertexAttachmentAccessor<AttVecExpandVertexMultiplett> aaVrtExpMP(grid, aAdjInfoVVEVM );
+
+
 
 	// am Ende dieser Prozedur sollten alle Vertizes wissen, welche Tripel vom Typ Edge - Face - Normal zum Face hin an ihnen angelagert sind
 
@@ -1190,13 +1212,12 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 	for(VertexIterator iterV = sel.begin<Vertex>(); iterV != sel.end<Vertex>(); ++iterV)
 	{
 
-
 		// vielleicht muss man, wenn die neuen Vertizes da sind, diese auch gleich mit den umliegenden Knoten per neuer Kanten verbinden
 		// und die neuen faces erzeugen nach Löschen der alten?
 		// oder alle neuen Vertizes wie bei Prof Reiter in einen std Vektor, der als attachment den bisherigen Face Vertizes angehängt wird
 		// und Edge Vernichtung und Erzeugung neuer edges und faces wie bei Prof Reiter in Folgeschritten?
 
-		VecVertFracTrip & vecVertFracTrip = aaVrtFraTri[*iterV];
+		VecVertFracTrip & vecVertFracTrip = aaVrtInfoFraTri[*iterV];
 
 		static_assert( std::is_same< decltype( vecVertFracTrip[ vecVertFracTrip.size() - 1 ].getFace() ), Face * >::value );
 		static_assert( std::is_same< decltype( vecVertFracTrip[ vecVertFracTrip.size() - 1 ].getEdge() ), Edge * >::value );
@@ -1239,7 +1260,6 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 		size_t numbAttTripl = vecVertFracTrip.size();
 
 		UG_LOG("sizes of vft " << numbAttTripl << std::endl );
-
 
 		if( ! vrtxIsBndVrt )
 		{
@@ -1311,6 +1331,65 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 									// gleiche Seite vermutet
 
 									// sind die edges dieselben? pruefen! gleiche unnoetig
+
+									// Klasse schreiben, die als attachment an einen Fracture-Vertex
+									// die neuen Vertizes samt ihrer gemittelten Normalen speichert
+									// also std::vector von dieser neuen Klasse als Vertex attachment
+
+
+									// average the normals
+
+									vector3 normSum;
+
+									VecAdd( normSum, nOne, nTwo );
+
+									vector3 normSumNormed;
+
+									VecNormalize(normSumNormed, normSum);
+
+									UG_LOG("averaged normal " << normSumNormed << std::endl);
+
+									std::vector<Edge * > attEdg;
+									std::vector<Face * > attFac;
+
+									attEdg.push_back( edgeOne );
+									attEdg.push_back( edgeTwo );
+
+									Face * facOne = vvftOne->getFace();
+									Face * facTwo = vvftTwo->getFace();
+
+									attFac.push_back( facOne );
+									attFac.push_back( facTwo );
+
+									// jetzt neuen Vertex erzeugen in Richtung der Normalen
+									// sonst ist das attachment Schwachsinn!
+
+									vector3 posNewVrt;
+
+									vector3 posOldVrt = aaPos[*iterV];
+
+									vector3 moveVrt;
+
+									VecScale(moveVrt, normSumNormed, 0.1 );
+
+									VecAdd(posNewVrt, posOldVrt, moveVrt );
+
+									Vertex * newVrtx = *grid.create<RegularVertex>();
+									aaPos[newVrtx] = posNewVrt;
+
+									sh.assign_subset(newVrtx, 10 );
+
+
+									UG_LOG("neuer Vertex " << posNewVrt << std::endl );
+
+									ExpandVertexMultiplett vrtMtpl( attEdg, attFac, normSumNormed );
+
+									aaVrtExpMP[ *iterV ].push_back( vrtMtpl );
+
+									// alle anhängenden faces müssen noch zu wissen bekommen
+									// dass es diesen neuen Vertex gibt, nicht nur die
+									// an den edges anhängenden
+
 								}
 								else
 								{
@@ -1694,6 +1773,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 						grid.detach_from_vertices(aAdjMarkerVFP);
 						grid.detach_from_edges(aAdjMarkerB);
 
+						// TODO FIXME auch die weiteren Marker und INfos, alle Attachments, detachen!!!!
+
 						throw(UGError("Implementation error in ExpandFractures2d Arte."));
 					}
 
@@ -1737,6 +1818,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 	grid.detach_from_vertices(aAdjMarkerVFP);
 	grid.detach_from_edges(aAdjMarkerB);
+
+	// TODO FIXME auch die weiteren Marker und INfos, alle Attachments, detachen!!!!
 
 
 	return true;
