@@ -102,6 +102,7 @@
 template< typename I, typename D,
 typename std::enable_if<std::is_integral<I>::value, int>::type = 0,
 typename std::enable_if<std::is_arithmetic<D>::value, int>::type = 0
+//, typename std::conditional_t<std::is_same_v<D, bool>, char, D>
 	>
 class MatrixTwoIndices
 {

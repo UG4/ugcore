@@ -1257,75 +1257,133 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 					UG_THROW("Anzahl der angehaengten Triples kann nicht stimmen, Vertex einer Kluft ohne Schnittpunkte, nicht am Rand " << std::endl);
 				}
 
-				// finde heraus, welche beiden der vier Triles jeweils auf der gleichen Seite sind
+				// Zuordnung der Edges und Faces, die auf der gleichen Seite der fracture sind
 
-				std::vector<vector3> normalTrip;
+				// und gleich auch Erzeugung der neuen Knoten, die dann
+				// in einem Doublett zusammen mit ihren Normalen an die alten Vertizes
+				// angehängt werden; der Winkel zur Normalen hilft später, die Seite
+				// heraus zu finden, Seite von den Edges
 
-				for( auto const & vft : vecVertFracTrip )
+				using VvftIterator = VecVertFracTrip::iterator;
+
+				for( VvftIterator vvftONE = vecVertFracTrip.begin();
+						vvftONE != vecVertFracTrip.end() - 1;
+						vvftONE++
+				)
 				{
-//					static_assert( std::is_same< decltype( vft.getFace() ), Face * >::value );
-//					static_assert( std::is_same< decltype( vft.getEdge() ), Edge * >::value );
-//					static_assert( std::is_same< decltype( vft.getNormal() ), vector3 const >::value );
+					vector3 nOne = vvftONE->getNormal();
 
-//					Face * f = vft.getFace();
-//					Edge * e = vft.getEdge();
-					vector3 n = vft.getNormal();
-
-					normalTrip.push_back(n);
-
-				}
-
-				// Winkel zwischen den Normalen berechnen - die kleiner als 90 Grad werden als auf gleicher Seite betrachtet
-
-				MatrixTwoIndices<IndexType,number> cosBetweenNormals( numbAttTripl, numbAttTripl, 0 );
-
-				IndexType i = 0;
-
-				for( auto nOne : normalTrip )
-				{
-					IndexType j = 0;
-
-					for( auto nTwo : normalTrip )
+					for( VvftIterator vvftTwo = vvftONE + 1;
+							vvftTwo != vecVertFracTrip.end();
+							vvftTwo++
+					)
 					{
+						// dieselben brauchen wir nicht vergleichen
+						if( vvftONE == vvftTwo )
+						{
+							// sollte nie vorkommen!
+							UG_THROW("Unsinn " << std::endl);
+						}
+						else
+						{
+							vector3 nTwo = vvftTwo->getNormal();
 
-						//number angle = acos(VecDot( nOne, nTwo ));
+							number cosinus = VecDot( nOne, nTwo );
 
-						number cosinus = VecDot( nOne, nTwo );
+							bool vz = ! std::signbit(cosinus);
 
-						cosBetweenNormals( i, j ) = cosinus;
+							UG_LOG("cosinus between " << nOne << " and " << nTwo << " -> " << cosinus << std::endl );
+							UG_LOG("sign between " << nOne << " and " << nTwo << " -> " << vz << std::endl );
 
-						j++;
+
+							if( cosinus > 0 )
+							{
+								// gleiche Seite vermutet
+
+								// sind die edges dieselben? pruefen! gleiche unnoetig
+							}
+							else
+							{
+								// andere Seite vermutet
+							}
+
+						}
+
 					}
-					i++;
+
 				}
 
-				IndexType a = 0;
 
-				for( auto nOne : normalTrip )
-				{
-					IndexType b = 0;
-
-					for( auto nTwo : normalTrip )
-					{
-
-						number cosi = cosBetweenNormals( a, b );
-						bool vz = ! std::signbit(cosi);
-
-						UG_LOG("cosinus between " << nOne << " and " << nTwo << " -> " << cosi << std::endl );
-						UG_LOG("sign between " << nOne << " and " << nTwo << " -> " << vz << std::endl );
-
-						b++;
-					}
-					a++;
-				}
-
-				// Ziel: die beiden parallelen Normalen mitteln, und in die jeweiligen beiden Richtungen je einen neuen Vertex erzeugen
-				// irgendwie muss der Vertex oder die Edge besser sogar wissen, dass sie einen neuen Verschiebevertex bekommen hat
-				// denn später müssen neue Edges und neue Faces basierend auf den neuen Vertizes erzeugt werden
-				// vielleicht braucht die edge und das face ein Attachment, das ihnen das sagt, ähnlihc wie VertexTrible std Vektoren?
-
-
-
+//
+//				// finde heraus, welche beiden der vier Triles jeweils auf der gleichen Seite sind
+//
+//				std::vector<vector3> normalTrip;
+//
+//				for( auto const & vft : vecVertFracTrip )
+//				{
+////					static_assert( std::is_same< decltype( vft.getFace() ), Face * >::value );
+////					static_assert( std::is_same< decltype( vft.getEdge() ), Edge * >::value );
+////					static_assert( std::is_same< decltype( vft.getNormal() ), vector3 const >::value );
+//
+////					Face * f = vft.getFace();
+////					Edge * e = vft.getEdge();
+//					vector3 n = vft.getNormal();
+//
+//					normalTrip.push_back(n);
+//
+//				}
+//
+//				// Winkel zwischen den Normalen berechnen - die kleiner als 90 Grad werden als auf gleicher Seite betrachtet
+//
+//				MatrixTwoIndices<IndexType,number> cosBetweenNormals( numbAttTripl, numbAttTripl, 0 );
+//
+//				IndexType i = 0;
+//
+//				for( auto nOne : normalTrip )
+//				{
+//					IndexType j = 0;
+//
+//					for( auto nTwo : normalTrip )
+//					{
+//
+//						//number angle = acos(VecDot( nOne, nTwo ));
+//
+//						number cosinus = VecDot( nOne, nTwo );
+//
+//						cosBetweenNormals( i, j ) = cosinus;
+//
+//						j++;
+//					}
+//					i++;
+//				}
+//
+//				IndexType a = 0;
+//
+//				for( auto nOne : normalTrip )
+//				{
+//					IndexType b = 0;
+//
+//					for( auto nTwo : normalTrip )
+//					{
+//
+//						number cosi = cosBetweenNormals( a, b );
+//						bool vz = ! std::signbit(cosi);
+//
+//						UG_LOG("cosinus between " << nOne << " and " << nTwo << " -> " << cosi << std::endl );
+//						UG_LOG("sign between " << nOne << " and " << nTwo << " -> " << vz << std::endl );
+//
+//						b++;
+//					}
+//					a++;
+//				}
+//
+//				// Ziel: die beiden parallelen Normalen mitteln, und in die jeweiligen beiden Richtungen je einen neuen Vertex erzeugen
+//				// irgendwie muss der Vertex oder die Edge besser sogar wissen, dass sie einen neuen Verschiebevertex bekommen hat
+//				// denn später müssen neue Edges und neue Faces basierend auf den neuen Vertizes erzeugt werden
+//				// vielleicht braucht die edge und das face ein Attachment, das ihnen das sagt, ähnlihc wie VertexTrible std Vektoren?
+//
+//
+//
 
 
 
