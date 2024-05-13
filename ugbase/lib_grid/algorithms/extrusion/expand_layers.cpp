@@ -1266,46 +1266,58 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 				using VvftIterator = VecVertFracTrip::iterator;
 
-				for( VvftIterator vvftONE = vecVertFracTrip.begin();
-						vvftONE != vecVertFracTrip.end() - 1;
-						vvftONE++
+				for( VvftIterator vvftOne = vecVertFracTrip.begin();
+						vvftOne != vecVertFracTrip.end() - 1;
+						vvftOne++
 				)
 				{
-					vector3 nOne = vvftONE->getNormal();
+					vector3 nOne = vvftOne->getNormal();
 
-					for( VvftIterator vvftTwo = vvftONE + 1;
+					Edge * edgeOne = vvftOne->getEdge();
+
+					for( VvftIterator vvftTwo = vvftOne + 1;
 							vvftTwo != vecVertFracTrip.end();
 							vvftTwo++
 					)
 					{
 						// dieselben brauchen wir nicht vergleichen
-						if( vvftONE == vvftTwo )
+						if( vvftOne == vvftTwo )
 						{
 							// sollte nie vorkommen!
 							UG_THROW("Unsinn " << std::endl);
 						}
 						else
 						{
-							vector3 nTwo = vvftTwo->getNormal();
+							Edge * edgeTwo = vvftTwo->getEdge();
 
-							number cosinus = VecDot( nOne, nTwo );
+							// noch testen, ob nicht die Kante dieselbe ist, geht das?
+							// bei der gleichen Ecke ist es unnötig, da es gegensätzlich sein muss
 
-							bool vz = ! std::signbit(cosinus);
-
-							UG_LOG("cosinus between " << nOne << " and " << nTwo << " -> " << cosinus << std::endl );
-							UG_LOG("sign between " << nOne << " and " << nTwo << " -> " << vz << std::endl );
-
-
-							if( cosinus > 0 )
+							if( edgeOne != edgeTwo )
 							{
-								// gleiche Seite vermutet
 
-								// sind die edges dieselben? pruefen! gleiche unnoetig
+								vector3 nTwo = vvftTwo->getNormal();
+
+								number cosinus = VecDot( nOne, nTwo );
+
+								bool vz = ! std::signbit(cosinus);
+
+								UG_LOG("cosinus between " << nOne << " and " << nTwo << " -> " << cosinus << std::endl );
+								//UG_LOG("sign between " << nOne << " and " << nTwo << " -> " << vz << std::endl );
+
+
+								if( cosinus > 0 )
+								{
+									// gleiche Seite vermutet
+
+									// sind die edges dieselben? pruefen! gleiche unnoetig
+								}
+								else
+								{
+									// andere Seite vermutet
+								}
 							}
-							else
-							{
-								// andere Seite vermutet
-							}
+
 
 						}
 
