@@ -1370,14 +1370,27 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 									vector3 moveVrt;
 
-									VecScale(moveVrt, normSumNormed, 0.1 );
+									auto subsIndEdgOne = sh.get_subset_index(edgeOne);
+
+									auto subsIndEdgTwo = sh.get_subset_index(edgeTwo);
+
+									if( subsIndEdgOne != subsIndEdgTwo )
+									{
+										UG_THROW("subsets passen nicht" << std::endl );
+									}
+
+									number width = fracInfosBySubset.at(subsIndEdgOne).width;
+
+									// der Faktor ist Käse und muss noch aus den Eingaben übernommen werden
+									VecScale(moveVrt, normSumNormed, width/2. );
 
 									VecAdd(posNewVrt, posOldVrt, moveVrt );
 
 									Vertex * newVrtx = *grid.create<RegularVertex>();
 									aaPos[newVrtx] = posNewVrt;
 
-									sh.assign_subset(newVrtx, 10 );
+									// das ist Käse
+									sh.assign_subset(newVrtx, subsIndEdgOne );
 
 
 									UG_LOG("neuer Vertex " << posNewVrt << std::endl );
@@ -1389,6 +1402,14 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 									// alle anhängenden faces müssen noch zu wissen bekommen
 									// dass es diesen neuen Vertex gibt, nicht nur die
 									// an den edges anhängenden
+									// vielleicht gibt es einen Loop über attached faces des
+									// Vertex, für die schon bekannten direkt angehängten klar
+									// wenn auch dort vermerkt werden muss im Attachment von Seb
+									// bei den anderen, die keine Edge haben von der Kluft
+									// da muss man die Normale ins Zentrum bestimmen
+									// um heraus zu finden, ob sie auf dieser seite sind
+									// am besten dann das Attachment der faces für vertizes
+									// von Seb recyclen
 
 								}
 								else
@@ -1405,69 +1426,6 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 				}
 
 
-//
-//				// finde heraus, welche beiden der vier Triles jeweils auf der gleichen Seite sind
-//
-//				std::vector<vector3> normalTrip;
-//
-//				for( auto const & vft : vecVertFracTrip )
-//				{
-////					static_assert( std::is_same< decltype( vft.getFace() ), Face * >::value );
-////					static_assert( std::is_same< decltype( vft.getEdge() ), Edge * >::value );
-////					static_assert( std::is_same< decltype( vft.getNormal() ), vector3 const >::value );
-//
-////					Face * f = vft.getFace();
-////					Edge * e = vft.getEdge();
-//					vector3 n = vft.getNormal();
-//
-//					normalTrip.push_back(n);
-//
-//				}
-//
-//				// Winkel zwischen den Normalen berechnen - die kleiner als 90 Grad werden als auf gleicher Seite betrachtet
-//
-//				MatrixTwoIndices<IndexType,number> cosBetweenNormals( numbAttTripl, numbAttTripl, 0 );
-//
-//				IndexType i = 0;
-//
-//				for( auto nOne : normalTrip )
-//				{
-//					IndexType j = 0;
-//
-//					for( auto nTwo : normalTrip )
-//					{
-//
-//						//number angle = acos(VecDot( nOne, nTwo ));
-//
-//						number cosinus = VecDot( nOne, nTwo );
-//
-//						cosBetweenNormals( i, j ) = cosinus;
-//
-//						j++;
-//					}
-//					i++;
-//				}
-//
-//				IndexType a = 0;
-//
-//				for( auto nOne : normalTrip )
-//				{
-//					IndexType b = 0;
-//
-//					for( auto nTwo : normalTrip )
-//					{
-//
-//						number cosi = cosBetweenNormals( a, b );
-//						bool vz = ! std::signbit(cosi);
-//
-//						UG_LOG("cosinus between " << nOne << " and " << nTwo << " -> " << cosi << std::endl );
-//						UG_LOG("sign between " << nOne << " and " << nTwo << " -> " << vz << std::endl );
-//
-//						b++;
-//					}
-//					a++;
-//				}
-//
 //				// Ziel: die beiden parallelen Normalen mitteln, und in die jeweiligen beiden Richtungen je einen neuen Vertex erzeugen
 //				// irgendwie muss der Vertex oder die Edge besser sogar wissen, dass sie einen neuen Verschiebevertex bekommen hat
 //				// denn später müssen neue Edges und neue Faces basierend auf den neuen Vertizes erzeugt werden
