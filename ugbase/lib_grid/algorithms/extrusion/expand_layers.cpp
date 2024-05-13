@@ -1172,6 +1172,41 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 	UG_LOG("overall min dist " << minDistPerpOverall() << std::endl);
 
 
+
+	// von Sebastian teilweise das Prinzip übernommen, dass die Faces wissen können, was ihre neuen Vertizes sein sollen
+	//	create new vertices
+
+	//	we have to associate a vector of vertices with each node in the fracture.
+	//	since an empty vector is quite small, we can associate one with each vertex in
+	//	the whole grid. This could be optimized if required, by using subset attachments.
+
+	// TODO FIXME es reicht vielleicht, hier statt einem Vektor einfach nur einen Vertex * zu storen
+	using AttVrtVec = Attachment<vector<Vertex*> >;
+	AttVrtVec attVrtVec;
+
+	//	we  associate a vector of vertices for each face adjacent to the frac.
+	//	it will store a set of vertices. An entry contains the new vertex, if the
+	//	corresponding vertex is an inner fracture vertex, and NULL if not.
+	grid.attach_to_faces(attVrtVec);
+	Grid::FaceAttachmentAccessor<AttVrtVec> aaVrtVecFace(grid, attVrtVec);
+
+
+	//	iterate over all surrounding faces to enable face changes, this loop taken from SR but shortened
+	for(FaceIterator iter_sf = sel.faces_begin(); iter_sf != sel.faces_end(); ++iter_sf)
+	{
+		Face* sf = *iter_sf;
+
+		vector<Vertex*>& newVrts = aaVrtVecFace[sf];
+		newVrts.resize(sf->num_vertices());
+
+		for(size_t i_vrt = 0; i_vrt < sf->num_vertices(); ++i_vrt)
+		{
+			newVrts[i_vrt] = NULL;
+		}
+			// erstmal so tun, als ob keine neuen Vertizes erzeugt werden an den alten Vertizes
+	}
+
+
 	// attachment to allow fracture vertizes to know the newly created vertizes
 	// due to extrusion which are related to them, in connection with
 	// the normals which are an average of the related edges and the faces
@@ -1386,11 +1421,11 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 									VecAdd(posNewVrt, posOldVrt, moveVrt );
 
-									Vertex * newVrtx = *grid.create<RegularVertex>();
-									aaPos[newVrtx] = posNewVrt;
+									Vertex * newShiftVrtx = *grid.create<RegularVertex>();
+									aaPos[newShiftVrtx] = posNewVrt;
 
 									// das ist Käse
-									sh.assign_subset(newVrtx, subsIndEdgOne );
+									sh.assign_subset(newShiftVrtx, subsIndEdgOne );
 
 
 									UG_LOG("neuer Vertex " << posNewVrt << std::endl );
@@ -1411,6 +1446,58 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 									// am besten dann das Attachment der faces für vertizes
 									// von Seb recyclen
 
+									// loop über assosciated faces des vertex am besten
+									// vermutlich auch noch assosciated edges, um
+									// zu markieren, welche weg fallen sollen, wenn
+									// nicht von Kluft selber, sondern quasi verschoben
+									// und neu erzeugt
+
+//									for( auto iterFac = grid.associated_faces_begin(*iterV); iterFac != grid.associated_faces_end(*iterV); iterFac++ )
+									for( std::vector<Face *>::iterator iterFac = grid.associated_faces_begin(*iterV); iterFac != grid.associated_faces_end(*iterV); iterFac++ )
+									{
+										bool isFromFrac = false;
+
+//										for( std::vector<Face *>::iterator iterF2 = attFac.begin(); iterF2 != attFac.end(); iterF2++ )
+//										{
+//											static_assert( std::is_same< decltype( *iterF2 ), decltype ( *iterFac ) >::value );
+//
+//										}
+
+										for( auto const & facFrac : attFac )
+										{
+
+//											UG_LOG("type iter facFrac " << typeid( facFrac ).name() << std::endl);
+//
+//											UG_LOG("type iter Fac " << typeid( *iterFac ).name() << std::endl);
+
+											static_assert( std::is_same<  decltype( const_cast<Face* & >(facFrac) ), decltype ( *iterFac ) >::value );
+
+//											return true;
+
+											//type iter facFrac PN2ug4FaceE
+											//type iter Fac     PN2ug4FaceE
+
+
+											if( *iterFac == facFrac )
+											{
+												isFromFrac = true;
+
+												static_assert( std::is_same< decltype( const_cast<Face* & >(facFrac) ), Face * & >::value  );
+												static_assert( std::is_same< decltype( const_cast<Face* & >(facFrac) ), decltype( * iterFac ) >::value  );
+
+
+												// ACHTUNG neue Variable Face klein geschrieben im Gegensatz zu Prof. Reiter! nicht später falsche verwenden!
+//												vector<Vertex*>& newVrts4Fac = aaVrtVecFace[ * iterFac ];
+//												newVrts4Fac[*iterV] = newShiftVrtx;
+											}
+										}
+
+										if( ! isFromFrac )
+										{
+											// Vektor zum Zentrum von KNoten aus berechnen und Winkel zur Normalen bestimmen zur Unterscheidung der Seite
+											// wenn auf richtiger Seite, zuweisen
+										}
+									}
 								}
 								else
 								{
@@ -1523,6 +1610,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 	// das kann auch knifflig werden
 	// aber für den Moment ist wichtig, die neuen Knoten richtig zu erzeugen
 	// TODO FIXME hier sind wir gerade
+
 
 //	iterate over all surrounding faces and create new vertices.
 	for(FaceIterator iter_sf = sel.faces_begin(); iter_sf != sel.faces_end(); ++iter_sf)
