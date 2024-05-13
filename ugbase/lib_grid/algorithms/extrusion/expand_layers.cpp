@@ -1487,8 +1487,40 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 
 												// ACHTUNG neue Variable Face klein geschrieben im Gegensatz zu Prof. Reiter! nicht später falsche verwenden!
-//												vector<Vertex*>& newVrts4Fac = aaVrtVecFace[ * iterFac ];
-//												newVrts4Fac[*iterV] = newShiftVrtx;
+												vector<Vertex*>& newVrts4Fac = aaVrtVecFace[ * iterFac ];
+
+												IndexType vrtxFnd = 0;
+
+												for(size_t indVrt = 0; indVrt < (*iterFac)->num_vertices();  indVrt++ )
+												{
+													Vertex* facVrt = (*iterFac)->vertex(indVrt);
+
+													if(  facVrt == *iterV )
+													{
+														newVrts4Fac[ indVrt ] = newShiftVrtx;
+//														UG_LOG("vertex found " <<  indVrt << std::endl );
+														vrtxFnd++;
+													}
+												}
+
+												if( vrtxFnd <= 0 )
+												{
+													UG_THROW("vertex not found!" << std::endl);
+												}
+												else if( vrtxFnd > 1 )
+												{
+													UG_THROW("vertex zu oft gefunden " << vrtxFnd << std::endl );
+												}
+												else if ( vrtxFnd == 1 )
+												{
+//													UG_LOG("vertex found abgeschlossen" << std::endl);
+												}
+												else
+												{
+													UG_THROW("vertex finden komisch " << std::endl);
+												}
+
+												//newVrts4Fac[*iterV] = newShiftVrtx;
 											}
 										}
 
