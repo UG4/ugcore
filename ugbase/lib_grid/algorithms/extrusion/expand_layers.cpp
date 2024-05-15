@@ -1699,15 +1699,15 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 												atRightSide = true;
 
-												Vertex * otherFacCent = *grid.create<RegularVertex>();
-												aaPos[otherFacCent] = facCenter;
-												sh.assign_subset(otherFacCent, 5 );
-
-												Vertex * pp = *grid.create<RegularVertex>();
-												aaPos[pp] = perpendicu;
-												sh.assign_subset(pp, 6 );
-
-												sh.assign_subset(*iterFac,7);
+//												Vertex * otherFacCent = *grid.create<RegularVertex>();
+//												aaPos[otherFacCent] = facCenter;
+//												sh.assign_subset(otherFacCent, 5 );
+//
+//												Vertex * pp = *grid.create<RegularVertex>();
+//												aaPos[pp] = perpendicu;
+//												sh.assign_subset(pp, 6 );
+//
+//												sh.assign_subset(*iterFac,7);
 
 
 											}
