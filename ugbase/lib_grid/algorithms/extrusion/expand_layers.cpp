@@ -2156,13 +2156,156 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 	}
 
 
-
 //		// neue Vertizes in der Entfernung der Klüfte von den Klüften weg erzeugen,
 //		// basierend auf den Normalen multipliziert mit der halben Kluftdicke
 //		//für eine Kluft erstmal nur
 //		// die neuen Kanten und Faces erzeugen, die alten falschen Kanten löschen und ebenso die alten Faces
 //		// später auf mehr Klüfte ausdehnen, mit Problemstelle Kreuzung, aber erst, wenn eine Kluft funktioniert
 //
+
+	// TODO FIXME bis hier stimmt es, jetzt Seb Sachen
+
+	////////////////////////////////
+	//	create new elements
+
+	//	first we create new edges from selected ones which are connected to
+	//	inner vertices. This allows to preserve old subsets.
+	//	Since we have to make sure that we use the right vertices,
+	//	we have to iterate over the selected faces and perform all actions on the edges
+	//	of those faces.
+	for(FaceIterator iter_sf = sel.faces_begin(); iter_sf != sel.faces_end(); ++iter_sf)
+	{
+		Face* sf = *iter_sf;
+		//	check for each edge whether it has to be copied.
+		for(size_t i_edge = 0; i_edge < sf->num_edges(); ++i_edge)
+		{
+			Edge* e = grid.get_edge(sf, i_edge);
+
+			if(sel.is_selected(e))
+			{
+				//	check the associated vertices through the volumes aaVrtVecVol attachment.
+				//	If at least one has an associated new vertex and if no edge between the
+				//	new vertices already exists, we'll create the new edge.
+				size_t ind0 = i_edge;
+				size_t ind1 = (i_edge + 1) % sf->num_edges();
+
+				Vertex* nv0 = (aaVrtVecFace[sf])[ind0];
+				Vertex* nv1 = (aaVrtVecFace[sf])[ind1];
+
+				if(nv0 || nv1)
+				{
+					//	if one vertex has no associated new one, then we use the vertex itself
+					if(!nv0)
+						nv0 = sf->vertex(ind0);
+					if(!nv1)
+						nv1 = sf->vertex(ind1);
+
+					//	create the new edge if it not already exists.
+					if(!grid.get_edge(nv0, nv1))
+						grid.create_by_cloning(e, EdgeDescriptor(nv0, nv1), e);
+				}
+			}
+		}
+	}
+
+	//	iterate over all surrounding faces and create new vertices.
+	//	Since faces are replaced on the fly, we have to take care with the iterator.
+	for(FaceIterator iter_sf = sel.faces_begin(); iter_sf != sel.faces_end();)
+	{
+		Face* sf = *iter_sf;
+		++iter_sf;
+
+		vector<Vertex*> newVrts = aaVrtVecFace[sf];
+
+		//	all new vertices have been assigned to newVrts.
+		//	Note that if newVrts[i] == NULL, then we have to take the
+		//	old vertex sf->vertex(i).
+		//	now expand the fracture edges of sf to faces.
+		for(size_t i_vrt = 0; i_vrt < sf->num_vertices(); ++i_vrt)
+		{
+			size_t iv1 = i_vrt;
+			size_t iv2 = (i_vrt + 1) % sf->num_vertices();
+
+			Edge* tEdge = grid.get_edge(sf->vertex(iv1), sf->vertex(iv2));
+
+			if(tEdge)
+			{
+				if( aaMarkEdgeB[tEdge] )
+				{
+					Face* expFace = NULL;
+					if(newVrts[iv1] && newVrts[iv2])
+					{
+						//	create a new quadrilateral
+						expFace = *grid.create<Quadrilateral>(
+										QuadrilateralDescriptor(sf->vertex(iv1), sf->vertex(iv2),
+																newVrts[iv2], newVrts[iv1]));
+					}
+					else if(newVrts[iv1])
+					{
+							//	create a new triangle
+						expFace = *grid.create<Triangle>(
+										TriangleDescriptor(sf->vertex(iv1), sf->vertex(iv2), newVrts[iv1]));
+					}
+					else if(newVrts[iv2])
+					{
+						//	create a new triangle
+						expFace = *grid.create<Triangle>(
+										TriangleDescriptor(sf->vertex(iv1), sf->vertex(iv2), newVrts[iv2]));
+					}
+					else
+					{
+						//	this code-block should never be entered. If it is entered then
+						//	we selected the wrong faces. This is would be a BUG!!!
+						//	remove the temporary attachments and throw an error
+
+						//	remove the temporary attachments
+						grid.detach_from_vertices(aAdjMarker);
+						grid.detach_from_edges(aAdjMarker);
+
+						grid.detach_from_vertices(aAdjMarkerVFP);
+						grid.detach_from_edges(aAdjMarkerB);
+
+						grid.detach_from_vertices( aAdjInfoAVVFT );
+						grid.detach_from_faces(attVrtVec);
+
+						// TODO FIXME auch die weiteren Marker und INfos, alle Attachments, detachen!!!!
+
+						throw(UGError("Implementation error in ExpandFractures2d Arte."));
+					}
+
+					sh.assign_subset(expFace, fracInfosBySubset.at(sh.get_subset_index(tEdge)).newSubsetIndex);
+				}
+			}
+		}
+
+
+		//	now set up a new face descriptor and replace the face.
+		if(fd.num_vertices() != sf->num_vertices())
+			fd.set_num_vertices(sf->num_vertices());
+
+		for(size_t i_vrt = 0; i_vrt < sf->num_vertices(); ++i_vrt)
+		{
+			if(newVrts[i_vrt])
+				fd.set_vertex(i_vrt, newVrts[i_vrt]);
+			else
+				fd.set_vertex(i_vrt, sf->vertex(i_vrt));
+		}
+
+		grid.create_by_cloning(sf, fd, sf);
+		grid.erase(sf);
+	}
+
+	//	we have to clean up unused edges.
+	//	All selected edges with mark 0 have to be deleted.
+	for(EdgeIterator iter = sel.edges_begin(); iter != sel.edges_end();)
+	{
+		//	be careful with the iterator
+		Edge* e = *iter;
+		++iter;
+
+		if(!aaMarkEdgeB[e])
+			grid.erase(e);
+	}
 
 	//	remove the temporary attachments
 	grid.detach_from_vertices(aAdjMarker);
