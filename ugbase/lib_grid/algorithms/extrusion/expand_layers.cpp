@@ -1699,15 +1699,15 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 												atRightSide = true;
 
-//												Vertex * otherFacCent = *grid.create<RegularVertex>();
-//												aaPos[otherFacCent] = facCenter;
-//												sh.assign_subset(otherFacCent, 5 );
-//
-//												Vertex * pp = *grid.create<RegularVertex>();
-//												aaPos[pp] = perpendicu;
-//												sh.assign_subset(pp, 6 );
-//
-//												sh.assign_subset(*iterFac,7);
+												Vertex * otherFacCent = *grid.create<RegularVertex>();
+												aaPos[otherFacCent] = facCenter;
+												sh.assign_subset(otherFacCent, 5 );
+
+												Vertex * pp = *grid.create<RegularVertex>();
+												aaPos[pp] = perpendicu;
+												sh.assign_subset(pp, 6 );
+
+												sh.assign_subset(*iterFac,7);
 
 
 											}
@@ -1938,22 +1938,29 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 				}
 
 
-//				IndexType dbg_lim = vecVertFracTrip[0].size();
-//
-//				int dbg_cnt = 0;
+
+#if NOTLOESUNG_EINSCHALTEN_SEGFAULT_CREATE_VERTEX
+
+				IndexType dbg_lim = vecVertFracTrip.size();
+
+				int dbg_cnt = 0;
+#endif
 
 				for( VvftIterator vvftAtBnd = vecVertFracTrip.begin();
 						vvftAtBnd != vecVertFracTrip.end();
 						vvftAtBnd++
 				)
 				{
-//					if( dbg_lim == dbg_cnt )
-//					{
-//						UG_LOG("DARF NICHT SEIN" << std::endl);
-//						break;
-//					}
-//
-//					dbg_cnt++;
+#if NOTLOESUNG_EINSCHALTEN_SEGFAULT_CREATE_VERTEX
+
+					if( dbg_lim == dbg_cnt )
+					{
+						UG_LOG("DARF NICHT SEIN" << std::endl);
+						break;
+					}
+
+					dbg_cnt++;
+#endif
 
 					// Ziel: den parallelen Anteil der Normalen auf die jeweilige Randkante projizieren
 
@@ -2060,15 +2067,15 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 										atRightSide = true;
 
-//												Vertex * otherFacCent = *grid.create<RegularVertex>();
-//												aaPos[otherFacCent] = facCenter;
-//												sh.assign_subset(otherFacCent, 5 );
-//
-//												Vertex * pp = *grid.create<RegularVertex>();
-//												aaPos[pp] = perpendicu;
-//												sh.assign_subset(pp, 6 );
+												Vertex * otherFacCent = *grid.create<RegularVertex>();
+												aaPos[otherFacCent] = facCenter;
+												sh.assign_subset(otherFacCent, 5 );
 
-//												sh.assign_subset(*iterFac,7);
+												Vertex * pp = *grid.create<RegularVertex>();
+												aaPos[pp] = perpendicu;
+												sh.assign_subset(pp, 6 );
+
+												sh.assign_subset(*iterFac,7);
 
 
 									}
