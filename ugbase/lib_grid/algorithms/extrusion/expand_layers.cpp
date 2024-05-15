@@ -2275,6 +2275,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 						throw(UGError("Implementation error in ExpandFractures2d Arte."));
 					}
 
+					// TODO FIXME selektion closen irgendwie, damit auch alle Randkanten zum subset gehoeren!!!
+
 					sh.assign_subset(expFace, fracInfosBySubset.at(sh.get_subset_index(tEdge)).newSubsetIndex);
 				}
 			}
