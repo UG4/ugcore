@@ -1418,6 +1418,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 					Edge * edgeOne = vvftOne->getEdge();
 
 
+
 					for( VvftIterator vvftTwo = vvftOne + 1;
 							vvftTwo != vecVertFracTrip.end();
 							vvftTwo++
@@ -1452,8 +1453,58 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 							// bei der gleichen Ecke ist es unnötig, da es gegensätzlich sein muss
 
 
+
 							if( edgeOne != edgeTwo )
 							{
+
+								std::vector<Vertex *> nextFracVrt;
+
+								IndexType foundThisVrtOne = 0;
+
+								for( size_t i = 0; i < 2; ++i )
+								{
+									Vertex * vrtEdgEnd = edgeOne->vertex(i);
+
+									if( vrtEdgEnd == *iterV )
+									{
+										foundThisVrtOne++;
+									}
+									else
+									{
+										nextFracVrt.push_back( vrtEdgEnd );
+									}
+
+								}
+
+								if( foundThisVrtOne != 1 )
+								{
+									UG_THROW("zu viel zu wenig vertizex one " << std::endl);
+								}
+
+
+								IndexType foundThisVrtTwo = 0;
+
+								for( size_t i = 0; i < 2; ++i )
+								{
+									Vertex * vrtEdgEnd = edgeTwo->vertex(i);
+
+									if( vrtEdgEnd == *iterV )
+									{
+										foundThisVrtTwo++;
+									}
+									else
+									{
+										nextFracVrt.push_back( vrtEdgEnd );
+									}
+
+								}
+
+								if( foundThisVrtTwo != 1 )
+								{
+									UG_THROW("zu viel zu wenig vertizex two " << std::endl);
+								}
+
+
 
 								vector3 nTwo = vvftTwo->getNormal();
 
@@ -1614,6 +1665,36 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 											//  perpendicular to the edge
 											// TODO FIXME
 											// KAESE!!!
+
+											vector3 facCenter = CalculateCenter( *iterFac, aaPos );
+
+											vector3 perpendicu;
+
+											if( nextFracVrt.size() != 2 )
+											{
+												UG_THROW("komische Groesse" << std::endl);
+											}
+
+											DropAPerpendicular(perpendicu, facCenter, aaPos[nextFracVrt[0]], aaPos[nextFracVrt[1]]);
+
+											vector3 tmpN;
+
+											VecSubtract(tmpN, facCenter, perpendicu );
+
+											VecNormalize(tmpN, tmpN);
+
+											number cosBetwFracEdgAndDirection2Face = VecDot(tmpN, normSumNormed );
+
+											if( cosBetwFracEdgAndDirection2Face > 1 )
+											{
+												UG_LOG("assuming face to be on richt side" << std::endl);
+												atRightSide = true;
+											}
+											else
+											{
+												UG_LOG("assuming face to be on wrong side" << std::endl);
+											}
+
 
 										}
 
