@@ -1539,6 +1539,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 
 
+									// fuer was braucheh wir das eigentlich? selber schon vergessen.....
 
 									ExpandVertexMultiplett vrtMtpl( attEdg, attFac, normSumNormed );
 
@@ -1599,57 +1600,77 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 												static_assert( std::is_same< decltype( const_cast<Face* & >(facFrac) ), Face * & >::value  );
 												static_assert( std::is_same< decltype( const_cast<Face* & >(facFrac) ), decltype( * iterFac ) >::value  );
 
+											}
+										}
+
+										bool atRightSide = false;
+
+										if( isFromFrac )
+											atRightSide = true;
+
+										if( !isFromFrac )
+										{
+											// check if on same side of edge where the normal points to: compute cosinus between vector of face center
+											//  perpendicular to the edge
+											// TODO FIXME
+											atRightSide = true;
+											// KAESE!!!
+
+										}
+
+										if( isFromFrac ) // atRightSide ) NOCH FALSCH TODO FIXME muss nur auf richtiger Seite sein
+										{
 
 
-												// ACHTUNG neue Variable Face klein geschrieben im Gegensatz zu Prof. Reiter! nicht später falsche verwenden!
-												vector<Vertex*>& newVrts4Fac = aaVrtVecFace[ * iterFac ];
+											// ACHTUNG neue Variable Face klein geschrieben im Gegensatz zu Prof. Reiter! nicht später falsche verwenden!
+											vector<Vertex*>& newVrts4Fac = aaVrtVecFace[ * iterFac ];
 
-												IndexType vrtxFnd = 0;
+											IndexType vrtxFnd = 0;
 
-												for(size_t indVrt = 0; indVrt < (*iterFac)->num_vertices();  indVrt++ )
+											for(size_t indVrt = 0; indVrt < (*iterFac)->num_vertices();  indVrt++ )
+											{
+												Vertex* facVrt = (*iterFac)->vertex(indVrt);
+
+												if(  facVrt == *iterV )
 												{
-													Vertex* facVrt = (*iterFac)->vertex(indVrt);
-
-													if(  facVrt == *iterV )
-													{
-														newVrts4Fac[ indVrt ] = newShiftVrtx;
-//														UG_LOG("vertex found " <<  indVrt << std::endl );
-														vrtxFnd++;
-													}
+													newVrts4Fac[ indVrt ] = newShiftVrtx;
+	//													UG_LOG("vertex found " <<  indVrt << std::endl );
+													vrtxFnd++;
 												}
-
-
-
-												if( vrtxFnd <= 0 )
-												{
-													UG_THROW("vertex not found!" << std::endl);
-												}
-												else if( vrtxFnd > 1 )
-												{
-													UG_THROW("vertex zu oft gefunden " << vrtxFnd << std::endl );
-												}
-												else if ( vrtxFnd == 1 )
-												{
-//													UG_LOG("vertex found abgeschlossen" << std::endl);
-												}
-												else
-												{
-													UG_THROW("vertex finden komisch " << std::endl);
-												}
-
 											}
 
-											dbg_innterFacFracIt++;
+
+											if( vrtxFnd <= 0 )
+											{
+												UG_THROW("vertex not found!" << std::endl);
+											}
+											else if( vrtxFnd > 1 )
+											{
+												UG_THROW("vertex zu oft gefunden " << vrtxFnd << std::endl );
+											}
+											else if ( vrtxFnd == 1 )
+											{
+	//												UG_LOG("vertex found abgeschlossen" << std::endl);
+											}
+											else
+											{
+												UG_THROW("vertex finden komisch " << std::endl);
+											}
+
 
 										}
 
+										dbg_innterFacFracIt++;
 
 
-										if( ! isFromFrac )
-										{
-											// Vektor zum Zentrum von KNoten aus berechnen und Winkel zur Normalen bestimmen zur Unterscheidung der Seite
-											// wenn auf richtiger Seite, zuweisen
-										}
+
+//
+//
+//										if( ! isFromFrac )
+//										{
+//											// Vektor zum Zentrum von KNoten aus berechnen und Winkel zur Normalen bestimmen zur Unterscheidung der Seite
+//											// wenn auf richtiger Seite, zuweisen
+//										}
 
 										dbg_FaceIterator++;
 
@@ -1659,7 +1680,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 								}
 								else
 								{
-									// andere Seite vermutet
+									// andere Seite vermutet, nichts tun!
 								}
 
 
@@ -1835,30 +1856,108 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 							sh.assign_subset(newShiftEdgVrtx, subsIndEdgOF );
 
+							std::vector<Edge * > attEdg;
+							std::vector<Face * > attFac;
+
+							attEdg.push_back(edgeOfFrac);
+
+							Face * facFrac = vvftAtBnd->getFace();
+
+							attFac.push_back( facFrac );
+
+							// we store the boundary edge direction for boundary verzizes rather than the normal, in contrast to inner vertizes, where we store the averaged normal
+							ExpandVertexMultiplett vrtMtpl( attEdg, attFac, bED );
+
+							aaVrtExpMP[ *iterV ].push_back( vrtMtpl );
+
+							// the attached faces need to know that they need a new vertex to be shifted
+							for( std::vector<Face *>::iterator iterFac = grid.associated_faces_begin(*iterV); iterFac != grid.associated_faces_end(*iterV); iterFac++ )
+							{
+								bool isFromFrac = false;
+
+								for( auto const & facFrac : attFac )
+								{
+									if( *iterFac == facFrac )
+									{
+										isFromFrac = true;
+									}
+								}
+
+								bool atRightSide = false;
+
+								if( isFromFrac )
+									atRightSide = true;
+
+								if( !isFromFrac )
+								{
+									// check if on same side of edge where the normal points to: compute cosinus between vector of face center
+									//  perpendicular to the edge
+									// TODO FIXME
+									atRightSide = true;
+									// KAESE!!!
+								}
+
+								if( isFromFrac ) // atRightSide ) NOCH FALSCH TODO FIXME muss nur auf richtiger Seite sein
+								{
+
+
+									vector<Vertex*>& newVrts4Fac = aaVrtVecFace[ * iterFac ];
+
+									IndexType vrtxFnd = 0;
+
+									for(size_t indVrt = 0; indVrt < (*iterFac)->num_vertices();  indVrt++ )
+									{
+										Vertex* facVrt = (*iterFac)->vertex(indVrt);
+
+										if(  facVrt == *iterV )
+										{
+											newVrts4Fac[ indVrt ] = newShiftEdgVrtx;
+											vrtxFnd++;
+										}
+									}
+
+
+
+									if( vrtxFnd <= 0 )
+									{
+										UG_THROW("vertex not found bnd!" << std::endl);
+									}
+									else if( vrtxFnd > 1 )
+									{
+										UG_THROW("vertex zu oft gefunden bnd " << vrtxFnd << std::endl );
+									}
+									else if ( vrtxFnd == 1 )
+									{
+//														UG_LOG("vertex found abgeschlossen" << std::endl);
+									}
+									else
+									{
+										UG_THROW("vertex finden bnd komisch " << std::endl);
+									}
+								}
+
+							}
+
+
+
 						}
-
 					}
-
 				}
 
-
-
-
-				UG_LOG("END THIS BOUNDARY VERTEX" << std::endl);
-
-
-
 			}
-			else // fractures are crossing
+			else // fractures are crossing at boundary even
 			{
 
 			}
 
+
+			UG_LOG("END THIS BOUNDARY VERTEX" << std::endl);
 		}
 
 		dbg_vertizesPassiert++;
 
 	}
+
 
 
 //		// neue Vertizes in der Entfernung der Klüfte von den Klüften weg erzeugen,
