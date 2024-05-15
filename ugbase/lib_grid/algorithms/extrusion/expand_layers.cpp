@@ -2067,7 +2067,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 //												Vertex * pp = *grid.create<RegularVertex>();
 //												aaPos[pp] = perpendicu;
 //												sh.assign_subset(pp, 6 );
-//
+
 //												sh.assign_subset(*iterFac,7);
 
 
