@@ -969,10 +969,11 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 	}
 
 
-
+	int dbg_flachen_passiert = 0;
 
 	for(VertexIterator iter = sel.begin<Vertex>(); iter != sel.end<Vertex>(); ++iter)
 	{
+
 		bool wahl = true;
 
 		// so stimmt es vielleicht, aber ist auch ein komischer Fall, innen expandieren und aussen nicht...... die Frage ist, ob es oonst Sinn macht.....
@@ -990,6 +991,9 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 						grid.associated_edges_end(*iter));
 			sel.select(grid.associated_faces_begin(*iter),
 						grid.associated_faces_end(*iter));
+
+			// TODO FIXME hier ein attachment der associated faces und vertizes, am besten als Klasse, die std vertizes davon frisst, an jeden Vertex anhängen
+			// so muss man später nicht nochmal über alle Faces und Edges laufen, sondern hat die angehängten schon zur Hand
 
 			// testen, ob ein Schnittvertex vor liegt, indem die Anzahl der touches getestet wird, anhand einfacher Geometrien testen, was die Anzahl ist
 
@@ -1683,32 +1687,61 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 											VecNormalize(tmpN, tmpN);
 
+											UG_LOG("Normale zum Face ist " << tmpN << std::endl);
+
 											number cosBetwFracEdgAndDirection2Face = VecDot(tmpN, normSumNormed );
 
-											Vertex * otherFacCent = *grid.create<RegularVertex>();
-											aaPos[otherFacCent] = facCenter;
+											UG_LOG("Cosinus zur Normalen ist " << cosBetwFracEdgAndDirection2Face << std::endl);
 
-											sh.assign_subset(otherFacCent, 5 );
-
-											Vertex * pp = *grid.create<RegularVertex>();
-											aaPos[pp] = perpendicu;
-
-											sh.assign_subset(otherFacCent, 5 );
-											sh.assign_subset(pp, 6 );
-
-
-											if( cosBetwFracEdgAndDirection2Face > 1 )
+											if( cosBetwFracEdgAndDirection2Face > 0 )
 											{
 												UG_LOG("assuming face to be on richt side" << std::endl);
+
 												atRightSide = true;
+
+												Vertex * otherFacCent = *grid.create<RegularVertex>();
+												aaPos[otherFacCent] = facCenter;
+												sh.assign_subset(otherFacCent, 5 );
+
+												Vertex * pp = *grid.create<RegularVertex>();
+												aaPos[pp] = perpendicu;
+												sh.assign_subset(pp, 6 );
+
+												sh.assign_subset(*iterFac,7);
+
+
 											}
 											else
 											{
 												UG_LOG("assuming face to be on wrong side" << std::endl);
 											}
 
+//											if( dbg_flachen_passiert == 0 )
+//											{
+//												UG_LOG("passiert " << dbg_flachen_passiert << std::endl);
+//
+//												Vertex * otherFacCent = *grid.create<RegularVertex>();
+//												aaPos[otherFacCent] = facCenter;
+//												sh.assign_subset(otherFacCent, 5 );
+//
+//												Vertex * pp = *grid.create<RegularVertex>();
+//												aaPos[pp] = perpendicu;
+//												sh.assign_subset(pp, 6 );
+//
+//												sh.assign_subset(*iterFac,7);
+//
+//
+//												sh.assign_subset(*iterFac,3);
+//
+//												UG_LOG("is from frac " << isFromFrac << std::endl);
+//
+//												return true;
+//											}
 
+
+											dbg_flachen_passiert++;
 										}
+
 
 										if( atRightSide ) // atRightSide ) NOCH FALSCH TODO FIXME muss nur auf richtiger Seite sein
 										{
@@ -1769,6 +1802,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 									}
 
 
+
+
 								}
 								else
 								{
@@ -1811,7 +1846,10 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 			}
 
 		}
-		else // different treatment for boundary vertizes
+//
+//		//	TODO WIEDER EIN	else  // different treatment for boundary vertizes
+//		if( false )
+		else
 		{
 
 			if( numFracsCrossAtVrt < 1 )
@@ -1900,11 +1938,22 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 				}
 
 
+//				IndexType dbg_lim = vecVertFracTrip[0].size();
+//
+//				int dbg_cnt = 0;
+
 				for( VvftIterator vvftAtBnd = vecVertFracTrip.begin();
 						vvftAtBnd != vecVertFracTrip.end();
 						vvftAtBnd++
 				)
 				{
+//					if( dbg_lim == dbg_cnt )
+//					{
+//						UG_LOG("DARF NICHT SEIN" << std::endl);
+//						break;
+//					}
+//
+//					dbg_cnt++;
 
 					// Ziel: den parallelen Anteil der Normalen auf die jeweilige Randkante projizieren
 
