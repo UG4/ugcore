@@ -1253,6 +1253,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 	for(VertexIterator iterV = sel.begin<Vertex>(); iterV != sel.end<Vertex>(); ++iterV)
 	{
 
+		// POsition dieses Vertex
+		vector3 posOldVrt = aaPos[*iterV];
 
 		// vielleicht muss man, wenn die neuen Vertizes da sind, diese auch gleich mit den umliegenden Knoten per neuer Kanten verbinden
 		// und die neuen faces erzeugen nach Löschen der alten?
@@ -1295,6 +1297,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 		UG_LOG("vertex at " << posThisVrt << std::endl );
 
 		bool vrtxIsBndVrt = aaMarkVrtVFP[*iterV].getIsBndFracVertex();
+		// alternativ wäre möglich: IsBoundaryVertex2D(grid, *iterV)
 
 		UG_LOG("is bndry " << vrtxIsBndVrt << std::endl);
 
@@ -1467,7 +1470,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 								{
 									// gleiche Seite vermutet
 
-									// sind die edges dieselben? pruefen! gleiche unnoetig
+									// sind die edges dieselben? pruefen! gleiche unnoetig - wird oben schon abgefragt
 
 									// Klasse schreiben, die als attachment an einen Fracture-Vertex
 									// die neuen Vertizes samt ihrer gemittelten Normalen speichert
@@ -1502,8 +1505,6 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 									// sonst ist das attachment Schwachsinn!
 
 									vector3 posNewVrt;
-
-									vector3 posOldVrt = aaPos[*iterV];
 
 									vector3 moveVrt;
 
@@ -1722,27 +1723,125 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 				// angehängt werden; der Winkel zur Normalen hilft später, die Seite
 				// heraus zu finden, Seite von den Edges
 
+				// get  edges adjacent to this vertex which lie on the boundary of the domain
+
+				std::vector<Edge* > adjBndEdgs;
 
 
-				for( VvftIterator vvftBnd = vecVertFracTrip.begin();
-						vvftBnd != vecVertFracTrip.end();
-						vvftBnd++
+				for( std::vector<Edge*>::iterator iterBVEdg = grid.associated_edges_begin(*iterV); iterBVEdg != grid.associated_edges_end(*iterV); iterBVEdg++  )
+				{
+					if( IsBoundaryEdge2D(grid,*iterBVEdg) )
+					{
+						adjBndEdgs.push_back( *iterBVEdg );
+					}
+				}
+
+				// to compute the normals, compute the vector of the edge and normalize it
+				std::vector<vector3> bndEdgeDirection;
+
+				for( auto const & bE : adjBndEdgs )
+				{
+
+					// get vertices, i.e. get seocnd vertex, first one must be known
+
+//					std::vector<Vertex* > verticesEdg;
+
+					static_assert( std::is_same< Edge* const &, decltype( bE ) >::value );
+
+					static_assert( std::is_same< Vertex*, decltype( bE->vertex(0) ) >::value );
+
+					IndexType fndIV = 0;
+
+					Vertex * vrtOtherEdg;
+					vrtOtherEdg = NULL;
+
+					for( size_t i = 0; i < 2; ++i )
+					{
+//						verticesEdg.push_back( adjBndEdgs.vertex(i) );
+
+						Vertex * vrtOfEdg = bE->vertex(i);
+
+						if( vrtOfEdg == *iterV )
+						{
+							fndIV++;
+						}
+						else
+						{
+							vrtOtherEdg = vrtOfEdg;
+						}
+					}
+
+					vector3 posOtherVrt = aaPos[vrtOtherEdg];
+
+					UG_LOG("BOUNDARY EDGE VERTIZES " << posOldVrt << ", " << posOtherVrt << std::endl);
+
+					vector3 fromIterV2Other;
+
+					VecSubtract(fromIterV2Other, posOtherVrt, posOldVrt);
+
+					vector3 nV;
+
+					VecNormalize(nV, fromIterV2Other);
+
+					bndEdgeDirection.push_back(nV);
+				}
+
+
+				for( VvftIterator vvftAtBnd = vecVertFracTrip.begin();
+						vvftAtBnd != vecVertFracTrip.end();
+						vvftAtBnd++
 				)
 				{
 
+					// Ziel: den parallelen Anteil der Normalen auf die jeweilige Randkante projizieren
 
+					vector3 nrmEdg = vvftAtBnd->getNormal();
 
+					Edge * edgeOfFrac = vvftAtBnd->getEdge();
+
+					// figure out the adjoint boundary edge into the same direction
+
+					// the normal in both directions have to be compared with the vectors in direction of boundary edges
+					for( auto bED : bndEdgeDirection )
+					{
+						// check orientation of boundary edges wrt the normals
+
+						number cosinus = VecDot( nrmEdg, bED );
+
+						UG_LOG("BOUNDARY COSINUS between " << nrmEdg << " and " << bED << " -> " << cosinus << std::endl);
+
+						if( cosinus > 0 )
+						{
+							// gleiche Seite vermutet
+
+							// muessen wissen, wie lange das gestreckt werden soll
+
+							vector3 alongEdgV;
+
+							auto subsIndEdgOF = sh.get_subset_index(edgeOfFrac);
+
+							number width = fracInfosBySubset.at(subsIndEdgOF).width;
+
+							VecScale( alongEdgV,bED, width);
+
+							vector3 posNewVrtOnBnd;
+
+							VecAdd(posNewVrtOnBnd, posOldVrt, alongEdgV );
+
+							UG_LOG("neuer Vertex Edge " << posNewVrtOnBnd << std::endl );
+
+							Vertex * newShiftEdgVrtx = *grid.create<RegularVertex>();
+							aaPos[newShiftEdgVrtx] = posNewVrtOnBnd;
+
+							sh.assign_subset(newShiftEdgVrtx, subsIndEdgOF );
+
+						}
+
+					}
 
 				}
 
 
-//				// Ziel: die beiden parallelen Normalen mitteln, und in die jeweiligen beiden Richtungen je einen neuen Vertex erzeugen
-//				// irgendwie muss der Vertex oder die Edge besser sogar wissen, dass sie einen neuen Verschiebevertex bekommen hat
-//				// denn später müssen neue Edges und neue Faces basierend auf den neuen Vertizes erzeugt werden
-//				// vielleicht braucht die edge und das face ein Attachment, das ihnen das sagt, ähnlihc wie VertexTrible std Vektoren?
-//
-//
-//
 
 
 				UG_LOG("END THIS BOUNDARY VERTEX" << std::endl);
