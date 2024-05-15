@@ -798,6 +798,10 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 #define NOTLOESUNG_EINSCHALTEN_SEGFAULT_CREATE_VERTEX 1
 #endif
 
+#ifndef ANSCHAULICH_ERZEUGE_SUDOS_ANHANG
+#define ANSCHAULICH_ERZEUGE_SUDOS_ANHANG 1
+#endif
+
 
 bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>& fracInfos,
 						bool expandInnerFracBnds, bool expandOuterFracBnds)
@@ -1699,6 +1703,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 												atRightSide = true;
 
+#if ANSCHAULICH_ERZEUGE_SUDOS_ANHANG
+
 												Vertex * otherFacCent = *grid.create<RegularVertex>();
 												aaPos[otherFacCent] = facCenter;
 												sh.assign_subset(otherFacCent, 5 );
@@ -1708,7 +1714,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 												sh.assign_subset(pp, 6 );
 
 												sh.assign_subset(*iterFac,7);
-
+#endif
 
 											}
 											else
@@ -2067,6 +2073,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 										atRightSide = true;
 
+#if ANSCHAULICH_ERZEUGE_SUDOS_ANHANG
 												Vertex * otherFacCent = *grid.create<RegularVertex>();
 												aaPos[otherFacCent] = facCenter;
 												sh.assign_subset(otherFacCent, 5 );
@@ -2076,6 +2083,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 												sh.assign_subset(pp, 6 );
 
 												sh.assign_subset(*iterFac,7);
+#endif
 
 
 									}
