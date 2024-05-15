@@ -19,6 +19,8 @@
 #include <boost/graph/properties.hpp> // put_get_helper
 #include <boost/iterator/counting_iterator.hpp>
 
+#include <cstdint> // for std::intmax_t
+
 namespace boost{
 
 using ug::iszero; // for now
