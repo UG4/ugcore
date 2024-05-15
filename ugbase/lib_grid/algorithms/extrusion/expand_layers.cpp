@@ -1277,6 +1277,9 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 		}
 
+		using VvftIterator = VecVertFracTrip::iterator;
+
+
 		// Anzahl der Kreuzungspunkte auslesen und danach unterscheiden, erstmal keine Kreuzung! TODO FIXME
 
 		// irgendwie muessen wir diese Infos jetzt verwerten, um als erstes neue Vertizes zu erzeugen, anfangs für eine Kluft nur
@@ -1329,7 +1332,6 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 				// angehängt werden; der Winkel zur Normalen hilft später, die Seite
 				// heraus zu finden, Seite von den Edges
 
-				using VvftIterator = VecVertFracTrip::iterator;
 
 
 				int dbg_iteratorAblaufen = 0;
@@ -1405,8 +1407,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 					}
 
 					int dbg_laenge_zwei = dbg_laenge_eins;
-					int dbg_zweiterIteratorAblaufen = 0;
 #endif
+					int dbg_zweiterIteratorAblaufen = 0;
 
 					vector3 nOne = vvftOne->getNormal();
 
@@ -1697,6 +1699,61 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 		}
 		else // different treatment for boundary vertizes
 		{
+
+			if( numFracsCrossAtVrt < 1 )
+			{
+				UG_THROW("no fracs crossing but marked vertex at boundary? << std::endl");
+			}
+
+			if( numFracsCrossAtVrt == 1 ) // no crossing point  at boundary
+			{
+				// in this case, we have ONE attached edges, the edges has two attached faces
+				// the faces have a naormal, and based on the normal, we can decide which faces belong to the same side of the edges
+
+				if( numbAttTripl != 2 )
+				{
+					UG_THROW("Anzahl der angehaengten Triples kann nicht stimmen, Vertex einer Kluft ohne Schnittpunkte  am Rand " << std::endl);
+				}
+
+				// Zuordnung der Edges und Faces, die auf der gleichen Seite der fracture sind
+
+				// und gleich auch Erzeugung der neuen Knoten, die dann
+				// in einem Doublett zusammen mit ihren Normalen an die alten Vertizes
+				// angehängt werden; der Winkel zur Normalen hilft später, die Seite
+				// heraus zu finden, Seite von den Edges
+
+
+
+				for( VvftIterator vvftBnd = vecVertFracTrip.begin();
+						vvftBnd != vecVertFracTrip.end();
+						vvftBnd++
+				)
+				{
+
+
+
+
+				}
+
+
+//				// Ziel: die beiden parallelen Normalen mitteln, und in die jeweiligen beiden Richtungen je einen neuen Vertex erzeugen
+//				// irgendwie muss der Vertex oder die Edge besser sogar wissen, dass sie einen neuen Verschiebevertex bekommen hat
+//				// denn später müssen neue Edges und neue Faces basierend auf den neuen Vertizes erzeugt werden
+//				// vielleicht braucht die edge und das face ein Attachment, das ihnen das sagt, ähnlihc wie VertexTrible std Vektoren?
+//
+//
+//
+
+
+				UG_LOG("END THIS BOUNDARY VERTEX" << std::endl);
+
+
+
+			}
+			else // fractures are crossing
+			{
+
+			}
 
 		}
 
