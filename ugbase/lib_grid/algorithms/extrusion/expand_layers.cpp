@@ -799,7 +799,7 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 #endif
 
 #ifndef ANSCHAULICH_ERZEUGE_SUDOS_ANHANG
-#define ANSCHAULICH_ERZEUGE_SUDOS_ANHANG 1
+#define ANSCHAULICH_ERZEUGE_SUDOS_ANHANG 0
 #endif
 
 
