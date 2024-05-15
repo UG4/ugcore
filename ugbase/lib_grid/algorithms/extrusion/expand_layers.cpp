@@ -1685,6 +1685,18 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 											number cosBetwFracEdgAndDirection2Face = VecDot(tmpN, normSumNormed );
 
+											Vertex * otherFacCent = *grid.create<RegularVertex>();
+											aaPos[otherFacCent] = facCenter;
+
+											sh.assign_subset(otherFacCent, 5 );
+
+											Vertex * pp = *grid.create<RegularVertex>();
+											aaPos[pp] = perpendicu;
+
+											sh.assign_subset(otherFacCent, 5 );
+											sh.assign_subset(pp, 6 );
+
+
 											if( cosBetwFracEdgAndDirection2Face > 1 )
 											{
 												UG_LOG("assuming face to be on richt side" << std::endl);
