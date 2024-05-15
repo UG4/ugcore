@@ -30,13 +30,8 @@
 
 cmake_minimum_required(VERSION 2.8.12)
 
+# Creating python library for 'ugcore'
 project(UG_PYBIND11)
-####
-# uginterface Library
-####
-
-# Python binding (requires C++11).
-#find_package(pybind11 REQUIRED)
 
 if(USE_PYBIND11)
 	SET(pyPluginName ug4py) # Must match module name!
@@ -45,5 +40,7 @@ if(USE_PYBIND11)
   		CXX_STANDARD 11 
   		CXX_STANDARD_REQUIRED YES
    		CXX_EXTENSIONS NO)
-	target_link_libraries (${pyPluginName} PRIVATE ug4)
+   		
+   	# '$targetLibraryName' is either ug4 or ug4_s	
+	target_link_libraries (${pyPluginName} PRIVATE ${targetLibraryName})
 endif(USE_PYBIND11)
