@@ -1997,7 +1997,9 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 							number width = fracInfosBySubset.at(subsIndEdgOF).width;
 
-							VecScale( alongEdgV,bED, width);
+							number scal = width / 2. / cosinus;
+
+							VecScale( alongEdgV, bED, scal );
 
 							vector3 posNewVrtOnBnd;
 
