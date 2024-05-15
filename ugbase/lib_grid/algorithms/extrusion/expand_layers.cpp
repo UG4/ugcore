@@ -860,6 +860,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 	grid.attach_to_edges_dv(aAdjMarkerB, false);
 	Grid::EdgeAttachmentAccessor<ABool> aaMarkEdgeB(grid, aAdjMarkerB);
 
+
 	// die Vertizes, Faces und Edges, die mit einer Kluft zu tun haben
 
 	using VertFracTrip = VertexFractureTriple<Edge*, Face*, vector3>;
@@ -1238,6 +1239,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 	UG_LOG("loop over all marked vertizes " << std::endl);
 
+	int dbg_vertizesPassiert = 0;
+
 	// jetzt können wir alle Vertizes ablaufen und an ihnen neue Vertizes erzeugen, die anhand der gemittelten Normalen von den Vertizes weg gehen
 	// ob zwei anhängende Faces auf der gleichen Seite liegen, wenn es kein Schnittvertex von zwei oder mehr Klüften ist
 	// das kann man anhand des Winkels zwischen zwei face Normalen unterscheiden vermutlich
@@ -1246,6 +1249,7 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 	// muss auch mit dem Winkel zu tun haben
 	for(VertexIterator iterV = sel.begin<Vertex>(); iterV != sel.end<Vertex>(); ++iterV)
 	{
+
 
 		// vielleicht muss man, wenn die neuen Vertizes da sind, diese auch gleich mit den umliegenden Knoten per neuer Kanten verbinden
 		// und die neuen faces erzeugen nach Löschen der alten?
@@ -1298,14 +1302,17 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 		if( ! vrtxIsBndVrt )
 		{
+
 			if( numFracsCrossAtVrt < 1 )
 			{
 				UG_THROW("no fracs crossing but marked vertex? << std::endl");
 			}
+
 			if( numFracsCrossAtVrt == 1 ) // free line of fracture, no crossing point, not at boundary
 			{
 				// in this case, we have two attached edges, and each of these edges has two attached faces
 				// the faces have a naormal, and based on the normal, we can decide which faces belong to the same side of the edges
+
 
 				if( numbAttTripl != 4 )
 				{
@@ -1321,20 +1328,96 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 				using VvftIterator = VecVertFracTrip::iterator;
 
+				int dbg_iteratorAblaufen = 0;
+
+				int dbg_laenge = 0;
+
+				for( auto const & vft : vecVertFracTrip )
+				{
+					dbg_laenge++;
+
+					UG_LOG("VERTEXFRACTRIP" << std::endl);
+
+					vector3 ve = vft.getNormal();
+
+					UG_LOG("NORMAL " << ve << std::endl);
+
+					UG_LOG("laenge " << dbg_laenge << std::endl );
+				}
+
+
+				UG_LOG("SINGLE" << std::endl);
+
 				for( VvftIterator vvftOne = vecVertFracTrip.begin();
 						vvftOne != vecVertFracTrip.end() - 1;
 						vvftOne++
 				)
 				{
-					vector3 nOne = vvftOne->getNormal();
+
 
 					Edge * edgeOne = vvftOne->getEdge();
+					vector3 nOne = vvftOne->getNormal();
+
 
 					for( VvftIterator vvftTwo = vvftOne + 1;
 							vvftTwo != vecVertFracTrip.end();
 							vvftTwo++
 					)
 					{
+						Edge * edgeTwo = vvftTwo->getEdge();
+						vector3 nTwo = vvftTwo->getNormal();
+
+						number cosinus = VecDot( nOne, nTwo );
+						if( edgeOne != edgeTwo )
+						{
+							UG_LOG("COSI  between " << nOne << " and " << nTwo << " -> " << cosinus << std::endl );
+						}
+
+					}
+				}
+
+				UG_LOG("SINGLE END" << std::endl);
+
+				int dbg_laenge_eins = 0;
+
+				for( VvftIterator vvftOne = vecVertFracTrip.begin();
+						vvftOne != vecVertFracTrip.end() - 1;
+						vvftOne++
+				)
+				{
+
+					dbg_laenge_eins++;
+
+					if( dbg_laenge_eins > dbg_laenge )
+					{
+						break;
+					}
+
+					int dbg_laenge_zwei = dbg_laenge_eins;
+
+					vector3 nOne = vvftOne->getNormal();
+
+					Edge * edgeOne = vvftOne->getEdge();
+
+
+					int dbg_zweiterIteratorAblaufen = 0;
+
+					for( VvftIterator vvftTwo = vvftOne + 1;
+							vvftTwo != vecVertFracTrip.end();
+							vvftTwo++
+					)
+					{
+						dbg_laenge_zwei++;
+
+						if( dbg_laenge_zwei > dbg_laenge )
+						{
+							break;
+						}
+
+						UG_LOG("NORMAL ONE " << vvftOne->getNormal() << std::endl);
+						UG_LOG("NORMAL TWO " << vvftTwo->getNormal() << std::endl);
+						UG_LOG("LAENGE EINZ ZWO " << dbg_laenge_eins << " " << dbg_laenge_zwei << std::endl );
+
 						// dieselben brauchen wir nicht vergleichen
 						if( vvftOne == vvftTwo )
 						{
@@ -1343,10 +1426,12 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 						}
 						else
 						{
+
 							Edge * edgeTwo = vvftTwo->getEdge();
 
 							// noch testen, ob nicht die Kante dieselbe ist, geht das?
 							// bei der gleichen Ecke ist es unnötig, da es gegensätzlich sein muss
+
 
 							if( edgeOne != edgeTwo )
 							{
@@ -1357,8 +1442,32 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 								bool vz = ! std::signbit(cosinus);
 
-								UG_LOG("cosinus between " << nOne << " and " << nTwo << " -> " << cosinus << std::endl );
+								UG_LOG("cosinus " << dbg_vertizesPassiert << " between " << nOne << " and " << nTwo << " -> " << cosinus << std::endl );
 								//UG_LOG("sign between " << nOne << " and " << nTwo << " -> " << vz << std::endl );
+
+//								UG_LOG("----------------------" << std::endl );
+//
+//
+////								if(    dbg_vertizesPassiert == 1
+////									&& dbg_iteratorAblaufen == 1
+////									&& dbg_zweiterIteratorAblaufen == 1
+////									&& dbg_FaceIterator == 4
+////									//&& dbg_innterFacFracIt == 0
+////								)
+//								{
+//
+//									UG_LOG("debug output cos " << std::endl);
+//									UG_LOG("dbg_vertizesPassiert " << dbg_vertizesPassiert << std::endl );
+//									UG_LOG("dbg_iteratorAblaufen " << dbg_iteratorAblaufen << std::endl );
+//									UG_LOG("dbg_zweiterIteratorAblaufen "  << dbg_zweiterIteratorAblaufen << std::endl);
+////									UG_LOG("dbg_FaceIterator " << dbg_FaceIterator << std::endl);
+//									//UG_LOG("dbg_innterFacFracIt " << dbg_innterFacFracIt << std::endl);
+//
+//									//return true;
+//								}
+//
+//
+//								UG_LOG("----------------------" << std::endl );
 
 
 								if( cosinus > 0 )
@@ -1409,10 +1518,14 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 									auto subsIndEdgTwo = sh.get_subset_index(edgeTwo);
 
+
 									if( subsIndEdgOne != subsIndEdgTwo )
 									{
 										UG_THROW("subsets passen nicht" << std::endl );
 									}
+
+
+
 
 									number width = fracInfosBySubset.at(subsIndEdgOne).width;
 
@@ -1421,18 +1534,22 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 									VecAdd(posNewVrt, posOldVrt, moveVrt );
 
+									UG_LOG("neuer Vertex " << posNewVrt << std::endl );
+
 									Vertex * newShiftVrtx = *grid.create<RegularVertex>();
 									aaPos[newShiftVrtx] = posNewVrt;
 
-									// das ist Käse
 									sh.assign_subset(newShiftVrtx, subsIndEdgOne );
 
+#if 1
 
-									UG_LOG("neuer Vertex " << posNewVrt << std::endl );
+
 
 									ExpandVertexMultiplett vrtMtpl( attEdg, attFac, normSumNormed );
 
 									aaVrtExpMP[ *iterV ].push_back( vrtMtpl );
+
+
 
 									// alle anhängenden faces müssen noch zu wissen bekommen
 									// dass es diesen neuen Vertex gibt, nicht nur die
@@ -1452,6 +1569,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 									// nicht von Kluft selber, sondern quasi verschoben
 									// und neu erzeugt
 
+									int dbg_FaceIterator = 0;
+
 //									for( auto iterFac = grid.associated_faces_begin(*iterV); iterFac != grid.associated_faces_end(*iterV); iterFac++ )
 									for( std::vector<Face *>::iterator iterFac = grid.associated_faces_begin(*iterV); iterFac != grid.associated_faces_end(*iterV); iterFac++ )
 									{
@@ -1463,8 +1582,34 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 //
 //										}
 
+										int dbg_innterFacFracIt = 0;
+
 										for( auto const & facFrac : attFac )
 										{
+
+//											UG_LOG("----------------------" << std::endl );
+//
+//
+//											if(    dbg_vertizesPassiert == 1
+//												&& dbg_iteratorAblaufen == 1
+//												&& dbg_zweiterIteratorAblaufen == 1
+//												&& dbg_FaceIterator == 4
+//												//&& dbg_innterFacFracIt == 0
+//											)
+//											{
+//
+//												UG_LOG("debug output anfang " << std::endl);
+//												UG_LOG("dbg_vertizesPassiert " << dbg_vertizesPassiert << std::endl );
+//												UG_LOG("dbg_iteratorAblaufen " << dbg_iteratorAblaufen << std::endl );
+//												UG_LOG("dbg_zweiterIteratorAblaufen "  << dbg_zweiterIteratorAblaufen << std::endl);
+//												UG_LOG("dbg_FaceIterator " << dbg_FaceIterator << std::endl);
+//												UG_LOG("dbg_innterFacFracIt " << dbg_innterFacFracIt << std::endl);
+//
+//												//return true;
+//											}
+//
+//
+//											UG_LOG("----------------------" << std::endl );
 
 //											UG_LOG("type iter facFrac " << typeid( facFrac ).name() << std::endl);
 //
@@ -1477,6 +1622,25 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 											//type iter facFrac PN2ug4FaceE
 											//type iter Fac     PN2ug4FaceE
 
+//											if(    dbg_vertizesPassiert == 1
+//												&& dbg_iteratorAblaufen == 1
+//												&& dbg_zweiterIteratorAblaufen == 1
+//												&& dbg_FaceIterator == 4
+//												//&& dbg_innterFacFracIt == 0
+//											)
+//											{
+//
+//												UG_LOG("debug output mitte " << std::endl);
+//												UG_LOG("dbg_vertizesPassiert " << dbg_vertizesPassiert << std::endl );
+//												UG_LOG("dbg_iteratorAblaufen " << dbg_iteratorAblaufen << std::endl );
+//												UG_LOG("dbg_zweiterIteratorAblaufen "  << dbg_zweiterIteratorAblaufen << std::endl);
+//												UG_LOG("dbg_FaceIterator " << dbg_FaceIterator << std::endl);
+//												UG_LOG("dbg_innterFacFracIt " << dbg_innterFacFracIt << std::endl);
+//
+//												//return true;
+//											}
+
+
 
 											if( *iterFac == facFrac )
 											{
@@ -1485,6 +1649,25 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 												static_assert( std::is_same< decltype( const_cast<Face* & >(facFrac) ), Face * & >::value  );
 												static_assert( std::is_same< decltype( const_cast<Face* & >(facFrac) ), decltype( * iterFac ) >::value  );
 
+
+//												if(    dbg_vertizesPassiert == 1
+//													&& dbg_iteratorAblaufen == 1
+//													&& dbg_zweiterIteratorAblaufen == 1
+//													&& dbg_FaceIterator == 4
+//													//&& dbg_innterFacFracIt == 0
+//												)
+//												{
+//
+//													UG_LOG("debug output drei " << std::endl);
+//													UG_LOG("dbg_vertizesPassiert " << dbg_vertizesPassiert << std::endl );
+//													UG_LOG("dbg_iteratorAblaufen " << dbg_iteratorAblaufen << std::endl );
+//													UG_LOG("dbg_zweiterIteratorAblaufen "  << dbg_zweiterIteratorAblaufen << std::endl);
+//													UG_LOG("dbg_FaceIterator " << dbg_FaceIterator << std::endl);
+//													UG_LOG("dbg_innterFacFracIt " << dbg_innterFacFracIt << std::endl);
+//
+//													//return true;
+//												}
+//
 
 												// ACHTUNG neue Variable Face klein geschrieben im Gegensatz zu Prof. Reiter! nicht später falsche verwenden!
 												vector<Vertex*>& newVrts4Fac = aaVrtVecFace[ * iterFac ];
@@ -1503,6 +1686,26 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 													}
 												}
 
+//												if(    dbg_vertizesPassiert == 1
+//													&& dbg_iteratorAblaufen == 1
+//													&& dbg_zweiterIteratorAblaufen == 1
+//													&& dbg_FaceIterator == 4
+//													//&& dbg_innterFacFracIt == 0
+//												)
+//												{
+//
+//													UG_LOG("debug output vier " << std::endl);
+//													UG_LOG("dbg_vertizesPassiert " << dbg_vertizesPassiert << std::endl );
+//													UG_LOG("dbg_iteratorAblaufen " << dbg_iteratorAblaufen << std::endl );
+//													UG_LOG("dbg_zweiterIteratorAblaufen "  << dbg_zweiterIteratorAblaufen << std::endl);
+//													UG_LOG("dbg_FaceIterator " << dbg_FaceIterator << std::endl);
+//													UG_LOG("dbg_innterFacFracIt " << dbg_innterFacFracIt << std::endl);
+//
+//													//return true;
+//												}
+//
+
+
 												if( vrtxFnd <= 0 )
 												{
 													UG_THROW("vertex not found!" << std::endl);
@@ -1520,30 +1723,90 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 													UG_THROW("vertex finden komisch " << std::endl);
 												}
 
+//												UG_LOG("----------------------" << std::endl );
+//
+//
+//
+//												if(    dbg_vertizesPassiert == 1
+//													&& dbg_iteratorAblaufen == 1
+//													&& dbg_zweiterIteratorAblaufen == 1
+//													&& dbg_FaceIterator == 4
+//													//&& dbg_innterFacFracIt == 0
+//												)
+//												{
+//
+//													UG_LOG("debug output ziel " << std::endl);
+//													UG_LOG("dbg_vertizesPassiert " << dbg_vertizesPassiert << std::endl );
+//													UG_LOG("dbg_iteratorAblaufen " << dbg_iteratorAblaufen << std::endl );
+//													UG_LOG("dbg_zweiterIteratorAblaufen "  << dbg_zweiterIteratorAblaufen << std::endl);
+//													UG_LOG("dbg_FaceIterator " << dbg_FaceIterator << std::endl);
+//													UG_LOG("dbg_innterFacFracIt " << dbg_innterFacFracIt << std::endl);
+//
+//													//return true;
+//												}
+//
+//												UG_LOG("----------------------" << std::endl );
+//
+//
+//
+//												UG_LOG("debug output " << std::endl);
+//												UG_LOG("dbg_vertizesPassiert " << dbg_vertizesPassiert << std::endl );
+//												UG_LOG("dbg_iteratorAblaufen " << dbg_iteratorAblaufen << std::endl );
+//												UG_LOG("dbg_zweiterIteratorAblaufen "  << dbg_zweiterIteratorAblaufen << std::endl);
+//												UG_LOG("dbg_FaceIterator " << dbg_FaceIterator << std::endl);
+//												UG_LOG("dbg_innterFacFracIt " << dbg_innterFacFracIt << std::endl);
+//
+//
+//												UG_LOG("----------------------" << std::endl );
+
+
 												//newVrts4Fac[*iterV] = newShiftVrtx;
 											}
+
+											dbg_innterFacFracIt++;
+
 										}
+
+
 
 										if( ! isFromFrac )
 										{
 											// Vektor zum Zentrum von KNoten aus berechnen und Winkel zur Normalen bestimmen zur Unterscheidung der Seite
 											// wenn auf richtiger Seite, zuweisen
 										}
+
+										dbg_FaceIterator++;
+
 									}
+
+#endif
+
 								}
 								else
 								{
 									// andere Seite vermutet
 								}
+
+
+
 							}
 
 
 						}
 
+						dbg_zweiterIteratorAblaufen++;
+
 					}
+
+					dbg_iteratorAblaufen++;
 
 				}
 
+//				if( dbg_vertizesPassiert == 2 )
+//				{
+//					UG_LOG("Ziel erreicht " << dbg_vertizesPassiert << std::endl);
+//					return true;
+//				}
 
 //				// Ziel: die beiden parallelen Normalen mitteln, und in die jeweiligen beiden Richtungen je einen neuen Vertex erzeugen
 //				// irgendwie muss der Vertex oder die Edge besser sogar wissen, dass sie einen neuen Verschiebevertex bekommen hat
@@ -1554,8 +1817,9 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 //
 
 
-
 				UG_LOG("END THIS VERTEX NORMAL COSINE" << std::endl);
+
+
 
 			}
 			else // fractures are crossing
@@ -1568,6 +1832,8 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 		{
 
 		}
+
+		dbg_vertizesPassiert++;
 
 	}
 
@@ -1585,6 +1851,13 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 	grid.detach_from_vertices(aAdjMarkerVFP);
 	grid.detach_from_edges(aAdjMarkerB);
+
+	grid.detach_from_vertices( aAdjInfoAVVFT );
+	grid.detach_from_faces(attVrtVec);
+
+
+
+	// TODO FIXME alles detachen, was noch attached ist, da ist einiges hinzu gekommen!
 
 
 	return true;
