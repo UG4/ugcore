@@ -2031,10 +2031,52 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 
 								if( !isFromFrac )
 								{
+
 									// check if on same side of edge where the normal points to: compute cosinus between vector of face center
 									//  perpendicular to the edge
 									// TODO FIXME
-									// KAESE!!!
+
+									vector3 facCenter = CalculateCenter( *iterFac, aaPos );
+
+									vector3 perpendicu;
+
+									DropAPerpendicular(perpendicu, facCenter, aaPos[edgeOfFrac->vertex(0)], aaPos[edgeOfFrac->vertex(1)]);
+
+									vector3 tmpN;
+
+									VecSubtract(tmpN, facCenter, perpendicu );
+
+									VecNormalize(tmpN, tmpN);
+
+									UG_LOG("Normale Boundary zum Face ist " << tmpN << std::endl);
+
+									number cosBetwFracEdgAndDirection2Face = VecDot(tmpN, nrmEdg );
+
+									UG_LOG("Cosinus Boundary zur Normalen ist " << cosBetwFracEdgAndDirection2Face << std::endl);
+
+									if( cosBetwFracEdgAndDirection2Face > 0 )
+									{
+										UG_LOG("assuming boundary face to be on richt side" << std::endl);
+
+										atRightSide = true;
+
+//												Vertex * otherFacCent = *grid.create<RegularVertex>();
+//												aaPos[otherFacCent] = facCenter;
+//												sh.assign_subset(otherFacCent, 5 );
+//
+//												Vertex * pp = *grid.create<RegularVertex>();
+//												aaPos[pp] = perpendicu;
+//												sh.assign_subset(pp, 6 );
+//
+//												sh.assign_subset(*iterFac,7);
+
+
+									}
+									else
+									{
+										UG_LOG("assuming boundary face to be on wrong side" << std::endl);
+									}
+
 								}
 
 								if( atRightSide ) // atRightSide ) NOCH FALSCH TODO FIXME muss nur auf richtiger Seite sein
