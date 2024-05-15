@@ -1613,12 +1613,11 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 											// check if on same side of edge where the normal points to: compute cosinus between vector of face center
 											//  perpendicular to the edge
 											// TODO FIXME
-											atRightSide = true;
 											// KAESE!!!
 
 										}
 
-										if( isFromFrac ) // atRightSide ) NOCH FALSCH TODO FIXME muss nur auf richtiger Seite sein
+										if( atRightSide ) // atRightSide ) NOCH FALSCH TODO FIXME muss nur auf richtiger Seite sein
 										{
 
 
@@ -1893,11 +1892,10 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 									// check if on same side of edge where the normal points to: compute cosinus between vector of face center
 									//  perpendicular to the edge
 									// TODO FIXME
-									atRightSide = true;
 									// KAESE!!!
 								}
 
-								if( isFromFrac ) // atRightSide ) NOCH FALSCH TODO FIXME muss nur auf richtiger Seite sein
+								if( atRightSide ) // atRightSide ) NOCH FALSCH TODO FIXME muss nur auf richtiger Seite sein
 								{
 
 
