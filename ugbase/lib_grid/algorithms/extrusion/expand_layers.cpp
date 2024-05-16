@@ -2397,50 +2397,23 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 	{
 		Face* sf = *iter_sf;
 
-		vector<Vertex*>& newVrts = aaVrtVecFACE[sf];
-		newVrts.resize(sf->num_vertices());
-
 	//	check for each vertex whether it lies in the fracture
 	//	(aaMarkVRT > 1 in this case)
 	//	if so, we have to copy or create a vertex from/in aaVrtVec[vrt] which is
 	//	associated with the crease normal on the side of sf.
 		for(size_t i_vrt = 0; i_vrt < sf->num_vertices(); ++i_vrt)
 		{
-			newVrts[i_vrt] = NULL;
 			Vertex* vrt = sf->vertex(i_vrt);
-			if(aaMarkVRT[vrt] > 1){
+			if(aaMarkVRT[vrt] > 1)
+			{
 			//	calculate the normal on this side of the frac
-				vector3 n = CalculateCreaseNormal(grid, sf, vrt, isFracEdge, aaPos);
-
-				// NEU Test
 				// TODO FIXME so eine Funktion brauchen wir vielleicht oben auch zur Vereinfachung des Codes!!!
 				vector3 n_v2 = CalculateCreaseNormal(grid, sf, vrt, isFracEdgeB, aaPos);
 				// das calculate crease normal scheint mir ein Schwachsinn zu sein
 				// aber vielleicht doch nicht?
 
-				UG_LOG("calculated crease normal: " << n << endl);
 				UG_LOG("calculated crease normal v2: " << n_v2 << endl);
 
-			//	check whether aaVrtVecs already contains a vertex associated with n.
-			//	the normal of new vrts is stored in their position attachment
-				vector<Vertex*>& vrtVec = aaVrtVecVRT[vrt];
-				for(size_t i = 0; i < vrtVec.size(); ++i){
-					UG_LOG("comparing to: " << aaPos[vrtVec[i]] << endl);
-					if(VecDistanceSq(aaPos[vrtVec[i]], n) < SMALL){
-					//	got one
-						newVrts[i_vrt] = vrtVec[i];
-						break;
-					}
-				}
-
-			//	if we didn't find one then create and associate one.
-			//	store the normal in the position attachment of the new vertex
-				if(!newVrts[i_vrt]){
-					newVrts[i_vrt] = *grid.create<RegularVertex>();
-					aaPos[newVrts[i_vrt]] = n;
-					aaVrtVecVRT[vrt].push_back(newVrts[i_vrt]);
-				}
-			}
 		}
 	}
 #endif
