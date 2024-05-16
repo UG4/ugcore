@@ -1863,6 +1863,10 @@ bool ExpandFractures2dArte(Grid& grid, SubsetHandler& sh, const vector<FractureI
 			else // fractures are crossing
 			{
 
+				// TODO FIXME kreuzende Fractures im Innenraum -> Arte in Reinform implementieren
+				// hier geht es vor allem weiter!!!
+				// XXXXXXXXXXXXXXXXX
+
 			}
 
 		}
